@@ -31,13 +31,23 @@ function PropCore.ValidSpawn()
 	return true
 end
 
-local canHaveInvalidPhysics = {delete=true, parent=true, deparent=true, solid=true, shadow=true, draw=true}
+local canHaveInvalidPhysics = {delete=true, parent=true, deparent=true, solid=true, shadow=true, draw=true, use=true}
 function PropCore.ValidAction(self, entity, cmd)
 	if(cmd=="spawn" or cmd=="Tdelete") then return true end
 	if(!IsValid(entity)) then return false end
 	if(!canHaveInvalidPhysics[cmd] and !validPhysics(entity)) then return false end
 	if(!isOwner(self, entity)) then return false end
 	if entity:IsPlayer() then return false end
+
+	-- make sure we can only perform the same action on this prop once per tick
+	-- to prevent spam abuse
+	if not entity.e2_propcore_last_action then
+		entity.e2_propcore_last_action = {}
+	end
+	if 	entity.e2_propcore_last_action[cmd] and
+		entity.e2_propcore_last_action[cmd] == CurTime() then return false end
+	entity.e2_propcore_last_action[cmd] = CurTime()
+
 	local ply = self.player
 	return sbox_E2_PropCore:GetInt()==2 or (sbox_E2_PropCore:GetInt()==1 and ply:IsAdmin())
 end
@@ -52,83 +62,83 @@ end
 
 function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 
-	if not PropCore.ValidSpawn() then return nil end
-	
+	if not PropCore.ValidSpawn() then return NULL end
+
 	if isVehicle then
-		if self.player:CheckLimit( "vehicles" ) == false then return nil end
+		if self.player:CheckLimit( "vehicles" ) == false then return NULL end
 		if model == "" then model = "models/nova/airboat_seat.mdl" end
 	end
-	
-	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return nil end
-	
-	pos = E2Lib.clampPos( pos )
-	
+
+	if not util.IsValidProp( model ) or not WireLib.CanModel(self.player, model) then return NULL end
+
+	pos = WireLib.clampPos( pos )
+
 	local prop
-	
+
 	local cleanupCategory = "props"
 	local undoCategory = "e2_spawned_prop"
 	local undoName = "E2 Prop"
-	
+
 	if isVehicle then
 		cleanupCategory = "vehicles"
 		undoCategory = "e2_spawned_seat"
 		undoName = "E2 Seat"
-		
+
 		prop = ents.Create("prop_vehicle_prisoner_pod")
 		prop:SetModel(model)
 		prop:SetPos(pos)
 		prop:SetAngles(angles)
-		
+
 		if self.data.propSpawnEffect then DoPropSpawnedEffect( prop ) end
-		
+
 		prop:Spawn()
 		prop:SetKeyValue( "limitview", 0 )
-		
+
 		table.Merge( prop, { HandleAnimation = function( _, ply ) return ply:SelectWeightedSequence( ACT_HL2MP_SIT ) end } )
 		gamemode.Call( "PlayerSpawnedVehicle", self.player, prop )
 	else
 		prop = self.data.propSpawnEffect and MakeProp( self.player, pos, angles, model, {}, {} ) or MakePropNoEffect( self.player, pos, angles, model, {}, {} )
 	end
-	
-	if not IsValid( prop ) then return nil end
-	
+
+	if not IsValid( prop ) then return NULL end
+
 	prop:Activate()
-	
+
 	local phys = prop:GetPhysicsObject()
 	if IsValid( phys ) then
-		if angles ~= nil then E2Lib.setAng( phys, angles ) end
+		if angles ~= nil then WireLib.setAng( phys, angles ) end
 		phys:Wake()
 		if freeze > 0 then phys:EnableMotion( false ) end
 	end
-	
+
 	self.player:AddCleanup( cleanupCategory, prop )
-	
+
 	if self.data.propSpawnUndo then
 		undo.Create( undoCategory )
 			undo.AddEntity( prop )
 			undo.SetPlayer( self.player )
 		undo.Finish( undoName .. " (" .. model .. ")" )
 	end
-	
+
 	prop:CallOnRemove( "wire_expression2_propcore_remove",
 		function( prop )
 			self.data.spawnedProps[ prop ] = nil
 			E2totalspawnedprops = E2totalspawnedprops - 1
 		end
 	)
-	
+
 	self.data.spawnedProps[ prop ] = self.data.propSpawnUndo
 	E2totalspawnedprops = E2totalspawnedprops + 1
 	E2tempSpawnedProps = E2tempSpawnedProps + 1
-	
+
 	return prop
 end
 
 function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 	local phys = this:GetPhysicsObject()
 	if IsValid( phys ) then
-		if pos ~= nil then E2Lib.setPos( phys, Vector( pos[1],pos[2],pos[3] ) ) end
-		if rot ~= nil then E2Lib.setAng( phys,  Angle( rot[1],rot[2],rot[3] ) ) end
+		if pos ~= nil then WireLib.setPos( phys, Vector( pos[1],pos[2],pos[3] ) ) end
+		if rot ~= nil then WireLib.setAng( phys,  Angle( rot[1],rot[2],rot[3] ) ) end
 		if freeze ~= nil and this:GetUnFreezable() ~= true then phys:EnableMotion( freeze == 0 ) end
 		if gravity ~= nil then phys:EnableGravity( gravity ~= 0 ) end
 		if notsolid ~= nil then this:SetSolid( notsolid ~= 0 and SOLID_NONE or SOLID_VPHYSICS ) end
@@ -142,48 +152,48 @@ end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(30)
+__e2setcost(40)
 e2function entity propSpawn(string model, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
 end
 
 e2function entity propSpawn(entity template, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if not IsValid(template) then return NULL end
 	return PropCore.CreateProp(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
 end
 
 e2function entity propSpawn(string model, vector pos, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),self.entity:GetAngles(),frozen)
 end
 
 e2function entity propSpawn(entity template, vector pos, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if not IsValid(template) then return NULL end
 	return PropCore.CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),self.entity:GetAngles(),frozen)
 end
 
 e2function entity propSpawn(string model, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
 e2function entity propSpawn(entity template, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if not IsValid(template) then return NULL end
 	return PropCore.CreateProp(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
 e2function entity propSpawn(string model, vector pos, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
 e2function entity propSpawn(entity template, vector pos, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if not IsValid(template) then return NULL end
 	return PropCore.CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
@@ -191,18 +201,18 @@ end
 
 __e2setcost(60)
 e2function entity seatSpawn(string model, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen,true)
 end
 
 e2function entity seatSpawn(string model, vector pos, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen,true)
 end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(5)
+__e2setcost(10)
 e2function void entity:propDelete()
 	if not PropCore.ValidAction(self, this, "delete") then return end
 	this:Remove()
@@ -211,6 +221,20 @@ end
 e2function void entity:propBreak()
 	if not PropCore.ValidAction(self, this, "break") then return end
 	this:Fire("break",1,0)
+end
+
+e2function void entity:use()
+	if not PropCore.ValidAction(self, this, "use") then return end
+
+	local ply = self.player
+	if not IsValid(ply) then return end -- if the owner isn't connected to the server, do nothing
+
+	if not hook.Run( "PlayerUse", ply, this ) then return end
+	if this.Use then
+		this:Use(ply,ply,USE_ON,0)
+	else
+		this:Fire("use","1",0)
+	end
 end
 
 __e2setcost(30)
@@ -226,7 +250,7 @@ local function removeAllIn( self, tbl )
 end
 
 e2function number table:propDelete()
-	if not PropCore.ValidAction(self, nil, "Tdelete") then return end
+	if not PropCore.ValidAction(self, nil, "Tdelete") then return 0 end
 
 	local count = removeAllIn( self, this.s )
 	count = count + removeAllIn( self, this.n )
@@ -237,7 +261,7 @@ e2function number table:propDelete()
 end
 
 e2function number array:propDelete()
-	if not PropCore.ValidAction(self, nil, "Tdelete") then return end
+	if not PropCore.ValidAction(self, nil, "Tdelete") then return 0 end
 
 	local count = removeAllIn( self, this )
 
@@ -256,7 +280,7 @@ e2function void propDeleteAll()
 end
 
 
-__e2setcost(5)
+__e2setcost(10)
 
 --------------------------------------------------------------------------------
 e2function void entity:propManipulate(vector pos, angle rot, number freeze, number gravity, number notsolid)
@@ -322,7 +346,7 @@ e2function void entity:propSetFriction(number friction)
 end
 
 e2function number entity:propGetFriction()
-	if not PropCore.ValidAction(self, this, "friction") then return end
+	if not PropCore.ValidAction(self, this, "friction") then return 0 end
 	return this:GetFriction()
 end
 
@@ -332,7 +356,7 @@ e2function void entity:propSetElasticity(number elasticity)
 end
 
 e2function number entity:propGetElasticity()
-	if not PropCore.ValidAction(self, this, "elasticity") then return end
+	if not PropCore.ValidAction(self, this, "elasticity") then return 0 end
 	return this:GetElasticity()
 end
 
@@ -349,10 +373,26 @@ e2function void entity:propPhysicalMaterial(string physprop)
 end
 
 e2function string entity:propPhysicalMaterial()
-	if not PropCore.ValidAction(self, this, "physprop") then return end
+	if not PropCore.ValidAction(self, this, "physprop") then return "" end
 	local phys = this:GetPhysicsObject()
 	if IsValid(phys) then return phys:GetMaterial() or "" end
 	return ""
+end
+
+e2function void entity:propSetVelocity(vector velocity)
+	if not PropCore.ValidAction(self, this, "velocitynxt") then return end
+	local phys = this:GetPhysicsObject()
+	if IsValid( phys ) then
+		phys:SetVelocity(Vector(velocity[1], velocity[2], velocity[3]))
+	end
+end
+
+e2function void entity:propSetVelocityInstant(vector velocity)
+	if not PropCore.ValidAction(self, this, "velocityins") then return end
+	local phys = this:GetPhysicsObject()
+	if IsValid( phys ) then
+		phys:SetVelocityInstantaneous(Vector(velocity[1], velocity[2], velocity[3]))
+	end
 end
 
 hook.Add( "CanDrive", "checkPropStaticE2", function( ply, ent ) if ent.propStaticE2 ~= nil then return false end end )
@@ -378,6 +418,7 @@ end
 
 --------------------------------------------------------------------------------
 
+__e2setcost(20)
 e2function void entity:setPos(vector pos)
 	if not PropCore.ValidAction(self, this, "pos") then return end
 	PropCore.PhysManipulate(this, pos, nil, nil, nil, nil)
@@ -423,6 +464,7 @@ e2function void entity:parentTo(entity target)
 	this:SetParent(target)
 end
 
+__e2setcost(5)
 e2function void entity:deparent()
 	if not PropCore.ValidAction(self, this, "deparent") then return end
 	this:SetParent( nil )

@@ -127,7 +127,7 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-	self.BaseClass.OnRestore(self)
+	BaseClass.OnRestore(self)
 	Radio_Register(self)
 end
 

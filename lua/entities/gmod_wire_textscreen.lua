@@ -15,7 +15,7 @@ function ENT:InitializeShared()
 end
 
 
-if CLIENT then 
+if CLIENT then
 	local Layouter = {}
 	Layouter.__index = Layouter
 
@@ -190,7 +190,7 @@ if CLIENT then
 			self:SetText(net.ReadString())
 		end
 	end
-	
+
 	local createdFonts = {}
 	function ENT:CreateFont(font, chrPerLine)
 		if createdFonts[font .. chrPerLine] then return end
@@ -206,7 +206,7 @@ if CLIENT then
 		createdFonts[font .. chrPerLine] = true
 		self.NeedRefresh = true
 	end
-	
+
 	return  -- No more client
 end
 
@@ -229,7 +229,7 @@ function ENT:Setup(DefaultText, chrPerLine, textJust, valign, tfont, fgcolor, bg
 	self.valign = valign or 0
 	self.tfont = tfont or "Arial"
 	self:SendConfig()
-	
+
 	self.text = DefaultText or ""
 	self:TriggerInput("String", self.text)
 end
@@ -274,11 +274,11 @@ function ENT:SendConfig(ply)
 		net.WriteUInt(self.chrPerLine, 4)
 		net.WriteUInt(self.textJust, 2)
 		net.WriteUInt(self.valign, 2)
-		
+
 		net.WriteUInt(self.fgcolor.r, 8)
 		net.WriteUInt(self.fgcolor.g, 8)
 		net.WriteUInt(self.fgcolor.b, 8)
-		
+
 		net.WriteUInt(self.bgcolor.r, 8)
 		net.WriteUInt(self.bgcolor.g, 8)
 		net.WriteUInt(self.bgcolor.b, 8)

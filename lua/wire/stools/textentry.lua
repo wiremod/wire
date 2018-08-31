@@ -24,7 +24,7 @@ if SERVER then
 	end
 end
 
-WireToolSetup.SetupLinking(true)
+WireToolSetup.SetupLinking(true, "vehicle")
 
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header",{Description="Input strings on a keyboard to be used with the wire system."})

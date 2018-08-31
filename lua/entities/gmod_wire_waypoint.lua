@@ -4,13 +4,13 @@ ENT.PrintName       = "Wire Waypoint Beacon"
 ENT.WireDebugName	= "Waypoint"
 
 function ENT:GetNextWaypoint()
-	return self:GetNetworkedEntity("NextWaypoint")
+	return self:GetNWEntity("NextWaypoint")
 end
 
 if CLIENT then
 	local physBeamMat = Material("cable/physbeam")
 	function ENT:Draw()
-		self.BaseClass.Draw(self)
+		BaseClass.Draw(self)
 
 		local nextWP = self:GetNextWaypoint()
 		if IsValid(nextWP) and (LocalPlayer():GetEyeTrace().Entity == self) and (EyePos():Distance(self:GetPos()) < 4096) then
@@ -56,7 +56,7 @@ function ENT:SetNextWaypoint(wp)
 	local SavedNextWaypoint = self:GetNextWaypoint()
 
 	if SavedNextWaypoint:IsValid() and SavedNextWaypoint ~= wp then
-		self:SetNetworkedEntity("NextWaypoint", wp)
+		self:SetNWEntity("NextWaypoint", wp)
 
 		local waypoints = self.waypoints
 		for _,ent in ipairs(waypoints) do
@@ -70,7 +70,7 @@ function ENT:SetNextWaypoint(wp)
 		return
 	end
 
-	self:SetNetworkedEntity("NextWaypoint", wp)
+	self:SetNWEntity("NextWaypoint", wp)
 
 	if table.HasValue(self.waypoints, wp) then return end
 

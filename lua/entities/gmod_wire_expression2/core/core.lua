@@ -108,49 +108,6 @@ registerOperator("for", "", "", function(self, args)
 
 end)
 
-registerOperator("fea","r","",function(self,args)
-	local keyname,valname,valtypeid = args[2],args[3],args[4]
-	local tbl = args[5]
-	tbl = tbl[1](self,tbl)
-	local statement = args[6]
-
-	local typechecker = wire_expression_types2[valtypeid][6]
-
-	local keys = {}
-	local count = 0
-	for key,value in pairs(tbl) do
-		if not typechecker(value) then
-			count = count + 1
-			keys[count] = key
-		end
-	end
-
-	for i=1,count do
-		self:PushScope()
-		local key = keys[i]
-		if tbl[key] ~= nil then
-			self.prf = self.prf + 3
-
-			self.Scope[keyname] = key
-			self.Scope[valname] = tbl[key]
-			self.Scope.vclk[keyname] = true
-			self.Scope.vclk[valname] = true
-
-			local ok, msg = pcall(statement[1], self, statement)
-			if not ok then
-				if msg == "break" then
-					self:PopScope()
-					break
-				elseif msg ~= "continue" then
-					self:PopScope()
-					error(msg, 0)
-				end
-			end
-		end
-		self:PopScope()
-	end
-end)
-
 __e2setcost(2) -- approximation
 
 registerOperator("brk", "", "", function(self, args)
@@ -368,6 +325,11 @@ __e2setcost(100) -- approximation
 e2function void reset()
 	if self.data.last or self.entity.first then error("exit", 0) end
 
+	if self.entity.last_reset and self.entity.last_reset == CurTime() then
+		error("Attempted to reset the E2 twice in the same tick!", 2)
+	end
+	self.entity.last_reset = CurTime()
+
 	self.data.reset = true
 	error("exit", 0)
 end
@@ -418,7 +380,7 @@ end
 
 --- If used as a while loop condition, stabilizes the expression around <maxexceed> hardquota used.
 e2function number perf()
-	if self.prf >= e2_tickquota*0.95 then return 0 end
+	if self.prf >= e2_tickquota*0.95-200 then return 0 end
 	if self.prf + self.prfcount >= e2_hardquota then return 0 end
 	if self.prf >= e2_softquota*2 then return 0 end
 	return 1
@@ -509,16 +471,18 @@ registerOperator("switch", "", "", function(self, args)
 	end
 
 	if startcase then
-
 		for i=startcase, #cases do
 			local stmts = cases[i][2]
 			local ok, msg = pcall(stmts[1], self, stmts)
 			if not ok then
-				if msg == "break" then break
-				elseif msg ~= "continue" then error(msg, 0) end
+				if msg == "break" then
+					break
+				elseif msg ~= "continue" then
+					self:PopScope()
+					error(msg, 0)
+				end
 			end
 		end
-
 	end
 
 	self:PopScope()
@@ -526,16 +490,16 @@ end)
 
 registerOperator("include", "", "", function(self, args)
 	local Include = self.includes[ args[2] ]
-	
+
 	if Include and Include[2] then
 		local Script = Include[2]
-		
+
 		local OldScopes = self:SaveScopes()
 		self:InitScope() -- Create a new Scope Enviroment
 		self:PushScope()
-		
+
 		Script[1](self, Script)
-		
+
 		self:PopScope()
 		self:LoadScopes(OldScopes)
 	end

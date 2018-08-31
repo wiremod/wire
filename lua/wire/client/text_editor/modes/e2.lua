@@ -168,20 +168,24 @@ function EDITOR:ResetTokenizer(row)
 
     local str = string_gsub( table_concat( self.Rows, "\n", 1, self.Scroll[1]-1 ), "\r", "" )
 
-    for before, char, after in string_gmatch( str, '()([#"\n])()' ) do
-      local before = string_sub( str, before-1, before-1  )
-      local after = string_sub( str, after, after )
+    for pos, char in string_gmatch( str, '()([#"\n])' ) do
       if not self.blockcomment and not self.multilinestring and not singlelinecomment then
         if char == '"' then
           self.multilinestring = true
-        elseif char == "#" and after == "[" then
+        elseif char == "#" and string_sub( str, pos + 1, pos + 1 ) == "[" then
           self.blockcomment = true
         elseif char == "#" then
           singlelinecomment = true
         end
-      elseif self.multilinestring and char == '"' and before ~= "\\" then
-        self.multilinestring = nil
-      elseif self.blockcomment and char == "#" and before == "]" then
+      elseif self.multilinestring and char == '"' then
+        local escapecount = 0
+        while pos - escapecount - 1 > 0 and string_sub( str, pos - escapecount - 1, pos - escapecount -1 ) == "\\" do
+          escapecount = escapecount + 1
+        end
+        if escapecount % 2 == 0 then
+          self.multilinestring = nil
+        end
+      elseif self.blockcomment and char == "#" and string_sub( str, pos - 1, pos - 1  ) == "]" then
         self.blockcomment = nil
       elseif singlelinecomment and char == "\n" then
         singlelinecomment = false
@@ -204,7 +208,7 @@ function EDITOR:SyntaxColorLine(row)
   self:ResetTokenizer(row)
   self:NextCharacter()
 
-  -- 0=name 1=port 2=trigger 3=foreach
+  -- 0=name 1=port 2=trigger 3=foreach 4=foreachkey 5=foreachvalue
   local highlightmode = nil
 
   if self.blockcomment then
@@ -284,11 +288,7 @@ function EDITOR:SyntaxColorLine(row)
       addToken( "notfound", returntype )
     end
     addToken( "comment", spaces )
-    if istype( funcname ) then -- Hey... this isn't a function name! :O
-    addToken( "typename", funcname )
-    else
-      addToken( "userfunction", funcname )
-    end
+    addToken( "userfunction", funcname )
 
     if not wire_expression2_funclist[funcname] then
       self.e2fs_functions[funcname] = row
@@ -314,14 +314,10 @@ function EDITOR:SyntaxColorLine(row)
     elseif self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then -- funcname
     local funcname = self.tokendata:match( "[a-z][a-zA-Z0-9_]*" )
 
-    if istype( funcname ) or funcname == "void" then -- Hey... this isn't a function name! :O
-    addToken( "typename", funcname )
-    else
-      addToken( "userfunction", funcname )
+    addToken( "userfunction", funcname )
 
-      if not wire_expression2_funclist[funcname] then
-        self.e2fs_functions[funcname] = row
-      end
+    if not wire_expression2_funclist[funcname] then
+      self.e2fs_functions[funcname] = row
     end
 
     self.tokendata = ""
@@ -420,9 +416,12 @@ function EDITOR:SyntaxColorLine(row)
           tokenname = "typename"
         elseif highlightmode == 2 and (sstr == "all" or sstr == "none") then
           tokenname = "directive"
-        elseif highlightmode == 3 and istype(sstr) then
+        elseif (highlightmode == 4 or highlightmode == 5) and istype(sstr) then
           tokenname = "typename"
-          highlightmode = nil
+
+          if highlightmode == 5 then
+            highlightmode = nil
+          end
         else
           tokenname = "notfound"
         end
@@ -480,6 +479,11 @@ function EDITOR:SyntaxColorLine(row)
     elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
       tokenname = "variable"
 
+      if highlightmode == 3 then
+        highlightmode = 4
+      elseif highlightmode == 4 then
+        highlightmode = 5
+      end
     elseif self.character == '"' then
       self:NextCharacter()
       while self.character do -- Find the ending "
@@ -524,7 +528,7 @@ function EDITOR:SyntaxColorLine(row)
 
         self:NextPattern("[^ ]*") -- Find the whole word
 
-        if PreProcessor["PP_"..self.tokendata:sub(2)] then
+        if E2Lib.PreProcessor["PP_"..self.tokendata:sub(2)] then
           -- there is a preprocessor command by that name => mark as such
           tokenname = "ppcommand"
         elseif self.tokendata == "#include" then

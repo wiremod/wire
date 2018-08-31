@@ -136,7 +136,7 @@ registerCallback( "postinit", function()
 			-- Get functions
 			-- value = R[N,type], and value = R:<type>(N)
 			--------------------------------------------------------------------------------
-			__e2setcost(10)
+			__e2setcost(5)
 
 			local function getter( self, array, index, doremove )
 				if (!array or !index) then return fixdef( default ) end -- Make sure array and index are value
@@ -198,7 +198,7 @@ registerCallback( "postinit", function()
 			-- Push functions
 			-- Inserts the value at the end of the array
 			--------------------------------------------------------------------------------
-			__e2setcost(15)
+			__e2setcost(7)
 
 			registerFunction( "push" .. nameupperfirst, "r:" .. id, id, function(self,args)
 				local op1, op2 = args[2], args[3]
@@ -259,6 +259,42 @@ registerCallback( "postinit", function()
 				return getter( self, array, index, true )
 			end)
 
+			--------------------------------------------------------------------------------
+			-- Foreach operators
+			--------------------------------------------------------------------------------
+			__e2setcost(0)
+
+			registerOperator("fea", "n" .. id .. "r", "", function(self, args)
+				local keyname, valname = args[2], args[3]
+
+				local tbl = args[4]
+				tbl = tbl[1](self, tbl)
+
+				local statement = args[5]
+
+				for key, value in pairs(tbl) do
+					if not typecheck(value) then
+						self:PushScope()
+
+						self.prf = self.prf + 3
+
+						self.Scope.vclk[keyname] = true
+						self.Scope.vclk[valname] = true
+
+						self.Scope[keyname] = key
+						self.Scope[valname] = value
+
+						local ok, msg = pcall(statement[1], self, statement)
+
+						if not ok then
+							if msg == "break" then	self:PopScope() break
+							elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+						end
+
+						self:PopScope()
+					end
+				end
+			end)
 
 		end -- blocked check end
 	end
@@ -266,43 +302,47 @@ end)
 
 --------------------------------------------------------------------------------
 -- Pop
--- Removes the last entry in the array
+-- Removes the last entry in the array and returns 1 if removed
 --------------------------------------------------------------------------------
-__e2setcost(15)
-e2function void array:pop()
-	table_remove( this )
+__e2setcost(2)
+e2function number array:pop()
+	local result = table_remove( this ) and 1 or 0
 	self.GlobalScope.vclk[this] = true
-end
-
---------------------------------------------------------------------------------
--- Remove
--- Removes the specified entry in the array
---------------------------------------------------------------------------------
-__e2setcost(15)
-e2function void array:remove( index )
-	table_remove( this, index )
-	self.GlobalScope.vclk[this] = true
-end
-
---------------------------------------------------------------------------------
--- Force remove
--- Forcibly removes the value from the array by setting it to nil
--- Does not shift larger indexes down to fill the hole
---------------------------------------------------------------------------------
-e2function void array:unset( index )
-	if this[index] == nil then return end
-	this[index] = nil
-	self.GlobalScope.vclk[this] = true
+	return result
 end
 
 --------------------------------------------------------------------------------
 -- Shift
--- Removes the first entry in the array
+-- Removes the first element of the array; all other entries will move down one address and returns 1 if removed
 --------------------------------------------------------------------------------
-__e2setcost(15)
-e2function void array:shift()
-	table_remove( this, 1 )
+__e2setcost(3)
+e2function number array:shift()
+	local result = table_remove( this, 1 ) and 1 or 0
 	self.GlobalScope.vclk[this] = true
+	return result
+end
+
+--------------------------------------------------------------------------------
+-- Remove
+-- Removes the specified entry, moving subsequent entries down to compensate and returns 1 if removed
+--------------------------------------------------------------------------------
+__e2setcost(2)
+e2function number array:remove( index )
+	local result = table_remove( this, index ) and 1 or 0
+	self.GlobalScope.vclk[this] = true
+	return result
+end
+
+--------------------------------------------------------------------------------
+-- Force remove
+-- Force removes the specified entry, without moving subsequent entries down and returns 1 if removed
+-- Does not shift larger indexes down to fill the hole
+--------------------------------------------------------------------------------
+e2function number array:unset( index )
+	if this[index] == nil then return 0 end
+	this[index] = nil
+	self.GlobalScope.vclk[this] = true
+	return 1
 end
 
 --------------------------------------------------------------------------------
@@ -318,7 +358,7 @@ end
 -- Count
 -- Returns the number of entries in the array
 --------------------------------------------------------------------------------
-__e2setcost(5)
+__e2setcost(3)
 e2function number array:count()
 	return #this
 end
@@ -410,8 +450,8 @@ e2function number array:minIndex()
 	for k,v in pairs( this ) do
 		indexes = indexes + 1
 		local val = tonumber(v) or 0
-		if (num == nil or v < num) then
-			num = v
+		if (num == nil or val < num) then
+			num = val
 			index = k
 		end
 	end
@@ -469,12 +509,12 @@ local clamp = math.Clamp
 local function concat( tab, delimeter, startindex, endindex )
 	local ret = {}
 	local len = #tab
-	
+
 	startindex = startindex or 1
 	if startindex > len then return "" end
-	
+
 	endindex = clamp(endindex or len, startindex, len)
-	
+
 	for i=startindex, endindex do
 		ret[#ret+1] = tostring(tab[i])
 	end

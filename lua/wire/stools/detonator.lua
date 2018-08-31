@@ -4,17 +4,17 @@ WireToolSetup.open( "detonator", "Detonator", "gmod_wire_detonator", nil, "Deton
 if CLIENT then
 	language.Add( "tool.wire_detonator.name", "Detonator Tool (Wire)" )
 	language.Add( "tool.wire_detonator.desc", "Spawns a Detonator for use with the wire system." )
-	language.Add( "tool.wire_detonator.0", "Primary: Create/Update Detonator" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("detonator")
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "damage" )
 	end
-	
+
 	function TOOL:MakeEnt(ply, model, Ang, trace)
 		local ent = WireToolObj.MakeEnt(self, ply, model, Ang, trace )
 		ent.target = trace.Entity

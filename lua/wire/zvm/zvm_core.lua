@@ -26,14 +26,18 @@ include("wire/zvm/zvm_data.lua")
 if ZVM.MicrocodeDebug then -- Debug microcode generator
   local pad = 0
   function ZVM:Emit(text)
-    if string.find(text,"end") and (not string.find(text,"if")) then pad = pad - 1 end
+    if string.find(text,"end") and (not string.find(text,"if"))
+    then pad = pad - 1 end
 
     if string.find(text,"elseif") or string.find(text,"else")
     then self.EmitBlock = self.EmitBlock..string.rep("  ",pad-1)..text.."\n"
     else self.EmitBlock = self.EmitBlock..string.rep("  ",pad)..text.."\n"
     end
 
-    if (string.find(text,"if") or string.find(text,"for")) and (not string.find(text,"elseif")) and (not string.find(text,"end")) then pad = pad + 1 end
+    if (string.find(text,"if") or string.find(text,"for"))
+       and (not string.find(text,"elseif"))
+       and (not string.find(text,"end"))
+    then pad = pad + 1 end
   end
 else
   function ZVM:Emit(text)
@@ -76,7 +80,7 @@ end
 -- Load/fetch operand (by RM)
 function ZVM:Dyn_LoadOperand(OP,RM)
   if self.OperandReadFunctions[RM] then
-    local preEmit = ""
+    local preEmit
     if self.ReadInvolvedRegisterLookup[RM] and
        self.EmitRegisterChanged[self.ReadInvolvedRegisterLookup[RM]] then
       -- Available local value for this register
@@ -112,12 +116,12 @@ function ZVM:Dyn_WriteOperand(OP,RM)
 
   if self.OperandWriteFunctions[RM] then
     if self.EmitExpression[OP] then -- check if we need writeback
-      local preEmit = ""
+      local preEmit
       if self.WriteInvolvedRegisterLookup[RM] then
         preEmit = self.OperandFastWriteFunctions[RM]
-        self.EmitRegisterChanged[self.WriteInvolvedRegisterLookup[RM]] = self.InternalRegister[self.WriteInvolvedRegisterLookup[RM]]
-        --self.EmitRegisterChangedByOperand[self.WriteInvolvedRegisterLookup[RM]] = self.InternalRegister[self.WriteInvolvedRegisterLookup[RM]]
-      else
+        self.EmitRegisterChanged[self.WriteInvolvedRegisterLookup[RM]]
+          = self.InternalRegister[self.WriteInvolvedRegisterLookup[RM]]
+        else
         if self.WriteRequiredRegisterLookup[RM] and
            self.EmitRegisterChanged[self.WriteRequiredRegisterLookup[RM]] then
           preEmit = self.OperandFastWriteFunctions[RM]
@@ -179,7 +183,7 @@ end
 -- Force current state to be updated
 function ZVM:Dyn_EmitState(errorState)
   -- Do we need to emit registers
-  for k,v in pairs(self.EmitRegisterChanged) do
+  for v,v in pairs(self.EmitRegisterChanged) do
     --if (not errorState) or (not self.EmitRegisterChangedByOperand[k]) then
     self:Emit("VM."..v.." = "..v)
     --end
@@ -283,22 +287,23 @@ function ZVM:Dyn_EmitInterruptCheck()
         self:Dyn_EmitBreak()
       self:Emit("elseif VM.MEMRQ == 2 then") -- Reading
         self:Dyn_EmitState(true)
+        self:Emit("VM.MEMRQ = 4")
         self:Emit("VM.IP = "..self.PrecompileStartIP)
         self:Emit("VM.XEIP = "..(self.PrecompileTrueXEIP or 0))
-        self:Emit("VM:Interrupt(29,0)")
+        self:Emit("VM:Interrupt(28,VM.LADD)")
         self:Dyn_EmitBreak()
       self:Emit("elseif VM.MEMRQ == 3 then") -- Writing
         self:Dyn_EmitState(true)
+        self:Emit("VM.MEMRQ = 5")
         self:Emit("VM.IP = "..self.PrecompileStartIP)
         self:Emit("VM.XEIP = "..(self.PrecompileTrueXEIP or 0))
-        self:Emit("VM:Interrupt(30,VM.LADD)")
+        self:Emit("VM:Interrupt(29,VM.LADD)")
         self:Dyn_EmitBreak()
       self:Emit("end")
     self:Emit("end")
   end
   self:Emit("if VM.INTR == 1 then")
-    self:Dyn_EmitState(true)
-    self:Dyn_EmitBreak(true)
+    self:Dyn_EmitBreak(false)
   self:Emit("end")
 end
 
@@ -384,7 +389,7 @@ end
 function ZVM:Precompile_Peek()
   local prevIF = self.IF
   self.IF = 0
-  local value = self:ReadCell(self.PrecompileXEIP)
+  self:ReadCell(self.PrecompileXEIP)
   self.IF = prevIF
 end
 
@@ -408,7 +413,7 @@ function ZVM:Precompile_Step()
     self:Emit("VM:SetCurrentPage("..math.floor(self.PrecompileXEIP/128)..")")
     self:Emit("if (VM.PCAP == 1) and (VM.CurrentPage.Execute == 0) and")
     self:Emit("   (VM.PreviousPage.RunLevel ~= 0) then")
-      self:Dyn_EmitInterrupt("14","VM.CPAGE")
+      self:Dyn_EmitInterrupt("14",self.PrecompileIP)
     self:Emit("end")
     self:Emit("VM:SetPreviousPage("..math.floor(self.PrecompileXEIP/128)..")")
 
@@ -433,7 +438,7 @@ function ZVM:Precompile_Step()
   end
 
   -- If failed to fetch opcode/RM then report an error
-  if self.INTR == 1 then
+  if (not Opcode) or (not RM) then--if self.INTR == 1 then
     self.IF = 1
     self:Interrupt(5,12)
     return
@@ -486,7 +491,7 @@ function ZVM:Precompile_Step()
   end
 
   -- If failed to fetch segment prefix then report an error
-  if self.INTR == 1 then
+  if (not Segment1) or (not Segment2) then--if self.INTR == 1 then
     self:Interrupt(5,12)
     return
   end
@@ -503,9 +508,9 @@ function ZVM:Precompile_Step()
     -- Fetch immediate values if required
     if isFixedSize then
       self.EmitOperandByte[1] = self:Precompile_Fetch() or 0
-      if self.INTR == 1 then self:Interrupt(5,22) return end
+      if not self.EmitOperandByte[1] then self:Interrupt(5,22) return end
       self.EmitOperandByte[2] = self:Precompile_Fetch() or 0
-      if self.INTR == 1 then self:Interrupt(5,32) return end
+      if not self.EmitOperandByte[2] then self:Interrupt(5,32) return end
 
       if self.OperandCount[Opcode] > 0 then
         self:Dyn_LoadOperand(1,dRM1)
@@ -518,7 +523,7 @@ function ZVM:Precompile_Step()
         if self.NeedFetchByteLookup[dRM1] then
           self.EmitOperandByte[1] = self:Precompile_Fetch() or 0
           -- If failed to read the byte, report an error
-          if self.INTR == 1 then self:Interrupt(5,22) return end
+          if not self.EmitOperandByte[1] then self:Interrupt(5,22) return end
         end
         self:Dyn_LoadOperand(1,dRM1)
 
@@ -526,7 +531,7 @@ function ZVM:Precompile_Step()
           if self.NeedFetchByteLookup[dRM2] then
             self.EmitOperandByte[2] = self:Precompile_Fetch() or 0
             -- If failed to read the byte, report an error
-            if self.INTR == 1 then self:Interrupt(5,32) return end
+            if not self.EmitOperandByte[2] then self:Interrupt(5,32) return end
           end
           self:Dyn_LoadOperand(2,dRM2)
         end
@@ -570,7 +575,7 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
 
   -- Trigger timers
   self:TimerLogic()
-  
+
   -- Calculate absolute execution address and set current page
   self.XEIP = self.IP + self.CS
   self:SetCurrentPage(math.floor(self.XEIP/128))
@@ -578,7 +583,7 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
   -- Do not allow execution if we are not on kernel page, or not calling from kernel page
   if (self.PCAP == 1) and (self.CurrentPage.Execute == 0) and
      (self.PreviousPage.RunLevel ~= 0) then
-    self:Interrupt(14,self.CPAGE)
+    self:Interrupt(14,self.IP)
     return -- Step failed
   end
 
@@ -634,7 +639,7 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
       instruction = instruction + 1
     end
 
-    local func = self:Precompile_Finalize()
+    self:Precompile_Finalize()
 
     -- Step clock forward (account for precompiling)
     self.TMR = self.TMR + 24*8000--instruction*9000

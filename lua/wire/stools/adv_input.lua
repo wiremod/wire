@@ -1,10 +1,9 @@
 WireToolSetup.setCategory( "Input, Output/Keyboard Interaction" )
-WireToolSetup.open( "adv_input", "Adv. Input", "gmod_wire_adv_input", nil, "Adv Inputs" )
+WireToolSetup.open( "adv_input", "Adv. Input", "gmod_wire_adv_input", nil, "Adv. Inputs" )
 
 if CLIENT then
 	language.Add( "tool.wire_adv_input.name", "Adv. Input Tool (Wire)" )
 	language.Add( "tool.wire_adv_input.desc", "Spawns a adv. input for use with the wire system." )
-	language.Add( "tool.wire_adv_input.0", "Primary: Create/Update Adv. Input" )
 	language.Add( "WireAdvInputTool_keymore", "Increase:" )
 	language.Add( "WireAdvInputTool_keyless", "Decrease:" )
 	language.Add( "WireAdvInputTool_toggle", "Toggle" )
@@ -12,19 +11,20 @@ if CLIENT then
 	language.Add( "WireAdvInputTool_value_max", "Maximum:" )
 	language.Add( "WireAdvInputTool_value_start", "Start at:" )
 	language.Add( "WireAdvInputTool_speed", "Change per second:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
-WireToolSetup.BaseLang("Adv. Inputs")
+WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("Numpad")
-	
-	function TOOL:GetConVars() 
+
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "keymore" ), self:GetClientNumber( "keyless" ), self:GetClientNumber( "toggle" ),
 			self:GetClientNumber( "value_min" ), self:GetClientNumber( "value_max" ), self:GetClientNumber( "value_start" ),
 			self:GetClientNumber( "speed" )
 	end
-	
+
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 

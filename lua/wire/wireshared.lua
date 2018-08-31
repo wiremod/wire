@@ -15,17 +15,17 @@ local hook = hook
 
 -- Returns a noniterable version of tbl. So indexing still works, but pairs(tbl) won't find anything
 -- Useful for hiding entity lookup tables, since Garrydupe uses util.TableToJSON, which crashes on tables with entity keys
-function table.MakeNonIterable(tbl)
+function table.MakeNonIterable(tbl) -- luacheck: ignore
     return setmetatable({}, { __index = tbl, __setindex = tbl})
 end
 
 -- Checks if the table is empty, it's faster than table.Count(Table) > 0
-function table.IsEmpty(Table)
+function table.IsEmpty(Table) -- luacheck: ignore
 	return (next(Table) == nil)
 end
 
 -- Compacts an array by rejecting entries according to cb.
-function table.Compact(tbl, cb, n)
+function table.Compact(tbl, cb, n) -- luacheck: ignore
 	n = n or #tbl
 	local cpos = 1
 	for i = 1, n do
@@ -35,7 +35,6 @@ function table.Compact(tbl, cb, n)
 		end
 	end
 
-	local new_n = cpos-1
 	while (cpos <= n) do
 		tbl[cpos] = nil
 		cpos = cpos + 1
@@ -44,7 +43,7 @@ end
 
 -- I don't even know if I need this one.
 -- HUD indicator needs this one
-function table.MakeSortedKeys(tbl)
+function table.MakeSortedKeys(tbl) -- luacheck: ignore
 	local result = {}
 
 	for k,_ in pairs(tbl) do table.insert(result, k) end
@@ -53,11 +52,31 @@ function table.MakeSortedKeys(tbl)
 	return result
 end
 
+
+function string.GetNormalizedFilepath( path ) -- luacheck: ignore
+	local tbl = string.Explode( "[/\\]+", path, true )
+	local i = 1
+	while i <= #tbl do
+		if tbl[i] == "." or tbl[i]=="" then
+			table.remove(tbl, i)
+		elseif tbl[i] == ".." then
+			table.remove(tbl, i)
+			if i>1 then
+				i = i - 1
+				table.remove(tbl, i)
+			end
+		else
+			i = i + 1
+		end
+	end
+	return table.concat(tbl, "/")
+end
+
 -- works like pairs() except that it iterates sorted by keys.
 -- criterion is optional and should be a function(a,b) returning whether a is less than b. (same as table.sort's criterions)
 function pairs_sortkeys(tbl, criterion)
-	tmp = {}
-	for k,v in pairs(tbl) do table.insert(tmp,k) end
+	local tmp = {}
+	for k, _ in pairs(tbl) do table.insert(tmp,k) end
 	table.sort(tmp, criterion)
 
 	local iter, state, index, k = ipairs(tmp)
@@ -79,9 +98,9 @@ function pairs_sortvalues(tbl, criterion)
 			return tbl[a] < tbl[b]
 		end
 
-	tmp = {}
+	local tmp = {}
 	tbl = tbl or {}
-	for k,v in pairs(tbl) do table.insert(tmp,k) end
+	for k, _ in pairs(tbl) do table.insert(tmp,k) end
 	table.sort(tmp, crit)
 
 	local iter, state, index, k = ipairs(tmp)
@@ -126,11 +145,29 @@ end
 
 -- end extra table functions
 
+function WireLib.dummytrace(ent)
+	local pos = ent:GetPos()
+	return {
+		FractionLeftSolid = 0,
+		HitNonWorld       = true,
+		Fraction          = 0,
+		Entity            = ent,
+		HitPos            = pos,
+		HitNormal         = Vector(0,0,0),
+		HitBox            = 0,
+		Normal            = Vector(1,0,0),
+		Hit               = true,
+		HitGroup          = 0,
+		MatType           = 0,
+		StartPos          = pos,
+		PhysicsBone       = 0,
+		WorldToLocal      = Vector(0,0,0),
+	}
+end
+
 local table = table
-local pairs_sortkeys = pairs_sortkeys
 local pairs_sortvalues = pairs_sortvalues
 local ipairs_map = ipairs_map
-local pairs_map = pairs_map
 
 --------------------------------------------------------------------------------
 
@@ -144,77 +181,13 @@ do -- containers
 	end
 
 	local function newclass(container_name)
-		meta = { new = new }
+		local meta = { new = new }
 		meta.__index = meta
 		WireLib.containers[container_name] = meta
 		return meta
 	end
 
 	WireLib.containers = { new = new, newclass = newclass }
-
-	do -- class deque
-		local deque = newclass("deque")
-
-		function deque:Initialize()
-			self.offset = 0
-		end
-
-		function deque:size()
-			return #self-self.offset
-		end
-
-		-- Prepends the given element.
-		function deque:unshift(value)
-			if offset < 1 then
-				-- TODO: improve
-				table.insert(self, 1, value)
-				return
-			end
-			self.offset = self.offset - 1
-			self[self.offset+1] = value
-		end
-
-		-- Removes the first element and returns it
-		function deque:shift()
-			--do return table.remove(self, 1) end
-			local offset = self.offset + 1
-			local ret = self[offset]
-			if not ret then self.offset = offset-1 return nil end
-			self.offset = offset
-			if offset > 127 then
-				for i = offset+1,#self-offset do
-					self[i-offset] = self[i]
-				end
-				for i = #self-offset+1,#self do
-					self[i-offset],self[i] = self[i],nil
-				end
-				self.offset = 0
-			end
-			return ret
-		end
-
-		-- Appends the given element.
-		function deque:push(value)
-			self[#self+1] = value
-		end
-
-		-- Removes the last element and returns it.
-		function deque:pop()
-			local ret = self[#self]
-			self[#self] = nil
-			return ret
-		end
-
-		-- Returns the last element.
-		function deque:top()
-			return self[#self]
-		end
-
-		-- Returns the first element.
-		function deque:bottom()
-			return self[self.offset+1]
-		end
-	end -- class deque
 
 	do -- class autocleanup
 		local autocleanup = newclass("autocleanup")
@@ -325,7 +298,7 @@ do
 		util.AddNetworkString("wire_addnotify")
 		function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
 			if isstring(ply) then ply, Message, Type, Duration, Sound = nil, ply, Message, Type, Duration end
-			if ply && !ply:IsValid() then return end
+			if ply and not ply:IsValid() then return end
 			net.Start("wire_addnotify")
 				net.WriteString(Message)
 				net.WriteUInt(Type or 0,8)
@@ -544,7 +517,7 @@ if SERVER then
 			ents_with_inputs[eid][#ents_with_inputs[eid]+1] = entry
 			queue[#queue+1] = { eid, PORT, INPUT, entry, CurPort.Num }
 		end
-		for Name, CurPort in pairs_sortvalues(ent.Inputs, WireLib.PortComparator) do
+		for _, CurPort in pairs_sortvalues(ent.Inputs, WireLib.PortComparator) do
 			WireLib._SetLink(CurPort, lqueue)
 		end
 	end
@@ -627,7 +600,7 @@ if SERVER then
 	end
 
 	local function FlushQueue(lqueue, ply)
-		// Zero these two for the writemsg function
+		-- Zero these two for the writemsg function
 		eid = 0
 		numports = {}
 
@@ -648,10 +621,10 @@ if SERVER then
 
 	hook.Add("PlayerInitialSpawn", "wire_ports", function(ply)
 		local lqueue = {}
-		for eid, entry in pairs(ents_with_inputs) do
+		for eid, _ in pairs(ents_with_inputs) do
 			WireLib._SetInputs(Entity(eid), lqueue)
 		end
-		for eid, entry in pairs(ents_with_outputs) do
+		for eid, _ in pairs(ents_with_outputs) do
 			WireLib._SetOutputs(Entity(eid), lqueue)
 		end
 		FlushQueue(lqueue, ply)
@@ -736,13 +709,13 @@ elseif CLIENT then
 				lasteid = eid
 
 				local text = "ID "..eid.."\nInputs:\n"
-				for num,name,tp,desc,connected in ipairs_map(ents_with_inputs[eid] or {}, unpack) do
+				for _,name,tp,desc,connected in ipairs_map(ents_with_inputs[eid] or {}, unpack) do
 
 					text = text..(connected and "-" or " ")
 					text = text..string.format("%s (%s) [%s]\n", name, tp, desc)
 				end
 				text = text.."\nOutputs:\n"
-				for num,name,tp,desc in ipairs_map(ents_with_outputs[eid] or {}, unpack) do
+				for _,name,tp,desc in ipairs_map(ents_with_outputs[eid] or {}, unpack) do
 					text = text..string.format("%s (%s) [%s]\n", name, tp, desc)
 				end
 				draw.DrawText(text,"Trebuchet24",10,300,Color(255,255,255,255),0)
@@ -761,7 +734,7 @@ if SERVER then
 		net.Start("WireLinkedEnts")
 			net.WriteEntity(controller)
 			net.WriteUInt(#(controller.Marks or marks), 16)
-			for k,v in pairs(controller.Marks or marks) do
+			for _,v in pairs(controller.Marks or marks) do
 				net.WriteEntity(v)
 			end
 		net.Broadcast()
@@ -771,7 +744,7 @@ else
 		local Controller = net.ReadEntity()
 		if IsValid(Controller) then
 			Controller.Marks = {}
-			for i=1, net.ReadUInt(16) do
+			for _=1, net.ReadUInt(16) do
 				local link = net.ReadEntity()
 				if IsValid(link) then
 					table.insert(Controller.Marks, link)
@@ -887,7 +860,6 @@ local one = {
 
 -- returns a table of tables that inherit from the above info
 local floor = math.floor
-local min = math.min
 function nicenumber.info( n, steps )
 	if not n or n < 0 then return {} end
 	if n > 10 ^ 300 then n = 10 ^ 300 end
@@ -960,7 +932,6 @@ end
 -------------------------
 -- nicetime
 -------------------------
-local floor = math.floor
 local times = {
 	{ "y", 31556926 }, -- years
 	{ "mon", 2629743.83 }, -- months
@@ -997,5 +968,239 @@ function nicenumber.nicetime( n )
 		return prev_val .. prev_name
 	else
 		return "0s"
+	end
+end
+
+function WireLib.isnan(n)
+	return n ~= n
+end
+local isnan = WireLib.isnan
+
+-- This function clamps the position before moving the entity
+local minx, miny, minz = -16384, -16384, -16384
+local maxx, maxy, maxz = 16384, 16384, 16384
+local clamp = math.Clamp
+function WireLib.clampPos(pos)
+	pos = Vector(pos)
+	pos.x = clamp(pos.x, minx, maxx)
+	pos.y = clamp(pos.y, miny, maxy)
+	pos.z = clamp(pos.z, minz, maxz)
+	return pos
+end
+
+function WireLib.setPos(ent, pos)
+	if isnan(pos.x) or isnan(pos.y) or isnan(pos.z) then return end
+	return ent:SetPos(WireLib.clampPos(pos))
+end
+
+local huge, abs = math.huge, math.abs
+function WireLib.setAng(ent, ang)
+	if isnan(ang.pitch) or isnan(ang.yaw) or isnan(ang.roll) then return end
+	if abs(ang.pitch) == huge or abs(ang.yaw) == huge or abs(ang.roll) == huge then return false end -- SetAngles'ing inf crashes the server
+
+	ang = Angle(ang)
+	ang:Normalize()
+
+	return ent:SetAngles(ang)
+end
+
+-- Used by any applyForce function available to the user
+-- Ensures that the force is within the range of a float, to prevent
+-- physics engine crashes
+-- 2*maxmass*maxvelocity should be enough impulse to do whatever you want.
+local max_force, min_force
+hook.Add("InitPostEntity","WireForceLimit",function()
+	max_force = 100000*physenv.GetPerformanceSettings().MaxVelocity
+	min_force = -max_force
+end)
+
+-- Nan never equals itself, so if the value doesn't equal itself replace it with 0.
+function WireLib.clampForce( v )
+	v = Vector(v[1], v[2], v[3])
+	v[1] = v[1] == v[1] and math.Clamp( v[1], min_force, max_force ) or 0
+	v[2] = v[2] == v[2] and math.Clamp( v[2], min_force, max_force ) or 0
+	v[3] = v[3] == v[3] and math.Clamp( v[3], min_force, max_force ) or 0
+	return v
+end
+
+
+--[[----------------------------------------------
+	GetClosestRealVehicle
+	This function checks if the provided entity is a "real" vehicle
+	If it is, it does nothing and returns the same entity back.
+	If it isn't, it scans the contraption of said vehicle, and
+	finds the closest one to the specified location
+	and returns it
+------------------------------------------------]]
+
+-- this helper function attempts to determine if the vehicle is actually a real vehicle
+-- and not a "fake" vehicle created by an 'scars'-like addon
+local valid_vehicles = {
+	prop_vehicle = true,
+	prop_vehicle_airboat = true,
+	prop_vehicle_apc = true,
+	prop_vehicle_cannon = true,
+	prop_vehicle_choreo_generic = true,
+	prop_vehicle_crane = true,
+	prop_vehicle_driveable = true,
+	prop_vehicle_jeep = true,
+	prop_vehicle_prisoner_pod = true
+}
+local function IsRealVehicle(pod)
+	return valid_vehicles[pod:GetClass()]
+end
+
+-- GetClosestRealVehicle
+-- Args:
+--  vehicle; the vehicle that the user would like to link a controller to
+--  position; the position to find the closest vehicle to. If unspecified, uses the vehicle's position
+--  notify_this_player; notifies this player if a different vehicle was selected. If unspecified, notifies no one.
+function WireLib.GetClosestRealVehicle(vehicle,position,notify_this_player)
+	if not IsValid(vehicle) then return vehicle end
+	if not position then position = vehicle:GetPos() end
+
+	-- If this is a valid entity, but not a real vehicle, then let's get started
+	if IsValid(vehicle) and not IsRealVehicle(vehicle) then
+		-- get all "real" vehicles in the contraption and calculate distance
+		local contraption = constraint.GetAllConstrainedEntities(vehicle)
+		local vehicles = {}
+		for _, ent in pairs( contraption ) do
+			if IsRealVehicle(ent) then
+				vehicles[#vehicles+1] = {
+					distance = position:Distance(ent:GetPos()),
+					entity = ent
+				}
+			end
+		end
+
+		if #vehicles > 0 then
+			-- sort them by distance
+			table.sort(vehicles,function(a,b) return a.distance < b.distance end)
+			-- get closest
+			vehicle = vehicles[1].entity
+
+			-- notify the owner of the change
+			if IsValid(notify_this_player) and notify_this_player:IsPlayer() then
+				WireLib.AddNotify(notify_this_player,
+					"That wasn't a vehicle!\n"..
+					"The contraption has been scanned and this entity has instead been linked to the closest vehicle in this contraption.\n"..
+					"Hover your cursor over the controller to view the yellow line, which indicates the selected vehicle.",
+					NOTIFY_GENERIC,14,NOTIFYSOUND_DRIP1)
+			end
+		end
+	end
+
+	-- If the selected vehicle is still not a real vehicle even after all of the above, notify the user of this
+	if IsValid(notify_this_player) and notify_this_player:IsPlayer() and not IsRealVehicle(vehicle) then
+		WireLib.AddNotify(notify_this_player,
+			"The entity you linked to is not a 'real' vehicle, " ..
+			"and we were unable to find any 'real' vehicles attached to it. This controller might not work.",
+			NOTIFY_GENERIC,14,NOTIFYSOUND_DRIP1)
+	end
+
+	return vehicle
+end
+
+-- Garry's Mod lets serverside Lua check whether the key associated with a particular bind is
+-- pressed or not via the KeyPress and KeyRelease hooks, and the KeyDown function. However, this
+-- is only available for a small number of binds (mostly ones related to movement), which are
+-- exposed via the IN_ enums. It's possible to check any key manually serverside (with the
+-- player.keystate table), but that doesn't handle rebinding so isn't very friendly to users with
+-- non-QWERTY keyboard layouts. This system lets us extend arbitrarily the set of binds that the
+-- serverside knows about.
+do
+	local MESSAGE_NAME = "WireLib.SyncBinds"
+
+	local interestingBinds = {
+		"invprev",
+		"invnext",
+		"impulse 100",
+		"attack",
+		"jump",
+		"duck",
+		"forward",
+		"back",
+		"use",
+		"left",
+		"right",
+		"moveleft",
+		"moveright",
+		"attack2",
+		"reload",
+		"alt1",
+		"alt2",
+		"showscores",
+		"speed",
+		"walk",
+		"zoom",
+		"grenade1",
+		"grenade2",
+	}
+	local interestingBindsLookup = {}
+	for k, v in pairs(interestingBinds) do interestingBindsLookup[v] = k end
+
+	if CLIENT then
+		hook.Add("InitPostEntity", MESSAGE_NAME, function()
+			local data = {}
+			for button = BUTTON_CODE_NONE, BUTTON_CODE_LAST do
+				local binding = input.LookupKeyBinding(button)
+				if binding ~= nil then
+					if string.sub(binding, 1, 1) == "+" then binding = string.sub(binding, 2) end
+					local bindingIndex = interestingBindsLookup[binding]
+					if bindingIndex ~= nil then
+						table.insert(data, { Button = button, BindingIndex = bindingIndex })
+					end
+				end
+			end
+
+			-- update net integer precisions if either of these become no longer true
+			assert(BUTTON_CODE_COUNT < 256)
+			assert(#interestingBinds < 32)
+
+			net.Start(MESSAGE_NAME)
+			net.WriteUInt(#data, 8)
+			for _, datum in pairs(data) do
+				net.WriteUInt(datum.Button, 8)
+				net.WriteUInt(datum.BindingIndex, 5)
+			end
+			net.SendToServer()
+		end)
+	elseif SERVER then
+		util.AddNetworkString(MESSAGE_NAME)
+		net.Receive(MESSAGE_NAME, function(_, player)
+			player.SyncedBindings = {}
+			local count = net.ReadUInt(8)
+			for _ = 1, count do
+				local button = net.ReadUInt(8)
+				local bindingIndex = net.ReadUInt(5)
+				if button > BUTTON_CODE_NONE and button <= BUTTON_CODE_LAST then
+					local binding = interestingBinds[bindingIndex]
+					player.SyncedBindings[button] = binding
+				end
+			end
+		end)
+
+		hook.Add("PlayerButtonDown", MESSAGE_NAME, function(player, button)
+			if not player.SyncedBindings then return end
+			local binding = player.SyncedBindings[button]
+			hook.Run("PlayerBindDown", player, binding, button)
+		end)
+
+		hook.Add("PlayerButtonUp", MESSAGE_NAME, function(player, button)
+			if not player.SyncedBindings then return end
+			local binding = player.SyncedBindings[button]
+			hook.Run("PlayerBindUp", player, binding, button)
+		end)
+
+		hook.Add("StartCommand", MESSAGE_NAME, function(player, command)
+			if not player.SyncedBindings then return end
+			local wheel = command:GetMouseWheel()
+			if wheel == 0 then return end
+			local button = wheel > 0 and MOUSE_WHEEL_UP or MOUSE_WHEEL_DOWN
+			local binding = player.SyncedBindings[button]
+			if not binding then return end
+			hook.Run("PlayerBindDown", player, binding, button)
+			hook.Run("PlayerBindUp", player, binding, button)
+		end)
 	end
 end

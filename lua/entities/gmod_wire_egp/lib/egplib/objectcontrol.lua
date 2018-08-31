@@ -18,6 +18,7 @@ EGP.Objects.Base.r = 255
 EGP.Objects.Base.g = 255
 EGP.Objects.Base.b = 255
 EGP.Objects.Base.a = 255
+EGP.Objects.Base.filtering = TEXFILTER.ANISOTROPIC
 EGP.Objects.Base.material = ""
 if CLIENT then EGP.Objects.Base.material = false end
 EGP.Objects.Base.parent = 0
@@ -25,6 +26,7 @@ EGP.Objects.Base.Transmit = function( self )
 	EGP:SendPosSize( self )
 	EGP:SendColor( self )
 	EGP:SendMaterial( self )
+	net.WriteUInt(math.Clamp(self.filtering,0,3), 2)
 	net.WriteInt( self.parent, 16 )
 end
 EGP.Objects.Base.Receive = function( self )
@@ -32,11 +34,12 @@ EGP.Objects.Base.Receive = function( self )
 	EGP:ReceivePosSize( tbl )
 	EGP:ReceiveColor( tbl, self )
 	EGP:ReceiveMaterial( tbl )
+	tbl.filtering = net.ReadUInt(2)
 	tbl.parent = net.ReadInt(16)
 	return tbl
 end
 EGP.Objects.Base.DataStreamInfo = function( self )
-	return { x = self.x, y = self.y, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, parent = self.parent }
+	return { x = self.x, y = self.y, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, filtering = self.filtering, parent = self.parent }
 end
 
 ----------------------------
@@ -44,7 +47,7 @@ end
 ----------------------------
 
 function EGP:GetObjectByID( ID )
-	for k,v in pairs( EGP.Objects ) do
+	for _, v in pairs( EGP.Objects ) do
 		if (v.ID == ID) then return table.Copy( v ) end
 	end
 	ErrorNoHalt( "[EGP] Error! Object with ID '" .. ID .. "' does not exist. Please post this bug message in the EGP thread on the wiremod forums.\n" )
@@ -86,9 +89,9 @@ end
 -- Object existance check
 ----------------------------
 function EGP:HasObject( Ent, index )
-	if (!EGP:ValidEGP( Ent )) then return false end
+	if not EGP:ValidEGP(Ent) then return false end
 	if SERVER then index = math.Round(math.Clamp(index or 1, 1, self.ConVars.MaxObjects:GetInt())) end
-	if (!Ent.RenderTable or #Ent.RenderTable == 0) then return false end
+	if not Ent.RenderTable or #Ent.RenderTable == 0 then return false end
 	for k,v in pairs( Ent.RenderTable ) do
 		if (v.index == index) then
 			return true, k, v
@@ -100,24 +103,96 @@ end
 ----------------------------
 -- Object order changing
 ----------------------------
-function EGP:SetOrder( Ent, from, to )
-	if (!Ent.RenderTable or #Ent.RenderTable == 0) then return false end
-	if (Ent.RenderTable[from]) then
+function EGP:SetOrder( Ent, from, to, dir )
+	if not Ent.RenderTable or #Ent.RenderTable == 0 then return false end
+	dir = dir or 0
+
+	if Ent.RenderTable[from] then
 		to = math.Clamp(math.Round(to or 1),1,#Ent.RenderTable)
-		table.insert( Ent.RenderTable, to, table.remove( Ent.RenderTable, from ) )
-		if (SERVER) then Ent.RenderTable[to].ChangeOrder = {from,to} end
+		if SERVER then Ent.RenderTable[from].ChangeOrder = {target=to,dir=dir} end
 		return true
 	end
 	return false
 end
+
+local already_reordered = {}
+function EGP:PerformReorder_Ex( Ent, i )
+	local obj = Ent.RenderTable[i]
+	if obj then
+		-- Check if this object has already been reordered
+		if already_reordered[obj.index] then
+			-- if yes, get its new position (or old position if it didn't change)
+			return already_reordered[obj.index]
+		end
+
+		-- Set old position (to prevent recursive loops)
+		already_reordered[obj.index] = i
+
+		if obj.ChangeOrder then
+			local target = obj.ChangeOrder.target
+			local dir = obj.ChangeOrder.dir
+
+			local target_idx = 0
+			if dir == 0 then
+				-- target is absolute position
+				target_idx = target
+			else
+				-- target is relative position
+				local bool, k = self:HasObject( Ent, target )
+				if bool then
+					-- Check for order dependencies
+					k = self:PerformReorder_Ex( Ent, k ) or k
+
+					target_idx = k + dir
+				end
+			end
+
+			if target_idx ~= 0 then
+				-- Make a copy of the object and insert it at the new position
+				local copy = table.Copy(obj)
+				copy.ChangeOrder = nil
+				table.insert( Ent.RenderTable, target_idx, copy )
+
+				-- Update already reordered reference to new position
+				already_reordered[obj.index] = target_idx
+
+				return target_idx
+			else
+				return i
+			end
+		end
+	end
+end
+
+function EGP:PerformReorder( Ent )
+	-- Reset, just to be sure
+	already_reordered = {}
+
+	-- First pass, insert objects at their wanted position
+	for i=1,#Ent.RenderTable do
+		self:PerformReorder_Ex( Ent, i )
+	end
+
+	-- Second pass, remove objects from their original positions
+	for i=#Ent.RenderTable,1,-1 do
+		local obj = Ent.RenderTable[i]
+		if obj.ChangeOrder then
+			table.remove( Ent.RenderTable, i )
+		end
+	end
+
+	-- Clear some memory
+	already_reordered = {}
+end
+
 ----------------------------
 -- Create / edit objects
 ----------------------------
 
 function EGP:CreateObject( Ent, ObjID, Settings )
-	if (!self:ValidEGP( Ent )) then return false end
+	if not self:ValidEGP(Ent) then return false end
 
-	if (!self.Objects.Names_Inverted[ObjID]) then
+	if not self.Objects.Names_Inverted[ObjID] then
 		ErrorNoHalt("Trying to create nonexistant object! Please report this error to Divran at wiremod.com. ObjID: " .. ObjID .. "\n")
 		return false
 	end
@@ -126,9 +201,8 @@ function EGP:CreateObject( Ent, ObjID, Settings )
 
 	local bool, k, v = self:HasObject( Ent, Settings.index )
 	if (bool) then -- Already exists. Change settings:
-		if (v.ID != ObjID) then -- Not the same kind of object, create new
-			local Obj = {}
-			Obj = self:GetObjectByID( ObjID )
+		if v.ID ~= ObjID then -- Not the same kind of object, create new
+			local Obj = self:GetObjectByID( ObjID )
 			self:EditObject( Obj, Settings )
 			Obj.index = Settings.index
 			Ent.RenderTable[k] = Obj
@@ -170,7 +244,7 @@ if CLIENT then mat = Material else mat = function( str ) return str end end
 -- Create table
 local tbl = {
 	{ ID = EGP.Objects.Names["Box"], Settings = { x = 256, y = 256, h = 356, w = 356, material = mat("expression 2/cog"), r = 150, g = 34, b = 34, a = 255 } },
-	{ ID = EGP.Objects.Names["Text"], Settings = {x = 256, y = 256, text = "EGP 3", fontid = 1, valign = 1, halign = 1, size = 50, r = 135, g = 135, b = 135, a = 255 } }
+	{ ID = EGP.Objects.Names["Text"], Settings = {x = 256, y = 256, text = "EGP 3", font = "WireGPU_ConsoleFont", valign = 1, halign = 1, size = 50, r = 135, g = 135, b = 135, a = 255 } }
 }
 
 --[[ Old homescreen (EGP v2 home screen design contest winner)

@@ -32,7 +32,7 @@ __e2setcost(20)
 
 local function GetAllConstrainedEntities( ent, ResultTable )
 	ResultTable[ ent ] = ent
-	
+
 	for _, con in pairs( ent.Constraints or {} ) do
 		for i=1, 6 do
 			local e = con["Ent"..i]
@@ -156,4 +156,20 @@ e2function bone entity:parentBone()
 	if not IsValid(ent) then return nil end
 	local bonenum = this:GetParentPhysNum()
 	return getBone(ent, bonenum)
+end
+
+__e2setcost(20)
+
+--- Returns an '''array''' containing all the children of the entity - that is, every entity whose parent is this entity.
+e2function array entity:children()
+	if not IsValid(this) then return {} end
+
+	local keytable = this:GetChildren()
+	local array = {}
+	local i = 1
+	for _, ent in pairs(keytable) do
+		array[i] = ent
+		i = i + 1
+	end
+	return array
 end

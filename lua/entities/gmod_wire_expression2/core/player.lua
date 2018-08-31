@@ -1,9 +1,19 @@
-/******************************************************************************\
+--[[----------------------------------------------------------------------------
   Player-Entity support
-\******************************************************************************/
+------------------------------------------------------------------------------]]
 
 local IsValid = IsValid
 local isOwner = E2Lib.isOwner
+
+
+local spawnAlert = {}
+local runBySpawn = 0
+local lastJoined = NULL
+
+local leaveAlert = {}
+local runByLeave = 0
+local lastLeft = NULL
+
 registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	if funcname == "isOwner" then
 		isOwner = func
@@ -12,7 +22,7 @@ registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	end
 end)
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(5) -- temporary
 
@@ -28,19 +38,19 @@ e2function number entity:isSuperAdmin()
 	if this:IsSuperAdmin() then return 1 else return 0 end
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(8)
 
 e2function vector entity:shootPos()
-	if(!IsValid(this)) then return {0,0,0} end
+	if(not IsValid(this)) then return {0,0,0} end
 	if(this:IsPlayer() or this:IsNPC()) then
 		return this:GetShootPos()
 	else return {0,0,0} end
 end
 
 e2function vector entity:eye()
-	if (!IsValid(this)) then return {0,0,0} end
+	if (not IsValid(this)) then return {0,0,0} end
 	if (this:IsPlayer()) then
 		return this:GetAimVector()
 	else
@@ -55,38 +65,42 @@ e2function angle entity:eyeAngles()
 	return { ang.p, ang.y, ang.r }
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(5)
 
 e2function string entity:name()
-	if(!IsValid(this)) then return "" end
-	if(!this:IsPlayer()) then return "" end
+	if(not IsValid(this)) then return "" end
+	if(not this:IsPlayer()) then return "" end
 	return this:Name()
 end
 
 e2function string entity:steamID()
-	if(!IsValid(this)) then return "" end
-	if(!this:IsPlayer()) then return "" end
+	if(not IsValid(this)) then return "" end
+	if(not this:IsPlayer()) then return "" end
 	return this:SteamID()
 end
 
+e2function string entity:steamID64()
+	return IsValid(this) and this:IsPlayer() and this:SteamID64() or ""
+end
+
 e2function number entity:armor()
-	if(!IsValid(this)) then return 0 end
+	if(not IsValid(this)) then return 0 end
 	if(this:IsPlayer() or this:IsNPC()) then return this:Armor() else return 0 end
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(5)
 
 e2function number entity:isCrouch()
-	if(!IsValid(this)) then return 0 end
+	if(not IsValid(this)) then return 0 end
 	if(this:IsPlayer() and this:Crouching()) then return 1 else return 0 end
 end
 
 e2function number entity:isAlive()
-	if(!IsValid(this)) then return 0 end
+	if(not IsValid(this)) then return 0 end
 	if(this:IsPlayer() and this:Alive()) then return 1 end
 	if(this:IsNPC() and this:Health() > 0) then return 1 end
 	return 0
@@ -99,22 +113,22 @@ e2function number entity:isFlashlightOn()
 	if this:FlashlightIsOn() then return 1 else return 0 end
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 e2function number entity:frags()
-	if(!IsValid(this)) then return 0 end
+	if(not IsValid(this)) then return 0 end
 	if(this:IsPlayer()) then return this:Frags() else return 0 end
 end
 
 e2function number entity:deaths()
-	if(!this or !this:IsValid()) then return 0 end
+	if(not this or not this:IsValid()) then return 0 end
 	if(this:IsPlayer()) then return this:Deaths() else return 0 end
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 e2function number entity:team()
-	if(!IsValid(this)) then return 0 end
+	if(not IsValid(this)) then return 0 end
 	if(this:IsPlayer()) then return this:Team() else return 0 end
 end
 
@@ -156,7 +170,7 @@ e2function array teams()
 	return team_indexes
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 __e2setcost(2)
 
 e2function number entity:keyForward()
@@ -192,11 +206,11 @@ e2function number entity:keyUse()
 end
 
 e2function number entity:keyReload()
-    return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_RELOAD)) and 1 or 0
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_RELOAD)) and 1 or 0
 end
 
 e2function number entity:keyZoom()
-    return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_ZOOM)) and 1 or 0
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_ZOOM)) and 1 or 0
 end
 
 e2function number entity:keyWalk()
@@ -225,11 +239,11 @@ e2function number entity:keyPressed(string char)
 	if this.keystate then
 		local key = _G["KEY_" .. string.upper(char)] or "no_key"
 		if this.keystate[key] then return 1 end
-		
+
 		key = _G[string.match(string.upper(char),"^(MOUSE_.+)$") or ""] or "no_key"
 		if this.keystate[key] then return 1 end
 	end
-	
+
 	return 0
 end
 
@@ -237,18 +251,25 @@ end
 local KeyAlert = {}
 local runByKey
 local pressedKey = ""
+local pressedBind = ""
 local KeyWasReleased = 0
 
 local keys_lookup = {}
+local number_of_keys = 0
 local sub = string.sub
 local lower = string.lower
 for k,v in pairs( _G ) do
 	if sub(k,1,4) == "KEY_" then
 		keys_lookup[v] = lower(sub(k,5))
+		number_of_keys = number_of_keys + 1
+	end
+
+	if sub(k,1,3) == "IN_" then
+		number_of_keys = number_of_keys + 1
 	end
 end
 
--- Manually input the mouse buttons because they're a bit fucked up
+-- Manually input the mouse buttons because they're a bit weird
 keys_lookup[107] = "mouse_left"
 keys_lookup[108] = "mouse_right"
 keys_lookup[109] = "mouse_middle"
@@ -256,17 +277,29 @@ keys_lookup[110] = "mouse_4"
 keys_lookup[111] = "mouse_5"
 keys_lookup[112] = "mouse_wheel_up"
 keys_lookup[113] = "mouse_wheel_down"
+number_of_keys = number_of_keys + 7
+
+-- add three more for flashlight "impulse 100" and next/prev weapon binds
+number_of_keys = number_of_keys + 3
 
 registerCallback("destruct",function(self)
 	KeyAlert[self.entity] = nil
+	--Used futher below. Didn't want to create more then one of these per file
+	spawnAlert[self.entity] = nil
+	leaveAlert[self.entity] = nil
 end)
 
-local function UpdateKeys(ply, key)
+local function UpdateKeys(ply, bind, key, state)
+	local uid = ply:UniqueID()
 	runByKey = ply
+	KeyWasReleased = state and 0 or 1
 	pressedKey = keys_lookup[key] or ""
+	pressedBind = bind or ""
 	for chip, plys in pairs(KeyAlert) do
 		if IsValid(chip) then
-			if plys[ply] then
+			local filter = plys[uid]
+			if (isbool(filter) and filter == true) or
+				(istable(filter) and (filter[pressedKey] == true or filter[pressedBind] == true)) then
 				chip:Execute()
 			end
 		else
@@ -275,28 +308,82 @@ local function UpdateKeys(ply, key)
 	end
 	runByKey = nil
 	pressedKey = ""
+	pressedBind = ""
 	KeyWasReleased = 0
 end
 
--- delay these 1 tick with timers, otherwise ply:keyPressed(str) doesn't work properly, in case old E2s uses that function
--- It is recommended to use keyClkPressed() instead to get which key was pressed.
-hook.Add("PlayerButtonDown","Exp2KeyReceivingDown", function(ply,key) timer.Simple(0,function() UpdateKeys(ply,key) end) end)
-local temp = function(ply, key)	KeyWasReleased = 1 UpdateKeys(ply, key) end
-hook.Add("PlayerButtonUp","Exp2KeyReceivingUp", function(ply,key) timer.Simple(0,function() temp(ply,key) end) end )
+local bindsPressed = {}
+local function triggerKey(ply,bind,key,state)
+	-- delay these 1 tick with timers, otherwise ply:keyPressed(str) doesn't work properly, in case old E2s uses that function
+	-- It is recommended to use keyClkPressed() instead to get which key was pressed.
+	timer.Simple(0,function()
+		if not IsValid(ply) then return end -- if the player disconnected during this time, abort
+		UpdateKeys(ply,bind,key,state)
+	end)
+end
 
---- Makes the chip run on key events from the specified player (can be used on multiple players)
-e2function void runOnKeys(entity ply, on)
+hook.Add("PlayerBindDown", "Exp2KeyReceivingDown", function(player, binding, button)
+	triggerKey(player,binding,button,true)
+end)
+
+hook.Add("PlayerBindUp", "Exp2KeyReceivingUp", function(player, binding, button)
+	triggerKey(player,binding,button,false)
+end)
+
+local function toggleRunOnKeys(self,ply,on,filter)
 	if not IsValid(ply) or not ply:IsPlayer() then return end
+
+	local ent = self.entity
+	local uid = ply:UniqueID()
+
 	if on ~= 0 then
-		if not KeyAlert[self.entity] then KeyAlert[self.entity] = {} end
-		KeyAlert[self.entity][ply] = true
-	elseif KeyAlert[self.entity] then
-		KeyAlert[self.entity][ply] = nil
-		if not next(KeyAlert[self.entity]) then
-			KeyAlert[self.entity] = nil
+		if not KeyAlert[ent] then KeyAlert[ent] = {} end
+
+		if filter == nil or (istable(filter) and next(filter) == nil) then
+			-- if no filter was specified (or an empty array) then allow all keys
+			filter = true
+		elseif istable(filter) then
+			-- invert the filter
+			local inverted = {}
+			for i=1,math.min(number_of_keys,#filter) do
+				inverted[filter[i]] = true
+			end
+			filter = inverted
+		end
+
+		KeyAlert[ent][uid] = filter
+	elseif KeyAlert[ent] then
+		KeyAlert[ent][uid] = nil
+		if next(KeyAlert[ent]) == nil then
+			KeyAlert[ent] = nil
 		end
 	end
 end
+
+__e2setcost(20)
+
+--- Makes the chip run on key events from the specified player (can be used on multiple players)
+e2function void runOnKeys(entity ply, on)
+	toggleRunOnKeys(self, ply, on)
+end
+
+e2function void runOnKeys(entity ply, on, array filter)
+	toggleRunOnKeys(self, ply, on, filter)
+end
+
+e2function void runOnKeys(array plys, on)
+	for i=1,#plys do
+		toggleRunOnKeys(self, plys[i], on)
+	end
+end
+
+e2function void runOnKeys(array plys, on, array filter)
+	for i=1,#plys do
+		toggleRunOnKeys(self, plys[i], on, filter)
+	end
+end
+
+__e2setcost(1)
 
 --- Returns user if the chip is being executed because of a key event.
 e2function entity keyClk()
@@ -314,6 +401,10 @@ e2function string keyClkPressed()
 	return pressedKey
 end
 
+-- Returns the bind which caused the keyClk event to trigger (if any)
+e2function string keyClkPressedBind()
+	return pressedBind
+end
 
 -- isTyping
 local plys = {}
@@ -325,7 +416,7 @@ e2function number entity:isTyping()
 	return plys[this] and 1 or 0
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 local Trusts
 
@@ -334,7 +425,7 @@ if CPPI and debug.getregistry().Player.CPPIGetFriends then
 	function Trusts(ply, whom)
 		if ply == whom then return true end
 		local friends = ply:CPPIGetFriends()
-		if !istable(friends) then return false end
+		if not istable(friends) then return false end
 		for _,friend in pairs(friends) do
 			if whom == friend then return true end
 		end
@@ -347,7 +438,7 @@ if CPPI and debug.getregistry().Player.CPPIGetFriends then
 		if not Trusts(this, self.player) then return {} end
 
 		local ret = this:CPPIGetFriends()
-		if !istable(ret) then return {} end
+		if not istable(ret) then return {} end
 		return ret
 	end
 
@@ -417,7 +508,7 @@ e2function number entity:isSteamFriend(entity friend)
 	return table.HasValue(friends, friend) and 1 or 0
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(5)
 
@@ -448,7 +539,11 @@ e2function number entity:inNoclip()
 	return 1
 end
 
-/******************************************************************************/
+e2function number entity:inGodMode()
+	return IsValid(this) and this:IsPlayer() and this:HasGodMode() and 1 or 0
+end
+
+--------------------------------------------------------------------------------
 
 local player = player
 
@@ -478,7 +573,7 @@ e2function array playersSuperAdmins()
 	return Admins
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 e2function entity entity:aimEntity()
 	if not IsValid(this) then return nil end
@@ -528,4 +623,66 @@ e2function ranger entity:eyeTraceCursor()
 	local ret = this:GetEyeTrace()
 	ret.RealStartPos = this:GetShootPos()
 	return ret
+end
+
+--[[--------------------------------------------------------------------------------------------]]--
+
+hook.Add("PlayerInitialSpawn","Exp2RunOnJoin", function(ply)
+	runBySpawn = 1
+	lastJoined = ply
+	for e,_ in pairs(spawnAlert) do
+		if IsValid(e) then
+			e:Execute()
+		else
+			spawnAlert[e] = nil
+		end
+	end
+	runBySpawn = 0
+end)
+
+hook.Add("PlayerDisconnected","Exp2RunOnLeave", function(ply)
+	runByLeave = 1
+	lastLeft = ply
+	for e,_ in pairs(leaveAlert) do
+		if IsValid(e) then
+			e:Execute()
+		else
+			leaveAlert[e] = nil
+		end
+	end
+	runByLeave = 0
+end)
+
+__e2setcost(3)
+
+e2function void runOnPlayerConnect(activate)
+	if activate ~= 0 then
+		spawnAlert[self.entity] = true
+	else
+		spawnAlert[self.entity] = nil
+	end
+end
+
+e2function number playerConnectClk()
+	return runBySpawn
+end
+
+e2function entity lastConnectedPlayer()
+	return lastJoined
+end
+
+e2function void runOnPlayerDisconnect(activate)
+	if activate ~= 0 then
+		leaveAlert[self.entity] = true
+	else
+		leaveAlert[self.entity] = nil
+	end
+end
+
+e2function number playerDisconnectClk()
+	return runByLeave
+end
+
+e2function entity lastDisconnectedPlayer()
+	return lastLeft
 end

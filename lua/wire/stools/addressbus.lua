@@ -4,7 +4,7 @@ WireToolSetup.open( "addressbus", "Data - Address Bus", "gmod_wire_addressbus", 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_addressbus.name", "Address bus tool (Wire)" )
 	language.Add( "Tool.wire_addressbus.desc", "Spawns an address bus. Address spaces may overlap!" )
-	language.Add( "Tool.wire_addressbus.0", "Primary: Create/Update address bus" )
+	TOOL.Information = { { name = "left", text = "Create/Update address bus" } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
@@ -50,7 +50,7 @@ end
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_addressbus")
 	ModelPlug_AddToCPanel(panel, "gate", "wire_addressbus", nil, 4)
-	
+
 	panel:NumSlider("1 offset", "wire_addressbus_addrspace1st", 0, 16777216, 0)
 	panel:NumSlider("1 size", 	"wire_addressbus_addrspace1sz", 0, 16777216, 0)
 	panel:NumSlider("2 offset", "wire_addressbus_addrspace2st", 0, 16777216, 0)

@@ -43,7 +43,7 @@ function ENT:TriggerInput(name, value)
 
 	local trace1 = util.TraceLine( {
 		start = self:GetPos(),
-		endpos = self:GetPos() + up * self:GetBeamLength(), 
+		endpos = self:GetPos() + up * self:GetBeamLength(),
 		filter = { self }
 	} )
 
@@ -51,7 +51,7 @@ function ENT:TriggerInput(name, value)
 
 	local trace2 = util.TraceLine( {
 		start = trace1.HitPos,
-		endpos = trace1.HitPos + up * 50, 
+		endpos = trace1.HitPos + up * 50,
 		filter = { trace1.Entity, self }
 	} )
 

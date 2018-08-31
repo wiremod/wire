@@ -40,14 +40,14 @@ local string_lower = string.lower
 function PANEL:Search( str, foldername, fullpath, parentfullpath, first_recursion )
 	if not self.SearchFolders[fullpath] then
 		self.SearchFolders[fullpath] = (self.SearchFolders[parentfullpath] or self.Folders):AddNode( foldername )
-	
+
 		local files, folders = file.Find( fullpath .. "/*", "DATA" )
-		
+
 		local node = self.SearchFolders[fullpath]
 		if fullpath == self.startfolder then self.Root = node end -- get root
 		node.Icon:SetImage( "icon16/arrow_refresh.png" )
 		node:SetExpanded( true )
-		
+
 		local myresults = 0
 		for i=1,#files do
 			if string_find( string_lower( files[i] ), str, 1, true ) ~= nil then
@@ -55,10 +55,10 @@ function PANEL:Search( str, foldername, fullpath, parentfullpath, first_recursio
 				filenode:SetFileName( fullpath .. "/" .. files[i] )
 				myresults = myresults + 1
 			end
-			
+
 			coroutine.yield()
 		end
-		
+
 		if #folders == 0 then
 			if myresults == 0 then
 				if node ~= self.Root then node:Remove() end
@@ -68,7 +68,7 @@ function PANEL:Search( str, foldername, fullpath, parentfullpath, first_recursio
 					return false, myresults
 				end
 			end
-			
+
 			node.Icon:SetImage( "icon16/folder.png" )
 			if first_recursion then
 				coroutine.yield( true, myresults )
@@ -81,11 +81,11 @@ function PANEL:Search( str, foldername, fullpath, parentfullpath, first_recursio
 				if b then
 					myresults = myresults + res
 				end
-				
+
 				coroutine.yield()
 			end
-			
-			
+
+
 			if myresults > 0 then
 				node.Icon:SetImage( "icon16/folder.png" )
 				if first_recursion then
@@ -103,7 +103,7 @@ function PANEL:Search( str, foldername, fullpath, parentfullpath, first_recursio
 			end
 		end
 	end
-	
+
 	if first_recursion then
 		coroutine.yield( false, 0 )
 	else
@@ -111,7 +111,7 @@ function PANEL:Search( str, foldername, fullpath, parentfullpath, first_recursio
 	end
 end
 
-local function check_results( status, bool, count )
+function PANEL:CheckSearchResults( status, bool, count )
 	if bool ~= nil and count ~= nil then -- we're done searching
 		if count == 0 then
 			local node = self.Root:AddNode( "No results" )
@@ -128,18 +128,18 @@ end
 
 function PANEL:StartSearch( str )
 	self:UpdateFolders( true )
-	
+
 	self.SearchFolders = {}
-	
+
 	local crt = coroutine.create( self.Search )
 	local status, bool, count = coroutine.resume( crt, self, str, self.startfolder, self.startfolder, "", true )
-	check_results( status, bool, count )
-	
+	self:CheckSearchResults( status, bool, count )
+
 	timer.Create( "wire_expression2_search", 0, 0, function()
 		for i=1,100 do -- Load loads of files/folders at a time
 			local status, bool, count = coroutine.resume( crt )
 
-			if check_results( status, bool, count ) then
+			if self:CheckSearchResults( status, bool, count ) then
 				return -- exit loop etc
 			end
 		end
@@ -148,12 +148,12 @@ end
 
 function PANEL:Init()
 	self:SetDrawBackground(false)
-	
+
 	self.SearchBox = vgui.Create( "DTextEntry", self )
 	self.SearchBox:Dock( TOP )
 	self.SearchBox:DockMargin( 0,0,0,0 )
 	self.SearchBox:SetValue( "Search..." )
-	
+
 	local clearsearch = vgui.Create( "DImageButton", self.SearchBox )
 	clearsearch:SetMaterial( "icon16/cross.png" )
 	local src = self.SearchBox
@@ -166,8 +166,8 @@ function PANEL:Init()
 	clearsearch:Dock( RIGHT )
 	clearsearch:SetSize( 14, 10 )
 	clearsearch:SetVisible( false )
-	
-	
+
+
 	local old = self.SearchBox.OnGetFocus
 	function self.SearchBox:OnGetFocus()
 		if self:GetValue() == "Search..." then -- If "Search...", erase it
@@ -175,7 +175,7 @@ function PANEL:Init()
 		end
 		old( self )
 	end
-	
+
 	-- On lose focus
 	local old = self.SearchBox.OnLoseFocus
 	function self.SearchBox:OnLoseFocus()
@@ -184,13 +184,13 @@ function PANEL:Init()
 		end
 		old( self )
 	end
-	
+
 	function self.SearchBox.OnEnter()
 		local str = self.SearchBox:GetValue()
-		
+
 		if str ~= "" then
 			self:StartSearch( string.Replace( string.lower( str ), " ", "_" ) )
-			
+
 			clearsearch:SetVisible( true )
 		else
 			timer.Remove( "wire_expression2_search" )
@@ -310,7 +310,7 @@ function PANEL:UpdateFolders( empty )
 	if IsValid(self.Root) then
 		self.Root:Remove()
 	end
-	
+
 	if not empty then
 		self.Root = self.Folders.RootNode:AddFolder(self.startfolder, self.startfolder, "DATA", true)
 		self.Root:SetExpanded(true)

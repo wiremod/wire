@@ -4,8 +4,6 @@ WireToolSetup.open( "sensor", "Beacon Sensor", "gmod_wire_sensor", nil, "Beacon 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_sensor.name", "Beacon Sensor Tool (Wire)" )
 	language.Add( "Tool.wire_sensor.desc", "Returns distance and/or bearing to a beacon" )
-	language.Add( "Tool.wire_sensor.0", "Primary: Create Sensor    Secondary: Link Sensor" )
-	language.Add( "Tool.wire_sensor.1", "Click on the beacon to link to." )
 	language.Add( "WireSensorTool_outdist", "Output distance" )
 	language.Add( "WireSensorTool_outbrng", "Output bearing" )
 	language.Add( "WireSensorTool_xyz_mode", "Output local position, relative to beacon" )
@@ -19,9 +17,9 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber("xyz_mode") ~= 0, self:GetClientNumber("outdist") ~= 0, self:GetClientNumber("outbrng") ~= 0,
-			self:GetClientNumber("gpscord") ~= 0, self:GetClientNumber("direction_vector") ~= 0, self:GetClientNumber("direction_normalized") ~= 0, 
+			self:GetClientNumber("gpscord") ~= 0, self:GetClientNumber("direction_vector") ~= 0, self:GetClientNumber("direction_normalized") ~= 0,
 			self:GetClientNumber("target_velocity") ~= 0, self:GetClientNumber("velocity_normalized") ~= 0
 	end
 
@@ -39,7 +37,7 @@ TOOL.ClientConVar[ "velocity_normalized" ] = "0"
 
 TOOL.Model = "models/props_lab/huladoll.mdl"
 
-WireToolSetup.SetupLinking(true)
+WireToolSetup.SetupLinking(true, "beacon")
 
 function TOOL.BuildCPanel( panel )
 	panel:CheckBox("#WireSensorTool_outdist", "wire_sensor_outdist")

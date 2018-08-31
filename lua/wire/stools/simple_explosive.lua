@@ -4,19 +4,22 @@ WireToolSetup.open( "simple_explosive", "Explosives (Simple)", "gmod_wire_simple
 if CLIENT then
 	language.Add( "tool.wire_simple_explosive.name", "Simple Wired Explosives Tool" )
 	language.Add( "tool.wire_simple_explosive.desc", "Creates a simple explosives for wire system." )
-	language.Add( "tool.wire_simple_explosive.0", "Left click: Spawn bomb, Reload: Copy model" )
 	language.Add( "Tool.simple_explosive.model", "Model:" )
 	language.Add( "Tool.simple_explosive.trigger", "Trigger value:" )
 	language.Add( "Tool.simple_explosive.damage", "Damage:" )
 	language.Add( "Tool.simple_explosive.removeafter", "Remove on explosion" )
 	language.Add( "Tool.simple_explosive.radius", "Blast radius:" )
+	TOOL.Information = {
+		{ name = "left", text = "Create/Update " .. TOOL.Name },
+		{ name = "reload", text = "Copy model" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetConVars()
-		return self:GetClientNumber( "trigger" ), self:GetClientNumber( "damage" ), self:GetClientNumber( "removeafter" )==1, 
+		return self:GetClientNumber( "trigger" ), self:GetClientNumber( "damage" ), self:GetClientNumber( "removeafter" )==1,
 			self:GetClientNumber( "radius" )
 	end
 end

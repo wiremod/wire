@@ -22,11 +22,11 @@ end
 function ENT:Setup(UseGPS)
 	if UseGPS then
 		self.usesgps = true
-		self:SetNetworkedEntity( "reference", ents.GetByIndex(-1) )
+		self:SetNWEntity( "reference", ents.GetByIndex(-1) )
 		self:SetOverlayText( "(GPS)" )
 	else
 		self.usesgps = false
-		self:SetNetworkedEntity( "reference", self.reference )
+		self:SetNWEntity( "reference", self.reference )
 		self:SetOverlayText( "(Local)" )
 	end
 end
@@ -53,7 +53,7 @@ duplicator.RegisterEntityClass("gmod_wire_hologrid", WireLib.MakeWireEnt, "Data"
 
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	info.hologrid_usegps = self.usesgps and 1 or 0
 
@@ -67,7 +67,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self.reference = GetEntByID(info.reference, self)
 	self:Setup(info.hologrid_usegps ~= 0)

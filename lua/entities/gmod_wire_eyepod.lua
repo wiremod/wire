@@ -4,7 +4,7 @@ ENT.PrintName       = "Wire Eye Pod"
 ENT.Purpose         = "To control the player's view in a pod and output their mouse movements"
 ENT.WireDebugName	= "Eye Pod"
 
-if CLIENT then 
+if CLIENT then
 	local enabled = false
 	local rotate90 = false
 	local freezePitch = true
@@ -47,7 +47,7 @@ if CLIENT then
 			previousEnabled = false
 		end
 	end)
-	
+
 	return  -- No more client
 end
 
@@ -92,6 +92,8 @@ function ENT:Initialize()
 	if phys:IsValid() then
 		phys:Wake()
 	end
+
+	self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
 end
 
 function ENT:UpdateOverlay()
@@ -117,7 +119,7 @@ function ENT:Setup(DefaultToZero, RateOfChange, ClampXMin, ClampXMax, ClampYMin,
 	self.ClampYMax = ClampYMax
 	self.ClampX = ClampX
 	self.ClampY = ClampY
-	
+
 	self:UpdateOverlay()
 end
 
@@ -139,16 +141,24 @@ local Rotate90ModelList = {
 	["models/vehicle.mdl"]						= true
 }
 
-function ENT:PodLink(vehicle)
+-- Old function alias
+function ENT:PodLink(vehicle) return self:LinkEnt(vehicle) end
+
+function ENT:LinkEnt(vehicle)
+	vehicle = WireLib.GetClosestRealVehicle(vehicle,self:GetPos(),self:GetPlayer())
+
 	if not IsValid(vehicle) or not vehicle:IsVehicle() then
 		if IsValid(self.pod) then
 			self.pod.AttachedWireEyePod = nil
 		end
 		self.pod = nil
 		self:UpdateOverlay()
-		return false
+		return false, "Must link to a vehicle"
 	end
 	self.pod = vehicle
+	vehicle:CallOnRemove("wire_eyepod_remove",function()
+		self:UnlinkEnt(vehicle)
+	end)
 
 	self.rotate90 = false
 	self.eyeAng = Angle(0, 0, 0)
@@ -161,10 +171,29 @@ function ENT:PodLink(vehicle)
 
 	vehicle.AttachedWireEyePod = self
 	self:UpdateOverlay()
+	WireLib.SendMarks(self,{vehicle})
+	self:ColorByLinkStatus(IsValid(vehicle) and self.LINK_STATUS_LINKED or self.LINK_STATUS_UNLINKED)
+	return true
+end
+
+function ENT:UnlinkEnt()
+	if IsValid(self.pod) then
+		self.pod.AttachedWireEyePod = nil
+		self.pod:RemoveCallOnRemove("wire_eyepod_remove")
+	end
+	self.pod = nil
+	if IsValid(self.driver) then
+		self:updateEyePodState(false)
+		self.driver = nil
+	end
+	WireLib.SendMarks(self,{})
+	self:UpdateOverlay()
+	self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
 	return true
 end
 
 function ENT:updateEyePodState(enabled)
+	self:ColorByLinkStatus(enabled and self.LINK_STATUS_ACTIVE or self.LINK_STATUS_LINKED)
 	umsg.Start("UpdateEyePodState", self.driver)
 		umsg.Angle(self.eyeAng)
 		umsg.Bool(enabled)
@@ -208,14 +237,7 @@ hook.Add("PlayerLeaveVehicle","gmod_wire_eyepod_leavevehicle",function(ply,vehic
 end)
 
 function ENT:OnRemove()
-	if IsValid(self.pod) and self.pod:IsVehicle() then
-		self.pod.AttachedWireEyePod = nil
-	end
-
-	if IsValid(self.driver) then
-		self:updateEyePodState(false)
-		self.driver = nil
-	end
+	self:UnlinkEnt()
 end
 
 local function AngNorm(Ang)
@@ -229,15 +251,15 @@ function ENT:TriggerInput(iname, value)
 	-- Change variables to reflect input
 	if iname == "Enable" then
 		self.enabled = value ~= 0
-		
+
 		if self.enabled == false and self.DefaultToZero == 1 and (self.X ~= 0 or self.Y ~= 0) then
 			self.X = 0
 			self.Y = 0
 			WireLib.TriggerOutput( self, "X", 0 )
 			WireLib.TriggerOutput( self, "Y", 0 )
 			WireLib.TriggerOutput( self, "XY", {0,0} )
-		end			
-		
+		end
+
 		self:UpdateOverlay()
 	elseif iname == "SetPitch" then
 		self.eyeAng = Angle(AngNorm90(value), self.eyeAng.y, self.eyeAng.r)
@@ -258,7 +280,7 @@ function ENT:TriggerInput(iname, value)
 	elseif iname == "UnfreezeYaw" then
 		self.freezeYaw = value == 0
 	end
-	
+
 	if IsValid(self.pod) and IsValid(self.driver) then
 		self:updateEyePodState(self.enabled)
 	end
@@ -281,10 +303,10 @@ hook.Add("SetupMove", "WireEyePodMouseControl", function(ply, movedata)
 	if eyePod.enabled then
 
 		local cmd = ply:GetCurrentCommand()
-		
+
 		local oldX = eyePod.X
 		local oldY = eyePod.Y
-		
+
 		--reset the output so it is not cumualative if you want the rate of change
 		if eyePod.ShowRateOfChange == 1 then
 			eyePod.X = 0
@@ -307,7 +329,7 @@ hook.Add("SetupMove", "WireEyePodMouseControl", function(ply, movedata)
 			-- Update outputs
 			WireLib.TriggerOutput(eyePod, "X", eyePod.X)
 			WireLib.TriggerOutput(eyePod, "Y", eyePod.Y)
-			
+
 			local XY_Vec = {eyePod.X, eyePod.Y}
 			WireLib.TriggerOutput(eyePod, "XY", XY_Vec)
 		end
@@ -321,7 +343,7 @@ end)
 
 -- Advanced Duplicator Support
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 	if IsValid(self.pod) then
 		info.pod = self.pod:EntIndex()
 	end
@@ -329,7 +351,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self:PodLink(GetEntByID(info.pod))
 end

@@ -4,7 +4,6 @@ WireToolSetup.open( "light", "Light", "gmod_wire_light", nil, "Lights" )
 if CLIENT then
 	language.Add( "tool.wire_light.name", "Light Tool (Wire)" )
 	language.Add( "tool.wire_light.desc", "Spawns a Light for use with the wire system." )
-	language.Add( "tool.wire_light.0", "Primary: Create Light" )
 	language.Add( "WireLightTool_RopeLength", "Rope Length:")
 	language.Add( "WireLightTool_bright", "Glow brightness:")
 	language.Add( "WireLightTool_size", "Glow size:" )
@@ -13,6 +12,9 @@ if CLIENT then
 	language.Add( "WireLightTool_glow", "Glow Component" )
 	language.Add( "WireLightTool_const", "Constraint:" )
 	language.Add( "WireLightTool_color", "Initial Color:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon( "icon16/lightbulb.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(8)
@@ -29,7 +31,7 @@ if SERVER then
 			self:GetClientNumber("g"),
 			self:GetClientNumber("b")
 	end
-	
+
 	function TOOL:LeftClick_PostMake( ent, ply, trace )
 		if ent == true then return true end
 		if ent == nil or ent == false or not ent:IsValid() then return false end
@@ -47,7 +49,7 @@ if SERVER then
 
 			local length = math.Clamp( self:GetClientNumber( "ropelength" ), 4, 1024 )
 			local material = "cable/rope"
-			
+
 			local LPos1 = Vector( 0, 0, 0 )
 			if ent:GetModel() == "models/maxofs2d/light_tubular.mdl" then LPos1 = Vector( 0, 0, 5 ) end
 
@@ -61,7 +63,7 @@ if SERVER then
 			end
 
 			local constraint, rope = constraint.Rope( ent, trace.Entity, 0, trace.PhysicsBone, LPos1, LPos2, 0, length, 0, 1.5, material, nil )
-			
+
 			ent:GetPhysicsObject():Wake()
 
 			undo.Create( self.WireClass )

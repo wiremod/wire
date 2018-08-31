@@ -4,7 +4,7 @@ WireToolSetup.open( "dynamic_button", "Dynamic Button", "gmod_wire_dynamic_butto
 if CLIENT then
 	language.Add( "tool.wire_dynamic_button.name", "Dynamic Button Tool (Wire)" )
 	language.Add( "tool.wire_dynamic_button.desc", "Spawns a dynamic button for use with the wire system." )
-	language.Add( "tool.wire_dynamic_button.0", "Primary: Create/Update Dynamic Button" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 	language.Add( "WireDynamicButtonTool_toggle", "Toggle" )
 	language.Add( "WireDynamicButtonTool_entityout", "Output Entity" )
 	language.Add( "WireDynamicButtonTool_value_on", "Value On:" )
@@ -14,14 +14,14 @@ if CLIENT then
 	language.Add( "WireDynamicButtonTool_colour_on", "Color On:" )
 	language.Add( "WireDynamicButtonTool_colour_off", "Color Off:" )
 end
-WireToolSetup.BaseLang("Dynamic Buttons")
+WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	function TOOL:GetConVars() 
-		return self:GetClientNumber( "toggle" ) ~= 0, self:GetClientNumber( "value_on" ), self:GetClientNumber( "value_off" ), 
-			self:GetClientInfo( "description" ), self:GetClientNumber( "entityout" ) ~= 0, self:GetClientInfo( "material_on" ), self:GetClientInfo( "material_off" ), 
-			self:GetClientNumber( "on_r" ), self:GetClientNumber( "on_g" ), self:GetClientNumber( "on_b" ), 
+	function TOOL:GetConVars()
+		return self:GetClientNumber( "toggle" ) ~= 0, self:GetClientNumber( "value_on" ), self:GetClientNumber( "value_off" ),
+			self:GetClientInfo( "description" ), self:GetClientNumber( "entityout" ) ~= 0, self:GetClientInfo( "material_on" ), self:GetClientInfo( "material_off" ),
+			self:GetClientNumber( "on_r" ), self:GetClientNumber( "on_g" ), self:GetClientNumber( "on_b" ),
 			self:GetClientNumber( "off_r" ), self:GetClientNumber( "off_g" ), self:GetClientNumber( "off_b" )
 	end
 

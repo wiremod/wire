@@ -4,8 +4,8 @@ WireToolSetup.open( "user", "User", "gmod_wire_user", nil, "Users" )
 if CLIENT then
 	language.Add( "Tool.wire_user.name", "User Tool (Wire)" )
 	language.Add( "Tool.wire_user.desc", "Spawns a constant user prop for use with the wire system." )
-	language.Add( "Tool.wire_user.0", "Primary: Create/Update User" )
 	language.Add( "Tool.wire_user.range", "Max Range:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

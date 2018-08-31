@@ -41,7 +41,7 @@ function ENT:Setup(Mem1st, Mem2st, Mem3st, Mem4st, Mem1sz, Mem2sz, Mem3sz, Mem4s
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	self.DataRate = self.DataBytes
 	self.DataBytes = 0

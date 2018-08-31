@@ -24,16 +24,16 @@ local types_lookup = {
 
 function ENT:SetupLegacy( values )
 	local new = {}
-	
+
 	for k,v in pairs( values ) do
 		local tp, val = string.match( v, "^ *([^: ]+) *:(.*)$" )
 		tp = string.upper(tp or "NORMAL")
-		
+
 		if types_lookup[tp] then
 			new[#new+1] = { DataType = tp, Value = val or v }
 		end
 	end
-	
+
 	self.LegacyOutputs = true
 	self:Setup( new )
 end
@@ -66,7 +66,7 @@ function parsers.ANGLE( val )
 	end
 end
 function parsers.STRING( val )
-	return tostring( val )
+	return string.gsub( tostring( val ), "\\[n0\\]", {["\\\\"] = "\\", ["\\n"] = "\n", ["\\0"] = "\0"} )
 end
 
 function ENT:ParseValue( value, tp )
@@ -83,24 +83,24 @@ end
 
 function ENT:Setup( valuesin )
 	if not valuesin then return end
-	
+
 	local _, val = next( valuesin )
 	if not val then
 		WireLib.AddNotify( self:GetPlayer(), "Constant Value: No values found!", NOTIFY_ERROR, 5, NOTIFYSOUND_ERROR1 )
 	elseif not istable( val ) then -- old dupe
 		self:SetupLegacy( valuesin )
 	else
-		self.value = valuesin -- Wirelink/Duplicator Info 
-	
+		self.value = valuesin -- Wirelink/Duplicator Info
+
 		local names = {}
 		local types = {}
 		local values = {}
 		local descs = {}
-		
+
 		for k,v in pairs(valuesin) do
 			v.DataType = string.upper( v.DataType )
 			if v.DataType == "NUMBER" then v.DataType = "NORMAL" end
-			
+
 			if types_lookup[string.upper( v.DataType )] ~= nil then
 				names[k] = tostring( k )
 				types[k] = string.upper( v.DataType )
@@ -114,9 +114,9 @@ function ENT:Setup( valuesin )
 				descs[k] = "*ERROR*"
 			end
 		end
-		
+
 		if self.LegacyOutputs then
-			-- Gmod12 Constant Values will have outputs like Value1, Value2... 
+			-- Gmod12 Constant Values will have outputs like Value1, Value2...
 			-- To avoid breaking old dupes, we'll use those names if we're created from an old dupe
 			for k,v in pairs(names) do
 				names[k] = "Value"..v

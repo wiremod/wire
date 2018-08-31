@@ -46,12 +46,7 @@ end
 local Inputs = {}
 local Outputs = {}
 local CurLink = {}
-
-hook.Add("Think", "WireLib_Think", function()
-	for idx,port in pairs(Outputs) do
-		port.TriggerLimit = 4
-	end
-end)
+local CurTime = CurTime
 
 -- helper function that pcalls an input
 function WireLib.TriggerInput(ent, name, value, ...)
@@ -61,9 +56,10 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	if (not ent.TriggerInput) then return end
 	local ok, ret = xpcall(ent.TriggerInput, debug.traceback, ent, name, value, ...)
 	if not ok then
-		local message = string.format("Wire error (%s):\n%s\n", tostring(ent), ret)
-		WireLib.ErrorNoHalt(message)
 		local ply = WireLib.GetOwner(ent)
+		local owner_msg = IsValid(ply) and (" by %s"):format(tostring(ply)) or ""
+		local message = ("Wire error (%s%s):\n%s\n"):format(tostring(ent),owner_msg, ret)
+		WireLib.ErrorNoHalt(message)
 		if IsValid(ply) then WireLib.ClientError(message, ply) end
 	end
 end
@@ -89,10 +85,10 @@ WireLib.DT = {
 		Zero = ""
 	},
 	TABLE = {
-		Zero = {}
+		Zero = {n={},ntypes={},s={},stypes={},size=0},
 	},
 	BIDIRTABLE = {
-		Zero = {},
+		Zero = {n={},ntypes={},s={},stypes={},size=0},
 		BiDir = true
 	},
 	ANY = {
@@ -137,7 +133,6 @@ function WireLib.CreateSpecialInputs(ent, names, types, descs)
 		Inputs[idx] = port
 	end
 
-	WireLib.SetPathNames(ent, names)
 	WireLib._SetInputs(ent)
 
 	return ent_ports
@@ -228,7 +223,6 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 		end
 	end
 
-	WireLib.SetPathNames(ent, names)
 	WireLib._SetInputs(ent)
 
 	return ent_ports
@@ -482,6 +476,7 @@ local function Wire_Link(dst, dstid, src, srcid, path)
 	input.SrcId = srcid
 	input.Path = path
 
+	WireLib.Paths.Add(input)
 	WireLib._SetLink(input)
 
 	table.insert(output.Connected, { Entity = dst, Name = dstid })
@@ -506,7 +501,14 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 
 	local output = ent.Outputs[oname]
 	if (output) and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE") then
-		if (output.TriggerLimit <= 0) then return end
+		local timeOfFrame = CurTime()
+		if timeOfFrame ~= output.TriggerTime then
+			-- Reset the TriggerLimit every frame
+			output.TriggerLimit = 4
+			output.TriggerTime = timeOfFrame
+		elseif output.TriggerLimit <= 0 then
+			return
+		end
 		output.TriggerLimit = output.TriggerLimit - 1
 
 		output.Value = value
@@ -578,33 +580,23 @@ function WireLib.Link_Start(idx, ent, pos, iname, material, color, width)
 
 	local input = ent.Inputs[iname]
 
+	if not input.Path then input.Path = {} end
+
 	CurLink[idx] = {
 		Dst = ent,
 		DstId = iname,
-		Path = {},
-		OldPath = input.Path,
-		}
-
-	CurLink[idx].OldPath             = CurLink[idx].OldPath or {}
-	CurLink[idx].OldPath[0]          = {}
-	CurLink[idx].OldPath[0].pos      = input.StartPos
-	CurLink[idx].OldPath[0].material = input.Material
-	CurLink[idx].OldPath[0].color    = input.Color
-	CurLink[idx].OldPath[0].width    = input.Width
-
-	local net_name = "wp_" .. iname
-	ent:SetNetworkedBeamInt(net_name, 0)
-	ent:SetNetworkedBeamVector(net_name .. "_start", pos)
-	ent:SetNetworkedBeamString(net_name .. "_mat", material)
-	ent:SetNetworkedBeamVector(net_name .. "_col", Vector(color.r, color.g, color.b))
-	ent:SetNetworkedBeamFloat(net_name .. "_width", width)
-
-	--RDbeamlib.StartWireBeam( ent, iname, pos, material, color, width )
+		Path = input.Path,
+		OldPath = {}
+	}
+	for i=1, #input.Path do
+		CurLink[idx].OldPath[i] = input.Path[i]
+		input.Path[i] = nil
+	end
 
 	input.StartPos = pos
 	input.Material = material
 	input.Color = color
-	input.Width = width
+	input.Width = math.Clamp(width, 0, 5)
 
 	return true
 end
@@ -615,15 +607,8 @@ function WireLib.Link_Node(idx, ent, pos)
 	if not IsValid(CurLink[idx].Dst) then return end
 	if not IsValid(ent) then return end -- its the world, give up
 
-	local net_name = "wp_" .. CurLink[idx].DstId
-	local node_idx = CurLink[idx].Dst:GetNetworkedBeamInt(net_name)+1
-	CurLink[idx].Dst:SetNetworkedBeamEntity(net_name .. "_" .. node_idx .. "_ent", ent)
-	CurLink[idx].Dst:SetNetworkedBeamVector(net_name .. "_" .. node_idx .. "_pos", pos)
-	CurLink[idx].Dst:SetNetworkedBeamInt(net_name, node_idx)
-
-	--RDbeamlib.AddWireBeamNode( CurLink[idx].Dst, CurLink[idx].DstId, ent, pos )
-
 	table.insert(CurLink[idx].Path, { Entity = ent, Pos = pos })
+	WireLib.Paths.Add(CurLink[idx].Dst.Inputs[CurLink[idx].DstId])
 end
 
 
@@ -665,16 +650,7 @@ function WireLib.Link_End(idx, ent, pos, oname, pl)
 		return
 	end
 
-	local net_name = "wp_" .. CurLink[idx].DstId
-	local node_idx = CurLink[idx].Dst:GetNetworkedBeamInt(net_name)+1
-	CurLink[idx].Dst:SetNetworkedBeamEntity(net_name .. "_" .. node_idx .. "_ent", ent)
-	CurLink[idx].Dst:SetNetworkedBeamVector(net_name .. "_" .. node_idx .. "_pos", pos)
-	CurLink[idx].Dst:SetNetworkedBeamInt(net_name, node_idx)
-
-	--RDbeamlib.AddWireBeamNode( CurLink[idx].Dst, CurLink[idx].DstId, ent, pos )
-
 	table.insert(CurLink[idx].Path, { Entity = ent, Pos = pos })
-
 	Wire_Link(CurLink[idx].Dst, CurLink[idx].DstId, ent, oname, CurLink[idx].Path)
 
 	if (WireLib.DT[input.Type].BiDir) then
@@ -689,37 +665,18 @@ function WireLib.Link_Cancel(idx)
 	if not CurLink[idx] then return end
 	if not IsValid(CurLink[idx].Dst) then return end
 
-	--local orig = CurLink[idx].OldPath[0]
-	--RDbeamlib.StartWireBeam( CurLink[idx].Dst, CurLink[idx].DstId, orig.pos, orig.material, orig.color, orig.width )
-
-	local path_len = 0
-	if (CurLink[idx].OldPath) then path_len = #CurLink[idx].OldPath end
-
-	local net_name = "wp_" .. CurLink[idx].DstId
-	for i=1,path_len do
-		CurLink[idx].Dst:SetNetworkedBeamEntity(net_name .. "_" .. i, CurLink[idx].OldPath[i].Entity)
-		CurLink[idx].Dst:SetNetworkedBeamVector(net_name .. "_" .. i, CurLink[idx].OldPath[i].Pos)
-		--RDbeamlib.AddWireBeamNode( CurLink[idx].Dst, CurLink[idx].DstId, CurLink[idx].OldPath[i].Entity, CurLink[idx].OldPath[i].Pos )
+	if CurLink[idx].input then
+		CurLink[idx].Path = CurLink[idx].input.Path
+	else
+		WireLib.Paths.Add({Entity = CurLink[idx].Dst, Name = CurLink[idx].DstId, Width = 0})
 	end
-	CurLink[idx].Dst:SetNetworkedBeamInt(net_name, path_len)
-
 	CurLink[idx] = nil
 end
 
 
 function WireLib.Link_Clear(ent, iname, DontSendToCL)
-	local net_name = "wp_" .. iname
-	ent:SetNetworkedBeamInt(net_name, 0)
-	--RDbeamlib.ClearWireBeam( ent, iname )
-
+	WireLib.Paths.Add({Entity = ent, Name = iname, Width = 0})
 	Wire_Unlink(ent, iname, DontSendToCL)
-end
-
-function WireLib.SetPathNames(ent, names)
-	for k,v in pairs(names) do
-		ent:SetNetworkedBeamString("wpn_" .. k, v)
-	end
-	ent:SetNetworkedBeamInt("wpn_count", #names)
 end
 
 function WireLib.WireAll(ply, ient, oent, ipos, opos, material, color, width)
@@ -944,86 +901,9 @@ Wire_Link_Node					= WireLib.Link_Node
 Wire_Link_End					= WireLib.Link_End
 Wire_Link_Cancel				= WireLib.Link_Cancel
 Wire_Link_Clear					= WireLib.Link_Clear
-Wire_SetPathNames				= WireLib.SetPathNames
 Wire_CreateOutputIterator		= WireLib.CreateOutputIterator
 Wire_BuildDupeInfo				= WireLib.BuildDupeInfo
 Wire_ApplyDupeInfo				= WireLib.ApplyDupeInfo
-
---backwards logic: set enable to false to show show values on gates instead
-Wire_EnableGateInputValues = true
-local function WireEnableInputValues(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
-		if args[1] == "1" or args[1] == 1 then
-			Wire_EnableGateInputValues = true
-		elseif args[1] == "0" or args[1] == 0 then
-			Wire_EnableGateInputValues = false
-		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
-		end
-	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nWire_EnableGateInputValues = "..tostring(Wire_EnableGateInputValues).."\n")
-end
-concommand.Add( "Wire_EnableGateInputValues", WireEnableInputValues )
-
-Wire_FastOverlayTextUpdate = false
-local function WireFastOverlayTextUpdate(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
-		if args[1] == "1" or args[1] == 1 then
-			Wire_FastOverlayTextUpdate = true
-		elseif args[1] == "0" or args[1] == 0 then
-			Wire_FastOverlayTextUpdate = false
-		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
-		end
-	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nWire_FastOverlayTextUpdate = "..tostring(Wire_FastOverlayTextUpdate).."\n")
-end
-concommand.Add( "Wire_FastOverlayTextUpdate", WireFastOverlayTextUpdate )
-
-Wire_SlowerOverlayTextUpdate = false
-local function WireSlowerOverlayTextUpdate(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
-		if args[1] == "1" or args[1] == 1 then
-			Wire_SlowerOverlayTextUpdate = true
-		elseif args[1] == "0" or args[1] == 0 then
-			Wire_SlowerOverlayTextUpdate = false
-		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
-		end
-	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nWire_SlowerOverlayTextUpdate = "..tostring(Wire_SlowerOverlayTextUpdate).."\n")
-end
-concommand.Add( "Wire_SlowerOverlayTextUpdate", WireSlowerOverlayTextUpdate )
-
-Wire_DisableOverlayTextUpdate = false
-local function WireDisableOverlayTextUpdate(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
-		if args[1] == "1" or args[1] == 1 then
-			Wire_DisableOverlayTextUpdate = true
-		elseif args[1] == "0" or args[1] == 0 then
-			Wire_DisableOverlayTextUpdate = false
-		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
-		end
-	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nWire_DisableOverlayTextUpdate = "..tostring(Wire_DisableOverlayTextUpdate).."\n")
-end
-concommand.Add( "Wire_DisableOverlayTextUpdate", WireDisableOverlayTextUpdate )
-
-Wire_ForceDelayOverlayTextUpdate = false
-local function WireForceDelayOverlayTextUpdate(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
-		if args[1] == "1" or args[1] == 1 then
-			Wire_ForceDelayOverlayTextUpdate = true
-		elseif args[1] == "0" or args[1] == 0 then
-			Wire_ForceDelayOverlayTextUpdate = false
-		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
-		end
-	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nWire_ForceDelayOverlayTextUpdate = "..tostring(Wire_ForceDelayOverlayTextUpdate).."\n")
-end
-concommand.Add( "Wire_ForceDelayOverlayTextUpdate", WireForceDelayOverlayTextUpdate )
 
 -- prevent applyForce+Anti-noclip-based killing contraptions
 hook.Add("InitPostEntity", "antiantinoclip", function()
@@ -1114,29 +994,29 @@ function WireLib.GetOwner(ent)
 	return E2Lib.getOwner({}, ent)
 end
 
-function WireLib.dummytrace(ent)
-	local pos = ent:GetPos()
-	return {
-		FractionLeftSolid = 0,
-		HitNonWorld       = true,
-		Fraction          = 0,
-		Entity            = ent,
-		HitPos            = pos,
-		HitNormal         = Vector(0,0,0),
-		HitBox            = 0,
-		Normal            = Vector(1,0,0),
-		Hit               = true,
-		HitGroup          = 0,
-		MatType           = 0,
-		StartPos          = pos,
-		PhysicsBone       = 0,
-		WorldToLocal      = Vector(0,0,0),
-	}
+function WireLib.NumModelSkins(model)
+	if NumModelSkins then
+		return NumModelSkins(model)
+	end
+	local info = util.GetModelInfo(model)
+	return info and info.SkinCount
+end
+
+--- @return whether the given player can spawn an object with the given model and skin
+function WireLib.CanModel(player, model, skin)
+	if not util.IsValidModel(model) then return false end
+	if skin ~= nil then
+		local count = WireLib.NumModelSkins(model)
+		if skin < 0 or (count and skin >= count) then return false end
+	end
+	if IsValid(player) and player:IsPlayer() and not hook.Run("PlayerSpawnObject", player, model, skin) then return false end
+	return true
 end
 
 function WireLib.MakeWireEnt( pl, Data, ... )
 	Data.Class = scripted_ents.Get(Data.Class).ClassName
 	if IsValid(pl) and not pl:CheckLimit(Data.Class:sub(6).."s") then return false end
+	if Data.Model and not WireLib.CanModel(pl, Data.Model, Data.Skin) then return false end
 
 	local ent = ents.Create( Data.Class )
 	if not IsValid(ent) then return false end
@@ -1216,9 +1096,15 @@ function WireLib.AddOutputAlias( class, old, new )
 	ENT_table.OutputAliases[old] = new
 end
 
+local function effectiveMass(ent)
+	if not isentity(ent) then return 1 end
+	if ent:IsWorld() then return 99999 end
+	if not IsValid(ent) or not IsValid(ent:GetPhysicsObject()) then return 1 end
+	return ent:GetPhysicsObject():GetMass()
+end
+
 function WireLib.CalcElasticConsts(Ent1, Ent2)
-	if not IsValid(Ent1:GetPhysicsObject()) or not IsValid(Ent2:GetPhysicsObject()) then return 100, 20 end
-	local minMass = math.min(Ent1:IsWorld() and 99999 or Ent1:GetPhysicsObject():GetMass(), Ent2:IsWorld() and 99999 or Ent2:GetPhysicsObject():GetMass())
+	local minMass = math.min(effectiveMass(Ent1), effectiveMass(Ent2))
 	local const = minMass * 100
 	local damp = minMass * 20
 
@@ -1232,14 +1118,6 @@ local cachedversion
 function WireLib.GetVersion()
 	-- If we've already found our version just return that again
 	if cachedversion then return cachedversion end
-
-	-- Check if we're Workshop version first
-	for k, addon in pairs(engine.GetAddons()) do
-		if addon.wsid == "160250458" then
-			cachedversion = "Workshop"
-			return cachedversion
-		end
-	end
 
 	-- Find what our legacy folder is called
 	local wirefolder = "addons/wire"
@@ -1269,6 +1147,14 @@ function WireLib.GetVersion()
 		end
 	end
 
+	-- Check if we're Workshop version first
+	for k, addon in pairs(engine.GetAddons()) do
+		if addon.wsid == "160250458" then
+			cachedversion = "Workshop"
+			return cachedversion
+		end
+	end
+
 	if not cachedversion then cachedversion = "Unknown" end
 
 	return cachedversion
@@ -1282,22 +1168,39 @@ concommand.Add("wireversion", function(ply,cmd,args)
 	end
 end, nil, "Prints the server's Wiremod version")
 
--- This hook fixes a bug where entering a vehicle that is parented to you, or to an entity that is parented to you, will crash the server.
--- Remember to remove this if it's fixed by team garry or in the engine itself
 
-local nextPrint = {} -- used to prevent message spam
-hook.Add( "CanPlayerEnterVehicle", "check vehicle parented to player", function( ply, veh )
-    local parent = veh:GetParent()
-    while IsValid( parent ) do
-        if parent == ply then
-            if not nextPrint[ply] or nextPrint[ply] < RealTime() then
-                WireLib.AddNotify(ply, "You can't enter this vehicle because it is parented to you.", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1 ) -- prettier notification
-                --ply:ChatPrint( "You can't enter this vehicle because it is parented to you." )
-                nextPrint[ply] = RealTime() + 0.3
-            end
-            return false
-        end
-        if parent == veh then return end -- parent loop? this should've crashed the server already but okay
-        parent = parent:GetParent()
-    end
-end )
+local material_blacklist = {
+	["engine/writez"] = true,
+	["pp/copy"] = true,
+	["effects/ar2_altfire1"] = true
+}
+function WireLib.IsValidMaterial(material)
+	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
+	if material_blacklist[path] then return "" end
+	return material
+end
+
+if not WireLib.PatchedDuplicator then
+	WireLib.PatchedDuplicator = true
+
+	local localPos
+
+	local oldSetLocalPos = duplicator.SetLocalPos
+	function duplicator.SetLocalPos(pos, ...)
+		localPos = pos
+		return oldSetLocalPos(pos, ...)
+	end
+
+	local oldPaste = duplicator.Paste
+	function duplicator.Paste(player, entityList, constraintList, ...)
+		local result = { oldPaste(player, entityList, constraintList, ...) }
+		local createdEntities, createdConstraints = result[1], result[2]
+		local data = {
+			EntityList = entityList, ConstraintList = constraintList,
+			CreatedEntities = createdEntities, CreatedConstraints = createdConstraints,
+			Player = player, HitPos = localPos,
+		}
+		hook.Run("AdvDupe_FinishPasting", {data}, 1)
+		return unpack(result)
+	end
+end

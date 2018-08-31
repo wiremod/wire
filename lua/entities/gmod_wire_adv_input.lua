@@ -16,12 +16,12 @@ end
 function ENT:Setup(key_more,key_less,toggle,value_min,value_max,value_start,speed)
 	self.keymore = key_more
 	self.keyless = key_less
-	
+
 	numpad.OnDown( pl, key_more, "WireAdvInput_On", self, 1 )
 	numpad.OnUp( pl, key_more, "WireAdvInput_Off", self, 1 )
 	numpad.OnDown( pl, key_less, "WireAdvInput_On", self, -1 )
 	numpad.OnUp( pl, key_less, "WireAdvInput_Off", self, -1 )
-	
+
 	self.toggle = (toggle == 1 || toggle == true)
 	self.value_min = value_min
 	self.value_max = value_max
@@ -66,7 +66,7 @@ function ENT:Switch( on, mul )
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 	local timediff = CurTime()-(self.LastThink or 0)
 	self.LastThink = (self.LastThink or 0)+timediff
 	if (self.On == true) then

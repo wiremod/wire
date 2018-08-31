@@ -4,8 +4,10 @@ local delta  = wire_expression2_delta
 local math   = math
 local random = math.random
 local pi     = math.pi
+local inf    = math.huge
 
 local exp    = math.exp
+local frexp  = math.frexp
 local log    = math.log
 local log10  = math.log10
 local sqrt   = math.sqrt
@@ -124,13 +126,6 @@ end)
 
 --[[************************************************************************]]--
 
-__e2setcost(5)
-
-registerOperator("dlt", "n", "n", function(self, args)
-	local op1, scope = args[2], args[3]
-	return self.Scopes[scope][op1] - self.Scopes[scope]["$" .. op1]
-end)
-
 __e2setcost(0.5) -- approximation
 
 registerOperator("neg", "n", "n", function(self, args)
@@ -221,6 +216,27 @@ registerFunction("max", "nnnn", "n", function(self, args)
 	if rv3 > val then val = rv3 end
 	if rv4 > val then return rv4 else return val end
 end)
+
+--[[************************************************************************]]--
+
+__e2setcost(2) -- approximation
+
+--- Returns true (1) if given value is a finite number; otherwise false (0).
+e2function number isfinite(value)
+	return (value > -inf and value < inf) and 1 or 0
+end
+
+--- Returns 1 if given value is a positive infinity or -1 if given value is a negative infinity; otherwise 0.
+e2function number isinf(value)
+	if value == inf then return 1 end
+	if value == -inf then return -1 end
+	return 0
+end
+
+--- Returns true (1) if given value is not a number (NaN); otherwise false (0).
+e2function number isnan(value)
+	return (value ~= value) and 1 or 0
+end
 
 --[[************************************************************************]]--
 
@@ -376,6 +392,11 @@ registerFunction("exp", "n", "n", function(self, args)
 	return exp(rv1)
 end)
 
+e2function vector2 frexp(x)
+	local mantissa, exponent = frexp(x)
+	return { mantissa, exponent }
+end
+
 registerFunction("ln", "n", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
@@ -407,6 +428,10 @@ __e2setcost(2) -- approximation
 
 local deg2rad = pi / 180
 local rad2deg = 180 / pi
+
+registerFunction("inf", "", "n", function(self, args)
+	return inf
+end)
 
 registerFunction("pi", "", "n", function(self, args)
 	return pi

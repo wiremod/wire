@@ -5,6 +5,8 @@ ENT.WireDebugName = "Gate"
 
 if CLIENT then return end -- No more client
 
+local Wire_EnableGateInputValues = CreateConVar("Wire_EnableGateInputValues", 1, FCVAR_ARCHIVE)
+
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -18,7 +20,9 @@ function ENT:Setup( action, noclip )
 	local gate = GateActions[action]
 	if not gate then return end
 	if GateActions[action].is_banned then return end
-	
+
+	self.Updating = true
+
 	self.action = action
 
 	self.WireDebugName = gate.name
@@ -63,6 +67,8 @@ function ENT:Setup( action, noclip )
 
 	--self.Action.inputtypes = self.Action.inputtypes or {}
 
+	self.Updating = nil
+
 	self:CalcOutput()
 	self:ShowOutput()
 end
@@ -81,6 +87,7 @@ function ENT:OnOutputWireLink(oname, otype, dst, iname, itype)
 end
 
 function ENT:TriggerInput(iname, value, iter)
+	if self.Updating then return end
 	if (self.Action) and (not self.Action.timed) then
 		self:CalcOutput(iter)
 		self:ShowOutput()
@@ -88,7 +95,7 @@ function ENT:TriggerInput(iname, value, iter)
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if (self.Action) and (self.Action.timed) then
 		self:CalcOutput()
@@ -103,13 +110,13 @@ end
 function ENT:CalcOutput(iter)
 	if (self.Action) and (self.Action.output) then
 		if (self.Action.outputs) then
-			local result = { self.Action.output(self, unpack(self:GetActionInputs())) }
+			local result = { self.Action.output(self, unpack(self:GetActionInputs(), 1, #self.Action.inputs)) }
 
 			for k,v in ipairs(self.Action.outputs) do
 				Wire_TriggerOutput(self, v, result[k] or WireLib.DT[ self.Outputs[v].Type ].Zero, iter)
 			end
 		else
-			local value = self.Action.output(self, unpack(self:GetActionInputs())) or WireLib.DT[ self.Outputs.Out.Type ].Zero
+			local value = self.Action.output(self, unpack(self:GetActionInputs(), 1, #self.Action.inputs)) or WireLib.DT[ self.Outputs.Out.Type ].Zero
 
 			Wire_TriggerOutput(self, "Out", value, iter)
 		end
@@ -117,12 +124,12 @@ function ENT:CalcOutput(iter)
 end
 
 function ENT:ShowOutput()
-	local txt = ""
+	local txt
 
 	if (self.Action) then
 		txt = (self.Action.name or "No Name")
 		if (self.Action.label) then
-			txt = txt.."\n"..self.Action.label(self:GetActionOutputs(), unpack(self:GetActionInputs(Wire_EnableGateInputValues)))
+			txt = txt.."\n"..self.Action.label(self:GetActionOutputs(), unpack(self:GetActionInputs(Wire_EnableGateInputValues:GetBool()), 1, #self.Action.inputs))
 		end
 	else
 		txt = "Invalid gate!"
@@ -135,7 +142,7 @@ end
 function ENT:OnRestore()
 	self.Action = GateActions[self.action]
 
-	self.BaseClass.OnRestore(self)
+	BaseClass.OnRestore(self)
 end
 
 
@@ -147,7 +154,7 @@ function ENT:GetActionInputs(as_names)
 		for k,v in ipairs(self.Action.inputs) do
 		    local input = self.Inputs[v]
 			if (not input) then
-				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")")
+				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")\n")
 				return {}
 			end
 
@@ -172,7 +179,7 @@ function ENT:GetActionInputs(as_names)
 		for k,v in ipairs(self.Action.inputs) do
 		    local input = self.Inputs[v]
 			if (not input) then
-				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")")
+				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")\n")
 				return {}
 			end
 
@@ -200,10 +207,10 @@ function ENT:GetActionOutputs()
 	return self.Outputs.Out.Value or WireLib.DT[ self.Outputs.Out.Type ].Zero
 end
 
-function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
+function WireLib.MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
 	if not GateActions[action] then return end
 	if GateActions[action].is_banned then return end
 
 	return WireLib.MakeWireEnt(pl, { Class = "gmod_wire_gate", Pos=Pos, Angle=Ang, Model=model }, action, noclip)
 end
-duplicator.RegisterEntityClass("gmod_wire_gate", MakeWireGate, "Pos", "Ang", "Model", "action", "noclip")
+duplicator.RegisterEntityClass("gmod_wire_gate", WireLib.MakeWireGate, "Pos", "Ang", "Model", "action", "noclip")

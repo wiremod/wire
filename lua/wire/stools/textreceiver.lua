@@ -4,7 +4,6 @@ WireToolSetup.open( "textreceiver", "Text Receiver", "gmod_wire_textreceiver", n
 if ( CLIENT ) then
 	language.Add( "Tool.wire_textreceiver.name", "Text Receiver Tool (Wire)" )
 	language.Add( "Tool.wire_textreceiver.desc", "Spawns a text receiver for use with the wire system." )
-	language.Add( "Tool.wire_textreceiver.0", "Primary: Create/Update text receiver, Secondary: Copy Settings" )
 
 	language.Add( "Tool_wire_textreceiver_case_insensitive", "Case insensitive" )
 	language.Add( "Tool_wire_textreceiver_use_lua_patterns", "Use Lua Patterns" )
@@ -12,6 +11,11 @@ if ( CLIENT ) then
 	for i=1,24 do
 		language.Add( "Tool_wire_textreceiver_match" .. i, "Match " .. i .. ":" )
 	end
+
+	TOOL.Information = {
+		{ name = "left", text = "Create/Update " .. TOOL.Name },
+		{ name = "right", text = "Copy settings" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
@@ -28,7 +32,7 @@ end
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_range.mdl"
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		local matches = {}
 		for i=1,math.Clamp(self:GetClientNumber("num_matches"),0,24) do
 			matches[i] = self:GetClientInfo("match"..i)

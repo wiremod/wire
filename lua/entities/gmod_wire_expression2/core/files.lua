@@ -4,7 +4,7 @@
 ]]--
 
 local cv_transfer_delay    = CreateConVar( "wire_expression2_file_delay", "5", { FCVAR_ARCHIVE } )
-local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) -- in kb
+local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) -- in kib
 
 local download_chunk_size = 20000 -- Our overhead is pretty small so lets send it in moderate sized pieces, no need to max out the buffer
 
@@ -341,7 +341,7 @@ util.AddNetworkString("wire_expression2_file_begin")
 net.Receive("wire_expression2_file_begin", function(netlen, ply)
 	local pfile = uploads[ply]
 	if !pfile then return end
-	
+
 	local len = net.ReadUInt(32)
 
 	if len == 0 then -- file not found
@@ -415,7 +415,7 @@ concommand.Add("wire_expression2_file_singleplayer", function(ply, cmd, args)
 	if not ply:IsListenServerHost() then ply:Kick("Do not use wire_expression2_file_singleplayer in multiplayer, unless you're the host!") end
 	local pfile = uploads[ply]
 	if !pfile then return end
-	
+
 	local path = args[1]
 	if not file.Exists(path, "DATA") then
 		pfile.sp_wait = false

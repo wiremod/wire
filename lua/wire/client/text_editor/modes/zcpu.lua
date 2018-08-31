@@ -110,7 +110,7 @@ function EDITOR:CommentSelection(removecomment)
   end
 end
 
-function EDITOR:BlockCommentSelction(removecomment)
+function EDITOR:BlockCommentSelection(removecomment)
   local sel_start, sel_caret = self:MakeSelection( self:Selection() )
   local str = self:GetSelection()
   if removecomment then

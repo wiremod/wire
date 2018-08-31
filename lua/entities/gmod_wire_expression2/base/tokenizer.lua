@@ -5,7 +5,8 @@
 
 AddCSLuaFile()
 
-Tokenizer = {}
+E2Lib.Tokenizer = {}
+local Tokenizer = E2Lib.Tokenizer
 Tokenizer.__index = Tokenizer
 
 function Tokenizer.Execute(...)
@@ -13,7 +14,7 @@ function Tokenizer.Execute(...)
 	local instance = setmetatable({}, Tokenizer)
 
 	-- and pcall the new instance's Process method.
-	return pcall(Tokenizer.Process, instance, ...)
+	return xpcall(Tokenizer.Process, E2Lib.errorHandler, instance, ...)
 end
 
 function Tokenizer:Error(message, offset)

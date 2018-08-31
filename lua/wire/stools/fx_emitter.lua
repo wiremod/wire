@@ -4,8 +4,8 @@ WireToolSetup.open( "fx_emitter", "FX Emitter", "gmod_wire_fx_emitter", nil, "FX
 if ( CLIENT ) then
 	language.Add( "Tool.wire_fx_emitter.name", "Wire FX Emitter" )
 	language.Add( "Tool.wire_fx_emitter.desc", "Wire FX Emitter Emits effects eh?" )
-	language.Add( "Tool.wire_fx_emitter.0", "Click somewhere to spawn a wire fx emitter. Click on an existing wire fx emitter to update it." )
 	language.Add( "Tool.wire_fx_emitter.delay", "Delay between effect pulses" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
@@ -20,7 +20,7 @@ TOOL.ClientConVar = {
 TOOL.GhostMin = "y"
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return math.Clamp(self:GetClientNumber( "Delay" ), 0.05, 20), ComboBox_Wire_FX_Emitter_Options[self:GetClientInfo( "Effect" )]
 	end
 end

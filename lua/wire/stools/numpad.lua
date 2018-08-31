@@ -2,22 +2,22 @@ WireToolSetup.setCategory( "Input, Output/Keyboard Interaction" )
 WireToolSetup.open( "numpad", "Numpad", "gmod_wire_numpad", nil, "Numpads" )
 
 if CLIENT then
-    language.Add( "Tool.wire_numpad.name", "Wired Numpad Tool (Wire)" )
-    language.Add( "Tool.wire_numpad.desc", "Spawns a numpad input for use with the wire system." )
-    language.Add( "Tool.wire_numpad.0", "Primary: Create/Update Numpad" )
-    language.Add( "WireNumpadTool_toggle", "Toggle" )
-    language.Add( "WireNumpadTool_value_on", "Value On:" )
-    language.Add( "WireNumpadTool_value_off", "Value Off:" )
+	language.Add( "Tool.wire_numpad.name", "Wired Numpad Tool (Wire)" )
+	language.Add( "Tool.wire_numpad.desc", "Spawns a numpad input for use with the wire system." )
+	language.Add( "WireNumpadTool_toggle", "Toggle" )
+	language.Add( "WireNumpadTool_value_on", "Value On:" )
+	language.Add( "WireNumpadTool_value_off", "Value Off:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("Numpad")
-	
-	function TOOL:GetConVars() 
+
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "toggle" )==1, self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" )
-	end	
+	end
 end
 
 TOOL.ClientConVar = {

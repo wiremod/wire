@@ -14,7 +14,7 @@ local function filter_all() return true end
 local function filter_none() return false end
 
 local forbidden_classes = {
-	/*
+	--[[
 	["info_apc_missile_hint"] = true,
 	["info_camera_link"] = true,
 	["info_constraint_anchor"] = true,
@@ -42,7 +42,7 @@ local forbidden_classes = {
 	["info_target_gunshipcrash"] = true,
 	["info_teleport_destination"] = true,
 	["info_teleporter_countdown"] = true,
-	*/
+	]]
 	["info_player_allies"] = true,
 	["info_player_axis"] = true,
 	["info_player_combine"] = true,
@@ -442,6 +442,18 @@ e2function entity findPlayerByName(string name)
 	return findPlayer(name)
 end
 
+--- Returns the player with the given SteamID
+e2function entity findPlayerBySteamID(string id)
+	if query_blocked(self, 1) then return NULL end
+	return player.GetBySteamID(id) or NULL
+end
+
+--- Returns the player with the given SteamID64
+e2function entity findPlayerBySteamID64(string id)
+	if query_blocked(self, 1) then return NULL end
+	return player.GetBySteamID64(id) or NULL
+end
+
 --[[************************************************************************]]--
 __e2setcost(10)
 
@@ -795,16 +807,19 @@ __e2setcost(10)
 --- Sorts the entities from the last find event, index 1 is the closest to point V, returns the number of entities in the list
 e2function number findSortByDistance(vector position)
 	position = Vector(position[1], position[2], position[3])
-	local Distance = position.Distance
-	local IsValid = IsValid
 	local findlist = self.data.findlist
 	self.prf = self.prf + #findlist * 12
-	table.sort(findlist, function(a, b)
-		if not IsValid(a) then return false end -- !(invalid < b) <=> (b <= invalid)
-		if not IsValid(b) then return true end -- (valid < invalid)
 
-		return Distance(position, a:GetPos()) < Distance(position, b:GetPos())
-	end)
+	local d = {}
+	for i=1, #findlist do
+		local v = findlist[i]
+		if v:IsValid() then
+			d[v] = (position - v:GetPos()):LengthSqr()
+		else
+			d[v] = math.huge
+		end
+	end
+	table.sort(findlist, function(a, b) return d[a] < d[b] end)
 	return #findlist
 end
 
@@ -814,7 +829,7 @@ __e2setcost(5)
 local function applyClip(self, filter)
 	local findlist = self.data.findlist
 	self.prf = self.prf + #findlist * 5
-	
+
 	filterList(findlist, filter)
 
 	return #findlist
@@ -988,5 +1003,23 @@ e2function number findClipToEntities( array entities )
 	return applyClip( self, function( ent )
 		if !IsValid(ent) then return false end
 		return lookup[ent]
+	end)
+end
+
+-- Filters the list of entities by removing all props not owned by this player
+e2function number findClipToPlayerProps( entity ply )
+	if not IsValid(ply) then return -1 end
+	return applyClip( self, function( ent )
+		if not IsValid(ent) then return false end
+		return getOwner(self,ent) == ply
+	end)
+end
+
+-- Filters the list of entities by removing all props owned by this player
+e2function number findClipFromPlayerProps( entity ply )
+	if not IsValid(ply) then return -1 end
+	return applyClip( self, function( ent )
+		if not IsValid(ent) then return false end
+		return getOwner(self,ent) ~= ply
 	end)
 end

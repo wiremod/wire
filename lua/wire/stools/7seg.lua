@@ -7,12 +7,16 @@ TOOL.GhostMin = "x"
 if CLIENT then
 	language.Add( "tool.wire_7seg.name", "7-Segment Display Tool" )
 	language.Add( "tool.wire_7seg.desc", "Spawns 7 indicators for numeric display with the wire system." )
-	language.Add( "tool.wire_7seg.0", "Primary: Create display/Update Indicator" )
 	language.Add( "ToolWire7Seg_a_colour", "Off Colour:" )
 	language.Add( "ToolWire7Seg_b_colour", "On Colour:" )
 	language.Add( "ToolWire7SegTool_worldweld", "Allow weld to world" )
 	language.Add( "undone_wire7seg", "Undone 7-Segment Display" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon( "icon16/lightbulb_add.png" )
 end
+
+WireToolSetup.BaseLang()
 
 -- define MaxLimitName cause this tool just uses gmod_wire_indicators
 TOOL.MaxLimitName = "wire_indicators"

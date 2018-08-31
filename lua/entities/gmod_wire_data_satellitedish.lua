@@ -13,7 +13,7 @@ function ENT:Initialize()
 end
 
 function ENT:LinkEnt( transmitter )
-	if not IsValid(transmitter) || transmitter:GetClass() != "gmod_wire_data_transferer" then 
+	if not IsValid(transmitter) || transmitter:GetClass() != "gmod_wire_data_transferer" then
 		return false, "Satellite Dishes can only be linked to Wire Data Transferers!"
 	end
 	self.Transmitter = transmitter
@@ -35,7 +35,7 @@ end
 duplicator.RegisterEntityClass("gmod_wire_data_satellitedish", WireLib.MakeWireEnt, "Data")
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 	if IsValid( self.Transmitter ) then
 	    info.Transmitter = self.Transmitter:EntIndex()
 	end
@@ -43,7 +43,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self.Transmitter = GetEntByID(info.Transmitter)
 	self:ShowOutput()

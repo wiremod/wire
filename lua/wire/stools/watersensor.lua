@@ -4,8 +4,8 @@ WireToolSetup.open( "watersensor", "Water Sensor", "gmod_wire_watersensor", nil,
 if CLIENT then
 	language.Add( "Tool.wire_watersensor.name", "Water Sensor Tool (Wire)" )
 	language.Add( "Tool.wire_watersensor.desc", "Spawns a constant Water Sensor prop for use with the wire system." )
-	language.Add( "Tool.wire_watersensor.0", "Primary: Create/Update Water Sensor" )
 	language.Add( "WireWatersensorTool_watersensor", "Water Sensor:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

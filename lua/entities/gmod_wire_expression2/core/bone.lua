@@ -308,11 +308,14 @@ end
 --[[************************************************************************]]--
 __e2setcost(30)
 
+local clamp = WireLib.clampForce
+
 --- Applies force to <this> according to <force>'s direction and magnitude
 e2function void bone:applyForce(vector force)
 	local ent = isValidBone(this)
 	if not ent then return end
 	if not isOwner(self, ent) then return end
+	force = clamp(force)
 	this:ApplyForceCenter(Vector(force[1], force[2], force[3]))
 end
 
@@ -321,6 +324,8 @@ e2function void bone:applyOffsetForce(vector force, vector pos)
 	local ent = isValidBone(this)
 	if not ent then return end
 	if not isOwner(self, ent) then return end
+	force 	= clamp(force)
+	pos 	= clamp(pos)
 	this:ApplyForceOffset(Vector(force[1], force[2], force[3]), Vector(pos[1], pos[2], pos[3]))
 end
 
@@ -331,6 +336,7 @@ e2function void bone:applyAngForce(angle angForce)
 	if not isOwner(self, ent) then return end
 
 	if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
+	angForce = clamp(angForce)
 
 	-- assign vectors
 	local pos     = this:GetPos()
@@ -368,6 +374,7 @@ e2function void bone:applyTorque(vector torque)
 	local phys = this
 
 	if torque[1] == 0 and torque[2] == 0 and torque[3] == 0 then return end
+	torque = clamp(torque)
 
 	local tq = Vector(torque[1], torque[2], torque[3])
 	local torqueamount = tq:Length()
@@ -385,6 +392,9 @@ e2function void bone:applyTorque(vector torque)
 	off = off:GetNormal() * torqueamount * 0.5
 
 	local dir = ( tq:Cross(off) ):GetNormal()
+
+	dir = clamp(dir)
+	off = clamp(off)
 
 	phys:ApplyForceOffset( dir, off )
 	phys:ApplyForceOffset( dir * -1, off * -1 )

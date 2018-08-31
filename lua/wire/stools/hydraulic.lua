@@ -14,15 +14,18 @@ TOOL.ClientConVar = {
 if CLIENT then
 	language.Add( "Tool.wire_hydraulic.name", "Hydraulic Tool (Wire)" )
 	language.Add( "Tool.wire_hydraulic.desc", "Makes a controllable hydraulic" )
-	language.Add( "Tool.wire_hydraulic.0", "Primary: Place hydraulic\nSecondary: Place hydraulic along the hit normal" )
-	language.Add( "Tool.wire_hydraulic.1", "Left click on the second point" )
-	language.Add( "Tool.wire_hydraulic.2", "Left click to place the controller" )
 	language.Add( "Tool.wire_hydraulic.stretchonly", "Winch Mode (Stretch Only)" )
 	language.Add( "Tool.wire_hydraulic.stretchonly.help", "If this isn't enabled then it acts like a spring, pushing away the objects as they move closer." )
 	language.Add( "Tool.wire_hydraulic.width", "Width:" )
 	language.Add( "Tool.wire_hydraulic.material", "Material:" )
 	language.Add( "Tool.wire_hydraulic.fixed", "Fixed" )
 	language.Add( "Tool.wire_hydraulic.speed", "In/Out Speed Mul" )
+	TOOL.Information = {
+		{ name = "left_0", stage = 0, text = "Place hydraulic" },
+		{ name = "right_0", stage = 0, text = "Place hydraulic along the hit normal" },
+		{ name = "left_1", stage = 1, text = "Choose the second point" },
+		{ name = "left_2", stage = 2, text = "Place the controller" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(16)
@@ -33,11 +36,60 @@ if SERVER then
 	end
 end
 
+function TOOL:GetConVars()
+	return self:GetClientInfo( "material" ) or "cable/rope",
+			self:GetClientNumber("width", 3),
+			self:GetClientNumber("speed", 16),
+			self:GetClientNumber("fixed", 0),
+			self:GetClientNumber("stretchonly", 0) ~= 0
+end
+
+function TOOL:LeftClick_Update( trace )
+	local const = trace.Entity.constraint
+	if IsValid( const ) then
+		-- Don't remove the controller when the constraint is removed
+		const:DontDeleteOnRemove( trace.Entity )
+		if IsValid(trace.Entity.rope) then trace.Entity.rope:DontDeleteOnRemove( trace.Entity ) end
+		-- Get constraint info
+		local tbl = const:GetTable()
+		-- Remove constraint
+		const:Remove()
+
+		-- Get convars
+		local material, width, speed, fixed, stretchonly = self:GetConVars()
+
+		-- Make new constraint, at the old constraint's position, but with the new convar settings
+		local const, rope = MakeWireHydraulic( self:GetOwner(),
+								tbl.Ent1, tbl.Ent2,
+								tbl.Bone1, tbl.Bone2,
+								tbl.LPos1, tbl.LPos2,
+								width, material, speed, fixed, stretchonly )
+
+		-- Set the new references
+		const.MyCrtl = trace.Entity:EntIndex()
+		trace.Entity:SetConstraint( const )
+		trace.Entity:DeleteOnRemove( const )
+
+		if rope then
+			trace.Entity:SetRope( rope )
+			trace.Entity:DeleteOnRemove( rope )
+		end
+	end
+end
+
 function TOOL:LeftClick( trace )
-	if !trace.Hit || ( trace.Entity:IsValid() && trace.Entity:IsPlayer() ) then return end
-	if ( SERVER && !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
+	if not trace.Hit or ( trace.Entity:IsValid() and trace.Entity:IsPlayer() ) then return end
+	if ( SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
 
 	local iNum = self:NumObjects()
+
+	-- Update existing constraint
+	if self:CheckHitOwnClass( trace ) and iNum == 0 then
+		if SERVER then
+			self:LeftClick_Update( trace )
+		end
+		return true
+	end
 
 	local Phys = trace.Entity:GetPhysicsObjectNum( trace.PhysicsBone )
 	self:SetObject( iNum + 1, trace.Entity, trace.HitPos, Phys, trace.PhysicsBone, trace.HitNormal )
@@ -58,11 +110,11 @@ function TOOL:LeftClick( trace )
 			self:SetStage(0)
 			return
 		end
-		
+
 		local controller = self:LeftClick_Make(trace, ply)
 		if isbool(controller) then return controller end
 		self:LeftClick_PostMake(controller, ply, trace)
-		
+
 		if controller then
 			controller:DeleteOnRemove(const)
 			if rope then controller:DeleteOnRemove( rope ) end
@@ -75,14 +127,10 @@ function TOOL:LeftClick( trace )
 
 		if CLIENT then return true end
 
-		// Get client's CVars
-		local material	= self:GetClientInfo( "material" ) or "cable/rope"
-		local width		= self:GetClientNumber("width", 3)
-		local speed		= self:GetClientNumber("speed", 16)
-		local fixed		= self:GetClientNumber("fixed", 0)
-		local stretchonly = self:GetClientNumber("stretchonly", 0) ~= 0
+		-- Get client's CVars
+		local material, width, speed, fixed, stretchonly = self:GetConVars()
 
-		// Get information we're about to use
+		-- Get information we're about to use
 		local Ent1,  Ent2  = self:GetEnt(1),	 self:GetEnt(2)
 		local Bone1, Bone2 = self:GetBone(1),	 self:GetBone(2)
 		local LPos1, LPos2 = self:GetLocalPos(1),self:GetLocalPos(2)
@@ -131,7 +179,7 @@ function TOOL:RightClick( trace )
 		tr.filter[2] = trace.Entity
 	end
 	local trace2 = util.TraceLine( tr )
-	
+
 	if not hook.Run( "CanTool", self:GetOwner(), trace2, "wire_hydraulic" ) then return false end
 
 	return self:LeftClick(trace) and self:LeftClick(trace2)
@@ -145,7 +193,7 @@ function TOOL:Reload( trace )
 end
 
 function TOOL:Think()
-	 -- Disable ghost when making the constraint
+	-- Disable ghost when making the constraint
 	if self:GetStage() == 2 then
 		WireToolObj.Think(self)
 	end

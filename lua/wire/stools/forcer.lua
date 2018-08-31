@@ -4,7 +4,7 @@ WireToolSetup.open( "forcer", "Forcer", "gmod_wire_forcer", nil, "Forcers" )
 if CLIENT then
 	language.Add( "tool.wire_forcer.name", "Forcer Tool (Wire)" )
 	language.Add( "tool.wire_forcer.desc", "Spawns a forcer prop for use with the wire system." )
-	language.Add( "tool.wire_forcer.0", "Primary: Create/Update Forcer" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
@@ -18,10 +18,10 @@ TOOL.ClientConVar = {
 }
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "multiplier" ), self:GetClientNumber( "length" ), self:GetClientNumber( "beam" )==1, self:GetClientNumber( "reaction" )==1
 	end
-	
+
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 

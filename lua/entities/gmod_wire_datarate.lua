@@ -26,7 +26,7 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	self.WDataRate = (self.WDataRate*(2-self.Smooth) + self.WDataBytes * (1/self.Interval) * (self.Smooth)) / 2
 	self.WDataBytes = 0

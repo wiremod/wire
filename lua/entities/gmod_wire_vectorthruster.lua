@@ -5,49 +5,51 @@ ENT.RenderGroup 		= RENDERGROUP_BOTH -- TODO: this is only needed when they're a
 ENT.WireDebugName	= "Vector Thruster"
 
 function ENT:SetEffect( name )
-	self:SetNetworkedString( "Effect", name )
+	self:SetNWString( "Effect", name )
+	self.neteffect = WireLib.ThrusterNetEffects[ name ]
 end
 function ENT:GetEffect()
-	return self:GetNetworkedString( "Effect" )
+	return self:GetNWString( "Effect" )
 end
 
 function ENT:SetOn( boolon )
-	self:SetNetworkedBool( "vecon", boolon, true )
+	self:SetNWBool( "vecon", boolon, true )
 end
 function ENT:IsOn()
-	return self:GetNetworkedBool( "vecon" )
+	return self:GetNWBool( "vecon" )
 end
 
 function ENT:SetMode( v )
-	self:SetNetworkedInt( "vecmode", v, true )
+	self:SetNWInt( "vecmode", v, true )
 end
 function ENT:GetMode()
-	return self:GetNetworkedInt( "vecmode" )
+	return self:GetNWInt( "vecmode" )
 end
 
 function ENT:SetOffset( v )
-	self:SetNetworkedVector( "Offset", v, true )
+	self:SetNWVector( "Offset", v, true )
 end
 function ENT:GetOffset( name )
-	return self:GetNetworkedVector( "Offset" )
+	return self:GetNWVector( "Offset" )
 end
 
 function ENT:SetNormal( v )
-	self:SetNetworkedInt( "vecx", v.x * 100, true )
-	self:SetNetworkedInt( "vecy", v.y * 100, true )
-	self:SetNetworkedInt( "vecz", v.z * 100, true )
+	self:SetNWInt( "vecx", v.x * 100, true )
+	self:SetNWInt( "vecy", v.y * 100, true )
+	self:SetNWInt( "vecz", v.z * 100, true )
 end
 function ENT:GetNormal()
 	return Vector(
-				self:GetNetworkedInt( "vecx" ) / 100,
-				self:GetNetworkedInt( "vecy" ) / 100,
-				self:GetNetworkedInt( "vecz" ) / 100
+				self:GetNWInt( "vecx" ) / 100,
+				self:GetNWInt( "vecy" ) / 100,
+				self:GetNWInt( "vecz" ) / 100
 			)
 end
 
-if CLIENT then 
+if CLIENT then
 	function ENT:Initialize()
 		self.ShouldDraw = 1
+		self.EffectAvg = 0
 
 		local mx, mn = self:GetRenderBounds()
 		self:SetRenderBounds(mn + Vector(0,0,128), mx, 0)
@@ -61,7 +63,7 @@ if CLIENT then
 	end
 
 	function ENT:Think()
-		self.BaseClass.Think(self)
+		BaseClass.Think(self)
 
 		self.ShouldDraw = GetConVarNumber("cl_drawthrusterseffects")
 
@@ -85,7 +87,7 @@ if CLIENT then
 			return (self:LocalToWorld(self:GetNormal()) - self:GetPos()):GetNormalized()
 		end
 	end
-	
+
 	return  -- No more client
 end
 
@@ -125,7 +127,7 @@ function ENT:Initialize()
 
 	self:SetOffset(self.ThrustOffset)
 	self:SetNormal(self.ThrustNormal)
-	
+
 	self:StartMotionController()
 
 	self:Switch( false )
@@ -136,7 +138,7 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-	self.BaseClass.OnRemove(self)
+	BaseClass.OnRemove(self)
 
 	if (self.soundname) then
 		self:StopSound(self.soundname)
@@ -174,6 +176,12 @@ function ENT:SetForce( force, mul )
 	self.ForceLinear, self.ForceAngle = phys:CalculateVelocityOffset( ThrusterWorldForce, ThrusterWorldPos );
 
 	self.ForceLinear = phys:WorldToLocalVector( self.ForceLinear )
+
+	if self.neteffect then
+		-- self.ForceLinear is 0 if the thruster is frozen
+		self.effectforce = ThrusterWorldForce:Length()
+		self.updateeffect = true
+	end
 end
 
 function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, mode, angleinputs)
@@ -187,7 +195,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.owater = owater
 	self.uwater = uwater
 	self.angleinputs = angleinputs
-	
+
 	-- Preventing client crashes
 	local BlockedChars = '["?]'
 	if ( string.find(soundname, BlockedChars) ) then
@@ -243,13 +251,21 @@ function ENT:TriggerInput(iname, value)
 
 	self.ThrustNormal = Vector( self.X, self.Y, self.Z ):GetNormalized()
 	self:SetNormal( self.ThrustNormal ) -- Tell the client the unadulterated vector
-	
+
 	if self.mode == 2 then
 		self.ThrustNormal = Vector( self.X, self.Y, 0 ):GetNormalized()
 	end
 	self.ThrustOffset = self.ThrustNormal + self:GetOffset()
 	if (self.ThrustNormal == Vector(0,0,0)) then self:SetOn( false ) elseif (self.mul != 0) then self:SetOn( true ) end
 	self:Switch( self:IsOn(), self.mul )
+end
+
+function ENT:Think()
+	if self.neteffect and self.updateeffect then
+		self.updateeffect = false
+		self:SetNWFloat("Thrust", self.effectforce)
+	end
+	self:NextThink(CurTime()+0.5)
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )
@@ -360,5 +376,5 @@ function ENT:OnRestore()
 		self:Switch(false)
 	end
 
-	self.BaseClass.OnRestore(self)
+	BaseClass.OnRestore(self)
 end

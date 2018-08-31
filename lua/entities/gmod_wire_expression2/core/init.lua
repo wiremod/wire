@@ -19,19 +19,6 @@ if SERVER then
 	end)
 end
 
--- Removes a typecheck from a function identified by the given signature.
-local function removecheck(signature)
-	local entry = wire_expression2_funcs[signature]
-	local oldfunc, signature, rets, func, cost = entry.oldfunc, unpack(entry)
-
-	if not oldfunc then return end
-	func = oldfunc
-	oldfunc = nil
-
-	entry[3] = func
-	entry.oldfunc = oldfunc
-end
-
 --- This function ensures that the given function shows up by the given name in stack traces.
 --- It does so by eval'ing a generated block of code which invokes the actual function.
 --- Tail recursion optimization is specifically avoided by introducing a local variable in the generated code block.
@@ -106,8 +93,20 @@ function wire_expression2_reset_extensions()
 	wire_expression2_constants = {}
 end
 
+local function isValidTypeId(id)
+	return #id == (string.sub(id, 1, 1) == "x" and 3 or 1)
+end
+
 -- additional args: <input serializer>, <output serializer>, <type checker>
 function registerType(name, id, def, ...)
+	if not isValidTypeId(id) then
+		-- this type ID format is relied on in various places including
+		-- E2Lib.splitType, and malformed type IDs cause confusing and subtle
+		-- errors. Catch this early and blame the caller.
+		error(string.format("malformed type ID '%s' - type IDs must be one " ..
+		"character long, or three characters long starting with an x", id), 2)
+	end
+
 	wire_expression_types[string.upper(name)] = { id, def, ... }
 	wire_expression_types2[id] = { string.upper(name), def, ... }
 	if not WireLib.DT[string.upper(name)] then
@@ -173,28 +172,36 @@ end
 
 -- ---------------------------------------------------------------
 
+-- Load clientside files here
+-- Serverside files are instead loaded in extloader.lua, because they need additional parsing
+do
+	local function loadFiles( extra, list )
+		for _, filename in pairs(list) do
+			if SERVER then AddCSLuaFile("entities/gmod_wire_expression2/core/" .. extra .. filename)
+			else include("entities/gmod_wire_expression2/core/" .. extra .. filename) end
+		end
+	end
+
+	loadFiles("custom/",file.Find("entities/gmod_wire_expression2/core/custom/cl_*.lua", "LUA"))
+	loadFiles("",file.Find("entities/gmod_wire_expression2/core/cl_*.lua", "LUA"))
+end
+
 if SERVER then
 	util.AddNetworkString("e2_functiondata_start")
 	util.AddNetworkString("e2_functiondata_chunk")
 
-	local clientside_files = {}
-
-	function AddCSE2File(filename)
-		AddCSLuaFile(filename)
-		clientside_files[filename] = true
-	end
-
+	-- Serverside files are loaded in extloader
 	include("extloader.lua")
 
 	-- -- Transfer E2 function info to the client for validation and syntax highlighting purposes -- --
 
 	do
-		local miscdata = {} -- Will contain {E2 types info, includes, constants}, this whole table is under 1kb
+		local miscdata = {} -- Will contain {E2 types info, constants}, this whole table is under 1kb
 		local functiondata = {} -- Will contain {functionname = {returntype, cost, argnames}, this will be between 50-100kb
 
 		-- Fills out the above two tables
 		function wire_expression2_prepare_functiondata()
-			miscdata = { {}, clientside_files, wire_expression2_constants }
+			miscdata = { {}, wire_expression2_constants }
 			functiondata = {}
 			for typename, v in pairs(wire_expression_types) do
 				miscdata[1][typename] = v[1] -- typeid (s)
@@ -215,7 +222,6 @@ if SERVER then
 				net.Start("e2_functiondata_start")
 				net.WriteTable(miscdata[1])
 				net.WriteTable(miscdata[2])
-				net.WriteTable(miscdata[3])
 				net.Send(target)
 			end
 		end
@@ -297,18 +303,13 @@ elseif CLIENT then
 		end
 	end
 
-	local function insertMiscData(types, includes, constants)
+	local function insertMiscData(types, constants)
 		wire_expression2_reset_extensions()
 
 		-- types
 		for typename, typeid in pairs(types) do
 			wire_expression_types[typename] = { typeid }
 			wire_expression_types2[typeid] = { typename }
-		end
-
-		-- includes
-		for filename, _ in pairs(includes) do
-			include("entities/gmod_wire_expression2/core/" .. filename)
 		end
 
 		-- constants
@@ -318,7 +319,7 @@ elseif CLIENT then
 	local buffer = {}
 	net.Receive("e2_functiondata_start", function(len)
 		buffer = {}
-		insertMiscData(net.ReadTable(), net.ReadTable(), net.ReadTable())
+		insertMiscData(net.ReadTable(), net.ReadTable())
 	end)
 
 	net.Receive("e2_functiondata_chunk", function(len)

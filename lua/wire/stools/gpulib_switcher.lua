@@ -6,8 +6,13 @@ TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 if (CLIENT) then
 	language.Add("Tool.wire_gpulib_switcher.name", "GPULib Screen Switcher")
 	language.Add("Tool.wire_gpulib_switcher.desc", "Displays one entity's GPULib screen on another entity.")
-	language.Add("Tool.wire_gpulib_switcher.0", "Primary: Link a GPULib Screen (Console/Digital/Text Screen/GPU/Oscilloscope) to a different prop/entity, Reload: Unlink")
-	language.Add("Tool.wire_gpulib_switcher.1", "Primary: Link selected GPULib Screen to this prop/entity, Secondary: Place GPULib controller for the selected screen, Reload: Cancel")
+	TOOL.Information = {
+		{ name = "left_0", stage = 0, text = "Link a GPULib Screen (Console/Digital/Text Screen/GPU/Oscilloscope) to a different prop/entity" },
+		{ name = "right_0", stage = 0, text = "Unlink a screen" },
+		{ name = "left_1", stage = 1, text = "Link selected GPULib Screen to this prop/entity" },
+		{ name = "right_1", stage = 1, text = "Place GPULib controller for the selected screen" },
+		{ name = "reload_1", stage = 1, text = "Cancel" },
+	}
 
 	function TOOL.BuildCPanel(panel)
 		panel:AddControl("Header", { Text = "#Tool.wire_gpulib_switcher.name", Description = "#Tool.wire_gpulib_switcher.desc" })
@@ -88,3 +93,5 @@ elseif SERVER then
 	end
 
 end -- if SERVER
+
+WireToolSetup.BaseLang()

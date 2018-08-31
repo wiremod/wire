@@ -13,13 +13,11 @@ surface.CreateFont("DermaDefaultItalic", {
 })
 
 local function BuildExtensionMenu(panel)
+  local allowed = LocalPlayer():IsSuperAdmin()
 
-  local checkboxes_disabled
-  if not LocalPlayer():IsSuperAdmin() then
-    checkboxes_disabled = true
-    local label = Label("You are not a super admin - you cannot change these settings, only view them.", panel)
-    label:SetTextColor(Color(153, 51, 0))
-    label:Dock(TOP)
+  if not allowed then
+    local permissionNotice = panel:Help("You are not a superadmin - you cannot change these settings, only view them.")
+    permissionNotice:SetColor(Color(153, 51, 0, 255))
   end
 
   for _, name in pairs(E2Lib.GetExtensions()) do
@@ -32,14 +30,14 @@ local function BuildExtensionMenu(panel)
     local checkbox = vgui.Create("DCheckBoxLabel", item)
     checkbox:SetText(name)
     checkbox:SetChecked(E2Lib.GetExtensionStatus(name))
-    checkbox.Button:SetDisabled(checkboxes_disabled)
+    checkbox.Button:SetDisabled(not allowed)
     checkbox:SizeToContents()
     checkbox:SetDark(true)
     function checkbox:OnChange(value)
       LocalPlayer():ConCommand(CONCOMMAND_NAMES[value] .. name)
     end
 
-    if not checkboxes_disabled then
+    if allowed then
       function item:OnMouseReleased() checkbox:Toggle() end
     end
 
@@ -55,7 +53,7 @@ local function BuildExtensionMenu(panel)
 
     -- only display warnings to admins (as they're usually about ways that
     -- players could exploit an E2 extension). Yes, this is a bit paranoid.
-    if LocalPlayer():IsSuperAdmin() and documentation.Warning then
+    if allowed and documentation.Warning then
       local warning = Label(documentation.Warning, item)
       warning:DockMargin(40, 5, 5, 5)
       warning:SetWrap(true)

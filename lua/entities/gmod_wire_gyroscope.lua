@@ -7,10 +7,10 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "Out180" )
 end
 
-if CLIENT then 
+if CLIENT then
 	--handle overlay text client side instead (TAD2020)
 	function ENT:Think()
-		self.BaseClass.Think(self)
+		BaseClass.Think(self)
 
 		if self:GetModel() == "models/bull/various/gyroscope.mdl" then
 
@@ -34,7 +34,7 @@ if CLIENT then
 	function ENT:ShowOutput(p, y, r)
 		self:SetOverlayText(string.format("Angles = %.3f, %.3f, %.3f", p, y, r))
 	end
-	
+
 	return  -- No more client
 end
 
@@ -58,7 +58,7 @@ function ENT:Setup( out180 )
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
     local ang = self:GetAngles()
 	if (ang.p < 0 && !self:GetOut180()) then ang.p = ang.p + 360 end

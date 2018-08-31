@@ -18,6 +18,8 @@ function ENT:OverrideVM()
     end
   end
 
+  self.VM.Entity = self
+
   self.VM.Interrupt = function(self,interruptNo,interruptParameter,isExternal,cascadeInterrupt)
     self.IP = self.EntryPoint1
     self.LADD = interruptParameter
@@ -89,8 +91,6 @@ function ENT:OverrideVM()
   self.VM.OperandCount[125] = nil --GRL
   self.VM.OperandCount[131] = nil --SMAP
   self.VM.OperandCount[132] = nil --GMAP
-
-  self.VM.Entity = self
 end
 
 

@@ -34,16 +34,17 @@ CreateConVar('sbox_maxwire_deployers', 2)
 local DmgFilter
 
 local function CreateDamageFilter()
-	if DmgFilter then return end
-	local DmgFilter = ents.Create("filter_activator_name")
+	if IsValid(DmgFilter) then return end
+	DmgFilter = ents.Create("filter_activator_name")
 		DmgFilter:SetKeyValue("targetname", "DmgFilter")
 		DmgFilter:SetKeyValue("negated", "1")
 	DmgFilter:Spawn()
 end
-hook.Add("Initialize", "CreateDamageFilter", CreateDamageFilter)
+hook.Add("InitPostEntity", "CreateDamageFilter", CreateDamageFilter)
 
 local function MakeBalloonSpawner(pl, Data)
-	if not pl:CheckLimit("wire_deployers") then return nil end
+	if IsValid(pl) and not pl:CheckLimit("wire_deployers") then return nil end
+	if Data.Model and not WireLib.CanModel(pl, Data.Model, Data.Skin) then return false end
 
 	local ent = ents.Create("sent_deployableballoons")
 	if not ent:IsValid() then return end
@@ -54,12 +55,13 @@ local function MakeBalloonSpawner(pl, Data)
 
 	duplicator.DoGenericPhysics(ent, pl, Data)
 
-	pl:AddCount("wire_deployers", ent)
-	pl:AddCleanup("wire_deployers", ent)
+	if IsValid(pl) then
+		pl:AddCount("wire_deployers", ent)
+		pl:AddCleanup("wire_deployers", ent)
+	end
+
 	return ent
 end
-
-hook.Add("Initialize", "DamageFilter", DamageFilter)
 
 duplicator.RegisterEntityClass("sent_deployableballoons", MakeBalloonSpawner, "Data")
 scripted_ents.Alias("gmod_iballoon", "gmod_balloon")
@@ -156,7 +158,7 @@ end
 function ENT:DeployBalloons()
 	local balloon
 	balloon = ents.Create("gmod_balloon") --normal balloon
-	
+
 	local model = BalloonTypes[self.balloonType]
 	if(model==nil) then
 		model = BalloonTypes[1]
@@ -196,7 +198,7 @@ function ENT:DeployBalloons()
 		hitPos = hitEntity:WorldToLocal(hitPos)
 
 		local constraint, rope = constraint.Rope(
-			balloon, hitEntity, 0, trace.PhysicsBone, balloonPos, hitPos, 
+			balloon, hitEntity, 0, trace.PhysicsBone, balloonPos, hitPos,
 			0, self.rl, 0, 1.5, material, false)
 		if constraint then
 			balloon:DeleteOnRemove(constraint)

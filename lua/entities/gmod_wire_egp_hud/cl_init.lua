@@ -19,6 +19,10 @@ else -- If the table hasn't been loaded
 	end)
 end
 
+function ENT:GetEGPMatrix()
+	return Matrix()
+end
+
 function ENT:ScaleObject( bool, v )
 	local xMin, xMax, yMin, yMax, _xMul, _yMul
 	if (bool) then -- 512 -> screen

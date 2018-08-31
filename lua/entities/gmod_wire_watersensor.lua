@@ -17,7 +17,7 @@ function ENT:ShowOutput()
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 	if(self:WaterLevel()>0)then
 		Wire_TriggerOutput(self,"Out",1)
 	else

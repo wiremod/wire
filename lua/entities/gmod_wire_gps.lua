@@ -3,9 +3,9 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire GPS"
 ENT.WireDebugName	= "GPS"
 
-if CLIENT then 
+if CLIENT then
 	function ENT:Think()
-		self.BaseClass.Think(self)
+		BaseClass.Think(self)
 
 		local pos = self:GetPos()
 		if (COLOSSAL_SANDBOX) then pos = pos * 6.25 end
@@ -16,7 +16,7 @@ if CLIENT then
 		self:NextThink(CurTime()+0.04)
 		return true
 	end
-	
+
 	return  -- No more client
 end
 
@@ -51,7 +51,7 @@ function ENT:Setup()
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	local pos = self:GetPos()
 	if (COLOSSAL_SANDBOX) then pos = pos * 6.25 end

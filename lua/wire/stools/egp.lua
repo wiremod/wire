@@ -17,6 +17,7 @@ if (SERVER) then
 	local function SpawnEnt( ply, Pos, Ang, model, class)
 		if IsValid(ply) and (!ply:CheckLimit("wire_egps")) then return false end
 		if not ply then ply = game.GetWorld() end -- For Garry's Map Saver
+		if model and not WireLib.CanModel(ply, model) then return false end
 		local ent = ents.Create(class)
 		if (model) then ent:SetModel(model) end
 		ent:SetAngles(Ang)
@@ -85,7 +86,7 @@ if (SERVER) then
 
 			ent = SpawnEGP( ply, trace.HitPos, self:GetAngle(trace), model )
 			if not IsValid(ent) then return end
-			
+
 			self:SetPos(ent, trace) -- Use WireToolObj's pos code
 		elseif (Type == 2) then -- HUD
 			ent = SpawnHUD( ply, trace.HitPos + trace.HitNormal * 0.25, trace.HitNormal:Angle() + Angle(90,0,0) )
@@ -127,8 +128,10 @@ end
 
 if CLIENT then
 	language.Add( "Tool.wire_egp.name", "E2 Graphics Processor" )
-    language.Add( "Tool.wire_egp.desc", "EGP Tool" )
-    language.Add( "Tool.wire_egp.0", "Primary: Create EGP Screen/HUD/Emitter, Secondary: Link EGP HUD to vehicle, Reload: Open the Reload Menu for several lag fixing options." )
+	language.Add( "Tool.wire_egp.desc", "EGP Tool" )
+	language.Add( "Tool.wire_egp.left_0", "Create EGP Screen/HUD/Emitter" )
+	language.Add( "Tool.wire_egp.right_0", "Link EGP HUD to vehicle" )
+	language.Add( "Tool.wire_egp.reload_0", "Open the Reload Menu for several lag fixing options" )
 	language.Add( "Tool.wire_egp.1", "Now right click a vehicle." )
 	language.Add( "sboxlimit_wire_egps", "You've hit the EGP limit!" )
 	language.Add( "Undone_wire_egp", "Undone EGP" )
@@ -140,7 +143,7 @@ if CLIENT then
 	language.Add( "Tool_wire_egp_emitter_drawdist", "Additional emitter draw distance (Clientside)" )
 end
 
-WireToolSetup.SetupLinking() -- Generates RightClick, Reload, and DrawHUD functions
+WireToolSetup.SetupLinking(false, "vehicle") -- Generates RightClick, Reload, and DrawHUD functions
 
 function TOOL:CheckHitOwnClass( trace )
 	return IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_egp_hud" -- We only need linking for the hud
@@ -188,13 +191,13 @@ else
 
 	local Menu = {}
 	local CurEnt
-	
+
 	function refreshRT( ent )
 		ent.GPU:FreeRT()
 		ent.GPU = GPULib.WireGPU( ent )
 		ent:EGP_Update()
 	end
-	
+
 	function refreshObjects( ent )
 		if ent then
 			RunConsoleCommand("EGP_Request_Reload",ent:EntIndex())
@@ -233,9 +236,9 @@ else
 		btn:SetSize( w, h )
 		function btn:DoClick()
 			pnl:SetVisible( false )
-			
+
 			refreshRT( CurEnt )
-			
+
 			LocalPlayer():ChatPrint("[EGP] RenderTarget reloaded.")
 		end
 
@@ -245,9 +248,9 @@ else
 		btn2:SetSize( w, h )
 		function btn2:DoClick()
 			pnl:SetVisible( false )
-			
+
 			refreshObjects( CurEnt )
-			
+
 			LocalPlayer():ChatPrint("[EGP] Requesting...")
 		end
 
@@ -261,7 +264,7 @@ else
 				LocalPlayer():ChatPrint("[EGP] Entity does not have a RenderTarget")
 			else
 				refreshRT( CurEnt )
-				
+
 				LocalPlayer():ChatPrint("[EGP] RenderTarget reloaded.")
 			end
 			LocalPlayer():ChatPrint("[EGP] Requesting object reload...")
@@ -338,7 +341,7 @@ else
 		if !(EGP) then return end
 		panel:SetSpacing( 10 )
 		panel:SetName( "E2 Graphics Processor" )
-		
+
 		WireDermaExts.ModelSelect(panel, "wire_egp_model", list.Get( "WireScreenModels" ), 5)
 
 		local cbox = {}

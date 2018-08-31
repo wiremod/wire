@@ -37,7 +37,7 @@ if CLIENT then
 
   -- Convars to control CPULib
   local wire_cpu_upload_speed = CreateClientConVar("wire_cpu_upload_speed",1000,false,false)
-  local wire_cpu_compile_speed = CreateClientConVar("wire_cpu_compile_speed",128,false,false)
+  local wire_cpu_compile_speed = CreateClientConVar("wire_cpu_compile_speed",256,false,false)
   local wire_cpu_show_all_registers = CreateClientConVar("wire_cpu_show_all_registers",0,false,false)
 
   ------------------------------------------------------------------------------
@@ -140,9 +140,8 @@ if CLIENT then
   -- Compiler timer
   function CPULib.OnCompileTimer()
     local compile_speed = wire_cpu_compile_speed:GetFloat()
-    if game.SinglePlayer() then compile_speed = 256 end
 
-    for iteration=1,compile_speed do
+    for _ = 1, compile_speed do
       local status,result = pcall(HCOMP.Compile,HCOMP)
       if not status then
         print("==================================================")
@@ -183,7 +182,7 @@ if CLIENT then
     local iters = math.min(upload_speed, CPULib.RemainingUploadData)
     net.Start("wire_cpulib_buffer")
     net.WriteUInt(iters, 16)
-    for iteration=1,iters do
+    for _ = 1, iters do
       local index,value = next(CPULib.RemainingData)
       CPULib.RemainingUploadData = CPULib.RemainingUploadData - 1
       net.WriteUInt(index, 24)
@@ -304,7 +303,7 @@ if CLIENT then
     CPULib.Debugger.FirstFile = nil
     CPULib.DebugUpdateHighlights()
   end
-  
+
   net.Receive("CPULib.InvalidateDebugger", function(netlen)
     local state = net.ReadUInt(2) -- 0: No change just invalidate, 1: detach, 2: attach
     if state == 1 then
@@ -347,8 +346,6 @@ if CLIENT then
     if ZCPU_Editor then
       -- Highlight current position
       local currentPosition = CPULib.Debugger.PositionByPointer[CPULib.Debugger.Variables.IP]
-      local sourceTab
-      local clearEditors = {}
 
       if currentPosition then
         -- Clear all highlighted lines
@@ -392,7 +389,6 @@ if CLIENT then
 
   ------------------------------------------------------------------------------
   -- Debug data arrived from server
-  local previousLine = nil
   function CPULib.OnDebugData_Registers(um)
     CPULib.Debugger.Variables.IP   = um:ReadFloat()
     CPULib.Debugger.Variables.EAX  = um:ReadFloat()
@@ -431,25 +427,21 @@ if CLIENT then
   ------------------------------------------------------------------------------
   -- Show ZCPU/ZGPU documentation
   CPULib.HandbookWindow = nil
-  
+
   function CPULib.ShowDocumentation(platform)
     local w = ScrW() * 2/3
-  	local h = ScrH() * 2/3
+    local h = ScrH() * 2/3
     local browserWindow = vgui.Create("DFrame")
     browserWindow:SetTitle("Documentation")
-  	browserWindow:SetPos((ScrW() - w)/2, (ScrH() - h)/2)
-  	browserWindow:SetSize(w,h)
-  	browserWindow.OnClose = function()
-  		browser = nil
-  		browserWindow = nil
-	  end
+    browserWindow:SetPos((ScrW() - w)/2, (ScrH() - h)/2)
+    browserWindow:SetSize(w,h)
     browserWindow:MakePopup()
-	
-  	local browser = vgui.Create("DHTML",browserWindow)
-  	browser:SetPos(10, 25)
-  	browser:SetSize(w - 20, h - 35)
-  
-  	browser:OpenURL("http://wiki.wiremod.com/wiki/Category:ZCPU_Handbook")
+
+    local browser = vgui.Create("DHTML",browserWindow)
+    browser:SetPos(10, 25)
+    browser:SetSize(w - 20, h - 35)
+
+    browser:OpenURL("http://wiki.wiremod.com/wiki/Category:ZCPU_Handbook")
   end
 end
 
@@ -487,17 +479,17 @@ if SERVER then
     end
   end)
 
-  -- Concommand to send a single stream of bytes 
+  -- Concommand to send a single stream of bytes
   util.AddNetworkString("wire_cpulib_buffer")
   net.Receive("wire_cpulib_buffer", function(netlen, player)
     local Buffer = CPULib.DataBuffer[player:UserID()]
     if (not Buffer) or (Buffer.Player ~= player) then return end
     if not Buffer.Entity then return end
-    
-    for iteration=1, net.ReadUInt(16) do
+
+    for _ = 1, net.ReadUInt(16) do
       Buffer.Data[net.ReadUInt(24)] = net.ReadDouble()
     end
-    
+
     if net.ReadBit() ~= 0 then -- We're done!
       CPULib.DataBuffer[player:UserID()] = nil
       net.Start("CPULib.ServerUploading") net.WriteBit(false) net.Send(player)
@@ -527,7 +519,7 @@ if SERVER then
       end
     end
   end)
-  
+
   ------------------------------------------------------------------------------
   -- Players and corresponding entities (for the debugger)
   CPULib.DebuggerData = {}
@@ -735,7 +727,7 @@ end
 --------------------------------------------------------------------------------
 -- Generate a serial number
 --------------------------------------------------------------------------------
-local sessionBase
+local sessionBase, sessionDate
 function CPULib.GenerateSN(entityType)
   local currentDate = os.date("*t")
 

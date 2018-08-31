@@ -4,31 +4,37 @@ ENT.PrintName       = "Wire Thruster"
 ENT.RenderGroup 		= RENDERGROUP_BOTH -- TODO: this is only needed when they're active.
 ENT.WireDebugName	= "Thruster"
 
+WireLib.ThrusterNetEffects = {
+	["fire_smoke"] = true
+}
+
 function ENT:SetEffect( name )
-	self:SetNetworkedString( "Effect", name )
+	self:SetNWString( "Effect", name )
+	self.neteffect = WireLib.ThrusterNetEffects[ name ]
 end
 function ENT:GetEffect( name )
-	return self:GetNetworkedString( "Effect" )
+	return self:GetNWString( "Effect" )
 end
 
 function ENT:SetOn( boolon )
-	self:SetNetworkedBool( "On", boolon, true )
+	self:SetNWBool( "On", boolon, true )
 end
 function ENT:IsOn( name )
-	return self:GetNetworkedBool( "On" )
+	return self:GetNWBool( "On" )
 end
 
 function ENT:SetOffset( v )
-	self:SetNetworkedVector( "Offset", v, true )
+	self:SetNWVector( "Offset", v, true )
 end
 function ENT:GetOffset( name )
-	return self:GetNetworkedVector( "Offset" )
+	return self:GetNWVector( "Offset" )
 end
 
 
-if CLIENT then 
+if CLIENT then
 	function ENT:Initialize()
 		self.ShouldDraw = 1
+		self.EffectAvg = 0
 
 		local mx, mn = self:GetRenderBounds()
 		self:SetRenderBounds(mn + Vector(0,0,128), mx, 0)
@@ -42,7 +48,7 @@ if CLIENT then
 	end
 
 	function ENT:Think()
-		self.BaseClass.Think(self)
+		BaseClass.Think(self)
 
 		self.ShouldDraw = GetConVarNumber("cl_drawthrusterseffects")
 
@@ -55,7 +61,7 @@ if CLIENT then
 	function ENT:CalcNormal()
 		return (self:LocalToWorld(self:GetOffset()) - self:GetPos()):GetNormalized()
 	end
-	
+
 	return  -- No more client
 end
 
@@ -96,7 +102,7 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-	self.BaseClass.OnRemove(self)
+	BaseClass.OnRemove(self)
 
 	if (self.soundname and self.soundname != "") then
 		self:StopSound(self.soundname)
@@ -125,14 +131,17 @@ function ENT:SetForce( force, mul )
 	self.ForceLinear, self.ForceAngle = phys:CalculateVelocityOffset( ThrusterWorldForce, ThrusterWorldPos );
 	self.ForceLinear = phys:WorldToLocalVector( self.ForceLinear )
 
+	if self.neteffect then
+		-- self.ForceLinear is 0 if the thruster is frozen
+		self.effectforce = ThrusterWorldForce:Length()
+		self.updateeffect = true
+	end
+
 	if ( mul > 0 ) then
 		self:SetOffset( self.ThrustOffset )
 	else
 		self:SetOffset( self.ThrustOffsetR )
 	end
-
---	self:SetNetworkedVector( 1, self.ForceAngle )
---	self:SetNetworkedVector( 2, self.ForceLinear )
 end
 
 function ENT:SetDatEffect(uwater, owater, uweffect, oweffect)
@@ -173,7 +182,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.uwater = uwater
 
 	if (!soundname) then soundname = "" end
-	
+
 	-- Preventing client crashes
 	local BlockedChars = '["?]'
 	if ( string.find(soundname, BlockedChars) ) then
@@ -198,6 +207,14 @@ function ENT:TriggerInput(iname, value)
 			self:Switch(false, 0)
 		end
 	end
+end
+
+function ENT:Think()
+	if self.neteffect and self.updateeffect then
+		self.updateeffect = false
+		self:SetNWFloat("Thrust", self.effectforce)
+	end
+	self:NextThink(CurTime()+0.5)
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )
@@ -240,7 +257,7 @@ function ENT:Switch( on, mul )
 			self:StopSound( self.soundname )
 			self:EmitSound( self.soundname )
 		end
-		
+
 		self.mul = mul
 
 		self:SetForce( nil, mul )
@@ -248,7 +265,7 @@ function ENT:Switch( on, mul )
 		if (self.soundname and self.soundname != "") then
 			self:StopSound( self.soundname )
 		end
-		
+
 		self.mul = 0
 	end
 	self:ShowOutput()
@@ -287,7 +304,7 @@ function ENT:OnRestore()
 	self:SetOffset( self.ThrustOffset )
 	self:StartMotionController()
 
-	self.BaseClass.OnRestore(self)
+	BaseClass.OnRestore(self)
 end
 
 duplicator.RegisterEntityClass("gmod_wire_thruster", WireLib.MakeWireEnt, "Data", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname")

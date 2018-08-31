@@ -2,23 +2,23 @@ WireToolSetup.setCategory( "Memory" )
 WireToolSetup.open( "data_transferer", "Transferer", "gmod_wire_data_transferer", nil, "Transferers" )
 
 if ( CLIENT ) then
-    language.Add( "Tool.wire_data_transferer.name", "Data Transferer Tool (Wire)" )
-    language.Add( "Tool.wire_data_transferer.desc", "Spawns a data transferer." )
-    language.Add( "Tool.wire_data_transferer.0", "Primary: Create/Update data transferer" )
-    language.Add( "WireDataTransfererTool_data_transferer", "Data Transferer:" )
-    language.Add( "WireDataTransfererTool_Range", "Max Range:" )
-    language.Add( "WireDataTransfererTool_DefaultZero","Default To Zero")
-    language.Add( "WireDataTransfererTool_IgnoreZero","Ignore Zero")
-    language.Add( "WireDataTransfererTool_Model", "Choose a Model:")
+	language.Add( "Tool.wire_data_transferer.name", "Data Transferer Tool (Wire)" )
+	language.Add( "Tool.wire_data_transferer.desc", "Spawns a data transferer." )
+	language.Add( "WireDataTransfererTool_data_transferer", "Data Transferer:" )
+	language.Add( "WireDataTransfererTool_Range", "Max Range:" )
+	language.Add( "WireDataTransfererTool_DefaultZero","Default To Zero")
+	language.Add( "WireDataTransfererTool_IgnoreZero","Ignore Zero")
+	language.Add( "WireDataTransfererTool_Model", "Choose a Model:")
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber("Range"), self:GetClientNumber("DefaultZero") ~= 0, self:GetClientNumber("IgnoreZero") ~= 0
 	end
-	
+
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 

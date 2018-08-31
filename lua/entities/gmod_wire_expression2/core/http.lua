@@ -18,8 +18,8 @@ local function player_can_request( ply )
 	local preq = requests[ply]
 
 	return !preq or
-		(preq.in_progress and preq.t_start and (CurTime() - preq.t_start) >= cvar_timeout:GetInt()) or
-			(!preq.in_progress and preq.t_end and (CurTime() - preq.t_end) >= cvar_delay:GetInt())
+		(preq.in_progress and preq.t_start and (CurTime() - preq.t_start) >= cvar_timeout:GetFloat()) or
+			(!preq.in_progress and preq.t_end and (CurTime() - preq.t_end) >= cvar_delay:GetFloat())
 end
 
 __e2setcost( 20 )
@@ -46,10 +46,9 @@ e2function void httpRequest( string url )
 
 		run_on.clk = 1
 
-		for ent,eply in pairs( run_on.ents ) do
-			if IsValid( ent ) and ent.Execute and eply == ply then
-				ent:Execute()
-			end
+		local ent = self.entity
+		if IsValid(ent) and run_on.ents[ent] then
+			ent:Execute()
 		end
 
 		run_on.clk = 0
@@ -97,7 +96,7 @@ e2function string httpUrlDecode(string data)
 end
 
 e2function void runOnHTTP( number rohttp )
-	run_on.ents[self.entity] = ( rohttp != 0 ) and self.player or nil
+	run_on.ents[self.entity] = rohttp ~= 0 and true or nil
 end
 
 registerCallback( "destruct", function( self )

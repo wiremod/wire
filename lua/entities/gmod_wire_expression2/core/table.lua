@@ -37,17 +37,17 @@ local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
 
 registerType("table", "t", table.Copy(DEFAULT),
 	function(self, input)
-		if (IsEmpty(input)) then
+		if input.size == 0 then
 			return table.Copy(DEFAULT)
 		end
 		return input
 	end,
 	nil,
 	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if not istable(retval) then error("Return value is not a table, but a "..type(retval).."!", 0) end
 	end,
 	function(v)
-		return !istable(v)
+		return not istable(v)
 	end
 )
 
@@ -179,74 +179,75 @@ local tostring_typeid = {
 	xv4 = 	tostrings.Vector4,
 }
 
-local function normal_table_tostring( tbl, indenting, abortafter )
-	local ret = ""
-	local cost = 0
+local function checkAbort( ret, cost, abortafter )
+	if abortafter and cost > abortafter then
+		if ret[#ret] ~= "\n- Aborted to prevent lag -" then
+			ret[#ret+1] = "\n- Aborted to prevent lag -"
+		end
+		return true
+	end
+
+	return false
+end
+
+local function normal_table_tostring( tbl, indenting, abortafter, cost )
+	local ret = {}
+	local cost = cost or 0
 	for k,v in pairs( tbl ) do
 		if tostrings[type(v)] then
-			ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostrings[type(v)]( v ) .. "\n"
+			ret[#ret+1] = rep("\t",indenting) .. k .. "\t=\t" .. tostrings[type(v)]( v ) .. "\n"
 			cost = cost + 1
 		else
-			ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
+			ret[#ret+1] = rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
 			cost = cost + 1
 		end
-		if (abortafter and cost > abortafter) then
-			ret = ret .. "\n- Aborted to prevent lag -"
-			return ret, cost
-		end
+
+		if checkAbort( ret, cost, abortafter ) then return table.concat(ret), cost end
 	end
-	return ret, cost
+	return table.concat(ret), cost
 end
 
 local table_tostring
 
-local function var_tostring( k, v, typeid, indenting, printed, abortafter )
+local function var_tostring( k, v, typeid, indenting, printed, abortafter, cost )
 	local ret = ""
-	local cost = 0
+	local cost = (cost or 0) + 1
 	if (typeid == "t" and not printed[v]) then -- If it's a table
 		printed[v] = true
 		ret = rep("\t",indenting) .. k .. ":\n"
-		local ret2, cost2 = table_tostring( v, indenting + 2, printed, abortafter )
+		local ret2, cost2 = table_tostring( v, indenting + 2, printed, abortafter, cost )
 		ret = ret .. ret2
-		cost = cost2 + 1
+		cost = cost + cost2
 	elseif typeid == "r" and not printed[v] then -- if it's an array
 		printed[v] = true
 		ret = rep("\t",indenting) .. k .. ":\n"
-		local ret2, cost2 = normal_table_tostring( v, indenting + 2, abortafter )
+		local ret2, cost2 = normal_table_tostring( v, indenting + 2, abortafter, cost )
 		ret = ret .. ret2
-		cost = cost2 + 1
+		cost = cost2
 	elseif tostring_typeid[typeid] then -- if it's a type defined in this table
 		ret = rep("\t",indenting) .. k .. "\t=\t" .. tostring_typeid[typeid]( v ) .. "\n"
-		cost = 1
 	else -- if it's anything else
 		ret = rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
-		cost = 1
 	end
 	return ret, cost
 end
 
-table_tostring = function( tbl, indenting, printed, abortafter )
-	local ret = ""
-	local cost = 0
+table_tostring = function( tbl, indenting, printed, abortafter, cost )
+	local ret = {}
+	local cost = cost or 0
 	for k,v in pairs( tbl.n ) do
-		local ret2, cost2 = var_tostring( k, v, tbl.ntypes[k], indenting, printed, abortafter )
-		ret = ret .. ret2
-		cost = cost + cost2
-		if abortafter and cost > abortafter then
-			ret = ret .. "\n- Aborted to prevent lag -"
-			return ret, cost
-		end
+		if checkAbort( ret, cost, abortafter ) then return table.concat(ret), cost end
+		local ret2, cost2 = var_tostring( k, v, tbl.ntypes[k], indenting, printed, abortafter, cost )
+		ret[#ret+1] = ret2
+		cost = cost2
 	end
 	for k,v in pairs( tbl.s ) do
-		local ret2, cost2 = var_tostring( k, v, tbl.stypes[k], indenting, printed, abortafter )
-		ret = ret .. ret2
-		cost = cost + cost2
-		if (abortafter and cost > abortafter) then
-			ret = ret .. "\n- Aborted to prevent lag -"
-			return ret, cost
-		end
+		if checkAbort( ret, cost, abortafter ) then return table.concat(ret), cost end
+		local ret2, cost2 = var_tostring( k, v, tbl.stypes[k], indenting, printed, abortafter, cost )
+		ret[#ret+1] = ret2
+		cost = cost2
 	end
-	return ret, cost
+	return table.concat(ret), cost
 end
 
 --------------------------------------------------------------------------------
@@ -282,44 +283,11 @@ e2function number operator==( table rv1, table rv2 )
 	return (rv1 == rv2) and 1 or 0
 end
 
+e2function number operator!=( table rv1, table rv2 )
+	return (rv1 ~= rv2) and 1 or 0
+end
+
 __e2setcost(nil)
-
-registerOperator("fea","t","",function(self,args)
-	local keyname,valname,valtypeid = args[2],args[3],args[4]
-	local tbl = args[5]
-	tbl = tbl[1](self,tbl)
-	local statement = args[6]
-
-	local keys = {}
-	local count = 0
-	for key,_ in pairs(tbl.s) do
-		if (tbl.stypes[key] == valtypeid) then
-			count = count + 1
-			keys[count] = key
-		end
-	end
-
-	for i=1, count do
-		self:PushScope()
-		local key = keys[i]
-		if tbl.s[key] ~= nil then
-			self.prf = self.prf + 3
-
-			self.Scope.vclk[keyname] = true
-			self.Scope.vclk[valname] = true
-
-			self.Scope[keyname] = key
-			self.Scope[valname] = tbl.s[key]
-
-			local ok, msg = pcall(statement[1], self, statement)
-			if not ok then
-				if msg == "break" then self:PopScope() break
-				elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-			end
-		end
-		self:PopScope()
-	end
-end)
 
 registerOperator( "kvtable", "", "t", function( self, args )
 	local ret = table.Copy( DEFAULT )
@@ -360,7 +328,7 @@ end)
 
 __e2setcost(1)
 
--- Creates an table
+-- Creates a table
 e2function table table(...)
 	local tbl = {...}
 	if (#tbl == 0) then return table.Copy(DEFAULT) end
@@ -398,12 +366,11 @@ e2function number table:count()
 	return this.size
 end
 
+__e2setcost(3)
 -- Returns the number of elements in the array-part of the table
 e2function number table:ncount()
 	return #this.n
 end
-
-__e2setcost(3)
 
 __e2setcost(1)
 -- Returns 1 if any value exists at the specified index, else 0
@@ -426,6 +393,11 @@ e2function void printTable( table tbl )
 	local ret, cost = table_tostring( tbl, 0, printed, 200 )
 	self.prf = self.prf + cost
 	for str in string.gmatch( ret, "[^\n]+" ) do
+		if #str > 250 then
+			self.prf = self.prf + 100
+			self.player:ChatPrint("PrintTable attempted to print too much. PrintTable was cancelled to prevent lag")
+			return
+		end
 		self.player:ChatPrint( str )
 	end
 end
@@ -467,10 +439,10 @@ e2function table table:typeids()
 	return ret
 end
 
--- Remove a variable at a number index
-e2function void table:remove( number index )
-	if (#this.n == 0) then return end
-	if (!this.n[index]) then return end
+-- Removes the specified entry from the array-part and returns 1 if removed
+e2function number table:remove( number index )
+	if (#this.n == 0) then return 0 end
+	if (!this.n[index]) then return 0 end
 	if index < 1 then -- table.remove doesn't work if the index is below 1
 		this.n[index] = nil
 		this.ntypes[index] = nil
@@ -480,33 +452,36 @@ e2function void table:remove( number index )
 	end
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	return 1
 end
 
--- Remove a variable at a string index
-e2function void table:remove( string index )
-	if (IsEmpty(this.s)) then return end
-	if (!this.s[index]) then return end
+-- Force removes the specified entry from the table-part, without moving subsequent entries down and returns 1 if removed
+e2function number table:remove( string index )
+	if (IsEmpty(this.s)) then return 0 end
+	if (!this.s[index]) then return 0 end
 	this.s[index] = nil
 	this.stypes[index] = nil
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	return 1
 end
 
 --------------------------------------------------------------------------------
 -- Force remove
--- Forcibly removes the value from the array by setting it to nil
+-- Force removes the specified entry from the array-part, without moving subsequent entries down and returns 1 if removed
 -- Does not shift larger indexes down to fill the hole
 --------------------------------------------------------------------------------
-e2function void table:unset( index )
-	if this.n[index] == nil then return end
+e2function number table:unset( index )
+	if this.n[index] == nil then return 0 end
 	this.n[index] = nil
 	this.ntypes[index] = nil
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	return 1
 end
 
 -- Force remove for strings is an alias to table:remove(string)
-e2function void table:unset( string index ) = e2function void table:remove( string index )
+e2function number table:unset( string index ) = e2function number table:remove( string index )
 
 -- Removes all variables not of the type
 e2function table table:clipToTypeid( string typeid )
@@ -569,9 +544,32 @@ end
 
 __e2setcost(10)
 
+local function clone(self, tbl, lookup)
+	local copy = {}
+
+	lookup = lookup or {}
+	lookup[tbl] = copy
+
+	for k, v in pairs(tbl) do
+		if type(v) == "table" then
+			if lookup[v] then
+				self.prf = self.prf + opcost -- simple assign operation
+				copy[k] = lookup[v]
+			else
+				self.prf = self.prf + opcost * 3 -- creating new table
+				copy[k] = clone(self, v, lookup)
+			end
+		else
+			self.prf = self.prf + opcost -- simple assign operation
+			copy[k] = v
+		end
+	end
+
+	return copy
+end
+
 e2function table table:clone()
-	self.prf = self.prf + this.size * opcost
-	return table.Copy(this)
+	return clone(self, this)
 end
 
 __e2setcost(1)
@@ -585,7 +583,7 @@ __e2setcost(5)
 -- Formats the table as a human readable string
 e2function string table:toString()
 	local printed = { [this] = true }
-	local ret, cost = table_tostring( this, 0, printed )
+	local ret, cost = table_tostring( this, 0, printed, 400 )
 	self.prf = self.prf + cost * opcost
 	return ret
 end
@@ -720,22 +718,24 @@ end
 
 __e2setcost(3)
 
--- Removes the last element in the array part
-e2function void table:pop()
+-- Removes the last entry in the array-part and returns 1 if removed
+e2function number table:pop()
 	local n = #this.n
-	if (n == 0) then return end
+	if (n == 0) then return 0 end
 	this.n[n] = nil
 	this.ntypes[n] = nil
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	return 1
 end
 
--- Removes the first emelemt in the array part
-e2function void table:shift()
-	table.remove( this.n, 1 )
+-- Deletes the first element of the table; all other entries will move down one address and returns 1 if removed
+e2function number table:shift()
+	local result = table.remove( this.n, 1 ) and 1 or 0
 	table.remove( this.ntypes, 1 )
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	return result
 end
 
 __e2setcost(5)
@@ -854,12 +854,12 @@ local clamp = math.Clamp
 local function concat( tab, delimeter, startindex, endindex )
 	local ret = {}
 	local len = #tab
-	
+
 	startindex = startindex or 1
 	if startindex > len then return "" end
-	
+
 	endindex = clamp(endindex or len, startindex, len)
-	
+
 	for i=startindex, endindex do
 		ret[#ret+1] = tostring(tab[i])
 	end
@@ -1145,6 +1145,74 @@ registerCallback( "postinit", function()
 			return rv2
 		end)
 
+		--------------------------------------------------------------------------------
+		-- Foreach operators
+		--------------------------------------------------------------------------------
+		__e2setcost(nil)
+
+		registerOperator("fea", "s" .. id .. "t", "", function(self, args)
+			local keyname, valname = args[2], args[3]
+
+			local tbl = args[4]
+			tbl = tbl[1](self, tbl)
+
+			local statement = args[5]
+
+			for key, value in pairs(tbl.s) do
+				if tbl.stypes[key] == id then
+					self:PushScope()
+
+					self.prf = self.prf + 3
+
+					self.Scope.vclk[keyname] = true
+					self.Scope.vclk[valname] = true
+
+					self.Scope[keyname] = key
+					self.Scope[valname] = value
+
+					local ok, msg = pcall(statement[1], self, statement)
+
+					if not ok then
+						if msg == "break" then	self:PopScope() break
+						elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+					end
+
+					self:PopScope()
+				end
+			end
+		end)
+
+		registerOperator("fea", "n" .. id .. "t", "", function(self, args)
+			local keyname, valname = args[2], args[3]
+
+			local tbl = args[4]
+			tbl = tbl[1](self, tbl)
+
+			local statement = args[5]
+
+			for key, value in pairs(tbl.n) do
+				if tbl.ntypes[key] == id then
+					self:PushScope()
+
+					self.prf = self.prf + 3
+
+					self.Scope.vclk[keyname] = true
+					self.Scope.vclk[valname] = true
+
+					self.Scope[keyname] = key
+					self.Scope[valname] = value
+
+					local ok, msg = pcall(statement[1], self, statement)
+
+					if not ok then
+						if msg == "break" then	self:PopScope() break
+						elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+					end
+
+					self:PopScope()
+				end
+			end
+		end)
 
 		end -- blocked check end
 

@@ -33,6 +33,16 @@ local function logGlonCall( self, glonString, ret, safeGlonObject )
 end
 ]]
 
+local antispam_lookup = {}
+local function antispam( self )
+	if antispam_lookup[self.uid] and antispam_lookup[self.uid] > CurTime() then
+		return false
+	end
+
+	antispam_lookup[self.uid] = CurTime() + 0.5
+	return true
+end
+
 -- this conversions table is used by luaTypeToWireTypeid
 local conversions = {
 	-- convert boolean to number
@@ -316,6 +326,7 @@ e2function string vonEncode(array data)
 	local ok, ret = pcall(WireLib.von.serialize, data)
 	if not ok then
 		last_von_error = ret
+		if not antispam(self) then return "" end
 		WireLib.ClientError("von.encode error: "..ret, self.player)
 		return ""
 	end
@@ -337,6 +348,7 @@ e2function array vonDecode(string data)
 
 	if not ok then
 		last_von_error = ret
+		if not antispam(self) then return {} end
 		WireLib.ClientError("von.decode error: "..ret, self.player)
 		return {}
 	end
@@ -366,6 +378,7 @@ e2function table vonDecodeTable(string data)
 	local ok, ret = pcall(WireLib.von.deserialize, data)
 	if not ok then
 		last_von_error = ret
+		if not antispam(self) then return table.Copy(DEFAULT) end
 		WireLib.ClientError("von.decode error: "..ret, self.player)
 		return table.Copy(DEFAULT)
 	end
@@ -385,6 +398,7 @@ local function jsonEncode( self, data, prettyprint )
 	local ok, ret = pcall(util.TableToJSON, data, prettyprint ~= 0)
 	if not ok then
 		last_json_error = ret
+		if not antispam(self) then return "" end
 		WireLib.ClientError("jsonEncode error: "..ret, self.player)
 		return ""
 	end
@@ -406,6 +420,7 @@ local function jsonDecode( self, data, tp )
 
 	if not ok then
 		last_json_error = ret
+		if not antispam(self) then return {} end
 		WireLib.ClientError("jsonDecode error: "..ret, self.player)
 		return {}
 	end
@@ -421,6 +436,25 @@ end
 
 __e2setcost(50)
 
+-- arrays don't store their values' types, so there are many ambiguous types.
+-- This function removes all values that are ambiguous
+-- (basically only keeps numbers and strings)
+local function jsonEncode_arrays( array )
+	local luatable = {}
+
+	for k,v in pairs( array ) do
+		local tp = type(v)
+
+		if tp == "number" then
+			luatable[k] = v
+		elseif tp == "string" then
+			luatable[k] = v
+		end
+	end
+
+	return luatable
+end
+
 -- this function converts an E2 table into a Lua table (drops arrays)
 local function jsonEncode_recurse( self, data, tp, copied_tables )
 	local luatable = {}
@@ -432,13 +466,12 @@ local function jsonEncode_recurse( self, data, tp, copied_tables )
 		self.prf = self.prf + 0.3
 
 		if data.ntypes[k] == "r" then
-			-- skip arrays, we can't encode them properly because ambiguous types
-			v = nil
+			v = jsonEncode_arrays( v )
 		elseif data.ntypes[k] == "t" then
 			if copied_tables[v] then
 				v = copied_tables[v]
 			else
-				v = jsonEncodeExternal_recurse( self, v, data.ntypes[k], copied_tables )
+				v = jsonEncode_recurse( self, v, data.ntypes[k], copied_tables )
 			end
 
 		-- convert from E2 type to Lua type
@@ -451,16 +484,14 @@ local function jsonEncode_recurse( self, data, tp, copied_tables )
 
 	for k,v in pairs( data.s ) do
 		self.prf = self.prf + 0.3
-		
-		if data.ntypes[k] == "r" then
-			-- skip arrays, we can't encode them properly because E2 has many ambiguous types
-			-- and arrays don't keep track of those types
-			v = nil
-		elseif data.ntypes[k] == "t" then
+
+		if data.stypes[k] == "r" then
+			v = jsonEncode_arrays( v )
+		elseif data.stypes[k] == "t" then
 			if copied_tables[v] then
 				v = copied_tables[v]
 			else
-				v = jsonEncodeExternal_recurse( self, v, data.stypes[k], copied_tables )
+				v = jsonEncode_recurse( self, v, data.stypes[k], copied_tables )
 			end
 
 		-- convert from E2 type to Lua type

@@ -51,45 +51,6 @@ registerOperator("ass", "xgt", "xgt", function(self, args)
 	return rhs
 end)
 
-registerOperator("fea","xgt","",function(self,args)
-	local keyname,valname,valtypeid = args[2],args[3],args[4]
-	local tbl = args[5]
-	tbl = tbl[1](self,tbl)
-	local statement = args[6]
-
-	local len = valtypeid:len()
-
-	local keys = {}
-	local count = 0
-	for key,_ in pairs(tbl) do
-		if key:sub(1,len) == valtypeid then
-			count = count + 1
-			keys[count] = key
-		end
-	end
-
-	for i=1,count do
-		self:PushScope()
-		local key = keys[i]
-		if tbl[key] ~= nil then
-			self.prf = self.prf + 3
-
-			self.Scope.vclk[keyname] = true
-			self.Scope.vclk[valname] = true
-
-			self.Scope[keyname] = key:sub(len+1)
-			self.Scope[valname] = tbl[key]
-
-			local ok, msg = pcall(statement[1], self, statement)
-			if not ok then
-				if msg == "break" then self:PopScope() break
-				elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-			end
-		end
-		self:PopScope()
-	end
-end)
-
 e2function number operator_is( gtable tbl )
 	return istable(tbl) and 1 or 0
 end
@@ -194,6 +155,7 @@ registerCallback("postinit",function()
 			if (k == "NORMAL") then k = "NUMBER" end
 			k = upperfirst(k)
 
+			__e2setcost(5)
 
 			-- Table[index,type] functions
 			local function getf( self, args )
@@ -260,6 +222,44 @@ registerCallback("postinit",function()
 							gvars[self.uid][rv1][k2] = nil
 							--v2 = nil
 						end
+					end
+				end
+			end)
+
+			--------------------------------------------------------------------------------
+			-- gTable converts all numeric indexes to strings, so we can only support iterating string keys
+			--------------------------------------------------------------------------------
+			__e2setcost(1)
+
+			registerOperator("fea", "s" .. v[1] .. "xgt", "", function(self, args)
+				local keyname, valname = args[2], args[3]
+
+				local tbl = args[4]
+				tbl = tbl[1](self, tbl)
+
+				local statement = args[5]
+				local len = #v[1]
+
+				for key, value in pairs(tbl) do
+					if key:sub(1, len) == v[1] then
+						self:PushScope()
+
+						self.prf = self.prf + 3
+
+						self.Scope.vclk[keyname] = true
+						self.Scope.vclk[valname] = true
+
+						self.Scope[keyname] = key:sub(len + 1)
+						self.Scope[valname] = value
+
+						local ok, msg = pcall(statement[1], self, statement)
+
+						if not ok then
+							if msg == "break" then	self:PopScope() break
+							elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+						end
+
+						self:PopScope()
 					end
 				end
 			end)

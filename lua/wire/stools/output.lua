@@ -4,16 +4,16 @@ WireToolSetup.open( "output", "Numpad Output", "gmod_wire_output", nil, "Numpad 
 if CLIENT then
 	language.Add( "Tool.wire_output.name", "Output Tool (Wire)" )
 	language.Add( "Tool.wire_output.desc", "Spawns an output for use with the wire system." )
-	language.Add( "Tool.wire_output.0", "Primary: Create/Update Output" )
 	language.Add( "Tool.wire_output.keygroup", "Key:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
 
 if SERVER then
 	ModelPlug_Register("Numpad")
-	
-	function TOOL:GetConVars() 
+
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "keygroup" )
 	end
 end

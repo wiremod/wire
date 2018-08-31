@@ -4,7 +4,11 @@ WireToolSetup.open( "gimbal", "Gimbal (Facer)", "gmod_wire_gimbal", nil, "Gimbal
 if CLIENT then
 	language.Add( "tool.wire_gimbal.name", "Gimbal Tool (Wire)" )
 	language.Add( "tool.wire_gimbal.desc", "Spawns a Gimbal (Facer)" )
-	language.Add( "tool.wire_gimbal.0", "Primary: Create Gimbal, Reload: Copy model" )
+
+	TOOL.Information = {
+		{ name = "left", text = "Create/Update Gimbal" },
+		{ name = "reload", text = "Copy model" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 8 )

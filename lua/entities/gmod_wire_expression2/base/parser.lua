@@ -78,15 +78,20 @@ KeyValue = Expr1 ("=" Expr1)?
 ]]
 -- ----------------------------------------------------------------------------------
 
-Parser = {}
+E2Lib.Parser = {}
+local Parser = E2Lib.Parser
 Parser.__index = Parser
+
+local parserDebug = CreateConVar("wire_expression2_parser_debug", 0,
+	"Print an E2's abstract syntax tree after parsing"
+)
 
 function Parser.Execute(...)
 	-- instantiate Parser
 	local instance = setmetatable({}, Parser)
 
 	-- and pcall the new instance's Process method.
-	return pcall(Parser.Process, instance, ...)
+	return xpcall(Parser.Process, E2Lib.errorHandler, instance, ...)
 end
 
 function Parser:Error(message, token)
@@ -106,7 +111,9 @@ function Parser:Process(tokens, params)
 
 	self:NextToken()
 	local tree = self:Root()
-
+	if parserDebug:GetBool() then
+		print(E2Lib.AST.dump(tree))
+	end
 	return tree, self.delta, self.includes
 end
 
@@ -126,7 +133,7 @@ end
 
 
 function Parser:Instruction(trace, name, ...)
-	return { name, trace, ... }
+	return { __instruction = true, name, trace, ... }
 end
 
 
@@ -314,6 +321,23 @@ function Parser:Stmt4()
 		end
 		local keyvar = self:GetTokenData()
 
+		local keytype
+
+		if self:AcceptRoamingToken("col") then
+			if not self:AcceptRoamingToken("fun") then
+				self:Error("Type expected after colon")
+			end
+
+			keytype = self:GetTokenData()
+			if keytype == "number" then keytype = "normal" end
+
+			if wire_expression_types[string.upper(keytype)] == nil then
+				self:Error("Unknown type: " .. keytype)
+			end
+
+			keytype = wire_expression_types[string.upper(keytype)][1]
+		end
+
 		if not self:AcceptRoamingToken("com") then
 			self:Error("Comma (,) expected after key variable")
 		end
@@ -347,7 +371,7 @@ function Parser:Stmt4()
 			self:Error("Missing right parenthesis after foreach statement")
 		end
 
-		local sfea = self:Instruction(trace, "fea", keyvar, valvar, valtype, tableexpr, self:Block("foreach statement"))
+		local sfea = self:Instruction(trace, "fea", keyvar, keytype, valvar, valtype, tableexpr, self:Block("foreach statement"))
 		loopdepth = loopdepth - 1
 		return sfea
 	end
@@ -453,12 +477,11 @@ function Parser:Index()
 end
 
 
-function Parser:Stmt8()
-
-	if self.localized then
-		self:Error("Invalid operator (local) can not be used after varible decleration.")
-	elseif self:AcceptRoamingToken("loc") then
-		self.localized = true
+function Parser:Stmt8(parentLocalized)
+	local localized
+	if self:AcceptRoamingToken("loc") then
+		if parentLocalized ~= nil then self:Error("Assignment can't contain roaming local operator") end
+		localized = true
 	end
 
 	if self:AcceptRoamingToken("var") then
@@ -467,21 +490,21 @@ function Parser:Stmt8()
 		local var = self:GetTokenData()
 
 		if self:AcceptTailingToken("lsb") then
-			if self.localized then
-				self:Error("Invalid operator (local).")
-			end
-
 			self:TrackBack()
 			local indexs = { self:Index() }
 
 			if self:AcceptRoamingToken("ass") then
+				if localized or parentLocalized then
+					self:Error("Invalid operator (local).")
+				end
+
 				local total = #indexs
 				local inst = self:Instruction(trace, "var", var)
 
 				for i = 1, total do -- Yep, All this took me 2 hours to figure out!
 					local key, type, trace = indexs[i][1], indexs[i][2], indexs[i][3]
 					if i == total then
-						inst = self:Instruction(trace, "set", inst, key, self:Stmt8(), type)
+						inst = self:Instruction(trace, "set", inst, key, self:Stmt8(false), type)
 					else
 						inst = self:Instruction(trace, "get", inst, key, type)
 					end
@@ -490,18 +513,19 @@ function Parser:Stmt8()
 			end
 
 		elseif self:AcceptRoamingToken("ass") then
-			if self.localized then
-				self.localized = nil
-				return self:Instruction(trace, "assl", var, self:Stmt8())
+			if localized or parentLocalized then
+				return self:Instruction(trace, "assl", var, self:Stmt8(true))
 			else
-				return self:Instruction(trace, "ass", var, self:Stmt8())
+				return self:Instruction(trace, "ass", var, self:Stmt8(false))
 			end
-		elseif self.localized then
+		elseif localized then
 			self:Error("Invalid operator (local) must be used for variable decleration.")
 		end
 
 		self.index = tbpos - 2
 		self:NextToken()
+	elseif localized then
+		self:Error("Invalid operator (local) must be used for variable decleration.")
 	end
 
 	return self:Stmt9()
@@ -541,12 +565,9 @@ function Parser:Stmt10()
 		local Trace = self:GetTokenTrace()
 
 
-		if self.in_func then self:Error("Functions can not be created from inside other functions") end
-
-
 		local Name, Return, Type
 		local NameToken, ReturnToken, TypeToken
-		local Args, Temp, Arg = {}, {}, 1
+		local Args, Temp = {}, {}
 
 
 		-- Errors are handeled after line 49, both 'fun' and 'var' tokens are used for accurate error reports.
@@ -634,7 +655,7 @@ function Parser:Stmt10()
 		for I = 1, #Args do
 			local Arg = Args[I]
 			Sig = Sig .. wire_expression_types[Arg[2]][1]
-			if I == 1 and Arg[1] == "This" then
+			if I == 1 and Arg[1] == "This" and Type ~= '' then
 				Sig = Sig .. ":"
 			end
 		end
@@ -642,11 +663,7 @@ function Parser:Stmt10()
 
 		if wire_expression2_funcs[Sig] then self:Error("Function '" .. Sig .. "' already exists") end
 
-		self.in_func = true
-
 		local Inst = self:Instruction(Trace, "function", Sig, Return, Type, Args, self:Block("function decleration"))
-
-		self.in_func = false
 
 		return Inst
 
@@ -655,18 +672,11 @@ function Parser:Stmt10()
 
 		local Trace = self:GetTokenTrace()
 
-		if self.in_func then
-
-			if self:AcceptRoamingToken("void") or (self.readtoken[1] and self.readtoken[1] == "rcb") then
-				return self:Instruction(Trace, "returnvoid")
-			end
-
-			return self:Instruction(Trace, "return", self:Expr1())
-
-		else
-			self:Error("Return may not exist outside of a function")
+		if self:AcceptRoamingToken("void") or (self.readtoken[1] and self.readtoken[1] == "rcb") then
+			return self:Instruction(Trace, "return")
 		end
 
+		return self:Instruction(Trace, "return", self:Expr1())
 
 		-- Void Missplacement
 	elseif self:AcceptRoamingToken("void") then
@@ -704,8 +714,6 @@ function Parser:Stmt11()
 end
 
 function Parser:FunctionArgs(Temp, Args)
-	local sig = ""
-
 	if self:HasTokens() and not self:AcceptRoamingToken("rpa") then
 		while true do
 
@@ -904,7 +912,7 @@ function Parser:SwitchBlock() -- Shhh this is a secret. Do not tell anybody abou
 	if self:HasTokens() and not self:AcceptRoamingToken("rpa") then
 
 		if not self:AcceptRoamingToken("case") and not self:AcceptRoamingToken("default") then
-			self:Error("Case Operator (case) expected in case block.", token)
+			self:Error("Case Operator (case) expected in case block.", self:GetToken())
 		end
 
 		self:TrackBack()
@@ -940,7 +948,7 @@ function Parser:SwitchBlock() -- Shhh this is a secret. Do not tell anybody abou
 	end
 
 	if not self:AcceptRoamingToken("rcb") then
-		self:Error("Right curly bracket (}) missing, to close statement block", token)
+		self:Error("Right curly bracket (}) missing, to close statement block", self:GetToken())
 	end
 
 	return cases
@@ -1010,7 +1018,7 @@ function Parser:Expr2()
 		local exprtrue = self:Expr1()
 
 		if not self:AcceptRoamingToken("col") then -- perhaps we want to make sure there is space around this (method bug)
-			self:Error("Conditional operator (:) must appear after expression to complete conditional", token)
+			self:Error("Conditional operator (:) must appear after expression to complete conditional", self:GetToken())
 		end
 
 		return self:Instruction(trace, "cnd", expr, exprtrue, self:Expr1())
@@ -1120,7 +1128,7 @@ function Parser:Expr15()
 			local token = self:GetToken()
 
 			if self:AcceptRoamingToken("rpa") then
-				expr = self:Instruction(trace, "mto", fun, expr, {})
+				expr = self:Instruction(trace, "methodcall", fun, expr, {})
 			else
 				local exprs = { self:Expr1() }
 
@@ -1132,7 +1140,7 @@ function Parser:Expr15()
 					self:Error("Right parenthesis ()) missing, to close method argument list", token)
 				end
 
-				expr = self:Instruction(trace, "mto", fun, expr, exprs)
+				expr = self:Instruction(trace, "methodcall", fun, expr, exprs)
 			end
 			--elseif self:AcceptRoamingToken("col") then
 			--	self:Error("Method operator (:) must not be preceded by whitespace")
@@ -1207,9 +1215,9 @@ function Parser:Expr15()
 
 				local stype = wire_expression_types[string.upper(longtp)][1]
 
-				expr = self:Instruction(trace, "sfun", expr, exprs, stype)
+				expr = self:Instruction(trace, "stringcall", expr, exprs, stype)
 			else
-				expr = self:Instruction(trace, "sfun", expr, exprs, "")
+				expr = self:Instruction(trace, "stringcall", expr, exprs, "")
 			end
 		else
 			break
@@ -1247,7 +1255,7 @@ function Parser:Expr16()
 		local token = self:GetToken()
 
 		if self:AcceptRoamingToken("rpa") then
-			return self:Instruction(trace, "fun", fun, {})
+			return self:Instruction(trace, "call", fun, {})
 		else
 
 			local exprs = {}
@@ -1257,7 +1265,6 @@ function Parser:Expr16()
 				local kvtable = false
 
 				local key = self:Expr1()
-				local token = self:GetToken()
 
 				if self:AcceptRoamingToken("ass") then
 					if self:AcceptRoamingToken("rpa") then
@@ -1273,8 +1280,6 @@ function Parser:Expr16()
 
 				if kvtable then
 					while self:AcceptRoamingToken("com") do
-						local token = self:GetToken()
-
 						local key = self:Expr1()
 						local token = self:GetToken()
 
@@ -1307,7 +1312,7 @@ function Parser:Expr16()
 				self:Error("Right parenthesis ()) missing, to close function argument list", token)
 			end
 
-			return self:Instruction(trace, "fun", fun, exprs)
+			return self:Instruction(trace, "call", fun, exprs)
 		end
 	end
 
@@ -1319,16 +1324,29 @@ function Parser:Expr17()
 		local trace = self:GetTokenTrace()
 		local tokendata = self:GetTokenData()
 		if isnumber(tokendata) then
-			return self:Instruction(trace, "num", tokendata)
+			return self:Instruction(trace, "literal", tokendata, "n")
 		end
-		local num, tp = tokendata:match("^([-+e0-9.]*)(.*)$")
-		return self:Instruction(trace, "num" .. tp, num)
+		local num, suffix = tokendata:match("^([-+e0-9.]*)(.*)$")
+		num = assert(tonumber(num), "unparseable numeric literal")
+		local value, type
+		if suffix == "" then
+			value, type = num, "n"
+		elseif suffix == "i" then
+			value, type = {0, num}, "c"
+		elseif suffix == "j" then
+			value, type = {0, 0, num, 0}, "q"
+		elseif suffix == "k" then
+			value, type = {0, 0, 0, num}, "q"
+		else
+			assert(false, "unrecognized numeric suffix " .. suffix)
+		end
+		return self:Instruction(trace, "literal", value, type)
 	end
 
 	if self:AcceptRoamingToken("str") then
 		local trace = self:GetTokenTrace()
 		local str = self:GetTokenData()
-		return self:Instruction(trace, "str", str)
+		return self:Instruction(trace, "literal", str, "s")
 	end
 
 	if self:AcceptRoamingToken("trg") then

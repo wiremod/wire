@@ -9,13 +9,13 @@ Sound( "NPC_FloorTurret.Shoot" )
 if CLIENT then
 	language.Add( "tool.wire_turret.name", "Turret" )
 	language.Add( "tool.wire_turret.desc", "Throws bullets at things" )
-	language.Add( "tool.wire_turret.0", "Click somewhere to spawn an turret. Click on an existing turret to change it." )
 
 	language.Add( "Tool_wire_turret_spread", "Bullet Spread" )
 	language.Add( "Tool_wire_turret_numbullets", "Bullets per Shot" )
 	language.Add( "Tool_wire_turret_force", "Bullet Force" )
 	language.Add( "Tool_wire_turret_sound", "Shoot Sound" )
 	language.Add( "Tool_wire_turret_tracernum", "Tracer Every x Bullets:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
@@ -37,8 +37,8 @@ TOOL.GhostAngle = Angle(-90,0,0)
 TOOL.GetGhostMin = function() return -2 end
 
 if SERVER then
-	function TOOL:GetConVars() 
-		return self:GetClientNumber("delay"), self:GetClientNumber("damage"), self:GetClientNumber("force"), self:GetClientInfo("sound"), 
+	function TOOL:GetConVars()
+		return self:GetClientNumber("delay"), self:GetClientNumber("damage"), self:GetClientNumber("force"), self:GetClientInfo("sound"),
 			self:GetClientNumber("numbullets"), self:GetClientNumber("spread"), self:GetClientInfo("tracer"), self:GetClientNumber("tracernum")
 	end
 end
@@ -75,7 +75,7 @@ function TOOL.BuildCPanel( CPanel )
 	CPanel:AddControl("ComboBox", weaponSounds )
 
 	WireDermaExts.ModelSelect(CPanel, "wire_turret_model", list.Get( "WireTurretModels" ), 2)
-	
+
 	-- Tracer
 	local TracerType = {Label = "#Tracer", MenuButton = 0, Options={}, CVars = {}}
 		TracerType["Options"]["#Default"]			= { wire_turret_tracer = "Tracer" }

@@ -355,7 +355,7 @@ WireToolHelpers = {}
 
 if CLIENT then
 	-- gets the TOOL since TOOL.BuildCPanel isn't passed this var. wts >_<
-	local function GetTOOL(mode)
+	function WireToolHelpers.GetTOOL(mode)
 		for _,wep in ipairs(LocalPlayer():GetWeapons()) do
 			if wep:GetClass() == "gmod_tool" then
 				return wep:GetToolObject(mode)
@@ -366,7 +366,7 @@ if CLIENT then
 	-- makes the preset control for use cause we're lazy
 	function WireToolHelpers.MakePresetControl(panel, mode, folder)
 		if not mode or not panel then return end
-		local TOOL = GetTOOL(mode)
+		local TOOL = WireToolHelpers.GetTOOL(mode)
 		if not TOOL then return end
 		local ctrl = vgui.Create( "ControlPresets", panel )
 		ctrl:SetPreset(folder or mode)
@@ -397,12 +397,51 @@ if CLIENT then
 
 	-- adds the neato model select control
 	function WireToolHelpers.MakeModelSel(panel, mode)
-		local TOOL = GetTOOL(mode)
+		local TOOL = WireToolHelpers.GetTOOL(mode)
 		if not TOOL then return end
 		ModelPlug_AddToCPanel(panel, TOOL.short_name, TOOL.Mode, true)
 	end
 end
 
+function WireToolHelpers.SetupSingleplayerClickHacks(TOOL) end -- empty stub outside of Singleplayer
+if game.SinglePlayer() then -- wtfgarry
+	-- In Singleplayer, "Because its Predicted", LeftClick/RightClick/Reload don't fire Clientside. Lets work around that
+	if SERVER then
+		util.AddNetworkString("wire_singleplayer_tool_wtfgarry")
+		local function send_singleplayer_click(ply, funcname, toolname)
+			net.Start("wire_singleplayer_tool_wtfgarry")
+				net.WriteString(funcname)
+				net.WriteString(toolname)
+			net.Send(ply)
+		end
+
+		function WireToolHelpers.SetupSingleplayerClickHacks(TOOL)
+			local originalLeftClick = TOOL.LeftClick
+			function TOOL:LeftClick(trace)
+				send_singleplayer_click(self:GetOwner(), "LeftClick", TOOL.Mode)
+				return originalLeftClick(self, trace)
+			end
+			local originalRightClick = TOOL.RightClick
+			function TOOL:RightClick(trace)
+				send_singleplayer_click(self:GetOwner(), "RightClick", TOOL.Mode)
+				return originalRightClick(self, trace)
+			end
+			local originalReload = TOOL.Reload
+			function TOOL:Reload(trace)
+				send_singleplayer_click(self:GetOwner(), "Reload", TOOL.Mode)
+				return originalReload(self, trace)
+			end
+		end
+	elseif CLIENT then
+		net.Receive( "wire_singleplayer_tool_wtfgarry", function(len)
+			local funcname = net.ReadString()
+			local toolname = net.ReadString()
+			local tool = WireToolHelpers.GetTOOL(toolname)
+			if not tool then return end
+			tool[funcname](tool, LocalPlayer():GetEyeTrace())
+		end)
+	end
+end
 
 
 WireToolSetup = {}
@@ -463,11 +502,18 @@ end
 
 
 -- optional function to add the basic language for basic tools
-function WireToolSetup.BaseLang( pluralname )
+function WireToolSetup.BaseLang()
 	if CLIENT then
 		language.Add( "undone_"..TOOL.WireClass, "Undone Wire "..TOOL.Name )
-		language.Add( "Cleanup_"..TOOL.WireClass, "Wire "..(TOOL.PluralName or pluralname) )
-		language.Add( "Cleaned_"..TOOL.WireClass, "Cleaned Up Wire "..(TOOL.PluralName or pluralname) )
+		if TOOL.PluralName then
+			language.Add( "Cleanup_"..TOOL.WireClass, "Wire "..TOOL.PluralName )
+			language.Add( "Cleaned_"..TOOL.WireClass, "Cleaned Up Wire "..TOOL.PluralName )
+		end
+		for _, info in pairs(TOOL.Information or {}) do
+			if info.text then
+				language.Add("Tool." .. TOOL.Mode .. "." .. info.name, info.text)
+			end
+		end
 	end
 	cleanup.Register(TOOL.WireClass)
 end
@@ -487,12 +533,36 @@ end
 -- The SENT should have ENT:LinkEnt(e), ENT:UnlinkEnt(e), and ENT:ClearEntities()
 -- It should also send ENT.Marks to the client via WireLib.SendMarks(ent)
 -- Pass it true to disable linking multiple entities (ie for Pod Controllers)
-function WireToolSetup.SetupLinking(SingleLink)
+function WireToolSetup.SetupLinking(SingleLink, linkedname)
 	TOOL.SingleLink = SingleLink
+	linkedname = linkedname or "entity"
 	if CLIENT then
-		language.Add( "Tool."..TOOL.Mode..".0", "Primary: Create "..TOOL.Name..", Secondary: Link entities, Reload: Unlink entities" )
-		language.Add( "Tool."..TOOL.Mode..".1", "Now select the entity to link to" .. (SingleLink and "" or " (Tip: Hold shift to link to more entities)"))
-		language.Add( "Tool."..TOOL.Mode..".2", "Now select the entity to unlink" .. (SingleLink and "" or " (Tip: Hold shift to unlink from more entities). Reload on the same controller again to clear all linked entities." ))
+		if TOOL.Information == nil or next(TOOL.Information) == nil then
+			TOOL.Information = {
+				{ name = "left_0", stage = 0 },
+				{ name = "right_0", stage = 0 },
+				{ name = "reload_0", stage = 0 },
+				{ name = "right_1", stage = 1 },
+				{ name = "right_2", stage = 2 },
+			}
+			if not SingleLink then
+				table.insert(TOOL.Information, { name = "info_1", stage = 1 })
+				table.insert(TOOL.Information, { name = "info_2", stage = 2 })
+				table.insert(TOOL.Information, { name = "reload_2", stage = 2 })
+			end
+		end
+
+		language.Add( "Tool."..TOOL.Mode..".left_0", "Create/Update "..TOOL.Name )
+		language.Add( "Tool."..TOOL.Mode..".right_0", "Select a " .. TOOL.Name .. " to link to" )
+		language.Add( "Tool."..TOOL.Mode..".reload_0",  "Unlink everything from a " .. TOOL.Name )
+		language.Add( "Tool."..TOOL.Mode..".right_1", "Now select the " .. linkedname .. " to link to" )
+		language.Add( "Tool."..TOOL.Mode..".right_2", "Now select the " .. linkedname .. " to unlink" )
+
+		if not SingleLink then
+			language.Add( "Tool."..TOOL.Mode..".info_1", "Hold shift to link to more")
+			language.Add( "Tool."..TOOL.Mode..".info_2", "Hold shift to unlink from more")
+			language.Add( "Tool."..TOOL.Mode..".reload_2", "Reload on the same controller again to clear all linked entities.")
+		end
 
 		function TOOL:DrawHUD()
 			local trace = self:GetOwner():GetEyeTrace()

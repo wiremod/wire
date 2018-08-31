@@ -2,13 +2,17 @@ WireToolSetup.setCategory( "Memory" )
 WireToolSetup.open( "cd_ray", "CD Ray", "gmod_wire_cd_ray", nil, "CD Rays" )
 
 if ( CLIENT ) then
-    language.Add( "Tool.wire_cd_ray.name", "CD Ray Tool (Wire)" )
-    language.Add( "Tool.wire_cd_ray.desc", "Spawns a CD Ray." )
-    language.Add( "Tool.wire_cd_ray.0", "Primary: Create/Update CD Ray Secondary: Create CD lock (to keep CD in same spot)" )
-    language.Add( "WireCDRayTool_cd_ray", "CD Ray:" )
+	language.Add( "Tool.wire_cd_ray.name", "CD Ray Tool (Wire)" )
+	language.Add( "Tool.wire_cd_ray.desc", "Spawns a CD Ray." )
+	language.Add( "WireCDRayTool_cd_ray", "CD Ray:" )
 	language.Add( "sboxlimit_wire_cd_rays", "You've hit CD Rays limit!" )
-	language.Add( "undone_Wire CDRay", "Undone Wire CD Ray" )
+	TOOL.Information = {
+		{ name = "left", text = "Create/Update " .. TOOL.Name },
+		{ name = "right", text = "Create CD lock (to keep CD in same spot)" },
+	}
 end
+
+WireToolSetup.BaseLang()
 
 if (SERVER) then
 	CreateConVar('sbox_maxwire_cd_rays', 20)
@@ -20,10 +24,8 @@ TOOL.ClientConVar[ "lockmodel" ] = "models/venompapa/wirecdlock.mdl"
 TOOL.ClientConVar[ "Range" ] = "64"
 TOOL.ClientConVar[ "DefaultZero" ] = "0"
 
-cleanup.Register("wire_cd_rays")
-
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber("Range"), self:GetClientNumber("DefaultZero") ~= 0
 	end
 

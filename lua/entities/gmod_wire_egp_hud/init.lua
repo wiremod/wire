@@ -1,8 +1,10 @@
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
-include('shared.lua')
-AddCSLuaFile("HUDDraw.lua")
-include("HUDDraw.lua")
+include("shared.lua")
+AddCSLuaFile("huddraw.lua")
+include("huddraw.lua")
+
+DEFINE_BASECLASS("base_wire_entity")
 
 ENT.WireDebugName = "E2 Graphics Processor HUD"
 
@@ -54,11 +56,13 @@ end
 function ENT:UpdateTransmitState() return TRANSMIT_ALWAYS end
 
 function ENT:LinkEnt( ent )
+	ent = WireLib.GetClosestRealVehicle(ent,self:GetPos(),self:GetPlayer())
+
 	if IsValid( ent ) and ent:IsVehicle() then
 		if self.LinkedVehicles and self.LinkedVehicles[ent] then
 			return false
 		end
-		
+
 		EGP:LinkHUDToVehicle( self, ent )
 		ent:CallOnRemove( "EGP HUD unlink on remove", function( ent )
 			EGP:UnlinkHUDFromVehicle( self, ent )
@@ -75,12 +79,12 @@ function ENT:OnRemove()
 			self.Marks[i]:RemoveCallOnRemove( "EGP HUD unlink on remove" )
 		end
 	end
-	
+
 	EGP:UnlinkHUDFromVehicle( self )
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	local vehicles = self.LinkedVehicles
 	if vehicles then
@@ -95,13 +99,13 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	local vehicles = info.egp_hud_vehicles
 	if vehicles then
 		for i=1,#vehicles do
 			local vehicle = GetEntByID( vehicles[i] )
-			
+
 			if IsValid( vehicle ) then
 				self:LinkEnt( vehicle )
 			end

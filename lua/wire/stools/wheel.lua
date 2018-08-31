@@ -4,7 +4,7 @@ WireToolSetup.open( "wheel", "Wheel", "gmod_wire_wheel", nil, "Wheels" )
 if CLIENT then
 	language.Add( "tool.wire_wheel.name", "Wheel Tool (wire)" )
 	language.Add( "tool.wire_wheel.desc", "Attaches a wheel to something." )
-	language.Add( "tool.wire_wheel.0", "Click on a prop to attach a wheel." )
+	TOOL.Information = { { name = "left", text = "Attach a wheel" } }
 
 	language.Add( "tool.wire_wheel.group", "Input value to go forward:" )
 	language.Add( "tool.wire_wheel.group_reverse", "Input value to go in reverse:" )
@@ -22,13 +22,13 @@ TOOL.ClientConVar = {
 	fwd			= 1,	-- Forward
 	bck			= -1,	-- Back
 	stop 		= 0,	-- Stop
-}	
+}
 
 if SERVER then
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "fwd" ), self:GetClientNumber( "bck" ), self:GetClientNumber( "stop" ), self:GetClientNumber( "torque" )
 	end
-	
+
 	function TOOL:MakeEnt( ply, model, Ang, trace )
 		local targetPhys = trace.Entity:GetPhysicsObjectNum( trace.PhysicsBone )
 
@@ -43,7 +43,7 @@ if SERVER then
 		-- Create the wheel
 		local wheelEnt = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, fwd, bck, stop, torque )
 		self:SetPos( wheelEnt, trace )
-		
+
 		-- Wake up the physics object so that the entity updates
 		wheelEnt:GetPhysicsObject():Wake()
 
@@ -51,7 +51,7 @@ if SERVER then
 		local LPos1 = wheelEnt:GetPhysicsObject():WorldToLocal( wheelEnt:GetPos() + trace.HitNormal )
 		local LPos2 = targetPhys:WorldToLocal( trace.HitPos )
 
-		local constraint, axis = constraint.Motor( wheelEnt, trace.Entity, 0, trace.PhysicsBone, LPos1,	LPos2, friction, torque, 0, nocollide, false, ply, limit )
+		local constraint, axis = constraint.Motor( wheelEnt, trace.Entity, 0, trace.PhysicsBone, LPos1,	LPos2, friction, 1000, 0, nocollide, false, ply, limit )
 
 		undo.Create(self.WireClass)
 			undo.AddEntity( axis )
@@ -71,11 +71,11 @@ if SERVER then
 		wheelEnt:SetDirection( constraint.direction )
 		wheelEnt:SetAxis( trace.HitNormal )
 		wheelEnt:DoDirectionEffect()
-	
+
 		return wheelEnt
 	end
-	
-	function TOOL:LeftClick_PostMake( ent, ply, trace ) end -- We're handling this in MakeEnt since theres a motor
+
+	function TOOL:LeftClick_PostMake(_, _, _) end -- We're handling this in MakeEnt since theres a motor
 end
 
 function TOOL:GetAngle(trace)
@@ -100,7 +100,7 @@ function TOOL.BuildCPanel( panel )
 	panel:NumSlider("#tool.wire_wheel.group", "wire_wheel_fwd", -10, 10, 0)
 	panel:NumSlider("#tool.wire_wheel.group_stop", "wire_wheel_stop", -10, 10, 0)
 	panel:NumSlider("#tool.wire_wheel.group_reverse", "wire_wheel_bck", -10, 10, 0)
-	//WireDermaExts.ModelSelect(panel, "wheel_model", list.Get( "WheelModels" ), 3, true) -- This doesn't seem to set the wheel_rx convars right
+	--WireDermaExts.ModelSelect(panel, "wheel_model", list.Get( "WheelModels" ), 3, true) -- This doesn't seem to set the wheel_rx convars right
 	panel:AddControl( "PropSelect", { Label = "#tool.wheel.model",
 									 ConVar = "wheel_model",
 									 Category = "Wheels",
@@ -108,6 +108,7 @@ function TOOL.BuildCPanel( panel )
 									 Models = list.Get( "WheelModels" ) } )
 	panel:NumSlider("#tool.wheel.torque", "wire_wheel_torque", 10, 10000, 0)
 	panel:NumSlider("#tool.wheel.forcelimit", "wire_wheel_forcelimit", 0, 50000, 0)
-	panel:NumSlider("#tool.wheel.friction", "wire_wheel_friction", 0, 50, 2)
+	local frictionPanel = panel:NumSlider("#tool.wheel.friction", "wire_wheel_friction", 0, 50, 2)
+	frictionPanel:SetTooltip("How quickly the wheel comes to a stop. Note: An existing wheel's friction cannot be updated")
 	panel:CheckBox("#tool.wheel.nocollide", "wire_wheel_nocollide")
 end

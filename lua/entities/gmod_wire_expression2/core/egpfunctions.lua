@@ -89,6 +89,36 @@ e2function number wirelink:egpOrder( number index )
 	return -1
 end
 
+e2function void wirelink:egpOrderAbove( number index, number abovethis )
+	if not EGP:IsAllowed( self, this ) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if bool then
+		local bool2, k2, v2 = EGP:HasObject( this, abovethis )
+		if bool2 then
+			local bool3 = EGP:SetOrder( this, k, abovethis, 1 )
+			if bool3 then
+				EGP:DoAction( this, self, "SendObject", v )
+				Update(self,this)
+			end
+		end
+	end
+end
+
+e2function void wirelink:egpOrderBelow( number index, number belowthis )
+	if not EGP:IsAllowed( self, this ) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if bool then
+		local bool2, k2, v2 = EGP:HasObject( this, belowthis )
+		if bool2 then
+			local bool3 = EGP:SetOrder( this, k, belowthis, -1 )
+			if bool3 then
+				EGP:DoAction( this, self, "SendObject", v )
+				Update(self,this)
+			end
+		end
+	end
+end
+
 __e2setcost(15)
 
 --------------------------------------------------------
@@ -183,20 +213,41 @@ e2function void wirelink:egpAlign( number index, number halign, number valign )
 end
 
 ----------------------------
+-- Filtering
+----------------------------
+e2function void wirelink:egpFiltering( number index, number filtering )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if (bool) then
+		if (EGP:EditObject( v, { filtering = math.Clamp(filtering,0,3) } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+	end
+end
+
+e2function void wirelink:egpGlobalFiltering( number filtering )
+	if (!EGP:IsAllowed( self, this )) then return end
+	if this:GetClass() == "gmod_wire_egp" then -- Only Screens use GPULib and can use global filtering
+		EGP:DoAction( this, self, "EditFiltering", math.Clamp(filtering, 0, 3) )
+	end
+end
+
+for _,cname in ipairs({ "NONE", "POINT", "LINEAR", "ANISOTROPIC" }) do
+	local value = TEXFILTER[cname]
+	if value < 0 or value > 3 then
+		print("WARNING: TEXFILTER."..cname.."="..value.." out of expected range (0-3). Please adjust code to udpdated values. Skipping...")
+		-- Update clamp for both filtering functions above as well as write/readUInt(filtering,2) in egp baseclass+poly netcode.
+	else
+		E2Lib.registerConstant("TEXFILTER_"..cname, value)
+	end
+end
+
+----------------------------
 -- Font
 ----------------------------
 e2function void wirelink:egpFont( number index, string font )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
-		local fontid = 0
-		for k,v in ipairs( EGP.ValidFonts ) do
-			if (v:lower() == font:lower()) then
-				fontid = k
-				break
-			end
-		end
-		if (EGP:EditObject( v, { fontid = fontid } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if (EGP:EditObject( v, { font = font } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -204,14 +255,7 @@ e2function void wirelink:egpFont( number index, string font, number size )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
-		local fontid = 0
-		for k,v in ipairs( EGP.ValidFonts ) do
-			if (v:lower() == font:lower()) then
-				fontid = k
-				break
-			end
-		end
-		if (EGP:EditObject( v, { fontid = fontid, size = size } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if (EGP:EditObject( v, { font = font, size = size } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -957,6 +1001,22 @@ e2function void wirelink:egpResolution( vector2 topleft, vector2 bottomright )
 	local yScale = { topleft[2], bottomright[2] }
 	errorcheck(xScale,yScale)
 	EGP:DoAction( this, self, "SetScale", xScale, yScale )
+end
+
+e2function vector2 wirelink:egpOrigin()
+	if (!EGP:IsAllowed( self, this )) then return end
+	local xOrigin = this.xScale[1] + (this.xScale[2] - this.xScale[1])/2
+	local yOrigin = this.yScale[1] + (this.yScale[2] - this.yScale[1])/2
+	return { xOrigin, yOrigin }
+	--return EGP:DoAction( this, self, "GetOrigin" )
+end
+
+e2function vector2 wirelink:egpSize()
+	if (!EGP:IsAllowed( self, this )) then return end
+	local width = math.abs(this.xScale[1] - this.xScale[2])
+	local height = math.abs(this.yScale[1] - this.yScale[2])
+	return { width, height }
+	--return EGP:DoAction( this, self, "GetScreenSize" )
 end
 
 e2function void wirelink:egpDrawTopLeft( number onoff )

@@ -34,7 +34,7 @@ int 1;
 #ifdef ZCRT_EXTENDED_MODE
   float zcrtInterruptTable[1024];
   char* zcrtInterruptEntrypoint;
-  
+
   // Default interrupt handlers
   zcrtErrorHandler:
     //Execute handler if required

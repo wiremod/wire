@@ -10,17 +10,12 @@ TOOL.ClientConVar = {
 if CLIENT then
 	language.Add( "Tool.wire_spawner.name", "Prop Spawner (Wire)" )
 	language.Add( "Tool.wire_spawner.desc", "Spawns a prop at a pre-defined location" )
-	language.Add( "Tool.wire_spawner.0", "Click a prop to turn it into a prop spawner." )
-	language.Add( "Undone_gmod_wire_spawner", "Undone Wire Spawner" )
-	language.Add( "Cleanup_gmod_wire_spawner", "Wire Spawners" )
-	language.Add( "Cleaned_gmod_wire_spawner", "Cleaned up Wire Spawners" )
+	TOOL.Information = { { name = "left", text = "Click a prop to turn it into a " .. TOOL.Name } }
 end
 
-if SERVER then
-	CreateConVar("sbox_maxwire_spawners",10)
-end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax(10)
 
-cleanup.Register("gmod_wire_spawner")
 function TOOL:LeftClick(trace)
 	local ent = trace.Entity
 	if !ent or !ent:IsValid() then return false end

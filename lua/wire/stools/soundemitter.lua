@@ -4,8 +4,11 @@ WireToolSetup.open( "soundemitter", "Sound Emitter", "gmod_wire_soundemitter", n
 if CLIENT then
 	language.Add( "tool.wire_soundemitter.name", "Sound Emitter Tool (Wire)" )
 	language.Add( "tool.wire_soundemitter.desc", "Spawns a sound emitter for use with the wire system." )
-	language.Add( "tool.wire_soundemitter.0", "Primary: Create/Update Sound Emitter, Secondary: Open Sound Browser" )
 	language.Add( "WireEmitterTool_sound", "Sound:" )
+	TOOL.Information = {
+		{ name = "left", text = "Create/Update " .. TOOL.Name },
+		{ name = "right", text = "Open Sound Browser" },
+	}
 
 	WireToolSetup.setToolMenuIcon( "bull/various/subwoofer" )
 end
@@ -29,7 +32,7 @@ TOOL.ClientConVar = {
 function TOOL:RightClick( trace )
 	if SERVER and !game.SinglePlayer() then return false end
 	RunConsoleCommand("wire_sound_browser_open", self:GetClientInfo("sound"), "1")
-	
+
 	return false
 end
 

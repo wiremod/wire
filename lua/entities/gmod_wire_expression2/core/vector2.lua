@@ -95,12 +95,6 @@ end)
 
 /******************************************************************************/
 
-registerOperator("dlt", "xv2", "xv2", function(self, args)
-	local op1, scope = args[2], args[3]
-	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
-	return { rv1[1] - rv2[1], rv1[2] - rv2[2] }
-end)
-
 registerOperator("neg", "xv2", "xv2", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
@@ -311,7 +305,7 @@ __e2setcost(4)
 
 e2function vector2 round(vector2 rv1)
 	return {
-		floor(rv1[1] + 0.5), 
+		floor(rv1[1] + 0.5),
 		floor(rv1[2] + 0.5)
 	}
 end
@@ -319,14 +313,14 @@ end
 e2function vector2 round(vector2 rv1, decimals)
 	local shf = 10 ^ decimals
 	return {
-		floor(rv1[1] * shf + 0.5) / shf, 
+		floor(rv1[1] * shf + 0.5) / shf,
 		floor(rv1[2] * shf + 0.5) / shf
 	}
 end
 
 e2function vector2 ceil( vector2 rv1 )
 	return {
-		ceil(rv1[1]), 
+		ceil(rv1[1]),
 		ceil(rv1[2])
 	}
 end
@@ -334,14 +328,14 @@ end
 e2function vector2 ceil(vector2 rv1, decimals)
 	local shf = 10 ^ decimals
 	return {
-		ceil(rv1[1] * shf) / shf, 
+		ceil(rv1[1] * shf) / shf,
 		ceil(rv1[2] * shf) / shf
 	}
 end
 
 e2function vector2 floor(vector2 rv1)
 	return {
-		floor(rv1[1]), 
+		floor(rv1[1]),
 		floor(rv1[2])
 	}
 end
@@ -349,7 +343,7 @@ end
 e2function vector2 floor(vector2 rv1, decimals)
 	local shf = 10 ^ decimals
 	return {
-		floor(rv1[1] * shf) / shf, 
+		floor(rv1[1] * shf) / shf,
 		floor(rv1[2] * shf) / shf
 	}
 end
@@ -639,12 +633,6 @@ end)
 
 /******************************************************************************/
 
-registerOperator("dlt", "xv4", "xv4", function(self, args)
-	local op1, scope = args[2], args[3]
-	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
-	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3], rv1[4] - rv2[4] }
-end)
-
 registerOperator("neg", "xv4", "xv4", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
@@ -864,9 +852,9 @@ end
 e2function vector4 round(vector4 rv1, decimals)
 	local shf = 10 ^ decimals
 	return {
-		floor(rv1[1] * shf + 0.5) / shf, 
+		floor(rv1[1] * shf + 0.5) / shf,
 		floor(rv1[2] * shf + 0.5) / shf,
-		floor(rv1[3] * shf + 0.5) / shf, 
+		floor(rv1[3] * shf + 0.5) / shf,
 		floor(rv1[4] * shf + 0.5) / shf
 	}
 end
@@ -1096,8 +1084,8 @@ __e2setcost(7)
 -- Returns a random vector4 between -1 and 1
 e2function vector4 randvec4()
 	local vec = { random()*2-1, random()*2-1, random()*2-1, random()*2-1 }
-	local length = sqrt( vec[1]^2+vec[2]^2+vec[3]^2+vec[4]^2 )
-	return { vec[1] / length, vec[2] / length }
+	local length = ( vec[1]^2+vec[2]^2+vec[3]^2+vec[4]^2 ) ^ 0.5 -- x ^ 0.5 <=> math.sqrt( x )
+	return { vec[1] / length, vec[2] / length, vec[3] / length, vec[4] / length }
 end
 
 -- Returns a random vector4 between min and max

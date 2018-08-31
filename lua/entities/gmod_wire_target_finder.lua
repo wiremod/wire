@@ -14,7 +14,7 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateSpecialOutputs( self, { "Out" }, { "ENTITY" } )
 end
 
-function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel, vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist )	
+function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel, vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist )
 	local ttable = { -- For dupe support
 		range		= maxrange,
 		players		= players,
@@ -47,7 +47,7 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 		entity 			= entity,
 	}
 	table.Merge( self:GetTable(), ttable )
-	
+
 	self.MaxRange            = maxrange
 	self.MinRange            = minrange or 1
 	self.TargetPlayer        = players
@@ -221,7 +221,7 @@ end
 function ENT:CheckTheBuddyList(friend)
 	if not self.CheckBuddyList or not CPPI then return true end
 	if not IsValid(self:GetPlayer()) then return false end
-	
+
 	for _, v in pairs(self:GetPlayer():CPPIGetFriends()) do
 		if v == friend then return self.OnBuddyList end
 	end
@@ -229,7 +229,7 @@ function ENT:CheckTheBuddyList(friend)
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if not (self.Inputs.Hold and self.Inputs.Hold.Value > 0) then
 		-- Find targets that meet requirements
@@ -345,7 +345,7 @@ end
 
 
 function ENT:OnRemove()
-	self.BaseClass.OnRemove(self)
+	BaseClass.OnRemove(self)
 
 	--unpaint all our targets
 	if (self.PaintTarget) then
@@ -356,7 +356,7 @@ function ENT:OnRemove()
 end
 
 function ENT:OnRestore()
-	self.BaseClass.OnRestore(self)
+	BaseClass.OnRestore(self)
 
 	self.MaxTargets = self.MaxTargets or 1
 end

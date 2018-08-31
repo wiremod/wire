@@ -6,6 +6,13 @@ ENT.WireDebugName	= "ZCPU"
 
 if CLIENT then return end -- No more client
 
+local cpu_max_frequency = 1400000
+local wire_cpu_max_frequency = CreateConVar("wire_cpu_max_frequency", cpu_max_frequency, FCVAR_REPLICATED)
+
+cvars.AddChangeCallback("wire_cpu_max_frequency",function()
+	cpu_max_frequency = math.Clamp(math.floor(wire_cpu_max_frequency:GetInt()),1,30000000)
+end)
+
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -18,7 +25,6 @@ function ENT:Initialize()
 	self.Clk = false -- whether the Clk input is on
 	self.VMStopped = false -- whether the VM has halted itself (e.g. by running off the end of the program)
 	self.Frequency = 2000
-
 	-- Create virtual machine
 	self.VM = CPULib.VirtualMachine()
 	self.VM.SerialNo = CPULib.GenerateSN("CPU")
@@ -82,11 +88,11 @@ function ENT:Initialize()
 					end
 				else VM:Interrupt(8,Address+1) return
 				end
-			else return 0 
+			else return 0
 			end
 		end
 	end
-	
+
 	local oldReset = self.VM.Reset
 	self.VM.Reset = function(...)
 		if self.Clk and self.VMStopped then
@@ -190,6 +196,7 @@ function ENT:Run()
 end
 
 function ENT:Think()
+	if (not game.SinglePlayer()) and (self.Frequency > cpu_max_frequency) then self.Frequency = cpu_max_frequency end
 	self:Run()
 	if self.Clk and not self.VMStopped then self:NextThink(CurTime()) end
 	return true
@@ -219,7 +226,7 @@ function ENT:SetCPUName(name)
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	info.SerialNo = self.VM.SerialNo
 	info.InternalRAMSize = self.VM.RAMSize
@@ -235,7 +242,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self.VM.SerialNo = info.SerialNo or CPULib.GenerateSN("UNK")
 	self.VM.RAMSize  = info.InternalRAMSize or 65536
@@ -262,7 +269,6 @@ function ENT:TriggerInput(iname, value)
 			self:NextThink(CurTime())
 		end
 	elseif iname == "Frequency" then
-		if (not game.SinglePlayer()) and (value > 1400000) then self.Frequency = 1400000 return end
 		if value > 0 then self.Frequency = math.floor(value) end
 	elseif iname == "Reset" then   --VM may be nil
 		if self.VM.HWDEBUG ~= 0 then

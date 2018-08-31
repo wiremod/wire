@@ -233,14 +233,17 @@ WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
 
+	self.EffectAvg = ( self.EffectAvg * 29 + math.min( self:GetNWFloat("Thrust") / 100000, 100 ) ) / 30
+	local Magnitude = self.EffectAvg
+
 	local scroll = CurTime() * -10
 
 	render.SetMaterial( matFire )
 
 	render.StartBeam( 3 )
-		render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 60, 32, scroll + 1, Color( 255, 255, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 148, 32, scroll + 3, Color( 255, 255, 255, 0) )
+		render.AddBeam( vOffset, Magnitude/6, scroll, Color( 0, 0, 255, 128) )
+		render.AddBeam( vOffset + vNormal * Magnitude, Magnitude/2, scroll + 1, Color( 255, 255, 255, 128) )
+		render.AddBeam( vOffset + vNormal * Magnitude * 2, Magnitude/2, scroll + 3, Color( 255, 255, 255, 0) )
 	render.EndBeam()
 
 	scroll = scroll * 0.5
@@ -249,8 +252,8 @@ WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 	render.SetMaterial( matHeatWave )
 	render.StartBeam( 3 )
 		render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 32, 32, scroll + 2, Color( 255, 255, 255, 255) )
-		render.AddBeam( vOffset + vNormal * 128, 48, scroll + 5, Color( 0, 0, 0, 0) )
+		render.AddBeam( vOffset + vNormal * Magnitude, 32, scroll + 2, Color( 255, 255, 255, 255) )
+		render.AddBeam( vOffset + vNormal * Magnitude * 2, 48, scroll + 5, Color( 0, 0, 0, 0) )
 	render.EndBeam()
 
 
@@ -258,8 +261,8 @@ WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 	render.SetMaterial( matFire )
 	render.StartBeam( 3 )
 		render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 60, 16, scroll + 1, Color( 255, 255, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 148, 16, scroll + 3, Color( 255, 255, 255, 0) )
+		render.AddBeam( vOffset + vNormal * Magnitude, 16, scroll + 1, Color( 255, 255, 255, 128) )
+		render.AddBeam( vOffset + vNormal * Magnitude * 2, 16, scroll + 3, Color( 255, 255, 255, 0) )
 	render.EndBeam()
 
 		self.SmokeTimer = self.SmokeTimer or 0
@@ -267,15 +270,18 @@ WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 
 	self.SmokeTimer = CurTime() + 0.015
 
-	vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
-	vNormal = self:CalcNormal()
+	local orth1 = Vector( vNormal.z, vNormal.x, vNormal.y )
+	orth1 = ( orth1 - vNormal * vNormal:Dot(orth1) ):GetNormalized()
+	local orth2 = vNormal:Cross( orth1 )
 
 		local particle = emitter:Add( "particles/smokey", vOffset )
-			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
+			particle:SetVelocity( vNormal * math.Rand( Magnitude*19, Magnitude*20 ) + orth1 * math.Rand( -50, 50 ) + orth2 * math.Rand( -50, 50 ) )
+			particle:SetAirResistance( 60 )
 			particle:SetDieTime( 2.0 )
-			particle:SetStartAlpha( math.Rand( 50, 150 ) )
-			particle:SetStartSize( math.Rand( 8, 16 ) )
-			particle:SetEndSize( math.Rand( 32, 64  ) )
+			particle:SetStartAlpha( math.Rand( 0, 10 ) )
+			particle:SetEndAlpha( 200 )
+			particle:SetStartSize( math.Rand( 16, 24 ) )
+			particle:SetEndSize( math.Rand( 10+Magnitude/2, 30+Magnitude/2 ) )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor( 200, 200, 210 )
 end
@@ -308,9 +314,9 @@ WireLib.ThrusterEffectDraw.fire_smoke_big = function(self)
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor( 200, 200, 210 )
 
-	
 
-	local effectdata = EffectData()
+
+	effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
 		effectdata:SetNormal( vNormal )
 	util.Effect( "ThumperDust ", effectdata )
@@ -675,8 +681,6 @@ WireLib.ThrusterEffectThink.jetflame = function(self)
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
 
-	//vOffset = vOffset + VectorRand() * 5
-
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
 
@@ -722,8 +726,6 @@ WireLib.ThrusterEffectThink.jetflame_purple = function(self)
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
-
-	//vOffset = vOffset + VectorRand() * 5
 
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
@@ -771,8 +773,6 @@ WireLib.ThrusterEffectThink.jetflame_red = function(self)
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
 
-	//vOffset = vOffset + VectorRand() * 5
-
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
 
@@ -818,8 +818,6 @@ WireLib.ThrusterEffectThink.jetflame_blue = function(self)
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
-
-	//vOffset = vOffset + VectorRand() * 5
 
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
@@ -1044,6 +1042,7 @@ WireLib.ThrusterEffectDraw.rings = function(self)
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
 		effectdata:SetNormal( vNormal )
+	effectdata:SetMagnitude(0) -- growth rate
 	util.Effect( "thruster_ring", effectdata )
 
 end
@@ -1296,7 +1295,8 @@ WireLib.ThrusterEffectDraw.rings_grow = function(self)
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
 		effectdata:SetNormal( vNormal )
-	util.Effect( "thruster_ring_grow", effectdata )
+	effectdata:SetMagnitude(0.08) -- growth rate
+	util.Effect("thruster_ring", effectdata)
 
 end
 
@@ -1312,12 +1312,16 @@ WireLib.ThrusterEffectDraw.rings_grow_rings = function(self)
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
 		effectdata:SetNormal( vNormal )
-	util.Effect( "thruster_ring", effectdata )
-	util.Effect( "thruster_ring_grow", effectdata )
-	util.Effect( "thruster_ring_grow1", effectdata )
-	util.Effect( "thruster_ring_grow2", effectdata )
-	util.Effect( "thruster_ring_grow3", effectdata )
-
+	effectdata:SetMagnitude(0.08) -- growth rate
+	util.Effect("thruster_ring", effectdata)
+	effectdata:SetMagnitude(0.06)
+	util.Effect("thruster_ring", effectdata)
+	effectdata:SetMagnitude(0.04)
+	util.Effect("thruster_ring", effectdata)
+	effectdata:SetMagnitude(0.02)
+	util.Effect("thruster_ring", effectdata)
+	effectdata:SetMagnitude(0)
+	util.Effect("thruster_ring", effectdata)
 end
 
 WireLib.ThrusterEffectDraw.rings_shrink = function(self)
@@ -1332,7 +1336,8 @@ WireLib.ThrusterEffectDraw.rings_shrink = function(self)
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
 		effectdata:SetNormal( vNormal )
-	util.Effect( "thruster_ring_shrink", effectdata )
+	effectdata:SetMagnitude(-0.02) -- growth rate
+	util.Effect("thruster_ring", effectdata)
 
 end
 
@@ -1359,5 +1364,5 @@ WireLib.ThrusterEffectThink.bubble = function(self)
 	particle:SetEndSize( 0 )
 	particle:SetRoll( 0 )
 
-	
+
 end

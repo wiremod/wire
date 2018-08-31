@@ -4,15 +4,16 @@ WireToolSetup.open( "thruster", "Thruster", "gmod_wire_thruster", nil, "Thruster
 if CLIENT then
 	language.Add( "tool.wire_thruster.name", "Thruster Tool (Wire)" )
 	language.Add( "tool.wire_thruster.desc", "Spawns a thruster for use with the wire system." )
-	language.Add( "tool.wire_thruster.0", "Primary: Create/Update Thruster" )
 	language.Add( "WireThrusterTool_Model", "Model:" )
 	language.Add( "WireThrusterTool_force", "Force multiplier:" )
-	language.Add( "WireThrusterTool_force_min", "Force minimum:" )
+	language.Add( "WireThrusterTool_force_min", "Input threshold:" )
+	language.Add( "WireThrusterTool_force_min.help", "If the input force is below this amount, the thruster will not fire.")
 	language.Add( "WireThrusterTool_force_max", "Force maximum:" )
 	language.Add( "WireThrusterTool_bidir", "Bi-directional" )
 	language.Add( "WireThrusterTool_soundname", "Select sound" )
 	language.Add( "WireThrusterTool_owater", "Works out of water" )
 	language.Add( "WireThrusterTool_uwater", "Works under water" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
@@ -31,9 +32,9 @@ TOOL.ClientConVar = {
 }
 
 if SERVER then
-	function TOOL:GetConVars() 
-		return self:GetClientNumber( "force" ), self:GetClientNumber( "force_min" ), self:GetClientNumber( "force_max" ), self:GetClientInfo( "oweffect" ), 
-			self:GetClientInfo( "uweffect" ), self:GetClientNumber( "owater" ) ~= 0, self:GetClientNumber( "uwater" ) ~= 0, self:GetClientNumber( "bidir" ) ~= 0, 
+	function TOOL:GetConVars()
+		return self:GetClientNumber( "force" ), self:GetClientNumber( "force_min" ), self:GetClientNumber( "force_max" ), self:GetClientInfo( "oweffect" ),
+			self:GetClientInfo( "uweffect" ), self:GetClientNumber( "owater" ) ~= 0, self:GetClientNumber( "uwater" ) ~= 0, self:GetClientNumber( "bidir" ) ~= 0,
 			self:GetClientInfo( "soundname" )
 	end
 end
@@ -45,7 +46,7 @@ function TOOL.BuildCPanel(panel)
 
 	local Effects = {
 		["#No Effects"] = "none",
-		//["#Same as over water"] = "same",
+		--["#Same as over water"] = "same",
 		["#Flames"] = "fire",
 		["#Plasma"] = "plasma",
 		["#Smoke"] = "smoke",
@@ -85,9 +86,9 @@ function TOOL.BuildCPanel(panel)
 		["#Comic Balls Random"] = "balls_random",
 		["#Comic Balls Fire Colors"] = "balls_firecolors",
 		["#Souls"] = "souls",
-		//["#Debugger 10 Seconds"] = "debug_10", These are just buggy and shouldn't be used.
-		//["#Debugger 30 Seconds"] = "debug_30",
-		//["#Debugger 60 Seconds"] = "debug_60",
+		--["#Debugger 10 Seconds"] = "debug_10", These are just buggy and shouldn't be used.
+		--["#Debugger 30 Seconds"] = "debug_30",
+		--["#Debugger 60 Seconds"] = "debug_60",
 		["#Fire and Smoke"] = "fire_smoke",
 		["#Fire and Smoke Huge"] = "fire_smoke_big",
 		["#5 Growing Rings"] = "rings_grow_rings",
@@ -145,7 +146,7 @@ function TOOL.BuildCPanel(panel)
 									 Options = lst } )
 
 	panel:NumSlider("#WireThrusterTool_force", "wire_thruster_force", 1, 10000, 0)
-	panel:NumSlider("#WireThrusterTool_force_min", "wire_thruster_force_min", -10000, 10000, 0)
+	panel:NumSlider("#WireThrusterTool_force_min", "wire_thruster_force_min", -10000, 10000, 0):SetTooltip("#WireThrusterTool_force_min.help")
 	panel:NumSlider("#WireThrusterTool_force_max", "wire_thruster_force_max", -10000, 10000, 0)
 	panel:CheckBox("#WireThrusterTool_bidir", "wire_thruster_bidir")
 	panel:CheckBox("#WireThrusterTool_owater", "wire_thruster_owater")

@@ -4,7 +4,10 @@ WireToolSetup.open( "weight", "Weight (Adjustable)", "gmod_wire_weight", nil, "A
 if CLIENT then
 	language.Add( "tool.wire_weight.name", "Weight Tool (Wire)" )
 	language.Add( "tool.wire_weight.desc", "Spawns a weight." )
-	language.Add( "tool.wire_weight.0", "Primary: Create/Update weight, Reload: Copy model" )
+	TOOL.Information = {
+		{ name = "left", text = "Create/Update " .. TOOL.Name },
+		{ name = "reload", text = "Copy model" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
@@ -12,7 +15,7 @@ WireToolSetup.SetupMax( 20 )
 if SERVER then
 	ModelPlug_Register("weight")
 	function TOOL:GetConVars() end
-	
+
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 

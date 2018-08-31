@@ -4,7 +4,7 @@ ENT.PrintName       = "Wire Holographic Emitter"
 ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Holographic Emitter"
 
-if CLIENT then 
+if CLIENT then
 	local cvar = CreateClientConVar("cl_wire_holoemitter_maxfadetime",5,true,false) -- "cl_" in the cvar name isn't very neat... probably too late to change it now, though.
 	local keeplatest = CreateClientConVar("wire_holoemitter_keeplatestdot", "0", true, false)
 
@@ -40,9 +40,21 @@ if CLIENT then
 	net.Receive("WireHoloEmitterData", function(netlen)
 		local ent = net.ReadEntity()
 		if not IsValid(ent) then return end
-		for i=1, net.ReadUInt(16) do
+		local syncinterval = net.ReadFloat()
+		local count = net.ReadUInt(16)
+		for i=1, count do
 			local pos = net.ReadVector()
-			ent:AddPoint(pos, net.ReadBit() ~= 0, Color(net.ReadUInt(8),net.ReadUInt(8),net.ReadUInt(8)), net.ReadUInt(16)/100, net.ReadBit() ~= 0, net.ReadBit() ~= 0, net.ReadUInt(16)/100)
+			local lcl = net.ReadBit() ~= 0
+			local color = Color(net.ReadUInt(8),net.ReadUInt(8),net.ReadUInt(8))
+			local dietime = net.ReadUInt(16)/100
+			local linebeam = net.ReadBit() ~= 0
+			local groundbeam = net.ReadBit() ~= 0
+			local size = net.ReadUInt(16)/100
+			timer.Simple(i/count*syncinterval,function()
+				if IsValid(ent) then
+					ent:AddPoint(pos, lcl, color, dietime, linebeam, groundbeam, size)
+				end
+			end)
 		end
 	end)
 
@@ -88,7 +100,7 @@ if CLIENT then
 	end
 
 	function ENT:Draw()
-		self.BaseClass.Draw(self)
+		BaseClass.Draw(self)
 
 		local ent = self:GetNWEntity( "Link", false )
 		if not IsValid(ent) then ent = self end
@@ -153,7 +165,7 @@ if CLIENT then
 			)
 		end
 	end
-	
+
 	return  -- No more client
 end
 
@@ -176,6 +188,7 @@ function ENT:Initialize( )
 	self.bools.GroundBeam = true
 
 	self.Inputs = WireLib.CreateInputs( self, { "Pos [VECTOR]", "X" , "Y", "Z", "Local", "Color [VECTOR]", "FadeTime", "LineBeam", "GroundBeam", "Size", "Clear", "Active" } )
+	self.Outputs = WireLib.CreateOutputs( self, { "Memory" } ) -- Compatibility for older hispeed devices (such as gpu/cpu)
 
 	self.Points = {}
 
@@ -187,7 +200,7 @@ function ENT:Initialize( )
 	self.Data.LineBeam = false
 	self.Data.GroundBeam = false
 	self.Data.Size = 1
-	
+
 	self:SetOverlayText( "Holo Emitter" )
 end
 
@@ -361,8 +374,9 @@ function ENT:Think()
 	if not next(self.Points) then return true end
 	net.Start("WireHoloEmitterData")
 		net.WriteEntity(self)
-		net.WriteUInt(#self.Points, 16)
-		for _,v in pairs( self.Points ) do
+		net.WriteFloat(cvar:GetFloat()) -- send sync interval
+		net.WriteUInt(#self.Points, 16) -- send nr of points
+		for _,v in pairs( self.Points ) do -- send each point
 			net.WriteVector(v.Pos)
 			net.WriteBit(v.Local)
 			net.WriteUInt(v.Color.x,8)
@@ -386,7 +400,7 @@ function ENT:UpdateTransmitState()
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	local link = self:GetNWEntity("Link",false)
 	if (link) then
@@ -397,7 +411,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self:Link(GetEntByID(info.holoemitter_link))
 end

@@ -3,11 +3,11 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Pixel"
 ENT.WireDebugName	= "Pixel"
 
-if CLIENT then 
+if CLIENT then
 	function ENT:Draw( )
 		self:DrawModel( )
 	end
-	
+
 	return  -- No more client
 end
 
@@ -17,7 +17,7 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 
 	self.R, self.G, self.B = 0, 0, 0
-	self.Inputs = Wire_CreateInputs( self, { "Red", "Green", "Blue", "PackedRGB", "RGB" } )
+	self.Inputs = WireLib.CreateInputs( self, { "Red", "Green", "Blue", "PackedRGB", "RGB", "Color [VECTOR]" } )
 end
 
 function ENT:TriggerInput(iname, value)
@@ -41,6 +41,10 @@ function ENT:TriggerInput(iname, value)
 		B = cgray + cb
 		G = cgray + cg
 		R = cgray + cr
+	elseif (iname == "Color") then
+		R = value.r
+		G = value.g
+		B = value.b
 	end
 	self:ShowOutput( math.floor( R ), math.floor( G ), math.floor( B ) )
 end

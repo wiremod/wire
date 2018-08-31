@@ -2,13 +2,13 @@ WireToolSetup.setCategory( "Visuals" )
 WireToolSetup.open( "colorer", "Colorer", "gmod_wire_colorer", nil, "Colorers" )
 
 if CLIENT then
-    language.Add( "Tool.wire_colorer.name", "Colorer Tool (Wire)" )
-    language.Add( "Tool.wire_colorer.desc", "Spawns a constant colorer prop for use with the wire system." )
-    language.Add( "Tool.wire_colorer.0", "Primary: Create/Update Colorer" )
-    language.Add( "WireColorerTool_colorer", "Colorer:" )
-    language.Add( "WireColorerTool_outColor", "Output Color" )
-    language.Add( "WireColorerTool_Range", "Max Range:" )
-    language.Add( "WireColorerTool_Model", "Choose a Model:")
+	language.Add( "Tool.wire_colorer.name", "Colorer Tool (Wire)" )
+	language.Add( "Tool.wire_colorer.desc", "Spawns a constant colorer prop for use with the wire system." )
+	language.Add( "WireColorerTool_colorer", "Colorer:" )
+	language.Add( "WireColorerTool_outColor", "Output Color" )
+	language.Add( "WireColorerTool_Range", "Max Range:" )
+	language.Add( "WireColorerTool_Model", "Choose a Model:")
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 
 	WireToolSetup.setToolMenuIcon( "icon16/color_wheel.png" )
 end
@@ -16,7 +16,7 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "outColor" ) ~= 0, self:GetClientNumber( "range" )
 	end
 end

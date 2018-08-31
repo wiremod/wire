@@ -4,13 +4,18 @@ WireToolSetup.open( "lamp", "Lamp", "gmod_wire_lamp", nil, "Lamps" )
 if CLIENT then
 	language.Add( "tool.wire_lamp.name", "Wire Lamps" )
 	language.Add( "tool.wire_lamp.desc", "Spawns a lamp for use with the wire system." )
-	language.Add( "tool.wire_lamp.0", "Primary: Create hanging lamp Secondary: Create unattached lamp" )
 	language.Add( "WireLampTool_RopeLength", "Rope Length:")
 	language.Add( "WireLampTool_FOV", "FOV:")
 	language.Add( "WireLampTool_Dist", "Distance:")
 	language.Add( "WireLampTool_Bright", "Brightness:")
 	language.Add( "WireLampTool_Const", "Constraint:" )
 	language.Add( "WireLampTool_Color", "Color:" )
+	TOOL.Information = {
+		{ name = "left", text = "Create hanging lamp" },
+		{ name = "right", text = "Create unattached lamp" },
+	}
+
+	WireToolSetup.setToolMenuIcon( "icon16/lightbulb.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
@@ -127,13 +132,13 @@ end
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_lamp")
-	
+
 	WireDermaExts.ModelSelect(panel, "wire_lamp_model", list.Get( "LampModels" ), 1)
 	panel:NumSlider("#WireLampTool_RopeLength", "wire_lamp_ropelength", 4, 400, 0)
 	panel:NumSlider("#WireLampTool_FOV", "wire_lamp_fov", 10, 170, 2)
 	panel:NumSlider("#WireLampTool_Dist", "wire_lamp_distance", 64, 2048, 0)
 	panel:NumSlider("#WireLampTool_Bright", "wire_lamp_brightness", 0, 8, 2)
-	
+
 	panel:AddControl("ComboBox", {
 		Label = "#WireLampTool_Const",
 		Options = {
@@ -142,7 +147,7 @@ function TOOL.BuildCPanel(panel)
 			["None"] = { wire_lamp_const = "none" },
 		}
 	})
-	
+
 	panel:AddControl("Color", {
 		Label = "#WireLampTool_Color",
 		Red	= "wire_lamp_r",

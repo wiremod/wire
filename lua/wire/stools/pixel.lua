@@ -4,7 +4,9 @@ WireToolSetup.open( "pixel", "Pixel", "gmod_wire_pixel", nil, "Pixels" )
 if CLIENT then
 	language.Add( "tool.wire_pixel.name", "Pixel Tool (Wire)" )
 	language.Add( "tool.wire_pixel.desc", "Spawns a Pixel for use with the wire system." )
-	language.Add( "tool.wire_pixel.0", "Primary: Create Pixel" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon( "icon16/lightbulb_add.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

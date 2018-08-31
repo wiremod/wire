@@ -4,7 +4,7 @@ WireToolSetup.open( "datarate", "Data - Transfer Bus", "gmod_wire_datarate", nil
 if ( CLIENT ) then
 	language.Add( "Tool.wire_datarate.name", "Data transfer bus tool (Wire)" )
 	language.Add( "Tool.wire_datarate.desc", "Spawns a data transferrer. Data transferrer acts like identity gate for hi-speed and regular links" )
-	language.Add( "Tool.wire_datarate.0", "Primary: Create/Update data trasnferrer" )
+	TOOL.Information = { { name = "left", text = "Create/Update data transferrer" } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
@@ -18,5 +18,3 @@ end
 function TOOL.BuildCPanel(panel)
 	ModelPlug_AddToCPanel(panel, "gate", "wire_datarate", nil, 4)
 end
-
-

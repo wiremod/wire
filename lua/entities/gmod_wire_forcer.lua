@@ -53,6 +53,8 @@ function ENT:TriggerInput( name, value )
 	end
 end
 
+local clamp = WireLib.clampForce
+
 function ENT:Think()
 	if self.Force == 0 and self.OffsetForce == 0 and self.Velocity == 0 then return end
 
@@ -66,21 +68,27 @@ function ENT:Think()
 	}
 
 	if not IsValid(trace.Entity) then return end
-	if not gamemode.Call( "GravGunPunt", self:GetPlayer(), trace.Entity ) then return end
+	if IsValid(self:GetPlayer()) and not gamemode.Call( "GravGunPunt", self:GetPlayer(), trace.Entity ) then return end
 
 	if trace.Entity:GetMoveType() == MOVETYPE_VPHYSICS then
 		local phys = trace.Entity:GetPhysicsObject()
 		if not IsValid(phys) then return end
 
-		if self.Force ~= 0 then phys:ApplyForceCenter( Forward * self.Force * self.ForceMul ) end
-		if self.OffsetForce ~= 0 then phys:ApplyForceOffset( Forward * self.OffsetForce * self.ForceMul, trace.HitPos ) end
-		if self.Velocity ~= 0 then phys:SetVelocityInstantaneous( Forward * self.Velocity ) end
+		local force = clamp(Forward * self.Force * self.ForceMul)
+		local offsetForce = clamp(Forward * self.OffsetForce * self.ForceMul)
+		local velocity = clamp(Forward * self.Velocity)
+
+		if self.Force ~= 0 then phys:ApplyForceCenter( force ) end
+		if self.OffsetForce ~= 0 then phys:ApplyForceOffset( offsetForce, trace.HitPos ) end
+		if self.Velocity ~= 0 then phys:SetVelocityInstantaneous( velocity ) end
 	else
-		if self.Velocity ~= 0 then trace.Entity:SetVelocity( Forward * self.Velocity ) end
+		local velocity = clamp(Forward * self.Velocity)
+		if self.Velocity ~= 0 then trace.Entity:SetVelocity( velocity ) end
 	end
 
 	if self.Reaction and IsValid(self:GetPhysicsObject()) and (self.Force + self.OffsetForce ~= 0) then
-		self:GetPhysicsObject():ApplyForceCenter( Forward * -(self.Force + self.OffsetForce) * self.ForceMul )
+		local reactionForce = clamp(Forward * -(self.Force + self.OffsetForce) * self.ForceMul)
+		self:GetPhysicsObject():ApplyForceCenter( reactionForce )
 	end
 
 	self:NextThink( CurTime() )
@@ -97,7 +105,7 @@ function ENT:ShowOutput()
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 	info.ForceMul = self.ForceMul
 	info.Reaction = self.Reaction
 	return info
@@ -107,7 +115,7 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self:Setup( info.ForceMul, info.Length, info.ShowBeam, info.Reaction )
 
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
 
 --Moves old "A" input to new "Force" input for older saves

@@ -24,6 +24,8 @@ function ENT:Initialize()
 	self.ScreenWidth = 32
 	self.ScreenHeight = 32
 
+	self.NumOfWrites = 0
+
 	self.ChangedCellRanges = {}
 end
 
@@ -52,6 +54,8 @@ function ENT:ReadCell(Address)
 end
 
 function ENT:MarkCellChanged(Address)
+	self.NumOfWrites = self.NumOfWrites + 1
+
 	local lastrange = self.ChangedCellRanges[#self.ChangedCellRanges]
 	if lastrange then
 		if Address == lastrange.start + lastrange.length then
@@ -80,92 +84,107 @@ local function numberToString(t, number, bytes)
 	for j=1,bytes do
 		str[#str+1] = string.char(number % 256)
 		number = math.floor(number / 256)
-    end
+	end
 	t[#t+1] = table.concat(str)
+end
+
+local function buildData(datastr, memory, pixelbit, start, length)
+	numberToString(datastr,length,3) -- Length of range
+	numberToString(datastr,start,3) -- Address of range
+	for i = start, start + length - 1 do
+		if i>=1048500 then
+			numberToString(datastr,memory[i],2)
+		else
+			numberToString(datastr,memory[i],pixelbit)
+		end
+	end
 end
 
 util.AddNetworkString("wire_digitalscreen")
 
-local pixelbits = {20, 8, 24, 30, 8, 3, 1, 3, 4, 1} --The compressed pixel formats are in bytes
+local pixelbits = {3, 1, 3, 4, 1} --The compressed pixel formats are in bytes
 function ENT:FlushCache(ply)
 	if not next(self.ChangedCellRanges) then return end
-	
-	local compression = self.Memory[1048576] or 1
-	local pixelformat = (self.Memory[1048569] or 0) + 1
-	local pixelbit = pixelbits[pixelformat]
-	local bitsremaining = 480000
-	local buildData
-	local datastr
-	
-	if compression==0 then
-		buildData = function(start, length)
-			net.WriteUInt(length, 20) -- Length of range
-			net.WriteUInt(start, 20) -- Address of range
-			for i = start, start + length - 1 do
-				if i>=1048500 then
-					net.WriteUInt(self.Memory[i], 10)
-				else
-					net.WriteUInt(self.Memory[i], pixelbit)
+
+	if not ply then
+		-- If the user is writing a lot of data, activate buffering
+		if self.NumOfWrites > 4000 then
+			self.UseBuffering = true
+		else
+			self.UseBuffering = nil
+		end
+
+		if self.UseBuffering then
+			-- This section allows the data to build up until
+			-- the user stops writing data, or up to three seconds
+			if not self.WaitToFlush then
+				self.WaitToFlush = CurTime() + 3
+				return
+			elseif self.WaitToFlush >= CurTime() then
+				if self.NumOfWrites > 0 then
+					return
 				end
 			end
 		end
-	else
-		datastr = {}
-		pixelbit = pixelbits[pixelformat+5]
-		
-		buildData = function(start, length)
-			numberToString(datastr,length,3) -- Length of range
-			numberToString(datastr,start,3) -- Address of range
-			for i = start, start + length - 1 do
-				if i>=1048500 then
-					numberToString(datastr,self.Memory[i],2)
-				else
-					numberToString(datastr,self.Memory[i],pixelbit)
-				end
-			end
-		end
+
+		self.NumOfWrites = 0
 	end
-	
-	net.Start("wire_digitalscreen")
-	net.WriteUInt(self:EntIndex(),16)
-	net.WriteUInt(compression,1)
-	net.WriteUInt(pixelformat, 5)
-	bitsremaining = bitsremaining - 22
-	
+
+	self.WaitToFlush = nil
+
+	local pixelformat = (math.floor(self.Memory[1048569]) or 0) + 1
+	if pixelformat < 1 or pixelformat > #pixelbits then pixelformat = 1 end
+	local pixelbit = pixelbits[pixelformat]
+	local bitsremaining = 200000
+	local datastr = {}
+
 	while bitsremaining>0 and next(self.ChangedCellRanges) do
 		local range = self.ChangedCellRanges[1]
 		local start = range.start
 		local length = math.min(range.length, math.ceil(bitsremaining/pixelbit)) --Estimate how many numbers to read from the range
-		
+
 		range.length = range.length - length --Update the range and remove it if its empty
 		range.start = start + length
 		if range.length==0 then table.remove(self.ChangedCellRanges, 1) end
-		
-		buildData(start, length)
-		
+
+		buildData(datastr, self.Memory, pixelbit, start, length)
+
 		bitsremaining = bitsremaining - length*pixelbit
 	end
-		
-	if compression==0 then
-		net.WriteUInt(0, 20)
-	else
-		numberToString(datastr,0,3)
-		local compressed = util.Compress(table.concat(datastr))
-		net.WriteData(compressed,#compressed)
+
+	numberToString(datastr,0,3)
+	datastr = util.Compress(table.concat(datastr))
+
+	local per_batch = 63000
+
+	for i=1,#datastr,per_batch do
+		local str = string.sub(datastr,i,i+per_batch-1)
+
+		net.Start("wire_digitalscreen")
+		net.WriteUInt(self:EntIndex(),16)
+
+		local batch_end = #str < per_batch
+		net.WriteBit(batch_end) -- if true, this is the last batch. if false, more is coming
+
+		if batch_end then
+			net.WriteUInt(pixelformat, 5)
+		end
+
+		net.WriteData(str,#str)
+
+		if ply then net.Send(ply) else net.Broadcast() end
 	end
-	
-	if ply then net.Send(ply) else net.Broadcast() end
 end
 
 function ENT:Retransmit(ply)
 	self:FlushCache() -- Empty the cache
-	
+
 	self:MarkCellChanged(1048569) -- Colormode
 	self:MarkCellChanged(1048572) -- Screen Width
 	self:MarkCellChanged(1048573) -- Screen Height
 	self:MarkCellChanged(1048575) -- Clk
 	self:FlushCache(ply)
-	
+
 	local memory = self.Memory
 	for addr=0, self.ScreenWidth*self.ScreenHeight do
 		if memory[addr] then
@@ -206,7 +225,7 @@ function ENT:WriteCell(Address, value)
 			return true
 		end
 	else
-		if Address == 1048569 then 
+		if Address == 1048569 then
 			-- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB; 4: XXX)
 			value = math.Clamp(math.floor(value or 0), 0, 9)
 		elseif Address == 1048570 then -- Clear row

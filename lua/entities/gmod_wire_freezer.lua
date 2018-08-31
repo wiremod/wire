@@ -70,8 +70,8 @@ local collisionDescriptions = {
 }
 
 function ENT:UpdateOverlay()
-	self:SetOverlayText( 
-		(self.State and "Frozen" or "Unfrozen") .. "\n" .. 
+	self:SetOverlayText(
+		(self.State and "Frozen" or "Unfrozen") .. "\n" ..
 		collisionDescriptions[self.CollisionState] .. "\n" ..
 		"Linked Entities: " .. #self.Marks)
 end
@@ -117,7 +117,7 @@ end
 duplicator.RegisterEntityClass( "gmod_wire_freezer", WireLib.MakeWireEnt, "Data" )
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	if next(self.Marks) then
 		local tbl = {}
@@ -132,7 +132,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if info.Ent1 then
 		-- Old wire-extras dupe support

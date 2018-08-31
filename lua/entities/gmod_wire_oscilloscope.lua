@@ -3,43 +3,49 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Oscilloscope"
 ENT.WireDebugName	= "Oscilloscope"
 
-function ENT:SetNextNode(x, y)
-	local node_idx = self:GetNetworkedInt("OscN") or 0
-	if (node_idx > self:GetNetworkedFloat("Length", 50)) then node_idx = node_idx-self:GetNetworkedFloat("Length", 50) end
-
-	self:SetNetworkedFloat("OscX"..node_idx, x)
-	self:SetNetworkedFloat("OscY"..node_idx, y)
-	self:SetNetworkedInt("OscN", node_idx+1)
-end
-
-function ENT:GetNodeList()
-	local nodes = {}
-	local node_idx = self:GetNetworkedInt("OscN")
-	local length = self:GetNetworkedFloat("Length", 50)
-	for i=1,length do
-		table.insert(nodes, { X = (self:GetNetworkedFloat("OscX"..node_idx, 0)), Y = (self:GetNetworkedFloat("OscY"..node_idx, 0)) })
-
-		node_idx = node_idx+1
-		if (node_idx > length) then node_idx = node_idx-length end
-	end
-
-	return nodes
-end
-
-if CLIENT then 
+if CLIENT then
 	function ENT:Initialize()
 		self.GPU = WireGPU(self)
+
+		self.Nodes = {}
 	end
 
 	function ENT:OnRemove()
 		self.GPU:Finalize()
 	end
 
+	function ENT:GetNodeList()
+		return self.Nodes
+	end
+
+	function ENT:AddNode(x,y)
+		self.Nodes[#self.Nodes+1] = {
+			X = x,
+			Y = y
+		}
+
+		if #self.Nodes > self:GetNWFloat("Length",50) then
+			for i=#self.Nodes,self:GetNWFloat("Length",50),-1 do
+				table.remove(self.Nodes,1)
+			end
+		end
+	end
+
+	net.Receive( "wire_oscilloscope_send_node", function( length )
+		local ent = net.ReadEntity()
+		local x = net.ReadFloat()
+		local y = net.ReadFloat()
+
+		if IsValid(ent) then
+			ent:AddNode(x,y)
+		end
+	end)
+
 	function ENT:Draw()
 		self:DrawModel()
 
-		local length = self:GetNetworkedFloat("Length", 50)
-		local r,g,b = self:GetNetworkedFloat("R"), self:GetNetworkedFloat("G"), self:GetNetworkedFloat("B")
+		local length = self:GetNWFloat("Length", 50)
+		local r,g,b = self:GetNWFloat("R"), self:GetNWFloat("G"), self:GetNWFloat("B")
 		if r == 0 and g == 0 and b == 0 then g = 200 end
 
 		self.GPU:RenderToGPU(function()
@@ -86,13 +92,22 @@ if CLIENT then
 		self.GPU:Render()
 		Wire_Render(self)
 	end
-	
+
 	return  -- No more client
 end
 
 -- Server
 
 local wire_oscilloscope_maxlength = CreateConVar("wire_oscilloscope_maxlength", 100, {FCVAR_ARCHIVE}, "Maximum number of nodes")
+
+util.AddNetworkString( "wire_oscilloscope_send_node" )
+function ENT:SetNextNode(x, y)
+	net.Start("wire_oscilloscope_send_node")
+		net.WriteEntity(self)
+		net.WriteFloat(x)
+		net.WriteFloat(y)
+	net.SendPVS( self:GetPos() )
+end
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -104,7 +119,7 @@ end
 
 function ENT:Think()
 	if (self.Inputs.Pause.Value == 0) then
-		self.BaseClass.Think(self)
+		BaseClass.Think(self)
 
 		local x = math.max(-1, math.min(self.Inputs.X.Value or 0, 1))
 		local y = math.max(-1, math.min(self.Inputs.Y.Value or 0, 1))
@@ -117,14 +132,14 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "R" then
-		self:SetNetworkedFloat("R", math.Clamp(value, 0, 255))
+		self:SetNWFloat("R", math.Clamp(value, 0, 255))
 	elseif iname == "G" then
-		self:SetNetworkedFloat("G", math.Clamp(value, 0, 255))
+		self:SetNWFloat("G", math.Clamp(value, 0, 255))
 	elseif iname == "B" then
-		self:SetNetworkedFloat("B", math.Clamp(value, 0, 255))
+		self:SetNWFloat("B", math.Clamp(value, 0, 255))
 	elseif iname == "Length" then
 		if value == 0 then value = 50 end
-		self:SetNetworkedFloat("Length", math.Clamp(value, 1, wire_oscilloscope_maxlength:GetInt()))
+		self:SetNWFloat("Length", math.Clamp(value, 1, wire_oscilloscope_maxlength:GetInt()))
 	elseif iname == "Update Frequency" then
 		if value <= 0 then value = 0.08 end
 		self.updaterate = value
@@ -164,7 +179,7 @@ function ENT:ReadCell( address )
 	elseif address == 4 then
 		return self.updaterate
 	elseif address_lookup[address] then
-		return self:GetNetworkedFloat( address_lookup[address] )
+		return self:GetNWFloat( address_lookup[address] )
 	end
 
 	return 0

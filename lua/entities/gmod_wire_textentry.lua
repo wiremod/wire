@@ -39,7 +39,7 @@ if CLIENT then
 			"Enter","Cancel"
 		)
 	end)
-	
+
 	net.Receive( "wire_textentry_kick", function()
 		if IsValid( panel ) then
 			panel:Remove()
@@ -54,17 +54,17 @@ end
 function ENT:UpdateOverlay()
 	local hold = math.Round(math.max(self:GetHold(),0),1)
 	local txt = "Hold Length: " .. (hold > 0 and hold or "Forever")
-	
+
 	if self.BlockInput then
 		txt = txt.."\nBlocking Input"
 	elseif IsValid(self.User) then
 		txt = txt.."\nIn use by: " .. self.User:Nick()
 	end
-	
+
 	if self:GetDisableUse() then
 		txt = txt .. "\nUse disabled"
 	end
-	
+
 	self:SetOverlayText(txt)
 end
 
@@ -74,13 +74,13 @@ end
 function ENT:Initialize()
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetUseType(SIMPLE_USE)
-	
+
 	self.Inputs=WireLib.CreateInputs(self,{"Block Input","Prompt"})
 	self.Outputs=WireLib.CreateOutputs(self,{"In Use","Text [STRING]","User [ENTITY]"})
-	
+
 	self.BlockInput=false
 	self.NextPrompt = 0
-	
+
 	self:UpdateOverlay()
 end
 
@@ -102,12 +102,12 @@ end
 ----------------------------------------------------
 function ENT:UnlinkEnt(ent)
 	if not IsValid( ent ) then return false, "Invalid entity specified" end
-	
+
 	if IsValid(self.Vehicle) then
 		self.Vehicle:RemoveCallOnRemove( "wire_textentry_onremove" )
 		self.Vehicle.WireTextEntry = nil
 	end
-	
+
 	self.Vehicle = nil
 	WireLib.SendMarks( self, {} )
 	return true
@@ -116,15 +116,15 @@ end
 function ENT:LinkEnt(ent)
 	if not IsValid( ent ) then return false, "Invalid entity specified" end
 	if not ent:IsVehicle() then return false, "Entity must be a vehicle" end
-	
+
 	if IsValid( self.Vehicle ) then -- remove old callback
 		self.Vehicle:RemoveCallOnRemove( "wire_textentry_onremove" )
 		self.Vehicle.WireTextEntry = nil
 	end
-	
+
 	self.Vehicle = ent
 	self.Vehicle.WireTextEntry = self
-	
+
 	-- add new callback
 	self.Vehicle:CallOnRemove( "wire_textentry_onremove", function()
 		self:UnlinkEnt( ent )
@@ -143,7 +143,7 @@ function ENT:OnRemove()
 		self.Vehicle:RemoveCallOnRemove( "wire_textentry_onremove" )
 		self.Vehicle.WireTextEntry = nil
 	end
-	
+
 	self:Unprompt( true )
 end
 
@@ -153,14 +153,16 @@ end
 util.AddNetworkString("wire_textentry_action")
 net.Receive("wire_textentry_action",function(len,ply)
 	local self=net.ReadEntity()
-	
+
 	if not IsValid( self ) or not IsValid( ply ) or ply ~= self.User then return end
-	
+
 	local text = net.ReadString()
-	
+
+	self:Unprompt() -- in all cases, make text entry available for use again
+
 	if not self.BlockInput then
 		WireLib.TriggerOutput( self, "Text", text )
-		
+
 		local timername = "wire_textentry_" .. self:EntIndex()
 		timer.Remove( timername )
 		if math.max(self:GetHold(),0) > 0 then
@@ -172,8 +174,7 @@ net.Receive("wire_textentry_action",function(len,ply)
 			end)
 		end
 	end
-	
-	self:Unprompt() -- in all cases, make text entry available for use again
+
 	self:UpdateOverlay()
 end)
 
@@ -186,24 +187,24 @@ function ENT:Prompt( ply )
 	if ply then
 		if CurTime() < self.NextPrompt then return end -- anti spam
 		self.NextPrompt = CurTime() + 0.1
-		
+
 		if self.BlockInput or IsValid( self.User ) then
 			WireLib.AddNotify(ply,"That text entry is not accepting input right now!",NOTIFY_ERROR,5,6)
 			return
 		end
-	
+
 		self.User = ply
-		
+
 		WireLib.TriggerOutput( self, "User", ply )
 		WireLib.TriggerOutput( self, "In Use", 1 )
-		
+
 		local timername = "wire_textentry_" .. self:EntIndex()
 		timer.Remove( timername )
-		
+
 		net.Start( "wire_textentry_show" )
 			net.WriteEntity( self )
 		net.Send( ply )
-		
+
 		self:UpdateOverlay()
 	elseif IsValid( self.Vehicle ) and IsValid( self.Vehicle:GetDriver() ) then -- linked
 		self:Prompt( self.Vehicle:GetDriver() ) -- prompt for driver
@@ -236,7 +237,7 @@ end
 hook.Add( "PlayerLeaveVehicle", "wire_textentry_leave_vehicle", function( ply, vehicle )
 	if vehicle.WireTextEntry and IsValid( vehicle.WireTextEntry ) and
 		IsValid( vehicle.WireTextEntry.User ) and vehicle.WireTextEntry.User == ply then
-		
+
 		vehicle.WireTextEntry:Unprompt( true )
 	end
 end)
@@ -246,7 +247,7 @@ end)
 ----------------------------------------------------
 function ENT:Use(ply)
 	if self:GetDisableUse() or not IsValid( ply ) then return end
-	
+
 	self:Prompt( ply )
 end
 
@@ -258,12 +259,12 @@ function ENT:Setup(hold,disableuse)
 	if hold then
 		self:SetHold( math.max( hold, 0 ) )
 	end
-	
+
 	disableuse = tobool(disableuse)
 	if disableuse ~= nil then
 		self:SetDisableUse( disableuse )
 	end
-	
+
 	self:UpdateOverlay()
 end
 duplicator.RegisterEntityClass("gmod_wire_textentry",WireLib.MakeWireEnt,"Data")

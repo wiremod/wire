@@ -120,7 +120,7 @@ if (SERVER) then
 	-- Extra Set Poly queue item, used by poly objects with a lot of vertices in them
 	util.AddNetworkString( "SetVertex" )
 	function EGP._SetVertex( Ent, ply, index, vertices, skiptoadd )
-		
+
 		if not IsValid(ply) or not ply:IsPlayer() then return end
 		if (EGP:CheckInterval( ply ) == false) then
 			EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", index, vertices, skiptoadd )
@@ -203,6 +203,22 @@ if (SERVER) then
 		EGP:SendQueueItem( ply )
 	end
 
+	util.AddNetworkString( "EditFiltering" )
+	local function EditFiltering( Ent, ply, filtering )
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if (EGP:CheckInterval( ply ) == false) then
+			EGP:InsertQueue( Ent, ply, EditFiltering, "EditFiltering", filtering )
+			return
+		end
+		if (!EGP.umsg.Start("EGP_Transmit_Data", ply)) then return end
+			net.WriteEntity( Ent )
+			net.WriteString( "EditFiltering" )
+			net.WriteUInt( filtering, 2 )
+		EGP.umsg.End()
+
+		EGP:SendQueueItem( ply )
+	end
+
 	util.AddNetworkString( "ReceiveObjects" )
 	local function SendObjects( Ent, ply, DataToSend )
 		if (!Ent or !Ent:IsValid() or !ply or !ply:IsValid() or !DataToSend) then return end
@@ -219,6 +235,8 @@ if (SERVER) then
 			EGP:InsertQueueObjects( Ent, ply, SendObjects, DataToSend )
 			return
 		end
+
+		local order_was_changed = false
 
 		if (!EGP.umsg.Start( "EGP_Transmit_Data", ply )) then return end
 			net.WriteEntity( Ent )
@@ -264,14 +282,10 @@ if (SERVER) then
 						EGP:MoveTopLeft( Ent, v )
 					end
 
-					if (v.ChangeOrder) then -- We want to change the order of this object, send the index to where we wish to move it
-						local from = v.ChangeOrder[1]
-						local to = v.ChangeOrder[2]
-						if (Ent.RenderTable[to]) then
-							Ent.RenderTable[to].ChangeOrder = nil
-						end
-						net.WriteInt( from, 16 )
-						net.WriteInt( to, 16 )
+					if v.ChangeOrder then -- We want to change the order of this object, send the index to where we wish to move it
+						net.WriteInt( v.ChangeOrder.target, 16 )
+						net.WriteInt( v.ChangeOrder.dir, 3 )
+						order_was_changed = true
 					else
 						net.WriteInt( 0, 16 ) -- Don't change order
 					end
@@ -280,6 +294,11 @@ if (SERVER) then
 				end
 			end
 		EGP.umsg.End()
+
+		-- Change order now
+		if order_was_changed then
+			EGP:PerformReorder( Ent )
+		end
 
 		EGP:SendQueueItem( ply )
 	end
@@ -305,7 +324,7 @@ if (SERVER) then
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 20
 			end
-			
+
 			for i=1,#Ent.RenderTable do
 				E2.prf = E2.prf + 0.3
 				if Ent.RenderTable[i].index == Data[1] then
@@ -319,7 +338,7 @@ if (SERVER) then
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 20
 			end
-			
+
 			// Remove all queued actions for this screen
 			local queue = self.Queue[E2.player] or {}
 			local i = 1
@@ -331,7 +350,7 @@ if (SERVER) then
 					i = i + 1
 				end
 			end
-			
+
 			Ent.RenderTable = {}
 
 			self:AddQueue( Ent, E2.player, ClearScreen, "ClearScreen" )
@@ -365,6 +384,9 @@ if (SERVER) then
 		elseif (Action == "MoveTopLeft") then
 			local Data = {...}
 			self:AddQueue( Ent, E2.player, MoveTopLeft, "MoveTopLeft", Data[1] )
+		elseif (Action == "EditFiltering") then
+			local Data = {...}
+			self:AddQueue( Ent, E2.player, EditFiltering, "EditFiltering", Data[1] )
 		end
 	end
 else -- SERVER/CLIENT
@@ -443,7 +465,13 @@ else -- SERVER/CLIENT
 
 				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
 			end
+		elseif (Action == "EditFiltering") then
+			if Ent.GPU then -- Only Screens use GPULib
+				Ent.GPU.texture_filtering = net.ReadUInt(2) or TEXFILTER.ANISOTROPIC
+			end
 		elseif (Action == "ReceiveObjects") then
+			local order_was_changed = false
+
 			for i=1,net.ReadUInt(16) do
 				local index = net.ReadInt(16)
 				if (index == 0) then break end -- In case the umsg had to abort early
@@ -467,10 +495,10 @@ else -- SERVER/CLIENT
 				else
 
 					-- Change Order
-					local ChangeOrder_From = net.ReadInt(16)
-					local ChangeOrder_To
-					if (ChangeOrder_From != 0) then
-						ChangeOrder_To = net.ReadInt(16)
+					local ChangeOrder_To = net.ReadInt(16)
+					local ChangeOrder_Dir
+					if ChangeOrder_To ~= 0 then
+						ChangeOrder_Dir = net.ReadInt(3)
 					end
 
 					local current_obj
@@ -487,7 +515,7 @@ else -- SERVER/CLIENT
 
 							-- For EGP HUD
 							if (Obj.res) then Obj.res = nil end
-							
+
 							current_obj = Obj
 						else -- Edit
 							self:EditObject( v, v:Receive() )
@@ -499,7 +527,7 @@ else -- SERVER/CLIENT
 
 							-- For EGP HUD
 							if (v.res) then v.res = nil end
-							
+
 							current_obj = v
 						end
 					else -- Object does not exist. Create new
@@ -508,23 +536,22 @@ else -- SERVER/CLIENT
 						Obj.index = index
 						if (Obj.OnCreate) then Obj:OnCreate() end
 						Ent.RenderTable[#Ent.RenderTable+1] = Obj--table.insert( Ent.RenderTable, Obj )
-						
+
 						current_obj = Obj
 					end
 
 					-- Change Order (later)
-					if (ChangeOrder_From and ChangeOrder_To) then
-						current_obj.ChangeOrder = {ChangeOrder_From,ChangeOrder_To}
+					if ChangeOrder_To ~= 0 then
+						order_was_changed = true
+						current_obj.ChangeOrder = {target=ChangeOrder_To,dir=ChangeOrder_Dir}
 					end
 				end
 			end
-			
-			for i=1,#Ent.RenderTable do -- Change order now
-				local obj = Ent.RenderTable[i]
-				if obj.ChangeOrder then
-					self:SetOrder( Ent, obj.ChangeOrder[1], obj.ChangeOrder[2] )
-					obj.ChangeOrder = nil
-				end
+
+
+			-- Change order now
+			if order_was_changed then
+				self:PerformReorder( Ent )
 			end
 
 			Ent:EGP_Update()
@@ -610,12 +637,13 @@ if (SERVER) then
 
 					DataToSend[#DataToSend+1] = { ID = obj.ID, index = obj.index, Settings = obj:DataStreamInfo() }
 				end
-				
+
 				timer.Simple( k, function() -- send 1 second apart
 					net.Start("EGP_Request_Transmit")
 						net.WriteTable({
 							Ent = v,
 							Objects = DataToSend,
+							Filtering = v.GPU_texture_filtering,
 							IsLastScreen = (k == #targets) and #targets or nil -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
 						})
 					net.Send(ply)
@@ -647,9 +675,12 @@ else
 	function EGP:ReceiveDataStream( decoded )
 		local Ent = decoded.Ent
 		local Objects = decoded.Objects
-		
+
 		if (self:ValidEGP( Ent )) then
 			Ent.RenderTable = {}
+			if Ent.GPU then -- Only Screens use GPULib
+				Ent.GPU.texture_filtering = decoded.Filtering or TEXFILTER.ANISOTROPIC
+			end
 			for _,v in pairs( Objects ) do
 				local Obj = self:GetObjectByID(v.ID)
 				self:EditObject( Obj, v.Settings )
@@ -662,7 +693,7 @@ else
 			end
 			Ent:EGP_Update()
 		end
-		
+
 		if decoded.IsLastScreen then
 			LocalPlayer():ChatPrint("[EGP] Received EGP object reload. " .. decoded.IsLastScreen .. " screens' objects were reloaded.")
 		end

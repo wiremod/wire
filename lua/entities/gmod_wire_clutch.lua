@@ -40,7 +40,7 @@ end
 ---------------------------------------------------------]]
 
 function ENT:ClutchExists( Ent1, Ent2 )
-	for k, v in pairs( self.clutch_ballsockets ) do
+	for k, _ in pairs( self.clutch_ballsockets ) do
 		if  ( Ent1 == k.Ent1 and Ent2 == k.Ent2 ) or
 			( Ent1 == k.Ent2 and Ent2 == k.Ent1 ) then
 			return true
@@ -54,7 +54,7 @@ end
 -- Returns an array with each entry as a table containing Ent1, Ent2
 function ENT:GetConstrainedPairs()
 	local ConstrainedPairs = {}
-	for k, v in pairs( self.clutch_ballsockets ) do
+	for k, _ in pairs( self.clutch_ballsockets ) do
 		if IsValid( k ) then
 			table.insert( ConstrainedPairs, {Ent1 = k.Ent1, Ent2 = k.Ent2} )
 		else
@@ -116,12 +116,12 @@ function ENT:SetClutchFriction( const, friction )
 		local Ent2 = const.Ent2
 
 		const:Remove()
-		
+
 		local newconst = NewBallSocket( Ent1, Ent2, friction )
 		if newconst then
 			self.clutch_ballsockets[newconst] = true
 		end
-		
+
 	else
 		print("Wire Clutch: Attempted to set friction on invalid constraint")
 	end
@@ -131,13 +131,13 @@ end
 
 
 function ENT:OnRemove()
-	
+
 	for k, v in pairs( self.clutch_ballsockets ) do
-		
+
 		self:RemoveClutch( k )
-		
+
 	end
-	
+
 end
 
 
@@ -174,8 +174,8 @@ function ENT:UpdateFriction()
 	-- Update all registered ball socket constraints
 	local numconstraints = 0	-- Used to calculate the delay between inputs
 
-	for k, v in pairs( clutch_ballsockets ) do
-		if !IsValid( k ) then
+	for k, _ in pairs( clutch_ballsockets ) do
+		if not IsValid( k ) then
 			self:RemoveClutch( k )
 
 		else
@@ -239,7 +239,7 @@ end
    Linked entities are stored and recalled by their EntIndexes
 ---------------------------------------------------------]]
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 	info.constrained_pairs = {}
 
 	for k, v in pairs( self:GetConstrainedPairs() ) do
@@ -252,9 +252,10 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	for k, v in pairs( info.constrained_pairs ) do
+	local Ent1, Ent2
+	for _, v in pairs( info.constrained_pairs ) do
 		Ent1 = GetEntByID(v.Ent1)
 		Ent2 = GetEntByID(v.Ent2, game.GetWorld())
 

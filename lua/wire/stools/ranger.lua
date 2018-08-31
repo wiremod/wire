@@ -4,7 +4,6 @@ WireToolSetup.open( "ranger", "Ranger", "gmod_wire_ranger", nil, "Rangers" )
 if CLIENT then
 	language.Add( "Tool.wire_ranger.name", "Ranger Tool (Wire)" )
 	language.Add( "Tool.wire_ranger.desc", "Spawns a ranger for use with the wire system." )
-	language.Add( "Tool.wire_ranger.0", "Primary: Create/Update Ranger" )
 	language.Add( "Tool.wire_ranger.range", "Range:" )
 	language.Add( "Tool.wire_ranger.default_zero", "Default to zero" )
 	language.Add( "Tool.wire_ranger.show_beam", "Show Beam" )
@@ -21,12 +20,13 @@ if CLIENT then
 	language.Add( "Tool.wire_ranger.out_eid", "Output Entity+EntID" )
 	language.Add( "Tool.wire_ranger.out_hnrm", "Output HitNormal" )
 	language.Add( "Tool.wire_ranger.hires", "High Resolution")
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber("range"), self:GetClientNumber("default_zero")~=0, self:GetClientNumber("show_beam")~=0, self:GetClientNumber("ignore_world")~=0,
 			self:GetClientNumber("trace_water")~=0, self:GetClientNumber("out_dist")~=0, self:GetClientNumber("out_pos")~=0, self:GetClientNumber("out_vel")~=0,
 			self:GetClientNumber("out_ang")~=0, self:GetClientNumber("out_col")~=0, self:GetClientNumber("out_val")~=0, self:GetClientNumber("out_sid")~=0,

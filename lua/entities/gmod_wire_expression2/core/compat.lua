@@ -28,18 +28,24 @@ end
 
 __e2setcost(30) -- temporary
 
+local clamp = WireLib.clampForce
+
 e2function void applyForce(vector force)
+	force = clamp(force)
 	local phys = self.entity:GetPhysicsObject()
 	phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
 end
 
 e2function void applyOffsetForce(vector force, vector position)
+	force 		= clamp(force)
+	position 	= clamp(position)
 	local phys = self.entity:GetPhysicsObject()
 	phys:ApplyForceOffset(Vector(force[1],force[2],force[3]), Vector(position[1],position[2],position[3]))
 end
 
 e2function void applyAngForce(angle angForce)
 	if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
+	angForce = clamp(angForce)
 
 	local ent = self.entity
 	local phys = ent:GetPhysicsObject()
@@ -73,6 +79,7 @@ end
 
 e2function void applyTorque(vector torque)
 	if torque[1] == 0 and torque[2] == 0 and torque[3] == 0 then return end
+	torque = clamp(torque)
 
 	local phys = self.entity:GetPhysicsObject()
 
@@ -92,6 +99,9 @@ e2function void applyTorque(vector torque)
 	off = off:GetNormal() * torqueamount * 0.5
 
 	local dir = ( tq:Cross(off) ):GetNormal()
+
+	dir = clamp(dir)
+	off = clamp(off)
 
 	phys:ApplyForceOffset( dir, off )
 	phys:ApplyForceOffset( dir * -1, off * -1 )

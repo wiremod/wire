@@ -2,6 +2,8 @@ AddCSLuaFile('cl_init.lua')
 AddCSLuaFile('shared.lua')
 include('shared.lua')
 
+DEFINE_BASECLASS("base_wire_entity")
+
 -- This makes E2s not save using garry's workshop save
 -- Until someone can find the cause of the crashes, leave this in here
 local old = gmsave.ShouldSaveEntity
@@ -10,22 +12,33 @@ function gmsave.ShouldSaveEntity( ent, ... )
 	return old( ent, ... )
 end
 
-local wire_expression2_unlimited = GetConVar("wire_expression2_unlimited")
-local wire_expression2_quotasoft = GetConVar("wire_expression2_quotasoft")
-local wire_expression2_quotahard = GetConVar("wire_expression2_quotahard")
-local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
+e2_softquota = nil
+e2_hardquota = nil
+e2_tickquota = nil
 
-timer.Create("e2quota", 1, 0, function()
-	if wire_expression2_unlimited:GetBool() then
-		e2_softquota = 1000000
-		e2_hardquota = 1000000
-		e2_tickquota = 100000
-	else
-		e2_softquota = wire_expression2_quotasoft:GetInt()
-		e2_hardquota = wire_expression2_quotahard:GetInt()
-		e2_tickquota = wire_expression2_quotatick:GetInt()
+do
+	local wire_expression2_unlimited = GetConVar("wire_expression2_unlimited")
+	local wire_expression2_quotasoft = GetConVar("wire_expression2_quotasoft")
+	local wire_expression2_quotahard = GetConVar("wire_expression2_quotahard")
+	local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
+
+	local function updateQuotas()
+		if wire_expression2_unlimited:GetBool() then
+			e2_softquota = 1000000
+			e2_hardquota = 1000000
+			e2_tickquota = 100000
+		else
+			e2_softquota = wire_expression2_quotasoft:GetInt()
+			e2_hardquota = wire_expression2_quotahard:GetInt()
+			e2_tickquota = wire_expression2_quotatick:GetInt()
+		end
 	end
-end)
+	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
+	cvars.AddChangeCallback("wire_expression2_quotasoft", updateQuotas)
+	cvars.AddChangeCallback("wire_expression2_quotahard", updateQuotas)
+	cvars.AddChangeCallback("wire_expression2_quotatick", updateQuotas)
+	updateQuotas()
+end
 
 local function copytype(var)
 	return istable(var) and table.Copy(var) or var
@@ -83,7 +96,7 @@ function ENT:UpdateOverlay(clear)
 								prfcount = self.context.prfcount,
 								timebench = self.context.timebench
 							})
-	end	
+	end
 end
 
 function ENT:Initialize()
@@ -163,7 +176,7 @@ function ENT:Execute()
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 	self:NextThink(CurTime()+0.030303)
 
 	if self.context and not self.error then
@@ -218,7 +231,7 @@ function ENT:CompileCode(buffer, files, filepath)
 		self.filepath = filepath
 	end
 
-	local status, directives, buffer = PreProcessor.Execute(buffer,nil,self)
+	local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer,nil,self)
 	if not status then self:Error(directives) return end
 	self.buffer = buffer
 	self.error = false
@@ -238,15 +251,18 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.persists = directives.persist
 	self.trigger = directives.trigger
 
-	local status, tokens = Tokenizer.Execute(self.buffer)
+	local status, tokens = E2Lib.Tokenizer.Execute(self.buffer)
 	if not status then self:Error(tokens) return end
 
-	local status, tree, dvars = Parser.Execute(tokens)
+	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
 	if not status then self:Error(tree) return end
 
 	if not self:PrepareIncludes(files) then return end
 
-	local status, script, inst = Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars, self.includes)
+	status,tree = E2Lib.Optimizer.Execute(tree)
+	if not status then self:Error(tree) return end
+
+	local status, script, inst = E2Lib.Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars, self.includes)
 	if not status then self:Error(script) return end
 
 	self.script = script
@@ -257,6 +273,10 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.globvars = inst.GlobalScope
 
 	self:ResetContext()
+end
+
+function ENT:GetGateName()
+	return self.name
 end
 
 function ENT:GetCode()
@@ -270,19 +290,25 @@ function ENT:PrepareIncludes(files)
 	self.includes = {}
 
 	for file, buffer in pairs(files) do
-		local status, directives, buffer = PreProcessor.Execute(buffer, self.directives)
+		local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer, self.directives)
 		if not status then
 			self:Error("(" .. file .. ")" .. directives)
 			return
 		end
 
-		local status, tokens = Tokenizer.Execute(buffer)
+		local status, tokens = E2Lib.Tokenizer.Execute(buffer)
 		if not status then
 			self:Error("(" .. file .. ")" .. tokens)
 			return
 		end
 
-		local status, tree, dvars = Parser.Execute(tokens)
+		local status, tree, dvars = E2Lib.Parser.Execute(tokens)
+		if not status then
+			self:Error("(" .. file .. ")" .. tree)
+			return
+		end
+
+		status, tree = E2Lib.Optimizer.Execute(tree)
 		if not status then
 			self:Error("(" .. file .. ")" .. tree)
 			return
@@ -320,11 +346,11 @@ function ENT:ResetContext()
 
 	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2])
 	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2])
-	
+
 	if self.extended then -- It was extended before the adjustment, recreate the wirelink
 		WireLib.CreateWirelinkOutput( self.player, self, {true} )
 	end
-	
+
 	self._original = string.Replace(string.Replace(self.original, "\"", string.char(163)), "\n", string.char(128))
 
 	self._name = self.name
@@ -363,7 +389,7 @@ function ENT:ResetContext()
 		end
 	end
 
-	for k, v in pairs(self.dvars) do
+	for k, _ in pairs(self.dvars) do
 		self.GlobalScope["$" .. k] = self.GlobalScope[k]
 	end
 
@@ -438,7 +464,7 @@ function ENT:Reset()
 	self.context.resetting = true
 
 	-- reset the chip in the next tick
-	timer.Simple(0, function() self.Setup(self, self.original, self.inc_files) end)
+	timer.Simple(0, function() if IsValid(self) then self:Setup(self.original, self.inc_files) end end)
 end
 
 function ENT:TriggerInput(key, value)
@@ -486,7 +512,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 		self.duped = false
 	end
 
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID, GetConstByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID, GetConstByID)
 end
 
 -- -------------------------------- Transfer ----------------------------------
@@ -509,11 +535,12 @@ hook.Add("EntityRemoved", "Wire_Expression2_Player_Disconnected", function(ent)
 	if (ret == 0 or (ret == 2 and not wire_expression2_ShouldFreezeChip(ent))) then
 		return
 	end
-	for k, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
+	for _, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
 		if (v.player == ent) then
 			v:SetOverlayText(v.name .. "\n(Owner disconnected.)")
+			local oldColor = v:GetColor()
 			v:SetColor(Color(255, 0, 0, v:GetColor().a))
-			v.disconnectPaused = { r, g, b, a }
+			v.disconnectPaused = oldColor
 			v.error = true
 		end
 	end
@@ -541,10 +568,11 @@ end)
 function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files, filepath)
 	if not player then player = game.GetWorld() end -- For Garry's Map Saver
 	if IsValid(player) and not player:CheckLimit("wire_expressions") then return false end
+	if not WireLib.CanModel(player, model) then return false end
 
 	local self = ents.Create("gmod_wire_expression2")
 	if not self:IsValid() then return false end
-	
+
 	if buffer then self.duped = true end
 
 	self:SetModel(model)
@@ -559,21 +587,21 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 		buffer = string.Replace(string.Replace(buffer, string.char(163), "\""), string.char(128), "\n")
 		self.buffer = buffer
 		self:SetOverlayText(name)
-		
+
 		self.inc_files = inc_files or {}
 
 		self.Inputs = WireLib.AdjustSpecialInputs(self, inputs[1], inputs[2])
 		self.Outputs = WireLib.AdjustSpecialOutputs(self, outputs[1], outputs[2])
 
 		self.dupevars = vars
-		
+
 		self.filepath = filepath
 	else
 		self.buffer = "error(\"You tried to dupe an E2 with compile errors!\")\n#Unfortunately, no code can be saved when duping an E2 with compile errors.\n#Fix your errors and try again."
-		
+
 		self.inc_files = {}
 		self.dupevars = {}
-		
+
 		self.name = "generic"
 	end
 
@@ -589,46 +617,51 @@ duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Po
 -- Emergency shutdown (beta testing so far)
 --------------------------------------------------
 local average_ram = 0
-local enable = CreateConVar( 
-	"wire_expression2_ram_emergency_shutdown_enable", "0", {FCVAR_ARCHIVE}, 
-	"Enable/disable the emergency shutdown feature. Requires map reload after change." )
+local enable = CreateConVar(
+	"wire_expression2_ram_emergency_shutdown_enable", "0", {FCVAR_ARCHIVE},
+	"Enable/disable the emergency shutdown feature." )
 
-local average_halt_multiplier = CreateConVar( 
-	"wire_expression2_ram_emergency_shutdown_spike", "4", {FCVAR_ARCHIVE}, 
+local average_halt_multiplier = CreateConVar(
+	"wire_expression2_ram_emergency_shutdown_spike", "4", {FCVAR_ARCHIVE},
 	"if (current_ram > average_ram * spike_convar) then shut down all E2s" )
 
-local halt_max_amount = CreateConVar( 
-	"wire_expression2_ram_emergency_shutdown_total", "512", {FCVAR_ARCHIVE}, 
+local halt_max_amount = CreateConVar(
+	"wire_expression2_ram_emergency_shutdown_total", "512", {FCVAR_ARCHIVE},
 	"This is in kilobytes, if (current_ram > total_convar) then shut down all E2s" )
 
-if enable:GetBool() then
+local function enableEmergencyShutdown()
 	hook.Remove( "Think", "wire_expression2_emergency_shutdown" ) -- remove old hook
-	hook.Add( "Think", "wire_expression2_emergency_shutdown", function()
-		local current_ram = collectgarbage("count")
-		if average_ram == 0 then -- set up initial value
-			average_ram = current_ram
-		else
-			-- calculate average
-			average_ram = average_ram * 0.95 + current_ram * 0.05
+	if enable:GetBool() then
+		hook.Add( "Think", "wire_expression2_emergency_shutdown", function()
+			local current_ram = collectgarbage("count")
+			if average_ram == 0 then -- set up initial value
+				average_ram = current_ram
+			else
+				-- calculate average
+				average_ram = average_ram * 0.95 + current_ram * 0.05
 
-			if current_ram > average_ram * average_halt_multiplier:GetFloat() or -- if the current ram spikes
-				current_ram > halt_max_amount:GetInt() * 1000 then -- or if the current ram goes over a set limit
+				if current_ram > average_ram * average_halt_multiplier:GetFloat() or -- if the current ram spikes
+					current_ram > halt_max_amount:GetInt() * 1000 then -- or if the current ram goes over a set limit
 
-				local e2s = ents.FindByClass("gmod_wire_expression2") -- find all E2s and halt them
-				for k,v in pairs( e2s ) do
-					if not v.error then
-						-- immediately clear any memory the E2 may be holding
-						v:PCallHook("destruct")
-						v:ResetContext()
-						v:PCallHook("construct")
+					local e2s = ents.FindByClass("gmod_wire_expression2") -- find all E2s and halt them
+					for _,v in pairs( e2s ) do
+						if not v.error then
+							-- immediately clear any memory the E2 may be holding
+							v:PCallHook("destruct")
+							v:ResetContext()
+							v:PCallHook("construct")
 
-						-- Notify the user why we shut down
-						v:Error( "High server RAM usage detected! Emergency E2 shutdown!" )
+							-- Notify the user why we shut down
+							v:Error( "High server RAM usage detected! Emergency E2 shutdown!" )
+						end
 					end
+					collectgarbage() -- collect the garbage now
+					average_ram = collectgarbage("count") -- reset average ram when we're done
 				end
-				collectgarbage() -- collect the garbage now
-				average_ram = collectgarbage("count") -- reset average ram when we're done
 			end
-		end
-	end)
+		end)
+	end
 end
+
+enableEmergencyShutdown()
+cvars.AddChangeCallback( "wire_expression2_ram_emergency_shutdown_enable", enableEmergencyShutdown )

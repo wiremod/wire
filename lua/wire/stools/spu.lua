@@ -4,8 +4,11 @@ WireToolSetup.open( "spu", "SPU", "gmod_wire_spu", nil, "SPUs" )
 if CLIENT then
   language.Add("Tool.wire_spu.name", "SPU Tool (Wire)")
   language.Add("Tool.wire_spu.desc", "Spawns a sound processing unit")
-  language.Add("Tool.wire_spu.0",    "Primary: create/reflash ZSPU, Secondary: open editor")
   language.Add("ToolWirespu_Model",  "Model:" )
+  TOOL.Information = {
+    { name = "left", text = "Create/reflash " .. TOOL.Name },
+    { name = "right", text = "Open editor" },
+  }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 7 )
@@ -56,8 +59,8 @@ if SERVER then
     self:LeftClick_Update(trace)
     return ent
   end
-  
-  
+
+
   function TOOL:RightClick(trace)
     net.Start("ZSPU_OpenEditor") net.Send(self:GetOwner())
     return true
