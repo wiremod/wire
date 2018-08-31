@@ -364,7 +364,6 @@ function ENT:Initialize()
 	self.Players = {}
 	self.Vehicles = {}
 
-	self.NextSync = 0
 	self.NextGetContraption = 0
 	self.NextUpdateOutputs = 0
 
@@ -462,11 +461,7 @@ end
 
 util.AddNetworkString( "wire_camera_controller_sync" )
 function ENT:SyncPositions( ply )
-	if CurTime() < self.NextSync then return end
 	if not IsValid(ply) then ply = self.Players end
-
-	self.NextSync = CurTime() + 0.05
-
 	net.Start( "wire_camera_controller_sync" )
 		net.WriteEntity( self )
 		SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll )
@@ -615,8 +610,12 @@ end
 function ENT:Think()
 	BaseClass.Think(self)
 
-	if self.NeedsSync then
-		self.NeedsSync = nil
+	if self.NeedsSyncSettings then
+		self.NeedsSyncSettings = nil
+		self:SyncSettings()
+	end
+	if self.NeedsSyncPositions then
+		self.NeedsSyncPositions = nil
 		self:SyncPositions()
 	end
 
@@ -862,8 +861,64 @@ function ENT:TriggerInput( name, value )
 		end
 
 		self:LocalizePositions(true)
-		self.NeedsSync = true
+		self.NeedsSyncPositions = true
 	end
+end
+
+--------------------------------------------------
+-- HiSpeed Access
+--------------------------------------------------
+
+local hispeed_ports = {
+	-- camera settings
+	[1] = "Activated",
+	[2] = "Parent",
+	[3] = "Zoom",
+	[4] = "FOV",
+	[5] = "FLIR",
+
+	-- camera position
+	[6] = "X",
+	[7] = "Y",
+	[8] = "Z",
+	[9] = "Distance",
+
+	-- camera angle (direction omitted as angle is the same thing)
+	[10] = "Pitch",
+	[11] = "Yaw",
+	[12] = "Roll",
+	[13] = "UnRoll",
+
+	-- controller settings
+	[14] = "ParentLocal",
+	[15] = "AutoMove",
+	[16] = "FreeMove",
+	[17] = "LocalMove",
+	[18] = "AllowZoom",
+	[19] = "AutoUnclip",
+	[20] = "AutoUnclip_IgnoreWater",
+	[21] = "DrawPlayer",
+	[22] = "DrawParent"
+}
+
+function ENT:WriteCell(address, value)
+	if not hispeed_ports[address] then return false end
+
+	local key = hispeed_ports[address]
+	if address < 14 then
+		if address == 2 then value = Entity( value ) end -- special case: parent entity by entid
+		self:TriggerInput(key, value)
+		return true
+	else
+		value = tobool( value ) 
+		if self[key] ~= value then
+			self[key] = value
+			self.NeedsSyncSettings = true
+			return true
+		end
+	end
+
+	return false
 end
 
 --------------------------------------------------
