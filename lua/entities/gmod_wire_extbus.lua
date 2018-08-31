@@ -42,6 +42,7 @@ function ENT:Think()
 end
 
 function ENT:ReadCell(Address)
+  Address = math.floor(Address)
   if (Address >= 0) and (Address < self.ControlDataSize) then
     if Address < 16 then
       if Address % 2 == 0 then
@@ -117,6 +118,7 @@ function ENT:GetDeviceInfo(deviceEnt)
 end
 
 function ENT:WriteCell(Address, Value)
+  Address = math.floor(Address)
   if (Address >= 0) and (Address < self.ControlDataSize) then
     -- [0..15] Address bus settings
     -- [16] Control data area size

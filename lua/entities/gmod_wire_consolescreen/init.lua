@@ -63,6 +63,7 @@ function ENT:SendPixel()
 end
 
 function ENT:ReadCell(Address)
+  Address = math.floor(Address)
   if Address < 0 then return nil end
   if Address >= 2048 then return nil end
   if Address == 2022 then return WireGPU_Monitors[self:GetModel()].RatioX end
@@ -71,6 +72,7 @@ function ENT:ReadCell(Address)
 end
 
 function ENT:WriteCell(Address, value)
+  Address = math.floor(Address)
   if Address < 0 then return false end
   if Address >= 2048 then return false end
   if Address < 2000 then -- text/attribute data

@@ -114,6 +114,7 @@ end
 -- Read cell from GPU memory
 --------------------------------------------------------------------------------
 function ENT:ReadCell(Address)
+  Address = math.floor(Address)
   -- Check if address is valid
   if not isValidAddress(Address) then
     self:Interrupt(15,Address)
@@ -136,6 +137,7 @@ end
 -- Write cell to GPU memory
 --------------------------------------------------------------------------------
 function ENT:WriteCell(Address, Value, Player)
+  Address = math.floor(Address)
   if (Address < 0) or (Address >= self.RAMSize) then
     return false
   else

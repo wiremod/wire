@@ -116,6 +116,7 @@ end
 -- Hi-speed support
 ------------------------------------------------------------
 function ENT:WriteCell( Address, Value, WriteToMe )
+	Address = math.floor(Address)
 	if (WriteToMe) then
 		self.Memory[Address or 1] = Value or 0
 		return true
@@ -134,6 +135,7 @@ end
 -- Hi-speed support
 ------------------------------------------------------------
 function ENT:ReadCell( Address )
+	Address = math.floor(Address)
 	return self.Memory[Address or 1] or 0
 end
 

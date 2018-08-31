@@ -26,6 +26,7 @@ end
 function ENT:ReadCell( Address )
 	-- 256 KiB limit
 	if Address < 0 or Address >= 262144 then return 0 end
+	Address = math.floor(Address)
 
 	local data = self.Memory[Address or 0] or 0
 	return isnumber(data) and data or 0
@@ -35,6 +36,7 @@ end
 function ENT:WriteCell( Address, value )
 	-- 256 KiB limit
 	if Address < 0 or Address >= 262144 then return false end
+  Address = math.floor(Address)
 
 	if self.AllowWrite then
 		self.Memory[Address] = value ~= 0 and value or nil

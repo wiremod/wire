@@ -107,10 +107,12 @@ function ENT:Initialize()
 end
 
 function ENT:ReadCell(Address)
+	Address = math.floor(Address)
 	return self.VM:ReadCell(Address)
 end
 
 function ENT:WriteCell(Address,Value)
+	Address = math.floor(Address)
 	return self.VM:WriteCell(Address,tonumber(Value) or 0)
 end
 

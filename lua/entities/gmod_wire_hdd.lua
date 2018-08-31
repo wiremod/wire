@@ -140,6 +140,7 @@ function ENT:MakeFloatTable(Table)
 end
 
 function ENT:ReadCell(Address)
+	Address = math.floor(Address)
 	--DriveID should be > 0, and less than  4 in MP
 	if ((self.DriveID < 0) || (!game.SinglePlayer() && (self.DriveID >= 4))) then
 		return nil
@@ -198,6 +199,7 @@ function ENT:ReadCell(Address)
 end
 
 function ENT:WriteCell(Address, value)
+	Address = math.floor(Address)
 	--DriveID should be > 0, and less than  4 in MP
 	if ((self.DriveID < 0) || (!game.SinglePlayer() && (self.DriveID >= 4))) then
 		return false

@@ -56,6 +56,7 @@ function ENT:Initialize()
 end
 
 function ENT:ReadCell(Address)
+	Address = math.floor(Address)
 	if (Address >= 0) && (Address < 512) then
 		if (self.Command[Address]) then
 			return self.Command[Address]
@@ -74,6 +75,7 @@ function ENT:ReadCell(Address)
 end
 
 function ENT:WriteCell(Address, value)
+	Address = math.floor(Address)
 	if (Address >= 0) && (Address < 512) then
 		self.Command[Address] = value
 		if (Address == 8) then
