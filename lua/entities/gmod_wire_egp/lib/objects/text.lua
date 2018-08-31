@@ -3,7 +3,7 @@ local Obj = EGP:NewObject( "Text" )
 Obj.h = nil
 Obj.w = nil
 Obj.text = ""
-Obj.fontid = 1
+Obj.font = "WireGPU_ConsoleFont"
 Obj.size = 18
 Obj.valign = 0
 Obj.halign = 0
@@ -17,10 +17,8 @@ local surface_SetFont
 local surface_GetTextSize
 local cam_PushModelMatrix
 local cam_PopModelMatrix
-local mat = Matrix()
-local matAng = Angle(0, 0, 0)
-local matTrans = Vector(0, 0, 0)
-local matScale = Vector(0, 0, 0)
+local mat
+local matAng
 
 if CLIENT then
 	surface_SetTextPos = surface.SetTextPos
@@ -35,28 +33,24 @@ if CLIENT then
 	cam_PushModelMatrix = cam.PushModelMatrix
 	cam_PopModelMatrix = cam.PopModelMatrix
 	mat = Matrix()
-	mat:Scale(Vector(1, 1, 1))
 	matAng = Angle(0, 0, 0)
-	matTrans = Vector(0, 0, 0)
 end
 
-Obj.Draw = function( self )
+function Obj:Draw(ent, drawMat)
 	if (self.text and #self.text>0) then
 		surface_SetTextColor( self.r, self.g, self.b, self.a )
 
-		if (!EGP.ValidFonts[self.fontid]) then self.fontid = 1 end
-		local font = "WireEGP_" .. self.size .. "_" .. self.fontid
+		local font = "WireEGP_" .. self.size .. "_" .. self.font
 		if (!EGP.ValidFonts_Lookup[font]) then
 			local fontTable =
 			{
-				font=EGP.ValidFonts[self.fontid],
+				font=self.font,
 				size = self.size,
 				weight = 800,
 				antialias = true,
 				additive = false
 			}
 			surface_CreateFont( font, fontTable )
-			EGP.ValidFonts[#EGP.ValidFonts+1]= font
 			EGP.ValidFonts_Lookup[font] = true
 		end
 		surface_SetFont( font )
@@ -87,14 +81,14 @@ Obj.Draw = function( self )
 				y = (h * ((self.valign%10)/2))
 			end
 
-			-- Thanks to Wizard for the base to this rotateable text code. I edited it a bit to properly support alignment
+			mat:Set(drawMat)
+
+			mat:Translate(Vector(self.x, self.y, 0))
+
 			matAng.y = -self.angle
-			mat:SetAngles(matAng)
-			matTrans.x = x
-			matTrans.y = y
-			matTrans:Rotate(matAng)
-			mat:SetTranslation(Vector(self.x,self.y,0)-matTrans)
-			surface_SetTextPos(0, 0)
+			mat:Rotate(matAng)
+
+			surface_SetTextPos(-x, -y)
 			cam_PushModelMatrix(mat)
 				surface_DrawText( self.text )
 			cam_PopModelMatrix()
@@ -105,7 +99,7 @@ Obj.Transmit = function( self, Ent, ply )
 	net.WriteInt( self.x, 16 )
 	net.WriteInt( self.y, 16 )
 	EGP:InsertQueue( Ent, ply, EGP._SetText, "SetText", self.index, self.text )
-	net.WriteUInt(self.fontid, 8)
+	net.WriteString(self.font)
 	net.WriteUInt(math.Clamp(self.size,0,256), 8)
 	net.WriteUInt(math.Clamp(self.valign,0,2), 2)
 	net.WriteUInt(math.Clamp(self.halign,0,2), 2)
@@ -117,7 +111,7 @@ Obj.Receive = function( self )
 	local tbl = {}
 	tbl.x = net.ReadInt(16)
 	tbl.y = net.ReadInt(16)
-	tbl.fontid = net.ReadUInt(8)
+	tbl.font = net.ReadString()
 	tbl.size = net.ReadUInt(8)
 	tbl.valign = net.ReadUInt(2)
 	tbl.halign = net.ReadUInt(2)
@@ -127,5 +121,5 @@ Obj.Receive = function( self )
 	return tbl
 end
 Obj.DataStreamInfo = function( self )
-	return { x = self.x, y = self.y, valign = self.valign, halign = self.halign, size = self.size, r = self.r, g = self.g, b = self.b, a = self.a, text = self.text, fontid = self.fontid, parent = self.parent, angle = self.angle }
+	return { x = self.x, y = self.y, valign = self.valign, halign = self.halign, size = self.size, r = self.r, g = self.g, b = self.b, a = self.a, text = self.text, font = self.font, parent = self.parent, angle = self.angle }
 end

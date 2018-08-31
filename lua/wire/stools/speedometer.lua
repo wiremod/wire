@@ -12,8 +12,8 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
 
 if SERVER then
-	function TOOL:GetConVars() 
-		return tobool(self:GetClientNumber("xyz_mode")), tobool(self:GetClientNumber("angvel")) 
+	function TOOL:GetConVars()
+		return tobool(self:GetClientNumber("xyz_mode")), tobool(self:GetClientNumber("angvel"))
 	end
 end
 

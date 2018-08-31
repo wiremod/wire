@@ -40,6 +40,13 @@ WireTextEditor.Modes.Default = { SyntaxColorLine = function(self, row) return { 
 
 local wire_expression2_autocomplete_controlstyle = CreateClientConVar( "wire_expression2_autocomplete_controlstyle", "0", true, false )
 
+local AC_STYLE_DEFAULT = 0 -- Default style - Tab/CTRL+Tab to choose item;\nEnter/Space to use;\nArrow keys to abort.
+local AC_STYLE_VISUALCSHARP = 1 -- Visual C# Style - Ctrl+Space to use the top match;\nArrow keys to choose item;\nTab/Enter/Space to use;\nCode validation hotkey (ctrl+space) moved to ctrl+b.
+local AC_STYLE_SCROLLER = 2 -- Scroller style - Mouse scroller to choose item;\nMiddle mouse to use.
+local AC_STYLE_SCROLLER_ENTER = 3 -- Scroller Style w/ Enter - Mouse scroller to choose item;\nEnter to use.
+local AC_STYLE_ECLIPSE = 4 -- Eclipse Style - Enter to use top match;\nTab to enter auto completion menu;\nArrow keys to choose item;\nEnter to use;\nSpace to abort.
+local AC_STYLE_ATOM = 5 -- Atom style - Tab/Enter to use, arrow keys to choose
+
 local EDITOR = {}
 
 function EDITOR:Init()
@@ -69,7 +76,7 @@ function EDITOR:Init()
 
 	self.TextEntry.OnLoseFocus = function (self) self.Parent:_OnLoseFocus() end
 	self.TextEntry.OnTextChanged = function (self) self.Parent:_OnTextChanged() end
-	self.TextEntry.OnKeyCodeTyped = function (self, code) self.Parent:_OnKeyCodeTyped(code) end
+	self.TextEntry.OnKeyCodeTyped = function (self, code) return self.Parent:_OnKeyCodeTyped(code) end
 
 	self.TextEntry.Parent = self
 
@@ -152,25 +159,16 @@ function EDITOR:OpenContextMenu()
 
 	if self:HasSelection() then
 		menu:AddOption("Cut", function()
-			if self:HasSelection() then
-				self.clipboard = self:GetSelection()
-				self.clipboard = string_gsub(self.clipboard, "\n", "\r\n")
-				SetClipboardText(self.clipboard)
-				self:SetSelection()
-			end
+			self:Cut()
 		end)
 		menu:AddOption("Copy", function()
-			if self:HasSelection() then
-				self.clipboard = self:GetSelection()
-				self.clipboard = string_gsub(self.clipboard, "\n", "\r\n")
-				SetClipboardText(self.clipboard)
-			end
+			self:Copy()
 		end)
 	end
 
 	menu:AddOption("Paste", function()
-		if self.clipboard then
-			self:SetSelection(self.clipboard)
+		if self.CurrentMode.clipboard then
+			self:SetSelection(self.CurrentMode.clipboard)
 		else
 			self:SetSelection()
 		end
@@ -228,7 +226,7 @@ function EDITOR:OpenContextMenu()
 		for i=1,#self.Rows do
 			local colors = self:SyntaxColorLine(i)
 
-			for k,v in pairs( colors ) do
+			for _, v in pairs( colors ) do
 				local color = v[2][1]
 
 				if (prev_colors and prev_colors == color) or string_Trim(v[1]) == "" then
@@ -251,7 +249,7 @@ function EDITOR:OpenContextMenu()
 
 		str = str .. "[/color][/font][/code]"
 
-		self.clipboard = str
+		self.CurrentMode.clipboard = str
 		SetClipboardText( str )
 	end)
 
@@ -407,7 +405,7 @@ function EDITOR:PaintLine(row)
 	draw_SimpleText(tostring(row), self.CurrentFont, self.LineNumberWidth + 2, (row - self.Scroll[1]) * height, Color(128, 128, 128, 255), TEXT_ALIGN_RIGHT)
 
 	local offset = -self.Scroll[2] + 1
-	for i,cell in ipairs(self.PaintRows[row]) do
+	for _, cell in ipairs(self.PaintRows[row]) do
 		if offset < 0 then
 			if cell[1]:len() > -offset then
 				local line = cell[1]:sub(1-offset)
@@ -466,125 +464,139 @@ function EDITOR:HighlightArea( area, r,g,b,a )
 end
 function EDITOR:ClearHighlightedAreas() self.HighlightedAreas = nil end
 
-function EDITOR:PaintTextOverlay()
+do
+	-- This will convert forward text position to reverse text position and vice versa
+	local function fixPos(row, pos, downward)
+		return downward and pos or #row - pos + 1
+	end
 
-	if self.TextEntry:HasFocus() and self.Caret[2] - self.Scroll[2] >= 0 then
-		local width, height = self.FontWidth, self.FontHeight
+	local function matchBalanced(self, startPos, opening, closing, downward)
+		local searchStr = "[" .. string.PatternSafe(opening .. closing) .. "]"
+		local balance = 0
 
-		if (RealTime() - self.Blink) % 0.8 < 0.4 then
-			surface_SetDrawColor(240, 240, 240, 255)
-			surface_DrawRect((self.Caret[2] - self.Scroll[2]) * width + self.LineNumberWidth + 6, (self.Caret[1] - self.Scroll[1]) * height, 1, height)
-		end
+		local startIndex = startPos[1]
+		local endIndex = downward and #self.Rows or 1
+		local skip = downward and 1 or -1
 
-		-- Area highlighting
-		if self.HighlightedAreas then
-			local xofs = self.LineNumberWidth + 6
-			for key, data in pairs( self.HighlightedAreas ) do
-				local area, r,g,b,a = data[1], data[2], data[3], data[4], data[5]
-				surface_SetDrawColor( r,g,b,a )
-				local start, stop = self:MakeSelection( area )
+		for row = startIndex, endIndex, skip do
+			local rowStr = downward and self.Rows[row] or self.Rows[row]:reverse()
+			local pos = row == startPos[1] and fixPos(rowStr, startPos[2], downward) or 1
 
-				if start[1] == stop[1] then -- On the same line
-					surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (start[1]-self.Scroll[1]) * height, (stop[2]-start[2]) * width, height )
-				elseif start[1] < stop[1] then -- Ends below start
-					for i=start[1],stop[1] do
-						if i == start[1] then
-							surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (i-self.Scroll[1]) * height, (#self.Rows[start[1]]-start[2]) * width, height )
-						elseif i == stop[1] then
-							surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, (#self.Rows[stop[1]]-stop[2]) * width, height )
+			repeat
+				local foundPos = rowStr:find(searchStr, pos)
+
+				if foundPos then
+					local editorPos = {row, fixPos(rowStr, foundPos, downward)}
+					local token = self:GetTokenAtPosition(editorPos)
+
+					if token ~= "comment" and token ~= "string" then
+						local char = rowStr[foundPos]
+
+						if char == opening then
+							balance = balance + 1
 						else
-							surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, #self.Rows[i] * width, height )
+							balance = balance - 1
+						end
+
+						if balance == 0 then
+							return editorPos
+						end
+					end
+
+					pos = foundPos + 1
+				end
+			until not foundPos
+		end
+	end
+
+	-- brace = {oppositeBrace, searchDown}
+	local bracketSearch = {
+		["{"] = {"}", true},
+		["}"] = {"{", false},
+
+		["["] = {"]", true},
+		["]"] = {"[", false},
+
+		["("] = {")", true},
+		[")"] = {"(", false},
+	}
+
+	function EDITOR:PaintTextOverlay()
+
+		if self.TextEntry:HasFocus() and self.Caret[2] - self.Scroll[2] >= 0 then
+			local width, height = self.FontWidth, self.FontHeight
+
+			if (RealTime() - self.Blink) % 0.8 < 0.4 then
+				surface_SetDrawColor(240, 240, 240, 255)
+				surface_DrawRect((self.Caret[2] - self.Scroll[2]) * width + self.LineNumberWidth + 6, (self.Caret[1] - self.Scroll[1]) * height, 1, height)
+			end
+
+			-- Area highlighting
+			if self.HighlightedAreas then
+				local xofs = self.LineNumberWidth + 6
+				for _, data in pairs( self.HighlightedAreas ) do
+					local area, r,g,b,a = data[1], data[2], data[3], data[4], data[5]
+					surface_SetDrawColor( r,g,b,a )
+					local start, stop = self:MakeSelection( area )
+
+					if start[1] == stop[1] then -- On the same line
+						surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (start[1]-self.Scroll[1]) * height, (stop[2]-start[2]) * width, height )
+					elseif start[1] < stop[1] then -- Ends below start
+						for i=start[1],stop[1] do
+							if i == start[1] then
+								surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (i-self.Scroll[1]) * height, (#self.Rows[start[1]]-start[2]) * width, height )
+							elseif i == stop[1] then
+								surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, (#self.Rows[stop[1]]-stop[2]) * width, height )
+							else
+								surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, #self.Rows[i] * width, height )
+							end
 						end
 					end
 				end
 			end
-		end
 
-		-- Bracket highlighting by: {Jeremydeath}
-		local WindowText = self:GetValue()
-		local LinePos = table_concat(self.Rows, "\n", 1, self.Caret[1]-1):len()
-		local CaretPos = LinePos+self.Caret[2]+1
+			-- Bracket matching
 
-		local BracketPairs = {
-			["{"] = "}",
-			["}"] = "{",
-			["["] = "]",
-			["]"] = "[",
-			["("] = ")",
-			[")"] = "("
-		}
+			-- If we're in a comment don't do anything
+			local curPos = self.Caret
+			local token = self:GetTokenAtPosition(curPos)
+			if token == "comment" or token == "string" then
+				return
+			end
 
-		local CaretChars = WindowText:sub(CaretPos-1, CaretPos)
-		local BrackSt, BrackEnd = CaretChars:find("[%(%){}%[%]]")
+			local startPos, endPos, startingChar
+			local rowStr = self.Rows[curPos[1]]
 
-		local Bracket = false
-		if BrackSt and BrackSt ~= 0 then
-			Bracket = CaretChars:sub(BrackSt or 0,BrackEnd or 0)
-		end
-		if Bracket and BracketPairs[Bracket] then
-			local End = 0
-			local EndX = 1
-			local EndLine = 1
-			local StartX = 1
+			-- Check character left of cursor if we're not at the start of the line
+			if curPos[2] > 0 then
+				startingChar = rowStr[curPos[2] - 1]
 
-			if Bracket == "(" or Bracket == "[" or Bracket == "{" then
-				BrackSt,End = WindowText:find("%b"..Bracket..BracketPairs[Bracket], CaretPos-1)
+				if bracketSearch[startingChar] then
+					local searchInfo = bracketSearch[startingChar]
 
-				if BrackSt and End then
-					local OffsetSt = 1
-
-					local BracketLines = string_Explode("\n",WindowText:sub(BrackSt, End))
-
-					EndLine = self.Caret[1]+#BracketLines-1
-
-					EndX = End-LinePos-2
-					if #BracketLines>1 then
-						EndX = BracketLines[#BracketLines]:len()-1
-					end
-
-					if Bracket == "{" then
-						OffsetSt = 0
-					end
-
-					if (CaretPos - BrackSt) >= 0 and (CaretPos - BrackSt) <= 1 then
-						local width, height = self.FontWidth, self.FontHeight
-						local StartX = BrackSt - LinePos - 2
-						surface_SetDrawColor(255, 0, 0, 50)
-						surface_DrawRect((StartX-(self.Scroll[2]-1)) * width + self.LineNumberWidth + self.FontWidth + OffsetSt - 1, (self.Caret[1] - self.Scroll[1]) * height+1, width-2, height-2)
-						surface_DrawRect((EndX-(self.Scroll[2]-1)) * width + self.LineNumberWidth + 6, (EndLine - self.Scroll[1]) * height+1, width-2, height-2)
-					end
+					startPos = {curPos[1], curPos[2] - 1}
+					endPos = matchBalanced(self, startPos, startingChar, searchInfo[1], searchInfo[2])
 				end
-			elseif Bracket == ")" or Bracket == "]" or Bracket == "}" then
-				BrackSt,End = WindowText:reverse():find("%b"..Bracket..BracketPairs[Bracket], -CaretPos)
-				if BrackSt and End then
-					local len = WindowText:len()
-					End = len-End+1
-					BrackSt = len-BrackSt+1
-					local BracketLines = string_Explode("\n",WindowText:sub(End, BrackSt))
+			end
 
-					EndLine = self.Caret[1]-#BracketLines+1
+			-- Check character right of cursor if we're not at the end of the line
+			if not endPos and curPos[2] <= #rowStr then
+				startingChar = rowStr[curPos[2]]
 
-					local OffsetSt = -1
+				if bracketSearch[startingChar] then
+					local searchInfo = bracketSearch[startingChar]
 
-					EndX = End-LinePos-2
-					if #BracketLines>1 then
-						local PrevText = WindowText:sub(1, End):reverse()
-
-						EndX = (PrevText:find("\n",1,true) or 2)-2
-					end
-
-					if Bracket ~= "}" then
-						OffsetSt = 0
-					end
-
-					if (CaretPos - BrackSt) >= 0 and (CaretPos - BrackSt) <= 1 then
-						local width, height = self.FontWidth, self.FontHeight
-						local StartX = BrackSt - LinePos - 2
-						surface_SetDrawColor(255, 0, 0, 50)
-						surface_DrawRect((StartX-(self.Scroll[2]-1)) * width + self.LineNumberWidth + self.FontWidth - 2, (self.Caret[1] - self.Scroll[1]) * height+1, width-2, height-2)
-						surface_DrawRect((EndX-(self.Scroll[2]-1)) * width + self.LineNumberWidth + 8 + OffsetSt, (EndLine - self.Scroll[1]) * height+1, width-2, height-2)
-					end
+					startPos = curPos
+					endPos = matchBalanced(self, startPos, startingChar, searchInfo[1], searchInfo[2])
 				end
+			end
+
+			if startPos and endPos then
+				surface_SetDrawColor(255, 0, 0, 50)
+
+				local xofs = self.LineNumberWidth + 6
+				surface_DrawRect((startPos[2] - self.Scroll[2]) * width + xofs, (startPos[1] - self.Scroll[1]) * height, width, height)
+				surface_DrawRect((endPos[2] - self.Scroll[2]) * width + xofs, (endPos[1] - self.Scroll[1]) * height, width, height)
 			end
 		end
 	end
@@ -749,7 +761,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 		self.Rows[start[1]] = string_sub(self.Rows[start[1]], 1, start[2] - 1) .. string_sub(self.Rows[stop[1]], stop[2])
 		self.PaintRows[start[1]] = false
 
-		for i=start[1]+1,stop[1] do
+		for _=start[1]+1,stop[1] do
 			table_remove(self.Rows, start[1] + 1)
 			table_remove(self.PaintRows, start[1] + 1)
 			self.PaintRows = {} -- TODO: fix for cache errors
@@ -795,7 +807,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 		self.PaintRows = {} -- TODO: fix for cache errors
 	end
 
-	local stop = { start[1] + #rows - 1, #(self.Rows[start[1] + #rows - 1]) + 1 }
+	stop = { start[1] + #rows - 1, #(self.Rows[start[1] + #rows - 1]) + 1 }
 
 	self.Rows[stop[1]] = self.Rows[stop[1]] .. remainder
 	self.PaintRows[stop[1]] = false
@@ -892,7 +904,7 @@ end
 function EDITOR:OnMouseWheeled(delta)
 	if self.AC_Panel and self.AC_Panel:IsVisible() then
 		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-		if mode == 2 or mode == 3 then
+		if mode == AC_STYLE_SCROLLER or mode == AC_STYLE_SCROLLER_ENTER then
 			self.AC_Panel.Selected = self.AC_Panel.Selected - delta
 			if self.AC_Panel.Selected > #self.AC_Suggestions then self.AC_Panel.Selected = 1 end
 			if self.AC_Panel.Selected < 1 then self.AC_Panel.Selected = #self.AC_Suggestions end
@@ -945,7 +957,7 @@ local wire_expression2_editor_find_wrap_around = CreateClientConVar( "wire_expre
 local wire_expression2_editor_find_dir = CreateClientConVar( "wire_expression2_editor_find_dir", "1", true, false )
 
 function EDITOR:HighlightFoundWord( caretstart, start, stop )
-	local caretstart = caretstart or self:CopyPosition( self.Start )
+	caretstart = caretstart or self:CopyPosition( self.Start )
 	if istable( start ) then
 		self.Start = self:CopyPosition( start )
 	elseif isnumber( start ) then
@@ -985,40 +997,26 @@ function EDITOR:Find( str, looped )
 		text = text .. table_concat( self.Rows, "\n", self.Start[1]+1 )
 		if ignore_case then text = text:lower() end
 
-		local offset = 2
-		for loop = 1, 100 do
-			local start, stop = text:find( str, offset, not use_patterns )
-			if start and stop then
+		if not use_patterns then
+			str = string.PatternSafe(str)
+		end
 
-				if whole_word_only then
-					local caretstart = self:MovePosition( self.Start, start )
-					caretstart = { caretstart[1], caretstart[2]-1 }
-					local caretstop = self:MovePosition( self.Start, stop )
-					caretstop = { caretstop[1], caretstop[2]-1 }
-					local wstart = self:getWordStart( { caretstart[1], caretstart[2]+1 } )
-					local wstop = self:getWordEnd( { caretstart[1], caretstart[2]+1 } )
-					if caretstart[1] == wstart[1] and caretstop[1] == wstop[1] and
-						caretstart[2] == wstart[2] and caretstop[2]+1 == wstop[2] then
-							self:HighlightFoundWord( nil, caretstart, caretstop )
-							return true
-					else
-						offset = start+1
-					end
-				else
-					self:HighlightFoundWord( nil, start-1, stop-1 )
-					return true
-				end
+		if whole_word_only then
+			str = "%f[%w_]" .. str .. "%f[^%w_]"
+		end
 
-			else
-				break
-			end
-			if loop == 100 then error("\nInfinite loop protection enabled.\nPlease provide a detailed description of what you were doing when you got this error on www.wiremod.com.\n") return end
+		local start, stop = text:find(str, 2)
+		if start and stop then
+			self:HighlightFoundWord(nil, start - 1, stop - 1)
+			return true
 		end
 
 		if wrap_around then
-			self:SetCaret( {1,1}, false )
-			self:Find( _str, (looped or 0) + 1 )
+			self:SetCaret({1, 1}, false)
+			return self:Find(_str, (looped or 0) + 1)
 		end
+
+		return false
 	else -- Up
 		local text = table_concat( self.Rows, "\n", 1, self.Start[1]-1 )
 		local line = self.Rows[self.Start[1]]
@@ -1029,55 +1027,39 @@ function EDITOR:Find( str, looped )
 
 		if ignore_case then text = text:lower() end
 
-		local offset = 2
-		for loop = 1, 100 do
-			local start, stop = text:find( str, offset, not use_patterns )
-			if start and stop then
+		if not use_patterns then
+			str = string.PatternSafe(str)
+		end
 
-				if whole_word_only then
-					local caretstart = self:MovePosition( self.Start, -start )
-					caretstart = { caretstart[1], caretstart[2]-1 }
-					local caretstop = self:MovePosition( self.Start, -stop )
-					caretstop = { caretstop[1], caretstop[2]-1 }
-					local wstart = self:getWordStart( { caretstart[1], caretstart[2]+1 } )
-					local wstop = self:getWordEnd( { caretstart[1], caretstart[2]+1 } )
-					if caretstart[1] == wstart[1] and caretstop[1] == wstop[1] and
-						caretstart[2] == wstart[2] and caretstop[2]+1 == wstop[2] then
-							self:HighlightFoundWord( nil, caretstart, caretstop )
-							return true
-					else
-						offset = start+1
-					end
-				else
-					self:HighlightFoundWord( nil, -(start-1), -(stop+1) )
-					return true
-				end
+		if whole_word_only then
+			str = "%f[%w_]" .. str .. "%f[^%w_]"
+		end
 
-			else
-				break
-			end
-			if loop == 100 then error("\nInfinite loop protection enabled.\nPlease provide a detailed description of what you were doing when you got this error on www.wiremod.com.\n") return end
+		local start, stop = text:find(str, 2)
+		if start and stop then
+			self:HighlightFoundWord( nil, -(start-1), -(stop+1) )
+			return true
 		end
 
 		if wrap_around then
 			self:SetCaret( { #self.Rows,#self.Rows[#self.Rows] }, false )
-			self:Find( _str, (looped or 0) + 1 )
+			return self:Find( _str, (looped or 0) + 1 )
 		end
+
+		return false
 	end
-	return false
 end
 
 function EDITOR:Replace( str, replacewith )
 	if str == "" or str == replacewith then return end
 
-	local ignore_case = wire_expression2_editor_find_ignore_case:GetBool()
 	local use_patterns = wire_expression2_editor_find_use_patterns:GetBool()
 
 	local selection = self:GetSelection()
 
 	local _str = str
 	if not use_patterns then
-		str = str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1" )
+		str = string.PatternSafe(str)
 		replacewith = replacewith:gsub( "%%", "%%%1" )
 	end
 
@@ -1097,19 +1079,26 @@ function EDITOR:ReplaceAll( str, replacewith )
 	local use_patterns = wire_expression2_editor_find_use_patterns:GetBool()
 
 	if not use_patterns then
-		str = str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1" )
+		str = string.PatternSafe(str)
 		replacewith = replacewith:gsub( "%%", "%%%1" )
+	end
+
+	if ignore_case then
+		str = str:lower()
+	end
+
+	local pattern
+	if whole_word_only then
+		pattern = "%f[%w_]()" .. str .. "%f[^%w_]()"
+	else
+		pattern = "()" .. str .. "()"
 	end
 
 	local txt = self:GetValue()
 
 	if ignore_case then
 		local txt2 = txt -- Store original cased copy
-		str = str:lower() -- Lowercase everything
 		txt = txt:lower() -- Lowercase everything
-
-		local pattern = "()"..str.."()"
-		if whole_word_only then pattern = "[^a-zA-Z0-9_]()"..str.."()[^a-zA-Z0-9_]" end
 
 		local positions = {}
 
@@ -1127,15 +1116,7 @@ function EDITOR:ReplaceAll( str, replacewith )
 		self:SelectAll()
 		self:SetSelection( txt2 )
 	else
-		if whole_word_only then
-			local pattern = "([^a-zA-Z0-9_])"..str.."([^a-zA-Z0-9_])"
-			txt = " " .. txt
-			txt = string_gsub( txt, pattern, "%1"..replacewith.."%2" )
-			txt = string_gsub( txt, pattern, "%1"..replacewith.."%2" )
-			txt = string_sub( txt, 2 )
-		else
 			txt = string_gsub( txt, str, replacewith )
-		end
 
 		self:SelectAll()
 		self:SetSelection( txt )
@@ -1150,7 +1131,7 @@ function EDITOR:CountFinds( str )
 	local use_patterns = wire_expression2_editor_find_use_patterns:GetBool()
 
 	if not use_patterns then
-		str = str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1" )
+		str = string.PatternSafe(str)
 	end
 
 	local txt = self:GetValue()
@@ -1161,26 +1142,22 @@ function EDITOR:CountFinds( str )
 	end
 
 	if whole_word_only then
-		local pattern = "([^a-zA-Z0-9_])"..str.."([^a-zA-Z0-9_])"
-		txt = " " .. txt
-		local num1, num2 = 0, 0
-		txt, num1 = txt:gsub( pattern, "%1%2" )
-		if txt == "" then return num1 end
-		txt, num2 = txt:gsub( pattern, "%1%2" )
-		return num1+num2
-	else
-		local num
-		txt, num = txt:gsub( str, "" )
-		return num
+		str = "%f[%w_]()" .. str .. "%f[^%w_]()"
 	end
+
+	return select(2, txt:gsub(str, ""))
 end
 
 function EDITOR:FindAllWords( str )
 	if str == "" then return end
 
 	local txt = self:GetValue()
-	-- [^a-zA-Z0-9_] ensures we only find whole words, and the gsub escapes any regex command characters that happen to be in str
-	local pattern = "[^a-zA-Z0-9_]()" .. str:gsub("[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1") .. "()[^a-zA-Z0-9_]"
+	-- %f[set] is a 'frontier' pattern - it matches an empty string at a position such that the
+	-- next character belongs to set and the previous character does not belong to set.
+	-- The beginning and the end of the string are handled as if they were the character '\0'.
+	-- As a special case, the empty capture () captures the current string position (a number).
+	--   - https://www.lua.org/manual/5.3/manual.html#6.4.1
+	local pattern = "%f[%w_]()" .. string.PatternSafe(str) .. "%f[^%w_]()"
 
 	local ret = {}
 	for start,stop in txt:gmatch( pattern ) do
@@ -1201,11 +1178,12 @@ function EDITOR:CreateFindWindow()
 	pnl:SetVisible( false ) -- but hide it for now
 	pnl:SetTitle( "Find" )
 	pnl:SetScreenLock( true )
-
-	local old = pnl.Close
-	function pnl.Close()
-		self.ForceDrawCursor = false
-		old( pnl )
+	do
+		local old = pnl.Close
+		function pnl.Close()
+			self.ForceDrawCursor = false
+			old( pnl )
+		end
 	end
 
 	-- Center it above the editor
@@ -1231,10 +1209,12 @@ function EDITOR:CreateFindWindow()
 	use_patterns:SizeToContents()
 	use_patterns:SetConVar( "wire_expression2_editor_find_use_patterns" )
 	use_patterns:SetPos( 4, 4 )
-	local old = use_patterns.Button.SetValue
-	use_patterns.Button.SetValue = function( pnl, b )
-		if wire_expression2_editor_find_whole_word_only:GetBool() then return end
-		old( pnl, b )
+	do
+		local old = use_patterns.Button.SetValue
+		use_patterns.Button.SetValue = function( pnl, b )
+			if wire_expression2_editor_find_whole_word_only:GetBool() then return end
+			old( pnl, b )
+		end
 	end
 
 	local case_sens = vgui.Create( "DCheckBoxLabel", common_panel )
@@ -1250,10 +1230,12 @@ function EDITOR:CreateFindWindow()
 	whole_word:SizeToContents()
 	whole_word:SetConVar( "wire_expression2_editor_find_whole_word_only" )
 	whole_word:SetPos( 4, 44 )
-	local old = whole_word.Button.Toggle
-	whole_word.Button.Toggle = function( pnl )
-		old( pnl )
-		if pnl:GetValue() then use_patterns:SetValue( false ) end
+	do
+		local old = whole_word.Button.Toggle
+		whole_word.Button.Toggle = function( pnl )
+			old( pnl )
+			if pnl:GetValue() then use_patterns:SetValue( false ) end
+		end
 	end
 
 	local wrap_around = vgui.Create( "DCheckBoxLabel", common_panel )
@@ -1287,158 +1269,161 @@ function EDITOR:CreateFindWindow()
 		RunConsoleCommand( "wire_expression2_editor_find_dir", "1" )
 	end
 
-	-- Find tab
-	local findtab = vgui.Create( "DPanel" )
+	do
+		-- Find tab
+		local findtab = vgui.Create( "DPanel" )
 
-	-- Label
-	local FindLabel = vgui.Create( "DLabel", findtab )
-	FindLabel:SetText( "Find:" )
-	FindLabel:SetPos( 4, 4 )
-	FindLabel:SetTextColor( Color(0,0,0,255) )
+		-- Label
+		local FindLabel = vgui.Create( "DLabel", findtab )
+		FindLabel:SetText( "Find:" )
+		FindLabel:SetPos( 4, 4 )
+		FindLabel:SetTextColor( Color(0,0,0,255) )
 
-	-- Text entry
-	local FindEntry = vgui.Create( "DTextEntry", findtab )
-	FindEntry:SetPos(30,4)
-	FindEntry:SetSize(200,20)
-	FindEntry:RequestFocus()
-	FindEntry.OnEnter = function( pnl )
-		self:Find( pnl:GetValue() )
-		pnl:RequestFocus()
+		-- Text entry
+		local FindEntry = vgui.Create( "DTextEntry", findtab )
+		FindEntry:SetPos(30,4)
+		FindEntry:SetSize(200,20)
+		FindEntry:RequestFocus()
+		FindEntry.OnEnter = function( pnl )
+			self:Find( pnl:GetValue() )
+			pnl:RequestFocus()
+		end
+
+		-- Find next button
+		local FindNext = vgui.Create( "DButton", findtab )
+		FindNext:SetText("Find Next")
+		FindNext:SetToolTip( "Find the next match and highlight it." )
+		FindNext:SetPos(233,4)
+		FindNext:SetSize(70,20)
+		FindNext.DoClick = function(pnl)
+			self:Find( FindEntry:GetValue() )
+		end
+
+		-- Find button
+		local Find = vgui.Create( "DButton", findtab )
+		Find:SetText("Find")
+		Find:SetToolTip( "Find the next match, highlight it, and close the Find window." )
+		Find:SetPos(233,29)
+		Find:SetSize(70,20)
+		Find.DoClick = function(pnl)
+			self.FindWindow:Close()
+			self:Find( FindEntry:GetValue() )
+		end
+
+		-- Count button
+		local Count = vgui.Create( "DButton", findtab )
+		Count:SetText( "Count" )
+		Count:SetPos( 233, 95 )
+		Count:SetSize( 70, 20 )
+		Count:SetTooltip( "Count the number of matches in the file." )
+		Count.DoClick = function(pnl)
+			Derma_Message( self:CountFinds( FindEntry:GetValue() ) .. " matches found.", "", "Ok" )
+		end
+
+		-- Cancel button
+		local Cancel = vgui.Create( "DButton", findtab )
+		Cancel:SetText("Cancel")
+		Cancel:SetPos(233,120)
+		Cancel:SetSize(70,20)
+		Cancel.DoClick = function(pnl)
+			self.FindWindow:Close()
+		end
+
+		pnl.FindTab = pnl.TabHolder:AddSheet( "Find", findtab, "icon16/page_white_find.png", false, false )
+		pnl.FindTab.Entry = FindEntry
 	end
 
-	-- Find next button
-	local FindNext = vgui.Create( "DButton", findtab )
-	FindNext:SetText("Find Next")
-	FindNext:SetToolTip( "Find the next match and highlight it." )
-	FindNext:SetPos(233,4)
-	FindNext:SetSize(70,20)
-	FindNext.DoClick = function(pnl)
-		self:Find( FindEntry:GetValue() )
-	end
+	do
+		-- Replace tab
+		local replacetab = vgui.Create( "DPanel" )
 
-	-- Find button
-	local Find = vgui.Create( "DButton", findtab )
-	Find:SetText("Find")
-	Find:SetToolTip( "Find the next match, highlight it, and close the Find window." )
-	Find:SetPos(233,29)
-	Find:SetSize(70,20)
-	Find.DoClick = function(pnl)
-		self.FindWindow:Close()
-		self:Find( FindEntry:GetValue() )
-	end
+		-- Label
+		local FindLabel = vgui.Create( "DLabel", replacetab )
+		FindLabel:SetText( "Find:" )
+		FindLabel:SetPos( 4, 4 )
+		FindLabel:SetTextColor( Color(0,0,0,255) )
 
-	-- Count button
-	local Count = vgui.Create( "DButton", findtab )
-	Count:SetText( "Count" )
-	Count:SetPos( 233, 95 )
-	Count:SetSize( 70, 20 )
-	Count:SetTooltip( "Count the number of matches in the file." )
-	Count.DoClick = function(pnl)
-		Derma_Message( self:CountFinds( FindEntry:GetValue() ) .. " matches found.", "", "Ok" )
-	end
+		-- Text entry
+		local FindEntry = vgui.Create( "DTextEntry", replacetab )
+		local ReplaceEntry
+		FindEntry:SetPos(30,4)
+		FindEntry:SetSize(200,20)
+		FindEntry:RequestFocus()
+		FindEntry.OnEnter = function( pnl )
+			self:Replace( pnl:GetValue(), ReplaceEntry:GetValue() )
+			ReplaceEntry:RequestFocus()
+		end
 
-	-- Cancel button
-	local Cancel = vgui.Create( "DButton", findtab )
-	Cancel:SetText("Cancel")
-	Cancel:SetPos(233,120)
-	Cancel:SetSize(70,20)
-	Cancel.DoClick = function(pnl)
-		self.FindWindow:Close()
-	end
+		-- Label
+		local ReplaceLabel = vgui.Create( "DLabel", replacetab )
+		ReplaceLabel:SetText( "Replace With:" )
+		ReplaceLabel:SetPos( 4, 32 )
+		ReplaceLabel:SizeToContents()
+		ReplaceLabel:SetTextColor( Color(0,0,0,255) )
 
-	pnl.FindTab = pnl.TabHolder:AddSheet( "Find", findtab, "icon16/page_white_find.png", false, false )
-	pnl.FindTab.Entry = FindEntry
-
-
-	-- Replace tab
-	local replacetab = vgui.Create( "DPanel" )
-
-	-- Label
-	local FindLabel = vgui.Create( "DLabel", replacetab )
-	FindLabel:SetText( "Find:" )
-	FindLabel:SetPos( 4, 4 )
-	FindLabel:SetTextColor( Color(0,0,0,255) )
-
-	-- Text entry
-	local FindEntry = vgui.Create( "DTextEntry", replacetab )
-	local ReplaceEntry
-	FindEntry:SetPos(30,4)
-	FindEntry:SetSize(200,20)
-	FindEntry:RequestFocus()
-	FindEntry.OnEnter = function( pnl )
-		self:Replace( pnl:GetValue(), ReplaceEntry:GetValue() )
+		-- Replace entry
+		ReplaceEntry = vgui.Create( "DTextEntry", replacetab )
+		ReplaceEntry:SetPos(75,29)
+		ReplaceEntry:SetSize(155,20)
 		ReplaceEntry:RequestFocus()
+		ReplaceEntry.OnEnter = function( pnl )
+			self:Replace( FindEntry:GetValue(), pnl:GetValue() )
+			pnl:RequestFocus()
+		end
+
+		-- Find next button
+		local FindNext = vgui.Create( "DButton", replacetab )
+		FindNext:SetText("Find Next")
+		FindNext:SetToolTip( "Find the next match and highlight it." )
+		FindNext:SetPos(233,4)
+		FindNext:SetSize(70,20)
+		FindNext.DoClick = function(pnl)
+			self:Find( FindEntry:GetValue() )
+		end
+
+		-- Replace next button
+		local ReplaceNext = vgui.Create( "DButton", replacetab )
+		ReplaceNext:SetText("Replace")
+		ReplaceNext:SetToolTip( "Replace the current selection if it matches, else find the next match." )
+		ReplaceNext:SetPos(233,29)
+		ReplaceNext:SetSize(70,20)
+		ReplaceNext.DoClick = function(pnl)
+			self:Replace( FindEntry:GetValue(), ReplaceEntry:GetValue() )
+		end
+
+		-- Replace all button
+		local ReplaceAll = vgui.Create( "DButton", replacetab )
+		ReplaceAll:SetText("Replace All")
+		ReplaceAll:SetToolTip( "Replace all occurences of the match in the entire file, and close the Find window." )
+		ReplaceAll:SetPos(233,54)
+		ReplaceAll:SetSize(70,20)
+		ReplaceAll.DoClick = function(pnl)
+			self.FindWindow:Close()
+			self:ReplaceAll( FindEntry:GetValue(), ReplaceEntry:GetValue() )
+		end
+
+		-- Count button
+		local Count = vgui.Create( "DButton", replacetab )
+		Count:SetText( "Count" )
+		Count:SetPos( 233, 95 )
+		Count:SetSize( 70, 20 )
+		Count:SetTooltip( "Count the number of matches in the file." )
+		Count.DoClick = function(pnl)
+			Derma_Message( self:CountFinds( FindEntry:GetValue() ) .. " matches found.", "", "Ok" )
+		end
+
+		-- Cancel button
+		local Cancel = vgui.Create( "DButton", replacetab )
+		Cancel:SetText("Cancel")
+		Cancel:SetPos(233,120)
+		Cancel:SetSize(70,20)
+		Cancel.DoClick = function(pnl)
+			self.FindWindow:Close()
+		end
+
+		pnl.ReplaceTab = pnl.TabHolder:AddSheet( "Replace", replacetab, "icon16/page_white_wrench.png", false, false )
+		pnl.ReplaceTab.Entry = FindEntry
 	end
-
-	-- Label
-	local ReplaceLabel = vgui.Create( "DLabel", replacetab )
-	ReplaceLabel:SetText( "Replace With:" )
-	ReplaceLabel:SetPos( 4, 32 )
-	ReplaceLabel:SizeToContents()
-	ReplaceLabel:SetTextColor( Color(0,0,0,255) )
-
-	-- Replace entry
-	ReplaceEntry = vgui.Create( "DTextEntry", replacetab )
-	ReplaceEntry:SetPos(75,29)
-	ReplaceEntry:SetSize(155,20)
-	ReplaceEntry:RequestFocus()
-	ReplaceEntry.OnEnter = function( pnl )
-		self:Replace( FindEntry:GetValue(), pnl:GetValue() )
-		pnl:RequestFocus()
-	end
-
-	-- Find next button
-	local FindNext = vgui.Create( "DButton", replacetab )
-	FindNext:SetText("Find Next")
-	FindNext:SetToolTip( "Find the next match and highlight it." )
-	FindNext:SetPos(233,4)
-	FindNext:SetSize(70,20)
-	FindNext.DoClick = function(pnl)
-		self:Find( FindEntry:GetValue() )
-	end
-
-	-- Replace next button
-	local ReplaceNext = vgui.Create( "DButton", replacetab )
-	ReplaceNext:SetText("Replace")
-	ReplaceNext:SetToolTip( "Replace the current selection if it matches, else find the next match." )
-	ReplaceNext:SetPos(233,29)
-	ReplaceNext:SetSize(70,20)
-	ReplaceNext.DoClick = function(pnl)
-		self:Replace( FindEntry:GetValue(), ReplaceEntry:GetValue() )
-	end
-
-	-- Replace all button
-	local ReplaceAll = vgui.Create( "DButton", replacetab )
-	ReplaceAll:SetText("Replace All")
-	ReplaceAll:SetToolTip( "Replace all occurences of the match in the entire file, and close the Find window." )
-	ReplaceAll:SetPos(233,54)
-	ReplaceAll:SetSize(70,20)
-	ReplaceAll.DoClick = function(pnl)
-		self.FindWindow:Close()
-		self:ReplaceAll( FindEntry:GetValue(), ReplaceEntry:GetValue() )
-	end
-
-	-- Count button
-	local Count = vgui.Create( "DButton", replacetab )
-	Count:SetText( "Count" )
-	Count:SetPos( 233, 95 )
-	Count:SetSize( 70, 20 )
-	Count:SetTooltip( "Count the number of matches in the file." )
-	Count.DoClick = function(pnl)
-		Derma_Message( self:CountFinds( FindEntry:GetValue() ) .. " matches found.", "", "Ok" )
-	end
-
-	-- Cancel button
-	local Cancel = vgui.Create( "DButton", replacetab )
-	Cancel:SetText("Cancel")
-	Cancel:SetPos(233,120)
-	Cancel:SetSize(70,20)
-	Cancel.DoClick = function(pnl)
-		self.FindWindow:Close()
-	end
-
-	pnl.ReplaceTab = pnl.TabHolder:AddSheet( "Replace", replacetab, "icon16/page_white_wrench.png", false, false )
-	pnl.ReplaceTab.Entry = FindEntry
 
 	-- Go to line tab
 	local gototab = vgui.Create( "DPanel" )
@@ -1453,7 +1438,6 @@ function EDITOR:CreateFindWindow()
 	local GoToEntry = vgui.Create( "DTextEntry", gototab )
 	GoToEntry:SetPos(57,4)
 	GoToEntry:SetSize(173,20)
-	GoToEntry:SetText("")
 	GoToEntry:SetNumeric( true )
 
 	-- Goto Button
@@ -1479,33 +1463,40 @@ function EDITOR:CreateFindWindow()
 	pnl.GoToLineTab.Entry = GoToEntry
 
 	-- Tab buttons
-	local old = pnl.FindTab.Tab.OnMousePressed
-	pnl.FindTab.Tab.OnMousePressed = function( ... )
-		pnl.FindTab.Entry:SetText( pnl.ReplaceTab.Entry:GetValue() or "" )
-		local active = pnl.TabHolder:GetActiveTab()
-		if active == pnl.GoToLineTab.Tab then
-			pnl:SetHeight( 200 )
-			pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
+	do
+		local old = pnl.FindTab.Tab.OnMousePressed
+		pnl.FindTab.Tab.OnMousePressed = function( ... )
+			pnl.FindTab.Entry:SetText( pnl.ReplaceTab.Entry:GetValue() or "" )
+			local active = pnl.TabHolder:GetActiveTab()
+			if active == pnl.GoToLineTab.Tab then
+				pnl:SetHeight( 200 )
+				pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
+			end
+			old( ... )
 		end
-		old( ... )
 	end
 
-	local old = pnl.ReplaceTab.Tab.OnMousePressed
-	pnl.ReplaceTab.Tab.OnMousePressed = function( ... )
-		pnl.ReplaceTab.Entry:SetText( pnl.FindTab.Entry:GetValue() or "" )
-		local active = pnl.TabHolder:GetActiveTab()
-		if active == pnl.GoToLineTab.Tab then
-			pnl:SetHeight( 200 )
-			pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
+	do
+		local old = pnl.ReplaceTab.Tab.OnMousePressed
+		pnl.ReplaceTab.Tab.OnMousePressed = function( ... )
+			pnl.ReplaceTab.Entry:SetText( pnl.FindTab.Entry:GetValue() or "" )
+			local active = pnl.TabHolder:GetActiveTab()
+			if active == pnl.GoToLineTab.Tab then
+				pnl:SetHeight( 200 )
+				pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
+			end
+			old( ... )
 		end
-		old( ... )
 	end
 
-	local old = pnl.GoToLineTab.Tab.OnMousePressed
-	pnl.GoToLineTab.Tab.OnMousePressed = function( ... )
-		pnl:SetHeight( 86 )
-		pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
-		old( ... )
+	do
+		local old = pnl.GoToLineTab.Tab.OnMousePressed
+		pnl.GoToLineTab.Tab.OnMousePressed = function( ... )
+			pnl:SetHeight( 86 )
+			pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
+			pnl.GoToLineTab.Entry:SetText(self.Caret[1])
+			old( ... )
+		end
 	end
 end
 
@@ -1531,7 +1522,11 @@ function EDITOR:OpenFindWindow( mode )
 		self.FindWindow.TabHolder:StretchToParent( 1, 23, 1, 1 )
 	elseif mode == "go to line" then
 		self.FindWindow.TabHolder:SetActiveTab( self.FindWindow.GoToLineTab.Tab )
+		local caretPos = self.Caret[1]
+		self.FindWindow.GoToLineTab.Entry:SetText(caretPos)
 		self.FindWindow.GoToLineTab.Entry:RequestFocus()
+		self.FindWindow.GoToLineTab.Entry:SelectAllText()
+		self.FindWindow.GoToLineTab.Entry:SetCaretPos(tostring(caretPos):len())
 		self.FindWindow:SetHeight( 83 )
 		self.FindWindow.TabHolder:StretchToParent( 1, 23, 1, 1 )
 	end
@@ -1694,8 +1689,8 @@ end
 
 function EDITOR:Copy()
 	if not self:HasSelection() then return end
-	self.clipboard = string_gsub(self:GetSelection(), "\n", "\r\n")
-	return SetClipboardText(self.clipboard)
+	self.CurrentMode.clipboard = string_gsub(self:GetSelection(), "\n", "\r\n")
+	return SetClipboardText(self.CurrentMode.clipboard)
 end
 
 function EDITOR:Cut()
@@ -1750,6 +1745,7 @@ function EDITOR:DuplicateLine()
 end
 
 function EDITOR:_OnKeyCodeTyped(code)
+	local handled = true
 	self.Blink = RealTime()
 
 	local alt = input.IsKeyDown(KEY_LALT) or input.IsKeyDown(KEY_RALT)
@@ -1779,8 +1775,8 @@ function EDITOR:_OnKeyCodeTyped(code)
 		-- pasting is now handled by the textbox that is used to capture input
 		--[[
 		elseif code == KEY_V then
-			if self.clipboard then
-				self:SetSelection(self.clipboard)
+			if self.CurrentMode.clipboard then
+				self:SetSelection(self.CurrentMode.clipboard)
 			end
 		]]
 		elseif code == KEY_F then
@@ -1823,13 +1819,15 @@ function EDITOR:_OnKeyCodeTyped(code)
 			self:SetCaret({ #self.Rows, 1 })
 		elseif code == KEY_D then
 			self:DuplicateLine()
+		else
+			handled = false
 		end
 
 	else
 
 		if code == KEY_ENTER then
 			local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-			if mode == 4 and self.AC_HasSuggestions and self.AC_Suggestions[1] and self.AC_Panel and self.AC_Panel:IsVisible() then
+			if mode == AC_STYLE_ECLIPSE and self.AC_HasSuggestions and self.AC_Suggestions[1] and self.AC_Panel and self.AC_Panel:IsVisible() then
 				if self:AC_Use( self.AC_Suggestions[1] ) then return end
 			end
 			local row = self.Rows[self.Caret[1]]:sub(1,self.Caret[2]-1)
@@ -1840,7 +1838,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 		elseif code == KEY_UP then
 			if self.AC_Panel and self.AC_Panel:IsVisible() then
 				local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-				if mode == 1 then
+				if mode == AC_STYLE_VISUALCSHARP or mode == AC_STYLE_ATOM then
 					self.AC_Panel:RequestFocus()
 					return
 				end
@@ -1851,7 +1849,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 		elseif code == KEY_DOWN then
 			if self.AC_Panel and self.AC_Panel:IsVisible() then
 				local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-				if mode == 1 then
+				if mode == AC_STYLE_VISUALCSHARP or mode == AC_STYLE_ATOM then
 					self.AC_Panel:RequestFocus()
 					return
 				end
@@ -1916,16 +1914,19 @@ function EDITOR:_OnKeyCodeTyped(code)
 			end
 		elseif code == KEY_F1 then
 			self:ContextHelp()
+		else
+			handled = false
 		end
 	end
 
 	if code == KEY_TAB and self.AC_Panel and self.AC_Panel:IsVisible() then
 		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-		if mode == 0 or mode == 4 then
+		if mode == AC_STYLE_DEFAULT or mode == AC_STYLE_ECLIPSE or mode == AC_STYLE_ATOM then
 			self.AC_Panel:RequestFocus()
-			if mode == 4 and self.AC_Panel.Selected == 0 then self.AC_Panel.Selected = 1 end
+			if (mode == AC_STYLE_ECLIPSE or mode == AC_STYLE_ATOM) and self.AC_Panel.Selected == 0 then self.AC_Panel.Selected = 1 end
 			return
 		end
+		handled = true
 	end
 
 	if code == KEY_TAB or (control and (code == KEY_I or code == KEY_O)) then
@@ -1952,13 +1953,16 @@ function EDITOR:_OnKeyCodeTyped(code)
 		end
 		-- signal that we want our focus back after (since TAB normally switches focus)
 		if code == KEY_TAB then self.TabFocus = true end
+		handled = true
 	end
 
-	if control then
-		self:OnShortcut(code)
+	if control and not handled then
+		handled = self:OnShortcut(code)
 	end
 
 	self:AC_Check()
+
+	return handled
 end
 
 ---------------------------------------------------------------------------------------------------------
@@ -2057,7 +2061,7 @@ local function FindConstants( self, word )
 
 	local suggestions = {}
 
-	for name,value in pairs( wire_expression2_constants ) do
+	for name, _ in pairs( wire_expression2_constants ) do
 		if name:sub(1,len) == wordu then
 			count = count + 1
 			suggestions[count] = GetTableForConstant( name )
@@ -2068,7 +2072,7 @@ local function FindConstants( self, word )
 end
 
 tbl[1] = function( self )
-	local word, symbolinfront = self:AC_GetCurrentWord()
+	local word = self:AC_GetCurrentWord()
 	if word and word ~= "" and word:sub(1,1) == "_" then
 		return FindConstants( self, word )
 	end
@@ -2104,7 +2108,7 @@ end
 
 local function FindFunctions( self, has_colon, word )
 	-- Filter out magic characters
-	word = word:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1" )
+	word = string.PatternSafe(word)
 
 	local len = #word
 	local wordl = word:lower()
@@ -2206,7 +2210,7 @@ local function FindVariables( self, word )
 		return
 	end
 
-	for k,v in pairs( directives["inputs"][1] ) do
+	for _, v in pairs( directives["inputs"][1] ) do
 		if v:lower():sub(1,len) == wordl then
 			if not suggested[v] then
 				suggested[v] = true
@@ -2216,7 +2220,7 @@ local function FindVariables( self, word )
 		end
 	end
 
-	for k,v in pairs( directives["outputs"][1] ) do
+	for _, v in pairs( directives["outputs"][1] ) do
 		if v:lower():sub(1,len) == wordl then
 			if not suggested[v] then
 				suggested[v] = true
@@ -2226,7 +2230,7 @@ local function FindVariables( self, word )
 		end
 	end
 
-	for k,v in pairs( directives["persist"][1] ) do
+	for _, v in pairs( directives["persist"][1] ) do
 		if v:lower():sub(1,len) == wordl then
 			if not suggested[v] then
 				suggested[v] = true
@@ -2240,7 +2244,7 @@ local function FindVariables( self, word )
 end
 
 tbl[3] = function( self )
-	local word, symbolinfront = self:AC_GetCurrentWord()
+	local word = self:AC_GetCurrentWord()
 	if word and word ~= "" and word:sub(1,1):upper() == word:sub(1,1) then
 		return FindVariables( self, word )
 	end
@@ -2421,7 +2425,7 @@ function EDITOR:AC_CreatePanel()
 		if not self.AC_HasSuggestions or not self.AC_Panel_Visible then return end
 
 		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-		if mode == 0 then -- Default style - Tab/CTRL+Tab to choose item;\nEnter/Space to use;\nArrow keys to abort.
+		if mode == AC_STYLE_DEFAULT then
 
 			if input.IsKeyDown( KEY_ENTER ) or input.IsKeyDown( KEY_SPACE ) then -- Use
 				self:AC_SetVisible( false )
@@ -2442,8 +2446,7 @@ function EDITOR:AC_CreatePanel()
 			elseif input.IsKeyDown( KEY_UP ) or input.IsKeyDown( KEY_DOWN ) or input.IsKeyDown( KEY_LEFT ) or input.IsKeyDown( KEY_RIGHT ) then
 				self:AC_SetVisible( false )
 			end
-
-		elseif mode == 1 then -- Visual C# Style - Ctrl+Space to use the top match;\nArrow keys to choose item;\nTab/Enter/Space to use;\nCode validation hotkey (ctrl+space) moved to ctrl+b.
+		elseif mode == AC_STYLE_VISUALCSHARP or mode == AC_STYLE_ATOM then
 
 			if input.IsKeyDown( KEY_TAB ) or input.IsKeyDown( KEY_ENTER ) or input.IsKeyDown( KEY_SPACE ) then -- Use
 				self:AC_SetVisible( false )
@@ -2462,21 +2465,21 @@ function EDITOR:AC_CreatePanel()
 				pnl.AlreadySelected = nil
 			end
 
-		elseif mode == 2 then -- Scroller style - Mouse scroller to choose item;\nMiddle mouse to use.
+		elseif mode == AC_STYLE_SCROLLER then
 
 			if input.IsMouseDown( MOUSE_MIDDLE ) then
 				self:AC_SetVisible( false )
 				self:AC_Use( self.AC_Suggestions[pnl.Selected] )
 			end
 
-		elseif mode == 3 then -- Scroller Style w/ Enter - Mouse scroller to choose item;\nEnter to use.
+		elseif mode == AC_STYLE_SCROLLER_ENTER then
 
 			if input.IsKeyDown( KEY_ENTER ) then
 				self:AC_SetVisible( false )
 				self:AC_Use( self.AC_Suggestions[pnl.Selected] )
 			end
 
-		elseif mode == 4 then -- Eclipse Style - Enter to use top match;\nTab to enter auto completion menu;\nArrow keys to choose item;\nEnter to use;\nSpace to abort.
+		elseif mode == AC_STYLE_ECLIPSE then
 
 			if input.IsKeyDown( KEY_ENTER ) then -- Use
 				self:AC_SetVisible( false )
@@ -2574,8 +2577,8 @@ function EDITOR:AC_FillInfoList( suggestion )
 		desc = (desc or "") .. ((desc and desc ~= "") and "\n" or "") .. "Others with the same name:"
 
 		-- Loop through the "others" table to add all of them
-		surface_SetFont( "E2SmallFont" )
-		for k,v in pairs( others ) do
+		surface_SetFont(self.CurrentFont)
+		for _, v in pairs( others ) do
 			local nice_name = v:nice_str( self )
 
 			local namew, nameh = surface_GetTextSize( nice_name )
@@ -2584,8 +2587,9 @@ function EDITOR:AC_FillInfoList( suggestion )
 			label:SetText( "" )
 			label.Paint = function( pnl )
 				local w,h = pnl:GetSize()
-				draw_RoundedBox( 1,1,1, w-2,h-2, Color( 65,105,225,255 ) )
-				surface_SetFont( "E2SmallFont" )
+				surface_SetDrawColor(65, 105, 255)
+				surface_DrawRect(0, 0, w, h)
+				surface_SetFont(self.CurrentFont)
 				surface_SetTextPos( 6, h/2-nameh/2 )
 				surface_SetTextColor( 255,255,255,255 )
 				surface_DrawText( nice_name )
@@ -2608,7 +2612,7 @@ function EDITOR:AC_FillInfoList( suggestion )
 	desc = SimpleWrap( desc, maxw )
 	desc_label:SetText( desc )
 	desc_label:SizeToContents()
-	local textw, texth = surface_GetTextSize( desc )
+	local _, texth = surface_GetTextSize( desc )
 
 	-- If it's bigger than the size of the panel, change it
 	if panel.curh < texth + 4 then panel:SetTall( texth + 6 ) else panel:SetTall( panel.curh ) end
@@ -2630,13 +2634,11 @@ function EDITOR:AC_FillList()
 	panel.Selected = 0
 	local maxw = 15
 
-	surface.SetFont( "E2SmallFont" )
+	surface.SetFont(self.CurrentFont)
 
 	-- Add all suggestions to the list
 	for count,suggestion in pairs( self.AC_Suggestions ) do
 		local nice_name = suggestion:nice_str( self )
-		local name = suggestion:str( self )
-
 
 		local txt = vgui.Create("DLabel")
 		txt:SetText( "" )
@@ -2645,13 +2647,16 @@ function EDITOR:AC_FillList()
 
 		-- Override paint to give it the "E2 theme" and to make it highlight when selected
 		txt.Paint = function( pnl, w, h )
-			draw_RoundedBox( 1, 1, 1, w-2, h-2, Color( 65, 105, 225, 255 ) )
+			local backgroundColor
 			if panel.Selected == pnl.count then
-				draw_RoundedBox( 0, 2, 2, w - 4 , h - 4, Color(0,0,0,192) )
+				backgroundColor = Color(49, 80, 169, 192)
+			else
+				backgroundColor = Color(65, 105, 225, 255)
 			end
-			-- I honestly dont have a fucking clue.
-			-- h2, was being cleaned up instantly for no reason.
-			surface.SetFont( "E2SmallFont" )
+			surface_SetDrawColor(backgroundColor)
+			surface_DrawRect(0, 0, w, h)
+
+			surface.SetFont(self.CurrentFont)
 			local _, h2 = surface.GetTextSize( nice_name )
 
 			surface.SetTextPos( 6, (h / 2) - (h2 / 2) )
@@ -2756,7 +2761,7 @@ function EDITOR:GetTokenAtPosition( caret )
 	local line = self.PaintRows[caret[1]]
 	if line then
 		local startindex = 1
-		for index,data in pairs( line ) do
+		for _, data in pairs( line ) do
 			startindex = startindex+#data[1]
 			if startindex >= column then return data[3] end
 		end

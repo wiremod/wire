@@ -6,7 +6,7 @@ ENT.WireDebugName	= "Friends List"
 if CLIENT then return end -- No more client
 
 function ENT:Initialize()
-	self.BaseClass.Initialize( self )
+	BaseClass.Initialize( self )
 
 	WireLib.CreateInputs( self, {"CheckEntity [ENTITY]", "CheckSteamID [STRING]", "CheckEntityID"} )
 	WireLib.CreateOutputs( self, {"Checked", "Friends [ARRAY]", "AmountConnected", "AmountTotal"} )

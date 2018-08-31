@@ -14,14 +14,14 @@ if ENT then
 			ply:PrintMessage( 2, "Sorry " .. ply:Name() .. ", you don't have access to this command." )
 			return
 		end
-		
+
 		local function _Msg( str )
 			if IsValid( ply ) then ply:PrintMessage( 2, str ) end
 			if not game.SinglePlayer() then MsgN( str ) end
 		end
-		
+
 		timer.Destroy( "E2_AutoReloadTimer" )
-		
+
 		_Msg( "Calling destructors for all Expression 2 chips." )
 		local chips = ents.FindByClass( "gmod_wire_expression2" )
 		for _, chip in ipairs( chips ) do
@@ -30,7 +30,7 @@ if ENT then
 			end
 			chip.script = nil
 		end
-		
+
 		_Msg( "Reloading Expression 2 extensions." )
 		ENT = wire_expression2_ENT
 		wire_expression2_is_reload = true
@@ -48,12 +48,12 @@ if ENT then
 		for _, chip in ipairs( chips ) do
 			pcall( chip.OnRestore, chip )
 		end
-		
+
 		_Msg( "Done reloading Expression 2 extensions." )
 	end
 
 	concommand.Add( "wire_expression2_reload", wire_expression2_reload )
-	
+
 end
 
 wire_expression2_reset_extensions()
@@ -79,38 +79,31 @@ end
 
 -- parses and executes an extension
 local function e2_include_pass2(name, luaname, contents)
-	local ok, ret = pcall(e2_extpp_pass2, contents)
-	if not ok then
-		WireLib.ErrorNoHalt(luaname .. ret .. "\n")
-		return
-	end
+	local preprocessedSource = e2_extpp_pass2(contents)
 
-	if not ret then
-		-- e2_extpp_pass2 returned false => file didn't need preprocessing => use the regular means of inclusion
-		return include(name)
-	end
-	
-	-- file needed preprocessing => Run the processed file
-	local ok, func = pcall(CompileString,ret,luaname)
-	if not ok then -- an error occurred while compiling
-		error(func)
-		return
-	end
-	
+	if not preprocessedSource then return include(name) end
+
+	local func = CompileString(preprocessedSource, luaname)
+
 	local ok, err = pcall(func)
 	if not ok then -- an error occured while executing
 		if not err:find( "EXTENSION_DISABLED" ) then
-			error(err)
+			error(err, 0)
 		end
 		return
 	end
-	
+
 	__e2setcost(nil) -- Reset ops cost at the end of each file
 end
 
 local function e2_include_finalize()
 	for _, info in ipairs(included_files) do
-		e2_include_pass2(unpack(info))
+		local ok, message = pcall(e2_include_pass2, unpack(info))
+		if not ok then
+			WireLib.ErrorNoHalt(string.format("There was an error loading " ..
+			"the %s extension. Please report this to its developer.\n%s\n",
+			info[1], message))
+		end
 	end
 	included_files = nil
 	e2_include = nil

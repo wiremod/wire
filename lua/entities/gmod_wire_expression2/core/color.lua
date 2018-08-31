@@ -81,7 +81,7 @@ e2function void entity:setAlpha(a)
 	if !isOwner(self, this) then return end
 
 	if this:IsPlayer() then return end
-	
+
 	local c = this:GetColor()
 	c.a = Clamp(a, 0, 255)
 	this:SetColor(c)
@@ -92,7 +92,7 @@ e2function void entity:setRenderMode(mode)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 	if this:IsPlayer() then return end
-	
+
 	this:SetRenderMode(mode)
 end
 
@@ -151,9 +151,9 @@ local function Convert_hsl2rgb(h, s, l)
 end
 
 local function Convert_rgb2hsl(r, g, b)
-  	r = r / 255
-  	g = g / 255
-  	b = b / 255
+	r = r / 255
+	g = g / 255
+	b = b / 255
 	local max = math.max(r, g, b)
 	local min = math.min(r, g, b)
 	local h = (max + min) / 2

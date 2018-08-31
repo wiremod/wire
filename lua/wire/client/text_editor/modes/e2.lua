@@ -288,11 +288,7 @@ function EDITOR:SyntaxColorLine(row)
       addToken( "notfound", returntype )
     end
     addToken( "comment", spaces )
-    if istype( funcname ) then -- Hey... this isn't a function name! :O
-    addToken( "typename", funcname )
-    else
-      addToken( "userfunction", funcname )
-    end
+    addToken( "userfunction", funcname )
 
     if not wire_expression2_funclist[funcname] then
       self.e2fs_functions[funcname] = row
@@ -318,14 +314,10 @@ function EDITOR:SyntaxColorLine(row)
     elseif self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then -- funcname
     local funcname = self.tokendata:match( "[a-z][a-zA-Z0-9_]*" )
 
-    if istype( funcname ) or funcname == "void" then -- Hey... this isn't a function name! :O
-    addToken( "typename", funcname )
-    else
-      addToken( "userfunction", funcname )
+    addToken( "userfunction", funcname )
 
-      if not wire_expression2_funclist[funcname] then
-        self.e2fs_functions[funcname] = row
-      end
+    if not wire_expression2_funclist[funcname] then
+      self.e2fs_functions[funcname] = row
     end
 
     self.tokendata = ""

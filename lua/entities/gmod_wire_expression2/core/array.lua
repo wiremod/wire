@@ -136,7 +136,7 @@ registerCallback( "postinit", function()
 			-- Get functions
 			-- value = R[N,type], and value = R:<type>(N)
 			--------------------------------------------------------------------------------
-			__e2setcost(10)
+			__e2setcost(5)
 
 			local function getter( self, array, index, doremove )
 				if (!array or !index) then return fixdef( default ) end -- Make sure array and index are value
@@ -198,7 +198,7 @@ registerCallback( "postinit", function()
 			-- Push functions
 			-- Inserts the value at the end of the array
 			--------------------------------------------------------------------------------
-			__e2setcost(15)
+			__e2setcost(7)
 
 			registerFunction( "push" .. nameupperfirst, "r:" .. id, id, function(self,args)
 				local op1, op2 = args[2], args[3]
@@ -302,43 +302,47 @@ end)
 
 --------------------------------------------------------------------------------
 -- Pop
--- Removes the last entry in the array
+-- Removes the last entry in the array and returns 1 if removed
 --------------------------------------------------------------------------------
-__e2setcost(15)
-e2function void array:pop()
-	table_remove( this )
+__e2setcost(2)
+e2function number array:pop()
+	local result = table_remove( this ) and 1 or 0
 	self.GlobalScope.vclk[this] = true
-end
-
---------------------------------------------------------------------------------
--- Remove
--- Removes the specified entry in the array
---------------------------------------------------------------------------------
-__e2setcost(15)
-e2function void array:remove( index )
-	table_remove( this, index )
-	self.GlobalScope.vclk[this] = true
-end
-
---------------------------------------------------------------------------------
--- Force remove
--- Forcibly removes the value from the array by setting it to nil
--- Does not shift larger indexes down to fill the hole
---------------------------------------------------------------------------------
-e2function void array:unset( index )
-	if this[index] == nil then return end
-	this[index] = nil
-	self.GlobalScope.vclk[this] = true
+	return result
 end
 
 --------------------------------------------------------------------------------
 -- Shift
--- Removes the first entry in the array
+-- Removes the first element of the array; all other entries will move down one address and returns 1 if removed
 --------------------------------------------------------------------------------
-__e2setcost(15)
-e2function void array:shift()
-	table_remove( this, 1 )
+__e2setcost(3)
+e2function number array:shift()
+	local result = table_remove( this, 1 ) and 1 or 0
 	self.GlobalScope.vclk[this] = true
+	return result
+end
+
+--------------------------------------------------------------------------------
+-- Remove
+-- Removes the specified entry, moving subsequent entries down to compensate and returns 1 if removed
+--------------------------------------------------------------------------------
+__e2setcost(2)
+e2function number array:remove( index )
+	local result = table_remove( this, index ) and 1 or 0
+	self.GlobalScope.vclk[this] = true
+	return result
+end
+
+--------------------------------------------------------------------------------
+-- Force remove
+-- Force removes the specified entry, without moving subsequent entries down and returns 1 if removed
+-- Does not shift larger indexes down to fill the hole
+--------------------------------------------------------------------------------
+e2function number array:unset( index )
+	if this[index] == nil then return 0 end
+	this[index] = nil
+	self.GlobalScope.vclk[this] = true
+	return 1
 end
 
 --------------------------------------------------------------------------------
@@ -354,7 +358,7 @@ end
 -- Count
 -- Returns the number of entries in the array
 --------------------------------------------------------------------------------
-__e2setcost(5)
+__e2setcost(3)
 e2function number array:count()
 	return #this
 end

@@ -60,7 +60,7 @@ end
 function SWEP:On()
 	local ply = self:GetOwner()
 
-	if self.Linked:HasPly() then
+	if IsValid(self.Linked) and self.Linked.HasPly and self.Linked:HasPly() then
 		if hook.Run("CanTool", ply, WireLib.dummytrace(self.Linked), "remotecontroller") then
 			if self.Linked.RC then
 				self.Linked:RCEject(self.Linked:GetPly())
@@ -78,7 +78,7 @@ function SWEP:On()
 	ply:SetMoveType(MOVETYPE_NONE)
 	ply:DrawViewModel(false)
 
-	if IsValid(self.Linked) then
+	if IsValid(self.Linked) and self.Linked.PlayerEntered then
 		self.Linked:PlayerEntered(ply, self)
 	end
 end
@@ -93,7 +93,7 @@ function SWEP:Off()
 	self.Active = nil
 	self.OldMoveType = nil
 	ply:DrawViewModel(true)
-	
+
 	if IsValid(self.Linked) then
 		self.Linked:PlayerExited(ply)
 	end

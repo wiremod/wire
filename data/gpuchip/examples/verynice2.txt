@@ -120,4 +120,3 @@ vec2f _a_73,272,440
 string _s_74,'Y: %f'
 vec2f _a_76,272,456
 string _s_77,'Z: %f'
-

@@ -457,7 +457,7 @@ function PANEL:LayoutPages(forcelayout)
 	for i=1, self.m_nPageCount do
 		local button = self.PageChooseNumbers.Buttons[i]
 		if (!IsValid(button)) then continue end
-		
+
 		if (pagepos < i+ButtonCount and pagepos >= i-ButtonCount+1) then
 			button:SetVisible(true)
 			EnableButton(button, true)
@@ -469,13 +469,13 @@ function PANEL:LayoutPages(forcelayout)
 
 		button.Depressed = false
 	end
-	
+
 	local SelectButton = self.PageChooseNumbers.Buttons[self.m_nPage]
 	if (IsValid(SelectButton)) then
 		SelectButton.Depressed = true
 		SelectButton:SetMouseInputEnabled(false)
 	end
-	
+
 	self.PageChooseNumbers:SetWide(VisibleButtons*self.PageButtonSize)
 	self.PageChooseNumbers:Center()
 end

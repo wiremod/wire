@@ -14,7 +14,7 @@ function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = Wire_CreateInputs(self, {"Send","A","B","C","D","E","F","G","H"})
+	self.Inputs = Wire_CreateInputs(self, {"Send","Range","A","B","C","D","E","F","G","H"})
 	self.Outputs = Wire_CreateOutputs(self, {"A","B","C","D","E","F","G","H"})
 	self.Sending = false
 	self.Activated = false
@@ -43,6 +43,8 @@ end
 function ENT:TriggerInput(iname, value)
 	if(iname == "Send")then
 		self.Sending = value > 0
+	elseif(iname == "Range")then
+		self:SetBeamLength(math.Clamp(value,0,32000))
 	else
 		self.Values[iname] = value
 	end

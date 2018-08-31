@@ -42,7 +42,7 @@ end
 
 function ENT:CanLink( Target )
 	if (Target.Socket and Target.Socket:IsValid()) then return false end
-	if (SocketModels[self:GetModel()] != Target:GetModel()) then return false end
+	if (SocketModels[self:GetModel()] ~= Target:GetModel()) then return false end
 	return true
 end
 
@@ -55,7 +55,7 @@ function ENT:GetClosestPlug()
 	local Closest
 
 	for k,v in pairs( plugs ) do
-		if (v:GetClass() == "gmod_wire_plug" and !v:GetNWBool( "Linked", false )) then
+		if (v:GetClass() == self:GetPlugClass() and not v:GetNWBool( "Linked", false )) then
 			local Dist = v:GetPos():Distance( Pos )
 			if (ClosestDist == nil or ClosestDist > Dist) then
 				ClosestDist = Dist
@@ -67,10 +67,14 @@ function ENT:GetClosestPlug()
 	return Closest
 end
 
-if CLIENT then 
+function ENT:GetPlugClass()
+	return "gmod_wire_plug"
+end
+
+if CLIENT then
 	function ENT:DrawEntityOutline()
 		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
-			self.BaseClass.DrawEntityOutline( self )
+			BaseClass.DrawEntityOutline( self )
 		end
 	end
 
@@ -89,7 +93,7 @@ if CLIENT then
 			end
 		end
 	end)
-	
+
 	return  -- No more client
 end
 
@@ -109,13 +113,15 @@ function ENT:Initialize()
 	self:SetNWBool( "Linked", false )
 
 	self.Memory = {}
+
+	self.DoNextThink = CurTime() + 5 -- wait 5 seconds
 end
 
 function ENT:Setup( ArrayInput, WeldForce, AttachRange )
 	local old = self.ArrayInput
 	self.ArrayInput = ArrayInput or false
 
-	if (!self.Inputs or !self.Outputs or self.ArrayInput != old) then
+	if not (self.Inputs and self.Outputs and self.ArrayInput == old) then
 		if (self.ArrayInput) then
 			self.Inputs = WireLib.CreateInputs( self, { "In [ARRAY]" } )
 			self.Outputs = WireLib.CreateOutputs( self, { "Out [ARRAY]" } )
@@ -140,7 +146,7 @@ function ENT:TriggerInput( name, value )
 end
 
 function ENT:SetValue( name, value )
-	if (!self.Plug or !self.Plug:IsValid()) then return end
+	if not (self.Plug and self.Plug:IsValid()) then return end
 	if (name == "In") then
 		if (self.ArrayInput) then -- Both have array
 			WireLib.TriggerOutput( self, "Out", table.Copy( value ) )
@@ -154,13 +160,13 @@ function ENT:SetValue( name, value )
 		end
 	else
 		if (self.ArrayInput) then -- Target does not have array, this does
-			if (value != nil) then
+			if (value ~= nil) then
 				local data = table.Copy( self.Outputs.Out.Value )
 				data[LETTERS_INV[name]] = value
 				WireLib.TriggerOutput( self, "Out", data )
 			end
 		else -- Niether have array
-			if (value != nil) then
+			if (value ~= nil) then
 				WireLib.TriggerOutput( self, name, value )
 			end
 		end
@@ -211,7 +217,7 @@ end
 -- Resends the values when plugging in
 ------------------------------------------------------------
 function ENT:ResendValues()
-	if (!self.Plug) then return end
+	if (not self.Plug) then return end
 	if (self.ArrayInput) then
 		self.Plug:SetValue( "In", self.Inputs.In.Value )
 	else
@@ -221,21 +227,66 @@ function ENT:ResendValues()
 	end
 end
 
+function ENT:OnWeldRemoved()
+	self.Weld = nil
+
+	self.Plug:SetNWBool( "Linked", false )
+	self:SetNWBool( "Linked", false )
+
+	self.Plug.Socket = nil
+	self.Plug:ResetValues()
+
+	self.Plug = nil
+	self:ResetValues()
+
+	self.DoNextThink = CurTime() + NEW_PLUG_WAIT_TIME
+end
+
+function ENT:AttachWeld(weld)
+	if self.Plug then self.Plug:DeleteOnRemove( weld ) end
+	self:DeleteOnRemove( weld )
+	if self.Weld then self.Weld:RemoveCallOnRemove("wire_socket_remove_on_weld") end
+	self.Weld = weld
+	weld:CallOnRemove("wire_socket_remove_on_weld",function() self:OnWeldRemoved() end)
+end
+
+-- helper function
+local function FindConstraint( ent, plug )
+	if IsValid(ent) then
+		local welds = constraint.FindConstraints( ent, "Weld" )
+		for k,v in pairs( welds ) do
+			if (v.Ent2 == plug) then
+				return v.Constraint
+			end
+		end
+	end
+	if IsValid(plug) then
+		local welds = constraint.FindConstraints( plug, "Weld" )
+		for k,v in pairs( welds ) do
+			if (v.Ent2 == ent) then
+				return v.Constraint
+			end
+		end
+	end
+end
+
 ------------------------------------------------------------
 -- Think
 -- Find nearby plugs and connect to them
 ------------------------------------------------------------
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
+	if self.DoNextThink then
+		self:NextThink( self.DoNextThink )
+		self.DoNextThink = nil
+		return true
+	end
 
-	if (!self.Plug or !self.Plug:IsValid()) then -- Has not been linked or plug was deleted
+	if not IsValid(self.Plug) then -- currently not linked, check for nearby links
 		local Pos, Ang = self:GetLinkPos()
-
 		local Closest = self:GetClosestPlug()
 
-		self:SetNWBool( "Linked", false )
-
-		if (Closest and Closest:IsValid() and self:CanLink( Closest ) and !Closest:IsPlayerHolding() and Closest:GetClosestSocket() == self) then
+		if (Closest and Closest:IsValid() and self:CanLink( Closest ) and not Closest:IsPlayerHolding() and Closest:GetClosestSocket() == self) then
 			self.Plug = Closest
 			Closest.Socket = self
 
@@ -244,12 +295,12 @@ function ENT:Think()
 			Closest:SetAngles( Ang )
 
 			-- Weld
-			local weld = constraint.Weld( self, Closest, 0, 0, self.WeldForce, true )
-			if (weld and weld:IsValid()) then
-				Closest:DeleteOnRemove( weld )
-				self:DeleteOnRemove( weld )
-				self.Weld = weld
+			local weld = FindConstraint(self,Closest)
+			if not weld then
+				weld = constraint.Weld( self, Closest, 0, 0, self.WeldForce, true )
 			end
+
+			if weld and weld:IsValid() then self:AttachWeld(weld) end
 
 			-- Resend all values
 			Closest:ResendValues()
@@ -262,21 +313,8 @@ function ENT:Think()
 		self:NextThink( CurTime() + 0.05 )
 		return true
 	else
-		if (self.Weld and !self.Weld:IsValid()) then -- Plug was unplugged
-			self.Weld = nil
-
-			self.Plug:SetNWBool( "Linked", false )
-			self:SetNWBool( "Linked", false )
-
-			self.Plug.Socket = nil
-			self.Plug:ResetValues()
-
-			self.Plug = nil
-			self:ResetValues()
-
-			self:NextThink( CurTime() + NEW_PLUG_WAIT_TIME )
-			return true
-		end
+		self:NextThink( CurTime() + 1 ) -- while linked, there's no point in running any faster than this
+		return true
 	end
 end
 
@@ -299,58 +337,55 @@ duplicator.RegisterEntityClass( "gmod_wire_socket", WireLib.MakeWireEnt, "Data",
 -- Adv Duplicator Support
 ------------------------------------------------------------
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	info.Socket = {}
 	info.Socket.ArrayInput = self.ArrayInput
 	info.Socket.WeldForce = self.WeldForce
 	info.Socket.AttachRange = self.AttachRange
-	if (self.Plug) then info.Socket.Plug = self.Plug:EntIndex() end
+	if self.Plug then
+		info.Socket.Plug = self.Plug:EntIndex()
+	else
+		-- if we don't write -1 here then sockets will somehow remember which plugs they used to be
+		-- connected to in the past after paste even though that reference no longer exists. I have no clue why
+		info.Socket.Plug = -1
+	end
 
 	return info
 end
 
-local function FindConstraint( ent, plug )
-	timer.Simple(0.5,function()
-		if IsValid(ent) and IsValid(plug) then
-			local welds = constraint.FindConstraints( ent, "Weld" )
-			for k,v in pairs( welds ) do
-				if (v.Ent2 == plug) then
-					ent.Weld = v.Constraint
-					return
-				end
-			end
-			local welds = constraint.FindConstraints( plug, "Weld" )
-			for k,v in pairs( welds ) do
-				if (v.Ent2 == ent) then
-					ent.Weld = v.Constraint
-					return
-				end
-			end
-		end
-	end)
+function ENT:GetApplyDupeInfoParams(info)
+	return info.Socket.ArrayInput, info.Socket.WeldForce, info.Socket.AttachRange
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if (info.Socket) then
-		ent:Setup( info.Socket.ArrayInput, info.Socket.WeldForce, info.Socket.AttachRange )
-		local plug = GetEntByID( info.Socket.Plug )
-		if IsValid(plug) then
-			ent.Plug = plug
-			plug.Socket = ent
-			ent.Weld = { ["IsValid"] = function() return true end }
+		ent:Setup( self:GetApplyDupeInfoParams(info) )
+		if info.Socket.Plug ~= -1 then -- check for the strangely required -1 here (see BuildDupeInfo)
+			local plug = GetEntByID( info.Socket.Plug )
+			if IsValid(plug) then
+				ent.Plug = plug
+				plug.Socket = ent
+				ent.Weld = nil
 
-			plug:SetNWBool( "Linked", true )
-			ent:SetNWBool( "Linked", true )
+				plug:SetNWBool( "Linked", true )
+				ent:SetNWBool( "Linked", true )
+				-- Resend all values
+				plug:ResendValues()
+				ent:ResendValues()
 
-			if GetConstByID then
-				if info.Socket.Weld then
-					ent.Weld = GetConstByID( info.Socket.Weld )
-				end
-			else
-				FindConstraint( ent, plug )
+				-- Attempt to find connected plug
+				timer.Simple(0.5,function()
+					local weld = FindConstraint( ent, plug )
+					if not IsValid(weld) then
+						weld = constraint.Weld( self, plug, 0, 0, self.WeldForce, true )
+					end
+					if IsValid(weld) then
+						self:AttachWeld(weld)
+					end
+				end)
 			end
 		end
 	else -- OLD DUPES COMPATIBILITY
@@ -358,15 +393,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 
 		-- Attempt to find connected plug
 		timer.Simple(0.5,function()
-			local welds = constraint.FindConstraints( ent, "Weld" )
-			for k,v in pairs( welds ) do
-				if (v.Ent2:GetClass() == "gmod_wire_plug") then
-					ent.Plug = v.Ent2
-					v.Ent2.Socket = ent
-					ent.Weld = v.Constraint
-					ent.Plug:SetNWBool( "Linked", true )
-					ent:SetNWBool( "Linked", true )
-				end
+			local weld = FindConstraint( ent )
+			if IsValid(weld) then
+				self:AttachWeld(weld)
 			end
 		end)
 	end -- /OLD DUPES COMPATIBILITY

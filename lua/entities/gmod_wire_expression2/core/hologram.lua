@@ -152,7 +152,7 @@ local function GetModel(self, model, skin)
 
 	-- If this model isn't already the absolute path of a default model, and only default models are allowed
 	elseif not pathLookup[model] and wire_holograms_modelany:GetInt() == 0 then
- 		return false
+		return false
 	end
 
 	if wire_holograms_modelany:GetInt() ~= 2 and not WireLib.CanModel(self.player, model, skin) then
@@ -476,8 +476,8 @@ end)
 
 local function MakeHolo(Player, Pos, Ang, model)
 	local prop = ents.Create( "gmod_wire_hologram" )
-	E2Lib.setPos(prop, Pos)
-	E2Lib.setAng(prop, Ang)
+	WireLib.setPos(prop, Pos)
+	WireLib.setAng(prop, Ang)
 	prop:SetModel(model)
 	prop:SetPlayer(Player)
 	prop:SetNWInt("ownerid", Player:UserID())
@@ -529,8 +529,8 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 
 	if IsValid(Holo.ent) then
 		prop = Holo.ent
-		E2Lib.setPos(prop, pos)
-		E2Lib.setAng(prop, ang)
+		WireLib.setPos(prop, pos)
+		WireLib.setAng(prop, ang)
 		prop:SetModel( model )
 	else
 		prop = MakeHolo(self.player, pos, ang, model, {}, {})
@@ -621,7 +621,7 @@ end
 
 -- -----------------------------------------------------------------------------
 
-__e2setcost(20) -- temporary
+__e2setcost(30) -- temporary
 
 
 
@@ -693,6 +693,7 @@ e2function entity holoCreate(index)
 	if IsValid(ret) then return ret end
 end
 
+__e2setcost(20)
 e2function void holoDelete(index)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -727,7 +728,7 @@ e2function void holoReset(index, string model, vector scale, vector color, strin
 	reset_clholo(Holo, scale) -- Reset scale, clips, and visible status
 end
 
-__e2setcost(5)
+__e2setcost(2)
 
 e2function number holoCanCreate()
 	if (not checkOwner(self)) then return 0 end
@@ -754,7 +755,7 @@ end
 
 -- -----------------------------------------------------------------------------
 
-__e2setcost(5) -- temporary
+__e2setcost(15) -- temporary
 
 e2function void holoScale(index, vector scale)
 	local Holo = CheckIndex(self, index)
@@ -814,33 +815,22 @@ end
 e2function vector holoBoneScale(index, boneindex)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return {0,0,0} end
-	if table.Count(Holo.bone_scale) <= 0 then return {0,0,0} end
-
-	for bidx,b_scale in pairs(Holo.bone_scale) do
-    	if bidx == boneindex then return b_scale end
-	end
-
-	return {0,0,0}
+	return Holo.bone_scale[boneindex] or {0, 0, 0}
 end
 
 e2function vector holoBoneScale(index, string bone)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return {0,0,0} end
-	if table.Count(Holo.bone_scale) <= 0 then return {0,0,0} end
 	local boneindex = Holo.ent:LookupBone(bone)
 	if boneindex == nil then return {0,0,0} end
-
-	for bidx,b_scale in pairs(Holo.bone_scale) do
-		if bidx == boneindex then return b_scale end
-	end
-
-	return {0,0,0}
+	return Holo.bone_scale[boneindex] or {0, 0, 0}
 end
-
+__e2setcost(1)
 e2function number holoClipsAvailable()
 	return wire_holograms_max_clips:GetInt()
 end
 
+__e2setcost(15)
 e2function void holoClipEnabled(index, enabled) -- Clip at first index
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -881,14 +871,14 @@ e2function void holoPos(index, vector position)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	E2Lib.setPos(Holo.ent, Vector(position[1],position[2],position[3]))
+	WireLib.setPos(Holo.ent, Vector(position[1],position[2],position[3]))
 end
 
 e2function void holoAng(index, angle ang)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	E2Lib.setAng(Holo.ent, Angle(ang[1],ang[2],ang[3]))
+	WireLib.setAng(Holo.ent, Angle(ang[1],ang[2],ang[3]))
 end
 
 -- -----------------------------------------------------------------------------
@@ -926,6 +916,7 @@ e2function void holoAlpha(index, alpha)
 	Holo.ent:SetRenderMode(Holo.ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 end
 
+__e2setcost(10)
 e2function void holoShadow(index, has_shadow)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -952,10 +943,12 @@ e2function array holoModelList()
 	return mlist
 end
 
+__e2setcost(1)
 e2function number holoModelAny()
 	return wire_holograms_modelany:GetInt()
 end
 
+__e2setcost(10)
 e2function void holoModel(index, string model)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -1070,6 +1063,7 @@ local function Check_Parents(child, parent)
 	return true
 end
 
+__e2setcost(40)
 e2function void holoParent(index, otherindex)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -1120,6 +1114,7 @@ end
 
 -- -----------------------------------------------------------------------------
 
+__e2setcost(2)
 e2function entity holoEntity(index)
 	local Holo = CheckIndex(self, index)
 	if Holo and IsValid(Holo.ent) then return Holo.ent end

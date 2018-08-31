@@ -12,7 +12,7 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber("Range"), self:GetClientNumber("Gravity")~=0
 	end
 

@@ -151,13 +151,13 @@ void glTextureOffsetUV( float u, float v ) {
 // Frame
 void glSleep( float ms ) {
     div ms,1000;
-    timer #GL_CURTIME; 
+    timer #GL_CURTIME;
     sub #GL_CURTIME,#GL_TIMESTAMP;
     if (*GL_CURTIME <= ms) {
         mov #regHWClear,0;
         dexit;
     }
-    timer #GL_TIMESTAMP;   
+    timer #GL_TIMESTAMP;
 }
 void glExit() {
     dexit;
@@ -360,7 +360,7 @@ float glParamList() {
 
 // 3D graphics
 void glPoly3D( float* buffer, float count ) {
-    
+
     if (*GL_MUPDATE == 1) {
         mov #GL_MUPDATE,0;
         mrotate GL_MROTATEMATRIX,GL_VROTATE;
@@ -371,10 +371,10 @@ void glPoly3D( float* buffer, float count ) {
         mmul GL_MMODELMATRIX,GL_MSCALEMATRIX;
         mmov GL_MMODELVIEWMATRIX,GL_MVIEWMATRIX;
         mmul GL_MMODELVIEWMATRIX,GL_MMODELMATRIX;
-        mload GL_MMODELVIEWMATRIX; 
+        mload GL_MMODELVIEWMATRIX;
         mloadproj GL_MPROJECTIONMATRIX;
     }
-    
+
     if (*GL_FILLMODE == GL_FILL_SOLID) {
         dvxdata_3f buffer,count;
     }
@@ -420,7 +420,7 @@ void glPerspective( float fov, float asp, float znear, float zfar ) {
     mov #GL_MUPDATE,1;
 }
 void glRotate( float x, float y, float z, float w ) {
-    mov #GL_VROTATE.x,x; mov #GL_VROTATE.y,y; mov #GL_VROTATE.z,z; mov #GL_VROTATE.w,w;      
+    mov #GL_VROTATE.x,x; mov #GL_VROTATE.y,y; mov #GL_VROTATE.z,z; mov #GL_VROTATE.w,w;
     mov #GL_MUPDATE,1;
 }
 void glTranslate( float x, float y, float z ) {
@@ -500,5 +500,3 @@ vec4f GL_VROTATE;
 vec4f GL_VTRANSLATE;
 vec4f GL_VPERSPECTIVE;
 vec4f GL_VSCALE,1,1,1,0;
-
-

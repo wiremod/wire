@@ -133,7 +133,7 @@ if CLIENT then
 	//
 	// Create basic fonts
 	//
-	local fontData = 
+	local fontData =
 	{
 		font="lucida console",
 		size=20,
@@ -345,8 +345,8 @@ if CLIENT then
 				surface.SetDrawColor(255,255,255,255)
 				surface.SetMaterial(WireGPU_matScreen)
 
-				render.PushFilterMag(TEXFILTER.POINT)
-				render.PushFilterMin(TEXFILTER.POINT)
+				render.PushFilterMag(self.texture_filtering or TEXFILTER.POINT)
+				render.PushFilterMin(self.texture_filtering or TEXFILTER.POINT)
 
 				self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
 
@@ -421,7 +421,7 @@ if CLIENT then
 		}
 
 		local mins, maxs = screen:OBBMins(), screen:OBBMaxs()
-		
+
 		local timerid = "wire_gpulib_updatebounds"..screen:EntIndex()
 		local function setbounds()
 			if not screen:IsValid() then

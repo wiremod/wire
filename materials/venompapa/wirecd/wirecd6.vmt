@@ -4,8 +4,8 @@
 	"$surfaceprop" "plastic"
 	"$phong"     "1"
 	"$halflambert"	1
- 	"$phongexponent"   "60"
- 	"$phongboost"   "2"
- 	"$phongfresnelranges"   "[.5 .8 1]"
+	"$phongexponent"   "60"
+	"$phongboost"   "2"
+	"$phongfresnelranges"   "[.5 .8 1]"
 	"$model" 1
 }

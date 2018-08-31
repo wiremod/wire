@@ -4,7 +4,7 @@ E2Lib = {}
 
 local type = type
 local function checkargtype(argn, value, argtype)
-	if type(value) ~= argtype then error(string.format("bad argument #%d to 'E2Lib.%s' (%s expected, got %s)", argn, debug.getinfo(2, "n").name, argtype, type(text)), 2) end
+	if type(value) ~= argtype then error(string.format("bad argument #%d to 'E2Lib.%s' (%s expected, got %s)", argn, debug.getinfo(2, "n").name, argtype, type(value)), 2) end
 end
 
 -- -------------------------- Helper functions -----------------------------
@@ -19,54 +19,18 @@ function E2Lib.getArguments(self, args)
 	return unpack(ret)
 end
 
-function E2Lib.isnan(n)
-	return n ~= n
-end
-local isnan = E2Lib.isnan
-
--- This function clamps the position before moving the entity
-local minx, miny, minz = -16384, -16384, -16384
-local maxx, maxy, maxz = 16384, 16384, 16384
-local clamp = math.Clamp
-function E2Lib.clampPos(pos)
-	pos.x = clamp(pos.x, minx, maxx)
-	pos.y = clamp(pos.y, miny, maxy)
-	pos.z = clamp(pos.z, minz, maxz)
-	return pos
-end
-
-function E2Lib.setPos(ent, pos)
-	if isnan(pos.x) or isnan(pos.y) or isnan(pos.z) then return end
-	return ent:SetPos(E2Lib.clampPos(pos))
-end
-
-local huge, abs = math.huge, math.abs
-function E2Lib.setAng(ent, ang)
-	if isnan(ang.pitch) or isnan(ang.yaw) or isnan(ang.roll) then return end
-	if abs(ang.pitch) == huge or abs(ang.yaw) == huge or abs(ang.roll) == huge then return false end -- SetAngles'ing inf crashes the server
-	return ent:SetAngles(ang)
-end
-
---Blacklist format:
---<top folder the material is in>[%./\\]+<material name>
---Should prevent work-arounds like pp/./copy pp/./././copy pp\\copy etc.
-local material_blacklist = {
-	"pp[%./\\]+copy"
-}
-local function validMaterial(material)
-	local lower = string.lower(material)
-	for _, v in ipairs(material_blacklist) do
-		if string.find(lower, v) then return "" end
-	end
-	return material
-end
+-- Backwards compatibility
+E2Lib.isnan = WireLib.isnan
+E2Lib.clampPos = WireLib.clampPos
+E2Lib.setPos = WireLib.setPos
+E2Lib.setAng = WireLib.setAng
 
 function E2Lib.setMaterial(ent, material)
-	ent:SetMaterial(validMaterial(material))
+	ent:SetMaterial(WireLib.IsValidMaterial(material))
 end
 
 function E2Lib.setSubMaterial(ent, index, material)
-	ent:SetSubMaterial(index,validMaterial(material))
+	ent:SetSubMaterial(index,WireLib.IsValidMaterial(material))
 end
 
 -- getHash
@@ -178,6 +142,7 @@ function E2Lib.validPhysics(entity)
 	return false
 end
 
+-- This function gets wrapped when CPPI is detected, see very end of this file
 function E2Lib.getOwner(self, entity)
 	if entity == nil then return end
 	if entity == self.entity or entity == self.player then return self.player end
@@ -213,6 +178,7 @@ function E2Lib.abuse(ply)
 	error("abuse", 0)
 end
 
+-- This function gets replaced when CPPI is detected, see very end of this file
 function E2Lib.isFriend(owner, player)
 	return owner == player
 end
@@ -257,13 +223,13 @@ local table_length_lookup = {
 }
 
 function E2Lib.guess_type(value)
+	local vtype = type(value)
+	if type_lookup[vtype] then return type_lookup[vtype] end
 	if IsValid(value) then return "e" end
 	if value.EntIndex then return "e" end
-	local vtype = type(v)
-	if type_lookup[vtype] then return type_lookup[vtype] end
 	if vtype == "table" then
-		if table_length_lookup[#v] then return table_length_lookup[#v] end
-		if v.HitPos then return "xrd" end
+		if table_length_lookup[#value] then return table_length_lookup[#value] end
+		if value.HitPos then return "xrd" end
 	end
 
 	for typeid, v in pairs(wire_expression_types2) do
@@ -470,7 +436,7 @@ end
 
 do
 	-- Shared stuff, defined later.
-	
+
 	local extensions = nil
 	local function printExtensions() end
 	local function conCommandSetExtensionStatus() end
@@ -487,9 +453,9 @@ do
 	function E2Lib.GetExtensionDocumentation(name)
 		return extensions.documentation[name] or {}
 	end
-	
+
 	if SERVER then -- serverside stuff
-		
+
 		util.AddNetworkString( "wire_expression2_server_send_extensions_list" )
 		util.AddNetworkString( "wire_expression2_client_request_print_extensions" )
 		util.AddNetworkString( "wire_expression2_client_request_set_extension_status" )
@@ -524,7 +490,7 @@ do
 			-- thus making its functions not available in the E2 Editor (see function e2_include_pass2 in extloader.lua).
 			assert( extensions.status[ name ], "EXTENSION_DISABLED" )
 		end
-		
+
 		function E2Lib.SetExtensionStatus( name, status )
 			name = name:Trim():lower()
 			status = tobool( status )
@@ -533,7 +499,7 @@ do
 				sql.Query( "REPLACE INTO wire_expression2_extensions ( name, enabled ) VALUES ( " .. sql.SQLStr( name ) .. ", " .. ( status and 1 or 0 ) .. " )" )
 			end
 		end
-		
+
 		-- After using E2Lib.SetExtensionStatus in an external script, this function should be called.
 		-- Its purpose is to update the clientside autocomplete list for the concommands.
 		function E2Lib.UpdateClientsideExtensionsList( ply )
@@ -545,12 +511,12 @@ do
 				net.Broadcast()
 			end
 		end
-		
+
 		local function buildPrettyList()
 			local function padLeft( str, len ) return (" "):rep( len - #str ) .. str end
 			local function padRight( str, len ) return str .. (" "):rep( len - #str ) end
 			local function padCenter( str, len ) return padRight( padLeft( str, math.floor( (len + #str) / 2 ) ), len ) end
-			
+
 			local list, column1, column2, columnsWidth = extensions.list, {}, {}, 0
 			for i = 1, #list do
 				local name = list[ i ]
@@ -563,7 +529,7 @@ do
 			columnsWidth = maxWidth / 2
 			maxWidth = maxWidth + 3
 			local delimiter =  " +-" .. ("-"):rep( columnsWidth ) .. "-+-" .. ("-"):rep( columnsWidth ) .. "-+"
-			
+
 			list =
 			{
 				" +-" .. ("-"):rep( maxWidth ) .. "-+",
@@ -574,10 +540,10 @@ do
 			}
 			for i = 1, maxRows do list[ #list + 1 ] = " | " .. padRight( column1[ i ] or "", columnsWidth ) .. " | " .. padRight( column2[ i ] or "", columnsWidth ) .. " |" end
 			list[ #list + 1 ] = delimiter
-			
+
 			extensions.prettyList = list
 		end
-		
+
 		function printExtensions( ply, str )
 			if IsValid( ply ) then
 				if str then ply:PrintMessage( 2, str ) end
@@ -587,7 +553,7 @@ do
 				for i = 1, #extensions.prettyList do print( extensions.prettyList[ i ] ) end
 			end
 		end
-		
+
 		function conCommandSetExtensionStatus( ply, cmd, args )
 			if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then
 				ply:PrintMessage( 2, "Sorry " .. ply:Name() .. ", you don't have access to this command." )
@@ -614,21 +580,21 @@ do
 				else printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" ) end
 			else printExtensions( ply, "Usage: '" .. cmd .. " <name>'. Here is a list of available extensions:" ) end
 		end
-		
+
 		net.Receive( "wire_expression2_client_request_print_extensions",
 			function( _, ply )
 				printExtensions( ply )
 			end
 		)
-		
+
 		net.Receive( "wire_expression2_client_request_set_extension_status",
 			function( _, ply )
 				conCommandSetExtensionStatus( ply, net.ReadString(), net.ReadTable() )
 			end
 		)
-		
+
 		hook.Add( "PlayerInitialSpawn", "wire_expression2_updateClientsideExtensions", E2Lib.UpdateClientsideExtensionsList )
-		
+
 		function wire_expression2_PostLoadExtensions()
 			table.sort( extensions.list, function( a, b ) return a < b end )
 			E2Lib.UpdateClientsideExtensionsList()
@@ -638,16 +604,16 @@ do
 			end
 			hook.Run( "Expression2_PostLoadExtensions" )
 		end
-		
+
 	else -- clientside stuff
 
 		extensions = { status = {}, list = {} }
-			
+
 		function printExtensions()
 			net.Start( "wire_expression2_client_request_print_extensions" )
 			net.SendToServer()
 		end
-		
+
 		function conCommandSetExtensionStatus( _, cmd, args )
 			net.Start( "wire_expression2_client_request_set_extension_status" )
 			net.WriteString( cmd )
@@ -658,11 +624,11 @@ do
 		net.Receive( "wire_expression2_server_send_extensions_list", function()
 			extensions = net.ReadTable()
 		end)
-		
+
 	end
 
 	-- shared stuff
-	
+
 	local function makeAutoCompleteList( cmd, args )
 		args = args:Trim():lower()
 		local status, list, tbl, j = tobool( cmd:find( "enable" ) ), extensions.list, {}, 1
@@ -686,25 +652,25 @@ end
 
 do
 	if SERVER then
-	
+
 		util.AddNetworkString( "wire_expression2_client_request_reload" )
 		net.Receive( "wire_expression2_client_request_reload",
 			function( n, ply )
 				wire_expression2_reload( ply )
 			end
 		)
-		
+
 	else
-	
+
 		local function wire_expression2_reload()
 			net.Start( "wire_expression2_client_request_reload" )
 			net.SendToServer()
 		end
-		
+
 		concommand.Add( "wire_expression2_reload", wire_expression2_reload )
-		
+
 	end
-	
+
 end
 
 -- ------------------------------ compatibility --------------------------------
@@ -753,6 +719,7 @@ hook.Add("InitPostEntity", "e2lib", function()
 		if debug.getregistry().Entity.CPPIGetOwner then
 			local _getOwner = E2Lib.getOwner
 			E2Lib.replace_function("getOwner", function(self, entity)
+				if not IsValid(entity) then return end
 				if entity == self.entity or entity == self.player then return self.player end
 
 				local owner = entity:CPPIGetOwner()

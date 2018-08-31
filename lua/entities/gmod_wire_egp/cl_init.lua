@@ -4,6 +4,7 @@ ENT.gmod_wire_egp = true
 
 function ENT:Initialize()
 	self.GPU = GPULib.WireGPU( self )
+	self.GPU.texture_filtering = TEXFILTER.ANISOTROPIC
 
 	self.RenderTable = {}
 	self:EGP_Update( EGP.HomeScreen )
@@ -24,6 +25,11 @@ function ENT:_EGP_Update( bool )
 	self.GPU:RenderToGPU( function()
 		render.Clear( 0, 0, 0, 255 )
 		--render.ClearRenderTarget( 0, 0, 0, 0 )
+
+		local currentfilter = self.GPU.texture_filtering
+
+		local mat = self:GetEGPMatrix()
+
 		for k,v in pairs( Table ) do
 			if (v.parent == -1) then self.UpdateConstantly = true end -- Check if an object is parented to the cursor
 			if (v.parent and v.parent != 0) then
@@ -34,10 +40,23 @@ function ENT:_EGP_Update( bool )
 				EGP:UnParent( self, v.index )
 			end
 			local oldtex = EGP:SetMaterial( v.material )
-			v:Draw(self)
+
+			if v.filtering != currentfilter then
+				render.PopFilterMin()
+				render.PopFilterMag()
+				render.PushFilterMag(v.filtering)
+				render.PushFilterMin(v.filtering)
+				currentfilter = v.filtering
+			end
+
+			v:Draw(self, mat)
 			EGP:FixMaterial( oldtex )
 		end
 	end)
+end
+
+function ENT:GetEGPMatrix()
+	return Matrix()
 end
 
 function ENT:DrawEntityOutline() end

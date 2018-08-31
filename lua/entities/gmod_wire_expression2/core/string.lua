@@ -109,8 +109,8 @@ __e2setcost(20) -- temporary
 
 e2function number string:toNumber()
 	local ret = tonumber(this)
- 	if ret == nil then return 0 end
- 	return ret
+	if ret == nil then return 0 end
+	return ret
 end
 
 e2function number string:toNumber(number base)
@@ -128,7 +128,7 @@ local utf8_byte = utf8.codepoint
 registerFunction("toChar", "n", "s", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	if rv1 < 1 then return "" end
+	if rv1 < 0 then return "" end
 	if rv1 > 255 then return "" end
 	return string_char(rv1)
 end)
@@ -152,7 +152,7 @@ local math_floor = math.floor
 registerFunction("toUnicodeChar", "n", "s", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	
+
 	-- upper limit used to be 2097152, new limit acquired using pcall and a for loop
 	-- above this limit, the function causes a lua error
 	if rv1 < 1 or rv1 > 1114112 then return "" end
@@ -312,7 +312,7 @@ end
 
 --- Finds and replaces every occurrence of <needle> with <new> without regular expressions
 e2function string string:replace(string needle, string new)
-	if needle == "" then return "" end -- prevent crashes. stupid garry...
+	if needle == "" then return this end
 	return this:Replace( needle, new)
 end
 

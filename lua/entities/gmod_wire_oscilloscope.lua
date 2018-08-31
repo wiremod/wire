@@ -3,37 +3,43 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Oscilloscope"
 ENT.WireDebugName	= "Oscilloscope"
 
-function ENT:SetNextNode(x, y)
-	local node_idx = self:GetNWInt("OscN") or 0
-	if (node_idx > self:GetNWFloat("Length", 50)) then node_idx = node_idx-self:GetNWFloat("Length", 50) end
-
-	self:SetNWFloat("OscX"..node_idx, x)
-	self:SetNWFloat("OscY"..node_idx, y)
-	self:SetNWInt("OscN", node_idx+1)
-end
-
-function ENT:GetNodeList()
-	local nodes = {}
-	local node_idx = self:GetNWInt("OscN")
-	local length = self:GetNWFloat("Length", 50)
-	for i=1,length do
-		table.insert(nodes, { X = (self:GetNWFloat("OscX"..node_idx, 0)), Y = (self:GetNWFloat("OscY"..node_idx, 0)) })
-
-		node_idx = node_idx+1
-		if (node_idx > length) then node_idx = node_idx-length end
-	end
-
-	return nodes
-end
-
-if CLIENT then 
+if CLIENT then
 	function ENT:Initialize()
 		self.GPU = WireGPU(self)
+
+		self.Nodes = {}
 	end
 
 	function ENT:OnRemove()
 		self.GPU:Finalize()
 	end
+
+	function ENT:GetNodeList()
+		return self.Nodes
+	end
+
+	function ENT:AddNode(x,y)
+		self.Nodes[#self.Nodes+1] = {
+			X = x,
+			Y = y
+		}
+
+		if #self.Nodes > self:GetNWFloat("Length",50) then
+			for i=#self.Nodes,self:GetNWFloat("Length",50),-1 do
+				table.remove(self.Nodes,1)
+			end
+		end
+	end
+
+	net.Receive( "wire_oscilloscope_send_node", function( length )
+		local ent = net.ReadEntity()
+		local x = net.ReadFloat()
+		local y = net.ReadFloat()
+
+		if IsValid(ent) then
+			ent:AddNode(x,y)
+		end
+	end)
 
 	function ENT:Draw()
 		self:DrawModel()
@@ -86,13 +92,22 @@ if CLIENT then
 		self.GPU:Render()
 		Wire_Render(self)
 	end
-	
+
 	return  -- No more client
 end
 
 -- Server
 
 local wire_oscilloscope_maxlength = CreateConVar("wire_oscilloscope_maxlength", 100, {FCVAR_ARCHIVE}, "Maximum number of nodes")
+
+util.AddNetworkString( "wire_oscilloscope_send_node" )
+function ENT:SetNextNode(x, y)
+	net.Start("wire_oscilloscope_send_node")
+		net.WriteEntity(self)
+		net.WriteFloat(x)
+		net.WriteFloat(y)
+	net.SendPVS( self:GetPos() )
+end
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -104,7 +119,7 @@ end
 
 function ENT:Think()
 	if (self.Inputs.Pause.Value == 0) then
-		self.BaseClass.Think(self)
+		BaseClass.Think(self)
 
 		local x = math.max(-1, math.min(self.Inputs.X.Value or 0, 1))
 		local y = math.max(-1, math.min(self.Inputs.Y.Value or 0, 1))

@@ -329,7 +329,7 @@
 	input Deactivate(void) : "Disallow the triggering from wire inputs and the updating of wire outputs."
 	input Toggle(void) : "Toggle the status."
 
-	
+
 	// Spawnflags
 	spawnflags(flags) =
 	[

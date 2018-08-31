@@ -100,7 +100,7 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 	local onScreen = 0
 	local clickActive = 0
 
@@ -169,7 +169,7 @@ function ENT:ShowOutput(cx, cy, activeval, osval)
 end
 
 function ENT:OnRestore()
-	self.BaseClass.OnRestore(self)
+	BaseClass.OnRestore(self)
 	Wire_AdjustOutputs(self, { "X", "Y", "Use", "OnScreen" })
 end
 

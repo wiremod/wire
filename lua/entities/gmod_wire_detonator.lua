@@ -55,7 +55,7 @@ end
 
 -- Dupe info functions added by TheApathetic
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	if self.target and self.target:IsValid() then
 		info.target = self.target:EntIndex()
@@ -65,7 +65,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self.target = GetEntByID(info.target)
 end

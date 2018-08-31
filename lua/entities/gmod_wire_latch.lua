@@ -152,7 +152,7 @@ end
 
 -- duplicator support
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 	if IsValid( self.Ent1 ) then
 		info.Ent1 = self.Ent1:EntIndex()
 		info.Bone1 = self.Bone1
@@ -170,7 +170,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self.Ent1 = GetEntByID(info.Ent1, game.GetWorld())
 	if IsValid(self.Ent1) then

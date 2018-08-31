@@ -21,7 +21,7 @@ function Compiler:Error(message, instr)
 	error(message .. " at line " .. instr[2][1] .. ", char " .. instr[2][2], 0)
 end
 
-function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used. 
+function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used.
 	self.context = {}
 
 	self:InitScope() -- Creates global scope!
@@ -36,6 +36,7 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.funcs = {}
 	self.dvars = {}
 	self.funcs_ret = {}
+	self.EnclosingFunctions = { --[[ { ReturnType: string } ]] }
 
 	for name, v in pairs(inputs) do
 		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
@@ -74,7 +75,7 @@ function tps_pretty(tps)
 end
 
 local function op_find(name)
-	return E2Lib.optable_inv[name]
+	return E2Lib.optable_inv[name] or "unknown?!"
 end
 
 --[[
@@ -171,12 +172,6 @@ function Compiler:HasOperator(instr, name, tps)
 	local pars = table.concat(tps)
 	local a = wire_expression2_funcs["op:" .. name .. "(" .. pars .. ")"]
 	return a and true or false
-end
-
-function Compiler:AssertOperator(instr, name, alias, tps)
-	if not self:HasOperator(instr, name, tps) then
-		self:Error("No such operator: " .. op_find(alias) .. "(" .. tps_pretty(tps) .. ")", instr)
-	end
 end
 
 function Compiler:GetOperator(instr, name, tps)
@@ -280,6 +275,7 @@ end
 -- ------------------------------------------------------------------------
 
 function Compiler:InstrSEQ(args)
+	-- args = { "seq", trace, subexpressions... }
 	self:PushPrfCounter()
 
 	local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
@@ -294,14 +290,17 @@ function Compiler:InstrSEQ(args)
 end
 
 function Compiler:InstrBRK(args)
+	-- args = { "brk", trace }
 	return { self:GetOperator(args, "brk", {})[1] }
 end
 
 function Compiler:InstrCNT(args)
+	-- args = { "cnt", trace }
 	return { self:GetOperator(args, "cnt", {})[1] }
 end
 
 function Compiler:InstrFOR(args)
+	-- args = { "for", trace, variable name, start expression, stop expression, step expression or nil, loop body }
 	local var = args[3]
 
 	local estart, tp1 = self:Evaluate(args, 2)
@@ -325,6 +324,7 @@ function Compiler:InstrFOR(args)
 end
 
 function Compiler:InstrWHL(args)
+	-- args = { "whl", trace, condition expression, loop body }
 	self:PushScope()
 
 	self:PushPrfCounter()
@@ -339,6 +339,7 @@ end
 
 
 function Compiler:InstrIF(args)
+	-- args = { "if", trace, condition expression, true case body, false case body }
 	self:PushPrfCounter()
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local prf_cond = self:PopPrfCounter()
@@ -357,6 +358,7 @@ function Compiler:InstrIF(args)
 end
 
 function Compiler:InstrDEF(args)
+	-- args = { "def", trace, primary expression, fallback expression }
 	local ex1, tp1 = self:Evaluate(args, 1)
 
 	self:PushPrfCounter()
@@ -375,6 +377,7 @@ function Compiler:InstrDEF(args)
 end
 
 function Compiler:InstrCND(args)
+	-- args = { "cnd", trace, conditional expression, true expression, false expression }
 	local ex1, tp1 = self:Evaluate(args, 1)
 
 	self:PushPrfCounter()
@@ -396,7 +399,8 @@ function Compiler:InstrCND(args)
 end
 
 
-function Compiler:InstrFUN(args)
+function Compiler:InstrCALL(args)
+	-- args = { "call", trace, function name, { argument expressions... } }
 	local exprs = { false }
 
 	local tps = {}
@@ -413,7 +417,8 @@ function Compiler:InstrFUN(args)
 	return exprs, rt[2]
 end
 
-function Compiler:InstrSFUN(args)
+function Compiler:InstrSTRINGCALL(args)
+	-- args = { "stringcall", trace, function name expression, { argument expressions... }, return type }
 	local exprs = { false }
 
 	local fexp, ftp = self:Evaluate(args, 1)
@@ -429,14 +434,17 @@ function Compiler:InstrSFUN(args)
 		exprs[#exprs + 1] = ex
 	end
 
-	local rtsfun = self:GetOperator(args, "sfun", {})[1]
+	exprs[#exprs + 1] = tps
+
+	local rtsfun = self:GetOperator(args, "stringcall", {})[1]
 
 	local typeids_str = table.concat(tps, "")
 
 	return { rtsfun, fexp, exprs, tps, typeids_str, args[5] }, args[5]
 end
 
-function Compiler:InstrMTO(args)
+function Compiler:InstrMETHODCALL(args)
+	-- args = { "methodcall", trace, method name, object expression, { argument expressions... } }
 	local exprs = { false }
 
 	local tps = {}
@@ -458,6 +466,7 @@ function Compiler:InstrMTO(args)
 end
 
 function Compiler:InstrASS(args)
+	-- args = { "ass", trace, variable name, assigned expression }
 	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
 	local ScopeID = self:SetGlobalVariableType(op, tp, args)
@@ -474,6 +483,7 @@ function Compiler:InstrASS(args)
 end
 
 function Compiler:InstrASSL(args)
+	-- args = { "assl", trace, variable name, assigned expression }
 	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
 	local ScopeID = self:SetLocalVariableType(op, tp, args)
@@ -487,6 +497,7 @@ function Compiler:InstrASSL(args)
 end
 
 function Compiler:InstrGET(args)
+	-- args = { "get", trace, object expression, field expression, return type or nil }
 	local ex, tp = self:Evaluate(args, 1)
 	local ex1, tp1 = self:Evaluate(args, 2)
 	local tp2 = args[5]
@@ -511,6 +522,7 @@ function Compiler:InstrGET(args)
 end
 
 function Compiler:InstrSET(args)
+	-- args = { "set", trace, object expression, field expression, value expression, value type or nil }
 	local ex, tp = self:Evaluate(args, 1)
 	local ex1, tp1 = self:Evaluate(args, 2)
 	local ex2, tp2 = self:Evaluate(args, 3)
@@ -522,7 +534,7 @@ function Compiler:InstrSET(args)
 
 		local rt = self:GetOperator(args, "idx", { tp, tp1, tp2 })
 
-		return { rt[1], ex, ex1, ex2, ScopeID }, rt[2]
+		return { rt[1], ex, ex1, ex2, nil }, rt[2]
 	else
 		if tp2 ~= args[6] then
 			self:Error("Indexing type mismatch, specified [" .. tps_pretty({ args[6] }) .. "] but value is [" .. tps_pretty({ tp2 }) .. "]", args)
@@ -541,6 +553,7 @@ end
 -- generic code for all binary non-boolean operators
 for _, operator in ipairs({ "add", "sub", "mul", "div", "mod", "exp", "eq", "neq", "geq", "leq", "gth", "lth", "band", "band", "bor", "bxor", "bshl", "bshr" }) do
 	Compiler["Instr" .. operator:upper()] = function(self, args)
+		-- args = { operator, trace, left expression, right expression }
 		local ex1, tp1 = self:Evaluate(args, 1)
 		local ex2, tp2 = self:Evaluate(args, 2)
 		local rt = self:GetOperator(args, operator, { tp1, tp2 })
@@ -549,6 +562,7 @@ for _, operator in ipairs({ "add", "sub", "mul", "div", "mod", "exp", "eq", "neq
 end
 
 function Compiler:InstrINC(args)
+	-- args = { "inc", trace, variable name }
 	local op = args[3]
 	local tp, ScopeID = self:GetVariableType(args, op)
 	local rt = self:GetOperator(args, "inc", { tp })
@@ -564,6 +578,7 @@ function Compiler:InstrINC(args)
 end
 
 function Compiler:InstrDEC(args)
+	-- args = { "dec", trace, variable name }
 	local op = args[3]
 	local tp, ScopeID = self:GetVariableType(args, op)
 	local rt = self:GetOperator(args, "dec", { tp })
@@ -579,6 +594,7 @@ function Compiler:InstrDEC(args)
 end
 
 function Compiler:InstrNEG(args)
+	-- args = { "neg", trace, expression }
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local rt = self:GetOperator(args, "neg", { tp1 })
 	return { rt[1], ex1 }, rt[2]
@@ -586,6 +602,7 @@ end
 
 
 function Compiler:InstrNOT(args)
+	-- args = { "not", trace, expression }
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local rt1is = self:GetOperator(args, "is", { tp1 })
 	local rt = self:GetOperator(args, "not", { rt1is[2] })
@@ -593,6 +610,7 @@ function Compiler:InstrNOT(args)
 end
 
 function Compiler:InstrAND(args)
+	-- args = { "and", trace, left expression, right expression }
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local ex2, tp2 = self:Evaluate(args, 2)
 	local rt1is = self:GetOperator(args, "is", { tp1 })
@@ -602,6 +620,7 @@ function Compiler:InstrAND(args)
 end
 
 function Compiler:InstrOR(args)
+	-- args = { "or", trace, left expression, right expression }
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local ex2, tp2 = self:Evaluate(args, 2)
 	local rt1is = self:GetOperator(args, "is", { tp1 })
@@ -612,13 +631,17 @@ end
 
 
 function Compiler:InstrTRG(args)
+	-- args = { "trg", trace, variable name }
 	local op = args[3]
-	local tp = self:GetVariableType(args, op)
+	if not self.inputs[op] then
+		self:Error("Triggered operator (~" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs", args)
+	end
 	local rt = self:GetOperator(args, "trg", {})
 	return { rt[1], op }, rt[2]
 end
 
 function Compiler:InstrDLT(args)
+	-- args = { "dlt", trace, variable name }
 	local op = args[3]
 	local tp, ScopeID = self:GetVariableType(args, op)
 
@@ -627,70 +650,45 @@ function Compiler:InstrDLT(args)
 	end
 
 	self.dvars[op] = true
-	self:AssertOperator(args, "sub", "dlt", { tp, tp })
 	local rt = self:GetOperator(args, "sub", { tp, tp })
 	local rtvar = self:GetOperator(args, "var", {})
 	return { rt[1], { rtvar[1], op, ScopeID }, { rtvar[1], "$" .. op, ScopeID } }, rt[2]
 end
 
 function Compiler:InstrIWC(args)
+	-- args = { "iwc", trace, variable name }
 	local op = args[3]
 
 	if self.inputs[op] then
-		local tp = self:GetVariableType(args, op)
 		local rt = self:GetOperator(args, "iwc", {})
 		return { rt[1], op }, rt[2]
 	elseif self.outputs[op] then
-		local tp = self:GetVariableType(args, op)
 		local rt = self:GetOperator(args, "owc", {})
 		return { rt[1], op }, rt[2]
 	else
 		self:Error("Connected operator (->" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs or outputs", args)
 	end
 end
-
-function Compiler:InstrNUM(args)
+function Compiler:InstrLITERAL(args)
+	-- args = { "literal", trace, value, value type }
 	self.prfcounter = self.prfcounter + 0.5
-	RunString("E2Lib.Compiler.native = function() return " .. args[3] .. " end")
-	return { Compiler.native }, "n"
-end
-
-function Compiler:InstrNUMI(args)
-	self.prfcounter = self.prfcounter + 1
-	Compiler.native = { 0, tonumber(args[3]) }
-	RunString("local value = E2Lib.Compiler.native E2Lib.Compiler.native = function() return value end")
-	return { Compiler.native }, "c"
-end
-
-function Compiler:InstrNUMJ(args)
-	self.prfcounter = self.prfcounter + 1
-	Compiler.native = { 0, 0, tonumber(args[3]), 0 }
-	RunString("local value = E2Lib.Compiler.native E2Lib.Compiler.native = function() return value end")
-	return { Compiler.native }, "q"
-end
-
-function Compiler:InstrNUMK(args)
-	self.prfcounter = self.prfcounter + 1
-	Compiler.native = { 0, 0, 0, tonumber(args[3]) }
-	RunString("local value = E2Lib.Compiler.native E2Lib.Compiler.native = function() return value end")
-	return { Compiler.native }, "q"
-end
-
-function Compiler:InstrSTR(args)
-	self.prfcounter = self.prfcounter + 1.0
-	RunString(string.format("E2Lib.Compiler.native = function() return %q end", args[3]))
-	return { Compiler.native }, "s"
+	local value = args[3]
+	return { function() return value end }, args[4]
 end
 
 function Compiler:InstrVAR(args)
+	-- args = { "var", trace, variable name }
 	self.prfcounter = self.prfcounter + 1.0
 	local tp, ScopeID = self:GetVariableType(args, args[3])
-	RunString(string.format("E2Lib.Compiler.native = function(self) return self.Scopes[%i][%q] end", ScopeID, args[3])) -- This Line!
-	return { Compiler.native }, tp
+	local name = args[3]
+
+	return {function(self)
+		return self.Scopes[ScopeID][name]
+	end}, tp
 end
 
 function Compiler:InstrFEA(args)
-	-- local sfea = self:Instruction(trace, "fea", keyvar, keytype, valvar, valtype, tableexpr, self:Block("foreach statement"))
+	-- args = { "fea", trace, key variable name, key type, value variable name, value type, table expression, loop body }
 	local keyvar, keytype, valvar, valtype = args[3], args[4], args[5], args[6]
 	local tableexpr, tabletp = self:Evaluate(args, 5)
 
@@ -731,16 +729,15 @@ end
 
 
 function Compiler:InstrFUNCTION(args)
-
-	local Sig, Return, Type, Args, Block = args[3], args[4], args[5], args[6], args[7]
+	-- args = { "function", trace, signature, return type, object type, { { parameter name, parameter type }... }, function body }
+	local Sig, Return, methodType, Args = args[3], args[4], args[5], args[6]
 	Return = Return or ""
-	Type = Type or ""
 
 	local OldScopes = self:SaveScopes()
 	self:InitScope() -- Create a new Scope Enviroment
 	self:PushScope()
 
-	for K, D in pairs(Args) do
+	for _, D in pairs(Args) do
 		local Name, Type = D[1], wire_expression_types[D[2]][1]
 		self:SetLocalVariableType(Name, Type, args)
 	end
@@ -752,41 +749,93 @@ function Compiler:InstrFUNCTION(args)
 
 	self.funcs_ret[Sig] = Return
 
-	self.func_ret = Return
+	table.insert(self.EnclosingFunctions, { ReturnType = Return })
 
 	local Stmt = self:EvaluateStatement(args, 5) -- Offset of -2
 
-	self.func_ret = nil
+	table.remove(self.EnclosingFunctions)
 
 	self:PopScope()
 	self:LoadScopes(OldScopes) -- Reload the old enviroment
 
 	self.prfcounter = self.prfcounter + 40
 
-	return { self:GetOperator(args, "function", {})[1], Stmt, args }
+	-- This is the function that will be bound to to the function name, ie. the
+	-- one that's called at runtime when code calls the function
+	local function body(self, runtimeArgs)
+		-- runtimeArgs = { body, parameterExpression1, ..., parameterExpressionN, parameterTypes }
+		-- we need to evaluate the arguments before switching to the new scope
+		local parameterValues = {}
+		for parameterIndex = 2, #Args + 1 do
+			local parameterExpression = runtimeArgs[parameterIndex]
+			local parameterValue = parameterExpression[1](self, parameterExpression)
+			parameterValues[parameterIndex - 1] = parameterValue
+		end
+
+		local OldScopes = self:SaveScopes()
+		self:InitScope()
+		self:PushScope()
+
+		for parameterIndex = 1, #Args do
+			local parameterName = Args[parameterIndex][1]
+			local parameterValue = parameterValues[parameterIndex]
+			self.Scope[parameterName] = parameterValue
+		end
+
+		self.func_rv = nil
+		local ok, msg = pcall(Stmt[1],self,Stmt)
+
+		self:PopScope()
+		self:LoadScopes(OldScopes)
+
+		-- a "C stack overflow" error will probably just confuse E2 users more than a "tick quota" error.
+		if not ok and msg:find( "C stack overflow" ) then error( "tick quota exceeded", -1 ) end
+
+		if not ok and msg == "return" then return self.func_rv end
+
+		if not ok then error(msg,0) end
+
+		if Return ~= "" then
+			local argNames = {}
+			local offset = methodType == "" and 0 or 1
+
+			for k, v in ipairs(Args) do
+				argNames[k - offset] = v[1]
+			end
+
+			error("Function " .. E2Lib.generate_signature(Sig, nil, argNames) ..
+				" executed and didn't return a value - expecting a value of type " ..
+				E2Lib.typeName(Return), 0)
+		end
+	end
+
+	return { self:GetOperator(args, "function", {})[1], Sig, body }
 end
 
 function Compiler:InstrRETURN(args)
-	local Value, Type = self:Evaluate(args, 1)
-
-	if not self.func_ret or self.func_ret == "" then
-		self:Error("Return type mismatch: void expected, got " .. tps_pretty(Type), args)
-	elseif self.func_ret ~= Type then
-		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected, got " .. tps_pretty(Type), args)
+	-- args = { "return", trace, return expression or nil }
+	local enclosingFunction = self.EnclosingFunctions[#self.EnclosingFunctions]
+	if enclosingFunction == nil then
+		self:Error("Return may not exist outside of a function", args)
 	end
 
-	return { self:GetOperator(args, "return", {})[1], Value, Type }
-end
-
-function Compiler:InstrRETURNVOID(args)
-	if self.func_ret and self.func_ret ~= "" then
-		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected got, void", args)
+	local expectedType = assert(enclosingFunction.ReturnType)
+	local value, actualType
+	if args[3] then
+		value, actualType = self:Evaluate(args, 1)
+	else
+		actualType = ""
 	end
 
-	return { self:GetOperator(args, "return", {})[1], Value, Type }
+	if actualType ~= expectedType then
+		self:Error("Return type mismatch: " .. tps_pretty(expectedType) .. " expected, got " .. tps_pretty(actualType), args)
+	end
+
+	return { self:GetOperator(args, "return", {})[1], value, actualType }
 end
 
 function Compiler:InstrKVTABLE(args)
+	-- args = { "kvtable", trace, { key expression = value expression... } }
 	local s = {}
 	local stypes = {}
 
@@ -806,6 +855,7 @@ function Compiler:InstrKVTABLE(args)
 end
 
 function Compiler:InstrKVARRAY(args)
+	-- args = { "kvarray", trace, { key expression = value expression... } }
 	local values = {}
 	local types = {}
 
@@ -825,6 +875,8 @@ function Compiler:InstrKVARRAY(args)
 end
 
 function Compiler:InstrSWITCH(args)
+	-- args = { "switch", trace, value expression, { { case expression or nil, body }... } }
+	-- up to one case can have a nil case expression, this is the default case
 	self:PushPrfCounter()
 	local value, type = Compiler["Instr" .. string.upper(args[3][1])](self, args[3]) -- This is the value we are passing though the switch statment
 	local prf_cond = self:PopPrfCounter()
@@ -833,6 +885,7 @@ function Compiler:InstrSWITCH(args)
 
 	local cases = {}
 	local Cases = args[4]
+	local default
 	for i = 1, #Cases do
 		local case, block, prf_eq, eq = Cases[i][1], Cases[i][2], 0, nil
 		if case then -- The default will not have one
@@ -861,7 +914,7 @@ function Compiler:InstrSWITCH(args)
 end
 
 function Compiler:InstrINCLU(args)
-
+	-- args = { "inclu", trace, filename }
 	local file = args[3]
 	local include = self.includes[file]
 

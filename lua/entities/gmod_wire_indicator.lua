@@ -23,7 +23,7 @@ if CLIENT then
 	function ENT:GetWorldTipBodySize()
 		return 400,80
 	end
-	
+
 	local white = Color(255,255,255,255)
 	local black = Color(0,0,0,255)
 
@@ -34,7 +34,7 @@ if CLIENT then
 		surface.DrawLine( x + w, y + h, x, 		y + h )
 		surface.DrawLine( x, 	 y + h, x, 		y )
 	end
-	
+
 	local function drawColorSlider( x, y, w, h, self )
 		if self.a == self.b then -- no infinite loops!
 			draw.DrawText( "Can't draw color bar because A == B",
@@ -82,7 +82,7 @@ if CLIENT then
 			drawSquare(pos_x - step / 2,y-h*0.15,math.ceil(w/50),h*1.4)
 		end
 	end
-	
+
 	function ENT:DrawWorldTipBody( pos )
 		-- Get colors
 		local data = self:GetOverlayData()
@@ -94,7 +94,7 @@ if CLIENT then
 		-- A
 		local color_text = string.format("A color: %d,%d,%d,%d\nA value: %d",self.ar,self.ag,self.ab,self.aa,self.a)
 		draw.DrawText( color_text, "GModWorldtip", pos.min.x + pos.edgesize, pos.min.y + pos.edgesize, white, TEXT_ALIGN_LEFT )
-		
+
 		-- B
 		local color_text = string.format("B color: %d,%d,%d,%d\nB value: %d",self.br,self.bg,self.bb,self.ba,self.b)
 		draw.DrawText( color_text, "GModWorldtip", pos.max.x - pos.edgesize, pos.min.y + pos.edgesize, white, TEXT_ALIGN_RIGHT )
@@ -187,8 +187,8 @@ function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba
 		Pos = Pos, Angle = Ang,
 		Model = Model, frozen = frozen, nocollide = nocollide },
 		a, ar, ag, ab, aa, b, br, bg, bb, ba )
-		if IsValid(ent) then 
-			ent:SetNWString("WireName", name) 
+		if IsValid(ent) then
+			ent:SetNWString("WireName", name)
 			duplicator.StoreEntityModifier( ent, "WireName", { name = name } )
 		end
 		return ent
@@ -220,7 +220,7 @@ function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba
 		end
 		wire_indicators[i - 1]:DeleteOnRemove( wire_indicators[i] ) --when one is removed, all are. a linked chain
 	end
-	
+
 	if wire_indicators[7] then
 		wire_indicators[7]:DeleteOnRemove( wire_indicators[1] ) --loops chain back to first
 	end

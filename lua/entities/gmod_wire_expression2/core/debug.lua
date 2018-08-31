@@ -21,11 +21,11 @@ hook.Add( "Think", "e2_printcolor_delays", function()
 	for ply, delays in pairs( print_delays ) do
 		if IsValid( ply ) then
 			local print_max = ply:GetInfoNum( "wire_expression2_print_max", print_max )
-			
+
 			if CurTime() > delays.next_time and delays.count < print_max then
 				local print_delay = ply:GetInfoNum( "wire_expression2_print_delay", print_delay )
 				delays.next_time = CurTime() + print_delay
-				
+
 				delays.count = delays.count + 1
 			elseif delays.count > print_max then
 				delays.count = print_max
@@ -183,25 +183,63 @@ end
 /******************************************************************************/
 
 -- helper stuff for printTable
-local _Msg = Msg
-local msgbuf
-local function MyMsg(s)
-	table.insert(msgbuf, s)
+local PrintTableToString
+do
+	local msgbuf = {}
+	local function Msg(s)
+		table.insert(msgbuf, s)
+	end
+
+	-- From: https://raw.githubusercontent.com/garrynewman/garrysmod/ced7ae207d60af3f77779b30630cce91029e1981/garrysmod/lua/includes/util.lua
+	local PrintTable
+	PrintTable = function( t, indent, done )
+
+		done = done or {}
+		indent = indent or 0
+		local keys = table.GetKeys( t )
+
+		table.sort( keys, function( a, b )
+			if ( isnumber( a ) && isnumber( b ) ) then return a < b end
+			return tostring( a ) < tostring( b )
+		end )
+
+		for i = 1, #keys do
+			local key = keys[ i ]
+			local value = t[ key ]
+			Msg( string.rep( "\t", indent ) )
+
+			if  ( istable( value ) && !done[ value ] ) then
+
+				done[ value ] = true
+				Msg( tostring( key ) .. ":" .. "\n" )
+				PrintTable ( value, indent + 2, done )
+				done[ value ] = nil
+
+			else
+
+				Msg( tostring( key ) .. "\t=\t" )
+				Msg( tostring( value ) .. "\n" )
+
+			end
+
+		end
+
+	end
+	PrintTableToString = function(...)
+		msgbuf = {}
+		PrintTable(...)
+		return table.concat(msgbuf)
+	end
 end
 
 --- Prints an array like the lua function [[G.PrintTable|PrintTable]] does, except to the chat area.
 e2function void printTable(array arr)
 	if not checkOwner(self) then return end
 	if not check_delay( self.player ) then return end
-	
-	msgbuf = {}
-	Msg = MyMsg
-	PrintTable(arr)
-	Msg = _Msg
-	for _,line in ipairs(string.Explode("\n",table.concat(msgbuf))) do
+
+	for _,line in ipairs(string.Explode("\n",PrintTableToString(arr))) do
 		self.player:ChatPrint(line)
 	end
-	msgbuf = nil
 end
 
 -- The printTable(T) function is in table.lua because it uses a local function

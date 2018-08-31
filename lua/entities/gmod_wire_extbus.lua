@@ -31,7 +31,7 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
-  self.BaseClass.Think(self)
+  BaseClass.Think(self)
 
   self.DataRate = self.DataBytes
   self.DataBytes = 0
@@ -81,16 +81,16 @@ end
 local recursiveCounter = 0
 function ENT:GetDeviceInfo(deviceEnt)
   local deviceType = CPULib.GetDeviceType(deviceEnt:GetClass())
-  if deviceEnt.MySocket then
-    if deviceEnt.MySocket.Inputs.Memory.Src then
-      self:GetDeviceInfo(deviceEnt.MySocket.Inputs.Memory.Src)
+  if deviceEnt.Socket then
+    if deviceEnt.Socket.Inputs.Memory.Src then
+      self:GetDeviceInfo(deviceEnt.Socket.Inputs.Memory.Src)
     else
       table.insert(self.ControlData,14)
     end
     return
-  elseif deviceEnt.MyPlug then
-    if deviceEnt.MyPlug.Inputs.Memory.Src then
-      self:GetDeviceInfo(deviceEnt.MyPlug.Inputs.Memory.Src)
+  elseif deviceEnt.Plug then
+    if deviceEnt.Plug.Inputs.Memory.Src then
+      self:GetDeviceInfo(deviceEnt.Plug.Inputs.Memory.Src)
     else
       table.insert(self.ControlData,13)
     end

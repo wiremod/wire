@@ -46,12 +46,7 @@ end
 local Inputs = {}
 local Outputs = {}
 local CurLink = {}
-
-hook.Add("Think", "WireLib_Think", function()
-	for idx,port in pairs(Outputs) do
-		port.TriggerLimit = 4
-	end
-end)
+local CurTime = CurTime
 
 -- helper function that pcalls an input
 function WireLib.TriggerInput(ent, name, value, ...)
@@ -61,9 +56,10 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	if (not ent.TriggerInput) then return end
 	local ok, ret = xpcall(ent.TriggerInput, debug.traceback, ent, name, value, ...)
 	if not ok then
-		local message = string.format("Wire error (%s):\n%s\n", tostring(ent), ret)
-		WireLib.ErrorNoHalt(message)
 		local ply = WireLib.GetOwner(ent)
+		local owner_msg = IsValid(ply) and (" by %s"):format(tostring(ply)) or ""
+		local message = ("Wire error (%s%s):\n%s\n"):format(tostring(ent),owner_msg, ret)
+		WireLib.ErrorNoHalt(message)
 		if IsValid(ply) then WireLib.ClientError(message, ply) end
 	end
 end
@@ -89,10 +85,10 @@ WireLib.DT = {
 		Zero = ""
 	},
 	TABLE = {
-		Zero = {}
+		Zero = {n={},ntypes={},s={},stypes={},size=0},
 	},
 	BIDIRTABLE = {
-		Zero = {},
+		Zero = {n={},ntypes={},s={},stypes={},size=0},
 		BiDir = true
 	},
 	ANY = {
@@ -505,7 +501,14 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 
 	local output = ent.Outputs[oname]
 	if (output) and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE") then
-		if (output.TriggerLimit <= 0) then return end
+		local timeOfFrame = CurTime()
+		if timeOfFrame ~= output.TriggerTime then
+			-- Reset the TriggerLimit every frame
+			output.TriggerLimit = 4
+			output.TriggerTime = timeOfFrame
+		elseif output.TriggerLimit <= 0 then
+			return
+		end
 		output.TriggerLimit = output.TriggerLimit - 1
 
 		output.Value = value
@@ -593,7 +596,7 @@ function WireLib.Link_Start(idx, ent, pos, iname, material, color, width)
 	input.StartPos = pos
 	input.Material = material
 	input.Color = color
-	input.Width = width
+	input.Width = math.Clamp(width, 0, 5)
 
 	return true
 end
@@ -991,26 +994,6 @@ function WireLib.GetOwner(ent)
 	return E2Lib.getOwner({}, ent)
 end
 
-function WireLib.dummytrace(ent)
-	local pos = ent:GetPos()
-	return {
-		FractionLeftSolid = 0,
-		HitNonWorld       = true,
-		Fraction          = 0,
-		Entity            = ent,
-		HitPos            = pos,
-		HitNormal         = Vector(0,0,0),
-		HitBox            = 0,
-		Normal            = Vector(1,0,0),
-		Hit               = true,
-		HitGroup          = 0,
-		MatType           = 0,
-		StartPos          = pos,
-		PhysicsBone       = 0,
-		WorldToLocal      = Vector(0,0,0),
-	}
-end
-
 function WireLib.NumModelSkins(model)
 	if NumModelSkins then
 		return NumModelSkins(model)
@@ -1184,3 +1167,40 @@ concommand.Add("wireversion", function(ply,cmd,args)
 		print(text)
 	end
 end, nil, "Prints the server's Wiremod version")
+
+
+local material_blacklist = {
+	["engine/writez"] = true,
+	["pp/copy"] = true,
+	["effects/ar2_altfire1"] = true
+}
+function WireLib.IsValidMaterial(material)
+	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
+	if material_blacklist[path] then return "" end
+	return material
+end
+
+if not WireLib.PatchedDuplicator then
+	WireLib.PatchedDuplicator = true
+
+	local localPos
+
+	local oldSetLocalPos = duplicator.SetLocalPos
+	function duplicator.SetLocalPos(pos, ...)
+		localPos = pos
+		return oldSetLocalPos(pos, ...)
+	end
+
+	local oldPaste = duplicator.Paste
+	function duplicator.Paste(player, entityList, constraintList, ...)
+		local result = { oldPaste(player, entityList, constraintList, ...) }
+		local createdEntities, createdConstraints = result[1], result[2]
+		local data = {
+			EntityList = entityList, ConstraintList = constraintList,
+			CreatedEntities = createdEntities, CreatedConstraints = createdConstraints,
+			Player = player, HitPos = localPos,
+		}
+		hook.Run("AdvDupe_FinishPasting", {data}, 1)
+		return unpack(result)
+	end
+end

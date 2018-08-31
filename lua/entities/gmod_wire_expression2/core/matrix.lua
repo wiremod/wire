@@ -126,13 +126,6 @@ end
 /******************************************************************************/
 // Basic operations
 
-registerOperator("dlt", "xm2", "xm2", function(self, args)
-	local op1, scope = args[2], args[3]
-	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
-	return { rv1[1] - rv2[1], rv1[2] - rv2[2],
-			 rv1[3] - rv2[3], rv1[4] - rv2[4] }
-end)
-
 e2function matrix2 operator_neg(matrix2 rv1)
 	return { -rv1[1], -rv1[2],
 			 -rv1[3], -rv1[4] }
@@ -525,14 +518,6 @@ end
 
 /******************************************************************************/
 // Basic operations
-
-registerOperator("dlt", "m", "m", function(self, args)
-	local op1, scope = args[2], args[3]
-	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
-	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3],
-			 rv1[4] - rv2[4], rv1[5] - rv2[5], rv1[6] - rv2[6],
-			 rv1[7] - rv2[7], rv1[8] - rv2[8], rv1[9] - rv2[9]	}
-end)
 
 e2function matrix operator_neg(matrix rv1)
 	return { -rv1[1], -rv1[2], -rv1[3],
@@ -1090,15 +1075,6 @@ end
 
 /******************************************************************************/
 // Basic operations
-
-registerOperator("dlt", "xm4", "xm4", function(self, args)
-	local op1, scope = args[2], args[3]
-	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
-	return { rv1[1] - rv2[1],	rv1[2] - rv2[2],	rv1[3] - rv2[3],	rv1[4] - rv2[4],
-			 rv1[5] - rv2[5],	rv1[6] - rv2[6],	rv1[7] - rv2[7],	rv1[8] - rv2[8],
-			 rv1[9] - rv2[9],	rv1[10] - rv2[10],	rv1[11] - rv2[11],	rv1[12] - rv2[12],
-			 rv1[13] - rv2[13],	rv1[14] - rv2[14],	rv1[15] - rv2[15],	rv1[16] - rv2[16] }
-end)
 
 e2function matrix4 operator_neg(matrix4 rv1)
 	return { -rv1[1],	-rv1[2],	-rv1[3],	-rv1[4],

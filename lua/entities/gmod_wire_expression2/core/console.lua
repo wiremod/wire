@@ -8,6 +8,8 @@ local function validConCmd(self, command)
 	local ply = self.player
 	if not ply:IsValid() then return false end
 	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return false end
+	-- Validating the concmd length to ensure that it won't crash the server.
+	if #command > 500000 then return false end
 
 	local whitelist = (ply:GetInfo("wire_expression2_concmd_whitelist") or ""):Trim()
 	if whitelist == "" then return true end

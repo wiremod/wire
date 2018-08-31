@@ -120,7 +120,7 @@ if (SERVER) then
 	-- Extra Set Poly queue item, used by poly objects with a lot of vertices in them
 	util.AddNetworkString( "SetVertex" )
 	function EGP._SetVertex( Ent, ply, index, vertices, skiptoadd )
-		
+
 		if not IsValid(ply) or not ply:IsPlayer() then return end
 		if (EGP:CheckInterval( ply ) == false) then
 			EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", index, vertices, skiptoadd )
@@ -200,6 +200,22 @@ if (SERVER) then
 
 	local function MoveTopLeft( ent, ply, bool )
 		ent.TopLeft = bool
+		EGP:SendQueueItem( ply )
+	end
+
+	util.AddNetworkString( "EditFiltering" )
+	local function EditFiltering( Ent, ply, filtering )
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if (EGP:CheckInterval( ply ) == false) then
+			EGP:InsertQueue( Ent, ply, EditFiltering, "EditFiltering", filtering )
+			return
+		end
+		if (!EGP.umsg.Start("EGP_Transmit_Data", ply)) then return end
+			net.WriteEntity( Ent )
+			net.WriteString( "EditFiltering" )
+			net.WriteUInt( filtering, 2 )
+		EGP.umsg.End()
+
 		EGP:SendQueueItem( ply )
 	end
 
@@ -308,7 +324,7 @@ if (SERVER) then
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 20
 			end
-			
+
 			for i=1,#Ent.RenderTable do
 				E2.prf = E2.prf + 0.3
 				if Ent.RenderTable[i].index == Data[1] then
@@ -322,7 +338,7 @@ if (SERVER) then
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 20
 			end
-			
+
 			// Remove all queued actions for this screen
 			local queue = self.Queue[E2.player] or {}
 			local i = 1
@@ -334,7 +350,7 @@ if (SERVER) then
 					i = i + 1
 				end
 			end
-			
+
 			Ent.RenderTable = {}
 
 			self:AddQueue( Ent, E2.player, ClearScreen, "ClearScreen" )
@@ -368,6 +384,9 @@ if (SERVER) then
 		elseif (Action == "MoveTopLeft") then
 			local Data = {...}
 			self:AddQueue( Ent, E2.player, MoveTopLeft, "MoveTopLeft", Data[1] )
+		elseif (Action == "EditFiltering") then
+			local Data = {...}
+			self:AddQueue( Ent, E2.player, EditFiltering, "EditFiltering", Data[1] )
 		end
 	end
 else -- SERVER/CLIENT
@@ -446,6 +465,10 @@ else -- SERVER/CLIENT
 
 				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
 			end
+		elseif (Action == "EditFiltering") then
+			if Ent.GPU then -- Only Screens use GPULib
+				Ent.GPU.texture_filtering = net.ReadUInt(2) or TEXFILTER.ANISOTROPIC
+			end
 		elseif (Action == "ReceiveObjects") then
 			local order_was_changed = false
 
@@ -492,7 +515,7 @@ else -- SERVER/CLIENT
 
 							-- For EGP HUD
 							if (Obj.res) then Obj.res = nil end
-							
+
 							current_obj = Obj
 						else -- Edit
 							self:EditObject( v, v:Receive() )
@@ -504,7 +527,7 @@ else -- SERVER/CLIENT
 
 							-- For EGP HUD
 							if (v.res) then v.res = nil end
-							
+
 							current_obj = v
 						end
 					else -- Object does not exist. Create new
@@ -513,7 +536,7 @@ else -- SERVER/CLIENT
 						Obj.index = index
 						if (Obj.OnCreate) then Obj:OnCreate() end
 						Ent.RenderTable[#Ent.RenderTable+1] = Obj--table.insert( Ent.RenderTable, Obj )
-						
+
 						current_obj = Obj
 					end
 
@@ -524,7 +547,7 @@ else -- SERVER/CLIENT
 					end
 				end
 			end
-			
+
 
 			-- Change order now
 			if order_was_changed then
@@ -614,12 +637,13 @@ if (SERVER) then
 
 					DataToSend[#DataToSend+1] = { ID = obj.ID, index = obj.index, Settings = obj:DataStreamInfo() }
 				end
-				
+
 				timer.Simple( k, function() -- send 1 second apart
 					net.Start("EGP_Request_Transmit")
 						net.WriteTable({
 							Ent = v,
 							Objects = DataToSend,
+							Filtering = v.GPU_texture_filtering,
 							IsLastScreen = (k == #targets) and #targets or nil -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
 						})
 					net.Send(ply)
@@ -651,9 +675,12 @@ else
 	function EGP:ReceiveDataStream( decoded )
 		local Ent = decoded.Ent
 		local Objects = decoded.Objects
-		
+
 		if (self:ValidEGP( Ent )) then
 			Ent.RenderTable = {}
+			if Ent.GPU then -- Only Screens use GPULib
+				Ent.GPU.texture_filtering = decoded.Filtering or TEXFILTER.ANISOTROPIC
+			end
 			for _,v in pairs( Objects ) do
 				local Obj = self:GetObjectByID(v.ID)
 				self:EditObject( Obj, v.Settings )
@@ -666,7 +693,7 @@ else
 			end
 			Ent:EGP_Update()
 		end
-		
+
 		if decoded.IsLastScreen then
 			LocalPlayer():ChatPrint("[EGP] Received EGP object reload. " .. decoded.IsLastScreen .. " screens' objects were reloaded.")
 		end

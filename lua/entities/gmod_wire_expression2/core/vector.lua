@@ -104,12 +104,6 @@ end
 
 --------------------------------------------------------------------------------
 
-registerOperator("dlt", "v", "v", function(self, args)
-	local op1, scope = args[2], args[3]
-	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
-	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3] }
-end)
-
 e2function vector vector:operator_neg()
 	return { -this[1], -this[2], -this[3] }
 end
@@ -391,8 +385,8 @@ __e2setcost(6)
 
 e2function vector round(vector rv1)
 	return {
-		floor(rv1[1] + 0.5), 
-		floor(rv1[2] + 0.5), 
+		floor(rv1[1] + 0.5),
+		floor(rv1[2] + 0.5),
 		floor(rv1[3] + 0.5)
 	}
 end
@@ -400,16 +394,16 @@ end
 e2function vector round(vector rv1, decimals)
 	local shf = 10 ^ decimals
 	return {
-		floor(rv1[1] * shf + 0.5) / shf, 
-		floor(rv1[2] * shf + 0.5) / shf, 
+		floor(rv1[1] * shf + 0.5) / shf,
+		floor(rv1[2] * shf + 0.5) / shf,
 		floor(rv1[3] * shf + 0.5) / shf
 	}
 end
 
 e2function vector ceil( vector rv1 )
 	return {
-		ceil(rv1[1]), 
-		ceil(rv1[2]), 
+		ceil(rv1[1]),
+		ceil(rv1[2]),
 		ceil(rv1[3])
 	}
 end
@@ -417,16 +411,16 @@ end
 e2function vector ceil(vector rv1, decimals)
 	local shf = 10 ^ decimals
 	return {
-		ceil(rv1[1] * shf) / shf, 
-		ceil(rv1[2] * shf) / shf, 
+		ceil(rv1[1] * shf) / shf,
+		ceil(rv1[2] * shf) / shf,
 		ceil(rv1[3] * shf) / shf
 	}
 end
 
 e2function vector floor(vector rv1)
 	return {
-		floor(rv1[1]), 
-		floor(rv1[2]), 
+		floor(rv1[1]),
+		floor(rv1[2]),
 		floor(rv1[3])
 	}
 end
@@ -434,8 +428,8 @@ end
 e2function vector floor(vector rv1, decimals)
 	local shf = 10 ^ decimals
 	return {
-		floor(rv1[1] * shf) / shf, 
-		floor(rv1[2] * shf) / shf, 
+		floor(rv1[1] * shf) / shf,
+		floor(rv1[2] * shf) / shf,
 		floor(rv1[3] * shf) / shf
 	}
 end

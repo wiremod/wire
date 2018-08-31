@@ -44,7 +44,7 @@ function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, o
 
 	self.PrevOutput = nil
 
-	if range then self:SetBeamLength(math.min(range, 50000)) end
+	if range then self:SetBeamLength(math.min(range, 64000)) end
 	if show_beam ~= nil then self:SetShowBeam(show_beam) end
 
 	self:SetNWBool("TraceWater", trace_water)
@@ -62,7 +62,7 @@ function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, o
 
 
 	if (out_dist) then add("Dist","NORMAL") end
-	if (out_pos) then 
+	if (out_pos) then
 		add("Pos", "VECTOR",
 			"Pos X", "NORMAL",
 			"Pos Y", "NORMAL",
@@ -110,12 +110,12 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Y") then
 		self:SetSkewY(value)
 	elseif (iname == "Length") then
-		self:SetBeamLength(self.show_beam and math.min(value, 2000) or 0)
+		self:SetBeamLength(math.min(value, 64000))
 	end
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	local tracedata = {}
 	tracedata.start = self:GetPos()

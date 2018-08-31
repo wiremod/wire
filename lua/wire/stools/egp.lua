@@ -86,7 +86,7 @@ if (SERVER) then
 
 			ent = SpawnEGP( ply, trace.HitPos, self:GetAngle(trace), model )
 			if not IsValid(ent) then return end
-			
+
 			self:SetPos(ent, trace) -- Use WireToolObj's pos code
 		elseif (Type == 2) then -- HUD
 			ent = SpawnHUD( ply, trace.HitPos + trace.HitNormal * 0.25, trace.HitNormal:Angle() + Angle(90,0,0) )
@@ -191,13 +191,13 @@ else
 
 	local Menu = {}
 	local CurEnt
-	
+
 	function refreshRT( ent )
 		ent.GPU:FreeRT()
 		ent.GPU = GPULib.WireGPU( ent )
 		ent:EGP_Update()
 	end
-	
+
 	function refreshObjects( ent )
 		if ent then
 			RunConsoleCommand("EGP_Request_Reload",ent:EntIndex())
@@ -236,9 +236,9 @@ else
 		btn:SetSize( w, h )
 		function btn:DoClick()
 			pnl:SetVisible( false )
-			
+
 			refreshRT( CurEnt )
-			
+
 			LocalPlayer():ChatPrint("[EGP] RenderTarget reloaded.")
 		end
 
@@ -248,9 +248,9 @@ else
 		btn2:SetSize( w, h )
 		function btn2:DoClick()
 			pnl:SetVisible( false )
-			
+
 			refreshObjects( CurEnt )
-			
+
 			LocalPlayer():ChatPrint("[EGP] Requesting...")
 		end
 
@@ -264,7 +264,7 @@ else
 				LocalPlayer():ChatPrint("[EGP] Entity does not have a RenderTarget")
 			else
 				refreshRT( CurEnt )
-				
+
 				LocalPlayer():ChatPrint("[EGP] RenderTarget reloaded.")
 			end
 			LocalPlayer():ChatPrint("[EGP] Requesting object reload...")
@@ -341,7 +341,7 @@ else
 		if !(EGP) then return end
 		panel:SetSpacing( 10 )
 		panel:SetName( "E2 Graphics Processor" )
-		
+
 		WireDermaExts.ModelSelect(panel, "wire_egp_model", list.Get( "WireScreenModels" ), 5)
 
 		local cbox = {}

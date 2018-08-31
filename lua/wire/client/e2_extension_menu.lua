@@ -14,7 +14,7 @@ surface.CreateFont("DermaDefaultItalic", {
 
 local function BuildExtensionMenu(panel)
   local allowed = LocalPlayer():IsSuperAdmin()
-  
+
   if not allowed then
     local permissionNotice = panel:Help("You are not a superadmin - you cannot change these settings, only view them.")
     permissionNotice:SetColor(Color(153, 51, 0, 255))

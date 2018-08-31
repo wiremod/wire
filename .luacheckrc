@@ -1,9 +1,24 @@
 -- This file will be read by Luacheck <https://github.com/mpeterv/luacheck>.
 -- It's primarily to specify what globals are available across all files.
 
+std = "luajit+garrysmod+wiremod"
+
 -- Problems to ignore
 ignore = {
     "212", -- Unused argument
+    "6..", -- All whitespace warnings (these are checked by git diff)
+    "42.", -- Shadowing
+    "43.", -- Upvalue shadowing
+}
+
+files[".luacheckrc"].std = "min+luacheck"
+files[".luacheckrc"].ignore = {}
+stds.luacheck = {}
+stds.luacheck.globals = {
+  "files",
+  "ignore",
+  "std",
+  "stds",
 }
 
 stds.garrysmod = {}
@@ -152,11 +167,13 @@ stds.garrysmod.read_globals = {
   "CreateConVar",
   "CreateMaterial",
   "CreateParticleSystem",
+  "CreatePhysCollideBox",
   "CreateSound",
   "CreateSprite",
   "CurTime",
   "DamageInfo",
   "DebugInfo",
+  "DEFINE_BASECLASS",
   "DeriveGamemode",
   "Derma_Anim",
   "Derma_DrawBackgroundBlur",
@@ -394,7 +411,6 @@ stds.garrysmod.read_globals = {
   "CTakeDamageInfo",
   "CUserCmd",
   "ConVar",
-  "DFrame",
   "Entity",
   "File",
   "IGModAudioChannel",
@@ -409,6 +425,7 @@ stds.garrysmod.read_globals = {
   "NextBot",
   "Panel",
   "PathFollower",
+  "PhysCollide",
   "PhysObj",
   "Player",
   "ProjectedTexture",
@@ -421,6 +438,7 @@ stds.garrysmod.read_globals = {
   "Vehicle",
   "Weapon",
   "bf_read",
+  "navmesh",
 
   -- Panels
   "AchievementIcon",
@@ -438,6 +456,7 @@ stds.garrysmod.read_globals = {
   "DBinder",
   "DBubbleContainer",
   "DButton",
+  "DCategoryHeader",
   "DCategoryList",
   "DCheckBox",
   "DCheckBoxLabel",
@@ -3138,6 +3157,7 @@ stds.garrysmod.read_globals = {
   "NORTH_EAST",
   "SOUTH_EAST",
   "SOUTH_WEST",
+  "NUM_CORNERS",
 
   --- NavDir
   "NORTH",
@@ -3413,34 +3433,6 @@ stds.garrysmod.read_globals = {
   "SND_IGNORE_NAME",
   "SND_DO_NOT_OVERWRITE_EXISTING_ON_CHANNEL",
 
-  --- SNDLVL
-  "SNDLVL_NONE",
-  "SNDLVL_20dB",
-  "SNDLVL_25dB",
-  "SNDLVL_30dB",
-  "SNDLVL_35dB",
-  "SNDLVL_40dB",
-  "SNDLVL_45dB",
-  "SNDLVL_50dB",
-  "SNDLVL_55dB",
-  "SNDLVL_60dB<br/>SNDLVL_IDLE",
-  "SNDLVL_65dB",
-  "SNDLVL_STATIC",
-  "SNDLVL_70dB",
-  "SNDLVL_75dB<br/>SNDLVL_NORM",
-  "SNDLVL_80dB<br/>SNDLVL_TALKING",
-  "SNDLVL_85dB",
-  "SNDLVL_90dB",
-  "SNDLVL_95dB",
-  "SNDLVL_100dB",
-  "SNDLVL_105dB",
-  "SNDLVL_110dB",
-  "SNDLVL_120dB",
-  "SNDLVL_130dB",
-  "SNDLVL_140dB<br/>SNDLVL_GUNFIRE",
-  "SNDLVL_150dB",
-  "SNDLVL_180dB",
-
   --- SOLID
   "SOLID_NONE",
   "SOLID_BSP",
@@ -3540,41 +3532,6 @@ stds.garrysmod.read_globals = {
   "TEXT_ALIGN_TOP",
   "TEXT_ALIGN_BOTTOM",
 
-  --- TEXTUREFLAGS
-  "TEXTUREFLAGS_POINTSAMPLE",
-  "TEXTUREFLAGS_TRILINEAR",
-  "TEXTUREFLAGS_CLAMPS",
-  "TEXTUREFLAGS_CLAMPT",
-  "TEXTUREFLAGS_ANISOTROPIC",
-  "TEXTUREFLAGS_HINT_DXT5",
-  "TEXTUREFLAGS_PWL_CORRECTED",
-  "TEXTUREFLAGS_NORMAL",
-  "TEXTUREFLAGS_NOMIP",
-  "TEXTUREFLAGS_NOLOD",
-  "TEXTUREFLAGS_ALL_MIPS",
-  "TEXTUREFLAGS_PROCEDURAL",
-  "TEXTUREFLAGS_ONEBITALPHA",
-  "TEXTUREFLAGS_EIGHTBITALPHA",
-  "TEXTUREFLAGS_ENVMAP",
-  "TEXTUREFLAGS_RENDERTARGET",
-  "TEXTUREFLAGS_DEPTHRENDERTARGET",
-  "TEXTUREFLAGS_NODEBUGOVERRIDE",
-  "TEXTUREFLAGS_SINGLECOPY",
-  "TEXTUREFLAGS_UNUSED_00080000",
-  "TEXTUREFLAGS_UNUSED_00100000",
-  "TEXTUREFLAGS_IMMEDIATE_CLEANUP",
-  "TEXTUREFLAGS_UNUSED_00200000",
-  "TEXTUREFLAGS_UNUSED_00400000",
-  "TEXTUREFLAGS_NODEPTHBUFFER",
-  "TEXTUREFLAGS_UNUSED_01000000",
-  "TEXTUREFLAGS_CLAMPU",
-  "TEXTUREFLAGS_VERTEXTEXTURE",
-  "TEXTUREFLAGS_SSBUMP",
-  "TEXTUREFLAGS_UNUSED_10000000",
-  "TEXTUREFLAGS_BORDER",
-  "TEXTUREFLAGS_UNUSED_40000000",
-  "TEXTUREFLAGS_UNUSED_80000000",
-
   --- TRACER
   "TRACER_NONE",
   "TRACER_LINE",
@@ -3617,6 +3574,7 @@ stds.garrysmod.read_globals = {
   "TYPE_PATH",
   "TYPE_PHYSOBJ",
   "TYPE_PIXELVISHANDLE",
+  "TYPE_PROJECTEDTEXTURE",
   "TYPE_RECIPIENTFILTER",
   "TYPE_RESTORE",
   "TYPE_SAVE",
@@ -3647,14 +3605,17 @@ stds.garrysmod.read_globals = {
   "WEAPON_PROFICIENCY_PERFECT",
 
   -- END_GENERATED_CODE
+  "BaseClass",
   "CLIENT",
   "DEFINE_BASECLASS",
   "GAMEMODE",
   "NULL",
   "SERVER",
   "VERSION",
+  "TEXFILTER"
 }
 stds.garrysmod.globals = {
+  "EFFECT",
   "ENT",
   "TOOL",
   "SWEP",
@@ -3682,6 +3643,7 @@ stds.wiremod.globals = {
   "WireGPU_matBuffer",
   "WireSPU_GetSound",
   "WireSPU_MaxChannels",
+  "WireGPU_Monitors",
 
   -- TODO: Move these into E2Lib:
   "__e2setcost",
@@ -3758,7 +3720,17 @@ stds.wiremod.globals = {
   "NOTIFYSOUND_CONFIRM2",
   "NOTIFYSOUND_CONFIRM3",
   "NOTIFYSOUND_CONFIRM4",
+  "NOTIFY_GENERIC",
+  "NOTIFY_ERROR",
+  "NOTIFY_UNDO",
+  "NOTIFY_HINT",
+  "NOTIFY_CLEANUP",
   "ipairs_map",
+  "pairs_ac",
+  "pairs_consume",
   "pairs_map",
   "pairs_sortkeys",
+  "pairs_sortvalues",
+  "HUDIndicator_GetCurrentRegistered",
+  "initE2Editor",
 }

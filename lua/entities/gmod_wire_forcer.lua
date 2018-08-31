@@ -86,8 +86,8 @@ function ENT:Think()
 		if self.Velocity ~= 0 then trace.Entity:SetVelocity( velocity ) end
 	end
 
-	local reactionForce = clamp(Forward * -(self.Force + self.OffsetForce) * self.ForceMul)
 	if self.Reaction and IsValid(self:GetPhysicsObject()) and (self.Force + self.OffsetForce ~= 0) then
+		local reactionForce = clamp(Forward * -(self.Force + self.OffsetForce) * self.ForceMul)
 		self:GetPhysicsObject():ApplyForceCenter( reactionForce )
 	end
 
@@ -105,7 +105,7 @@ function ENT:ShowOutput()
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 	info.ForceMul = self.ForceMul
 	info.Reaction = self.Reaction
 	return info
@@ -115,7 +115,7 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self:Setup( info.ForceMul, info.Length, info.ShowBeam, info.Reaction )
 
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
 
 --Moves old "A" input to new "Force" input for older saves

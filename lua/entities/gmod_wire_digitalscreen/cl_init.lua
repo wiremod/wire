@@ -34,7 +34,7 @@ function ENT:Initialize()
 	self.GPU = WireGPU(self)
 
 	self.buffer = {}
-	
+
 	WireLib.netRegister(self)
 end
 
@@ -56,17 +56,29 @@ end
 local pixelbits = {3, 1, 3, 4, 1}
 net.Receive("wire_digitalscreen", function(netlen)
 	local ent = Entity(net.ReadUInt(16))
-	
-	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
-		local pixelformat = net.ReadUInt(5)
-		local pixelbit = pixelbits[pixelformat]
-		local readData
-		
-		local datastr = util.Decompress(net.ReadData((netlen-21)/8))
-		if not datastr then return end
-		local readIndex = 1
 
-		ent:AddBuffer(datastr,pixelbit)
+	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
+		local batch_end = (net.ReadBit()==1) -- if true, this is the last batch. if false, more is coming
+
+		if batch_end then
+			local pixelformat = net.ReadUInt(5)
+
+			local datastr = net.ReadData((netlen-22)/8)
+			local buffer = ent.transfer_buffer or {}
+
+			buffer[#buffer+1] = datastr
+
+			local datastr = util.Decompress(table.concat(buffer))
+			ent.transfer_buffer = nil
+
+			local pixelbit = pixelbits[pixelformat]
+			ent:AddBuffer(datastr,pixelbit)
+		else
+			if not ent.transfer_buffer then ent.transfer_buffer = {} end
+
+			local buffer = ent.transfer_buffer
+			buffer[#buffer+1] = net.ReadData((netlen-17)/8)
+		end
 	end
 end)
 
@@ -75,7 +87,7 @@ function ENT:AddBuffer(datastr,pixelbit)
 end
 
 function ENT:ProcessBuffer()
-	if not self.buffer[1] then return 0 end
+	if not self.buffer[1] then return end
 
 	local datastr = self.buffer[1].datastr
 	local readIndex = self.buffer[1].readIndex
@@ -85,7 +97,7 @@ function ENT:ProcessBuffer()
 	length, readIndex = stringToNumber(readIndex,datastr,3)
 	if length == 0 then
 		table.remove( self.buffer, 1 )
-		return 0
+		return
 	end
 	local address
 	address, readIndex = stringToNumber(readIndex,datastr,3)
@@ -102,16 +114,14 @@ function ENT:ProcessBuffer()
 	end
 
 	self.buffer[1].readIndex = readIndex
-
-	return #datastr
 end
 
 function ENT:Think()
 	if self.buffer[1] ~= nil then
-		local processed_len = 1000000 -- process at most this much each time
+		local maxtime = SysTime() + (1/RealFrameTime()) * 0.0001 -- do more depending on client FPS. Higher fps = more work
 
-		while processed_len > 0 do
-			processed_len = processed_len - math.max(self:ProcessBuffer(),10000) -- math.max here is an easy way to prevent infinite loops when it returns 0
+		while SysTime() < maxtime and self.buffer[1] do
+			self:ProcessBuffer()
 		end
 	end
 
@@ -150,7 +160,7 @@ function ENT:WriteCell(Address,value)
 	end
 	self.Memory2[Address] = value -- invisible buffer
 
-	if Address == 1048574 then
+	if Address == 1048574 then -- Hardware Clear Screen
 		local mem1,mem2 = {},{}
 		for addr = 1048500,1048575 do
 			mem1[addr] = self.Memory1[addr]

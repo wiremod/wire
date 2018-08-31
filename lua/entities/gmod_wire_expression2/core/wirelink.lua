@@ -228,12 +228,12 @@ registerCallback("postinit", function()
 					local this, portname = args[2], args[3]
 					this, portname = this[1](self, this), portname[1](self, portname)
 
-					if not validWirelink(self, this) then return zero end
+					if not validWirelink(self, this) then return input_serializer(self, zero) end
 
 					portname = mapOutputAlias(this, portname)
 
-					if not this.Outputs[portname] then return zero end
-					if this.Outputs[portname].Type ~= typename then return zero end
+					if not this.Outputs[portname] then return input_serializer(self, zero) end
+					if this.Outputs[portname].Type ~= typename then return input_serializer(self, zero) end
 
 					return input_serializer(self, this.Outputs[portname].Value)
 				end

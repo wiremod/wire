@@ -8,7 +8,7 @@ function ModelPlug_Register(category)
 
 	    local packs = file.Find("WireModelPacks/*.txt", "DATA")
 	    for _,filename in pairs(packs) do
-        	--resource.AddFile("data/WireModelPacks/" .. filename)
+			--resource.AddFile("data/WireModelPacks/" .. filename)
 
 	        local packtbl = util.KeyValuesToTable(file.Read("WireModelPacks/" .. filename) or {})
 

@@ -41,7 +41,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 			local en = ents.FindByClass("gmod_wire_egp_hud")
 			LocalPlayer():ChatPrint("[EGP] Disconnected from all EGP HUDs.")
 			for k,v in ipairs( en ) do
-				en.On = nil
+				v.On = nil
 			end
 		end)
 
@@ -67,9 +67,11 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 				else
 					if (Ent.On == true) then
 						if (Ent.RenderTable and #Ent.RenderTable > 0) then
+							local mat = Ent:GetEGPMatrix()
+
 							for _,object in pairs( Ent.RenderTable ) do
 								local oldtex = EGP:SetMaterial( object.material )
-								object:Draw(Ent)
+								object:Draw(Ent, mat)
 								EGP:FixMaterial( oldtex )
 
 								-- Check for 3DTracker parent
@@ -91,18 +93,18 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		function EGP:LinkHUDToVehicle( hud, vehicle )
 			if not hud.LinkedVehicles then hud.LinkedVehicles = {} end
 			if not hud.Marks then hud.Marks = {} end
-			
+
 			hud.Marks[#hud.Marks+1] = vehicle
 			hud.LinkedVehicles[vehicle] = true
 			vehiclelinks[hud] = hud.LinkedVehicles
-			
+
 			timer.Simple( 0.1, function() -- timers solve everything (this time, it's the fact that the entity isn't valid on the client after dupe)
 				WireLib.SendMarks( hud )
 			end)
 		end
 
 		function EGP:UnlinkHUDFromVehicle( hud, vehicle )
-			if not vehicle then -- unlink all		
+			if not vehicle then -- unlink all
 				vehiclelinks[hud] = nil
 				hud.LinkedVehicles = nil
 				hud.Marks = nil
@@ -117,7 +119,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 							umsg.End()
 						end
 					end
-					
+
 					if hud.Marks then
 						for i=1,#hud.Marks do
 							if hud.Marks[i] == vehicle then
@@ -126,17 +128,17 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 							end
 						end
 					end
-					
+
 					hud.LinkedVehicles[vehicle] = nil
 					if not next( hud.LinkedVehicles ) then
 						hud.LinkedVehicles = nil
 						hud.Marks = nil
 					end
-					
+
 					vehiclelinks[hud] = hud.LinkedVehicles
 				end
 			end
-			
+
 			WireLib.SendMarks( hud )
 		end
 

@@ -809,7 +809,7 @@ e2function number findSortByDistance(vector position)
 	position = Vector(position[1], position[2], position[3])
 	local findlist = self.data.findlist
 	self.prf = self.prf + #findlist * 12
-	
+
 	local d = {}
 	for i=1, #findlist do
 		local v = findlist[i]
@@ -829,7 +829,7 @@ __e2setcost(5)
 local function applyClip(self, filter)
 	local findlist = self.data.findlist
 	self.prf = self.prf + #findlist * 5
-	
+
 	filterList(findlist, filter)
 
 	return #findlist

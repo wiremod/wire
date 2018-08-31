@@ -9,11 +9,13 @@ function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-	
+
 	self.Inputs = Wire_CreateInputs( self, { "Throttle", "Steering", "Handbrake", "Engine", "Lock" } )
 end
 
 function ENT:LinkEnt( pod )
+	pod = WireLib.GetClosestRealVehicle(pod,self:GetPos(),self:GetPlayer())
+
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
 	self.Vehicle = pod
 	WireLib.SendMarks(self, {pod})
@@ -52,7 +54,7 @@ function ENT:Think()
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	if (self.Vehicle) and (self.Vehicle:IsValid()) then
 	    info.Vehicle = self.Vehicle:EntIndex()
@@ -62,7 +64,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self.Vehicle = GetEntByID(info.Vehicle)
 end

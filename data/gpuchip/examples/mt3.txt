@@ -38,7 +38,7 @@
 //  drotatescale EAX,EBX; mul EBX,2;
 
   dsetwidth 0.8;
-  call Draw.Background; 
+  call Draw.Background;
 dexit;
 
 alloc Time;
@@ -48,7 +48,7 @@ Draw.Background:
   //Draw all the rectangles
   mov EAX,#Background.MinDepth; mov ECX,#Background.ShadeStart;
   BackgroundLoop:
-    mov EDX,#Time; add EDX,EAX; 
+    mov EDX,#Time; add EDX,EAX;
     mov EBP,#Time; div EBP,6.28; fcos EBP,EBP;
 
     fsin EDI,EDX; mul EDI,EBP; mul EDI,0.8; sub EDI,1;
@@ -59,8 +59,8 @@ Draw.Background:
 
     mov EDX,ECX; fpwr EDX,2;
     mov #regZOffset,EAX;
- 
-    dcolor _rect.color; 
+
+    dcolor _rect.color;
 // Uncomment this for trippy HSL color
 //    mov ESI,#Time; add ESI,EAX;
 //    fsin #HSL.R,ESI; mul #HSL.R,127; add #HSL.R,128; add ESI,1.57;// mul EAX,2;

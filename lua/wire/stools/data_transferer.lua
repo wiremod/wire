@@ -15,10 +15,10 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber("Range"), self:GetClientNumber("DefaultZero") ~= 0, self:GetClientNumber("IgnoreZero") ~= 0
 	end
-	
+
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 
