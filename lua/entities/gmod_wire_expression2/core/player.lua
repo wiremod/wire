@@ -539,6 +539,10 @@ e2function number entity:inNoclip()
 	return 1
 end
 
+e2function number entity:inGodMode()
+	return IsValid(this) and this:IsPlayer() and this:HasGodMode() and 1 or 0
+end
+
 --------------------------------------------------------------------------------
 
 local player = player
