@@ -1,5 +1,8 @@
 --[[
 	Entity gates
+NB. all the gates in this file have `timed = true`. Without this, some of them
+continue to output bogus values when their entity input is destroyed (but only
+with certain weapons). See https://github.com/wiremod/wire/issues/1662 for more.
 ]]
 
 GateActions("Entity")
@@ -154,6 +157,7 @@ GateActions["entity_class"] = {
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "STRING" },
+	timed = true,
 	output = function(gate, Ent)
 		if !Ent:IsValid() then return "" else return Ent:GetClass() end
 	end,
@@ -166,6 +170,7 @@ GateActions["entity_entid"] = {
 	name = "Entity ID",
 	inputs = { "A" },
 	inputtypes = { "ENTITY" },
+	timed = true,
 	output = function(gate, A)
 		if (A and A:IsValid()) then return A:EntIndex() end
 		return 0
@@ -179,6 +184,7 @@ GateActions["entity_id2ent"] = {
 	name = "ID to Entity",
 	inputs = { "A" },
 	outputtypes = { "ENTITY" },
+	timed = true,
 	output = function(gate, A)
 		local Ent = Entity(A)
 		if !Ent:IsValid() then return NULL end
@@ -195,6 +201,7 @@ GateActions["entity_model"] = {
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "STRING" },
+	timed = true,
 	output = function(gate, Ent)
 		if !Ent:IsValid() then return "" else return Ent:GetModel() end
 	end,
@@ -208,6 +215,7 @@ GateActions["entity_steamid"] = {
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "STRING" },
+	timed = true,
 	output = function(gate, Ent)
 		if !Ent:IsValid() or !Ent:IsPlayer() then return "" else return Ent:SteamID() end
 	end,
@@ -757,6 +765,7 @@ GateActions["entity_equal"] = {
 	name = "Equal",
 	inputs = { "A" , "B" },
 	inputtypes = { "ENTITY" , "ENTITY" },
+	timed = true,
 	output = function(gate, A, B )
 		if A == B then return 1 else return 0 end
 	end,
@@ -769,6 +778,7 @@ GateActions["entity_inequal"] = {
 	name = "Inequal",
 	inputs = { "A" , "B" },
 	inputtypes = { "ENTITY" , "ENTITY" },
+	timed = true,
 	output = function(gate, A, B )
 		if A ~= B then return 1 else return 0 end
 	end,
@@ -863,6 +873,7 @@ GateActions["entity_select"] = {
 	inputs = { "Choice", "A", "B", "C", "D", "E", "F", "G", "H" },
 	inputtypes = { "NORMAL", "ENTITY", "ENTITY", "ENTITY", "ENTITY", "ENTITY", "ENTITY", "ENTITY", "ENTITY" },
 	outputtypes = { "ENTITY" },
+	timed = true,
 	output = function(gate, Choice, ...)
 		math.Clamp(Choice,1,8)
 		return ({...})[Choice]
