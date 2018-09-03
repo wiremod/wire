@@ -43,6 +43,25 @@ e2function void httpRequest( string url )
 		preq.t_end = CurTime()
 		preq.in_progress = false
 		preq.data = contents or ""
+		preq.success = 1
+
+		run_on.clk = 1
+
+		local ent = self.entity
+		if IsValid(ent) and run_on.ents[ent] then
+			ent:Execute()
+		end
+
+		run_on.clk = 0
+	end, function( err )
+		if !IsValid( ply ) or !ply:IsPlayer() or !requests[ply] then return end
+
+		local preq = requests[ply]
+
+		preq.t_end = CurTime()
+		preq.in_progress = false
+		preq.data = ""
+		preq.success = 0
 
 		run_on.clk = 1
 
@@ -69,6 +88,12 @@ e2function string httpData()
 	local preq = requests[self.player]
 
 	return preq and preq.data or ""
+end
+
+e2function number httpSuccess()
+	local preq = requests[self.player]
+
+	return preq and preq.success or 0
 end
 
 e2function string httpRequestUrl()
