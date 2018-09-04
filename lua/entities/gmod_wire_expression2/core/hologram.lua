@@ -240,6 +240,7 @@ local function flush_clip_queue(queue, recipient)
 						net.WriteVector(clip.origin)
 						net.WriteFloat(clip.normal.x) net.WriteFloat(clip.normal.y) net.WriteFloat(clip.normal.z)
 						net.WriteBit(clip.isglobal ~= 0)
+						net.WriteUInt(clip.localentid, 16)
 					end
 				end
 			end
@@ -337,6 +338,7 @@ local function check_clip(Holo, idx)
 		clip.origin = clip.origin or Vector(0,0,0)
 		clip.normal = clip.normal or Vector(0,0,0)
 		clip.isglobal = clip.isglobal or false
+		clip.localentid = clip.localentid or 0
 
 		return clip
 	end
@@ -359,20 +361,22 @@ local function enable_clip(Holo, idx, enabled)
 	end
 end
 
-local function set_clip(Holo, idx, origin, normal, isglobal)
+local function set_clip(Holo, idx, origin, normal, isglobal, localentid)
 	local clip = check_clip(Holo, idx)
 
-	if clip and (clip.origin ~= origin or clip.normal ~= normal or clip.isglobal ~= isglobal) then
+	if clip and (clip.origin ~= origin or clip.normal ~= normal or clip.isglobal ~= isglobal or clip.localentid ~= localentid) then
 		clip.origin = origin
 		clip.normal = normal
 		clip.isglobal = isglobal
+		clip.localentid = localentid
 
 		add_queue( clip_queue, Holo.e2owner, { Holo,
 			{
 				index = idx,
 				origin = origin,
 				normal = normal,
-				isglobal = isglobal
+				isglobal = isglobal,
+				localentid = localentid
 			}}
 		)
 	end
@@ -457,7 +461,8 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 									index = cidx,
 									origin = clip.origin,
 									normal = clip.normal,
-									isglobal = clip.isglobal
+									isglobal = clip.isglobal,
+									localentid = clip.localentid
 								}
 							} )
 						end
@@ -857,14 +862,28 @@ e2function void holoClip(index, vector origin, vector normal, isglobal) -- Clip 
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	set_clip(Holo, 1, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal)
+	set_clip(Holo, 1, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal, 0)
 end
 
 e2function void holoClip(index, clipidx, vector origin, vector normal, isglobal)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	set_clip(Holo, clipidx, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal)
+	set_clip(Holo, clipidx, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal, 0)
+end
+
+e2function void holoClip(index, vector origin, vector normal, entity localent) -- Clip at first index
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	set_clip(Holo, 1, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), 0, localent:EntIndex())
+end
+
+e2function void holoClip(index, clipidx, vector origin, vector normal, entity localent)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	set_clip(Holo, clipidx, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), 0, localent:EntIndex())
 end
 
 e2function void holoPos(index, vector position)
