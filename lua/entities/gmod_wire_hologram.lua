@@ -56,18 +56,13 @@ if CLIENT then
 					local norm = clip.normal
 					local origin = clip.origin
 
-					if not clip.isglobal then
-						if clip.localentid then
-							local localent = Entity(clip.localentid)
-							if IsValid(localent) then
-								norm = localent:LocalToWorld(norm) - localent:GetPos()
-								origin = localent:LocalToWorld(origin)
-							else
-								clip.localentid = nil
-							end
+					if clip.localentid then
+						local localent = Entity(clip.localentid)
+						if IsValid(localent) then
+							norm = localent:LocalToWorld(norm) - localent:GetPos()
+							origin = localent:LocalToWorld(origin)
 						else
-							norm = self:LocalToWorld(norm) - self:GetPos()
-							origin = self:LocalToWorld(origin)
+							clip.localentid = nil
 						end
 					end
 
@@ -133,14 +128,13 @@ if CLIENT then
 		clip.enabled = enabled
 	end
 
-	local function SetClip(eidx, cidx, origin, norm, isglobal, localentid)
+	local function SetClip(eidx, cidx, origin, norm, localentid)
 		local clip = CheckClip(eidx, cidx)
 
 		clip.normal = norm
 		clip.origin = origin
-		clip.isglobal = isglobal
 
-		if not isglobal and localentid ~= 0 then
+		if localentid ~= 0 then
 			clip.localentid = localentid
 		end
 	end
@@ -154,7 +148,7 @@ if CLIENT then
 			if net.ReadBit() ~= 0 then
 				SetClipEnabled(entid, clipid, net.ReadBit() ~= 0)
 			else
-				SetClip(entid, clipid, net.ReadVector(), Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()), net.ReadBit() ~= 0, net.ReadUInt(16))
+				SetClip(entid, clipid, net.ReadVector(), Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()), net.ReadUInt(16))
 			end
 			local ent = Entity(entid)
 			if ent and ent.DoClip then
