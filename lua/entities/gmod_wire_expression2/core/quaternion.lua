@@ -583,7 +583,7 @@ e2function quaternion slerp(quaternion q0, quaternion q1, number t)
 	return slerped
 end
 
---- Performs Linear interpolation between <q0> and <q1>. Returns normalized <q0> for <t>=0, <q1> for <t>=1
+--- Performs normalized linear interpolation between <q0> and <q1>. Returns normalized <q0> for <t>=0, normalized <q1> for <t>=1
 e2function quaternion nlerp(quaternion q0, quaternion q1, number t)
 	local t1 = 1 - t
 	if qDot(q0, q1) < 0 then
