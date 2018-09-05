@@ -7,8 +7,8 @@ ENT.AllowLockInsideVehicle = CreateConVar( "wire_pod_allowlockinsidevehicle", "0
 if CLIENT then
 	local hideHUD = 0
 	local firstTime = true
+	local HUDHidden = false
 	local savedHooks = nil
-	local toolgunTable = nil
 	local toolgunHUDFunc = nil
 	local function blank() end
 
@@ -16,48 +16,57 @@ if CLIENT then
 		local vehicle = um:ReadEntity()
 		if LocalPlayer():InVehicle() and LocalPlayer():GetVehicle() == vehicle then
 			hideHUD = um:ReadShort()
-			if hideHUD > 0 then
+			if hideHUD > 0 and not HUDHidden then
+				HUDHidden = true
+				if firstTime then
+					LocalPlayer():ChatPrint( "The owner of this vehicle has hidden your hud using a pod controller. If it gets stuck this way, use the console command 'wire_pod_hud_show' to forcibly enable it again." )
+					firstTime = false
+				end
+				--Hide toolgun HUD
+				local toolgun = LocalPlayer():GetWeapon("gmod_tool")
+				if IsValid(toolgun) then
+					toolgunHUDFunc = toolgun.DrawHUD
+					toolgun.DrawHUD = blank
+				end
+				--Hide all HUDPaints except for EGP HUD
+				local hooks = hook.GetTable()["HUDPaint"]
+				savedHooks = table.Copy(hooks)
+				for k in pairs(hooks) do
+					if k ~= "EGP_HUDPaint" then
+						hook.Add( "HUDPaint", k, blank )
+					end
+				end
+				--Hide other HUD elements
+				hook.Add( "DrawDeathNotice", "Wire pod DrawDeathNotice", function() return false end)
+				hook.Add( "HUDDrawTargetID", "Wire pod HUDDrawTargetID", function() return false end)
 				hook.Add( "HUDShouldDraw", "Wire pod HUDShouldDraw", function( name )
 					if hideHUD > 0 then
 						if LocalPlayer():InVehicle() then
-							if firstTime then
-								LocalPlayer():ChatPrint( "The owner of this vehicle has hidden your hud using a pod controller. If it gets stuck this way, use the console command 'wire_pod_hud_show' to forcibly enable it again." )
-								firstTime = false
-							end
-							if savedHooks == nil then
-								local weapon = LocalPlayer():GetActiveWeapon()
-								if IsValid(weapon) and weapon:GetClass() == "gmod_tool" then
-									toolgunTable = weapon:GetTable()
-									toolgunHUDFunc = toolgunTable.DrawHUD
-									toolgunTable.DrawHUD = blank
-								end
-								local hooks = hook.GetTable()["HUDPaint"]
-								savedHooks = table.Copy(hooks)
-								for k in pairs(hooks) do
-									if k ~= "EGP_HUDPaint" then hooks[k] = blank end
-								end
-								hook.Add( "DrawDeathNotice", "Wire pod DrawDeathNotice", function() end)
-								hook.Add( "HUDDrawTargetID", "Wire pod HUDDrawTargetID", function() end)
-							end
-							if name ~= "CHudCrosshair" and name ~= "CHudGMod" and (hideHUD > 1 and name == "CHudChat" or name ~= "CHudChat")  then return false end -- Don't return false on crosshairs. Those are toggled using the other input.
+							--Allow crosshair (it can be hidden using the other input) and CHudGMod (for the EGP HUDPaint to pass through). Hide the chat if the input is higher than 1
+							if name ~= "CHudCrosshair" and name ~= "CHudGMod" and (hideHUD > 1 and name == "CHudChat" or name ~= "CHudChat")  then return false end
 						else
 							hideHUD = 0
 						end
 					else
-						if toolgunTable then
-							toolgunTable.DrawHUD = toolgunHUDFunc
-							toolgunTable = nil
+						--Restore toolgun HUD
+						local toolgun = LocalPlayer():GetWeapon("gmod_tool")
+						if IsValid(toolgun) and toolgun.DrawHUD == blank and toolgunHUDFunc ~= nil then
+							toolgun.DrawHUD = toolgunHUDFunc
 						end
-						if savedHooks then
-							local hooks = hook.GetTable()["HUDPaint"]
-							for k,v in pairs(hooks) do
-								if v == blank then hooks[k] = savedHooks[k] end
+						toolgunHUDFunc = nil
+						--Restore HUDPaints and other HUD elements
+						local hooks = hook.GetTable()["HUDPaint"]
+						for k,v in pairs(hooks) do
+							if v == blank and savedHooks ~= nil and savedHooks[k] ~= nil then
+								hook.Add( "HUDPaint", k, savedHooks[k] )
 							end
-							savedHooks = nil
 						end
+						savedHooks = nil
+
 						hook.Remove( "HUDShouldDraw", "Wire pod HUDShouldDraw")
 						hook.Remove( "DrawDeathNotice", "Wire pod DrawDeathNotice")
 						hook.Remove( "HUDDrawTargetID", "Wire pod HUDDrawTargetID")
+						HUDHidden = false
 					end
 				end)
 			end
