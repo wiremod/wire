@@ -58,7 +58,7 @@ if CLIENT then
 
 					if clip.localentid then
 						local localent = Entity(clip.localentid)
-						if localent and localent:IsValid() then
+						if localent:IsValid() then
 							norm = localent:LocalToWorld(norm) - localent:GetPos()
 							origin = localent:LocalToWorld(origin)
 						end
