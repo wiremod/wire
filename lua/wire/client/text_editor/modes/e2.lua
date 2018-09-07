@@ -368,8 +368,6 @@ function EDITOR:SyntaxColorLine(row)
       else -- aww
       addToken( "notfound", self.tokendata )
       end
-    else
-      break
     end
 
     local spaces = self:SkipPattern( " *" )
