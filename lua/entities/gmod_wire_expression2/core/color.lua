@@ -42,38 +42,51 @@ e2function void entity:setColor(r,g,b)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
-	this:SetColor(ColorClamp(Color(r,g,b,this:GetColor().a)))
+	local c = ColorClamp(Color(r,g,b,this:GetColor().a))
+	this:SetColor(c)
+	duplicator.StoreEntityModifier(this, "colour", { Color = c })
 end
 
 e2function void entity:setColor(r,g,b,a)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
-	this:SetColor(ColorClamp(Color(r, g, b, this:IsPlayer() and this:GetColor().a or a)))
-	this:SetRenderMode(this:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	local c = ColorClamp(Color(r, g, b, this:IsPlayer() and this:GetColor().a or a))
+	local rendermode = this:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA
+	this:SetColor(c)
+	this:SetRenderMode(rendermode)
+	duplicator.StoreEntityModifier(this, "colour", { Color = c, RenderMode = rendermode })
 end
 
 e2function void entity:setColor(vector c)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
-	this:SetColor(ColorClamp(Color(c[1],c[2],c[3],this:GetColor().a)))
+	local c = ColorClamp(Color(c[1],c[2],c[3],this:GetColor().a))
+	this:SetColor(c)
+	duplicator.StoreEntityModifier(this, "colour", { Color = c })
 end
 
 e2function void entity:setColor(vector c, a)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
-	this:SetColor(ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or a)))
-	this:SetRenderMode(this:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	local c = ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or a))
+	local rendermode = this:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA
+	this:SetColor(c)
+	this:SetRenderMode(rendermode)
+	duplicator.StoreEntityModifier(this, "colour", { Color = c, RenderMode = rendermode })
 end
 
 e2function void entity:setColor(vector4 c)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
-	this:SetColor(ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or c[4])))
-	this:SetRenderMode(this:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	local c = ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or c[4]))
+	local rendermode = this:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA
+	this:SetColor(c)
+	this:SetRenderMode(rendermode)
+	duplicator.StoreEntityModifier(this, "colour", { Color = c, RenderMode = rendermode })
 end
 
 e2function void entity:setAlpha(a)
