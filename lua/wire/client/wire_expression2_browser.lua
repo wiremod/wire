@@ -230,11 +230,7 @@ function PANEL:Init()
 			function(strTextOut)
 			-- Renaming starts in the garrysmod folder now, in comparison to other commands that start in the data folder.
 				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-
-				local contents = file.Read(self.File:GetFileName())
-				file.Delete(self.File:GetFileName())
-				file.Write(string.GetPathFromFilename(self.File:GetFileName()) .. "/" .. strTextOut .. ".txt", contents)
-
+				file.Rename(self.File:GetFileName(), string.GetPathFromFilename(self.File:GetFileName()) .. "/" .. strTextOut .. ".txt")
 				self:UpdateFolders()
 			end)
 	end)
