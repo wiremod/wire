@@ -39,19 +39,69 @@ end)
 registerOperator("is", "s", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	if rv1 ~= "" then return 1 else return 0 end
+
+	return rv1 ~= "" and 1 or 0
 end)
 
 registerOperator("eq", "ss", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1 == rv2 then return 1 else return 0 end
+
+	return rv1 == rv2 and 1 or 0
 end)
 
 registerOperator("neq", "ss", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1 != rv2 then return 1 else return 0 end
+
+	return rv1 ~= rv2 and 1 or 0
+end)
+
+-- TODO: work out the `if self` checks that are in place to fix errors during
+-- compile-time const eval optimization
+
+registerOperator("geq", "ss", "n", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+
+	if self then
+		self.prf = self.prf + math.min(#rv1, #rv2)
+	end
+
+	return rv1 >= rv2 and 1 or 0
+end)
+
+registerOperator("leq", "ss", "n", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+
+	if self then
+		self.prf = self.prf + math.min(#rv1, #rv2)
+	end
+
+	return rv1 <= rv2 and 1 or 0
+end)
+
+registerOperator("gth", "ss", "n", function(self, args, ...)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+
+	if self then
+		self.prf = self.prf + math.min(#rv1, #rv2)
+	end
+
+	return rv1 > rv2 and 1 or 0
+end)
+
+registerOperator("lth", "ss", "n", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+
+	if self then
+		self.prf = self.prf + math.min(#rv1, #rv2)
+	end
+
+	return rv1 < rv2 and 1 or 0
 end)
 
 /******************************************************************************/
