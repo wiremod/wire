@@ -64,9 +64,7 @@ registerOperator("geq", "ss", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 
-	if self then
-		self.prf = self.prf + math.min(#rv1, #rv2)
-	end
+	self.prf = self.prf + math.min(#rv1, #rv2) / 10
 
 	return rv1 >= rv2 and 1 or 0
 end)
@@ -75,9 +73,7 @@ registerOperator("leq", "ss", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 
-	if self then
-		self.prf = self.prf + math.min(#rv1, #rv2)
-	end
+	self.prf = self.prf + math.min(#rv1, #rv2) / 10
 
 	return rv1 <= rv2 and 1 or 0
 end)
@@ -86,9 +82,7 @@ registerOperator("gth", "ss", "n", function(self, args, ...)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 
-	if self then
-		self.prf = self.prf + math.min(#rv1, #rv2)
-	end
+	self.prf = self.prf + math.min(#rv1, #rv2) / 10
 
 	return rv1 > rv2 and 1 or 0
 end)
@@ -97,9 +91,7 @@ registerOperator("lth", "ss", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 
-	if self then
-		self.prf = self.prf + math.min(#rv1, #rv2)
-	end
+	self.prf = self.prf + math.min(#rv1, #rv2) / 10
 
 	return rv1 < rv2 and 1 or 0
 end)
