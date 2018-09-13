@@ -57,9 +57,6 @@ registerOperator("neq", "ss", "n", function(self, args)
 	return rv1 ~= rv2 and 1 or 0
 end)
 
--- TODO: work out the `if self` checks that are in place to fix errors during
--- compile-time const eval optimization
-
 registerOperator("geq", "ss", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
