@@ -75,7 +75,7 @@ registerOperator("leq", "ss", "n", function(self, args)
 	return rv1 <= rv2 and 1 or 0
 end)
 
-registerOperator("gth", "ss", "n", function(self, args, ...)
+registerOperator("gth", "ss", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 
