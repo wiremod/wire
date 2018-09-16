@@ -334,3 +334,17 @@ function EGP:EGPCursor( this, ply )
 
 	return ReturnFailure( this )
 end
+
+function EGP.ScreenSpaceToObjectSpace(object, point)
+	point = { x = point.x - object.x, y = point.y - object.y }
+
+	if object.angle and object.angle ~= 0 then
+		local theta = math.rad(object.angle)
+		local cos_theta, sin_theta = math.cos(theta), math.sin(theta)
+		point.x, point.y =
+			point.x * cos_theta - point.y * sin_theta,
+			point.y * cos_theta + point.x * sin_theta
+	end
+
+	return point
+end
