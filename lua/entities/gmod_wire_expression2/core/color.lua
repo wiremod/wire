@@ -9,14 +9,6 @@ local function RGBClamp(r,g,b)
 	return Clamp(r,0,255),Clamp(g,0,255),Clamp(b,0,255)
 end
 
-local function ColorClamp(c)
-	c.r = Clamp(c.r,0,255)
-	c.g = Clamp(c.g,0,255)
-	c.b = Clamp(c.b,0,255)
-	c.a = Clamp(c.a,0,255)
-	return c
-end
-
 /******************************************************************************/
 
 __e2setcost(2)
@@ -42,38 +34,35 @@ e2function void entity:setColor(r,g,b)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
-	this:SetColor(ColorClamp(Color(r,g,b,this:GetColor().a)))
+	WireLib.SetColor(this, Color(r, g, b, this:GetColor().a))
 end
 
 e2function void entity:setColor(r,g,b,a)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
-	this:SetColor(ColorClamp(Color(r, g, b, this:IsPlayer() and this:GetColor().a or a)))
-	this:SetRenderMode(this:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	WireLib.SetColor(this, Color(r, g, b, a))
 end
 
 e2function void entity:setColor(vector c)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
-	this:SetColor(ColorClamp(Color(c[1],c[2],c[3],this:GetColor().a)))
+	WireLib.SetColor(this, Color(c[1], c[2], c[3], this:GetColor().a))
 end
 
 e2function void entity:setColor(vector c, a)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
-	this:SetColor(ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or a)))
-	this:SetRenderMode(this:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	WireLib.SetColor(this, Color(c[1], c[2], c[3], a))
 end
 
 e2function void entity:setColor(vector4 c)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
-	this:SetColor(ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or c[4])))
-	this:SetRenderMode(this:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	WireLib.SetColor(this, Color(c[1], c[2], c[3], c[4]))
 end
 
 e2function void entity:setAlpha(a)
@@ -83,9 +72,7 @@ e2function void entity:setAlpha(a)
 	if this:IsPlayer() then return end
 
 	local c = this:GetColor()
-	c.a = Clamp(a, 0, 255)
-	this:SetColor(c)
-	this:SetRenderMode(c.a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	WireLib.SetColor(this, Color(c.r, c.g, c.b, a))
 end
 
 e2function void entity:setRenderMode(mode)
@@ -94,6 +81,7 @@ e2function void entity:setRenderMode(mode)
 	if this:IsPlayer() then return end
 
 	this:SetRenderMode(mode)
+	duplicator.StoreEntityModifier(this, "colour", { RenderMode = mode })
 end
 
 --- HSV
