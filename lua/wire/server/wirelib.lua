@@ -7,6 +7,7 @@ WireAddon = 1
 local ents = ents
 local timer = timer
 local string = string
+local math_clamp = math.Clamp
 local table = table
 local hook = hook
 local concommand = concommand
@@ -596,7 +597,7 @@ function WireLib.Link_Start(idx, ent, pos, iname, material, color, width)
 	input.StartPos = pos
 	input.Material = material
 	input.Color = color
-	input.Width = math.Clamp(width, 0, 5)
+	input.Width = math_clamp(width, 0, 5)
 
 	return true
 end
@@ -1178,6 +1179,18 @@ function WireLib.IsValidMaterial(material)
 	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
 	if material_blacklist[path] then return "" end
 	return material
+end
+
+function WireLib.SetColor(ent, color)
+	color.r = math_clamp(color.r, 0, 255)
+	color.g = math_clamp(color.g, 0, 255)
+	color.b = math_clamp(color.b, 0, 255)
+	color.a = ent:IsPlayer() and ent:GetColor().a or math_clamp(color.a, 0, 255)
+
+	local rendermode = color.a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA
+	ent:SetColor(color)
+	ent:SetRenderMode(rendermode)
+	duplicator.StoreEntityModifier(ent, "colour", { Color = color, RenderMode = rendermode })
 end
 
 if not WireLib.PatchedDuplicator then

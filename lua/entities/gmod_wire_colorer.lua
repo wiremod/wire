@@ -126,11 +126,7 @@ function ENT:TriggerInput(iname, value)
 		if trace.Entity:IsPlayer() then
 			trace.Entity:SetColor(Color(self.InColor.r, self.InColor.g, self.InColor.b, 255))
 		else
-			local c = Color(self.InColor.r, self.InColor.g, self.InColor.b, self.InColor.a)
-			local rendermode = self.InColor.a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA
-			trace.Entity:SetColor(c)
-			trace.Entity:SetRenderMode(rendermode)
-			duplicator.StoreEntityModifier(trace.Entity, "colour", { Color = c, RenderMode = rendermode })
+			WireLib.SetColor(trace.Entity, Color(self.InColor.r, self.InColor.g, self.InColor.b, self.InColor.a))
 		end
 	elseif iname == "R" then
 		self.InColor.r = math.Clamp(value, 0, 255)
