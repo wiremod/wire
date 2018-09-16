@@ -1187,9 +1187,15 @@ function WireLib.SetColor(ent, color)
 	color.b = math_clamp(color.b, 0, 255)
 	color.a = ent:IsPlayer() and ent:GetColor().a or math_clamp(color.a, 0, 255)
 
-	local rendermode = color.a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA
+	local rendermode = ent:GetRenderMode()
+	if rendermode == RENDERMODE_NORMAL or rendermode == RENDERMODE_TRANSALPHA then
+		rendermode = color.a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA
+		ent:SetRenderMode(rendermode)
+	else
+		rendermode = nil -- Don't modify the current stored modifier
+	end
+		 
 	ent:SetColor(color)
-	ent:SetRenderMode(rendermode)
 	duplicator.StoreEntityModifier(ent, "colour", { Color = color, RenderMode = rendermode })
 end
 
