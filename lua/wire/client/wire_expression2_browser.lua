@@ -229,12 +229,13 @@ function PANEL:Init()
 		Derma_StringRequestNoBlur("Rename File \"" .. fname .. "\"", "Rename file " .. fname, fname,
 			function(strTextOut)
 			-- Renaming starts in the garrysmod folder now, in comparison to other commands that start in the data folder.
-				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-
-				local contents = file.Read(self.File:GetFileName())
-				file.Delete(self.File:GetFileName())
-				file.Write(string.GetPathFromFilename(self.File:GetFileName()) .. "/" .. strTextOut .. ".txt", contents)
-
+				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars) .. ".txt"
+				local newFileName = string.GetPathFromFilename(self.File:GetFileName()) .. "/" .. strTextOut
+				if file.Exists(newFileName, "DATA") then
+					WireLib.AddNotify("File already exists (" .. strTextOut .. ")", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+				elseif not file.Rename(self.File:GetFileName(), newFileName) then
+					WireLib.AddNotify("Rename was not successful", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+				end
 				self:UpdateFolders()
 			end)
 	end)
