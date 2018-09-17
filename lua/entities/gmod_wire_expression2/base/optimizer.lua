@@ -55,7 +55,7 @@ local function evaluateUnary(instruction)
     local op = wire_expression2_funcs["op:" .. instruction[1] .. "(" .. instruction[3][4] .. ")"]
     local x = instruction[3][3]
 
-    local value = op[3](nil, {nil, {function() return x end}})
+    local value = op[3]({prf = 0}, {nil, {function() return x end}})
     local type = op[2]
     return {"literal", instruction[2], value, type}
 end
