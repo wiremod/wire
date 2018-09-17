@@ -84,33 +84,6 @@ registerOperator( "kvarray", "", "r", function( self, args )
 end)
 
 --------------------------------------------------------------------------------
--- = operator
---------------------------------------------------------------------------------
-registerOperator("ass", "r", "r", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	if !Scope.lookup then Scope.lookup = {} end
-	local lookup = Scope.lookup
-
-	--remove old lookup entry
-	if (lookup[rhs]) then lookup[rhs][lhs] = nil end
-
-	--add new
-	if (!lookup[rhs]) then
-		lookup[rhs] = {}
-	end
-	lookup[rhs][lhs] = true
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
-
-
-
---------------------------------------------------------------------------------
 -- IS operator
 --------------------------------------------------------------------------------
 e2function number operator_is(array arr)
@@ -143,7 +116,7 @@ registerCallback( "postinit", function()
 				local ret
 				if (doremove) then
 					ret = table_remove( array, index )
-					self.GlobalScope.vclk[array] = true
+					self.QueuedTriggerValues[array] = true
 				else
 					ret = array[floor(index)]
 				end
@@ -177,7 +150,7 @@ registerCallback( "postinit", function()
 				else
 					array[floor(index)] = value
 				end
-				self.GlobalScope.vclk[array] = true
+				self.QueuedTriggerValues[array] = true
 				return value
 			end
 
@@ -278,9 +251,6 @@ registerCallback( "postinit", function()
 
 						self.prf = self.prf + 3
 
-						self.Scope.vclk[keyname] = true
-						self.Scope.vclk[valname] = true
-
 						self.Scope[keyname] = key
 						self.Scope[valname] = value
 
@@ -307,7 +277,7 @@ end)
 __e2setcost(2)
 e2function number array:pop()
 	local result = table_remove( this ) and 1 or 0
-	self.GlobalScope.vclk[this] = true
+	self.QueuedTriggerValues[this] = true
 	return result
 end
 
@@ -318,7 +288,7 @@ end
 __e2setcost(3)
 e2function number array:shift()
 	local result = table_remove( this, 1 ) and 1 or 0
-	self.GlobalScope.vclk[this] = true
+	self.QueuedTriggerValues[this] = true
 	return result
 end
 
@@ -329,7 +299,7 @@ end
 __e2setcost(2)
 e2function number array:remove( index )
 	local result = table_remove( this, index ) and 1 or 0
-	self.GlobalScope.vclk[this] = true
+	self.QueuedTriggerValues[this] = true
 	return result
 end
 
@@ -341,7 +311,7 @@ end
 e2function number array:unset( index )
 	if this[index] == nil then return 0 end
 	this[index] = nil
-	self.GlobalScope.vclk[this] = true
+	self.QueuedTriggerValues[this] = true
 	return 1
 end
 

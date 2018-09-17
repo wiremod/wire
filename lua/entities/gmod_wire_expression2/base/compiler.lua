@@ -150,12 +150,12 @@ end
 
 -- ---------------------------------------------------------------------------
 
+function Compiler:EvaluateInstruction(instruction)
+	return self["Instr" .. string.upper(instruction[1])](self, instruction)
+end
+
 function Compiler:EvaluateStatement(args, index)
-	local name = string.upper(args[index + 2][1])
-	local ex, tp = Compiler["Instr" .. name](self, args[index + 2])
-	-- ex.TraceBack = args[index + 2]
-	ex.TraceName = name
-	return ex, tp
+	return self:EvaluateInstruction(args[index + 2])
 end
 
 function Compiler:Evaluate(args, index)
@@ -465,6 +465,41 @@ function Compiler:InstrMETHODCALL(args)
 	return exprs, rt[2]
 end
 
+-- When a global variable is modified, we may have to update some metadata:
+-- * If the variable is an @output, we mark that that output needs to be
+--   triggered at the end of execution using queueTriggerName
+-- * If the variable has the $ (delta) operator used on it anywhere, we update
+--   the internal previous value, so that for example the following code:
+--       A = 10, A = 100, print($A)
+--   ...will print 90.
+-- This function takes an expression that modifies a variable, along with the
+-- name, scope and type of variable it modifies, and returns a new expression
+-- that will do the assignment, handle the metadata, and return the same value
+-- as the original assignment.
+-- TODO(abigail) it'd be cleaner to handle this in a separate lowering pass
+-- before the compiler
+function Compiler:HandleModifyingVariable(instruction, name, scope, expression, type)
+	if scope ~= 0 or not (self.dvars[name] or self.outputs[name]) then
+		return expression, type
+	end
+	local seq = { "seq", instruction[2] }
+	if self.dvars[name] then
+		table.insert(seq, { "ass", instruction[2], "$" .. name, { "var", instruction[2], name } })
+	end
+	if self.outputs[name] then
+		table.insert(seq, { "queueTriggerName", instruction[2], name })
+	end
+	seq = self:EvaluateInstruction(seq)
+	table.insert(seq, expression)
+	return seq, type
+end
+
+function Compiler:InstrQUEUETRIGGERNAME(args)
+	-- args = { "queueTriggerName", trace, output name }
+	local name = args[3]
+	return { function(self) self.QueuedTriggerNames[name] = true end }
+end
+
 function Compiler:InstrASS(args)
 	-- args = { "ass", trace, variable name, assigned expression }
 	local op = args[3]
@@ -472,14 +507,7 @@ function Compiler:InstrASS(args)
 	local ScopeID = self:SetGlobalVariableType(op, tp, args)
 	local rt = self:GetOperator(args, "ass", { tp })
 
-	if ScopeID == 0 and self.dvars[op] then
-		local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
-		stmts[3] = { self:GetOperator(args, "ass", { tp })[1], "$" .. op, { self:GetOperator(args, "var", {})[1], op, ScopeID }, ScopeID }
-		stmts[4] = { rt[1], op, ex, ScopeID }
-		return stmts, tp
-	else
-		return { rt[1], op, ex, ScopeID }, tp
-	end
+	return self:HandleModifyingVariable(args, op, ScopeID, { rt[1], op, ex, ScopeID }, tp)
 end
 
 function Compiler:InstrASSL(args)
@@ -567,14 +595,7 @@ function Compiler:InstrINC(args)
 	local tp, ScopeID = self:GetVariableType(args, op)
 	local rt = self:GetOperator(args, "inc", { tp })
 
-	if ScopeID == 0 and self.dvars[op] then
-		local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
-		stmts[3] = { self:GetOperator(args, "ass", { tp })[1], "$" .. op, { self:GetOperator(args, "var", {})[1], op, ScopeID }, ScopeID }
-		stmts[4] = { rt[1], op, ScopeID }
-		return stmts
-	else
-		return { rt[1], op, ScopeID }
-	end
+	return self:HandleModifyingVariable(args, op, ScopeID, { rt[1], op, ScopeID }, tp), nil
 end
 
 function Compiler:InstrDEC(args)
@@ -583,14 +604,7 @@ function Compiler:InstrDEC(args)
 	local tp, ScopeID = self:GetVariableType(args, op)
 	local rt = self:GetOperator(args, "dec", { tp })
 
-	if ScopeID == 0 and self.dvars[op] then
-		local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
-		stmts[3] = { self:GetOperator(args, "ass", { tp })[1], "$" .. op, { self:GetOperator(args, "var", {})[1], op, ScopeID }, ScopeID }
-		stmts[4] = { rt[1], op, ScopeID }
-		return stmts
-	else
-		return { rt[1], op, ScopeID }
-	end
+	return self:HandleModifyingVariable(args, op, ScopeID, { rt[1], op, ScopeID }, tp), nil
 end
 
 function Compiler:InstrNEG(args)
@@ -645,11 +659,11 @@ function Compiler:InstrDLT(args)
 	local op = args[3]
 	local tp, ScopeID = self:GetVariableType(args, op)
 
-	if ScopeID ~= 0 or not self.dvars[op] then
+	if ScopeID ~= 0 then
 		self:Error("Delta operator ($" .. E2Lib.limitString(op, 10) .. ") cannot be used on temporary variables", args)
 	end
 
-	self.dvars[op] = true
+	assert(self.dvars[op]) -- dvars are found by the parser
 	local rt = self:GetOperator(args, "sub", { tp, tp })
 	local rtvar = self:GetOperator(args, "var", {})
 	return { rt[1], { rtvar[1], op, ScopeID }, { rtvar[1], "$" .. op, ScopeID } }, rt[2]

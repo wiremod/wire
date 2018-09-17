@@ -44,16 +44,6 @@ end
 
 /******************************************************************************/
 
-registerOperator("ass", "a", "a", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
-
-/******************************************************************************/
-
 e2function number operator_is(angle rv1)
 	if rv1[1] != 0 || rv1[2] != 0 || rv1[3] != 0
 	   then return 1 else return 0 end

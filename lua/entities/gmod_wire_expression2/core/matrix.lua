@@ -87,16 +87,6 @@ e2function matrix2 identity2()
 end
 
 /******************************************************************************/
-
-registerOperator("ass", "xm2", "xm2", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
-
-/******************************************************************************/
 // Comparison
 
 e2function number operator_is(matrix2 rv1)
@@ -463,16 +453,6 @@ e2function matrix identity()
 			 0, 1, 0,
 			 0, 0, 1 }
 end
-
-/******************************************************************************/
-
-registerOperator("ass", "m", "m", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
 
 /******************************************************************************/
 // Comparison
@@ -999,16 +979,6 @@ e2function matrix4 identity4()
 			 0, 0, 1, 0,
 			 0, 0, 0, 1 }
 end
-
-/******************************************************************************/
-
-registerOperator("ass", "xm4", "xm4", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
 
 /******************************************************************************/
 // Comparison

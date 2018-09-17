@@ -51,13 +51,15 @@ ScopeManager.__index = ScopeManager
 function ScopeManager:InitScope()
 	self.Scopes = {}
 	self.ScopeID = 0
+	-- Note that vclk isn't used here, but might be written to by third-party
+	-- extensions. (It used to be how assignment operators queued an output trigger.)
 	self.Scopes[0] = self.GlobalScope or { vclk = {} } -- for creating new enviroments
 	self.Scope = self.Scopes[0]
 	self.GlobalScope = self.Scope
 end
 
 function ScopeManager:PushScope()
-	self.Scope = { vclk = {} }
+	self.Scope = { vclk = {} } -- as above, vclk unused
 	self.ScopeID = self.ScopeID + 1
 	self.Scopes[self.ScopeID] = self.Scope
 end
@@ -163,7 +165,6 @@ function ENT:Execute()
 		end
 	end
 
-	self.GlobalScope.vclk = {}
 	for k, v in pairs(self.globvars) do
 		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
 	end
@@ -323,7 +324,6 @@ end
 function ENT:ResetContext()
 	local context = {
 		data = {},
-		vclk = {}, -- Used only by arrays and tables!
 		funcs = self.funcs,
 		funcs_ret = self.funcs_ret,
 		entity = self,
@@ -334,7 +334,11 @@ function ENT:ResetContext()
 		prfbench = 0,
 		time = 0,
 		timebench = 0,
-		includes = self.includes
+		includes = self.includes,
+		-- a set of variable names which will be triggered when execution ends.
+		QueuedTriggerNames = {},
+		-- a set of values which, if any output is equal to this value, it will be triggered when execution ends.
+		QueuedTriggerValues = {},
 	}
 
 	setmetatable(context, ScopeManager)
@@ -368,7 +372,7 @@ function ENT:ResetContext()
 		self._outputs[1][#self._outputs[1] + 1] = k
 		self._outputs[2][#self._outputs[2] + 1] = v
 		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
-		self.GlobalScope.vclk[k] = true
+		context.QueuedTriggerNames[k] = true
 		self.globvars[k] = nil
 	end
 
@@ -487,7 +491,7 @@ end
 
 function ENT:TriggerOutputs()
 	for key, t in pairs(self.outports[3]) do
-		if self.GlobalScope.vclk[key] or self.first then
+		if self.first or self.context.QueuedTriggerNames[key] or self.context.QueuedTriggerValues[self.GlobalScope[key]] then
 			if wire_expression_types[t][4] then
 				WireLib.TriggerOutput(self, key, wire_expression_types[t][4](self.context, self.GlobalScope[key]))
 			else
@@ -495,6 +499,8 @@ function ENT:TriggerOutputs()
 			end
 		end
 	end
+	self.QueuedTriggerNames = {}
+	self.QueuedTriggerValues = {}
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)

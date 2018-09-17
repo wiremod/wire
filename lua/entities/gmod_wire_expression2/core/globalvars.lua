@@ -26,31 +26,6 @@ registerType( "gtable", "xgt", {},
 
 __e2setcost(1)
 
-registerOperator("ass", "xgt", "xgt", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	if !Scope.lookup then Scope.lookup = {} end
-	local lookup = Scope.lookup
-
-	-- remove old lookup entry
-	if lookup[rhs] then lookup[rhs][lhs] = nil end
-
-	-- add new lookup entry
-	local lookup_entry = lookup[rhs]
-	if not lookup_entry then
-		lookup_entry = {}
-		lookup[rhs] = lookup_entry
-	end
-	lookup_entry[lhs] = true
-
-	--Scope.vars[lhs] = rhs
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
-
 e2function number operator_is( gtable tbl )
 	return istable(tbl) and 1 or 0
 end
@@ -245,9 +220,6 @@ registerCallback("postinit",function()
 						self:PushScope()
 
 						self.prf = self.prf + 3
-
-						self.Scope.vclk[keyname] = true
-						self.Scope.vclk[valname] = true
 
 						self.Scope[keyname] = key:sub(len + 1)
 						self.Scope[valname] = value

@@ -112,6 +112,12 @@ function registerType(name, id, def, ...)
 	if not WireLib.DT[string.upper(name)] then
 		WireLib.DT[string.upper(name)] = { Zero = def }
 	end
+	registerOperator("ass", id, id, function(self, args)
+		local name, expression, scope = args[2], args[3], args[4]
+		local value = expression[1](self, expression)
+		self.Scopes[scope][name] = value
+		return value
+	end, 1)
 end
 
 function wire_expression2_CallHook(hookname, ...)
