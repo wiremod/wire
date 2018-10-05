@@ -333,7 +333,7 @@ function EDITOR:SyntaxColorLine(row)
     local spaces = self:SkipPattern( " *" )
     if spaces then addToken( "comment", spaces ) end
 
-    local invalidInput = self:SkipPattern( "^[^A-Z:]" )
+    local invalidInput = self:SkipPattern( "^[^A-Z:%[]" )
     if invalidInput then addToken( "notfound", invalidInput ) end
 
     if self:NextPattern( "%[" ) then -- Found a [
