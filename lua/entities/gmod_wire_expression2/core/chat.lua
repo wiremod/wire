@@ -25,7 +25,7 @@ hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, teamchat)
 	for e,_ in pairs(ChatAlert) do
 		if IsValid(e) then
 			chipHideChat = nil
-			e.context.data.runByChat = true
+			e.context.data.runByChat = entry
 			e:Execute()
 			e.context.data.runByChat = nil
 			--if chipHideChat ~= nil and ply == e.player then
@@ -64,9 +64,8 @@ end
 --- Returns 1 if the chip is being executed because of a chat event by player <ply>. Returns 0 otherwise.
 e2function number chatClk(entity ply)
 	if not IsValid(ply) then return 0 end
-	if not self.data.runByChat then return 0 end
-	if ply ~= TextList.last[3] then return 0 end
-	return 1
+	local cause = self.data.runByChat
+	return cause and cause[3] == ply and 1 or 0
 end
 
 --- If <hide> != 0, hide the chat message that is currently being processed.

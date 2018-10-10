@@ -45,9 +45,9 @@ e2function void httpRequest( string url )
 
 		local ent = self.entity
 		if IsValid(ent) and run_on.ents[ent] then
-			ent.context.data.httpClk = true
+			self.data.httpClk = preq
 			ent:Execute()
-			ent.context.data.httpClk = nil
+			self.data.httpClk = nil
 		end
 	end)
 end
