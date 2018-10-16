@@ -32,7 +32,7 @@ if CLIENT then
 				local hooks = hook.GetTable()["HUDPaint"]
 				savedHooks = table.Copy(hooks)
 				for k in pairs(hooks) do
-					if k ~= "EGP_HUDPaint" then
+					if hideHUD > 2 or k ~= "EGP_HUDPaint" then
 						hook.Add( "HUDPaint", k, blank )
 					end
 				end
