@@ -96,10 +96,6 @@ function ENT:EGP_Update()
 	self.OldResolution = self.Resolution
 end
 
-function ENT:OnRemove()
-	EGP:RemoveHUDEGP( self )
-end
-
 function ENT:DrawEntityOutline() end
 
 function ENT:Draw()
