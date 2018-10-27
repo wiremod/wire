@@ -556,7 +556,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if color then
 		local alpha = color[4] or 255
 
-		prop:SetColor(Color(color[1], color[2], color[3], color[4]))
+		prop:SetColor(Color(color[1], color[2], color[3], alpha))
 		prop:SetRenderMode(alpha == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 	end
 
