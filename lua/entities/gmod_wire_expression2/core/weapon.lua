@@ -26,7 +26,7 @@ e2function string entity:primaryAmmoType()
 
 	local ammoId = this:GetPrimaryAmmoType()
 
-	return game.GetAmmoName(ammoId)
+	return game.GetAmmoName(ammoId) or ""
 end
 
 e2function string entity:secondaryAmmoType()
@@ -35,7 +35,7 @@ e2function string entity:secondaryAmmoType()
 
 	local ammoId = this:GetSecondaryAmmoType()
 
-	return game.GetAmmoName(ammoId)
+	return game.GetAmmoName(ammoId) or ""
 end
 
 e2function number entity:ammoCount(string ammo_type)
