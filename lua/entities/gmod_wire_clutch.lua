@@ -88,6 +88,20 @@ function ENT:AddClutch( Ent1, Ent2, friction )
 
 	if ballsocket then
 		self.clutch_ballsockets[ballsocket] = true
+		ballsocket:CallOnRemove( "WireClutchRemove", function()
+			if self.clutch_ballsockets[ballsocket] then
+				-- The table value is still true so something unknown killed the ballsocket
+				-- Set the table so that nothing else runs into issues
+				self.clutch_ballsockets[ballsocket] = nil
+				self:UpdateOverlay()
+				-- Wait a frame so nothing bad happens, then rebuild it
+				timer.Simple(0, function()
+					if self:IsValid() then
+						self:AddClutch( Ent1, Ent2, friction )
+					end
+				end)
+			end
+		end)
 	end
 
 	self:UpdateOverlay()
