@@ -552,7 +552,13 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	end
 
 	if not IsValid(prop) then return nil end
-	if color then prop:SetColor(Color(color[1],color[2],color[3],255)) end
+
+	if color then
+		local alpha = color[4] or 255
+
+		prop:SetColor(Color(color[1], color[2], color[3], color[4]))
+		prop:SetRenderMode(alpha == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	end
 
 	reset_clholo(Holo, scale) -- Reset scale, clips, and visible status
 
@@ -637,7 +643,31 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 	if IsValid(ret) then return ret end
 end
 
+e2function entity holoCreate(index, vector position, vector scale, angle ang, vector4 color, string model)
+	if not checkOwner(self) then return end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	local Holo = CheckIndex(self, index)
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
+
+	position = Vector(position[1], position[2], position[3])
+	ang = Angle(ang[1], ang[2], ang[3])
+	local ret = CreateHolo(self, index, position, scale, ang, color, model)
+	if IsValid(ret) then return ret end
+end
+
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector color)
+	if not checkOwner(self) then return end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	local Holo = CheckIndex(self, index)
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
+
+	position = Vector(position[1], position[2], position[3])
+	ang = Angle(ang[1], ang[2], ang[3])
+	local ret = CreateHolo(self, index, position, scale, ang, color)
+	if IsValid(ret) then return ret end
+end
+
+e2function entity holoCreate(index, vector position, vector scale, angle ang, vector4 color)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
