@@ -390,7 +390,7 @@ local function EntityLookup(CreatedEntities)
 	return function(id, default)
 		if id == nil then return default end
 		if id == 0 then return game.GetWorld() end
-		local ent = CreatedEntities[id] or (isnumber(id) and ents.GetByIndex(id))
+		local ent = CreatedEntities[id]
 		if IsValid(ent) then return ent else return default end
 	end
 end
