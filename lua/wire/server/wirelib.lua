@@ -458,7 +458,7 @@ local function WireConstraint(Ent1, Ent2)
 		Ent2 = Ent2,
 		Type = "Wire"
 	}
-	duplicator.AddConstraintTable(Ent1, Constraint Ent2)
+	duplicator.AddConstraintTableNoDelete(Ent1, Constraint Ent2)
 	return Constraint
 end
 duplicator.RegisterConstraint("Wire", WireConstraint, "Ent1", "Ent2")
