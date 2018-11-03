@@ -808,6 +808,7 @@ E2Helper.Descriptions["minquota()"] = "The ops left before soft quota is used up
 E2Helper.Descriptions["maxquota()"] = "The ops left before hard quota is exceeded and the expression shuts down"
 E2Helper.Descriptions["softQuota()"] = "Returns the size of the soft quota"
 E2Helper.Descriptions["hardQuota()"] = "Returns the size of the hard quota"
+E2Helper.Descriptions["timeQuota()"] = "Returns the time quota in seconds"
 E2Helper.Descriptions["perf()"] = "If used as a while loop condition, stabilizes the expression around hardquota used"
 E2Helper.Descriptions["perf(n)"] = "If used as a while loop condition, stabilizes the expression around specified number (in %)"
 E2Helper.Descriptions["entity()"] = "Gets the entity of the expression"

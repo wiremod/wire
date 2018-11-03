@@ -15,28 +15,33 @@ end
 e2_softquota = nil
 e2_hardquota = nil
 e2_tickquota = nil
+e2_timequota = nil
 
 do
 	local wire_expression2_unlimited = GetConVar("wire_expression2_unlimited")
 	local wire_expression2_quotasoft = GetConVar("wire_expression2_quotasoft")
 	local wire_expression2_quotahard = GetConVar("wire_expression2_quotahard")
 	local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
+	local wire_expression2_quotatime = GetConVar("wire_expression2_quotatime")
 
 	local function updateQuotas()
 		if wire_expression2_unlimited:GetBool() then
 			e2_softquota = 1000000
 			e2_hardquota = 1000000
 			e2_tickquota = 100000
+			e2_timequota = -1
 		else
 			e2_softquota = wire_expression2_quotasoft:GetInt()
 			e2_hardquota = wire_expression2_quotahard:GetInt()
 			e2_tickquota = wire_expression2_quotatick:GetInt()
+			e2_timequota = wire_expression2_quotatime:GetInt()*0.001
 		end
 	end
 	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotasoft", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotahard", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotatick", updateQuotas)
+	cvars.AddChangeCallback("wire_expression2_quotatime", updateQuotas)
 	updateQuotas()
 end
 
@@ -183,6 +188,11 @@ function ENT:Think()
 		self.context.prfbench = self.context.prfbench * 0.95 + self.context.prf * 0.05
 		self.context.prfcount = self.context.prfcount + self.context.prf - e2_softquota
 		self.context.timebench = self.context.timebench * 0.95 + self.context.time * 0.05 -- Average it over the last 20 ticks
+
+		if e2_timequota > 0 and self.context.timebench > e2_timequota then
+			self:Error("Expression 2 (" .. self.name .. "): time quota exceeded", "time quota exceeded")
+		end
+
 		if self.context.prfcount < 0 then self.context.prfcount = 0 end
 
 		self:UpdateOverlay()
