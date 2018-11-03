@@ -11,18 +11,14 @@ local function tokenizeAndGetCommand(str)
 	local escaped = false
 	for i=1, #str do
 		local char = string.sub(str, i, i)
-		if escaped then
-			curtoken[#curtoken+1] = char
+		if (escaped and char ~= "\"") or string.match(char, "%w") then
+			curtoken[#curtoken + 1] = char
 		else
-			if string.match(char, "%w") then
-				curtoken[#curtoken + 1] = char
-			else
-				if #curtoken>0 then tokens[#tokens + 1] = table.concat(curtoken) curtoken = {} end
-				if char == "\"" then
-					escaped = not escaped
-				elseif char ~= " " then
-					tokens[#tokens + 1] = char
-				end
+			if #curtoken>0 then tokens[#tokens + 1] = table.concat(curtoken) curtoken = {} end
+			if char == "\"" then
+				escaped = not escaped
+			elseif char ~= " " then
+				tokens[#tokens + 1] = char
 			end
 		end
 	end
