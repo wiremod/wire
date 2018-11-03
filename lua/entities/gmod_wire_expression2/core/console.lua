@@ -4,7 +4,7 @@
 
 E2Lib.RegisterExtension("console", true, "Lets E2 chips run concommands and retrieve convars")
 
-local function tokenizeAndGetCommand(str)
+local function tokenizeAndGetCommands(str)
 	-- Tokenize!
 	local tokens = {}
 	local curtoken = {}
@@ -22,7 +22,7 @@ local function tokenizeAndGetCommand(str)
 			end
 		end
 	end
-	tokens[#tokens+1] = table.concat(curtoken)
+	if #curtoken>0 then tokens[#tokens+1] = table.concat(curtoken) end
 
 	-- Get table of commands used
 	local commands = {tokens[1] or ""}
@@ -48,7 +48,7 @@ local function validConCmd(self, command)
 	local whitelist = {}
 	for k, v in pairs(whitelistArr) do whitelist[v] = true end
 
-	local commands = tokenizeAndGetCommand(command)
+	local commands = tokenizeAndGetCommands(command)
 
 	for _, command in pairs(commands) do
 		if not whitelist[command] then
