@@ -448,9 +448,10 @@ end
 
 local UniqueWireID = 0
 local function WireConstraint(Ent1, Ent2)
-	if constraint.Find(Ent1, Ent2, "Wire") then return end
+	local Constraint = constraint.Find(Ent1, Ent2, "Wire")
+	if Constraint then return Constraint end
 	UniqueWireID = UniqueWireID + 1
-	local Constraint = {
+	Constraint = {
 		IsValid = function(self) return self.Ent1:IsValid() and self.Ent2:IsValid() end,
 		GetTable = function(self) return self end,
 		GetCreationID = function() return "Wire"..UniqueWireID end,
