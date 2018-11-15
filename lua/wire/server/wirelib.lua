@@ -455,6 +455,7 @@ local function WireConstraint(Ent1, Ent2)
 		IsValid = function(self) return self.Ent1:IsValid() and self.Ent2:IsValid() end,
 		GetTable = function(self) return self end,
 		GetCreationID = function() return "Wire"..UniqueWireID end,
+		Remove = function() end,
 		Ent1 = Ent1,
 		Ent2 = Ent2,
 		Type = "Wire"
