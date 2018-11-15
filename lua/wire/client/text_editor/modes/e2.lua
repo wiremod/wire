@@ -81,6 +81,10 @@ local function addToken(tokenname, tokendata)
 	end
 end
 
+local function getLastTokenName(tokendata)
+	return lastcol[3]
+end
+
 function EDITOR:CommentSelection(removecomment)
 	local sel_start, sel_caret = self:MakeSelection( self:Selection() )
 	local mode = self:GetParent().BlockCommentStyleConVar:GetInt()
@@ -449,7 +453,7 @@ function EDITOR:SyntaxColorLine(row)
 				elseif wire_expression2_funclist[sstr] then
 					tokenname = "function"
 
-				elseif self.e2fs_functions[sstr] then
+				elseif getLastTokenName(self.tokendata) ~= "ppcommand" and self.e2fs_functions[sstr] then
 					tokenname = "userfunction"
 
 				else
