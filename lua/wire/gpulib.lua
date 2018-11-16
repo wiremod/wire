@@ -34,6 +34,10 @@ function GPULib.WireGPU(ent, ...)
 end
 WireGPU = GPULib.WireGPU
 
+function GPU:SetTranslucentOverride(bool)
+	self.translucent = bool;
+end
+
 function GPU:GetInfo()
 	local ent = self.Entity
 	if not ent:IsValid() then ent = self.actualEntity end
@@ -145,15 +149,17 @@ if CLIENT then
 	//
 	// Create screen textures and materials
 	//
-	WireGPU_matScreen = CreateMaterial("GPURT","UnlitGeneric",{
+	WireGPU_matScreen = CreateMaterial("sprites/GPURT","UnlitGeneric",{
 		["$vertexcolor"] = 1,
 		["$vertexalpha"] = 1,
+    ["$translucent"] = 1,
 		["$ignorez"] = 1,
 		["$nolod"] = 1,
 		})
-	WireGPU_matBuffer = CreateMaterial("GPUBUF","UnlitGeneric",{
+	WireGPU_matBuffer = CreateMaterial("sprites/GPUBUF","UnlitGeneric",{
 		["$vertexcolor"] = 1,
 		["$vertexalpha"] = 1,
+    ["$translucent"] = 1,
 		["$ignorez"] = 1,
 		["$nolod"] = 1,
 	})
@@ -208,7 +214,7 @@ if CLIENT then
 
 	function GPU:Clear(color)
 		if not self.RT then return end
-		render.ClearRenderTarget(self.RT, color or Color(0, 0, 0))
+		render.ClearRenderTarget(self.RT, color or Color(0, 0, 0, 0))
 	end
 
 	local texcoords = {
@@ -339,8 +345,16 @@ if CLIENT then
 				local x = -w/2
 				local y = -h/2
 
-				surface.SetDrawColor(0,0,0,255)
-				surface.DrawRect(-256*aspect,-256,512*aspect,512)
+				local translucent = self.translucent;
+
+				if translucent == nil then
+					translucent = monitor.translucent
+				end
+
+				if not translucent then
+					surface.SetDrawColor(0,0,0,255)
+					surface.DrawRect(-256*aspect,-256,512*aspect,512)
+				end
 
 				surface.SetDrawColor(255,255,255,255)
 				surface.SetMaterial(WireGPU_matScreen)

@@ -3,6 +3,7 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Screen"
 ENT.WireDebugName	= "Screen"
 ENT.Editable = true
+ENT.RenderGroup = RENDERGROUP_BOTH
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool", 0, "SingleValue", { KeyName = "SingleValue",
@@ -101,8 +102,9 @@ if CLIENT then
 		self:DrawModel()
 
 		self.GPU:RenderToWorld(nil, 188, function(x, y, w, h)
-			surface.SetDrawColor(background_color)
-			surface.DrawRect(x, y, w, h)
+			--Not needed since this will be done by GPU:Clear()
+			--surface.SetDrawColor(background_color)
+			--surface.DrawRect(x, y, w, h)
 
 			if self:GetSingleValue() then
 				self:DrawNumber( self:GetTextA(), self:GetDisplayA(), x,y,w,h )

@@ -1,8 +1,9 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire E2 Graphics Processor Emitter"
-ENT.RenderGroup		= RENDERGROUP_TRANSLUCENT
+--ENT.RenderGroup		= RENDERGROUP_TRANSLUCENT
 ENT.WireDebugName	= "E2 Graphics Processor Emitter"
+ENT.RenderGroup    = RENDERGROUP_BOTH
 
 if CLIENT then
 	ENT.gmod_wire_egp_emitter = true
@@ -12,23 +13,54 @@ if CLIENT then
 	ENT.DrawScale     = 0.25
 
 	function ENT:Initialize()
-		self.RenderTable = table.Copy(EGP.HomeScreen)
+		self.GPU = GPULib.WireGPU( self )
+		self.GPU:SetTranslucentOverride(true)
+		self:EGP_Update( EGP.HomeScreen )
 	end
 
-	function ENT:EGP_Update()
+	function ENT:EGP_Update( Table )
+		self.NeedsUpdate = true
+		self.NextUpdate = Table
+	end
+
+	function ENT:_EGP_Update( bool )
+		self.NeedsUpdate = nil
+		local Table = self.NextUpdate or self.RenderTable
+
+		if not Table then return end
 		self.UpdateConstantly = nil
-		for k,object in pairs(self.RenderTable) do
-			if object.parent == -1 or object.Is3DTracker then self.UpdateConstantly = true end -- Check if an object is parented to the cursor (or for 3DTrackers)
 
-			if object.parent and object.parent ~= 0 then
-				if not object.IsParented then EGP:SetParent(self, object.index, object.parent) end
-				local _, data = EGP:GetGlobalPos(self, object.index)
-				EGP:EditObject(object, data)
-			elseif not object.parent or object.parent == 0 and object.IsParented then
-				EGP:UnParent(self, object.index)
+		self.GPU:RenderToGPU( function()
+			render.Clear( 0, 0, 0, 0 )
+			--render.ClearRenderTarget( 0, 0, 0, 0 )
+
+			local currentfilter = self.GPU.texture_filtering
+
+			local mat = self:GetEGPMatrix()
+
+			for k,v in pairs( Table ) do
+				if (v.parent == -1) then self.UpdateConstantly = true end -- Check if an object is parented to the cursor
+				if (v.parent and v.parent != 0) then
+					if (!v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
+					local _, data = EGP:GetGlobalPos( self, v.index )
+					EGP:EditObject( v, data )
+				elseif ((!v.parent or v.parent == 0) and v.IsParented) then
+					EGP:UnParent( self, v.index )
+				end
+				local oldtex = EGP:SetMaterial( v.material )
+
+				if v.filtering != currentfilter then
+					render.PopFilterMin()
+					render.PopFilterMag()
+					render.PushFilterMag(v.filtering)
+					render.PushFilterMin(v.filtering)
+					currentfilter = v.filtering
+				end
+
+				v:Draw(self, mat)
+				EGP:FixMaterial( oldtex )
 			end
-
-		end
+		end)
 	end
 
 	function ENT:DrawEntityOutline() end
@@ -43,36 +75,28 @@ if CLIENT then
 	local wire_egp_drawemitters = CreateClientConVar("wire_egp_drawemitters", "1")
 
 	function ENT:Draw()
-		if (wire_egp_drawemitters:GetBool() == true and self.RenderTable and #self.RenderTable > 0) then
-			if (self.UpdateConstantly) then self:EGP_Update() end
+		if wire_egp_drawemitters:GetBool() == true then
+			if self.UpdateConstantly or self.NeedsUpdate then
+				self:_EGP_Update()
+			end
 
 			local pos = self:LocalToWorld(self.DrawOffsetPos)
 			local ang = self:LocalToWorldAngles(self.DrawOffsetAng)
 
-			local mat = self:GetEGPMatrix()
+			local OldTex = WireGPU_matScreen:GetTexture("$basetexture")
+			WireGPU_matScreen:SetTexture("$basetexture", self.GPU.RT)
 
 			cam.Start3D2D(pos, ang, self.DrawScale)
-				local globalfilter = TEXFILTER.ANISOTROPIC -- Emitter uses ANISOTRPOIC (unchangeable)
-				for i=1,#self.RenderTable do
-					local object = self.RenderTable[i]
-					local oldtex = EGP:SetMaterial( object.material )
-
-					if object.filtering != globalfilter then
-						render.PushFilterMag(object.filtering)
-						render.PushFilterMin(object.filtering)
-						object:Draw(self, mat)
-						render.PopFilterMin()
-						render.PopFilterMag()
-					else
-						object:Draw(self, mat)
-					end
-
-					EGP:FixMaterial( oldtex )
-				end
+				surface.SetDrawColor(255, 255, 255, 255)
+				surface.SetMaterial(WireGPU_matScreen)
+				surface.DrawTexturedRect(0, 0, 512, 512)
 			cam.End3D2D()
+
+			WireGPU_matScreen:SetTexture("$basetexture", OldTex)
 		end
 
 		self:DrawModel()
+
 		Wire_Render(self)
 	end
 
