@@ -188,7 +188,7 @@ function EGP:SendColor( obj )
 	net.WriteUInt(obj.r, 8)
 	net.WriteUInt(obj.g, 8)
 	net.WriteUInt(obj.b, 8)
-	if (obj.a) then net.WriteUInt(obj.a, 8) end
+	if (obj.a) then net.WriteUInt( math.Clamp( obj.a, 0, 255 ) , 8) end
 end
 
 function EGP:ReceivePosSize( tbl ) -- Used with SendPosSize
