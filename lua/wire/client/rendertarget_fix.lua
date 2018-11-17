@@ -88,7 +88,7 @@ end)
 ---------------------------------------------------------------------
 
 -- Helper function
-local function def( ent, redrawkey,  )
+local function def( ent, redrawkey )
 	if (ent.GPU or ent.GPU.RT) then
 		ent.GPU:FreeRT()
 	end
