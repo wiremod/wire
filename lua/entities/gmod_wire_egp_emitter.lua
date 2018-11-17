@@ -24,6 +24,11 @@ if CLIENT then
 		self:EGP_Update( EGP.HomeScreen )
 	end
 
+	function ENT:Think()
+		local dist = Vector(1,0,1)
+		self:SetRenderBounds(Vector(-64,0,0)-dist,Vector(64,0,135)+dist)
+	end
+
 	function ENT:DrawEntityOutline() end
 
 end
