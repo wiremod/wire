@@ -8,7 +8,7 @@ if CLIENT then
 
 	ENT.gmod_wire_egp_emitter = true
 
-	ENT.DrawOffsetPos = Vector(0, 0, 70)
+	ENT.DrawOffsetPos = Vector(0, 0, 71)
 	ENT.DrawOffsetAng = Angle(0, 0, 90)
 	ENT.DrawScale     = 0.25
 
