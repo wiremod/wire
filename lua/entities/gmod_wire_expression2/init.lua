@@ -469,7 +469,7 @@ end
 
 function ENT:TriggerInput(key, value)
 	if self.error then return end
-	if key and self.inports[3][key] then
+	if key and self.inports and self.inports[3][key] then
 		local t = self.inports[3][key]
 
 		self.GlobalScope["$" .. key] = self.GlobalScope[key]
