@@ -102,9 +102,6 @@ if CLIENT then
 		self:DrawModel()
 
 		self.GPU:RenderToWorld(nil, 188, function(x, y, w, h)
-			--Not needed since this will be done by GPU:Clear()
-			--surface.SetDrawColor(background_color)
-			--surface.DrawRect(x, y, w, h)
 
 			if self:GetSingleValue() then
 				self:DrawNumber( self:GetTextA(), self:GetDisplayA(), x,y,w,h )
