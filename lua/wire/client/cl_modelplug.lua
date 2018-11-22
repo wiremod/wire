@@ -70,6 +70,9 @@ list.Set( "WireScreenModels", "models/hunter/plates/plate8x8.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate05x05.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/blocks/cube1x1x1.mdl", true )
 
+--screens that are transparent
+list.Set( "WireScreenModels", "models/props_phx/construct/windows/window1x1.mdl", true )
+
 --screens with out a GPULib setup (for the tools wire_panel and wire_screen)
 list.Set( "WireNoGPULibScreenModels", "models/props_lab/monitor01b.mdl", true )
 list.Set( "WireNoGPULibScreenModels", "models/props/cs_office/tv_plasma.mdl", true )

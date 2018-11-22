@@ -23,7 +23,7 @@ function ENT:_EGP_Update( bool )
 	self.UpdateConstantly = nil
 
 	self.GPU:RenderToGPU( function()
-		render.Clear( 0, 0, 0, 255 )
+		render.Clear( 0, 0, 0, 0, true )
 		--render.ClearRenderTarget( 0, 0, 0, 0 )
 
 		local currentfilter = self.GPU.texture_filtering

@@ -1,6 +1,6 @@
 WireGPU_Monitors = {}
 
-function WireGPU_AddMonitor(name,model,tof,tou,tor,trs,x1,x2,y1,y2,rot)
+function WireGPU_AddMonitor(name,model,tof,tou,tor,trs,x1,x2,y1,y2,rot,translucent)
 	if not rot then
 		rot = Angle(0,90,90)
 	elseif !isangle(rot) then
@@ -22,6 +22,8 @@ function WireGPU_AddMonitor(name,model,tof,tou,tor,trs,x1,x2,y1,y2,rot)
 		z = tof,
 
 		rot = rot,
+
+		translucent = translucent,
 	}
 	WireGPU_Monitors[model] = monitor
 end
@@ -74,7 +76,7 @@ local function maxdimension(vec)
 	end
 end
 
-function WireGPU_FromBox(name, model, boxmin, boxmax)
+function WireGPU_FromBox(name, model, boxmin, boxmax, translucent)
 	local dim = boxmax-boxmin
 	local mindim, maxdim = mindimension(dim), maxdimension(dim)
 
@@ -95,11 +97,11 @@ function WireGPU_FromBox(name, model, boxmin, boxmax)
 	local boxmax = Vector(math.max(box1.x,box2.x), math.max(box1.y,box2.y), math.max(box1.z,box2.z))
 
 	-- make a new gpu screen
-	return WireGPU_FromBox_Helper(name, model, boxmin, boxmax, rot)
+	return WireGPU_FromBox_Helper(name, model, boxmin, boxmax, rot, translucent)
 end
 
 -- boxmin/boxmax have to be already rotated
-function WireGPU_FromBox_Helper(name, model, boxmin, boxmax, rot)
+function WireGPU_FromBox_Helper(name, model, boxmin, boxmax, rot, translucent)
 	local boxcenter = (boxmin+boxmax)*0.5
 	local offset = Vector(boxcenter.x,boxcenter.y,boxmax.z+0.2)
 
@@ -125,13 +127,15 @@ function WireGPU_FromBox_Helper(name, model, boxmin, boxmax, rot)
 		z = offset.z,
 
 		rot = rot,
+
+		translucent = translucent,
 	}
 
 	WireGPU_Monitors[model] = monitor
 	return monitor
 end
 
-function WireGPU_FromRotatedBox(name, model, box1, box2, box3, box4, rot)
+function WireGPU_FromRotatedBox(name, model, box1, box2, box3, box4, rot, translucent)
 	if isvector(rot) then
 		rot = Vector:Angle()
 	end
@@ -154,7 +158,7 @@ function WireGPU_FromRotatedBox(name, model, box1, box2, box3, box4, rot)
 		math.max(box1.z,box2.z,box3.z,box4.z)
 	)
 	print(boxmin, boxmax, rot)
-	return WireGPU_FromBox_Helper(name, model, boxmin, boxmax, rot)
+	return WireGPU_FromBox_Helper(name, model, boxmin, boxmax, rot, translucent)
 end
 
 WireGPU_FromBox_Helper("Workspace 002", "models/props_lab/workspace002.mdl", Vector(-20, 49, -34), Vector(16.2, 84, -30.5), Angle(0, 133.34, 59.683))
@@ -174,11 +178,16 @@ WireGPU_AddMonitor("Panel 2x2",         "models/hunter/plates/plate2x2.mdl",    
 WireGPU_AddMonitor("Panel 0.5x0.5",     "models/hunter/plates/plate05x05.mdl",            0   , 1.7  , 0  , 0.045 , -48     , 48     , -48    , 48    , true)
 
 WireGPU_AddMonitor("Tray",              "models/props/cs_militia/reload_bullet_tray.mdl", 0   , 0.8  , 0  , 0.009 , 0       , 100    , 0      , 60    , true)
+
 -- Offset front, offset up, offset right, resolution/scale                                OF    OU     OR   SCALE   LOWX      HIGHX    LOWY     HIGHY   ROTATE90
 --WireGPU_AddMonitor("LED Board (1:1)",   "models/blacknecro/ledboard60.mdl",               6.1, 18.5 , 11 , 0.065 , -60     , 60     , -60    , 60    ) -- broken
 
 WireGPU_FromBox("TF2 Red billboard", "models/props_mining/billboard001.mdl", Vector(0,-168,0), Vector(3,168,192), false)
 WireGPU_FromBox("TF2 Red vs Blue billboard", "models/props_mining/billboard002.mdl", Vector(0,-306,96), Vector(3,306,288), false)
+
+
+-- transparent screens
+WireGPU_AddMonitor("Window", "models/props_phx/construct/windows/window1x1.mdl", 0, 1.7, 0, 0.07, -46, 46, -46, 46, true, true)
 
 --[[
 models/props_c17/tv_monitor01.mdl
