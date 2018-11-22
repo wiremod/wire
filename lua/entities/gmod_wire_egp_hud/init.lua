@@ -64,9 +64,6 @@ function ENT:LinkEnt( ent )
 		end
 
 		EGP:LinkHUDToVehicle( self, ent )
-		ent:CallOnRemove( "EGP HUD unlink on remove", function( ent )
-			EGP:UnlinkHUDFromVehicle( self, ent )
-		end)
 		return true
 	else
 		return false, tostring(ent) .. " is invalid or is not a vehicle"
@@ -74,12 +71,6 @@ function ENT:LinkEnt( ent )
 end
 
 function ENT:OnRemove()
-	if self.Marks then
-		for i=1,#self.Marks do
-			self.Marks[i]:RemoveCallOnRemove( "EGP HUD unlink on remove" )
-		end
-	end
-
 	EGP:UnlinkHUDFromVehicle( self )
 end
 
