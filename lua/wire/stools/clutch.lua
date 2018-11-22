@@ -310,22 +310,3 @@ end
 
 
 if CLIENT then return end
-/*---------------------------------------------------------
-   -- Clutch controller server functions --
----------------------------------------------------------*/
-// When a ball socket is removed, clear the entry for each clutch controller
-local function OnBallSocketRemoved( const )
-	if const.Type and const.Type == "" and const:GetClass() == "phys_ragdollconstraint" then
-		for k, v in pairs( ents.FindByClass("gmod_wire_clutch") ) do
-			if v.clutch_ballsockets[const] then
-				v.clutch_ballsockets[const] = nil
-				v:UpdateOverlay()
-			end
-		end
-	end
-end
-
-hook.Add( "EntityRemoved", "wire_clutch_ballsocket_removed", function( ent )
-	local r, e = xpcall( OnBallSocketRemoved, debug.traceback, ent )
-	if !r then WireLib.ErrorNoHalt( e .. "\n" ) end
-end )
