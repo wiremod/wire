@@ -40,6 +40,17 @@ local function IsErrorVector(pos)
 	return false
 end
 
+local function entitiesAndWaterTrace( tracedata, tracefunc )
+	tracedata.ignoreworld = true
+	local trace1 = tracefunc()
+	tracedata.ignoreworld = nil
+	tracedata.mask = MASK_WATER
+	local trace2 = tracefunc()
+	if not trace1.Hit then return trace2 end
+	if not trace2.Hit then return trace1 end
+	return trace1.fraction < trace2.fraction and trace1 or trace2
+end
+
 local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, traceEntity )
 	local data = self.data
 	local chip = self.entity
@@ -53,28 +64,35 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	if not data.rangerpersist then ResetRanger(self) end
 
 	-- begin building tracedata structure
-	local tracedata = { filter = filter, ignoreworld = ignoreworld }
-	if water then
-		if entities then
-			--(i)we
-			tracedata.mask = -1
-		elseif ignoreworld then
-			--iw
-			tracedata.mask = MASK_WATER
-		else
-			--w
-			tracedata.mask = bit.bor(MASK_WATER, CONTENTS_SOLID)
-		end
-	elseif not entities then
+	local tracedata = { filter = filter }
+	if entities then
 		if ignoreworld then
-			--i
-			tracedata.mask = 0
+			if water then
+				tracedata.entitiesandwater = true
+			else
+				tracedata.ignoreworld = true
+			end
 		else
-			--no flags
-			tracedata.mask = MASK_NPCWORLDSTATIC
+			if water then
+				tracedata.mask = -1
+			else
+				--No flags needed
+			end
 		end
-	--else
-		--(i)e
+	else
+		if ignoreworld then
+			if water then
+				tracedata.mask = MASK_WATER
+			else
+				tracedata.mask = 0
+			end
+		else
+			if water then
+				tracedata.mask = bit.bor(MASK_WATER, CONTENTS_SOLID)
+			else
+				tracedata.mask = MASK_NPCWORLDSTATIC
+			end
+		end
 	end
 
 	-- calculate startpos and endpos
@@ -108,7 +126,13 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	---------------------------------------------------------------------------------------
 	local trace
 	if IsValid(traceEntity) then
-		trace = util.TraceEntity( tracedata, traceEntity )
+		if tracedata.entitiesandwater then
+			trace = entitiesAndWaterTrace( tracedata, function()
+				return util.TraceEntity( tracedata, traceEntity )
+			end )
+		else
+			trace = util.TraceEntity( tracedata, traceEntity )
+		end
 	elseif (hulltype) then
 		if (hulltype == 1) then
 			local s = Vector(mins[1], mins[2], mins[3])
@@ -132,9 +156,21 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		-- If max is less than min it'll cause a hang
 		OrderVectors(tracedata.mins, tracedata.maxs)
 
-		trace = util.TraceHull( tracedata )
+		if tracedata.entitiesandwater then
+			trace = entitiesAndWaterTrace( tracedata, function()
+				return util.TraceHull( tracedata )
+			end )
+		else
+			trace = util.TraceHull( tracedata )
+		end
 	else
-		trace = util.TraceLine( tracedata )
+		if tracedata.entitiesandwater then
+			trace = entitiesAndWaterTrace( tracedata, function()
+				return util.TraceLine( tracedata )
+			end )
+		else
+			trace = util.TraceLine( tracedata )
+		end
 	end
 	---------------------------------------------------------------------------------------
 
