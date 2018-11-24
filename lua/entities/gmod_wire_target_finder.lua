@@ -36,7 +36,6 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 		pcolA		= pcolA,
 		casesen		= casesen,
 		rpgs		= rpgs,
-		painttarget = painttarget,
 		minrange	= minrange,
 		maxtargets	= maxtargets,
 		maxbogeys	= maxbogeys,
@@ -74,15 +73,8 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 	self.EntFil              = entity
 	self.CheckBuddyList      = checkbuddylist
 	self.OnBuddyList         = onbuddylist
-	self.PaintTarget         = painttarget
 	self.MaxTargets          = math.floor(math.Clamp((maxtargets or 1), 1, GetConVarNumber("wire_target_finders_maxtargets", 10)))
 	self.MaxBogeys           = math.floor(math.Clamp((maxbogeys or 1), self.MaxTargets, GetConVarNumber("wire_target_finders_maxbogeys", 30)))
-
-	if (self.SelectedTargets) then --unpaint before clearing
-		for _,ent in pairs(self.SelectedTargets) do
-			self:TargetPainter(ent, false)
-		end
-	end
 	self.SelectedTargets = {}
 	self.SelectedTargetsSel = {}
 
@@ -176,15 +168,12 @@ function ENT:SelectorNext(ch)
 
 		if (self.SelectedTargets[ch]) and (self.SelectedTargets[ch]:IsValid()) then
 
-			if (self.PaintTarget) then self:TargetPainter(self.SelectedTargets[ch], false) end
 			table.insert(self.Bogeys, self.SelectedTargets[ch]) --put old target back
 			self.SelectedTargets[ch] = table.remove(self.Bogeys, sel) --pull next target
-			if (self.PaintTarget) then self:TargetPainter(self.SelectedTargets[ch], true) end
 
 		else
 
 			self.SelectedTargets[ch] = table.remove(self.Bogeys, sel) --pull next target
-			if (self.PaintTarget) then self:TargetPainter(self.SelectedTargets[ch], true) end
 
 		end
 
@@ -287,10 +276,8 @@ function ENT:Think()
 			end
 
 			if (!self.InRange[i]) or (!self.SelectedTargets[i]) or (self.SelectedTargets[i] == nil) or (!self.SelectedTargets[i]:IsValid()) then
-				if (self.PaintTarget) then self:TargetPainter(self.SelectedTargets[i], false) end
 				if (#self.Bogeys > 0) then
 					self.SelectedTargets[i] = table.remove(self.Bogeys, 1)
-					if (self.PaintTarget) then self:TargetPainter(self.SelectedTargets[i], true) end
 					Wire_TriggerOutput(self, tostring(i), 1)
 					Wire_TriggerOutput(self, tostring(i).."_Ent", self.SelectedTargets[i])
 				else
@@ -325,7 +312,6 @@ function ENT:IsTargeted(bogey, bogeynum)
 			--this bogey is not as close as others, untarget it and let it be add back to the list
 			if (bogeynum > self.MaxTargets) then
 				self.SelectedTargets[i] = nil
-				if (self.PaintTarget) then self:TargetPainter(bogey, false) end
 				return false
 			end
 
@@ -346,13 +332,6 @@ end
 
 function ENT:OnRemove()
 	BaseClass.OnRemove(self)
-
-	--unpaint all our targets
-	if (self.PaintTarget) then
-		for _,ent in pairs(self.SelectedTargets) do
-			self:TargetPainter(ent, false)
-		end
-	end
 end
 
 function ENT:OnRestore()
@@ -360,27 +339,6 @@ function ENT:OnRestore()
 
 	self.MaxTargets = self.MaxTargets or 1
 end
-
-function ENT:TargetPainter( tt, targeted )
-	if tt and IsValid(tt) and tt:EntIndex() ~= 0 then
-		if (targeted) then
-			self.OldColor = tt:GetColor()
-			tt:SetColor(Color(255, 0, 0, 255))
-		else
-			if not self.OldColor then self.OldColor = Color(255,255,255,255) end
-
-			local c = tt:GetColor()
-
-			-- do not change color back if the target color changed in the meantime
-			if c.r != 255 or c.g != 0 or c.b != 0 or c.a != 255 then
-				self.OldColor = c
-			end
-
-			tt:SetColor(self.OldColor)
-		end
-	end
-end
-
 
 function ENT:ShowOutput(value)
 	local txt

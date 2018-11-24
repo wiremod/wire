@@ -22,8 +22,6 @@ if CLIENT then
 	language.Add( "WireTargetFinderTool_propmodel", "Prop Model Filter:" )
 	language.Add( "WireTargetFinderTool_vehicles", "Target Vehicles" )
 	language.Add( "WireTargetFinderTool_rpgs", "Target RPGs" )
-	language.Add( "WireTargetFinderTool_PaintTarget", "Paint Target" )
-	language.Add( "WireTargetFinderTool_PaintTarget_desc", "Paints currently selected target(s)." )
 	language.Add( "WireTargetFinderTool_casesen", "Case Sensitive" )
 	language.Add( "WireTargetFinderTool_playername", "Name Filter:" )
 	language.Add( "WireTargetFinderTool_entity", "Entity Name:" )
@@ -49,7 +47,7 @@ if SERVER then
 		return self:GetClientNumber("maxrange"), self:GetClientNumber("players") ~= 0, self:GetClientNumber("npcs") ~= 0, self:GetClientInfo("npcname"),
 			self:GetClientNumber("beacons") ~= 0, self:GetClientNumber("hoverballs") ~= 0, self:GetClientNumber("thrusters") ~= 0, self:GetClientNumber("props") ~= 0,
 			self:GetClientInfo("propmodel"), self:GetClientNumber("vehicles") ~= 0, self:GetClientInfo("playername"), self:GetClientNumber("casesen") ~= 0,
-			self:GetClientNumber("rpgs") ~= 0, self:GetClientNumber("painttarget") ~= 0, self:GetClientNumber("minrange"), self:GetClientNumber("maxtargets"),
+			self:GetClientNumber("rpgs") ~= 0, false, self:GetClientNumber("minrange"), self:GetClientNumber("maxtargets"),
 			self:GetClientNumber("maxbogeys"), self:GetClientNumber("notargetowner") != 0, self:GetClientInfo("entityfil"), self:GetClientNumber("notownersstuff") != 0,
 			self:GetClientInfo("steamname"), (self:GetClientNumber("colorcheck") ~= 0), (self:GetClientNumber("colortarget") ~= 0),
 			self:GetClientNumber("pcolR"), self:GetClientNumber("pcolG"), self:GetClientNumber("pcolB"), self:GetClientNumber("pcolA"),
@@ -81,7 +79,6 @@ TOOL.ClientConVar = {
 	pcolA = 255,
 	casesen = 0,
 	rpgs = 0,
-	painttarget = 1,
 	maxtargets = 1,
 	maxbogeys = 1,
 	notargetowner = 0,
@@ -121,7 +118,6 @@ function TOOL.BuildCPanel(panel)
 	panel:TextEntry("#WireTargetFinderTool_propmodel","wire_target_finder_propmodel")
 	panel:CheckBox(	"#WireTargetFinderTool_vehicles","wire_target_finder_vehicles")
 	panel:CheckBox(	"#WireTargetFinderTool_rpgs","wire_target_finder_rpgs")
-	panel:CheckBox(	"#WireTargetFinderTool_PaintTarget","wire_target_finder_painttarget")
 	panel:CheckBox(	"#WireTargetFinderTool_casesen","wire_target_finder_casesen")
 	panel:TextEntry("#WireTargetFinderTool_playername","wire_target_finder_playername")
 	panel:TextEntry("#WireTargetFinderTool_entity","wire_target_finder_entityfil")
