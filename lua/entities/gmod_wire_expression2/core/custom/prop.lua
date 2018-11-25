@@ -28,7 +28,12 @@ function PropCore.ValidSpawn(ply, model, isVehicle)
 	playerMeta.LimitHit = function() end
 	
 	if isVehicle then
-		if gamemode.Call( "PlayerSpawnVehicle", ply, "models/nova/airboat_seat.mdl", "Seat_Airboat", list.Get( "Vehicles" ).Seat_Airboat ) == false then
+		if not model or model=="" then
+			model = "models/nova/airboat_seat.mdl"
+		end
+		if not (util.IsValidProp( model ) and WireLib.CanModel(ply, model)) then
+			ret = false
+		elseif gamemode.Call( "PlayerSpawnVehicle", ply, model, "Seat_Airboat", list.Get( "Vehicles" ).Seat_Airboat ) == false then
 			ret = false
 		else
 			ret = true
@@ -77,7 +82,6 @@ local function MakePropNoEffect(...)
 end
 
 function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
-	if isVehicle then model = "models/nova/airboat_seat.mdl" end
 	if not PropCore.ValidSpawn(self.player, model, isVehicle) then return NULL end
 
 	pos = WireLib.clampPos( pos )
