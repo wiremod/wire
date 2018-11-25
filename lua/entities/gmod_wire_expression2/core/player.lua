@@ -609,22 +609,6 @@ e2function bone entity:aimBone()
 	return getBone(ent, trace.PhysicsBone)
 end
 
---- Equivalent to rangerOffset(16384, <this>:shootPos(), <this>:eye()), but faster (causing less lag)
-e2function ranger entity:eyeTrace()
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() then return nil end
-	local ret = this:GetEyeTraceNoCursor()
-	ret.RealStartPos = this:GetShootPos()
-	return ret
-end
-
-e2function ranger entity:eyeTraceCursor()
-	if not IsValid(this) or not this:IsPlayer() then return nil end
-	local ret = this:GetEyeTrace()
-	ret.RealStartPos = this:GetShootPos()
-	return ret
-end
-
 --[[--------------------------------------------------------------------------------------------]]--
 
 hook.Add("PlayerInitialSpawn","Exp2RunOnJoin", function(ply)

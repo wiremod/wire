@@ -15,6 +15,22 @@ registerType("ranger", "xrd", nil,
 	end
 )
 
+__e2setcost(1) -- temporary
+
+--- RD = RD
+registerOperator("ass", "xrd", "xrd", function(self, args)
+	local lhs, op2, scope = args[2], args[3], args[4]
+	local      rhs = op2[1](self, op2)
+
+	self.Scopes[scope][lhs] = rhs
+	self.Scopes[scope].vclk[lhs] = true
+	return rhs
+end)
+
+e2function number operator_is(ranger walker)
+	if walker then return 1 else return 0 end
+end
+
 /******************************************************************************/
 
 E2Lib.RegisterExtension("ranger", true, "Lets E2 chips trace rays and check for collisions.")
@@ -189,24 +205,6 @@ end
 
 __e2setcost(1) -- temporary
 
---- RD = RD
-registerOperator("ass", "xrd", "xrd", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	self.Scopes[scope][lhs] = rhs
-	self.Scopes[scope].vclk[lhs] = true
-	return rhs
-end)
-
-e2function number operator_is(ranger walker)
-	if walker then return 1 else return 0 end
-end
-
-/******************************************************************************/
-
-__e2setcost(1) -- temporary
-
 --- Passing 0 (the default) resets all ranger flags and filters every execution and after calling ranger/rangerOffset. Passing anything else will make the flags and filters persist until they're changed again.
 e2function void rangerPersist(persist)
 	self.data.rangerpersist = persist ~= 0
@@ -295,6 +293,22 @@ e2function ranger noranger()
 end
 
 __e2setcost(20) -- temporary
+
+--- Equivalent to rangerOffset(16384, <this>:shootPos(), <this>:eye()), but faster (causing less lag)
+e2function ranger entity:eyeTrace()
+	if not IsValid(this) then return nil end
+	if not this:IsPlayer() then return nil end
+	local ret = this:GetEyeTraceNoCursor()
+	ret.RealStartPos = this:GetShootPos()
+	return ret
+end
+
+e2function ranger entity:eyeTraceCursor()
+	if not IsValid(this) or not this:IsPlayer() then return nil end
+	local ret = this:GetEyeTrace()
+	ret.RealStartPos = this:GetShootPos()
+	return ret
+end
 
 --- You input max range, it returns ranger data
 e2function ranger ranger(distance)
