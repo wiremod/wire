@@ -67,8 +67,8 @@ GateActions["entity_applyaf"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
-		angForce = clamp(angForce)
-		if angForce.p == 0 and angForce.y == 0 and angForce.r == 0 then return end
+		local clampedForce = clamp(angForce)
+		if clampedForce.x == 0 and clampedForce.y == 0 and clampedForce.z == 0 then return end
 
 		-- assign vectors
 		local up = ent:GetUp()
@@ -76,22 +76,22 @@ GateActions["entity_applyaf"] = {
 		local forward = ent:GetForward()
 
 		-- apply pitch force
-		if angForce.p ~= 0 then
-			local pitch = up      * (angForce.p * 0.5)
+		if clampedForce.x ~= 0 then
+			local pitch = up      * (clampedForce.x * 0.5)
 			phys:ApplyForceOffset( forward, pitch )
 			phys:ApplyForceOffset( forward * -1, pitch * -1 )
 		end
 
 		-- apply yaw force
-		if angForce.y ~= 0 then
-			local yaw   = forward * (angForce.y * 0.5)
+		if clampedForce.y ~= 0 then
+			local yaw   = forward * (clampedForce.y * 0.5)
 			phys:ApplyForceOffset( left, yaw )
 			phys:ApplyForceOffset( left * -1, yaw * -1 )
 		end
 
 		-- apply roll force
-		if angForce.r ~= 0 then
-			local roll  = left    * (angForce.r * 0.5)
+		if clampedForce.z ~= 0 then
+			local roll  = left    * (clampedForce.z * 0.5)
 			phys:ApplyForceOffset( up, roll )
 			phys:ApplyForceOffset( up * -1, roll * -1 )
 		end
