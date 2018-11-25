@@ -362,7 +362,7 @@ function ENT:OnRestore()
 end
 
 function ENT:TargetPainter( tt, targeted )
-	if tt and IsValid(tt) and tt:EntIndex() ~= 0 then
+	if tt and IsValid(tt) and tt:EntIndex() ~= 0 and hook.Run( "CanTool", self:GetPlayer(), WireLib.dummytrace(tt), "colour" ) then
 		if (targeted) then
 			self.OldColor = tt:GetColor()
 			tt:SetColor(Color(255, 0, 0, 255))
