@@ -297,7 +297,7 @@ local printColor_typeids = {
 	e = function(e) return IsValid(e) and e:IsPlayer() and e or "" end,
 }
 
-local function printColorVarArg(chip, ply, typeids, ...)
+local function printColorVarArg(chip, ply, console, typeids, ...)
 	if not IsValid(ply) then return end
 	if not checkDelay(ply) then return end
 	local send_array = { ... }
@@ -312,6 +312,7 @@ local function printColorVarArg(chip, ply, typeids, ...)
 
 	net.Start("wire_expression2_printColor")
 		net.WriteEntity(chip)
+		net.WriteBool(console)
 		net.WriteTable(send_array)
 	net.Send(ply)
 end
@@ -331,7 +332,7 @@ local printColor_types = {
 	Player = function(e) return IsValid(e) and e:IsPlayer() and e or "" end,
 }
 
-local function printColorArray(chip, ply, arr)
+local function printColorArray(chip, ply, console, arr)
 	if (not IsValid(ply)) then return; end
 	if not checkDelay( ply ) then return end
 
@@ -347,6 +348,7 @@ local function printColorArray(chip, ply, arr)
 
 	net.Start("wire_expression2_printColor")
 		net.WriteEntity(chip)
+		net.WriteBool(console)
 		net.WriteTable(send_array)
 	net.Send(ply)
 end
@@ -354,12 +356,22 @@ end
 
 --- Works like [[chat.AddText]](...). Parameters can be any amount and combination of numbers, strings, player entities, color vectors (both 3D and 4D).
 e2function void printColor(...)
-	printColorVarArg(nil, self.player, typeids, ...)
+	printColorVarArg(nil, self.player, false, typeids, ...)
 end
 
 --- Like printColor(...), except taking an array containing all the parameters.
 e2function void printColor(array arr)
-	printColorArray(nil, self.player, arr)
+	printColorArray(nil, self.player, false, arr)
+end
+
+--- Works like MsgC(...). Parameters can be any amount and combination of numbers, strings, player entities, color vectors (both 3D and 4D).
+e2function void printColorC(...)
+	printColorVarArg(nil, self.player, true, typeids, ...)
+end
+
+--- Like printColorC(...), except taking an array containing all the parameters.
+e2function void printColorC(array arr)
+	printColorArray(nil, self.player, true, arr)
 end
 
 --- Like printColor(...), except printing in <this>'s driver's chat area instead of yours.
@@ -373,7 +385,7 @@ e2function void entity:printColorDriver(...)
 
 	if not checkDelay( self.player ) then return end
 
-	printColorVarArg(self.entity, driver, typeids, ...)
+	printColorVarArg(self.entity, driver, false, typeids, ...)
 end
 
 --- Like printColor(R), except printing in <this>'s driver's chat area instead of yours.
@@ -387,5 +399,5 @@ e2function void entity:printColorDriver(array arr)
 
 	if not checkDelay( self.player ) then return end
 
-	printColorArray(self.entity, driver, arr)
+	printColorArray(self.entity, driver, false, arr)
 end

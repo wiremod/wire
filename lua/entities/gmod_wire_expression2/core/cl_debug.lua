@@ -9,6 +9,7 @@ end)
 
 net.Receive("wire_expression2_printColor", function( len, ply )
 	local chip = net.ReadEntity()
+	local console = net.ReadBool()
 	if chip and not chips[chip] then
 		chips[chip] = true
 		-- printColorDriver is used for the first time on us by this chip
@@ -16,5 +17,9 @@ net.Receive("wire_expression2_printColor", function( len, ply )
 		chat.AddText(Color(255,0,0),"Don't trust a word you hear while in a seat after seeing this message!")
 	end
 
-	chat.AddText(unpack(net.ReadTable()))
+	if console then
+		MsgC(unpack(net.ReadTable()))
+	else
+		chat.AddText(unpack(net.ReadTable()))
+	end
 end)
