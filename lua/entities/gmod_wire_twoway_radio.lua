@@ -31,7 +31,7 @@ function ENT:Setup()
 end
 
 function ENT:TriggerInput(iname, value)
-	if (self.Other) and (self.Other:IsValid()) then
+	if self.Other and self.Other:IsValid() and self.Other.Inputs then
 		self.Other:ReceiveRadio(iname, value)
 		self:ShowOutput("update", 1)
 	end
