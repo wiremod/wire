@@ -12,6 +12,7 @@ local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) 
 local E2totalspawnedprops = 0
 local E2tempSpawnedProps = 0
 local TimeStamp = 0
+local playerMeta = FindMetaTable("Player")
 
 local function TempReset()
  if (CurTime()>= TimeStamp) then
@@ -21,14 +22,29 @@ local function TempReset()
 end
 hook.Add("Think","TempReset",TempReset)
 
-function PropCore.ValidSpawn()
-	if E2tempSpawnedProps >= sbox_E2_maxPropsPerSecond:GetInt() then return false end
-	if sbox_E2_maxProps:GetInt() <= -1 then
-		return true
-	elseif E2totalspawnedprops>=sbox_E2_maxProps:GetInt() then
-		return false
+function PropCore.ValidSpawn(ply, model, isVehicle)
+	local ret -- DO NOT RETURN MID-FUNCTION OR 'LimitHit' WILL BREAK
+	local limithit = playerMeta.LimitHit
+	playerMeta.LimitHit = function() end
+	
+	if isVehicle then
+		if gamemode.Call( "PlayerSpawnVehicle", ply, "models/nova/airboat_seat.mdl", "Seat_Airboat", list.Get( "Vehicles" ).Seat_Airboat ) == false then
+			ret = false
+		else
+			ret = true
+		end
+	else
+		if (sbox_E2_maxProps:GetInt() > 0 and E2totalspawnedprops>=sbox_E2_maxProps:GetInt()) or E2tempSpawnedProps >= sbox_E2_maxPropsPerSecond:GetInt() then
+			ret = false
+		elseif model and (not util.IsValidProp( model ) or not WireLib.CanModel(ply, model) or gamemode.Call( "PlayerSpawnProp", ply, model ) == false) then
+			ret = false
+		else
+			ret = true
+		end
 	end
-	return true
+	
+	playerMeta.LimitHit = limithit
+	return ret
 end
 
 local canHaveInvalidPhysics = {delete=true, parent=true, deparent=true, solid=true, shadow=true, draw=true, use=true}
@@ -61,15 +77,8 @@ local function MakePropNoEffect(...)
 end
 
 function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
-
-	if not PropCore.ValidSpawn() then return NULL end
-
-	if isVehicle then
-		if self.player:CheckLimit( "vehicles" ) == false then return NULL end
-		if model == "" then model = "models/nova/airboat_seat.mdl" end
-	end
-
-	if not util.IsValidProp( model ) or not WireLib.CanModel(self.player, model) then return NULL end
+	if isVehicle then model = "models/nova/airboat_seat.mdl" end
+	if not PropCore.ValidSpawn(self.player, model, isVehicle) then return NULL end
 
 	pos = WireLib.clampPos( pos )
 
@@ -482,7 +491,7 @@ e2function void propSpawnUndo(number on)
 end
 
 e2function number propCanCreate()
-	if PropCore.ValidSpawn() then return 1 end
+	if PropCore.ValidSpawn(self.player) then return 1 end
 	return 0
 end
 
