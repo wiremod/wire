@@ -98,6 +98,10 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 			hud.LinkedVehicles[vehicle] = true
 			vehiclelinks[hud] = hud.LinkedVehicles
 
+			vehicle:CallOnRemove( "EGP HUD unlink on remove", function( ent )
+				EGP:UnlinkHUDFromVehicle( hud, ent )
+			end)
+
 			timer.Simple( 0.1, function() -- timers solve everything (this time, it's the fact that the entity isn't valid on the client after dupe)
 				WireLib.SendMarks( hud )
 			end)
@@ -105,6 +109,13 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 
 		function EGP:UnlinkHUDFromVehicle( hud, vehicle )
 			if not vehicle then -- unlink all
+				if hud.Marks then
+					for i=1,#hud.Marks do
+						if hud.Marks[i]:IsValid() then
+							hud.Marks[i]:RemoveCallOnRemove( "EGP HUD unlink on remove" )
+						end
+					end
+				end
 				vehiclelinks[hud] = nil
 				hud.LinkedVehicles = nil
 				hud.Marks = nil
@@ -112,11 +123,14 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 				if vehiclelinks[hud] then
 					local bool = vehiclelinks[hud][vehicle]
 					if bool then
-						if vehicle:GetDriver() and vehicle:GetDriver():IsValid() then
-							umsg.Start( "EGP_HUD_Use", vehicle:GetDriver() )
-								umsg.Entity( hud )
-								umsg.Char( -1 )
-							umsg.End()
+						if vehicle:IsValid() then
+							vehicle:RemoveCallOnRemove( "EGP HUD unlink on remove" )
+							if vehicle:GetDriver() and vehicle:GetDriver():IsValid() then
+								umsg.Start( "EGP_HUD_Use", vehicle:GetDriver() )
+									umsg.Entity( hud )
+									umsg.Char( -1 )
+								umsg.End()
+							end
 						end
 					end
 
