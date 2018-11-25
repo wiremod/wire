@@ -22,25 +22,23 @@ local function TempReset()
 end
 hook.Add("Think","TempReset",TempReset)
 
+function PropCore.WithinPropcoreLimits()
+	return (sbox_E2_maxProps:GetInt() <= 0 or E2totalspawnedprops<sbox_E2_maxProps:GetInt()) and E2tempSpawnedProps < sbox_E2_maxPropsPerSecond:GetInt()
+end
+
 function PropCore.ValidSpawn(ply, model, isVehicle)
 	local ret -- DO NOT RETURN MID-FUNCTION OR 'LimitHit' WILL BREAK
 	local limithit = playerMeta.LimitHit
 	playerMeta.LimitHit = function() end
 	
-	if isVehicle then
-		if gamemode.Call( "PlayerSpawnVehicle", ply, "models/nova/airboat_seat.mdl", "Seat_Airboat", list.Get( "Vehicles" ).Seat_Airboat ) == false then
-			ret = false
-		else
-			ret = true
-		end
+	if not PropCore.WithinPropcoreLimits() then
+		ret = false
+	elseif not (util.IsValidProp( model ) and WireLib.CanModel(ply, model)) then
+		ret = false
+	elseif isVehicle then
+		ret = gamemode.Call( "PlayerSpawnVehicle", ply, model, "Seat_Airboat", list.Get( "Vehicles" ).Seat_Airboat ) ~= false
 	else
-		if (sbox_E2_maxProps:GetInt() > 0 and E2totalspawnedprops>=sbox_E2_maxProps:GetInt()) or E2tempSpawnedProps >= sbox_E2_maxPropsPerSecond:GetInt() then
-			ret = false
-		elseif model and (not util.IsValidProp( model ) or not WireLib.CanModel(ply, model) or gamemode.Call( "PlayerSpawnProp", ply, model ) == false) then
-			ret = false
-		else
-			ret = true
-		end
+		ret = gamemode.Call( "PlayerSpawnProp", ply, model ) ~= false
 	end
 	
 	playerMeta.LimitHit = limithit
@@ -77,7 +75,6 @@ local function MakePropNoEffect(...)
 end
 
 function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
-	if isVehicle then model = "models/nova/airboat_seat.mdl" end
 	if not PropCore.ValidSpawn(self.player, model, isVehicle) then return NULL end
 
 	pos = WireLib.clampPos( pos )
@@ -211,11 +208,13 @@ end
 __e2setcost(60)
 e2function entity seatSpawn(string model, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if model=="" then model = "models/nova/airboat_seat.mdl" end
 	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen,true)
 end
 
 e2function entity seatSpawn(string model, vector pos, angle rot, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if model=="" then model = "models/nova/airboat_seat.mdl" end
 	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen,true)
 end
 
@@ -491,7 +490,7 @@ e2function void propSpawnUndo(number on)
 end
 
 e2function number propCanCreate()
-	if PropCore.ValidSpawn(self.player) then return 1 end
+	if PropCore.WithinPropcoreLimits() then return 1 end
 	return 0
 end
 
