@@ -26,11 +26,16 @@ E2Lib.setPos = WireLib.setPos
 E2Lib.setAng = WireLib.setAng
 
 function E2Lib.setMaterial(ent, material)
-	ent:SetMaterial(WireLib.IsValidMaterial(material))
+	material = WireLib.IsValidMaterial(material)
+	ent:SetMaterial(material)
+	duplicator.StoreEntityModifier(ent, "material", { MaterialOverride = material })
 end
 
 function E2Lib.setSubMaterial(ent, index, material)
-	ent:SetSubMaterial(index,WireLib.IsValidMaterial(material))
+	index = math.Clamp(index, 0, 255)
+	material = WireLib.IsValidMaterial(material)
+	ent:SetSubMaterial(index, material)
+	duplicator.StoreEntityModifier(ent, "submaterial", { ["SubMaterialOverride_"..index] = material })
 end
 
 -- getHash
