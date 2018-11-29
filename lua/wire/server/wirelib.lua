@@ -446,36 +446,6 @@ function WireLib.Remove(ent, DontUnList)
 	WireLib._RemoveWire(ent:EntIndex()) -- Remove entity from the list, so it doesn't count as a wire able entity anymore. Very important for IsWire checks!
 end
 
-local UniqueWireID = 0
-local function WireConstraint(Ent1, Ent2)
-	local Constraint = constraint.Find(Ent1, Ent2, "Wire")
-	if Constraint then return Constraint end
-	UniqueWireID = UniqueWireID + 1
-	Constraint = {
-		IsValid = function(self) return self.Ent1:IsValid() and self.Ent2:IsValid() end,
-		GetTable = function(self) return self end,
-		GetCreationID = function() return "Wire"..UniqueWireID end,
-		Remove = function() end,
-		Ent1 = Ent1,
-		Ent2 = Ent2,
-		Type = "Wire"
-	}
-	constraint.AddConstraintTableNoDelete(Ent1, Constraint, Ent2)
-	return Constraint
-end
-duplicator.RegisterConstraint("Wire", WireConstraint, "Ent1", "Ent2")
-
-local function WireRemoveConstraint(Ent1, Ent2)
-	if not Ent1.Constraints or not Ent2.Constraints then return end
-	for k, v in ipairs(Ent1.Constraints) do
-		if v.Type == "Wire" and v.Ent1 == Ent1 and v.Ent2 == v.Ent2 then Ent1.Constraints[k] = nil continue end
-		if v.Type == "Wire" and v.Ent1 == Ent2 and v.Ent2 == v.Ent1 then Ent1.Constraints[k] = nil continue end
-	end
-	for k, v in ipairs(Ent2.Constraints) do
-		if v.Type == "Wire" and v.Ent1 == Ent1 and v.Ent2 == v.Ent2 then Ent2.Constraints[k] = nil continue end
-		if v.Type == "Wire" and v.Ent1 == Ent2 and v.Ent2 == v.Ent1 then Ent2.Constraints[k] = nil continue end
-	end
-end
 
 local function Wire_Link(dst, dstid, src, srcid, path)
 	if (not IsValid(dst) or not HasPorts(dst) or not dst.Inputs or not dst.Inputs[dstid]) then
@@ -499,16 +469,6 @@ local function Wire_Link(dst, dstid, src, srcid, path)
 						table.remove(oldOutput.Connected, k)
 					end
 				end
-				local stillConnected = false
-				for k,v in ipairs(oldOutput.Connected) do
-					if (v.Entity == dst) then
-						stillConnected = true
-						break
-					end
-				end
-				if not stillConnected then
-					WireRemoveConstraint(input.Src, dst)
-				end
 			end
 		end
 	end
@@ -516,7 +476,6 @@ local function Wire_Link(dst, dstid, src, srcid, path)
 	input.Src = src
 	input.SrcId = srcid
 	input.Path = path
-	WireConstraint(src, dst)
 
 	WireLib.Paths.Add(input)
 	WireLib._SetLink(input)
@@ -590,16 +549,6 @@ local function Wire_Unlink(ent, iname, DontSendToCL)
 					if (v.Entity == ent) and (v.Name == iname) then
 						table.remove(output.Connected, k)
 					end
-				end
-				local stillConnected = false
-				for k,v in ipairs(output.Connected) do
-					if (v.Entity == ent) then
-						stillConnected = true
-						break
-					end
-				end
-				if not stillConnected then
-					WireRemoveConstraint(input.Src, ent)
 				end
 				-- untested
 				if input.Src.OnOutputWireLink then
