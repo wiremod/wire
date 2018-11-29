@@ -469,14 +469,17 @@ end
 duplicator.RegisterConstraint("Wire", WireLib.WireConstraint, "Ent1", "Ent2")
 
 local function WireRemoveConstraint(Ent1, Ent2)
-	if not Ent1.Constraints or not Ent2.Constraints then return end
-	for k, v in ipairs(Ent1.Constraints) do
-		if v.Type == "Wire" and v.Ent1 == Ent1 and v.Ent2 == v.Ent2 then Ent1.Constraints[k] = nil continue end
-		if v.Type == "Wire" and v.Ent1 == Ent2 and v.Ent2 == v.Ent1 then Ent1.Constraints[k] = nil continue end
+	if Ent1.Constraints then
+		for k, v in pairs(Ent1.Constraints) do
+			if v.Type == "Wire" and v.Ent1 == Ent1 and v.Ent2 == Ent2 then Ent1.Constraints[k] = nil continue end
+			if v.Type == "Wire" and v.Ent1 == Ent2 and v.Ent2 == Ent1 then Ent1.Constraints[k] = nil continue end
+		end
 	end
-	for k, v in ipairs(Ent2.Constraints) do
-		if v.Type == "Wire" and v.Ent1 == Ent1 and v.Ent2 == v.Ent2 then Ent2.Constraints[k] = nil continue end
-		if v.Type == "Wire" and v.Ent1 == Ent2 and v.Ent2 == v.Ent1 then Ent2.Constraints[k] = nil continue end
+	if Ent2.Constraints then
+		for k, v in pairs(Ent2.Constraints) do
+			if v.Type == "Wire" and v.Ent1 == Ent1 and v.Ent2 == Ent2 then Ent2.Constraints[k] = nil continue end
+			if v.Type == "Wire" and v.Ent1 == Ent2 and v.Ent2 == Ent1 then Ent2.Constraints[k] = nil continue end
+		end
 	end
 end
 

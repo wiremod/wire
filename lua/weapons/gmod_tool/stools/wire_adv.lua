@@ -16,7 +16,7 @@ if CLIENT then
 	language.Add( "Tool.wire_adv.desc2", "Used to connect wirable props." )
 	language.Add( "WireTool_width", "Width:" )
 	language.Add( "WireTool_material", "Material:" )
-	language.Add( "WireTool_constraint", "Create wire constraint:" )
+	language.Add( "WireTool_constraint", "Create wire constraint" )
 	language.Add( "WireTool_colour", "Colour:" )
 	TOOL.Information = {
 		{ name = "left_0", stage = 0, text = "Select input (Shift: Select multiple; Alt: Select all)" },
@@ -138,7 +138,7 @@ if SERVER then
 		local material = tool:GetClientInfo("material")
 		local width    = tool:GetClientNumber("width")
 		local color    = Color(tool:GetClientNumber("r"), tool:GetClientNumber("g"), tool:GetClientNumber("b"))
-		local createConstraint = self:GetClientNumber("constraint")~=0
+		local createConstraint = tool:GetClientNumber("constraint")~=0
 
 		local uid = ply:UniqueID()
 
@@ -1043,11 +1043,11 @@ elseif CLIENT then
 		WireToolHelpers.MakePresetControl(panel, "wire_adv")
 
 		panel:NumSlider("#WireTool_width", "wire_adv_width", 0, 5, 2)
+		panel:CheckBox("#WireTool_constraint","wire_adv_constraint")
 		local matselect = panel:AddControl( "RopeMaterial", { Label = "#WireTool_material", convar = "wire_adv_material" } )
 		matselect:AddMaterial("Arrowire", "arrowire/arrowire")
 		matselect:AddMaterial("Arrowire2", "arrowire/arrowire2")
 
-		panel:CheckBox("#WireTool_constraint","wire_adv_constraint")
 		panel:AddControl("Color", {
 			Label = "#WireTool_colour",
 			Red = "wire_adv_r",
