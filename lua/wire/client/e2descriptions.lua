@@ -908,9 +908,11 @@ E2Helper.Descriptions["maxFrictionMass()"] = "Returns how much friction influenc
 E2Helper.Descriptions["minFrictionMass()"] = "Returns how much friction influences props throughout the server"
 
 -- Constraints
-E2Helper.Descriptions["getConstraints(e:)"] = "Returns an array with all entities directly or indirectly constrained to E, except E itself"
+E2Helper.Descriptions["getConstraints(e:)"] = "Returns an array with all entities directly or indirectly constrained to E, except E itself. Deprecated, use E:getConnectedEntities(...) instead."
+E2Helper.Descriptions["getConnectedEntities(e:...)"] = "Returns an array with all entities directly or indirectly constrained or parented to E, including E itself."
+E2Helper.Descriptions["getConnectedEntities(e:r)"] = "Returns an array with all entities directly or indirectly constrained or parented to E, including E itself."
 E2Helper.Descriptions["hasConstraints(e:)"] = "Returns the number of the constraints E has"
-E2Helper.Descriptions["hasConstraints(e:s)"] = "Returns the number of the constraints E has with the given constraint type (see the types list below)"
+E2Helper.Descriptions["hasConstraints(e:s)"] = "Returns the number of the constraints E has with the given constraint type"
 E2Helper.Descriptions["isConstrained(e:)"] = "Returns 1 if E has constraints, 0 if not"
 E2Helper.Descriptions["isWeldedTo(e:)"] = "Returns the first entity E was welded to"
 E2Helper.Descriptions["isWeldedTo(e:n)"] = "Returns the Nth entity E was welded to"
