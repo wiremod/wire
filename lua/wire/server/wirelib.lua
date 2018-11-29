@@ -456,8 +456,8 @@ function WireLib.WireConstraint(Ent1, Ent2)
 		GetTable = function(self) return self end,
 		GetCreationID = function() return "Wire"..UniqueWireID end,
 		Remove = function(self)
-			if self.Ent1:IsValid() then for k, v in pairs(Ent1.Constraints) do if v==self then Ent1.Constraints[k]=nil end end end
-			if self.Ent2:IsValid() then for k, v in pairs(Ent2.Constraints) do if v==self then Ent2.Constraints[k]=nil end end end
+			if IsValid(self.Ent1) then for k, v in pairs(self.Ent1.Constraints) do if v==self then self.Ent1.Constraints[k]=nil end end end
+			if IsValid(self.Ent2) then for k, v in pairs(self.Ent2.Constraints) do if v==self then self.Ent2.Constraints[k]=nil end end end
 		end,
 		Ent1 = Ent1,
 		Ent2 = Ent2,
