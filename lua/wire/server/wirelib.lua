@@ -447,7 +447,7 @@ function WireLib.Remove(ent, DontUnList)
 end
 
 local UniqueWireID = 0
-local function WireConstraint(Ent1, Ent2)
+function WireLib.WireConstraint(Ent1, Ent2)
 	local Constraint = constraint.Find(Ent1, Ent2, "Wire")
 	if Constraint then return Constraint end
 	UniqueWireID = UniqueWireID + 1
@@ -455,7 +455,10 @@ local function WireConstraint(Ent1, Ent2)
 		IsValid = function(self) return self.Ent1:IsValid() and self.Ent2:IsValid() end,
 		GetTable = function(self) return self end,
 		GetCreationID = function() return "Wire"..UniqueWireID end,
-		Remove = function() end,
+		Remove = function(self)
+			if self.Ent1:IsValid() then for k, v in pairs(Ent1.Constraints) do if v==self then Ent1.Constraints[k]=nil end end end
+			if self.Ent2:IsValid() then for k, v in pairs(Ent2.Constraints) do if v==self then Ent2.Constraints[k]=nil end end end
+		end,
 		Ent1 = Ent1,
 		Ent2 = Ent2,
 		Type = "Wire"
@@ -463,7 +466,7 @@ local function WireConstraint(Ent1, Ent2)
 	constraint.AddConstraintTableNoDelete(Ent1, Constraint, Ent2)
 	return Constraint
 end
-duplicator.RegisterConstraint("Wire", WireConstraint, "Ent1", "Ent2")
+duplicator.RegisterConstraint("Wire", WireLib.WireConstraint, "Ent1", "Ent2")
 
 local function WireRemoveConstraint(Ent1, Ent2)
 	if not Ent1.Constraints or not Ent2.Constraints then return end
@@ -516,7 +519,6 @@ local function Wire_Link(dst, dstid, src, srcid, path)
 	input.Src = src
 	input.SrcId = srcid
 	input.Path = path
-	WireConstraint(src, dst)
 
 	WireLib.Paths.Add(input)
 	WireLib._SetLink(input)

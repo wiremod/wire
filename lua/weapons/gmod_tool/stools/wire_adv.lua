@@ -16,6 +16,7 @@ if CLIENT then
 	language.Add( "Tool.wire_adv.desc2", "Used to connect wirable props." )
 	language.Add( "WireTool_width", "Width:" )
 	language.Add( "WireTool_material", "Material:" )
+	language.Add( "WireTool_constraint", "Create wire constraint:" )
 	language.Add( "WireTool_colour", "Colour:" )
 	TOOL.Information = {
 		{ name = "left_0", stage = 0, text = "Select input (Shift: Select multiple; Alt: Select all)" },
@@ -42,6 +43,7 @@ TOOL.ClientConVar = {
 	r = 255,
 	g = 255,
 	b = 255,
+	constraint = 1,
 }
 
 util.PrecacheSound("weapons/pistol/pistol_empty.wav")
@@ -136,6 +138,7 @@ if SERVER then
 		local material = tool:GetClientInfo("material")
 		local width    = tool:GetClientNumber("width")
 		local color    = Color(tool:GetClientNumber("r"), tool:GetClientNumber("g"), tool:GetClientNumber("b"))
+		local createConstraint = self:GetClientNumber("constraint")~=0
 
 		local uid = ply:UniqueID()
 
@@ -172,6 +175,10 @@ if SERVER then
 					end
 
 					WireLib.Link_End( uid, outputentity, outputpos, outputname, ply )
+
+					if createConstraint then
+						WireLib.WireConstraint(inputentity, outputentity)
+					end
 				end
 			end
 		end
@@ -1040,6 +1047,7 @@ elseif CLIENT then
 		matselect:AddMaterial("Arrowire", "arrowire/arrowire")
 		matselect:AddMaterial("Arrowire2", "arrowire/arrowire2")
 
+		panel:CheckBox("#WireTool_constraint","wire_adv_constraint")
 		panel:AddControl("Color", {
 			Label = "#WireTool_colour",
 			Red = "wire_adv_r",
