@@ -32,6 +32,7 @@ end
 		'All'
 		'Constraints'/'Constraint'
 		'Parented'/'Parents'/'Parent'
+		'Wires'/'Wire'
 		or any constraint type names such as 'Weld', 'Axis', etc
 		
 	Prefixing any of the keywords (except 'All') with '-' or '!' will negate the filter
@@ -51,6 +52,7 @@ local function buildFilter(filters)
 	if #filters == 0 or (#filters == 1 and filters[1] == "") then -- No filters given, same as "All"
 		filter_lookup.Constraints = true
 		filter_lookup.Parented = true
+		filter_lookup.Wires = true
 	else
 		for i=1,#filters do
 			local filter = filters[i]
@@ -64,13 +66,15 @@ local function buildFilter(filters)
 				filter = caps(filter)
 
 				-- correct potential mistakes
-				if filter == "Constraint" then filter = "Constraints" end
-				if filter == "Parent" or filter == "Parents" then filter = "Parented" end
+				if filter == "Constraint" then filter = "Constraints"
+				elseif filter == "Parent" or filter == "Parents" then filter = "Parented"
+				elseif filter == "Wire" then filter = "Wires" end
 
 				if filter == "All" then
 					if bool then -- "all" can't be negated
 						filter_lookup.Constraints = true
 						filter_lookup.Parented = true
+						filter_lookup.Wires = true
 					end
 				else
 					filter_lookup[filter] = bool
@@ -123,32 +127,52 @@ local function constraint_FindConstraint(ent,filter_lookup)
 	end
 end
 
+local getConnectedEntities
+
+-- small helper function for getConnectedEntities
+local function getConnectedEx(e, filter_lookup, result, already_added)
+	if IsValid(e) and not already_added[e] then
+		getConnectedEntities(e, filter_lookup, result, already_added)
+	end
+end
+
+
 -- custom version of constraint.GetAllConstrainedEntities, but is faster than garry's
 -- and supports filtering and also parented entities
-local function getConnectedEntities( ent, filter_lookup, result, already_added )
+getConnectedEntities = function(ent, filter_lookup, result, already_added)
 	result = result or {}
 	already_added = already_added or {}
 
 	result[#result+1] = ent
 	already_added[ent] = true
 
-	if filter_lookup and filter_lookup.Parented then
-		for _, e in pairs(ent:GetChildren()) do
-			if IsValid(e) and not already_added[e] then
-				getConnectedEntities(e, filter_lookup, result, already_added)
+	if filter_lookup then
+		if filter_lookup.Parented then -- add parented entities
+			getConnectedEx(ent:GetChildren(),filter_lookup, result, already_added)
+			for _, e in pairs(ent:GetChildren()) do
+				getConnectedEx( e, filter_lookup, result, already_added )
+			end
+		end
+
+		if filter_lookup.Wires then -- add wired entities
+			for _, i in pairs(ent.Inputs or {}) do
+				getConnectedEx( i.Src, filter_lookup, result, already_added )
+			end
+
+			for _, o in pairs(ent.Outputs or {}) do
+				getConnectedEx( o.Src, filter_lookup, result, already_added )
 			end
 		end
 	end
 
-	for _, con in pairs( ent.Constraints or {} ) do
+	for _, con in pairs( ent.Constraints or {} ) do -- add constrained entities
 		if IsValid(con) then
-			if filter_lookup and not checkFilter(con.Type,filter_lookup) then continue end
+			if filter_lookup and not checkFilter(con.Type,filter_lookup) then -- skip if it doesn't match the filter
+				continue
+			end
 
 			for i=1, 6 do
-				local e = con["Ent"..i]
-				if IsValid(e) and not already_added[e] then
-					getConnectedEntities(e, filter_lookup, result, already_added)
-				end
+				getConnectedEx( con["Ent"..i], filter_lookup, result, already_added )
 			end
 		end
 	end
