@@ -13,9 +13,7 @@ local DrawScale     = 0.25
 if SERVER then
 
 	function ENT:Initialize()
-		self:PhysicsInit( SOLID_VPHYSICS )
-		self:SetMoveType( MOVETYPE_VPHYSICS )
-		self:SetSolid( SOLID_VPHYSICS )
+		BaseClass.Initialize(self)
 
 		self:SetDrawOffsetPos(DrawOffsetPos)
 		self:SetDrawOffsetAng(DrawOffsetAng)
@@ -25,18 +23,18 @@ if SERVER then
 	end
 
 	function ENT:TriggerInput(iname, value)
-			if iname == "Scale" then
-				self:SetDrawScale( math.Clamp(value * 0.25, 0.01, 0.5) )
+		if iname == "Scale" then
+			self:SetDrawScale( math.Clamp(value * 0.25, 0.01, 0.5) )
 
-			elseif iname == "Position" then
-				local x = math.Clamp(value.x, -150, 150)
-				local y = math.Clamp(value.y, -150, 150)
-				local z = math.Clamp(value.z, -150, 150)
+		elseif iname == "Position" then
+			local x = math.Clamp(value.x, -150, 150)
+			local y = math.Clamp(value.y, -150, 150)
+			local z = math.Clamp(value.z, -150, 150)
 
-				self:SetDrawOffsetPos(Vector(x, y, z))
-			elseif iname == "Angle" then
-				self:SetDrawOffsetAng(value)
-			end
+			self:SetDrawOffsetPos(Vector(x, y, z))
+		elseif iname == "Angle" then
+			self:SetDrawOffsetAng(value)
+		end
 	end
 
 end
