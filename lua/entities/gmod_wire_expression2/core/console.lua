@@ -11,7 +11,7 @@ local function tokenizeAndGetCommands(str)
 	local escaped = false
 	for i=1, #str do
 		local char = string.sub(str, i, i)
-		if (escaped and char ~= "\"") or string.match(char, "%w") then
+		if (escaped and char ~= "\"") or string.match(char, "[%w+-]") then
 			curtoken[#curtoken + 1] = char
 		else
 			if #curtoken>0 then tokens[#tokens + 1] = table.concat(curtoken) curtoken = {} end
@@ -42,16 +42,15 @@ local function validConCmd(self, command)
 	-- Validating the concmd length to ensure that it won't crash the server. 512 is the max
 	if #command >= 512 then return false end
 
-	local whitelistArr = string.Split((ply:GetInfo("wire_expression2_concmd_whitelist") or ""):Trim(), ",")
-	if #whitelistArr == 0 then return true end
+	local whitelist = (ply:GetInfo("wire_expression2_concmd_whitelist") or ""):Trim()
+	if whitelist == "" then return true end
 
-	local whitelist = {}
-	for k, v in pairs(whitelistArr) do whitelist[v] = true end
+	local whitelistTbl = {}
+	for k, v in pairs(string.Split(whitelist, ",")) do whitelistTbl[v] = true end
 
 	local commands = tokenizeAndGetCommands(command)
-
 	for _, command in pairs(commands) do
-		if not whitelist[command] then
+		if not whitelistTbl[command] then
 			return false
 		end
 	end
