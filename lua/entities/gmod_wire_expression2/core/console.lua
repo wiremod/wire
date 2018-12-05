@@ -86,6 +86,6 @@ e2function number maxOfType(string typename)
 end
 
 e2function number playerDamage()
-	local ret = GetConVarNumber("sbox_plpldamage") or 0
+	local ret = GetConVarNumber("sbox_playershurtplayers") or 0
 	return ret ~= 0 and 1 or 0
 end
