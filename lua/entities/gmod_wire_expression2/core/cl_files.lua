@@ -56,6 +56,7 @@ local function upload_callback()
 	local chunk_size = math.Clamp( string.len( upload_buffer.data ), 0, upload_chunk_size )
 
 	net.Start("wire_expression2_file_chunk")
+		net.WriteUInt(chunk_size, 32)
 		net.WriteData(string.Left( upload_buffer.data, chunk_size ), chunk_size)
 	net.SendToServer()
 	upload_buffer.data = string.sub( upload_buffer.data, chunk_size + 1, string.len( upload_buffer.data ) )
@@ -114,7 +115,8 @@ end )
 
 net.Receive("wire_expression2_file_download_chunk", function( netlen )
 	if not download_buffer.name then return end
-	download_buffer.data = (download_buffer.data or "") .. net.ReadData(netlen/8)
+	local len = net.ReadUInt(32)
+	download_buffer.data = (download_buffer.data or "") .. net.ReadData(len)
 end )
 
 net.Receive("wire_expresison2_file_download_finish", function( netlen )
