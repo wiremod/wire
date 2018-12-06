@@ -57,7 +57,7 @@ local function upload_callback()
 
 	net.Start("wire_expression2_file_chunk")
 		net.WriteUInt(chunk_size, 32)
-		net.WriteData(string.Left( upload_buffer.data, chunk_size ), chunk_size)
+		net.WriteData(upload_buffer.data, chunk_size)
 	net.SendToServer()
 	upload_buffer.data = string.sub( upload_buffer.data, chunk_size + 1, string.len( upload_buffer.data ) )
 

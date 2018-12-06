@@ -304,7 +304,7 @@ timer.Create("wire_expression2_flush_file_buffer", 0.2, 0, function()
 			if strlen > 0 then
 				net.Start("wire_expression2_file_download_chunk")
 				net.WriteUInt(strlen, 32)
-				net.WriteData(string.sub( fdata.data, 1, strlen ), strlen)
+				net.WriteData(fdata.data, strlen)
 				net.Send(ply)
 
 				fdata.data = string.sub( fdata.data, strlen + 1 )
