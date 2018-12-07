@@ -10,6 +10,7 @@
 --------------------------------------------------------------------------------
 -- Internal registers mapped to names
 ZVM.InternalRegister = {}
+ZVM.InternalLimits = {IPREC = {1, 128}}
 ZVM.ReadOnlyRegister = {}
 
 ZVM.InternalRegister[00] = "IP"
