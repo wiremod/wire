@@ -148,7 +148,6 @@ end
 function EGP:SendMaterial( obj ) -- ALWAYS use this when sending material
 	local mat = obj.material
 	if isstring(mat) then
-		util.AddNetworkString( "0" .. mat )
 		net.WriteString( "0" .. mat ) -- 0 for string
 	elseif isentity(mat) then
 		net.WriteString( "1" .. mat:EntIndex() ) -- 1 for entity
