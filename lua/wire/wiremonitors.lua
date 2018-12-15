@@ -226,7 +226,7 @@ local function fallback(self, model)
 	local boxmin = ent:OBBMins()+gap
 	local boxmax = ent:OBBMaxs()-gap
 
-	return WireGPU_FromBox("Auto: "..model:match("([^/]*)$"), model, boxmin, boxmax, true)
+	return WireGPU_FromBox("Auto: "..model:match("([^/]*)$"), model, boxmin, boxmax, false)
 end
 
 setmetatable(WireGPU_Monitors, { __index = fallback })

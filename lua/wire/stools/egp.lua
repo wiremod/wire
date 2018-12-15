@@ -8,6 +8,8 @@ TOOL.ClientConVar["createflat"] = 1
 TOOL.ClientConVar["weld"] = 0
 TOOL.ClientConVar["weldworld"] = 0
 TOOL.ClientConVar["freeze"] = 1
+TOOL.ClientConVar["emitter_usert"] = 1
+TOOL.ClientConVar["translucent"] = 0
 
 cleanup.Register( "wire_egps" )
 
@@ -75,6 +77,19 @@ if (SERVER) then
 
 	function TOOL:LeftClick( trace )
 		if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
+
+		-- check if the player clicked an emitter
+		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_egp_emitter" then
+			trace.Entity:SetUseRT(self:GetClientNumber("emitter_usert")~=0)
+			return true
+		end
+
+		-- check if the player clicked a screen
+		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_egp" then
+			trace.Entity:SetTranslucent(self:GetClientNumber("translucent")~=0)
+			return true
+		end
+		
 		local ply = self:GetOwner()
 		if (!ply:CheckLimit( "wire_egps" )) then return false end
 
@@ -88,10 +103,12 @@ if (SERVER) then
 			if not IsValid(ent) then return end
 
 			self:SetPos(ent, trace) -- Use WireToolObj's pos code
+			ent:SetTranslucent(self:GetClientNumber("translucent")~=0)
 		elseif (Type == 2) then -- HUD
 			ent = SpawnHUD( ply, trace.HitPos + trace.HitNormal * 0.25, trace.HitNormal:Angle() + Angle(90,0,0) )
 		elseif (Type == 3) then -- Emitter
 			ent = SpawnEmitter( ply, trace.HitPos + trace.HitNormal * 0.25, trace.HitNormal:Angle() + Angle(90,0,0) )
+			ent:SetUseRT(self:GetClientNumber("emitter_usert")~=0)
 		end
 
 		local weld = self:GetClientNumber("weld") != 0 and true or false
@@ -141,6 +158,8 @@ if CLIENT then
 	language.Add( "Tool_wire_egp_freeze", "Freeze" )
 	language.Add( "Tool_wire_egp_drawemitters", "Draw emitters (Clientside)" )
 	language.Add( "Tool_wire_egp_emitter_drawdist", "Additional emitter draw distance (Clientside)" )
+	language.Add( "Tool_wire_egp_emitter_usert", "Use an RT for emitters (improves performance)" )
+	language.Add( "Tool_wire_egp_translucent", "Transparent background" )
 end
 
 WireToolSetup.SetupLinking(false, "vehicle") -- Generates RightClick, Reload, and DrawHUD functions
@@ -152,43 +171,7 @@ end
 -- Remove SetupLinking's reload function
 TOOL.Reload = nil
 
-if SERVER then
-	--[[
-	function TOOL:RightClick( trace )
-		if (!trace.Entity or !trace.Entity:IsValid()) then return false end
-		if (trace.Entity:IsPlayer()) then return false end
-
-		local ply = self:GetOwner()
-		if (self:GetStage() == 0) then
-			if (trace.Entity:GetClass() != "gmod_wire_egp_hud") then return false end
-			self:SetStage(1)
-			ply:ChatPrint("[EGP] Now right click a vehicle, or right click the same EGP HUD again to unlink it.")
-			self.Selected = trace.Entity
-		else
-			if (!self.Selected or !self.Selected:IsValid()) then
-				self:SetStage(0)
-				ply:ChatPrint("[EGP] Error! Selected EGP HUD is nil or no longer exists!")
-				return false
-			end
-			if (trace.Entity == self.Selected) then
-				EGP:UnlinkHUDFromVehicle( self.Selected )
-				self.Selected = nil
-				self:SetStage(0)
-				ply:ChatPrint("[EGP] EGP HUD unlinked.")
-				return true
-			end
-			if (!trace.Entity:IsVehicle()) then return false end
-			self:SetStage(0)
-			ply:ChatPrint("[EGP] EGP HUD linked.")
-			EGP:LinkHUDToVehicle( self.Selected, trace.Entity )
-			self.Selected = nil
-		end
-
-		return true
-	end
-	]]
-else
-
+if CLIENT then
 	local Menu = {}
 	local CurEnt
 
@@ -357,7 +340,9 @@ else
 		panel:AddControl("Checkbox", {Label = "#Tool_wire_egp_weld",Command="wire_egp_weld"})
 		panel:AddControl("Checkbox", {Label = "#Tool_wire_egp_weldworld",Command="wire_egp_weldworld"})
 		panel:AddControl("Checkbox", {Label = "#Tool_wire_egp_freeze",Command="wire_egp_freeze"})
+		panel:AddControl("Checkbox", {Label = "#Tool_wire_egp_translucent",Command="wire_egp_translucent"})
 		panel:AddControl("Checkbox", {Label = "#Tool_wire_egp_drawemitters",Command="wire_egp_drawemitters"})
+		panel:AddControl("Checkbox", {Label = "#Tool_wire_egp_emitter_usert",Command="wire_egp_emitter_usert"})
 
 		local slider = vgui.Create("DNumSlider")
 		slider:SetText("#Tool_wire_egp_emitter_drawdist")

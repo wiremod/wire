@@ -67,6 +67,13 @@ function ENT:Draw()
 	if self.UpdateConstantly or self.NeedsUpdate then
 		self:_EGP_Update()
 	end
+
+	-- check if translucent setting changed
+	if self.GPU.translucent ~= self:GetTranslucent() then
+		self.GPU.translucent = self:GetTranslucent()
+		self:_EGP_Update()
+	end
+
 	self.GPU:Render()
 end
 

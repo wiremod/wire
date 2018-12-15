@@ -14,3 +14,8 @@ ENT.RenderGroup     = RENDERGROUP_BOTH
 
 include("lib/init.lua")
 if (SERVER) then AddCSLuaFile("lib/init.lua") end
+
+
+function ENT:SetupDataTables()
+	self:NetworkVar( "Bool", 0, "Translucent" )
+end
