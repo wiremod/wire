@@ -1,3 +1,0 @@
-#!/bin/sh
-echo `git describe --tags --long` > data/wire_version.txt
-git add data/wire_version.txt
