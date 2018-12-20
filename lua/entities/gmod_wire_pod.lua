@@ -190,6 +190,7 @@ function ENT:LinkEnt( pod )
 
 	-- if pod is still not a vehicle even after all of the above, then error out
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
+	if not hook.Run( "CanTool", self:GetPlayer(), WireLib.dummytrace(pod), "wire_pod" ) then return false, "You do not have permission to access this vehicle" end
 
 	self:SetPod( pod )
 	WireLib.SendMarks(self, {pod})
@@ -385,9 +386,11 @@ function ENT:TriggerInput( name, value )
 	elseif (name == "Hide HUD") then
 		self:SetHideHUD( value )
 	elseif (name == "Vehicle") then
-		if IsValid(value) then -- only link if the input is valid. that way, it won't be unlinked if the wire is disconnected
-			self:LinkEnt(value)
-		end
+		if not IsValid(value) then return end -- only link if the input is valid. that way, it won't be unlinked if the wire is disconnected
+		if value:IsPlayer() then return end
+		if value:IsNPC() then return end
+
+		self:LinkEnt(value)
 	end
 end
 
