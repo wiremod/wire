@@ -885,6 +885,7 @@ local function CreateSoundBrowser(path, se)
 		nSoundPitch = 100
 		TuneVolumeSlider:SetValue(nSoundVolume * 100)
 		TunePitchSlider:SetValue(nSoundPitch)
+		SoundBrowserPanel:GetParent():SetWorldClicker(false) -- Not allow the breakage of other addons installed.
 		PlaySound()
 		PlaySoundNoEffect()
 	end
