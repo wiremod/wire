@@ -564,7 +564,6 @@ local function CreateSoundBrowser(path, se)
 	SoundBrowserPanel:SetTitle("Sound Browser")
 	SoundBrowserPanel:SetVisible(false)
 	SoundBrowserPanel:SetCookieName( "wire_sound_browser" )
-	SoundBrowserPanel:GetParent():SetWorldClicker(true) // Allow the use of the toolgun while in menu.
 
 	TabFileBrowser = vgui.Create("wire_filebrowser") // The file tree browser.
 	TabSoundPropertyList = vgui.Create("wire_soundpropertylist") // The sound property browser.
@@ -885,7 +884,7 @@ local function CreateSoundBrowser(path, se)
 		nSoundPitch = 100
 		TuneVolumeSlider:SetValue(nSoundVolume * 100)
 		TunePitchSlider:SetValue(nSoundPitch)
-		SoundBrowserPanel:GetParent():SetWorldClicker(false) -- Not allow the breakage of other addons installed.
+		vgui.GetWorldPanel():SetWorldClicker(false) -- Not allow the breakage of other addons installed.
 		PlaySound()
 		PlaySoundNoEffect()
 	end
@@ -905,6 +904,8 @@ local function OpenSoundBrowser(pl, cmd, args)
 	SoundBrowserPanel:SetVisible(true)
 	SoundBrowserPanel:MakePopup()
 	SoundBrowserPanel:InvalidateLayout(true)
+
+	vgui.GetWorldPanel():SetWorldClicker(true)
 
 	if (!IsValid(TabFileBrowser)) then return end
 
