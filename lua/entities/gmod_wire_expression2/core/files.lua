@@ -368,7 +368,7 @@ end )
 util.AddNetworkString("wire_expression2_file_chunk")
 net.Receive("wire_expression2_file_chunk", function(netlen, ply)
 	local pfile = uploads[ply]
-	if !pfile then return end
+	if !pfile or !pfile.buffer then return end
 	if !pfile.uploading then
 		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
 	end
