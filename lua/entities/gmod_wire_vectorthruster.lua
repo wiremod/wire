@@ -105,6 +105,9 @@ function ENT:Initialize()
 	self.force = 0
 	self.calcforce = true
 	
+	self.ForceLinear = vector_origin
+	self.ForceAngular = vector_origin
+	
 	local max = self:OBBMaxs()
 	self.ThrustOffset = Vector( 0, 0, max.z )
 
@@ -162,10 +165,10 @@ function ENT:CalcForce(phys)
 	if ThrustLen>0 then
 		local ThrustNormal = ThrusterWorldForce/ThrustLen
 		self:SetNormal( -ThrustNormal )
-		self.ForceLinear = phys:CalculateVelocityOffset( ThrustNormal * ( math.min( self.force * self.mul, self.force_max ) * 50 ), phys:LocalToWorld( self.ThrustOffset ) )
+		self.ForceLinear, self.ForceAngular = phys:CalculateVelocityOffset( ThrustNormal * ( math.min( self.force * self.mul, self.force_max ) * 50 ), phys:LocalToWorld( self.ThrustOffset ) )
 	else
-		self:SetNormal( ThrusterWorldForce )
-		self.ForceLinear = ThrusterWorldForce
+		self:SetNormal( vector_origin )
+		self.ForceLinear, self.ForceAngular = vector_origin, vector_origin
 	end
 
 	if self.neteffect then
@@ -272,7 +275,7 @@ function ENT:PhysicsSimulate( phys, deltatime )
 		self:SetEffect(self.oweffect)
 	end
 
-	return vector_origin, self.ForceLinear, SIM_GLOBAL_ACCELERATION
+	return self.ForceAngular, self.ForceLinear, SIM_GLOBAL_ACCELERATION
 end
 
 function ENT:ShowOutput()
