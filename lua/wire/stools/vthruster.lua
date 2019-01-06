@@ -6,6 +6,7 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_vthruster.desc", "Spawns a vector thruster for use with the wire system." )
 	language.Add( "WireVThrusterTool_Mode", "Mode:" )
 	language.Add( "WireVThrusterTool_Angle", "Use Yaw/Pitch Inputs Instead" )
+	language.Add( "WireVThrusterTool_LengthIsMul", "Use Vector Length for Mul" )
 
 	TOOL.Information = {
 		{ name = "left_0", stage = 0, text = "Create/Update " .. TOOL.Name },
@@ -27,12 +28,13 @@ TOOL.ClientConVar[ "owater" ] = "1"
 TOOL.ClientConVar[ "uwater" ] = "1"
 TOOL.ClientConVar[ "mode" ] = "0"
 TOOL.ClientConVar[ "angleinputs" ] = "0"
+TOOL.ClientConVar[ "lengthismul" ] = "0"
 
 if SERVER then
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "force" ), self:GetClientNumber( "force_min" ), self:GetClientNumber( "force_max" ), self:GetClientInfo( "oweffect" ),
 			self:GetClientInfo( "uweffect" ), self:GetClientNumber( "owater" ) ~= 0, self:GetClientNumber( "uwater" ) ~= 0, self:GetClientNumber( "bidir" ) ~= 0,
-			self:GetClientInfo( "soundname" ), self:GetClientNumber( "mode" ), self:GetClientNumber( "angleinputs" ) ~= 0
+			self:GetClientInfo( "soundname" ), self:GetClientNumber( "mode" ), self:GetClientNumber( "angleinputs" ) ~= 0, self:GetClientNumber( "lengthismul" ) ~= 0
 	end
 end
 
@@ -236,6 +238,7 @@ function TOOL.BuildCPanel(panel)
 	})
 
 	panel:CheckBox("#WireVThrusterTool_Angle", "wire_vthruster_angleinputs")
+	panel:CheckBox("#WireVThrusterTool_LengthIsMul", "wire_vthruster_lengthismul")
 end
 
 list.Set( "ThrusterModels", "models/jaanus/wiretool/wiretool_speed.mdl", {} )
