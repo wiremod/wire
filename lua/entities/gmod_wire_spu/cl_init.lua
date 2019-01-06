@@ -173,5 +173,7 @@ function ENT:Think()
   -- Run asynchronous thread
   if self.VM.Memory[65535] == 1 then
     self:Run()
+    -- Calculate ADSR
+    self.VM:CalculateADSR(self.DeltaTime)
   end
 end

@@ -93,13 +93,6 @@ function ENT:OverrideVM()
   self.VM.OperandCount[132] = nil --GMAP
 end
 
-
-
-
-
-
-
-
 --------------------------------------------------------------------------------
 -- Reset state each GPU frame
 --------------------------------------------------------------------------------
@@ -168,6 +161,11 @@ function VM:Reset()
       Sound = CreateSound(self.Entity.SoundSources[chan],self.Waveform[chan]),
       Volume = 1.0,
       Pitch = 100,
+      ADSR = {x=0, y=0, z=1, w=0},
+      ADSRStage = 0,
+      ADSRTime = 0,
+      ADSRMode = 1,
+      ADSRVolume = 0,
     }
   end
 end
@@ -211,8 +209,83 @@ function VM:ReadString(address)
   return charString
 end
 
+--------------------------------------------------------------------------------
+-- Calculate ADSR Envelope
+--------------------------------------------------------------------------------
 
+function VM:CalculateADSR(deltaTime)
+  for chan, _ in pairs(self.Channel) do
+    if self.Channel[chan].ADSRStage ~= 0 then
+      self.Channel[chan].ADSRTime = deltaTime + self.Channel[chan].ADSRTime
+      -- break up the ADSR envelope for easier reading
+      local curTime     = self.Channel[chan].ADSRTime
+      local attackTime  = self.Channel[chan].ADSR.x / 1000
+      local decayTime   = self.Channel[chan].ADSR.y / 1000
+      local sustainVol  = self.Channel[chan].ADSR.z
+      local releaseTime = self.Channel[chan].ADSR.w / 1000
+      local relVolume   = self.Channel[chan].ADSRVolume
+      local maxVolume   = self.Channel[chan].Volume
+      local curVolume   = self.Channel[chan].Sound:GetVolume()
 
+      -- ADSR Stages:
+      -- 0: Idle
+      -- 1: Attack
+      -- 2: Decay
+      -- 3: Sustain
+      -- 4: Release
+
+      -- Attack
+      if self.Channel[chan].ADSRStage == 1 then
+        if curTime >= attackTime then -- Move to Decay
+          self.Channel[chan].ADSRStage = 2
+          self.Channel[chan].ADSRTime = curTime - attackTime
+          curTime = self.Channel[chan].ADSRTime
+        else
+          local mag = curTime/attackTime
+          local vol = maxVolume * mag
+          self.Channel[chan].Sound:ChangeVolume(vol)
+          self.Channel[chan].ADSRVolume = vol
+        end
+      end
+      -- Decay
+      if self.Channel[chan].ADSRStage == 2 then
+        if curTime >= decayTime then -- Move to Sustain
+          if self.Channel[chan].ADSRMode == 0 then
+            self.Channel[chan].ADSRStage = 4 --Mode 0, no Sustain
+          else
+            self.Channel[chan].ADSRStage = 3 --Mode 1, Sustain
+          end
+          self.Channel[chan].ADSRTime = curTime - decayTime
+          curTime = self.Channel[chan].ADSRTime
+        else
+          local mag = curTime / decayTime
+          local vol = (maxVolume - (maxVolume * mag)) + ((maxVolume * sustainVol) * mag)
+          self.Channel[chan].Sound:ChangeVolume(vol)
+          self.Channel[chan].ADSRVolume = vol
+        end
+      end
+      -- Sustain
+      if self.Channel[chan].ADSRStage == 3 then
+        if curVolume ~= (maxVolume * sustainVol) then
+          self.Channel[chan].Sound:ChangeVolume(maxVolume * sustainVol)
+          self.Channel[chan].ADSRVolume = maxVolume * sustainVol
+        end
+      end
+      -- Release
+      if self.Channel[chan].ADSRStage == 4 then
+        if (releaseTime ~= 0) and (curTime < releaseTime) then -- The only place we COULD get a divide by zero error!
+          local mag = curTime / releaseTime
+          local vol = (maxVolume * relVolume) - ((maxVolume * relVolume) * mag)
+          self.Channel[chan].Sound:ChangeVolume(vol)
+          --We don't set ADSRVolume here as ADSRVolume is used to calculate the release curve
+        elseif curVolume ~=0  then
+          self.Channel[chan].ADSRStage = 0
+          self.Channel[chan].Sound:ChangeVolume(0)
+        end
+      end
+    end
+  end
+end
 
 --------------------------------------------------------------------------------
 -- SPU instruction set implementation
@@ -233,6 +306,11 @@ VM.OpcodeTable[320] = function(self)  --CHRESET
         self:Dyn_Emit("VM.Channel[channel].Sound:Stop()")
         self:Dyn_Emit("VM.Channel[channel].Pitch = 100")
         self:Dyn_Emit("VM.Channel[channel].Volume = 1.0")
+        self:Dyn_Emit("VM.Channel[channel].ADSR = {x=0, y=0, z=1, w=0}")
+        self:Dyn_Emit("VM.Channel[channel].ADSRStage = 0")
+        self:Dyn_Emit("VM.Channel[channel].ADSRTime = 0")
+        self:Dyn_Emit("VM.Channel[channel].ADSRMode = 1")
+        self:Dyn_Emit("VM.Channel[channel].ADSRVolume = 0")
       self:Dyn_Emit("end")
     self:Dyn_Emit("end")
   self:Dyn_Emit("else")
@@ -240,6 +318,11 @@ VM.OpcodeTable[320] = function(self)  --CHRESET
       self:Dyn_Emit("VM.Channel[CHAN].Sound:Stop()")
       self:Dyn_Emit("VM.Channel[CHAN].Pitch = 100")
       self:Dyn_Emit("VM.Channel[CHAN].Volume = 1.0")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSR = {x=0, y=0, z=1, w=0}")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRStage = 0")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRTime = 0")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRMode = 1")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRVolume = 0")
     self:Dyn_Emit("end")
   self:Dyn_Emit("end")
 end
@@ -249,6 +332,9 @@ VM.OpcodeTable[321] = function(self)  --CHSTART
   self:Dyn_Emit("if (CHAN >= 0) and (CHAN < WireSPU_MaxChannels) then")
     self:Dyn_Emit("if VM.Channel[CHAN] then")
       self:Dyn_Emit("VM.Channel[CHAN].Sound:PlayEx(VM.Channel[CHAN].Volume,VM.Channel[CHAN].Pitch)")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRStage = 1")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRTime = 0")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRVolume = 0")
     self:Dyn_Emit("end")
   self:Dyn_Emit("end")
 end
@@ -258,9 +344,34 @@ VM.OpcodeTable[322] = function(self)  --CHSTOP
   self:Dyn_Emit("if (CHAN >= 0) and (CHAN < WireSPU_MaxChannels) then")
     self:Dyn_Emit("if VM.Channel[CHAN] then")
       self:Dyn_Emit("VM.Channel[CHAN].Sound:Stop()")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRStage = 0")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRTime = 0")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRVolume = 0")
     self:Dyn_Emit("end")
   self:Dyn_Emit("end")
 end
+VM.OpcodeTable[323] = function(self) --CHTRIGGER
+  self:Dyn_Emit("$L CHAN = math.floor($1)")
+
+  self:Dyn_Emit("if (CHAN >= 0) and (CHAN < WireSPU_MaxChannels) then")
+    self:Dyn_Emit("if VM.Channel[CHAN] then")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRStage = 1")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRTime = 0")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRVolume = 0")
+    self:Dyn_Emit("end")
+  self:Dyn_Emit("end")
+end
+VM.OpcodeTable[324] = function(self) --CHRELEASE
+  self:Dyn_Emit("$L CHAN = math.floor($1)")
+
+  self:Dyn_Emit("if (CHAN >= 0) and (CHAN < WireSPU_MaxChannels) then")
+    self:Dyn_Emit("if VM.Channel[CHAN] then")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRStage = 4")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRTime = 0")
+    self:Dyn_Emit("end")
+  self:Dyn_Emit("end")
+end
+
 --------------------------------------------------------------------------------
 VM.OpcodeTable[330] = function(self)  --WSET
   self:Dyn_Emit("$L WAVE = math.floor($1)")
@@ -277,11 +388,29 @@ VM.OpcodeTable[331] = function(self)  --CHWAVE
 
   self:Dyn_Emit("if (WAVE >= 0) and (WAVE < 8192) and (CHAN >= 0) and (CHAN < WireSPU_MaxChannels) then")
     self:Dyn_Emit("if VM.Waveform[WAVE] then")
+      self.Dyn_Emit("if VM.Channel[CHAN] then")
+        self:Dyn_Emit("if VM.Channel[CHAN].Sound:IsPlaying() then")
+          self:Dyn_Emit("VM.Channel[CHAN].Sound:Stop()")
+        self:Dyn_Emit("end")
+      self:Dyn_Emit("end")
       self:Dyn_Emit("VM.Channel[CHAN] = { Sound = CreateSound(VM.Entity.SoundSources[CHAN],VM.Waveform[WAVE]), Pitch = 100, Volume = 1.0 }")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSR = {x=0, y=0, z=1, w=0}")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRStage = 0")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRTime = 0")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRMode = 1")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRVolume = 0")
     self:Dyn_Emit("end")
   self:Dyn_Emit("end")
 end
 VM.OpcodeTable[332] = function(self)  --CHLOOP
+  self:Dyn_Emit("$L CHAN = math.floor($1)")
+  self:Dyn_Emit("$L X = $2")
+
+  self:Dyn_Emit("if (CHAN >= 0) and (CHAN < WireSPU_MaxChannels) then")
+    self:Dyn_Emit("if VM.Channel[CHAN] then")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRMode = X")
+    self:Dyn_Emit("end")
+  self:Dyn_Emit("end")
 end
 VM.OpcodeTable[333] = function(self)  --CHVOLUME
   self:Dyn_Emit("$L CHAN = math.floor($1)")
@@ -312,4 +441,15 @@ end
 VM.OpcodeTable[337] = function(self)  --CHMODF
 end
 VM.OpcodeTable[338] = function(self)  --CHADSR
+  self:Dyn_Emit("$L CHAN = math.floor($1)")
+  self:Dyn_Emit("$L VEC = VM:ReadVector4f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+  self:Dyn_EmitInterruptCheck()
+
+  self:Dyn_Emit("if (CHAN >= 0) and (CHAN < WireSPU_MaxChannels) then")
+    self:Dyn_Emit("if VM.Channel[CHAN] then")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSR = VEC")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRStage = 0")
+      self:Dyn_Emit("VM.Channel[CHAN].ADSRTime = 0")
+    self:Dyn_Emit("end")
+  self:Dyn_Emit("end")
 end
