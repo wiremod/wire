@@ -124,7 +124,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if (info.DHDD) then
 		ent.Memory = (info.DHDD.Memory or {})
 
-		local size = #ent.Memory
+		local size = table.maxn(ent.Memory)
 		if size ~= 0 or ent.Memory[0] ~= nil then
 			size = size + 1
 		end
