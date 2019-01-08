@@ -87,7 +87,7 @@ function ENT:TriggerInput( name, value )
 		--     {} ⇒ 0
 		--     { 0 = 0 } ⇒ 1
 		--     { 1 = 1 }, { 0 = 0, 1 = 1 } ⇒ 2
-		local size = #value
+		local size = table.maxn(value)
 		if size ~= 0 or value[0] ~= nil then
 			size = size + 1
 		end
@@ -123,6 +123,13 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if (info.DHDD) then
 		ent.Memory = (info.DHDD.Memory or {})
+
+		local size = table.maxn(ent.Memory)
+		if size ~= 0 or ent.Memory[0] ~= nil then
+			size = size + 1
+		end
+		self.Size = size
+
 		if info.DHDD.AllowWrite ~= nil then
 			ent.AllowWrite = info.DHDD.AllowWrite
 		end
