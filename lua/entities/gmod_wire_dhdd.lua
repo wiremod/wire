@@ -87,7 +87,7 @@ function ENT:TriggerInput( name, value )
 		--     {} ⇒ 0
 		--     { 0 = 0 } ⇒ 1
 		--     { 1 = 1 }, { 0 = 0, 1 = 1 } ⇒ 2
-		local size = #value
+		local size = table.maxn(value)
 		if size ~= 0 or value[0] ~= nil then
 			size = size + 1
 		end
