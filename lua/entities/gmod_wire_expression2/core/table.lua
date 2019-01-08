@@ -458,7 +458,6 @@ e2function number table:remove( number index )
 		table.remove( this.ntypes, index )
 	end
 	this.size = this.size - 1
-	this.typeids = nil
 	self.GlobalScope.vclk[this] = true
 	this.typeids = nil
 	this.typeidsarray = nil
