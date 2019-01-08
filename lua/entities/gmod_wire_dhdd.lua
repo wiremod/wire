@@ -15,6 +15,7 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateInputs( self, { "Data [ARRAY]", "Clear", "AllowWrite" } )
 
 	self.Memory = {}
+	self.Size = 0
 	self.ROM = false
 	self.AllowWrite = true
 
@@ -25,6 +26,7 @@ end
 function ENT:ReadCell( Address )
 	-- 256 KiB limit
 	if Address < 0 or Address >= 262144 then return 0 end
+	Address = math.floor(Address)
 
 	local data = self.Memory[Address or 0] or 0
 	return isnumber(data) and data or 0
@@ -34,22 +36,41 @@ end
 function ENT:WriteCell( Address, value )
 	-- 256 KiB limit
 	if Address < 0 or Address >= 262144 then return false end
+  Address = math.floor(Address)
 
 	if self.AllowWrite then
 		self.Memory[Address] = value ~= 0 and value or nil
+		self.Size = math.max(self.Size, Address + 1)
 	end
-	self:ShowOutputs()
+
+	self.WantsUpdate = true
 	return true
+end
+
+function ENT:Think()
+	self.BaseClass.Think( self )
+	
+	--[[
+		The workaround using WantsUpdate should not be required.
+		However, the server crashes (for no reason whatsoever) if you
+		create a string of the following structure too often
+		[~11 chars] .. number .. [~3 chars]
+		(such as "DHDD\nSize: " .. self.Size .." bytes")
+		No, string.format doesn't help
+	]]
+	if self.WantsUpdate then
+		self.WantsUpdate = nil
+		self:ShowOutputs()
+	end
 end
 
 function ENT:ShowOutputs()
 	WireLib.TriggerOutput( self, "Memory", self.Memory )
-	local n = #self.Memory
-	WireLib.TriggerOutput( self, "Size", n )
+	WireLib.TriggerOutput( self, "Size", self.Size )
 	if not self.ROM then
-		self:SetOverlayText("DHDD\nSize: " .. n .." bytes" )
+		self:SetOverlayText("DHDD\nSize: " .. self.Size .." bytes" )
 	else
-		self:SetOverlayText("ROM\nSize: " .. n .." bytes" )
+		self:SetOverlayText("ROM\nSize: " .. self.Size .." bytes" )
 	end
 end
 
@@ -60,10 +81,22 @@ function ENT:TriggerInput( name, value )
 		if not self.AllowWrite then return end -- if we don't allow writing, abort
 
 		self.Memory = value
-		self:ShowOutputs()
+
+		-- HiSpeed interfaces are 0-based, but Lua arrays are typically 1-based.
+		-- This gives the right 0-based size if the input is a 0-based or 1-based array:
+		--     {} ⇒ 0
+		--     { 0 = 0 } ⇒ 1
+		--     { 1 = 1 }, { 0 = 0, 1 = 1 } ⇒ 2
+		local size = #value
+		if size ~= 0 or value[0] ~= nil then
+			size = size + 1
+		end
+		self.Size = size
+		self.WantsUpdate = true
 	elseif (name == "Clear") then
 		self.Memory = {}
-		self:ShowOutputs()
+		self.Size = 0
+		self.WantsUpdate = true
 	elseif (name == "AllowWrite") then
 		self.AllowWrite = value >= 1
 	end

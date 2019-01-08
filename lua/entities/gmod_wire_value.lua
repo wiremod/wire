@@ -139,6 +139,7 @@ function ENT:Setup( valuesin )
 end
 
 function ENT:ReadCell( Address )
+	Address = math.floor(Address)
 	local tp = self.types[Address+1]
 	-- we can only retrieve numbers here, unfortunately.
 	-- This is because the ReadCell function assumes that things like vectors and strings store one of their values per cell,

@@ -53,6 +53,7 @@ function ENT:Think()
 end
 
 function ENT:ReadCell(Address)
+	Address = math.floor(Address)
 	for i = 1,4 do
 		if (Address >= self.MemStart[i]) and (Address <= self.MemEnd[i]) then
 			if self.Memory[i] then
@@ -70,6 +71,7 @@ function ENT:ReadCell(Address)
 end
 
 function ENT:WriteCell(Address, value)
+	Address = math.floor(Address)
 	local res = false
 	for i = 1,4 do
 		if (Address >= self.MemStart[i]) and (Address <= self.MemEnd[i]) then

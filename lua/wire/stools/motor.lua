@@ -8,6 +8,7 @@ if CLIENT then
 	language.Add( "WireMotorTool_friction", "Hinge Friction:" )
 	language.Add( "WireMotorTool_nocollide", "No Collide" )
 	language.Add( "WireMotorTool_forcelimit", "Force Limit:" )
+	language.Add( "WireMotorTool_offset", "Position Offset:" )
 	TOOL.Information = {
 		{ name = "left_0", stage = 0, text = "Choose the wheel's axis" },
 		{ name = "left_1", stage = 1, text = "Choose the base's axis" },
@@ -27,7 +28,8 @@ function TOOL:GetConVars()
 	return self:GetClientNumber( "torque" ),
 			self:GetClientNumber( "friction" ),
 			self:GetClientNumber( "nocollide" ),
-			self:GetClientNumber( "forcelimit" )
+			self:GetClientNumber( "forcelimit" ),
+			self:GetClientNumber( "offset" )
 end
 
 function TOOL:LeftClick_Update( trace )
@@ -86,7 +88,9 @@ function TOOL:LeftClick( trace )
 	-- Don't allow us to choose the same object
 	if iNum == 1 and trace.Entity == self:GetEnt(1) then return end
 
-	self:SetObject( iNum + 1, trace.Entity, trace.HitPos, Phys, trace.PhysicsBone, trace.HitNormal )
+
+	-- Get client's CVars
+	local torque, friction, nocollide, forcelimit, offset = self:GetConVars()
 
 	if iNum > 1 then
 		if CLIENT then
@@ -117,14 +121,12 @@ function TOOL:LeftClick( trace )
 		self:ClearObjects()
 		self:SetStage(0)
 	elseif iNum == 1 then
+		self:SetObject( iNum + 1, trace.Entity, trace.HitPos, Phys, trace.PhysicsBone, trace.HitNormal )
 		if CLIENT then
 			self:ClearObjects()
 			self:ReleaseGhostEntity()
 			return true
 		end
-
-		-- Get client's CVars
-		local torque, friction, nocollide, forcelimit = self:GetConVars()
 
 		local Ent1,  Ent2  = self:GetEnt(1),	  self:GetEnt(2)
 		local Bone1, Bone2 = self:GetBone(1),	  self:GetBone(2)
@@ -141,9 +143,6 @@ function TOOL:LeftClick( trace )
 
 		-- Move the object so that the hitpos on our object is at the second hitpos
 		local TargetPos = WPos2 + (Phys1:GetPos() - self:GetPos(1))
-
-		-- Offset slightly so it can rotate
-		TargetPos = TargetPos + (2*Norm2)
 
 		-- Set the position
 		Phys1:SetPos( TargetPos )
@@ -169,6 +168,8 @@ function TOOL:LeftClick( trace )
 		self:SetStage(2)
 		self:ReleaseGhostEntity()
 	else
+		offset = math.Clamp(offset, 0, 1024)
+		self:SetObject( iNum + 1, trace.Entity, trace.HitPos + trace.HitNormal*offset, Phys, trace.PhysicsBone, trace.HitNormal )
 		self:StartGhostEntity( trace.Entity )
 		self:SetStage( iNum+1 )
 	end
@@ -196,6 +197,7 @@ TOOL.ClientConVar = {
 	friction = 1,
 	nocollide = 1,
 	forcelimit = 0,
+	offset = 2,
 	model = "models/jaanus/wiretool/wiretool_siren.mdl"
 }
 
@@ -209,5 +211,6 @@ function TOOL.BuildCPanel(panel)
 	panel:NumSlider( "#WireMotorTool_torque", "wire_motor_torque", 0, 10000, 5 )
 	panel:NumSlider( "#WireMotorTool_forcelimit", "wire_motor_forcelimit", 0, 50000, 10 )
 	panel:NumSlider( "#WireMotorTool_friction", "wire_motor_friction", 0, 100, 1 )
+	panel:NumSlider( "#WireMotorTool_offset", "wire_motor_offset", 0, 512, 2 )
 	panel:CheckBox( "#WireMotorTool_nocollide", "wire_motor_nocollide" )
 end

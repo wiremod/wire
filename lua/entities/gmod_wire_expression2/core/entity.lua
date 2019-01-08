@@ -94,6 +94,11 @@ e2function number entity:creationID()
 	return this:GetCreationID()
 end
 
+e2function number entity:creationTime()
+        if not IsValid(this) then return 0 end
+        return this:GetCreationTime()
+end
+
 /******************************************************************************/
 // Functions getting string
 

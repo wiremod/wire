@@ -66,6 +66,7 @@ end
 function ENT:ReadCell( Address, infloop )
 	infloop = infloop or 0
 	if infloop > 50 then return end
+	Address = math.floor(Address)
 
 	if (self.Memory) then
 		if (self.Memory.ReadCell) then
@@ -81,6 +82,7 @@ end
 function ENT:WriteCell( Address, value, infloop )
 	infloop = infloop or 0
 	if infloop > 50 then return end
+	Address = math.floor(Address)
 
 	if (self.Memory) then
 		if (self.Memory.WriteCell) then

@@ -109,3 +109,10 @@ RTFix:Add("gmod_wire_oscilloscope","Oscilloscope", def)
 --RTFix:Add("gmod_wire_screen","Screen", function( ent ) def( ent, nil, true ) end) No fix is needed for this
 RTFix:Add("gmod_wire_textscreen","Text Screen", function( ent ) def( ent, "NeedRefresh" ) end)
 RTFix:Add("gmod_wire_egp","EGP",function( ent ) def( ent, "NeedsUpdate" ) end)
+
+-- EGP Emitter needs a check because it can optionally not use RTs
+RTFix:Add("gmod_wire_egp_emitter","EGP Emitter",function( ent ) 
+	if ent:GetUseRT() then
+		def( ent, "NeedsUpdate" )
+	end
+end)

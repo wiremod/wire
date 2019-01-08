@@ -94,23 +94,6 @@ function Parser.Execute(...)
 	return xpcall(Parser.Process, E2Lib.errorHandler, instance, ...)
 end
 
-function Parser.DumpTree(tree, indentation)
-	indentation = indentation or ''
-	local str = indentation .. tree[1] .. '(' .. tree[2][1] .. ':' .. tree[2][2] .. ')\n'
-	indentation = indentation .. '  '
-	for i = 3, #tree do
-		local child = tree[i]
-		if type(child) == 'table' and child.__instruction then
-			str = str .. Parser.DumpTree(child, indentation)
-		elseif type(child) == 'string' then
-			str = str .. indentation .. string.format('%q', child) .. '\n'
-		else
-			str = str .. indentation .. tostring(child) .. '\n'
-		end
-	end
-	return str
-end
-
 function Parser:Error(message, token)
 	if token then
 		error(message .. " at line " .. token[4] .. ", char " .. token[5], 0)
@@ -129,7 +112,7 @@ function Parser:Process(tokens, params)
 	self:NextToken()
 	local tree = self:Root()
 	if parserDebug:GetBool() then
-		print(Parser.DumpTree(tree))
+		print(E2Lib.AST.dump(tree))
 	end
 	return tree, self.delta, self.includes
 end
@@ -1145,7 +1128,7 @@ function Parser:Expr15()
 			local token = self:GetToken()
 
 			if self:AcceptRoamingToken("rpa") then
-				expr = self:Instruction(trace, "mto", fun, expr, {})
+				expr = self:Instruction(trace, "methodcall", fun, expr, {})
 			else
 				local exprs = { self:Expr1() }
 
@@ -1157,7 +1140,7 @@ function Parser:Expr15()
 					self:Error("Right parenthesis ()) missing, to close method argument list", token)
 				end
 
-				expr = self:Instruction(trace, "mto", fun, expr, exprs)
+				expr = self:Instruction(trace, "methodcall", fun, expr, exprs)
 			end
 			--elseif self:AcceptRoamingToken("col") then
 			--	self:Error("Method operator (:) must not be preceded by whitespace")
@@ -1232,9 +1215,9 @@ function Parser:Expr15()
 
 				local stype = wire_expression_types[string.upper(longtp)][1]
 
-				expr = self:Instruction(trace, "sfun", expr, exprs, stype)
+				expr = self:Instruction(trace, "stringcall", expr, exprs, stype)
 			else
-				expr = self:Instruction(trace, "sfun", expr, exprs, "")
+				expr = self:Instruction(trace, "stringcall", expr, exprs, "")
 			end
 		else
 			break
@@ -1272,7 +1255,7 @@ function Parser:Expr16()
 		local token = self:GetToken()
 
 		if self:AcceptRoamingToken("rpa") then
-			return self:Instruction(trace, "fun", fun, {})
+			return self:Instruction(trace, "call", fun, {})
 		else
 
 			local exprs = {}
@@ -1329,7 +1312,7 @@ function Parser:Expr16()
 				self:Error("Right parenthesis ()) missing, to close function argument list", token)
 			end
 
-			return self:Instruction(trace, "fun", fun, exprs)
+			return self:Instruction(trace, "call", fun, exprs)
 		end
 	end
 

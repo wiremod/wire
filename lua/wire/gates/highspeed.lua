@@ -15,7 +15,7 @@ GateActions["highspeed_write"] = {
 		return Memory:WriteCell(Address, Data) and 1 or 0
 	end,
 	label = function(Out, Clk, Memory, Address, Data)
-		return "Clock:"..Clk.." Memory:"..Memory.." Address:"..Address.." Data:"..Data.." = "..Out
+		return string.format("Clock:%s Memory:%s Address:%s Data:%s = %s", Clk, Memory, Address, Data, Out)
 	end
 }
 
@@ -24,17 +24,19 @@ GateActions["highspeed_read"] = {
 	inputs = { "Clk", "Memory", "Address" },
 	inputtypes = { "NORMAL", "WIRELINK", "NORMAL" },
 	output = function(gate, Clk, Memory, Address)
-		if not Memory then  return 0 end
-		if not Memory.ReadCell then return 0 end
-		if Clk <= 0 then return 0 end
+		if Clk <= 0 then return gate.Memory or 0 end
+		
+		Address = math.floor(Address or -1)
+		if not Memory or not Memory.ReadCell or Address < 0 then
+			gate.Memory = 0
+			return 0
+		end
 
-		Address = math.floor(Address)
-		if Address < 0 then return 0 end
-
-		return Memory:ReadCell(Address) or 0
+		gate.Memory = Memory:ReadCell(Address)
+		return gate.Memory or 0
 	end,
 	label = function(Out, Clk, Memory, Address)
-		return "Clock:"..Clk.." Memory:"..Memory.." Address:"..Address.." = "..Out
+		return string.format("Clock:%s Memory:%s Address:%s = %s", Clk, Memory, Address, Out)
 	end
 }
 

@@ -11,6 +11,7 @@ if CLIENT then
 	language.Add("Tool_wire_textscreen_valign", "Vertical alignment:")
 	language.Add("Tool_wire_textscreen_tfont", "Text font:")
 	language.Add("Tool_wire_textscreen_colour", "Text colour:")
+	language.Add("Tool_wire_textscreen_bgcolour", "Background colour:")
 	language.Add("Tool_wire_textscreen_createflat", "Create flat to surface")
 	language.Add("Tool_wire_textscreen_text", "Default text:")
 	TOOL.Information = {
@@ -34,11 +35,15 @@ if SERVER then
 			self:GetClientNumber("valign"),
 			self:GetClientInfo("tfont"),
 			Color(
-				math.min(self:GetClientNumber("tred"), 255),
-				math.min(self:GetClientNumber("tgreen"), 255),
-				math.min(self:GetClientNumber("tblue"), 255)
+				math.Clamp(self:GetClientNumber("tred"), 0, 255),
+				math.Clamp(self:GetClientNumber("tgreen"), 0, 255),
+				math.Clamp(self:GetClientNumber("tblue"), 0, 255)
 			),
-			Color(0,0,0)
+			Color(
+				math.Clamp(self:GetClientNumber("tbgred"), 0, 255),
+				math.Clamp(self:GetClientNumber("tbggreen"), 0, 255),
+				math.Clamp(self:GetClientNumber("tbgblue"), 0, 255)
+			)
 	end
 
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
@@ -53,6 +58,9 @@ TOOL.ClientConVar = {
 	tred        = 255,
 	tblue       = 255,
 	tgreen      = 255,
+	tbgred        = 0,
+	tbgblue       = 0,
+	tbggreen      = 0,
 	ninputs     = 3,
 	createflat  = 1,
 	text        = "",
@@ -95,6 +103,7 @@ function TOOL.BuildCPanel(panel)
 	for k,v in ipairs(Fonts) do Options[v] = { wire_textscreen_tfont = v } end
 
 	WireToolHelpers.MakePresetControl(panel, "wire_textscreen")
+	panel:TextEntry("#Tool_wire_textscreen_text", "wire_textscreen_text")
 	panel:NumSlider("#Tool_wire_textscreen_tsize", "wire_textscreen_tsize", 1, 15, 0)
 	panel:NumSlider("#Tool_wire_textscreen_tjust", "wire_textscreen_tjust", 0, 2, 0)
 	panel:NumSlider("#Tool_wire_textscreen_valign", "wire_textscreen_valign", 0, 2, 0)
@@ -102,6 +111,7 @@ function TOOL.BuildCPanel(panel)
 		Label = "#Tool_wire_textscreen_tfont",
 		Options = Options
 	})
+	panel:CheckBox("#Tool_wire_textscreen_createflat", "wire_textscreen_createflat")
 	panel:AddControl("Color", {
 		Label = "#Tool_wire_textscreen_colour",
 		Red = "wire_textscreen_tred",
@@ -112,7 +122,15 @@ function TOOL.BuildCPanel(panel)
 		ShowRGB = "1",
 		Multiplier = "255"
 	})
+	panel:AddControl("Color", {
+		Label = "#Tool_wire_textscreen_bgcolour",
+		Red = "wire_textscreen_tbgred",
+		Green = "wire_textscreen_tbggreen",
+		Blue = "wire_textscreen_tbgblue",
+		ShowAlpha = "0",
+		ShowHSV = "1",
+		ShowRGB = "1",
+		Multiplier = "255"
+	})
 	WireDermaExts.ModelSelect(panel, "wire_textscreen_model", list.Get( "WireScreenModels" ), 5)
-	panel:CheckBox("#Tool_wire_textscreen_createflat", "wire_textscreen_createflat")
-	panel:TextEntry("#Tool_wire_textscreen_text", "wire_textscreen_text")
 end

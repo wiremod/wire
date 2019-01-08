@@ -235,11 +235,11 @@ local function flush_clip_queue(queue, recipient)
 					if clip.enabled ~= nil then
 						net.WriteBit(true)
 						net.WriteBit(clip.enabled)
-					elseif clip.origin and clip.normal and clip.isglobal then
+					elseif clip.origin and clip.normal and clip.localentid then
 						net.WriteBit(false)
 						net.WriteVector(clip.origin)
 						net.WriteFloat(clip.normal.x) net.WriteFloat(clip.normal.y) net.WriteFloat(clip.normal.z)
-						net.WriteBit(clip.isglobal ~= 0)
+						net.WriteUInt(clip.localentid, 16)
 					end
 				end
 			end
@@ -336,7 +336,7 @@ local function check_clip(Holo, idx)
 		clip.enabled = clip.enabled or false
 		clip.origin = clip.origin or Vector(0,0,0)
 		clip.normal = clip.normal or Vector(0,0,0)
-		clip.isglobal = clip.isglobal or false
+		clip.localentid = clip.localentid or 0
 
 		return clip
 	end
@@ -359,20 +359,20 @@ local function enable_clip(Holo, idx, enabled)
 	end
 end
 
-local function set_clip(Holo, idx, origin, normal, isglobal)
+local function set_clip(Holo, idx, origin, normal, localentid)
 	local clip = check_clip(Holo, idx)
 
-	if clip and (clip.origin ~= origin or clip.normal ~= normal or clip.isglobal ~= isglobal) then
+	if clip and (clip.origin ~= origin or clip.normal ~= normal or clip.localentid ~= localentid) then
 		clip.origin = origin
 		clip.normal = normal
-		clip.isglobal = isglobal
+		clip.localentid = localentid
 
 		add_queue( clip_queue, Holo.e2owner, { Holo,
 			{
 				index = idx,
 				origin = origin,
 				normal = normal,
-				isglobal = isglobal
+				localentid = localentid
 			}}
 		)
 	end
@@ -450,14 +450,14 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 							} )
 						end
 
-						if clip.origin and clip.normal and clip.isglobal ~= nil then
+						if clip.origin and clip.normal and clip.localentid then
 							table.insert(c_queue, {
 								Holo,
 								{
 									index = cidx,
 									origin = clip.origin,
 									normal = clip.normal,
-									isglobal = clip.isglobal
+									localentid = clip.localentid
 								}
 							} )
 						end
@@ -552,7 +552,8 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	end
 
 	if not IsValid(prop) then return nil end
-	if color then prop:SetColor(Color(color[1],color[2],color[3],255)) end
+
+	if color then WireLib.SetColor(Holo.ent, Color(color[1],color[2],color[3],color[4] or 255)) end
 
 	reset_clholo(Holo, scale) -- Reset scale, clips, and visible status
 
@@ -637,7 +638,31 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 	if IsValid(ret) then return ret end
 end
 
+e2function entity holoCreate(index, vector position, vector scale, angle ang, vector4 color, string model)
+	if not checkOwner(self) then return end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	local Holo = CheckIndex(self, index)
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
+
+	position = Vector(position[1], position[2], position[3])
+	ang = Angle(ang[1], ang[2], ang[3])
+	local ret = CreateHolo(self, index, position, scale, ang, color, model)
+	if IsValid(ret) then return ret end
+end
+
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector color)
+	if not checkOwner(self) then return end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	local Holo = CheckIndex(self, index)
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
+
+	position = Vector(position[1], position[2], position[3])
+	ang = Angle(ang[1], ang[2], ang[3])
+	local ret = CreateHolo(self, index, position, scale, ang, color)
+	if IsValid(ret) then return ret end
+end
+
+e2function entity holoCreate(index, vector position, vector scale, angle ang, vector4 color)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
@@ -722,7 +747,7 @@ e2function void holoReset(index, string model, vector scale, vector color, strin
 	if not Holo then return end
 
 	Holo.ent:SetModel(model)
-	Holo.ent:SetColor(Color(color[1],color[2],color[3],255))
+	WireLib.SetColor(Holo.ent, Color(color[1],color[2],color[3],255))
 	E2Lib.setMaterial(Holo.ent, material)
 
 	reset_clholo(Holo, scale) -- Reset scale, clips, and visible status
@@ -857,14 +882,28 @@ e2function void holoClip(index, vector origin, vector normal, isglobal) -- Clip 
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	set_clip(Holo, 1, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal)
+	set_clip(Holo, 1, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal ~= 0 and 0 or Holo.ent:EntIndex())
 end
 
 e2function void holoClip(index, clipidx, vector origin, vector normal, isglobal)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	set_clip(Holo, clipidx, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal)
+	set_clip(Holo, clipidx, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal ~= 0 and 0 or Holo.ent:EntIndex())
+end
+
+e2function void holoClip(index, vector origin, vector normal, entity localent) -- Clip at first index
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	set_clip(Holo, 1, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), localent:EntIndex())
+end
+
+e2function void holoClip(index, clipidx, vector origin, vector normal, entity localent)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	set_clip(Holo, clipidx, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), localent:EntIndex())
 end
 
 e2function void holoPos(index, vector position)
@@ -887,23 +926,21 @@ e2function void holoColor(index, vector color)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetColor(Color(color[1],color[2],color[3],Holo.ent:GetColor().a))
+	WireLib.SetColor(Holo.ent, Color(color[1],color[2],color[3],Holo.ent:GetColor().a))
 end
 
 e2function void holoColor(index, vector4 color)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetColor(Color(color[1],color[2],color[3],color[4]))
-	Holo.ent:SetRenderMode(Holo.ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	WireLib.SetColor(Holo.ent, Color(color[1],color[2],color[3],color[4]))
 end
 
 e2function void holoColor(index, vector color, alpha)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetColor(Color(color[1],color[2],color[3],alpha))
-	Holo.ent:SetRenderMode(Holo.ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	WireLib.SetColor(Holo.ent, Color(color[1],color[2],color[3],alpha))
 end
 
 e2function void holoAlpha(index, alpha)
@@ -912,8 +949,7 @@ e2function void holoAlpha(index, alpha)
 
 	local c = Holo.ent:GetColor()
 	c.a = alpha
-	Holo.ent:SetColor(c)
-	Holo.ent:SetRenderMode(Holo.ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
+	WireLib.SetColor(Holo.ent, c)
 end
 
 __e2setcost(10)

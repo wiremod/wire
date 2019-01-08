@@ -94,7 +94,9 @@ end
 
 function ENT:ClearEntities()
 	for i=1,#self.Marks do
-		self.Marks[i]:RemoveCallOnRemove( "AdvEMarker.Unlink" )
+		if self.Marks[i]:IsValid() then
+			self.Marks[i]:RemoveCallOnRemove( "AdvEMarker.Unlink" )
+		end
 	end
 	self.Marks = {}
 	self:UpdateOutputs()

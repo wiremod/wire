@@ -33,10 +33,12 @@ if CLIENT then
 	local smoothang = Angle(0,0,0)
 
 	local oldeyeang = Angle(0,0,0)
+	local unroll = false
 
 	-- Options
 	local ParentLocal = false
 	local AutoMove = false
+	local FreeMove = false
 	local LocalMove = false
 	local AutoUnclip = false
 	local AutoUnclip_IgnoreWater = false
@@ -45,6 +47,7 @@ if CLIENT then
 	local DrawParent = true
 
 	-- View calculations
+	local resetViewAngles = false
 	local max = math.max
 	local abs = math.abs
 
@@ -199,6 +202,42 @@ if CLIENT then
 		end
 	end)
 
+	local mouse_sensitvity = GetConVar("sensitivity")
+
+	hook.Remove("InputMouseApply", "wire_camera_controller_input_unlock")
+	hook.Add("InputMouseApply", "wire_camera_controller_input_unlock", function(cmd, x, y, ang)
+		if resetViewAngles then
+			cmd:SetViewAngles( Angle(0, ang.y, 0) )
+			resetViewAngles = false
+			return true
+		end
+
+		if not enabled then return end
+		if not FreeMove then return end
+		if not IsValid( self ) then enabled = false return end
+		-- feels correct, might not be, but raw values were definitely too fast
+		local smooth = mouse_sensitvity:GetFloat() * FrameTime()
+		local matrix = Matrix()
+		matrix:SetAngles( ang )
+		-- could make this a number instead
+		if unroll then
+			local parent, hasParent = GetParent()
+			if hasParent then
+				local parentMatrix = Matrix()
+				parentMatrix:SetAngles( parent:GetAngles() )
+				local diffAngles = (matrix:GetInverseTR() * parentMatrix):GetAngles()
+				if math.abs(diffAngles.y) > 90 then diffAngles.r = -diffAngles.r end
+				matrix:Rotate( Angle( y * smooth, -x * smooth, diffAngles.r * smooth ) )
+			else
+				matrix:Rotate( Angle( y * smooth, -x * smooth, -ang.r * smooth ) )
+			end
+		else
+			matrix:Rotate( Angle( y * smooth, -x * smooth, 0 ) )
+		end
+		cmd:SetViewAngles( matrix:GetAngles() )
+		return true
+	end)
+
 	--------------------------------------------------
 	-- Receiving data from server
 	--------------------------------------------------
@@ -212,6 +251,8 @@ if CLIENT then
 		ang.p = net.ReadFloat()
 		ang.y = net.ReadFloat()
 		ang.r = net.ReadFloat()
+
+		unroll = net.ReadBit() ~= 0
 
 		-- distance
 		distance = math.Clamp(net.ReadFloat(),-16000,16000)
@@ -256,6 +297,7 @@ if CLIENT then
 		if enable then
 			ParentLocal = net.ReadBit() ~= 0
 			AutoMove = net.ReadBit() ~= 0
+			FreeMove = net.ReadBit() ~= 0
 			LocalMove = net.ReadBit() ~= 0
 			AllowZoom = net.ReadBit() ~= 0
 			AutoUnclip = net.ReadBit() ~= 0
@@ -281,6 +323,7 @@ if CLIENT then
 			end
 		else
 			WaitingForID = nil
+			resetViewAngles = true
 		end
 
 		enabled = enable
@@ -306,7 +349,7 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateOutputs( self, { 	"On", "HitPos [VECTOR]", "CamPos [VECTOR]", "CamDir [VECTOR]",
 													"CamAng [ANGLE]", "Trace [RANGER]" } )
 	self.Inputs = WireLib.CreateInputs( self, {	"Activated", "Direction [VECTOR]", "Angle [ANGLE]", "Position [VECTOR]",
-												"Distance", "Parent [ENTITY]", "FilterEntities [ARRAY]", "FLIR", "FOV" } )
+												"Distance", "UnRoll", "Parent [ENTITY]", "FilterEntities [ARRAY]", "FLIR", "FOV" } )
 
 	self.Activated = false -- Whether or not to activate the cam controller for all players sitting in linked vehicles, or as soon as a player sits in a linked vehicle
 	self.Active = false -- Whether the player is currently being shown the camera view.
@@ -316,11 +359,11 @@ function ENT:Initialize()
 	self.Position = Vector(0,0,0)
 	self.Angle = Angle(0,0,0)
 	self.Distance = 0
+	self.UnRoll = false
 
 	self.Players = {}
 	self.Vehicles = {}
 
-	self.NextSync = 0
 	self.NextGetContraption = 0
 	self.NextUpdateOutputs = 0
 
@@ -338,9 +381,10 @@ function ENT:UpdateOverlay()
 	if self.AutoUnclip_IgnoreWater then unclip = unclip .. " (Ignores water)" end
 
 	self:SetOverlayText(
-		string.format( "Local Coordinates: %s\nClient side movement: %s\nCL movement local to parent: %s\nClient side zooming: %s\nAuto unclip: %s\nDraw player: %s\nDraw parent: %s\n\nActivated: %s",
+		string.format( "Local Coordinates: %s\nClient side movement: %s\nFree movement: %s\nCL movement local to parent: %s\nClient side zooming: %s\nAuto unclip: %s\nDraw player: %s\nDraw parent: %s\n\nActivated: %s",
 			self.ParentLocal and "Yes" or "No",
 			self.AutoMove and "Yes" or "No",
+			self.FreeMove and "Yes" or "No",
 			self.LocalMove and "Yes" or "No",
 			self.AllowZoom and "Yes" or "No",
 			unclip,
@@ -355,9 +399,10 @@ end
 -- Setup
 --------------------------------------------------
 
-function ENT:Setup(ParentLocal,AutoMove,LocalMove,AllowZoom,AutoUnclip,DrawPlayer,AutoUnclip_IgnoreWater,DrawParent)
+function ENT:Setup(ParentLocal,AutoMove,FreeMove,LocalMove,AllowZoom,AutoUnclip,DrawPlayer,AutoUnclip_IgnoreWater,DrawParent)
 	self.ParentLocal = tobool(ParentLocal)
 	self.AutoMove = tobool(AutoMove)
+	self.FreeMove = tobool(FreeMove)
 	self.LocalMove = tobool(LocalMove)
 	self.AllowZoom = tobool(AllowZoom)
 	self.AutoUnclip = tobool(AutoUnclip)
@@ -372,7 +417,7 @@ end
 -- Data sending
 --------------------------------------------------
 
-local function SendPositions( pos, ang, dist, parent )
+local function SendPositions( pos, ang, dist, parent, unroll )
 	-- pos/ang
 	net.WriteFloat( pos.x )
 	net.WriteFloat( pos.y )
@@ -380,6 +425,8 @@ local function SendPositions( pos, ang, dist, parent )
 	net.WriteFloat( ang.p )
 	net.WriteFloat( ang.y )
 	net.WriteFloat( ang.r )
+
+	net.WriteBit( unroll )
 
 	-- distance
 	net.WriteFloat( dist )
@@ -399,13 +446,14 @@ function ENT:SyncSettings( ply, active )
 		if self.Active then
 			net.WriteBit( self.ParentLocal )
 			net.WriteBit( self.AutoMove )
+			net.WriteBit( self.FreeMove )
 			net.WriteBit( self.LocalMove )
 			net.WriteBit( self.AllowZoom )
 			net.WriteBit( self.AutoUnclip )
 			net.WriteBit( self.AutoUnclip_IgnoreWater )
 			net.WriteBit( self.DrawPlayer )
 			net.WriteBit( self.DrawParent )
-			SendPositions( self.Position, self.Angle, self.Distance, self.Parent )
+			SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll )
 		end
 	net.Send( ply )
 end
@@ -413,14 +461,10 @@ end
 
 util.AddNetworkString( "wire_camera_controller_sync" )
 function ENT:SyncPositions( ply )
-	if CurTime() < self.NextSync then return end
 	if not IsValid(ply) then ply = self.Players end
-
-	self.NextSync = CurTime() + 0.05
-
 	net.Start( "wire_camera_controller_sync" )
 		net.WriteEntity( self )
-		SendPositions( self.Position, self.Angle, self.Distance, self.Parent )
+		SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll )
 	net.Send( ply )
 end
 
@@ -566,8 +610,12 @@ end
 function ENT:Think()
 	BaseClass.Think(self)
 
-	if self.NeedsSync then
-		self.NeedsSync = nil
+	if self.NeedsSyncSettings then
+		self.NeedsSyncSettings = nil
+		self:SyncSettings()
+	end
+	if self.NeedsSyncPositions then
+		self.NeedsSyncPositions = nil
 		self:SyncPositions()
 	end
 
@@ -792,6 +840,8 @@ function ENT:TriggerInput( name, value )
 			self.Position = value
 		elseif name == "Distance" then
 			self.Distance = value
+		elseif name == "UnRoll" then
+			self.UnRoll = tobool(value)
 		elseif name == "Direction" then
 			self.Angle = value:Angle()
 		elseif name == "Angle" then
@@ -811,8 +861,64 @@ function ENT:TriggerInput( name, value )
 		end
 
 		self:LocalizePositions(true)
-		self.NeedsSync = true
+		self.NeedsSyncPositions = true
 	end
+end
+
+--------------------------------------------------
+-- HiSpeed Access
+--------------------------------------------------
+
+local hispeed_ports = {
+	-- camera settings
+	[1] = "Activated",
+	[2] = "Parent",
+	[3] = "Zoom",
+	[4] = "FOV",
+	[5] = "FLIR",
+
+	-- camera position
+	[6] = "X",
+	[7] = "Y",
+	[8] = "Z",
+	[9] = "Distance",
+
+	-- camera angle (direction omitted as angle is the same thing)
+	[10] = "Pitch",
+	[11] = "Yaw",
+	[12] = "Roll",
+	[13] = "UnRoll",
+
+	-- controller settings
+	[14] = "ParentLocal",
+	[15] = "AutoMove",
+	[16] = "FreeMove",
+	[17] = "LocalMove",
+	[18] = "AllowZoom",
+	[19] = "AutoUnclip",
+	[20] = "AutoUnclip_IgnoreWater",
+	[21] = "DrawPlayer",
+	[22] = "DrawParent"
+}
+
+function ENT:WriteCell(address, value)
+	if not hispeed_ports[address] then return false end
+
+	local key = hispeed_ports[address]
+	if address < 14 then
+		if address == 2 then value = Entity( value ) end -- special case: parent entity by entid
+		self:TriggerInput(key, value)
+		return true
+	else
+		value = tobool( value ) 
+		if self[key] ~= value then
+			self[key] = value
+			self.NeedsSyncSettings = true
+			return true
+		end
+	end
+
+	return false
 end
 
 --------------------------------------------------
@@ -957,7 +1063,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		end
 
 		WireLib.AdjustSpecialInputs( self, {	"Activated", "X", "Y", "Z", "Pitch", "Yaw", "Roll",
-												"Angle [ANGLE]", "Position [VECTOR]", "Distance", "Direction [VECTOR]",
+												"Angle [ANGLE]", "Position [VECTOR]", "Distance", "UnRoll", "Direction [VECTOR]",
 												"Parent [ENTITY]", "FLIR", "FOV" } )
 
 		WireLib.AdjustSpecialOutputs( self, { 	"On", "X", "Y", "Z", "HitPos [VECTOR]",
@@ -980,4 +1086,4 @@ end
 WireLib.AddInputAlias( "Zoom", "FOV" )
 WireLib.AddOutputAlias( "XYZ", "HitPos" )
 
-duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "ParentLocal","AutoMove","LocalMove","AllowZoom","AutoUnclip","DrawPlayer","AutoUnclip_IgnoreWater","DrawParent")
+duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "ParentLocal","AutoMove","FreeMove","LocalMove","AllowZoom","AutoUnclip","DrawPlayer","AutoUnclip_IgnoreWater","DrawParent")

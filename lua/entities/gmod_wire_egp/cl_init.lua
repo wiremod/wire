@@ -23,7 +23,7 @@ function ENT:_EGP_Update( bool )
 	self.UpdateConstantly = nil
 
 	self.GPU:RenderToGPU( function()
-		render.Clear( 0, 0, 0, 255 )
+		render.Clear( 0, 0, 0, 0, true )
 		--render.ClearRenderTarget( 0, 0, 0, 0 )
 
 		local currentfilter = self.GPU.texture_filtering
@@ -67,6 +67,13 @@ function ENT:Draw()
 	if self.UpdateConstantly or self.NeedsUpdate then
 		self:_EGP_Update()
 	end
+
+	-- check if translucent setting changed
+	if self.GPU.translucent ~= self:GetTranslucent() then
+		self.GPU.translucent = self:GetTranslucent()
+		self:_EGP_Update()
+	end
+
 	self.GPU:Render()
 end
 

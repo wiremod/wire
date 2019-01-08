@@ -12,49 +12,88 @@ end
 
 /******************************************************************************/
 
-local print_delay = 0.3
-local print_max = 15
+-- default delay for printing messages, adds one "charge" after this delay
+local defaultPrintDelay = 0.3
+-- the amount of "charges" a player has by default
+local defaultMaxPrints = 15
 
-local print_delays = {}
+-- Contains the amount of "charges" a player has, i.e. the amount of print-statements can be executed before
+-- the messages being omitted. The defaultPrintDelay is the time required to add one additional charge to the
+-- player's account. The defaultMaxPrints variable are the charges the player starts with.
+local printDelays = {}
 
-hook.Add( "Think", "e2_printcolor_delays", function()
-	for ply, delays in pairs( print_delays ) do
-		if IsValid( ply ) then
-			local print_max = ply:GetInfoNum( "wire_expression2_print_max", print_max )
+-- Returns the table containing the player's charges or creatis if it it does not yet exist
+-- @param ply           player to get the table from, not validated
+-- @param maxCharges    amount of charges to set it the table has to be created
+-- @param chargesDelay  delay until a new charge is given, set it the table has to be created
+local function getDelaysOrCreate(ply, maxCharges, chargesDelay)
+	local printDelay = printDelays[ply]
 
-			if CurTime() > delays.next_time and delays.count < print_max then
-				local print_delay = ply:GetInfoNum( "wire_expression2_print_delay", print_delay )
-				delays.next_time = CurTime() + print_delay
-
-				delays.count = delays.count + 1
-			elseif delays.count > print_max then
-				delays.count = print_max
-			end
-		else
-			print_delays[ply] = nil
-		end
-	end
-end)
-
-local function check_delay( ply )
-	local delays = print_delays[ply]
-
-	if not delays then
-		delays = { count = print_max }
-		print_delays[ply] = delays
+	if not printDelay then
+		-- if the player does not have an entry yet, add it
+		printDelay = { numCharges = maxCharges, lastTime = CurTime() }
+		printDelays[ply] = printDelay
 	end
 
-	if delays.count > 0 then
-		local print_delay = ply:GetInfoNum( "wire_expression2_print_delay", print_delay )
-		delays.next_time = CurTime() + print_delay
-		delays.count = delays.count - 1
-		return true
-	end
-
-	return false
+	return printDelay
 end
 
+-- Returns whether or not a player has "charges" for printing a message
+-- Additionally adds all new charges the player might have
+-- @param ply  player to check, not validated
+local function canPrint(ply)
+	-- update the console variables just in case
+	local maxCharges = ply:GetInfoNum("wire_expression2_print_max", defaultMaxPrints)
+	local chargesDelay = ply:GetInfoNum("wire_expression2_print_delay", defaultPrintDelay)
+
+	local printDelay = getDelaysOrCreate(ply, maxCharges, chargesDelay)
+
+	local currentTime = CurTime()
+	if printDelay.numCharges < maxCharges then
+		-- check if the player "deserves" new charges
+		local timePassed = (currentTime - printDelay.lastTime)
+		local chargesToAdd = math.floor(timePassed / chargesDelay)
+		printDelay.numCharges = printDelay.numCharges + chargesToAdd
+		-- add "semi" charges the player might already have
+		printDelay.lastTime = (currentTime - (timePassed % chargesDelay))
+	end
+	-- we should clamp his charges for safety
+	if printDelay.numCharges > maxCharges then
+		printDelay.numCharges = maxCharges
+		-- remove the "semi" charges, otherwise the player has too many
+		printDelay.lastTime = currentTime
+	end
+
+	return printDelay and printDelay.numCharges > 0
+end
+
+-- Returns whether or not a player can currently print a message or if it will be omitted by the antispam
+-- Additionally removes one charge from the player's account
+-- @param ply  player to check, is not validated
+local function checkDelay(ply)
+	-- update the console variables just in case
+	local maxCharges = ply:GetInfoNum("wire_expression2_print_max", defaultMaxPrints)
+	local chargesDelay = ply:GetInfoNum("wire_expression2_print_delay", defaultPrintDelay)
+
+	local printDelay = getDelaysOrCreate(ply, maxCharges, chargesDelay)
+
+	if not canPrint(ply) then
+		return false
+	else
+		printDelay.numCharges = printDelay.numCharges - 1
+		return true
+	end
+end
+
+hook.Add("PlayerDisconnected", "e2_print_delays_player_dc", function(ply) printDelays[ply] = nil end)
+
 /******************************************************************************/
+
+-- Returns whether or not the next print-message will be printed or omitted by antispam
+e2function number playerCanPrint()
+	if not checkOwner(self) then return end
+	return (canPrint(self.player) and 1 or 0)
+end
 
 local function SpecialCase( arg )
 	if istable(arg) then
@@ -87,7 +126,7 @@ end
 -- Prints <...> like lua's print(...), except to the chat area
 e2function void print(...)
 	if not checkOwner(self) then return end
-	if not check_delay( self.player ) then return end
+	if not checkDelay( self.player ) then return end
 	local args = {...}
 	if #args>0 then
 		local text = ""
@@ -115,7 +154,7 @@ e2function number entity:printDriver(string text)
 	local driver = this:GetDriver()
 	if not IsValid(driver) then return 0 end
 
-	if not check_delay( self.player ) then return 0 end
+	if not checkDelay( self.player ) then return 0 end
 
 	driver:ChatPrint(text)
 	return 1
@@ -126,7 +165,7 @@ end
 --- Displays a hint popup with message <text> for <duration> seconds (<duration> being clamped between 0.7 and 7).
 e2function void hint(string text, duration)
 	if not IsValid(self.player) then return end
-	if not check_delay( self.player ) then return end
+	if not checkDelay( self.player ) then return end
 	WireLib.AddNotify(self.player, text, NOTIFY_GENERIC, Clamp(duration,0.7,7))
 end
 
@@ -139,7 +178,7 @@ e2function number entity:hintDriver(string text, duration)
 	local driver = this:GetDriver()
 	if not IsValid(driver) then return 0 end
 
-	if not check_delay( self.player ) then return 0 end
+	if not checkDelay( self.player ) then return 0 end
 
 	WireLib.AddNotify(driver, text, NOTIFY_GENERIC, Clamp(duration,0.7,7))
 	return 1
@@ -158,7 +197,7 @@ end
 e2function void print(print_type, string text)
 	if (not checkOwner(self)) then return; end
 	if not valid_print_types[print_type] then return end
-	if not check_delay( self.player ) then return end
+	if not checkDelay( self.player ) then return end
 
 	self.player:PrintMessage(print_type, text)
 end
@@ -174,7 +213,7 @@ e2function number entity:printDriver(print_type, string text)
 	local driver = this:GetDriver()
 	if not IsValid(driver) then return 0 end
 
-	if not check_delay( self.player ) then return 0 end
+	if not checkDelay( self.player ) then return 0 end
 
 	driver:PrintMessage(print_type, text)
 	return 1
@@ -235,7 +274,7 @@ end
 --- Prints an array like the lua function [[G.PrintTable|PrintTable]] does, except to the chat area.
 e2function void printTable(array arr)
 	if not checkOwner(self) then return end
-	if not check_delay( self.player ) then return end
+	if not checkDelay( self.player ) then return end
 
 	for _,line in ipairs(string.Explode("\n",PrintTableToString(arr))) do
 		self.player:ChatPrint(line)
@@ -258,9 +297,9 @@ local printColor_typeids = {
 	e = function(e) return IsValid(e) and e:IsPlayer() and e or "" end,
 }
 
-local function printColorVarArg(chip, ply, typeids, ...)
+local function printColorVarArg(chip, ply, console, typeids, ...)
 	if not IsValid(ply) then return end
-	if not check_delay(ply) then return end
+	if not checkDelay(ply) then return end
 	local send_array = { ... }
 
 	for i,tp in ipairs(typeids) do
@@ -273,6 +312,7 @@ local function printColorVarArg(chip, ply, typeids, ...)
 
 	net.Start("wire_expression2_printColor")
 		net.WriteEntity(chip)
+		net.WriteBool(console)
 		net.WriteTable(send_array)
 	net.Send(ply)
 end
@@ -292,9 +332,9 @@ local printColor_types = {
 	Player = function(e) return IsValid(e) and e:IsPlayer() and e or "" end,
 }
 
-local function printColorArray(chip, ply, arr)
+local function printColorArray(chip, ply, console, arr)
 	if (not IsValid(ply)) then return; end
-	if not check_delay( ply ) then return end
+	if not checkDelay( ply ) then return end
 
 	local send_array = {}
 
@@ -308,6 +348,7 @@ local function printColorArray(chip, ply, arr)
 
 	net.Start("wire_expression2_printColor")
 		net.WriteEntity(chip)
+		net.WriteBool(console)
 		net.WriteTable(send_array)
 	net.Send(ply)
 end
@@ -315,12 +356,22 @@ end
 
 --- Works like [[chat.AddText]](...). Parameters can be any amount and combination of numbers, strings, player entities, color vectors (both 3D and 4D).
 e2function void printColor(...)
-	printColorVarArg(nil, self.player, typeids, ...)
+	printColorVarArg(nil, self.player, false, typeids, ...)
 end
 
 --- Like printColor(...), except taking an array containing all the parameters.
 e2function void printColor(array arr)
-	printColorArray(nil, self.player, arr)
+	printColorArray(nil, self.player, false, arr)
+end
+
+--- Works like MsgC(...). Parameters can be any amount and combination of numbers, strings, player entities, color vectors (both 3D and 4D).
+e2function void printColorC(...)
+	printColorVarArg(nil, self.player, true, typeids, ...)
+end
+
+--- Like printColorC(...), except taking an array containing all the parameters.
+e2function void printColorC(array arr)
+	printColorArray(nil, self.player, true, arr)
 end
 
 --- Like printColor(...), except printing in <this>'s driver's chat area instead of yours.
@@ -332,9 +383,9 @@ e2function void entity:printColorDriver(...)
 	local driver = this:GetDriver()
 	if not IsValid(driver) then return end
 
-	if not check_delay( self.player ) then return end
+	if not checkDelay( self.player ) then return end
 
-	printColorVarArg(self.entity, driver, typeids, ...)
+	printColorVarArg(self.entity, driver, false, typeids, ...)
 end
 
 --- Like printColor(R), except printing in <this>'s driver's chat area instead of yours.
@@ -346,7 +397,7 @@ e2function void entity:printColorDriver(array arr)
 	local driver = this:GetDriver()
 	if not IsValid(driver) then return end
 
-	if not check_delay( self.player ) then return end
+	if not checkDelay( self.player ) then return end
 
-	printColorArray(self.entity, driver, arr)
+	printColorArray(self.entity, driver, false, arr)
 end

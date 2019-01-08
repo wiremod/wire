@@ -429,6 +429,10 @@ e2function number hardQuota()
 	return e2_hardquota
 end
 
+e2function number timeQuota()
+	return e2_timequota
+end
+
 __e2setcost(nil)
 
 registerCallback("postinit", function()

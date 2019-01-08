@@ -439,10 +439,10 @@ e2function table table:typeids()
 	return ret
 end
 
--- Remove a variable at a number index
-e2function void table:remove( number index )
-	if (#this.n == 0) then return end
-	if (!this.n[index]) then return end
+-- Removes the specified entry from the array-part and returns 1 if removed
+e2function number table:remove( number index )
+	if (#this.n == 0) then return 0 end
+	if (!this.n[index]) then return 0 end
 	if index < 1 then -- table.remove doesn't work if the index is below 1
 		this.n[index] = nil
 		this.ntypes[index] = nil
@@ -452,33 +452,36 @@ e2function void table:remove( number index )
 	end
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	return 1
 end
 
--- Remove a variable at a string index
-e2function void table:remove( string index )
-	if (IsEmpty(this.s)) then return end
-	if (!this.s[index]) then return end
+-- Force removes the specified entry from the table-part, without moving subsequent entries down and returns 1 if removed
+e2function number table:remove( string index )
+	if (IsEmpty(this.s)) then return 0 end
+	if (!this.s[index]) then return 0 end
 	this.s[index] = nil
 	this.stypes[index] = nil
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	return 1
 end
 
 --------------------------------------------------------------------------------
 -- Force remove
--- Forcibly removes the value from the array by setting it to nil
+-- Force removes the specified entry from the array-part, without moving subsequent entries down and returns 1 if removed
 -- Does not shift larger indexes down to fill the hole
 --------------------------------------------------------------------------------
-e2function void table:unset( index )
-	if this.n[index] == nil then return end
+e2function number table:unset( index )
+	if this.n[index] == nil then return 0 end
 	this.n[index] = nil
 	this.ntypes[index] = nil
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	return 1
 end
 
 -- Force remove for strings is an alias to table:remove(string)
-e2function void table:unset( string index ) = e2function void table:remove( string index )
+e2function number table:unset( string index ) = e2function number table:remove( string index )
 
 -- Removes all variables not of the type
 e2function table table:clipToTypeid( string typeid )
@@ -539,11 +542,34 @@ e2function table table:clipFromTypeid( string typeid )
 	return ret
 end
 
-__e2setcost(1000) -- clone must be very expensive to prevent abuse
+__e2setcost(10)
+
+local function clone(self, tbl, lookup)
+	local copy = {}
+
+	lookup = lookup or {}
+	lookup[tbl] = copy
+
+	for k, v in pairs(tbl) do
+		if type(v) == "table" then
+			if lookup[v] then
+				self.prf = self.prf + opcost -- simple assign operation
+				copy[k] = lookup[v]
+			else
+				self.prf = self.prf + opcost * 3 -- creating new table
+				copy[k] = clone(self, v, lookup)
+			end
+		else
+			self.prf = self.prf + opcost -- simple assign operation
+			copy[k] = v
+		end
+	end
+
+	return copy
+end
 
 e2function table table:clone()
-	self.prf = self.prf + this.size * opcost
-	return table.Copy(this)
+	return clone(self, this)
 end
 
 __e2setcost(1)
@@ -692,22 +718,24 @@ end
 
 __e2setcost(3)
 
--- Removes the last element in the array part
-e2function void table:pop()
+-- Removes the last entry in the array-part and returns 1 if removed
+e2function number table:pop()
 	local n = #this.n
-	if (n == 0) then return end
+	if (n == 0) then return 0 end
 	this.n[n] = nil
 	this.ntypes[n] = nil
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	return 1
 end
 
--- Removes the first emelemt in the array part
-e2function void table:shift()
-	table.remove( this.n, 1 )
+-- Deletes the first element of the table; all other entries will move down one address and returns 1 if removed
+e2function number table:shift()
+	local result = table.remove( this.n, 1 ) and 1 or 0
 	table.remove( this.ntypes, 1 )
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	return result
 end
 
 __e2setcost(5)

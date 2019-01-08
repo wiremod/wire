@@ -61,7 +61,7 @@ function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
-	self:SetUseType(SIMPLE_USE)
+	self:SetUseType(ONOFF_USE)
 
 	self.Inputs = WireLib.CreateInputs(self, { "Kick", "Reset Output String" })
 	self.Outputs = WireLib.CreateOutputs(self, { "Memory", "Output [STRING]", "OutputChar [STRING]", "ActiveKeys [ARRAY]", "User [ENTITY]", "InUse" })
@@ -134,6 +134,7 @@ function ENT:TriggerOutputs(key)
 end
 
 function ENT:ReadCell(Address)
+	Address = math.floor(Address)
 	if Address >= 0 and Address < 32 then
 		return self.Buffer[Address] or 0
 	elseif Address >= 32 and Address < 256 then
@@ -144,13 +145,14 @@ function ENT:ReadCell(Address)
 end
 
 function ENT:WriteCell(Address, value)
+	Address = math.floor(Address)
 	if Address == 0 then
 		self:UnshiftBuffer() -- User wants to remove the first key in the buffer
 	else
 		self:RemoveFromBufferByKey(value)
 	end
 
-	return false
+	return true
 end
 
 util.AddNetworkString("wire_keyboard_blockinput")
@@ -183,9 +185,6 @@ function ENT:PlayerAttach(ply)
 
 	-- Set the wire keyboard value on the player
 	ply.WireKeyboard = self
-
-	-- Ignore the first key (the "Use" key - default "e" - pressed when entering the keyboard)
-	self.IgnoreFirstKey = true
 
 	-- Reset tables
 	self.BufferLookup = {}
@@ -220,7 +219,8 @@ function ENT:PlayerDetach()
 	self:TriggerOutputs()
 end
 
-function ENT:Use(ply)
+function ENT:Use(ply, _, type)
+	if type ~= USE_OFF then return end
 	if IsValid(self.Pod) then
 		ply:ChatPrint("This keyboard is linked to a pod. Please use the pod instead.")
 		return
@@ -382,13 +382,6 @@ end
 function ENT:Think()
 	if not IsValid(self.ply) then
 		self:NextThink(CurTime() + 0.3) -- Don't need to update as often
-		return true
-	end
-
-	if self.IgnoreFirstKey then -- Don't start listening to keys until Use is released
-		if not self.ply.keystate[KEY_E] then self.IgnoreFirstKey = nil end
-
-		self:NextThink(CurTime())
 		return true
 	end
 

@@ -148,7 +148,6 @@ end
 function EGP:SendMaterial( obj ) -- ALWAYS use this when sending material
 	local mat = obj.material
 	if isstring(mat) then
-		util.AddNetworkString( "0" .. mat )
 		net.WriteString( "0" .. mat ) -- 0 for string
 	elseif isentity(mat) then
 		net.WriteString( "1" .. mat:EntIndex() ) -- 1 for entity
@@ -188,7 +187,7 @@ function EGP:SendColor( obj )
 	net.WriteUInt(obj.r, 8)
 	net.WriteUInt(obj.g, 8)
 	net.WriteUInt(obj.b, 8)
-	if (obj.a) then net.WriteUInt(obj.a, 8) end
+	if (obj.a) then net.WriteUInt( math.Clamp( obj.a, 0, 255 ) , 8) end
 end
 
 function EGP:ReceivePosSize( tbl ) -- Used with SendPosSize
@@ -333,4 +332,18 @@ function EGP:EGPCursor( this, ply )
 	end
 
 	return ReturnFailure( this )
+end
+
+function EGP.ScreenSpaceToObjectSpace(object, point)
+	point = { x = point.x - object.x, y = point.y - object.y }
+
+	if object.angle and object.angle ~= 0 then
+		local theta = math.rad(object.angle)
+		local cos_theta, sin_theta = math.cos(theta), math.sin(theta)
+		point.x, point.y =
+			point.x * cos_theta - point.y * sin_theta,
+			point.y * cos_theta + point.x * sin_theta
+	end
+
+	return point
 end

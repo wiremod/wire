@@ -32,6 +32,7 @@ function ENT:ResetValues() WireLib.TriggerOutput(self,"Connected",0) end
 function ENT:ReadCell( Address, infloop )
 	infloop = infloop or 0
 	if infloop > 50 then return end
+	Address = math.floor(Address)
 
     if IsValid(self.Socket) and self.Socket.OwnMemory and self.Socket.OwnMemory.ReadCell then
 		return self.Socket.OwnMemory:ReadCell( Address, infloop + 1 )
@@ -42,6 +43,7 @@ end
 function ENT:WriteCell( Address, value, infloop )
 	infloop = infloop or 0
 	if infloop > 50 then return end
+	Address = math.floor(Address)
 
 	if IsValid(self.Socket) and self.Socket.OwnMemory and self.Socket.OwnMemory.WriteCell then
 		return self.Socket.OwnMemory:WriteCell( Address, value, infloop + 1 )

@@ -3,7 +3,7 @@ local Obj = EGP:NewObject( "Text" )
 Obj.h = nil
 Obj.w = nil
 Obj.text = ""
-Obj.fontid = 1
+Obj.font = "WireGPU_ConsoleFont"
 Obj.size = 18
 Obj.valign = 0
 Obj.halign = 0
@@ -40,19 +40,17 @@ function Obj:Draw(ent, drawMat)
 	if (self.text and #self.text>0) then
 		surface_SetTextColor( self.r, self.g, self.b, self.a )
 
-		if (!EGP.ValidFonts[self.fontid]) then self.fontid = 1 end
-		local font = "WireEGP_" .. self.size .. "_" .. self.fontid
+		local font = "WireEGP_" .. self.size .. "_" .. self.font
 		if (!EGP.ValidFonts_Lookup[font]) then
 			local fontTable =
 			{
-				font=EGP.ValidFonts[self.fontid],
+				font=self.font,
 				size = self.size,
 				weight = 800,
 				antialias = true,
 				additive = false
 			}
 			surface_CreateFont( font, fontTable )
-			EGP.ValidFonts[#EGP.ValidFonts+1]= font
 			EGP.ValidFonts_Lookup[font] = true
 		end
 		surface_SetFont( font )
@@ -101,7 +99,7 @@ Obj.Transmit = function( self, Ent, ply )
 	net.WriteInt( self.x, 16 )
 	net.WriteInt( self.y, 16 )
 	EGP:InsertQueue( Ent, ply, EGP._SetText, "SetText", self.index, self.text )
-	net.WriteUInt(self.fontid, 8)
+	net.WriteString(self.font)
 	net.WriteUInt(math.Clamp(self.size,0,256), 8)
 	net.WriteUInt(math.Clamp(self.valign,0,2), 2)
 	net.WriteUInt(math.Clamp(self.halign,0,2), 2)
@@ -113,7 +111,7 @@ Obj.Receive = function( self )
 	local tbl = {}
 	tbl.x = net.ReadInt(16)
 	tbl.y = net.ReadInt(16)
-	tbl.fontid = net.ReadUInt(8)
+	tbl.font = net.ReadString()
 	tbl.size = net.ReadUInt(8)
 	tbl.valign = net.ReadUInt(2)
 	tbl.halign = net.ReadUInt(2)
@@ -123,5 +121,5 @@ Obj.Receive = function( self )
 	return tbl
 end
 Obj.DataStreamInfo = function( self )
-	return { x = self.x, y = self.y, valign = self.valign, halign = self.halign, size = self.size, r = self.r, g = self.g, b = self.b, a = self.a, text = self.text, fontid = self.fontid, parent = self.parent, angle = self.angle }
+	return { x = self.x, y = self.y, valign = self.valign, halign = self.halign, size = self.size, r = self.r, g = self.g, b = self.b, a = self.a, text = self.text, font = self.font, parent = self.parent, angle = self.angle }
 end

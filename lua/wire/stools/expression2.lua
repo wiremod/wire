@@ -47,7 +47,7 @@ if SERVER then
 
 		local player = self:GetOwner()
 
-		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_expression2" then
+		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_expression2" and trace.Entity.context then
 			trace.Entity:Reset()
 			return true
 		else

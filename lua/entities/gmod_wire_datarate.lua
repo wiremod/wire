@@ -44,6 +44,7 @@ function ENT:Think()
 end
 
 function ENT:ReadCell( Address )
+	Address = math.floor(Address)
 	if (self.Memory) then
 		if (self.Memory.LatchStore && self.Memory.LatchStore[math.floor(Address)]) then
 			self.HDataBytes = self.HDataBytes + 1
@@ -59,6 +60,7 @@ function ENT:ReadCell( Address )
 end
 
 function ENT:WriteCell( Address, value )
+	Address = math.floor(Address)
 	if (self.Memory) then
 		if (self.Memory.LatchStore && self.Memory.LatchStore[math.floor(Address)]) then
 			self.Memory.LatchStore[math.floor(Address)] = value

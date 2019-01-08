@@ -266,6 +266,7 @@ end
 -- 13 = Active
 
 function ENT:ReadCell( Address )
+	Address = math.floor(Address)
 	if (Address == 0) then
 		return 1
 	elseif (Address == 1) then
@@ -298,6 +299,7 @@ function ENT:ReadCell( Address )
 end
 
 function ENT:WriteCell( Address, value )
+	Address = math.floor(Address)
 	if (Address == 0) then
 		self:AddPoint()
 		return true

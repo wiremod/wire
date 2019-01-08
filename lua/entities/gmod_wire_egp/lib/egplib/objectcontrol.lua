@@ -41,6 +41,9 @@ end
 EGP.Objects.Base.DataStreamInfo = function( self )
 	return { x = self.x, y = self.y, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, filtering = self.filtering, parent = self.parent }
 end
+function EGP.Objects.Base:Contains(point)
+	return false
+end
 
 ----------------------------
 -- Get Object
@@ -244,7 +247,7 @@ if CLIENT then mat = Material else mat = function( str ) return str end end
 -- Create table
 local tbl = {
 	{ ID = EGP.Objects.Names["Box"], Settings = { x = 256, y = 256, h = 356, w = 356, material = mat("expression 2/cog"), r = 150, g = 34, b = 34, a = 255 } },
-	{ ID = EGP.Objects.Names["Text"], Settings = {x = 256, y = 256, text = "EGP 3", fontid = 1, valign = 1, halign = 1, size = 50, r = 135, g = 135, b = 135, a = 255 } }
+	{ ID = EGP.Objects.Names["Text"], Settings = {x = 256, y = 256, text = "EGP 3", font = "WireGPU_ConsoleFont", valign = 1, halign = 1, size = 50, r = 135, g = 135, b = 135, a = 255 } }
 }
 
 --[[ Old homescreen (EGP v2 home screen design contest winner)

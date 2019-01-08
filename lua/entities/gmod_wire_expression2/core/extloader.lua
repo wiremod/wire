@@ -79,28 +79,16 @@ end
 
 -- parses and executes an extension
 local function e2_include_pass2(name, luaname, contents)
-	local ok, ret = pcall(e2_extpp_pass2, contents)
-	if not ok then
-		WireLib.ErrorNoHalt(luaname .. ret .. "\n")
-		return
-	end
+	local preprocessedSource = e2_extpp_pass2(contents)
 
-	if not ret then
-		-- e2_extpp_pass2 returned false => file didn't need preprocessing => use the regular means of inclusion
-		return include(name)
-	end
+	if not preprocessedSource then return include(name) end
 
-	-- file needed preprocessing => Run the processed file
-	local ok, func = pcall(CompileString,ret,luaname)
-	if not ok then -- an error occurred while compiling
-		error(func)
-		return
-	end
+	local func = CompileString(preprocessedSource, luaname)
 
 	local ok, err = pcall(func)
 	if not ok then -- an error occured while executing
 		if not err:find( "EXTENSION_DISABLED" ) then
-			error(err)
+			error(err, 0)
 		end
 		return
 	end
@@ -110,7 +98,12 @@ end
 
 local function e2_include_finalize()
 	for _, info in ipairs(included_files) do
-		e2_include_pass2(unpack(info))
+		local ok, message = pcall(e2_include_pass2, unpack(info))
+		if not ok then
+			WireLib.ErrorNoHalt(string.format("There was an error loading " ..
+			"the %s extension. Please report this to its developer.\n%s\n",
+			info[1], message))
+		end
 	end
 	included_files = nil
 	e2_include = nil

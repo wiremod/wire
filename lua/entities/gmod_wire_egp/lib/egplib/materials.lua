@@ -5,37 +5,7 @@ local EGP = EGP
 
 -- Valid fonts table
 EGP.ValidFonts_Lookup = {}
-EGP.ValidFonts = {}
-EGP.ValidFonts[1] = "WireGPU_ConsoleFont"
-EGP.ValidFonts[2] = "Coolvetica"
-EGP.ValidFonts[3] = "Arial"
-EGP.ValidFonts[4] = "Lucida Console"
-EGP.ValidFonts[5] = "Trebuchet"
-EGP.ValidFonts[6] = "Courier New"
-EGP.ValidFonts[7] = "Times New Roman"
-EGP.ValidFonts[8] = "ChatFont"
-EGP.ValidFonts[9] = "Marlett"
-EGP.ValidFonts[10] = "Roboto"
 if (CLIENT) then
-	local new = {}
-	for k,v in ipairs( EGP.ValidFonts ) do
-		local font = "WireEGP_18_"..k
-		local fontTable =
-		{
-			font=v,
-			size = 18,
-			weight = 800,
-			antialias = true,
-			additive = false
-		}
-		surface.CreateFont( font, fontTable )
-
-		EGP.ValidFonts_Lookup[font] = true
-		table.insert( new, font )
-	end
-	for k,v in ipairs( new ) do
-		table.insert( EGP.ValidFonts, v )
-	end
 
 	local type = type
 	local SetMaterial = surface.SetMaterial

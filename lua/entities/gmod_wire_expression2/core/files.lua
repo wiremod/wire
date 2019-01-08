@@ -4,7 +4,7 @@
 ]]--
 
 local cv_transfer_delay    = CreateConVar( "wire_expression2_file_delay", "5", { FCVAR_ARCHIVE } )
-local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) -- in kb
+local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) -- in kib
 
 local download_chunk_size = 20000 -- Our overhead is pretty small so lets send it in moderate sized pieces, no need to max out the buffer
 
@@ -303,10 +303,11 @@ timer.Create("wire_expression2_flush_file_buffer", 0.2, 0, function()
 
 			if strlen > 0 then
 				net.Start("wire_expression2_file_download_chunk")
-				net.WriteString(string.sub( fdata.data, 1, strlen ))
+				net.WriteUInt(strlen, 32)
+				net.WriteData(fdata.data, strlen)
 				net.Send(ply)
 
-				fdata.data = string.sub( fdata.data, strlen + 1, string.len( fdata.data ) )
+				fdata.data = string.sub( fdata.data, strlen + 1 )
 			end
 
 			if string.len( fdata.data ) < 1 then
@@ -367,12 +368,13 @@ end )
 util.AddNetworkString("wire_expression2_file_chunk")
 net.Receive("wire_expression2_file_chunk", function(netlen, ply)
 	local pfile = uploads[ply]
-	if !pfile then return end
+	if !pfile or !pfile.buffer then return end
 	if !pfile.uploading then
 		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
 	end
 
-	pfile.buffer = pfile.buffer .. net.ReadString()
+	local len = net.ReadUInt(32)
+	pfile.buffer = pfile.buffer .. net.ReadData(len)
 
 	local timername = "wire_expression2_file_check_timeout_" .. ply:EntIndex()
 	if timer.Exists( timername ) then

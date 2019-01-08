@@ -4,26 +4,55 @@
 
 E2Lib.RegisterExtension("console", true, "Lets E2 chips run concommands and retrieve convars")
 
+local function tokenizeAndGetCommands(str)
+	-- Tokenize!
+	local tokens = {}
+	local curtoken = {}
+	local escaped = false
+	for i=1, #str do
+		local char = string.sub(str, i, i)
+		if (escaped and char ~= "\"") or string.match(char, "[%w+-]") then
+			curtoken[#curtoken + 1] = char
+		else
+			if #curtoken>0 then tokens[#tokens + 1] = table.concat(curtoken) curtoken = {} end
+			if char == "\"" then
+				escaped = not escaped
+			elseif char ~= " " then
+				tokens[#tokens + 1] = char
+			end
+		end
+	end
+	if #curtoken>0 then tokens[#tokens+1] = table.concat(curtoken) end
+
+	-- Get table of commands used
+	local commands = {tokens[1] or ""}
+	for i=1, #tokens do
+		if tokens[i]==";" then
+			commands[#commands + 1] = tokens[i+1] or ""
+		end
+	end
+
+	return commands
+end
+
 local function validConCmd(self, command)
 	local ply = self.player
 	if not ply:IsValid() then return false end
 	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return false end
-	-- Validating the concmd length to ensure that it won't crash the server.
-	if #command > 500000 then return false end
+	-- Validating the concmd length to ensure that it won't crash the server. 512 is the max
+	if #command >= 512 then return false end
 
 	local whitelist = (ply:GetInfo("wire_expression2_concmd_whitelist") or ""):Trim()
 	if whitelist == "" then return true end
 
-	for cmd in command:gmatch( "[^;]+" ) do -- Split around ; and space
-		cmd = cmd:match( "[^%s]+" ) -- Get everything up to the first space
-		local found = false
-		for whitelist_element in whitelist:gmatch( "[^,]+" ) do -- Split around ,
-			if (cmd == whitelist_element) then -- This command is in the whitelist
-				found = true
-				break
-			end
+	local whitelistTbl = {}
+	for k, v in pairs(string.Split(whitelist, ",")) do whitelistTbl[v] = true end
+
+	local commands = tokenizeAndGetCommands(command)
+	for _, command in pairs(commands) do
+		if not whitelistTbl[command] then
+			return false
 		end
-		if (!found) then return false end -- If the command is not in the whitelist, return false
 	end
 	return true
 end
@@ -57,6 +86,6 @@ e2function number maxOfType(string typename)
 end
 
 e2function number playerDamage()
-	local ret = GetConVarNumber("sbox_plpldamage") or 0
+	local ret = GetConVarNumber("sbox_playershurtplayers") or 0
 	return ret ~= 0 and 1 or 0
 end

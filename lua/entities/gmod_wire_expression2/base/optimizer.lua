@@ -18,7 +18,7 @@ local optimizerDebug = CreateConVar("wire_expression2_optimizer_debug", 0,
 function Optimizer.Execute(root)
     local ok, result = xpcall(Optimizer.Process, E2Lib.errorHandler, root)
     if ok and optimizerDebug:GetBool() then
-        print(E2Lib.Parser.DumpTree(result))
+        print(E2Lib.AST.dump(result))
     end
     return ok, result
 end
@@ -26,12 +26,8 @@ end
 Optimizer.Passes = {}
 
 function Optimizer.Process(tree)
-    for i = 3, #tree do
-        local child = tree[i]
-        if type(child) == "table" and child.__instruction then
-            tree[i] = Optimizer.Process(child)
-        end
-    end
+    E2Lib.AST.visitChildren(tree, Optimizer.Process)
+
     for _, pass in ipairs(Optimizer.Passes) do
         local action = pass[tree[1]]
         if action then
@@ -50,7 +46,7 @@ local function evaluateBinary(instruction)
     local op = wire_expression2_funcs["op:" .. instruction[1] .. "(" .. instruction[3][4] .. instruction[4][4] .. ")"]
     local x, y = instruction[3][3], instruction[4][3]
 
-    local value = op[3](nil, {nil, {function() return x end}, {function() return y end}})
+    local value = op[3]({prf = 0}, {nil, {function() return x end}, {function() return y end}})
     local type = op[2]
     return {"literal", instruction[2], value, type}
 end
@@ -59,7 +55,7 @@ local function evaluateUnary(instruction)
     local op = wire_expression2_funcs["op:" .. instruction[1] .. "(" .. instruction[3][4] .. ")"]
     local x = instruction[3][3]
 
-    local value = op[3](nil, {nil, {function() return x end}})
+    local value = op[3]({prf = 0}, {nil, {function() return x end}})
     local type = op[2]
     return {"literal", instruction[2], value, type}
 end

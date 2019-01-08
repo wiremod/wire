@@ -78,7 +78,7 @@ end
 
 __e2setcost(20)
 
-registerOperator( "sfun", "", "", function(self, args)
+registerOperator( "stringcall", "", "", function(self, args)
 	local op1, funcargs, typeids, typeids_str, returntype = args[2], args[3], args[4], args[5], args[6]
 	local funcname = op1[1](self,op1)
 

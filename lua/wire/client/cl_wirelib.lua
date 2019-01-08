@@ -38,48 +38,54 @@ local lastrender, scroll, shouldblink = 0, 0, false
 function Wire_Render(ent)
 	if (Wire_DisableWireRender == 0) then
 		local wires = ent.WirePaths
-		if wires and next(wires) then
+		if wires then
+			if next(wires) then
+				local t = CurTime()
+				if lastrender ~= t then
+					local w, f = math.modf(t*WIRE_BLINKS_PER_SECOND)
+					shouldblink = f < 0.5
+					scroll = t*WIRE_SCROLL_SPEED
+					lastrender = t
+				end
 
-			local t = CurTime()
-			if lastrender ~= t then
-				local w, f = math.modf(t*WIRE_BLINKS_PER_SECOND)
-				shouldblink = f < 0.5
-				scroll = t*WIRE_SCROLL_SPEED
-				lastrender = t
-			end
+				local blink = shouldblink and ent:GetNWString("BlinkWire")
 
-			local blink = shouldblink and ent:GetNWString("BlinkWire")
+				for net_name, wiretbl in pairs(wires) do
+					local width = wiretbl.Width
+					if width > 0 and blink ~= net_name then
+						local start = wiretbl.StartPos
+						if (ent:IsValid()) then start = ent:LocalToWorld(start) end
+						local color = wiretbl.Color
 
-			for net_name, wiretbl in pairs(wires) do
-				local width = wiretbl.Width
-				if width > 0 and blink ~= net_name then
-					local start = wiretbl.StartPos
-					if (ent:IsValid()) then start = ent:LocalToWorld(start) end
-					local color = wiretbl.Color
+						local nodes = wiretbl.Path
+						local len = #nodes
+						if len>0 then
+							render.SetMaterial(getmat(wiretbl.Material))
+							render.StartBeam(len+1)
+							render.AddBeam(start, width, scroll, color)
 
-					local nodes = wiretbl.Path
-					local len = #nodes
-					if len>0 then
-						render.SetMaterial(getmat(wiretbl.Material))
-						render.StartBeam(len+1)
-						render.AddBeam(start, width, scroll, color)
+							for j=1, len do
+								local node = nodes[j]
+								local node_ent = node.Entity
+								if (node_ent:IsValid()) then
+									local endpos = node_ent:LocalToWorld(node.Pos)
 
-						for j=1, len do
-							local node = nodes[j]
-							local node_ent = node.Entity
-							if (node_ent:IsValid()) then
-								local endpos = node_ent:LocalToWorld(node.Pos)
+									scroll = scroll+(endpos-start):Length()/10
+									render.AddBeam(endpos, width, scroll, color)
 
-								scroll = scroll+(endpos-start):Length()/10
-								render.AddBeam(endpos, width, scroll, color)
-
-								start = endpos
+									start = endpos
+								end
 							end
+							render.EndBeam()
 						end
-						render.EndBeam()
 					end
 				end
 			end
+		else
+			ent.WirePaths = {}
+			net.Start("WireLib.Paths.RequestPaths")
+				net.WriteEntity(ent)
+			net.SendToServer()
 		end
 	end
 end

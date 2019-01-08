@@ -42,6 +42,7 @@ function ENT:Think()
 end
 
 function ENT:ReadCell(Address)
+  Address = math.floor(Address)
   if (Address >= 0) and (Address < self.ControlDataSize) then
     if Address < 16 then
       if Address % 2 == 0 then
@@ -81,16 +82,16 @@ end
 local recursiveCounter = 0
 function ENT:GetDeviceInfo(deviceEnt)
   local deviceType = CPULib.GetDeviceType(deviceEnt:GetClass())
-  if deviceEnt.MySocket then
-    if deviceEnt.MySocket.Inputs.Memory.Src then
-      self:GetDeviceInfo(deviceEnt.MySocket.Inputs.Memory.Src)
+  if deviceEnt.Socket then
+    if deviceEnt.Socket.Inputs.Memory.Src then
+      self:GetDeviceInfo(deviceEnt.Socket.Inputs.Memory.Src)
     else
       table.insert(self.ControlData,14)
     end
     return
-  elseif deviceEnt.MyPlug then
-    if deviceEnt.MyPlug.Inputs.Memory.Src then
-      self:GetDeviceInfo(deviceEnt.MyPlug.Inputs.Memory.Src)
+  elseif deviceEnt.Plug then
+    if deviceEnt.Plug.Inputs.Memory.Src then
+      self:GetDeviceInfo(deviceEnt.Plug.Inputs.Memory.Src)
     else
       table.insert(self.ControlData,13)
     end
@@ -117,6 +118,7 @@ function ENT:GetDeviceInfo(deviceEnt)
 end
 
 function ENT:WriteCell(Address, Value)
+  Address = math.floor(Address)
   if (Address >= 0) and (Address < self.ControlDataSize) then
     -- [0..15] Address bus settings
     -- [16] Control data area size

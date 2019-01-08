@@ -12,6 +12,7 @@ local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) 
 local E2totalspawnedprops = 0
 local E2tempSpawnedProps = 0
 local TimeStamp = 0
+local playerMeta = FindMetaTable("Player")
 
 local function TempReset()
  if (CurTime()>= TimeStamp) then
@@ -21,14 +22,27 @@ local function TempReset()
 end
 hook.Add("Think","TempReset",TempReset)
 
-function PropCore.ValidSpawn()
-	if E2tempSpawnedProps >= sbox_E2_maxPropsPerSecond:GetInt() then return false end
-	if sbox_E2_maxProps:GetInt() <= -1 then
-		return true
-	elseif E2totalspawnedprops>=sbox_E2_maxProps:GetInt() then
-		return false
+function PropCore.WithinPropcoreLimits()
+	return (sbox_E2_maxProps:GetInt() <= 0 or E2totalspawnedprops<sbox_E2_maxProps:GetInt()) and E2tempSpawnedProps < sbox_E2_maxPropsPerSecond:GetInt()
+end
+
+function PropCore.ValidSpawn(ply, model, isVehicle)
+	local ret -- DO NOT RETURN MID-FUNCTION OR 'LimitHit' WILL BREAK
+	local limithit = playerMeta.LimitHit
+	playerMeta.LimitHit = function() end
+	
+	if not PropCore.WithinPropcoreLimits() then
+		ret = false
+	elseif not (util.IsValidProp( model ) and WireLib.CanModel(ply, model)) then
+		ret = false
+	elseif isVehicle then
+		ret = gamemode.Call( "PlayerSpawnVehicle", ply, model, "Seat_Airboat", list.Get( "Vehicles" ).Seat_Airboat ) ~= false
+	else
+		ret = gamemode.Call( "PlayerSpawnProp", ply, model ) ~= false
 	end
-	return true
+	
+	playerMeta.LimitHit = limithit
+	return ret
 end
 
 local canHaveInvalidPhysics = {delete=true, parent=true, deparent=true, solid=true, shadow=true, draw=true, use=true}
@@ -61,15 +75,7 @@ local function MakePropNoEffect(...)
 end
 
 function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
-
-	if not PropCore.ValidSpawn() then return nil end
-
-	if isVehicle then
-		if self.player:CheckLimit( "vehicles" ) == false then return nil end
-		if model == "" then model = "models/nova/airboat_seat.mdl" end
-	end
-
-	if not util.IsValidProp( model ) or not WireLib.CanModel(self.player, model) then return nil end
+	if not PropCore.ValidSpawn(self.player, model, isVehicle) then return NULL end
 
 	pos = WireLib.clampPos( pos )
 
@@ -100,7 +106,7 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 		prop = self.data.propSpawnEffect and MakeProp( self.player, pos, angles, model, {}, {} ) or MakePropNoEffect( self.player, pos, angles, model, {}, {} )
 	end
 
-	if not IsValid( prop ) then return nil end
+	if not IsValid( prop ) then return NULL end
 
 	prop:Activate()
 
@@ -154,46 +160,46 @@ end
 
 __e2setcost(40)
 e2function entity propSpawn(string model, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
 end
 
 e2function entity propSpawn(entity template, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if not IsValid(template) then return NULL end
 	return PropCore.CreateProp(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
 end
 
 e2function entity propSpawn(string model, vector pos, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),self.entity:GetAngles(),frozen)
 end
 
 e2function entity propSpawn(entity template, vector pos, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if not IsValid(template) then return NULL end
 	return PropCore.CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),self.entity:GetAngles(),frozen)
 end
 
 e2function entity propSpawn(string model, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
 e2function entity propSpawn(entity template, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if not IsValid(template) then return NULL end
 	return PropCore.CreateProp(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
 e2function entity propSpawn(string model, vector pos, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
 e2function entity propSpawn(entity template, vector pos, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if not IsValid(template) then return NULL end
 	return PropCore.CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
@@ -201,12 +207,14 @@ end
 
 __e2setcost(60)
 e2function entity seatSpawn(string model, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if model=="" then model = "models/nova/airboat_seat.mdl" end
 	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen,true)
 end
 
 e2function entity seatSpawn(string model, vector pos, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if model=="" then model = "models/nova/airboat_seat.mdl" end
 	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen,true)
 end
 
@@ -250,7 +258,7 @@ local function removeAllIn( self, tbl )
 end
 
 e2function number table:propDelete()
-	if not PropCore.ValidAction(self, nil, "Tdelete") then return end
+	if not PropCore.ValidAction(self, nil, "Tdelete") then return 0 end
 
 	local count = removeAllIn( self, this.s )
 	count = count + removeAllIn( self, this.n )
@@ -261,7 +269,7 @@ e2function number table:propDelete()
 end
 
 e2function number array:propDelete()
-	if not PropCore.ValidAction(self, nil, "Tdelete") then return end
+	if not PropCore.ValidAction(self, nil, "Tdelete") then return 0 end
 
 	local count = removeAllIn( self, this )
 
@@ -346,7 +354,7 @@ e2function void entity:propSetFriction(number friction)
 end
 
 e2function number entity:propGetFriction()
-	if not PropCore.ValidAction(self, this, "friction") then return end
+	if not PropCore.ValidAction(self, this, "friction") then return 0 end
 	return this:GetFriction()
 end
 
@@ -356,7 +364,7 @@ e2function void entity:propSetElasticity(number elasticity)
 end
 
 e2function number entity:propGetElasticity()
-	if not PropCore.ValidAction(self, this, "elasticity") then return end
+	if not PropCore.ValidAction(self, this, "elasticity") then return 0 end
 	return this:GetElasticity()
 end
 
@@ -373,7 +381,7 @@ e2function void entity:propPhysicalMaterial(string physprop)
 end
 
 e2function string entity:propPhysicalMaterial()
-	if not PropCore.ValidAction(self, this, "physprop") then return end
+	if not PropCore.ValidAction(self, this, "physprop") then return "" end
 	local phys = this:GetPhysicsObject()
 	if IsValid(phys) then return phys:GetMaterial() or "" end
 	return ""
@@ -482,7 +490,7 @@ e2function void propSpawnUndo(number on)
 end
 
 e2function number propCanCreate()
-	if PropCore.ValidSpawn() then return 1 end
+	if PropCore.WithinPropcoreLimits() then return 1 end
 	return 0
 end
 

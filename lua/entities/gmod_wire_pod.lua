@@ -5,35 +5,78 @@ ENT.WireDebugName	= "Pod Controller"
 ENT.AllowLockInsideVehicle = CreateConVar( "wire_pod_allowlockinsidevehicle", "0", FCVAR_ARCHIVE, "Allow or disallow people to be locked inside of vehicles" )
 
 if CLIENT then
-	local hideHUD = false
+	local hideHUD = 0
 	local firstTime = true
-
-	hook.Add( "HUDShouldDraw", "Wire pod HUDShouldDraw", function( name )
-		if hideHUD then
-			if LocalPlayer():InVehicle() then
-				if firstTime then
-					LocalPlayer():ChatPrint( "The owner of this vehicle has hidden your hud using a pod controller. If it gets stuck this way, use the console command 'wire_pod_hud_show' to forcibly enable it again." )
-					firstTime = false
-				end
-
-				if name ~= "CHudCrosshair" and name ~= "CHudChat" then return false end -- Don't return false on crosshairs. Those are toggled using the other input. And we don't want to hide the chat box.
-			elseif not LocalPlayer():InVehicle() then
-				hideHUD = false
-			end
-		end
-	end)
+	local HUDHidden = false
+	local savedHooks = nil
+	local toolgunHUDFunc = nil
+	local function blank() end
 
 	usermessage.Hook( "wire pod hud", function( um )
 		local vehicle = um:ReadEntity()
 		if LocalPlayer():InVehicle() and LocalPlayer():GetVehicle() == vehicle then
-			hideHUD = um:ReadBool()
+			hideHUD = um:ReadShort()
+			if hideHUD > 0 and not HUDHidden then
+				HUDHidden = true
+				if firstTime then
+					LocalPlayer():ChatPrint( "The owner of this vehicle has hidden your hud using a pod controller. If it gets stuck this way, use the console command 'wire_pod_hud_show' to forcibly enable it again." )
+					firstTime = false
+				end
+				--Hide toolgun HUD
+				local toolgun = LocalPlayer():GetWeapon("gmod_tool")
+				if IsValid(toolgun) then
+					toolgunHUDFunc = toolgun.DrawHUD
+					toolgun.DrawHUD = blank
+				end
+				--Hide all HUDPaints except for EGP HUD
+				local hooks = hook.GetTable()["HUDPaint"]
+				savedHooks = table.Copy(hooks)
+				for k in pairs(hooks) do
+					if hideHUD > 2 or k ~= "EGP_HUDPaint" then
+						hook.Add( "HUDPaint", k, blank )
+					end
+				end
+				--Hide other HUD elements
+				hook.Add( "DrawDeathNotice", "Wire pod DrawDeathNotice", function() return false end)
+				hook.Add( "HUDDrawTargetID", "Wire pod HUDDrawTargetID", function() return false end)
+				hook.Add( "HUDShouldDraw", "Wire pod HUDShouldDraw", function( name )
+					if hideHUD > 0 then
+						if LocalPlayer():InVehicle() then
+							--Allow crosshair (it can be hidden using the other input) and CHudGMod (for the EGP HUDPaint to pass through). Hide the chat if the input is higher than 1
+							if name ~= "CHudCrosshair" and name ~= "CHudGMod" and (hideHUD > 1 and name == "CHudChat" or name ~= "CHudChat")  then return false end
+						else
+							hideHUD = 0
+						end
+					else
+						--Restore toolgun HUD
+						local toolgun = LocalPlayer():GetWeapon("gmod_tool")
+						if IsValid(toolgun) and toolgun.DrawHUD == blank and toolgunHUDFunc ~= nil then
+							toolgun.DrawHUD = toolgunHUDFunc
+						end
+						toolgunHUDFunc = nil
+						--Restore HUDPaints and other HUD elements
+						local hooks = hook.GetTable()["HUDPaint"]
+						for k,v in pairs(hooks) do
+							if v == blank and savedHooks ~= nil and savedHooks[k] ~= nil then
+								hook.Add( "HUDPaint", k, savedHooks[k] )
+							end
+						end
+						savedHooks = nil
+
+						hook.Remove( "HUDShouldDraw", "Wire pod HUDShouldDraw")
+						hook.Remove( "DrawDeathNotice", "Wire pod DrawDeathNotice")
+						hook.Remove( "HUDDrawTargetID", "Wire pod HUDDrawTargetID")
+						HUDHidden = false
+					end
+				end)
+			end
 		else
-			hideHUD = false
+			hideHUD = 0
 		end
 	end)
 
 	concommand.Add( "wire_pod_hud_show", function(ply,cmd,args)
-		hideHUD = false
+		hideHUD = 0
 	end)
 
 
@@ -85,7 +128,7 @@ function ENT:Initialize()
 
 	self:SetLocked( false )
 	self:SetHidePlayer( false )
-	self:SetHideHUD( false )
+	self:SetHideHUD( 0 )
 	self.HidePlayerVal = false
 	self.Crosshairs = false
 	self.Disable = false
@@ -147,6 +190,7 @@ function ENT:LinkEnt( pod )
 
 	-- if pod is still not a vehicle even after all of the above, then error out
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
+	if not hook.Run( "CanTool", self:GetPlayer(), WireLib.dummytrace(pod), "wire_pod" ) then return false, "You do not have permission to access this vehicle" end
 
 	self:SetPod( pod )
 	WireLib.SendMarks(self, {pod})
@@ -206,13 +250,13 @@ function ENT:SetPly( ply )
 	return true
 end
 
-function ENT:SetHideHUD( bool )
-	self.HideHUD = bool
+function ENT:SetHideHUD( val )
+	self.HideHUD = val
 
 	if self:HasPly() and self:HasPod() then -- If we have a player, we SHOULD always have a pod as well, but just in case.
 		umsg.Start( "wire pod hud", self:GetPly() )
 			umsg.Entity( self:GetPod() )
-			umsg.Bool( self.HideHUD )
+			umsg.Short( self.HideHUD )
 		umsg.End()
 	end
 end
@@ -340,11 +384,13 @@ function ENT:TriggerInput( name, value )
 	elseif (name == "Hide Player") then
 		self:SetHidePlayer( value ~= 0 )
 	elseif (name == "Hide HUD") then
-		self:SetHideHUD( value ~= 0 )
+		self:SetHideHUD( value )
 	elseif (name == "Vehicle") then
-		if IsValid(value) then -- only link if the input is valid. that way, it won't be unlinked if the wire is disconnected
-			self:LinkEnt(value)
-		end
+		if not IsValid(value) then return end -- only link if the input is valid. that way, it won't be unlinked if the wire is disconnected
+		if value:IsPlayer() then return end
+		if value:IsNPC() then return end
+
+		self:LinkEnt(value)
 	end
 end
 
@@ -437,11 +483,13 @@ function ENT:PlayerEntered( ply, RC )
 		ply:CrosshairEnable()
 	end
 
-	if self.HideHUD and self:HasPod() then
-		umsg.Start( "wire pod hud", ply )
-			umsg.Entity( self:GetPod() )
-			umsg.Bool( true )
-		umsg.End()
+	if self.HideHUD > 0 and self:HasPod() then
+		timer.Simple(0.1,function()
+			umsg.Start( "wire pod hud", ply )
+				umsg.Entity( self:GetPod() )
+				umsg.Short( self.HideHUD )
+			umsg.End()
+		end)
 	end
 
 	if (self.HidePlayerVal) then

@@ -26,11 +26,16 @@ E2Lib.setPos = WireLib.setPos
 E2Lib.setAng = WireLib.setAng
 
 function E2Lib.setMaterial(ent, material)
-	ent:SetMaterial(WireLib.IsValidMaterial(material))
+	material = WireLib.IsValidMaterial(material)
+	ent:SetMaterial(material)
+	duplicator.StoreEntityModifier(ent, "material", { MaterialOverride = material })
 end
 
 function E2Lib.setSubMaterial(ent, index, material)
-	ent:SetSubMaterial(index,WireLib.IsValidMaterial(material))
+	index = math.Clamp(index, 0, 255)
+	material = WireLib.IsValidMaterial(material)
+	ent:SetSubMaterial(index, material)
+	duplicator.StoreEntityModifier(ent, "submaterial", { ["SubMaterialOverride_"..index] = material })
 end
 
 -- getHash
@@ -223,10 +228,10 @@ local table_length_lookup = {
 }
 
 function E2Lib.guess_type(value)
-	if IsValid(value) then return "e" end
-	if value.EntIndex then return "e" end
 	local vtype = type(value)
 	if type_lookup[vtype] then return type_lookup[vtype] end
+	if IsValid(value) then return "e" end
+	if value.EntIndex then return "e" end
 	if vtype == "table" then
 		if table_length_lookup[#value] then return table_length_lookup[#value] end
 		if value.HitPos then return "xrd" end

@@ -247,14 +247,7 @@ e2function void wirelink:egpFont( number index, string font )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
-		local fontid = 0
-		for k,v in ipairs( EGP.ValidFonts ) do
-			if (v:lower() == font:lower()) then
-				fontid = k
-				break
-			end
-		end
-		if (EGP:EditObject( v, { fontid = fontid } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if (EGP:EditObject( v, { font = font } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -262,14 +255,7 @@ e2function void wirelink:egpFont( number index, string font, number size )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
-		local fontid = 0
-		for k,v in ipairs( EGP.ValidFonts ) do
-			if (v:lower() == font:lower()) then
-				fontid = k
-				break
-			end
-		end
-		if (EGP:EditObject( v, { fontid = fontid, size = size } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if (EGP:EditObject( v, { font = font, size = size } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -993,6 +979,12 @@ __e2setcost(15)
 e2function number wirelink:egpHasObject( index )
 	local bool, _, _ = EGP:HasObject( this, index )
 	return bool and 1 or 0
+end
+
+--- Returns 1 if the object with specified index contains the specified point.
+e2function number wirelink:egpObjectContainsPoint(number index, vector2 point)
+	local _, _, object = EGP:HasObject(this, index)
+	return object and object:Contains({x = point[1], y = point[2]}) and 1 or 0
 end
 
 __e2setcost(10)

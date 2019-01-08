@@ -15,6 +15,22 @@ registerType("ranger", "xrd", nil,
 	end
 )
 
+__e2setcost(1) -- temporary
+
+--- RD = RD
+registerOperator("ass", "xrd", "xrd", function(self, args)
+	local lhs, op2, scope = args[2], args[3], args[4]
+	local      rhs = op2[1](self, op2)
+
+	self.Scopes[scope][lhs] = rhs
+	self.Scopes[scope].vclk[lhs] = true
+	return rhs
+end)
+
+e2function number operator_is(ranger walker)
+	if walker then return 1 else return 0 end
+end
+
 /******************************************************************************/
 
 E2Lib.RegisterExtension("ranger", true, "Lets E2 chips trace rays and check for collisions.")
@@ -33,6 +49,24 @@ local function ResetRanger(self)
 	data.rangerfilter_lookup = table.MakeNonIterable{ [self.entity] = true }
 end
 
+local function IsErrorVector(pos)
+	if pos.x ~= pos.x or pos.x == math.huge or pos.x == -math.huge then return true end
+	if pos.y ~= pos.y or pos.y == math.huge or pos.y == -math.huge then return true end
+	if pos.z ~= pos.z or pos.z == math.huge or pos.z == -math.huge then return true end
+	return false
+end
+
+local function entitiesAndWaterTrace( tracedata, tracefunc )
+	tracedata.ignoreworld = true
+	local trace1 = tracefunc()
+	tracedata.ignoreworld = nil
+	tracedata.mask = MASK_WATER
+	local trace2 = tracefunc()
+	if not trace1.Hit then return trace2 end
+	if not trace2.Hit then return trace1 end
+	return trace1.fraction < trace2.fraction and trace1 or trace2
+end
+
 local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, traceEntity )
 	local data = self.data
 	local chip = self.entity
@@ -47,29 +81,34 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 
 	-- begin building tracedata structure
 	local tracedata = { filter = filter }
-	if water then
-		if entities then
-			--(i)we
-			tracedata.mask = -1
-		elseif ignoreworld then
-			--iw
-			tracedata.mask = MASK_WATER
-			ignoreworld = false
-		else
-			--w
-			tracedata.mask = bit.bor(MASK_WATER, CONTENTS_SOLID)
-		end
-	elseif not entities then
+	if entities then
 		if ignoreworld then
-			--i
-			tracedata.mask = 0
-			ignoreworld = false
+			if water then
+				tracedata.entitiesandwater = true
+			else
+				tracedata.ignoreworld = true
+			end
 		else
-			--no flags
-			tracedata.mask = MASK_NPCWORLDSTATIC
+			if water then
+				tracedata.mask = -1
+			else
+				--No flags needed
+			end
 		end
-	--else
-		--(i)e
+	else
+		if ignoreworld then
+			if water then
+				tracedata.mask = MASK_WATER
+			else
+				tracedata.mask = 0
+			end
+		else
+			if water then
+				tracedata.mask = bit.bor(MASK_WATER, CONTENTS_SOLID)
+			else
+				tracedata.mask = MASK_NPCWORLDSTATIC
+			end
+		end
 	end
 
 	-- calculate startpos and endpos
@@ -98,16 +137,18 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		end
 	end
 
-	-- clamp positions
-	tracedata.start = WireLib.clampPos( tracedata.start )
-	if tracedata.start:Distance( tracedata.endpos ) > 57000 then -- 57000 is slightly larger than the diagonal distance (min corner to max corner) of the source max map size
-		tracedata.endpos = tracedata.start + (tracedata.endpos - tracedata.start):GetNormal() * 57000
-	end
+	if IsErrorVector(tracedata.start) or IsErrorVector(tracedata.endpos) then return end
 
 	---------------------------------------------------------------------------------------
 	local trace
 	if IsValid(traceEntity) then
-		trace = util.TraceEntity( tracedata, traceEntity )
+		if tracedata.entitiesandwater then
+			trace = entitiesAndWaterTrace( tracedata, function()
+				return util.TraceEntity( tracedata, traceEntity )
+			end )
+		else
+			trace = util.TraceEntity( tracedata, traceEntity )
+		end
 	elseif (hulltype) then
 		if (hulltype == 1) then
 			local s = Vector(mins[1], mins[2], mins[3])
@@ -127,45 +168,37 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			self.prf = self.prf + tracedata.mins:Distance(tracedata.maxs) * 0.5
 		end
 
+		if IsErrorVector(tracedata.mins) or IsErrorVector(tracedata.maxs) then return end
 		-- If max is less than min it'll cause a hang
 		OrderVectors(tracedata.mins, tracedata.maxs)
 
-		trace = util.TraceHull( tracedata )
+		if tracedata.entitiesandwater then
+			trace = entitiesAndWaterTrace( tracedata, function()
+				return util.TraceHull( tracedata )
+			end )
+		else
+			trace = util.TraceHull( tracedata )
+		end
 	else
-		trace = util.TraceLine( tracedata )
+		if tracedata.entitiesandwater then
+			trace = entitiesAndWaterTrace( tracedata, function()
+				return util.TraceLine( tracedata )
+			end )
+		else
+			trace = util.TraceLine( tracedata )
+		end
 	end
 	---------------------------------------------------------------------------------------
 
 	-- handle some ranger settings
-	if ignoreworld and trace.HitWorld then
-		trace.HitPos = defaultzero and tracedata.start or tracedata.endpos
-		trace.Hit = false
-		trace.HitWorld = false
-	elseif defaultzero and not trace.Hit then
+	if defaultzero and not trace.Hit then
+		trace.Fraction = 0
 		trace.HitPos = tracedata.start
 	end
 
 	trace.RealStartPos = tracedata.start
 
 	return trace
-end
-
-/******************************************************************************/
-
-__e2setcost(1) -- temporary
-
---- RD = RD
-registerOperator("ass", "xrd", "xrd", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	self.Scopes[scope][lhs] = rhs
-	self.Scopes[scope].vclk[lhs] = true
-	return rhs
-end)
-
-e2function number operator_is(ranger walker)
-	if walker then return 1 else return 0 end
 end
 
 /******************************************************************************/
@@ -260,6 +293,22 @@ e2function ranger noranger()
 end
 
 __e2setcost(20) -- temporary
+
+--- Equivalent to rangerOffset(16384, <this>:shootPos(), <this>:eye()), but faster (causing less lag)
+e2function ranger entity:eyeTrace()
+	if not IsValid(this) then return nil end
+	if not this:IsPlayer() then return nil end
+	local ret = this:GetEyeTraceNoCursor()
+	ret.RealStartPos = this:GetShootPos()
+	return ret
+end
+
+e2function ranger entity:eyeTraceCursor()
+	if not IsValid(this) or not this:IsPlayer() then return nil end
+	local ret = this:GetEyeTrace()
+	ret.RealStartPos = this:GetShootPos()
+	return ret
+end
 
 --- You input max range, it returns ranger data
 e2function ranger ranger(distance)
