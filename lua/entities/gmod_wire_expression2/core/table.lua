@@ -356,6 +356,8 @@ e2function void table:clear()
 	table.Empty( this.s )
 	this.stypes = {}
 	this.size = 0
+	this.typeids = nil
+	this.typeidsarray = nil
 	return this
 end
 
@@ -425,18 +427,23 @@ end
 
 -- Returns an table with the typesids of both the array- and table-parts
 e2function table table:typeids()
-	local ret = table.Copy(DEFAULT)
-	ret.n = table.Copy(this.ntypes)
-	for k,v in pairs( ret.n ) do
-		ret.ntypes[k] = "s"
+	if this.typeids then
+		return this.typeids
+	else
+		local ret = table.Copy(DEFAULT)
+		ret.n = table.Copy(this.ntypes)
+		for k,v in pairs( ret.n ) do
+			ret.ntypes[k] = "s"
+		end
+		ret.s = table.Copy( this.stypes )
+		for k,v in pairs( ret.s ) do
+			ret.stypes[k] = "s"
+		end
+		ret.size = this.size
+		self.prf = self.prf + this.size * opcost
+		this.typeids = ret
+		return ret
 	end
-	ret.s = table.Copy( this.stypes )
-	for k,v in pairs( ret.s ) do
-		ret.stypes[k] = "s"
-	end
-	ret.size = this.size
-	self.prf = self.prf + this.size * opcost
-	return ret
 end
 
 -- Removes the specified entry from the array-part and returns 1 if removed
@@ -451,7 +458,10 @@ e2function number table:remove( number index )
 		table.remove( this.ntypes, index )
 	end
 	this.size = this.size - 1
+	this.typeids = nil
 	self.GlobalScope.vclk[this] = true
+	this.typeids = nil
+	this.typeidsarray = nil
 	return 1
 end
 
@@ -463,6 +473,8 @@ e2function number table:remove( string index )
 	this.stypes[index] = nil
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	this.typeids = nil
+	this.typeidsarray = nil
 	return 1
 end
 
@@ -477,6 +489,8 @@ e2function number table:unset( index )
 	this.ntypes[index] = nil
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	this.typeids = nil
+	this.typeidsarray = nil
 	return 1
 end
 
@@ -620,6 +634,8 @@ e2function table table:add( table rv2 )
 
 	self.prf = self.prf + cost * opcost
 	ret.size = size
+	this.typeids = nil
+	this.typeidsarray = nil
 	return ret
 end
 
@@ -726,6 +742,8 @@ e2function number table:pop()
 	this.ntypes[n] = nil
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	this.typeids = nil
+	this.typeidsarray = nil
 	return 1
 end
 
@@ -735,6 +753,8 @@ e2function number table:shift()
 	table.remove( this.ntypes, 1 )
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
+	this.typeids = nil
+	this.typeidsarray = nil
 	return result
 end
 
@@ -814,9 +834,14 @@ end
 
 -- Returns the types of the variables in the array-part
 e2function array table:typeidsArray()
-	if (IsEmpty(this.n)) then return {} end
-	self.prf = self.prf + table.Count(this.ntypes) * opcost
-	return table.Copy(this.ntypes)
+	if this.typeidsarray then
+		return this.typeidsarray
+	else
+		if (IsEmpty(this.n)) then return {} end
+		self.prf = self.prf + table.Count(this.ntypes) * opcost
+		this.typeidsarray = table.Copy(this.ntypes)
+		return this.typeidsarray
+	end
 end
 
 -- Converts the table into an array
@@ -1036,6 +1061,8 @@ registerCallback( "postinit", function()
 			rv1.s[rv2] = rv3
 			rv1.stypes[rv2] = id
 			self.GlobalScope.vclk[rv1] = true
+			rv1.typeids = nil
+			rv1.typeidsarray = nil
 			return rv3
 		end)
 
@@ -1044,6 +1071,8 @@ registerCallback( "postinit", function()
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 			if (rv1.n[rv2] == nil and rv3 ~= nil) then rv1.size = rv1.size + 1
 			elseif (rv1.n[rv2] ~= nil and rv3 == nil) then rv1.size = rv1.size - 1 end
+			rv1.typeids = nil
+			rv1.typeidsarray = nil
 			rv1.n[rv2] = rv3
 			rv1.ntypes[rv2] = id
 			self.GlobalScope.vclk[rv1] = true
