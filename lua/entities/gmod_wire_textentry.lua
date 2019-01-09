@@ -27,12 +27,14 @@ if CLIENT then
 			function(text)
 				net.Start("wire_textentry_action")
 					net.WriteEntity(self)
+					net.WriteBool(true)
 					net.WriteString(text)
 				net.SendToServer()
 			end,
 			function()
 				net.Start("wire_textentry_action")
 					net.WriteEntity(self)
+					net.WriteBool(false)
 					net.WriteString("")
 				net.SendToServer()
 			end,
@@ -156,11 +158,12 @@ net.Receive("wire_textentry_action",function(len,ply)
 
 	if not IsValid( self ) or not IsValid( ply ) or ply ~= self.User then return end
 
+	local ok = net.ReadBool()
 	local text = net.ReadString()
 
 	self:Unprompt() -- in all cases, make text entry available for use again
 
-	if not self.BlockInput then
+	if ok and not self.BlockInput then
 		WireLib.TriggerOutput( self, "Text", text )
 
 		local timername = "wire_textentry_" .. self:EntIndex()
