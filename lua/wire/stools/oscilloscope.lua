@@ -3,7 +3,7 @@ WireToolSetup.open( "oscilloscope", "Oscilloscope", "gmod_wire_oscilloscope", ni
 
 if CLIENT then
 	language.Add( "tool.wire_oscilloscope.name", "Oscilloscope Tool (Wire)" )
-	language.Add( "tool.wire_oscilloscope.desc", "Spawns a oscilloscope what display line graphs." )
+	language.Add( "tool.wire_oscilloscope.desc", "Spawns an oscilloscope that displays line graphs." )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
