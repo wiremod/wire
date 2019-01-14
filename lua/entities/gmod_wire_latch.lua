@@ -33,6 +33,7 @@ function ENT:Initialize()
 
 	self.Nocollide = nil
 	self:TriggerInput("NoCollide", 0)
+	self.IsPasting = false
 end
 
 -- Run if weld is removed (will run *after* Create_Weld)
@@ -74,6 +75,7 @@ function ENT:SendVars( Ent1, Ent2, Bone1, Bone2, const )
 end
 
 function ENT:TriggerInput( iname, value )
+	if self.IsPasting then return end
 	if iname == "Activate" then
 		if value == 0 and self.Constraint then
 			self:Remove_Weld()
@@ -182,10 +184,22 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		self.Bone2 = info.Bone2
 	end
 
-	self:TriggerInput("Strength", info.weld_strength or 0)
-	self:TriggerInput("Activate", info.Activate)
-	self:TriggerInput("NoCollide", info.NoCollide)
+	self.weld_strength = info.weld_strength or 0
+	self.Activate = info.Activate
+	self.nocollide_status = info.NoCollide
+	self.IsPasting = true
 end
+
+hook.Add("AdvDupe_FinishPasting", "Wire_Latch", function(TimedPasteData, TimedPasteDataCurrent)
+	for k, v in pairs(TimedPasteData[TimedPasteDataCurrent].CreatedEntities) do
+		if IsValid(v) and v:GetClass() == "gmod_wire_latch" then
+			v.IsPasting = false
+			v:TriggerInput("Strength", v.weld_strength)
+			v:TriggerInput("Activate", v.Activate)
+			v:TriggerInput("NoCollide", v.nocollide_status)
+		end
+	end
+end)
 
 duplicator.RegisterEntityClass("gmod_wire_latch", WireLib.MakeWireEnt, "Data")
 
