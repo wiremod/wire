@@ -48,6 +48,7 @@ local function Weld_Removed( weld, ent )
 end
 
 function ENT:Remove_Weld()
+	if self.IsPasting then self.ConstrainAfterDupe = nil return end
 	if self.Constraint then
 		if self.Constraint:IsValid() then
 			self.Constraint:Remove()
@@ -57,6 +58,7 @@ function ENT:Remove_Weld()
 end
 
 function ENT:Create_Weld()
+	if self.IsPasting then self.ConstrainAfterDupe = true return end
 	self:Remove_Weld()
 	self.Constraint = MakeWireLatch( self.Ent1, self.Ent2, self.Bone1, self.Bone2, self.weld_strength or 0 )
 
@@ -75,12 +77,11 @@ function ENT:SendVars( Ent1, Ent2, Bone1, Bone2, const )
 end
 
 function ENT:TriggerInput( iname, value )
-	if self.IsPasting then return end
 	if iname == "Activate" then
-		if value == 0 and self.Constraint then
+		if value == 0 then
 			self:Remove_Weld()
 
-		elseif value ~= 0 and not self.Constraint then
+		elseif not self.Constraint then
 			self:Create_Weld()
 			Wire_TriggerOutput( self, "Welded", 1 )
 		end
@@ -184,19 +185,19 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		self.Bone2 = info.Bone2
 	end
 
-	self.weld_strength = info.weld_strength or 0
-	self.Activate = info.Activate
-	self.nocollide_status = info.NoCollide
 	self.IsPasting = true
+	self:TriggerInput("Strength", info.weld_strength or 0)
+	self:TriggerInput("Activate", info.Activate)
+	self:TriggerInput("NoCollide", info.NoCollide)
 end
 
 hook.Add("AdvDupe_FinishPasting", "Wire_Latch", function(TimedPasteData, TimedPasteDataCurrent)
 	for k, v in pairs(TimedPasteData[TimedPasteDataCurrent].CreatedEntities) do
 		if IsValid(v) and v:GetClass() == "gmod_wire_latch" then
 			v.IsPasting = false
-			v:TriggerInput("Strength", v.weld_strength)
-			v:TriggerInput("Activate", v.Activate)
-			v:TriggerInput("NoCollide", v.nocollide_status)
+			if v.ConstrainAfterDupe then
+				v:TriggerInput("Activate", 1)
+			end
 		end
 	end
 end)
