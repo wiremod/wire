@@ -463,10 +463,10 @@ function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 	if not restore then
 		self.first = true
 		self:Execute()
+		self:Think()
 	end
 
 	self:NextThink(CurTime())
-	self:Think()
 end
 
 function ENT:Reset()
@@ -519,6 +519,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 
 		self.duped = true
 		self:Execute()
+		self:Think()
 		self.duped = false
 	end
 
