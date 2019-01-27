@@ -33,6 +33,7 @@ function ENT:Initialize()
 
 	self.Nocollide = nil
 	self:TriggerInput("NoCollide", 0)
+	self.IsPasting = false
 end
 
 -- Run if weld is removed (will run *after* Create_Weld)
@@ -47,6 +48,7 @@ local function Weld_Removed( weld, ent )
 end
 
 function ENT:Remove_Weld()
+	if self.IsPasting then return end
 	if self.Constraint then
 		if self.Constraint:IsValid() then
 			self.Constraint:Remove()
@@ -56,6 +58,7 @@ function ENT:Remove_Weld()
 end
 
 function ENT:Create_Weld()
+	if self.IsPasting then return end
 	self:Remove_Weld()
 	self.Constraint = MakeWireLatch( self.Ent1, self.Ent2, self.Bone1, self.Bone2, self.weld_strength or 0 )
 
@@ -75,10 +78,10 @@ end
 
 function ENT:TriggerInput( iname, value )
 	if iname == "Activate" then
-		if value == 0 and self.Constraint then
+		if value == 0 then
 			self:Remove_Weld()
 
-		elseif value ~= 0 and not self.Constraint then
+		elseif not self.Constraint then
 			self:Create_Weld()
 			Wire_TriggerOutput( self, "Welded", 1 )
 		end
@@ -182,10 +185,30 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		self.Bone2 = info.Bone2
 	end
 
+	self.IsPasting = true
 	self:TriggerInput("Strength", info.weld_strength or 0)
-	self:TriggerInput("Activate", info.Activate)
 	self:TriggerInput("NoCollide", info.NoCollide)
 end
+
+hook.Add("AdvDupe_FinishPasting", "Wire_Latch", function(TimedPasteData, TimedPasteDataCurrent)
+	for k, v in pairs(TimedPasteData[TimedPasteDataCurrent].CreatedEntities) do
+		if IsValid(v) and v:GetClass() == "gmod_wire_latch" then
+			v.IsPasting = false
+			if v.Ent1 and v.Ent2 then
+				for k, c1 in pairs(constraint.FindConstraints( v.Ent1, "Weld" )) do
+					for k, c2 in pairs(constraint.FindConstraints( v.Ent2, "Weld" )) do
+						if c1.Constraint == c2.Constraint then
+							v.Constraint = c1.Constraint
+							goto Exit_DoubleLoop
+						end
+					end
+				end
+				::Exit_DoubleLoop::
+				v:TriggerInput("Activate", v.Inputs.Activate.Value)
+			end
+		end
+	end
+end)
 
 duplicator.RegisterEntityClass("gmod_wire_latch", WireLib.MakeWireEnt, "Data")
 
@@ -201,8 +224,6 @@ function MakeWireLatch( Ent1, Ent2, Bone1, Bone2, forcelimit )
 	local const = constraint.Weld( Ent1, Ent2, Bone1, Bone2, forcelimit or 0 )
 
 	if !IsValid(const) then return nil end
-
-	const.Type = "" -- prevents the duplicator from copying this weld
 
 	return const
 end
