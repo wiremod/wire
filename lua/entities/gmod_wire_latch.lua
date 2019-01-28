@@ -165,6 +165,7 @@ function ENT:BuildDupeInfo()
 		info.Bone2 = self.Bone2
 	end
 
+	info.new = true
 	info.Activate = self.Constraint and 1 or 0
 	info.NoCollide = self.nocollide_status
 	info.weld_strength = self.weld_strength
@@ -185,14 +186,18 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		self.Bone2 = info.Bone2
 	end
 
-	self.IsPasting = true
+	if info.new then
+		self.IsPasting = true -- Don't use this if it's an old wire latch that uses old behavior
+	else
+		self:TriggerInput("Activate", info.Activate)
+	end
 	self:TriggerInput("Strength", info.weld_strength or 0)
 	self:TriggerInput("NoCollide", info.NoCollide)
 end
 
 hook.Add("AdvDupe_FinishPasting", "Wire_Latch", function(TimedPasteData, TimedPasteDataCurrent)
 	for k, v in pairs(TimedPasteData[TimedPasteDataCurrent].CreatedEntities) do
-		if IsValid(v) and v:GetClass() == "gmod_wire_latch" then
+		if IsValid(v) and v:GetClass() == "gmod_wire_latch" and v.IsPasting then
 			v.IsPasting = false
 			if v.Ent1 and v.Ent2 then
 				for k, c1 in pairs(constraint.FindConstraints( v.Ent1, "Weld" )) do
