@@ -20,7 +20,7 @@ if (CLIENT) then
 			if (!Mat:IsValid() or !Mat.GPU or !Mat.GPU.RT) then NoTexture() return end
 			local OldTex = WireGPU_matScreen:GetTexture("$basetexture")
 			WireGPU_matScreen:SetTexture("$basetexture", Mat.GPU.RT)
-			SetTexture(GetTextureID( "GPURT" ))
+			SetTexture(GetTextureID( "sprites/GPURT" ))
 			return OldTex
 		else
 			NoTexture()
