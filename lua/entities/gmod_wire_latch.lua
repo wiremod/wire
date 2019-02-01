@@ -57,14 +57,38 @@ function ENT:Remove_Weld()
 	end
 end
 
+function ENT:Post_Weld()
+	if not IsValid(self.Constraint) then return end
+
+	if not self.CreationID then
+		self.CreationID = self.Constraint:GetCreationID()
+	end
+	self.Constraint:CallOnRemove( "Weld Latch Removed", Weld_Removed, self )
+
+	-- Hack the creation ID so the duplicator orders the weld in the original order it was created in
+	local ent_meta = FindMetaTable("Entity")
+	local override_meta = {
+		__index = function(t,k)
+			if k=="GetCreationID" then
+				return function() return self.CreationID end
+			else
+				return ent_meta.__index(t,k)
+			end
+		end,
+		__concat = ent_meta.__concat,
+		__tostring = ent_meta.__tostring,
+		__newindex = ent_meta.__newindex,
+		__eq = ent_meta.__eq
+	}
+	debug.setmetatable(self.Constraint, override_meta)
+
+end
+
 function ENT:Create_Weld()
 	if self.IsPasting then return end
 	self:Remove_Weld()
 	self.Constraint = MakeWireLatch( self.Ent1, self.Ent2, self.Bone1, self.Bone2, self.weld_strength or 0 )
-
-	if self.Constraint then
-		self.Constraint:CallOnRemove( "Weld Latch Removed", Weld_Removed, self )
-	end
+	self:Post_Weld()
 end
 
 -- This function is called by the STOOL
@@ -74,6 +98,7 @@ function ENT:SendVars( Ent1, Ent2, Bone1, Bone2, const )
 	self.Bone1 = Bone1
 	self.Bone2 = Bone2
 	self.Constraint = const
+	self:Post_Weld()
 end
 
 function ENT:TriggerInput( iname, value )
@@ -170,6 +195,15 @@ function ENT:BuildDupeInfo()
 	info.NoCollide = self.nocollide_status
 	info.weld_strength = self.weld_strength
 
+	if not IsValid(self.Constraint) then
+		self:Create_Weld()
+		timer.Simple(0, function()
+			if self:IsValid() then
+				self:Remove_Weld()
+			end
+		end)
+	end
+
 	return info
 end
 
@@ -204,6 +238,7 @@ hook.Add("AdvDupe_FinishPasting", "Wire_Latch", function(TimedPasteData, TimedPa
 					for k, c2 in pairs(constraint.FindConstraints( v.Ent2, "Weld" )) do
 						if c1.Constraint == c2.Constraint then
 							v.Constraint = c1.Constraint
+							v:Post_Weld()
 							goto Exit_DoubleLoop
 						end
 					end
