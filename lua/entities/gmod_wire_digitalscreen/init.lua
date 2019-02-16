@@ -135,7 +135,7 @@ function ENT:FlushCache(ply)
 	local pixelformat = (math.floor(self.Memory[1048569]) or 0) + 1
 	if pixelformat < 1 or pixelformat > #pixelbits then pixelformat = 1 end
 	local pixelbit = pixelbits[pixelformat]
-	local bitsremaining = 200000
+	local bitsremaining = 262144
 	local datastr = {}
 
 	while bitsremaining>0 and next(self.ChangedCellRanges) do
@@ -155,25 +155,12 @@ function ENT:FlushCache(ply)
 	numberToString(datastr,0,3)
 	datastr = util.Compress(table.concat(datastr))
 
-	local per_batch = 63000
+	net.Start("wire_digitalscreen")
+	net.WriteUInt(self:EntIndex(),16)
+	net.WriteUInt(pixelformat, 5)
+	net.WriteData(datastr,#datastr)
 
-	for i=1,#datastr,per_batch do
-		local str = string.sub(datastr,i,i+per_batch-1)
-
-		net.Start("wire_digitalscreen")
-		net.WriteUInt(self:EntIndex(),16)
-
-		local batch_end = #str < per_batch
-		net.WriteBit(batch_end) -- if true, this is the last batch. if false, more is coming
-
-		if batch_end then
-			net.WriteUInt(pixelformat, 5)
-		end
-
-		net.WriteData(str,#str)
-
-		if ply then net.Send(ply) else net.Broadcast() end
-	end
+	if ply then net.Send(ply) else net.Broadcast() end
 end
 
 function ENT:Retransmit(ply)
@@ -273,7 +260,7 @@ end
 
 function ENT:Think()
 	self:FlushCache()
-	self:NextThink(CurTime()+0.2)
+	self:NextThink(CurTime()+1)
 	return true
 end
 
