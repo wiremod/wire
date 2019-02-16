@@ -58,27 +58,11 @@ net.Receive("wire_digitalscreen", function(netlen)
 	local ent = Entity(net.ReadUInt(16))
 
 	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
-		local batch_end = (net.ReadBit()==1) -- if true, this is the last batch. if false, more is coming
+		local pixelbit = pixelbits[net.ReadUInt(5)]
 
-		if batch_end then
-			local pixelformat = net.ReadUInt(5)
+		local datastr = util.Decompress(net.ReadData((netlen-21)/8))
 
-			local datastr = net.ReadData((netlen-22)/8)
-			local buffer = ent.transfer_buffer or {}
-
-			buffer[#buffer+1] = datastr
-
-			local datastr = util.Decompress(table.concat(buffer))
-			ent.transfer_buffer = nil
-
-			local pixelbit = pixelbits[pixelformat]
-			ent:AddBuffer(datastr,pixelbit)
-		else
-			if not ent.transfer_buffer then ent.transfer_buffer = {} end
-
-			local buffer = ent.transfer_buffer
-			buffer[#buffer+1] = net.ReadData((netlen-17)/8)
-		end
+		ent:AddBuffer(datastr,pixelbit)
 	end
 end)
 
