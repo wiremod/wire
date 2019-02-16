@@ -94,7 +94,7 @@ function SWEP:Off()
 	self.OldMoveType = nil
 	ply:DrawViewModel(true)
 
-	if IsValid(self.Linked) then
+	if IsValid(self.Linked) and self.Linked:GetPly() == ply then
 		self.Linked:PlayerExited(ply)
 	end
 end
