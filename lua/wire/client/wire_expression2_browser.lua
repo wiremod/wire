@@ -284,6 +284,31 @@ function PANEL:Init()
 				self:UpdateFolders()
 			end)
 	end)
+	self:AddRightClick(self.foldermenu, nil, "Rename to..", function()
+		--get full path and remove the current folder name
+		local fullpath = string.Split(self.File:GetFolder(),"/")
+		local oldFolderName = table.remove(fullpath)
+
+		Derma_StringRequestNoBlur("Rename folder \"" .. self.File:GetFolder() .. "\"", "Rename Folder", oldFolderName,
+			function(strTextOut)
+				-- Renaming starts in the garrysmod folder now, in comparison to other commands that start in the data folder.
+				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+
+				--we are editing the root folder ("expression2" folder node)
+				if #fullpath == 0 or #strTextOut == 0 then
+					return
+				end
+
+				local newFolderPath = table.concat(fullpath,"/") .. "/" .. strTextOut
+				if file.Exists(newFolderPath, "DATA") then
+					WireLib.AddNotify("Folder already exists (" .. strTextOut .. ")", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+				elseif not file.Rename(self.File:GetFolder(), newFolderPath) then
+					WireLib.AddNotify("Rename was not successful", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+				end
+				self:UpdateFolders()
+			end)
+	end)
+
 	self:AddRightClick(self.panelmenu, nil, "New File..", function()
 		Derma_StringRequestNoBlur("New File in \"" .. self.File:GetFolder() .. "\"", "Create new file", "",
 			function(strTextOut)
