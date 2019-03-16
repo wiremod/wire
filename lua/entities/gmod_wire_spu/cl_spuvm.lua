@@ -388,7 +388,7 @@ VM.OpcodeTable[331] = function(self)  --CHWAVE
 
   self:Dyn_Emit("if (WAVE >= 0) and (WAVE < 8192) and (CHAN >= 0) and (CHAN < WireSPU_MaxChannels) then")
     self:Dyn_Emit("if VM.Waveform[WAVE] then")
-      self.Dyn_Emit("if VM.Channel[CHAN] then")
+      self:Dyn_Emit("if VM.Channel[CHAN] then")
         self:Dyn_Emit("if VM.Channel[CHAN].Sound:IsPlaying() then")
           self:Dyn_Emit("VM.Channel[CHAN].Sound:Stop()")
         self:Dyn_Emit("end")
