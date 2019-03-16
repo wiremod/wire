@@ -214,18 +214,18 @@ end
 --------------------------------------------------------------------------------
 
 function VM:CalculateADSR(deltaTime)
-  for chan, _ in pairs(self.Channel) do
-    if self.Channel[chan].ADSRStage ~= 0 then
-      self.Channel[chan].ADSRTime = deltaTime + self.Channel[chan].ADSRTime
+  for _, chan in pairs(self.Channel) do
+    if chan.ADSRStage ~= 0 then
       -- break up the ADSR envelope for easier reading
-      local curTime     = self.Channel[chan].ADSRTime
-      local attackTime  = self.Channel[chan].ADSR.x / 1000
-      local decayTime   = self.Channel[chan].ADSR.y / 1000
-      local sustainVol  = self.Channel[chan].ADSR.z
-      local releaseTime = self.Channel[chan].ADSR.w / 1000
-      local relVolume   = self.Channel[chan].ADSRVolume
-      local maxVolume   = self.Channel[chan].Volume
-      local curVolume   = self.Channel[chan].Sound:GetVolume()
+      local curTime = deltaTime + chan.ADSRTime
+      chan.ADSRTime = curTime
+      local attackTime  = chan.ADSR.x / 1000
+      local decayTime   = chan.ADSR.y / 1000
+      local sustainVol  = chan.ADSR.z
+      local releaseTime = chan.ADSR.w / 1000
+      local relVolume   = chan.ADSRVolume
+      local maxVolume   = chan.Volume
+      local curVolume   = chan.Sound:GetVolume()
 
       -- ADSR Stages:
       -- 0: Idle
@@ -235,52 +235,52 @@ function VM:CalculateADSR(deltaTime)
       -- 4: Release
 
       -- Attack
-      if self.Channel[chan].ADSRStage == 1 then
+      if chan.ADSRStage == 1 then
         if curTime >= attackTime then -- Move to Decay
-          self.Channel[chan].ADSRStage = 2
-          self.Channel[chan].ADSRTime = curTime - attackTime
-          curTime = self.Channel[chan].ADSRTime
+          chan.ADSRStage = 2
+          curTime = curTime - attackTime
+          chan.ADSRTime = curTime
         else
           local mag = curTime/attackTime
           local vol = maxVolume * mag
-          self.Channel[chan].Sound:ChangeVolume(vol)
-          self.Channel[chan].ADSRVolume = vol
+          chan.Sound:ChangeVolume(vol)
+          chan.ADSRVolume = vol
         end
       end
       -- Decay
-      if self.Channel[chan].ADSRStage == 2 then
+      if chan.ADSRStage == 2 then
         if curTime >= decayTime then -- Move to Sustain
-          if self.Channel[chan].ADSRMode == 0 then
-            self.Channel[chan].ADSRStage = 4 --Mode 0, no Sustain
+          if chan.ADSRMode == 0 then
+            chan.ADSRStage = 4 --Mode 0, no Sustain
           else
-            self.Channel[chan].ADSRStage = 3 --Mode 1, Sustain
+            chan.ADSRStage = 3 --Mode 1, Sustain
           end
-          self.Channel[chan].ADSRTime = curTime - decayTime
-          curTime = self.Channel[chan].ADSRTime
+          curTime = curTime - decayTime
+          chan.ADSRTime = curTime
         else
           local mag = curTime / decayTime
           local vol = (maxVolume - (maxVolume * mag)) + ((maxVolume * sustainVol) * mag)
-          self.Channel[chan].Sound:ChangeVolume(vol)
-          self.Channel[chan].ADSRVolume = vol
+          chan.Sound:ChangeVolume(vol)
+          chan.ADSRVolume = vol
         end
       end
       -- Sustain
-      if self.Channel[chan].ADSRStage == 3 then
+      if chan.ADSRStage == 3 then
         if curVolume ~= (maxVolume * sustainVol) then
-          self.Channel[chan].Sound:ChangeVolume(maxVolume * sustainVol)
-          self.Channel[chan].ADSRVolume = maxVolume * sustainVol
+          chan.Sound:ChangeVolume(maxVolume * sustainVol)
+          chan.ADSRVolume = maxVolume * sustainVol
         end
       end
       -- Release
-      if self.Channel[chan].ADSRStage == 4 then
+      if chan.ADSRStage == 4 then
         if (releaseTime ~= 0) and (curTime < releaseTime) then -- The only place we COULD get a divide by zero error!
           local mag = curTime / releaseTime
           local vol = (maxVolume * relVolume) - ((maxVolume * relVolume) * mag)
-          self.Channel[chan].Sound:ChangeVolume(vol)
+          chan.Sound:ChangeVolume(vol)
           --We don't set ADSRVolume here as ADSRVolume is used to calculate the release curve
         elseif curVolume ~=0  then
-          self.Channel[chan].ADSRStage = 0
-          self.Channel[chan].Sound:ChangeVolume(0)
+          chan.ADSRStage = 0
+          chan.Sound:ChangeVolume(0)
         end
       end
     end
