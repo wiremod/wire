@@ -1154,12 +1154,13 @@ do
 			end
 
 			-- update net integer precisions if interestingBinds exceeds 32
-			assert(#interestingBinds < 32)
+			if (BUTTON_CODE_COUNT >= 65536) then ErrorNoHalt("ERROR! BUTTON_CODE_COUNT exceeds 65536!") end
+			if (#interestingBinds >= 32) then ErrorNoHalt("ERROR! Interesting binds exceeds 32!") end
 
 			net.Start(MESSAGE_NAME)
 			net.WriteUInt(#data, 8)
 			for _, datum in pairs(data) do
-				net.WriteUInt(datum.Button, 12)
+				net.WriteUInt(datum.Button, 16)
 				net.WriteUInt(datum.BindingIndex, 5)
 			end
 			net.SendToServer()
@@ -1170,7 +1171,7 @@ do
 			player.SyncedBindings = {}
 			local count = net.ReadUInt(8)
 			for _ = 1, count do
-				local button = net.ReadUInt(12)
+				local button = net.ReadUInt(16)
 				local bindingIndex = net.ReadUInt(5)
 				if button > BUTTON_CODE_NONE and button <= BUTTON_CODE_LAST then
 					local binding = interestingBinds[bindingIndex]
