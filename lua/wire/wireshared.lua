@@ -1154,8 +1154,8 @@ do
 			end
 
 			-- update net integer precisions if interestingBinds exceeds 32
-			if (BUTTON_CODE_COUNT >= 65536) ErrorNoHalt("ERROR! BUTTON_CODE_COUNT exceeds 65536!") end
-			if (#interestingBinds >= 32) ErrorNoHalt("ERROR! Interesting binds exceeds 32!") end
+			if (BUTTON_CODE_COUNT >= 65536) then ErrorNoHalt("ERROR! BUTTON_CODE_COUNT exceeds 65536!") end
+			if (#interestingBinds >= 32) then ErrorNoHalt("ERROR! Interesting binds exceeds 32!") end
 
 			net.Start(MESSAGE_NAME)
 			net.WriteUInt(#data, 8)
