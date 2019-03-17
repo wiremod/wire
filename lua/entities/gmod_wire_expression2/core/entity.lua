@@ -297,6 +297,7 @@ e2function void setMass(mass)
 	local mass = Clamp(mass, 0.001, 50000)
 	local phys = self.entity:GetPhysicsObject()
 	phys:SetMass(mass)
+	duplicator.StoreEntityModifier(self.entity, "mass", { Mass = mass })
 end
 
 e2function void entity:setMass(mass)
@@ -307,6 +308,7 @@ e2function void entity:setMass(mass)
 	local mass = Clamp(mass, 0.001, 50000)
 	local phys = this:GetPhysicsObject()
 	phys:SetMass(mass)
+	duplicator.StoreEntityModifier(this, "mass", { Mass = mass })
 end
 
 e2function number entity:volume()
