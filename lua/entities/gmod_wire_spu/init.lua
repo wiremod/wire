@@ -158,6 +158,7 @@ function ENT:WriteCell(Address, Value, Player)
       self.Cache:Write(Address,Value,Player)
       return true
     else
+      self.Cache:Flush(Player)
       self.Cache:WriteNow(Address,Value,Player)
     end
     return true
