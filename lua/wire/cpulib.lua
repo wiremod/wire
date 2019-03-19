@@ -501,7 +501,7 @@ if SERVER then
           Buffer.Entity.Memory[k] = v
         end
         Buffer.Entity:ShowOutputs()
-      elseif Buffer.Entity:GetClass() == "gmod_wire_gpu" then
+      elseif (Buffer.Entity:GetClass() == "gmod_wire_gpu") or (Buffer.Entity:GetClass() == "gmod_wire_spu") then
         Buffer.Entity:WriteCell(65535,0)
         if Buffer.Entity.WriteCell then
           for k,v in pairs(Buffer.Data) do
