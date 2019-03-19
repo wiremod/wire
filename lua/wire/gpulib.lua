@@ -708,7 +708,7 @@ elseif SERVER then
       elseif sequentialBlock and
              (compressBlock.Size == size) then
         -- Add to previous block of data
-        if (#compressBlock.Data == 1) and (compressBlock.Data[1] == value) and (sequentialBlock) then
+        if (#compressBlock.Data == 1) and (compressBlock.Data[1] == value) and (sequentialBlock) and (compressBlock.Repeat < 256) then
           -- RLE compression
           compressBlock.Repeat = compressBlock.Repeat + 1
         elseif compressBlock.Repeat > 1 then
