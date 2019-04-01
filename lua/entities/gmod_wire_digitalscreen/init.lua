@@ -93,11 +93,9 @@ local function buildData(datastr, memory, pixelbit, range, bytesRemaining)
 	local endPos, iend = range.start, range.start + range.length
 	while true do
 		if endPos==iend then
-			endPos = endPos - 1
 			break
 		end
 		if bytesWritten >= bytesRemaining then
-			endPos = endPos - 1
 			break
 		end
 		if endPos>=1048500 then
@@ -108,19 +106,19 @@ local function buildData(datastr, memory, pixelbit, range, bytesRemaining)
 		endPos = endPos + 1
 	end
 	
-	if endPos<range.start then return 0 end
+	if endPos==range.start then return 0 end
 	
-	numberToString(datastr,endPos-range.start+1,3) -- Length of range
+	numberToString(datastr,endPos-range.start,3) -- Length of range
 	numberToString(datastr,range.start,3) -- Address of range
-	for i = range.start, endPos do
+	for i = range.start, endPos-1 do
 		if i>=1048500 then
 			numberToString(datastr,memory[i],2)
 		else
 			numberToString(datastr,memory[i],pixelbit)
 		end
 	end
-	range.length = range.length - (endPos-range.start+1)
-	range.start = endPos+1
+	range.length = range.length - (endPos-range.start)
+	range.start = endPos
 	
 	return bytesWritten
 end
