@@ -89,32 +89,25 @@ local function numberToString(t, number, bytes)
 end
 
 local function buildData(datastr, memory, pixelbit, range, bytesRemaining)
-	local bytesWritten = 6
-	local endPos, iend = range.start, range.start + range.length
-	while endPos < iend and bytesWritten < bytesRemaining do
-		if endPos>=1048500 then
-			bytesWritten = bytesWritten + 2
-		else
-			bytesWritten = bytesWritten + pixelbit
-		end
-		endPos = endPos + 1
-	end
-	
-	if endPos==range.start then return 0 end
-	
+	if bytesRemaining < 15 then return 0 end
 	numberToString(datastr,endPos-range.start,3) -- Length of range
 	numberToString(datastr,range.start,3) -- Address of range
-	for i = range.start, endPos-1 do
+	bytesRemaining = bytesRemaining - 6
+	local i, iend = range.start, range.start + range.length
+	while i<iend and bytesRemaining>0 do
 		if i>=1048500 then
 			numberToString(datastr,memory[i],2)
+			bytesRemaining = bytesRemaining - 2
 		else
 			numberToString(datastr,memory[i],pixelbit)
+			bytesRemaining = bytesRemaining - pixelbit
 		end
+		i = i + 1
 	end
-	range.length = range.length - (endPos-range.start)
-	range.start = endPos
+	range.length = iend - i
+	range.start = i
 	
-	return bytesWritten
+	return bytesRemaining
 end
 
 util.AddNetworkString("wire_digitalscreen")
@@ -156,15 +149,12 @@ function ENT:FlushCache(ply)
 	local datastr = {}
 
 	local range = self.ChangedCellRanges[1]
-	while range do
-		local bytesWritten = buildData(datastr, self.Memory, pixelbit, range, bytesRemaining)
-		if bytesWritten == 0 then
-			break
-		elseif range.length==0 then
+	while range and bytesRemaining>0 do
+		bytesRemaining = buildData(datastr, self.Memory, pixelbit, range, bytesRemaining)
+		if range.length==0 then
 			table.remove(self.ChangedCellRanges, 1)
 			range = self.ChangedCellRanges[1]
 		end
-		bytesRemaining = bytesRemaining - bytesWritten
 	end
 
 	numberToString(datastr,0,3)
