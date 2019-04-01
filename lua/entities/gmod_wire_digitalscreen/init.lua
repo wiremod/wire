@@ -90,7 +90,8 @@ end
 
 local function buildData(datastr, memory, pixelbit, range, bytesRemaining)
 	if bytesRemaining < 15 then return 0 end
-	numberToString(datastr,endPos-range.start,3) -- Length of range
+	local lengthIndex = #datastr+1
+	datastr[lengthIndex] = "000"
 	numberToString(datastr,range.start,3) -- Address of range
 	bytesRemaining = bytesRemaining - 6
 	local i, iend = range.start, range.start + range.length
@@ -104,6 +105,9 @@ local function buildData(datastr, memory, pixelbit, range, bytesRemaining)
 		end
 		i = i + 1
 	end
+	local lengthStr = {}
+	numberToString(lengthStr,i - range.start,3) -- Length of range
+	datastr[lengthIndex] = lengthStr[1]
 	range.length = iend - i
 	range.start = i
 	
