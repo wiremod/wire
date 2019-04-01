@@ -91,13 +91,7 @@ end
 local function buildData(datastr, memory, pixelbit, range, bytesRemaining)
 	local bytesWritten = 6
 	local endPos, iend = range.start, range.start + range.length
-	while true do
-		if endPos==iend then
-			break
-		end
-		if bytesWritten >= bytesRemaining then
-			break
-		end
+	while endPos < iend and bytesWritten < bytesRemaining do
 		if endPos>=1048500 then
 			bytesWritten = bytesWritten + 2
 		else
