@@ -54,15 +54,16 @@ local function stringToNumber(index, str, bytes)
 end
 
 local pixelbits = {3, 1, 3, 4, 1}
-net.Receive("wire_digitalscreen", function(netlen)
+net.Receive("wire_digitalscreen", function()
 	local ent = Entity(net.ReadUInt(16))
 
 	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
 		local pixelbit = pixelbits[net.ReadUInt(5)]
-
-		local datastr = util.Decompress(net.ReadData((netlen-21)/8))
-
-		ent:AddBuffer(datastr,pixelbit)
+		local len = net.ReadUInt(32)
+		local datastr = util.Decompress(net.ReadData(len))
+		if #datastr>0 then
+			ent:AddBuffer(datastr,pixelbit)
+		end
 	end
 end)
 
