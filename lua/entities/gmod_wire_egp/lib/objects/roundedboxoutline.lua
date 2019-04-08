@@ -19,20 +19,13 @@ Obj.Draw = function( self )
                       scx*math.sin(math.rad(angle)) + scy*math.cos(math.rad(angle))
             local a,r = math.rad(div*i+(x*90)), radius
             local dir = {x=math.sin(-(a+math.rad(angle))),y=math.cos(-(a+math.rad(angle)))}
-            local dirUV = {x=math.sin(-a),y=math.cos(-a)}
-            local ru,rv = (radius/sx),(radius/sy)
-            local u,v = 0.5 + (dirUV.x*ru) + (srx/2)*(1-(ru*2)),
-                        0.5 + (dirUV.y*rv) + (sry/2)*(1-(rv*2))
-            polys[#polys+1] = {x=xs+scx+(dir.x*r),  y=ys+scy+(dir.y*r) , u=u,v=v}
+            polys[#polys+1] = {x=xs+scx+(dir.x*r),  y=ys+scy+(dir.y*r)}
         end
     end
-	local n = #polys
+    local n = #polys
     if polys and n>0 then
-		surface.SetDrawColor(self.r,self.g,self.b,self.a)
-		for i=1,n do
-			local p1,p2 = polys[i],polys[1+i%n]
-			EGP:DrawLine( p1.x, p1.y, p2.x, p2.y, self.size )
-		end
+	surface.SetDrawColor(self.r,self.g,self.b,self.a)
+	EGP:DrawPath(polys, self.size, true)
     end
 end
 Obj.Transmit = function( self )

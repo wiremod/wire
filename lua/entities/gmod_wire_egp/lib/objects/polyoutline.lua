@@ -11,10 +11,7 @@ Obj.Draw = function( self )
 	local n = #self.vertices
 	if (self.a>0 and n>0 and self.size>0) then
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
-		for i=1,n do
-			local p1,p2 = self.vertices[i],self.vertices[1+i%n]
-			EGP:DrawLine( p1.x, p1.y, p2.x, p2.y, self.size )
-		end
+		EGP:DrawPath(self.vertices, self.size, true)
 	end
 end
 Obj.Transmit = function( self, Ent, ply )
