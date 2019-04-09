@@ -935,6 +935,17 @@ e2function array wirelink:egpVertices( number index )
 end
 
 --------------------------------------------------------
+-- Object Type
+--------------------------------------------------------
+e2function string wirelink:egpType(number index)
+	local bool, _, v = EGP:HasObject(this, index)
+	if bool then
+		return EGP.Objects.Names_Inverted[v.ID] or ""
+	end
+	return ""
+end
+
+--------------------------------------------------------
 -- Additional Functions
 --------------------------------------------------------
 
