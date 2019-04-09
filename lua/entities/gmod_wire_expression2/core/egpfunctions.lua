@@ -951,6 +951,20 @@ e2function array wirelink:egpObjectTypes()
 	return objs
 end
 
+e2function array wirelink:egpObjectTypesCS()
+	if not EGP:ValidEGP(this) then return {} end
+	local objs = {}
+	for i = 1, EGP.ConVars.MaxObjects:GetInt() do
+		local bool, _, v = EGP:HasObject(this, i)
+		if bool then
+			-- "egp" prefix to allow direct use with callable string (CS) feature.
+			local name = EGP.Objects.Names_Inverted[v.ID]
+			objs[i] = name and ("egp" .. name) or ""
+		end
+	end
+	return objs
+end
+
 __e2setcost(10)
 
 e2function string wirelink:egpType(number index)
