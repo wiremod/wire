@@ -937,6 +937,22 @@ end
 --------------------------------------------------------
 -- Object Type
 --------------------------------------------------------
+__e2setcost(15)
+
+e2function array wirelink:egpObjectTypes()
+	if not EGP:ValidEGP(this) then return {} end
+	local objs = {}
+	for i = 1, EGP.ConVars.MaxObjects:GetInt() do
+		local bool, _, v = EGP:HasObject(this, i)
+		if bool then
+			objs[i] = EGP.Objects.Names_Inverted[v.ID] or ""
+		end
+	end
+	return objs
+end
+
+__e2setcost(10)
+
 e2function string wirelink:egpType(number index)
 	local bool, _, v = EGP:HasObject(this, index)
 	if bool then
