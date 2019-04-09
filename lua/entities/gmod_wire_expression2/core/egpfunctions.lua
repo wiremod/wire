@@ -949,7 +949,8 @@ e2function string wirelink:egpTypeCS(number index)
     local bool, _, v = EGP:HasObject(this, index)
     if bool then
 		-- "egp" prefix to allow direct use with callable string (CS) feature.
-        return ("egp" .. EGP.Objects.Names_Inverted[v.ID]) or ""
+		local name = EGP.Objects.Names_Inverted[v.ID]
+		return name and ("egp" .. name) or ""
     end
     return ""
 end
