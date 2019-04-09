@@ -935,6 +935,21 @@ e2function array wirelink:egpVertices( number index )
 end
 
 --------------------------------------------------------
+-- Indexes
+--------------------------------------------------------
+e2function array wirelink:egpIndexes()
+	if not EGP:ValidEGP(this) then return {} end
+	local indexes = {}
+	for i = 1, EGP.ConVars.MaxObjects:GetInt() do
+		local bool = EGP:HasObject(this, i)
+		if bool then
+			indexes[#indexes + 1] = i
+		end
+	end
+	return indexes
+end
+
+--------------------------------------------------------
 -- Additional Functions
 --------------------------------------------------------
 
