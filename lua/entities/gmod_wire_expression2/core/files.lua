@@ -239,11 +239,11 @@ e2function void runOnFile( active )
 end
 
 e2function number fileClk()
-	return run_on.file.run
+	return self.data.runOnFile and 1 or 0
 end
 
 e2function number fileClk( string filename )
-	return (run_on.file.run == 1 and run_on.file.name == filename) and 1 or 0
+	return (self.data.runOnFile and run_on.file.name == filename) and 1 or 0
 end
 
 -- runOnList event ---
@@ -255,11 +255,11 @@ e2function void runOnList( active )
 end
 
 e2function number fileListClk()
-	return run_on.list.run
+	return self.data.runOnFileList and 1 or 0
 end
 
 e2function number fileListClk( string dir )
-	return (run_on.list.run == 1 and run_on.list.dir == dir) and 1 or 0
+	return (self.data.runOnFileList and run_on.list.dir == dir) and 1 or 0
 end
 
 --- Hooks 'n' Shit ---
@@ -331,7 +331,9 @@ local function file_execute( ent, filename, status )
 	run_on.file.name = filename
 	run_on.file.status = status
 
+	ent.context.data.runOnFile = true
 	ent:Execute()
+	ent.context.data.runOnFile = nil
 
 	run_on.file.run = 0
 	run_on.file.name = ""
@@ -458,7 +460,9 @@ net.Receive("wire_expression2_file_list", function(netlen, ply)
 	run_on.list.run = 1
 	run_on.list.dir = plist.dir
 
+	plist.ent.context.data.runOnFileList = true
 	plist.ent:Execute()
+	plist.ent.context.data.runOnFileList = nil
 
 	run_on.list.run = 0
 	run_on.list.dir = ""

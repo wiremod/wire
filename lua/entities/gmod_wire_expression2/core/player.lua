@@ -249,10 +249,6 @@ end
 
 
 local KeyAlert = {}
-local runByKey
-local pressedKey = ""
-local pressedBind = ""
-local KeyWasReleased = 0
 
 local keys_lookup = {}
 local number_of_keys = 0
@@ -291,25 +287,28 @@ end)
 
 local function UpdateKeys(ply, bind, key, state)
 	local uid = ply:UniqueID()
-	runByKey = ply
-	KeyWasReleased = state and 0 or 1
-	pressedKey = keys_lookup[key] or ""
-	pressedBind = bind or ""
+
+	local keystate = {
+		runByKey = ply,
+		KeyWasReleased = state and 0 or 1,
+		pressedKey = keys_lookup[key] or "",
+		pressedBind = bind or ""
+	}
+
 	for chip, plys in pairs(KeyAlert) do
 		if IsValid(chip) then
 			local filter = plys[uid]
 			if (isbool(filter) and filter == true) or
-				(istable(filter) and (filter[pressedKey] == true or filter[pressedBind] == true)) then
+				(istable(filter) and (filter[keystate.pressedKey] == true or filter[keystate.pressedBind] == true)) then
+
+				chip.context.data.runOnKeys = keystate
 				chip:Execute()
+				chip.context.data.runOnKeys = nil
 			end
 		else
 			KeyAlert[chip] = nil
 		end
 	end
-	runByKey = nil
-	pressedKey = ""
-	pressedBind = ""
-	KeyWasReleased = 0
 end
 
 local bindsPressed = {}
@@ -387,23 +386,30 @@ __e2setcost(1)
 
 --- Returns user if the chip is being executed because of a key event.
 e2function entity keyClk()
-	return runByKey
+	if not self.data.runOnKeys then return nil end
+	return self.data.runOnKeys.runByKey
 end
 
 --- Returns 1 or -1 if the chip is being executed because of a key event by player <ply>
 --- depending of whether the key was just pressed or released
 e2function number keyClk(entity ply)
-	return ((ply == runByKey) and IsValid( ply )) and ((KeyWasReleased == 0) and 1 or -1) or 0
+	if not self.data.runOnKeys then return 0 end
+	if not IsValid(ply) then return 0 end
+	local runby = self.data.runOnKeys.runByKey
+	if not ply == runby then return 0 end
+	return self.data.runOnKeys.KeyWasReleased and -1 or 1
 end
 
 -- Returns the key which caused the keyClk event to trigger
 e2function string keyClkPressed()
-	return pressedKey
+	if not self.data.runOnKeys then return "" end
+	return self.data.runOnKeys.pressedKey
 end
 
 -- Returns the bind which caused the keyClk event to trigger (if any)
 e2function string keyClkPressedBind()
-	return pressedBind
+	if not self.data.runOnKeys then return "" end
+	return self.data.runOnKeys.pressedBind
 end
 
 -- isTyping
@@ -612,29 +618,29 @@ end
 --[[--------------------------------------------------------------------------------------------]]--
 
 hook.Add("PlayerInitialSpawn","Exp2RunOnJoin", function(ply)
-	runBySpawn = 1
 	lastJoined = ply
 	for e,_ in pairs(spawnAlert) do
 		if IsValid(e) then
+			e.context.data.runBySpawn = true
 			e:Execute()
+			e.context.data.runBySpawn = nil
 		else
 			spawnAlert[e] = nil
 		end
 	end
-	runBySpawn = 0
 end)
 
 hook.Add("PlayerDisconnected","Exp2RunOnLeave", function(ply)
-	runByLeave = 1
 	lastLeft = ply
 	for e,_ in pairs(leaveAlert) do
 		if IsValid(e) then
+			e.context.data.runByLeave = true
 			e:Execute()
+			e.context.data.runByLeave = nil
 		else
 			leaveAlert[e] = nil
 		end
 	end
-	runByLeave = 0
 end)
 
 __e2setcost(3)
@@ -648,7 +654,7 @@ e2function void runOnPlayerConnect(activate)
 end
 
 e2function number playerConnectClk()
-	return runBySpawn
+	return self.data.runBySpawn and 1 or 0
 end
 
 e2function entity lastConnectedPlayer()
@@ -664,7 +670,7 @@ e2function void runOnPlayerDisconnect(activate)
 end
 
 e2function number playerDisconnectClk()
-	return runByLeave
+	return self.data.runByLeave and 1 or 0
 end
 
 e2function entity lastDisconnectedPlayer()

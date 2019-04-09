@@ -1,5 +1,5 @@
-//Original author: ZeikJT
-//Modified by Gwahir and TomyLobo
+-- Original author: ZeikJT
+-- Modified by Gwahir and TomyLobo
 
 local IsValid = IsValid
 
@@ -7,7 +7,6 @@ local TextList = {
 	last = { "", 0, nil }
 }
 local ChatAlert = {}
-local runByChat = 0
 local chipHideChat = false
 
 --[[************************************************************************]]--
@@ -21,13 +20,14 @@ hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, teamchat)
 	TextList[ply:EntIndex()] = entry
 	TextList.last = entry
 
-	runByChat = 1
 	chipHideChat = false
 	local hideCurrent = false
 	for e,_ in pairs(ChatAlert) do
 		if IsValid(e) then
 			chipHideChat = nil
+			e.context.data.runByChat = entry
 			e:Execute()
+			e.context.data.runByChat = nil
 			--if chipHideChat ~= nil and ply == e.player then
 			if chipHideChat and ply == e.player then
 				hideCurrent = chipHideChat
@@ -36,7 +36,6 @@ hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, teamchat)
 			ChatAlert[e] = nil
 		end
 	end
-	runByChat = 0
 
 	if hideCurrent then return "" end
 end)
@@ -59,14 +58,14 @@ end
 
 --- Returns 1 if the chip is being executed because of a chat event. Returns 0 otherwise.
 e2function number chatClk()
-	return runByChat
+	return self.data.runByChat and 1 or 0
 end
 
 --- Returns 1 if the chip is being executed because of a chat event by player <ply>. Returns 0 otherwise.
 e2function number chatClk(entity ply)
 	if not IsValid(ply) then return 0 end
-	if ply ~= TextList.last[3] then return 0 end
-	return runByChat
+	local cause = self.data.runByChat
+	return cause and cause[3] == ply and 1 or 0
 end
 
 --- If <hide> != 0, hide the chat message that is currently being processed.
