@@ -25,7 +25,8 @@ Obj.Draw = function( self )
 		end
 
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
-		EGP:DrawPath(vertices, 1, true)
+		--EGP:DrawPath(vertices, 1, true)
+		EGP:DrawPathPoly(vertices, 1, true)
 	end
 end
 Obj.Transmit = function( self )

@@ -259,10 +259,10 @@ function EGP:DrawLine( x, y, x2, y2, size )
 end
 
 function EGP:DrawPath( vertices, size, closed )
-	if (size < 1) then size = 1 end
+	if size < 1 then size = 1 end
 	local num = #vertices
 
-	if (size == 1) then
+	if size == 1 then
 		if closed then
 			vertices[num+1] = vertices[1]
 			num = num+1
@@ -311,7 +311,7 @@ function EGP:DrawPath( vertices, size, closed )
 			end
 
 			if closed or i<num then
-				-- Offset end point to match with nex line
+				-- Offset end point to match with next line
 				local x3 = vertices[i+1].x
 				local y3 = vertices[i+1].y
 				local len2 = math.sqrt( (x3-x2) ^ 2 + (y3-y2) ^ 2 )
@@ -342,6 +342,85 @@ function EGP:DrawPath( vertices, size, closed )
 
 			x1 = tempx
 			y1 = tempy
+		end
+	end
+end
+
+function EGP:DrawPathPoly( vertices, size, closed )
+	if size < 1 then size = 1 end
+	local num = #vertices
+
+	if size == 1 then -- size 1 => just normal lines
+		if closed then -- if closed shape, duplicate first point to end
+			vertices[num+1] = vertices[1]
+			num = num+1
+		end
+		local last = vertices[1]
+		for i=2, num do
+			local v = vertices[i]
+			surface.DrawLine( last.x, last.y, v.x, v.y )
+			last = v
+		end
+	else
+		size = size/2 -- simplify calculations
+		local corners = {}
+		local lastdir
+		if closed then
+			local x1 = vertices[num].x
+			local y1 = vertices[num].y
+			local x2 = vertices[1].x
+			local y2 = vertices[1].y
+			local len = math.sqrt( (x2-x1) ^ 2 + (y2-y1) ^ 2 )
+			lastdir = {x=(x2-x1)/len, y=(y2-y1)/len} -- initialize lastdir so first segment can be drawn normally
+
+			vertices[num+1] = vertices[1] -- close off shape
+			num = num+1
+			vertices[num+1] = vertices[2] -- pad so last segment can be drawn normally
+		end
+		for i=1, num do
+			local x1 = vertices[i].x
+			local y1 = vertices[i].y
+
+			if not closed and i==num then -- very last segment, just end perpendicular (TODO: maybe move after the loop)
+				corners[i] = { r={x=x1-lastdir.y*size, y=y1+lastdir.x*size}, l={x=x1+lastdir.y*size, y=y1-lastdir.x*size}}
+			else
+				local x2 = vertices[i+1].x
+				local y2 = vertices[i+1].y
+
+				local len = math.sqrt( (x2-x1) ^ 2 + (y2-y1) ^ 2 )
+				local dir = {x=(x2-x1)/len, y=(y2-y1)/len}
+				if x1==x2 and y1==y2 then -- cannot get direction between identical points, just take the last one (TODO: optimize this point away completely)
+					dir = lastdir
+				end
+
+				if not closed and i==1 then -- very first segment, just start perpendicular (TODO: maybe move before the loop)
+					corners[i] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size}}
+				else
+					local dot = dir.x*lastdir.x + dir.y*lastdir.y
+					local scaling = size*math.tan(math.acos(dot)/2) -- complicated math, could be also be `size*sqrt(1-dot)/sqrt(dot+1)` (no idea what is faster)
+					if dot==1 or dot==-1 then -- new direction is identical or inverse, just add perpendicular nodes (TODO: optimize this point away completely when identical)
+						corners[i] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size}}
+					elseif dir.x*-lastdir.y+dir.y*lastdir.x>0 then -- differentiate between left and right bends by getting the dot product between dir and lastDir:rotate(90)
+						local offsetx = -lastdir.y*size-lastdir.x*scaling
+						local offsety = lastdir.x*size-lastdir.y*scaling
+						corners[i] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-offsetx, y=y1-offsety}}
+					else
+						local offsetx = lastdir.y*size-lastdir.x*scaling
+						local offsety = -lastdir.x*size-lastdir.y*scaling
+						corners[i] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-offsetx, y=y1-offsety}}
+					end
+				end
+				lastdir = dir
+			end
+		end
+		for i=2, num, 2 do
+			local verts
+			if i==num then -- last corner, only one segment missing
+				verts = {corners[i].r, corners[i-1].r, corners[i-1].l, corners[i].l}
+			else -- draw this and next segment as a single polygon
+				verts = {corners[i].r, corners[i-1].r, corners[i-1].l, corners[i].l, corners[i+1].l, corners[i+1].r}
+			end
+			surface.DrawPoly(verts)
 		end
 	end
 end

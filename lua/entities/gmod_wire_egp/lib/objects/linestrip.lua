@@ -12,7 +12,8 @@ Obj.Draw = function( self )
 	if (self.a>0 and n>0 and self.size>0) then
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
 
-		EGP:DrawPath(self.vertices, self.size, false)
+		--EGP:DrawPath(self.vertices, self.size, false)
+		EGP:DrawPathPoly(self.vertices, self.size, false)
 	end
 end
 Obj.Transmit = function( self, Ent, ply )
