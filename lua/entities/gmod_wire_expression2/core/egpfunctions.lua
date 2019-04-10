@@ -935,6 +935,21 @@ e2function array wirelink:egpVertices( number index )
 end
 
 --------------------------------------------------------
+-- Indexes
+--------------------------------------------------------
+__e2setcost(1)
+e2function array wirelink:egpObjectIndexes()
+	if not EGP:ValidEGP(this) then return {} end
+	if not this.RenderTable or #this.RenderTable == 0 then return {} end
+	local indexes = {}
+	for _, v in pairs(this.RenderTable) do
+		indexes[#indexes + 1] = v.index
+	end
+	self.prf = self.prf + #indexes/3
+	return indexes
+end
+
+--------------------------------------------------------
 -- Additional Functions
 --------------------------------------------------------
 
