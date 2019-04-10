@@ -937,14 +937,14 @@ end
 --------------------------------------------------------
 -- Indexes
 --------------------------------------------------------
-e2function array wirelink:egpIndexes()
+__e2setcost(1)
+e2function array wirelink:egpObjectIndexes()
 	if not EGP:ValidEGP(this) then return {} end
+	if not this.RenderTable or #this.RenderTable == 0 then return {} end
 	local indexes = {}
-	for i = 1, EGP.ConVars.MaxObjects:GetInt() do
-		local bool = EGP:HasObject(this, i)
-		if bool then
-			indexes[#indexes + 1] = i
-		end
+	for k, v in pairs(this.RenderTable) do
+		indexes[#indexes + 1] = v.index
+		self.prf = self.prf + 1/3
 	end
 	return indexes
 end
