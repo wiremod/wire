@@ -942,10 +942,10 @@ e2function array wirelink:egpObjectIndexes()
 	if not EGP:ValidEGP(this) then return {} end
 	if not this.RenderTable or #this.RenderTable == 0 then return {} end
 	local indexes = {}
-	for k, v in pairs(this.RenderTable) do
+	for _, v in pairs(this.RenderTable) do
 		indexes[#indexes + 1] = v.index
-		self.prf = self.prf + 1/3
 	end
+	self.prf = self.prf + #indexes/3
 	return indexes
 end
 
