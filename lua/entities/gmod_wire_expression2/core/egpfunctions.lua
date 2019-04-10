@@ -937,52 +937,27 @@ end
 --------------------------------------------------------
 -- Object Type
 --------------------------------------------------------
-__e2setcost(15)
+__e2setcost(1)
 
 e2function array wirelink:egpObjectTypes()
 	if not EGP:ValidEGP(this) then return {} end
+	if not this.RenderTable or #this.RenderTable == 0 then return {} end
 	local objs = {}
-	for i = 1, EGP.ConVars.MaxObjects:GetInt() do
-		local bool, _, v = EGP:HasObject(this, i)
-		if bool then
-			objs[i] = EGP.Objects.Names_Inverted[v.ID] or ""
-		end
+	for _, v in pairs(this.RenderTable) do
+		objs[v.index] = EGP.Objects.Names_Inverted[v.ID] or ""
 	end
-	return objs
-end
-
-e2function array wirelink:egpObjectTypesCS()
-	if not EGP:ValidEGP(this) then return {} end
-	local objs = {}
-	for i = 1, EGP.ConVars.MaxObjects:GetInt() do
-		local bool, _, v = EGP:HasObject(this, i)
-		if bool then
-			-- "egp" prefix to allow direct use with callable string (CS) feature.
-			local name = EGP.Objects.Names_Inverted[v.ID]
-			objs[i] = name and ("egp" .. name) or ""
-		end
-	end
+	self.prf = self.prf + #this.RenderTable/3
 	return objs
 end
 
 __e2setcost(10)
 
-e2function string wirelink:egpType(number index)
+e2function string wirelink:egpObjectType(number index)
 	local bool, _, v = EGP:HasObject(this, index)
 	if bool then
 		return EGP.Objects.Names_Inverted[v.ID] or ""
 	end
 	return ""
-end
-
-e2function string wirelink:egpTypeCS(number index)
-    local bool, _, v = EGP:HasObject(this, index)
-    if bool then
-		-- "egp" prefix to allow direct use with callable string (CS) feature.
-		local name = EGP.Objects.Names_Inverted[v.ID]
-		return name and ("egp" .. name) or ""
-    end
-    return ""
 end
 
 --------------------------------------------------------
