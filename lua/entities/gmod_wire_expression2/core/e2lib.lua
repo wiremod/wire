@@ -269,22 +269,14 @@ if Debug then
 end
 
 function E2Lib.filterList(list, criterion)
-	local index = 1
-	-- if Debug then print("-- filterList: "..#list.." entries --") end
-
-	while index <= #list do
-		if not criterion(list[index]) then
-			-- if Debug then cPrint(Color(128,128,128), "-    "..tostring(list[index]).."\n") end
-			list[index] = list[#list]
-			table.remove(list)
-		else
-			-- if Debug then print(string.format("+%3d %s", index, tostring(list[index]))) end
-			index = index + 1
+	local filteredlist = {}
+	for k, v in pairs(list) do
+		if(criterion(v)) then
+			table.insert(filteredlist, v)
 		end
 	end
 
-	-- if Debug then print("--------") end
-	return list
+	return filteredlist
 end
 
 -- ----------------------------- compiler stuf ---------------------------------
