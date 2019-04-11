@@ -350,6 +350,7 @@ function EGP:DrawPathPoly( vertices, size, closed )
 	if size < 1 then size = 1 end
 	local num = #vertices
 
+
 	if size == 1 then -- size 1 => just normal lines
 		if closed then -- if closed shape, duplicate first point to end
 			vertices[num+1] = vertices[1]
@@ -364,7 +365,7 @@ function EGP:DrawPathPoly( vertices, size, closed )
 	else
 		size = size/2 -- simplify calculations
 		local corners = {}
-		local lastdir
+		local lastdir = {x=0, y=0}
 		if closed then
 			local x1 = vertices[num].x
 			local y1 = vertices[num].y
@@ -382,40 +383,38 @@ function EGP:DrawPathPoly( vertices, size, closed )
 			local y1 = vertices[i].y
 
 			if not closed and i==num then -- very last segment, just end perpendicular (TODO: maybe move after the loop)
-				corners[i] = { r={x=x1-lastdir.y*size, y=y1+lastdir.x*size}, l={x=x1+lastdir.y*size, y=y1-lastdir.x*size}}
+				corners[#corners+1] = { r={x=x1-lastdir.y*size, y=y1+lastdir.x*size}, l={x=x1+lastdir.y*size, y=y1-lastdir.x*size}}
 			else
 				local x2 = vertices[i+1].x
 				local y2 = vertices[i+1].y
 
 				local len = math.sqrt( (x2-x1) ^ 2 + (y2-y1) ^ 2 )
 				local dir = {x=(x2-x1)/len, y=(y2-y1)/len}
-				if x1==x2 and y1==y2 then -- cannot get direction between identical points, just take the last one (TODO: optimize this point away completely)
-					dir = lastdir
-				end
-
-				if not closed and i==1 then -- very first segment, just start perpendicular (TODO: maybe move before the loop)
-					corners[i] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size}}
-				else
-					local dot = dir.x*lastdir.x + dir.y*lastdir.y
-					local scaling = size*math.tan(math.acos(dot)/2) -- complicated math, could be also be `size*sqrt(1-dot)/sqrt(dot+1)` (no idea what is faster)
-					if dot==1 or dot==-1 then -- new direction is identical or inverse, just add perpendicular nodes (TODO: optimize this point away completely when identical)
-						corners[i] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size}}
-					elseif dir.x*-lastdir.y+dir.y*lastdir.x>0 then -- differentiate between left and right bends by getting the dot product between dir and lastDir:rotate(90)
-						local offsetx = -lastdir.y*size-lastdir.x*scaling
-						local offsety = lastdir.x*size-lastdir.y*scaling
-						corners[i] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-offsetx, y=y1-offsety}}
+				if x1!=x2 or y1!=y2 then -- cannot get direction between identical points, just skip it
+					if not closed and i==1 then -- very first segment, just start perpendicular (TODO: maybe move before the loop)
+						corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size}}
 					else
-						local offsetx = lastdir.y*size-lastdir.x*scaling
-						local offsety = -lastdir.x*size-lastdir.y*scaling
-						corners[i] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-offsetx, y=y1-offsety}}
+						local dot = dir.x*lastdir.x + dir.y*lastdir.y
+						local scaling = size*math.tan(math.acos(dot)/2) -- complicated math, could be also be `size*sqrt(1-dot)/sqrt(dot+1)` (no idea what is faster)
+						if dot==1 or dot==-1 then -- new direction is identical or inverse, just add perpendicular nodes (TODO: optimize this point away completely when identical)
+							corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size}}
+						elseif dir.x*-lastdir.y+dir.y*lastdir.x>0 then -- differentiate between left and right bends by getting the dot product between dir and lastDir:rotate(90)
+							local offsetx = -lastdir.y*size-lastdir.x*scaling
+							local offsety = lastdir.x*size-lastdir.y*scaling
+							corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-offsetx, y=y1-offsety}}
+						else
+							local offsetx = lastdir.y*size-lastdir.x*scaling
+							local offsety = -lastdir.x*size-lastdir.y*scaling
+							corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-offsetx, y=y1-offsety}}
+						end
 					end
+					lastdir = dir
 				end
-				lastdir = dir
 			end
 		end
-		for i=2, num, 2 do
+		for i=2, #corners, 2 do
 			local verts
-			if i==num then -- last corner, only one segment missing
+			if i==#corners then -- last corner, only one segment missing
 				verts = {corners[i].r, corners[i-1].r, corners[i-1].l, corners[i].l}
 			else -- draw this and next segment as a single polygon
 				verts = {corners[i].r, corners[i-1].r, corners[i-1].l, corners[i].l, corners[i+1].l, corners[i+1].r}
