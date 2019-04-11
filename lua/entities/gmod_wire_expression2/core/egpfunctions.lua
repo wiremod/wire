@@ -950,6 +950,32 @@ e2function array wirelink:egpObjectIndexes()
 end
 
 --------------------------------------------------------
+-- Object Type
+--------------------------------------------------------
+__e2setcost(1)
+
+e2function array wirelink:egpObjectTypes()
+	if not EGP:ValidEGP(this) then return {} end
+	if not this.RenderTable or #this.RenderTable == 0 then return {} end
+	local objs = {}
+	for _, v in pairs(this.RenderTable) do
+		objs[v.index] = EGP.Objects.Names_Inverted[v.ID] or ""
+	end
+	self.prf = self.prf + #this.RenderTable/3
+	return objs
+end
+
+__e2setcost(10)
+
+e2function string wirelink:egpObjectType(number index)
+	local bool, _, v = EGP:HasObject(this, index)
+	if bool then
+		return EGP.Objects.Names_Inverted[v.ID] or ""
+	end
+	return ""
+end
+
+--------------------------------------------------------
 -- Additional Functions
 --------------------------------------------------------
 

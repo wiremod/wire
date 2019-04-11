@@ -1405,6 +1405,8 @@ E2Helper.Descriptions["egpNumObjects(xwl:)"] = "Returns the number of objects on
 E2Helper.Descriptions["egpRunOnQueue(xwl:n)"] = "Set to 1 if you want your E2 to be triggered once the queue has finished sending all items in the queue for the screen"
 E2Helper.Descriptions["egpVertices(xwl:n)"] = "Returns an array of the vertices of the object"
 E2Helper.Descriptions["egpObjectIndexes(xwl:)"] = "Returns an array containing all object indexes being used"
+E2Helper.Descriptions["egpObjectType(xwl:n)"] = "Returns the type of the object with specified index"
+E2Helper.Descriptions["egpObjectTypes(xwl:)"] = "Returns an array whose keys are bound to object index, and value being the type of particular object"
 
 E2Helper.Descriptions["egp3DTracker(xwl:nv)"] = "Creates a 3D tracker object at specified world position"
 E2Helper.Descriptions["egpBox(xwl:nxv2xv2)"] = "Creates a box. First 2D vector is the position, second is size"
