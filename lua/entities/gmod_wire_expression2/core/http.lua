@@ -44,14 +44,13 @@ e2function void httpRequest( string url )
 		preq.data = contents or ""
 		preq.success = 1
 
-		run_on.clk = 1
-
 		local ent = self.entity
 		if IsValid(ent) and run_on.ents[ent] then
+			self.data.httpClk = preq
 			ent:Execute()
+			self.data.httpClk = nil
 		end
 
-		run_on.clk = 0
 	end, function( err )
 		if !IsValid( ply ) or !ply:IsPlayer() or !requests[ply] then return end
 
