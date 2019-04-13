@@ -10,8 +10,7 @@ Obj.Draw = function( self )
 		local ang = -rad(self.angle)
 		local c = cos(ang)
 		local s = sin(ang)
-		for i=0,self.fidelity-1 do
-			local radd = rad(i*360/self.fidelity)
+		for radd=0, 2*math.pi*(1 - 0.5/self.fidelity), 2*math.pi/self.fidelity do
 			local x = cos(radd)
 			local y = sin(radd)
 
@@ -23,8 +22,7 @@ Obj.Draw = function( self )
 		end
 
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
-		--EGP:DrawPath(vertices, self.size, true)
-		EGP:DrawPathPoly(vertices, self.size, true)
+		EGP:DrawPath(vertices, self.size, true)
 	end
 end
 Obj.Transmit = function( self )

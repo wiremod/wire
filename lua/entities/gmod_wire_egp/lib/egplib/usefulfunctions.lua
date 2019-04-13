@@ -259,35 +259,32 @@ function EGP:DrawLine( x, y, x2, y2, size )
 end
 
 function EGP:DrawPath( vertices, size, closed )
+	if false then
+		EGP:DrawPathPoly(vertices, size, closed)
+		return 1
+	end
+
 	if size < 1 then size = 1 end
 	local num = #vertices
 
 	if size == 1 then
-		if closed then
-			vertices[num+1] = vertices[1]
-			num = num+1
-		end
 		local last = vertices[1]
 		for i=2, num do
 			local v = vertices[i]
 			surface.DrawLine( last.x, last.y, v.x, v.y )
 			last = v
 		end
-	else
 		if closed then
-			-- pad array to simplify calculation
-			vertices[num+1] = vertices[1]
-			vertices[num+2] = vertices[2]
-			num = num+1
+			surface.DrawLine( last.x, last.y, vertices[1].x, vertices[1].y )
 		end
-
+	else
 		local x1 = vertices[1].x
 		local y1 = vertices[1].y
 
-		for i=2, num do
-			local x2 = vertices[i].x
-			local y2 = vertices[i].y
-
+		for i=2, closed and num+1 or num do
+			local v2 = i==num+1 and vertices[1] or vertices[i]
+			local x2 = v2.x
+			local y2 = v2.y
 			local tempx = x2
 			local tempy = y2
 
@@ -301,9 +298,9 @@ function EGP:DrawPath( vertices, size, closed )
 				local len0 = math.sqrt( (x1-x0) ^ 2 + (y1-y0) ^ 2 )
 				local dir0 = {x=(x1-x0)/len0, y=(y1-y0)/len0}
 
-				local ang = math.abs(math.acos(dir0.x*dir.x + dir0.y*dir.y)) -- angle between previous line segment and this one
-				if math.deg(ang)<=90 then
-					local shift = size/2 * math.tan(ang/2)
+				local dot = dir0.x*dir.x + dir0.y*dir.y -- angle between previous line segment and this one
+				if dot>=0 then
+					local shift = size/2 * math.tan(math.acos(dot)/2)
 					x1 = x1 - shift * dir.x
 					y1 = y1 - shift * dir.y
 					len = len+shift
@@ -312,14 +309,15 @@ function EGP:DrawPath( vertices, size, closed )
 
 			if closed or i<num then
 				-- Offset end point to match with next line
-				local x3 = vertices[i+1].x
-				local y3 = vertices[i+1].y
+				local v3 = i<num and vertices[i+1] or vertices[i+1-num]
+				local x3 = v3.x
+				local y3 = v3.y
 				local len2 = math.sqrt( (x3-x2) ^ 2 + (y3-y2) ^ 2 )
 				local dir2 = {x=(x3-x2)/len2, y=(y3-y2)/len2}
 
-				local ang = math.abs(math.acos(dir.x*dir2.x + dir.y*dir2.y)) -- angle between current line segment and the next one
-				if math.deg(ang)<=90 then
-					local shift = size/2 * math.tan(ang/2)
+				local dot = dir.x*dir2.x + dir.y*dir2.y -- angle between current line segment and the next one
+				if dot>=0 then
+					local shift = size/2 * math.tan(math.acos(dot)/2)
 					x2 = x2 + shift * dir.x
 					y2 = y2 + shift * dir.y
 					len = len+shift
@@ -396,13 +394,15 @@ function EGP:DrawPathPoly( vertices, size, closed )
 					else
 						local dot = dir.x*lastdir.x + dir.y*lastdir.y
 						local scaling = size*math.tan(math.acos(dot)/2) -- complicated math, could be also be `size*sqrt(1-dot)/sqrt(dot+1)` (no idea what is faster)
-						if dot==1 or dot==-1 then -- new direction is identical or inverse, just add perpendicular nodes (TODO: optimize this point away completely when identical)
+						if dot==1 then
+							-- direction stays the same, no need for a corner, just skip this point
+						elseif dot==-1 then -- new direction is inverse, just add perpendicular nodes
 							corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size}}
-						elseif dir.x*-lastdir.y+dir.y*lastdir.x>0 then -- differentiate between left and right bends by getting the dot product between dir and lastDir:rotate(90)
+						elseif dir.x*-lastdir.y+dir.y*lastdir.x>0 then -- right bend, checked by getting the dot product between dir and lastDir:rotate(90)
 							local offsetx = -lastdir.y*size-lastdir.x*scaling
 							local offsety = lastdir.x*size-lastdir.y*scaling
 							corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-offsetx, y=y1-offsety}}
-						else
+						else -- left bend
 							local offsetx = lastdir.y*size-lastdir.x*scaling
 							local offsety = -lastdir.x*size-lastdir.y*scaling
 							corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-offsetx, y=y1-offsety}}

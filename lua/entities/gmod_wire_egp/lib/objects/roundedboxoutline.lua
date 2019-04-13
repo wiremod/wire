@@ -25,8 +25,7 @@ Obj.Draw = function( self )
     local n = #polys
     if polys and n>0 then
 	surface.SetDrawColor(self.r,self.g,self.b,self.a)
-	--EGP:DrawPath(polys, self.size, true)
-	EGP:DrawPathPoly(polys, self.size, true)
+	EGP:DrawPath(polys, self.size, true)
     end
 end
 Obj.Transmit = function( self )
