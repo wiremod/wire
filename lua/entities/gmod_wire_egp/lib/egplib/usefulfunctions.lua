@@ -350,15 +350,14 @@ function EGP:DrawPathPoly( vertices, size, closed )
 
 
 	if size == 1 then -- size 1 => just normal lines
-		if closed then -- if closed shape, duplicate first point to end
-			vertices[num+1] = vertices[1]
-			num = num+1
-		end
 		local last = vertices[1]
 		for i=2, num do
 			local v = vertices[i]
 			surface.DrawLine( last.x, last.y, v.x, v.y )
 			last = v
+		end
+		if closed then
+			surface.DrawLine( last.x, last.y, vertices[1].x, vertices[1].y )
 		end
 	else
 		size = size/2 -- simplify calculations
@@ -371,20 +370,18 @@ function EGP:DrawPathPoly( vertices, size, closed )
 			local y2 = vertices[1].y
 			local len = math.sqrt( (x2-x1) ^ 2 + (y2-y1) ^ 2 )
 			lastdir = {x=(x2-x1)/len, y=(y2-y1)/len} -- initialize lastdir so first segment can be drawn normally
-
-			vertices[num+1] = vertices[1] -- close off shape
-			num = num+1
-			vertices[num+1] = vertices[2] -- pad so last segment can be drawn normally
 		end
-		for i=1, num do
-			local x1 = vertices[i].x
-			local y1 = vertices[i].y
+		for i=1, closed and num+1 or num do
+			local v1 = i==num+1 and vertices[1] or vertices[i]
+			local x1 = v1.x
+			local y1 = v1.y
 
 			if not closed and i==num then -- very last segment, just end perpendicular (TODO: maybe move after the loop)
 				corners[#corners+1] = { r={x=x1-lastdir.y*size, y=y1+lastdir.x*size}, l={x=x1+lastdir.y*size, y=y1-lastdir.x*size}}
 			else
-				local x2 = vertices[i+1].x
-				local y2 = vertices[i+1].y
+				local v2 = i<num and vertices[i+1] or vertices[i+1-num]
+				local x2 = v2.x
+				local y2 = v2.y
 
 				local len = math.sqrt( (x2-x1) ^ 2 + (y2-y1) ^ 2 )
 				local dir = {x=(x2-x1)/len, y=(y2-y1)/len}
