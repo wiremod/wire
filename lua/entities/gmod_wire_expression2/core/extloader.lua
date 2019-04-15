@@ -158,6 +158,7 @@ e2_include("egpfunctions.lua")
 e2_include("functions.lua")
 e2_include("strfunc.lua")
 e2_include("steamidconv.lua")
+e2_include("utf8.lua")
 
 -- Load serverside files here, they need additional parsing
 do
