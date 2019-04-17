@@ -290,7 +290,7 @@ local function UpdateKeys(ply, bind, key, state)
 
 	local keystate = {
 		runByKey = ply,
-		KeyWasReleased = state and 0 or 1,
+		KeyWasReleased = not state,
 		pressedKey = keys_lookup[key] or "",
 		pressedBind = bind or ""
 	}
