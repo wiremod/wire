@@ -290,7 +290,7 @@ local function UpdateKeys(ply, bind, key, state)
 
 	local keystate = {
 		runByKey = ply,
-		KeyWasReleased = state and 0 or 1,
+		KeyWasReleased = state,
 		pressedKey = keys_lookup[key] or "",
 		pressedBind = bind or ""
 	}
@@ -397,7 +397,7 @@ e2function number keyClk(entity ply)
 	if not IsValid(ply) then return 0 end
 	local runby = self.data.runOnKeys.runByKey
 	if not ply == runby then return 0 end
-	return self.data.runOnKeys.KeyWasReleased and -1 or 1
+	return self.data.runOnKeys.KeyWasReleased and 1 or -1
 end
 
 -- Returns the key which caused the keyClk event to trigger
