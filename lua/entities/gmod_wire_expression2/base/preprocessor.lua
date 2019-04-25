@@ -112,6 +112,8 @@ function PreProcessor:RemoveComments(line)
 					if incPos then
 						ret = ret .. line:sub(lastpos, incEndPos)
 						lastpos = incEndPos + 1
+					elseif line:sub(pos + 1, pos + 7) == "include" then
+						ret = ret .. line:sub(lastpos)
 					else
 						ret = ret .. line:sub(lastpos, pos - 1)
 						self:HandlePPCommand(line:sub(pos + 1))
