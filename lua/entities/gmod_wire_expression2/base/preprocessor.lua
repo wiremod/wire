@@ -108,7 +108,7 @@ function PreProcessor:RemoveComments(line)
 					self.blockcomment = true -- We're now inside a block comment
 				elseif type == "normal" then -- We found a # instead
 					local pos = comments[i].pos
-					local incPos, incEndPos = line:sub(pos):find("#include%s*%b\"\"")
+					local incPos, incEndPos = line:sub(pos):find("#include%s+%b\"\"")
 					if incPos then
 						ret = ret .. line:sub(lastpos, incEndPos)
 						lastpos = incEndPos + 1
