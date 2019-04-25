@@ -8,6 +8,5 @@ ENT.Purpose         = ""
 ENT.Instructions    = ""
 
 ENT.Spawnable       = false
-ENT.AdminSpawnable  = false
 
 ENT.RenderGroup     = RENDERGROUP_BOTH

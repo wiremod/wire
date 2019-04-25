@@ -8,4 +8,3 @@ ENT.Purpose        = "EGP Hud"
 ENT.Instructions   = "WireLink To E2"
 
 ENT.Spawnable      = false
-ENT.AdminSpawnable = false
