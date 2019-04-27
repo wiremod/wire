@@ -518,9 +518,9 @@ e2function string toUnicodeChar(...)
 	local codepoints = {}
 	for i = 1, count do
 		local value = args[i]
-		if typeids[i] == "n" and isnumber(value) then -- Accept a number only.
-			value = math_floor(value)                 -- Convert into integer.
-			if 0 <= value and value <= 0xFFFF then    -- Check for valid range.
+		if typeids[i] == "n" and isnumber(value) then
+			value = math_floor(value)
+			if 0 <= value and value <= 0x10FFFF then
 				codepoints[#codepoints + 1] = value
 			end
 		end
@@ -536,9 +536,9 @@ e2function string toUnicodeChar(array args)
 	local codepoints = {}
 	for i = 1, count do
 		local value = args[i]
-		if isnumber(value) then                     -- Accept a number only.
-			value = math_floor(value)               -- Convert into integer.
-			if 0 <= value and value <= 0xFFFF then  -- Check for valid range.
+		if isnumber(value) then
+			value = math_floor(value)
+			if 0 <= value and value <= 0x10FFFF then
 				codepoints[#codepoints + 1] = value
 			end
 		end
@@ -550,7 +550,9 @@ end
 --- Returns the Unicode code-points from the given UTF-8 string.
 e2function array string:toUnicodeByte(number startPos, number endPos)
 	if #this == 0 then return {} end
-	local codepoints = { utf8_byte(this, startPos, endPos) }
+	local codepoints = { pcall(utf8_byte, this, startPos, endPos) }
+	local ok = table.remove(codepoints, 1)
+	if not ok then return {} end
 	self.prf = self.prf + #codepoints * 0.001
 	return codepoints
 end
@@ -558,12 +560,11 @@ end
 --- Returns the length of the given UTF-8 string.
 e2function number string:unicodeLength(number startPos, number endPos)
 	if #this == 0 then return 0 end
-	local length = utf8_len(this, startPos, endPos) -- Returns false if an invalid byte is found.
-	if isnumber(length) then -- Success.
+	local ok, length = pcall(utf8_len, this, startPos, endPos)
+	if ok and isnumber(length) then
 		self.prf = self.prf + length * 0.001
 		return length
 	end
-	-- Failure.
 	self.prf = self.prf + #this * 0.001
 	return -1
 end
