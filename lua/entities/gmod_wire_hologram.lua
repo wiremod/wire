@@ -6,7 +6,7 @@ ENT.DisableDuplicator = true
 
 function ENT:SetPlayer(ply)
 	self:SetVar("Founder", ply)
-	self:SetVar("FounderIndex", ply:UniqueID())
+	self:SetVar("FounderIndex", ply:AccountID())
 
 	self:SetNWString("FounderName", ply:Nick())
 end

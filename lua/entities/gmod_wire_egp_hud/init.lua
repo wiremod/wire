@@ -39,12 +39,12 @@ end
 
 function ENT:SetEGPOwner( ply )
 	self.ply = ply
-	self.plyID = ply:UniqueID()
+	self.plyID = ply:AccountID()
 end
 
 function ENT:GetEGPOwner()
 	if (!self.ply or !self.ply:IsValid()) then
-		local ply = player.GetByUniqueID( self.plyID )
+		local ply = player.GetByAccountID( self.plyID )
 		if (ply) then self.ply = ply end
 		return ply
 	else

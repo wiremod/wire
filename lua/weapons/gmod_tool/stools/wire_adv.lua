@@ -137,7 +137,7 @@ if SERVER then
 		local width    = tool:GetClientNumber("width")
 		local color    = Color(tool:GetClientNumber("r"), tool:GetClientNumber("g"), tool:GetClientNumber("b"))
 
-		local uid = ply:UniqueID()
+		local uid = ply:AccountID()
 
 		for i=1,#wirings do
 			local wiring = wirings[i]

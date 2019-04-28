@@ -429,7 +429,7 @@ function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 		self:PCallHook('destruct')
 	end
 
-	self.uid = IsValid(self.player) and self.player:UniqueID() or "World"
+	self.uid = IsValid(self.player) and self.player:AccountID() or "World"
 	self:SetColor(Color(255, 255, 255, self:GetColor().a))
 
 	if forcecompile or self:IsCodeDifferent(buffer, includes) then
