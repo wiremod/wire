@@ -4,3 +4,5 @@ E2Helper.Descriptions["deleteWire(e:s)"] = "Unwires the specified input of the e
 E2Helper.Descriptions["getWireInputs(e:)"] = "Returns array of all inputs of the entity"
 E2Helper.Descriptions["getWireOutputs(e:)"] = "Returns array of all outputs of the entity"
 E2Helper.Descriptions["wirelink(e:)"] = "Returns entity's wirelink"
+E2Helper.Descriptions["linkComponent(e:e)"] = "Attempts to create a link between entities (i.e. can be used to link the vehicle to the camera controller)"
+E2Helper.Descriptions["unlinkComponent(e:e)"] = "Attempts to remove a link from the given (wire) entity"

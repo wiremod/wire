@@ -1,5 +1,5 @@
 -- Originally by Jeremydeath, updated by Nebual + Natrim's wirelink
-E2Lib.RegisterExtension("wiring", false, "Allows the creation and deletion of wires between entities and getting wirelinks.")
+E2Lib.RegisterExtension("wiring", false, "Allows the creation and deletion of wires/links between entities and getting wirelinks.")
 
 __e2setcost(30)
 
@@ -105,4 +105,26 @@ e2function wirelink entity:wirelink()
 		WireLib.CreateWirelinkOutput( self.player, this, {true} )
 	end
 	return this
+end
+
+__e2setcost(30)
+
+--- Attempts to create a link between entities (i.e. can be used to link the vehicle to the camera controller)
+e2function number entity:linkComponent(entity ent)
+	if not (IsValid(this) and IsValid(ent)) then return 0 end
+	if not this.IsWire then return 0 end
+	if not isfunction(this.LinkEnt) then return 0 end
+	if not (isOwner(self, this) and isOwner(self, ent)) then return 0 end
+	local success, ret = pcall(this.LinkEnt, this, ent) -- Better safe than sorry.
+	return success and ret == true -- Some return a nil value instead of false, strong equality is a must-have here.
+end
+
+--- Attempts to remove a link from the given (wire) entity
+e2function number entity:unlinkComponent(entity ent)
+	if not (IsValid(this) and IsValid(ent)) then return 0 end
+	if not this.IsWire then return 0 end
+	if not isfunction(this.UnlinkEnt) then return 0 end
+	if not (isOwner(self, this) and isOwner(self, ent)) then return 0 end
+	local success, ret = pcall(this.UnlinkEnt, this, ent) -- Better safe than sorry.
+	return success and ret == true -- Some return a nil value instead of false, strong equality is a must-have here.
 end
