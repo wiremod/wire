@@ -116,7 +116,7 @@ e2function number entity:linkComponent(entity ent)
 	if not isfunction(this.LinkEnt) then return 0 end
 	if not (isOwner(self, this) and isOwner(self, ent)) then return 0 end
 	local success, ret = pcall(this.LinkEnt, this, ent) -- Better safe than sorry.
-	return success and ret == true -- Some return a nil value instead of false, strong equality is a must-have here.
+	return success and ret == true and 1 or 0 -- Some return a nil value instead of false, strong equality is a must-have here.
 end
 
 --- Attempts to remove a link from the given (wire) entity
@@ -126,5 +126,5 @@ e2function number entity:unlinkComponent(entity ent)
 	if not isfunction(this.UnlinkEnt) then return 0 end
 	if not (isOwner(self, this) and isOwner(self, ent)) then return 0 end
 	local success, ret = pcall(this.UnlinkEnt, this, ent) -- Better safe than sorry.
-	return success and ret == true -- Some return a nil value instead of false, strong equality is a must-have here.
+	return success and ret == true and 1 or 0 -- Some return a nil value instead of false, strong equality is a must-have here.
 end
