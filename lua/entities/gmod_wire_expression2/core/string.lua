@@ -508,29 +508,7 @@ local unpack = unpack
 local isnumber = isnumber
 local utf8_len = utf8.len
 
-__e2setcost(1)
-
---- Returns the UTF-8 string from the given Unicode code-points.
-e2function string toUnicodeChar(...)
-	local args = { ... }
-	local count = #args
-	if count == 0 then return "" end
-	local codepoints = {}
-	for i = 1, count do
-		local value = args[i]
-		if typeids[i] == "n" and isnumber(value) then
-			value = math_floor(value)
-			if 0 <= value and value <= 0x10FFFF then
-				codepoints[#codepoints + 1] = value
-			end
-		end
-	end
-	self.prf = self.prf + count * 0.001
-	return utf8_char(unpack(codepoints))
-end
-
---- Returns the UTF-8 string from the given Unicode code-points.
-e2function string toUnicodeChar(array args)
+local function ToUnicodeChar(self, args)
 	local count = #args
 	if count == 0 then return "" end
 	local codepoints = {}
@@ -545,6 +523,18 @@ e2function string toUnicodeChar(array args)
 	end
 	self.prf = self.prf + count * 0.001
 	return utf8_char(unpack(codepoints))
+end
+
+__e2setcost(1)
+
+--- Returns the UTF-8 string from the given Unicode code-points.
+e2function string toUnicodeChar(...)
+	return ToUnicodeChar(self, { ... })
+end
+
+--- Returns the UTF-8 string from the given Unicode code-points.
+e2function string toUnicodeChar(array args)
+	return ToUnicodeChar(self, args)
 end
 
 --- Returns the Unicode code-points from the given UTF-8 string.
