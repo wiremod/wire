@@ -525,7 +525,7 @@ e2function string toUnicodeChar(...)
 			end
 		end
 	end
-	self.prf = self.prf + #codepoints * 0.001
+	self.prf = self.prf + count * 0.001
 	return utf8_char(unpack(codepoints))
 end
 
@@ -543,7 +543,7 @@ e2function string toUnicodeChar(array args)
 			end
 		end
 	end
-	self.prf = self.prf + #codepoints * 0.001
+	self.prf = self.prf + count * 0.001
 	return utf8_char(unpack(codepoints))
 end
 
