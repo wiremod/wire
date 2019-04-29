@@ -25,7 +25,7 @@ util.AddNetworkString("wire_holograms_set_player_color")
 
 
 -- context = chip.context = self
--- uid = context.uid = self.uid = chip.uid = player:AccountID()
+-- uid = context.uid = self.uid = chip.uid = player:SteamID()
 -- Holo = { ent = prop, scale = scale, e2owner = context }
 -- E2HoloRepo[uid][-index] = Holo <-- global holos
 -- E2HoloRepo[uid][Holo] = Holo <-- local holos

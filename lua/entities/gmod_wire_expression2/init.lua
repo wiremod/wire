@@ -429,7 +429,7 @@ function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 		self:PCallHook('destruct')
 	end
 
-	self.uid = IsValid(self.player) and self.player:AccountID() or "World"
+	self.uid = IsValid(self.player) and self.player:SteamID() or "World"
 	self:SetColor(Color(255, 255, 255, self:GetColor().a))
 
 	if forcecompile or self:IsCodeDifferent(buffer, includes) then
@@ -557,10 +557,10 @@ hook.Add("EntityRemoved", "Wire_Expression2_Player_Disconnected", function(ent)
 	end
 end)
 
-hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
+hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid)
 	local c
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
-		if (ent.uid == uid) then
+		if (ent.uid == sid) then
 			ent.context.player = ply
 			ent.player = ply
 			ent:SetNWEntity("player", ply)
