@@ -739,7 +739,6 @@ GateActions["entity_setmass"] = {
 	name = "Set Mass",
 	inputs = { "Ent" , "Val" },
 	inputtypes = { "ENTITY" , "NORMAL" },
-	timed = true,
 	output = function(gate, Ent, Val )
 		if !Ent:IsValid() then return end
 		if !Ent:GetPhysicsObject():IsValid() then return end
@@ -781,7 +780,6 @@ GateActions["entity_setcol"] = {
 	name = "Set Color",
 	inputs = { "Ent" , "Col" },
 	inputtypes = { "ENTITY" , "VECTOR" },
-	timed = true,
 	output = function(gate, Ent, Col )
 		if !Ent:IsValid() then return end
 		if not gamemode.Call("CanTool", WireLib.GetOwner(gate), WireLib.dummytrace(Ent), "color") then return end
