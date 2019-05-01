@@ -286,7 +286,7 @@ registerCallback("destruct",function(self)
 end)
 
 local function UpdateKeys(ply, bind, key, state)
-	local uid = ply:AccountID()
+	local uid = ply:UserID()
 
 	local keystate = {
 		runByKey = ply,
@@ -333,7 +333,7 @@ local function toggleRunOnKeys(self,ply,on,filter)
 	if not IsValid(ply) or not ply:IsPlayer() then return end
 
 	local ent = self.entity
-	local uid = ply:AccountID()
+	local uid = ply:UserID()
 
 	if on ~= 0 then
 		if not KeyAlert[ent] then KeyAlert[ent] = {} end

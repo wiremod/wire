@@ -164,7 +164,7 @@ end
 
 -- Hook this player to the HUD Indicator
 function ENT:RegisterPlayer(ply, hookhidehud, podonly)
-	local plyuid = ply:AccountID()
+	local plyuid = ply:UserID()
 	local eindex = self:EntIndex()
 
 	-- If player is already registered, this will send an update
@@ -196,18 +196,18 @@ function ENT:UnRegisterPlayer(ply)
 	umsg.Start("HUDIndicatorUnRegister", ply)
 		umsg.Short(self:EntIndex())
 	umsg.End()
-	self.RegisteredPlayers[ply:AccountID()] = nil
+	self.RegisteredPlayers[ply:UserID()] = nil
 end
 
 -- Is this player registered?
 function ENT:CheckRegister(ply)
-	return self.RegisteredPlayers[ply:AccountID()] ~= nil
+	return self.RegisteredPlayers[ply:UserID()] ~= nil
 end
 
 -- Is this player registered only because he is in a linked pod?
 function ENT:CheckPodOnly(ply)
 	if not ply or not ply:IsValid() then return false end
-	local plyuid = ply:AccountID()
+	local plyuid = ply:UserID()
 	return self.RegisteredPlayers[plyuid] ~= nil and self.RegisteredPlayers[plyuid].podonly
 end
 

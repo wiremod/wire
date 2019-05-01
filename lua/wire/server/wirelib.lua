@@ -685,8 +685,8 @@ function WireLib.WireAll(ply, ient, oent, ipos, opos, material, color, width)
 
 	for iname, _ in pairs(ient.Inputs) do
 		if oent.Outputs[iname] then
-			WireLib.Link_Start(ply:AccountID(), ient, ipos, iname, material or "arrowire/arrowire2", color or Color(255,255,255), width or 0)
-			WireLib.Link_End(ply:AccountID(), oent, opos, iname, ply)
+			WireLib.Link_Start(1, ient, ipos, iname, material or "arrowire/arrowire2", color or Color(255,255,255), width or 0) -- Divran, I'm trusting you on using 1 as index here instead
+			WireLib.Link_End(1, oent, opos, iname, ply)
 		end
 	end
 end
@@ -786,7 +786,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 	end
 
 	local idx = 0
-	if IsValid(ply) then idx = ply:AccountID() end -- Map Save loading does not have a ply
+	if IsValid(ply) then idx = ply:AccountID() or 0 end -- Map Save loading does not have a ply
 	if (info.Wires) then
 		for k,input in pairs(info.Wires) do
 			local ent2 = GetEntByID(input.Src)

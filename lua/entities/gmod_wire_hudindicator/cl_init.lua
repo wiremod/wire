@@ -20,7 +20,7 @@ local semicircletexid = surface.GetTextureID("hudindicator/hi_semicircle")
 -- B) is not registered as pod-only
 function ENT:ClientCheckRegister()
 	local ply = LocalPlayer()
-	local plyuid = ply:AccountID()
+	local plyuid = ply:UserID()
 	return ply ~= self:GetPlayer() and not self:GetNWBool(plyuid)
 end
 

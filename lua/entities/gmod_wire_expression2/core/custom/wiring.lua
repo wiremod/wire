@@ -18,8 +18,8 @@ e2function number entity:createWire(entity ent2, string inputname, string output
 
 	local trigger = self.entity.trigger
 	self.entity.trigger = { false, {} } -- So the wire creation doesn't execute the E2 immediately because an input changed
-	WireLib.Link_Start(self.player:AccountID(), this, this:WorldToLocal(this:GetPos()), inputname, "cable/rope", Vector(255,255,255), 0)
-	WireLib.Link_End(self.player:AccountID(), ent2, ent2:WorldToLocal(ent2:GetPos()), outputname, self.player)
+	WireLib.Link_Start(1, this, this:WorldToLocal(this:GetPos()), inputname, "cable/rope", Vector(255,255,255), 0) -- Divran, I'm trusting you on using 1 as index here instead
+	WireLib.Link_End(1, ent2, ent2:WorldToLocal(ent2:GetPos()), outputname, self.player)
 	self.entity.trigger = trigger
 
 	return 1
@@ -51,8 +51,8 @@ e2function number entity:createWire(entity ent2, string inputname, string output
 
 	local trigger = self.entity.trigger
 	self.entity.trigger = { false, {} } -- So the wire creation doesn't execute the E2 immediately because an input changed
-	WireLib.Link_Start(self.player:AccountID(), this, this:WorldToLocal(this:GetPos()), inputname, mat, Vector(color[1],color[2],color[3]), width or 1)
-	WireLib.Link_End(self.player:AccountID(), ent2, ent2:WorldToLocal(ent2:GetPos()), outputname, self.player)
+	WireLib.Link_Start(1, this, this:WorldToLocal(this:GetPos()), inputname, mat, Vector(color[1],color[2],color[3]), width or 1) -- Divran, I'm trusting you on using 1 as index here instead
+	WireLib.Link_End(1, ent2, ent2:WorldToLocal(ent2:GetPos()), outputname, self.player)
 	self.entity.trigger = trigger
 
 	return 1

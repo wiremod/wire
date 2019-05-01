@@ -1227,7 +1227,7 @@ concommand.Add( "wire_holograms_block", function( ply, com, args )
 		if BlockList[v:SteamID()] == true then
 			ConsoleMessage( ply, v:GetName() .. " is already in the holograms blocklist!" )
 		else
-			local uid = v:AccountID()
+			local uid = v:SteamID()
 			if E2HoloRepo[uid] then
 				for k2,v2 in pairs( E2HoloRepo[uid] ) do
 					if v2 and IsValid(v2.ent) then
@@ -1298,7 +1298,7 @@ concommand.Add( "wire_holograms_block_id", function( ply, com, args )
 		local uid
 		for _,v in pairs( player.GetAll() ) do
 			if v:SteamID() == steamID then
-				uid = v:AccountID()
+				uid = v:SteamID()
 				if (E2HoloRepo[uid]) then
 					for k2,v2 in pairs( E2HoloRepo[uid] ) do
 						if v2 and IsValid(v2.ent) then
