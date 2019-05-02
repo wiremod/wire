@@ -27,8 +27,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 [Garry's Mod]: <http://garrysmod.com/>
 [workshop]: <http://steamcommunity.com/sharedfiles/filedetails/?id=160250458>
-[Wiremod landing page]: <http://wiremod.com>
-[Wiremod Official Discord]: <https://discord.gg/H8UKY3Y>
+[Wiremod landing page](http://wiremod.com)
+[Wiremod Official Discord](https://discord.gg/H8UKY3Y)
 
 # Contributor Guidelines
 
