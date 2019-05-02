@@ -149,10 +149,6 @@ function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 		if gravity ~= nil then phys:EnableGravity( gravity ~= 0 ) end
 		if notsolid ~= nil then this:SetSolid( notsolid ~= 0 and SOLID_NONE or SOLID_VPHYSICS ) end
 		phys:Wake()
-		if !phys:IsMoveable() then
-			phys:EnableMotion( true )
-			phys:EnableMotion( false )
-		end
 	end
 end
 
