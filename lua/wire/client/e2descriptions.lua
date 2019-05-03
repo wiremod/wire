@@ -1488,6 +1488,12 @@ E2Helper.Descriptions["soundVolume(sn)"] = "soundVolume(string Index, Volume), w
 E2Helper.Descriptions["soundVolume(nn)"] = "soundVolume(integer Index, Volume), where Volume is a number between 0 and 1. Default Volume is 1"
 E2Helper.Descriptions["soundVolume(nnn)"] = "soundVolume(integer Index, Volume, FadeTime), where Volume is a number between 0 and 1. Default Volume is 1"
 
+-- UTF-8
+E2Helper.Descriptions["toUnicodeChar(...)"] = "Returns the UTF-8 string from the given Unicode code-points"
+E2Helper.Descriptions["toUnicodeChar(r)"] = "Returns the UTF-8 string from the given Unicode code-points"
+E2Helper.Descriptions["toUnicodeByte(s:nn)"] = "Returns the Unicode code-points from the given UTF-8 string"
+E2Helper.Descriptions["unicodeLength(s:nn)"] = "Returns the length of the given UTF-8 string"
+
 ---- Custom ----
 -- Effect
 E2Helper.Descriptions["effect()"] = "Creates and returns new effect"

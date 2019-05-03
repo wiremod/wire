@@ -502,3 +502,59 @@ e2function string string:matchFirst(string pattern, position)
 		return Ret or ""
 	end
 end
+
+/******************************************************************************/
+local unpack = unpack
+local isnumber = isnumber
+local utf8_len = utf8.len
+
+local function ToUnicodeChar(self, args)
+	local count = #args
+	if count == 0 then return "" end
+	local codepoints = {}
+	for i = 1, count do
+		local value = args[i]
+		if isnumber(value) then
+			value = math_floor(value)
+			if 0 <= value and value <= 0x10FFFF then
+				codepoints[#codepoints + 1] = value
+			end
+		end
+	end
+	self.prf = self.prf + count * 0.001
+	return utf8_char(unpack(codepoints))
+end
+
+__e2setcost(1)
+
+--- Returns the UTF-8 string from the given Unicode code-points.
+e2function string toUnicodeChar(...)
+	return ToUnicodeChar(self, { ... })
+end
+
+--- Returns the UTF-8 string from the given Unicode code-points.
+e2function string toUnicodeChar(array args)
+	return ToUnicodeChar(self, args)
+end
+
+--- Returns the Unicode code-points from the given UTF-8 string.
+e2function array string:toUnicodeByte(number startPos, number endPos)
+	if #this == 0 then return {} end
+	local codepoints = { pcall(utf8_byte, this, startPos, endPos) }
+	local ok = table.remove(codepoints, 1)
+	if not ok then return {} end
+	self.prf = self.prf + #codepoints * 0.001
+	return codepoints
+end
+
+--- Returns the length of the given UTF-8 string.
+e2function number string:unicodeLength(number startPos, number endPos)
+	if #this == 0 then return 0 end
+	local ok, length = pcall(utf8_len, this, startPos, endPos)
+	if ok and isnumber(length) then
+		self.prf = self.prf + length * 0.001
+		return length
+	end
+	self.prf = self.prf + #this * 0.001
+	return -1
+end
