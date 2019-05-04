@@ -219,11 +219,26 @@ function Tokenizer:NextSymbol()
 
 			if self.character == "\\" then
 				self:SkipCharacter()
-				if self.character == "n" then
+				if self.character == "a" then
+					self.tokendata = self.tokendata .. "\a"
+					self:SkipCharacter()
+				elseif self.character == "b" then
+					self.tokendata = self.tokendata .. "\b"
+					self:SkipCharacter()
+				elseif self.character == "f" then
+					self.tokendata = self.tokendata .. "\f"
+					self:SkipCharacter()
+				elseif self.character == "n" then
 					self.tokendata = self.tokendata .. "\n"
+					self:SkipCharacter()
+				elseif self.character == "r" then
+					self.tokendata = self.tokendata .. "\r"
 					self:SkipCharacter()
 				elseif self.character == "t" then
 					self.tokendata = self.tokendata .. "\t"
+					self:SkipCharacter()
+				elseif self.character == "v" then
+					self.tokendata = self.tokendata .. "\v"
 					self:SkipCharacter()
 				else
 					self:NextCharacter()
