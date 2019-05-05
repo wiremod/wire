@@ -605,6 +605,16 @@ e2function void entity:ejectPod()
 	if IsValid(ply) then ply:ExitVehicle() end
 end
 
+e2function void entity:podStripWeapons()
+	if not IsValid(this) or not this:IsVehicle() then return end
+	if not isOwner(self, this) then return end
+	local ply = this:GetDriver()
+	if IsValid(ply) then
+		ply:StripWeapons()
+		ply:ChatPrint("Your weapons have been stripped!")
+	end
+end
+
 /******************************************************************************/
 
 __e2setcost(10)
