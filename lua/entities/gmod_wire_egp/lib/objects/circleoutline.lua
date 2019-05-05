@@ -6,23 +6,26 @@ Obj.fidelity = 180
 local cos, sin, rad, floor = math.cos, math.sin, math.rad, math.floor
 Obj.Draw = function( self )
 	if (self.a>0 and self.w > 0 and self.h > 0) then
-		local vertices = {}
-		local ang = -rad(self.angle)
-		local c = cos(ang)
-		local s = sin(ang)
-		for radd=0, 2*math.pi*(1 - 0.5/self.fidelity), 2*math.pi/self.fidelity do
-			local x = cos(radd)
-			local y = sin(radd)
+		if EGP:CacheNeedsUpdate(self, {"x", "y", "w", "h", "angle", "fidelity"}) then
+			local vertices = {}
+			local ang = -rad(self.angle)
+			local c = cos(ang)
+			local s = sin(ang)
+			for radd=0, 2*math.pi*(1 - 0.5/self.fidelity), 2*math.pi/self.fidelity do
+				local x = cos(radd)
+				local y = sin(radd)
 
-			local tempx = x * self.w * c - y * self.h * s + self.x
-			y = x * self.w * s + y * self.h * c + self.y
-			x = tempx
+				local tempx = x * self.w * c - y * self.h * s + self.x
+				y = x * self.w * s + y * self.h * c + self.y
+				x = tempx
 
-			vertices[#vertices+1] = { x = x, y = y, u = u, v = v }
+				vertices[#vertices+1] = { x = x, y = y, u = u, v = v }
+			end
+			self.vert_cache.verts = vertices
 		end
 
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
-		EGP:DrawPath(vertices, self.size, true)
+		EGP:DrawPath(self.vert_cache.verts, self.size, true)
 	end
 end
 Obj.Transmit = function( self )
