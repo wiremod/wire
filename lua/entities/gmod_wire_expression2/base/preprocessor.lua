@@ -263,7 +263,6 @@ function PreProcessor:Process(buffer, directives, ent)
 			persist = { {}, {}, {} },
 			delta = { {}, {}, {} },
 			trigger = { nil, {} },
-			rawinputs = {}
 		}
 	else
 		self.directives = directives
