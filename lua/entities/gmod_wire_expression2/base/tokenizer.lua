@@ -145,43 +145,34 @@ function Tokenizer:NextSymbol()
 
 	elseif self:NextPattern("^[a-z#][a-zA-Z0-9_]*") then
 		-- keywords/functions
-		if self.tokendata == "if" then
-			tokenname = "if"
-		elseif self.tokendata == "elseif" then
-			tokenname = "eif"
-		elseif self.tokendata == "else" then
-			tokenname = "els"
-		elseif self.tokendata == "local" then
-			tokenname = "loc"
-		elseif self.tokendata == "while" then
-			tokenname = "whl"
-		elseif self.tokendata == "for" then
-			tokenname = "for"
-		elseif self.tokendata == "break" then
-			tokenname = "brk"
-		elseif self.tokendata == "continue" then
-			tokenname = "cnt"
-		elseif self.tokendata == "switch" then
-			tokenname = "swh"
-		elseif self.tokendata == "case" then
-			tokenname = "case"
-		elseif self.tokendata == "default" then
-			tokenname = "default"
-		elseif self.tokendata == "foreach" then
-			tokenname = "fea"
-		elseif self.tokendata == "function" then
-			tokenname = "func"
-		elseif self.tokendata == "return" then
-			tokenname = "ret"
-		elseif self.tokendata == "void" then
-			tokenname = "void"
-		elseif self.tokendata == "#include" then
-			tokenname = "inclu"
+		local keywords_and_tokens = {
+			["if"] = "if",
+			["elseif"] = "eif",
+			["else"] = "els",
+			["local"] = "loc",
+			["while"] = "whl",
+			["for"] = "for",
+			["break"] = "brk",
+			["continue"] = "cnt",
+			["switch"] = "swh",
+			["case"] = "case",
+			["default"] = "default",
+			["foreach"] = "fea",
+			["function"] = "func",
+			["return"] = "ret",
+			["void"] = "void",
+			["#include"] = "inclu"
+		}
+
+		if keywords_and_tokens[self.tokendata] ~= nil then
+			tokenname = keywords_and_tokens[self.tokendata]
 		elseif self.tokendata:match("^[ijk]$") and self.character ~= "(" then
-			tokenname, self.tokendata = "num", "1" .. self.tokendata
+			tokenname = "num"
+			self.tokendata = "1" .. self.tokendata
 		else
 			tokenname = "fun"
 		end
+
 
 	elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
 		-- variables
@@ -205,6 +196,17 @@ function Tokenizer:NextSymbol()
 		end
 
 	elseif self.character == "\"" then
+		-- special sequences to not escape (\n, \r, ...)
+		local special_escape_seqs = {
+			["a"] = "\a",
+			["b"] = "\b",
+			["f"] = "\f",
+			["n"] = "\n",
+			["r"] = "\r",
+			["t"] = "\t",
+			["v"] = "\v"
+		}
+
 		-- strings
 
 		-- skip opening quotation mark
@@ -219,26 +221,8 @@ function Tokenizer:NextSymbol()
 
 			if self.character == "\\" then
 				self:SkipCharacter()
-				if self.character == "a" then
-					self.tokendata = self.tokendata .. "\a"
-					self:SkipCharacter()
-				elseif self.character == "b" then
-					self.tokendata = self.tokendata .. "\b"
-					self:SkipCharacter()
-				elseif self.character == "f" then
-					self.tokendata = self.tokendata .. "\f"
-					self:SkipCharacter()
-				elseif self.character == "n" then
-					self.tokendata = self.tokendata .. "\n"
-					self:SkipCharacter()
-				elseif self.character == "r" then
-					self.tokendata = self.tokendata .. "\r"
-					self:SkipCharacter()
-				elseif self.character == "t" then
-					self.tokendata = self.tokendata .. "\t"
-					self:SkipCharacter()
-				elseif self.character == "v" then
-					self.tokendata = self.tokendata .. "\v"
+				if special_escape_seqs[self.character] ~= nil then
+					self.tokendata = self.tokendata .. special_escape_seqs[self.character]
 					self:SkipCharacter()
 				else
 					self:NextCharacter()
