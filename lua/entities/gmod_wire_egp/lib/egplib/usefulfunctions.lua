@@ -259,92 +259,6 @@ function EGP:DrawLine( x, y, x2, y2, size )
 end
 
 function EGP:DrawPath( vertices, size, closed )
-	if false then
-		EGP:DrawPathPoly(vertices, size, closed)
-		return 1
-	end
-
-	if size < 1 then size = 1 end
-	local num = #vertices
-
-	if size == 1 then
-		local last = vertices[1]
-		for i=2, num do
-			local v = vertices[i]
-			surface.DrawLine( last.x, last.y, v.x, v.y )
-			last = v
-		end
-		if closed then
-			surface.DrawLine( last.x, last.y, vertices[1].x, vertices[1].y )
-		end
-	else
-		local x1 = vertices[1].x
-		local y1 = vertices[1].y
-
-		for i=2, closed and num+1 or num do
-			local v2 = i==num+1 and vertices[1] or vertices[i]
-			local x2 = v2.x
-			local y2 = v2.y
-			local tempx = x2
-			local tempy = y2
-
-			local len = math.sqrt( (x2-x1) ^ 2 + (y2-y1) ^ 2 )
-			local dir = {x=(x2-x1)/len, y=(y2-y1)/len}
-
-			if closed and i==2 then
-				-- Offset start point to match with closing line
-				local x0 = vertices[num-1].x
-				local y0 = vertices[num-1].y
-				local len0 = math.sqrt( (x1-x0) ^ 2 + (y1-y0) ^ 2 )
-				local dir0 = {x=(x1-x0)/len0, y=(y1-y0)/len0}
-
-				local dot = dir0.x*dir.x + dir0.y*dir.y -- angle between previous line segment and this one
-				if dot>=0 then
-					local shift = size/2 * math.tan(math.acos(dot)/2)
-					x1 = x1 - shift * dir.x
-					y1 = y1 - shift * dir.y
-					len = len+shift
-				end
-			end
-
-			if closed or i<num then
-				-- Offset end point to match with next line
-				local v3 = i<num and vertices[i+1] or vertices[i+1-num]
-				local x3 = v3.x
-				local y3 = v3.y
-				local len2 = math.sqrt( (x3-x2) ^ 2 + (y3-y2) ^ 2 )
-				local dir2 = {x=(x3-x2)/len2, y=(y3-y2)/len2}
-
-				local dot = dir.x*dir2.x + dir.y*dir2.y -- angle between current line segment and the next one
-				if dot>=0 then
-					local shift = size/2 * math.tan(math.acos(dot)/2)
-					x2 = x2 + shift * dir.x
-					y2 = y2 + shift * dir.y
-					len = len+shift
-
-					tempx = tempx - shift * dir2.x
-					tempy = tempy - shift * dir2.y
-				end
-			end
-			-- Calculate position
-			local xc = (x1 + x2) / 2
-			local yc = (y1 + y2) / 2
-
-			-- Calculate angle (Thanks to Fizyk)
-			local angle = math.deg(math.atan2(y1-y2,x2-x1))
-
-			-- if the rectangle's less than a pixel wide, nothing will get drawn.
-			if len < 1 then len = 1 end
-
-			surface.DrawTexturedRectRotated( math.Round(xc), math.Round(yc), math.ceil(len), size, angle )
-
-			x1 = tempx
-			y1 = tempy
-		end
-	end
-end
-
-function EGP:DrawPathPoly( vertices, size, closed )
 	if size < 1 then size = 1 end
 	local num = #vertices
 
@@ -398,11 +312,21 @@ function EGP:DrawPathPoly( vertices, size, closed )
 						elseif dir.x*-lastdir.y+dir.y*lastdir.x>0 then -- right bend, checked by getting the dot product between dir and lastDir:rotate(90)
 							local offsetx = -lastdir.y*size-lastdir.x*scaling
 							local offsety = lastdir.x*size-lastdir.y*scaling
-							corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-offsetx, y=y1-offsety}}
+							if dot<0 then -- sharp corner, add two points to the outer edge to not have insanely long spikes
+								corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1+(lastdir.x+lastdir.y)*size, y=y1+(lastdir.y-lastdir.x)*size}}
+								corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-(dir.x-dir.y)*size, y=y1-(dir.y+dir.x)*size}}
+							else
+								corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-offsetx, y=y1-offsety}}
+							end
 						else -- left bend
 							local offsetx = lastdir.y*size-lastdir.x*scaling
 							local offsety = -lastdir.x*size-lastdir.y*scaling
-							corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-offsetx, y=y1-offsety}}
+							if dot<0 then
+								corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1+(lastdir.x-lastdir.y)*size, y=y1+(lastdir.y+lastdir.x)*size}}
+								corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-(dir.x+dir.y)*size, y=y1-(dir.y-dir.x)*size}}
+							else
+								corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-offsetx, y=y1-offsety}}
+							end
 						end
 					end
 					lastdir = dir
