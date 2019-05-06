@@ -3,7 +3,7 @@ local Obj = EGP:NewObject( "CircleOutline" )
 Obj.angle = 0
 Obj.size = 1
 Obj.fidelity = 180
-local cos, sin, rad, floor = math.cos, math.sin, math.rad, math.floor
+local cos, sin, rad = math.cos, math.sin, math.rad
 Obj.Draw = function( self )
 	if (self.a>0 and self.w > 0 and self.h > 0) then
 		if EGP:CacheNeedsUpdate(self, {"x", "y", "w", "h", "angle", "fidelity"}) then
@@ -19,7 +19,7 @@ Obj.Draw = function( self )
 				y = x * self.w * s + y * self.h * c + self.y
 				x = tempx
 
-				vertices[#vertices+1] = { x = x, y = y, u = u, v = v }
+				vertices[#vertices+1] = { x = x, y = y }
 			end
 			self.vert_cache.verts = vertices
 		end

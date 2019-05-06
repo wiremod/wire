@@ -5,7 +5,7 @@ Obj.size = 45
 Obj.fidelity = 180
 local rad, cos, sin = math.rad, math.cos, math.sin
 Obj.Draw = function( self )
-	if (self.a>0 and self.w > 0 and self.h > 0 and self.size != 360) then
+	if (self.a>0 and self.w > 0 and self.h > 0 and self.size ~= 360) then
 		if EGP:CacheNeedsUpdate(self, {"x", "y", "w", "h", "angle", "fidelity", "size"}) then
 			local vertices = {}
 

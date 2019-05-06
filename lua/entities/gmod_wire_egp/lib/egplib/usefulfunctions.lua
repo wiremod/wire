@@ -240,8 +240,8 @@ function EGP:CacheNeedsUpdate(obj, keys)
 	if not obj.vert_cache then obj.vert_cache = {} end
 	local cache = obj.vert_cache
 	local update = false
-	for i,k in pairs(keys) do
-		if cache[k] != obj[k] then
+	for _,k in pairs(keys) do
+		if cache[k] ~= obj[k] then
 			update = true
 			cache[k] = obj[k]
 		end

@@ -29,7 +29,7 @@ Obj.Receive = function( self )
 	local tbl = {}
 	tbl.vertices = {}
 	for i=1,net.ReadUInt(16) do
-		tbl.vertices[ #tbl.vertices+1 ] = { x = net.ReadInt(16), y = net.ReadInt(16) }
+		tbl.vertices[ i ] = { x = net.ReadInt(16), y = net.ReadInt(16) }
 	end
 	tbl.parent = net.ReadInt(16)
 	tbl.size = net.ReadInt(16)
