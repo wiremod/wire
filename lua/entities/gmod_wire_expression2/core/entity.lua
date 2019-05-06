@@ -609,7 +609,7 @@ e2function void entity:podStripWeapons()
 	if not IsValid(this) or not this:IsVehicle() then return end
 	if not isOwner(self, this) then return end
 	local ply = this:GetDriver()
-	if IsValid(ply) then
+	if IsValid(ply) and next(ply:GetWeapons()) ~= nil then
 		ply:StripWeapons()
 		ply:ChatPrint("Your weapons have been stripped!")
 	end

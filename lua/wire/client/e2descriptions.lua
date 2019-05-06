@@ -301,6 +301,7 @@ E2Helper.Descriptions["vehicle(e:)"] = "Returns the entity of the vehicle that t
 E2Helper.Descriptions["ejectPod(e:)"] = "Ejects player in vehicle"
 E2Helper.Descriptions["lockPod(e:n)"] = "1 locks and 0 unlocks the vehicle"
 E2Helper.Descriptions["killPod(e:)"] = "Kills player in vehicle"
+E2Helper.Descriptions["podStripWeapons(e:)"] = "Strips player in vehicle"
 E2Helper.Descriptions["weapon(e:s)"] = "Returns the weapon with specified class of player E"
 E2Helper.Descriptions["weapon(e:)"] = "Returns the weapon that player E is currently holding"
 E2Helper.Descriptions["clip1(e:)"] = "Returns the amount of ammo in the primary clip of weapon E, -1 if there is no primary clip"
