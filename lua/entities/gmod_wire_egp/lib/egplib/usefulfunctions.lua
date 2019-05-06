@@ -290,7 +290,7 @@ function EGP:DrawPath( vertices, size, closed )
 	else
 		size = size/2 -- simplify calculations
 		local corners = vertices.outline_cache
-		if vertices.outline_cache_size != size then -- check if the outline was cached already
+		if vertices.outline_cache_size ~= size then -- check if the outline was cached already
 			corners = {}
 			local lastdir = {x=0, y=0}
 			if closed then
@@ -315,20 +315,22 @@ function EGP:DrawPath( vertices, size, closed )
 
 					local len = math.sqrt( (x2-x1) ^ 2 + (y2-y1) ^ 2 )
 					local dir = {x=(x2-x1)/len, y=(y2-y1)/len}
-					if x1!=x2 or y1!=y2 then -- cannot get direction between identical points, just skip it
+					if x1 ~= x2 or y1 ~= y2 then -- cannot get direction between identical points, just skip it
 						if not closed and i==1 then -- very first segment, just start perpendicular (TODO: maybe move before the loop)
 							corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size}}
 						else
 							local dot = dir.x*lastdir.x + dir.y*lastdir.y
 							local scaling = size*math.tan(math.acos(dot)/2) -- complicated math, could be also be `size*sqrt(1-dot)/sqrt(dot+1)` (no idea what is faster)
-							if dot==1 then
-								-- direction stays the same, no need for a corner, just skip this point
-							elseif dot==-1 then -- new direction is inverse, just add perpendicular nodes
+							if dot == 1 then
+								-- direction stays the same, no need for a corner, just skip this point, unless it is the last segment of a closed path (last segment of a open path is handled explicitly above)
+								if i == num+1 then
+									corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size}}
+							elseif dot == -1 then -- new direction is inverse, just add perpendicular nodes
 								corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size}}
-							elseif dir.x*-lastdir.y+dir.y*lastdir.x>0 then -- right bend, checked by getting the dot product between dir and lastDir:rotate(90)
+							elseif dir.x*-lastdir.y + dir.y*lastdir.x > 0 then -- right bend, checked by getting the dot product between dir and lastDir:rotate(90)
 								local offsetx = -lastdir.y*size-lastdir.x*scaling
 								local offsety = lastdir.x*size-lastdir.y*scaling
-								if dot<0 then -- sharp corner, add two points to the outer edge to not have insanely long spikes
+								if dot < 0 then -- sharp corner, add two points to the outer edge to not have insanely long spikes
 									corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1+(lastdir.x+lastdir.y)*size, y=y1+(lastdir.y-lastdir.x)*size}}
 									corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-(dir.x-dir.y)*size, y=y1-(dir.y+dir.x)*size}}
 								else
@@ -337,7 +339,7 @@ function EGP:DrawPath( vertices, size, closed )
 							else -- left bend
 								local offsetx = lastdir.y*size-lastdir.x*scaling
 								local offsety = -lastdir.x*size-lastdir.y*scaling
-								if dot<0 then
+								if dot < 0 then
 									corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1+(lastdir.x-lastdir.y)*size, y=y1+(lastdir.y+lastdir.x)*size}}
 									corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-(dir.x+dir.y)*size, y=y1-(dir.y-dir.x)*size}}
 								else
