@@ -325,6 +325,7 @@ function EGP:DrawPath( vertices, size, closed )
 								-- direction stays the same, no need for a corner, just skip this point, unless it is the last segment of a closed path (last segment of a open path is handled explicitly above)
 								if i == num+1 then
 									corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size}}
+								end
 							elseif dot == -1 then -- new direction is inverse, just add perpendicular nodes
 								corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size}}
 							elseif dir.x*-lastdir.y + dir.y*lastdir.x > 0 then -- right bend, checked by getting the dot product between dir and lastDir:rotate(90)
