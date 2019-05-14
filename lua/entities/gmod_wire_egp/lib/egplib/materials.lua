@@ -9,8 +9,6 @@ if (CLIENT) then
 
 	local type = type
 	local SetMaterial = surface.SetMaterial
-	local SetTexture = surface.SetTexture
-	local GetTextureID = surface.GetTextureID
 	local NoTexture = draw.NoTexture
 
 	function EGP:SetMaterial( Mat )
@@ -20,7 +18,7 @@ if (CLIENT) then
 			if (!Mat:IsValid() or !Mat.GPU or !Mat.GPU.RT) then NoTexture() return end
 			local OldTex = WireGPU_matScreen:GetTexture("$basetexture")
 			WireGPU_matScreen:SetTexture("$basetexture", Mat.GPU.RT)
-			SetTexture(GetTextureID( "sprites/GPURT" ))
+			SetMaterial(WireGPU_matScreen)
 			return OldTex
 		else
 			NoTexture()
