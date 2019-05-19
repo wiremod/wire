@@ -910,7 +910,7 @@ function ENT:WriteCell(address, value)
 		self:TriggerInput(key, value)
 		return true
 	else
-		value = tobool( value ) 
+		value = tobool( value )
 		if self[key] ~= value then
 			self[key] = value
 			self.NeedsSyncSettings = true

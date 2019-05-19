@@ -132,10 +132,10 @@ if CLIENT then
 		clip.normal = norm
 		clip.origin = origin
 
-		if localentid ~= 0 then 
-			clip.localentid = localentid 
-		else 
-			clip.localentid = nil 
+		if localentid ~= 0 then
+			clip.localentid = localentid
+		else
+			clip.localentid = nil
 		end
 	end
 

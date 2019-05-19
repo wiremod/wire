@@ -30,7 +30,7 @@ function PropCore.ValidSpawn(ply, model, isVehicle)
 	local ret -- DO NOT RETURN MID-FUNCTION OR 'LimitHit' WILL BREAK
 	local limithit = playerMeta.LimitHit
 	playerMeta.LimitHit = function() end
-	
+
 	if not PropCore.WithinPropcoreLimits() then
 		ret = false
 	elseif not (util.IsValidProp( model ) and WireLib.CanModel(ply, model)) then
@@ -40,7 +40,7 @@ function PropCore.ValidSpawn(ply, model, isVehicle)
 	else
 		ret = gamemode.Call( "PlayerSpawnProp", ply, model ) ~= false
 	end
-	
+
 	playerMeta.LimitHit = limithit
 	return ret
 end

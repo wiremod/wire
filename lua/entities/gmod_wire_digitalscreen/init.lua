@@ -110,7 +110,7 @@ local function buildData(datastr, memory, pixelbit, range, bytesRemaining)
 	datastr[lengthIndex] = lengthStr[1]
 	range.length = iend - i
 	range.start = i
-	
+
 	return bytesRemaining
 end
 

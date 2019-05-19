@@ -111,7 +111,7 @@ RTFix:Add("gmod_wire_textscreen","Text Screen", function( ent ) def( ent, "NeedR
 RTFix:Add("gmod_wire_egp","EGP",function( ent ) def( ent, "NeedsUpdate" ) end)
 
 -- EGP Emitter needs a check because it can optionally not use RTs
-RTFix:Add("gmod_wire_egp_emitter","EGP Emitter",function( ent ) 
+RTFix:Add("gmod_wire_egp_emitter","EGP Emitter",function( ent )
 	if ent:GetUseRT() then
 		def( ent, "NeedsUpdate" )
 	end

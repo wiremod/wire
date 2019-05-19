@@ -469,10 +469,10 @@ do
 	local matchSearch = {
 		["{"] = { "}", true },
 		["}"] = { "{", false },
-	
+
 		["["] = { "]", true },
 		["]"] = { "[", false },
-	
+
 		["("] = { ")", true },
 		[")"] = { "(", false },
 	}
