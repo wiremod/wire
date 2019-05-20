@@ -46,7 +46,7 @@ function TOOL:RightClick(trace)
 	local name = trace.Entity:GetNWString("WireName")
 	if (not name) then return end
 
-    self:GetOwner():ConCommand('wire_namer_name "' .. name .. '"')
+	self:GetOwner():ConCommand('wire_namer_name "' .. name .. '"')
 end
 
 

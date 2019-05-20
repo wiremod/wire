@@ -37,7 +37,7 @@ duplicator.RegisterEntityClass("gmod_wire_data_satellitedish", WireLib.MakeWireE
 function ENT:BuildDupeInfo()
 	local info = BaseClass.BuildDupeInfo(self) or {}
 	if IsValid( self.Transmitter ) then
-	    info.Transmitter = self.Transmitter:EntIndex()
+		info.Transmitter = self.Transmitter:EntIndex()
 	end
 	return info
 end

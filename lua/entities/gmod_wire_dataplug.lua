@@ -34,7 +34,7 @@ function ENT:ReadCell( Address, infloop )
 	if infloop > 50 then return end
 	Address = math.floor(Address)
 
-    if IsValid(self.Socket) and self.Socket.OwnMemory and self.Socket.OwnMemory.ReadCell then
+	if IsValid(self.Socket) and self.Socket.OwnMemory and self.Socket.OwnMemory.ReadCell then
 		return self.Socket.OwnMemory:ReadCell( Address, infloop + 1 )
 	end
 	return nil

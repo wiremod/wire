@@ -1,6 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Dual Input"
+ENT.PrintName		 = "Wire Dual Input"
 ENT.WireDebugName = "Dual Input"
 
 if CLIENT then return end -- No more client

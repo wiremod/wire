@@ -33,12 +33,12 @@ function ENT:Setup(key_more,key_less,toggle,value_min,value_max,value_start,spee
 end
 
 function ENT:TriggerInput(iname, value)
-    if(iname == "Reset")then
-        if(value != 0)then
-            self.Value = self.value_start
-            self:ShowOutput()
-	        Wire_TriggerOutput(self,"Out",self.Value)
-	    end
+	if(iname == "Reset")then
+		if(value != 0)then
+			self.Value = self.value_start
+			self:ShowOutput()
+			Wire_TriggerOutput(self,"Out",self.Value)
+		end
 	end
 end
 

@@ -1,6 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Dynamic Button"
+ENT.PrintName		 = "Wire Dynamic Button"
 ENT.WireDebugName	= "Dynamic Button"
 
 function ENT:SetupDataTables()
@@ -31,7 +31,7 @@ if CLIENT then
 		end
 	end)
 
-	return  -- No more client
+	return	-- No more client
 end
 
 ENT.OutputEntID = false
@@ -84,7 +84,7 @@ function ENT:Think()
 		or (not self.PrevUser:IsValid())
 		or (not self.podpress and not self.PrevUser:KeyDown(IN_USE))
 		or (self.podpress and not self.PrevUser:KeyDown( IN_ATTACK )) then
-		    if (not self.toggle) then
+			if (not self.toggle) then
 				self:Switch(false)
 			end
 
@@ -103,8 +103,8 @@ function ENT:Setup(toggle, value_on, value_off, description, entityout, material
 	self.value_on = value_on
 	self.Value = value_off
 	self.entityout = entityout
-    self.material_on = material_on
-    self.material_off = material_off
+	self.material_on = material_on
+	self.material_off = material_off
 	self:SetOn( false )
 	self.on_r = on_r
 	self.on_g = on_g
@@ -116,8 +116,8 @@ function ENT:Setup(toggle, value_on, value_off, description, entityout, material
 	self:ShowOutput(self.value_off)
 	Wire_TriggerOutput(self, "Out", self.value_off)
 
-    self:SetMaterial(self.material_off)
-    self:SetColor(Color(self.off_r, self.off_g, self.off_b, 255))
+	self:SetMaterial(self.material_off)
+	self:SetColor(Color(self.off_r, self.off_g, self.off_b, 255))
 
 	if entityout then
 		WireLib.AdjustSpecialOutputs(self, { "Out", "EntID" , "Entity" }, { "NORMAL", "NORMAL" , "ENTITY" })
@@ -144,14 +144,14 @@ function ENT:Switch(on)
 	if (on) then
 		self:ShowOutput(self.value_on)
 		self.Value = self.value_on
-        if self.material_on ~= "" then self:SetMaterial(self.material_on) end
+		if self.material_on ~= "" then self:SetMaterial(self.material_on) end
 		self:SetColor(Color(self.on_r, self.on_g, self.on_b, 255))
 
 	else
 		self:ShowOutput(self.value_off)
 		self.Value = self.value_off
 		if self.material_off ~= "" then self:SetMaterial(self.material_off) end
-        self:SetColor(Color(self.off_r, self.off_g, self.off_b, 255))
+		self:SetColor(Color(self.off_r, self.off_g, self.off_b, 255))
 
 		if self.OutputEntID then self.EntToOutput = NULL end
 	end

@@ -20,11 +20,11 @@ WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetDataTables()
-    return {
-      DrawBackground = self:GetClientNumber("draw_background") ~= 0,
-      CursorMode = self:GetClientNumber("outmode") ~= 0
-    }
-  end
+	return {
+		DrawBackground = self:GetClientNumber("draw_background") ~= 0,
+		CursorMode = self:GetClientNumber("outmode") ~= 0
+	}
+	end
 
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end

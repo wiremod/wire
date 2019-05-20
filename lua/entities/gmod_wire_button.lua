@@ -107,7 +107,7 @@ function ENT:Think()
 		or (not self.PrevUser:IsValid())
 		or (not self.podpress and not self.PrevUser:KeyDown(IN_USE))
 		or (self.podpress and not self.PrevUser:KeyDown( IN_ATTACK )) then
-		    if (not self.toggle) then
+			if (not self.toggle) then
 				self:Switch(false)
 			end
 

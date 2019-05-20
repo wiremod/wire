@@ -134,8 +134,8 @@ if SERVER then
 		if not tool then return end
 
 		local material = tool:GetClientInfo("material")
-		local width    = tool:GetClientNumber("width")
-		local color    = Color(tool:GetClientNumber("r"), tool:GetClientNumber("g"), tool:GetClientNumber("b"))
+		local width	= tool:GetClientNumber("width")
+		local color	= Color(tool:GetClientNumber("r"), tool:GetClientNumber("g"), tool:GetClientNumber("b"))
 
 		local uid = ply:UniqueID()
 
@@ -348,7 +348,7 @@ elseif CLIENT then
 	function TOOL:FindWiring( entity, inputname, inputtype )
 		for i=1,#self.Wiring do
 			local wiring = self.Wiring[i]
-			if wiring[1] == inputname  and wiring[3] == entity and wiring[8] == inputtype then return wiring, i end
+			if wiring[1] == inputname	and wiring[3] == entity and wiring[8] == inputtype then return wiring, i end
 		end
 	end
 

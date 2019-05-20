@@ -1,5 +1,5 @@
 --[[
-	String gates  !  :P
+	String gates	!	:P
 ]]
 
 local MAX_LEN = 1024*1024 -- max string length of 1MB
@@ -93,7 +93,7 @@ GateActions["string_sub"] = {
 	outputtypes = { "STRING" },
 	output = function(gate, A, B, C)
 		if !A then A = "" end
-		if !B then B = 1 end  -- defaults to start of string
+		if !B then B = 1 end	-- defaults to start of string
 		if !C then C = -1 end -- defaults to end of string
 		return string.sub(A,B,C)
 	end,
@@ -129,7 +129,7 @@ GateActions["string_find"] = {
 	end,
 	label = function(Out, A, B)
 		if istable(Out) then Out = Out.Out end
-	    return string.format ("find(%s , %s) = %d", A, B, Out)
+		return string.format ("find(%s , %s) = %d", A, B, Out)
 	end
 }
 
@@ -139,14 +139,14 @@ GateActions["string_concat"] = {
 	inputtypes = { "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" },
 	outputtypes = { "STRING" },
 	output = function(gate, A, B, C, D, E, F, G, H)
-		if  (A and #A or 0)
-		  + (B and #B or 0)
-		  + (C and #C or 0)
-		  + (D and #D or 0)
-		  + (E and #E or 0)
-		  + (F and #F or 0)
-		  + (G and #G or 0)
-		  + (H and #H or 0)  > MAX_LEN
+		if	(A and #A or 0)
+			+ (B and #B or 0)
+			+ (C and #C or 0)
+			+ (D and #D or 0)
+			+ (E and #E or 0)
+			+ (F and #F or 0)
+			+ (G and #G or 0)
+			+ (H and #H or 0)	> MAX_LEN
 		then
 			return false
 		end
@@ -285,7 +285,7 @@ GateActions["string_ident"] = {
 		return A
 	end,
 	label = function(Out, A)
-	    return string.format ("%s = %s", A, Out)
+		return string.format ("%s = %s", A, Out)
 	end
 }
 
@@ -298,93 +298,93 @@ GateActions["string_select"] = {
 		return ({...})[math.Clamp(Choice,1,8)]
 	end,
 	label = function(Out, Choice)
-	    return string.format ("select(%s) = %s", Choice, Out)
+		return string.format ("select(%s) = %s", Choice, Out)
 	end
 }
 
 GateActions["string_to_memory"] = {
-  name = "String => Memory",
-  inputs = { "A" },
-  inputtypes = { "STRING" },
-  outputs = { "Memory" },
-  reset = function(gate)
-    gate.stringQueued = false
-    gate.stringChanged = false
-    gate.currentString = ""
-  end,
+	name = "String => Memory",
+	inputs = { "A" },
+	inputtypes = { "STRING" },
+	outputs = { "Memory" },
+	reset = function(gate)
+	gate.stringQueued = false
+	gate.stringChanged = false
+	gate.currentString = ""
+	end,
 
-  output = function(gate, A)
-    if (A ~= gate.currentString) then
-      if (not gate.stringChanged) then
-        gate.stringChanged = true
-        gate.currentString = A
-        gate.stringQueued = false
-      else
-        gate.stringQueued = true
-      end
-    end
-    return gate.Outputs["Memory"].Value --This will prevent Wire_TriggerOutput from changing anything
-  end,
+	output = function(gate, A)
+	if (A ~= gate.currentString) then
+		if (not gate.stringChanged) then
+		gate.stringChanged = true
+		gate.currentString = A
+		gate.stringQueued = false
+		else
+		gate.stringQueued = true
+		end
+	end
+	return gate.Outputs["Memory"].Value --This will prevent Wire_TriggerOutput from changing anything
+	end,
 
-  ReadCell = function(self, gate, Address)
-    if (Address == 0) then 	   --Clk
-      if (gate.stringChanged) then return 1 else return 0 end
-    elseif (Address == 1) then --String length
-      return #(gate.currentString)
-    else --Return string bytes
-      local index = Address - 1
-      if (index > #(gate.currentString)) then -- Check whether requested address is outside the string
-        return 0
-      else
-        return string.byte(gate.currentString, index)
-      end
-    end
-  end,
+	ReadCell = function(self, gate, Address)
+	if (Address == 0) then 		 --Clk
+		if (gate.stringChanged) then return 1 else return 0 end
+	elseif (Address == 1) then --String length
+		return #(gate.currentString)
+	else --Return string bytes
+		local index = Address - 1
+		if (index > #(gate.currentString)) then -- Check whether requested address is outside the string
+		return 0
+		else
+		return string.byte(gate.currentString, index)
+		end
+	end
+	end,
 
-  WriteCell = function(self, gate, Address, value)
-    if (Address == 0) and (value == 0) then --String got accepted
-      gate.stringChanged = false
-	  	if gate.stringQueued then --Get queued string
+	WriteCell = function(self, gate, Address, value)
+	if (Address == 0) and (value == 0) then --String got accepted
+		gate.stringChanged = false
+			if gate.stringQueued then --Get queued string
 			gate.stringQueued = false
 			gate.currentString = gate.Inputs["A"].Value
 			gate.stringChanged = true
-	  	end
-	  	return true
-    else
-      return false
-    end
-  end
+			end
+			return true
+	else
+		return false
+	end
+	end
 }
 
 
 GateActions["string_from_memory"] = {
-  name = "Memory => String",
-  inputs = {},
-  outputs = { "Out", "Memory" },
-  outputtypes = { "STRING", "NORMAL" },
-  reset = function(gate) --initialize the gate
-    gate.memory = {}
-    gate.stringLength = 0
-    gate.currentString = ""
-    gate.ready = true
-  end,
+	name = "Memory => String",
+	inputs = {},
+	outputs = { "Out", "Memory" },
+	outputtypes = { "STRING", "NORMAL" },
+	reset = function(gate) --initialize the gate
+	gate.memory = {}
+	gate.stringLength = 0
+	gate.currentString = ""
+	gate.ready = true
+	end,
 
-  output = function(gate)
-    return gate.currentString, gate.Outputs["Memory"].Value
-  end,
+	output = function(gate)
+	return gate.currentString, gate.Outputs["Memory"].Value
+	end,
 
-  ReadCell = function(self, gate, address)
-    if (address == 0) then
-      return 0
-    elseif (address == 1) then
-      return gate.stringLength
-    else
-      return gate.memory[address-1] or 0 -- "or 0" to prevent it from returning nil if index is outside the array
-    end
-  end,
+	ReadCell = function(self, gate, address)
+	if (address == 0) then
+		return 0
+	elseif (address == 1) then
+		return gate.stringLength
+	else
+		return gate.memory[address-1] or 0 -- "or 0" to prevent it from returning nil if index is outside the array
+	end
+	end,
 
-  WriteCell = function(self, gate, address, value)
-    if (value >= 0) then
+	WriteCell = function(self, gate, address, value)
+	if (value >= 0) then
 		if (address == 0) and (value == 1) then -- Clk has been set
 			local maxIndex = gate.stringLength
 			for i=1,gate.stringLength,1 do
@@ -399,13 +399,13 @@ GateActions["string_from_memory"] = {
 		elseif (address == 1) then -- Set string length
 			gate.stringLength = math.floor(value)
 			return true
-		elseif (address > 1) then  -- Set memory cell
+		elseif (address > 1) then	-- Set memory cell
 			gate.memory[address-1] = math.floor(value)
 			return true
 		end
 	end
 	return false; -- if (value < 0) or ((address == 0) and (value != 1))
-  end
+	end
 }
 
 GateActions()

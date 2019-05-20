@@ -152,7 +152,7 @@ function ENT:GetActionInputs(as_names)
 	if (self.Action.compact_inputs) then
 		-- If a gate has compact inputs (like Arithmetic - Add), nil inputs are truncated so {0, nil, nil, 5, nil, 1} becomes {0, 5, 1}
 		for k,v in ipairs(self.Action.inputs) do
-		    local input = self.Inputs[v]
+			local input = self.Inputs[v]
 			if (not input) then
 				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")\n")
 				return {}
@@ -177,7 +177,7 @@ function ENT:GetActionInputs(as_names)
 		end
 	else
 		for k,v in ipairs(self.Action.inputs) do
-		    local input = self.Inputs[v]
+			local input = self.Inputs[v]
 			if (not input) then
 				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")\n")
 				return {}
@@ -198,7 +198,7 @@ function ENT:GetActionOutputs()
 	if (self.Action.outputs) then
 		local result = {}
 		for _,v in ipairs(self.Action.outputs) do
-		    result[v] = self.Outputs[v].Value or WireLib.DT[ self.Outputs[v].Type ].Zero
+			result[v] = self.Outputs[v].Value or WireLib.DT[ self.Outputs[v].Type ].Zero
 		end
 
 		return result

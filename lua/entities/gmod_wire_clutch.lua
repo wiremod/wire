@@ -41,7 +41,7 @@ end
 
 function ENT:ClutchExists( Ent1, Ent2 )
 	for k, _ in pairs( self.clutch_ballsockets ) do
-		if  ( Ent1 == k.Ent1 and Ent2 == k.Ent2 ) or
+		if ( Ent1 == k.Ent1 and Ent2 == k.Ent2 ) or
 			( Ent1 == k.Ent2 and Ent2 == k.Ent1 ) then
 			return true
 		end
@@ -274,9 +274,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		Ent2 = GetEntByID(v.Ent2, game.GetWorld())
 
 		if IsValid(Ent1) and
-		   Ent1 ~= Ent2 and
-		   hook.Run( "CanTool", ply, WireLib.dummytrace(Ent1), "ballsocket_adv" ) and
-		   hook.Run( "CanTool", ply, WireLib.dummytrace(Ent2), "ballsocket_adv" ) then
+			 Ent1 ~= Ent2 and
+			 hook.Run( "CanTool", ply, WireLib.dummytrace(Ent1), "ballsocket_adv" ) and
+			 hook.Run( "CanTool", ply, WireLib.dummytrace(Ent2), "ballsocket_adv" ) then
 			self:AddClutch( Ent1, Ent2 )
 		end
 	end

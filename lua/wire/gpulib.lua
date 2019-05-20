@@ -507,373 +507,372 @@ end
 
 -- GPULib caching functionality
 if CLIENT then
-  ------------------------------------------------------------------------------
-  -- Attach cache receiver to this entity
-  ------------------------------------------------------------------------------
-  local writeHandler = {}
-  function GPULib.ClientCacheCallback(ent, writeFunction)
-    writeHandler[ent and ent:EntIndex() or 0] = writeFunction
-  end
+	------------------------------------------------------------------------------
+	-- Attach cache receiver to this entity
+	------------------------------------------------------------------------------
+	local writeHandler = {}
+	function GPULib.ClientCacheCallback(ent, writeFunction)
+	writeHandler[ent and ent:EntIndex() or 0] = writeFunction
+	end
 
-  ------------------------------------------------------------------------------
-  -- RLE-decompress incoming message
-  ------------------------------------------------------------------------------
-  --[[local blockText = {
-    { "[no offset]", "[1-offset]", "[2-offset]", "[4-offset]" },
-    { "[no rep]", nil, "[rep 2]", "[rep 4]" },
-    { "[cnt 1]", nil, "[cnt 2]", "[cnt 3]" },
-    { "[1-byte]", "[2-byte]", "[4-byte]", "[marker]" },
-  } ]]--
+	------------------------------------------------------------------------------
+	-- RLE-decompress incoming message
+	------------------------------------------------------------------------------
+	--[[local blockText = {
+	{ "[no offset]", "[1-offset]", "[2-offset]", "[4-offset]" },
+	{ "[no rep]", nil, "[rep 2]", "[rep 4]" },
+	{ "[cnt 1]", nil, "[cnt 2]", "[cnt 3]" },
+	{ "[1-byte]", "[2-byte]", "[4-byte]", "[marker]" },
+	} ]]--
 
-  local function GPULib_MemorySync(um)
-    -- Find the referenced entity
-    local GPUIdx = um:ReadLong()
-    local GPU = ents.GetByIndex(GPUIdx)
-    if not GPU then return end
-    if not GPU:IsValid() then return end
-    if not writeHandler[GPUIdx] then return end
+	local function GPULib_MemorySync(um)
+		-- Find the referenced entity
+		local GPUIdx = um:ReadLong()
+		local GPU = ents.GetByIndex(GPUIdx)
+		if not GPU then return end
+		if not GPU:IsValid() then return end
+		if not writeHandler[GPUIdx] then return end
 
-    -- Start reading blocks
-    local blockCount = 0
-    local currentOffset = 0
-    while true do
-      -- Read next block
-      blockCount = blockCount + 1
-      if blockCount > 256 then error("GPULib usermessage read error") return end
+		-- Start reading blocks
+		local blockCount = 0
+		local currentOffset = 0
+		while true do
+			-- Read next block
+			blockCount = blockCount + 1
+			if blockCount > 256 then error("GPULib usermessage read error") return end
 
-      -- Read block flags
-      local dataFlags = um:ReadChar()+128
-      if dataFlags == 240 then return end
+			-- Read block flags
+			local dataFlags = um:ReadChar()+128
+			if dataFlags == 240 then return end
 
-      local offsetSize  = dataFlags % 4
-      local repeatCount = math.floor(dataFlags/4) % 4
-      local dataCount   = math.floor(dataFlags/16) % 4
-      local valueSize   = math.floor(dataFlags/64) % 4
+			local offsetSize	= dataFlags % 4
+			local repeatCount = math.floor(dataFlags/4) % 4
+			local dataCount	 = math.floor(dataFlags/16) % 4
+			local valueSize	 = math.floor(dataFlags/64) % 4
 
-      local Repeat = 0
-      local Count = 0
+			local Repeat = 0
+			local Count = 0
 
-      if offsetSize > 0 then
-        local deltaOffset = 0
-        if offsetSize == 1 then deltaOffset = um:ReadChar () end
-        if offsetSize == 2 then deltaOffset = um:ReadShort() end
-        if offsetSize == 3 then deltaOffset = um:ReadFloat() end
-        currentOffset = currentOffset + deltaOffset
-        --print("  dOffset = "..deltaOffset..", offset = "..currentOffset)
-      end
+			if offsetSize > 0 then
+				local deltaOffset = 0
+				if offsetSize == 1 then deltaOffset = um:ReadChar () end
+				if offsetSize == 2 then deltaOffset = um:ReadShort() end
+				if offsetSize == 3 then deltaOffset = um:ReadFloat() end
+				currentOffset = currentOffset + deltaOffset
+				--print("	dOffset = "..deltaOffset..", offset = "..currentOffset)
+				end
 
-      if dataCount == 0 then Count = 1 end
-      if dataCount == 1 then Count = um:ReadChar()+130 end
-      if dataCount == 2 then Count = 2 end
-      if dataCount == 3 then Count = 3 end
+				if dataCount == 0 then Count = 1 end
+				if dataCount == 1 then Count = um:ReadChar()+130 end
+				if dataCount == 2 then Count = 2 end
+				if dataCount == 3 then Count = 3 end
 
-      if repeatCount == 0 then Repeat = 1 end
-      if repeatCount == 1 then Repeat = um:ReadChar()+130 end
-      if repeatCount == 2 then Repeat = 2 end
-      if repeatCount == 3 then Repeat = 4 end
+				if repeatCount == 0 then Repeat = 1 end
+				if repeatCount == 1 then Repeat = um:ReadChar()+130 end
+				if repeatCount == 2 then Repeat = 2 end
+				if repeatCount == 3 then Repeat = 4 end
 
-      --[[print("  Block ",
-        blockText[1][offsetSize+1],
-        blockText[2][repeatCount+1] or ("[rep "..Repeat.."* ]"),
-        blockText[3][dataCount+1] or ("[cnt "..Count.."* ]"),
-        blockText[4][valueSize+1])]]--
+				--[[print("	Block ",
+				blockText[1][offsetSize+1],
+				blockText[2][repeatCount+1] or ("[rep "..Repeat.."* ]"),
+				blockText[3][dataCount+1] or ("[cnt "..Count.."* ]"),
+				blockText[4][valueSize+1])]]--
 
-      for i=1,Count do
-        local Value = 0
-        if valueSize == 0 then Value = um:ReadChar()  end
-        if valueSize == 1 then Value = um:ReadShort() end
-        if valueSize == 2 then Value = um:ReadLong() end
-        if valueSize == 3 then Value = um:ReadFloat() end
+				for i=1,Count do
+				local Value = 0
+				if valueSize == 0 then Value = um:ReadChar()	end
+				if valueSize == 1 then Value = um:ReadShort() end
+				if valueSize == 2 then Value = um:ReadLong() end
+				if valueSize == 3 then Value = um:ReadFloat() end
 
-        for j=1,Repeat do
-          --print("    ["..currentOffset.."] = "..Value)
-          writeHandler[GPUIdx](currentOffset,Value)
-          currentOffset = currentOffset + 1
-        end
-      end
-    end
-  end
-  usermessage.Hook("wire_memsync", GPULib_MemorySync)
+				for j=1,Repeat do
+					--print("	["..currentOffset.."] = "..Value)
+					writeHandler[GPUIdx](currentOffset,Value)
+					currentOffset = currentOffset + 1
+				end
+			end
+		end
+	end
+	usermessage.Hook("wire_memsync", GPULib_MemorySync)
 elseif SERVER then
-  local CACHEMGR = {}
-  CACHEMGR.__index = CACHEMGR
-  GPULib.CACHEMGR = CACHEMGR
+	local CACHEMGR = {}
+	CACHEMGR.__index = CACHEMGR
+	GPULib.CACHEMGR = CACHEMGR
 
 
-  ------------------------------------------------------------------------------
-  -- Create new cache manager (serverside)
-  ------------------------------------------------------------------------------
-  function GPULib.GPUCacheManager(ent, orderMatters, ...)
-    local self = {
-      EntIndex = ent and ent:EntIndex() or 0,
-      Entity = ent or NULL,
-    }
-    setmetatable(self, CACHEMGR)
-    self.ValueOrderMatters = orderMatters
-    self.Enabled = true
-    self:Reset()
-    return self
-  end
-  GPUCacheManager = GPULib.GPUCacheManager
+	------------------------------------------------------------------------------
+	-- Create new cache manager (serverside)
+	------------------------------------------------------------------------------
+	function GPULib.GPUCacheManager(ent, orderMatters, ...)
+		local self = {
+			EntIndex = ent and ent:EntIndex() or 0,
+			Entity = ent or NULL,
+		}
+		setmetatable(self, CACHEMGR)
+		self.ValueOrderMatters = orderMatters
+		self.Enabled = true
+		self:Reset()
+		return self
+	end
+	GPUCacheManager = GPULib.GPUCacheManager
 
 
-  ------------------------------------------------------------------------------
-  -- Get size of the value to write
-  ------------------------------------------------------------------------------
-  local function getSize(value)
-    if (value >= -128)   and (value <= 127)             and (math.floor(value) == value) then return 1,false end
-    if (value >= -32768) and (value <= 32767)           and (math.floor(value) == value) then return 2,false end
-    if (value >= -2147483648) and (value <= 2147483647) and (math.floor(value) == value) then return 4,false end
-    return 4,true
-  end
+	------------------------------------------------------------------------------
+	-- Get size of the value to write
+	------------------------------------------------------------------------------
+	local function getSize(value)
+		if (value >= -128)        and (value <= 127)        and (math.floor(value) == value) then return 1,false end
+		if (value >= -32768)      and (value <= 32767)      and (math.floor(value) == value) then return 2,false end
+		if (value >= -2147483648) and (value <= 2147483647) and (math.floor(value) == value) then return 4,false end
+		return 4,true
+	end
 
 
-  ------------------------------------------------------------------------------
-  -- Initialize cache manager
-  ------------------------------------------------------------------------------
-  function CACHEMGR:Reset()
-    self.Cache = {}
-    self.CacheBytes = 0
-  end
+	------------------------------------------------------------------------------
+	-- Initialize cache manager
+	------------------------------------------------------------------------------
+	function CACHEMGR:Reset()
+		self.Cache = {}
+		self.CacheBytes = 0
+	end
 
 
-  ------------------------------------------------------------------------------
-  -- Write a single value to cache
-  ------------------------------------------------------------------------------
-  function CACHEMGR:Write(Address,Value)
-    local valueSize,valueFloat
-    if Value then
-      valueSize,valueFloat = getSize(Value)
-      self.CacheBytes = self.CacheBytes + valueSize
-    end
+	------------------------------------------------------------------------------
+	-- Write a single value to cache
+	------------------------------------------------------------------------------
+	function CACHEMGR:Write(Address,Value)
+	local valueSize,valueFloat
+	if Value then
+		valueSize,valueFloat = getSize(Value)
+		self.CacheBytes = self.CacheBytes + valueSize
+	end
 
-    table.insert(self.Cache,{ Address, Value, valueSize, valueFloat })
-    --if #self.Cache > 2048 then self:Flush() end
-  end
-
-
-  ------------------------------------------------------------------------------
-  -- Send value right away
-  ------------------------------------------------------------------------------
-  function CACHEMGR:WriteNow(Address,Value,forcePlayer)
-    umsg.Start("wire_memsync", forcePlayer)
-      umsg.Long(self.EntIndex)
-      umsg.Char(195-128)
-      umsg.Float(Address)
-      umsg.Float(Value)
-      umsg.Char(240-128)
-    umsg.End()
-  end
+	table.insert(self.Cache,{ Address, Value, valueSize, valueFloat })
+		--if #self.Cache > 2048 then self:Flush() end
+	end
 
 
-  ------------------------------------------------------------------------------
-  -- RLE-compress cache and send it
-  ------------------------------------------------------------------------------
-  function CACHEMGR:Flush(forcePlayer)
-    -- Don't flush if nothing cached
-    if #self.Cache == 0 then return end
-    self.CacheBytes = 0
-
-    -- Sort cache so all addresses are continiously layed out
-    -- Do not sort if order at which values are written matters
-    if not self.ValueOrderMatters then
-      table.sort(self.Cache,function(A,B)
-        return A[1] < B[1]
-      end)
-    end
-
-    -- RLE-encode the data
-    local compressInfo = {}
-    for _,data in ipairs(self.Cache) do
-      local address,value,size,isfloat = data[1],(data[2] or 0),(data[3] or 1),(data[4] or false)
-      local compressBlock = compressInfo[#compressInfo]
-      local sequentialBlock
-      local previousBlockEnd
-      if compressBlock then
-        previousBlockEnd = compressBlock.Offset+#compressBlock.Data*compressBlock.Repeat
-        sequentialBlock = previousBlockEnd == address
-      end
-
-      if not compressBlock then
-        -- New block of data
-        compressBlock = {
-          Data = { value },
-          Offset = address,
-          SetOffset = address,
-          Repeat = 1,
-          Size = size,
-          IsFloat = isfloat,
-        }
-        table.insert(compressInfo,compressBlock)
-      elseif sequentialBlock and
-             (compressBlock.Size == size) then
-        -- Add to previous block of data
-        if (#compressBlock.Data == 1) and (compressBlock.Data[1] == value) and (sequentialBlock) and (compressBlock.Repeat < 256) then
-          -- RLE compression
-          compressBlock.Repeat = compressBlock.Repeat + 1
-        elseif compressBlock.Repeat > 1 then
-          -- Cant add to a repeating block, make new
-          compressBlock = {
-            Data = { value },
-            Offset = address,
-            Repeat = 1,
-            Size = size,
-            IsFloat = isfloat,
-          }
-          if not sequentialBlock then compressBlock.SetOffset = address-previousBlockEnd end
-          table.insert(compressInfo,compressBlock)
-        else
-          -- Append to a group of values, unless the block is too big
-          if #compressBlock.Data*compressBlock.Repeat*compressBlock.Size < 196 then
-            table.insert(compressBlock.Data,value)
-          else
-            -- Add it to a new block instead
-            compressBlock = {
-              Data = { value },
-              Offset = address,
-              Repeat = 1,
-              Size = size,
-              IsFloat = isfloat,
-            }
-            if not sequentialBlock then compressBlock.SetOffset = address-previousBlockEnd end
-            table.insert(compressInfo,compressBlock)
-          end
-        end
-      else
-        -- Create new block
-        compressBlock = {
-          Data = { value },
-          Offset = address,
-          Repeat = 1,
-          Size = size,
-          IsFloat = isfloat,
-        }
-        if not sequentialBlock then compressBlock.SetOffset = address-previousBlockEnd end
-        table.insert(compressInfo,compressBlock)
-      end
-    end
-
-    --PrintTable(compressInfo)
-
-    -- Start the message
-    local messageSize = 4
-    umsg.Start("wire_memsync", forcePlayer)
-    umsg.Long(self.EntIndex)
-
-    -- Start sending all compressed blocks
-    for k,v in ipairs(compressInfo) do
-      --======================================================================--
-      -- Generate flags for sending the data
-      --======================================================================--
-      -- [0..1] Delta offset
-      --         0: no offset
-      --         1: 1-byte offset
-      --         2: 2-byte offset
-      --         3: 4-byte offset
-      -- [2..3] Repeat count
-      --         0: none
-      --         1: repeat count 1-byte follows
-      --         2: repeat 2 times
-      --         3: repeat 4 times
-      -- [4..5] Data count
-      --         0: 1 element
-      --         1: data size 1-byte follows
-      --         2: 2 elements
-      --         3: 3 elements (but not floats)
-      -- [6..7] Size
-      --         0: 1-byte
-      --         1: 2-byte
-      --         2: 4-byte int
-      --         3: 4-byte float
-      --
-      -- If it's a special data marker, then bitmap is:
-      -- [0..1] Marker type
-      -- [2..5] Marker data
-      -- [6] 1
-      -- [7] 1
-
-      local dataFlags = 0
-      if v.SetOffset then
-        local offsetSize = getSize(v.SetOffset)
-        if offsetSize == 1 then dataFlags = dataFlags + 1 end
-        if offsetSize == 2 then dataFlags = dataFlags + 2 end
-        if offsetSize == 4 then dataFlags = dataFlags + 3 end
-      end
-
-      if v.Repeat > 1 then
-            if v.Repeat == 2 then dataFlags = dataFlags + 8
-        elseif v.Repeat == 4 then dataFlags = dataFlags + 12
-        else                      dataFlags = dataFlags + 4
-        end
-      end
-
-      if #v.Data > 1 then
-        if #v.Data == 2 then
-          dataFlags = dataFlags + 32
-        elseif (#v.Data == 3) and (not v.IsFloat) then
-          dataFlags = dataFlags + 48
-        else
-          dataFlags = dataFlags + 16
-        end
-      end
-
-      if v.Size == 1 then dataFlags = dataFlags + 0   end
-      if v.Size == 2 then dataFlags = dataFlags + 64  end
-      if (v.Size == 4) and (not v.IsFloat) then dataFlags = dataFlags + 128 end
-      if (v.Size == 4) and (    v.IsFloat) then dataFlags = dataFlags + 192 end
-
-      umsg.Char(dataFlags-128)
-      messageSize = messageSize + 4
+	------------------------------------------------------------------------------
+	-- Send value right away
+	------------------------------------------------------------------------------
+	function CACHEMGR:WriteNow(Address,Value,forcePlayer)
+		umsg.Start("wire_memsync", forcePlayer)
+			umsg.Long(self.EntIndex)
+			umsg.Char(195-128)
+			umsg.Float(Address)
+			umsg.Float(Value)
+			umsg.Char(240-128)
+		umsg.End()
+	end
 
 
-      --======================================================================--
-      -- Send the data
-      --======================================================================--
-      if v.SetOffset then
-        local offsetSize = getSize(v.SetOffset)
-        if offsetSize == 1 then umsg.Char (v.SetOffset) messageSize = messageSize + 1 end
-        if offsetSize == 2 then umsg.Short(v.SetOffset) messageSize = messageSize + 2 end
-        if offsetSize == 4 then umsg.Float(v.SetOffset) messageSize = messageSize + 4 end
-      end
+	------------------------------------------------------------------------------
+	-- RLE-compress cache and send it
+	------------------------------------------------------------------------------
+	function CACHEMGR:Flush(forcePlayer)
+		-- Don't flush if nothing cached
+		if #self.Cache == 0 then return end
+		self.CacheBytes = 0
 
-      if (#v.Data > 2) then
-        if (#v.Data ~= 3) or (v.IsFloat) then
-          umsg.Char(#v.Data-130) messageSize = messageSize + 1
-        end
-      end
+		-- Sort cache so all addresses are continiously layed out
+		-- Do not sort if order at which values are written matters
+		if not self.ValueOrderMatters then
+			table.sort(self.Cache,function(A,B)
+			return A[1] < B[1]
+			end)
+		end
 
-      if (v.Repeat > 1) and
-         (v.Repeat ~= 2) and
-         (v.Repeat ~= 4) then umsg.Char(v.Repeat-130) messageSize = messageSize + 1 end
+		-- RLE-encode the data
+		local compressInfo = {}
+		for _,data in ipairs(self.Cache) do
+			local address,value,size,isfloat = data[1],(data[2] or 0),(data[3] or 1),(data[4] or false)
+			local compressBlock = compressInfo[#compressInfo]
+			local sequentialBlock
+			local previousBlockEnd
+			if compressBlock then
+				previousBlockEnd = compressBlock.Offset+#compressBlock.Data*compressBlock.Repeat
+				sequentialBlock = previousBlockEnd == address
+			end
 
-      for _,value in ipairs(v.Data) do
-        if v.Size == 1 then umsg.Char (value) messageSize = messageSize + 1 end
-        if v.Size == 2 then umsg.Short(value) messageSize = messageSize + 2 end
-        if (v.Size == 4) and (not v.IsFloat) then umsg.Long(value)  messageSize = messageSize + 4 end
-        if (v.Size == 4) and (    v.IsFloat) then umsg.Float(value) messageSize = messageSize + 4 end
-      end
+			if not compressBlock then
+				-- New block of data
+				compressBlock = {
+					Data = { value },
+					Offset = address,
+					SetOffset = address,
+					Repeat = 1,
+					Size = size,
+					IsFloat = isfloat,
+				}
+				table.insert(compressInfo,compressBlock)
+			elseif sequentialBlock and (compressBlock.Size == size) then
+				-- Add to previous block of data
+				if (#compressBlock.Data == 1) and (compressBlock.Data[1] == value) and (sequentialBlock) and (compressBlock.Repeat < 256) then
+					-- RLE compression
+					compressBlock.Repeat = compressBlock.Repeat + 1
+				elseif compressBlock.Repeat > 1 then
+					-- Cant add to a repeating block, make new
+					compressBlock = {
+					Data = { value },
+					Offset = address,
+					Repeat = 1,
+					Size = size,
+					IsFloat = isfloat,
+					}
+					if not sequentialBlock then compressBlock.SetOffset = address-previousBlockEnd end
+					table.insert(compressInfo,compressBlock)
+				else
+					-- Append to a group of values, unless the block is too big
+					if #compressBlock.Data*compressBlock.Repeat*compressBlock.Size < 196 then
+					table.insert(compressBlock.Data,value)
+					else
+					-- Add it to a new block instead
+					compressBlock = {
+						Data = { value },
+						Offset = address,
+						Repeat = 1,
+						Size = size,
+						IsFloat = isfloat,
+					}
+					if not sequentialBlock then compressBlock.SetOffset = address-previousBlockEnd end
+					table.insert(compressInfo,compressBlock)
+					end
+				end
+			else
+				-- Create new block
+				compressBlock = {
+					Data = { value },
+					Offset = address,
+					Repeat = 1,
+					Size = size,
+					IsFloat = isfloat,
+				}
+				if not sequentialBlock then compressBlock.SetOffset = address-previousBlockEnd end
+				table.insert(compressInfo,compressBlock)
+			end
+		end
+
+		--PrintTable(compressInfo)
+
+		-- Start the message
+		local messageSize = 4
+		umsg.Start("wire_memsync", forcePlayer)
+		umsg.Long(self.EntIndex)
+
+		-- Start sending all compressed blocks
+		for k,v in ipairs(compressInfo) do
+			--======================================================================--
+			-- Generate flags for sending the data
+			--======================================================================--
+			-- [0..1] Delta offset
+			--		 0: no offset
+			--		 1: 1-byte offset
+			--		 2: 2-byte offset
+			--		 3: 4-byte offset
+			-- [2..3] Repeat count
+			--		 0: none
+			--		 1: repeat count 1-byte follows
+			--		 2: repeat 2 times
+			--		 3: repeat 4 times
+			-- [4..5] Data count
+			--		 0: 1 element
+			--		 1: data size 1-byte follows
+			--		 2: 2 elements
+			--		 3: 3 elements (but not floats)
+			-- [6..7] Size
+			--		 0: 1-byte
+			--		 1: 2-byte
+			--		 2: 4-byte int
+			--		 3: 4-byte float
+			--
+			-- If it's a special data marker, then bitmap is:
+			-- [0..1] Marker type
+			-- [2..5] Marker data
+			-- [6] 1
+			-- [7] 1
+
+			local dataFlags = 0
+			if v.SetOffset then
+				local offsetSize = getSize(v.SetOffset)
+				if offsetSize == 1 then dataFlags = dataFlags + 1 end
+				if offsetSize == 2 then dataFlags = dataFlags + 2 end
+				if offsetSize == 4 then dataFlags = dataFlags + 3 end
+			end
+
+			if v.Repeat > 1 then
+				if v.Repeat == 2 then dataFlags = dataFlags + 8
+				elseif v.Repeat == 4 then dataFlags = dataFlags + 12
+				else                      dataFlags = dataFlags + 4
+				end
+			end
+
+			if #v.Data > 1 then
+				if #v.Data == 2 then
+					dataFlags = dataFlags + 32
+				elseif (#v.Data == 3) and (not v.IsFloat) then
+					dataFlags = dataFlags + 48
+				else
+					dataFlags = dataFlags + 16
+				end
+			end
+
+			if v.Size == 1 then dataFlags = dataFlags + 0 end
+			if v.Size == 2 then dataFlags = dataFlags + 64 end
+			if (v.Size == 4) and (not v.IsFloat) then dataFlags = dataFlags + 128 end
+			if (v.Size == 4) and (	v.IsFloat) then dataFlags = dataFlags + 192 end
+
+			umsg.Char(dataFlags-128)
+			messageSize = messageSize + 4
 
 
-      --======================================================================--
-      -- Check size of next data block. If it fits into usermessage, continue.
-      -- Otherwise just create new message
-      --======================================================================--
-      if compressInfo[k+1] then
-        local nextSize = #compressInfo[k+1].Data*compressInfo[k+1].Repeat*compressInfo[k+1].Size
-        if nextSize + messageSize > 248 then
-          umsg.Char(240-128)
-          umsg.End()
-          messageSize = 4
-          umsg.Start("wire_memsync", forcePlayer)
-          umsg.Long(self.EntIndex)
-          compressInfo[k+1].SetOffset = compressInfo[k+1].Offset -- Force set offset
-        end
-      else
-        umsg.Char(240-128)
-        umsg.End()
-      end
-    end
+			--======================================================================--
+			-- Send the data
+			--======================================================================--
+			if v.SetOffset then
+				local offsetSize = getSize(v.SetOffset)
+				if offsetSize == 1 then umsg.Char (v.SetOffset) messageSize = messageSize + 1 end
+				if offsetSize == 2 then umsg.Short(v.SetOffset) messageSize = messageSize + 2 end
+				if offsetSize == 4 then umsg.Float(v.SetOffset) messageSize = messageSize + 4 end
+			end
 
-    self.Cache = {}
-  end
+			if (#v.Data > 2) then
+				if (#v.Data ~= 3) or (v.IsFloat) then
+					umsg.Char(#v.Data-130) messageSize = messageSize + 1
+				end
+			end
+
+			if (v.Repeat > 1) and (v.Repeat ~= 2) and (v.Repeat ~= 4) then
+				umsg.Char(v.Repeat-130) messageSize = messageSize + 1
+			end
+
+			for _,value in ipairs(v.Data) do
+				if v.Size == 1 then umsg.Char (value) messageSize = messageSize + 1 end
+				if v.Size == 2 then umsg.Short(value) messageSize = messageSize + 2 end
+				if (v.Size == 4) and (not v.IsFloat) then umsg.Long(value)	messageSize = messageSize + 4 end
+				if (v.Size == 4) and (	v.IsFloat) then umsg.Float(value) messageSize = messageSize + 4 end
+			end
+
+
+			--======================================================================--
+			-- Check size of next data block. If it fits into usermessage, continue.
+			-- Otherwise just create new message
+			--======================================================================--
+			if compressInfo[k+1] then
+				local nextSize = #compressInfo[k+1].Data*compressInfo[k+1].Repeat*compressInfo[k+1].Size
+				if nextSize + messageSize > 248 then
+					umsg.Char(240-128)
+					umsg.End()
+					messageSize = 4
+					umsg.Start("wire_memsync", forcePlayer)
+					umsg.Long(self.EntIndex)
+					compressInfo[k+1].SetOffset = compressInfo[k+1].Offset -- Force set offset
+				end
+			else
+				umsg.Char(240-128)
+				umsg.End()
+			end
+		end
+
+		self.Cache = {}
+	end
 end

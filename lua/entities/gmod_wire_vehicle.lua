@@ -1,6 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Vehicle Controller"
+ENT.PrintName		 = "Wire Vehicle Controller"
 ENT.WireDebugName = "Vehicle Controller"
 
 if CLIENT then return end -- No more client
@@ -46,7 +46,7 @@ end
 function ENT:Think()
 	if IsValid(self.Vehicle) then
 		local delta = CurTime()%1/1000 -- A miniscule constant change
-		if self.Steering then self.Vehicle:Fire("steer",   self.Steering+delta, 0) end
+		if self.Steering then self.Vehicle:Fire("steer",	 self.Steering+delta, 0) end
 		if self.Throttle then self.Vehicle:Fire("throttle",self.Throttle+delta, 0) end
 	end
 	self:NextThink(CurTime())
@@ -57,7 +57,7 @@ function ENT:BuildDupeInfo()
 	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	if (self.Vehicle) and (self.Vehicle:IsValid()) then
-	    info.Vehicle = self.Vehicle:EntIndex()
+		info.Vehicle = self.Vehicle:EntIndex()
 	end
 
 	return info

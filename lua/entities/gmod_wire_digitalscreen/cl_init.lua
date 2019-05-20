@@ -49,7 +49,7 @@ local function stringToNumber(index, str, bytes)
 	local n = 0
 	for j=1,bytes do
 		n = n + str:byte(j)*(256^(j-1))
-    end
+	end
 	return n, newpos
 end
 

@@ -38,18 +38,18 @@ function TOOL:LeftClick(trace)
 	local ply = self:GetOwner()
 
 	if (self:GetStage() == 1) then
-	    self:SetStage(0)
+		self:SetStage(0)
 
-	    if (trace.Entity:IsValid()) and (trace.Entity:GetClass() == "gmod_wire_waypoint") and (self.SrcWaypoint) and (self.SrcWaypoint:IsValid()) then
-	        self.SrcWaypoint:SetNextWaypoint(trace.Entity)
-	        self.SrcWaypoint = nil
+		if (trace.Entity:IsValid()) and (trace.Entity:GetClass() == "gmod_wire_waypoint") and (self.SrcWaypoint) and (self.SrcWaypoint:IsValid()) then
+			self.SrcWaypoint:SetNextWaypoint(trace.Entity)
+			self.SrcWaypoint = nil
 
-	        return true
-	    end
+			return true
+		end
 
-	    self.SrcWaypoint = nil
+		self.SrcWaypoint = nil
 
-	    return
+		return
 	end
 
 	local ent = self:LeftClick_Make( trace, ply )
@@ -67,7 +67,7 @@ end
 
 function TOOL:RightClick(trace)
 	if (self:GetStage() == 0) and (trace.Entity:IsValid()) and (trace.Entity:GetClass() == "gmod_wire_waypoint") then
-	    self.SrcWaypoint = trace.Entity
+		self.SrcWaypoint = trace.Entity
 		self:SetStage(1)
 
 		return true

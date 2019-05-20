@@ -1,6 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Waypoint Beacon"
+ENT.PrintName		 = "Wire Waypoint Beacon"
 ENT.WireDebugName	= "Waypoint"
 
 function ENT:GetNextWaypoint()

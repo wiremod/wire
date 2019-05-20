@@ -255,8 +255,8 @@ local WireDynamicButtonMaterials = {
 }
 
 for k,v in pairs(WireDynamicButtonMaterials) do
-    list.Set("WireDynamicButtonMaterialsOn" ,k,{wire_dynamic_button_material_on =v});
-    list.Set("WireDynamicButtonMaterialsOff",k,{wire_dynamic_button_material_off=v});
+	list.Set("WireDynamicButtonMaterialsOn" ,k,{wire_dynamic_button_material_on =v});
+	list.Set("WireDynamicButtonMaterialsOff",k,{wire_dynamic_button_material_off=v});
 end
 
 --Thrusters

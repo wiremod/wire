@@ -99,7 +99,7 @@ end
 
 function ENT:ShowOutput()
 	self:SetOverlayText("Effective size (per stack): "..self.DiskSize.." bytes ("..math.floor(self.DiskSize/1024).." kb)\n"..
-			    "Tracks: "..self.DiskTracks.."\nSectors: "..self.DiskSectors.."\nStacks: "..self.DiskStacks)
+				"Tracks: "..self.DiskTracks.."\nSectors: "..self.DiskSectors.."\nStacks: "..self.DiskStacks)
 end
 
 duplicator.RegisterEntityClass("gmod_wire_cd_disk", WireLib.MakeWireEnt, "Data", "Precision", "IRadius", "Skin")

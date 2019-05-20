@@ -13,11 +13,11 @@ __e2setcost(1)
 
 --- If <activate> != 0 the expression will execute once every game tick
 e2function void runOnTick(activate)
-    if activate ~= 0 then
-        registered_chips[self.entity] = true
-    else
+	if activate ~= 0 then
+		registered_chips[self.entity] = true
+	else
 		registered_chips[self.entity] = nil
-    end
+	end
 end
 
 --- Returns 1 if the current execution was caused by "runOnTick"

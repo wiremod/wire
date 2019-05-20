@@ -1,14 +1,14 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Balloon Deployer"
-ENT.Author          = "LuaPinapple"
-ENT.Contact         = "evilpineapple@cox.net"
-ENT.Purpose         = "It Deploys Balloons."
-ENT.Instructions    = "Use wire."
-ENT.Category        = "Wiremod"
+ENT.PrintName		 = "Wire Balloon Deployer"
+ENT.Author			= "LuaPinapple"
+ENT.Contact		 = "evilpineapple@cox.net"
+ENT.Purpose		 = "It Deploys Balloons."
+ENT.Instructions	= "Use wire."
+ENT.Category		= "Wiremod"
 
-ENT.Spawnable       = true
-ENT.AdminOnly       = false
+ENT.Spawnable		 = true
+ENT.AdminOnly		 = false
 
 ENT.WireDebugName = "Balloon Deployer"
 cleanup.Register("wire_deployers")

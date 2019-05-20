@@ -369,19 +369,19 @@ end)
 registerFunction("maxVec", "xv2xv2", "xv2", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-    local x, y
+	local x, y
 	if rv1[1] > rv2[1] then x = rv1[1] else x = rv2[1] end
-    if rv1[2] > rv2[2] then y = rv1[2] else y = rv2[2] end
-    return {x, y}
+	if rv1[2] > rv2[2] then y = rv1[2] else y = rv2[2] end
+	return {x, y}
 end)
 
 registerFunction("minVec", "xv2xv2", "xv2", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-    local x, y
+	local x, y
 	if rv1[1] < rv2[1] then x = rv1[1] else x = rv2[1] end
-    if rv1[2] < rv2[2] then y = rv1[2] else y = rv2[2] end
-    return {x, y}
+	if rv1[2] < rv2[2] then y = rv1[2] else y = rv2[2] end
+	return {x, y}
 end)
 
 // Performs modulo on x,y separately
@@ -920,23 +920,23 @@ end)
 registerFunction("maxVec", "xv4xv4", "xv4", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-    local x, y, z, w
+	local x, y, z, w
 	if rv1[1] > rv2[1] then x = rv1[1] else x = rv2[1] end
-    if rv1[2] > rv2[2] then y = rv1[2] else y = rv2[2] end
+	if rv1[2] > rv2[2] then y = rv1[2] else y = rv2[2] end
 	if rv1[3] > rv2[3] then z = rv1[3] else z = rv2[3] end
-    if rv1[4] > rv2[4] then w = rv1[4] else w = rv2[4] end
-    return {x, y, z, w}
+	if rv1[4] > rv2[4] then w = rv1[4] else w = rv2[4] end
+	return {x, y, z, w}
 end)
 
 registerFunction("minVec", "xv4xv4", "xv4", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-    local x, y, z, w
+	local x, y, z, w
 	if rv1[1] < rv2[1] then x = rv1[1] else x = rv2[1] end
-    if rv1[2] < rv2[2] then y = rv1[2] else y = rv2[2] end
+	if rv1[2] < rv2[2] then y = rv1[2] else y = rv2[2] end
 	if rv1[3] < rv2[3] then z = rv1[3] else z = rv2[3] end
-    if rv1[4] < rv2[4] then w = rv1[4] else w = rv2[4] end
-    return {x, y, z, w}
+	if rv1[4] < rv2[4] then w = rv1[4] else w = rv2[4] end
+	return {x, y, z, w}
 end)
 
 // Performs modulo on x,y,z separately

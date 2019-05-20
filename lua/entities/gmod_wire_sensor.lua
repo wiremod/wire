@@ -1,6 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Beacon Sensor"
+ENT.PrintName		 = "Wire Beacon Sensor"
 ENT.WireDebugName = "Beacon Sensor"
 
 if CLIENT then return end -- No more client
@@ -34,32 +34,32 @@ function ENT:Setup(xyz_mode, outdist, outbrng, gpscord, direction_vector, direct
 
 	local onames = {}
 	if (outdist) then
-	    table.insert(onames, "Distance")
+		table.insert(onames, "Distance")
 	end
 
 	if (xyz_mode) then
-	    table.insert(onames, "X")
-	    table.insert(onames, "Y")
-	    table.insert(onames, "Z")
+		table.insert(onames, "X")
+		table.insert(onames, "Y")
+		table.insert(onames, "Z")
 	end
 	if (outbrng) then
 		table.insert(onames, "Bearing")
 		table.insert(onames, "Elevation")
 	end
 	if (gpscord) then
-	    table.insert(onames, "World_X")
-	    table.insert(onames, "World_Y")
-	    table.insert(onames, "World_Z")
+		table.insert(onames, "World_X")
+		table.insert(onames, "World_Y")
+		table.insert(onames, "World_Z")
 	end
 	if (direction_vector) then
-	    table.insert(onames, "Direction_X")
-	    table.insert(onames, "Direction_Y")
-	    table.insert(onames, "Direction_Z")
+		table.insert(onames, "Direction_X")
+		table.insert(onames, "Direction_Y")
+		table.insert(onames, "Direction_Z")
 	end
 	if (target_velocity) then
-	    table.insert(onames, "Velocity_X")
-	    table.insert(onames, "Velocity_Y")
-	    table.insert(onames, "Velocity_Z")
+		table.insert(onames, "Velocity_X")
+		table.insert(onames, "Velocity_Y")
+		table.insert(onames, "Velocity_Z")
 	end
 
 	Wire_AdjustOutputs(self, onames)
@@ -72,9 +72,9 @@ function ENT:Think()
 
 	if not IsValid(self.ToSense) or not self.ToSense.GetBeaconPos then return end
 	if (self.Active) then
-	    local dist = 0
-	    local distc = Vector(0,0,0);
-	    local brng = Angle(0,0,0);
+		local dist = 0
+		local distc = Vector(0,0,0);
+		local brng = Angle(0,0,0);
 		local velo = Vector(0,0,0);
 		local gpscords = Vector(0,0,0);
 		local dirvec = Vector(0,0,0);
@@ -89,8 +89,8 @@ function ENT:Think()
 			distc = Vector(-DeltaPos.y,DeltaPos.x,DeltaPos.z)
 		end
 		if (self.outbrng) then
-		    local DeltaPos = self:WorldToLocal(BeaconPos)
-		    brng = DeltaPos:Angle()
+			local DeltaPos = self:WorldToLocal(BeaconPos)
+			brng = DeltaPos:Angle()
 		end
 		if (self.gpscord) then gpscords = BeaconPos end
 		if (self.direction_vector) then
@@ -135,18 +135,18 @@ end
 
 
 function ENT:TriggerOutputs(dist, brng, distc, gpscords,dirvec,velo)
-    if (self.outdist) then
+	if (self.outdist) then
 		Wire_TriggerOutput(self, "Distance", dist)
 	end
 	if (self.xyz_mode) then
-	    Wire_TriggerOutput(self, "X", distc.x)
-	    Wire_TriggerOutput(self, "Y", distc.y)
-	    Wire_TriggerOutput(self, "Z", distc.z)
+		Wire_TriggerOutput(self, "X", distc.x)
+		Wire_TriggerOutput(self, "Y", distc.y)
+		Wire_TriggerOutput(self, "Z", distc.z)
 	end
 	if (self.gpscord) then
-	    Wire_TriggerOutput(self, "World_X", gpscords.x)
-	    Wire_TriggerOutput(self, "World_Y", gpscords.y)
-	    Wire_TriggerOutput(self, "World_Z", gpscords.z)
+		Wire_TriggerOutput(self, "World_X", gpscords.x)
+		Wire_TriggerOutput(self, "World_Y", gpscords.y)
+		Wire_TriggerOutput(self, "World_Z", gpscords.z)
 	end
 	if (self.outbrng) then
 		local pitch = brng.p
@@ -156,17 +156,17 @@ function ENT:TriggerOutputs(dist, brng, distc, gpscords,dirvec,velo)
 		if (yaw > 180) then yaw = yaw - 360 end
 
 		Wire_TriggerOutput(self, "Bearing", -yaw)
-	    Wire_TriggerOutput(self, "Elevation", -pitch)
+		Wire_TriggerOutput(self, "Elevation", -pitch)
 	end
 	if(self.direction_vector) then
-	    Wire_TriggerOutput(self, "Direction_X", dirvec.x)
-	    Wire_TriggerOutput(self, "Direction_Y", dirvec.y)
-	    Wire_TriggerOutput(self, "Direction_Z", dirvec.z)
+		Wire_TriggerOutput(self, "Direction_X", dirvec.x)
+		Wire_TriggerOutput(self, "Direction_Y", dirvec.y)
+		Wire_TriggerOutput(self, "Direction_Z", dirvec.z)
 	end
 	if(self.target_velocity) then
-	    Wire_TriggerOutput(self, "Velocity_X", velo.x)
-	    Wire_TriggerOutput(self, "Velocity_Y", velo.y)
-	    Wire_TriggerOutput(self, "Velocity_Z", velo.z)
+		Wire_TriggerOutput(self, "Velocity_X", velo.x)
+		Wire_TriggerOutput(self, "Velocity_Y", velo.y)
+		Wire_TriggerOutput(self, "Velocity_Z", velo.z)
 	end
 end
 
@@ -200,7 +200,7 @@ function ENT:BuildDupeInfo()
 	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	if IsValid(self.ToSense) then
-	    info.to_sense = self.ToSense:EntIndex()
+		info.to_sense = self.ToSense:EntIndex()
 	end
 
 	return info

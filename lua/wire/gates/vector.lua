@@ -632,7 +632,7 @@ GateActions["vector_select"] = {
 		return ({...})[Choice]
 	end,
 	label = function(Out, Choice)
-	    return string.format ("select(%s) = %s", Choice, Out)
+		return string.format ("select(%s) = %s", Choice, Out)
 	end
 }
 
@@ -648,7 +648,7 @@ GateActions["vector_rotate"] = {
 		return A
 	end,
 	label = function(Out, A, B)
-	    return string.format ("rotate(%s, %s) = "..tostring(Out), A, B )
+		return string.format ("rotate(%s, %s) = "..tostring(Out), A, B )
 	end
 }
 
@@ -663,7 +663,7 @@ GateActions["vector_mulcomp"] = {
 		return Vector( A.x * B, A.y * B, A.z * B )
 	end,
 	label = function(Out, A, B)
-	    return string.format ("%s * %s = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z )
+		return string.format ("%s * %s = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z )
 	end
 }
 

@@ -289,7 +289,7 @@ GateActions["angle_select"] = {
 		return ({...})[Choice]
 	end,
 	label = function(Out, Choice)
-	    return string.format ("select(%s) = %s", Choice, Out)
+		return string.format ("select(%s) = %s", Choice, Out)
 	end
 }
 
@@ -305,7 +305,7 @@ GateActions["angle_mulcomp"] = {
 		return Angle( A.p * B, A.y * B, A.r * B )
 	end,
 	label = function(Out, A, B)
-	    return string.format ("%s * %s = "..tostring(Out), A, B )
+		return string.format ("%s * %s = "..tostring(Out), A, B )
 	end
 }
 
