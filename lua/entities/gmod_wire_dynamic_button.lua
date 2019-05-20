@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName		 = "Wire Dynamic Button"
-ENT.WireDebugName	= "Dynamic Button"
+ENT.PrintName      = "Wire Dynamic Button"
+ENT.WireDebugName  = "Dynamic Button"
 
 function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "On" )
@@ -31,7 +31,7 @@ if CLIENT then
 		end
 	end)
 
-	return	-- No more client
+	return -- No more client
 end
 
 ENT.OutputEntID = false

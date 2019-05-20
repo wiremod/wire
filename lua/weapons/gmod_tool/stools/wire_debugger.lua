@@ -53,7 +53,7 @@ end
 
 properties.Add("wire_debugger_start", {
 	MenuLabel = "Debug",
-	MenuIcon	= "icon16/bug.png",
+	MenuIcon  = "icon16/bug.png",
 	Order = 500,
 
 	Filter = function(self,ent,ply)
@@ -87,7 +87,7 @@ properties.Add("wire_debugger_start", {
 })
 properties.Add("wire_debugger_stop", {
 	MenuLabel = "Stop Debugging",
-	MenuIcon	= "icon16/bug.png",
+	MenuIcon  = "icon16/bug.png",
 	Order = 500,
 
 	Filter = function(self,ent,ply)
@@ -277,7 +277,7 @@ if (SERVER) then
 						if OrientVertical then
 							dbginfo = dbginfo .. "\n"
 						else
-							dbginfo = dbginfo .. "	"
+							dbginfo = dbginfo .. "  "
 						end
 					end
 				end
