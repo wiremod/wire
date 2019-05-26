@@ -19,6 +19,11 @@ e2function entity entity:weapon(string weaponclassname)
 	return this:GetWeapon(weaponclassname)
 end
 
+e2function array entity:weapons()
+	if not IsValid(this) then return {} end
+	if not this:IsPlayer() then return {} end
+	return this:GetWeapons()
+end
 
 e2function string entity:primaryAmmoType()
 	if not IsValid(this) then return "" end
