@@ -22,7 +22,11 @@ end
 e2function array entity:weapons()
 	if not IsValid(this) then return {} end
 	if not this:IsPlayer() then return {} end
-	return this:GetWeapons()
+	local ret = {}
+	for k,v in pairs(this:GetWeapons()) do
+		ret[#ret + 1] = v
+	end
+	return ret
 end
 
 e2function string entity:primaryAmmoType()
