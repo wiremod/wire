@@ -64,11 +64,11 @@ end
 -- If it returns a value, then that value will replace the node.
 -- For example:
 -- E2Lib.AST.visitChildren(node, function(child)
---	 print(string.format("Node has a child of type %s", child[1]))
---	 -- replace (sub x x) → 0
---	 if child[1] == "sub" and child[3] == child[4] then
---		 return { "literal", child[2], 0, "n" }
---	 end
+-- 	print(string.format("Node has a child of type %s", child[1]))
+-- 	-- replace (sub x x) → 0
+-- 	if child[1] == "sub" and child[3] == child[4] then
+-- 		return { "literal", child[2], 0, "n" }
+-- 	end
 -- end)
 function E2Lib.AST.visitChildren(node, action)
 	local visitor = childVisitors[node[1]] or genericChildVisitor
@@ -94,7 +94,7 @@ function E2Lib.AST.dump(tree, indentation)
 	end
 
 	str = str .. " (" .. tree[2][1] .. ":" .. tree[2][2] .. ")"
-	local childIndentation = indentation .. "|	"
+	local childIndentation = indentation .. "|    "
 
 	E2Lib.AST.visitChildren(tree, function(child)
 		str = str .. "\n" .. E2Lib.AST.dump(child, childIndentation)

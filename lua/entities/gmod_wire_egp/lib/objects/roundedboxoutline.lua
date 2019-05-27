@@ -16,13 +16,13 @@ Obj.Draw = function( self )
 			local srx,sry = source[x].x,source[x].y
 			local scx,scy = srx*(sx-(radius*2))/2 , sry*(sy-(radius*2))/2
 			scx,scy = scx*math.cos(math.rad(angle)) - scy*math.sin(math.rad(angle)),
-						scx*math.sin(math.rad(angle)) + scy*math.cos(math.rad(angle))
+			          scx*math.sin(math.rad(angle)) + scy*math.cos(math.rad(angle))
 			local a,r = math.rad(div*i+(x*90)), radius
 			local dir = {x=math.sin(-(a+math.rad(angle))),y=math.cos(-(a+math.rad(angle)))}
 			local dirUV = {x=math.sin(-a),y=math.cos(-a)}
 			local ru,rv = (radius/sx),(radius/sy)
 			local u,v = 0.5 + (dirUV.x*ru) + (srx/2)*(1-(ru*2)),
-						0.5 + (dirUV.y*rv) + (sry/2)*(1-(rv*2))
+			            0.5 + (dirUV.y*rv) + (sry/2)*(1-(rv*2))
 			polys[#polys+1] = {x=xs+scx+(dir.x*r),	y=ys+scy+(dir.y*r) , u=u,v=v}
 		end
 	end

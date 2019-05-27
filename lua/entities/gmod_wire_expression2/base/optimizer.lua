@@ -61,7 +61,7 @@ local function evaluateUnary(instruction)
 end
 
 for _, operator in pairs({ "add", "sub", "mul", "div", "mod", "exp", "eq", "neq", "geq", "leq",
-							 "gth", "lth", "band", "band", "bor", "bxor", "bshl", "bshr" }) do
+                           "gth", "lth", "band", "band", "bor", "bxor", "bshl", "bshr" }) do
 	constantPropagation[operator] = function(instruction)
 		if instruction[3][1] ~= "literal" or instruction[4][1] ~= "literal" then return instruction end
 		return evaluateBinary(instruction)
