@@ -120,57 +120,57 @@ end
 function ENT:WriteCell(Address, Value)
 	Address = math.floor(Address)
 	if (Address >= 0) and (Address < self.ControlDataSize) then
-	-- [0..15] Address bus settings
-	-- [16] Control data area size
-	-- [17] Write to request device info
-	-- [18] Data transfer rate
-	-- [19] Override returned device type (0: no override)
-	-- [20] Perform recursive scan
-	-- [32..] Device types
-	if Address < 16 then
-		if Address % 2 == 0 then
-			self.MemStart[Address/2+1] = math.floor(Value)
-		else
-			self.MemEnd[(Address-1)/2+1] = math.floor(Value)
-		end
-	elseif Address == 16 then
-		self.ControlDataSize = math.max(32,math.floor(Value))
-	elseif Address == 17 then
-		recursiveCounter = 0
-		self.ControlData = {}
-		for i = 1,8 do
-			if self.Memory[i] then
-				self:GetDeviceInfo(self.Memory[i])
+		-- [0..15] Address bus settings
+		-- [16] Control data area size
+		-- [17] Write to request device info
+		-- [18] Data transfer rate
+		-- [19] Override returned device type (0: no override)
+		-- [20] Perform recursive scan
+		-- [32..] Device types
+		if Address < 16 then
+			if Address % 2 == 0 then
+				self.MemStart[Address/2+1] = math.floor(Value)
 			else
-				table.insert(self.ControlData,0)
+				self.MemEnd[(Address-1)/2+1] = math.floor(Value)
 			end
-		end
-	elseif Address == 20 then
-		self.PerformRecursiveScan = Value
-	end
-	return true
-	else
-	local res = false
-	for i = 1,8 do
-		if (Address-self.ControlDataSize >= self.MemStart[i]) and
-		   (Address-self.ControlDataSize <= self.MemEnd[i]) then
-			if self.Memory[i] then
-				if self.Memory[i].WriteCell then
-				self.Memory[i]:WriteCell(Address-self.ControlDataSize-self.MemStart[i], Value)
+		elseif Address == 16 then
+			self.ControlDataSize = math.max(32,math.floor(Value))
+		elseif Address == 17 then
+			recursiveCounter = 0
+			self.ControlData = {}
+			for i = 1,8 do
+				if self.Memory[i] then
+					self:GetDeviceInfo(self.Memory[i])
+				else
+					table.insert(self.ControlData,0)
 				end
 			end
-			self.DataBytes = self.DataBytes + 1
-			res = true
+		elseif Address == 20 then
+			self.PerformRecursiveScan = Value
 		end
-	end
-	return res
+		return true
+	else
+		local res = false
+		for i = 1,8 do
+			if (Address-self.ControlDataSize >= self.MemStart[i]) and
+			(Address-self.ControlDataSize <= self.MemEnd[i]) then
+				if self.Memory[i] then
+					if self.Memory[i].WriteCell then
+					self.Memory[i]:WriteCell(Address-self.ControlDataSize-self.MemStart[i], Value)
+					end
+				end
+				self.DataBytes = self.DataBytes + 1
+				res = true
+			end
+		end
+		return res
 	end
 end
 
 function ENT:TriggerInput(iname, value)
 	for i = 1,8 do
 		if iname == "Memory"..i then
-				self.Memory[i] = self.Inputs["Memory"..i].Src
+			self.Memory[i] = self.Inputs["Memory"..i].Src
 		end
 	end
 end

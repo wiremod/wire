@@ -72,7 +72,7 @@ function ENT:Initialize()
 	self.Memory1[2046] = 0
 
 	for i = 0, 2047 do
-	self.Memory2[i] = self.Memory1[i]
+		self.Memory2[i] = self.Memory1[i]
 	end
 
 	self.LastClk = false
@@ -91,7 +91,7 @@ function ENT:Initialize()
 
 	-- Setup caching
 	GPULib.ClientCacheCallback(self,function(Address,Value)
-	self:WriteCell(Address,Value)
+		self:WriteCell(Address,Value)
 	end)
 
 	WireLib.netRegister(self)
@@ -333,7 +333,7 @@ function ENT:Draw()
 
 			local ch = self.Memory1[2042]
 
-			local hb = 28*math.fmod(ch,					10)*self.Memory1[2026]*self.Memory1[2025] + self.Memory1[2036]
+			local hb = 28*math.fmod(ch,                  10)*self.Memory1[2026]*self.Memory1[2025] + self.Memory1[2036]
 			local hg = 28*math.fmod(math.floor(ch / 10), 10)*self.Memory1[2027]*self.Memory1[2025] + self.Memory1[2036]
 			local hr = 28*math.fmod(math.floor(ch / 100),10)*self.Memory1[2028]*self.Memory1[2025] + self.Memory1[2036]
 			surface.SetDrawColor(hr,hg,hb,255)
@@ -348,10 +348,10 @@ function ENT:Draw()
 					local cback = math.floor(c2 / 1000)
 					local cfrnt = c2 - math.floor(c2 / 1000)*1000
 
-					local fb = math.Clamp(28*math.fmod(cfrnt,					10)*self.Memory1[2026]*self.Memory1[2025] + self.Memory1[2036],0,255)
+					local fb = math.Clamp(28*math.fmod(cfrnt,                  10)*self.Memory1[2026]*self.Memory1[2025] + self.Memory1[2036],0,255)
 					local fg = math.Clamp(28*math.fmod(math.floor(cfrnt / 10), 10)*self.Memory1[2027]*self.Memory1[2025] + self.Memory1[2036],0,255)
 					local fr = math.Clamp(28*math.fmod(math.floor(cfrnt / 100),10)*self.Memory1[2028]*self.Memory1[2025] + self.Memory1[2036],0,255)
-					local bb = math.Clamp(28*math.fmod(cback,					10)*self.Memory1[2026]*self.Memory1[2025] + self.Memory1[2036],0,255)
+					local bb = math.Clamp(28*math.fmod(cback,                  10)*self.Memory1[2026]*self.Memory1[2025] + self.Memory1[2036],0,255)
 					local bg = math.Clamp(28*math.fmod(math.floor(cback / 10), 10)*self.Memory1[2027]*self.Memory1[2025] + self.Memory1[2036],0,255)
 					local br = math.Clamp(28*math.fmod(math.floor(cback / 100),10)*self.Memory1[2028]*self.Memory1[2025] + self.Memory1[2036],0,255)
 
@@ -391,15 +391,15 @@ function ENT:Draw()
 
 						if specialCharacters[c1] then
 							self:DrawSpecialCharacter(
-							c1, (tx+0.5)*szx, (ty+0.5)*szy, szx, szy,
-							fr,fg,fb
+								c1, (tx+0.5)*szx, (ty+0.5)*szy, szx, szy,
+								fr,fg,fb
 							)
 						else
 							draw.DrawText(
-							utf8,
-							"WireGPU_ConsoleFont",
-							(tx + 0.625) * szx, (ty + 0.75) * szy,
-							Color(fr,fg,fb,255),0
+								utf8,
+								"WireGPU_ConsoleFont",
+								(tx + 0.625) * szx, (ty + 0.75) * szy,
+								Color(fr,fg,fb,255),0
 							)
 						end
 					end
@@ -444,14 +444,14 @@ function ENT:Draw()
 	if self.FrameNeedsFlash == true then
 		if self.IntTimer < self.Memory1[2043] then
 			if (self.Flash == false) then
-			self.NeedRefresh = true
+				self.NeedRefresh = true
 			end
 			self.Flash = true
 		end
 
 		if self.IntTimer >= self.Memory1[2043] then
 			if self.Flash == true then
-			self.NeedRefresh = true
+				self.NeedRefresh = true
 			end
 			self.Flash = false
 		end

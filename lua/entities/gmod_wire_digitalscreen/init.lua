@@ -218,7 +218,7 @@ function ENT:WriteCell(Address, value)
 
 	if Address < 1048500 then -- RGB data
 		if self.Memory[Address] == value or
-			 (value == 0 and self.Memory[Address] == nil) then
+		   (value == 0 and self.Memory[Address] == nil) then
 			return true
 		end
 	else

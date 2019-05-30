@@ -15,7 +15,7 @@ function ENT:Initialize()
 	self.Memory = {}
 
 	for i = 0, 2047 do
-	self.Memory[i] = 0
+		self.Memory[i] = 0
 	end
 
 	self.CharX = 0
@@ -54,7 +54,7 @@ end
 
 function ENT:SendPixel()
 	if (self.Memory[2047] ~= 0) && (self.CharX >= 0) && (self.CharX < 30) &&
-								(self.CharY >= 0) && (self.CharY < 18) then
+	                               (self.CharY >= 0) && (self.CharY < 18) then
 		local pixelno = math.floor(self.CharY)*30+math.floor(self.CharX)
 
 		self:WriteCell(pixelno*2, self.Char)

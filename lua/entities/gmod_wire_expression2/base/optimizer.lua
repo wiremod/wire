@@ -100,7 +100,7 @@ function peephole.add(instruction)
 	-- (add (neg x) (neg y)) → (neg (add x y))
 	if instruction[3][1] == "neg" and instruction[4][1] == "neg" then
 		return {"neg", instruction[2], {"add", instruction[2], instruction[3][3], instruction[4][3],
-				__instruction = true}}
+		        __instruction = true}}
 	end
 	-- (add x (neg y)) → (sub x y)
 	if instruction[4][1] == "neg" then
@@ -131,7 +131,7 @@ function peephole.sub(instruction)
 	-- (sub (neg x) y) → (neg (add x y))
 	if instruction[3][1] == "neg" then
 		return {"neg", instruction[2], {"add", instruction[2], instruction[3][3], instruction[4],
-				__instruction = true }}
+		        __instruction = true }}
 	end
 	return instruction
 end
