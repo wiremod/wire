@@ -4,7 +4,7 @@ WireToolSetup.open( "cpu", "CPU", "gmod_wire_cpu", nil, "CPUs" )
 if CLIENT then
 	language.Add("Tool.wire_cpu.name", "CPU Tool (Wire)")
 	language.Add("Tool.wire_cpu.desc", "Spawns a central processing unit")
-	language.Add("ToolWirecpu_Model",	"Model:" )
+	language.Add("ToolWirecpu_Model",  "Model:" )
 	TOOL.Information = {
 		{ name = "left", text = "Upload program to hispeed device" },
 		{ name = "right", text = "Open editor" },
@@ -16,17 +16,17 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 7 )
 
 TOOL.ClientConVar = {
-  model             = "models/cheeze/wires/cpu.mdl",
-  filename          = "",
-  memorymodel       = "64krom",
+	model             = "models/cheeze/wires/cpu.mdl",
+	filename          = "",
+	memorymodel       = "64krom",
 }
 
 if CLIENT then
 	------------------------------------------------------------------------------
 	-- Make sure firing animation is displayed clientside
 	------------------------------------------------------------------------------
-	function TOOL:LeftClick()	return true end
-	function TOOL:Reload()	 return true end
+	function TOOL:LeftClick()  return true end
+	function TOOL:Reload()     return true end
 	function TOOL:RightClick() return false end
 end
 
@@ -39,26 +39,26 @@ if SERVER then
 	-- Reload: wipe ROM/RAM and reset memory model, or attach debugger
 	------------------------------------------------------------------------------
 	function TOOL:Reload(trace)
-	if trace.Entity:IsPlayer() then return false end
+		if trace.Entity:IsPlayer() then return false end
 		local player = self:GetOwner()
 
 		if player:KeyDown(IN_SPEED) then
 			if (trace.Entity:IsValid()) and
-			(trace.Entity:GetClass() == "gmod_wire_cpu") then
-			trace.Entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
-			trace.Entity:FlashData({})
-			net.Start("CPULib.InvalidateDebugger") net.WriteUInt(0,2) net.Send(player)
+				 (trace.Entity:GetClass() == "gmod_wire_cpu") then
+				trace.Entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
+				trace.Entity:FlashData({})
+				net.Start("CPULib.InvalidateDebugger") net.WriteUInt(0,2) net.Send(player)
 			end
 		else
 			if (not trace.Entity:IsPlayer()) and
-			(trace.Entity:IsValid()) and
-			(trace.Entity:GetClass() == "gmod_wire_cpu") then
-			CPULib.AttachDebugger(trace.Entity,player)
-			CPULib.SendDebugData(trace.Entity.VM,nil,player)
-			net.Start("CPULib.InvalidateDebugger") net.WriteUInt(2,2) net.Send(player)
+			   (trace.Entity:IsValid()) and
+			   (trace.Entity:GetClass() == "gmod_wire_cpu") then
+				CPULib.AttachDebugger(trace.Entity,player)
+				CPULib.SendDebugData(trace.Entity.VM,nil,player)
+				net.Start("CPULib.InvalidateDebugger") net.WriteUInt(2,2) net.Send(player)
 			else
-			CPULib.AttachDebugger(nil,player)
-			net.Start("CPULib.InvalidateDebugger") net.WriteUInt(1,2) net.Send(player)
+				CPULib.AttachDebugger(nil,player)
+				net.Start("CPULib.InvalidateDebugger") net.WriteUInt(1,2) net.Send(player)
 			end
 		end
 		return true
@@ -143,8 +143,8 @@ if CLIENT then
 		FileBrowser:SetSize(235,400)
 		function FileBrowser:OnFileOpen(filepath, newtab)
 			if not ZCPU_Editor then
-			ZCPU_Editor = vgui.Create("Expression2EditorFrame")
-			ZCPU_Editor:Setup("ZCPU Editor", "cpuchip", "CPU")
+				ZCPU_Editor = vgui.Create("Expression2EditorFrame")
+				ZCPU_Editor:Setup("ZCPU Editor", "cpuchip", "CPU")
 			end
 			ZCPU_Editor:Open(filepath, nil, newtab)
 		end
@@ -263,7 +263,7 @@ if CLIENT then
 				outc("Program size:",2,Color(255,255,255,255))
 				outc(string.format("%d bytes",#CPULib.Buffer),3,Color(255,255,255,255))
 				outc("Uploading 100",5,Color(255,255,255,255))
-				outc("	 Standby	 ",6,Color(255,255,255,255))
+				outc("   Standby   ",6,Color(255,255,255,255))
 				prevStateTime = RealTime()
 			elseif CPULib.Compiling then
 				outc(string.format("Stage %2d/7",HCOMP.Stage+1),2,Color(255,255,255,255))
@@ -293,7 +293,7 @@ if CLIENT then
 			surface.SetDrawColor(240, 120, 0, 255)
 			surface.DrawRect(16*(5),32*2+14,256,4)
 			outc("TASK",2,Color(240, 120,0,255))
-			outc("		 STATUS",3,Color(255,255,255,255))
+			outc("       STATUS",3,Color(255,255,255,255))
 
 			surface.SetDrawColor(240, 120, 0, 255)
 			surface.DrawRect(16*(4),32*6+14,256,4)
@@ -306,7 +306,7 @@ if CLIENT then
 				outc("UPLMON [ OK ]",4,Color(255,255,255,255))
 				outc("DOWN SYNC",7,Color(255,255,255,255))
 			elseif CPULib.Compiling then
-				outc(string.format("HCOMP	[%2d/7]",HCOMP.Stage),4,Color(255,255,255,255))
+				outc(string.format("HCOMP  [%2d/7]",HCOMP.Stage),4,Color(255,255,255,255))
 				outc("IDLE",7,Color(255,255,255,255))
 			else
 				outc("IDLE",7,Color(255,255,255,255))
@@ -332,13 +332,13 @@ if CLIENT then
 					consoleHistory[4] = string.lower(toolName).."@:/# upl"
 				end
 
-				consoleHistory[5] = string.format("	%3d%%",100-100*CPULib.RemainingUploadData/(CPULib.TotalUploadData+1e-12))
-				consoleHistory[6] = string.format("	%d B",CPULib.RemainingUploadData)
+				consoleHistory[5] = string.format("  %3d%%",100-100*CPULib.RemainingUploadData/(CPULib.TotalUploadData+1e-12))
+				consoleHistory[6] = string.format("  %d B",CPULib.RemainingUploadData)
 
 				prevState = 0
 			elseif CPULib.ServerUploading then
-				consoleHistory[5] = "	###"
-				consoleHistory[6] = "	0 B"
+				consoleHistory[5] = "  ###"
+				consoleHistory[6] = "  0 B"
 				prevState = 0
 			elseif CPULib.Compiling then
 				if prevState ~= 1 then
@@ -371,22 +371,22 @@ if CLIENT then
 			outc("MENU",7,Color(0,0,0,255))
 
 			if CPULib.Uploading then
-			outform(1,1,7,5,"Upload")
-			outc(string.format("	%.3f kb",CPULib.RemainingUploadData/1024),3,Color(0,0,0,255))
-			outc(string.format("	%3d%% done",100-100*CPULib.RemainingUploadData/(CPULib.TotalUploadData+1e-12)),4,Color(0,0,0,255))
+				outform(1,1,7,5,"Upload")
+				outc(string.format("  %.3f kb",CPULib.RemainingUploadData/1024),3,Color(0,0,0,255))
+				outc(string.format("  %3d%% done",100-100*CPULib.RemainingUploadData/(CPULib.TotalUploadData+1e-12)),4,Color(0,0,0,255))
 
-			outform(1,5,7,0.9)
-			surface.SetDrawColor(0, 0, 128, 255)
-			surface.DrawRect(1*28+4,5*32+4,
-				math.floor((7*28-4)*(1-CPULib.RemainingUploadData/(CPULib.TotalUploadData+1e-12))/14)*14,
-				1*32-8)
+				outform(1,5,7,0.9)
+				surface.SetDrawColor(0, 0, 128, 255)
+				surface.DrawRect(1*28+4,5*32+4,
+					math.floor((7*28-4)*(1-CPULib.RemainingUploadData/(CPULib.TotalUploadData+1e-12))/14)*14,
+					1*32-8)
 			elseif CPULib.ServerUploading then
 				outform(1,3,7,3,"Upload")
-				outc("	Standby",5,Color(0,0,0,255))
+				outc("  Standby",5,Color(0,0,0,255))
 			elseif CPULib.Compiling then
 				outform(1,1,7,5,"HL-ZASM")
-				outc(string.format("	Stage %d/7",HCOMP.Stage+1),3,Color(0,0,0,255))
-				outc("	"..stageNameShort[HCOMP.Stage+1],4,Color(0,0,0,255))
+				outc(string.format("  Stage %d/7",HCOMP.Stage+1),3,Color(0,0,0,255))
+				outc("  "..stageNameShort[HCOMP.Stage+1],4,Color(0,0,0,255))
 			else
 				--
 			end

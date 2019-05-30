@@ -17,13 +17,13 @@ function ENT:OverrideVM()
 
 	-- Add additional VM functionality
 	for k,v in pairs(VM) do
-	if k == "OpcodeTable" then
-		for k2,v2 in pairs(v) do
-		self.VM.OpcodeTable[k2] = v2
+		if k == "OpcodeTable" then
+			for k2,v2 in pairs(v) do
+			self.VM.OpcodeTable[k2] = v2
+			end
+		else
+			self.VM[k] = v
 		end
-	else
-		self.VM[k] = v
-	end
 	end
 
 	self.VM.ErrorText = {}
@@ -40,71 +40,71 @@ function ENT:OverrideVM()
 	self.VM.ErrorText[23] = "Error reading string data"
 
 	self.VM.Interrupt = function(self,interruptNo,interruptParameter,isExternal,cascadeInterrupt)
-	if self.ASYNC == 1 then
-		if self.EntryPoint5 > 0 then
-		self.IP = self.EntryPoint5
-		self.LADD = interruptParameter or self.XEIP
-		self.LINT = interruptNo
+		if self.ASYNC == 1 then
+			if self.EntryPoint5 > 0 then
+				self.IP = self.EntryPoint5
+				self.LADD = interruptParameter or self.XEIP
+				self.LINT = interruptNo
+			else
+				-- Shutdown asynchronous thread
+				self.Memory[65528] = 0
+			end
 		else
-		-- Shutdown asynchronous thread
-		self.Memory[65528] = 0
-		end
-	else
-		if self.EntryPoint3 > 0 then
-		self.IP = self.EntryPoint3
-		self.LADD = interruptParameter or self.XEIP
-		self.LINT = interruptNo
-		else
-		if (interruptNo == 2) and (self.XEIP == 0) then self.INTR = 1 return end
+			if self.EntryPoint3 > 0 then
+				self.IP = self.EntryPoint3
+				self.LADD = interruptParameter or self.XEIP
+				self.LINT = interruptNo
+			else
+				if (interruptNo == 2) and (self.XEIP == 0) then self.INTR = 1 return end
 
-		if self.RenderEnable == 1 then
-			surface.SetTexture(0)
-			surface.SetDrawColor(0,0,0,120)
-			surface.DrawRect(0,0,self.ScreenWidth,self.ScreenHeight)
+				if self.RenderEnable == 1 then
+					surface.SetTexture(0)
+					surface.SetDrawColor(0,0,0,120)
+					surface.DrawRect(0,0,self.ScreenWidth,self.ScreenHeight)
 
-			draw.DrawText("Error in the instruction stream","WireGPU_ErrorFont",48,16,Color(255,255,255,255))
-			draw.DrawText((self.ErrorText[interruptNo] or "Unknown error").." (#"..interruptNo..")","WireGPU_ErrorFont",16,16+32*2,Color(255,255,255,255))
-			draw.DrawText("Parameter: "..(interruptParameter or 0),"WireGPU_ErrorFont",16,16+32*3,Color(255,255,255,255))
-			draw.DrawText("Address: "..self.XEIP,"WireGPU_ErrorFont",16,16+32*4,Color(255,255,255,255))
+					draw.DrawText("Error in the instruction stream","WireGPU_ErrorFont",48,16,Color(255,255,255,255))
+					draw.DrawText((self.ErrorText[interruptNo] or "Unknown error").." (#"..interruptNo..")","WireGPU_ErrorFont",16,16+32*2,Color(255,255,255,255))
+					draw.DrawText("Parameter: "..(interruptParameter or 0),"WireGPU_ErrorFont",16,16+32*3,Color(255,255,255,255))
+					draw.DrawText("Address: "..self.XEIP,"WireGPU_ErrorFont",16,16+32*4,Color(255,255,255,255))
 
-			local errorPosition = CPULib.Debugger.PositionByPointer[self.XEIP]
-			if errorPosition then
-			local posText = HCOMP:formatPrefix(errorPosition.Line,errorPosition.Col,errorPosition.File)
+					local errorPosition = CPULib.Debugger.PositionByPointer[self.XEIP]
+					if errorPosition then
+					local posText = HCOMP:formatPrefix(errorPosition.Line,errorPosition.Col,errorPosition.File)
 
-			draw.DrawText("Debugging data present (may be invalid):","WireGPU_ErrorFont",16,16+32*6,Color(255,255,255,255))
-			draw.DrawText("Error at "..posText,"WireGPU_ErrorFont",16,16+32*7,Color(255,255,255,255))
-			draw.DrawText("Line: <not available>","WireGPU_ErrorFont",16,16+32*9,Color(255,255,255,255))
+					draw.DrawText("Debugging data present (may be invalid):","WireGPU_ErrorFont",16,16+32*6,Color(255,255,255,255))
+					draw.DrawText("Error at "..posText,"WireGPU_ErrorFont",16,16+32*7,Color(255,255,255,255))
+					draw.DrawText("Line: <not available>","WireGPU_ErrorFont",16,16+32*9,Color(255,255,255,255))
+					end
+				end
+				self.INTR = 1
 			end
 		end
-		self.INTR = 1
-		end
-	end
 	end
 
 	-- Override ports
 	self.VM.WritePort = function(VM,Port,Value)
-	VM:WriteCell(63488+Port,Value)
-	end
-	self.VM.ReadPort = function(VM,Port)
-	return VM:ReadCell(63488+Port)
+		VM:WriteCell(63488+Port,Value)
+		end
+		self.VM.ReadPort = function(VM,Port)
+		return VM:ReadCell(63488+Port)
 	end
 
 	-- Override writecell
 	self.VM.BaseWriteCell = self.VM.WriteCell
 	self.VM.WriteCell = function(VM,Address,Value)
-	VM:BaseWriteCell(Address,Value)
-	if (Address >= 65536) and (Address <= 131071) then
-		if VM.MemBusCount < 8 then
-		VM.MemBusCount = VM.MemBusCount + 1
-		VM.MemBusBuffer[Address] = Value
+		VM:BaseWriteCell(Address,Value)
+		if (Address >= 65536) and (Address <= 131071) then
+			if VM.MemBusCount < 8 then
+			VM.MemBusCount = VM.MemBusCount + 1
+			VM.MemBusBuffer[Address] = Value
+			end
+		elseif Address == 65534 then
+			VM:HardReset()
+		elseif Address == 65530 then
+			VM.ROM = {}
+		elseif Address == 65529 then
+			VM.AsyncState = {}
 		end
-	elseif Address == 65534 then
-		VM:HardReset()
-	elseif Address == 65530 then
-		VM.ROM = {}
-	elseif Address == 65529 then
-		VM.AsyncState = {}
-	end
 	end
 
 	-- Add internal registers
@@ -534,11 +534,11 @@ end
 
 function VM:RestoreAsyncThread()
 	if not self.AsyncState then
-	self.AsyncState = {}
-	self:Reset()
+		self.AsyncState = {}
+		self:Reset()
 
-	self:SaveAsyncThread_Util()
-	self.AsyncState.IP = self.EntryPoint4
+		self:SaveAsyncThread_Util()
+		self.AsyncState.IP = self.EntryPoint4
 	end
 
 	self:RestoreAsyncThread_Util()
@@ -603,11 +603,11 @@ function VM:ComputeTextureUV(vertex,u,v)
 	local du,dv = u,v
 
 	if (self.Memory[65466] ~= 0) or (self.Memory[65465] ~= 1) then
-	local cu,cv = self.Memory[65464],self.Memory[65463]
-	local tu,tv = u-cu,v-cv
-	local angle,scale = self.Memory[65466],self.Memory[65465]
-	du = scale*(tu*math.cos(angle) - tv*math.sin(angle)) + cu + self.Memory[65462]
-	dv = scale*(tv*math.cos(angle) + tu*math.sin(angle)) + cv + self.Memory[65461]
+		local cu,cv = self.Memory[65464],self.Memory[65463]
+		local tu,tv = u-cu,v-cv
+		local angle,scale = self.Memory[65466],self.Memory[65465]
+		du = scale*(tu*math.cos(angle) - tv*math.sin(angle)) + cu + self.Memory[65462]
+		dv = scale*(tv*math.cos(angle) + tu*math.sin(angle)) + cv + self.Memory[65461]
 	end
 
 	vertex.u = textureX+(1/texturesOnSide)*du*(1-2*uvStep)+uvStep
@@ -626,27 +626,27 @@ function VM:CoordinateTransform(x,y)
 
 	-- Is rotation/scale register set
 	if (self.Memory[65482] ~= 0) or (self.Memory[65481] ~= 1) then
-	-- Centerpoint of rotation
-	local cX = self.Memory[65480]
-	local cY = self.Memory[65479]
+		-- Centerpoint of rotation
+		local cX = self.Memory[65480]
+		local cY = self.Memory[65479]
 
-	-- Calculate normalized direction to rotated point
-	local vD = math.sqrt((x-cX)^2+(y-cY)^2) + 1e-7
-	local vX = x / vD
-	local vY = y / vD
+		-- Calculate normalized direction to rotated point
+		local vD = math.sqrt((x-cX)^2+(y-cY)^2) + 1e-7
+		local vX = x / vD
+		local vY = y / vD
 
-	-- Calculate angle of rotation for the point
-	local A
-	if self.RAMSize == 65536 then A = math.atan2(vX,vY) -- Old GPU
-	else							A = math.atan2(vY,vX)
-	end
+		-- Calculate angle of rotation for the point
+		local A
+		if self.RAMSize == 65536 then A = math.atan2(vX,vY) -- Old GPU
+		else                          A = math.atan2(vY,vX)
+		end
 
-	-- Rotate point by a certain angle
-	A = A + self.Memory[65482]
+		-- Rotate point by a certain angle
+		A = A + self.Memory[65482]
 
-	-- Generate new coordinates
-	tX = cX + math.cos(A) * vD * self.Memory[65481] * self.Memory[65475]
-	tY = cY + math.sin(A) * vD * self.Memory[65481] * self.Memory[65474]
+		-- Generate new coordinates
+		tX = cX + math.cos(A) * vD * self.Memory[65481] * self.Memory[65475]
+		tY = cY + math.sin(A) * vD * self.Memory[65481] * self.Memory[65474]
 	end
 
 	-- Apply DMOVE offset
@@ -654,20 +654,20 @@ function VM:CoordinateTransform(x,y)
 	tY = tY + self.Memory[65483]
 
 	if	 self.CoordinatePipe == 0 then
-	tX = self.ScreenWidth*(tX/512)
-	tY = self.ScreenHeight*(tY/512)
+		tX = self.ScreenWidth*(tX/512)
+		tY = self.ScreenHeight*(tY/512)
 	elseif self.CoordinatePipe == 1 then
-	tX = self.ScreenWidth*tX/self.Memory[65515]
-	tY = self.ScreenHeight*tY/self.Memory[65514]
+		tX = self.ScreenWidth*tX/self.Memory[65515]
+		tY = self.ScreenHeight*tY/self.Memory[65514]
 	elseif self.CoordinatePipe == 2 then
-	tX = tX*self.ScreenWidth
-	tY = tY*self.ScreenHeight
+		tX = tX*self.ScreenWidth
+		tY = tY*self.ScreenHeight
 	elseif self.CoordinatePipe == 3 then
-	tX = 0.5*self.ScreenWidth*(1+tX)
-	tY = 0.5*self.ScreenHeight*(1+tY)
+		tX = 0.5*self.ScreenWidth*(1+tX)
+		tY = 0.5*self.ScreenHeight*(1+tY)
 	elseif self.CoordinatePipe == 4 then
-	tX = 0.5*self.ScreenWidth+tX
-	tY = 0.5*self.ScreenHeight+tY
+		tX = 0.5*self.ScreenWidth+tX
+		tY = 0.5*self.ScreenHeight+tY
 	end
 
 	-- Apply raster quality transform
@@ -675,9 +675,9 @@ function VM:CoordinateTransform(x,y)
 	local rasterQuality = self.Memory[65518]
 
 	if rasterQuality > 0 then
-	local W,H = self.ScreenWidth/2,self.ScreenHeight/2
-	transformedCoordinate.x = (tX-W)*(1-(rasterQuality/W))+W
-	transformedCoordinate.y = (tY-H)*(1-(rasterQuality/H))+H
+		local W,H = self.ScreenWidth/2,self.ScreenHeight/2
+		transformedCoordinate.x = (tX-W)*(1-(rasterQuality/W))+W
+		transformedCoordinate.y = (tY-H)*(1-(rasterQuality/H))+H
 	end
 
 	return transformedCoordinate
@@ -721,85 +721,85 @@ function VM:VertexTransform(inVertex,toScreen)
 	vertex.z = vertex.z + self.Memory[65472]
 
 	-- Do the transformation
-		if self.VertexPipe == 0 then -- XY plane
-	local resultCoordinate = self:CoordinateTransform(vertex.x,vertex.y)
-	resultVertex.x = resultCoordinate.x
-	resultVertex.y = resultCoordinate.y
+	if self.VertexPipe == 0 then -- XY plane
+		local resultCoordinate = self:CoordinateTransform(vertex.x,vertex.y)
+		resultVertex.x = resultCoordinate.x
+		resultVertex.y = resultCoordinate.y
 	elseif self.VertexPipe == 1 then -- YZ plane
-	local resultCoordinate = self:CoordinateTransform(vertex.y,vertex.z)
-	resultVertex.x = resultCoordinate.x
-	resultVertex.y = resultCoordinate.y
+		local resultCoordinate = self:CoordinateTransform(vertex.y,vertex.z)
+		resultVertex.x = resultCoordinate.x
+		resultVertex.y = resultCoordinate.y
 	elseif self.VertexPipe == 2 then -- XZ plane
-	local resultCoordinate = self:CoordinateTransform(vertex.x,vertex.z)
-	resultVertex.x = resultCoordinate.x
-	resultVertex.y = resultCoordinate.y
+		local resultCoordinate = self:CoordinateTransform(vertex.x,vertex.z)
+		resultVertex.x = resultCoordinate.x
+		resultVertex.y = resultCoordinate.y
 	elseif self.VertexPipe == 3 then -- Perspective transform
-	local tX = (vertex.x + self.Memory[65512])/(vertex.z + self.Memory[65512])
-	local tY = (vertex.y + self.Memory[65512])/(vertex.z + self.Memory[65512])
+		local tX = (vertex.x + self.Memory[65512])/(vertex.z + self.Memory[65512])
+		local tY = (vertex.y + self.Memory[65512])/(vertex.z + self.Memory[65512])
 
-	local resultCoordinate = self:CoordinateTransform(tX,tY)
-	resultVertex.x = resultCoordinate.x
-	resultVertex.y = resultCoordinate.y
+		local resultCoordinate = self:CoordinateTransform(tX,tY)
+		resultVertex.x = resultCoordinate.x
+		resultVertex.y = resultCoordinate.y
 	elseif self.VertexPipe == 4 then -- 2D matrix
-	local tX = self.ModelMatrix[0*4+0] * vertex.x +
-				 self.ModelMatrix[0*4+1] * vertex.y +
-				 self.ModelMatrix[0*4+2] * 0 +
-				 self.ModelMatrix[0*4+3] * 1
+		local tX = self.ModelMatrix[0*4+0] * vertex.x +
+		           self.ModelMatrix[0*4+1] * vertex.y +
+		           self.ModelMatrix[0*4+2] * 0 +
+		           self.ModelMatrix[0*4+3] * 1
 
-	local tY = self.ModelMatrix[1*4+0] * vertex.x +
-				 self.ModelMatrix[1*4+1] * vertex.y +
-				 self.ModelMatrix[1*4+2] * 0 +
-				 self.ModelMatrix[1*4+3] * 1
+		local tY = self.ModelMatrix[1*4+0] * vertex.x +
+		           self.ModelMatrix[1*4+1] * vertex.y +
+		           self.ModelMatrix[1*4+2] * 0 +
+		           self.ModelMatrix[1*4+3] * 1
 
-	local resultCoordinate = self:CoordinateTransform(tX,tY)
-	resultVertex.x = resultCoordinate.x
-	resultVertex.y = resultCoordinate.y
+		local resultCoordinate = self:CoordinateTransform(tX,tY)
+		resultVertex.x = resultCoordinate.x
+		resultVertex.y = resultCoordinate.y
 	elseif self.VertexPipe == 5 then -- 3D matrix
-	local world
-	if not toScreen then
-		-- Transform into world coordinates
-		world = {}
+		local world
+		if not toScreen then
+			-- Transform into world coordinates
+			world = {}
 
-		for i=0,3 do
-		world[i] = self.ModelMatrix[i*4+0] * vertex.x +
-					 self.ModelMatrix[i*4+1] * vertex.y +
-					 self.ModelMatrix[i*4+2] * vertex.z +
-					 self.ModelMatrix[i*4+3] * vertex.w
+			for i=0,3 do
+			world[i] = self.ModelMatrix[i*4+0] * vertex.x +
+						self.ModelMatrix[i*4+1] * vertex.y +
+						self.ModelMatrix[i*4+2] * vertex.z +
+						self.ModelMatrix[i*4+3] * vertex.w
+			end
+
+			worldVertex.x = world[0]
+			worldVertex.y = world[1]
+			worldVertex.z = world[2]
+			worldVertex.w = world[3]
+		else
+			worldVertex = vertex
+			world = {}
+			world[0] = vertex.x
+			world[1] = vertex.y
+			world[2] = vertex.z
+			world[3] = vertex.w
 		end
 
-		worldVertex.x = world[0]
-		worldVertex.y = world[1]
-		worldVertex.z = world[2]
-		worldVertex.w = world[3]
-	else
-		worldVertex = vertex
-		world = {}
-		world[0] = vertex.x
-		world[1] = vertex.y
-		world[2] = vertex.z
-		world[3] = vertex.w
-	end
+		-- Transform into screen coordinates
+		local screen = {}
 
-	-- Transform into screen coordinates
-	local screen = {}
+		for i=0,3 do
+			screen[i] = self.ProjectionMatrix[i*4+0] * world[0] +
+			            self.ProjectionMatrix[i*4+1] * world[1] +
+			            self.ProjectionMatrix[i*4+2] * world[2] +
+			            self.ProjectionMatrix[i*4+3] * world[3]
+		end
 
-	for i=0,3 do
-		screen[i] = self.ProjectionMatrix[i*4+0] * world[0] +
-					self.ProjectionMatrix[i*4+1] * world[1] +
-					self.ProjectionMatrix[i*4+2] * world[2] +
-					self.ProjectionMatrix[i*4+3] * world[3]
-	end
+		-- Project to screen
+		if screen[3] == 0 then screen[3] = 1 end
+		for i=0,3 do screen[i] = screen[i] / screen[3] end
 
-	-- Project to screen
-	if screen[3] == 0 then screen[3] = 1 end
-	for i=0,3 do screen[i] = screen[i] / screen[3] end
-
-	-- Transform coordinates
-	local resultCoordinate = self:CoordinateTransform(screen[0],screen[1])
-	resultVertex.x = resultCoordinate.x
-	resultVertex.y = resultCoordinate.y
-	resultVertex.z = screen[2]
-	resultVertex.w = screen[3]
+		-- Transform coordinates
+		local resultCoordinate = self:CoordinateTransform(screen[0],screen[1])
+		resultVertex.x = resultCoordinate.x
+		resultVertex.y = resultCoordinate.y
+		resultVertex.z = screen[2]
+		resultVertex.w = screen[3]
 	end
 
 	return resultVertex,worldVertex
@@ -830,22 +830,22 @@ function VM:ReadString(address)
 	local currentChar = 255
 
 	while currentChar ~= 0 do
-	currentChar = self:ReadCell(address + charCount)
-	-- Reading failed
-	if not currentChar then
-		return
-	elseif currentChar > 0 and currentChar < 255 then
-		charString = charString .. string.char(currentChar)
-	elseif currentChar ~= 0 then
-		self:Interrupt(23,currentChar)
-		return ""
-	end
+		currentChar = self:ReadCell(address + charCount)
+		-- Reading failed
+		if not currentChar then
+			return
+		elseif currentChar > 0 and currentChar < 255 then
+			charString = charString .. string.char(currentChar)
+		elseif currentChar ~= 0 then
+			self:Interrupt(23,currentChar)
+			return ""
+		end
 
-	charCount = charCount + 1
-	if charCount > 8192 then
-		self:Interrupt(23,0)
-		return ""
-	end
+		charCount = charCount + 1
+		if charCount > 8192 then
+			self:Interrupt(23,0)
+			return ""
+		end
 	end
 	return charString
 end
@@ -860,9 +860,9 @@ function VM:TextSize(text)
 	self:SetFont()
 
 	if self.WordWrapMode == 1 then
-	return self.Layouter:GetTextSize(text, self.TextBox.x, self.TextBox.y)
+		return self.Layouter:GetTextSize(text, self.TextBox.x, self.TextBox.y)
 	else
-	return surface.GetTextSize(text)
+		return surface.GetTextSize(text)
 	end
 end
 
@@ -883,15 +883,15 @@ function VM:FontWrite(posaddr,text)
 
 	-- Draw text
 	if self.RenderEnable == 1 then
-	if self.WordWrapMode == 1 then
-		surface.SetTextColor(self.Color.x,self.Color.y,self.Color.z,self.Color.w)
-		self.Layouter:DrawText(tostring(text), vertex.x, vertex.y, self.TextBox.x,
-						 self.TextBox.y, self.Memory[65473], self.Memory[65471])
-	else
-		draw.DrawText(text,"WireGPU_"..self.FontName[self.Font]..self.FontSize,
-				vertex.x,vertex.y,Color(self.Color.x,self.Color.y,self.Color.z,self.Color.w),
-				self.Memory[65473])
-	end
+		if self.WordWrapMode == 1 then
+			surface.SetTextColor(self.Color.x,self.Color.y,self.Color.z,self.Color.w)
+			self.Layouter:DrawText(tostring(text), vertex.x, vertex.y, self.TextBox.x,
+			                       self.TextBox.y, self.Memory[65473], self.Memory[65471])
+		else
+			draw.DrawText(text,"WireGPU_"..self.FontName[self.Font]..self.FontSize,
+			              vertex.x,vertex.y,Color(self.Color.x,self.Color.y,self.Color.z,self.Color.w),
+			              self.Memory[65473])
+		end
 	end
 end
 
@@ -941,9 +941,9 @@ function VM:DrawLine(point1,point2,drawNow)
 
 	-- Draw vertexes
 	if drawNow then
-	surface.DrawPoly(vertexBuffer)
+		surface.DrawPoly(vertexBuffer)
 	else
-	self:DrawToBuffer(vertexBuffer)
+		self:DrawToBuffer(vertexBuffer)
 	end
 end
 
@@ -962,330 +962,330 @@ end
 
 function VM:FlushBuffer()
 	-- Projected vertex data:
-	--	 vertexData.transformedVertex [SCREEN SPACE]
+	--   vertexData.transformedVertex [SCREEN SPACE]
 	-- Vertex data in world space:
-	--	 vertexData.vertex [WORLD SPACE]
+	--   vertexData.vertex [WORLD SPACE]
 	-- Triangle color:
-	--	 vertexData.color
+	--   vertexData.color
 	--
 	-- Light positions: [WORLD SPACE]
 
 	if self.VertexBufEnabled == 1 then
-	-- Do not flush color-only buffer
-	if (#self.VertexBuffer == 1) and (not self.VertexBuffer[1].vertex) then
+		-- Do not flush color-only buffer
+		if (#self.VertexBuffer == 1) and (not self.VertexBuffer[1].vertex) then
+			self.VertexBuffer = {}
+			return
+		end
+
+		-- Sort triangles by distance
+		if self.VertexBufZSort == 1 then
+			table.sort(self.VertexBuffer,triangleSortFunction)
+		end
+
+		-- Render each triangle
+		for vertexID,vertexData in ipairs(self.VertexBuffer) do
+			-- Should this polygon be culled
+			local cullVertex = false
+
+			-- Generate output
+			local resultTriangle
+			local resultTriangle2
+			local resultColor = {
+				x = vertexData.color.x,
+				y = vertexData.color.y,
+				z = vertexData.color.z,
+				w = vertexData.color.w,
+			}
+			local resultMaterial = vertexData.material
+			if vertexData.rt then
+				WireGPU_matBuffer:SetTexture("$basetexture", vertexData.rt)
+				resultMaterial = WireGPU_matBuffer
+			end
+
+
+			if vertexData.vertex then
+				resultTriangle  = {}
+
+				resultTriangle[1] = {}
+				resultTriangle[1].x = vertexData.transformedVertex[1].x
+				resultTriangle[1].y = vertexData.transformedVertex[1].y
+				resultTriangle[1].u = vertexData.transformedVertex[1].u
+				resultTriangle[1].v = vertexData.transformedVertex[1].v
+
+				resultTriangle[2] = {}
+				resultTriangle[2].x = vertexData.transformedVertex[2].x
+				resultTriangle[2].y = vertexData.transformedVertex[2].y
+				resultTriangle[2].u = vertexData.transformedVertex[2].u
+				resultTriangle[2].v = vertexData.transformedVertex[2].v
+
+				resultTriangle[3] = {}
+				resultTriangle[3].x = vertexData.transformedVertex[3].x
+				resultTriangle[3].y = vertexData.transformedVertex[3].y
+				resultTriangle[3].u = vertexData.transformedVertex[3].u
+				resultTriangle[3].v = vertexData.transformedVertex[3].v
+
+				-- Additional processing
+				if (self.VertexCulling == 1) or (self.VertexLighting == 1) then
+					-- Get vertices (world space)
+					local v1 = vertexData.vertex[1]
+					local v2 = vertexData.vertex[2]
+					local v3 = vertexData.vertex[3]
+
+					-- Compute barycenter (world space)
+					local vpos = {
+						x = (v1.x+v2.x) * 1/3,
+						y = (v1.y+v2.y) * 1/3,
+						z = (v1.z+v2.z) * 1/3
+					}
+
+					-- Compute normal (world space)
+					local x1 = v2.x - v1.x
+					local y1 = v2.y - v1.y
+					local z1 = v2.z - v1.z
+
+					local x2 = v3.x - v1.x
+					local y2 = v3.y - v1.y
+					local z2 = v3.z - v1.z
+
+					local normal = {
+						x = y1*z2-y2*z1,
+						y = z1*x2-z2*x1,
+						z = x1*y2-x2*y1
+					}
+
+					-- Normalize it
+					local d = (normal.x^2 + normal.y^2 + normal.z^2)^(1/2)+1e-7
+					normal.x = normal.x / d
+					normal.y = normal.y / d
+					normal.z = normal.z / d
+
+					-- Perform culling
+					if self.VertexCulling == 1 then
+						if self.Memory[65469] == 0 then
+							cullVertex = (normal.x*v1.x + normal.y*v1.y + normal.z*v1.z) <= 0
+						else
+							cullVertex = (normal.x*v1.x + normal.y*v1.y + normal.z*v1.z) >= 0
+						end
+					end
+
+					-- Perform vertex lighting
+					if (self.VertexLighting == 1) and (not cullVertex) then
+						-- Extra color generated by lights
+						local lightColor = { x = 0, y = 0, z = 0, w = 255}
+
+						-- Apply all lights (world space calculations)
+						for i=0,7 do
+							if self.Lights[i] then
+								local lightPosition = {
+									x = self.Lights[i].Position.x,
+									y = self.Lights[i].Position.y,
+									z = self.Lights[i].Position.z
+								}
+								local lightLength = (lightPosition.x^2+lightPosition.y^2+lightPosition.z^2)^(1/2)+1e-7
+								lightPosition.x = lightPosition.x / lightLength
+								lightPosition.y = lightPosition.y / lightLength
+								lightPosition.z = lightPosition.z / lightLength
+
+								local lightDot
+								if self.Memory[65468] == 0 then
+									lightDot = math.abs(lightPosition.x*normal.x +
+																			lightPosition.y*normal.y +
+																			lightPosition.z*normal.z)*self.Lights[i].Color.w
+								else
+									lightDot = math.max(0,self.Memory[65468]*(lightPosition.x*normal.x +
+																			lightPosition.y*normal.y +
+																			lightPosition.z*normal.z))*self.Lights[i].Color.w
+
+								end
+
+								lightColor.x = math.min(lightColor.x + self.Lights[i].Color.x * lightDot,255)
+								lightColor.y = math.min(lightColor.y + self.Lights[i].Color.y * lightDot,255)
+								lightColor.z = math.min(lightColor.z + self.Lights[i].Color.z * lightDot,255)
+							end
+						end
+
+						-- Modulate object color with light color
+						resultColor.x = (1/255) * resultColor.x * lightColor.x
+						resultColor.y = (1/255) * resultColor.y * lightColor.y
+						resultColor.z = (1/255) * resultColor.z * lightColor.z
+					end
+
+					-- Perform distance culling
+					if (self.DistanceCulling == 1) and (not cullVertex) then
+						local Infront = {}
+						local Behind = {}
+
+						local frontCullDistance = self.Memory[65470]
+						local K = -frontCullDistance
+
+						-- Generate list of vertices which go behind the camera
+						if v1.z - K >= 0
+						then Behind [#Behind  + 1] = v1
+						else Infront[#Infront + 1] = v1
+						end
+
+						if v2.z - K >= 0
+						then Behind [#Behind  + 1] = v2
+						else Infront[#Infront + 1] = v2
+						end
+
+						if v3.z - K >= 0
+						then Behind [#Behind  + 1] = v3
+						else Infront[#Infront + 1] = v3
+						end
+
+						if #Behind == 1 then
+							local Point1 = Infront[1]
+							local Point2 = Infront[2]
+							local Point3 = Behind[1]
+							local Point4 = {}
+
+							local D1 = {
+								x = Point3.x - Point1.x,
+								y = Point3.y - Point1.y,
+								z = Point3.z - Point1.z,
+							}
+							local D2 = {
+								x = Point3.x - Point2.x,
+								y = Point3.y - Point2.y,
+								z = Point3.z - Point2.z,
+							}
+
+							local T1 = D1.z
+							local T2 = D2.z
+
+							if (T1 ~= 0) and (T2 ~= 0) then
+								local S1 = (K - Point1.z)/T1
+								local S2 = (K - Point2.z)/T2
+
+								-- Calculate the new UV values
+								Point4.u = Point2.u + S2 * (Point3.u - Point2.u)
+								Point4.v = Point2.v + S2 * (Point3.v - Point2.v)
+
+								Point3.u = Point1.u + S1 * (Point3.u - Point1.u)
+								Point3.v = Point1.v + S1 * (Point3.v - Point1.v)
+
+								-- Calculate new coordinates
+								Point3.x = Point1.x + S1 * D1.x
+								Point3.y = Point1.y + S1 * D1.y
+								Point3.z = Point1.z + S1 * D1.z
+
+								Point4.x = Point2.x + S2 * D2.x
+								Point4.y = Point2.y + S2 * D2.y
+								Point4.z = Point2.z + S2 * D2.z
+
+								-- Transform the points (from world space to screen space)
+								local P1t = self:VertexTransform(Point1,true)
+								local P2t = self:VertexTransform(Point2,true)
+								local P3t = self:VertexTransform(Point3,true)
+								local P4t = self:VertexTransform(Point4,true)
+
+								resultTriangle[1] = P1t
+								resultTriangle[2] = P2t
+								resultTriangle[3] = P3t
+
+								resultTriangle2 = {}
+								resultTriangle2[1] = P2t
+								resultTriangle2[2] = P3t
+								resultTriangle2[3] = P4t
+							end
+						elseif #Behind == 2 then
+							local Point1 = Infront[1]
+							local Point2 = Behind[1]
+							local Point3 = Behind[2]
+
+							local D1 = {
+								x = Point2.x - Point1.x,
+								y = Point2.y - Point1.y,
+								z = Point2.z - Point1.z,
+							}
+							local D2 = {
+								x = Point3.x - Point1.x,
+								y = Point3.y - Point1.y,
+								z = Point3.z - Point1.z,
+							}
+
+							local T1 = D1.z
+							local T2 = D2.z
+
+							if (T1 ~= 0) and (T2 ~= 0) then
+								local S1 = (K - Point1.z)/T1
+								local S2 = (K - Point1.z)/T2
+
+								--Calculate the new UV values
+								Point2.u = Point1.u + S1 * (Point2.u - Point1.u)
+								Point2.v = Point1.v + S1 * (Point2.v - Point1.v)
+
+								Point3.u = Point1.u + S2 * (Point3.u - Point1.u)
+								Point3.v = Point1.v + S2 * (Point3.v - Point1.v)
+
+								-- Calculate new coordinates
+								Point2.x = Point1.x + S1 * D1.x
+								Point2.y = Point1.y + S1 * D1.y
+								Point2.z = Point1.z + S1 * D1.z
+
+								Point3.x = Point1.x + S2 * D2.x
+								Point3.y = Point1.y + S2 * D2.y
+								Point3.z = Point1.z + S2 * D2.z
+
+								-- Transform the points (from world space to screen space)
+								local P1t = self:VertexTransform(Point1,true)
+								local P2t = self:VertexTransform(Point2,true)
+								local P3t = self:VertexTransform(Point3,true)
+
+								resultTriangle[1] = P1t
+								resultTriangle[2] = P2t
+								resultTriangle[3] = P3t
+							end
+						elseif #Behind == 3 then
+							cullVertex = true
+						end
+					end
+				end -- End additional processing
+			end
+
+
+			if not cullVertex then
+				-- self:FixDrawDirection(DrawInfo)
+				if self.RenderEnable == 1 then
+					if resultMaterial then
+						surface.SetMaterial(resultMaterial)
+						resultTriangle = {
+							[1] = resultTriangle[3],
+							[2] = resultTriangle[2],
+							[3] = resultTriangle[1],
+						}
+					else
+						surface.SetTexture(0)
+					end
+					surface.SetDrawColor(resultColor.x,resultColor.y,resultColor.z,resultColor.w)
+					if vertexData.wireframe then
+						if resultTriangle  then
+							for i=1,#resultTriangle do
+								local point1 = resultTriangle[i]
+								local point2 = resultTriangle[i+1]
+								if not point2 then point2 = resultTriangle[1] end
+								self:DrawLine(point1,point2,true)
+							end
+						end
+
+						if resultTriangle2  then
+							for i=1,#resultTriangle2 do
+								local point1 = resultTriangle2[i]
+								local point2 = resultTriangle2[i+1]
+								if not point2 then point2 = resultTriangle2[1] end
+								self:DrawLine(point1,point2,true)
+							end
+						end
+					else
+						if resultTriangle  then surface.DrawPoly(resultTriangle)  end
+						if resultTriangle2 then surface.DrawPoly(resultTriangle2) end
+					end
+				end
+			end
+		end
+
 		self.VertexBuffer = {}
-		return
-	end
-
-	-- Sort triangles by distance
-	if self.VertexBufZSort == 1 then
-		table.sort(self.VertexBuffer,triangleSortFunction)
-	end
-
-	-- Render each triangle
-	for vertexID,vertexData in ipairs(self.VertexBuffer) do
-		-- Should this polygon be culled
-		local cullVertex = false
-
-		-- Generate output
-		local resultTriangle
-		local resultTriangle2
-		local resultColor = {
-		x = vertexData.color.x,
-		y = vertexData.color.y,
-		z = vertexData.color.z,
-		w = vertexData.color.w,
-		}
-		local resultMaterial = vertexData.material
-		if vertexData.rt then
-		WireGPU_matBuffer:SetTexture("$basetexture", vertexData.rt)
-		resultMaterial = WireGPU_matBuffer
-		end
-
-
-		if vertexData.vertex then
-		resultTriangle	= {}
-
-		resultTriangle[1] = {}
-		resultTriangle[1].x = vertexData.transformedVertex[1].x
-		resultTriangle[1].y = vertexData.transformedVertex[1].y
-		resultTriangle[1].u = vertexData.transformedVertex[1].u
-		resultTriangle[1].v = vertexData.transformedVertex[1].v
-
-		resultTriangle[2] = {}
-		resultTriangle[2].x = vertexData.transformedVertex[2].x
-		resultTriangle[2].y = vertexData.transformedVertex[2].y
-		resultTriangle[2].u = vertexData.transformedVertex[2].u
-		resultTriangle[2].v = vertexData.transformedVertex[2].v
-
-		resultTriangle[3] = {}
-		resultTriangle[3].x = vertexData.transformedVertex[3].x
-		resultTriangle[3].y = vertexData.transformedVertex[3].y
-		resultTriangle[3].u = vertexData.transformedVertex[3].u
-		resultTriangle[3].v = vertexData.transformedVertex[3].v
-
-		-- Additional processing
-		if (self.VertexCulling == 1) or (self.VertexLighting == 1) then
-			-- Get vertices (world space)
-			local v1 = vertexData.vertex[1]
-			local v2 = vertexData.vertex[2]
-			local v3 = vertexData.vertex[3]
-
-			-- Compute barycenter (world space)
-			local vpos = {
-			x = (v1.x+v2.x) * 1/3,
-			y = (v1.y+v2.y) * 1/3,
-			z = (v1.z+v2.z) * 1/3
-			}
-
-			-- Compute normal (world space)
-			local x1 = v2.x - v1.x
-			local y1 = v2.y - v1.y
-			local z1 = v2.z - v1.z
-
-			local x2 = v3.x - v1.x
-			local y2 = v3.y - v1.y
-			local z2 = v3.z - v1.z
-
-			local normal = {
-			x = y1*z2-y2*z1,
-			y = z1*x2-z2*x1,
-			z = x1*y2-x2*y1
-			}
-
-			-- Normalize it
-			local d = (normal.x^2 + normal.y^2 + normal.z^2)^(1/2)+1e-7
-			normal.x = normal.x / d
-			normal.y = normal.y / d
-			normal.z = normal.z / d
-
-			-- Perform culling
-			if self.VertexCulling == 1 then
-			if self.Memory[65469] == 0 then
-				cullVertex = (normal.x*v1.x + normal.y*v1.y + normal.z*v1.z) <= 0
-			else
-				cullVertex = (normal.x*v1.x + normal.y*v1.y + normal.z*v1.z) >= 0
-			end
-			end
-
-			-- Perform vertex lighting
-			if (self.VertexLighting == 1) and (not cullVertex) then
-			-- Extra color generated by lights
-			local lightColor = { x = 0, y = 0, z = 0, w = 255}
-
-			-- Apply all lights (world space calculations)
-			for i=0,7 do
-				if self.Lights[i] then
-				local lightPosition = {
-					x = self.Lights[i].Position.x,
-					y = self.Lights[i].Position.y,
-					z = self.Lights[i].Position.z
-				}
-				local lightLength = (lightPosition.x^2+lightPosition.y^2+lightPosition.z^2)^(1/2)+1e-7
-				lightPosition.x = lightPosition.x / lightLength
-				lightPosition.y = lightPosition.y / lightLength
-				lightPosition.z = lightPosition.z / lightLength
-
-				local lightDot
-				if self.Memory[65468] == 0 then
-					lightDot = math.abs(lightPosition.x*normal.x +
-										lightPosition.y*normal.y +
-										lightPosition.z*normal.z)*self.Lights[i].Color.w
-				else
-					lightDot = math.max(0,self.Memory[65468]*(lightPosition.x*normal.x +
-										lightPosition.y*normal.y +
-										lightPosition.z*normal.z))*self.Lights[i].Color.w
-
-				end
-
-				lightColor.x = math.min(lightColor.x + self.Lights[i].Color.x * lightDot,255)
-				lightColor.y = math.min(lightColor.y + self.Lights[i].Color.y * lightDot,255)
-				lightColor.z = math.min(lightColor.z + self.Lights[i].Color.z * lightDot,255)
-				end
-			end
-
-			-- Modulate object color with light color
-			resultColor.x = (1/255) * resultColor.x * lightColor.x
-			resultColor.y = (1/255) * resultColor.y * lightColor.y
-			resultColor.z = (1/255) * resultColor.z * lightColor.z
-			end
-
-			-- Perform distance culling
-			if (self.DistanceCulling == 1) and (not cullVertex) then
-			local Infront = {}
-			local Behind = {}
-
-			local frontCullDistance = self.Memory[65470]
-			local K = -frontCullDistance
-
-			-- Generate list of vertices which go behind the camera
-			if v1.z - K >= 0
-			then Behind [#Behind	+ 1] = v1
-			else Infront[#Infront + 1] = v1
-			end
-
-			if v2.z - K >= 0
-			then Behind [#Behind	+ 1] = v2
-			else Infront[#Infront + 1] = v2
-			end
-
-			if v3.z - K >= 0
-			then Behind [#Behind	+ 1] = v3
-			else Infront[#Infront + 1] = v3
-			end
-
-			if #Behind == 1 then
-				local Point1 = Infront[1]
-				local Point2 = Infront[2]
-				local Point3 = Behind[1]
-				local Point4 = {}
-
-				local D1 = {
-				x = Point3.x - Point1.x,
-				y = Point3.y - Point1.y,
-				z = Point3.z - Point1.z,
-				}
-				local D2 = {
-				x = Point3.x - Point2.x,
-				y = Point3.y - Point2.y,
-				z = Point3.z - Point2.z,
-				}
-
-				local T1 = D1.z
-				local T2 = D2.z
-
-				if (T1 ~= 0) and (T2 ~= 0) then
-				local S1 = (K - Point1.z)/T1
-				local S2 = (K - Point2.z)/T2
-
-				-- Calculate the new UV values
-				Point4.u = Point2.u + S2 * (Point3.u - Point2.u)
-				Point4.v = Point2.v + S2 * (Point3.v - Point2.v)
-
-				Point3.u = Point1.u + S1 * (Point3.u - Point1.u)
-				Point3.v = Point1.v + S1 * (Point3.v - Point1.v)
-
-				-- Calculate new coordinates
-				Point3.x = Point1.x + S1 * D1.x
-				Point3.y = Point1.y + S1 * D1.y
-				Point3.z = Point1.z + S1 * D1.z
-
-				Point4.x = Point2.x + S2 * D2.x
-				Point4.y = Point2.y + S2 * D2.y
-				Point4.z = Point2.z + S2 * D2.z
-
-				-- Transform the points (from world space to screen space)
-				local P1t = self:VertexTransform(Point1,true)
-				local P2t = self:VertexTransform(Point2,true)
-				local P3t = self:VertexTransform(Point3,true)
-				local P4t = self:VertexTransform(Point4,true)
-
-				resultTriangle[1] = P1t
-				resultTriangle[2] = P2t
-				resultTriangle[3] = P3t
-
-				resultTriangle2 = {}
-				resultTriangle2[1] = P2t
-				resultTriangle2[2] = P3t
-				resultTriangle2[3] = P4t
-				end
-			elseif #Behind == 2 then
-				local Point1 = Infront[1]
-				local Point2 = Behind[1]
-				local Point3 = Behind[2]
-
-				local D1 = {
-				x = Point2.x - Point1.x,
-				y = Point2.y - Point1.y,
-				z = Point2.z - Point1.z,
-				}
-				local D2 = {
-				x = Point3.x - Point1.x,
-				y = Point3.y - Point1.y,
-				z = Point3.z - Point1.z,
-				}
-
-				local T1 = D1.z
-				local T2 = D2.z
-
-				if (T1 ~= 0) and (T2 ~= 0) then
-				local S1 = (K - Point1.z)/T1
-				local S2 = (K - Point1.z)/T2
-
-				--Calculate the new UV values
-				Point2.u = Point1.u + S1 * (Point2.u - Point1.u)
-				Point2.v = Point1.v + S1 * (Point2.v - Point1.v)
-
-				Point3.u = Point1.u + S2 * (Point3.u - Point1.u)
-				Point3.v = Point1.v + S2 * (Point3.v - Point1.v)
-
-				-- Calculate new coordinates
-				Point2.x = Point1.x + S1 * D1.x
-				Point2.y = Point1.y + S1 * D1.y
-				Point2.z = Point1.z + S1 * D1.z
-
-				Point3.x = Point1.x + S2 * D2.x
-				Point3.y = Point1.y + S2 * D2.y
-				Point3.z = Point1.z + S2 * D2.z
-
-				-- Transform the points (from world space to screen space)
-				local P1t = self:VertexTransform(Point1,true)
-				local P2t = self:VertexTransform(Point2,true)
-				local P3t = self:VertexTransform(Point3,true)
-
-				resultTriangle[1] = P1t
-				resultTriangle[2] = P2t
-				resultTriangle[3] = P3t
-				end
-			elseif #Behind == 3 then
-				cullVertex = true
-			end
-			end
-		end -- End additional processing
-		end
-
-
-		if not cullVertex then
-		-- self:FixDrawDirection(DrawInfo)
-		if self.RenderEnable == 1 then
-			if resultMaterial then
-			surface.SetMaterial(resultMaterial)
-			resultTriangle = {
-				[1] = resultTriangle[3],
-				[2] = resultTriangle[2],
-				[3] = resultTriangle[1],
-			}
-			else
-			surface.SetTexture(0)
-			end
-			surface.SetDrawColor(resultColor.x,resultColor.y,resultColor.z,resultColor.w)
-			if vertexData.wireframe then
-			if resultTriangle	then
-				for i=1,#resultTriangle do
-				local point1 = resultTriangle[i]
-				local point2 = resultTriangle[i+1]
-				if not point2 then point2 = resultTriangle[1] end
-				self:DrawLine(point1,point2,true)
-				end
-			end
-
-			if resultTriangle2	then
-				for i=1,#resultTriangle2 do
-				local point1 = resultTriangle2[i]
-				local point2 = resultTriangle2[i+1]
-				if not point2 then point2 = resultTriangle2[1] end
-				self:DrawLine(point1,point2,true)
-				end
-			end
-			else
-			if resultTriangle	then surface.DrawPoly(resultTriangle)	end
-			if resultTriangle2 then surface.DrawPoly(resultTriangle2) end
-			end
-		end
-		end
-	end
-
-	self.VertexBuffer = {}
 	end
 end
 
@@ -1297,13 +1297,13 @@ end
 --------------------------------------------------------------------------------
 function VM:SetColor(color)
 	if self.VertexBufEnabled == 1 then
-	if #self.VertexBuffer > 0 then
-		self.VertexBuffer[#self.VertexBuffer].color = self:ColorTransform(color)
-	else
-		self.VertexBuffer[1] = {
-		color = self:ColorTransform(color),
-		}
-	end
+		if #self.VertexBuffer > 0 then
+			self.VertexBuffer[#self.VertexBuffer].color = self:ColorTransform(color)
+		else
+			self.VertexBuffer[1] = {
+				color = self:ColorTransform(color),
+			}
+		end
 	end
 
 	self.Color = self:ColorTransform(color)
@@ -1317,13 +1317,13 @@ end
 --------------------------------------------------------------------------------
 function VM:SetMaterial(material)
 	if self.VertexBufEnabled == 1 then
-	if #self.VertexBuffer > 0 then
-		self.VertexBuffer[#self.VertexBuffer].material = material
-	else
-		self.VertexBuffer[1] = {
-		material = material,
-		}
-	end
+		if #self.VertexBuffer > 0 then
+			self.VertexBuffer[#self.VertexBuffer].material = material
+		else
+			self.VertexBuffer[1] = {
+			material = material,
+			}
+		end
 	end
 
 	self.Material = material
@@ -1337,24 +1337,24 @@ end
 function VM:BindState()
 	surface.SetDrawColor(self.Color.x,self.Color.y,self.Color.z,self.Color.w)
 	if self.VertexTexturing == 1 then
-	if self.Memory[65517] == 1 then
-		--[@entities\gmod_wire_gpu\cl_gpuvm.lua:1276] bad argument #2 to 'SetTexture' (ITexture expected, got nil)
-		self.Entity:AssertSpriteBufferExists()
-		if self.Entity.SpriteGPU.RT then
-		WireGPU_matBuffer:SetTexture("$basetexture", self.Entity.SpriteGPU.RT)
+		if self.Memory[65517] == 1 then
+			--[@entities\gmod_wire_gpu\cl_gpuvm.lua:1276] bad argument #2 to 'SetTexture' (ITexture expected, got nil)
+			self.Entity:AssertSpriteBufferExists()
+			if self.Entity.SpriteGPU.RT then
+			WireGPU_matBuffer:SetTexture("$basetexture", self.Entity.SpriteGPU.RT)
+			end
+		else
+			if self.Entity.GPU.RT then
+			WireGPU_matBuffer:SetTexture("$basetexture", self.Entity.GPU.RT)
+			end
 		end
+		surface.SetMaterial(WireGPU_matBuffer)
 	else
-		if self.Entity.GPU.RT then
-		WireGPU_matBuffer:SetTexture("$basetexture", self.Entity.GPU.RT)
+		if self.Material then
+			surface.SetMaterial(self.Material)
+		else
+			surface.SetTexture(0)
 		end
-	end
-	surface.SetMaterial(WireGPU_matBuffer)
-	else
-	if self.Material then
-		surface.SetMaterial(self.Material)
-	else
-		surface.SetTexture(0)
-	end
 	end
 end
 
@@ -1365,61 +1365,61 @@ end
 --------------------------------------------------------------------------------
 function VM:DrawToBuffer(vertexData,isWireframe)
 	if self.VertexBufEnabled == 1 then
-	-- Add new entry
-	if (not self.VertexBuffer[#self.VertexBuffer]) or self.VertexBuffer[#self.VertexBuffer].vertex then
-		self.VertexBuffer[#self.VertexBuffer+1] = {
-		color = self.Color,
-		material = self.Material,
-		vertex = {},
-		transformedVertex = {},
-		wireframe = isWireframe,
-		}
-	else
-		self.VertexBuffer[#self.VertexBuffer].vertex = {}
-		self.VertexBuffer[#self.VertexBuffer].transformedVertex = {}
-		self.VertexBuffer[#self.VertexBuffer].wireframe = isWireframe
-	end
-
-	-- Add RT material if required
-	if self.VertexTexturing == 1 then
-		if self.Memory[65517] == 1 then
-		self.Entity:AssertSpriteBufferExists()
-		self.VertexBuffer[#self.VertexBuffer].rt = self.Entity.SpriteGPU.RT
+		-- Add new entry
+		if (not self.VertexBuffer[#self.VertexBuffer]) or self.VertexBuffer[#self.VertexBuffer].vertex then
+			self.VertexBuffer[#self.VertexBuffer+1] = {
+			color = self.Color,
+			material = self.Material,
+			vertex = {},
+			transformedVertex = {},
+			wireframe = isWireframe,
+			}
 		else
-		self.VertexBuffer[#self.VertexBuffer].rt = self.Entity.GPU.RT
+			self.VertexBuffer[#self.VertexBuffer].vertex = {}
+			self.VertexBuffer[#self.VertexBuffer].transformedVertex = {}
+			self.VertexBuffer[#self.VertexBuffer].wireframe = isWireframe
 		end
-	end
+
+		-- Add RT material if required
+		if self.VertexTexturing == 1 then
+			if self.Memory[65517] == 1 then
+				self.Entity:AssertSpriteBufferExists()
+				self.VertexBuffer[#self.VertexBuffer].rt = self.Entity.SpriteGPU.RT
+			else
+				self.VertexBuffer[#self.VertexBuffer].rt = self.Entity.GPU.RT
+			end
+		end
 
 
-	-- Add all vertices
-	for _,vertex in ipairs(vertexData) do
-		local screenVertex,worldVertex = self:VertexTransform(vertex)
-		table.insert(self.VertexBuffer[#self.VertexBuffer].vertex,worldVertex)
-		table.insert(self.VertexBuffer[#self.VertexBuffer].transformedVertex,screenVertex)
-	end
+		-- Add all vertices
+		for _,vertex in ipairs(vertexData) do
+			local screenVertex,worldVertex = self:VertexTransform(vertex)
+			table.insert(self.VertexBuffer[#self.VertexBuffer].vertex,worldVertex)
+			table.insert(self.VertexBuffer[#self.VertexBuffer].transformedVertex,screenVertex)
+		end
 	else
-	local resultPoly = {}
+		local resultPoly = {}
 
-	-- Transform vertices
-	for _,vertex in ipairs(vertexData) do
-		local screenVertex,worldVertex = self:VertexTransform(vertex)
-		table.insert(resultPoly,screenVertex)
-	end
+		-- Transform vertices
+		for _,vertex in ipairs(vertexData) do
+			local screenVertex,worldVertex = self:VertexTransform(vertex)
+			table.insert(resultPoly,screenVertex)
+		end
 
-	-- Draw
-	if self.RenderEnable == 1 then
-		self:BindState()
-		if isWireframe then
-		for i=1,#resultPoly do
-			local point1 = resultPoly[i]
-			local point2 = resultPoly[i+1]
-			if not point2 then point2 = resultPoly[1] end
-			self:DrawLine(point1,point2,true)
+		-- Draw
+		if self.RenderEnable == 1 then
+			self:BindState()
+			if isWireframe then
+				for i=1,#resultPoly do
+					local point1 = resultPoly[i]
+					local point2 = resultPoly[i+1]
+					if not point2 then point2 = resultPoly[1] end
+					self:DrawLine(point1,point2,true)
+				end
+			else
+				surface.DrawPoly(resultPoly)
+			end
 		end
-		else
-		surface.DrawPoly(resultPoly)
-		end
-	end
 	end
 end
 

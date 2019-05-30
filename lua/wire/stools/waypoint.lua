@@ -41,8 +41,8 @@ function TOOL:LeftClick(trace)
 		self:SetStage(0)
 
 		if (trace.Entity:IsValid()) and (trace.Entity:GetClass() == "gmod_wire_waypoint") and (self.SrcWaypoint) and (self.SrcWaypoint:IsValid()) then
-			self.SrcWaypoint:SetNextWaypoint(trace.Entity)
-			self.SrcWaypoint = nil
+		    self.SrcWaypoint:SetNextWaypoint(trace.Entity)
+		    self.SrcWaypoint = nil
 
 			return true
 		end
@@ -67,8 +67,8 @@ end
 
 function TOOL:RightClick(trace)
 	if (self:GetStage() == 0) and (trace.Entity:IsValid()) and (trace.Entity:GetClass() == "gmod_wire_waypoint") then
-		self.SrcWaypoint = trace.Entity
-		self:SetStage(1)
+	    self.SrcWaypoint = trace.Entity
+	    self:SetStage(1)
 
 		return true
 	end

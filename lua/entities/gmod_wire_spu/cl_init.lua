@@ -20,16 +20,16 @@ local function recalculateSoundEmitterLookup()
 	SoundEmitterLookup = {}
 	HUDLookup = {}
 	for gpuIdx,linkedSPUs in pairs(SoundEmitters) do
-	for _,linkedSPUIdx in pairs(linkedSPUs) do
-		local linkedEnt = ents.GetByIndex(linkedSPUIdx)
-		if linkedEnt and linkedEnt:IsValid() then
-		if linkedEnt:IsPlayer() then
-			HUDLookup[linkedSPUIdx] = gpuIdx
-		else
-			SoundEmitterLookup[linkedSPUIdx] = gpuIdx
+		for _,linkedSPUIdx in pairs(linkedSPUs) do
+			local linkedEnt = ents.GetByIndex(linkedSPUIdx)
+			if linkedEnt and linkedEnt:IsValid() then
+				if linkedEnt:IsPlayer() then
+					HUDLookup[linkedSPUIdx] = gpuIdx
+				else
+					SoundEmitterLookup[linkedSPUIdx] = gpuIdx
+				end
+			end
 		end
-		end
-	end
 	end
 end
 
@@ -41,7 +41,7 @@ local function SPU_SoundEmitterState(um)
 	-- Fetch all sound emitters
 	local count = um:ReadShort()
 	for i=1,count do
-	SoundEmitters[gpuIdx][i] = um:ReadLong()
+		SoundEmitters[gpuIdx][i] = um:ReadLong()
 	end
 
 	-- Recalculate small lookup table for sound emitter system
@@ -55,9 +55,9 @@ local function SPU_SoundSources(um)
 	if not SPU:IsValid() then return end
 
 	for i=0,WireSPU_MaxChannels-1 do
-	SPU.SoundSources[i] = ents.GetByIndex(um:ReadLong())
-	SPU.SoundSources[i]:SetNoDraw(true)
-	SPU.SoundSources[i]:SetModelScale(0,0)
+		SPU.SoundSources[i] = ents.GetByIndex(um:ReadLong())
+		SPU.SoundSources[i]:SetNoDraw(true)
+		SPU.SoundSources[i]:SetModelScale(0,0)
 	end
 
 	-- Reset VM
@@ -79,12 +79,12 @@ local function SPU_MemoryModel(um)
 	if not SPU:IsValid() then return end
 
 	if SPU.VM then
-	SPU.VM.ROMSize = um:ReadLong()
-	SPU.VM.SerialNo = um:ReadFloat()
-	SPU.VM.RAMSize = SPU.VM.ROMSize
+		SPU.VM.ROMSize = um:ReadLong()
+		SPU.VM.SerialNo = um:ReadFloat()
+		SPU.VM.RAMSize = SPU.VM.ROMSize
 	else
-	SPU.ROMSize = um:ReadLong()
-	SPU.SerialNo = um:ReadFloat()
+		SPU.ROMSize = um:ReadLong()
+		SPU.SerialNo = um:ReadFloat()
 	end
 	SPU.ChipType = um:ReadShort()
 end
@@ -100,11 +100,11 @@ function ENT:Initialize()
 	self.VM.SerialNo = CPULib.GenerateSN("SPU")
 	self.VM.RAMSize = 65536
 	self.VM.ROMSize = 65536
-	self.VM.PCAP	= 0
-	self.VM.RQCAP	 = 0
-	self.VM.CPUVER	= 1.0 -- Beta SPU by default
+	self.VM.PCAP    = 0
+	self.VM.RQCAP   = 0
+	self.VM.CPUVER  = 1.0 -- Beta SPU by default
 	self.VM.CPUTYPE = 2 -- ZSPU
-	self.ChipType	 = 0
+	self.ChipType   = 0
 
 	-- Create fake sound sources
 	self.SoundSources = {}
@@ -115,8 +115,8 @@ function ENT:Initialize()
 
 	-- Setup caching
 	GPULib.ClientCacheCallback(self,function(Address,Value)
-	self.VM:WriteCell(Address,Value)
-	self.VM.ROM[Address] = Value
+		self.VM:WriteCell(Address,Value)
+		self.VM.ROM[Address] = Value
 	end)
 end
 
@@ -128,9 +128,9 @@ end
 function ENT:OnRemove()
 	GPULib.ClientCacheCallback(self,nil)
 	if self.VM.Channel then
-	for k,v in pairs(self.VM.Channel) do
-		v.Sound:Stop()
-	end
+		for k,v in pairs(self.VM.Channel) do
+			v.Sound:Stop()
+		end
 	end
 end
 
@@ -150,9 +150,9 @@ function ENT:Run()
 
 	-- Run until interrupt, or if async thread then until async thread stops existing
 	while (Cycles > 0) and (self.VM.INTR == 0) do
-	local previousTMR = self.VM.TMR
-	self.VM:Step()
-	Cycles = Cycles - (self.VM.TMR - previousTMR)
+		local previousTMR = self.VM.TMR
+		self.VM:Step()
+		Cycles = Cycles - (self.VM.TMR - previousTMR)
 	end
 
 	-- Reset INTR register for async thread
@@ -172,8 +172,8 @@ function ENT:Think()
 
 	-- Run asynchronous thread
 	if self.VM.Memory[65535] == 1 then
-	self:Run()
-	-- Calculate ADSR
-	self.VM:CalculateADSR(self.DeltaTime)
+		self:Run()
+		-- Calculate ADSR
+		self.VM:CalculateADSR(self.DeltaTime)
 	end
 end

@@ -109,8 +109,8 @@ end
 
 
 --[[---------------------------------------------------------
-	 Name: PhysicsUpdate
-	 Desc: happy fun time breaking function
+   Name: PhysicsUpdate
+   Desc: happy fun time breaking function
 ---------------------------------------------------------]]
 function ENT:PhysicsUpdate( physobj )
 	local vel = physobj:GetVelocity()
@@ -141,7 +141,7 @@ function ENT:SetTorque( torque )
 end
 
 --[[---------------------------------------------------------
-	 Creates the direction arrows on the wheel
+   Creates the direction arrows on the wheel
 ---------------------------------------------------------]]
 function ENT:DoDirectionEffect()
 	local Motor = self:GetMotor()
@@ -155,7 +155,7 @@ function ENT:DoDirectionEffect()
 end
 
 --[[---------------------------------------------------------
-	 Reverse the wheel direction when a player uses the wheel
+   everse the wheel direction when a player uses the wheel
 ---------------------------------------------------------]]
 function ENT:Use( activator, caller, type, value )
 	local Motor = self:GetMotor()

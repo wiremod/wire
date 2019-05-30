@@ -18,7 +18,7 @@ end
 HCOMP.OpcodeWritesOperand = {}
 for _,instruction in pairs(CPULib.InstructionTable) do
 	if instruction.WritesFirstOperand and (instruction.Mnemonic ~= "RESERVED") then
-	HCOMP.OpcodeWritesOperand[string.lower(instruction.Mnemonic)] = true
+		HCOMP.OpcodeWritesOperand[string.lower(instruction.Mnemonic)] = true
 	end
 end
 
@@ -26,7 +26,7 @@ end
 HCOMP.OpcodeNumber = {}
 for _,instruction in pairs(CPULib.InstructionTable) do
 	if instruction.Mnemonic ~= "RESERVED" then
-	HCOMP.OpcodeNumber[string.lower(instruction.Mnemonic)] = instruction.Opcode
+		HCOMP.OpcodeNumber[string.lower(instruction.Mnemonic)] = instruction.Opcode
 	end
 end
 
@@ -35,9 +35,9 @@ HCOMP.OpcodeObsolete = {}
 HCOMP.OpcodeOld = {}
 for _,instruction in pairs(CPULib.InstructionTable) do
 	if instruction.Obsolete and (instruction.Mnemonic ~= "RESERVED") then
-	HCOMP.OpcodeObsolete[string.lower(instruction.Mnemonic)] = true
+		HCOMP.OpcodeObsolete[string.lower(instruction.Mnemonic)] = true
 	end
 	if instruction.Old and (instruction.Mnemonic ~= "RESERVED") then
-	HCOMP.OpcodeOld[string.lower(instruction.Mnemonic)] = string.lower(instruction.Reference)
+		HCOMP.OpcodeOld[string.lower(instruction.Mnemonic)] = string.lower(instruction.Reference)
 	end
 end

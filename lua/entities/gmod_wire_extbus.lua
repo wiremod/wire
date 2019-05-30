@@ -23,9 +23,9 @@ function ENT:Initialize()
 	self.MemStart = {}
 	self.MemEnd = {}
 	for i = 1,8 do
-	self.Memory[i] = nil
-	self.MemStart[i] = 0
-	self.MemEnd[i] = 0
+		self.Memory[i] = nil
+		self.MemStart[i] = 0
+		self.MemEnd[i] = 0
 	end
 	self:SetOverlayText("Data rate: 0 bps")
 end
@@ -66,9 +66,9 @@ function ENT:ReadCell(Address)
 			   (Address-self.ControlDataSize <= self.MemEnd[i]) then
 				if self.Memory[i] then
 					if self.Memory[i].ReadCell then
-					self.DataBytes = self.DataBytes + 1
-					local val = self.Memory[i]:ReadCell(Address-self.ControlDataSize-self.MemStart[i])
-					return val or 0
+						self.DataBytes = self.DataBytes + 1
+						local val = self.Memory[i]:ReadCell(Address-self.ControlDataSize-self.MemStart[i])
+						return val or 0
 					end
 				else
 					return 0
@@ -107,9 +107,9 @@ function ENT:GetDeviceInfo(deviceEnt)
 			   (deviceEnt:GetClass() == "gmod_wire_extbus") then
 				for i = 1,8 do
 					if deviceEnt.Memory[i] then
-					self:GetDeviceInfo(deviceEnt.Memory[i])
+						self:GetDeviceInfo(deviceEnt.Memory[i])
 					else
-					table.insert(self.ControlData,0)
+						table.insert(self.ControlData,0)
 					end
 				end
 			end

@@ -24,8 +24,8 @@ if CLIENT then
 	------------------------------------------------------------------------------
 	-- Make sure firing animation is displayed clientside
 	------------------------------------------------------------------------------
-	function TOOL:LeftClick()	return true end
-	function TOOL:Reload()	 return true end
+	function TOOL:LeftClick()  return true end
+	function TOOL:Reload()     return true end
 	function TOOL:RightClick() return false end
 end
 

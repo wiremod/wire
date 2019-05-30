@@ -46,7 +46,7 @@ end
 function ENT:Think()
 	if IsValid(self.Vehicle) then
 		local delta = CurTime()%1/1000 -- A miniscule constant change
-		if self.Steering then self.Vehicle:Fire("steer",	 self.Steering+delta, 0) end
+		if self.Steering then self.Vehicle:Fire("steer",   self.Steering+delta, 0) end
 		if self.Throttle then self.Vehicle:Fire("throttle",self.Throttle+delta, 0) end
 	end
 	self:NextThink(CurTime())

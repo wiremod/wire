@@ -153,14 +153,14 @@ if CLIENT then
 	WireGPU_matScreen = CreateMaterial("sprites/GPURT","UnlitGeneric",{
 		["$vertexcolor"] = 1,
 		["$vertexalpha"] = 1,
-    ["$translucent"] = 1,
+		["$translucent"] = 1,
 		["$ignorez"] = 1,
 		["$nolod"] = 1,
-		})
+	})
 	WireGPU_matBuffer = CreateMaterial("sprites/GPUBUF","UnlitGeneric",{
 		["$vertexcolor"] = 1,
 		["$vertexalpha"] = 1,
-    ["$translucent"] = 1,
+		["$translucent"] = 1,
 		["$ignorez"] = 1,
 		["$nolod"] = 1,
 	})
@@ -512,17 +512,17 @@ if CLIENT then
 	------------------------------------------------------------------------------
 	local writeHandler = {}
 	function GPULib.ClientCacheCallback(ent, writeFunction)
-	writeHandler[ent and ent:EntIndex() or 0] = writeFunction
+		writeHandler[ent and ent:EntIndex() or 0] = writeFunction
 	end
 
 	------------------------------------------------------------------------------
 	-- RLE-decompress incoming message
 	------------------------------------------------------------------------------
 	--[[local blockText = {
-	{ "[no offset]", "[1-offset]", "[2-offset]", "[4-offset]" },
-	{ "[no rep]", nil, "[rep 2]", "[rep 4]" },
-	{ "[cnt 1]", nil, "[cnt 2]", "[cnt 3]" },
-	{ "[1-byte]", "[2-byte]", "[4-byte]", "[marker]" },
+		{ "[no offset]", "[1-offset]", "[2-offset]", "[4-offset]" },
+		{ "[no rep]", nil, "[rep 2]", "[rep 4]" },
+		{ "[cnt 1]", nil, "[cnt 2]", "[cnt 3]" },
+		{ "[1-byte]", "[2-byte]", "[4-byte]", "[marker]" },
 	} ]]--
 
 	local function GPULib_MemorySync(um)
@@ -545,10 +545,10 @@ if CLIENT then
 			local dataFlags = um:ReadChar()+128
 			if dataFlags == 240 then return end
 
-			local offsetSize	= dataFlags % 4
+			local offsetSize  = dataFlags % 4
 			local repeatCount = math.floor(dataFlags/4) % 4
-			local dataCount	 = math.floor(dataFlags/16) % 4
-			local valueSize	 = math.floor(dataFlags/64) % 4
+			local dataCount   = math.floor(dataFlags/16) % 4
+			local valueSize   = math.floor(dataFlags/64) % 4
 
 			local Repeat = 0
 			local Count = 0
@@ -559,34 +559,34 @@ if CLIENT then
 				if offsetSize == 2 then deltaOffset = um:ReadShort() end
 				if offsetSize == 3 then deltaOffset = um:ReadFloat() end
 				currentOffset = currentOffset + deltaOffset
-				--print("	dOffset = "..deltaOffset..", offset = "..currentOffset)
-				end
+				--print("  dOffset = "..deltaOffset..", offset = "..currentOffset)
+			end
 
-				if dataCount == 0 then Count = 1 end
-				if dataCount == 1 then Count = um:ReadChar()+130 end
-				if dataCount == 2 then Count = 2 end
-				if dataCount == 3 then Count = 3 end
+			if dataCount == 0 then Count = 1 end
+			if dataCount == 1 then Count = um:ReadChar()+130 end
+			if dataCount == 2 then Count = 2 end
+			if dataCount == 3 then Count = 3 end
 
-				if repeatCount == 0 then Repeat = 1 end
-				if repeatCount == 1 then Repeat = um:ReadChar()+130 end
-				if repeatCount == 2 then Repeat = 2 end
-				if repeatCount == 3 then Repeat = 4 end
+			if repeatCount == 0 then Repeat = 1 end
+			if repeatCount == 1 then Repeat = um:ReadChar()+130 end
+			if repeatCount == 2 then Repeat = 2 end
+			if repeatCount == 3 then Repeat = 4 end
 
-				--[[print("	Block ",
+			--[[print("  Block ",
 				blockText[1][offsetSize+1],
 				blockText[2][repeatCount+1] or ("[rep "..Repeat.."* ]"),
 				blockText[3][dataCount+1] or ("[cnt "..Count.."* ]"),
 				blockText[4][valueSize+1])]]--
 
-				for i=1,Count do
+			for i=1,Count do
 				local Value = 0
-				if valueSize == 0 then Value = um:ReadChar()	end
+				if valueSize == 0 then Value = um:ReadChar()  end
 				if valueSize == 1 then Value = um:ReadShort() end
 				if valueSize == 2 then Value = um:ReadLong() end
 				if valueSize == 3 then Value = um:ReadFloat() end
 
 				for j=1,Repeat do
-					--print("	["..currentOffset.."] = "..Value)
+					--print("    ["..currentOffset.."] = "..Value)
 					writeHandler[GPUIdx](currentOffset,Value)
 					currentOffset = currentOffset + 1
 				end
@@ -621,8 +621,8 @@ elseif SERVER then
 	-- Get size of the value to write
 	------------------------------------------------------------------------------
 	local function getSize(value)
-		if (value >= -128)        and (value <= 127)        and (math.floor(value) == value) then return 1,false end
-		if (value >= -32768)      and (value <= 32767)      and (math.floor(value) == value) then return 2,false end
+		if (value >= -128)   and (value <= 127)             and (math.floor(value) == value) then return 1,false end
+		if (value >= -32768) and (value <= 32767)           and (math.floor(value) == value) then return 2,false end
 		if (value >= -2147483648) and (value <= 2147483647) and (math.floor(value) == value) then return 4,false end
 		return 4,true
 	end
@@ -705,7 +705,8 @@ elseif SERVER then
 					IsFloat = isfloat,
 				}
 				table.insert(compressInfo,compressBlock)
-			elseif sequentialBlock and (compressBlock.Size == size) then
+			elseif sequentialBlock and
+						 (compressBlock.Size == size) then
 				-- Add to previous block of data
 				if (#compressBlock.Data == 1) and (compressBlock.Data[1] == value) and (sequentialBlock) and (compressBlock.Repeat < 256) then
 					-- RLE compression
@@ -765,25 +766,25 @@ elseif SERVER then
 			-- Generate flags for sending the data
 			--======================================================================--
 			-- [0..1] Delta offset
-			--		 0: no offset
-			--		 1: 1-byte offset
-			--		 2: 2-byte offset
-			--		 3: 4-byte offset
+			--         0: no offset
+			--         1: 1-byte offset
+			--         2: 2-byte offset
+			--         3: 4-byte offset
 			-- [2..3] Repeat count
-			--		 0: none
-			--		 1: repeat count 1-byte follows
-			--		 2: repeat 2 times
-			--		 3: repeat 4 times
+			--         0: none
+			--         1: repeat count 1-byte follows
+			--         2: repeat 2 times
+			--         3: repeat 4 times
 			-- [4..5] Data count
-			--		 0: 1 element
-			--		 1: data size 1-byte follows
-			--		 2: 2 elements
-			--		 3: 3 elements (but not floats)
+			--         0: 1 element
+			--         1: data size 1-byte follows
+			--         2: 2 elements
+			--         3: 3 elements (but not floats)
 			-- [6..7] Size
-			--		 0: 1-byte
-			--		 1: 2-byte
-			--		 2: 4-byte int
-			--		 3: 4-byte float
+			--         0: 1-byte
+			--         1: 2-byte
+			--         2: 4-byte int
+			--         3: 4-byte float
 			--
 			-- If it's a special data marker, then bitmap is:
 			-- [0..1] Marker type
@@ -800,7 +801,7 @@ elseif SERVER then
 			end
 
 			if v.Repeat > 1 then
-				if v.Repeat == 2 then dataFlags = dataFlags + 8
+						if v.Repeat == 2 then dataFlags = dataFlags + 8
 				elseif v.Repeat == 4 then dataFlags = dataFlags + 12
 				else                      dataFlags = dataFlags + 4
 				end
@@ -816,10 +817,10 @@ elseif SERVER then
 				end
 			end
 
-			if v.Size == 1 then dataFlags = dataFlags + 0 end
-			if v.Size == 2 then dataFlags = dataFlags + 64 end
+			if v.Size == 1 then dataFlags = dataFlags + 0   end
+			if v.Size == 2 then dataFlags = dataFlags + 64  end
 			if (v.Size == 4) and (not v.IsFloat) then dataFlags = dataFlags + 128 end
-			if (v.Size == 4) and (	v.IsFloat) then dataFlags = dataFlags + 192 end
+			if (v.Size == 4) and (    v.IsFloat) then dataFlags = dataFlags + 192 end
 
 			umsg.Char(dataFlags-128)
 			messageSize = messageSize + 4
@@ -841,15 +842,15 @@ elseif SERVER then
 				end
 			end
 
-			if (v.Repeat > 1) and (v.Repeat ~= 2) and (v.Repeat ~= 4) then
-				umsg.Char(v.Repeat-130) messageSize = messageSize + 1
-			end
+			if (v.Repeat > 1) and
+			   (v.Repeat ~= 2) and
+			   (v.Repeat ~= 4) then umsg.Char(v.Repeat-130) messageSize = messageSize + 1 end
 
 			for _,value in ipairs(v.Data) do
 				if v.Size == 1 then umsg.Char (value) messageSize = messageSize + 1 end
 				if v.Size == 2 then umsg.Short(value) messageSize = messageSize + 2 end
-				if (v.Size == 4) and (not v.IsFloat) then umsg.Long(value)	messageSize = messageSize + 4 end
-				if (v.Size == 4) and (	v.IsFloat) then umsg.Float(value) messageSize = messageSize + 4 end
+				if (v.Size == 4) and (not v.IsFloat) then umsg.Long(value)  messageSize = messageSize + 4 end
+				if (v.Size == 4) and (    v.IsFloat) then umsg.Float(value) messageSize = messageSize + 4 end
 			end
 
 
