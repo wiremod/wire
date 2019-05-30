@@ -78,10 +78,10 @@ function ENT:WriteCell(Address, value)
 	if Address < 2000 then -- text/attribute data
 		if self.Memory[Address] == value then return true end
 	else
-		--	self.Memory[Address] = value
-			self:ClientWriteCell(Address, value)
-		--	self.Cache:WriteNow(Address, value)
-		--	return true
+		-- self.Memory[Address] = value
+		self:ClientWriteCell(Address, value)
+		-- self.Cache:WriteNow(Address, value)
+		-- return true
 	end
 
 	self.Memory[Address] = value

@@ -153,10 +153,10 @@ function ENT:WriteCell(Address, Value)
 		local res = false
 		for i = 1,8 do
 			if (Address-self.ControlDataSize >= self.MemStart[i]) and
-			(Address-self.ControlDataSize <= self.MemEnd[i]) then
+			   (Address-self.ControlDataSize <= self.MemEnd[i]) then
 				if self.Memory[i] then
 					if self.Memory[i].WriteCell then
-					self.Memory[i]:WriteCell(Address-self.ControlDataSize-self.MemStart[i], Value)
+						self.Memory[i]:WriteCell(Address-self.ControlDataSize-self.MemStart[i], Value)
 					end
 				end
 				self.DataBytes = self.DataBytes + 1
