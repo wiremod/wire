@@ -4,7 +4,7 @@ function ENT:Initialize()
 	self.Memory1 = {}
 	self.Memory2 = {}
 	for i = 0, 2047 do
-	self.Memory1[i] = 0
+		self.Memory1[i] = 0
 	end
 
 	-- Caching control:
