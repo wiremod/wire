@@ -641,13 +641,13 @@ elseif SERVER then
 	-- Write a single value to cache
 	------------------------------------------------------------------------------
 	function CACHEMGR:Write(Address,Value)
-	local valueSize,valueFloat
-	if Value then
-		valueSize,valueFloat = getSize(Value)
-		self.CacheBytes = self.CacheBytes + valueSize
-	end
+		local valueSize,valueFloat
+		if Value then
+			valueSize,valueFloat = getSize(Value)
+			self.CacheBytes = self.CacheBytes + valueSize
+		end
 
-	table.insert(self.Cache,{ Address, Value, valueSize, valueFloat })
+		table.insert(self.Cache,{ Address, Value, valueSize, valueFloat })
 		--if #self.Cache > 2048 then self:Flush() end
 	end
 
@@ -678,7 +678,7 @@ elseif SERVER then
 		-- Do not sort if order at which values are written matters
 		if not self.ValueOrderMatters then
 			table.sort(self.Cache,function(A,B)
-			return A[1] < B[1]
+				return A[1] < B[1]
 			end)
 		end
 
@@ -713,21 +713,6 @@ elseif SERVER then
 				elseif compressBlock.Repeat > 1 then
 					-- Cant add to a repeating block, make new
 					compressBlock = {
-					Data = { value },
-					Offset = address,
-					Repeat = 1,
-					Size = size,
-					IsFloat = isfloat,
-					}
-					if not sequentialBlock then compressBlock.SetOffset = address-previousBlockEnd end
-					table.insert(compressInfo,compressBlock)
-				else
-					-- Append to a group of values, unless the block is too big
-					if #compressBlock.Data*compressBlock.Repeat*compressBlock.Size < 196 then
-					table.insert(compressBlock.Data,value)
-					else
-					-- Add it to a new block instead
-					compressBlock = {
 						Data = { value },
 						Offset = address,
 						Repeat = 1,
@@ -736,6 +721,21 @@ elseif SERVER then
 					}
 					if not sequentialBlock then compressBlock.SetOffset = address-previousBlockEnd end
 					table.insert(compressInfo,compressBlock)
+				else
+					-- Append to a group of values, unless the block is too big
+					if #compressBlock.Data*compressBlock.Repeat*compressBlock.Size < 196 then
+						table.insert(compressBlock.Data,value)
+					else
+						-- Add it to a new block instead
+						compressBlock = {
+							Data = { value },
+							Offset = address,
+							Repeat = 1,
+							Size = size,
+							IsFloat = isfloat,
+						}
+						if not sequentialBlock then compressBlock.SetOffset = address-previousBlockEnd end
+						table.insert(compressInfo,compressBlock)
 					end
 				end
 			else

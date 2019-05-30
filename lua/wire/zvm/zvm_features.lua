@@ -36,104 +36,104 @@ end
 --------------------------------------------------------------------------------
 -- VM state reset
 function ZVM:Reset()
-  self.IP = 0        -- Instruction pointer
+	self.IP = 0        -- Instruction pointer
 
-  self.EAX = 0       -- General purpose registers
-  self.EBX = 0
-  self.ECX = 0
-  self.EDX = 0
-  self.ESI = 0
-  self.EDI = 0
-  self.ESP = math.max(0,self.RAMSize-1)
-  self.EBP = 0
+	self.EAX = 0       -- General purpose registers
+	self.EBX = 0
+	self.ECX = 0
+	self.EDX = 0
+	self.ESI = 0
+	self.EDI = 0
+	self.ESP = math.max(0,self.RAMSize-1)
+	self.EBP = 0
 
-  self.CS = 0        -- Segment pointer registers
-  self.SS = 0
-  self.DS = 0
-  self.ES = 0
-  self.GS = 0
-  self.FS = 0
-  self.KS = 0
-  self.LS = 0
+	self.CS = 0        -- Segment pointer registers
+	self.SS = 0
+	self.DS = 0
+	self.ES = 0
+	self.GS = 0
+	self.FS = 0
+	self.KS = 0
+	self.LS = 0
 
-  -- Extended registers
-  for reg=0,31 do self["R"..reg] = 0 end
+	-- Extended registers
+	for reg=0,31 do self["R"..reg] = 0 end
 
-  -- Stack size register
-  self.ESZ = math.max(0,self.RAMSize-1)
+	-- Stack size register
+	self.ESZ = math.max(0,self.RAMSize-1)
 
-  self.IDTR = 0      -- Interrupt descriptor table register
-  self.NIDT = 256    -- Size of interrupt descriptor table
-  self.EF = 0        -- Extended mode flag
-  self.PF = 0        -- Protected mode flag
-  self.MF = 0        -- Memory extended mode flag
-  self.IF = 1        -- Interrupts enabled flag
-  self.NIF = nil     -- Value of IF flag for next frame
+	self.IDTR = 0      -- Interrupt descriptor table register
+	self.NIDT = 256    -- Size of interrupt descriptor table
+	self.EF = 0        -- Extended mode flag
+	self.PF = 0        -- Protected mode flag
+	self.MF = 0        -- Memory extended mode flag
+	self.IF = 1        -- Interrupts enabled flag
+	self.NIF = nil     -- Value of IF flag for next frame
 
-  self.PTBL = 0      -- Page table offset
-  self.PTBE = 0      -- Page table size
+	self.PTBL = 0      -- Page table offset
+	self.PTBE = 0      -- Page table size
 
-  self.CMPR = 0      -- Compare register
-  self.XEIP = 0      -- Current instruction address register
-  self.LADD = 0      -- Last interrupt parameter
-  self.LINT = 0      -- Last interrupt number
-  self.TMR = 0       -- Internal timer
-  self.TIMER = 0     -- Internal clock
-  self.CPAGE = 0     -- Current page ID
-  self.PPAGE = 0     -- Previous page ID
+	self.CMPR = 0      -- Compare register
+	self.XEIP = 0      -- Current instruction address register
+	self.LADD = 0      -- Last interrupt parameter
+	self.LINT = 0      -- Last interrupt number
+	self.TMR = 0       -- Internal timer
+	self.TIMER = 0     -- Internal clock
+	self.CPAGE = 0     -- Current page ID
+	self.PPAGE = 0     -- Previous page ID
 
-  self.BPREC = 48    -- Binary precision for integer emulation mode (default: 48)
-  self.IPREC = 48    -- Integer precision (48 - floating point mode, 8, 16, 32, 64 - integer mode)
-  self.VMODE = 2     -- Vector mode (2D, 3D)
+	self.BPREC = 48    -- Binary precision for integer emulation mode (default: 48)
+	self.IPREC = 48    -- Integer precision (48 - floating point mode, 8, 16, 32, 64 - integer mode)
+	self.VMODE = 2     -- Vector mode (2D, 3D)
 
-  self.CODEBYTES = 0 -- Executed size of code
-  self.HWDEBUG = 0   -- Hardware debug mode
-  self.DBGSTATE = 0  -- 0: halt; 1: reset; 2: step fwd and halt; 3: run; 4: read registers; 5: write registers
-  self.DBGADDR = 0   -- 0: external ports, everything else: absolute memory address
+	self.CODEBYTES = 0 -- Executed size of code
+	self.HWDEBUG = 0   -- Hardware debug mode
+	self.DBGSTATE = 0  -- 0: halt; 1: reset; 2: step fwd and halt; 3: run; 4: read registers; 5: write registers
+	self.DBGADDR = 0   -- 0: external ports, everything else: absolute memory address
 
-  -- Timer system registers
-  self.TimerMode = 0      -- 0: disable; NMI: 1: every X seconds; 2: every N ticks
-  self.TimerRate = 0      -- Seconds or ticks
-  self.TimerPrevTime = 0  -- Previous fire time
-  self.TimerAddress  = 32 -- Interrupt number to call (modes 1,2)
-  self.TimerPrevMode = 0  -- Previous timer mode
+	-- Timer system registers
+	self.TimerMode = 0      -- 0: disable; NMI: 1: every X seconds; 2: every N ticks
+	self.TimerRate = 0      -- Seconds or ticks
+	self.TimerPrevTime = 0  -- Previous fire time
+	self.TimerAddress  = 32 -- Interrupt number to call (modes 1,2)
+	self.TimerPrevMode = 0  -- Previous timer mode
 
-  -- Internal operation registers
-  self.MEMRQ = 0           -- Handling a memory request (1: delayed request, 2: read request, 3: write request)
-  self.MEMADDR = 0         -- Address of the memory request
-  self.INTR = 0            -- Handling an interrupt
-  self.BusLock = 0         -- Bus is locked for read/write
-  self.Idle = 0            -- Idle flag
-  self.External = 0        -- External IO operation
+	-- Internal operation registers
+	self.MEMRQ = 0           -- Handling a memory request (1: delayed request, 2: read request, 3: write request)
+	self.MEMADDR = 0         -- Address of the memory request
+	self.INTR = 0            -- Handling an interrupt
+	self.BusLock = 0         -- Bus is locked for read/write
+	self.Idle = 0            -- Idle flag
+	self.External = 0        -- External IO operation
 
-  -- Misc registers
-  self.BlockStart = 0      -- Start of the block
-  self.BlockSize = 0       -- Size of the block
-  self.HaltPort = 0        -- Unused/obsolete
-  self.TimerDT = 0         -- Timer deltastep within cached instructions block
+	-- Misc registers
+	self.BlockStart = 0      -- Start of the block
+	self.BlockSize = 0       -- Size of the block
+	self.HaltPort = 0        -- Unused/obsolete
+	self.TimerDT = 0         -- Timer deltastep within cached instructions block
 
-  -- Runlevel registers
-  self.CRL  = 0            -- Current runlevel
-  self.XTRL = 1            -- Runlevel for external IO
+	-- Runlevel registers
+	self.CRL  = 0            -- Current runlevel
+	self.XTRL = 1            -- Runlevel for external IO
 
-  -- Reset internal memory, precompiler data, page table
-  self.Memory = {}
-  self.PrecompiledData = {}
-  self.IsAddressPrecompiled = {}
-  self.PageData = {}
+	-- Reset internal memory, precompiler data, page table
+	self.Memory = {}
+	self.PrecompiledData = {}
+	self.IsAddressPrecompiled = {}
+	self.PageData = {}
 
-  -- Restore ROM to memory
-  self.INTR = 1
-  if self.ROMSize > 0 then
-    for address,value in pairs(self.ROM) do
-      self:WriteCell(address,value)
-    end
-  end
+	-- Restore ROM to memory
+	self.INTR = 1
+	if self.ROMSize > 0 then
+		for address,value in pairs(self.ROM) do
+			self:WriteCell(address,value)
+		end
+	end
 
-  -- Reset pages
-  self:SetCurrentPage(0)
-  self:SetPreviousPage(0)
-  self.INTR = 0
+	-- Reset pages
+	self:SetCurrentPage(0)
+	self:SetPreviousPage(0)
+	self.INTR = 0
 end
 
 
@@ -160,14 +160,14 @@ end
 function ZVM:ExternalWrite(Address,Value)
 	if Address >= 0
 	then self:Interrupt(7,Address) return false -- MemBus
-	else return true							-- IOBus
+	else return true                            -- IOBus
 	end
 end
 
 function ZVM:ExternalRead(Address,Value)
 	if Address >= 0
 	then self:Interrupt(7,Address) return -- MemBus
-	else return 0						 -- IOBus
+	else return 0                         -- IOBus
 	end
 end
 
@@ -327,7 +327,7 @@ function ZVM:WriteCell(Address,Value)
 				Address = self.MEMADDR
 				Value = self.LADD
 				--return true
-				else
+			else
 				self.MEMRQ = 3
 				self.MEMADDR = Address
 				self.LADD = Value
@@ -515,31 +515,31 @@ end
 --------------------------------------------------------------------------------
 function ZVM:GetPageByIndex(index)
 	if self.PCAP == 1 then
-	if self.MF == 1 then
-		-- Find page entry offset
-		local pageEntryOffset
-		if (index >= self.PTBE) or (index < 0)
-		then pageEntryOffset = self.PTBL
-		else pageEntryOffset = self.PTBL+(index+1)*2
+		if self.MF == 1 then
+			-- Find page entry offset
+			local pageEntryOffset
+			if (index >= self.PTBE) or (index < 0)
+			then pageEntryOffset = self.PTBL
+			else pageEntryOffset = self.PTBL+(index+1)*2
+			end
+
+			-- Read page entry
+			self.PCAP = 0 -- Stop infinite recursive page table lookup
+			local pagePermissionMask = self:ReadCell(pageEntryOffset+0)
+			local pageMappedTo = self:ReadCell(pageEntryOffset+1)
+			self.PCAP = 1
+
+			if (not pagePermissionMask) or (not pageMappedTo) then
+			self:Interrupt(13,8)
+			return errorPage
+			end
+
+			self:SetPagePermissions(index,pagePermissionMask,pageMappedTo)
+			return self.PageData[index]
+		else
+			if not self.PageData[index] then self:ResetPage(index) end
+			return self.PageData[index]
 		end
-
-		-- Read page entry
-		self.PCAP = 0 -- Stop infinite recursive page table lookup
-		local pagePermissionMask = self:ReadCell(pageEntryOffset+0)
-		local pageMappedTo = self:ReadCell(pageEntryOffset+1)
-		self.PCAP = 1
-
-		if (not pagePermissionMask) or (not pageMappedTo) then
-		self:Interrupt(13,8)
-		return errorPage
-		end
-
-		self:SetPagePermissions(index,pagePermissionMask,pageMappedTo)
-		return self.PageData[index]
-	else
-		if not self.PageData[index] then self:ResetPage(index) end
-		return self.PageData[index]
-	end
 	else
 		return defaultPage
 	end
@@ -897,9 +897,9 @@ function ZVM:ReadVector2f(address)
 		return { x = 0, y = 0, z = 0, w = 0 }
 	else
 		return { x = self:ReadCell(address+0) or 0,
-                 y = self:ReadCell(address+1) or 0,
-                 z = 0,
-                 w = 0 }
+		         y = self:ReadCell(address+1) or 0,
+		         z = 0,
+		         w = 0 }
 	end
 end
 
@@ -908,9 +908,9 @@ function ZVM:ReadVector3f(address)
 		return { x = 0, y = 0, z = 0, w = 0 }
 	else
 		return { x = self:ReadCell(address+0) or 0,
-                 y = self:ReadCell(address+1) or 0,
-                 z = self:ReadCell(address+2) or 0,
-                 w = 0 }
+		         y = self:ReadCell(address+1) or 0,
+		         z = self:ReadCell(address+2) or 0,
+		         w = 0 }
 	end
 end
 
@@ -919,9 +919,9 @@ function ZVM:ReadVector4f(address)
 		return { x = 0, y = 0, z = 0, w = 0 }
 	else
 		return { x = self:ReadCell(address+0) or 0,
-                 y = self:ReadCell(address+1) or 0,
-                 z = self:ReadCell(address+2) or 0,
-                 w = self:ReadCell(address+3) or 0 }
+		         y = self:ReadCell(address+1) or 0,
+		         z = self:ReadCell(address+2) or 0,
+		         w = self:ReadCell(address+3) or 0 }
 	end
 end
 

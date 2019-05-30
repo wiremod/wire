@@ -20,7 +20,7 @@ end
 ZVM.OpcodeRunLevel = {}
 for _,instruction in pairs(CPULib.InstructionTable) do
 	if instruction.Privileged then
-	ZVM.OpcodeRunLevel[instruction.Opcode] = 0
+		ZVM.OpcodeRunLevel[instruction.Opcode] = 0
 	end
 end
 
@@ -338,7 +338,7 @@ ZVM.OpcodeTable[45] = function(self)	--CLP
 end
 ZVM.OpcodeTable[46] = function(self)	--STD
 	if self.MicrocodeDebug then
-	self:Dyn_Emit("VM.Debug = true")
+		self:Dyn_Emit("VM.Debug = true")
 	end
 end
 ZVM.OpcodeTable[47] = function(self)	--RETF

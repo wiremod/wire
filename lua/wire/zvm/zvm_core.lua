@@ -41,7 +41,7 @@ if ZVM.MicrocodeDebug then -- Debug microcode generator
 	end
 else
 	function ZVM:Emit(text)
-	self.EmitBlock = self.EmitBlock..text.."\n"
+		self.EmitBlock = self.EmitBlock..text.."\n"
 	end
 end
 
@@ -80,24 +80,24 @@ end
 -- Load/fetch operand (by RM)
 function ZVM:Dyn_LoadOperand(OP,RM)
 	if self.OperandReadFunctions[RM] then
-	local preEmit
-	if self.ReadInvolvedRegisterLookup[RM] and
-		 self.EmitRegisterChanged[self.ReadInvolvedRegisterLookup[RM]] then
-		-- Available local value for this register
-		preEmit = self.OperandFastReadFunctions[RM]
-	else
-		preEmit = self.OperandReadFunctions[RM]
-	end
+		local preEmit
+		if self.ReadInvolvedRegisterLookup[RM] and
+		self.EmitRegisterChanged[self.ReadInvolvedRegisterLookup[RM]] then
+			-- Available local value for this register
+			preEmit = self.OperandFastReadFunctions[RM]
+		else
+			preEmit = self.OperandReadFunctions[RM]
+		end
 
-	-- Make sure segment register is global
-	self:Dyn_EmitForceRegisterGlobal(self.EmitOperandSegment[OP])
+		-- Make sure segment register is global
+		self:Dyn_EmitForceRegisterGlobal(self.EmitOperandSegment[OP])
 
-	-- Generate operand text
-	preEmit = string.gsub(preEmit,"$BYTE",self.EmitOperandByte[OP] or "0")
-	preEmit = string.gsub(preEmit,"$SEG","VM."..(self.EmitOperandSegment[OP] or "DS"))
-	self.EmitOperand[OP] = preEmit
+		-- Generate operand text
+		preEmit = string.gsub(preEmit,"$BYTE",self.EmitOperandByte[OP] or "0")
+		preEmit = string.gsub(preEmit,"$SEG","VM."..(self.EmitOperandSegment[OP] or "DS"))
+		self.EmitOperand[OP] = preEmit
 
-	if self.NeedInterruptCheck[RM] then self.EmitNeedInterruptCheck = true end
+		if self.NeedInterruptCheck[RM] then self.EmitNeedInterruptCheck = true end
 	end
 
 	self.EmitOperandRM[OP] = RM
