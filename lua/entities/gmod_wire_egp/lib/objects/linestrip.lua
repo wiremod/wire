@@ -11,10 +11,8 @@ Obj.Draw = function( self )
 	local n = #self.vertices
 	if (self.a>0 and n>0 and self.size>0) then
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
-		for i=1,(n-1) do
-			local p1,p2 = self.vertices[i],self.vertices[1+i]
-			EGP:DrawLine( p1.x, p1.y, p2.x, p2.y, self.size )
-		end
+
+		EGP:DrawPath(self.vertices, self.size, false)
 	end
 end
 Obj.Transmit = function( self, Ent, ply )
@@ -32,7 +30,7 @@ Obj.Receive = function( self )
 	local tbl = {}
 	tbl.vertices = {}
 	for i=1,net.ReadUInt(16) do
-		tbl.vertices[ #tbl.vertices+1 ] = { x = net.ReadInt(16), y = net.ReadInt(16) }
+		tbl.vertices[ i ] = { x = net.ReadInt(16), y = net.ReadInt(16) }
 	end
 	tbl.parent = net.ReadInt(16)
 	tbl.size = net.ReadInt(16)

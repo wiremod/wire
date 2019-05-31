@@ -235,6 +235,20 @@ else
 	end)
 end
 
+-- Used to check if the cached vertices of egpCircle etc are still valid, and if not update to the current values
+function EGP:CacheNeedsUpdate(obj, keys)
+	if not obj.vert_cache then obj.vert_cache = {} end
+	local cache = obj.vert_cache
+	local update = false
+	for _,k in pairs(keys) do
+		if cache[k] ~= obj[k] then
+			update = true
+			cache[k] = obj[k]
+		end
+	end
+	return update
+end
+
 -- Line drawing helper function
 function EGP:DrawLine( x, y, x2, y2, size )
 	if (size < 1) then size = 1 end
@@ -255,6 +269,101 @@ function EGP:DrawLine( x, y, x2, y2, size )
 		if w < 1 then w = 1 end
 
 		surface.DrawTexturedRectRotated( x3, y3, w, size, angle )
+	end
+end
+
+function EGP:DrawPath( vertices, size, closed )
+	if size < 1 then size = 1 end
+	local num = #vertices
+
+
+	if size == 1 then -- size 1 => just normal lines
+		local last = vertices[1]
+		for i=2, num do
+			local v = vertices[i]
+			surface.DrawLine( last.x, last.y, v.x, v.y )
+			last = v
+		end
+		if closed then
+			surface.DrawLine( last.x, last.y, vertices[1].x, vertices[1].y )
+		end
+	else
+		size = size/2 -- simplify calculations
+		local corners = vertices.outline_cache
+		if vertices.outline_cache_size ~= size then -- check if the outline was cached already
+			corners = {}
+			local lastdir = {x=0, y=0}
+			if closed then
+				local x1 = vertices[num].x
+				local y1 = vertices[num].y
+				local x2 = vertices[1].x
+				local y2 = vertices[1].y
+				local len = math.sqrt( (x2-x1) ^ 2 + (y2-y1) ^ 2 )
+				lastdir = {x=(x2-x1)/len, y=(y2-y1)/len} -- initialize lastdir so first segment can be drawn normally
+			end
+			for i=1, (closed and num+1 or num) do
+				local v1 = i==num+1 and vertices[1] or vertices[i]
+				local x1 = v1.x
+				local y1 = v1.y
+
+				if not closed and i==num then -- very last segment, just end perpendicular (TODO: maybe move after the loop)
+					corners[#corners+1] = { r={x=x1-lastdir.y*size, y=y1+lastdir.x*size}, l={x=x1+lastdir.y*size, y=y1-lastdir.x*size}}
+				else
+					local v2 = i<num and vertices[i+1] or vertices[i+1-num]
+					local x2 = v2.x
+					local y2 = v2.y
+
+					local len = math.sqrt( (x2-x1) ^ 2 + (y2-y1) ^ 2 )
+					local dir = {x=(x2-x1)/len, y=(y2-y1)/len}
+					if x1 ~= x2 or y1 ~= y2 then -- cannot get direction between identical points, just skip it
+						if not closed and i==1 then -- very first segment, just start perpendicular (TODO: maybe move before the loop)
+							corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size} }
+						else
+							local dot = dir.x*lastdir.x + dir.y*lastdir.y
+							local scaling = size*math.tan(math.acos(dot)/2) -- complicated math, could be also be `size*sqrt(1-dot)/sqrt(dot+1)` (no idea what is faster)
+							if dot >= 1 then -- also account for rounding errors, somehow the dot product can be >1, which makes scaling nan
+								-- direction stays the same, no need for a corner, just skip this point, unless it is the last segment of a closed path (last segment of a open path is handled explicitly above)
+								if i == num+1 then
+									corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size} }
+								end
+							elseif dot <= -1 then -- new direction is inverse, just add perpendicular nodes
+								corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size} }
+							elseif dir.x*-lastdir.y + dir.y*lastdir.x > 0 then -- right bend, checked by getting the dot product between dir and lastDir:rotate(90)
+								local offsetx = -lastdir.y*size-lastdir.x*scaling
+								local offsety = lastdir.x*size-lastdir.y*scaling
+								if dot < 0 then -- sharp corner, add two points to the outer edge to not have insanely long spikes
+									corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1+(lastdir.x+lastdir.y)*size, y=y1+(lastdir.y-lastdir.x)*size} }
+									corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-(dir.x-dir.y)*size, y=y1-(dir.y+dir.x)*size} }
+								else
+									corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-offsetx, y=y1-offsety} }
+								end
+							else -- left bend
+								local offsetx = lastdir.y*size-lastdir.x*scaling
+								local offsety = -lastdir.x*size-lastdir.y*scaling
+								if dot < 0 then
+									corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1+(lastdir.x-lastdir.y)*size, y=y1+(lastdir.y+lastdir.x)*size} }
+									corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-(dir.x+dir.y)*size, y=y1-(dir.y-dir.x)*size} }
+								else
+									corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-offsetx, y=y1-offsety} }
+								end
+							end
+						end
+						lastdir = dir
+					end
+				end
+			end
+			vertices.outline_cache = corners
+			vertices.outline_cache_size = size
+		end
+		for i=2, #corners, 2 do
+			local verts
+			if i==#corners then -- last corner, only one segment missing
+				verts = {corners[i].r, corners[i-1].r, corners[i-1].l, corners[i].l}
+			else -- draw this and next segment as a single polygon
+				verts = {corners[i].r, corners[i-1].r, corners[i-1].l, corners[i].l, corners[i+1].l, corners[i+1].r}
+			end
+			surface.DrawPoly(verts)
+		end
 	end
 end
 
