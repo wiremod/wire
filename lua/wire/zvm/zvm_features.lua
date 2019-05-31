@@ -892,32 +892,61 @@ end
 
 --------------------------------------------------------------------------------
 -- Vector reading/writing instructions
-
-local components = { "x", "y", "z", "w" }
-
-function ZVM:ReadVector(address, mode)
-  if address == 0 then mode = 0 end
-
-  local v = {}
-  for i = 1, mode do v[components[i]] = self:ReadCell(address + i - 1) or 0 end
-  return v
+function ZVM:ReadVector2f(address)
+  if address == 0 then
+    return { x = 0, y = 0, z = 0, w = 0 }
+  else
+    return { x = self:ReadCell(address+0) or 0,
+             y = self:ReadCell(address+1) or 0,
+             z = 0,
+             w = 0 }
+  end
 end
 
-function ZVM:WriteVector(address, mode, vector)
-  for i = 1, mode do self:WriteCell(address + i - 1, vector[components[i]]) end
+function ZVM:ReadVector3f(address)
+  if address == 0 then
+    return { x = 0, y = 0, z = 0, w = 0 }
+  else
+    return { x = self:ReadCell(address+0) or 0,
+             y = self:ReadCell(address+1) or 0,
+             z = self:ReadCell(address+2) or 0,
+             w = 0 }
+  end
 end
 
-function ZVM:ReadVector2f(address) return self:ReadVector(address, 2) end
-function ZVM:ReadVector3f(address) return self:ReadVector(address, 3) end
-function ZVM:ReadVector4f(address) return self:ReadVector(address, 4) end
-function ZVM:WriteVector2f(address, vector) return self:WriteVector(address, 2, vector) end
-function ZVM:WriteVector3f(address, vector) return self:WriteVector(address, 3, vector) end
-function ZVM:WriteVector4f(address, vector) return self:WriteVector(address, 4, vector) end
+function ZVM:ReadVector4f(address)
+  if address == 0 then
+    return { x = 0, y = 0, z = 0, w = 0 }
+  else
+    return { x = self:ReadCell(address+0) or 0,
+             y = self:ReadCell(address+1) or 0,
+             z = self:ReadCell(address+2) or 0,
+             w = self:ReadCell(address+3) or 0 }
+  end
+end
 
 function ZVM:ReadMatrix(address)
   local resultMatrix = {}
   for i= 0,15 do resultMatrix[i] = self:ReadCell(address+i) or 0 end
   return resultMatrix
+end
+
+function ZVM:WriteVector2f(address,vector)
+  self:WriteCell(address+0,vector.x)
+  self:WriteCell(address+1,vector.y)
+end
+
+function ZVM:WriteVector3f(address,vector)
+  self:WriteCell(address+0,vector.x)
+  self:WriteCell(address+1,vector.y)
+  self:WriteCell(address+2,vector.z)
+end
+
+function ZVM:WriteVector4f(address,vector)
+  self:WriteCell(address+0,vector.x)
+  self:WriteCell(address+1,vector.y)
+  self:WriteCell(address+2,vector.z)
+  self:WriteCell(address+3,vector.w)
 end
 
 function ZVM:WriteMatrix(address,matrix)
