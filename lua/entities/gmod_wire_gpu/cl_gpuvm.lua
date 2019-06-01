@@ -27,12 +27,12 @@ function ENT:OverrideVM()
 	end
 
 	self.VM.ErrorText = {}
-	self.VM.ErrorText[2]	= "Program ended unexpectedly"
-	self.VM.ErrorText[3]	= "Arithmetic division by zero"
-	self.VM.ErrorText[4]	= "Unknown instruction detected"
-	self.VM.ErrorText[5]	= "Internal GPU error"
-	self.VM.ErrorText[6]	= "Stack violation error"
-	self.VM.ErrorText[7]	= "Memory I/O fault"
+	self.VM.ErrorText[2]  = "Program ended unexpectedly"
+	self.VM.ErrorText[3]  = "Arithmetic division by zero"
+	self.VM.ErrorText[4]  = "Unknown instruction detected"
+	self.VM.ErrorText[5]  = "Internal GPU error"
+	self.VM.ErrorText[6]  = "Stack violation error"
+	self.VM.ErrorText[7]  = "Memory I/O fault"
 	self.VM.ErrorText[13] = "General fault"
 	self.VM.ErrorText[15] = "Address space violation"
 	self.VM.ErrorText[16] = "Pants integrity violation"
@@ -140,24 +140,24 @@ function ENT:OverrideVM()
 	self.VM.InternalRegister[52] = nil --NIDT
 
 	-- Remove some instructions
-	self.VM.OperandCount[16]	= nil --RD
-	self.VM.OperandCount[17]	= nil --WD
-	self.VM.OperandCount[28]	= nil --SPG
-	self.VM.OperandCount[29]	= nil --CPG
-	self.VM.OperandCount[37]	= nil --HALT
-	self.VM.OperandCount[41]	= nil --IRET
-	self.VM.OperandCount[42]	= nil --STI
-	self.VM.OperandCount[43]	= nil --CLI
-	self.VM.OperandCount[44]	= nil --STP
-	self.VM.OperandCount[45]	= nil --CLP
-	self.VM.OperandCount[46]	= nil --STD
-	self.VM.OperandCount[48]	= nil --STEF
-	self.VM.OperandCount[49]	= nil --CLEF
-	self.VM.OperandCount[70]	= nil --EXTINT
-	self.VM.OperandCount[95]	= nil --ERPG
-	self.VM.OperandCount[96]	= nil --WRPG
-	self.VM.OperandCount[97]	= nil --RDPG
-	self.VM.OperandCount[99]	= nil --LIDTR
+	self.VM.OperandCount[16]  = nil --RD
+	self.VM.OperandCount[17]  = nil --WD
+	self.VM.OperandCount[28]  = nil --SPG
+	self.VM.OperandCount[29]  = nil --CPG
+	self.VM.OperandCount[37]  = nil --HALT
+	self.VM.OperandCount[41]  = nil --IRET
+	self.VM.OperandCount[42]  = nil --STI
+	self.VM.OperandCount[43]  = nil --CLI
+	self.VM.OperandCount[44]  = nil --STP
+	self.VM.OperandCount[45]  = nil --CLP
+	self.VM.OperandCount[46]  = nil --STD
+	self.VM.OperandCount[48]  = nil --STEF
+	self.VM.OperandCount[49]  = nil --CLEF
+	self.VM.OperandCount[70]  = nil --EXTINT
+	self.VM.OperandCount[95]  = nil --ERPG
+	self.VM.OperandCount[96]  = nil --WRPG
+	self.VM.OperandCount[97]  = nil --RDPG
+	self.VM.OperandCount[99]  = nil --LIDTR
 	self.VM.OperandCount[100] = nil --STATESTORE
 	self.VM.OperandCount[109] = nil --STATERESTORE
 	self.VM.OperandCount[110] = nil --EXTRET
@@ -220,9 +220,9 @@ end
 --------------------------------------------------------------------------------
 function VM:Reset()
 	-- Reset VM
-	self.IP = 0		-- Instruction pointer
+	self.IP = 0        -- Instruction pointer
 
-	self.EAX = 0		 -- General purpose registers
+	self.EAX = 0       -- General purpose registers
 	self.EBX = 0
 	self.ECX = 0
 	self.EDX = 0
@@ -231,7 +231,7 @@ function VM:Reset()
 	self.ESP = 32767
 	self.EBP = 0
 
-	self.CS = 0		-- Segment pointer registers
+	self.CS = 0        -- Segment pointer registers
 	self.SS = 0
 	self.DS = 0
 	self.ES = 0
@@ -243,112 +243,112 @@ function VM:Reset()
 	-- Extended registers
 	for reg=0,31 do self["R"..reg] = 0 end
 
-	self.ESZ = 32768	-- Stack size register
-	self.CMPR = 0		 -- Compare register
-	self.XEIP = 0		 -- Current instruction address register
-	self.LADD = 0		 -- Last interrupt parameter
-	self.LINT = 0		 -- Last interrupt number
-	self.BPREC = 48	 -- Binary precision for integer emulation mode (default: 48)
-	self.IPREC = 48	 -- Integer precision (48 - floating point mode, 8, 16, 32, 64 - integer mode)
-	self.VMODE = 2		-- Vector mode (2D, 3D)
-	self.INTR = 0		 -- Handling an interrupt
+	self.ESZ = 32768    -- Stack size register
+	self.CMPR = 0       -- Compare register
+	self.XEIP = 0       -- Current instruction address register
+	self.LADD = 0       -- Last interrupt parameter
+	self.LINT = 0       -- Last interrupt number
+	self.BPREC = 48     -- Binary precision for integer emulation mode (default: 48)
+	self.IPREC = 48     -- Integer precision (48 - floating point mode, 8, 16, 32, 64 - integer mode)
+	self.VMODE = 2      -- Vector mode (2D, 3D)
+	self.INTR = 0       -- Handling an interrupt
 	self.BlockStart = 0 -- Start of the block
-	self.BlockSize = 0	-- Size of the block
+	self.BlockSize = 0  -- Size of the block
 
 	-- Reset internal GPU registers
-	--	[131072]..[2097151] - Extended GPU memory (2MB GPU)
-	--	[131072]..[1048576] - Extended GPU memory (1MB GPU)
-	--	[131072]..[524287]	- Extended GPU memory (512K GPU)
-	--	[131072]..[262143]	- Extended GPU memory (256K GPU)
-	--						No extended memory	(128K GPU)
-	--	[65536]..[131071]	 - MemBus mapped memory (read/write)
-	--						No extra memory beyond 65536 (64K GPU)
+	--  [131072]..[2097151] - Extended GPU memory (2MB GPU)
+	--  [131072]..[1048576] - Extended GPU memory (1MB GPU)
+	--  [131072]..[524287]  - Extended GPU memory (512K GPU)
+	--  [131072]..[262143]  - Extended GPU memory (256K GPU)
+	--                        No extended memory  (128K GPU)
+	--  [65536]..[131071]   - MemBus mapped memory (read/write)
+	--                        No extra memory beyond 65536 (64K GPU)
 	--
 	-- Hardware control registers:
-	--	[65535] - CLK
-	--	[65534] - RESET
-	--	[65533] - HARDWARE CLEAR
-	--	[65532] - Vertex mode (render vertex instead of RT)
-	--	[65531] - HALT
-	--	[65530] - RAM_RESET
-	--	[65529] - Async thread reset
-	--	[65528] - Async thread clk
-	--	[65527] - Async thread frequency
-	--	[65526] - Player index (0 to 31)
+	--  [65535] - CLK
+	--  [65534] - RESET
+	--  [65533] - HARDWARE CLEAR
+	--  [65532] - Vertex mode (render vertex instead of RT)
+	--  [65531] - HALT
+	--  [65530] - RAM_RESET
+	--  [65529] - Async thread reset
+	--  [65528] - Async thread clk
+	--  [65527] - Async thread frequency
+	--  [65526] - Player index (0 to 31)
 	--
 	-- Image control:
-	--	[65525] - Horizontal image scale
-	--	[65524] - Vertical image scale
-	--	[65523] - Hardware scale
-	--	[65522] - Rotation (0 - 0*, 1 - 90*, 2 - 180*, 3 - 270*)
-	--	[65521] - Sprite/texture size
-	--	[65520] - Pointer to texture data
-	--	[65519] - Size of texture data
-	--	[65518] - Raster quality
-	--	[65517] - Texture buffer (1: sprite buffer, 0: front buffer)
+	--  [65525] - Horizontal image scale
+	--  [65524] - Vertical image scale
+	--  [65523] - Hardware scale
+	--  [65522] - Rotation (0 - 0*, 1 - 90*, 2 - 180*, 3 - 270*)
+	--  [65521] - Sprite/texture size
+	--  [65520] - Pointer to texture data
+	--  [65519] - Size of texture data
+	--  [65518] - Raster quality
+	--  [65517] - Texture buffer (1: sprite buffer, 0: front buffer)
 	--
 	-- Vertex pipe controls:
-	--	[65515] - Image width (800)
-	--	[65514] - Image height (600)
-	--	[65513] - Real screen ratio
-	--	[65512] - Parameter list address (for dwritefmt)
+	--  [65515] - Image width (800)
+	--  [65514] - Image height (600)
+	--  [65513] - Real screen ratio
+	--  [65512] - Parameter list address (for dwritefmt)
 	--
 	-- Cursor control:
-	--	[65505] - Cursor X (0..1)
-	--	[65504] - Cursor Y (0..1)
-	--	[65503] - Cursor visible
-	--	[65502] - Cursor buttons (bits)
+	--  [65505] - Cursor X (0..1)
+	--  [65504] - Cursor Y (0..1)
+	--  [65503] - Cursor visible
+	--  [65502] - Cursor buttons (bits)
 	--
 	-- Brightness control:
-	--	[65495] - Brightness W
-	--	[65494] - Brightness R
-	--	[65493] - Brightness G
-	--	[65492] - Brightness B
-	--	[65491] - Contrast W
-	--	[65490] - Contrast R
-	--	[65489] - Contrast G
-	--	[65488] - Contrast B
+	--  [65495] - Brightness W
+	--  [65494] - Brightness R
+	--  [65493] - Brightness G
+	--  [65492] - Brightness B
+	--  [65491] - Contrast W
+	--  [65490] - Contrast R
+	--  [65489] - Contrast G
+	--  [65488] - Contrast B
 	--
 	-- Rendering settings
-	--	[65485] - Circle quality (3..128)
-	--	[65484] - Offset Point X
-	--	[65483] - Offset Point Y
-	--	[65482] - Rotation (rad)
-	--	[65481] - Scale
-	--	[65480] - Center point X
-	--	[65479] - Center point Y
-	--	[65478] - Circle start (rad)
-	--	[65477] - Circle end (rad)
-	--	[65476] - Line width (1)
-	--	[65475] - Scale X
-	--	[65474] - Scale Y
-	--	[65473] - Font horizontal align
-	--	[65472] - ZOffset
-	--	[65471] - Font vertical align
-	--	[65470] - Culling distance
-	--	[65469] - Culling mode (0: front, 1: back)
-	--	[65468] - Single-side lighting (1: front, -1: back)
-	--	[65467] - Memory offset of vertex data (non-zero means poly ops take indexes into this array)
-	--	[65466] - Texture rotation (rad)
-	--	[65465] - Texture scale
-	--	[65464] - Texture center point U
-	--	[65463] - Texture center point V
-	--	[65462] - Texture offset U
-	--	[65461] - Texture offset V
+	--  [65485] - Circle quality (3..128)
+	--  [65484] - Offset Point X
+	--  [65483] - Offset Point Y
+	--  [65482] - Rotation (rad)
+	--  [65481] - Scale
+	--  [65480] - Center point X
+	--  [65479] - Center point Y
+	--  [65478] - Circle start (rad)
+	--  [65477] - Circle end (rad)
+	--  [65476] - Line width (1)
+	--  [65475] - Scale X
+	--  [65474] - Scale Y
+	--  [65473] - Font horizontal align
+	--  [65472] - ZOffset
+	--  [65471] - Font vertical align
+	--  [65470] - Culling distance
+	--  [65469] - Culling mode (0: front, 1: back)
+	--  [65468] - Single-side lighting (1: front, -1: back)
+	--  [65467] - Memory offset of vertex data (non-zero means poly ops take indexes into this array)
+	--  [65466] - Texture rotation (rad)
+	--  [65465] - Texture scale
+	--  [65464] - Texture center point U
+	--  [65463] - Texture center point V
+	--  [65462] - Texture offset U
+	--  [65461] - Texture offset V
 	--
 	-- Misc:
-	--	[64512] - Last register
-	--	[63488]..[64511] - External ports
+	--  [64512] - Last register
+	--  [63488]..[64511] - External ports
 
 	self.Memory[65535] = 1
 	self.Memory[65534] = 0
---self.Memory[65533] = 1	 (value persists over reset)
---self.Memory[65532] = 0
---self.Memory[65531] = 0	 (value persists over reset)
---self.Memory[65530] = 0
---self.Memory[65529] = 0
---self.Memory[65528] = 0
---self.Memory[65527] = 0
+	--self.Memory[65533] = 1   (value persists over reset)
+	--self.Memory[65532] = 0
+	--self.Memory[65531] = 0   (value persists over reset)
+	--self.Memory[65530] = 0
+	--self.Memory[65529] = 0
+	--self.Memory[65528] = 0
+	--self.Memory[65527] = 0
 	self.Memory[65526] = (LocalPlayer():UserID() % 32)
 	----------------------
 	self.Memory[65525] = 1
@@ -363,13 +363,13 @@ function VM:Reset()
 	----------------------
 	self.Memory[65515] = 800
 	self.Memory[65514] = 600
---self.Memory[65513] = 0	 (set elsewhere)
+	--self.Memory[65513] = 0   (set elsewhere)
 	self.Memory[65512] = 0
 	----------------------
---self.Memory[65505] = 0	 (set elsewhere)
---self.Memory[65504] = 0	 (set elsewhere)
+	--self.Memory[65505] = 0   (set elsewhere)
+	--self.Memory[65504] = 0   (set elsewhere)
 	self.Memory[65503] = 0
---self.Memory[65502] = 0
+	--self.Memory[65502] = 0
 	----------------------
 	self.Memory[65495] = 1
 	self.Memory[65494] = 1
@@ -407,31 +407,31 @@ function VM:Reset()
 	self.Memory[65461] = 0
 
 	-- Coordinate pipe
-	--	0 - direct (0..512 or 0..1024 range)
-	--	1 - mapped to screen
-	--	2 - mapped to 0..1 range
-	--	3 - mapped to -1..1 range
+	--  0 - direct (0..512 or 0..1024 range)
+	--  1 - mapped to screen
+	--  2 - mapped to 0..1 range
+	--  3 - mapped to -1..1 range
 	self.CoordinatePipe = 0
 
 	-- Vertex pipes:
-	--	0 - XY mapping
-	--	1 - YZ mapping
-	--	2 - XZ mapping
-	--	3 - XYZ projective mapping
-	--	4 - XY mapping + matrix
-	--	5 - XYZ projective mapping + matrix
+	--  0 - XY mapping
+	--  1 - YZ mapping
+	--  2 - XZ mapping
+	--  3 - XYZ projective mapping
+	--  4 - XY mapping + matrix
+	--  5 - XYZ projective mapping + matrix
 	self.VertexPipe = 0
 
 	-- Flags that can be ddisable/ddenable-d
-	-- 0 VERTEX_ZSORT	 Enable or disable ZSorting in vertex buffer (sorted on flush)
+	-- 0 VERTEX_ZSORT     Enable or disable ZSorting in vertex buffer (sorted on flush)
 	self.VertexBufZSort = 0
-	-- 1 VERTEX_LIGHTING	Enable or disable vertex lighting
+	-- 1 VERTEX_LIGHTING  Enable or disable vertex lighting
 	self.VertexLighting = 0
-	-- 2 VERTEX_BUFFER	Enable or disable vertex buffer
+	-- 2 VERTEX_BUFFER    Enable or disable vertex buffer
 	self.VertexBufEnabled = 0
-	-- 3 VERTEX_CULLING	 Enable or disable culling on faces
+	-- 3 VERTEX_CULLING   Enable or disable culling on faces
 	self.VertexCulling = 0
-	-- 4 VERTEX_DCULLING	Enable or disable distance culling
+	-- 4 VERTEX_DCULLING  Enable or disable distance culling
 	self.DistanceCulling = 0
 	-- 5 VERTEX_TEXTURING Enable texturing from sprite buffer
 	self.VertexTexturing = 0
@@ -449,17 +449,17 @@ function VM:Reset()
 
 	-- Model transform matrix
 	self.ModelMatrix = self.ModelMatrix or {}
-	self.ModelMatrix[0]	= 1	self.ModelMatrix[1]	= 0	self.ModelMatrix[2]	= 0	self.ModelMatrix[3]	= 0
-	self.ModelMatrix[4]	= 0	self.ModelMatrix[5]	= 1	self.ModelMatrix[6]	= 0	self.ModelMatrix[7]	= 0
-	self.ModelMatrix[8]	= 0	self.ModelMatrix[9]	= 0	self.ModelMatrix[10] = 1	self.ModelMatrix[11] = 0
-	self.ModelMatrix[12] = 0	self.ModelMatrix[13] = 0	self.ModelMatrix[14] = 0	self.ModelMatrix[15] = 1
+	self.ModelMatrix[0]  = 1  self.ModelMatrix[1]  = 0  self.ModelMatrix[2]  = 0  self.ModelMatrix[3]  = 0
+	self.ModelMatrix[4]  = 0  self.ModelMatrix[5]  = 1  self.ModelMatrix[6]  = 0  self.ModelMatrix[7]  = 0
+	self.ModelMatrix[8]  = 0  self.ModelMatrix[9]  = 0  self.ModelMatrix[10] = 1  self.ModelMatrix[11] = 0
+	self.ModelMatrix[12] = 0  self.ModelMatrix[13] = 0  self.ModelMatrix[14] = 0  self.ModelMatrix[15] = 1
 
 	--View transform matrix
 	self.ProjectionMatrix = self.ProjectionMatrix or {}
-	self.ProjectionMatrix[0]	= 1	self.ProjectionMatrix[1]	= 0	self.ProjectionMatrix[2]	= 0	self.ProjectionMatrix[3]	= 0
-	self.ProjectionMatrix[4]	= 0	self.ProjectionMatrix[5]	= 1	self.ProjectionMatrix[6]	= 0	self.ProjectionMatrix[7]	= 0
-	self.ProjectionMatrix[8]	= 0	self.ProjectionMatrix[9]	= 0	self.ProjectionMatrix[10] = 1	self.ProjectionMatrix[11] = 0
-	self.ProjectionMatrix[12] = 0	self.ProjectionMatrix[13] = 0	self.ProjectionMatrix[14] = 0	self.ProjectionMatrix[15] = 1
+	self.ProjectionMatrix[0]  = 1  self.ProjectionMatrix[1]  = 0  self.ProjectionMatrix[2]  = 0  self.ProjectionMatrix[3]  = 0
+	self.ProjectionMatrix[4]  = 0  self.ProjectionMatrix[5]  = 1  self.ProjectionMatrix[6]  = 0  self.ProjectionMatrix[7]  = 0
+	self.ProjectionMatrix[8]  = 0  self.ProjectionMatrix[9]  = 0  self.ProjectionMatrix[10] = 1  self.ProjectionMatrix[11] = 0
+	self.ProjectionMatrix[12] = 0  self.ProjectionMatrix[13] = 0  self.ProjectionMatrix[14] = 0  self.ProjectionMatrix[15] = 1
 
 	-- Reset buffers:
 	self.StringCache = {}
@@ -504,12 +504,12 @@ end
 
 function VM:SaveAsyncThread()
 	if not self.AsyncState then
-	self.AsyncState = {}
-	self:Reset()
+		self.AsyncState = {}
+		self:Reset()
 
-	self:SaveAsyncThread_Util()
-	self.AsyncState.IP = self.EntryPoint4
-	return
+		self:SaveAsyncThread_Util()
+		self.AsyncState.IP = self.EntryPoint4
+		return
 	end
 
 	self:SaveAsyncThread_Util()
@@ -565,11 +565,11 @@ function VM:HardReset()
 	self.Memory[65502] = 0
 
 	-- Entrypoints to special calls
-	--	0	DRAW	 Called when screen is being drawn
-	--	1	INIT	 Called when screen is hard reset
-	--	2	USE	Called when screen is used
-	--	3	ERROR	Called when GPU error has occured
-	--	4	ASYNC	Asynchronous thread entrypoint
+	--  0  DRAW   Called when screen is being drawn
+	--  1  INIT   Called when screen is hard reset
+	--  2  USE    Called when screen is used
+	--  3  ERROR  Called when GPU error has occured
+	--  4  ASYNC  Asynchronous thread entrypoint
 	self.EntryPoint0 = 0
 	self.EntryPoint1 = self.EntryPoint1 or 0
 	self.EntryPoint2 = 0
@@ -596,7 +596,7 @@ end
 --------------------------------------------------------------------------------
 function VM:ComputeTextureUV(vertex,u,v)
 	local texturesOnSide = math.floor(512/self.Memory[65521])
-	local textureX = (1/texturesOnSide) *			 (self.Texture % texturesOnSide)
+	local textureX = (1/texturesOnSide) * (self.Texture % texturesOnSide)
 	local textureY = (1/texturesOnSide) * math.floor(self.Texture / texturesOnSide)
 
 	local uvStep = (1/512)
@@ -761,10 +761,10 @@ function VM:VertexTransform(inVertex,toScreen)
 			world = {}
 
 			for i=0,3 do
-			world[i] = self.ModelMatrix[i*4+0] * vertex.x +
-						self.ModelMatrix[i*4+1] * vertex.y +
-						self.ModelMatrix[i*4+2] * vertex.z +
-						self.ModelMatrix[i*4+3] * vertex.w
+				world[i] = self.ModelMatrix[i*4+0] * vertex.x +
+				           self.ModelMatrix[i*4+1] * vertex.y +
+				           self.ModelMatrix[i*4+2] * vertex.z +
+				           self.ModelMatrix[i*4+3] * vertex.w
 			end
 
 			worldVertex.x = world[0]
@@ -1435,20 +1435,20 @@ end
 -- GPU instruction set implementation
 --------------------------------------------------------------------------------
 VM.OpcodeTable = {}
-VM.OpcodeTable[98] = function(self)	--TIMER
+VM.OpcodeTable[98] = function(self)  --TIMER
 	self:Dyn_Emit("if VM.ASYNC == 1 then")
 	self:Dyn_EmitOperand(1,"(VM.TIMER+"..(self.PrecompileInstruction or 0).."*VM.TimerDT)",true)
 	self:Dyn_Emit("else")
 	self:Dyn_EmitOperand(1,"VM.TIMER",true)
 	self:Dyn_Emit("end")
 end
-VM.OpcodeTable[111] = function(self)	--IDLE
+VM.OpcodeTable[111] = function(self)  --IDLE
 	self:Dyn_Emit("VM.INTR = 1")
 	self:Dyn_EmitBreak()
 	self.PrecompileBreak = true
 end
 --------------------------------------------------------------------------------
-VM.OpcodeTable[200] = function(self)	--DRECT_TEST
+VM.OpcodeTable[200] = function(self)  --DRECT_TEST
 	self:Dyn_Emit("if VM.RenderEnable == 1 then")
 	self:Dyn_Emit("$L W = VM.ScreenWidth")
 	self:Dyn_Emit("$L H = VM.ScreenHeight")
@@ -1475,44 +1475,44 @@ VM.OpcodeTable[200] = function(self)	--DRECT_TEST
 	self:Dyn_Emit("end")
 	self:Dyn_Emit("end")
 end
-VM.OpcodeTable[201] = function(self)	--DEXIT
+VM.OpcodeTable[201] = function(self)  --DEXIT
 	self:Dyn_Emit("VM.INTR = 1")
 	self:Dyn_EmitBreak()
 	self.PrecompileBreak = true
 end
-VM.OpcodeTable[202] = function(self)	--DCLR
+VM.OpcodeTable[202] = function(self)  --DCLR
 	self:Dyn_Emit("if VM.RenderEnable == 1 then")
 	self:Dyn_Emit("surface.SetTexture(0)")
 	self:Dyn_Emit("surface.SetDrawColor(0,0,0,255)")
 	self:Dyn_Emit("surface.DrawRect(0,0,VM.ScreenWidth,VM.ScreenHeight)")
 	self:Dyn_Emit("end")
 end
-VM.OpcodeTable[203] = function(self)	--DCLRTEX
+VM.OpcodeTable[203] = function(self)  --DCLRTEX
 	self:Dyn_Emit("if VM.RenderEnable == 1 then")
 	self:Dyn_Emit("VM:BindState()")
 	self:Dyn_Emit("surface.SetDrawColor(255,255,255,255)")
 	self:Dyn_Emit("surface.DrawTexturedRect(0,0,VM.ScreenWidth,VM.ScreenHeight)")
 	self:Dyn_Emit("end")
 end
-VM.OpcodeTable[204] = function(self)	--DVXFLUSH
+VM.OpcodeTable[204] = function(self)  --DVXFLUSH
 	self:Dyn_Emit("VM:FlushBuffer()")
 end
-VM.OpcodeTable[205] = function(self)	--DVXCLEAR
+VM.OpcodeTable[205] = function(self)  --DVXCLEAR
 	self:Dyn_Emit("VM.VertexBuffer = {}")
 end
-VM.OpcodeTable[206] = function(self)	--DSETBUF_VX
+VM.OpcodeTable[206] = function(self)  --DSETBUF_VX
 	self:Dyn_Emit("VM.Entity:SetRendertarget()")
 	self:Dyn_Emit("VM.LastBuffer = 2")
 end
-VM.OpcodeTable[207] = function(self)	--DSETBUF_SPR
+VM.OpcodeTable[207] = function(self)  --DSETBUF_SPR
 	self:Dyn_Emit("VM.Entity:SetRendertarget(1)")
 	self:Dyn_Emit("VM.LastBuffer = 1")
 end
-VM.OpcodeTable[208] = function(self)	--DSETBUF_FBO
+VM.OpcodeTable[208] = function(self)  --DSETBUF_FBO
 	self:Dyn_Emit("VM.Entity:SetRendertarget(0)")
 	self:Dyn_Emit("VM.LastBuffer = 0")
 end
-VM.OpcodeTable[209] = function(self)	--DSWAP
+VM.OpcodeTable[209] = function(self)  --DSWAP
 	self:Dyn_Emit("if VM.RenderEnable == 1 then")
 	self:Dyn_Emit("VM.Entity:AssertSpriteBufferExists()")
 	self:Dyn_Emit("if VM.Entity.SpriteGPU.RT and VM.Entity.GPU.RT then")
@@ -1521,31 +1521,31 @@ VM.OpcodeTable[209] = function(self)	--DSWAP
 	self:Dyn_Emit("end")
 end
 --------------------------------------------------------------------------------
-VM.OpcodeTable[210] = function(self)	--DVXPIPE
+VM.OpcodeTable[210] = function(self)  --DVXPIPE
 	self:Dyn_Emit("VM.VertexPipe = $1")
 end
-VM.OpcodeTable[211] = function(self)	--DCVXPIPE
+VM.OpcodeTable[211] = function(self)  --DCVXPIPE
 	self:Dyn_Emit("VM.CoordinatePipe = $1")
 end
-VM.OpcodeTable[212] = function(self)	--DENABLE
+VM.OpcodeTable[212] = function(self)  --DENABLE
 	self:Dyn_Emit("$L IDX = $1")
 	self:Dyn_Emit("if IDX == 0 then VM.VertexBufEnabled = 1 end")
-	self:Dyn_Emit("if IDX == 1 then VM.VertexBufZSort	 = 1 end")
-	self:Dyn_Emit("if IDX == 2 then VM.VertexLighting	 = 1 end")
-	self:Dyn_Emit("if IDX == 3 then VM.VertexCulling	= 1 end")
-	self:Dyn_Emit("if IDX == 4 then VM.DistanceCulling	= 1 end")
-	self:Dyn_Emit("if IDX == 5 then VM.VertexTexturing	= 1 end")
+	self:Dyn_Emit("if IDX == 1 then VM.VertexBufZSort   = 1 end")
+	self:Dyn_Emit("if IDX == 2 then VM.VertexLighting   = 1 end")
+	self:Dyn_Emit("if IDX == 3 then VM.VertexCulling    = 1 end")
+	self:Dyn_Emit("if IDX == 4 then VM.DistanceCulling  = 1 end")
+	self:Dyn_Emit("if IDX == 5 then VM.VertexTexturing  = 1 end")
 end
-VM.OpcodeTable[213] = function(self)	--DDISABLE
+VM.OpcodeTable[213] = function(self)  --DDISABLE
 	self:Dyn_Emit("$L IDX = $1")
 	self:Dyn_Emit("if IDX == 0 then VM.VertexBufEnabled = 0 end")
-	self:Dyn_Emit("if IDX == 1 then VM.VertexBufZSort	 = 0 end")
-	self:Dyn_Emit("if IDX == 2 then VM.VertexLighting	 = 0 end")
-	self:Dyn_Emit("if IDX == 3 then VM.VertexCulling	= 0 end")
-	self:Dyn_Emit("if IDX == 4 then VM.DistanceCulling	= 0 end")
-	self:Dyn_Emit("if IDX == 5 then VM.VertexTexturing	= 0 end")
+	self:Dyn_Emit("if IDX == 1 then VM.VertexBufZSort   = 0 end")
+	self:Dyn_Emit("if IDX == 2 then VM.VertexLighting   = 0 end")
+	self:Dyn_Emit("if IDX == 3 then VM.VertexCulling    = 0 end")
+	self:Dyn_Emit("if IDX == 4 then VM.DistanceCulling  = 0 end")
+	self:Dyn_Emit("if IDX == 5 then VM.VertexTexturing  = 0 end")
 end
-VM.OpcodeTable[214] = function(self)	--DCLRSCR
+VM.OpcodeTable[214] = function(self)  --DCLRSCR
 	self:Dyn_Emit("if VM.RenderEnable == 1 then")
 	self:Dyn_Emit("VM:SetColor(VM:ReadVector4f($1))")
 	self:Dyn_Emit("VM:BindState()")
@@ -1553,20 +1553,20 @@ VM.OpcodeTable[214] = function(self)	--DCLRSCR
 	self:Dyn_Emit("surface.DrawRect(0,0,VM.ScreenWidth,VM.ScreenHeight)")
 	self:Dyn_Emit("end")
 end
-VM.OpcodeTable[215] = function(self)	--DCOLOR
+VM.OpcodeTable[215] = function(self)  --DCOLOR
 	self:Dyn_Emit("VM:SetColor(VM:ReadVector4f($1))")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[216] = function(self)	--DTEXTURE
+VM.OpcodeTable[216] = function(self)  --DTEXTURE
 	self:Dyn_Emit("VM.Texture = $1")
 end
-VM.OpcodeTable[217] = function(self)	--DSETFONT
+VM.OpcodeTable[217] = function(self)  --DSETFONT
 	self:Dyn_Emit("VM.Font = math.Clamp(math.floor($1),0,7)")
 	end
-VM.OpcodeTable[218] = function(self)	--DSETSIZE
+VM.OpcodeTable[218] = function(self)  --DSETSIZE
 	self:Dyn_Emit("VM.FontSize = math.floor(math.max(4,math.min($1,200)))")
 end
-VM.OpcodeTable[219] = function(self)	--DMOVE
+VM.OpcodeTable[219] = function(self)  --DMOVE
 	self:Dyn_Emit("$L ADDR = $1")
 	self:Dyn_Emit("if ADDR == 0 then")
 	self:Dyn_Emit("VM:WriteCell(65484,0)")
@@ -1579,7 +1579,7 @@ VM.OpcodeTable[219] = function(self)	--DMOVE
 	self:Dyn_Emit("end")
 end
 --------------------------------------------------------------------------------
-VM.OpcodeTable[220] = function(self)	--DVXDATA_2F
+VM.OpcodeTable[220] = function(self)  --DVXDATA_2F
 	self:Dyn_Emit("$L VD = {}")
 	self:Dyn_Emit("$L ADDR = $1")
 	self:Dyn_Emit("$L VDATA = VM:ReadCell(65467)")
@@ -1603,7 +1603,7 @@ VM.OpcodeTable[220] = function(self)	--DVXDATA_2F
 	self:Dyn_EmitInterruptCheck()
 	self:Dyn_Emit("VM:DrawToBuffer(VD)")
 end
-VM.OpcodeTable[221] = function(self)	--DVXDATA_2F_TEX
+VM.OpcodeTable[221] = function(self)  --DVXDATA_2F_TEX
 	self:Dyn_Emit("$L VD = {}")
 	self:Dyn_Emit("$L ADDR = $1")
 	self:Dyn_Emit("$L VDATA = VM:ReadCell(65467)")
@@ -1629,7 +1629,7 @@ VM.OpcodeTable[221] = function(self)	--DVXDATA_2F_TEX
 	self:Dyn_EmitInterruptCheck()
 	self:Dyn_Emit("VM:DrawToBuffer(VD)")
 end
-VM.OpcodeTable[222] = function(self)	--DVXDATA_3F
+VM.OpcodeTable[222] = function(self)  --DVXDATA_3F
 	self:Dyn_Emit("$L VD = {}")
 	self:Dyn_Emit("$L ADDR = $1")
 	self:Dyn_Emit("$L VDATA = VM:ReadCell(65467)")
@@ -1679,7 +1679,7 @@ VM.OpcodeTable[222] = function(self)	--DVXDATA_3F
 	self:Dyn_Emit("VM:DrawToBuffer(VD)")
 	self:Dyn_Emit("end")
 end
-VM.OpcodeTable[223] = function(self)	--DVXDATA_3F_TEX
+VM.OpcodeTable[223] = function(self)  --DVXDATA_3F_TEX
 	self:Dyn_Emit("$L VD = {}")
 	self:Dyn_Emit("$L ADDR = $1")
 	self:Dyn_Emit("$L VDATA = VM:ReadCell(65467)")
@@ -1733,7 +1733,7 @@ VM.OpcodeTable[223] = function(self)	--DVXDATA_3F_TEX
 	self:Dyn_Emit("VM:DrawToBuffer(VD)")
 	self:Dyn_Emit("end")
 end
-VM.OpcodeTable[224] = function(self)	--DVXDATA_3F_WF
+VM.OpcodeTable[224] = function(self)  --DVXDATA_3F_WF
 	self:Dyn_Emit("$L VD = {}")
 	self:Dyn_Emit("$L ADDR = $1")
 	self:Dyn_Emit("$L VDATA = VM:ReadCell(65467)")
@@ -1779,7 +1779,7 @@ VM.OpcodeTable[224] = function(self)	--DVXDATA_3F_WF
 	self:Dyn_Emit("VM:DrawToBuffer(VD,true)")
 	self:Dyn_Emit("end")
 end
-VM.OpcodeTable[225] = function(self)	--DRECT
+VM.OpcodeTable[225] = function(self)  --DRECT
 	self:Dyn_Emit("$L VD = {}")
 	self:Dyn_Emit("$L ADDR1 = $1")
 	self:Dyn_Emit("$L ADDR2 = $2")
@@ -1805,7 +1805,7 @@ VM.OpcodeTable[225] = function(self)	--DRECT
 	self:Dyn_EmitInterruptCheck()
 	self:Dyn_Emit("VM:DrawToBuffer(VD)")
 end
-VM.OpcodeTable[226] = function(self)	--DCIRCLE
+VM.OpcodeTable[226] = function(self)  --DCIRCLE
 	self:Dyn_Emit("$L VD = {}")
 	self:Dyn_Emit("$L R = $2")
 	self:Dyn_Emit("$L SIDES = math.max(3,math.min(64,VM:ReadCell(65485)))")
@@ -1834,10 +1834,10 @@ VM.OpcodeTable[226] = function(self)	--DCIRCLE
 	self:Dyn_Emit("VM:DrawToBuffer(VD)")
 	self:Dyn_Emit("end")
 end
-VM.OpcodeTable[227] = function(self)	--DLINE
+VM.OpcodeTable[227] = function(self)  --DLINE
 	self:Dyn_Emit("VM:DrawLine(VM:ReadVector2f($1),VM:ReadVector2f($2))")
 end
-VM.OpcodeTable[228] = function(self)	--DRECTWH
+VM.OpcodeTable[228] = function(self)  --DRECTWH
 	self:Dyn_Emit("$L VD = {}")
 	self:Dyn_Emit("$L ADDR1 = $1")
 	self:Dyn_Emit("$L ADDR2 = $2")
@@ -1863,7 +1863,7 @@ VM.OpcodeTable[228] = function(self)	--DRECTWH
 	self:Dyn_EmitInterruptCheck()
 	self:Dyn_Emit("VM:DrawToBuffer(VD)")
 end
-VM.OpcodeTable[229] = function(self)	--DORECT
+VM.OpcodeTable[229] = function(self)  --DORECT
 	self:Dyn_Emit("$L VD = {}")
 	self:Dyn_Emit("$L ADDR1 = $1")
 	self:Dyn_Emit("$L ADDR2 = $2")
@@ -1888,31 +1888,31 @@ VM.OpcodeTable[229] = function(self)	--DORECT
 	self:Dyn_Emit("VM:DrawLine(VD[4],VD[1])")
 end
 --------------------------------------------------------------------------------
-VM.OpcodeTable[230] = function(self)	--DTRANSFORM2F
+VM.OpcodeTable[230] = function(self)  --DTRANSFORM2F
 	self:Dyn_Emit("$L VEC = VM:ReadVector2f($2)")
 	self:Dyn_EmitInterruptCheck()
 	self:Dyn_Emit("VEC = VM:VertexTransform(VEC)")
 	self:Dyn_Emit("VM:WriteVector2f($1,VEC)")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[231] = function(self)	--DTRANSFORM3F
+VM.OpcodeTable[231] = function(self)  --DTRANSFORM3F
 	self:Dyn_Emit("$L VEC = VM:ReadVector3f($2)")
 	self:Dyn_EmitInterruptCheck()
 	self:Dyn_Emit("VEC = VM:VertexTransform(VEC)")
 	self:Dyn_Emit("VM:WriteVector3f($1,VEC)")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[232] = function(self)	--DSCRSIZE
+VM.OpcodeTable[232] = function(self)  --DSCRSIZE
 	self:Dyn_Emit("VM:WriteCell(65515,$1)")
 	self:Dyn_Emit("VM:WriteCell(65514,$2)")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[233] = function(self)	--DROTATESCALE
+VM.OpcodeTable[233] = function(self)  --DROTATESCALE
 	self:Dyn_Emit("VM:WriteCell(65482,$1)")
 	self:Dyn_Emit("VM:WriteCell(65481,$2)")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[234] = function(self)	--DORECTWH
+VM.OpcodeTable[234] = function(self)  --DORECTWH
 	self:Dyn_Emit("$L VD = {}")
 	self:Dyn_Emit("$L ADDR1 = $1")
 	self:Dyn_Emit("$L ADDR2 = $2")
@@ -1936,17 +1936,17 @@ VM.OpcodeTable[234] = function(self)	--DORECTWH
 	self:Dyn_Emit("VM:DrawLine(VD[3],VD[4])")
 	self:Dyn_Emit("VM:DrawLine(VD[4],VD[1])")
 end
-VM.OpcodeTable[235] = function(self)	--DCULLMODE
+VM.OpcodeTable[235] = function(self)  --DCULLMODE
 	self:Dyn_Emit("VM:WriteCell(65469,$1)")
 	self:Dyn_Emit("VM:WriteCell(65468,$2)")
 end
-VM.OpcodeTable[236] = function(self)	--DARRAY
+VM.OpcodeTable[236] = function(self)  --DARRAY
 
 end
-VM.OpcodeTable[237] = function(self)	--DDTERMINAL
+VM.OpcodeTable[237] = function(self)  --DDTERMINAL
 
 end
-VM.OpcodeTable[238] = function(self)	--DPIXEL
+VM.OpcodeTable[238] = function(self)  --DPIXEL
 	self:Dyn_Emit("$L COLOR = VM:ColorTransform(VM:ReadVector4f($2))")
 	self:Dyn_Emit("$L POS = VM:ReadVector2f($1)")
 	self:Dyn_EmitInterruptCheck()
@@ -1955,25 +1955,25 @@ VM.OpcodeTable[238] = function(self)	--DPIXEL
 	self:Dyn_Emit("surface.SetDrawColor(COLOR.x,COLOR.y,COLOR.z,COLOR.w)")
 	self:Dyn_Emit("surface.DrawRect(math.floor(POS.x),math.floor(POS.y),1,1)")
 end
-VM.OpcodeTable[239] = function(self)	--RESERVED
+VM.OpcodeTable[239] = function(self)  --RESERVED
 
 end
 --------------------------------------------------------------------------------
-VM.OpcodeTable[240] = function(self)	--DWRITE
+VM.OpcodeTable[240] = function(self)  --DWRITE
 	self:Dyn_Emit("$L TEXT = VM:ReadString($2)")
 	self:Dyn_EmitInterruptCheck()
 	self:Dyn_Emit("VM:FontWrite($1,TEXT)")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[241] = function(self)	--DWRITEI
+VM.OpcodeTable[241] = function(self)  --DWRITEI
 	self:Dyn_Emit("VM:FontWrite($1,math.floor($2))")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[242] = function(self)	--DWRITEF
+VM.OpcodeTable[242] = function(self)  --DWRITEF
 	self:Dyn_Emit("VM:FontWrite($1,$2)")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[243] = function(self)	--DENTRYPOINT
+VM.OpcodeTable[243] = function(self)  --DENTRYPOINT
 	self:Dyn_Emit("$L IDX = $1")
 	self:Dyn_Emit("if IDX == 0 then VM.EntryPoint0 = $2 end")
 	self:Dyn_Emit("if IDX == 1 then VM.EntryPoint1 = $2 end")
@@ -1981,7 +1981,7 @@ VM.OpcodeTable[243] = function(self)	--DENTRYPOINT
 	self:Dyn_Emit("if IDX == 3 then VM.EntryPoint3 = $2 end")
 	self:Dyn_Emit("if IDX == 4 then VM.EntryPoint4 = $2 end")
 end
-VM.OpcodeTable[244] = function(self)	--DSETLIGHT
+VM.OpcodeTable[244] = function(self)  --DSETLIGHT
 	self:Dyn_Emit("$L IDX = math.floor($1)")
 	self:Dyn_Emit("$L ADDR = $2")
 	self:Dyn_Emit("if (IDX < 0) or (IDX > 7) then")
@@ -1993,7 +1993,7 @@ VM.OpcodeTable[244] = function(self)	--DSETLIGHT
 	self:Dyn_Emit("end")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[245] = function(self)	--DGETLIGHT
+VM.OpcodeTable[245] = function(self)  --DGETLIGHT
 	self:Dyn_Emit("$L IDX = math.floor($1)")
 	self:Dyn_Emit("$L ADDR = $2")
 	self:Dyn_Emit("if (IDX < 0) or (IDX > 7) then")
@@ -2009,7 +2009,7 @@ VM.OpcodeTable[245] = function(self)	--DGETLIGHT
 	self:Dyn_Emit("end")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[246] = function(self)	--DWRITEFMT string.format(
+VM.OpcodeTable[246] = function(self)  --DWRITEFMT string.format(
 	self:Dyn_Emit("$L text = VM:ReadString($2)")
 	self:Dyn_EmitInterruptCheck()
 
@@ -2095,19 +2095,19 @@ VM.OpcodeTable[246] = function(self)	--DWRITEFMT string.format(
 	self:Dyn_Emit("VM:FontWrite($1,finaltext)")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[247] = function(self)	--DWRITEFIX
+VM.OpcodeTable[247] = function(self)  --DWRITEFIX
 	self:Dyn_Emit("$L TEXT = $2")
 	self:Dyn_Emit("if TEXT == math.floor(TEXT) then TEXT = TEXT .. \"0\" end")
 	self:Dyn_Emit("VM:FontWrite($1,TEXT)")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[248] = function(self)	--DTEXTWIDTH
+VM.OpcodeTable[248] = function(self)  --DTEXTWIDTH
 	self:Dyn_Emit("$L TEXT = VM:ReadString($2)")
 	self:Dyn_EmitInterruptCheck()
 	self:Dyn_Emit("$L W,H = VM:TextSize(TEXT)")
 	self:Dyn_EmitOperand("W")
 end
-VM.OpcodeTable[249] = function(self)	--DTEXTHEIGHT
+VM.OpcodeTable[249] = function(self)  --DTEXTHEIGHT
 	self:Dyn_Emit("$L TEXT = VM:ReadString($2)")
 	self:Dyn_EmitInterruptCheck()
 	self:Dyn_Emit("$L W,H = VM:TextSize(TEXT)")
@@ -2122,17 +2122,17 @@ VM.OpcodeTable[272] = function(self)	 --MREAD
 	self:Dyn_Emit("VM:WriteMatrix($1,VM.ModelMatrix)")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[274] = function(self)	--DT
+VM.OpcodeTable[274] = function(self)  --DT
 	self:Dyn_EmitOperand("VM.TimerDT")
 end
-VM.OpcodeTable[276] = function(self)	--DSHADE
+VM.OpcodeTable[276] = function(self)  --DSHADE
 	self:Dyn_Emit("$L SHADE = $1")
 	self:Dyn_Emit("VM.Color.x = VM.Color.x*SHADE")
 	self:Dyn_Emit("VM.Color.y = VM.Color.y*SHADE")
 	self:Dyn_Emit("VM.Color.z = VM.Color.z*SHADE")
 	self:Dyn_Emit("VM:SetColor(VM.Color)")
 end
-VM.OpcodeTable[277] = function(self)	--DSETWIDTH
+VM.OpcodeTable[277] = function(self)  --DSETWIDTH
 	self:Dyn_Emit("VM:WriteCell(65476,$1)")
 	self:Dyn_EmitInterruptCheck()
 end
@@ -2140,7 +2140,7 @@ VM.OpcodeTable[278] = function(self)	 --MLOAD
 	self:Dyn_Emit("VM.ModelMatrix = VM:ReadMatrix($1)")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[279] = function(self)	--DSHADENORM
+VM.OpcodeTable[279] = function(self)  --DSHADENORM
 	self:Dyn_Emit("$L SHADE = $1")
 	self:Dyn_Emit("VM.Color.x = math.Clamp(VM.Color.x*SHADE,0,255)")
 	self:Dyn_Emit("VM.Color.y = math.Clamp(VM.Color.y*SHADE,0,255)")
@@ -2148,7 +2148,7 @@ VM.OpcodeTable[279] = function(self)	--DSHADENORM
 	self:Dyn_Emit("VM:SetColor(VM.Color)")
 end
 --------------------------------------------------------------------------------
-VM.OpcodeTable[280] = function(self)	--DDFRAME
+VM.OpcodeTable[280] = function(self)  --DDFRAME
 	self:Dyn_Emit("$L ADDR = $1")
 	self:Dyn_Emit("$L V1 = VM:ReadVector2f(ADDR+0)") -- X,Y
 	self:Dyn_Emit("$L V2 = VM:ReadVector2f(ADDR+2)") -- W,H
@@ -2226,11 +2226,11 @@ VM.OpcodeTable[280] = function(self)	--DDFRAME
 	self:Dyn_Emit("VM:SetColor(CFACE)")
 	self:Dyn_Emit("VM:DrawToBuffer(VD3)")
 end
-VM.OpcodeTable[283] = function(self)	--DRASTER
+VM.OpcodeTable[283] = function(self)  --DRASTER
 	self:Dyn_Emit("VM:WriteCell(65518,$1)")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[285] = function(self)	--DDTERRAIN
+VM.OpcodeTable[285] = function(self)  --DDTERRAIN
 	self:Dyn_Emit("$L ADDR = $1")
 	self:Dyn_Emit("$L W = VM:ReadCell(ADDR+0)") -- Total width/height of the terrain
 	self:Dyn_Emit("$L H = VM:ReadCell(ADDR+1)")
@@ -2298,25 +2298,25 @@ VM.OpcodeTable[285] = function(self)	--DDTERRAIN
 	self:Dyn_Emit("end")
 	self:Dyn_Emit("end")
 end
-VM.OpcodeTable[288] = function(self)	--DSETTEXTBOX
+VM.OpcodeTable[288] = function(self)  --DSETTEXTBOX
 	self:Dyn_Emit("VM.Textbox = VM:ReadVector2f($1)")
 	self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[289] = function(self)	--DSETTEXTWRAP
+VM.OpcodeTable[289] = function(self)  --DSETTEXTWRAP
 	self:Dyn_Emit("VM.WordWrapMode = $1")
 end
 --------------------------------------------------------------------------------
-VM.OpcodeTable[294] = function(self)	--DMULDT
+VM.OpcodeTable[294] = function(self)  --DMULDT
 	self:Dyn_EmitOperand("$2*VM.TimerDT")
 end
-VM.OpcodeTable[297] = function(self)	--DMULDT
+VM.OpcodeTable[297] = function(self)  --DMULDT
 	self:Dyn_EmitOperand("$2*VM.TimerDT")
 end
-VM.OpcodeTable[298] = function(self)	--DBEGIN
+VM.OpcodeTable[298] = function(self)  --DBEGIN
 	self:Dyn_Emit("VM.Entity:SetRendertarget(1)")
 	self:Dyn_Emit("VM.LastBuffer = 1")
 end
-VM.OpcodeTable[299] = function(self)	--DEND
+VM.OpcodeTable[299] = function(self)  --DEND
 	self:Dyn_Emit("VM:FlushBuffer()")
 	self:Dyn_Emit("VM.Entity:AssertSpriteBufferExists()")
 	self:Dyn_Emit("if VM.Entity.SpriteGPU.RT and VM.Entity.GPU.RT then")
@@ -2326,7 +2326,7 @@ VM.OpcodeTable[299] = function(self)	--DEND
 	self:Dyn_Emit("VM.LastBuffer = 2")
 end
 --------------------------------------------------------------------------------
-VM.OpcodeTable[303] = function(self)	--DXTEXTURE
+VM.OpcodeTable[303] = function(self)  --DXTEXTURE
 	self:Dyn_Emit("$L PTR = $1")
 	self:Dyn_Emit("if PTR > 0 then")
 	self:Dyn_Emit("$L NAME = VM:ReadString($1)")

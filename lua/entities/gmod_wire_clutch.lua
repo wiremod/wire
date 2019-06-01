@@ -277,7 +277,6 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		   Ent1 ~= Ent2 and
 		   hook.Run( "CanTool", ply, WireLib.dummytrace(Ent1), "ballsocket_adv" ) and
 		   hook.Run( "CanTool", ply, WireLib.dummytrace(Ent2), "ballsocket_adv" ) then
-
 			self:AddClutch( Ent1, Ent2 )
 		end
 	end
