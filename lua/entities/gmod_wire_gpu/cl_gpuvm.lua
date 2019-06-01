@@ -19,7 +19,7 @@ function ENT:OverrideVM()
 	for k,v in pairs(VM) do
 		if k == "OpcodeTable" then
 			for k2,v2 in pairs(v) do
-			self.VM.OpcodeTable[k2] = v2
+				self.VM.OpcodeTable[k2] = v2
 			end
 		else
 			self.VM[k] = v
@@ -69,11 +69,11 @@ function ENT:OverrideVM()
 
 					local errorPosition = CPULib.Debugger.PositionByPointer[self.XEIP]
 					if errorPosition then
-					local posText = HCOMP:formatPrefix(errorPosition.Line,errorPosition.Col,errorPosition.File)
+						local posText = HCOMP:formatPrefix(errorPosition.Line,errorPosition.Col,errorPosition.File)
 
-					draw.DrawText("Debugging data present (may be invalid):","WireGPU_ErrorFont",16,16+32*6,Color(255,255,255,255))
-					draw.DrawText("Error at "..posText,"WireGPU_ErrorFont",16,16+32*7,Color(255,255,255,255))
-					draw.DrawText("Line: <not available>","WireGPU_ErrorFont",16,16+32*9,Color(255,255,255,255))
+						draw.DrawText("Debugging data present (may be invalid):","WireGPU_ErrorFont",16,16+32*6,Color(255,255,255,255))
+						draw.DrawText("Error at "..posText,"WireGPU_ErrorFont",16,16+32*7,Color(255,255,255,255))
+						draw.DrawText("Line: <not available>","WireGPU_ErrorFont",16,16+32*9,Color(255,255,255,255))
 					end
 				end
 				self.INTR = 1
@@ -84,8 +84,8 @@ function ENT:OverrideVM()
 	-- Override ports
 	self.VM.WritePort = function(VM,Port,Value)
 		VM:WriteCell(63488+Port,Value)
-		end
-		self.VM.ReadPort = function(VM,Port)
+	end
+	self.VM.ReadPort = function(VM,Port)
 		return VM:ReadCell(63488+Port)
 	end
 
@@ -95,8 +95,8 @@ function ENT:OverrideVM()
 		VM:BaseWriteCell(Address,Value)
 		if (Address >= 65536) and (Address <= 131071) then
 			if VM.MemBusCount < 8 then
-			VM.MemBusCount = VM.MemBusCount + 1
-			VM.MemBusBuffer[Address] = Value
+				VM.MemBusCount = VM.MemBusCount + 1
+				VM.MemBusBuffer[Address] = Value
 			end
 		elseif Address == 65534 then
 			VM:HardReset()
@@ -653,7 +653,7 @@ function VM:CoordinateTransform(x,y)
 	tX = tX + self.Memory[65484]
 	tY = tY + self.Memory[65483]
 
-	if	 self.CoordinatePipe == 0 then
+	if     self.CoordinatePipe == 0 then
 		tX = self.ScreenWidth*(tX/512)
 		tY = self.ScreenHeight*(tY/512)
 	elseif self.CoordinatePipe == 1 then
@@ -1341,11 +1341,11 @@ function VM:BindState()
 			--[@entities\gmod_wire_gpu\cl_gpuvm.lua:1276] bad argument #2 to 'SetTexture' (ITexture expected, got nil)
 			self.Entity:AssertSpriteBufferExists()
 			if self.Entity.SpriteGPU.RT then
-			WireGPU_matBuffer:SetTexture("$basetexture", self.Entity.SpriteGPU.RT)
+				WireGPU_matBuffer:SetTexture("$basetexture", self.Entity.SpriteGPU.RT)
 			end
 		else
 			if self.Entity.GPU.RT then
-			WireGPU_matBuffer:SetTexture("$basetexture", self.Entity.GPU.RT)
+				WireGPU_matBuffer:SetTexture("$basetexture", self.Entity.GPU.RT)
 			end
 		end
 		surface.SetMaterial(WireGPU_matBuffer)
@@ -1368,11 +1368,11 @@ function VM:DrawToBuffer(vertexData,isWireframe)
 		-- Add new entry
 		if (not self.VertexBuffer[#self.VertexBuffer]) or self.VertexBuffer[#self.VertexBuffer].vertex then
 			self.VertexBuffer[#self.VertexBuffer+1] = {
-			color = self.Color,
-			material = self.Material,
-			vertex = {},
-			transformedVertex = {},
-			wireframe = isWireframe,
+				color = self.Color,
+				material = self.Material,
+				vertex = {},
+				transformedVertex = {},
+				wireframe = isWireframe,
 			}
 		else
 			self.VertexBuffer[#self.VertexBuffer].vertex = {}

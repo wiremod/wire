@@ -20,7 +20,7 @@ ZVM.ROM = {}
 -- CPUID instruction result
 function ZVM:CPUID(index)
 	if index == 0 then
-		return self.CPUVER	-- CPU version
+		return self.CPUVER  -- CPU version
 	elseif index == 1 then
 		return self.RAMSize -- Amount of internal RAM
 	elseif index == 2 then
@@ -437,13 +437,13 @@ end
 --------------------------------------------------------------------------------
 -- Extended mode stuff
 local defaultPage = {
-	Disabled = 0,	-- 00 Is page disabled? Set to 1 to disable this page
-	Remapped = 0,	-- 01 Is page remapped? Set to 1 to remap this page
-	Trapped = 0,	 -- 02 Page must generate NMI 30 (page trap) upon access
-	Override = 0,	-- 03 Page overrides reading/writing from it
-	Read = 0,		-- 05 Read permissions (0: allowed, 1: disabled)
-	Write = 0,		 -- 06 Write permissions (0: allowed, 1: disabled)
-	Execute = 0,	 -- 07 Execute permissions (0: allowed, 1: disabled)
+	Disabled = 0,   -- 00 Is page disabled? Set to 1 to disable this page
+	Remapped = 0,   -- 01 Is page remapped? Set to 1 to remap this page
+	Trapped = 0,    -- 02 Page must generate NMI 30 (page trap) upon access
+	Override = 0,   -- 03 Page overrides reading/writing from it
+	Read = 0,       -- 05 Read permissions (0: allowed, 1: disabled)
+	Write = 0,      -- 06 Write permissions (0: allowed, 1: disabled)
+	Execute = 0,    -- 07 Execute permissions (0: allowed, 1: disabled)
 	RunLevel = 0,
 	MappedIndex = 0,
 }
@@ -462,14 +462,14 @@ local errorPage = {
 
 function ZVM:ResetPage(index)
 	local newPage = {}
-	newPage.Disabled	= 0
-	newPage.Remapped	= 0
-	newPage.Trapped	 = 0
-	newPage.Override	= 0
-	newPage.Read		= 1
-	newPage.Write		 = 1
-	newPage.Execute	 = 1
-	newPage.RunLevel	= 0
+	newPage.Disabled    = 0
+	newPage.Remapped    = 0
+	newPage.Trapped     = 0
+	newPage.Override    = 0
+	newPage.Read        = 1
+	newPage.Write       = 1
+	newPage.Execute     = 1
+	newPage.RunLevel    = 0
 	newPage.MappedIndex = 0
 
 	self.PageData[index] = newPage
@@ -530,8 +530,8 @@ function ZVM:GetPageByIndex(index)
 			self.PCAP = 1
 
 			if (not pagePermissionMask) or (not pageMappedTo) then
-			self:Interrupt(13,8)
-			return errorPage
+				self:Interrupt(13,8)
+				return errorPage
 			end
 
 			self:SetPagePermissions(index,pagePermissionMask,pageMappedTo)
@@ -712,13 +712,13 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
 			self.BusLock = 1
 
 			--Flags:
-			--3	[8 ] = CMPR shows if interrupt occured
-			--4	[16] = Interrupt does not set CS
-			--5	[32] = Interrupt enabled
-			--6	[64] = NMI interrupt
-			--7	[128] = Replace PTBL with NewPTE (overrides #8)
-			--8	[256] = Replace PTBE with NewPTE
-			--9	[512] = Push extended registers (R0-R31)
+			--3  [8 ] = CMPR shows if interrupt occured
+			--4  [16] = Interrupt does not set CS
+			--5  [32] = Interrupt enabled
+			--6  [64] = NMI interrupt
+			--7  [128] = Replace PTBL with NewPTE (overrides #8)
+			--8  [256] = Replace PTBE with NewPTE
+			--9  [512] = Push extended registers (R0-R31)
 
 			if isExternal and (FLAGS[6] ~= 1) then
 				if not cascadeInterrupt then self:Interrupt(13,4,false,true) end
@@ -802,7 +802,7 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
 			local interruptOffset = self.IDTR + interruptNo*2
 
 			if interruptOffset > self.RAMSize-2 then interruptOffset = self.RAMSize-2 end
-			if interruptOffset < 0				then interruptOffset = 0 end
+			if interruptOffset < 0              then interruptOffset = 0 end
 
 			interruptOffset = self.Memory[interruptOffset]
 			local interruptFlags = self.Memory[interruptOffset+1]
@@ -875,8 +875,8 @@ function ZVM:TimerLogic()
 	if self.TimerMode ~= 0 then
 		if self.TimerMode == 1 then
 			if (self.TIMER - self.TimerPrevTime) >= self.TimerRate then
-			self:ExternalInterrupt(math.floor(self.TimerAddress))
-			self.TimerPrevTime = self.TIMER
+				self:ExternalInterrupt(math.floor(self.TimerAddress))
+				self.TimerPrevTime = self.TIMER
 			end
 		elseif self.TimerMode == 2 then
 			if (self.TMR - self.TimerPrevTime) >= self.TimerRate then

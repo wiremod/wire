@@ -30,8 +30,8 @@ if ZVM.MicrocodeDebug then -- Debug microcode generator
 	then pad = pad - 1 end
 
 	if string.find(text,"elseif") or string.find(text,"else")
-	then self.EmitBlock = self.EmitBlock..string.rep("	",pad-1)..text.."\n"
-	else self.EmitBlock = self.EmitBlock..string.rep("	",pad)..text.."\n"
+	then self.EmitBlock = self.EmitBlock..string.rep("  ",pad-1)..text.."\n"
+	else self.EmitBlock = self.EmitBlock..string.rep("  ",pad)..text.."\n"
 	end
 
 	if (string.find(text,"if") or string.find(text,"for"))
@@ -82,7 +82,7 @@ function ZVM:Dyn_LoadOperand(OP,RM)
 	if self.OperandReadFunctions[RM] then
 		local preEmit
 		if self.ReadInvolvedRegisterLookup[RM] and
-		self.EmitRegisterChanged[self.ReadInvolvedRegisterLookup[RM]] then
+		   self.EmitRegisterChanged[self.ReadInvolvedRegisterLookup[RM]] then
 			-- Available local value for this register
 			preEmit = self.OperandFastReadFunctions[RM]
 		else
@@ -118,16 +118,16 @@ function ZVM:Dyn_WriteOperand(OP,RM)
 		if self.EmitExpression[OP] then -- check if we need writeback
 			local preEmit
 			if self.WriteInvolvedRegisterLookup[RM] then
-			preEmit = self.OperandFastWriteFunctions[RM]
-			self.EmitRegisterChanged[self.WriteInvolvedRegisterLookup[RM]]
-				= self.InternalRegister[self.WriteInvolvedRegisterLookup[RM]]
-			else
-			if self.WriteRequiredRegisterLookup[RM] and
-				self.EmitRegisterChanged[self.WriteRequiredRegisterLookup[RM]] then
 				preEmit = self.OperandFastWriteFunctions[RM]
+				self.EmitRegisterChanged[self.WriteInvolvedRegisterLookup[RM]]
+					= self.InternalRegister[self.WriteInvolvedRegisterLookup[RM]]
 			else
-				preEmit = self.OperandWriteFunctions[RM]
-			end
+				if self.WriteRequiredRegisterLookup[RM] and
+					self.EmitRegisterChanged[self.WriteRequiredRegisterLookup[RM]] then
+					preEmit = self.OperandFastWriteFunctions[RM]
+				else
+					preEmit = self.OperandWriteFunctions[RM]
+				end
 			end
 
 			preEmit = string.gsub(preEmit,"$EXPR",self.EmitExpression[OP])
@@ -146,7 +146,7 @@ end
 -- Preprocess microcode text (for microcode syntax to work)
 function ZVM:Dyn_PreprocessEmit(text)
 	local preEmit = string.gsub( text,"$1",self.EmitOperand[1])
-		preEmit = string.gsub(preEmit,"$2",self.EmitOperand[2])
+	      preEmit = string.gsub(preEmit,"$2",self.EmitOperand[2])
 	return string.gsub(preEmit,"$L","local")
 end
 
@@ -185,7 +185,7 @@ function ZVM:Dyn_EmitState(errorState)
 	-- Do we need to emit registers
 	for v,v in pairs(self.EmitRegisterChanged) do
 		--if (not errorState) or (not self.EmitRegisterChangedByOperand[k]) then
-		self:Emit("VM."..v.." = "..v)
+			self:Emit("VM."..v.." = "..v)
 		--end
 	end
 end
@@ -323,8 +323,8 @@ function ZVM:Dyn_EndBlock()
 			local str = self.EmitBlock
 			Msg("BLOCK: \n")
 			while str ~= "" do
-			Msg(string.sub(str,1,100))
-			str = string.sub(str,101)
+				Msg(string.sub(str,1,100))
+				str = string.sub(str,101)
 			end
 			Msg("\n")
 		else
@@ -365,7 +365,7 @@ function ZVM:Precompile_Finalize()
 	else
 		for address = self.PrecompileStartXEIP, self.PrecompileXEIP-1 do
 			if not self.IsAddressPrecompiled[address] then
-			self.IsAddressPrecompiled[address] = { }
+				self.IsAddressPrecompiled[address] = { }
 			end
 			table.insert(self.IsAddressPrecompiled[address],self.PrecompileStartXEIP)
 		end
@@ -658,9 +658,9 @@ end
 --------------------------------------------------------------------------------
 function ZVM:PrintState()
 	print("===========================")
-	print("TMR="..self.TMR.."	TIMER="..self.TIMER.."	IP="..self.IP.."	CMPR="..self.CMPR)
-	print("EAX="..self.EAX.."	EBX="..self.EBX.."	ECX="..self.ECX.."	EDX="..self.EDX)
-	print("ESI="..self.ESI.."	EDI="..self.EDI.."	ESP="..self.ESP.."	EBP="..self.EBP.."	ESZ="..self.ESZ)
+	print("TMR="..self.TMR.."  TIMER="..self.TIMER.."  IP="..self.IP.."  CMPR="..self.CMPR)
+	print("EAX="..self.EAX.."  EBX="..self.EBX.."  ECX="..self.ECX.."  EDX="..self.EDX)
+	print("ESI="..self.ESI.."  EDI="..self.EDI.."  ESP="..self.ESP.."  EBP="..self.EBP.."  ESZ="..self.ESZ)
 	print("CS="..self.CS.." SS="..self.SS.." DS="..self.DS.." FS="..self.FS..
 		 " GS="..self.GS.." ES="..self.ES.." KS="..self.KS.." LS="..self.LS)
 	print("MEMRQ="..self.MEMRQ.." MEMADDR="..self.MEMADDR.." LADD="..self.LADD)

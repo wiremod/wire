@@ -224,9 +224,9 @@ end
 function HCOMP:Tokenize() local TOKEN = self.TOKEN
 	-- Skip whitespaces
 	while (self:getChar() ==  " ") or
-				(self:getChar() == "\t") or
-				(self:getChar() == "\n") or
-		(self:getChar() == "\r") do self:nextChar() end
+	      (self:getChar() == "\t") or
+	      (self:getChar() == "\n") or
+	      (self:getChar() == "\r") do self:nextChar() end
 
 	-- Read token position
 	local tokenPosition = { Line = self.Code[1].Line,
@@ -272,7 +272,7 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
 
 			if self:getChar() == "\\" then
 				self:nextChar()
-						if self:getChar() == "'"  then fetchString = fetchString .. "'"
+				    if self:getChar() == "'"  then fetchString = fetchString .. "'"
 				elseif self:getChar() == "\"" then fetchString = fetchString .. "\""
 				elseif self:getChar() == "a"  then fetchString = fetchString .. "\a"
 				elseif self:getChar() == "b"  then fetchString = fetchString .. "\b"

@@ -155,11 +155,11 @@ function ENT:Run(isAsync)
 
 	-- Run until interrupt, or if async thread then until async thread stops existing
 	while (Cycles > 0) and (self.VM.INTR == 0) do -- and (not (isAsync and (self.VM.Entrypoint4 == 0)))
-	local previousTMR = self.VM.TMR
-	self.VM:Step()
-	Cycles = Cycles - (self.VM.TMR - previousTMR)
+		local previousTMR = self.VM.TMR
+		self.VM:Step()
+		Cycles = Cycles - (self.VM.TMR - previousTMR)
 
-	if (self.VM.ASYNC == 0) and (Cycles < 0) then self.VM:Interrupt(17,0) end
+		if (self.VM.ASYNC == 0) and (Cycles < 0) then self.VM:Interrupt(17,0) end
 	end
 
 	-- Reset INTR register for async thread
@@ -297,18 +297,18 @@ function ENT:RenderMisc(pos, ang, resolution, aspect, monitor)
 
 			local cursorOffset = 0
 			if self.VM:ReadCell(65532) == 1 then -- Check for vertex mode to counter the faulty offset
-			cursorOffset = 0.5
+				cursorOffset = 0.5
 			end
 
 			self.VM:WriteCell(65505,x - cursorOffset)
 			self.VM:WriteCell(65504,y - cursorOffset)
 
 			if (self.VM:ReadCell(65503) == 1) then
-			surface.SetDrawColor(255,255,255,255)
-			surface.SetTexture(surface.GetTextureID("gui/arrow"))
-			x = math.Clamp(x,0 + cursorOffset, 1 + cursorOffset)
-			y = math.Clamp(y,0 + cursorOffset, 1 + cursorOffset)
-			surface.DrawTexturedRectRotated(-256*aspect+x*512*aspect+10,-256+y*512+12,32,32,45)
+				surface.SetDrawColor(255,255,255,255)
+				surface.SetTexture(surface.GetTextureID("gui/arrow"))
+				x = math.Clamp(x,0 + cursorOffset, 1 + cursorOffset)
+				y = math.Clamp(y,0 + cursorOffset, 1 + cursorOffset)
+				surface.DrawTexturedRectRotated(-256*aspect+x*512*aspect+10,-256+y*512+12,32,32,45)
 			end
 		end
 	end
@@ -376,10 +376,10 @@ function ENT:Draw()
 		if self.VM.Memory[65532] == 0 then
 			self.GPU:Render(
 			self.VM:ReadCell(65522), self.VM:ReadCell(65523)-self.VM:ReadCell(65518)/512, -- rotation, scale
-			512*math.Clamp(self.VM:ReadCell(65525),0,1), 512*math.Clamp(self.VM:ReadCell(65524),0,1), -- width, height
-			function(pos, ang, resolution, aspect, monitor) -- postrenderfunction
-				self:RenderMisc(pos, ang, resolution, aspect, monitor)
-			end
+				512*math.Clamp(self.VM:ReadCell(65525),0,1), 512*math.Clamp(self.VM:ReadCell(65524),0,1), -- width, height
+				function(pos, ang, resolution, aspect, monitor) -- postrenderfunction
+					self:RenderMisc(pos, ang, resolution, aspect, monitor)
+				end
 			)
 		else
 			-- Custom render to world

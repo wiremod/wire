@@ -298,7 +298,7 @@ function HCOMP:GenerateLeaf(leaf,needResult)
 
 	-- Check if this opcode writes to its first argument
 	local opcodeWritesFirstOperand = (#leaf.Operands == 2) or
-																	((#leaf.Operands == 1) and (self.OpcodeWritesOperand[leaf.Opcode]))
+	                                 ((#leaf.Operands == 1) and (self.OpcodeWritesOperand[leaf.Opcode]))
 
 	-- Generate explict operands for this leaf
 	local genOperands = {}
@@ -326,7 +326,7 @@ function HCOMP:GenerateLeaf(leaf,needResult)
 		if leaf.Operands[i].MemoryPointer and
 		   istable(leaf.Operands[i].MemoryPointer) and
 		   leaf.Operands[i].MemoryPointer.UnknownOperationByLabel then
-			 --      self:TurnUnknownLabelIntoKnown(leaf.Operands[i].MemoryPointer)
+			-- self:TurnUnknownLabelIntoKnown(leaf.Operands[i].MemoryPointer)
 			local label = leaf.Operands[i].MemoryPointer.UnknownOperationByLabel
 			leaf.Operands[i].MemoryPointer.UnknownOperationByLabel = nil
 			if label.Type == "Variable" then

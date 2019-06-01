@@ -582,7 +582,7 @@ if CLIENT then
 				local Value = 0
 				if valueSize == 0 then Value = um:ReadChar()  end
 				if valueSize == 1 then Value = um:ReadShort() end
-				if valueSize == 2 then Value = um:ReadLong() end
+				if valueSize == 2 then Value = um:ReadLong()  end
 				if valueSize == 3 then Value = um:ReadFloat() end
 
 				for j=1,Repeat do
@@ -801,7 +801,7 @@ elseif SERVER then
 			end
 
 			if v.Repeat > 1 then
-						if v.Repeat == 2 then dataFlags = dataFlags + 8
+				    if v.Repeat == 2 then dataFlags = dataFlags + 8
 				elseif v.Repeat == 4 then dataFlags = dataFlags + 12
 				else                      dataFlags = dataFlags + 4
 				end

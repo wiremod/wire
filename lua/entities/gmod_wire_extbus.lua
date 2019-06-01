@@ -1,6 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName		 = "Wire Extended Bus"
+ENT.PrintName     = "Wire Extended Bus"
 ENT.WireDebugName = "Extended Bus"
 
 if CLIENT then return end -- No more client
@@ -74,7 +74,7 @@ function ENT:ReadCell(Address)
 					return 0
 				end
 			end
-	end
+		end
 	end
 	return nil
 end

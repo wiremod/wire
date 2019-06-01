@@ -494,71 +494,71 @@ function HCOMP:Expression_Level0()
 	elseif self:MatchToken(self.TOKEN.LSS) then -- <
 		local rightLeaf = self:Expression_LevelLeaf(0)
 		return self:NewOpcode("max",
-						self:NewOpcode("fsgn",
-							self:NewOpcode("sub",rightLeaf,leftLeaf),
-							{ TrigonometryHack = true }
-						),
-						{ Constant = 0 }
-					)
+					self:NewOpcode("fsgn",
+						self:NewOpcode("sub",rightLeaf,leftLeaf),
+						{ TrigonometryHack = true }
+					),
+					{ Constant = 0 }
+				)
 	elseif self:MatchToken(self.TOKEN.GTR) then -- >
 		local rightLeaf = self:Expression_LevelLeaf(0)
 		return self:NewOpcode("max",
-						self:NewOpcode("fsgn",
-							self:NewOpcode("neg",
-								self:NewOpcode("sub",rightLeaf,leftLeaf)
-							),
-							{ TrigonometryHack = true }
+					self:NewOpcode("fsgn",
+						self:NewOpcode("neg",
+							self:NewOpcode("sub",rightLeaf,leftLeaf)
 						),
-						{ Constant = 0 }
-					)
+						{ TrigonometryHack = true }
+					),
+					{ Constant = 0 }
+				)
 	elseif self:MatchToken(self.TOKEN.LEQ) then -- <=
 		-- FIXME: returns "0", "1", or "2" instead of just 1 or 0
 		-- Does not alter comparsions, but might be annoying?
 		local rightLeaf = self:Expression_LevelLeaf(0)
 		return self:NewOpcode("max",
-						self:NewOpcode("inc",
-							self:NewOpcode("fsgn",
-								self:NewOpcode("sub",rightLeaf,leftLeaf),
-								{ TrigonometryHack = true }
-							)
-						),
-						{ Constant = 0 }
-					)
+					self:NewOpcode("inc",
+						self:NewOpcode("fsgn",
+							self:NewOpcode("sub",rightLeaf,leftLeaf),
+							{ TrigonometryHack = true }
+						)
+					),
+					{ Constant = 0 }
+				)
 	elseif self:MatchToken(self.TOKEN.GEQ) then -- >=
 		-- FIXME: returns "0", "1", or "2" instead of just 1 or 0
 		-- Does not alter comparsions, but might be annoying?
 		local rightLeaf = self:Expression_LevelLeaf(0)
 		return self:NewOpcode("max",
-						self:NewOpcode("inc",
-							self:NewOpcode("fsgn",
-								self:NewOpcode("neg",
-									self:NewOpcode("sub",rightLeaf,leftLeaf)
-								),
-								{ TrigonometryHack = true }
-							)
-						),
-						{ Constant = 0 }
-					)
-	elseif self:MatchToken(self.TOKEN.EQL) then -- ==
-		local rightLeaf = self:Expression_LevelLeaf(0)
-		return self:NewOpcode("lneg",
+					self:NewOpcode("inc",
 						self:NewOpcode("fsgn",
-							self:NewOpcode("fabs",
-								self:NewOpcode("sub",rightLeaf,leftLeaf),
-								{ TrigonometryHack = true }
+							self:NewOpcode("neg",
+								self:NewOpcode("sub",rightLeaf,leftLeaf)
 							),
 							{ TrigonometryHack = true }
 						)
-					)
-	elseif self:MatchToken(self.TOKEN.NEQ) then -- !=
+					),
+					{ Constant = 0 }
+				)
+	elseif self:MatchToken(self.TOKEN.EQL) then -- ==
 		local rightLeaf = self:Expression_LevelLeaf(0)
-		return self:NewOpcode("fsgn",
+		return self:NewOpcode("lneg",
+					self:NewOpcode("fsgn",
 						self:NewOpcode("fabs",
 							self:NewOpcode("sub",rightLeaf,leftLeaf),
 							{ TrigonometryHack = true }
 						),
 						{ TrigonometryHack = true }
 					)
+				)
+	elseif self:MatchToken(self.TOKEN.NEQ) then -- !=
+		local rightLeaf = self:Expression_LevelLeaf(0)
+		return self:NewOpcode("fsgn",
+					self:NewOpcode("fabs",
+						self:NewOpcode("sub",rightLeaf,leftLeaf),
+						{ TrigonometryHack = true }
+					),
+					{ TrigonometryHack = true }
+				)
 	elseif self:MatchToken(self.TOKEN.EQLADD) then -- +=
 		local rightLeaf = self:Expression_LevelLeaf(0)
 

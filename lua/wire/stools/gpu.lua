@@ -4,7 +4,7 @@ WireToolSetup.open( "gpu", "GPU", "gmod_wire_gpu", nil, "GPUs" )
 if CLIENT then
 	language.Add("Tool.wire_gpu.name", "GPU Tool (Wire)")
 	language.Add("Tool.wire_gpu.desc", "Spawns a graphics processing unit")
-	language.Add("ToolWiregpu_Model",	"Model:" )
+	language.Add("ToolWiregpu_Model",  "Model:" )
 	TOOL.Information = {
 		{ name = "left", text = "Upload program to hispeed device" },
 		{ name = "right", text = "open editor and/or attach debugger to the ZGPU" },
@@ -40,7 +40,7 @@ if SERVER then
 
 		local player = self:GetOwner()
 		if (trace.Entity:IsValid()) and
-			(trace.Entity:GetClass() == "gmod_wire_gpu") then
+		   (trace.Entity:GetClass() == "gmod_wire_gpu") then
 			trace.Entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
 			return true
 		end

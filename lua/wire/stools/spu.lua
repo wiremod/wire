@@ -4,7 +4,7 @@ WireToolSetup.open( "spu", "SPU", "gmod_wire_spu", nil, "SPUs" )
 if CLIENT then
 	language.Add("Tool.wire_spu.name", "SPU Tool (Wire)")
 	language.Add("Tool.wire_spu.desc", "Spawns a sound processing unit")
-	language.Add("ToolWirespu_Model",	"Model:" )
+	language.Add("ToolWirespu_Model",  "Model:" )
 	TOOL.Information = {
 		{ name = "left", text = "Create/reflash " .. TOOL.Name },
 		{ name = "right", text = "Open editor" },

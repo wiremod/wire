@@ -95,7 +95,7 @@ function HCOMP:Resolve(block)
 	end
 	-- Output the block as library if required
 	if self.Settings.GenerateLibrary then
---    self:PrintBlock(block,"lib",true)
+		-- self:PrintBlock(block,"lib",true)
 	end
 	return false
 end
@@ -437,7 +437,7 @@ function HCOMP:PrintLeaf(leaf,level)
 
 	if istable(leaf) then
 		if leaf.PreviousLeaf then
---      self:PrintLine("ctree",pad.."previous leaf:")
+			-- self:PrintLine("ctree",pad.."previous leaf:")
 			self:PrintLeaf(leaf.PreviousLeaf,level)
 		end
 
