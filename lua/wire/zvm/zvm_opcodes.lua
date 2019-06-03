@@ -1639,7 +1639,6 @@ ZVM.OpcodeTable[296] = function(self)  --VTRANSFORM
   self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit [[
     if VM.VMODE < 4 then V.w = 1 end
-    local result = {}
     for i = 0, VM.VMODE-1 do
       local result = M[i*4 + 0] * V.x +
                      M[i*4 + 1] * V.y +
