@@ -191,6 +191,7 @@ function ENT:Think()
 
 		if e2_timequota > 0 and self.context.timebench > e2_timequota then
 			self:Error("Expression 2 (" .. self.name .. "): time quota exceeded", "time quota exceeded")
+			self:PCallHook('destruct')
 		end
 
 		if self.context.prfcount < 0 then self.context.prfcount = 0 end
