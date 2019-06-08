@@ -1633,17 +1633,23 @@ end
 ZVM.OpcodeTable[296] = function(self)  --VTRANSFORM
   self:Dyn_Emit("local address_1 = $1 + VM."..(self.EmitOperandSegment[1] or "DS"))
   self:Dyn_Emit("local address_2 = $2 + VM."..(self.EmitOperandSegment[2] or "DS"))
-  self:Dyn_Emit [[local V = VM:ReadVector(address_1, VM.VMODE)]]
+  self:Dyn_Emit [[
+    local V = {0, 0, 0, 1}
+    if address_1~=0 then
+      for i = 1, VM.VMODE do
+        V[i] = VM:ReadCell(address_1 + i - 1) or 0
+      end
+    end
+  ]]
   self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit [[local M = VM:ReadMatrix(address_2)]]
   self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit [[
-    if VM.VMODE < 4 then V.w = 1 end
     for i = 0, VM.VMODE-1 do
-      local result = M[i*4 + 0] * V.x +
-                     M[i*4 + 1] * V.y +
-                     M[i*4 + 2] * V.z +
-                     M[i*4 + 3] * V.w
+      local result = M[i*4 + 0] * V[1] +
+                     M[i*4 + 1] * V[2] +
+                     M[i*4 + 2] * V[3] +
+                     M[i*4 + 3] * V[4]
       VM:WriteCell(address_1 + i, result)
     end
   ]]
