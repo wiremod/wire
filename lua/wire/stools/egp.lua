@@ -124,7 +124,7 @@ if (SERVER) then
 
 		if (self:GetClientNumber("freeze") != 0) then
 			local phys = ent:GetPhysicsObject()
-			if (phys) then
+			if IsValid(phys) then
 				phys:EnableMotion(false)
 				phys:Wake()
 			end
