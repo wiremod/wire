@@ -17,7 +17,7 @@ if (SERVER) then
 	CreateConVar('sbox_maxwire_egps', 5)
 
 	local function SpawnEnt( ply, Pos, Ang, model, class)
-		if IsValid(ply) and (!ply:CheckLimit("wire_egps")) then return false end
+		if IsValid(ply) and (not ply:CheckLimit("wire_egps")) then return false end
 		if not ply then ply = game.GetWorld() end -- For Garry's Map Saver
 		if model and not WireLib.CanModel(ply, model) then return false end
 		local ent = ents.Create(class)
@@ -91,13 +91,13 @@ if (SERVER) then
 		end
 		
 		local ply = self:GetOwner()
-		if (!ply:CheckLimit( "wire_egps" )) then return false end
+		if (not ply:CheckLimit( "wire_egps" )) then return false end
 
 		local ent
 		local Type = self:GetClientNumber("type")
 		if (Type == 1) then -- Screen
 			local model = self:GetClientInfo("model")
-			if (!util.IsValidModel( model )) then return false end
+			if (not util.IsValidModel( model )) then return false end
 
 			ent = SpawnEGP( ply, trace.HitPos, self:GetAngle(trace), model )
 			if not IsValid(ent) then return end
@@ -111,8 +111,8 @@ if (SERVER) then
 			ent:SetUseRT(self:GetClientNumber("emitter_usert")~=0)
 		end
 
-		local weld = self:GetClientNumber("weld") != 0 and true or false
-		local weldworld = self:GetClientNumber("weldworld") != 0 and true or false
+		local weld = self:GetClientNumber("weld") ~= 0 and true or false
+		local weldworld = self:GetClientNumber("weldworld") ~= 0 and true or false
 		local const
 		if (trace.Entity) then
 			if (trace.Entity:IsValid() and weld) then
@@ -122,7 +122,7 @@ if (SERVER) then
 			end
 		end
 
-		if (self:GetClientNumber("freeze") != 0) then
+		if (self:GetClientNumber("freeze") ~= 0) then
 			local phys = ent:GetPhysicsObject()
 			if IsValid(phys) then
 				phys:EnableMotion(false)
@@ -130,7 +130,7 @@ if (SERVER) then
 			end
 		end
 
-		if (!ent or !ent:IsValid()) then return end
+		if (not ent or not ent:IsValid()) then return end
 		undo.Create( "wire_egp" )
 			if (const) then undo.AddEntity( const ) end
 			undo.AddEntity( ent )
@@ -297,13 +297,13 @@ if CLIENT then
 		Menu = { Panel = pnl, SingleRender = btn, SingleObjects = btn2, SingleBoth = btn3, AllRender = btn4, AllObjects = btn5, AllBoth = btn6 }
 	end
 
-	function TOOL:LeftClick( trace ) return (!trace.Entity or (trace.Entity and !trace.Entity:IsPlayer())) end
+	function TOOL:LeftClick( trace ) return (not trace.Entity or (trace.Entity and not trace.Entity:IsPlayer())) end
 	function TOOL:Reload( trace )
 
-		if (!Menu.Panel) then CreateToolReloadMenu() end
+		if (not Menu.Panel) then CreateToolReloadMenu() end
 
 		Menu.Panel:SetVisible( true )
-		if (!EGP:ValidEGP( trace.Entity )) then
+		if (not EGP:ValidEGP( trace.Entity )) then
 			Menu.SingleRender:SetEnabled( false )
 			Menu.SingleObjects:SetEnabled( false )
 			Menu.SingleBoth:SetEnabled( false )
@@ -321,7 +321,7 @@ if CLIENT then
 	end
 
 	function TOOL.BuildCPanel(panel)
-		if !(EGP) then return end
+		if not EGP then return end
 		panel:SetSpacing( 10 )
 		panel:SetName( "E2 Graphics Processor" )
 
@@ -382,10 +382,10 @@ function TOOL:Think()
 	end
 
 	local Type = self:GetClientNumber("type")
-	if (!self.GhostEntity or !self.GhostEntity:IsValid()) then
+	if (not self.GhostEntity or not self.GhostEntity:IsValid()) then
 		local trace = self:GetOwner():GetEyeTrace()
 		self:MakeGhostEntity( Model("models/bull/dynamicbutton.mdl"), trace.HitPos, trace.HitNormal:Angle() + Angle(90,0,0) )
-	elseif (!self.GhostEntity.Type or self.GhostEntity.Type != Type or (self.GhostEntity.Type == 1 and self.GhostEntity:GetModel() != self:GetClientInfo("model"))) then
+	elseif (not self.GhostEntity.Type or self.GhostEntity.Type ~= Type or (self.GhostEntity.Type == 1 and self.GhostEntity:GetModel() ~= self:GetClientInfo("model"))) then
 		if (Type == 1) then
 			self.GhostEntity:SetModel(self:GetClientInfo("model"))
 		elseif (Type == 2 or Type == 3) then
