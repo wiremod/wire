@@ -175,13 +175,13 @@ if CLIENT then
 	local Menu = {}
 	local CurEnt
 
-	function refreshRT( ent )
+	local function refreshRT( ent )
 		ent.GPU:FreeRT()
 		ent.GPU = GPULib.WireGPU( ent )
 		ent:EGP_Update()
 	end
 
-	function refreshObjects( ent )
+	local function refreshObjects( ent )
 		if ent then
 			RunConsoleCommand("EGP_Request_Reload",ent:EntIndex())
 		else
@@ -208,10 +208,10 @@ if CLIENT then
 		lbl:SetText("Current Screen:")
 		lbl:SizeToContents()
 
-		local lbl = vgui.Create("DLabel",pnl)
-		lbl:SetPos( x2, 24 )
-		lbl:SetText("All screens on map:")
-		lbl:SizeToContents()
+		local lbl2 = vgui.Create("DLabel",pnl)
+		lbl2:SetPos( x2, 24 )
+		lbl2:SetText("All screens on map:")
+		lbl2:SizeToContents()
 
 		local btn = vgui.Create("DButton",pnl)
 		btn:SetText("RenderTarget")
@@ -261,7 +261,7 @@ if CLIENT then
 		function btn4:DoClick()
 			pnl:SetVisible( false )
 			local tbl = ents.FindByClass("gmod_wire_egp")
-			for k,v in pairs( tbl ) do
+			for _,v in pairs( tbl ) do
 				refreshRT( v )
 			end
 			LocalPlayer():ChatPrint("[EGP] RenderTargets reloaded on all screens on the map.")
@@ -284,7 +284,7 @@ if CLIENT then
 		function btn6:DoClick()
 			pnl:SetVisible( false )
 			local tbl = ents.FindByClass("gmod_wire_egp")
-			for k,v in pairs( tbl ) do
+			for _,v in pairs( tbl ) do
 				refreshRT( v )
 			end
 			LocalPlayer():ChatPrint("[EGP] RenderTargets reloaded on all screens on the map.")
