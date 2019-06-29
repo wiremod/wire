@@ -417,57 +417,74 @@ elseif CLIENT then
 	function TOOL:AutoWiringTypeLookup_Check( inputtype )
 		return self.AutoWiringTypeLookup_t[inputtype]
 	end
-
-	function TOOL:UpdateTraceForSurface(trace, parent, dir, terminate)
+	
+	-- Updates the trace hit position and normal to the surface of the parent, perpendicular to the originally hit entity.
+	-- As not all models have the same forward, up, etc. it checks all directions perpendicular to the hit entity, until it finds the parent.
+	-- If the parent is not found in any perpendicular direction, it traces the parent in the direction of the tool gun.
+	function TOOL:UpdateTraceForSurface(trace, parent)
 		if self:GetClientNumber("stick") == 0 then return end
 		if not WireLib.HasPorts(trace.Entity) then return end
-		terminate = terminate or false
+		
+		local hasAssumedParent = false
+		local dir = 0
+		local hitParentPos
+		local hitParentNormal
+		local closestDistanceSquared = 99999999
+		local entityUp = trace.Entity:GetUp()
+		local entityForward = trace.Entity:GetForward()
+		local entityRight = trace.Entity:GetRight()
+		local directions =
+		{
+			entityUp,
+			entityForward,
+			entityRight,
+			-entityUp,
+			-entityForward,
+			-entityRight
+		}
 
-		dir = dir or 0
-		local traceData = util.GetPlayerTrace(LocalPlayer())
-		traceData.start = trace.HitPos
-		local normal
-		if dir == 1 then
-			normal = trace.Entity:GetForward()
-		elseif dir == 2 then
-			normal = trace.Entity:GetRight()
-		elseif dir == 3 then
-			normal = -trace.Entity:GetUp()
-		elseif dir == 4 then
-			normal = -trace.Entity:GetForward()
-		elseif dir == 5 then
-			normal = -trace.Entity:GetRight()
-		else -- if 0 then
-			normal = trace.Entity:GetUp()
-		end
-		traceData.endpos = trace.HitPos + normal * -1000
-		traceData.filter = { LocalPlayer(), trace.Entity }
-		traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
-		local newTrace = util.TraceLine(traceData)
-		if dir < 5 then
-			if not IsValid(parent) or newTrace.Entity ~= parent then
-				self:UpdateTraceForSurface(trace, parent, dir + 1, terminate)
-				return
+		while dir <= 5 do -- While instead of for, since Lua doesn't allow setting a for iterator variable.
+			local traceData = util.GetPlayerTrace(LocalPlayer())
+			traceData.start = trace.HitPos
+			local normal = directions[dir + 1]
+
+			traceData.endpos = trace.HitPos + normal * -1000
+			traceData.filter = { LocalPlayer(), trace.Entity }
+			traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
+			local newTrace = util.TraceLine(traceData)
+
+			local foundParent = false
+			if newTrace.Hit and IsValid(parent) and newTrace.Entity == parent then
+				local distanceSquared = (newTrace.HitPos - trace.HitPos):LengthSqr()
+				if distanceSquared < closestDistanceSquared then
+					closestDistanceSquared = distanceSquared
+					hitParentPos = newTrace.HitPos
+					hitParentNormal = newTrace.HitNormal
+					foundParent = true
+				end
 			end
-		else
-			if not terminate then
+
+			if not foundParent and (dir >= 5 and not hasAssumedParent) then
 				-- Didn't find the parent in any direction, assume whichever entity can be traced behind the entity is the "parent".
+				-- This can happen if eg. the component is not directly on the parent.
 				local traceData = util.GetPlayerTrace(LocalPlayer())
-				traceData.filter = { LocalPlayer(), trace.Entity }
+				traceData.filter = { LocalPlayer(), trace.Entity } -- Ignore player and the entity we're trying to wire to.
 				traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
 				newTrace = util.TraceLine(traceData)
 				parent = newTrace.Entity
-				
-				-- Restart with the assumed parent.
-				self:UpdateTraceForSurface(trace, parent, 0, true)
-				return
+					
+				-- Check all directions again with the new assumed parent.
+				hasAssumedParent = true
+				closestDistanceSquared = 99999999
+				dir = -1 -- So it gets set to 0 after the increment below.
 			end
+
+			dir = dir + 1
 		end
 
-		if newTrace.Hit then
-			trace.HitPos = newTrace.HitPos
-			trace.Normal = newTrace.HitNormal
-		end
+		-- Whatever we hit was the entity's parent. Update trace, and we're done.
+		trace.HitPos = hitParentPos
+		trace.Normal = hitParentNormal
 	end
 
 	-----------------------------------------------------------------
