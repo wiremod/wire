@@ -89,7 +89,7 @@ if (SERVER) then
 			trace.Entity:SetTranslucent(self:GetClientNumber("translucent")~=0)
 			return true
 		end
-		
+
 		local ply = self:GetOwner()
 		if (not ply:CheckLimit( "wire_egps" )) then return false end
 

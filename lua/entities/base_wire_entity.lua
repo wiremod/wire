@@ -372,7 +372,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 end
 
 function ENT:PreEntityCopy()
-	duplicator.ClearEntityModifier(self, "WireDupeInfo") 
+	duplicator.ClearEntityModifier(self, "WireDupeInfo")
 	-- build the DupeInfo table and save it as an entity mod
 	local DupeInfo = self:BuildDupeInfo()
 	if DupeInfo then

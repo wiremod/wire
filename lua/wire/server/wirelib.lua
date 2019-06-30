@@ -1194,7 +1194,7 @@ function WireLib.SetColor(ent, color)
 	else
 		rendermode = nil -- Don't modify the current stored modifier
 	end
-		 
+
 	ent:SetColor(color)
 	duplicator.StoreEntityModifier(ent, "colour", { Color = color, RenderMode = rendermode })
 end
