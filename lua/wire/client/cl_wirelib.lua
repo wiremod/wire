@@ -2,6 +2,7 @@ local WIRE_SCROLL_SPEED = 0.5
 local WIRE_BLINKS_PER_SECOND = 2
 local CurPathEnt = {}
 local Wire_DisableWireRender = 0
+Wire_GrayOutWires = false
 
 WIRE_CLIENT_INSTALLED = 1
 
@@ -56,6 +57,13 @@ function Wire_Render(ent)
 						local start = wiretbl.StartPos
 						if (ent:IsValid()) then start = ent:LocalToWorld(start) end
 						local color = wiretbl.Color
+						if Wire_GrayOutWires then
+							local newColor = Color(0, 0, 0, 255)
+							newColor.r = color.r * 0.1
+							newColor.g = color.g * 0.1
+							newColor.b = color.b * 0.1
+							color = newColor
+						end
 
 						local nodes = wiretbl.Path
 						local len = #nodes

@@ -425,15 +425,15 @@ elseif CLIENT then
 		if self:GetClientNumber("stick") == 0 then return end
 		if not WireLib.HasPorts(trace.Entity) then return end
 		
-		local hasAssumedParent = false
-		local dir = 0
 		local hitParentPos
 		local hitParentNormal
-		local closestDistanceSquared = 99999999
-		local entityUp = trace.Entity:GetUp()
-		local entityForward = trace.Entity:GetForward()
-		local entityRight = trace.Entity:GetRight()
-		local directions =
+		local foundParent
+		local closestDistanceSquared
+
+		local entityUp = trace.Entity:GetUp() * 1000
+		local entityForward = trace.Entity:GetForward() * 1000
+		local entityRight = trace.Entity:GetRight() * 1000
+		local traceVectors =
 		{
 			entityUp,
 			entityForward,
@@ -443,48 +443,60 @@ elseif CLIENT then
 			-entityRight
 		}
 
-		while dir <= 5 do -- While instead of for, since Lua doesn't allow setting a for iterator variable.
-			local traceData = util.GetPlayerTrace(LocalPlayer())
-			traceData.start = trace.HitPos
-			local normal = directions[dir + 1]
+		-- Looks for the parent on all local axes, and returns the closest hit surface on the parent.
+		local function findParent()
+			foundParent = false
+			closestDistanceSquared = 99999999
 
-			traceData.endpos = trace.HitPos + normal * -1000
-			traceData.filter = { LocalPlayer(), trace.Entity }
-			traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
-			local newTrace = util.TraceLine(traceData)
+			for i = 1, 6 do
+				local traceVector = traceVectors[i]
 
-			local foundParent = false
-			if newTrace.Hit and IsValid(parent) and newTrace.Entity == parent then
-				local distanceSquared = (newTrace.HitPos - trace.HitPos):LengthSqr()
-				if distanceSquared < closestDistanceSquared then
-					closestDistanceSquared = distanceSquared
-					hitParentPos = newTrace.HitPos
-					hitParentNormal = newTrace.HitNormal
-					foundParent = true
+				local traceData = util.GetPlayerTrace(LocalPlayer())
+				traceData.start = trace.HitPos -- Start from the original trace.
+
+				traceData.endpos = trace.HitPos + traceVector
+				traceData.filter = { LocalPlayer(), trace.Entity }
+				traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
+				local newTrace = util.TraceLine(traceData)
+
+				if newTrace.Hit and newTrace.Entity == parent then
+					local distanceSquared = newTrace.HitPos:DistToSqr(trace.HitPos)
+					if distanceSquared <= 75 * 75 then
+						if distanceSquared < closestDistanceSquared then
+							closestDistanceSquared = distanceSquared
+							hitParentPos = newTrace.HitPos
+							hitParentNormal = newTrace.HitNormal
+							foundParent = true
+						end
+					end
 				end
 			end
-
-			if not foundParent and (dir >= 5 and not hasAssumedParent) then
-				-- Didn't find the parent in any direction, assume whichever entity can be traced behind the entity is the "parent".
-				-- This can happen if eg. the component is not directly on the parent.
-				local traceData = util.GetPlayerTrace(LocalPlayer())
-				traceData.filter = { LocalPlayer(), trace.Entity } -- Ignore player and the entity we're trying to wire to.
-				traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
-				newTrace = util.TraceLine(traceData)
-				parent = newTrace.Entity
-					
-				-- Check all directions again with the new assumed parent.
-				hasAssumedParent = true
-				closestDistanceSquared = 99999999
-				dir = -1 -- So it gets set to 0 after the increment below.
-			end
-
-			dir = dir + 1
 		end
 
-		-- Whatever we hit was the entity's parent. Update trace, and we're done.
-		trace.HitPos = hitParentPos
-		trace.Normal = hitParentNormal
+		if IsValid(parent) then
+			findParent()
+		end
+
+		if not foundParent then
+			-- Didn't find the parent in any direction, treat whichever entity can be traced behind the entity as the parent.
+			-- This can happen if eg. the component is not directly on the parent (or if the entity just never had an actual parent).
+			local traceData = util.GetPlayerTrace(LocalPlayer())
+			traceData.filter = { LocalPlayer(), trace.Entity }
+			traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
+			newTrace = util.TraceLine(traceData)
+			parent = newTrace.Entity
+			if not IsValid(parent) or parent == game.GetWorld() then
+				-- Hit the world, don't update the trace.
+				return
+			end
+
+			findParent() -- Try again with the new assumed parent.
+		end
+
+		if foundParent then
+			trace.HitPos = hitParentPos
+			trace.HitNormal = hitParentNormal
+		end
 	end
 
 	-----------------------------------------------------------------
@@ -672,6 +684,7 @@ elseif CLIENT then
 			self:Holster()
 		end
 
+		self:StopRenderingCurrentWire()
 		self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
 	end
 
@@ -1088,11 +1101,13 @@ elseif CLIENT then
 	function TOOL:StopRenderingCurrentWire()
 		hook.Remove("PostDrawOpaqueRenderables", "Wire.ToolWireRenderHook")
 		self.IsRenderingCurrentWire = false;
+		Wire_GrayOutWires = false
 	end
 
 	function TOOL:BeginRenderingCurrentWire()
 		if self.IsRenderingCurrentWire then return end
 		self.IsRenderingCurrentWire = true
+		Wire_GrayOutWires = true
 		hook.Add("PostDrawOpaqueRenderables", "Wire.ToolWireRenderHook", function()
 			-- Draw the wire path
 			render.SetColorMaterial()
