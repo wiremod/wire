@@ -1848,7 +1848,7 @@ function Editor:Close()
 	self.chip = false
 
 	self:SaveEditorSettings()
-	
+
 	hook.Run("WireEditorClose", self)
 end
 

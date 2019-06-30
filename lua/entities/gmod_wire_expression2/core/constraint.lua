@@ -30,7 +30,7 @@ end
 		'Parented'/'Parents'/'Parent'
 		'Wires'/'Wire'
 		or any constraint type names such as 'Weld', 'Axis', etc
-		
+
 	Prefixing any of the keywords (except 'All') with '-' or '!' will negate the filter
 	Examples
 		entity():getConnectedEntities("all") => entity():getConnectedEntities() => entity():getConnectedEntities("") => all three are the same

@@ -46,7 +46,7 @@ function ENT:GetOffset( name )
 end
 
 function ENT:SetNormal( v )
-	self:SetNWVector( "vec", v ) 
+	self:SetNWVector( "vec", v )
 end
 function ENT:GetNormal()
 	return self:GetNWVector( "vec" )
@@ -104,10 +104,10 @@ function ENT:Initialize()
 	self.mul = 0
 	self.force = 0
 	self.calcforce = true
-	
+
 	self.ForceLinear = vector_origin
 	self.ForceAngular = vector_origin
-	
+
 	local max = self:OBBMaxs()
 	self.ThrustOffset = Vector( 0, 0, max.z )
 

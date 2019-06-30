@@ -49,7 +49,7 @@ end
 
 function ENT:Think()
 	self.BaseClass.Think( self )
-	
+
 	--[[
 		The workaround using WantsUpdate should not be required.
 		However, the server crashes (for no reason whatsoever) if you

@@ -25,7 +25,7 @@ GateActions["highspeed_read"] = {
 	inputtypes = { "NORMAL", "WIRELINK", "NORMAL" },
 	output = function(gate, Clk, Memory, Address)
 		if Clk <= 0 then return gate.Memory or 0 end
-		
+
 		Address = math.floor(Address or -1)
 		if not Memory or not Memory.ReadCell or Address < 0 then
 			gate.Memory = 0
