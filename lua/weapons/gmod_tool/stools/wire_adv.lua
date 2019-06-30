@@ -446,7 +446,7 @@ elseif CLIENT then
 		-- Looks for the parent on all local axes, and returns the closest hit surface on the parent.
 		local function findParent()
 			foundParent = false
-			closestDistanceSquared = 99999999
+			closestDistanceSquared = math.huge
 
 			for i = 1, 6 do
 				local traceVector = traceVectors[i]
@@ -461,13 +461,11 @@ elseif CLIENT then
 
 				if newTrace.Hit and newTrace.Entity == parent then
 					local distanceSquared = newTrace.HitPos:DistToSqr(trace.HitPos)
-					if distanceSquared <= 75 * 75 then
-						if distanceSquared < closestDistanceSquared then
-							closestDistanceSquared = distanceSquared
-							hitParentPos = newTrace.HitPos
-							hitParentNormal = newTrace.HitNormal
-							foundParent = true
-						end
+					if distanceSquared <= 75 * 75 and distanceSquared < closestDistanceSquared then
+						closestDistanceSquared = distanceSquared
+						hitParentPos = newTrace.HitPos
+						hitParentNormal = newTrace.HitNormal
+						foundParent = true
 					end
 				end
 			end
