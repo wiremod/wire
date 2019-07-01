@@ -1117,7 +1117,7 @@ elseif CLIENT then
 				local color = Color(self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"))
 				local matName = self:GetClientInfo("material")
 				local width = self:GetClientInfo("width")
-				local mat = Material("cable/cable2")
+				local mat = Material(matName)
 				local theEnt = wiring[3]
 				if not theEnt:IsValid() then
 					break

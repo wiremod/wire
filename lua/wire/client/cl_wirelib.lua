@@ -58,11 +58,10 @@ function Wire_Render(ent)
 						if (ent:IsValid()) then start = ent:LocalToWorld(start) end
 						local color = wiretbl.Color
 						if Wire_GrayOutWires then
-							local newColor = Color(0, 0, 0, 255)
-							newColor.r = color.r * 0.1
-							newColor.g = color.g * 0.1
-							newColor.b = color.b * 0.1
-							color = newColor
+							local h, s, v = ColorToHSV(color)
+							v = 0.175
+							local tmpColor = HSVToColor(h, s, v)
+							color = Color(tmpColor.r, tmpColor.g, tmpColor.b, tmpColor.a) -- HSVToColor does not return a proper Color structure.
 						end
 
 						local nodes = wiretbl.Path
