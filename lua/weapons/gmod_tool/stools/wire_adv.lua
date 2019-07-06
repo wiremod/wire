@@ -17,6 +17,7 @@ if CLIENT then
 	language.Add( "WireTool_width", "Width:" )
 	language.Add( "WireTool_material", "Material:" )
 	language.Add( "WireTool_colour", "Colour:" )
+	language.Add( "WireTool_stick", "Stick to surfaces" )
 	TOOL.Information = {
 		{ name = "left_0", stage = 0, text = "Select input (Shift: Select multiple; Alt: Select all)" },
 		{ name = "right_0", stage = 0, text = "Next" },
@@ -24,6 +25,7 @@ if CLIENT then
 		{ name = "mwheel_0", stage = 0, text = "Mouse wheel: Next" },
 		{ name = "left_1", stage = 1, text = "Select entity" },
 		{ name = "right_1", stage = 1, text = "Add wirepoint" },
+		{ name = "f_0", stage = 1, text = "F: Undo wirepoint" },
 		{ name = "reload_1", stage = 1, text = "Cancel" },
 		{ name = "left_2", stage = 2, text = "Select output (Alt: Auto-connect matching input/outputs)" },
 		{ name = "right_2", stage = 2, text = "Next" },
@@ -42,9 +44,12 @@ TOOL.ClientConVar = {
 	r = 255,
 	g = 255,
 	b = 255,
+	stick = 1
 }
 
 util.PrecacheSound("weapons/pistol/pistol_empty.wav")
+util.PrecacheSound("buttons/lightswitch2.wav")
+util.PrecacheSound("buttons/button16.wav")
 
 local function get_active_tool(ply, tool)
 	-- find toolgun
@@ -412,6 +417,85 @@ elseif CLIENT then
 	function TOOL:AutoWiringTypeLookup_Check( inputtype )
 		return self.AutoWiringTypeLookup_t[inputtype]
 	end
+	
+	-- Updates the trace hit position and normal to the surface of the parent, perpendicular to the originally hit entity.
+	-- As not all models have the same forward, up, etc. it checks all directions perpendicular to the hit entity, until it finds the parent.
+	-- If the parent is not found in any perpendicular direction, it traces the parent in the direction of the tool gun.
+	function TOOL:UpdateTraceForSurface(trace, parent)
+		if self:GetClientNumber("stick") == 0 then return end
+		if not WireLib.HasPorts(trace.Entity) then return end
+		
+		local hitParentPos
+		local hitParentNormal
+		local foundParent
+		local closestDistanceSquared
+
+		local entityUp = trace.Entity:GetUp() * 1000
+		local entityForward = trace.Entity:GetForward() * 1000
+		local entityRight = trace.Entity:GetRight() * 1000
+		local traceVectors =
+		{
+			entityUp,
+			entityForward,
+			entityRight,
+			-entityUp,
+			-entityForward,
+			-entityRight
+		}
+
+		-- Looks for the parent on all local axes, and returns the closest hit surface on the parent.
+		local function findParent()
+			foundParent = false
+			closestDistanceSquared = math.huge
+
+			for i = 1, 6 do
+				local traceVector = traceVectors[i]
+
+				local traceData = util.GetPlayerTrace(LocalPlayer())
+				traceData.start = trace.HitPos -- Start from the original trace.
+
+				traceData.endpos = trace.HitPos + traceVector
+				traceData.filter = { LocalPlayer(), trace.Entity }
+				traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
+				local newTrace = util.TraceLine(traceData)
+
+				if newTrace.Hit and newTrace.Entity == parent then
+					local distanceSquared = newTrace.HitPos:DistToSqr(trace.HitPos)
+					if distanceSquared <= 75 * 75 and distanceSquared < closestDistanceSquared then
+						closestDistanceSquared = distanceSquared
+						hitParentPos = newTrace.HitPos
+						hitParentNormal = newTrace.HitNormal
+						foundParent = true
+					end
+				end
+			end
+		end
+
+		if IsValid(parent) then
+			findParent()
+		end
+
+		if not foundParent then
+			-- Didn't find the parent in any direction, treat whichever entity can be traced behind the entity as the parent.
+			-- This can happen if eg. the component is not directly on the parent (or if the entity just never had an actual parent).
+			local traceData = util.GetPlayerTrace(LocalPlayer())
+			traceData.filter = { LocalPlayer(), trace.Entity }
+			traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
+			newTrace = util.TraceLine(traceData)
+			parent = newTrace.Entity
+			if not IsValid(parent) or parent == game.GetWorld() then
+				-- Hit the world, don't update the trace.
+				return
+			end
+
+			findParent() -- Try again with the new assumed parent.
+		end
+
+		if foundParent then
+			trace.HitPos = hitParentPos
+			trace.HitNormal = hitParentNormal
+		end
+	end
 
 	-----------------------------------------------------------------
 	-- Mouse buttons
@@ -427,6 +511,9 @@ elseif CLIENT then
 
 		if IsValid( trace.Entity ) then
 			if self:GetStage() == 0 then
+				self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
+				self:BeginRenderingCurrentWire()
+
 				local inputs, _ = self:GetPorts( trace.Entity )
 				if not inputs then return end
 
@@ -448,6 +535,7 @@ elseif CLIENT then
 
 				return
 			elseif self:GetStage() == 1 then
+				self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
 				local _, outputs = self:GetPorts( trace.Entity )
 				if not outputs then return end
 
@@ -555,6 +643,7 @@ elseif CLIENT then
 			self:SetStage(0)
 			self.WiringRender = {} -- Empty this now so the HUD doesn't glitch
 			self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
+			self:StopRenderingCurrentWire()
 		end
 	end
 
@@ -562,12 +651,14 @@ elseif CLIENT then
 		if self.wtfgarry > CurTime() then return end
 		self.wtfgarry = CurTime() + 0.1
 
+		self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
 		if self:GetStage() == 0 or self:GetStage() == 2 then
 			self:ScrollDown(trace)
 		elseif IsValid(trace.Entity) and self:GetStage() == 1 then
 			for i=1,#self.Wiring do
 				self:WireNode( self.Wiring[i], trace.Entity, trace.HitPos + trace.HitNormal*(self:GetClientNumber("width")/2) )
 			end
+			self:GetOwner():EmitSound("buttons/lightswitch2.wav")
 		end
 	end
 
@@ -591,6 +682,7 @@ elseif CLIENT then
 			self:Holster()
 		end
 
+		self:StopRenderingCurrentWire()
 		self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
 	end
 
@@ -648,18 +740,40 @@ elseif CLIENT then
 			if not self then return end
 
 			return self:ScrollUp(ply:GetEyeTraceNoCursor())
-		elseif bind == "impulse 100" and ply:KeyDown( IN_SPEED ) then
-			local self = get_active_tool(ply, "wire_adv")
-			if not self then
-				self = get_active_tool(ply, "wire_debugger")
-				if not self then return end
+		elseif bind == "impulse 100" then
+			if ply:KeyDown( IN_SPEED ) then
+				local self = get_active_tool(ply, "wire_adv")
+				if not self then
+					self = get_active_tool(ply, "wire_debugger")
+					if not self then return end
 
-				spawnmenu.ActivateTool( "wire_adv") -- switch back to wire adv
+					spawnmenu.ActivateTool( "wire_adv") -- switch back to wire adv
+					return true
+				end
+
+				spawnmenu.ActivateTool("wire_debugger") -- switch to debugger
+				return true
+			else
+				local self = get_active_tool(ply, "wire_adv")
+				if self and self:GetStage() == 1 then
+					local len = #self.Wiring
+					if len > 0 then
+						local nodesCount = 0
+						for i=1,len do
+							nodesCount = nodesCount + #self.Wiring[i][4]
+							if #self.Wiring[i][4] > 0 then
+								table.remove(self.Wiring[i][4])
+							end
+						end
+
+						if nodesCount > 0 then
+							self:GetOwner():EmitSound( "buttons/button16.wav" )
+						end
+					end
+					return true
+				end
 				return true
 			end
-
-			spawnmenu.ActivateTool("wire_debugger") -- switch to debugger
-			return true
 		end
 	end
 
@@ -982,6 +1096,76 @@ elseif CLIENT then
 		end
 	end
 
+	function TOOL:StopRenderingCurrentWire()
+		hook.Remove("PostDrawOpaqueRenderables", "Wire.ToolWireRenderHook")
+		self.IsRenderingCurrentWire = false;
+		Wire_GrayOutWires = false
+	end
+
+	function TOOL:BeginRenderingCurrentWire()
+		if self.IsRenderingCurrentWire then return end
+		self.IsRenderingCurrentWire = true
+		Wire_GrayOutWires = true
+		hook.Add("PostDrawOpaqueRenderables", "Wire.ToolWireRenderHook", function()
+			-- Draw the wire path
+			render.SetColorMaterial()
+			for i=1, #self.Wiring do
+				local wiring = self.Wiring[i]
+				local nodes = wiring[4]
+				local outputEntity = wiring[5]
+
+				local color = Color(self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"))
+				local matName = self:GetClientInfo("material")
+				local width = self:GetClientInfo("width")
+				local mat = Material(matName)
+				local theEnt = wiring[3]
+				if not theEnt:IsValid() then
+					break
+				end
+
+				local start = theEnt:LocalToWorld(wiring[2])
+
+				local scroll = 0.5
+				render.SetMaterial(mat)
+				render.StartBeam((#nodes*2)+1+1+1) -- + startpoint + same as last node (to not have transition to aiming point) +point where player is aiming
+				render.AddBeam(start, width, scroll, color)
+
+				for j=1, #nodes do
+					local node = nodes[j]
+
+					local nodeEnt = node[1]
+					local nodeOffset = node[2]
+					local nodePosition = nodeEnt:LocalToWorld(nodeOffset)
+
+					scroll = scroll+(nodePosition-start):Length()/10
+					render.AddBeam(nodePosition, width, scroll, color)
+					render.AddBeam(nodePosition, width, scroll, color)
+
+					start = nodePosition
+				end
+
+				render.AddBeam(start, width, scroll, Color(255,255,255,255))
+
+				if not IsValid(outputEntity) then
+					local traceData = util.GetPlayerTrace(LocalPlayer())
+					traceData.filter = { LocalPlayer() }
+
+					traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
+					local traceResult = util.TraceLine(traceData)
+					if WireLib.HasPorts(traceResult.Entity) then
+						self:UpdateTraceForSurface(traceResult, traceResult.Entity:GetParent())
+					end
+					render.AddBeam(traceResult.HitPos, width, scroll+(traceResult.HitPos-start):Length()/10, Color(100,100,100,255))
+				else
+					local outputPos = wiring[6]
+					outputPos = outputEntity:LocalToWorld(outputPos)
+					render.AddBeam(outputPos, width, scroll+(outputPos-start):Length()/10, Color(100,100,100,255))
+				end
+				render.EndBeam()
+			end
+		end)
+	end
+
 
 	-----------------------------------------------------------------
 	-- Wiring Render
@@ -1046,6 +1230,8 @@ elseif CLIENT then
 			Green = "wire_adv_g",
 			Blue = "wire_adv_b"
 		})
+
+		panel:CheckBox("#WireTool_stick", "wire_adv_stick")
 	end
 
 end

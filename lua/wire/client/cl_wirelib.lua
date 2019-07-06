@@ -2,6 +2,7 @@ local WIRE_SCROLL_SPEED = 0.5
 local WIRE_BLINKS_PER_SECOND = 2
 local CurPathEnt = {}
 local Wire_DisableWireRender = 0
+Wire_GrayOutWires = false
 
 WIRE_CLIENT_INSTALLED = 1
 
@@ -56,12 +57,18 @@ function Wire_Render(ent)
 						local start = wiretbl.StartPos
 						if (ent:IsValid()) then start = ent:LocalToWorld(start) end
 						local color = wiretbl.Color
+						if Wire_GrayOutWires then
+							local h, s, v = ColorToHSV(color)
+							v = 0.175
+							local tmpColor = HSVToColor(h, s, v)
+							color = Color(tmpColor.r, tmpColor.g, tmpColor.b, tmpColor.a) -- HSVToColor does not return a proper Color structure.
+						end
 
 						local nodes = wiretbl.Path
 						local len = #nodes
 						if len>0 then
 							render.SetMaterial(getmat(wiretbl.Material))
-							render.StartBeam(len+1)
+							render.StartBeam(len * 2 + 1)
 							render.AddBeam(start, width, scroll, color)
 
 							for j=1, len do
@@ -72,6 +79,7 @@ function Wire_Render(ent)
 
 									scroll = scroll+(endpos-start):Length()/10
 									render.AddBeam(endpos, width, scroll, color)
+									render.AddBeam(endpos, width, scroll, color) -- A second beam in the same position ensures the line stays consistent and doesn't change width/become distorted.
 
 									start = endpos
 								end
