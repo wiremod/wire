@@ -1155,11 +1155,11 @@ elseif CLIENT then
 					if WireLib.HasPorts(traceResult.Entity) then
 						self:UpdateTraceForSurface(traceResult, traceResult.Entity:GetParent())
 					end
-					render.AddBeam(traceResult.HitPos, width, scroll, Color(100,100,100,255))
+					render.AddBeam(traceResult.HitPos, width, scroll+(traceResult.HitPos-start):Length()/10, Color(100,100,100,255))
 				else
 					local outputPos = wiring[6]
 					outputPos = outputEntity:LocalToWorld(outputPos)
-					render.AddBeam(outputPos, width, scroll, Color(100,100,100,255))
+					render.AddBeam(outputPos, width, scroll+(outputPos-start):Length()/10, Color(100,100,100,255))
 				end
 				render.EndBeam()
 			end
