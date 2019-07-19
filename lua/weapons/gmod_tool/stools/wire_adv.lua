@@ -772,7 +772,6 @@ elseif CLIENT then
 					end
 					return true
 				end
-				return true
 			end
 		end
 	end
