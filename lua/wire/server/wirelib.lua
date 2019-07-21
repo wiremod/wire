@@ -1176,6 +1176,7 @@ local material_blacklist = {
 	["effects/ar2_altfire1"] = true
 }
 function WireLib.IsValidMaterial(material)
+	material = string.sub(material, 1, 260)
 	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
 	if material_blacklist[path] then return "" end
 	return material
