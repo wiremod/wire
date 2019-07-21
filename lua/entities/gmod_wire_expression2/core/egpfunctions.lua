@@ -675,6 +675,7 @@ end
 ----------------------------
 e2function void wirelink:egpMaterial( number index, string material )
 	if (!EGP:IsAllowed( self, this )) then return end
+	material = WireLib.IsValidMaterial(material)
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
 		if (EGP:EditObject( v, { material = material } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
