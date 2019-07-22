@@ -287,7 +287,7 @@ end)
 
 registerFunction("repeat", "s:n", "s", function(self,args)
 	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1),op2[1](self, op2)
+	local rv1, rv2 = op1[1](self, op1), math.abs(op2[1](self, op2))
 	self.prf = self.prf + #rv1 * rv2 * 0.01
 	return rv1:rep(rv2)
 end)
