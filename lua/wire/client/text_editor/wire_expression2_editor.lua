@@ -936,7 +936,7 @@ local code2 = [[#[
     Documentation and examples are available at:
     https://github.com/wiremod/wire/wiki/Expression-2
 
-    Discord is available at https://discord.gg/cqJ45CT
+    Discord is available at https://discord.gg/H8UKY3Y
     Reddit is available at https://www.reddit.com/r/wiremod
     Report any bugs you find here https://github.com/wiremod/wire/issues
 ]#]]
