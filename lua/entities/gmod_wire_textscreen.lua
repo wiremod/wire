@@ -217,6 +217,8 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
+	self.doSendText = false
+	self.doSendConfig = false
 	self.Inputs = WireLib.CreateSpecialInputs(self, { "String", "Font", "FGColor", "BGColor" }, { "STRING", "STRING", "VECTOR", "VECTOR" })
 	self:InitializeShared()
 end
@@ -230,14 +232,13 @@ function ENT:Setup(DefaultText, chrPerLine, textJust, valign, tfont, fgcolor, bg
 	self.tfont = tfont or "Arial"
 	self:SendConfig()
 
-	self.text = DefaultText or ""
-	self:TriggerInput("String", self.text)
+	self:TriggerInput("String", DefaultText or "")
 end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "String" then
-		self.text = tostring(value)
-		self:SendText()
+		self.text = string.sub(tostring(value), 1, 1024)
+		self.doSendText = true
 	elseif iname == "Font" then
 		self.tfont = tostring(value)
 		self.doSendConfig = true
@@ -255,6 +256,7 @@ local function formatText(text)
 end
 
 function ENT:SendText(ply)
+	self.doSendText = false
 	WireLib.netStart(self)
 		net.WriteBit(false) -- Sending Text
 		net.WriteString(formatText(self.text))
@@ -265,10 +267,13 @@ function ENT:Think()
 	if self.doSendConfig then
 		self:SendConfig()
 	end
+	if self.doSendText then
+		self:SendText()
+	end
 end
 
 function ENT:SendConfig(ply)
-	self.doSendConfig = nil
+	self.doSendConfig = false
 	WireLib.netStart(self)
 		net.WriteBit(true) -- Sending Config
 		net.WriteUInt(self.chrPerLine, 4)
