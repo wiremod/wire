@@ -656,7 +656,7 @@ local function CreateSoundBrowser(path, se)
 	TabFileBrowser:SetRootName("sound")
 	TabFileBrowser:SetRootPath("sound")
 	TabFileBrowser:SetWildCard("GAME")
-	TabFileBrowser:SetFileTyps({"*.mp3","*.wav"})
+	TabFileBrowser:SetFileTyps({"*.mp3","*.wav","*.ogg"})
 
 	//TabFileBrowser:AddColumns("Type", "Size", "Length") //getting the duration is very slow.
 	local Columns = TabFileBrowser:AddColumns("Format", "Size")
