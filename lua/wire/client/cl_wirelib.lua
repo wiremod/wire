@@ -2,7 +2,7 @@ local WIRE_SCROLL_SPEED = 0.5
 local WIRE_BLINKS_PER_SECOND = 2
 local CurPathEnt = {}
 local Wire_DisableWireRender = 0
-Wire_GrayOutWires = false
+WireLib.Wire_GrayOutWires = false
 
 WIRE_CLIENT_INSTALLED = 1
 
@@ -55,9 +55,9 @@ function Wire_Render(ent)
 					local width = wiretbl.Width
 					if width > 0 and blink ~= net_name then
 						local start = wiretbl.StartPos
-						if (ent:IsValid()) then start = ent:LocalToWorld(start) end
+						if IsValid(ent) then start = ent:LocalToWorld(start) end
 						local color = wiretbl.Color
-						if Wire_GrayOutWires then
+						if WireLib.Wire_GrayOutWires then
 							local h, s, v = ColorToHSV(color)
 							v = 0.175
 							local tmpColor = HSVToColor(h, s, v)
@@ -74,7 +74,7 @@ function Wire_Render(ent)
 							for j=1, len do
 								local node = nodes[j]
 								local node_ent = node.Entity
-								if (node_ent:IsValid()) then
+								if IsValid(node_ent) then
 									local endpos = node_ent:LocalToWorld(node.Pos)
 
 									scroll = scroll+(endpos-start):Length()/10
@@ -100,7 +100,7 @@ end
 
 
 local function Wire_GetWireRenderBounds(ent)
-	if (not ent:IsValid()) then return end
+	if not IsValid(ent) then return end
 
 	local bbmin = ent:OBBMins()
 	local bbmax = ent:OBBMaxs()
