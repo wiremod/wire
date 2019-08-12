@@ -17,6 +17,7 @@ function ENT:Setup(key_more,key_less,toggle,value_min,value_max,value_start,spee
 	self.keymore = key_more
 	self.keyless = key_less
 
+	local pl = self:GetPlayer()
 	numpad.OnDown( pl, key_more, "WireAdvInput_On", self, 1 )
 	numpad.OnUp( pl, key_more, "WireAdvInput_Off", self, 1 )
 	numpad.OnDown( pl, key_less, "WireAdvInput_On", self, -1 )
