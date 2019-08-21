@@ -1170,18 +1170,44 @@ concommand.Add("wireversion", function(ply,cmd,args)
 end, nil, "Prints the server's Wiremod version")
 
 
-local material_blacklist = {
+local materialBlacklist = {
 	["engine/writez"] = true,
 	["pp/copy"] = true,
 	["effects/ar2_altfire1"] = true
 }
+
+function WireLib.BlacklistMaterial(material)
+    materialBlacklist[material] = true
+end
+
+local invalidMaterialCacheSizeLimit = 500
+local invalidMaterialCache = {}
+
+local function cacheInvalidMaterial(material)
+    local cacheIsOversized = #invalidMaterialCache >= invalidMaterialCacheSizeLimit
+
+    if cacheIsOversized then table.remove( invalidMaterialCache, 1 ) end
+
+    invalidMaterialCache[material] = true
+end
+
 function WireLib.IsValidMaterial(material)
 	material = string.sub(material, 1, 260)
+
+    if invalidMaterialCache[material] then return "" end
+
 	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
-	if material_blacklist[path] then return "" end
+
+	if materialBlacklist[path] then
+	    cacheInvalidMaterial(material)
+	    return ""
+    end
 
 	local materialTest = Material( material )
-	if materialTest:IsError() then return "" end
+	if not materialTest or materialTest:IsError() then
+	    cacheInvalidMaterial(material)
+	    return ""
+    end
 
 	return material
 end
