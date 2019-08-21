@@ -1184,9 +1184,9 @@ local invalidMaterialCacheSizeLimit = 500
 local invalidMaterialCache = {}
 
 local function cacheInvalidMaterial(material)
-    local cacheIsOversized = #invalidMaterialCache >= invalidMaterialCacheSizeLimit
+    local cacheIsOversized = table.count( invalidMaterialCache ) >= invalidMaterialCacheSizeLimit
 
-    if cacheIsOversized then table.remove( invalidMaterialCache, 1 ) end
+    if cacheIsOversized then invalidMaterialCache[next( invalidMaterialCache )] = nil end
 
     invalidMaterialCache[material] = true
 end
