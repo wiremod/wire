@@ -1179,6 +1179,10 @@ function WireLib.IsValidMaterial(material)
 	material = string.sub(material, 1, 260)
 	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
 	if material_blacklist[path] then return "" end
+
+	local materialTest = Material( material )
+	if materialTest:IsError() then return "" end
+
 	return material
 end
 
