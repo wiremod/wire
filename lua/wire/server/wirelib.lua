@@ -1185,17 +1185,19 @@ local invalidMaterialCacheCount = 0
 local invalidMaterialCacheSizeLimit = 500
 
 local function removeOldestCachedMaterial()
-    local oldestMaterial = math.min( unpack( table.ClearKeys( invalidMaterialCache ) ) )
+    local oldestMaterial
+    local oldest = math.huge
+    for k, v in pairs(invalidMaterialCache) do
+        if v < oldest then oldest = v oldestMaterial = k end
+    end
 
-    table.RemoveByValue( invalidMaterialCache, oldestMaterial )
+    invalidMaterialCache[oldestMaterial] = nil
 
     invalidMaterialCacheCount = invalidMaterialCacheCount - 1
 end
 
 local function cacheInvalidMaterial(material)
-    local cacheIsOversized = invalidMaterialCacheCount >= invalidMaterialCacheSizeLimit
-
-    if cacheIsOversized then removeOldestCachedMaterial() end
+    if invalidMaterialCacheCount >= invalidMaterialCacheSizeLimit then removeOldestCachedMaterial() end
 
     invalidMaterialCache[material] = CurTime()
 
