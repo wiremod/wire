@@ -1181,20 +1181,38 @@ function WireLib.BlacklistMaterial(material)
 end
 
 local invalidMaterialCacheSizeLimit = 500
+
 local invalidMaterialCache = {}
+
+local function removeOldestCachedMaterial()
+    local sortedCacheTimes = table.SortByKey( invalidMaterialCache )
+    local oldestMaterial = sortedCacheTimes[#sortedCacheTimes]
+
+    invalidMaterialCache[oldestMaterial] = nil
+end
 
 local function cacheInvalidMaterial(material)
     local cacheIsOversized = table.count( invalidMaterialCache ) >= invalidMaterialCacheSizeLimit
 
-    if cacheIsOversized then invalidMaterialCache[next( invalidMaterialCache )] = nil end
+    if cacheIsOversized then removeOldestCachedMaterial() end
 
-    invalidMaterialCache[material] = true
+    invalidMaterialCache[material] = CurTime()
+end
+
+local function materialIsInvalid(material)
+    if invalidMaterialCache[material] then
+        invalidMaterialCache[material] = CurTime()
+
+        return true
+    end
 end
 
 function WireLib.IsValidMaterial(material)
 	material = string.sub(material, 1, 260)
 
-    if invalidMaterialCache[material] then return "" end
+	if material == "" then return "" end
+
+	if materialIsInvalid(material) then return "" end
 
 	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
 
