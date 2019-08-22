@@ -1170,15 +1170,68 @@ concommand.Add("wireversion", function(ply,cmd,args)
 end, nil, "Prints the server's Wiremod version")
 
 
-local material_blacklist = {
+local materialBlacklist = {
 	["engine/writez"] = true,
 	["pp/copy"] = true,
 	["effects/ar2_altfire1"] = true
 }
+
+function WireLib.BlacklistMaterial(material)
+    materialBlacklist[material] = true
+end
+
+local invalidMaterialCache = {}
+local invalidMaterialCacheCount = 0
+local invalidMaterialCacheSizeLimit = 500
+
+local function removeOldestCachedMaterial()
+    local oldestMaterial
+    local oldest = math.huge
+    for k, v in pairs(invalidMaterialCache) do
+        if v < oldest then oldest = v oldestMaterial = k end
+    end
+
+    invalidMaterialCache[oldestMaterial] = nil
+
+    invalidMaterialCacheCount = invalidMaterialCacheCount - 1
+end
+
+local function cacheInvalidMaterial(material)
+    if invalidMaterialCacheCount >= invalidMaterialCacheSizeLimit then removeOldestCachedMaterial() end
+
+    invalidMaterialCache[material] = CurTime()
+
+    invalidMaterialCacheCount = invalidMaterialCacheCount + 1
+end
+
+local function materialIsInvalid(material)
+    if invalidMaterialCache[material] then
+        invalidMaterialCache[material] = CurTime()
+
+        return true
+    end
+end
+
 function WireLib.IsValidMaterial(material)
 	material = string.sub(material, 1, 260)
+
+	if material == "" then return "" end
+
+	if materialIsInvalid(material) then return "" end
+
 	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
-	if material_blacklist[path] then return "" end
+
+	if materialBlacklist[path] then
+	    cacheInvalidMaterial(material)
+	    return ""
+    end
+
+	local materialTest = Material( material )
+	if not materialTest or materialTest:IsError() then
+	    cacheInvalidMaterial(material)
+	    return ""
+    end
+
 	return material
 end
 
