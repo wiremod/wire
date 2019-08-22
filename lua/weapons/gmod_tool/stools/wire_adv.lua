@@ -313,6 +313,7 @@ elseif CLIENT then
 
 	function TOOL:Holster()
 		if IsValid(self.CurrentEntity) then self.CurrentEntity:SetNWString("BlinkWire", "") end
+		if IsValid(self.AimingEnt) then self.AimingEnt:SetNWString("BlinkWire", "") end
 		self.CurrentEntity = nil
 		self.Wiring = {}
 		self.WiringRender = {}
@@ -1098,13 +1099,13 @@ elseif CLIENT then
 	function TOOL:StopRenderingCurrentWire()
 		hook.Remove("PostDrawOpaqueRenderables", "Wire.ToolWireRenderHook")
 		self.IsRenderingCurrentWire = false;
-		Wire_GrayOutWires = false
+		WireLib.Wire_GrayOutWires = false
 	end
 
 	function TOOL:BeginRenderingCurrentWire()
 		if self.IsRenderingCurrentWire then return end
 		self.IsRenderingCurrentWire = true
-		Wire_GrayOutWires = true
+		WireLib.Wire_GrayOutWires = true
 		hook.Add("PostDrawOpaqueRenderables", "Wire.ToolWireRenderHook", function()
 			-- Draw the wire path
 			render.SetColorMaterial()
