@@ -99,47 +99,71 @@ __e2setcost(10) -- temporary
 
 registerOperator("add", "ss", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) .. op2[1](self, op2)
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+
+	self.prf = self.prf + #rv1*0.01 + #rv2*0.01
+
+	return rv1 .. rv2
 end)
 
 /******************************************************************************/
 
 registerOperator("add", "sn", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) .. tostring(op2[1](self, op2))
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+
+	self.prf = self.prf + #rv1*0.01
+
+	return rv1 .. tostring(rv2)
 end)
 
 registerOperator("add", "ns", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
-	return tostring(op1[1](self, op1)) .. op2[1](self, op2)
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+
+	self.prf = self.prf + #rv2*0.01
+
+	return tostring(rv1) .. rv2
 end)
 
 /******************************************************************************/
 
 registerOperator("add", "sv", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
-	local rv2 = op2[1](self, op2)
-	return ("%s[%s,%s,%s]"):format( op1[1](self, op1),rv2[1],rv2[2],rv2[3] )
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+
+	self.prf = self.prf + #rv1*0.01
+
+	return ("%s[%s,%s,%s]"):format( rv1, rv2[1], rv2[2], rv2[3] )
 end)
 
 registerOperator("add", "vs", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
-	local rv1 = op1[1](self, op1)
-	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],op2[1](self, op2))
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+
+	self.prf = self.prf + #rv2*0.01
+
+	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],rv2)
 end)
 
 /******************************************************************************/
 
 registerOperator("add", "sa", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
-	local rv2 = op2[1](self, op2)
-	return ("%s[%s,%s,%s]"):format( op1[1](self, op1),rv2[1],rv2[2],rv2[3] )
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+
+	self.prf = self.prf + #rv1*0.01
+
+	return ("%s[%s,%s,%s]"):format( rv1,rv2[1],rv2[2],rv2[3] )
 end)
 
 registerOperator("add", "as", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
-	local rv1 = op1[1](self, op1)
-	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],op2[1](self, op2))
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+
+	self.prf = self.prf + #rv2*0.01
+
+	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],rv2)
 end)
 
 /******************************************************************************/
