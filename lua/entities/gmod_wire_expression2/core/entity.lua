@@ -191,8 +191,6 @@ e2function vector entity:angVelVector()
 	return phys:GetAngleVelocity()
 end
 
-__e2setcost(50) -- taken from find functions
-
 --- Specific to env_sun because Source is dum. Use this to trace towards the sun or something.
 e2function vector sunDirection()
 	return sun:GetKeyValues()["sun_dir"]
