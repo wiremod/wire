@@ -22,6 +22,8 @@ local validPhysics = E2Lib.validPhysics
 local getOwner     = E2Lib.getOwner
 local isOwner      = E2Lib.isOwner
 
+local sun = ents.FindByClass( "env_sun" )[1]
+
 registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	if funcname == "isOwner" then
 		isOwner = func
@@ -125,15 +127,20 @@ e2function entity entity:owner()
 	return getOwner(self, this)
 end
 
+__e2setcost(20)
+
 e2function table entity:keyvalues()
 	if not IsValid(this) then return nil end
-	return this:GetKeyValues()
-end
-
-__e2setcost(50) -- taken from find functions
-
-e2function entity sun()
-	return ents.FindByClass( "env_sun" )[1] or nil
+	local keyvalues = this:GetKeyValues()
+	local ret = {n={},ntypes={},s={},stypes={},size=0} -- default table
+	local size = 0
+	for k,v in pairs( keyvalues ) do
+		size = size + 1
+		ret.s[k] = v
+		ret.stypes[k] = string.lower(type(v)[1]) -- i swear there's a more elegant solution to this but whatever.
+	end
+	ret.size = size
+	return ret
 end
 
 __e2setcost(5) -- temporary
@@ -188,9 +195,7 @@ __e2setcost(50) -- taken from find functions
 
 --- Specific to env_sun because Source is dum. Use this to trace towards the sun or something.
 e2function vector sunDirection()
-	local sun = ents.FindByClass( "env_sun" )[1]
-	local sundir = sun:GetKeyValues()["sun_dir"]
-	return { sundir[1] , sundir[2], sundir[3] }
+	return sun:GetKeyValues()["sun_dir"]
 end
 
 /******************************************************************************/
