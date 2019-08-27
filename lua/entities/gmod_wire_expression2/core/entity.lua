@@ -130,9 +130,9 @@ end
 __e2setcost(20)
 
 e2function table entity:keyvalues()
-	if not IsValid(this) then return nil end
-	local keyvalues = this:GetKeyValues()
 	local ret = {n={},ntypes={},s={},stypes={},size=0} -- default table
+	if not IsValid(this) then return ret end
+	local keyvalues = this:GetKeyValues()
 	local size = 0
 	for k,v in pairs( keyvalues ) do
 		size = size + 1
