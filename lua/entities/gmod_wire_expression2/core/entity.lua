@@ -125,6 +125,19 @@ e2function entity entity:owner()
 	return getOwner(self, this)
 end
 
+e2function table entity:keyvalues()
+	if not IsValid(this) then return nil end
+	return this:GetKeyValues()
+end
+
+__e2setcost(50) -- taken from find functions
+
+e2function entity sun()
+	return ents.FindByClass( "env_sun" )[1] or nil
+end
+
+__e2setcost(5) -- temporary
+
 /******************************************************************************/
 // Functions getting vector
 e2function vector entity:pos()
@@ -169,6 +182,15 @@ e2function vector entity:angVelVector()
 	if not validPhysics(this) then return { 0, 0, 0 } end
 	local phys = this:GetPhysicsObject()
 	return phys:GetAngleVelocity()
+end
+
+__e2setcost(50) -- taken from find functions
+
+--- Specific to env_sun because Source is dum. Use this to trace towards the sun or something.
+e2function vector sunDirection()
+	local sun = ents.FindByClass( "env_sun" )[1]
+	local sundir = sun:GetKeyValues()["sun_dir"]
+	return { sundir[1] , sundir[2], sundir[3] }
 end
 
 /******************************************************************************/
