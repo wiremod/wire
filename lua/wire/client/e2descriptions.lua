@@ -179,7 +179,6 @@ E2Helper.Descriptions["owner()"] = "Gets the owner of the expression ( same as e
 E2Helper.Descriptions["id(e:)"] = "Gets the numeric id of an entity"
 E2Helper.Descriptions["noentity()"] = "Returns an invalid entity"
 E2Helper.Descriptions["world()"] = "Returns the world entity"
-E2Helper.Descriptions["sun()"] = "Returns the world's env_sun entity"
 E2Helper.Descriptions["sunDirection()"] = "Returns the vector direction that points towards the sun"
 E2Helper.Descriptions["type(e:)"] = "Gets the class of an entity"
 E2Helper.Descriptions["model(e:)"] = "Gets the model of an entity"
