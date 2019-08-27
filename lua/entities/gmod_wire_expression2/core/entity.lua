@@ -22,7 +22,14 @@ local validPhysics = E2Lib.validPhysics
 local getOwner     = E2Lib.getOwner
 local isOwner      = E2Lib.isOwner
 
-local sun = ents.FindByClass( "env_sun" )[1]
+local sun = ents.FindByClass("env_sun")[1] -- used for sunDirection()
+
+hook.Add("InitPostEntity","sunent",function()
+	sun = ents.FindByClass("env_sun")[1]
+	timer.Simple(0,function() -- make sure we have a sun first
+		hook.Remove("InitPostEntity","sunent")
+	end ) -- then remove this. we don't need it anymore.
+end )
 
 registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	if funcname == "isOwner" then
@@ -194,7 +201,7 @@ end
 --- Specific to env_sun because Source is dum. Use this to trace towards the sun or something.
 e2function vector sunDirection()
 	if not isValid(sun) then return { 0, 0, 0 } end
-	return sun:GetKeyValues()["sun_dir"]
+	return sun:GetKeyValues().sun_dir
 end
 
 /******************************************************************************/
