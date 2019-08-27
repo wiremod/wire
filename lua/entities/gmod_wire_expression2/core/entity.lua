@@ -125,11 +125,6 @@ e2function entity entity:owner()
 	return getOwner(self, this)
 end
 
-e2function table entity:keyvalues()
-	if not IsValid(this) then return nil end
-	return this:GetKeyValues()
-end
-
 __e2setcost(50) -- taken from find functions
 
 e2function entity sun()
