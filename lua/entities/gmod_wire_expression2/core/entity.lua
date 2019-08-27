@@ -193,6 +193,7 @@ end
 
 --- Specific to env_sun because Source is dum. Use this to trace towards the sun or something.
 e2function vector sunDirection()
+	if not isValid(sun) then return { 0, 0, 0 } end
 	return sun:GetKeyValues()["sun_dir"]
 end
 
