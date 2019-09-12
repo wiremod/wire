@@ -1116,7 +1116,7 @@ function EDITOR:ReplaceAll( str, replacewith )
 		self:SelectAll()
 		self:SetSelection( txt2 )
 	else
-			txt = string_gsub( txt, str, replacewith )
+		txt = string_gsub( txt, pattern, replacewith )
 
 		self:SelectAll()
 		self:SetSelection( txt )
