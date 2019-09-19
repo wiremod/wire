@@ -142,8 +142,6 @@ function peephole.mul(instruction)
     end
     -- (mul 1 x) → x
     if instruction[3][1] == "literal" and instruction[3][3] == 1 then return instruction[4] end
-    -- (mul 0 x) → 0
-    if instruction[3][1] == "literal" and instruction[3][3] == 0 then return instruction[3] end
     -- (mul -1 x) → (neg x)
     if instruction[3][1] == "literal" and instruction[3][3] == -1 then
         return {"neg", instruction[2], instruction[4]}
