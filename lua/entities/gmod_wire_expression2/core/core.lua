@@ -318,6 +318,14 @@ e2function void error( string reason )
 	error(reason, 2)
 end
 
+e2function void assert(condition)
+	if not condition then error("assert failed", 2) end
+end
+
+e2function void assert(condition, string reason)
+	if not condition then error(reason, 2) end
+end
+
 --------------------------------------------------------------------------------
 
 __e2setcost(100) -- approximation
