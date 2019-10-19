@@ -45,6 +45,7 @@ local function ResetRanger(self)
 	data.rangerignoreworld = false
 	data.rangerwater = false
 	data.rangerentities = true
+	data.rangerwhitelist = false
 	data.rangerfilter = { self.entity }
 	data.rangerfilter_lookup = table.MakeNonIterable{ [self.entity] = true }
 end
@@ -71,16 +72,19 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	local data = self.data
 	local chip = self.entity
 
+	local whitelist = data.rangerwhitelist
 	local defaultzero = data.rangerdefaultzero
 	local ignoreworld = data.rangerignoreworld
 	local water = data.rangerwater
 	local entities = data.rangerentities
+	
 	local filter = data.rangerfilter
+	local inversefilter = nil --used a nit further down
 
 	if not data.rangerpersist then ResetRanger(self) end
 
 	-- begin building tracedata structure
-	local tracedata = { filter = filter }
+	local tracedata = {}
 	if entities then
 		if ignoreworld then
 			if water then
@@ -138,6 +142,24 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	end
 
 	if IsErrorVector(tracedata.start) or IsErrorVector(tracedata.endpos) then return end
+	
+	
+	-- EDIT: give rangerFilter() different behaviors with rangerWhitelist()
+
+	if whitelist then --we only want to hit ents in the filter
+		inversefilter = ents.FindAlongRay( tracedata.start , tracedata.endpos )
+		
+		for _,ent in ipairs(filter) do
+			if IsValid(ent) then
+				table.RemoveByValue(inversefilter, ent) --filter all entities we could hit, then unfilter the ones we want
+			end
+		end		
+		
+		tracedata.filter = inversefilter
+	else --we only want to hit ents not in the filter
+		tracedata.filter = filter
+	end
+
 
 	---------------------------------------------------------------------------------------
 	local trace
@@ -220,6 +242,7 @@ local flaglookup = {
 	w = "rangerwater",
 	e = "rangerentities",
 	z = "rangerdefaultzero",
+	v = "rangerwhitelist",
 }
 
 --- Returns the ranger flags as a string.
@@ -259,9 +282,14 @@ e2function void rangerDefaultZero(defaultzero)
 	self.data.rangerdefaultzero = defaultzero ~= 0
 end
 
+--- Default is 0, rangerFilter() behaves like a blacklist.  1 makes rangerFilter() behave like a whitelist.
+e2function void rangerWhitelist(whitelist)
+	self.data.rangerwhitelist = whitelist ~= 0
+end
+
 __e2setcost(10)
 
---- Feed entities you don't want the trace to hit
+--- Feed entities you don't... or maybe only want to hit
 e2function void rangerFilter(entity ent)
 	if IsValid(ent) and not self.data.rangerfilter_lookup[ent] then
 		local n = #self.data.rangerfilter+1
@@ -272,7 +300,7 @@ end
 
 __e2setcost(1)
 
---- Feed an array of entities you don't want the trace to hit
+--- Feed entities you don't... or maybe only want to hit
 e2function void rangerFilter(array filter)
 	local rangerfilter = self.data.rangerfilter
 	local n = #rangerfilter
