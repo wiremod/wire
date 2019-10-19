@@ -77,7 +77,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	local ignoreworld = data.rangerignoreworld
 	local water = data.rangerwater
 	local entities = data.rangerentities
-	
+
 	local filter = data.rangerfilter
 	local inversefilter = nil --used a nit further down
 
@@ -152,8 +152,8 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			if IsValid(ent) then
 				table.RemoveByValue(inversefilter, ent) --filter all entities we could hit, then unfilter the ones we want
 			end
-		end	
-		
+		end
+
 		tracedata.filter = inversefilter
 	else --we only want to hit ents not in the filter
 		tracedata.filter = filter
