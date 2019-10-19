@@ -142,18 +142,17 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	end
 
 	if IsErrorVector(tracedata.start) or IsErrorVector(tracedata.endpos) then return end
-	
-	
+
 	-- EDIT: give rangerFilter() different behaviors with rangerWhitelist()
 
 	if whitelist then --we only want to hit ents in the filter
 		inversefilter = ents.FindAlongRay( tracedata.start , tracedata.endpos )
-		
+
 		for _,ent in ipairs(filter) do
 			if IsValid(ent) then
 				table.RemoveByValue(inversefilter, ent) --filter all entities we could hit, then unfilter the ones we want
 			end
-		end		
+		end	
 		
 		tracedata.filter = inversefilter
 	else --we only want to hit ents not in the filter
