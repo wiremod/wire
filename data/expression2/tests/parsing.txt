@@ -1,0 +1,88 @@
+@inputs In
+@outputs Out
+
+local A = 0
+
+if (A) { A = 0 }
+if (A) { A = 0 } else { A = 0 }
+if (A) { A = 0 } elseif (A) { A = 0 }
+if (A) { A = 0 } elseif (A) { A = 0 }
+
+while (A) { A = 0 }
+
+for (B = 1, 2) { A = 0 }
+for (B = 1, 2, 3) { A = 0 }
+
+foreach (K, V: number = array(1, 2, 3)) { A = 0 }
+
+while (A) { break }
+while (A) { continue }
+
+A++
+A--
+A += 1
+A -= 1
+A *= 1
+A /= 1
+
+local B = vec()
+B[1] = 2
+
+switch (A) {
+    case A + A,
+        A = 0
+        A = 0
+    case A + A + A,
+        A = 0
+        break
+    default,
+        A = 0
+}
+
+function f() {}
+function void f() {}
+function void f() { return }
+function number g() { return 0 }
+function number f(X) { return X }
+function vector f(X: vector) { return X }
+function number f(X, Y) { return X + Y }
+function number f(X, Y: vector) { return X }
+function number f([X Y]) { return X + Y }
+function number f([X Y]: number) { return X + Y }
+
+A ? A : A
+A ?: A
+A | A
+A & A
+A || A
+A && A
+A ^^ A
+A == A
+A != A
+A > A
+A < A
+A >= A
+A <= A
+A << A
+A >> A
+A + A
+A - A
+A * A
+A / A
+A % A
+A ^ A
++A
+-A
+!A
+
+array():count()
+array()[0, number]
+(A)
+0
+"foo"
+~In
+$In
+->In
+A
+
+table(1 = 1, 2 = 2)

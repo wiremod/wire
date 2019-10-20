@@ -4,6 +4,7 @@
 
 local Clamp = math.Clamp
 local floor = math.floor
+local Round = math.Round
 
 local function RGBClamp(r,g,b)
 	return Clamp(r,0,255),Clamp(g,0,255),Clamp(b,0,255)
@@ -82,6 +83,24 @@ e2function void entity:setRenderMode(mode)
 
 	this:SetRenderMode(mode)
 	duplicator.StoreEntityModifier(this, "colour", { RenderMode = mode })
+end
+
+e2function vector entity:getPlayerColor()
+	if not IsValid(this) then return {0, 0, 0} end
+	if not this:IsPlayer() then return {0, 0, 0} end
+
+	local c = this:GetPlayerColor()
+
+	return { RGBClamp(Round(c.r * 255), Round(c.g * 255), Round(c.b * 255)) }
+end
+
+e2function vector entity:getWeaponColor()
+	if not IsValid(this) then return {0, 0, 0} end
+	if not this:IsPlayer() then return {0, 0, 0} end
+
+	local c = this:GetWeaponColor()
+
+	return { RGBClamp(Round(c.r * 255), Round(c.g * 255), Round(c.b * 255)) }
 end
 
 --- HSV
