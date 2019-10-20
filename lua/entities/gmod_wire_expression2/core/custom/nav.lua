@@ -1,20 +1,18 @@
---------------------
-
-local MapHasNav = navmesh.IsLoaded()
-hook.Add("PlayerInitialSpawn","__e2MapHasNav",function()
-	MapHasNav = navmesh.IsLoaded()
-	hook.Remove("PlayerInitialSpawn","__e2MapHasNav")
+local MAP_HAS_NAV = navmesh.IsLoaded()
+hook.Add("PlayerInitialSpawn","__e2_MAP_HAS_NAV",function()
+	MAP_HAS_NAV = navmesh.IsLoaded()
+	hook.Remove("PlayerInitialSpawn","__e2_MAP_HAS_NAV")
 end )
-local NullMesh = navmesh.GetNavAreaByID(0)
-local NullVec = Vector()
-local NullTable = {}
+local nullMesh = navmesh.GetNavAreaByID(0)
+local nullVec = Vector()
+local nullTable = {}
 
 local Clamp = math.Clamp
 local floor = math.floor
 
 --------------------
 
-registerType("navmesh", "xnv", NullMesh,
+registerType("navmesh", "xnv", nullMesh,
 	nil,
 	nil,
 	function(retval)
@@ -55,8 +53,8 @@ E2Lib.RegisterExtension("nav", false, "Read navmesh data from the map if it has 
 --------------------
 
 local function NavBounds(nav)
-	if not IsValid(nav) then return NullTable end
-	local t=NullTable
+	if not IsValid(nav) then return nullTable end
+	local t=nullTable
 	local c = nav:GetCenter()
 	local mx,my,mz,MX,MY,MZ = c.x,c.y,c.z,c.x,c.y,c.z
 	for i=1,4 do
@@ -81,7 +79,7 @@ function Astar( start, goal )
 
 	start:AddToOpenList()
 
-	local cameFrom = NullTable
+	local cameFrom = nullTable
 
 	start:SetCostSoFar( 0 )
 
@@ -152,23 +150,23 @@ __e2setcost(20) --i don't actually know how to measure this, but judging by CPU 
  -- hovers around 150uS usage with an example setPos() walker chip that is running on tick. ~8uS on a 500mS inverval.
 
 e2function navmesh navmesh()
-	if not MapHasNav then return NullMesh end -- needs to return null mesh for other funcs to work
+	if not MAP_HAS_NAV then return nullMesh end -- needs to return null mesh for other funcs to work
 	local pos = self.entity:GetPos() --just in case.
 	return navmesh.GetNavArea(pos,30) -- 30 = about eyelevel height when crouching
 end -- don't set higher, it likes to pick navmeshes that are underground if you do. alternatively, allow user to specify?
 
 e2function navmesh navmesh(vector pos)
-	if not MapHasNav then return NullMesh end
+	if not MAP_HAS_NAV then return nullMesh end
 	local nav = navmesh.GetNavArea(pos,30)
 end
 
 e2function navmesh navmesh(vector pos,number checkDistance) -- actually yeah let's do exactly that.
-	if not MapHasNav then return NullMesh end
+	if not MAP_HAS_NAV then return nullMesh end
 	local nav = navmesh.GetNavArea(pos,checkDistance)
 end
 
 e2function navmesh navmesh(number id)
-	if not MapHasNav then return NullMesh end
+	if not MAP_HAS_NAV then return nullMesh end
 	local nav = navmesh.GetNavAreaByID(id)
 end
 
@@ -178,19 +176,19 @@ e2function number navmesh:navID()
 end
 
 e2function vector navmesh:navCenter()
-	if not IsValid(this) then return NullVec end
+	if not IsValid(this) then return nullVec end
 	return this:GetCenter()
 end
 
 e2function vector navmesh:navCorner(number corner)
-	if not IsValid(this) then return NullVec end
+	if not IsValid(this) then return nullVec end
 	local clampnum = Clamp(floor(corner),1,4)
 	return this:GetCorner(clampnum-1) -- arrays start with 1
 end --NE NW SW SE.
 
 e2function array navmesh:navGetCorners()
-	if not IsValid(this) then return NullTable end
-	local t=NullTable
+	if not IsValid(this) then return nullTable end
+	local t=nullTable
 	for i=1,4 do
 		t[i] = this:GetCorner(i-1)
 	end
@@ -208,12 +206,12 @@ e2function array navmesh:navBBox()
 end
 
 e2function vector navmesh:navRandom()
-	if not IsValid(this) then return NullVec end
+	if not IsValid(this) then return nullVec end
 	return this:GetRandomPoint()
 end
 
 e2function vector navmesh:navClosestPoint(vector vector)
-	if not IsValid(this) then return NullVec end
+	if not IsValid(this) then return nullVec end
 	return this:GetClosestPointOnArea(vector)
 end
 
@@ -227,7 +225,7 @@ e2function number navmesh:navIsConnected(navmesh nav)
 	local c = this:IsConnected(navmesh)
 	--[[ [ERROR] entities/gmod_wire_expression2/core/custom/nav.lua:194: 'do' expected near 'a' -- fuck you
 	if c then
-		local a = NullTable
+		local a = nullTable
 		local side = 5 --returns "side 5" (vertical connections, should probably never be returned)
 		for i=0,3
 			a = this:GetAdjacentAreasAtSide(i)
@@ -241,29 +239,29 @@ e2function number navmesh:navIsConnected(navmesh nav)
 end
 
 e2function array navmesh:navConnectedMeshes()
-	if not IsValid(this) then return NullTable end
+	if not IsValid(this) then return nullTable end
 	return this:GetAdjacentAreas()
 end
 
 e2function array navmesh:navConnectedMeshesOnSide(number side)
-	if not IsValid(this) then return NullTable end
-	local clampnum = Clamp(floor(side),1,4)
-	return this:GetAdjacentAreasAtSide(clampnum-1)
+	if not IsValid(this) then return nullTable end
+	local clampNum = Clamp(floor(side),1,4)
+	return this:GetAdjacentAreasAtSide(clampNum-1)
 end
 
 e2function array navmesh:navIncomingMeshes()
-	if not IsValid(this) then return NullTable end
+	if not IsValid(this) then return nullTable end
 	return this:GetIncomingConnections()
 end
 
 e2function array navmesh:navIncomingMeshesOnSide(number side)
-	if not IsValid(this) then return NullTable end
-	local clampnum = Clamp(floor(side),1,4)
-	return this:GetIncomingConnectionsAtSide(clampnum-1)
+	if not IsValid(this) then return nullTable end
+	local clampNum = Clamp(floor(side),1,4)
+	return this:GetIncomingConnectionsAtSide(clampNum-1)
 end
 
 e2function array navFindPath(vector start,vector goal)
-	if not MapHasNav then return NullTable end
+	if not MAP_HAS_NAV then return nullTable end
 	local s = navmesh.GetNearestNavArea(start)
 	local g = navmesh.GetNearestNavArea(goal)
 	local r = Astar(s,g)
@@ -272,7 +270,7 @@ e2function array navFindPath(vector start,vector goal)
 end
 
 e2function array navFindPath(navmesh start,vector goal)
-	if not MapHasNav then return NullTable end
+	if not MAP_HAS_NAV then return nullTable end
 	local g = navmesh.GetNearestNavArea(goal)
 	local r = Astar(start,g)
 	if r == true then return {g} elseif not r then return {}
@@ -280,24 +278,24 @@ e2function array navFindPath(navmesh start,vector goal)
 end
 
 e2function array navFindPath(navmesh start,navmesh goal)
-	if not MapHasNav then return NullTable end
+	if not MAP_HAS_NAV then return nullTable end
 	local r = Astar(start,goal) --already checks validity
 	if r == true then return {goal} elseif not r then return {}
 	else return r end
 end
 
 e2function array navmesh:navHidingSpots()
-	if not IsValid(this) then return NullTable end
+	if not IsValid(this) then return nullTable end
 	return this:GetHidingSpots()
 end
 
 e2function array navmesh:navExposedSpots()
-	if not IsValid(this) then return NullTable end
+	if not IsValid(this) then return nullTable end
 	return this:GetExposedSpots()
-end -- kind of tempted to do a distance-sorted find-all-hiding-spots sort of deal. nah.
+end -- kind of tempted to do a distance-sorted find-all-hiding- spots sort of deal. nah.
 
 e2function navmesh navNearestMesh(vector vector,number checkLOS)
-	if not MapHasNav then return NullMesh end
+	if not MAP_HAS_NAV then return nullMesh end
 	local check = false
 	if checkLOS ~= 0 then check = true end
 	return navmesh.GetNearestNavArea(vector,nil,nil,check)
@@ -305,34 +303,34 @@ end
 
 --[[ -- way too strong. crashed my client with printTable(AllNavs). don't use.
 e2function array navmeshes()
-	if not MapHasNav then return NullTable end
+	if not MAP_HAS_NAV then return nullTable end
 	return navmesh.GetAllNavAreas()
 end
 ]]--
 
 e2function array navmeshes()
-	if not MapHasNav then return NullTable end
+	if not MAP_HAS_NAV then return nullTable end
 	return navmesh.Find(self.entity:GetPos(),5000,50,50)
 end
 
 e2function array navmeshes(vector origin)
-	if not MapHasNav then return NullTable end
+	if not MAP_HAS_NAV then return nullTable end
 	return navmesh.Find(origin,10000,50,50)
 end
 
 e2function array navmeshes(vector origin,number radius)
-	if not MapHasNav then return NullTable end
+	if not MAP_HAS_NAV then return nullTable end
 	local c = math.min(radius,10000)
 	return navmesh.Find(origin,c,50,50)
 end
 
 e2function array navmeshes(vector origin,number radius, number dropheight, number jumpheight)
-	if not MapHasNav then return NullTable end
+	if not MAP_HAS_NAV then return nullTable end
 	local c = math.min(radius,10000)
 	return navmesh.Find(origin,c,dropheight,jumpheight)
 end
 
 e2function array navmeshes(vector origin,number dropheight, number jumpheight)
-	if not MapHasNav then return NullTable end
+	if not MAP_HAS_NAV then return nullTable end
 	return navmesh.Find(origin,10000,dropheight,jumpheight)
 end
