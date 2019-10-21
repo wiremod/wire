@@ -263,7 +263,7 @@ e2function array navFindPath(vector start, vector goal)
 	if not MAP_HAS_NAV then return nullTable end
 	local s = navmesh.GetNearestNavArea(start)
 	local g = navmesh.GetNearestNavArea(goal)
-	local r = Astar( s, g )
+	local r = Astar(s, g)
 	if r == true then return { g } elseif not r then return nullTable
 	else return r end
 end
