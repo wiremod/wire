@@ -3,6 +3,7 @@ hook.Add("PlayerInitialSpawn","__e2_MAP_HAS_NAV",function()
 	MAP_HAS_NAV = navmesh.IsLoaded()
 	hook.Remove("PlayerInitialSpawn","__e2_MAP_HAS_NAV")
 end )
+
 local nullMesh = navmesh.GetNavAreaByID(0)
 local nullVec = Vector()
 local nullTable = {}
@@ -32,7 +33,7 @@ registerOperator("ass", "xnv", "xnv", function(self, args)
 	self.Scopes[scope][op1] = rv2
 	self.Scopes[scope].vclk[op1] = true
 	return rv2
-end)
+end )
 
 e2function number operator_is(navmesh nav)
 	if IsValid(nav) then return 1 else return 0 end
@@ -54,92 +55,90 @@ E2Lib.RegisterExtension("nav", false, "Read navmesh data from the map if it has 
 
 local function NavBounds(nav)
 	if not IsValid(nav) then return nullTable end
-	local t=nullTable
+	local t = nullTable
 	local c = nav:GetCenter()
-	local mx,my,mz,MX,MY,MZ = c.x,c.y,c.z,c.x,c.y,c.z
+	local mx, my, mz, MX, MY, MZ = c.x, c.y, c.z, c.x, c.y, c.z
 	for i=1,4 do
 		t[i] = nav:GetCorner(i-1)
-		mx = math.min(t[i].x,mx)
-		my = math.min(t[i].y,my)
-		mz = math.min(t[i].z,mz)
-		MX = math.max(t[i].x,MX)
-		MY = math.max(t[i].y,MY)
-		MZ = math.max(t[i].z,MZ)
+		mx = math.min(t[i].x, mx)
+		my = math.min(t[i].y, my)
+		mz = math.min(t[i].z, mz)
+		MX = math.max(t[i].x, MX)
+		MY = math.max(t[i].y, MY)
+		MZ = math.max(t[i].z, MZ)
 	end
-	return {Vector(mx,my,mz),Vector(MX,MY,MZ)}
+	return { Vector(mx, my, mz), Vector(MX, MY, MZ) }
 end
 
---------------------
+-------------------- TODO: refactor/rewrite Astar to remove more garrycode such as continue
 
-function Astar( start, goal )
-	if not IsValid( start ) or not IsValid( goal ) then return false end
+function Astar(start, goal)
+	if not IsValid(start) or not IsValid(goal) then return false end
 	if start == goal then return true end
-
+	
 	start:ClearSearchLists()
-
+	
 	start:AddToOpenList()
-
+	
 	local cameFrom = nullTable
-
-	start:SetCostSoFar( 0 )
-
-	start:SetTotalCost( heuristic_cost_estimate( start, goal ) )
+	
+	start:SetCostSoFar(0)
+	
+	start:SetTotalCost(heuristic_cost_estimate(start, goal))
 	start:UpdateOnOpenList()
-
+	
 	while not start:IsOpenListEmpty() do
 		local current = start:PopOpenList() -- Remove the area with lowest cost in the open list and return it
 		if current == goal then
-			return reconstruct_path( cameFrom, current )
+			return reconstruct_path(cameFrom, current)
 		end
-
+		
 		current:AddToClosedList()
-
-		for k, neighbor in pairs( current:GetAdjacentAreas() ) do
-			local newCostSoFar = current:GetCostSoFar() + heuristic_cost_estimate( current, neighbor )
-
+		
+		for k, neighbor in pairs(current:GetAdjacentAreas()) do
+			local newCostSoFar = current:GetCostSoFar() + heuristic_cost_estimate(current, neighbor)
+			
 			if neighbor:IsUnderwater() then -- Add your own area filters or whatever here
 				continue
-			end
-
+			end -- TODO: this basically completely excludes underwater areas from being in the path found, huh? should we make prefilters like we do with finds? afaik the standard functions only give IsUnderwater and IsBlocked
+			
 			if ( neighbor:IsOpen() or neighbor:IsClosed() ) and neighbor:GetCostSoFar() <= newCostSoFar then
 				continue
 			else
-				neighbor:SetCostSoFar( newCostSoFar );
-				neighbor:SetTotalCost( newCostSoFar + heuristic_cost_estimate( neighbor, goal ) )
-
-				if ( neighbor:IsClosed() ) then
-
+				neighbor:SetCostSoFar(newCostSoFar);
+				neighbor:SetTotalCost(newCostSoFar + heuristic_cost_estimate(neighbor, goal))
+				
+				if neighbor:IsClosed() then
 					neighbor:RemoveFromClosedList()
 				end
-
-				if ( neighbor:IsOpen() ) then
+				
+				if neighbor:IsOpen() then
 					-- This area is already on the open list, update its position in the list to keep costs sorted
 					neighbor:UpdateOnOpenList()
 				else
 					neighbor:AddToOpenList()
 				end
-
-				cameFrom[ neighbor:GetID() ] = current:GetID()
+				
+				cameFrom[neighbor:GetID()] = current:GetID()
 			end
 		end
 	end
-
+	
 	return false
 end
 
-function heuristic_cost_estimate( start, goal )
+function heuristic_cost_estimate(start, goal)
 	-- Perhaps play with some calculations on which corner is closest/farthest or whatever
-	return start:GetCenter():Distance( goal:GetCenter() )
+	return start:GetCenter():Distance(goal:GetCenter())
 end
 
 -- using CNavAreas as table keys doesn't work, we use IDs
-function reconstruct_path( cameFrom, current )
+function reconstruct_path(cameFrom, current)
 	local total_path = { current }
-
 	current = current:GetID()
-	while cameFrom[ current ] do
-		current = cameFrom[ current ]
-		table.insert( total_path, navmesh.GetNavAreaByID( current ) )
+	while cameFrom[current] do
+		current = cameFrom[current]
+		table.insert(total_path, navmesh.GetNavAreaByID(current))
 	end
 	return total_path
 end
@@ -188,7 +187,7 @@ end --NE NW SW SE.
 
 e2function array navmesh:navGetCorners()
 	if not IsValid(this) then return nullTable end
-	local t=nullTable
+	local t = nullTable
 	for i=1,4 do
 		t[i] = this:GetCorner(i-1)
 	end
@@ -215,8 +214,8 @@ e2function vector navmesh:navClosestPoint(vector vector)
 	return this:GetClosestPointOnArea(vector)
 end
 
-e2function number navmesh:navContains(vector testpoint)
-	if IsValid(this) and this:Contains(testpoint) then return 1
+e2function number navmesh:navContains(vector testPoint)
+	if IsValid(this) and this:Contains(testPoint) then return 1
 	else return 0 end --should we return the testpoint vector instead of a number? -- no
 end
 
@@ -256,31 +255,31 @@ end
 
 e2function array navmesh:navIncomingMeshesOnSide(number side)
 	if not IsValid(this) then return nullTable end
-	local clampNum = Clamp(floor(side),1,4)
+	local clampNum = Clamp(floor(side), 1, 4)
 	return this:GetIncomingConnectionsAtSide(clampNum-1)
 end
 
-e2function array navFindPath(vector start,vector goal)
+e2function array navFindPath(vector start, vector goal)
 	if not MAP_HAS_NAV then return nullTable end
 	local s = navmesh.GetNearestNavArea(start)
 	local g = navmesh.GetNearestNavArea(goal)
-	local r = Astar(s,g)
-	if r == true then return {g} elseif not r then return {}
+	local r = Astar( s, g )
+	if r == true then return { g } elseif not r then return nullTable
 	else return r end
 end
 
-e2function array navFindPath(navmesh start,vector goal)
+e2function array navFindPath(navmesh start, vector goal)
 	if not MAP_HAS_NAV then return nullTable end
 	local g = navmesh.GetNearestNavArea(goal)
 	local r = Astar(start,g)
-	if r == true then return {g} elseif not r then return {}
+	if r == true then return { g } elseif not r then return nullTable
 	else return r end
 end
 
-e2function array navFindPath(navmesh start,navmesh goal)
+e2function array navFindPath(navmesh start, navmesh goal)
 	if not MAP_HAS_NAV then return nullTable end
-	local r = Astar(start,goal) --already checks validity
-	if r == true then return {goal} elseif not r then return {}
+	local r = Astar(start, goal) --already checks validity
+	if r == true then return { goal } elseif not r then return nullTable
 	else return r end
 end
 
@@ -294,11 +293,11 @@ e2function array navmesh:navExposedSpots()
 	return this:GetExposedSpots()
 end -- kind of tempted to do a distance-sorted find-all-hiding- spots sort of deal. nah.
 
-e2function navmesh navNearestMesh(vector vector,number checkLOS)
+e2function navmesh navNearestMesh(vector vector, number checkLOS)
 	if not MAP_HAS_NAV then return nullMesh end
 	local check = false
 	if checkLOS ~= 0 then check = true end
-	return navmesh.GetNearestNavArea(vector,nil,nil,check)
+	return navmesh.GetNearestNavArea(vector, nil, nil, check)
 end
 
 --[[ -- way too strong. crashed my client with printTable(AllNavs). don't use.
@@ -310,27 +309,27 @@ end
 
 e2function array navmeshes()
 	if not MAP_HAS_NAV then return nullTable end
-	return navmesh.Find(self.entity:GetPos(),5000,50,50)
+	return navmesh.Find(self.entity:GetPos(), 5000, 50, 50)
 end
 
 e2function array navmeshes(vector origin)
 	if not MAP_HAS_NAV then return nullTable end
-	return navmesh.Find(origin,10000,50,50)
+	return navmesh.Find(origin, 10000, 50, 50)
 end
 
-e2function array navmeshes(vector origin,number radius)
+e2function array navmeshes(vector origin, number radius)
 	if not MAP_HAS_NAV then return nullTable end
-	local c = math.min(radius,10000)
-	return navmesh.Find(origin,c,50,50)
+	local c = math.min(radius, 10000) -- 59 units is the max height a bot will try to jump up. Src: Valve developer wiki
+	return navmesh.Find(origin, c, 50, 50) -- Auto generated navmeshes are known to have impossible jumps on slopes. Src: gm_construct_flatgrass_v6-2
 end
 
-e2function array navmeshes(vector origin,number radius, number dropheight, number jumpheight)
+e2function array navmeshes(vector origin, number radius, number dropHeight, number jumpHeight)
 	if not MAP_HAS_NAV then return nullTable end
-	local c = math.min(radius,10000)
-	return navmesh.Find(origin,c,dropheight,jumpheight)
+	local c = math.min(radius, 10000)
+	return navmesh.Find(origin, c, dropheight, jumpheight)
 end
 
-e2function array navmeshes(vector origin,number dropheight, number jumpheight)
+e2function array navmeshes(vector origin, number dropHeight, number jumpHeight)
 	if not MAP_HAS_NAV then return nullTable end
-	return navmesh.Find(origin,10000,dropheight,jumpheight)
+	return navmesh.Find(origin, 10000, dropHeight, jumpHeight)
 end
