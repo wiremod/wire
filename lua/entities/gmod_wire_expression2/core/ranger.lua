@@ -39,13 +39,16 @@ E2Lib.RegisterExtension("ranger", true, "Lets E2 chips trace rays and check for 
 -- Main function --
 -------------------
 
+
+
+
 local function ResetRanger(self)
 	local data = self.data
 	data.rangerdefaultzero = false
 	data.rangerignoreworld = false
 	data.rangerwater = false
 	data.rangerentities = true
-	data.rangerwhitelist = false
+	data.rangerwhitelistmode = false
 	data.rangerfilter = { self.entity }
 	data.rangerfilter_lookup = table.MakeNonIterable{ [self.entity] = true }
 end
@@ -68,18 +71,34 @@ local function entitiesAndWaterTrace( tracedata, tracefunc )
 	return trace1.fraction < trace2.fraction and trace1 or trace2
 end
 
+local function getFilter(invert,inputfilter,tracedat) -- activate if whitelistmode is on, used later
+
+	if invert then
+		tracedat.filter = ents.FindAlongRay( tracedat.start , tracedat.endpos, tracedat.mins, tracedat.maxs ) --convienently recieves nil values if not a hull trace
+
+		for _,ent in ipairs(inputfilter) do
+			if IsValid(ent) then
+				table.RemoveByValue(tracedat.filter, ent) --filter all entities we could hit, then unfilter the ones we want
+			end
+		end
+	else
+		tracedat.filter = inputfilter
+	end
+
+end
+
 local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, traceEntity )
 	local data = self.data
 	local chip = self.entity
 
-	local whitelist = data.rangerwhitelist
+	local whitelistmode = data.rangerwhitelistmode
 	local defaultzero = data.rangerdefaultzero
 	local ignoreworld = data.rangerignoreworld
 	local water = data.rangerwater
 	local entities = data.rangerentities
 
 	local filter = data.rangerfilter
-	local inversefilter = nil --used a nit further down
+	local finalfilter = nil
 
 	if not data.rangerpersist then ResetRanger(self) end
 
@@ -143,27 +162,18 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 
 	if IsErrorVector(tracedata.start) or IsErrorVector(tracedata.endpos) then return end
 
-	-- EDIT: give rangerFilter() different behaviors with rangerWhitelist()
+	-- EDIT: give rangerFilter() different behaviors with rangerwhitelistmode()
 
-	if whitelist then --we only want to hit ents in the filter
-		inversefilter = ents.FindAlongRay( tracedata.start , tracedata.endpos )
-
-		for _,ent in ipairs(filter) do
-			if IsValid(ent) then
-				table.RemoveByValue(inversefilter, ent) --filter all entities we could hit, then unfilter the ones we want
-			end
-		end
-
-		tracedata.filter = inversefilter
-	else --we only want to hit ents not in the filter
-		tracedata.filter = filter
-	end
 
 
 	---------------------------------------------------------------------------------------
 	local trace
 	if IsValid(traceEntity) then
+
+		getFilter(whitelistmode,filter,tracedata) -- condensed all the rangerWhitelist stuff down into one function, should be more "readable" now
+
 		if tracedata.entitiesandwater then
+
 			trace = entitiesAndWaterTrace( tracedata, function()
 				return util.TraceEntity( tracedata, traceEntity )
 			end )
@@ -193,6 +203,12 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		-- If max is less than min it'll cause a hang
 		OrderVectors(tracedata.mins, tracedata.maxs)
 
+		getFilter(whitelistmode,filter,tracedata)
+
+		if whitelistmode then
+			tracedata.filter[#tracedata.filter] = chip
+		end
+
 		if tracedata.entitiesandwater then
 			trace = entitiesAndWaterTrace( tracedata, function()
 				return util.TraceHull( tracedata )
@@ -201,6 +217,9 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			trace = util.TraceHull( tracedata )
 		end
 	else
+
+	getFilter(whitelistmode,filter,tracedata)
+
 		if tracedata.entitiesandwater then
 			trace = entitiesAndWaterTrace( tracedata, function()
 				return util.TraceLine( tracedata )
@@ -241,7 +260,7 @@ local flaglookup = {
 	w = "rangerwater",
 	e = "rangerentities",
 	z = "rangerdefaultzero",
-	v = "rangerwhitelist",
+	v = "rangerwhitelistmode",
 }
 
 --- Returns the ranger flags as a string.
@@ -281,9 +300,9 @@ e2function void rangerDefaultZero(defaultzero)
 	self.data.rangerdefaultzero = defaultzero ~= 0
 end
 
---- Default is 0, rangerFilter() behaves like a blacklist.  1 makes rangerFilter() behave like a whitelist.
-e2function void rangerWhitelist(whitelist)
-	self.data.rangerwhitelist = whitelist ~= 0
+--- Default is 0, rangerFilter() behaves like a blacklist.  1 makes rangerFilter() behave like a whitelistmode.
+e2function void rangerWhitelist(whitelistmode)
+	self.data.rangerwhitelistmode = whitelistmode ~= 0
 end
 
 __e2setcost(10)
