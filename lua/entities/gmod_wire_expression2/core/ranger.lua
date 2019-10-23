@@ -75,7 +75,7 @@ local function getFilter(invert,inputfilter,tracedat) -- activates if whitelistm
 
 	if invert then
 		-- mins and maxs are nil if this isn't a hull trace
-		tracedat.filter = ents.FindAlongRay( tracedat.start , tracedat.endpos, tracedat.mins, tracedat.maxs ) 
+		tracedat.filter = ents.FindAlongRay( tracedat.start , tracedat.endpos, tracedat.mins, tracedat.maxs )
 		-- set real filter to everything we MIGHT hit for now
 
 		self.prf = self.prf + #tracedat.filter*2 -- add 2 ops for every potential entity hit, tells how expensive the find was
