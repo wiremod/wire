@@ -71,19 +71,25 @@ local function entitiesAndWaterTrace( tracedata, tracefunc )
 	return trace1.fraction < trace2.fraction and trace1 or trace2
 end
 
-local function getFilter(invert,inputfilter,tracedat) -- activate if whitelistmode is on, used later
+local function getFilter(invert,inputfilter,tracedat) -- activates if whitelistmode is on, sets up ranger filter
 
 	if invert then
-		tracedat.filter = ents.FindAlongRay( tracedat.start , tracedat.endpos, tracedat.mins, tracedat.maxs ) --convienently recieves nil values if not a hull trace
+		-- mins and maxs are nil if this isn't a hull trace
+		tracedat.filter = ents.FindAlongRay( tracedat.start , tracedat.endpos, tracedat.mins, tracedat.maxs ) 
+		-- set real filter to everything we MIGHT hit for now
+
+		self.prf = self.prf + #tracedat.filter*2 -- add 2 ops for every potential entity hit, tells how expensive the find was
 
 		for _,ent in ipairs(inputfilter) do
 			if IsValid(ent) then
-				table.RemoveByValue(tracedat.filter, ent) --filter all entities we could hit, then unfilter the ones we want
+				table.RemoveByValue(tracedat.filter, ent) -- remove the entities we want to hit from the filter
 			end
 		end
 	else
-		tracedat.filter = inputfilter
+		tracedat.filter = inputfilter -- normal blacklist mode, just return the filter they gave us
 	end
+
+	self.prf = self.prf + #tracedat.filter*2 -- add 2 ops for each entity in filter; discourage filtering lots of entities
 
 end
 
