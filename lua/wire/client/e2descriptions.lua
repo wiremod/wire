@@ -1168,7 +1168,6 @@ E2Helper.Descriptions["holoModelAny()"] = "Returns 1 if models outside of holoMo
 E2Helper.Descriptions["holoModelList()"] = "Returns the list of valid models\nSee holoModelAny()"
 E2Helper.Descriptions["holoParent(ne)"] = "Parents the hologram to an entity"
 E2Helper.Descriptions["holoParent(nn)"] = "Parents the hologram to another hologram"
-E2Helper.Descriptions["holoParent(nb)"] = "Parents the hologram to a bone"
 E2Helper.Descriptions["holoParentAttachment(nes)"] = "Parents the hologram to an entity's bone by its attachment name"
 E2Helper.Descriptions["holoUnparent(n)"] = "Un-parents the hologram"
 E2Helper.Descriptions["holoPos(nv)"] = "Sets the position of the hologram"
