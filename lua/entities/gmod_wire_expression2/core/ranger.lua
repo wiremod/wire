@@ -71,25 +71,27 @@ local function entitiesAndWaterTrace( tracedata, tracefunc )
 	return trace1.fraction < trace2.fraction and trace1 or trace2
 end
 
-local function getFilter(invert,inputfilter,tracedat) -- activates if whitelistmode is on, sets up ranger filter
+local function getFilter(invert,inputfilter,tracedat,self) -- activate if whitelistmode is on, used later
 
 	if invert then
-		-- mins and maxs are nil if this isn't a hull trace
-		tracedat.filter = ents.FindAlongRay( tracedat.start , tracedat.endpos, tracedat.mins, tracedat.maxs )
+		tracedat.filter = {self.entity}
+		local foundEnts = ents.FindAlongRay( tracedat.start , tracedat.endpos, tracedat.mins, tracedat.maxs )
 		-- set real filter to everything we MIGHT hit for now
 
-		self.prf = self.prf + #tracedat.filter*2 -- add 2 ops for every potential entity hit, tells how expensive the find was
-
-		for _,ent in ipairs(inputfilter) do
-			if IsValid(ent) then
-				table.RemoveByValue(tracedat.filter, ent) -- remove the entities we want to hit from the filter
+		for _,found in ipairs(foundEnts) do
+			for _,ent in ipairs(inputfilter) do
+				if ent==found then
+					goto nextEnt
+				end
 			end
+			tracedat.filter[#tracedat.filter + 1] = found
+			::nextEnt::
 		end
-	else
-		tracedat.filter = inputfilter -- normal blacklist mode, just return the filter they gave us
-	end
 
-	self.prf = self.prf + #tracedat.filter*2 -- add 2 ops for each entity in filter; discourage filtering lots of entities
+		self.prf = self.prf + #tracedat.filter*2 -- add 2 ops for every potential entity hit, tells how expensive the find was
+	else
+		tracedat.filter = inputfilter
+	end
 
 end
 
@@ -176,7 +178,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	local trace
 	if IsValid(traceEntity) then
 
-		getFilter(whitelistmode,filter,tracedata) -- condensed all the rangerWhitelist stuff down into one function, should be more "readable" now
+		getFilter(whitelistmode,filter,tracedata,self) -- condensed all the rangerWhitelist stuff down into one function, should be more "readable" now
 
 		if tracedata.entitiesandwater then
 
@@ -209,7 +211,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		-- If max is less than min it'll cause a hang
 		OrderVectors(tracedata.mins, tracedata.maxs)
 
-		getFilter(whitelistmode,filter,tracedata)
+		getFilter(whitelistmode,filter,tracedata,self)
 
 		if whitelistmode then
 			tracedata.filter[#tracedata.filter] = chip
@@ -224,7 +226,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		end
 	else
 
-	getFilter(whitelistmode,filter,tracedata)
+	getFilter(whitelistmode,filter,tracedata,self)
 
 		if tracedata.entitiesandwater then
 			trace = entitiesAndWaterTrace( tracedata, function()
