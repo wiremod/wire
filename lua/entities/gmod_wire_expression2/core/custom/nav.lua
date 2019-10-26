@@ -8,6 +8,9 @@ local NULL_MESH = navmesh.GetNavAreaByID(0)
 local NULL_VEC = Vector()
 local NULL_TABLE = {}
 
+local aStarLoopCheck = 0
+local ASTAR_OP_MULTIPLIER = 10
+
 local Clamp = math.Clamp
 local floor = math.floor
 
@@ -82,14 +85,22 @@ function Astar(start, goal)
 	
 	local cameFrom = NULL_TABLE
 	
+	aStarLoopCheck = 0
+	local aStarIterator = 0
+	
 	start:SetCostSoFar(0)
 	
 	start:SetTotalCost(heuristic_cost_estimate(start, goal))
 	start:UpdateOnOpenList()
 	
 	while not start:IsOpenListEmpty() do
+		if aStarLoopCheck > 10 then return false end -- we looped too many times!! -- TODO: this never happens because nothing increases this value.
+		
+		aStarIterator = aStarIterator + 1
+		
 		local current = start:PopOpenList() -- Remove the area with lowest cost in the open list and return it
 		if current == goal then
+			self.prf = self.prf + aStarIterator * aStarOpMultiplier
 			return reconstruct_path(cameFrom, current)
 		end
 		
@@ -123,7 +134,7 @@ function Astar(start, goal)
 			end
 		end
 	end
-	
+	self.prf = self.prf + aStarIterator * aStarOpMultiplier
 	return false
 end
 
