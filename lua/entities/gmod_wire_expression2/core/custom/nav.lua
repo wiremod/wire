@@ -30,6 +30,8 @@ registerType("navmesh", "xnv", NULL_MESH,
 	end
 )
 
+__e2setcost(5)
+
 registerOperator("ass", "xnv", "xnv", function(self, args)
 	local op1, op2, scope = args[2], args[3], args[4]
 	local      rv2 = op2[1](self, op2)
@@ -100,7 +102,7 @@ function Astar(start, goal)
 		
 		local current = start:PopOpenList() -- Remove the area with lowest cost in the open list and return it
 		if current == goal then
-			self.prf = self.prf + aStarIterator * aStarOpMultiplier
+			self.prf = self.prf + aStarIterator * ASTAR_OP_MULTIPLIER
 			return reconstruct_path(cameFrom, current)
 		end
 		
@@ -134,7 +136,7 @@ function Astar(start, goal)
 			end
 		end
 	end
-	self.prf = self.prf + aStarIterator * aStarOpMultiplier
+	self.prf = self.prf + aStarIterator * ASTAR_OP_MULTIPLIER
 	return false
 end
 
