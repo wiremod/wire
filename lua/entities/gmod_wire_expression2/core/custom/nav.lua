@@ -234,20 +234,17 @@ end
 
 e2function number navmesh:navIsConnected(navmesh nav)
 	if not IsValid(this) then return 0 end
-	local c = this:IsConnected(navmesh)
-	--[[ [ERROR] entities/gmod_wire_expression2/core/custom/nav.lua:194: 'do' expected near 'a' -- fuck you
+	local c = this:IsConnected(navmesh) --first, check if we're connected in the first place
 	if c then
-		local a = NULL_TABLE
+		local a = NULL_TABLE -- init an empty table we'll use to slave from
 		local side = 5 --returns "side 5" (vertical connections, should probably never be returned)
-		for i=0,3
-			a = this:GetAdjacentAreasAtSide(i)
-			for k,v in pairs(a) do
-				if v == nav then side = i+1 end
+		for i=0,3 -- for each side
+			a = this:GetAdjacentAreasAtSide(i) -- get all areas connected on that side
+			for k,v in pairs(a) do -- then loop through that table of areas and check if we hit our --wait
+				if v == nav then side = i+1 end -- can't i just use table:exists? --oh wow turns out that's a default function in lua, never knew that.
 			end
 		return side end -- returns which side specifically this navmesh is connected at
 	else return 0 end -- probably not necessary, but it's convenient when its needed
-	]]--
-	if c then return 1 else return 0 end -- fycj uou
 end
 
 e2function array navmesh:navConnectedMeshes()
