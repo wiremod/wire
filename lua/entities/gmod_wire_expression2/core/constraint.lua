@@ -144,7 +144,7 @@ getConnectedEntities = function(ent, filter_lookup, result, already_added)
 
 	if filter_lookup then
 		if filter_lookup.Parented then -- add parented entities
-			getConnectedEx(ent:GetChildren(),filter_lookup, result, already_added)
+			getConnectedEx(ent:GetParent(),filter_lookup, result, already_added)
 			for _, e in pairs(ent:GetChildren()) do
 				getConnectedEx( e, filter_lookup, result, already_added )
 			end
