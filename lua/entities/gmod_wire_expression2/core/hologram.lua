@@ -1074,14 +1074,11 @@ e2function void holoVisible(index, array players, visible)
 end
 
 -- -----------------------------------------------------------------------------
-local function Parent_Hologram(holo, ent, bone, attachment)
+local function Parent_Hologram(holo, ent, attachment)
 	if ent:GetParent() and ent:GetParent():IsValid() and ent:GetParent() == holo.ent then return end
 
 	holo.ent:SetParent(ent)
 
-	if bone ~= nil then
-		holo.ent:SetParentPhysNum(bone)
-	end
 	if attachment ~= nil then
 		holo.ent:Fire("SetParentAttachmentMaintainOffset", attachment, 0.01)
 	end
@@ -1109,7 +1106,7 @@ e2function void holoParent(index, otherindex)
 
 	if not Check_Parents(Holo.ent, Holo2.ent) then return end
 
-	Parent_Hologram(Holo, Holo2.ent, nil, nil)
+	Parent_Hologram(Holo, Holo2.ent, nil)
 end
 
 e2function void holoParent(index, entity ent)
@@ -1119,17 +1116,7 @@ e2function void holoParent(index, entity ent)
 
 	if not Check_Parents(Holo.ent, ent) then return end
 
-	Parent_Hologram(Holo, ent, 0, nil)
-end
-
-e2function void holoParent(index, bone b)
-	local ent, boneindex = E2Lib.isValidBone(b)
-	if not ent then return end
-
-	local Holo = CheckIndex(self, index)
-	if not Holo then return end
-
-	Parent_Hologram(Holo, ent, boneindex, nil)
+	Parent_Hologram(Holo, ent, nil)
 end
 
 e2function void holoParentAttachment(index, entity ent, string attachmentName)
@@ -1137,7 +1124,7 @@ e2function void holoParentAttachment(index, entity ent, string attachmentName)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Parent_Hologram(Holo, ent, nil, attachmentName)
+	Parent_Hologram(Holo, ent, attachmentName)
 end
 
 e2function void holoUnparent(index)
