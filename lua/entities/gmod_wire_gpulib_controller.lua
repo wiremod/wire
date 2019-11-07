@@ -14,70 +14,75 @@ function ENT:Initialize()
 	WireLib.CreateOutputs(self, { "Screen [ENTITY]", "Target [ENTITY]", "LocalPosition [VECTOR]", "LocalAngle [ANGLE]", "Resolution" })
 end
 
-function ENT:Setup(screen)
+function ENT:Setup()
+end
+
+function ENT:SetScreen(screen)
 	self.screen = screen
 	WireLib.TriggerOutput(self, "Screen", screen)
+	if IsValid(self.target) then
+		GPULib.switchscreen(self.screen, self.target)
+	end
 	self:UpdateTarget()
 end
 
 function ENT:Think()
-	local target = self.screen.GPUEntity
-	if not IsValid(self.target) or target ~= self.target then
-		self:UpdateTarget()
-	end
+	self:UpdateTarget()
 end
 
 function ENT:UpdateTarget()
-	local target = self.screen.GPUEntity
+	local target = self.screen and self.screen.GPUEntity
 	if not IsValid(target) then target = self.screen end
-	self.target = target
 
-	if IsValid(target) then
-		WireLib.TriggerOutput(self, "Target", target)
-		local monitor, pos, ang = GPULib.GPU.GetInfo({ Entity = target }) -- TODO: think of a cleaner way
-		WireLib.TriggerOutput(self, "LocalPosition", monitor.offset)
-		WireLib.TriggerOutput(self, "LocalAngle", monitor.rot)
-		WireLib.TriggerOutput(self, "Resolution", monitor.RS)
-	else
-		WireLib.TriggerOutput(self, "Target", NULL)
-		WireLib.TriggerOutput(self, "LocalPosition", Vector(0,0,0))
-		WireLib.TriggerOutput(self, "LocalAngle", Angle(0,0,0))
-		WireLib.TriggerOutput(self, "Resolution", 0)
+	if self.target ~= target then
+		self.target = target
+		if IsValid(target) then
+			WireLib.TriggerOutput(self, "Target", target)
+			local monitor, pos, ang = GPULib.GPU.GetInfo({ Entity = target }) -- TODO: think of a cleaner way
+			WireLib.TriggerOutput(self, "LocalPosition", monitor.offset)
+			WireLib.TriggerOutput(self, "LocalAngle", monitor.rot)
+			WireLib.TriggerOutput(self, "Resolution", monitor.RS)
+		else
+			WireLib.TriggerOutput(self, "Target", NULL)
+			WireLib.TriggerOutput(self, "LocalPosition", Vector(0,0,0))
+			WireLib.TriggerOutput(self, "LocalAngle", Angle(0,0,0))
+			WireLib.TriggerOutput(self, "Resolution", 0)
+		end
 	end
 end
 
 function ENT:TriggerInput(iname, value)
-	if iname == "Target" then
+	if iname == "Target" and self.screen and self.screen:IsValid() then
 		if not IsValid(value) then value = self.screen end
 		GPULib.switchscreen(self.screen, value)
 		self:UpdateTarget()
 	end
 end
 
-function MakeGPULibController( pl, Pos, Ang, model, screen )
-	model = model or "models/jaanus/wiretool/wiretool_siren.mdl"
-	if not WireLib.CanModel(pl, model) then return false end
-	--if ( !pl:CheckLimit( "wire_cams" ) ) then return false end
+duplicator.RegisterEntityClass("gmod_wire_gpulib_controller", WireLib.MakeWireEnt)
 
-	local controller = ents.Create( "gmod_wire_gpulib_controller" )
-	if (!controller:IsValid()) then return false end
-
-	controller:SetAngles( Ang )
-	controller:SetPos( Pos )
-	controller:SetModel(model)
-	controller:Spawn()
-	controller:Setup(screen)
-
-	controller:SetPlayer( pl )
-
-	local ttable = {
-		pl = pl,
-	}
-	table.Merge(controller:GetTable(), ttable )
-
-	--pl:AddCount( "wire_gpulib_switchers", controller )
-
-	return controller
+function ENT:LinkEnt(screen)
+	if not IsValid(screen) then return false, "Invalid entity" end
+	self:SetScreen(screen)
+	return true
+end
+function ENT:UnlinkEnt()
+	self:SetScreen(nil)
+	return true
 end
 
-duplicator.RegisterEntityClass("gmod_wire_gpulib_controller", MakeGPULibController, "Pos", "Ang", "Model", "screen")
+function ENT:BuildDupeInfo()
+	local info = BaseClass.BuildDupeInfo(self) or {}
+	if IsValid(self.screen) then
+		info.screen = self.screen:EntIndex()
+	end
+	return info
+end
+
+function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+
+	self:SetScreen(GetEntByID(info.screen))
+	self:UpdateTarget()
+end
+
