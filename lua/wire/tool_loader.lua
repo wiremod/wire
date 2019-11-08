@@ -553,7 +553,7 @@ function WireToolSetup.SetupLinking(SingleLink, linkedname)
 		end
 
 		language.Add( "Tool."..TOOL.Mode..".left_0", "Create/Update "..TOOL.Name )
-		language.Add( "Tool."..TOOL.Mode..".right_0", "Select a " .. TOOL.Name .. " to link to" )
+		language.Add( "Tool."..TOOL.Mode..".right_0", "Select a " .. TOOL.Name .. " to link" )
 		language.Add( "Tool."..TOOL.Mode..".reload_0",  "Unlink everything from a " .. TOOL.Name )
 		language.Add( "Tool."..TOOL.Mode..".right_1", "Now select the " .. linkedname .. " to link to" )
 		language.Add( "Tool."..TOOL.Mode..".right_2", "Now select the " .. linkedname .. " to unlink" )
