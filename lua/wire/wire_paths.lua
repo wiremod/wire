@@ -22,7 +22,6 @@ if CLIENT then
 		if path.Width<=0 then
 			if path.Entity.WirePaths then
 				path.Entity.WirePaths[path.Name] = nil
-				if not next(path.Entity.WirePaths) then path.Entity.WirePaths = nil end
 			end
 			return
 		end
