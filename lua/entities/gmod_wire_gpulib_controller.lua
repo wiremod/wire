@@ -59,7 +59,7 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_gpulib_controller", WireLib.MakeWireEnt)
+duplicator.RegisterEntityClass("gmod_wire_gpulib_controller", WireLib.MakeWireEnt, "Data")
 
 function ENT:LinkEnt(screen)
 	if not IsValid(screen) then return false, "Invalid entity" end
