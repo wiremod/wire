@@ -946,51 +946,6 @@ hook.Add("InitPostEntity", "antiantinoclip", function()
 	ENT.oldpos = Vector(0,0,0)
 end)
 
--- Calls "func", once (Advanced) Duplicator has finished spawning the entity that was copied with the entity id "entid".
--- Must be called from an duplicator.RegisterEntityClass or duplicator.RegisterEntityModifier handler.
--- Usage: WireLib.PostDupe(entid, function(ent) ... end)
-function WireLib.PostDupe(entid, func)
-	local CreatedEntities
-
-	local paste_functions = {
-		[duplicator.Paste] = true,
-		[AdvDupe.Paste] = true,
-		[AdvDupe.OverTimePasteProcess] = true,
-	}
-
-	-- Go through the call stack to find someone who has a CreatedEntities table for us.
-	local i,info = 1,debug.getinfo(1)
-	while info do
-		if paste_functions[info.func] then
-			for j = 1,20 do
-				local name, value = debug.getlocal(i, j)
-				if name == "CreatedEntities" then
-					CreatedEntities = value
-					break
-				end
-			end
-			break
-		end
-		i = i+1
-		info = debug.getinfo(i)
-	end
-
-	-- Nothing found? Too bad...
-	if not CreatedEntities then return end
-
-	-- Wait until the selected entity has been spawned...
-	local unique = "WireLib_PostDupe_"..tostring({})
-	timer.Create(unique, 1, 240, function()
-		local ent = CreatedEntities[entid]
-		if ent then
-			timer.Remove(unique)
-
-			-- and call the callback
-			func(ent)
-		end
-	end)
-end
-
 function WireLib.GetOwner(ent)
 	return E2Lib.getOwner({}, ent)
 end
