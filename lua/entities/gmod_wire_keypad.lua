@@ -26,7 +26,7 @@ if CLIENT then
 	}
 
 	local fontdata = {
-		font 		= "Trebuchet",
+		font 		= "Trebuchet MS",
 		weight 		= 400,
 		antialias 	= true,
 		additive 	= false
