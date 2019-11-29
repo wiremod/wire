@@ -968,7 +968,7 @@ elseif CLIENT then
 		return width, height
 	end
 
-	local fontData = {font = "Trebuchet24"} -- 24 and 18 are stock
+	local fontData = {font = "Trebuchet MS"} -- 24 and 18 are stock
 	for _,size in pairs({22,20,16,14}) do
 		fontData.size = size
 		surface.CreateFont("Trebuchet"..size, fontData)
