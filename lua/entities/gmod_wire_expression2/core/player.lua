@@ -676,3 +676,105 @@ end
 e2function entity lastDisconnectedPlayer()
 	return lastLeft
 end
+
+----- Deaths+Spawns, Dev: Vurv, 11/29/19 -----
+local DeathAlert = {} -- table of e2s that have runOnDeath(1)
+local RespawnAlert = {}
+local DeathList = { last = {NULL, NULL, NULL, 0} }
+local RespawnList = { last = {NULL,0} }
+
+hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
+	local entry = { victim,inflictor,attacker,CurTime() }
+	DeathList[victim:EntIndex()] = entry -- victim's death is saved in victims death list.
+	DeathList.last = entry -- the most recent death's table is stored here for later use.
+    for ex,_ in pairs(DeathAlert) do -- loops over all chips in deathalert, ignores key.
+        if IsValid(ex) then
+            ex.context.data.runByDeath = entry
+            ex:Execute()
+            ex.context.data.runByDeath = nil
+        end
+    end
+end)
+
+hook.Add("PlayerSpawn","Exp2PlayerDetSpwn",function(ply,transition)
+	local entry = {ply,CurTime()}
+	RespawnList[ply:EntIndex()] = entry
+	RespawnList.last = entry
+	for ex,_ in pairs(RespawnAlert) do
+		if IsValid(ex) then
+			ex.context.data.runByRespawned = entry
+			ex:Execute()
+			ex.context.data.runByRespawned = nil
+		end
+	end
+end)
+
+__e2setcost(5)
+
+--- If active is 0, the chip will no longer run on death.
+e2function void runOnDeath(number activate)
+	if activate ~= 0 then
+		DeathAlert[self.entity] = true
+	else
+		DeathAlert[self.entity] = nil
+	end
+end
+
+e2function void runOnSpawn(number activate)
+	if activate ~= 0 then
+		RespawnAlert[self.entity] = true
+	else
+		RespawnAlert[self.entity] = nil
+	end
+end
+
+--If ran by death, (defined in e2 data), gives 1 or 0 (ternary)
+e2function number deathClk()
+	return self.data.runByDeath and 1 or 0
+end
+
+e2function number spawnClk()
+	return self.data.runByRespawned and 1 or 0
+end
+
+e2function number lastDeathTime() -- returns when the last death happened
+	local lastD = DeathList.last
+	if not lastD then return nil end
+	return lastD[4]
+end
+
+e2function number lastSpawnTime()
+	local lastS = RespawnList.last
+	if not lastS then return nil end
+	return lastS[2]
+end
+
+e2function array lastDeath(entity ply) -- gives array of the last death of certain player
+	if not IsValid(ply) then return nil end
+	if not ply:IsPlayer() then return nil end
+	local lastD = DeathList[ply:EntIndex()]
+	if not lastD then return nil end
+	return lastD -- Value Order: victim,inflictor,attacker,timestamp
+end
+
+e2function array lastSpawn(entity ply)
+	if not IsValid(ply) then return nil end
+	if not ply:IsPlayer() then return nil end
+	local lastS = RespawnList[ply:EntIndex()]
+	if not lastS then return nil end
+	return lastS -- 1=player entity ,2=timestamp
+end
+
+e2function array lastDeath() -- gives array of the last death
+	local lastD = DeathList.last
+	if not lastD then return nil end
+	return lastD
+end
+
+e2function array lastSpawn()
+	local lastS = RespawnList.last
+	if not lastS then return nil end
+	return lastS
+end
+--******************************************--
+
