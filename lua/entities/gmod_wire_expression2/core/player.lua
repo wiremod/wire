@@ -684,7 +684,16 @@ local DeathList = { last = {NULL, NULL, NULL, 0} }
 local RespawnList = { last = {NULL,0} }
 
 hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
-	local entry = { ["Victim"] = victim,["Inflictor"] = inflictor,["Attacker"] = attacker,["Timestamp"] = CurTime() }
+	local entry = table.Copy({n={},ntypes={},s={},stypes={},size=0}) -- default table
+	entry.s["Victim"]=victim
+	entry.s["Inflictor"]=inflictor
+	entry.s["Attacker"]=attacker
+	entry.s["Timestamp"]=CurTime()
+	entry.stypes["Victim"]="e"
+	entry.stypes["Inflictor"]="e"
+	entry.stypes["Attacker"]="e"
+	entry.stypes["Timestamp"]="n"
+	entry.size=4
 	DeathList[victim:EntIndex()] = entry -- victim's death is saved in victims death list.
 	DeathList.last = entry -- the most recent death's table is stored here for later use.
     for ex,_ in pairs(DeathAlert) do -- loops over all chips in deathalert, ignores key.
@@ -697,7 +706,12 @@ hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
 end)
 
 hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(ply,transition)
-	entry = {["Player"] = ply,["Timestamp"] = CurTime()}
+	local entry = table.Copy({n={},ntypes={},s={},stypes={},size=0}) -- default table
+	entry.s["Player"]=ply
+	entry.s["Timestamp"]=CurTime()
+	entry.stypes["Player"]="e"
+	entry.stypes["Timestamp"]="n"
+	entry.size=2
 	RespawnList[ply:EntIndex()] = entry
 	RespawnList.last = entry
 	for ex,_ in pairs(RespawnAlert) do
@@ -740,42 +754,40 @@ end
 e2function number lastDeathTime() -- returns when the last death happened
 	local lastD = DeathList.last
 	if not lastD then return {} end
-	return lastD[4]
+	return lastD.s["Timestamp"]
 end
 
 e2function number lastSpawnTime()
 	local lastS = RespawnList.last
 	if not lastS then return {} end
-	return lastS[2]
+	return lastS.s["Timestamp"]
 end
 
-e2function array lastDeath(entity ply) -- gives array of the last death of certain player
-	if not IsValid(ply) then return error("\"" .. ply .. "\" is not a valid entity!") end
-	if not ply:IsPlayer() then return error("\"" .. ply .. "\" is not a player!") end
+e2function table lastDeath(entity ply) -- gives array of the last death of certain player
+	if not IsValid(ply) then return {} end
+	if not ply:IsPlayer() then return {} end
 	local lastD = DeathList[ply:EntIndex()]
 	if not lastD then return {} end
-	return lastD -- tried to do a table, ended up doing array, feel free to fix if you can.
-	-- Value Order: victim,inflictor,attacker,timestamp
+	return lastD
 end
 
-e2function array lastSpawn(entity ply)
-	if not IsValid(ply) then return error("\"" .. ply .. "\" is not a valid entity!") end
-	if not ply:IsPlayer() then return error("\"" .. ply .. "\" is not a player!") end
+e2function table lastSpawn(entity ply)
+	if not IsValid(ply) then return {} end
+	if not ply:IsPlayer() then return {} end
 	local lastS = RespawnList[ply:EntIndex()]
 	if not lastS then return {} end
-	return lastS -- 1=player entity ,2=timestamp
+	return lastS
 end
 
-e2function array lastDeath() -- gives array of the last death
+e2function table lastDeath() -- gives table of last death's data
 	local lastD = DeathList.last
 	if not lastD then return {} end
 	return lastD
 end
 
-e2function array lastSpawn()
+e2function table lastSpawn()
 	local lastS = RespawnList.last
 	if not lastS then return {} end
 	return lastS
 end
 --******************************************--
-
