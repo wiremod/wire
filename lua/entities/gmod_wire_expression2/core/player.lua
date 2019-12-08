@@ -705,7 +705,7 @@ hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
     end
 end)
 
-hook.Add("PlayerSpawn","Exp2PlayerDetSpwn",function(ply,transition)
+hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(ply,transition)
 	local entry = {n={},ntypes={},s={},stypes={},size=0} -- default table
 	entry.s["Player"]=ply
 	entry.s["Timestamp"]=CurTime()
@@ -763,13 +763,13 @@ e2function number lastSpawnTime()
 	return lastS.s["Timestamp"]
 end
 
-e2function table lastDeath(entity ply) -- gives array of the last death of certain player
+e2function table lastDeath(entity ply)
 	if not IsValid(ply) then return {} end
 	if not ply:IsPlayer() then return {} end
 	local lastD = DeathList[ply:EntIndex()]
 	if not lastD then return {} end
-	return lastD -- tried to do a table, ended up doing array, feel free to fix if you can.
-	-- Value Order: victim,inflictor,attacker,timestamp
+	return lastD
+
 end
 
 e2function table lastSpawn(entity ply)
@@ -780,7 +780,7 @@ e2function table lastSpawn(entity ply)
 	return lastS
 end
 
-e2function table lastDeath() -- gives array of the last death
+e2function table lastDeath()
 	local lastD = DeathList.last
 	if not lastD then return {} end
 	return lastD
@@ -792,4 +792,3 @@ e2function table lastSpawn()
 	return lastS
 end
 --******************************************--
-
