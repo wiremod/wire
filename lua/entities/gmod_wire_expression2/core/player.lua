@@ -711,7 +711,7 @@ hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
 			ex:Execute()
 			ex.context.data.runByDeath = nil
 		end
-    	end
+	end
 end)
 
 hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(ply,transition)
