@@ -644,6 +644,7 @@ GateActions["vector_rotate"] = {
 	output = function(gate, A, B)
 		if !A then A = Vector(0, 0, 0) end
 		if !B then B = Angle(0, 0, 0) end
+		A = Vector(A[1],A[2],A[3])
 		A:Rotate(B)
 		return A
 	end,
