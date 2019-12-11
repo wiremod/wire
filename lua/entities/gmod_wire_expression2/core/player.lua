@@ -706,12 +706,12 @@ hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
 	DeathList[victim:EntIndex()] = entry -- victim's death is saved in victims death list.
 	DeathList.last = entry -- the most recent death's table is stored here for later use.
 	for ex,_ in pairs(DeathAlert) do -- loops over all chips in deathalert, ignores key.
-        	if IsValid(ex) then
+		if IsValid(ex) then
 			ex.context.data.runByDeath = entry
 			ex:Execute()
 			ex.context.data.runByDeath = nil
 		end
-    	end
+	end
 end)
 
 hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(ply,transition)
@@ -805,4 +805,3 @@ e2function table lastSpawn()
 	return lastS
 end
 --******************************************--
-
