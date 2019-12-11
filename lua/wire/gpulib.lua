@@ -487,18 +487,7 @@ elseif SERVER then
 			umsg.Short(screen:EntIndex())
 			umsg.Short(ent:EntIndex())
 		umsg.End()
-
-		duplicator.StoreEntityModifier(screen, "wire_gpulib_switcher", { screen:EntIndex(), ent:EntIndex() })
 	end
-
-	duplicator.RegisterEntityModifier("wire_gpulib_switcher", function(ply, screen, data)
-		local screenid, entid = unpack(data)
-		if entid == screenid then return end -- no need to switch the screen
-
-		WireLib.PostDupe(entid, function(ent)
-			GPULib.switchscreen(screen, ent)
-		end)
-	end)
 
 end
 
