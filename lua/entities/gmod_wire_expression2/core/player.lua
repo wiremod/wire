@@ -677,15 +677,15 @@ e2function entity lastDisconnectedPlayer()
 	return lastLeft
 end
 
------ Deaths+Spawns, Dev: Vurv, 12/8/19 -----
+----- Deaths+Spawns, Dev: Vurv, 12/10/19 -----
 local DeathAlert = {} -- table of e2s that have runOnDeath(1)
 local RespawnAlert = {}
 local DeathList = { last = {NULL, NULL, NULL, 0} }
 local RespawnList = { last = {NULL,0} }
-local DEFAULT_TABLE = {n={},ntypes={},s={},stypes={},size=0} -- the default / empty table to use in all functions below
+local function DEFAULT_TABLE() return {n={},ntypes={},s={},stypes={},size=0} end
 
 hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
-	local entry = table.Copy(DEFAULT_TABLE) -- default table
+	local entry = DEFAULT_TABLE() -- default table
 	entry.s["Victim"]=victim
 	entry.s["Inflictor"]=inflictor
 	entry.s["Attacker"]=attacker
@@ -706,16 +706,16 @@ hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
 	DeathList[victim:EntIndex()] = entry -- victim's death is saved in victims death list.
 	DeathList.last = entry -- the most recent death's table is stored here for later use.
 	for ex,_ in pairs(DeathAlert) do -- loops over all chips in deathalert, ignores key.
-		if IsValid(ex) then
+        	if IsValid(ex) then
 			ex.context.data.runByDeath = entry
 			ex:Execute()
 			ex.context.data.runByDeath = nil
 		end
-	end
+    	end
 end)
 
 hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(ply,transition)
-	local entry = table.Copy(DEFAULT_TABLE) -- default table
+	local entry = DEFAULT_TABLE() -- default table
 	entry.s["Player"]=ply
 	entry.s["Timestamp"]=CurTime()
 	entry.stypes["Player"]="e"
@@ -766,42 +766,43 @@ end
 
 e2function number lastDeathTime() -- returns when the last death happened
 	local lastD = DeathList.last
-	if not lastD then return table.Copy(DEFAULT_TABLE) end
+	if not lastD then return DEFAULT_TABLE() end
 	return lastD.s["Timestamp"]
 end
 
 e2function number lastSpawnTime()
 	local lastS = RespawnList.last
-	if not lastS then return table.Copy(DEFAULT_TABLE) end
+	if not lastS then return DEFAULT_TABLE() end
 	return lastS.s["Timestamp"]
 end
 
 e2function table lastDeath(entity ply)
-	if not IsValid(ply) then return table.Copy(DEFAULT_TABLE) end
-	if not ply:IsPlayer() then return table.Copy(DEFAULT_TABLE) end
+	if not IsValid(ply) then return DEFAULT_TABLE() end
+	if not ply:IsPlayer() then return DEFAULT_TABLE() end
 	local lastD = DeathList[ply:EntIndex()]
-	if not lastD then return table.Copy(DEFAULT_TABLE) end
+	if not lastD then return DEFAULT_TABLE() end
 	return lastD
 
 end
 
 e2function table lastSpawn(entity ply)
-	if not IsValid(ply) then return table.Copy(DEFAULT_TABLE) end
-	if not ply:IsPlayer() then return table.Copy(DEFAULT_TABLE) end
+	if not IsValid(ply) then return DEFAULT_TABLE() end
+	if not ply:IsPlayer() then return DEFAULT_TABLE() end
 	local lastS = RespawnList[ply:EntIndex()]
-	if not lastS then return table.Copy(DEFAULT_TABLE) end
+	if not lastS then return DEFAULT_TABLE() end
 	return lastS
 end
 
 e2function table lastDeath()
 	local lastD = DeathList.last
-	if not lastD then return table.Copy(DEFAULT_TABLE) end
+	if not lastD then return DEFAULT_TABLE() end
 	return lastD
 end
 
 e2function table lastSpawn()
 	local lastS = RespawnList.last
-	if not lastS then return table.Copy(DEFAULT_TABLE) end
+	if not lastS then return DEFAULT_TABLE() end
 	return lastS
 end
 --******************************************--
+
