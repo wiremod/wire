@@ -34,7 +34,7 @@ Editor.Fonts["Lucida Console"] = ""
 Editor.Fonts["Monaco"] = "Mac standard font"
 
 surface.CreateFont("DefaultBold", {
-	font = "defaultbold",
+	font = "Tahoma",
 	size = 12,
 	weight = 700,
 	antialias = true,
