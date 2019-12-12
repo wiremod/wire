@@ -677,13 +677,25 @@ e2function entity lastDisconnectedPlayer()
 	return lastLeft
 end
 
------ Deaths+Spawns, Dev: Vurv, 12/10/19 -----
+----- Deaths+Spawns, Dev: Vurv, 12/11/19 -----
 local DeathAlert = {} -- table of e2s that have runOnDeath(1)
 local RespawnAlert = {}
 local DeathList = { last = {NULL, NULL, NULL, 0} }
 local RespawnList = { last = {NULL,0} }
+
 local function DEFAULT_TABLE() return {n={},ntypes={},s={},stypes={},size=0} end
 
+local function CHECK_VALIDP(ply) -- Check if entity is valid and is a player if so then true else false
+	if not IsValid(ply) then return false end
+	if not ply:IsPlayer() then return false end
+	return true
+end
+
+local function CHECK_VALIDT(table) -- Checks if table exists and return true if does else false
+	if not table then return false end
+	return true
+end
+	
 hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
 	local entry = DEFAULT_TABLE() -- default table
 	entry.s["Victim"]=victim
@@ -702,7 +714,7 @@ hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
 	entry.ntypes[2]="e"
 	entry.ntypes[3]="e"
 	entry.ntypes[4]="n"
-	entry.size=4
+	entry.size=8
 	DeathList[victim:EntIndex()] = entry -- victim's death is saved in victims death list.
 	DeathList.last = entry -- the most recent death's table is stored here for later use.
 	for ex,_ in pairs(DeathAlert) do -- loops over all chips in deathalert, ignores key.
@@ -724,7 +736,7 @@ hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(ply,transition)
 	entry.n[2]=CurTime()
 	entry.ntypes[1]="e"
 	entry.ntypes[2]="n"
-	entry.size=2
+	entry.size=4
 	RespawnList[ply:EntIndex()] = entry
 	RespawnList.last = entry
 	for ex,_ in pairs(RespawnAlert) do
@@ -766,42 +778,76 @@ end
 
 e2function number lastDeathTime() -- returns when the last death happened
 	local lastD = DeathList.last
-	if not lastD then return DEFAULT_TABLE() end
-	return lastD.s["Timestamp"]
+	return CHECK_VALIDT(lastD) and lastD.s["Timestamp"] or 0 -- Checks if table is valid, if so then returns the timestamp from the table, else returns 0.
+end
+
+e2function number lastDeathTime(entity ply) -- returns when the player provided last died
+	if not CHECK_VALIDP(ply) then return NULL end
+	local lastD = DeathList[ply:EntIndex()]
+	return CHECK_VALIDT(lastD) and lastD.s["Timestamp"] or 0 -- Checks if table is valid, if so then returns the timestamp from the table, else returns 0.
 end
 
 e2function number lastSpawnTime()
 	local lastS = RespawnList.last
-	if not lastS then return DEFAULT_TABLE() end
-	return lastS.s["Timestamp"]
+	return CHECK_VALIDT(lastS) and lastS.s["Timestamp"] or 0
+end
+
+e2function number lastSpawnTime(entity ply) -- returns the last time player provided spawned.
+	if not CHECK_VALIDP(ply) then return NULL end
+	local lastS = RespawnList.last
+	return CHECK_VALIDT(lastS) and lastS.s["Timestamp"] or 0
 end
 
 e2function table lastDeath(entity ply)
-	if not IsValid(ply) then return DEFAULT_TABLE() end
-	if not ply:IsPlayer() then return DEFAULT_TABLE() end
-	local lastD = DeathList[ply:EntIndex()]
-	if not lastD then return DEFAULT_TABLE() end
-	return lastD
-
+	if not CHECK_VALIDP(ply) then return NULL end
+	local lastD = RespawnList[ply:EntIndex()]
+	return CHECK_VALIDT(lastD) and lastD or DEFAULT_TABLE()
 end
 
 e2function table lastSpawn(entity ply)
-	if not IsValid(ply) then return DEFAULT_TABLE() end
-	if not ply:IsPlayer() then return DEFAULT_TABLE() end
+	if not CHECK_VALIDP(ply) then return NULL end
 	local lastS = RespawnList[ply:EntIndex()]
-	if not lastS then return DEFAULT_TABLE() end
-	return lastS
+	return CHECK_VALIDT(lastS) and lastS or DEFAULT_TABLE()
 end
 
 e2function table lastDeath()
 	local lastD = DeathList.last
-	if not lastD then return DEFAULT_TABLE() end
-	return lastD
+	return CHECK_VALIDT(lastD) and lastD or DEFAULT_TABLE()
 end
 
 e2function table lastSpawn()
 	local lastS = RespawnList.last
-	if not lastS then return DEFAULT_TABLE() end
-	return lastS
+	return CHECK_VALIDT(lastS) and lastS or DEFAULT_TABLE()
+end
+
+e2function entity lastDeathVictim() -- Gives Death Victim
+	local lastD = DeathList.last
+	return CHECK_VALIDT(lastD) and lastD.s["Victim"] or NULL
+end
+
+e2function entity lastSpawnedPlayer()
+	local lastS = RespawnList.last
+	return CHECK_VALIDT(lastS) and lastS.s["Player"] or NULL
+end
+
+e2function entity lastDeathInflictor()
+	local lastD = DeathList.last
+	return CHECK_VALIDT(lastD) and lastD.s["Inflictor"] or NULL
+end
+e2function entity lastDeathInflictor(entity ply)
+	if not CHECK_VALIDP(ply) then return NULL end
+	local lastD = DeathList[ply:EntIndex()]
+	return CHECK_VALIDT(lastD) and lastD.s["Inflictor"] or NULL
+end
+
+e2function entity lastDeathAttacker()
+	local lastD = DeathList.last
+	return CHECK_VALIDT(lastD) and lastD.s["Attacker"] or NULL
+end
+
+e2function entity lastDeathAttacker(entity ply)
+	if not CHECK_VALIDP(ply) then return NULL end
+	local lastD = DeathList.last
+	return CHECK_VALIDT(lastD) and lastD.s["Attacker"] or NULL
 end
 --******************************************--
