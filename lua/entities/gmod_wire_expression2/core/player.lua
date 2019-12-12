@@ -695,7 +695,7 @@ local function CHECK_VALIDT(table) -- Checks if table exists and return true if 
 	if not table then return false end
 	return true
 end
-	
+
 hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
 	local entry = DEFAULT_TABLE() -- default table
 	entry.s["Victim"]=victim
@@ -834,6 +834,7 @@ e2function entity lastDeathInflictor()
 	local lastD = DeathList.last
 	return CHECK_VALIDT(lastD) and lastD.s["Inflictor"] or NULL
 end
+
 e2function entity lastDeathInflictor(entity ply)
 	if not CHECK_VALIDP(ply) then return NULL end
 	local lastD = DeathList[ply:EntIndex()]
