@@ -798,28 +798,6 @@ e2function number lastSpawnTime(entity ply) -- returns the last time player prov
 	return CHECK_VALIDT(lastS) and lastS.s["Timestamp"] or 0
 end
 
-e2function table lastDeath(entity ply)
-	if not CHECK_VALIDP(ply) then return NULL end
-	local lastD = RespawnList[ply:EntIndex()]
-	return CHECK_VALIDT(lastD) and lastD or DEFAULT_TABLE()
-end
-
-e2function table lastSpawn(entity ply)
-	if not CHECK_VALIDP(ply) then return NULL end
-	local lastS = RespawnList[ply:EntIndex()]
-	return CHECK_VALIDT(lastS) and lastS or DEFAULT_TABLE()
-end
-
-e2function table lastDeath()
-	local lastD = DeathList.last
-	return CHECK_VALIDT(lastD) and lastD or DEFAULT_TABLE()
-end
-
-e2function table lastSpawn()
-	local lastS = RespawnList.last
-	return CHECK_VALIDT(lastS) and lastS or DEFAULT_TABLE()
-end
-
 e2function entity lastDeathVictim() -- Gives Death Victim
 	local lastD = DeathList.last
 	return CHECK_VALIDT(lastD) and lastD.s["Victim"] or NULL
