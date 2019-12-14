@@ -1506,8 +1506,6 @@ E2Helper.Descriptions["runOnDeath(n)"] = "If set to 0, chip won't run on players
 E2Helper.Descriptions["deathClk()"] = "Returns if the E2 was triggered by a death"
 E2Helper.Descriptions["lastDeathTime()"] = "Returns the last time a player died"
 E2Helper.Descriptions["lastDeathTime(e)"] = "Returns the last time given player died"
-E2Helper.Descriptions["lastDeath()"] = "Returns a table of the last death's victim,inflictor,attacker,timestamp (e,e,e,n)"
-E2Helper.Descriptions["lastDeath(e)"] = "Returns a table of the player's last death data (e,e,e,n)"
 E2Helper.Descriptions["lastDeathInflictor()"] = "Returns the entity that inflicted the last death"
 E2Helper.Descriptions["lastDeathInflictor(e)"] = "Returns the entity that inflicted the given player's last death"
 E2Helper.Descriptions["lastDeathVictim()"] = "Returns the last player to die"
@@ -1518,8 +1516,6 @@ E2Helper.Descriptions["runOnSpawn(n)"] = "If set to 0, chip won't run on players
 E2Helper.Descriptions["spawnClk()"] = "Returns if the E2 was triggered by a player spawning"
 E2Helper.Descriptions["lastSpawnTime()"] = "Returns the last time a player spawned"
 E2Helper.Descriptions["lastSpawnTime(e)"] = "Returns the last time the given player spawned"
-E2Helper.Descriptions["lastSpawn()"] = "Returns a table of the last spawn's player and timestamp (e,n)"
-E2Helper.Descriptions["lastSpawn(e)"] = "Returns a table of the player's last spawn data (e,n)"
 E2Helper.Descriptions["lastSpawnedPlayer()"] = "Returns the last player to spawn"
 
 ---- Custom ----
