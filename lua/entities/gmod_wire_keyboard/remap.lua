@@ -231,6 +231,94 @@ remap[KEY_O] = "ó"
 remap[KEY_U] = "ú"
 
 ----------------------------------------------------------------------
+-- Russian/Русский
+----------------------------------------------------------------------
+
+Wire_Keyboard_Remap.Russian = {}
+Wire_Keyboard_Remap.Russian = table.Copy(Wire_Keyboard_Remap_default)
+Wire_Keyboard_Remap.Russian[KEY_RSHIFT] = Wire_Keyboard_Remap.Russian[KEY_LSHIFT]
+
+remap = Wire_Keyboard_Remap.Russian.normal
+remap[KEY_LBRACKET] 	= "х"
+remap[KEY_RBRACKET] 	= "ъ"
+remap[KEY_SEMICOLON] 	= "ж"
+remap[KEY_APOSTROPHE] 	= "э"
+remap[KEY_BACKQUOTE] 	= "ё"
+remap[KEY_COMMA] 		= "б"
+remap[KEY_PERIOD] 		= "ю"
+remap[KEY_SLASH] 		= "."
+remap[KEY_BACKSLASH] 	= "\\"
+remap[KEY_MINUS] 		= "-"
+remap[KEY_EQUAL] 		= "="
+
+local remap = Wire_Keyboard_Remap.Russian.normal
+remap[KEY_NONE] = ""
+remap[KEY_0] = "0"
+remap[KEY_1] = "1"
+remap[KEY_2] = "2"
+remap[KEY_3] = "3"
+remap[KEY_4] = "4"
+remap[KEY_5] = "5"
+remap[KEY_6] = "6"
+remap[KEY_7] = "7"
+remap[KEY_8] = "8"
+remap[KEY_9] = "9"
+remap[KEY_A] = "ф"
+remap[KEY_B] = "и"
+remap[KEY_C] = "с"
+remap[KEY_D] = "в"
+remap[KEY_E] = "у"
+remap[KEY_F] = "а"
+remap[KEY_G] = "п"
+remap[KEY_H] = "р"
+remap[KEY_I] = "ш"
+remap[KEY_J] = "о"
+remap[KEY_K] = "л"
+remap[KEY_L] = "д"
+remap[KEY_M] = "ь"
+remap[KEY_N] = "т"
+remap[KEY_O] = "щ"
+remap[KEY_P] = "з"
+remap[KEY_Q] = "й"
+remap[KEY_R] = "к"
+remap[KEY_S] = "ы"
+remap[KEY_T] = "е"
+remap[KEY_U] = "г"
+remap[KEY_V] = "м"
+remap[KEY_W] = "ц"
+remap[KEY_X] = "ч"
+remap[KEY_Y] = "н"
+remap[KEY_Z] = "я"
+
+remap = Wire_Keyboard_Remap.Russian[KEY_LSHIFT]
+remap[KEY_A] = "Ф"
+remap[KEY_B] = "И"
+remap[KEY_C] = "С"
+remap[KEY_D] = "В"
+remap[KEY_E] = "Е"
+remap[KEY_F] = "А"
+remap[KEY_G] = "П"
+remap[KEY_H] = "Р"
+remap[KEY_I] = "Ш"
+remap[KEY_J] = "О"
+remap[KEY_K] = "Л"
+remap[KEY_L] = "Д"
+remap[KEY_M] = "Ь"
+remap[KEY_N] = "Т"
+remap[KEY_O] = "Щ"
+remap[KEY_P] = "З"
+remap[KEY_Q] = "Й"
+remap[KEY_R] = "К"
+remap[KEY_S] = "Ы"
+remap[KEY_T] = "Е"
+remap[KEY_U] = "Г"
+remap[KEY_V] = "М"
+remap[KEY_W] = "Ц"
+remap[KEY_X] = "Ч"
+remap[KEY_Y] = "Н"
+remap[KEY_Z] = "Я"
+
+----------------------------------------------------------------------
 -- Swedish
 ----------------------------------------------------------------------
 
