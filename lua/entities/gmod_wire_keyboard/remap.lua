@@ -311,7 +311,7 @@ remap[KEY_3] = "№"
 remap[KEY_4] = ";"
 remap[KEY_6] = ":"
 remap[KEY_7] = "?"
-remap[KEY_SLASH] = "/"
+remap[KEY_BACKSLASH] = "/"
 
 ----------------------------------------------------------------------
 -- Swedish
