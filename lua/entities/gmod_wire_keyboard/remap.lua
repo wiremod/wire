@@ -320,6 +320,7 @@ remap[KEY_APOSTROPHE] 	= "Э"
 remap[KEY_BACKQUOTE] 	= "Ё"
 remap[KEY_COMMA] 	= "Б"
 remap[KEY_PERIOD] 	= "Ю"
+remap[KEY_SLASH] 	= ","
 
 ----------------------------------------------------------------------
 -- Swedish
