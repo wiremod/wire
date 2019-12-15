@@ -317,6 +317,12 @@ remap[KEY_W] = "Ц"
 remap[KEY_X] = "Ч"
 remap[KEY_Y] = "Н"
 remap[KEY_Z] = "Я"
+remap[KEY_2] = "\""
+remap[KEY_3] = "№"
+remap[KEY_4] = ";"
+remap[KEY_6] = ":"
+remap[KEY_7] = "?"
+remap[KEY_SLASH] = "/"
 
 ----------------------------------------------------------------------
 -- Swedish
