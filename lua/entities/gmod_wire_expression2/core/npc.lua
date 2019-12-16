@@ -4,7 +4,7 @@
 
 E2Lib.RegisterExtension("npc", true, "Allows controlling of NPCs.", "NPCs can be given weapons and ordered to hate other players.")
 
-__e2setcost(5) -- temporary
+__e2setcost(1) -- temporary
 
 local function validNPC(entity)
 	return IsValid(entity) && entity:IsNPC()
@@ -60,7 +60,7 @@ e2function void entity:npcGiveWeapon(string rv2)
 		if (weapon:GetClass() == "weapon_" .. rv2) then return end
 		weapon:Remove()
 	end
-	if rv2=="smg1" or rv2=="pistol" or rv2=="shotgun" or rv2=="357" or rv2=="stunstick" or rv2=="ar2" or rv2=="slam" or rv2=="rpg" or rv2=="bugbait" or rv2=="physgun" or rv2=="crossbow" then  
+	if rv2=="smg1" or rv2=="pistol" or rv2=="shotgun" or rv2=="357" or rv2=="stunstick" or rv2=="ar2" or rv2=="slam" or rv2=="rpg" or rv2=="bugbait" or rv2=="physgun" or rv2=="crossbow" then
 	this:Give( "ai_weapon_" .. rv2 )
 	else
 	this:Give( rv2 )
