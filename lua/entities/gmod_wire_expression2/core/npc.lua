@@ -152,7 +152,7 @@ e2function string entity:npcDisp(entity rv2)
 	if disp == 0 then return "" end
 	return DispToString(disp)
 end
-//--Schedule Functions--\\
+--Schedule Functions--
 
 local function strToSch(str)
 	local str2 = string.upper(str)
