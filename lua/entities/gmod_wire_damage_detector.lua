@@ -232,7 +232,31 @@ function ENT:UpdateConstrainedEnts( ent ) -- Finds all entities constrained to '
 		self.key_ents[v] = true
 	end
 end
-
+local damageTypes = {
+	[DMG_GENERIC] = "Generic",
+	[DMG_CRUSH] = "Crush",
+	[DMG_BULLET] = "Bullet",
+	[DMG_SLASH] = "Slash",
+	[DMG_BURN] = "Burn",
+	[DMG_VEHICLE] = "Vehicle",
+	[DMG_FALL] = "Fall",
+	[DMG_BLAST] = "Explosive",
+	[DMG_CLUB] = "Club",
+	[DMG_SHOCK] = "Shock",
+	[DMG_SONIC] = "Sonic",
+	[DMG_ENERGYBEAM] = "Laser",
+	[DMG_DROWN] = "Drown",
+	[DMG_PARALYZE] = "Poison",
+	[DMG_POISON] = "Poison",
+	[DMG_NERVEGAS] = "Neurotoxin",
+	[DMG_RADIATION] = "Radiation",
+	[DMG_ACID] = "Toxic",
+	[DMG_PHYSGUN] = "Gravgun",
+	[DMG_PLASMA] = "Plasma",
+	[DMG_AIRBOAT] = "AirboatGun",
+	[DMG_ENERGYBEAM] = "Laser",
+	[DMG_DIRECT] = "Direct"
+}
 function ENT:UpdateDamage( dmginfo, ent ) -- Update damage table
 	local damage = dmginfo:GetDamage()
 
@@ -245,31 +269,9 @@ function ENT:UpdateDamage( dmginfo, ent ) -- Update damage table
 		}
 
 		-- Damage type (handle almost all types)
-		self.dmgtype = ""
-		if dmginfo:IsDamageType(DMG_GENERIC) then self.dmgtype = "Generic"
-		elseif dmginfo:IsDamageType(DMG_CRUSH) then self.dmgtype = "Crush"
-		elseif dmginfo:IsDamageType(DMG_BULLET) then self.dmgtype = "Bullet"
-		elseif dmginfo:IsDamageType(DMG_SLASH) then self.dmgtype = "Slash"
-		elseif dmginfo:IsDamageType(DMG_BURN) then self.dmgtype = "Burn"
-		elseif dmginfo:IsDamageType(DMG_VEHICLE) then self.dmgtype = "Vehicle"
-		elseif dmginfo:IsDamageType(DMG_FALL) then self.dmgtype = "Fall"
-		elseif dmginfo:IsDamageType(DMG_BLAST) then self.dmgtype = "Explosive"
-		elseif dmginfo:IsDamageType(DMG_CLUB) then self.dmgtype = "Club"
-		elseif dmginfo:IsDamageType(DMG_SHOCK) then self.dmgtype = "Shock"
-		elseif dmginfo:IsDamageType(DMG_SONIC) then self.dmgtype = "Sonic"
-		elseif dmginfo:IsDamageType(DMG_ENERGYBEAM) then self.dmgtype = "Laser"
-		elseif dmginfo:IsDamageType(DMG_DROWN) then self.dmgtype = "Drown"
-		elseif dmginfo:IsDamageType(DMG_PARALYZE) or dmginfo:IsDamageType(DMG_POISON) then self.dmgtype = "Poison"
-		elseif dmginfo:IsDamageType(DMG_NERVEGAS) then self.dmgtype = "Neurotoxin"
-		elseif dmginfo:IsDamageType(DMG_RADIATION) then self.dmgtype = "Radiation"
-		elseif dmginfo:IsDamageType(DMG_ACID) then self.dmgtype = "Toxic"
-		elseif dmginfo:IsDamageType(DMG_PHYSGUN) then self.dmgtype = "Gravgun"
-		elseif dmginfo:IsDamageType(DMG_PLASMA) then self.dmgtype = "Plasma"
-		elseif dmginfo:IsDamageType(DMG_AIRBOAT) then self.dmgtype = "AirboatGun"
-		elseif dmginfo:IsDamageType(DMG_ENERGYBEAM) then self.dmgtype = "Laser"
-		elseif dmginfo:IsDamageType(DMG_DIRECT) then self.dmgtype = "Direct"
-		else self.dmgtype = "Other"
-		end
+		self.dmgtype = damageTypes[dmginfo:GetDamageType()] or "Other"
+		
+		
 
 		self.victims = table.Copy(DEFAULT)
 		self.firsthit_dmginfo[5] = self.dmgtype
