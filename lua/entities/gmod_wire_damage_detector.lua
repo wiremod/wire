@@ -244,7 +244,7 @@ function ENT:UpdateDamage( dmginfo, ent ) -- Update damage table
 			dmginfo:GetDamageForce()
 		}
 
-		-- Damage type (handle common types)
+		-- Damage type (handle almost all types)
 		self.dmgtype = ""
 		if dmginfo:IsDamageType(DMG_GENERIC) then self.dmgtype = "Generic"
 		elseif dmginfo:IsDamageType(DMG_CRUSH) then self.dmgtype = "Crush"
