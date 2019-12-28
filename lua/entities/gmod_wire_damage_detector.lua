@@ -232,7 +232,31 @@ function ENT:UpdateConstrainedEnts( ent ) -- Finds all entities constrained to '
 		self.key_ents[v] = true
 	end
 end
-
+local damageTypes = {
+	[DMG_GENERIC] = "Generic",
+	[DMG_CRUSH] = "Crush",
+	[DMG_BULLET] = "Bullet",
+	[DMG_SLASH] = "Slash",
+	[DMG_BURN] = "Burn",
+	[DMG_VEHICLE] = "Vehicle",
+	[DMG_FALL] = "Fall",
+	[DMG_BLAST] = "Explosive",
+	[DMG_CLUB] = "Club",
+	[DMG_SHOCK] = "Shock",
+	[DMG_SONIC] = "Sonic",
+	[DMG_ENERGYBEAM] = "Laser",
+	[DMG_DROWN] = "Drown",
+	[DMG_PARALYZE] = "Poison",
+	[DMG_POISON] = "Poison",
+	[DMG_NERVEGAS] = "Neurotoxin",
+	[DMG_RADIATION] = "Radiation",
+	[DMG_ACID] = "Toxic",
+	[DMG_PHYSGUN] = "Gravgun",
+	[DMG_PLASMA] = "Plasma",
+	[DMG_AIRBOAT] = "AirboatGun",
+	[DMG_ENERGYBEAM] = "Laser",
+	[DMG_DIRECT] = "Direct"
+}
 function ENT:UpdateDamage( dmginfo, ent ) -- Update damage table
 	local damage = dmginfo:GetDamage()
 
@@ -244,14 +268,10 @@ function ENT:UpdateDamage( dmginfo, ent ) -- Update damage table
 			dmginfo:GetDamageForce()
 		}
 
-		-- Damage type (handle common types)
-		self.dmgtype = ""
-		if dmginfo:IsExplosionDamage() then self.dmgtype = "Explosive"
-		elseif dmginfo:IsBulletDamage() or dmginfo:IsDamageType(DMG_BUCKSHOT) then self.dmgtype = "Bullet"
-		elseif dmginfo:IsDamageType(DMG_SLASH) or dmginfo:IsDamageType(DMG_CLUB) then self.dmgtype = "Melee"
-		elseif dmginfo:IsFallDamage() then self.dmgtype = "Fall"
-		elseif dmginfo:IsDamageType(DMG_CRUSH) then self.dmgtype = "Crush"
-		end
+		-- Damage type (handle almost all types)
+		self.dmgtype = damageTypes[dmginfo:GetDamageType()] or "Other"
+		
+		
 
 		self.victims = table.Copy(DEFAULT)
 		self.firsthit_dmginfo[5] = self.dmgtype
