@@ -807,7 +807,7 @@ e2function number lastSpawnTime(entity ply) -- returns the last time player prov
 end
 
 e2function entity lastSpawnedPlayer()
-	local Ply = RespawnList.last.ply	
+	local Ply = RespawnList.last.ply
 	if not IsValid(Ply) then return NULL end
 	return Ply
 end
