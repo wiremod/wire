@@ -636,7 +636,7 @@ end)
 registerOperator("neg", "xv4", "xv4", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	return { -rv1[1], -rv1[2], -rv1[3], -rv[4] }
+	return { -rv1[1], -rv1[2], -rv1[3], -rv1[4] }
 end)
 
 registerOperator("add", "xv4xv4", "xv4", function(self, args)
