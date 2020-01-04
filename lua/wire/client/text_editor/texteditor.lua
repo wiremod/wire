@@ -867,7 +867,7 @@ end
 
 function EDITOR:_OnTextChanged()
 	local ctrlv = false
-	local text = self.TextEntry:GetValue()
+	local text = self.TextEntry:GetText()
 	self.TextEntry:SetText("")
 
 	if (input.IsKeyDown(KEY_LCONTROL) or input.IsKeyDown(KEY_RCONTROL)) and not (input.IsKeyDown(KEY_LALT) or input.IsKeyDown(KEY_RALT)) then
