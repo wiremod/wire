@@ -1501,6 +1501,23 @@ E2Helper.Descriptions["toUnicodeChar(r)"] = "Returns the UTF-8 string from the g
 E2Helper.Descriptions["toUnicodeByte(s:nn)"] = "Returns the Unicode code-points from the given UTF-8 string"
 E2Helper.Descriptions["unicodeLength(s:nn)"] = "Returns the length of the given UTF-8 string"
 
+-- Damage
+E2Helper.Descriptions["runOnDeath(n)"] = "If set to 0, chip won't run on players dying"
+E2Helper.Descriptions["deathClk()"] = "Returns if the E2 was triggered by a death"
+E2Helper.Descriptions["lastDeathTime()"] = "Returns the last time a player died"
+E2Helper.Descriptions["lastDeathTime(e)"] = "Returns the last time given player died"
+E2Helper.Descriptions["lastDeathInflictor()"] = "Returns the entity that inflicted the last death"
+E2Helper.Descriptions["lastDeathInflictor(e)"] = "Returns the entity that inflicted the given player's last death"
+E2Helper.Descriptions["lastDeathVictim()"] = "Returns the last player to die"
+E2Helper.Descriptions["lastDeathAttacker()"] = "Returns the attacker who killed the last player to die"
+E2Helper.Descriptions["lastDeathAttacker(e)"] = "Returns the attacker who killed the player provided in their last death"
+--
+E2Helper.Descriptions["runOnSpawn(n)"] = "If set to 0, chip won't run on players spawning"
+E2Helper.Descriptions["spawnClk()"] = "Returns if the E2 was triggered by a player spawning"
+E2Helper.Descriptions["lastSpawnTime()"] = "Returns the last time a player spawned"
+E2Helper.Descriptions["lastSpawnTime(e)"] = "Returns the last time the given player spawned"
+E2Helper.Descriptions["lastSpawnedPlayer()"] = "Returns the last player to spawn"
+
 ---- Custom ----
 -- Effect
 E2Helper.Descriptions["effect()"] = "Creates and returns new effect"

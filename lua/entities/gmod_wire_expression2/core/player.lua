@@ -676,3 +676,139 @@ end
 e2function entity lastDisconnectedPlayer()
 	return lastLeft
 end
+
+----- Deaths+Spawns, Dev: Vurv, 12/28/19 -----
+local DeathAlert = {} -- table of e2s that have runOnDeath(1)
+local RespawnAlert = {}
+local DeathList = { last = {} }
+local RespawnList = { last = {} }
+
+hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
+	local entry = {} -- default table
+	entry.victim = victim
+	entry.inflictor = inflictor
+	entry.timestamp = CurTime()
+	entry.attacker = attacker
+	DeathList[victim:EntIndex()] = entry -- victim's death is saved in victims death list.
+	DeathList.last = entry -- the most recent death's table is stored here for later use.
+	for ex,_ in pairs(DeathAlert) do -- loops over all chips in deathalert, ignores key.
+		if IsValid(ex) then
+			ex.context.data.runByDeath = entry
+			ex:Execute()
+			ex.context.data.runByDeath = nil
+		end
+	end
+end)
+
+hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(player,transition)
+	local entry = {}
+	entry.ply = player
+	entry.timestamp = CurTime()
+	RespawnList[player:EntIndex()] = entry
+	RespawnList.last = entry
+	for ex,_ in pairs(RespawnAlert) do
+		if IsValid(ex) then
+			ex.context.data.runByRespawned = entry
+			ex:Execute()
+			ex.context.data.runByRespawned = nil
+		end
+	end
+end)
+
+__e2setcost(5)
+
+--- If active is 0, the chip will no longer run on death.
+e2function void runOnDeath(number activate)
+	if activate ~= 0 then
+		DeathAlert[self.entity] = true
+	else
+		DeathAlert[self.entity] = nil
+	end
+end
+
+--If ran by death, (defined in e2 data), gives 1 or 0 (ternary)
+e2function number deathClk()
+	return self.data.runByDeath and 1 or 0
+end
+
+e2function number lastDeathTime() -- returns when the last death happened
+	local Timestamp = DeathList.last.timestamp
+	if not IsValid(Timestamp) then return 0 end
+	return Timestamp -- Checks if num is valid, if so then returns the timestamp from the table, else returns 0.
+end
+
+e2function number lastDeathTime(entity ply) -- returns when the player provided last died
+	if not IsValid(ply) then return NULL end
+	if not ply:IsPlayer() then return NULL end
+	local Timestamp = DeathList[ply:EntIndex()].timestamp
+	if not IsValid(Timestamp) then return 0 end
+	return Timestamp -- Checks if num is valid, if so then returns the timestamp from the table, else returns 0. (also checks if ply is player and valid)
+end
+
+e2function entity lastDeathVictim() -- Gives Death Victim
+	local Victim = DeathList.last.victim
+	if not IsValid(Victim) then return NULL end
+	return Victim
+end
+
+e2function entity lastDeathInflictor()
+	local Inflictor = DeathList.last.inflictor
+	if not IsValid(Inflictor) then return NULL end
+	return Inflictor
+end
+
+e2function entity lastDeathInflictor(entity ply)
+	if not IsValid(ply) then return NULL end
+	if not ply:IsPlayer() then return NULL end
+	local Inflictor = DeathList[ply:EntIndex()].inflictor
+	if not IsValid(Inflictor) then return NULL end
+	return Inflictor
+end
+
+e2function entity lastDeathAttacker()
+	local Attacker = DeathList.last.attacker
+	if not IsValid(Attacker) then return NULL end
+	return Attacker
+end
+
+e2function entity lastDeathAttacker(entity ply)
+	if not IsValid(ply) then return NULL end
+	if not ply:IsPlayer() then return NULL end
+	local Attacker = DeathList[ply:EntIndex()].attacker
+	if not IsValid(Attacker) then return NULL end
+	return Attacker
+end
+
+-- Spawn Functions
+e2function number spawnClk()
+	return self.data.runByRespawned and 1 or 0
+end
+
+e2function void runOnSpawn(number activate)
+	if activate ~= 0 then
+		RespawnAlert[self.entity] = true
+	else
+		RespawnAlert[self.entity] = nil
+	end
+end
+
+e2function number lastSpawnTime()
+	local Timestamp = RespawnList.last.timestamp
+	if not IsValid(Timestamp) then return 0 end
+	return Timestamp
+end
+
+e2function number lastSpawnTime(entity ply) -- returns the last time player provided spawned.
+	if not IsValid(ply) then return 0 end
+	if not ply:IsPlayer() then return 0 end
+	local Timestamp = SpawnList[ply:EntIndex()].timestamp
+	if not IsValid(Timestamp) then return 0 end
+	return Timestamp
+end
+
+e2function entity lastSpawnedPlayer()
+	local Ply = RespawnList.last.ply
+	if not IsValid(Ply) then return NULL end
+	return Ply
+end
+--******************************************--
