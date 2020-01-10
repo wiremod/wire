@@ -359,7 +359,7 @@ end
 e2function number entity:stress()
 	if not validPhysics(this) then return 0 end
 	local phys = this:GetPhysicsObject()
-	return phys:GetStress()
+	return phys:GetStress() or 0
 end
 
 /******************************************************************************/
