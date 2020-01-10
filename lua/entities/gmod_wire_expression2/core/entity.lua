@@ -347,13 +347,13 @@ end
 e2function number entity:volume()
 	if not validPhysics(this) then return 0 end
 	local phys = this:GetPhysicsObject()
-	return phys:GetVolume()
+	return phys:GetVolume() or 0
 end
 
 e2function number entity:surfaceArea()
 	if not validPhysics(this) then return 0 end
 	local phys = this:GetPhysicsObject()
-	return phys:GetSurfaceArea()
+	return phys:GetSurfaceArea()  or 0
 end
 
 e2function number entity:stress()
