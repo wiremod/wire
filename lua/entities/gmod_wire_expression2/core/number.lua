@@ -81,7 +81,7 @@ __e2setcost(1.5)
 
 registerOperator("eq", "nn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
+	local rvd      = op1[1](self, op1) or 0 - op2[1](self, op2) or 0
 	if rvd <= delta && -rvd <= delta
 	   then return 1 else return 0 end
 end)
