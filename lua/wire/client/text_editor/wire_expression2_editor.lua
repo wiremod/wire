@@ -787,7 +787,8 @@ function Editor:InitComponents()
 
 	self.C.Control = self:addComponent(vgui.Create("Panel", self), -350, 52, 342, -32) -- Control Panel
 	self.C.Credit = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 150) -- Credit box
-
+	self.C.Credit:SetEditable(false)
+	
 	self:CreateTab("generic")
 
 	-- extra component options
