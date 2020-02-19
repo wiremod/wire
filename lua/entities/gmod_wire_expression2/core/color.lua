@@ -107,12 +107,12 @@ end
 
 --- Converts <hsv> from the [http://en.wikipedia.org/wiki/HSV_color_space HSV color space] to the [http://en.wikipedia.org/wiki/RGB_color_space RGB color space]
 e2function vector hsv2rgb(vector hsv)
-	local col = HSVToColor(hsv[1], hsv[2], hsv[3])
+	local col = HSVToColor(math.Clamp(hsv[1] % 360, 0, 360), hsv[2], hsv[3])
 	return { col.r, col.g, col.b }
 end
 
 e2function vector hsv2rgb(h, s, v)
-	local col = HSVToColor(h, s, v)
+	local col = HSVToColor(math.Clamp(h % 360, 0, 360), s, v)
 	return { col.r, col.g, col.b }
 end
 
