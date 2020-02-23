@@ -2230,7 +2230,7 @@ VM.OpcodeTable[283] = function(self)  --DRASTER
   self:Dyn_Emit("VM:WriteCell(65518,$1)")
   self:Dyn_EmitInterruptCheck()
 end
-VM.OpcodeTable[285] = function(self)  --DDTERRAIN
+VM.OpcodeTable[284] = function(self)  --DDTERRAIN
   self:Dyn_Emit("$L ADDR = $1")
   self:Dyn_Emit("$L W = VM:ReadCell(ADDR+0)") -- Total width/height of the terrain
   self:Dyn_Emit("$L H = VM:ReadCell(ADDR+1)")
