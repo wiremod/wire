@@ -220,9 +220,9 @@ registerCallback("postinit", function()
 	for typeid,_ in pairs(wire_expression_types2) do
 		if not excluded_types[typeid] then
 			if comparable_types[typeid] then
-				registerFunction("changed", typeid, "n", e2_changed_n)
+				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_n)
 			else
-				registerFunction("changed", typeid, "n", e2_changed_a)
+				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_a)
 			end
 		end
 	end
