@@ -186,6 +186,33 @@ local function add_queue( queue, ply, data )
 	plyqueue[#plyqueue+1] = data
 end
 
+-- call to remove all queued items for a specific hologram
+local function remove_from_queues( holo_ent )
+	local function remove_from_queue( queue )
+		for _, plyqueue in pairs( queue ) do
+			for i=#plyqueue,1,-1 do -- iterate backwards to allow removing
+				local Holo = plyqueue[i][1] -- the hologram is always at idx 1
+				if Holo.ent == holo_ent then
+					table.remove( plyqueue, i ) -- remove it from the queue
+				end
+			end
+		end
+	end
+
+	remove_from_queue( scale_queue )
+	remove_from_queue( bone_scale_queue )
+	remove_from_queue( clip_queue )
+	remove_from_queue( vis_queue )
+	remove_from_queue( player_color_queue )
+end
+
+local function remove_holo( Holo )
+	if IsValid(Holo.ent) then
+		remove_from_queues( Holo.ent )
+		Holo.ent:Remove()
+	end
+end
+
 local function flush_scale_queue(queue, recipient)
 	if not queue then queue = scale_queue end
 	if not next(queue) then return end
@@ -432,13 +459,13 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 
 				table.insert(s_queue, { Holo, scale })
 
-				if bone_scales and table.Count(bone_scales) > 0 then
+				if bone_scales and next(bone_scales) ~= nil then
 					for bidx,b_scale in pairs(bone_scales) do
 						table.insert(b_s_queue, { Holo, bidx, b_scale })
 					end
 				end
 
-				if clips and table.Count(clips) > 0 then
+				if clips and next(clips) ~= nil then
 					for cidx,clip in pairs(clips) do
 						if clip.enabled then
 							table.insert(c_queue, {
@@ -590,17 +617,13 @@ end
 -- Removes all holograms from the given chip.
 local function clearholos(self)
 	-- delete local holos
-	for index,Holo in pairs(self.data.holos) do
-		if IsValid(Holo.ent) then Holo.ent:Remove() end
-	end
+	for index,Holo in pairs(self.data.holos) do remove_holo(Holo) end
 
 	-- delete global holos owned by this chip
 	local rep = E2HoloRepo[self.uid]
 	if not rep then return end
 	for index,Holo in ipairs(rep) do
-		if Holo.e2owner == self then
-			if IsValid(Holo.ent) then Holo.ent:Remove() end
-		end
+		if Holo.e2owner == self then remove_holo(Holo) end
 	end
 end
 
@@ -613,10 +636,11 @@ local function clearholos_all(ply_uid)
 	for k,Holo in pairs(E2HoloRepo[ply_uid]) do
 		if Holo and IsValid(Holo.ent) then
 			Holo.ent:RemoveCallOnRemove( "holo_cleanup" )
-			Holo.ent:Remove()
+			remove_holo(Holo)
 		end
 	end
 
+	E2HoloRepo[ply_uid] = {}
 	PlayerAmount[ply_uid] = 0
 end
 
@@ -723,9 +747,7 @@ e2function void holoDelete(index)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	if IsValid(Holo.ent) then
-		Holo.ent:Remove()
-	end
+	remove_holo(Holo)
 end
 
 e2function void holoDeleteAll()
@@ -750,6 +772,7 @@ e2function void holoReset(index, string model, vector scale, vector color, strin
 	WireLib.SetColor(Holo.ent, Color(color[1],color[2],color[3],255))
 	E2Lib.setMaterial(Holo.ent, material)
 
+	remove_from_queues( Holo.ent )
 	reset_clholo(Holo, scale) -- Reset scale, clips, and visible status
 end
 
@@ -1216,12 +1239,7 @@ concommand.Add( "wire_holograms_block", function( ply, com, args )
 		else
 			local uid = v:UniqueID()
 			if E2HoloRepo[uid] then
-				for k2,v2 in pairs( E2HoloRepo[uid] ) do
-					if v2 and IsValid(v2.ent) then
-						v2.ent:Remove()
-						PlayerAmount[uid] = PlayerAmount[uid] - 1
-					end
-				end
+				clearholos_all(uid)
 			end
 			BlockList[v:SteamID()] = true
 			for _,p in ipairs( player.GetAll() ) do
@@ -1287,12 +1305,7 @@ concommand.Add( "wire_holograms_block_id", function( ply, com, args )
 			if v:SteamID() == steamID then
 				uid = v:UniqueID()
 				if (E2HoloRepo[uid]) then
-					for k2,v2 in pairs( E2HoloRepo[uid] ) do
-						if v2 and IsValid(v2.ent) then
-							v2.ent:Remove()
-							PlayerAmount[uid] = PlayerAmount[uid] - 1
-						end
-					end
+					clearholos_all(uid)
 					return
 				end
 			end
