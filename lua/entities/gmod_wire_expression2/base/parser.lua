@@ -519,13 +519,13 @@ function Parser:Stmt8(parentLocalized)
 				return self:Instruction(trace, "ass", var, self:Stmt8(false))
 			end
 		elseif localized then
-			self:Error("Invalid operator (local) must be used for variable decleration.")
+			self:Error("Invalid operator (local) must be used for variable declaration.")
 		end
 
 		self.index = tbpos - 2
 		self:NextToken()
 	elseif localized then
-		self:Error("Invalid operator (local) must be used for variable decleration.")
+		self:Error("Invalid operator (local) must be used for variable declaration.")
 	end
 
 	return self:Stmt9()
@@ -663,7 +663,7 @@ function Parser:Stmt10()
 
 		if wire_expression2_funcs[Sig] then self:Error("Function '" .. Sig .. "' already exists") end
 
-		local Inst = self:Instruction(Trace, "function", Sig, Return, Type, Args, self:Block("function decleration"))
+		local Inst = self:Instruction(Trace, "function", Sig, Return, Type, Args, self:Block("function declaration"))
 
 		return Inst
 
@@ -982,7 +982,7 @@ function Parser:CaseBlock() -- Shhh this is a secret. Do not tell anybody about 
 			end
 		end
 	else
-		self:Error("Case block is missing after case decleration.")
+		self:Error("Case block is missing after case declaration.")
 	end
 end
 
