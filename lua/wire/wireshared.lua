@@ -1008,6 +1008,7 @@ end
 -- Ensures that the force is within the range of a float, to prevent
 -- physics engine crashes
 -- 2*maxmass*maxvelocity should be enough impulse to do whatever you want.
+-- Timer resolves issue with table not existing until next tick on Linux
 local max_force, min_force
 hook.Add("InitPostEntity","WireForceLimit",function()
 	timer.Simple(0, function()
