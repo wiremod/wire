@@ -69,12 +69,6 @@ end
 
 __e2setcost(5)
 
-e2function string entity:name()
-	if(not IsValid(this)) then return "" end
-	if(not this:IsPlayer()) then return "" end
-	return this:Name()
-end
-
 e2function string entity:steamID()
 	if(not IsValid(this)) then return "" end
 	if(not this:IsPlayer()) then return "" end
