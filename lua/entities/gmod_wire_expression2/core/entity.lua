@@ -119,6 +119,11 @@ e2function entity world()
 	return game.GetWorld()
 end
 
+e2function string entity:name()
+	if(not IsValid(this)) then return "" end
+	return this:GetName() or ""
+end
+
 e2function string entity:type()
 	if not IsValid(this) then return "" end
 	return this:GetClass()
