@@ -287,7 +287,7 @@ function ENT:SendConfig(ply)
 		net.WriteUInt(self.bgcolor.r, 8)
 		net.WriteUInt(self.bgcolor.g, 8)
 		net.WriteUInt(self.bgcolor.b, 8)
-		net.WriteString(self.tfont)
+		net.WriteString(string.sub(self.tfont,0,31))
 	WireLib.netEnd(ply)
 end
 
