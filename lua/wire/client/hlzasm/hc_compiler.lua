@@ -627,6 +627,7 @@ end
 -- Set special labels
 function HCOMP:SetSpecialLabels()
   -- Set special labels
+  self:DefineLabel("__PTR__").Type = "Pointer"
   self:SetLabel("programsize",self.WritePointer)
   self:SetLabel("__PROGRAMSIZE__",self.WritePointer)
   self:SetLabel("__DATE_YEAR__",  tonumber(os.date("%Y")))
