@@ -516,7 +516,10 @@ function HCOMP:NextToken()
   self.CurrentToken = self.CurrentToken + 1
 end
 
-
+-- Go to previous token
+function HCOMP:PreviousToken()
+  self.CurrentToken = self.CurrentToken - 1
+end
 
 
 -- Returns next token type. Looks forward into stream if offset is specified
@@ -578,5 +581,15 @@ function HCOMP:CurrentSourcePosition()
     return self.Tokens[self.CurrentToken-1].Position
   else
     return { Line = 1, Col = 1, File = "HL-ZASM" }
+  end
+end
+
+
+-- Returns true if token is last at source file line (necessary, for example to see the difference between SS:EAX and LABEL:) 
+function HCOMP:SourceLineEnd()
+  if (self.Tokens[self.CurrentToken].Position.Line ~= self.Tokens[self.CurrentToken+1].Position.Line) then
+    return true
+  else
+    return false
   end
 end
