@@ -728,6 +728,24 @@ end
 --------------------------------------------------------------------------------
 -- Compile a single statement
 function HCOMP:Statement() local TOKEN = self.TOKEN
+  -- Parse code for absolute labels and define (LABEL:) 
+  if self.CurrentToken == 1 then
+	while not(self:MatchToken(TOKEN.EOF)) do
+      if self:MatchToken(TOKEN.IDENT) then
+        if(self:PeekToken() == TOKEN.DCOLON) and self:SourceLineEnd() then
+          local label = self:DefineLabel(self.TokenData)
+          label.Type = "Pointer"
+          label.Defined = true
+        else
+          self:PreviousToken()
+        end
+	  end
+	  self:NextToken()
+    end
+	self.CurrentToken = 1
+  end
+  
+  
   -- Parse end of line colon
   if self:MatchToken(TOKEN.COLON) then return true end
 
@@ -1450,13 +1468,13 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
   self:SaveParserState()
 
   if self:MatchToken(TOKEN.IDENT) then
-    if (self:PeekToken() == TOKEN.COMMA) or (self:PeekToken() == TOKEN.DCOLON) then
+    if (self:PeekToken() == TOKEN.COMMA) then
       -- Label definition for sure
       while true do
         local label = self:DefineLabel(self.TokenData)
         label.Type = "Pointer"
         label.Defined = true
-
+		
         label.Leaf = self:NewLeaf()
         label.Leaf.Opcode = "LABEL"
         label.Leaf.Label = label
@@ -1465,10 +1483,17 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
         self:MatchToken(TOKEN.COMMA)
         if not self:MatchToken(TOKEN.IDENT) then break end
       end
-      self:ExpectToken(TOKEN.DCOLON)
       self:MatchToken(TOKEN.COLON)
       return true
-    else
+    elseif (self:PeekToken() == TOKEN.DCOLON) and self:SourceLineEnd() then
+	    local label = self:GetLabel(self.TokenData)
+	    label.Leaf = self:NewLeaf()
+      label.Leaf.Opcode = "LABEL"
+      label.Leaf.Label = label
+	    self:AddLeafToTail(label.Leaf)
+	    self:ExpectToken(TOKEN.DCOLON)
+	  return true
+	else
       self:RestoreParserState()
     end
   end
