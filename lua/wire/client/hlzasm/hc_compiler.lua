@@ -510,6 +510,8 @@ function HCOMP:UnprotectedCompile()
 
     return true
   else
+    -- Reset compiler to start point and return false when work is done
+    self.Stage = 1
     return false
   end
 end
