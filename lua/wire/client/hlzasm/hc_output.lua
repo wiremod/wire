@@ -43,6 +43,17 @@ function HCOMP:Resolve(block)
     else -- Fixed-size instructions
       self.WritePointer = self.WritePointer + 6
     end
+    -- Preventive setting up __PTR__ as constant number (const = currentOpcodeOffset + currentOpcodeSize)
+    for i=1,#block.Operands do
+      if istable(block.Operands[i].Constant) then
+        for j=1, #block.Operands[i].Constant do
+          if (block.Operands[i].Constant[j].Data == "__PTR__") then
+              block.Operands[i].Constant[j].Data = self.WritePointer
+              block.Operands[i].Constant[j].Type = self.TOKEN.NUMBER
+          end
+        end
+      end
+    end
   end
 
   -- Account for extra data in the block
@@ -176,8 +187,6 @@ function HCOMP:Output(block)
     self:OutputLibrary(block)
     return
   end
-  -- Update absolute pointer to current opcode(block)
-  self:SetLabel("__PTR__",self.WritePointer)
   -- Resolve constant values in the block
   if block.Opcode then
     for i=1,#block.Operands do
