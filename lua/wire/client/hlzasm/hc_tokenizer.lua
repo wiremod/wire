@@ -583,13 +583,3 @@ function HCOMP:CurrentSourcePosition()
     return { Line = 1, Col = 1, File = "HL-ZASM" }
   end
 end
-
-
--- Returns true if token is last at source file line (necessary, for example to see the difference between SS:EAX and LABEL:) 
-function HCOMP:SourceLineEnd()
-  if (self.Tokens[self.CurrentToken].Position.Line ~= self.Tokens[self.CurrentToken+1].Position.Line) then
-    return true
-  else
-    return false
-  end
-end
