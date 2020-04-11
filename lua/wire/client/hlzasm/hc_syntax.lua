@@ -732,7 +732,7 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
   if self.CurrentToken == 1 then
 	while not(self:MatchToken(TOKEN.EOF)) do
       if self:MatchToken(TOKEN.IDENT) then
-        if(self:PeekToken() == TOKEN.DCOLON) and self:SourceLineEnd() then
+        if(self:PeekToken() == TOKEN.DCOLON) then
           local label = self:DefineLabel(self.TokenData)
           label.Type = "Pointer"
           label.Defined = true
@@ -1485,11 +1485,11 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
       end
       self:MatchToken(TOKEN.COLON)
       return true
-    elseif (self:PeekToken() == TOKEN.DCOLON) and self:SourceLineEnd() then
+    elseif (self:PeekToken() == TOKEN.DCOLON) then
 	    local label = self:GetLabel(self.TokenData)
 	    label.Leaf = self:NewLeaf()
-      label.Leaf.Opcode = "LABEL"
-      label.Leaf.Label = label
+            label.Leaf.Opcode = "LABEL"
+            label.Leaf.Label = label
 	    self:AddLeafToTail(label.Leaf)
 	    self:ExpectToken(TOKEN.DCOLON)
 	  return true
