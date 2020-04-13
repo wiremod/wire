@@ -12,7 +12,7 @@
 function HCOMP:Resolve(block)
   -- Set offset for the block
   block.Offset = self.WritePointer
-  self:SetLabel("__PTR__",self.WritePointer)
+  
 
   -- Set pointer offset
   block.PointerOffset = self.PointerOffset
@@ -42,6 +42,17 @@ function HCOMP:Resolve(block)
       end
     else -- Fixed-size instructions
       self.WritePointer = self.WritePointer + 6
+    end
+    -- Preventive setting up __PTR__ as constant number (const = currentOpcodeOffset + currentOpcodeSize)
+    for i=1,#block.Operands do
+      if istable(block.Operands[i].Constant) then
+        for j=1, #block.Operands[i].Constant do
+          if (block.Operands[i].Constant[j].Data == "__PTR__") then
+              block.Operands[i].Constant[j].Data = self.WritePointer
+              block.Operands[i].Constant[j].Type = self.TOKEN.NUMBER
+          end
+        end
+      end
     end
   end
 
@@ -176,7 +187,6 @@ function HCOMP:Output(block)
     self:OutputLibrary(block)
     return
   end
-
   -- Resolve constant values in the block
   if block.Opcode then
     for i=1,#block.Operands do
