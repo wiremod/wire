@@ -496,8 +496,6 @@ function ENT:Think()
 		WireLib.TriggerOutput(self, "Health", ply:Health())
 		WireLib.TriggerOutput(self, "Armor", ply:Armor())
 		if self:HasPod() then WireLib.TriggerOutput(self, "ThirdPerson", pod:GetThirdPersonMode() and 1 or 0) end
-
-		if not ply:IsBot() then WireLib.TriggerOutput(self, "Light", ply.keystate[KEY_F] and 1 or 0) end
 	end
 
 	self:NextThink( CurTime() )
