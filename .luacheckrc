@@ -1,14 +1,13 @@
 -- This file will be read by Luacheck <https://github.com/mpeterv/luacheck>.
 -- It's primarily to specify what globals are available across all files.
 
-std = "luajit+garrysmod+wiremod"
+std = "luajit+garrysmod+wiremod+CPPI"
 
 -- Problems to ignore
 ignore = {
     "212", -- Unused argument
+    "4..", -- Redeclaration and shadowing
     "6..", -- All whitespace warnings (these are checked by git diff)
-    "42.", -- Shadowing
-    "43.", -- Upvalue shadowing
 }
 
 files[".luacheckrc"].std = "min+luacheck"
@@ -3619,6 +3618,21 @@ stds.garrysmod.globals = {
   "ENT",
   "TOOL",
   "SWEP",
+}
+
+stds.CPPI = {
+  read_globals = {
+    CPPI = {
+      fields = {
+        CPPI_DEFER = {},
+        CPPI_NOTIMPLEMENTED = {},
+        GetName = {},
+        GetVersion = {},
+        GetInterfaceVersion = {},
+        GetNameFromUID = {},
+      }
+    }
+  }
 }
 
 stds.wiremod = {}

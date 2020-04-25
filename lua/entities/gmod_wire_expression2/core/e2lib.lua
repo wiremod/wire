@@ -9,6 +9,7 @@ end
 
 -- -------------------------- Helper functions -----------------------------
 local unpack = unpack
+local IsValid = IsValid
 
 -- This functions should not be used in functions that tend to be used very often, as it is slower than getting the arguments manually.
 function E2Lib.getArguments(self, args)
@@ -191,7 +192,7 @@ end
 function E2Lib.isOwner(self, entity)
 	if game.SinglePlayer() then return true end
 	local player = self.player
-	local owner = getOwner(self, entity)
+	local owner = E2Lib.getOwner(self, entity)
 	if not IsValid(owner) then return false end
 
 	return E2Lib.isFriend(owner, player)
@@ -259,31 +260,22 @@ end
 
 -- ------------------------ list filtering -------------------------------------------------
 
-local Debug = false
-local cPrint
-if Debug then
-	if not console then require("console") end -- only needed if you want fancy-colored output.
-	function cPrint(color, text) Msg(text) end
-
-	if console and console.Print then cPrint = console.Print end
-end
-
 function E2Lib.filterList(list, criterion)
 	local index = 1
-	-- if Debug then print("-- filterList: "..#list.." entries --") end
+	-- print("-- filterList: "..#list.." entries --")
 
 	while index <= #list do
 		if not criterion(list[index]) then
-			-- if Debug then cPrint(Color(128,128,128), "-    "..tostring(list[index]).."\n") end
+			-- MsgC(Color(128,128,128), "-    "..tostring(list[index]).."\n")
 			list[index] = list[#list]
 			table.remove(list)
 		else
-			-- if Debug then print(string.format("+%3d %s", index, tostring(list[index]))) end
+			-- print(string.format("+%3d %s", index, tostring(list[index])))
 			index = index + 1
 		end
 	end
 
-	-- if Debug then print("--------") end
+	-- print("--------")
 	return list
 end
 
@@ -343,7 +335,6 @@ E2Lib.optable_inv = {
 	dlt = "$",
 	trg = "~",
 	imp = "->",
-	fea = "foreach",
 }
 
 E2Lib.optable = {}
@@ -442,9 +433,7 @@ end
 do
 	-- Shared stuff, defined later.
 
-	local extensions = nil
-	local function printExtensions() end
-	local function conCommandSetExtensionStatus() end
+	local extensions, printExtensions, conCommandSetExtensionStatus
 
 	function E2Lib.GetExtensions()
 		return extensions.list
