@@ -408,16 +408,15 @@ end
 
 -- Use Support --
 
-local InUseBy = nil
 __e2setcost(50)
 --- Makes the chip "Use"able
 e2function void runOnUse(value)
 	if value != 0 then
 		self.entity:SetUseType( SIMPLE_USE )
-		self.entity.Use = function(self,activator)
-			InUseBy = activator
-			self:Execute()
-			InUseBy = nil
+		self.entity.Use = function(selfEnt,activator)
+			self.data.runByUse = activator
+			selfEnt:Execute()
+			self.data.runByUse = NULL
 		end
 	else
 		self.entity.Use = nil
@@ -427,7 +426,7 @@ end
 __e2setcost(1)
 --- Returns the entity who is using the chip
 e2function entity useClk()
-	return InUseBy
+	return self.data.runByUse or NULL
 end
 
 
