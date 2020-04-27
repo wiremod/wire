@@ -3,113 +3,123 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Analog Lever"
 ENT.WireDebugName	= "Lever"
 
-if CLIENT then return end -- No more client
+function ENT:CalcAngle(dist) -- ('dist' is passed so we don't have to re-calculate it)
+	local TargPos = self.User:GetShootPos() + self.User:GetAimVector() * dist
+	local distMax = TargPos:Distance(self:GetPos() + self:GetForward() * 30)
+	local distMin = TargPos:Distance(self:GetPos() + self:GetForward() * -30)
+	local FPos = (distMax - distMin) * 0.5
+	distMax = TargPos:Distance(self:GetPos())
+	distMin = TargPos:Distance(self:GetPos() + self:GetUp() * 40)
+	local HPos = 20 - ((distMin - distMax) * 0.5)
 
-function ENT:Initialize()
-	self:SetModel("models/props_wasteland/tram_lever01.mdl")
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
-	self:SetUseType( SIMPLE_USE )
-
-	self.EntToOutput = NULL
-
-	self.Ang = 0
-	self.Value = 0
-	self:Setup(0, 1)
-
-	self.Inputs = WireLib.CreateInputs(self, {"SetValue", "Min", "Max"})
-	self.Outputs = WireLib.CreateOutputs(self, {"Value", "Entity [ENTITY]"})
+	self.Ang = math.Clamp( math.deg( math.atan2( HPos, FPos ) ) - 90, -45, 45 )
 end
 
-function ENT:Setup(min, max)
-	if min then self.Min = min end
-	if max then self.Max = max end
-end
+if CLIENT then
 
-function ENT:TriggerInput(iname, value)
-	if iname == "SetValue" then
-		self.Ang = (math.Clamp(value, self.Min, self.Max) - self.Min)/(self.Max - self.Min) * 90 - 45
-	elseif (iname == "Min") then
-		self.Min = value
-	elseif (iname == "Max") then
-		self.Max = value
+	local MAX_RENDER_DISTANCE = 1024
+	local RenderGroup = ENT.RenderGroup
+
+	function ENT:Draw()
+		local distance = LocalPlayer():GetPos():Distance(self:GetPos())
+		if distance < MAX_RENDER_DISTANCE then
+			if not IsValid(self.csmodel) then
+				self.csmodel = ClientsideModel("models/props_wasteland/tram_lever01.mdl",RenderGroup)
+			end
+
+			self.Ang = self:GetNWFloat("Ang",0) -- get networked ang
+
+			-- however, if we are able, also calculate the angle more accurately clientside
+			self.User = self:GetNWEntity("User",NULL)
+			if IsValid(self.User) then
+				self:CalcAngle(self.User:GetShootPos():Distance(self:GetPos()))
+			end
+
+			local lever_ang = Angle(self.Ang,0,0)
+			local ang = self:LocalToWorldAngles(lever_ang)
+			local pos = self:LocalToWorld(lever_ang:Up() * 21)
+
+			render.Model({
+				model = self.csmodel:GetModel(),
+				pos = pos,
+				angle = ang
+			}, self.csmodel)
+		elseif self.csmodel then
+			self.csmodel:Remove()
+			self.csmodel = nil
+		end
+		BaseClass.Draw(self)
 	end
-end
 
-function ENT:Use( ply )
-	if not IsValid(ply) or not ply:IsPlayer() or IsValid(self.User) then return end
-	self.User = ply
-	WireLib.TriggerOutput( self, "Entity", ply)
-end
+else
+	util.PrecacheModel( "models/props_wasteland/tram_lever01.mdl" )
 
-function ENT:Think()
-	BaseClass.Think(self)
-	if not IsValid(self.BaseEnt) then return end
+	function ENT:Initialize()
+		self:PhysicsInit( SOLID_VPHYSICS )
+		self:SetMoveType( MOVETYPE_VPHYSICS )
+		self:SetSolid( SOLID_VPHYSICS )
+		self:SetUseType( SIMPLE_USE )
 
-	if IsValid(self.User) then
-		local dist = self.User:GetShootPos():Distance(self:GetPos())
-		if dist < 160 and (self.User:KeyDown(IN_USE) or self.User:KeyDown(IN_ATTACK)) then
-			local TargPos = self.User:GetShootPos() + self.User:GetAimVector() * dist
-			local distMax = TargPos:Distance(self.BaseEnt:GetPos() + self.BaseEnt:GetForward() * 30)
-			local distMin = TargPos:Distance(self.BaseEnt:GetPos() + self.BaseEnt:GetForward() * -30)
-			local FPos = (distMax - distMin) * 0.5
-			distMax = TargPos:Distance(self.BaseEnt:GetPos())
-			distMin = TargPos:Distance(self.BaseEnt:GetPos() + self.BaseEnt:GetUp() * 40)
-			local HPos = 20 - ((distMin - distMax) * 0.5)
+		self.Ang = 0
+		self.Value = 0
+		self:Setup(0, 1)
 
-			self.Ang = math.Clamp( math.deg( math.atan2( HPos, FPos ) ) - 90, -45, 45 )
-		else
-			self.User = NULL
-			WireLib.TriggerOutput( self, "Entity", NULL)
+		self.Inputs = WireLib.CreateInputs(self, {"SetValue", "Min", "Max"})
+		self.Outputs = WireLib.CreateOutputs(self, {"Value", "Entity [ENTITY]"})
+	end
+
+	function ENT:Setup(min, max)
+		if min then self.Min = min end
+		if max then self.Max = max end
+	end
+
+	function ENT:TriggerInput(iname, value)
+		if iname == "SetValue" then
+			self.Ang = (math.Clamp(value, self.Min, self.Max) - self.Min)/(self.Max - self.Min) * 90 - 45
+		elseif (iname == "Min") then
+			self.Min = value
+		elseif (iname == "Max") then
+			self.Max = value
 		end
 	end
 
-	self.Value = Lerp((self.Ang + 45) / 90, self.Min, self.Max)
-	Wire_TriggerOutput(self, "Value", self.Value)
-
-	local NAng = self.BaseEnt:GetAngles()
-	NAng:RotateAroundAxis( NAng:Right(), -self.Ang )
-	local RAng = self.BaseEnt:WorldToLocalAngles(NAng)
-	self:SetLocalPos( RAng:Up() * 21 )
-	self:SetLocalAngles( RAng )
-
-	self:ShowOutput()
-
-	self:NextThink(CurTime())
-	return true
-end
-
-function ENT:ShowOutput()
-	self:SetOverlayText(string.format("(%.2f - %.2f) = %.2f", self.Min, self.Max, self.Value))
-end
-
-function ENT:OnRemove( )
-	if IsValid(self.BaseEnt) then
-		self.BaseEnt:Remove()
-		self.BaseEnt = nil
+	function ENT:Use( ply )
+		if not IsValid(ply) or not ply:IsPlayer() or IsValid(self.User) then return end
+		self.User = ply
+		WireLib.TriggerOutput( self, "Entity", ply)
+		self:SetNWEntity("User",self.User)
 	end
-end
 
-function ENT:BuildDupeInfo()
-	local info = BaseClass.BuildDupeInfo(self) or {}
-	if IsValid(self.BaseEnt) then
-		info.baseent = self.BaseEnt:EntIndex()
-		constraint.Weld(self, self.BaseEnt, 0, 0, 0, true) -- Just in case the weld has been broken somehow, remake to ensure inclusion in dupe
-	end
-	info.value = self.Value
-	return info
-end
+	function ENT:Think()
+		BaseClass.Think(self)
 
-function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-	if info.baseent then
-		self.BaseEnt = GetEntByID(info.baseent)
-	end
-	if info.value then
-		self.Value = info.value
-		self:TriggerInput("SetValue", self.Value)
-	end
-end
+		if IsValid(self.User) then
+			local dist = self.User:GetShootPos():Distance(self:GetPos())
+			if dist < 160 and (self.User:KeyDown(IN_USE) or self.User:KeyDown(IN_ATTACK)) then
+				self:CalcAngle(dist)
+			else
+				self.User = NULL
+				WireLib.TriggerOutput( self, "Entity", NULL)
+				self:SetNWEntity("User",self.User)
+			end
+		end
 
-duplicator.RegisterEntityClass("gmod_wire_lever", WireLib.MakeWireEnt, "Data", "Min", "Max" )
+		local oldvalue = self.Value
+		self.Value = Lerp((self.Ang + 45) / 90, self.Min, self.Max)
+		if self.Value ~= oldvalue then
+			WireLib.TriggerOutput(self, "Value", self.Value)
+			self:ShowOutput()
+			self:SetNWFloat("Ang",self.Ang)
+		end
+
+		self:NextThink(CurTime())
+		return true
+	end
+
+	function ENT:ShowOutput()
+		self:SetOverlayText(string.format("(%.2f - %.2f) = %.2f", self.Min, self.Max, self.Value))
+	end
+
+	duplicator.RegisterEntityClass("gmod_wire_lever", WireLib.MakeWireEnt, "Data", "Min", "Max" )
+
+end
