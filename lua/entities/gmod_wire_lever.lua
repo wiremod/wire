@@ -17,48 +17,38 @@ end
 
 if CLIENT then
 
-	local MAX_RENDER_DISTANCE = 2048
 	local RenderGroup = ENT.RenderGroup
 
 	function ENT:Draw()
-		if IsValid(self.csmodel) then
-			self.Ang = self:GetNWFloat("Ang",0) -- get networked ang
-
-			-- however, if we are able, also calculate the angle more accurately clientside
-			self.User = self:GetNWEntity("User",NULL)
-			if IsValid(self.User) then
-				self:CalcAngle(self.User:GetShootPos():Distance(self:GetPos()))
-			end
-
-			local lever_ang = Angle(self.Ang,0,0)
-			local ang = self:LocalToWorldAngles(lever_ang)
-			local pos = self:LocalToWorld(lever_ang:Up() * 21)
-
-			render.Model({
-				model = self.csmodel:GetModel(),
-				pos = pos,
-				angle = ang
-			}, self.csmodel)
+		if not IsValid(self.csmodel) then
+			self.csmodel = ClientsideModel("models/props_wasteland/tram_lever01.mdl",RenderGroup)
+			self.csmodel:SetParent(self)
+			self.NextRBUpdate = 0
 		end
+
+		self.Ang = self:GetNWFloat("Ang",0) -- get networked ang
+
+		-- however, if we are able, also calculate the angle more accurately clientside
+		self.User = self:GetNWEntity("User",NULL)
+		if IsValid(self.User) then
+			self:CalcAngle(self.User:GetShootPos():Distance(self:GetPos()))
+		end
+
+		local lever_ang = Angle(self.Ang,0,0)
+		local ang = self:LocalToWorldAngles(lever_ang)
+		local pos = self:LocalToWorld(lever_ang:Up() * 21)
+
+		render.Model({
+			model = self.csmodel:GetModel(),
+			pos = pos,
+			angle = ang
+		}, self.csmodel)
+
 		BaseClass.Draw(self)
 	end
 
 	function ENT:Think()
-		-- check if user is close enough to render lever
 		local curtime = CurTime()
-		if curtime >= (self.NextDistanceCheck or 0) then
-			self.NextDistanceCheck = curtime + 1
-			local distance = LocalPlayer():GetPos():Distance(self:GetPos())
-			if distance < MAX_RENDER_DISTANCE then
-				if not IsValid(self.csmodel) then
-					self.csmodel = ClientsideModel("models/props_wasteland/tram_lever01.mdl",RenderGroup)
-					self.NextRBUpdate = 0
-				end
-			elseif IsValid(self.csmodel) then
-				self.csmodel:Remove()
-				self.csmodel = nil
-			end
-		end
 		
 		-- check if we need to update renderbounds
 		if curtime >= (self.NextRBUpdate or 0) then
@@ -93,7 +83,6 @@ if CLIENT then
 
 		BaseClass.Think(self)
 	end
-
 else
 	util.PrecacheModel( "models/props_wasteland/tram_lever01.mdl" )
 
