@@ -17,7 +17,7 @@ end
 
 if CLIENT then
 
-	local MAX_RENDER_DISTANCE = 1024
+	local MAX_RENDER_DISTANCE = 2048
 	local RenderGroup = ENT.RenderGroup
 
 	function ENT:Draw()
@@ -52,8 +52,9 @@ if CLIENT then
 			if distance < MAX_RENDER_DISTANCE then
 				if not IsValid(self.csmodel) then
 					self.csmodel = ClientsideModel("models/props_wasteland/tram_lever01.mdl",RenderGroup)
+					self.NextRBUpdate = 0
 				end
-			else
+			elseif IsValid(self.csmodel) then
 				self.csmodel:Remove()
 				self.csmodel = nil
 			end
@@ -164,17 +165,24 @@ else
 
 	local fix_after_dupe = {}
 	hook.Add("AdvDupe_FinishPasting","LeverFixOldDupe",function(data)
-		-- yes, this is also called on garrydupe paste, thanks to wirelib.lua
+		-- this hook is also called on garrydupe's paste, thanks to wirelib.lua
 		for i=#fix_after_dupe,1,-1 do
 			local base = fix_after_dupe[i].base
 			local self = fix_after_dupe[i].self
 
 			local found = false
 
-			for __,ent in pairs( data[1].CreatedEntities ) do
-				if ent == self or ent == base then
-					found = true
-					break
+			if not IsValid(base) or not IsValid(self) then
+				-- welp they're gone
+				table.remove(fix_after_dupe,i)
+			else
+				-- check if the dupe which is being spawned is our dupe
+				-- (could use a lookup here, but I don't expect this to be iterated too often anyway)
+				for __,ent in pairs( data[1].CreatedEntities ) do
+					if ent == self or ent == base then
+						found = true
+						break
+					end
 				end
 			end
 
@@ -182,7 +190,7 @@ else
 				table.remove(fix_after_dupe,i)
 
 				-- remove all constraints from self
-				self:SetParent() -- temporarily parent to base to prevent the entity from flying off
+				self:SetParent()
 				constraint.RemoveAll(self)
 
 				local original_solid = self:GetSolid()
@@ -232,9 +240,21 @@ else
 					self:SetParent(base:GetParent())
 					base:Remove()
 
+					-- reset original values
 					self:SetNotSolid(not original_solid)
 					self:GetPhysicsObject():EnableMotion(original_motion)
 				end)
+			else
+				if not fix_after_dupe[i].maxtime then
+					-- maxtime wasn't set yet, this means this is the first time we check for this dupe
+					-- give it a bit more time to have a chance to spawn in before we stop trying
+					fix_after_dupe[i].maxtime = CurTime() + 60
+				end
+
+				if CurTime() > fix_after_dupe[i].maxtime then
+					-- it had its chance, remove it
+					table.remove(fix_after_dupe,i)
+				end
 			end
 		end
 	end)
