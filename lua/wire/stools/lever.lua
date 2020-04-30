@@ -24,7 +24,6 @@ function TOOL:GetModel()
 end
 
 TOOL.ClientConVar = {
-	--model = "models/props_wasteland/tram_leverbase01.mdl", --"models/props_wasteland/tram_lever01.mdl",
 	min = 0,
 	max = 1
 }
