@@ -55,6 +55,25 @@ if CLIENT then
 			self.NextRBUpdate = CurTime() + 10
 			self:SetRenderBounds(self.RBMin, self.RBMax)
 		end
+
+		local isClicking = LocalPlayer():KeyDown(IN_USE) or LocalPlayer():KeyDown(IN_ATTACK)
+		if isClicking and not self.wasClicking and IsValid(self.csmodel) then
+			local rayPos = util.IntersectRayWithOBB(
+				LocalPlayer():GetShootPos(),
+				LocalPlayer():GetEyeTrace().Normal * 75,
+				self.csmodel:GetPos(),
+				self.csmodel:GetAngles(),
+				self.csmodel:OBBMins(),
+				self.csmodel:OBBMaxs()
+			)
+			if rayPos then
+				net.Start("wire_lever_activate")
+					net.WriteEntity(self)
+				net.SendToServer()
+			end
+		end
+		self.wasClicking = isClicking
+
 		-- Don't call baseclass think or else renderbounds will be overwritten
 	end
 else
@@ -97,6 +116,17 @@ else
 		WireLib.TriggerOutput( self, "Entity", ply)
 		self:SetNWEntity("User",self.User)
 	end
+
+	util.AddNetworkString("wire_lever_activate")
+	net.Receive("wire_lever_activate", function(netlen, ply)
+		local ent = net.ReadEntity()
+		if not IsValid(ply) or not IsValid(ent) or not ent.Use then return end
+		if IsValid(ent.User) then return end
+
+		if ply:GetShootPos():Distance(ent:GetPos()) < 100 then
+			ent:Use(ply, ply, USE_ON, 1)
+		end
+	end)
 
 	function ENT:Think()
 		BaseClass.Think(self)
