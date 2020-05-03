@@ -186,7 +186,7 @@ else
 	local fix_after_dupe = setmetatable({},{__mode="kv"})
 	hook.Add("AdvDupe_FinishPasting","LeverFixOldDupe",function(data)
 		local levers = {}
-		for __, ent in ipairs( data[1].CreatedEntities ) do
+		for __, ent in pairs( data[1].CreatedEntities ) do
 			if ent:GetClass()=="gmod_wire_lever" then
 				levers[ent] = true
 			end
