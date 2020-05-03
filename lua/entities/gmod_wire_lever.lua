@@ -151,85 +151,84 @@ else
 		self:SetOverlayText(string.format("(%.2f - %.2f) = %.2f", self.Min, self.Max, self.Value))
 	end
 
+	function ENT:ConvertFromOldLever(base)
+		-- remove all constraints from self
+		self:SetParent()
+		constraint.RemoveAll(self)
+
+		local original_solid = self:GetSolid()
+		local original_motion = self:GetPhysicsObject():IsMotionEnabled()
+
+		-- remove collisions and freeze to prevent the entity from flying away
+		self:SetNotSolid(true)
+		self:GetPhysicsObject():EnableMotion(false)
+
+		-- change model and move into new position
+		self:SetModel("models/props_wasteland/tram_leverbase01.mdl")
+		self:PhysicsInit( SOLID_VPHYSICS )
+		self:SetPos(base:GetPos())
+		self:SetAngles(base:GetAngles())
+
+		timer.Simple(0,function() -- give the setpos time to be applied
+			if not IsValid(self) then return end
+
+			-- make copies of welds and nocollides and
+			-- move the constraints to self instead of base
+			-- we're only doing welds and nocollides to avoid any strange
+			-- issues, I think it's good enough :tm:
+			if base.Constraints then
+				for _, con in pairs( base.Constraints ) do
+					local Ent1 = con.Ent1
+					local Ent2 = con.Ent2
+					local Bone1 = con.Bone1
+					local Bone2 = con.Bone2
+
+					-- Move the target entity from base to self
+					if Ent1 == base then Ent1 = self
+					elseif Ent2 == base then Ent2 = self end
+
+					if con.Type == "Weld" then
+						local ForceLimit = con.forcelimit
+						local NoCollide = con.nocollide
+						local DeleteOnBreak = false -- can't be copied easily, so we'll assume it's false to save us the trouble
+
+						constraint.Weld(Ent1,Ent2,Bone1,Bone2,ForceLimit,NoCollide,DeleteOnBreak)
+					elseif con.Type == "NoCollide" then
+						constraint.NoCollide(Ent1,Ent2,Bone1,Bone2)
+					end
+				end
+			end
+
+			-- copy parent
+			self:SetParent(base:GetParent())
+			base:Remove()
+
+			-- reset original values
+			self:SetNotSolid(not original_solid)
+			self:GetPhysicsObject():EnableMotion(original_motion)
+		end)
+	end
+
 	local fix_after_dupe = setmetatable({},{__mode="kv"})
 	hook.Add("AdvDupe_FinishPasting","LeverFixOldDupe",function(data)
+		local levers = {}
+		for __, ent in ipairs( data[1].CreatedEntities ) do
+			if ent:GetClass()=="gmod_wire_lever" then
+				ent:TriggerInput("SetValue", ent.Value)
+				levers[ent] = true
+			end
+		end
 		-- this hook is also called on garrydupe's paste, thanks to wirelib.lua
 		for self, base in pairs(fix_after_dupe) do
-
-			local found = false
 			if base:IsValid() and self:IsValid() then
-				-- check if the dupe which is being spawned is our dupe
-				-- (could use a lookup here, but I don't expect this to be iterated too often anyway)
-				for __, ent in ipairs( data[1].CreatedEntities ) do
-					if ent == self or ent == base then
-						found = true
-						break
-					end
+				if levers[self] then
+					self:ConvertFromOldLever(base)
+					fix_after_dupe[self] = nil
 				end
 			else
 				if base:IsValid() then base:Remove() end
 				if self:IsValid() then self:Remove() end
 				fix_after_dupe[self] = nil
-			end
-
-			if found then
-				fix_after_dupe[self] = nil
-
-				-- remove all constraints from self
-				self:SetParent()
-				constraint.RemoveAll(self)
-
-				local original_solid = self:GetSolid()
-				local original_motion = self:GetPhysicsObject():IsMotionEnabled()
-
-				-- remove collisions and freeze to prevent the entity from flying away
-				self:SetNotSolid(true)
-				self:GetPhysicsObject():EnableMotion(false)
-
-				-- change model and move into new position
-				self:SetModel("models/props_wasteland/tram_leverbase01.mdl")
-				self:PhysicsInit( SOLID_VPHYSICS )
-				self:SetPos(base:GetPos())
-				self:SetAngles(base:GetAngles())
-
-				timer.Simple(0,function() -- give the setpos time to be applied
-					if not IsValid(self) then return end
-
-					-- make copies of welds and nocollides and
-					-- move the constraints to self instead of base
-					-- we're only doing welds and nocollides to avoid any strange
-					-- issues, I think it's good enough :tm:
-					if base.Constraints then
-						for _, con in pairs( base.Constraints ) do
-							local Ent1 = con.Ent1
-							local Ent2 = con.Ent2
-							local Bone1 = con.Bone1
-							local Bone2 = con.Bone2
-
-							-- Move the target entity from base to self
-							if Ent1 == base then Ent1 = self
-							elseif Ent2 == base then Ent2 = self end
-
-							if con.Type == "Weld" then
-								local ForceLimit = con.forcelimit
-								local NoCollide = con.nocollide
-								local DeleteOnBreak = false -- can't be copied easily, so we'll assume it's false to save us the trouble
-
-								constraint.Weld(Ent1,Ent2,Bone1,Bone2,ForceLimit,NoCollide,DeleteOnBreak)
-							elseif con.Type == "NoCollide" then
-								constraint.NoCollide(Ent1,Ent2,Bone1,Bone2)
-							end
-						end
-					end
-
-					-- copy parent
-					self:SetParent(base:GetParent())
-					base:Remove()
-
-					-- reset original values
-					self:SetNotSolid(not original_solid)
-					self:GetPhysicsObject():EnableMotion(original_motion)
-				end)
 			end
 		end
 	end)
@@ -251,7 +250,6 @@ else
 		end
 		if info.value then
 			self.Value = info.value
-			self:TriggerInput("SetValue", self.Value)
 		end
 		
 	end
