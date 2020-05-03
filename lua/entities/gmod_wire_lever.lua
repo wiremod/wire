@@ -14,6 +14,11 @@ end
 
 if CLIENT then
 
+	function ENT:Initialize()
+		local mins, maxs = self:GetRenderBounds()
+		self:SetRenderBounds(mins + Vector(-30,0,0), maxs + Vector(30,0,60))
+	end
+
 	local RenderGroup = ENT.RenderGroup
 
 	function ENT:Draw()
@@ -23,12 +28,12 @@ if CLIENT then
 			self.NextRBUpdate = 0
 		end
 
-		self.Ang = self:GetNWFloat("Ang",0) -- get networked ang
-
 		-- however, if we are able, also calculate the angle more accurately clientside
 		self.User = self:GetNWEntity("User",NULL)
 		if IsValid(self.User) then
 			self:CalcAngle(self.User:GetShootPos(), self.User:GetAimVector())
+		else
+			self.Ang = self:GetNWFloat("Ang",0) -- get networked ang
 		end
 
 		local lever_ang = Angle(self.Ang,0,0)
@@ -45,40 +50,6 @@ if CLIENT then
 	end
 
 	function ENT:Think()
-		local curtime = CurTime()
-		
-		-- check if we need to update renderbounds
-		if curtime >= (self.NextRBUpdate or 0) then
-			self.NextRBUpdate = curtime + 10
-
-			if not IsValid(self.csmodel) then return end
-
-			local function vecmin(v1,v2)
-				return Vector(
-					v1.x < v2.x and v1.x or v2.x,
-					v1.y < v2.y and v1.y or v2.y,
-					v1.z < v2.z and v1.z or v2.z
-				)
-			end
-			local function vecmax(v1,v2)
-				return Vector(
-					v1.x > v2.x and v1.x or v2.x,
-					v1.y > v2.y and v1.y or v2.y,
-					v1.z > v2.z and v1.z or v2.z
-				)
-			end
-
-			local self_min, self_max = self:WorldSpaceAABB()
-			local lever_min, lever_max = self.csmodel:WorldSpaceAABB()
-			local new_min, new_max = vecmin(self_min,lever_min), vecmax(self_max,lever_max)
-
-			new_min = self:WorldToLocal(new_min)
-			new_max = self:WorldToLocal(new_max)
-
-			self:SetRenderBounds(new_min, new_max)
-		end
-
-		BaseClass.Think(self)
 	end
 else
 	util.PrecacheModel( "models/props_wasteland/tram_lever01.mdl" )
@@ -98,8 +69,10 @@ else
 	end
 
 	function ENT:Setup(min, max)
-		if min then self.Min = min end
-		if max then self.Max = max end
+		min = min or 0
+		max = max or 1
+		self.Min = math.min(min, max)
+		self.Max = math.max(min, max)
 	end
 
 	function ENT:TriggerInput(iname, value)
@@ -214,7 +187,6 @@ else
 		local levers = {}
 		for __, ent in ipairs( data[1].CreatedEntities ) do
 			if ent:GetClass()=="gmod_wire_lever" then
-				ent:TriggerInput("SetValue", ent.Value)
 				levers[ent] = true
 			end
 		end
@@ -249,9 +221,10 @@ else
 			fix_after_dupe[self] = base
 		end
 		if info.value then
-			self.Value = info.value
+			self.Value = nil -- So the value is dirty no matter what
+			self:TriggerInput("SetValue", info.value)
 		end
-		
+
 	end
 
 	duplicator.RegisterEntityClass("gmod_wire_lever", WireLib.MakeWireEnt, "Data", "Min", "Max" )
