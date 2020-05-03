@@ -27,7 +27,7 @@ if CLIENT then
 			self.NextRBUpdate = 0
 		end
 
-		-- however, if we are able, also calculate the angle more accurately clientside
+		-- If user, calculate clientside, otherwise get server value
 		self.User = self:GetNWEntity("User",NULL)
 		if IsValid(self.User) then
 			self:CalcAngle(self.User:GetShootPos(), self.User:GetAimVector())
