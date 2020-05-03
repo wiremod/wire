@@ -152,31 +152,29 @@ else
 		self:SetOverlayText(string.format("(%.2f - %.2f) = %.2f", self.Min, self.Max, self.Value))
 	end
 
-	local fix_after_dupe = {}
+	local fix_after_dupe = setmetatable({},{__mode="kv"})
 	hook.Add("AdvDupe_FinishPasting","LeverFixOldDupe",function(data)
 		-- this hook is also called on garrydupe's paste, thanks to wirelib.lua
-		for i=#fix_after_dupe,1,-1 do
-			local base = fix_after_dupe[i].base
-			local self = fix_after_dupe[i].self
+		for self, base in pairs(fix_after_dupe) do
 
 			local found = false
-
-			if not IsValid(base) or not IsValid(self) then
-				-- welp they're gone
-				table.remove(fix_after_dupe,i)
-			else
+			if base:IsValid() and self:IsValid() then
 				-- check if the dupe which is being spawned is our dupe
 				-- (could use a lookup here, but I don't expect this to be iterated too often anyway)
-				for __,ent in pairs( data[1].CreatedEntities ) do
+				for __, ent in ipairs( data[1].CreatedEntities ) do
 					if ent == self or ent == base then
 						found = true
 						break
 					end
 				end
+			else
+				if base:IsValid() then base:Remove() end
+				if self:IsValid() then self:Remove() end
+				fix_after_dupe[self] = nil
 			end
 
 			if found then
-				table.remove(fix_after_dupe,i)
+				fix_after_dupe[self] = nil
 
 				-- remove all constraints from self
 				self:SetParent()
@@ -233,20 +231,15 @@ else
 					self:SetNotSolid(not original_solid)
 					self:GetPhysicsObject():EnableMotion(original_motion)
 				end)
-			else
-				if not fix_after_dupe[i].maxtime then
-					-- maxtime wasn't set yet, this means this is the first time we check for this dupe
-					-- give it a bit more time to have a chance to spawn in before we stop trying
-					fix_after_dupe[i].maxtime = CurTime() + 60
-				end
-
-				if CurTime() > fix_after_dupe[i].maxtime then
-					-- it had its chance, remove it
-					table.remove(fix_after_dupe,i)
-				end
 			end
 		end
 	end)
+
+	function ENT:BuildDupeInfo()
+		local info = BaseClass.BuildDupeInfo(self) or {}
+		info.value = self.Value
+		return info
+	end
 
 	function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
@@ -255,9 +248,13 @@ else
 		-- if it's found to be an old dupe
 		if info.baseent then
 			local base = GetEntByID(info.baseent)
-
-			fix_after_dupe[#fix_after_dupe+1] = {self=self,base=base}
+			fix_after_dupe[self] = base
 		end
+		if info.value then
+			self.Value = info.value
+			self:TriggerInput("SetValue", self.Value)
+		end
+		
 	end
 
 	duplicator.RegisterEntityClass("gmod_wire_lever", WireLib.MakeWireEnt, "Data", "Min", "Max" )
