@@ -50,6 +50,7 @@ if CLIENT then
 	end
 
 	function ENT:Think()
+		-- Don't call baseclass think or else renderbounds will be overwritten
 	end
 else
 	util.PrecacheModel( "models/props_wasteland/tram_lever01.mdl" )
