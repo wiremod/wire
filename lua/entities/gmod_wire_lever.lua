@@ -3,16 +3,13 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Analog Lever"
 ENT.WireDebugName	= "Lever"
 
-function ENT:CalcAngle(dist) -- ('dist' is passed so we don't have to re-calculate it)
-	local TargPos = self.User:GetShootPos() + self.User:GetAimVector() * dist
-	local distMax = TargPos:Distance(self:GetPos() + self:GetForward() * 30)
-	local distMin = TargPos:Distance(self:GetPos() + self:GetForward() * -30)
-	local FPos = (distMax - distMin) * 0.5
-	distMax = TargPos:Distance(self:GetPos())
-	distMin = TargPos:Distance(self:GetPos() + self:GetUp() * 40)
-	local HPos = 20 - ((distMin - distMax) * 0.5)
+function ENT:CalcAngle(shootPos, shootDir)
+	local myPos = self:GetPos()
+	local right = self:GetRight()
 
-	self.Ang = math.Clamp( math.deg( math.atan2( HPos, FPos ) ) - 90, -45, 45 )
+	local planeHitPos = self:WorldToLocal(shootPos + shootDir * ((myPos - shootPos):Dot(right) / shootDir:Dot(right)))
+
+	self.Ang = math.Clamp( math.deg( math.atan2( planeHitPos[1], planeHitPos[3] ) ), -45, 45 )
 end
 
 if CLIENT then
@@ -31,7 +28,7 @@ if CLIENT then
 		-- however, if we are able, also calculate the angle more accurately clientside
 		self.User = self:GetNWEntity("User",NULL)
 		if IsValid(self.User) then
-			self:CalcAngle(self.User:GetShootPos():Distance(self:GetPos()))
+			self:CalcAngle(self.User:GetShootPos(), self.User:GetAimVector())
 		end
 
 		local lever_ang = Angle(self.Ang,0,0)
@@ -126,9 +123,11 @@ else
 		BaseClass.Think(self)
 
 		if IsValid(self.User) then
-			local dist = self.User:GetShootPos():Distance(self:GetPos())
-			if dist < 160 and (self.User:KeyDown(IN_USE) or self.User:KeyDown(IN_ATTACK)) then
-				self:CalcAngle(dist)
+			local shootPos = self.User:GetShootPos()
+			local distSqr = shootPos:DistToSqr(self:GetPos())
+			if distSqr < 160^2 and (self.User:KeyDown(IN_USE) or self.User:KeyDown(IN_ATTACK)) then
+				local shootDir = self.User:GetAimVector()
+				self:CalcAngle(shootPos, shootDir)
 			else
 				self.User = NULL
 				WireLib.TriggerOutput( self, "Entity", NULL)
