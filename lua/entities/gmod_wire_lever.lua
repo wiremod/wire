@@ -15,8 +15,7 @@ end
 if CLIENT then
 
 	function ENT:Initialize()
-		local mins, maxs = self:GetRenderBounds()
-		self:SetRenderBounds(mins + Vector(-30,0,0), maxs + Vector(30,0,60))
+		self.RBMin, self.RBMax = self:GetRenderBounds()
 	end
 
 	local RenderGroup = ENT.RenderGroup
@@ -50,6 +49,10 @@ if CLIENT then
 	end
 
 	function ENT:Think()
+		if (CurTime() >= (self.NextRBUpdate or 0)) then
+			self.NextRBUpdate = CurTime() + 10
+			self:SetRenderBounds(self.RBMin + Vector(-30,0,0), self.RBMax + Vector(30,0,60))
+		end
 		-- Don't call baseclass think or else renderbounds will be overwritten
 	end
 else
@@ -185,6 +188,8 @@ else
 
 	local fix_after_dupe = setmetatable({},{__mode="kv"})
 	hook.Add("AdvDupe_FinishPasting","LeverFixOldDupe",function(data)
+		if next(fix_after_dupe) == nil then return end
+
 		local levers = {}
 		for __, ent in pairs( data[1].CreatedEntities ) do
 			if ent:GetClass()=="gmod_wire_lever" then
