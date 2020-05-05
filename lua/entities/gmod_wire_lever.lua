@@ -16,6 +16,8 @@ if CLIENT then
 
 	function ENT:Initialize()
 		self.RBMin, self.RBMax = self:GetRenderBounds()
+		self.RBMin:Add(Vector(-30,0,0))
+		self.RBMax:Add(Vector(30,0,60))
 	end
 
 	local RenderGroup = ENT.RenderGroup
@@ -51,7 +53,7 @@ if CLIENT then
 	function ENT:Think()
 		if (CurTime() >= (self.NextRBUpdate or 0)) then
 			self.NextRBUpdate = CurTime() + 10
-			self:SetRenderBounds(self.RBMin + Vector(-30,0,0), self.RBMax + Vector(30,0,60))
+			self:SetRenderBounds(self.RBMin, self.RBMax)
 		end
 		-- Don't call baseclass think or else renderbounds will be overwritten
 	end
