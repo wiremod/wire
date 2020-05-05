@@ -3,19 +3,22 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Analog Lever"
 ENT.WireDebugName	= "Lever"
 
-function ENT:CalcAngle(dist) -- ('dist' is passed so we don't have to re-calculate it)
-	local TargPos = self.User:GetShootPos() + self.User:GetAimVector() * dist
-	local distMax = TargPos:Distance(self:GetPos() + self:GetForward() * 30)
-	local distMin = TargPos:Distance(self:GetPos() + self:GetForward() * -30)
-	local FPos = (distMax - distMin) * 0.5
-	distMax = TargPos:Distance(self:GetPos())
-	distMin = TargPos:Distance(self:GetPos() + self:GetUp() * 40)
-	local HPos = 20 - ((distMin - distMax) * 0.5)
+function ENT:CalcAngle(shootPos, shootDir)
+	local myPos = self:GetPos()
+	local right = self:GetRight()
 
-	self.Ang = math.Clamp( math.deg( math.atan2( HPos, FPos ) ) - 90, -45, 45 )
+	local planeHitPos = self:WorldToLocal(shootPos + shootDir * ((myPos - shootPos):Dot(right) / shootDir:Dot(right)))
+
+	self.Ang = math.Clamp( math.deg( math.atan2( planeHitPos[1], planeHitPos[3] ) ), -45, 45 )
 end
 
 if CLIENT then
+
+	function ENT:Initialize()
+		self.RBMin, self.RBMax = self:GetRenderBounds()
+		self.RBMin:Add(Vector(-30,0,0))
+		self.RBMax:Add(Vector(30,0,60))
+	end
 
 	local RenderGroup = ENT.RenderGroup
 
@@ -26,12 +29,12 @@ if CLIENT then
 			self.NextRBUpdate = 0
 		end
 
-		self.Ang = self:GetNWFloat("Ang",0) -- get networked ang
-
-		-- however, if we are able, also calculate the angle more accurately clientside
+		-- If user, calculate clientside, otherwise get server value
 		self.User = self:GetNWEntity("User",NULL)
 		if IsValid(self.User) then
-			self:CalcAngle(self.User:GetShootPos():Distance(self:GetPos()))
+			self:CalcAngle(self.User:GetShootPos(), self.User:GetAimVector())
+		else
+			self.Ang = self:GetNWFloat("Ang",0) -- get networked ang
 		end
 
 		local lever_ang = Angle(self.Ang,0,0)
@@ -48,40 +51,11 @@ if CLIENT then
 	end
 
 	function ENT:Think()
-		local curtime = CurTime()
-		
-		-- check if we need to update renderbounds
-		if curtime >= (self.NextRBUpdate or 0) then
-			self.NextRBUpdate = curtime + 10
-
-			if not IsValid(self.csmodel) then return end
-
-			local function vecmin(v1,v2)
-				return Vector(
-					v1.x < v2.x and v1.x or v2.x,
-					v1.y < v2.y and v1.y or v2.y,
-					v1.z < v2.z and v1.z or v2.z
-				)
-			end
-			local function vecmax(v1,v2)
-				return Vector(
-					v1.x > v2.x and v1.x or v2.x,
-					v1.y > v2.y and v1.y or v2.y,
-					v1.z > v2.z and v1.z or v2.z
-				)
-			end
-
-			local self_min, self_max = self:WorldSpaceAABB()
-			local lever_min, lever_max = self.csmodel:WorldSpaceAABB()
-			local new_min, new_max = vecmin(self_min,lever_min), vecmax(self_max,lever_max)
-
-			new_min = self:WorldToLocal(new_min)
-			new_max = self:WorldToLocal(new_max)
-
-			self:SetRenderBounds(new_min, new_max)
+		if (CurTime() >= (self.NextRBUpdate or 0)) then
+			self.NextRBUpdate = CurTime() + 10
+			self:SetRenderBounds(self.RBMin, self.RBMax)
 		end
-
-		BaseClass.Think(self)
+		-- Don't call baseclass think or else renderbounds will be overwritten
 	end
 else
 	util.PrecacheModel( "models/props_wasteland/tram_lever01.mdl" )
@@ -101,8 +75,10 @@ else
 	end
 
 	function ENT:Setup(min, max)
-		if min then self.Min = min end
-		if max then self.Max = max end
+		min = min or 0
+		max = max or 1
+		self.Min = math.min(min, max)
+		self.Max = math.max(min, max)
 	end
 
 	function ENT:TriggerInput(iname, value)
@@ -126,9 +102,11 @@ else
 		BaseClass.Think(self)
 
 		if IsValid(self.User) then
-			local dist = self.User:GetShootPos():Distance(self:GetPos())
-			if dist < 160 and (self.User:KeyDown(IN_USE) or self.User:KeyDown(IN_ATTACK)) then
-				self:CalcAngle(dist)
+			local shootPos = self.User:GetShootPos()
+			local distSqr = shootPos:DistToSqr(self:GetPos())
+			if distSqr < 160^2 and (self.User:KeyDown(IN_USE) or self.User:KeyDown(IN_ATTACK)) then
+				local shootDir = self.User:GetAimVector()
+				self:CalcAngle(shootPos, shootDir)
 			else
 				self.User = NULL
 				WireLib.TriggerOutput( self, "Entity", NULL)
@@ -152,101 +130,94 @@ else
 		self:SetOverlayText(string.format("(%.2f - %.2f) = %.2f", self.Min, self.Max, self.Value))
 	end
 
-	local fix_after_dupe = {}
-	hook.Add("AdvDupe_FinishPasting","LeverFixOldDupe",function(data)
-		-- this hook is also called on garrydupe's paste, thanks to wirelib.lua
-		for i=#fix_after_dupe,1,-1 do
-			local base = fix_after_dupe[i].base
-			local self = fix_after_dupe[i].self
+	function ENT:ConvertFromOldLever(base)
+		-- remove all constraints from self
+		self:SetParent()
+		constraint.RemoveAll(self)
 
-			local found = false
+		local original_solid = self:GetSolid()
+		local original_motion = self:GetPhysicsObject():IsMotionEnabled()
 
-			if not IsValid(base) or not IsValid(self) then
-				-- welp they're gone
-				table.remove(fix_after_dupe,i)
-			else
-				-- check if the dupe which is being spawned is our dupe
-				-- (could use a lookup here, but I don't expect this to be iterated too often anyway)
-				for __,ent in pairs( data[1].CreatedEntities ) do
-					if ent == self or ent == base then
-						found = true
-						break
+		-- remove collisions and freeze to prevent the entity from flying away
+		self:SetNotSolid(true)
+		self:GetPhysicsObject():EnableMotion(false)
+
+		-- change model and move into new position
+		self:SetModel("models/props_wasteland/tram_leverbase01.mdl")
+		self:PhysicsInit( SOLID_VPHYSICS )
+		self:SetPos(base:GetPos())
+		self:SetAngles(base:GetAngles())
+
+		timer.Simple(0,function() -- give the setpos time to be applied
+			if not IsValid(self) then return end
+
+			-- make copies of welds and nocollides and
+			-- move the constraints to self instead of base
+			-- we're only doing welds and nocollides to avoid any strange
+			-- issues, I think it's good enough :tm:
+			if base.Constraints then
+				for _, con in pairs( base.Constraints ) do
+					local Ent1 = con.Ent1
+					local Ent2 = con.Ent2
+					local Bone1 = con.Bone1
+					local Bone2 = con.Bone2
+
+					-- Move the target entity from base to self
+					if Ent1 == base then Ent1 = self
+					elseif Ent2 == base then Ent2 = self end
+
+					if con.Type == "Weld" then
+						local ForceLimit = con.forcelimit
+						local NoCollide = con.nocollide
+						local DeleteOnBreak = false -- can't be copied easily, so we'll assume it's false to save us the trouble
+
+						constraint.Weld(Ent1,Ent2,Bone1,Bone2,ForceLimit,NoCollide,DeleteOnBreak)
+					elseif con.Type == "NoCollide" then
+						constraint.NoCollide(Ent1,Ent2,Bone1,Bone2)
 					end
 				end
 			end
 
-			if found then
-				table.remove(fix_after_dupe,i)
+			-- copy parent
+			self:SetParent(base:GetParent())
+			base:Remove()
 
-				-- remove all constraints from self
-				self:SetParent()
-				constraint.RemoveAll(self)
+			-- reset original values
+			self:SetNotSolid(not original_solid)
+			self:GetPhysicsObject():EnableMotion(original_motion)
+		end)
+	end
 
-				local original_solid = self:GetSolid()
-				local original_motion = self:GetPhysicsObject():IsMotionEnabled()
+	local fix_after_dupe = setmetatable({},{__mode="kv"})
+	hook.Add("AdvDupe_FinishPasting","LeverFixOldDupe",function(data)
+		if next(fix_after_dupe) == nil then return end
 
-				-- remove collisions and freeze to prevent the entity from flying away
-				self:SetNotSolid(true)
-				self:GetPhysicsObject():EnableMotion(false)
-
-				-- change model and move into new position
-				self:SetModel("models/props_wasteland/tram_leverbase01.mdl")
-				self:PhysicsInit( SOLID_VPHYSICS )
-				self:SetPos(base:GetPos())
-				self:SetAngles(base:GetAngles())
-
-				timer.Simple(0,function() -- give the setpos time to be applied
-					if not IsValid(self) then return end
-
-					-- make copies of welds and nocollides and
-					-- move the constraints to self instead of base
-					-- we're only doing welds and nocollides to avoid any strange
-					-- issues, I think it's good enough :tm:
-					if base.Constraints then
-						for _, con in pairs( base.Constraints ) do
-							local Ent1 = con.Ent1
-							local Ent2 = con.Ent2
-							local Bone1 = con.Bone1
-							local Bone2 = con.Bone2
-
-							-- Move the target entity from base to self
-							if Ent1 == base then Ent1 = self
-							elseif Ent2 == base then Ent2 = self end
-
-							if con.Type == "Weld" then
-								local ForceLimit = con.forcelimit
-								local NoCollide = con.nocollide
-								local DeleteOnBreak = false -- can't be copied easily, so we'll assume it's false to save us the trouble
-
-								constraint.Weld(Ent1,Ent2,Bone1,Bone2,ForceLimit,NoCollide,DeleteOnBreak)
-							elseif con.Type == "NoCollide" then
-								constraint.NoCollide(Ent1,Ent2,Bone1,Bone2)
-							end
-						end
-					end
-
-					-- copy parent
-					self:SetParent(base:GetParent())
-					base:Remove()
-
-					-- reset original values
-					self:SetNotSolid(not original_solid)
-					self:GetPhysicsObject():EnableMotion(original_motion)
-				end)
+		local levers = {}
+		for __, ent in pairs( data[1].CreatedEntities ) do
+			if ent:GetClass()=="gmod_wire_lever" then
+				levers[ent] = true
+			end
+		end
+		-- this hook is also called on garrydupe's paste, thanks to wirelib.lua
+		for self, base in pairs(fix_after_dupe) do
+			if base:IsValid() and self:IsValid() then
+				if levers[self] then
+					self:ConvertFromOldLever(base)
+					fix_after_dupe[self] = nil
+				end
 			else
-				if not fix_after_dupe[i].maxtime then
-					-- maxtime wasn't set yet, this means this is the first time we check for this dupe
-					-- give it a bit more time to have a chance to spawn in before we stop trying
-					fix_after_dupe[i].maxtime = CurTime() + 60
-				end
-
-				if CurTime() > fix_after_dupe[i].maxtime then
-					-- it had its chance, remove it
-					table.remove(fix_after_dupe,i)
-				end
+				if base:IsValid() then base:Remove() end
+				if self:IsValid() then self:Remove() end
+				fix_after_dupe[self] = nil
 			end
 		end
 	end)
+
+	function ENT:BuildDupeInfo()
+		local info = BaseClass.BuildDupeInfo(self) or {}
+		info.value = self.Value
+		return info
+	end
 
 	function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
@@ -255,9 +226,13 @@ else
 		-- if it's found to be an old dupe
 		if info.baseent then
 			local base = GetEntByID(info.baseent)
-
-			fix_after_dupe[#fix_after_dupe+1] = {self=self,base=base}
+			fix_after_dupe[self] = base
 		end
+		if info.value then
+			self.Value = nil -- So the value is dirty no matter what
+			self:TriggerInput("SetValue", info.value)
+		end
+
 	end
 
 	duplicator.RegisterEntityClass("gmod_wire_lever", WireLib.MakeWireEnt, "Data", "Min", "Max" )
