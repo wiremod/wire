@@ -120,7 +120,7 @@ else
 	util.AddNetworkString("wire_lever_activate")
 	net.Receive("wire_lever_activate", function(netlen, ply)
 		local ent = net.ReadEntity()
-		if not IsValid(ply) or not IsValid(ent) or not ent.Use then return end
+		if not IsValid(ply) or not IsValid(ent) or not ent.Use or ent:GetClass() ~= "gmod_wire_lever" then return end
 		if IsValid(ent.User) then return end
 
 		if ply:GetShootPos():Distance(ent:GetPos()) < 100 then
