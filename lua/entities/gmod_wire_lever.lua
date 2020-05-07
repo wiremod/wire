@@ -58,18 +58,21 @@ if CLIENT then
 
 		local isClicking = LocalPlayer():KeyDown(IN_USE) or LocalPlayer():KeyDown(IN_ATTACK)
 		if isClicking and not self.wasClicking and IsValid(self.csmodel) then
-			local rayPos = util.IntersectRayWithOBB(
-				LocalPlayer():GetShootPos(),
-				LocalPlayer():GetEyeTrace().Normal * 75,
-				self.csmodel:GetPos(),
-				self.csmodel:GetAngles(),
-				self.csmodel:OBBMins(),
-				self.csmodel:OBBMaxs()
-			)
-			if rayPos then
-				net.Start("wire_lever_activate")
-					net.WriteEntity(self)
-				net.SendToServer()
+			local aimPos = LocalPlayer():GetShootPos()
+			if aimPos:DistToSqr(self:GetPos())<160^2 then
+				local rayPos = util.IntersectRayWithOBB(
+					aimPos,
+					LocalPlayer():GetAimVector() * 160,
+					self.csmodel:GetPos(),
+					self.csmodel:GetAngles(),
+					self.csmodel:OBBMins() - Vector(2,2,2),
+					self.csmodel:OBBMaxs() + Vector(2,2,2)
+				)
+				if rayPos then
+					net.Start("wire_lever_activate")
+						net.WriteEntity(self)
+					net.SendToServer()
+				end
 			end
 		end
 		self.wasClicking = isClicking
@@ -123,7 +126,7 @@ else
 		if not IsValid(ply) or not IsValid(ent) or not ent.Use or ent:GetClass() ~= "gmod_wire_lever" then return end
 		if IsValid(ent.User) then return end
 
-		if ply:GetShootPos():Distance(ent:GetPos()) < 100 then
+		if ply:GetShootPos():DistToSqr(ent:GetPos()) < 160^2 then
 			ent:Use(ply, ply, USE_ON, 1)
 		end
 	end)
