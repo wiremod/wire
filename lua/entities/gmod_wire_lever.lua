@@ -55,6 +55,28 @@ if CLIENT then
 			self.NextRBUpdate = CurTime() + 10
 			self:SetRenderBounds(self.RBMin, self.RBMax)
 		end
+
+		local isClicking = LocalPlayer():KeyDown(IN_USE) or LocalPlayer():KeyDown(IN_ATTACK)
+		if isClicking and not self.wasClicking and IsValid(self.csmodel) then
+			local aimPos = LocalPlayer():GetShootPos()
+			if aimPos:DistToSqr(self:GetPos())<100^2 then
+				local rayPos = util.IntersectRayWithOBB(
+					aimPos,
+					LocalPlayer():GetAimVector() * 100,
+					self.csmodel:GetPos(),
+					self.csmodel:GetAngles(),
+					self.csmodel:OBBMins() - Vector(2,2,2),
+					self.csmodel:OBBMaxs() + Vector(2,2,2)
+				)
+				if rayPos then
+					net.Start("wire_lever_activate")
+						net.WriteEntity(self)
+					net.SendToServer()
+				end
+			end
+		end
+		self.wasClicking = isClicking
+
 		-- Don't call baseclass think or else renderbounds will be overwritten
 	end
 else
@@ -98,13 +120,23 @@ else
 		self:SetNWEntity("User",self.User)
 	end
 
+	util.AddNetworkString("wire_lever_activate")
+	net.Receive("wire_lever_activate", function(netlen, ply)
+		local ent = net.ReadEntity()
+		if not IsValid(ply) or not IsValid(ent) or not ent.Use or ent:GetClass() ~= "gmod_wire_lever" then return end
+		if IsValid(ent.User) then return end
+
+		if ply:GetShootPos():DistToSqr(ent:GetPos()) < 100^2 then
+			ent:Use(ply, ply, USE_ON, 1)
+		end
+	end)
+
 	function ENT:Think()
 		BaseClass.Think(self)
 
 		if IsValid(self.User) then
 			local shootPos = self.User:GetShootPos()
-			local distSqr = shootPos:DistToSqr(self:GetPos())
-			if distSqr < 160^2 and (self.User:KeyDown(IN_USE) or self.User:KeyDown(IN_ATTACK)) then
+			if shootPos:DistToSqr(self:GetPos()) < 100^2 and (self.User:KeyDown(IN_USE) or self.User:KeyDown(IN_ATTACK)) then
 				local shootDir = self.User:GetAimVector()
 				self:CalcAngle(shootPos, shootDir)
 			else
