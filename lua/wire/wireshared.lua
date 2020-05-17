@@ -54,6 +54,9 @@ end
 
 
 function string.GetNormalizedFilepath( path ) -- luacheck: ignore
+	local null = string.find(path, "\x00", 1, true)
+	if null then path = string.sub(path, 1, null-1) end
+
 	local tbl = string.Explode( "[/\\]+", path, true )
 	local i = 1
 	while i <= #tbl do
