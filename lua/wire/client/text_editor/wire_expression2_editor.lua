@@ -1949,8 +1949,9 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 
 	if nEditorType == "E2" then
 		self.E2 = true
-		self:NewScript(true) -- insert default code
 	end
+
+	self:NewScript(true) -- Opens initial tab, in case OpenOldTabs is disabled or fails.
 
 	if wire_expression2_editor_openoldtabs:GetBool() then
 		self:OpenOldTabs()
