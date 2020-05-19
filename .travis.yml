@@ -1,4 +1,4 @@
-dist: trusty
+dist: bionic
 sudo: false
 language: c
 
@@ -30,7 +30,7 @@ script:
   - luacheck .luacheckrc
 
 before_deploy:
-  - curl -L "https://github.com/AbigailBuccaneer/gmad-build/releases/download/v20180201/gmad_linux" -o "$HOME/gmad_linux"
+  - curl -L "https://github.com/wiremod/gmad-build/releases/latest/download/gmad_linux" -o "$HOME/gmad_linux"
   - chmod +x "$HOME/gmad_linux"
   - $HOME/gmad_linux create -folder . -out wiremod.gma
 
