@@ -124,12 +124,14 @@ e2function void print(...)
 	if not checkOwner(self) then return end
 	if not checkDelay( self.player ) then return end
 	local args = {...}
-	if #args>0 then
-		local text = ""
-		for k,v in ipairs( args ) do
-			text = text .. (SpecialCase( v ) or tostring(v)) .. "\t"
+	local nargs = select("#", ...)
+	if nargs>0 then
+		for i=1, math.min(nargs, 256) do
+			local v = args[i]
+			args[i] = (SpecialCase( v ) or tostring(v))
 		end
-		if (text and #text>0) then
+		local text = table.concat(args, "\t")
+		if #text>0 then
 			self.player:ChatPrint(string.Left(text,249)) -- Should we switch to net messages? We probably don't want to print more than 249 chars at once anyway
 		end
 	end
