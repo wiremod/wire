@@ -71,18 +71,14 @@ end
 -- Additionally removes one charge from the player's account
 -- @param ply  player to check, is not validated
 local function checkDelay(ply)
-	-- update the console variables just in case
-	local maxCharges = ply:GetInfoNum("wire_expression2_print_max", defaultMaxPrints)
-	local chargesDelay = ply:GetInfoNum("wire_expression2_print_delay", defaultPrintDelay)
-
-	local printDelay = getDelaysOrCreate(ply, maxCharges, chargesDelay)
-
-	if not canPrint(ply) then
-		return false
-	else
+	if canPrint(ply) then
+		local maxCharges = ply:GetInfoNum("wire_expression2_print_max", defaultMaxPrints)
+		local chargesDelay = ply:GetInfoNum("wire_expression2_print_delay", defaultPrintDelay)
+		local printDelay = getDelaysOrCreate(ply, maxCharges, chargesDelay)
 		printDelay.numCharges = printDelay.numCharges - 1
 		return true
 	end
+	return false
 end
 
 hook.Add("PlayerDisconnected", "e2_print_delays_player_dc", function(ply) printDelays[ply] = nil end)
@@ -128,12 +124,14 @@ e2function void print(...)
 	if not checkOwner(self) then return end
 	if not checkDelay( self.player ) then return end
 	local args = {...}
-	if #args>0 then
-		local text = ""
-		for k,v in ipairs( args ) do
-			text = text .. (SpecialCase( v ) or tostring(v)) .. "\t"
+	local nargs = select("#", ...)
+	if nargs>0 then
+		for i=1, math.min(nargs, 256) do
+			local v = args[i]
+			args[i] = string.Left(SpecialCase( v ) or tostring(v), 249)
 		end
-		if (text and #text>0) then
+		local text = table.concat(args, "\t")
+		if #text>0 then
 			self.player:ChatPrint(string.Left(text,249)) -- Should we switch to net messages? We probably don't want to print more than 249 chars at once anyway
 		end
 	end
@@ -154,9 +152,9 @@ e2function number entity:printDriver(string text)
 	local driver = this:GetDriver()
 	if not IsValid(driver) then return 0 end
 
-	if not checkDelay( self.player ) then return 0 end
+	if not checkDelay( driver ) then return 0 end
 
-	driver:ChatPrint(text)
+	driver:ChatPrint(string.Left(text,249))
 	return 1
 end
 
@@ -166,7 +164,7 @@ end
 e2function void hint(string text, duration)
 	if not IsValid(self.player) then return end
 	if not checkDelay( self.player ) then return end
-	WireLib.AddNotify(self.player, text, NOTIFY_GENERIC, Clamp(duration,0.7,7))
+	WireLib.AddNotify(self.player, string.Left(text,249), NOTIFY_GENERIC, Clamp(duration,0.7,7))
 end
 
 --- Displays a hint popup to the driver of vehicle E, with message <text> for <duration> seconds (<duration> being clamped between 0.7 and 7). Same return value as printDriver.
@@ -178,9 +176,9 @@ e2function number entity:hintDriver(string text, duration)
 	local driver = this:GetDriver()
 	if not IsValid(driver) then return 0 end
 
-	if not checkDelay( self.player ) then return 0 end
+	if not checkDelay( driver ) then return 0 end
 
-	WireLib.AddNotify(driver, text, NOTIFY_GENERIC, Clamp(duration,0.7,7))
+	WireLib.AddNotify(driver, string.Left(text,249), NOTIFY_GENERIC, Clamp(duration,0.7,7))
 	return 1
 end
 
@@ -199,7 +197,7 @@ e2function void print(print_type, string text)
 	if not valid_print_types[print_type] then return end
 	if not checkDelay( self.player ) then return end
 
-	self.player:PrintMessage(print_type, text)
+	self.player:PrintMessage(print_type, string.Left(text,249))
 end
 
 --- Same as <this>E:printDriver(<text>), but can make the text show up in different places. <print_type> can be one of the following: _HUD_PRINTCENTER, _HUD_PRINTCONSOLE, _HUD_PRINTNOTIFY, _HUD_PRINTTALK.
@@ -213,9 +211,9 @@ e2function number entity:printDriver(print_type, string text)
 	local driver = this:GetDriver()
 	if not IsValid(driver) then return 0 end
 
-	if not checkDelay( self.player ) then return 0 end
+	if not checkDelay( driver ) then return 0 end
 
-	driver:PrintMessage(print_type, text)
+	driver:PrintMessage(print_type, string.Left(text,249))
 	return 1
 end
 
@@ -291,7 +289,7 @@ util.AddNetworkString("wire_expression2_printColor")
 
 local printColor_typeids = {
 	n = tostring,
-	s = tostring,
+	s = function(text) return string.Left(text,249) end,
 	v = function(v) return Color(v[1],v[2],v[3]) end,
 	xv4 = function(v) return Color(v[1],v[2],v[3],v[4]) end,
 	e = function(e) return IsValid(e) and e:IsPlayer() and e or "" end,
@@ -302,12 +300,15 @@ local function printColorVarArg(chip, ply, console, typeids, ...)
 	if not checkDelay(ply) then return end
 	local send_array = { ... }
 
+	local i = 1
 	for i,tp in ipairs(typeids) do
 		if printColor_typeids[tp] then
 			send_array[i] = printColor_typeids[tp](send_array[i])
 		else
 			send_array[i] = ""
 		end
+		if i == 256 then break end
+		i = i + 1
 	end
 
 	net.Start("wire_expression2_printColor")
@@ -319,7 +320,7 @@ end
 
 local printColor_types = {
 	number = tostring,
-	string = tostring,
+	string = function(text) return string.Left(text,249) end,
 	Vector = function(v) return Color(v[1],v[2],v[3]) end,
 	table = function(tbl)
 		for i,v in pairs(tbl) do
@@ -338,12 +339,15 @@ local function printColorArray(chip, ply, console, arr)
 
 	local send_array = {}
 
+	local i = 1
 	for i,tp in ipairs_map(arr,type) do
 		if printColor_types[tp] then
 			send_array[i] = printColor_types[tp](arr[i])
 		else
 			send_array[i] = ""
 		end
+		if i == 256 then break end
+		i = i + 1
 	end
 
 	net.Start("wire_expression2_printColor")
@@ -383,7 +387,7 @@ e2function void entity:printColorDriver(...)
 	local driver = this:GetDriver()
 	if not IsValid(driver) then return end
 
-	if not checkDelay( self.player ) then return end
+	if not checkDelay( driver ) then return end
 
 	printColorVarArg(self.entity, driver, false, typeids, ...)
 end
@@ -397,7 +401,7 @@ e2function void entity:printColorDriver(array arr)
 	local driver = this:GetDriver()
 	if not IsValid(driver) then return end
 
-	if not checkDelay( self.player ) then return end
+	if not checkDelay( driver ) then return end
 
 	printColorArray(self.entity, driver, false, arr)
 end
