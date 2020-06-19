@@ -128,7 +128,7 @@ e2function void print(...)
 	if nargs>0 then
 		for i=1, math.min(nargs, 256) do
 			local v = args[i]
-			args[i] = (SpecialCase( v ) or tostring(v))
+			args[i] = string.Left(SpecialCase( v ) or tostring(v), 249)
 		end
 		local text = table.concat(args, "\t")
 		if #text>0 then
