@@ -323,7 +323,9 @@ if CLIENT then
 			end
 		else
 			WaitingForID = nil
-			resetViewAngles = true
+			if enabled then -- only do this if it was enabled
+				resetViewAngles = true
+			end
 		end
 
 		enabled = enable
