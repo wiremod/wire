@@ -3,6 +3,9 @@ include("remap.lua") -- For stools/keyboard.lua's layout selector
 
 net.Receive("wire_keyboard_blockinput", function(netlen)
 	if net.ReadBit() ~= 0 then
+		hook.Add("StartChat", "wire_keyboard_startchatoverride", function(teamChat)
+			return true
+		end)
 		hook.Add("PlayerBindPress", "wire_keyboard_blockinput", function(ply, bind, pressed)
 			-- return true for all keys except the mouse, to block keyboard actions while typing
 			if bind == "+attack" then return nil end
@@ -11,6 +14,7 @@ net.Receive("wire_keyboard_blockinput", function(netlen)
 			return true
 		end)
 	else
+		hook.Remove("StartChat", "wire_keyboard_startchatoverride")
 		hook.Remove("PlayerBindPress", "wire_keyboard_blockinput")
 	end
 end)
