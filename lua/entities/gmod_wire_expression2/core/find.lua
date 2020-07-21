@@ -498,7 +498,7 @@ end
 e2function void findExcludePlayerProps(string name)
 	local ply = findPlayer(name)
 	if not ply then return end
-	e2_findExcludePlayerProps_e(self, { nil, { function() return ply end } })
+	registeredfunctions.e2_findExcludePlayerProps_e(self, { nil, { function() return ply end } })
 end
 
 --- Exclude entities with this model (or partial model name) from future finds
@@ -556,7 +556,7 @@ end
 e2function void findAllowPlayerProps(string name)
 	local ply = findPlayer(name)
 	if not ply then return end
-	e2_findAllowPlayerProps_e(self, { nil, { function() return ply end } })
+	registeredfunctions.e2_findAllowPlayerProps_e(self, { nil, { function() return ply end } })
 end
 
 --- Remove entities with this model (or partial model name) from the blacklist
@@ -614,7 +614,7 @@ end
 e2function void findIncludePlayerProps(string name)
 	local ply = findPlayer(name)
 	if not ply then return end
-	e2_findIncludePlayerProps_e(self, { nil, { function() return ply end } })
+	registeredfunctions.e2_findIncludePlayerProps_e(self, { nil, { function() return ply end } })
 end
 
 --- Include entities with this model (or partial model name) in future finds, and remove others not in the whitelist
@@ -672,7 +672,7 @@ end
 e2function void findDisallowPlayerProps(string name)
 	local ply = findPlayer(name)
 	if not ply then return end
-	e2_findDisallowPlayerProps_e(self, { nil, { function() return ply end } })
+	registeredfunctions.e2_findDisallowPlayerProps_e(self, { nil, { function() return ply end } })
 end
 
 --- Remove entities with this model (or partial model name) from the whitelist
