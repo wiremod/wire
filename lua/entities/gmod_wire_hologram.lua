@@ -24,7 +24,7 @@ if CLIENT then
 	local player_color_buffer = {}
 
 	net.Receive( "holoQueueClear", function()
-		local id = net.ReadUInt(18)
+		local id = net.ReadUInt(16)
 		print("Clearing: ", id)
 		--clip_buffer
 		if not (clip_buffer[id] == nil) then
@@ -415,7 +415,7 @@ util.AddNetworkString( "holoQueueClear" )
 function ENT:OnRemove()
 	-- Let all clients know this holo was removed, incase it was in a different PVS from them since creation
 	net.Start( "holoQueueClear" )
-		net.WriteUInt( self:EntIndex(), 18 )
+		net.WriteUInt( self:EntIndex(), 16 )
 	net.Broadcast()
 end
 
