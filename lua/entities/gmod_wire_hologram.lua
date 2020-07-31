@@ -25,27 +25,21 @@ if CLIENT then
 
 	net.Receive( "holoQueueClear", function()
 		local id = net.ReadUInt(16)
-		print("Clearing: ", id)
+
 		--clip_buffer
-		if not (clip_buffer[id] == nil) then
-			clip_buffer[id] = nil
-		end
+		clip_buffer[id] = nil
+
 		--scale_buffer
-		if not (scale_buffer[id] == nil) then
-			scale_buffer[id] = nil
-		end
+		scale_buffer[id] = nil
+
 		--bone_scale_buffer
-		if not (bone_scale_buffer[id] == nil) then
-			bone_scale_buffer[id] = nil
-		end
+		bone_scale_buffer[id] = nil
+
 		--vis_buffer
-		if not (vis_buffer[id] == nil) then
-			vis_buffer[id] = nil
-		end
+		vis_buffer[id] = nil
+
 		--Clips
-		if not (player_color_buffer[id] == nil) then
-			player_color_buffer[id] = nil
-		end
+		player_color_buffer[id] = nil
 	end)
 
 	function ENT:Initialize()
