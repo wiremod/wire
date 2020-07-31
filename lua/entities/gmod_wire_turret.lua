@@ -21,7 +21,11 @@ function ENT:Initialize()
 	self.Firing 	= false
 	self.NextShot 	= 0
 
-	self.Inputs = Wire_CreateInputs(self, { "Fire" })
+	self.Inputs = WireLib.CreateSpecialInputs(self,
+		{ "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound", "Tracer" },
+		{ "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "STRING", "STRING" })
+
+	self.Outputs = WireLib.CreateSpecialOutputs(self, { "HitEntity" }, { "ENTITY" })
 end
 
 function ENT:FireShot()
@@ -53,6 +57,9 @@ function ENT:FireShot()
 		bullet.Force		= self.force
 		bullet.Damage		= self.damage
 		bullet.Attacker 	= self:GetPlayer()
+		bullet.Callback = function(attacker, traceres, cdamageinfo)
+			WireLib.TriggerOutput(self, "HitEntity", traceres.Entity)
+		end
 	self:FireBullets( bullet )
 
 	-- Make a muzzle flash
@@ -79,12 +86,6 @@ function ENT:Think()
 	return true
 end
 
-function ENT:TriggerInput(iname, value)
-	if (iname == "Fire") then
-		self.Firing = value > 0
-	end
-end
-
 local ValidTracers = {
 	["Tracer"]=true,
 	["AR2Tracer"]=true,
@@ -92,6 +93,41 @@ local ValidTracers = {
 	["LaserTracer"]=true,
 	[""]=true,
 }
+
+function ENT:TriggerInput(iname, value)
+	if (iname == "Fire") then
+		self.Firing = value > 0
+	elseif (iname == "Force") then
+		self.force = math.Clamp(value,0,500)
+	elseif (iname == "Damage") then
+		self.damage = math.Clamp(value,0,100)
+	elseif (iname == "NumBullets") then
+		value = math.floor(math.max(1,value))
+		if not game.SinglePlayer() then
+			self.numbullets = math.Min(value,10)
+		else
+			self.numbullets = value
+		end
+	elseif (iname == "Spread") then
+		self.spread = math.Clamp(value,0,1)
+		self.spreadvector.x = self.spread
+		self.spreadvector.y = self.spread
+	elseif (iname == "Delay") then
+		if not game.SinglePlayer() then
+			self.delay = math.Clamp(value,0.05,1)
+		else
+			self.delay = math.Clamp(value,0.01,1)
+		end
+	elseif (iname == "Sound") then
+		if string.find(value, '["?]') then
+			self.sound = ""
+		else
+			self.sound = value
+		end
+	elseif (iname == "Tracer") then
+		self.tracer = ValidTracers[string.Trim(value)] and string.Trim(value) or ""
+	end
+end
 
 function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, tracernum)
 	if not game.SinglePlayer() then
