@@ -26,19 +26,19 @@ if CLIENT then
 	net.Receive( "holoQueueClear", function()
 		local id = net.ReadUInt(16)
 
-		--clip_buffer
+		--Holo Clips
 		clip_buffer[id] = nil
 
-		--scale_buffer
+		--Holo Scales
 		scale_buffer[id] = nil
 
-		--bone_scale_buffer
+		--Holo Bone Scales
 		bone_scale_buffer[id] = nil
 
-		--vis_buffer
+		--Holo Enable/Disable
 		vis_buffer[id] = nil
 
-		--Clips
+		--Holo Colors
 		player_color_buffer[id] = nil
 	end)
 
