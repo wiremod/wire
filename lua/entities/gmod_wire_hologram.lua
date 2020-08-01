@@ -23,6 +23,25 @@ if CLIENT then
 	local vis_buffer = {}
 	local player_color_buffer = {}
 
+	net.Receive( "holoQueueClear", function()
+		local id = net.ReadUInt(16)
+
+		--Holo Clips
+		clip_buffer[id] = nil
+
+		--Holo Scales
+		scale_buffer[id] = nil
+
+		--Holo Bone Scales
+		bone_scale_buffer[id] = nil
+
+		--Holo Enable/Disable
+		vis_buffer[id] = nil
+
+		--Holo Colors
+		player_color_buffer[id] = nil
+	end)
+
 	function ENT:Initialize()
 		self.bone_scale = {}
 		self:DoScale()
@@ -385,6 +404,14 @@ if CLIENT then
 end
 
 -- Server
+util.AddNetworkString( "holoQueueClear" )
+
+function ENT:OnRemove()
+	-- Let all clients know this holo was removed, incase it was in a different PVS from them since creation
+	net.Start( "holoQueueClear" )
+		net.WriteUInt( self:EntIndex(), 16 )
+	net.Broadcast()
+end
 
 function ENT:Initialize()
 	self:SetSolid(SOLID_NONE)
