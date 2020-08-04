@@ -1,151 +1,231 @@
-local eliminate_varname_conflicts = true
-
-if not e2_parse_args then include("extpp.lua") end
-
-local readfile = readfile or function(filename)
-	return file.Read("entities/gmod_wire_expression2/core/" .. filename, "LUA")
-end
-local writefile = writefile or function(filename, contents)
-	print("--- Writing to file 'data/e2doc/" .. filename .. "' ---")
-	return file.Write("e2doc/" .. filename, contents)
-end
-local p_typename = "[a-z][a-z0-9]*"
-local p_typeid = "[a-z][a-z0-9]?[a-z0-9]?[a-z0-9]?[a-z0-9]?"
-local p_argname = "[a-zA-Z][a-zA-Z0-9]*"
-local p_funcname = "[a-z][a-zA-Z0-9]*"
-local p_func_operator = "[-a-zA-Z0-9+*/%%^=!><&|$_]*"
-
-local function ltrim(s)
-	return string.match(s, "^%s*(.-)$")
-end
-
-local function rtrim(s)
-	return string.match(s, "^(.-)%s*$")
-end
-
-local function trim(s)
-	return string.match(s, "^%s*(.-)%s*$")
-end
-
-local mess_with_args
-
-function mess_with_args(args, desc, thistype)
-	local args_referenced = string.match(desc, "<" .. p_argname .. ">")
-	local argtable, ellipses = e2_parse_args(args)
-	local indices = {}
-	if thistype ~= "" then indices[string.upper(e2_get_typeid(thistype))] = 2 end
-	args = ''
-	for i, name in ipairs(argtable.argnames) do
-		local typeid = string.upper(argtable.typeids[i])
-
-		local index = ""
-		if args_referenced then
-			index = indices[typeid]
-			if index then
-				indices[typeid] = index + 1
-			else
-				index = ""
-				indices[typeid] = 2
-			end
-		end
-		local newname = typeid .. "<sub>" .. index .. "</sub>"
-		if index == "" then newname = typeid end
-
-		desc = desc:gsub("<" .. name .. ">", "''" .. newname .. "''")
-		if i ~= 1 then args = args .. "," end
-		args = args .. newname
-	end
-	if ellipses then
-		if #argtable.argnames ~= 0 then args = args .. "," end
-		args = args .. "..."
-	end
-	return args, desc
-end
-
-local function e2doc(filename, outfile)
-	if not outfile then
-		outfile = string.match(filename, "^.*%.") .. "txt"
-	end
-	local current = {}
-	local output = { '====Commands====\n:{|style="background:#E6E6FA"\n!align="left" width="150"| Function\n!align="left" width="60"| Returns\n!align="left" width="1000"| Description\n' }
-	local insert_line = true
-	for line in string.gmatch(readfile(filename), "%s*(.-)%s*\n") do
-		if line:sub(1, 3) == "---" then
-			if line:match("[^-%s]") then table.insert(current, ltrim(line:sub(4))) end
-		elseif line:sub(1, 3) == "///" then
-			table.insert(current, ltrim(line:sub(4)))
-		elseif line:sub(1, 12) == "--[[********" or line:sub(1, 9) == "/********" then
-			if line:find("^%-%-%[%[%*%*%*%*%*%*%*%*+%]%]%-%-$") or line:find("^/%*%*%*%*%*%*%*%*+/$") then
-				insert_line = true
-			end
-		elseif line:sub(1, 10) == "e2function" then
-			local ret, thistype, colon, name, args = line:match("e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)")
-			if thistype ~= "" and colon == "" then error("E2doc syntax error: Function names may not start with a number.", 0) end
-			if thistype == "" and colon ~= "" then error("E2doc syntax error: No type for 'this' given.", 0) end
-			if thistype:sub(1, 1):find("[0-9]") then error("E2doc syntax error: Type names may not start with a number.", 0) end
-
-			desc = table.concat(current, "<br />")
-			current = {}
-
-			if name:sub(1, 8) ~= "operator" and not desc:match("@nodoc") then
-				if insert_line then
-					table.insert(output, '|-\n| bgcolor="SteelBlue" |  || bgcolor="SteelBlue" |  || bgcolor="SteelBlue" | \n')
-					insert_line = false
-				end
-				args, desc = mess_with_args(args, desc, thistype)
-
-				if ret == "void" then
-					ret = ""
-				else
-					ret = string.upper(e2_get_typeid(ret))
-				end
-
-				if thistype ~= "" then
-					thistype = string.upper(e2_get_typeid(thistype))
-					desc = desc:gsub("<this>", "''" .. thistype .. "''")
-					thistype = thistype .. ":"
-				end
-				table.insert(output, string.format("|-\n|%s%s(%s) || %s || ", thistype, name, args, ret))
-				--desc = desc:gsub("<([^<>]+)>", "''%1''")
-				table.insert(output, desc)
-				table.insert(output, "\n")
-			end
-		end
-	end -- for line
-	output = table.concat(output) .. "|}\n"
-	print(output)
-	writefile(outfile, output)
-end
-
--- Add a client-side "e2doc" console command
 if SERVER then
-	AddCSLuaFile()
-	e2doc = nil
-elseif CLIENT then
+	--[[
+		Keep in mind that GMod can only write .txt files and github requires other file types, such as .md
+		I recommend using any kind of mass-renamer to rename the text files after using this command.
+		Here's a small php script that does the job
+
+		$files = glob("*.txt");
+
+		foreach( $files as $idx => $file ) {
+			$newname = str_replace(".txt",".md",$file);
+			echo $idx . "=>" . $newname . "<br>";
+			rename($file,$newname);
+		}
+	]]
+
+	-- place any extensions which you have installed that are not part of wiremod
+	-- (and can't be disabled using the extension manager because the developers didn't implement that)
+	-- in this list, to make the docs generator skip them
+	local exclude = {
+		--["custom/light"] = true -- example
+	}
+
+
+	-- various patterns
+	local p_typename = "[a-z][a-z0-9]*"
+	local p_typeid = "[a-z][a-z0-9]?[a-z0-9]?[a-z0-9]?[a-z0-9]?"
+	local p_argname = "[a-zA-Z][a-zA-Z0-9]*"
+	local p_funcname = "[a-z][a-zA-Z0-9_]*"
+
+	local typeimages = {
+		a = 	'![Angle](Type-Angle.png "Angle")',
+		e = 	'![Entity](Type-Entity.png "Entity")',
+		b = 	'![Bone](Type-Bone.png "Bone")',
+		xwl = 	'![WireLink](Type-WireLink.png "WireLink")',
+		c = 	'![ComplexNumber](Type-ComplexNumber.png "ComplexNumber")',
+		r = 	'![Array](Type-Array.png "Array")',
+		xrd = 	'![RangerData](Type-RangerData.png "RangerData")',
+		s = 	'![String](Type-String.png "String")',
+		v = 	'![Vector](Type-Vector.png "Vector")',
+		xv2 = 	'![Vector2](Type-Vector2.png "Vector2")',
+		xv4 = 	'![Vector4](Type-Vector4.png "Vector4")',
+		m = 	'![Matrix](Type-Matrix.png "Matrix")',
+		xm2 = 	'![Matrix4](Type-Matrix2.png "Matrix2")',
+		xm4 = 	'![Matrix4](Type-Matrix4.png "Matrix4")',
+		t = 	'![Table](Type-Table.png "Table")',
+		q = 	'![Quaternion](Type-Quaternion.png "Quaternion")',
+		n = 	'![Number](Type-Number.png "Number")'
+	}
+
+	local wireextras = {
+		["custom/camera"] = true,
+		["custom/ftrace"] = true,
+		["custom/holoanim"] = true,
+		["custom/light"] = true,
+		["custom/stcontrol"] = true,
+		["custom/tracesystem"] = true,
+	}
+
+	local function e2doc()
+		local files = {}
+		E2Helper = {Descriptions = {}}
+		language = {Add = function() end}
+		include( "wire/client/e2descriptions.lua" )
+		include( "entities/gmod_wire_expression2/core/custom/cl_prop.lua" )
+		include( "entities/gmod_wire_expression2/core/custom/cl_constraintcore.lua" )
+		include( "entities/gmod_wire_expression2/core/custom/cl_tracesystem.lua" )
+		include( "entities/gmod_wire_expression2/core/custom/cl_stcontrol.lua" )
+		include( "entities/gmod_wire_expression2/core/custom/cl_ftrace.lua" )
+		language = nil
+
+		local function upperFirst(str)
+			return string.upper(string.sub(str,1,1)) .. string.lower(string.sub(str,2))
+		end
+
+		local function getTypeImage(typeid)
+			if typeid == "..." then return "..." end
+			if typeid == nil or typeid == "" then return "" end
+			if typeimages[typeid] then return typeimages[typeid] end
+			if wire_expression_types2[typeid] then
+				return upperFirst(wire_expression_types2[typeid][1])
+			end
+
+			return typeid
+		end
+
+		timer.Simple(0.2,function() -- there's a timer in e2descriptions which we need to wait for
+			local descriptions = E2Helper.Descriptions
+
+			for signature, funcdata in pairs( wire_expression2_funcs ) do
+				local retval = funcdata[2]
+				local func = funcdata[3]
+				local cost = funcdata[4] or 0
+				local argnames = funcdata.argnames or {}
+
+				if string.sub(signature,1,3) == "op:" then continue end
+
+				-- get file path
+				local info = debug.getinfo( func )
+				local filepath = string.match(info.short_src,"/gmod_wire_expression2/core/(.+)")
+				filepath = string.gsub(filepath,".lua","")
+				if exclude[filepath] then continue end
+
+				if not files[filepath] then files[filepath] = {} end
+
+				retval = getTypeImage(retval)
+				if retval == nil then print(funcdata[1],"'"..funcdata[2].."'") end
+				local description = descriptions[signature] or ""
+
+				-- parse function signature, split function name from argument typeids
+				local funcname, params = string.match(signature,"^("..p_funcname..")%((.*)%)$")
+				local parsed_params = {}
+
+				local this, other
+				if params ~= nil and params ~= "" then
+					-- check if this function has 'this:funcname('
+					if string.find(params,":",1,true) ~= nil then
+						this, other = string.match(params,"^("..p_typeid.."):(.*)$")
+						params = other
+						this = getTypeImage(this)
+					end
+
+					if params ~= nil and params ~= "" then
+						-- parse params and add argument name to each
+						local pos = 1
+						repeat
+							local s = string.sub(params,pos,pos)
+							if s == "x" then
+								s = string.sub(params,pos,pos+2)
+								pos = pos + 2
+							elseif s == "." then
+								s = "..."
+								pos = pos + 2
+							end
+							pos = pos + 1
+
+							local idx = #parsed_params+1
+							local argname = argnames[idx] or ""
+							if argname ~= "" then argname = " " .. upperFirst(argname) end
+							parsed_params[idx] = getTypeImage(s) .. argname
+						until pos>=#params
+					end
+				end
+
+				parsed_params = table.concat(parsed_params,", ")
+				if this ~= nil and this ~= "" then
+					funcname = string.format("%s:%s(%s)",this,funcname,parsed_params)
+				else
+					funcname = string.format("%s(%s)",funcname,parsed_params)
+				end
+
+				-- generate display (table), not used for now because it's not great for longer function names
+				--local str = string.format("| %s | %s | %s | %s |",funcname,retval,cost,description)
+
+				-- generate display
+				local str = ""
+				if retval ~= "" then
+					str = string.format("### %s = %s\n\n%s (%s ops)",retval,funcname,description,cost)
+				else
+					str = string.format("### %s\n\n%s (%s ops)",funcname,description,cost)
+				end
+
+				-- sort into the correct "file" category
+				files[filepath][ #files[filepath]+1 ] = {
+					str = str,
+					sortparam = info.linedefined
+				}
+			end
+
+			-- build navigation
+			local nav = {}
+			for filepath, data in pairs( files ) do
+				local is_wire_extras = ""
+				if wireextras[filepath] then is_wire_extras = " (Wire Extras)" end
+
+				local filename = string.gsub(filepath,"custom/","custom-")
+				filename = "e2-docs-" .. filename
+
+				nav[#nav+1] = {
+					str = string.format("* [%s](%s)%s",filepath,filename,is_wire_extras),
+					sortparam = filepath,
+					iscustom = string.sub(filepath,1,7) == "custom/"
+				}
+			end
+
+			-- sort navigation
+			table.sort(nav,function(a,b)
+				if a.iscustom and not b.iscustom then return false end
+				if not a.iscustom and b.iscustom then return true end
+
+				return a.sortparam < b.sortparam
+			end)
+
+			local function collapseTable(t)
+				-- clear all other values and leave only strings
+				for k,v in pairs(t) do t[k] = v.str end
+			end
+
+			collapseTable(nav)
+			nav = "# Table of Contents\n\n"..table.concat(nav,"\n")
+
+			for filepath, data in pairs( files ) do
+				-- github table header, not used for now because it's not great for longer function names
+				--local tableheader = "| Function | Returns | Cost | Description |\n| --- | --- | --- | --- |\n"
+
+				-- sort by position in file which defined it
+				table.sort(data,function(a,b)
+					return a.sortparam < b.sortparam
+				end)
+
+				collapseTable(data)
+				data = string.format("%s\n***\n\n# %s\n\n%s",nav,upperFirst(filepath),table.concat(data,"\n\n"))
+
+				filepath = string.gsub(filepath,"custom/","custom-")
+				local filename = "e2doc/e2-docs-" .. filepath .. ".txt"
+				print("writing file: ",filename)
+				file.Write(filename, data )
+			end
+
+			E2Helper = nil -- this value is no longer needed serverside
+		end)
+	end
+
 	concommand.Add("e2doc",
 		function(player, command, args)
 			if not file.IsDir("e2doc", "DATA") then file.CreateDir("e2doc") end
-			if not file.IsDir("e2doc/custom", "DATA") then file.CreateDir("e2doc/custom") end
+			--if not file.IsDir("e2doc/custom", "DATA") then file.CreateDir("e2doc/custom") end
 
-			local path = string.match(args[2] or args[1], "^%s*(.+)/")
-			if path and not file.IsDir("e2doc/" .. path, "DATA") then file.CreateDir("e2doc/" .. path) end
-
-			e2doc(args[1], args[2])
-		end,
-		function(commandName, args) -- autocomplete function
-			args = string.match(args, "^%s*(.-)%s*$")
-			local path = string.match(args, "^%s*(.+/)") or ""
-			local files = file.Find("entities/gmod_wire_expression2/core/" .. args .. "*", "LUA")
-			local ret = {}
-			for _, v in ipairs(files) do
-				if string.sub(v, 1, 1) ~= "." then
-					if file.IsDir("entities/gmod_wire_expression2/core/" .. path .. v, "LUA") then
-						table.insert(ret, "e2doc " .. path .. v .. "/")
-					else
-						table.insert(ret, "e2doc " .. path .. v)
-					end
-				end
-			end
-			return ret
-		end)
+			e2doc()
+		end
+	)
 end
