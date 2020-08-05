@@ -63,10 +63,6 @@ function ENT:FireShot()
 	self:FireBullets( bullet )
 
 	-- Make a muzzle flash
-	if ( not self.effectdata ) then
-		self.effectdata = EffectData()
-	end
-
 	self.effectdata:SetOrigin( shootOrigin )
 	self.effectdata:SetAngles( shootAngles )
 	self.effectdata:SetScale( 1 )
@@ -162,6 +158,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, tracernum)
+	self.effectdata = EffectData()
 	self:SetForce(force)
 	self:SetDelay(delay)
 	self:SetSound(sound)
