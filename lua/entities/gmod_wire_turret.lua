@@ -18,8 +18,11 @@ function ENT:Initialize()
 		phys:Wake()
 	end
 
-	self.Firing   = false
-	self.NextShot = 0
+	-- Allocating internal values on initialize
+	self.NextShot     = 0
+	self.Firing       = false
+	self.spreadvector = Vector()
+	self.effectdata   = EffectData()
 
 	self.Inputs = WireLib.CreateSpecialInputs(self,
 		{ "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound", "Tracer" },
@@ -60,6 +63,7 @@ function ENT:FireShot()
 		bullet.Callback   = function(attacker, traceres, cdamageinfo)
 			WireLib.TriggerOutput(self, "HitEntity", traceres.Entity)
 		end
+
 	self:FireBullets( bullet )
 
 	-- Make a muzzle flash
@@ -116,13 +120,8 @@ end
 
 function ENT:SetSpread(spread)
 	self.spread = math.Clamp( spread, 0, 1 )
-
-	if ( self.spreadvector ) then
-		self.spreadvector.x = self.spread
-		self.spreadvector.y = self.spread
-	else
-		self.spreadvector = Vector( spread, spread, 0 )
-	end
+	self.spreadvector.x = self.spread
+	self.spreadvector.y = self.spread
 end
 
 function ENT:SetDamage(damage)
@@ -158,7 +157,6 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, tracernum)
-	self.effectdata = EffectData()
 	self:SetForce(force)
 	self:SetDelay(delay)
 	self:SetSound(sound)
