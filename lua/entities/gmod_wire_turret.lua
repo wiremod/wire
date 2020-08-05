@@ -102,59 +102,35 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Damage") then
 		self.damage = math.Clamp(value,0,100)
 	elseif (iname == "NumBullets") then
+		local gsp = game.SinglePlayer()
 		value = math.floor(math.max(1,value))
-		if not game.SinglePlayer() then
-			self.numbullets = math.Min(value,10)
-		else
-			self.numbullets = value
-		end
+		self.numbullets = gsp and value or math.Min(value,10)
 	elseif (iname == "Spread") then
 		self.spread = math.Clamp(value,0,1)
 		self.spreadvector.x = self.spread
 		self.spreadvector.y = self.spread
 	elseif (iname == "Delay") then
-		if not game.SinglePlayer() then
-			self.delay = math.Clamp(value,0.05,1)
-		else
-			self.delay = math.Clamp(value,0.01,1)
-		end
+		local gsp = game.SinglePlayer()
+		local lim = 0.01 * (gsp and 1 or 5)
+		self.delay = math.Clamp(value,lim,1)
 	elseif (iname == "Sound") then
-		if string.find(value, '["?]') then
-			self.sound = ""
-		else
-			self.sound = value
-		end
+		self.sound = string.find(value, "[\"?]") and "" or value
 	elseif (iname == "Tracer") then
-		self.tracer = ValidTracers[string.Trim(value)] and string.Trim(value) or ""
+		local tr = string.Trim(value)
+		self.tracer = ValidTracers[tr] and tr or ""
 	end
 end
 
 function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, tracernum)
-	if not game.SinglePlayer() then
-		self.delay = math.max(delay,0.05) -- clamp delay if it's not single player
-	else
-		self.delay = delay
-	end
-
+	local gsp, tr = game.SinglePlayer(), string.Trim(tracer)
+	self.delay = gsp and delay or math.max(delay,0.05) -- clamp delay if it's not single player
 	self.damage = damage
 	self.force = force
-	-- Preventing client crashes
-	if string.find(sound, '["?]') then
-		self.sound = ""
-	else
-		self.sound = sound
-	end
-
-	if not game.SinglePlayer() then
-		self.numbullets = math.Clamp( numbullets, 1, 10 ) -- clamp num bullets if it's not single player
-	else
-		self.numbullets = numbullets
-	end
-
+	self.sound = string.find(sound, "[\"?]") and "" or sound -- Preventing client crashes
+	self.numbullets = gsp and numbullets or math.Clamp( numbullets, 1, 10 ) -- clamp num bullets if it's not single player
 	self.spread = spread -- for duplication
 	self.spreadvector = Vector(spread,spread,0)
-
-	self.tracer = ValidTracers[string.Trim(tracer)] and string.Trim(tracer) or ""
+	self.tracer = ValidTracers[tr] and tr or ""
 	self.tracernum = tracernum or 1
 end
 
