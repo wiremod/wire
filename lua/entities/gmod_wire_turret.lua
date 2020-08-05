@@ -63,12 +63,14 @@ function ENT:FireShot()
 	self:FireBullets( bullet )
 
 	-- Make a muzzle flash
-	local effectdata = EffectData()
-		effectdata:SetOrigin( shootOrigin )
-		effectdata:SetAngles( shootAngles )
-		effectdata:SetScale( 1 )
-	util.Effect( "MuzzleEffect", effectdata )
+	if ( not self.effectdata ) then
+		self.effectdata = EffectData()
+	end
 
+	self.effectdata:SetOrigin( shootOrigin )
+	self.effectdata:SetAngles( shootAngles )
+	self.effectdata:SetScale( 1 )
+	util.Effect( "MuzzleEffect", self.effectdata )
 end
 
 function ENT:OnTakeDamage( dmginfo )
