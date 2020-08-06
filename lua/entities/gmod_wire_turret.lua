@@ -91,14 +91,20 @@ end
 local ValidTracers = {
 	["Tracer"]                = true,
 	["AR2Tracer"]             = true,
-	["AirboatGunHeavyTracer"] = true,
+	["ToolTracer"]            = true,
+	["GaussTracer"]           = true,
 	["LaserTracer"]           = true,
+	["StriderTracer"]         = true,
+	["GunshipTracer"]         = true,
+	["HelicopterTracer"]      = true,
+	["AirboatGunTracer"]      = true,
+	["AirboatGunHeavyTracer"] = true,
 	[""]                      = true
 }
 
 function ENT:SetSound( sound )
 	local sound = tostring( sound or "" )
-	sound = string.Trim( sound ) -- The string cannot have whitespace
+	sound = string.Trim( sound ) -- The string cannot have whitespace ( manual )
 	local check = string.find( sound, "[\"?]" ) -- Preventing client crashes
 	sound = check and "" or sound
 	self.sound = ( sound ~= "" ) and sound or nil
