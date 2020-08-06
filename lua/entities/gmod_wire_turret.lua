@@ -96,47 +96,50 @@ local ValidTracers = {
 	[""]                      = true
 }
 
-function ENT:SetSound(sound)
+function ENT:SetSound( sound )
+	local sound = tostring( sound or "" )
+	sound = string.Trim( sound ) -- The string cannot have whitespace
 	local check = string.find( sound, "[\"?]" ) -- Preventing client crashes
-	self.sound = check and "" or sound
+	sound = check and "" or sound
+	self.sound = ( sound ~= "" ) and sound or nil
 end
 
-function ENT:SetDelay(delay)
+function ENT:SetDelay( delay )
 	local check = game.SinglePlayer() -- clamp delay if it's not single player
 	local limit = check and 0.01 or 0.05
 	self.delay = math.Clamp( delay, limit, 1 )
 end
 
-function ENT:SetNumBullets(numbullets)
+function ENT:SetNumBullets( numbullets )
 	local check = game.SinglePlayer() -- clamp num bullets if it's not single player
 	local limit = math.floor( math.max( 1, numbullets ) )
 	self.numbullets = check and limit or math.Clamp( limit, 1, 10 )
 end
 
-function ENT:SetTracer(tracer)
+function ENT:SetTracer( tracer )
 	local tracer = string.Trim(tracer)
 	self.tracer = ValidTracers[tracer] and tracer or ""
 end
 
-function ENT:SetSpread(spread)
+function ENT:SetSpread( spread )
 	self.spread = math.Clamp( spread, 0, 1 )
 	self.spreadvector.x = self.spread
 	self.spreadvector.y = self.spread
 end
 
-function ENT:SetDamage(damage)
+function ENT:SetDamage( damage )
 	self.damage = math.Clamp( damage, 0, 100 )
 end
 
-function ENT:SetForce(force)
+function ENT:SetForce( force )
 	self.force = math.Clamp( force, 0, 500 )
 end
 
-function ENT:SetTraceNum(tracernum)
+function ENT:SetTraceNum( tracernum )
 	self.tracernum = math.floor( math.max( tracernum or 1 ) )
 end
 
-function ENT:TriggerInput(iname, value)
+function ENT:TriggerInput( iname, value )
 	if (iname == "Fire") then
 		self.Firing = value > 0
 	elseif (iname == "Force") then
