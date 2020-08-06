@@ -78,13 +78,13 @@ function ENT:OnTakeDamage( dmginfo )
 end
 
 function ENT:Think()
-	BaseClass.Think(self)
+	BaseClass.Think( self )
 
 	if ( self.Firing ) then
 		self:FireShot()
 	end
 
-	self:NextThink(CurTime())
+	self:NextThink( CurTime() )
 	return true
 end
 
@@ -103,11 +103,10 @@ local ValidTracers = {
 }
 
 function ENT:SetSound( sound )
-	local sound = tostring( sound or "" )
-	sound = string.Trim( sound ) -- The string cannot have whitespace ( manual )
+	local sound = string.Trim( tostring( sound or "" ) ) -- Remove whitespace ( manual )
 	local check = string.find( sound, "[\"?]" ) -- Preventing client crashes
-	sound = check and "" or sound
-	self.sound = ( sound ~= "" ) and sound or nil
+	self.sound = check and "" or sound -- Apply the pattern check
+	self.sound = ( self.sound ~= "" ) and self.sound or nil
 end
 
 function ENT:SetDelay( delay )
