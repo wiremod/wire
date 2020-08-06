@@ -50,19 +50,19 @@ function ENT:FireShot()
 	local shootAngles = self:GetAngles()
 
 	-- Shoot a bullet
-	local bullet        = {}
-		bullet.Num        = self.numbullets
-		bullet.Src        = shootOrigin
-		bullet.Dir        = shootAngles:Forward()
-		bullet.Spread     = self.spreadvector
-		bullet.Tracer     = self.tracernum
-		bullet.TracerName = self.tracer
-		bullet.Force      = self.force
-		bullet.Damage     = self.damage
-		bullet.Attacker   = self:GetPlayer()
-		bullet.Callback   = function(attacker, traceres, cdamageinfo)
-			WireLib.TriggerOutput(self, "HitEntity", traceres.Entity)
-		end
+	local bullet      = {}
+	bullet.Num        = self.numbullets
+	bullet.Src        = shootOrigin
+	bullet.Dir        = shootAngles:Forward()
+	bullet.Spread     = self.spreadvector
+	bullet.Tracer     = self.tracernum
+	bullet.TracerName = self.tracer
+	bullet.Force      = self.force
+	bullet.Damage     = self.damage
+	bullet.Attacker   = self:GetPlayer()
+	bullet.Callback   = function(attacker, traceres, cdamageinfo)
+		WireLib.TriggerOutput(self, "HitEntity", traceres.Entity)
+	end
 
 	self:FireBullets( bullet )
 
