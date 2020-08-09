@@ -1,9 +1,9 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName		= "Wire Turret"
-ENT.WireDebugName 	= "Turret"
+ENT.PrintName     = "Wire Turret"
+ENT.WireDebugName = "Turret"
 
-if CLIENT then return end -- No more client
+if ( CLIENT ) then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -14,12 +14,15 @@ function ENT:Initialize()
 	self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 
 	local phys = self:GetPhysicsObject()
-	if (phys:IsValid()) then
+	if ( phys:IsValid() ) then
 		phys:Wake()
 	end
 
-	self.Firing 	= false
-	self.NextShot 	= 0
+	-- Allocating internal values on initialize
+	self.NextShot     = 0
+	self.Firing       = false
+	self.spreadvector = Vector()
+	self.effectdata   = EffectData()
 
 	self.Inputs = WireLib.CreateSpecialInputs(self,
 		{ "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound", "Tracer" },
@@ -35,8 +38,8 @@ function ENT:FireShot()
 	self.NextShot = CurTime() + self.delay
 
 	-- Make a sound if you want to.
-	if self.sound then
-		self:EmitSound(self.sound)
+	if ( self.sound ) then
+		self:EmitSound( self.sound )
 	end
 
 	-- Get the muzzle attachment (this is pretty much always 1)
@@ -47,28 +50,27 @@ function ENT:FireShot()
 	local shootAngles = self:GetAngles()
 
 	-- Shoot a bullet
-	local bullet = {}
-		bullet.Num 			= self.numbullets
-		bullet.Src 			= shootOrigin
-		bullet.Dir 			= shootAngles:Forward()
-		bullet.Spread 		= self.spreadvector
-		bullet.Tracer		= self.tracernum
-		bullet.TracerName 	= self.tracer
-		bullet.Force		= self.force
-		bullet.Damage		= self.damage
-		bullet.Attacker 	= self:GetPlayer()
-		bullet.Callback = function(attacker, traceres, cdamageinfo)
-			WireLib.TriggerOutput(self, "HitEntity", traceres.Entity)
-		end
+	local bullet      = {}
+	bullet.Num        = self.numbullets
+	bullet.Src        = shootOrigin
+	bullet.Dir        = shootAngles:Forward()
+	bullet.Spread     = self.spreadvector
+	bullet.Tracer     = self.tracernum
+	bullet.TracerName = self.tracer
+	bullet.Force      = self.force
+	bullet.Damage     = self.damage
+	bullet.Attacker   = self:GetPlayer()
+	bullet.Callback   = function(attacker, traceres, cdamageinfo)
+		WireLib.TriggerOutput(self, "HitEntity", traceres.Entity)
+	end
+
 	self:FireBullets( bullet )
 
 	-- Make a muzzle flash
-	local effectdata = EffectData()
-		effectdata:SetOrigin( shootOrigin )
-		effectdata:SetAngles( shootAngles )
-		effectdata:SetScale( 1 )
-	util.Effect( "MuzzleEffect", effectdata )
-
+	self.effectdata:SetOrigin( shootOrigin )
+	self.effectdata:SetAngles( shootAngles )
+	self.effectdata:SetScale( 1 )
+	util.Effect( "MuzzleEffect", self.effectdata )
 end
 
 function ENT:OnTakeDamage( dmginfo )
@@ -76,86 +78,100 @@ function ENT:OnTakeDamage( dmginfo )
 end
 
 function ENT:Think()
-	BaseClass.Think(self)
+	BaseClass.Think( self )
 
-	if( self.Firing ) then
+	if ( self.Firing ) then
 		self:FireShot()
 	end
 
-	self:NextThink(CurTime())
+	self:NextThink( CurTime() )
 	return true
 end
 
 local ValidTracers = {
-	["Tracer"]=true,
-	["AR2Tracer"]=true,
-	["AirboatGunHeavyTracer"]=true,
-	["LaserTracer"]=true,
-	[""]=true,
+	["Tracer"]                = true,
+	["AR2Tracer"]             = true,
+	["ToolTracer"]            = true,
+	["GaussTracer"]           = true,
+	["LaserTracer"]           = true,
+	["StriderTracer"]         = true,
+	["GunshipTracer"]         = true,
+	["HelicopterTracer"]      = true,
+	["AirboatGunTracer"]      = true,
+	["AirboatGunHeavyTracer"] = true,
+	[""]                      = true
 }
 
-function ENT:TriggerInput(iname, value)
+function ENT:SetSound( sound )
+	local sound = string.Trim( tostring( sound or "" ) ) -- Remove whitespace ( manual )
+	local check = string.find( sound, "[\"?]" ) -- Preventing client crashes
+	self.sound = check ~= nil and sound ~= "" and sound or nil -- Apply the pattern check
+end
+
+function ENT:SetDelay( delay )
+	local check = game.SinglePlayer() -- clamp delay if it's not single player
+	local limit = check and 0.01 or 0.05
+	self.delay = math.Clamp( delay, limit, 1 )
+end
+
+function ENT:SetNumBullets( numbullets )
+	local check = game.SinglePlayer() -- clamp num bullets if it's not single player
+	local limit = math.floor( math.max( 1, numbullets ) )
+	self.numbullets = check and limit or math.Clamp( limit, 1, 10 )
+end
+
+function ENT:SetTracer( tracer )
+	local tracer = string.Trim(tracer)
+	self.tracer = ValidTracers[tracer] and tracer or ""
+end
+
+function ENT:SetSpread( spread )
+	self.spread = math.Clamp( spread, 0, 1 )
+	self.spreadvector.x = self.spread
+	self.spreadvector.y = self.spread
+end
+
+function ENT:SetDamage( damage )
+	self.damage = math.Clamp( damage, 0, 100 )
+end
+
+function ENT:SetForce( force )
+	self.force = math.Clamp( force, 0, 500 )
+end
+
+function ENT:SetTraceNum( tracernum )
+	self.tracernum = math.floor( math.max( tracernum or 1 ) )
+end
+
+function ENT:TriggerInput( iname, value )
 	if (iname == "Fire") then
 		self.Firing = value > 0
 	elseif (iname == "Force") then
-		self.force = math.Clamp(value,0,500)
+		self:SetForce( value )
 	elseif (iname == "Damage") then
-		self.damage = math.Clamp(value,0,100)
+		self:SetDamage( value )
 	elseif (iname == "NumBullets") then
-		value = math.floor(math.max(1,value))
-		if not game.SinglePlayer() then
-			self.numbullets = math.Min(value,10)
-		else
-			self.numbullets = value
-		end
+		self:SetNumBullets( value )
 	elseif (iname == "Spread") then
-		self.spread = math.Clamp(value,0,1)
-		self.spreadvector.x = self.spread
-		self.spreadvector.y = self.spread
+		self:SetSpread( value )
 	elseif (iname == "Delay") then
-		if not game.SinglePlayer() then
-			self.delay = math.Clamp(value,0.05,1)
-		else
-			self.delay = math.Clamp(value,0.01,1)
-		end
+		self:SetDelay( value )
 	elseif (iname == "Sound") then
-		if string.find(value, '["?]') then
-			self.sound = ""
-		else
-			self.sound = value
-		end
+		self:SetSound( value )
 	elseif (iname == "Tracer") then
-		self.tracer = ValidTracers[string.Trim(value)] and string.Trim(value) or ""
+		self:SetTracer( value )
 	end
 end
 
 function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, tracernum)
-	if not game.SinglePlayer() then
-		self.delay = math.max(delay,0.05) -- clamp delay if it's not single player
-	else
-		self.delay = delay
-	end
-
-	self.damage = damage
-	self.force = force
-	-- Preventing client crashes
-	if string.find(sound, '["?]') then
-		self.sound = ""
-	else
-		self.sound = sound
-	end
-
-	if not game.SinglePlayer() then
-		self.numbullets = math.Clamp( numbullets, 1, 10 ) -- clamp num bullets if it's not single player
-	else
-		self.numbullets = numbullets
-	end
-
-	self.spread = spread -- for duplication
-	self.spreadvector = Vector(spread,spread,0)
-
-	self.tracer = ValidTracers[string.Trim(tracer)] and string.Trim(tracer) or ""
-	self.tracernum = tracernum or 1
+	self:SetForce(force)
+	self:SetDelay(delay)
+	self:SetSound(sound)
+	self:SetDamage(damage)
+	self:SetSpread(spread)
+	self:SetTracer(tracer)
+	self:SetTraceNum(tracernum)
+	self:SetNumBullets(numbullets)
 end
 
 duplicator.RegisterEntityClass( "gmod_wire_turret", WireLib.MakeWireEnt, "Data", "delay", "damage", "force", "sound", "numbullets", "spread", "tracer", "tracernum" )
