@@ -57,7 +57,7 @@ function formatPort.ARRAY(value, OrientVertical)
 		--Check for array element type
 		if isnumber(Element) then --number
 			RetText = RetText..formatPort.NORMAL(Element)
-		elseif(istable(Element) and #Element == 3) or isvector(Element) or isangle(Element) then --vector and angle
+		elseif((istable(Element) and #Element == 3) or isvector(Element) or isangle(Element)) then --vector and angle
 			RetText = RetText..formatPort.VECTOR(Element)
 		elseif(istable(Element) and #Element == 2) then --vector2
 			RetText = RetText..formatPort.VECTOR2(Element)
@@ -108,7 +108,7 @@ function formatPort.TABLE(value, OrientVertical)
 		--Check for array element type
 		if(typeid == "n") then --number
 			RetText = RetText..formatPort.NORMAL(Element)
-		elseif(istable(Element) and #Element == 3) or isvector(Element) or isangle(Element) then --vector and angle
+		elseif((istable(Element) and #Element == 3) or isvector(Element) or isangle(Element)) then --vector and angle
 			RetText = RetText..formatPort.VECTOR(Element)
 		elseif(istable(Element) and #Element == 2) then --vector2
 			RetText = RetText..formatPort.VECTOR2(Element)
