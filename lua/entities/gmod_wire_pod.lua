@@ -277,13 +277,16 @@ function ENT:SetHideHUD( val )
 end
 function ENT:GetHideHUD() return self.HideHUD end
 
+function ENT:NetShowCursor( val, ply )
+	umsg.Start( "wire pod cursor", ply or self:GetPly() )
+		umsg.Short( val or self.ShowCursor )
+	umsg.End()
+end
 function ENT:SetShowCursor( val )
 	self.ShowCursor = val
 
 	if self:HasPly() and self:HasPod() then
-		umsg.Start( "wire pod cursor", self:GetPly() )
-			umsg.Short( self.ShowCursor )
-		umsg.End()
+		self:NetShowCursor()
 	end
 end
 function ENT:GetShowCursor() return self.ShowCursor end
@@ -521,9 +524,7 @@ function ENT:PlayerEntered( ply, RC )
 
 	if self.ShowCursor > 0 and self:HasPod() then
 		timer.Simple(0.1,function()
-			umsg.Start( "wire pod cursor", ply )
-				umsg.Short( self.ShowCursor )
-			umsg.End()
+			self:NetShowCursor(self.ShowCursor, ply)
 		end)
 	end
 
@@ -539,9 +540,7 @@ function ENT:PlayerExited( ply )
 
 	self:HidePlayer( false )
 
-	umsg.Start( "wire pod cursor", ply )
-		umsg.Short( 0 )
-	umsg.End()
+	self:NetShowCursor(0, ply)
 
 	ply:CrosshairEnable()
 
