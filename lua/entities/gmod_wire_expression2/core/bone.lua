@@ -401,11 +401,11 @@ e2function void bone:applyTorque(vector torque)
 end
 
 __e2setcost(10)
-e2function void bone:boneGravity(bool)
+e2function void bone:boneGravity(gravity)
 	local ent = isValidBone(this)
 	if not ent then return end
 	if not isOwner(self, ent) then return end
-	if bool ~= 0 then ent:EnableGravity(true) else ent:EnableGravity(false) end
+	ent:EnableGravity( gravity ~= 0 ) else ent:EnableGravity(false) end
 end
 
 --[[************************************************************************]]--
