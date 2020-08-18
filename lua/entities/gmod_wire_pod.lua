@@ -14,65 +14,60 @@ if CLIENT then
 	local function blank() end
 
 	usermessage.Hook( "wire pod hud", function( um )
-		local vehicle = um:ReadEntity()
-		if LocalPlayer():InVehicle() and LocalPlayer():GetVehicle() == vehicle then
-			hideHUD = um:ReadShort()
-			if hideHUD > 0 and not HUDHidden then
-				HUDHidden = true
-				if firstTime then
-					LocalPlayer():ChatPrint( "The owner of this vehicle has hidden your hud using a pod controller. If it gets stuck this way, use the console command 'wire_pod_hud_show' to forcibly enable it again." )
-					firstTime = false
-				end
-				--Hide toolgun HUD
-				local toolgun = LocalPlayer():GetWeapon("gmod_tool")
-				if IsValid(toolgun) then
-					toolgunHUDFunc = toolgun.DrawHUD
-					toolgun.DrawHUD = blank
-				end
-				--Hide all HUDPaints except for EGP HUD
-				local hooks = hook.GetTable()["HUDPaint"]
-				savedHooks = table.Copy(hooks)
-				for k in pairs(hooks) do
-					if hideHUD > 2 or k ~= "EGP_HUDPaint" then
-						hook.Add( "HUDPaint", k, blank )
-					end
-				end
-				--Hide other HUD elements
-				hook.Add( "DrawDeathNotice", "Wire pod DrawDeathNotice", function() return false end)
-				hook.Add( "HUDDrawTargetID", "Wire pod HUDDrawTargetID", function() return false end)
-				hook.Add( "HUDShouldDraw", "Wire pod HUDShouldDraw", function( name )
-					if hideHUD > 0 then
-						if LocalPlayer():InVehicle() then
-							--Allow crosshair (it can be hidden using the other input) and CHudGMod (for the EGP HUDPaint to pass through). Hide the chat if the input is higher than 1
-							if name ~= "CHudCrosshair" and name ~= "CHudGMod" and (hideHUD > 1 and name == "CHudChat" or name ~= "CHudChat")  then return false end
-						else
-							hideHUD = 0
-						end
-					else
-						--Restore toolgun HUD
-						local toolgun = LocalPlayer():GetWeapon("gmod_tool")
-						if IsValid(toolgun) and toolgun.DrawHUD == blank and toolgunHUDFunc ~= nil then
-							toolgun.DrawHUD = toolgunHUDFunc
-						end
-						toolgunHUDFunc = nil
-						--Restore HUDPaints and other HUD elements
-						local hooks = hook.GetTable()["HUDPaint"]
-						for k,v in pairs(hooks) do
-							if v == blank and savedHooks ~= nil and savedHooks[k] ~= nil then
-								hook.Add( "HUDPaint", k, savedHooks[k] )
-							end
-						end
-						savedHooks = nil
-
-						hook.Remove( "HUDShouldDraw", "Wire pod HUDShouldDraw")
-						hook.Remove( "DrawDeathNotice", "Wire pod DrawDeathNotice")
-						hook.Remove( "HUDDrawTargetID", "Wire pod HUDDrawTargetID")
-						HUDHidden = false
-					end
-				end)
+		hideHUD = um:ReadShort()
+		if hideHUD > 0 and not HUDHidden then
+			HUDHidden = true
+			if firstTime then
+				LocalPlayer():ChatPrint( "The owner of this vehicle has hidden your hud using a pod controller. If it gets stuck this way, use the console command 'wire_pod_hud_show' to forcibly enable it again." )
+				firstTime = false
 			end
-		else
-			hideHUD = 0
+			--Hide toolgun HUD
+			local toolgun = LocalPlayer():GetWeapon("gmod_tool")
+			if IsValid(toolgun) then
+				toolgunHUDFunc = toolgun.DrawHUD
+				toolgun.DrawHUD = blank
+			end
+			--Hide all HUDPaints except for EGP HUD
+			local hooks = hook.GetTable()["HUDPaint"]
+			savedHooks = table.Copy(hooks)
+			for k in pairs(hooks) do
+				if hideHUD > 2 or k ~= "EGP_HUDPaint" then
+					hook.Add( "HUDPaint", k, blank )
+				end
+			end
+			--Hide other HUD elements
+			hook.Add( "DrawDeathNotice", "Wire pod DrawDeathNotice", function() return false end)
+			hook.Add( "HUDDrawTargetID", "Wire pod HUDDrawTargetID", function() return false end)
+			hook.Add( "HUDShouldDraw", "Wire pod HUDShouldDraw", function( name )
+				if hideHUD > 0 then
+					if LocalPlayer():InVehicle() then
+						--Allow crosshair (it can be hidden using the other input) and CHudGMod (for the EGP HUDPaint to pass through). Hide the chat if the input is higher than 1
+						if name ~= "CHudCrosshair" and name ~= "CHudGMod" and (hideHUD > 1 and name == "CHudChat" or name ~= "CHudChat")  then return false end
+					else
+						hideHUD = 0
+					end
+				else
+					--Restore toolgun HUD
+					local toolgun = LocalPlayer():GetWeapon("gmod_tool")
+					if IsValid(toolgun) and toolgun.DrawHUD == blank and toolgunHUDFunc ~= nil then
+						toolgun.DrawHUD = toolgunHUDFunc
+					end
+					toolgunHUDFunc = nil
+					--Restore HUDPaints and other HUD elements
+					local hooks = hook.GetTable()["HUDPaint"]
+					for k,v in pairs(hooks) do
+						if v == blank and savedHooks ~= nil and savedHooks[k] ~= nil then
+							hook.Add( "HUDPaint", k, savedHooks[k] )
+						end
+					end
+					savedHooks = nil
+
+					hook.Remove( "HUDShouldDraw", "Wire pod HUDShouldDraw")
+					hook.Remove( "DrawDeathNotice", "Wire pod DrawDeathNotice")
+					hook.Remove( "HUDDrawTargetID", "Wire pod HUDDrawTargetID")
+					HUDHidden = false
+				end
+			end)
 		end
 	end)
 
@@ -81,18 +76,15 @@ if CLIENT then
 	end)
 
 	usermessage.Hook( "wire pod cursor", function( um )
-		local vehicle = um:ReadEntity()
-		if LocalPlayer():InVehicle() and LocalPlayer():GetVehicle() == vehicle then
-			local b = um:ReadShort() ~= 0
-			local pnl = vgui.GetWorldPanel()
-			pnl:SetWorldClicker( b ) -- this allows the cursor to move the player's eye
-			if b then RestoreCursorPosition() else RememberCursorPosition() end
-			gui.EnableScreenClicker( b )
+		local b = um:ReadShort() ~= 0
+		local pnl = vgui.GetWorldPanel()
+		pnl:SetWorldClicker( b ) -- this allows the cursor to move the player's eye
+		if b then RestoreCursorPosition() else RememberCursorPosition() end
+		gui.EnableScreenClicker( b )
 
-			if b and firstTimeCursor then
-				LocalPlayer():ChatPrint( "The owner of this vehicle has enabled your cursor using a pod controller. If it gets stuck this way, use the console command 'wire_pod_cursor_disable' to forcibly disable it." )
-				firstTimeCursor = false
-			end
+		if b and firstTimeCursor then
+			LocalPlayer():ChatPrint( "The owner of this vehicle has enabled your cursor using a pod controller. If it gets stuck this way, use the console command 'wire_pod_cursor_disable' to forcibly disable it." )
+			firstTimeCursor = false
 		end
 	end)
 
@@ -101,7 +93,7 @@ if CLIENT then
 		pnl:SetWorldClicker( false )
 		gui.EnableScreenClicker( false )
 	end)
-	
+
 	return  -- No more client
 end
 
@@ -279,21 +271,22 @@ function ENT:SetHideHUD( val )
 
 	if self:HasPly() and self:HasPod() then -- If we have a player, we SHOULD always have a pod as well, but just in case.
 		umsg.Start( "wire pod hud", self:GetPly() )
-			umsg.Entity( self:GetPod() )
 			umsg.Short( self.HideHUD )
 		umsg.End()
 	end
 end
 function ENT:GetHideHUD() return self.HideHUD end
 
+function ENT:NetShowCursor( val, ply )
+	umsg.Start( "wire pod cursor", ply or self:GetPly() )
+		umsg.Short( val or self.ShowCursor )
+	umsg.End()
+end
 function ENT:SetShowCursor( val )
 	self.ShowCursor = val
 
 	if self:HasPly() and self:HasPod() then
-		umsg.Start( "wire pod cursor", self:GetPly() )
-			umsg.Entity( self:GetPod() )
-			umsg.Short( self.ShowCursor )
-		umsg.End()
+		self:NetShowCursor()
 	end
 end
 function ENT:GetShowCursor() return self.ShowCursor end
@@ -524,7 +517,6 @@ function ENT:PlayerEntered( ply, RC )
 	if self.HideHUD > 0 and self:HasPod() then
 		timer.Simple(0.1,function()
 			umsg.Start( "wire pod hud", ply )
-				umsg.Entity( self:GetPod() )
 				umsg.Short( self.HideHUD )
 			umsg.End()
 		end)
@@ -532,10 +524,7 @@ function ENT:PlayerEntered( ply, RC )
 
 	if self.ShowCursor > 0 and self:HasPod() then
 		timer.Simple(0.1,function()
-			umsg.Start( "wire pod cursor", ply )
-				umsg.Entity( self:GetPod() )
-				umsg.Short( self.ShowCursor )
-			umsg.End()
+			self:NetShowCursor(self.ShowCursor, ply)
 		end)
 	end
 
@@ -550,7 +539,8 @@ function ENT:PlayerExited( ply )
 	if not self:HasPly() then return end
 
 	self:HidePlayer( false )
-	self:SetShowCursor( 0 )
+
+	self:NetShowCursor(0, ply)
 
 	ply:CrosshairEnable()
 
