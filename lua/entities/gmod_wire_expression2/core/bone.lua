@@ -400,6 +400,14 @@ e2function void bone:applyTorque(vector torque)
 	phys:ApplyForceOffset( dir * -1, off * -1 )
 end
 
+__e2setcost(10)
+e2function void bone:boneGravity(bool)
+	local ent = isValidBone(this)
+	if not ent then return end
+	if not isOwner(self, ent) then return end
+	if bool ~= 0 then ent:EnableGravity(true) else ent:EnableGravity(false) end
+end
+
 --[[************************************************************************]]--
 __e2setcost(2)
 --- Returns 1 if <this> is frozen, 0 otherwise
