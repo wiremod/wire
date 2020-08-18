@@ -57,12 +57,18 @@ function formatPort.ARRAY(value, OrientVertical)
 		--Check for array element type
 		if isnumber(Element) then --number
 			RetText = RetText..formatPort.NORMAL(Element)
-		elseif((istable(Element) and #Element == 3) or isvector(Element) or isangle(Element)) then --vector and angle
+		elseif((istable(Element) and #Element == 3) or isvector(Element)) then --vector
 			RetText = RetText..formatPort.VECTOR(Element)
 		elseif(istable(Element) and #Element == 2) then --vector2
 			RetText = RetText..formatPort.VECTOR2(Element)
 		elseif(istable(Element) and #Element == 4) then --vector4
 			RetText = RetText..formatPort.VECTOR4(Element)
+		elseif((istable(Element) and #Element == 3) or isangle(Element)) then --angle
+			if(isangle(Element)) then
+				RetText = RetText..formatPort.ANGLE(Element)
+			else
+				RetText = RetText.."(" .. math.Round(Element[1],1) .. "," .. math.Round(Element[2],1) .. "," .. math.Round(Element[3],1) .. ")"
+			end
 		elseif(istable(Element) and #Element == 9) then --matrix
 			RetText = RetText..formatPort.MATRIX(Element)
 		elseif(istable(Element) and #Element == 16) then --matrix4
@@ -108,12 +114,18 @@ function formatPort.TABLE(value, OrientVertical)
 		--Check for array element type
 		if(typeid == "n") then --number
 			RetText = RetText..formatPort.NORMAL(Element)
-		elseif((istable(Element) and #Element == 3) or isvector(Element) or isangle(Element)) then --vector and angle
+		elseif(istable(Element) and #Element == 3) or isvector(Element) then --vector
 			RetText = RetText..formatPort.VECTOR(Element)
 		elseif(istable(Element) and #Element == 2) then --vector2
 			RetText = RetText..formatPort.VECTOR2(Element)
 		elseif(istable(Element) and #Element == 4 and typeid == "v4") then --vector4
 			RetText = RetText..formatPort.VECTOR4(Element)
+		elseif(istable(Element) and #Element == 3) or isangle(Element) then --angle
+			if isangle(Element) then
+				RetText = RetText..formatPort.ANGLE(Element)
+			else
+				RetText = RetText.."(" .. math.Round(Element[1]*10)/10 .. "," .. math.Round(Element[2]*10)/10 .. "," .. math.Round(Element[3]*10)/10 .. ")"
+			end
 		elseif(istable(Element) and #Element == 9) then --matrix
 			RetText = RetText..formatPort.MATRIX(Element)
 		elseif(istable(Element) and #Element == 16) then --matrix4
