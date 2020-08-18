@@ -405,7 +405,7 @@ e2function void bone:boneGravity(gravity)
 	local ent = isValidBone(this)
 	if not ent then return end
 	if not isOwner(self, ent) then return end
-	ent:EnableGravity( gravity ~= 0 ) else ent:EnableGravity(false) end
+	ent:EnableGravity( gravity ~= 0 )
 end
 
 --[[************************************************************************]]--
