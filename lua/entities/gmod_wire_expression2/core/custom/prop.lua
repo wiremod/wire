@@ -320,7 +320,7 @@ e2function void entity:propGravity(number gravity)
 	if boneCount > 1 then
 		for boneID = 0, boneCount - 1 do
 			local bone = this:GetPhysicsObjectNum(boneID)
-			bone:EnableGravity( gravity ~= 0 ) -- PhysManipulate won't work here since it needs an entity, not a physobj.
+			if isValid(bone) then bone:EnableGravity( gravity ~= 0 ) end -- PhysManipulate won't work here since it needs an entity, not a physobj.
 		end
 	else
 		PropCore.PhysManipulate(this, nil, nil, nil, gravity, nil)
