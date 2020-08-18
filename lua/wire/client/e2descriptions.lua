@@ -639,13 +639,13 @@ E2Helper.Descriptions["toString(a)"] = "Gets the angle nicely formatted as a str
 E2Helper.Descriptions["toString(a:)"] = "Gets the angle nicely formatted as a string \"[P,Y,R]\""
 E2Helper.Descriptions["toDeg(a)"] = "Converts the angle's magnitude from radians to degrees"
 E2Helper.Descriptions["toRad(a)"] = "Converts the angle's magnitude from radians to radians"
-
--- Entity
 E2Helper.Descriptions["forward(a:)"] = "Gets the forward vector of the angle"
 E2Helper.Descriptions["right(a:)"] = "Gets the right vector of the angle"
 E2Helper.Descriptions["up(a:)"] = "Gets the up vector of the angle"
 E2Helper.Descriptions["rotateAroundAxis(a:vn)"] = "Returns the angle A rotated around vector V by N degrees"
 E2Helper.Descriptions["rotateAroundAxis(v:vn)"] = "Returns the vector V1 rotated around vector V2 by N degrees"
+
+-- Bones
 E2Helper.Descriptions["bone(e:n)"] = "Returns Es Nth bone"
 E2Helper.Descriptions["bones(e:)"] = "Returns an array containing all of Es bones. This array's first element has the index 0!"
 E2Helper.Descriptions["boneCount(e:)"] = "Returns Es number of bones"
@@ -677,6 +677,7 @@ E2Helper.Descriptions["applyForce(b:v)"] = "Applies force to the bone according 
 E2Helper.Descriptions["applyAngForce(b:a)"] = "Applies torque to the bone according to the given angle"
 E2Helper.Descriptions["applyTorque(b:v)"] = "Applies torque to the bone according to the given vector, representing the torque axis, magnitude and direction"
 E2Helper.Descriptions["setMass(b:n)"] = "Sets the mass of the bone (between 0.001 and 50,000)"
+E2Helper.Descriptions["boneGravity(b:)"] = "Enables/disables gravity on the bone."
 E2Helper.Descriptions["toString(e:)"] = "Converts entity to string"
 E2Helper.Descriptions["toString(e)"] = "Converts entity to string"
 E2Helper.Descriptions["toString(b)"] = "Converts bone to string"
