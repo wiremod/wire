@@ -319,7 +319,7 @@ e2function void entity:propGravity(number gravity)
 	local physCount = this:GetPhysicsObjectCount()
 	if physCount > 1 then
 		for physID = 0, physCount - 1 do
-			local phys = this:GetPhysicsObjectNum(boneID)
+			local phys = this:GetPhysicsObjectNum(physID)
 			if isValid(phys) then phys:EnableGravity( gravity ~= 0 ) end -- PhysManipulate won't work here since it needs an entity, not a physobj.
 		end
 	else
