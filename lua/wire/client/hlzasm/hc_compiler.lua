@@ -510,6 +510,8 @@ function HCOMP:UnprotectedCompile()
 
     return true
   else
+    -- Reset compiler to start point and return false when work is done
+    self.Stage = 1
     return false
   end
 end
@@ -627,6 +629,7 @@ end
 -- Set special labels
 function HCOMP:SetSpecialLabels()
   -- Set special labels
+  self:DefineLabel("__PTR__").Type = "Pointer"
   self:SetLabel("programsize",self.WritePointer)
   self:SetLabel("__PROGRAMSIZE__",self.WritePointer)
   self:SetLabel("__DATE_YEAR__",  tonumber(os.date("%Y")))

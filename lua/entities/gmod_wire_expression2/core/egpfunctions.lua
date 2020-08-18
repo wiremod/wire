@@ -702,7 +702,7 @@ e2function void wirelink:egpFidelity( number index, number fidelity )
 end
 
 e2function number wirelink:egpFidelity( number index )
-	if (!EGP:IsAllowed( self, this )) then return end
+	if (!EGP:IsAllowed( self, this )) then return -1 end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
 		if (v.fidelity) then
@@ -1052,7 +1052,7 @@ e2function void wirelink:egpResolution( vector2 topleft, vector2 bottomright )
 end
 
 e2function vector2 wirelink:egpOrigin()
-	if (!EGP:IsAllowed( self, this )) then return end
+	if (!EGP:IsAllowed( self, this )) then return {0,0} end
 	local xOrigin = this.xScale[1] + (this.xScale[2] - this.xScale[1])/2
 	local yOrigin = this.yScale[1] + (this.yScale[2] - this.yScale[1])/2
 	return { xOrigin, yOrigin }
@@ -1060,7 +1060,7 @@ e2function vector2 wirelink:egpOrigin()
 end
 
 e2function vector2 wirelink:egpSize()
-	if (!EGP:IsAllowed( self, this )) then return end
+	if (!EGP:IsAllowed( self, this )) then return {0,0} end
 	local width = math.abs(this.xScale[1] - this.xScale[2])
 	local height = math.abs(this.yScale[1] - this.yScale[2])
 	return { width, height }

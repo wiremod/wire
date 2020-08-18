@@ -516,7 +516,10 @@ function HCOMP:NextToken()
   self.CurrentToken = self.CurrentToken + 1
 end
 
-
+-- Go to previous token
+function HCOMP:PreviousToken()
+  self.CurrentToken = self.CurrentToken - 1
+end
 
 
 -- Returns next token type. Looks forward into stream if offset is specified

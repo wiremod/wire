@@ -7,6 +7,7 @@ ENT.AllowLockInsideVehicle = CreateConVar( "wire_pod_allowlockinsidevehicle", "0
 if CLIENT then
 	local hideHUD = 0
 	local firstTime = true
+	local firstTimeCursor = true
 	local HUDHidden = false
 	local savedHooks = nil
 	local toolgunHUDFunc = nil
@@ -79,7 +80,28 @@ if CLIENT then
 		hideHUD = 0
 	end)
 
+	usermessage.Hook( "wire pod cursor", function( um )
+		local vehicle = um:ReadEntity()
+		if LocalPlayer():InVehicle() and LocalPlayer():GetVehicle() == vehicle then
+			local b = um:ReadShort() ~= 0
+			local pnl = vgui.GetWorldPanel()
+			pnl:SetWorldClicker( b ) -- this allows the cursor to move the player's eye
+			if b then RestoreCursorPosition() else RememberCursorPosition() end
+			gui.EnableScreenClicker( b )
 
+			if b and firstTimeCursor then
+				LocalPlayer():ChatPrint( "The owner of this vehicle has enabled your cursor using a pod controller. If it gets stuck this way, use the console command 'wire_pod_cursor_disable' to forcibly disable it." )
+				firstTimeCursor = false
+			end
+		end
+	end)
+
+	concommand.Add( "wire_pod_cursor_disable", function(ply,cmd,args)
+		local pnl = vgui.GetWorldPanel()
+		pnl:SetWorldClicker( false )
+		gui.EnableScreenClicker( false )
+	end)
+	
 	return  -- No more client
 end
 
@@ -119,7 +141,7 @@ function ENT:Initialize()
 	local inputs = {
 		"Lock", "Terminate", "Strip weapons", "Eject",
 		"Disable", "Crosshairs", "Brake", "Allow Buttons",
-		"Relative", "Damage Health", "Damage Armor", "Hide Player", "Hide HUD",
+		"Relative", "Damage Health", "Damage Armor", "Hide Player", "Hide HUD", "Show Cursor",
 		"Vehicle [ENTITY]"
 	}
 
@@ -129,6 +151,7 @@ function ENT:Initialize()
 	self:SetLocked( false )
 	self:SetHidePlayer( false )
 	self:SetHideHUD( 0 )
+	self:SetShowCursor( 0 )
 	self.HidePlayerVal = false
 	self.Crosshairs = false
 	self.Disable = false
@@ -190,7 +213,7 @@ function ENT:LinkEnt( pod )
 
 	-- if pod is still not a vehicle even after all of the above, then error out
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
-	if not hook.Run( "CanTool", self:GetPlayer(), WireLib.dummytrace(pod), "wire_pod" ) then return false, "You do not have permission to access this vehicle" end
+	if hook.Run( "CanTool", self:GetPlayer(), WireLib.dummytrace(pod), "wire_pod" ) == false then return false, "You do not have permission to access this vehicle" end
 
 	self:SetPod( pod )
 	WireLib.SendMarks(self, {pod})
@@ -200,6 +223,7 @@ function ENT:UnlinkEnt()
 	if IsValid(self.Pod) then
 		self.Pod:RemoveCallOnRemove("wire_pod_remove")
 	end
+	self:SetShowCursor( 0 )
 	self.Pod = nil
 	WireLib.SendMarks(self, {})
 	WireLib.TriggerOutput( self, "Entity", NULL )
@@ -261,6 +285,18 @@ function ENT:SetHideHUD( val )
 	end
 end
 function ENT:GetHideHUD() return self.HideHUD end
+
+function ENT:SetShowCursor( val )
+	self.ShowCursor = val
+
+	if self:HasPly() and self:HasPod() then
+		umsg.Start( "wire pod cursor", self:GetPly() )
+			umsg.Entity( self:GetPod() )
+			umsg.Short( self.ShowCursor )
+		umsg.End()
+	end
+end
+function ENT:GetShowCursor() return self.ShowCursor end
 
 local bindingToOutput = {
 	["forward"] = "W",
@@ -385,6 +421,8 @@ function ENT:TriggerInput( name, value )
 		self:SetHidePlayer( value ~= 0 )
 	elseif (name == "Hide HUD") then
 		self:SetHideHUD( value )
+	elseif (name == "Show Cursor") then
+		self:SetShowCursor( value )
 	elseif (name == "Vehicle") then
 		if not IsValid(value) then return end -- only link if the input is valid. that way, it won't be unlinked if the wire is disconnected
 		if value:IsPlayer() then return end
@@ -492,6 +530,15 @@ function ENT:PlayerEntered( ply, RC )
 		end)
 	end
 
+	if self.ShowCursor > 0 and self:HasPod() then
+		timer.Simple(0.1,function()
+			umsg.Start( "wire pod cursor", ply )
+				umsg.Entity( self:GetPod() )
+				umsg.Short( self.ShowCursor )
+			umsg.End()
+		end)
+	end
+
 	if (self.HidePlayerVal) then
 		self:HidePlayer( true )
 	end
@@ -503,6 +550,7 @@ function ENT:PlayerExited( ply )
 	if not self:HasPly() then return end
 
 	self:HidePlayer( false )
+	self:SetShowCursor( 0 )
 
 	ply:CrosshairEnable()
 

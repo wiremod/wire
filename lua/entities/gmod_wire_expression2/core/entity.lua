@@ -119,6 +119,11 @@ e2function entity world()
 	return game.GetWorld()
 end
 
+e2function string entity:name()
+	if(not IsValid(this)) then return "" end
+	return this:GetName() or ""
+end
+
 e2function string entity:type()
 	if not IsValid(this) then return "" end
 	return this:GetClass()
@@ -200,7 +205,7 @@ end
 
 --- Specific to env_sun because Source is dum. Use this to trace towards the sun or something.
 e2function vector sunDirection()
-	if not isValid(sun) then return { 0, 0, 0 } end
+	if not IsValid(sun) then return { 0, 0, 0 } end
 	return sun:GetKeyValues().sun_dir
 end
 
@@ -347,19 +352,19 @@ end
 e2function number entity:volume()
 	if not validPhysics(this) then return 0 end
 	local phys = this:GetPhysicsObject()
-	return phys:GetVolume()
+	return phys:GetVolume() or 0
 end
 
 e2function number entity:surfaceArea()
 	if not validPhysics(this) then return 0 end
 	local phys = this:GetPhysicsObject()
-	return phys:GetSurfaceArea()
+	return phys:GetSurfaceArea()  or 0
 end
 
 e2function number entity:stress()
 	if not validPhysics(this) then return 0 end
 	local phys = this:GetPhysicsObject()
-	return phys:GetStress()
+	return phys:GetStress() or 0
 end
 
 /******************************************************************************/

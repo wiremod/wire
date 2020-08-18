@@ -4,18 +4,17 @@ Wiremod is a [Garry's Mod][] addon which adds entities that communicate via data
 
 # Workshop Installation
 
-Wiremod is now available via the Steam Workshop! Go to [its Workshop page][workshop] and press `Subscribe`, and it will automatically appear in Garry's Mod.
+The Wiremod Collection is available on the Steam Workshop! Go to the [Workshop page][WireTeam Workshop Collection] and press `Subscribe` on the addons you want
 
 # Manual Installation
 
-Simply clone this repository into your `addons` folder:
+Clone this repository into your `steamapps\common\GarrysMod\garrysmod\addons` folder using this command if you are using git:
 
-    cd "%programfiles(x86)%/Steam/SteamApps/common/GarrysMod/garrysmod/addons"
     git clone https://github.com/wiremod/wire.git wire
 
 # License
 
-Copyright 2009-2018 Wire Team
+Copyright 2008 onwards by the Wire Team
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
@@ -27,7 +26,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 [Garry's Mod]: <http://garrysmod.com/>
 
-[workshop]: <http://steamcommunity.com/sharedfiles/filedetails/?id=160250458>
+[WireTeam Workshop Collection]: <https://steamcommunity.com/id/wireteam/myworkshopfiles/?appid=4000>
 
 [Wiremod landing page](http://wiremod.com)
 

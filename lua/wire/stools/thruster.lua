@@ -79,6 +79,7 @@ function TOOL.BuildCPanel(panel)
 		["#More Sparks"] = "more_sparks",
 		["#Spark Fountain"] = "spark_fountain",
 		["#Jetflame"] = "jetflame",
+		["#Jetflame Do It Yourself"] = "jetflame_diy",
 		["#Jetflame Blue"] = "jetflame_blue",
 		["#Jetflame Red"] = "jetflame_red",
 		["#Jetflame Purple"] = "jetflame_purple",

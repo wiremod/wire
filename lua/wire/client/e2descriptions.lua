@@ -71,8 +71,8 @@ E2Helper.Descriptions["floor(n)"] = "Rounds the Argument down to the nearest Int
 E2Helper.Descriptions["floor(nn)"] = "Rounds Argument 1 down to Argument 2's decimal precision"
 E2Helper.Descriptions["round(n)"] = "Rounds the Argument to the nearest Integer"
 E2Helper.Descriptions["round(nn)"] = "Rounds Argument 1 to Argument 2's decimal precision"
-E2Helper.Descriptions["int(n)"] = "Returns the Integer part of the Argument (same as floor)"
-E2Helper.Descriptions["frac(n)"] = "Returns the Fractional part of the Argument (same as floor)"
+E2Helper.Descriptions["int(n)"] = "Returns the Integer part of the Argument (always rounds towards zero)"
+E2Helper.Descriptions["frac(n)"] = "Returns the Fractional part (decimal places) of the Argument"
 E2Helper.Descriptions["clamp(nnn)"] = "If Arg1 = Arg3 (max) returns Arg3; otherwise returns Arg1"
 E2Helper.Descriptions["inrange(nnn)"] = "Returns 1 if N is in the interval [N2; N3], 0 otherwise. This means it is equivalent to ((N2 <= N) & (N <= N3))"
 E2Helper.Descriptions["sign(n)"] = "Returns the sign of argument (-1,0,1) [sign(N) = N / abs(N) ]"
@@ -324,6 +324,8 @@ E2Helper.Descriptions["aabbWorldSize(e:)"] = "Returns the rotated entity's world
 E2Helper.Descriptions["keyClk()"] = "Returns the player that pressed/released the key if the E2 was triggered by runOnKeys"
 E2Helper.Descriptions["keyClk(e)"] = "Returns 1 if the E2 was triggered by the player pressing a key or -1 when releasing a key"
 E2Helper.Descriptions["keyClkPressed()"] = "Returns the name of the pressed/released key that triggered the E2"
+E2Helper.Descriptions["runOnUse(n)"] = "If set to 1, E2 will run when a player presses E on the E2"
+E2Helper.Descriptions["useClk()"] = "Returns the player that used the E2, if the E2 was triggered by runOnUse"
 E2Helper.Descriptions["setTrails(e:nnnsvn)"] = "StartSize, EndSize, Length, Material, Color (RGB), Alpha. Adds a trail to E with the specified attributes"
 E2Helper.Descriptions["setTrails(e:nnnsvnnn)"] = "StartSize, EndSize, Length, Material, Color (RGB), Alpha, AttachmentID, Additive. Adds a trail to E with the specified attributes"
 E2Helper.Descriptions["removeTrails(e:)"] = "Removes the trail from E"
@@ -1500,6 +1502,23 @@ E2Helper.Descriptions["toUnicodeChar(...)"] = "Returns the UTF-8 string from the
 E2Helper.Descriptions["toUnicodeChar(r)"] = "Returns the UTF-8 string from the given Unicode code-points"
 E2Helper.Descriptions["toUnicodeByte(s:nn)"] = "Returns the Unicode code-points from the given UTF-8 string"
 E2Helper.Descriptions["unicodeLength(s:nn)"] = "Returns the length of the given UTF-8 string"
+
+-- Damage
+E2Helper.Descriptions["runOnDeath(n)"] = "If set to 0, chip won't run on players dying"
+E2Helper.Descriptions["deathClk()"] = "Returns if the E2 was triggered by a death"
+E2Helper.Descriptions["lastDeathTime()"] = "Returns the last time a player died"
+E2Helper.Descriptions["lastDeathTime(e)"] = "Returns the last time given player died"
+E2Helper.Descriptions["lastDeathInflictor()"] = "Returns the entity that inflicted the last death"
+E2Helper.Descriptions["lastDeathInflictor(e)"] = "Returns the entity that inflicted the given player's last death"
+E2Helper.Descriptions["lastDeathVictim()"] = "Returns the last player to die"
+E2Helper.Descriptions["lastDeathAttacker()"] = "Returns the attacker who killed the last player to die"
+E2Helper.Descriptions["lastDeathAttacker(e)"] = "Returns the attacker who killed the player provided in their last death"
+--
+E2Helper.Descriptions["runOnSpawn(n)"] = "If set to 0, chip won't run on players spawning"
+E2Helper.Descriptions["spawnClk()"] = "Returns if the E2 was triggered by a player spawning"
+E2Helper.Descriptions["lastSpawnTime()"] = "Returns the last time a player spawned"
+E2Helper.Descriptions["lastSpawnTime(e)"] = "Returns the last time the given player spawned"
+E2Helper.Descriptions["lastSpawnedPlayer()"] = "Returns the last player to spawn"
 
 ---- Custom ----
 -- Effect

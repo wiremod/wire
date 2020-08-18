@@ -34,7 +34,7 @@ Editor.Fonts["Lucida Console"] = ""
 Editor.Fonts["Monaco"] = "Mac standard font"
 
 surface.CreateFont("DefaultBold", {
-	font = "defaultbold",
+	font = "Tahoma",
 	size = 12,
 	weight = 700,
 	antialias = true,
@@ -787,7 +787,8 @@ function Editor:InitComponents()
 
 	self.C.Control = self:addComponent(vgui.Create("Panel", self), -350, 52, 342, -32) -- Control Panel
 	self.C.Credit = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 150) -- Credit box
-
+	self.C.Credit:SetEditable(false)
+	
 	self:CreateTab("generic")
 
 	-- extra component options
@@ -1948,8 +1949,9 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 
 	if nEditorType == "E2" then
 		self.E2 = true
-		self:NewScript(true) -- insert default code
 	end
+
+	self:NewScript(true) -- Opens initial tab, in case OpenOldTabs is disabled or fails.
 
 	if wire_expression2_editor_openoldtabs:GetBool() then
 		self:OpenOldTabs()

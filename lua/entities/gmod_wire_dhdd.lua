@@ -94,9 +94,11 @@ function ENT:TriggerInput( name, value )
 		self.Size = size
 		self.WantsUpdate = true
 	elseif (name == "Clear") then
-		self.Memory = {}
-		self.Size = 0
-		self.WantsUpdate = true
+		if value ~= 0 then
+			self.Memory = {}
+			self.Size = 0
+			self.WantsUpdate = true
+		end
 	elseif (name == "AllowWrite") then
 		self.AllowWrite = value >= 1
 	end

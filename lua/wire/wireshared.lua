@@ -54,6 +54,9 @@ end
 
 
 function string.GetNormalizedFilepath( path ) -- luacheck: ignore
+	local null = string.find(path, "\x00", 1, true)
+	if null then path = string.sub(path, 1, null-1) end
+
 	local tbl = string.Explode( "[/\\]+", path, true )
 	local i = 1
 	while i <= #tbl do
@@ -1008,10 +1011,13 @@ end
 -- Ensures that the force is within the range of a float, to prevent
 -- physics engine crashes
 -- 2*maxmass*maxvelocity should be enough impulse to do whatever you want.
+-- Timer resolves issue with table not existing until next tick on Linux
 local max_force, min_force
 hook.Add("InitPostEntity","WireForceLimit",function()
-	max_force = 100000*physenv.GetPerformanceSettings().MaxVelocity
-	min_force = -max_force
+	timer.Simple(0, function()
+		max_force = 100000*physenv.GetPerformanceSettings().MaxVelocity
+		min_force = -max_force
+	end)
 end)
 
 -- Nan never equals itself, so if the value doesn't equal itself replace it with 0.

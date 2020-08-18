@@ -193,14 +193,12 @@ end
 
 function e2_extpp_pass2(contents)
 	-- We add some stuff to both ends of the string so we can look for %W (non-word characters) at the ends of the patterns.
-	contents = "\nlocal tempcosts={}" .. contents .. "\n     "
+	contents = "\nlocal tempcosts,registeredfunctions={},{}" .. contents .. "\n     "
 
 	-- this is a list of pieces that make up the final code
 	local output = {}
 	-- this is a list of registerFunction lines that will be put at the end of the file.
 	local function_register = {}
-	-- this is a lookup table for the local vars to be created at the top of the file.
-	local locals = {}
 	-- We start from position 2, since char #1 is always the \n we added earlier
 	local lastpos = 2
 
@@ -315,18 +313,17 @@ function e2_extpp_pass2(contents)
 				elseif aliasflag == 2 then
 					-- right hand side of an alias definition
 					regfn, name, arg_typeids, ret_typeid = unpack(aliasdata)
-					table.insert(function_register, ('if %s then %s(%q, %q, %q, %s, tempcosts[%q], %s) end\n'):format(mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
+					table.insert(function_register, ('if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n'):format(mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
 				end
 			else
 				-- save tempcost
 				table.insert(output, string.format("tempcosts[%q]=__e2getcost() ", mangled_name))
-				locals[mangled_name] = true
 				if ellipses then
 					-- generate a registerFunction line
-					table.insert(function_register, string.format('if %s then %s(%q, %q, %q, %s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids .. "...", ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
+					table.insert(function_register, string.format('if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids .. "...", ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
 
 					-- generate a new function header and append it to the output
-					table.insert(output, 'function ' .. mangled_name .. '(self, args, typeids, ...)')
+					table.insert(output, 'function registeredfunctions.' .. mangled_name .. '(self, args, typeids, ...)')
 					table.insert(output, " if not typeids then")
 					table.insert(output, " local arr,typeids,source_typeids,tmp={},{},args[#args]")
 					table.insert(output, " for i=" .. (2 + #argtable.typeids) .. ",#args-1 do")
@@ -339,14 +336,14 @@ function e2_extpp_pass2(contents)
 						table.insert(output, " typeids[#typeids+1]=source_typeids[i-1]")
 					end
 					table.insert(output, " end")
-					table.insert(output, " return " .. mangled_name .. "(self,args,typeids,unpack(arr))")
+					table.insert(output, " return registeredfunctions." .. mangled_name .. "(self,args,typeids,unpack(arr))")
 					table.insert(output, " end")
 				else
 					-- generate a registerFunction line
-					table.insert(function_register, string.format('if %s then %s(%q, %q, %q, %s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
+					table.insert(function_register, string.format('if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
 
 					-- generate a new function header and append it to the output
-					table.insert(output, 'function ' .. mangled_name .. '(self, args)')
+					table.insert(output, 'function registeredfunctions.' .. mangled_name .. '(self, args)')
 				end
 
 				-- if the function has arguments, insert argument fetch code
@@ -394,15 +391,7 @@ function e2_extpp_pass2(contents)
 	-- did the preprocessor change anything?
 	if changed then
 		-- yes => sweep everything together into a neat pile of hopefully valid lua code
-		local locals_str = ""
-		for loc, _ in pairs(locals) do
-			if locals_str == "" then
-				locals_str = "local " .. loc
-			else
-				locals_str = locals_str .. "," .. loc
-			end
-		end
-		return locals_str .. " " .. table.concat(output) .. contents:sub(lastpos, -6) .. table.concat(function_register)
+		return table.concat(output) .. contents:sub(lastpos, -6) .. table.concat(function_register)
 	else
 		-- no => tell the environment about it, so it can include() the source file instead.
 		return false

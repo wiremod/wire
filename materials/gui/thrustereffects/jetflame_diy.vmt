@@ -1,0 +1,7 @@
+"UnlitGeneric"
+{
+	"$basetexture" "gui/thrustereffects/jetflame_diy"
+	"$nolod" 1
+	"$vertexalpha" 1
+	"$vertexcolor" 1
+}
