@@ -316,7 +316,15 @@ end
 
 e2function void entity:propGravity(number gravity)
 	if not PropCore.ValidAction(self, this, "gravity") then return end
-	PropCore.PhysManipulate(this, nil, nil, nil, gravity, nil)
+	local bonecount = this:GetPhysicsObjectCount()
+	if bonecount > 1 then
+		for boneID = 0, bonecount do
+			local bone = this:GetPhysicsObjectNum(boneID)
+			PropCore.PhysManipulate(bone, nil, nil, nil, gravity, nil)
+		end
+	else
+		PropCore.PhysManipulate(this, nil, nil, nil, gravity, nil)
+	end
 end
 
 e2function void entity:propDrag( number drag )
