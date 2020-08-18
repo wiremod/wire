@@ -400,20 +400,20 @@ e2function void bone:applyTorque(vector torque)
 	phys:ApplyForceOffset( dir * -1, off * -1 )
 end
 
-__e2setcost(10)
-e2function void bone:boneGravity(gravity)
-	local ent = isValidBone(this)
-	if not ent then return end
-	if not isOwner(self, ent) then return end
-	ent:EnableGravity( gravity ~= 0 )
-end
-
 --[[************************************************************************]]--
 __e2setcost(2)
 --- Returns 1 if <this> is frozen, 0 otherwise
 e2function number bone:isFrozen()
 	if not isValidBone(this) then return end
 	if this:IsMoveable() then return 0 else return 1 end
+end
+
+--- Sets whether <gravity> is applied to <this> bone.
+__e2setcost(10)
+e2function void bone:boneGravity(gravity)
+	if not isValidBone(this) then return end
+	if not isOwner(self, ent) then return end
+	this:EnableGravity( gravity ~= 0 )
 end
 
 -- helper function for invert(T) in table.lua
