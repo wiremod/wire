@@ -13,7 +13,7 @@ function formatPort.VECTOR(value)
 end
 
 function formatPort.ANGLE(value)
-	return string.format("(%.1f,%.1f,%.1f)", value.p, value.y, value.r)
+	return string.format("(%.1f,%.1f,%.1f)", value[1], value[2], value[3])
 end
 
 formatPort.ENTITY = function(ent)
