@@ -411,7 +411,8 @@ end
 --- Sets whether <gravity> is applied to <this> bone.
 __e2setcost(10)
 e2function void bone:boneGravity(gravity)
-	if not isValidBone(this) then return end
+	local ent = isValidBone(this)
+	if not ent then return end
 	if not isOwner(self, ent) then return end
 	this:EnableGravity( gravity ~= 0 )
 end
