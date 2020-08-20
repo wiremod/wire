@@ -408,6 +408,15 @@ e2function number bone:isFrozen()
 	if this:IsMoveable() then return 0 else return 1 end
 end
 
+--- Sets whether <gravity> is applied to <this> bone.
+__e2setcost(10)
+e2function void bone:boneGravity(gravity)
+	local ent = isValidBone(this)
+	if not ent then return end
+	if not isOwner(self, ent) then return end
+	this:EnableGravity( gravity ~= 0 )
+end
+
 -- helper function for invert(T) in table.lua
 function e2_tostring_bone(b)
 	local ent = isValidBone(b)
