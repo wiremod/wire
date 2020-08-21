@@ -584,7 +584,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 
 	reset_clholo(Holo, scale) -- Reset scale, clips, and visible status
 
-	prop.Holo = Holo
+	prop.E2HoloData = Holo
 
 	return prop
 end
