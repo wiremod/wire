@@ -37,6 +37,10 @@ function ENT:TriggerInput(iname, value)
 		self.Throttle = value
 	elseif (iname == "Steering") then
 		self.Steering = value
+	elseif (iname == "Vehicle") then
+		self:LinkEnt(value)
+	elseif not IsValid(self.Vehicle) then
+		return
 	elseif (iname == "Handbrake") then
 		self.Vehicle:Fire("handbrake"..(value~=0 and "on" or "off"), 1, 0)
 	elseif (iname == "Engine") then
@@ -44,8 +48,6 @@ function ENT:TriggerInput(iname, value)
 		if value~=0 then self.Vehicle:Fire("handbrakeoff", 1, 0) end
 	elseif (iname == "Lock") then
 		self.Vehicle:Fire((value~=0 and "" or "un").."lock", 1, 0)
-	elseif (iname == "Vehicle") then
-		self:LinkEnt(value)
 	end
 end
 
