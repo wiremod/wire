@@ -10,7 +10,8 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs( self, { "Throttle", "Steering", "Handbrake", "Engine", "Lock" } )
+	self.Inputs = Wire_CreateInputs( self, { "Throttle", "Steering", "Handbrake", "Engine", "Lock", "Vehicle [ENTITY]" } )
+	self.Outputs = Wire_CreateOutputs( self, { "Vehicle [ENTITY]" } )
 end
 
 function ENT:LinkEnt( pod )
@@ -19,16 +20,23 @@ function ENT:LinkEnt( pod )
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
 	self.Vehicle = pod
 	WireLib.SendMarks(self, {pod})
+	WireLib.TriggerOutput(self, "Vehicle", pod)
 	return true
 end
 function ENT:UnlinkEnt()
 	self.Vehicle = nil
 	WireLib.SendMarks(self, {})
+	WireLib.TriggerOutput(self, "Vehicle", NULL)
 	return true
 end
 
 function ENT:TriggerInput(iname, value)
-	if not IsValid(self.Vehicle) then return end
+	if not IsValid(self.Vehicle) then
+		if (iname == "Vehicle") then
+			self:LinkEnt(value)
+		end
+		return
+	end
 	if (iname == "Throttle") then
 		self.Throttle = value
 	elseif (iname == "Steering") then
@@ -40,6 +48,8 @@ function ENT:TriggerInput(iname, value)
 		if value~=0 then self.Vehicle:Fire("handbrakeoff", 1, 0) end
 	elseif (iname == "Lock") then
 		self.Vehicle:Fire((value~=0 and "" or "un").."lock", 1, 0)
+	elseif (iname == "Vehicle") then
+		self:LinkEnt(value)
 	end
 end
 
