@@ -18,6 +18,8 @@ function ENT:LinkEnt( pod )
 	pod = WireLib.GetClosestRealVehicle(pod,self:GetPos(),self:GetPlayer())
 
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
+	if hook.Run( "CanTool", self:GetPlayer(), WireLib.dummytrace(pod), "wire_vehicle" ) == false then return false, "You do not have permission to access this vehicle" end
+
 	self.Vehicle = pod
 	WireLib.SendMarks(self, {pod})
 	WireLib.TriggerOutput(self, "Vehicle", pod)
@@ -31,13 +33,11 @@ function ENT:UnlinkEnt()
 end
 
 function ENT:TriggerInput(iname, value)
-	if not IsValid(self.Vehicle) then
-		if (iname == "Vehicle") then
-			self:LinkEnt(value)
-		end
+	if (iname == "Vehicle") then
+		self:LinkEnt(value)
+	elseif not IsValid(self.Vehicle) then
 		return
-	end
-	if (iname == "Throttle") then
+	elseif (iname == "Throttle") then
 		self.Throttle = value
 	elseif (iname == "Steering") then
 		self.Steering = value
@@ -48,8 +48,6 @@ function ENT:TriggerInput(iname, value)
 		if value~=0 then self.Vehicle:Fire("handbrakeoff", 1, 0) end
 	elseif (iname == "Lock") then
 		self.Vehicle:Fire((value~=0 and "" or "un").."lock", 1, 0)
-	elseif (iname == "Vehicle") then
-		self:LinkEnt(value)
 	end
 end
 
