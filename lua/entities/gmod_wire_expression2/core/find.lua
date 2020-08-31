@@ -762,6 +762,16 @@ end
 --[[************************************************************************]]--
 __e2setcost(2)
 
+e2function void findUseHardcodedFilter(useHardcodedFilter)
+	if useHardcodedFilter ~= 0 then
+		self.data.find.filter_default = filter_default(self)
+	else
+		self.data.find.filter_default = filter_none
+	end
+end
+
+--[[************************************************************************]]--
+
 --- Returns the indexed entity from the previous find event (valid parameters are 1 to the number of entities found)
 e2function entity findResult(index)
 	return self.data.findlist[index]
