@@ -762,6 +762,7 @@ end
 --[[************************************************************************]]--
 __e2setcost(2)
 
+--- Enables or disables the hardcoded entity class filter, blocking or allowing you to find entities with classes like "prop_dynamic", "physgun_beam" or "gmod_ghost".
 e2function void findUseHardcodedFilter(useHardcodedFilter)
 	if useHardcodedFilter ~= 0 then
 		self.data.find.filter_default = filter_default(self)
