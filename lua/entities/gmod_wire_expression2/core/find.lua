@@ -767,7 +767,7 @@ e2function void findUseHardcodedFilter(useHardcodedFilter)
 	if useHardcodedFilter ~= 0 then
 		self.data.find.filter_default = filter_default(self)
 	else
-		self.data.find.filter_default = filter_none
+		self.data.find.filter_default = filter_all
 	end
 end
 
