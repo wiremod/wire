@@ -70,6 +70,13 @@ local function filter_default(self)
 	end
 end
 
+local function filter_default_without_class_blocklist(self)
+	local chip = self.entity
+	return function(ent)
+		return ent ~= chip
+	end
+end
+
 -- -- some filter criterion generators -- --
 
 -- Generates a filter that filters out everything not in a lookup table.
@@ -767,7 +774,7 @@ e2function void findUseHardcodedFilter(useHardcodedFilter)
 	if useHardcodedFilter ~= 0 then
 		self.data.find.filter_default = filter_default(self)
 	else
-		self.data.find.filter_default = filter_all
+		self.data.find.filter_default = filter_default_without_class_blocklist(self)
 	end
 end
 
