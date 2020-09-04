@@ -993,6 +993,7 @@ E2Helper.Descriptions["findByClass(s)"] = "Find all entities with the given clas
 E2Helper.Descriptions["findPlayerByName(s)"] = "Returns the player with the given name, this is an exception to the rule"
 E2Helper.Descriptions["findPlayerBySteamID(s)"] = "Returns the player with the given SteamID32"
 E2Helper.Descriptions["findPlayerBySteamID64(s)"] = "Returns the player with the given SteamID64"
+E2Helper.Descriptions["findAllowBlockedClasses(n)"] = "Allows or disallows finding entities on the hardcoded class blocklist, including classes like \"prop_dynamic\", \"physgun_beam\" and \"gmod_ghost\"."
 E2Helper.Descriptions["findResult(n)"] = "Returns the indexed entity from the previous find event (valid parameters are 1 to the number of entities found)"
 E2Helper.Descriptions["findClosest(v)"] = "Returns the closest entity to the given point from the previous find event"
 E2Helper.Descriptions["findToArray()"] = "Formats the query as an array, R[Index,entity] to get an entity"
