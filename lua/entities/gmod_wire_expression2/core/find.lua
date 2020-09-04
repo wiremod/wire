@@ -769,12 +769,12 @@ end
 --[[************************************************************************]]--
 __e2setcost(2)
 
---- Enables or disables the hardcoded entity class filter, blocking or allowing you to find entities with classes like "prop_dynamic", "physgun_beam" or "gmod_ghost".
-e2function void findUseHardcodedFilter(useHardcodedFilter)
+--- Allows or disallows finding entities on the hardcoded class blocklist, including classes like "prop_dynamic", "physgun_beam" and "gmod_ghost".
+e2function void findAllowBlockedClasses(useHardcodedFilter)
 	if useHardcodedFilter ~= 0 then
-		self.data.find.filter_default = filter_default(self)
-	else
 		self.data.find.filter_default = filter_default_without_class_blocklist(self)
+	else
+		self.data.find.filter_default = filter_default(self)
 	end
 end
 
