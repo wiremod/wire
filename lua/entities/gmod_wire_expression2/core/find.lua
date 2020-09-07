@@ -70,6 +70,13 @@ local function filter_default(self)
 	end
 end
 
+local function filter_default_without_class_blocklist(self)
+	local chip = self.entity
+	return function(ent)
+		return ent ~= chip
+	end
+end
+
 -- -- some filter criterion generators -- --
 
 -- Generates a filter that filters out everything not in a lookup table.
@@ -761,6 +768,17 @@ end
 
 --[[************************************************************************]]--
 __e2setcost(2)
+
+--- Allows or disallows finding entities on the hardcoded class blocklist, including classes like "prop_dynamic", "physgun_beam" and "gmod_ghost".
+e2function void findAllowBlockedClasses(useHardcodedFilter)
+	if useHardcodedFilter ~= 0 then
+		self.data.find.filter_default = filter_default_without_class_blocklist(self)
+	else
+		self.data.find.filter_default = filter_default(self)
+	end
+end
+
+--[[************************************************************************]]--
 
 --- Returns the indexed entity from the previous find event (valid parameters are 1 to the number of entities found)
 e2function entity findResult(index)
