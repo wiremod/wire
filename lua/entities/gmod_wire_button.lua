@@ -20,7 +20,7 @@ if CLIENT then
 
 	function ENT:Draw()
 		self:DoNormalDraw(true,false)
-		if LocalPlayer():GetEyeTrace().Entity == self and EyePos():Distance( self:GetPos() ) < 512 then
+		if LocalPlayer():GetEyeTrace().Entity == self and EyePos():DistToSqr( self:GetPos() ) < 512^2 and GetConVarNumber("wire_drawoutline")~=0 then
 			if self:GetOn() then
 				halo_ent = self
 				halo_blur = 4 + math.sin(CurTime()*20)*2
