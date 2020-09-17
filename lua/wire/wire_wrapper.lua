@@ -3,7 +3,7 @@ function ENT:WireError(sM)
   local sM = tostring(sM or "")
   local sN = tI and tI.name or "Incognito"
   local sO = tostring(self).."."..sN..sM
-  self:Print(sO); ErrorNoHalt(sO.."\n"); self:Remove()
+  ErrorNoHalt(sO.."\n"); self:Remove()
 end
 
 local function wireUnpackPortInfo(tP)
