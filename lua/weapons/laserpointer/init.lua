@@ -41,6 +41,13 @@ function SWEP:SecondaryAttack()
 	end
 end
 
+function SWEP:OnDrop()
+	self.Weapon:SetNWBool("Active", false)
+	self.Pointing = false
+	Wire_TriggerOutput(self.Receiver,"Active",0)
+	self.Receiver = nil
+end
+
 function SWEP:Think()
 	if(self.Pointing && self.Receiver && self.Receiver:IsValid())then
 		local trace = self:GetOwner():GetEyeTrace()
