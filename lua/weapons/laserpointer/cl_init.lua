@@ -40,7 +40,7 @@ function SWEP:ViewModelDrawn()
 end
 function SWEP:DrawWorldModel()
 	self.Weapon:DrawModel()
-	if self.Weapon:GetNWBool("Active") and self.WM then
+	if self.Weapon:GetNWBool("Active") and self.WM and self.IsHeld then
         //Draw the laser beam.
         render.SetMaterial( LASER )
 		local posang = self.WM:GetAttachment(self.WAttach)
