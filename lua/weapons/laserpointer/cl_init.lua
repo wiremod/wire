@@ -4,8 +4,10 @@ SWEP.Slot = 0
 SWEP.SlotPos = 4
 SWEP.DrawAmmo = false
 SWEP.DrawCrosshair = true
-
-local LASER = Material('cable/redlaser')
+SWEP.Active = false
+SWEP.BeamColor = Color(255, 0, 0, 255)
+SWEP.BeamWidth = 2
+SWEP.BeamMaterial = Material("cable/redlaser")
 
 function SWEP:Setup(ply)
 	if ply.GetViewModel and ply:GetViewModel():IsValid() then
@@ -16,35 +18,59 @@ function SWEP:Setup(ply)
 			self.Attach = attachmentIndex
 		end
 	end
+
 	if ply:IsValid() then
 		local attachmentIndex = ply:LookupAttachment("anim_attachment_RH")
 		if ply:GetAttachment(attachmentIndex) then
-			self.WM = ply
 			self.WAttach = attachmentIndex
 		end
 	end
 end
+
 function SWEP:Initialize()
 	self:Setup(self:GetOwner())
 end
+
 function SWEP:Deploy(ply)
 	self:Setup(self:GetOwner())
 end
 
-function SWEP:ViewModelDrawn()
-	if self.Weapon:GetNWBool("Active") and self.VM then
-        //Draw the laser beam.
-        render.SetMaterial( LASER )
-		render.DrawBeam(self.VM:GetAttachment(self.Attach).Pos, self:GetOwner():GetEyeTrace().HitPos, 2, 0, 12.5, Color(255, 0, 0, 255))
-    end
+function SWEP:PrimaryAttack()
+	self.Active = not self.Active
 end
+
+function SWEP:DrawBeamFrom(beamStart)
+	local beamEnd = self:GetBeamTrace(beamStart).HitPos
+
+	render.SetMaterial(self.BeamMaterial)
+	render.DrawBeam(beamStart, beamEnd, self.BeamWidth, 0, 12.5, self.BeamColor)
+end
+
+function SWEP:ViewModelDrawn()
+	if not self.Active and self.VM then return end
+
+	local beamStart = self.VM:GetAttachment(self.Attach).Pos
+	self:DrawBeamFrom(beamStart)
+end
+
 function SWEP:DrawWorldModel()
 	self.Weapon:DrawModel()
-	if self.Weapon:GetNWBool("Active") and self.WM and self.IsHeld then
-        //Draw the laser beam.
-        render.SetMaterial( LASER )
-		local posang = self.WM:GetAttachment(self.WAttach)
-		if not posang then self.WM = nil ErrorNoHalt("Laserpointer CL: Attachment lost, did they change model or something?\n") return end
-		render.DrawBeam(posang.Pos + posang.Ang:Forward()*10 + posang.Ang:Up()*4.4 + posang.Ang:Right(), self:GetOwner():GetEyeTrace().HitPos, 2, 0, 12.5, Color(255, 0, 0, 255))
-    end
+	if not self.Active then return end
+
+	local beamStart = self:GetPos() + self:GetForward() * 2
+
+	if self.IsHeld then
+		local posang = self.Wielder:GetAttachment(self.WAttach)
+
+		if not posang then
+			self.Wielder = nil
+			ErrorNoHalt("Laserpointer CL: Attachment lost, did they change model or something?\n")
+
+			return
+		end
+
+		beamStart = posang.Pos + posang.Ang:Forward() * 10 + posang.Ang:Up() * 4.4 + posang.Ang:Right()
+	end
+
+	self:DrawBeamFrom(beamStart)
 end

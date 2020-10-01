@@ -7,57 +7,67 @@ SWEP.AutoSwitchTo = false
 SWEP.AutoSwitchFrom = false
 
 SWEP.Receiver = nil
-SWEP.Pointing = false
+SWEP.Active = false
 
 function SWEP:Initialize()
-	self.Pointing = false
+	self.Active = false
 end
 
 function SWEP:Equip( newOwner )
-	if IsValid(newOwner.LasReceiver) then
-		self.Receiver = newOwner.LasReceiver
-		newOwner.LasReceiver = nil
-		newOwner:PrintMessage( HUD_PRINTTALK, "Relinked Sucessfully" )
-	end
+	if not IsValid(newOwner.LasReceiver) then return end
+
+	self.Receiver = newOwner.LasReceiver
+	newOwner.LasReceiver = nil
+	newOwner:PrintMessage( HUD_PRINTTALK, "Relinked Sucessfully" )
 end
 
 function SWEP:PrimaryAttack()
-	self.Pointing = !self.Pointing
-	self.Weapon:SetNWBool("Active", self.Pointing)
-	if self.Pointing and IsValid(self.Receiver) then
-		Wire_TriggerOutput(self.Receiver,"Active",1)
-	else
-		Wire_TriggerOutput(self.Receiver,"Active",0)
-	end
+	self.Active = not self.Active
+
+	local activeOutput = 0
+	if self.Active and IsValid(self.Receiver) then activeOutput = 1 end
+
+	self:TriggerOutput("Active", activeOutput)
 end
 
 function SWEP:SecondaryAttack()
-	local trace = self:GetOwner():GetEyeTrace()
+	local aimTrace = self:GetBeamTrace()
 
-	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_las_receiver" and gamemode.Call("CanTool", self:GetOwner(), trace, "wire_las_receiver") then
-		self.Receiver = trace.Entity
-		self:GetOwner():PrintMessage( HUD_PRINTTALK, "Linked Sucessfully" )
-		return true
-	end
+	local receiver = aimTrace.Entity
+
+	if not IsValid(receiver) then return end
+	if receiver:GetClass() ~= "gmod_wire_las_receiver" then return end
+
+	local canTool = gamemode.Call("CanTool", self.Wielder, aimTrace, "wire_las_receiver")
+	if not canTool then return end
+
+	self.Receiver = aimTrace.Entity
+	self.Wielder:PrintMessage(HUD_PRINTTALK, "Linked Sucessfully")
+
+	return true
 end
 
 function SWEP:OnDrop()
-	self.Weapon:SetNWBool("Active", false)
-	self.Pointing = false
-	Wire_TriggerOutput(self.Receiver,"Active",0)
+	self:TriggerOutput("Active", 0)
 	self.Receiver = nil
 end
 
+function SWEP:TriggerOutput(name, value)
+	Wire_TriggerOutput(self.Receiver, name, value)
+end
+
 function SWEP:Think()
-	if(self.Pointing && self.Receiver && self.Receiver:IsValid())then
-		local trace = self:GetOwner():GetEyeTrace()
-		local point = trace.HitPos
-		if (COLOSSAL_SANDBOX) then point = point * 6.25 end
-		Wire_TriggerOutput(self.Receiver, "X", point.x)
-		Wire_TriggerOutput(self.Receiver, "Y", point.y)
-		Wire_TriggerOutput(self.Receiver, "Z", point.z)
-		Wire_TriggerOutput(self.Receiver, "Pos", point)
-		Wire_TriggerOutput(self.Receiver, "RangerData", trace)
-		self.Receiver.VPos = point
-	end
+	if not self.Active and self.Receiver and self.Receiver:IsValid() then return end
+
+	local beamTrace = self:GetBeamTrace()
+	local point = beamTrace.HitPos
+
+	if COLOSSAL_SANDBOX then point = point * 6.25 end
+
+	self:TriggerOutput("X", point.x)
+	self:TriggerOutput("Y", point.y)
+	self:TriggerOutput("Z", point.z)
+	self:TriggerOutput("Pos", point)
+	self:TriggerOutput("RangerData", beamTrace)
+	self.Receiver.VPos = point
 end

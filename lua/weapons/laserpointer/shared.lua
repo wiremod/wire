@@ -21,5 +21,26 @@ SWEP.Secondary.Automatic = false
 SWEP.Secondary.Ammo = "none"
 
 function SWEP:OwnerChanged()
-    self.IsHeld = IsValid(self:GetOwner())
+	local owner = IsValid(self:GetOwner()) and self:GetOwner()
+	local isValidOwner = owner ~= false
+
+	self.IsHeld = isValidOwner
+	self.Wielder = isValidOwner and owner or nil
 end
+
+function SWEP:GetBarrelTip()
+	return self:GetPos() + self:GetForward() * 2
+end
+
+function SWEP:GetBeamTrace(beamStart)
+	if self.IsHeld then return self.Wielder:GetEyeTrace() end
+
+	beamStart = beamStart or self:GetBarrelTip()
+
+	return trace.TraceLine({
+		start = beamStart,
+		endpos = beamStart + self:GetForward() * 1000,
+		filter = self
+	})
+end
+
