@@ -47,17 +47,12 @@ function SWEP:SecondaryAttack()
 	return true
 end
 
-function SWEP:OnDrop()
-	self:TriggerOutput("Active", 0)
-	self.Receiver = nil
-end
-
 function SWEP:TriggerOutput(name, value)
 	Wire_TriggerOutput(self.Receiver, name, value)
 end
 
 function SWEP:Think()
-	if not self.Active and self.Receiver and self.Receiver:IsValid() then return end
+	if not ( self.Active and self.Receiver and self.Receiver:IsValid() ) then return end
 
 	local beamTrace = self:GetBeamTrace()
 	local point = beamTrace.HitPos
