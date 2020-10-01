@@ -4,7 +4,7 @@ SWEP.Purpose = ""
 SWEP.Instructions = "Left Click to designate targets. Right click to select laser receiver."
 SWEP.Category = "Wiremod"
 
-SWEP.Spawnable = true;
+SWEP.Spawnable = true
 SWEP.AdminOnly = false
 
 SWEP.viewModel = "models/weapons/v_pistol.mdl";
@@ -20,12 +20,16 @@ SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
 SWEP.Secondary.Ammo = "none"
 
-function SWEP:OwnerChanged()
+function SWEP:UpdateHeldStatus()
 	local owner = IsValid(self:GetOwner()) and self:GetOwner()
 	local isValidOwner = owner ~= false
 
 	self.IsHeld = isValidOwner
 	self.Wielder = isValidOwner and owner or nil
+end
+
+function SWEP:OwnerChanged()
+	timer.Simple(0, function() self:UpdateHeldStatus() end)
 end
 
 function SWEP:GetBarrelTip()
