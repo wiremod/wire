@@ -37,7 +37,7 @@ function SWEP:GetBeamTrace(beamStart)
 
 	beamStart = beamStart or self:GetBarrelTip()
 
-	return trace.TraceLine({
+	return util.TraceLine({
 		start = beamStart,
 		endpos = beamStart + self:GetForward() * 1000,
 		filter = self
