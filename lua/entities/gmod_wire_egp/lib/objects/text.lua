@@ -89,7 +89,7 @@ function Obj:Draw(ent, drawMat)
 			mat:Rotate(matAng)
 
 			surface_SetTextPos(-x, -y)
-			cam_PushModelMatrix(mat)
+			cam_PushModelMatrix(mat, true)
 				surface_DrawText( self.text )
 			cam_PopModelMatrix()
 		end
