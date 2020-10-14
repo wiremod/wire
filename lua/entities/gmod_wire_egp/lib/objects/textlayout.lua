@@ -58,7 +58,7 @@ function Obj:Draw(ent, drawMat)
 			matAng.y = -self.angle
 			mat:Rotate(matAng)
 
-			cam_PushModelMatrix(mat)
+			cam_PushModelMatrix(mat, true)
 				self.layouter:DrawText(self.text, 0, 0, self.w, self.h, self.halign, self.valign)
 			cam_PopModelMatrix()
 		end
