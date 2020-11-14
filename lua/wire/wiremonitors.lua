@@ -11,7 +11,7 @@ function WireGPU_AddMonitor(name,model,tof,tou,tor,trs,x1,x2,y1,y2,rot,transluce
 	local monitor = {
 		Name = name,
 		offset = Vector(tof, -tor, tou),
-		RS = trs,
+		RS = trs or (y2 - y1) / 512,
 		RatioX = RatioX,
 
 		x1 = x1,
