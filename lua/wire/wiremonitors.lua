@@ -172,12 +172,12 @@ WireGPU_AddMonitor("Plasma TV (4:3)",   "models/blacknecro/tv_plasma_4_3.mdl",  
 WireGPU_AddMonitor("Plasma TV (16:10)", "models/props/cs_office/tv_plasma.mdl",           6.1 , 18.93, 0  , 0.065 , -28.5   , 28.5   , 2      , 36    )
 WireGPU_AddMonitor("Billboard",         "models/props/cs_assault/billboard.mdl",          1   , 0    , 0  , 0.23  , -110.512, 110.512, -57.647, 57.647)
 
-WireGPU_AddMonitor("Cube 1x1x1",        "models/hunter/blocks/cube1x1x1.mdl",             24  , 0    , 0  , 0.09  , -48     , 48     , -48    , 48    )
-WireGPU_AddMonitor("Panel 1x1",         "models/hunter/plates/plate1x1.mdl",              0   , 1.7  , 0  , 0.09  , -48     , 48     , -48    , 48    , true)
-WireGPU_AddMonitor("Panel 2x2",         "models/hunter/plates/plate2x2.mdl",              0   , 1.7  , 0  , 0.182 , -48     , 48     , -48    , 48    , true)
-WireGPU_AddMonitor("Panel 0.5x0.5",     "models/hunter/plates/plate05x05.mdl",            0   , 1.7  , 0  , 0.045 , -48     , 48     , -48    , 48    , true)
+WireGPU_AddMonitor("Cube 1x1x1",        "models/hunter/blocks/cube1x1x1.mdl",             24  , 0    , 0  , nil   , -23.275 , 23.275 , -23.275, 23.275)
+WireGPU_AddMonitor("Panel 1x1",         "models/hunter/plates/plate1x1.mdl",              0   , 1.7  , 0  , nil   , -23.275 , 23.275 , -23.275, 23.275, true)
+WireGPU_AddMonitor("Panel 2x2",         "models/hunter/plates/plate2x2.mdl",              0   , 1.7  , 0  , nil   , -47.45  , 47.45  , -47.45 , 47.45 , true)
+WireGPU_AddMonitor("Panel 0.5x0.5",     "models/hunter/plates/plate05x05.mdl",            0   , 1.7  , 0  , nil   , -11.8265, 11.8265, -11.8265,11.8265,true)
 
-WireGPU_AddMonitor("Tray",              "models/props/cs_militia/reload_bullet_tray.mdl", 0   , 0.8  , 0  , 0.009 , 0       , 100    , 0      , 60    , true)
+WireGPU_AddMonitor("Tray",              "models/props/cs_militia/reload_bullet_tray.mdl", 0   , 0.8  , 0  , nil   ,  0      , 7.68   ,  0     , 4.608 , true)
 
 -- Offset front, offset up, offset right, resolution/scale                                OF    OU     OR   SCALE   LOWX      HIGHX    LOWY     HIGHY   ROTATE90
 --WireGPU_AddMonitor("LED Board (1:1)",   "models/blacknecro/ledboard60.mdl",               6.1, 18.5 , 11 , 0.065 , -60     , 60     , -60    , 60    ) -- broken
@@ -187,7 +187,7 @@ WireGPU_FromBox("TF2 Red vs Blue billboard", "models/props_mining/billboard002.m
 
 
 -- transparent screens
-WireGPU_AddMonitor("Window", "models/props_phx/construct/windows/window1x1.mdl", 0, 1.7, 0, 0.07, -46, 46, -46, 46, true, true)
+WireGPU_AddMonitor("Window", "models/props_phx/construct/windows/window1x1.mdl", 0, 1.7, 0, nil, -17.3, 17.3, -17.3, 17.3, true, true)
 
 --[[
 models/props_c17/tv_monitor01.mdl
