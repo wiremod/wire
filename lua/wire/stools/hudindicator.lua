@@ -127,7 +127,7 @@ function TOOL:Reload( trace )
 			if success then
 				WireLib.AddNotify(self:GetOwner(), "Linked entity: " .. tostring(trace.Entity) .. " to the " .. self.Name, NOTIFY_GENERIC, 5)
 			else
-				WireLib.AddNotify(self:GetOwner(), message or "Could not link " .. self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP)
+				WireLib.AddNotify(self:GetOwner(), message or "Could not link " .. self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
 				return false
 			end
 		else
