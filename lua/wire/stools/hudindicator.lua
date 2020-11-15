@@ -111,32 +111,31 @@ function TOOL:Reload( trace )
 
 	if (CLIENT) then return true end
 
-	local iNum = self:NumObjects()
-
-	if (iNum == 0) then
-		if trace.Entity:GetClass() ~= self.WireClass then
-			WireLib.AddNotify(self:GetOwner(), "You must select a HUD Indicator to link first.", NOTIFY_GENERIC, 7)
+	if self:GetStage() == 0 then
+		if self:CheckHitOwnClass(trace) then
+			self.Controller = trace.Entity
+			self:SetStage(1)
+		else
 			return false
 		end
+	elseif self:GetStage() == 1 then
+		if not IsValid(self.Controller) then self:SetStage(0) return end
 
-		local Phys = trace.Entity:GetPhysicsObjectNum( trace.PhysicsBone )
-		self:SetObject( 1, trace.Entity, trace.HitPos, Phys, trace.PhysicsBone, trace.HitNormal )
-		self:SetStage(1)
-	elseif (iNum == 1) then
-		if trace.Entity ~= self:GetEnt(1) then
-			local ent = self:GetEnt(1)
-			local bool = ent:LinkVehicle(trace.Entity)
+		if trace.Entity ~= self.Controller then
+			local success, message = self.Controller:LinkEnt(trace.Entity)
 
-			if not bool then
-				WireLib.AddNotify(self:GetOwner(), "Could not link HUD Indicator!", NOTIFY_GENERIC, 7)
+			if success then
+				WireLib.AddNotify(self:GetOwner(), "Linked entity: " .. tostring(trace.Entity) .. " to the " .. self.Name, NOTIFY_GENERIC, 5)
+			else
+				WireLib.AddNotify(self:GetOwner(), message or "Could not link " .. self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP)
 				return false
 			end
 		else
 			-- Unlink HUD Indicator from this vehicle
-			trace.Entity:UnLinkVehicle()
+			self.Controller:UnlinkEnt()
+			WireLib.AddNotify(self:GetOwner(), "Unlinked " .. self.Name, NOTIFY_GENERIC, 5)
 		end
 
-		self:ClearObjects()
 		self:SetStage(0)
 	end
 
@@ -205,6 +204,19 @@ if (CLIENT) then
 
 		if (isregistered) then
 			draw.WordBox(8, ScrW() / 2 + 10, ScrH() / 2 + 10, "Registered", "Default", Color(50, 50, 75, 192), Color(255, 255, 255, 255))
+		end
+
+		-- Copied from WireToolSetup.SetupLinking()
+		local trace = self:GetOwner():GetEyeTrace()
+		if self:CheckHitOwnClass(trace) and trace.Entity.Marks then
+			local markerpos = trace.Entity:GetPos():ToScreen()
+			for _, ent in pairs(trace.Entity.Marks) do
+				if IsValid(ent) then
+					local markpos = ent:GetPos():ToScreen()
+					surface.SetDrawColor( 255,255,100,255 )
+					surface.DrawLine( markerpos.x, markerpos.y, markpos.x, markpos.y )
+				end
+			end
 		end
 	end
 end
