@@ -283,7 +283,8 @@ end
 
 -- Despite everything being named "pod", any vehicle will work
 function ENT:LinkVehicle(pod)
-	if not IsValid(pod) or not string.find(pod:GetClass(), "prop_vehicle_") then return false end
+	pod = WireLib.GetClosestRealVehicle(pod, self:GetPos(), self:GetPlayer())
+	if not IsValid(pod) or not pod:IsVehicle() then return false end
 
 	local ply = nil
 	-- Check if a player is in pod first

@@ -124,13 +124,6 @@ function TOOL:Reload( trace )
 		self:SetStage(1)
 	elseif (iNum == 1) then
 		if trace.Entity ~= self:GetEnt(1) then
-			if not string.find(trace.Entity:GetClass(), "prop_vehicle_") then
-				WireLib.AddNotify(self:GetOwner(), "HUD Indicators can only be linked to vehicles.", NOTIFY_GENERIC, 7)
-				self:ClearObjects()
-				self:SetStage(0)
-				return false
-			end
-
 			local ent = self:GetEnt(1)
 			local bool = ent:LinkVehicle(trace.Entity)
 
