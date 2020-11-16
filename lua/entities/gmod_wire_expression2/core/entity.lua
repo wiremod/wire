@@ -398,6 +398,7 @@ e2function table entity:frictionSnapshot()
 	end
 
 	ret.size = #events
+	self.prf = self.prf + ret.size * 50
 
 	return ret
 end
