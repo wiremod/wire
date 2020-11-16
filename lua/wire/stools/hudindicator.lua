@@ -3,6 +3,10 @@
 WireToolSetup.setCategory( "Visuals/Indicators" )
 WireToolSetup.open( "hudindicator", "Hud Indicator", "gmod_wire_hudindicator", nil, "Hud Indicators" )
 
+-- Pull in DrawHUD from SetupLinking
+-- This needs to be called here to prevent it from overwriting anything
+WireToolSetup.SetupLinking(true, "vehicle")
+
 if ( CLIENT ) then
 	language.Add( "Tool.wire_hudindicator.name", "Hud Indicator Tool (Wire)" )
 	language.Add( "Tool.wire_hudindicator.desc", "Spawns a Hud Indicator for use with the wire system." )
@@ -199,6 +203,8 @@ function TOOL:Think()
 end
 
 if (CLIENT) then
+	-- Override the DrawHUD method from SetupLinking()
+	local _DrawHUD = TOOL.DrawHUD
 	function TOOL:DrawHUD()
 		local isregistered = self:GetWeapon():GetNWBool("HUDIndicatorCheckRegister")
 
@@ -206,18 +212,7 @@ if (CLIENT) then
 			draw.WordBox(8, ScrW() / 2 + 10, ScrH() / 2 + 10, "Registered", "Default", Color(50, 50, 75, 192), Color(255, 255, 255, 255))
 		end
 
-		-- Copied from WireToolSetup.SetupLinking()
-		local trace = self:GetOwner():GetEyeTrace()
-		if self:CheckHitOwnClass(trace) and trace.Entity.Marks then
-			local markerpos = trace.Entity:GetPos():ToScreen()
-			for _, ent in pairs(trace.Entity.Marks) do
-				if IsValid(ent) then
-					local markpos = ent:GetPos():ToScreen()
-					surface.SetDrawColor( 255,255,100,255 )
-					surface.DrawLine( markerpos.x, markerpos.y, markpos.x, markpos.y )
-				end
-			end
-		end
+		_DrawHUD(self)
 	end
 end
 
