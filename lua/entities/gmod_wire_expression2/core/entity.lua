@@ -379,18 +379,25 @@ e2function table entity:frictionSnapshot()
 	local ret = {n={},ntypes={},s={},stypes={},size=0} -- default table
 	if not validPhysics(this) then return ret end
 
-	local data = this:GetPhysicsObject():GetFrictionSnapshot()
-	if next(data) ~= nil then
+	local events = this:GetPhysicsObject():GetFrictionSnapshot()
+	for i, event in ipairs(events) do
+		local data = {n={},ntypes={},s={},stypes={},size=0}
 		local size = 0
-		for k, v in pairs(data[#data]) do
+
+		for k, v in pairs(event) do
 			if ids[k] then
-				ret.s[k] = v
-				ret.stypes[k] = ids[k]
+				data.s[k] = v
+				data.stypes[k] = ids[k]
 				size = size + 1
 			end
 		end
-		ret.size = size
+
+		data.size = size
+		ret.n[i] = data
+		ret.ntypes[i] = "t"
 	end
+
+	ret.size = #events
 
 	return ret
 end
