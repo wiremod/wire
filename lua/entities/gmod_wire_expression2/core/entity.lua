@@ -367,6 +367,34 @@ e2function number entity:stress()
 	return phys:GetStress() or 0
 end
 
+local ids = {
+	["EnergyAbsorbed"] = "n",
+	["FrictionCoefficient"] = "n",
+	["NormalForce"] = "n",
+	["Normal"] = "v",
+	["ContactPoint"] = "v",
+}
+
+e2function table entity:frictionSnapshot()
+	local ret = {n={},ntypes={},s={},stypes={},size=0} -- default table
+	if not validPhysics(this) then return ret end
+
+	local data = this:GetPhysicsObject():GetFrictionSnapshot()
+	if next(data) ~= nil then
+		local size = 0
+		for k, v in pairs(data[#data]) do
+			if ids[k] then
+				ret.s[k] = v
+				ret.stypes[k] = ids[k]
+				size = size + 1
+			end
+		end
+		ret.size = size
+	end
+
+	return ret
+end
+
 /******************************************************************************/
 // Functions getting boolean/number
 e2function number entity:isPlayer()
