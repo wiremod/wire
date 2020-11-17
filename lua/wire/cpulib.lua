@@ -484,7 +484,7 @@ if SERVER then
   net.Receive("wire_cpulib_buffer", function(netlen, player)
     local Buffer = CPULib.DataBuffer[player:UserID()]
     if (not Buffer) or (Buffer.Player ~= player) then return end
-    if not Buffer.Entity then return end
+    if not IsValid(Buffer.Entity) then return end
 
     for _ = 1, net.ReadUInt(16) do
       Buffer.Data[net.ReadUInt(24)] = net.ReadDouble()

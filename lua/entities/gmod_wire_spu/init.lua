@@ -48,6 +48,8 @@ function ENT:Initialize()
 
   timer.Create("wire_spu_soundsources_"..math.floor(math.random()*1000000),0.1+math.random()*0.3,1,
     function()
+      if not self:IsValid() then return end
+
       umsg.Start("wire_spu_soundsources")
         umsg.Long(self:EntIndex())
          for i=0,WireSPU_MaxChannels-1 do
@@ -88,6 +90,8 @@ function ENT:SetMemoryModel(model,initial)
   if not initial then
     timer.Create("wire_spu_modelupdate_"..math.floor(math.random()*1000000),0.1+math.random()*0.3,1,
       function()
+        if not self:IsValid() then return end
+
         umsg.Start("wire_spu_memorymodel")
           umsg.Long(self:EntIndex())
           umsg.Long (self.RAMSize)
@@ -105,6 +109,8 @@ end
 function ENT:ResendCache(player)
   timer.Create("wire_spu_resendtimer_"..math.floor(math.random()*1000000),0.4+math.random()*1.2,1,
     function()
+      if not self:IsValid() then return end
+
       self.Cache:Flush()
       for address,value in pairs(self.Memory) do
         self:WriteCell(address,value,player)
