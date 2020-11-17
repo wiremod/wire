@@ -3,6 +3,10 @@
 WireToolSetup.setCategory( "Visuals/Indicators" )
 WireToolSetup.open( "hudindicator", "Hud Indicator", "gmod_wire_hudindicator", nil, "Hud Indicators" )
 
+-- Pull in DrawHUD from SetupLinking
+-- This needs to be called here to prevent it from overwriting anything
+WireToolSetup.SetupLinking(true, "vehicle")
+
 if ( CLIENT ) then
 	language.Add( "Tool.wire_hudindicator.name", "Hud Indicator Tool (Wire)" )
 	language.Add( "Tool.wire_hudindicator.desc", "Spawns a Hud Indicator for use with the wire system." )
@@ -111,39 +115,31 @@ function TOOL:Reload( trace )
 
 	if (CLIENT) then return true end
 
-	local iNum = self:NumObjects()
-
-	if (iNum == 0) then
-		if trace.Entity:GetClass() ~= self.WireClass then
-			WireLib.AddNotify(self:GetOwner(), "You must select a HUD Indicator to link first.", NOTIFY_GENERIC, 7)
+	if self:GetStage() == 0 then
+		if self:CheckHitOwnClass(trace) then
+			self.Controller = trace.Entity
+			self:SetStage(1)
+		else
 			return false
 		end
+	elseif self:GetStage() == 1 then
+		if not IsValid(self.Controller) then self:SetStage(0) return end
 
-		local Phys = trace.Entity:GetPhysicsObjectNum( trace.PhysicsBone )
-		self:SetObject( 1, trace.Entity, trace.HitPos, Phys, trace.PhysicsBone, trace.HitNormal )
-		self:SetStage(1)
-	elseif (iNum == 1) then
-		if trace.Entity ~= self:GetEnt(1) then
-			if not string.find(trace.Entity:GetClass(), "prop_vehicle_") then
-				WireLib.AddNotify(self:GetOwner(), "HUD Indicators can only be linked to vehicles.", NOTIFY_GENERIC, 7)
-				self:ClearObjects()
-				self:SetStage(0)
-				return false
-			end
+		if trace.Entity ~= self.Controller then
+			local success, message = self.Controller:LinkEnt(trace.Entity)
 
-			local ent = self:GetEnt(1)
-			local bool = ent:LinkVehicle(trace.Entity)
-
-			if not bool then
-				WireLib.AddNotify(self:GetOwner(), "Could not link HUD Indicator!", NOTIFY_GENERIC, 7)
+			if success then
+				WireLib.AddNotify(self:GetOwner(), "Linked entity: " .. tostring(trace.Entity) .. " to the " .. self.Name, NOTIFY_GENERIC, 5)
+			else
+				WireLib.AddNotify(self:GetOwner(), message or "Could not link " .. self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
 				return false
 			end
 		else
 			-- Unlink HUD Indicator from this vehicle
-			trace.Entity:UnLinkVehicle()
+			self.Controller:UnlinkEnt()
+			WireLib.AddNotify(self:GetOwner(), "Unlinked " .. self.Name, NOTIFY_GENERIC, 5)
 		end
 
-		self:ClearObjects()
 		self:SetStage(0)
 	end
 
@@ -207,12 +203,16 @@ function TOOL:Think()
 end
 
 if (CLIENT) then
+	-- Override the DrawHUD method from SetupLinking()
+	local _DrawHUD = TOOL.DrawHUD
 	function TOOL:DrawHUD()
 		local isregistered = self:GetWeapon():GetNWBool("HUDIndicatorCheckRegister")
 
 		if (isregistered) then
 			draw.WordBox(8, ScrW() / 2 + 10, ScrH() / 2 + 10, "Registered", "Default", Color(50, 50, 75, 192), Color(255, 255, 255, 255))
 		end
+
+		_DrawHUD(self)
 	end
 end
 

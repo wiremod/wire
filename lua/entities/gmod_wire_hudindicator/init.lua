@@ -282,8 +282,9 @@ function ENT:SendHUDInfo(hidehud)
 end
 
 -- Despite everything being named "pod", any vehicle will work
-function ENT:LinkVehicle(pod)
-	if not IsValid(pod) or not string.find(pod:GetClass(), "prop_vehicle_") then return false end
+function ENT:LinkEnt(pod)
+	pod = WireLib.GetClosestRealVehicle(pod, self:GetPos(), self:GetPlayer())
+	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
 
 	local ply = nil
 	-- Check if a player is in pod first
@@ -305,10 +306,12 @@ function ENT:LinkVehicle(pod)
 	self.Pod = pod
 	self.PodPly = ply
 
+	WireLib.SendMarks(self, {pod})
+
 	return true
 end
 
-function ENT:UnLinkVehicle()
+function ENT:UnlinkEnt()
 	local ply = self.PodPly
 
 	if ply and self:CheckPodOnly(ply) then
@@ -317,6 +320,8 @@ function ENT:UnLinkVehicle()
 	end
 	self.Pod = nil
 	self.PodPly = nil
+
+	WireLib.SendMarks(self, {})
 end
 
 function ENT:Think()
