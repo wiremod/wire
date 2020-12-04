@@ -107,6 +107,18 @@ function ENT:OverrideVM()
     end
   end
 
+  self.VM.ExternalWrite = function(VM, Address, Value)
+    if (Address >= 65536) and (Address <= 131071) then
+      return true
+    elseif Address < 0 then
+      VM:WritePort(-Address - 1, Value)
+      return true
+    end
+
+    VM:Interrupt(7, Address)
+    return false
+  end
+
   -- Add internal registers
   self.VM.InternalRegister[128] = "EntryPoint0"
   self.VM.InternalRegister[129] = "EntryPoint1"
