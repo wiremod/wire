@@ -350,8 +350,6 @@ util.AddNetworkString( "wire_overlay_data" )
 util.AddNetworkString( "wire_overlay_txt" )
 util.AddNetworkString( "wire_overlay_request" )
 
-ENT.playersRequestingOverlayNumeric = {}
-
 --------------------------------------------------------------------------------
 -- Other functions
 --------------------------------------------------------------------------------
