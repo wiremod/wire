@@ -14,6 +14,7 @@ if CLIENT then
 
 	function ENT:Initialize()
 		self.NextRBUpdate = CurTime() + 0.25
+		self.playerWasLookingAtMe = false
 	end
 
 	function ENT:Draw()
@@ -191,8 +192,6 @@ if CLIENT then
 
 		ent:DrawWorldTip()
 	end)
-
-	ENT.playerWasLookingAtMe = false
 
 	-- Custom better version of this base_gmodentity function
 	function ENT:BeingLookedAtByLocalPlayer()
@@ -380,6 +379,7 @@ function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
+	self.playersRequestingOverlayNumeric = {}
 	self.WireDebugName = self.WireDebugName or (self.PrintName and self.PrintName:sub(6)) or self:GetClass():gsub("gmod_wire", "")
 end
 
