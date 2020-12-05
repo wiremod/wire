@@ -192,14 +192,22 @@ if CLIENT then
 		ent:DrawWorldTip()
 	end)
 
+	ENT.playerWasLookingAtMe = false
+
 	-- Custom better version of this base_gmodentity function
 	function ENT:BeingLookedAtByLocalPlayer()
 		local trace = LocalPlayer():GetEyeTrace()
+		local trbool = trace.Entity == self
 
-		if trace.Entity ~= self then return false end
-		if trace.HitPos:Distance(LocalPlayer():GetShootPos()) > 200 then return false end
+		if self.playerWasLookingAtMe ~= trbool then
+			net.Start( "wire_overlay_request" )
+				net.WriteEntity(self)
+				net.WriteBool(trbool)
+			net.SendToServer()
+			self.playerWasLookingAtMe = trbool
+		end
 
-		return true
+		return trbool
 	end
 
 	function ENT:DoNormalDraw(nohalo, notip)
@@ -277,6 +285,16 @@ if CLIENT then
 			ent.OverlayData = net.ReadTable()
 		end
 	end )
+
+	net.Receive( "wire_overlay_txt", function( len )
+		local ent = net.ReadEntity()
+		if IsValid( ent ) then
+			if not ent.OverlayData then
+				ent.OverlayData = {}
+			end
+			ent.OverlayData.txt = net.ReadString()
+		end
+	end )
 end
 
 --------------------------------------------------------------------------------
@@ -292,25 +310,31 @@ function ENT:SetOverlayText( txt )
 	if not self.OverlayData then
 		self.OverlayData = {}
 	end
-
-	if txt and #txt > 12000 then
-		txt = string.sub(txt,1,12000) -- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
+	if txt and #txt > 512 then
+		txt = string.sub(txt,1,512) -- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
 	end
-
 	self.OverlayData.txt = txt
+	if CLIENT then return end
+	if not self.playersRequestingOverlayNumeric or #self.playersRequestingOverlayNumeric == 0 then return end
 
-	if not self.OverlayData_UpdateTime then	self.OverlayData_UpdateTime = {} end
-	self.OverlayData_UpdateTime.time = CurTime()
+	net.Start( "wire_overlay_txt", true )
+		net.WriteEntity( self )
+		net.WriteString( self.OverlayData.txt )
+	net.Send(self.playersRequestingOverlayNumeric)
 end
 
 function ENT:SetOverlayData( data )
-	self.OverlayData = data
-	if self.OverlayData.txt and #self.OverlayData.txt > 12000 then
-		self.OverlayData.txt = string.sub(self.OverlayData.txt,1,12000)
+	if data.txt and #data.txt > 512 then
+		data.txt = string.sub(data.txt,1,512)
 	end
+	self.OverlayData = data
+	if CLIENT then return end
+	if not self.playersRequestingOverlayNumeric or #self.playersRequestingOverlayNumeric == 0 then return end
 
-	if not self.OverlayData_UpdateTime then	self.OverlayData_UpdateTime = {} end
-	self.OverlayData_UpdateTime.time = CurTime()
+	net.Start( "wire_overlay_data", true )
+		net.WriteEntity( self )
+		net.WriteTable( self.OverlayData )
+	net.Send(self.playersRequestingOverlayNumeric)
 end
 
 function ENT:GetOverlayData()
@@ -324,28 +348,32 @@ if CLIENT then return end -- no more client
 --------------------------------------------------------------------------------
 
 util.AddNetworkString( "wire_overlay_data" )
+util.AddNetworkString( "wire_overlay_txt" )
+util.AddNetworkString( "wire_overlay_request" )
 
-timer.Create("WireOverlayUpdate", 0.1, 0, function()
-	for _, ply in ipairs(player.GetAll()) do
-		local ent = ply:GetEyeTrace().Entity
-		if IsValid(ent) and ent.IsWire and
-			ent.OverlayData and
-			ent.OverlayData_UpdateTime and
-			ent.OverlayData_UpdateTime.time > (ent.OverlayData_UpdateTime[ply] or 0) then
-
-			ent.OverlayData_UpdateTime[ply] = CurTime()
-
-			net.Start( "wire_overlay_data" )
-				net.WriteEntity( ent )
-				net.WriteTable( ent.OverlayData )
-			net.Send( ply )
-		end
-	end
-end)
+ENT.playersRequestingOverlayNumeric = {}
 
 --------------------------------------------------------------------------------
 -- Other functions
 --------------------------------------------------------------------------------
+
+net.Receive( "wire_overlay_request", function( len, ply )
+	local ent = net.ReadEntity()
+	if not IsValid(ent) then return end
+	if net.ReadBool() then
+		if not table.HasValue(ent.playersRequestingOverlayNumeric,ply) then
+			table.insert(ent.playersRequestingOverlayNumeric,ply)
+		end
+		if ent.OverlayData then
+			net.Start( "wire_overlay_data" )
+				net.WriteEntity( ent )
+				net.WriteTable( ent.OverlayData )
+			net.Send(ply)
+		end
+	else
+		table.RemoveByValue(ent.playersRequestingOverlayNumeric,ply)
+	end
+end )
 
 function ENT:Initialize()
 	BaseClass.Initialize(self)
@@ -378,13 +406,6 @@ function ENT:PreEntityCopy()
 	if DupeInfo then
 		duplicator.StoreEntityModifier(self, "WireDupeInfo", DupeInfo)
 	end
-end
-
-function ENT:OnEntityCopyTableFinish(dupedata)
-	-- Called by Garry's duplicator, to modify the table that will be saved about an ent
-
-	-- Remove anything with non-string keys, or util.TableToJSON will crash the game
-	dupedata.OverlayData_UpdateTime = nil
 end
 
 local function EntityLookup(CreatedEntities)
