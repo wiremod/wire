@@ -315,7 +315,7 @@ function ENT:SetOverlayText( txt )
 	end
 	self.OverlayData.txt = txt
 	if CLIENT then return end
-	if not self.playersRequestingOverlayNumeric or #self.playersRequestingOverlayNumeric == 0 then return end
+	if #self.playersRequestingOverlayNumeric == 0 then return end
 
 	net.Start( "wire_overlay_txt", true )
 		net.WriteEntity( self )
@@ -329,7 +329,7 @@ function ENT:SetOverlayData( data )
 	end
 	self.OverlayData = data
 	if CLIENT then return end
-	if not self.playersRequestingOverlayNumeric or #self.playersRequestingOverlayNumeric == 0 then return end
+	if #self.playersRequestingOverlayNumeric == 0 then return end
 
 	net.Start( "wire_overlay_data", true )
 		net.WriteEntity( self )
