@@ -372,6 +372,10 @@ net.Receive( "wire_overlay_request", function( len, ply )
 	end
 end )
 
+hook.Add("PlayerDisconnected","wire_playersRequestingOverlay_cleanup",function(ply)
+	table.RemoveByValue(self.playersRequestingOverlayNumeric,ply)
+end)
+
 function ENT:Initialize()
 	BaseClass.Initialize(self)
 	self:PhysicsInit(SOLID_VPHYSICS)
