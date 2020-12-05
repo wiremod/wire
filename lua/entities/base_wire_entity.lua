@@ -311,7 +311,7 @@ function ENT:SetOverlayText( txt )
 		self.OverlayData = {}
 	end
 	if txt and #txt > 512 then
-		txt = string.sub(txt,1,512) -- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
+		txt = string.sub(txt,1,512)
 	end
 	self.OverlayData.txt = txt
 	if CLIENT then return end
