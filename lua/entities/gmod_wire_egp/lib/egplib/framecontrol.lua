@@ -18,6 +18,7 @@ function EGP:LoadFrame( ply, Ent, index )
 		return true, table.Copy(EGP.Frames[ply][index])
 	else
 		local frame = EGP.Frames[ply][index]
+		-- TODO This looks like there should be a return true or something like that at the end of the function
 		if not frame then return false end
 		Ent.RenderTable = table.Copy(frame)
 		Ent:EGP_Update()
