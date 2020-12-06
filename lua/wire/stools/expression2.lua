@@ -566,7 +566,7 @@ elseif CLIENT then
 
 		if sending then return end
 		sending = true
-		upload_queue(true) // true means its the first packet, suppressing the delay
+		upload_queue(true) -- true means its the first packet, suppressing the delay
 	end
 
 	net.Receive("wire_expression2_tool_upload", function(len, ply)

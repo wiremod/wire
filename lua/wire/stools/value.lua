@@ -49,7 +49,7 @@ if SERVER then
 	end
 
 	function TOOL:RightClick(trace)
-		if not IsValid(trace.Entity) or trace.Entity:GetClass() != "gmod_wire_value" then return false end
+		if not IsValid(trace.Entity) or trace.Entity:GetClass() ~= "gmod_wire_value" then return false end
 		playerValues[self:GetOwner()] = trace.Entity.value
 		net.Start("wire_value_values")
 			netWriteValues(trace.Entity.value)
