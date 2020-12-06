@@ -305,13 +305,14 @@ end
 
 -- It allows us to optionally send values rather than entire strings, which saves networking
 -- It also allows us to only update overlays when someone is looking at the entity.
+-- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
 
 function ENT:SetOverlayText( txt )
 	if not self.OverlayData then
 		self.OverlayData = {}
 	end
-	if txt and #txt > 512 then
-		txt = string.sub(txt,1,512)
+	if txt and #txt > 12000 then
+		txt = string.sub(txt,1,12000)
 	end
 	self.OverlayData.txt = txt
 	if CLIENT then return end
@@ -324,8 +325,8 @@ function ENT:SetOverlayText( txt )
 end
 
 function ENT:SetOverlayData( data )
-	if data.txt and #data.txt > 512 then
-		data.txt = string.sub(data.txt,1,512)
+	if data.txt and #data.txt > 12000 then
+		data.txt = string.sub(data.txt,1,12000)
 	end
 	self.OverlayData = data
 	if CLIENT then return end
@@ -376,7 +377,11 @@ net.Receive( "wire_overlay_request", function( len, ply )
 end )
 
 hook.Add("PlayerDisconnected","wire_playersRequestingOverlay_cleanup",function(ply)
-	table.RemoveByValue(ENT.playersRequestingOverlayNumeric,ply)
+	for _, v in pairs( ents.GetAll() ) do
+		if v.playersRequestingOverlayNumeric then
+			table.RemoveByValue(v.playersRequestingOverlayNumeric,ply)
+		end
+	end
 end)
 
 function ENT:Initialize()
