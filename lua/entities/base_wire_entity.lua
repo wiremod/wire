@@ -12,9 +12,10 @@ ENT.IsWire = true
 if CLIENT then
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
 
+	ENT.playerWasLookingAtMe = false
+
 	function ENT:Initialize()
 		self.NextRBUpdate = CurTime() + 0.25
-		self.playerWasLookingAtMe = false
 	end
 
 	function ENT:Draw()
@@ -354,6 +355,8 @@ util.AddNetworkString( "wire_overlay_request" )
 -- Other functions
 --------------------------------------------------------------------------------
 
+ENT.playersRequestingOverlayNumeric = {}
+
 net.Receive( "wire_overlay_request", function( len, ply )
 	local ent = net.ReadEntity()
 	if not IsValid(ent) then return end
@@ -373,7 +376,7 @@ net.Receive( "wire_overlay_request", function( len, ply )
 end )
 
 hook.Add("PlayerDisconnected","wire_playersRequestingOverlay_cleanup",function(ply)
-	table.RemoveByValue(self.playersRequestingOverlayNumeric,ply)
+	table.RemoveByValue(ENT.playersRequestingOverlayNumeric,ply)
 end)
 
 function ENT:Initialize()
@@ -381,7 +384,6 @@ function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
-	self.playersRequestingOverlayNumeric = {}
 	self.WireDebugName = self.WireDebugName or (self.PrintName and self.PrintName:sub(6)) or self:GetClass():gsub("gmod_wire", "")
 end
 
