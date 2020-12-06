@@ -197,7 +197,7 @@ if CLIENT then
 	-- Custom better version of this base_gmodentity function
 	function ENT:BeingLookedAtByLocalPlayer()
 		local trace = LocalPlayer():GetEyeTrace()
-		local trbool = trace.Entity == self
+		local trbool = (trace.Entity == self and trace.HitPos:DistToSqr(LocalPlayer():GetShootPos()) > 40000) --this is 200^2
 
 		if self.playerWasLookingAtMe ~= trbool then
 			net.Start( "wire_overlay_request" )
