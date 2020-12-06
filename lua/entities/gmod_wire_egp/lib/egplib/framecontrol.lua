@@ -4,7 +4,7 @@
 
 local EGP = EGP
 
-EGP.Frames = {}
+EGP.Frames = WireLib.RegisterPlayerTable()
 
 function EGP:SaveFrame( ply, Ent, index )
 	if (!EGP.Frames[ply]) then EGP.Frames[ply] = {} end

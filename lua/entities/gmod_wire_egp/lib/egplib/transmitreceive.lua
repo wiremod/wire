@@ -9,11 +9,7 @@ if (SERVER) then
 	----------------------------
 	-- Umsgs per second check
 	----------------------------
-	EGP.IntervalCheck = {}
-
-	function EGP:PlayerDisconnect( ply ) EGP.IntervalCheck[ply] = nil EGP.Queue[ply] = nil end
-	hook.Add("PlayerDisconnected","EGP_PlayerDisconnect",function( ply ) EGP:PlayerDisconnect( ply ) end)
-
+	EGP.IntervalCheck = WireLib.RegisterPlayerTable()
 
 	function EGP:CheckInterval( ply )
 		if (!self.IntervalCheck[ply]) then self.IntervalCheck[ply] = { bytes = 0, time = 0 } end

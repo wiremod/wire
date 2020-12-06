@@ -39,7 +39,7 @@ local function netReadValues()
 end
 
 if SERVER then
-	local playerValues = {}
+	local playerValues = WireLib.RegisterPlayerTable()
 	util.AddNetworkString( "wire_value_values" )
 	net.Receive( "wire_value_values", function( length, ply )
 		playerValues[ply] = netReadValues()

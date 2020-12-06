@@ -191,7 +191,7 @@ if SERVER then
 		end
 	end
 
-	local wantedfiles = {}
+	local wantedfiles = WireLib.RegisterPlayerTable()
 	net.Receive("wire_expression2_download_wantedfiles", function(len, ply)
 		local toent = net.ReadEntity()
 		local uploadandexit = net.ReadBit() ~= 0
@@ -220,8 +220,8 @@ if SERVER then
 	-- ------------------------------------------------------------
 	-- Serverside Receive
 	-- ------------------------------------------------------------
-	local uploads = {}
-	local upload_ents = {}
+	local uploads = WireLib.RegisterPlayerTable()
+	local upload_ents = WireLib.RegisterPlayerTable()
 	net.Receive("wire_expression2_upload", function(len, ply)
 		local toent = Entity(net.ReadUInt(16))
 		local numpackets = net.ReadUInt(16)
@@ -276,7 +276,7 @@ if SERVER then
 	-- Stuff for the remote updater
 	-- ------------------------------------------------------------
 
-	local antispam = {}
+	local antispam = WireLib.RegisterPlayerTable()
 	-- Returns true if they are spamming, false if they can go ahead and use it
 	local function canhas(ply)
 		if not antispam[ply] then antispam[ply] = 0 end
@@ -354,7 +354,7 @@ if SERVER then
 	-- Server part
 	------------------------------------------------------
 
-	local players_synced = {}
+	local players_synced = WireLib.RegisterPlayerTable()
 	util.AddNetworkString( "wire_expression_sync_ops" )
 	concommand.Add("wire_expression_ops_sync", function(player,command,args)
 		if not player:IsAdmin() then return end
@@ -982,7 +982,7 @@ if SERVER then
 
 elseif CLIENT then
 
-	local busy_players = {}
+	local busy_players = WireLib.RegisterPlayerTable()
 	hook.Add("EntityRemoved", "wire_expression2_busy_animation", function(ply)
 		busy_players[ply] = nil
 	end)

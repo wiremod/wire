@@ -215,7 +215,7 @@ if SERVER then
 		wire_expression2_prepare_functiondata()
 
 		-- Send everything
-		local targets = {}
+		local targets = WireLib.RegisterPlayerTable()
 		local function sendData(target)
 			if IsValid(target) and target:IsPlayer() and targets[target] == nil then
 				targets[target] = "start"
@@ -250,7 +250,7 @@ if SERVER then
 			end
 		end)
 
-		local antispam = {}
+		local antispam = WireLib.RegisterPlayerTable()
 		function wire_expression2_sendfunctions(ply, isconcmd)
 			if isconcmd and not game.SinglePlayer() then
 				if not antispam[ply] then antispam[ply] = 0 end

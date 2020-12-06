@@ -42,7 +42,7 @@ if CLIENT then
 end
 
 WireLib.Paths = {}
-local transmit_queues = setmetatable({}, { __index = function(t,p) t[p] = {} return t[p] end })
+local transmit_queues = WireLib.RegisterPlayerTable(setmetatable({}, { __index = function(t,p) t[p] = {} return t[p] end }))
 util.AddNetworkString("WireLib.Paths.RequestPaths")
 util.AddNetworkString("WireLib.Paths.TransmitPath")
 

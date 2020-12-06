@@ -44,7 +44,7 @@ local function netReadValues()
 end
 
 
-local friends = {}
+local friends = WireLib.RegisterPlayerTable()
 
 if SERVER then
 	util.AddNetworkString( "wire_friendslist" )

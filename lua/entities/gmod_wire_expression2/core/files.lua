@@ -22,10 +22,10 @@ E2Lib.registerConstant( "FILE_TIMEOUT", FILE_TIMEOUT )
 E2Lib.registerConstant( "FILE_404", FILE_404 )
 E2Lib.registerConstant( "FILE_TRANSFER_ERROR", FILE_TRANSFER_ERROR )
 
-local delays = {}
-local uploads = {}
-local downloads = {}
-local lists = {}
+local delays = WireLib.RegisterPlayerTable()
+local uploads = WireLib.RegisterPlayerTable()
+local downloads = WireLib.RegisterPlayerTable()
+local lists = WireLib.RegisterPlayerTable()
 local run_on = {
 	file = {
 		run = 0,

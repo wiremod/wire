@@ -3,7 +3,7 @@
 --------------------------------------------------------
 local EGP = EGP
 
-EGP.Queue = {}
+EGP.Queue = WireLib.RegisterPlayerTable()
 
 function EGP:AddQueueObject( Ent, ply, Function, Object )
 	if (!self.Queue[ply]) then self.Queue[ply] = {} end
