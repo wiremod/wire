@@ -80,12 +80,15 @@ end
 
 local function ProcessQueue()
 	for ply, queue in pairs(transmit_queues) do
-		if not ply:IsValid() then transmit_queues[ply] = nil continue end
-		local nextinqueue = table.remove(queue, 1)
-		if nextinqueue then
-			TransmitPath(nextinqueue, ply)
-		else
+		if not ply:IsValid() then
 			transmit_queues[ply] = nil
+		else
+			local nextinqueue = table.remove(queue, 1)
+			if nextinqueue then
+				TransmitPath(nextinqueue, ply)
+			else
+				transmit_queues[ply] = nil
+			end
 		end
 	end
 	if not next(transmit_queues) then
