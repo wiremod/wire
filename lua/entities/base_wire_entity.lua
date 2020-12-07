@@ -353,6 +353,8 @@ local function sendWireOverlays()
 					net.WriteTable( sendEnt.OverlayData )
 				net.Send(ply)
 			end
+		else
+			ply.wireSendOverlay = nil
 		end
 	end
 	if next(found) then
