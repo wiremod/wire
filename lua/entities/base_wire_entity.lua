@@ -12,10 +12,9 @@ ENT.IsWire = true
 if CLIENT then
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
 
-	ENT.playerWasLookingAtMe = false
-
 	function ENT:Initialize()
 		self.NextRBUpdate = CurTime() + 0.25
+		self.playerWasLookingAtMe = false
 	end
 
 	function ENT:Draw()
@@ -196,8 +195,7 @@ if CLIENT then
 
 	-- Custom better version of this base_gmodentity function
 	function ENT:BeingLookedAtByLocalPlayer()
-		local trace = LocalPlayer():GetEyeTrace()
-		local trbool = (trace.Entity == self and trace.HitPos:DistToSqr(LocalPlayer():GetShootPos()) > 40000) --this is 200^2
+		local trbool = BaseClass.BeingLookedAtByLocalPlayer(self)
 
 		if self.playerWasLookingAtMe ~= trbool then
 			net.Start( "wire_overlay_request" )
@@ -305,37 +303,24 @@ end
 
 -- It allows us to optionally send values rather than entire strings, which saves networking
 -- It also allows us to only update overlays when someone is looking at the entity.
--- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
 
 function ENT:SetOverlayText( txt )
 	if not self.OverlayData then
 		self.OverlayData = {}
 	end
-	if txt and #txt > 12000 then
-		txt = string.sub(txt,1,12000)
+	if txt and #txt > 1024 then
+		txt = string.sub(txt,1,1024)
 	end
+	self.OverlayData.dirty = self.OverlayData.txt ~= txt
 	self.OverlayData.txt = txt
-	if CLIENT then return end
-	if #self.playersRequestingOverlayNumeric == 0 then return end
-
-	net.Start( "wire_overlay_txt", true )
-		net.WriteEntity( self )
-		net.WriteString( self.OverlayData.txt )
-	net.Send(self.playersRequestingOverlayNumeric)
 end
 
 function ENT:SetOverlayData( data )
-	if data.txt and #data.txt > 12000 then
-		data.txt = string.sub(data.txt,1,12000)
+	if data.txt and #data.txt > 1024 then
+		data.txt = string.sub(data.txt,1,1024)
 	end
 	self.OverlayData = data
-	if CLIENT then return end
-	if #self.playersRequestingOverlayNumeric == 0 then return end
-
-	net.Start( "wire_overlay_data", true )
-		net.WriteEntity( self )
-		net.WriteTable( self.OverlayData )
-	net.Send(self.playersRequestingOverlayNumeric)
+	self.OverlayData.dirty = true
 end
 
 function ENT:GetOverlayData()
@@ -356,33 +341,40 @@ util.AddNetworkString( "wire_overlay_request" )
 -- Other functions
 --------------------------------------------------------------------------------
 
-ENT.playersRequestingOverlayNumeric = {}
+local function sendWireOverlays()
+	local found = {}
+	for _, ply in ipairs(player.GetAll()) do
+		local sendEnt = ply.wireSendOverlay
+		if sendEnt and sendEnt:IsValid() then
+			found[sendEnt.OverlayData] = true
+			if sendEnt.OverlayData.dirty then
+				net.Start( "wire_overlay_data", true )
+					net.WriteEntity( sendEnt )
+					net.WriteTable( sendEnt.OverlayData )
+				net.Send(self.playersRequestingOverlayNumeric)
+			end
+		end
+	end
+	if next(found) then
+		for OverlayData in pairs(found) do
+			OverlayData.dirty = false
+		end
+	else
+		timer.Remove("Wire_SendOverlayData")
+	end
+end
 
 net.Receive( "wire_overlay_request", function( len, ply )
 	local ent = net.ReadEntity()
 	if not IsValid(ent) then return end
 	if net.ReadBool() then
-		if not table.HasValue(ent.playersRequestingOverlayNumeric,ply) then
-			table.insert(ent.playersRequestingOverlayNumeric,ply)
-		end
-		if ent.OverlayData then
-			net.Start( "wire_overlay_data" )
-				net.WriteEntity( ent )
-				net.WriteTable( ent.OverlayData )
-			net.Send(ply)
-		end
+		ply.wireSendOverlay = ent
+		ent.OverlayData.dirty = true
+		timer.Create("Wire_SendOverlayData",0.1,0,sendWireOverlays)
 	else
-		table.RemoveByValue(ent.playersRequestingOverlayNumeric,ply)
+		ply.wireSendOverlay = nil
 	end
 end )
-
-hook.Add("PlayerDisconnected","wire_playersRequestingOverlay_cleanup",function(ply)
-	for _, v in pairs( ents.GetAll() ) do
-		if v.playersRequestingOverlayNumeric then
-			table.RemoveByValue(v.playersRequestingOverlayNumeric,ply)
-		end
-	end
-end)
 
 function ENT:Initialize()
 	BaseClass.Initialize(self)
