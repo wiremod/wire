@@ -351,7 +351,7 @@ local function sendWireOverlays()
 				net.Start( "wire_overlay_data", true )
 					net.WriteEntity( sendEnt )
 					net.WriteTable( sendEnt.OverlayData )
-				net.Send(self.playersRequestingOverlayNumeric)
+				net.Send(ply)
 			end
 		end
 	end
