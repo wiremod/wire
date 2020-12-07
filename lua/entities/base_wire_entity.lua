@@ -362,7 +362,7 @@ local function sendWireOverlays()
 			OverlayData.dirty = false
 		end
 	else
-		timer.Remove("Wire_SendOverlayData")
+		hook.Remove("Think","Wire_SendOverlayData")
 	end
 end
 
@@ -372,7 +372,7 @@ net.Receive( "wire_overlay_request", function( len, ply )
 	if net.ReadBool() then
 		ply.wireSendOverlay = ent
 		ent.OverlayData.dirty = true
-		timer.Create("Wire_SendOverlayData",0.1,0,sendWireOverlays)
+		hook.Add("Think","Wire_SendOverlayData",sendWireOverlays)
 	else
 		ply.wireSendOverlay = nil
 	end
