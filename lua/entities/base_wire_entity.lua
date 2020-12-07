@@ -315,9 +315,10 @@ function ENT:SetOverlayText( txt )
 	if not self.OverlayData then
 		self.OverlayData = {}
 	end
-	if txt and #txt > 5000 then
-		txt = string.sub(txt,1,5000)
+	if txt and #txt > 12000 then
+		txt = string.sub(txt,1,12000) -- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
 	end
+	if txt == self.OverlayData.txt then return end
 	self.OverlayData.txt = txt
 	if CLIENT then return end
 	if #self.playersRequestingOverlayNumeric == 0 then return end
@@ -329,15 +330,17 @@ function ENT:SetOverlayText( txt )
 end
 
 function ENT:SetOverlayData( data )
-	if data.txt and #data.txt > 5000 then
-		data.txt = string.sub(data.txt,1,5000)
+	if data and self.OverlayData.txt and #self.OverlayData.txt > 12000 then
+		self.OverlayData.txt = string.sub(self.OverlayData.txt,1,12000)
 	end
+	if data == self.OverlayData then return end
 	self.OverlayData = data
 	if CLIENT then return end
 	if #self.playersRequestingOverlayNumeric == 0 then return end
 	cleanInvalidPlayers()
 	net.Start( "wire_overlay_data", true )
 		net.WriteEntity( self )
+		net.WriteUInt( )
 		net.WriteTable( self.OverlayData )
 	net.Send(self.playersRequestingOverlayNumeric)
 end
@@ -360,7 +363,7 @@ util.AddNetworkString( "wire_overlay_request" )
 -- Other functions
 --------------------------------------------------------------------------------
 
-ENT.playersRequestingOverlayNumeric = {}
+--ENT.playersRequestingOverlayNumeric = {}
 
 net.Receive( "wire_overlay_request", function( len, ply )
 	local ent = net.ReadEntity()
@@ -386,6 +389,7 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 	self.WireDebugName = self.WireDebugName or (self.PrintName and self.PrintName:sub(6)) or self:GetClass():gsub("gmod_wire", "")
+	self.playersRequestingOverlayNumeric = {}
 end
 
 function ENT:OnRemove()
