@@ -311,7 +311,7 @@ function ENT:SetOverlayText( txt )
 	if txt and #txt > 1024 then
 		txt = string.sub(txt,1,1024)
 	end
-	self.OverlayData.dirty = self.OverlayData.txt ~= txt
+	self.OverlayData.__dirty = self.OverlayData.txt ~= txt
 	self.OverlayData.txt = txt
 end
 
@@ -320,7 +320,7 @@ function ENT:SetOverlayData( data )
 		data.txt = string.sub(data.txt,1,1024)
 	end
 	self.OverlayData = data
-	self.OverlayData.dirty = true
+	self.OverlayData.__dirty = true
 end
 
 function ENT:GetOverlayData()
@@ -347,7 +347,7 @@ local function sendWireOverlays()
 		local sendEnt = ply.wireSendOverlay
 		if sendEnt and sendEnt:IsValid() then
 			found[sendEnt.OverlayData] = true
-			if sendEnt.OverlayData.dirty then
+			if sendEnt.OverlayData.__dirty then
 				net.Start( "wire_overlay_data", true )
 					net.WriteEntity( sendEnt )
 					net.WriteTable( sendEnt.OverlayData )
@@ -359,7 +359,7 @@ local function sendWireOverlays()
 	end
 	if next(found) then
 		for OverlayData in pairs(found) do
-			OverlayData.dirty = false
+			OverlayData.__dirty = false
 		end
 	else
 		hook.Remove("Think","Wire_SendOverlayData")
@@ -371,7 +371,7 @@ net.Receive( "wire_overlay_request", function( len, ply )
 	if not IsValid(ent) then return end
 	if net.ReadBool() then
 		ply.wireSendOverlay = ent
-		ent.OverlayData.dirty = true
+		ent.OverlayData.__dirty = true
 		hook.Add("Think","Wire_SendOverlayData",sendWireOverlays)
 	else
 		ply.wireSendOverlay = nil
