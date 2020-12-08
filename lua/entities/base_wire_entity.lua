@@ -368,7 +368,7 @@ util.AddNetworkString( "wire_overlay_request" )
 -- Other functions
 --------------------------------------------------------------------------------
 
---ENT.playersRequestingOverlayNumeric = {}
+ENT.playersRequestingOverlayNumeric = {}
 
 net.Receive( "wire_overlay_request", function( len, ply )
 	local ent = net.ReadEntity()
@@ -395,7 +395,6 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 	self.WireDebugName = self.WireDebugName or (self.PrintName and self.PrintName:sub(6)) or self:GetClass():gsub("gmod_wire", "")
-	self.playersRequestingOverlayNumeric = {}
 end
 
 function ENT:OnRemove()
