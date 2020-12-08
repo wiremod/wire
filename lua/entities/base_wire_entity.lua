@@ -9,6 +9,8 @@ ENT.AdminOnly = false
 
 ENT.IsWire = true
 
+ENT.lastUpdate = 0
+
 if CLIENT then
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
 
@@ -195,13 +197,13 @@ if CLIENT then
 
 	-- Custom better version of this base_gmodentity function
 	function ENT:BeingLookedAtByLocalPlayer()
-		local trace = LocalPlayer():GetEyeTrace()
-		local trbool = (trace.Entity == self and trace.HitPos:DistToSqr(LocalPlayer():GetShootPos()) > 40000) --this is 200^2
+		local trbool = BaseClass.BeingLookedAtByLocalPlayer(self)
 
 		if self.playerWasLookingAtMe ~= trbool then
 			net.Start( "wire_overlay_request" )
 				net.WriteEntity(self)
 				net.WriteBool(trbool)
+				net.WriteFloat(self.lastUpdate)
 			net.SendToServer()
 			self.playerWasLookingAtMe = trbool
 		end
@@ -282,6 +284,7 @@ if CLIENT then
 		local ent = net.ReadEntity()
 		if IsValid( ent ) then
 			ent.OverlayData = net.ReadTable()
+			self.lastUpdate = CurTime()
 		end
 	end )
 
@@ -292,6 +295,7 @@ if CLIENT then
 				ent.OverlayData = {}
 			end
 			ent.OverlayData.txt = net.ReadString()
+			self.lastUpdate = CurTime()
 		end
 	end )
 end
@@ -321,6 +325,7 @@ function ENT:SetOverlayText( txt )
 	if txt == self.OverlayData.txt then return end
 	self.OverlayData.txt = txt
 	if CLIENT then return end
+	self.lastUpdate = CurTime()
 	if #self.playersRequestingOverlayNumeric == 0 then return end
 	cleanInvalidPlayers()
 	net.Start( "wire_overlay_txt", true )
@@ -336,11 +341,11 @@ function ENT:SetOverlayData( data )
 	if data == self.OverlayData then return end
 	self.OverlayData = data
 	if CLIENT then return end
+	self.lastUpdate = CurTime()
 	if #self.playersRequestingOverlayNumeric == 0 then return end
 	cleanInvalidPlayers()
 	net.Start( "wire_overlay_data", true )
 		net.WriteEntity( self )
-		net.WriteUInt( )
 		net.WriteTable( self.OverlayData )
 	net.Send(self.playersRequestingOverlayNumeric)
 end
@@ -372,6 +377,7 @@ net.Receive( "wire_overlay_request", function( len, ply )
 		if not table.HasValue(ent.playersRequestingOverlayNumeric,ply) then
 			table.insert(ent.playersRequestingOverlayNumeric,ply)
 		end
+		if net.ReadFloat() > self.lastUpdate then return end
 		if ent.OverlayData then
 			net.Start( "wire_overlay_data" )
 				net.WriteEntity( ent )
