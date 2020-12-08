@@ -309,9 +309,9 @@ end
 -- It allows us to optionally send values rather than entire strings, which saves networking
 -- It also allows us to only update overlays when someone is looking at the entity.
 
-local function cleanInvalidPlayers()
-	for k, v in ipairs( self.playersRequestingOverlayNumeric ) do
-		if !IsValid(v) then table.remove( self.playersRequestingOverlayNumeric, k ) end
+local function cleanInvalidPlayers(ent)
+	for k, v in ipairs( ent.playersRequestingOverlayNumeric ) do
+		if !IsValid(v) then table.remove( ent.playersRequestingOverlayNumeric, k ) end
 	end
 end
 
@@ -327,7 +327,7 @@ function ENT:SetOverlayText( txt )
 	if CLIENT then return end
 	self.lastWireOverlayUpdate = CurTime()
 	if #self.playersRequestingOverlayNumeric == 0 then return end
-	cleanInvalidPlayers()
+	cleanInvalidPlayers(self)
 	net.Start( "wire_overlay_txt", true )
 		net.WriteEntity( self )
 		net.WriteString( self.OverlayData.txt )
@@ -343,7 +343,7 @@ function ENT:SetOverlayData( data )
 	if CLIENT then return end
 	self.lastWireOverlayUpdate = CurTime()
 	if #self.playersRequestingOverlayNumeric == 0 then return end
-	cleanInvalidPlayers()
+	cleanInvalidPlayers(self)
 	net.Start( "wire_overlay_data", true )
 		net.WriteEntity( self )
 		net.WriteTable( self.OverlayData )
