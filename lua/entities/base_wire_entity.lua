@@ -377,7 +377,7 @@ net.Receive( "wire_overlay_request", function( len, ply )
 		if not table.HasValue(ent.playersRequestingOverlayNumeric,ply) then
 			table.insert(ent.playersRequestingOverlayNumeric,ply)
 		end
-		if net.ReadFloat() > self.lastWireOverlayUpdate then return end
+		if net.ReadFloat() > ent.lastWireOverlayUpdate then return end
 		if ent.OverlayData then
 			net.Start( "wire_overlay_data" )
 				net.WriteEntity( ent )
