@@ -338,7 +338,6 @@ function ENT:SetOverlayData( data )
 	if data and data.txt and #data.txt > 12000 then
 		data.txt = string.sub(data.txt,1,12000)
 	end
-	if data == self.OverlayData then return end
 	self.OverlayData = data
 	if CLIENT then return end
 	self.lastWireOverlayUpdate = CurTime()
