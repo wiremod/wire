@@ -326,6 +326,8 @@ function ENT:SetOverlayText( txt )
 	self.OverlayData.txt = txt
 	if CLIENT then return end
 	self.lastWireOverlayUpdate = CurTime()
+	if self.WireLastOverlayUpdateTick == engine.TickCount() then return end
+	self.WireLastOverlayUpdateTick = engine.TickCount()
 	if #self.playersRequestingOverlayNumeric == 0 then return end
 	cleanInvalidPlayers(self)
 	net.Start( "wire_overlay_txt", true )
@@ -341,6 +343,8 @@ function ENT:SetOverlayData( data )
 	self.OverlayData = data
 	if CLIENT then return end
 	self.lastWireOverlayUpdate = CurTime()
+	if self.WireLastOverlayUpdateTick == engine.TickCount() then return end
+	self.WireLastOverlayUpdateTick = engine.TickCount()
 	if #self.playersRequestingOverlayNumeric == 0 then return end
 	cleanInvalidPlayers(self)
 	net.Start( "wire_overlay_data", true )
@@ -394,6 +398,7 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 	self.WireDebugName = self.WireDebugName or (self.PrintName and self.PrintName:sub(6)) or self:GetClass():gsub("gmod_wire", "")
+	self.WireLastOverlayUpdateTick = 0
 end
 
 function ENT:OnRemove()
