@@ -421,6 +421,15 @@ function ENT:PreEntityCopy()
 	end
 end
 
+function ENT:OnEntityCopyTableFinish(dupedata)
+	-- Called by Garry's duplicator, to modify the table that will be saved about an ent
+
+	-- Remove anything with non-string keys, or util.TableToJSON will crash the game
+	dupedata.OverlayData = nil
+	dupedata.lastWireOverlayUpdate = nil
+	dupedata.playersRequestingOverlayNumeric = nil
+end
+
 local function EntityLookup(CreatedEntities)
 	return function(id, default)
 		if id == nil then return default end
