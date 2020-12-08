@@ -335,8 +335,8 @@ function ENT:SetOverlayText( txt )
 end
 
 function ENT:SetOverlayData( data )
-	if data and self.OverlayData.txt and #self.OverlayData.txt > 12000 then
-		self.OverlayData.txt = string.sub(self.OverlayData.txt,1,12000)
+	if data and data.txt and #data.txt > 12000 then
+		data.txt = string.sub(data.txt,1,12000)
 	end
 	if data == self.OverlayData then return end
 	self.OverlayData = data
