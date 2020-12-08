@@ -284,7 +284,7 @@ if CLIENT then
 		local ent = net.ReadEntity()
 		if IsValid( ent ) then
 			ent.OverlayData = net.ReadTable()
-			self.lastWireOverlayUpdate = CurTime()
+			ent.lastWireOverlayUpdate = CurTime()
 		end
 	end )
 
@@ -295,7 +295,7 @@ if CLIENT then
 				ent.OverlayData = {}
 			end
 			ent.OverlayData.txt = net.ReadString()
-			self.lastWireOverlayUpdate = CurTime()
+			ent.lastWireOverlayUpdate = CurTime()
 		end
 	end )
 end
