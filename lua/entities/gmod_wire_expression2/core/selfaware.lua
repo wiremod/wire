@@ -91,30 +91,15 @@ end)
 /******************************************************************************/
 -- Name functions
 
--- Set the name of the E2 itself
-e2function void setName( string name )
-	local e = self.entity
-	if( #name > 12000 ) then
-		name = string.sub( name, 1, 12000 )
-	end
-	if (e.name == name) then return end
-	if (name == "generic" or name == "") then
-		name = "generic"
-		e.WireDebugName = "Expression 2"
-	else
-		e.WireDebugName = "E2 - " .. name
-	end
-	e.name = name
-	e:SetNWString( "name", e.name )
-	e:SetOverlayText(name)
-end
 
--- Set the name of a entity (component name if not E2)
-e2function void entity:setName( string name )
-	if not IsValid(this) or E2Lib.getOwner(self, this) ~= self.player then return end
-	if( #name > 12000 ) then
+local function doSetName(self,this,name)
+	if self.data.setNameNext and self.data.setNameNext > CurTime() then return end
+	self.data.setNameNext = CurTime() + 1
+
+	if #name > 12000 then
 		name = string.sub( name, 1, 12000 )
 	end
+
 	if this:GetClass() == "gmod_wire_expression2" then
 		if this.name == name then return end
 		if name == "generic" or name == "" then
@@ -132,6 +117,17 @@ e2function void entity:setName( string name )
 		this:SetNWString("WireName", name)
 		duplicator.StoreEntityModifier(this, "WireName", { name = name })
 	end
+end
+
+-- Set the name of the E2 itself
+e2function void setName( string name )
+	doSetName(self,self.entity,name)
+end
+
+-- Set the name of an entity (component name if not E2)
+e2function void entity:setName( string name )
+	if not IsValid(this) or E2Lib.getOwner(self, this) ~= self.player then return end
+	doSetName(self,this,name)
 end
 
 -- Get the name of another E2 or compatible entity or component name of wiremod components
