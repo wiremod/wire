@@ -123,8 +123,7 @@ end
 local SysTime = SysTime
 
 function ENT:Execute()
-	if self.error then return end
-	if self.context.resetting then return end
+	if self.error or not self.context or self.context.resetting then return end
 
 	for k, v in pairs(self.tvars) do
 		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])

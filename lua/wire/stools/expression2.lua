@@ -80,7 +80,7 @@ if SERVER then
 			net.WriteUInt(target:EntIndex(), 16)
 			filepath = filepath or ""
 			net.WriteUInt(#filepath, 32)
-			net.WriteData(filepath, #filepath)
+			if #filepath>0 then net.WriteData(filepath, #filepath) end
 			net.WriteInt( target.buffer and tonumber(util.CRC( target.buffer )) or -1, 32 ) -- send the hash so we know if there's any difference
 		net.Send(ply)
 	end
@@ -571,7 +571,8 @@ elseif CLIENT then
 
 	net.Receive("wire_expression2_tool_upload", function(len, ply)
 		local ent = net.ReadUInt(16)
-		local filepath = net.ReadData(net.ReadUInt(32))
+		local filepathlen = net.ReadUInt(32)
+		local filepath = filepathlen>0 and net.ReadData(filepathlen) or ""
 		local hash = net.ReadInt(32)
 		if filepath ~= "" then
 			if filepath and file.Exists(filepath, "DATA") then
