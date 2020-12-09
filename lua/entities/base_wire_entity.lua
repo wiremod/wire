@@ -201,12 +201,11 @@ if CLIENT then
 
 		if self.playerWasLookingAtMe ~= trbool then
 			net.Start( "wire_overlay_request" )
-				net.WriteEntity(self)
-				net.WriteBool(trbool)
-				if self.OverlayData and self.OverlayData.__time then
-					net.WriteFloat(self.OverlayData.__time)
+				if trbool then
+					net.WriteEntity(self)
+					net.WriteBool(true)
 				else
-					net.WriteFloat(0)
+					net.WriteBool(false)
 				end
 			net.SendToServer()
 			self.playerWasLookingAtMe = trbool
@@ -310,7 +309,7 @@ function ENT:SetOverlayText( txt )
 	end
 	if txt == self.OverlayData.txt then return end
 	self.OverlayData.txt = txt
-	self.OverlayData.__time = CurTime()
+	self.OverlayData.__dirty = true
 end
 
 function ENT:SetOverlayData( data )
@@ -318,7 +317,7 @@ function ENT:SetOverlayData( data )
 		data.txt = string.sub(data.txt,1,12000)
 	end
 	self.OverlayData = data
-	self.OverlayData.__time = CurTime()
+	self.OverlayData.__dirty = true
 end
 
 function ENT:GetOverlayData()
@@ -338,61 +337,51 @@ util.AddNetworkString( "wire_overlay_request" )
 -- Other functions
 --------------------------------------------------------------------------------
 
--- this table keeps a list of players looking at each entity
--- table structure: overlayRequests[ent] = {ply1,ply2,...}
-local overlayRequests = {}
+-- this table keeps a list of players looking at wire entities
+-- table structure: overlayRequests[ply] = ent
+local overlayRequests = WireLib.RegisterPlayerTable()
 
-local function syncWireOverlay( ent, use_udp, players )
-	if not players then 
-		players = overlayRequests[ent]
-		if not players then return end
-	end
-
-	net.Start( "wire_overlay_data", use_udp )
+local function syncWireOverlay( ply, ent )
+	net.Start( "wire_overlay_data" )
 		net.WriteEntity( ent )
 		net.WriteTable( ent.OverlayData )
-	net.Send(players)
+	net.Send(ply)
 end
 
-local function syncWireOverlayTimer()
-	for ent, players in pairs( overlayRequests ) do
-		if not ent.previousWireOverlaySync or ent.OverlayData.__time > ent.previousWireOverlaySync then
-			syncWireOverlay( ent, true, players )
-			ent.previousWireOverlaySync = CurTime()
+local function sendWireOverlays()
+	for ply, ent in pairs(overlayRequests) do
+		if ent and ent:IsValid() then
+			if ent.OverlayData.__dirty then
+				syncWireOverlay( ply, ent )
+			end
+		else
+			overlayRequests[ply] = nil
 		end
+	end
+	if next(overlayRequests) then
+		for ply, ent in pairs(overlayRequests) do
+			ent.OverlayData.__dirty = false
+		end
+	else
+		timer.Remove( "WireOverlayUpdate" )
 	end
 end
 
 net.Receive( "wire_overlay_request", function( len, ply )
-	local ent = net.ReadEntity()
-	if not IsValid(ent) then return end
 	if net.ReadBool() then
-		if not overlayRequests[ent] then overlayRequests[ent] = {} end
-		table.insert(overlayRequests[ent],ply)
+		local ent = net.ReadEntity()
+		if not (IsValid(ent) and ent.OverlayData) then return end
 
-		ply.lastWireOverlayUpdate = net.ReadFloat()
-
-		if ply.lastWireOverlayUpdate < ent.OverlayData.__time then
-			-- sync immediately to this player
-			syncWireOverlay( ent, false, ply )
-		end
+		overlayRequests[ ply ] = ent
+		syncWireOverlay( ply, ent) 
 
 		if not timer.Exists( "WireOverlayUpdate" ) then
-			-- activate timer
 			timer.Create( "WireOverlayUpdate", 0.1, 0, syncWireOverlayTimer )
 		end
-	elseif overlayRequests[ent] then
-		table.RemoveByValue(overlayRequests[ent],ply)
-		if not next(overlayRequests[ent]) then
-			ent.previousWireOverlaySync = nil
-			overlayRequests[ent] = nil
-
-			if not next(overlayRequests) then
-				timer.Remove( "WireOverlayUpdate" )
-			end
-		end
+	else
+		overlayRequests[ply] = nil
 	end
-end )
+end)
 
 function ENT:Initialize()
 	BaseClass.Initialize(self)
