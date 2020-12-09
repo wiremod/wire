@@ -325,9 +325,8 @@ function ENT:SetOverlayText( txt )
 	if txt == self.OverlayData.txt then return end
 	self.OverlayData.txt = txt
 	if CLIENT then return end
+	if self.lastWireOverlayUpdate < (CurTime()+0.1) then return end
 	self.lastWireOverlayUpdate = CurTime()
-	if self.WireLastOverlayUpdateTick == engine.TickCount() then return end
-	self.WireLastOverlayUpdateTick = engine.TickCount()
 	if #self.playersRequestingOverlayNumeric == 0 then return end
 	cleanInvalidPlayers(self)
 	net.Start( "wire_overlay_txt", true )
@@ -342,9 +341,8 @@ function ENT:SetOverlayData( data )
 	end
 	self.OverlayData = data
 	if CLIENT then return end
+	if self.lastWireOverlayUpdate < (CurTime()+0.1) then return end
 	self.lastWireOverlayUpdate = CurTime()
-	if self.WireLastOverlayUpdateTick == engine.TickCount() then return end
-	self.WireLastOverlayUpdateTick = engine.TickCount()
 	if #self.playersRequestingOverlayNumeric == 0 then return end
 	cleanInvalidPlayers(self)
 	net.Start( "wire_overlay_data", true )
@@ -398,7 +396,6 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 	self.WireDebugName = self.WireDebugName or (self.PrintName and self.PrintName:sub(6)) or self:GetClass():gsub("gmod_wire", "")
-	self.WireLastOverlayUpdateTick = 0
 end
 
 function ENT:OnRemove()
@@ -428,11 +425,11 @@ end
 
 function ENT:OnEntityCopyTableFinish(dupedata)
 	-- Called by Garry's duplicator, to modify the table that will be saved about an ent
-
 	-- Remove anything with non-string keys, or util.TableToJSON will crash the game
 	dupedata.OverlayData = nil
 	dupedata.lastWireOverlayUpdate = nil
 	dupedata.playersRequestingOverlayNumeric = nil
+	dupedata.WireDebugName = nil
 end
 
 local function EntityLookup(CreatedEntities)
