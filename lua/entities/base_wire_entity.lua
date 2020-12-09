@@ -332,7 +332,6 @@ if CLIENT then return end -- no more client
 --------------------------------------------------------------------------------
 
 util.AddNetworkString( "wire_overlay_data" )
-util.AddNetworkString( "wire_overlay_txt" )
 util.AddNetworkString( "wire_overlay_request" )
 
 --------------------------------------------------------------------------------
