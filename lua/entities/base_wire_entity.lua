@@ -325,7 +325,7 @@ function ENT:SetOverlayText( txt )
 	if txt == self.OverlayData.txt then return end
 	self.OverlayData.txt = txt
 	if CLIENT then return end
-	if self.lastWireOverlayUpdate < (CurTime()+0.1) then return end
+	if self.lastWireOverlayUpdate + 0.1 > CurTime() then return end
 	self.lastWireOverlayUpdate = CurTime()
 	if #self.playersRequestingOverlayNumeric == 0 then return end
 	cleanInvalidPlayers(self)
@@ -341,7 +341,7 @@ function ENT:SetOverlayData( data )
 	end
 	self.OverlayData = data
 	if CLIENT then return end
-	if self.lastWireOverlayUpdate < (CurTime()+0.1) then return end
+	if self.lastWireOverlayUpdate + 0.1 > CurTime() then return end
 	self.lastWireOverlayUpdate = CurTime()
 	if #self.playersRequestingOverlayNumeric == 0 then return end
 	cleanInvalidPlayers(self)
