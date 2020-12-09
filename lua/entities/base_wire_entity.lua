@@ -203,7 +203,11 @@ if CLIENT then
 			net.Start( "wire_overlay_request" )
 				net.WriteEntity(self)
 				net.WriteBool(trbool)
-				net.WriteFloat(self.lastWireOverlayUpdate)
+				if self.OverlayData and self.OverlayData.__time then
+					net.WriteFloat(self.OverlayData.__time)
+				else
+					net.WriteFloat(0)
+				end
 			net.SendToServer()
 			self.playerWasLookingAtMe = trbool
 		end
@@ -284,18 +288,6 @@ if CLIENT then
 		local ent = net.ReadEntity()
 		if IsValid( ent ) then
 			ent.OverlayData = net.ReadTable()
-			ent.lastWireOverlayUpdate = CurTime()
-		end
-	end )
-
-	net.Receive( "wire_overlay_txt", function( len )
-		local ent = net.ReadEntity()
-		if IsValid( ent ) then
-			if not ent.OverlayData then
-				ent.OverlayData = {}
-			end
-			ent.OverlayData.txt = net.ReadString()
-			ent.lastWireOverlayUpdate = CurTime()
 		end
 	end )
 end
@@ -309,12 +301,6 @@ end
 -- It allows us to optionally send values rather than entire strings, which saves networking
 -- It also allows us to only update overlays when someone is looking at the entity.
 
-local function cleanInvalidPlayers(ent)
-	for k, v in ipairs( ent.playersRequestingOverlayNumeric ) do
-		if !IsValid(v) then table.remove( ent.playersRequestingOverlayNumeric, k ) end
-	end
-end
-
 function ENT:SetOverlayText( txt )
 	if not self.OverlayData then
 		self.OverlayData = {}
@@ -324,15 +310,7 @@ function ENT:SetOverlayText( txt )
 	end
 	if txt == self.OverlayData.txt then return end
 	self.OverlayData.txt = txt
-	if CLIENT then return end
-	if self.lastWireOverlayUpdate + 0.1 > CurTime() then return end
-	self.lastWireOverlayUpdate = CurTime()
-	if #self.playersRequestingOverlayNumeric == 0 then return end
-	cleanInvalidPlayers(self)
-	net.Start( "wire_overlay_txt", true )
-		net.WriteEntity( self )
-		net.WriteString( self.OverlayData.txt )
-	net.Send(self.playersRequestingOverlayNumeric)
+	self.OverlayData.__time = CurTime()
 end
 
 function ENT:SetOverlayData( data )
@@ -340,15 +318,7 @@ function ENT:SetOverlayData( data )
 		data.txt = string.sub(data.txt,1,12000)
 	end
 	self.OverlayData = data
-	if CLIENT then return end
-	if self.lastWireOverlayUpdate + 0.1 > CurTime() then return end
-	self.lastWireOverlayUpdate = CurTime()
-	if #self.playersRequestingOverlayNumeric == 0 then return end
-	cleanInvalidPlayers(self)
-	net.Start( "wire_overlay_data", true )
-		net.WriteEntity( self )
-		net.WriteTable( self.OverlayData )
-	net.Send(self.playersRequestingOverlayNumeric)
+	self.OverlayData.__time = CurTime()
 end
 
 function ENT:GetOverlayData()
@@ -369,24 +339,59 @@ util.AddNetworkString( "wire_overlay_request" )
 -- Other functions
 --------------------------------------------------------------------------------
 
-ENT.playersRequestingOverlayNumeric = {}
+-- this table keeps a list of players looking at each entity
+-- table structure: overlayRequests[ent] = {ply1,ply2,...}
+local overlayRequests = {}
+
+local function syncWireOverlay( ent, use_udp, players )
+	if not players then 
+		players = overlayRequests[ent]
+		if not players then return end
+	end
+
+	net.Start( "wire_overlay_data", use_udp )
+		net.WriteEntity( ent )
+		net.WriteTable( ent.OverlayData )
+	net.Send(players)
+end
+
+local function syncWireOverlayTimer()
+	for ent, players in pairs( overlayRequests ) do
+		if not ent.previousWireOverlaySync or ent.OverlayData.__time > ent.previousWireOverlaySync then
+			syncWireOverlay( ent, true, players )
+			ent.previousWireOverlaySync = CurTime()
+		end
+	end
+end
 
 net.Receive( "wire_overlay_request", function( len, ply )
 	local ent = net.ReadEntity()
 	if not IsValid(ent) then return end
 	if net.ReadBool() then
-		if not table.HasValue(ent.playersRequestingOverlayNumeric,ply) then
-			table.insert(ent.playersRequestingOverlayNumeric,ply)
+		if not overlayRequests[ent] then overlayRequests[ent] = {} end
+		table.insert(overlayRequests[ent],ply)
+
+		ply.lastWireOverlayUpdate = net.ReadFloat()
+
+		if ply.lastWireOverlayUpdate < ent.OverlayData.__time then
+			-- sync immediately to this player
+			syncWireOverlay( ent, false, ply )
 		end
-		if net.ReadFloat() > ent.lastWireOverlayUpdate then return end
-		if ent.OverlayData then
-			net.Start( "wire_overlay_data" )
-				net.WriteEntity( ent )
-				net.WriteTable( ent.OverlayData )
-			net.Send(ply)
+
+		if not timer.Exists( "WireOverlayUpdate" ) then
+			-- activate timer
+			timer.Create( "WireOverlayUpdate", 0.1, 0, syncWireOverlayTimer )
 		end
-	else
-		table.RemoveByValue(ent.playersRequestingOverlayNumeric,ply)
+	elseif overlayRequests[ent] then
+		table.RemoveByValue(overlayRequests[ent],ply)
+		if not next(overlayRequests[ent]) then
+			ent.previousWireOverlaySync = nil
+			overlayRequests[ent] = nil
+
+			if not next(overlayRequests) then
+				timer.Remove( "WireOverlayUpdate" )
+			end
+		end
 	end
 end )
 
@@ -400,6 +405,7 @@ end
 
 function ENT:OnRemove()
 	WireLib.Remove(self)
+	overlayRequests[self] = nil
 end
 
 function ENT:OnRestore()
@@ -428,7 +434,6 @@ function ENT:OnEntityCopyTableFinish(dupedata)
 	-- Remove anything with non-string keys, or util.TableToJSON will crash the game
 	dupedata.OverlayData = nil
 	dupedata.lastWireOverlayUpdate = nil
-	dupedata.playersRequestingOverlayNumeric = nil
 	dupedata.WireDebugName = nil
 end
 
