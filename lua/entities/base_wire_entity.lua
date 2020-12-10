@@ -346,7 +346,7 @@ local function syncWireOverlay( ply, ent )
 	net.Send(ply)
 end
 
-local function sendWireOverlays()
+local function syncWireOverlayTimer()
 	for ply, ent in pairs(overlayRequests) do
 		if ent and ent:IsValid() then
 			if ent.OverlayData.__dirty then
