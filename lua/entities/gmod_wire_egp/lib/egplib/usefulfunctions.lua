@@ -225,9 +225,12 @@ else
 			end
 		end)
 	end)
+
+	EGP.ScrHW = WireLib.RegisterPlayerTable()
+
 	concommand.Add("EGP_ScrWH",function(ply,cmd,args)
 		if (args and tonumber(args[1]) and tonumber(args[2])) then
-			ply.EGP_ScrHW = { tonumber(args[1]), tonumber(args[2]) }
+			EGP.ScrHW[ply] = { tonumber(args[1]), tonumber(args[2]) }
 		end
 	end)
 end

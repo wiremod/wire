@@ -8,7 +8,7 @@ E2Lib.RegisterExtension( "http", false, "Lets E2 chips make web requests to the 
 local cvar_delay = CreateConVar( "wire_expression2_http_delay", "3", FCVAR_ARCHIVE )
 local cvar_timeout = CreateConVar( "wire_expression2_http_timeout", "15", FCVAR_ARCHIVE )
 
-local requests = {}
+local requests = WireLib.RegisterPlayerTable()
 local run_on = {
 	ents = {}
 }

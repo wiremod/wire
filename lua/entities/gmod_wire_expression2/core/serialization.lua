@@ -6,7 +6,7 @@ local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
 --[[
 wire_expression2_glon = {}
 wire_expression2_glon.history = {}
-wire_expression2_glon.players = {}
+wire_expression2_glon.players = WireLib.RegisterPlayerTable()
 
 local function logGlonCall( self, glonString, ret, safeGlonObject )
 	local logEntry =

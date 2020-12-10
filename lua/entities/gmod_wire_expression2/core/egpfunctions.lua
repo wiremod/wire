@@ -1002,18 +1002,18 @@ end
 __e2setcost(10)
 
 e2function vector2 egpScrSize( entity ply )
-	if (!ply or !ply:IsValid() or !ply:IsPlayer() or !ply.EGP_ScrHW) then return {-1,-1} end
-	return ply.EGP_ScrHW
+	if (!ply or !ply:IsValid() or !ply:IsPlayer() or !EGP.ScrHW[ply]) then return {-1,-1} end
+	return EGP.ScrHW[ply]
 end
 
 e2function number egpScrW( entity ply )
-	if (!ply or !ply:IsValid() or !ply:IsPlayer() or !ply.EGP_ScrHW[1]) then return -1 end
-	return ply.EGP_ScrHW[1]
+	if (!ply or !ply:IsValid() or !ply:IsPlayer() or !EGP.ScrHW[ply]) then return -1 end
+	return EGP.ScrHW[ply][1]
 end
 
 e2function number egpScrH( entity ply )
-	if (!ply or !ply:IsValid() or !ply:IsPlayer() or !ply.EGP_ScrHW[2]) then return -1 end
-	return ply.EGP_ScrHW[2]
+	if (!ply or !ply:IsValid() or !ply:IsPlayer() or !EGP.ScrHW[ply]) then return -1 end
+	return EGP.ScrHW[ply][2]
 end
 
 __e2setcost(15)
