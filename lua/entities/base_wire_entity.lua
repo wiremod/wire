@@ -200,8 +200,8 @@ if CLIENT then
 		if self.playerWasLookingAtMe ~= trbool then
 			net.Start( "wire_overlay_request" )
 				if trbool then
-					net.WriteEntity(self)
 					net.WriteBool(true)
+					net.WriteEntity(self)
 				else
 					net.WriteBool(false)
 				end
