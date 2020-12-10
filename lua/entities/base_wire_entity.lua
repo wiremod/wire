@@ -367,13 +367,10 @@ end
 net.Receive( "wire_overlay_request", function( len, ply )
 	if net.ReadBool() then
 		local ent = net.ReadEntity()
+		local lastUpdate = net.ReadFloat()
 		if not (IsValid(ent) and ent.OverlayData and ent.OverlayData.__time) then return end
 
-		local lastUpdate = net.ReadFloat()
-		if ent.OverlayData.__time > lastUpdate then
-			syncWireOverlay( ply, ent )
-		end
-		overlayRequests[ ply ] = { ent.OverlayData.__time, ent }
+		overlayRequests[ ply ] = { lastUpdate, ent }
 
 		if not timer.Exists( "WireOverlayUpdate" ) then
 			timer.Create( "WireOverlayUpdate", 0.1, 0, syncWireOverlayTimer )
