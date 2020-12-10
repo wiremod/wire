@@ -367,8 +367,8 @@ end
 net.Receive( "wire_overlay_request", function( len, ply )
 	if net.ReadBool() then
 		local ent = net.ReadEntity()
-		local lastUpdate = net.ReadFloat()
 		if not (IsValid(ent) and ent.OverlayData and ent.OverlayData.__time) then return end
+		local lastUpdate = net.ReadFloat()
 
 		overlayRequests[ ply ] = { lastUpdate, ent }
 
