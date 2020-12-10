@@ -202,6 +202,7 @@ if CLIENT then
 				if trbool then
 					net.WriteBool(true)
 					net.WriteEntity(self)
+					net.WriteFloat( self.OverlayData and self.OverlayData.__time or 0 )
 				else
 					net.WriteBool(false)
 				end
@@ -307,7 +308,7 @@ function ENT:SetOverlayText( txt )
 	end
 	if txt == self.OverlayData.txt then return end
 	self.OverlayData.txt = txt
-	self.OverlayData.__dirty = true
+	self.OverlayData.__time = CurTime()
 end
 
 function ENT:SetOverlayData( data )
@@ -315,7 +316,7 @@ function ENT:SetOverlayData( data )
 		data.txt = string.sub(data.txt,1,12000)
 	end
 	self.OverlayData = data
-	self.OverlayData.__dirty = true
+	self.OverlayData.__time = CurTime()
 end
 
 function ENT:GetOverlayData()
@@ -336,7 +337,7 @@ util.AddNetworkString( "wire_overlay_request" )
 --------------------------------------------------------------------------------
 
 -- this table keeps a list of players looking at wire entities
--- table structure: overlayRequests[ply] = ent
+-- table structure: overlayRequests[ply] = { lastUpdate, ent }
 local overlayRequests = WireLib.RegisterPlayerTable()
 
 local function syncWireOverlay( ply, ent )
@@ -347,20 +348,18 @@ local function syncWireOverlay( ply, ent )
 end
 
 local function syncWireOverlayTimer()
-	for ply, ent in pairs(overlayRequests) do
-		if ent and ent:IsValid() then
-			if ent.OverlayData.__dirty then
+	for ply, row in pairs(overlayRequests) do
+		local ent = row[2]
+		if IsValid(ent) then
+			if ent.OverlayData and ent.OverlayData.__time and ent.OverlayData.__time > row[1] then
 				syncWireOverlay( ply, ent )
+				row[1] = ent.OverlayData.__time
 			end
 		else
 			overlayRequests[ply] = nil
 		end
 	end
-	if next(overlayRequests) then
-		for ply, ent in pairs(overlayRequests) do
-			ent.OverlayData.__dirty = false
-		end
-	else
+	if not next(overlayRequests) then
 		timer.Remove( "WireOverlayUpdate" )
 	end
 end
@@ -370,8 +369,12 @@ net.Receive( "wire_overlay_request", function( len, ply )
 		local ent = net.ReadEntity()
 		if not (IsValid(ent) and ent.OverlayData) then return end
 
-		overlayRequests[ ply ] = ent
-		syncWireOverlay( ply, ent) 
+		local lastUpdate = net.ReadFloat()
+		overlayRequests[ ply ] = { lastUpdate, ent }
+
+		if ent.OverlayData and ent.OverlayData.__time and ent.OverlayData.__time > lastUpdate then
+			syncWireOverlay( ply, ent )
+		end
 
 		if not timer.Exists( "WireOverlayUpdate" ) then
 			timer.Create( "WireOverlayUpdate", 0.1, 0, syncWireOverlayTimer )
