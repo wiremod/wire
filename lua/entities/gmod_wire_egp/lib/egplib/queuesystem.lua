@@ -130,10 +130,10 @@ end
 timer.Create("EGP_Queue_Process", 1, 0, function()
 	local removetab = {}
 	for ply, tab in pairs(EGP.Queue) do
-		if not IsValid(ply) then
-			removetab[ply] = true
-		else
+		if IsValid(ply) then
 			EGP:SendQueueItem(ply)
+		else
+			removetab[ply] = true
 		end
 	end
 	for ply in pairs(removetab) do EGP.Queue[ply] = nil end
