@@ -43,7 +43,14 @@ end
 
 function SWEP:Think()
 	if(self.Pointing && self.Receiver && self.Receiver:IsValid())then
-		local trace = self:GetOwner():GetEyeTrace()
+		local owner = self:GetOwner()
+		local trace
+		if owner then
+			trace = owner:GetEyeTrace()
+		else
+			local att = self:GetAttachment(self:LookupAttachment("muzzle"))
+			trace = util.TraceLine(att.Pos, att.Pos+att.Ang:GetForward()*16384, self)
+		end
 		local point = trace.HitPos
 		if (COLOSSAL_SANDBOX) then point = point * 6.25 end
 		Wire_TriggerOutput(self.Receiver, "X", point.x)
