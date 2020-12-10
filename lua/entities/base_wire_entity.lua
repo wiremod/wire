@@ -340,20 +340,16 @@ util.AddNetworkString( "wire_overlay_request" )
 -- table structure: overlayRequests[ply] = { lastUpdate, ent }
 local overlayRequests = WireLib.RegisterPlayerTable()
 
-local function syncWireOverlay( ply, ent )
-	net.Start( "wire_overlay_data" )
-		net.WriteEntity( ent )
-		net.WriteTable( ent.OverlayData )
-	net.Send(ply)
-end
-
 local function syncWireOverlayTimer()
 	for ply, row in pairs(overlayRequests) do
 		local ent = row[2]
 		if ent and ent:IsValid() then
 			local overlayData = ent.OverlayData
 			if overlayData and overlayData.__time and overlayData.__time > row[1] then
-				syncWireOverlay( ply, ent )
+				net.Start( "wire_overlay_data" )
+					net.WriteEntity( ent )
+					net.WriteTable( overlayData )
+				net.Send(ply)
 				row[1] = overlayData.__time
 			end
 		else
