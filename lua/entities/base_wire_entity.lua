@@ -350,10 +350,11 @@ end
 local function syncWireOverlayTimer()
 	for ply, row in pairs(overlayRequests) do
 		local ent = row[2]
-		if IsValid(ent) then
-			if ent.OverlayData and ent.OverlayData.__time and ent.OverlayData.__time > row[1] then
+		if ent and ent:IsValid() then
+			local overlayData = ent.OverlayData
+			if overlayData and overlayData.__time and overlayData.__time > row[1] then
 				syncWireOverlay( ply, ent )
-				row[1] = ent.OverlayData.__time
+				row[1] = overlayData.__time
 			end
 		else
 			overlayRequests[ply] = nil
@@ -367,7 +368,7 @@ end
 net.Receive( "wire_overlay_request", function( len, ply )
 	if net.ReadBool() then
 		local ent = net.ReadEntity()
-		if not (IsValid(ent) and ent.OverlayData and ent.OverlayData.__time) then return end
+		if not (ent and ent:IsValid()) then return end
 		local lastUpdate = net.ReadFloat()
 
 		overlayRequests[ ply ] = { lastUpdate, ent }
