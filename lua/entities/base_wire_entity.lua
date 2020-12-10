@@ -9,8 +9,6 @@ ENT.AdminOnly = false
 
 ENT.IsWire = true
 
-ENT.lastWireOverlayUpdate = 0
-
 if CLIENT then
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
 
