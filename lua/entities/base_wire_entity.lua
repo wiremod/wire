@@ -391,7 +391,6 @@ end
 
 function ENT:OnRemove()
 	WireLib.Remove(self)
-	overlayRequests[self] = nil
 end
 
 function ENT:OnRestore()
