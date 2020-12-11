@@ -16,13 +16,7 @@ function SWEP:Setup(ply)
 			self.Attach = attachmentIndex
 		end
 	end
-	if ply:IsValid() then
-		local attachmentIndex = ply:LookupAttachment("anim_attachment_RH")
-		if ply:GetAttachment(attachmentIndex) then
-			self.WM = ply
-			self.WAttach = attachmentIndex
-		end
-	end
+	self.WAttach = self:LookupAttachment("muzzle")
 end
 function SWEP:Initialize()
 	self:Setup(self:GetOwner())
@@ -33,18 +27,27 @@ end
 
 function SWEP:ViewModelDrawn()
 	if self.Weapon:GetNWBool("Active") and self.VM then
-        //Draw the laser beam.
-        render.SetMaterial( LASER )
+		-- Draw the laser beam.
+		render.SetMaterial( LASER )
 		render.DrawBeam(self.VM:GetAttachment(self.Attach).Pos, self:GetOwner():GetEyeTrace().HitPos, 2, 0, 12.5, Color(255, 0, 0, 255))
-    end
+	end
 end
 function SWEP:DrawWorldModel()
 	self.Weapon:DrawModel()
-	if self.Weapon:GetNWBool("Active") and self.WM then
-        //Draw the laser beam.
-        render.SetMaterial( LASER )
-		local posang = self.WM:GetAttachment(self.WAttach)
-		if not posang then self.WM = nil ErrorNoHalt("Laserpointer CL: Attachment lost, did they change model or something?\n") return end
-		render.DrawBeam(posang.Pos + posang.Ang:Forward()*10 + posang.Ang:Up()*4.4 + posang.Ang:Right(), self:GetOwner():GetEyeTrace().HitPos, 2, 0, 12.5, Color(255, 0, 0, 255))
-    end
+	if self.Weapon:GetNWBool("Active") then
+		local att = self:GetAttachment(self.WAttach)
+		if not att then return end
+		local owner = self:GetOwner()
+		local startpos = att.Pos
+		local endpos
+		if IsValid(owner) then
+			endpos = owner:GetEyeTrace().HitPos
+		else
+			local tr = util.TraceLine({start = att.Pos, endpos = att.Pos+att.Ang:Forward()*16384, filter = self})
+			endpos = tr.HitPos
+		end
+		-- Draw the laser beam.
+		render.SetMaterial( LASER )
+		render.DrawBeam(startpos, endpos, 2, 0, 12.5, Color(255, 0, 0, 255))
+	end
 end
