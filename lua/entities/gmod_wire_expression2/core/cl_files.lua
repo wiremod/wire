@@ -16,7 +16,6 @@ local allowed_directories = { //prefix with >(allowed directory)/file.txt for fi
 	["cpushared"] = "cpuchip/e2shared",
 	["gpushared"] = "gpuchip/e2shared",
 	["spushared"] = "spuchip/e2shared",
-	["dupeshared"] = "adv_duplicator/e2shared"
 }
 
 for _,dir in pairs( allowed_directories ) do
