@@ -37,12 +37,13 @@ function SWEP:DrawWorldModel()
 	if self.Weapon:GetNWBool("Active") then
 		local att = self:GetAttachment(self.WAttach)
 		if not att then return end
+		local owner = self:GetOwner()
 		local startpos = att.Pos
 		local endpos
-		if self:GetOwner() then
-			endpos = self:GetOwner():GetEyeTrace().HitPos
+		if IsValid(owner) then
+			endpos = owner:GetEyeTrace().HitPos
 		else
-			local tr = util.TraceLine(att.Pos, att.Pos+att.Ang:GetForward()*16384, self)
+			local tr = util.TraceLine({start = att.Pos, endpos = att.Pos+att.Ang:Forward()*16384, filter = self})
 			endpos = tr.HitPos
 		end
 		-- Draw the laser beam.
