@@ -555,12 +555,13 @@ local ids = {
 	["HitBoxBone"] = "n"
 }
 
-local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
+
+local newE2Table = E2Lib.newE2Table
 
 -- Converts the ranger into a table. This allows you to manually get any and all raw data from the trace.
 e2function table ranger:toTable()
 	if not this then return {} end
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	local size = 0
 	for k,v in pairs( this ) do
 		if (ids[k]) then
