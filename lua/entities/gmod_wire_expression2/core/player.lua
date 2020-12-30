@@ -693,16 +693,27 @@ end
 
 local DeathAlert = {}
 local RespawnAlert = {}
-local DeathList = { last = { timestamp = 0, victim = NULL, inflictor = NULL, attacker = NULL } }
-local RespawnList = { last = { timestamp = 0, ply = NULL } }
+local DeathList = WireLib.RegisterPlayerTable() -- See PR: https://github.com/wiremod/wire/pull/2110, This automatically cleans itself up when a player leaves.
+DeathList.last = {
+	timestamp = 0,
+	victim = NULL,
+	inflictor = NULL,
+	attacker = NULL
+}
+local RespawnList = WireLib.RegisterPlayerTable()
+RespawnList.last = {
+	timestamp = 0,
+	ply = NULL
+}
 
 hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
-	local entry = {}
-	entry.victim = victim
-	entry.inflictor = inflictor
-	entry.timestamp = CurTime()
-	entry.attacker = attacker
-	DeathList[victim] = entry -- victim's death is saved in victims death list.
+	local entry = {
+		inflictor = inflictor,
+		timestamp = CurTime(),
+		attacker = attacker,
+		victim = victim
+	}
+	DeathList[victim] = entry -- victim's death is saved as their most recent death
 	DeathList.last = entry -- the most recent death's table is stored here for later use.
 	for e2 in next,DeathAlert do
 		if IsValid(e2) then
@@ -716,9 +727,10 @@ hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
 end)
 
 hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(player)
-	local entry = {}
-	entry.ply = player
-	entry.timestamp = CurTime()
+	local entry = { 
+		timestamp = CurTime(),
+		ply = player
+	}
 	RespawnList[player] = entry
 	RespawnList.last = entry
 	for e2 in next,RespawnAlert do
@@ -815,6 +827,7 @@ end
 -- Destructor to avoid invalid chips being called in hooks.
 -- Moved down here to avoid memory leak with Death/Respawn alerts
 
+-- Maybe another E2Lib / WireLib function could be made for this to be automated?
 registerCallback("destruct",function(self)
 	KeyAlert[self.entity] = nil
 	--Used futher below. Didn't want to create more then one of these per file
@@ -823,10 +836,4 @@ registerCallback("destruct",function(self)
 	-- Even further below.
 	DeathAlert[self.entity] = nil
 	RespawnAlert[self.entity] = nil
-end)
-
--- Memory leak with the list of deaths, as before the list would just keep building as players left.
-hook.Add("PlayerDisconnected","Exp2DRCleanup",function(ply)
-	DeathList[ply] = nil
-	RespawnList[ply] = nil
 end)
