@@ -40,7 +40,7 @@ function E2Lib.setSubMaterial(ent, index, material)
 end
 
 -- Returns a default e2 table.
-function E2Lib.newE2Table(extend)
+function E2Lib.newE2Table()
 	return {n={},ntypes={},s={},stypes={},size=0}
 end
 

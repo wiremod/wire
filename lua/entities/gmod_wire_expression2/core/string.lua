@@ -464,7 +464,6 @@ local table_Copy = table.Copy
 -- Helper function for gmatch (below)
 -- (By Divran)
 local newE2Table = E2Lib.newE2Table
--- It seems we don't need 'istable' and 'depth' params in an e2 table. So we are going to disregard them.
 
 local function gmatch( self, this, pattern )
 	local ret = newE2Table()

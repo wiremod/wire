@@ -727,7 +727,7 @@ hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
 end)
 
 hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(player)
-	local entry = { 
+	local entry = {
 		timestamp = CurTime(),
 		ply = player
 	}
@@ -806,7 +806,7 @@ e2function number spawnClk()
 	return self.data.runByRespawned and 1 or 0
 end
 
-e2function void runOnSpawn(number activate) -- If 1, make the chip run on a player RESPAWNING. Not joining.
+e2function void runOnSpawn(number activate) -- If 1, make the chip run on a player respawning. Not joining.
 	RespawnAlert[self.entity] = active~=0 and true or nil
 end
 
@@ -814,7 +814,7 @@ e2function number lastSpawnTime()
 	return RespawnList.last.timestamp or 0
 end
 
-e2function number lastSpawnTime(entity ply) -- When the player provided last respawned. (Not joined)
+e2function number lastSpawnTime(entity ply)
 	return getRespawnEntry(ply,"timestamp") or 0
 end
 
@@ -830,10 +830,8 @@ end
 -- Maybe another E2Lib / WireLib function could be made for this to be automated?
 registerCallback("destruct",function(self)
 	KeyAlert[self.entity] = nil
-	--Used futher below. Didn't want to create more then one of these per file
 	spawnAlert[self.entity] = nil
 	leaveAlert[self.entity] = nil
-	-- Even further below.
 	DeathAlert[self.entity] = nil
 	RespawnAlert[self.entity] = nil
 end)
