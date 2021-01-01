@@ -63,7 +63,7 @@ if SERVER then
 	-- Default MakeEnt function, override to use a different MakeWire* function
 	function WireToolObj:MakeEnt( ply, model, Ang, trace )
 		local ent = WireLib.MakeWireEnt( ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars() )
-		if ent and ent.RestoreNetworkVars then ent:RestoreNetworkVars(self:GetDataTables()) end
+		if ent.RestoreNetworkVars then ent:RestoreNetworkVars(self:GetDataTables()) end
 		return ent
 	end
 
@@ -74,10 +74,8 @@ if SERVER then
 	--
 	-- to prevent update, set TOOL.NoLeftOnClass = true
 	function WireToolObj:LeftClick_Update( trace )
-		if trace.Entity:IsValid() then
-			if trace.Entity.Setup then trace.Entity:Setup(self:GetConVars()) end
-			if trace.Entity.RestoreNetworkVars then trace.Entity:RestoreNetworkVars(self:GetDataTables()) end
-		end
+		if trace.Entity.Setup then trace.Entity:Setup(self:GetConVars()) end
+		if trace.Entity.RestoreNetworkVars then trace.Entity:RestoreNetworkVars(self:GetDataTables()) end
 	end
 
 	--
@@ -91,7 +89,7 @@ if SERVER then
 		if self:GetClientNumber( "parent" ) == 1 then
 			if (trace.Entity:IsValid()) then
 				-- Nocollide the gate to the prop to make adv duplicator (and normal duplicator) find it
-				if (not self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1) then
+				if (!self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1) then
 					nocollide = constraint.NoCollide( ent, trace.Entity, 0,trace.PhysicsBone )
 				end
 
@@ -217,7 +215,7 @@ function WireToolObj:GetModel()
 	local model_convar = self:GetClientInfo( "model" )
 	if self.ClientConVar.modelsize then
 		local modelsize = self:GetClientInfo( "modelsize" )
-		if modelsize ~= "" then
+		if modelsize != "" then
 			local model = string.sub(model_convar, 1, -5) .."_".. modelsize .. string.sub(model_convar, -4)
 			if self:CheckValidModel(model) then return model end
 			model = string.GetPathFromFilename(model_convar) .. modelsize .."_".. string.GetFileFromFilename(model_convar)
@@ -282,6 +280,11 @@ if CLIENT then
 		surface.CreateFont("GmodToolScreen"..size, fonttab)
 	end
 
+	local iconparams = {
+		["$vertexcolor"] = 1,
+		["$vertexalpha"] = 1,
+		["$ignorez"] = 1 -- This is essential, since the base Gmod screen_bg has ignorez, otherwise it'll draw overtop of us
+	}
 	local txBackground = surface.GetTextureID("models/weapons/v_toolgun/wirescreen_bg")
 	function WireToolObj:DrawToolScreen(width, height)
 		surface.SetTexture(txBackground)
@@ -313,31 +316,10 @@ if CLIENT then
 		surface.SetTextPos(x, y)
 		surface.DrawText(text)
 
-		local model = ClientsideModel(self:GetModel())
-
-		if IsValid(model) then
-			model:SetNoDraw(true)
-			model:SetIK(false)
-
-			local params = PositionSpawnIcon(model, vector_origin, true)
-
-			cam.Start3D(params.origin, params.angles, params.fov, 128 - 32, 150, 64, 64, params.znear, params.zfar)
-				render.SuppressEngineLighting(true)
-				render.SetLightingOrigin(vector_origin)
-				render.SetColorModulation(1, 1, 1)
-
-				render.ResetModelLighting(0.2, 0.2, 0.2)
-				render.SetModelLighting(BOX_TOP, 1, 1, 1)
-				render.SetModelLighting(BOX_FRONT, 1, 1, 1)
-
-				render.ClearDepth(true)
-				model:DrawModel()
-
-				render.SuppressEngineLighting(false)
-			cam.End3D()
-
-			model:Remove()
-		end
+		iconparams[ "$basetexture" ] = "spawnicons/"..self:GetModel():sub(1,-5)
+		local mat = CreateMaterial(self:GetModel() .. "_DImage", "UnlitGeneric", iconparams )
+		surface.SetMaterial(mat)
+		surface.DrawTexturedRect( 128 - 32, 150, 64, 64)
 
 		local on = self:GetOwner():GetInfo( "wire_tool_weldworld" )~="0" and not self:GetOwner():KeyDown(IN_WALK)
 		draw.DrawText("World Weld:  "..(on and "On" or "Off"),
@@ -371,30 +353,16 @@ end
 -- function used by TOOL.BuildCPanel
 WireToolHelpers = {}
 
--- gets the TOOL since TOOL.BuildCPanel isn't passed this var. wts >_<
-function WireToolHelpers.GetTOOL(mode, ply)
-	if CLIENT then ply = LocalPlayer() end
-	if not ply then return end
-
-	for _,wep in ipairs(ply:GetWeapons()) do
-		if wep:GetClass() == "gmod_tool" then
-			return wep:GetToolObject(mode)
+if CLIENT then
+	-- gets the TOOL since TOOL.BuildCPanel isn't passed this var. wts >_<
+	function WireToolHelpers.GetTOOL(mode)
+		for _,wep in ipairs(LocalPlayer():GetWeapons()) do
+			if wep:GetClass() == "gmod_tool" then
+				return wep:GetToolObject(mode)
+			end
 		end
 	end
-end
 
--- similar to GetTool (above), gets the specified tool, but only if it's the currently actively held weapon by the player
-function WireToolHelpers.GetActiveTOOL(mode, ply)
-	if CLIENT then ply = LocalPlayer() end
-	if not ply then return end
-
-	local activeWep = ply:GetActiveWeapon()
-	if not IsValid(activeWep) or activeWep:GetClass() ~= "gmod_tool" or activeWep.Mode ~= mode then return end
-
-	return activeWep:GetToolObject(mode)
-end
-
-if CLIENT then
 	-- makes the preset control for use cause we're lazy
 	function WireToolHelpers.MakePresetControl(panel, mode, folder)
 		if not mode or not panel then return end
@@ -596,38 +564,16 @@ function WireToolSetup.SetupLinking(SingleLink, linkedname)
 			language.Add( "Tool."..TOOL.Mode..".reload_2", "Reload on the same controller again to clear all linked entities.")
 		end
 
-		local lastRequested = 0
 		function TOOL:DrawHUD()
 			local trace = self:GetOwner():GetEyeTrace()
-
-			if not trace.Entity then lastRequested = 0 end
-
-			if self:CheckHitOwnClass(trace) then
-				local controller = trace.Entity
-				if controller.WireLinkedEnts and controller.WireLinkedEnts.Marks then
-					local markerpos = controller:GetPos():ToScreen()
-					for _, ent in pairs(controller.WireLinkedEnts.Marks) do
-						if IsValid(ent) then
-							local markpos = ent:GetPos():ToScreen()
-							surface.SetDrawColor( 255,255,100,255 )
-							surface.DrawLine( markerpos.x, markerpos.y, markpos.x, markpos.y )
-						end
+			if self:CheckHitOwnClass(trace) and trace.Entity.Marks then
+				local markerpos = trace.Entity:GetPos():ToScreen()
+				for _, ent in pairs(trace.Entity.Marks) do
+					if IsValid(ent) then
+						local markpos = ent:GetPos():ToScreen()
+						surface.SetDrawColor( 255,255,100,255 )
+						surface.DrawLine( markerpos.x, markerpos.y, markpos.x, markpos.y )
 					end
-				end
-
-				-- request updated marks when the player looks at the entity
-				if CurTime() - lastRequested > 1 then -- at most once per second
-					if not controller.WireLinkedEnts or CurTime() > controller.WireLinkedEnts.LastUpdated then
-						net.Start("WireLinkedEntsRequest")
-							net.WriteEntity(controller)
-							if controller.WireLinkedEnts then
-								net.WriteFloat(controller.WireLinkedEnts.LastUpdated)
-							else
-								net.WriteFloat(0)
-							end
-						net.SendToServer()
-					end
-					lastRequested = CurTime()
 				end
 			end
 		end
@@ -703,54 +649,6 @@ function WireToolSetup.SetupLinking(SingleLink, linkedname)
 			WireToolObj.Think(self) -- Basic ghost
 		end
 	end
-end
-
--- For transmitting the yellow lines showing links between controllers and ents, as used by the Adv Entity Marker
-if SERVER then
-	util.AddNetworkString("WireLinkedEnts")
-	util.AddNetworkString("WireLinkedEntsRequest")
-	function WireLib.SendMarks(controller, marks)
-		if not IsValid(controller) then return end
-		controller.WireLinkedEnts = {
-			Marks = marks or controller.Marks,
-			LastUpdated = CurTime()
-		}
-	end
-	net.Receive("WireLinkedEntsRequest", function(netlen, ply)
-		local controller = net.ReadEntity()
-		local lastUpdated = net.ReadFloat()
-
-		if not IsValid(controller) then return end
-		if not controller.WireLinkedEnts then return end
-		if not controller.WireLinkedEnts.Marks then return end
-		if controller.WireLinkedEnts.LastUpdated < lastUpdated then return end
-
-		net.Start("WireLinkedEnts")
-			net.WriteEntity(controller)
-			net.WriteFloat(controller.WireLinkedEnts.LastUpdated)
-			net.WriteUInt(#controller.WireLinkedEnts.Marks, 16)
-			for _,v in pairs(controller.WireLinkedEnts.Marks) do
-				net.WriteEntity(v)
-			end
-		net.Send( ply )
-	end)
-else
-	net.Receive("WireLinkedEnts", function(netlen)
-		local controller = net.ReadEntity()
-		local lastUpdated = net.ReadFloat()
-		if IsValid(controller) then
-			controller.WireLinkedEnts = {
-				Marks = {},
-				LastUpdated = lastUpdated
-			}
-			for _=1, net.ReadUInt(16) do
-				local link = net.ReadEntity()
-				if IsValid(link) then
-					table.insert(controller.WireLinkedEnts.Marks, link)
-				end
-			end
-		end
-	end)
 end
 
 LoadTools()
