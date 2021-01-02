@@ -309,7 +309,10 @@ end
 
 function Editor:UpdateActiveTabTitle()
   local title = self:GetChosenFile()
-  local tabtext = extractNameFromFilePath(self:GetChosenFile())
+  local tabtext = self:GetChosenFile()
+  if self:GetChosenFile() then
+    tabtext = extractNameFromFilePath(self:GetChosenFile())
+  end
 
 	if title then self:SubTitle("Editing: " .. title) else self:SubTitle() end
 	if tabtext then
@@ -988,7 +991,7 @@ function Editor:SetData(data)
 end
 
 function Editor:ClearData()
-  self:GetCurrentEditor():SetData("{}")
+  self:GetCurrentEditor():ClearData()
 	self.savebuffer = self:GetData()
 end
 

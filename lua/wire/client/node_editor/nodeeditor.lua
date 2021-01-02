@@ -64,6 +64,11 @@ function Editor:SetData(data)
   self.Zoom = data.Zoom
 end
 
+function Editor:ClearData() 
+  self.Nodes = {}
+  self.Position = {0, 0}
+  self.Zoom = 1
+end
 
 
 -- GATES
