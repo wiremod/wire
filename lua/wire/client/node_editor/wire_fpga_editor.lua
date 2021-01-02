@@ -310,7 +310,8 @@ end
 function Editor:UpdateActiveTabTitle()
   local title = self:GetChosenFile()
   local tabtext = self:GetChosenFile()
-  if self:GetChosenFile() then
+  if self:GetChosenFile() 
+  then
     tabtext = extractNameFromFilePath(self:GetChosenFile())
   end
 
@@ -458,7 +459,9 @@ end
 
 function Editor:NewTab()
 	local sheet = self:CreateTab("chip")
-	self:SetActiveTab(sheet.Tab)
+  self:SetActiveTab(sheet.Tab)
+  
+  self:NewChip(true)
 end
 
 function Editor:CloseTab(_tab)
@@ -596,7 +599,6 @@ function Editor:InitComponents()
 
 	self.C.MainPane = vgui.Create("DPanel", self.C.Divider)
 	self.C.Menu = vgui.Create("DPanel", self.C.MainPane)
-	self.C.Val = vgui.Create("Button", self.C.MainPane) -- Validation line
 	self.C.TabHolder = vgui.Create("DPropertySheet", self.C.MainPane)
 
 	self.C.Btoggle = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Toggle Browser being shown
@@ -628,13 +630,11 @@ function Editor:InitComponents()
 
 	self.C.Menu:Dock(TOP)
 	self.C.TabHolder:Dock(FILL)
-	self.C.Val:Dock(BOTTOM)
 
 	self.C.TabHolder:SetPadding(1)
 
 	self.C.Menu:SetHeight(24)
 	self.C.Menu:DockPadding(2,2,2,2)
-	self.C.Val:SetHeight(22)
 
 	self.C.SaE:SetSize(80, 20)
 	self.C.SaE:Dock(RIGHT)
@@ -861,9 +861,9 @@ function Editor:NewChip(incurrent)
 
 		-- Set title
 		self:GetActiveTab():SetText("chip")
-		self.C.TabHolder:InvalidateLayout()
-
-		self:ClearData()
+    
+    self.C.TabHolder:InvalidateLayout()
+    self:ClearData()
 	end
 end
 
@@ -1092,8 +1092,6 @@ function Editor:SaveFile(Line, close, SaveAs)
 
 	file.Write(Line, self:GetData())
 
-	local panel = self.C.Val
-	timer.Simple(0, function() panel.SetText(panel, "   Saved as " .. Line) end)
 	surface.PlaySound("ambient/water/drip3.wav")
 
 	if not self.chip then self:ChosenFile(Line) end
@@ -1159,10 +1157,7 @@ end
 function Editor:Setup(nTitle, nLocation)
 	self.Title = nTitle
 	self.Location = nLocation
-	-- self.EditorType = nEditorType
 	self.C.Browser:Setup(nLocation)
-
-	self.C.Val:SetVisible(false)
 
 	self:NewChip(true) -- Opens initial tab, in case OpenOldTabs is disabled or fails.
 

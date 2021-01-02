@@ -17,11 +17,11 @@ function Editor:Init()
   self.GateSize = 5
   self.IOSize = 2
 
-  self.BackgroundColor = Color(170, 170, 170, 255)
+  self.BackgroundColor = Color(32, 32, 32, 255)
   self.NodeColor = Color(100, 100, 100, 255)
-  self.ConnectionColor = Color(255, 255, 255, 255)
-  self.InputColor = Color(100, 150, 100, 255)
-  self.OutputColor = Color(100, 100, 150, 255)
+  self.ConnectionColor = Color(200, 200, 200, 255)
+  self.InputColor = Color(120, 250, 120, 255)
+  self.OutputColor = Color(120, 120, 250, 255)
 
   self.Nodes = {
     {type = "wire", gate = "floor", x = 0, y = 50, connections = {[1] = {5, 1}}},
