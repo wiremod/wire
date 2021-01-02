@@ -1,10 +1,10 @@
 local Editor = {}
 
 local Nodes = {
-  {type = "wire", gate = "floor", x = 0, y = 50, connections = {{3, 1}}},
-  {type = "wire", gate = "ceil", x = 0, y = 150, connections = {{3, 2}}},
-  {type = "wire", gate = "+", x = 50, y = 100, connections = {{4, 1}}},
-  {type = "wire", gate = "exp", x = 150, y = 100, connections = {}}
+  {type = "wire", gate = "floor", x = 0, y = 50, connections = {[1] = nil}},
+  {type = "wire", gate = "ceil", x = 0, y = 150, connections = {[1] = nil}},
+  {type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {1, 1}, [2] = {2, 1}}},
+  {type = "wire", gate = "exp", x = 150, y = 100, connections = {[1] = {3, 1}}}
 }
 
 function Editor:Init()
@@ -22,7 +22,7 @@ function Editor:Init()
   self.MouseDown = false
 
   self.GateSize = 5
-  self.IOSize = 1
+  self.IOSize = 2
 
   self.BackgroundColor = Color(170, 170, 170, 255)
   self.NodeColor = Color(100, 100, 100, 255)
@@ -56,11 +56,11 @@ function Editor:ScrToPos(x, y)
 end
 
 function Editor:NodeInputPos(node, input)
-  return node.x - self.GateSize/2 - self.IOSize, node.y + (input - 1) * self.GateSize
+  return node.x - self.GateSize/2 - self.IOSize/2, node.y + (input - 1) * self.GateSize
 end
 
 function Editor:NodeOutputPos(node, output)
-  return node.x + self.GateSize/2, node.y + (output - 1) * self.GateSize
+  return node.x + self.GateSize/2 + self.IOSize/2, node.y + (output - 1) * self.GateSize
 end
 
 -- DETECTION
@@ -93,10 +93,10 @@ function Editor:GetNodeInputAt(x, y)
     for inputNum, input in pairs(gate.inputs) do
       local ix, iy = self:NodeInputPos(node, inputNum)
 
-      if gx < ix - self.IOSize then continue end
-      if gx > ix + self.IOSize then continue end
-      if gy < iy - self.IOSize then continue end
-      if gy > iy + self.IOSize then continue end
+      if gx < ix - self.IOSize/2 then continue end
+      if gx > ix + self.IOSize/2 then continue end
+      if gy < iy - self.IOSize/2 then continue end
+      if gy > iy + self.IOSize/2 then continue end
 
       return k, inputNum
     end
@@ -118,10 +118,10 @@ function Editor:GetNodeOutputAt(x, y)
 
     local ix, iy = self:NodeOutputPos(node, 1)
 
-    if gx < ix - self.IOSize then continue end
-    if gx > ix + self.IOSize then continue end
-    if gy < iy - self.IOSize then continue end
-    if gy > iy + self.IOSize then continue end
+    if gx < ix - self.IOSize/2 then continue end
+    if gx > ix + self.IOSize/2 then continue end
+    if gy < iy - self.IOSize/2 then continue end
+    if gy > iy + self.IOSize/2 then continue end
 
     return k, 1
   end
@@ -143,8 +143,8 @@ end
 
 function Editor:PaintConnections()
   for k1, node in pairs(Nodes) do
-    for k2, dest in pairs(node.connections) do
-      self:PaintConnection(node, 1, Nodes[dest[1]], dest[2])
+    for input, connectedTo in pairs(node.connections) do
+      self:PaintConnection(Nodes[connectedTo[1]], connectedTo[2], node, input)
     end
   end
 end
@@ -166,19 +166,19 @@ function Editor:PaintNode(node)
   surface.SetFont("Default")
   surface.SetTextColor(255, 255, 255)
   local tx, ty = surface.GetTextSize(gate.name)
-	surface.SetTextPos(x-tx/2, y-ty/2) 
+	surface.SetTextPos(x-tx/2, y-ty/2-size/1.2) 
   surface.DrawText(gate.name)
   
   -- Inputs
   surface.SetDrawColor(self.InputColor)
   for k, input in pairs(gate.inputs) do
     -- This should rely on a function
-    surface.DrawRect(x - size/2 - ioSize, y + (k-1) * size, ioSize, ioSize)
+    surface.DrawRect(x - size/2 - ioSize, y - ioSize/2 + (k-1) * size, ioSize, ioSize)
   end
 
   -- Output
   surface.SetDrawColor(self.OutputColor)
-  surface.DrawRect(x + size/2, y, ioSize, ioSize)
+  surface.DrawRect(x + size/2, y - ioSize/2, ioSize, ioSize)
 end
 
 function Editor:PaintNodes()
@@ -239,37 +239,32 @@ end
 
 --ACTIONS
 function Editor:BeginDrawingConnection(x, y)
-  local node, input = self:GetNodeInputAt(x, y)
-  if node then
+  local nodeId, inputId = self:GetNodeInputAt(x, y)
+  if nodeId then
     --check if something is connected to this input
-    local connectedTo = nil
-    for nodeId, fromNode in pairs(Nodes) do
-      for k, connection in pairs(fromNode.connections) do
-        if connection[1] == node && connection[2] == input then
-          connectedTo = {nodeId = nodeId, node = fromNode, output = k}
-        end
-      end
-    end
+    node = Nodes[nodeId]
+    input = node.connections[inputId]
 
     --Input already connected
-    if connectedTo then
-      table.remove(connectedTo.node.connections, connectedTo.output)
-      self.DrawingConnectionFrom = {connectedTo.nodeId, 1}
+    if input then
+      local connectedNode, connectedOutput = input[1], input[2]
+      node.connections[inputId] = nil
+      self.DrawingConnectionFrom = {connectedNode, connectedOutput}
       self.DrawingFromOutput = true
     else 
       --input not connected
-      self.DrawingConnectionFrom = {node, input}
+      self.DrawingConnectionFrom = {nodeId, inputId}
       self.DrawingFromInput = true
     end
     
     self.DrawingConnection = true
   end
 
-  local node, output = self:GetNodeOutputAt(x, y)
-  if node then
+  local nodeId, outputId = self:GetNodeOutputAt(x, y)
+  if nodeId then
     self.DrawingConnection = true
     self.DrawingFromOutput = true
-    self.DrawingConnectionFrom = {node, output}
+    self.DrawingConnectionFrom = {nodeId, outputId}
   end
 end
 
@@ -313,21 +308,19 @@ end
 
 function Editor:OnDrawConnectionFinished(x, y)
   if self.DrawingFromOutput then
-    local node, input = self:GetNodeInputAt(x, y)
+    local nodeId, inputId = self:GetNodeInputAt(x, y)
 
-    if node then
-      local sourceNode = Nodes[self.DrawingConnectionFrom[1]]
-
-      table.insert(sourceNode.connections, {node, input})
+    if nodeId then
+      local node = Nodes[nodeId]
+      node.connections[inputId] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
     end
+
   elseif self.DrawingFromInput then
-    local node, output = self:GetNodeOutputAt(x, y)
-    -- discard output for now
+    local nodeId, outputId = self:GetNodeOutputAt(x, y)
 
-    if node then
-      local sourceNode = Nodes[node]
-
-      table.insert(sourceNode.connections, {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]})
+    if nodeId then
+      local node = Nodes[self.DrawingConnectionFrom[1]]
+      node.connections[self.DrawingConnectionFrom[2]] =  {nodeId, outputId}
     end
   end
 
