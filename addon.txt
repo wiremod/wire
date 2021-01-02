@@ -1,9 +1,0 @@
-"AddonInfo"
-{
-	"name"        "Wire - FPGA"
-	"version"     "Git"
-	"author_name" "Lysdal"
-	"author_url"  "https://lysdal.dev"
-	"info"        "Field-Programmable Gate Array"
-	"override"    "0"
-}

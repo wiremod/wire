@@ -1,20 +1,13 @@
 {
-	"title"		:	"Wiremod",
+	"title"		:	"Wire FPGA",
 	"type"		:	"tool",
-	"tags"		:	[ "build", "fun" ],
-	"description":	"A collection of entities connectable by data wires utilizing logical concepts, which allows for the creation of advanced contraptions.",
+	"tags"		:	[ "build" ],
+	"description":	"An extension to Wiremod, adding a FPGA chip",
 	"ignore"	:
 	[
-		"*.psd",
-		"*.vcproj",
-		"*.xcf",
 		".git*",
-		"*.md",
-		".glualint.json",
-		".github",
-		"git-hooks-pre-commit",
-		"gitrid.sh",
-		"LICENSE",
-		"wiremod.*"
+		".gitignore",
+		"license",
+		"readme.md",
 	]
 }

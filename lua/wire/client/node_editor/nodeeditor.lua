@@ -16,12 +16,13 @@ function Editor:Init()
   self.DrawingConnection = false
   self.DrawingFromInput = false
   self.DrawingFromOutput = false
-  self.ConnectionFrom = nil
+  self.DrawingConnectionFrom = nil
 
   self.LastMousePos = {0, 0}
   self.MouseDown = false
 
   self.GateSize = 5
+  self.IOSize = 1
 
   self.BackgroundColor = Color(170, 170, 170, 255)
   self.NodeColor = Color(100, 100, 100, 255)
@@ -55,7 +56,7 @@ function Editor:ScrToPos(x, y)
 end
 
 function Editor:NodeInputPos(node, input)
-  return node.x - self.GateSize/2 - self.GateSize/5, node.y + (input - 1) * self.GateSize
+  return node.x - self.GateSize/2 - self.IOSize, node.y + (input - 1) * self.GateSize
 end
 
 function Editor:NodeOutputPos(node, output)
@@ -84,18 +85,18 @@ function Editor:GetNodeInputAt(x, y)
   for k, node in pairs(Nodes) do
     gate = GateActions[node.gate]
 
-    if gx < node.x - self.GateSize/2 - self.GateSize/5 then continue end
-    if gx > node.x + self.GateSize/2 + self.GateSize/5 then continue end
+    if gx < node.x - self.GateSize/2 - self.IOSize then continue end
+    if gx > node.x + self.GateSize/2 + self.IOSize then continue end
     if gy < node.y - self.GateSize/2 then continue end
     if gy > node.y - self.GateSize/2 + self.GateSize * table.Count(gate.inputs) then continue end
 
     for inputNum, input in pairs(gate.inputs) do
       local ix, iy = self:NodeInputPos(node, inputNum)
 
-      if gx < ix - self.GateSize/5 then continue end
-      if gx > ix + self.GateSize/5 then continue end
-      if gy < iy - self.GateSize/5 then continue end
-      if gy > iy + self.GateSize/5 then continue end
+      if gx < ix - self.IOSize then continue end
+      if gx > ix + self.IOSize then continue end
+      if gy < iy - self.IOSize then continue end
+      if gy > iy + self.IOSize then continue end
 
       return k, inputNum
     end
@@ -110,17 +111,17 @@ function Editor:GetNodeOutputAt(x, y)
   for k, node in pairs(Nodes) do
     gate = GateActions[node.gate]
 
-    if gx < node.x - self.GateSize/2 - self.GateSize/5 then continue end
-    if gx > node.x + self.GateSize/2 + self.GateSize/5 then continue end
+    if gx < node.x - self.GateSize/2 - self.IOSize then continue end
+    if gx > node.x + self.GateSize/2 + self.IOSize then continue end
     if gy < node.y - self.GateSize/2 then continue end
     if gy > node.y + self.GateSize/2 then continue end
 
     local ix, iy = self:NodeOutputPos(node, 1)
 
-    if gx < ix - self.GateSize/5 then continue end
-    if gx > ix + self.GateSize/5 then continue end
-    if gy < iy - self.GateSize/5 then continue end
-    if gy > iy + self.GateSize/5 then continue end
+    if gx < ix - self.IOSize then continue end
+    if gx > ix + self.IOSize then continue end
+    if gy < iy - self.IOSize then continue end
+    if gy > iy + self.IOSize then continue end
 
     return k, 1
   end
@@ -152,12 +153,13 @@ function Editor:PaintNode(node)
   local gate = GateActions[node.gate]
   local amountOfInputs = table.Count(gate.inputs)
 
-  -- Body
-  surface.SetDrawColor(self.NodeColor)
-
-  local size = self.Zoom * self.GateSize
   local x, y = self:PosToScr(node.x, node.y)
 
+  local size = self.Zoom * self.GateSize
+  local ioSize = self.Zoom * self.IOSize
+
+  -- Body
+  surface.SetDrawColor(self.NodeColor)
   surface.DrawRect(x-size/2, y-size/2, size, size * amountOfInputs)
 
   -- Name
@@ -171,12 +173,12 @@ function Editor:PaintNode(node)
   surface.SetDrawColor(self.InputColor)
   for k, input in pairs(gate.inputs) do
     -- This should rely on a function
-    surface.DrawRect(x - size/2 - size/5, y + (k-1) * size, size / 5, size / 5)
+    surface.DrawRect(x - size/2 - ioSize, y + (k-1) * size, ioSize, ioSize)
   end
 
   -- Output
   surface.SetDrawColor(self.OutputColor)
-  surface.DrawRect(x + size/2, y, size / 5, size / 5)
+  surface.DrawRect(x + size/2, y, ioSize, ioSize)
 end
 
 function Editor:PaintNodes()
@@ -189,8 +191,8 @@ function Editor:Paint()
   surface.SetDrawColor(self.BackgroundColor)
   surface.DrawRect(0, 0, self:GetWide(), self:GetTall())
 
-  self:PaintConnections()
   self:PaintNodes()
+  self:PaintConnections()
 
   self:PaintDebug()
 
@@ -211,9 +213,9 @@ function Editor:Paint()
   if self.DrawingConnection then
     local x, y = 0, 0
     if self.DrawingFromInput then
-      x, y = self:NodeInputPos(Nodes[self.ConnectionFrom[1]], self.ConnectionFrom[2])
+      x, y = self:NodeInputPos(Nodes[self.DrawingConnectionFrom[1]], self.DrawingConnectionFrom[2])
     elseif self.DrawingFromOutput then
-      x, y = self:NodeOutputPos(Nodes[self.ConnectionFrom[1]], self.ConnectionFrom[2])
+      x, y = self:NodeOutputPos(Nodes[self.DrawingConnectionFrom[1]], self.DrawingConnectionFrom[2])
     end
     local sx, sy = self:PosToScr(x, y)
     local mx, my = self:CursorPos()
@@ -235,6 +237,42 @@ function Editor:PaintDebug()
 	surface.DrawText(self.Zoom)
 end
 
+--ACTIONS
+function Editor:BeginDrawingConnection(x, y)
+  local node, input = self:GetNodeInputAt(x, y)
+  if node then
+    --check if something is connected to this input
+    local connectedTo = nil
+    for nodeId, fromNode in pairs(Nodes) do
+      for k, connection in pairs(fromNode.connections) do
+        if connection[1] == node && connection[2] == input then
+          connectedTo = {nodeId = nodeId, node = fromNode, output = k}
+        end
+      end
+    end
+
+    --Input already connected
+    if connectedTo then
+      table.remove(connectedTo.node.connections, connectedTo.output)
+      self.DrawingConnectionFrom = {connectedTo.nodeId, 1}
+      self.DrawingFromOutput = true
+    else 
+      --input not connected
+      self.DrawingConnectionFrom = {node, input}
+      self.DrawingFromInput = true
+    end
+    
+    self.DrawingConnection = true
+  end
+
+  local node, output = self:GetNodeOutputAt(x, y)
+  if node then
+    self.DrawingConnection = true
+    self.DrawingFromOutput = true
+    self.DrawingConnectionFrom = {node, output}
+  end
+end
+
 --EVENTS
 function Editor:OnMousePressed(code)
 	if code == MOUSE_LEFT then
@@ -249,18 +287,7 @@ function Editor:OnMousePressed(code)
     end
 
     --CONNECTION DRAWING
-    local node, input = self:GetNodeInputAt(x, y)
-    if node then
-      self.DrawingConnection = true
-      self.DrawingFromInput = true
-      self.ConnectionFrom = {node, input}
-    end
-    local node, output = self:GetNodeOutputAt(x, y)
-    if node then
-      self.DrawingConnection = true
-      self.DrawingFromOutput = true
-      self.ConnectionFrom = {node, output}
-    end
+    self:BeginDrawingConnection(x, y)
   elseif code == MOUSE_RIGHT then
     -- PLANE DRAGGING
 		self.DraggingWorld = true
@@ -268,22 +295,45 @@ function Editor:OnMousePressed(code)
 end
 
 function Editor:OnMouseReleased(code)
-	--if not self.MouseDown  then return end
+  --if not self.MouseDown  then return end
+  local x, y = self:CursorPos()
 
 	if code == MOUSE_LEFT then
     self.MouseDown = false
     self.DraggingNode = nil
 
     if self.DrawingConnection then
-      self.DrawingConnection = false
-      self.DrawingFromInput = false
-      self.DrawingFromOutput = false
-
+      self:OnDrawConnectionFinished(x, y)
     end
   elseif code == MOUSE_RIGHT then
     self.DraggingWorld = false
   end
   
+end
+
+function Editor:OnDrawConnectionFinished(x, y)
+  if self.DrawingFromOutput then
+    local node, input = self:GetNodeInputAt(x, y)
+
+    if node then
+      local sourceNode = Nodes[self.DrawingConnectionFrom[1]]
+
+      table.insert(sourceNode.connections, {node, input})
+    end
+  elseif self.DrawingFromInput then
+    local node, output = self:GetNodeOutputAt(x, y)
+    -- discard output for now
+
+    if node then
+      local sourceNode = Nodes[node]
+
+      table.insert(sourceNode.connections, {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]})
+    end
+  end
+
+  self.DrawingConnection = false
+  self.DrawingFromInput = false
+  self.DrawingFromOutput = false
 end
 
 function Editor:OnMouseWheeled(delta)
