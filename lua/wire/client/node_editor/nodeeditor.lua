@@ -1,14 +1,5 @@
 local Editor = {}
 
-local Nodes = {
-  {type = "wire", gate = "floor", x = 0, y = 50, connections = {[1] = {5, 1}}},
-  {type = "wire", gate = "ceil", x = 0, y = 150, connections = {[1] = {5, 1}}},
-  {type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {1, 1}, [2] = {2, 1}}},
-  {type = "wire", gate = "exp", x = 150, y = 100, connections = {[1] = {3, 1}}},
-  {type = "io", gate = "in", x = -100, y = 100, connections = {}},
-  {type = "io", gate = "out", x = 200, y = 100, connections = {[1] = {4, 1}}},
-}
-
 function Editor:Init()
   self.Position = {0, 0}
   self.Zoom = 1
@@ -32,6 +23,15 @@ function Editor:Init()
   self.InputColor = Color(100, 150, 100, 255)
   self.OutputColor = Color(100, 100, 150, 255)
 
+  self.Nodes = {
+    {type = "wire", gate = "floor", x = 0, y = 50, connections = {[1] = {5, 1}}},
+    {type = "wire", gate = "ceil", x = 0, y = 150, connections = {[1] = {5, 1}}},
+    {type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {1, 1}, [2] = {2, 1}}},
+    {type = "wire", gate = "exp", x = 150, y = 100, connections = {[1] = {3, 1}}},
+    {type = "io", gate = "in", x = -100, y = 100, connections = {}},
+    {type = "io", gate = "out", x = 200, y = 100, connections = {[1] = {4, 1}}},
+  }
+
   --MsgC(Color(0, 150, 255), table.ToString(GateActions, "Gate Actions", true))
 end
 
@@ -45,6 +45,25 @@ end
 --       "A",
 --       },
 --     },
+
+-- INTERACTION
+function Editor:GetData() 
+  return util.TableToJSON({
+      Nodes = self.Nodes,
+      Position = self.Position,
+      Zoom = self.Zoom
+    }, false)
+end
+
+function Editor:SetData(data) 
+  local data = util.JSONToTable(data)
+  -- error check
+
+  self.Nodes = data.Nodes
+  self.Position = data.Position
+  self.Zoom = data.Zoom
+end
+
 
 
 -- GATES
@@ -85,7 +104,7 @@ end
 function Editor:GetNodeAt(x, y)
   local gx, gy = self:ScrToPos(x, y)
 
-  for k, node in pairs(Nodes) do
+  for k, node in pairs(self.Nodes) do
     if gx < node.x - self.GateSize/2 then continue end
     if gx > node.x + self.GateSize/2 then continue end
     if gy < node.y - self.GateSize/2 then continue end
@@ -100,7 +119,7 @@ end
 function Editor:GetNodeInputAt(x, y)
   local gx, gy = self:ScrToPos(x, y)
 
-  for k, node in pairs(Nodes) do
+  for k, node in pairs(self.Nodes) do
     local gate = self:GetGate(node)
 
     if gx < node.x - self.GateSize/2 - self.IOSize then continue end
@@ -126,7 +145,7 @@ end
 function Editor:GetNodeOutputAt(x, y)
   local gx, gy = self:ScrToPos(x, y)
 
-  for k, node in pairs(Nodes) do
+  for k, node in pairs(self.Nodes) do
     local gate = self:GetGate(node)
 
     if gx < node.x - self.GateSize/2 - self.IOSize then continue end
@@ -160,9 +179,9 @@ function Editor:PaintConnection(nodeFrom, output, nodeTo, input)
 end
 
 function Editor:PaintConnections()
-  for k1, node in pairs(Nodes) do
+  for k1, node in pairs(self.Nodes) do
     for input, connectedTo in pairs(node.connections) do
-      self:PaintConnection(Nodes[connectedTo[1]], connectedTo[2], node, input)
+      self:PaintConnection(self.Nodes[connectedTo[1]], connectedTo[2], node, input)
     end
   end
 end
@@ -218,7 +237,7 @@ function Editor:PaintNode(node)
 end
 
 function Editor:PaintNodes()
-  for k, node in pairs(Nodes) do
+  for k, node in pairs(self.Nodes) do
     self:PaintNode(node)
   end
 end
@@ -242,16 +261,16 @@ function Editor:Paint()
   if self.DraggingNode then
     local x, y = self:CursorPos()
     local gx, gy = self:ScrToPos(x, y)
-    Nodes[self.DraggingNode].x = gx
-    Nodes[self.DraggingNode].y = gy
+    self.Nodes[self.DraggingNode].x = gx
+    self.Nodes[self.DraggingNode].y = gy
   end
   -- drawing a connection
   if self.DrawingConnection then
     local x, y = 0, 0
     if self.DrawingFromInput then
-      x, y = self:NodeInputPos(Nodes[self.DrawingConnectionFrom[1]], self.DrawingConnectionFrom[2])
+      x, y = self:NodeInputPos(self.Nodes[self.DrawingConnectionFrom[1]], self.DrawingConnectionFrom[2])
     elseif self.DrawingFromOutput then
-      x, y = self:NodeOutputPos(Nodes[self.DrawingConnectionFrom[1]], self.DrawingConnectionFrom[2])
+      x, y = self:NodeOutputPos(self.Nodes[self.DrawingConnectionFrom[1]], self.DrawingConnectionFrom[2])
     end
     local sx, sy = self:PosToScr(x, y)
     local mx, my = self:CursorPos()
@@ -278,7 +297,7 @@ function Editor:BeginDrawingConnection(x, y)
   local nodeId, inputId = self:GetNodeInputAt(x, y)
   if nodeId then
     --check if something is connected to this input
-    node = Nodes[nodeId]
+    node = self.Nodes[nodeId]
     input = node.connections[inputId]
 
     --Input already connected
@@ -347,7 +366,7 @@ function Editor:OnDrawConnectionFinished(x, y)
     local nodeId, inputId = self:GetNodeInputAt(x, y)
 
     if nodeId then
-      local node = Nodes[nodeId]
+      local node = self.Nodes[nodeId]
       node.connections[inputId] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
     end
 
@@ -355,7 +374,7 @@ function Editor:OnDrawConnectionFinished(x, y)
     local nodeId, outputId = self:GetNodeOutputAt(x, y)
 
     if nodeId then
-      local node = Nodes[self.DrawingConnectionFrom[1]]
+      local node = self.Nodes[self.DrawingConnectionFrom[1]]
       node.connections[self.DrawingConnectionFrom[2]] =  {nodeId, outputId}
     end
   end

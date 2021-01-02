@@ -298,9 +298,18 @@ function Editor:SetActiveTab(val)
 	self:UpdateActiveTabTitle()
 end
 
+local function extractNameFromFilePath(str)
+	local found = str:reverse():find("/", 1, true)
+	if found then
+		return str:Right(found - 1)
+	else
+		return str
+	end
+end
+
 function Editor:UpdateActiveTabTitle()
   local title = self:GetChosenFile()
-  local tabtext = self:GetChosenFile()
+  local tabtext = extractNameFromFilePath(self:GetChosenFile())
 
 	if title then self:SubTitle("Editing: " .. title) else self:SubTitle() end
 	if tabtext then
@@ -328,15 +337,6 @@ function Editor:SetActiveTabIndex(index)
 	if not tab then return end
 
 	self:SetActiveTab(tab)
-end
-
-local function extractNameFromFilePath(str)
-	local found = str:reverse():find("/", 1, true)
-	if found then
-		return str:Right(found - 1)
-	else
-		return str
-	end
 end
 
 local old
@@ -496,7 +496,7 @@ function Editor:CloseTab(_tab)
 	if self:GetNumTabs() == 1 then
 		activetab:SetText("chip")
 		self.C.TabHolder:InvalidateLayout()
-		self:NewScript(true)
+		self:NewChip(true)
 		return
 	end
 
@@ -521,7 +521,7 @@ function Editor:CloseTab(_tab)
 				else -- Reset the current tab (backup)
 					self:GetActiveTab():SetText("chip")
 					self.C.TabHolder:InvalidateLayout()
-					self:NewScript(true)
+					self:NewChip(true)
 					return
 				end
 			else -- Change to the previous tab
@@ -535,7 +535,7 @@ function Editor:CloseTab(_tab)
 			else -- Reset the current tab (backup)
 				self:GetActiveTab():SetText("chip")
 				self.C.TabHolder:InvalidateLayout()
-				self:NewScript(true)
+				self:NewChip(true)
 				return
 			end
 		end
@@ -725,7 +725,7 @@ function Editor:InitComponents()
 end
 
 function Editor:AutoSave()
-	local buffer = self:GetNodes()
+	local buffer = self:GetData()
 	if self.savebuffer == buffer or buffer == "" then return end
 	self.savebuffer = buffer
 	file.Write(self.Location .. "/_autosave_.txt", buffer)
@@ -860,7 +860,7 @@ function Editor:NewChip(incurrent)
 		self:GetActiveTab():SetText("chip")
 		self.C.TabHolder:InvalidateLayout()
 
-		self:ClearNodes()
+		self:ClearData()
 	end
 end
 
@@ -873,7 +873,7 @@ function Editor:InitShutdownHook()
 	-- save code when shutting down
 	hook.Add("ShutDown", "wire_fpga_ShutDown" .. id, function()
 	-- if wire_fpga_editor == nil then return end
-		local buffer = self:GetNodes()
+		local buffer = self:GetData()
 		if buffer == defaultcode then return end
 		file.Write(self.Location .. "/_shutdown_.txt", buffer)
 
@@ -981,20 +981,15 @@ function Editor:ExtractName()
   return
 end
 
--- function Editor:SetCode(code)
--- 	self:GetCurrentEditor():SetText(code)
--- 	self.savebuffer = self:GetCode()
--- 	if self.E2 then self:Validate() end
--- 	self:ExtractName()
--- end
-
-function Editor:SetNodes(nodes)
-	--self:GetCurrentEditor():SetText(code)
-	self.savebuffer = self:GetNodes()
+function Editor:SetData(data)
+  self:GetCurrentEditor():SetData(data)
+  self.savebuffer = self:GetData()
+  self:ExtractName()
 end
 
-function Editor:ClearNodes()
-
+function Editor:ClearData()
+  self:GetCurrentEditor():SetData("{}")
+	self.savebuffer = self:GetData()
 end
 
 function Editor:GetEditor(n)
@@ -1007,57 +1002,53 @@ function Editor:GetCurrentEditor()
 	return self:GetActiveTab():GetPanel()
 end
 
--- function Editor:GetCode()
--- 	return self:GetCurrentEditor():GetValue()
--- end
-
-function Editor:GetNodes()
-  -- return self:GetCurrentEditor():GetValue()
-  return {}
+function Editor:GetData()
+  return self:GetCurrentEditor():GetData()
 end
 
-function Editor:Open(Line, nodes, forcenewtab)
-	if self:IsVisible() and not Line and not nodes then self:Close() end
-	hook.Run("WireFPGAEditorOpen", self, Line, nodes, forcenewtab)
+function Editor:Open(Line, data, forcenewtab)
+	if self:IsVisible() and not Line and not data then self:Close() end
+	hook.Run("WireFPGAEditorOpen", self, Line, data, forcenewtab)
 	self:SetV(true)
 	if self.chip then
 		self.C.SaE:SetText("Upload & Exit")
 	else
 		self.C.SaE:SetText("Save and Exit")
 	end
-	-- if code then
-	-- 	if not forcenewtab then
-	-- 		for i = 1, self:GetNumTabs() do
-	-- 			if self:GetEditor(i).chosenfile == Line then
-	-- 				self:SetActiveTab(i)
-	-- 				self:SetNodes(nodes)
-	-- 				return
-	-- 			elseif self:GetEditor(i):GetValue() == nodes then
-	-- 				self:SetActiveTab(i)
-	-- 				return
-	-- 			end
-	-- 		end
-	-- 	end
-	-- 	local _, tabtext = getPreferredTitles(Line, nodes)
-	-- 	local tab
-	-- 	if self.NewTabOnOpen:GetBool() or forcenewtab then
-	-- 		tab = self:CreateTab(tabtext).Tab
-	-- 	else
-	-- 		tab = self:GetActiveTab()
-	-- 		tab:SetText(tabtext)
-	-- 		self.C.TabHolder:InvalidateLayout()
-	-- 	end
-	-- 	self:SetActiveTab(tab)
+	if data then
+		if not forcenewtab then
+			for i = 1, self:GetNumTabs() do
+				if self:GetEditor(i).chosenfile == Line then
+					self:SetActiveTab(i)
+					self:SetData(data)
+					return
+				elseif self:GetEditor(i):GetValue() == data then
+					self:SetActiveTab(i)
+					return
+				end
+			end
+		end
+		local tabtext = extractNameFromFilePath(Line)
+		local tab
+		if self.NewTabOnOpen:GetBool() or forcenewtab then
+			tab = self:CreateTab(tabtext).Tab
+		else
+			tab = self:GetActiveTab()
+			tab:SetText(tabtext)
+			self.C.TabHolder:InvalidateLayout()
+		end
+		self:SetActiveTab(tab)
 
-	-- 	self:ChosenFile()
-	-- 	self:SetNodes(nodes)
-	-- 	if Line then self:SubTitle("Editing: " .. Line) end
-	-- 	return
-	-- end
-	-- if Line then self:LoadFile(Line, forcenewtab) return end
+		self:ChosenFile()
+		self:SetData(data)
+		if Line then self:SubTitle("Editing: " .. Line) end
+		return
+	end
+	if Line then self:LoadFile(Line, forcenewtab) return end
 end
 
 function Editor:SaveFile(Line, close, SaveAs)
+  self:ExtractName()
 	if close and self.chip then
 		--WireLib.Expression2Upload(self.chip, self:GetCode())
 		self:Close()
@@ -1096,7 +1087,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 		return
 	end
 
-	file.Write(Line, self:GetNodes())
+	file.Write(Line, self:GetData())
 
 	local panel = self.C.Val
 	timer.Simple(0, function() panel.SetText(panel, "   Saved as " .. Line) end)
@@ -1104,58 +1095,55 @@ function Editor:SaveFile(Line, close, SaveAs)
 
 	if not self.chip then self:ChosenFile(Line) end
 	if close then
-		if self.E2 then
-			GAMEMODE:AddNotify("Expression saved as " .. Line .. ".", NOTIFY_GENERIC, 7)
-		else
-			GAMEMODE:AddNotify("Source code saved as " .. Line .. ".", NOTIFY_GENERIC, 7)
-		end
+		GAMEMODE:AddNotify("Source code saved as " .. Line .. ".", NOTIFY_GENERIC, 7)
 		self:Close()
 	end
 end
 
 function Editor:LoadFile(Line, forcenewtab)
-	-- if not Line or file.IsDir(Line, "DATA") then return end
+	if not Line or file.IsDir(Line, "DATA") then return end
 
-	-- local f = file.Open(Line, "r", "DATA")
-	-- if not f then
-	-- 	ErrorNoHalt("Erroring opening file: " .. Line)
-	-- else
-	-- 	local str = f:Read(f:Size()) or ""
-	-- 	f:Close()
-	-- 	self:AutoSave()
-	-- 	if not forcenewtab then
-	-- 		for i = 1, self:GetNumTabs() do
-	-- 			if self:GetEditor(i).chosenfile == Line then
-	-- 				self:SetActiveTab(i)
-	-- 				if forcenewtab ~= nil then self:SetCode(str) end
-	-- 				return
-	-- 			elseif self:GetEditor(i):GetValue() == str then
-	-- 				self:SetActiveTab(i)
-	-- 				return
-	-- 			end
-	-- 		end
-	-- 	end
+	local f = file.Open(Line, "r", "DATA")
+	if not f then
+		ErrorNoHalt("Erroring opening file: " .. Line)
+	else
+		local str = f:Read(f:Size()) or ""
+		f:Close()
+		self:AutoSave()
+		if not forcenewtab then
+			for i = 1, self:GetNumTabs() do
+				if self:GetEditor(i).chosenfile == Line then
+					self:SetActiveTab(i)
+					if forcenewtab ~= nil then self:SetData(str) end
+					return
+				elseif self:GetEditor(i):GetValue() == str then
+					self:SetActiveTab(i)
+					return
+				end
+			end
+		end
 
-	-- 	local _, tabtext = getPreferredTitles(Line, str)
-	-- 	local tab
-	-- 	if self.NewTabOnOpen:GetBool() or forcenewtab then
-	-- 		tab = self:CreateTab(tabtext).Tab
-	-- 	else
-	-- 		tab = self:GetActiveTab()
-	-- 		tab:SetText(tabtext)
-	-- 		self.C.TabHolder:InvalidateLayout()
-	-- 	end
-	-- 	self:SetActiveTab(tab)
-	-- 	self:ChosenFile(Line)
+		local tabtext = extractNameFromFilePath(Line)
+		local tab
+		if self.NewTabOnOpen:GetBool() or forcenewtab then
+			tab = self:CreateTab(tabtext).Tab
+		else
+			tab = self:GetActiveTab()
+			tab:SetText(tabtext)
+			self.C.TabHolder:InvalidateLayout()
+		end
+		self:SetActiveTab(tab)
+		self:ChosenFile(Line)
 
-	-- 	self:SetCode(str)
-	-- end
+		self:SetData(str)
+	end
 end
 
 function Editor:Close()
 	timer.Stop("fpgaautosave")
 	self:AutoSave()
 
+  self:ExtractName()
 	self:SetV(false)
 	self.chip = false
 
