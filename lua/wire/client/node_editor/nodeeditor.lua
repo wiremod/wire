@@ -1,10 +1,12 @@
 local Editor = {}
 
 local Nodes = {
-  {type = "wire", gate = "floor", x = 0, y = 50, connections = {[1] = nil}},
-  {type = "wire", gate = "ceil", x = 0, y = 150, connections = {[1] = nil}},
+  {type = "wire", gate = "floor", x = 0, y = 50, connections = {[1] = {5, 1}}},
+  {type = "wire", gate = "ceil", x = 0, y = 150, connections = {[1] = {5, 1}}},
   {type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {1, 1}, [2] = {2, 1}}},
-  {type = "wire", gate = "exp", x = 150, y = 100, connections = {[1] = {3, 1}}}
+  {type = "wire", gate = "exp", x = 150, y = 100, connections = {[1] = {3, 1}}},
+  {type = "io", gate = "in", x = -100, y = 100, connections = {}},
+  {type = "io", gate = "out", x = 200, y = 100, connections = {[1] = {4, 1}}},
 }
 
 function Editor:Init()
@@ -45,6 +47,22 @@ end
 --     },
 
 
+-- GATES
+function Editor:GetIOGate(node)
+  if node.gate == "in" then
+    return {name = "Input", inputs = {}, outputs = {"Out"}}
+  elseif node.gate == "out" then
+    return {name = "Output", inputs = {"A"}, outputs = {}}
+  end
+end
+
+function Editor:GetGate(node)
+  if node.type == "wire" then 
+    return GateActions[node.gate]
+  elseif node.type == "io" then
+    return self:GetIOGate(node)
+  end
+end
 
 -- UTILITY
 function Editor:PosToScr(x, y)
@@ -83,7 +101,7 @@ function Editor:GetNodeInputAt(x, y)
   local gx, gy = self:ScrToPos(x, y)
 
   for k, node in pairs(Nodes) do
-    gate = GateActions[node.gate]
+    local gate = self:GetGate(node)
 
     if gx < node.x - self.GateSize/2 - self.IOSize then continue end
     if gx > node.x + self.GateSize/2 + self.IOSize then continue end
@@ -109,7 +127,7 @@ function Editor:GetNodeOutputAt(x, y)
   local gx, gy = self:ScrToPos(x, y)
 
   for k, node in pairs(Nodes) do
-    gate = GateActions[node.gate]
+    local gate = self:GetGate(node)
 
     if gx < node.x - self.GateSize/2 - self.IOSize then continue end
     if gx > node.x + self.GateSize/2 + self.IOSize then continue end
@@ -150,8 +168,16 @@ function Editor:PaintConnections()
 end
 
 function Editor:PaintNode(node)
-  local gate = GateActions[node.gate]
-  local amountOfInputs = table.Count(gate.inputs)
+  local gate = self:GetGate(node)
+
+  local amountOfInputs = 0
+  if gate.inputs then
+    amountOfInputs = table.Count(gate.inputs)
+  end
+  local amountOfOutputs = 1
+  if gate.outputs then
+    local amountOfOutputs = table.Count(gate.outputs)
+  end
 
   local x, y = self:PosToScr(node.x, node.y)
 
@@ -159,8 +185,10 @@ function Editor:PaintNode(node)
   local ioSize = self.Zoom * self.IOSize
 
   -- Body
+  local height = math.max(amountOfInputs, amountOfOutputs, 1)
+
   surface.SetDrawColor(self.NodeColor)
-  surface.DrawRect(x-size/2, y-size/2, size, size * amountOfInputs)
+  surface.DrawRect(x-size/2, y-size/2, size, size * height)
 
   -- Name
   surface.SetFont("Default")
@@ -171,14 +199,22 @@ function Editor:PaintNode(node)
   
   -- Inputs
   surface.SetDrawColor(self.InputColor)
-  for k, input in pairs(gate.inputs) do
-    -- This should rely on a function
-    surface.DrawRect(x - size/2 - ioSize, y - ioSize/2 + (k-1) * size, ioSize, ioSize)
+  if gate.inputs then
+    for k, input in pairs(gate.inputs) do
+      -- This should rely on a function
+      surface.DrawRect(x - size/2 - ioSize, y - ioSize/2 + (k-1) * size, ioSize, ioSize)
+    end
   end
 
   -- Output
   surface.SetDrawColor(self.OutputColor)
-  surface.DrawRect(x + size/2, y - ioSize/2, ioSize, ioSize)
+  if gate.outputs then
+    for k, output in pairs(gate.outputs) do
+      surface.DrawRect(x + size/2, y - ioSize/2 + (k-1) * size, ioSize, ioSize)
+    end
+  else 
+    surface.DrawRect(x + size/2, y - ioSize/2, ioSize, ioSize)
+  end
 end
 
 function Editor:PaintNodes()
