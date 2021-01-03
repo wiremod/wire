@@ -32,17 +32,17 @@ function ENT:Initialize()
 end
 
 
-function ENT:Upload()
-  MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
-  self.name = "Test"
-  self.timebench = 0.075
+function ENT:Upload(data)
+  --MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
+  self.name = data.Name
+  self.timebench = 0
   self:UpdateOverlay(false)
 
   self.Inputs = WireLib.AdjustInputs(self, {"In"})
 end
 
 function ENT:Reset()
-  MsgC(Color(0, 100, 255), "Resetting FPGA\n")
+  --MsgC(Color(0, 100, 255), "Resetting FPGA\n")
   self.Inputs = WireLib.AdjustInputs(self, {"In", "In2"})
 end
 

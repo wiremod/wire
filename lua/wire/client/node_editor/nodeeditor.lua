@@ -26,14 +26,7 @@ function Editor:Init()
   self.C = {}
   self:InitComponents()
 
-  self.Nodes = {
-    {type = "wire", gate = "floor", x = 0, y = 50, connections = {[1] = {5, 1}}},
-    {type = "wire", gate = "ceil", x = 0, y = 150, connections = {[1] = {5, 1}}},
-    {type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {1, 1}, [2] = {2, 1}}},
-    {type = "wire", gate = "exp", x = 150, y = 100, connections = {[1] = {3, 1}}},
-    {type = "io", gate = "in", x = -100, y = 100, connections = {}},
-    {type = "io", gate = "out", x = 200, y = 100, connections = {[1] = {4, 1}}},
-  }
+  self.Nodes = {}
 
   --MsgC(Color(0, 150, 255), table.ToString(GateActions, "Gate Actions", true))
 end
@@ -75,7 +68,7 @@ end
 
 -- INTERACTION
 function Editor:GetData() 
-  return util.TableToJSON({
+  return WireLib.von.serialize({
       Name = self.C.Name:GetValue(),
       Nodes = self.Nodes,
       Position = self.Position,
@@ -84,7 +77,7 @@ function Editor:GetData()
 end
 
 function Editor:SetData(data) 
-  local data = util.JSONToTable(data)
+  local data = WireLib.von.deserialize(data)
   -- error check
 
   self.C.Name:SetValue(data.Name)
@@ -95,7 +88,13 @@ end
 
 function Editor:ClearData()
   self.C.Name:SetValue("empty")
-  self.Nodes = {}
+  self.Nodes = {{type = "wire", gate = "floor", x = 0, y = 50, connections = {[1] = {5, 1}}},
+    {type = "wire", gate = "ceil", x = 0, y = 150, connections = {[1] = {5, 1}}},
+    {type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {1, 1}, [2] = {2, 1}}},
+    {type = "wire", gate = "exp", x = 150, y = 100, connections = {[1] = {3, 1}}},
+    {type = "io", gate = "in-number", x = -100, y = 100, connections = {}},
+    {type = "io", gate = "out-number", x = 200, y = 100, connections = {[1] = {4, 1}}}
+  }
   self.Position = {0, 0}
   self.Zoom = 1
 end
@@ -107,9 +106,9 @@ end
 
 -- GATES
 function Editor:GetIOGate(node)
-  if node.gate == "in" then
+  if node.gate == "in-number" then
     return {name = "Input", inputs = {}, outputs = {"Out"}}
-  elseif node.gate == "out" then
+  elseif node.gate == "out-number" then
     return {name = "Output", inputs = {"A"}, outputs = {}}
   end
 end
