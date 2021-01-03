@@ -20,8 +20,11 @@ function Editor:Init()
   self.BackgroundColor = Color(32, 32, 32, 255)
   self.NodeColor = Color(100, 100, 100, 255)
   self.ConnectionColor = Color(200, 200, 200, 255)
-  self.InputColor = Color(120, 250, 120, 255)
-  self.OutputColor = Color(120, 120, 250, 255)
+  self.InputColor = Color(160, 240, 160, 255)
+  self.OutputColor = Color(160, 160, 240, 255)
+
+  self.C = {}
+  self:InitComponents()
 
   self.Nodes = {
     {type = "wire", gate = "floor", x = 0, y = 50, connections = {[1] = {5, 1}}},
@@ -46,9 +49,33 @@ end
 --       },
 --     },
 
+-- COMPONENTS
+
+function Editor:InitComponents()
+  self.C = {}
+
+	self.C.TopBar = vgui.Create("DPanel", self)
+  self.C.TopBar:Dock(TOP)
+  self.C.TopBar:SetHeight(24)
+	self.C.TopBar:DockPadding(2,2,2,2)
+
+  self.C.Name = vgui.Create("DTextEntry", self.C.TopBar)
+  self.C.Name:SetEditable(true)
+  self.C.Name:SetSize(140, 20)
+  self.C.Name:Dock(LEFT)
+  -- this doesnt work
+  self.C.Name.OnLoseFocus = function (self)
+    if self:GetValue() == "" then
+    	self:SetValue("empty")
+	  end
+  end
+end
+
+
 -- INTERACTION
 function Editor:GetData() 
   return util.TableToJSON({
+      Name = self.C.Name:GetValue(),
       Nodes = self.Nodes,
       Position = self.Position,
       Zoom = self.Zoom
@@ -59,17 +86,23 @@ function Editor:SetData(data)
   local data = util.JSONToTable(data)
   -- error check
 
+  self.C.Name:SetValue(data.Name)
   self.Nodes = data.Nodes
   self.Position = data.Position
   self.Zoom = data.Zoom
 end
 
-function Editor:ClearData() 
+function Editor:ClearData()
+  self.C.Name:SetValue("empty")
   self.Nodes = {}
   self.Position = {0, 0}
   self.Zoom = 1
 end
 
+
+function Editor:GetName()
+  return self.C.Name:GetValue()
+end
 
 -- GATES
 function Editor:GetIOGate(node)
@@ -291,9 +324,9 @@ end
 function Editor:PaintDebug()
   surface.SetFont("Default")
 	surface.SetTextColor(255, 255, 255)
-	surface.SetTextPos(10, 10) 
+	surface.SetTextPos(10, 50) 
   surface.DrawText(self.Position[1] .. ", " .. self.Position[2])
-  surface.SetTextPos(10, 30) 
+  surface.SetTextPos(10, 70) 
 	surface.DrawText(self.Zoom)
 end
 

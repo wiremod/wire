@@ -307,13 +307,19 @@ local function extractNameFromFilePath(str)
 	end
 end
 
+local function extractNameFromFile(file)
+  local data = util.JSONToTable(file)
+
+  return data.Name
+end
+
+function Editor:ExtractNameFromEditor()
+  return self:GetCurrentEditor():GetName()
+end
+
 function Editor:UpdateActiveTabTitle()
   local title = self:GetChosenFile()
-  local tabtext = self:GetChosenFile()
-  if self:GetChosenFile() 
-  then
-    tabtext = extractNameFromFilePath(self:GetChosenFile())
-  end
+  local tabtext = self:ExtractNameFromEditor()
 
 	if title then self:SubTitle("Editing: " .. title) else self:SubTitle() end
 	if tabtext then
@@ -355,7 +361,7 @@ function Editor:CreateTab(chosenfile)
 	local editor = vgui.Create("FPGAEditor")
 	editor.parentpanel = self
 
-	local sheet = self.C.TabHolder:AddSheet(extractNameFromFilePath(chosenfile), editor)
+	local sheet = self.C.TabHolder:AddSheet(chosenfile, editor)
 	editor.chosenfile = chosenfile
 
 	sheet.Tab.OnMousePressed = function(pnl, keycode, ...)
@@ -394,13 +400,14 @@ function Editor:CreateTab(chosenfile)
 				self:SetActiveTab(pnl)
 				self:SaveFile(self:GetChosenFile(), false, true)
 			end)
-			menu:AddOption("Reload", function()
+      menu:AddOption("Reload", function()
 				self:FixTabFadeTime()
 				local old = self:GetLastTab()
 				self:SetActiveTab(pnl)
 				self:LoadFile(editor.chosenfile, false)
 				self:SetActiveTab(self:GetLastTab())
-				self:SetLastTab(old)
+        self:SetLastTab(old)
+        self:UpdateActiveTabTitle()
 			end)
 			menu:AddSpacer()
 			menu:AddOption("Copy file path to clipboard", function()
@@ -458,7 +465,7 @@ function Editor:GetNextAvailableTab()
 end
 
 function Editor:NewTab()
-	local sheet = self:CreateTab("chip")
+	local sheet = self:CreateTab("empty")
   self:SetActiveTab(sheet.Tab)
   
   self:NewChip(true)
@@ -500,7 +507,7 @@ function Editor:CloseTab(_tab)
 
 	-- There's only one tab open, no need to actually close any tabs
 	if self:GetNumTabs() == 1 then
-		activetab:SetText("chip")
+		activetab:SetText("empty")
 		self.C.TabHolder:InvalidateLayout()
 		self:NewChip(true)
 		return
@@ -525,7 +532,7 @@ function Editor:CloseTab(_tab)
 					self:SetActiveTab(othertab)
 					self:SetLastTab()
 				else -- Reset the current tab (backup)
-					self:GetActiveTab():SetText("chip")
+					self:GetActiveTab():SetText("empty")
 					self.C.TabHolder:InvalidateLayout()
 					self:NewChip(true)
 					return
@@ -539,7 +546,7 @@ function Editor:CloseTab(_tab)
 			if othertab and othertab:IsValid() then -- If that other tab is valid, use it
 				self:SetActiveTab(othertab)
 			else -- Reset the current tab (backup)
-				self:GetActiveTab():SetText("chip")
+				self:GetActiveTab():SetText("empty")
 				self.C.TabHolder:InvalidateLayout()
 				self:NewChip(true)
 				return
@@ -613,7 +620,7 @@ function Editor:InitComponents()
 	self.C.Credit = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 190) -- Credit box
 	self.C.Credit:SetEditable(false)
 	
-	self:CreateTab("chip")
+	self:CreateTab("empty")
 
 	-- extra component options
 
@@ -675,7 +682,8 @@ function Editor:InitComponents()
 	self.C.Reload:SetImage("icon16/page_refresh.png")
 	self.C.Reload:SetToolTip( "Refresh file" )
 	self.C.Reload.DoClick = function(button)
-		self:LoadFile(self:GetChosenFile(), false)
+    self:LoadFile(self:GetChosenFile(), false)
+    self:UpdateActiveTabTitle()
 	end
 
 	self.C.SaE:SetText("Save and Exit")
@@ -860,7 +868,7 @@ function Editor:NewChip(incurrent)
 		self:ChosenFile()
 
 		-- Set title
-		self:GetActiveTab():SetText("chip")
+		self:GetActiveTab():SetText("empty")
     
     self.C.TabHolder:InvalidateLayout()
     self:ClearData()
@@ -980,7 +988,7 @@ function Editor:FindOpenFile(FilePath)
 end
 
 function Editor:ExtractName()
-  self.savefilefn = "filename" 
+  self.savefilefn = self:ExtractNameFromEditor()
   return
 end
 
@@ -1030,20 +1038,21 @@ function Editor:Open(Line, data, forcenewtab)
 					return
 				end
 			end
-		end
-		local tabtext = extractNameFromFilePath(Line)
-		local tab
+    end
+    
+    local tab
 		if self.NewTabOnOpen:GetBool() or forcenewtab then
 			tab = self:CreateTab(tabtext).Tab
 		else
 			tab = self:GetActiveTab()
-			tab:SetText(tabtext)
-			self.C.TabHolder:InvalidateLayout()
 		end
-		self:SetActiveTab(tab)
+    self:SetActiveTab(tab)
 
 		self:ChosenFile()
-		self:SetData(data)
+    self:SetData(data)
+
+    self:UpdateActiveTabTitle()
+
 		if Line then self:SubTitle("Editing: " .. Line) end
 		return
 	end
@@ -1052,6 +1061,7 @@ end
 
 function Editor:SaveFile(Line, close, SaveAs)
   self:ExtractName()
+
 	if close and self.chip then
 		--WireLib.Expression2Upload(self.chip, self:GetCode())
 		self:Close()
@@ -1092,7 +1102,9 @@ function Editor:SaveFile(Line, close, SaveAs)
 
 	file.Write(Line, self:GetData())
 
-	surface.PlaySound("ambient/water/drip3.wav")
+  surface.PlaySound("ambient/water/drip3.wav")
+  
+  self:UpdateActiveTabTitle()
 
 	if not self.chip then self:ChosenFile(Line) end
 	if close then
@@ -1124,19 +1136,16 @@ function Editor:LoadFile(Line, forcenewtab)
 			end
 		end
 
-		local tabtext = extractNameFromFilePath(Line)
-		local tab
+    local tab
 		if self.NewTabOnOpen:GetBool() or forcenewtab then
-			tab = self:CreateTab(tabtext).Tab
+      tab = self:CreateTab("").Tab
 		else
-			tab = self:GetActiveTab()
-			tab:SetText(tabtext)
-			self.C.TabHolder:InvalidateLayout()
-		end
-		self:SetActiveTab(tab)
+      tab = self:GetActiveTab()
+    end
+    self:SetActiveTab(tab)
 		self:ChosenFile(Line)
-
-		self:SetData(str)
+    self:SetData(str)
+    self:UpdateActiveTabTitle()
 	end
 end
 
