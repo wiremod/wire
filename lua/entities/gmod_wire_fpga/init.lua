@@ -33,7 +33,8 @@ end
 
 
 function ENT:Upload(data)
-  --MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
+  MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
+  print(table.ToString(data, "data", true))
   self.name = data.Name
   self.timebench = 0
   self:UpdateOverlay(false)

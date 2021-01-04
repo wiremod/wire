@@ -1017,6 +1017,10 @@ function Editor:GetData()
   return self:GetCurrentEditor():GetData()
 end
 
+function Editor:GetCompiledData()
+  return self:GetCurrentEditor():GetCompiledData()
+end
+
 function Editor:Open(Line, data, forcenewtab)
 	if self:IsVisible() and not Line and not data then self:Close() end
 	hook.Run("WireFPGAEditorOpen", self, Line, data, forcenewtab)

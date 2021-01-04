@@ -92,16 +92,53 @@ function Editor:ClearData()
     {type = "wire", gate = "ceil", x = 0, y = 150, connections = {[1] = {5, 1}}},
     {type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {1, 1}, [2] = {2, 1}}},
     {type = "wire", gate = "exp", x = 150, y = 100, connections = {[1] = {3, 1}}},
-    {type = "io", gate = "in-number", x = -100, y = 100, connections = {}},
-    {type = "io", gate = "out-number", x = 200, y = 100, connections = {[1] = {4, 1}}}
+    {type = "io", gate = "in-number", ioName = "A", x = -100, y = 100, connections = {}},
+    {type = "io", gate = "out-number", ioName = "Out", x = 200, y = 100, connections = {[1] = {4, 1}}}
   }
   self.Position = {0, 0}
   self.Zoom = 1
 end
 
-
 function Editor:GetName()
   return self.C.Name:GetValue()
+end
+
+-- Node 'compiler'
+-- Flip connections, generate input output tabels
+function Editor:GetCompiledData()
+  --Make node table and connection table [from][output] = {to, input}
+  nodes = {}
+  edges = {}
+  for nodeId, node in pairs(self.Nodes) do
+    table.insert(nodes, {
+      type = "wire",
+      gate = node.gate,
+    })
+    for input, connection in pairs(node.connections) do
+      fromNode = connection[1]
+      fromOutput = connection[2]
+      if not edges[fromNode] then edges[fromNode] = {} end
+      if not edges[fromNode][fromOutput] then edges[fromNode][fromOutput] = {} end
+
+      table.insert(edges[fromNode][fromOutput], {nodeId, input})
+    end
+
+    if node.type == "io" then
+      nodes[nodeId].ioName = node.ioName
+    end
+  end
+
+  --Integrate connection table into node table
+  for nodeId, node in pairs(nodes) do
+    nodes[nodeId].connections = edges[nodeId]
+  end
+
+  compiled = WireLib.von.serialize({
+    Name = self:GetName(),
+    Nodes = nodes,
+  }, false)
+
+  return compiled
 end
 
 -- GATES

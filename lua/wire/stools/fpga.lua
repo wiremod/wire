@@ -94,9 +94,7 @@ if CLIENT then
 			return
 		end
 		
-    data = data or FPGA_Editor:GetData()
-    
-    data = WireLib.FPGACompile(data)
+    data = data or FPGA_Editor:GetCompiledData()
 		
     net.Start("FPGA_Upload")
       net.WriteEntity(targetEnt)
@@ -116,14 +114,6 @@ if CLIENT then
 		end)
 		timer.Create("FPGA_Upload_Delay_Error",0.03*31,1,function() WireLib.AddNotify("Invalid FPGA entity specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3) end)
   end)
-  
-  -- Node 'compiler'
-  -- Flip connections, generate input output tabels
-  function WireLib.FPGACompile(data)
-
-
-    return data
-  end
 end
 
 if SERVER then
