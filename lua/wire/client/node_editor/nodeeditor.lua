@@ -102,9 +102,9 @@ function Editor:ClearData()
   -- }
 
   self.Nodes = {{type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {2, 1}, [2] = {3, 1}}},
-    {type = "io", gate = "in-number", ioName = "A", x = -100, y = 100, connections = {}},
-    {type = "io", gate = "in-number", ioName = "B", x = -100, y = 150, connections = {}},
-    {type = "io", gate = "out-number", ioName = "Out", x = 200, y = 100, connections = {[1] = {1, 1}}}
+    {type = "fpga", gate = "normal-input", ioName = "A", x = -100, y = 100, connections = {}},
+    {type = "fpga", gate = "normal-input", ioName = "B", x = -100, y = 150, connections = {}},
+    {type = "fpga", gate = "normal-output", ioName = "Out", x = 200, y = 100, connections = {[1] = {1, 1}}}
   }
   self.Position = {0, 0}
   self.Zoom = 1
@@ -124,6 +124,8 @@ function Editor:GetCompiledData()
   inputTypes = {}
   outputs = {}
   outputTypes = {}
+  inputIds = {}
+  outputIds = {}
   for nodeId, node in pairs(self.Nodes) do
     table.insert(nodes, {
       type = node.type,
@@ -138,16 +140,18 @@ function Editor:GetCompiledData()
       table.insert(edges[fromNode][fromOutput], {nodeId, input})
     end
 
-    if node.type == "io" then
-      local gate = self:GetIOGate(node)
+    if node.type == "fpga" then
+      local gate = self:GetGate(node)
 
-      if gate.outputs[1] then
+      if gate.isInput then
+        inputIds[node.ioName] = nodeId
         table.insert(inputs, node.ioName)
-        table.insert(inputTypes, gate.type)
+        table.insert(inputTypes, gate.outputtypes[1])
       end
-      if gate.inputs[1] then
+      if gate.isOutput then
+        outputIds[node.ioName] = nodeId
         table.insert(outputs, node.ioName)
-        table.insert(outputTypes, gate.type)
+        table.insert(outputTypes, gate.inputtypes[1])
       end
     end
   end
@@ -162,27 +166,21 @@ function Editor:GetCompiledData()
     Nodes = nodes,
     Inputs = inputs,
     InputTypes = inputTypes,
+    InputIds = inputIds,
     Outputs = outputs,
     OutputTypes = outputTypes,
+    OutputIds = outputIds,
   }, false)
 
   return compiled
 end
 
 -- GATES
-function Editor:GetIOGate(node)
-  if node.gate == "in-number" then
-    return {name = "Input", inputs = {}, outputs = {"Out"}, type = "NORMAL"}
-  elseif node.gate == "out-number" then
-    return {name = "Output", inputs = {"A"}, outputs = {}, type = "NORMAL"}
-  end
-end
-
 function Editor:GetGate(node)
   if node.type == "wire" then 
     return GateActions[node.gate]
-  elseif node.type == "io" then
-    return self:GetIOGate(node)
+  elseif node.type == "fpga" then
+    return FPGAGateActions[node.gate]
   end
 end
 
