@@ -41,6 +41,7 @@ function ENT:Initialize()
   self.Outputs = WireLib.CreateOutputs(self, {})
   
   self.Gates = {}
+  self.LastGateValues = {}
 
   self.Nodes = {}
   self.InputNames = {}
@@ -49,6 +50,8 @@ function ENT:Initialize()
   self.OutputNames = {}
   self.OutputTypes = {}
   self.OutputIds = {}
+
+  self.NodeGetsInputFrom = {}
 
 	self:UpdateOverlay(true)
 	--self:SetColor(Color(255, 0, 0, self:GetColor().a))
@@ -66,6 +69,7 @@ function ENT:CompileData(data)
   outputTypes = {}
   inputIds = {}
   outputIds = {}
+  nodeGetsInputFrom = {}
   for nodeId, node in pairs(data.Nodes) do
     table.insert(nodes, {
       type = node.type,
@@ -79,6 +83,8 @@ function ENT:CompileData(data)
 
       table.insert(edges[fromNode][fromOutput], {nodeId, input})
     end
+
+    nodeGetsInputFrom[nodeId] = node.connections
 
     if node.type == "fpga" then
       local gate = getGate(node)
@@ -108,6 +114,8 @@ function ENT:CompileData(data)
   self.OutputNames = outputs
   self.OutputTypes = outputTypes
   self.OutputIds = outputIds
+
+  self.NodeGetsInputFrom = nodeGetsInputFrom
 end
 
 
@@ -131,15 +139,19 @@ function ENT:Upload(data)
     self.Gates[nodeId] = {}
     --reset gate
   end
+  self.LastGateValues = {}
 
-  --Initialize inputs to default values
+  --Initialize inputs to default values (and backup lastgatevalue table)
   self.InputValues = {}
   for k, iname in pairs(self.InputNames) do
-    self.InputValues[self.InputIds[iname]] = self.Inputs[iname].Value
+    local inputNodeId = self.InputIds[iname]
+    local value = self.Inputs[iname].Value
+    self.InputValues[inputNodeId] = value
+    self.LastGateValues[inputNodeId] = value
   end
 
   self.Data = data
-  print(table.ToString(data, "data", true))
+  --print(table.ToString(data, "data", true))
 
   self:Run(self.InputIds)
 end
@@ -164,48 +176,81 @@ end
 
 
 function ENT:Run(changedInputs)
+  --Initialize nodesInQueue set
+  local nodesInQueue = {}
+  for nodeId, node in pairs(self.Nodes) do
+    nodesInQueue[nodeId] = false
+  end
+
+  --Initialize nodeQueue with changed inputs
+  --todo: also add self-triggering gates
   local nodeQueue = {}
   local i = 1
   for k, id in pairs(changedInputs) do
     nodeQueue[i] = id
+    nodesInQueue[id] = true
     i = i + 1
   end
 
-  --print(table.ToString(changedInputs, "debug", true))
+  --nodeQueue = {changedInputs[1], ... changedInputs[n]}
+  --nodesInQueue = {0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0}
 
   local values = {}
   
+  print(table.ToString(self.Nodes, "nodes", true))
+
   while not table.IsEmpty(nodeQueue) do
+    print()
+    print(table.ToString(nodeQueue, "nodeQueue", false))
+    print(table.ToString(nodesInQueue, "nodesInQueue", false))
+    
+
     local nodeId = table.remove(nodeQueue, 1)
     local node = self.Nodes[nodeId]
 
-    --add connected nodes to queue
-    if node.connections then
-      for k, connection in pairs(node.connections[1]) do
-        --check if already in queue, only add if it isnt (Set)
-        table.insert(nodeQueue, connection[1])
-      end
-    end
+    --print(table.ToString(node.connections, "node.connections", false))
 
+    --get gate
     local gate = getGate(node)
 
+    --output logic
     if gate.isOutput then
       WireLib.TriggerOutput(self, "Out", values[nodeId][1])
       continue
     end
 
+    --gate value logic
     if gate.isInput then
       value = self.InputValues[nodeId]
     else
+      --if input hasnt arrived yet, use older value
+      -- (maybe check if its ever going to arrive? older value should only be used incase it never will)
+      for inputId, connection in pairs(self.NodeGetsInputFrom[nodeId]) do
+        if not values[nodeId][inputId] then
+          --add support for multi output gates
+          values[nodeId][inputId] = self.LastGateValues[connection[1]]
+        end
+      end
+
       value = gate.output(self.Gates[nodeId], unpack(values[nodeId]))
     end
 
+    --save value for future executions
+    self.LastGateValues[nodeId] = value
+
+    --propergate output value to inputs
     if node.connections then
       for k, connection in pairs(node.connections[1]) do
         toNode = connection[1]
         toInput = connection[2]
         if not values[toNode] then values[toNode] = {} end
         values[toNode][toInput] = value
+
+        --add connected nodes to queue
+        if nodesInQueue[connection[1]] == false then
+          table.insert(nodeQueue, connection[1])
+          nodesInQueue[connection[1]] = true
+        end
       end
     end
   end

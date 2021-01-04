@@ -101,9 +101,10 @@ function Editor:ClearData()
   --   {type = "io", gate = "out-number", ioName = "Out", x = 200, y = 100, connections = {[1] = {1, 1}}}
   -- }
 
-  self.Nodes = {{type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {2, 1}, [2] = {2, 1}}},
-    {type = "fpga", gate = "normal-input", ioName = "A", x = -100, y = 100, connections = {}},
-    {type = "fpga", gate = "normal-output", ioName = "Out", x = 200, y = 100, connections = {[1] = {1, 1}}}
+  self.Nodes = {{type = "wire", gate = "+", x = 0, y = 100, connections = {[1] = {2, 1}, [2] = {2, 1}}},
+    {type = "fpga", gate = "normal-input", ioName = "A", x = -50, y = 90, connections = {}},
+    {type = "fpga", gate = "normal-input", ioName = "B", x = -50, y = 110, connections = {}},
+    {type = "fpga", gate = "normal-output", ioName = "Out", x = 50, y = 100, connections = {[1] = {1, 1}}}
   }
   self.Position = {0, 0}
   self.Zoom = 1
