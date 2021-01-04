@@ -1,0 +1,16 @@
+FPGA Entity:
+  Improve execution
+  Test using chips with multiple outputs
+  Test to make sure that order is correct
+
+
+FPGA Editor:
+  Add way to make nodes
+  Add way to remove nodes
+
+  Shortcuts?
+
+
+FPGA Gates:
+  Add all types of input / output chips
+  
