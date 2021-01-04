@@ -88,12 +88,23 @@ end
 
 function Editor:ClearData()
   self.C.Name:SetValue("empty")
-  self.Nodes = {{type = "wire", gate = "floor", x = 0, y = 50, connections = {[1] = {5, 1}}},
-    {type = "wire", gate = "ceil", x = 0, y = 150, connections = {[1] = {5, 1}}},
-    {type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {1, 1}, [2] = {2, 1}}},
-    {type = "wire", gate = "exp", x = 150, y = 100, connections = {[1] = {3, 1}}},
+  -- self.Nodes = {{type = "wire", gate = "floor", x = 0, y = 50, connections = {[1] = {5, 1}}},
+  --   {type = "wire", gate = "ceil", x = 0, y = 150, connections = {[1] = {5, 1}}},
+  --   {type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {1, 1}, [2] = {2, 1}}},
+  --   {type = "wire", gate = "exp", x = 150, y = 100, connections = {[1] = {3, 1}}},
+  --   {type = "io", gate = "in-number", ioName = "A", x = -100, y = 100, connections = {}},
+  --   {type = "io", gate = "out-number", ioName = "Out", x = 200, y = 100, connections = {[1] = {4, 1}}}
+  -- }
+
+  -- self.Nodes = {{type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {2, 1}, [2] = {2, 1}}},
+  --   {type = "io", gate = "in-number", ioName = "A", x = -100, y = 100, connections = {}},
+  --   {type = "io", gate = "out-number", ioName = "Out", x = 200, y = 100, connections = {[1] = {1, 1}}}
+  -- }
+
+  self.Nodes = {{type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {2, 1}, [2] = {3, 1}}},
     {type = "io", gate = "in-number", ioName = "A", x = -100, y = 100, connections = {}},
-    {type = "io", gate = "out-number", ioName = "Out", x = 200, y = 100, connections = {[1] = {4, 1}}}
+    {type = "io", gate = "in-number", ioName = "B", x = -100, y = 150, connections = {}},
+    {type = "io", gate = "out-number", ioName = "Out", x = 200, y = 100, connections = {[1] = {1, 1}}}
   }
   self.Position = {0, 0}
   self.Zoom = 1
@@ -109,9 +120,13 @@ function Editor:GetCompiledData()
   --Make node table and connection table [from][output] = {to, input}
   nodes = {}
   edges = {}
+  inputs = {}
+  inputTypes = {}
+  outputs = {}
+  outputTypes = {}
   for nodeId, node in pairs(self.Nodes) do
     table.insert(nodes, {
-      type = "wire",
+      type = node.type,
       gate = node.gate,
     })
     for input, connection in pairs(node.connections) do
@@ -124,7 +139,16 @@ function Editor:GetCompiledData()
     end
 
     if node.type == "io" then
-      nodes[nodeId].ioName = node.ioName
+      local gate = self:GetIOGate(node)
+
+      if gate.outputs[1] then
+        table.insert(inputs, node.ioName)
+        table.insert(inputTypes, gate.type)
+      end
+      if gate.inputs[1] then
+        table.insert(outputs, node.ioName)
+        table.insert(outputTypes, gate.type)
+      end
     end
   end
 
@@ -136,6 +160,10 @@ function Editor:GetCompiledData()
   compiled = WireLib.von.serialize({
     Name = self:GetName(),
     Nodes = nodes,
+    Inputs = inputs,
+    InputTypes = inputTypes,
+    Outputs = outputs,
+    OutputTypes = outputTypes,
   }, false)
 
   return compiled
@@ -144,9 +172,9 @@ end
 -- GATES
 function Editor:GetIOGate(node)
   if node.gate == "in-number" then
-    return {name = "Input", inputs = {}, outputs = {"Out"}}
+    return {name = "Input", inputs = {}, outputs = {"Out"}, type = "NORMAL"}
   elseif node.gate == "out-number" then
-    return {name = "Output", inputs = {"A"}, outputs = {}}
+    return {name = "Output", inputs = {"A"}, outputs = {}, type = "NORMAL"}
   end
 end
 
