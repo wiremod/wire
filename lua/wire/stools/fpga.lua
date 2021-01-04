@@ -94,7 +94,7 @@ if CLIENT then
 			return
 		end
 		
-    data = data or FPGA_Editor:GetCompiledData()
+    data = data or FPGA_Editor:GetData()
 		
     net.Start("FPGA_Upload")
       net.WriteEntity(targetEnt)

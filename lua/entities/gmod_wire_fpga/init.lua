@@ -4,6 +4,17 @@ include('shared.lua')
 
 DEFINE_BASECLASS("base_wire_entity")
 
+--HELPERS
+local function getGate(node)
+  if node.type == "wire" then 
+    return GateActions[node.gate]
+  elseif node.type == "fpga" then
+    return FPGAGateActions[node.gate]
+  end
+end
+
+
+
 
 function ENT:UpdateOverlay(clear)
 	if clear then
@@ -24,17 +35,81 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
   self:SetSolid(SOLID_VPHYSICS)
   
+  self.Data = nil
+
 	self.Inputs = WireLib.CreateInputs(self, {})
   self.Outputs = WireLib.CreateOutputs(self, {})
   
   self.Gates = {}
 
+  self.Nodes = {}
+  self.InputNames = {}
+  self.InputTypes = {}
   self.InputIds = {}
+  self.OutputNames = {}
+  self.OutputTypes = {}
   self.OutputIds = {}
 
 	self:UpdateOverlay(true)
 	--self:SetColor(Color(255, 0, 0, self:GetColor().a))
 end
+
+-- Node 'compiler'
+-- Flip connections, generate input output tabels
+function ENT:CompileData(data)
+  --Make node table and connection table [from][output] = {to, input}
+  nodes = {}
+  edges = {}
+  inputs = {}
+  inputTypes = {}
+  outputs = {}
+  outputTypes = {}
+  inputIds = {}
+  outputIds = {}
+  for nodeId, node in pairs(data.Nodes) do
+    table.insert(nodes, {
+      type = node.type,
+      gate = node.gate,
+    })
+    for input, connection in pairs(node.connections) do
+      fromNode = connection[1]
+      fromOutput = connection[2]
+      if not edges[fromNode] then edges[fromNode] = {} end
+      if not edges[fromNode][fromOutput] then edges[fromNode][fromOutput] = {} end
+
+      table.insert(edges[fromNode][fromOutput], {nodeId, input})
+    end
+
+    if node.type == "fpga" then
+      local gate = getGate(node)
+
+      if gate.isInput then
+        inputIds[node.ioName] = nodeId
+        table.insert(inputs, node.ioName)
+        table.insert(inputTypes, gate.outputtypes[1])
+      end
+      if gate.isOutput then
+        outputIds[node.ioName] = nodeId
+        table.insert(outputs, node.ioName)
+        table.insert(outputTypes, gate.inputtypes[1])
+      end
+    end
+  end
+
+  --Integrate connection table into node table
+  for nodeId, node in pairs(nodes) do
+    nodes[nodeId].connections = edges[nodeId]
+  end
+
+  self.Nodes = nodes
+  self.InputNames = inputs
+  self.InputTypes = inputTypes
+  self.InputIds = inputIds
+  self.OutputNames = outputs
+  self.OutputTypes = outputTypes
+  self.OutputIds = outputIds
+end
+
 
 
 function ENT:Upload(data)
@@ -44,29 +119,29 @@ function ENT:Upload(data)
   self.timebench = 0
   self:UpdateOverlay(false)
 
-  self.Inputs = WireLib.AdjustSpecialInputs(self, data.Inputs, data.InputTypes, "")
-  self.Outputs = WireLib.AdjustSpecialOutputs(self, data.Outputs, data.OutputTypes, "")
+  --compile
+  self:CompileData(data)
 
-  self.InputIds = data.InputIds
-  self.OutputIds = data.OutputIds
+  self.Inputs = WireLib.AdjustSpecialInputs(self, self.InputNames, self.InputTypes, "")
+  self.Outputs = WireLib.AdjustSpecialOutputs(self, self.OutputNames, self.OutputTypes, "")
 
-  self.Nodes = data.Nodes
   --Initialize gate table
   self.Gates = {}
-  for nodeId, node in pairs(data.Nodes) do
+  for nodeId, node in pairs(self.Nodes) do
     self.Gates[nodeId] = {}
     --reset gate
   end
 
   --Initialize inputs to default values
   self.InputValues = {}
-  for k, iname in pairs(data.Inputs) do
+  for k, iname in pairs(self.InputNames) do
     self.InputValues[self.InputIds[iname]] = self.Inputs[iname].Value
   end
 
+  self.Data = data
   print(table.ToString(data, "data", true))
 
-  self:Run(data.InputIds)
+  self:Run(self.InputIds)
 end
 
 function ENT:Reset()
@@ -86,14 +161,6 @@ end
 -- 	self:NextThink(CurTime())
 -- 	return true
 -- end
-
-local function getGate(node)
-  if node.type == "wire" then 
-    return GateActions[node.gate]
-  elseif node.type == "fpga" then
-    return FPGAGateActions[node.gate]
-  end
-end
 
 
 function ENT:Run(changedInputs)
