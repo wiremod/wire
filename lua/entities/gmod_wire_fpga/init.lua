@@ -70,11 +70,12 @@ function ENT:CompileData(data)
   inputIds = {}
   outputIds = {}
   nodeGetsInputFrom = {}
+
   for nodeId, node in pairs(data.Nodes) do
-    table.insert(nodes, {
+    nodes[nodeId] = {
       type = node.type,
       gate = node.gate,
-    })
+    }
     for input, connection in pairs(node.connections) do
       fromNode = connection[1]
       fromOutput = connection[2]
@@ -197,7 +198,9 @@ function ENT:Run(changedInputs)
 
   local values = {}
   
-  print(table.ToString(self.Nodes, "nodes", true))
+  for nodeId, node in pairs(self.Nodes) do
+    print(nodeId .. table.ToString(node, "", false))
+  end
 
   while not table.IsEmpty(nodeQueue) do
     print()

@@ -6,16 +6,18 @@ FPGA Entity:
     Test using chips with multiple outputs
     Test to make sure that order is correct
 
+    execution is broken
+
 
 FPGA Editor:
   Features:
-    Add way to make nodes
-    Add way to remove nodes
-
     Shortcuts?
 
   Bugs:
     Saving a file with capital letter fucks it up
+
+  nice to have:
+    remove data.UsedInputNames and data.UsedOutputNames from savedata, they can be inferred
 
 
 FPGA Gates:

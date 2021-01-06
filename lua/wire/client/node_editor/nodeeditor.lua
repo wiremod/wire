@@ -183,7 +183,9 @@ function Editor:GetData()
       Name = self.C.Name:GetValue(),
       Nodes = self.Nodes,
       Position = self.Position,
-      Zoom = self.Zoom
+      Zoom = self.Zoom,
+      UsedInputNames = self.UsedInputNames,
+      UsedOutputNames = self.UsedOutputNames,
     }, false)
 end
 
@@ -195,6 +197,8 @@ function Editor:SetData(data)
   self.Nodes = data.Nodes
   self.Position = data.Position
   self.Zoom = data.Zoom
+  self.UsedInputNames = data.UsedInputNames
+  self.UsedOutputNames = data.UsedOutputNames
 end
 
 function Editor:ClearData()
@@ -220,6 +224,9 @@ function Editor:ClearData()
   self.Nodes = {}
   self.Position = {0, 0}
   self.Zoom = 1
+  self.UsedInputNames = {}
+  self.UsedOutputNames = {}
+
 end
 
 function Editor:GetName()
@@ -482,7 +489,7 @@ function Editor:GetInputName()
   end
   self.UsedInputNames[i] = true
 
-  return string.char(64+i)
+  return "I" .. i
 end
 
 function Editor:GetOutputName()
@@ -492,7 +499,18 @@ function Editor:GetOutputName()
   end
   self.UsedOutputNames[i] = true
 
-  return "Out" .. i
+  return "O" .. i
+end
+
+function Editor:FreeName(name)
+  local type = string.sub(name, 1, 1)
+  local index = string.sub(name, 2, -1)
+  --print("freeing " .. type .. tonumber(index))
+  if type == "I" then
+    self.UsedInputNames[tonumber(index)] = false
+  elseif type == "O" then
+    self.UsedOutputNames[tonumber(index)] = false
+  end
 end
 
 function Editor:CreateNode(type, gate)
@@ -518,8 +536,8 @@ function Editor:CreateNode(type, gate)
 end
 
 function Editor:DeleteNode(nodeId)
-  self.Nodes[nodeId] = nil
-
+  print("Deleted " .. nodeId)
+  
   --remove all connections to this node
   for k1, node in pairs(self.Nodes) do
     for inputNum, connection in pairs(node.connections) do
@@ -529,6 +547,13 @@ function Editor:DeleteNode(nodeId)
     end
   end
 
+  --clear name, if it used one
+  if self.Nodes[nodeId].ioName then
+    self:FreeName(self.Nodes[nodeId].ioName)
+  end
+
+  --finally remove node
+  self.Nodes[nodeId] = nil
 end
 
 --EVENTS
