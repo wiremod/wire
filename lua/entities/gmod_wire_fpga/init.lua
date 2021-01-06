@@ -75,6 +75,7 @@ function ENT:CompileData(data)
     nodes[nodeId] = {
       type = node.type,
       gate = node.gate,
+      ioName = node.ioName,
     }
     for input, connection in pairs(node.connections) do
       fromNode = connection[1]
@@ -177,6 +178,8 @@ end
 
 
 function ENT:Run(changedInputs)
+  print("--------------------")
+
   --Initialize nodesInQueue set
   local nodesInQueue = {}
   for nodeId, node in pairs(self.Nodes) do
@@ -197,7 +200,7 @@ function ENT:Run(changedInputs)
   --nodesInQueue = {0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0}
 
   local values = {}
-  
+
   for nodeId, node in pairs(self.Nodes) do
     print(nodeId .. table.ToString(node, "", false))
   end
@@ -218,7 +221,8 @@ function ENT:Run(changedInputs)
 
     --output logic
     if gate.isOutput then
-      WireLib.TriggerOutput(self, "Out", values[nodeId][1])
+      print(node.ioName .. " outputs " .. values[nodeId][1])
+      WireLib.TriggerOutput(self, node.ioName, values[nodeId][1])
       continue
     end
 
