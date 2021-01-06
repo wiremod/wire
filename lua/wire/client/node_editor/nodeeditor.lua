@@ -23,6 +23,9 @@ function Editor:Init()
   self.InputColor = Color(160, 240, 160, 255)
   self.OutputColor = Color(160, 160, 240, 255)
 
+  self.UsedInputNames = {}
+  self.UsedOutputNames = {}
+
   self.C = {}
   self:InitComponents()
 
@@ -50,7 +53,7 @@ function Editor:InitComponents()
 	self.C.TopBar = vgui.Create("DPanel", self)
   self.C.TopBar:Dock(TOP)
   self.C.TopBar:SetHeight(24)
-  self.C.TopBar:DockPadding(2,2,2,2)
+  self.C.TopBar:DockPadding(5,5,5,5)
   self.C.TopBar:SetBackgroundColor(Color(170, 174, 179, 255))
 
   self.C.Name = vgui.Create("DTextEntry", self.C.TopBar)
@@ -62,6 +65,114 @@ function Editor:InitComponents()
     if self:GetValue() == "" then
     	self:SetValue("empty")
 	  end
+  end
+
+  --Gate spawning
+  self.C.Holder = vgui.Create("DPanel", self)
+  self.C.Holder:SetWidth(300)
+  self.C.Holder:Dock(RIGHT)
+  self.C.Holder:SetBackgroundColor(Color(170, 174, 179, 255))
+
+  self.C.Tree = vgui.Create("DTree", self.C.Holder)
+  self.C.Tree:Dock(FILL)
+  --self.C.Tree:DockMargin(5,0,5,5)
+
+
+  --utility
+  local function FillSubTree(tree, node, temp, type)
+    node.Icon:SetImage("icon16/folder.png")
+
+    local subtree = {}
+    for k, v in pairs(temp) do
+      subtree[#subtree+1] = {action = k, gate = v, name = v.name}
+    end
+
+    table.SortByMember(subtree, "name", true)
+
+    for index=1, #subtree do
+      local action, gate = subtree[index].action, subtree[index].gate
+      local node2 = node:AddNode(gate.name or "No name found :(")
+      node2.name = gate.name
+      node2.action = action
+      editor = self
+      function node2:DoClick()
+        editor:CreateNode(type, self.action)
+      end
+      node2.Icon:SetImage("icon16/newspaper.png")
+    end
+    tree:InvalidateLayout()
+  end
+
+  --FPGA gates
+  local CategoriesSorted = {}
+
+  for gatetype, gatefuncs in pairs(FPGAGatesSorted) do
+    local allowed_gates = {}
+    local any_allowed = false
+    for k,v in pairs(gatefuncs) do
+      if not v.is_banned then
+        allowed_gates[k] = v
+        any_allowed = true
+      end
+    end
+    if any_allowed then
+      CategoriesSorted[#CategoriesSorted+1] = {gatetype = gatetype, gatefuncs = allowed_gates}
+    end
+  end
+
+  table.sort(CategoriesSorted, function(a, b) return a.gatetype < b.gatetype end)
+
+  local fpgaNode = self.C.Tree:AddNode("FPGA", "icon16/bricks.png")
+  function fpgaNode:DoClick()
+    self:SetExpanded(not self.m_bExpanded)
+  end
+
+  for i=1,#CategoriesSorted do
+    local gatetype = CategoriesSorted[i].gatetype
+    local gatefuncs = CategoriesSorted[i].gatefuncs
+
+    local node = fpgaNode:AddNode(gatetype)
+    node.Icon:SetImage("icon16/folder.png")
+    FillSubTree(self.C.Tree, node, gatefuncs, "fpga")
+    function node:DoClick()
+      self:SetExpanded(not self.m_bExpanded)
+    end
+  end
+
+  --WIREMOD gates
+  local CategoriesSorted = {}
+
+  for gatetype, gatefuncs in pairs(WireGatesSorted) do
+    local allowed_gates = {}
+    local any_allowed = false
+    for k,v in pairs(gatefuncs) do
+      if not v.is_banned then
+        allowed_gates[k] = v
+        any_allowed = true
+      end
+    end
+    if any_allowed then
+      CategoriesSorted[#CategoriesSorted+1] = {gatetype = gatetype, gatefuncs = allowed_gates}
+    end
+  end
+
+  table.sort(CategoriesSorted, function(a, b) return a.gatetype < b.gatetype end)
+
+  local wiremodNode = self.C.Tree:AddNode("Wire", "icon16/connect.png")
+  function wiremodNode:DoClick()
+    self:SetExpanded(not self.m_bExpanded)
+  end
+
+  for i=1,#CategoriesSorted do
+    local gatetype = CategoriesSorted[i].gatetype
+    local gatefuncs = CategoriesSorted[i].gatefuncs
+
+    local node = wiremodNode:AddNode(gatetype)
+    node.Icon:SetImage("icon16/folder.png")
+    FillSubTree(self.C.Tree, node, gatefuncs, "wire")
+    function node:DoClick()
+      self:SetExpanded(not self.m_bExpanded)
+    end
   end
 end
 
@@ -101,11 +212,12 @@ function Editor:ClearData()
   --   {type = "io", gate = "out-number", ioName = "Out", x = 200, y = 100, connections = {[1] = {1, 1}}}
   -- }
 
-  self.Nodes = {{type = "wire", gate = "+", x = 0, y = 100, connections = {[1] = {2, 1}, [2] = {2, 1}}},
-    {type = "fpga", gate = "normal-input", ioName = "A", x = -50, y = 90, connections = {}},
-    {type = "fpga", gate = "normal-input", ioName = "B", x = -50, y = 110, connections = {}},
-    {type = "fpga", gate = "normal-output", ioName = "Out", x = 50, y = 100, connections = {[1] = {1, 1}}}
-  }
+  -- self.Nodes = {{type = "wire", gate = "+", x = 0, y = 100, connections = {[1] = {2, 1}, [2] = {2, 1}}},
+  --   {type = "fpga", gate = "normal-input", ioName = "A", x = -50, y = 90, connections = {}},
+  --   {type = "fpga", gate = "normal-input", ioName = "B", x = -50, y = 110, connections = {}},
+  --   {type = "fpga", gate = "normal-output", ioName = "Out", x = 50, y = 100, connections = {[1] = {1, 1}}}
+  -- }
+  self.Nodes = {}
   self.Position = {0, 0}
   self.Zoom = 1
 end
@@ -125,11 +237,11 @@ end
 
 -- UTILITY
 function Editor:PosToScr(x, y)
-  return self:GetWide()/2 - (self.Position[1] - x) * self.Zoom, self:GetTall()/2 - (self.Position[2] - y) * self.Zoom
+  return (self:GetWide()-300)/2 - (self.Position[1] - x) * self.Zoom, self:GetTall()/2 - (self.Position[2] - y) * self.Zoom
 end
 
 function Editor:ScrToPos(x, y)
-  return self.Position[1] - (self:GetWide()/2 - x) / self.Zoom, self.Position[2] - (self:GetTall()/2 - y) / self.Zoom
+  return self.Position[1] - ((self:GetWide()-300)/2 - x) / self.Zoom, self.Position[2] - (self:GetTall()/2 - y) / self.Zoom
 end
 
 function Editor:NodeInputPos(node, input)
@@ -167,7 +279,7 @@ function Editor:GetNodeInputAt(x, y)
     if gy < node.y - self.GateSize/2 then continue end
     if gy > node.y - self.GateSize/2 + self.GateSize * table.Count(gate.inputs) then continue end
 
-    for inputNum, input in pairs(gate.inputs) do
+    for inputNum, _ in pairs(gate.inputs) do
       local ix, iy = self:NodeInputPos(node, inputNum)
 
       if gx < ix - self.IOSize/2 then continue end
@@ -220,8 +332,8 @@ end
 
 function Editor:PaintConnections()
   for k1, node in pairs(self.Nodes) do
-    for input, connectedTo in pairs(node.connections) do
-      self:PaintConnection(self.Nodes[connectedTo[1]], connectedTo[2], node, input)
+    for inputNum, connectedTo in pairs(node.connections) do
+      self:PaintConnection(self.Nodes[connectedTo[1]], connectedTo[2], node, inputNum)
     end
   end
 end
@@ -259,7 +371,7 @@ function Editor:PaintNode(node)
   -- Inputs
   surface.SetDrawColor(self.InputColor)
   if gate.inputs then
-    for k, input in pairs(gate.inputs) do
+    for k, _ in pairs(gate.inputs) do
       -- This should rely on a function
       surface.DrawRect(x - size/2 - ioSize, y - ioSize/2 + (k-1) * size, ioSize, ioSize)
     end
@@ -284,7 +396,7 @@ end
 
 function Editor:Paint()
   surface.SetDrawColor(self.BackgroundColor)
-  surface.DrawRect(0, 0, self:GetWide(), self:GetTall())
+  surface.DrawRect(0, 0, self:GetWide()-290, self:GetTall())
 
   self:PaintNodes()
   self:PaintConnections()
@@ -334,33 +446,89 @@ end
 
 --ACTIONS
 function Editor:BeginDrawingConnection(x, y)
-  local nodeId, inputId = self:GetNodeInputAt(x, y)
+  local nodeId, inputNum = self:GetNodeInputAt(x, y)
   if nodeId then
     --check if something is connected to this input
     node = self.Nodes[nodeId]
-    input = node.connections[inputId]
+    Input = node.connections[inputNum]
 
     --Input already connected
-    if input then
-      local connectedNode, connectedOutput = input[1], input[2]
-      node.connections[inputId] = nil
+    if Input then
+      local connectedNode, connectedOutput = Input[1], Input[2]
+      node.connections[inputNum] = nil
       self.DrawingConnectionFrom = {connectedNode, connectedOutput}
       self.DrawingFromOutput = true
     else 
       --input not connected
-      self.DrawingConnectionFrom = {nodeId, inputId}
+      self.DrawingConnectionFrom = {nodeId, inputNum}
       self.DrawingFromInput = true
     end
     
     self.DrawingConnection = true
   end
 
-  local nodeId, outputId = self:GetNodeOutputAt(x, y)
+  local nodeId, outputNum = self:GetNodeOutputAt(x, y)
   if nodeId then
     self.DrawingConnection = true
     self.DrawingFromOutput = true
-    self.DrawingConnectionFrom = {nodeId, outputId}
+    self.DrawingConnectionFrom = {nodeId, outputNum}
   end
+end
+
+function Editor:GetInputName()
+  local i = 1
+  while self.UsedInputNames[i] do
+    i = i + 1
+  end
+  self.UsedInputNames[i] = true
+
+  return string.char(64+i)
+end
+
+function Editor:GetOutputName()
+  local i = 1
+  while self.UsedOutputNames[i] do
+    i = i + 1
+  end
+  self.UsedOutputNames[i] = true
+
+  return "Out" .. i
+end
+
+function Editor:CreateNode(type, gate)
+  node = {
+    type = type,
+    gate = gate,
+    x = self.Position[1],
+    y = self.Position[2],
+    connections = {}
+  }
+
+  local gateInfo = self:GetGate(node)
+
+  if gateInfo.isInput then
+    node.ioName = self:GetInputName()
+  elseif gateInfo.isOutput then
+    node.ioName = self:GetOutputName()
+  end
+
+  print("Created " .. table.ToString(node, "node", false))
+
+  table.insert(self.Nodes, node)
+end
+
+function Editor:DeleteNode(nodeId)
+  self.Nodes[nodeId] = nil
+
+  --remove all connections to this node
+  for k1, node in pairs(self.Nodes) do
+    for inputNum, connection in pairs(node.connections) do
+      if connection[1] == nodeId then
+        node.connections[inputNum] = nil
+      end
+    end
+  end
+
 end
 
 --EVENTS
@@ -403,19 +571,19 @@ end
 
 function Editor:OnDrawConnectionFinished(x, y)
   if self.DrawingFromOutput then
-    local nodeId, inputId = self:GetNodeInputAt(x, y)
+    local nodeId, inputNum = self:GetNodeInputAt(x, y)
 
     if nodeId then
       local node = self.Nodes[nodeId]
-      node.connections[inputId] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
+      node.connections[inputNum] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
     end
 
   elseif self.DrawingFromInput then
-    local nodeId, outputId = self:GetNodeOutputAt(x, y)
+    local nodeId, outputNum = self:GetNodeOutputAt(x, y)
 
     if nodeId then
       local node = self.Nodes[self.DrawingConnectionFrom[1]]
-      node.connections[self.DrawingConnectionFrom[2]] =  {nodeId, outputId}
+      node.connections[self.DrawingConnectionFrom[2]] =  {nodeId, outputNum}
     end
   end
 
@@ -429,6 +597,19 @@ function Editor:OnMouseWheeled(delta)
 	if self.Zoom < 0.1 then self.Zoom = 0.1 end
 	if self.Zoom > 10 then self.Zoom = 10 end
 end
+
+function Editor:OnKeyCodePressed(code)
+  local x, y = self:CursorPos()
+
+  if code == KEY_X then
+    --Delete
+    local node = self:GetNodeAt(x, y)
+    if node then
+      self:DeleteNode(node)
+    end
+  end
+end
+
 
 
 vgui.Register("FPGAEditor", Editor, "Panel");
