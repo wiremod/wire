@@ -20,8 +20,17 @@ function Editor:Init()
   self.BackgroundColor = Color(32, 32, 32, 255)
   self.NodeColor = Color(100, 100, 100, 255)
   self.ConnectionColor = Color(200, 200, 200, 255)
-  self.InputColor = Color(160, 240, 160, 255)
-  self.OutputColor = Color(160, 160, 240, 255)
+
+  self.NormalColor = Color(200, 200, 200, 255) --White
+  self.Vector2Color = Color(0, 255, 255, 255) --Light blue
+  self.VectorColor = Color(0, 150, 255, 255) --Blue
+  self.Vector4Color = Color(0, 40, 255, 255) --Dark blue
+  self.AngleColor = Color(150, 240, 150, 255) --Light green
+  self.StringColor = Color(255, 190, 0, 255) --Orange
+  
+  self.ArrayColor = Color(0, 100, 0, 255) --Dark green
+  self.EntityColor = Color(255, 100, 100, 255) --Dark red
+  self.RangerColor = Color(220, 0, 255, 255) --Deep purple
 
   self.UsedInputNames = {}
   self.UsedOutputNames = {}
@@ -242,6 +251,22 @@ function Editor:GetGate(node)
   end
 end
 
+function Editor:GetInputType(gate, inputNum)
+  if gate.inputtypes then
+    return gate.inputtypes[inputNum]
+  else
+    return "NORMAL"
+  end
+end
+
+function Editor:GetOutputType(gate, outputNum)
+  if gate.outputtypes then
+    return gate.outputtypes[outputNum]
+  else
+    return "NORMAL"
+  end
+end
+
 -- UTILITY
 function Editor:PosToScr(x, y)
   return (self:GetWide()-300)/2 - (self.Position[1] - x) * self.Zoom, self:GetTall()/2 - (self.Position[2] - y) * self.Zoom
@@ -345,6 +370,30 @@ function Editor:PaintConnections()
   end
 end
 
+function Editor:GetTypeColor(type)
+  if type == "NORMAL" then
+    return self.NormalColor
+  elseif type == "VECTOR2" then
+    return self.Vector2Color
+  elseif type == "VECTOR" then
+    return self.VectorColor
+  elseif type == "VECTOR4" then
+    return self.Vector4Color
+  elseif type == "ANGLE" then
+    return self.AngleColor
+  elseif type == "STRING" then
+    return self.StringColor
+  elseif type == "ARRAY" then
+    return self.ArrayColor
+  elseif type == "ENTITY" then
+    return self.EntityColor
+  elseif type == "RANGER" then
+    return self.RangerColor
+  else
+    return Color(0,0,0,255)
+  end
+end
+
 function Editor:PaintNode(node)
   local gate = self:GetGate(node)
 
@@ -376,18 +425,21 @@ function Editor:PaintNode(node)
   surface.DrawText(gate.name)
   
   -- Inputs
-  surface.SetDrawColor(self.InputColor)
   if gate.inputs then
     for k, _ in pairs(gate.inputs) do
+      local type = self:GetInputType(gate, k)
+      surface.SetDrawColor(self:GetTypeColor(type))
       -- This should rely on a function
       surface.DrawRect(x - size/2 - ioSize, y - ioSize/2 + (k-1) * size, ioSize, ioSize)
     end
   end
 
   -- Output
-  surface.SetDrawColor(self.OutputColor)
   if gate.outputs then
-    for k, output in pairs(gate.outputs) do
+    for k, _ in pairs(gate.outputs) do
+      local type = self:GetOutputType(gate, k)
+      surface.SetDrawColor(self:GetTypeColor(type))
+
       surface.DrawRect(x + size/2, y - ioSize/2 + (k-1) * size, ioSize, ioSize)
     end
   else 
