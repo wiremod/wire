@@ -13,6 +13,48 @@ local function getGate(node)
   end
 end
 
+local function getInputType(gate, inputNum)
+  if gate.inputtypes then
+    return gate.inputtypes[inputNum] or "NORMAL"
+  else
+    return "NORMAL"
+  end
+end
+
+local function getDefaultValue(node)
+  local gate = getGate(node)
+
+  values = {}
+  for inputNum, name in pairs(gate.inputs) do
+    local type = getInputType(gate, inputNum)
+
+    --default values
+    local value = nil
+    if type == "NORMAL" then
+      value = 0
+    elseif type == "VECTOR2" then
+    elseif type == "VECTOR" then
+      value = Vector(0, 0, 0)
+    elseif type == "VECTOR4" then
+    elseif type == "ANGLE" then
+      value = Angle(0, 0, 0)
+    elseif type == "STRING" then
+      value = ""
+    elseif type == "ARRAY" then
+      value = {}
+    elseif type == "ENTITY" then
+      value = NULL
+    elseif type == "RANGER" then
+      value = nil
+    elseif type == "WIRELINK" then
+      value = nil
+    end
+
+    values[inputNum] = value
+  end
+
+  return values
+end
 
 
 
@@ -121,7 +163,6 @@ function ENT:CompileData(data)
 end
 
 
-
 function ENT:Upload(data)
   MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
   
@@ -141,7 +182,11 @@ function ENT:Upload(data)
     self.Gates[nodeId] = {}
     --reset gate
   end
+  --Initialize default values
   self.LastGateValues = {}
+  for nodeId, node in pairs(self.Nodes) do
+    self.LastGateValues[nodeId] = getDefaultValue(node)
+  end
 
   --Initialize inputs to default values (and backup lastgatevalue table)
   self.InputValues = {}
@@ -180,6 +225,41 @@ end
 function ENT:Run(changedInputs)
   print("--------------------")
 
+  -----------------------------------------
+  --PREPARATION
+  -----------------------------------------
+
+  --Find out which nodes will be visited
+  local activeNodes = {}
+  for nodeId, node in pairs(self.Nodes) do
+    activeNodes[nodeId] = false
+  end
+  local activeNodesQueue = {}
+  local i = 1
+  for k, id in pairs(changedInputs) do
+    activeNodesQueue[i] = id
+    activeNodes[id] = true
+    i = i + 1
+  end
+  while not table.IsEmpty(activeNodesQueue) do
+    local nodeId = table.remove(activeNodesQueue, 1)
+    local node = self.Nodes[nodeId]
+    --propergate output value to inputs
+    if node.connections then
+      for outputNum, connections in pairs(node.connections) do
+        for k, connection in pairs(connections) do
+          --add connected nodes to queue (and active nodes)
+          if activeNodes[connection[1]] == false then
+            table.insert(activeNodesQueue, connection[1])
+            activeNodes[connection[1]] = true
+          end
+        end
+      end
+    end
+  end
+  --activeNodes = {0,0,0,1,1,1,1,1,1}
+  print(table.ToString(activeNodes, "activeNodes", false))
+
   --Initialize nodesInQueue set
   local nodesInQueue = {}
   for nodeId, node in pairs(self.Nodes) do
@@ -196,8 +276,12 @@ function ENT:Run(changedInputs)
     i = i + 1
   end
 
+  --Initialize nodesVisited set
+  local nodesVisited = {}
+
   --nodeQueue = {changedInputs[1], ... changedInputs[n]}
   --nodesInQueue = {0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0}
+  --nodesVisited = {}
 
   local values = {}
 
@@ -205,13 +289,17 @@ function ENT:Run(changedInputs)
     print(nodeId .. table.ToString(node, "", false))
   end
 
+  -----------------------------------------
+  --EXECUTION
+  -----------------------------------------
   while not table.IsEmpty(nodeQueue) do
     print()
     print(table.ToString(nodeQueue, "nodeQueue", false))
     print(table.ToString(nodesInQueue, "nodesInQueue", false))
-    
+    print(table.ToString(nodesVisited, "nodesVisited", false))
 
     local nodeId = table.remove(nodeQueue, 1)
+    table.insert(nodesVisited, nodeId)
     local node = self.Nodes[nodeId]
 
     --print(table.ToString(node.connections, "node.connections", false))
@@ -230,14 +318,25 @@ function ENT:Run(changedInputs)
     if gate.isInput then
       value = {self.InputValues[nodeId]}
     else
-      --if input hasnt arrived yet, use older value
-      -- (maybe check if its ever going to arrive? older value should only be used incase it never will)
+      --if input hasnt arrived, send this node to the back of the queue
       for inputId, connection in pairs(self.NodeGetsInputFrom[nodeId]) do
         if not values[nodeId][inputId] then
-          --add support for multi output gates
-          values[nodeId][inputId] = self.LastGateValues[connection[1]]
+          nodeId2 = connection[1]
+          outputNum = connection[2]
+
+          --if node hasnt been visited yet and its going to be visited
+          if not nodesVisited[nodeId2] and activeNodes[nodeId2] then
+            --send this node to the back of the queue (potential infinite looping???)
+            table.insert(nodeQueue, nodeId)
+            continue
+          else
+            --if input isnt going to arrive, use older value
+            values[nodeId][inputId] = self.LastGateValues[nodeId2][outputNum]
+          end
         end
       end
+
+      print(table.ToString(values[nodeId], "", false))
 
       value = {gate.output(self.Gates[nodeId], unpack(values[nodeId]))}
     end
