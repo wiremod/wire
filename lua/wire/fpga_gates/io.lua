@@ -23,7 +23,7 @@ FPGAGateActions["normal-output"] = {
 }
 
 FPGAGateActions["vector2-input"] = {
-	name = "Vector-2 Input",
+	name = "2D Vector Input",
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"VECTOR2"},
@@ -34,7 +34,7 @@ FPGAGateActions["vector2-input"] = {
 }
 
 FPGAGateActions["vector2-output"] = {
-	name = "Vector-2 Output",
+	name = "2D Vector Output",
   inputs = {"A"},
   inputtypes = {"VECTOR2"},
   outputs = {},
@@ -45,7 +45,7 @@ FPGAGateActions["vector2-output"] = {
 }
 
 FPGAGateActions["vector-input"] = {
-	name = "Vector Input",
+	name = "3D Vector Input",
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"VECTOR"},
@@ -56,7 +56,7 @@ FPGAGateActions["vector-input"] = {
 }
 
 FPGAGateActions["vector-output"] = {
-	name = "Vector Output",
+	name = "3D Vector Output",
   inputs = {"A"},
   inputtypes = {"VECTOR"},
   outputs = {},
@@ -67,7 +67,7 @@ FPGAGateActions["vector-output"] = {
 }
 
 FPGAGateActions["vector4-input"] = {
-	name = "Vector-4 Input",
+	name = "4D Vector Input",
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"VECTOR4"},
@@ -78,7 +78,7 @@ FPGAGateActions["vector4-input"] = {
 }
 
 FPGAGateActions["vector4-output"] = {
-	name = "Vector-4 Output",
+	name = "4D Vector Output",
   inputs = {"A"},
   inputtypes = {"VECTOR4"},
   outputs = {},
