@@ -443,6 +443,9 @@ function Editor:PaintNode(node)
       surface.DrawRect(x + size/2, y - ioSize/2 + (k-1) * size, ioSize, ioSize)
     end
   else 
+    local type = self:GetOutputType(gate, 1)
+    surface.SetDrawColor(self:GetTypeColor(type))
+
     surface.DrawRect(x + size/2, y - ioSize/2, ioSize, ioSize)
   end
 end
@@ -651,16 +654,34 @@ function Editor:OnDrawConnectionFinished(x, y)
     local nodeId, inputNum = self:GetNodeInputAt(x, y)
 
     if nodeId then
-      local node = self.Nodes[nodeId]
-      node.connections[inputNum] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
+      local inputNode = self.Nodes[nodeId]
+      local outputNode = self.Nodes[self.DrawingConnectionFrom[1]]
+      --check type
+      local inputType = self:GetInputType(self:GetGate(inputNode), inputNum)
+      local outputType = self:GetOutputType(self:GetGate(outputNode), self.DrawingConnectionFrom[2])
+
+      print(inputType .. " " .. outputType)
+
+      if inputType == outputType then
+        --connect up
+        inputNode.connections[inputNum] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
+      end
     end
 
   elseif self.DrawingFromInput then
     local nodeId, outputNum = self:GetNodeOutputAt(x, y)
 
     if nodeId then
-      local node = self.Nodes[self.DrawingConnectionFrom[1]]
-      node.connections[self.DrawingConnectionFrom[2]] =  {nodeId, outputNum}
+      local inputNode = self.Nodes[self.DrawingConnectionFrom[1]]
+      local outputNode = self.Nodes[nodeId]
+      --check type
+      local inputType = self:GetInputType(self:GetGate(inputNode), self.DrawingConnectionFrom[2])
+      local outputType = self:GetOutputType(self:GetGate(outputNode), outputNum)
+
+      if inputType == outputType then
+        --connect up
+        inputNode.connections[self.DrawingConnectionFrom[2]] =  {nodeId, outputNum}
+      end
     end
   end
 

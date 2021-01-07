@@ -6,8 +6,6 @@ FPGA Entity:
     Test using chips with multiple outputs
     Test to make sure that order is correct
 
-    execution is broken
-
 
 FPGA Editor:
   Features:
