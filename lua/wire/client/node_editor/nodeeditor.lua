@@ -336,16 +336,33 @@ function Editor:GetNodeOutputAt(x, y)
     if gx < node.x - self.GateSize/2 - self.IOSize then continue end
     if gx > node.x + self.GateSize/2 + self.IOSize then continue end
     if gy < node.y - self.GateSize/2 then continue end
-    if gy > node.y + self.GateSize/2 then continue end
+    if gate.outputs then
+      if gy > node.y - self.GateSize/2 + self.GateSize * table.Count(gate.outputs) then continue end
+    else
+      if gy > node.y + self.GateSize/2 then continue end
+    end
 
-    local ix, iy = self:NodeOutputPos(node, 1)
+    if gate.outputs then
+      for outputNum, _ in pairs(gate.outputs) do
+        local ix, iy = self:NodeOutputPos(node, outputNum)
+  
+        if gx < ix - self.IOSize/2 then continue end
+        if gx > ix + self.IOSize/2 then continue end
+        if gy < iy - self.IOSize/2 then continue end
+        if gy > iy + self.IOSize/2 then continue end
+  
+        return k, outputNum
+      end
+    else
+      local ix, iy = self:NodeOutputPos(node, 1)
 
-    if gx < ix - self.IOSize/2 then continue end
-    if gx > ix + self.IOSize/2 then continue end
-    if gy < iy - self.IOSize/2 then continue end
-    if gy > iy + self.IOSize/2 then continue end
+      if gx < ix - self.IOSize/2 then continue end
+      if gx > ix + self.IOSize/2 then continue end
+      if gy < iy - self.IOSize/2 then continue end
+      if gy > iy + self.IOSize/2 then continue end
 
-    return k, 1
+      return k, 1
+    end
   end
 
   return nil
