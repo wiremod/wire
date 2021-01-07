@@ -163,7 +163,7 @@ function ENT:Reset()
 end
 
 function ENT:TriggerInput(iname, value)
-  print("Set input " .. iname .. " to " .. value)
+  --print("Set input " .. iname .. " to " .. value)
 
   self.InputValues[self.InputIds[iname]] = value
   self:Run({self.InputIds[iname]})
@@ -221,7 +221,7 @@ function ENT:Run(changedInputs)
 
     --output logic
     if gate.isOutput then
-      print(node.ioName .. " outputs " .. values[nodeId][1])
+      --print(node.ioName .. " outputs " .. values[nodeId][1])
       WireLib.TriggerOutput(self, node.ioName, values[nodeId][1])
       continue
     end
