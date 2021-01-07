@@ -77,6 +77,9 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
   self:SetSolid(SOLID_VPHYSICS)
   
+  self.time = 0
+  self.timebench = 0
+
   self.Data = nil
 
 	self.Inputs = WireLib.CreateInputs(self, {})
@@ -167,6 +170,7 @@ function ENT:Upload(data)
   MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
   
   self.name = data.Name
+  self.time = 0
   self.timebench = 0
   self:UpdateOverlay(false)
 
@@ -215,15 +219,25 @@ function ENT:TriggerInput(iname, value)
 end
 
 
--- function ENT:Think()
+function ENT:Think()
+  BaseClass.Think(self)
+  self:NextThink(CurTime())
+  
+  self.timebench = self.timebench * 0.95 + self.time * 0.05
 
--- 	self:NextThink(CurTime())
--- 	return true
--- end
+  self.time = 0
+
+  self:UpdateOverlay(false)
+
+	return true
+end
 
 
 function ENT:Run(changedInputs)
   print("--------------------")
+
+  --Extra
+  local bench = SysTime()
 
   -----------------------------------------
   --PREPARATION
@@ -371,6 +385,6 @@ function ENT:Run(changedInputs)
     end
   end
 
-
-
+  --keep track of time spent this tick
+  self.time = self.time + (SysTime() - bench)
 end
