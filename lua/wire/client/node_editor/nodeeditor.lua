@@ -21,16 +21,17 @@ function Editor:Init()
   self.NodeColor = Color(100, 100, 100, 255)
   self.ConnectionColor = Color(200, 200, 200, 255)
 
-  self.NormalColor = Color(200, 200, 200, 255) --White
-  self.Vector2Color = Color(0, 255, 255, 255) --Light blue
-  self.VectorColor = Color(0, 150, 255, 255) --Blue
-  self.Vector4Color = Color(0, 40, 255, 255) --Dark blue
-  self.AngleColor = Color(150, 240, 150, 255) --Light green
-  self.StringColor = Color(255, 190, 0, 255) --Orange
+  self.NormalColor = Color(190, 190, 255, 255) --Very light blue nearing white
+  self.Vector2Color = Color(150, 255, 255, 255) --Light blue
+  self.VectorColor = Color(70, 160, 255, 255) --Blue
+  self.Vector4Color = Color(0, 50, 255, 255) --Dark blue
+  self.AngleColor = Color(100, 200, 100, 255) --Light green
+  self.StringColor = Color(250, 160, 90, 255) --Orange
   
-  self.ArrayColor = Color(0, 100, 0, 255) --Dark green
+  self.ArrayColor = Color(20, 110, 20, 255) --Dark green
   self.EntityColor = Color(255, 100, 100, 255) --Dark red
-  self.RangerColor = Color(220, 0, 255, 255) --Deep purple
+  self.RangerColor = Color(130, 100, 60, 255) --Brown
+  self.WirelinkColor = Color(200, 80, 200, 255) --Deep purple
 
   self.UsedInputNames = {}
   self.UsedOutputNames = {}
@@ -253,7 +254,7 @@ end
 
 function Editor:GetInputType(gate, inputNum)
   if gate.inputtypes then
-    return gate.inputtypes[inputNum]
+    return gate.inputtypes[inputNum] or "NORMAL"
   else
     return "NORMAL"
   end
@@ -261,7 +262,7 @@ end
 
 function Editor:GetOutputType(gate, outputNum)
   if gate.outputtypes then
-    return gate.outputtypes[outputNum]
+    return gate.outputtypes[outputNum] or "NORMAL"
   else
     return "NORMAL"
   end
@@ -389,6 +390,8 @@ function Editor:GetTypeColor(type)
     return self.EntityColor
   elseif type == "RANGER" then
     return self.RangerColor
+  elseif type == "WIRELINK" then
+    return self.WirelinkColor
   else
     return Color(0,0,0,255)
   end
@@ -403,13 +406,41 @@ function Editor:PaintNode(node)
   end
   local amountOfOutputs = 1
   if gate.outputs then
-    local amountOfOutputs = table.Count(gate.outputs)
+    amountOfOutputs = table.Count(gate.outputs)
   end
+  -- if gate.outputtypes then
+  --   amountOfOutputs = math.max(amountOfOutputs, table.Count(gate.outputtypes))
+  -- end
 
   local x, y = self:PosToScr(node.x, node.y)
 
   local size = self.Zoom * self.GateSize
   local ioSize = self.Zoom * self.IOSize
+  
+  -- Inputs
+  if gate.inputs then
+    for k, _ in pairs(gate.inputs) do
+      local type = self:GetInputType(gate, k)
+      surface.SetDrawColor(self:GetTypeColor(type))
+      -- This should rely on a function
+      surface.DrawRect(x - size/2 - ioSize, y - ioSize/2 + (k-1) * size, ioSize*2, ioSize)
+    end
+  end
+
+  -- Output
+  if gate.outputs then
+    for k, _ in pairs(gate.outputs) do
+      local type = self:GetOutputType(gate, k)
+      surface.SetDrawColor(self:GetTypeColor(type))
+
+      surface.DrawRect(x + size/2 - ioSize, y - ioSize/2 + (k-1) * size, ioSize*2, ioSize)
+    end
+  else 
+    local type = self:GetOutputType(gate, 1)
+    surface.SetDrawColor(self:GetTypeColor(type))
+
+    surface.DrawRect(x + size/2 - ioSize, y - ioSize/2, ioSize*2, ioSize)
+  end
 
   -- Body
   local height = math.max(amountOfInputs, amountOfOutputs, 1)
@@ -423,31 +454,6 @@ function Editor:PaintNode(node)
   local tx, ty = surface.GetTextSize(gate.name)
 	surface.SetTextPos(x-tx/2, y-ty/2-size/1.2) 
   surface.DrawText(gate.name)
-  
-  -- Inputs
-  if gate.inputs then
-    for k, _ in pairs(gate.inputs) do
-      local type = self:GetInputType(gate, k)
-      surface.SetDrawColor(self:GetTypeColor(type))
-      -- This should rely on a function
-      surface.DrawRect(x - size/2 - ioSize, y - ioSize/2 + (k-1) * size, ioSize, ioSize)
-    end
-  end
-
-  -- Output
-  if gate.outputs then
-    for k, _ in pairs(gate.outputs) do
-      local type = self:GetOutputType(gate, k)
-      surface.SetDrawColor(self:GetTypeColor(type))
-
-      surface.DrawRect(x + size/2, y - ioSize/2 + (k-1) * size, ioSize, ioSize)
-    end
-  else 
-    local type = self:GetOutputType(gate, 1)
-    surface.SetDrawColor(self:GetTypeColor(type))
-
-    surface.DrawRect(x + size/2, y - ioSize/2, ioSize, ioSize)
-  end
 end
 
 function Editor:PaintNodes()
