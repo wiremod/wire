@@ -221,14 +221,14 @@ function ENT:Run(changedInputs)
 
     --output logic
     if gate.isOutput then
-      --print(node.ioName .. " outputs " .. values[nodeId][1])
       WireLib.TriggerOutput(self, node.ioName, values[nodeId][1])
+      print(node.ioName .. " outputs " .. table.ToString(values[nodeId], "", false))
       continue
     end
 
     --gate value logic
     if gate.isInput then
-      value = self.InputValues[nodeId]
+      value = {self.InputValues[nodeId]}
     else
       --if input hasnt arrived yet, use older value
       -- (maybe check if its ever going to arrive? older value should only be used incase it never will)
@@ -239,24 +239,30 @@ function ENT:Run(changedInputs)
         end
       end
 
-      value = gate.output(self.Gates[nodeId], unpack(values[nodeId]))
+      value = {gate.output(self.Gates[nodeId], unpack(values[nodeId]))}
     end
+
+    print(table.ToString(value, "output", false))
 
     --save value for future executions
     self.LastGateValues[nodeId] = value
 
     --propergate output value to inputs
     if node.connections then
-      for k, connection in pairs(node.connections[1]) do
-        toNode = connection[1]
-        toInput = connection[2]
-        if not values[toNode] then values[toNode] = {} end
-        values[toNode][toInput] = value
+      for outputNum, connections in pairs(node.connections) do
+        for k, connection in pairs(connections) do
+          toNode = connection[1]
+          toInput = connection[2]
+          if not values[toNode] then values[toNode] = {} end
 
-        --add connected nodes to queue
-        if nodesInQueue[connection[1]] == false then
-          table.insert(nodeQueue, connection[1])
-          nodesInQueue[connection[1]] = true
+          --multiple outputs
+          values[toNode][toInput] = value[outputNum]
+
+          --add connected nodes to queue
+          if nodesInQueue[connection[1]] == false then
+            table.insert(nodeQueue, connection[1])
+            nodesInQueue[connection[1]] = true
+          end
         end
       end
     end
