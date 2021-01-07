@@ -318,6 +318,7 @@ function ENT:Run(changedInputs)
     if gate.isInput then
       value = {self.InputValues[nodeId]}
     else
+      local executeLater = false
       --if input hasnt arrived, send this node to the back of the queue
       for inputId, connection in pairs(self.NodeGetsInputFrom[nodeId]) do
         if not values[nodeId][inputId] then
@@ -328,13 +329,16 @@ function ENT:Run(changedInputs)
           if not nodesVisited[nodeId2] and activeNodes[nodeId2] then
             --send this node to the back of the queue (potential infinite looping???)
             table.insert(nodeQueue, nodeId)
-            continue
+            executeLater = true
+            break
           else
             --if input isnt going to arrive, use older value
             values[nodeId][inputId] = self.LastGateValues[nodeId2][outputNum]
           end
         end
       end
+
+      if executeLater then continue end
 
       print(table.ToString(values[nodeId], "", false))
 
