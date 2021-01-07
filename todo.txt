@@ -13,14 +13,10 @@ FPGA Editor:
 
   Bugs:
     Saving a file with capital letter fucks it up
-    Fix colors
-    Fix chip size being wrong if output bigger than input
 
   nice to have:
     remove data.UsedInputNames and data.UsedOutputNames from savedata, they can be inferred
 
 
 FPGA Gates:
-  Features:
-    Add all types of input / output chips
   
