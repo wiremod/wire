@@ -67,7 +67,7 @@ function ENT:UpdateOverlay(clear)
 	else
 		self:SetOverlayData( {
 							  name = self.name,
-								timebench = self.timebench
+								timebench = self.timebench / (self.ExecutionInterval / FrameTime())
 							})
 	end
 end
@@ -77,8 +77,12 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
   self:SetSolid(SOLID_VPHYSICS)
   
+  self.Debug = false
+
   self.time = 0
   self.timebench = 0
+
+  self.ExecutionInterval = FrameTime()
 
   self.Data = nil
 
@@ -95,6 +99,8 @@ function ENT:Initialize()
   self.OutputNames = {}
   self.OutputTypes = {}
   self.OutputIds = {}
+
+  self.TimedNodes = {}
 
   self.NodeGetsInputFrom = {}
 
@@ -115,6 +121,7 @@ function ENT:CompileData(data)
   inputIds = {}
   outputIds = {}
   nodeGetsInputFrom = {}
+  timedNodes = {}
 
   for nodeId, node in pairs(data.Nodes) do
     nodes[nodeId] = {
@@ -133,9 +140,14 @@ function ENT:CompileData(data)
 
     nodeGetsInputFrom[nodeId] = node.connections
 
-    if node.type == "fpga" then
-      local gate = getGate(node)
+    --get gate
+    local gate = getGate(node)
 
+    --timed
+    if gate.timed then table.insert(timedNodes, nodeId) end
+
+    --io
+    if node.type == "fpga" then
       if gate.isInput then
         inputIds[node.ioName] = nodeId
         table.insert(inputs, node.ioName)
@@ -163,11 +175,12 @@ function ENT:CompileData(data)
   self.OutputIds = outputIds
 
   self.NodeGetsInputFrom = nodeGetsInputFrom
+  self.TimedNodes = timedNodes
 end
 
 
 function ENT:Upload(data)
-  MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
+  --MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
   
   self.name = data.Name
   self.time = 0
@@ -208,7 +221,9 @@ function ENT:Upload(data)
 end
 
 function ENT:Reset()
-  MsgC(Color(0, 100, 255), "Resetting FPGA\n")
+  --MsgC(Color(0, 100, 255), "Resetting FPGA\n")
+  --self.Debug = !self.Debug
+  --self.ExecutionInterval = 0.1
 end
 
 function ENT:TriggerInput(iname, value)
@@ -221,20 +236,25 @@ end
 
 function ENT:Think()
   BaseClass.Think(self)
-  self:NextThink(CurTime())
-  
-  self.timebench = self.timebench * 0.95 + self.time * 0.05
+  self:NextThink(CurTime()+self.ExecutionInterval)
 
+  --Update timed gates
+  if not table.IsEmpty(self.TimedNodes) then
+    self:Run(self.TimedNodes)
+  end
+
+
+  --Time benchmarking
+  self.timebench = self.timebench * 0.95 + self.time * 0.05
   self.time = 0
 
   self:UpdateOverlay(false)
-
 	return true
 end
 
 
-function ENT:Run(changedInputs)
-  print("--------------------")
+function ENT:Run(changedNodes)
+  --print("--------------------")
 
   --Extra
   local bench = SysTime()
@@ -250,7 +270,7 @@ function ENT:Run(changedInputs)
   end
   local activeNodesQueue = {}
   local i = 1
-  for k, id in pairs(changedInputs) do
+  for k, id in pairs(changedNodes) do
     activeNodesQueue[i] = id
     activeNodes[id] = true
     i = i + 1
@@ -272,7 +292,7 @@ function ENT:Run(changedInputs)
     end
   end
   --activeNodes = {0,0,0,1,1,1,1,1,1}
-  print(table.ToString(activeNodes, "activeNodes", false))
+  if self.Debug then print(table.ToString(activeNodes, "activeNodes", false)) end
 
   --Initialize nodesInQueue set
   local nodesInQueue = {}
@@ -284,7 +304,7 @@ function ENT:Run(changedInputs)
   --todo: also add self-triggering gates
   local nodeQueue = {}
   local i = 1
-  for k, id in pairs(changedInputs) do
+  for k, id in pairs(changedNodes) do
     nodeQueue[i] = id
     nodesInQueue[id] = true
     i = i + 1
@@ -293,24 +313,28 @@ function ENT:Run(changedInputs)
   --Initialize nodesVisited set
   local nodesVisited = {}
 
-  --nodeQueue = {changedInputs[1], ... changedInputs[n]}
+  --nodeQueue = {changedNodes[1], ... changedNodes[n]}
   --nodesInQueue = {0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0}
   --nodesVisited = {}
 
   local values = {}
 
-  for nodeId, node in pairs(self.Nodes) do
-    print(nodeId .. table.ToString(node, "", false))
+  if self.Debug then 
+    for nodeId, node in pairs(self.Nodes) do
+      print(nodeId .. table.ToString(node, "", false))
+    end
   end
 
   -----------------------------------------
   --EXECUTION
   -----------------------------------------
   while not table.IsEmpty(nodeQueue) do
-    print()
-    print(table.ToString(nodeQueue, "nodeQueue", false))
-    print(table.ToString(nodesInQueue, "nodesInQueue", false))
-    print(table.ToString(nodesVisited, "nodesVisited", false))
+    if self.Debug then 
+      print()
+      print(table.ToString(nodeQueue, "nodeQueue", false))
+      print(table.ToString(nodesInQueue, "nodesInQueue", false))
+      print(table.ToString(nodesVisited, "nodesVisited", false))
+    end
 
     local nodeId = table.remove(nodeQueue, 1)
     table.insert(nodesVisited, nodeId)
@@ -324,7 +348,7 @@ function ENT:Run(changedInputs)
     --output logic
     if gate.isOutput then
       WireLib.TriggerOutput(self, node.ioName, values[nodeId][1])
-      print(node.ioName .. " outputs " .. table.ToString(values[nodeId], "", false))
+      if self.Debug then print(node.ioName .. " outputs " .. table.ToString(values[nodeId], "", false)) end
       continue
     end
 
@@ -335,6 +359,7 @@ function ENT:Run(changedInputs)
       local executeLater = false
       --if input hasnt arrived, send this node to the back of the queue
       for inputId, connection in pairs(self.NodeGetsInputFrom[nodeId]) do
+        if not values[nodeId] then values[nodeId] = {} end
         if not values[nodeId][inputId] then
           nodeId2 = connection[1]
           outputNum = connection[2]
@@ -354,12 +379,12 @@ function ENT:Run(changedInputs)
 
       if executeLater then continue end
 
-      print(table.ToString(values[nodeId], "", false))
+      if self.Debug then print(table.ToString(values[nodeId], "", false)) end
 
       value = {gate.output(self.Gates[nodeId], unpack(values[nodeId]))}
     end
 
-    print(table.ToString(value, "output", false))
+    if self.Debug then print(table.ToString(value, "output", false)) end
 
     --save value for future executions
     self.LastGateValues[nodeId] = value
