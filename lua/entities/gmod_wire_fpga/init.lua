@@ -67,7 +67,7 @@ function ENT:UpdateOverlay(clear)
 	else
 		self:SetOverlayData( {
 							  name = self.name,
-								timebench = self.timebench / (self.ExecutionInterval / FrameTime())
+								timebench = self.timebench / (self.ExecutionInterval / self.TickRate)
 							})
 	end
 end
@@ -82,7 +82,8 @@ function ENT:Initialize()
   self.time = 0
   self.timebench = 0
 
-  self.ExecutionInterval = FrameTime()
+  self.TickRate = 0.015
+  self.ExecutionInterval = 0.015
 
   self.Data = nil
 
@@ -183,6 +184,7 @@ function ENT:Upload(data)
   --MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
   
   self.name = data.Name
+  self.ExecutionInterval = math.max(data.ExecutionInterval, self.TickRate)
   self.time = 0
   self.timebench = 0
   self:UpdateOverlay(false)

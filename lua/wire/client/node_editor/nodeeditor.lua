@@ -62,13 +62,20 @@ function Editor:InitComponents()
 
 	self.C.TopBar = vgui.Create("DPanel", self)
   self.C.TopBar:Dock(TOP)
-  self.C.TopBar:SetHeight(24)
-  self.C.TopBar:DockPadding(5,5,5,5)
+  self.C.TopBar:SetHeight(36)
+  self.C.TopBar:DockPadding(5, 18, 5, 4)
   self.C.TopBar:SetBackgroundColor(Color(170, 174, 179, 255))
 
+  local x = 7
+  self.C.NameLabel = vgui.Create("DLabel", self.C.TopBar)
+  self.C.NameLabel:SetText("Chip Name")
+  self.C.NameLabel:SizeToContents()
+  self.C.NameLabel:SetTextColor(Color(255,255,255,255))
+  self.C.NameLabel:SetPos(x, 4)
   self.C.Name = vgui.Create("DTextEntry", self.C.TopBar)
   self.C.Name:SetEditable(true)
   self.C.Name:SetSize(140, 20)
+  x = x + 140
   self.C.Name:Dock(LEFT)
   -- this doesnt work
   self.C.Name.OnLoseFocus = function (self)
@@ -76,6 +83,26 @@ function Editor:InitComponents()
     	self:SetValue("empty")
 	  end
   end
+
+  x = x + 20
+  self.C.ExecutionIntervalLabel = vgui.Create("DLabel", self.C.TopBar)
+  self.C.ExecutionIntervalLabel:SetText("Execution Interval")
+  self.C.ExecutionIntervalLabel:SizeToContents()
+  self.C.ExecutionIntervalLabel:SetTextColor(Color(255,255,255,255))
+  self.C.ExecutionIntervalLabel:SetPos(x, 4)
+  self.C.ExecutionIntervalLabel2 = vgui.Create("DLabel", self.C.TopBar)
+  self.C.ExecutionIntervalLabel2:SetText("every               s")
+  self.C.ExecutionIntervalLabel2:SizeToContents()
+  self.C.ExecutionIntervalLabel2:SetTextColor(Color(255,255,255,255))
+  self.C.ExecutionIntervalLabel2:SetPos(x, 18)
+  self.C.ExecutionInterval = vgui.Create("DNumberWang", self.C.TopBar)
+  self.C.ExecutionInterval:SetInterval(0.01)
+  self.C.ExecutionInterval:SetMax(1)
+  self.C.ExecutionInterval:SetMin(0.01)
+  self.C.ExecutionInterval:SetValue(0.01)
+  self.C.ExecutionInterval:SetSize(38, 20)
+  self.C.ExecutionInterval:Dock(LEFT)
+  self.C.ExecutionInterval:DockMargin(54,0,0,0)
 
   --Gate spawning
   self.C.Holder = vgui.Create("DPanel", self)
@@ -194,6 +221,7 @@ function Editor:GetData()
       Nodes = self.Nodes,
       Position = self.Position,
       Zoom = self.Zoom,
+      ExecutionInterval = self.C.ExecutionInterval:GetValue(),
       UsedInputNames = self.UsedInputNames,
       UsedOutputNames = self.UsedOutputNames,
     }, false)
@@ -202,35 +230,28 @@ end
 function Editor:SetData(data) 
   local data = WireLib.von.deserialize(data)
   -- error check
-
-  self.C.Name:SetValue(data.Name)
   self.Nodes = data.Nodes
-  self.Position = data.Position
-  self.Zoom = data.Zoom
-  self.UsedInputNames = data.UsedInputNames
-  self.UsedOutputNames = data.UsedOutputNames
+
+  if data.Name then 
+    self.C.Name:SetValue(data.Name)
+  else 
+    self.C.Name:SetValue("empty") 
+  end
+
+  if data.ExecutionInterval then
+    self.C.ExecutionInterval:SetValue(data.ExecutionInterval)
+  else
+    self.C.ExecutionInterval:SetValue(0.01)
+  end
+
+  if data.Position then self.Position = data.Position end
+  if data.Zoom then self.Zoom = data.Zoom end
+  if data.UsedInputNames then self.UsedInputNames = data.UsedInputNames end
+  if data.UsedOutputNames then self.UsedOutputNames = data.UsedOutputNames end
 end
 
 function Editor:ClearData()
   self.C.Name:SetValue("empty")
-  -- self.Nodes = {{type = "wire", gate = "floor", x = 0, y = 50, connections = {[1] = {5, 1}}},
-  --   {type = "wire", gate = "ceil", x = 0, y = 150, connections = {[1] = {5, 1}}},
-  --   {type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {1, 1}, [2] = {2, 1}}},
-  --   {type = "wire", gate = "exp", x = 150, y = 100, connections = {[1] = {3, 1}}},
-  --   {type = "io", gate = "in-number", ioName = "A", x = -100, y = 100, connections = {}},
-  --   {type = "io", gate = "out-number", ioName = "Out", x = 200, y = 100, connections = {[1] = {4, 1}}}
-  -- }
-
-  -- self.Nodes = {{type = "wire", gate = "+", x = 50, y = 100, connections = {[1] = {2, 1}, [2] = {2, 1}}},
-  --   {type = "io", gate = "in-number", ioName = "A", x = -100, y = 100, connections = {}},
-  --   {type = "io", gate = "out-number", ioName = "Out", x = 200, y = 100, connections = {[1] = {1, 1}}}
-  -- }
-
-  -- self.Nodes = {{type = "wire", gate = "+", x = 0, y = 100, connections = {[1] = {2, 1}, [2] = {2, 1}}},
-  --   {type = "fpga", gate = "normal-input", ioName = "A", x = -50, y = 90, connections = {}},
-  --   {type = "fpga", gate = "normal-input", ioName = "B", x = -50, y = 110, connections = {}},
-  --   {type = "fpga", gate = "normal-output", ioName = "Out", x = 50, y = 100, connections = {[1] = {1, 1}}}
-  -- }
   self.Nodes = {}
   self.Position = {0, 0}
   self.Zoom = 1
