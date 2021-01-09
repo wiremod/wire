@@ -38,13 +38,46 @@ function Editor:Init()
 
   self.C = {}
   self:InitComponents()
-  self:InitFonts()
 
   self.Nodes = {}
 
   --MsgC(Color(0, 150, 255), table.ToString(GateActions, "Gate Actions", true))
 end
 
+surface.CreateFont( "NodeName", {
+  font = "Arial",
+  extended = false,
+  size = 16,
+  weight = 500,
+  blursize = 0,
+  scanlines = 0,
+  antialias = true,
+  underline = false,
+  italic = false,
+  strikeout = false,
+  symbol = false,
+  rotary = false,
+  shadow = false,
+  additive = false,
+  outline = false,
+})
+surface.CreateFont( "IO", {
+  font = "Arial",
+  extended = false,
+  size = 13,
+  weight = 500,
+  blursize = 0,
+  scanlines = 0,
+  antialias = true,
+  underline = false,
+  italic = false,
+  strikeout = false,
+  symbol = false,
+  rotary = false,
+  shadow = false,
+  additive = false,
+  outline = false,
+})
 -- ceil	=	{
 --   label	=	function: 0x01eca99bda28,
 --   group	=	"Arithmetic",
@@ -57,43 +90,6 @@ end
 --     },
 
 -- COMPONENTS
-
-function Editor:InitFonts()
-  surface.CreateFont( "NodeName", {
-    font = "Arial",
-    extended = false,
-    size = 16,
-    weight = 500,
-    blursize = 0,
-    scanlines = 0,
-    antialias = true,
-    underline = false,
-    italic = false,
-    strikeout = false,
-    symbol = false,
-    rotary = false,
-    shadow = false,
-    additive = false,
-    outline = false,
-  })
-  surface.CreateFont( "IO", {
-    font = "Arial",
-    extended = false,
-    size = 13,
-    weight = 500,
-    blursize = 0,
-    scanlines = 0,
-    antialias = true,
-    underline = false,
-    italic = false,
-    strikeout = false,
-    symbol = false,
-    rotary = false,
-    shadow = false,
-    additive = false,
-    outline = false,
-  })
-end
 
 function Editor:InitComponents()
   self.C = {}
@@ -154,7 +150,7 @@ function Editor:InitComponents()
 
 
   --utility
-  local function FillSubTree(tree, node, temp, type)
+  local function FillSubTree(editor, tree, node, temp, type)
     node.Icon:SetImage("icon16/folder.png")
 
     local subtree = {}
@@ -169,7 +165,6 @@ function Editor:InitComponents()
       local node2 = node:AddNode(gate.name or "No name found :(")
       node2.name = gate.name
       node2.action = action
-      editor = self
       function node2:DoClick()
         editor:CreateNode(type, self.action)
       end
@@ -208,7 +203,7 @@ function Editor:InitComponents()
 
     local node = fpgaNode:AddNode(gatetype)
     node.Icon:SetImage("icon16/folder.png")
-    FillSubTree(self.C.Tree, node, gatefuncs, "fpga")
+    FillSubTree(self, self.C.Tree, node, gatefuncs, "fpga")
     function node:DoClick()
       self:SetExpanded(not self.m_bExpanded)
     end
@@ -244,7 +239,7 @@ function Editor:InitComponents()
 
     local node = wiremodNode:AddNode(gatetype)
     node.Icon:SetImage("icon16/folder.png")
-    FillSubTree(self.C.Tree, node, gatefuncs, "wire")
+    FillSubTree(self, self.C.Tree, node, gatefuncs, "wire")
     function node:DoClick()
       self:SetExpanded(not self.m_bExpanded)
     end
@@ -473,6 +468,26 @@ function Editor:GetTypeColor(type)
   end
 end
 
+function Editor:PaintInput(x, y, type, name, ioSize)
+  surface.SetDrawColor(self:GetTypeColor(type))
+
+  surface.DrawRect(x, y, ioSize*2, ioSize)
+
+  local tx, ty = surface.GetTextSize(name)
+  surface.SetTextPos(x-tx-ioSize*0.3, y+ioSize/2-ty/2) 
+  surface.DrawText(name)
+end
+
+function Editor:PaintOutput(x, y, type, name, ioSize)
+  surface.SetDrawColor(self:GetTypeColor(type))
+
+  surface.DrawRect(x, y, ioSize*2, ioSize)
+
+  local tx, ty = surface.GetTextSize(name)
+  surface.SetTextPos(x+ioSize*2.3, y+ioSize/2-ty/2) 
+  surface.DrawText(name)
+end
+
 function Editor:PaintNode(node)
   local gate = self:GetGate(node)
 
@@ -495,45 +510,27 @@ function Editor:PaintNode(node)
   surface.SetTextColor(255, 255, 255)
 
   if gate.inputs then
-    for k, inputName in pairs(gate.inputs) do
-      local type = self:GetInputType(gate, k)
-      surface.SetDrawColor(self:GetTypeColor(type))
-      -- This should rely on a function
+    for inputNum, inputName in pairs(gate.inputs) do
       local nx = x - size/2 - ioSize
-      local ny = y - ioSize/2 + (k-1) * size
-      surface.DrawRect(nx, ny, ioSize*2, ioSize)
-
-      local tx, ty = surface.GetTextSize(inputName)
-      surface.SetTextPos(nx-tx-ioSize*0.3, ny+ioSize/2-ty/2) 
-      surface.DrawText(inputName)
+      local ny = y - ioSize/2 + (inputNum-1) * size
+      
+      self:PaintInput(nx, ny, self:GetInputType(gate, inputNum), inputName, ioSize)
     end
   end
 
   -- Output
   if gate.outputs then
-    for k, outputName in pairs(gate.outputs) do
-      local type = self:GetOutputType(gate, k)
-      surface.SetDrawColor(self:GetTypeColor(type))
-
+    for outputNum, outputName in pairs(gate.outputs) do
       local nx = x + size/2 - ioSize
-      local ny = y - ioSize/2 + (k-1) * size
-      surface.DrawRect(nx, ny, ioSize*2, ioSize)
-
-      local tx, ty = surface.GetTextSize(outputName)
-      surface.SetTextPos(nx+ioSize*2.3, ny+ioSize/2-ty/2) 
-      surface.DrawText(outputName)
+      local ny = y - ioSize/2 + (outputNum-1) * size
+    
+      self:PaintOutput(nx, ny, self:GetOutputType(gate, outputNum), outputName, ioSize)
     end
   else 
-    local type = self:GetOutputType(gate, 1)
-    surface.SetDrawColor(self:GetTypeColor(type))
-
     local nx = x + size/2 - ioSize
     local ny = y - ioSize/2
-    surface.DrawRect(nx, ny, ioSize*2, ioSize)
-
-    local tx, ty = surface.GetTextSize("Out")
-    surface.SetTextPos(nx+ioSize*2.3, ny+ioSize/2-ty/2) 
-    surface.DrawText("Out")
+  
+    self:PaintOutput(nx, ny, self:GetOutputType(gate, 1), "Out", ioSize)
   end
 
   -- Body
@@ -548,6 +545,18 @@ function Editor:PaintNode(node)
   local tx, ty = surface.GetTextSize(gate.name)
 	surface.SetTextPos(x-tx/2, y-ty/2-size/1.2) 
   surface.DrawText(gate.name)
+
+  -- Input / value
+  if node.ioName then
+    local tx, ty = surface.GetTextSize(node.ioName)
+    surface.SetTextPos(x-tx/2, y-ty/2+size/1.2) 
+    surface.DrawText(node.ioName)
+  elseif node.value then
+    local s = tostring(node.value)
+    local tx, ty = surface.GetTextSize(s)
+    surface.SetTextPos(x-tx/2, y-ty/2+size/1.2) 
+    surface.DrawText(s)
+  end
 end
 
 function Editor:PaintNodes()

@@ -1,21 +1,26 @@
 FPGA Entity:
   Features:
+    Show more info (peak use, average use)
+    Limit usage
+    Check for errors during compilation
+
     Improve execution
-
-  Bugs:
-    Test using chips with multiple outputs
-    Test to make sure that order is correct
+    Optimize execution
 
 
-FPGA Editor:
-  Features:
-    Shortcuts?
+FPGA Tool:
+  Add a cool animation to the toolgun
 
-  Bugs:
-    Saving a file with capital letter fucks it up
+  FPGA Editor:
+    Features:
+      Shortcuts?
 
-  nice to have:
-    remove data.UsedInputNames and data.UsedOutputNames from savedata, they can be inferred
+    Bugs:
+      Saving a file with capital letter fucks it up
+      sometimes nodes cant be removed
+
+    nice to have:
+      remove data.UsedInputNames and data.UsedOutputNames from savedata, they can be inferred
 
 
 FPGA Gates:
