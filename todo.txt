@@ -19,6 +19,9 @@ FPGA Tool:
   FPGA Editor:
     Features:
       Shortcuts?
+      Grid
+      Mark selection, move all gates (or delete all)
+      copy paste (with compatible with selection)
 
     Bugs:
       Saving a file with capital letter fucks it up
