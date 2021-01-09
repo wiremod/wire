@@ -841,13 +841,66 @@ function Editor:OnKeyCodePressed(code)
 
   if code == KEY_X then
     --Delete
-    local node = self:GetNodeAt(x, y)
-    if node then
-      self:DeleteNode(node)
+    local nodeId = self:GetNodeAt(x, y)
+    if nodeId then
+      self:DeleteNode(nodeId)
+    end
+  elseif code == KEY_D then
+    --Modify
+    local nodeId = self:GetNodeAt(x, y)
+    if nodeId then
+      local node = self.Nodes[nodeId]
+      local gate = self:GetGate(node)
+
+      if gate.isInput or gate.isOutput then
+        self:OpenIONamingWindow(node, x, y)
+      end
     end
   end
 end
 
+--EXTRA WINDOWS
 
+function Editor:CreateIONamingWindow()
+  self.IONamingWindow = vgui.Create("DFrame", self)
+  local pnl = self.IONamingWindow
+	pnl:SetSize(200, 55)
+	pnl:ShowCloseButton(true)
+	pnl:SetDeleteOnClose(false)
+	pnl:MakePopup()
+	pnl:SetVisible(false)
+	pnl:SetTitle("Name input/output")
+  pnl:SetScreenLock(true)
+  do
+		local old = pnl.Close
+		function pnl.Close()
+			self.ForceDrawCursor = false
+			old(pnl)
+		end
+  end
+  
+  self.IONamingNameEntry = vgui.Create("DTextEntry", pnl)
+  --FindEntry:SetPos(30, 4)
+  self.IONamingNameEntry:Dock(BOTTOM)
+  self.IONamingNameEntry:SetSize(175, 20)
+  self.IONamingNameEntry:RequestFocus()
+end
+
+function Editor:OpenIONamingWindow(node, x, y)
+  if not self.IONamingWindow then self:CreateIONamingWindow() end
+  self.IONamingWindow:SetVisible(true)
+	self.IONamingWindow:MakePopup() -- This will move it above the E2 editor if it is behind it.
+  self.ForceDrawCursor = true
+  
+  local px, py = self.parentpanel:GetPos()
+  self.IONamingWindow:SetPos(px+x+80, py+y+30)
+
+  self.IONamingNameEntry:SetValue(node.ioName)
+  self.IONamingNameEntry.OnEnter = function(pnl)
+    node.ioName = pnl:GetValue()
+    pnl:RequestFocus()
+    pnl:GetParent():Close()
+  end
+end
 
 vgui.Register("FPGAEditor", Editor, "Panel");

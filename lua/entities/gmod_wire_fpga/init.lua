@@ -400,6 +400,8 @@ function ENT:Run(changedNodes)
     --gate value logic
     if gate.isInput then
       value = {self.InputValues[nodeId]}
+    elseif gate.isConstant then
+      value = {node.value}
     else
       local executeLater = false
       --if input hasnt arrived, send this node to the back of the queue
