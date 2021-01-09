@@ -925,7 +925,6 @@ function Editor:CreateConstantSetWindow()
   self.ConstantSetString:SetSize(175, 20)
   self.ConstantSetString:SetVisible(false)
 
-
   do
 		local old = pnl.Close
 		function pnl.Close()
@@ -933,6 +932,11 @@ function Editor:CreateConstantSetWindow()
 			old(pnl)
 		end
   end
+end
+
+local function validateVector(string)
+  local x,y,z = string.match(string, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$")
+  return tonumber(x) ~= nil and tonumber(y) ~= nil and tonumber(z) ~= nil, x, y, z 
 end
 
 function Editor:OpenConstantSetWindow(node, x, y, type)
@@ -952,6 +956,39 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
       pnl:RequestFocus()
       pnl:SetVisible(false)
       pnl:GetParent():Close()
+    end
+  elseif type == "STRING" then
+    self.ConstantSetString:SetVisible(true)
+    self.ConstantSetString:SetValue(node.value)
+    self.ConstantSetString.OnEnter = function(pnl)
+      node.value = pnl:GetValue()
+      pnl:RequestFocus()
+      pnl:SetVisible(false)
+      pnl:GetParent():Close()
+    end
+  elseif type == "VECTOR" then
+    self.ConstantSetString:SetVisible(true)
+    self.ConstantSetString:SetValue(node.value.x .. ", " .. node.value.y .. ", " .. node.value.z)
+    self.ConstantSetString.OnEnter = function(pnl)
+      valid, x, y, z = validateVector(pnl:GetValue())
+      if valid then
+        node.value = Vector(x, y, z)
+        pnl:RequestFocus()
+        pnl:SetVisible(false)
+        pnl:GetParent():Close()
+      end
+    end
+  elseif type == "ANGLE" then
+    self.ConstantSetString:SetVisible(true)
+    self.ConstantSetString:SetValue(node.value.p .. ", " .. node.value.y .. ", " .. node.value.r)
+    self.ConstantSetString.OnEnter = function(pnl)
+      valid, p, y, r = validateVector(pnl:GetValue())
+      if valid then
+        node.value = Angle(p, y, r)
+        pnl:RequestFocus()
+        pnl:SetVisible(false)
+        pnl:GetParent():Close()
+      end
     end
   end
 end
