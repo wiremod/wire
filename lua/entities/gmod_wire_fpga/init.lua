@@ -53,12 +53,16 @@ function ENT:UpdateOverlay(clear)
 	if clear then
 		self:SetOverlayData( {
 								name = "(none)",
-								timebench = 0
+                timebench = 0,
+                timebenchPeak = 0,
+                infiniteLoop = false,
 							})
 	else
 		self:SetOverlayData( {
 							  name = self.name,
-								timebench = self.timebench / (self.ExecutionInterval / self.TickRate)
+                timebench = self.timebench / (self.ExecutionInterval / self.TickRate),
+                timebenchPeak = self.time,
+                infiniteLoop = self.InfiniteLoop,
 							})
 	end
 end
@@ -78,6 +82,7 @@ function ENT:Initialize()
 
   self.TickRate = 0.015
   self.ExecutionInterval = 0.015
+  self.InfiniteLoop = false
 
   self.Data = nil
 
@@ -239,6 +244,8 @@ end
 function ENT:Reset()
   --MsgC(Color(0, 100, 255), "Resetting FPGA\n")
 
+  self.InfiniteLoop = false
+
   --Set gates to default values again
   self.Values = {}
   for nodeId, node in pairs(self.Nodes) do
@@ -292,9 +299,9 @@ function ENT:Think()
 
   --Time benchmarking
   self.timebench = self.timebench * 0.95 + self.time * 0.05
-  self.time = 0
-
+  
   self:UpdateOverlay(false)
+  self.time = 0
 	return true
 end
 
@@ -375,9 +382,10 @@ function ENT:Run(changedNodes)
   --EXECUTION
   -----------------------------------------
   local calculations = 0
-  while not table.IsEmpty(nodeQueue) do
+  local loopDetectionNodeId = nil
+  while not table.IsEmpty(nodeQueue) and not self.InfiniteLoop do
     calculations = calculations + 1
-    if calculations > 10000 then break end
+    if calculations > 50 then break end
 
     if self.Debug then 
       print()
@@ -400,6 +408,11 @@ function ENT:Run(changedNodes)
     elseif gate.isConstant then
       value = {node.value}
     else
+      if nodeId == loopDetectionNodeId then
+        --infinite loop...
+        self.InfiniteLoop = true
+      end
+
       local executeLater = false
       --if input hasnt arrived, send this node to the back of the queue
       for inputId, connection in pairs(self.NodeGetsInputFrom[nodeId]) do
@@ -411,11 +424,15 @@ function ENT:Run(changedNodes)
           --send this node to the back of the queue (potential infinite looping???)
           table.insert(nodeQueue, nodeId)
           executeLater = true
+          if loopDetectionNodeId == nil then
+            loopDetectionNodeId = nodeId
+          end
           break
         end
       end
       --skip node
       if executeLater then continue end
+      loopDetectionNodeId = nil
 
       if self.Debug then print(table.ToString(self.Values[nodeId], "", false)) end
 

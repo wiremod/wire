@@ -697,6 +697,8 @@ end
 function Editor:FreeName(name)
   local type = string.sub(name, 1, 1)
   local index = string.sub(name, 2, -1)
+
+  if tonumber(index) == nil then return end
   --print("freeing " .. type .. tonumber(index))
   if type == "I" then
     self.UsedInputNames[tonumber(index)] = false
@@ -942,7 +944,7 @@ end
 function Editor:OpenConstantSetWindow(node, x, y, type)
   if not self.ConstantSetWindow then self:CreateConstantSetWindow() end
   self.ConstantSetWindow:SetVisible(true)
-	self.ConstantSetWindow:MakePopup() -- This will move it above the E2 editor if it is behind it.
+	self.ConstantSetWindow:MakePopup() -- This will move it above the FPGA editor if it is behind it.
   self.ForceDrawCursor = true
   
   local px, py = self.parentpanel:GetPos()
