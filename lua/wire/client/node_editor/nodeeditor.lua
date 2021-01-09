@@ -1,10 +1,24 @@
 local Editor = {}
 
+DefaultValueForType = {
+  NORMAL = 0,
+  VECTOR2 = nil, --no
+  VECTOR = Vector(0, 0, 0),
+  VECTOR4 = nil, --no
+  ANGLE = Angle(0, 0, 0),
+  STRING = "",
+  ARRAY = {},
+  ENTITY = NULL,
+  RANGER = nil,
+  WIRELINK = nil
+}
+
 function Editor:Init()
   self.Position = {0, 0}
   self.Zoom = 1
   self.DraggingWorld = false
-  self.DraggingGate = nil
+  self.DraggingNode = nil
+  self.DraggingOffset = {0, 0}
 
   self.DrawingConnection = false
   self.DrawingFromInput = false
@@ -344,10 +358,23 @@ function Editor:GetNodeAt(x, y)
   local gx, gy = self:ScrToPos(x, y)
 
   for k, node in pairs(self.Nodes) do
+    local gate = self:GetGate(node)
+
+    local amountOfInputs = 0
+    if gate.inputs then
+      amountOfInputs = table.Count(gate.inputs)
+    end
+    local amountOfOutputs = 1
+    if gate.outputs then
+      amountOfOutputs = table.Count(gate.outputs)
+    end
+
+    local height = math.max(amountOfInputs, amountOfOutputs)
+
     if gx < node.x - self.GateSize/2 then continue end
     if gx > node.x + self.GateSize/2 then continue end
     if gy < node.y - self.GateSize/2 then continue end
-    if gy > node.y + self.GateSize/2 then continue end
+    if gy > node.y - self.GateSize/2 + self.GateSize*height then continue end
 
     return k
   end
@@ -546,11 +573,12 @@ function Editor:PaintNode(node)
 	surface.SetTextPos(x-tx/2, y-ty/2-size/1.2) 
   surface.DrawText(gate.name)
 
-  -- Input / value
+  -- Input
   if node.ioName then
     local tx, ty = surface.GetTextSize(node.ioName)
     surface.SetTextPos(x-tx/2, y-ty/2+size/1.2) 
     surface.DrawText(node.ioName)
+  -- Constant
   elseif node.value then
     local s = tostring(node.value)
     local tx, ty = surface.GetTextSize(s)
@@ -584,8 +612,8 @@ function Editor:Paint()
   if self.DraggingNode then
     local x, y = self:CursorPos()
     local gx, gy = self:ScrToPos(x, y)
-    self.Nodes[self.DraggingNode].x = gx
-    self.Nodes[self.DraggingNode].y = gy
+    self.Nodes[self.DraggingNode].x = gx + self.DraggingOffset[1]
+    self.Nodes[self.DraggingNode].y = gy + self.DraggingOffset[2]
   end
   -- drawing a connection
   if self.DrawingConnection then
@@ -692,6 +720,9 @@ function Editor:CreateNode(type, gate)
     node.ioName = self:GetInputName()
   elseif gateInfo.isOutput then
     node.ioName = self:GetOutputName()
+  elseif gateInfo.isConstant then
+    local type = self:GetOutputType(gateInfo, 1)
+    node.value = DefaultValueForType[type]
   end
 
   print("Created " .. table.ToString(node, "node", false))
@@ -728,13 +759,15 @@ function Editor:OnMousePressed(code)
     local x, y = self:CursorPos()
 
     --NODE DRAGGING
-    local node = self:GetNodeAt(x, y)
-    if node then
-      self.DraggingNode = node
+    local nodeId = self:GetNodeAt(x, y)
+    if nodeId then
+      self.DraggingNode = nodeId
+      local gx, gy = self:ScrToPos(x, y)
+      self.DraggingOffset = {self.Nodes[nodeId].x - gx, self.Nodes[nodeId].y - gy}
+    else
+      --CONNECTION DRAWING
+      self:BeginDrawingConnection(x, y)
     end
-
-    --CONNECTION DRAWING
-    self:BeginDrawingConnection(x, y)
   elseif code == MOUSE_RIGHT then
     -- PLANE DRAGGING
 		self.DraggingWorld = true
