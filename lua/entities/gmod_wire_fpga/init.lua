@@ -123,6 +123,7 @@ function ENT:CompileData(data)
       type = node.type,
       gate = node.gate,
       ioName = node.ioName,
+      value = node.value,
     }
     for input, connection in pairs(node.connections) do
       fromNode = connection[1]
@@ -373,7 +374,11 @@ function ENT:Run(changedNodes)
   -----------------------------------------
   --EXECUTION
   -----------------------------------------
+  local calculations = 0
   while not table.IsEmpty(nodeQueue) do
+    calculations = calculations + 1
+    if calculations > 10000 then break end
+
     if self.Debug then 
       print()
       print(table.ToString(nodeQueue, "nodeQueue", false))
@@ -382,20 +387,12 @@ function ENT:Run(changedNodes)
     end
 
     local nodeId = table.remove(nodeQueue, 1)
-    table.insert(nodesVisited, nodeId)
     local node = self.Nodes[nodeId]
 
     --print(table.ToString(node.connections, "node.connections", false))
 
     --get gate
     local gate = getGate(node)
-
-    --output logic
-    if gate.isOutput then
-      WireLib.TriggerOutput(self, node.ioName, self.Values[nodeId][1])
-      if self.Debug then print(node.ioName .. " outputs " .. table.ToString(self.Values[nodeId], "", false)) end
-      continue
-    end
 
     --gate value logic
     if gate.isInput then
@@ -422,10 +419,21 @@ function ENT:Run(changedNodes)
 
       if self.Debug then print(table.ToString(self.Values[nodeId], "", false)) end
 
-      value = {gate.output(self.Gates[nodeId], unpack(self.Values[nodeId]))}
+      --output logic
+      if gate.isOutput then
+        WireLib.TriggerOutput(self, node.ioName, self.Values[nodeId][1])
+        if self.Debug then print(node.ioName .. " outputs " .. table.ToString(self.Values[nodeId], "", false)) end
+        continue
+      else
+        --normal gates
+        value = {gate.output(self.Gates[nodeId], unpack(self.Values[nodeId]))}
+      end
     end
 
     if self.Debug then print(table.ToString(value, "output", false)) end
+
+    --for future reference, we've visited this node
+    nodesVisited[nodeId] = true
 
     --propergate output value to inputs
     if node.connections then

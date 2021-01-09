@@ -854,13 +854,14 @@ function Editor:OnKeyCodePressed(code)
 
       if gate.isInput or gate.isOutput then
         self:OpenIONamingWindow(node, x, y)
+      elseif gate.isConstant then
+        self:OpenConstantSetWindow(node, x, y, gate.outputtypes[1])
       end
     end
   end
 end
 
 --EXTRA WINDOWS
-
 function Editor:CreateIONamingWindow()
   self.IONamingWindow = vgui.Create("DFrame", self)
   local pnl = self.IONamingWindow
@@ -900,6 +901,58 @@ function Editor:OpenIONamingWindow(node, x, y)
     node.ioName = pnl:GetValue()
     pnl:RequestFocus()
     pnl:GetParent():Close()
+  end
+end
+
+function Editor:CreateConstantSetWindow()
+  self.ConstantSetWindow = vgui.Create("DFrame", self)
+  local pnl = self.ConstantSetWindow
+	pnl:SetSize(200, 55)
+	pnl:ShowCloseButton(true)
+	pnl:SetDeleteOnClose(false)
+	pnl:MakePopup()
+	pnl:SetVisible(false)
+	pnl:SetTitle("Set constant value")
+  pnl:SetScreenLock(true)
+  
+  
+  self.ConstantSetNormal = vgui.Create("DNumberWang", pnl)
+  self.ConstantSetNormal:Dock(BOTTOM)
+  self.ConstantSetNormal:SetSize(175, 20)
+  self.ConstantSetNormal:SetVisible(false)
+  self.ConstantSetString = vgui.Create("DTextEntry", pnl)
+  self.ConstantSetString:Dock(BOTTOM)
+  self.ConstantSetString:SetSize(175, 20)
+  self.ConstantSetString:SetVisible(false)
+
+
+  do
+		local old = pnl.Close
+		function pnl.Close()
+			self.ForceDrawCursor = false
+			old(pnl)
+		end
+  end
+end
+
+function Editor:OpenConstantSetWindow(node, x, y, type)
+  if not self.ConstantSetWindow then self:CreateConstantSetWindow() end
+  self.ConstantSetWindow:SetVisible(true)
+	self.ConstantSetWindow:MakePopup() -- This will move it above the E2 editor if it is behind it.
+  self.ForceDrawCursor = true
+  
+  local px, py = self.parentpanel:GetPos()
+  self.ConstantSetWindow:SetPos(px+x+80, py+y+30)
+
+  if type == "NORMAL" then
+    self.ConstantSetNormal:SetVisible(true)
+    self.ConstantSetNormal:SetValue(node.value)
+    self.ConstantSetNormal.OnEnter = function(pnl)
+      node.value = pnl:GetValue()
+      pnl:RequestFocus()
+      pnl:SetVisible(false)
+      pnl:GetParent():Close()
+    end
   end
 end
 
