@@ -760,8 +760,6 @@ function Editor:OnDrawConnectionFinished(x, y)
       local inputType = self:GetInputType(self:GetGate(inputNode), inputNum)
       local outputType = self:GetOutputType(self:GetGate(outputNode), self.DrawingConnectionFrom[2])
 
-      print(inputType .. " " .. outputType)
-
       if inputType == outputType then
         --connect up
         inputNode.connections[inputNum] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
