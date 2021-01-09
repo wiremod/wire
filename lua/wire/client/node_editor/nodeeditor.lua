@@ -38,6 +38,7 @@ function Editor:Init()
 
   self.C = {}
   self:InitComponents()
+  self:InitFonts()
 
   self.Nodes = {}
 
@@ -56,6 +57,43 @@ end
 --     },
 
 -- COMPONENTS
+
+function Editor:InitFonts()
+  surface.CreateFont( "NodeName", {
+    font = "Arial",
+    extended = false,
+    size = 16,
+    weight = 500,
+    blursize = 0,
+    scanlines = 0,
+    antialias = true,
+    underline = false,
+    italic = false,
+    strikeout = false,
+    symbol = false,
+    rotary = false,
+    shadow = false,
+    additive = false,
+    outline = false,
+  })
+  surface.CreateFont( "IO", {
+    font = "Arial",
+    extended = false,
+    size = 13,
+    weight = 500,
+    blursize = 0,
+    scanlines = 0,
+    antialias = true,
+    underline = false,
+    italic = false,
+    strikeout = false,
+    symbol = false,
+    rotary = false,
+    shadow = false,
+    additive = false,
+    outline = false,
+  })
+end
 
 function Editor:InitComponents()
   self.C = {}
@@ -446,9 +484,6 @@ function Editor:PaintNode(node)
   if gate.outputs then
     amountOfOutputs = table.Count(gate.outputs)
   end
-  -- if gate.outputtypes then
-  --   amountOfOutputs = math.max(amountOfOutputs, table.Count(gate.outputtypes))
-  -- end
 
   local x, y = self:PosToScr(node.x, node.y)
 
@@ -456,28 +491,49 @@ function Editor:PaintNode(node)
   local ioSize = self.Zoom * self.IOSize
   
   -- Inputs
+  surface.SetFont("IO")
+  surface.SetTextColor(255, 255, 255)
+
   if gate.inputs then
-    for k, _ in pairs(gate.inputs) do
+    for k, inputName in pairs(gate.inputs) do
       local type = self:GetInputType(gate, k)
       surface.SetDrawColor(self:GetTypeColor(type))
       -- This should rely on a function
-      surface.DrawRect(x - size/2 - ioSize, y - ioSize/2 + (k-1) * size, ioSize*2, ioSize)
+      local nx = x - size/2 - ioSize
+      local ny = y - ioSize/2 + (k-1) * size
+      surface.DrawRect(nx, ny, ioSize*2, ioSize)
+
+      local tx, ty = surface.GetTextSize(inputName)
+      surface.SetTextPos(nx-tx-ioSize*0.3, ny+ioSize/2-ty/2) 
+      surface.DrawText(inputName)
     end
   end
 
   -- Output
   if gate.outputs then
-    for k, _ in pairs(gate.outputs) do
+    for k, outputName in pairs(gate.outputs) do
       local type = self:GetOutputType(gate, k)
       surface.SetDrawColor(self:GetTypeColor(type))
 
-      surface.DrawRect(x + size/2 - ioSize, y - ioSize/2 + (k-1) * size, ioSize*2, ioSize)
+      local nx = x + size/2 - ioSize
+      local ny = y - ioSize/2 + (k-1) * size
+      surface.DrawRect(nx, ny, ioSize*2, ioSize)
+
+      local tx, ty = surface.GetTextSize(outputName)
+      surface.SetTextPos(nx+ioSize*2.3, ny+ioSize/2-ty/2) 
+      surface.DrawText(outputName)
     end
   else 
     local type = self:GetOutputType(gate, 1)
     surface.SetDrawColor(self:GetTypeColor(type))
 
-    surface.DrawRect(x + size/2 - ioSize, y - ioSize/2, ioSize*2, ioSize)
+    local nx = x + size/2 - ioSize
+    local ny = y - ioSize/2
+    surface.DrawRect(nx, ny, ioSize*2, ioSize)
+
+    local tx, ty = surface.GetTextSize("Out")
+    surface.SetTextPos(nx+ioSize*2.3, ny+ioSize/2-ty/2) 
+    surface.DrawText("Out")
   end
 
   -- Body
@@ -487,7 +543,7 @@ function Editor:PaintNode(node)
   surface.DrawRect(x-size/2, y-size/2, size, size * height)
 
   -- Name
-  surface.SetFont("Default")
+  surface.SetFont("NodeName")
   surface.SetTextColor(255, 255, 255)
   local tx, ty = surface.GetTextSize(gate.name)
 	surface.SetTextPos(x-tx/2, y-ty/2-size/1.2) 
