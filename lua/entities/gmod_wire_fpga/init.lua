@@ -21,6 +21,14 @@ local function getInputType(gate, inputNum)
   end
 end
 
+local function getOutputType(gate, outputNum)
+  if gate.outputtypes then
+    return gate.outputtypes[outputNum] or "NORMAL"
+  else
+    return "NORMAL"
+  end
+end
+
 DefaultValueForType = {
   NORMAL = 0,
   VECTOR2 = nil, --no
@@ -119,7 +127,60 @@ function ENT:Initialize()
 end
 
 function ENT:ValidateData(data)
-  return true
+  --Check if nodes are even there
+  if not data.Nodes then return "missing nodes" end
+
+  --Check that gates exist
+  --Check if gate is banned
+  --Check that there are no duplicate input names, or duplicate output names
+  local connections = {} --Make connection table for later use
+  local inputNames = {}
+  local outputNames = {}
+  for nodeId, node in pairs(data.Nodes) do
+    local gate = getGate(node)
+
+    if gate == nil then return "invalid gate" end
+    if gate.is_banned then return "banned gate" end
+
+    if gate.isInput then
+      if not node.ioName then return "missing input name" end
+      if inputNames[node.ioName] then return "duplicate input name" end
+      inputNames[node.ioName] = true
+    elseif gate.isOutput then
+      if not node.ioName then return "missing output name" end
+      if outputNames[node.ioName] then return "duplicate output name" end
+      outputNames[node.ioName] = true
+    end
+
+    connections[nodeId] = node.connections
+  end
+
+  --Check for out of bounds input/output
+  --Type Check
+  --Check that connections are valid (that the destination node exists)
+  for nodeId, nodeConnections in pairs(connections) do
+    local inGate = getGate(data.Nodes[nodeId])
+
+    for inputNum, connection in pairs(nodeConnections) do
+      local outNode = data.Nodes[connection[1]]
+      if not outNode then return "connection exists to invalid node" end
+      local outGate = getGate(outNode)
+
+      --bound check
+      if inputNum < 1 or inputNum > #inGate.inputs then return "connection on nonexistant input" end
+      if outGate.outputs then
+        if connection[2] < 1 or connection[2] > #outGate.outputs then return "connection on nonexistant output" end
+      else
+        if connection[2] != 1 then return "connection on nonexistant output" end
+      end
+
+      --type check
+      if getInputType(inGate, inputNum) != getOutputType(outGate, outputNum) then return "type mismatch between input and output" end
+    end
+  end
+
+  --no errors
+  return nil
 end
 
 -- Node 'compiler'
@@ -199,16 +260,24 @@ end
 function ENT:Upload(data)
   --MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
   
-  self.name = data.Name
-  self.ExecutionInterval = math.max(data.ExecutionInterval, self.TickRate)
+  if data.Name then
+    self.name = data.Name
+  else
+    self.name = "(corrupt)"
+  end
+  if data.ExecutionInterval then
+    self.ExecutionInterval = math.max(data.ExecutionInterval, self.TickRate)
+  else
+    self.ExecutionInterval = 0.1
+  end
   self.time = 0
   self.timebench = 0
   self:UpdateOverlay(false)
 
   --validate
-  local valid = self:ValidateData(data)
-  if not valid then
-    self:Error("FPGA: Failed to validate on server", "Failed to validate")
+  local invalid = self:ValidateData(data)
+  if invalid then
+    self:Error("FPGA: Failed to validate on server, "..invalid, "Failed to validate")
     self.Inputs = WireLib.AdjustSpecialInputs(self, {}, {}, "")
     self.Outputs = WireLib.AdjustSpecialOutputs(self, {}, {}, "")
     return
