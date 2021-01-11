@@ -713,13 +713,13 @@ function Editor:CreateNode(type, gate, x, y)
     node.value = DefaultValueForType[type]
   end
 
-  print("Created " .. table.ToString(node, "node", false))
+  --print("Created " .. table.ToString(node, "node", false))
 
   table.insert(self.Nodes, node)
 end
 
 function Editor:DeleteNode(nodeId)
-  print("Deleted " .. nodeId)
+  --print("Deleted " .. nodeId)
   
   --remove all connections to this node
   for k1, node in pairs(self.Nodes) do
