@@ -55,6 +55,25 @@ local function getDefaultValues(node)
   return values
 end
 
+--CONVAR
+fpga_quota_avg = nil
+fpga_quota_spike = nil
+
+do
+  local wire_fpga_quota_avg = GetConVar("wire_fpga_quota_avg")
+  local wire_fpga_quota_spike = GetConVar("wire_fpga_quota_spike")
+
+  local function updateQuotas()
+    fpga_quota_avg = wire_fpga_quota_avg:GetInt() * 0.000001
+    fpga_quota_spike = wire_fpga_quota_spike:GetInt() * 0.000001
+  end
+
+  cvars.AddChangeCallback("wire_fpga_quota_avg", updateQuotas)
+  cvars.AddChangeCallback("wire_fpga_quota_spike", updateQuotas)
+  updateQuotas()
+end
+
+
 
 
 function ENT:UpdateOverlay(clear)
@@ -394,6 +413,13 @@ function ENT:Think()
   --Time benchmarking
   self.timebench = self.timebench * 0.95 + self.time * 0.05
   
+  --Limiting
+  if self.timebench > fpga_quota_avg then
+    self:Error("FPGA: Exceeded average cpu time limit", "avg cpu time limit exceeded")
+  elseif self.time > fpga_quota_spike then
+    self:Error("FPGA: Exceeded spike cpu time limit", "spike cpu time limit exceeded")
+  end
+
   self:UpdateOverlay(false)
   self.time = 0
 	return true

@@ -7,3 +7,6 @@ ENT.Purpose = ""
 ENT.Instructions = ""
 
 ENT.WireDebugName = "FPGA"
+
+CreateConVar("wire_fpga_quota_avg", "2000", {FCVAR_REPLICATED})
+CreateConVar("wire_fpga_quota_spike", "5000", {FCVAR_REPLICATED})
