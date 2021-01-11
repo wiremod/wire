@@ -50,6 +50,8 @@ function Editor:Init()
   self.LastMousePos = {0, 0}
   self.MouseDown = false
 
+  self.SelectedGateInMenu = nil
+
   self.GateSize = 5
   self.IOSize = 2
 
@@ -179,7 +181,8 @@ function Editor:InitComponents()
       node2.name = gate.name
       node2.action = action
       function node2:DoClick()
-        editor:CreateNode(type, self.action)
+        --editor:CreateNode(type, self.action)
+        editor.SelectedGateInMenu = {type = type, gate = self.action}
       end
       node2.Icon:SetImage("icon16/newspaper.png")
     end
@@ -690,12 +693,12 @@ function Editor:FreeName(name)
   end
 end
 
-function Editor:CreateNode(type, gate)
+function Editor:CreateNode(type, gate, x, y)
   node = {
     type = type,
     gate = gate,
-    x = self.Position[1],
-    y = self.Position[2],
+    x = x,
+    y = y,
     connections = {}
   }
 
@@ -829,6 +832,15 @@ function Editor:OnKeyCodePressed(code)
     local nodeId = self:GetNodeAt(x, y)
     if nodeId then
       self:DeleteNode(nodeId)
+    end
+  elseif code == KEY_C then
+    --Create
+    if self.SelectedGateInMenu then
+      local gx, gy = self:ScrToPos(x, y)
+      self:CreateNode(self.SelectedGateInMenu.type,
+                      self.SelectedGateInMenu.gate,
+                      gx,
+                      gy)
     end
   elseif code == KEY_D then
     --Modify
