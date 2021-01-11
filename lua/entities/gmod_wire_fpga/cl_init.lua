@@ -20,12 +20,12 @@ function ENT:GetWorldTipBodySize()
   local str = string.format("cpu time: %ius", timebenchPeak * 1000000)
   local w,h = surface.GetTextSize(str)
 	w_total = math.max(w_total, w)
-  h_total = h_total + h + 5
+  h_total = h_total + h + 10
   
   local str = string.format("avg. cpu time: %ius", timebench * 1000000)
 	local w,h = surface.GetTextSize(str)
 	w_total = math.max(w_total, w)
-  h_total = h_total + h + 5
+  h_total = h_total + h + 10
   
 	return w_total, h_total
 end
@@ -56,12 +56,12 @@ function ENT:DrawWorldTipBody( pos )
 	render.SetScissorRect(0, 0, ScrW(), ScrH(), false)
 
   w_total = math.max(w_total, w)
-	yoffset = yoffset + 25
+	yoffset = yoffset + h
 
   -- Error message
   if data.errorMessage then
     local str = "("..data.errorMessage..")"
-    draw.DrawText(str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 8, error, TEXT_ALIGN_CENTER)
+    draw.DrawText(str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset, error, TEXT_ALIGN_CENTER)
     yoffset = yoffset + 30
   end
 
