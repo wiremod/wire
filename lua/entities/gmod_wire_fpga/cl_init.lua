@@ -6,10 +6,8 @@ function ENT:GetWorldTipBodySize()
 
   local w_total,h_total = surface.GetTextSize(data.name)
 
-  local infiniteLoop = data.infiniteLoop
-
-  if infiniteLoop then
-    local str = "Halted (inf. recursion)"
+  if data.errorMessage then
+    local str = data.errorMessage
     local w,h = surface.GetTextSize(str)
     w_total = math.max(w_total, w)
     h_total = h_total + h + 10
@@ -22,12 +20,12 @@ function ENT:GetWorldTipBodySize()
   local str = string.format("cpu time: %ius", timebenchPeak * 1000000)
   local w,h = surface.GetTextSize(str)
 	w_total = math.max(w_total, w)
-  h_total = h_total + h + 10
+  h_total = h_total + h + 5
   
   local str = string.format("avg. cpu time: %ius", timebench * 1000000)
 	local w,h = surface.GetTextSize(str)
 	w_total = math.max(w_total, w)
-  h_total = h_total + h + 10
+  h_total = h_total + h + 5
   
 	return w_total, h_total
 end
@@ -57,19 +55,19 @@ function ENT:DrawWorldTipBody( pos )
 	draw.DrawText(name, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 10, white, TEXT_ALIGN_CENTER)
 	render.SetScissorRect(0, 0, ScrW(), ScrH(), false)
 
-	w_total = math.max(w_total, w)
-	yoffset = yoffset + h
-
-	surface.SetDrawColor(black)
-	surface.DrawLine(pos.min.x, yoffset, pos.max.x, yoffset)
-
+  w_total = math.max(w_total, w)
+	yoffset = yoffset + 25
 
   -- Error message
-  if data.infiniteLoop then
-    local str = "Halted (inf. recursion)"
+  if data.errorMessage then
+    local str = "("..data.errorMessage..")"
     draw.DrawText(str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 8, error, TEXT_ALIGN_CENTER)
-    yoffset = yoffset + 27
+    yoffset = yoffset + 30
   end
+
+  --Line
+	surface.SetDrawColor(black)
+	surface.DrawLine(pos.min.x, yoffset, pos.max.x, yoffset)
 
 	-------------------
 	-- prfcount/benchmarking/etc
@@ -82,5 +80,5 @@ function ENT:DrawWorldTipBody( pos )
 	draw.DrawText(str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 8, cputime, TEXT_ALIGN_CENTER)
 	-- cpu time text
   local str = string.format("avg. cpu time: %ius", timebench * 1000000)
-  draw.DrawText(str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 8 + 27, cputimeavg, TEXT_ALIGN_CENTER)
+  draw.DrawText(str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 8 + 25, cputimeavg, TEXT_ALIGN_CENTER)
 end

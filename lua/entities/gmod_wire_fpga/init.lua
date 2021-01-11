@@ -55,16 +55,25 @@ function ENT:UpdateOverlay(clear)
 								name = "(none)",
                 timebench = 0,
                 timebenchPeak = 0,
-                infiniteLoop = false,
+                errorMessage = nil,
 							})
 	else
 		self:SetOverlayData( {
 							  name = self.name,
                 timebench = self.timebench / (self.ExecutionInterval / self.TickRate),
                 timebenchPeak = self.time,
-                infiniteLoop = self.InfiniteLoop,
+                errorMessage = self.errorMessage,
 							})
 	end
+end
+
+function ENT:Error(message, overlay)
+  self:SetColor(Color(255, 0, 0, self:GetColor().a))
+  self.error = true
+  self.errorMessage = overlay
+  self:UpdateOverlay(false)
+
+  WireLib.ClientError(message, WireLib.GetOwner(self))
 end
 
 --------------------------------------------------------
@@ -79,10 +88,11 @@ function ENT:Initialize()
 
   self.time = 0
   self.timebench = 0
+  self.error = false
+  self.errorMessage = nil
 
   self.TickRate = 0.015
   self.ExecutionInterval = 0.015
-  self.InfiniteLoop = false
 
   self.Data = nil
 
@@ -106,6 +116,10 @@ function ENT:Initialize()
 
 	self:UpdateOverlay(true)
 	--self:SetColor(Color(255, 0, 0, self:GetColor().a))
+end
+
+function ENT:ValidateData(data)
+  return true
 end
 
 -- Node 'compiler'
@@ -191,6 +205,16 @@ function ENT:Upload(data)
   self.timebench = 0
   self:UpdateOverlay(false)
 
+  --validate
+  local valid = self:ValidateData(data)
+  if not valid then
+    self:Error("FPGA: Failed to validate on server", "Failed to validate")
+    self.Inputs = WireLib.AdjustSpecialInputs(self, {}, {}, "")
+    self.Outputs = WireLib.AdjustSpecialOutputs(self, {}, {}, "")
+    return
+  end
+
+
   --compile
   self:CompileData(data)
 
@@ -243,8 +267,7 @@ end
 --------------------------------------------------------
 function ENT:Reset()
   --MsgC(Color(0, 100, 255), "Resetting FPGA\n")
-
-  self.InfiniteLoop = false
+  if self.error then return end
 
   --Set gates to default values again
   self.Values = {}
@@ -288,6 +311,8 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Think()
+  if self.error then return end
+
   BaseClass.Think(self)
   self:NextThink(CurTime()+self.ExecutionInterval)
 
@@ -384,7 +409,7 @@ function ENT:Run(changedNodes)
   -----------------------------------------
   local calculations = 0
   local loopDetectionNodeId = nil
-  while not table.IsEmpty(nodeQueue) and not self.InfiniteLoop do
+  while not table.IsEmpty(nodeQueue) do
     calculations = calculations + 1
     if calculations > 50 then break end
 
@@ -411,7 +436,8 @@ function ENT:Run(changedNodes)
     else
       if nodeId == loopDetectionNodeId then
         --infinite loop...
-        self.InfiniteLoop = true
+        self:Error("FPGA: Execution stuck in infinite loop", "Infinite loop")
+        break
       end
 
       local executeLater = false
