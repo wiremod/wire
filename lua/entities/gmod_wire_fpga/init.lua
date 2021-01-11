@@ -277,7 +277,7 @@ function ENT:Upload(data)
   --validate
   local invalid = self:ValidateData(data)
   if invalid then
-    self:Error("FPGA: Failed to validate on server, "..invalid, "Failed to validate")
+    self:Error("FPGA: Failed to validate on server, "..invalid, "failed to validate")
     self.Inputs = WireLib.AdjustSpecialInputs(self, {}, {}, "")
     self.Outputs = WireLib.AdjustSpecialOutputs(self, {}, {}, "")
     return
@@ -505,7 +505,7 @@ function ENT:Run(changedNodes)
     else
       if nodeId == loopDetectionNodeId then
         --infinite loop...
-        self:Error("FPGA: Execution stuck in infinite loop", "Infinite loop")
+        self:Error("FPGA: Execution stuck in infinite loop", "infinite loop")
         break
       end
 
@@ -528,7 +528,6 @@ function ENT:Run(changedNodes)
       end
       --skip node
       if executeLater then continue end
-      loopDetectionNodeId = nil
 
       if self.Debug then print(table.ToString(self.Values[nodeId], "", false)) end
 
@@ -542,6 +541,8 @@ function ENT:Run(changedNodes)
         value = {gate.output(self.Gates[nodeId], unpack(self.Values[nodeId]))}
       end
     end
+
+    loopDetectionNodeId = nil
 
     if self.Debug then print(table.ToString(value, "output", false)) end
 
