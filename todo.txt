@@ -9,8 +9,7 @@ FPGA Entity:
 
     Loops dont work (memory output feeds into memory input)
       Update: Loops now get halted, but there should still be a way to make loops (last value gate?)
-      Maybe add the various "luxuries" that e2 have (changed and last notably)
-      Should these have wildcard types? 
+      
 
 
 FPGA Tool:
@@ -33,4 +32,7 @@ FPGA Tool:
 
 
 FPGA Gates:
-  
+  Maybe add the various "luxuries" that e2 have (changed and last notably)
+    Should these have wildcard types? 
+    (this is pretty fucking hard???)
+    figure out logic of how exactly a "last" gate should work, since its pretty complicated

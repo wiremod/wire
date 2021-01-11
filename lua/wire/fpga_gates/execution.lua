@@ -1,0 +1,31 @@
+FPGAGateActions("Execution")
+
+-- FPGAGateActions["execution-last-wild"] = {
+-- 	name = "Last",
+--   inputs = {"A"},
+--   inputtypes = {"WILD"},
+--   outputs = {"Out"},
+--   outputtypes = {"LINKED"},
+--   neverActive = true,
+--   output = function(gate)
+--     return gate.value
+--   end,
+--   postCycle = function(gate, value)
+--     gate.value = value
+-- 	end,
+-- }
+
+-- FPGAGateActions["execution-last-normal"] = {
+--   	name = "Normal Last",
+--     inputs = {"A"},
+--     inputtypes = {"NORMAL"},
+--     outputs = {"Out"},
+--     outputtypes = {"NORMAL"},
+--     neverActive = true,
+--     output = function(gate, value)
+--       return gate.value
+--     end,
+--     postCycle = function(gate)
+--       gate.value = gate.memory
+--   	end,
+--   }

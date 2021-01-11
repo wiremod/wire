@@ -326,6 +326,7 @@ function ENT:Run(changedNodes)
   local activeNodesQueue = {}
   local i = 1
   for k, id in pairs(changedNodes) do
+    --if self.Nodes[id].neverActive then continue end
     activeNodesQueue[i] = id
     activeNodes[id] = true
     i = i + 1

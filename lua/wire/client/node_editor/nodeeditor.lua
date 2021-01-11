@@ -13,6 +13,28 @@ DefaultValueForType = {
   WIRELINK = nil
 }
 
+TypeColor = {
+  NORMAL = Color(190, 190, 255, 255), --Very light blue nearing white
+  VECTOR2 = Color(150, 255, 255, 255), --Light blue
+  VECTOR = Color(70, 160, 255, 255), --Blue
+  VECTOR4 = Color(0, 50, 255, 255), --Dark blue
+  ANGLE = Color(100, 200, 100, 255), --Light green
+  STRING = Color(250, 160, 90, 255), --Orange
+  ARRAY = Color(20, 110, 20, 255), --Dark green
+  ENTITY = Color(255, 100, 100, 255), --Dark red
+  RANGER = Color(130, 100, 60, 255), --Brown
+  WIRELINK = Color(200, 80, 200, 255), --Deep purple
+}
+
+WildColor = {
+  Color(255, 0, 0, 255),
+  Color(255, 127, 0, 255),
+  Color(255, 255, 0, 255),
+  Color(0, 255, 0, 255),
+  Color(0, 0, 255, 255),
+  Color(75, 0, 130, 255),
+}
+
 function Editor:Init()
   self.Position = {0, 0}
   self.Zoom = 1
@@ -34,18 +56,6 @@ function Editor:Init()
   self.BackgroundColor = Color(32, 32, 32, 255)
   self.NodeColor = Color(100, 100, 100, 255)
   self.ConnectionColor = Color(200, 200, 200, 255)
-
-  self.NormalColor = Color(190, 190, 255, 255) --Very light blue nearing white
-  self.Vector2Color = Color(150, 255, 255, 255) --Light blue
-  self.VectorColor = Color(70, 160, 255, 255) --Blue
-  self.Vector4Color = Color(0, 50, 255, 255) --Dark blue
-  self.AngleColor = Color(100, 200, 100, 255) --Light green
-  self.StringColor = Color(250, 160, 90, 255) --Orange
-  
-  self.ArrayColor = Color(20, 110, 20, 255) --Dark green
-  self.EntityColor = Color(255, 100, 100, 255) --Dark red
-  self.RangerColor = Color(130, 100, 60, 255) --Brown
-  self.WirelinkColor = Color(200, 80, 200, 255) --Deep purple
 
   self.UsedInputNames = {}
   self.UsedOutputNames = {}
@@ -92,19 +102,8 @@ surface.CreateFont( "IO", {
   additive = false,
   outline = false,
 })
--- ceil	=	{
---   label	=	function: 0x01eca99bda28,
---   group	=	"Arithmetic",
---   is_banned	=	false,
---   name	=	"Ceiling (Round up)",
---   output	=	function: 0x01eca99bd9f8,
---   inputs	=	{
---       "A",
---       },
---     },
 
 -- COMPONENTS
-
 function Editor:InitComponents()
   self.C = {}
 
@@ -469,35 +468,16 @@ function Editor:PaintConnections()
   end
 end
 
-function Editor:GetTypeColor(type)
-  if type == "NORMAL" then
-    return self.NormalColor
-  elseif type == "VECTOR2" then
-    return self.Vector2Color
-  elseif type == "VECTOR" then
-    return self.VectorColor
-  elseif type == "VECTOR4" then
-    return self.Vector4Color
-  elseif type == "ANGLE" then
-    return self.AngleColor
-  elseif type == "STRING" then
-    return self.StringColor
-  elseif type == "ARRAY" then
-    return self.ArrayColor
-  elseif type == "ENTITY" then
-    return self.EntityColor
-  elseif type == "RANGER" then
-    return self.RangerColor
-  elseif type == "WIRELINK" then
-    return self.WirelinkColor
-  else
-    return Color(0,0,0,255)
-  end
-end
-
 function Editor:PaintInput(x, y, type, name, ioSize)
-  surface.SetDrawColor(self:GetTypeColor(type))
-
+  -- if type == "WILD" then
+  --   local i = 1
+  --   for k, color in pairs(WildColor) do
+  --     surface.SetDrawColor(color)
+  --     surface.DrawRect(x, y + ioSize/6 * i, ioSize*2, ioSize/6)
+  --     i = i + 1
+  --   end
+  -- else
+  surface.SetDrawColor(TypeColor[type])
   surface.DrawRect(x, y, ioSize*2, ioSize)
 
   local tx, ty = surface.GetTextSize(name)
@@ -506,8 +486,11 @@ function Editor:PaintInput(x, y, type, name, ioSize)
 end
 
 function Editor:PaintOutput(x, y, type, name, ioSize)
-  surface.SetDrawColor(self:GetTypeColor(type))
-
+  -- if type == "LINKED" then
+  --   surface.SetDrawColor(TypeColor["NORMAL"])
+  --   surface.DrawRect(x, y, ioSize*2, ioSize)
+  -- else
+  surface.SetDrawColor(TypeColor[type])
   surface.DrawRect(x, y, ioSize*2, ioSize)
 
   local tx, ty = surface.GetTextSize(name)
@@ -804,7 +787,7 @@ function Editor:OnDrawConnectionFinished(x, y)
       local inputType = self:GetInputType(self:GetGate(inputNode), inputNum)
       local outputType = self:GetOutputType(self:GetGate(outputNode), self.DrawingConnectionFrom[2])
 
-      if inputType == outputType then
+      if inputType == outputType or inputType == "WILD" then
         --connect up
         inputNode.connections[inputNum] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
       end
@@ -820,7 +803,7 @@ function Editor:OnDrawConnectionFinished(x, y)
       local inputType = self:GetInputType(self:GetGate(inputNode), self.DrawingConnectionFrom[2])
       local outputType = self:GetOutputType(self:GetGate(outputNode), outputNum)
 
-      if inputType == outputType then
+      if inputType == outputType or inputType == "WILD" then
         --connect up
         inputNode.connections[self.DrawingConnectionFrom[2]] =  {nodeId, outputNum}
       end
