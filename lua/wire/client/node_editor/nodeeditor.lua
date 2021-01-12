@@ -106,7 +106,10 @@ function Editor:InitComponents()
   self.C.TopBar:Dock(TOP)
   self.C.TopBar:SetHeight(36)
   self.C.TopBar:DockPadding(5, 18, 5, 4)
-  self.C.TopBar:SetBackgroundColor(Color(170, 174, 179, 255))
+  self.C.TopBar:SetBackgroundColor(Color(176.5, 180, 185, 255))
+  --155, 159, 163
+
+  --157, 161, 165
 
   local x = 7
   self.C.NameLabel = vgui.Create("DLabel", self.C.TopBar)
