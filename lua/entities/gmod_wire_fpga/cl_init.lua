@@ -30,7 +30,7 @@ function ENT:GetWorldTipBodySize()
 	return w_total, h_total
 end
 
-function ENT:DrawWorldTipBody( pos )
+function ENT:DrawWorldTipBody(pos)
 	local data = self:GetOverlayData()
 	if not data then return end
 

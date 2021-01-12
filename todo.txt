@@ -35,8 +35,6 @@ FPGA Tool:
       sometimes nodes cant be removed
 
     nice to have:
-      remove data.UsedInputNames and data.UsedOutputNames from savedata, they can be inferred
-      create input, rename, remove. name doesnt get freed up
 
 
 FPGA Gates:

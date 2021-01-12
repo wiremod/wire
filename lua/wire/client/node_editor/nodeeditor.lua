@@ -59,9 +59,6 @@ function Editor:Init()
   self.NodeColor = Color(100, 100, 100, 255)
   self.ConnectionColor = Color(200, 200, 200, 255)
 
-  self.UsedInputNames = {}
-  self.UsedOutputNames = {}
-
   self.C = {}
   self:InitComponents()
 
@@ -271,8 +268,6 @@ function Editor:GetData()
       Position = self.Position,
       Zoom = self.Zoom,
       ExecutionInterval = self.C.ExecutionInterval:GetValue(),
-      UsedInputNames = self.UsedInputNames,
-      UsedOutputNames = self.UsedOutputNames,
     }, false)
 end
 
@@ -295,8 +290,14 @@ function Editor:SetData(data)
 
   if data.Position then self.Position = data.Position end
   if data.Zoom then self.Zoom = data.Zoom end
-  if data.UsedInputNames then self.UsedInputNames = data.UsedInputNames end
-  if data.UsedOutputNames then self.UsedOutputNames = data.UsedOutputNames end
+
+  self.InputNameCounter = 0
+  self.OutputNameCounter = 0
+  for k, node in pairs(self.Nodes) do
+    local gate = self:GetGate(node)
+    if gate.isInput then self.InputNameCounter = self.InputNameCounter + 1 end
+    if gate.isOutput then self.OutputNameCounter = self.OutputNameCounter + 1 end
+  end
 end
 
 function Editor:ClearData()
@@ -304,8 +305,6 @@ function Editor:ClearData()
   self.Nodes = {}
   self.Position = {0, 0}
   self.Zoom = 1
-  self.UsedInputNames = {}
-  self.UsedOutputNames = {}
 
 end
 
@@ -661,36 +660,13 @@ function Editor:BeginDrawingConnection(x, y)
 end
 
 function Editor:GetInputName()
-  local i = 1
-  while self.UsedInputNames[i] do
-    i = i + 1
-  end
-  self.UsedInputNames[i] = true
-
-  return "I" .. i
+  self.InputNameCounter = self.InputNameCounter + 1
+  return "In" .. self.InputNameCounter
 end
 
 function Editor:GetOutputName()
-  local i = 1
-  while self.UsedOutputNames[i] do
-    i = i + 1
-  end
-  self.UsedOutputNames[i] = true
-
-  return "O" .. i
-end
-
-function Editor:FreeName(name)
-  local type = string.sub(name, 1, 1)
-  local index = string.sub(name, 2, -1)
-
-  if tonumber(index) == nil then return end
-  --print("freeing " .. type .. tonumber(index))
-  if type == "I" then
-    self.UsedInputNames[tonumber(index)] = false
-  elseif type == "O" then
-    self.UsedOutputNames[tonumber(index)] = false
-  end
+  self.OutputNameCounter = self.OutputNameCounter + 1
+  return "Out" .. self.OutputNameCounter
 end
 
 function Editor:CreateNode(type, gate, x, y)
@@ -728,11 +704,6 @@ function Editor:DeleteNode(nodeId)
         node.connections[inputNum] = nil
       end
     end
-  end
-
-  --clear name, if it used one
-  if self.Nodes[nodeId].ioName then
-    self:FreeName(self.Nodes[nodeId].ioName)
   end
 
   --finally remove node
@@ -790,7 +761,7 @@ function Editor:OnDrawConnectionFinished(x, y)
       local inputType = self:GetInputType(self:GetGate(inputNode), inputNum)
       local outputType = self:GetOutputType(self:GetGate(outputNode), self.DrawingConnectionFrom[2])
 
-      if inputType == outputType or inputType == "WILD" then
+      if inputType == outputType then
         --connect up
         inputNode.connections[inputNum] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
       end
@@ -806,7 +777,7 @@ function Editor:OnDrawConnectionFinished(x, y)
       local inputType = self:GetInputType(self:GetGate(inputNode), self.DrawingConnectionFrom[2])
       local outputType = self:GetOutputType(self:GetGate(outputNode), outputNum)
 
-      if inputType == outputType or inputType == "WILD" then
+      if inputType == outputType then
         --connect up
         inputNode.connections[self.DrawingConnectionFrom[2]] =  {nodeId, outputNum}
       end
