@@ -36,8 +36,6 @@ WildColor = {
 }
 
 function Editor:Init()
-  self.Position = {0, 0}
-  self.Zoom = 1
   self.DraggingWorld = false
   self.DraggingNode = nil
   self.DraggingOffset = {0, 0}
@@ -61,8 +59,6 @@ function Editor:Init()
 
   self.C = {}
   self:InitComponents()
-
-  self.Nodes = {}
 
   --MsgC(Color(0, 150, 255), table.ToString(GateActions, "Gate Actions", true))
 end
@@ -304,8 +300,9 @@ function Editor:ClearData()
   self.C.Name:SetValue("empty")
   self.Nodes = {}
   self.Position = {0, 0}
-  self.Zoom = 1
-
+  self.Zoom = 5
+  self.InputNameCounter = 0
+  self.OutputNameCounter = 0
 end
 
 function Editor:GetName()
@@ -578,6 +575,29 @@ function Editor:PaintNodes()
   end
 end
 
+function Editor:PaintHelp()
+  local x, y = self:PosToScr(0, 0)
+
+  surface.SetFont("Default")
+  surface.SetTextColor(255, 255, 255)
+
+  local helpText = [[To create a node, chose a gate from the menu and click 'C'
+    Drag around the plane with right mouse button
+    Connect inputs and outputs by clicking on either, and dragging to the other
+    'X' deletes the node under the cursor
+    'D' configures the node under the cursor (input/output names, constant values)
+
+    To create inputs and outputs for the FPGA, use the gates found in 'FPGA/Input & Output'
+  ]]
+
+  for line in helpText:gmatch("([^\n]*)\n?") do
+    local tx, ty = surface.GetTextSize(line)
+    surface.SetTextPos(x-tx/2, y-ty/2) 
+    surface.DrawText(line)
+    y = y + ty
+  end
+end
+
 function Editor:Paint()
   surface.SetDrawColor(self.BackgroundColor)
   surface.DrawRect(0, 0, self:GetWide()-290, self:GetTall())
@@ -585,6 +605,10 @@ function Editor:Paint()
   self:PaintNodes()
   self:PaintConnections()
 
+  if #self.Nodes == 0 then
+    self:PaintHelp()
+  end
+  
   self:PaintDebug()
 
   -- moving the plane
@@ -617,7 +641,6 @@ function Editor:Paint()
   local x, y = self:CursorPos()
   self.LastMousePos = {x, y}
 end
-
 
 function Editor:PaintDebug()
   surface.SetFont("Default")

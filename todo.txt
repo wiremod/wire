@@ -35,6 +35,7 @@ FPGA Tool:
       sometimes nodes cant be removed
 
     nice to have:
+      Improve the guide on how to use
 
 
 FPGA Gates:

@@ -1,4 +1,4 @@
-FPGAGateActions("Input / Output")
+FPGAGateActions("Input & Output")
 
 FPGAGateActions["normal-input"] = {
 	name = "Normal Input",
