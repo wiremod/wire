@@ -89,18 +89,26 @@ function ENT:UpdateOverlay(clear)
 							  name = self.name,
                 timebench = self.timebench / (self.ExecutionInterval / self.TickRate),
                 timebenchPeak = self.time,
-                errorMessage = self.errorMessage,
+                errorMessage = self.ErrorMessage,
 							})
 	end
 end
 
-function ENT:Error(message, overlay)
+function ENT:ThrowCompileError(message, overlay)
   self:SetColor(Color(255, 0, 0, self:GetColor().a))
-  self.error = true
-  self.errorMessage = overlay
+  self.CompileError = true
+  self.ErrorMessage = overlay
   self:UpdateOverlay(false)
 
-  WireLib.ClientError(message, WireLib.GetOwner(self))
+  WireLib.ClientError("FPGA: Compilation error - " .. message, WireLib.GetOwner(self))
+end
+function ENT:ThrowExecutionError(message, overlay)
+  self:SetColor(Color(255, 0, 0, self:GetColor().a))
+  self.ExecutionError = true
+  self.ErrorMessage = overlay
+  self:UpdateOverlay(false)
+
+  WireLib.ClientError("FPGA: Execution error - " .. message, WireLib.GetOwner(self))
 end
 
 --------------------------------------------------------
@@ -115,8 +123,11 @@ function ENT:Initialize()
 
   self.time = 0
   self.timebench = 0
-  self.error = false
-  self.errorMessage = nil
+
+  self.Uploaded = false
+  self.ExecutionError = false
+  self.CompileError = false
+  self.ErrorMessage = nil
 
   self.TickRate = 0.015
   self.ExecutionInterval = 0.015
@@ -279,6 +290,9 @@ end
 function ENT:Upload(data)
   --MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
   
+  self.CompileError = false
+  self.ExecutionError = false
+
   if data.Name then
     self.name = data.Name
   else
@@ -296,7 +310,7 @@ function ENT:Upload(data)
   --validate
   local invalid = self:ValidateData(data)
   if invalid then
-    self:Error("FPGA: Failed to validate on server, "..invalid, "failed to validate")
+    self:ThrowCompileError("failed to validate on server, "..invalid, "failed to validate")
     self.Inputs = WireLib.AdjustSpecialInputs(self, {}, {}, "")
     self.Outputs = WireLib.AdjustSpecialOutputs(self, {}, {}, "")
     return
@@ -341,6 +355,8 @@ function ENT:Upload(data)
 
   self.Data = data
 
+  self.Uploaded = true
+
   --First execution needs to be with all nodes, to properly get all the right standby values everywhere
   local allNodes = {}
   for nodeId, node in pairs(self.Nodes) do
@@ -355,7 +371,8 @@ end
 --------------------------------------------------------
 function ENT:Reset()
   --MsgC(Color(0, 100, 255), "Resetting FPGA\n")
-  if self.error then return end
+  if self.CompilationError or not self.Uploaded then return end
+  self.ExecutionError = false
 
   --Set gates to default values again
   self.Values = {}
@@ -399,7 +416,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Think()
-  if self.error then return end
+  if self.CompilationError or self.ExecutionError or not self.Uploaded then return end
 
   BaseClass.Think(self)
   self:NextThink(CurTime()+self.ExecutionInterval)
@@ -415,9 +432,9 @@ function ENT:Think()
   
   --Limiting
   if self.timebench > fpga_quota_avg then
-    self:Error("FPGA: Exceeded average cpu time limit", "avg cpu time limit exceeded")
+    self:ThrowExecutionError("exceeded average cpu time limit", "avg cpu time limit exceeded")
   elseif self.time > fpga_quota_spike then
-    self:Error("FPGA: Exceeded spike cpu time limit", "spike cpu time limit exceeded")
+    self:ThrowExecutionError("exceeded spike cpu time limit", "spike cpu time limit exceeded")
   end
 
   self:UpdateOverlay(false)
@@ -531,7 +548,7 @@ function ENT:Run(changedNodes)
     else
       if nodeId == loopDetectionNodeId then
         --infinite loop...
-        self:Error("FPGA: Execution stuck in infinite loop", "infinite loop")
+        self:ThrowExecutionError("stuck in infinite loop", "infinite loop")
         break
       end
 

@@ -19,6 +19,10 @@ FPGA Entity:
 FPGA Tool:
   Add a cool animation to the toolgun
 
+  Download from chip
+
+  Be able to upload bigger than 64kb files
+
   FPGA Editor:
     Features:
       Shortcuts?

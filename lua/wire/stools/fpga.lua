@@ -93,7 +93,8 @@ if CLIENT then
 			WireLib.AddNotify("Invalid FPGA entity specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
-		
+    
+    if not data and not FPGA_Editor then return end
     data = data or FPGA_Editor:GetData()
 		
     net.Start("FPGA_Upload")
