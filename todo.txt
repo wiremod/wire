@@ -5,6 +5,9 @@ FPGA Entity:
 
     Add mechanism such that loops are possible
 
+  Bugs:
+    Apply force doesnt work (gate model wrong, GetPlayer())
+
     
   Test:
     Check for errors during compilation (Hasnt been tested, but is implemented now)
