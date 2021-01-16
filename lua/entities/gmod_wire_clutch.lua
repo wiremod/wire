@@ -145,13 +145,11 @@ end
 
 
 function ENT:OnRemove()
-	local bs = self.clutch_ballsockets
+	local clutch_ballsockets = self.clutch_ballsockets
 	
-	if ( istable( bs ) ) then
-		for k, v in pairs( bs ) do
-
+	if istable( clutch_ballsockets ) then
+		for k, v in pairs( clutch_ballsockets ) do
 			self:RemoveClutch( k )
-
 		end
 	end
 
