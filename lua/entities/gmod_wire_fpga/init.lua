@@ -195,6 +195,7 @@ function ENT:ValidateData(data)
       local outNode = data.Nodes[connection[1]]
       if not outNode then return "connection exists to invalid node" end
       local outGate = getGate(outNode)
+      local outputNum = connection[2]
 
       --bound check
       if inputNum < 1 or inputNum > #inGate.inputs then return "connection on nonexistant input" end
@@ -205,7 +206,9 @@ function ENT:ValidateData(data)
       end
 
       --type check
-      if getInputType(inGate, inputNum) != getOutputType(outGate, outputNum) then return "type mismatch between input and output" end
+      if getInputType(inGate, inputNum) != getOutputType(outGate, outputNum) then 
+        return "type mismatch between input and output " .. inGate.name .. " ["..getInputType(inGate, inputNum).."]" .. " and " .. outGate.name .. " ["..getOutputType(outGate, outputNum).."]"
+      end
     end
   end
 
@@ -289,7 +292,9 @@ end
 --------------------------------------------------------
 function ENT:Upload(data)
   --MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
-  
+  print(table.ToString(data, "data", true))
+
+
   self.CompileError = false
   self.ExecutionError = false
 
@@ -323,20 +328,22 @@ function ENT:Upload(data)
   self.Inputs = WireLib.AdjustSpecialInputs(self, self.InputNames, self.InputTypes, "")
   self.Outputs = WireLib.AdjustSpecialOutputs(self, self.OutputNames, self.OutputTypes, "")
 
+
+  --Functions for gates
+  local owner = self:GetPlayer()
   --Initialize gate table
   self.Gates = {}
   for nodeId, node in pairs(self.Nodes) do
     local gate = getGate(node)
 
-    if gate.reset then
-      --reset gate
-      local tempGate = {}
-      gate.reset(tempGate)
-      self.Gates[nodeId] = tempGate
-    else
-      --empty gate
-      self.Gates[nodeId] = {}
+    local tempGate = {}
+    function tempGate:GetPlayer()
+      return owner
     end
+    if gate.reset then
+      gate.reset(tempGate)
+    end
+    self.Gates[nodeId] = tempGate
   end
 
   --Table that contains last input values for every gate
@@ -366,6 +373,8 @@ function ENT:Upload(data)
   self:Run(allNodes)
 end
 
+
+
 --------------------------------------------------------
 --RESET
 --------------------------------------------------------
@@ -380,20 +389,22 @@ function ENT:Reset()
     self.Values[nodeId] = getDefaultValues(node)
   end
 
+  --Functions for gates
+  local owner = self:GetPlayer()
+  print(owner)
   --Reset gate table
   self.Gates = {}
   for nodeId, node in pairs(self.Nodes) do
     local gate = getGate(node)
 
-    if gate.reset then
-      --reset gate
-      local tempGate = {}
-      gate.reset(tempGate)
-      self.Gates[nodeId] = tempGate
-    else
-      --empty gate
-      self.Gates[nodeId] = {}
+    local tempGate = {}
+    function tempGate:GetPlayer()
+      return owner
     end
+    if gate.reset then
+      gate.reset(tempGate)
+    end
+    self.Gates[nodeId] = tempGate
   end
 
   --Run all nodes again (to properly propagate)

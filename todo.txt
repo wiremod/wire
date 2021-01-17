@@ -5,8 +5,13 @@ FPGA Entity:
 
     Add mechanism such that loops are possible
 
+    Adv. Dupe
+
+    HiSpeed links (memory gates?)
+    String to memory and opposite
+
   Bugs:
-    Apply force doesnt work (gate model wrong, GetPlayer())
+    Multiply gate needs all inputs connected
 
     
   Test:
@@ -16,7 +21,9 @@ FPGA Entity:
       Type Check
       Check that connections are valid (that the destination node exists)
       Check if gate is banned..?
+    more clear error messages, just for debugging
       
+    
 
 
 FPGA Tool:
@@ -32,6 +39,7 @@ FPGA Tool:
       Grid
       Mark selection, move all gates (or delete all)
       copy paste (with compatible with selection)
+      Undo
 
     Bugs:
       Saving a file with capital letter fucks it up
