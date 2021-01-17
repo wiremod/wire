@@ -381,7 +381,9 @@ end
 function ENT:Reset()
   --MsgC(Color(0, 100, 255), "Resetting FPGA\n")
   if self.CompilationError or not self.Uploaded then return end
+  self:SetColor(Color(255, 255, 255, self:GetColor().a))
   self.ExecutionError = false
+  self.ErrorMessage = nil
 
   --Set gates to default values again
   self.Values = {}
