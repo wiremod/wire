@@ -11,7 +11,7 @@ function WireGPU_AddMonitor(name,model,tof,tou,tor,trs,x1,x2,y1,y2,rot,transluce
 	local monitor = {
 		Name = name,
 		offset = Vector(tof, -tor, tou),
-		RS = trs,
+		RS = trs or (y2 - y1) / 512,
 		RatioX = RatioX,
 
 		x1 = x1,
@@ -174,11 +174,11 @@ WireGPU_AddMonitor("Plasma TV (16:10)", "models/props/cs_office/tv_plasma.mdl", 
 WireGPU_AddMonitor("Billboard",         "models/props/cs_assault/billboard.mdl",          1   , 0    , 0  , 0.23  , -110.512, 110.512, -57.647, 57.647)
 WireGPU_FromBox_Helper("Beige CRT Monitor", "models/props_lab/monitor01a.mdl", Vector(-9.3,-4.9,-3), Vector(9.3,10.4,12.45), Angle(0, 90, 85))
 WireGPU_FromBox_Helper("White CRT Monitor", "models/props_lab/monitor02.mdl", Vector(-9.0,6.3,-3), Vector(9.0,21.2,12.8), Angle(0, 90, 82.5))
-WireGPU_AddMonitor("Cube 1x1x1",        "models/hunter/blocks/cube1x1x1.mdl",             24  , 0    , 0  , 0.09  , -48     , 48     , -48    , 48    )
-WireGPU_AddMonitor("Panel 1x1",         "models/hunter/plates/plate1x1.mdl",              0   , 1.7  , 0  , 0.09  , -48     , 48     , -48    , 48    , true)
-WireGPU_AddMonitor("Panel 2x2",         "models/hunter/plates/plate2x2.mdl",              0   , 1.7  , 0  , 0.182 , -48     , 48     , -48    , 48    , true)
-WireGPU_AddMonitor("Panel 0.5x0.5",     "models/hunter/plates/plate05x05.mdl",            0   , 1.7  , 0  , 0.045 , -48     , 48     , -48    , 48    , true)
-WireGPU_AddMonitor("Tray",              "models/props/cs_militia/reload_bullet_tray.mdl", 0   , 0.8  , 0  , 0.009 , 0       , 100    , 0      , 60    , true)
+WireGPU_AddMonitor("Cube 1x1x1",        "models/hunter/blocks/cube1x1x1.mdl",             24  , 0    , 0  , nil   , -23.275 , 23.275 , -23.275, 23.275)
+WireGPU_AddMonitor("Panel 1x1",         "models/hunter/plates/plate1x1.mdl",              0   , 1.7  , 0  , nil   , -23.275 , 23.275 , -23.275, 23.275, true)
+WireGPU_AddMonitor("Panel 2x2",         "models/hunter/plates/plate2x2.mdl",              0   , 1.7  , 0  , nil   , -47.45  , 47.45  , -47.45 , 47.45 , true)
+WireGPU_AddMonitor("Panel 0.5x0.5",     "models/hunter/plates/plate05x05.mdl",            0   , 1.7  , 0  , nil   , -11.8265, 11.8265, -11.8265,11.8265,true)
+WireGPU_AddMonitor("Tray",              "models/props/cs_militia/reload_bullet_tray.mdl", 0   , 0.8  , 0  , nil   ,  0      , 7.68   ,  0     , 4.608 , true)
 WireGPU_FromBox_Helper("Wall-mounted TV", "models/props_wasteland/controlroom_monitor001b.mdl", Vector(-10.2,-12.6,-3), Vector(10.7,4.7,15.38), Angle(0, 90, 103.2))
 WireGPU_FromBox_Helper("Oscilloscope", "models/props_lab/reciever01b.mdl", Vector(-5.93,-2,-3), Vector(-1.74,2.1,6.186), Angle(0, 90, 90))
 -- Offset front, offset up, offset right, resolution/scale                                OF    OU     OR   SCALE   LOWX      HIGHX    LOWY     HIGHY   ROTATE90
@@ -189,20 +189,21 @@ WireGPU_FromBox("TF2 Red vs Blue billboard", "models/props_mining/billboard002.m
 
 
 -- transparent screens
-WireGPU_AddMonitor("Window", "models/props_phx/construct/windows/window1x1.mdl", 0, 1.7, 0, 0.07, -46, 46, -46, 46, true, true)
+WireGPU_AddMonitor("Window", "models/props_phx/construct/windows/window1x1.mdl", 0, 1.7, 0, nil, -17.3, 17.3, -17.3, 17.3, true, true)
 
 --[[
+models/props_c17/tv_monitor01.mdl
+models/props_wasteland/controlroom_monitor001b.mdl
 models/props/cs_militia/television_console01.mdl
 models/props/cs_militia/tv_console.mdl
 models/props_silo/silo_launchroom_monitor.mdl
 models/props_bts/glados_screenborder_curve.mdl
 models/props_spytech/tv001.mdl
-
-
+models/props_lab/monitor02.mdl
+models/props_lab/monitor01a.mdl
 workspaces:
 models/props_lab/workspace003.mdl
 models/props_lab/securitybank.mdl
-
 too curvy?
 models/props_spytech/computer_screen_bank.mdl
 ]]
