@@ -192,15 +192,11 @@ WireGPU_FromBox("TF2 Red vs Blue billboard", "models/props_mining/billboard002.m
 WireGPU_AddMonitor("Window", "models/props_phx/construct/windows/window1x1.mdl", 0, 1.7, 0, nil, -17.3, 17.3, -17.3, 17.3, true, true)
 
 --[[
-models/props_c17/tv_monitor01.mdl
-models/props_wasteland/controlroom_monitor001b.mdl
 models/props/cs_militia/television_console01.mdl
 models/props/cs_militia/tv_console.mdl
 models/props_silo/silo_launchroom_monitor.mdl
 models/props_bts/glados_screenborder_curve.mdl
 models/props_spytech/tv001.mdl
-models/props_lab/monitor02.mdl
-models/props_lab/monitor01a.mdl
 workspaces:
 models/props_lab/workspace003.mdl
 models/props_lab/securitybank.mdl
