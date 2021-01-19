@@ -42,6 +42,7 @@ end
 
 --screens with a GPULib setup
 list.Set( "WireScreenModels", "models/props_lab/monitor01b.mdl", true )
+list.Set( "WireScreenModels", "models/props_c17/tv_monitor01.mdl", true )
 list.Set( "WireScreenModels", "models/props/cs_office/tv_plasma.mdl", true )
 list.Set( "WireScreenModels", "models/blacknecro/tv_plasma_4_3.mdl", true )
 list.Set( "WireScreenModels", "models/props/cs_office/computer_monitor.mdl", true )
@@ -54,10 +55,13 @@ list.Set( "WireScreenModels", "models/cheeze/pcb/pcb5.mdl", true )
 list.Set( "WireScreenModels", "models/cheeze/pcb/pcb7.mdl", true )
 list.Set( "WireScreenModels", "models/cheeze/pcb/pcb8.mdl", true )
 list.Set( "WireScreenModels", "models/cheeze/pcb2/pcb8.mdl", true )
+list.Set( "WireScreenModels", "models/props_lab/monitor01a.mdl", true )
+list.Set( "WireScreenModels", "models/props_lab/monitor02.mdl", true )
 list.Set( "WireScreenModels", "models/props/cs_militia/reload_bullet_tray.mdl", true )
 list.Set( "WireScreenModels", "models/props_lab/workspace002.mdl", true )
+list.Set( "WireScreenModels", "models/props_lab/reciever01b.mdl", true )
 --list.Set( "WireScreenModels", "models/blacknecro/ledboard60.mdl", true ) --broken
-
+list.Set( "WireScreenModels", "models/props_wasteland/controlroom_monitor001b.mdl", true )
 --TF2 Billboards
 list.Set( "WireScreenModels", "models/props_mining/billboard001.mdl", true )
 list.Set( "WireScreenModels", "models/props_mining/billboard002.mdl", true )
