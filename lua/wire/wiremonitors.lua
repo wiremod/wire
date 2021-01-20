@@ -180,7 +180,7 @@ WireGPU_AddMonitor("Panel 2x2",         "models/hunter/plates/plate2x2.mdl",    
 WireGPU_AddMonitor("Panel 0.5x0.5",     "models/hunter/plates/plate05x05.mdl",            0   , 1.7  , 0  , nil   , -11.8265, 11.8265, -11.8265,11.8265,true)
 WireGPU_AddMonitor("Tray",              "models/props/cs_militia/reload_bullet_tray.mdl", 0   , 0.8  , 0  , nil   ,  0      , 7.68   ,  0     , 4.608 , true)
 WireGPU_FromBox_Helper("Wall-mounted TV", "models/props_wasteland/controlroom_monitor001b.mdl", Vector(-10.2,-12.6,-3), Vector(10.7,4.7,15.38), Angle(0, 90, 103.2))
-WireGPU_FromBox_Helper("Oscilloscope", "models/props_lab/reciever01b.mdl", Vector(-5.93,-2,-3), Vector(-1.74,2.1,6.186), Angle(0, 90, 90))
+WireGPU_FromBox_Helper("Oscilloscope", "models/props_lab/reciever01b.mdl", Vector(-5.93,-2,-3), Vector(-1.74,2.1,6.225), Angle(0, 90, 90))
 -- Offset front, offset up, offset right, resolution/scale                                OF    OU     OR   SCALE   LOWX      HIGHX    LOWY     HIGHY   ROTATE90
 --WireGPU_AddMonitor("LED Board (1:1)",   "models/blacknecro/ledboard60.mdl",               6.1, 18.5 , 11 , 0.065 , -60     , 60     , -60    , 60    ) -- broken
 
