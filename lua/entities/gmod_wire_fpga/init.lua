@@ -554,6 +554,8 @@ function ENT:Run(changedNodes)
     local gate = getGate(node)
 
     --gate value logic
+    local value
+
     if gate.isInput then
       value = {self.InputValues[nodeId]}
     elseif gate.isConstant then
@@ -593,8 +595,19 @@ function ENT:Run(changedNodes)
         if self.Debug then print(node.ioName .. " outputs " .. table.ToString(self.Values[nodeId], "", false)) end
         continue
       else
-        --normal gates
-        value = {gate.output(self.Gates[nodeId], unpack(self.Values[nodeId]))}
+        --compact gates only calculate with connected inputs
+        if gate.compact_inputs then
+          --find connected inputs, and assign current values
+          activeValues = {}
+          for inputNum, _ in pairs(self.Data.Nodes[nodeId].connections) do
+            table.insert(activeValues, self.Values[nodeId][inputNum])
+          end
+
+          value = {gate.output(self.Gates[nodeId], unpack(activeValues))}
+        else
+          --normal gates
+          value = {gate.output(self.Gates[nodeId], unpack(self.Values[nodeId]))}
+        end
       end
     end
 

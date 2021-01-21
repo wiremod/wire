@@ -11,7 +11,7 @@ FPGA Entity:
     String to memory and opposite
 
   Bugs:
-    Multiply gate needs all inputs connected
+    Clear errors on upload
 
     
   Test:
