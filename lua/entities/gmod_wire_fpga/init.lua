@@ -448,7 +448,7 @@ function ENT:Think()
   
   --Limiting
   if self.timebench > fpga_quota_avg then
-    self:ThrowExecutionError("exceeded average cpu time limit", "avg cpu time limit exceeded")
+    self:ThrowExecutionError("exceeded cpu time limit", "cpu time limit exceeded")
   elseif self.time > fpga_quota_spike then
     self:ThrowExecutionError("exceeded spike cpu time limit", "spike cpu time limit exceeded")
   end

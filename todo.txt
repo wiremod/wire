@@ -3,14 +3,15 @@ FPGA Entity:
     Improve execution
     Optimize execution
 
-    Add mechanism such that loops are possible
-
     Adv. Dupe
 
     HiSpeed links (memory gates?)
     String to memory and opposite
 
+    more clear error messages, just for debugging
+
   Bugs:
+    Entity spikes after amount of time and errors
     
   Test:
     Check for errors during compilation (Hasnt been tested, but is implemented now)
@@ -19,8 +20,6 @@ FPGA Entity:
       Type Check
       Check that connections are valid (that the destination node exists)
       Check if gate is banned..?
-    more clear error messages, just for debugging
-      
     
 
 
@@ -33,23 +32,37 @@ FPGA Tool:
 
   FPGA Editor:
     Features:
-      Shortcuts?
-      Grid
       Mark selection, move all gates (or delete all)
       copy paste (with compatible with selection)
-      Undo
 
     Bugs:
       Saving a file with capital letter fucks it up
       sometimes nodes cant be removed
       cant create node on preopened tab
 
-    nice to have:
-      Improve the guide on how to use
+
+FPGA Gates:
+
+
+
+
+######################LATER##############################
+
+FPGA Entity:
+  Add mechanism such that loops are possible
+
+FPGA Tool:
+  Be able to upload bigger than 64kb files
+
+  FPGA Editor:
+    Shortcuts?
+    Grid
+    Undo
+    Improve the guide on how to use
 
 
 FPGA Gates:
   Maybe add the various "luxuries" that e2 have (changed and last notably)
-    Should these have wildcard types? 
-    (this is pretty fucking hard???)
-    figure out logic of how exactly a "last" gate should work, since its pretty complicated
+  Should these have wildcard types? 
+  (this is pretty fucking hard???)
+  figure out logic of how exactly a "last" gate should work, since its pretty complicated
