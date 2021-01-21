@@ -11,8 +11,6 @@ FPGA Entity:
     String to memory and opposite
 
   Bugs:
-    Clear errors on upload
-
     
   Test:
     Check for errors during compilation (Hasnt been tested, but is implemented now)
@@ -44,6 +42,7 @@ FPGA Tool:
     Bugs:
       Saving a file with capital letter fucks it up
       sometimes nodes cant be removed
+      cant create node on preopened tab
 
     nice to have:
       Improve the guide on how to use

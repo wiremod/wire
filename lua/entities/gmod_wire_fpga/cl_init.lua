@@ -22,7 +22,7 @@ function ENT:GetWorldTipBodySize()
 	w_total = math.max(w_total, w)
   h_total = h_total + h + 10
   
-  local str = string.format("avg. cpu time: %ius", timebench * 1000000)
+  local str = string.format("peak cpu time: %ius", timebench * 1000000)
 	local w,h = surface.GetTextSize(str)
 	w_total = math.max(w_total, w)
   h_total = h_total + h + 10
@@ -39,7 +39,7 @@ function ENT:DrawWorldTipBody(pos)
   local white = Color(255,255,255,255)
   local error = Color(255,0,0,255)
   local cputime = Color(150,150,255,255)
-  local cputimeavg = Color(100,255,150,255)
+  local cputimeavg = Color(130,240,130,255)
 	local black = Color(0,0,0,255)
 
 	local w_total, yoffset = 0, pos.min.y
@@ -75,10 +75,10 @@ function ENT:DrawWorldTipBody(pos)
   local timebench = data.timebench
   local timebenchPeak = data.timebenchPeak
 
+  -- cpu time text
+  local str = string.format("cpu time: %ius", timebench * 1000000)
+  draw.DrawText(str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 8, cputimeavg, TEXT_ALIGN_CENTER)
   -- cpu peak time text
-  local str = string.format("cpu time: %ius", timebenchPeak * 1000000)
-	draw.DrawText(str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 8, cputime, TEXT_ALIGN_CENTER)
-	-- cpu time text
-  local str = string.format("avg. cpu time: %ius", timebench * 1000000)
-  draw.DrawText(str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 8 + 25, cputimeavg, TEXT_ALIGN_CENTER)
+  local str = string.format("peak cpu time: %ius", timebenchPeak * 1000000)
+	draw.DrawText(str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 8 + 25, cputime, TEXT_ALIGN_CENTER)
 end

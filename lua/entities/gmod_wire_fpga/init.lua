@@ -297,6 +297,8 @@ function ENT:Upload(data)
 
   self.CompileError = false
   self.ExecutionError = false
+  self.ErrorMessage = nil
+  self:SetColor(Color(255, 255, 255, self:GetColor().a))
 
   if data.Name then
     self.name = data.Name
@@ -384,6 +386,7 @@ function ENT:Reset()
   self:SetColor(Color(255, 255, 255, self:GetColor().a))
   self.ExecutionError = false
   self.ErrorMessage = nil
+  self.time = 0
 
   --Set gates to default values again
   self.Values = {}
