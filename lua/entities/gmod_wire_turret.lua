@@ -103,9 +103,9 @@ local ValidTracers = {
 }
 
 function ENT:SetSound( sound )
-	local sound = string.Trim( tostring( sound or "" ) ) -- Remove whitespace ( manual )
+	sound = string.Trim( tostring( sound or "" ) ) -- Remove whitespace ( manual )
 	local check = string.find( sound, "[\"?]" ) -- Preventing client crashes
-	self.sound = check ~= nil and sound ~= "" and sound or nil -- Apply the pattern check
+	self.sound = check == nil and sound ~= "" and sound or nil -- Apply the pattern check
 end
 
 function ENT:SetDelay( delay )
