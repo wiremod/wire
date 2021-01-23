@@ -165,7 +165,10 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:Setup(data)
-  self:Upload(data)
+  if data then 
+    -- entity was duplicated
+    self:Upload(data) 
+  end
 end
 
 duplicator.RegisterEntityClass("gmod_wire_fpga", WireLib.MakeWireEnt, "Data", "UploadData")
@@ -313,7 +316,7 @@ end
 --------------------------------------------------------
 function ENT:Upload(data)
   --MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
-  print(table.ToString(data, "data", true))
+  --print(table.ToString(data, "data", true))
 
 
   self.CompileError = false
