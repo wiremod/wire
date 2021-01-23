@@ -130,7 +130,6 @@ function ENT:Initialize()
   self.ErrorMessage = nil
 
   self.ExecutionInterval = 0.015
-  print(FrameTime())
 
   self.Data = nil
 
@@ -330,7 +329,7 @@ function ENT:Upload(data)
     self.name = "(corrupt)"
   end
   if data.ExecutionInterval then
-    self.ExecutionInterval = math.max(data.ExecutionInterval, 0.015)
+    self.ExecutionInterval = math.max(data.ExecutionInterval, FrameTime())
   else
     self.ExecutionInterval = 0.1
   end
