@@ -467,12 +467,13 @@ function ENT:Think()
 
 
   --Time benchmarking
+  if self.time > 0.001 then print(self.time) end
   self.timebench = self.timebench * 0.95 + self.time * 0.05
   
   --Limiting
   if self.timebench > fpga_quota_avg then
     self:ThrowExecutionError("exceeded cpu time limit", "cpu time limit exceeded")
-  elseif self.time > fpga_quota_spike then
+  elseif fpga_quota_spike > 0 and self.time > fpga_quota_spike then
     self:ThrowExecutionError("exceeded spike cpu time limit", "spike cpu time limit exceeded")
   end
 
