@@ -6,8 +6,6 @@ FPGA Entity:
     HiSpeed links (memory gates?)
     String to memory and opposite
 
-    more clear error messages, just for debugging
-
   Bugs:
     
     
@@ -30,8 +28,7 @@ FPGA Tool:
 
   FPGA Editor:
     Features:
-      Mark selection, move all gates (or delete all)
-      copy paste (with compatible with selection)
+      copy paste (compatible with selection)
 
     Bugs:
       Saving a file with capital letter fucks it up
@@ -52,6 +49,8 @@ FPGA Entity:
   (Entity spikes after amount of time and errors)
       Fixed by removing spike limit, as it seems unavoidable
       This is probably why E2 limits OPS and not time.
+
+  more clear error messages, just for debugging
 
 FPGA Tool:
   Be able to upload bigger than 64kb files
