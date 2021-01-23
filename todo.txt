@@ -9,9 +9,7 @@ FPGA Entity:
     more clear error messages, just for debugging
 
   Bugs:
-    (Entity spikes after amount of time and errors)
-      Fixed by removing spike limit, as it seems unavoidable
-      This is probably why E2 limits OPS and not time.
+    
     
   Test:
     Check for errors during compilation (Hasnt been tested, but is implemented now)
@@ -50,6 +48,10 @@ FPGA Gates:
 
 FPGA Entity:
   Add mechanism such that loops are possible
+
+  (Entity spikes after amount of time and errors)
+      Fixed by removing spike limit, as it seems unavoidable
+      This is probably why E2 limits OPS and not time.
 
 FPGA Tool:
   Be able to upload bigger than 64kb files

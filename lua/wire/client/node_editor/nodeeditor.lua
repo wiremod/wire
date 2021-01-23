@@ -45,6 +45,9 @@ function Editor:Init()
   self.DrawingFromOutput = false
   self.DrawingConnectionFrom = nil
 
+  self.DrawingSelection = nil
+  self.SelectedNodes = {}
+
   self.LastMousePos = {0, 0}
   self.MouseDown = false
 
@@ -54,8 +57,10 @@ function Editor:Init()
   self.IOSize = 2
 
   self.BackgroundColor = Color(32, 32, 32, 255)
-  self.NodeColor = Color(100, 100, 100, 255)
   self.ConnectionColor = Color(200, 200, 200, 255)
+  self.NodeColor = Color(100, 100, 100, 255)
+  self.SelectedNodeColor = Color(150, 150, 100, 255)
+  self.SelectionColor = Color(220, 220, 100, 255)
 
   self.C = {}
   self:InitComponents()
@@ -497,7 +502,7 @@ function Editor:PaintOutput(x, y, type, name, ioSize)
   surface.DrawText(name)
 end
 
-function Editor:PaintNode(node)
+function Editor:PaintNode(nodeId, node)
   local gate = self:GetGate(node)
 
   local amountOfInputs = 0
@@ -545,7 +550,11 @@ function Editor:PaintNode(node)
   -- Body
   local height = math.max(amountOfInputs, amountOfOutputs, 1)
 
-  surface.SetDrawColor(self.NodeColor)
+  if self.SelectedNodes[nodeId] then
+    surface.SetDrawColor(self.SelectedNodeColor)
+  else
+    surface.SetDrawColor(self.NodeColor)
+  end
   surface.DrawRect(x-size/2, y-size/2, size, size * height)
 
   -- Name
@@ -570,8 +579,8 @@ function Editor:PaintNode(node)
 end
 
 function Editor:PaintNodes()
-  for k, node in pairs(self.Nodes) do
-    self:PaintNode(node)
+  for nodeId, node in pairs(self.Nodes) do
+    self:PaintNode(nodeId, node)
   end
 end
 
@@ -621,8 +630,22 @@ function Editor:Paint()
   if self.DraggingNode then
     local x, y = self:CursorPos()
     local gx, gy = self:ScrToPos(x, y)
-    self.Nodes[self.DraggingNode].x = gx + self.DraggingOffset[1]
-    self.Nodes[self.DraggingNode].y = gy + self.DraggingOffset[2]
+    gx = gx + self.DraggingOffset[1]
+    gy = gy + self.DraggingOffset[2]
+
+    local cx, cy = self.Nodes[self.DraggingNode].x, self.Nodes[self.DraggingNode].y
+
+    if self.SelectedNodes[self.DraggingNode] and table.Count(self.SelectedNodes) > 0 then
+      for selectedNodeId, selectedNode in pairs(self.SelectedNodes) do
+        local sox, soy = self.Nodes[selectedNodeId].x - cx, self.Nodes[selectedNodeId].y - cy
+        self.Nodes[selectedNodeId].x = gx + sox
+        self.Nodes[selectedNodeId].y = gy + soy
+      end
+    else
+      self.SelectedNodes = {}
+      self.Nodes[self.DraggingNode].x = gx
+      self.Nodes[self.DraggingNode].y = gy
+    end
   end
   -- drawing a connection
   if self.DrawingConnection then
@@ -636,6 +659,22 @@ function Editor:Paint()
     local mx, my = self:CursorPos()
     surface.SetDrawColor(self.ConnectionColor)
     surface.DrawLine(sx, sy, mx, my)
+  end
+  -- selecting
+  if self.DrawingSelection then
+    if not input.IsMouseDown(MOUSE_LEFT) then
+      -- detects if mouse is let go outside of the window
+      self.DrawingSelection = nil
+    else
+      local sx, sy = self:PosToScr(self.DrawingSelection[1], self.DrawingSelection[2])
+      local mx, my = self:CursorPos()
+      
+      local x, y = math.min(sx, mx), math.min(sy, my)
+      local w, h = math.abs(sx-mx), math.abs(sy-my)
+
+      surface.SetDrawColor(self.SelectionColor)
+      surface.DrawOutlinedRect(x, y, w, h)
+    end
   end
 
   local x, y = self:CursorPos()
@@ -652,9 +691,8 @@ function Editor:PaintDebug()
 end
 
 --ACTIONS
-function Editor:BeginDrawingConnection(x, y)
-  local nodeId, inputNum = self:GetNodeInputAt(x, y)
-  if nodeId then
+function Editor:BeginDrawingConnection(nodeId, inputNum, outputNum)
+  if inputNum then
     --check if something is connected to this input
     node = self.Nodes[nodeId]
     Input = node.connections[inputNum]
@@ -674,8 +712,7 @@ function Editor:BeginDrawingConnection(x, y)
     self.DrawingConnection = true
   end
 
-  local nodeId, outputNum = self:GetNodeOutputAt(x, y)
-  if nodeId then
+  if outputNum then
     self.DrawingConnection = true
     self.DrawingFromOutput = true
     self.DrawingConnectionFrom = {nodeId, outputNum}
@@ -748,7 +785,20 @@ function Editor:OnMousePressed(code)
       self.DraggingOffset = {self.Nodes[nodeId].x - gx, self.Nodes[nodeId].y - gy}
     else
       --CONNECTION DRAWING
-      self:BeginDrawingConnection(x, y)
+      local nodeId, inputNum = self:GetNodeInputAt(x, y)
+      if nodeId then
+        self:BeginDrawingConnection(nodeId, inputNum, nil)
+      else
+        local nodeId, outputNum = self:GetNodeOutputAt(x, y)
+        if nodeId then
+          self:BeginDrawingConnection(nodeId, nil, outputNum)
+        else
+          --SELECTION DRAWING
+          local gx, gy = self:ScrToPos(x, y)
+          self.DrawingSelection = {gx, gy}
+        end
+      end
+      
     end
   elseif code == MOUSE_RIGHT then
     -- PLANE DRAGGING
@@ -766,11 +816,34 @@ function Editor:OnMouseReleased(code)
 
     if self.DrawingConnection then
       self:OnDrawConnectionFinished(x, y)
+    elseif self.DrawingSelection then
+      self:OnDrawSelectionFinished(x, y)
     end
   elseif code == MOUSE_RIGHT then
     self.DraggingWorld = false
   end
   
+end
+
+function Editor:OnDrawSelectionFinished(x, y)
+  local gx, gy = self.DrawingSelection[1], self.DrawingSelection[2]
+  local mx, my = self:CursorPos()
+  local mgx, mgy = self:ScrToPos(mx, my)
+
+  local lx, ly = math.min(gx, mgx), math.min(gy, mgy)
+  local ux, uy = math.max(gx, mgx), math.max(gy, mgy)
+
+  self.SelectedNodes = {}
+  for nodeId, node in pairs(self.Nodes) do
+    if node.x < lx then continue end
+    if node.x > ux then continue end
+    if node.y < ly then continue end
+    if node.y > uy then continue end
+
+    self.SelectedNodes[nodeId] = true
+  end
+
+  self.DrawingSelection = nil
 end
 
 function Editor:OnDrawConnectionFinished(x, y)
@@ -823,9 +896,16 @@ function Editor:OnKeyCodePressed(code)
 
   if code == KEY_X then
     --Delete
-    local nodeId = self:GetNodeAt(x, y)
-    if nodeId then
-      self:DeleteNode(nodeId)
+    if table.Count(self.SelectedNodes) > 0 then
+      for selectedNodeId, selectedNode in pairs(self.SelectedNodes) do
+        self:DeleteNode(selectedNodeId)
+      end
+      self.SelectedNodes = {}
+    else
+      local nodeId = self:GetNodeAt(x, y)
+      if nodeId then
+        self:DeleteNode(nodeId)
+      end
     end
   elseif code == KEY_C then
     --Create
