@@ -87,7 +87,7 @@ function ENT:UpdateOverlay(clear)
 	else
 		self:SetOverlayData( {
 							  name = self.name,
-                timebench = self.timebench / (self.ExecutionInterval / self.TickRate),
+                timebench = self.timebench / (self.ExecutionInterval / FrameTime()),
                 timebenchPeak = self.time,
                 errorMessage = self.ErrorMessage,
 							})
@@ -129,8 +129,8 @@ function ENT:Initialize()
   self.CompileError = false
   self.ErrorMessage = nil
 
-  self.TickRate = 0.015
   self.ExecutionInterval = 0.015
+  print(FrameTime())
 
   self.Data = nil
 
@@ -330,7 +330,7 @@ function ENT:Upload(data)
     self.name = "(corrupt)"
   end
   if data.ExecutionInterval then
-    self.ExecutionInterval = math.max(data.ExecutionInterval, self.TickRate)
+    self.ExecutionInterval = math.max(data.ExecutionInterval, 0.015)
   else
     self.ExecutionInterval = 0.1
   end
