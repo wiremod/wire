@@ -2,9 +2,7 @@ FPGA Entity:
   Features:
     Improve execution
     Optimize execution
-
-    Adv. Dupe
-
+    
     HiSpeed links (memory gates?)
     String to memory and opposite
 

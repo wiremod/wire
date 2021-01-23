@@ -153,9 +153,27 @@ function ENT:Initialize()
   self.NodeGetsInputFrom = {}
 
 	self:UpdateOverlay(true)
-	--self:SetColor(Color(255, 0, 0, self:GetColor().a))
+  --self:SetColor(Color(255, 0, 0, self:GetColor().a))
 end
 
+--------------------------------------------------------
+--DUPE
+--------------------------------------------------------
+function ENT:BuildDupeInfo()
+  self.UploadData = self.Data
+	return BaseClass.BuildDupeInfo(self) or {}
+end
+
+function ENT:Setup(data)
+  self:Upload(data)
+end
+
+duplicator.RegisterEntityClass("gmod_wire_fpga", WireLib.MakeWireEnt, "Data", "UploadData")
+
+
+--------------------------------------------------------
+--VALIDATION
+--------------------------------------------------------
 function ENT:ValidateData(data)
   --Check if nodes are even there
   if not data.Nodes then return "missing nodes" end
@@ -216,6 +234,9 @@ function ENT:ValidateData(data)
   return nil
 end
 
+--------------------------------------------------------
+--COMPILATION
+--------------------------------------------------------
 -- Node 'compiler'
 -- Flip connections, generate input output tabels
 function ENT:CompileData(data)
