@@ -2,14 +2,16 @@ FPGA Entity:
   Features:
     Improve execution
     Optimize execution
-    
+
     HiSpeed links (memory gates?)
     String to memory and opposite
 
     more clear error messages, just for debugging
 
   Bugs:
-    Entity spikes after amount of time and errors
+    (Entity spikes after amount of time and errors)
+      Fixed by removing spike limit, as it seems unavoidable
+      This is probably why E2 limits OPS and not time.
     
   Test:
     Check for errors during compilation (Hasnt been tested, but is implemented now)

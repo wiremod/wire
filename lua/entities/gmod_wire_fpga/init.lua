@@ -467,7 +467,6 @@ function ENT:Think()
 
 
   --Time benchmarking
-  if self.time > 0.001 then print(self.time) end
   self.timebench = self.timebench * 0.95 + self.time * 0.05
   
   --Limiting
