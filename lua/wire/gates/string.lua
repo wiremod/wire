@@ -265,7 +265,7 @@ GateActions["string_repeat"] = {
 	outputtypes = { "STRING" },
 	output = function(gate, A, B)
 		if !A then A = "" end
-		if !B or B<1 then B = 1 end
+		if !B or B<0 then B = 0 end
 
 		if B * #A > MAX_LEN then return false end
 
