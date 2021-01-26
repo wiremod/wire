@@ -20,24 +20,16 @@ function E2Lib.getArguments(self, args)
 	return unpack(ret)
 end
 
+local function doNothing() end --We'll use this to null out features we don't want people to have
+
 -- Backwards compatibility
 E2Lib.isnan = WireLib.isnan
 E2Lib.clampPos = WireLib.clampPos
-E2Lib.setPos = WireLib.setPos
-E2Lib.setAng = WireLib.setAng
+E2Lib.setPos = doNothing
+E2Lib.setAng = doNothing
 
-function E2Lib.setMaterial(ent, material)
-	material = WireLib.IsValidMaterial(material)
-	ent:SetMaterial(material)
-	duplicator.StoreEntityModifier(ent, "material", { MaterialOverride = material })
-end
-
-function E2Lib.setSubMaterial(ent, index, material)
-	index = math.Clamp(index, 0, 255)
-	material = WireLib.IsValidMaterial(material)
-	ent:SetSubMaterial(index, material)
-	duplicator.StoreEntityModifier(ent, "submaterial", { ["SubMaterialOverride_"..index] = material })
-end
+E2Lib.setMaterial = doNothing
+E2Lib.setSubMaterial = doNothing
 
 -- getHash
 -- Returns a hash for the given string
