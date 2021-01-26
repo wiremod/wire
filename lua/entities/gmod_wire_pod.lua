@@ -482,7 +482,7 @@ function ENT:Think()
 		-- Button pressing
 		if (self.AllowButtons and distance < 82) then
 			local button = trace.Entity
-			if IsValid(button) and (ply:KeyDown( IN_ATTACK ) and not self.MouseDown) and !button:IsVehicle() and button.Use then
+			if IsValid(button) and (ply:KeyDown( IN_ATTACK ) and not self.MouseDown) and not button:IsVehicle() and button.Use then
 				-- Generic support (Buttons, Dynamic Buttons, Levers, EGP screens, etc)
 				self.MouseDown = true
 				button:Use(ply, self, USE_ON, 0)
