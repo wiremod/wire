@@ -47,6 +47,8 @@ function Editor:Init()
 
   self.DrawingSelection = nil
   self.SelectedNodes = {}
+  self.CopyBuffer = {}
+  self.CopyOffset = nil
 
   self.LastMousePos = {0, 0}
   self.MouseDown = false
@@ -770,6 +772,69 @@ function Editor:DeleteNode(nodeId)
   self.Nodes[nodeId] = nil
 end
 
+function Editor:CopyNodes(nodeIds)
+  local nodeIdLookup = {}
+  local i = 1
+  for nodeId, _ in pairs(nodeIds) do
+    nodeIdLookup[nodeId] = i
+    i = i + 1
+  end
+
+  self.CopyBuffer = {}
+  for nodeId, _ in pairs(nodeIds) do
+    local node = self.Nodes[nodeId]
+    local gate = self:GetGate(node) 
+
+    local nodeCopy = {
+      type = node.type,
+      gate = node.gate,
+      x = node.x,
+      y = node.y,
+      connections = {}
+    }
+
+    if gate.isInput then
+      nodeCopy.ioName = node.ioName
+    elseif gate.isOutput then
+      nodeCopy.ioName = node.ioName
+    elseif gate.isConstant then
+      nodeCopy.value = node.value
+    end
+
+    for inputNum, connection in pairs(node.connections) do
+      if nodeIds[connection[1]] then
+        nodeCopy.connections[inputNum] = {nodeIdLookup[connection[1]], connection[2]}
+      end
+    end
+
+    table.insert(self.CopyBuffer, nodeCopy)
+  end
+end
+
+function Editor:PasteNodes(x, y)
+  local nodeIdLookup = {}
+  self.SelectedNodes = {}
+  local i = #self.Nodes + 1
+  for copyNodeId, _ in pairs(self.CopyBuffer) do
+    nodeIdLookup[copyNodeId] = i
+    self.SelectedNodes[i] = true
+    i = i + 1
+  end
+
+  for copyNodeId, copyNode in pairs(self.CopyBuffer) do
+    for inputNum, connection in pairs(copyNode.connections) do
+      connection[1] = nodeIdLookup[connection[1]]
+    end
+
+    copyNode.x = (copyNode.x - self.CopyOffset[1]) + x
+    copyNode.y = (copyNode.y - self.CopyOffset[2]) + y
+
+    table.insert(self.Nodes, copyNode)
+  end
+
+  self.CopyBuffer = {}
+end
+
 --EVENTS
 function Editor:OnMousePressed(code)
 	if code == MOUSE_LEFT then
@@ -893,8 +958,27 @@ end
 
 function Editor:OnKeyCodePressed(code)
   local x, y = self:CursorPos()
+	local control = input.IsKeyDown(KEY_LCONTROL) or input.IsKeyDown(KEY_RCONTROL)
 
-  if code == KEY_X then
+
+  if control then
+    if code == KEY_C then
+      --Copy
+      if table.Count(self.SelectedNodes) > 0 then
+        local gx, gy = self:ScrToPos(x, y)
+        self.CopyOffset = {gx, gy}
+        self:CopyNodes(self.SelectedNodes)
+      else
+        self.CopyBuffer = {}
+      end
+    elseif code == KEY_V then
+      --Paste
+      if table.Count(self.CopyBuffer) > 0 then
+        local gx, gy = self:ScrToPos(x, y)
+        self:PasteNodes(gx, gy)
+      end
+    end
+  elseif code == KEY_X then
     --Delete
     if table.Count(self.SelectedNodes) > 0 then
       for selectedNodeId, selectedNode in pairs(self.SelectedNodes) do

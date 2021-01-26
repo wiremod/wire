@@ -28,7 +28,6 @@ FPGA Tool:
 
   FPGA Editor:
     Features:
-      copy paste (compatible with selection)
 
     Bugs:
       Saving a file with capital letter fucks it up
@@ -56,6 +55,8 @@ FPGA Tool:
   Be able to upload bigger than 64kb files
 
   FPGA Editor:
+    Bugs:
+      Copying and pasting will fail if nodes are not sequential
     Shortcuts?
     Grid
     Undo
