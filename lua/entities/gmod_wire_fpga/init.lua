@@ -152,7 +152,7 @@ function ENT:Initialize()
   self.NodeGetsInputFrom = {}
 
 	self:UpdateOverlay(true)
-  --self:SetColor(Color(255, 0, 0, self:GetColor().a))
+  self:SetColor(Color(255, 0, 0, self:GetColor().a))
 end
 
 --------------------------------------------------------
@@ -166,7 +166,7 @@ end
 function ENT:Setup(data)
   if data then 
     -- entity was duplicated
-    self:Upload(data) 
+    self:Upload(data)
   end
 end
 

@@ -28,6 +28,7 @@ FPGA Tool:
 
   FPGA Editor:
     Features:
+      Improve performance (only draw visible nodes)
 
     Bugs:
       Saving a file with capital letter fucks it up
