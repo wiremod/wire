@@ -215,4 +215,82 @@ if CLIENT then
     local modelPanel = WireDermaExts.ModelSelect(panel, "wire_fpga_model", list.Get("Wire_gate_Models"), 2)
     panel:AddControl("Label", {Text = ""})
   end
+
+  ------------------------------------------------------------------------------
+  -- Tool screen
+  ------------------------------------------------------------------------------
+  tool_program_name = "4-bit ALU"
+  tool_program_size = 6346
+  tool_program_bytes = "abcdefghabcdefghabcdefghabcdefgheeeeaaaaeeeeaaaaeeeeaaaaeeeeaaaazzzzzzzz"
+
+  local fontTable = {
+		font = "Tahoma",
+		size = 20,
+		weight = 1000,
+		antialias = true,
+		additive = false,
+	}
+  surface.CreateFont("FPGAToolScreenAppFont", fontTable)
+  fontTable.size = 20
+  fontTable.font = "Courier New"
+  surface.CreateFont("FPGAToolScreenHexFont", fontTable)
+  fontTable.size = 14
+  surface.CreateFont("FPGAToolScreenSmallHexFont", fontTable)
+
+  local function drawButton(x, y)
+    surface.SetDrawColor(100, 100, 100, 255)
+    surface.DrawRect(x, y, 20, 20)
+    surface.SetDrawColor(200, 200, 200, 255)
+    surface.DrawRect(x, y, 18, 18)
+    surface.SetDrawColor(185, 180, 175, 255)
+    surface.DrawRect(x+2, y, 16, 18)
+  end
+
+  function TOOL:DrawToolScreen(width, height)
+    --Background
+    surface.SetDrawColor(185, 180, 175, 255)
+    surface.DrawRect(0, 0, 256, 256)
+
+    --Top bar
+    surface.SetDrawColor(156, 180, 225, 255)
+    surface.DrawRect(5, 5, 256-10, 30)
+    surface.SetTexture(surface.GetTextureID("gui/gradient"))
+    surface.SetDrawColor(31, 45, 130, 255)
+    surface.DrawTexturedRect(5, 5, 256-10, 30)
+
+    --App name
+    draw.SimpleText("FPGA Editor", "FPGAToolScreenAppFont", 13, 10, Color(255,255,255,255), 0, 0)
+
+    --Buttons
+    drawButton(184, 10)
+    draw.SimpleText("_", "FPGAToolScreenAppFont", 188, 6, Color(10,10,10,255), 0, 0)
+    drawButton(204, 10)
+    draw.SimpleText("☐", "FPGAToolScreenAppFont", 205, 8, Color(10,10,10,255), 0, 0)
+    drawButton(226, 10)
+    draw.SimpleText("x", "FPGAToolScreenAppFont", 231, 7, Color(10,10,10,255), 0, 0)
+
+    --Program name
+    draw.SimpleText(tool_program_name, "FPGAToolScreenHexFont", 10, 38, Color(10,10,10,255), 0, 0)
+
+    --Hex panel
+    surface.SetDrawColor(200, 200, 200, 255)
+    surface.DrawRect(5, 60, 256-10, 256-65)
+
+    --Hex address
+    draw.SimpleText("Offset", "FPGAToolScreenSmallHexFont", 15, 65, Color(0,0,191,255), 0, 0)
+    draw.SimpleText("00 01 02 03 04 05 06 07", "FPGAToolScreenSmallHexFont", 75, 65, Color(0,0,191,255), 0, 0)
+    for i=tool_program_size-7, tool_program_size do
+      draw.SimpleText(string.format("%04X", i), "FPGAToolScreenSmallHexFont", 15, 82 + (i-tool_program_size+7) * 20, Color(0,0,191,255), 0, 0)
+    end
+
+    for line = 0, 7 do
+      local text = ""
+      for i=1, 8 do
+        local c = string.byte(tool_program_bytes, line * 8 + i)
+        text = text .. string.format("%02X", c) .. " "
+      end
+      draw.SimpleText(text, "FPGAToolScreenSmallHexFont", 75, 82 + line * 20, Color(0,0,0,255), 0, 0)
+    end
+
+  end
 end
