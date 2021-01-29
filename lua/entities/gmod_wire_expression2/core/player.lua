@@ -443,11 +443,10 @@ end
 --------------------------------------------------------------------------------
 
 __e2setcost(2)
-local Trusts
 
 if CPPI and debug.getregistry().Player.CPPIGetFriends then
 
-	function Trusts(ply, whom)
+	local function Trusts(ply, whom)
 		if ply == whom then return true end
 		local friends = ply:CPPIGetFriends()
 		if not istable(friends) then return false end
@@ -476,10 +475,6 @@ if CPPI and debug.getregistry().Player.CPPIGetFriends then
 	end
 
 else
-
-	function Trusts(ply, whom)
-		return ply == whom
-	end
 
 	e2function array entity:friends()
 		return {}
@@ -516,7 +511,7 @@ __e2setcost(15)
 e2function array entity:steamFriends()
 	if not IsValid(this) then return {} end
 	if not this:IsPlayer() then return {} end
-	if not Trusts(this, self.player) then return {} end
+	if this~=self.player then return {} end
 
 	return steamfriends[this:EntIndex()] or {}
 end
@@ -525,7 +520,7 @@ end
 e2function number entity:isSteamFriend(entity friend)
 	if not IsValid(this) then return 0 end
 	if not this:IsPlayer() then return 0 end
-	if not Trusts(this, self.player) then return 0 end
+	if this~=self.player then return 0 end
 
 	local friends = steamfriends[this:EntIndex()]
 	if not friends then return 0 end
