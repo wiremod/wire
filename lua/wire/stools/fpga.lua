@@ -90,17 +90,20 @@ if CLIENT then
 		targetEnt = targetEnt or LocalPlayer():GetEyeTrace().Entity
     
 		if (not IsValid(targetEnt) or targetEnt:GetClass() ~= "gmod_wire_fpga") then
-			WireLib.AddNotify("Invalid FPGA entity specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+			WireLib.AddNotify("FPGA: Invalid FPGA entity specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
 			return
 		end
     
-    if not data and not FPGA_Editor then return end
+    if not data and not FPGA_Editor then 
+      WireLib.AddNotify("FPGA: No code specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+      return 
+    end
     data = data or FPGA_Editor:GetData()
 
     local bytes = #data
 
     if bytes > 64000 then
-      WireLib.AddNotify("FPGA code too large (over 64kb)!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+      WireLib.AddNotify("FPGA: Code too large (exceeds 64kb)!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
       return
     end
 		
@@ -120,7 +123,7 @@ if CLIENT then
 				timer.Remove("FPGA_Upload_Delay_Error")
 			end
 		end)
-		timer.Create("FPGA_Upload_Delay_Error",0.03*31,1,function() WireLib.AddNotify("Invalid FPGA entity specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1) end)
+		timer.Create("FPGA_Upload_Delay_Error",0.03*31,1,function() WireLib.AddNotify("FPGA: Invalid FPGA entity specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1) end)
   end)
 end
 
@@ -134,7 +137,7 @@ if SERVER then
 		--local numpackets = net.ReadUInt(16)
 	
 		if not IsValid(chip) or chip:GetClass() ~= "gmod_wire_fpga" then
-			WireLib.AddNotify(ply, "Invalid FPGA chip specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+			WireLib.AddNotify(ply, "FPGA: Invalid FPGA chip specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
 			return
 		end
 
@@ -149,7 +152,7 @@ if SERVER then
     if ok then
       chip:Upload(ret)
     else
-      WireLib.AddNotify(ply, "FPGA upload failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+      WireLib.AddNotify(ply, "FPGA: Upload failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
     end
 	end)
 
