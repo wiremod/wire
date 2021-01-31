@@ -22,27 +22,27 @@ FPGAGateActions["normal-output"] = {
 	end
 }
 
-FPGAGateActions["vector2-input"] = {
-	name = "2D Vector Input",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"VECTOR2"},
-  isInput = true,
-	output = function(gate)
-		return 0
-	end
-}
+-- FPGAGateActions["vector2-input"] = {
+-- 	name = "2D Vector Input",
+--   inputs = {},
+--   outputs = {"Out"},
+--   outputtypes = {"VECTOR2"},
+--   isInput = true,
+-- 	output = function(gate)
+-- 		return 0
+-- 	end
+-- }
 
-FPGAGateActions["vector2-output"] = {
-	name = "2D Vector Output",
-  inputs = {"A"},
-  inputtypes = {"VECTOR2"},
-  outputs = {},
-  isOutput = true,
-	output = function(gate)
-		return 0
-	end
-}
+-- FPGAGateActions["vector2-output"] = {
+-- 	name = "2D Vector Output",
+--   inputs = {"A"},
+--   inputtypes = {"VECTOR2"},
+--   outputs = {},
+--   isOutput = true,
+-- 	output = function(gate)
+-- 		return 0
+-- 	end
+-- }
 
 FPGAGateActions["vector-input"] = {
 	name = "3D Vector Input",
@@ -66,27 +66,27 @@ FPGAGateActions["vector-output"] = {
 	end
 }
 
-FPGAGateActions["vector4-input"] = {
-	name = "4D Vector Input",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"VECTOR4"},
-  isInput = true,
-	output = function(gate)
-		return 0
-	end
-}
+-- FPGAGateActions["vector4-input"] = {
+-- 	name = "4D Vector Input",
+--   inputs = {},
+--   outputs = {"Out"},
+--   outputtypes = {"VECTOR4"},
+--   isInput = true,
+-- 	output = function(gate)
+-- 		return 0
+-- 	end
+-- }
 
-FPGAGateActions["vector4-output"] = {
-	name = "4D Vector Output",
-  inputs = {"A"},
-  inputtypes = {"VECTOR4"},
-  outputs = {},
-  isOutput = true,
-	output = function(gate)
-		return 0
-	end
-}
+-- FPGAGateActions["vector4-output"] = {
+-- 	name = "4D Vector Output",
+--   inputs = {"A"},
+--   inputtypes = {"VECTOR4"},
+--   outputs = {},
+--   isOutput = true,
+-- 	output = function(gate)
+-- 		return 0
+-- 	end
+-- }
 
 FPGAGateActions["angle-input"] = {
 	name = "Angle Input",
