@@ -317,7 +317,7 @@ function ENT:Upload(data)
   --MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
   --print(table.ToString(data, "data", true))
 
-
+  self.Uploaded = false
   self.CompileError = false
   self.ExecutionError = false
   self.ErrorMessage = nil
@@ -387,8 +387,6 @@ function ENT:Upload(data)
 
   self.Data = data
 
-  self.Uploaded = true
-
   --First execution needs to be with all nodes, to properly get all the right standby values everywhere
   local allNodes = {}
   for nodeId, node in pairs(self.Nodes) do
@@ -396,6 +394,8 @@ function ENT:Upload(data)
   end
 
   self:Run(allNodes)
+
+  self.Uploaded = true
 end
 
 
