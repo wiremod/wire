@@ -1014,7 +1014,17 @@ function Editor:GetCurrentEditor()
 end
 
 function Editor:GetData()
-  return self:GetCurrentEditor():GetData()
+  local data = self:GetCurrentEditor():GetData()
+
+  local last_data = ""
+  if #data < 64 then
+    last_data = data
+  else
+    last_data = data:sub(-64 + #data % 8)
+  end
+  
+  FPGASetToolInfo(self:ExtractNameFromEditor(), #data, last_data)
+  return data
 end
 
 function Editor:Open(Line, data, forcenewtab)

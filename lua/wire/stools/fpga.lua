@@ -222,9 +222,21 @@ if CLIENT then
   ------------------------------------------------------------------------------
   -- Tool screen
   ------------------------------------------------------------------------------
-  tool_program_name = "4-bit ALU"
-  tool_program_size = 6346
-  tool_program_bytes = "abcdefghabcdefghabcdefghabcdefgheeeeaaaaeeeeaaaaeeeeaaaaeeeeaaaazzzzzzzz"
+  tool_program_name = ""
+  tool_program_start = 0
+  tool_program_size = 0
+  tool_program_bytes = ""
+  function FPGASetToolInfo(name, size, last_bytes)
+    if #name > 18 then
+      tool_program_name = name:sub(1,15) .. "..."
+    else
+      tool_program_name = name
+    end
+    tool_program_start = math.max(size - 64, 0)
+    tool_program_start = tool_program_start - tool_program_start % 8 + 8
+    tool_program_size = size
+    tool_program_bytes = last_bytes
+  end
 
   local fontTable = {
 		font = "Tahoma",
@@ -274,6 +286,13 @@ if CLIENT then
 
     --Program name
     draw.SimpleText(tool_program_name, "FPGAToolScreenHexFont", 10, 38, Color(10,10,10,255), 0, 0)
+    --Program size
+    if tool_program_size < 1024 then
+      draw.SimpleText(tool_program_size.."B", "FPGAToolScreenHexFont", 246, 38, Color(50,50,50,255), 2, 0)
+    else
+      draw.SimpleText(math.floor(tool_program_size/1024).."kB", "FPGAToolScreenHexFont", 246, 38, Color(50,50,50,255), 2, 0)
+    end
+
 
     --Hex panel
     surface.SetDrawColor(200, 200, 200, 255)
@@ -282,15 +301,20 @@ if CLIENT then
     --Hex address
     draw.SimpleText("Offset", "FPGAToolScreenSmallHexFont", 15, 65, Color(0,0,191,255), 0, 0)
     draw.SimpleText("00 01 02 03 04 05 06 07", "FPGAToolScreenSmallHexFont", 75, 65, Color(0,0,191,255), 0, 0)
-    for i=tool_program_size-7, tool_program_size do
-      draw.SimpleText(string.format("%04X", i), "FPGAToolScreenSmallHexFont", 15, 82 + (i-tool_program_size+7) * 20, Color(0,0,191,255), 0, 0)
+    local y = 0
+    for i=tool_program_start, tool_program_size, 8 do
+      draw.SimpleText(string.format(" %04X", i), "FPGAToolScreenSmallHexFont", 15, 82 + y * 20, Color(0,0,191,255), 0, 0)
+      y = y + 1
     end
 
+    --Hex data
     for line = 0, 7 do
       local text = ""
       for i=1, 8 do
         local c = string.byte(tool_program_bytes, line * 8 + i)
-        text = text .. string.format("%02X", c) .. " "
+        if c then
+          text = text .. string.format("%02X", c) .. " "
+        end
       end
       draw.SimpleText(text, "FPGAToolScreenSmallHexFont", 75, 82 + line * 20, Color(0,0,0,255), 0, 0)
     end
