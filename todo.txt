@@ -6,8 +6,6 @@ FPGA Entity:
     HiSpeed links (memory gates?)
     String to memory and opposite
 
-    Finish mechanism such that loops are possible
-
   Bugs:
     
   Test:
