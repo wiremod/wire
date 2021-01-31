@@ -45,7 +45,7 @@ FPGAGateActions["normal-output"] = {
 -- }
 
 FPGAGateActions["vector-input"] = {
-	name = "3D Vector Input",
+	name = "Vector Input",
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"VECTOR"},
@@ -56,7 +56,7 @@ FPGAGateActions["vector-input"] = {
 }
 
 FPGAGateActions["vector-output"] = {
-	name = "3D Vector Output",
+	name = "Vector Output",
   inputs = {"A"},
   inputtypes = {"VECTOR"},
   outputs = {},
