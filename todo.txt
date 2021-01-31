@@ -17,11 +17,16 @@ FPGA Entity:
       Check that connections are valid (that the destination node exists)
       Check if gate is banned..?
     
+    Permissions
+      Download from friend
+      Friends can upload
+
+    Looping
+      Execution chips have some edge cases (they dont retrigger on change as some might expect)
+
 
 
 FPGA Tool:
-  Add a cool animation to the toolgun
-
   Download from chip
 
   Be able to upload bigger than 64kb files
@@ -34,6 +39,7 @@ FPGA Tool:
       Saving a file with capital letter fucks it up
       sometimes nodes cant be removed
       cant create node on preopened tab
+      chip name goes on the right side of execution interval
 
 
 FPGA Gates:

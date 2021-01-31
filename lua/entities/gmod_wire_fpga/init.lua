@@ -448,7 +448,7 @@ end
 --EXECUTION TRIGGERING
 --------------------------------------------------------
 function ENT:TriggerInput(iname, value)
-  --print("Set input " .. iname .. " to " .. value)
+  if self.CompilationError or self.ExecutionError or not self.Uploaded then return end
 
   self.InputValues[self.InputIds[iname]] = value
   self:Run({self.InputIds[iname]})
@@ -502,7 +502,6 @@ function ENT:Run(changedNodes)
   local activeNodesQueue = {}
   local i = 1
   for k, id in pairs(changedNodes) do
-    --if self.Nodes[id].neverActive then continue end
     activeNodesQueue[i] = id
     activeNodes[id] = true
     i = i + 1
@@ -521,6 +520,11 @@ function ENT:Run(changedNodes)
           end
         end
       end
+    end
+  end
+  for nodeId, active in pairs(activeNodes) do
+    if active and getGate(self.Nodes[nodeId]).neverActive then 
+      activeNodes[nodeId] = false
     end
   end
   --activeNodes = {0,0,0,1,1,1,1,1,1}
@@ -560,6 +564,7 @@ function ENT:Run(changedNodes)
   -----------------------------------------
   local calculations = 0
   local loopDetectionNodeId = nil
+  local loopDetectionSize = 0
   while not table.IsEmpty(nodeQueue) do
     calculations = calculations + 1
     if calculations > 50 then break end
@@ -587,31 +592,48 @@ function ENT:Run(changedNodes)
     elseif gate.isConstant then
       value = {node.value}
     else
-      if nodeId == loopDetectionNodeId then
+      if nodeId == loopDetectionNodeId and #nodeQueue == loopDetectionSize then
         --infinite loop...
         self:ThrowExecutionError("stuck in infinite loop", "infinite loop")
         break
       end
 
-      local executeLater = false
-      --if input hasnt arrived, send this node to the back of the queue
-      for inputId, connection in pairs(self.NodeGetsInputFrom[nodeId]) do
-        nodeId2 = connection[1]
-        outputNum = connection[2]
+      --neverActive gates don't wait for their input gates to finish
+      if !gate.neverActive then
+        local executeLater = false
+        --if input hasnt arrived, send this node to the back of the queue
+        for inputId, connection in pairs(self.NodeGetsInputFrom[nodeId]) do
+          nodeId2 = connection[1]
+          outputNum = connection[2]
 
-        --if node hasnt been visited yet and its going to be visited
-        if not nodesVisited[nodeId2] and activeNodes[nodeId2] then
-          --send this node to the back of the queue (potential infinite looping???)
-          table.insert(nodeQueue, nodeId)
-          executeLater = true
-          if loopDetectionNodeId == nil then
-            loopDetectionNodeId = nodeId
+          --if node hasnt been visited yet and its going to be visited
+          if not nodesVisited[nodeId2] and activeNodes[nodeId2] then
+            executeLater = true
+            if loopDetectionNodeId == nil then
+              loopDetectionNodeId = nodeId
+              loopDetectionSize = #nodeQueue
+            end
+            break
           end
-          break
+        end
+        --skip node
+        if executeLater then
+          --add connected nodes to queue
+          if node.connections then
+            for outputNum, connections in pairs(node.connections) do
+              for k, connection in pairs(connections) do
+                if nodesInQueue[connection[1]] == false then
+                  table.insert(nodeQueue, connection[1])
+                  nodesInQueue[connection[1]] = true
+                end
+              end
+            end
+          end
+          -- send this node to the back of the queue (potential infinite looping???)
+          table.insert(nodeQueue, nodeId)
+          continue 
         end
       end
-      --skip node
-      if executeLater then continue end
 
       if self.Debug then print(table.ToString(self.Values[nodeId], "", false)) end
 
@@ -639,6 +661,7 @@ function ENT:Run(changedNodes)
 
     loopDetectionNodeId = nil
 
+
     if self.Debug then print(table.ToString(value, "output", false)) end
 
     --for future reference, we've visited this node
@@ -661,6 +684,14 @@ function ENT:Run(changedNodes)
           end
         end
       end
+    end
+  end
+
+  --postcycle hook
+  for nodeId, node in pairs(self.Nodes) do
+    local gate = getGate(node)
+    if gate.postCycle then
+      gate.postCycle(self.Gates[nodeId])
     end
   end
 
