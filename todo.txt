@@ -10,7 +10,6 @@ FPGA Entity:
 
   Bugs:
     
-    
   Test:
     Check for errors during compilation (Hasnt been tested, but is implemented now)
       Check that gates exist
