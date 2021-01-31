@@ -103,7 +103,7 @@ if CLIENT then
     local bytes = #data
 
     if bytes > 64000 then
-      WireLib.AddNotify("FPGA: Code too large (exceeds 64kb)!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+      WireLib.AddNotify("FPGA: Code too large (exceeds 64kB)!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
       return
     end
 		
