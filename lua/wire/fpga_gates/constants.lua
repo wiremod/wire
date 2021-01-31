@@ -9,7 +9,7 @@ FPGAGateActions["normal-constant"] = {
 }
 
 FPGAGateActions["vector-constant"] = {
-	name = "3D Vector Constant",
+	name = "Vector Constant",
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"VECTOR"},
