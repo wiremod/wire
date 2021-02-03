@@ -465,7 +465,7 @@ function Editor:GetNextAvailableTab()
 end
 
 function Editor:NewTab()
-	local sheet = self:CreateTab("empty")
+	local sheet = self:CreateTab("gate")
   self:SetActiveTab(sheet.Tab)
   
   self:NewChip(true)
@@ -507,7 +507,7 @@ function Editor:CloseTab(_tab)
 
 	-- There's only one tab open, no need to actually close any tabs
 	if self:GetNumTabs() == 1 then
-		activetab:SetText("empty")
+		activetab:SetText("gate")
 		self.C.TabHolder:InvalidateLayout()
 		self:NewChip(true)
 		return
@@ -532,7 +532,7 @@ function Editor:CloseTab(_tab)
 					self:SetActiveTab(othertab)
 					self:SetLastTab()
 				else -- Reset the current tab (backup)
-					self:GetActiveTab():SetText("empty")
+					self:GetActiveTab():SetText("gate")
 					self.C.TabHolder:InvalidateLayout()
 					self:NewChip(true)
 					return
@@ -546,7 +546,7 @@ function Editor:CloseTab(_tab)
 			if othertab and othertab:IsValid() then -- If that other tab is valid, use it
 				self:SetActiveTab(othertab)
 			else -- Reset the current tab (backup)
-				self:GetActiveTab():SetText("empty")
+				self:GetActiveTab():SetText("gate")
 				self.C.TabHolder:InvalidateLayout()
 				self:NewChip(true)
 				return
@@ -620,7 +620,7 @@ function Editor:InitComponents()
 	self.C.Credit = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 190) -- Credit box
 	self.C.Credit:SetEditable(false)
 	
-	self:CreateTab("empty")
+	self:CreateTab("gate")
 
 	-- extra component options
 
@@ -868,7 +868,7 @@ function Editor:NewChip(incurrent)
 		self:ChosenFile()
 
 		-- Set title
-		self:GetActiveTab():SetText("empty")
+		self:GetActiveTab():SetText("gate")
     
     self.C.TabHolder:InvalidateLayout()
     self:ClearData()

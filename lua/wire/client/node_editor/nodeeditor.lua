@@ -129,7 +129,7 @@ function Editor:InitComponents()
   -- this doesnt work
   self.C.Name.OnLoseFocus = function (self)
     if self:GetValue() == "" then
-    	self:SetValue("empty")
+    	self:SetValue("gate")
 	  end
   end
 
@@ -282,7 +282,7 @@ function Editor:SetData(data)
   if data.Name then 
     self.C.Name:SetValue(data.Name)
   else 
-    self.C.Name:SetValue("empty") 
+    self.C.Name:SetValue("gate") 
   end
 
   if data.ExecutionInterval then
@@ -304,7 +304,7 @@ function Editor:SetData(data)
 end
 
 function Editor:ClearData()
-  self.C.Name:SetValue("empty")
+  self.C.Name:SetValue("gate")
   self.Nodes = {}
   self.Position = {0, 0}
   self.Zoom = 5
@@ -589,16 +589,22 @@ end
 function Editor:PaintHelp()
   local x, y = self:PosToScr(0, 0)
 
-  surface.SetFont("Default")
+  surface.SetFont("NodeName")
   surface.SetTextColor(255, 255, 255)
 
-  local helpText = [[To create a node, chose a gate from the menu and click 'C'
-    Drag around the plane with right mouse button
-    Connect inputs and outputs by clicking on either, and dragging to the other
-    'X' deletes the node under the cursor
-    'D' configures the node under the cursor (input/output names, constant values)
+  local helpText = [[Drag gates and draw selections with the right mouse button,
+    and drag around the plane with the right mouse button.
+    Connect inputs and outputs by right clicking on either, and dragging to the other
+     
+    'C' creates a gate at the cursor position (select which gate on the right menu)
+    'X' deletes the gate under the cursor (or with a selection, deletes all selected gates)
+    'E' edits the gate under the cursor (input/output names, constant values)
 
-    To create inputs and outputs for the FPGA, use the gates found in 'FPGA/Input & Output'
+    'Ctrl + C' copies the selected gates (relative to mouse position)
+    'Ctrl + V' pastes the copied gates (relative to mouse position)
+
+
+    To create inputs and outputs for the FPGA chip, use the gates found in 'FPGA/Input & Output'
   ]]
 
   for line in helpText:gmatch("([^\n]*)\n?") do
@@ -1000,8 +1006,8 @@ function Editor:OnKeyCodePressed(code)
                       gx,
                       gy)
     end
-  elseif code == KEY_D then
-    --Modify
+  elseif code == KEY_E then
+    --Edit
     local nodeId = self:GetNodeAt(x, y)
     if nodeId then
       local node = self.Nodes[nodeId]

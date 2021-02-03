@@ -10,16 +10,6 @@ FPGA Entity:
       check performance use
 
   Bugs:
-
-  Feedback:
-    No "the menu" refer to the right
-    Once the player creates a node the help disappears.
-
-    Maybe change from D
-    Click outside of "D" menu should save
-    Feedback on writing wrong format (angle, vector)
-
-
     
   Test:
     Check for errors during compilation (Hasnt been tested, but is implemented now)
@@ -50,6 +40,13 @@ FPGA Tool:
       sometimes nodes cant be removed
       cant create node on preopened tab
       chip name goes on the right side of execution interval
+      extra frame on first tab created
+
+    Feedback:
+      Click outside of "E" menu should save
+      Feedback on writing wrong format (angle, vector)
+
+      Copying should copy from center
 
 
 FPGA Gates:
