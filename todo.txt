@@ -10,6 +10,16 @@ FPGA Entity:
       check performance use
 
   Bugs:
+
+  Feedback:
+    No "the menu" refer to the right
+    Once the player creates a node the help disappears.
+
+    Maybe change from D
+    Click outside of "D" menu should save
+    Feedback on writing wrong format (angle, vector)
+
+
     
   Test:
     Check for errors during compilation (Hasnt been tested, but is implemented now)
@@ -21,7 +31,7 @@ FPGA Entity:
     
     Permissions
       Download from friend
-      Friends can upload
+      -Friends can upload
 
     Looping
       Execution chips have some edge cases (they dont retrigger on change as some might expect)
@@ -30,8 +40,6 @@ FPGA Entity:
 
 FPGA Tool:
   Download from chip
-
-  Be able to upload bigger than 64kb files
 
   FPGA Editor:
     Features:
@@ -56,7 +64,6 @@ FPGA Entity:
       Fixed by removing spike limit, as it seems unavoidable
       This is probably why E2 limits OPS and not time.
 
-  more clear error messages, just for debugging
 
 FPGA Tool:
   Be able to upload bigger than 64kb files
@@ -74,4 +81,3 @@ FPGA Gates:
   Maybe add the various "luxuries" that e2 have (changed and last notably)
   Should these have wildcard types? 
   (this is pretty fucking hard???)
-  figure out logic of how exactly a "last" gate should work, since its pretty complicated
