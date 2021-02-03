@@ -6,8 +6,8 @@
 	"ignore"	:
 	[
 		".git*",
-		".gitignore",
 		"license",
-		"readme.md",
+    "readme.md",
+    "todo.txt"
 	]
 }
