@@ -1103,9 +1103,8 @@ function Editor:SaveFile(Line, close, SaveAs)
 		end
 		Derma_StringRequestNoBlur("Save to New File", "", (str ~= nil and str .. "/" or "") .. self.savefilefn,
 			function(strTextOut)
-				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars):lower()
 				self:SaveFile(self.Location .. "/" .. strTextOut .. ".txt", close)
-				self:UpdateActiveTabTitle()
 			end)
 		return
 	end
@@ -1113,14 +1112,15 @@ function Editor:SaveFile(Line, close, SaveAs)
 	file.Write(Line, self:GetData())
 
   surface.PlaySound("ambient/water/drip3.wav")
-  
+
+  if not self.chip then self:ChosenFile(Line) end
+
   self:UpdateActiveTabTitle()
 
-	if not self.chip then self:ChosenFile(Line) end
 	if close then
-		GAMEMODE:AddNotify("Source code saved as " .. Line .. ".", NOTIFY_GENERIC, 7)
+		GAMEMODE:AddNotify("FPGA saved as " .. Line .. ".", NOTIFY_GENERIC, 7)
 		self:Close()
-	end
+  end
 end
 
 function Editor:LoadFile(Line, forcenewtab)

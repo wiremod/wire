@@ -6,6 +6,9 @@ FPGA Entity:
     HiSpeed links (memory gates?)
     String to memory and opposite
 
+    Add e2 commands that can find fpgas
+      check performance use
+
   Bugs:
     
   Test:
