@@ -12,7 +12,7 @@ if CLIENT then
   }
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax(7)
+WireToolSetup.SetupMax(40)
 
 TOOL.ClientConVar = {
   model             = "models/cheeze/wires/cpu.mdl",
@@ -141,10 +141,10 @@ if SERVER then
 			return
 		end
 
-		-- if not E2Lib.isFriend(toent.player,ply) then
-		-- 	WireLib.AddNotify(ply, "You are not allowed to upload to the target FPGA chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
-		-- 	return
-		-- end
+    if not hook.Run("CanTool", ply, WireLib.dummytrace(chip), "wire_fpga") then
+			WireLib.AddNotify(ply, "FPGA: You are not allowed to upload to the target FPGA chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+			return
+		end
 		
     local data = net.ReadString()
     local ok, ret = pcall(WireLib.von.deserialize, data)

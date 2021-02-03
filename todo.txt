@@ -36,16 +36,16 @@ FPGA Tool:
   FPGA Editor:
     Features:
       Improve performance (only draw visible nodes)
+      Fail better on loading wrong format files
 
     Bugs:
-      Saving a file with capital letter fucks it up
       sometimes nodes cant be removed
       cant create node on preopened tab
       chip name goes on the right side of execution interval
 
 
 FPGA Gates:
-
+  Add CPU related gates (PC, various ALUs, ADDERS, etc)
 
 
 
