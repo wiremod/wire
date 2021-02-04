@@ -794,6 +794,8 @@ function Editor:CopyNodes(nodeIds)
     i = i + 1
   end
 
+  local nodeAmount = table.Count(nodeIds)
+  self.CopyOffset = {0, 0}
   self.CopyBuffer = {}
   for nodeId, _ in pairs(nodeIds) do
     local node = self.Nodes[nodeId]
@@ -822,6 +824,8 @@ function Editor:CopyNodes(nodeIds)
     end
 
     table.insert(self.CopyBuffer, nodeCopy)
+
+    self.CopyOffset = {self.CopyOffset[1] + node.x / nodeAmount, self.CopyOffset[2] + node.y / nodeAmount}
   end
 end
 
@@ -979,8 +983,6 @@ function Editor:OnKeyCodePressed(code)
     if code == KEY_C then
       --Copy
       if table.Count(self.SelectedNodes) > 0 then
-        local gx, gy = self:ScrToPos(x, y)
-        self.CopyOffset = {gx, gy}
         self:CopyNodes(self.SelectedNodes)
       else
         self.CopyBuffer = {}

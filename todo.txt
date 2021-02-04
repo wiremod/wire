@@ -27,6 +27,7 @@ FPGA Tool:
     Features:
 
     Bugs:
+      Dragging bug (release mouse outside editor)
 
     Feedback:
       Click outside of "E" menu should save
