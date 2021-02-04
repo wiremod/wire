@@ -1054,7 +1054,8 @@ function Editor:Open(Line, data, forcenewtab)
 		end
     self:SetActiveTab(tab)
 
-		self:ChosenFile()
+    self:ChosenFile()
+    self:ClearData()
     self:SetData(data)
 
     self:UpdateActiveTabTitle()
