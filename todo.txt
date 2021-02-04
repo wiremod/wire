@@ -1,13 +1,7 @@
 FPGA Entity:
   Features:
-    Improve execution
-    Optimize execution
-
     HiSpeed links (memory gates?)
     String to memory and opposite
-
-    Add e2 commands that can find fpgas
-      check performance use
 
   Bugs:
     
@@ -31,7 +25,6 @@ FPGA Entity:
 FPGA Tool:
   FPGA Editor:
     Features:
-      Improve performance (only draw visible nodes)
       Fail better on loading wrong format files
 
     Bugs:
@@ -54,22 +47,31 @@ FPGA Gates:
 ######################LATER##############################
 
 FPGA Entity:
+  Improve execution
+  Optimize execution
+
   (Entity spikes after amount of time and errors)
       Fixed by removing spike limit, as it seems unavoidable
-      This is probably why E2 limits OPS and not time.
+      This is probably why E2 limits OPS and not time
+      
+  Add e2 commands that can find fpgas
+      check performance use
 
 
 FPGA Tool:
   Be able to upload bigger than 64kb files
 
   FPGA Editor:
-    Bugs:
-      Copying and pasting will fail if nodes are not sequential
+    Improve performance (only draw visible nodes)
+
     Shortcuts?
     Grid
     Undo
     Improve the guide on how to use
 
+    Bugs:
+      Copying and pasting will fail if nodes are not sequential
+    
 
 FPGA Gates:
   Maybe add the various "luxuries" that e2 have (changed and last notably)
