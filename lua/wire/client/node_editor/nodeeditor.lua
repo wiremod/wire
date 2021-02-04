@@ -278,28 +278,25 @@ function Editor:GetData()
 end
 
 function Editor:SetData(data) 
-  local data = WireLib.von.deserialize(data)
-  -- error check
-  if data.Nodes then
-    self.Nodes = data.Nodes
-  else
-    self.Nodes = {}
+  local ok, data = pcall(WireLib.von.deserialize, data)
+  if not ok then
+    self:ClearData()
+    self.C.Name:SetValue("corrupt")
+    return
   end
 
-  if data.Name then 
-    self.C.Name:SetValue(data.Name)
-  else 
-    self.C.Name:SetValue("gate") 
-  end
+  if data.Nodes then self.Nodes = data.Nodes else self.Nodes = {} end
 
-  if data.ExecutionInterval then
+  if data.Name then self.C.Name:SetValue(data.Name) else self.C.Name:SetValue("gate") end
+
+  if data.ExecutionInterval then 
     self.C.ExecutionInterval:SetValue(data.ExecutionInterval)
   else
     self.C.ExecutionInterval:SetValue(0.01)
   end
 
-  if data.Position then self.Position = data.Position end
-  if data.Zoom then self.Zoom = data.Zoom end
+  if data.Position then self.Position = data.Position else self.Position = {0, 0} end
+  if data.Zoom then self.Zoom = data.Zoom else self.Zoom = 5 end
 
   self.InputNameCounter = 0
   self.OutputNameCounter = 0
@@ -321,6 +318,10 @@ end
 
 function Editor:GetName()
   return self.C.Name:GetValue()
+end
+
+function Editor:HasNodes()
+  return #self.Nodes > 0
 end
 
 -- GATES

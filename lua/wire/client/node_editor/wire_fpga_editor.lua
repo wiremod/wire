@@ -727,7 +727,7 @@ function Editor:InitComponents()
 	end
 
 	self.C.Credit:SetTextColor(Color(0, 0, 0, 255))
-	self.C.Credit:SetText("\t\tCREDITS\n\n\tEditor by: \tSyranide and Shandolum\n\n\tTabs (and more) added by Divran.\n\n\tFixed for GMod13 By Ninja101 \n\n\t Rewritten into a node editor by Lysdal") -- Sure why not ;)
+	self.C.Credit:SetText("\t\tCREDITS\n\n\tEditor by: \tSyranide and Shandolum\n\n\tTabs (and more) added by Divran.\n\n\tFixed for GMod13 By Ninja101 \n\n\tRewritten into a node editor by Lysdal") -- Sure why not ;)
 	self.C.Credit:SetMultiline(true)
 	self.C.Credit:SetVisible(false)
 
@@ -885,7 +885,7 @@ function Editor:InitShutdownHook()
 	hook.Add("ShutDown", "wire_fpga_ShutDown" .. id, function()
 	-- if wire_fpga_editor == nil then return end
 		local buffer = self:GetData()
-		if buffer == defaultcode then return end
+		if not self:GetCurrentEditor():HasNodes() then return end
 		file.Write(self.Location .. "/_shutdown_.txt", buffer)
 
 		if wire_fpga_editor_savetabs:GetBool() then
@@ -1055,7 +1055,6 @@ function Editor:Open(Line, data, forcenewtab)
     self:SetActiveTab(tab)
 
     self:ChosenFile()
-    self:ClearData()
     self:SetData(data)
 
     self:UpdateActiveTabTitle()
