@@ -636,6 +636,16 @@ function Editor:Paint()
   
   self:PaintDebug()
 
+  -- detects if mouse is let go outside of the window
+  if not input.IsMouseDown(MOUSE_RIGHT) then
+    self.DraggingWorld = nil
+  end
+  if not input.IsMouseDown(MOUSE_LEFT) then
+    self.DraggingNode = nil
+    self.DrawingConnection = nil
+    self.DrawingSelection = nil
+  end
+
   -- moving the plane
   if self.DraggingWorld then
     local x, y = self:CursorPos()
@@ -678,19 +688,14 @@ function Editor:Paint()
   end
   -- selecting
   if self.DrawingSelection then
-    if not input.IsMouseDown(MOUSE_LEFT) then
-      -- detects if mouse is let go outside of the window
-      self.DrawingSelection = nil
-    else
-      local sx, sy = self:PosToScr(self.DrawingSelection[1], self.DrawingSelection[2])
-      local mx, my = self:CursorPos()
-      
-      local x, y = math.min(sx, mx), math.min(sy, my)
-      local w, h = math.abs(sx-mx), math.abs(sy-my)
+    local sx, sy = self:PosToScr(self.DrawingSelection[1], self.DrawingSelection[2])
+    local mx, my = self:CursorPos()
+    
+    local x, y = math.min(sx, mx), math.min(sy, my)
+    local w, h = math.abs(sx-mx), math.abs(sy-my)
 
-      surface.SetDrawColor(self.SelectionColor)
-      surface.DrawOutlinedRect(x, y, w, h)
-    end
+    surface.SetDrawColor(self.SelectionColor)
+    surface.DrawOutlinedRect(x, y, w, h)
   end
 
   local x, y = self:CursorPos()
