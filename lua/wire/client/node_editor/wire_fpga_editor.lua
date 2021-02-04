@@ -619,8 +619,6 @@ function Editor:InitComponents()
 	self.C.Control = self:addComponent(vgui.Create("Panel", self), -350, 52, 342, -32) -- Control Panel
 	self.C.Credit = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 190) -- Credit box
 	self.C.Credit:SetEditable(false)
-	
-	self:CreateTab("gate")
 
 	-- extra component options
 
@@ -732,7 +730,9 @@ function Editor:InitComponents()
 	self.C.Credit:SetVisible(false)
 
 	self:InitControlPanel(self.C.Control) -- making it seperate for better overview
-	self.C.Control:SetVisible(false)
+  self.C.Control:SetVisible(false)
+  
+  self:CreateTab("gate")
 end
 
 function Editor:AutoSave()

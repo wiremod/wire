@@ -25,12 +25,8 @@ FPGA Entity:
 FPGA Tool:
   FPGA Editor:
     Features:
-      Fail better on loading wrong format files
 
     Bugs:
-      sometimes nodes cant be removed
-      cant create node on preopened tab
-      extra frame on first tab created
 
     Feedback:
       Click outside of "E" menu should save
