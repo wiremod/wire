@@ -237,9 +237,7 @@ end
 
 local non_allowed_types = { xgt = true } -- If anyone can think of any other types that should never be allowed, enter them here.
 
-local function fixdefault( var )
-	return istable(var) and copy(var) or var
-end
+local fixDefault = E2Lib.fixDefault
 
 registerCallback("postinit",function()
 	-- Add support for EVERY SINGLE type. Yeah!!
@@ -294,7 +292,7 @@ registerCallback("postinit",function()
 
 			-- Get variable
 			registerFunction("dsGet" .. upperfirst( k ), "", v[1], function(self,args)
-				if not self.data.currentsignal or self.data.currentsignal.vartype ~= k then return fixdefault(v[2]) end
+				if not self.data.currentsignal or self.data.currentsignal.vartype ~= k then return fixDefault(v[2]) end
 				return self.data.currentsignal.var
 			end)
 
