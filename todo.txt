@@ -36,8 +36,6 @@ FPGA Tool:
 
 
 FPGA Gates:
-  Add CPU related gates (PC, various ALUs, ADDERS, etc)
-
 
 
 ######################LATER##############################
@@ -70,6 +68,8 @@ FPGA Tool:
     
 
 FPGA Gates:
+  Add CPU related gates (PC, various ALUs, ADDERS, etc)
+
   Maybe add the various "luxuries" that e2 have (changed and last notably)
   Should these have wildcard types? 
   (this is pretty fucking hard???)
