@@ -95,7 +95,7 @@ if CLIENT then
 		end
     
     if not data and not FPGA_Editor then 
-      WireLib.AddNotify("FPGA: No code specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+      --WireLib.AddNotify("FPGA: No code specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
       return 
     end
     data = data or FPGA_Editor:GetData()
