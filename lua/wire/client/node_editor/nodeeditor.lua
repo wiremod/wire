@@ -125,15 +125,17 @@ function Editor:InitComponents()
   self.C.NameLabel:SetPos(x, 4)
   self.C.Name = vgui.Create("DTextEntry", self.C.TopBar)
   self.C.Name:SetEditable(true)
-  self.C.Name:SetSize(140, 20)
-  x = x + 140
-  self.C.Name:Dock(LEFT)
+  self.C.Name:SetSize(140, 15)
+  self.C.Name:SetPos(x-2, 18)
+  --self.C.Name:Dock(LEFT)
+  --self.C.Name:DockMargin(0,0,0,0)
   -- this doesnt work
   self.C.Name.OnLoseFocus = function (self)
     if self:GetValue() == "" then
     	self:SetValue("gate")
 	  end
   end
+  x = x + 140
 
   x = x + 20
   self.C.ExecutionIntervalLabel = vgui.Create("DLabel", self.C.TopBar)
@@ -151,9 +153,8 @@ function Editor:InitComponents()
   self.C.ExecutionInterval:SetMax(1)
   self.C.ExecutionInterval:SetMin(0.01)
   self.C.ExecutionInterval:SetValue(0.01)
-  self.C.ExecutionInterval:SetSize(38, 20)
-  self.C.ExecutionInterval:Dock(LEFT)
-  self.C.ExecutionInterval:DockMargin(54,0,0,0)
+  self.C.ExecutionInterval:SetSize(38, 15)
+  self.C.ExecutionInterval:SetPos(x+32, 18)
 
   --Gate spawning
   self.C.Holder = vgui.Create("DPanel", self)

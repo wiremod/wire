@@ -37,7 +37,6 @@ FPGA Tool:
     Bugs:
       sometimes nodes cant be removed
       cant create node on preopened tab
-      chip name goes on the right side of execution interval
       extra frame on first tab created
 
     Feedback:
