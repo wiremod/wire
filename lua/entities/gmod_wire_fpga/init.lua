@@ -171,6 +171,12 @@ end
 
 duplicator.RegisterEntityClass("gmod_wire_fpga", WireLib.MakeWireEnt, "Data", "UploadData")
 
+--------------------------------------------------------
+--RECONSTRUCTION
+--------------------------------------------------------
+function ENT:GetOriginal()
+  return WireLib.von.serialize(self.Data)
+end
 
 --------------------------------------------------------
 --VALIDATION

@@ -1031,11 +1031,7 @@ function Editor:Open(Line, data, forcenewtab)
 	if self:IsVisible() and not Line and not data then self:Close() end
 	hook.Run("WireFPGAEditorOpen", self, Line, data, forcenewtab)
 	self:SetV(true)
-	if self.chip then
-		self.C.SaE:SetText("Upload & Exit")
-	else
-		self.C.SaE:SetText("Save and Exit")
-	end
+	self.C.SaE:SetText("Save and Exit")
 	if data then
 		if not forcenewtab then
 			for i = 1, self:GetNumTabs() do
@@ -1052,7 +1048,7 @@ function Editor:Open(Line, data, forcenewtab)
     
     local tab
 		if self.NewTabOnOpen:GetBool() or forcenewtab then
-			tab = self:CreateTab(tabtext).Tab
+			tab = self:CreateTab("Download").Tab
 		else
 			tab = self:GetActiveTab()
 		end

@@ -36,6 +36,8 @@ WildColor = {
 }
 
 function Editor:Init()
+  self.Nodes = {}
+
   self.DraggingWorld = false
   self.DraggingNode = nil
   self.DraggingOffset = {0, 0}
@@ -277,7 +279,11 @@ end
 function Editor:SetData(data) 
   local data = WireLib.von.deserialize(data)
   -- error check
-  self.Nodes = data.Nodes
+  if data.Nodes then
+    self.Nodes = data.Nodes
+  else
+    self.Nodes = {}
+  end
 
   if data.Name then 
     self.C.Name:SetValue(data.Name)
@@ -1042,7 +1048,6 @@ function Editor:CreateIONamingWindow()
   end
   
   self.IONamingNameEntry = vgui.Create("DTextEntry", pnl)
-  --FindEntry:SetPos(30, 4)
   self.IONamingNameEntry:Dock(BOTTOM)
   self.IONamingNameEntry:SetSize(175, 20)
   self.IONamingNameEntry:RequestFocus()

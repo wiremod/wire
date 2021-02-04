@@ -30,6 +30,7 @@ end
 
 if SERVER then
   util.AddNetworkString("FPGA_Upload")
+  util.AddNetworkString("FPGA_Download")
   util.AddNetworkString("FPGA_OpenEditor")
 
   -- Reset
@@ -64,9 +65,15 @@ if SERVER then
 
   -- Open editor
   function TOOL:RightClick(trace)
-    --check if hit chip, download the nodes off that chip
+    if trace.Entity:IsPlayer() then return false end
+
+		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_fpga" then
+			self:Download(trace.Entity)
+			return true
+		end
+
     net.Start("FPGA_OpenEditor") net.Send(self:GetOwner())
-    return true
+    return false
   end
 
 
@@ -80,6 +87,22 @@ if SERVER then
 			net.WriteInt(ent:EntIndex(), 32)
 		net.Send(self:GetOwner())
   end
+  ------------------------------------------------------------------------------
+  -- Downloading (Server -> Client)
+  ------------------------------------------------------------------------------
+  -- Send FPGA data to client
+  function TOOL:Download(ent)
+    local player = self:GetOwner()
+
+    if not hook.Run("CanTool", player, WireLib.dummytrace(ent), "wire_fpga") then
+			WireLib.AddNotify(player, "You're not allowed to download from this FPGA (ent index: " .. ent:EntIndex() .. ").", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+			return
+		end
+
+		net.Start("FPGA_Download")
+      net.WriteString(ent:GetOriginal())
+		net.Send(player)
+	end
 end
 if CLIENT then
   --------------------------------------------------------------
@@ -125,6 +148,21 @@ if CLIENT then
 		end)
 		timer.Create("FPGA_Upload_Delay_Error",0.03*31,1,function() WireLib.AddNotify("FPGA: Invalid FPGA entity specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1) end)
   end)
+
+  --------------------------------------------------------------
+	-- Clientside Receive
+  --------------------------------------------------------------
+  -- Received download data
+  net.Receive("FPGA_Download", function(len, ply)
+    if not FPGA_Editor then
+      FPGA_Editor = vgui.Create("FPGAEditorFrame")
+      FPGA_Editor:Setup("FPGA Editor", "fpgachip")
+    end
+
+    local data = net.ReadString()
+
+    FPGA_Editor:Open(nil, data, true)
+	end)
 end
 
 if SERVER then

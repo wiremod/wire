@@ -29,8 +29,6 @@ FPGA Entity:
 
 
 FPGA Tool:
-  Download from chip
-
   FPGA Editor:
     Features:
       Improve performance (only draw visible nodes)
