@@ -8,6 +8,7 @@
 		".git*",
 		"license",
     "readme.md",
-    "todo.txt"
+    "todo.txt",
+    "logo.*"
 	]
 }
