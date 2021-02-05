@@ -29,6 +29,7 @@ FPGA Tool:
     Feedback:
       Click outside of "E" menu should save
       Feedback on writing wrong format (angle, vector)
+      Scrolling in gate menu should not zoom
 
 
 FPGA Gates:
@@ -46,7 +47,7 @@ FPGA Entity:
       Define ranges that memory is routed through
       Or single values
       How to signify that a link is highspeed? Pseudo type?
-      
+
 
   (Entity spikes after amount of time and errors)
       Fixed by removing spike limit, as it seems unavoidable
@@ -66,9 +67,6 @@ FPGA Tool:
     Grid
     Undo
     Improve the guide on how to use
-
-    Bugs:
-      Copying and pasting will fail if nodes are not sequential
     
 
 FPGA Gates:

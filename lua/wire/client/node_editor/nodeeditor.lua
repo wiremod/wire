@@ -839,6 +839,10 @@ function Editor:PasteNodes(x, y)
   self.SelectedNodes = {}
   local i = #self.Nodes + 1
   for copyNodeId, _ in pairs(self.CopyBuffer) do
+    while self.Nodes[i] do
+      i = i + 1
+    end
+    
     nodeIdLookup[copyNodeId] = i
     self.SelectedNodes[i] = true
     i = i + 1
@@ -852,7 +856,7 @@ function Editor:PasteNodes(x, y)
     copyNode.x = (copyNode.x - self.CopyOffset[1]) + x
     copyNode.y = (copyNode.y - self.CopyOffset[2]) + y
 
-    table.insert(self.Nodes, copyNode)
+    self.Nodes[nodeIdLookup[copyNodeId]] = copyNode
   end
 
   self.CopyBuffer = {}
