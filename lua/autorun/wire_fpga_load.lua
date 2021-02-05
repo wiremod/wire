@@ -19,10 +19,10 @@ if CLIENT then
   file.CreateDir("fpgachip")
   -- Add default files
   if not file.Exists("fpgachip/_helloworld_.txt", "DATA") then
-    local data = file.Read("data/_helloworld_.txt", "LUA")
+    local data = file.Read("data/_helloworld_.lua", "LUA")
     print(data)
     if data ~= nil then
-      file.Write("fpgachip/_helloworld_.txt", data)
+      file.Write("fpgachip/_helloworld_.txt", string.sub(data, 3))
     end
   end
 end
