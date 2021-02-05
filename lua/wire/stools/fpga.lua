@@ -15,7 +15,7 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(40)
 
 TOOL.ClientConVar = {
-  model             = "models/cheeze/wires/cpu.mdl",
+  model             = "models/bull/gates/processor.mdl",
   filename          = "",
 }
 
@@ -253,7 +253,7 @@ if CLIENT then
 
 
     ----------------------------------------------------------------------------
-    local modelPanel = WireDermaExts.ModelSelect(panel, "wire_fpga_model", list.Get("Wire_gate_Models"), 2)
+    local modelPanel = WireDermaExts.ModelSelect(panel, "wire_fpga_model", list.Get("Wire_gate_Models"), 5)
     panel:AddControl("Label", {Text = ""})
   end
 
