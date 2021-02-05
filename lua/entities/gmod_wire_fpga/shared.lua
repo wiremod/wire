@@ -10,7 +10,3 @@ ENT.WireDebugName = "FPGA"
 
 CreateConVar("wire_fpga_quota_avg", "2000", {FCVAR_REPLICATED})
 CreateConVar("wire_fpga_quota_spike", "-1", {FCVAR_REPLICATED})
-
-if CLIENT then
-	file.CreateDir("fpgachip")
-end

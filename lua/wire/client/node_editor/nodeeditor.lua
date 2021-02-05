@@ -152,7 +152,7 @@ function Editor:InitComponents()
   self.C.ExecutionInterval:SetInterval(0.01)
   self.C.ExecutionInterval:SetMax(1)
   self.C.ExecutionInterval:SetMin(0.01)
-  self.C.ExecutionInterval:SetValue(0.01)
+  self.C.ExecutionInterval:SetValue(0.1)
   self.C.ExecutionInterval:SetSize(38, 15)
   self.C.ExecutionInterval:SetPos(x+32, 18)
 
@@ -949,7 +949,7 @@ function Editor:OnDrawConnectionFinished(x, y)
       local inputType = self:GetInputType(self:GetGate(inputNode), inputNum)
       local outputType = self:GetOutputType(self:GetGate(outputNode), self.DrawingConnectionFrom[2])
 
-      if inputType == outputType then
+      if inputType == outputType and inputNode != outputNode then
         --connect up
         inputNode.connections[inputNum] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
       end
@@ -965,7 +965,7 @@ function Editor:OnDrawConnectionFinished(x, y)
       local inputType = self:GetInputType(self:GetGate(inputNode), self.DrawingConnectionFrom[2])
       local outputType = self:GetOutputType(self:GetGate(outputNode), outputNum)
 
-      if inputType == outputType then
+      if inputType == outputType and inputNode != outputNode then
         --connect up
         inputNode.connections[self.DrawingConnectionFrom[2]] =  {nodeId, outputNum}
       end
