@@ -198,10 +198,10 @@ FPGAGateActions["ranger-output"] = {
 	end
 }
 
-FPGAGateActions["hispeed-input"] = {
-	name = "Highspeed Input",
+FPGAGateActions["wirelink-input"] = {
+	name = "Wirelink Input",
   inputs = {},
-  outputs = {"Memory"},
+  outputs = {"Wirelink"},
   outputtypes = {"WIRELINK"},
   isInput = true,
 	output = function(gate)
