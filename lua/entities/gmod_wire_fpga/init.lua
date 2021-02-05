@@ -428,7 +428,6 @@ function ENT:Reset()
 
   --Functions for gates
   local owner = self:GetPlayer()
-  print(owner)
   --Reset gate table
   self.Gates = {}
   for nodeId, node in pairs(self.Nodes) do

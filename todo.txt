@@ -1,6 +1,5 @@
 FPGA Entity:
   Features:
-    HiSpeed links (memory gates?)
 
   Bugs:
     
@@ -40,6 +39,14 @@ FPGA Gates:
 FPGA Entity:
   Improve execution
   Optimize execution
+
+  HiSpeed links (memory gates?)
+    Wirelinks already work
+    "Wrapper" fpga highspeed device?
+      Define ranges that memory is routed through
+      Or single values
+      How to signify that a link is highspeed? Pseudo type?
+      
 
   (Entity spikes after amount of time and errors)
       Fixed by removing spike limit, as it seems unavoidable
