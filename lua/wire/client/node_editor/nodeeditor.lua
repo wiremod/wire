@@ -164,7 +164,7 @@ function Editor:InitComponents()
 
   self.C.Tree = vgui.Create("DTree", self.C.Holder)
   self.C.Tree:Dock(FILL)
-  --self.C.Tree:DockMargin(5,0,5,5)
+  self.C.Tree:DockMargin(2,0,2,2)
 
 
   --utility
@@ -625,7 +625,7 @@ end
 
 function Editor:Paint()
   surface.SetDrawColor(self.BackgroundColor)
-  surface.DrawRect(0, 0, self:GetWide()-290, self:GetTall())
+  surface.DrawRect(0, 36, self:GetWide()-300, self:GetTall()-36)
 
   self:PaintNodes()
   self:PaintConnections()
@@ -634,7 +634,7 @@ function Editor:Paint()
     self:PaintHelp()
   end
   
-  self:PaintDebug()
+  --self:PaintDebug()
 
   -- detects if mouse is let go outside of the window
   if not input.IsMouseDown(MOUSE_RIGHT) then
@@ -842,7 +842,7 @@ function Editor:PasteNodes(x, y)
     while self.Nodes[i] do
       i = i + 1
     end
-    
+
     nodeIdLookup[copyNodeId] = i
     self.SelectedNodes[i] = true
     i = i + 1
@@ -978,9 +978,13 @@ function Editor:OnDrawConnectionFinished(x, y)
 end
 
 function Editor:OnMouseWheeled(delta)
-  self.Zoom = self.Zoom + delta * 0.1
-	if self.Zoom < 0.1 then self.Zoom = 0.1 end
-	if self.Zoom > 10 then self.Zoom = 10 end
+  local sx, sy = self:CursorPos()
+
+  if sx > 0 and sy > 36 and sx < self:GetWide()-300 and sy < self:GetTall()-36 then
+    self.Zoom = self.Zoom + delta * 0.1 * self.Zoom
+    if self.Zoom < 0.1 then self.Zoom = 0.1 end
+    if self.Zoom > 10 then self.Zoom = 10 end
+  end
 end
 
 function Editor:OnKeyCodePressed(code)

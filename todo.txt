@@ -12,8 +12,8 @@ FPGA Entity:
       Check if gate is banned..?
     
     Permissions
-      Download from friend
-      -Friends can upload
+      ---Download from friend
+      ---Friends can upload
 
     Looping
       Execution chips have some edge cases (they dont retrigger on change as some might expect)
@@ -29,7 +29,6 @@ FPGA Tool:
     Feedback:
       Click outside of "E" menu should save
       Feedback on writing wrong format (angle, vector)
-      Scrolling in gate menu should not zoom
 
 
 FPGA Gates:
