@@ -235,7 +235,7 @@ function Editor:InitComponents()
     local allowed_gates = {}
     local any_allowed = false
     for k,v in pairs(gatefuncs) do
-      if not v.is_banned then
+      if not v.is_banned and not (k == "string_to_memory" or k == "string_from_memory") then
         allowed_gates[k] = v
         any_allowed = true
       end
