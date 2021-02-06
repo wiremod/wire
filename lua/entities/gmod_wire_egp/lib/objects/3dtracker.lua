@@ -15,13 +15,13 @@ Obj.NeedsConstantUpdate = true
 Obj.angle = 0
 
 function Obj:Draw(egp)
+	local objectPosition
+	if self.parententity and self.parententity:IsValid() then
+		objectPosition = self.parententity:LocalToWorld(Vector(self.target_x,self.target_y,self.target_z))
+	else
+		objectPosition = Vector(self.target_x,self.target_y,self.target_z)
+	end
 	if egp.gmod_wire_egp_emitter then
-		local objectPosition
-		if self.parententity and self.parententity:IsValid() then
-			objectPosition = self.parententity:LocalToWorld(Vector(self.target_x,self.target_y,self.target_z))
-		else
-			objectPosition = Vector(self.target_x,self.target_y,self.target_z)
-		end
 
 		local eyePosition = EyePos()
 
@@ -56,14 +56,7 @@ function Obj:Draw(egp)
 		-- fraction 0-1: object-screen-player: screen is between object and player; object is seen behind the screen
 		-- fraction > 1: screen-object-player: object is between screen and player; object is seen in front of the screen
 	elseif egp.gmod_wire_egp_hud then
-		local pos
-		if self.parententity and self.parententity:IsValid() then
-			pos = self.parententity:LocalToWorld(Vector(self.target_x,self.target_y,self.target_z))
-		else
-			pos = Vector(self.target_x,self.target_y,self.target_z)
-		end
-
-		local pos = pos:ToScreen()
+		local pos = objectPosition:ToScreen()
 		self.x = pos.x
 		self.y = pos.y
 	elseif egp.gmod_wire_egp then
