@@ -727,7 +727,7 @@ e2function void wirelink:egpParent( number index, entity parent )
 	if (!EGP:IsAllowed( self, this )) then return end
 
 	local bool, k, v = EGP:HasObject( this, index )
-	if bool and v.Is3DTracker then
+	if bool and v.NeedsConstantUpdate then
 		if v.parententity == parent then return end -- Already parented to that
 		v.parententity = parent
 
@@ -739,7 +739,7 @@ end
 -- Returns the entity a tracker is parented to
 e2function entity wirelink:egpTrackerParent( number index )
 	local bool, k, v = EGP:HasObject( this, index )
-	if bool and v.Is3DTracker then
+	if bool and v.NeedsConstantUpdate then
 		return (v.parententity and v.parententity:IsValid()) and v.parententity or nil
 	end
 end

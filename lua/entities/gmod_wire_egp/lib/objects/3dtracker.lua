@@ -11,7 +11,7 @@ Obj.g = nil
 Obj.b = nil
 Obj.a = nil
 Obj.parententity = NULL
-Obj.Is3DTracker = true
+Obj.NeedsConstantUpdate = true
 Obj.angle = 0
 
 function Obj:Draw(egp)

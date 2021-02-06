@@ -77,7 +77,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 								-- Check for 3DTracker parent
 								if (object.parent) then
 									local hasObject, _, parent = EGP:HasObject( Ent, object.parent )
-									if (hasObject and parent.Is3DTracker) then
+									if (hasObject and parent.NeedsConstantUpdate) then
 										Ent:EGP_Update()
 									end
 								end

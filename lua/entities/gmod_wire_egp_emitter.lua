@@ -69,7 +69,7 @@ if CLIENT then
 		self.UpdateConstantly = nil
 		if self.GPU == nil then
 			for k,object in pairs(self.RenderTable) do
-				if object.parent == -1 or object.Is3DTracker then self.UpdateConstantly = true end -- Check if an object is parented to the cursor (or for 3DTrackers)
+				if object.parent == -1 or object.NeedsConstantUpdate then self.UpdateConstantly = true end -- Check if an object is parented to the cursor (or for 3DTrackers)
 	 			if object.parent and object.parent ~= 0 then
 					if not object.IsParented then EGP:SetParent(self, object.index, object.parent) end
 					local _, data = EGP:GetGlobalPos(self, object.index)
