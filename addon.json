@@ -9,6 +9,6 @@
 		"LICENSE",
     "README.md",
     "todo.txt",
-    "logo.*"
+    "logo*"
 	]
 }
