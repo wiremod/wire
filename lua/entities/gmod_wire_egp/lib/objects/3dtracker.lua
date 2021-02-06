@@ -60,6 +60,28 @@ function Obj:Draw(egp)
 		self.x = pos.x
 		self.y = pos.y
 	elseif egp.gmod_wire_egp then
+		local monitor = WireGPU_Monitors[ egp:GetModel() ]
+		if not monitor then self.x = math.huge self.y = math.huge return end
+		local Ang = egp:LocalToWorldAngles( monitor.rot )
+		local Pos = egp:LocalToWorld( monitor.offset )
+
+		local eyePosition = EyePos()
+
+		local direction = objectPosition-eyePosition
+
+		eyePosition = WorldToLocal(eyePosition, Angle(), Pos, Ang)
+		direction = WorldToLocal(direction + egp:GetPos(), Angle(), Pos, Ang)
+
+		local fraction = -eyePosition.z / direction.z
+		local screenPosition = eyePosition+direction*fraction
+
+		if fraction < 0 then -- hide for fraction < 0 (maybe for > 1 too?)
+			self.x = math.huge
+			self.y = math.huge
+		else
+			self.x = screenPosition.x * monitor.RatioX / monitor.RS + 256
+			self.y = -screenPosition.y / monitor.RS + 256
+		end
 	end
 end
 
