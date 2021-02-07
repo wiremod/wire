@@ -1135,7 +1135,7 @@ function Editor:LoadFile(Line, forcenewtab)
 					self:SetActiveTab(i)
 					if forcenewtab ~= nil then self:SetData(str) end
 					return
-				elseif self:GetEditor(i):GetValue() == str then
+				elseif self:GetEditor(i):GetData() == str then
 					self:SetActiveTab(i)
 					return
 				end
