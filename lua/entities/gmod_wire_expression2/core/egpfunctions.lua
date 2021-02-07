@@ -412,7 +412,7 @@ e2function void wirelink:egpLineStrip( number index, ... )
 	if (!EGP:IsAllowed( self, this )) then return end
 	if (!EGP:ValidEGP( this )) then return end
 	local args = {...}
-	if (#args<3) then return end -- No less than 3
+	if (#args<2) then return end -- No less than 2
 
 	local max = maxvertices()
 
@@ -437,7 +437,7 @@ end
 e2function void wirelink:egpLineStrip( number index, array args )
 	if (!EGP:IsAllowed( self, this )) then return end
 	if (!EGP:ValidEGP( this )) then return end
-	if (#args<3) then return end -- No less than 3
+	if (#args<2) then return end -- No less than 2
 
 	local max = maxvertices()
 
