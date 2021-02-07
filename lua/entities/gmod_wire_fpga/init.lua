@@ -10,6 +10,8 @@ local function getGate(node)
     return GateActions[node.gate]
   elseif node.type == "fpga" then
     return FPGAGateActions[node.gate]
+  elseif node.type == "cpu" then
+    return CPUGateActions[node.gate]
   end
 end
 

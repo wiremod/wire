@@ -228,6 +228,36 @@ function Editor:InitComponents()
     end
   end
 
+  --CPU gates
+  local CategoriesSorted = {}
+
+  for gatetype, gatefuncs in pairs(CPUGatesSorted) do
+    local gates = {}
+    for k,v in pairs(gatefuncs) do
+      gates[k] = v
+    end
+    CategoriesSorted[#CategoriesSorted+1] = {gatetype = gatetype, gatefuncs = gates}
+  end
+
+  table.sort(CategoriesSorted, function(a, b) return a.gatetype < b.gatetype end)
+
+  local cpuNode = self.C.Tree:AddNode("CPU", "icon16/computer.png")
+  function cpuNode:DoClick()
+    self:SetExpanded(not self.m_bExpanded)
+  end
+
+  for i=1,#CategoriesSorted do
+    local gatetype = CategoriesSorted[i].gatetype
+    local gatefuncs = CategoriesSorted[i].gatefuncs
+
+    local node = cpuNode:AddNode(gatetype)
+    node.Icon:SetImage("icon16/folder.png")
+    FillSubTree(self, self.C.Tree, node, gatefuncs, "cpu")
+    function node:DoClick()
+      self:SetExpanded(not self.m_bExpanded)
+    end
+  end
+
   --WIREMOD gates
   local CategoriesSorted = {}
 
@@ -330,6 +360,8 @@ function Editor:GetGate(node)
     return GateActions[node.gate]
   elseif node.type == "fpga" then
     return FPGAGateActions[node.gate]
+  elseif node.type == "cpu" then
+    return CPUGateActions[node.gate]
   end
 end
 

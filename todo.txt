@@ -32,6 +32,11 @@ FPGA Tool:
 
 
 FPGA Gates:
+  Add CPU related gates (PC, various ALUs, ADDERS, etc)
+    Adder / Half Adder
+    Program counter
+    Full ALU? might be too much
+    Register
 
 
 ######################LATER##############################
@@ -69,8 +74,6 @@ FPGA Tool:
     
 
 FPGA Gates:
-  Add CPU related gates (PC, various ALUs, ADDERS, etc)
-
   String from memory and string to memory are "banned". Maybe look into restoring their functionality.
 
   Maybe add the various "luxuries" that e2 have (changed and last notably)
