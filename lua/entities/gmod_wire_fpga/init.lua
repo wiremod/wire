@@ -77,7 +77,6 @@ end
 
 
 
-
 function ENT:UpdateOverlay(clear)
 	if clear then
 		self:SetOverlayData( {
@@ -89,8 +88,8 @@ function ENT:UpdateOverlay(clear)
 	else
 		self:SetOverlayData( {
 							  name = self.name,
-                timebench = self.timebench / (self.ExecutionInterval / FrameTime()),
-                timebenchPeak = self.time,
+                timebench = self.timebench,
+                timebenchPeak = self.timepeak,
                 errorMessage = self.ErrorMessage,
 							})
 	end
@@ -125,6 +124,9 @@ function ENT:Initialize()
 
   self.time = 0
   self.timebench = 0
+  self.timepeak = 0
+
+  self.LastTimedUpdate = 0
 
   self.Uploaded = false
   self.ExecutionError = false
@@ -340,12 +342,13 @@ function ENT:Upload(data)
     self.name = "(corrupt)"
   end
   if data.ExecutionInterval then
-    self.ExecutionInterval = math.max(data.ExecutionInterval, FrameTime())
+    self.ExecutionInterval = math.max(data.ExecutionInterval, 0.001)
   else
     self.ExecutionInterval = 0.1
   end
   self.time = 0
   self.timebench = 0
+  self.timepeak = 0
   self:UpdateOverlay(false)
 
   --validate
@@ -421,6 +424,9 @@ function ENT:Reset()
   self.ExecutionError = false
   self.ErrorMessage = nil
   self.time = 0
+  self.timebench = 0
+  self.timepeak = 0
+  self.LastTimedUpdate = 0
 
   --Set gates to default values again
   self.Values = {}
@@ -468,16 +474,15 @@ function ENT:Think()
   if self.CompilationError or self.ExecutionError or not self.Uploaded then return end
 
   BaseClass.Think(self)
-  self:NextThink(CurTime()+self.ExecutionInterval)
-
-  --Update timed gates
-  if not table.IsEmpty(self.TimedNodes) then
-    self:Run(self.TimedNodes)
-  end
-
+  self:NextThink(CurTime())
 
   --Time benchmarking
-  self.timebench = self.timebench * 0.95 + self.time * 0.05
+  self.timebench = self.timebench * 0.95 + (self.time) * 0.05
+  self.time = 0
+
+  if self.timebench < 0.000001 then
+    self.timepeak = 0
+  end
   
   --Limiting
   if self.timebench > fpga_quota_avg then
@@ -486,8 +491,13 @@ function ENT:Think()
     self:ThrowExecutionError("exceeded spike cpu time limit", "spike cpu time limit exceeded")
   end
 
+  --Update timed gates
+  if not table.IsEmpty(self.TimedNodes) and SysTime() >= self.LastTimedUpdate + self.ExecutionInterval then
+    self.LastTimedUpdate = SysTime()
+    self:Run(self.TimedNodes)
+  end
+
   self:UpdateOverlay(false)
-  self.time = 0
 	return true
 end
 
@@ -703,4 +713,5 @@ function ENT:Run(changedNodes)
 
   --keep track of time spent this tick
   self.time = self.time + (SysTime() - bench)
+  self.timepeak = SysTime() - bench
 end

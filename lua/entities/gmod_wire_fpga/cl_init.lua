@@ -17,12 +17,12 @@ function ENT:GetWorldTipBodySize()
   local timebenchPeak = data.timebenchPeak
 
 	-- cpu time text
-  local str = string.format("cpu time: %ius", timebenchPeak * 1000000)
+  local str = string.format("cpu time: %ius",  timebench * 1000000)
   local w,h = surface.GetTextSize(str)
 	w_total = math.max(w_total, w)
   h_total = h_total + h + 10
   
-  local str = string.format("peak cpu time: %ius", timebench * 1000000)
+  local str = string.format("peak cpu time: %ius", timebenchPeak * 1000000)
 	local w,h = surface.GetTextSize(str)
 	w_total = math.max(w_total, w)
   h_total = h_total + h + 10
