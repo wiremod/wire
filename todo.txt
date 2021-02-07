@@ -26,6 +26,7 @@ FPGA Tool:
       Global copy paste buffer
 
     Bugs:
+      Sometimes you cant create and delete nodes?
 
     Feedback:
       Feedback on writing wrong format (angle, vector)
