@@ -29,59 +29,56 @@ function Obj:Draw(egp)
 		return
 	end
 
+	local eyePosition = EyePos()
+
+	local direction = objectPosition-eyePosition
+
+	local ratioX, ratioY
 	if egp.gmod_wire_egp_emitter then
-
-		local eyePosition = EyePos()
-
-		local direction = objectPosition-eyePosition
-
+		ratioX = 4
+		ratioY = 4
 		-- localise the positions
-		eyePosition = egp:WorldToLocal(eyePosition)
+		eyePosition = egp:WorldToLocal(eyePosition) - Vector( -64, 0, 135 )
 		direction = egp:WorldToLocal(direction + egp:GetPos())
-
-		-- plane/ray intersection:
-		--[[
-		screenPosition = eyePosition+direction*fraction | screenPosition.y = 0
-		0 = eyePosition.y+direction.y*fraction          | - eyePosition.y
-		-eyePosition.y = direction.y*fraction           | / direction.y
-		-eyePosition.y / direction.y = fraction         | swap sides
-		]]
-
-		local fraction = -eyePosition.y / direction.y
-		local screenPosition = eyePosition+direction*fraction
-
-		screenPosition = (screenPosition - Vector( -64, 0, 135 )) / 0.25
-
-		if fraction < 0 then -- hide for fraction < 0 (maybe for > 1 too?)
-			self.x = math.huge
-			self.y = math.huge
-		else
-			self.x = screenPosition.x
-			self.y = -screenPosition.z
-		end
-
-		-- fraction < 0: object-player-screen: player is between object and screen; object is not seen at all when facing the screen
-		-- fraction 0-1: object-screen-player: screen is between object and player; object is seen behind the screen
-		-- fraction > 1: screen-object-player: object is between screen and player; object is seen in front of the screen
 	elseif egp.gmod_wire_egp then
 		local monitor = WireGPU_Monitors[ egp:GetModel() ]
 		if not monitor then self.x = math.huge self.y = math.huge return end
 		local Ang = egp:LocalToWorldAngles( monitor.rot )
 		local Pos = egp:LocalToWorld( monitor.offset )
 
-		local eyePosition = EyePos()
-
-		local direction = objectPosition-eyePosition
+		ratioY = 1 / monitor.RS
+		ratioX = monitor.RatioX * ratioY
 
 		eyePosition = WorldToLocal(eyePosition, Angle(), Pos, Ang)
-		direction = WorldToLocal(direction + egp:GetPos(), Angle(), Pos, Ang)
+		eyePosition:Rotate(Angle(0,0,90))
+		eyePosition = eyePosition + Vector(256/ratioX, 0, -256/ratioY)
 
-		local fraction = -eyePosition.z / direction.z
-		local screenPosition = eyePosition+direction*fraction
-
-		self.x = screenPosition.x * monitor.RatioX / monitor.RS + 256
-		self.y = -screenPosition.y / monitor.RS + 256
+		direction = WorldToLocal(direction, Angle(), Vector(), Ang)
+		direction:Rotate(Angle(0,0,90))
 	end
+
+	-- plane/ray intersection:
+	--[[
+	screenPosition = eyePosition+direction*fraction | screenPosition.y = 0
+	0 = eyePosition.y+direction.y*fraction          | - eyePosition.y
+	-eyePosition.y = direction.y*fraction           | / direction.y
+	-eyePosition.y / direction.y = fraction         | swap sides
+	]]
+
+	local fraction = -eyePosition.y / direction.y
+	local screenPosition = eyePosition+direction*fraction
+
+	if fraction < 0 then -- hide for fraction < 0 (maybe for > 1 too?)
+		self.x = math.huge
+		self.y = math.huge
+	else
+		self.x = screenPosition.x * ratioX
+		self.y = -screenPosition.z * ratioY
+	end
+
+	-- fraction < 0: object-player-screen: player is between object and screen; object is not seen at all when facing the screen
+	-- fraction 0-1: object-screen-player: screen is between object and player; object is seen behind the screen
+	-- fraction > 1: screen-object-player: object is between screen and player; object is seen in front of the screen
 end
 
 function Obj:Transmit()
