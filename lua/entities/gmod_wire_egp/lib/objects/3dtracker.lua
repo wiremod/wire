@@ -21,6 +21,14 @@ function Obj:Draw(egp)
 	else
 		objectPosition = Vector(self.target_x,self.target_y,self.target_z)
 	end
+
+	if egp.gmod_wire_egp_hud then
+		local pos = objectPosition:ToScreen()
+		self.x = pos.x
+		self.y = pos.y
+		return
+	end
+
 	if egp.gmod_wire_egp_emitter then
 
 		local eyePosition = EyePos()
@@ -55,10 +63,6 @@ function Obj:Draw(egp)
 		-- fraction < 0: object-player-screen: player is between object and screen; object is not seen at all when facing the screen
 		-- fraction 0-1: object-screen-player: screen is between object and player; object is seen behind the screen
 		-- fraction > 1: screen-object-player: object is between screen and player; object is seen in front of the screen
-	elseif egp.gmod_wire_egp_hud then
-		local pos = objectPosition:ToScreen()
-		self.x = pos.x
-		self.y = pos.y
 	elseif egp.gmod_wire_egp then
 		local monitor = WireGPU_Monitors[ egp:GetModel() ]
 		if not monitor then self.x = math.huge self.y = math.huge return end
@@ -75,13 +79,8 @@ function Obj:Draw(egp)
 		local fraction = -eyePosition.z / direction.z
 		local screenPosition = eyePosition+direction*fraction
 
-		if fraction < 0 then -- hide for fraction < 0 (maybe for > 1 too?)
-			self.x = math.huge
-			self.y = math.huge
-		else
-			self.x = screenPosition.x * monitor.RatioX / monitor.RS + 256
-			self.y = -screenPosition.y / monitor.RS + 256
-		end
+		self.x = screenPosition.x * monitor.RatioX / monitor.RS + 256
+		self.y = -screenPosition.y / monitor.RS + 256
 	end
 end
 
