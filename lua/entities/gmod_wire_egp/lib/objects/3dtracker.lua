@@ -13,6 +13,7 @@ Obj.a = nil
 Obj.parententity = NULL
 Obj.NeedsConstantUpdate = true
 Obj.angle = 0
+Obj.directionality = 0
 
 function Obj:Draw(egp)
 	local objectPosition
@@ -68,7 +69,10 @@ function Obj:Draw(egp)
 	local fraction = -eyePosition.y / direction.y
 	local screenPosition = eyePosition+direction*fraction
 
-	if fraction < 0 then -- hide for fraction < 0 (maybe for > 1 too?)
+	if fraction < 0 then -- hide for fraction < 0
+		self.x = math.huge
+		self.y = math.huge
+	elseif (fraction - 1) * self.directionality < 0 then -- hide for fraction > 1 if directionality < 0 and for fraction < 1 if directionality > 0
 		self.x = math.huge
 		self.y = math.huge
 	else
@@ -87,6 +91,7 @@ function Obj:Transmit()
 	net.WriteFloat( self.target_z )
 	net.WriteEntity( self.parententity )
 	net.WriteInt((self.angle%360)*64, 16)
+	net.WriteInt( self.directionality, 2 )
 end
 
 function Obj:Receive()
@@ -97,9 +102,10 @@ function Obj:Receive()
 	local parententity = net.ReadEntity()
 	if parententity and parententity:IsValid() then tbl.parententity = parententity end
 	tbl.angle = net.ReadInt(16)/64
+	tbl.directionality = net.ReadInt(2)
 	return tbl
 end
 
 function Obj:DataStreamInfo()
-	return { target_x = self.target_x, target_y = self.target_y, target_z = self.target_z, parententity = self.parententity }
+	return { target_x = self.target_x, target_y = self.target_y, target_z = self.target_z, parententity = self.parententity, directionality = self.directionality }
 end

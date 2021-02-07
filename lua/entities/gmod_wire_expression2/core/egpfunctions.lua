@@ -543,11 +543,24 @@ end
 ]]
 
 --------------------------------------------------------
--- 3DHolder
+-- 3DTracker
 --------------------------------------------------------
 e2function void wirelink:egp3DTracker( number index, vector pos )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["3DTracker"], { index = index, target_x = pos[1], target_y = pos[2], target_z = pos[3] }, self.player )
+	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["3DTracker"], { index = index, target_x = pos[1], target_y = pos[2], target_z = pos[3], directionality = 0 }, self.player )
+	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
+end
+
+e2function void wirelink:egp3DTracker( number index, vector pos, number directionality )
+	if (!EGP:IsAllowed( self, this )) then return end
+
+	if directionality > 0 then
+		directionality = 1
+	elseif directionality < 0 then
+		directionality = -1
+	end
+
+	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["3DTracker"], { index = index, target_x = pos[1], target_y = pos[2], target_z = pos[3], directionality = directionality }, self.player )
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 end
 
