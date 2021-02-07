@@ -40,7 +40,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		concommand.Add("wire_egp_hud_unlink",function()
 			local en = ents.FindByClass("gmod_wire_egp_hud")
 			LocalPlayer():ChatPrint("[EGP] Disconnected from all EGP HUDs.")
-			for k,v in ipairs( en ) do
+			for _,v in ipairs( en ) do
 				v.On = nil
 			end
 		end)

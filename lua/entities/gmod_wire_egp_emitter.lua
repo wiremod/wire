@@ -68,7 +68,7 @@ if CLIENT then
 		-- the parent checks need to be processed here if we aren't using a GPU
 		self.UpdateConstantly = nil
 		if self.GPU == nil then
-			for k,object in pairs(self.RenderTable) do
+			for _,object in pairs(self.RenderTable) do
 				if object.parent == -1 or object.NeedsConstantUpdate then self.UpdateConstantly = true end -- Check if an object is parented to the cursor (or for 3DTrackers)
 	 			if object.parent and object.parent ~= 0 then
 					if not object.IsParented then EGP:SetParent(self, object.index, object.parent) end
