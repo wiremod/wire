@@ -514,7 +514,7 @@ function ENT:Run(changedNodes)
     activeNodes[id] = true
     i = i + 1
   end
-  while not table.IsEmpty(activeNodesQueue) do
+  while #activeNodesQueue > 0 do
     local nodeId = table.remove(activeNodesQueue, 1)
     local node = self.Nodes[nodeId]
     --propergate output value to inputs
@@ -570,13 +570,9 @@ function ENT:Run(changedNodes)
   -----------------------------------------
   --EXECUTION
   -----------------------------------------
-  local calculations = 0
   local loopDetectionNodeId = nil
   local loopDetectionSize = 0
-  while not table.IsEmpty(nodeQueue) do
-    calculations = calculations + 1
-    if calculations > 50 then break end
-
+  while #nodeQueue > 0 do
     if self.Debug then 
       print()
       print(table.ToString(nodeQueue, "nodeQueue", false))
@@ -639,7 +635,7 @@ function ENT:Run(changedNodes)
           end
           -- send this node to the back of the queue (potential infinite looping???)
           table.insert(nodeQueue, nodeId)
-          continue 
+          continue
         end
       end
 

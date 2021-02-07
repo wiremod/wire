@@ -23,8 +23,10 @@ FPGA Entity:
 FPGA Tool:
   FPGA Editor:
     Features:
+      Colored lines
 
     Bugs:
+      Adding a new file via the left menu doesnt work
 
     Feedback:
       Click outside of "E" menu should save
