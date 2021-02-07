@@ -23,7 +23,6 @@ FPGA Entity:
 FPGA Tool:
   FPGA Editor:
     Features:
-      Colored lines
 
     Bugs:
 

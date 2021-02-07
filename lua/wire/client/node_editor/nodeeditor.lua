@@ -463,21 +463,22 @@ function Editor:GetNodeOutputAt(x, y)
 end
 
 -- DRAWING
-function Editor:PaintConnection(nodeFrom, output, nodeTo, input)
+function Editor:PaintConnection(nodeFrom, output, nodeTo, input, type)
   local x1, y1 = self:NodeOutputPos(nodeFrom, output)
   local x2, y2 = self:NodeInputPos(nodeTo, input)
 
   local sx1, sy1 = self:PosToScr(x1, y1)
   local sx2, sy2 = self:PosToScr(x2, y2)
 
-  surface.SetDrawColor(self.ConnectionColor)
+  surface.SetDrawColor(TypeColor[type])
   surface.DrawLine(sx1, sy1, sx2, sy2)
 end
 
 function Editor:PaintConnections()
-  for k1, node in pairs(self.Nodes) do
+  for _, node in pairs(self.Nodes) do
+    local gate = self:GetGate(node)
     for inputNum, connectedTo in pairs(node.connections) do
-      self:PaintConnection(self.Nodes[connectedTo[1]], connectedTo[2], node, inputNum)
+      self:PaintConnection(self.Nodes[connectedTo[1]], connectedTo[2], node, inputNum, self:GetInputType(gate, inputNum))
     end
   end
 end
@@ -676,14 +677,17 @@ function Editor:Paint()
   -- drawing a connection
   if self.DrawingConnection then
     local x, y = 0, 0
+    local type = "NORMAL"
     if self.DrawingFromInput then
       x, y = self:NodeInputPos(self.Nodes[self.DrawingConnectionFrom[1]], self.DrawingConnectionFrom[2])
+      type = self:GetInputType(self:GetGate(self.Nodes[self.DrawingConnectionFrom[1]]), self.DrawingConnectionFrom[2])
     elseif self.DrawingFromOutput then
       x, y = self:NodeOutputPos(self.Nodes[self.DrawingConnectionFrom[1]], self.DrawingConnectionFrom[2])
+      type = self:GetOutputType(self:GetGate(self.Nodes[self.DrawingConnectionFrom[1]]), self.DrawingConnectionFrom[2])
     end
     local sx, sy = self:PosToScr(x, y)
     local mx, my = self:CursorPos()
-    surface.SetDrawColor(self.ConnectionColor)
+    surface.SetDrawColor(TypeColor[type])
     surface.DrawLine(sx, sy, mx, my)
   end
   -- selecting
