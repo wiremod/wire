@@ -1033,16 +1033,18 @@ function Editor:OnKeyCodePressed(code)
                       gx,
                       gy)
     end
-  elseif code == KEY_E then
+  elseif code == KEY_E and not self.EditingNode then
     --Edit
-    local nodeId = self:GetNodeAt(x, y)
+        local nodeId = self:GetNodeAt(x, y)
     if nodeId then
       local node = self.Nodes[nodeId]
       local gate = self:GetGate(node)
 
       if gate.isInput or gate.isOutput then
+        self.EditingNode = true
         self:OpenIONamingWindow(node, x, y)
       elseif gate.isConstant then
+        self.EditingNode = true
         self:OpenConstantSetWindow(node, x, y, gate.outputtypes[1])
       end
     end
@@ -1057,13 +1059,15 @@ function Editor:CreateIONamingWindow()
 	pnl:ShowCloseButton(true)
 	pnl:SetDeleteOnClose(false)
 	pnl:MakePopup()
+  --pnl:SetBackgroundBlur(true)
 	pnl:SetVisible(false)
 	pnl:SetTitle("Name input/output")
   pnl:SetScreenLock(true)
   do
 		local old = pnl.Close
 		function pnl.Close()
-			self.ForceDrawCursor = false
+      self.ForceDrawCursor = false
+      self.EditingNode = false
 			old(pnl)
 		end
   end
@@ -1083,11 +1087,25 @@ function Editor:OpenIONamingWindow(node, x, y)
   local px, py = self.parentpanel:GetPos()
   self.IONamingWindow:SetPos(px+x+80, py+y+30)
 
-  self.IONamingNameEntry:SetValue(node.ioName)
+  self.IONamingNameEntry:SetText(node.ioName)
   self.IONamingNameEntry.OnEnter = function(pnl)
     node.ioName = pnl:GetValue()
     pnl:RequestFocus()
     pnl:GetParent():Close()
+  end
+
+  local inputField = self.IONamingNameEntry
+  local this = self
+  inputField.OnLoseFocus = function (pnl) 
+    timer.Simple(0, function () if not pnl:GetParent():HasFocus() and this.EditingNode then pnl:OnEnter() end end)
+    pnl:GetParent():MoveToFront()
+  end
+
+  self.IONamingWindow.OnFocusChanged = function (pnl, gained)
+    if not gained then
+      timer.Simple(0, function () if not inputField:HasFocus() and this.EditingNode then inputField:OnEnter() end end)
+      pnl:MoveToFront()
+    end
   end
 end
 
@@ -1097,15 +1115,16 @@ function Editor:CreateConstantSetWindow()
 	pnl:SetSize(200, 55)
 	pnl:ShowCloseButton(true)
 	pnl:SetDeleteOnClose(false)
-	pnl:MakePopup()
+  pnl:MakePopup()
+  --pnl:SetBackgroundBlur(true)
 	pnl:SetVisible(false)
 	pnl:SetTitle("Set constant value")
   pnl:SetScreenLock(true)
   
-  
   self.ConstantSetNormal = vgui.Create("DNumberWang", pnl)
   self.ConstantSetNormal:Dock(BOTTOM)
   self.ConstantSetNormal:SetSize(175, 20)
+  self.ConstantSetNormal:SetMinMax(-10^100, 10^100)
   self.ConstantSetNormal:SetVisible(false)
   self.ConstantSetString = vgui.Create("DTextEntry", pnl)
   self.ConstantSetString:Dock(BOTTOM)
@@ -1115,7 +1134,8 @@ function Editor:CreateConstantSetWindow()
   do
 		local old = pnl.Close
 		function pnl.Close()
-			self.ForceDrawCursor = false
+      self.ForceDrawCursor = false
+      self.EditingNode = false
 			old(pnl)
 		end
   end
@@ -1128,8 +1148,13 @@ end
 
 function Editor:OpenConstantSetWindow(node, x, y, type)
   if not self.ConstantSetWindow then self:CreateConstantSetWindow() end
+  self.ConstantSetNormal:SetVisible(false)
+  self.ConstantSetNormal.OnEnter = function () end
+  self.ConstantSetString:SetVisible(false)
+  self.ConstantSetString.OnEnter = function () end
+  self.ConstantSetString:SetValue("")
   self.ConstantSetWindow:SetVisible(true)
-	self.ConstantSetWindow:MakePopup() -- This will move it above the FPGA editor if it is behind it.
+  self.ConstantSetWindow:MakePopup() -- This will move it above the FPGA editor if it is behind it.
   self.ForceDrawCursor = true
   
   local px, py = self.parentpanel:GetPos()
@@ -1138,46 +1163,70 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
   if type == "NORMAL" then
     self.ConstantSetNormal:SetVisible(true)
     self.ConstantSetNormal:SetValue(node.value)
-    self.ConstantSetNormal.OnEnter = function(pnl)
+    self.ConstantSetNormal:RequestFocus()
+    local func = function(pnl)
       node.value = pnl:GetValue()
-      pnl:RequestFocus()
       pnl:SetVisible(false)
       pnl:GetParent():Close()
     end
+    self.ConstantSetNormal.OnEnter = func
   elseif type == "STRING" then
     self.ConstantSetString:SetVisible(true)
-    self.ConstantSetString:SetValue(node.value)
-    self.ConstantSetString.OnEnter = function(pnl)
+    self.ConstantSetString:SetText(node.value)
+    self.ConstantSetString:RequestFocus()
+    local func = function(pnl)
       node.value = pnl:GetValue()
-      pnl:RequestFocus()
       pnl:SetVisible(false)
       pnl:GetParent():Close()
     end
+    self.ConstantSetString.OnEnter = func
   elseif type == "VECTOR" then
     self.ConstantSetString:SetVisible(true)
-    self.ConstantSetString:SetValue(node.value.x .. ", " .. node.value.y .. ", " .. node.value.z)
-    self.ConstantSetString.OnEnter = function(pnl)
+    self.ConstantSetString:SetText(node.value.x .. ", " .. node.value.y .. ", " .. node.value.z)
+    self.ConstantSetString:RequestFocus()
+    local func = function(pnl)
       valid, x, y, z = validateVector(pnl:GetValue())
       if valid then
         node.value = Vector(x, y, z)
-        pnl:RequestFocus()
         pnl:SetVisible(false)
         pnl:GetParent():Close()
       end
     end
+    self.ConstantSetString.OnEnter = func
   elseif type == "ANGLE" then
     self.ConstantSetString:SetVisible(true)
-    self.ConstantSetString:SetValue(node.value.p .. ", " .. node.value.y .. ", " .. node.value.r)
-    self.ConstantSetString.OnEnter = function(pnl)
+    self.ConstantSetString:SetText(node.value.p .. ", " .. node.value.y .. ", " .. node.value.r)
+    self.ConstantSetString:RequestFocus()
+    local func = function(pnl)
       valid, p, y, r = validateVector(pnl:GetValue())
       if valid then
         node.value = Angle(p, y, r)
-        pnl:RequestFocus()
         pnl:SetVisible(false)
         pnl:GetParent():Close()
       end
     end
+    self.ConstantSetString.OnEnter = func
   end
+
+  local inputField = self.ConstantSetString
+  if type == "NORMAL" then
+    inputField = self.ConstantSetNormal
+  end
+
+  local this = self
+  inputField.OnLoseFocus = function (pnl) 
+    timer.Simple(0, function () if not pnl:GetParent():HasFocus() and this.EditingNode then pnl:OnEnter() end end)
+    pnl:GetParent():MoveToFront()
+  end
+
+  self.ConstantSetWindow.OnFocusChanged = function (pnl, gained)
+    if not gained then
+      timer.Simple(0, function () if not inputField:HasFocus() and this.EditingNode then inputField:OnEnter() end end)
+      pnl:MoveToFront()
+    end
+  end
+
+
 end
 
 vgui.Register("FPGAEditor", Editor, "Panel");

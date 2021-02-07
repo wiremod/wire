@@ -23,11 +23,11 @@ FPGA Entity:
 FPGA Tool:
   FPGA Editor:
     Features:
+      Global copy paste buffer
 
     Bugs:
 
     Feedback:
-      Click outside of "E" menu should save
       Feedback on writing wrong format (angle, vector)
 
 
