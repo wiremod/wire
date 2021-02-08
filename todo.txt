@@ -27,8 +27,6 @@ FPGA Tool:
       Global copy paste buffer
 
     Bugs:
-      Sometimes you cant create and delete nodes?
-        Its after you give your chip a name, or set the execution interval
 
     Feedback:
       Feedback on writing wrong format (angle, vector)

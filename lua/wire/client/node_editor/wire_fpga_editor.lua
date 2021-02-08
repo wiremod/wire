@@ -602,7 +602,18 @@ function Editor:InitComponents()
 
 	self.C.Divider = vgui.Create("DHorizontalDivider", self)
 
-	self.C.Browser = vgui.Create("wire_expression2_browser", self.C.Divider) -- Expression 2 file browser
+  self.C.Browser = vgui.Create("wire_expression2_browser", self.C.Divider) -- Expression 2 file browser
+  do
+    local pnl = self.C.Browser.SearchBox
+    local old = pnl.OnLoseFocus
+    local this = self
+
+    function pnl.OnLoseFocus()
+      old(pnl)
+      self:GetCurrentEditor():RequestFocus()
+    end
+  end
+  
 
 	self.C.MainPane = vgui.Create("DPanel", self.C.Divider)
 	self.C.Menu = vgui.Create("DPanel", self.C.MainPane)

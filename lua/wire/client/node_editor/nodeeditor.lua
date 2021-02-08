@@ -109,6 +109,8 @@ surface.CreateFont( "IO", {
 
 -- COMPONENTS
 function Editor:InitComponents()
+  local this = self
+
   self.C = {}
 
 	self.C.TopBar = vgui.Create("DPanel", self)
@@ -129,11 +131,12 @@ function Editor:InitComponents()
   self.C.Name:SetPos(x-2, 18)
   --self.C.Name:Dock(LEFT)
   --self.C.Name:DockMargin(0,0,0,0)
-  -- this doesnt work
-  self.C.Name.OnLoseFocus = function (self)
-    if self:GetValue() == "" then
-    	self:SetValue("gate")
-	  end
+  
+  self.C.Name.OnLoseFocus = function (pnl)
+    if string.len(pnl:GetValue()) == 0 then
+    	pnl:SetText("gate")
+    end
+    this:RequestFocus()
   end
   x = x + 140
 
@@ -156,6 +159,10 @@ function Editor:InitComponents()
   self.C.ExecutionInterval:SetValue(0.1)
   self.C.ExecutionInterval:SetSize(40, 15)
   self.C.ExecutionInterval:SetPos(x+31, 18)
+
+  self.C.ExecutionInterval.OnLoseFocus = function (pnl)
+    this:RequestFocus()
+  end
 
   --Gate spawning
   self.C.Holder = vgui.Create("DPanel", self)
@@ -1027,7 +1034,6 @@ end
 function Editor:OnKeyCodePressed(code)
   local x, y = self:CursorPos()
 	local control = input.IsKeyDown(KEY_LCONTROL) or input.IsKeyDown(KEY_RCONTROL)
-
 
   if control then
     if code == KEY_C then
