@@ -1,5 +1,6 @@
 FPGA Entity:
   Features:
+    Branching
 
   Bugs:
     
@@ -27,6 +28,7 @@ FPGA Tool:
 
     Bugs:
       Sometimes you cant create and delete nodes?
+        Its after you give your chip a name, or set the execution interval
 
     Feedback:
       Feedback on writing wrong format (angle, vector)
@@ -38,6 +40,12 @@ FPGA Gates:
     Program counter
     Full ALU? might be too much
     Register
+
+    4/8/16 bit increment
+    4/8/16 bit not
+    4/8/16 bit and
+    4/8/16 bit or
+    4/8/16 bit xor
 
 
 ######################LATER##############################
