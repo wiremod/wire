@@ -270,6 +270,8 @@ function ENT:CompileData(data)
   outputIds = {}
   nodeGetsInputFrom = {}
   timedNodes = {}
+  postCycleNodes = {}
+  postExecutionNodes = {}
 
   for nodeId, node in pairs(data.Nodes) do
     nodes[nodeId] = {
@@ -294,6 +296,12 @@ function ENT:CompileData(data)
 
     --timed
     if gate.timed then table.insert(timedNodes, nodeId) end
+
+    --postcycle
+    if gate.postCycle then postCycleNodes[nodeId] = node end
+
+    --postexecution
+    if gate.postExecution then postExecutionNodes[nodeId] = node end
 
     --io
     if node.type == "fpga" then
@@ -325,6 +333,9 @@ function ENT:CompileData(data)
 
   self.NodeGetsInputFrom = nodeGetsInputFrom
   self.TimedNodes = timedNodes
+
+  self.PostCycleNodes = postCycleNodes
+  self.PostExecutionNodes = postExecutionNodes
 end
 
 --------------------------------------------------------
@@ -499,6 +510,12 @@ function ENT:Think()
     self:ThrowExecutionError("exceeded cpu time limit", "cpu time limit exceeded")
   elseif fpga_quota_spike > 0 and self.time > fpga_quota_spike then
     self:ThrowExecutionError("exceeded spike cpu time limit", "spike cpu time limit exceeded")
+  end
+
+  --postexecution hook
+  for nodeId, node in pairs(self.PostExecutionNodes) do
+    local gate = getGate(node)
+    gate.postExecution(self.Gates[nodeId])
   end
 
   --Update timed gates
@@ -721,11 +738,9 @@ function ENT:Run(changedNodes)
   end
 
   --postcycle hook
-  for nodeId, node in pairs(self.Nodes) do
+  for nodeId, node in pairs(self.PostCycleNodes) do
     local gate = getGate(node)
-    if gate.postCycle then
-      gate.postCycle(self.Gates[nodeId])
-    end
+    gate.postCycle(self.Gates[nodeId])
   end
 
   --keep track of time spent this tick
