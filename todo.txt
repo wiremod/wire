@@ -1,9 +1,8 @@
 FPGA Entity:
   Features:
     Branching
-    Only trigger if output changed
+    Only trigger if output changed (is this possible?)
     2 inputs with same name should just share input point
-    Add last tick gate
     Checkbox if gate should trigger on input
     Manual trigger gate
 

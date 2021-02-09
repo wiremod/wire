@@ -336,6 +336,8 @@ function ENT:CompileData(data)
 
   self.PostCycleNodes = postCycleNodes
   self.PostExecutionNodes = postExecutionNodes
+
+  self.QueuedNodes = {}
 end
 
 --------------------------------------------------------
@@ -429,6 +431,7 @@ function ENT:Upload(data)
   self.LastExecution = SysTime()
   self:Run(allNodes)
 
+  self.QueuedNodes = {}
   self.Uploaded = true
 end
 
@@ -447,6 +450,7 @@ function ENT:Reset()
   self.timebench = 0
   self.timepeak = 0
   self.LastTimedUpdate = 0
+  self.QueuedNodes = {}
 
   --Set gates to default values again
   self.Values = {}
@@ -515,14 +519,25 @@ function ENT:Think()
   --postexecution hook
   for nodeId, node in pairs(self.PostExecutionNodes) do
     local gate = getGate(node)
-    gate.postExecution(self.Gates[nodeId])
+    if gate.postExecution(self.Gates[nodeId]) then
+      self.QueuedNodes[nodeId] = true
+    end
   end
 
-  --Update timed gates
+  --Update timed gates (and queued nodes)
+  local nodesToRun = {}
   if not table.IsEmpty(self.TimedNodes) and SysTime() >= self.LastTimedUpdate + self.ExecutionInterval then
     self.LastTimedUpdate = SysTime()
-    self:Run(self.TimedNodes)
+    for _, nodeId in pairs(self.TimedNodes) do
+      table.insert(nodesToRun, nodeId)
+    end
   end
+  for nodeId, _ in pairs(self.QueuedNodes) do
+    table.insert(nodesToRun, nodeId)
+  end
+  self.QueuedNodes = {}
+  
+  if #nodesToRun > 0 then self:Run(nodesToRun) end
 
   self:UpdateOverlay(false)
 	return true
