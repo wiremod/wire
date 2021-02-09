@@ -55,9 +55,9 @@ function Editor:Init()
   self.SelectionColor = Color(220, 220, 100, 255)
   
   self.NodeColor = Color(100, 100, 100, 255)
-  self.InputNodeColor = Color(90, 110, 90, 255)
-  self.OutputNodeColor = Color(90, 90, 110, 255)
-  self.TimedNodeColor = Color(100, 80, 80, 255)
+  self.InputNodeColor = Color(80, 90, 80, 255)
+  self.OutputNodeColor = Color(80, 80, 90, 255)
+  self.TimedNodeColor = Color(110, 70, 70, 255)
   self.SelectedNodeColor = Color(150, 150, 100, 255)
 
   self.C = {}
