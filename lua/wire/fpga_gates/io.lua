@@ -5,10 +5,7 @@ FPGAGateActions["normal-input"] = {
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"NORMAL"},
-  isInput = true,
-	output = function(gate)
-		return 0
-	end
+  isInput = true
 }
 
 FPGAGateActions["normal-output"] = {
@@ -16,10 +13,7 @@ FPGAGateActions["normal-output"] = {
   inputs = {"A"},
   inputtypes = {"NORMAL"},
   outputs = {},
-  isOutput = true,
-	output = function(gate)
-		return 0
-	end
+  isOutput = true
 }
 
 -- FPGAGateActions["vector2-input"] = {
@@ -27,10 +21,7 @@ FPGAGateActions["normal-output"] = {
 --   inputs = {},
 --   outputs = {"Out"},
 --   outputtypes = {"VECTOR2"},
---   isInput = true,
--- 	output = function(gate)
--- 		return 0
--- 	end
+--   isInput = true
 -- }
 
 -- FPGAGateActions["vector2-output"] = {
@@ -38,10 +29,7 @@ FPGAGateActions["normal-output"] = {
 --   inputs = {"A"},
 --   inputtypes = {"VECTOR2"},
 --   outputs = {},
---   isOutput = true,
--- 	output = function(gate)
--- 		return 0
--- 	end
+--   isOutput = true
 -- }
 
 FPGAGateActions["vector-input"] = {
@@ -49,10 +37,7 @@ FPGAGateActions["vector-input"] = {
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"VECTOR"},
-  isInput = true,
-	output = function(gate)
-		return 0
-	end
+  isInput = true
 }
 
 FPGAGateActions["vector-output"] = {
@@ -60,10 +45,7 @@ FPGAGateActions["vector-output"] = {
   inputs = {"A"},
   inputtypes = {"VECTOR"},
   outputs = {},
-  isOutput = true,
-	output = function(gate)
-		return 0
-	end
+  isOutput = true
 }
 
 -- FPGAGateActions["vector4-input"] = {
@@ -71,10 +53,7 @@ FPGAGateActions["vector-output"] = {
 --   inputs = {},
 --   outputs = {"Out"},
 --   outputtypes = {"VECTOR4"},
---   isInput = true,
--- 	output = function(gate)
--- 		return 0
--- 	end
+--   isInput = true
 -- }
 
 -- FPGAGateActions["vector4-output"] = {
@@ -82,10 +61,7 @@ FPGAGateActions["vector-output"] = {
 --   inputs = {"A"},
 --   inputtypes = {"VECTOR4"},
 --   outputs = {},
---   isOutput = true,
--- 	output = function(gate)
--- 		return 0
--- 	end
+--   isOutput = true
 -- }
 
 FPGAGateActions["angle-input"] = {
@@ -93,10 +69,7 @@ FPGAGateActions["angle-input"] = {
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"ANGLE"},
-  isInput = true,
-	output = function(gate)
-		return 0
-	end
+  isInput = true
 }
 
 FPGAGateActions["angle-output"] = {
@@ -104,10 +77,7 @@ FPGAGateActions["angle-output"] = {
   inputs = {"A"},
   inputtypes = {"ANGLE"},
   outputs = {},
-  isOutput = true,
-	output = function(gate)
-		return 0
-	end
+  isOutput = true
 }
 
 FPGAGateActions["string-input"] = {
@@ -115,10 +85,7 @@ FPGAGateActions["string-input"] = {
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"STRING"},
-  isInput = true,
-	output = function(gate)
-		return 0
-	end
+  isInput = true
 }
 
 FPGAGateActions["string-output"] = {
@@ -126,10 +93,7 @@ FPGAGateActions["string-output"] = {
   inputs = {"A"},
   inputtypes = {"STRING"},
   outputs = {},
-  isOutput = true,
-	output = function(gate)
-		return 0
-	end
+  isOutput = true
 }
 
 FPGAGateActions["array-input"] = {
@@ -137,10 +101,7 @@ FPGAGateActions["array-input"] = {
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"ARRAY"},
-  isInput = true,
-	output = function(gate)
-		return 0
-	end
+  isInput = true
 }
 
 FPGAGateActions["array-output"] = {
@@ -148,10 +109,7 @@ FPGAGateActions["array-output"] = {
   inputs = {"A"},
   inputtypes = {"ARRAY"},
   outputs = {},
-  isOutput = true,
-	output = function(gate)
-		return 0
-	end
+  isOutput = true
 }
 
 FPGAGateActions["entity-input"] = {
@@ -159,10 +117,7 @@ FPGAGateActions["entity-input"] = {
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"ENTITY"},
-  isInput = true,
-	output = function(gate)
-		return 0
-	end
+  isInput = true
 }
 
 FPGAGateActions["entity-output"] = {
@@ -170,10 +125,7 @@ FPGAGateActions["entity-output"] = {
   inputs = {"A"},
   inputtypes = {"ENTITY"},
   outputs = {},
-  isOutput = true,
-	output = function(gate)
-		return 0
-	end
+  isOutput = true
 }
 
 FPGAGateActions["ranger-input"] = {
@@ -181,10 +133,7 @@ FPGAGateActions["ranger-input"] = {
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"RANGER"},
-  isInput = true,
-	output = function(gate)
-		return 0
-	end
+  isInput = true
 }
 
 FPGAGateActions["ranger-output"] = {
@@ -192,10 +141,7 @@ FPGAGateActions["ranger-output"] = {
   inputs = {"A"},
   inputtypes = {"RANGER"},
   outputs = {},
-  isOutput = true,
-	output = function(gate)
-		return 0
-	end
+  isOutput = true
 }
 
 FPGAGateActions["wirelink-input"] = {
@@ -203,8 +149,5 @@ FPGAGateActions["wirelink-input"] = {
   inputs = {},
   outputs = {"Wirelink"},
   outputtypes = {"WIRELINK"},
-  isInput = true,
-	output = function(gate)
-		return 0
-	end
+  isInput = true
 }
