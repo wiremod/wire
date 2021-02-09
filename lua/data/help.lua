@@ -101,7 +101,7 @@ FPGAHelperHTML = [[
       <p>
         To further customize chip execution, there are 3 different ways a chip can trigger an execution.
       </p>
-      <h4>On input changed</h4>
+      <h4>Inputs</h4>
       <div class="col" style="margin-left: 20px;">
         <p>
           The chip executes when an input is changed, and propogates the changes inside it, updating the gates affected by the input change.
@@ -117,7 +117,7 @@ FPGAHelperHTML = [[
           The frequency that these timed gates are updated with can be controlled with the <b>Execution Interval</b> setting.
         </p>
       </div>
-      <h4>On trigger</h4>
+      <h4>Trigger In</h4>
       <div class="col" style="margin-left: 20px;">
         <p>
           For the greatest control over executions, the other options can be turned off and this one turned on.
