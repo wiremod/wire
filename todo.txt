@@ -13,13 +13,6 @@ FPGA Entity:
       Type Check
       Check that connections are valid (that the destination node exists)
       Check if gate is banned..?
-    
-    Permissions
-      ---Download from friend
-      ---Friends can upload
-
-    Looping
-      Execution chips have some edge cases (they dont retrigger on change as some might expect)
 
 
 
