@@ -602,7 +602,7 @@ function ENT:Run(changedNodes)
 
   --Lazy queued nodes are nodes that need to run
   --but can wait until the next execution
-  if #self.LazyQueuedNodes > 0 then
+  if not table.IsEmpty(self.LazyQueuedNodes) then
     for nodeId, _ in pairs(self.LazyQueuedNodes) do
       table.insert(changedNodes, nodeId)
     end
@@ -622,11 +622,9 @@ function ENT:Run(changedNodes)
   for nodeId, node in pairs(self.Nodes) do
     activeNodes[nodeId] = false
   end
-  local i = 1
   for k, id in pairs(changedNodes) do
-    activeNodesQueue[i] = id
+    table.insert(activeNodesQueue, id)
     activeNodes[id] = true
-    i = i + 1
   end
   while #activeNodesQueue > 0 do
     local nodeId = table.remove(activeNodesQueue, 1)
