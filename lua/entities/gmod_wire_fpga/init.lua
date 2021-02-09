@@ -138,6 +138,9 @@ function ENT:Initialize()
   self.ErrorMessage = nil
 
   self.ExecutionInterval = 0.015
+  self.ExecuteOnInputs = false
+  self.ExecuteOnTimed = false
+  self.ExecuteOnTrigger = false
 
   self.Data = nil
 
@@ -212,6 +215,7 @@ function ENT:ValidateData(data)
     if gate.isInput then
       if not node.ioName then return "missing input name" end
       if inputNames[node.ioName] then return "duplicate input name" end
+      if node.ioName == "Trigger" then return "'Trigger' input name is reserved" end
       inputNames[node.ioName] = true
     elseif gate.isOutput then
       if not node.ioName then return "missing output name" end
@@ -338,6 +342,7 @@ function ENT:CompileData(data)
   self.PostExecutionNodes = postExecutionNodes
 
   self.QueuedNodes = {}
+  self.LazyQueuedNodes = {}
 end
 
 --------------------------------------------------------
@@ -353,16 +358,29 @@ function ENT:Upload(data)
   self.ErrorMessage = nil
   self:SetColor(Color(255, 255, 255, self:GetColor().a))
 
+  --Name
   if data.Name then
     self.name = data.Name
   else
     self.name = "(corrupt)"
   end
+  --Execution interval
   if data.ExecutionInterval then
     self.ExecutionInterval = math.max(data.ExecutionInterval, 0.001)
   else
     self.ExecutionInterval = 0.1
   end
+  --Executes on
+  if data.ExecuteOn then
+    self.ExecuteOnInputs = data.ExecuteOn.Inputs
+    self.ExecuteOnTimed = data.ExecuteOn.Timed
+    self.ExecuteOnTrigger = data.ExecuteOn.Trigger
+  else
+    self.ExecuteOnInputs = true
+    self.ExecuteOnTimed = true
+    self.ExecuteOnTrigger = false
+  end
+
   self.time = 0
   self.timebench = 0
   self.timepeak = 0
@@ -378,12 +396,23 @@ function ENT:Upload(data)
   end
 
 
-  --compile
+  --Compile
   self:CompileData(data)
 
-  self.Inputs = WireLib.AdjustSpecialInputs(self, self.InputNames, self.InputTypes, "")
+  if self.ExecuteOnTrigger then
+    local modifiedInputNames = {"Trigger"}
+    local modifiedInputTypes = {"NORMAL"}
+    for _, name in pairs(self.InputNames) do
+      table.insert(modifiedInputNames, name)
+    end
+    for _, type in pairs(self.InputTypes) do
+      table.insert(modifiedInputTypes, type)
+    end
+    self.Inputs = WireLib.AdjustSpecialInputs(self, modifiedInputNames, modifiedInputTypes, "")
+  else
+    self.Inputs = WireLib.AdjustSpecialInputs(self, self.InputNames, self.InputTypes, "")
+  end
   self.Outputs = WireLib.AdjustSpecialOutputs(self, self.OutputNames, self.OutputTypes, "")
-
 
   --Functions for gates
   local owner = self:GetPlayer()
@@ -432,6 +461,7 @@ function ENT:Upload(data)
   self:Run(allNodes)
 
   self.QueuedNodes = {}
+  self.LazyQueuedNodes = {}
   self.Uploaded = true
 end
 
@@ -495,8 +525,19 @@ end
 function ENT:TriggerInput(iname, value)
   if self.CompilationError or self.ExecutionError or not self.Uploaded then return end
 
-  self.InputValues[self.InputIds[iname]] = value
-  self:Run({self.InputIds[iname]})
+  if iname == "Trigger" then
+    if value != 0 then self:Run({}) end
+    return
+  end
+
+  local nodeId = self.InputIds[iname]
+  self.InputValues[nodeId] = value
+
+  if self.ExecuteOnInputs then
+    self:Run({nodeId})
+  else
+    self.LazyQueuedNodes[nodeId] = true
+  end
 end
 
 function ENT:Think()
@@ -529,9 +570,15 @@ function ENT:Think()
   if not table.IsEmpty(self.TimedNodes) and SysTime() >= self.LastTimedUpdate + self.ExecutionInterval then
     self.LastTimedUpdate = SysTime()
     for _, nodeId in pairs(self.TimedNodes) do
-      table.insert(nodesToRun, nodeId)
+      if self.ExecuteOnTimed then
+        table.insert(nodesToRun, nodeId)
+      else
+        self.LazyQueuedNodes[nodeId] = true
+      end
     end
   end
+
+  --Run queued nodes immediately
   for nodeId, _ in pairs(self.QueuedNodes) do
     table.insert(nodesToRun, nodeId)
   end
@@ -552,6 +599,16 @@ function ENT:Run(changedNodes)
   --Extra
   local bench = SysTime()
   self.CurrentExecution = bench
+
+  --Lazy queued nodes are nodes that need to run
+  --but can wait until the next execution
+  if #self.LazyQueuedNodes > 0 then
+    for nodeId, _ in pairs(self.LazyQueuedNodes) do
+      table.insert(changedNodes, nodeId)
+    end
+
+    self.LazyQueuedNodes = {}
+  end
 
   -----------------------------------------
   --PREPARATION

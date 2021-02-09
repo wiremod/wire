@@ -138,9 +138,8 @@ function Editor:InitComponents()
     end
     this:RequestFocus()
   end
-  x = x + 140
+  x = x + 160
 
-  x = x + 20
   self.C.ExecutionIntervalLabel = vgui.Create("DLabel", self.C.TopBar)
   self.C.ExecutionIntervalLabel:SetText("Execution Interval")
   self.C.ExecutionIntervalLabel:SizeToContents()
@@ -163,6 +162,33 @@ function Editor:InitComponents()
   self.C.ExecutionInterval.OnLoseFocus = function (pnl)
     this:RequestFocus()
   end
+  x = x + 110
+
+  self.C.ExecuteOnLabel = vgui.Create("DLabel", self.C.TopBar)
+  self.C.ExecuteOnLabel:SetText("Execute on")
+  self.C.ExecuteOnLabel:SizeToContents()
+  self.C.ExecuteOnLabel:SetTextColor(Color(255,255,255,255))
+  self.C.ExecuteOnLabel:SetPos(x, 4)
+  self.C.ExecuteOnInputs = vgui.Create("DCheckBoxLabel", self.C.TopBar)
+  self.C.ExecuteOnInputs:SetPos(x, 18)
+  self.C.ExecuteOnInputs:SetText("Inputs")
+  self.C.ExecuteOnInputs:SetTextColor(Color(240,240,240,255))
+  self.C.ExecuteOnInputs:SetValue(true)
+  self.C.ExecuteOnInputs:SizeToContents()
+  self.C.ExecuteOnTimed = vgui.Create("DCheckBoxLabel", self.C.TopBar)
+  self.C.ExecuteOnTimed:SetPos(x+60, 18)
+  self.C.ExecuteOnTimed:SetText("Timed")
+  self.C.ExecuteOnTimed:SetTextColor(Color(240,240,240,255))
+  self.C.ExecuteOnTimed:SetValue(true)
+  self.C.ExecuteOnTimed:SizeToContents()
+  self.C.ExecuteOnTrigger = vgui.Create("DCheckBoxLabel", self.C.TopBar)
+  self.C.ExecuteOnTrigger:SetPos(x+120, 18)
+  self.C.ExecuteOnTrigger:SetText("Trigger In")
+  self.C.ExecuteOnTrigger:SetTextColor(Color(240,240,240,255))
+  self.C.ExecuteOnTrigger:SetValue(false)
+  self.C.ExecuteOnTrigger:SizeToContents()
+
+
 
   --Gate spawning
   self.C.Holder = vgui.Create("DPanel", self)
@@ -312,6 +338,11 @@ function Editor:GetData()
       Position = self.Position,
       Zoom = self.Zoom,
       ExecutionInterval = self.C.ExecutionInterval:GetValue(),
+      ExecuteOn = {
+        Inputs = self.C.ExecuteOnInputs:GetChecked(),
+        Timed = self.C.ExecuteOnTimed:GetChecked(),
+        Trigger = self.C.ExecuteOnTrigger:GetChecked()
+      }
     }, false)
 end
 
@@ -331,6 +362,16 @@ function Editor:SetData(data)
     self.C.ExecutionInterval:SetValue(data.ExecutionInterval)
   else
     self.C.ExecutionInterval:SetValue(0.01)
+  end
+
+  if data.ExecuteOn then
+    self.C.ExecuteOnInputs:SetValue(data.ExecuteOn.Inputs)
+    self.C.ExecuteOnTimed:SetValue(data.ExecuteOn.Timed)
+    self.C.ExecuteOnTrigger:SetValue(data.ExecuteOn.Trigger)
+  else
+    self.C.ExecuteOnInputs:SetValue(true)
+    self.C.ExecuteOnTimed:SetValue(true)
+    self.C.ExecuteOnTrigger:SetValue(false)
   end
 
   if data.Position then self.Position = data.Position else self.Position = {0, 0} end
