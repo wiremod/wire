@@ -61,10 +61,13 @@ function Editor:Init()
   self.IOSize = 2
 
   self.BackgroundColor = Color(32, 32, 32, 255)
-  self.ConnectionColor = Color(200, 200, 200, 255)
-  self.NodeColor = Color(100, 100, 100, 255)
-  self.SelectedNodeColor = Color(150, 150, 100, 255)
   self.SelectionColor = Color(220, 220, 100, 255)
+  
+  self.NodeColor = Color(100, 100, 100, 255)
+  self.InputNodeColor = Color(90, 110, 90, 255)
+  self.OutputNodeColor = Color(90, 90, 110, 255)
+  self.TimedNodeColor = Color(100, 80, 80, 255)
+  self.SelectedNodeColor = Color(150, 150, 100, 255)
 
   self.C = {}
   self:InitComponents()
@@ -565,14 +568,6 @@ function Editor:PaintConnections()
 end
 
 function Editor:PaintInput(x, y, type, name, ioSize)
-  -- if type == "WILD" then
-  --   local i = 1
-  --   for k, color in pairs(WildColor) do
-  --     surface.SetDrawColor(color)
-  --     surface.DrawRect(x, y + ioSize/6 * i, ioSize*2, ioSize/6)
-  --     i = i + 1
-  --   end
-  -- else
   surface.SetDrawColor(TypeColor[type])
   surface.DrawRect(x, y, ioSize*2, ioSize)
 
@@ -582,10 +577,6 @@ function Editor:PaintInput(x, y, type, name, ioSize)
 end
 
 function Editor:PaintOutput(x, y, type, name, ioSize)
-  -- if type == "LINKED" then
-  --   surface.SetDrawColor(TypeColor["NORMAL"])
-  --   surface.DrawRect(x, y, ioSize*2, ioSize)
-  -- else
   surface.SetDrawColor(TypeColor[type])
   surface.DrawRect(x, y, ioSize*2, ioSize)
 
@@ -645,7 +636,15 @@ function Editor:PaintNode(nodeId, node)
   if self.SelectedNodes[nodeId] then
     surface.SetDrawColor(self.SelectedNodeColor)
   else
-    surface.SetDrawColor(self.NodeColor)
+    if gate.isInput then
+      surface.SetDrawColor(self.InputNodeColor)
+    elseif gate.isOutput then
+      surface.SetDrawColor(self.OutputNodeColor)
+    elseif gate.timed then
+      surface.SetDrawColor(self.TimedNodeColor)
+    else
+      surface.SetDrawColor(self.NodeColor)
+    end
   end
   surface.DrawRect(x-size/2, y-size/2, size, size * height)
 
