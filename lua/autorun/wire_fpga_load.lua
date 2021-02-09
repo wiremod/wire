@@ -5,6 +5,8 @@ if SERVER then
   AddCSLuaFile("wire/client/node_editor/wire_fpga_editor.lua")
   AddCSLuaFile("wire/fpgagates.lua")
   AddCSLuaFile("wire/cpugates.lua")
+  AddCSLuaFile("data/help.lua")
+  AddCSLuaFile("data/_helloworld_.lua")
 end
 
 include("wire/fpgagates.lua")
