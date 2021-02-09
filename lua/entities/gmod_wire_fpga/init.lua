@@ -370,6 +370,7 @@ function ENT:Upload(data)
 
   --Functions for gates
   local owner = self:GetPlayer()
+  local ent = self
   --Initialize gate table
   self.Gates = {}
   for nodeId, node in pairs(self.Nodes) do
@@ -378,6 +379,9 @@ function ENT:Upload(data)
     local tempGate = {}
     function tempGate:GetPlayer()
       return owner
+    end
+    function tempGate:GetSelf()
+      return ent
     end
     if gate.reset then
       gate.reset(tempGate)
@@ -436,6 +440,7 @@ function ENT:Reset()
 
   --Functions for gates
   local owner = self:GetPlayer()
+  local ent = self
   --Reset gate table
   self.Gates = {}
   for nodeId, node in pairs(self.Nodes) do
@@ -444,6 +449,9 @@ function ENT:Reset()
     local tempGate = {}
     function tempGate:GetPlayer()
       return owner
+    end
+    function tempGate:GetSelf()
+      return ent
     end
     if gate.reset then
       gate.reset(tempGate)

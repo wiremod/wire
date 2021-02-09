@@ -31,3 +31,23 @@ FPGAGateActions["string-constant"] = {
   outputtypes = {"STRING"},
   isConstant = true
 }
+
+FPGAGateActions["entity-self"] = {
+	name = "Self",
+  inputs = {},
+  outputs = {"Out"},
+  outputtypes = {"ENTITY"},
+  output = function(gate)
+    return gate:GetSelf()
+  end
+}
+
+FPGAGateActions["entity-owner"] = {
+	name = "Owner",
+  inputs = {},
+  outputs = {"Out"},
+  outputtypes = {"ENTITY"},
+  output = function(gate)
+    return gate:GetPlayer()
+  end
+}

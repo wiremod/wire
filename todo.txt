@@ -4,8 +4,6 @@ FPGA Entity:
     Only trigger if output changed
     2 inputs with same name should just share input point
     Add last tick gate
-    Self referencing entity gate
-    Owner entity gate
     Checkbox if gate should trigger on input
     Manual trigger gate
 
@@ -32,6 +30,7 @@ FPGA Tool:
   FPGA Editor:
     Features:
       Global copy paste buffer
+      Grid
 
     Bugs:
       Error if renaming open file, and trying to refresh
@@ -83,7 +82,6 @@ FPGA Tool:
     Improve performance (only draw visible nodes)
 
     Shortcuts?
-    Grid
     Undo
     Improve the guide on how to use
     
