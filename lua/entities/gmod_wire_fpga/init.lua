@@ -85,11 +85,15 @@ function ENT:UpdateOverlay(clear)
                 timebenchPeak = 0,
                 errorMessage = nil,
 							})
-	else
+  else
+    local timepeak = self.timepeak
+    if self.timebench < 0.000001 then
+      timepeak = 0
+    end
 		self:SetOverlayData( {
 							  name = self.name,
                 timebench = self.timebench,
-                timebenchPeak = self.timepeak,
+                timebenchPeak = timepeak,
                 errorMessage = self.ErrorMessage,
 							})
 	end
@@ -370,19 +374,19 @@ function ENT:Upload(data)
 
   --Functions for gates
   local owner = self:GetPlayer()
+  local getOwner = function () return owner end
   local ent = self
+  local getSelf = function () return ent end
+  local getExecutionDelta = function () return ent.CurrentExecution - ent.LastExecution end
   --Initialize gate table
   self.Gates = {}
   for nodeId, node in pairs(self.Nodes) do
     local gate = getGate(node)
 
     local tempGate = {}
-    function tempGate:GetPlayer()
-      return owner
-    end
-    function tempGate:GetSelf()
-      return ent
-    end
+    tempGate.GetPlayer = getOwner
+    tempGate.GetSelf = getSelf
+    tempGate.GetExecutionDelta = getExecutionDelta
     if gate.reset then
       gate.reset(tempGate)
     end
@@ -411,6 +415,7 @@ function ENT:Upload(data)
     table.insert(allNodes, nodeId)
   end
 
+  self.LastExecution = SysTime()
   self:Run(allNodes)
 
   self.Uploaded = true
@@ -440,19 +445,19 @@ function ENT:Reset()
 
   --Functions for gates
   local owner = self:GetPlayer()
+  local getOwner = function () return owner end
   local ent = self
+  local getSelf = function () return ent end
+  local getExecutionDelta = function () return ent.CurrentExecution - ent.LastExecution end
   --Reset gate table
   self.Gates = {}
   for nodeId, node in pairs(self.Nodes) do
     local gate = getGate(node)
 
     local tempGate = {}
-    function tempGate:GetPlayer()
-      return owner
-    end
-    function tempGate:GetSelf()
-      return ent
-    end
+    tempGate.GetPlayer = getOwner
+    tempGate.GetSelf = getSelf
+    tempGate.GetExecutionDelta = getExecutionDelta
     if gate.reset then
       gate.reset(tempGate)
     end
@@ -465,6 +470,7 @@ function ENT:Reset()
     table.insert(allNodes, nodeId)
   end
 
+  self.LastExecution = SysTime()
   self:Run(allNodes)
 end
 
@@ -487,10 +493,6 @@ function ENT:Think()
   --Time benchmarking
   self.timebench = self.timebench * 0.95 + (self.time) * 0.05
   self.time = 0
-
-  if self.timebench < 0.000001 then
-    self.timepeak = 0
-  end
   
   --Limiting
   if self.timebench > fpga_quota_avg then
@@ -517,17 +519,20 @@ function ENT:Run(changedNodes)
 
   --Extra
   local bench = SysTime()
+  self.CurrentExecution = bench
 
   -----------------------------------------
   --PREPARATION
   -----------------------------------------
+  local activeNodes = {}
+  local activeNodesQueue = {}
+  local nodesInQueue = {}
+  local nodeQueue = {}
 
   --Find out which nodes will be visited
-  local activeNodes = {}
   for nodeId, node in pairs(self.Nodes) do
     activeNodes[nodeId] = false
   end
-  local activeNodesQueue = {}
   local i = 1
   for k, id in pairs(changedNodes) do
     activeNodesQueue[i] = id
@@ -551,27 +556,28 @@ function ENT:Run(changedNodes)
     end
   end
   for nodeId, active in pairs(activeNodes) do
-    if active and getGate(self.Nodes[nodeId]).neverActive then 
+    local gate = getGate(self.Nodes[nodeId])
+    if active and gate.neverActive then 
       activeNodes[nodeId] = false
+    end
+    if gate.alwaysActive then
+      activeNodes[nodeId] = true
+      table.insert(nodeQueue, nodeId)
+      nodesInQueue[nodeId] = true
     end
   end
   --activeNodes = {0,0,0,1,1,1,1,1,1}
   if self.Debug then print(table.ToString(activeNodes, "activeNodes", false)) end
 
   --Initialize nodesInQueue set
-  local nodesInQueue = {}
   for nodeId, node in pairs(self.Nodes) do
     nodesInQueue[nodeId] = false
   end
 
   --Initialize nodeQueue with changed inputs
-  --todo: also add self-triggering gates
-  local nodeQueue = {}
-  local i = 1
   for k, id in pairs(changedNodes) do
-    nodeQueue[i] = id
+    table.insert(nodeQueue, id)
     nodesInQueue[id] = true
-    i = i + 1
   end
 
   --Initialize nodesVisited set
@@ -723,6 +729,7 @@ function ENT:Run(changedNodes)
   end
 
   --keep track of time spent this tick
+  self.LastExecution = bench
   self.time = self.time + (SysTime() - bench)
   self.timepeak = SysTime() - bench
 end

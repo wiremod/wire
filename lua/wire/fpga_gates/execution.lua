@@ -1,19 +1,17 @@
 FPGAGateActions("Execution")
 
--- FPGAGateActions["execution-last-wild"] = {
--- 	name = "Last",
---   inputs = {"A"},
---   inputtypes = {"WILD"},
---   outputs = {"Out"},
---   outputtypes = {"LINKED"},
---   neverActive = true,
---   output = function(gate)
---     return gate.value
---   end,
---   postCycle = function(gate, value)
---     gate.value = value
--- 	end,
--- }
+FPGAGateActions["execution-delta"] = {
+  name = "Execution Delta",
+  inputs = {},
+  outputs = {"Out"},
+  outputtypes = {"NORMAL"},
+  alwaysActive = true,
+  output = function(gate)
+    return gate:GetExecutionDelta()
+  end,
+}
+
+
 
 FPGAGateActions["execution-last-normal"] = {
   name = "Last Normal",

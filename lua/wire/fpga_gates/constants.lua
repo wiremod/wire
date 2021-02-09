@@ -1,7 +1,7 @@
 FPGAGateActions("Constant Values")
 
 FPGAGateActions["normal-constant"] = {
-	name = "Normal Constant",
+	name = "Constant Normal",
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"NORMAL"},
@@ -9,7 +9,7 @@ FPGAGateActions["normal-constant"] = {
 }
 
 FPGAGateActions["vector-constant"] = {
-	name = "Vector Constant",
+	name = "Constant Vector",
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"VECTOR"},
@@ -17,7 +17,7 @@ FPGAGateActions["vector-constant"] = {
 }
 
 FPGAGateActions["angle-constant"] = {
-	name = "Angle Constant",
+	name = "Constant Angle",
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"ANGLE"},
@@ -25,7 +25,7 @@ FPGAGateActions["angle-constant"] = {
 }
 
 FPGAGateActions["string-constant"] = {
-	name = "String Constant",
+	name = "Constant String",
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"STRING"},
@@ -49,5 +49,15 @@ FPGAGateActions["entity-owner"] = {
   outputtypes = {"ENTITY"},
   output = function(gate)
     return gate:GetPlayer()
+  end
+}
+
+FPGAGateActions["server-tickrate"] = {
+	name = "Tickrate",
+  inputs = {},
+  outputs = {"Out"},
+  outputtypes = {"NORMAL"},
+  output = function(gate)
+    return 1 / FrameTime()
   end
 }
