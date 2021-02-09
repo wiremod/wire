@@ -655,8 +655,8 @@ function ENT:Run(changedNodes)
 
       --output logic
       if gate.isOutput then
-        WireLib.TriggerOutput(self, node.ioName, self.Values[nodeId][1])
         if self.Debug then print(node.ioName .. " outputs " .. table.ToString(self.Values[nodeId], "", false)) end
+        WireLib.TriggerOutput(self, node.ioName, self.Values[nodeId][1])
         continue
       else
         --compact gates only calculate with connected inputs
@@ -672,6 +672,9 @@ function ENT:Run(changedNodes)
           --normal gates
           value = {gate.output(self.Gates[nodeId], unpack(self.Values[nodeId]))}
         end
+
+        --Error correction - for dumb designed gates... (entity owner gate)
+        if #value == 0 then value = getDefaultValues(node) end
       end
     end
 

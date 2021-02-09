@@ -10,38 +10,6 @@ FPGA Entity:
     Manual trigger gate
 
   Bugs:
-    Remove unused "output" on io gates
-
-    On unwire entity
-    sv: Wire error (Entity [793][gmod_wire_fpga] by Player [2][Lysdal]):
-    addons/wire/lua/wire/gates/entity.lua:679: attempt to index local 'Ent' (a nil value)
-    stack traceback:
-      addons/wire/lua/wire/gates/entity.lua:679: in function 'output'
-      lua/entities/gmod_wire_fpga/init.lua:673: in function 'Run'
-      lua/entities/gmod_wire_fpga/init.lua:470: in function <lua/entities/gmod_wire_fpga/init.lua:466>
-      [C]: in function 'xpcall'
-      addons/wire/lua/wire/server/wirelib.lua:58: in function 'TriggerInput'
-      addons/wire/lua/wire/server/wirelib.lua:570: in function 'Wire_Unlink'
-      addons/wire/lua/wire/server/wirelib.lua:680: in function 'Link_Clear'
-      addons/wire/lua/wire/server/wirelib.lua:400: in function 'ClearPorts'
-      addons/wire/lua/wire/server/wirelib.lua:424: in function 'Remove'
-      addons/wire/lua/entities/base_wire_entity.lua:395: in function <addons/wire/lua/entities/base_wire_entity.lua:394>
-
-    Wire error (Entity [793][gmod_wire_fpga] by Player [2][Lysdal]):
-    addons/wire/lua/wire/gates/entity.lua:679: attempt to index local 'Ent' (a nil value)
-    stack traceback:
-      addons/wire/lua/wire/gates/entity.lua:679: in function 'output'
-      lua/entities/gmod_wire_fpga/init.lua:673: in function 'Run'
-      lua/entities/gmod_wire_fpga/init.lua:470: in function <lua/entities/gmod_wire_fpga/init.lua:466>
-      [C]: in function 'xpcall'
-      addons/wire/lua/wire/server/wirelib.lua:58: in function 'TriggerInput'
-      addons/wire/lua/wir
-    e/server/wirelib.lua:570: in function 'Wire_Unlink'
-      addons/wire/lua/wire/server/wirelib.lua:680: in function 'Link_Clear'
-      addons/wire/lua/wire/server/wirelib.lua:400: in function 'ClearPorts'
-      addons/wire/lua/wire/server/wirelib.lua:424: in function 'Remove'
-      addons/wire/lua/entities/base_wire_entity.lua:395: in function <addons/wire/lua/entities/base_wire_entity.lua:394>
-
     
   Test:
     Check for errors during compilation (Hasnt been tested, but is implemented now)
