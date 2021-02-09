@@ -26,15 +26,6 @@ TypeColor = {
   WIRELINK = Color(200, 80, 200, 255), --Deep purple
 }
 
-WildColor = {
-  Color(255, 0, 0, 255),
-  Color(255, 127, 0, 255),
-  Color(255, 255, 0, 255),
-  Color(0, 255, 0, 255),
-  Color(0, 0, 255, 255),
-  Color(75, 0, 130, 255),
-}
-
 function Editor:Init()
   self.Nodes = {}
 

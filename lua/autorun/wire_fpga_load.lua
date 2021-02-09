@@ -14,6 +14,8 @@ if CLIENT then
   AddCSLuaFile("wire/client/node_editor/nodeeditor.lua")
   AddCSLuaFile("wire/client/node_editor/wire_fpga_editor.lua")
 
+  include("data/help.lua")
+
   include("wire/client/node_editor/nodeeditor.lua")
   include("wire/client/node_editor/wire_fpga_editor.lua")
 

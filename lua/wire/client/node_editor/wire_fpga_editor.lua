@@ -699,7 +699,32 @@ function Editor:InitComponents()
 	self.C.SaE.DoClick = function(button) self:SaveFile(self:GetChosenFile(), true) end
 
 	self.C.SavAs:SetText("Save As")
-	self.C.SavAs.DoClick = function(button) self:SaveFile(self:GetChosenFile(), false, true) end
+  self.C.SavAs.DoClick = function(button) self:SaveFile(self:GetChosenFile(), false, true) end
+  
+  --Helper
+  self.C.Helper = vgui.Create("DFrame", self)
+  self.C.Helper:SetSize(900, 700)
+  self.C.Helper:Center()
+	self.C.Helper:ShowCloseButton(true)
+	self.C.Helper:SetDeleteOnClose(false)
+	self.C.Helper:SetVisible(false)
+	self.C.Helper:SetTitle("FPGA Help")
+  self.C.Helper:SetScreenLock(true)
+  local html = vgui.Create("DHTML" , self.C.Helper)
+  html:Dock(FILL)
+  html:SetHTML(FPGAHelperHTML)
+  html:SetAllowLua(false)
+
+
+  self.C.Help = vgui.Create("Button", self.C.Menu)
+	self.C.Help:SetSize(80, 20)
+  self.C.Help:Dock(RIGHT)
+  self.C.Help:DockMargin(0,0,20,0)
+	self.C.Help:SetText("Help")
+	self.C.Help.DoClick = function()
+    self.C.Helper:SetVisible(true)
+    self.C.Helper:MakePopup()
+  end
 
 	self.C.Browser:AddRightClick(self.C.Browser.filemenu, 4, "Save to", function()
 		Derma_Query("Overwrite this file?", "Save To",
