@@ -37,6 +37,7 @@ FPGAGateActions["entity-self"] = {
   inputs = {},
   outputs = {"Out"},
   outputtypes = {"ENTITY"},
+  specialFunctions = true,
   output = function(gate)
     return gate:GetSelf()
   end

@@ -274,6 +274,7 @@ function ENT:CompileData(data)
   outputIds = {}
   nodeGetsInputFrom = {}
   timedNodes = {}
+  neverActiveNodes = {}
   postCycleNodes = {}
   postExecutionNodes = {}
 
@@ -301,11 +302,14 @@ function ENT:CompileData(data)
     --timed
     if gate.timed then table.insert(timedNodes, nodeId) end
 
+    --never active
+    if gate.neverActive then neverActiveNodes[nodeId] = nodes[nodeId] end
+
     --postcycle
-    if gate.postCycle then postCycleNodes[nodeId] = node end
+    if gate.postCycle then postCycleNodes[nodeId] = nodes[nodeId] end
 
     --postexecution
-    if gate.postExecution then postExecutionNodes[nodeId] = node end
+    if gate.postExecution then postExecutionNodes[nodeId] = nodes[nodeId] end
 
     --io
     if node.type == "fpga" then
@@ -338,6 +342,7 @@ function ENT:CompileData(data)
   self.NodeGetsInputFrom = nodeGetsInputFrom
   self.TimedNodes = timedNodes
 
+  self.NeverActiveNodes = neverActiveNodes
   self.PostCycleNodes = postCycleNodes
   self.PostExecutionNodes = postExecutionNodes
 
@@ -356,7 +361,6 @@ function ENT:Upload(data)
   self.CompileError = false
   self.ExecutionError = false
   self.ErrorMessage = nil
-  self:SetColor(Color(255, 255, 255, self:GetColor().a))
 
   --Name
   if data.Name then
@@ -381,9 +385,6 @@ function ENT:Upload(data)
     self.ExecuteOnTrigger = false
   end
 
-  self.time = 0
-  self.timebench = 0
-  self.timepeak = 0
   self:UpdateOverlay(false)
 
   --validate
@@ -414,33 +415,6 @@ function ENT:Upload(data)
   end
   self.Outputs = WireLib.AdjustSpecialOutputs(self, self.OutputNames, self.OutputTypes, "")
 
-  --Functions for gates
-  local owner = self:GetPlayer()
-  local getOwner = function () return owner end
-  local ent = self
-  local getSelf = function () return ent end
-  local getExecutionDelta = function () return ent.CurrentExecution - ent.LastExecution end
-  --Initialize gate table
-  self.Gates = {}
-  for nodeId, node in pairs(self.Nodes) do
-    local gate = getGate(node)
-
-    local tempGate = {}
-    tempGate.GetPlayer = getOwner
-    tempGate.GetSelf = getSelf
-    tempGate.GetExecutionDelta = getExecutionDelta
-    if gate.reset then
-      gate.reset(tempGate)
-    end
-    self.Gates[nodeId] = tempGate
-  end
-
-  --Table that contains last input values for every gate
-  self.Values = {}
-  for nodeId, node in pairs(self.Nodes) do
-    self.Values[nodeId] = getDefaultValues(node)
-  end
-
   --Initialize inputs to default values
   self.InputValues = {}
   for k, iname in pairs(self.InputNames) do
@@ -451,18 +425,9 @@ function ENT:Upload(data)
 
   self.Data = data
 
-  --First execution needs to be with all nodes, to properly get all the right standby values everywhere
-  local allNodes = {}
-  for nodeId, node in pairs(self.Nodes) do
-    table.insert(allNodes, nodeId)
-  end
-
-  self.LastExecution = SysTime()
-  self:Run(allNodes)
-
-  self.QueuedNodes = {}
-  self.LazyQueuedNodes = {}
   self.Uploaded = true
+
+  self:Reset()  
 end
 
 
@@ -470,18 +435,7 @@ end
 --------------------------------------------------------
 --RESET
 --------------------------------------------------------
-function ENT:Reset()
-  --MsgC(Color(0, 100, 255), "Resetting FPGA\n")
-  if self.CompilationError or not self.Uploaded then return end
-  self:SetColor(Color(255, 255, 255, self:GetColor().a))
-  self.ExecutionError = false
-  self.ErrorMessage = nil
-  self.time = 0
-  self.timebench = 0
-  self.timepeak = 0
-  self.LastTimedUpdate = 0
-  self.QueuedNodes = {}
-
+function ENT:ResetGates()
   --Set gates to default values again
   self.Values = {}
   for nodeId, node in pairs(self.Nodes) do
@@ -494,6 +448,7 @@ function ENT:Reset()
   local ent = self
   local getSelf = function () return ent end
   local getExecutionDelta = function () return ent.CurrentExecution - ent.LastExecution end
+  local getExecutionCount = function () return ent.ExecutionCount end
   --Reset gate table
   self.Gates = {}
   for nodeId, node in pairs(self.Nodes) do
@@ -501,13 +456,32 @@ function ENT:Reset()
 
     local tempGate = {}
     tempGate.GetPlayer = getOwner
-    tempGate.GetSelf = getSelf
-    tempGate.GetExecutionDelta = getExecutionDelta
+    if gate.specialFunctions then
+      tempGate.GetSelf = getSelf
+      tempGate.GetExecutionDelta = getExecutionDelta
+      tempGate.GetExecutionCount = getExecutionCount
+    end
     if gate.reset then
       gate.reset(tempGate)
     end
     self.Gates[nodeId] = tempGate
   end
+end
+
+function ENT:Reset()
+  --MsgC(Color(0, 100, 255), "Resetting FPGA\n")
+  if self.CompilationError or not self.Uploaded then return end
+  self:SetColor(Color(255, 255, 255, self:GetColor().a))
+  self.ExecutionError = false
+  self.ErrorMessage = nil
+  self.time = 0
+  self.timebench = 0
+  self.timepeak = 0
+  self.LastTimedUpdate = 0
+  self.ExecutionCount = 0
+  self.QueuedNodes = {}
+
+  self:ResetGates()
 
   --Run all nodes again (to properly propagate)
   local allNodes = {}
@@ -563,6 +537,10 @@ function ENT:Think()
     if gate.postExecution(self.Gates[nodeId]) then
       self.QueuedNodes[nodeId] = true
     end
+    if node.connections then
+      local value = self:CalculateNode(node, nodeId, gate)
+      self:Propagate(node, value)
+    end
   end
 
   --Update timed gates (and queued nodes)
@@ -594,9 +572,10 @@ end
 --RUNNING
 --------------------------------------------------------
 function ENT:Run(changedNodes)
-  --print("--------------------")
+  if self.Debug then print("\n================================================================================") end
 
   --Extra
+  self.ExecutionCount =  self.ExecutionCount + 1
   local bench = SysTime()
   self.CurrentExecution = bench
 
@@ -716,7 +695,7 @@ function ENT:Run(changedNodes)
       end
 
       --neverActive gates don't wait for their input gates to finish
-      if !gate.neverActive then
+      --if !gate.neverActive then
         local executeLater = false
         --if input hasnt arrived, send this node to the back of the queue
         for inputId, connection in pairs(self.NodeGetsInputFrom[nodeId]) do
@@ -750,7 +729,7 @@ function ENT:Run(changedNodes)
           table.insert(nodeQueue, nodeId)
           continue
         end
-      end
+      --end
 
       if self.Debug then print(table.ToString(self.Values[nodeId], "", false)) end
 
@@ -760,22 +739,7 @@ function ENT:Run(changedNodes)
         WireLib.TriggerOutput(self, node.ioName, self.Values[nodeId][1])
         continue
       else
-        --compact gates only calculate with connected inputs
-        if gate.compact_inputs then
-          --find connected inputs, and assign current values
-          activeValues = {}
-          for inputNum, _ in pairs(self.Data.Nodes[nodeId].connections) do
-            table.insert(activeValues, self.Values[nodeId][inputNum])
-          end
-
-          value = {gate.output(self.Gates[nodeId], unpack(activeValues))}
-        else
-          --normal gates
-          value = {gate.output(self.Gates[nodeId], unpack(self.Values[nodeId]))}
-        end
-
-        --Error correction - for dumb designed gates... (entity owner gate)
-        if #value == 0 then value = getDefaultValues(node) end
+        value = self:CalculateNode(node, nodeId, gate)
       end
     end
 
@@ -787,34 +751,76 @@ function ENT:Run(changedNodes)
     --for future reference, we've visited this node
     nodesVisited[nodeId] = true
 
-    --propergate output value to inputs
-    if node.connections then
-      for outputNum, connections in pairs(node.connections) do
-        for k, connection in pairs(connections) do
-          toNode = connection[1]
-          toInput = connection[2]
-
-          --multiple outputs
-          self.Values[toNode][toInput] = value[outputNum]
-
-          --add connected nodes to queue
-          if nodesInQueue[connection[1]] == false then
-            table.insert(nodeQueue, connection[1])
-            nodesInQueue[connection[1]] = true
-          end
-        end
-      end
-    end
+    self:PropagateAndAddToQueue(node, value, nodeQueue, nodesInQueue)
   end
 
   --postcycle hook
   for nodeId, node in pairs(self.PostCycleNodes) do
     local gate = getGate(node)
     gate.postCycle(self.Gates[nodeId])
-  end
+    local value = self:CalculateNode(node, nodeId, gate)
+    self:Propagate(node, value)
+  end  
 
   --keep track of time spent this tick
   self.LastExecution = bench
   self.time = self.time + (SysTime() - bench)
   self.timepeak = SysTime() - bench
+end
+
+
+function ENT:CalculateNode(node, nodeId, gate)
+  local value
+  --compact gates only calculate with connected inputs
+  if gate.compact_inputs then
+    --find connected inputs, and assign current values
+    activeValues = {}
+    for inputNum, _ in pairs(self.Data.Nodes[nodeId].connections) do
+      table.insert(activeValues, self.Values[nodeId][inputNum])
+    end
+
+    value = {gate.output(self.Gates[nodeId], unpack(activeValues))}
+  else
+    --normal gates
+    value = {gate.output(self.Gates[nodeId], unpack(self.Values[nodeId]))}
+  end
+
+  --Error correction - for dumb designed gates... (entity owner gate)
+  if #value == 0 then value = getDefaultValues(node) end
+
+  return value
+end
+
+function ENT:Propagate(node, value)
+  if node.connections then
+    for outputNum, connections in pairs(node.connections) do
+      for k, connection in pairs(connections) do
+        toNode = connection[1]
+        toInput = connection[2]
+
+        --send values to nodes
+        self.Values[toNode][toInput] = value[outputNum]
+      end
+    end
+  end
+end
+
+function ENT:PropagateAndAddToQueue(node, value, nodeQueue, nodesInQueue)
+  if node.connections then
+    for outputNum, connections in pairs(node.connections) do
+      for k, connection in pairs(connections) do
+        toNode = connection[1]
+        toInput = connection[2]
+
+        --send values to nodes
+        self.Values[toNode][toInput] = value[outputNum]
+
+        --add connected nodes to queue
+        if nodesInQueue[connection[1]] == false then
+          table.insert(nodeQueue, connection[1])
+          nodesInQueue[connection[1]] = true
+        end
+      end
+    end
+  end
 end

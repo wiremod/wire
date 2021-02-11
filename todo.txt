@@ -3,8 +3,10 @@ FPGA Entity:
     Branching
     Only trigger if output changed (is this possible?)
     2 inputs with same name should just share input point
+    Timed empty gate
 
   Bugs:
+    Sometimes average spikes
     
   Test:
     Check for errors during compilation (Hasnt been tested, but is implemented now)

@@ -6,8 +6,21 @@ FPGAGateActions["execution-delta"] = {
   outputs = {"Out"},
   outputtypes = {"NORMAL"},
   alwaysActive = true,
+  specialFunctions = true,
   output = function(gate)
     return gate:GetExecutionDelta()
+  end,
+}
+
+FPGAGateActions["execution-count"] = {
+  name = "Execution Count",
+  inputs = {},
+  outputs = {"Out"},
+  outputtypes = {"NORMAL"},
+  alwaysActive = true,
+  specialFunctions = true,
+  output = function(gate)
+    return gate:GetExecutionCount()
   end,
 }
 
