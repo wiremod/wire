@@ -703,7 +703,7 @@ function Editor:InitComponents()
   
   --Helper
   self.C.Helper = vgui.Create("DFrame", self)
-  self.C.Helper:SetSize(900, 700)
+  self.C.Helper:SetSize(1200, 700)
   self.C.Helper:Center()
 	self.C.Helper:ShowCloseButton(true)
 	self.C.Helper:SetDeleteOnClose(false)

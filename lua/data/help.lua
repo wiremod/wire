@@ -5,11 +5,17 @@ FPGAHelperHTML = [[
     <style>
       body {background-color: white; margin-right: 30px;}
       h2 {margin-bottom: 0;}
+      h3 {margin-bottom: 0;}
       h4 {margin-bottom: 0;}
+      p {margin-top: 0;}
     </style>
   </head>
   <body>
     <h1>FPGA Help</h1>
+    <p>
+      This addon is actively under development, if you have some great ideas of how some stuff should work,
+      or just think something could be very cool if addded, feel free to add 'lysdal1234' on Steam and suggest them to me :)
+    </p>
 
     <h2>Types</h2>
     <div class="col" style="margin-left: 20px;">
@@ -82,11 +88,11 @@ FPGAHelperHTML = [[
         </tr>
         <tr>
           <td>Ctrl C</td>
-          <td>Copies the selected nodes</td>
+          <td>Copies the selected gates</td>
         </tr>
         <tr>
           <td>Ctrl V</td>
-          <td>Pastes the previously copied nodes, and marks the pasted nodes as selected</td>
+          <td>Pastes the previously copied gates, and marks the pasted gates as selected</td>
         </tr>
       </table>
     </div>
@@ -104,7 +110,7 @@ FPGAHelperHTML = [[
       <h4>Inputs</h4>
       <div class="col" style="margin-left: 20px;">
         <p>
-          The chip executes when an input is changed, and propogates the changes inside it, updating the gates affected by the input change.
+          The chip executes when an input is changed, and propagates the changes inside it, updating the gates affected by the input change.
           Gates that aren't affected by the input change, will not execute.
         </p>
       </div>
@@ -112,7 +118,7 @@ FPGAHelperHTML = [[
       <div class="col" style="margin-left: 20px;">
         <p>
           Timed execution only affects gates which are timed (marked by red). 
-          This includes gates such as 'OS Time', 'Entity Position', which share the property that their output is time dependant.
+          This includes gates such as 'OS Time' and 'Entity Position', which share the property that their output is time dependant.
           For these gates to always have the correct output, timed execution needs to be on.
           The frequency that these timed gates are updated with can be controlled with the <b>Execution Interval</b> setting.
         </p>
@@ -139,12 +145,18 @@ FPGAHelperHTML = [[
               Useful for time critical circuitry - such as levitating - or calculations where the time difference is required.
             </p>
           </div>
+          <h4>Execution Count</h4>
+          <div class="col" style="margin-left: 20px;">
+            <p>
+              Increments by one each time the chip executes  
+            </p>
+          </div>
           <h4>Last (Normal/Vector/Angle/String)</h4>
           <div class="col" style="margin-left: 20px;">
             <p>
               Mainly designed to allow looping circuitry. For example, a memory gate feeding it's own value + 1 into itself will produce an infinite loop.
-              If a Last gate is put somewhere in the loop, it will allow it to be executed. It does this by using the last value of the gate connected to it's input,
-              'disengaging' the infinite loop.
+              If a Last gate is put somewhere in the loop, it will allow it to be executed. It does this by using the value the gate connected to it's input had last execution,
+              'disengaging' the infinite loop. 
             </p>
           </div>
           <h4>Previous (Normal/Vector/Angle/String)</h4>
@@ -154,6 +166,14 @@ FPGAHelperHTML = [[
               which differs from the Last gate behaviour both because multiple executions can happen each tick, which will cause the Last gate to change, but not the Previous gate.
               The most important difference, is that the Previous gate will trigger a new execution during next tick, with the updated value.
               This can cause a chain reaction, if this execution changes the Previous gate, causing it to trigger next tick again.
+              To avoid such chain reactions, the value should somehow stabilize - but the internal circuitry decides that.
+            </p>
+          </div>
+          <h4>Last Timed (Normal/Vector/Angle/String)</h4>
+          <div class="col" style="margin-left: 20px;">
+            <p>
+              Alternative form of the Last gate, this one can trigger an execute if the FPGA is set to trigger on Timed.
+              This is useful for loops that are meant to execute every Execution Interval, where you don't care if the value has actually changed or not.
             </p>
           </div>
         </p>

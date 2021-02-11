@@ -104,6 +104,81 @@ FPGAGateActions["execution-last-string"] = {
   end,
 }
 
+FPGAGateActions["execution-timed-last-normal"] = {
+  name = "Timed Last Normal",
+  inputs = {"A"},
+  inputtypes = {"NORMAL"},
+  outputs = {"Out"},
+  outputtypes = {"NORMAL"},
+  timed = true,
+  neverActive = true,
+  output = function(gate, value)
+    local oldValue = gate.value
+    gate.value = value
+    return oldValue
+  end,
+  reset = function(gate)
+    gate.value = 0
+  end
+}
+
+FPGAGateActions["execution-timed-last-vector"] = {
+  name = "Timed Last Vector",
+  inputs = {"A"},
+  inputtypes = {"VECTOR"},
+  outputs = {"Out"},
+  outputtypes = {"VECTOR"},
+  timed = true,
+  neverActive = true,
+  output = function(gate, value)
+    local oldValue = gate.value
+    gate.value = value
+    return oldValue
+  end,
+  reset = function(gate)
+    gate.value = Vector(0, 0, 0)
+    gate.memory = Vector(0, 0, 0)
+  end
+}
+
+FPGAGateActions["execution-timed-last-angle"] = {
+  name = "Timed Last Angle",
+  inputs = {"A"},
+  inputtypes = {"ANGLE"},
+  outputs = {"Out"},
+  outputtypes = {"ANGLE"},
+  timed = true,
+  neverActive = true,
+  output = function(gate, value)
+    local oldValue = gate.value
+    gate.value = value
+    return oldValue
+  end,
+  reset = function(gate)
+    gate.value = Angle(0, 0, 0)
+    gate.memory = Angle(0, 0, 0)
+  end
+}
+
+FPGAGateActions["execution-timed-last-string"] = {
+  name = "Timed Last String",
+  inputs = {"A"},
+  inputtypes = {"STRING"},
+  outputs = {"Out"},
+  outputtypes = {"STRING"},
+  timed = true,
+  neverActive = true,
+  output = function(gate, value)
+    local oldValue = gate.value
+    gate.value = value
+    return oldValue
+  end,
+  reset = function(gate)
+    gate.value = ""
+    gate.memory = ""
+  end
+}
+
 FPGAGateActions["execution-previous-normal"] = {
   name = "Previous Normal",
   inputs = {"A"},
