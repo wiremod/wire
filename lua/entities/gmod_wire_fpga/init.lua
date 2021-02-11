@@ -521,7 +521,7 @@ function ENT:Think()
   self:NextThink(CurTime())
 
   --Time benchmarking
-  self.timebench = self.timebench * 0.95 + (self.time) * 0.05
+  self.timebench = self.timebench * 0.98 + (self.time) * 0.02
   self.time = 0
   
   --Limiting
