@@ -1,6 +1,8 @@
 FPGAGateActions("Input & Output")
+local i = 1
 
 FPGAGateActions["normal-input"] = {
+  order = i,
 	name = "Normal Input",
   inputs = {},
   outputs = {"Out"},
@@ -8,7 +10,9 @@ FPGAGateActions["normal-input"] = {
   isInput = true
 }
 
+i = i + 1
 FPGAGateActions["normal-output"] = {
+  order = i,
 	name = "Normal Output",
   inputs = {"A"},
   inputtypes = {"NORMAL"},
@@ -32,7 +36,9 @@ FPGAGateActions["normal-output"] = {
 --   isOutput = true
 -- }
 
+i = i + 1
 FPGAGateActions["vector-input"] = {
+  order = i,
 	name = "Vector Input",
   inputs = {},
   outputs = {"Out"},
@@ -40,7 +46,9 @@ FPGAGateActions["vector-input"] = {
   isInput = true
 }
 
+i = i + 1
 FPGAGateActions["vector-output"] = {
+  order = i,
 	name = "Vector Output",
   inputs = {"A"},
   inputtypes = {"VECTOR"},
@@ -64,7 +72,9 @@ FPGAGateActions["vector-output"] = {
 --   isOutput = true
 -- }
 
+i = i + 1
 FPGAGateActions["angle-input"] = {
+  order = i,
 	name = "Angle Input",
   inputs = {},
   outputs = {"Out"},
@@ -72,7 +82,9 @@ FPGAGateActions["angle-input"] = {
   isInput = true
 }
 
+i = i + 1
 FPGAGateActions["angle-output"] = {
+  order = i,
 	name = "Angle Output",
   inputs = {"A"},
   inputtypes = {"ANGLE"},
@@ -80,7 +92,9 @@ FPGAGateActions["angle-output"] = {
   isOutput = true
 }
 
+i = i + 1
 FPGAGateActions["string-input"] = {
+  order = i,
 	name = "String Input",
   inputs = {},
   outputs = {"Out"},
@@ -88,7 +102,9 @@ FPGAGateActions["string-input"] = {
   isInput = true
 }
 
+i = i + 1
 FPGAGateActions["string-output"] = {
+  order = i,
 	name = "String Output",
   inputs = {"A"},
   inputtypes = {"STRING"},
@@ -96,23 +112,9 @@ FPGAGateActions["string-output"] = {
   isOutput = true
 }
 
-FPGAGateActions["array-input"] = {
-	name = "Array Input",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"ARRAY"},
-  isInput = true
-}
-
-FPGAGateActions["array-output"] = {
-	name = "Array Output",
-  inputs = {"A"},
-  inputtypes = {"ARRAY"},
-  outputs = {},
-  isOutput = true
-}
-
+i = i + 1
 FPGAGateActions["entity-input"] = {
+  order = i,
 	name = "Entity Input",
   inputs = {},
   outputs = {"Out"},
@@ -120,7 +122,9 @@ FPGAGateActions["entity-input"] = {
   isInput = true
 }
 
+i = i + 1
 FPGAGateActions["entity-output"] = {
+  order = i,
 	name = "Entity Output",
   inputs = {"A"},
   inputtypes = {"ENTITY"},
@@ -128,7 +132,29 @@ FPGAGateActions["entity-output"] = {
   isOutput = true
 }
 
+i = i + 1
+FPGAGateActions["array-input"] = {
+  order = i,
+	name = "Array Input",
+  inputs = {},
+  outputs = {"Out"},
+  outputtypes = {"ARRAY"},
+  isInput = true
+}
+
+i = i + 1
+FPGAGateActions["array-output"] = {
+  order = i,
+	name = "Array Output",
+  inputs = {"A"},
+  inputtypes = {"ARRAY"},
+  outputs = {},
+  isOutput = true
+}
+
+i = i + 1
 FPGAGateActions["ranger-input"] = {
+  order = i,
 	name = "Ranger Input",
   inputs = {},
   outputs = {"Out"},
@@ -136,7 +162,9 @@ FPGAGateActions["ranger-input"] = {
   isInput = true
 }
 
+i = i + 1
 FPGAGateActions["ranger-output"] = {
+  order = i,
 	name = "Ranger Output",
   inputs = {"A"},
   inputtypes = {"RANGER"},
@@ -144,7 +172,9 @@ FPGAGateActions["ranger-output"] = {
   isOutput = true
 }
 
+i = i + 1
 FPGAGateActions["wirelink-input"] = {
+  order = i,
 	name = "Wirelink Input",
   inputs = {},
   outputs = {"Wirelink"},

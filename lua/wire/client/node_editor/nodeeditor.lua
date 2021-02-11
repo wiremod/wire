@@ -196,15 +196,19 @@ function Editor:InitComponents()
 
 
   --utility
-  local function FillSubTree(editor, tree, node, temp, type)
+  local function FillSubTree(editor, tree, node, temp, type, sortByName)
     node.Icon:SetImage("icon16/folder.png")
 
     local subtree = {}
     for k, v in pairs(temp) do
-      subtree[#subtree+1] = {action = k, gate = v, name = v.name}
+      subtree[#subtree+1] = {action = k, gate = v, name = v.name, order = v.order}
     end
 
-    table.SortByMember(subtree, "name", true)
+    if sortByName then
+      table.SortByMember(subtree, "name", true)
+    else
+      table.SortByMember(subtree, "order", true)
+    end
 
     for index=1, #subtree do
       local action, gate = subtree[index].action, subtree[index].gate
@@ -250,7 +254,7 @@ function Editor:InitComponents()
 
     local node = fpgaNode:AddNode(gatetype)
     node.Icon:SetImage("icon16/folder.png")
-    FillSubTree(self, self.C.Tree, node, gatefuncs, "fpga")
+    FillSubTree(self, self.C.Tree, node, gatefuncs, "fpga", false)
     function node:DoClick()
       self:SetExpanded(not self.m_bExpanded)
     end
@@ -280,7 +284,7 @@ function Editor:InitComponents()
 
     local node = cpuNode:AddNode(gatetype)
     node.Icon:SetImage("icon16/folder.png")
-    FillSubTree(self, self.C.Tree, node, gatefuncs, "cpu")
+    FillSubTree(self, self.C.Tree, node, gatefuncs, "cpu", false)
     function node:DoClick()
       self:SetExpanded(not self.m_bExpanded)
     end
@@ -316,7 +320,7 @@ function Editor:InitComponents()
 
     local node = wiremodNode:AddNode(gatetype)
     node.Icon:SetImage("icon16/folder.png")
-    FillSubTree(self, self.C.Tree, node, gatefuncs, "wire")
+    FillSubTree(self, self.C.Tree, node, gatefuncs, "wire", true)
     function node:DoClick()
       self:SetExpanded(not self.m_bExpanded)
     end

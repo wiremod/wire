@@ -1,6 +1,8 @@
 CPUGateActions("Arithmetic")
+local i = 1
 
 CPUGateActions["arithmetic-half-adder"] = {
+  order = i,
   name = "Half Adder",
   inputs = {"A", "B"},
   outputs = {"Sum", "Carry"},
@@ -15,7 +17,9 @@ CPUGateActions["arithmetic-half-adder"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["arithmetic-full-adder"] = {
+  order = i,
   name = "Full Adder",
   inputs = {"A", "B", "Carry"},
   outputs = {"Sum", "Carry"},
@@ -29,7 +33,9 @@ CPUGateActions["arithmetic-full-adder"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["arithmetic-half-subtractor"] = {
+  order = i,
   name = "Half Subtractor",
   inputs = {"A", "B"},
   outputs = {"Difference", "Borrow"},
@@ -44,7 +50,9 @@ CPUGateActions["arithmetic-half-subtractor"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["arithmetic-full-subtractor"] = {
+  order = i,
   name = "Full Subtractor",
   inputs = {"A", "B", "Borrow"},
   outputs = {"Difference", "Borrow"},

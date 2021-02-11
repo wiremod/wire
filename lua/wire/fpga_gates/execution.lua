@@ -1,6 +1,9 @@
 FPGAGateActions("Execution")
+local i = 1
 
+i = i + 1
 FPGAGateActions["execution-delta"] = {
+  order = i,
   name = "Execution Delta",
   inputs = {},
   outputs = {"Out"},
@@ -12,7 +15,9 @@ FPGAGateActions["execution-delta"] = {
   end,
 }
 
+i = i + 1
 FPGAGateActions["execution-count"] = {
+  order = i,
   name = "Execution Count",
   inputs = {},
   outputs = {"Out"},
@@ -24,7 +29,9 @@ FPGAGateActions["execution-count"] = {
   end,
 }
 
+i = i + 1
 FPGAGateActions["execution-last-normal"] = {
+  order = i,
   name = "Last Normal",
   inputs = {"A"},
   inputtypes = {"NORMAL"},
@@ -44,7 +51,9 @@ FPGAGateActions["execution-last-normal"] = {
   end,
 }
 
+i = i + 1
 FPGAGateActions["execution-last-vector"] = {
+  order = i,
   name = "Last Vector",
   inputs = {"A"},
   inputtypes = {"VECTOR"},
@@ -64,7 +73,9 @@ FPGAGateActions["execution-last-vector"] = {
   end,
 }
 
+i = i + 1
 FPGAGateActions["execution-last-angle"] = {
+  order = i,
   name = "Last Angle",
   inputs = {"A"},
   inputtypes = {"ANGLE"},
@@ -84,7 +95,9 @@ FPGAGateActions["execution-last-angle"] = {
   end,
 }
 
+i = i + 1
 FPGAGateActions["execution-last-string"] = {
+  order = i,
   name = "Last String",
   inputs = {"A"},
   inputtypes = {"STRING"},
@@ -104,7 +117,9 @@ FPGAGateActions["execution-last-string"] = {
   end,
 }
 
+i = i + 1
 FPGAGateActions["execution-timed-last-normal"] = {
+  order = i,
   name = "Timed Last Normal",
   inputs = {"A"},
   inputtypes = {"NORMAL"},
@@ -122,7 +137,9 @@ FPGAGateActions["execution-timed-last-normal"] = {
   end
 }
 
+i = i + 1
 FPGAGateActions["execution-timed-last-vector"] = {
+  order = i,
   name = "Timed Last Vector",
   inputs = {"A"},
   inputtypes = {"VECTOR"},
@@ -141,7 +158,9 @@ FPGAGateActions["execution-timed-last-vector"] = {
   end
 }
 
+i = i + 1
 FPGAGateActions["execution-timed-last-angle"] = {
+  order = i,
   name = "Timed Last Angle",
   inputs = {"A"},
   inputtypes = {"ANGLE"},
@@ -160,7 +179,9 @@ FPGAGateActions["execution-timed-last-angle"] = {
   end
 }
 
+i = i + 1
 FPGAGateActions["execution-timed-last-string"] = {
+  order = i,
   name = "Timed Last String",
   inputs = {"A"},
   inputtypes = {"STRING"},
@@ -179,7 +200,9 @@ FPGAGateActions["execution-timed-last-string"] = {
   end
 }
 
+i = i + 1
 FPGAGateActions["execution-previous-normal"] = {
+  order = i,
   name = "Previous Normal",
   inputs = {"A"},
   inputtypes = {"NORMAL"},
@@ -201,7 +224,9 @@ FPGAGateActions["execution-previous-normal"] = {
   end,
 }
 
+i = i + 1
 FPGAGateActions["execution-previous-vector"] = {
+  order = i,
   name = "Previous Vector",
   inputs = {"A"},
   inputtypes = {"VECTOR"},
@@ -223,7 +248,9 @@ FPGAGateActions["execution-previous-vector"] = {
   end,
 }
 
+i = i + 1
 FPGAGateActions["execution-previous-angle"] = {
+  order = i,
   name = "Previous Angle",
   inputs = {"A"},
   inputtypes = {"ANGLE"},
@@ -245,7 +272,9 @@ FPGAGateActions["execution-previous-angle"] = {
   end,
 }
 
+i = i + 1
 FPGAGateActions["execution-previous-string"] = {
+  order = i,
   name = "Previous String",
   inputs = {"A"},
   inputtypes = {"STRING"},

@@ -1,6 +1,8 @@
 CPUGateActions("Conversion")
+local i = 1
 
 CPUGateActions["normal-to-4bit"] = {
+  order = i,
 	name = "To 4-bit",
   inputs = {"A"},
   outputs = {"Bit 4", "Bit 3", "Bit 2", "Bit 1"},
@@ -20,7 +22,9 @@ CPUGateActions["normal-to-4bit"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["normal-to-8bit"] = {
+  order = i,
 	name = "To 8-bit",
   inputs = {"A"},
   outputs = {"Bit 8", "Bit 7", "Bit 6", "Bit 5", "Bit 4", "Bit 3", "Bit 2", "Bit 1"},
@@ -40,7 +44,9 @@ CPUGateActions["normal-to-8bit"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["normal-to-16bit"] = {
+  order = i,
 	name = "To 16-bit",
   inputs = {"A"},
   outputs = {"Bit 16", "Bit 15", "Bit 14", "Bit 13", "Bit 12", "Bit 11", "Bit 10", "Bit 9", "Bit 8", "Bit 7", "Bit 6", "Bit 5", "Bit 4", "Bit 3", "Bit 2", "Bit 1"},
@@ -60,7 +66,9 @@ CPUGateActions["normal-to-16bit"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["4bit-to-normal"] = {
+  order = i,
 	name = "From 4-bit",
   inputs = {"Bit 4", "Bit 3", "Bit 2", "Bit 1"},
   output = function(gate, B4, B3, B2, B1)
@@ -74,7 +82,9 @@ CPUGateActions["4bit-to-normal"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["8bit-to-normal"] = {
+  order = i,
 	name = "From 8-bit",
   inputs = {"Bit 8", "Bit 7", "Bit 6", "Bit 5", "Bit 4", "Bit 3", "Bit 2", "Bit 1"},
 	output = function(gate, B8, B7, B6, B5, B4, B3, B2, B1)
@@ -92,7 +102,9 @@ CPUGateActions["8bit-to-normal"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["16bit-to-normal"] = {
+  order = i,
 	name = "From 16-bit",
   inputs = {"Bit 16", "Bit 15", "Bit 14", "Bit 13", "Bit 12", "Bit 11", "Bit 10", "Bit 9", "Bit 8", "Bit 7", "Bit 6", "Bit 5", "Bit 4", "Bit 3", "Bit 2", "Bit 1"},
 	output = function(gate, B16, B15, B14, B13, B12, B11, B10, B9, B8, B7, B6, B5, B4, B3, B2, B1)
@@ -118,7 +130,9 @@ CPUGateActions["16bit-to-normal"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["signed-4bit-to-normal"] = {
+  order = i,
 	name = "From signed 4-bit",
   inputs = {"Bit 4", "Bit 3", "Bit 2", "Bit 1"},
   output = function(gate, B4, B3, B2, B1)
@@ -132,7 +146,9 @@ CPUGateActions["signed-4bit-to-normal"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["signed-8bit-to-normal"] = {
+  order = i,
 	name = "From signed 8-bit",
   inputs = {"Bit 8", "Bit 7", "Bit 6", "Bit 5", "Bit 4", "Bit 3", "Bit 2", "Bit 1"},
 	output = function(gate, B8, B7, B6, B5, B4, B3, B2, B1)
@@ -150,7 +166,9 @@ CPUGateActions["signed-8bit-to-normal"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["signed-16bit-to-normal"] = {
+  order = i,
 	name = "From signed 16-bit",
   inputs = {"Bit 16", "Bit 15", "Bit 14", "Bit 13", "Bit 12", "Bit 11", "Bit 10", "Bit 9", "Bit 8", "Bit 7", "Bit 6", "Bit 5", "Bit 4", "Bit 3", "Bit 2", "Bit 1"},
 	output = function(gate, B16, B15, B14, B13, B12, B11, B10, B9, B8, B7, B6, B5, B4, B3, B2, B1)

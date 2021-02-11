@@ -1,6 +1,8 @@
 FPGAGateActions("Constant Values")
+local i = 1
 
 FPGAGateActions["normal-constant"] = {
+  order = i,
 	name = "Constant Normal",
   inputs = {},
   outputs = {"Out"},
@@ -8,7 +10,9 @@ FPGAGateActions["normal-constant"] = {
   isConstant = true
 }
 
+i = i + 1
 FPGAGateActions["vector-constant"] = {
+  order = i,
 	name = "Constant Vector",
   inputs = {},
   outputs = {"Out"},
@@ -16,7 +20,9 @@ FPGAGateActions["vector-constant"] = {
   isConstant = true
 }
 
+i = i + 1
 FPGAGateActions["angle-constant"] = {
+  order = i,
 	name = "Constant Angle",
   inputs = {},
   outputs = {"Out"},
@@ -24,7 +30,9 @@ FPGAGateActions["angle-constant"] = {
   isConstant = true
 }
 
+i = i + 1
 FPGAGateActions["string-constant"] = {
+  order = i,
 	name = "Constant String",
   inputs = {},
   outputs = {"Out"},
@@ -32,7 +40,9 @@ FPGAGateActions["string-constant"] = {
   isConstant = true
 }
 
+i = i + 1
 FPGAGateActions["entity-self"] = {
+  order = i,
 	name = "Self",
   inputs = {},
   outputs = {"Out"},
@@ -43,7 +53,9 @@ FPGAGateActions["entity-self"] = {
   end
 }
 
+i = i + 1
 FPGAGateActions["entity-owner"] = {
+  order = i,
 	name = "Owner",
   inputs = {},
   outputs = {"Out"},
@@ -53,7 +65,9 @@ FPGAGateActions["entity-owner"] = {
   end
 }
 
+i = i + 1
 FPGAGateActions["server-tickrate"] = {
+  order = i,
 	name = "Tickrate",
   inputs = {},
   outputs = {"Out"},

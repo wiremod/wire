@@ -1,6 +1,8 @@
 CPUGateActions("Logic")
+local i = 1
 
 CPUGateActions["logic-buffer"] = {
+  order = i,
   name = "Buffer",
   inputs = {"A"},
 	output = function(gate, A)
@@ -12,7 +14,9 @@ CPUGateActions["logic-buffer"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["logic-not"] = {
+  order = i,
   name = "NOT",
   inputs = {"A"},
 	output = function(gate, A)
@@ -24,7 +28,9 @@ CPUGateActions["logic-not"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["logic-and"] = {
+  order = i,
   name = "AND",
   inputs = {"A", "B"},
   output = function(gate, A, B)
@@ -36,7 +42,9 @@ CPUGateActions["logic-and"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["logic-or"] = {
+  order = i,
   name = "OR",
   inputs = {"A", "B"},
 	output = function(gate, A, B)
@@ -48,7 +56,9 @@ CPUGateActions["logic-or"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["logic-nand"] = {
+  order = i,
   name = "NAND",
   inputs = {"A", "B"},
 	output = function(gate, A, B)
@@ -60,7 +70,9 @@ CPUGateActions["logic-nand"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["logic-nor"] = {
+  order = i,
   name = "NOR",
   inputs = {"A", "B"},
 	output = function(gate, A, B)
@@ -72,7 +84,9 @@ CPUGateActions["logic-nor"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["logic-xor"] = {
+  order = i,
   name = "XOR",
   inputs = {"A", "B"},
 	output = function(gate, A, B)
@@ -84,7 +98,9 @@ CPUGateActions["logic-xor"] = {
 	end
 }
 
+i = i + 1
 CPUGateActions["logic-xnor"] = {
+  order = i,
   name = "XNOR",
   inputs = {"A", "B"},
 	output = function(gate, A, B)
