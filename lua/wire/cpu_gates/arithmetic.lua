@@ -73,3 +73,43 @@ CPUGateActions["arithmetic-full-subtractor"] = {
     end
 	end
 }
+
+i = i + 1
+CPUGateActions["arithmetic-4-bit-adder"] = {
+  order = i,
+  name = "4-bit Adder",
+  inputs = {"A", "B", "Carry"},
+  outputs = {"Sum", "Carry"},
+  output = function(gate, A, B, C)
+    local v = bit.band(A, 15) + bit.band(B, 15) + (C ~= 0 and 1 or 0)
+
+    return bit.band(v, 15), v > 15 and 1 or 0
+	end
+}
+
+
+i = i + 1
+CPUGateActions["arithmetic-8-bit-adder"] = {
+  order = i,
+  name = "8-bit Adder",
+  inputs = {"A", "B", "Carry"},
+  outputs = {"Sum", "Carry"},
+  output = function(gate, A, B, C)
+    local v = bit.band(A, 255) + bit.band(B, 255) + (C ~= 0 and 1 or 0)
+
+    return bit.band(v, 255), v > 255 and 1 or 0
+	end
+}
+
+i = i + 1
+CPUGateActions["arithmetic-16-bit-adder"] = {
+  order = i,
+  name = "16-bit Adder",
+  inputs = {"A", "B", "Carry"},
+  outputs = {"Sum", "Carry"},
+  output = function(gate, A, B, C)
+    local v = bit.band(A, 65535) + bit.band(B, 65535) + (C ~= 0 and 1 or 0)
+
+    return bit.band(v, 65535), v > 65535 and 1 or 0
+	end
+}
