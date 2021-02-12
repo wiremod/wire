@@ -8,6 +8,7 @@ FPGA Entity:
 
   Bugs:
     Sometimes average spikes
+    superjaja05 - very weird bug where editor loses focus when clicked outside of
     
   Test:
     Check for errors during compilation (Hasnt been tested, but is implemented now)

@@ -943,6 +943,8 @@ end
 
 --EVENTS
 function Editor:OnMousePressed(code)
+  self:RequestFocus() --Fix for weird bug, remove once resolved
+
 	if code == MOUSE_LEFT then
     self.MouseDown = true
 
