@@ -662,9 +662,17 @@ function ENT:Run(changedNodes)
   -----------------------------------------
   --EXECUTION
   -----------------------------------------
+  local loopCount = 0
   local loopDetectionNodeId = nil
   local loopDetectionSize = 0
   while #nodeQueue > 0 do
+    loopCount = loopCount + 1
+    if loopCount > 50000 then
+      self.timepeak = SysTime() - bench
+      self.timebench = self.timepeak
+      self:ThrowExecutionError("stuck in loop for too long", "stuck in loop")
+      return
+    end
     if self.Debug then 
       print()
       print(table.ToString(nodeQueue, "nodeQueue", false))
@@ -733,6 +741,8 @@ function ENT:Run(changedNodes)
 
       if self.Debug then print(table.ToString(self.Values[nodeId], "", false)) end
 
+      loopDetectionNodeId = nil
+
       --output logic
       if gate.isOutput then
         if self.Debug then print(node.ioName .. " outputs " .. table.ToString(self.Values[nodeId], "", false)) end
@@ -742,9 +752,6 @@ function ENT:Run(changedNodes)
         value = self:CalculateNode(node, nodeId, gate)
       end
     end
-
-    loopDetectionNodeId = nil
-
 
     if self.Debug then print(table.ToString(value, "output", false)) end
 
