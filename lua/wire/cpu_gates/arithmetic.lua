@@ -78,8 +78,8 @@ i = i + 1
 CPUGateActions["arithmetic-4-bit-adder"] = {
   order = i,
   name = "4-bit Adder",
-  inputs = {"A", "B", "Carry"},
-  outputs = {"Sum", "Carry"},
+  inputs = {"[4-bit] A", "[4-bit] B", "Carry"},
+  outputs = {"Sum [4-bit]", "Carry"},
   output = function(gate, A, B, C)
     local v = bit.band(A, 15) + bit.band(B, 15) + (C ~= 0 and 1 or 0)
 
@@ -92,8 +92,8 @@ i = i + 1
 CPUGateActions["arithmetic-8-bit-adder"] = {
   order = i,
   name = "8-bit Adder",
-  inputs = {"A", "B", "Carry"},
-  outputs = {"Sum", "Carry"},
+  inputs = {"[8-bit] A", "[8-bit] B", "Carry"},
+  outputs = {"Sum [8-bit]", "Carry"},
   output = function(gate, A, B, C)
     local v = bit.band(A, 255) + bit.band(B, 255) + (C ~= 0 and 1 or 0)
 
@@ -105,8 +105,8 @@ i = i + 1
 CPUGateActions["arithmetic-16-bit-adder"] = {
   order = i,
   name = "16-bit Adder",
-  inputs = {"A", "B", "Carry"},
-  outputs = {"Sum", "Carry"},
+  inputs = {"[16-bit] A", "[16-bit] B", "Carry"},
+  outputs = {"Sum [16-bit]", "Carry"},
   output = function(gate, A, B, C)
     local v = bit.band(A, 65535) + bit.band(B, 65535) + (C ~= 0 and 1 or 0)
 
