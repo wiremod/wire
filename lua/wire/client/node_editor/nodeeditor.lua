@@ -944,6 +944,15 @@ function Editor:PasteNodes(x, y)
       connections = {}
     }
 
+    local gate = self:GetGate(copyNode)
+    if gate.isInput then
+      nodeCopy.ioName = copyNode.ioName
+    elseif gate.isOutput then
+      nodeCopy.ioName = copyNode.ioName
+    elseif gate.isConstant then
+      nodeCopy.value = copyNode.value
+    end
+
     for inputNum, connection in pairs(copyNode.connections) do
       nodeCopy.connections[inputNum] = {nodeIdLookup[connection[1]], connection[2]}
     end
