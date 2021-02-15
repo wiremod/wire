@@ -20,11 +20,8 @@ FPGA Tool:
 
 FPGA Gates:
   Add CPU related gates (PC, various ALUs, ADDERS, etc)
-    Program counter
     Full ALU? might be too much
-    Register
 
-    4/8/16 bit increment
 
 
 ######################LATER##############################
