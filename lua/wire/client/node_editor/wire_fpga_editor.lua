@@ -1028,6 +1028,24 @@ function Editor:ExtractName()
   return
 end
 
+function Editor:ClearCopyData()
+  self.copyBuffer = nil
+  self.copyOffset = nil
+end
+
+function Editor:SetCopyData(buffer, offset)
+  self.copyBuffer = buffer
+  self.copyOffset = offset
+end
+
+function Editor:GetCopyData()
+  if self.copyBuffer then
+    return {self.copyBuffer, self.copyOffset}
+  else
+    return {nil, nil}
+  end
+end
+
 function Editor:SetData(data)
   self:GetCurrentEditor():SetData(data)
   self.savebuffer = self:GetData()

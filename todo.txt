@@ -5,46 +5,25 @@ FPGA Entity:
     2 inputs with same name should just share input point
     Timed empty gate
     Double click on input/output to drag from them all
+    Add labels / titles
 
   Bugs:
-    Sometimes average spikes
-    superjaja05 - very weird bug where editor loses focus when clicked outside of
-    
-  Test:
-    Check for errors during compilation (Hasnt been tested, but is implemented now)
-      Check that gates exist
-      Check for out of bounds input/output
-      Type Check
-      Check that connections are valid (that the destination node exists)
-      Check if gate is banned..?
-
-
+    Superjaja focus bug
+  
 
 FPGA Tool:
   FPGA Editor:
     Features:
-      Global copy paste buffer
-      Grid
-
-    Bugs:
-      Error if renaming open file, and trying to refresh
-
-    Feedback:
-      Feedback on writing wrong format (angle, vector)
+      Grid     
 
 
 FPGA Gates:
   Add CPU related gates (PC, various ALUs, ADDERS, etc)
-    Adder / Half Adder
     Program counter
     Full ALU? might be too much
     Register
 
     4/8/16 bit increment
-    4/8/16 bit not
-    4/8/16 bit and
-    4/8/16 bit or
-    4/8/16 bit xor
 
 
 ######################LATER##############################
@@ -59,14 +38,23 @@ FPGA Entity:
       Define ranges that memory is routed through
       Or single values
       How to signify that a link is highspeed? Pseudo type?
-
-
-  (Entity spikes after amount of time and errors)
-      Fixed by removing spike limit, as it seems unavoidable
-      This is probably why E2 limits OPS and not time
       
   Add e2 commands that can find fpgas
       check performance use
+
+  Bugs:
+    (Entity spikes after amount of time and errors)
+      Fixed by removing spike limit, as it seems unavoidable
+      This is probably why E2 limits OPS and not time
+    Sometimes average spikes (made average less harsh)
+
+  Test:
+    Check for errors during compilation (Hasnt been tested, but is implemented now)
+      Check that gates exist
+      Check for out of bounds input/output
+      Type Check
+      Check that connections are valid (that the destination node exists)
+      Check if gate is banned..?
 
 
 FPGA Tool:
@@ -78,6 +66,13 @@ FPGA Tool:
     Shortcuts?
     Undo
     Improve the guide on how to use
+
+    Feedback on writing wrong format (angle, vector)
+
+    Bugs:
+      Error if renaming open file, and trying to refresh
+
+
     
 
 FPGA Gates:

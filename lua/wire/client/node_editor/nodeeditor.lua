@@ -40,8 +40,6 @@ function Editor:Init()
 
   self.DrawingSelection = nil
   self.SelectedNodes = {}
-  self.CopyBuffer = {}
-  self.CopyOffset = nil
 
   self.LastMousePos = {0, 0}
   self.MouseDown = false
@@ -64,6 +62,10 @@ function Editor:Init()
   self:InitComponents()
 
   --MsgC(Color(0, 150, 255), table.ToString(GateActions, "Gate Actions", true))
+end
+
+function Editor:GetParent()
+  return self.parentpanel
 end
 
 surface.CreateFont( "NodeName", {
@@ -879,8 +881,8 @@ function Editor:CopyNodes(nodeIds)
   end
 
   local nodeAmount = table.Count(nodeIds)
-  self.CopyOffset = {0, 0}
-  self.CopyBuffer = {}
+  local copyBuffer = {}
+  local copyOffset = {0, 0}
   for nodeId, _ in pairs(nodeIds) do
     local node = self.Nodes[nodeId]
     local gate = self:GetGate(node) 
@@ -907,17 +909,25 @@ function Editor:CopyNodes(nodeIds)
       end
     end
 
-    table.insert(self.CopyBuffer, nodeCopy)
+    table.insert(copyBuffer, nodeCopy)
 
-    self.CopyOffset = {self.CopyOffset[1] + node.x / nodeAmount, self.CopyOffset[2] + node.y / nodeAmount}
+    copyOffset = {copyOffset[1] + node.x / nodeAmount, copyOffset[2] + node.y / nodeAmount}
   end
+
+  self:GetParent():SetCopyData(copyBuffer, copyOffset)
 end
 
 function Editor:PasteNodes(x, y)
+  local copyData = self:GetParent():GetCopyData()
+  local copyBuffer = copyData[1]
+  local copyOffset = copyData[2]
+
+  if not copyBuffer then return end
+
   local nodeIdLookup = {}
   self.SelectedNodes = {}
   local i = #self.Nodes + 1
-  for copyNodeId, _ in pairs(self.CopyBuffer) do
+  for copyNodeId, _ in pairs(copyBuffer) do
     while self.Nodes[i] do
       i = i + 1
     end
@@ -927,18 +937,22 @@ function Editor:PasteNodes(x, y)
     i = i + 1
   end
 
-  for copyNodeId, copyNode in pairs(self.CopyBuffer) do
+  for copyNodeId, copyNode in pairs(copyBuffer) do
+    local nodeCopy = {
+      type = copyNode.type,
+      gate = copyNode.gate,
+      connections = {}
+    }
+
     for inputNum, connection in pairs(copyNode.connections) do
-      connection[1] = nodeIdLookup[connection[1]]
+      nodeCopy.connections[inputNum] = {nodeIdLookup[connection[1]], connection[2]}
     end
 
-    copyNode.x = (copyNode.x - self.CopyOffset[1]) + x
-    copyNode.y = (copyNode.y - self.CopyOffset[2]) + y
+    nodeCopy.x = (copyNode.x - copyOffset[1]) + x
+    nodeCopy.y = (copyNode.y - copyOffset[2]) + y
 
-    self.Nodes[nodeIdLookup[copyNodeId]] = copyNode
+    self.Nodes[nodeIdLookup[copyNodeId]] = nodeCopy
   end
-
-  self.CopyBuffer = {}
 end
 
 --EVENTS
@@ -1078,14 +1092,12 @@ function Editor:OnKeyCodePressed(code)
       if table.Count(self.SelectedNodes) > 0 then
         self:CopyNodes(self.SelectedNodes)
       else
-        self.CopyBuffer = {}
+        self:GetParent():ClearCopyData()
       end
     elseif code == KEY_V then
       --Paste
-      if table.Count(self.CopyBuffer) > 0 then
-        local gx, gy = self:ScrToPos(x, y)
-        self:PasteNodes(gx, gy)
-      end
+      local gx, gy = self:ScrToPos(x, y)
+      self:PasteNodes(gx, gy)
     end
   elseif code == KEY_X then
     --Delete
