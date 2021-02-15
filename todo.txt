@@ -7,6 +7,8 @@ FPGA Entity:
     Double click on input/output to drag from them all
     Add labels / titles
 
+    Add options to editor
+
   Bugs:
     Superjaja focus bug
   

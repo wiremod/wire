@@ -58,6 +58,9 @@ function Editor:Init()
   self.TimedNodeColor = Color(110, 70, 70, 255)
   self.SelectedNodeColor = Color(150, 150, 100, 255)
 
+  self.ZoomHideThreshold = 2
+  self.ZoomThreshold = 7
+
   self.C = {}
   self:InitComponents()
 
@@ -69,7 +72,7 @@ function Editor:GetParent()
 end
 
 surface.CreateFont( "NodeName", {
-  font = "Arial",
+  font = "Verdana",
   extended = false,
   size = 16,
   weight = 500,
@@ -86,10 +89,44 @@ surface.CreateFont( "NodeName", {
   outline = false,
 })
 surface.CreateFont( "IO", {
-  font = "Arial",
+  font = "Verdana",
   extended = false,
-  size = 13,
+  size = 12,
   weight = 500,
+  blursize = 0,
+  scanlines = 0,
+  antialias = true,
+  underline = false,
+  italic = false,
+  strikeout = false,
+  symbol = false,
+  rotary = false,
+  shadow = false,
+  additive = false,
+  outline = false,
+})
+surface.CreateFont( "NodeNameBig", {
+  font = "Verdana",
+  extended = false,
+  size = 20,
+  weight = 1000,
+  blursize = 0,
+  scanlines = 0,
+  antialias = true,
+  underline = false,
+  italic = false,
+  strikeout = false,
+  symbol = false,
+  rotary = false,
+  shadow = false,
+  additive = false,
+  outline = false,
+})
+surface.CreateFont( "IOBig", {
+  font = "Verdana",
+  extended = false,
+  size = 18,
+  weight = 200,
   blursize = 0,
   scanlines = 0,
   antialias = true,
@@ -568,18 +605,22 @@ function Editor:PaintInput(x, y, type, name, ioSize)
   surface.SetDrawColor(TypeColor[type])
   surface.DrawRect(x, y, ioSize*2, ioSize)
 
-  local tx, ty = surface.GetTextSize(name)
-  surface.SetTextPos(x-tx-ioSize*0.3, y+ioSize/2-ty/2) 
-  surface.DrawText(name)
+  if (self.Zoom > self.ZoomHideThreshold) then
+    local tx, ty = surface.GetTextSize(name)
+    surface.SetTextPos(x-tx-ioSize*0.3, y+ioSize/2-ty/2) 
+    surface.DrawText(name)
+  end
 end
 
 function Editor:PaintOutput(x, y, type, name, ioSize)
   surface.SetDrawColor(TypeColor[type])
   surface.DrawRect(x, y, ioSize*2, ioSize)
 
-  local tx, ty = surface.GetTextSize(name)
-  surface.SetTextPos(x+ioSize*2.3, y+ioSize/2-ty/2) 
-  surface.DrawText(name)
+  if (self.Zoom > self.ZoomHideThreshold) then
+    local tx, ty = surface.GetTextSize(name)
+    surface.SetTextPos(x+ioSize*2.3, y+ioSize/2-ty/2) 
+    surface.DrawText(name)
+  end
 end
 
 function Editor:PaintNode(nodeId, node)
@@ -600,9 +641,14 @@ function Editor:PaintNode(nodeId, node)
   local ioSize = self.Zoom * self.IOSize
   
   -- Inputs
-  surface.SetFont("IO")
+  if (self.Zoom > self.ZoomThreshold) then
+    surface.SetFont("IOBig")
+  else
+    surface.SetFont("IO")
+  end
   surface.SetTextColor(255, 255, 255)
 
+  
   if gate.inputs then
     for inputNum, inputName in pairs(gate.inputs) do
       local nx = x - size/2 - ioSize
@@ -646,23 +692,30 @@ function Editor:PaintNode(nodeId, node)
   surface.DrawRect(x-size/2, y-size/2, size, size * height)
 
   -- Name
-  surface.SetFont("NodeName")
+  if (self.Zoom > self.ZoomThreshold) then
+    surface.SetFont("NodeNameBig")
+  else
+    surface.SetFont("NodeName")
+  end
   surface.SetTextColor(255, 255, 255)
-  local tx, ty = surface.GetTextSize(gate.name)
-	surface.SetTextPos(x-tx/2, y-ty/2-size/1.2) 
-  surface.DrawText(gate.name)
-
-  -- Input
-  if node.ioName then
-    local tx, ty = surface.GetTextSize(node.ioName)
-    surface.SetTextPos(x-tx/2, y-ty/2+size/1.2) 
-    surface.DrawText(node.ioName)
-  -- Constant
-  elseif node.value then
-    local s = tostring(node.value)
-    local tx, ty = surface.GetTextSize(s)
-    surface.SetTextPos(x-tx/2, y-ty/2+size/1.2) 
-    surface.DrawText(s)
+  if (self.Zoom > self.ZoomHideThreshold) then
+    local tx, ty = surface.GetTextSize(gate.name)
+    surface.SetTextPos(x-tx/2, y-ty/2-size/1.2) 
+    surface.DrawText(gate.name)
+  
+    surface.SetTextColor(180, 180, 180)
+    -- Input
+    if node.ioName then
+      local tx, ty = surface.GetTextSize(node.ioName)
+      surface.SetTextPos(x-tx/2, y-ty/2+size/1.2) 
+      surface.DrawText(node.ioName)
+    -- Constant
+    elseif node.value then
+      local s = tostring(node.value)
+      local tx, ty = surface.GetTextSize(s)
+      surface.SetTextPos(x-tx/2, y-ty/2+size/1.2) 
+      surface.DrawText(s)
+    end
   end
 end
 
