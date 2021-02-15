@@ -4,7 +4,6 @@ FPGA Entity:
     Only trigger if output changed (is this possible?)
     2 inputs with same name should just share input point
     Timed empty gate
-    Double click on input/output to drag from them all
     Add labels / titles
 
     Add options to editor

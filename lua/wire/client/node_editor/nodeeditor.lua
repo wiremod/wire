@@ -806,19 +806,37 @@ function Editor:Paint()
   end
   -- drawing a connection
   if self.DrawingConnection then
-    local x, y = 0, 0
-    local type = "NORMAL"
-    if self.DrawingFromInput then
-      x, y = self:NodeInputPos(self.Nodes[self.DrawingConnectionFrom[1]], self.DrawingConnectionFrom[2])
-      type = self:GetInputType(self:GetGate(self.Nodes[self.DrawingConnectionFrom[1]]), self.DrawingConnectionFrom[2])
-    elseif self.DrawingFromOutput then
-      x, y = self:NodeOutputPos(self.Nodes[self.DrawingConnectionFrom[1]], self.DrawingConnectionFrom[2])
-      type = self:GetOutputType(self:GetGate(self.Nodes[self.DrawingConnectionFrom[1]]), self.DrawingConnectionFrom[2])
+    local nodeId = self.DrawingConnectionFrom[1]
+    local node = self.Nodes[nodeId]
+    local gate = self:GetGate(node)
+
+    local drawingConnectionFrom = {self.DrawingConnectionFrom[2]}
+    local selectedPort = self.DrawingConnectionFrom[2]
+    if self.DrawingConnectionAll then
+      drawingConnectionFrom = {}
+      local ports
+      if self.DrawingFromInput then ports = gate.inputs
+      elseif self.DrawingFromOutput then ports = gate.outputs or {"Out"} end
+      for portNum, portName in pairs(ports) do
+        drawingConnectionFrom[portNum] = portNum
+      end
     end
-    local sx, sy = self:PosToScr(x, y)
-    local mx, my = self:CursorPos()
-    surface.SetDrawColor(TypeColor[type])
-    surface.DrawLine(sx, sy, mx, my)
+
+    local x, y = 0, 0
+    for _, inputNum in pairs(drawingConnectionFrom) do
+      local type = "NORMAL"
+      if self.DrawingFromInput then
+        x, y = self:NodeInputPos(node, inputNum)
+        type = self:GetInputType(gate, inputNum)
+      elseif self.DrawingFromOutput then
+        x, y = self:NodeOutputPos(node, inputNum)
+        type = self:GetOutputType(gate, inputNum)
+      end
+      local sx, sy = self:PosToScr(x, y)
+      local mx, my = self:CursorPos()
+      surface.SetDrawColor(TypeColor[type])
+      surface.DrawLine(sx, sy, mx, my + (inputNum-selectedPort) * self.GateSize * self.Zoom)
+    end
   end
   -- selecting
   if self.DrawingSelection then
@@ -846,34 +864,6 @@ function Editor:PaintDebug()
 end
 
 --ACTIONS
-function Editor:BeginDrawingConnection(nodeId, inputNum, outputNum)
-  if inputNum then
-    --check if something is connected to this input
-    node = self.Nodes[nodeId]
-    Input = node.connections[inputNum]
-
-    --Input already connected
-    if Input then
-      local connectedNode, connectedOutput = Input[1], Input[2]
-      node.connections[inputNum] = nil
-      self.DrawingConnectionFrom = {connectedNode, connectedOutput}
-      self.DrawingFromOutput = true
-    else 
-      --input not connected
-      self.DrawingConnectionFrom = {nodeId, inputNum}
-      self.DrawingFromInput = true
-    end
-    
-    self.DrawingConnection = true
-  end
-
-  if outputNum then
-    self.DrawingConnection = true
-    self.DrawingFromOutput = true
-    self.DrawingConnectionFrom = {nodeId, outputNum}
-  end
-end
-
 function Editor:GetInputName()
   self.InputNameCounter = self.InputNameCounter + 1
   return "In" .. self.InputNameCounter
@@ -1024,6 +1014,13 @@ function Editor:OnMousePressed(code)
 	if code == MOUSE_LEFT then
     self.MouseDown = true
 
+    --double click detection
+    local doubleClick
+    if self.LastClick then
+      doubleClick = SysTime() - self.LastClick < 0.3
+    else doubleClick = false end
+    self.LastClick = SysTime()
+
     local x, y = self:CursorPos()
 
     --NODE DRAGGING
@@ -1036,11 +1033,11 @@ function Editor:OnMousePressed(code)
       --CONNECTION DRAWING
       local nodeId, inputNum = self:GetNodeInputAt(x, y)
       if nodeId then
-        self:BeginDrawingConnection(nodeId, inputNum, nil)
+        self:BeginDrawingConnection(nodeId, inputNum, nil, doubleClick)
       else
         local nodeId, outputNum = self:GetNodeOutputAt(x, y)
         if nodeId then
-          self:BeginDrawingConnection(nodeId, nil, outputNum)
+          self:BeginDrawingConnection(nodeId, nil, outputNum, doubleClick)
         else
           --SELECTION DRAWING
           local gx, gy = self:ScrToPos(x, y)
@@ -1074,6 +1071,37 @@ function Editor:OnMouseReleased(code)
   
 end
 
+function Editor:BeginDrawingConnection(nodeId, inputNum, outputNum, doubleClick)
+  self.DrawingConnectionAll = doubleClick
+
+  if inputNum then
+    --check if something is connected to this input
+    node = self.Nodes[nodeId]
+    Input = node.connections[inputNum]
+
+    --Input already connected
+    if Input then
+      local connectedNode, connectedOutput = Input[1], Input[2]
+      node.connections[inputNum] = nil
+      self.DrawingConnectionFrom = {connectedNode, connectedOutput}
+      self.DrawingFromOutput = true
+      self.DrawingConnectionAll = false
+    else 
+      --input not connected
+      self.DrawingConnectionFrom = {nodeId, inputNum}
+      self.DrawingFromInput = true
+    end
+    
+    self.DrawingConnection = true
+  end
+
+  if outputNum then
+    self.DrawingConnection = true
+    self.DrawingFromOutput = true
+    self.DrawingConnectionFrom = {nodeId, outputNum}
+  end
+end
+
 function Editor:OnDrawSelectionFinished(x, y)
   local gx, gy = self.DrawingSelection[1], self.DrawingSelection[2]
   local mx, my = self:CursorPos()
@@ -1096,38 +1124,92 @@ function Editor:OnDrawSelectionFinished(x, y)
 end
 
 function Editor:OnDrawConnectionFinished(x, y)
-  if self.DrawingFromOutput then
-    local nodeId, inputNum = self:GetNodeInputAt(x, y)
+  local fromNodeId = self.DrawingConnectionFrom[1]
+  local fromNode = self.Nodes[fromNodeId]
+  local fromGate = self:GetGate(fromNode)
 
-    if nodeId then
-      local inputNode = self.Nodes[nodeId]
-      local outputNode = self.Nodes[self.DrawingConnectionFrom[1]]
-      --check type
-      local inputType = self:GetInputType(self:GetGate(inputNode), inputNum)
-      local outputType = self:GetOutputType(self:GetGate(outputNode), self.DrawingConnectionFrom[2])
+  local drawingConnectionFrom = {self.DrawingConnectionFrom[2]}
+  local selectedPort = self.DrawingConnectionFrom[2]
+  if self.DrawingConnectionAll then
+    drawingConnectionFrom = {}
+    local ports
+    if self.DrawingFromInput then ports = fromGate.inputs
+    elseif self.DrawingFromOutput then ports = fromGate.outputs or {"Out"} end
+    for portNum, _ in pairs(ports) do
+      drawingConnectionFrom[portNum] = portNum
+    end
+  end
 
-      if inputType == outputType and inputNode != outputNode then
-        --connect up
-        inputNode.connections[inputNum] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
-      end
+  local inputNode = fromNode
+  local outputNodeId = fromNodeId
+  local outputNode = fromNode
+  for _, portNum in pairs(drawingConnectionFrom) do
+    local nodeId, inputNum, outputNum
+    if self.DrawingFromOutput then
+      nodeId, inputNum = self:GetNodeInputAt(x, y + (portNum-selectedPort) * self.GateSize * self.Zoom)
+      outputNum = portNum
+    elseif self.DrawingFromInput then
+      nodeId, outputNum = self:GetNodeOutputAt(x, y + (portNum-selectedPort) * self.GateSize * self.Zoom)
+      inputNum = portNum
     end
 
-  elseif self.DrawingFromInput then
-    local nodeId, outputNum = self:GetNodeOutputAt(x, y)
-
     if nodeId then
-      local inputNode = self.Nodes[self.DrawingConnectionFrom[1]]
-      local outputNode = self.Nodes[nodeId]
+      if self.DrawingFromOutput then
+        inputNode = self.Nodes[nodeId]
+      elseif self.DrawingFromInput then
+        outputNode = self.Nodes[nodeId]
+        outputNodeId = nodeId
+      end
+
       --check type
-      local inputType = self:GetInputType(self:GetGate(inputNode), self.DrawingConnectionFrom[2])
-      local outputType = self:GetOutputType(self:GetGate(outputNode), outputNum)
+      local inputType, outputType
+      if self.DrawingFromOutput then
+        inputType = self:GetInputType(self:GetGate(inputNode), inputNum)
+        outputType = self:GetOutputType(fromGate, outputNum)
+      elseif self.DrawingFromInput then
+        inputType = self:GetInputType(fromGate, inputNum)
+        outputType = self:GetOutputType(self:GetGate(outputNode), outputNum)
+      end
 
       if inputType == outputType and inputNode != outputNode then
         --connect up
-        inputNode.connections[self.DrawingConnectionFrom[2]] =  {nodeId, outputNum}
+        inputNode.connections[inputNum] = {outputNodeId, outputNum}
       end
     end
   end
+
+  -- if self.DrawingFromOutput then
+  --   local nodeId, inputNum = self:GetNodeInputAt(x, y)
+
+  --   if nodeId then
+  --     local inputNode = self.Nodes[nodeId]
+  --     local outputNode = self.Nodes[self.DrawingConnectionFrom[1]]
+  --     --check type
+  --     local inputType = self:GetInputType(self:GetGate(inputNode), inputNum)
+  --     local outputType = self:GetOutputType(self:GetGate(outputNode), self.DrawingConnectionFrom[2])
+
+  --     if inputType == outputType and inputNode != outputNode then
+  --       --connect up
+  --       inputNode.connections[inputNum] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
+  --     end
+  --   end
+
+  -- elseif self.DrawingFromInput then
+  --   local nodeId, outputNum = self:GetNodeOutputAt(x, y)
+
+  --   if nodeId then
+  --     local inputNode = self.Nodes[self.DrawingConnectionFrom[1]]
+  --     local outputNode = self.Nodes[nodeId]
+  --     --check type
+  --     local inputType = self:GetInputType(self:GetGate(inputNode), self.DrawingConnectionFrom[2])
+  --     local outputType = self:GetOutputType(self:GetGate(outputNode), outputNum)
+
+  --     if inputType == outputType and inputNode != outputNode then
+  --       --connect up
+  --       inputNode.connections[self.DrawingConnectionFrom[2]] =  {nodeId, outputNum}
+  --     end
+  --   end
+  -- end
 
   self.DrawingConnection = false
   self.DrawingFromInput = false
