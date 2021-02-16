@@ -44,7 +44,7 @@ function Editor:Init()
   self.LastMousePos = {0, 0}
   self.MouseDown = false
 
-  self.SelectedGateInMenu = nil
+  self.SelectedInMenu = nil
 
   self.GateSize = 5
   self.IOSize = 2
@@ -255,13 +255,22 @@ function Editor:InitComponents()
       node2.name = gate.name
       node2.action = action
       function node2:DoClick()
-        --editor:CreateNode(type, self.action)
-        editor.SelectedGateInMenu = {type = type, gate = self.action}
+        editor.SelectedInMenu = {type = type, gate = self.action}
       end
       node2.Icon:SetImage("icon16/newspaper.png")
     end
     tree:InvalidateLayout()
   end
+
+  --EDITOR extras
+  -- local labelNode = self.C.Tree:AddNode("Label", "icon16/text_allcaps.png")
+  -- function labelNode:DoClick()
+  --   editor.SelectedInMenu = {type = "editor", gate = self.action}
+  -- end
+  -- local commentNode = self.C.Tree:AddNode("Comment", "icon16/comment.png")
+  -- function commentNode:DoClick()
+  --   editor.SelectedInMenu = {type = "editor", gate = self.action}
+  -- end
 
   --FPGA gates
   local CategoriesSorted = {}
@@ -1259,10 +1268,10 @@ function Editor:OnKeyCodePressed(code)
     end
   elseif code == KEY_C then
     --Create
-    if self.SelectedGateInMenu then
+    if self.SelectedInMenu then
       local gx, gy = self:ScrToPos(x, y)
-      self:CreateNode(self.SelectedGateInMenu.type,
-                      self.SelectedGateInMenu.gate,
+      self:CreateNode(self.SelectedInMenu.type,
+                      self.SelectedInMenu.gate,
                       gx,
                       gy)
     end
