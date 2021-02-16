@@ -1,9 +1,9 @@
 CPUGateActions("Memory")
 local i = 1
 
-CPUGateActions["memory-program-counter"] = {
+CPUGateActions["memory-program-counter-edge-trigger"] = {
   order = i,
-  name = "Program Counter",
+  name = "Program Counter (Edge Triggered)",
   inputs = {"Increment", "Load", "LoadAddress", "Reset", "Clock"},
   outputs = {"Address"},
   output = function(gate, Increment, Load, LoadAddress, Reset, Clock)
