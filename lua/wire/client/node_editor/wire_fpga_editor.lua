@@ -1030,11 +1030,13 @@ end
 
 function Editor:ClearCopyData()
   self.copyBuffer = nil
+  self.copyBufferSize = 0
   self.copyOffset = nil
 end
 
 function Editor:SetCopyData(buffer, offset)
   self.copyBuffer = buffer
+  self.copyBufferSize = table.Count(buffer)
   self.copyOffset = offset
 end
 
@@ -1045,6 +1047,14 @@ function Editor:GetCopyData()
     return {nil, nil}
   end
 end
+
+function Editor:GetCopyDataSize()
+  if self.copyBufferSize then
+    return self.copyBufferSize
+  end
+  return 0
+end
+
 
 function Editor:SetData(data)
   self:GetCurrentEditor():SetData(data)

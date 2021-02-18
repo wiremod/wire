@@ -29,6 +29,8 @@ TypeColor = {
 function Editor:Init()
   self.Nodes = {}
 
+  self.AlignToGrid = false
+
   self.DraggingWorld = false
   self.DraggingNode = nil
   self.DraggingOffset = {0, 0}
@@ -40,6 +42,7 @@ function Editor:Init()
 
   self.DrawingSelection = nil
   self.SelectedNodes = {}
+  self.SelectedNodeCount = 0
 
   self.LastMousePos = {0, 0}
   self.MouseDown = false
@@ -240,8 +243,6 @@ function Editor:InitComponents()
   self.C.ExecuteOnTrigger:SetTextColor(Color(240,240,240,255))
   self.C.ExecuteOnTrigger:SetValue(false)
   self.C.ExecuteOnTrigger:SizeToContents()
-
-
 
   --Gate spawning
   self.C.Holder = vgui.Create("DPanel", self)
@@ -881,7 +882,7 @@ function Editor:Paint()
   if #self.Nodes == 0 then
     self:PaintHelp()
   end
-  
+
   --self:PaintDebug()
 
   -- detects if mouse is let go outside of the window
@@ -909,7 +910,7 @@ function Editor:Paint()
 
     local cx, cy = self.Nodes[self.DraggingNode].x, self.Nodes[self.DraggingNode].y
 
-    if self.SelectedNodes[self.DraggingNode] and table.Count(self.SelectedNodes) > 0 then
+    if self.SelectedNodes[self.DraggingNode] and self.SelectedNodeCount > 0 then
       for selectedNodeId, selectedNode in pairs(self.SelectedNodes) do
         local sox, soy = self.Nodes[selectedNodeId].x - cx, self.Nodes[selectedNodeId].y - cy
         self.Nodes[selectedNodeId].x = gx + sox
@@ -967,6 +968,8 @@ function Editor:Paint()
     surface.DrawOutlinedRect(x, y, w, h)
   end
 
+  self:PaintOverlay()
+
   local x, y = self:CursorPos()
   self.LastMousePos = {x, y}
 end
@@ -979,6 +982,49 @@ function Editor:PaintDebug()
   surface.SetTextPos(10, 70) 
 	surface.DrawText(self.Zoom)
 end
+
+function Editor:PaintOverlay()
+  surface.SetFont("FPGAText")
+  local y = 43
+
+  if self.AlignToGrid then
+	  surface.SetTextColor(100, 180, 255)
+    local tx, ty = surface.GetTextSize("Align to grid")
+	  surface.SetTextPos(self:GetWide()-310-tx, y) 
+    surface.DrawText("Align to grid")
+    y = y + 20
+  end
+
+  if self.SelectedNodeCount > 0 then
+    surface.SetTextColor(255, 255, 120)
+    local text = self.SelectedNodeCount
+    if self.SelectedNodeCount == 1 then 
+      text = text .. " node selected"
+    else 
+      text = text .. " nodes selected" 
+    end
+    local tx, ty = surface.GetTextSize(text)
+	  surface.SetTextPos(self:GetWide()-310-tx, y) 
+    surface.DrawText(text)
+    y = y + 20
+  end
+
+  local copyDataSize = self:GetParent():GetCopyDataSize()
+  if copyDataSize > 0 then
+    surface.SetTextColor(120, 255, 120)
+    local text = copyDataSize
+    if copyDataSize == 1 then 
+      text = text .. " node in paste buffer"
+    else 
+      text = text .. " nodes in paste buffer"
+    end
+    local tx, ty = surface.GetTextSize(text)
+	  surface.SetTextPos(self:GetWide()-310-tx, y) 
+    surface.DrawText(text)
+    y = y + 20
+  end
+end
+
 
 --ACTIONS
 function Editor:GetInputName()
@@ -1098,6 +1144,7 @@ function Editor:PasteNodes(x, y)
 
   local nodeIdLookup = {}
   self.SelectedNodes = {}
+  self.SelectedNodeCount = 0
   local i = #self.Nodes + 1
   for copyNodeId, _ in pairs(copyBuffer) do
     while self.Nodes[i] do
@@ -1106,6 +1153,7 @@ function Editor:PasteNodes(x, y)
 
     nodeIdLookup[copyNodeId] = i
     self.SelectedNodes[i] = true
+    self.SelectedNodeCount = self.SelectedNodeCount + 1
     i = i + 1
   end
 
@@ -1247,6 +1295,7 @@ function Editor:OnDrawSelectionFinished(x, y)
   local ux, uy = math.max(gx, mgx), math.max(gy, mgy)
 
   self.SelectedNodes = {}
+  self.SelectedNodeCount = 0
   for nodeId, node in pairs(self.Nodes) do
     if node.x < lx then continue end
     if node.x > ux then continue end
@@ -1254,6 +1303,7 @@ function Editor:OnDrawSelectionFinished(x, y)
     if node.y > uy then continue end
 
     self.SelectedNodes[nodeId] = true
+    self.SelectedNodeCount = self.SelectedNodeCount + 1
   end
 
   self.DrawingSelection = nil
@@ -1336,7 +1386,7 @@ function Editor:OnKeyCodePressed(code)
   if control then
     if code == KEY_C then
       --Copy
-      if table.Count(self.SelectedNodes) > 0 then
+      if self.SelectedNodeCount > 0 then
         self:CopyNodes(self.SelectedNodes)
       else
         self:GetParent():ClearCopyData()
@@ -1348,11 +1398,12 @@ function Editor:OnKeyCodePressed(code)
     end
   elseif code == KEY_X then
     --Delete
-    if table.Count(self.SelectedNodes) > 0 then
+    if self.SelectedNodeCount > 0 then
       for selectedNodeId, selectedNode in pairs(self.SelectedNodes) do
         self:DeleteNode(selectedNodeId)
       end
       self.SelectedNodes = {}
+      self.SelectedNodeCount = 0
     else
       local nodeId = self:GetNodeAt(x, y)
       if nodeId then
@@ -1394,6 +1445,8 @@ function Editor:OnKeyCodePressed(code)
         return
       end
     end
+  elseif code == KEY_G then
+    self.AlignToGrid = not self.AlignToGrid
   end
 end
 
