@@ -4,10 +4,10 @@ FPGAHelperHTML = [[
   <head>
     <style>
       body {background-color: white; margin-right: 30px;}
-      h2 {margin-bottom: 0;}
-      h3 {margin-bottom: 0;}
-      h4 {margin-bottom: 0;}
-      p {margin-top: 0;}
+      h1 {font-family: Verdana, sans-serif;}
+      h2, h3, h4 {margin-bottom: 0; font-family: Verdana, sans-serif;}
+      p {margin-top: 0; font-family: Verdana, sans-serif;}
+      th, td {font-family: Verdana, sans-serif;}
     </style>
   </head>
   <body>
@@ -63,7 +63,7 @@ FPGAHelperHTML = [[
     <div class="col" style="margin-left: 20px;">
       <table>
         <tr>
-          <th style="width: 130px;">Key</th>
+          <th style="width: 180px;">Key</th>
           <th>Effect</th>
         </tr>
         <tr>
