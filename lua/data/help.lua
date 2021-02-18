@@ -71,6 +71,10 @@ FPGAHelperHTML = [[
           <td>Used to move gates, draw connections, and draw selections</td>
         </tr>
         <tr>
+          <td>Double click</td>
+          <td>Draw connection from all the gates inputs / outputs</td>
+        </tr>
+        <tr>
           <td>Right mouse button</td>
           <td>Hold and drag mouse around to move around the internals of the FPGA</td>
         </tr>

@@ -74,7 +74,7 @@ function Editor:GetParent()
   return self.parentpanel
 end
 
-surface.CreateFont( "NodeName", {
+surface.CreateFont( "FPGAText", {
   font = "Tahoma",
   extended = false,
   size = 16,
@@ -91,7 +91,7 @@ surface.CreateFont( "NodeName", {
   additive = false,
   outline = false,
 })
-surface.CreateFont( "IO", {
+surface.CreateFont( "FPGAIO", {
   font = "Tahoma",
   extended = false,
   size = 12,
@@ -108,7 +108,7 @@ surface.CreateFont( "IO", {
   additive = false,
   outline = false,
 })
-surface.CreateFont( "NodeNameBig", {
+surface.CreateFont( "FPGATextBig", {
   font = "Tahoma",
   extended = false,
   size = 20,
@@ -125,7 +125,7 @@ surface.CreateFont( "NodeNameBig", {
   additive = false,
   outline = false,
 })
-surface.CreateFont( "IOBig", {
+surface.CreateFont( "FPGAIOBig", {
   font = "Tahoma",
   extended = false,
   size = 18,
@@ -561,11 +561,11 @@ function Editor:GetNodeAt(x, y)
       if visual.method == "text" then
         if visual.font == "auto" then
           if (self.Zoom > self.ZoomThreshold) then
-            surface.SetFont("NodeNameBig")
+            surface.SetFont("FPGATextBig")
           elseif (self.Zoom <= self.ZoomHideThreshold) then
             return
           else
-            surface.SetFont("NodeName")
+            surface.SetFont("FPGAText")
           end
         else
           surface.SetFont(visual.font)
@@ -719,9 +719,9 @@ function Editor:PaintGate(nodeId, node, gate)
   
   -- Inputs
   if (self.Zoom > self.ZoomThreshold) then
-    surface.SetFont("IOBig")
+    surface.SetFont("FPGAIOBig")
   else
-    surface.SetFont("IO")
+    surface.SetFont("FPGAIO")
   end
   surface.SetTextColor(255, 255, 255)
 
@@ -770,9 +770,9 @@ function Editor:PaintGate(nodeId, node, gate)
 
   -- Name
   if (self.Zoom > self.ZoomThreshold) then
-    surface.SetFont("NodeNameBig")
+    surface.SetFont("FPGATextBig")
   else
-    surface.SetFont("NodeName")
+    surface.SetFont("FPGAText")
   end
   surface.SetTextColor(255, 255, 255)
   if (self.Zoom > self.ZoomHideThreshold) then
@@ -803,11 +803,11 @@ function Editor:PaintEditorNode(nodeId, node, visual)
   if visual.method == "text" then
     if visual.font == "auto" then
       if (self.Zoom > self.ZoomThreshold) then
-        surface.SetFont("NodeNameBig")
+        surface.SetFont("FPGATextBig")
       elseif (self.Zoom <= self.ZoomHideThreshold) then
         return
       else
-        surface.SetFont("NodeName")
+        surface.SetFont("FPGAText")
       end
     else
       surface.SetFont(visual.font)
@@ -844,12 +844,13 @@ end
 function Editor:PaintHelp()
   local x, y = self:PosToScr(0, 0)
 
-  surface.SetFont("NodeName")
+  surface.SetFont("FPGAText")
   surface.SetTextColor(255, 255, 255)
 
   local helpText = [[Drag gates and draw selections with the right mouse button,
     and drag around the plane with the right mouse button.
-    Connect inputs and outputs by right clicking on either, and dragging to the other
+    Connect inputs and outputs by right clicking on either, and dragging to the other.
+    By double clicking on an input or output, you can draw multiple connections at once.
      
     'C' creates a gate at the cursor position (select which gate on the right menu)
     'X' deletes the gate under the cursor (or with a selection, deletes all selected gates)
