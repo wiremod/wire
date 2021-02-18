@@ -49,7 +49,7 @@ function Editor:Init()
   self.GateSize = 5
   self.IOSize = 2
 
-  self.BackgroundColor = Color(32, 32, 32, 255)
+  self.BackgroundColor = Color(26, 26, 26, 255)
   self.SelectionColor = Color(220, 220, 100, 255)
   
   self.NodeColor = Color(100, 100, 100, 255)
@@ -780,7 +780,7 @@ function Editor:PaintGate(nodeId, node, gate)
     surface.SetTextPos(x-tx/2, y-ty/2-size/1.2) 
     surface.DrawText(gate.name)
   
-    surface.SetTextColor(180, 180, 180)
+    surface.SetTextColor(200, 200, 200)
     -- Input
     if node.ioName then
       local tx, ty = surface.GetTextSize(node.ioName)
