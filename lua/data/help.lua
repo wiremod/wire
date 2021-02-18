@@ -91,6 +91,10 @@ FPGAHelperHTML = [[
           <td>Edits a property of the gate under the cursor. Applicable for Input, Output and Constant gates</td>
         </tr>
         <tr>
+          <td>G</td>
+          <td>Toggles align to grid</td>
+        </tr>
+        <tr>
           <td>Ctrl C</td>
           <td>Copies the selected gates</td>
         </tr>

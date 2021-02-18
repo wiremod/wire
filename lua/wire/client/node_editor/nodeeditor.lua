@@ -521,6 +521,10 @@ function Editor:ScrToPos(x, y)
   return self.Position[1] - ((self:GetWide()-300)/2 - x) / self.Zoom, self.Position[2] - (self:GetTall()/2 - y) / self.Zoom
 end
 
+function Editor:AlignPosToGrid(x, y)
+  return math.Round(x / self.GateSize) * self.GateSize, math.Round(y / self.GateSize) * self.GateSize
+end
+
 function Editor:NodeInputPos(node, input)
   return node.x - self.GateSize/2 - self.IOSize/2, node.y + (input - 1) * self.GateSize
 end
@@ -856,6 +860,7 @@ function Editor:PaintHelp()
     'C' creates a gate at the cursor position (select which gate on the right menu)
     'X' deletes the gate under the cursor (or with a selection, deletes all selected gates)
     'E' edits the gate under the cursor (input/output names, constant values)
+    'G' toggles align to grid
 
     'Ctrl + C' copies the selected gates (relative to mouse position)
     'Ctrl + V' pastes the copied gates (relative to mouse position)
@@ -907,6 +912,11 @@ function Editor:Paint()
     local gx, gy = self:ScrToPos(x, y)
     gx = gx + self.DraggingOffset[1]
     gy = gy + self.DraggingOffset[2]
+
+    if self.AlignToGrid then
+      gx, gy = self:AlignPosToGrid(gx, gy)
+    end
+      
 
     local cx, cy = self.Nodes[self.DraggingNode].x, self.Nodes[self.DraggingNode].y
 
@@ -1046,6 +1056,10 @@ function Editor:CreateNode(selectedInMenu, x, y)
     y = y,
     connections = {}
   }
+
+  if self.AlignToGrid then
+    node.x, node.y = self:AlignPosToGrid(node.x, node.y)
+  end
 
   if selectedInMenu.gate then
     local gateInfo = self:GetGate(node)
