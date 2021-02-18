@@ -58,6 +58,9 @@ function Editor:Init()
   self.TimedNodeColor = Color(110, 70, 70, 255)
   self.SelectedNodeColor = Color(150, 150, 100, 255)
 
+  self.VisualTextColor = Color(255, 255, 255, 255)
+  self.SelectedVisualTextColor = Color(255, 255, 150, 255)
+
   self.ZoomHideThreshold = 2
   self.ZoomThreshold = 7
 
@@ -72,7 +75,7 @@ function Editor:GetParent()
 end
 
 surface.CreateFont( "NodeName", {
-  font = "Verdana",
+  font = "Tahoma",
   extended = false,
   size = 16,
   weight = 500,
@@ -89,7 +92,7 @@ surface.CreateFont( "NodeName", {
   outline = false,
 })
 surface.CreateFont( "IO", {
-  font = "Verdana",
+  font = "Tahoma",
   extended = false,
   size = 12,
   weight = 500,
@@ -106,7 +109,7 @@ surface.CreateFont( "IO", {
   outline = false,
 })
 surface.CreateFont( "NodeNameBig", {
-  font = "Verdana",
+  font = "Tahoma",
   extended = false,
   size = 20,
   weight = 1000,
@@ -123,7 +126,7 @@ surface.CreateFont( "NodeNameBig", {
   outline = false,
 })
 surface.CreateFont( "IOBig", {
-  font = "Verdana",
+  font = "Tahoma",
   extended = false,
   size = 18,
   weight = 200,
@@ -132,6 +135,23 @@ surface.CreateFont( "IOBig", {
   antialias = true,
   underline = false,
   italic = false,
+  strikeout = false,
+  symbol = false,
+  rotary = false,
+  shadow = false,
+  additive = false,
+  outline = false,
+})
+surface.CreateFont( "FPGALabel", {
+  font = "Bahnschrift",
+  extended = false,
+  size = 25,
+  weight = 1000,
+  blursize = 0,
+  scanlines = 0,
+  antialias = true,
+  underline = false,
+  italic = true,
   strikeout = false,
   symbol = false,
   rotary = false,
@@ -263,14 +283,14 @@ function Editor:InitComponents()
   end
 
   --EDITOR extras
-  -- local labelNode = self.C.Tree:AddNode("Label", "icon16/text_allcaps.png")
-  -- function labelNode:DoClick()
-  --   editor.SelectedInMenu = {type = "editor", gate = self.action}
-  -- end
-  -- local commentNode = self.C.Tree:AddNode("Comment", "icon16/comment.png")
-  -- function commentNode:DoClick()
-  --   editor.SelectedInMenu = {type = "editor", gate = self.action}
-  -- end
+  local labelNode = self.C.Tree:AddNode("Label", "icon16/text_allcaps.png")
+  function labelNode:DoClick()
+    this.SelectedInMenu = {type = "editor", visual = "label", gate = nil}
+  end
+  local commentNode = self.C.Tree:AddNode("Comment", "icon16/comment.png")
+  function commentNode:DoClick()
+    this.SelectedInMenu = {type = "editor", visual = "comment", gate = nil}
+  end
 
   --FPGA gates
   local CategoriesSorted = {}
@@ -427,7 +447,8 @@ function Editor:SetData(data)
   self.OutputNameCounter = 0
   for nodeId, node in pairs(self.Nodes) do
     local gate = self:GetGate(node)
-    if not gate then self:DeleteNode(nodeId)
+    if node.visual then
+    elseif not gate then self:DeleteNode(nodeId)
     elseif gate.isInput then self.InputNameCounter = self.InputNameCounter + 1
     elseif gate.isOutput then self.OutputNameCounter = self.OutputNameCounter + 1 end
   end
@@ -450,6 +471,18 @@ function Editor:HasNodes()
   return #self.Nodes > 0
 end
 
+-- EDITOR NODE
+function Editor:GetVisual(node)
+  if node.type == "editor" then
+    if node.visual == "label" then
+      return {method = "text", font = "FPGALabel", default = "Label"}
+    elseif node.visual == "comment" then
+      return {method = "text", font = "auto", default = "Comment"}
+    end
+  end
+  return nil
+end
+
 -- GATES
 function Editor:GetGate(node)
   if node.type == "wire" then 
@@ -459,6 +492,7 @@ function Editor:GetGate(node)
   elseif node.type == "cpu" then
     return CPUGateActions[node.gate]
   end
+  return nil
 end
 
 function Editor:GetInputType(gate, inputNum)
@@ -501,21 +535,51 @@ function Editor:GetNodeAt(x, y)
   for k, node in pairs(self.Nodes) do
     local gate = self:GetGate(node)
 
-    local amountOfInputs = 0
-    if gate.inputs then
-      amountOfInputs = table.Count(gate.inputs)
-    end
-    local amountOfOutputs = 1
-    if gate.outputs then
-      amountOfOutputs = table.Count(gate.outputs)
+    if gate then
+      --gates
+      local amountOfInputs = 0
+      if gate.inputs then
+        amountOfInputs = #gate.inputs
+      end
+      local amountOfOutputs = 1
+      if gate.outputs then
+        amountOfOutputs = #gate.outputs
+      end
+
+      local height = math.max(amountOfInputs, amountOfOutputs)
+
+      if gx < node.x - self.GateSize/2 then continue end
+      if gx > node.x + self.GateSize/2 then continue end
+      if gy < node.y - self.GateSize/2 then continue end
+      if gy > node.y - self.GateSize/2 + self.GateSize*height then continue end
     end
 
-    local height = math.max(amountOfInputs, amountOfOutputs)
+    local visual = self:GetVisual(node)
+    if visual then
+      --editor nodes
+      
+      if visual.method == "text" then
+        if visual.font == "auto" then
+          if (self.Zoom > self.ZoomThreshold) then
+            surface.SetFont("NodeNameBig")
+          elseif (self.Zoom <= self.ZoomHideThreshold) then
+            return
+          else
+            surface.SetFont("NodeName")
+          end
+        else
+          surface.SetFont(visual.font)
+        end
+        local tx, ty = surface.GetTextSize(node.value)
 
-    if gx < node.x - self.GateSize/2 then continue end
-    if gx > node.x + self.GateSize/2 then continue end
-    if gy < node.y - self.GateSize/2 then continue end
-    if gy > node.y - self.GateSize/2 + self.GateSize*height then continue end
+        if gx < node.x - (tx/2)/self.Zoom then continue end
+        if gx > node.x + (tx/2)/self.Zoom then continue end
+        if gy < node.y - (ty/2)/self.Zoom then continue end
+        if gy > node.y + (ty/2)/self.Zoom then continue end
+      else
+        continue
+      end
+    end
 
     return k
   end
@@ -529,10 +593,12 @@ function Editor:GetNodeInputAt(x, y)
   for k, node in pairs(self.Nodes) do
     local gate = self:GetGate(node)
 
+    if not gate then continue end
+
     if gx < node.x - self.GateSize/2 - self.IOSize then continue end
     if gx > node.x + self.GateSize/2 + self.IOSize then continue end
     if gy < node.y - self.GateSize/2 then continue end
-    if gy > node.y - self.GateSize/2 + self.GateSize * table.Count(gate.inputs) then continue end
+    if gy > node.y - self.GateSize/2 + self.GateSize * #gate.inputs then continue end
 
     for inputNum, _ in pairs(gate.inputs) do
       local ix, iy = self:NodeInputPos(node, inputNum)
@@ -555,11 +621,13 @@ function Editor:GetNodeOutputAt(x, y)
   for k, node in pairs(self.Nodes) do
     local gate = self:GetGate(node)
 
+    if not gate then continue end
+
     if gx < node.x - self.GateSize/2 - self.IOSize then continue end
     if gx > node.x + self.GateSize/2 + self.IOSize then continue end
     if gy < node.y - self.GateSize/2 then continue end
     if gate.outputs then
-      if gy > node.y - self.GateSize/2 + self.GateSize * table.Count(gate.outputs) then continue end
+      if gy > node.y - self.GateSize/2 + self.GateSize * #gate.outputs then continue end
     else
       if gy > node.y + self.GateSize/2 then continue end
     end
@@ -605,6 +673,7 @@ end
 function Editor:PaintConnections()
   for _, node in pairs(self.Nodes) do
     local gate = self:GetGate(node)
+    if not gate then continue end
     for inputNum, connectedTo in pairs(node.connections) do
       self:PaintConnection(self.Nodes[connectedTo[1]], connectedTo[2], node, inputNum, self:GetInputType(gate, inputNum))
     end
@@ -633,16 +702,14 @@ function Editor:PaintOutput(x, y, type, name, ioSize)
   end
 end
 
-function Editor:PaintNode(nodeId, node)
-  local gate = self:GetGate(node)
-
+function Editor:PaintGate(nodeId, node, gate)
   local amountOfInputs = 0
   if gate.inputs then
-    amountOfInputs = table.Count(gate.inputs)
+    amountOfInputs = #gate.inputs
   end
   local amountOfOutputs = 1
   if gate.outputs then
-    amountOfOutputs = table.Count(gate.outputs)
+    amountOfOutputs = #gate.outputs
   end
 
   local x, y = self:PosToScr(node.x, node.y)
@@ -729,9 +796,48 @@ function Editor:PaintNode(nodeId, node)
   end
 end
 
+function Editor:PaintEditorNode(nodeId, node, visual)
+  local x, y = self:PosToScr(node.x, node.y)
+  local size = self.Zoom
+
+  if visual.method == "text" then
+    if visual.font == "auto" then
+      if (self.Zoom > self.ZoomThreshold) then
+        surface.SetFont("NodeNameBig")
+      elseif (self.Zoom <= self.ZoomHideThreshold) then
+        return
+      else
+        surface.SetFont("NodeName")
+      end
+    else
+      surface.SetFont(visual.font)
+    end
+    
+    if self.SelectedNodes[nodeId] then
+      surface.SetTextColor(self.SelectedVisualTextColor)
+    else
+      surface.SetTextColor(self.VisualTextColor)
+    end
+
+    local tx, ty = surface.GetTextSize(node.value)
+    surface.SetTextPos(x-tx/2, y-ty/2)
+
+    surface.DrawText(node.value)
+  end
+end
+
 function Editor:PaintNodes()
   for nodeId, node in pairs(self.Nodes) do
-    self:PaintNode(nodeId, node)
+    local gate = self:GetGate(node)
+    if gate then
+      self:PaintGate(nodeId, node, gate)
+      continue
+    end
+
+    local visual = self:GetVisual(node)
+    if visual then
+      self:PaintEditorNode(nodeId, node, visual)
+    end
   end
 end
 
@@ -884,24 +990,29 @@ function Editor:GetOutputName()
   return "Out" .. self.OutputNameCounter
 end
 
-function Editor:CreateNode(type, gate, x, y)
+function Editor:CreateNode(selectedInMenu, x, y)
   node = {
-    type = type,
-    gate = gate,
+    type = selectedInMenu.type,
+    gate = selectedInMenu.gate,
+    visual = selectedInMenu.visual,
     x = x,
     y = y,
     connections = {}
   }
 
-  local gateInfo = self:GetGate(node)
+  if selectedInMenu.gate then
+    local gateInfo = self:GetGate(node)
 
-  if gateInfo.isInput then
-    node.ioName = self:GetInputName()
-  elseif gateInfo.isOutput then
-    node.ioName = self:GetOutputName()
-  elseif gateInfo.isConstant then
-    local type = self:GetOutputType(gateInfo, 1)
-    node.value = DefaultValueForType[type]
+    if gateInfo.isInput then
+      node.ioName = self:GetInputName()
+    elseif gateInfo.isOutput then
+      node.ioName = self:GetOutputName()
+    elseif gateInfo.isConstant then
+      local type = self:GetOutputType(gateInfo, 1)
+      node.value = DefaultValueForType[type]
+    end
+  elseif selectedInMenu.visual then
+    node.value = self:GetVisual(node).default
   end
 
   --print("Created " .. table.ToString(node, "node", false))
@@ -948,12 +1059,19 @@ function Editor:CopyNodes(nodeIds)
       connections = {}
     }
 
-    if gate.isInput then
-      nodeCopy.ioName = node.ioName
-    elseif gate.isOutput then
-      nodeCopy.ioName = node.ioName
-    elseif gate.isConstant then
-      nodeCopy.value = node.value
+    if gate then
+      if gate.isInput then
+        nodeCopy.ioName = node.ioName
+      elseif gate.isOutput then
+        nodeCopy.ioName = node.ioName
+      elseif gate.isConstant then
+        nodeCopy.value = node.value
+      end
+    elseif node.visual then
+      nodeCopy.visual = node.visual
+      if node.visual == "label" or node.visual == "comment" then
+        nodeCopy.value = node.value
+      end
     end
 
     for inputNum, connection in pairs(node.connections) do
@@ -998,12 +1116,19 @@ function Editor:PasteNodes(x, y)
     }
 
     local gate = self:GetGate(copyNode)
-    if gate.isInput then
-      nodeCopy.ioName = copyNode.ioName
-    elseif gate.isOutput then
-      nodeCopy.ioName = copyNode.ioName
-    elseif gate.isConstant then
-      nodeCopy.value = copyNode.value
+    if gate then
+      if gate.isInput then
+        nodeCopy.ioName = copyNode.ioName
+      elseif gate.isOutput then
+        nodeCopy.ioName = copyNode.ioName
+      elseif gate.isConstant then
+        nodeCopy.value = copyNode.value
+      end
+    elseif copyNode.visual then
+      nodeCopy.visual = copyNode.visual
+      if copyNode.visual == "label" or copyNode.visual == "comment" then
+        nodeCopy.value = copyNode.value
+      end
     end
 
     for inputNum, connection in pairs(copyNode.connections) do
@@ -1188,39 +1313,6 @@ function Editor:OnDrawConnectionFinished(x, y)
     end
   end
 
-  -- if self.DrawingFromOutput then
-  --   local nodeId, inputNum = self:GetNodeInputAt(x, y)
-
-  --   if nodeId then
-  --     local inputNode = self.Nodes[nodeId]
-  --     local outputNode = self.Nodes[self.DrawingConnectionFrom[1]]
-  --     --check type
-  --     local inputType = self:GetInputType(self:GetGate(inputNode), inputNum)
-  --     local outputType = self:GetOutputType(self:GetGate(outputNode), self.DrawingConnectionFrom[2])
-
-  --     if inputType == outputType and inputNode != outputNode then
-  --       --connect up
-  --       inputNode.connections[inputNum] = {self.DrawingConnectionFrom[1], self.DrawingConnectionFrom[2]}
-  --     end
-  --   end
-
-  -- elseif self.DrawingFromInput then
-  --   local nodeId, outputNum = self:GetNodeOutputAt(x, y)
-
-  --   if nodeId then
-  --     local inputNode = self.Nodes[self.DrawingConnectionFrom[1]]
-  --     local outputNode = self.Nodes[nodeId]
-  --     --check type
-  --     local inputType = self:GetInputType(self:GetGate(inputNode), self.DrawingConnectionFrom[2])
-  --     local outputType = self:GetOutputType(self:GetGate(outputNode), outputNum)
-
-  --     if inputType == outputType and inputNode != outputNode then
-  --       --connect up
-  --       inputNode.connections[self.DrawingConnectionFrom[2]] =  {nodeId, outputNum}
-  --     end
-  --   end
-  -- end
-
   self.DrawingConnection = false
   self.DrawingFromInput = false
   self.DrawingFromOutput = false
@@ -1270,40 +1362,51 @@ function Editor:OnKeyCodePressed(code)
     --Create
     if self.SelectedInMenu then
       local gx, gy = self:ScrToPos(x, y)
-      self:CreateNode(self.SelectedInMenu.type,
-                      self.SelectedInMenu.gate,
+      self:CreateNode(self.SelectedInMenu,
                       gx,
                       gy)
     end
   elseif code == KEY_E and not self.EditingNode then
     --Edit
-        local nodeId = self:GetNodeAt(x, y)
+    local nodeId = self:GetNodeAt(x, y)
     if nodeId then
       local node = self.Nodes[nodeId]
       local gate = self:GetGate(node)
 
-      if gate.isInput or gate.isOutput then
-        self.EditingNode = true
-        self:OpenIONamingWindow(node, x, y)
-      elseif gate.isConstant then
-        self.EditingNode = true
-        self:OpenConstantSetWindow(node, x, y, gate.outputtypes[1])
+      if gate then
+        if gate.isInput or gate.isOutput then
+          self.EditingNode = true
+          self:OpenNamingWindow(node, x, y)
+        elseif gate.isConstant then
+          self.EditingNode = true
+          self:OpenConstantSetWindow(node, x, y, gate.outputtypes[1])
+        end
+        return
+      end
+
+      local visual = self:GetVisual(node)
+      if visual then
+        if visual.method == "text" then
+          self.EditingNode = true
+          self:OpenNamingWindow(node, x, y)
+        end
+        return
       end
     end
   end
 end
 
 --EXTRA WINDOWS
-function Editor:CreateIONamingWindow()
-  self.IONamingWindow = vgui.Create("DFrame", self)
-  local pnl = self.IONamingWindow
-	pnl:SetSize(200, 55)
+function Editor:CreateNamingWindow()
+  self.NamingWindow = vgui.Create("DFrame", self)
+  local pnl = self.NamingWindow
+	pnl:SetSize(300, 55)
 	pnl:ShowCloseButton(true)
 	pnl:SetDeleteOnClose(false)
 	pnl:MakePopup()
   --pnl:SetBackgroundBlur(true)
 	pnl:SetVisible(false)
-	pnl:SetTitle("Name input/output")
+	pnl:SetTitle("Edit")
   pnl:SetScreenLock(true)
   do
 		local old = pnl.Close
@@ -1314,36 +1417,48 @@ function Editor:CreateIONamingWindow()
 		end
   end
   
-  self.IONamingNameEntry = vgui.Create("DTextEntry", pnl)
-  self.IONamingNameEntry:Dock(BOTTOM)
-  self.IONamingNameEntry:SetSize(175, 20)
-  self.IONamingNameEntry:RequestFocus()
+  self.NamingNameEntry = vgui.Create("DTextEntry", pnl)
+  self.NamingNameEntry:Dock(BOTTOM)
+  self.NamingNameEntry:SetSize(175, 20)
+  self.NamingNameEntry:RequestFocus()
 end
 
-function Editor:OpenIONamingWindow(node, x, y)
-  if not self.IONamingWindow then self:CreateIONamingWindow() end
-  self.IONamingWindow:SetVisible(true)
-	self.IONamingWindow:MakePopup() -- This will move it above the E2 editor if it is behind it.
+function Editor:OpenNamingWindow(node, x, y)
+  if not self.NamingWindow then self:CreateNamingWindow() end
+  
+  if node.gate then
+    self.NamingNameEntry:SetText(node.ioName)
+    self.NamingNameEntry.OnEnter = function(pnl)
+      node.ioName = pnl:GetValue()
+      pnl:RequestFocus()
+      pnl:GetParent():Close()
+    end
+  elseif node.visual then
+    self.NamingNameEntry:SetText(node.value)
+    self.NamingNameEntry.OnEnter = function(pnl)
+      node.value = pnl:GetValue()
+      pnl:RequestFocus()
+      pnl:GetParent():Close()
+    end
+  else
+    return
+  end
+
+  self.NamingWindow:SetVisible(true)
+	self.NamingWindow:MakePopup() -- This will move it above the E2 editor if it is behind it.
   self.ForceDrawCursor = true
   
   local px, py = self.parentpanel:GetPos()
-  self.IONamingWindow:SetPos(px+x+80, py+y+30)
+  self.NamingWindow:SetPos(px+x+80, py+y+30)
 
-  self.IONamingNameEntry:SetText(node.ioName)
-  self.IONamingNameEntry.OnEnter = function(pnl)
-    node.ioName = pnl:GetValue()
-    pnl:RequestFocus()
-    pnl:GetParent():Close()
-  end
-
-  local inputField = self.IONamingNameEntry
+  local inputField = self.NamingNameEntry
   local this = self
   inputField.OnLoseFocus = function (pnl) 
     timer.Simple(0, function () if not pnl:GetParent():HasFocus() and this.EditingNode then pnl:OnEnter() end end)
     pnl:GetParent():MoveToFront()
   end
 
-  self.IONamingWindow.OnFocusChanged = function (pnl, gained)
+  self.NamingWindow.OnFocusChanged = function (pnl, gained)
     if not gained then
       timer.Simple(0, function () if not inputField:HasFocus() and this.EditingNode then inputField:OnEnter() end end)
       pnl:MoveToFront()
