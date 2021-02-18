@@ -847,9 +847,9 @@ function Editor:PaintHelp()
   surface.SetFont("FPGAText")
   surface.SetTextColor(255, 255, 255)
 
-  local helpText = [[Drag gates and draw selections with the right mouse button,
+  local helpText = [[Drag gates and draw selections with the left mouse button,
     and drag around the plane with the right mouse button.
-    Connect inputs and outputs by right clicking on either, and dragging to the other.
+    Connect inputs and outputs by left clicking on either, and dragging to the other.
     By double clicking on an input or output, you can draw multiple connections at once.
      
     'C' creates a gate at the cursor position (select which gate on the right menu)
