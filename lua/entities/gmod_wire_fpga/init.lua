@@ -209,6 +209,7 @@ function ENT:ValidateData(data)
   for nodeId, node in pairs(data.Nodes) do
     local gate = getGate(node)
 
+    if node.visual then continue end
     if gate == nil then return "invalid gate" end
     if gate.is_banned then return "banned gate" end
 
@@ -279,6 +280,8 @@ function ENT:CompileData(data)
   postExecutionNodes = {}
 
   for nodeId, node in pairs(data.Nodes) do
+    if node.visual then continue end
+
     nodes[nodeId] = {
       type = node.type,
       gate = node.gate,
@@ -490,7 +493,7 @@ function ENT:Reset()
   end
 
   self.LastExecution = SysTime()
-  self:Run(allNodes)
+  self:RunProtected(allNodes)
 end
 
 --------------------------------------------------------
@@ -500,7 +503,7 @@ function ENT:TriggerInput(iname, value)
   if self.CompilationError or self.ExecutionError or not self.Uploaded then return end
 
   if iname == "Trigger" then
-    if value != 0 then self:Run({}) end
+    if value != 0 then self:RunProtected({}) end
     return
   end
 
@@ -508,7 +511,7 @@ function ENT:TriggerInput(iname, value)
   self.InputValues[nodeId] = value
 
   if self.ExecuteOnInputs then
-    self:Run({nodeId})
+    self:RunProtected({nodeId})
   else
     self.LazyQueuedNodes[nodeId] = true
   end
@@ -562,7 +565,7 @@ function ENT:Think()
   end
   self.QueuedNodes = {}
   
-  if #nodesToRun > 0 then self:Run(nodesToRun) end
+  if #nodesToRun > 0 then self:RunProtected(nodesToRun) end
 
   self:UpdateOverlay(false)
 	return true
@@ -571,6 +574,14 @@ end
 --------------------------------------------------------
 --RUNNING
 --------------------------------------------------------
+function ENT:RunProtected(changedNodes)
+  local ok = pcall(self.Run, self, changedNodes)
+
+  if not ok then
+    self:ThrowExecutionError("runtime error", "runtime error")
+  end
+end
+
 function ENT:Run(changedNodes)
   if self.Debug then print("\n================================================================================") end
 
