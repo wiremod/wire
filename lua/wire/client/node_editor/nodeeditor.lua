@@ -163,7 +163,9 @@ surface.CreateFont( "FPGALabel", {
   outline = false,
 })
 
--- COMPONENTS
+--------------------------------------------------------
+--COMPONENTS
+--------------------------------------------------------
 function Editor:InitComponents()
   local this = self
 
@@ -397,7 +399,9 @@ function Editor:InitComponents()
 end
 
 
--- INTERACTION
+--------------------------------------------------------
+--INTERACTION
+--------------------------------------------------------
 function Editor:GetData() 
   return WireLib.von.serialize({
       Name = self.C.Name:GetValue(),
@@ -472,7 +476,10 @@ function Editor:HasNodes()
   return #self.Nodes > 0
 end
 
--- EDITOR NODE
+--------------------------------------------------------
+--NODE INFO
+--------------------------------------------------------
+--EDITOR NODE
 function Editor:GetVisual(node)
   if node.type == "editor" then
     if node.visual == "label" then
@@ -484,7 +491,7 @@ function Editor:GetVisual(node)
   return nil
 end
 
--- GATES
+--GATES
 function Editor:GetGate(node)
   if node.type == "wire" then 
     return GateActions[node.gate]
@@ -512,7 +519,9 @@ function Editor:GetOutputType(gate, outputNum)
   end
 end
 
--- UTILITY
+--------------------------------------------------------
+--UTILITY
+--------------------------------------------------------
 function Editor:PosToScr(x, y)
   return (self:GetWide()-300)/2 - (self.Position[1] - x) * self.Zoom, self:GetTall()/2 - (self.Position[2] - y) * self.Zoom
 end
@@ -533,7 +542,9 @@ function Editor:NodeOutputPos(node, output)
   return node.x + self.GateSize/2 + self.IOSize/2, node.y + (output - 1) * self.GateSize
 end
 
--- DETECTION
+--------------------------------------------------------
+--DETECTION
+--------------------------------------------------------
 function Editor:GetNodeAt(x, y)
   local gx, gy = self:ScrToPos(x, y)
 
@@ -663,7 +674,9 @@ function Editor:GetNodeOutputAt(x, y)
   return nil
 end
 
--- DRAWING
+--------------------------------------------------------
+--DRAWING
+--------------------------------------------------------
 function Editor:PaintConnection(nodeFrom, output, nodeTo, input, type)
   local x1, y1 = self:NodeOutputPos(nodeFrom, output)
   local x2, y2 = self:NodeInputPos(nodeTo, input)
@@ -1036,7 +1049,9 @@ function Editor:PaintOverlay()
 end
 
 
+--------------------------------------------------------
 --ACTIONS
+--------------------------------------------------------
 function Editor:GetInputName()
   self.InputNameCounter = self.InputNameCounter + 1
   return "In" .. self.InputNameCounter
@@ -1205,7 +1220,92 @@ function Editor:PasteNodes(x, y)
   end
 end
 
+--------------------------------------------------------
 --EVENTS
+--------------------------------------------------------
+--KEYBOARD
+function Editor:OnKeyCodePressed(code)
+  local x, y = self:CursorPos()
+	local control = input.IsKeyDown(KEY_LCONTROL) or input.IsKeyDown(KEY_RCONTROL)
+
+  if control then
+    if code == KEY_C then
+      --Copy
+      if self.SelectedNodeCount > 0 then
+        self:CopyNodes(self.SelectedNodes)
+      else
+        self:GetParent():ClearCopyData()
+      end
+    elseif code == KEY_V then
+      --Paste
+      local gx, gy = self:ScrToPos(x, y)
+      self:PasteNodes(gx, gy)
+    end
+  elseif code == KEY_X then
+    --Delete
+    if self.SelectedNodeCount > 0 then
+      for selectedNodeId, selectedNode in pairs(self.SelectedNodes) do
+        self:DeleteNode(selectedNodeId)
+      end
+      self.SelectedNodes = {}
+      self.SelectedNodeCount = 0
+    else
+      local nodeId = self:GetNodeAt(x, y)
+      if nodeId then
+        self:DeleteNode(nodeId)
+      end
+    end
+  elseif code == KEY_C then
+    --Create
+    if self.SelectedInMenu then
+      local gx, gy = self:ScrToPos(x, y)
+      self:CreateNode(self.SelectedInMenu,
+                      gx,
+                      gy)
+    end
+  elseif code == KEY_E and not self.EditingNode then
+    --Edit
+    local nodeId = self:GetNodeAt(x, y)
+    if nodeId then
+      local node = self.Nodes[nodeId]
+      local gate = self:GetGate(node)
+
+      if gate then
+        if gate.isInput or gate.isOutput then
+          self.EditingNode = true
+          self:OpenNamingWindow(node, x, y)
+        elseif gate.isConstant then
+          self.EditingNode = true
+          self:OpenConstantSetWindow(node, x, y, gate.outputtypes[1])
+        end
+        return
+      end
+
+      local visual = self:GetVisual(node)
+      if visual then
+        if visual.method == "text" then
+          self.EditingNode = true
+          self:OpenNamingWindow(node, x, y)
+        end
+        return
+      end
+    end
+  elseif code == KEY_G then
+    self.AlignToGrid = not self.AlignToGrid
+  end
+end
+
+--MOUSE
+function Editor:OnMouseWheeled(delta)
+  local sx, sy = self:CursorPos()
+
+  if sx > 0 and sy > 36 and sx < self:GetWide()-300 and sy < self:GetTall()-36 then
+    self.Zoom = self.Zoom + delta * 0.1 * self.Zoom
+    if self.Zoom < 0.1 then self.Zoom = 0.1 end
+    if self.Zoom > 10 then self.Zoom = 10 end
+  end
+end
+
 function Editor:OnMousePressed(code)
   self:RequestFocus() --Fix for weird bug, remove once resolved
 
@@ -1269,6 +1369,7 @@ function Editor:OnMouseReleased(code)
   
 end
 
+--EDITOR EVENTS
 function Editor:BeginDrawingConnection(nodeId, inputNum, outputNum, doubleClick)
   self.DrawingConnectionAll = doubleClick
 
@@ -1383,88 +1484,9 @@ function Editor:OnDrawConnectionFinished(x, y)
   self.DrawingFromOutput = false
 end
 
-function Editor:OnMouseWheeled(delta)
-  local sx, sy = self:CursorPos()
-
-  if sx > 0 and sy > 36 and sx < self:GetWide()-300 and sy < self:GetTall()-36 then
-    self.Zoom = self.Zoom + delta * 0.1 * self.Zoom
-    if self.Zoom < 0.1 then self.Zoom = 0.1 end
-    if self.Zoom > 10 then self.Zoom = 10 end
-  end
-end
-
-function Editor:OnKeyCodePressed(code)
-  local x, y = self:CursorPos()
-	local control = input.IsKeyDown(KEY_LCONTROL) or input.IsKeyDown(KEY_RCONTROL)
-
-  if control then
-    if code == KEY_C then
-      --Copy
-      if self.SelectedNodeCount > 0 then
-        self:CopyNodes(self.SelectedNodes)
-      else
-        self:GetParent():ClearCopyData()
-      end
-    elseif code == KEY_V then
-      --Paste
-      local gx, gy = self:ScrToPos(x, y)
-      self:PasteNodes(gx, gy)
-    end
-  elseif code == KEY_X then
-    --Delete
-    if self.SelectedNodeCount > 0 then
-      for selectedNodeId, selectedNode in pairs(self.SelectedNodes) do
-        self:DeleteNode(selectedNodeId)
-      end
-      self.SelectedNodes = {}
-      self.SelectedNodeCount = 0
-    else
-      local nodeId = self:GetNodeAt(x, y)
-      if nodeId then
-        self:DeleteNode(nodeId)
-      end
-    end
-  elseif code == KEY_C then
-    --Create
-    if self.SelectedInMenu then
-      local gx, gy = self:ScrToPos(x, y)
-      self:CreateNode(self.SelectedInMenu,
-                      gx,
-                      gy)
-    end
-  elseif code == KEY_E and not self.EditingNode then
-    --Edit
-    local nodeId = self:GetNodeAt(x, y)
-    if nodeId then
-      local node = self.Nodes[nodeId]
-      local gate = self:GetGate(node)
-
-      if gate then
-        if gate.isInput or gate.isOutput then
-          self.EditingNode = true
-          self:OpenNamingWindow(node, x, y)
-        elseif gate.isConstant then
-          self.EditingNode = true
-          self:OpenConstantSetWindow(node, x, y, gate.outputtypes[1])
-        end
-        return
-      end
-
-      local visual = self:GetVisual(node)
-      if visual then
-        if visual.method == "text" then
-          self.EditingNode = true
-          self:OpenNamingWindow(node, x, y)
-        end
-        return
-      end
-    end
-  elseif code == KEY_G then
-    self.AlignToGrid = not self.AlignToGrid
-  end
-end
-
+--------------------------------------------------------
 --EXTRA WINDOWS
+--------------------------------------------------------
 function Editor:CreateNamingWindow()
   self.NamingWindow = vgui.Create("DFrame", self)
   local pnl = self.NamingWindow
@@ -1650,8 +1672,6 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
       pnl:MoveToFront()
     end
   end
-
-
 end
 
 vgui.Register("FPGAEditor", Editor, "Panel");
