@@ -579,7 +579,7 @@ function Editor:GetNodeAt(x, y)
           if (self.Zoom > self.ZoomThreshold) then
             surface.SetFont("FPGATextBig")
           elseif (self.Zoom <= self.ZoomHideThreshold) then
-            return
+            continue
           else
             surface.SetFont("FPGAText")
           end
