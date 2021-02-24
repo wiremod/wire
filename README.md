@@ -1,35 +1,20 @@
-# Wiremod [![License](https://img.shields.io/github/license/wiremod/wire?color=red)](LICENSE) [![Discord](https://img.shields.io/discord/231131817640460288?label=Discord&logo=discord&logoColor=ffffff&labelColor=7289DA&color=2c2f33)](https://discord.gg/H8UKY3Y) [![Workshop](https://img.shields.io/steam/subscriptions/160250458?logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=160250458)
+# Wire-FPGA
 
-> An addon for [Garry's Mod](https://garrysmod.com) which adds entities that communicate via wires. It can be used to create robots, vehicles, computers and much more!
+Adds a field programmable gate array for use with Wiremod (https://github.com/wiremod/wire)
 
-## ⬇️ Installation
+Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=2384925255
 
-| Addon | Workshop | GitHub |
-|  ---  |   ---    |   ---  |
-|**Wiremod** (Stable) | [![Wiremod](https://img.shields.io/steam/subscriptions/160250458?logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=160250458) | https://github.com/wiremod/wire |
-|**Wiremod** (Canary) | [![Wiremod Canary](https://img.shields.io/steam/subscriptions/3066780663?logo=steam&color=orange)](https://steamcommunity.com/sharedfiles/filedetails/?id=3066780663) | https://github.com/wiremod/wire |
-|**AdvDupe2**| [![AdvDupe2](https://img.shields.io/steam/subscriptions/773402917?logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=773402917)| https://github.com/wiremod/advdupe2 |
-|**Wire Extras**| [None yet](https://github.com/wiremod/wire-extras/issues/113) | https://github.com/wiremod/wire-extras |
-
-For git, inside of `steamapps/common/Garrysmod/garrysmod/addons`, run ``git clone https://github.com/wiremod/wire``.
-
-## 📖 Documentation
-
-You can find documentation [on our wiki](https://github.com/wiremod/wire/wiki)!
+Comes with a visual node editor, and offers a nice step between pure wire gates and E2,
+but also makes stuff like custom CPUs and other complicated gate devices possible, since the performance hit is several times lower than 
+multiple gates being used to make the same device.
 
 
-## 🤝 Contributing
+## Source code modifications
+Part of this mod (namely the editor-frame) is based on the Expression 2 / ZCPU editor (lua\wire\client\text_editor\wire_expression2_editor.lua) that comes with Wiremod. This part has been changed to fit the usage seen here, but the base of the code remains the same as the versions shipped with Wiremod (as of 2021-01-08).
 
-> Before contributing to wiremod, take a look at the [code of conduct](https://github.com/wiremod/wire/blob/master/CODE_OF_CONDUCT.md).
+The frame (the part outside the text editor, ie. the file selector, the tabs, the menus) has been changed to make it compatible with saving and loading node based files, and offer more relevant settings that the node editor would use. This involved changing the helper functions that get the "name" of the program from the editor, getting the data (text) from the editor, loading data into the editor, loading the editor itself (node editor).
+Various other changes have been made, to remove ZCPU and E2 specific functionality which was no longer needed.
 
-### 💡 Suggestions
+The gate selector from the Wire Gate tool has been put to use in the node editor, and the searching function has modified to fit the expanded gate library that Wire FPGA brings.
 
-To submit a suggestion, [use the discussions page](https://github.com/wiremod/wire/discussions/new?category=suggestions).
-
-### 🐛 Bug Reports
-
-To submit a bug report, [make an issue](https://github.com/wiremod/wire/issues/new/choose).
-
-### 🧑‍💻 Pull Requests
-
-Before making a PR, ensure your code follows the [developer style guide](https://github.com/wiremod/wire/wiki/Developer-Style-Guide).
+The vector/angle validation function from the Wire Value tool has been used in the node edit menu, when changing vector/angle constant values.
