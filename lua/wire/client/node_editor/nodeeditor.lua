@@ -257,6 +257,144 @@ function Editor:InitComponents()
   self.C.Tree:DockMargin(2,0,2,2)
 
 
+  --Gate searching
+  self.C.Search = vgui.Create("DTextEntry", self.C.Holder)
+  self.C.Search:Dock(TOP)
+  self.C.Search:DockMargin(2,0,2,0)
+  self.C.Search:SetValue("Search...")
+
+  local oldOnGetFocus = self.C.Search.OnGetFocus
+  function self.C.Search:OnGetFocus()
+    if self:GetValue() == "Search..." then -- If "Search...", erase it
+      self:SetValue("")
+    end
+    oldOnGetFocus(self)
+  end
+
+  -- On lose focus
+  local oldOnLoseFocus = self.C.Search.OnLoseFocus
+  function self.C.Search:OnLoseFocus()
+    if self:GetValue() == "" then -- if empty, reset "Search..." text
+      timer.Simple(0, function() self:SetValue("Search...") end)
+    end
+    oldOnLoseFocus(self)
+    this:RequestFocus()
+  end
+
+  --local tree = vgui.Create("DTree", self.C.Holder)
+  self.C.SearchList = vgui.Create("DListView", self.C.Holder)
+  self.C.SearchList:AddColumn("Gate Name")
+  self.C.SearchList:AddColumn("Type"):SetWidth(10)
+  self.C.SearchList:AddColumn("Category"):SetWidth(35)
+
+  -- Searching algorithm
+  local function Search(text)
+    text = string.lower(text)
+
+    local results = {}
+    for action,gate in pairs(FPGAGateActions) do
+      local name = gate.name
+      local lowname = string.lower(name)
+      if string.find(lowname, text, 1, true) then -- If it has ANY match at all
+        results[#results+1] = {name = gate.name, group = gate.group, type = "fpga", action = action, dist = WireLib.levenshtein(text, lowname)}
+      end
+    end
+    for action,gate in pairs(CPUGateActions) do
+      local name = gate.name
+      local lowname = string.lower(name)
+      if string.find(lowname, text, 1, true) then -- If it has ANY match at all
+        results[#results+1] = {name = gate.name, group = gate.group, type = "cpu", action = action, dist = WireLib.levenshtein(text, lowname)}
+      end
+    end
+    for action,gate in pairs(GateActions) do
+      local name = gate.name
+      local lowname = string.lower(name)
+      if string.find(lowname, text, 1, true) then -- If it has ANY match at all
+        results[#results+1] = {name = gate.name, group = gate.group, type = "wire", action = action, dist = WireLib.levenshtein(text, lowname)}
+      end
+    end
+
+    table.SortByMember(results, "dist", true)
+
+    return results
+  end
+
+  -- Main searching
+  local searching
+  function self.C.Search:OnTextChanged()
+    local text = self:GetValue()
+    if text ~= "" then
+      if not searching then
+        searching = true
+        local x,y = this.C.Tree:GetPos()
+        local w,h = this.C.Tree:GetSize()
+        this.C.SearchList:SetPos(x + w, y)
+        this.C.SearchList:MoveTo(x, y, 0.1, 0, 1)
+        this.C.SearchList:SetSize(w, h)
+        this.C.SearchList:SetVisible(true)
+      end
+      local results = Search(text)
+      this.C.SearchList:Clear()
+      for i=1,#results do
+        local result = results[i]
+
+        local type
+        if result.type == "wire" then type = "Wire"
+        elseif result.type == "fpga" then type = "FPGA"
+        elseif result.type == "cpu" then type = "CPU"
+        end
+        local line = this.C.SearchList:AddLine(result.name, type, result.group)
+
+        if this.SelectedInMenu then
+          if this.SelectedInMenu.type == result.type and this.SelectedInMenu.gate == result.action then
+            line:SetSelected(true)
+          end
+        end
+        
+        line.action = result.action
+        line.type = result.type
+      end
+    else
+      if searching then
+        searching = false
+        local x,y = this.C.Tree:GetPos()
+        local w,h = this.C.Tree:GetSize()
+        this.C.SearchList:SetPos(x, y)
+        this.C.SearchList:MoveTo(x + w, y, 0.1, 0, 1)
+        this.C.SearchList:SetSize(w, h)
+        timer.Create("fpga_customspawnmenu_hidesearchlist", 0.1, 1, function()
+          if IsValid(this.C.SearchList) then
+            this.C.SearchList:SetVisible(false)
+          end
+        end)
+      end
+      this.C.SearchList:Clear()
+    end
+  end
+
+  function self.C.SearchList:OnClickLine(line)
+    -- Deselect old
+    local t = self:GetSelected()
+    if t and next(t) then
+      t[1]:SetSelected(false)
+    end
+
+    line:SetSelected(true) -- Select new
+    this.SelectedInMenu = {type = line.type, gate = line.action}
+    this:RequestFocus()
+  end
+
+  function self.C.Search:OnEnter()
+    if #this.C.SearchList:GetLines() > 0 then
+      this.C.SearchList:OnClickLine(this.C.SearchList:GetLine(1))
+    end
+    this:RequestFocus()
+  end
+
+  -- Set sizes & other settings
+  self.C.SearchList:SetVisible(false)
+  self.C.SearchList:SetMultiSelect(false)
+
   --utility
   local function FillSubTree(editor, tree, node, temp, type, sortByName)
     node.Icon:SetImage("icon16/folder.png")
