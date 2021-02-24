@@ -236,7 +236,7 @@ if CLIENT then
     New.DoClick = function(button)
       FPGA_OpenEditor()
       FPGA_Editor:AutoSave()
-      FPGA_Editor:NewScript(false)
+      FPGA_Editor:NewChip(false)
     end
     panel:AddControl("Label", {Text = ""})
 
