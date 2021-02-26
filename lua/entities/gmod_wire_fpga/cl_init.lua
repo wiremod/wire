@@ -1,5 +1,9 @@
 include('shared.lua')
 
+--------------------------------------------------------------------------------
+-- Drawing
+--------------------------------------------------------------------------------
+
 function ENT:GetWorldTipBodySize()
 	local data = self:GetOverlayData()
 	if not data then return 100, 20 end
@@ -30,6 +34,7 @@ function ENT:GetWorldTipBodySize()
 	return w_total, h_total
 end
 
+
 function ENT:DrawWorldTipBody(pos)
 	local data = self:GetOverlayData()
 	if not data then return end
@@ -49,7 +54,7 @@ function ENT:DrawWorldTipBody(pos)
 	-------------------
 	local w,h = surface.GetTextSize(name)
 	h = h + pos.edgesize
-	h = math.min(h,pos.size.h - (pos.footersize.h))
+	h = math.min(h, pos.size.h - (pos.footersize.h))
 
 	render.SetScissorRect(pos.min.x + 16, pos.min.y, pos.max.x - 16, pos.min.y + h, true)
 	draw.DrawText(name, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 10, white, TEXT_ALIGN_CENTER)
@@ -81,4 +86,103 @@ function ENT:DrawWorldTipBody(pos)
   -- cpu peak time text
   local str = string.format("peak cpu time: %ius", timebenchPeak * 1000000)
 	draw.DrawText(str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 8 + 25, cputime, TEXT_ALIGN_CENTER)
+
+
+  -------------------
+	-- inside view
+	-------------------
+  if self.ViewData then
+    self:DrawInsideViewBackground()
+    self:DrawInsideView()
+  end
 end
+
+--------------------------------------------------------------------------------
+-- Inside view
+--------------------------------------------------------------------------------
+FPGAInsideViewPosition = {
+  100,
+  600,
+  -400,
+  100
+}
+
+
+function ENT:DrawInsideViewBackground()
+  local x1 = ScrW()/2 + FPGAInsideViewPosition[1]
+  local x2 = ScrW()/2 + FPGAInsideViewPosition[2]
+  local y1 = ScrH()/2 + FPGAInsideViewPosition[3]
+  local y2 = ScrH()/2 + FPGAInsideViewPosition[4]
+
+  draw.NoTexture()
+  surface.SetDrawColor(Color(25,25,25,200))
+
+  local poly = {
+          {x = x1, 			y = y1,					u = 0, v = 0 },
+          {x = x2, 			y = y1,					u = 0, v = 0 },
+          {x = x2, 			y = y2,   	    u = 0, v = 0 },
+          {x = x1, 			y = y2,					u = 0, v = 0 },
+        }
+
+  render.CullMode(MATERIAL_CULLMODE_CCW)
+  surface.DrawPoly(poly)
+
+  surface.SetDrawColor(Color(0,0,0,255))
+
+  for i=1,#poly-1 do
+    surface.DrawLine(poly[i].x, poly[i].y, poly[i+1].x, poly[i+1].y)
+  end
+  surface.DrawLine(poly[#poly].x, poly[#poly].y, poly[1].x, poly[1].y)
+end
+
+function ENT:DrawInsideView()
+  local centerX = ScrW()/2 + (FPGAInsideViewPosition[2] - FPGAInsideViewPosition[1])/2 + FPGAInsideViewPosition[1]
+  local centerY = ScrH()/2 + (FPGAInsideViewPosition[4] - FPGAInsideViewPosition[3])/2 + FPGAInsideViewPosition[3]
+  local xSize = FPGAInsideViewPosition[2] - FPGAInsideViewPosition[1]-10
+  local ySize = FPGAInsideViewPosition[4] - FPGAInsideViewPosition[3]-10
+
+  local nodeSize = 5/math.max(self.ViewData.Size[1], self.ViewData.Size[2]) * math.max(xSize, ySize)
+
+  surface.SetDrawColor(Color(255,255,255, 255))
+  for _, node in pairs(self.ViewData.Nodes) do
+    surface.DrawRect(centerX + node.x * xSize, centerY + node.y * ySize, nodeSize, nodeSize * node.size)
+  end
+end
+
+
+
+function ENT:ConstructInsideView(viewData)
+  self.ViewData = {}
+
+  -- get bounds
+  local b = {viewData.Nodes[1].x, viewData.Nodes[1].x, viewData.Nodes[1].y, viewData.Nodes[1].y}
+  for _, node in pairs(viewData.Nodes) do
+    b[1] = math.min(b[1], node.x)
+    b[2] = math.max(b[2], node.x)
+    b[3] = math.min(b[3], node.y)
+    b[4] = math.max(b[4], node.y + node.size * 5)
+  end
+
+  self.ViewData.Size = {b[2]-b[1], b[4]-b[3]}
+  self.ViewData.Center = {b[1] + self.ViewData.Size[1]/2, b[3] + self.ViewData.Size[2]/2}
+
+  self.ViewData.Nodes = {}
+  for _, node in pairs(viewData.Nodes) do
+    table.insert(self.ViewData.Nodes, {
+      x = (node.x - 2.5 - self.ViewData.Center[1]) / self.ViewData.Size[1],
+      y = (node.y - 2.5 - self.ViewData.Center[2]) / self.ViewData.Size[2],
+      size = node.size
+    })
+  end
+  
+end
+
+net.Receive("wire_fpga_view_data", function (len)
+  local ent = net.ReadEntity()
+  if IsValid(ent) then
+    local ok, data = pcall(WireLib.von.deserialize, net.ReadString())
+    if ok then
+      ent:ConstructInsideView(data)
+    end
+  end
+end)

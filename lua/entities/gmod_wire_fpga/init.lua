@@ -143,6 +143,7 @@ function ENT:Initialize()
   self.ExecuteOnTrigger = false
 
   self.Data = nil
+  self.ViewData = nil
 
 	self.Inputs = WireLib.CreateInputs(self, {})
   self.Outputs = WireLib.CreateOutputs(self, {})
@@ -192,6 +193,39 @@ function ENT:GetOriginal()
     return WireLib.von.serialize({})
   end
 end
+
+--------------------------------------------------------
+--VIEW DATA SYNTHESIZATION
+--------------------------------------------------------
+function ENT:SynthesizeViewData(data)
+  if not data.Nodes then return end
+
+  local viewData = {}
+  
+
+  viewData.Nodes = {}
+  for _, node in pairs(data.Nodes) do
+    local gate = getGate(node)
+
+    if not gate then continue end
+
+    local ports
+    if gate.outputs then
+      ports = math.max(#gate.inputs, #gate.outputs)
+    else
+      ports = #gate.inputs
+    end
+
+    table.insert(viewData.Nodes, {
+      x = node.x,
+      y = node.y,
+      size = ports
+    })
+  end
+
+  self.ViewData = WireLib.von.serialize(viewData)
+end
+
 
 --------------------------------------------------------
 --VALIDATION
@@ -399,6 +433,8 @@ function ENT:Upload(data)
     return
   end
 
+  --view data
+  self:SynthesizeViewData(data)
 
   --Compile
   self:CompileData(data)
