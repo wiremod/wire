@@ -135,7 +135,7 @@ function ENT:DrawWorldTipBody( pos )
 	local err = data.error -- this isn't used (yet), might do something with it later
 
 	local white = Color(255,255,255,255)
-	local black = Color(0,0,0,255)
+	local black = PIXEL.Colors.Scroller
 
 	local w_total, yoffset = 0, pos.min.y
 
@@ -147,7 +147,7 @@ function ENT:DrawWorldTipBody( pos )
 	h = math.min(h,pos.size.h - (h_of_lower+pos.footersize.h))
 
 	render.SetScissorRect( pos.min.x + 16, pos.min.y, pos.max.x - 16, pos.min.y + h, true )
-	draw.DrawText( txt, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
+	draw.DrawText( txt, "PIXEL.UI.FrameTitle", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
 	render.SetScissorRect( 0, 0, ScrW(), ScrH(), false )
 
 	w_total = math.max( w_total, w )
@@ -172,7 +172,7 @@ function ENT:DrawWorldTipBody( pos )
 	-- ops text
 	local hardtext = (prfcount / e2_hardquota > 0.33) and "(+" .. tostring(math.Round(prfcount / e2_hardquota * 100)) .. "%)" or ""
 	local str = string.format("%i ops, %i%% %s", prfbench, prfbench / e2_softquota * 100, hardtext)
-	draw.DrawText( str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
+	draw.DrawText( str, "PIXEL.UI.FrameTitle", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
 
 	local _,h = surface.GetTextSize( str )
 	yoffset = yoffset + h + pos.edgesize
@@ -192,15 +192,12 @@ function ENT:DrawWorldTipBody( pos )
 	surface.SetDrawColor( Color(0,0,0,200) )
 	surface.DrawRect( pos.min.x + pos.edgesize, y, quota_width, 20 )
 
-	surface.SetDrawColor( black )
-	surface.DrawLine( pos.min.x + pos.edgesize, y, pos.min.x + pos.edgesize + w, y )
-	surface.DrawLine( pos.min.x + pos.edgesize + w, y, pos.min.x + pos.edgesize + w, y + 20 )
-	surface.DrawLine( pos.min.x + pos.edgesize + w, y + 20, pos.min.x + pos.edgesize, y + 20 )
-	surface.DrawLine( pos.min.x + pos.edgesize, y + 20, pos.min.x + pos.edgesize, y )
+	surface.SetDrawColor(PIXEL.Colors.Scroller)
+	surface.DrawOutlinedRect(pos.min.x+pos.edgesize,y-1,w,h,1)
 
 	yoffset = yoffset + 20
 
 	-- cpu time text
 	local str = string.format("cpu time: %ius", timebench*1000000)
-	draw.DrawText( str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
+	draw.DrawText( str, "PIXEL.UI.FrameTitle", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
 end
