@@ -1066,14 +1066,7 @@ elseif CLIENT then
 
 			surface.SetTextPos( x, y )
 			surface.DrawText( txt )
-			draw.Text({
-				text=(types[typ] and types[typ][1] or types[typName] and types[typName][1]) or typName,
-				pos={x+w,y+(fonth/2)},
-				xalign=2,
-				yalign=1,
-				font="PIXEL.UI.FrameTitle",
-				color=(types[typ] and types[typ][2]) or typeCol
-			})
+			PIXEL.DrawSimpleText((types[typ] and types[typ][1] or types[typName] and types[typName][1]) or typName,"PIXEL.UI.FrameTitle", x+w, y+(fonth/2), (types[typ] and types[typ][2]) or typeCol, 2, 1)
 		end
 	end
 
