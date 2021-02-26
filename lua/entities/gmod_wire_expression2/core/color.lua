@@ -31,51 +31,6 @@ e2function number entity:getAlpha()
 	return IsValid(this) and this:GetColor().a or 0
 end
 
-e2function void entity:setColor(r,g,b)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
-
-	WireLib.SetColor(this, Color(r, g, b, this:GetColor().a))
-end
-
-e2function void entity:setColor(r,g,b,a)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
-
-	WireLib.SetColor(this, Color(r, g, b, a))
-end
-
-e2function void entity:setColor(vector c)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
-
-	WireLib.SetColor(this, Color(c[1], c[2], c[3], this:GetColor().a))
-end
-
-e2function void entity:setColor(vector c, a)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
-
-	WireLib.SetColor(this, Color(c[1], c[2], c[3], a))
-end
-
-e2function void entity:setColor(vector4 c)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
-
-	WireLib.SetColor(this, Color(c[1], c[2], c[3], c[4]))
-end
-
-e2function void entity:setAlpha(a)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
-
-	if this:IsPlayer() then return end
-
-	local c = this:GetColor()
-	WireLib.SetColor(this, Color(c.r, c.g, c.b, a))
-end
-
 e2function void entity:setRenderMode(mode)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
