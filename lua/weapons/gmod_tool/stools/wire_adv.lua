@@ -1025,7 +1025,7 @@ elseif CLIENT then
 		x = x + 8
 		y = y + 2
 
-		local temp,_ = PIXEL.GetTextSize( name .. ":", "PIXEL.UI.FrameTitle" )
+		local temp,_ = PIXEL.GetTextSize( name .. ":", "UI.FrameTitle" )
 		PIXEL.DrawRoundedBoxEx(PIXEL.Scale(6), x-8, y-2, w+16, fonth+4, PIXEL.Colors.Header, true, true)
 		surface.SetTextColor(255,255,255,255)
 		surface.SetTextPos( x-temp/2+w/2, y )
@@ -1064,7 +1064,7 @@ elseif CLIENT then
 
 			surface.SetTextPos( x, y )
 			surface.DrawText( txt )
-			PIXEL.DrawSimpleText((types[typ] and types[typ][1] or types[typName] and types[typName][1]) or typName,"PIXEL.UI.FrameTitle", x+w, y+(fonth/2), (types[typ] and types[typ][2]) or typeCol, 2, 1)
+			PIXEL.DrawSimpleText((types[typ] and types[typ][1] or types[typName] and types[typName][1]) or typName,"UI.FrameTitle", x+w, y+(fonth/2), (types[typ] and types[typ][2]) or typeCol, 2, 1)
 		end
 	end
 

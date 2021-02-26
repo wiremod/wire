@@ -147,7 +147,7 @@ function ENT:DrawWorldTipBody( pos )
 	h = math.min(h,pos.size.h - (h_of_lower+pos.footersize.h))
 
 	render.SetScissorRect( pos.min.x + 16, pos.min.y, pos.max.x - 16, pos.min.y + h, true )
-	draw.DrawText( txt, "PIXEL.UI.FrameTitle", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
+	PIXEL.DrawText( txt, "UI.FrameTitle", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
 	render.SetScissorRect( 0, 0, ScrW(), ScrH(), false )
 
 	w_total = math.max( w_total, w )
@@ -172,7 +172,7 @@ function ENT:DrawWorldTipBody( pos )
 	-- ops text
 	local hardtext = (prfcount / e2_hardquota > 0.33) and "(+" .. tostring(math.Round(prfcount / e2_hardquota * 100)) .. "%)" or ""
 	local str = string.format("%i ops, %i%% %s", prfbench, prfbench / e2_softquota * 100, hardtext)
-	draw.DrawText( str, "PIXEL.UI.FrameTitle", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
+	PIXEL.DrawText( str, "UI.FrameTitle", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
 
 	local _,h = surface.GetTextSize( str )
 	yoffset = yoffset + h + pos.edgesize
@@ -199,5 +199,5 @@ function ENT:DrawWorldTipBody( pos )
 
 	-- cpu time text
 	local str = string.format("cpu time: %ius", timebench*1000000)
-	draw.DrawText( str, "PIXEL.UI.FrameTitle", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
+	PIXEL.DrawText( str, "UI.FrameTitle", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
 end
