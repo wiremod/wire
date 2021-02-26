@@ -81,10 +81,10 @@ if CLIENT then
 	-- This is overridable by other wire entities which want to customize the overlay, but generally you shouldn't override it
 	function ENT:DrawWorldTipOutline( pos )
 		draw.NoTexture()
-		surface.SetDrawColor(Color(25,25,25,200))
+		surface.SetDrawColor(PIXEL.Colors.Background)
 
 		local poly = {
-						{x = pos.min.x + edgesize, 			y = pos.min.y,					u = 0, v = 0 },
+						{x = pos.min.x + edgesize  + 0.5, 	y = pos.min.y,					u = 0, v = 0 },
 						{x = pos.max.x, 					y = pos.min.y,					u = 0, v = 0 },
 						{x = pos.max.x, 					y = pos.max.y - edgesize + 0.5,	u = 0, v = 0 },
 						{x = pos.max.x - edgesize + 0.5, 	y = pos.max.y,					u = 0, v = 0 },
@@ -95,7 +95,7 @@ if CLIENT then
 		render.CullMode(MATERIAL_CULLMODE_CCW)
 		surface.DrawPoly( poly )
 
-		surface.SetDrawColor(Color(0,0,0,255))
+		surface.SetDrawColor(PIXEL.Colors.Scroller)
 
 		for i=1,#poly-1 do
 			surface.DrawLine( poly[i].x, poly[i].y, poly[i+1].x, poly[i+1].y )
@@ -118,7 +118,7 @@ if CLIENT then
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:DrawWorldTipBody( pos )
 		local data = self:GetOverlayData()
-		draw.DrawText( data.txt, "GModWorldtip", pos.center.x, pos.min.y + edgesize/2, Color(255,255,255,255), TEXT_ALIGN_CENTER )
+		draw.DrawText( data.txt, "PIXEL.UI.FrameTitle", pos.center.x, pos.min.y + edgesize/2, color_white, TEXT_ALIGN_CENTER )
 	end
 
 	-- This is overridable by other wire entities which want to customize the overlay
@@ -126,7 +126,7 @@ if CLIENT then
 		local data = self:GetOverlayData()
 		if not data then return end
 
-		surface.SetFont( "GModWorldtip" )
+		surface.SetFont( "PIXEL.UI.FrameTitle" )
 
 		local txt = data.txt
 		local class = getWireName( self ) .. " [" .. self:EntIndex() .. "]"
@@ -171,16 +171,16 @@ if CLIENT then
 			self:DrawWorldTipBody( pos )
 			offset = offset + h_body + edgesize
 
-			surface.SetDrawColor( Color(0,0,0,255) )
+			surface.SetDrawColor(PIXEL.Colors.Scroller)
 			surface.DrawLine( pos.min.x, offset, pos.max.x, offset )
 		end
 
 		if info_requires_multiline then
-			draw.DrawText( class, "GModWorldtip", pos.center.x, offset + 8, Color(255,255,255,255), TEXT_ALIGN_CENTER )
-			draw.DrawText( name, "GModWorldtip", pos.center.x, offset + h_class + 16, Color(255,255,255,255), TEXT_ALIGN_CENTER )
+			draw.DrawText( class, "PIXEL.UI.FrameTitle", pos.center.x, offset + 8, color_white, TEXT_ALIGN_CENTER )
+			draw.DrawText( name, "PIXEL.UI.FrameTitle", pos.center.x, offset + h_class + 16, color_white, TEXT_ALIGN_CENTER )
 		else
-			draw.DrawText( class, "GModWorldtip", pos.min.x + edgesize, offset + 16, Color(255,255,255,255) )
-			draw.DrawText( name, "GModWorldtip", pos.min.x + pos.size.w - w_name - edgesize, offset + 16, Color(255,255,255,255) )
+			draw.DrawText( class, "PIXEL.UI.FrameTitle", pos.min.x + edgesize, offset + 16, color_white )
+			draw.DrawText( name, "PIXEL.UI.FrameTitle", pos.min.x + pos.size.w - w_name - edgesize, offset + 16, color_white )
 		end
 	end
 

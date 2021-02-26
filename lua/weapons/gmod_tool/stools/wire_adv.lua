@@ -950,14 +950,15 @@ elseif CLIENT then
 		local name = input[1]
 		local tp = input[8] or (type(input[2]) == "string" and input[2] or "")
 		local desc = (IsEntity(input[3]) and "" or input[3]) or ""
-		return name .. (desc ~= "" and " (" .. desc .. ")" or "") .. (tp ~= "NORMAL" and " [" .. tp.. "]" or "")
+		return name .. (desc ~= "" and " (" .. desc .. ")" or ""), tp ~= "NORMAL" and tp, tp
 	end
 
 	local function getWidthHeight( inputs )
 		local width, height = 0, 0
 		for i=1,#inputs do
 			local input = inputs[i]
-			local name = getName( input )
+			local name,_name = getName( input )
+			name=name..(Either(isbool(_name),"",_name))
 			local w,h = surface.GetTextSize( name )
 			if w > width then
 				if input[9] and input[9] > 1 then w = w + 14 end
@@ -965,7 +966,7 @@ elseif CLIENT then
 			end
 			height = height + h
 		end
-		return width, height
+		return math.max(width,100), height
 	end
 
 	local fontData = {font = "Trebuchet MS"} -- 24 and 18 are stock
@@ -1008,18 +1009,29 @@ elseif CLIENT then
 		end
 	end
 
+	local typeCol = Color(GetConVar("wire_expression2_editor_color_typename"):GetString():match("(%d+)_(%d+)_(%d+)"))
+	local strCol = Color(GetConVar("wire_expression2_editor_color_string"):GetString():match("(%d+)_(%d+)_(%d+)"))
+	local numCol = Color(GetConVar("wire_expression2_editor_color_number"):GetString():match("(%d+)_(%d+)_(%d+)"))
+	local types = {
+		["STRING"] = {"STR",strCol},
+		["NORMAL"] = {"NUM",typeCol},
+		["WIRELINK"] = {"XWL"},
+		["ARRAY"] = {"ARR"},
+		["TABLE"] = {"TBL"}
+	}
 	function TOOL:DrawList( name, tbl, ent, x, y, w, h, fonth )
-		draw.RoundedBox( 6, x, y, w+16, h+14, Color(50,50,75,192) )
+		surface.SetFont("PIXEL.UI.FrameTitle")
+
+		PIXEL.DrawRoundedBox(PIXEL.Scale(6), x, y, w+16, h+15, PIXEL.Colors.Background)
 
 		x = x + 8
 		y = y + 2
 
 		local temp,_ = surface.GetTextSize( name .. ":" )
-		surface.SetTextColor( Color(255,255,255,255) )
+		PIXEL.DrawRoundedBoxEx(PIXEL.Scale(6), x-8, y-2, w+16, fonth+4, PIXEL.Colors.Header, true, true)
+		surface.SetTextColor(255,255,255,255)
 		surface.SetTextPos( x-temp/2+w/2, y )
 		surface.DrawText( name .. ":" )
-		surface.SetDrawColor( Color(255,255,255,255) )
-		surface.DrawLine( x, y + fonth+2, x+w, y + fonth+2 )
 
 		y = y + 6
 
@@ -1044,15 +1056,17 @@ elseif CLIENT then
 			end
 
 			if tbl[i][9] and tbl[i][9] > 1 then
-				surface.SetFont( "Trebuchet14" )
 				local tempw, temph = surface.GetTextSize( "x" .. tbl[i][9] )
 				surface.SetTextPos( x+w-tempw+2, y+fonth/2-temph/2 )
 				surface.DrawText( "x" .. tbl[i][9] )
 				surface.SetFont( self.CurrentFont )
 			end
 
+			local txt,typ,typName = getName(tbl[i])
+
 			surface.SetTextPos( x, y )
-			surface.DrawText( getName( tbl[i] ) )
+			surface.DrawText( txt )
+			PIXEL.DrawSimpleText((types[typ] and types[typ][1] or types[typName] and types[typName][1]) or typName,"PIXEL.UI.FrameTitle", x+w, y+(fonth/2), (types[typ] and types[typ][2]) or typeCol, 2, 1)
 		end
 	end
 

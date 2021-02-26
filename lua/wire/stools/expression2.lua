@@ -538,9 +538,8 @@ elseif CLIENT then
 				return
 			end
 		else
-			WireLib.AddNotify("The Expression 2 function data has not been transferred to the client yet;\n uploading the E2 to the server for validation.\nNote that any includes will not be sent. You must wait for the function data to finish\n transmitting before you are able to use includes.", NOTIFY_ERROR, 14, NOTIFYSOUND_DRIP3)
-
-			-- This message is so long, the user might not be able to read it fast enough. Printing it to the console so they can read it there, too.
+			WireLib.AddNotify("Note that any includes will not be sent. You must wait for the function data to finish transmitting before you are able to use includes.", NOTIFY_ERROR, 14, NOTIFYSOUND_DRIP3)
+			WireLib.AddNotify("The Expression 2 function data has not been transferred to the client yet.", NOTIFY_ERROR, 14)
 			Msg("The Expression 2 function data has not been transferred to the client yet; uploading the E2 to the server for validation.\nNote that any includes will not be sent. You must wait for the function data to finish transmitting before you are able to use includes.\n")
 		end
 
