@@ -1020,14 +1020,12 @@ elseif CLIENT then
 		["TABLE"] = {"TBL"}
 	}
 	function TOOL:DrawList( name, tbl, ent, x, y, w, h, fonth )
-		surface.SetFont("PIXEL.UI.FrameTitle")
-
 		PIXEL.DrawRoundedBox(PIXEL.Scale(6), x, y, w+16, h+15, PIXEL.Colors.Background)
 
 		x = x + 8
 		y = y + 2
 
-		local temp,_ = surface.GetTextSize( name .. ":" )
+		local temp,_ = PIXEL.GetTextSize( name .. ":", "PIXEL.UI.FrameTitle" )
 		PIXEL.DrawRoundedBoxEx(PIXEL.Scale(6), x-8, y-2, w+16, fonth+4, PIXEL.Colors.Header, true, true)
 		surface.SetTextColor(255,255,255,255)
 		surface.SetTextPos( x-temp/2+w/2, y )
