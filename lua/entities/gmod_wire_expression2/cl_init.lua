@@ -183,13 +183,13 @@ function ENT:DrawWorldTipBody( pos )
 	local quota_width = softquota_width * math.min(prfbench/e2_softquota,1) + (w - softquota_width + 1) * (prfcount/e2_hardquota)
 
 	local y = yoffset
-	surface.SetDrawColor( Color(0,170,0,255) )
+	surface.SetDrawColor(0,170,0,255)
 	surface.DrawRect( pos.min.x + pos.edgesize, y, softquota_width, 20 )
 
-	surface.SetDrawColor( Color(170,0,0,255) )
+	surface.SetDrawColor(170,0,0,255)
 	surface.DrawRect( pos.min.x + pos.edgesize + softquota_width - 1, y, w - softquota_width + 2, 20 )
 
-	surface.SetDrawColor( Color(0,0,0,200) )
+	surface.SetDrawColor(0,0,0,200)
 	surface.DrawRect( pos.min.x + pos.edgesize, y, quota_width, 20 )
 
 	surface.SetDrawColor(PIXEL.Colors.Scroller)

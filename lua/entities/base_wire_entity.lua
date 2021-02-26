@@ -118,7 +118,7 @@ if CLIENT then
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:DrawWorldTipBody( pos )
 		local data = self:GetOverlayData()
-		draw.DrawText( data.txt, "PIXEL.UI.FrameTitle", pos.center.x, pos.min.y + edgesize/2, Color(255,255,255,255), TEXT_ALIGN_CENTER )
+		draw.DrawText( data.txt, "PIXEL.UI.FrameTitle", pos.center.x, pos.min.y + edgesize/2, color_white, TEXT_ALIGN_CENTER )
 	end
 
 	-- This is overridable by other wire entities which want to customize the overlay
@@ -176,11 +176,11 @@ if CLIENT then
 		end
 
 		if info_requires_multiline then
-			draw.DrawText( class, "PIXEL.UI.FrameTitle", pos.center.x, offset + 8, Color(255,255,255,255), TEXT_ALIGN_CENTER )
-			draw.DrawText( name, "PIXEL.UI.FrameTitle", pos.center.x, offset + h_class + 16, Color(255,255,255,255), TEXT_ALIGN_CENTER )
+			draw.DrawText( class, "PIXEL.UI.FrameTitle", pos.center.x, offset + 8, color_white, TEXT_ALIGN_CENTER )
+			draw.DrawText( name, "PIXEL.UI.FrameTitle", pos.center.x, offset + h_class + 16, color_white, TEXT_ALIGN_CENTER )
 		else
-			draw.DrawText( class, "PIXEL.UI.FrameTitle", pos.min.x + edgesize, offset + 16, Color(255,255,255,255) )
-			draw.DrawText( name, "PIXEL.UI.FrameTitle", pos.min.x + pos.size.w - w_name - edgesize, offset + 16, Color(255,255,255,255) )
+			draw.DrawText( class, "PIXEL.UI.FrameTitle", pos.min.x + edgesize, offset + 16, color_white )
+			draw.DrawText( name, "PIXEL.UI.FrameTitle", pos.min.x + pos.size.w - w_name - edgesize, offset + 16, color_white )
 		end
 	end
 

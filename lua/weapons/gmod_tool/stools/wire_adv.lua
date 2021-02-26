@@ -1029,7 +1029,7 @@ elseif CLIENT then
 
 		local temp,_ = surface.GetTextSize( name .. ":" )
 		PIXEL.DrawRoundedBoxEx(PIXEL.Scale(6), x-8, y-2, w+16, fonth+4, PIXEL.Colors.Header, true, true)
-		surface.SetTextColor( Color(255,255,255,255) )
+		surface.SetTextColor(255,255,255,255)
 		surface.SetTextPos( x-temp/2+w/2, y )
 		surface.DrawText( name .. ":" )
 
