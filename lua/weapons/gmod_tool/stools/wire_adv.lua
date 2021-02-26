@@ -966,7 +966,7 @@ elseif CLIENT then
 			end
 			height = height + h
 		end
-		return width, height
+		return math.max(width,100), height
 	end
 
 	local fontData = {font = "Trebuchet MS"} -- 24 and 18 are stock
