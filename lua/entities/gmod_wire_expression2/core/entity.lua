@@ -493,26 +493,10 @@ e2function number entity:getSkin()
 	return 0
 end
 
---- Sets <this>'s skin number.
-e2function void entity:setSkin(skinIndex)
-	--if IsValid(this) and not this:IsPlayer()
-	--and this:SkinCount() > 0 and skinIndex < this:SkinCount()
-	--and gamemode.Call("CanProperty", self.player, "skin", this) then
-	--	this:SetSkin(skinIndex)
-	--end
-end
-
 --- Gets <this>'s number of skins.
 e2function number entity:getSkinCount()
 	if IsValid(this) then return this:SkinCount() end
 	return 0
-end
-
---- Sets <this>'s bodygroup.
-e2function void entity:setBodygroup(bgrp_id, bgrp_subid)
-	--if not IsValid(this) then return end
-	--if not isOwner(self, this) then return end
-	--this:SetBodygroup(bgrp_id, bgrp_subid)
 end
 
 --- Gets <this>'s bodygroup number.
@@ -555,97 +539,6 @@ __e2setcost(30) -- temporary
 
 local clamp = WireLib.clampForce
 
-e2function void entity:applyForce(vector force)
-	--if not validPhysics(this) then return nil end
-	--if not isOwner(self, this) then return nil end
---
-	--force = clamp(force)
---
-	--local phys = this:GetPhysicsObject()
-	--phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
-end
-
-e2function void entity:applyOffsetForce(vector force, vector position)
-	--if not validPhysics(this) then return nil end
-	--if not isOwner(self, this) then return nil end
-
-	--force 		= clamp(force)
-	--position 	= clamp(position)
-
-	--local phys = this:GetPhysicsObject()
-	--phys:ApplyForceOffset(Vector(force[1],force[2],force[3]), Vector(position[1],position[2],position[3]))
-end
-
-e2function void entity:applyAngForce(angle angForce)
-	--if not validPhysics(this) then return nil end
-	--if not isOwner(self, this) then return nil end
-
-	--if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
-	--angForce = clamp(angForce)
-
-	--local phys = this:GetPhysicsObject()
-
-	-- assign vectors
-	--local up = this:GetUp()
-	--local left = this:GetRight() * -1
-	--local forward = this:GetForward()
-
-	-- apply pitch force
-	--if angForce[1] ~= 0 then
-	--	local pitch = up      * (angForce[1] * 0.5)
-	--	phys:ApplyForceOffset( forward, pitch )
-	--	phys:ApplyForceOffset( forward * -1, pitch * -1 )
-	--end
-
-	-- apply yaw force
-	--if angForce[2] ~= 0 then
-	--	local yaw   = forward * (angForce[2] * 0.5)
-	--	phys:ApplyForceOffset( left, yaw )
-	--	phys:ApplyForceOffset( left * -1, yaw * -1 )
-	--end
-
-	-- apply roll force
-	--if angForce[3] ~= 0 then
-	--	local roll  = left    * (angForce[3] * 0.5)
-	--	phys:ApplyForceOffset( up, roll )
-	--	phys:ApplyForceOffset( up * -1, roll * -1 )
-	--end
-end
-
---- Applies torque according to a local torque vector, with magnitude and sense given by the vector's direction, magnitude and orientation.
-e2function void entity:applyTorque(vector torque)
-	--if not IsValid(this) then return end
-	--if not isOwner(self, this) then return end
-
-	--if torque[1] == 0 and torque[2] == 0 and torque[3] == 0 then return end
-	--torque = clamp(torque)
-
-	--local phys = this:GetPhysicsObject()
-
-	--local tq = Vector(torque[1], torque[2], torque[3])
-	--local torqueamount = tq:Length()
-
-	-- Convert torque from local to world axis
-	--tq = phys:LocalToWorld( tq ) - phys:GetPos()
-
-	-- Find two vectors perpendicular to the torque axis
-	--local off
-	--if abs(tq.x) > torqueamount * 0.1 or abs(tq.z) > torqueamount * 0.1 then
-	--	off = Vector(-tq.z, 0, tq.x)
-	--else
-	--	off = Vector(-tq.y, tq.x, 0)
-	--end
-	--off = off:GetNormal() * torqueamount * 0.5
-
-	--local dir = ( tq:Cross(off) ):GetNormal()
-
-	--dir = clamp(dir)
-	--off = clamp(off)
-
-	--phys:ApplyForceOffset( dir, off )
-	--phys:ApplyForceOffset( dir * -1, off * -1 )
-end
-
 e2function vector entity:inertia()
 	if not validPhysics(this) then return {0,0,0} end
 	return this:GetPhysicsObject():GetInertia()
@@ -655,40 +548,6 @@ end
 /******************************************************************************/
 
 __e2setcost(10) -- temporary
-
-e2function void entity:lockPod(lock)
-	--if not IsValid(this) or not this:IsVehicle() then return end
-	--if not isOwner(self, this) then return end
-	--if lock ~= 0 then
-	--	this:Fire("Lock", "", 0)
-	--else
-	--	this:Fire("Unlock", "", 0)
-	--end
-end
-
-e2function void entity:killPod()
-	--if not IsValid(this) or not this:IsVehicle() then return end
-	--if not isOwner(self, this) then return end
-	--local ply = this:GetDriver()
-	--if IsValid(ply) then ply:Kill() end
-end
-
-e2function void entity:ejectPod()
-	--if not IsValid(this) or not this:IsVehicle() then return end
-	--if not isOwner(self, this) then return end
-	--local ply = this:GetDriver()
-	--if IsValid(ply) then ply:ExitVehicle() end
-end
-
-e2function void entity:podStripWeapons()
-	--if not IsValid(this) or not this:IsVehicle() then return end
-	--if not isOwner(self, this) then return end
-	--local ply = this:GetDriver()
-	--if IsValid(ply) and next(ply:GetWeapons()) ~= nil then
-	--	ply:StripWeapons()
-	--	ply:ChatPrint("Your weapons have been stripped!")
-	--end
-end
 
 /******************************************************************************/
 
@@ -822,36 +681,6 @@ local function composedata(startSize, endSize, length, material, color, alpha)
 end
 
 __e2setcost(30)
-
---- StartSize, EndSize, Length, Material, Color (RGB), Alpha
---- Adds a trail to <this> with the specified attributes.
-e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha)
-	--if not checkOwner(self) then return end
-	--if not IsValid(this) then return end
-	--if not isOwner(self, this) then return end
-
-	--local Data = composedata(startSize, endSize, length, material, color, alpha)
-	--if not Data then return end
-
-	--SetTrails(self.player, this, Data)
-end
-
-
---- StartSize, EndSize, Length, Material, Color (RGB), Alpha, AttachmentID, Additive
---- Adds a trail to <this> with the specified attributes.
-e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha, attachmentID, additive)
-	--if not checkOwner(self) then return end
-	--if not IsValid(this) then return end
-	--if not isOwner(self, this) then return end
-
-	--local Data = composedata(startSize, endSize, length, material, color, alpha)
-	--if not Data then return end
-
-	--Data.AttachmentID = attachmentID
-	--Data.Additive = additive ~= 0
-
-	--SetTrails(self.player, this, Data)
-end
 
 /******************************************************************************/
 
