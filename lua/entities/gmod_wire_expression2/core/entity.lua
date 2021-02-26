@@ -161,6 +161,7 @@ __e2setcost(5) -- temporary
 // Functions getting vector
 e2function vector entity:pos()
 	if not IsValid(this) then return {0,0,0} end
+	if this:IsPlayer() then return {0,0,0} end
 	return this:GetPos()
 end
 
