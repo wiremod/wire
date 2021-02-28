@@ -165,6 +165,8 @@ function ENT:Initialize()
   self.NodeGetsInputFrom = {}
 
 	self:UpdateOverlay(true)
+
+  self:GetOptions()
 end
 
 --------------------------------------------------------
@@ -457,8 +459,6 @@ function ENT:Upload(data)
   self.CompileError = false
   self.ExecutionError = false
   self.ErrorMessage = nil
-
-  self:GetOptions()
 
   --Name
   if data.Name then

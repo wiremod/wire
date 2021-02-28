@@ -53,7 +53,6 @@ FPGANodeSize = 5
 --------------------------------------------------------------------------------
 if CLIENT then
   function FPGASendOptionsToServer(options)
-    print("sending options")
     net.Start("wire_fpga_options")
       net.WriteString(options)
     net.SendToServer()
@@ -76,7 +75,6 @@ if SERVER then
   timer.Create("WireFPGACheckForOptions", 1, 0, function()
     for _, ply in ipairs(player.GetAll()) do
       if not FPGAPlayerOptions[ply] then
-        print("requesting options")
         net.Start("wire_fpga_options")
         net.Send(ply)
       end
