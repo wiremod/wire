@@ -248,7 +248,6 @@ function ENT:ConstructInsideView(viewData)
 end
 
 net.Receive("wire_fpga_view_data", function (len)
-  print("got")
   local ent = net.ReadEntity()
   if IsValid(ent) then
     local ok, data = pcall(WireLib.von.deserialize, net.ReadString())
