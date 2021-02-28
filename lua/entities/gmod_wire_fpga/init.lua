@@ -276,7 +276,7 @@ function ENT:SynthesizeViewData(data)
 
       table.insert(viewData.Edges, {
         sX = fromNode.x + FPGANodeSize,
-        sY = fromNode.y + FPGANodeSize/2,
+        sY = fromNode.y + (outputNum - 0.5) * FPGANodeSize,
         eX = node.x,
         eY = node.y + (inputNum - 0.5) * FPGANodeSize,
         t = FPGATypeEnum[getInputType(gate, inputNum)]
