@@ -51,16 +51,29 @@ if CLIENT then return end
 --------------------------------------------------------------------------------
 -- Inside view syncing
 --------------------------------------------------------------------------------
+FPGAPlayerHasHash = {}
 
 util.AddNetworkString("wire_fpga_view_data")
 
-timer.Create("WireFPGAViewDataUpdate", 1.0, 0, function()
+timer.Create("WireFPGAViewDataUpdate", 0.1, 0, function()
 	for _, ply in ipairs(player.GetAll()) do
+    if not ply:KeyDown(IN_USE) then continue end
+    
 		local ent = ply:GetEyeTrace().Entity
-		if IsValid(ent) and ent:GetClass() == "gmod_wire_fpga" and ent.ViewData and ply:KeyDown(IN_USE) then
+    
+		if IsValid(ent) and ent:GetClass() == "gmod_wire_fpga" and ent:GetViewData() then
+      if not FPGAPlayerHasHash[ply] then FPGAPlayerHasHash[ply] = {} end
+
+      if FPGAPlayerHasHash[ply][ent:GetTimeHash()] then
+        --player already has this inside view
+        continue
+      end
+
+      FPGAPlayerHasHash[ply][ent:GetTimeHash()] = true
+
 			net.Start("wire_fpga_view_data")
 				net.WriteEntity(ent)
-				net.WriteString(ent.ViewData)
+				net.WriteString(ent:GetViewData())
 			net.Send(ply)
 		end
 	end

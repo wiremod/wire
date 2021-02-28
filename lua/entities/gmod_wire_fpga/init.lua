@@ -144,6 +144,7 @@ function ENT:Initialize()
 
   self.Data = nil
   self.ViewData = nil
+  self.Hash = -1
 
 	self.Inputs = WireLib.CreateInputs(self, {})
   self.Outputs = WireLib.CreateOutputs(self, {})
@@ -197,6 +198,18 @@ end
 --------------------------------------------------------
 --VIEW DATA SYNTHESIZATION
 --------------------------------------------------------
+function ENT:CreateTimeHash(str)
+  self.Hash = tonumber(util.CRC(self:GetOriginal() .. CurTime())) or -1
+end
+
+function ENT:GetTimeHash()
+  return self.Hash
+end
+
+function ENT:GetViewData()
+  return self.ViewData
+end
+
 function ENT:SynthesizeViewData(data)
   if not data.Nodes then return end
 
@@ -459,6 +472,9 @@ function ENT:Upload(data)
 
   --view data
   self:SynthesizeViewData(data)
+
+  --hash
+  self:CreateTimeHash(data)
 
   --Compile
   self:CompileData(data)
