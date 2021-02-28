@@ -202,12 +202,23 @@ function ENT:SynthesizeViewData(data)
 
   local viewData = {}
   
-
   viewData.Nodes = {}
+  viewData.Labels = {}
+  viewData.Edges = {}
   for _, node in pairs(data.Nodes) do
     local gate = getGate(node)
 
-    if not gate then continue end
+    if not gate then 
+      --special case, label
+      if node.type == "editor" and node.visual == "label" then
+        table.insert(viewData.Labels, {
+          x = node.x,
+          y = node.y,
+          t = node.value
+        })
+      end
+      continue
+    end
 
     local ports
     if gate.outputs then
@@ -219,8 +230,21 @@ function ENT:SynthesizeViewData(data)
     table.insert(viewData.Nodes, {
       x = node.x,
       y = node.y,
-      size = ports
+      s = ports
     })
+
+    for inputNum, connection in pairs(node.connections) do
+      local fromNode = data.Nodes[connection[1]]
+      local outputNum = connection[2]
+
+      table.insert(viewData.Edges, {
+        sX = fromNode.x + FPGANodeSize,
+        sY = fromNode.y + FPGANodeSize/2,
+        eX = node.x,
+        eY = node.y + (inputNum - 0.5) * FPGANodeSize,
+        t = FPGATypeEnum[getInputType(gate, inputNum)]
+      })
+    end
   end
 
   self.ViewData = WireLib.von.serialize(viewData)

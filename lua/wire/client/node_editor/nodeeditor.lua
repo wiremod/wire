@@ -1,6 +1,6 @@
 local Editor = {}
 
-DefaultValueForType = {
+FPGADefaultValueForType = {
   NORMAL = 0,
   VECTOR2 = nil, --no
   VECTOR = Vector(0, 0, 0),
@@ -13,7 +13,7 @@ DefaultValueForType = {
   WIRELINK = nil
 }
 
-TypeColor = {
+FPGATypeColor = {
   NORMAL = Color(190, 190, 255, 255), --Very light blue nearing white
   VECTOR2 = Color(150, 255, 255, 255), --Light blue
   VECTOR = Color(70, 160, 255, 255), --Blue
@@ -49,7 +49,7 @@ function Editor:Init()
 
   self.SelectedInMenu = nil
 
-  self.GateSize = 5 --don't change this without reflecting it in fpga cl_init
+  self.GateSize = FPGANodeSize
   self.IOSize = 2
 
   self.BackgroundColor = Color(26, 26, 26, 255)
@@ -822,7 +822,7 @@ function Editor:PaintConnection(nodeFrom, output, nodeTo, input, type)
   local sx1, sy1 = self:PosToScr(x1, y1)
   local sx2, sy2 = self:PosToScr(x2, y2)
 
-  surface.SetDrawColor(TypeColor[type])
+  surface.SetDrawColor(FPGATypeColor[type])
   surface.DrawLine(sx1, sy1, sx2, sy2)
 end
 
@@ -837,7 +837,7 @@ function Editor:PaintConnections()
 end
 
 function Editor:PaintInput(x, y, type, name, ioSize)
-  surface.SetDrawColor(TypeColor[type])
+  surface.SetDrawColor(FPGATypeColor[type])
   surface.DrawRect(x, y, ioSize*2, ioSize)
 
   if (self.Zoom > self.ZoomHideThreshold) then
@@ -848,7 +848,7 @@ function Editor:PaintInput(x, y, type, name, ioSize)
 end
 
 function Editor:PaintOutput(x, y, type, name, ioSize)
-  surface.SetDrawColor(TypeColor[type])
+  surface.SetDrawColor(FPGATypeColor[type])
   surface.DrawRect(x, y, ioSize*2, ioSize)
 
   if (self.Zoom > self.ZoomHideThreshold) then
@@ -1113,7 +1113,7 @@ function Editor:Paint()
       end
       local sx, sy = self:PosToScr(x, y)
       local mx, my = self:CursorPos()
-      surface.SetDrawColor(TypeColor[type])
+      surface.SetDrawColor(FPGATypeColor[type])
       surface.DrawLine(sx, sy, mx, my + (inputNum-selectedPort) * self.GateSize * self.Zoom)
     end
   end
@@ -1223,7 +1223,7 @@ function Editor:CreateNode(selectedInMenu, x, y)
       node.ioName = self:GetOutputName()
     elseif gateInfo.isConstant then
       local type = self:GetOutputType(gateInfo, 1)
-      node.value = DefaultValueForType[type]
+      node.value = FPGADefaultValueForType[type]
     end
   elseif selectedInMenu.visual then
     node.value = self:GetVisual(node).default

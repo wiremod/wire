@@ -91,24 +91,25 @@ function ENT:DrawWorldTipBody(pos)
   -------------------
 	-- inside view
 	-------------------
-  if self.ViewData then
-    self:DrawInsideViewBackground()
-    self:DrawInsideView()
+  if LocalPlayer():KeyDown(IN_USE) then
+    if self.ViewData then
+      self:DrawInsideViewBackground()
+      self:DrawInsideView()
+    end
   end
 end
 
 --------------------------------------------------------------------------------
 -- Inside view
 --------------------------------------------------------------------------------
+
+--only square for now
 FPGAInsideViewPosition = {
-  100,
-  600,
+  50,
+  850,
   -400,
-  100
+  400
 }
-
-FPGANodeSize = 5
-
 
 function ENT:DrawInsideViewBackground()
   local x1 = ScrW()/2 + FPGAInsideViewPosition[1]
@@ -117,7 +118,7 @@ function ENT:DrawInsideViewBackground()
   local y2 = ScrH()/2 + FPGAInsideViewPosition[4]
 
   draw.NoTexture()
-  surface.SetDrawColor(Color(25,25,25,200))
+  surface.SetDrawColor(Color(25,25,25,240))
 
   local poly = {
           {x = x1, 			y = y1,					u = 0, v = 0 },
@@ -140,14 +141,37 @@ end
 function ENT:DrawInsideView()
   local centerX = ScrW()/2 + (FPGAInsideViewPosition[2] - FPGAInsideViewPosition[1])/2 + FPGAInsideViewPosition[1]
   local centerY = ScrH()/2 + (FPGAInsideViewPosition[4] - FPGAInsideViewPosition[3])/2 + FPGAInsideViewPosition[3]
-  local scaleX = (FPGAInsideViewPosition[2] - FPGAInsideViewPosition[1]) - 20
-  local scaleY = (FPGAInsideViewPosition[4] - FPGAInsideViewPosition[3]) - 20
-  local scale = math.max(scaleX, scaleY)
-  local nodeSize = FPGANodeSize/self.ViewData.Size * scale
+  local scaleX = (FPGAInsideViewPosition[2] - FPGAInsideViewPosition[1])-20
+  local scaleY = (FPGAInsideViewPosition[4] - FPGAInsideViewPosition[3])-20
+
+  local scale = math.min(scaleX, scaleY)
+
+  local nodeSize = FPGANodeSize/self.ViewData.Scale * scale
   
-  surface.SetDrawColor(Color(200,200,200, 255))
+  --edges
+  for _, edge in pairs(self.ViewData.Edges) do
+    surface.SetDrawColor(FPGATypeColor[edge.type])
+    surface.DrawLine(
+      centerX + edge.from.x * scale, centerY + edge.from.y * scale, 
+      centerX + edge.to.x * scale, centerY + edge.to.y * scale
+    )
+  end
+
+  --nodes
+  surface.SetDrawColor(Color(100, 100, 100, 255))
   for _, node in pairs(self.ViewData.Nodes) do
     surface.DrawRect(centerX + node.x * scale, centerY + node.y * scale, nodeSize, nodeSize * node.size)
+  end
+
+  --labels
+  surface.SetFont("FPGALabel")
+  surface.SetTextColor(Color(255, 255, 255, 255))
+  for _, label in pairs(self.ViewData.Labels) do
+
+    local tx, ty = surface.GetTextSize(label.text)
+    surface.SetTextPos(centerX + label.x * scale - tx/2, centerY + label.y * scale - ty/2)
+
+    surface.DrawText(label.text)
   end
 end
 
@@ -157,34 +181,74 @@ function ENT:ConstructInsideView(viewData)
   self.ViewData = {}
 
   -- get bounds
-  local b = {viewData.Nodes[1].x, viewData.Nodes[1].x, viewData.Nodes[1].y, viewData.Nodes[1].y}
+  local b
+  if viewData.Nodes[1] then
+    b = {viewData.Nodes[1].x, viewData.Nodes[1].x, viewData.Nodes[1].y, viewData.Nodes[1].y}
+  else
+    b = {0, 1, 0, 1}
+  end
   for _, node in pairs(viewData.Nodes) do
     b[1] = math.min(b[1], node.x)
     b[2] = math.max(b[2], node.x + FPGANodeSize)
     b[3] = math.min(b[3], node.y)
-    b[4] = math.max(b[4], node.y + node.size * FPGANodeSize)
+    b[4] = math.max(b[4], node.y + node.s * FPGANodeSize)
+  end
+  if viewData.Labels then
+    for _, label in pairs(viewData.Labels) do
+      local tx, ty = surface.GetTextSize(label.t)
+      b[1] = math.min(b[1], label.x - tx/2)
+      b[2] = math.max(b[2], label.x + tx/2)
+      b[3] = math.min(b[3], label.y - ty/2)
+      b[4] = math.max(b[4], label.y + ty/2)
+    end
   end
 
   local xSize = b[2]-b[1]
   local ySize = b[4]-b[3]
-  self.ViewData.Size = math.max(xSize, ySize)
+  self.ViewData.Size = {x = xSize, y = ySize}
+  self.ViewData.Scale = math.max(math.max(xSize, ySize), 100)
   self.ViewData.Center = {b[1] + xSize/2, b[3] + ySize/2}
 
   self.ViewData.Nodes = {}
-  
   for _, node in pairs(viewData.Nodes) do
     table.insert(self.ViewData.Nodes, {
-      x = (node.x - self.ViewData.Center[1]) / self.ViewData.Size,
-      y = (node.y - self.ViewData.Center[2]) / self.ViewData.Size,
-      size = node.size
+      x = (node.x - self.ViewData.Center[1]) / self.ViewData.Scale,
+      y = (node.y - self.ViewData.Center[2]) / self.ViewData.Scale,
+      size = node.s
     })
   end
-
-  print(table.ToString(self.ViewData.Nodes))
   
+  self.ViewData.Labels = {}
+  if viewData.Labels then
+    for _, label in pairs(viewData.Labels) do
+      table.insert(self.ViewData.Labels, {
+        x = (label.x - self.ViewData.Center[1]) / self.ViewData.Scale,
+        y = (label.y - self.ViewData.Center[2]) / self.ViewData.Scale,
+        text = label.t
+      })
+    end
+  end
+
+  self.ViewData.Edges = {}
+  if viewData.Edges then
+    for _, edge in pairs(viewData.Edges) do
+      table.insert(self.ViewData.Edges, {
+        from = {
+          x = (edge.sX - self.ViewData.Center[1]) / self.ViewData.Scale,
+          y = (edge.sY - self.ViewData.Center[2]) / self.ViewData.Scale,
+        },
+        to = {
+          x = (edge.eX - self.ViewData.Center[1]) / self.ViewData.Scale,
+          y = (edge.eY - self.ViewData.Center[2]) / self.ViewData.Scale,
+        },
+        type = FPGATypeEnumLookup[edge.t]
+      })
+    end
+  end
 end
 
 net.Receive("wire_fpga_view_data", function (len)
+  print("got")
   local ent = net.ReadEntity()
   if IsValid(ent) then
     local ok, data = pcall(WireLib.von.deserialize, net.ReadString())
