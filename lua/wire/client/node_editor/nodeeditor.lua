@@ -49,7 +49,7 @@ function Editor:Init()
 
   self.SelectedInMenu = nil
 
-  self.GateSize = 5
+  self.GateSize = 5 --don't change this without reflecting it in fpga cl_init
   self.IOSize = 2
 
   self.BackgroundColor = Color(26, 26, 26, 255)

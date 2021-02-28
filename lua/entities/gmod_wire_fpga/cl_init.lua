@@ -107,6 +107,8 @@ FPGAInsideViewPosition = {
   100
 }
 
+FPGANodeSize = 5
+
 
 function ENT:DrawInsideViewBackground()
   local x1 = ScrW()/2 + FPGAInsideViewPosition[1]
@@ -138,14 +140,14 @@ end
 function ENT:DrawInsideView()
   local centerX = ScrW()/2 + (FPGAInsideViewPosition[2] - FPGAInsideViewPosition[1])/2 + FPGAInsideViewPosition[1]
   local centerY = ScrH()/2 + (FPGAInsideViewPosition[4] - FPGAInsideViewPosition[3])/2 + FPGAInsideViewPosition[3]
-  local xSize = FPGAInsideViewPosition[2] - FPGAInsideViewPosition[1]-10
-  local ySize = FPGAInsideViewPosition[4] - FPGAInsideViewPosition[3]-10
-
-  local nodeSize = 5/math.max(self.ViewData.Size[1], self.ViewData.Size[2]) * math.max(xSize, ySize)
-
-  surface.SetDrawColor(Color(255,255,255, 255))
+  local scaleX = (FPGAInsideViewPosition[2] - FPGAInsideViewPosition[1]) - 20
+  local scaleY = (FPGAInsideViewPosition[4] - FPGAInsideViewPosition[3]) - 20
+  local scale = math.max(scaleX, scaleY)
+  local nodeSize = FPGANodeSize/self.ViewData.Size * scale
+  
+  surface.SetDrawColor(Color(200,200,200, 255))
   for _, node in pairs(self.ViewData.Nodes) do
-    surface.DrawRect(centerX + node.x * xSize, centerY + node.y * ySize, nodeSize, nodeSize * node.size)
+    surface.DrawRect(centerX + node.x * scale, centerY + node.y * scale, nodeSize, nodeSize * node.size)
   end
 end
 
@@ -158,22 +160,27 @@ function ENT:ConstructInsideView(viewData)
   local b = {viewData.Nodes[1].x, viewData.Nodes[1].x, viewData.Nodes[1].y, viewData.Nodes[1].y}
   for _, node in pairs(viewData.Nodes) do
     b[1] = math.min(b[1], node.x)
-    b[2] = math.max(b[2], node.x)
+    b[2] = math.max(b[2], node.x + FPGANodeSize)
     b[3] = math.min(b[3], node.y)
-    b[4] = math.max(b[4], node.y + node.size * 5)
+    b[4] = math.max(b[4], node.y + node.size * FPGANodeSize)
   end
 
-  self.ViewData.Size = {b[2]-b[1], b[4]-b[3]}
-  self.ViewData.Center = {b[1] + self.ViewData.Size[1]/2, b[3] + self.ViewData.Size[2]/2}
+  local xSize = b[2]-b[1]
+  local ySize = b[4]-b[3]
+  self.ViewData.Size = math.max(xSize, ySize)
+  self.ViewData.Center = {b[1] + xSize/2, b[3] + ySize/2}
 
   self.ViewData.Nodes = {}
+  
   for _, node in pairs(viewData.Nodes) do
     table.insert(self.ViewData.Nodes, {
-      x = (node.x - 2.5 - self.ViewData.Center[1]) / self.ViewData.Size[1],
-      y = (node.y - 2.5 - self.ViewData.Center[2]) / self.ViewData.Size[2],
+      x = (node.x - self.ViewData.Center[1]) / self.ViewData.Size,
+      y = (node.y - self.ViewData.Center[2]) / self.ViewData.Size,
       size = node.size
     })
   end
+
+  print(table.ToString(self.ViewData.Nodes))
   
 end
 

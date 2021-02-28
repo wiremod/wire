@@ -8,6 +8,8 @@ FPGA Entity:
 
   Bugs:
     Superjaja focus bug
+
+    Apanda self bug
   
 
 FPGA Tool:
