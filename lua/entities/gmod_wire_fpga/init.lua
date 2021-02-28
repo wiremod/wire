@@ -196,6 +196,28 @@ function ENT:GetOriginal()
 end
 
 --------------------------------------------------------
+--OPTIONS
+--------------------------------------------------------
+
+function ENT:GetOptions()
+  local ply = self:GetPlayer()
+
+  if FPGAPlayerOptions[ply] then
+    --set options
+    self.Options = FPGAPlayerOptions[ply]
+  else
+    --set to default
+    self.Options = {
+      allow_inside_view = false
+    }
+  end
+end
+
+function ENT:AllowsInsideView()
+  return self.Options.allow_inside_view
+end
+
+--------------------------------------------------------
 --VIEW DATA SYNTHESIZATION
 --------------------------------------------------------
 function ENT:CreateTimeHash(str)
@@ -436,6 +458,8 @@ function ENT:Upload(data)
   self.ExecutionError = false
   self.ErrorMessage = nil
 
+  self:GetOptions()
+
   --Name
   if data.Name then
     self.name = data.Name
@@ -598,6 +622,9 @@ function ENT:Think()
 
   BaseClass.Think(self)
   self:NextThink(CurTime())
+
+  --Get options (maybe do this less frequently)
+  self:GetOptions()
 
   --Time benchmarking
   self.timebench = self.timebench * 0.98 + (self.time) * 0.02

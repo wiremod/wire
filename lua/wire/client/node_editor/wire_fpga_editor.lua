@@ -891,10 +891,32 @@ function Editor:InitControlPanel(frame)
 	dlist.Paint = function() end
 	frame:AddResizeObject(dlist, 2, 2)
   dlist:EnableVerticalScrollbar(true)
+
+  local AllowInsideView = vgui.Create("DCheckBoxLabel")
+	dlist:AddItem(AllowInsideView)
+	AllowInsideView:SetConVar("wire_fpga_allow_inside_view")
+	AllowInsideView:SetText("Allow inside view")
+	AllowInsideView:SizeToContents()
+	AllowInsideView:SetTooltip("Other people will be able to hover over your FPGAs and see the internal gates. They won't be able to download your chip, but just see a simplified visual representation.")
   
 end
 
--- options
+----- FPGA Options ------------------
+local wire_fpga_allow_inside_view = CreateClientConVar("wire_fpga_allow_inside_view", "0", true, false)
+
+function FPGAGetOptions() 
+  return WireLib.von.serialize({
+    allow_inside_view = wire_fpga_allow_inside_view:GetBool() or false
+  }, false)
+end
+
+function FPGASendOptions()
+  FPGASendOptionsToServer(FPGAGetOptions())
+end
+
+cvars.AddChangeCallback("wire_fpga_allow_inside_view", FPGASendOptions)
+-------------------------------------
+
 
 function Editor:NewChip(incurrent)
 	if not incurrent and self.NewTabOnOpen:GetBool() then
@@ -1073,13 +1095,9 @@ function Editor:GetEditor(n)
 	end
 end
 
-function Editor:GetCurrentEditor()
-	return self:GetActiveTab():GetPanel()
-end
-
 function Editor:GetData()
   local data = self:GetCurrentEditor():GetData()
-
+  
   local last_data = ""
   if #data < 64 then
     last_data = data
@@ -1089,6 +1107,10 @@ function Editor:GetData()
   
   FPGASetToolInfo(self:ExtractNameFromEditor(), #data, last_data)
   return data
+end
+
+function Editor:GetCurrentEditor()
+  return self:GetActiveTab():GetPanel()
 end
 
 function Editor:Open(Line, data, forcenewtab)

@@ -46,35 +46,82 @@ FPGANodeSize = 5
 
 
 
-if CLIENT then return end
+
 
 --------------------------------------------------------------------------------
--- Inside view syncing
+-- Option syncing ((Server ->) Client -> Server)
 --------------------------------------------------------------------------------
-FPGAPlayerHasHash = {}
+if CLIENT then
+  function FPGASendOptionsToServer(options)
+    print("sending options")
+    net.Start("wire_fpga_options")
+      net.WriteString(options)
+    net.SendToServer()
+  end
 
-util.AddNetworkString("wire_fpga_view_data")
+  -- Received request to send options
+  net.Receive("wire_fpga_options", function(len)
+    local options = FPGAGetOptions()
 
-timer.Create("WireFPGAViewDataUpdate", 0.1, 0, function()
-	for _, ply in ipairs(player.GetAll()) do
-    if not ply:KeyDown(IN_USE) then continue end
-    
-		local ent = ply:GetEyeTrace().Entity
-    
-		if IsValid(ent) and ent:GetClass() == "gmod_wire_fpga" and ent:GetViewData() then
-      if not FPGAPlayerHasHash[ply] then FPGAPlayerHasHash[ply] = {} end
+    FPGASendOptionsToServer(options)
+  end)
+end
 
-      if FPGAPlayerHasHash[ply][ent:GetTimeHash()] then
-        --player already has this inside view
-        continue
+if SERVER then
+  FPGAPlayerOptions = {}
+
+  util.AddNetworkString("wire_fpga_options")
+
+  -- Request options from player
+  timer.Create("WireFPGACheckForOptions", 1, 0, function()
+    for _, ply in ipairs(player.GetAll()) do
+      if not FPGAPlayerOptions[ply] then
+        print("requesting options")
+        net.Start("wire_fpga_options")
+        net.Send(ply)
       end
+    end
+  end)
 
-      FPGAPlayerHasHash[ply][ent:GetTimeHash()] = true
+  -- Receive options from player
+  net.Receive("wire_fpga_options", function(len, ply)
+    local ok, options = pcall(WireLib.von.deserialize, net.ReadString())
 
-			net.Start("wire_fpga_view_data")
-				net.WriteEntity(ent)
-				net.WriteString(ent:GetViewData())
-			net.Send(ply)
-		end
-	end
-end)
+    if ok then
+      FPGAPlayerOptions[ply] = options
+    end
+  end)
+end
+
+--------------------------------------------------------------------------------
+-- Inside view syncing (Server -> Client)
+--------------------------------------------------------------------------------
+if SERVER then
+  FPGAPlayerHasHash = {}
+
+  util.AddNetworkString("wire_fpga_view_data")
+
+  timer.Create("WireFPGAViewDataUpdate", 0.1, 0, function()
+    for _, ply in ipairs(player.GetAll()) do
+      if not ply:KeyDown(IN_USE) then continue end
+      
+      local ent = ply:GetEyeTrace().Entity
+      
+      if IsValid(ent) and ent:GetClass() == "gmod_wire_fpga" and ent:AllowsInsideView() and ent:GetViewData() then
+        if not FPGAPlayerHasHash[ply] then FPGAPlayerHasHash[ply] = {} end
+
+        if FPGAPlayerHasHash[ply][ent:GetTimeHash()] then
+          --player already has this inside view
+          continue
+        end
+
+        FPGAPlayerHasHash[ply][ent:GetTimeHash()] = true
+
+        net.Start("wire_fpga_view_data")
+          net.WriteEntity(ent)
+          net.WriteString(ent:GetViewData())
+        net.Send(ply)
+      end
+    end
+  end)
+end
