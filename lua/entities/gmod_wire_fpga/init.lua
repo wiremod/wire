@@ -299,19 +299,19 @@ end
 -- Flip connections, generate input output tabels
 function ENT:CompileData(data)
   --Make node table and connection table [from][output] = {to, input}
-  nodes = {}
-  edges = {}
-  inputs = {}
-  inputTypes = {}
-  outputs = {}
-  outputTypes = {}
-  inputIds = {}
-  outputIds = {}
-  nodeGetsInputFrom = {}
-  timedNodes = {}
-  neverActiveNodes = {}
-  postCycleNodes = {}
-  postExecutionNodes = {}
+  local nodes = {}
+  local edges = {}
+  local inputs = {}
+  local inputTypes = {}
+  local outputs = {}
+  local outputTypes = {}
+  local inputIds = {}
+  local outputIds = {}
+  local nodeGetsInputFrom = {}
+  local timedNodes = {}
+  local neverActiveNodes = {}
+  local postCycleNodes = {}
+  local postExecutionNodes = {}
 
   for nodeId, node in pairs(data.Nodes) do
     if node.visual then continue end
