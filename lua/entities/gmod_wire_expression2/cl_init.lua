@@ -71,7 +71,7 @@ function wire_expression2_validate(buffer)
 	end
 
 	-- invoke compiler
-	local status, script, instance = E2Lib.Compiler.Execute(tree, inports[3], outports[3], persists[3], dvars, scripts)
+	local status, script, instance = E2Lib.Compiler.Execute(tree, inports[3], outports[3], persists[3], dvars, scripts, LocalPlayer())
 	if not status then return script end
 
 	return nil, includes

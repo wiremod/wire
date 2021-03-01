@@ -21,7 +21,7 @@ function Compiler:Error(message, instr)
 	error(message .. " at line " .. instr[2][1] .. ", char " .. instr[2][2], 0)
 end
 
-function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used.
+function Compiler:Process(root, inputs, outputs, persist, delta, includes, ply) -- Took params out becuase it isnt used.
 	self.context = {}
 
 	self:InitScope() -- Creates global scope!
@@ -37,6 +37,7 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.dvars = {}
 	self.funcs_ret = {}
 	self.EnclosingFunctions = { --[[ { ReturnType: string } ]] }
+	self.player = ply
 
 	for name, v in pairs(inputs) do
 		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
@@ -229,6 +230,19 @@ function Compiler:GetFunction(instr, Name, Args)
 		return
 	end
 
+	if E2Permissions
+	then
+		if not E2Permissions.canInvoke(self.player, Name, Params)
+		then
+			self:Error('You may not invoke this function: ' .. Name .. '(' .. tps_pretty(Args) .. ')', instr)
+			return
+		end
+	else
+		-- Assume default permissions
+		self:Error('You may not invoke this function: ' .. Name .. '(' .. tps_pretty(Args) .. ')', instr)
+		return
+	end
+
 	self.prfcounter = self.prfcounter + (Func[4] or 20)
 
 	return { Func[3], Func[2], Func[1] }
@@ -252,6 +266,19 @@ function Compiler:GetMethod(instr, Name, Meta, Args)
 
 	if not Func then
 		self:Error("No such function: " .. tps_pretty({ Meta }) .. ":" .. Name .. "(" .. tps_pretty(Args) .. ")", instr)
+		return
+	end
+
+	if E2Permissions
+	then
+		if not E2Permissions.canInvoke(self.player, Name, Params, Meta)
+		then
+			self:Error('You may not invoke this function: ' .. tps_pretty({ Meta }) .. ':' .. Name .. '(' .. tps_pretty(Args) .. ')', instr)
+			return
+		end
+	else
+		-- Assume default permissions
+		self:Error('You may not invoke this function: ' .. tps_pretty({ Meta }) .. ':' .. Name .. '(' .. tps_pretty(Args) .. ')', instr)
 		return
 	end
 

@@ -24,3 +24,5 @@ if SERVER then
 end
 include("base/compiler.lua")
 include('core/init.lua')
+
+include('permissions/e2_permissions.lua')
