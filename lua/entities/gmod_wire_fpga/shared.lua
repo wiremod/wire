@@ -74,6 +74,8 @@ if SERVER then
   -- Request options from player
   timer.Create("WireFPGACheckForOptions", 1, 0, function()
     for _, ply in ipairs(player.GetAll()) do
+      if not IsValid(ply) then continue end
+
       if not FPGAPlayerOptions[ply] then
         net.Start("wire_fpga_options")
         net.Send(ply)
@@ -122,7 +124,7 @@ if SERVER then
         net.Start("wire_fpga_view_data")
           net.WriteEntity(ent)
           net.WriteUInt(#data, 16)
-          net.WriteData(data)
+          net.WriteData(data, #data)
         net.Send(ply)
       end
     end
