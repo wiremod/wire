@@ -889,7 +889,7 @@ function Editor:InitControlPanel(frame)
 
 	dlist = vgui.Create("DPanelList", sheet.Panel)
 	dlist.Paint = function() end
-	frame:AddResizeObject(dlist, 2, 2)
+	frame:AddResizeObject(dlist, 4, 4)
   dlist:EnableVerticalScrollbar(true)
 
   local AllowInsideView = vgui.Create("DCheckBoxLabel")
