@@ -124,7 +124,7 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
   self:SetSolid(SOLID_VPHYSICS)
   
-  self.Debug = true
+  self.Debug = false
 
   self.time = 0
   self.timebench = 0
@@ -619,9 +619,12 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Think()
-  if self.CompilationError or self.ExecutionError or not self.Uploaded then return end
-
   BaseClass.Think(self)
+
+  if self.CompilationError or self.ExecutionError or not self.Uploaded then 
+    self:UpdateOverlay(false)
+    return 
+  end
   self:NextThink(CurTime())
 
   --Get options (maybe do this less frequently)
@@ -634,8 +637,10 @@ function ENT:Think()
   --Limiting
   if self.timebench > fpga_quota_avg then
     self:ThrowExecutionError("exceeded cpu time limit", "cpu time limit exceeded")
+    return
   elseif fpga_quota_spike > 0 and self.time > fpga_quota_spike then
     self:ThrowExecutionError("exceeded spike cpu time limit", "spike cpu time limit exceeded")
+    return
   end
 
   --postexecution hook
