@@ -899,6 +899,8 @@ function Editor:InitControlPanel(frame)
 	AllowInsideView:SizeToContents()
 	AllowInsideView:SetTooltip("Other people will be able to hover over your FPGAs and see the internal gates. They won't be able to download your chip, but just see a simplified visual representation.")
   
+
+  dlist:InvalidateLayout()
 end
 
 ----- FPGA Options ------------------

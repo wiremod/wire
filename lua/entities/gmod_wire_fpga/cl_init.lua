@@ -104,6 +104,8 @@ end
 --------------------------------------------------------------------------------
 
 --only square for now
+--x start, x end, y start, y end
+--in relation to screen center
 FPGAInsideViewPosition = {
   50,
   850,
@@ -148,6 +150,15 @@ function ENT:DrawInsideView()
 
   local nodeSize = FPGANodeSize/self.ViewData.Scale * scale
   
+  --to make sure we don't draw outside the edges
+  render.SetScissorRect(
+    FPGAInsideViewPosition[1] + ScrW()/2 + 1, 
+    FPGAInsideViewPosition[3] + ScrH()/2 + 1, 
+    FPGAInsideViewPosition[2] + ScrW()/2 - 1, 
+    FPGAInsideViewPosition[4] + ScrH()/2 - 1, 
+    true
+  )
+
   --edges
   for _, edge in pairs(self.ViewData.Edges) do
     surface.SetDrawColor(FPGATypeColor[edge.type])
@@ -173,6 +184,8 @@ function ENT:DrawInsideView()
 
     surface.DrawText(label.text)
   end
+
+  render.SetScissorRect(0, 0, ScrW(), ScrH(), false)
 end
 
 
@@ -193,13 +206,13 @@ function ENT:ConstructInsideView(viewData)
     b[3] = math.min(b[3], node.y)
     b[4] = math.max(b[4], node.y + node.s * FPGANodeSize)
   end
+  borderIsLabel = {false,false,false,false}
   if viewData.Labels then
     for _, label in pairs(viewData.Labels) do
-      local tx, ty = surface.GetTextSize(label.t)
-      b[1] = math.min(b[1], label.x - tx/2)
-      b[2] = math.max(b[2], label.x + tx/2)
-      b[3] = math.min(b[3], label.y - ty/2)
-      b[4] = math.max(b[4], label.y + ty/2)
+      b[1] = math.min(b[1], label.x)
+      b[2] = math.max(b[2], label.x)
+      b[3] = math.min(b[3], label.y)
+      b[4] = math.max(b[4], label.y)
     end
   end
 
