@@ -1421,6 +1421,7 @@ E2Helper.Descriptions["egpObjectType(xwl:n)"] = "Returns the type of the object 
 E2Helper.Descriptions["egpObjectTypes(xwl:)"] = "Returns an array whose keys are bound to object index, and value being the type of particular object"
 
 E2Helper.Descriptions["egp3DTracker(xwl:nv)"] = "Creates a 3D tracker object at specified world position"
+E2Helper.Descriptions["egp3DTracker(xwl:nvn)"] = "Creates a 3D tracker object at specified world position that is only visible behind (directionality=-1), in front of (directionality=1) the screen/emitter, or both (directionality=0). HUD is unaffected by directionality."
 E2Helper.Descriptions["egpBox(xwl:nxv2xv2)"] = "Creates a box. First 2D vector is the position, second is size"
 E2Helper.Descriptions["egpBoxOutline(xwl:nxv2xv2)"] = "Creates an outline box. First 2D vector is the position, second is size"
 E2Helper.Descriptions["egpCircle(xwl:nxv2xv2)"] = "Creates a circle. First 2D vector is the position, second is size"

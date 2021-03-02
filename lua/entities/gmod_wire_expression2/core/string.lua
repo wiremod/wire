@@ -463,9 +463,10 @@ local table_Copy = table.Copy
 
 -- Helper function for gmatch (below)
 -- (By Divran)
-local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true,depth=0}
+local newE2Table = E2Lib.newE2Table
+
 local function gmatch( self, this, pattern )
-	local ret = table_Copy( DEFAULT )
+	local ret = newE2Table()
 	local num = 0
 	local iter = this:gmatch( pattern )
 	local v
@@ -487,7 +488,7 @@ e2function table string:gmatch(string pattern)
 	local OK, ret = pcall( gmatch, self, this, pattern )
 	if (!OK) then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
-		return table_Copy( DEFAULT )
+		return newE2Table()
 	else
 		return ret
 	end
@@ -500,7 +501,7 @@ e2function table string:gmatch(string pattern, position)
 	local OK, ret = pcall( gmatch, self, this, pattern )
 	if (!OK) then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
-		return table_Copy( DEFAULT )
+		return newE2Table()
 	else
 		return ret
 	end

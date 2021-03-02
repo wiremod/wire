@@ -412,7 +412,7 @@ e2function void wirelink:egpLineStrip( number index, ... )
 	if (!EGP:IsAllowed( self, this )) then return end
 	if (!EGP:ValidEGP( this )) then return end
 	local args = {...}
-	if (#args<3) then return end -- No less than 3
+	if (#args<2) then return end -- No less than 2
 
 	local max = maxvertices()
 
@@ -437,7 +437,7 @@ end
 e2function void wirelink:egpLineStrip( number index, array args )
 	if (!EGP:IsAllowed( self, this )) then return end
 	if (!EGP:ValidEGP( this )) then return end
-	if (#args<3) then return end -- No less than 3
+	if (#args<2) then return end -- No less than 2
 
 	local max = maxvertices()
 
@@ -543,11 +543,24 @@ end
 ]]
 
 --------------------------------------------------------
--- 3DHolder
+-- 3DTracker
 --------------------------------------------------------
 e2function void wirelink:egp3DTracker( number index, vector pos )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["3DTracker"], { index = index, target_x = pos[1], target_y = pos[2], target_z = pos[3] }, self.player )
+	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["3DTracker"], { index = index, target_x = pos[1], target_y = pos[2], target_z = pos[3], directionality = 0 }, self.player )
+	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
+end
+
+e2function void wirelink:egp3DTracker( number index, vector pos, number directionality )
+	if (!EGP:IsAllowed( self, this )) then return end
+
+	if directionality > 0 then
+		directionality = 1
+	elseif directionality < 0 then
+		directionality = -1
+	end
+
+	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["3DTracker"], { index = index, target_x = pos[1], target_y = pos[2], target_z = pos[3], directionality = directionality }, self.player )
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 end
 
@@ -727,7 +740,7 @@ e2function void wirelink:egpParent( number index, entity parent )
 	if (!EGP:IsAllowed( self, this )) then return end
 
 	local bool, k, v = EGP:HasObject( this, index )
-	if bool and v.Is3DTracker then
+	if bool and v.NeedsConstantUpdate then
 		if v.parententity == parent then return end -- Already parented to that
 		v.parententity = parent
 
@@ -739,7 +752,7 @@ end
 -- Returns the entity a tracker is parented to
 e2function entity wirelink:egpTrackerParent( number index )
 	local bool, k, v = EGP:HasObject( this, index )
-	if bool and v.Is3DTracker then
+	if bool and v.NeedsConstantUpdate then
 		return (v.parententity and v.parententity:IsValid()) and v.parententity or nil
 	end
 end

@@ -91,6 +91,10 @@ local function wtfgarry( str )
 	return w, h
 end
 
+function ENT:GetGateName()
+    return self:GetNWString("name", self.name)
+end
+
 local h_of_lower = 100 -- height of the lower section (the prfbench/percent bar section)
 function ENT:GetWorldTipBodySize()
 	local data = self:GetOverlayData()

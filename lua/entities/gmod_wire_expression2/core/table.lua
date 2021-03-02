@@ -33,12 +33,12 @@ end
 -- Type defining
 --------------------------------------------------------------------------------
 
-local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
+local newE2Table = E2Lib.newE2Table
 
-registerType("table", "t", table.Copy(DEFAULT),
+registerType("table", "t", newE2Table(),
 	function(self, input)
 		if input.size == 0 then
-			return table.Copy(DEFAULT)
+			return newE2Table()
 		end
 		return input
 	end,
@@ -116,9 +116,7 @@ end)
 --------------------------------------------------------------------------------
 
 -- Fix default values
-local function fixdef( def )
-	return istable(def) and table.Copy(def) or def
-end
+local fixDefault = E2Lib.fixDefault
 
 -- Uppercases the first letter
 local function upperfirst( word )
@@ -290,8 +288,7 @@ end
 __e2setcost(nil)
 
 registerOperator( "kvtable", "", "t", function( self, args )
-	local ret = table.Copy( DEFAULT )
-
+	local ret = newE2Table()
 
 	local types = args[3]
 
@@ -331,8 +328,8 @@ __e2setcost(1)
 -- Creates a table
 e2function table table(...)
 	local tbl = {...}
-	if (#tbl == 0) then return table.Copy(DEFAULT) end
-	local ret = table.Copy(DEFAULT)
+	if (#tbl == 0) then return newE2Table() end
+	local ret = newE2Table()
 	local size = 0
 	for k,v in ipairs( tbl ) do
 		if (!blocked_types[typeids[k]]) then
@@ -406,7 +403,7 @@ __e2setcost(5)
 
 -- Flip the numbers and strings of the table
 e2function table table:flip()
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	for k,v in pairs( this.n ) do
 		if (this.ntypes[k] == "s") then
 			ret.s[v] = k
@@ -425,7 +422,7 @@ end
 
 -- Returns an table with the typesids of both the array- and table-parts
 e2function table table:typeids()
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	ret.n = table.Copy(this.ntypes)
 	for k,v in pairs( ret.n ) do
 		ret.ntypes[k] = "s"
@@ -485,7 +482,7 @@ e2function number table:unset( string index ) = e2function number table:remove( 
 
 -- Removes all variables not of the type
 e2function table table:clipToTypeid( string typeid )
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	for k,v in pairs( this.n ) do
 		if (this.ntypes[k] == typeid) then
 			local n = #ret.n+1
@@ -515,7 +512,7 @@ end
 
 -- Removes all variables of the type
 e2function table table:clipFromTypeid( string typeid )
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	for k,v in pairs( this.n ) do
 		if (this.ntypes[k] != typeid) then
 			if istable(v) then
@@ -656,7 +653,7 @@ end
 
 -- Removes all variables from 'this' which have keys which exist in rv2
 e2function table table:difference( table rv2 )
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	local cost = 0
 	local size = 0
 
@@ -685,7 +682,7 @@ end
 
 -- Removes all variables from 'this' which don't have keys which exist in rv2
 e2function table table:intersect( table rv2 )
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	local cost = 0
 	local size = 0
 
@@ -839,7 +836,7 @@ __e2setcost(20)
 
 -- Returns the find in the array part of an table
 e2function table findToTable()
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	for k,v in ipairs( self.data.findlist ) do
 		ret.n[k] = v
 		ret.ntypes[k] = "e"
@@ -904,7 +901,7 @@ __e2setcost(5)
 --- Returns a lookup table for <arr>. Usage: Index = T:number(toString(Value)).
 --- Don't overuse this function, as it can become expensive for arrays with > 10 entries!
 e2function table invert(array arr)
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	local c = 0
 	local size = 0
 	for i,v in ipairs(arr) do
@@ -926,7 +923,7 @@ end
 --- Returns a lookup table for <tbl>. Usage: Key = T:string(toString(Value)).
 --- Don't overuse this function, as it can become expensive for tables with > 10 entries!
 e2function table invert(table tbl)
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	local c = 0
 	local size = 0
 	for i,v in pairs(tbl.n) do
@@ -1014,16 +1011,16 @@ registerCallback( "postinit", function()
 		registerOperator("idx",	id.."=ts"		, id, function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixdef(v[2]) end
-			if (v[6] and v[6](rv1.s[rv2])) then return fixdef(v[2]) end -- Type check
+			if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixDefault(v[2]) end
+			if (v[6] and v[6](rv1.s[rv2])) then return fixDefault(v[2]) end -- Type check
 			return rv1.s[rv2]
 		end)
 
 		registerOperator("idx",	id.."=tn"		, id, function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixdef(v[2]) end
-			if (v[6] and v[6](rv1.n[rv2])) then return fixdef(v[2]) end -- Type check
+			if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixDefault(v[2]) end
+			if (v[6] and v[6](rv1.n[rv2])) then return fixDefault(v[2]) end -- Type check
 			return rv1.n[rv2]
 		end)
 
@@ -1058,9 +1055,9 @@ registerCallback( "postinit", function()
 		__e2setcost(8)
 
 		local function removefunc( self, rv1, rv2, numidx )
-			if (!rv1 or !rv2) then return fixdef(v[2]) end
+			if (!rv1 or !rv2) then return fixDefault(v[2]) end
 			if (numidx) then
-				if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixdef(v[2]) end
+				if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixDefault(v[2]) end
 				local ret = rv1.n[rv2]
 				if rv2 < 1 then -- table.remove doesn't work if the index is below 1
 					rv1.n[rv2] = nil
@@ -1073,7 +1070,7 @@ registerCallback( "postinit", function()
 				self.GlobalScope.vclk[rv1] = true
 				return ret
 			else
-				if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixdef(v[2]) end
+				if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixDefault(v[2]) end
 				local ret = rv1.s[rv2]
 				rv1.s[rv2] = nil
 				rv1.stypes[rv2] = nil

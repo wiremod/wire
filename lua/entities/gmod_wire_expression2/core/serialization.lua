@@ -1,7 +1,7 @@
 E2Lib.RegisterExtension("serialization", true, "Adds functions to serialize data structures into a string and back again.")
 
 -- GLON output validation
-local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
+local newE2Table = E2Lib.newE2Table
 
 --[[
 wire_expression2_glon = {}
@@ -125,7 +125,7 @@ typeSanitizers = {
 					return safeGlonObjectMap["t"][glonOutputObject]
 				end
 
-				local safeTable = table.Copy(DEFAULT)
+				local safeTable = newE2Table()
 				if not glonOutputObject then return safeTable end
 				safeGlonObjectMap["t"][glonOutputObject] = safeTable
 
@@ -298,7 +298,7 @@ if glon then
 
 	-- decodes a glon string and returns an table
 	e2function table glonDecodeTable(string data)
-		if not data or data == "" then return table.Copy(DEFAULT) end
+		if not data or data == "" then return newE2Table() end
 
 		self.prf = self.prf + #data / 2
 
@@ -306,11 +306,11 @@ if glon then
 		if not ok then
 			last_glon_error = ret
 			ErrorNoHalt("glon.decode error: "..ret)
-			return table.Copy(DEFAULT)
+			return newE2Table()
 		end
 
 		local safeTable = sanitizeGlonOutput( self, ret, "t" )
-		return safeTable or table.Copy(DEFAULT)
+		return safeTable or newE2Table()
 	end
 end
 
@@ -371,20 +371,20 @@ __e2setcost(25)
 
 -- decodes a glon string and returns an table
 e2function table vonDecodeTable(string data)
-	if not data or data == "" then return table.Copy(DEFAULT) end
+	if not data or data == "" then return newE2Table() end
 
 	self.prf = self.prf + #data / 2
 
 	local ok, ret = pcall(WireLib.von.deserialize, data)
 	if not ok then
 		last_von_error = ret
-		if not antispam(self) then return table.Copy(DEFAULT) end
+		if not antispam(self) then return newE2Table() end
 		WireLib.ClientError("von.decode error: "..ret, self.player)
-		return table.Copy(DEFAULT)
+		return newE2Table()
 	end
 
 	local safeTable = sanitizeGlonOutput( self, ret, "t" )
-	return safeTable or table.Copy(DEFAULT)
+	return safeTable or newE2Table()
 end
 
 ---------------------------------------------------------------------------
@@ -517,7 +517,7 @@ e2function string jsonEncode( table data, prettyprint ) return jsonEncode_start(
 
 -- this function converts a lua table into an E2 table
 local function jsonDecode_recurse( self, luatable, copied_tables )
-	local e2table = table.Copy(DEFAULT)
+	local e2table = newE2Table()
 
 	local wire_expression_types = wire_expression_types
 
@@ -527,7 +527,7 @@ local function jsonDecode_recurse( self, luatable, copied_tables )
 		-- if it's a table, recurse through it and convert all the tables it contains
 		if typeid == "t" then
 			local val = v
-			v = table.Copy(DEFAULT)
+			v = newE2Table()
 
 			if copied_tables[val] then
 				v = copied_tables[val]

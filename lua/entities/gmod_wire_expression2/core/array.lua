@@ -19,9 +19,7 @@ local blocked_types = {
 }
 
 -- Fix return values
-local function fixdef( val )
-	return istable(val) and table.Copy(val) or val
-end
+local fixDefault = E2Lib.fixDefault
 
 -- Uppercases the first letter
 local function upperfirst( word )
@@ -139,7 +137,7 @@ registerCallback( "postinit", function()
 			__e2setcost(5)
 
 			local function getter( self, array, index, doremove )
-				if (!array or !index) then return fixdef( default ) end -- Make sure array and index are value
+				if (!array or !index) then return fixDefault( default ) end -- Make sure array and index are value
 				local ret
 				if (doremove) then
 					ret = table_remove( array, index )
@@ -147,7 +145,7 @@ registerCallback( "postinit", function()
 				else
 					ret = array[floor(index)]
 				end
-				if (typecheck and typecheck( ret )) then return fixdef( default ) end -- If typecheck returns true, the type is wrong.
+				if (typecheck and typecheck( ret )) then return fixDefault( default ) end -- If typecheck returns true, the type is wrong.
 				return ret
 			end
 
@@ -169,10 +167,10 @@ registerCallback( "postinit", function()
 			--------------------------------------------------------------------------------
 
 			local function setter( self, array, index, value, doinsert )
-				if (!array or !index) then return fixdef( default ) end -- Make sure array and index are valid
-				if (typecheck and typecheck( value )) then return fixdef( default ) end -- If typecheck returns true, the type is wrong.
+				if (!array or !index) then return fixDefault( default ) end -- Make sure array and index are valid
+				if (typecheck and typecheck( value )) then return fixDefault( default ) end -- If typecheck returns true, the type is wrong.
 				if (doinsert) then
-					if index > 2^31 or index < 0 then return fixdef( default ) end -- too large, possibility of crashing gmod
+					if index > 2^31 or index < 0 then return fixDefault( default ) end -- too large, possibility of crashing gmod
 					table_insert( array, index, value )
 				else
 					array[floor(index)] = value
@@ -223,7 +221,7 @@ registerCallback( "postinit", function()
 			registerFunction( "pop" .. nameupperfirst, "r:", id, function(self,args)
 				local op1 = args[2]
 				local array = op1[1](self,op1)
-				if (!array) then return fixdef( default ) end
+				if (!array) then return fixDefault( default ) end
 				return getter( self, array, #array, true )
 			end)
 
@@ -244,7 +242,7 @@ registerCallback( "postinit", function()
 			registerFunction( "shift" .. nameupperfirst, "r:", id, function(self,args)
 				local op1 = args[2]
 				local array = op1[1](self,op1)
-				if (!array) then return fixdef( default ) end
+				if (!array) then return fixDefault( default ) end
 				return getter( self, array, 1, true )
 			end)
 
@@ -255,7 +253,7 @@ registerCallback( "postinit", function()
 			registerFunction( "remove" .. nameupperfirst, "r:n", id, function(self,args)
 				local op1, op2 = args[2], args[3]
 				local array, index = op1[1](self,op1), op2[1](self,op2)
-				if (!array or !index) then return fixdef( default ) end
+				if (!array or !index) then return fixDefault( default ) end
 				return getter( self, array, index, true )
 			end)
 

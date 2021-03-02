@@ -31,6 +31,18 @@ E2Lib.setAng = doNothing
 E2Lib.setMaterial = doNothing
 E2Lib.setSubMaterial = doNothing
 
+-- Returns a default e2 table.
+function E2Lib.newE2Table()
+	return {n={},ntypes={},s={},stypes={},size=0}
+end
+
+-- Returns a cloned table of the variable given if it is a table.
+local istable = istable
+local table_Copy = table.Copy
+function E2Lib.fixDefault(var)
+	return istable(var) and table_Copy(var) or var
+end
+
 -- getHash
 -- Returns a hash for the given string
 
