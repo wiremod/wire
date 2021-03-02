@@ -621,7 +621,8 @@ end
 function ENT:Think()
   BaseClass.Think(self)
 
-  if self.CompilationError or self.ExecutionError or not self.Uploaded then 
+  if not self.Uploaded then return end
+  if self.CompilationError or self.ExecutionError then 
     self:UpdateOverlay(false)
     return 
   end
