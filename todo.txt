@@ -10,8 +10,8 @@ FPGA Entity:
 
   Bugs:
     Superjaja focus bug
-
-    Apanda self bug
+    Apanda self bug - maybe fix, but this is actually a wiremod bug
+    
   
 
 FPGA Tool:
