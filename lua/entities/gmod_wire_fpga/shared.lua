@@ -101,6 +101,8 @@ if SERVER then
 
   timer.Create("WireFPGAViewDataUpdate", 0.1, 0, function()
     for _, ply in ipairs(player.GetAll()) do
+      if not IsValid(ply) then continue end --don't know why this happens, but it does
+
       if not ply:KeyDown(IN_USE) then continue end
       
       local ent = ply:GetEyeTrace().Entity
