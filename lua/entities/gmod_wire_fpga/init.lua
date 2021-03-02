@@ -242,15 +242,15 @@ function ENT:SynthesizeViewData(data)
   viewData.Nodes = {}
   viewData.Labels = {}
   viewData.Edges = {}
-  for _, node in pairs(data.Nodes) do
+  for nodeId, node in pairs(data.Nodes) do
     local gate = getGate(node)
 
     if not gate then 
       --special case, label
       if node.type == "editor" and node.visual == "label" then
         table.insert(viewData.Labels, {
-          x = node.x,
-          y = node.y,
+          x = math.Round(node.x),
+          y = math.Round(node.y),
           t = node.value
         })
       end
@@ -265,20 +265,21 @@ function ENT:SynthesizeViewData(data)
     end
 
     table.insert(viewData.Nodes, {
-      x = node.x,
-      y = node.y,
+      x = math.Round(node.x),
+      y = math.Round(node.y),
       s = ports
     })
 
     for inputNum, connection in pairs(node.connections) do
-      local fromNode = data.Nodes[connection[1]]
+      local fromNodeId = connection[1]
+      local fromNode = data.Nodes[fromNodeId]
       local outputNum = connection[2]
 
       table.insert(viewData.Edges, {
-        sX = fromNode.x + FPGANodeSize,
-        sY = fromNode.y + (outputNum - 0.5) * FPGANodeSize,
-        eX = node.x,
-        eY = node.y + (inputNum - 0.5) * FPGANodeSize,
+        sX = math.Round(fromNode.x + FPGANodeSize),
+        sY = math.Round(fromNode.y + (outputNum - 0.5) * FPGANodeSize),
+        eX = math.Round(node.x),
+        eY = math.Round(node.y + (inputNum - 0.5) * FPGANodeSize),
         t = FPGATypeEnum[getInputType(gate, inputNum)]
       })
     end

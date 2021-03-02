@@ -115,9 +115,12 @@ if SERVER then
 
         FPGAPlayerHasHash[ply][ent:GetTimeHash()] = true
 
+        local data = util.Compress(ent:GetViewData())
+
         net.Start("wire_fpga_view_data")
           net.WriteEntity(ent)
-          net.WriteString(ent:GetViewData())
+          net.WriteUInt(#data, 16)
+          net.WriteData(data)
         net.Send(ply)
       end
     end

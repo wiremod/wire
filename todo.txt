@@ -6,6 +6,8 @@ FPGA Entity:
     Timed empty gate
     Add options to editor
 
+    Use util.Compress everywhere
+
   Bugs:
     Superjaja focus bug
 
