@@ -124,7 +124,7 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
   self:SetSolid(SOLID_VPHYSICS)
   
-  self.Debug = false
+  self.Debug = true
 
   self.time = 0
   self.timebench = 0
@@ -682,10 +682,12 @@ function ENT:RunProtected(changedNodes)
   local ok = pcall(self.Run, self, changedNodes)
 
   if not ok then
-    self:ThrowExecutionError("runtime error", "runtime error")
+    local gate = getGate(FPGANodeCurrentlyInQueue)
+    self:ThrowExecutionError("runtime error at gate " .. gate.name, "runtime error")
   end
 end
 
+FPGANodeCurrentlyInQueue = nil
 function ENT:Run(changedNodes)
   if self.Debug then print("\n================================================================================") end
 
@@ -797,6 +799,7 @@ function ENT:Run(changedNodes)
 
     local nodeId = table.remove(nodeQueue, 1)
     local node = self.Nodes[nodeId]
+    FPGANodeCurrentlyInQueue = node
 
     --print(table.ToString(node.connections, "node.connections", false))
 
