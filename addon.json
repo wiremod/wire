@@ -17,6 +17,6 @@
 		"git-hooks-pre-commit",
 		"gitrid.sh",
 		"LICENSE",
-		"wiremod.*",
+		"wiremod.*"
 	]
 }
