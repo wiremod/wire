@@ -6,9 +6,9 @@
 	"ignore"	:
 	[
 		".git*",
+		"*.md"
 		"LICENSE",
-    "README.md",
-    "todo.txt",
-    "logo*"
+		".travis.yml",
+		"logo*"
 	]
 }
