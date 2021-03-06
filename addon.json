@@ -7,23 +7,16 @@
 	[
 		"*.psd",
 		"*.vcproj",
-		"*.svn*",
 		"*.txt",
 		"*.xcf",
 		".git*",
-		".gitignore",
+		"*.md",
 		".luacheckrc",
 		".travis.yml",
-		"CODE_OF_CONDUCT.md",
-		"CONTRIBUTING.md",
 		"generate-luacheck.sh",
 		"git-hooks-pre-commit",
 		"gitrid.sh",
-		"license",
-		"readme.md",
-		"SECURITY.md",
-		"wiremod.fgd",
-		"wiremod.jpg",
-		"wiremod.psd"
+		"LICENSE",
+		"wiremod.*",
 	]
 }
