@@ -14,21 +14,75 @@ end
 
 __e2setcost(2)
 
+local default_col = {0,0,0}
+local default_col4 = {0,0,0,0}
+
 e2function vector entity:getColor()
-	if !IsValid(this) then return {0,0,0} end
+	if !IsValid(this) then return default_col end
+	if this:IsPlayer() then return default_col end
 
 	local c = this:GetColor()
 	return { c.r, c.g, c.b }
 end
 
 e2function vector4 entity:getColor4()
-	if not IsValid(this) then return {0,0,0,0} end
+	if not IsValid(this) then return default_col4 end
+	if this:IsPlayer() then return default_col4 end
 	local c = this:GetColor()
 	return {c.r,c.g,c.b,c.a}
 end
 
 e2function number entity:getAlpha()
-	return IsValid(this) and this:GetColor().a or 0
+	return (IsValid(this) and not this:IsPlayer()) and this:GetColor().a or 0
+end
+
+e2function void entity:setColor(r,g,b)
+	if !IsValid(this) then return end
+	if this:IsPlayer() then return end
+	if !isOwner(self, this) then return end
+
+	WireLib.SetColor(this, Color(r, g, b, this:GetColor().a))
+end
+
+e2function void entity:setColor(r,g,b,a)
+	if !IsValid(this) then return end
+	if this:IsPlayer() then return end
+	if !isOwner(self, this) then return end
+
+	WireLib.SetColor(this, Color(r, g, b, a))
+end
+
+e2function void entity:setColor(vector c)
+	if !IsValid(this) then return end
+	if this:IsPlayer() then return end
+	if !isOwner(self, this) then return end
+
+	WireLib.SetColor(this, Color(c[1], c[2], c[3], this:GetColor().a))
+end
+
+e2function void entity:setColor(vector c, a)
+	if !IsValid(this) then return end
+	if this:IsPlayer() then return end
+	if !isOwner(self, this) then return end
+
+	WireLib.SetColor(this, Color(c[1], c[2], c[3], a))
+end
+
+e2function void entity:setColor(vector4 c)
+	if !IsValid(this) then return end
+	if this:IsPlayer() then return end
+	if !isOwner(self, this) then return end
+
+	WireLib.SetColor(this, Color(c[1], c[2], c[3], c[4]))
+end
+
+e2function void entity:setAlpha(a)
+	if !IsValid(this) then return end
+	if this:IsPlayer() then return end
+	if !isOwner(self, this) then return end
+
+	local c = this:GetColor()
+	WireLib.SetColor(this, Color(c.r, c.g, c.b, a))
 end
 
 e2function void entity:setRenderMode(mode)
