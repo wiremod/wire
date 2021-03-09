@@ -171,7 +171,6 @@ WireGPU_AddMonitor("LCD Monitor (4:3)", "models/props/cs_office/computer_monitor
 WireGPU_AddMonitor("Monitor Big",       "models/kobilica/wiremonitorbig.mdl",             0.2 , 13   , 0  , 0.045 , -11.5   , 11.6   , 1.6    , 24.5  )
 WireGPU_AddMonitor("Plasma TV (4:3)",   "models/blacknecro/tv_plasma_4_3.mdl",            0.1 , -0.5 , 0  , 0.082 , -27.87  , 27.87  , -20.93 , 20.93 )
 WireGPU_AddMonitor("Plasma TV (16:10)", "models/props/cs_office/tv_plasma.mdl",           6.1 , 18.93, 0  , 0.065 , -28.5   , 28.5   , 2      , 36    )
-WireGPU_AddMonitor("Billboard",         "models/props/cs_assault/billboard.mdl",          1   , 0    , 0  , 0.23  , -110.512, 110.512, -57.647, 57.647)
 WireGPU_FromBox_Helper("Beige CRT Monitor", "models/props_lab/monitor01a.mdl", Vector(-9.3,-4.9,-3), Vector(9.3,10.4,12.45), Angle(0, 90, 85))
 WireGPU_FromBox_Helper("White CRT Monitor", "models/props_lab/monitor02.mdl", Vector(-9.0,6.3,-3), Vector(9.0,21.2,12.8), Angle(0, 90, 82.5))
 WireGPU_AddMonitor("Cube 1x1x1",        "models/hunter/blocks/cube1x1x1.mdl",             24  , 0    , 0  , nil   , -23.275 , 23.275 , -23.275, 23.275)
