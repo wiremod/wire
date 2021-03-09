@@ -15,7 +15,22 @@ registerCallback("destruct",function(self)
 	ChatAlert[self.entity] = nil
 end)
 
+local chatPrefix = "!e2"
+local blacklist = {
+    ["!e2s"] = true,
+    ["!e2admin"] = true,
+    ["!e2menu"] = true
+}
+
+local subStart = #chatPrefix + 2
+
 hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, teamchat)
+    local lowerText = string.lower(text)
+    if not string.StartWith(lowerText, chatPrefix) then return end
+    if blacklist[string.Trim(lowerText)] then return end
+
+    text = string.sub(text, subStart)
+
 	local entry = { text, CurTime(), ply, teamchat }
 	TextList[ply:EntIndex()] = entry
 	TextList.last = entry
