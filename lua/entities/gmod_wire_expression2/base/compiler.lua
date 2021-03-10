@@ -22,6 +22,7 @@ function Compiler:Error(message, instr)
 end
 
 function Compiler:Process(root, inputs, outputs, persist, delta, includes, ply) -- Took params out becuase it isnt used.
+	local canInvoke = PIXEL.E2Permissions.CanInvoke
 	self.context = {}
 
 	self:InitScope() -- Creates global scope!
@@ -211,6 +212,7 @@ end
 
 
 function Compiler:GetFunction(instr, Name, Args)
+	local canInvoke = PIXEL.E2Permissions.CanInvoke
 	local Params = table.concat(Args)
 	local Func = wire_expression2_funcs[Name .. "(" .. Params .. ")"]
 
@@ -231,8 +233,7 @@ function Compiler:GetFunction(instr, Name, Args)
 	end
 
 	if PIXEL.E2Permissions then
-		if not PIXEL.E2Permissions.CanInvoke(self.player, Name, Params)
-		then
+		if not canInvoke(self.player, Name, Params) then
 			self:Error('You may not invoke this function: ' .. Name .. '(' .. tps_pretty(Args) .. ')', instr)
 			return
 		end
@@ -249,6 +250,7 @@ end
 
 
 function Compiler:GetMethod(instr, Name, Meta, Args)
+	local canInvoke = PIXEL.E2Permissions.CanInvoke
 	local Params = Meta .. ":" .. table.concat(Args)
 	local Func = wire_expression2_funcs[Name .. "(" .. Params .. ")"]
 
@@ -269,8 +271,7 @@ function Compiler:GetMethod(instr, Name, Meta, Args)
 	end
 
 	if PIXEL.E2Permissions then
-		if not PIXEL.E2Permissions.CanInvoke(self.player, Name, Params, Meta)
-		then
+		if not canInvoke(self.player, Name, Params, Meta) then
 			self:Error('You may not invoke this function: ' .. tps_pretty({ Meta }) .. ':' .. Name .. '(' .. tps_pretty(Args) .. ')', instr)
 			return
 		end
