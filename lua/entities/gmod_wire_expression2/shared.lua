@@ -14,6 +14,8 @@ CreateConVar("wire_expression2_quotahard", "100000", {FCVAR_REPLICATED})
 CreateConVar("wire_expression2_quotatick", "25000", {FCVAR_REPLICATED})
 CreateConVar("wire_expression2_quotatime", "-1", {FCVAR_REPLICATED}, "Time in (ms) the e2 can consume before killing (-1 is infinite)")
 
+include('permissions/e2_permissions.lua')
+
 include("core/e2lib.lua")
 include("base/ast.lua")
 include("base/preprocessor.lua")
@@ -24,3 +26,4 @@ if SERVER then
 end
 include("base/compiler.lua")
 include('core/init.lua')
+
