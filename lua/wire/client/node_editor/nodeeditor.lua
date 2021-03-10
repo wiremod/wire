@@ -26,6 +26,33 @@ FPGATypeColor = {
   WIRELINK = Color(200, 80, 200, 255), --Deep purple
 }
 
+--GATE HELPERS
+local function getGate(node)
+  if node.type == "wire" then 
+    return GateActions[node.gate]
+  elseif node.type == "fpga" then
+    return FPGAGateActions[node.gate]
+  elseif node.type == "cpu" then
+    return CPUGateActions[node.gate]
+  end
+end
+
+local function getInputType(gate, inputNum)
+  if gate.inputtypes then
+    return gate.inputtypes[inputNum] or "NORMAL"
+  else
+    return "NORMAL"
+  end
+end
+
+local function getOutputType(gate, outputNum)
+  if gate.outputtypes then
+    return gate.outputtypes[outputNum] or "NORMAL"
+  else
+    return "NORMAL"
+  end
+end
+
 function Editor:Init()
   self.Nodes = {}
 
@@ -589,7 +616,7 @@ function Editor:SetData(data)
   self.InputNameCounter = 0
   self.OutputNameCounter = 0
   for nodeId, node in pairs(self.Nodes) do
-    local gate = self:GetGate(node)
+    local gate = getGate(node)
     if node.visual then
     elseif not gate then self:DeleteNode(nodeId)
     elseif gate.isInput then self.InputNameCounter = self.InputNameCounter + 1
@@ -629,33 +656,7 @@ function Editor:GetVisual(node)
   return nil
 end
 
---GATES
-function Editor:GetGate(node)
-  if node.type == "wire" then 
-    return GateActions[node.gate]
-  elseif node.type == "fpga" then
-    return FPGAGateActions[node.gate]
-  elseif node.type == "cpu" then
-    return CPUGateActions[node.gate]
-  end
-  return nil
-end
-
-function Editor:GetInputType(gate, inputNum)
-  if gate.inputtypes then
-    return gate.inputtypes[inputNum] or "NORMAL"
-  else
-    return "NORMAL"
-  end
-end
-
-function Editor:GetOutputType(gate, outputNum)
-  if gate.outputtypes then
-    return gate.outputtypes[outputNum] or "NORMAL"
-  else
-    return "NORMAL"
-  end
-end
+--GATES (further up)
 
 --------------------------------------------------------
 --UTILITY
@@ -687,7 +688,7 @@ function Editor:GetNodeAt(x, y)
   local gx, gy = self:ScrToPos(x, y)
 
   for k, node in pairs(self.Nodes) do
-    local gate = self:GetGate(node)
+    local gate = getGate(node)
 
     if gate then
       --gates
@@ -745,7 +746,7 @@ function Editor:GetNodeInputAt(x, y)
   local gx, gy = self:ScrToPos(x, y)
 
   for k, node in pairs(self.Nodes) do
-    local gate = self:GetGate(node)
+    local gate = getGate(node)
 
     if not gate then continue end
 
@@ -773,7 +774,7 @@ function Editor:GetNodeOutputAt(x, y)
   local gx, gy = self:ScrToPos(x, y)
 
   for k, node in pairs(self.Nodes) do
-    local gate = self:GetGate(node)
+    local gate = getGate(node)
 
     if not gate then continue end
 
@@ -828,10 +829,10 @@ end
 
 function Editor:PaintConnections()
   for _, node in pairs(self.Nodes) do
-    local gate = self:GetGate(node)
+    local gate = getGate(node)
     if not gate then continue end
     for inputNum, connectedTo in pairs(node.connections) do
-      self:PaintConnection(self.Nodes[connectedTo[1]], connectedTo[2], node, inputNum, self:GetInputType(gate, inputNum))
+      self:PaintConnection(self.Nodes[connectedTo[1]], connectedTo[2], node, inputNum, getInputType(gate, inputNum))
     end
   end
 end
@@ -887,7 +888,7 @@ function Editor:PaintGate(nodeId, node, gate)
       local nx = x - size/2 - ioSize
       local ny = y - ioSize/2 + (inputNum-1) * size
       
-      self:PaintInput(nx, ny, self:GetInputType(gate, inputNum), inputName, ioSize)
+      self:PaintInput(nx, ny, getInputType(gate, inputNum), inputName, ioSize)
     end
   end
 
@@ -897,13 +898,13 @@ function Editor:PaintGate(nodeId, node, gate)
       local nx = x + size/2 - ioSize
       local ny = y - ioSize/2 + (outputNum-1) * size
     
-      self:PaintOutput(nx, ny, self:GetOutputType(gate, outputNum), outputName, ioSize)
+      self:PaintOutput(nx, ny, getOutputType(gate, outputNum), outputName, ioSize)
     end
   else 
     local nx = x + size/2 - ioSize
     local ny = y - ioSize/2
   
-    self:PaintOutput(nx, ny, self:GetOutputType(gate, 1), "Out", ioSize)
+    self:PaintOutput(nx, ny, getOutputType(gate, 1), "Out", ioSize)
   end
 
   -- Body
@@ -984,7 +985,7 @@ end
 
 function Editor:PaintNodes()
   for nodeId, node in pairs(self.Nodes) do
-    local gate = self:GetGate(node)
+    local gate = getGate(node)
     if gate then
       self:PaintGate(nodeId, node, gate)
       continue
@@ -1087,7 +1088,7 @@ function Editor:Paint()
   if self.DrawingConnection then
     local nodeId = self.DrawingConnectionFrom[1]
     local node = self.Nodes[nodeId]
-    local gate = self:GetGate(node)
+    local gate = getGate(node)
 
     local drawingConnectionFrom = {self.DrawingConnectionFrom[2]}
     local selectedPort = self.DrawingConnectionFrom[2]
@@ -1106,10 +1107,10 @@ function Editor:Paint()
       local type = "NORMAL"
       if self.DrawingFromInput then
         x, y = self:NodeInputPos(node, inputNum)
-        type = self:GetInputType(gate, inputNum)
+        type = getInputType(gate, inputNum)
       elseif self.DrawingFromOutput then
         x, y = self:NodeOutputPos(node, inputNum)
-        type = self:GetOutputType(gate, inputNum)
+        type = getOutputType(gate, inputNum)
       end
       local sx, sy = self:PosToScr(x, y)
       local mx, my = self:CursorPos()
@@ -1215,14 +1216,14 @@ function Editor:CreateNode(selectedInMenu, x, y)
   end
 
   if selectedInMenu.gate then
-    local gateInfo = self:GetGate(node)
+    local gateInfo = getGate(node)
 
     if gateInfo.isInput then
       node.ioName = self:GetInputName()
     elseif gateInfo.isOutput then
       node.ioName = self:GetOutputName()
     elseif gateInfo.isConstant then
-      local type = self:GetOutputType(gateInfo, 1)
+      local type = getOutputType(gateInfo, 1)
       node.value = FPGADefaultValueForType[type]
     end
   elseif selectedInMenu.visual then
@@ -1263,7 +1264,7 @@ function Editor:CopyNodes(nodeIds)
   local copyOffset = {0, 0}
   for nodeId, _ in pairs(nodeIds) do
     local node = self.Nodes[nodeId]
-    local gate = self:GetGate(node) 
+    local gate = getGate(node) 
 
     local nodeCopy = {
       type = node.type,
@@ -1331,7 +1332,7 @@ function Editor:PasteNodes(x, y)
       connections = {}
     }
 
-    local gate = self:GetGate(copyNode)
+    local gate = getGate(copyNode)
     if gate then
       if gate.isInput then
         nodeCopy.ioName = copyNode.ioName
@@ -1406,7 +1407,7 @@ function Editor:OnKeyCodePressed(code)
     local nodeId = self:GetNodeAt(x, y)
     if nodeId then
       local node = self.Nodes[nodeId]
-      local gate = self:GetGate(node)
+      local gate = getGate(node)
 
       if gate then
         if gate.isInput or gate.isOutput then
@@ -1565,7 +1566,7 @@ end
 function Editor:OnDrawConnectionFinished(x, y)
   local fromNodeId = self.DrawingConnectionFrom[1]
   local fromNode = self.Nodes[fromNodeId]
-  local fromGate = self:GetGate(fromNode)
+  local fromGate = getGate(fromNode)
 
   local drawingConnectionFrom = {self.DrawingConnectionFrom[2]}
   local selectedPort = self.DrawingConnectionFrom[2]
@@ -1603,11 +1604,11 @@ function Editor:OnDrawConnectionFinished(x, y)
       --check type
       local inputType, outputType
       if self.DrawingFromOutput then
-        inputType = self:GetInputType(self:GetGate(inputNode), inputNum)
-        outputType = self:GetOutputType(fromGate, outputNum)
+        inputType = getInputType(getGate(inputNode), inputNum)
+        outputType = getOutputType(fromGate, outputNum)
       elseif self.DrawingFromInput then
-        inputType = self:GetInputType(fromGate, inputNum)
-        outputType = self:GetOutputType(self:GetGate(outputNode), outputNum)
+        inputType = getInputType(fromGate, inputNum)
+        outputType = getOutputType(getGate(outputNode), outputNum)
       end
 
       if inputType == outputType and inputNode != outputNode then
