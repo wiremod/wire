@@ -1805,7 +1805,7 @@ function Editor:LoadFile(Line, forcenewtab)
 
 	local f = file.Open(Line, "r", "DATA")
 	if not f then
-		ErrorNoHalt("Erroring opening file: " .. Line)
+		-- ErrorNoHalt("Erroring opening file: " .. Line)
 	else
 		local str = f:Read(f:Size()) or ""
 		f:Close()
