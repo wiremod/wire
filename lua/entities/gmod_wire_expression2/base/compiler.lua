@@ -230,9 +230,8 @@ function Compiler:GetFunction(instr, Name, Args)
 		return
 	end
 
-	if E2Permissions
-	then
-		if not E2Permissions.canInvoke(self.player, Name, Params)
+	if PIXEL.E2Permissions then
+		if not PIXEL.E2Permissions.canInvoke(self.player, Name, Params)
 		then
 			self:Error('You may not invoke this function: ' .. Name .. '(' .. tps_pretty(Args) .. ')', instr)
 			return
@@ -269,9 +268,8 @@ function Compiler:GetMethod(instr, Name, Meta, Args)
 		return
 	end
 
-	if E2Permissions
-	then
-		if not E2Permissions.canInvoke(self.player, Name, Params, Meta)
+	if PIXEL.E2Permissions then
+		if not PIXEL.E2Permissions.canInvoke(self.player, Name, Params, Meta)
 		then
 			self:Error('You may not invoke this function: ' .. tps_pretty({ Meta }) .. ':' .. Name .. '(' .. tps_pretty(Args) .. ')', instr)
 			return
