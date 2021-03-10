@@ -31,19 +31,6 @@ local function getOutputType(gate, outputNum)
   end
 end
 
-DefaultValueForType = {
-  NORMAL = 0,
-  VECTOR2 = nil, --no
-  VECTOR = Vector(0, 0, 0),
-  VECTOR4 = nil, --no
-  ANGLE = Angle(0, 0, 0),
-  STRING = "",
-  ARRAY = {},
-  ENTITY = NULL,
-  RANGER = nil,
-  WIRELINK = nil
-}
-
 local function getDefaultValues(node)
   local gate = getGate(node)
 
@@ -51,7 +38,7 @@ local function getDefaultValues(node)
   for inputNum, name in pairs(gate.inputs) do
     local type = getInputType(gate, inputNum)
 
-    values[inputNum] = DefaultValueForType[type]
+    values[inputNum] = FPGADefaultValueForType[type]
   end
 
   return values

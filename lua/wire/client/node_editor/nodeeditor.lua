@@ -1,18 +1,5 @@
 local Editor = {}
 
-FPGADefaultValueForType = {
-  NORMAL = 0,
-  VECTOR2 = nil, --no
-  VECTOR = Vector(0, 0, 0),
-  VECTOR4 = nil, --no
-  ANGLE = Angle(0, 0, 0),
-  STRING = "",
-  ARRAY = {},
-  ENTITY = NULL,
-  RANGER = nil,
-  WIRELINK = nil
-}
-
 FPGATypeColor = {
   NORMAL = Color(190, 190, 255, 255), --Very light blue nearing white
   VECTOR2 = Color(150, 255, 255, 255), --Light blue

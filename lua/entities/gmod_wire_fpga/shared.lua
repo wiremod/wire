@@ -14,8 +14,21 @@ CreateConVar("wire_fpga_quota_spike", "-1", {FCVAR_REPLICATED})
 
 
 --------------------------------------------------------------------------------
--- Enums
+-- Globals
 --------------------------------------------------------------------------------
+FPGADefaultValueForType = {
+  NORMAL = 0,
+  VECTOR2 = nil, --no
+  VECTOR = Vector(0, 0, 0),
+  VECTOR4 = nil, --no
+  ANGLE = Angle(0, 0, 0),
+  STRING = "",
+  ARRAY = {},
+  ENTITY = NULL,
+  RANGER = nil,
+  WIRELINK = nil
+}
+
 FPGATypeEnum = {
   NORMAL = 1,
   VECTOR2 = 2,
