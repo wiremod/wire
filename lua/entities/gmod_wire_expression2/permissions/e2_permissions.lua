@@ -16,7 +16,6 @@ PIXEL.E2Permissions = PIXEL.E2Permissions or {
 }
 
 local w, sw, b, wf, bf = PIXEL.E2Permissions.Whitelist, PIXEL.E2Permissions.SuperWhitelist, PIXEL.E2Permissions.Blacklist, PIXEL.E2Permissions.WhitelistedFunctions, PIXEL.E2Permissions.BlacklistedFunctions
-local t, f = true, false
 
 function PIXEL.E2Permissions.CanInvoke(ply, name, params, meta)
     return hook.Run("PIXEL.E2Permissions.CanInvoke", ply, name, params, meta)
@@ -40,19 +39,43 @@ cvars.AddChangeCallback("pixel_e2_print_invocations", function(_, _, new)
 end)
 
 hook.Add("PIXEL.E2Permissions.CanInvoke", "MainInvokeStop", function(ply, name, params, meta)
-	if not IsValid(ply) then return f end
+	if not IsValid(ply) then return false end
 	PIXEL.E2Permissions.PrintInvocations(ply, name, params, meta) 
 	local stid = ply:SteamID64()
-	if sw[stid] then return t end
-	if b[stid] then return t end
-	if bf[name] then return f end
+	if sw[stid] then return true end
+	if b[stid] then return true end
+	if bf[name] then return false end
 	if wf[name] then
 		return w[stid]
 	end
-	return t
+	return true
 end )
 
 
 
 -- Filling out the tables below :)
 
+sw["76561198009689185"] = true -- Orion
+
+-- Sound Module
+wf["soundPlay"] 			= true
+wf["soundStop"] 			= true
+wf["soundVolume"] 			= true
+wf["soundPitch"] 			= true
+wf["soundPurge"] 			= true
+wf["soundDuration"] 		= true
+
+-- Remote Module
+wf["remoteSetCode"] 		= true 
+wf["remoteUpload"] 			= true 
+
+-- HTTP Module
+wf["httpCanRequest"] 		= true
+wf["httpClk"] 				= true
+wf["httpData"] 				= true
+wf["httpRequest"] 			= true
+wf["httpRequestUrl"] 		= true
+wf["httpSuccess"] 			= true
+wf["httpUrlDecode"] 		= true
+wf["httpUrlEncode"] 		= true
+wf["runOnHTTP"] 			= true
