@@ -47,7 +47,7 @@ function Editor:Init()
 
   self.DraggingWorld = false
   self.DraggingNode = nil
-  self.DraggingOffset = {0, 0}
+  self.DraggingOffset = { 0, 0 }
 
   self.DrawingConnection = false
   self.DrawingFromInput = false
@@ -58,7 +58,7 @@ function Editor:Init()
   self.SelectedNodes = {}
   self.SelectedNodeCount = 0
 
-  self.LastMousePos = {0, 0}
+  self.LastMousePos = { 0, 0 }
   self.MouseDown = false
 
   self.SelectedInMenu = nil
@@ -88,7 +88,7 @@ function Editor:Init()
 end
 
 function Editor:GetParent()
-  return self.parentpanel
+  return self.ParentPanel
 end
 
 surface.CreateFont( "FPGAText", {
@@ -195,12 +195,12 @@ function Editor:InitComponents()
   self.C.NameLabel = vgui.Create("DLabel", self.C.TopBar)
   self.C.NameLabel:SetText("Chip Name")
   self.C.NameLabel:SizeToContents()
-  self.C.NameLabel:SetTextColor(Color(255,255,255,255))
+  self.C.NameLabel:SetTextColor(Color(255, 255, 255, 255))
   self.C.NameLabel:SetPos(x, 4)
   self.C.Name = vgui.Create("DTextEntry", self.C.TopBar)
   self.C.Name:SetEditable(true)
   self.C.Name:SetSize(140, 15)
-  self.C.Name:SetPos(x-2, 18)
+  self.C.Name:SetPos(x - 2, 18)
   --self.C.Name:Dock(LEFT)
   --self.C.Name:DockMargin(0,0,0,0)
   
@@ -215,12 +215,12 @@ function Editor:InitComponents()
   self.C.ExecutionIntervalLabel = vgui.Create("DLabel", self.C.TopBar)
   self.C.ExecutionIntervalLabel:SetText("Execution Interval")
   self.C.ExecutionIntervalLabel:SizeToContents()
-  self.C.ExecutionIntervalLabel:SetTextColor(Color(255,255,255,255))
+  self.C.ExecutionIntervalLabel:SetTextColor(Color(255, 255, 255, 255))
   self.C.ExecutionIntervalLabel:SetPos(x, 4)
   self.C.ExecutionIntervalLabel2 = vgui.Create("DLabel", self.C.TopBar)
   self.C.ExecutionIntervalLabel2:SetText("every               s")
   self.C.ExecutionIntervalLabel2:SizeToContents()
-  self.C.ExecutionIntervalLabel2:SetTextColor(Color(255,255,255,255))
+  self.C.ExecutionIntervalLabel2:SetTextColor(Color(255, 255, 255, 255))
   self.C.ExecutionIntervalLabel2:SetPos(x, 18)
   self.C.ExecutionInterval = vgui.Create("DNumberWang", self.C.TopBar)
   self.C.ExecutionInterval:SetInterval(0.01)
@@ -239,24 +239,24 @@ function Editor:InitComponents()
   self.C.ExecuteOnLabel = vgui.Create("DLabel", self.C.TopBar)
   self.C.ExecuteOnLabel:SetText("Execute on")
   self.C.ExecuteOnLabel:SizeToContents()
-  self.C.ExecuteOnLabel:SetTextColor(Color(255,255,255,255))
+  self.C.ExecuteOnLabel:SetTextColor(Color(255, 255, 255, 255))
   self.C.ExecuteOnLabel:SetPos(x, 4)
   self.C.ExecuteOnInputs = vgui.Create("DCheckBoxLabel", self.C.TopBar)
   self.C.ExecuteOnInputs:SetPos(x, 18)
   self.C.ExecuteOnInputs:SetText("Inputs")
-  self.C.ExecuteOnInputs:SetTextColor(Color(240,240,240,255))
+  self.C.ExecuteOnInputs:SetTextColor(Color(240, 240, 240, 255))
   self.C.ExecuteOnInputs:SetValue(true)
   self.C.ExecuteOnInputs:SizeToContents()
   self.C.ExecuteOnTimed = vgui.Create("DCheckBoxLabel", self.C.TopBar)
-  self.C.ExecuteOnTimed:SetPos(x+60, 18)
+  self.C.ExecuteOnTimed:SetPos(x + 60, 18)
   self.C.ExecuteOnTimed:SetText("Timed")
-  self.C.ExecuteOnTimed:SetTextColor(Color(240,240,240,255))
+  self.C.ExecuteOnTimed:SetTextColor(Color(240, 240, 240, 255))
   self.C.ExecuteOnTimed:SetValue(true)
   self.C.ExecuteOnTimed:SizeToContents()
   self.C.ExecuteOnTrigger = vgui.Create("DCheckBoxLabel", self.C.TopBar)
-  self.C.ExecuteOnTrigger:SetPos(x+120, 18)
+  self.C.ExecuteOnTrigger:SetPos(x + 120, 18)
   self.C.ExecuteOnTrigger:SetText("Trigger In")
-  self.C.ExecuteOnTrigger:SetTextColor(Color(240,240,240,255))
+  self.C.ExecuteOnTrigger:SetTextColor(Color(240, 240, 240, 255))
   self.C.ExecuteOnTrigger:SetValue(false)
   self.C.ExecuteOnTrigger:SizeToContents()
 
@@ -268,13 +268,13 @@ function Editor:InitComponents()
 
   self.C.Tree = vgui.Create("DTree", self.C.Holder)
   self.C.Tree:Dock(FILL)
-  self.C.Tree:DockMargin(2,0,2,2)
+  self.C.Tree:DockMargin(2, 0, 2, 2)
 
 
   --Gate searching
   self.C.Search = vgui.Create("DTextEntry", self.C.Holder)
   self.C.Search:Dock(TOP)
-  self.C.Search:DockMargin(2,0,2,0)
+  self.C.Search:DockMargin(2, 0, 2, 0)
   self.C.Search:SetValue("Search...")
 
   local oldOnGetFocus = self.C.Search.OnGetFocus
@@ -310,21 +310,21 @@ function Editor:InitComponents()
       local name = gate.name
       local lowname = string.lower(name)
       if string.find(lowname, text, 1, true) then -- If it has ANY match at all
-        results[#results+1] = {name = gate.name, group = gate.group, type = "fpga", action = action, dist = WireLib.levenshtein(text, lowname)}
+        results[#results + 1] = { name = gate.name, group = gate.group, type = "fpga", action = action, dist = WireLib.levenshtein(text, lowname) }
       end
     end
     for action,gate in pairs(CPUGateActions) do
       local name = gate.name
       local lowname = string.lower(name)
       if string.find(lowname, text, 1, true) then -- If it has ANY match at all
-        results[#results+1] = {name = gate.name, group = gate.group, type = "cpu", action = action, dist = WireLib.levenshtein(text, lowname)}
+        results[#results + 1] = { name = gate.name, group = gate.group, type = "cpu", action = action, dist = WireLib.levenshtein(text, lowname) }
       end
     end
     for action,gate in pairs(GateActions) do
       local name = gate.name
       local lowname = string.lower(name)
       if string.find(lowname, text, 1, true) then -- If it has ANY match at all
-        results[#results+1] = {name = gate.name, group = gate.group, type = "wire", action = action, dist = WireLib.levenshtein(text, lowname)}
+        results[#results + 1] = { name = gate.name, group = gate.group, type = "wire", action = action, dist = WireLib.levenshtein(text, lowname) }
       end
     end
 
@@ -349,7 +349,7 @@ function Editor:InitComponents()
       end
       local results = Search(text)
       this.C.SearchList:Clear()
-      for i=1,#results do
+      for i = 1, #results do
         local result = results[i]
 
         local type
@@ -371,8 +371,8 @@ function Editor:InitComponents()
     else
       if searching then
         searching = false
-        local x,y = this.C.Tree:GetPos()
-        local w,h = this.C.Tree:GetSize()
+        local x, y = this.C.Tree:GetPos()
+        local w, h = this.C.Tree:GetSize()
         this.C.SearchList:SetPos(x, y)
         this.C.SearchList:MoveTo(x + w, y, 0.1, 0, 1)
         this.C.SearchList:SetSize(w, h)
@@ -394,7 +394,7 @@ function Editor:InitComponents()
     end
 
     line:SetSelected(true) -- Select new
-    this.SelectedInMenu = {type = line.type, gate = line.action}
+    this.SelectedInMenu = { type = line.type, gate = line.action }
     this:RequestFocus()
   end
 
@@ -415,7 +415,7 @@ function Editor:InitComponents()
 
     local subtree = {}
     for k, v in pairs(temp) do
-      subtree[#subtree+1] = {action = k, gate = v, name = v.name, order = v.order}
+      subtree[#subtree+1] = { action = k, gate = v, name = v.name, order = v.order }
     end
 
     if sortByName then
@@ -424,13 +424,13 @@ function Editor:InitComponents()
       table.SortByMember(subtree, "order", true)
     end
 
-    for index=1, #subtree do
+    for index = 1, #subtree do
       local action, gate = subtree[index].action, subtree[index].gate
       local node2 = node:AddNode(gate.name or "No name found :(")
       node2.name = gate.name
       node2.action = action
       function node2:DoClick()
-        editor.SelectedInMenu = {type = type, gate = self.action}
+        editor.SelectedInMenu = { type = type, gate = self.action }
       end
       node2.Icon:SetImage("icon16/newspaper.png")
     end
@@ -440,11 +440,11 @@ function Editor:InitComponents()
   --EDITOR extras
   local labelNode = self.C.Tree:AddNode("Label", "icon16/text_allcaps.png")
   function labelNode:DoClick()
-    this.SelectedInMenu = {type = "editor", visual = "label", gate = nil}
+    this.SelectedInMenu = { type = "editor", visual = "label", gate = nil }
   end
   local commentNode = self.C.Tree:AddNode("Comment", "icon16/comment.png")
   function commentNode:DoClick()
-    this.SelectedInMenu = {type = "editor", visual = "comment", gate = nil}
+    this.SelectedInMenu = { type = "editor", visual = "comment", gate = nil }
   end
 
   --FPGA gates
@@ -453,14 +453,14 @@ function Editor:InitComponents()
   for gatetype, gatefuncs in pairs(FPGAGatesSorted) do
     local allowed_gates = {}
     local any_allowed = false
-    for k,v in pairs(gatefuncs) do
+    for k, v in pairs(gatefuncs) do
       if not v.is_banned then
         allowed_gates[k] = v
         any_allowed = true
       end
     end
     if any_allowed then
-      CategoriesSorted[#CategoriesSorted+1] = {gatetype = gatetype, gatefuncs = allowed_gates}
+      CategoriesSorted[#CategoriesSorted + 1] = { gatetype = gatetype, gatefuncs = allowed_gates }
     end
   end
 
@@ -471,7 +471,7 @@ function Editor:InitComponents()
     self:SetExpanded(not self.m_bExpanded)
   end
 
-  for i=1,#CategoriesSorted do
+  for i = 1, #CategoriesSorted do
     local gatetype = CategoriesSorted[i].gatetype
     local gatefuncs = CategoriesSorted[i].gatefuncs
 
@@ -488,10 +488,10 @@ function Editor:InitComponents()
 
   for gatetype, gatefuncs in pairs(CPUGatesSorted) do
     local gates = {}
-    for k,v in pairs(gatefuncs) do
+    for k, v in pairs(gatefuncs) do
       gates[k] = v
     end
-    CategoriesSorted[#CategoriesSorted+1] = {gatetype = gatetype, gatefuncs = gates}
+    CategoriesSorted[#CategoriesSorted + 1] = { gatetype = gatetype, gatefuncs = gates }
   end
 
   table.sort(CategoriesSorted, function(a, b) return a.gatetype < b.gatetype end)
@@ -519,14 +519,14 @@ function Editor:InitComponents()
   for gatetype, gatefuncs in pairs(WireGatesSorted) do
     local allowed_gates = {}
     local any_allowed = false
-    for k,v in pairs(gatefuncs) do
+    for k, v in pairs(gatefuncs) do
       if not v.is_banned and not (k == "string_to_memory" or k == "string_from_memory") then
         allowed_gates[k] = v
         any_allowed = true
       end
     end
     if any_allowed then
-      CategoriesSorted[#CategoriesSorted+1] = {gatetype = gatetype, gatefuncs = allowed_gates}
+      CategoriesSorted[#CategoriesSorted + 1] = { gatetype = gatetype, gatefuncs = allowed_gates }
     end
   end
 
@@ -537,7 +537,7 @@ function Editor:InitComponents()
     self:SetExpanded(not self.m_bExpanded)
   end
 
-  for i=1,#CategoriesSorted do
+  for i = 1, #CategoriesSorted do
     local gatetype = CategoriesSorted[i].gatetype
     local gatefuncs = CategoriesSorted[i].gatefuncs
 
@@ -597,7 +597,7 @@ function Editor:SetData(data)
     self.C.ExecuteOnTrigger:SetValue(false)
   end
 
-  if data.Position then self.Position = data.Position else self.Position = {0, 0} end
+  if data.Position then self.Position = data.Position else self.Position = { 0, 0 } end
   if data.Zoom then self.Zoom = data.Zoom else self.Zoom = 5 end
 
   self.InputNameCounter = 0
@@ -614,7 +614,7 @@ end
 function Editor:ClearData()
   self.C.Name:SetValue("gate")
   self.Nodes = {}
-  self.Position = {0, 0}
+  self.Position = { 0, 0 }
   self.Zoom = 5
   self.InputNameCounter = 0
   self.OutputNameCounter = 0
@@ -635,9 +635,9 @@ end
 function Editor:GetVisual(node)
   if node.type == "editor" then
     if node.visual == "label" then
-      return {method = "text", font = "FPGALabel", default = "Label"}
+      return { method = "text", font = "FPGALabel", default = "Label" }
     elseif node.visual == "comment" then
-      return {method = "text", font = "auto", default = "Comment"}
+      return { method = "text", font = "auto", default = "Comment" }
     end
   end
   return nil
@@ -649,11 +649,11 @@ end
 --UTILITY
 --------------------------------------------------------
 function Editor:PosToScr(x, y)
-  return (self:GetWide()-300)/2 - (self.Position[1] - x) * self.Zoom, self:GetTall()/2 - (self.Position[2] - y) * self.Zoom
+  return (self:GetWide() - 300) / 2 - (self.Position[1] - x) * self.Zoom, self:GetTall() / 2 - (self.Position[2] - y) * self.Zoom
 end
 
 function Editor:ScrToPos(x, y)
-  return self.Position[1] - ((self:GetWide()-300)/2 - x) / self.Zoom, self.Position[2] - (self:GetTall()/2 - y) / self.Zoom
+  return self.Position[1] - ((self:GetWide() - 300) / 2 - x) / self.Zoom, self.Position[2] - (self:GetTall() / 2 - y) / self.Zoom
 end
 
 function Editor:AlignPosToGrid(x, y)
@@ -661,11 +661,11 @@ function Editor:AlignPosToGrid(x, y)
 end
 
 function Editor:NodeInputPos(node, input)
-  return node.x - self.GateSize/2 - self.IOSize/2, node.y + (input - 1) * self.GateSize
+  return node.x - self.GateSize / 2 - self.IOSize / 2, node.y + (input - 1) * self.GateSize
 end
 
 function Editor:NodeOutputPos(node, output)
-  return node.x + self.GateSize/2 + self.IOSize/2, node.y + (output - 1) * self.GateSize
+  return node.x + self.GateSize / 2 + self.IOSize / 2, node.y + (output - 1) * self.GateSize
 end
 
 --------------------------------------------------------
@@ -690,10 +690,10 @@ function Editor:GetNodeAt(x, y)
 
       local height = math.max(amountOfInputs, amountOfOutputs)
 
-      if gx < node.x - self.GateSize/2 then continue end
-      if gx > node.x + self.GateSize/2 then continue end
-      if gy < node.y - self.GateSize/2 then continue end
-      if gy > node.y - self.GateSize/2 + self.GateSize*height then continue end
+      if gx < node.x - self.GateSize / 2 then continue end
+      if gx > node.x + self.GateSize / 2 then continue end
+      if gy < node.y - self.GateSize / 2 then continue end
+      if gy > node.y - self.GateSize / 2 + self.GateSize * height then continue end
     end
 
     local visual = self:GetVisual(node)
@@ -714,10 +714,10 @@ function Editor:GetNodeAt(x, y)
         end
         local tx, ty = surface.GetTextSize(node.value)
 
-        if gx < node.x - (tx/2)/self.Zoom then continue end
-        if gx > node.x + (tx/2)/self.Zoom then continue end
-        if gy < node.y - (ty/2)/self.Zoom then continue end
-        if gy > node.y + (ty/2)/self.Zoom then continue end
+        if gx < node.x - (tx / 2)/self.Zoom then continue end
+        if gx > node.x + (tx / 2)/self.Zoom then continue end
+        if gy < node.y - (ty / 2)/self.Zoom then continue end
+        if gy > node.y + (ty / 2)/self.Zoom then continue end
       else
         continue
       end
@@ -737,18 +737,18 @@ function Editor:GetNodeInputAt(x, y)
 
     if not gate then continue end
 
-    if gx < node.x - self.GateSize/2 - self.IOSize then continue end
-    if gx > node.x + self.GateSize/2 + self.IOSize then continue end
-    if gy < node.y - self.GateSize/2 then continue end
-    if gy > node.y - self.GateSize/2 + self.GateSize * #gate.inputs then continue end
+    if gx < node.x - self.GateSize / 2 - self.IOSize then continue end
+    if gx > node.x + self.GateSize / 2 + self.IOSize then continue end
+    if gy < node.y - self.GateSize / 2 then continue end
+    if gy > node.y - self.GateSize / 2 + self.GateSize * #gate.inputs then continue end
 
     for inputNum, _ in pairs(gate.inputs) do
       local ix, iy = self:NodeInputPos(node, inputNum)
 
-      if gx < ix - self.IOSize/2 then continue end
-      if gx > ix + self.IOSize/2 then continue end
-      if gy < iy - self.IOSize/2 then continue end
-      if gy > iy + self.IOSize/2 then continue end
+      if gx < ix - self.IOSize / 2 then continue end
+      if gx > ix + self.IOSize / 2 then continue end
+      if gy < iy - self.IOSize / 2 then continue end
+      if gy > iy + self.IOSize / 2 then continue end
 
       return k, inputNum
     end
@@ -765,33 +765,33 @@ function Editor:GetNodeOutputAt(x, y)
 
     if not gate then continue end
 
-    if gx < node.x - self.GateSize/2 - self.IOSize then continue end
-    if gx > node.x + self.GateSize/2 + self.IOSize then continue end
-    if gy < node.y - self.GateSize/2 then continue end
+    if gx < node.x - self.GateSize / 2 - self.IOSize then continue end
+    if gx > node.x + self.GateSize / 2 + self.IOSize then continue end
+    if gy < node.y - self.GateSize / 2 then continue end
     if gate.outputs then
-      if gy > node.y - self.GateSize/2 + self.GateSize * #gate.outputs then continue end
+      if gy > node.y - self.GateSize / 2 + self.GateSize * #gate.outputs then continue end
     else
-      if gy > node.y + self.GateSize/2 then continue end
+      if gy > node.y + self.GateSize / 2 then continue end
     end
 
     if gate.outputs then
       for outputNum, _ in pairs(gate.outputs) do
         local ix, iy = self:NodeOutputPos(node, outputNum)
   
-        if gx < ix - self.IOSize/2 then continue end
-        if gx > ix + self.IOSize/2 then continue end
-        if gy < iy - self.IOSize/2 then continue end
-        if gy > iy + self.IOSize/2 then continue end
+        if gx < ix - self.IOSize / 2 then continue end
+        if gx > ix + self.IOSize / 2 then continue end
+        if gy < iy - self.IOSize / 2 then continue end
+        if gy > iy + self.IOSize / 2 then continue end
   
         return k, outputNum
       end
     else
       local ix, iy = self:NodeOutputPos(node, 1)
 
-      if gx < ix - self.IOSize/2 then continue end
-      if gx > ix + self.IOSize/2 then continue end
-      if gy < iy - self.IOSize/2 then continue end
-      if gy > iy + self.IOSize/2 then continue end
+      if gx < ix - self.IOSize / 2 then continue end
+      if gx > ix + self.IOSize / 2 then continue end
+      if gy < iy - self.IOSize / 2 then continue end
+      if gy > iy + self.IOSize / 2 then continue end
 
       return k, 1
     end
@@ -826,22 +826,22 @@ end
 
 function Editor:PaintInput(x, y, type, name, ioSize)
   surface.SetDrawColor(FPGATypeColor[type])
-  surface.DrawRect(x, y, ioSize*2, ioSize)
+  surface.DrawRect(x, y, ioSize * 2, ioSize)
 
   if (self.Zoom > self.ZoomHideThreshold) then
     local tx, ty = surface.GetTextSize(name)
-    surface.SetTextPos(x-tx-ioSize*0.3, y+ioSize/2-ty/2) 
+    surface.SetTextPos(x - tx - ioSize * 0.3, y + ioSize / 2 - ty / 2) 
     surface.DrawText(name)
   end
 end
 
 function Editor:PaintOutput(x, y, type, name, ioSize)
   surface.SetDrawColor(FPGATypeColor[type])
-  surface.DrawRect(x, y, ioSize*2, ioSize)
+  surface.DrawRect(x, y, ioSize * 2, ioSize)
 
   if (self.Zoom > self.ZoomHideThreshold) then
     local tx, ty = surface.GetTextSize(name)
-    surface.SetTextPos(x+ioSize*2.3, y+ioSize/2-ty/2) 
+    surface.SetTextPos(x + ioSize * 2.3, y + ioSize / 2 - ty / 2) 
     surface.DrawText(name)
   end
 end
@@ -872,8 +872,8 @@ function Editor:PaintGate(nodeId, node, gate)
   
   if gate.inputs then
     for inputNum, inputName in pairs(gate.inputs) do
-      local nx = x - size/2 - ioSize
-      local ny = y - ioSize/2 + (inputNum-1) * size
+      local nx = x - size / 2 - ioSize
+      local ny = y - ioSize / 2 + (inputNum-1) * size
       
       self:PaintInput(nx, ny, getInputType(gate, inputNum), inputName, ioSize)
     end
@@ -882,14 +882,14 @@ function Editor:PaintGate(nodeId, node, gate)
   -- Output
   if gate.outputs then
     for outputNum, outputName in pairs(gate.outputs) do
-      local nx = x + size/2 - ioSize
-      local ny = y - ioSize/2 + (outputNum-1) * size
+      local nx = x + size / 2 - ioSize
+      local ny = y - ioSize / 2 + (outputNum - 1) * size
     
       self:PaintOutput(nx, ny, getOutputType(gate, outputNum), outputName, ioSize)
     end
   else 
-    local nx = x + size/2 - ioSize
-    local ny = y - ioSize/2
+    local nx = x + size / 2 - ioSize
+    local ny = y - ioSize / 2
   
     self:PaintOutput(nx, ny, getOutputType(gate, 1), "Out", ioSize)
   end
@@ -910,7 +910,7 @@ function Editor:PaintGate(nodeId, node, gate)
       surface.SetDrawColor(self.NodeColor)
     end
   end
-  surface.DrawRect(x-size/2, y-size/2, size, size * height)
+  surface.DrawRect(x - size / 2, y - size / 2, size, size * height)
 
   -- Name
   if (self.Zoom > self.ZoomThreshold) then
@@ -921,20 +921,20 @@ function Editor:PaintGate(nodeId, node, gate)
   surface.SetTextColor(255, 255, 255)
   if (self.Zoom > self.ZoomHideThreshold) then
     local tx, ty = surface.GetTextSize(gate.name)
-    surface.SetTextPos(x-tx/2, y-ty/2-size/1.2) 
+    surface.SetTextPos(x - tx / 2, y - ty / 2 - size / 1.2) 
     surface.DrawText(gate.name)
   
     surface.SetTextColor(200, 200, 200)
     -- Input
     if node.ioName then
       local tx, ty = surface.GetTextSize(node.ioName)
-      surface.SetTextPos(x-tx/2, y-ty/2+size/1.2) 
+      surface.SetTextPos(x - tx / 2, y - ty / 2 + size / 1.2) 
       surface.DrawText(node.ioName)
     -- Constant
     elseif node.value then
       local s = tostring(node.value)
       local tx, ty = surface.GetTextSize(s)
-      surface.SetTextPos(x-tx/2, y-ty/2+size/1.2) 
+      surface.SetTextPos(x - tx / 2, y - ty / 2 + size / 1.2) 
       surface.DrawText(s)
     end
   end
@@ -964,7 +964,7 @@ function Editor:PaintEditorNode(nodeId, node, visual)
     end
 
     local tx, ty = surface.GetTextSize(node.value)
-    surface.SetTextPos(x-tx/2, y-ty/2)
+    surface.SetTextPos(x - tx / 2, y - ty / 2)
 
     surface.DrawText(node.value)
   end
@@ -1010,7 +1010,7 @@ function Editor:PaintHelp()
 
   for line in helpText:gmatch("([^\n]*)\n?") do
     local tx, ty = surface.GetTextSize(line)
-    surface.SetTextPos(x-tx/2, y-ty/2) 
+    surface.SetTextPos(x - tx / 2, y - ty / 2) 
     surface.DrawText(line)
     y = y + ty
   end
@@ -1018,7 +1018,7 @@ end
 
 function Editor:Paint()
   surface.SetDrawColor(self.BackgroundColor)
-  surface.DrawRect(0, 36, self:GetWide()-300, self:GetTall()-36)
+  surface.DrawRect(0, 36, self:GetWide() - 300, self:GetTall() - 36)
 
   self:PaintNodes()
   self:PaintConnections()
@@ -1043,7 +1043,7 @@ function Editor:Paint()
   if self.DraggingWorld then
     local x, y = self:CursorPos()
     local dx, dy = self.LastMousePos[1] - x, self.LastMousePos[2] - y
-    self.Position = {self.Position[1] + dx * (1/self.Zoom), self.Position[2] + dy * (1/self.Zoom)}
+    self.Position = { self.Position[1] + dx * (1 / self.Zoom), self.Position[2] + dy * (1 / self.Zoom) }
   end
   -- moving a node
   if self.DraggingNode then
@@ -1077,13 +1077,13 @@ function Editor:Paint()
     local node = self.Nodes[nodeId]
     local gate = getGate(node)
 
-    local drawingConnectionFrom = {self.DrawingConnectionFrom[2]}
+    local drawingConnectionFrom = { self.DrawingConnectionFrom[2] }
     local selectedPort = self.DrawingConnectionFrom[2]
     if self.DrawingConnectionAll then
       drawingConnectionFrom = {}
       local ports
       if self.DrawingFromInput then ports = gate.inputs
-      elseif self.DrawingFromOutput then ports = gate.outputs or {"Out"} end
+      elseif self.DrawingFromOutput then ports = gate.outputs or { "Out" } end
       for portNum, portName in pairs(ports) do
         drawingConnectionFrom[portNum] = portNum
       end
@@ -1102,7 +1102,7 @@ function Editor:Paint()
       local sx, sy = self:PosToScr(x, y)
       local mx, my = self:CursorPos()
       surface.SetDrawColor(FPGATypeColor[type])
-      surface.DrawLine(sx, sy, mx, my + (inputNum-selectedPort) * self.GateSize * self.Zoom)
+      surface.DrawLine(sx, sy, mx, my + (inputNum - selectedPort) * self.GateSize * self.Zoom)
     end
   end
   -- selecting
@@ -1111,7 +1111,7 @@ function Editor:Paint()
     local mx, my = self:CursorPos()
     
     local x, y = math.min(sx, mx), math.min(sy, my)
-    local w, h = math.abs(sx-mx), math.abs(sy-my)
+    local w, h = math.abs(sx - mx), math.abs(sy - my)
 
     surface.SetDrawColor(self.SelectionColor)
     surface.DrawOutlinedRect(x, y, w, h)
@@ -1120,7 +1120,7 @@ function Editor:Paint()
   self:PaintOverlay()
 
   local x, y = self:CursorPos()
-  self.LastMousePos = {x, y}
+  self.LastMousePos = { x, y }
 end
 
 function Editor:PaintDebug()
@@ -1135,11 +1135,12 @@ end
 function Editor:PaintOverlay()
   surface.SetFont("FPGAText")
   local y = 43
+  local xOffset = self:GetWide() - 310
 
   if self.AlignToGrid then
 	  surface.SetTextColor(100, 180, 255)
     local tx, ty = surface.GetTextSize("Align to grid")
-	  surface.SetTextPos(self:GetWide()-310-tx, y) 
+	  surface.SetTextPos(xOffset - tx, y) 
     surface.DrawText("Align to grid")
     y = y + 20
   end
@@ -1153,7 +1154,7 @@ function Editor:PaintOverlay()
       text = text .. " nodes selected" 
     end
     local tx, ty = surface.GetTextSize(text)
-	  surface.SetTextPos(self:GetWide()-310-tx, y) 
+	  surface.SetTextPos(xOffset - tx, y) 
     surface.DrawText(text)
     y = y + 20
   end
@@ -1168,7 +1169,7 @@ function Editor:PaintOverlay()
       text = text .. " nodes in paste buffer"
     end
     local tx, ty = surface.GetTextSize(text)
-	  surface.SetTextPos(self:GetWide()-310-tx, y) 
+	  surface.SetTextPos(xOffset - tx, y) 
     surface.DrawText(text)
     y = y + 20
   end
@@ -1248,7 +1249,7 @@ function Editor:CopyNodes(nodeIds)
 
   local nodeAmount = table.Count(nodeIds)
   local copyBuffer = {}
-  local copyOffset = {0, 0}
+  local copyOffset = { 0, 0 }
   for nodeId, _ in pairs(nodeIds) do
     local node = self.Nodes[nodeId]
     local gate = getGate(node) 
@@ -1278,13 +1279,13 @@ function Editor:CopyNodes(nodeIds)
 
     for inputNum, connection in pairs(node.connections) do
       if nodeIds[connection[1]] then
-        nodeCopy.connections[inputNum] = {nodeIdLookup[connection[1]], connection[2]}
+        nodeCopy.connections[inputNum] = { nodeIdLookup[connection[1]], connection[2] }
       end
     end
 
     table.insert(copyBuffer, nodeCopy)
 
-    copyOffset = {copyOffset[1] + node.x / nodeAmount, copyOffset[2] + node.y / nodeAmount}
+    copyOffset = { copyOffset[1] + node.x / nodeAmount, copyOffset[2] + node.y / nodeAmount }
   end
 
   self:GetParent():SetCopyData(copyBuffer, copyOffset)
@@ -1336,7 +1337,7 @@ function Editor:PasteNodes(x, y)
     end
 
     for inputNum, connection in pairs(copyNode.connections) do
-      nodeCopy.connections[inputNum] = {nodeIdLookup[connection[1]], connection[2]}
+      nodeCopy.connections[inputNum] = { nodeIdLookup[connection[1]], connection[2] }
     end
 
     nodeCopy.x = (copyNode.x - copyOffset[1]) + x
@@ -1385,9 +1386,7 @@ function Editor:OnKeyCodePressed(code)
     --Create
     if self.SelectedInMenu then
       local gx, gy = self:ScrToPos(x, y)
-      self:CreateNode(self.SelectedInMenu,
-                      gx,
-                      gy)
+      self:CreateNode(self.SelectedInMenu, gx, gy)
     end
   elseif code == KEY_E and not self.EditingNode then
     --Edit
@@ -1425,7 +1424,7 @@ end
 function Editor:OnMouseWheeled(delta)
   local sx, sy = self:CursorPos()
 
-  if sx > 0 and sy > 36 and sx < self:GetWide()-300 and sy < self:GetTall()-36 then
+  if sx > 0 and sy > 36 and sx < self:GetWide() - 300 and sy < self:GetTall() - 36 then
     self.Zoom = self.Zoom + delta * 0.1 * self.Zoom
     if self.Zoom < 0.1 then self.Zoom = 0.1 end
     if self.Zoom > 10 then self.Zoom = 10 end
@@ -1452,7 +1451,7 @@ function Editor:OnMousePressed(code)
     if nodeId then
       self.DraggingNode = nodeId
       local gx, gy = self:ScrToPos(x, y)
-      self.DraggingOffset = {self.Nodes[nodeId].x - gx, self.Nodes[nodeId].y - gy}
+      self.DraggingOffset = { self.Nodes[nodeId].x - gx, self.Nodes[nodeId].y - gy }
     else
       --CONNECTION DRAWING
       local nodeId, inputNum = self:GetNodeInputAt(x, y)
@@ -1465,7 +1464,7 @@ function Editor:OnMousePressed(code)
         else
           --SELECTION DRAWING
           local gx, gy = self:ScrToPos(x, y)
-          self.DrawingSelection = {gx, gy}
+          self.DrawingSelection = { gx, gy }
         end
       end
       
@@ -1477,7 +1476,6 @@ function Editor:OnMousePressed(code)
 end
 
 function Editor:OnMouseReleased(code)
-  --if not self.MouseDown  then return end
   local x, y = self:CursorPos()
 
 	if code == MOUSE_LEFT then
@@ -1508,12 +1506,12 @@ function Editor:BeginDrawingConnection(nodeId, inputNum, outputNum, doubleClick)
     if Input then
       local connectedNode, connectedOutput = Input[1], Input[2]
       node.connections[inputNum] = nil
-      self.DrawingConnectionFrom = {connectedNode, connectedOutput}
+      self.DrawingConnectionFrom = { connectedNode, connectedOutput }
       self.DrawingFromOutput = true
       self.DrawingConnectionAll = false
     else 
       --input not connected
-      self.DrawingConnectionFrom = {nodeId, inputNum}
+      self.DrawingConnectionFrom = { nodeId, inputNum }
       self.DrawingFromInput = true
     end
     
@@ -1523,7 +1521,7 @@ function Editor:BeginDrawingConnection(nodeId, inputNum, outputNum, doubleClick)
   if outputNum then
     self.DrawingConnection = true
     self.DrawingFromOutput = true
-    self.DrawingConnectionFrom = {nodeId, outputNum}
+    self.DrawingConnectionFrom = { nodeId, outputNum }
   end
 end
 
@@ -1555,13 +1553,13 @@ function Editor:OnDrawConnectionFinished(x, y)
   local fromNode = self.Nodes[fromNodeId]
   local fromGate = getGate(fromNode)
 
-  local drawingConnectionFrom = {self.DrawingConnectionFrom[2]}
+  local drawingConnectionFrom = { self.DrawingConnectionFrom[2] }
   local selectedPort = self.DrawingConnectionFrom[2]
   if self.DrawingConnectionAll then
     drawingConnectionFrom = {}
     local ports
     if self.DrawingFromInput then ports = fromGate.inputs
-    elseif self.DrawingFromOutput then ports = fromGate.outputs or {"Out"} end
+    elseif self.DrawingFromOutput then ports = fromGate.outputs or { "Out" } end
     for portNum, _ in pairs(ports) do
       drawingConnectionFrom[portNum] = portNum
     end
@@ -1573,10 +1571,10 @@ function Editor:OnDrawConnectionFinished(x, y)
   for _, portNum in pairs(drawingConnectionFrom) do
     local nodeId, inputNum, outputNum
     if self.DrawingFromOutput then
-      nodeId, inputNum = self:GetNodeInputAt(x, y + (portNum-selectedPort) * self.GateSize * self.Zoom)
+      nodeId, inputNum = self:GetNodeInputAt(x, y + (portNum - selectedPort) * self.GateSize * self.Zoom)
       outputNum = portNum
     elseif self.DrawingFromInput then
-      nodeId, outputNum = self:GetNodeOutputAt(x, y + (portNum-selectedPort) * self.GateSize * self.Zoom)
+      nodeId, outputNum = self:GetNodeOutputAt(x, y + (portNum - selectedPort) * self.GateSize * self.Zoom)
       inputNum = portNum
     end
 
@@ -1600,7 +1598,7 @@ function Editor:OnDrawConnectionFinished(x, y)
 
       if inputType == outputType and inputNode != outputNode then
         --connect up
-        inputNode.connections[inputNum] = {outputNodeId, outputNum}
+        inputNode.connections[inputNum] = { outputNodeId, outputNum }
       end
     end
   end
@@ -1661,11 +1659,11 @@ function Editor:OpenNamingWindow(node, x, y)
   end
 
   self.NamingWindow:SetVisible(true)
-	self.NamingWindow:MakePopup() -- This will move it above the E2 editor if it is behind it.
+	self.NamingWindow:MakePopup() -- This will move it above the E2 editor frame if it is behind it.
   self.ForceDrawCursor = true
   
-  local px, py = self.parentpanel:GetPos()
-  self.NamingWindow:SetPos(px+x+80, py+y+30)
+  local px, py = self:GetParent():GetPos()
+  self.NamingWindow:SetPos(px + x + 80, py + y + 30)
 
   local inputField = self.NamingNameEntry
   local this = self
@@ -1697,7 +1695,7 @@ function Editor:CreateConstantSetWindow()
   self.ConstantSetNormal = vgui.Create("DNumberWang", pnl)
   self.ConstantSetNormal:Dock(BOTTOM)
   self.ConstantSetNormal:SetSize(175, 20)
-  self.ConstantSetNormal:SetMinMax(-10^100, 10^100)
+  self.ConstantSetNormal:SetMinMax(-10 ^ 100, 10 ^ 100)
   self.ConstantSetNormal:SetVisible(false)
   self.ConstantSetString = vgui.Create("DTextEntry", pnl)
   self.ConstantSetString:Dock(BOTTOM)
@@ -1730,8 +1728,8 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
   self.ConstantSetWindow:MakePopup() -- This will move it above the FPGA editor if it is behind it.
   self.ForceDrawCursor = true
   
-  local px, py = self.parentpanel:GetPos()
-  self.ConstantSetWindow:SetPos(px+x+80, py+y+30)
+  local px, py = self.GetParent():GetPos()
+  self.ConstantSetWindow:SetPos(px + x + 80, py + y + 30)
 
   if type == "NORMAL" then
     self.ConstantSetNormal:SetVisible(true)

@@ -359,7 +359,7 @@ end
 
 function Editor:CreateTab(chosenfile)
 	local editor = vgui.Create("FPGAEditor")
-	editor.parentpanel = self
+	editor.ParentPanel = self
 
 	local sheet = self.C.TabHolder:AddSheet(chosenfile, editor)
 	editor.chosenfile = chosenfile
