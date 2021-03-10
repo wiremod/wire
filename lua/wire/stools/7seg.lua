@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Visuals/Indicators" )
+WireToolSetup.setCategory( "Visuals" )
 WireToolSetup.open( "7seg", "7 Segment Display", "gmod_wire_indicator", nil, "7 Segment Displays" )
 
 TOOL.GhostAngle = Angle(90, 0, 0)

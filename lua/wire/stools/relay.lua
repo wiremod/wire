@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Input, Output/Data Transfer" )
+WireToolSetup.setCategory( "Input, Output" )
 WireToolSetup.open( "relay", "Relay", "gmod_wire_relay", nil, "Relays" )
 
 if ( CLIENT ) then
