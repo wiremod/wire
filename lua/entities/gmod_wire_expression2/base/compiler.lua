@@ -9,6 +9,8 @@ E2Lib.Compiler = {}
 local Compiler = E2Lib.Compiler
 Compiler.__index = Compiler
 
+local canInvoke = PIXEL.E2Permissions.CanInvoke
+
 function Compiler.Execute(...)
 	-- instantiate Compiler
 	local instance = setmetatable({}, Compiler)
@@ -22,7 +24,6 @@ function Compiler:Error(message, instr)
 end
 
 function Compiler:Process(root, inputs, outputs, persist, delta, includes, ply) -- Took params out becuase it isnt used.
-	local canInvoke = PIXEL.E2Permissions.CanInvoke
 	self.context = {}
 
 	self:InitScope() -- Creates global scope!
@@ -212,7 +213,6 @@ end
 
 
 function Compiler:GetFunction(instr, Name, Args)
-	local canInvoke = PIXEL.E2Permissions.CanInvoke
 	local Params = table.concat(Args)
 	local Func = wire_expression2_funcs[Name .. "(" .. Params .. ")"]
 
@@ -250,7 +250,6 @@ end
 
 
 function Compiler:GetMethod(instr, Name, Meta, Args)
-	local canInvoke = PIXEL.E2Permissions.CanInvoke
 	local Params = Meta .. ":" .. table.concat(Args)
 	local Func = wire_expression2_funcs[Name .. "(" .. Params .. ")"]
 
