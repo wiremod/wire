@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Visuals/Screens" )
+WireToolSetup.setCategory( "Visuals" )
 WireToolSetup.open( "oscilloscope", "Oscilloscope", "gmod_wire_oscilloscope", nil, "Oscilloscopes" )
 
 if CLIENT then

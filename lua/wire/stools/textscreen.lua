@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Visuals/Screens" )
+WireToolSetup.setCategory( "Visuals" )
 --Originally by http://forums.facepunchstudios.com/greenarrow
 WireToolSetup.open( "textscreen", "Text Screen", "gmod_wire_textscreen", nil, "Text Screens" )
 

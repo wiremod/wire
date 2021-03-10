@@ -4,7 +4,7 @@
 --There may be a few bits of code from the wire panel here and there as i used it as a starting point.
 --Credit to whoever created the first wire screen, from which all others seem to use the lagacy clientside drawing code (this one included)
 
-WireToolSetup.setCategory( "Input, Output/Mouse Interaction" )
+WireToolSetup.setCategory( "Input, Output" )
 WireToolSetup.open( "graphics_tablet", "Graphics Tablet", "gmod_wire_graphics_tablet", nil, "Graphics Tablet" )
 
 if ( CLIENT ) then

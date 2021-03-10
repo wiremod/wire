@@ -1,6 +1,6 @@
 -- Author: mitterdoo (with help from Divran)
 
-WireToolSetup.setCategory("Input, Output/Keyboard Interaction")
+WireToolSetup.setCategory("Input, Output")
 WireToolSetup.open("textentry","Text Entry","gmod_wire_textentry",nil,"Text Entries")
 if CLIENT then
 	language.Add( "Tool.wire_textentry.name", "Wire Text Entry" )
