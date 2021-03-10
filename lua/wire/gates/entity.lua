@@ -12,7 +12,7 @@ local function isAllowed( gate, ent )
 end
 
 GateActions["entity_applyf"] = {
-	name = "Apply Force",
+	name = "[RESTRICTED] Apply Force",
 	inputs = { "Ent" , "Vec" },
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
@@ -21,6 +21,7 @@ GateActions["entity_applyf"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
+		if not hook.Run("PIXEL.Wiremod.CanUseGate", WireLib.GetOwner(gate), "entity_applyf") then return end 
 		if !isvector(vec) then vec = Vector (0, 0, 0) end
 		vec = clamp(vec)
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
@@ -33,7 +34,7 @@ GateActions["entity_applyf"] = {
 }
 
 GateActions["entity_applyof"] = {
-	name = "Apply Offset Force",
+	name = "[RESTRICTED] Apply Offset Force",
 	inputs = { "Ent" , "Vec" , "Offset" },
 	inputtypes = { "ENTITY" , "VECTOR" , "VECTOR" },
 	timed = true,
@@ -42,6 +43,7 @@ GateActions["entity_applyof"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
+		if not hook.Run("PIXEL.Wiremod.CanUseGate", WireLib.GetOwner(gate), "entity_applyof") then return end 
 		if !isvector(vec) then vec = Vector (0, 0, 0) end
 		if !isvector(offset) then offset = Vector (0, 0, 0) end
 		vec = clamp(vec)
@@ -58,7 +60,7 @@ GateActions["entity_applyof"] = {
 -- Base code taken from Expression 2
 
 GateActions["entity_applyaf"] = {
-	name = "Apply Angular Force",
+	name = "[RESTRICTED] Apply Angular Force",
 	inputs = { "Ent" , "Ang" },
 	inputtypes = { "ENTITY" , "ANGLE" },
 	timed = true,
@@ -67,6 +69,7 @@ GateActions["entity_applyaf"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
+		if not hook.Run("PIXEL.Wiremod.CanUseGate", WireLib.GetOwner(gate), "entity_applyaf") then return end 
 		local clampedForce = clamp(angForce)
 		if clampedForce.x == 0 and clampedForce.y == 0 and clampedForce.z == 0 then return end
 
@@ -105,7 +108,7 @@ GateActions["entity_applyaf"] = {
 -- Taken from Expression 2
 local abs = math.abs
 GateActions["entity_applytorq"] = {
-	name = "Apply Torque",
+	name = "[RESTRICTED] Apply Torque",
 	inputs = { "Ent" , "Vec" },
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
@@ -114,6 +117,7 @@ GateActions["entity_applytorq"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
+		if not hook.Run("PIXEL.Wiremod.CanUseGate", WireLib.GetOwner(gate), "entity_applytorq") then return end 
 		if !isvector(vec) then vec = Vector (0, 0, 0) end
 		if !isvector(offset) then offset = Vector (0, 0, 0) end
 		vec 	= clamp(vec)
@@ -736,13 +740,14 @@ GateActions["entity_inertia"] = {
 }
 
 GateActions["entity_setmass"] = {
-	name = "Set Mass",
+	name = "[RESTRICTED] Set Mass",
 	inputs = { "Ent" , "Val" },
 	inputtypes = { "ENTITY" , "NORMAL" },
 	output = function(gate, Ent, Val )
 		if !Ent:IsValid() then return end
 		if !Ent:GetPhysicsObject():IsValid() then return end
 		if not gamemode.Call("CanTool", WireLib.GetOwner(gate), WireLib.dummytrace(Ent), "weight") then return end
+		if not hook.Run("PIXEL.Wiremod.CanUseGate", WireLib.GetOwner(gate), "entity_setmass") then return end 
 		if !Val then Val = Ent:GetPhysicsObject():GetMass() end
 		Val = math.Clamp(Val, 0.001, 50000)
 		Ent:GetPhysicsObject():SetMass(Val)
@@ -776,7 +781,7 @@ GateActions["entity_inequal"] = {
 	end
 }
 
-GateActions["entity_setcol"] = {
+GateActions["entity_setcol"] = { -- Since this doesnt allow you to set opacity (and it doesnt allow you to change the color of your local player) this should be kept
 	name = "Set Color",
 	inputs = { "Ent" , "Col" },
 	inputtypes = { "ENTITY" , "VECTOR" },
