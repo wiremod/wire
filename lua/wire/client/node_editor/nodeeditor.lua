@@ -201,8 +201,6 @@ function Editor:InitComponents()
   self.C.Name:SetEditable(true)
   self.C.Name:SetSize(140, 15)
   self.C.Name:SetPos(x - 2, 18)
-  --self.C.Name:Dock(LEFT)
-  --self.C.Name:DockMargin(0,0,0,0)
   
   self.C.Name.OnLoseFocus = function (pnl)
     if string.len(pnl:GetValue()) == 0 then
@@ -229,7 +227,7 @@ function Editor:InitComponents()
   self.C.ExecutionInterval:SetMin(0.001)
   self.C.ExecutionInterval:SetValue(0.1)
   self.C.ExecutionInterval:SetSize(40, 15)
-  self.C.ExecutionInterval:SetPos(x+31, 18)
+  self.C.ExecutionInterval:SetPos(x + 31, 18)
 
   self.C.ExecutionInterval.OnLoseFocus = function (pnl)
     this:RequestFocus()
@@ -306,21 +304,21 @@ function Editor:InitComponents()
     text = string.lower(text)
 
     local results = {}
-    for action,gate in pairs(FPGAGateActions) do
+    for action, gate in pairs(FPGAGateActions) do
       local name = gate.name
       local lowname = string.lower(name)
       if string.find(lowname, text, 1, true) then -- If it has ANY match at all
         results[#results + 1] = { name = gate.name, group = gate.group, type = "fpga", action = action, dist = WireLib.levenshtein(text, lowname) }
       end
     end
-    for action,gate in pairs(CPUGateActions) do
+    for action, gate in pairs(CPUGateActions) do
       local name = gate.name
       local lowname = string.lower(name)
       if string.find(lowname, text, 1, true) then -- If it has ANY match at all
         results[#results + 1] = { name = gate.name, group = gate.group, type = "cpu", action = action, dist = WireLib.levenshtein(text, lowname) }
       end
     end
-    for action,gate in pairs(GateActions) do
+    for action, gate in pairs(GateActions) do
       local name = gate.name
       local lowname = string.lower(name)
       if string.find(lowname, text, 1, true) then -- If it has ANY match at all
@@ -340,8 +338,8 @@ function Editor:InitComponents()
     if text ~= "" then
       if not searching then
         searching = true
-        local x,y = this.C.Tree:GetPos()
-        local w,h = this.C.Tree:GetSize()
+        local x, y = this.C.Tree:GetPos()
+        local w, h = this.C.Tree:GetSize()
         this.C.SearchList:SetPos(x + w, y)
         this.C.SearchList:MoveTo(x, y, 0.1, 0, 1)
         this.C.SearchList:SetSize(w, h)
@@ -415,7 +413,7 @@ function Editor:InitComponents()
 
     local subtree = {}
     for k, v in pairs(temp) do
-      subtree[#subtree+1] = { action = k, gate = v, name = v.name, order = v.order }
+      subtree[#subtree + 1] = { action = k, gate = v, name = v.name, order = v.order }
     end
 
     if sortByName then
@@ -437,6 +435,43 @@ function Editor:InitComponents()
     tree:InvalidateLayout()
   end
 
+  local function addGates(editor, gates, name, key, icon)
+    local CategoriesSorted = {}
+
+    for gatetype, gatefuncs in pairs(gates) do
+      local allowed_gates = {}
+      local any_allowed = false
+      for k, v in pairs(gatefuncs) do
+        if not v.is_banned then
+          allowed_gates[k] = v
+          any_allowed = true
+        end
+      end
+      if any_allowed then
+        CategoriesSorted[#CategoriesSorted + 1] = { gatetype = gatetype, gatefuncs = allowed_gates }
+      end
+    end
+
+    table.sort(CategoriesSorted, function(a, b) return a.gatetype < b.gatetype end)
+
+    local parentNode = self.C.Tree:AddNode(name, icon)
+    function parentNode:DoClick()
+      self:SetExpanded(not self.m_bExpanded)
+    end
+
+    for i = 1, #CategoriesSorted do
+      local gatetype = CategoriesSorted[i].gatetype
+      local gatefuncs = CategoriesSorted[i].gatefuncs
+
+      local node = parentNode:AddNode(gatetype)
+      node.Icon:SetImage("icon16/folder.png")
+      FillSubTree(self, self.C.Tree, node, gatefuncs, key, false)
+      function node:DoClick()
+        self:SetExpanded(not self.m_bExpanded)
+      end
+    end
+  end
+
   --EDITOR extras
   local labelNode = self.C.Tree:AddNode("Label", "icon16/text_allcaps.png")
   function labelNode:DoClick()
@@ -448,106 +483,13 @@ function Editor:InitComponents()
   end
 
   --FPGA gates
-  local CategoriesSorted = {}
-
-  for gatetype, gatefuncs in pairs(FPGAGatesSorted) do
-    local allowed_gates = {}
-    local any_allowed = false
-    for k, v in pairs(gatefuncs) do
-      if not v.is_banned then
-        allowed_gates[k] = v
-        any_allowed = true
-      end
-    end
-    if any_allowed then
-      CategoriesSorted[#CategoriesSorted + 1] = { gatetype = gatetype, gatefuncs = allowed_gates }
-    end
-  end
-
-  table.sort(CategoriesSorted, function(a, b) return a.gatetype < b.gatetype end)
-
-  local fpgaNode = self.C.Tree:AddNode("FPGA", "icon16/bricks.png")
-  function fpgaNode:DoClick()
-    self:SetExpanded(not self.m_bExpanded)
-  end
-
-  for i = 1, #CategoriesSorted do
-    local gatetype = CategoriesSorted[i].gatetype
-    local gatefuncs = CategoriesSorted[i].gatefuncs
-
-    local node = fpgaNode:AddNode(gatetype)
-    node.Icon:SetImage("icon16/folder.png")
-    FillSubTree(self, self.C.Tree, node, gatefuncs, "fpga", false)
-    function node:DoClick()
-      self:SetExpanded(not self.m_bExpanded)
-    end
-  end
+  addGates(self, FPGAGatesSorted, "FPGA", "fpga", "icon16/bricks.png")
 
   --CPU gates
-  local CategoriesSorted = {}
-
-  for gatetype, gatefuncs in pairs(CPUGatesSorted) do
-    local gates = {}
-    for k, v in pairs(gatefuncs) do
-      gates[k] = v
-    end
-    CategoriesSorted[#CategoriesSorted + 1] = { gatetype = gatetype, gatefuncs = gates }
-  end
-
-  table.sort(CategoriesSorted, function(a, b) return a.gatetype < b.gatetype end)
-
-  local cpuNode = self.C.Tree:AddNode("CPU", "icon16/computer.png")
-  function cpuNode:DoClick()
-    self:SetExpanded(not self.m_bExpanded)
-  end
-
-  for i=1,#CategoriesSorted do
-    local gatetype = CategoriesSorted[i].gatetype
-    local gatefuncs = CategoriesSorted[i].gatefuncs
-
-    local node = cpuNode:AddNode(gatetype)
-    node.Icon:SetImage("icon16/folder.png")
-    FillSubTree(self, self.C.Tree, node, gatefuncs, "cpu", false)
-    function node:DoClick()
-      self:SetExpanded(not self.m_bExpanded)
-    end
-  end
+  addGates(self, CPUGatesSorted, "CPU", "cpu", "icon16/computer.png")
 
   --WIREMOD gates
-  local CategoriesSorted = {}
-
-  for gatetype, gatefuncs in pairs(WireGatesSorted) do
-    local allowed_gates = {}
-    local any_allowed = false
-    for k, v in pairs(gatefuncs) do
-      if not v.is_banned and not (k == "string_to_memory" or k == "string_from_memory") then
-        allowed_gates[k] = v
-        any_allowed = true
-      end
-    end
-    if any_allowed then
-      CategoriesSorted[#CategoriesSorted + 1] = { gatetype = gatetype, gatefuncs = allowed_gates }
-    end
-  end
-
-  table.sort(CategoriesSorted, function(a, b) return a.gatetype < b.gatetype end)
-
-  local wiremodNode = self.C.Tree:AddNode("Wire", "icon16/connect.png")
-  function wiremodNode:DoClick()
-    self:SetExpanded(not self.m_bExpanded)
-  end
-
-  for i = 1, #CategoriesSorted do
-    local gatetype = CategoriesSorted[i].gatetype
-    local gatefuncs = CategoriesSorted[i].gatefuncs
-
-    local node = wiremodNode:AddNode(gatetype)
-    node.Icon:SetImage("icon16/folder.png")
-    FillSubTree(self, self.C.Tree, node, gatefuncs, "wire", true)
-    function node:DoClick()
-      self:SetExpanded(not self.m_bExpanded)
-    end
-  end
+  addGates(self, WireGatesSorted, "Wire", "wire", "icon16/connect.png")
 end
 
 
@@ -714,10 +656,10 @@ function Editor:GetNodeAt(x, y)
         end
         local tx, ty = surface.GetTextSize(node.value)
 
-        if gx < node.x - (tx / 2)/self.Zoom then continue end
-        if gx > node.x + (tx / 2)/self.Zoom then continue end
-        if gy < node.y - (ty / 2)/self.Zoom then continue end
-        if gy > node.y + (ty / 2)/self.Zoom then continue end
+        if gx < node.x - (tx / 2) / self.Zoom then continue end
+        if gx > node.x + (tx / 2) / self.Zoom then continue end
+        if gy < node.y - (ty / 2) / self.Zoom then continue end
+        if gy > node.y + (ty / 2) / self.Zoom then continue end
       else
         continue
       end
