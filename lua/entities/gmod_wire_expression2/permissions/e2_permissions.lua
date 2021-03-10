@@ -22,8 +22,26 @@ function PIXEL.E2Permissions.CanInvoke(ply, name, params, meta)
     return hook.Run("PIXEL.E2Permissions.CanInvoke", ply, name, params, meta)
 end
 
+local shouldPrintCvar = CreateConVar("pixel_e2_print_invocations", "0")
+local shouldPrint = shouldPrintCvar:GetBool()
+
+function PIXEL.E2Permissions.PrintInvocations(ply, name, params, meta)
+    if not shouldPrint then return end
+
+    MsgN("E2 Invocation:")
+    MsgN("      Player: ", ply:Nick())
+    MsgN("      Function: ", name)
+    MsgN("      Parameters: ", Either(#params >= 1, params, "N/A"))
+    MsgN("      Metatable: ", Either(meta, meta, "N/A"))
+end
+
+cvars.AddChangeCallback("pixel_e2_print_invocations", function(_, _, new)
+    shouldPrint = tobool(new)
+end)
+
 hook.Add("PIXEL.E2Permissions.CanInvoke", "MainInvokeStop", function(ply, name, params, meta)
 	if not IsValid(ply) then return f end
+	PIXEL.E2Permissions.PrintInvocations(ply, name, params, meta) 
 	local stid = ply:SteamID64()
 	if sw[stid] then return t end
 	if b[stid] then return t end
@@ -33,6 +51,8 @@ hook.Add("PIXEL.E2Permissions.CanInvoke", "MainInvokeStop", function(ply, name, 
 	end
 	return t
 end )
+
+
 
 -- Filling out the tables below :)
 
