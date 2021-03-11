@@ -960,6 +960,7 @@ elseif CLIENT then
 			local name,_name = getName( input )
 			name=name..(Either(isbool(_name),"",_name))
 			local w,h = surface.GetTextSize( name )
+			w = w + w*.3
 			if w > width then
 				if input[9] and input[9] > 1 then w = w + 14 end
 				width = w
