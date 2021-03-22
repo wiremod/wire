@@ -104,7 +104,7 @@ end )
 /* --- File Write --- */
 net.Receive("wire_expression2_file_download_begin", function( netlen )
 	local fpath,fname = process_filepath( net.ReadString() )
-	if !E2Lib.isValidFilePath(fname) then return end
+	if !E2Lib.isValidFileWritePath(fname) then return end
 	if not file.Exists(fpath, "DATA") then file.CreateDir(fpath) end
 	download_buffer = {
 		name = fpath .. fname,

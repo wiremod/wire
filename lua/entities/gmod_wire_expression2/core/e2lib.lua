@@ -755,7 +755,8 @@ local file_extensions = {
 	["ogg"] = true
 }
 
-function E2Lib.isValidFilePath(path)
+-- Returns whether the file has an extension garrysmod can write to, to avoid useless net messages, etc
+function E2Lib.isValidFileWritePath(path)
 	local ext = string.GetExtensionFromFilename(path)
 	if ext then return file_extensions[string.lower(ext)] end
 end
