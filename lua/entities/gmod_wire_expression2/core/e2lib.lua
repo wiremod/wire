@@ -736,3 +736,27 @@ hook.Add("InitPostEntity", "e2lib", function()
 		end
 	end
 end)
+
+--- Valid file extensions kept to avoid trying to make files with extensions gmod doesn't allow.
+-- https://wiki.facepunch.com/gmod/file.Write
+local file_extensions = {
+	["txt"] = true,
+	["dat"] = true,
+	["json"] = true,
+	["xml"] = true,
+	["csv"] = true,
+	["jpg"] = true,
+	["jpeg"] = true,
+	["png"] = true,
+	["vtf"] = true,
+	["vmt"] = true,
+	["mp3"] = true,
+	["wav"] = true,
+	["ogg"] = true
+}
+
+-- Returns whether the file has an extension garrysmod can write to, to avoid useless net messages, etc
+function E2Lib.isValidFileWritePath(path)
+	local ext = string.GetExtensionFromFilename(path)
+	if ext then return file_extensions[string.lower(ext)] end
+end
