@@ -99,8 +99,11 @@ if SERVER then
 			return
 		end
 
+    local data = util.Compress(ent:GetOriginal())
+
 		net.Start("FPGA_Download")
-      net.WriteString(ent:GetOriginal())
+      net.WriteUInt(#data, 16)
+      net.WriteData(data, #data)
 		net.Send(player)
 	end
 end
@@ -123,30 +126,31 @@ if CLIENT then
     end
     data = data or FPGA_Editor:GetData()
 
-    local bytes = #data
+    local data = util.Compress(data)
 
-    if bytes > 64000 then
+    if #data > 65500 then
       WireLib.AddNotify("FPGA: Code too large (exceeds 64kB)!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
       return
     end
 		
     net.Start("FPGA_Upload")
       net.WriteEntity(targetEnt)
-      net.WriteString(data)
+      net.WriteUInt(#data, 16)
+      net.WriteData(data, #data)
     net.SendToServer()
 	end
   
   -- Received request to upload
 	net.Receive("FPGA_Upload", function(len, ply)
     local entid = net.ReadInt(32)
-		timer.Create("FPGA_Upload_Delay",0.03,30,function() -- The new net library is so fast sometimes the chip gets fully uploaded before the entity even exists.
+		timer.Create("FPGA_Upload_Delay", 0.03, 30, function()
 			if IsValid(Entity(entid)) then
 				WireLib.FPGAUpload(entid)
 				timer.Remove("FPGA_Upload_Delay")
 				timer.Remove("FPGA_Upload_Delay_Error")
 			end
 		end)
-		timer.Create("FPGA_Upload_Delay_Error",0.03*31,1,function() WireLib.AddNotify("FPGA: Invalid FPGA entity specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1) end)
+		timer.Create("FPGA_Upload_Delay_Error", 0.03*31, 1, function() WireLib.AddNotify("FPGA: Invalid FPGA entity specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1) end)
   end)
 
   --------------------------------------------------------------
@@ -159,9 +163,13 @@ if CLIENT then
       FPGA_Editor:Setup("FPGA Editor", "fpgachip")
     end
 
-    local data = net.ReadString()
+    local dataLength = net.ReadUInt(16)
+    local data = net.ReadData(dataLength)
+    local ok, data = pcall(util.Decompress, data)
 
-    FPGA_Editor:Open(nil, data, true)
+    if ok then
+      FPGA_Editor:Open(nil, data, true)
+    end
 	end)
 end
 
@@ -172,7 +180,6 @@ if SERVER then
   -- Receive FPGA data from client
 	net.Receive("FPGA_Upload",function(len, ply)
 		local chip = net.ReadEntity()
-		--local numpackets = net.ReadUInt(16)
 	
 		if not IsValid(chip) or chip:GetClass() ~= "gmod_wire_fpga" then
 			WireLib.AddNotify(ply, "FPGA: Invalid FPGA chip specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
@@ -183,14 +190,18 @@ if SERVER then
 			WireLib.AddNotify(ply, "FPGA: You are not allowed to upload to the target FPGA chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
 			return
 		end
-		
-    local data = net.ReadString()
-    local ok, ret = pcall(WireLib.von.deserialize, data)
+
+    local dataLength = net.ReadUInt(16)
+    local data = net.ReadData(dataLength)
+
+    local ok, data = pcall(util.Decompress, data)
+    if not ok then return end
     
+    ok, data = pcall(WireLib.von.deserialize, data)
     if ok then
-      chip:Upload(ret)
+      chip:Upload(data)
     else
-      WireLib.AddNotify(ply, "FPGA: Upload failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+      WireLib.AddNotify(ply, "FPGA: Upload failed! Error message:\n" .. data, NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
     end
 	end)
 
