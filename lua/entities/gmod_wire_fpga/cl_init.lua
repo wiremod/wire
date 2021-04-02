@@ -266,8 +266,7 @@ net.Receive("wire_fpga_view_data", function (len)
     local dataLength = net.ReadUInt(16)
     local data = net.ReadData(dataLength)
 
-    local ok
-    ok, data = pcall(util.Decompress, data)
+    local ok, data = pcall(util.Decompress, data)
     if not ok then return end
     
     ok, data = pcall(WireLib.von.deserialize, data)
