@@ -26,6 +26,23 @@ TOOL.ClientConVar = {
 TOOL.MaxLimitName = "wire_expressions"
 WireToolSetup.BaseLang()
 
+-- Needed a method for printing to players' chatboxes without the outdated and limited umsg based ChatPrint()
+-- Not sure if there's already a framework for this in wire, if so replace this with that
+local BetterChatPrint = function() end
+if SERVER then
+	util.AddNetworkString("WireExpression2_BetterChatPrint")
+	BetterChatPrint = function(plr, msg)
+		net.Start("WireExpression2_BetterChatPrint")
+		net.WriteString(msg)
+		net.Send(plr)
+	end
+else
+	-- Netmsg is coming from the server so no need for sanity checks as the server *should* be as expected unlike clients
+	net.Receive("WireExpression2_BetterChatPrint", function()
+		chat.AddText(net.ReadString())
+	end)
+end
+
 if SERVER then
 	CreateConVar('sbox_maxwire_expressions', 20)
 
@@ -55,20 +72,103 @@ if SERVER then
 		end
 	end
 
+	-- Simple serverside only local table for storing view requests to make handling them not spaghetti code
+	local viewRequests = {}
+
+	hook.Add("Tick", "WireExpression2_InvalidateRequests", function()
+		for k, v in pairs(viewRequests) do
+			if not IsValid(v.initiator) or not IsValid(v.owner) or not IsValid(v.chip) then
+				-- Void the request if any of the entities are no longer valid
+				viewRequests[k] = nil
+			elseif CurTime() > v.expiry then
+				BetterChatPrint(v.initiator, "Your request to view "..v.owner:Nick().."'s chip, '"..v.name.."', has expired")
+				viewRequests[k] = nil
+			end
+		end
+	end)
+
+	local function RequestView(chip, initiator)
+		local index = chip:EntIndex()
+		local truncName = string.sub(chip.name, 1, 256) -- Incase someone starts making cursed names
+
+		-- Make sure this isn't creating a request for a chip with an outstanding valid request
+		if viewRequests[index] and viewRequests[index].expiry > CurTime() then
+			BetterChatPrint(initiator, "Request to view '"..truncName.."' already sent")
+			return false
+		end
+
+		-- Otherwise, print to the tool user's chat that a view request was sent
+		-- and send a view request to the chip's owner (also print a message to their chat to tell them they received a request)
+		BetterChatPrint(initiator, "E2 view request sent for '"..truncName.."' owned by "..chip.player:Nick())
+		BetterChatPrint(chip.player, "You just received a request to view your E2 '"..truncName.."' from "..initiator:Nick()..", which you can view in your context menu")
+
+		-- Add the request data to the local requests table for when the request from the client comes in
+		viewRequests[index] = {
+			initiator = initiator,
+			owner = chip.player,
+			name = truncName,
+			chip = chip,
+			expiry = CurTime() + 60 -- 1 minute for the request before it's invalidated (could make this a convar)
+		}
+
+		net.Start("WireExpression2_ViewRequest")
+			net.WriteInt(chip:EntIndex(), 32) -- For lookup in the request table when the owner answers
+			net.WriteFloat(CurTime() + 60)            -- For making requests expire on time clientside
+			net.WriteEntity(initiator)                -- The player attempting to view the E2
+			net.WriteString(truncName)                -- Name of the E2 so the owner knows what they're agreeing to
+			net.WriteEntity(chip)             -- Chip entity for validation clientside
+		net.Send(chip.player)
+	end
+
 	util.AddNetworkString("WireExpression2_OpenEditor")
+	util.AddNetworkString("WireExpression2_ViewRequest")
+	util.AddNetworkString("WireExpression2_AnswerRequest")
 	function TOOL:RightClick(trace)
 		if trace.Entity:IsPlayer() then return false end
 
 		local player = self:GetOwner()
 
 		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_expression2" then
-			self:Download(player, trace.Entity)
-			return true
+			-- Check the chip has the same owner as the tool user, if so then just download like so
+			if not IsValid(trace.Entity.player) or trace.Entity.player == player then -- If the owner is somehow invalid, we don't want to do undefined behaviour
+				self:Download(player, trace.Entity)
+				return true
+			end
+
+			RequestView(trace.Entity, player)
+			return true -- Play the tool effect so the user knows that something happened
 		end
 
 		net.Start("WireExpression2_OpenEditor") net.Send(player)
 		return false
 	end
+	net.Receive("WireExpression2_AnswerRequest", function(len, plr)
+		local accept, index, initiator, name -- note that name, and strictly initiator aren't required to function, however it makes it harder for a client to spoof info
+		local success = pcall(function()
+			accept, index, initiator, name = net.ReadBool(), net.ReadInt(32), net.ReadEntity(), net.ReadString()
+		end)
+		if not success then return end -- Prevents malformed messages from the clients
+
+		-- Check that this message is for a valid view request
+		if (
+			viewRequests[index] and
+			viewRequests[index].owner == plr and
+			viewRequests[index].expiry > CurTime() and
+			viewRequests[index].initiator == initiator and
+			viewRequests[index].name == name and
+			IsValid(viewRequests[index].initiator) and
+			IsValid(viewRequests[index].chip) and
+			viewRequests[index].chip:GetClass() == "gmod_wire_expression2" -- This should never be false, but just incase it can't hurt to check
+		) then
+			if accept then
+				WireLib.Expression2Download(initiator, viewRequests[index].chip, nil, true)
+				BetterChatPrint(initiator, "Your request to view "..plr:Nick().."'s chip, '"..name.."', was accepted!")
+			else
+				BetterChatPrint(initiator, "Your request to view "..plr:Nick().."'s chip, '"..name.."', was declined")
+			end
+			viewRequests[index] = nil
+		end
+	end)
 
 	function TOOL:Upload(ent)
 		WireLib.Expression2Upload( self:GetOwner(), ent )
@@ -117,10 +217,14 @@ if SERVER then
 			error("Invalid player entity (wtf??). This should never happen. " .. tostring(ply), 0)
 		end
 
+		--[[ 
+		-- Commented out this method of protection from thieves, as the view requests system is more streamlined,
+		-- and doesn't require players given each other full prop protection permissions in order to share code
 		if not hook.Run( "CanTool", ply, WireLib.dummytrace(targetEnt), "wire_expression2") then
 			WireLib.AddNotify(ply, "You're not allowed to download from this Expression (ent index: " .. targetEnt:EntIndex() .. ").", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
+		]]
 
 		local main, includes = targetEnt:GetCode()
 		if not includes or not next(includes) then -- There are no includes
@@ -314,6 +418,9 @@ if SERVER then
 		E2 = Entity(E2)
 		if canhas(player) then return end
 		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
+
+		--[[
+		-- No longer need all the info prints to say your code is being taken cause the view request handles that
 		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "request code" ) then
 			WireLib.Expression2Download(player, E2)
 			WireLib.AddNotify(player, "Downloading code...", NOTIFY_GENERIC, 5, math.random(1, 4))
@@ -324,6 +431,13 @@ if SERVER then
 			end
 		else
 			WireLib.ClientError("You do not have permission to read this E2.", player)
+		end
+		]]
+
+		if not IsValid(E2.player) or E2.player == player then -- Same check as tool code
+			WireLib.Expression2Download(player, E2)
+		else
+			RequestView(E2, player)
 		end
 	end)
 
