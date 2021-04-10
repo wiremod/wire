@@ -123,24 +123,38 @@ if SERVER then
 	util.AddNetworkString("WireExpression2_OpenEditor")
 	util.AddNetworkString("WireExpression2_ViewRequest")
 	util.AddNetworkString("WireExpression2_AnswerRequest")
-	function TOOL:RightClick(trace)
-		if trace.Entity:IsPlayer() then return false end
+	function TOOL:Think()
+		--[[
+			I had to replace TOOL:RightClick with TOOL:Think as prop protection was preventing
+			the view requests system from functioning as intended
+
+			So this manually handles right click meaning people don't need to give each other
+			full prop protection permissions in order to share a chip
+		]]
+		if not IsFirstTimePredicted() then return end
 
 		local player = self:GetOwner()
+		if player:KeyPressed(IN_ATTACK2) then
+			local chip = player:GetEyeTrace().Entity
+			if chip:IsPlayer() then return end
 
-		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_expression2" then
-			-- Check the chip has the same owner as the tool user, if so then just download like so
-			if not IsValid(trace.Entity.player) or trace.Entity.player == player then -- If the owner is somehow invalid, we don't want to do undefined behaviour
-				self:Download(player, trace.Entity)
-				return true
+			local player = self:GetOwner()
+
+			if IsValid(chip) and chip:GetClass() == "gmod_wire_expression2" then
+				-- Check the chip has the same owner as the tool user, if so then just download like so
+				if not IsValid(chip.player) or chip.player == player then -- If the owner is somehow invalid, we don't want to do undefined behaviour
+					self:Download(player, chip)
+					player:SetAnimation(PLAYER_ATTACK1)
+					return
+				end
+
+				RequestView(chip, player)
+				player:SetAnimation(PLAYER_ATTACK1)
+				return
 			end
 
-			RequestView(trace.Entity, player)
-			return true -- Play the tool effect so the user knows that something happened
+			net.Start("WireExpression2_OpenEditor") net.Send(player)
 		end
-
-		net.Start("WireExpression2_OpenEditor") net.Send(player)
-		return false
 	end
 	net.Receive("WireExpression2_AnswerRequest", function(len, plr)
 		local accept, index, initiator, name -- note that name, and strictly initiator aren't required to function, however it makes it harder for a client to spoof info
