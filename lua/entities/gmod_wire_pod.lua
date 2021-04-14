@@ -458,9 +458,11 @@ function ENT:Think()
 				if (self.RC) then
 					originalangle = self.RC.InitialAngle
 				else
-					originalangle = pod:GetAngles()
-					if pod:GetClass() ~= "prop_vehicle_prisoner_pod" then
-						originalangle.y = originalangle.y + 90
+					local attachment = pod:LookupAttachment( "vehicle_driver_eyes" )
+					if (attachment > 0) then
+						originalangle = pod:GetAttachment( attachment ).Ang
+					else
+						originalangle = pod:GetAngles()
 					end
 				end
 				WireLib.TriggerOutput( self, "Bearing", fixupangle( angle.y - originalangle.y ) )
