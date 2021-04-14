@@ -456,7 +456,7 @@ function ENT:Think()
 			if (self.Relative) then
 				local originalangle
 				if (self.RC) then
-					originalangle = ply.InitialAngle
+					originalangle = self.RC.InitialAngle
 				else
 					originalangle = pod:GetAngles()
 					if pod:GetClass() ~= "prop_vehicle_prisoner_pod" then
