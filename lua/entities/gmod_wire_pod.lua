@@ -217,6 +217,7 @@ function ENT:UnlinkEnt()
 	end
 	self:SetShowCursor( 0 )
 	self.Pod = nil
+	self:PlayerExited()
 	WireLib.SendMarks(self, {})
 	WireLib.TriggerOutput( self, "Entity", NULL )
 	self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
