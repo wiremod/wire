@@ -75,6 +75,7 @@ function SWEP:On()
 
 	self.Active = true
 	self.OldMoveType = not ply:InVehicle() and ply:GetMoveType() or MOVETYPE_WALK
+	self.InitialAngle = ply:EyeAngles()
 	ply:SetMoveType(MOVETYPE_NONE)
 	ply:DrawViewModel(false)
 
