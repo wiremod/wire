@@ -89,12 +89,12 @@ if SERVER then
 
 	local function RequestView(chip, initiator)
 		local index = chip:EntIndex()
-		local truncName = string.sub(chip.name, 1, 256) -- Incase someone starts making cursed names
+		local truncName = string.sub(chip.name, 1, 256) -- In case someone starts making cursed names
 
 		-- Make sure this isn't creating a request for a chip with an outstanding valid request
 		if viewRequests[index] and viewRequests[index].expiry > CurTime() then
 			BetterChatPrint(initiator, "Request to view '"..truncName.."' already sent")
-			return false
+			return
 		end
 
 		-- Otherwise, print to the tool user's chat that a view request was sent
@@ -142,9 +142,15 @@ if SERVER then
 
 			if IsValid(chip) and chip:GetClass() == "gmod_wire_expression2" then
 				-- Check the chip has the same owner as the tool user, if so then just download like so
-				if not IsValid(chip.player) or chip.player == player then -- If the owner is somehow invalid, we don't want to do undefined behaviour
+				if chip.player == player then -- Just download if the toolgun user owns this chip
 					self:Download(player, chip)
 					player:SetAnimation(PLAYER_ATTACK1)
+					return
+				elseif not IsValid(chip.player) then -- If the chip has no valid owner we can't send a request, so do a CanTool check
+					if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
+						self:Download(player, chip)
+						player:SetAnimation(PLAYER_ATTACK1)
+					end
 					return
 				end
 
@@ -172,7 +178,7 @@ if SERVER then
 			viewRequests[index].name == name and
 			IsValid(viewRequests[index].initiator) and
 			IsValid(viewRequests[index].chip) and
-			viewRequests[index].chip:GetClass() == "gmod_wire_expression2" -- This should never be false, but just incase it can't hurt to check
+			viewRequests[index].chip:GetClass() == "gmod_wire_expression2" -- This should never be false, but just in case it can't hurt to check
 		) then
 			if accept then
 				WireLib.Expression2Download(initiator, viewRequests[index].chip, nil, true)
@@ -448,8 +454,14 @@ if SERVER then
 		end
 		]]
 
-		if not IsValid(E2.player) or E2.player == player then -- Same check as tool code
+		-- Same check as tool code
+		if E2.player == player then
 			WireLib.Expression2Download(player, E2)
+		elseif not IsValid(E2.player) then
+			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2", "request code") then
+				WireLib.Expression2Download(player, E2)
+			end
+			return
 		else
 			RequestView(E2, player)
 		end
