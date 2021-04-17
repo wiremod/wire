@@ -72,6 +72,23 @@ if SERVER then
 		end
 	end
 
+	-- Steam ID bypass for trusted users (anyone who already has SV Lua anyway pretty much)
+	local bypassList = {}
+	concommand.Add("wire_expression2_viewrequest_whitelist", function(plr, cmdName, args, argStr)
+		if IsValid(plr) then
+			print("This command can only be used on the server")
+			return
+		end
+
+		bypassList = {}
+		for _, v in pairs(args) do
+			v = tostring(v) -- (tostring isn't "needed", just a sanity check)
+			if v and util.SteamIDTo64(v) ~= "0" then -- Validate that this argument is, indeed, a steam id
+				bypassList[v] = true
+			end
+		end
+	end, nil, "List of SteamIDs that are able to bypass the view request system")
+
 	-- Simple serverside only local table for storing view requests to make handling them not spaghetti code
 	local viewRequests = {}
 
@@ -141,7 +158,7 @@ if SERVER then
 			local player = self:GetOwner()
 
 			if IsValid(chip) and chip:GetClass() == "gmod_wire_expression2" then
-				if chip.player == player then -- Just download if the toolgun user owns this chip
+				if chip.player == player or bypassList[player:SteamID()] then -- Just download if the toolgun user owns this chip (or they're in the bypass list)
 					self:Download(player, chip)
 					player:SetAnimation(PLAYER_ATTACK1)
 				elseif not IsValid(chip.player) then -- If the chip has no valid owner we can't send a request, so do a CanTool check
@@ -451,7 +468,7 @@ if SERVER then
 		]]
 
 		-- Same check as tool code
-		if E2.player == player then
+		if E2.player == player or bypassList[player:SteamID()] then
 			WireLib.Expression2Download(player, E2)
 		elseif not IsValid(E2.player) then
 			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2", "request code") then
