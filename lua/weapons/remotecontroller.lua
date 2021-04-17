@@ -96,7 +96,7 @@ function SWEP:Off()
 	ply:DrawViewModel(true)
 
 	if IsValid(self.Linked) and self.Linked:GetPly() == ply then
-		self.Linked:PlayerExited(ply)
+		self.Linked:PlayerExited()
 	end
 end
 
