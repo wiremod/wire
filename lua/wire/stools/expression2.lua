@@ -141,25 +141,21 @@ if SERVER then
 			local player = self:GetOwner()
 
 			if IsValid(chip) and chip:GetClass() == "gmod_wire_expression2" then
-				-- Check the chip has the same owner as the tool user, if so then just download like so
 				if chip.player == player then -- Just download if the toolgun user owns this chip
 					self:Download(player, chip)
 					player:SetAnimation(PLAYER_ATTACK1)
-					return
 				elseif not IsValid(chip.player) then -- If the chip has no valid owner we can't send a request, so do a CanTool check
 					if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
 						self:Download(player, chip)
 						player:SetAnimation(PLAYER_ATTACK1)
 					end
-					return
+				else
+					RequestView(chip, player)
+					player:SetAnimation(PLAYER_ATTACK1)
 				end
-
-				RequestView(chip, player)
-				player:SetAnimation(PLAYER_ATTACK1)
-				return
+			else
+				net.Start("WireExpression2_OpenEditor") net.Send(player)
 			end
-
-			net.Start("WireExpression2_OpenEditor") net.Send(player)
 		end
 	end
 	net.Receive("WireExpression2_AnswerRequest", function(len, plr)
