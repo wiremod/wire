@@ -166,37 +166,10 @@ if SERVER then
 				}
 			end
 
-			-- build navigation
-			local nav = {}
-			for filepath, data in pairs( files ) do
-				local is_wire_extras = ""
-				if wireextras[filepath] then is_wire_extras = " (Wire Extras)" end
-
-				local filename = string.gsub(filepath,"custom/","custom-")
-				filename = "e2-docs-" .. filename
-
-				nav[#nav+1] = {
-					str = string.format("* [%s](%s)%s",filepath,filename,is_wire_extras),
-					sortparam = filepath,
-					iscustom = string.sub(filepath,1,7) == "custom/"
-				}
-			end
-
-			-- sort navigation
-			table.sort(nav,function(a,b)
-				if a.iscustom and not b.iscustom then return false end
-				if not a.iscustom and b.iscustom then return true end
-
-				return a.sortparam < b.sortparam
-			end)
-
 			local function collapseTable(t)
 				-- clear all other values and leave only strings
 				for k,v in pairs(t) do t[k] = v.str end
 			end
-
-			collapseTable(nav)
-			nav = "# List of modules\n\n"..table.concat(nav,"\n")
 
 			for filepath, data in pairs( files ) do
 				-- github table header, not used for now because it's not great for longer function names
@@ -208,7 +181,7 @@ if SERVER then
 				end)
 
 				collapseTable(data)
-				data = string.format("[[Jump to list of modules|#list-of-modules]]\n\n# %s\n\n%s\n***%s",upperFirst(filepath),table.concat(data,"\n\n"),nav)
+				data = string.format("[[Jump to table of contents|#table-of-contents]]\n\n# %s\n\n%s\n",upperFirst(filepath),table.concat(data,"\n\n"))
 
 				filepath = string.gsub(filepath,"custom/","custom-")
 				local filename = "e2doc/e2-docs-" .. filepath .. ".txt"
