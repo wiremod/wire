@@ -196,7 +196,7 @@ if SERVER then
 			end
 
 			collapseTable(nav)
-			nav = "# Table of Contents\n\n"..table.concat(nav,"\n")
+			nav = "# List of modules\n\n"..table.concat(nav,"\n")
 
 			for filepath, data in pairs( files ) do
 				-- github table header, not used for now because it's not great for longer function names
@@ -208,7 +208,7 @@ if SERVER then
 				end)
 
 				collapseTable(data)
-				data = string.format("%s\n***\n\n# %s\n\n%s",nav,upperFirst(filepath),table.concat(data,"\n\n"))
+				data = string.format("[[Jump to list of modules|#list-of-modules]]\n\n# %s\n\n%s\n***%s",upperFirst(filepath),table.concat(data,"\n\n"),nav)
 
 				filepath = string.gsub(filepath,"custom/","custom-")
 				local filename = "e2doc/e2-docs-" .. filepath .. ".txt"
