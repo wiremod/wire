@@ -176,11 +176,10 @@ if SERVER then
 		end
 	end
 	net.Receive("WireExpression2_AnswerRequest", function(len, plr)
-		local accept, index, initiator, name -- note that name, and strictly initiator aren't required to function, however it makes it harder for a client to spoof info
-		local success = pcall(function()
-			accept, index, initiator, name = net.ReadBool(), net.ReadInt(32), net.ReadEntity(), net.ReadString()
-		end)
-		if not success then return end -- Prevents malformed messages from the clients
+		-- note that name, and strictly initiator aren't required to function, however it makes it harder for a client to spoof info
+		-- (even if they did successfully spoof info, they'd only be giving permissions for their own chips)
+		local accept, index, initiator, name = net.ReadBool(), net.ReadInt(32), net.ReadEntity(), net.ReadString()
+		if index < 1 or not IsValid(initiator) or not initiator:IsPlayer() then return end
 
 		-- Check that this message is for a valid view request
 		if (
