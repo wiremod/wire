@@ -137,7 +137,7 @@ if SERVER then
 							local argname = argnames[idx] or ""
 							if argname ~= "" then argname = " " .. upperFirst(argname) end
 							parsed_params[idx] = getTypeImage(s) .. argname
-						until pos>=#params
+						until pos>#params
 					end
 				end
 
