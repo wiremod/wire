@@ -1787,6 +1787,12 @@ function EDITOR:_OnKeyCodeTyped(code)
 			self:OpenFindWindow( "go to line" )
 		elseif code == KEY_K then
 			self:CommentSelection(shift)
+		elseif code == KEY_L then
+			self.Start = { self.Start[1], 1 }
+			self.Caret = { self.Start[1] + 1, 1 }
+
+			if not shift then self:Copy() end
+			self:SetSelection("")
 		elseif code == KEY_Q then
 			self:GetParent():Close()
 		elseif code == KEY_T then
