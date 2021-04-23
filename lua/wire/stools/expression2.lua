@@ -268,6 +268,14 @@ if SERVER then
 
 			local filepath = ret[3]
 
+			if ply ~= toent.player then
+				toent.player = ply
+				toent:SetOwner(ply)
+				toent:SetPlayer(ply) -- This function doesn't even exist in the wiki, along with ENT:GetPlayer() and ENT:GetPlayerName() which is used for the chip overlay
+				toent:SetNWEntity("player", ply)
+				if CPPI then toent:CPPISetOwner(ply) end
+			end
+
 			toent:Setup(code, includes, nil, nil, filepath)
 		end
 	end)
