@@ -1,35 +1,31 @@
-local function AnswerRequest(accepted, index, initiator, name)
+local function AnswerRequest(accepted, initiator, chip)
 	net.Start("WireExpression2_AnswerRequest")
 		net.WriteBool(accepted)
-		net.WriteInt(index, 32)
 		net.WriteEntity(initiator)
-		net.WriteString(name)
+		net.WriteEntity(chip)
 	net.SendToServer()
 end
 
 local viewRequests = {}
 
-local function ValidateRequest(index)
-	if not viewRequests[index] then return false end
-	if (
-		not IsValid(viewRequests[index].initiator) or
-		not IsValid(viewRequests[index].chip) or
-		CurTime() > viewRequests[index].expiry
-	) then
-		viewRequests[index] = nil
+-- Validates a single request using the initiator and chip (very similar to the server side equivalent in expression2.lua)
+local function ValidateRequest(initiator, chip)
+	if not viewRequests[initiator] or not viewRequests[initiator][chip] then return false end -- Initiator either has no data in viewRequests or has no request for this chip
+	if not IsValid(initiator) then -- Invalid initiator in request table
+		viewRequests[initiator] = nil
+		return false
+	end
+	if not IsValid(chip) or chip:GetClass() ~= "gmod_wire_expression2"or CurTime() > viewRequests[initiator][chip].expiry then -- Invalid chip in request table or expired
+		viewRequests[initiator][chip] = nil
 		return false
 	end
 	return true
 end
 
 net.Receive("WireExpression2_ViewRequest", function()
-	local index, expiry, initiator, name, chip = net.ReadInt(32), net.ReadFloat(), net.ReadEntity(), net.ReadString(), net.ReadEntity()
-	viewRequests[index] = {
-		initiator = initiator,
-		name = name,
-		expiry = expiry,
-		chip = chip
-	}
+	local initiator, chip, name, expiry = net.ReadEntity(), net.ReadEntity(), net.ReadString(), net.ReadFloat()
+	if not viewRequests[initiator] then viewRequests[initiator] = {} end -- Initialise this user in the viewRequests table if not in there already
+	viewRequests[initiator][chip] = { name = name, expiry = expiry }
 end)
 
 list.Set("DesktopWindows", "WireExpression2_ViewRequestMenu", {
@@ -56,9 +52,13 @@ list.Set("DesktopWindows", "WireExpression2_ViewRequestMenu", {
 		reqList:AddColumn("E2 Name")
 		reqList:AddColumn("Expires In")
 
-		for k, v in pairs(viewRequests) do
-			if ValidateRequest(k) then
-				reqList:AddLine(tostring(k), v.initiator:Nick(), v.name, tostring(math.ceil(v.expiry - CurTime())))
+		for initiator, requests in pairs(viewRequests) do
+			for chip, request in pairs(requests) do
+				if ValidateRequest(initiator, chip) then
+					local line = reqList:AddLine(tostring(chip:EntIndex()), initiator:Nick(), request.name, tostring(math.ceil(request.expiry - CurTime())))
+					line.initiator = initiator
+					line.chip = chip
+				end
 			end
 		end
 
@@ -70,17 +70,22 @@ list.Set("DesktopWindows", "WireExpression2_ViewRequestMenu", {
 
 			local displayed = {}
 			for k, line in pairs(self:GetLines()) do
-				local index = tonumber(line:GetColumnText(1))
-				if not ValidateRequest(index) then
+				if not ValidateRequest(line.initiator, line.chip) then
 					self:RemoveLine(k)
 				else
-					line:SetColumnText(4, tostring(math.ceil(viewRequests[index].expiry - CurTime())))
-					displayed[index] = true
+					line:SetColumnText(4, tostring(math.ceil(viewRequests[line.initiator][line.chip].expiry - CurTime())))
+					if not displayed[line.initiator] then displayed[line.initiator] = {} end
+					displayed[line.initiator][line.chip] = true
 				end
 			end
-			for k, v in pairs(viewRequests) do
-				if not displayed[k] and ValidateRequest(k) then
-					self:AddLine(tostring(k), v.initiator:Nick(), v.name, tostring(math.ceil(v.expiry - CurTime())))
+
+			for initiator, requests in pairs(viewRequests) do
+				for chip, request in pairs(requests) do
+					if not displayed[initiator][chip] and ValidateRequest(initiator, chip) then
+						local line = self:AddLine(tostring(chip:EntIndex()), initiator:Nick(), request.name, tostring(math.ceil(request.expiry - CurTime())))
+						line.initiator = initiator
+						line.chip = chip
+					end
 				end
 			end
 		end
@@ -88,31 +93,30 @@ list.Set("DesktopWindows", "WireExpression2_ViewRequestMenu", {
 		function reqList:OnRowRightClick(id, line)
 			local mnu = DermaMenu()
 
-			local index = tonumber(line:GetColumnText(1))
-			if not ValidateRequest(index) then
+			if not ValidateRequest(line.initiator, line.chip) then
 				self:RemoveLine(id)
 				return
 			end
 
 			mnu:AddOption("Accept", function()
 				local confirm = Derma_Query(
-					"Are you SURE you want "..viewRequests[index].initiator:Nick().." to have complete access to the code in your chip '"..viewRequests[index].name.."'?\nThis means they are able to steal and redistribute it, so you should only do this if you are certain you can trust them",
+					"Are you SURE you want "..line.initiator:Nick().." to have complete access to the code in your chip '"..viewRequests[line.initiator][line.chip].name.."'?\nThis means they are able to steal and redistribute it, so you should only do this if you are certain you can trust them",
 					"Confirm",
 					"Yes", function()
-						if ValidateRequest(index) then
-							AnswerRequest(true, index, viewRequests[index].initiator, viewRequests[index].name)
+						if ValidateRequest(line.initiator, line.chip) then
+							AnswerRequest(true, line.initiator, line.chip)
 							self:RemoveLine(id)
-							viewRequests[index] = nil
+							viewRequests[line.initiator][line.chip] = nil
 						end
 					end,
 					"No", function() end
 				)
 			end)
 			mnu:AddOption("Reject", function()
-				if ValidateRequest(index) then
-					AnswerRequest(false, index, viewRequests[index].initiator, viewRequests[index].name)
+				if ValidateRequest(line.initiator, line.chip) then
+					AnswerRequest(false, line.initiator, line.chip)
 					self:RemoveLine(id)
-					viewRequests[index] = nil
+					viewRequests[line.initiator][line.chip] = nil
 				end
 			end)
 			mnu:Open()

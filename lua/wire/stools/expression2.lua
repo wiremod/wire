@@ -92,24 +92,47 @@ if SERVER then
 	-- Simple serverside only local table for storing view requests to make handling them not spaghetti code
 	local viewRequests = {}
 
-	hook.Add("Tick", "WireExpression2_InvalidateRequests", function()
-		for k, v in pairs(viewRequests) do
-			if not IsValid(v.initiator) or not IsValid(v.owner) or not IsValid(v.chip) then
-				-- Void the request if any of the entities are no longer valid
-				viewRequests[k] = nil
-			elseif CurTime() > v.expiry then
-				BetterChatPrint(v.initiator, "Your request to view "..v.owner:Nick().."'s chip, '"..v.name.."', has expired")
-				viewRequests[k] = nil
+	util.AddNetworkString("WireExpression2_ViewRequest")
+	util.AddNetworkString("WireExpression2_AnswerRequest")
+
+	-- Validates a single request using the initiator and chip (handles cleanup and expiry message)
+	local function ValidateRequest(initiator, chip)
+		if not viewRequests[initiator] or not viewRequests[initiator][chip] then return false end -- Initiator either has no data in viewRequests or has no request for this chip
+		if not IsValid(initiator) then -- Invalid initiator in request table
+			viewRequests[initiator] = nil
+			return false
+		end
+		if not IsValid(chip) or chip:GetClass() ~= "gmod_wire_expression2" then -- Invalid chip in request table
+			viewRequests[initiator][chip] = nil
+			return false
+		end
+		if CurTime() > viewRequests[initiator][chip].expiry then -- Expiry point passed
+			BetterChatPrint(initiator, "Your request to view "..chip.player:Nick().."'s chip, '"..chip.name.."', has expired")
+			viewRequests[initiator][chip] = nil
+			return false
+		end
+		return true
+	end
+
+	local function InvalidateRequests()
+		local count = 0
+		for initiator, _ in pairs(viewRequests) do
+			for chip, _ in pairs(viewRequests[initiator]) do
+				if ValidateRequest(initiator, chip) then count = count + 1
+				elseif not viewRequests[initiator] then break end -- If that validation removed the entire initiating player, stop trying to enumerate their requests
 			end
 		end
-	end)
+
+		-- If the count is 0 then there's no requests to invalidate, so remove the hook
+		if count == 0 then hook.Remove("Tick", "WireExpression2_InvalidateRequests") end
+	end
 
 	local function RequestView(chip, initiator)
 		local index = chip:EntIndex()
 		local truncName = string.sub(chip.name, 1, 256) -- In case someone starts making cursed names
 
 		-- Make sure this isn't creating a request for a chip with an outstanding valid request
-		if viewRequests[index] and viewRequests[index].expiry > CurTime() then
+		if ValidateRequest(initiator, index) then -- Note that ValidateRequest also deletes the invalid request and handles the expiry notif
 			BetterChatPrint(initiator, "Request to view '"..truncName.."' already sent")
 			return
 		end
@@ -117,29 +140,27 @@ if SERVER then
 		-- Otherwise, print to the tool user's chat that a view request was sent
 		-- and send a view request to the chip's owner (also print a message to their chat to tell them they received a request)
 		BetterChatPrint(initiator, "E2 view request sent for '"..truncName.."' owned by "..chip.player:Nick())
-		BetterChatPrint(chip.player, "You just received a request to view your E2 '"..truncName.."' from "..initiator:Nick()..", which you can view in your context menu")
+		BetterChatPrint(chip.player, "You just received a request to view your E2 '"..truncName.."' from "..initiator:Nick()..", which you can view in your context menu ('C' by default)")
 
 		-- Add the request data to the local requests table for when the request from the client comes in
-		viewRequests[index] = {
-			initiator = initiator,
-			owner = chip.player,
+		if not viewRequests[initiator] then viewRequests[initiator] = {} end -- Initialise this user in the viewRequests table if not in there already
+		viewRequests[initiator][chip] = {
 			name = truncName,
-			chip = chip,
 			expiry = CurTime() + 60 -- 1 minute for the request before it's invalidated (could make this a convar)
 		}
+		if not hook.GetTable().Tick.WireExpression2_InvalidateRequests then -- If there's no invalidation hook added, create it now we have requests to invalidate
+			hook.Add("Tick", "WireExpression2_InvalidateRequests", InvalidateRequests)
+		end
 
 		net.Start("WireExpression2_ViewRequest")
-			net.WriteInt(chip:EntIndex(), 32) -- For lookup in the request table when the owner answers
-			net.WriteFloat(CurTime() + 60)            -- For making requests expire on time clientside
-			net.WriteEntity(initiator)                -- The player attempting to view the E2
-			net.WriteString(truncName)                -- Name of the E2 so the owner knows what they're agreeing to
-			net.WriteEntity(chip)             -- Chip entity for validation clientside
+			net.WriteEntity(initiator)                           -- The player attempting to view the E2
+			net.WriteEntity(chip)                                -- Chip entity for validation clientside
+			net.WriteString(truncName)                           -- Name of the E2 so the owner knows what they're agreeing to
+			net.WriteFloat(viewRequests[initiator][chip].expiry) -- For making requests expire on time clientside
 		net.Send(chip.player)
 	end
 
 	util.AddNetworkString("WireExpression2_OpenEditor")
-	util.AddNetworkString("WireExpression2_ViewRequest")
-	util.AddNetworkString("WireExpression2_AnswerRequest")
 	function TOOL:Think()
 		--[[
 			I had to replace TOOL:RightClick with TOOL:Think as prop protection was preventing
@@ -176,29 +197,20 @@ if SERVER then
 		end
 	end
 	net.Receive("WireExpression2_AnswerRequest", function(len, plr)
-		-- note that name, and strictly initiator aren't required to function, however it makes it harder for a client to spoof info
-		-- (even if they did successfully spoof info, they'd only be giving permissions for their own chips)
-		local accept, index, initiator, name = net.ReadBool(), net.ReadInt(32), net.ReadEntity(), net.ReadString()
-		if index < 1 or not IsValid(initiator) or not initiator:IsPlayer() then return end
+		local accept, initiator, chip = net.ReadBool(), net.ReadEntity(), net.ReadEntity()
 
 		-- Check that this message is for a valid view request
-		if (
-			viewRequests[index] and
-			viewRequests[index].owner == plr and
-			viewRequests[index].expiry > CurTime() and
-			viewRequests[index].initiator == initiator and
-			viewRequests[index].name == name and
-			IsValid(viewRequests[index].initiator) and
-			IsValid(viewRequests[index].chip) and
-			viewRequests[index].chip:GetClass() == "gmod_wire_expression2" -- This should never be false, but just in case it can't hurt to check
-		) then
+		if ValidateRequest(initiator, chip) then
+			-- Check that the sending player actually owns the chip they're allowing access to
+			if chip.player ~= plr then return end
+
 			if accept then
-				WireLib.Expression2Download(initiator, viewRequests[index].chip, nil, true)
-				BetterChatPrint(initiator, "Your request to view "..plr:Nick().."'s chip, '"..name.."', was accepted!")
+				WireLib.Expression2Download(initiator, chip, nil, true)
+				BetterChatPrint(initiator, "Your request to view "..plr:Nick().."'s chip, '"..viewRequests[initiator][chip].name.."', was accepted!")
 			else
-				BetterChatPrint(initiator, "Your request to view "..plr:Nick().."'s chip, '"..name.."', was declined")
+				BetterChatPrint(initiator, "Your request to view "..plr:Nick().."'s chip, '"..viewRequests[initiator][chip].name.."', was declined")
 			end
-			viewRequests[index] = nil
+			viewRequests[initiator][chip] = nil
 		end
 	end)
 
@@ -248,15 +260,6 @@ if SERVER then
 		if not IsValid(ply) or not ply:IsPlayer() then -- wtf
 			error("Invalid player entity (wtf??). This should never happen. " .. tostring(ply), 0)
 		end
-
-		--[[ 
-		-- Commented out this method of protection from thieves, as the view requests system is more streamlined,
-		-- and doesn't require players given each other full prop protection permissions in order to share code
-		if not hook.Run( "CanTool", ply, WireLib.dummytrace(targetEnt), "wire_expression2") then
-			WireLib.AddNotify(ply, "You're not allowed to download from this Expression (ent index: " .. targetEnt:EntIndex() .. ").", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
-			return
-		end
-		]]
 
 		local main, includes = targetEnt:GetCode()
 		if not includes or not next(includes) then -- There are no includes
@@ -450,21 +453,6 @@ if SERVER then
 		E2 = Entity(E2)
 		if canhas(player) then return end
 		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
-
-		--[[
-		-- No longer need all the info prints to say your code is being taken cause the view request handles that
-		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "request code" ) then
-			WireLib.Expression2Download(player, E2)
-			WireLib.AddNotify(player, "Downloading code...", NOTIFY_GENERIC, 5, math.random(1, 4))
-			player:PrintMessage(HUD_PRINTCONSOLE, "Downloading code...")
-			if E2.player ~= player then
-				WireLib.AddNotify(E2.player, player:Nick() .. " is reading your E2 '" .. E2.name .. "' using remote updater.", NOTIFY_GENERIC, 5, math.random(1, 4))
-				E2.player:PrintMessage(HUD_PRINTCONSOLE, player:Nick() .. " is reading your E2 '" .. E2.name .. "' using remote updater.")
-			end
-		else
-			WireLib.ClientError("You do not have permission to read this E2.", player)
-		end
-		]]
 
 		-- Same check as tool code
 		if E2.player == player or bypassList[player:SteamID()] then
