@@ -269,7 +269,7 @@ if SERVER then
 			local filepath = ret[3]
 
 			if ply ~= toent.player then
-				code = "@disabled\n" .. code
+				code = "@disabled - Remove this line (Ctrl+Shift+L) and left-click the chip in order to enable\n" .. code
 			end
 
 			toent:Setup(code, includes, nil, nil, filepath)
