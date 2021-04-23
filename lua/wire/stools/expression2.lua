@@ -268,6 +268,10 @@ if SERVER then
 
 			local filepath = ret[3]
 
+			if ply ~= toent.player then
+				code = "@disabled\n" .. code
+			end
+
 			toent:Setup(code, includes, nil, nil, filepath)
 		end
 	end)
