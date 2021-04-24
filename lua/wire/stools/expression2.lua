@@ -21,6 +21,7 @@ TOOL.ClientConVar = {
 	scriptmodel = "",
 	select = "",
 	autoindent = 1,
+	friendwrite = 0,
 }
 
 TOOL.MaxLimitName = "wire_expressions"
@@ -268,8 +269,8 @@ if SERVER then
 
 			local filepath = ret[3]
 
-			if ply ~= toent.player then
-				code = "@disabled - Remove this line (Ctrl+Shift+L) and left-click the chip in order to enable\n" .. code
+			if ply ~= toent.player and toent.player:GetInfoNum("wire_expression2_friendwrite", 0) ~= 1 then
+				code = "@disabled for security reasons. Remove this line (Ctrl+Shift+L) and left-click the chip to enable. 'wire_expression2_friendwrite 1' disables security.\n" .. code
 			end
 
 			toent:Setup(code, includes, nil, nil, filepath)
