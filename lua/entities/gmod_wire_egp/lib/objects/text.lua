@@ -90,7 +90,9 @@ function Obj:Draw(ent, drawMat)
 
 			surface_SetTextPos(-x, -y)
 			cam_PushModelMatrix(mat, true)
+				local clip = DisableClipping( true )
 				surface_DrawText( self.text )
+				DisableClipping( clip )
 			cam_PopModelMatrix()
 		end
 	end
