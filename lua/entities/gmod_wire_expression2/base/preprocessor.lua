@@ -239,6 +239,8 @@ function PreProcessor:ParseDirectives(line)
 		if CLIENT then return "" end
 		if not IsValid( self.ent ) or not self.ent.duped or not self.ent.filepath or self.ent.filepath == "" then return "" end
 		WireLib.Expression2Upload( self.ent:GetPlayer(), self.ent, self.ent.filepath )
+	elseif directive == "disabled" then
+		self:Error("Disabled for security reasons. Remove @disabled to enable.", 1)
 	else
 		self:Error("Unknown directive found (@" .. E2Lib.limitString(directive, 10) .. ")", 2)
 	end
