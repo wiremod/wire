@@ -316,7 +316,7 @@ end
 WireLib.ThrusterEffectThink.smoke = smoke(function() return 200, 200, 210 end)
 WireLib.ThrusterEffectThink.smoke_firecolors = smoke(function() return math.random(220, 255), math.random(110, 220), 0 end)
 WireLib.ThrusterEffectThink.smoke_random = smoke(function() return math.random(100, 255), math.random(100, 255), math.random(100, 255) end)
-WireLib.ThrusterEffectThink.smoke_diy = smoke(function(self) return self:GetColor():Unpack() end)
+WireLib.ThrusterEffectThink.smoke_diy = smoke(function(self) local c = self:GetColor() return c.r, c.g, c.b end)
 
 WireLib.ThrusterEffectDraw.color_magic = function(self)
 
@@ -604,7 +604,7 @@ WireLib.ThrusterEffectThink.jetflame = jetflame(function() return math.Rand(220,
 WireLib.ThrusterEffectThink.jetflame_purple = jetflame(function() return math.Rand(220, 255), 55, math.Rand(180, 220) end)
 WireLib.ThrusterEffectThink.jetflame_red = jetflame(function() return math.Rand(220, 255), 55, 55 end)
 WireLib.ThrusterEffectThink.jetflame_blue = jetflame(function() return 55, 55, math.Rand(220, 255) end)
-WireLib.ThrusterEffectThink.jetflame_diy = jetflame(function(self) return self:GetColor():Unpack() end)
+WireLib.ThrusterEffectThink.jetflame_diy = jetflame(function(self) local c = self:GetColor() return c.r, c.g, c.b end)
 
 local function balls(color)
 	return function(self)
@@ -682,7 +682,7 @@ end
 
 WireLib.ThrusterEffectThink.magic_firecolors = magic(function() return math.random(220, 255), math.random(100, 200), 0 end)
 WireLib.ThrusterEffectThink.magic = magic(function() return 255, 255, 255 end)
-WireLib.ThrusterEffectThink.magic_diy = magic(function(self) return self:GetColor():Unpack() end)
+WireLib.ThrusterEffectThink.magic_diy = magic(function(self) local c = self:GetColor() return c.r, c.g, c.b end)
 WireLib.ThrusterEffectThink.magic_color = magic(function() return math.random(0,255), math.random(0,255), math.random(0,255) end)
 
 local function squirt(effect, delay, scale, growthrate)
