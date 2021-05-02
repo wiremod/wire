@@ -19,6 +19,8 @@ function ENT:Initialize()
 	self.PixelY = 0
 	self.PixelG = 0
 	self.Memory[1048569] = 0
+	self.Memory[1048572] = 32
+	self.Memory[1048573] = 32
 	self.Memory[1048575] = 1
 
 	self.ScreenWidth = 32
