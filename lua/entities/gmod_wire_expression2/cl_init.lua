@@ -88,7 +88,7 @@ local function wtfgarry( str )
 		w = math.max(w,_w)
 		h = h + _h
 	end
-	return w, h
+	return math.max(w, 24), math.max(h, 24)
 end
 
 function ENT:GetGateName()

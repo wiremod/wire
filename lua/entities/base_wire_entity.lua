@@ -136,8 +136,8 @@ if CLIENT then
 		local w_class, 	h_class = surface.GetTextSize( class )
 		local w_name, 	h_name = surface.GetTextSize( name )
 
-		local w_total = txt ~= "" and w_body or 0
-		local h_total = txt ~= "" and h_body or 0
+		local w_total = w_body
+		local h_total = h_body
 
 		local w_footer, h_footer = 0, 0
 
