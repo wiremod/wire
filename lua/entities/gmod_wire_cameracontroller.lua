@@ -4,11 +4,16 @@ ENT.PrintName       = "Wire Camera Controller"
 ENT.WireDebugName	= "Camera Controller"
 
 -- Helper function, code for both client and serverside camera rotation adjustments
-local function doRotate(curpos,curang,ply,veh,parent,AutoMove,LocalMove,distance)
+local function doRotate(curpos,curang,ply,parent,AutoMove,LocalMove,distance)
 	if AutoMove then
-		curang = ply:EyeAngles()
-		-- TODO: remove "SERVER or VERSION >= 210505" after stable branch reaches this version or later
-		if (SERVER or VERSION >= 210505) and IsValid( veh ) then curang = veh:WorldToLocalAngles( curang ) end
+		-- TODO: remove this check at some point in the future when LocalEyeAngles is available in the stable version of gmod
+		if ply.LocalEyeAngles then
+			curang =  ply:LocalEyeAngles()
+		else 
+			curang = ply:EyeAngles()
+			local veh = ply:GetVehicle()
+			if SERVER and IsValid( veh ) then curang = veh:WorldToLocalAngles( curang ) end
+		end
 
 		if IsValid( parent ) then
 			if LocalMove then
@@ -156,7 +161,7 @@ if CLIENT then
 			end
 
 			smoothdistance = Lerp( FrameTime() * pos_speed, smoothdistance, curdistance )
-			curpos, curang = doRotate(curpos,curang,LocalPlayer(),LocalPlayer():GetVehicle(),parent,AutoMove,LocalMove,smoothdistance)
+			curpos, curang = doRotate(curpos,curang,LocalPlayer(),parent,AutoMove,LocalMove,smoothdistance)
 
 			if AutoUnclip then
 				curpos = DoAutoUnclip( curpos, parent, HasParent )
@@ -170,7 +175,7 @@ if CLIENT then
 			smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
 			smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
 
-			curpos, curang = doRotate(smoothpos,smoothang,LocalPlayer(),LocalPlayer():GetVehicle(),parent,AutoMove,LocalMove,curdistance)
+			curpos, curang = doRotate(smoothpos,smoothang,LocalPlayer(),parent,AutoMove,LocalMove,curdistance)
 
 			-- now check for auto unclip
 			if AutoUnclip then
@@ -521,7 +526,7 @@ function ENT:UpdateOutputs()
 
 		local curpos = pos
 		local curang = ang
-		curpos, curang = doRotate(curpos,curang,ply,ply:GetVehicle(),parent,self.AutoMove,self.LocalMove,self.Distance)
+		curpos, curang = doRotate(curpos,curang,ply,parent,self.AutoMove,self.LocalMove,self.Distance)
 
 		-- AutoUnclip
 		if self.AutoUnclip then
