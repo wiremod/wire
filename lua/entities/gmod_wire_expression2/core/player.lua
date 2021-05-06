@@ -58,11 +58,22 @@ e2function vector entity:eye()
 	end
 end
 
---- Returns a local angle describing player <this>'s view angles.
+--- Returns an angle describing player <this>'s view angles.
 e2function angle entity:eyeAngles()
 	if not IsValid(this) then return { 0, 0, 0} end
 	local ang = this:EyeAngles()
 	return { ang.p, ang.y, ang.r }
+end
+
+-- TODO: remove this check at some point in the future when LocalEyeAngles is available in the stable version of gmod
+if FindMetaTable("Player").LocalEyeAngles then
+	--- Gets a player's view direction, relative to any vehicle they sit in. This function is needed to reproduce the behavior of cam controller. This is different from Vehicle:toLocal(Ply:eyeAngles()).
+	e2function angle entity:eyeAnglesVehicle()
+		if not IsValid(this) then return { 0, 0, 0 } end
+		if not this:IsPlayer() then return { 0, 0, 0 } end
+		local ang = this:LocalEyeAngles()
+		return { ang.p, ang.y, ang.r }
+	end
 end
 
 --------------------------------------------------------------------------------
