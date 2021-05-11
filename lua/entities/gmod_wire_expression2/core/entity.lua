@@ -312,21 +312,21 @@ end
 __e2setcost(10)
 
 e2function number entity:mass()
-	if not validPhysics(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	local phys = this:GetPhysicsObject()
 	if not phys:IsValid() then return 0 end
 	return phys:GetMass()
 end
 
 e2function vector entity:massCenter()
-	if not validPhysics(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	local phys = this:GetPhysicsObject()
 	if not phys:IsValid() then return {0,0,0} end
 	return this:LocalToWorld(phys:GetMassCenter())
 end
 
 e2function vector entity:massCenterL()
-	if not validPhysics(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	local phys = this:GetPhysicsObject()
 	if not phys:IsValid() then return {0,0,0} end
 	return phys:GetMassCenter()
