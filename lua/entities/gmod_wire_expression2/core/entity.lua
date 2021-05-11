@@ -326,6 +326,7 @@ e2function vector entity:massCenter()
 end
 
 e2function vector entity:massCenterL()
+	if not validPhysics(this) then return 0 end
 	local phys = this:GetPhysicsObject()
 	if not phys:IsValid() then return {0,0,0} end
 	return phys:GetMassCenter()
