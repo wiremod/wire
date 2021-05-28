@@ -519,7 +519,9 @@ end)
 
 local Uncatchable = {
 	["perf"] = true,
-	["stack overflow"] = true
+	["stack overflow"] = true,
+	["not enough memory"] = true,
+	["table overflow"] = true -- I don't know if this is actually possible to do in E2 but just in case.
 }
 
 registerOperator("try", "", "", function(self, args)
