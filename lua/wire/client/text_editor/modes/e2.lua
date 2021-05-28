@@ -20,6 +20,7 @@ local keywords = {
 	["switch"] 	 = { [true] = true, [false] = true },
 	["case"]     = { [true] = true, [false] = true },
 	["default"]  = { [true] = true, [false] = true },
+	["catch"]    = { [true] = true, [false] = true },
 
 	-- keywords that cannot be followed by a "(":
 	["else"]     = { [true] = true },
@@ -28,6 +29,7 @@ local keywords = {
 	--["function"] = { [true] = true },
 	["return"] = { [true] = true },
 	["local"]  = { [true] = true },
+	["try"]    = { [true] = true }
 }
 
 -- fallback for nonexistant entries:

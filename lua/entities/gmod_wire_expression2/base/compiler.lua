@@ -954,3 +954,18 @@ function Compiler:InstrINCLU(args)
 
 	return { self:GetOperator(args, "include", {})[1], file }
 end
+
+function Compiler:InstrTRY(args)
+	-- args = { "try", trace, try_block, variable, catch_block }
+	self:PushPrfCounter()
+	local stmt = self:EvaluateStatement(args, 1)
+	local var_name = args[4]
+	self:PushScope()
+		self:SetLocalVariableType(var_name, "s", args)
+		local stmt2 = self:EvaluateStatement(args, 3)
+	self:PopScope()
+
+	local prf_cond = self:PopPrfCounter()
+
+	return { self:GetOperator(args, "try", {})[1], prf_cond, stmt, var_name, stmt2 }
+end

@@ -516,3 +516,34 @@ registerOperator("include", "", "", function(self, args)
 		self:LoadScopes(OldScopes)
 	end
 end)
+
+local Uncatchable = {
+	["perf"] = true,
+	["stack overflow"] = true
+}
+
+registerOperator("try", "", "", function(self, args)
+	local prf, stmt, var_name, stmt2 = args[2], args[3], args[4], args[5]
+	self.prf = self.prf + prf
+	if self.prf > e2_tickquota then error("perf", 0) end
+
+	self:PushScope()
+		local ok, msg = pcall(stmt[1], self, stmt)
+	self:PopScope()
+
+	if not ok then
+		if Uncatchable[msg] then
+			error(msg, 0)
+		end
+		self:PushScope()
+			self.Scope[var_name] = isstring(msg) and msg or "" -- isstring check if we want to be paranoid about the sandbox.
+			self.Scope.vclk[var_name] = true
+
+			local ok, msg = pcall(stmt2[1], self, stmt2)
+			if not ok then
+				self:PopScope()
+				error(msg, 0)
+			end
+		self:PopScope()
+	end
+end)
