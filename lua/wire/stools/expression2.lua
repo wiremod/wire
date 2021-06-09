@@ -176,7 +176,7 @@ if SERVER then
 				if chip.player == player then -- Just download if the toolgun user owns this chip
 					self:Download(player, chip)
 					player:SetAnimation(PLAYER_ATTACK1)
-				elseif not IsValid(chip.player) then -- If the player bypasses or the chip has no valid owner and we can't send a request, do a CanTool check
+				elseif (chip.alwaysAllow and chip.alwaysAllow[player]) or not IsValid(chip.player) then -- If the tooling player is in the chip's always allow table, or the chip has no valid owner meaning we can't send a request, do a CanTool check
 					if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
 						self:Download(player, chip)
 						player:SetAnimation(PLAYER_ATTACK1)
@@ -198,16 +198,22 @@ if SERVER then
 		end
 	end
 	net.Receive("WireExpression2_AnswerRequest", function(len, plr)
-		local accept, initiator, chip = net.ReadBool(), net.ReadEntity(), net.ReadEntity()
+		local accept, initiator, chip = net.ReadUInt(8), net.ReadEntity(), net.ReadEntity()
 
 		-- Check that this message is for a valid view request
 		if ValidateRequest(initiator, chip) then
 			-- Check that the sending player actually owns the chip they're allowing access to
 			if chip.player ~= plr then return end
 
-			if accept then
+			if accept ~= 0 then
 				WireLib.Expression2Download(initiator, chip, nil, true)
 				BetterChatPrint(initiator, "Your request to view "..plr:Nick().."'s chip, '"..viewRequests[initiator][chip].name.."', was accepted!")
+
+				-- If the player chose "Always Allow", then mark the initiator as always being able to access this entity on the chip
+				if accept == 2 then
+					if not chip.alwaysAllow then chip.alwaysAllow = {} end
+					chip.alwaysAllow[initiator] = true
+				end
 			else
 				BetterChatPrint(initiator, "Your request to view "..plr:Nick().."'s chip, '"..viewRequests[initiator][chip].name.."', was declined")
 			end

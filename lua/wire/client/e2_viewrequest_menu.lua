@@ -1,6 +1,6 @@
 local function AnswerRequest(accepted, initiator, chip)
 	net.Start("WireExpression2_AnswerRequest")
-		net.WriteBool(accepted)
+		net.WriteUInt(accepted, 8)
 		net.WriteEntity(initiator)
 		net.WriteEntity(chip)
 	net.SendToServer()
@@ -98,13 +98,27 @@ list.Set("DesktopWindows", "WireExpression2_ViewRequestMenu", {
 				return
 			end
 
-			mnu:AddOption("Accept", function()
+			mnu:AddOption("Accept Once", function()
 				local confirm = Derma_Query(
 					"Are you SURE you want "..line.initiator:Nick().." to have complete access to the code in your chip '"..viewRequests[line.initiator][line.chip].name.."'?\nThis means they are able to steal and redistribute it, so you should only do this if you are certain you can trust them",
 					"Confirm",
 					"Yes", function()
 						if ValidateRequest(line.initiator, line.chip) then
-							AnswerRequest(true, line.initiator, line.chip)
+							AnswerRequest(1, line.initiator, line.chip)
+							self:RemoveLine(id)
+							viewRequests[line.initiator][line.chip] = nil
+						end
+					end,
+					"No", function() end
+				)
+			end)
+			mnu:AddOption("Accept Always", function()
+				local confirm = Derma_Query(
+					"Are you SURE you want "..line.initiator:Nick().." to have complete access to the code in your chip '"..viewRequests[line.initiator][line.chip].name.."' for the duration the chip entity exists?\nThis means they are able to steal and redistribute it, as well as view any modifications you make to the chip, so you should only do this if you are certain you can trust them",
+					"Confirm",
+					"Yes", function()
+						if ValidateRequest(line.initiator, line.chip) then
+							AnswerRequest(2, line.initiator, line.chip)
 							self:RemoveLine(id)
 							viewRequests[line.initiator][line.chip] = nil
 						end
@@ -114,7 +128,7 @@ list.Set("DesktopWindows", "WireExpression2_ViewRequestMenu", {
 			end)
 			mnu:AddOption("Reject", function()
 				if ValidateRequest(line.initiator, line.chip) then
-					AnswerRequest(false, line.initiator, line.chip)
+					AnswerRequest(0, line.initiator, line.chip)
 					self:RemoveLine(id)
 					viewRequests[line.initiator][line.chip] = nil
 				end
