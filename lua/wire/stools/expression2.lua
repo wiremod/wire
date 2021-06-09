@@ -462,13 +462,18 @@ if SERVER then
 		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
 
 		-- Same check as tool code
-		if E2.player == player or bypassList[player:SteamID()] then
+		if E2.player == player then
 			WireLib.Expression2Download(player, E2)
-		elseif not IsValid(E2.player) then
-			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2", "request code") then
+		elseif (E2.alwaysAllow and E2.alwaysAllow[player]) or not IsValid(E2.player) then
+			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
 				WireLib.Expression2Download(player, E2)
 			end
-			return
+		elseif CheckBypass(player) then
+			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
+				-- Warn the chip's owner their E2 was just taken via the admin bypass
+				BetterChatPrint(E2.player, "Warning, the server admin '"..player:Nick().."' just accessed your chip '"..E2.name.."', as the view request admin bypass is enabled!")
+				WireLib.Expression2Download(player, E2)
+			end
 		else
 			RequestView(E2, player)
 		end
