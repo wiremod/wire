@@ -72,22 +72,16 @@ if SERVER then
 		end
 	end
 
-	-- Steam ID bypass for trusted users (anyone who already has SV Lua anyway pretty much)
-	local bypassList = {}
-	concommand.Add("wire_expression2_viewrequest_whitelist", function(plr, cmdName, args, argStr)
-		if IsValid(plr) then
-			print("This command can only be used on the server")
-			return
-		end
+	local bypassModeCVar = CreateConVar(
+		"wire_expression2_viewrequest_bypass", 1, {FCVAR_ARCHIVE, FCVAR_NOTIFY},
+		"Sets the admin bypass mode for E2 view requests\n0 - No one can bypass\n1 - Superadmins can bypass (default)\n2 - Superadmins and admins can bypass"
+	)
+	local function CheckBypass(plr)
+		local bypassMode = bypassModeCVar:GetInt()
 
-		bypassList = {}
-		for _, v in pairs(args) do
-			v = tostring(v) -- (tostring isn't "needed", just a sanity check)
-			if v and util.SteamIDTo64(v) ~= "0" then -- Validate that this argument is, indeed, a steam id
-				bypassList[v] = true
-			end
-		end
-	end, nil, "List of SteamIDs that are able to bypass the view request system")
+		-- Need the or between IsAdmin and IsSuperAdmin as superadmins may not count as admins due to certain addons
+		return (bypassMode == 1 and initiator:IsSuperAdmin()) or (bypassMode == 2 and (initiator:IsAdmin() or initiator:IsSuperAdmin()))
+	end
 
 	-- Simple serverside only local table for storing view requests to make handling them not spaghetti code
 	local viewRequests = {}
@@ -140,7 +134,7 @@ if SERVER then
 		-- Otherwise, print to the tool user's chat that a view request was sent
 		-- and send a view request to the chip's owner (also print a message to their chat to tell them they received a request)
 		BetterChatPrint(initiator, "E2 view request sent for '"..truncName.."' owned by "..chip.player:Nick())
-		BetterChatPrint(chip.player, "You just received a request to view your E2 '"..truncName.."' from "..initiator:Nick()..", which you can view in your context menu ('C' by default)")
+		BetterChatPrint(chip.player, "You just received a request to view your E2 '"..truncName.."' from "..initiator:Nick()..", which you can view in your context menu at the top left ('C' by default)")
 
 		-- Add the request data to the local requests table for when the request from the client comes in
 		if not viewRequests[initiator] then viewRequests[initiator] = {} end -- Initialise this user in the viewRequests table if not in there already
@@ -179,11 +173,18 @@ if SERVER then
 			local player = self:GetOwner()
 
 			if IsValid(chip) and chip:GetClass() == "gmod_wire_expression2" then
-				if chip.player == player or bypassList[player:SteamID()] then -- Just download if the toolgun user owns this chip (or they're in the bypass list)
+				if chip.player == player then -- Just download if the toolgun user owns this chip
 					self:Download(player, chip)
 					player:SetAnimation(PLAYER_ATTACK1)
-				elseif not IsValid(chip.player) then -- If the chip has no valid owner we can't send a request, so do a CanTool check
+				elseif not IsValid(chip.player) then -- If the player bypasses or the chip has no valid owner and we can't send a request, do a CanTool check
 					if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
+						self:Download(player, chip)
+						player:SetAnimation(PLAYER_ATTACK1)
+					end
+				elseif CheckBypass(player) then
+					if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
+						-- Warn the chip's owner their E2 was just taken via the admin bypass
+						BetterChatPrint(chip.player, "Warning, the server admin '"..player:Nick().."' just accessed your chip '"..chip.name.."', as the view request admin bypass is enabled!")
 						self:Download(player, chip)
 						player:SetAnimation(PLAYER_ATTACK1)
 					end
