@@ -80,7 +80,7 @@ if SERVER then
 		local bypassMode = bypassModeCVar:GetInt()
 
 		-- Need the or between IsAdmin and IsSuperAdmin as superadmins may not count as admins due to certain addons
-		return (bypassMode == 1 and initiator:IsSuperAdmin()) or (bypassMode == 2 and (initiator:IsAdmin() or initiator:IsSuperAdmin()))
+		return (bypassMode == 1 and plr:IsSuperAdmin()) or (bypassMode == 2 and (plr:IsAdmin() or plr:IsSuperAdmin()))
 	end
 
 	-- Simple serverside only local table for storing view requests to make handling them not spaghetti code
