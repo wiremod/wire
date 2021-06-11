@@ -45,9 +45,7 @@ do
 	updateQuotas()
 end
 
-local function copytype(var)
-	return istable(var) and table.Copy(var) or var
-end
+local fixDefault = E2Lib.fixDefault
 
 
 local ScopeManager = {}
@@ -126,7 +124,7 @@ function ENT:Execute()
 	if self.error or not self.context or self.context.resetting then return end
 
 	for k, v in pairs(self.tvars) do
-		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 	end
 
 	self:PCallHook('preexecute')
@@ -169,7 +167,7 @@ function ENT:Execute()
 
 	self.GlobalScope.vclk = {}
 	for k, v in pairs(self.globvars) do
-		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 	end
 
 	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
@@ -260,6 +258,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.outports = directives.outputs
 	self.persists = directives.persist
 	self.trigger = directives.trigger
+	self.strict = directives.strict
 
 	local status, tokens = E2Lib.Tokenizer.Execute(self.buffer)
 	if not status then self:Error(tokens) return end
@@ -281,6 +280,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.funcs = inst.funcs
 	self.funcs_ret = inst.funcs_ret
 	self.globvars = inst.GlobalScope
+	inst.strict = 699
 
 	self:ResetContext()
 end
@@ -370,25 +370,25 @@ function ENT:ResetContext()
 	for k, v in pairs(self.inports[3]) do
 		self._inputs[1][#self._inputs[1] + 1] = k
 		self._inputs[2][#self._inputs[2] + 1] = v
-		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
 		self.globvars[k] = nil
 	end
 
 	for k, v in pairs(self.outports[3]) do
 		self._outputs[1][#self._outputs[1] + 1] = k
 		self._outputs[2][#self._outputs[2] + 1] = v
-		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
 		self.GlobalScope.vclk[k] = true
 		self.globvars[k] = nil
 	end
 
 	for k, v in pairs(self.persists[3]) do
-		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
 		self.globvars[k] = nil
 	end
 
 	for k, v in pairs(self.globvars) do
-		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 	end
 
 	for k, v in pairs(self.Inputs) do

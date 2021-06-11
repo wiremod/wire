@@ -760,3 +760,21 @@ function E2Lib.isValidFileWritePath(path)
 	local ext = string.GetExtensionFromFilename(path)
 	if ext then return file_extensions[string.lower(ext)] end
 end
+
+--- Throws a runtime E2 error if '@strict' is enabled on the e2 chip.
+-- Otherwise, tries to return 'default_value'. If none is specified, it will look into the return value of the current function and give the default type return.
+-- Eg. Vector will be {0, 0, 0}, Number will be 0, String "" etc.
+function E2Lib.createThrow(self, ret_typeid)
+	-- Cache whether the function is strict and the return default type.
+	local strict = self.entity.strict
+	local type_data = wire_expression_types2[ret_typeid]
+	if not type_data then error("Type ID '" .. ret_typeid .. "' not found", 2) end
+	local def = type_data[2]
+
+	return function(msg, override_default)
+		if override_default~=nil then
+			def = override_default
+		end
+		return strict and error(msg, 0) or def
+	end
+end

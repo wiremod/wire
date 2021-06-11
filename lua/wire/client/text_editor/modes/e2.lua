@@ -35,14 +35,20 @@ local keywords = {
 -- fallback for nonexistant entries:
 setmetatable(keywords, { __index=function(tbl,index) return {} end })
 
+-- Directive colors
+local FULL = 0       -- Entire thing is yellow
+local VARS = 1 -- Directive yellow + Rest are green/variable + Orange types
+local PARTIAL = 2       -- Directive yellow + lowercase yellow, uppercase variable
+
 local directives = {
-	["@name"] = 0, -- all yellow
-	["@model"] = 0,
-	["@inputs"] = 1, -- directive yellow, types orange, rest normal
-	["@outputs"] = 1,
-	["@persist"] = 1,
-	["@trigger"] = 2, -- like 1, except that all/none are yellow
-	["@autoupdate"] = 0,
+	["@name"]       = FULL,
+	["@model"]      = FULL,
+	["@inputs"]     = VARS,
+	["@outputs"]    = VARS,
+	["@persist"]    = VARS,
+	["@trigger"]    = PARTIAL,
+	["@autoupdate"] = FULL,
+	["@strict"]     = PARTIAL
 }
 
 local colors = {

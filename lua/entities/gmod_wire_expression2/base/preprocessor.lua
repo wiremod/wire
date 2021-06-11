@@ -131,28 +131,27 @@ function PreProcessor:RemoveComments(line)
 	end
 end
 
-function PreProcessor:ParseDirectives(line)
-	if self.multilinestring then return line end
+-- Handle inputs, outputs & persist, name is "inputs", "outputs", etc.
+local function handleIO(name)
+	return function(self, value)
+		local ports = self.directives[name]
+		local retval, columns = self:ParsePorts(value, #name + 2)
 
-	-- parse directive
-	local directive, value = line:match("^@([^ ]*) ?(.*)$")
-
-	-- not a directive?
-	if not directive then
-		-- flag as "in code", if that is the case
-		if string.Trim(line) ~= "" then
-			self.incode = true
+		for i, key in ipairs(retval[1]) do
+			if ports[3][key] then
+				self:Error("Directive (@" .. name .. ") contains multiple definitions of the same variable", columns[i])
+			else
+				local index = #ports[1] + 1
+				ports[1][index] = key
+				ports[2][index] = retval[2][i]
+				ports[3][key] = retval[2][i]
+			end
 		end
-		-- don't handle as a directive.
-		return line
 	end
+end
 
-	local col = directive:find("[A-Z]")
-	if col then self:Error("Directive (@" .. E2Lib.limitString(directive, 10) .. ") must be lowercase", col + 1) end
-	if self.incode then self:Error("Directive (@" .. E2Lib.limitString(directive, 10) .. ") must appear before code") end
-
-	-- evaluate directive
-	if directive == "name" then
+local directive_handlers = {
+	["name"] = function(self, value)
 		if not self.ignorestuff then
 			if self.directives.name == nil then
 				self.directives.name = value
@@ -160,7 +159,9 @@ function PreProcessor:ParseDirectives(line)
 				self:Error("Directive (@name) must not be specified twice")
 			end
 		end
-	elseif directive == "model" then
+	end,
+
+	["model"] = function(self, value)
 		if not self.ignorestuff then
 			if self.directives.model == nil then
 				self.directives.model = value
@@ -168,46 +169,13 @@ function PreProcessor:ParseDirectives(line)
 				self:Error("Directive (@model) must not be specified twice")
 			end
 		end
-	elseif directive == "inputs" then
-		local retval, columns = self:ParsePorts(value, #directive + 2)
+	end,
 
-		for i, key in ipairs(retval[1]) do
-			if self.directives.inputs[3][key] then
-				self:Error("Directive (@input) contains multiple definitions of the same variable", columns[i])
-			else
-				local index = #self.directives.inputs[1] + 1
-				self.directives.inputs[1][index] = key
-				self.directives.inputs[2][index] = retval[2][i]
-				self.directives.inputs[3][key] = retval[2][i]
-			end
-		end
-	elseif directive == "outputs" then
-		local retval, columns = self:ParsePorts(value, #directive + 2)
+	["inputs"] = handleIO("inputs"),
+	["outputs"] = handleIO("outputs"),
+	["persist"] = handleIO("persist"),
 
-		for i, key in ipairs(retval[1]) do
-			if self.directives.outputs[3][key] then
-				self:Error("Directive (@output) contains multiple definitions of the same variable", columns[i])
-			else
-				local index = #self.directives.outputs[1] + 1
-				self.directives.outputs[1][index] = key
-				self.directives.outputs[2][index] = retval[2][i]
-				self.directives.outputs[3][key] = retval[2][i]
-			end
-		end
-	elseif directive == "persist" then
-		local retval, columns = self:ParsePorts(value, #directive + 2)
-
-		for i, key in ipairs(retval[1]) do
-			if self.directives.persist[3][key] then
-				self:Error("Directive (@persist) contains multiple definitions of the same variable", columns[i])
-			else
-				local index = #self.directives.persist[1] + 1
-				self.directives.persist[1][index] = key
-				self.directives.persist[2][index] = retval[2][i]
-				self.directives.persist[3][key] = retval[2][i]
-			end
-		end
-	elseif directive == "trigger" then
+	["trigger"] = function(self, value)
 		local trimmed = string.Trim(value)
 		if trimmed == "all" then
 			if self.directives.trigger[1] ~= nil then
@@ -235,15 +203,55 @@ function PreProcessor:ParseDirectives(line)
 				end
 			end
 		end
-	elseif directive == "autoupdate" then
+	end,
+
+	["autoupdate"] = function(self)
 		if CLIENT then return "" end
 		if not IsValid( self.ent ) or not self.ent.duped or not self.ent.filepath or self.ent.filepath == "" then return "" end
 		WireLib.Expression2Upload( self.ent:GetPlayer(), self.ent, self.ent.filepath )
-	elseif directive == "disabled" then
+	end,
+
+	["disabled"] = function(self)
 		self:Error("Disabled for security reasons. Remove @disabled to enable.", 1)
-	else
-		self:Error("Unknown directive found (@" .. E2Lib.limitString(directive, 10) .. ")", 2)
+	end,
+
+	-- Maybe it can have multiple levels in the future but I think one is fine for now.
+	["strict"] = function(self)
+		self.directives.strict = true
 	end
+}
+
+function PreProcessor:HandleDirective(name, value)
+	local handler = directive_handlers[name]
+	if handler then
+		return handler(self, value)
+	else
+		self:Error("Unknown directive found (@" .. E2Lib.limitString(name, 10) .. ")", 2)
+	end
+end
+
+function PreProcessor:ParseDirectives(line)
+	if self.multilinestring then return line end
+
+	-- parse directive
+	local directive, value = line:match("^@([^ ]*) ?(.*)$")
+
+	-- not a directive?
+	if not directive then
+		-- flag as "in code", if that is the case
+		if string.Trim(line) ~= "" then
+			self.incode = true
+		end
+		-- don't handle as a directive.
+		return line
+	end
+
+	local col = directive:find("[A-Z]")
+	if col then self:Error("Directive (@" .. E2Lib.limitString(directive, 10) .. ") must be lowercase", col + 1) end
+	if self.incode then self:Error("Directive (@" .. E2Lib.limitString(directive, 10) .. ") must appear before code") end
+
+	-- evaluate directive
+	self:HandleDirective(directive, value)
 
 	-- remove line from output
 	return ""

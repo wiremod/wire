@@ -524,6 +524,10 @@ local Uncatchable = {
 	["table overflow"] = true -- I don't know if this is actually possible to do in E2 but just in case.
 }
 
+local Skip = {
+	["exit"] = true,
+}
+
 registerOperator("try", "", "", function(self, args)
 	local prf, stmt, var_name, stmt2 = args[2], args[3], args[4], args[5]
 	self.prf = self.prf + prf
@@ -533,7 +537,7 @@ registerOperator("try", "", "", function(self, args)
 		local ok, msg = pcall(stmt[1], self, stmt)
 	self:PopScope()
 
-	if not ok then
+	if not ok and not Skip[msg] then
 		if Uncatchable[msg] then
 			error(msg, 0)
 		end

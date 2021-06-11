@@ -158,7 +158,12 @@ end
 function registerFunction(name, pars, rets, func, cost, argnames)
 	local signature = name .. "(" .. pars .. ")"
 
-	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames }
+	-- We pass t to the function runtime to get return type, etc. Used by 'throw'.
+	-- Can't think of a neater way to do this w/o redesigning how functions are built and passed to the compiler or messing with the preprocessor.
+	local t = { signature, rets, nil, cost or tempcost, argnames = argnames }
+	wire_expression2_funcs[signature] = t
+	t[3] = function(self, args) return func(self, args, E2Lib.createThrow(self, rets)) end
+
 	wire_expression2_funclist[name] = true
 	if wire_expression2_debug:GetBool() then makecheck(signature) end
 end
