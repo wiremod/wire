@@ -280,7 +280,6 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.funcs = inst.funcs
 	self.funcs_ret = inst.funcs_ret
 	self.globvars = inst.GlobalScope
-	inst.strict = 699
 
 	self:ResetContext()
 end

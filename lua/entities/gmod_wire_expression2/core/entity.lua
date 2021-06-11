@@ -89,22 +89,22 @@ end
 
 e2function entity entity(id)
 	local ent = ents.GetByIndex(id)
-	if not IsValid(ent) then return nil end
+	if not IsValid(ent) then return throw("Invalid entity!") end
 	return ent
 end
 
 e2function number entity:id()
-	if not IsValid(this) then return 0 end
+	if not IsValid(this) then return throw("Invalid entity!") end
 	return this:EntIndex()
 end
 
 e2function number entity:creationID()
-	if not IsValid(this) then return 0 end
+	if not IsValid(this) then return throw("Invalid entity!") end
 	return this:GetCreationID()
 end
 
 e2function number entity:creationTime()
-        if not IsValid(this) then return 0 end
+        if not IsValid(this) then return throw("Invalid entity!") end
         return this:GetCreationTime()
 end
 
@@ -120,29 +120,29 @@ e2function entity world()
 end
 
 e2function string entity:name()
-	if(not IsValid(this)) then return "" end
+	if(not IsValid(this)) then return throw("Invalid entity!") end
 	return this:GetName() or ""
 end
 
 e2function string entity:type()
-	if not IsValid(this) then return "" end
+	if not IsValid(this) then return throw("Invalid entity!") end
 	return this:GetClass()
 end
 
 e2function string entity:model()
-	if not IsValid(this) then return "" end
+	if not IsValid(this) then return throw("Invalid entity!") end
 	return this:GetModel() or ""
 end
 
 e2function entity entity:owner()
-	if not IsValid(this) then return nil end
+	if not IsValid(this) then return throw("Invalid entity!") end
 	return getOwner(self, this)
 end
 
 __e2setcost(20)
 
 e2function table entity:keyvalues()
-	local ret = {n={},ntypes={},s={},stypes={},size=0} -- default table
+	local ret = E2Lib.newE2Table() -- default table
 	if not IsValid(this) then return ret end
 	local keyvalues = this:GetKeyValues()
 	local size = 0
@@ -491,8 +491,8 @@ end
 
 --- Gets <this>'s current skin number.
 e2function number entity:getSkin()
-	if IsValid(this) then return this:GetSkin() end
-	return 0
+	if not IsValid(this) then return throw("Invalid entity!") end
+	return this:GetSkin()
 end
 
 --- Sets <this>'s skin number.
@@ -867,7 +867,7 @@ __e2setcost( 15 )
 
 --- Returns <this>'s attachment ID associated with <attachmentName>
 e2function number entity:lookupAttachment(string attachmentName)
-	if not IsValid(this) then return 0 end
+	if not IsValid(this) then return throw("Invalid entity!") end
 	return this:LookupAttachment(attachmentName)
 end
 
