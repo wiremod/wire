@@ -193,7 +193,7 @@ local directive_handlers = {
 			end
 
 			self.directives.trigger[1] = false
-			local retval, columns = self:ParsePorts(value, #directive + 2)
+			local retval, columns = self:ParsePorts(value, 9)
 
 			for i, key in ipairs(retval[1]) do
 				if self.directives.trigger[2][key] then
