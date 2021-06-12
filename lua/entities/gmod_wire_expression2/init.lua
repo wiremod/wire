@@ -258,7 +258,6 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.outports = directives.outputs
 	self.persists = directives.persist
 	self.trigger = directives.trigger
-	self.strict = directives.strict
 
 	local status, tokens = E2Lib.Tokenizer.Execute(self.buffer)
 	if not status then self:Error(tokens) return end
@@ -345,6 +344,18 @@ function ENT:ResetContext()
 		timebench = 0,
 		includes = self.includes
 	}
+
+	-- '@strict' try/catch Error handling.
+	if self.directives.strict then
+		function context:throw(msg)
+			error(msg, 2)
+		end
+	else
+		-- '@strict' is not enabled, pass the default variable.
+		function context:throw(_msg, variable)
+			return variable
+		end
+	end
 
 	setmetatable(context, ScopeManager)
 	context:InitScope()

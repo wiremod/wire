@@ -6,8 +6,9 @@ local delta = wire_expression2_delta
 
 __e2setcost(1) -- approximation
 
+local fix_default = E2Lib.fixDefault
 registerOperator("dat", "", "", function(self, args)
-	return istable(args[2]) and table.Copy(args[2]) or args[2]
+	return fix_default(args[2])
 end)
 
 __e2setcost(2) -- approximation
