@@ -315,8 +315,11 @@ e2function void exit()
 	error("exit", 0)
 end
 
-e2function void error( string reason )
-	error(reason, 2)
+do
+	local err = E2Lib.catchableError
+	e2function void error( string reason )
+		err(reason, 2)
+	end
 end
 
 e2function void assert(condition)
@@ -518,13 +521,7 @@ registerOperator("include", "", "", function(self, args)
 	end
 end)
 
-local Uncatchable = {
-	["perf"] = true,
-	["stack overflow"] = true,
-	["not enough memory"] = true,
-	["table overflow"] = true -- I don't know if this is actually possible to do in E2 but just in case.
-}
-
+-- Just make exit() exit the try catch block instead of erroring the e2.
 local Skip = {
 	["exit"] = true,
 }
@@ -538,8 +535,15 @@ registerOperator("try", "", "", function(self, args)
 		local ok, msg = pcall(stmt[1], self, stmt)
 	self:PopScope()
 
+	local catchable
+	if istable(msg) then
+		catchable = msg.catchable
+		msg = msg.msg
+	end
+
 	if not ok and not Skip[msg] then
-		if Uncatchable[msg] then
+		if not catchable then
+			-- Anything other than context.throw / e2's error is not catchable.
 			error(msg, 0)
 		end
 		self:PushScope()
