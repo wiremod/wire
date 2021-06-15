@@ -183,7 +183,7 @@ local function add_queue( queue, ply, data )
 		queue[ply] = plyqueue
 	end
 	if #plyqueue==wire_holograms_max:GetInt() then return end
-	plyqueue[#plyqueue+1] = data
+	plyqueue[data[1]] = data -- the hologram is always at idx 1
 end
 
 -- call to remove all queued items for a specific hologram
@@ -219,7 +219,7 @@ local function flush_scale_queue(queue, recipient)
 
 	net.Start("wire_holograms_set_scale")
 		for _, plyqueue in pairs(queue) do
-			for _,Holo,scale in ipairs_map(plyqueue, unpack) do
+			for _,Holo,scale in pairs_map(plyqueue, unpack) do
 				net.WriteUInt(Holo.ent:EntIndex(), 16)
 				net.WriteFloat(scale.x)
 				net.WriteFloat(scale.y)
@@ -236,7 +236,7 @@ local function flush_bone_scale_queue(queue, recipient)
 
 	net.Start("wire_holograms_set_bone_scale")
 	for _, plyqueue in pairs(queue) do
-		for _,Holo,bone,scale in ipairs_map(plyqueue, unpack) do
+		for _,Holo,bone,scale in pairs_map(plyqueue, unpack) do
 			net.WriteUInt(Holo.ent:EntIndex(), 16)
 			net.WriteUInt(bone + 1, 16) -- using +1 to be able reset holo bones scale with -1 and not use signed int
 			net.WriteFloat(scale.x)
@@ -255,7 +255,7 @@ local function flush_clip_queue(queue, recipient)
 
 	net.Start("wire_holograms_clip")
 		for _, plyqueue in pairs(queue) do
-			for _,Holo,clip in ipairs_map(plyqueue, unpack) do
+			for _,Holo,clip in pairs_map(plyqueue, unpack) do
 				if clip and clip.index then
 					net.WriteUInt(Holo.ent:EntIndex(), 16)
 					net.WriteUInt(clip.index, 4) -- 4: absolute highest wire_holograms_max_clips is thus 16
@@ -281,7 +281,7 @@ local function flush_vis_queue()
 	for ply,tbl in pairs( vis_queue ) do
 		if IsValid( ply ) and #tbl > 0 then
 			net.Start("wire_holograms_set_visible")
-				for _,Holo,visible in ipairs_map(tbl, unpack) do
+				for _,Holo,visible in pairs_map(tbl, unpack) do
 					net.WriteUInt(Holo.ent:EntIndex(), 16)
 					net.WriteBit(visible)
 				end
@@ -296,7 +296,7 @@ local function flush_player_color_queue()
 
 	net.Start("wire_holograms_set_player_color")
 		for _, plyqueue in pairs(player_color_queue) do
-			for _,Holo,color in ipairs_map(plyqueue, unpack) do
+			for _,Holo,color in pairs_map(plyqueue, unpack) do
 				net.WriteUInt(Holo.ent:EntIndex(), 16)
 				net.WriteVector(color)
 			end
@@ -306,17 +306,21 @@ local function flush_player_color_queue()
 end
 
 registerCallback("postexecute", function(self)
-	flush_scale_queue()
-	flush_bone_scale_queue()
-	flush_clip_queue()
-	flush_vis_queue()
-	flush_player_color_queue()
+	if timer.Exists("wire_hologram_postexecute_"..self.uid) then return end
+	timer.Create("wire_hologram_postexecute_"..self.uid,0.1,1,function()
+		if not IsValid(self.entity) then return end
+		flush_scale_queue()
+		flush_bone_scale_queue()
+		flush_clip_queue()
+		flush_vis_queue()
+		flush_player_color_queue()
 
-	scale_queue = {}
-	bone_scale_queue = {}
-	clip_queue = {}
-	vis_queue = {}
-	player_color_queue = {}
+		scale_queue = {}
+		bone_scale_queue = {}
+		clip_queue = {}
+		vis_queue = {}
+		player_color_queue = {}
+	end)
 end)
 
 local function rescale(Holo, scale, bone)
@@ -805,7 +809,7 @@ end
 
 -- -----------------------------------------------------------------------------
 
-__e2setcost(15) -- temporary
+__e2setcost(30) -- temporary
 
 e2function void holoScale(index, vector scale)
 	local Holo = CheckIndex(self, index)
@@ -880,7 +884,7 @@ e2function number holoClipsAvailable()
 	return wire_holograms_max_clips:GetInt()
 end
 
-__e2setcost(15)
+__e2setcost(30)
 e2function void holoClipEnabled(index, enabled) -- Clip at first index
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -930,6 +934,8 @@ e2function void holoClip(index, clipidx, vector origin, vector normal, entity lo
 
 	set_clip(Holo, clipidx, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), localent:EntIndex())
 end
+
+__e2setcost(15)
 
 e2function void holoPos(index, vector position)
 	local Holo = CheckIndex(self, index)

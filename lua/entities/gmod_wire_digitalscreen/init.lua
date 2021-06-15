@@ -27,6 +27,7 @@ function ENT:Initialize()
 	self.ScreenHeight = 32
 
 	self.NumOfWrites = 0
+	self.UpdateRate = 0.1
 
 	self.ChangedCellRanges = {}
 end
@@ -122,32 +123,6 @@ local pixelbits = {3, 1, 3, 4, 1} --The compressed pixel formats are in bytes
 function ENT:FlushCache(ply)
 	if not next(self.ChangedCellRanges) then return end
 
-	if not ply then
-		-- If the user is writing a lot of data, activate buffering
-		if self.NumOfWrites > 4000 then
-			self.UseBuffering = true
-		else
-			self.UseBuffering = nil
-		end
-
-		if self.UseBuffering then
-			-- This section allows the data to build up until
-			-- the user stops writing data, or up to three seconds
-			if not self.WaitToFlush then
-				self.WaitToFlush = CurTime() + 3
-				return
-			elseif self.WaitToFlush >= CurTime() then
-				if self.NumOfWrites > 0 then
-					return
-				end
-			end
-		end
-
-		self.NumOfWrites = 0
-	end
-
-	self.WaitToFlush = nil
-
 	local pixelformat = (math.floor(self.Memory[1048569]) or 0) + 1
 	if pixelformat < 1 or pixelformat > #pixelbits then pixelformat = 1 end
 	local pixelbit = pixelbits[pixelformat]
@@ -155,12 +130,14 @@ function ENT:FlushCache(ply)
 	local datastr = {}
 
 	local range = self.ChangedCellRanges[1]
-	while range and bytesRemaining>0 do
+	local maxIter = 128
+	while range and bytesRemaining>0 and maxIter > 0 do
 		bytesRemaining = buildData(datastr, self.Memory, pixelbit, range, bytesRemaining)
 		if range.length==0 then
 			table.remove(self.ChangedCellRanges, 1)
 			range = self.ChangedCellRanges[1]
 		end
+		maxIter = maxIter - 1
 	end
 
 	numberToString(datastr,0,3)
@@ -171,6 +148,8 @@ function ENT:FlushCache(ply)
 	net.WriteUInt(pixelformat, 5)
 	net.WriteUInt(#datastr, 32)
 	net.WriteData(datastr,#datastr)
+
+	self.UpdateRate = math.Round(math.max(#datastr / 10000, 0.05),2)
 
 	if ply then net.Send(ply) else net.Broadcast() end
 end
@@ -215,6 +194,7 @@ end
 
 function ENT:WriteCell(Address, value)
 	Address = math.floor (Address)
+	value = math.floor(value or 0)
 	if Address < 0 then return false end
 	if Address >= 1048577 then return false end
 
@@ -226,23 +206,23 @@ function ENT:WriteCell(Address, value)
 	else
 		if Address == 1048569 then
 			-- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB; 4: XXX)
-			value = math.Clamp(math.floor(value or 0), 0, 9)
+			value = math.Clamp(value, 0, 9)
 		elseif Address == 1048570 then -- Clear row
-			local row = math.Clamp(math.floor(value), 0, self.ScreenHeight-1)
+			local row = math.Clamp(value, 0, self.ScreenHeight-1)
 			if self.Memory[1048569] == 1 then
 				self:ClearCellRange(row*self.ScreenWidth*3, self.ScreenWidth*3)
 			else
 				self:ClearCellRange(row*self.ScreenWidth, self.ScreenWidth)
 			end
 		elseif Address == 1048571 then -- Clear column
-			local col = math.Clamp(math.floor(value), 0, self.ScreenWidth-1)
+			local col = math.Clamp(value, 0, self.ScreenWidth-1)
 			for i = col,col+self.ScreenWidth*(self.ScreenHeight-1),self.ScreenWidth do
 				self:ClearPixel(i)
 			end
 		elseif Address == 1048572 then -- Height
-			self.ScreenHeight = math.Clamp(math.floor(value), 1, 512)
+			self.ScreenHeight = math.Clamp(value, 1, 512)
 		elseif Address == 1048573 then -- Width
-			self.ScreenWidth  = math.Clamp(math.floor(value), 1, 512)
+			self.ScreenWidth  = math.Clamp(value, 1, 512)
 		elseif Address == 1048574 then -- Hardware Clear Screen
 			local mem = {}
 			for addr = 1048500,1048575 do
@@ -272,7 +252,7 @@ end
 
 function ENT:Think()
 	self:FlushCache()
-	self:NextThink(CurTime()+1)
+	self:NextThink(CurTime()+self.UpdateRate)
 	return true
 end
 
