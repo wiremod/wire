@@ -1,6 +1,7 @@
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 include('shared.lua')
+DEFINE_BASECLASS( "base_wire_entity" )
 
 ENT.WireDebugName = "DigitalScreen"
 
@@ -92,7 +93,33 @@ local function numberToString(t, number, bytes)
 	t[#t+1] = table.concat(str)
 end
 
+----------------------------------------------------
+-- Processing limiters and global bandwidth limiters
 local maxProcessingTime = engine.TickInterval() * 0.9
+local defaultMaxBandwidth = 10000
+local defaultMaxGlobalBandwidth = 20000
+local maxBandwidth = defaultMaxBandwidth
+local globalBandwidthLookup = {}
+local function calcGlobalBW()
+	maxBandwidth = defaultMaxGlobalBandwidth
+	local n = 0
+	for digi in pairs(globalBandwidthLookup) do 
+		if not IsValid(digi) then globalBandwidthLookup[digi] = nil end -- this most likely won't trigger due to OnRemove, but just in case
+		n = n + 1 
+	end
+	maxBandwidth = math.Round(math.min(defaultMaxBandwidth,maxBandwidth / n),2)
+end
+local function addGlobalBW(e) 
+	globalBandwidthLookup[e] = true
+	calcGlobalBW()
+end
+local function removeGlobalBW(e) globalBandwidthLookup[e] = nil end
+----------------------------------------------------
+
+function ENT:OnRemove()
+	BaseClass.OnRemove(self)
+	removeGlobalBW(self)
+end
 
 local function buildData(datastr, memory, pixelbit, range, bytesRemaining, sTime)
 	if bytesRemaining < 15 then return 0 end
@@ -122,9 +149,13 @@ end
 
 util.AddNetworkString("wire_digitalscreen")
 
+
 local pixelbits = {3, 1, 3, 4, 1} --The compressed pixel formats are in bytes
 function ENT:FlushCache(ply)
-	if not next(self.ChangedCellRanges) then return end
+	if not next(self.ChangedCellRanges) then
+		removeGlobalBW(self)
+		return
+	end
 
 	local pixelformat = (math.floor(self.Memory[1048569]) or 0) + 1
 	if pixelformat < 1 or pixelformat > #pixelbits then pixelformat = 1 end
@@ -161,14 +192,16 @@ function ENT:FlushCache(ply)
 
 	numberToString(datastr,0,3)
 	datastr = util.Compress(table.concat(datastr))
+	local len = #datastr
 
 	net.Start("wire_digitalscreen")
 	net.WriteUInt(self:EntIndex(),16)
 	net.WriteUInt(pixelformat, 5)
-	net.WriteUInt(#datastr, 32)
-	net.WriteData(datastr,#datastr)
+	net.WriteUInt(len, 32)
+	net.WriteData(datastr,len)
 
-	self.UpdateRate = math.Round(math.max(#datastr / 10000, 0.05),2)
+	addGlobalBW(self)
+	self.UpdateRate = math.Round(math.max(len / maxBandwidth, 0.05),2)
 
 	if ply then net.Send(ply) else net.Broadcast() end
 end

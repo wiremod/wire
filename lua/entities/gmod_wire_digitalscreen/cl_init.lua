@@ -108,13 +108,13 @@ function ENT:Think()
 	if self.buffer[1] ~= nil then
 		local maxtime = SysTime() + RealFrameTime() * 0.05 -- do more depending on client FPS. Higher fps = more work
 
-		if not self.co or coroutine.status(self.co) == "dead" then
-			self.co = coroutine.create( function()
-				 self:ProcessBuffer() 
-			end )
-		end
+		while SysTime() < maxtime and self.buffer[1] do
+			if not self.co or coroutine.status(self.co) == "dead" then
+				self.co = coroutine.create( function()
+					 self:ProcessBuffer() 
+				end )
+			end
 
-		while SysTime() < maxtime and coroutine.status(self.co) ~= "dead" do
 			coroutine.resume(self.co)
 		end
 	end
