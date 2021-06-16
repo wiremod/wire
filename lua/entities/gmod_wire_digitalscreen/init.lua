@@ -30,6 +30,7 @@ function ENT:Initialize()
 	self.UpdateRate = 0.1
 
 	self.ChangedCellRanges = {}
+	self.ChangedStep = 1
 end
 
 function ENT:Setup(ScreenWidth, ScreenHeight)
@@ -85,20 +86,22 @@ end
 local function numberToString(t, number, bytes)
 	local str = {}
 	for j=1,bytes do
-		str[#str+1] = string.char(number % 256)
+		str[j] = string.char(number % 256)
 		number = math.floor(number / 256)
 	end
 	t[#t+1] = table.concat(str)
 end
 
-local function buildData(datastr, memory, pixelbit, range, bytesRemaining)
+local maxProcessingTime = engine.TickInterval() * 0.9
+
+local function buildData(datastr, memory, pixelbit, range, bytesRemaining, sTime)
 	if bytesRemaining < 15 then return 0 end
 	local lengthIndex = #datastr+1
 	datastr[lengthIndex] = "000"
 	numberToString(datastr,range.start,3) -- Address of range
 	bytesRemaining = bytesRemaining - 6
 	local i, iend = range.start, range.start + range.length
-	while i<iend and bytesRemaining>0 do
+	while i<iend and bytesRemaining>0 and SysTime() - sTime < maxProcessingTime do
 		if i>=1048500 then
 			numberToString(datastr,memory[i],2)
 			bytesRemaining = bytesRemaining - 2
@@ -129,15 +132,31 @@ function ENT:FlushCache(ply)
 	local bytesRemaining = 32768
 	local datastr = {}
 
-	local range = self.ChangedCellRanges[1]
-	local maxIter = 128
-	while range and bytesRemaining>0 and maxIter > 0 do
-		bytesRemaining = buildData(datastr, self.Memory, pixelbit, range, bytesRemaining)
+	local range = self.ChangedCellRanges[self.ChangedStep]
+	local sTime = SysTime()
+	while range and bytesRemaining>0 and SysTime() - sTime < maxProcessingTime do
+		bytesRemaining = buildData(datastr, self.Memory, pixelbit, range, bytesRemaining, sTime)
 		if range.length==0 then
-			table.remove(self.ChangedCellRanges, 1)
-			range = self.ChangedCellRanges[1]
+			self.ChangedStep = self.ChangedStep + 1
+			range = self.ChangedCellRanges[self.ChangedStep]
 		end
-		maxIter = maxIter - 1
+	end
+
+	local n = #self.ChangedCellRanges
+
+	self.deltaStep = (self.deltaStep or 0) * 0.5 + self.ChangedStep * 0.5
+	self.deltaN = (self.deltaN or 0) * 0.5 + n * 0.5
+
+	if 
+		-- reset queue if we've reached the end
+		self.ChangedStep > n or
+
+		-- if the queue length keeps growing faster than we can process it, just clear it
+		-- this check is mostly to detect the worst possible case where the user spams single random pixels
+		(n > self.ScreenWidth * self.ScreenHeight and self.deltaStep * 4 < self.deltaN) then
+		
+		self.ChangedCellRanges = {}
+		self.ChangedStep = 1
 	end
 
 	numberToString(datastr,0,3)
@@ -224,20 +243,24 @@ function ENT:WriteCell(Address, value)
 		elseif Address == 1048573 then -- Width
 			self.ScreenWidth  = math.Clamp(value, 1, 512)
 		elseif Address == 1048574 then -- Hardware Clear Screen
+
+			-- delete changed cells
+			self.ChangedCellRanges = {}
+			self.ChangedStep = 1
+
+			-- copy every value above pixel data
 			local mem = {}
 			for addr = 1048500,1048575 do
 				mem[addr] = self.Memory[addr]
-			end
-			self.Memory = mem
-			-- clear pixel data from usermessage queue
-			local i = 1
-			while self.ChangedCellRanges[i] ~= nil do
-				if self.ChangedCellRanges[i].start + self.ChangedCellRanges[i].length < 1048500 then
-					table.remove(self.ChangedCellRanges, i)
-				else
-					i = i + 1
+
+				if self.Memory[addr] then
+					-- re-mark cell changed
+					self:MarkCellChanged(addr)
 				end
 			end
+
+			-- reset memory
+			self.Memory = mem
 		elseif Address == 1048575 then -- CLK
 			-- not needed atm
 		end

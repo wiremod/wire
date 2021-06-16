@@ -70,7 +70,6 @@ end)
 function ENT:AddBuffer(datastr,pixelbit)
 	self.buffer[#self.buffer+1] = {datastr=datastr,readIndex=1,pixelbit=pixelbit}
 end
-
 function ENT:ProcessBuffer()
 	if not self.buffer[1] then return end
 
@@ -82,10 +81,11 @@ function ENT:ProcessBuffer()
 	length, readIndex = stringToNumber(readIndex,datastr,3)
 	if length == 0 then
 		table.remove( self.buffer, 1 )
-		return
+		return false
 	end
 	local address
 	address, readIndex = stringToNumber(readIndex,datastr,3)
+
 	for i = address, address + length - 1 do
 		if i>=1048500 then
 			local data
@@ -96,17 +96,26 @@ function ENT:ProcessBuffer()
 			data, readIndex = stringToNumber(readIndex,datastr,pixelbit)
 			self:WriteCell(i, data)
 		end
+
+		coroutine.yield(true)
 	end
 
 	self.buffer[1].readIndex = readIndex
+	return false
 end
 
 function ENT:Think()
 	if self.buffer[1] ~= nil then
-		local maxtime = SysTime() + (1/RealFrameTime()) * 0.0001 -- do more depending on client FPS. Higher fps = more work
+		local maxtime = SysTime() + RealFrameTime() * 0.05 -- do more depending on client FPS. Higher fps = more work
 
-		while SysTime() < maxtime and self.buffer[1] do
-			self:ProcessBuffer()
+		if not self.co or coroutine.status(self.co) == "dead" then
+			self.co = coroutine.create( function()
+				 self:ProcessBuffer() 
+			end )
+		end
+
+		while SysTime() < maxtime and coroutine.status(self.co) ~= "dead" do
+			coroutine.resume(self.co)
 		end
 	end
 
