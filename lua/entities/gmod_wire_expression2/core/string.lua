@@ -338,8 +338,16 @@ end)
 /******************************************************************************/
 
 local function checkregex(data, pattern)
+	local limits = {15000, 500, 150, 70, 40} -- Worst case is about 200ms
 	local n = 0 for i in string.gmatch(string.gsub(pattern, "%%.", ""), "[%+%-%*]") do n = n + 1 end
-	return n==0 or (n==1 and #data<15000) or (n==2 and #data<900)
+	local msg
+	if n==0 then return
+	elseif n<=#limits then
+		if #data>limits[n] then msg = n.." ext search length too long ("..limits[n].." max)" else return end
+	else
+		msg = "too many extenders"
+	end
+	error("Regex is too complex! " .. msg)
 end
 
 local sub = string.sub
@@ -348,12 +356,7 @@ local find = string.find
 
 --- Returns the 1st occurrence of the string <pattern>, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern)
-	local OK, Ret
-	if checkregex(this, pattern) then
-		OK, Ret = pcall(string.find, this, pattern)
-	else
-		OK, Ret = false, "regex is too complex!"
-	end
+	local OK, Ret = pcall(function() checkregex(this, pattern) string.find(this, pattern) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return 0
@@ -364,12 +367,7 @@ end
 
 ---  Returns the 1st occurrence of the string <pattern> starting at <start> and going to the end of the string, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern, start)
-	local OK, Ret
-	if checkregex(this, pattern) then
-		OK, Ret = pcall(find, this, pattern, start)
-	else
-		OK, Ret = false, "regex is too complex!"
-	end
+	local OK, Ret = pcall(function() checkregex(this, pattern) find(this, pattern, start) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return 0
@@ -396,12 +394,7 @@ end
 
 ---  Finds and replaces every occurrence of <pattern> with <new> using regular expressions. Prints malformed string errors to the chat area.
 e2function string string:replaceRE(string pattern, string new)
-	local OK, Ret
-	if checkregex(this, pattern) then
-		OK, Ret = pcall(gsub, this, pattern, new)
-	else
-		OK, Ret = false, "regex is too complex!"
-	end
+	local OK, Ret = pcall(function() checkregex(this, pattern) gsub(this, pattern, new) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return ""
@@ -421,12 +414,10 @@ e2function array string:explode(string delim)
 end
 
 e2function array string:explodeRE( string delim )
-	local ret
-	if checkregex(this, delim) then
-		ret = string_Explode( delim, this, true )
-	else
+	local ok, ret = pcall(function() checkregex(this, pattern) string_Explode( delim, this, true ) end)
+	if not ok then
+		self.player:ChatPrint(ret)
 		ret = {}
-		self.player:ChatPrint("regex is too complex!")
 	end
 	self.prf = self.prf + #ret * 0.3 + #this * 0.1
 	return ret
@@ -462,12 +453,7 @@ local table_remove = table.remove
 
 --- runs [[string.match]](<this>, <pattern>) and returns the sub-captures as an array. Prints malformed pattern errors to the chat area.
 e2function array string:match(string pattern)
-	local args
-	if checkregex(this, pattern) then
-		args = {pcall(string_match, this, pattern)}
-	else
-		args = {false, "regex is too complex!"}
-	end
+	local args = {pcall(function() checkregex(this, pattern) string_match(this, pattern) end)}
 	if not args[1] then
 		self.player:ChatPrint(args[2] or "Unknown error in str:match")
 		return {}
@@ -479,12 +465,7 @@ end
 
 --- runs [[string.match]](<this>, <pattern>, <position>) and returns the sub-captures as an array. Prints malformed pattern errors to the chat area.
 e2function array string:match(string pattern, position)
-	local args
-	if checkregex(this, pattern) then
-		args = {pcall(string_match, this, pattern, position)}
-	else
-		args = {false, "regex is too complex!"}
-	end
+	local args = {pcall(function() checkregex(this, pattern) string_match(this, pattern, position) end)}
 	if not args[1] then
 		self.player:ChatPrint(args[2] or "Unknown error in str:match")
 		return {}
@@ -520,12 +501,7 @@ end
 --- runs [[string.gmatch]](<this>, <pattern>) and returns the captures in an array in a table. Prints malformed pattern errors to the chat area.
 -- (By Divran)
 e2function table string:gmatch(string pattern)
-	local OK, ret
-	if checkregex(this, pattern) then
-		OK, ret = pcall( gmatch, self, this, pattern )
-	else
-		OK, ret = false, "regex is too complex!"
-	end
+	local OK, ret = pcall(function() checkregex(this, pattern) gmatch(self, this, pattern) end)
 	if (!OK) then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
 		return newE2Table()
@@ -538,12 +514,7 @@ end
 -- (By Divran)
 e2function table string:gmatch(string pattern, position)
 	this = this:Right( -position-1 )
-	local OK, ret
-	if checkregex(this, pattern) then
-		OK, ret = pcall( gmatch, self, this, pattern )
-	else
-		OK, ret = false, "regex is too complex!"
-	end
+	local OK, ret = pcall(function() checkregex(this, pattern) gmatch(self, this, pattern) end)
 	if (!OK) then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
 		return newE2Table()
@@ -554,12 +525,7 @@ end
 
 --- runs [[string.match]](<this>, <pattern>) and returns the first match or an empty string if the match failed. Prints malformed pattern errors to the chat area.
 e2function string string:matchFirst(string pattern)
-	local OK, Ret
-	if checkregex(this, pattern) then
-		OK, Ret = pcall(string_match, this, pattern)
-	else
-		OK, Ret = false, "regex is too complex!"
-	end
+	local OK, Ret = pcall(function() checkregex(this, pattern) string_match(this, pattern) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return ""
@@ -570,12 +536,7 @@ end
 
 --- runs [[string.match]](<this>, <pattern>, <position>) and returns the first match or an empty string if the match failed. Prints malformed pattern errors to the chat area.
 e2function string string:matchFirst(string pattern, position)
-	local OK, Ret
-	if checkregex(this, pattern) then
-		OK, Ret = pcall(string_match, this, pattern, position)
-	else
-		OK, Ret = false, "regex is too complex!"
-	end
+	local OK, Ret = pcall(function() checkregex(this, pattern) string_match(this, pattern, position) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return ""
