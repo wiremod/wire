@@ -176,24 +176,41 @@ local clip_queue = {}
 local vis_queue = {}
 local player_color_queue = {}
 
-local function add_queue( queue, ply, data )
+--[[ helper function to add items to a queue 
+	parameters: 
+		queue - the queue to add to
+		ply - the player who ran the command
+		holo - holo table entry
+		id - ID of queue entry, or nil if not unique. will overwrite entries in the queue of a matching id
+			 this is not the same as hologram ID - this refers to the queue ID
+		data - data to add to queue
+]]
+local function add_queue( queue, ply, holo, id, data )
 	local plyqueue = queue[ply]
 	if not plyqueue then
 		plyqueue = {}
 		queue[ply] = plyqueue
 	end
-	if #plyqueue==wire_holograms_max:GetInt() then return end
-	plyqueue[data[1]] = data -- the hologram is always at idx 1
+
+	if id ~= nil then
+		local holoqueue = plyqueue[holo]
+		if holoqueue == nil then
+			holoqueue = {}
+			plyqueue[holo] = holoqueue
+		end
+		holoqueue[id] = data
+	else
+		plyqueue[holo] = data
+	end
 end
 
 -- call to remove all queued items for a specific hologram
 local function remove_from_queues( holo_ent )
 	local function remove_from_queue( queue )
 		for _, plyqueue in pairs( queue ) do
-			for i=#plyqueue,1,-1 do -- iterate backwards to allow removing
-				local Holo = plyqueue[i][1] -- the hologram is always at idx 1
-				if Holo.ent == holo_ent then
-					table.remove( plyqueue, i ) -- remove it from the queue
+			for holo, _ in pairs( plyqueue ) do
+				if holo.ent == holo_ent then
+					plyqueue[holo] = nil
 				end
 			end
 		end
@@ -219,7 +236,7 @@ local function flush_scale_queue(queue, recipient)
 
 	net.Start("wire_holograms_set_scale")
 		for _, plyqueue in pairs(queue) do
-			for _,Holo,scale in pairs_map(plyqueue, unpack) do
+			for Holo, scale in pairs(plyqueue) do
 				net.WriteUInt(Holo.ent:EntIndex(), 16)
 				net.WriteFloat(scale.x)
 				net.WriteFloat(scale.y)
@@ -236,12 +253,14 @@ local function flush_bone_scale_queue(queue, recipient)
 
 	net.Start("wire_holograms_set_bone_scale")
 	for _, plyqueue in pairs(queue) do
-		for _,Holo,bone,scale in pairs_map(plyqueue, unpack) do
-			net.WriteUInt(Holo.ent:EntIndex(), 16)
-			net.WriteUInt(bone + 1, 16) -- using +1 to be able reset holo bones scale with -1 and not use signed int
-			net.WriteFloat(scale.x)
-			net.WriteFloat(scale.y)
-			net.WriteFloat(scale.z)
+		for Holo, holoqueue in pairs(plyqueue) do
+			for bone, scale in pairs(holoqueue) do
+				net.WriteUInt(Holo.ent:EntIndex(), 16)
+				net.WriteUInt(bone + 1, 16) -- using +1 to be able reset holo bones scale with -1 and not use signed int
+				net.WriteFloat(scale.x)
+				net.WriteFloat(scale.y)
+				net.WriteFloat(scale.z)
+			end
 		end
 	end
 	net.WriteUInt(0, 16)
@@ -255,18 +274,20 @@ local function flush_clip_queue(queue, recipient)
 
 	net.Start("wire_holograms_clip")
 		for _, plyqueue in pairs(queue) do
-			for _,Holo,clip in pairs_map(plyqueue, unpack) do
-				if clip and clip.index then
-					net.WriteUInt(Holo.ent:EntIndex(), 16)
-					net.WriteUInt(clip.index, 4) -- 4: absolute highest wire_holograms_max_clips is thus 16
-					if clip.enabled ~= nil then
-						net.WriteBit(true)
-						net.WriteBit(clip.enabled)
-					elseif clip.origin and clip.normal and clip.localentid then
-						net.WriteBit(false)
-						net.WriteVector(clip.origin)
-						net.WriteFloat(clip.normal.x) net.WriteFloat(clip.normal.y) net.WriteFloat(clip.normal.z)
-						net.WriteUInt(clip.localentid, 16)
+			for Holo,holoqueue in pairs(plyqueue) do
+				for _, clip in pairs(holoqueue) do
+					if clip and clip.index then
+						net.WriteUInt(Holo.ent:EntIndex(), 16)
+						net.WriteUInt(clip.index, 4) -- 4: absolute highest wire_holograms_max_clips is thus 16
+						if clip.enabled ~= nil then
+							net.WriteBit(true)
+							net.WriteBit(clip.enabled)
+						elseif clip.origin and clip.normal and clip.localentid then
+							net.WriteBit(false)
+							net.WriteVector(clip.origin)
+							net.WriteFloat(clip.normal.x) net.WriteFloat(clip.normal.y) net.WriteFloat(clip.normal.z)
+							net.WriteUInt(clip.localentid, 16)
+						end
 					end
 				end
 			end
@@ -278,10 +299,10 @@ end
 local function flush_vis_queue()
 	if not next(vis_queue) then return end
 
-	for ply,tbl in pairs( vis_queue ) do
-		if IsValid( ply ) and #tbl > 0 then
+	for ply,plyqueue in pairs( vis_queue ) do
+		if IsValid( ply ) and next(plyqueue) ~= nil then
 			net.Start("wire_holograms_set_visible")
-				for _,Holo,visible in pairs_map(tbl, unpack) do
+				for Holo,visible in pairs(plyqueue) do
 					net.WriteUInt(Holo.ent:EntIndex(), 16)
 					net.WriteBit(visible)
 				end
@@ -296,7 +317,7 @@ local function flush_player_color_queue()
 
 	net.Start("wire_holograms_set_player_color")
 		for _, plyqueue in pairs(player_color_queue) do
-			for _,Holo,color in pairs_map(plyqueue, unpack) do
+			for Holo,color in pairs(plyqueue) do
 				net.WriteUInt(Holo.ent:EntIndex(), 16)
 				net.WriteVector(color)
 			end
@@ -334,7 +355,7 @@ local function rescale(Holo, scale, bone)
 		local scale = Vector(x, y, z)
 
 		if Holo.scale ~= scale then
-			add_queue( scale_queue, Holo.e2owner, { Holo, scale } )
+			add_queue( scale_queue, Holo.e2owner, Holo, nil, scale )
 			Holo.scale = scale
 		end
 	end
@@ -347,11 +368,11 @@ local function rescale(Holo, scale, bone)
 			local y = math.Clamp( b_scale[2], minval, maxval )
 			local z = math.Clamp( b_scale[3], minval, maxval )
 			local scale = Vector(x, y, z)
-
-			add_queue( bone_scale_queue, Holo.e2owner, { Holo, bidx, scale } )
+			
+			add_queue( bone_scale_queue, Holo.e2owner, Holo, bidx, scale )
 			Holo.bone_scale[bidx] =  scale
 		else  -- reset holo bone scale
-			add_queue( bone_scale_queue, Holo.e2owner, { Holo, -1, Vector(0,0,0) } )
+			add_queue( bone_scale_queue, Holo.e2owner, Holo, -1, Vector(0,0,0) )
 			Holo.bone_scale = {}
 		end
 	end
@@ -381,12 +402,7 @@ local function enable_clip(Holo, idx, enabled)
 	if clip and clip.enabled ~= enabled then
 		clip.enabled = enabled
 
-		add_queue( clip_queue, Holo.e2owner, { Holo,
-			{
-				index = idx,
-				enabled = enabled
-			}}
-		)
+		add_queue( clip_queue, Holo.e2owner, Holo, "e"..idx, {index = idx, enabled=enabled} )
 	end
 end
 
@@ -398,14 +414,12 @@ local function set_clip(Holo, idx, origin, normal, localentid)
 		clip.normal = normal
 		clip.localentid = localentid
 
-		add_queue( clip_queue, Holo.e2owner, { Holo,
-			{
-				index = idx,
-				origin = origin,
-				normal = normal,
-				localentid = localentid
-			}}
-		)
+		add_queue( clip_queue, Holo.e2owner, Holo, "s"..idx, {
+			index = idx,
+			origin = origin,
+			normal = normal,
+			localentid = localentid
+		})
 	end
 end
 
@@ -415,7 +429,7 @@ local function set_visible(Holo, players, visible)
 	for _,ply in pairs( players ) do
 		if IsValid( ply ) and ply:IsPlayer() and Holo.visible[ply] ~= visible then
 			Holo.visible[ply] = visible
-			add_queue( vis_queue, ply, { Holo, visible } )
+			add_queue( vis_queue, ply, Holo, nil, visible )
 		end
 	end
 end
@@ -424,12 +438,7 @@ local function reset_clholo(Holo, scale)
 	if Holo.clips then
 		for cidx, clip in pairs(Holo.clips) do
 			if clip.enabled then
-				add_queue(clip_queue, Holo.e2owner, { Holo,
-					{
-						index = cidx,
-						enabled = false
-					}}
-				)
+				add_queue( clip_queue, Holo.e2owner, Holo, "e"..cidx, {index=cidx,enabled=false} )
 			end
 		end
 		Holo.clips = {}
@@ -438,7 +447,7 @@ local function reset_clholo(Holo, scale)
 	if Holo.visible then
 		for ply, state in pairs(Holo.visible) do
 			if not state then
-				add_queue(vis_queue, ply, { Holo, true })
+				add_queue( vis_queue, ply, Holo, nil, true )
 			end
 		end
 		Holo.visible = {}
@@ -446,13 +455,13 @@ local function reset_clholo(Holo, scale)
 end
 
 local function set_player_color(Holo, color)
-	add_queue(player_color_queue, Holo.e2owner, { Holo, color })
+	add_queue( player_color_queue, Holo.e2owner, Holo, nil, color )
 end
 
 hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
-	local s_queue = {}
-	local b_s_queue = {}
-	local c_queue = {}
+	local temp_scale_queue = {}
+	local temp_bone_scale_queue = {}
+	local temp_clip_queue = {}
 
 	for pl_uid,rep in pairs( E2HoloRepo ) do
 		for k,Holo in pairs( rep ) do
@@ -461,36 +470,28 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 				local scale = Holo.scale
 				local bone_scales = Holo.bone_scale
 
-				table.insert(s_queue, { Holo, scale })
+				add_queue( temp_scale_queue, ply, Holo, nil, scale )
+
 
 				if bone_scales and next(bone_scales) ~= nil then
 					for bidx,b_scale in pairs(bone_scales) do
-						table.insert(b_s_queue, { Holo, bidx, b_scale })
+						add_queue( temp_bone_scale_queue, ply, Holo, bidx, b_scale )
 					end
 				end
 
 				if clips and next(clips) ~= nil then
 					for cidx,clip in pairs(clips) do
 						if clip.enabled then
-							table.insert(c_queue, {
-								Holo,
-								{
-									index = cidx,
-									enabled = clip.enabled
-								}
-							} )
+							add_queue( temp_clip_queue, ply, Holo, "e"..cidx, {index=cidx,enabled=clip.enabled} )
 						end
 
 						if clip.origin and clip.normal and clip.localentid then
-							table.insert(c_queue, {
-								Holo,
-								{
-									index = cidx,
-									origin = clip.origin,
-									normal = clip.normal,
-									localentid = clip.localentid
-								}
-							} )
+							add_queue( temp_clip_queue, ply, Holo, "s"..cidx, {
+								index = cidx,
+								origin = clip.origin,
+								normal = clip.normal,
+								localentid = clip.localentid
+							})
 						end
 					end
 				end
@@ -498,9 +499,9 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 		end
 	end
 
-	flush_scale_queue({[ply] = s_queue}, ply)
-	flush_bone_scale_queue({[ply] = b_s_queue}, ply)
-	flush_clip_queue({[ply] = c_queue}, ply)
+	flush_scale_queue(temp_scale_queue, ply)
+	flush_bone_scale_queue(temp_bone_scale_queue, ply)
+	flush_clip_queue(temp_clip_queue, ply)
 end)
 
 -- -----------------------------------------------------------------------------

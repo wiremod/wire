@@ -96,18 +96,33 @@ end
 ----------------------------------------------------
 -- Processing limiters and global bandwidth limiters
 local maxProcessingTime = engine.TickInterval() * 0.9
-local defaultMaxBandwidth = 10000
-local defaultMaxGlobalBandwidth = 20000
+local defaultMaxBandwidth = 10000 -- 10k per screen max limit - is arbitrary. needs to be smaller than the global limit.
+local defaultMaxGlobalBandwidth = 20000 -- 20k is a good global limit in my testing. higher than that seems to cause issues
 local maxBandwidth = defaultMaxBandwidth
 local globalBandwidthLookup = {}
 local function calcGlobalBW()
 	maxBandwidth = defaultMaxGlobalBandwidth
 	local n = 0
+
+	-- count the number of digi screens currently sending data
 	for digi in pairs(globalBandwidthLookup) do 
 		if not IsValid(digi) then globalBandwidthLookup[digi] = nil end -- this most likely won't trigger due to OnRemove, but just in case
 		n = n + 1 
 	end
-	maxBandwidth = math.Round(math.min(defaultMaxBandwidth,maxBandwidth / n),2)
+
+	-- player count also seems to affect lag somewhat
+	-- it seems logical that this would have something to do with the upload bandwidth of the server
+	-- but that seems unlikely since testing shows that the amount of data sent isn't very high
+	-- it's more likely that the net message library just isn't very efficient
+	-- the numbers here are picked somewhat arbitrarily, with a bit of guessing.
+	-- change in the future if necessary.
+	n = n + math.max(0,player.GetCount()-2) / 4
+
+	-- during testing, lag seems to increase somewhat faster as more net messages are sent at the same time
+	-- so we double this value to compensate
+	n = n * 2
+
+	maxBandwidth = math.max(100,math.Round(math.min(defaultMaxBandwidth,maxBandwidth / n),2))
 end
 local function addGlobalBW(e) 
 	globalBandwidthLookup[e] = true
