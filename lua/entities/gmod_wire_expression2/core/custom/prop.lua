@@ -140,14 +140,18 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 	return prop
 end
 
-function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
+function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid, interpolate)
+	if pos ~= nil and not interpolate then WireLib.setPos( this, Vector( pos[1],pos[2],pos[3] ) ) end
+	if rot ~= nil and not interpolate then WireLib.setAng( this, Angle( rot[1],rot[2],rot[3] ) ) end
+
 	local phys = this:GetPhysicsObject()
 	if IsValid( phys ) then
-		if pos ~= nil then WireLib.setPos( this, Vector( pos[1],pos[2],pos[3] ) ) end
-		if rot ~= nil then WireLib.setAng( this, Angle( rot[1],rot[2],rot[3] ) ) end
+		if pos ~= nil and interpolate then WireLib.setPos( phys, Vector( pos[1],pos[2],pos[3] ) ) end
+		if rot ~= nil and interpolate then WireLib.setAng( phys, Angle( rot[1],rot[2],rot[3] ) ) end
 		if freeze ~= nil and this:GetUnFreezable() ~= true then phys:EnableMotion( freeze == 0 ) end
 		if gravity ~= nil then phys:EnableGravity( gravity ~= 0 ) end
 		if notsolid ~= nil then this:SetSolid( notsolid ~= 0 and SOLID_NONE or SOLID_VPHYSICS ) end
+
 		phys:Wake()
 	end
 end
@@ -444,6 +448,16 @@ e2function void entity:setAng(angle rot)
 end
 
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
+
+e2function void entity:setPosInterpolated(vector pos)
+	if not PropCore.ValidAction(self, this, "pos") then return end
+	PropCore.PhysManipulate(this, pos, nil, nil, nil, nil, true)
+end
+
+e2function void entity:setAngInterpolated(angle rot)
+	if not PropCore.ValidAction(self, this, "ang") then return end
+	PropCore.PhysManipulate(this, nil, rot, nil, nil, nil, true)
+end
 
 --------------------------------------------------------------------------------
 
