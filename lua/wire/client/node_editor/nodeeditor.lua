@@ -1670,7 +1670,7 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
   self.ConstantSetWindow:MakePopup() -- This will move it above the FPGA editor if it is behind it.
   self.ForceDrawCursor = true
   
-  local px, py = self.GetParent():GetPos()
+  local px, py = self:GetParent():GetPos()
   self.ConstantSetWindow:SetPos(px + x + 80, py + y + 30)
 
   if type == "NORMAL" then
