@@ -27,6 +27,23 @@ TOOL.ClientConVar = {
 TOOL.MaxLimitName = "wire_expressions"
 WireToolSetup.BaseLang()
 
+-- Needed a method for printing to players' chatboxes without the outdated and limited umsg based ChatPrint()
+-- Not sure if there's already a framework for this in wire, if so replace this with that
+local BetterChatPrint = function() end
+if SERVER then
+	util.AddNetworkString("WireExpression2_BetterChatPrint")
+	BetterChatPrint = function(plr, msg)
+		net.Start("WireExpression2_BetterChatPrint")
+		net.WriteString(msg)
+		net.Send(plr)
+	end
+else
+	-- Netmsg is coming from the server so no need for sanity checks as the server *should* be as expected unlike clients
+	net.Receive("WireExpression2_BetterChatPrint", function()
+		chat.AddText(net.ReadString())
+	end)
+end
+
 if SERVER then
 	CreateConVar('sbox_maxwire_expressions', 20)
 
@@ -56,20 +73,154 @@ if SERVER then
 		end
 	end
 
-	util.AddNetworkString("WireExpression2_OpenEditor")
-	function TOOL:RightClick(trace)
-		if trace.Entity:IsPlayer() then return false end
+	local bypassModeCVar = CreateConVar(
+		"wire_expression2_viewrequest_bypass", 1, {FCVAR_ARCHIVE, FCVAR_NOTIFY},
+		"Sets the admin bypass mode for E2 view requests\n0 - No one can bypass\n1 - Superadmins can bypass (default)\n2 - Superadmins and admins can bypass"
+	)
+	local function CheckBypass(plr)
+		local bypassMode = bypassModeCVar:GetInt()
 
-		local player = self:GetOwner()
+		-- Need the or between IsAdmin and IsSuperAdmin as superadmins may not count as admins due to certain addons
+		return (bypassMode == 1 and plr:IsSuperAdmin()) or (bypassMode == 2 and (plr:IsAdmin() or plr:IsSuperAdmin()))
+	end
 
-		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_expression2" then
-			self:Download(player, trace.Entity)
-			return true
+	-- Simple serverside only local table for storing view requests to make handling them not spaghetti code
+	local viewRequests = {}
+
+	util.AddNetworkString("WireExpression2_ViewRequest")
+	util.AddNetworkString("WireExpression2_AnswerRequest")
+
+	-- Validates a single request using the initiator and chip (handles cleanup and expiry message)
+	local function ValidateRequest(initiator, chip)
+		if not viewRequests[initiator] or not viewRequests[initiator][chip] then return false end -- Initiator either has no data in viewRequests or has no request for this chip
+		if not IsValid(initiator) then -- Invalid initiator in request table
+			viewRequests[initiator] = nil
+			return false
+		end
+		if not IsValid(chip) or chip:GetClass() ~= "gmod_wire_expression2" then -- Invalid chip in request table
+			viewRequests[initiator][chip] = nil
+			return false
+		end
+		if CurTime() > viewRequests[initiator][chip].expiry then -- Expiry point passed
+			BetterChatPrint(initiator, "Your request to view "..chip.player:Nick().."'s chip, '"..chip.name.."', has expired")
+			viewRequests[initiator][chip] = nil
+			return false
+		end
+		return true
+	end
+
+	local function InvalidateRequests()
+		local count = 0
+		for initiator, _ in pairs(viewRequests) do
+			for chip, _ in pairs(viewRequests[initiator]) do
+				if ValidateRequest(initiator, chip) then count = count + 1
+				elseif not viewRequests[initiator] then break end -- If that validation removed the entire initiating player, stop trying to enumerate their requests
+			end
 		end
 
-		net.Start("WireExpression2_OpenEditor") net.Send(player)
-		return false
+		-- If the count is 0 then there's no requests to invalidate, so remove the hook
+		if count == 0 then hook.Remove("Tick", "WireExpression2_InvalidateRequests") end
 	end
+
+	local function RequestView(chip, initiator)
+		local index = chip:EntIndex()
+		local truncName = string.sub(chip.name, 1, 256) -- In case someone starts making cursed names
+
+		-- Make sure this isn't creating a request for a chip with an outstanding valid request
+		if ValidateRequest(initiator, index) then -- Note that ValidateRequest also deletes the invalid request and handles the expiry notif
+			BetterChatPrint(initiator, "Request to view '"..truncName.."' already sent")
+			return
+		end
+
+		-- Otherwise, print to the tool user's chat that a view request was sent
+		-- and send a view request to the chip's owner (also print a message to their chat to tell them they received a request)
+		BetterChatPrint(initiator, "E2 view request sent for '"..truncName.."' owned by "..chip.player:Nick())
+		BetterChatPrint(chip.player, "You just received a request to view your E2 '"..truncName.."' from "..initiator:Nick()..", which you can view in your context menu at the top left ('C' by default)")
+
+		-- Add the request data to the local requests table for when the request from the client comes in
+		if not viewRequests[initiator] then viewRequests[initiator] = {} end -- Initialise this user in the viewRequests table if not in there already
+		viewRequests[initiator][chip] = {
+			name = truncName,
+			expiry = CurTime() + 60 -- 1 minute for the request before it's invalidated (could make this a convar)
+		}
+		if not hook.GetTable().Tick.WireExpression2_InvalidateRequests then -- If there's no invalidation hook added, create it now we have requests to invalidate
+			hook.Add("Tick", "WireExpression2_InvalidateRequests", InvalidateRequests)
+		end
+
+		net.Start("WireExpression2_ViewRequest")
+			net.WriteEntity(initiator)                           -- The player attempting to view the E2
+			net.WriteEntity(chip)                                -- Chip entity for validation clientside
+			net.WriteString(truncName)                           -- Name of the E2 so the owner knows what they're agreeing to
+			net.WriteFloat(viewRequests[initiator][chip].expiry) -- For making requests expire on time clientside
+		net.Send(chip.player)
+	end
+
+	util.AddNetworkString("WireExpression2_OpenEditor")
+	function TOOL:Think()
+		--[[
+			I had to replace TOOL:RightClick with TOOL:Think as prop protection was preventing
+			the view requests system from functioning as intended
+
+			So this manually handles right click meaning people don't need to give each other
+			full prop protection permissions in order to share a chip
+		]]
+		if not IsFirstTimePredicted() then return end
+
+		local player = self:GetOwner()
+		if player:KeyPressed(IN_ATTACK2) then
+			local chip = player:GetEyeTrace().Entity
+			if chip:IsPlayer() then return end
+
+			local player = self:GetOwner()
+
+			if IsValid(chip) and chip:GetClass() == "gmod_wire_expression2" then
+				if chip.player == player then -- Just download if the toolgun user owns this chip
+					self:Download(player, chip)
+					player:SetAnimation(PLAYER_ATTACK1)
+				elseif (chip.alwaysAllow and chip.alwaysAllow[player]) or not IsValid(chip.player) then -- If the tooling player is in the chip's always allow table, or the chip has no valid owner meaning we can't send a request, do a CanTool check
+					if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
+						self:Download(player, chip)
+						player:SetAnimation(PLAYER_ATTACK1)
+					end
+				elseif CheckBypass(player) then
+					if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
+						-- Warn the chip's owner their E2 was just taken via the admin bypass
+						BetterChatPrint(chip.player, "Warning, the server admin '"..player:Nick().."' just accessed your chip '"..chip.name.."', as the view request admin bypass is enabled!")
+						self:Download(player, chip)
+						player:SetAnimation(PLAYER_ATTACK1)
+					end
+				else
+					RequestView(chip, player)
+					player:SetAnimation(PLAYER_ATTACK1)
+				end
+			else
+				net.Start("WireExpression2_OpenEditor") net.Send(player)
+			end
+		end
+	end
+	net.Receive("WireExpression2_AnswerRequest", function(len, plr)
+		local accept, initiator, chip = net.ReadUInt(8), net.ReadEntity(), net.ReadEntity()
+
+		-- Check that this message is for a valid view request
+		if ValidateRequest(initiator, chip) then
+			-- Check that the sending player actually owns the chip they're allowing access to
+			if chip.player ~= plr then return end
+
+			if accept ~= 0 then
+				WireLib.Expression2Download(initiator, chip, nil, true)
+				BetterChatPrint(initiator, "Your request to view "..plr:Nick().."'s chip, '"..viewRequests[initiator][chip].name.."', was accepted!")
+
+				-- If the player chose "Always Allow", then mark the initiator as always being able to access this entity on the chip
+				if accept == 2 then
+					if not chip.alwaysAllow then chip.alwaysAllow = {} end
+					chip.alwaysAllow[initiator] = true
+				end
+			else
+				BetterChatPrint(initiator, "Your request to view "..plr:Nick().."'s chip, '"..viewRequests[initiator][chip].name.."', was declined")
+			end
+			viewRequests[initiator][chip] = nil
+		end
+	end)
 
 	function TOOL:Upload(ent)
 		WireLib.Expression2Upload( self:GetOwner(), ent )
@@ -116,11 +267,6 @@ if SERVER then
 
 		if not IsValid(ply) or not ply:IsPlayer() then -- wtf
 			error("Invalid player entity (wtf??). This should never happen. " .. tostring(ply), 0)
-		end
-
-		if not hook.Run( "CanTool", ply, WireLib.dummytrace(targetEnt), "wire_expression2") then
-			WireLib.AddNotify(ply, "You're not allowed to download from this Expression (ent index: " .. targetEnt:EntIndex() .. ").", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
-			return
 		end
 
 		local main, includes = targetEnt:GetCode()
@@ -319,16 +465,22 @@ if SERVER then
 		E2 = Entity(E2)
 		if canhas(player) then return end
 		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
-		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "request code" ) then
+
+		-- Same check as tool code
+		if E2.player == player then
 			WireLib.Expression2Download(player, E2)
-			WireLib.AddNotify(player, "Downloading code...", NOTIFY_GENERIC, 5, math.random(1, 4))
-			player:PrintMessage(HUD_PRINTCONSOLE, "Downloading code...")
-			if E2.player ~= player then
-				WireLib.AddNotify(E2.player, player:Nick() .. " is reading your E2 '" .. E2.name .. "' using remote updater.", NOTIFY_GENERIC, 5, math.random(1, 4))
-				E2.player:PrintMessage(HUD_PRINTCONSOLE, player:Nick() .. " is reading your E2 '" .. E2.name .. "' using remote updater.")
+		elseif (E2.alwaysAllow and E2.alwaysAllow[player]) or not IsValid(E2.player) then
+			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
+				WireLib.Expression2Download(player, E2)
+			end
+		elseif CheckBypass(player) then
+			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
+				-- Warn the chip's owner their E2 was just taken via the admin bypass
+				BetterChatPrint(E2.player, "Warning, the server admin '"..player:Nick().."' just accessed your chip '"..E2.name.."', as the view request admin bypass is enabled!")
+				WireLib.Expression2Download(player, E2)
 			end
 		else
-			WireLib.ClientError("You do not have permission to read this E2.", player)
+			RequestView(E2, player)
 		end
 	end)
 
