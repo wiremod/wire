@@ -1456,10 +1456,16 @@ E2Helper.Descriptions["vonEncode(r)"] = "Encodes an array into a string using vO
 E2Helper.Descriptions["vonEncode(t)"] = "Encodes a table into a string using vON"
 E2Helper.Descriptions["vonError()"] = "Returns the last von error"
 
--- E2Helper.Descriptions["jsonDecode(s)"] = "Decodes a string into an array using json"
--- E2Helper.Descriptions["jsonEncode(t)"] = "Encodes a table into a string using json"
--- E2Helper.Descriptions["jsonEncode(tn)"] = "Encodes a table into a string using json"
--- E2Helper.Descriptions["jsonError()"] = "Returns the last json error"
+E2Helper.Descriptions["jsonDecode(s)"] = "Decodes a string into an array using json"
+E2Helper.Descriptions["jsonDecodeTable(s)"] = "Decodes a string into a table using json"
+E2Helper.Descriptions["jsonEncode(r)"] = "Encodes an array into a string using json"
+E2Helper.Descriptions["jsonEncode(rn)"] = "Encodes an array into a string using json"
+E2Helper.Descriptions["jsonEncode(t)"] = "Encodes a table into a string using json"
+E2Helper.Descriptions["jsonEncode(tn)"] = "Encodes a table into a string using json"
+E2Helper.Descriptions["jsonEncodeExternal(t)"] = "Encodes a table into a string using json, in a form that is suitable to be exported to external resources. Unfortunately, arrays are ignored because E2 contains many ambiguous types, and arrays don't keep track of those types. You will have to convert your array to a table manually before encoding it."
+E2Helper.Descriptions["jsonEncodeExternal(tn)"] = "Encodes a table into a string using json, in a form that is suitable to be exported to external resources. Unfortunately, arrays are ignored because E2 contains many ambiguous types, and arrays don't keep track of those types. You will have to convert your array to a table manually before encoding it."
+E2Helper.Descriptions["jsonDecodeTableExternal(s)"] = "Decodes a string into a table using json"
+E2Helper.Descriptions["jsonError()"] = "Returns the last json error"
 
 -- http
 E2Helper.Descriptions["httpCanRequest()"] = "Returns whether you can make a new request (delay has been met or previous request timed out)"
