@@ -342,7 +342,7 @@ local function checkregex(data, pattern)
 	-- strip escaped things
 	local stripped, nrepl = string.gsub(pattern, "%%.", "")
 	-- strip bracketed things
-	stripped, nrepl2 = string.gsub(stripped, "%b[]", "")
+	stripped, nrepl2 = string.gsub(stripped, "%[.-%]", "")
 	-- strip captures
 	stripped = string.gsub(stripped, "[()]", "")
 	-- Find extenders
