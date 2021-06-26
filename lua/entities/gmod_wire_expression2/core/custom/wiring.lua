@@ -75,7 +75,7 @@ __e2setcost(10)
 --- Returns an array of <this>'s wire input names
 e2function array entity:getWireInputs()
 	if not IsValid(this) then return self.throw("Invalid entity!", {}) end
-	if not isOwner(self, this) then return self.throw("You do not own this entity!", {})
+	if not isOwner(self, this) then return self.throw("You do not own this entity!", {}) end
 
 	local ret = {}
 	if not this.Inputs then return ret end
@@ -90,7 +90,7 @@ end
 --- Returns an array of <this>'s wire output names
 e2function array entity:getWireOutputs()
 	if not IsValid(this) then return self.throw("Invalid entity!", {}) end
-	if not isOwner(self, this) then return self.throw("You do not own this entity!", {})
+	if not isOwner(self, this) then return self.throw("You do not own this entity!", {}) end
 
 	local ret = {}
 	if not this.Outputs then return ret end
@@ -107,7 +107,7 @@ __e2setcost(5)
 --- Returns <this>'s entity wirelink
 e2function wirelink entity:wirelink()
 	if not IsValid(this) then return self.throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self.throw("You do not own this entity!", nil)
+	if not isOwner(self, this) then return self.throw("You do not own this entity!", nil) end
 
 	if not this.extended then
 		WireLib.CreateWirelinkOutput( self.player, this, {true} )

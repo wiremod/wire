@@ -50,7 +50,7 @@ end
 
 e2function vector entity:eye()
 	if not IsValid(this) then return self.throw("Invalid entity!", {0, 0, 0}) end
-	if this:IsPlayer() and this:GetAimVector() or this:GetForward()
+	return this:IsPlayer() and this:GetAimVector() or this:GetForward()
 end
 
 --- Returns an angle describing player <this>'s view angles.
