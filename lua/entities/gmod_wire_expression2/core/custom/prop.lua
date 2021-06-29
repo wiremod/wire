@@ -46,7 +46,7 @@ function PropCore.ValidSpawn(ply, model, isVehicle)
 end
 
 local canHaveInvalidPhysics = {
-	delete=true, parent=true, deparent=true, solid=true, 
+	delete=true, parent=true, deparent=true, solid=true,
 	shadow=true, draw=true, use=true, pos=true, ang=true,
 	manipulate=true
 }
