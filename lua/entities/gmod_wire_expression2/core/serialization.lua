@@ -430,9 +430,9 @@ local function jsonDecode( self, data, tp )
 end
 
 __e2setcost(1)
--- e2function string jsonError()
-	-- return last_json_error or ""
--- end
+e2function string jsonError()
+	return last_json_error or ""
+end
 
 __e2setcost(50)
 
@@ -512,8 +512,8 @@ local function jsonEncode_start( self, data, prettyprint )
 end
 
 -- Used to encode an E2 table to a Lua table, so that it can be used by external resources properly.
--- e2function string jsonEncode( table data ) return jsonEncode_start( self, data, 0 ) end
--- e2function string jsonEncode( table data, prettyprint ) return jsonEncode_start( self, data, prettyprint ) end
+e2function string jsonEncode( table data ) return jsonEncode_start( self, data, 0 ) end
+e2function string jsonEncode( table data, prettyprint ) return jsonEncode_start( self, data, prettyprint ) end
 
 -- this function converts a lua table into an E2 table
 local function jsonDecode_recurse( self, luatable, copied_tables )
@@ -552,10 +552,10 @@ local function jsonDecode_recurse( self, luatable, copied_tables )
 	return e2table
 end
 
--- e2function table jsonDecode( string data )
-	-- local luatable = jsonDecode( self, data, "external_t" )
-	-- local copied_tables = {}
-	-- return jsonDecode_recurse( self, luatable, copied_tables )
--- end
+e2function table jsonDecode( string data )
+	local luatable = jsonDecode( self, data, "external_t" )
+	local copied_tables = {}
+	return jsonDecode_recurse( self, luatable, copied_tables )
+end
 
 __e2setcost(nil)
