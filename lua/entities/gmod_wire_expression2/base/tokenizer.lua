@@ -177,6 +177,8 @@ function Tokenizer:NextSymbol()
 			tokenname = "void"
 		elseif self.tokendata == "#include" then
 			tokenname = "inclu"
+		elseif self.tokendata == "do" then
+			tokenname = "do"
 		elseif self.tokendata:match("^[ijk]$") and self.character ~= "(" then
 			tokenname, self.tokendata = "num", "1" .. self.tokendata
 		else
