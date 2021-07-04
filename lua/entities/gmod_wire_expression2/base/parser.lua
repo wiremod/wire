@@ -719,6 +719,7 @@ function Parser:Stmt12()
 	if self:AcceptRoamingToken("do") then
 		local trace = self:GetTokenTrace()
 
+		loopdepth = loopdepth + 1
 		local code = self:Block("do keyword")
 	
 		if not self:AcceptRoamingToken("whl") then
@@ -727,12 +728,10 @@ function Parser:Stmt12()
 			
 		local condition = self:Cond()
 		
-		loopdepth = loopdepth + 1
+		
 		local whl = self:Instruction(trace, "whl", condition, code,
 			true) -- Skip condition check first time?
 		loopdepth = loopdepth - 1
-
-		print("Do-while in parser")
 
 		return whl
 	end
