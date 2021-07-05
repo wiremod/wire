@@ -721,14 +721,14 @@ function Parser:Stmt12()
 
 		loopdepth = loopdepth + 1
 		local code = self:Block("do keyword")
-	
+
 		if not self:AcceptRoamingToken("whl") then
 			self:Error("while expected after do and code block (do {...} )")
 		end
-			
+
 		local condition = self:Cond()
-		
-		
+
+
 		local whl = self:Instruction(trace, "whl", condition, code,
 			true) -- Skip condition check first time?
 		loopdepth = loopdepth - 1

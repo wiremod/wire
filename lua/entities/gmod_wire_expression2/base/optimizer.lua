@@ -173,11 +173,11 @@ function peephole.whl(instruction)
     if instruction[3][1] == "literal" then
         instruction[3] = evaluateUnary({"is", instruction[2], instruction[3]})
         if instruction[3][3] == 0 then
-            if instruction[5] then
-                --return instruction[4]
-                -- breaks when 'break' or 'continue' keyword appears
-            else
+            if instruction[5] == false then
                 return {"seq", instruction[2]}
+            --else
+                --return instruction[4]
+                -- This optimization breaks when 'break' or 'continue' keyword appears
             end
         end
     end
