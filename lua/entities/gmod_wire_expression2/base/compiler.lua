@@ -21,6 +21,12 @@ function Compiler:Error(message, instr)
 	error(message .. " at line " .. instr[2][1] .. ", char " .. instr[2][2], 0)
 end
 
+local string_upper = string.upper
+
+function Compiler:CallInstruction(name, trace, ...)
+	return self["Instr" .. string_upper(name)](self, trace, ...)
+end
+
 function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used.
 	self.context = {}
 
@@ -56,7 +62,7 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 
 	self:PushScope()
 
-	local script = Compiler["Instr" .. string.upper(root[1])](self, root)
+	local script = self:CallInstruction(root[1], root)
 
 	self:PopScope()
 
@@ -151,10 +157,13 @@ end
 -- ---------------------------------------------------------------------------
 
 function Compiler:EvaluateStatement(args, index)
-	local name = string.upper(args[index + 2][1])
-	local ex, tp = Compiler["Instr" .. name](self, args[index + 2])
-	-- ex.TraceBack = args[index + 2]
+	local trace = args[index + 2]
+
+	local name = string_upper(trace[1])
+	local ex, tp = self:CallInstruction(name, trace)
 	ex.TraceName = name
+	ex.Trace = trace[2]
+
 	return ex, tp
 end
 
@@ -841,9 +850,9 @@ function Compiler:InstrKVTABLE(args)
 
 	local exprs = args[3]
 	for k, v in pairs(exprs) do
-		local key, type = self["Instr" .. string.upper(k[1])](self, k)
+		local key, type = self:CallInstruction(k[1], k)
 		if type == "s" or type == "n" then
-			local value, type = self["Instr" .. string.upper(v[1])](self, v)
+			local value, type = self:CallInstruction(v[1], v)
 			s[key] = value
 			stypes[key] = type
 		else
@@ -861,9 +870,9 @@ function Compiler:InstrKVARRAY(args)
 
 	local exprs = args[3]
 	for k, v in pairs(exprs) do
-		local key, type = self["Instr" .. string.upper(k[1])](self, k)
+		local key, type = self:CallInstruction(k[1], k)
 		if type == "n" then
-			local value, type = self["Instr" .. string.upper(v[1])](self, v)
+			local value, type = self:CallInstruction(v[1], v)
 			values[key] = value
 			types[key] = type
 		else
@@ -878,7 +887,7 @@ function Compiler:InstrSWITCH(args)
 	-- args = { "switch", trace, value expression, { { case expression or nil, body }... } }
 	-- up to one case can have a nil case expression, this is the default case
 	self:PushPrfCounter()
-	local value, type = Compiler["Instr" .. string.upper(args[3][1])](self, args[3]) -- This is the value we are passing though the switch statment
+	local value, type = self:CallInstruction(args[3][1], args[3]) -- This is the value we are passing though the switch statment
 	local prf_cond = self:PopPrfCounter()
 
 	self:PushScope()
@@ -891,7 +900,7 @@ function Compiler:InstrSWITCH(args)
 		if case then -- The default will not have one
 			self.ScopeID = self.ScopeID - 1 -- For the case statments we pop the scope back
 			self:PushPrfCounter()
-			local ex, tp = Compiler["Instr" .. string.upper(case[1])](self, case) --This is the value we are checking against
+			local ex, tp = self:CallInstruction(case[1], case) -- This is the value we are checking against
 			prf_eq = self:PopPrfCounter() -- We add some pref
 			self.ScopeID = self.ScopeID + 1
 			if tp == "" then -- There is no value
@@ -903,7 +912,7 @@ function Compiler:InstrSWITCH(args)
 		else
 			default=i
 		end
-		local stmts = Compiler["Instr" .. string.upper(block[1])](self, block) -- This is statments that are run when Values match
+		local stmts = self:CallInstruction(block[1], block) -- This is statments that are run when Values match
 		cases[i] = { eq, stmts, prf_eq }
 	end
 
@@ -931,7 +940,7 @@ function Compiler:InstrINCLU(args)
 		self:PushScope()
 
 		local root = include[1]
-		local status, script = pcall(Compiler["Instr" .. string.upper(root[1])], self, root)
+		local status, script = pcall(CallInstruction, root[1], root)
 
 		if not status then
 			if script:find("C stack overflow") then script = "Include depth to deep" end

@@ -134,7 +134,9 @@ function ENT:Execute()
 	local bench = SysTime()
 
 	local ok, msg = pcall(self.script[1], self.context, self.script)
+	local trace
 	if istable(msg) then
+		trace = msg.trace
 		msg = msg.msg
 	end
 
@@ -142,6 +144,8 @@ function ENT:Execute()
 		if msg == "exit" then
 		elseif msg == "perf" then
 			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
+		elseif trace then
+			self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
 		else
 			self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
 		end
@@ -352,12 +356,12 @@ function ENT:ResetContext()
 	-- '@strict' try/catch Error handling.
 	if self.directives.strict then
 		local err = E2Lib.catchableError
-		function context.throw(msg)
-			err(msg, 2)
+		function context:throw(msg)
+			err(msg, self.trace, 2)
 		end
 	else
 		-- '@strict' is not enabled, pass the default variable.
-		function context.throw(_msg, variable)
+		function context:throw(_msg, variable)
 			return variable
 		end
 	end

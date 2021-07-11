@@ -25,6 +25,7 @@ __e2setcost(0)
 
 registerOperator("seq", "", "", function(self, args)
 	self.prf = self.prf + args[2]
+	self.trace = args[3].Trace
 	if self.prf > e2_tickquota then error("perf", 0) end
 
 	local n = #args
@@ -318,7 +319,7 @@ end
 do
 	local err = E2Lib.catchableError
 	e2function void error( string reason )
-		err(reason, 2)
+		err(reason, self.trace, 2)
 	end
 end
 

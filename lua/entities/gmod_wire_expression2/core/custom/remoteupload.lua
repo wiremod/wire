@@ -14,9 +14,9 @@ end
 umsg.PoolString("e2_remoteupload_request")
 
 local function checkE2Chip(self, this)
-	if not IsValid(this) then return self.throw("Invalid entity!", nil) end
-	if this:GetClass() ~= "gmod_wire_expression2" then return self.throw("Cannot remoteSetCode non-expression2 chips!", nil) end
-	if E2Lib.getOwner(self, this) ~= self.player then return self.throw("You do not own this chip!", nil) end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if this:GetClass() ~= "gmod_wire_expression2" then return self:throw("Cannot remoteSetCode non-expression2 chips!", nil) end
+	if E2Lib.getOwner(self, this) ~= self.player then return self:throw("You do not own this chip!", nil) end
 	return true
 end
 

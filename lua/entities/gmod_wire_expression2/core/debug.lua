@@ -11,9 +11,9 @@ local function checkOwner(self)
 end
 
 local function checkVehicle(self, this)
-	if not IsValid(this) then return self.throw("Invalid entity!", false) end
-	if not this:IsVehicle() then return self.throw("Expected Vehicle, got Entity", false) end
-	if not isOwner(self, this) then return self.throw("You do not own this vehicle!", false) end
+	if not IsValid(this) then return self:throw("Invalid entity!", false) end
+	if not this:IsVehicle() then return self:throw("Expected Vehicle, got Entity", false) end
+	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", false) end
 	return true
 end
 
@@ -206,7 +206,7 @@ end
 --- Same as <this>E:printDriver(<text>), but can make the text show up in different places. <print_type> can be one of the following: _HUD_PRINTCENTER, _HUD_PRINTCONSOLE, _HUD_PRINTNOTIFY, _HUD_PRINTTALK.
 e2function number entity:printDriver(print_type, string text)
 	if not checkVehicle(self, this) then return 0 end
-	if not valid_print_types[print_type] then return self.throw("Invalid print type " .. print_type) end
+	if not valid_print_types[print_type] then return self:throw("Invalid print type " .. print_type) end
 	if text:find('"', 1, true) then return 0 end
 
 	local driver = this:GetDriver()

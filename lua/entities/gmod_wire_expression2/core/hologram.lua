@@ -522,7 +522,7 @@ local function CheckIndex(self, index, shouldbenil)
 	else
 		Holo = self.data.holos[index]
 	end
-	if (not Holo or not IsValid(Holo.ent)) and not shouldbenil then return self.throw("Holo at index " .. index .. " does not exist!", nil) end
+	if (not Holo or not IsValid(Holo.ent)) and not shouldbenil then return self:throw("Holo at index " .. index .. " does not exist!", nil) end
 	return Holo
 end
 
@@ -649,7 +649,7 @@ end
 
 local function checkHoloCount(self)
 	if PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then
-		return self.throw("You've hit the maximum amount of holograms!", true)
+		return self:throw("You've hit the maximum amount of holograms!", true)
 	end
 end
 
@@ -843,7 +843,7 @@ end
 
 e2function vector holoScaleUnits(index)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return self.throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
+	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
 
 	local scale = Holo.scale or {0,0,0} -- TODO: maybe {1,1,1}?
 
@@ -864,27 +864,27 @@ e2function void holoBoneScale(index, string bone, vector scale)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 	local boneindex = Holo.ent:LookupBone(bone)
-	if boneindex == nil then return self.throw("Invalid bone ['" .. bone .. "']", nil) end
+	if boneindex == nil then return self:throw("Invalid bone ['" .. bone .. "']", nil) end
 
 	rescale(Holo, nil, {boneindex, scale})
 end
 
 e2function vector holoBoneScale(index, boneindex)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return self.throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
+	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
 
 	local scale = Holo.bone_scale[boneindex]
-	if not scale then return self.throw("Bone " .. index .. " does not exist!", {0, 0, 0}) end
+	if not scale then return self:throw("Bone " .. index .. " does not exist!", {0, 0, 0}) end
 	return scale
 end
 
 e2function vector holoBoneScale(index, string bone)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return self.throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
+	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
 	local boneindex = Holo.ent:LookupBone(bone)
 
 	local scale = Holo.bone_scale[boneindex]
-	if not boneindex or not scale then self.throw("Bone ['" .. index .. "'] does not exist!", {0, 0, 0}) end
+	if not boneindex or not scale then self:throw("Bone ['" .. index .. "'] does not exist!", {0, 0, 0}) end
 	return scale
 end
 __e2setcost(1)

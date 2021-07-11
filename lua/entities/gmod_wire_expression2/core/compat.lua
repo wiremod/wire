@@ -118,6 +118,6 @@ e2function number entity:height()
 	]]
 
 	-- New code (Same as E:boxSize():z())
-	if not IsValid(this) then return self.throw("Invalid entity!", 0) end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	return (this:OBBMaxs() - this:OBBMins()).z
 end

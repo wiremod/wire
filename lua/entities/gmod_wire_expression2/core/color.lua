@@ -15,80 +15,80 @@ end
 __e2setcost(2)
 
 e2function vector entity:getColor()
-	if not IsValid(this) then return self.throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
 
 	local c = this:GetColor()
 	return { c.r, c.g, c.b }
 end
 
 e2function vector4 entity:getColor4()
-	if not IsValid(this) then return self.throw("Invalid entity!", {0, 0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0, 0}) end
 	local c = this:GetColor()
 	return {c.r, c.g, c.b, c.a}
 end
 
 e2function number entity:getAlpha()
-	if not IsValid(this) then return self.throw("Invalid entity!", 0) end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	return this:GetColor().a
 end
 
 e2function void entity:setColor(r,g,b)
-	if not IsValid(this) then return self.throw("Invalid entity!", 0) end
-	if not isOwner(self, this) then return self.throw("You do not own this entity!", nil) end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
 	WireLib.SetColor(this, Color(r, g, b, this:GetColor().a))
 end
 
 e2function void entity:setColor(r,g,b,a)
-	if not IsValid(this) then return self.throw("Invalid entity!", 0) end
-	if not isOwner(self, this) then return self.throw("You do not own this entity!", nil) end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
 	WireLib.SetColor(this, Color(r, g, b, a))
 end
 
 e2function void entity:setColor(vector c)
-	if not IsValid(this) then return self.throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self.throw("You do not own this entity!", nil) end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
 	WireLib.SetColor(this, Color(c[1], c[2], c[3], this:GetColor().a))
 end
 
 e2function void entity:setColor(vector c, a)
-	if not IsValid(this) then return self.throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self.throw("You do not own this entity!", nil) end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
 	WireLib.SetColor(this, Color(c[1], c[2], c[3], a))
 end
 
 e2function void entity:setColor(vector4 c)
-	if not IsValid(this) then return self.throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self.throw("You do not own this entity!", nil) end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
 	WireLib.SetColor(this, Color(c[1], c[2], c[3], c[4]))
 end
 
 e2function void entity:setAlpha(a)
-	if not IsValid(this) then return self.throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self.throw("You do not own this entity!", nil) end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
-	if this:IsPlayer() then return self.throw("You cannot set the alpha of a player!", nil) end
+	if this:IsPlayer() then return self:throw("You cannot set the alpha of a player!", nil) end
 
 	local c = this:GetColor()
 	WireLib.SetColor(this, Color(c.r, c.g, c.b, a))
 end
 
 e2function void entity:setRenderMode(mode)
-	if not IsValid(this) then return self.throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self.throw("You do not own this entity!", nil) end
-	if this:IsPlayer() then return self.throw("You cannot set the render mode of a player!", nil) end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	if this:IsPlayer() then return self:throw("You cannot set the render mode of a player!", nil) end
 
 	this:SetRenderMode(mode)
 	duplicator.StoreEntityModifier(this, "colour", { RenderMode = mode })
 end
 
 e2function vector entity:getPlayerColor()
-	if not IsValid(this) then return self.throw("Invalid entity!", {0, 0, 0}) end
-	if not this:IsPlayer() then return self.throw("Expected player but got an entity", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not this:IsPlayer() then return self:throw("Expected player but got an entity", {0, 0, 0}) end
 
 	local c = this:GetPlayerColor()
 
@@ -96,8 +96,8 @@ e2function vector entity:getPlayerColor()
 end
 
 e2function vector entity:getWeaponColor()
-	if not IsValid(this) then return self.throw("Invalid entity!", {0, 0, 0}) end
-	if not this:IsPlayer() then return self.throw("Expected player but got an entity", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not this:IsPlayer() then return self:throw("Expected player but got an entity", {0, 0, 0}) end
 
 	local c = this:GetWeaponColor()
 
@@ -233,13 +233,13 @@ end
 --- Converts an RGB vector <rgb> to a number in digital screen format. <mode> Specifies a mode, either 0, 2 or 3, corresponding to Digital Screen color modes.
 e2function number rgb2digi(vector rgb, mode)
 	local conv = converters[mode]
-	if not conv then return self.throw("Mode " .. mode .. " does not exist!", 0) end
+	if not conv then return self:throw("Mode " .. mode .. " does not exist!", 0) end
 	return conv(rgb[1], rgb[2], rgb[3])
 end
 
 --- Converts the RGB color (<r>,<g>,<b>) to a number in digital screen format. <mode> Specifies a mode, either 0, 2 or 3, corresponding to Digital Screen color modes.
 e2function number rgb2digi(r, g, b, mode)
 	local conv = converters[mode]
-	if not conv then return self.throw("Mode " .. mode .. " does not exist!", 0) end
+	if not conv then return self:throw("Mode " .. mode .. " does not exist!", 0) end
 	return conv(r, g, b)
 end
