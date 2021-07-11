@@ -357,7 +357,7 @@ function ENT:ResetContext()
 	if self.directives.strict then
 		local err = E2Lib.catchableError
 		function context:throw(msg)
-			err(msg, self.trace, 2)
+			err(msg, 2, self.trace)
 		end
 	else
 		-- '@strict' is not enabled, pass the default variable.

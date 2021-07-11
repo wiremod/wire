@@ -319,7 +319,7 @@ end
 do
 	local err = E2Lib.catchableError
 	e2function void error( string reason )
-		err(reason, self.trace, 2)
+		err(reason, 2, self.trace)
 	end
 end
 
