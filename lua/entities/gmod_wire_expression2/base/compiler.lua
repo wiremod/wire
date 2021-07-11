@@ -792,7 +792,12 @@ function Compiler:InstrFUNCTION(args)
 		end
 
 		self.func_rv = nil
-		local ok, msg = pcall(Stmt[1],self,Stmt)
+		local ok, err = pcall(Stmt[1], self, Stmt)
+
+		local msg = err
+		if istable(err) then
+			msg = err.msg
+		end
 
 		self:PopScope()
 		self:LoadScopes(OldScopes)
@@ -802,7 +807,7 @@ function Compiler:InstrFUNCTION(args)
 
 		if not ok and msg == "return" then return self.func_rv end
 
-		if not ok then error(msg,0) end
+		if not ok then error(err, 0) end
 
 		if Return ~= "" then
 			local argNames = {}
