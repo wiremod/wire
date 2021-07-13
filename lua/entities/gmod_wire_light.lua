@@ -49,12 +49,12 @@ if CLIENT then
 		local c = self:GetMyColor()
 
 		if self:GetModel() == "models/maxofs2d/light_tubular.mdl" then
-			render.DrawSprite( LightPos - up * 2, 8, 8, Color(255, 255, 255, 255), Visible )
-			render.DrawSprite( LightPos - up * 4, 8, 8, Color(255, 255, 255, 255), Visible )
-			render.DrawSprite( LightPos - up * 6, 8, 8, Color(255, 255, 255, 255), Visible )
-			render.DrawSprite( LightPos - up * 5, 128, 128, c, Visible )
+			render.DrawSprite( LightPos - up * 2, 8, 8, c, Visible )
+			render.DrawSprite( LightPos - up * 4, 8, 8, c, Visible )
+			render.DrawSprite( LightPos - up * 6, 8, 8, c, Visible )
+			render.DrawSprite( LightPos - up * 5, math.Clamp(self:GetSize(),0,128), math.Clamp(self:GetSize(),0,128), c, Visible )
 		else
-			render.DrawSprite( self:LocalToWorld( self:OBBCenter() ), 128, 128, c, Visible )
+			render.DrawSprite( self:LocalToWorld( self:OBBCenter() ), math.Clamp(self:GetSize(),0,128), math.Clamp(self:GetSize(),0,128), c, Visible )
 		end
 	end
 
