@@ -485,7 +485,7 @@ if SERVER then
 			end
 		elseif CheckBypass(player) then
 			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
-				-- Warn the chip's owner their E2 was just taken via the admin bypass
+				-- Warn the chip's owner their E2 was just taken via the bypass
 				if bypassModeCVar:GetInt() == 3 then
 					BetterChatPrint(
 						E2.player,
