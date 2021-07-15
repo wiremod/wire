@@ -322,18 +322,18 @@ e2function void exit()
 end
 
 do
-	local err = E2Lib.catchableError
+	local catchable = E2Lib.catchableError
 	e2function void error( string reason )
-		err(reason, 2, self.trace)
+		catchable(reason, 2, self.trace)
 	end
-end
 
-e2function void assert(condition)
-	if condition == 0 then error("assert failed", 2) end
-end
+	e2function void assert(condition)
+		if condition == 0 then catchable("assert failed", 2, self.trace) end
+	end
 
-e2function void assert(condition, string reason)
-	if condition == 0 then error(reason, 2) end
+	e2function void assert(condition, string reason)
+		if condition == 0 then catchable(reason, 2, self.trace) end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -527,11 +527,6 @@ registerOperator("include", "", "", function(self, args)
 	end
 end)
 
--- Just make exit() exit the try catch block instead of erroring the e2.
-local Skip = {
-	["exit"] = true,
-}
-
 registerOperator("try", "", "", function(self, args)
 	local prf, stmt, var_name, stmt2 = args[2], args[3], args[4], args[5]
 	self.prf = self.prf + prf
@@ -547,7 +542,7 @@ registerOperator("try", "", "", function(self, args)
 		msg = msg.msg
 	end
 
-	if not ok and not Skip[msg] then
+	if not ok then
 		if not catchable then
 			-- Anything other than context.throw / e2's error is not catchable.
 			error(msg, 0)
