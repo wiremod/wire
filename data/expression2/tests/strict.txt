@@ -1,0 +1,30 @@
+@strict
+
+try {
+    # chatClk should throw an error for a NULL player parameter.
+    chatClk( noentity() )
+} catch(Err) {
+    assert(Err == "Invalid player!")
+
+    try {
+        # Nonexistent function stringcalls should be catchable
+        "notreal"()
+    } catch(Err) {
+        assert(Err == "No such function: notreal(void)")
+
+        try {
+            error("exit")
+            # Chip should NOT exit here. error() will now throw separate table errors that are catchable and don't care about the name.
+        } catch(Err) {
+            assert(Err == "exit")
+
+            print("@strict tests passed (Unless there's an error after this)")
+
+            try { exit() } catch(Err) {
+                error("exit() threw an error, when it should have exited the chip")
+            }
+        }
+    }
+}
+
+error("@strict did not throw an error in chatClk test")

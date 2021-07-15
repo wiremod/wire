@@ -82,13 +82,11 @@ end
 
 __e2setcost(1)
 e2function number clk()
-	if self.data.timer.runner == "interval"
-	   then return 1 else return 0 end
+	return self.data.timer.runner == "interval" and 1 or 0
 end
 
 e2function number clk(string rv1)
-	if self.data.timer.runner == rv1
-	   then return 1 else return 0 end
+	return self.data.timer.runner == rv1 and 1 or 0
 end
 
 e2function string clkName()
@@ -98,7 +96,7 @@ end
 e2function array getTimers()
 	local ret = {}
 	local i = 0
-	for name,_ in pairs( self.data.timer.timers ) do
+	for name in pairs( self.data.timer.timers ) do
 		i = i + 1
 		ret[i] = name
 	end
@@ -107,7 +105,7 @@ e2function array getTimers()
 end
 
 e2function void stopAllTimers()
-	for name,_ in pairs(self.data.timer.timers) do
+	for name in pairs(self.data.timer.timers) do
 		self.prf = self.prf + 5
 		RemoveTimer(self,name)
 	end
@@ -130,7 +128,7 @@ end
 -----------------------------------------------------------------------------------
 
 local function luaDateToE2Table( time, utc )
-	local ret = {n={},ntypes={},s={},stypes={},size=0}
+	local ret = E2Lib.newE2Table()
 	local time = os.date((utc and "!" or "") .. "*t",time)
 
 	if not time then return ret end -- this happens if you give it a negative time

@@ -33,7 +33,8 @@ Stmt7 ← (Var ("+=" / "-=" / "*=" / "/="))? Stmt8
 Stmt8 ← "local"? (Var (&"[" Index ("=" Stmt8)? / "=" Stmt8))? Stmt9
 Stmt9 ← ("switch" "(" Expr1 ")" "{" SwitchBlock)? Stmt10
 Stmt10 ← (FunctionStmt / ReturnStmt)? Stmt11
-Stmt11 ← ("#include" String)? Expr1
+Stmt11 ← ("#include" String)? Stmt12
+Stmt12 ← ("try" Block "catch" "(" Var ")" Block)? Expr1
 
 FunctionStmt ← "function" FunctionHead "(" FunctionArgs Block
 FunctionHead ← (Type Type ":" Fun / Type ":" Fun / Type Fun / Fun)
@@ -710,6 +711,32 @@ function Parser:Stmt11()
 		return self:Instruction(Trace, "inclu", Path)
 	end
 
+	return self:Stmt12()
+end
+
+function Parser:Stmt12()
+	if self:AcceptRoamingToken("try") then
+		local trace = self:GetTokenTrace()
+		local stmt = self:Block("try block")
+		if self:AcceptRoamingToken("catch") then
+			if not self:AcceptRoamingToken("lpa") then
+				self:Error("Left parenthesis (() expected after catch keyword")
+			end
+
+			if not self:AcceptRoamingToken("var") then
+				self:Error("Variable expected after left parenthesis (() in catch statement")
+			end
+			local var_name = self:GetTokenData()
+
+			if not self:AcceptRoamingToken("rpa") then
+				self:Error("Right parenthesis ()) missing, to close catch statement")
+			end
+
+			return self:Instruction(trace, "try", stmt, var_name, self:Block("catch block") )
+		else
+			self:Error("Try block must be followed by catch statement")
+		end
+	end
 	return self:Expr1()
 end
 

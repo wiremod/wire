@@ -760,3 +760,11 @@ function E2Lib.isValidFileWritePath(path)
 	local ext = string.GetExtensionFromFilename(path)
 	if ext then return file_extensions[string.lower(ext)] end
 end
+
+function E2Lib.catchableError(msg, level, trace)
+	error({
+		catchable = true,
+		msg = msg,
+		trace = trace
+	}, level)
+end

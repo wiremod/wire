@@ -28,8 +28,8 @@ end
 local ValidWireMat = {"cable/rope", "cable/cable2", "cable/xbeam", "cable/redlaser", "cable/blue_elec", "cable/physbeam", "cable/hydra", "arrowire/arrowire", "arrowire/arrowire2"}
 --- Creates a wire between the input <input> of <this> and the output <outputname> of <ent2>, using the <width>, <color>, <mat>
 e2function number entity:createWire(entity ent2, string inputname, string outputname, width, vector color, string mat)
-	if not IsValid(this) or not IsValid(ent2) then return 0 end
-	if not isOwner(self, this) or not isOwner(self, ent2) then return 0 end
+	if not IsValid(this) or not IsValid(ent2) then return self:throw("One or more invalid entities in createWire!", 0) end
+	if not isOwner(self, this) or not isOwner(self, ent2) then return self:throw("You do not own one or more of these entities!", 0) end
 
 	if not this.Inputs or not ent2.Outputs then return 0 end
 	if inputname == "" or outputname == "" then return 0 end
@@ -60,9 +60,10 @@ end
 
 --- Deletes wire leading to <this>'s input <input>
 e2function number entity:deleteWire(string inputname)
-	if not IsValid(this) or not isOwner(self, this) or inputname == "" then return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", 0) end
 
-	if not this.Inputs or not this.Inputs[inputname] or not this.Inputs[inputname].Src then return 0 end
+	if inputname=="" or not this.Inputs or not this.Inputs[inputname] or not this.Inputs[inputname].Src then return self:throw("Invalid inputname!", 0) end
 	local trigger = self.entity.trigger
 	self.entity.trigger = { false, {} } -- So the wire deletion doesn't execute the E2 immediately because an input zero'd
 	WireLib.Link_Clear(this, inputname)
@@ -73,8 +74,11 @@ end
 __e2setcost(10)
 --- Returns an array of <this>'s wire input names
 e2function array entity:getWireInputs()
-	if not IsValid(this) or not isOwner(self, this) or not this.Inputs then return {} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", {}) end
+
 	local ret = {}
+	if not this.Inputs then return ret end
 	for k,v in pairs(this.Inputs) do
 		if k ~= "" then
 			table.insert(ret, k)
@@ -85,8 +89,11 @@ end
 
 --- Returns an array of <this>'s wire output names
 e2function array entity:getWireOutputs()
-	if not IsValid(this) or not isOwner(self, this) or not this.Outputs then return {} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", {}) end
+
 	local ret = {}
+	if not this.Outputs then return ret end
 	for k,v in pairs(this.Outputs) do
 		if k ~= "" then
 			table.insert(ret, k)
@@ -99,8 +106,9 @@ __e2setcost(5)
 
 --- Returns <this>'s entity wirelink
 e2function wirelink entity:wirelink()
-	if not IsValid(this) then return nil end
-	if not isOwner(self, this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+
 	if not this.extended then
 		WireLib.CreateWirelinkOutput( self.player, this, {true} )
 	end

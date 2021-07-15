@@ -325,7 +325,7 @@ function query_blocked(self, update)
 			self.data.findcount = self.data.findcount - 1
 			return false
 		else
-			return true
+			return self:throw("You cannot send a new find request yet!", true)
 		end
 	end
 	return (self.data.findcount < 1)

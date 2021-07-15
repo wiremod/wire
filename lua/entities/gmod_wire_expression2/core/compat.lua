@@ -1,9 +1,7 @@
 -- Functions in this file are retained purely for backwards-compatibility. They should not be used in new code and might be removed at any time.
 
 e2function string number:teamName()
-	local str = team.GetName(this)
-	if not str then return "" end
-	return str
+	return team.GetName(this) or ""
 end
 
 e2function number number:teamScore()
@@ -120,6 +118,6 @@ e2function number entity:height()
 	]]
 
 	-- New code (Same as E:boxSize():z())
-	if(!IsValid(this)) then return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	return (this:OBBMaxs() - this:OBBMins()).z
 end

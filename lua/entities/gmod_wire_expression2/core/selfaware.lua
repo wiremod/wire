@@ -128,7 +128,8 @@ end
 
 -- Set the name of an entity (component name if not E2)
 e2function void entity:setName( string name )
-	if not IsValid(this) or E2Lib.getOwner(self, this) ~= self.player then return end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if E2Lib.getOwner(self, this) ~= self.player then return self:throw("You do not own this entity!", nil) end
 	doSetName(self,this,name)
 end
 
