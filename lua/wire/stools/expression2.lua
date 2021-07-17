@@ -157,6 +157,7 @@ if SERVER then
 
 	util.AddNetworkString("WireExpression2_OpenEditor")
 	function TOOL:Think()
+		WireToolObj.Think(self)
 		--[[
 			I had to replace TOOL:RightClick with TOOL:Think as prop protection was preventing
 			the view requests system from functioning as intended
