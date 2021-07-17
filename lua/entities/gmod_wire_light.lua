@@ -33,8 +33,6 @@ if CLIENT then
 	end
 
 	function ENT:DrawTranslucent()
-		local up = self:GetAngles():Up()
-
 		local LightPos = self:GetPos()
 		render.SetMaterial( matLight )
 
@@ -46,17 +44,7 @@ if CLIENT then
 
 		if not Visible or Visible < 0.1 then return end
 
-		local c = self:GetMyColor()
-
-		local spriteSize = math.Clamp(self:GetSize()*0.125,8,128)
-		if self:GetModel() == "models/maxofs2d/light_tubular.mdl" then
-			render.DrawSprite( LightPos - up * 2, 8, 8, c, Visible )
-			render.DrawSprite( LightPos - up * 4, 8, 8, c, Visible )
-			render.DrawSprite( LightPos - up * 6, 8, 8, c, Visible )
-			render.DrawSprite( LightPos - up * 5, spriteSize, spriteSize, c, Visible )
-		else
-			render.DrawSprite( self:LocalToWorld( self:OBBCenter() ), spriteSize, spriteSize, c, Visible )
-		end
+		render.DrawSprite( self:LocalToWorld( self:OBBCenter() ), 128, 128, self:GetMyColor(), Visible )
 	end
 
 	local wire_light_block = CreateClientConVar("wire_light_block", 0, false, false)
