@@ -45,7 +45,16 @@ if CLIENT then
 
 		if not Visible or Visible < 0.1 then return end
 
-		render.DrawSprite( self:LocalToWorld( self:OBBCenter() ), self:GetSpriteSize(), self:GetSpriteSize(), self:GetMyColor(), Visible )
+		local c = self:GetMyColor()
+		if self:GetModel() == "models/maxofs2d/light_tubular.mdl" then
+			local up = self:GetUp()
+			render.DrawSprite( LightPos - up * 2, 8, 8, c, Visible )
+			render.DrawSprite( LightPos - up * 4, 8, 8, c, Visible )
+			render.DrawSprite( LightPos - up * 6, 8, 8, c, Visible )
+			render.DrawSprite( LightPos - up * 5, self:GetSpriteSize(), self:GetSpriteSize(), c, Visible )
+		else
+			render.DrawSprite( self:LocalToWorld( self:OBBCenter() ), self:GetSpriteSize(), self:GetSpriteSize(), c, Visible )
+		end
 	end
 
 	local wire_light_block = CreateClientConVar("wire_light_block", 0, false, false)
