@@ -232,6 +232,7 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 	self.glow = glow or false
 	self.brightness = brightness or 2
 	self.size = size or 256
+	self.spritesize = spritesize or 128
 	self.R = r or 255
 	self.G = g or 255
 	self.B = b or 255
@@ -239,6 +240,7 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 	if not game.SinglePlayer() then
 		self.brightness = math.Clamp( self.brightness, 0, 10 )
 		self.size = math.Clamp( self.size, 0, 1024 )
+		self.spritesize = math.Clamp( self.spritesize, 0, 256 )
 	end
 
 	self:Directional( self.directional )
@@ -246,7 +248,7 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 	self:SetGlow( self.glow )
 	self:SetBrightness( self.brightness )
 	self:SetSize( self.size )
-	self:SetSpriteSize( spritesize or 128 )
+	self:SetSpriteSize( self.spritesize )
 
 	if self.glow then
 		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowSize", "SpriteSize"})
