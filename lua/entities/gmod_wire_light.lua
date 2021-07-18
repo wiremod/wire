@@ -8,6 +8,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "Glow" )
 	self:NetworkVar( "Float", 0, "Brightness" )
 	self:NetworkVar( "Float", 1, "Size" )
+	self:NetworkVar( "Float", 2, "SpriteSize" )
 	self:NetworkVar( "Int", 0, "R" )
 	self:NetworkVar( "Int", 1, "G" )
 	self:NetworkVar( "Int", 2, "B" )
@@ -44,7 +45,7 @@ if CLIENT then
 
 		if not Visible or Visible < 0.1 then return end
 
-		render.DrawSprite( self:LocalToWorld( self:OBBCenter() ), 128, 128, self:GetMyColor(), Visible )
+		render.DrawSprite( self:LocalToWorld( self:OBBCenter() ), self:GetSpriteSize(), self:GetSpriteSize(), self:GetMyColor(), Visible )
 	end
 
 	local wire_light_block = CreateClientConVar("wire_light_block", 0, false, false)
@@ -208,12 +209,15 @@ function ENT:TriggerInput(iname, value)
 		if not game.SinglePlayer() then value = math.Clamp( value, 0, 1024 ) end
 		self.size = value
 		self:SetSize( value )
+	elseif (iname == "SpriteSize") then
+		if not game.SinglePlayer() then value = math.Clamp( value, 0, 256 ) end
+		self:SetSpriteSize( value )
 	end
 
 	self:UpdateLight()
 end
 
-function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b)
+function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, spritesize)
 	self.directional = directional or false
 	self.radiant = radiant or false
 	self.glow = glow or false
@@ -233,14 +237,15 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b)
 	self:SetGlow( self.glow )
 	self:SetBrightness( self.brightness )
 	self:SetSize( self.size )
+	self:SetSpriteSize( spritesize or 128 )
 
 	if self.glow then
-		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowSize"})
+		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowSize", "SpriteSize"})
 	else
-		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]"})
+		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "SpriteSize"})
 	end
 
 	self:UpdateLight()
 end
 
-duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "R", "G", "B")
+duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "R", "G", "B", "spritesize")
