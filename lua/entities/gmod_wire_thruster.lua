@@ -128,8 +128,22 @@ function ENT:SetForce( force, mul )
 
 	// Calculate the velocity
 	ThrusterWorldForce = ThrusterWorldForce * self.force * mul * 50
-	self.ForceLinear, self.ForceAngle = phys:CalculateVelocityOffset( ThrusterWorldForce, ThrusterWorldPos );
-	self.ForceLinear = phys:WorldToLocalVector( self.ForceLinear )
+	local ForceLinear, ForceAngle = phys:CalculateVelocityOffset(ThrusterWorldForce, ThrusterWorldPos)
+	ForceLinear = phys:WorldToLocalVector(ForceLinear)
+	
+	do	-- Check for math.huge and infinity and huge forces that will crash
+		local ForceLinearLen, ForceAngleLen = ForceLinear:LengthSqr(), ForceAngle:LengthSqr()
+	
+		if not (ForceLinearLen < 2 ^ 51) or not (ForceAngleLen < 2 ^ 51) then
+			-- print("bad",ForceLinearLen,ForceAngleLen)
+			ForceLinear = Vector(0, 0, 0)
+			ForceAngle = Vector(0, 0, 0)
+		end
+	end
+
+	self.ForceLinear = ForceLinear
+	self.ForceAngle = ForceAngle
+	
 
 	if self.neteffect then
 		-- self.ForceLinear is 0 if the thruster is frozen
@@ -241,7 +255,7 @@ function ENT:PhysicsSimulate( phys, deltatime )
 	end
 
 	local ForceAngle, ForceLinear = self.ForceAngle, self.ForceLinear
-
+	
 	return ForceAngle, ForceLinear, SIM_LOCAL_ACCELERATION
 end
 
