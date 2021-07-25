@@ -84,7 +84,7 @@ function ENT:Initialize()
 
 	self.ThrustOffset 	= Vector( 0, 0, max.z )
 	self.ThrustOffsetR 	= Vector( 0, 0, min.z )
-	self.ForceAngle		= self.ThrustOffset:GetNormalized() * -1
+	self.ForceAngular		= self.ThrustOffset:GetNormalized() * -1
 
 	self:SetForce( 2000 )
 
@@ -128,22 +128,15 @@ function ENT:SetForce( force, mul )
 
 	// Calculate the velocity
 	ThrusterWorldForce = ThrusterWorldForce * self.force * mul * 50
-	local ForceLinear, ForceAngle = phys:CalculateVelocityOffset(ThrusterWorldForce, ThrusterWorldPos)
-	ForceLinear = phys:WorldToLocalVector(ForceLinear)
-	
-	do	-- Check for math.huge and infinity and huge forces that will crash
-		local ForceLinearLen, ForceAngleLen = ForceLinear:LengthSqr(), ForceAngle:LengthSqr()
-	
-		if not (ForceLinearLen < 2 ^ 51) or not (ForceAngleLen < 2 ^ 51) then
-			-- print("bad",ForceLinearLen,ForceAngleLen)
-			ForceLinear = Vector(0, 0, 0)
-			ForceAngle = Vector(0, 0, 0)
-		end
+	local ForceLinear, ForceAngular = phys:CalculateVelocityOffset(ThrusterWorldForce, ThrusterWorldPos)
+
+	if not (ForceLinear:LengthSqr() < 2 ^ 51 and ForceAngular:LengthSqr() < 2 ^ 51) then
+		ForceLinear = vector_origin
+		ForceAngular = vector_origin
 	end
 
 	self.ForceLinear = ForceLinear
-	self.ForceAngle = ForceAngle
-	
+	self.ForceAngular = ForceAngular
 
 	if self.neteffect then
 		-- self.ForceLinear is 0 if the thruster is frozen
@@ -254,9 +247,7 @@ function ENT:PhysicsSimulate( phys, deltatime )
 		self:SetEffect(self.oweffect)
 	end
 
-	local ForceAngle, ForceLinear = self.ForceAngle, self.ForceLinear
-	
-	return ForceAngle, ForceLinear, SIM_LOCAL_ACCELERATION
+	return self.ForceAngular, self.ForceLinear, SIM_GLOBAL_ACCELERATION
 end
 
 function ENT:Switch( on, mul )
@@ -313,7 +304,7 @@ function ENT:OnRestore()
 
 	self.ThrustOffset 	= Vector( 0, 0, max.z )
 	self.ThrustOffsetR 	= Vector( 0, 0, min.z )
-	self.ForceAngle		= self.ThrustOffset:GetNormalized() * -1
+	self.ForceAngular		= self.ThrustOffset:GetNormalized() * -1
 
 	self:SetOffset( self.ThrustOffset )
 	self:StartMotionController()

@@ -162,17 +162,26 @@ function ENT:CalcForce(phys)
 		self.mul = ThrustLen
 	end
 
+	local LinearForceLength
 	if ThrustLen>0 then
 		local ThrustNormal = ThrusterWorldForce/ThrustLen
 		self:SetNormal( -ThrustNormal )
 		self.ForceLinear, self.ForceAngular = phys:CalculateVelocityOffset( ThrustNormal * ( math.min( self.force * self.mul, self.force_max ) * 50 ), phys:LocalToWorld( self.ThrustOffset ) )
+		LinearForceLength = self.ForceLinear:LengthSqr()
+		if not (LinearForceLength < 2 ^ 51 and self.ForceAngular:LengthSqr() < 2 ^ 51) then
+			self.ForceLinear = vector_origin
+			self.ForceAngular = vector_origin
+			LinearForceLength = 0
+		end
+		LinearForceLength = math.sqrt(LinearForceLength)
 	else
 		self:SetNormal( vector_origin )
 		self.ForceLinear, self.ForceAngular = vector_origin, vector_origin
+		LinearForceLength = 0
 	end
 
 	if self.neteffect then
-		self:SetNWFloat("Thrust", self.ForceLinear:Length())
+		self:SetNWFloat("Thrust", LinearForceLength)
 	end
 end
 
