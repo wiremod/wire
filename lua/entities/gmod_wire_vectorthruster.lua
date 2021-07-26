@@ -103,7 +103,6 @@ function ENT:Initialize()
 	self.pitch = 0
 	self.mul = 0
 	self.force = 0
-	self.calcforce = true
 
 	self.ForceLinear = vector_origin
 	self.ForceAngular = vector_origin
@@ -197,7 +196,6 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.uwater = uwater
 	self.angleinputs = angleinputs
 	self.lengthismul = lengthismul
-	self.calcforce = true
 
 	-- Preventing client crashes
 	local BlockedChars = '["?]'
@@ -245,7 +243,6 @@ function ENT:TriggerInput(iname, value)
 
 	local phys = self:GetPhysicsObject()
 	if phys:IsValid() then
-		self.calcforce = true
 		if phys:IsMotionEnabled() then
 			phys:Wake()
 		else
@@ -255,11 +252,9 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )
-	if self.calcforce then
-		self:CalcForce(phys)
-		self:SetOn(self.mul ~= 0 and ( (self.bidir) and (math.abs(self.mul) > 0.01) and (math.abs(self.mul) > self.force_min) ) or ( (self.mul > 0.01) and (self.mul > self.force_min) ))
-		self:ShowOutput()
-	end
+	self:CalcForce(phys)
+	self:SetOn(self.mul ~= 0 and ( (self.bidir) and (math.abs(self.mul) > 0.01) and (math.abs(self.mul) > self.force_min) ) or ( (self.mul > 0.01) and (self.mul > self.force_min) ))
+	self:ShowOutput()
 
 	if (!self:IsOn()) then return SIM_NOTHING end
 	if (self:IsPlayerHolding()) then return SIM_NOTHING end

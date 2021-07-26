@@ -135,8 +135,8 @@ function ENT:SetForce( force, mul )
 		ForceAngular = vector_origin
 	end
 
-	self.ForceLinear = ForceLinear
-	self.ForceAngular = ForceAngular
+	self.ForceLinear = phys:WorldToLocalVector(ForceLinear)
+	self.ForceAngular = phys:WorldToLocalVector(ForceAngular)
 
 	if self.neteffect then
 		-- self.ForceLinear is 0 if the thruster is frozen
@@ -247,7 +247,7 @@ function ENT:PhysicsSimulate( phys, deltatime )
 		self:SetEffect(self.oweffect)
 	end
 
-	return self.ForceAngular, self.ForceLinear, SIM_GLOBAL_ACCELERATION
+	return self.ForceAngular, self.ForceLinear, SIM_LOCAL_ACCELERATION
 end
 
 function ENT:Switch( on, mul )
