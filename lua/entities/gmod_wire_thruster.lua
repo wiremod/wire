@@ -84,7 +84,6 @@ function ENT:Initialize()
 
 	self.ThrustOffset 	= Vector( 0, 0, max.z )
 	self.ThrustOffsetR 	= Vector( 0, 0, min.z )
-	self.ForceAngular		= self.ThrustOffset:GetNormalized() * -1
 
 	self:SetForce( 2000 )
 
@@ -114,7 +113,8 @@ function ENT:SetForce( force, mul )
 		self.force = force
 		self:ShowOutput()
 	end
-	mul = mul or 1
+	self.mul = mul or 1
+	self.needcalc = true
 
 	local phys = self:GetPhysicsObject()
 	if (!phys:IsValid()) then
@@ -122,33 +122,26 @@ function ENT:SetForce( force, mul )
 		return
 	end
 
-	// Get the data in worldspace
-	local ThrusterWorldPos = phys:LocalToWorld( self.ThrustOffset )
-	local ThrusterWorldForce = phys:LocalToWorldVector( self.ThrustOffset * -1 )
-
-	// Calculate the velocity
-	ThrusterWorldForce = ThrusterWorldForce * self.force * mul * 50
-	local ForceLinear, ForceAngular = phys:CalculateVelocityOffset(ThrusterWorldForce, ThrusterWorldPos)
-
-	if not (ForceLinear:LengthSqr() < 2 ^ 51 and ForceAngular:LengthSqr() < 2 ^ 51) then
-		ForceLinear = vector_origin
-		ForceAngular = vector_origin
-	end
-
-	self.ForceLinear = phys:WorldToLocalVector(ForceLinear)
-	self.ForceAngular = phys:WorldToLocalVector(ForceAngular)
-
 	if self.neteffect then
-		-- self.ForceLinear is 0 if the thruster is frozen
-		self.effectforce = ThrusterWorldForce:Length()
+		self.effectforce = self.ThrustOffset:Length() * (self.force * self.mul * -50)
 		self.updateeffect = true
 	end
 
-	if ( mul > 0 ) then
+	if ( self.mul > 0 ) then
 		self:SetOffset( self.ThrustOffset )
 	else
 		self:SetOffset( self.ThrustOffsetR )
 	end
+end
+
+function ENT:CalcForce(phys)
+	local ThrusterWorldForce = phys:LocalToWorldVector( self.ThrustOffset ) * (self.force * self.mul * -50)
+
+	-- Calculate the velocity
+	local ForceLinear, ForceAngular = phys:CalculateVelocityOffset(ThrusterWorldForce, phys:LocalToWorld( self.ThrustOffset ))
+
+	self.ForceLinear = phys:WorldToLocalVector(WireLib.clampForce(ForceLinear))
+	self.ForceAngular = phys:WorldToLocalVector(WireLib.clampForce(ForceAngular))
 end
 
 function ENT:SetDatEffect(uwater, owater, uweffect, oweffect)
@@ -247,6 +240,11 @@ function ENT:PhysicsSimulate( phys, deltatime )
 		self:SetEffect(self.oweffect)
 	end
 
+	if self.needcalc then
+		self.needcalc = false
+		self:CalcForce(phys)
+	end
+
 	return self.ForceAngular, self.ForceLinear, SIM_LOCAL_ACCELERATION
 end
 
@@ -304,7 +302,6 @@ function ENT:OnRestore()
 
 	self.ThrustOffset 	= Vector( 0, 0, max.z )
 	self.ThrustOffsetR 	= Vector( 0, 0, min.z )
-	self.ForceAngular		= self.ThrustOffset:GetNormalized() * -1
 
 	self:SetOffset( self.ThrustOffset )
 	self:StartMotionController()
