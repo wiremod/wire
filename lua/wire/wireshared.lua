@@ -1022,11 +1022,11 @@ end)
 
 -- Nan never equals itself, so if the value doesn't equal itself replace it with 0.
 function WireLib.clampForce( v )
-	v = Vector(v[1], v[2], v[3])
-	v[1] = v[1] == v[1] and math.Clamp( v[1], min_force, max_force ) or 0
-	v[2] = v[2] == v[2] and math.Clamp( v[2], min_force, max_force ) or 0
-	v[3] = v[3] == v[3] and math.Clamp( v[3], min_force, max_force ) or 0
-	return v
+	return Vector(
+		v[1] == v[1] and math.Clamp( v[1], min_force, max_force ) or 0,
+		v[2] == v[2] and math.Clamp( v[2], min_force, max_force ) or 0,
+		v[3] == v[3] and math.Clamp( v[3], min_force, max_force ) or 0
+	)
 end
 
 

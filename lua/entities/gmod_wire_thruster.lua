@@ -130,10 +130,8 @@ function ENT:SetForce( force, mul )
 	ThrusterWorldForce = ThrusterWorldForce * self.force * mul * 50
 	local ForceLinear, ForceAngular = phys:CalculateVelocityOffset(ThrusterWorldForce, ThrusterWorldPos)
 
-	if not (ForceLinear:LengthSqr() < 2 ^ 51 and ForceAngular:LengthSqr() < 2 ^ 51) then
-		ForceLinear = vector_origin
-		ForceAngular = vector_origin
-	end
+	ForceLinear = WireLib.clampForce(ForceLinear)
+	ForceAngular = WireLib.clampForce(ForceAngular)
 
 	self.ForceLinear = phys:WorldToLocalVector(ForceLinear)
 	self.ForceAngular = phys:WorldToLocalVector(ForceAngular)
