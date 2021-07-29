@@ -33,7 +33,8 @@ Stmt7 ← (Var ("+=" / "-=" / "*=" / "/="))? Stmt8
 Stmt8 ← "local"? (Var (&"[" Index ("=" Stmt8)? / "=" Stmt8))? Stmt9
 Stmt9 ← ("switch" "(" Expr1 ")" "{" SwitchBlock)? Stmt10
 Stmt10 ← (FunctionStmt / ReturnStmt)? Stmt11
-Stmt11 ← ("#include" String)? Expr1
+Stmt11 ← ("#include" String)? Stmt12
+Stmt12 ← ("do" Block "while" Cond)? Expr1
 
 FunctionStmt ← "function" FunctionHead "(" FunctionArgs Block
 FunctionHead ← (Type Type ":" Fun / Type ":" Fun / Type Fun / Fun)
@@ -254,7 +255,8 @@ function Parser:Stmt2()
 	if self:AcceptRoamingToken("whl") then
 		local trace = self:GetTokenTrace()
 		loopdepth = loopdepth + 1
-		local whl = self:Instruction(trace, "whl", self:Cond(), self:Block("while condition"))
+		local whl = self:Instruction(trace, "whl", self:Cond(), self:Block("while condition"),
+			false) -- Skip condition check first time?
 		loopdepth = loopdepth - 1
 		return whl
 	end
@@ -708,6 +710,30 @@ function Parser:Stmt11()
 		self.includes[#self.includes + 1] = Path
 
 		return self:Instruction(Trace, "inclu", Path)
+	end
+
+	return self:Stmt12()
+end
+
+function Parser:Stmt12()
+	if self:AcceptRoamingToken("do") then
+		local trace = self:GetTokenTrace()
+
+		loopdepth = loopdepth + 1
+		local code = self:Block("do keyword")
+
+		if not self:AcceptRoamingToken("whl") then
+			self:Error("while expected after do and code block (do {...} )")
+		end
+
+		local condition = self:Cond()
+
+
+		local whl = self:Instruction(trace, "whl", condition, code,
+			true) -- Skip condition check first time?
+		loopdepth = loopdepth - 1
+
+		return whl
 	end
 
 	return self:Expr1()
