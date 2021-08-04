@@ -537,7 +537,6 @@ registerOperator("try", "", "", function(self, args)
 
 	self:PushScope()
 		local ok, msg = pcall(stmt[1], self, stmt)
-		print("try", self.ScopeID, self.included)
 	self:PopScope()
 
 	if not ok then
@@ -547,10 +546,8 @@ registerOperator("try", "", "", function(self, args)
 			error(msg, 0)
 		end
 		self:PushScope()
-			print(msg, var_name)
 			self.Scope[var_name] = isstring(msg) and msg or "" -- isstring check if we want to be paranoid about the sandbox.
 			self.Scope.vclk[var_name] = true
-			print("catch", self.ScopeID)
 
 			local ok, msg = pcall(stmt2[1], self, stmt2)
 		self:PopScope()
