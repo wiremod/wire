@@ -181,6 +181,8 @@ function Tokenizer:NextSymbol()
 			tokenname = "try"
 		elseif self.tokendata == "catch" then
 			tokenname = "catch"
+		elseif self.tokendata == "do" then
+			tokenname = "do"
 		elseif self.tokendata:match("^[ijk]$") and self.character ~= "(" then
 			tokenname, self.tokendata = "num", "1" .. self.tokendata
 		else

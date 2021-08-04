@@ -227,7 +227,7 @@ local function var_tostring( k, v, typeid, indenting, printed, abortafter, cost 
 	else -- if it's anything else
 		ret = rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
 	end
-	return ret, cost
+	return ret, cost + #ret * 0.05
 end
 
 table_tostring = function( tbl, indenting, printed, abortafter, cost )
@@ -580,8 +580,9 @@ __e2setcost(5)
 -- Formats the table as a human readable string
 e2function string table:toString()
 	local printed = { [this] = true }
-	local ret, cost = table_tostring( this, 0, printed, 400 )
+	local ret, cost = table_tostring( this, 0, printed, 4000 )
 	self.prf = self.prf + cost * opcost
+	if self.prf > e2_tickquota then error("perf", 0) end
 	return ret
 end
 

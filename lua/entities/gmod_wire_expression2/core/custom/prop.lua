@@ -45,7 +45,11 @@ function PropCore.ValidSpawn(ply, model, isVehicle)
 	return ret
 end
 
-local canHaveInvalidPhysics = {delete=true, parent=true, deparent=true, solid=true, shadow=true, draw=true, use=true}
+local canHaveInvalidPhysics = {
+	delete=true, parent=true, deparent=true, solid=true,
+	shadow=true, draw=true, use=true, pos=true, ang=true,
+	manipulate=true
+}
 function PropCore.ValidAction(self, entity, cmd)
 	if(cmd=="spawn" or cmd=="Tdelete") then return true end
 	if(!IsValid(entity)) then return false end
@@ -142,9 +146,12 @@ end
 
 function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 	local phys = this:GetPhysicsObject()
+	local physOrThis = IsValid(phys) and phys or this
+
+	if pos ~= nil then WireLib.setPos( physOrThis, Vector( pos[1],pos[2],pos[3] ) ) end
+	if rot ~= nil then WireLib.setAng( physOrThis, Angle( rot[1],rot[2],rot[3] ) ) end
+
 	if IsValid( phys ) then
-		if pos ~= nil then WireLib.setPos( phys, Vector( pos[1],pos[2],pos[3] ) ) end
-		if rot ~= nil then WireLib.setAng( phys,  Angle( rot[1],rot[2],rot[3] ) ) end
 		if freeze ~= nil and this:GetUnFreezable() ~= true then phys:EnableMotion( freeze == 0 ) end
 		if gravity ~= nil then phys:EnableGravity( gravity ~= 0 ) end
 		if notsolid ~= nil then this:SetSolid( notsolid ~= 0 and SOLID_NONE or SOLID_VPHYSICS ) end
