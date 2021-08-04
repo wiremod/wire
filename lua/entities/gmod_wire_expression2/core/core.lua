@@ -26,22 +26,19 @@ __e2setcost(0)
 registerOperator("seq", "", "", function(self, args)
 	self.prf = self.prf + args[2]
 
-	local ret = args[3]
-	if ret then
-		self.trace = ret.Trace
-	end
-
 	if self.prf > e2_tickquota then error("perf", 0) end
 
 	local n = #args
 	if n == 2 then return end
 
-	for i=3,n-1 do
+	for i = 3, n-1 do
 		local op = args[i]
+		self.trace = op.Trace
 		op[1](self, op)
 	end
 
 	local op = args[n]
+	self.trace = op.Trace
 	return op[1](self, op)
 end)
 
@@ -183,7 +180,7 @@ registerOperator("cnd", "n", "", function(self, args)
 	end
 end)
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------
 
 __e2setcost(1) -- approximation
 
@@ -205,6 +202,7 @@ registerOperator("owc","","n",function(self,args)
 	for i=1,ret do if (not IsValid(tbl[i].Entity)) then ret = ret - 1 end end
 	return ret
 end)
+
 
 --------------------------------------------------------------------------------
 
@@ -322,17 +320,17 @@ e2function void exit()
 end
 
 do
-	local catchable = E2Lib.catchableError
+	local raise = E2Lib.raiseException
 	e2function void error( string reason )
-		catchable(reason, 2, self.trace)
+		raise(reason, 2, self.trace)
 	end
 
 	e2function void assert(condition)
-		if condition == 0 then catchable("assert failed", 2, self.trace) end
+		if condition == 0 then raise("assert failed", 2, self.trace) end
 	end
 
 	e2function void assert(condition, string reason)
-		if condition == 0 then catchable(reason, 2, self.trace) end
+		if condition == 0 then raise(reason, 2, self.trace) end
 	end
 end
 
@@ -520,13 +518,18 @@ registerOperator("include", "", "", function(self, args)
 		self:InitScope() -- Create a new Scope Enviroment
 		self:PushScope()
 
-		Script[1](self, Script)
+		local ok, msg = pcall(Script[1], self, Script)
 
 		self:PopScope()
 		self:LoadScopes(OldScopes)
+
+		if not ok then
+			error(msg, 0)
+		end
 	end
 end)
 
+local unpackException = E2Lib.unpackException
 registerOperator("try", "", "", function(self, args)
 	local prf, stmt, var_name, stmt2 = args[2], args[3], args[4], args[5]
 	self.prf = self.prf + prf
@@ -534,28 +537,26 @@ registerOperator("try", "", "", function(self, args)
 
 	self:PushScope()
 		local ok, msg = pcall(stmt[1], self, stmt)
+		print("try", self.ScopeID, self.included)
 	self:PopScope()
 
-	local catchable
-	if istable(msg) then
-		catchable = msg.catchable
-		msg = msg.msg
-	end
-
 	if not ok then
+		local catchable, msg = unpackException(msg)
 		if not catchable then
-			-- Anything other than context.throw / e2's error is not catchable.
+			-- Anything other than context:throw / e2's error is not catchable.
 			error(msg, 0)
 		end
 		self:PushScope()
+			print(msg, var_name)
 			self.Scope[var_name] = isstring(msg) and msg or "" -- isstring check if we want to be paranoid about the sandbox.
 			self.Scope.vclk[var_name] = true
+			print("catch", self.ScopeID)
 
 			local ok, msg = pcall(stmt2[1], self, stmt2)
-			if not ok then
-				self:PopScope()
-				error(msg, 0)
-			end
 		self:PopScope()
+
+		if not ok then
+			error(msg, 0)
+		end
 	end
 end)
