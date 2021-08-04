@@ -1,0 +1,10 @@
+{
+    "title" : "Improved RT Cameras (with Wiremod support)",
+    "type" : "tool",
+    "tags" : [ "realism", "build" ],
+    "ignore": [
+        ".git*",
+        "*.bat",
+        "*.gma"
+    ]
+}
