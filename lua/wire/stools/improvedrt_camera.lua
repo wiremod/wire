@@ -63,7 +63,7 @@ function TOOL.BuildCPanel(panel)
         local old_callback = cl_filtering_slider.OnValueChanged
         
         cl_filtering_slider.OnValueChanged = function(self, value)
-            cl_filtering_desc:SetText("#tool.improvedrt_camera.settings.cl_filtering_"..tostring(value))
+            cl_filtering_desc:SetText("#tool.improvedrt_camera.settings.cl_filtering_"..tostring(math.Round(value)))
             old_callback(self, value)
         end
     end

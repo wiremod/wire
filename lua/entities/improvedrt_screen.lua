@@ -5,11 +5,6 @@ ENT.Base = "base_wire_entity"
 ENT.PrintName = "Improved RT Screen"
 ENT.WireDebugName = "Improved RT Screen"
 
-function ENT:Setup(screen_material)--(model, screen_material)
-    --self:SetModel(model or "models/kobilica/wiremonitorbig.mdl")
-    self:SetScreenMaterial(screen_material or "normal")
-end
-
 function ENT:SetupDataTables()
     self:NetworkVar("Bool", 0, "Active")
 	self:NetworkVar("Entity", 0, "Camera" )
@@ -18,31 +13,98 @@ function ENT:SetupDataTables()
         self:NetworkVarNotify("ScreenMaterial", self.ScreenMaterialChanged)
     end
 
-    self:NetworkVar("Vector", 0, "ParamColor1")
-    self:NetworkVar("Vector", 1, "ParamColor2")
-
     self:NetworkVar("Float", 0, "ScrollX")
     self:NetworkVar("Float", 1, "ScrollY")
     self:NetworkVar("Float", 2, "ScaleX")
     self:NetworkVar("Float", 3, "ScaleY")
+
+    self:NetworkVar("String", 1, "MaterialParams")
+    if CLIENT then
+        self:NetworkVarNotify("MaterialParams", self.MaterialParamsChanged)
+    end
 end
 
+local MTLPARAM_TYPE = {
+    numint = {"SetInt", "NORMAL", nil },
+    numfloat = {"SetFloat", "NORMAL", nil },
+    vector3 = {"SetVector", "VECTOR", function(tbl) return Vector(tbl.x, tbl.y, tbl.z) end},
+    --vector4 = {"SetVector4D", "VECTOR4", nil }, --May not work
+    string = {"SetString", "STRING", nil },
+    texture = {"SetTexture", "STRING", nil},
+    matrix44 = {"SetMatrix", "matrix4", function(tbl) return Matrix({
+        {tbl.a1, tbl.a2, tbl.a3, tbl.a4},
+        {tbl.b1, tbl.b2, tbl.b3, tbl.b4},
+        {tbl.c1, tbl.c2, tbl.c3, tbl.c4},
+        {tbl.d1, tbl.d2, tbl.d3, tbl.d4}
+    })
+    end}
+}
+
+local MaterialParameters = {}
+local function GetMaterialParameters(mtl)
+    if MaterialParameters[mtl] ~= nil then
+        return MaterialParameters[mtl]
+    end
+
+    local mtlFile = file.Read("materials/improvedrt_screen/monitor_"..mtl..".vmt", "GAME")
+
+    if mtlFile == nil then return end
+
+    local mtl = util.KeyValuesToTable(mtlFile)
+    local params = {}
+    
+    for mtlParam, tbl in pairs(mtl["!parameters"] or {}) do
+        local defaultParse = assert(MTLPARAM_TYPE[tbl.type])[3]
+
+        params[mtlParam] = {
+            WireName = tbl.wirename,
+            WireType = MTLPARAM_TYPE[tbl.type][2],
+            MaterialFn = MTLPARAM_TYPE[tbl.type][1],
+            Default = defaultParse and defaultParse(tbl.default) or tbl.default
+        }
+    end
+
+    MaterialParameters[mtl] = params
+
+    return params
+end
+
+
 if SERVER then
+    local InputsTable = {
+        "Active", "Camera [ENTITY]",
+        "Scroll X", "Scroll Y", "Scale X", "Scale Y"
+    }
+
     function ENT:Initialize()
         self:PhysicsInit( SOLID_VPHYSICS )
         self:SetMoveType( MOVETYPE_VPHYSICS )
         self:SetSolid( SOLID_VPHYSICS )
         self:SetCollisionGroup( COLLISION_GROUP_NONE )
         self:DrawShadow( false )
-    
-        self.Inputs = Wire_CreateInputs( self, {
-            "Active", "Camera [ENTITY]", "Screen Color 1 [VECTOR]", "Screen Color 2 [VECTOR]",
-            "Scroll X", "Scroll Y", "Scale X", "Scale Y"
-        } )
+
+        self.Inputs = Wire_CreateInputs( self, InputsTable )
 
         self:SetScaleX(1)
         self:SetScaleY(1)
+
+        self.MaterialParams = {}
+        self:SetMaterialParams("{}")
     end
+
+    function ENT:Setup(screen_material)--(model, screen_material)
+        --self:SetModel(model or "models/kobilica/wiremonitorbig.mdl")
+        self:SetScreenMaterial(screen_material or "normal")
+        
+        local Inputs = table.Copy(InputsTable)
+        
+        for _, tbl in pairs(GetMaterialParameters(self:GetScreenMaterial())) do
+            table.insert(Inputs, tbl.WireName.." ["..tbl.WireType.."]")
+        end
+
+        self.Inputs = Wire_CreateInputs( self, Inputs )
+    end
+    
 end
 
 function ENT:TriggerInput( name, value )
@@ -55,10 +117,6 @@ function ENT:TriggerInput( name, value )
         if value == nil or value:GetClass() == "improvedrt_camera" then
             self:SetCamera(value)
         end
-    elseif name == "Screen Color 1" then
-        self:SetParamColor1(value)
-    elseif name == "Screen Color 2" then
-        self:SetParamColor2(value)
     elseif name == "Scroll X" then
         self:SetScrollX(value)
     elseif name == "Scroll Y" then
@@ -67,6 +125,9 @@ function ENT:TriggerInput( name, value )
         self:SetScaleX(value)
     elseif name == "Scale Y" then
         self:SetScaleY(value)
+    else
+        self.MaterialParams[name] = value
+        self:SetMaterialParams(util.TableToJSON(self.MaterialParams))
     end
 end
 
@@ -97,19 +158,22 @@ if CLIENT then
 
     function ENT:Initialize()
         self.MonitorDesc = WireGPU_Monitors[self:GetModel()]
-        self.Material = GetOrAllocMaterial(self:GetScreenMaterial())
+        self:ScreenMaterialChanged(nil,nil,self:GetScreenMaterial())
+        self.MaterialParams = {}
     end
 
     function ENT:ScreenMaterialChanged(_,_,mtl)
         self.Material = GetOrAllocMaterial(mtl)
+        self.MaterialParamsDesc = GetMaterialParameters(mtl)
+    end
+    
+    function ENT:MaterialParamsChanged(_,_,materialParams)
+        self.MaterialParams = util.JSONToTable(materialParams)
     end
     
     local improvedrt_camera_resolution_h = GetConVar("improvedrt_camera_resolution_h")
     local improvedrt_camera_resolution_w = GetConVar("improvedrt_camera_resolution_w")    
     local improvedrt_screen_renderdistance = CreateClientConVar("improvedrt_screen_renderdistance","512", nil,true,nil, 0)
-
-    local white_mtl = Material("lights/White")
-    local white_txt = white_mtl:GetTexture("$basetexture")
 
     function ENT:Think()
         local camera = self:GetCamera()
@@ -143,11 +207,13 @@ if CLIENT then
         local tex2 = material:GetString("!targettex2")
         if tex2 ~= nil then material:SetTexture(tex2, rt) end
 
-        local clr1 = material:GetString("!parameter_color1")
-        if clr1 ~= nil then material:SetVector(clr1, self:GetParamColor1()) end
+        for mtl_param, tbl in pairs(self.MaterialParamsDesc) do
+            --print(self.MaterialParams[tbl.WireName])
 
-        local clr2 = material:GetString("!parameter_color2")
-        if clr2 ~= nil then material:SetVector(clr2, self:GetParamColor2()) end
+            local value = self.MaterialParams[tbl.WireName] or tbl.Default
+
+            material[tbl.MaterialFn](material, mtl_param, value)
+        end
 
         local xraw = 256 / monitor.RatioX
         local yraw = 256
@@ -170,7 +236,6 @@ if CLIENT then
         )
             surface.SetDrawColor(255,255,255)
             surface.SetMaterial(material)
-            --render.SetLightmapTexture(white_txt)
             surface.DrawPoly({
                 { x = x2, y = y1, u = u2, v = v1},
                 { x = x2, y = y2, u = u2, v = v2},

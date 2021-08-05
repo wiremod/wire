@@ -26,10 +26,24 @@
 
 	"$OffsetAmount" "0"
 	"$OffsetSine" "0"
+
 	"$SineNoise" "0"
 	"$Sine1" "0"
 	"$SinePeriod" "0"
 	"$Sine2" "0"
+	
+	"$FinalOffset" "0.0"
+
+	"$param_noisescale" "8.0"
+	"!Parameters" 
+	{
+		"$param_noisescale"
+		{
+			"WireName" "Param NoiseScale"
+			"Type" "numfloat"
+			"Default" "8.0"
+		}
+	}
 
 	"Proxies"
 	{
@@ -73,10 +87,17 @@
 			"resultVar" "$Offsetamount"
 		}
 	
+		"Multiply"
+		{
+			"srcVar1" "$param_noisescale"
+			"srcVar2" "$Offsetamount"
+			"resultvar" "$FinalOffset"
+		}
+
 		"TextureScroll"
 		{
 			"texturescrollvar" "$basetexturetransform"
-			"texturescrollrate" "$Offsetamount"
+			"texturescrollrate" "$FinalOffset"
 			"texturescrollangle" "0"
 		}
 
