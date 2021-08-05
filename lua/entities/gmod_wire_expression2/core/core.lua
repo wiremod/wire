@@ -48,10 +48,13 @@ __e2setcost(0) -- approximation
 
 registerOperator("whl", "", "", function(self, args)
 	local op1, op2 = args[2], args[3]
+	local skipCond = args[5] -- skipCondFirstTime
 
 	self.prf = self.prf + args[4] + 3
-	while op1[1](self, op1) ~= 0 do
+	while skipCond or (op1[1](self, op1) ~= 0) do
 		self:PushScope()
+		skipCond = false
+
 		local ok, msg = pcall(op2[1], self, op2)
 		if not ok then
 			if msg == "break" then self:PopScope() break

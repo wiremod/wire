@@ -885,12 +885,13 @@ function EDITOR:_OnTextChanged()
 	if not ctrlv then
 		if text == "\n" or text == "`" then return end
 		if text == "}" and GetConVarNumber('wire_expression2_autoindent') ~= 0 then
-			self:SetSelection(text)
 			local row = self.Rows[self.Caret[1]]
-			if string_match("{" .. row, "^%b{}.*$") then
-				local newrow = unindent(row)
-				self.Rows[self.Caret[1]] = newrow
-				self.Caret[2] = self.Caret[2] + newrow:len()-row:len()
+			self:SetSelection(text)
+			if string.match(row,"[^%s]") == nil then
+				local caret = self:Selection()[1]
+				self:Indent(true)
+				self.Caret = caret
+				self.Caret[2] = #(self.Rows[caret[1]]) + 1
 				self.Start[2] = self.Caret[2]
 			end
 			return
@@ -1839,7 +1840,13 @@ function EDITOR:_OnKeyCodeTyped(code)
 			local row = self.Rows[self.Caret[1]]:sub(1,self.Caret[2]-1)
 			local diff = (row:find("%S") or (row:len()+1))-1
 			local tabs = string_rep("    ", math_floor(diff / 4))
-			if GetConVarNumber('wire_expression2_autoindent') ~= 0 and (string_match("{" .. row .. "}", "^%b{}.*$") == nil) then tabs = tabs .. "    " end
+			if GetConVarNumber('wire_expression2_autoindent') ~= 0 then
+				local row = string_gsub(row,'%b""',"") -- erase strings on this line
+				local _, num1 = string_gsub(row,"{","") -- count number of opening brackets
+				local _, num2 = string_gsub(row,"%b{}","") -- count number of matching bracket pairs
+				if num1 > num2 then tabs = tabs .. "    " end
+			end
+
 			self:SetSelection("\n" .. tabs)
 		elseif code == KEY_UP then
 			if self.AC_Panel and self.AC_Panel:IsVisible() then

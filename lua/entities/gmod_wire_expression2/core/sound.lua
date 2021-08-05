@@ -206,9 +206,11 @@ e2function void soundPurge()
 	soundPurge( self )
 end
 
+__e2setcost(5000)
 e2function number soundDuration(string sound)
 	return SoundDuration(sound) or 0
 end
+__e2setcost(nil)
 
 ---------------------------------------------------------------
 

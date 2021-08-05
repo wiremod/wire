@@ -1,6 +1,7 @@
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 include('shared.lua')
+DEFINE_BASECLASS( "base_wire_entity" )
 
 ENT.WireDebugName = "DigitalScreen"
 
@@ -27,8 +28,10 @@ function ENT:Initialize()
 	self.ScreenHeight = 32
 
 	self.NumOfWrites = 0
+	self.UpdateRate = 0.1
 
 	self.ChangedCellRanges = {}
+	self.ChangedStep = 1
 end
 
 function ENT:Setup(ScreenWidth, ScreenHeight)
@@ -84,20 +87,63 @@ end
 local function numberToString(t, number, bytes)
 	local str = {}
 	for j=1,bytes do
-		str[#str+1] = string.char(number % 256)
+		str[j] = string.char(number % 256)
 		number = math.floor(number / 256)
 	end
 	t[#t+1] = table.concat(str)
 end
 
-local function buildData(datastr, memory, pixelbit, range, bytesRemaining)
+----------------------------------------------------
+-- Processing limiters and global bandwidth limiters
+local maxProcessingTime = engine.TickInterval() * 0.9
+local defaultMaxBandwidth = 10000 -- 10k per screen max limit - is arbitrary. needs to be smaller than the global limit.
+local defaultMaxGlobalBandwidth = 20000 -- 20k is a good global limit in my testing. higher than that seems to cause issues
+local maxBandwidth = defaultMaxBandwidth
+local globalBandwidthLookup = {}
+local function calcGlobalBW()
+	maxBandwidth = defaultMaxGlobalBandwidth
+	local n = 0
+
+	-- count the number of digi screens currently sending data
+	for digi in pairs(globalBandwidthLookup) do 
+		if not IsValid(digi) then globalBandwidthLookup[digi] = nil end -- this most likely won't trigger due to OnRemove, but just in case
+		n = n + 1 
+	end
+
+	-- player count also seems to affect lag somewhat
+	-- it seems logical that this would have something to do with the upload bandwidth of the server
+	-- but that seems unlikely since testing shows that the amount of data sent isn't very high
+	-- it's more likely that the net message library just isn't very efficient
+	-- the numbers here are picked somewhat arbitrarily, with a bit of guessing.
+	-- change in the future if necessary.
+	n = n + math.max(0,player.GetCount()-2) / 4
+
+	-- during testing, lag seems to increase somewhat faster as more net messages are sent at the same time
+	-- so we double this value to compensate
+	n = n * 2
+
+	maxBandwidth = math.max(100,math.Round(math.min(defaultMaxBandwidth,maxBandwidth / n),2))
+end
+local function addGlobalBW(e) 
+	globalBandwidthLookup[e] = true
+	calcGlobalBW()
+end
+local function removeGlobalBW(e) globalBandwidthLookup[e] = nil end
+----------------------------------------------------
+
+function ENT:OnRemove()
+	BaseClass.OnRemove(self)
+	removeGlobalBW(self)
+end
+
+local function buildData(datastr, memory, pixelbit, range, bytesRemaining, sTime)
 	if bytesRemaining < 15 then return 0 end
 	local lengthIndex = #datastr+1
 	datastr[lengthIndex] = "000"
 	numberToString(datastr,range.start,3) -- Address of range
 	bytesRemaining = bytesRemaining - 6
 	local i, iend = range.start, range.start + range.length
-	while i<iend and bytesRemaining>0 do
+	while i<iend and bytesRemaining>0 and SysTime() - sTime < maxProcessingTime do
 		if i>=1048500 then
 			numberToString(datastr,memory[i],2)
 			bytesRemaining = bytesRemaining - 2
@@ -118,35 +164,13 @@ end
 
 util.AddNetworkString("wire_digitalscreen")
 
+
 local pixelbits = {3, 1, 3, 4, 1} --The compressed pixel formats are in bytes
 function ENT:FlushCache(ply)
-	if not next(self.ChangedCellRanges) then return end
-
-	if not ply then
-		-- If the user is writing a lot of data, activate buffering
-		if self.NumOfWrites > 4000 then
-			self.UseBuffering = true
-		else
-			self.UseBuffering = nil
-		end
-
-		if self.UseBuffering then
-			-- This section allows the data to build up until
-			-- the user stops writing data, or up to three seconds
-			if not self.WaitToFlush then
-				self.WaitToFlush = CurTime() + 3
-				return
-			elseif self.WaitToFlush >= CurTime() then
-				if self.NumOfWrites > 0 then
-					return
-				end
-			end
-		end
-
-		self.NumOfWrites = 0
+	if not next(self.ChangedCellRanges) then
+		removeGlobalBW(self)
+		return
 	end
-
-	self.WaitToFlush = nil
 
 	local pixelformat = (math.floor(self.Memory[1048569]) or 0) + 1
 	if pixelformat < 1 or pixelformat > #pixelbits then pixelformat = 1 end
@@ -154,23 +178,45 @@ function ENT:FlushCache(ply)
 	local bytesRemaining = 32768
 	local datastr = {}
 
-	local range = self.ChangedCellRanges[1]
-	while range and bytesRemaining>0 do
-		bytesRemaining = buildData(datastr, self.Memory, pixelbit, range, bytesRemaining)
+	local range = self.ChangedCellRanges[self.ChangedStep]
+	local sTime = SysTime()
+	while range and bytesRemaining>0 and SysTime() - sTime < maxProcessingTime do
+		bytesRemaining = buildData(datastr, self.Memory, pixelbit, range, bytesRemaining, sTime)
 		if range.length==0 then
-			table.remove(self.ChangedCellRanges, 1)
-			range = self.ChangedCellRanges[1]
+			self.ChangedStep = self.ChangedStep + 1
+			range = self.ChangedCellRanges[self.ChangedStep]
 		end
+	end
+
+	local n = #self.ChangedCellRanges
+
+	self.deltaStep = (self.deltaStep or 0) * 0.5 + self.ChangedStep * 0.5
+	self.deltaN = (self.deltaN or 0) * 0.5 + n * 0.5
+
+	if 
+		-- reset queue if we've reached the end
+		self.ChangedStep > n or
+
+		-- if the queue length keeps growing faster than we can process it, just clear it
+		-- this check is mostly to detect the worst possible case where the user spams single random pixels
+		(n > self.ScreenWidth * self.ScreenHeight and self.deltaStep * 4 < self.deltaN) then
+		
+		self.ChangedCellRanges = {}
+		self.ChangedStep = 1
 	end
 
 	numberToString(datastr,0,3)
 	datastr = util.Compress(table.concat(datastr))
+	local len = #datastr
 
 	net.Start("wire_digitalscreen")
 	net.WriteUInt(self:EntIndex(),16)
 	net.WriteUInt(pixelformat, 5)
-	net.WriteUInt(#datastr, 32)
-	net.WriteData(datastr,#datastr)
+	net.WriteUInt(len, 32)
+	net.WriteData(datastr,len)
+
+	addGlobalBW(self)
+	self.UpdateRate = math.Round(math.max(len / maxBandwidth, 0.05),2)
 
 	if ply then net.Send(ply) else net.Broadcast() end
 end
@@ -215,6 +261,7 @@ end
 
 function ENT:WriteCell(Address, value)
 	Address = math.floor (Address)
+	value = math.floor(value or 0)
 	if Address < 0 then return false end
 	if Address >= 1048577 then return false end
 
@@ -226,38 +273,42 @@ function ENT:WriteCell(Address, value)
 	else
 		if Address == 1048569 then
 			-- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB; 4: XXX)
-			value = math.Clamp(math.floor(value or 0), 0, 9)
+			value = math.Clamp(value, 0, 9)
 		elseif Address == 1048570 then -- Clear row
-			local row = math.Clamp(math.floor(value), 0, self.ScreenHeight-1)
+			local row = math.Clamp(value, 0, self.ScreenHeight-1)
 			if self.Memory[1048569] == 1 then
 				self:ClearCellRange(row*self.ScreenWidth*3, self.ScreenWidth*3)
 			else
 				self:ClearCellRange(row*self.ScreenWidth, self.ScreenWidth)
 			end
 		elseif Address == 1048571 then -- Clear column
-			local col = math.Clamp(math.floor(value), 0, self.ScreenWidth-1)
+			local col = math.Clamp(value, 0, self.ScreenWidth-1)
 			for i = col,col+self.ScreenWidth*(self.ScreenHeight-1),self.ScreenWidth do
 				self:ClearPixel(i)
 			end
 		elseif Address == 1048572 then -- Height
-			self.ScreenHeight = math.Clamp(math.floor(value), 1, 512)
+			self.ScreenHeight = math.Clamp(value, 1, 512)
 		elseif Address == 1048573 then -- Width
-			self.ScreenWidth  = math.Clamp(math.floor(value), 1, 512)
+			self.ScreenWidth  = math.Clamp(value, 1, 512)
 		elseif Address == 1048574 then -- Hardware Clear Screen
+
+			-- delete changed cells
+			self.ChangedCellRanges = {}
+			self.ChangedStep = 1
+
+			-- copy every value above pixel data
 			local mem = {}
 			for addr = 1048500,1048575 do
 				mem[addr] = self.Memory[addr]
-			end
-			self.Memory = mem
-			-- clear pixel data from usermessage queue
-			local i = 1
-			while self.ChangedCellRanges[i] ~= nil do
-				if self.ChangedCellRanges[i].start + self.ChangedCellRanges[i].length < 1048500 then
-					table.remove(self.ChangedCellRanges, i)
-				else
-					i = i + 1
+
+				if self.Memory[addr] then
+					-- re-mark cell changed
+					self:MarkCellChanged(addr)
 				end
 			end
+
+			-- reset memory
+			self.Memory = mem
 		elseif Address == 1048575 then -- CLK
 			-- not needed atm
 		end
@@ -272,7 +323,7 @@ end
 
 function ENT:Think()
 	self:FlushCache()
-	self:NextThink(CurTime()+1)
+	self:NextThink(CurTime()+self.UpdateRate)
 	return true
 end
 
