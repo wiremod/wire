@@ -7,7 +7,6 @@ if CLIENT then
 	language.Add( "WireLightTool_RopeLength", "Rope Length:")
 	language.Add( "WireLightTool_bright", "Glow brightness:")
 	language.Add( "WireLightTool_size", "Glow size:" )
-	language.Add( "WireLightTool_spritesize", "Sprite size:" )
 	language.Add( "WireLightTool_directional", "Directional Component" )
 	language.Add( "WireLightTool_radiant", "Radiant Component" )
 	language.Add( "WireLightTool_glow", "Glow Component" )
@@ -30,8 +29,7 @@ if SERVER then
 			self:GetClientNumber("size"),
 			self:GetClientNumber("r"),
 			self:GetClientNumber("g"),
-			self:GetClientNumber("b"),
-			self:GetClientNumber("spritesize")
+			self:GetClientNumber("b")
 	end
 
 	function TOOL:LeftClick_PostMake( ent, ply, trace )
@@ -96,13 +94,12 @@ TOOL.ClientConVar = {
 	radiant      = 0,
 	glow         = 0,
 	ropelength   = 64,
-	brightness   = 2,
-	size         = 256,
-	const        = "weld",
-	r            = 0,
-	g            = 0,
-	b            = 0,
-	spritesize   = 128
+	brightness	 = 2,
+	size		 = 256,
+	const		 = "weld",
+	r			 = 0,
+	g 			 = 0,
+	b			 = 0
 }
 
 function TOOL.BuildCPanel(panel)
@@ -115,7 +112,6 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#WireLightTool_glow", "wire_light_glow")
 	panel:NumSlider("#WireLightTool_bright", "wire_light_brightness", 0, 10, 0)
 	panel:NumSlider("#WireLightTool_size", "wire_light_size", 0, 1024, 0)
-	panel:NumSlider("#WireLightTool_spritesize", "wire_light_spritesize", 0, 256, 0)
 	panel:AddControl("ComboBox", {
 		Label = "#WireLightTool_Const",
 		Options = {

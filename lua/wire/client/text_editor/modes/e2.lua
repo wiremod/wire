@@ -29,8 +29,7 @@ local keywords = {
 	--["function"] = { [true] = true },
 	["return"] = { [true] = true },
 	["local"]  = { [true] = true },
-	["try"]    = { [true] = true },
-	["do"] = { [true] = true }
+	["try"]    = { [true] = true }
 }
 
 -- fallback for nonexistant entries:

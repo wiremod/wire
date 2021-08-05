@@ -333,11 +333,7 @@ function Compiler:InstrFOR(args)
 end
 
 function Compiler:InstrWHL(args)
-	-- args = { "whl", trace, condition expression, loop body, skip condition check first time? }
-
-
-	local skipCondFirstTime = args[5]
-
+	-- args = { "whl", trace, condition expression, loop body }
 	self:PushScope()
 
 	self:PushPrfCounter()
@@ -347,7 +343,7 @@ function Compiler:InstrWHL(args)
 	local stmt = self:EvaluateStatement(args, 2)
 	self:PopScope()
 
-	return { self:GetOperator(args, "whl", {})[1], cond, stmt, prf_cond, skipCondFirstTime }
+	return { self:GetOperator(args, "whl", {})[1], cond, stmt, prf_cond }
 end
 
 

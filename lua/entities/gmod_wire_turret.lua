@@ -43,16 +43,9 @@ function ENT:FireShot()
 		self:EmitSound( self.sound )
 	end
 
-	local shootOrigin, shootAngles
-	local parent = self:GetParent()
-	if parent:IsValid() then
-		shootOrigin = self:LocalToWorld(self.attachmentPos)
-		shootAngles = self:GetAngles()
-	else
-		local phys = self:GetPhysicsObject()
-		shootOrigin = phys:LocalToWorld(self.attachmentPos)
-		shootAngles = phys:GetAngles()
-	end
+	local phys = self:GetPhysicsObject()
+	local shootOrigin = phys:LocalToWorld(self.attachmentPos)
+	local shootAngles = phys:GetAngles()
 
 	-- Shoot a bullet
 	local bullet      = {}

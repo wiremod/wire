@@ -828,7 +828,7 @@ local function composedata(startSize, endSize, length, material, color, alpha)
 	}
 end
 
-__e2setcost(500)
+__e2setcost(30)
 
 --- StartSize, EndSize, Length, Material, Color (RGB), Alpha
 --- Adds a trail to <this> with the specified attributes.

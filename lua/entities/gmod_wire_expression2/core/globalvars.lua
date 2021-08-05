@@ -7,10 +7,6 @@ local gvars = {}
 gvars.shared = {}
 gvars.safe = {} -- Safe from hacking using gTableSafe
 
-hook.Add("Wire_EmergencyRamClear",function()
-	gvars = {}
-end)
-
 ------------------------------------------------------------------------------------------------
 -- GVARS V2
 ------------------------------------------------------------------------------------------------
