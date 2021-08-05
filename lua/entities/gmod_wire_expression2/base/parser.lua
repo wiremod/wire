@@ -739,7 +739,7 @@ function Parser:Stmt12()
 			self:Error("Try block must be followed by catch statement")
 		end
 	end
-	self:Stmt13()
+	return self:Stmt13()
 end
 
 function Parser:Stmt13()

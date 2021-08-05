@@ -15,8 +15,7 @@ __e2setcost(2) -- approximation
 
 registerOperator("var", "", "", function(self, args)
 	local op1, scope = args[2], args[3]
-	local val = self.Scopes[scope][op1]
-	return val
+	return self.Scopes[scope][op1]
 end)
 
 --------------------------------------------------------------------------------
