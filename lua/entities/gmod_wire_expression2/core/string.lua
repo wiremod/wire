@@ -420,7 +420,7 @@ e2function array string:explode(string delim)
 end
 
 e2function array string:explodeRE( string delim )
-	local ok, ret = pcall(function() checkregex(this, pattern) return string_Explode( delim, this, true ) end)
+	local ok, ret = pcall(function() checkregex(this, delim) return string_Explode( delim, this, true ) end)
 	if not ok then
 		self.player:ChatPrint(ret)
 		ret = {}

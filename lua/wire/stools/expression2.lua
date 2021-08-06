@@ -75,13 +75,13 @@ if SERVER then
 
 	local bypassModeCVar = CreateConVar(
 		"wire_expression2_viewrequest_bypass", 1, {FCVAR_ARCHIVE, FCVAR_NOTIFY},
-		"Sets the admin bypass mode for E2 view requests\n0 - No one can bypass\n1 - Superadmins can bypass (default)\n2 - Superadmins and admins can bypass"
+		"Sets the admin bypass mode for E2 view requests\n0 - No one can bypass\n1 - Superadmins can bypass (default)\n2 - Superadmins and admins can bypass\n3 - View requests disabled"
 	)
 	local function CheckBypass(plr)
 		local bypassMode = bypassModeCVar:GetInt()
 
 		-- Need the or between IsAdmin and IsSuperAdmin as superadmins may not count as admins due to certain addons
-		return (bypassMode == 1 and plr:IsSuperAdmin()) or (bypassMode == 2 and (plr:IsAdmin() or plr:IsSuperAdmin()))
+		return bypassMode == 3 or (bypassMode == 2 and (plr:IsAdmin() or plr:IsSuperAdmin())) or (bypassMode == 1 and plr:IsSuperAdmin())
 	end
 
 	-- Simple serverside only local table for storing view requests to make handling them not spaghetti code
@@ -157,6 +157,7 @@ if SERVER then
 
 	util.AddNetworkString("WireExpression2_OpenEditor")
 	function TOOL:Think()
+		WireToolObj.Think(self)
 		--[[
 			I had to replace TOOL:RightClick with TOOL:Think as prop protection was preventing
 			the view requests system from functioning as intended
@@ -184,8 +185,18 @@ if SERVER then
 					end
 				elseif CheckBypass(player) then
 					if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
-						-- Warn the chip's owner their E2 was just taken via the admin bypass
-						BetterChatPrint(chip.player, "Warning, the server admin '"..player:Nick().."' just accessed your chip '"..chip.name.."', as the view request admin bypass is enabled!")
+						-- Warn the chip's owner their E2 was just taken via the bypass
+						if bypassModeCVar:GetInt() == 3 then
+							BetterChatPrint(
+								chip.player,
+								string.format("Warning, the player '%s' just accessed your chip '%s', as view requests are disabled", player:Nick(), chip.name)
+							)
+						else
+							BetterChatPrint(
+								chip.player,
+								string.format("Warning, the server admin '%s' just accessed your chip '%s', as the view request admin bypass is enabled", player:Nick(), chip.name)
+							)
+						end
 						self:Download(player, chip)
 						player:SetAnimation(PLAYER_ATTACK1)
 					end
@@ -475,9 +486,20 @@ if SERVER then
 			end
 		elseif CheckBypass(player) then
 			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
-				-- Warn the chip's owner their E2 was just taken via the admin bypass
-				BetterChatPrint(E2.player, "Warning, the server admin '"..player:Nick().."' just accessed your chip '"..E2.name.."', as the view request admin bypass is enabled!")
+				-- Warn the chip's owner their E2 was just taken via the bypass
+				if bypassModeCVar:GetInt() == 3 then
+					BetterChatPrint(
+						E2.player,
+						string.format("Warning, the player '%s' just accessed your chip '%s', as view requests are disabled", player:Nick(), E2.name)
+					)
+				else
+					BetterChatPrint(
+						E2.player,
+						string.format("Warning, the server admin '%s' just accessed your chip '%s', as the view request admin bypass is enabled", player:Nick(), E2.name)
+					)
+				end
 				WireLib.Expression2Download(player, E2)
+				
 			end
 		else
 			RequestView(E2, player)
