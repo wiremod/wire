@@ -114,7 +114,6 @@ function ENT:SetForce( force, mul )
 		self:ShowOutput()
 	end
 	self.mul = mul or 1
-	self.needcalc = true
 
 	local phys = self:GetPhysicsObject()
 	if (!phys:IsValid()) then
@@ -240,10 +239,7 @@ function ENT:PhysicsSimulate( phys, deltatime )
 		self:SetEffect(self.oweffect)
 	end
 
-	if self.needcalc then
-		self.needcalc = false
-		self:CalcForce(phys)
-	end
+	self:CalcForce(phys)
 
 	return self.ForceAngular, self.ForceLinear, SIM_LOCAL_ACCELERATION
 end
