@@ -123,7 +123,7 @@ function ENT:SetForce( force, mul )
 	end
 
 	if self.neteffect then
-		self.effectforce = self.ThrustOffset:Length() * (self.force * self.mul * -50)
+		self.effectforce = self.ThrustOffset:Length() * self.force * self.mul * 50
 		self.updateeffect = true
 	end
 

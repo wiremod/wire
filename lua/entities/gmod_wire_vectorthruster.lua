@@ -247,13 +247,12 @@ function ENT:TriggerInput(iname, value)
 			self:PhysicsSimulate(phys)
 		end
 	end
+
+	self:SetOn(self.mul ~= 0 and ( (self.bidir) and (math.abs(self.mul) > 0.01) and (math.abs(self.mul) > self.force_min) ) or ( (self.mul > 0.01) and (self.mul > self.force_min) ))
+	self:ShowOutput()
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )
-	self:CalcForce(phys)
-	self:SetOn(self.mul ~= 0 and ( (self.bidir) and (math.abs(self.mul) > 0.01) and (math.abs(self.mul) > self.force_min) ) or ( (self.mul > 0.01) and (self.mul > self.force_min) ))
-	self:ShowOutput()
-
 	if (!self:IsOn()) then return SIM_NOTHING end
 	if (self:IsPlayerHolding()) then return SIM_NOTHING end
 
@@ -276,6 +275,8 @@ function ENT:PhysicsSimulate( phys, deltatime )
 
 		self:SetEffect(self.oweffect)
 	end
+
+	self:CalcForce(phys)
 
 	return self.ForceAngular, self.ForceLinear, SIM_GLOBAL_ACCELERATION
 end
