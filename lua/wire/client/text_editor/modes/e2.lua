@@ -29,7 +29,8 @@ local keywords = {
 	--["function"] = { [true] = true },
 	["return"] = { [true] = true },
 	["local"]  = { [true] = true },
-	["try"]    = { [true] = true }
+	["try"]    = { [true] = true },
+	["type"]   = { [true] = true }
 }
 
 -- fallback for nonexistant entries:
@@ -65,6 +66,7 @@ local colors = {
 	["typename"]  = { Color(240, 160,  96), false}, -- orange
 	["constant"]  = { Color(240, 160, 240), false}, -- pink
 	["userfunction"] = { Color(102, 122, 102), false}, -- dark grayish-green
+	["usertype"]  = { Color(240, 142,  96), false}, -- orange
 }
 
 function EDITOR:GetSyntaxColor(name)
@@ -395,6 +397,23 @@ function EDITOR:SyntaxColorLine(row)
 		end
 	end
 
+	found = self:SkipPattern("( *type)")
+
+	if found then
+		addToken("keyword", found)
+		self.tokendata = ""
+
+		local spaces = self:SkipPattern( " *" )
+		if spaces then addToken( "comment", spaces ) end
+
+		if self:NextPattern("[a-z][%w_]*") then
+			addToken("usertype", self.tokendata)
+			self.tokendata = ""
+		else
+			addToken("notfound", self.tokendata)
+		end
+	end
+
 	while self.character do
 		local tokenname = ""
 		self.tokendata = ""
@@ -417,7 +436,6 @@ function EDITOR:SyntaxColorLine(row)
 			tokenname = "number"
 		elseif self:NextPattern("^[0-9][0-9.e]*") then
 			tokenname = "number"
-
 		elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
 			local sstr = self.tokendata
 			if highlightmode then

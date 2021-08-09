@@ -983,3 +983,25 @@ function Compiler:InstrTRY(args)
 
 	return { self:GetOperator(args, "try", {})[1], prf_cond, stmt, var_name, stmt2 }
 end
+
+
+function Compiler:InstrTYPE(args)
+	-- args = { "type", trace, type_name, fields }
+	self:PushPrfCounter()
+	local type_name = args[3]
+	local fields = args[4]
+
+	print("funcs", self.funcs, #self.funcs)
+	PrintTable(self.funcs)
+
+	--[[local stmt = self:EvaluateStatement(args, 1)
+	local var_name = args[3]
+	self:PushScope()
+		self:SetLocalVariableType(var_name, "s", args)
+		local stmt2 = self:EvaluateStatement(args, 3)
+	self:PopScope()]]
+
+	local prf_cond = self:PopPrfCounter()
+
+	return { self:GetOperator(args, "type", {})[1], prf_cond, type_name }
+end

@@ -34,7 +34,7 @@ local tanh   = math.tanh
 --  Numeric support
 --[[************************************************************************]]--
 
-registerType("normal", "n", 0,
+registerType("number", "n", 0,
 	nil,
 	nil,
 	function(retval)
@@ -44,6 +44,9 @@ registerType("normal", "n", 0,
 		return !isnumber(v)
 	end
 )
+
+-- Backwards compatibility
+wire_expression_types["NORMAL"] = wire_expression_types["NUMBER"]
 
 E2Lib.registerConstant("PI", pi)
 E2Lib.registerConstant("E", exp(1))

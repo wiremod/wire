@@ -34,7 +34,13 @@ Stmt8 ← "local"? (Var (&"[" Index ("=" Stmt8)? / "=" Stmt8))? Stmt9
 Stmt9 ← ("switch" "(" Expr1 ")" "{" SwitchBlock)? Stmt10
 Stmt10 ← (FunctionStmt / ReturnStmt)? Stmt11
 Stmt11 ← ("#include" String)? Stmt12
-Stmt12 ← ("try" Block "catch" "(" Var ")" Block)? Expr1
+Stmt12 ← ("try" Block "catch" "(" Var ")" Block)? Stmt13
+Stmt13 ← ("type" Type "=" "{" TypeDecl "}")? Expr1
+
+type apple = {
+	Juice: number,
+	Color: string
+}
 
 FunctionStmt ← "function" FunctionHead "(" FunctionArgs Block
 FunctionHead ← (Type Type ":" Fun / Type ":" Fun / Type Fun / Fun)
@@ -74,7 +80,10 @@ TableIndexExpr ← "[" Expr1 ("," Type)? "]"
 
 FunctionCallExpr ← Fun "(" KeyValueList? ")"
 KeyValueList ← (KeyValue ("," KeyValue))*
-KeyValue = Expr1 ("=" Expr1)?
+KeyValue ← Expr1 ("=" Expr1)?
+
+TypeDecl ← (TypeField ("," TypeField))*
+TypeField ← (Field ":" Type)
 
 ]]
 -- ----------------------------------------------------------------------------------
@@ -737,7 +746,68 @@ function Parser:Stmt12()
 			self:Error("Try block must be followed by catch statement")
 		end
 	end
+	return self:Stmt13()
+end
+
+function Parser:Stmt13()
+	if self:AcceptRoamingToken("type") then
+		local trace = self:GetTokenTrace()
+
+		if not self:AcceptRoamingToken("fun") then
+			self:Error("Lowercase type name expected after type keyword")
+		end
+
+		local type_name = self:GetTokenData()
+
+		if wire_expression_types[type_name:upper()] then
+			self:Error("Type '" .. type_name .. "' already exists")
+		end
+
+		if not self:AcceptRoamingToken("ass") then
+			self:Error("Assignment operator (=) missing in type statement")
+		end
+
+		if not self:AcceptRoamingToken("lcb") then
+			self:Error("Left curly bracket ({) expected after type statement")
+		end
+
+		local fields = self:TypeDecl()
+
+		return self:Instruction(trace, "type", type_name, fields)
+	end
 	return self:Expr1()
+end
+
+function Parser:TypeDecl()
+	local fields = {}
+	if self:HasTokens() and not self:AcceptRoamingToken("rcb") then
+		while true do
+			if not self:AcceptRoamingToken("var") then
+				self:Error("Expected field name in type declaration")
+			end
+			local field_name = self:GetTokenData()
+
+			if not self:AcceptRoamingToken("col") then
+				self:Error("Expected colon (:) after field name declaration")
+			end
+
+			if not self:AcceptRoamingToken("fun") then
+				self:Error("Expected type name after colon in field declaration")
+			end
+			local field_type = self:GetTokenData()
+
+			if self:AcceptRoamingToken("rcb") then
+				return fields
+			elseif not self:AcceptRoamingToken("com") then
+				self:NextToken()
+				self:Error("Right curly bracket (}) expected after type fields")
+			end
+
+			fields[field_name] = field_type
+
+			print(field_name, field_type)
+		end
+	end
 end
 
 function Parser:FunctionArgs(Temp, Args)
