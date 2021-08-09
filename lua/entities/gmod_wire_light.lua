@@ -8,6 +8,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "Glow" )
 	self:NetworkVar( "Float", 0, "Brightness" )
 	self:NetworkVar( "Float", 1, "Size" )
+	self:NetworkVar( "Float", 2, "SpriteSize" )
 	self:NetworkVar( "Int", 0, "R" )
 	self:NetworkVar( "Int", 1, "G" )
 	self:NetworkVar( "Int", 2, "B" )
@@ -33,8 +34,6 @@ if CLIENT then
 	end
 
 	function ENT:DrawTranslucent()
-		local up = self:GetAngles():Up()
-
 		local LightPos = self:GetPos()
 		render.SetMaterial( matLight )
 
@@ -47,14 +46,14 @@ if CLIENT then
 		if not Visible or Visible < 0.1 then return end
 
 		local c = self:GetMyColor()
-
 		if self:GetModel() == "models/maxofs2d/light_tubular.mdl" then
-			render.DrawSprite( LightPos - up * 2, 8, 8, Color(255, 255, 255, 255), Visible )
-			render.DrawSprite( LightPos - up * 4, 8, 8, Color(255, 255, 255, 255), Visible )
-			render.DrawSprite( LightPos - up * 6, 8, 8, Color(255, 255, 255, 255), Visible )
-			render.DrawSprite( LightPos - up * 5, 128, 128, c, Visible )
+			local up = self:GetUp()
+			render.DrawSprite( LightPos - up * 2, 8, 8, c, Visible )
+			render.DrawSprite( LightPos - up * 4, 8, 8, c, Visible )
+			render.DrawSprite( LightPos - up * 6, 8, 8, c, Visible )
+			render.DrawSprite( LightPos - up * 5, self:GetSpriteSize(), self:GetSpriteSize(), c, Visible )
 		else
-			render.DrawSprite( self:LocalToWorld( self:OBBCenter() ), 128, 128, c, Visible )
+			render.DrawSprite( self:LocalToWorld( self:OBBCenter() ), self:GetSpriteSize(), self:GetSpriteSize(), c, Visible )
 		end
 	end
 
@@ -219,17 +218,21 @@ function ENT:TriggerInput(iname, value)
 		if not game.SinglePlayer() then value = math.Clamp( value, 0, 1024 ) end
 		self.size = value
 		self:SetSize( value )
+	elseif (iname == "SpriteSize") then
+		if not game.SinglePlayer() then value = math.Clamp( value, 0, 256 ) end
+		self:SetSpriteSize( value )
 	end
 
 	self:UpdateLight()
 end
 
-function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b)
+function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, spritesize)
 	self.directional = directional or false
 	self.radiant = radiant or false
 	self.glow = glow or false
 	self.brightness = brightness or 2
 	self.size = size or 256
+	self.spritesize = spritesize or 128
 	self.R = r or 255
 	self.G = g or 255
 	self.B = b or 255
@@ -237,6 +240,7 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b)
 	if not game.SinglePlayer() then
 		self.brightness = math.Clamp( self.brightness, 0, 10 )
 		self.size = math.Clamp( self.size, 0, 1024 )
+		self.spritesize = math.Clamp( self.spritesize, 0, 256 )
 	end
 
 	self:Directional( self.directional )
@@ -244,14 +248,15 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b)
 	self:SetGlow( self.glow )
 	self:SetBrightness( self.brightness )
 	self:SetSize( self.size )
+	self:SetSpriteSize( self.spritesize )
 
 	if self.glow then
-		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowSize"})
+		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowSize", "SpriteSize"})
 	else
-		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]"})
+		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "SpriteSize"})
 	end
 
 	self:UpdateLight()
 end
 
-duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "R", "G", "B")
+duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "R", "G", "B", "spritesize")

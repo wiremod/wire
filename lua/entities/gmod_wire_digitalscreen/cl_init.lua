@@ -70,7 +70,6 @@ end)
 function ENT:AddBuffer(datastr,pixelbit)
 	self.buffer[#self.buffer+1] = {datastr=datastr,readIndex=1,pixelbit=pixelbit}
 end
-
 function ENT:ProcessBuffer()
 	if not self.buffer[1] then return end
 
@@ -82,10 +81,11 @@ function ENT:ProcessBuffer()
 	length, readIndex = stringToNumber(readIndex,datastr,3)
 	if length == 0 then
 		table.remove( self.buffer, 1 )
-		return
+		return false
 	end
 	local address
 	address, readIndex = stringToNumber(readIndex,datastr,3)
+
 	for i = address, address + length - 1 do
 		if i>=1048500 then
 			local data
@@ -96,17 +96,26 @@ function ENT:ProcessBuffer()
 			data, readIndex = stringToNumber(readIndex,datastr,pixelbit)
 			self:WriteCell(i, data)
 		end
+
+		coroutine.yield(true)
 	end
 
 	self.buffer[1].readIndex = readIndex
+	return false
 end
 
 function ENT:Think()
 	if self.buffer[1] ~= nil then
-		local maxtime = SysTime() + (1/RealFrameTime()) * 0.0001 -- do more depending on client FPS. Higher fps = more work
+		local maxtime = SysTime() + RealFrameTime() * 0.05 -- do more depending on client FPS. Higher fps = more work
 
 		while SysTime() < maxtime and self.buffer[1] do
-			self:ProcessBuffer()
+			if not self.co or coroutine.status(self.co) == "dead" then
+				self.co = coroutine.create( function()
+					 self:ProcessBuffer() 
+				end )
+			end
+
+			coroutine.resume(self.co)
 		end
 	end
 
@@ -157,6 +166,7 @@ function ENT:WriteCell(Address,value)
 		self.IsClear = true
 		self.ClearQueued = true
 		self.NeedRefresh = true
+		self.RefreshRows = {}
 	elseif Address == 1048572 then
 		self.ScreenHeight = value
 		if not self.IsClear then
@@ -277,32 +287,31 @@ function ENT:Draw()
 
 	if self.NeedRefresh then
 		self.NeedRefresh = false
+		local maxtime = SysTime() + RealFrameTime() * 0.01
 
 		self.GPU:RenderToGPU(function()
-			local pixels = 0
 			local idx = 0
 
 			if self.ClearQueued then
 				surface.SetDrawColor(0,0,0,255)
 				surface.DrawRect(0,0, 512,512)
 				self.ClearQueued = false
+				return
 			end
 
 			if (#self.RefreshRows > 0) then
 				idx = #self.RefreshRows
-				while ((idx > 0) and (pixels < 8192)) do
+				while ((idx > 0) and (SysTime() < maxtime)) do
 					self:RedrawRow(self.RefreshRows[idx])
 					self.RefreshRows[idx] = nil
 					idx = idx - 1
-					pixels = pixels + self.ScreenWidth
 				end
 			else
 				idx = #self.RefreshPixels
-				while ((idx > 0) and (pixels < 8192)) do
+				while ((idx > 0) and (SysTime() < maxtime)) do
 					self:RedrawPixel(self.RefreshPixels[idx])
 					self.RefreshPixels[idx] = nil
 					idx = idx - 1
-					pixels = pixels + 1
 				end
 			end
 			if idx ~= 0 then

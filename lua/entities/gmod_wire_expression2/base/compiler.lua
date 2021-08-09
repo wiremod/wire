@@ -333,7 +333,11 @@ function Compiler:InstrFOR(args)
 end
 
 function Compiler:InstrWHL(args)
-	-- args = { "whl", trace, condition expression, loop body }
+	-- args = { "whl", trace, condition expression, loop body, skip condition check first time? }
+
+
+	local skipCondFirstTime = args[5]
+
 	self:PushScope()
 
 	self:PushPrfCounter()
@@ -343,7 +347,7 @@ function Compiler:InstrWHL(args)
 	local stmt = self:EvaluateStatement(args, 2)
 	self:PopScope()
 
-	return { self:GetOperator(args, "whl", {})[1], cond, stmt, prf_cond }
+	return { self:GetOperator(args, "whl", {})[1], cond, stmt, prf_cond, skipCondFirstTime }
 end
 
 
@@ -937,25 +941,26 @@ function Compiler:InstrINCLU(args)
 	end
 
 	if not include[2] then
-
-		include[2] = true -- Tempory value to prvent E2 compiling itself when itself. (INFINATE LOOOP!)
+		include[2] = true -- Temporary value to prevent E2 compiling itself in itself.
 
 		local OldScopes = self:SaveScopes()
 		self:InitScope() -- Create a new Scope Enviroment
 		self:PushScope()
 
 		local root = include[1]
-		local status, script = pcall(CallInstruction, root[1], root)
+		local status, script = pcall(self.CallInstruction, self, root[1], root)
 
 		if not status then
-			if script:find("C stack overflow") then script = "Include depth to deep" end
+			local reason = istable(script) and script.msg or script
+
+			if reason:find("C stack overflow") then reason = "Include depth too deep" end
 
 			if not self.IncludeError then
 				-- Otherwise Errors messages will be wrapped inside other error messages!
 				self.IncludeError = true
-				self:Error("include '" .. file .. "' -> " .. script, args)
+				self:Error("include '" .. file .. "' -> " .. reason, args)
 			else
-				error(script, 0)
+				error(reason, 0)
 			end
 		end
 

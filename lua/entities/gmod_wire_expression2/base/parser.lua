@@ -35,8 +35,9 @@ Stmt9 ← ("switch" "(" Expr1 ")" "{" SwitchBlock)? Stmt10
 Stmt10 ← (FunctionStmt / ReturnStmt)? Stmt11
 Stmt11 ← ("#include" String)? Stmt12
 Stmt12 ← ("try" Block "catch" "(" Var ")" Block)? Stmt13
-Stmt13 ← ("type" Type "=" "{" TypeDecl "}")? Expr1
+Stmt13 ← ("do" Block "while" Cond)? Stmt14
 
+Stmt14 ← ("type" Type "=" "{" TypeDecl "}")? Expr1
 type apple = {
 	Juice: number,
 	Color: string
@@ -264,7 +265,8 @@ function Parser:Stmt2()
 	if self:AcceptRoamingToken("whl") then
 		local trace = self:GetTokenTrace()
 		loopdepth = loopdepth + 1
-		local whl = self:Instruction(trace, "whl", self:Cond(), self:Block("while condition"))
+		local whl = self:Instruction(trace, "whl", self:Cond(), self:Block("while condition"),
+			false) -- Skip condition check first time?
 		loopdepth = loopdepth - 1
 		return whl
 	end
@@ -750,6 +752,30 @@ function Parser:Stmt12()
 end
 
 function Parser:Stmt13()
+	if self:AcceptRoamingToken("do") then
+		local trace = self:GetTokenTrace()
+
+		loopdepth = loopdepth + 1
+		local code = self:Block("do keyword")
+
+		if not self:AcceptRoamingToken("whl") then
+			self:Error("while expected after do and code block (do {...} )")
+		end
+
+		local condition = self:Cond()
+
+
+		local whl = self:Instruction(trace, "whl", condition, code,
+			true) -- Skip condition check first time?
+		loopdepth = loopdepth - 1
+
+		return whl
+	end
+
+	return self:Stmt14()
+end
+
+function Parser:Stmt14()
 	if self:AcceptRoamingToken("type") then
 		local trace = self:GetTokenTrace()
 

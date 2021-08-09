@@ -134,13 +134,10 @@ function ENT:Execute()
 	local bench = SysTime()
 
 	local ok, msg = pcall(self.script[1], self.context, self.script)
-	local trace
-	if istable(msg) then
-		trace = msg.trace
-		msg = msg.msg
-	end
 
 	if not ok then
+		local _catchable, msg, trace = E2Lib.unpackException(msg)
+
 		if msg == "exit" then
 		elseif msg == "perf" then
 			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
@@ -345,17 +342,17 @@ function ENT:ResetContext()
 		entity = self,
 		player = self.player,
 		uid = self.uid,
-		prf = 0,
-		prfcount = 0,
-		prfbench = 0,
-		time = 0,
-		timebench = 0,
+		prf = (self.context and self.context.prf) or 0,
+		prfcount = (self.context and self.context.prfcount) or 0,
+		prfbench = (self.context and self.context.prfbench) or 0,
+		time = (self.context and self.context.time) or 0,
+		timebench = (self.context and self.context.timebench) or 0,
 		includes = self.includes
 	}
 
 	-- '@strict' try/catch Error handling.
 	if self.directives.strict then
-		local err = E2Lib.catchableError
+		local err = E2Lib.runtimeError
 		function context:throw(msg)
 			err(msg, 2, self.trace)
 		end
@@ -677,6 +674,7 @@ local function enableEmergencyShutdown()
 					for _,v in pairs( e2s ) do
 						if not v.error then
 							-- immediately clear any memory the E2 may be holding
+							hook.Run("Wire_EmergencyRamClear")
 							v:PCallHook("destruct")
 							v:ResetContext()
 							v:PCallHook("construct")
@@ -686,6 +684,7 @@ local function enableEmergencyShutdown()
 						end
 					end
 					collectgarbage() -- collect the garbage now
+					timer.Simple(0,collectgarbage) -- timers fix everything
 					average_ram = collectgarbage("count") -- reset average ram when we're done
 				end
 			end
