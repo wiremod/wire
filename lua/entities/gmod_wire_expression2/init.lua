@@ -45,9 +45,7 @@ do
 	updateQuotas()
 end
 
-local function copytype(var)
-	return istable(var) and table.Copy(var) or var
-end
+local fixDefault = E2Lib.fixDefault
 
 
 local ScopeManager = {}
@@ -126,7 +124,7 @@ function ENT:Execute()
 	if self.error or not self.context or self.context.resetting then return end
 
 	for k, v in pairs(self.tvars) do
-		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 	end
 
 	self:PCallHook('preexecute')
@@ -136,10 +134,15 @@ function ENT:Execute()
 	local bench = SysTime()
 
 	local ok, msg = pcall(self.script[1], self.context, self.script)
+
 	if not ok then
+		local _catchable, msg, trace = E2Lib.unpackException(msg)
+
 		if msg == "exit" then
 		elseif msg == "perf" then
 			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
+		elseif trace then
+			self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
 		else
 			self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
 		end
@@ -169,7 +172,7 @@ function ENT:Execute()
 
 	self.GlobalScope.vclk = {}
 	for k, v in pairs(self.globvars) do
-		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 	end
 
 	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
@@ -347,6 +350,19 @@ function ENT:ResetContext()
 		includes = self.includes
 	}
 
+	-- '@strict' try/catch Error handling.
+	if self.directives.strict then
+		local err = E2Lib.runtimeError
+		function context:throw(msg)
+			err(msg, 2, self.trace)
+		end
+	else
+		-- '@strict' is not enabled, pass the default variable.
+		function context:throw(_msg, variable)
+			return variable
+		end
+	end
+
 	setmetatable(context, ScopeManager)
 	context:InitScope()
 
@@ -370,25 +386,25 @@ function ENT:ResetContext()
 	for k, v in pairs(self.inports[3]) do
 		self._inputs[1][#self._inputs[1] + 1] = k
 		self._inputs[2][#self._inputs[2] + 1] = v
-		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
 		self.globvars[k] = nil
 	end
 
 	for k, v in pairs(self.outports[3]) do
 		self._outputs[1][#self._outputs[1] + 1] = k
 		self._outputs[2][#self._outputs[2] + 1] = v
-		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
 		self.GlobalScope.vclk[k] = true
 		self.globvars[k] = nil
 	end
 
 	for k, v in pairs(self.persists[3]) do
-		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
 		self.globvars[k] = nil
 	end
 
 	for k, v in pairs(self.globvars) do
-		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 	end
 
 	for k, v in pairs(self.Inputs) do

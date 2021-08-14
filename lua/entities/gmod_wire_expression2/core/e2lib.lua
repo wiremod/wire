@@ -760,3 +760,23 @@ function E2Lib.isValidFileWritePath(path)
 	local ext = string.GetExtensionFromFilename(path)
 	if ext then return file_extensions[string.lower(ext)] end
 end
+
+-- Different from Context:throw, which does not error the chip if
+-- @strict is not enabled and instead returns a default value.
+-- This is what Context:throw calls internally if @strict
+-- By default E2 can catch these errors.
+function E2Lib.raiseException(msg, level, trace, can_catch)
+	error({
+		catchable = (can_catch == nil) and true or can_catch,
+		msg = msg,
+		trace = trace
+	}, level)
+end
+
+--- Unpacks either an exception object as seen above or an error string.
+function E2Lib.unpackException(struct)
+	if isstring(struct) then
+		return false, struct, nil
+	end
+	return struct.catchable, struct.msg, struct.trace
+end

@@ -159,6 +159,7 @@ function registerFunction(name, pars, rets, func, cost, argnames)
 	local signature = name .. "(" .. pars .. ")"
 
 	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames }
+
 	wire_expression2_funclist[name] = true
 	if wire_expression2_debug:GetBool() then makecheck(signature) end
 end
