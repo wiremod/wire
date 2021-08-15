@@ -352,7 +352,7 @@ function ENT:ResetContext()
 
 	-- '@strict' try/catch Error handling.
 	if self.directives.strict then
-		local err = E2Lib.runtimeError
+		local err = E2Lib.raiseException
 		function context:throw(msg)
 			err(msg, 2, self.trace)
 		end
