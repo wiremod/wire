@@ -282,7 +282,7 @@ if CLIENT then
 
         if self:GetActive() and self.ShouldRenderCamera and self.Material ~= nil and IsValid(self:GetCamera()) then
             self:DrawScreen()
-        elseif not self.translucent
+        elseif not self.translucent then
             self:DrawDummy()
         end
     end    
