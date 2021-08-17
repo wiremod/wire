@@ -148,6 +148,8 @@ if CLIENT then
         local path = "improvedrt_screen/monitor_"..name..".vmt"
 
         if not file.Exists("materials/"..path, "GAME") then
+            MsgN("ImprovedRTCameras: material "..path.." does not exist on client for some reason!")
+            MsgN("Screen would not be rendered")
             return nil
         end
 
@@ -278,10 +280,10 @@ if CLIENT then
             return
         end
 
-        if not self:GetActive() or not IsValid(self:GetCamera()) or not self.ShouldRenderCamera then
-            self:DrawDummy()
-        else
+        if self:GetActive() and self.ShouldRenderCamera and self.Material ~= nil and IsValid(self:GetCamera()) then
             self:DrawScreen()
+        elseif not self.translucent
+            self:DrawDummy()
         end
     end    
 end
