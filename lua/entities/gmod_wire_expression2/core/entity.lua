@@ -74,15 +74,15 @@ end)
 /******************************************************************************/
 
 e2function number operator_is(entity ent)
-	if IsValid(ent) then return 1 else return 0 end
+	return IsValid(ent) and 1 or 0
 end
 
 e2function number operator==(entity lhs, entity rhs)
-	if lhs == rhs then return 1 else return 0 end
+	return lhs == rhs and 1 or 0
 end
 
 e2function number operator!=(entity lhs, entity rhs)
-	if lhs ~= rhs then return 1 else return 0 end
+	return lhs ~= rhs and 1 or 0
 end
 
 /******************************************************************************/
@@ -103,8 +103,8 @@ e2function number entity:creationID()
 end
 
 e2function number entity:creationTime()
-        if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-        return this:GetCreationTime()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetCreationTime()
 end
 
 /******************************************************************************/
@@ -119,7 +119,7 @@ e2function entity world()
 end
 
 e2function string entity:name()
-	if(not IsValid(this)) then return self:throw("Invalid entity!", "") end
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	return this:GetName() or ""
 end
 
@@ -197,14 +197,14 @@ end
 
 --- Returns a vector describing rotation axis, magnitude and sense given as the vector's direction, magnitude and orientation.
 e2function vector entity:angVelVector()
-	if not validPhysics(this) then return self:throw("Invalid entity!", nil) end
+	if not validPhysics(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
 	local phys = this:GetPhysicsObject()
 	return phys:GetAngleVelocity()
 end
 
 --- Specific to env_sun because Source is dum. Use this to trace towards the sun or something.
 e2function vector sunDirection()
-	if not IsValid(sun) then return self:throw("Invalid entity!", nil) end
+	if not IsValid(sun) then return self:throw("Invalid entity!", {0, 0, 0}) end
 	return sun:GetKeyValues().sun_dir
 end
 
@@ -342,8 +342,8 @@ end
 
 e2function void entity:setMass(mass)
 	if not validPhysics(this) then return self:throw("Invalid physics object!", nil) end
-	if not isOwner(self, this) then return end
-	if this:IsPlayer() then return end
+	if not isOwner(self, this) then return self:throw("You do not own this prop!", nil) end
+	if this:IsPlayer() then return self:throw("You cannot set the mass of a player") end
 	if WireLib.isnan( mass ) then mass = 50000 end
 	local mass = Clamp(mass, 0.001, 50000)
 	local phys = this:GetPhysicsObject()
@@ -409,32 +409,32 @@ end
 // Functions getting boolean/number
 e2function number entity:isPlayer()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if this:IsPlayer() then return 1 else return 0 end
+	return this:IsPlayer() and 1 or 0
 end
 
 e2function number entity:isNPC()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if this:IsNPC() then return 1 else return 0 end
+	return this:IsNPC() and 1 or 0
 end
 
 e2function number entity:isVehicle()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if this:IsVehicle() then return 1 else return 0 end
+	return this:IsVehicle() and 1 or 0
 end
 
 e2function number entity:isWorld()
 	if not isentity(this) then return self:throw("Invalid entity!", 0) end
-	if this:IsWorld() then return 1 else return 0 end
+	return this:IsWorld() and 1 or 0
 end
 
 e2function number entity:isOnGround()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if this:IsOnGround() then return 1 else return 0 end
+	return this:IsOnGround() and 1 or 0
 end
 
 e2function number entity:isUnderWater()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if this:WaterLevel() > 0 then return 1 else return 0 end
+	return (this:WaterLevel() > 0) and 1 or 0
 end
 
 e2function number entity:isValid()
@@ -450,9 +450,9 @@ end
 // Functions getting angles
 
 e2function angle entity:angles()
-	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
 	local ang = this:GetAngles()
-	return {ang.p,ang.y,ang.r}
+	return {ang.p, ang.y, ang.r}
 end
 
 /******************************************************************************/
@@ -537,23 +537,23 @@ end
 
 e2function number entity:isPlayerHolding()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if this:IsPlayerHolding() then return 1 else return 0 end
+	return this:IsPlayerHolding() and 1 or 0
 end
 
 e2function number entity:isOnFire()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if this:IsOnFire() then return 1 else return 0 end
+	return this:IsOnFire() and 1 or 0
 end
 
 e2function number entity:isWeapon()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if this:IsWeapon() then return 1 else return 0 end
+	return this:IsWeapon() and 1 or 0
 end
 
 e2function number entity:isFrozen()
 	if not validPhysics(this) then return self:throw("Invalid entity!", 0) end
 	local phys = this:GetPhysicsObject()
-	if phys:IsMoveable() then return 0 else return 1 end
+	return phys:IsMoveable() and 0 or 1
 end
 
 /******************************************************************************/
