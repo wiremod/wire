@@ -248,8 +248,12 @@ function ENT:TriggerInput(iname, value)
 		end
 	end
 
-	self:SetOn(self.mul ~= 0 and ( (self.bidir) and (math.abs(self.mul) > 0.01) and (math.abs(self.mul) > self.force_min) ) or ( (self.mul > 0.01) and (self.mul > self.force_min) ))
-	self:ShowOutput()
+	if self.lengthismul then
+		self:SetOn(true)
+	else
+		self:SetOn(self.mul ~= 0 and ( (self.bidir) and (math.abs(self.mul) > 0.01) and (math.abs(self.mul) > self.force_min) ) or ( (self.mul > 0.01) and (self.mul > self.force_min) ))
+	end
+		self:ShowOutput()
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )
