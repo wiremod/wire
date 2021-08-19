@@ -85,7 +85,7 @@ __e2setcost(1)
 
 --- if (B)
 e2function number operator_is(bone b)
-	return isValidBone(b) and 1 or 0
+	if isValidBone(b) then return 1 else return 0 end
 end
 
 --- B = B
@@ -99,12 +99,12 @@ end)
 
 --- B == B
 e2function number operator==(bone lhs, bone rhs)
-	return lhs == rhs and 1 or 0
+	if lhs == rhs then return 1 else return 0 end
 end
 
 --- B != B
 e2function number operator!=(bone lhs, bone rhs)
-	return lhs ~= rhs and 1 or 0
+	if lhs ~= rhs then return 1 else return 0 end
 end
 
 --[[************************************************************************]]--

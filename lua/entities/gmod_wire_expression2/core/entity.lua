@@ -74,15 +74,15 @@ end)
 /******************************************************************************/
 
 e2function number operator_is(entity ent)
-	return IsValid(ent) and 1 or 0
+	if IsValid(ent) then return 1 else return 0 end
 end
 
 e2function number operator==(entity lhs, entity rhs)
-	return lhs == rhs and 1 or 0
+	if lhs == rhs then return 1 else return 0 end
 end
 
 e2function number operator!=(entity lhs, entity rhs)
-	return lhs ~= rhs and 1 or 0
+	if lhs ~= rhs then return 1 else return 0 end
 end
 
 /******************************************************************************/
@@ -409,41 +409,41 @@ end
 // Functions getting boolean/number
 e2function number entity:isPlayer()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	return this:IsPlayer() and 1 or 0
+	if this:IsPlayer() then return 1 else return 0 end
 end
 
 e2function number entity:isNPC()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	return this:IsNPC() and 1 or 0
+	if this:IsNPC() then return 1 else return 0 end
 end
 
 e2function number entity:isVehicle()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	return this:IsVehicle() and 1 or 0
+	if this:IsVehicle() then return 1 else return 0 end
 end
 
 e2function number entity:isWorld()
 	if not isentity(this) then return self:throw("Invalid entity!", 0) end
-	return this:IsWorld() and 1 or 0
+	if this:IsWorld() then return 1 else return 0 end
 end
 
 e2function number entity:isOnGround()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	return this:IsOnGround() and 1 or 0
+	if this:IsOnGround() then return 1 else return 0 end
 end
 
 e2function number entity:isUnderWater()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	return (this:WaterLevel() > 0) and 1 or 0
+	if this:WaterLevel() > 0 then return 1 else return 0 end
 end
 
 e2function number entity:isValid()
-	return IsValid(this) and 1 or 0
+	if IsValid(this) then return 1 else return 0 end
 end
 
 --- Returns 1 if <this> has valid physics. Note: Players do not.
 e2function number entity:isValidPhysics()
-	return E2Lib.validPhysics(this) and 1 or 0
+	if E2Lib.validPhysics(this) then return 1 else return 0 end
 end
 
 /******************************************************************************/
@@ -537,23 +537,23 @@ end
 
 e2function number entity:isPlayerHolding()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	return this:IsPlayerHolding() and 1 or 0
+	if this:IsPlayerHolding() then return 1 else return 0 end
 end
 
 e2function number entity:isOnFire()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	return this:IsOnFire() and 1 or 0
+	if this:IsOnFire() then return 1 else return 0 end
 end
 
 e2function number entity:isWeapon()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	return this:IsWeapon() and 1 or 0
+	if this:IsWeapon() then return 1 else return 0 end
 end
 
 e2function number entity:isFrozen()
 	if not validPhysics(this) then return self:throw("Invalid entity!", 0) end
 	local phys = this:GetPhysicsObject()
-	return phys:IsMoveable() and 0 or 1
+	if phys:IsMoveable() then return 0 else return 1 end
 end
 
 /******************************************************************************/

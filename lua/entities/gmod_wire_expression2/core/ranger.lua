@@ -450,7 +450,7 @@ end
 --- Returns 1 if the input ranger data hit anything and 0 if it didn't
 e2function number ranger:hit()
 	if not this then return self:throw("Invalid ranger!", 0) end
-	return this.Hit and 1 or 0
+	if this.Hit then return 1 else return 0 end
 end
 
 --- Outputs a normalized vector perpendicular to the surface the ranger is pointed at.
@@ -468,13 +468,13 @@ end
 -- Returns 1 if the ranger hit the world, else 0
 e2function number ranger:hitWorld()
 	if not this then return self:throw("Invalid ranger!", 0) end
-	return this.HitWorld and 1 or 0
+	if this.HitWorld then return 1 else return 0 end
 end
 
 -- Returns 1 if the ranger hit the skybox, else 0
 e2function number ranger:hitSky()
 	if not this then return self:throw("Invalid ranger!", 0) end
-	return this.HitSky and 1 or 0
+	if this.HitSky then return 1 else return 0 end
 end
 
 -- Returns the position at which the trace left the world if it was started inside the world
@@ -497,7 +497,7 @@ end
 -- Returns 1 if the trace started inside the world, else 0
 e2function number ranger:startSolid()
 	if not this then return self:throw("Invalid ranger!", 0) end
-	return this.StartSolid and 1 or 0
+	if this.StartSolid then return 1 else return 0 end
 end
 
 local mat_enums = {}
