@@ -889,7 +889,7 @@ e2function vector holoBoneScale(index, string bone)
 	local boneindex = Holo.ent:LookupBone(bone)
 
 	local scale = Holo.bone_scale[boneindex]
-	if not boneindex or not scale then self:throw("Bone ['" .. index .. "'] does not exist!", {0, 0, 0}) end
+	if not boneindex or not scale then return self:throw("Bone ['" .. index .. "'] does not exist!", {0, 0, 0}) end
 	return scale
 end
 __e2setcost(1)
