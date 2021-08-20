@@ -395,7 +395,9 @@ end
 --- Finds and replaces every occurrence of <needle> with <new> without regular expressions
 e2function string string:replace(string needle, string new)
 	if needle == "" then return this end
-	return this:Replace( needle, new)
+	local ret = this:Replace(needle, new)
+	self.prf = self.prf + #ret * 0.3 + #self * 0.1 + #needle * 0.1 + #string * 0.1
+	return ret
 end
 
 ---  Finds and replaces every occurrence of <pattern> with <new> using regular expressions. Prints malformed string errors to the chat area.
@@ -405,6 +407,7 @@ e2function string string:replaceRE(string pattern, string new)
 		self.player:ChatPrint(Ret)
 		return ""
 	else
+		self.prf = self.prf + #Ret * 0.3 + #self * 0.1 + #string * 0.1
 		return Ret or ""
 	end
 end
