@@ -178,6 +178,12 @@ GateActions["string_replace"] = {
 	inputtypes = { "STRING" , "STRING" , "STRING" },
 	outputtypes = { "STRING" },
 	output = function(gate, A, B, C)
+		if  (A and #A or 0)
+		  + (B and #B or 0)
+		  + (C and #C or 0)  > MAX_LEN
+		then
+			return false
+		end
 		if !A then A = "" end
 		if !B then B = "" end
 		if !C then C = "" end
