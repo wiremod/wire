@@ -145,13 +145,9 @@ end
 
 
 function ENT:OnRemove()
-
-	for k, v in pairs( self.clutch_ballsockets ) do
-
+	for k in pairs( self.clutch_ballsockets ) do
 		self:RemoveClutch( k )
-
 	end
-
 end
 
 
