@@ -201,17 +201,6 @@ end
 
 --function ENT:SelectorPrev(ch) end --TODO if needed
 
-function ENT:FindInValue(haystack, needle, case_sensitive)
-	if not isstring(haystack) or not isstring(needle) then return false end
-	if needle == "" then return true end
-	if case_sensitive then
-		if haystack:find(needle) then return true end
-	else
-		if haystack:lower():find(needle:lower()) then return true end
-	end
-	return false
-end
-
 function ENT:FindColor(contact)
 	if (not self.ColorCheck) then return true end
 	local col = contact:GetColor()
@@ -232,19 +221,32 @@ function ENT:CheckTheBuddyList(friend)
 	return not self.OnBuddyList
 end
 
+-- Like the old FindInValue but without string.find() and for multiple values split by either a space or a comma.
+local function isOneOf(value, values_str, case_sensitive)
+	if not isstring(value) or not isstring(values_str) then return false end
+	if values_str == "" then return true end -- why :/
+
+	if not case_sensitive then
+		value = value:lower()
+		values_str = values_str:lower()
+	end
+
+	for possible in values_str:gmatch("[^, ]+") do
+		if possible == value then return true end
+	end
+	return false
+end
+
 local function CheckPlayers(self, contact)
 	if self.NoTargetOwner and self:GetPlayer() == contact then return false end
-	if not self:FindInValue(contact:GetName(), self.PlayerName, self.CaseSen) then return false end
+	if not isOneOf(contact:GetName(), self.PlayerName, self.CaseSen) then return false end
 
 	-- Check if the player's steamid/steamid64 matches the SteamIDs
 	if self.SteamName:Trim() ~= "" then
-		local contact_steamid, contact_steamid64 = contact:SteamID(), contact:SteamID64()
-		local steamids, steamidfound = ("[, ]"):Explode(self.SteamName, true), false
-		for _, id in ipairs(steamids) do
-			if id == contact_steamid then steamidfound = true break end
-			if id == contact_steamid64 then steamidfound = true break end
+		local contact_steamid, contact_steamid64 = contact:SteamID(), contact:SteamID64() or "multirun"
+		if not ( isOneOf(contact_steamid, self.SteamName, self.CaseSen) or isOneOf(contact_steamid64, self.SteamName, self.CaseSen) ) then
+			return false
 		end
-		if not steamidfound then return false end
 	end
 
 	return self:FindColor(contact) and self:CheckTheBuddyList(contact)
@@ -261,7 +263,7 @@ function ENT:Think()
 			local class = contact:GetClass()
 			if (not self.NoTargetOwnersStuff or (class == "player") or (WireLib.GetOwner(contact) ~= self:GetPlayer())) and
 				-- NPCs
-				(self.TargetNPC and (contact:IsNPC()) and (self:FindInValue(class, self.NPCName))) or
+				(self.TargetNPC and (contact:IsNPC()) and (isOneOf(class, self.NPCName))) or
 				--Players
 				(self.TargetPlayer and (class == "player") and CheckPlayers(self, contact) or
 				--Locators
@@ -273,11 +275,11 @@ function ENT:Think()
 				-- Thruster
 				(self.TargetThrusters	and (class == "gmod_thruster" or class == "gmod_wire_thruster" or class == "gmod_wire_vectorthruster")) or
 				-- Props
-				(self.TargetProps and (class == "prop_physics") and (self:FindInValue(contact:GetModel(),self.PropModel))) or
+				(self.TargetProps and (class == "prop_physics") and (isOneOf(contact:GetModel(), self.PropModel))) or
 				-- Vehicles
 				(self.TargetVehicles and contact:IsVehicle()) or
 				-- Entity classnames
-				(self.EntFil ~= "" and self:FindInValue(class,self.EntFil)))
+				(self.EntFil ~= "" and isOneOf(class, self.EntFil)))
 			then
 				local dist = (contact:GetPos() - mypos):Length()
 				if (dist >= self.MinRange) then
