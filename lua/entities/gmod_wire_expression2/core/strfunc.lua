@@ -12,24 +12,21 @@ local function checkFuncName( self, funcname )
 	end
 end
 
-registerCallback("construct", function(self) self.strfunc_cache = {} end)
+registerCallback("construct", function(self) self.strfunc_cache = {{}, {}} end)
 
 local insert = table.insert
 local concat = table.concat
 local function findFunc( self, funcname, typeids, typeids_str )
-	local func, func_return_type, vararg
-
-	self.prf = self.prf + 40
+	local func, func_return_type
 
 	local str = funcname .. "(" .. typeids_str .. ")"
-	for i=1,#self.strfunc_cache do
-		local t = self.strfunc_cache[i]
-		if t[1] == str then
-			return t[2], t[3], t[4]
-		end
+
+  local cached = self.strfunc_cache[1][str]
+	if cached then
+		return cached[1], cached[2]
 	end
 
-	self.prf = self.prf + 40
+	self.prf = self.prf + 20
 
 	if #typeids > 0 then
 		if not func then
@@ -43,34 +40,36 @@ local function findFunc( self, funcname, typeids, typeids_str )
 		if not func then
 			for i=#typeids,1,-1 do
 				func, func_return_type = checkFuncName( self, funcname .. "(" .. concat(typeids,"",1,i) .. "...)" )
-				if func then vararg = true break end
+				if func then break end
 			end
 
 			if not func then
 				func, func_return_type = checkFuncName( self, funcname .. "(...)" )
-				if func then vararg = true end
 			end
 		end
 
 		if not func then
 			for i=#typeids,2,-1 do
 				func, func_return_type = checkFuncName( self, funcname .. "(" .. typeids[1] .. ":" ..  concat(typeids,"",2,i) .. "...)" )
-				if func then vararg = true break end
+				if func then break end
 			end
 
 			if not func then
 				func, func_return_type = checkFuncName( self, funcname .. "(" .. typeids[1] .. ":...)" )
-				if func then vararg = true end
 			end
 		end
 	else
 		func, func_return_type = checkFuncName( self, funcname .. "()" )
 	end
 
-	if func then
-		local t = { str, func, func_return_type, vararg }
-		insert( self.strfunc_cache, 1, t )
-		if #self.strfunc_cache == 21 then self.strfunc_cache[21] = nil end
+	if func and not self.strfunc_cache[1][str] then
+    self.strfunc_cache[1][str] = { func, func_return_type }
+    insert( self.strfunc_cache[2], 1, str )
+    
+    if #self.strfunc_cache[2] == 151 then
+      self.strfunc_cache[1][self.strfunc_cache[2][151]] = nil
+      self.strfunc_cache[2][151] = nil
+    end
 	end
 
 	return func, func_return_type
@@ -84,13 +83,11 @@ registerOperator( "stringcall", "", "", function(self, args)
 
 	local func, func_return_type = findFunc( self, funcname, typeids, typeids_str )
 
-	if not func then E2Lib.raiseException( "No such function: " .. funcname .. "(" .. tps_pretty( typeids_str ) .. ")", 0 ) end
+	if not func then E2Lib.raiseException( "No  such function: " .. funcname .. "(" .. tps_pretty( typeids_str ) .. ")", 0 ) end
 
 	if returntype ~= "" and func_return_type ~= returntype then
 		error( "Mismatching return types. Got " .. nicename(wire_expression_types2[returntype][1]) .. ", expected " .. nicename(wire_expression_types2[func_return_type][1] ), 0 )
 	end
-
-	self.prf = self.prf + 40
 
 	if returntype ~= "" then
 		local ret = func( self, funcargs )
