@@ -62,7 +62,7 @@ local function findFunc( self, funcname, typeids, typeids_str )
 		func, func_return_type = checkFuncName( self, funcname .. "()" )
 	end
 
-	if func and not self.strfunc_cache[1][str] then
+  if func and not self.strfunc_cache[1][str] then
     self.strfunc_cache[1][str] = { func, func_return_type }
     insert( self.strfunc_cache[2], 1, str )
     
