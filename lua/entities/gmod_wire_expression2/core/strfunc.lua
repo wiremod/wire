@@ -66,9 +66,9 @@ local function findFunc( self, funcname, typeids, typeids_str )
     self.strfunc_cache[1][str] = { func, func_return_type }
     insert( self.strfunc_cache[2], 1, str )
     
-    if #self.strfunc_cache[2] == 151 then
-      self.strfunc_cache[1][self.strfunc_cache[2][151]] = nil
-      self.strfunc_cache[2][151] = nil
+    if #self.strfunc_cache[2] == 101 then
+      self.strfunc_cache[1][self.strfunc_cache[2][101]] = nil
+      self.strfunc_cache[2][101] = nil
     end
 	end
 
