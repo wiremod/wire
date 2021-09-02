@@ -83,7 +83,7 @@ registerOperator( "stringcall", "", "", function(self, args)
 
 	local func, func_return_type = findFunc( self, funcname, typeids, typeids_str )
 
-	if not func then E2Lib.raiseException( "No  such function: " .. funcname .. "(" .. tps_pretty( typeids_str ) .. ")", 0 ) end
+	if not func then E2Lib.raiseException( "No such function: " .. funcname .. "(" .. tps_pretty( typeids_str ) .. ")", 0 ) end
 
 	if returntype ~= "" and func_return_type ~= returntype then
 		error( "Mismatching return types. Got " .. nicename(wire_expression_types2[returntype][1]) .. ", expected " .. nicename(wire_expression_types2[func_return_type][1] ), 0 )
