@@ -22,7 +22,7 @@ local function findFunc( self, funcname, typeids, typeids_str )
 
 	local str = funcname .. "(" .. typeids_str .. ")"
 
-	local cached = self.strfunc_cache[1][str]
+	local cached = cache[str]
 	if cached then
 		return cached[1], cached[2]
 	end
@@ -63,13 +63,13 @@ local function findFunc( self, funcname, typeids, typeids_str )
 		func, func_return_type = checkFuncName( self, funcname .. "()" )
 	end
 
-	if func and not self.strfunc_cache[1][str] then
-		self.strfunc_cache[1][str] = { func, func_return_type }
-		insert( self.strfunc_cache[2], 1, str )
+	if func and not cache[str] then
+		cache[str] = { func, func_return_type }
+		insert( limiter, 1, str )
 
-		if #self.strfunc_cache[2] == 101 then
-			self.strfunc_cache[1][self.strfunc_cache[2][101]] = nil
-			self.strfunc_cache[2][101] = nil
+		if #limiter == 101 then
+			cache[ limiter[101] ] = nil
+			limiter[101] = nil
 		end
 	end
 
