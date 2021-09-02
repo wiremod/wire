@@ -18,10 +18,11 @@ local insert = table.insert
 local concat = table.concat
 local function findFunc( self, funcname, typeids, typeids_str )
 	local func, func_return_type
+	local cache, limiter = self.strfunc_cache[1], self.strfunc_cache[2]
 
 	local str = funcname .. "(" .. typeids_str .. ")"
 
-  local cached = self.strfunc_cache[1][str]
+	local cached = self.strfunc_cache[1][str]
 	if cached then
 		return cached[1], cached[2]
 	end
@@ -62,14 +63,14 @@ local function findFunc( self, funcname, typeids, typeids_str )
 		func, func_return_type = checkFuncName( self, funcname .. "()" )
 	end
 
-  if func and not self.strfunc_cache[1][str] then
-    self.strfunc_cache[1][str] = { func, func_return_type }
-    insert( self.strfunc_cache[2], 1, str )
-    
-    if #self.strfunc_cache[2] == 101 then
-      self.strfunc_cache[1][self.strfunc_cache[2][101]] = nil
-      self.strfunc_cache[2][101] = nil
-    end
+	if func and not self.strfunc_cache[1][str] then
+		self.strfunc_cache[1][str] = { func, func_return_type }
+		insert( self.strfunc_cache[2], 1, str )
+
+		if #self.strfunc_cache[2] == 101 then
+			self.strfunc_cache[1][self.strfunc_cache[2][101]] = nil
+			self.strfunc_cache[2][101] = nil
+		end
 	end
 
 	return func, func_return_type
