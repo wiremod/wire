@@ -27,9 +27,10 @@ local function findFunc( self, funcname, typeids, typeids_str )
 		return cached[1], cached[2]
 	end
 
+	local typeIDsLength = #typeids
 	self.prf = self.prf + 20
 
-	if #typeids > 0 then
+	if typeIDsLength > 0 then
 		if not func then
 			func, func_return_type = checkFuncName( self, str )
 		end
@@ -39,7 +40,7 @@ local function findFunc( self, funcname, typeids, typeids_str )
 		end
 
 		if not func then
-			for i=#typeids,1,-1 do
+			for i = typeIDsLength, 1, -1 do
 				func, func_return_type = checkFuncName( self, funcname .. "(" .. concat(typeids,"",1,i) .. "...)" )
 				if func then break end
 			end
@@ -50,7 +51,7 @@ local function findFunc( self, funcname, typeids, typeids_str )
 		end
 
 		if not func then
-			for i=#typeids,2,-1 do
+			for i = typeIDsLength, 2, -1 do
 				func, func_return_type = checkFuncName( self, funcname .. "(" .. typeids[1] .. ":" ..  concat(typeids,"",2,i) .. "...)" )
 				if func then break end
 			end
