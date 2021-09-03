@@ -21,7 +21,7 @@ local function findFunc( self, funcname, typeids, typeids_str )
 	local cache = self.strfunc_cache[1]
 
 	local str = funcname .. "(" .. typeids_str .. ")"
-	
+
 	if cache[str] then
 		return cache[str][1], cache[str][2]
 	end
