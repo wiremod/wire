@@ -6,7 +6,8 @@ end
 
 local function checkFuncName( self, funcname )
 	if self.funcs[funcname] then
-		return self.funcs[funcname], self.funcs_ret[funcname]
+		self.prf = self.prf + 15
+		return self.funcs[funcname], self.funcs_ret[funcname], true
 	elseif wire_expression2_funcs[funcname] then
 		return wire_expression2_funcs[funcname][3], wire_expression2_funcs[funcname][2]
 	end
@@ -17,12 +18,13 @@ registerCallback("construct", function(self) self.strfunc_cache = {{}, {}} end)
 local insert = table.insert
 local concat = table.concat
 local function findFunc( self, funcname, typeids, typeids_str )
-	local func, func_return_type
+	local func, func_return_type, func_custom
 	local cache = self.strfunc_cache[1]
 
 	local str = funcname .. "(" .. typeids_str .. ")"
 
 	if cache[str] then
+		if cache[str][4] then self.prf = self.prf + 15 end
 		return cache[str][1], cache[str][2]
 	end
 
@@ -31,45 +33,46 @@ local function findFunc( self, funcname, typeids, typeids_str )
 
 	if typeIDsLength > 0 then
 		if not func then
-			func, func_return_type = checkFuncName( self, str )
+			func, func_return_type, func_custom = checkFuncName( self, str )
 		end
 
 		if not func then
-			func, func_return_type = checkFuncName( self, funcname .. "(" .. typeids[1] .. ":" .. concat(typeids,"",2) .. ")" )
+			func, func_return_type, func_custom = checkFuncName( self, funcname .. "(" .. typeids[1] .. ":" .. concat(typeids,"",2) .. ")" )
 		end
 
 		if not func then
 			for i = typeIDsLength, 1, -1 do
-				func, func_return_type = checkFuncName( self, funcname .. "(" .. concat(typeids,"",1,i) .. "...)" )
+				func, func_return_type, func_custom = checkFuncName( self, funcname .. "(" .. concat(typeids,"",1,i) .. "...)" )
 				if func then break end
 			end
 
 			if not func then
-				func, func_return_type = checkFuncName( self, funcname .. "(...)" )
+				func, func_return_type, func_custom = checkFuncName( self, funcname .. "(...)" )
 			end
 		end
 
 		if not func then
 			for i = typeIDsLength, 2, -1 do
-				func, func_return_type = checkFuncName( self, funcname .. "(" .. typeids[1] .. ":" ..  concat(typeids,"",2,i) .. "...)" )
+				func, func_return_type, func_custom = checkFuncName( self, funcname .. "(" .. typeids[1] .. ":" ..  concat(typeids,"",2,i) .. "...)" )
 				if func then break end
 			end
 
 			if not func then
-				func, func_return_type = checkFuncName( self, funcname .. "(" .. typeids[1] .. ":...)" )
+				func, func_return_type, func_custom = checkFuncName( self, funcname .. "(" .. typeids[1] .. ":...)" )
 			end
 		end
 	else
-		func, func_return_type = checkFuncName( self, funcname .. "()" )
+		func, func_return_type, func_custom = checkFuncName( self, funcname .. "()" )
 	end
 
 	if func then
 		self.prf = self.prf + 20
+		if self.funcs[str] then self.prf = self.prf + 15 end
 
 		local limiter = self.strfunc_cache[2]
 		local limiterLength = #limiter + 1
 
-		cache[str] = { func, func_return_type, limiterLength }
+		cache[str] = { func, func_return_type, limiterLength, func_custom }
 		insert( limiter, 1, str )
 
 		if limiterLength == 101 then
