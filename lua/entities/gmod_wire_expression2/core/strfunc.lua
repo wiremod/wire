@@ -1,3 +1,5 @@
+PrintMessage(3, "Loaded strFuncOptimizations Test")
+
 local function nicename( word )
 	local ret = word:lower()
 	if ret == "normal" then return "number" end
@@ -18,17 +20,16 @@ local insert = table.insert
 local concat = table.concat
 local function findFunc( self, funcname, typeids, typeids_str )
 	local func, func_return_type
-	local cache, limiter = self.strfunc_cache[1], self.strfunc_cache[2]
+	local cache = self.strfunc_cache[1]
 
 	local str = funcname .. "(" .. typeids_str .. ")"
-
-	local cached = cache[str]
-	if cached then
-		return cached[1], cached[2]
+	
+	if cache[str] then
+		return cache[str][1], cache[str][2]
 	end
 
 	local typeIDsLength = #typeids
-	self.prf = self.prf + 20
+	self.prf = self.prf + 10
 
 	if typeIDsLength > 0 then
 		if not func then
@@ -64,8 +65,10 @@ local function findFunc( self, funcname, typeids, typeids_str )
 		func, func_return_type = checkFuncName( self, funcname .. "()" )
 	end
 
-	if func and not cache[str] then
+	if func then
+		local limiter = self.strfunc_cache[2]
 		local limiterLength = #limiter + 1
+
 		cache[str] = { func, func_return_type, limiterLength }
 		insert( limiter, 1, str )
 
@@ -78,7 +81,7 @@ local function findFunc( self, funcname, typeids, typeids_str )
 	return func, func_return_type
 end
 
-__e2setcost(20)
+__e2setcost(5)
 
 registerOperator( "stringcall", "", "", function(self, args)
 	local op1, funcargs, typeids, typeids_str, returntype = args[2], args[3], args[4], args[5], args[6]
