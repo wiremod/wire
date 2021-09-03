@@ -1,5 +1,3 @@
-PrintMessage(3, "Loaded strFuncOptimizations Test")
-
 local function nicename( word )
 	local ret = word:lower()
 	if ret == "normal" then return "number" end
@@ -29,7 +27,7 @@ local function findFunc( self, funcname, typeids, typeids_str )
 	end
 
 	local typeIDsLength = #typeids
-	self.prf = self.prf + 10
+	self.prf = self.prf + 5
 
 	if typeIDsLength > 0 then
 		if not func then
@@ -66,6 +64,8 @@ local function findFunc( self, funcname, typeids, typeids_str )
 	end
 
 	if func then
+		self.prf = self.prf + 20
+
 		local limiter = self.strfunc_cache[2]
 		local limiterLength = #limiter + 1
 
