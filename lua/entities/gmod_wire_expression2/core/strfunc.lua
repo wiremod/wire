@@ -65,12 +65,13 @@ local function findFunc( self, funcname, typeids, typeids_str )
 	end
 
 	if func and not cache[str] then
-		cache[str] = { func, func_return_type }
+		local limiterLength = #limiter + 1
+		cache[str] = { func, func_return_type, limiterLength }
 		insert( limiter, 1, str )
 
-		if #limiter == 101 then
-			cache[ limiter[101] ] = nil
-			limiter[101] = nil
+		if limiterLength == 101 then
+			self.strfunc_cache[1][ limiter[101] ] = nil
+			self.strfunc_cache[2][101] = nil
 		end
 	end
 
