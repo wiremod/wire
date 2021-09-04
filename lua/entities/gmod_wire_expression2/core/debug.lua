@@ -59,10 +59,17 @@ local function canPrint(ply)
 	if printDelay.numCharges < maxCharges then
 		-- check if the player "deserves" new charges
 		local timePassed = (currentTime - printDelay.lastTime)
-		local chargesToAdd = math.floor(timePassed / chargesDelay)
-		printDelay.numCharges = printDelay.numCharges + chargesToAdd
-		-- add "semi" charges the player might already have
-		printDelay.lastTime = (currentTime - (timePassed % chargesDelay))
+		if timePassed > chargesDelay then
+			if chargesDelay == 0 then
+				printDelay.lastTime = currentTime
+				printDelay.numCharges = maxCharges
+			else
+				local chargesToAdd = math.floor(timePassed / chargesDelay)
+				printDelay.lastTime = (currentTime - (timePassed % chargesDelay))
+				-- add "semi" charges the player might already have
+				printDelay.numCharges = printDelay.numCharges + chargesToAdd
+			end
+		end
 	end
 	-- we should clamp his charges for safety
 	if printDelay.numCharges > maxCharges then

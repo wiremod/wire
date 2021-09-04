@@ -609,23 +609,23 @@ e2function entity entity:aimEntity()
 end
 
 e2function vector entity:aimPos()
-	if not IsValid(this) then return {0,0,0} end
-	if not this:IsPlayer() then return {0,0,0} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", {0, 0, 0}) end
 
 	return this:GetEyeTraceNoCursor().HitPos
 end
 
 e2function vector entity:aimNormal()
-	if not IsValid(this) then return {0,0,0} end
-	if not this:IsPlayer() then return {0,0,0} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", {0, 0, 0}) end
 
 	return this:GetEyeTraceNoCursor().HitNormal
 end
 
 --- Returns the bone the player is currently aiming at.
 e2function bone entity:aimBone()
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", nil) end
 
 	local trace = this:GetEyeTraceNoCursor()
 	local ent = trace.Entity

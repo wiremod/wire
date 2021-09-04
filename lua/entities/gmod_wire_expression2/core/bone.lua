@@ -85,7 +85,7 @@ __e2setcost(1)
 
 --- if (B)
 e2function number operator_is(bone b)
-	if not isValidBone(b) then return 0 else return 1 end
+	if isValidBone(b) then return 1 else return 0 end
 end
 
 --- B = B
@@ -112,8 +112,8 @@ __e2setcost(3)
 
 --- Returns <this>'s <index>th bone.
 e2function bone entity:bone(index)
-	if not IsValid(this) then return nil end
-	if index < 0 then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if index < 0 then return self:throw("Invalid bone index " .. index, nil) end
 	if index >= this:GetPhysicsObjectCount() then return nil end
 	return getBone(this, index)
 end
