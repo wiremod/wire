@@ -282,6 +282,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.dvars = inst.dvars
 	self.tvars = inst.tvars
 	self.funcs = inst.funcs
+	self.types = inst.types
 	self.funcs_ret = inst.funcs_ret
 	self.globvars = inst.GlobalScope
 
@@ -339,6 +340,7 @@ function ENT:ResetContext()
 		vclk = {}, -- Used only by arrays and tables!
 		funcs = self.funcs,
 		funcs_ret = self.funcs_ret,
+		types = self.types,
 		entity = self,
 		player = self.player,
 		uid = self.uid,

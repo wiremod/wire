@@ -39,7 +39,8 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.prfcounter = 0
 	self.prfcounters = {}
 	self.tvars = {}
-	self.funcs = {}
+	self.funcs = {} -- user defined functions
+	self.types = {} -- user defined types
 	self.dvars = {}
 	self.funcs_ret = {}
 	self.EnclosingFunctions = { --[[ { ReturnType: string } ]] }
@@ -152,6 +153,15 @@ function Compiler:GetVariableType(instance, name)
 
 	self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") does not exist", instance)
 	return nil
+end
+
+function Compiler:SetType(name, type_struct)
+	-- Types are defined as { fields = table, name = string }
+	self.types[name] = type_struct
+end
+
+function Compiler:GetType(name)
+	return self.types[name]
 end
 
 -- ---------------------------------------------------------------------------
@@ -992,21 +1002,21 @@ end
 
 function Compiler:InstrTYPE(args)
 	-- args = { "type", trace, type_name, fields }
-	self:PushPrfCounter()
 	local type_name = args[3]
 	local fields = args[4]
 
-	print("funcs", self.funcs, #self.funcs)
-	PrintTable(self.funcs)
+	self.prfcounter = self.prfcounter + 40
 
-	--[[local stmt = self:EvaluateStatement(args, 1)
-	local var_name = args[3]
-	self:PushScope()
-		self:SetLocalVariableType(var_name, "s", args)
-		local stmt2 = self:EvaluateStatement(args, 3)
-	self:PopScope()]]
+	self:SetType( type_name, { fields = fields, name = type_name } )
 
-	local prf_cond = self:PopPrfCounter()
+	return { self:GetOperator(args, "type", {})[1], type_name, fields }
+end
 
-	return { self:GetOperator(args, "type", {})[1], prf_cond, type_name }
+function Compiler:InstrTYPECONSTR(args)
+	-- args = { "typeconstr", trace, type_name, fields }
+	local type_name, fields = args[3], args[4]
+
+	self.prfcounter = self.prfcounter + 5
+
+	return { function() return { type = type_name, fields = fields } end }, "udt:" .. type_name
 end

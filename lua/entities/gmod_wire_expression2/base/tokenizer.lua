@@ -9,6 +9,29 @@ E2Lib.Tokenizer = {}
 local Tokenizer = E2Lib.Tokenizer
 Tokenizer.__index = Tokenizer
 
+local KEYWORDS = {
+	["if"] = "if",
+	["elseif"] = "eif",
+	["else"] = "els",
+	["local"] = "loc",
+	["while"] = "whl",
+	["for"] = "for",
+	["break"] = "brk",
+	["continue"] = "cnt",
+	["switch"] = "swc",
+	["case"] = "case",
+	["default"] = "default",
+	["foreach"] = "fea",
+	["function"] = "func",
+	["return"] = "ret",
+	["void"] = "void",
+	["#include"] = "inclu",
+	["try"] = "try",
+	["catch"] = "catch",
+	["do"] = "do",
+	["type"] = "type"
+}
+
 function Tokenizer.Execute(...)
 	-- instantiate Tokenizer
 	local instance = setmetatable({}, Tokenizer)
@@ -144,49 +167,14 @@ function Tokenizer:NextSymbol()
 		tokenname = "num"
 
 	elseif self:NextPattern("^[a-z#][a-zA-Z0-9_]*") then
+		local tdata = self.tokendata
+		local keyword = KEYWORDS[tdata]
+
 		-- keywords/functions
-		if self.tokendata == "if" then
-			tokenname = "if"
-		elseif self.tokendata == "elseif" then
-			tokenname = "eif"
-		elseif self.tokendata == "else" then
-			tokenname = "els"
-		elseif self.tokendata == "local" then
-			tokenname = "loc"
-		elseif self.tokendata == "while" then
-			tokenname = "whl"
-		elseif self.tokendata == "for" then
-			tokenname = "for"
-		elseif self.tokendata == "break" then
-			tokenname = "brk"
-		elseif self.tokendata == "continue" then
-			tokenname = "cnt"
-		elseif self.tokendata == "switch" then
-			tokenname = "swh"
-		elseif self.tokendata == "case" then
-			tokenname = "case"
-		elseif self.tokendata == "default" then
-			tokenname = "default"
-		elseif self.tokendata == "foreach" then
-			tokenname = "fea"
-		elseif self.tokendata == "function" then
-			tokenname = "func"
-		elseif self.tokendata == "return" then
-			tokenname = "ret"
-		elseif self.tokendata == "void" then
-			tokenname = "void"
-		elseif self.tokendata == "#include" then
-			tokenname = "inclu"
-		elseif self.tokendata == "try" then
-			tokenname = "try"
-		elseif self.tokendata == "catch" then
-			tokenname = "catch"
-		elseif self.tokendata == "do" then
-			tokenname = "do"
-		elseif self.tokendata == "type" then
-			tokenname = "type"
-		elseif self.tokendata:match("^[ijk]$") and self.character ~= "(" then
-			tokenname, self.tokendata = "num", "1" .. self.tokendata
+		if keyword then
+			tokenname = keyword
+		elseif tdata:match("^[ijk]$") and self.character ~= "(" then
+			tokenname, tokendata = "num", "1" .. tdata
 		else
 			tokenname = "fun"
 		end

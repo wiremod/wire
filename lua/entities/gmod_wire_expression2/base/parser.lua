@@ -43,6 +43,9 @@ type apple = {
 	Color: string
 }
 
+TypeDecl ← (TypeField ("," TypeField))*
+TypeField ← (Field ":" Type)
+
 FunctionStmt ← "function" FunctionHead "(" FunctionArgs Block
 FunctionHead ← (Type Type ":" Fun / Type ":" Fun / Type Fun / Fun)
 FunctionArgs ← (FunctionArg ("," FunctionArg)*)? ")"
@@ -74,7 +77,8 @@ Expr15 ← Expr16 (MethodCallExpr / TableIndexExpr)?
 Expr16 ← "(" Expr1 ")" / FunctionCallExpr / Expr17
 Expr17 ← Number / String / "~" Var / "$" Var / "->" Var / Expr18
 Expr18 ← !(Var "++") !(Var "--") Expr19
-Expr19 ← Var
+Expr19 ← Var / Expr20
+Expr20 ← TypeName "{" (KeyValueList) "}"
 
 MethodCallExpr ← ":" Fun "(" (Expr1 ("," Expr1)*)? ")"
 TableIndexExpr ← "[" Expr1 ("," Type)? "]"
@@ -82,9 +86,6 @@ TableIndexExpr ← "[" Expr1 ("," Type)? "]"
 FunctionCallExpr ← Fun "(" KeyValueList? ")"
 KeyValueList ← (KeyValue ("," KeyValue))*
 KeyValue ← Expr1 ("=" Expr1)?
-
-TypeDecl ← (TypeField ("," TypeField))*
-TypeField ← (Field ":" Type)
 
 ]]
 -- ----------------------------------------------------------------------------------
@@ -822,18 +823,17 @@ function Parser:TypeDecl()
 			end
 			local field_type = self:GetTokenData()
 
+			fields[field_name] = field_type
+
 			if self:AcceptRoamingToken("rcb") then
 				return fields
 			elseif not self:AcceptRoamingToken("com") then
 				self:NextToken()
 				self:Error("Right curly bracket (}) expected after type fields")
 			end
-
-			fields[field_name] = field_type
-
-			print(field_name, field_type)
 		end
 	end
+	return fields
 end
 
 function Parser:FunctionArgs(Temp, Args)
@@ -1113,9 +1113,9 @@ function Parser:Expr1()
 	self.exprtoken = self:GetToken()
 
 	if self:AcceptRoamingToken("var") then
-		if self:AcceptRoamingToken("ass") then
+		--[[if self:AcceptRoamingToken("ass") then
 			self:Error("Assignment operator (=) must not be part of equation")
-		end
+		end]]
 
 		if self:AcceptRoamingToken("aadd") then
 			self:Error("Additive assignment operator (+=) must not be part of equation")
@@ -1367,6 +1367,12 @@ function Parser:Expr16()
 		local trace = self:GetTokenTrace()
 		local fun = self:GetTokenData()
 
+		if self:AcceptRoamingToken("lcb") then
+			self:TrackBack()
+			self:TrackBack()
+			return self:Expr17()
+		end
+
 		if not self:AcceptTailingToken("lpa") then
 			if self:AcceptRoamingToken("lpa") then
 				self:Error("Left parenthesis (() must not be preceded by whitespace")
@@ -1550,11 +1556,62 @@ function Parser:Expr19()
 		return self:Instruction(trace, "var", var)
 	end
 
+	return self:Expr20()
+end
+
+function Parser:Expr20()
+	if self:AcceptRoamingToken("fun") then
+		local typename = self:GetTokenData()
+		local kvtable = false
+		local values = {}
+		if self:AcceptRoamingToken("lcb") then
+			if not self:AcceptRoamingToken("var") then
+				self:Error("Field missing in type instantiation", self:GetToken())
+			end
+			local key = self:GetTokenData()
+			if self:AcceptRoamingToken("ass") then
+				if self:AcceptRoamingToken("rpa") then
+					self:Error("Expression expected, got right paranthesis ())", self:GetToken())
+				end
+				values[key] = self:Expr1()
+				kvtable = true
+			end
+		end
+
+		if kvtable then
+			while self:AcceptRoamingToken("com") do
+				if not self:AcceptRoamingToken("var") then
+					self:Error("Field missing in type instantiation", self:GetToken())
+				end
+				local key = self:GetTokenData()
+
+				if self:AcceptRoamingToken("ass") then
+					if self:AcceptRoamingToken("rpa") then
+						self:Error("Expression expected, got right paranthesis ())", self:GetToken())
+					end
+					values[key] = self:Expr1()
+					kvtable = true
+				else
+					self:Error("Assignment operator (=) missing, to complete expression", token)
+				end
+			end
+
+			if not self:AcceptRoamingToken("rcb") then
+				self:Error("Right curly bracket (}) missing, to close type field list", self:GetToken())
+			end
+			return self:Instruction(self:GetTokenTrace(), "typeconstr", typename, values)
+		end
+
+	end
 	return self:ExprError()
 end
 
 function Parser:ExprError()
 	if self:HasTokens() then
+		if self:AcceptRoamingToken("var") and self:AcceptRoamingToken("ass")  then
+			self:Error("Assignment operator (=) must not be part of equation")
+		end
+
 		if self:AcceptRoamingToken("add") then
 			self:Error("Addition operator (+) must be preceded by equation or value")
 		elseif self:AcceptRoamingToken("sub") then -- can't occur (unary minus)
