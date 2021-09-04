@@ -6,7 +6,6 @@ end
 
 local function checkFuncName( self, funcname )
 	if self.funcs[funcname] then
-		self.prf = self.prf + 15
 		return self.funcs[funcname], self.funcs_ret[funcname], true
 	elseif wire_expression2_funcs[funcname] then
 		return wire_expression2_funcs[funcname][3], wire_expression2_funcs[funcname][2]
