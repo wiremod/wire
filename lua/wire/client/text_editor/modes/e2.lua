@@ -5,10 +5,6 @@ local string_gsub = string.gsub
 
 local EDITOR = {}
 
-local function istype(tp)
-	return wire_expression_types[tp:upper()] or tp == "number"
-end
-
 -- keywords[name][nextchar!="("]
 local keywords = {
 	-- keywords that can be followed by a "(":
@@ -26,16 +22,14 @@ local keywords = {
 	["else"]     = { [true] = true },
 	["break"]    = { [true] = true },
 	["continue"] = { [true] = true },
-	--["function"] = { [true] = true },
 	["return"] = { [true] = true },
 	["local"]  = { [true] = true },
 	["try"]    = { [true] = true },
-	["do"] = { [true] = true },
-	["type"]   = { [true] = true }
+	["do"] = { [true] = true }
 }
 
 -- fallback for nonexistant entries:
-setmetatable(keywords, { __index=function(tbl,index) return {} end })
+setmetatable(keywords, { __index = function(tbl,index) return {} end })
 
 -- Directive colors
 local FULL = 0       -- Entire thing is yellow
@@ -67,8 +61,21 @@ local colors = {
 	["typename"]  = { Color(240, 160,  96), false}, -- orange
 	["constant"]  = { Color(240, 160, 240), false}, -- pink
 	["userfunction"] = { Color(102, 122, 102), false}, -- dark grayish-green
-	["usertype"]  = { Color(240, 142,  96), false}, -- orange
+	["usertype"]  = { Color(240, 190,  96), false}, -- light orange
 }
+
+local SIMPLE_TYPES = {
+	["number"] = true,
+	["void"] = true
+}
+
+local function isusertype(self, tp)
+	return self.e2types[tp]
+end
+
+local function ise2type(self, tp)
+	return SIMPLE_TYPES[tp] or wire_expression_types[tp:upper()]
+end
 
 function EDITOR:GetSyntaxColor(name)
 	return colors[name][1]
@@ -123,13 +130,13 @@ function EDITOR:CommentSelection(removecomment)
 		local comment_char = "#"
 		if removecomment then
 			-- shift-TAB with a selection --
-			local tmp = string_gsub("\n"..self:GetSelection(), "\n"..comment_char, "\n")
+			local tmp = string_gsub("\n" .. self:GetSelection(), "\n" .. comment_char, "\n")
 
 			-- makes sure that the first line is outdented
 			self:SetSelection(tmp:sub(2))
 		else
 			-- plain TAB with a selection --
-			self:SetSelection(comment_char .. self:GetSelection():gsub("\n", "\n"..comment_char))
+			self:SetSelection(comment_char .. self:GetSelection():gsub("\n", "\n" .. comment_char))
 		end
 	else
 		ErrorNoHalt( "Invalid block comment style" )
@@ -175,6 +182,7 @@ function EDITOR:ResetTokenizer(row)
 		-- This code checks if the visible code is inside a string or a block comment
 		self.blockcomment = nil
 		self.multilinestring = nil
+		self.in_struct = nil
 		local singlelinecomment = false
 
 		local str = string_gsub( table_concat( self.Rows, "\n", 1, self.Scroll[1]-1 ), "\r", "" )
@@ -205,16 +213,21 @@ function EDITOR:ResetTokenizer(row)
 	end
 
 
-	for k,v in pairs( self.e2fs_functions ) do
+	for k, v in pairs( self.e2fs_functions ) do
 		if v == row then
 			self.e2fs_functions[k] = nil
+		end
+	end
+
+	for k, v in pairs( self.e2types ) do
+		if v == row then
+			self.e2types[k] = nil
 		end
 	end
 end
 
 function EDITOR:SyntaxColorLine(row)
-	cols,lastcol = {}, nil
-
+	cols, lastcol = {}, nil
 
 	self:ResetTokenizer(row)
 	self:NextCharacter()
@@ -271,13 +284,17 @@ function EDITOR:SyntaxColorLine(row)
 		if self:NextPattern( "[a-z][a-zA-Z0-9]*%s%s*[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9_]*" ) then -- Everything specified (returntype typeindex:funcname)
 			local returntype, spaces, typeindex, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s%s*)([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9_]*)" )
 
-			if istype( returntype ) or returntype == "void" then
+			if isusertype( self, returntype ) then
+				addToken( "usertype", returntype )
+			elseif ise2type( self, returntype ) then
 				addToken( "typename", returntype )
 			else
 				addToken( "notfound", returntype )
 			end
 			addToken( "comment", spaces )
-			if istype( typeindex ) then
+			if isusertype( self, typeindex ) then
+				addToken( "usertype", typeindex )
+			elseif ise2type(self, typeindex) then
 				addToken( "typename", typeindex )
 			else
 				addToken( "notfound", typeindex )
@@ -293,7 +310,9 @@ function EDITOR:SyntaxColorLine(row)
 		elseif self:NextPattern( "[a-z][a-zA-Z0-9]*%s%s*[a-z][a-zA-Z0-9_]*" ) then -- returntype funcname
 			local returntype, spaces, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s%s*)([a-z][a-zA-Z0-9_]*)" )
 
-			if istype( returntype ) or returntype == "void" then
+			if isusertype( self,  returntype ) then
+				addToken( "usertype", returntype )
+			elseif ise2type( self, returntype ) then
 				addToken( "typename", returntype )
 			else
 				addToken( "notfound", returntype )
@@ -309,7 +328,9 @@ function EDITOR:SyntaxColorLine(row)
 		elseif self:NextPattern( "[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9_]*" ) then -- typeindex:funcname
 			local typeindex, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9_]*)" )
 
-			if istype( typeindex ) then
+			if isusertype( self,  typeindex ) then
+				addToken( "usertype", typeindex )
+			elseif ise2type( self, typeindex ) then
 				addToken( "typename", typeindex )
 			else
 				addToken( "notfound", typeindex )
@@ -377,10 +398,13 @@ function EDITOR:SyntaxColorLine(row)
 
 				-- Find the type
 				if self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then
-					if istype( self.tokendata ) or self.tokendata == "void" then -- If it's a type
-						addToken( "typename", self.tokendata )
-					else -- aww
-						addToken( "notfound", self.tokendata )
+					local typ = self.tokendata
+					if isusertype( self,  typ ) then
+						addToken( "usertype", typ )
+					elseif ise2type( self, typ ) then
+						addToken( "typename", typ )
+					else
+						addToken( "notfound", typ )
 					end
 				end
 
@@ -398,7 +422,7 @@ function EDITOR:SyntaxColorLine(row)
 		end
 	end
 
-	found = self:SkipPattern("( *type)")
+	found = self:SkipPattern("( *struct)")
 
 	if found then
 		addToken("keyword", found)
@@ -407,12 +431,23 @@ function EDITOR:SyntaxColorLine(row)
 		local spaces = self:SkipPattern( " *" )
 		if spaces then addToken( "comment", spaces ) end
 
-		if self:NextPattern("[a-z][%w_]*") then
+		if self:NextPattern("[a-z][%w]*") then
+			self.e2types[self.tokendata] = row
 			addToken("usertype", self.tokendata)
+
+			self.tokendata = ""
+
+			if self:NextPattern(" *{") then
+				addToken("operator", self.tokendata)
+				self.in_struct = true
+			end
+
 			self.tokendata = ""
 		else
 			addToken("notfound", self.tokendata)
 		end
+
+		self.tokendata = ""
 	end
 
 	while self.character do
@@ -424,8 +459,69 @@ function EDITOR:SyntaxColorLine(row)
 		if spaces then addToken("operator", spaces) end
 		if not self.character then break end
 
-		-- eat next token
-		if self:NextPattern("^_[A-Z][A-Z_0-9]*") then
+		if self.character == "#" then
+			-- Preprocessing. Comments / PPCommands
+			self:NextCharacter()
+			if self.character == "[" then -- Check if there is a [ directly after the #
+				while self.character do -- Find the ending ]
+					if self.character == "]" then
+						self:NextCharacter()
+						if self.character == "#" then -- Check if there is a # directly after the ending ]
+							tokenname = "comment"
+							break
+						end
+					end
+					if self.character == "\\" then self:NextCharacter() end
+					self:NextCharacter()
+				end
+				if tokenname == "" then -- If no ending ]# was found...
+					self.blockcomment = true
+					tokenname = "comment"
+				else
+					self:NextCharacter()
+				end
+			end
+
+			if tokenname == "" then
+				self:NextPattern("[^ ]*") -- Find the whole word
+
+				if E2Lib.PreProcessor["PP_" .. self.tokendata:sub(2)] then
+					-- there is a preprocessor command by that name => mark as such
+					tokenname = "ppcommand"
+				elseif self.tokendata == "#include" then
+					tokenname = "keyword"
+				else
+					-- eat the rest and mark as a comment
+					self:NextPattern(".*")
+					tokenname = "comment"
+				end
+			end
+		elseif self.in_struct then
+			-- Check if we're inside of a struct definition.
+			-- If so, only highlight variables, colons and types
+
+			if self:NextPattern("^[A-Z][a-z%w]*") then
+				tokenname = "variable"
+			elseif self:NextPattern("^[a-z%d]+") then
+				if isusertype(self, self.tokendata) then
+					tokenname = "usertype"
+				elseif ise2type(self, self.tokendata) then
+					tokenname = "typename"
+				else
+					tokenname = "notfound"
+				end
+			elseif self:NextPattern("[:,]") then
+				tokenname = "operator"
+			elseif self:NextPattern("}") then
+				tokenname = "operator"
+				self.in_struct = false
+			else
+				self:NextCharacter()
+				tokenname = "notfound"
+			end
+
+			-- Normal highlighting beyond here
+		elseif self:NextPattern("^_[A-Z][A-Z_0-9]*") then
 			local word = self.tokendata
 			for k,_ in pairs( wire_expression2_constants ) do
 				if k == word then
@@ -440,12 +536,20 @@ function EDITOR:SyntaxColorLine(row)
 		elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
 			local sstr = self.tokendata
 			if highlightmode then
-				if highlightmode == 1 and istype(sstr) then
-					tokenname = "typename"
+				if highlightmode == 1 then
+					if isusertype(self, sstr) then
+						tokenname = "usertype"
+					else
+						tokenname = "typename"
+					end
 				elseif highlightmode == 2 and (sstr == "all" or sstr == "none") then
 					tokenname = "directive"
-				elseif (highlightmode == 4 or highlightmode == 5) and istype(sstr) then
-					tokenname = "typename"
+				elseif (highlightmode == 4 or highlightmode == 5) then
+					if isusertype(self, sstr) then
+						tokenname = "usertype"
+					else
+						tokenname = "typename"
+					end
 
 					if highlightmode == 5 then
 						highlightmode = nil
@@ -462,7 +566,13 @@ function EDITOR:SyntaxColorLine(row)
 
 				if self.character == "]" then
 					-- X[Y,typename]
-					tokenname = istype(sstr) and "typename" or "notfound"
+					if isusertype(self, sstr) then
+						tokenname = "usertype"
+					elseif ise2type(self, sstr) then
+						tokenname = "typename"
+					else
+						tokenname = "notfound"
+					end
 				elseif keywords[sstr][keyword] then
 					tokenname = "keyword"
 					if sstr == "foreach" then
@@ -475,10 +585,10 @@ function EDITOR:SyntaxColorLine(row)
 					end
 				elseif wire_expression2_funclist[sstr] then
 					tokenname = "function"
-
 				elseif self.e2fs_functions[sstr] then
 					tokenname = "userfunction"
-
+				elseif self.e2types[sstr] then
+					tokenname = "usertype"
 				else
 					tokenname = "notfound"
 
@@ -531,44 +641,6 @@ function EDITOR:SyntaxColorLine(row)
 				self:NextCharacter()
 			end
 
-		elseif self.character == "#" then
-			self:NextCharacter()
-			if self.character == "[" then -- Check if there is a [ directly after the #
-				while self.character do -- Find the ending ]
-					if self.character == "]" then
-						self:NextCharacter()
-						if self.character == "#" then -- Check if there is a # directly after the ending ]
-							tokenname = "comment"
-							break
-						end
-					end
-					if self.character == "\\" then self:NextCharacter() end
-					self:NextCharacter()
-				end
-				if tokenname == "" then -- If no ending ]# was found...
-					self.blockcomment = true
-					tokenname = "comment"
-				else
-					self:NextCharacter()
-				end
-			end
-
-			if tokenname == "" then
-
-				self:NextPattern("[^ ]*") -- Find the whole word
-
-				if E2Lib.PreProcessor["PP_"..self.tokendata:sub(2)] then
-					-- there is a preprocessor command by that name => mark as such
-					tokenname = "ppcommand"
-				elseif self.tokendata == "#include" then
-					tokenname = "keyword"
-				else
-					-- eat the rest and mark as a comment
-					self:NextPattern(".*")
-					tokenname = "comment"
-				end
-
-			end
 		else
 			self:NextCharacter()
 

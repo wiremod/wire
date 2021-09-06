@@ -40,21 +40,21 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.prfcounters = {}
 	self.tvars = {}
 	self.funcs = {} -- user defined functions
-	self.types = {} -- user defined types
+	self.structs = {} -- user defined types
 	self.dvars = {}
 	self.funcs_ret = {}
 	self.EnclosingFunctions = { --[[ { ReturnType: string } ]] }
 
 	for name, v in pairs(inputs) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
+		self:SetGlobalVariableType(name, self:GetType(v)[1], { nil, { 0, 0 } })
 	end
 
 	for name, v in pairs(outputs) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
+		self:SetGlobalVariableType(name, self:GetType(v)[1], { nil, { 0, 0 } })
 	end
 
 	for name, v in pairs(persist) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
+		self:SetGlobalVariableType(name, self:GetType(v)[1], { nil, { 0, 0 } })
 	end
 
 	for name, v in pairs(delta) do
@@ -72,6 +72,7 @@ end
 
 function tps_pretty(tps)
 	if not tps or #tps == 0 then return "void" end
+	if tps == "struct" then return "struct" end
 	if type(tps) == "string" then tps = { tps } end
 	local ttt = {}
 	for i = 1, #tps do
@@ -156,12 +157,12 @@ function Compiler:GetVariableType(instance, name)
 end
 
 function Compiler:SetType(name, type_struct)
-	-- Types are defined as { fields = table, name = string }
-	self.types[name] = type_struct
+	-- Types are defined as { fields = table, name = string, [1] = "struct:<name>", [2] = default }
+	self.structs[name] = type_struct
 end
 
 function Compiler:GetType(name)
-	return self.types[name]
+	return wire_expression_types[name:upper()] or self.structs[name]
 end
 
 -- ---------------------------------------------------------------------------
@@ -187,23 +188,31 @@ function Compiler:Evaluate(args, index)
 	return ex, tp
 end
 
+-- Gets a list of args and returns a string signature
+-- Works with usertypes by using struct's id versus the full signature.
+local function getArgStr(args)
+	local pars = {}
+	for k, tp in ipairs(args) do
+		pars[k] = tp:match("^(struct):.*$") or tp
+	end
+	return table.concat(pars)
+end
+
 function Compiler:HasOperator(instr, name, tps)
-	local pars = table.concat(tps)
-	local a = wire_expression2_funcs["op:" .. name .. "(" .. pars .. ")"]
+	local a = wire_expression2_funcs["op:" .. name .. "(" .. getArgStr(tps) .. ")"]
 	return a and true or false
 end
 
 function Compiler:GetOperator(instr, name, tps)
-	local pars = table.concat(tps)
-	local a = wire_expression2_funcs["op:" .. name .. "(" .. pars .. ")"]
-	if not a then
+	local op = wire_expression2_funcs["op:" .. name .. "(" .. getArgStr(tps) .. ")"]
+	if not op then
 		self:Error("No such operator: " .. op_find(name) .. "(" .. tps_pretty(tps) .. ")", instr)
 		return
 	end
 
-	self.prfcounter = self.prfcounter + (a[4] or 3)
+	self.prfcounter = self.prfcounter + (op[4] or 3)
 
-	return { a[3], a[2], a[1] }
+	return { op[3], op[2], op[1] }
 end
 
 
@@ -252,7 +261,6 @@ function Compiler:GetFunction(instr, Name, Args)
 
 	return { Func[3], Func[2], Func[1] }
 end
-
 
 function Compiler:GetMethod(instr, Name, Meta, Args)
 	local Params = Meta .. ":" .. table.concat(Args)
@@ -532,8 +540,6 @@ function Compiler:InstrGET(args)
 
 		local rt = self:GetOperator(args, "idx", { tp, tp1 })
 		return { rt[1], ex, ex1 }, rt[2]
-
-
 	else
 		if not self:HasOperator(args, "idx", { tp2, "=", tp, tp1 }) then
 			self:Error("No such operator: get " .. tps_pretty({ tp }) .. "[" .. tps_pretty({ tp1, tp2 }) .. "]", args)
@@ -761,7 +767,7 @@ function Compiler:InstrFUNCTION(args)
 	self:PushScope()
 
 	for _, D in pairs(Args) do
-		local Name, Type = D[1], wire_expression_types[D[2]][1]
+		local Name, Type = D[1], self:GetType(D[2])[1]
 		self:SetLocalVariableType(Name, Type, args)
 	end
 
@@ -1000,23 +1006,99 @@ function Compiler:InstrTRY(args)
 end
 
 
-function Compiler:InstrTYPE(args)
-	-- args = { "type", trace, type_name, fields }
-	local type_name = args[3]
-	local fields = args[4]
+function Compiler:InstrSTRUCT(args)
+	-- args = { "struct", trace, type_name, type }
+	local type_name, type_obj = args[3], args[4]
 
-	self.prfcounter = self.prfcounter + 40
+	self.prfcounter = self.prfcounter + 30
 
-	self:SetType( type_name, { fields = fields, name = type_name } )
+	self:SetType( type_name, type_obj )
 
-	return { self:GetOperator(args, "type", {})[1], type_name, fields }
+	return { self:GetOperator(args, "struct", {})[1], type_name, type_obj }
 end
 
-function Compiler:InstrTYPECONSTR(args)
-	-- args = { "typeconstr", trace, type_name, fields }
-	local type_name, fields = args[3], args[4]
+function Compiler:InstrSTRUCTBUILD(args)
+	-- args = { "structbuild", trace, type_name, type }
+	local type_name, values = args[3], args[4]
+
+	local struct_types = self.structs[type_name].fields
+	for field in pairs(struct_types) do
+		if not values[field] then
+			self:Error("Missing field '" .. field .. "' in struct '" .. type_name .. "'", args)
+		end
+	end
 
 	self.prfcounter = self.prfcounter + 5
 
-	return { function() return { type = type_name, fields = fields } end }, "udt:" .. type_name
+	local fields = {}
+	for k, value in pairs(values) do
+		local val, typ = self:CallInstruction(value[1], value)
+		if struct_types[k] == typ then
+			fields[k] = val
+		else
+			self:Error("Expected " .. tps_pretty(struct_types[k]) .. ", got " .. tps_pretty(typ) .. " for field " .. k, args)
+		end
+	end
+
+	return { self:GetOperator(args, "structbuild", {})[1], type_name, fields }, "struct:" .. type_name
+end
+
+function Compiler:InstrFIELDGET(args)
+	-- args = { "fieldget", trace, obj, field_name }
+	local field_name = args[4]
+	local objexpr, obj_tp = self:Evaluate(args, 1)
+
+	self.prfcounter = self.prfcounter + 1
+
+	local t, usertype = obj_tp:match("^(struct):(.+)$")
+	if t then obj_tp = t end
+
+	local desired_t
+	if usertype then
+		desired_t = self.structs[usertype].fields[field_name]
+		if not desired_t then self:Error("Field '" .. E2Lib.limitString(field_name, 15) .. "' does not exist in struct '" .. usertype .. "'", args) end
+	end
+
+	if not self:HasOperator(args, "fieldget", { obj_tp }) then
+		self:Error("No such operator: " .. tps_pretty({ obj_tp }) .. ".Index", args)
+	end
+
+	local rt = self:GetOperator(args, "fieldget", { obj_tp })
+
+	return { rt[1], objexpr, field_name }, desired_t or rt[2]
+end
+
+function Compiler:InstrFIELDSET(args)
+	-- args = { "fieldset", trace, obj, field_name, value }
+	local obj, obj_tp = self:Evaluate(args, 1)
+	local field_name = args[4]
+	local setobj, set_tp = self:Evaluate(args, 3)
+
+	local t, usertype = obj_tp:match("^(struct):(.+)$")
+	if t then obj_tp = t end
+
+	local desired_t
+	if usertype then
+		desired_t = self.structs[usertype].fields[field_name]
+		if not desired_t then self:Error("Field '" .. E2Lib.limitString(field_name, 15) .. "' does not exist in struct '" .. usertype .. "'", args) end
+
+		if not self:HasOperator(args, "fieldset", { obj_tp }) then
+			self:Error("No such operator: " .. tps_pretty( obj_tp ) .. ".Index = ...", args)
+		end
+
+		if desired_t ~= set_tp then
+			self:Error("Expected " .. tps_pretty(desired_t) .. ", got " .. tps_pretty(set_tp) .. " for field " .. field_name, args)
+		end
+
+		local rt = self:GetOperator(args, "fieldset", {obj_tp})
+		return { rt[1], obj, field_name, setobj }, rt[2]
+	end
+
+	if not self:HasOperator(args, "fieldset", { obj_tp, set_tp }) then
+		self:Error("No such operator: " .. tps_pretty( obj_tp ) .. ".Index = " .. tps_pretty( set_tp ), args)
+	end
+
+	local rt = self:GetOperator(args, "fieldset", {obj_tp, set_tp})
+
+	return { rt[1], obj, field_name, setobj }, rt[2]
 end

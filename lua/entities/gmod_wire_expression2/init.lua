@@ -127,7 +127,7 @@ function ENT:Execute()
 		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 	end
 
-	self:PCallHook('preexecute')
+	self:PCallHook("preexecute")
 
 	self.context:PushScope()
 
@@ -282,7 +282,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.dvars = inst.dvars
 	self.tvars = inst.tvars
 	self.funcs = inst.funcs
-	self.types = inst.types
+	self.structs = inst.structs
 	self.funcs_ret = inst.funcs_ret
 	self.globvars = inst.GlobalScope
 
@@ -340,7 +340,7 @@ function ENT:ResetContext()
 		vclk = {}, -- Used only by arrays and tables!
 		funcs = self.funcs,
 		funcs_ret = self.funcs_ret,
-		types = self.types,
+		structs = self.structs,
 		entity = self,
 		player = self.player,
 		uid = self.uid,

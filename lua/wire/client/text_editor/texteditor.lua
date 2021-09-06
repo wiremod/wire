@@ -83,6 +83,7 @@ function EDITOR:Init()
 	self.LastClick = 0
 
 	self.e2fs_functions = {}
+	self.e2types = {}
 
 	self.Colors = {
 		dblclickhighlight = Color(0, 100, 0),

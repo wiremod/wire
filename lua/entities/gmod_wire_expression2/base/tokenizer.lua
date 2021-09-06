@@ -29,7 +29,7 @@ local KEYWORDS = {
 	["try"] = "try",
 	["catch"] = "catch",
 	["do"] = "do",
-	["type"] = "type"
+	["struct"] = "struct"
 }
 
 function Tokenizer.Execute(...)
@@ -182,7 +182,6 @@ function Tokenizer:NextSymbol()
 	elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
 		-- variables
 		tokenname = "var"
-
 	elseif self.character == "_" then
 		-- constants
 		self:NextCharacter()

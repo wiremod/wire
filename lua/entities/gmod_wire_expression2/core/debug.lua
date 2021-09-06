@@ -105,9 +105,18 @@ e2function number playerCanPrint()
 	return (canPrint(self.player) and 1 or 0)
 end
 
+local fmt = string.format
+
 local function SpecialCase( arg )
 	if istable(arg) then
-		if (arg.isfunction) then
+		if arg.struct then
+			local fields, nfields = {}, 1
+			for k, v in pairs(arg.fields) do
+				fields[nfields] = fmt("%s = %s", k, v)
+				nfields = nfields + 1
+			end
+			return string.format( "struct [%s] {%s}", arg.name, table.concat(fields, ", ") )
+		elseif arg.isfunction then
 			return "function " .. arg[3] .. " = (" .. arg[2] .. ")"
 		elseif (seq(arg)) then -- A table with only numerical indexes
 			local str = "["

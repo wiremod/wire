@@ -36,15 +36,10 @@ Stmt10 ← (FunctionStmt / ReturnStmt)? Stmt11
 Stmt11 ← ("#include" String)? Stmt12
 Stmt12 ← ("try" Block "catch" "(" Var ")" Block)? Stmt13
 Stmt13 ← ("do" Block "while" Cond)? Stmt14
+Stmt14 ← ("struct" StructName "{" StructDecl "}")? Expr1
 
-Stmt14 ← ("type" Type "=" "{" TypeDecl "}")? Expr1
-type apple = {
-	Juice: number,
-	Color: string
-}
-
-TypeDecl ← (TypeField ("," TypeField))*
-TypeField ← (Field ":" Type)
+StructDef ← (StructDefField ("," StructDefField))*
+StructDefField ← (Var ":" Type)
 
 FunctionStmt ← "function" FunctionHead "(" FunctionArgs Block
 FunctionHead ← (Type Type ":" Fun / Type ":" Fun / Type Fun / Fun)
@@ -76,9 +71,11 @@ Expr14 ← ("+" / "-" / "!") Expr15
 Expr15 ← Expr16 (MethodCallExpr / TableIndexExpr)?
 Expr16 ← "(" Expr1 ")" / FunctionCallExpr / Expr17
 Expr17 ← Number / String / "~" Var / "$" Var / "->" Var / Expr18
-Expr18 ← !(Var "++") !(Var "--") Expr19
-Expr19 ← Var / Expr20
-Expr20 ← TypeName "{" (KeyValueList) "}"
+Expr18 ← !(Var "++") !(Var "--") / Expr19
+Expr19 ← (StructName "{" (StructFieldList) "}") / Expr20
+Expr20 ← (Var "." Field)  / ExprVar
+
+ExprVar ← Var
 
 MethodCallExpr ← ":" Fun "(" (Expr1 ("," Expr1)*)? ")"
 TableIndexExpr ← "[" Expr1 ("," Type)? "]"
@@ -86,6 +83,9 @@ TableIndexExpr ← "[" Expr1 ("," Type)? "]"
 FunctionCallExpr ← Fun "(" KeyValueList? ")"
 KeyValueList ← (KeyValue ("," KeyValue))*
 KeyValue ← Expr1 ("=" Expr1)?
+
+StructFieldList ← (StructField ("," StructField))*
+StructField ← ExprVar ("=" Expr1)?
 
 ]]
 -- ----------------------------------------------------------------------------------
@@ -120,6 +120,7 @@ function Parser:Process(tokens, params)
 	self.count = #tokens
 	self.delta = {}
 	self.includes = {}
+	self.structs = {}
 
 	self:NextToken()
 	local tree = self:Root()
@@ -337,18 +338,11 @@ function Parser:Stmt4()
 		local keytype
 
 		if self:AcceptRoamingToken("col") then
-			if not self:AcceptRoamingToken("fun") then
-				self:Error("Type expected after colon")
-			end
+			keytype = self:GetType( self:AssertType("Type expected after colon") )
 
-			keytype = self:GetTokenData()
-			if keytype == "number" then keytype = "normal" end
-
-			if wire_expression_types[string.upper(keytype)] == nil then
+			if keytype == nil then
 				self:Error("Unknown type: " .. keytype)
 			end
-
-			keytype = wire_expression_types[string.upper(keytype)][1]
 		end
 
 		if not self:AcceptRoamingToken("com") then
@@ -364,15 +358,11 @@ function Parser:Stmt4()
 			self:Error("Colon (:) expected to separate type from variable")
 		end
 
-		if not self:AcceptRoamingToken("fun") and not self:AcceptRoamingToken("udf") then
-			self:Error("Type expected after colon")
-		end
-		local valtype = self:GetTokenData()
-		if valtype == "number" then valtype = "normal" end
-		if wire_expression_types[string.upper(valtype)] == nil then
+		local valtype = self:GetType( self:AssertType("Type expected after colon") )
+		if valtype == nil then
 			self:Error("Unknown type: " .. valtype)
 		end
-		valtype = wire_expression_types[string.upper(valtype)][1]
+		valtype = valtype[1]
 
 		if not self:AcceptRoamingToken("ass") then
 			self:Error("Equals sign (=) expected after value type to specify table")
@@ -462,13 +452,8 @@ function Parser:Index()
 		local exp = self:Expr1()
 
 		if self:AcceptRoamingToken("com") then
-			if not self:AcceptRoamingToken("fun") then
-				self:Error("Indexing operator ([]) requires a lower case type [X,t]")
-			end
-
-			local typename = self:GetTokenData()
-			if typename == "number" then typename = "normal" end
-			local type = wire_expression_types[string.upper(typename)]
+			local typename = self:AssertType("Indexing operator ([]) requires a lower case type [X,t]")
+			local type = self:GetType(typename)
 
 			if not self:AcceptRoamingToken("rsb") then
 				self:Error("Right square bracket (]) missing, to close indexing operator [X,t]")
@@ -524,7 +509,17 @@ function Parser:Stmt8(parentLocalized)
 				end -- Example Result: set( get( get(Var,1,table) ,1,table) ,3,"hello",string)
 				return inst
 			end
+		elseif self:AcceptTailingToken("dot") then
+			if not self:AcceptRoamingToken("var") then
+				self:Error("Missing field in set operation")
+			end
+			local field = self:GetTokenData()
 
+			if self:AcceptRoamingToken("ass") then
+				local inst = self:Instruction(trace, "var", var)
+				local a = self:Expr1()
+				return self:Instruction(trace, "fieldset", inst, field, a)
+			end
 		elseif self:AcceptRoamingToken("ass") then
 			if localized or parentLocalized then
 				return self:Instruction(trace, "assl", var, self:Stmt8(true))
@@ -584,12 +579,12 @@ function Parser:Stmt10()
 
 
 		-- Errors are handeled after line 49, both 'fun' and 'var' tokens are used for accurate error reports.
-		if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") or self:AcceptRoamingToken("void") then --get the name
+		if self:AcceptType() then --get the name
 			Name = self:GetTokenData()
 			NameToken = self.token -- Copy the current token for error reporting
 
 			-- We check if the previous token was actualy the return not the name
-			if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") or self:AcceptRoamingToken("void") then
+			if self:AcceptType() then
 				Return = Name
 				ReturnToken = NameToken
 
@@ -599,52 +594,38 @@ function Parser:Stmt10()
 
 			-- We check if the name token is actualy the type
 			if self:AcceptRoamingToken("col") then
-				if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
+				if self:AcceptType() then
 					Type = Name
 					TypeToken = NameToken
 
 					Name = self:GetTokenData()
 					NameToken = self.token
 				else
-					self:Error("Function name must appear after colon (:)")
+					self:Error("Type expected after colon (:)")
 				end
 			end
 		end
 
 
-		if Return and Return ~= "void" then -- Check the retun value
-
+		if Return and Return ~= "void" then -- Check the return value
 			if Return ~= Return:lower() then
 				self:Error("Function return type must be lowercased", ReturnToken)
 			end
 
-			if Return == "number" then Return = "normal" end
-
-			Return = Return:upper()
-
-			if not wire_expression_types[Return] then
-				self:Error("Invalid return argument '" .. E2Lib.limitString(Return:lower(), 10) .. "'", ReturnToken)
+			local return_type = self:GetType(Return)
+			if return_type == nil then
+				self:Error("Invalid return argument '" .. E2Lib.limitString(Return, 10) .. "'", ReturnToken)
 			end
 
-			Return = wire_expression_types[Return][1]
-
+			Return = return_type[1]
 		else
 			Return = ""
 		end
 
-		if Type then -- check the Type
-
-			if Type ~= Type:lower() then self:Error("Function object type must be full lowercase", TypeToken) end
-
-			if Type == "number" then Type = "normal" end
-
+		if Type then -- Check the type
+			-- We already know it is a valid type from above
 			if Type == "void" then self:Error("Void can not be used as function object type", TypeToken) end
-
-			Type = Type:upper()
-
-			if not wire_expression_types[Type] then
-				self:Error("Invalid data type '" .. E2Lib.limitString(Type:lower(), 10) .. "'", TypeToken)
-			end
+			if self:GetType(Type) == nil then self:Error("Invalid data type '" .. E2Lib.limitString(Type, 10) .. "'", TypeToken) end
 
 			Temp["This"] = true
 
@@ -667,7 +648,7 @@ function Parser:Stmt10()
 		local Sig = Name .. "("
 		for I = 1, #Args do
 			local Arg = Args[I]
-			Sig = Sig .. wire_expression_types[Arg[2]][1]
+			Sig = Sig .. self:GetType(Arg[2])[1]
 			if I == 1 and Arg[1] == "This" and Type ~= '' then
 				Sig = Sig .. ":"
 			end
@@ -777,35 +758,34 @@ function Parser:Stmt13()
 end
 
 function Parser:Stmt14()
-	if self:AcceptRoamingToken("type") then
+	if self:AcceptRoamingToken("struct") then
 		local trace = self:GetTokenTrace()
+		local type_name = self:AssertType("Lowercase type name expected after type keyword")
 
-		if not self:AcceptRoamingToken("fun") then
-			self:Error("Lowercase type name expected after type keyword")
-		end
-
-		local type_name = self:GetTokenData()
-
-		if wire_expression_types[type_name:upper()] then
+		if self:GetType(type_name) then
 			self:Error("Type '" .. type_name .. "' already exists")
-		end
-
-		if not self:AcceptRoamingToken("ass") then
-			self:Error("Assignment operator (=) missing in type statement")
 		end
 
 		if not self:AcceptRoamingToken("lcb") then
 			self:Error("Left curly bracket ({) expected after type statement")
 		end
 
-		local fields = self:TypeDecl()
+		local fields = self:TypeDecl(type_name)
 
-		return self:Instruction(trace, "type", type_name, fields)
+		local default = {}
+		for fname, ftype in pairs(fields) do
+			default[fname] = ftype[2] -- Get default value of every single field
+		end
+
+		local tobj = { [1] = "struct:" .. type_name, [2] = default, fields = fields, name = type_name }
+		self.structs[type_name] = tobj
+
+		return self:Instruction(trace, "struct", type_name, tobj)
 	end
 	return self:Expr1()
 end
 
-function Parser:TypeDecl()
+function Parser:TypeDecl(t_being_declared)
 	local fields = {}
 	if self:HasTokens() and not self:AcceptRoamingToken("rcb") then
 		while true do
@@ -818,12 +798,18 @@ function Parser:TypeDecl()
 				self:Error("Expected colon (:) after field name declaration")
 			end
 
-			if not self:AcceptRoamingToken("fun") then
-				self:Error("Expected type name after colon in field declaration")
+			local field_type = self:AssertType("Expected lowercase type name after colon in field declaration")
+			if field_type == t_being_declared then
+				self:Error("Cannot create a struct with itself in it!")
 			end
-			local field_type = self:GetTokenData()
 
-			fields[field_name] = field_type
+			local typeobj = self:GetType(field_type)
+
+			if typeobj == nil then
+				self:Error("Type " .. field_type .. " does not exist")
+			end
+
+			fields[field_name] = typeobj[1] -- Set to TypeID
 
 			if self:AcceptRoamingToken("rcb") then
 				return fields
@@ -836,10 +822,28 @@ function Parser:TypeDecl()
 	return fields
 end
 
+function Parser:AcceptType()
+	return self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("void")
+end
+
+function Parser:AssertType(assert_msg)
+	if not self:AcceptType() then
+		self:Error(assert_msg)
+	end
+	local tp = self:GetTokenData()
+	if tp:lower() ~= tp then self:Error(assert_msg) end
+	return tp
+end
+
+--- Assumes type_name is already uppercase
+-- To be used after AssertType
+function Parser:GetType(type_name)
+	return wire_expression_types[type_name:upper()] or self.structs[type_name]
+end
+
 function Parser:FunctionArgs(Temp, Args)
 	if self:HasTokens() and not self:AcceptRoamingToken("rpa") then
 		while true do
-
 			if self:AcceptRoamingToken("com") then self:Error("Argument separator (,) must not appear multiple times") end
 
 			if self:AcceptRoamingToken("var") or self:AcceptRoamingToken("fun") then
@@ -860,7 +864,7 @@ function Parser:FunctionArgs(Temp, Args)
 end
 
 function Parser:FunctionArg(Temp, Args)
-	local Type = "normal"
+	local Type = "number"
 
 	local Name = self:GetTokenData()
 
@@ -871,20 +875,10 @@ function Parser:FunctionArg(Temp, Args)
 	if Temp[Name] then self:Error("Variable '" .. Name .. "' is already used as an argument,") end
 
 	if self:AcceptRoamingToken("col") then
-		if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
-			Type = self:GetTokenData()
-		else
-			self:Error("Type expected after colon (:)")
-		end
+		Type = self:AssertType("Type expected after colon (:)")
 	end
 
-	if Type ~= Type:lower() then self:Error("Type must be lowercased") end
-
-	if Type == "number" then Type = "normal" end
-
-	Type = Type:upper()
-
-	if not wire_expression_types[Type] then
+	if self:GetType(Type) == nil then
 		self:Error("Invalid type specified")
 	end
 
@@ -894,7 +888,6 @@ function Parser:FunctionArg(Temp, Args)
 end
 
 function Parser:FunctionArgList(Temp, Args)
-
 	if self:HasTokens() then
 
 		local Vars = {}
@@ -925,23 +918,13 @@ function Parser:FunctionArgList(Temp, Args)
 			self:Error("Variables expected in variable list")
 		end
 
-		local Type = "normal"
+		local Type = "number"
 
 		if self:AcceptRoamingToken("col") then
-			if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
-				Type = self:GetTokenData()
-			else
-				self:Error("Type expected after colon (:)")
-			end
+			Type = self:AssertType("Type expected after colon (:)")
 		end
 
-		if Type ~= Type:lower() then self:Error("Type must be lowercased") end
-
-		if Type == "number" then Type = "normal" end
-
-		Type = Type:upper()
-
-		if not wire_expression_types[Type] then
+		if not self:GetType(Type) then
 			self:Error("Invalid type specified")
 		end
 
@@ -1224,7 +1207,7 @@ function Parser:Expr14()
 	return self:Expr15()
 end
 
-function Parser:Expr15()
+function Parser:Expr14()
 	local expr = self:Expr16()
 
 	while true do
@@ -1276,23 +1259,18 @@ function Parser:Expr15()
 
 			local aexpr = self:Expr1()
 			if self:AcceptRoamingToken("com") then
-				if not self:AcceptRoamingToken("fun") then
-					self:Error("Indexing operator ([]) requires a lower case type [X,t]")
-				end
-
-				local longtp = self:GetTokenData()
+				local longtp = self:AssertType("Indexing operator ([]) requires a lower case type [X,t]")
 
 				if not self:AcceptRoamingToken("rsb") then
 					self:Error("Right square bracket (]) missing, to close indexing operator [X,t]")
 				end
 
-				if longtp == "number" then longtp = "normal" end
-				if wire_expression_types[string.upper(longtp)] == nil then
+				local tp = self:GetType(longtp)
+				if tp == nil then
 					self:Error("Indexing operator ([]) does not support the type [" .. longtp .. "]")
 				end
 
-				local tp = wire_expression_types[string.upper(longtp)][1]
-				expr = self:Instruction(trace, "get", expr, aexpr, tp)
+				expr = self:Instruction(trace, "get", expr, aexpr, tp[1])
 			elseif self:AcceptRoamingToken("rsb") then
 				expr = self:Instruction(trace, "get", expr, aexpr)
 			else
@@ -1321,26 +1299,27 @@ function Parser:Expr15()
 			end
 
 			if self:AcceptRoamingToken("lsb") then
-				if not self:AcceptRoamingToken("fun") then
-					self:Error("Return type operator ([]) requires a lower case type [type]")
-				end
-
-				local longtp = self:GetTokenData()
+				local longtp = self:AssertType("Return type operator ([]) requires a lower case type [type]")
 
 				if not self:AcceptRoamingToken("rsb") then
 					self:Error("Right square bracket (]) missing, to close return type operator [type]")
 				end
 
-				if longtp == "number" then longtp = "normal" end
-				if wire_expression_types[string.upper(longtp)] == nil then
+				if self:GetType(longtp) == nil then
 					self:Error("Return type operator ([]) does not support the type [" .. longtp .. "]")
 				end
 
-				local stype = wire_expression_types[string.upper(longtp)][1]
+				local stype = self:GetType(longtp)[1]
 
 				expr = self:Instruction(trace, "stringcall", expr, exprs, stype)
 			else
 				expr = self:Instruction(trace, "stringcall", expr, exprs, "")
+			end
+		elseif self:AcceptTailingToken("dot") then
+			if self:AcceptRoamingToken("var") then
+				expr = self:Instruction(self:GetTokenTrace(), "fieldget", expr, self:GetTokenData())
+			else
+				self:Error("Field missing in struct index operation")
 			end
 		else
 			break
@@ -1397,7 +1376,7 @@ function Parser:Expr16()
 
 				if self:AcceptRoamingToken("ass") then
 					if self:AcceptRoamingToken("rpa") then
-						self:Error("Expression expected, got right paranthesis ())", self:GetToken())
+						self:Error("Expression expected, got right parenthesis ())", self:GetToken())
 					end
 
 					exprs[key] = self:Expr1()
@@ -1414,7 +1393,7 @@ function Parser:Expr16()
 
 						if self:AcceptRoamingToken("ass") then
 							if self:AcceptRoamingToken("rpa") then
-								self:Error("Expression expected, got right paranthesis ())", self:GetToken())
+								self:Error("Expression expected, got right parenthesis ())", self:GetToken())
 							end
 
 							exprs[key] = self:Expr1()
@@ -1550,59 +1529,71 @@ function Parser:Expr18()
 end
 
 function Parser:Expr19()
+	if self:AcceptRoamingToken("fun") then
+		local typename = self:GetTokenData()
+		if self:GetType(typename) == nil then self:Error("Unknown type " .. typename, self:GetToken()) end
+
+		local values = {}
+		if self:AcceptRoamingToken("lcb") and self:AcceptRoamingToken("var") then
+			local key = self:GetTokenData()
+			if self:AcceptRoamingToken("ass") then
+				if self:AcceptRoamingToken("rpa") then
+					self:Error("Expression expected, got right parenthesis ())", self:GetToken())
+				end
+				values[key] = self:Expr1()
+			end
+		end
+
+		while self:AcceptRoamingToken("com") do
+			if not self:AcceptRoamingToken("var") then
+				self:Error("Field missing in type instantiation", self:GetToken())
+			end
+			local key = self:GetTokenData()
+
+			if self:AcceptRoamingToken("ass") then
+				if self:AcceptRoamingToken("rpa") then
+					self:Error("Expression expected, got right parenthesis ())", self:GetToken())
+				end
+				values[key] = self:Expr1()
+			else
+				self:Error("Assignment operator (=) missing, to complete expression", token)
+			end
+		end
+
+		if not self:AcceptRoamingToken("rcb") then
+			self:Error("Right curly bracket (}) missing, to close type field list", self:GetToken())
+		end
+		return self:Instruction(self:GetTokenTrace(), "structbuild", typename, values)
+	end
+	return self:Expr20()
+end
+
+function Parser:Expr20()
+	if true then return self:ExprVar() end
+
+	if self:AcceptRoamingToken("var") then
+		local struct_var = self:GetTokenData()
+
+		if self:AcceptRoamingToken("dot") then
+			if self:AcceptRoamingToken("var") then
+				return self:Instruction(self:GetTokenTrace(), "fieldget", struct_var, self:GetTokenData())
+			end
+			self:Error("Field missing in struct index operation", self:GetToken())
+		end
+
+		self:TrackBack()
+	end
+
+	return self:ExprVar()
+end
+
+function Parser:ExprVar()
 	if self:AcceptRoamingToken("var") then
 		local trace = self:GetTokenTrace()
 		local var = self:GetTokenData()
 		return self:Instruction(trace, "var", var)
 	end
 
-	return self:Expr20()
-end
-
-function Parser:Expr20()
-	if self:AcceptRoamingToken("fun") then
-		local typename = self:GetTokenData()
-		local kvtable = false
-		local values = {}
-		if self:AcceptRoamingToken("lcb") then
-			if not self:AcceptRoamingToken("var") then
-				self:Error("Field missing in type instantiation", self:GetToken())
-			end
-			local key = self:GetTokenData()
-			if self:AcceptRoamingToken("ass") then
-				if self:AcceptRoamingToken("rpa") then
-					self:Error("Expression expected, got right paranthesis ())", self:GetToken())
-				end
-				values[key] = self:Expr1()
-				kvtable = true
-			end
-		end
-
-		if kvtable then
-			while self:AcceptRoamingToken("com") do
-				if not self:AcceptRoamingToken("var") then
-					self:Error("Field missing in type instantiation", self:GetToken())
-				end
-				local key = self:GetTokenData()
-
-				if self:AcceptRoamingToken("ass") then
-					if self:AcceptRoamingToken("rpa") then
-						self:Error("Expression expected, got right paranthesis ())", self:GetToken())
-					end
-					values[key] = self:Expr1()
-					kvtable = true
-				else
-					self:Error("Assignment operator (=) missing, to complete expression", token)
-				end
-			end
-
-			if not self:AcceptRoamingToken("rcb") then
-				self:Error("Right curly bracket (}) missing, to close type field list", self:GetToken())
-			end
-			return self:Instruction(self:GetTokenTrace(), "typeconstr", typename, values)
-		end
-
-	end
 	return self:ExprError()
 end
 

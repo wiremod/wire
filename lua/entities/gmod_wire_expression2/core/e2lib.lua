@@ -79,9 +79,16 @@ end
 
 -- -------------------------- signature generation -----------------------------
 
+local simpletypes = {
+	[""] = "void",
+	["n"] = "number"
+}
+
 function E2Lib.typeName(typeid)
-	if typeid == "" then return "void" end
-	if typeid == "n" then return "number" end
+	if simpletypes[typeid] then return simpletypes[typeid] end
+	local struct_name = typeid:match("^struct:(.*)$")
+
+	if struct_name then return struct_name end
 
 	local tp = wire_expression_types2[typeid]
 	if not tp then error("Type ID '" .. typeid .. "' not found", 2) end
@@ -94,7 +101,15 @@ function E2Lib.splitType(args)
 	local ret = {}
 	local thistype
 	local i = 1
+
 	while i <= #args do
+		local didstruct, ed, match = args:find("^struct:(.*)", i)
+		if didstruct then
+			i = ed + 1
+			table.insert(ret, match)
+			continue
+		end
+
 		local letter = args:sub(i, i)
 		if letter == ":" then
 			if #ret ~= 1 then error("Misplaced ':' in args", 2) end
@@ -347,6 +362,7 @@ E2Lib.optable_inv = {
 	dlt = "$",
 	trg = "~",
 	imp = "->",
+	dot = "."
 }
 
 E2Lib.optable = {}
