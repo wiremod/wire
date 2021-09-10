@@ -772,12 +772,16 @@ function Parser:Stmt14()
 
 		local fields = self:TypeDecl(type_name)
 
-		local default = {}
-		for fname, ftype in pairs(fields) do
-			default[fname] = ftype[2] -- Get default value of every single field
-		end
+		--[[
+			{
+				structdef = true, -- Just an identifier
 
-		local tobj = { [1] = "struct:" .. type_name, [2] = default, fields = fields, name = type_name }
+				[1] = typeid,
+				fields = {fieldname = { [1] = typename, [2] = typeid }, ...},
+				name = struct_name
+			}
+		]]
+		local tobj = { [1] = "struct[" .. type_name .. "]", fields = fields, name = type_name, structdef = true }
 		self.structs[type_name] = tobj
 
 		return self:Instruction(trace, "struct", type_name, tobj)
@@ -809,7 +813,8 @@ function Parser:TypeDecl(t_being_declared)
 				self:Error("Type " .. field_type .. " does not exist")
 			end
 
-			fields[field_name] = typeobj[1] -- Set to TypeID
+			-- Save name and id for later
+			fields[field_name] = typeobj[1] --{ name = field_type, id = typeobj[1] }
 
 			if self:AcceptRoamingToken("rcb") then
 				return fields
@@ -1207,7 +1212,7 @@ function Parser:Expr14()
 	return self:Expr15()
 end
 
-function Parser:Expr14()
+function Parser:Expr15()
 	local expr = self:Expr16()
 
 	while true do

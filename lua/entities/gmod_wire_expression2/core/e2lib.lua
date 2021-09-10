@@ -36,12 +36,22 @@ function E2Lib.setSubMaterial(ent, index, material)
 	index = math.Clamp(index, 0, 255)
 	material = WireLib.IsValidMaterial(material)
 	ent:SetSubMaterial(index, material)
-	duplicator.StoreEntityModifier(ent, "submaterial", { ["SubMaterialOverride_"..index] = material })
+	duplicator.StoreEntityModifier(ent, "submaterial", { ["SubMaterialOverride_" .. index] = material })
 end
 
 -- Returns a default e2 table.
 function E2Lib.newE2Table()
-	return {n={},ntypes={},s={},stypes={},size=0}
+	return { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 }
+end
+
+-- Returns a new E2 struct instance. The first argument is the struct name.
+-- The second argument is a table of the form { fieldname = value, "XYZ" = Value }.
+function E2Lib.newStruct(usertype, fields)
+	if fields then
+		return { struct = true, fields = fields, name = usertype, initialized = true }
+	else
+		return { struct = true, fields = {}, name = usertype, initialized = false }
+	end
 end
 
 -- Returns a cloned table of the variable given if it is a table.
@@ -86,8 +96,8 @@ local simpletypes = {
 
 function E2Lib.typeName(typeid)
 	if simpletypes[typeid] then return simpletypes[typeid] end
-	local struct_name = typeid:match("^struct:(.*)$")
 
+	local struct_name = typeid:match("^struct%[(.*)%]$")
 	if struct_name then return struct_name end
 
 	local tp = wire_expression_types2[typeid]
@@ -103,7 +113,7 @@ function E2Lib.splitType(args)
 	local i = 1
 
 	while i <= #args do
-		local didstruct, ed, match = args:find("^struct:(.*)", i)
+		local didstruct, ed, match = args:find("^struct%[(.*)%]", i)
 		if didstruct then
 			i = ed + 1
 			table.insert(ret, match)

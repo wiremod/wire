@@ -157,12 +157,12 @@ function Compiler:GetVariableType(instance, name)
 end
 
 function Compiler:SetType(name, type_struct)
-	-- Types are defined as { fields = table, name = string, [1] = "struct:<name>", [2] = default }
+	-- Types are defined as { fields = table, name = string, [1] = "struct[<name>]", [2] = default }
 	self.structs[name] = type_struct
 end
 
 function Compiler:GetType(name)
-	return wire_expression_types[name:upper()] or self.structs[name]
+	return wire_expression_types[name:upper()] or self.structs[name] or wire_expression_types2[name]
 end
 
 -- ---------------------------------------------------------------------------
@@ -193,7 +193,7 @@ end
 local function getArgStr(args)
 	local pars = {}
 	for k, tp in ipairs(args) do
-		pars[k] = tp:match("^(struct):.*$") or tp
+		pars[k] = tp:match("^(struct)%[.*%]$") or tp
 	end
 	return table.concat(pars)
 end
@@ -839,7 +839,7 @@ function Compiler:InstrFUNCTION(args)
 
 			error("Function " .. E2Lib.generate_signature(Sig, nil, argNames) ..
 				" executed and didn't return a value - expecting a value of type " ..
-				E2Lib.typeName(Return), 0)
+				tps_pretty(Return), 0)
 		end
 	end
 
@@ -1006,9 +1006,21 @@ function Compiler:InstrTRY(args)
 end
 
 
+local newStruct = E2Lib.newStruct
+local fixDefault = E2Lib.fixDefault
+
 function Compiler:InstrSTRUCT(args)
 	-- args = { "struct", trace, type_name, type }
-	local type_name, type_obj = args[3], args[4]
+	local type_name = args[3]
+	local type_obj = args[4] -- This is the type object that defines what a struct is called and the field type.
+
+	--[[local default_fields = {}
+	for field_name, field_type in pairs(type_obj.fields) do
+		default_fields[field_name] = "n"--self:GetType( field_type:match("(struct)%[.*%]") or field_type )[2]
+	end]]
+
+	local default_value = newStruct(type_name)
+	type_obj[2] = default_value
 
 	self.prfcounter = self.prfcounter + 30
 
@@ -1033,14 +1045,15 @@ function Compiler:InstrSTRUCTBUILD(args)
 	local fields = {}
 	for k, value in pairs(values) do
 		local val, typ = self:CallInstruction(value[1], value)
-		if struct_types[k] == typ then
+		local expected = struct_types[k]
+		if typ == expected then
 			fields[k] = val
 		else
-			self:Error("Expected " .. tps_pretty(struct_types[k]) .. ", got " .. tps_pretty(typ) .. " for field " .. k, args)
+			self:Error("Expected " .. tps_pretty(expected) .. ", got " .. tps_pretty(typ) .. " for field " .. k, args)
 		end
 	end
 
-	return { self:GetOperator(args, "structbuild", {})[1], type_name, fields }, "struct:" .. type_name
+	return { self:GetOperator(args, "structbuild", {})[1], type_name, fields }, "struct[" .. type_name .. "]"
 end
 
 function Compiler:InstrFIELDGET(args)
@@ -1050,7 +1063,7 @@ function Compiler:InstrFIELDGET(args)
 
 	self.prfcounter = self.prfcounter + 1
 
-	local t, usertype = obj_tp:match("^(struct):(.+)$")
+	local t, usertype = obj_tp:match("^(struct)%[(.+)%]$")
 	if t then obj_tp = t end
 
 	local desired_t
@@ -1074,7 +1087,7 @@ function Compiler:InstrFIELDSET(args)
 	local field_name = args[4]
 	local setobj, set_tp = self:Evaluate(args, 3)
 
-	local t, usertype = obj_tp:match("^(struct):(.+)$")
+	local t, usertype = obj_tp:match("^(struct)%[(.+)%]$")
 	if t then obj_tp = t end
 
 	local desired_t
@@ -1082,15 +1095,11 @@ function Compiler:InstrFIELDSET(args)
 		desired_t = self.structs[usertype].fields[field_name]
 		if not desired_t then self:Error("Field '" .. E2Lib.limitString(field_name, 15) .. "' does not exist in struct '" .. usertype .. "'", args) end
 
-		if not self:HasOperator(args, "fieldset", { obj_tp }) then
-			self:Error("No such operator: " .. tps_pretty( obj_tp ) .. ".Index = ...", args)
-		end
-
 		if desired_t ~= set_tp then
 			self:Error("Expected " .. tps_pretty(desired_t) .. ", got " .. tps_pretty(set_tp) .. " for field " .. field_name, args)
 		end
 
-		local rt = self:GetOperator(args, "fieldset", {obj_tp})
+		local rt = self:GetOperator(args, "fieldset", {"struct=any"})
 		return { rt[1], obj, field_name, setobj }, rt[2]
 	end
 
