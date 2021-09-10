@@ -113,6 +113,18 @@ registerOperator("sub", "xv2xv2", "xv2", function(self, args)
 	return { rv1[1] - rv2[1], rv1[2] - rv2[2] }
 end)
 
+registerOperator("add", "xv2n", "xv2", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	return { rv1[1] + rv2, rv1[2] + rv2 }
+end)
+
+registerOperator("sub", "xv2n", "xv2", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	return { rv1[1] - rv2, rv1[2] - rv2 }
+end)
+
 registerOperator("mul", "nxv2", "xv2", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
