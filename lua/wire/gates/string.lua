@@ -181,6 +181,7 @@ GateActions["string_replace"] = {
 		if !A then A = "" end
 		if !B then B = "" end
 		if !C then C = "" end
+		if #A + #B + #C > MAX_LEN then return false end
 		return string.gsub(A,B,C)
 	end,
 	label = function(Out, A, B, C)

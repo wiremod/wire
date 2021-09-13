@@ -14,20 +14,20 @@ if CLIENT then
 	language.Add( "WireTargetFinderTool_notowner", "Do not target owner" )
 	language.Add( "WireTargetFinderTool_notownersstuff", "Do not target owner's stuff" )
 	language.Add( "WireTargetFinderTool_npcs", "Target NPCs" )
-	language.Add( "WireTargetFinderTool_npcname", "NPC Filter:" )
+	language.Add( "WireTargetFinderTool_npcname", "NPC(s) Filter:" )
 	language.Add( "WireTargetFinderTool_beacons", "Target Locators" )
 	language.Add( "WireTargetFinderTool_hoverballs", "Target Hoverballs" )
 	language.Add( "WireTargetFinderTool_thrusters", "Target Thrusters" )
 	language.Add( "WireTargetFinderTool_props", "Target Props" )
-	language.Add( "WireTargetFinderTool_propmodel", "Prop Model Filter:" )
+	language.Add( "WireTargetFinderTool_propmodel", "Prop Model(s) Filter:" )
 	language.Add( "WireTargetFinderTool_vehicles", "Target Vehicles" )
 	language.Add( "WireTargetFinderTool_rpgs", "Target RPGs" )
 	language.Add( "WireTargetFinderTool_PaintTarget", "Paint Target" )
 	language.Add( "WireTargetFinderTool_PaintTarget_desc", "Paints currently selected target(s)." )
 	language.Add( "WireTargetFinderTool_casesen", "Case Sensitive" )
-	language.Add( "WireTargetFinderTool_playername", "Name Filter:" )
-	language.Add( "WireTargetFinderTool_entity", "Entity Name:" )
-	language.Add( "WireTargetFinderTool_steamname", "SteamID Filter:" )
+	language.Add( "WireTargetFinderTool_playername", "Name(s) Filter:" )
+	language.Add( "WireTargetFinderTool_entity", "Entity Name(s):" )
+	language.Add( "WireTargetFinderTool_steamname", "SteamID(s) Filter:" )
 	language.Add( "WireTargetFinderTool_colorcheck", "Color Filter")
 	language.Add( "WireTargetFinderTool_colortarget", "Color Target/Skip")
 	language.Add( "WireTargetFinderTool_pcolR", "Red:")
@@ -50,10 +50,10 @@ if SERVER then
 			self:GetClientNumber("beacons") ~= 0, self:GetClientNumber("hoverballs") ~= 0, self:GetClientNumber("thrusters") ~= 0, self:GetClientNumber("props") ~= 0,
 			self:GetClientInfo("propmodel"), self:GetClientNumber("vehicles") ~= 0, self:GetClientInfo("playername"), self:GetClientNumber("casesen") ~= 0,
 			self:GetClientNumber("rpgs") ~= 0, self:GetClientNumber("painttarget") ~= 0, self:GetClientNumber("minrange"), self:GetClientNumber("maxtargets"),
-			self:GetClientNumber("maxbogeys"), self:GetClientNumber("notargetowner") != 0, self:GetClientInfo("entityfil"), self:GetClientNumber("notownersstuff") != 0,
-			self:GetClientInfo("steamname"), (self:GetClientNumber("colorcheck") ~= 0), (self:GetClientNumber("colortarget") ~= 0),
+			self:GetClientNumber("maxbogeys"), self:GetClientNumber("notargetowner") ~= 0, self:GetClientInfo("entityfil"), self:GetClientNumber("notownersstuff") ~= 0,
+			self:GetClientInfo("steamname"), self:GetClientNumber("colorcheck") ~= 0, self:GetClientNumber("colortarget") ~= 0,
 			self:GetClientNumber("pcolR"), self:GetClientNumber("pcolG"), self:GetClientNumber("pcolB"), self:GetClientNumber("pcolA"),
-			self:GetClientNumber("checkbuddylist") != 0, self:GetClientNumber("onbuddylist") != 0
+			self:GetClientNumber("checkbuddylist") ~= 0, self:GetClientNumber("onbuddylist") ~= 0
 	end
 end
 
@@ -93,7 +93,7 @@ TOOL.ClientConVar = {
 
 function TOOL:Reload(trace)
 	if trace.Entity:IsValid() then
-		self:GetOwner():ConCommand("wire_target_finder_entityfil "..trace.Entity:GetClass().."\n")
+		self:GetOwner():ConCommand("wire_target_finder_entityfil " .. trace.Entity:GetClass() .. "\n")
 	else
 		self:GetOwner():ConCommand("wire_target_finder_entityfil \n")
 	end

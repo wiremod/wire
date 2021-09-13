@@ -14,7 +14,10 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateSpecialOutputs( self, { "Out" }, { "ENTITY" } )
 end
 
-function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel, vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist )
+local MaxBogeys = GetConVar("wire_target_finders_maxbogeys")
+local MaxTargets = GetConVar("wire_target_finders_maxtargets")
+
+function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel, vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamidfilter, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist )
 	local ttable = { -- For dupe support
 		range		= maxrange,
 		players		= players,
@@ -27,7 +30,7 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 		propmodel	= propmodel,
 		vehicles	= vehicles,
 		playername	= playername,
-		steamname	= steamname,
+		steamname	= steamidfilter,
 		colorcheck	= colorcheck,
 		colortarget = colortarget,
 		pcolR		= pcolR,
@@ -62,7 +65,7 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 	self.PropModel           = propmodel
 	self.TargetVehicles      = vehicles
 	self.PlayerName          = playername
-	self.SteamName           = steamname
+	self.SteamName           = steamidfilter
 	self.ColorCheck          = colorcheck
 	self.ColorTarget         = colortarget
 	self.PcolR               = pcolR
@@ -75,8 +78,8 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 	self.CheckBuddyList      = checkbuddylist
 	self.OnBuddyList         = onbuddylist
 	self.PaintTarget         = painttarget
-	self.MaxTargets          = math.floor(math.Clamp((maxtargets or 1), 1, GetConVarNumber("wire_target_finders_maxtargets", 10)))
-	self.MaxBogeys           = math.floor(math.Clamp((maxbogeys or 1), self.MaxTargets, GetConVarNumber("wire_target_finders_maxbogeys", 30)))
+	self.MaxTargets          = math.floor(math.Clamp(maxtargets or 1, 1, MaxTargets:GetInt()))
+	self.MaxBogeys           = math.floor(math.Clamp(maxbogeys or 1, self.MaxTargets, MaxBogeys:GetInt()))
 
 	if (self.SelectedTargets) then --unpaint before clearing
 		for _,ent in pairs(self.SelectedTargets) do
@@ -91,7 +94,7 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 	for i = 1, self.MaxTargets do
 		table.insert(AdjOutputs, tostring(i))
 		table.insert(AdjOutputsT, "NORMAL")
-		table.insert(AdjOutputs, tostring(i).."_Ent")
+		table.insert(AdjOutputs, tostring(i) .. "_Ent")
 		table.insert(AdjOutputsT, "ENTITY")
 	end
 	WireLib.AdjustSpecialOutputs(self, AdjOutputs, AdjOutputsT)
@@ -103,9 +106,9 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 	self.Selector.Hold = {}
 	local AdjInputs = {}
 	for i = 1, self.MaxTargets do
-		local inputnext = tostring(i).."-NextTarget"
+		local inputnext = tostring(i) .. "-NextTarget"
 		--local inputprev = tostring(i).."-PrevTarget"
-		local inputhold = tostring(i).."-HoldTarget"
+		local inputhold = tostring(i) .. "-HoldTarget"
 		self.Selector.Next[inputnext] = i
 		--self.Selector.Prev[inputprev] = i
 		--self.Selector.Hold[inputhold] = i
@@ -120,25 +123,24 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 end
 
 function ENT:TriggerInput(iname, value)
-	if (value > 0) then
-		if self.Selector.Next[iname] then
-			self:SelectorNext(self.Selector.Next[iname])
+	if value > 0 and self.Selector.Next[iname] then
+		self:SelectorNext(self.Selector.Next[iname])
 		--[[elseif self.Selector.Prev[iname] then
-			self:SelectorPrev(self.Selector.Prev[iname])]]
-		--[[elseif self.Selector.Hold[iname] then
-			self:SelectorHold(self.Selector.Hold[iname])]]
-		end
+			self:SelectorPrev(self.Selector.Prev[iname])
+		elseif self.Selector.Hold[iname] then
+			self:SelectorHold(self.Selector.Hold[iname])
+		]]
 	end
 end
 
 
 function ENT:GetBeaconPos(sensor)
 	local ch = 1
-	if (sensor.Inputs) and (sensor.Inputs.Target.SrcId) then
+	if sensor.Inputs and sensor.Inputs.Target.SrcId then
 		ch = tonumber(sensor.Inputs.Target.SrcId)
 	end
 	if self.SelectedTargets[ch] then
-		if (not self.SelectedTargets[ch]:IsValid()) then
+		if not self.SelectedTargets[ch]:IsValid() then
 			self.SelectedTargets[ch] = nil
 			Wire_TriggerOutput(self, tostring(ch), 0)
 			return sensor:GetPos()
@@ -152,61 +154,52 @@ end
 
 function ENT:GetBeaconVelocity(sensor)
 	local ch = 1
-	if (sensor.Inputs) and (sensor.Inputs.Target.SrcId) then
+	if sensor.Inputs and sensor.Inputs.Target.SrcId then
 		ch = tonumber(sensor.Inputs.Target.SrcId)
 	end
-	if self.SelectedTargets[ch] then
-		if (not self.SelectedTargets[ch]:IsValid()) then
+	local selected = self.SelectedTargets[ch]
+	if selected then
+		if not selected:IsValid() then
 			self.SelectedTargets[ch] = nil
 			Wire_TriggerOutput(self, tostring(ch), 0)
 			return sensor:GetVelocity()
 		end
-		return self.SelectedTargets[ch]:GetVelocity()
+		return selected:GetVelocity()
 	end
 	return sensor:GetVelocity()
 end
 
 
 function ENT:SelectorNext(ch)
-	if (self.Bogeys) and (#self.Bogeys > 0) then
-		if (!self.SelectedTargetsSel[ch]) then self.SelectedTargetsSel[ch] = 1 end
+	if self.Bogeys and #self.Bogeys > 0 then
+		if not self.SelectedTargetsSel[ch] then self.SelectedTargetsSel[ch] = 1 end
 
 		local sel = self.SelectedTargetsSel[ch]
 		if (sel > #self.Bogeys) then sel = 1 end
 
-		if (self.SelectedTargets[ch]) and (self.SelectedTargets[ch]:IsValid()) then
+		local target = self.SelectedTargets[ch]
+		if target and target:IsValid() then
 
-			if (self.PaintTarget) then self:TargetPainter(self.SelectedTargets[ch], false) end
-			table.insert(self.Bogeys, self.SelectedTargets[ch]) --put old target back
-			self.SelectedTargets[ch] = table.remove(self.Bogeys, sel) --pull next target
+			if (self.PaintTarget) then self:TargetPainter(target, false) end
+			table.insert(self.Bogeys, target) --put old target back
+
+			target = table.remove(self.Bogeys, sel) --pull next target
+			self.SelectedTargets[ch] = target
+
 			if (self.PaintTarget) then self:TargetPainter(self.SelectedTargets[ch], true) end
-
 		else
-
 			self.SelectedTargets[ch] = table.remove(self.Bogeys, sel) --pull next target
 			if (self.PaintTarget) then self:TargetPainter(self.SelectedTargets[ch], true) end
-
 		end
 
 		self.SelectedTargetsSel[ch] = sel + 1
-		self.Inputs[ch.."-HoldTarget"].Value = 1 --put the channel on hold so it wont change in the next scan
+		self.Inputs[ch .. "-HoldTarget"].Value = 1 --put the channel on hold so it wont change in the next scan
 		Wire_TriggerOutput(self, tostring(ch), 1)
-		Wire_TriggerOutput(self, tostring(ch).."_Ent", self.SelectedTargets[ch])
+		Wire_TriggerOutput(self, tostring(ch) .. "_Ent", self.SelectedTargets[ch])
 	end
 end
 
 --function ENT:SelectorPrev(ch) end --TODO if needed
-
-function ENT:FindInValue(haystack,needle,case_sensitive)
-	if !isstring(haystack) or !isstring(needle) then return false end;
-	if(needle == "") then return true end;
-	if(case_sensitive) then
-		if(haystack:find(needle)) then return true end;
-	else
-		if(haystack:lower():find(needle:lower())) then return true end;
-	end
-	return false
-end
 
 function ENT:FindColor(contact)
 	if (not self.ColorCheck) then return true end
@@ -214,7 +207,7 @@ function ENT:FindColor(contact)
 	if (col.r == self.PcolR) and (col.g == self.PcolG) and (col.b == self.PcolB) and (col.a == self.PcolA) then
 		return self.ColorTarget
 	else
-		return !self.ColorTarget
+		return not self.ColorTarget
 	end
 end
 
@@ -228,40 +221,73 @@ function ENT:CheckTheBuddyList(friend)
 	return not self.OnBuddyList
 end
 
+-- Like the old FindInValue but without string.find() and for multiple values split by either a space or a comma.
+local function isOneOf(value, values_str, case_sensitive)
+	if not isstring(value) or not isstring(values_str) then return false end
+	if values_str == "" then return true end -- why :/
+
+	if not case_sensitive then
+		value = value:lower()
+		values_str = values_str:lower()
+	end
+
+	for possible in values_str:gmatch("[^, ]+") do
+		if possible == value then return true end
+	end
+	return false
+end
+
+local function CheckPlayers(self, contact)
+	if self.NoTargetOwner and self:GetPlayer() == contact then return false end
+	if not isOneOf(contact:GetName(), self.PlayerName, self.CaseSen) then return false end
+
+	-- Check if the player's steamid/steamid64 matches the SteamIDs
+	if self.SteamName:Trim() ~= "" then
+		local contact_steamid, contact_steamid64 = contact:SteamID(), contact:SteamID64() or "multirun"
+		if not ( isOneOf(contact_steamid, self.SteamName, self.CaseSen) or isOneOf(contact_steamid64, self.SteamName, self.CaseSen) ) then
+			return false
+		end
+	end
+
+	return self:FindColor(contact) and self:CheckTheBuddyList(contact)
+end
+
 function ENT:Think()
 	BaseClass.Think(self)
 
 	if not (self.Inputs.Hold and self.Inputs.Hold.Value > 0) then
 		-- Find targets that meet requirements
 		local mypos = self:GetPos()
-		local bogeys,dists = {},{}
-		for _,contact in pairs(ents.FindInSphere(mypos, self.MaxRange or 10)) do
+		local bogeys, dists, ndists = {}, {}, 0
+		for _, contact in pairs(ents.FindInSphere(mypos, self.MaxRange or 10)) do
 			local class = contact:GetClass()
-			if (not self.NoTargetOwnersStuff or (class == "player") or (WireLib.GetOwner(contact) ~= self:GetPlayer())) and (
+			if (not self.NoTargetOwnersStuff or (class == "player") or (WireLib.GetOwner(contact) ~= self:GetPlayer())) and
 				-- NPCs
-				((self.TargetNPC) and (contact:IsNPC()) and (self:FindInValue(class,self.NPCName))) or
+				(self.TargetNPC and (contact:IsNPC()) and (isOneOf(class, self.NPCName))) or
 				--Players
-				((self.TargetPlayer) and (class == "player") and (!self.NoTargetOwner or self:GetPlayer() != contact) and self:FindInValue(contact:GetName(),self.PlayerName,self.CaseSen) and self:FindInValue(contact:SteamID(),self.SteamName) and self:FindColor(contact) and self:CheckTheBuddyList(contact)) or
+				(self.TargetPlayer and (class == "player") and CheckPlayers(self, contact) or
 				--Locators
-				((self.TargetBeacon) and (class == "gmod_wire_locator")) or
+				(self.TargetBeacon and (class == "gmod_wire_locator")) or
 				--RPGs
-				((self.TargetRPGs) and (class == "rpg_missile")) or
+				(self.TargetRPGs and (class == "rpg_missile")) or
 				-- Hoverballs
-				((self.TargetHoverballs) and (class == "gmod_hoverball" or class == "gmod_wire_hoverball")) or
+				(self.TargetHoverballs and (class == "gmod_hoverball" or class == "gmod_wire_hoverball")) or
 				-- Thruster
-				((self.TargetThrusters)	and (class == "gmod_thruster" or class == "gmod_wire_thruster" or class == "gmod_wire_vectorthruster")) or
+				(self.TargetThrusters	and (class == "gmod_thruster" or class == "gmod_wire_thruster" or class == "gmod_wire_vectorthruster")) or
 				-- Props
-				((self.TargetProps) and (class == "prop_physics") and (self:FindInValue(contact:GetModel(),self.PropModel))) or
+				(self.TargetProps and (class == "prop_physics") and (isOneOf(contact:GetModel(), self.PropModel))) or
 				-- Vehicles
-				((self.TargetVehicles) and (contact:IsVehicle())) or
+				(self.TargetVehicles and contact:IsVehicle()) or
 				-- Entity classnames
-				(self.EntFil ~= "" and self:FindInValue(class,self.EntFil)))
+				(self.EntFil ~= "" and isOneOf(class, self.EntFil)))
 			then
 				local dist = (contact:GetPos() - mypos):Length()
 				if (dist >= self.MinRange) then
 					-- put targets in a table index by the distance from the finder
 					bogeys[dist] = contact
-					dists[#dists+1] = dist
+
+					ndists = ndists + 1
+					dists[ndists] = dist
 				end
 			end
 		end
@@ -271,11 +297,11 @@ function ENT:Think()
 		self.InRange = {}
 		table.sort(dists)
 		local k = 1
-		for i,d in pairs(dists) do
-			if !self:IsTargeted(bogeys[d], i) then
+		for i, d in ipairs(dists) do
+			if not self:IsTargeted(bogeys[d], i) then
 				self.Bogeys[k] = bogeys[d]
 				k = k + 1
-				if (k > self.MaxBogeys) then break end
+				if k > self.MaxBogeys then break end
 			end
 		end
 
@@ -286,17 +312,17 @@ function ENT:Think()
 				self.InRange[i] = true
 			end
 
-			if (!self.InRange[i]) or (!self.SelectedTargets[i]) or (self.SelectedTargets[i] == nil) or (!self.SelectedTargets[i]:IsValid()) then
+			if not self.InRange[i] or not self.SelectedTargets[i] or self.SelectedTargets[i] == nil or not self.SelectedTargets[i]:IsValid() then
 				if (self.PaintTarget) then self:TargetPainter(self.SelectedTargets[i], false) end
 				if (#self.Bogeys > 0) then
 					self.SelectedTargets[i] = table.remove(self.Bogeys, 1)
 					if (self.PaintTarget) then self:TargetPainter(self.SelectedTargets[i], true) end
 					Wire_TriggerOutput(self, tostring(i), 1)
-					Wire_TriggerOutput(self, tostring(i).."_Ent", self.SelectedTargets[i])
+					Wire_TriggerOutput(self, tostring(i) .. "_Ent", self.SelectedTargets[i])
 				else
 					self.SelectedTargets[i] = nil
 					Wire_TriggerOutput(self, tostring(i), 0)
-					Wire_TriggerOutput(self, tostring(i).."_Ent", NULL)
+					Wire_TriggerOutput(self, tostring(i) .. "_Ent", NULL)
 				end
 			end
 		end
@@ -315,17 +341,18 @@ end
 
 function ENT:IsTargeted(bogey, bogeynum)
 	for i = 1, self.MaxTargets do
-		if (self.SelectedTargets[i]) and (self.SelectedTargets[i] == bogey) then
-			--hold this target
-			if (self.Inputs[i.."-HoldTarget"]) and (self.Inputs[i.."-HoldTarget"].Value > 0) then
+		local target = self.SelectedTargets[i]
+		if target and (target == bogey) then
+			-- hold this target
+			if self.Inputs[i .. "-HoldTarget"] and self.Inputs[i .. "-HoldTarget"].Value > 0 then
 				self.InRange[i] = true
 				return true
 			end
 
-			--this bogey is not as close as others, untarget it and let it be add back to the list
-			if (bogeynum > self.MaxTargets) then
+			-- this bogey is not as close as others, untarget it and let it be add back to the list
+			if bogeynum > self.MaxTargets then
 				self.SelectedTargets[i] = nil
-				if (self.PaintTarget) then self:TargetPainter(bogey, false) end
+				if self.PaintTarget then self:TargetPainter(bogey, false) end
 				return false
 			end
 
@@ -337,7 +364,7 @@ function ENT:IsTargeted(bogey, bogeynum)
 end
 
 function ENT:IsOnHold(ch)
-	if (self.Inputs[ch.."-HoldTarget"]) and (self.Inputs[ch.."-HoldTarget"].Value > 0) then
+	if self.Inputs[ch .. "-HoldTarget"] and self.Inputs[ch .. "-HoldTarget"].Value > 0 then
 		return true
 	end
 	return false
@@ -347,8 +374,8 @@ end
 function ENT:OnRemove()
 	BaseClass.OnRemove(self)
 
-	--unpaint all our targets
-	if (self.PaintTarget) then
+	-- unpaint all our targets
+	if self.PaintTarget then
 		for _,ent in pairs(self.SelectedTargets) do
 			self:TargetPainter(ent, false)
 		end
@@ -372,7 +399,7 @@ function ENT:TargetPainter( tt, targeted )
 			local c = tt:GetColor()
 
 			-- do not change color back if the target color changed in the meantime
-			if c.r != 255 or c.g != 0 or c.b != 0 or c.a != 255 then
+			if c.r ~= 255 or c.g ~= 0 or c.b ~= 0 or c.a ~= 255 then
 				self.OldColor = c
 			end
 
@@ -383,69 +410,14 @@ end
 
 
 function ENT:ShowOutput(value)
-	local txt
-	if (value) then
+	local txt = "No Target"
+	if value then
 		txt = "Target Acquired"
-	else
-		txt = "No Target"
 	end
 
-	if (self.Inputs.Hold) and (self.Inputs.Hold.Value > 0) then txt = txt .. " - Locked" end
+	if self.Inputs.Hold and (self.Inputs.Hold.Value > 0) then txt = txt .. " - Locked" end
 
 	self:SetOverlayText(txt)
 end
-
-
-
---
---	PropProtection support
---
---	Uses code from uclip for checking ownership
---
--- Written by Team Ulysses, http://ulyssesmod.net/
-local hasPropProtection = false -- Chaussette's Prop Protection (preferred over PropSecure)
-local propProtectionFn -- Function to call to see if a prop belongs to a player. We have to fetch it from a local so we'll store it here.
-
-local hasPropSecure = false -- Prop Secure by Conna
-local hasProtector = false -- Protector by Conna
-
-local noProtection = false -- If there's no protection whatsoever, this is flagged.
--- We need this flag because with a protector, we default to _not_ being able to go through things.
--- This flag saves us major memory/bandwidth when there's no protection
-
--- We'll check status of protectors in this init
-local function init()
-	local t = hook.GetTable()
-	local fn
-	if(t.CanTool) then
-		if t.CanTool[0] then -- ULib
-			fn = t.CanTool[0].PropProtection
-		else
-			fn = t.CanTool.PropProtection
-		end
-	end
-
-	hasPropProtection = isfunction( fn )
-
-	if hasPropProtection then
-		-- We're going to get the function we need now. It's local so this is a bit dirty
-		local gi = debug.getinfo( fn )
-		for i=1,gi.nups do
-			if debug.getupvalue( fn, i ) == "Appartient" then
-				local junk
-				junk, propProtectionFn = debug.getupvalue( fn, i )
-				break
-			end
-		end
-	end
-
-	hasPropSecure = istable( PropSecure )
-	hasProtector = istable( Protector )
-
-	if not hasPropProtection and not hasPropSecure and not hasProtector then
-		noProtection = true
-	end
-end
-hook.Add( "Initialize", "WireTargetFinderInitialize", init )
 
 duplicator.RegisterEntityClass("gmod_wire_target_finder", WireLib.MakeWireEnt, "Data", "range", "players", "npcs", "npcname", "beacons", "hoverballs", "thrusters", "props", "propmodel", "vehicles", "playername", "casesen", "rpgs", "painttarget", "minrange", "maxtargets", "maxbogeys", "notargetowner", "entity", "notownersstuff", "steamname", "colorcheck", "colortarget", "pcolR", "pcolG", "pcolB", "pcolA", "checkbuddylist", "onbuddylist")

@@ -90,3 +90,5 @@ $In
 A
 
 table(1 = 1, 2 = 2)
+
+try {} catch(Err) {}

@@ -38,9 +38,9 @@ end
 local function validConCmd(self, command)
 	local ply = self.player
 	if not ply:IsValid() then return false end
-	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return false end
+	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return self:throw("Concmd is disabled through wire_expression2_concmd", false) end
 	-- Validating the concmd length to ensure that it won't crash the server. 512 is the max
-	if #command >= 512 then return false end
+	if #command >= 512 then return self:throw("Concommand/Var is too long!", false) end
 
 	local whitelist = (ply:GetInfo("wire_expression2_concmd_whitelist") or ""):Trim()
 	if whitelist == "" then return true end
@@ -61,23 +61,19 @@ end
 __e2setcost(5)
 
 e2function number concmd(string command)
-	if not validConCmd(self, command) then return 0 end
+	if not validConCmd(self, command) then return self:throw("Invalid concommand", 0) end
 	self.player:ConCommand(command:gsub("%%", "%%%%"))
 	return 1
 end
 
 e2function string convar(string cvar)
-	if not validConCmd(self, cvar) then return "" end
-	local ret = self.player:GetInfo(cvar)
-	if not ret then return "" end
-	return ret
+	if not validConCmd(self, cvar) then return self:throw("Invalid convar", "") end
+	return self.player:GetInfo(cvar) or ""
 end
 
 e2function number convarnum(string cvar)
-	if not validConCmd(self, cvar) then return 0 end
-	local ret = self.player:GetInfoNum(cvar, 0)
-	if not ret then return 0 end
-	return ret
+	if not validConCmd(self, cvar) then return self:throw("Invalid convar", 0) end
+	return self.player:GetInfoNum(cvar, 0)
 end
 
 e2function number maxOfType(string typename)

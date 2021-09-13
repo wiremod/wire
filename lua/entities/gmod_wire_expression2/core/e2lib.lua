@@ -203,11 +203,10 @@ end
 
 function E2Lib.isOwner(self, entity)
 	if game.SinglePlayer() then return true end
-	local player = self.player
 	local owner = E2Lib.getOwner(self, entity)
 	if not IsValid(owner) then return false end
 
-	return E2Lib.isFriend(owner, player)
+	return E2Lib.isFriend(owner, self.player)
 end
 
 local isOwner = E2Lib.isOwner
@@ -710,6 +709,9 @@ hook.Add("InitPostEntity", "e2lib", function()
 			E2Lib.replace_function("isFriend", function(owner, player)
 				if owner == nil then return false end
 				if owner == player then return true end
+				if not owner:IsPlayer() then
+					return player:GetOwner() == owner
+				end
 
 				local friends = owner:CPPIGetFriends()
 				if not istable(friends) then return end
@@ -759,4 +761,24 @@ local file_extensions = {
 function E2Lib.isValidFileWritePath(path)
 	local ext = string.GetExtensionFromFilename(path)
 	if ext then return file_extensions[string.lower(ext)] end
+end
+
+-- Different from Context:throw, which does not error the chip if
+-- @strict is not enabled and instead returns a default value.
+-- This is what Context:throw calls internally if @strict
+-- By default E2 can catch these errors.
+function E2Lib.raiseException(msg, level, trace, can_catch)
+	error({
+		catchable = (can_catch == nil) and true or can_catch,
+		msg = msg,
+		trace = trace
+	}, level)
+end
+
+--- Unpacks either an exception object as seen above or an error string.
+function E2Lib.unpackException(struct)
+	if isstring(struct) then
+		return false, struct, nil
+	end
+	return struct.catchable, struct.msg, struct.trace
 end

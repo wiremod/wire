@@ -43,24 +43,19 @@ end
 __e2setcost(8)
 
 e2function vector entity:shootPos()
-	if(not IsValid(this)) then return {0,0,0} end
-	if(this:IsPlayer() or this:IsNPC()) then
-		return this:GetShootPos()
-	else return {0,0,0} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not this:IsPlayer() and not this:IsNPC() then return self:throw("Expected a Player or NPC in shootPos", {0, 0, 0}) end
+	return this:GetShootPos()
 end
 
 e2function vector entity:eye()
-	if (not IsValid(this)) then return {0,0,0} end
-	if (this:IsPlayer()) then
-		return this:GetAimVector()
-	else
-		return this:GetForward()
-	end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	return this:IsPlayer() and this:GetAimVector() or this:GetForward()
 end
 
 --- Returns an angle describing player <this>'s view angles.
 e2function angle entity:eyeAngles()
-	if not IsValid(this) then return { 0, 0, 0} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
 	local ang = this:EyeAngles()
 	return { ang.p, ang.y, ang.r }
 end
@@ -69,8 +64,8 @@ end
 if FindMetaTable("Player").LocalEyeAngles then
 	--- Gets a player's view direction, relative to any vehicle they sit in. This function is needed to reproduce the behavior of cam controller. This is different from Vehicle:toLocal(Ply:eyeAngles()).
 	e2function angle entity:eyeAnglesVehicle()
-		if not IsValid(this) then return { 0, 0, 0 } end
-		if not this:IsPlayer() then return { 0, 0, 0 } end
+		if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+		if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", {0, 0, 0}) end
 		local ang = this:LocalEyeAngles()
 		return { ang.p, ang.y, ang.r }
 	end
@@ -81,18 +76,22 @@ end
 __e2setcost(5)
 
 e2function string entity:steamID()
-	if(not IsValid(this)) then return "" end
-	if(not this:IsPlayer()) then return "" end
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", "") end
 	return this:SteamID()
 end
 
 e2function string entity:steamID64()
-	return IsValid(this) and this:IsPlayer() and this:SteamID64() or ""
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", "") end
+
+	return this:SteamID64() or ""
 end
 
 e2function number entity:armor()
-	if(not IsValid(this)) then return 0 end
-	if(this:IsPlayer() or this:IsNPC()) then return this:Armor() else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() and not this:IsNPC() then return self:throw("Expected a Player or NPC but got an entity!", 0) end
+	return this:Armor()
 end
 
 --------------------------------------------------------------------------------
@@ -100,47 +99,48 @@ end
 __e2setcost(5)
 
 e2function number entity:isCrouch()
-	if(not IsValid(this)) then return 0 end
-	if(this:IsPlayer() and this:Crouching()) then return 1 else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:IsPlayer() and this:Crouching() and 1 or 0
 end
 
 e2function number entity:isAlive()
-	if(not IsValid(this)) then return 0 end
-	if(this:IsPlayer() and this:Alive()) then return 1 end
-	if(this:IsNPC() and this:Health() > 0) then return 1 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if this:IsPlayer() and this:Alive() then return 1 end
+	if this:IsNPC() and this:Health() > 0 then return 1 end
 	return 0
 end
 
 -- returns 1 if players has flashlight on or 0 if not
 e2function number entity:isFlashlightOn()
-	if not IsValid(this) then return 0 end
-	if not this:IsPlayer() then return 0 end
-	if this:FlashlightIsOn() then return 1 else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:FlashlightIsOn() and 1 or 0
 end
 
 --------------------------------------------------------------------------------
 
 e2function number entity:frags()
-	if(not IsValid(this)) then return 0 end
-	if(this:IsPlayer()) then return this:Frags() else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:Frags()
 end
 
 e2function number entity:deaths()
-	if(not this or not this:IsValid()) then return 0 end
-	if(this:IsPlayer()) then return this:Deaths() else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:Deaths()
 end
 
 --------------------------------------------------------------------------------
 
 e2function number entity:team()
-	if(not IsValid(this)) then return 0 end
-	if(this:IsPlayer()) then return this:Team() else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:Team()
 end
 
 e2function string teamName(rv1)
-	local str = team.GetName(rv1)
-	if str == nil then return "" end
-	return str
+	return team.GetName(rv1) or ""
 end
 
 e2function number teamScore(rv1)
@@ -609,23 +609,23 @@ e2function entity entity:aimEntity()
 end
 
 e2function vector entity:aimPos()
-	if not IsValid(this) then return {0,0,0} end
-	if not this:IsPlayer() then return {0,0,0} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", {0, 0, 0}) end
 
 	return this:GetEyeTraceNoCursor().HitPos
 end
 
 e2function vector entity:aimNormal()
-	if not IsValid(this) then return {0,0,0} end
-	if not this:IsPlayer() then return {0,0,0} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", {0, 0, 0}) end
 
 	return this:GetEyeTraceNoCursor().HitNormal
 end
 
 --- Returns the bone the player is currently aiming at.
 e2function bone entity:aimBone()
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", nil) end
 
 	local trace = this:GetEyeTraceNoCursor()
 	local ent = trace.Entity

@@ -12,8 +12,8 @@ end
 __e2setcost(15)
 
 e2function void wirelink:egpSaveFrame( string index )
-	if (!EGP:ValidEGP( this )) then return end
-	if (!index or index == "") then return end
+	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
+	if (!index or index == "") then return self:throw("Invalid index!", nil) end
 	local bool, frame = EGP:LoadFrame( self.player, nil, index )
 	if (bool) then
 		if (!EGP:IsDifferent( this.RenderTable, frame )) then return end
@@ -23,7 +23,7 @@ e2function void wirelink:egpSaveFrame( string index )
 end
 
 e2function void wirelink:egpSaveFrame( index )
-	if (!EGP:ValidEGP( this )) then return end
+	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
 	if (!index) then return end
 	local bool, frame = EGP:LoadFrame( self.player, nil, tostring(index) )
 	if (bool) then
@@ -269,7 +269,7 @@ local function maxvertices() return EGP.ConVars.MaxVertices:GetInt() end
 
 e2function void wirelink:egpPoly( number index, ... )
 	if (!EGP:IsAllowed( self, this )) then return end
-	if (!EGP:ValidEGP( this )) then return end
+	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
 	local args = {...}
 	if (#args<3) then return end -- No less than 3
 
@@ -295,7 +295,7 @@ end
 
 e2function void wirelink:egpPoly( number index, array args )
 	if (!EGP:IsAllowed( self, this )) then return end
-	if (!EGP:ValidEGP( this )) then return end
+	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
 	if (#args<3) then return end -- No less than 3
 
 	local max = maxvertices()
@@ -324,7 +324,7 @@ end
 
 e2function void wirelink:egpPolyOutline( number index, ... )
 	if (!EGP:IsAllowed( self, this )) then return end
-	if (!EGP:ValidEGP( this )) then return end
+	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
 	local args = {...}
 	if (#args<3) then return end -- No less than 3
 
@@ -350,7 +350,7 @@ end
 
 e2function void wirelink:egpPolyOutline( number index, array args )
 	if (!EGP:IsAllowed( self, this )) then return end
-	if (!EGP:ValidEGP( this )) then return end
+	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
 	if (#args<3) then return end -- No less than 3
 
 	local max = maxvertices()
@@ -375,7 +375,7 @@ end
 
 e2function void wirelink:egpAddVertices( number index, array args )
 	if (!EGP:IsAllowed( self, this )) then return end
-	if (!EGP:ValidEGP( this )) then return end
+	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
 	if (#args<3) then return end -- No less than 3
 
 	local bool, k, v = EGP:HasObject( this, index )
@@ -410,7 +410,7 @@ end
 
 e2function void wirelink:egpLineStrip( number index, ... )
 	if (!EGP:IsAllowed( self, this )) then return end
-	if (!EGP:ValidEGP( this )) then return end
+	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
 	local args = {...}
 	if (#args<2) then return end -- No less than 2
 
@@ -436,7 +436,7 @@ end
 
 e2function void wirelink:egpLineStrip( number index, array args )
 	if (!EGP:IsAllowed( self, this )) then return end
-	if (!EGP:ValidEGP( this )) then return end
+	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
 	if (#args<2) then return end -- No less than 2
 
 	local max = maxvertices()
@@ -953,7 +953,7 @@ end
 --------------------------------------------------------
 __e2setcost(1)
 e2function array wirelink:egpObjectIndexes()
-	if not EGP:ValidEGP(this) then return {} end
+	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", {}) end
 	if not this.RenderTable or #this.RenderTable == 0 then return {} end
 	local indexes = {}
 	for _, v in pairs(this.RenderTable) do
@@ -969,7 +969,7 @@ end
 __e2setcost(1)
 
 e2function array wirelink:egpObjectTypes()
-	if not EGP:ValidEGP(this) then return {} end
+	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", {}) end
 	if not this.RenderTable or #this.RenderTable == 0 then return {} end
 	local objs = {}
 	for _, v in pairs(this.RenderTable) do
@@ -1103,7 +1103,7 @@ end
 
 __e2setcost(20)
 e2function vector wirelink:egpToWorld( vector2 pos )
-	if not EGP:ValidEGP( this ) then return Vector(0,0,0) end
+	if not EGP:ValidEGP( this ) then return self:throw("Invalid wirelink!", Vector(0, 0, 0)) end
 
 	local class = this:GetClass()
 	if class == "gmod_wire_egp_emitter" then
@@ -1138,7 +1138,7 @@ end
 local antispam = {}
 __e2setcost(25)
 e2function void wirelink:egpHudToggle()
-	if not EGP:ValidEGP( this ) then return end
+	if not EGP:ValidEGP( this ) then return self:throw("Invalid wirelink!", nil) end
 	if antispam[self.player] and antispam[self.player] > CurTime() then return end
 	antispam[self.player] = CurTime() + 0.1
 	umsg.Start( "EGP_HUD_Use", self.player ) umsg.Entity( this ) umsg.End()
@@ -1155,7 +1155,7 @@ end
 __e2setcost(10)
 
 e2function number wirelink:egpNumObjects()
-	if (!EGP:ValidEGP( this )) then return -1 end
+	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", -1) end
 	return #this.RenderTable
 end
 
@@ -1229,7 +1229,7 @@ end
 
 -- Choose whether or not to make this E2 run when the queue has finished sending all items for <this>
 e2function void wirelink:egpRunOnQueue( yesno )
-	if (!EGP:ValidEGP( this )) then return end
+	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
 	local bool = false
 	if (yesno != 0) then bool = true end
 	self.data.EGP.RunOnEGP[this] = bool
@@ -1237,10 +1237,7 @@ end
 
 -- Returns 1 if the current execution was caused by the EGP queue system OR if the EGP queue system finished in the current execution
 e2function number egpQueueClk()
-	if (EGP.RunByEGPQueue) then
-		return 1
-	end
-	return 0
+	return EGP.RunByEGPQueue and 1 or 0
 end
 
 -- Returns 1 if the current execution was caused by the EGP queue system regarding the entity <screen> OR if the EGP queue system finished in the current execution

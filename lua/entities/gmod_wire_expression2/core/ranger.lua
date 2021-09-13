@@ -405,7 +405,7 @@ __e2setcost(2) -- temporary
 
 --- Returns the distance from the rangerdata input, else depends on rangerDefault
 e2function number ranger:distance()
-	if not this then return 0 end
+	if not this then return self:throw("Invalid ranger!", 0) end
 
 	local startpos
 	if (this.StartSolid) then
@@ -420,7 +420,7 @@ end
 
 --- Returns the position of the input ranger data trace IF it hit anything, else returns vec(0,0,0)
 e2function vector ranger:position()
-	if not this then return { 0, 0, 0 } end
+	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
 	if this.StartSolid then return this.StartPos end
 	return this.HitPos
 end
@@ -428,19 +428,19 @@ end
 -- Returns the position of the input ranger data trace IF it it anything, else returns vec(0,0,0).
 -- NOTE: This function works like Lua's trace, while the above "position" function returns the same as positionLeftSolid IF it was created inside the world.
 e2function vector ranger:pos()
-	if not this then return {0,0,0} end
+	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
 	return this.HitPos
 end
 
 --- Returns the entity of the input ranger data trace IF it hit an entity, else returns nil
 e2function entity ranger:entity()
-	if not this then return nil end
+	if not this then return self:throw("Invalid ranger!", nil) end
 	return this.Entity
 end
 
 --- Returns the bone of the input ranger data trace IF it hit an entity, else returns nil
 e2function bone ranger:bone()
-	if not this then return nil end
+	if not this then return self:throw("Invalid ranger!", nil) end
 
 	local ent = this.Entity
 	if not IsValid(ent) then return nil end
@@ -449,55 +449,55 @@ end
 
 --- Returns 1 if the input ranger data hit anything and 0 if it didn't
 e2function number ranger:hit()
-	if not this then return 0 end
+	if not this then return self:throw("Invalid ranger!", 0) end
 	if this.Hit then return 1 else return 0 end
 end
 
 --- Outputs a normalized vector perpendicular to the surface the ranger is pointed at.
 e2function vector ranger:hitNormal()
-	if not this then return { 0, 0, 0 } end
+	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
 	return this.HitNormal
 end
 
 -- Returns a number between 0 and 1, ie R:distance()/maxdistance
 e2function number ranger:fraction()
-	if not this then return 0 end
+	if not this then return self:throw("Invalid ranger!", 0) end
 	return this.Fraction
 end
 
 -- Returns 1 if the ranger hit the world, else 0
 e2function number ranger:hitWorld()
-	if not this then return 0 end
-	return this.HitWorld and 1 or 0
+	if not this then return self:throw("Invalid ranger!", 0) end
+	if this.HitWorld then return 1 else return 0 end
 end
 
 -- Returns 1 if the ranger hit the skybox, else 0
 e2function number ranger:hitSky()
-	if not this then return 0 end
-	return this.HitSky and 1 or 0
+	if not this then return self:throw("Invalid ranger!", 0) end
+	if this.HitSky then return 1 else return 0 end
 end
 
 -- Returns the position at which the trace left the world if it was started inside the world
 e2function vector ranger:positionLeftSolid()
-	if not this then return { 0,0,0 } end
+	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
 	return this.StartPos
 end
 
 e2function number ranger:distanceLeftSolid()
-	if not this then return 0 end
+	if not this then return self:throw("Invalid ranger!", 0) end
 	return this.RealStartPos:Distance(this.StartPos)
 end
 
 -- Returns a number between 0 and 1
 e2function number ranger:fractionLeftSolid()
-	if not this then return 0 end
+	if not this then return self:throw("Invalid ranger!", 0) end
 	return this.FractionLeftSolid
 end
 
 -- Returns 1 if the trace started inside the world, else 0
 e2function number ranger:startSolid()
-	if not this then return 0 end
-	return this.StartSolid and 1 or 0
+	if not this then return self:throw("Invalid ranger!", 0) end
+	if this.StartSolid then return 1 else return 0 end
 end
 
 local mat_enums = {}
@@ -512,21 +512,21 @@ end
 
 -- Returns the material type (ie "contrete", "dirt", "flesh", etc)
 e2function string ranger:matType()
-	if not this then return "" end
+	if not this then return self:throw("Invalid ranger!", "") end
 	if not this.MatType then return "" end
 	return mat_enums[this.MatType] or ""
 end
 
 -- Returns the hit group if the trace hit a player (ie "chest", "stomach", "head", "leftarm", etc)
 e2function string ranger:hitGroup()
-	if not this then return "" end
+	if not this then return self:throw("Invalid ranger!", "") end
 	if not this.HitGroup then return "" end
 	return hitgroup_enums[this.HitGroup] or ""
 end
 
 -- Returns the texture that the trace hits
 e2function string ranger:hitTexture()
-	if not this then return "" end
+	if not this then return self:throw("Invalid ranger!", "") end
 	return this.HitTexture or ""
 end
 
@@ -560,8 +560,9 @@ local newE2Table = E2Lib.newE2Table
 
 -- Converts the ranger into a table. This allows you to manually get any and all raw data from the trace.
 e2function table ranger:toTable()
-	if not this then return {} end
 	local ret = newE2Table()
+	if not this then return self:throw("Invalid ranger!", ret) end
+
 	local size = 0
 	for k,v in pairs( this ) do
 		if (ids[k]) then
@@ -632,11 +633,9 @@ end
 
 -- Use util.TraceEntity for collison box trace
 e2function ranger rangerOffsetHull(entity ent, vector from, vector to)
-	if IsValid(ent) and !ent:IsWorld() then
-		return ranger(self, 2, 0, from, to, 0, 0, 0, ent)
-	else
-		return nil
-	end
+	if not IsValid(ent) or ent:IsWorld() then return self:throw("Invalid entity!", nil) end
+
+	return ranger(self, 2, 0, from, to, 0, 0, 0, ent)
 end
 
 /******************************************************************************/
