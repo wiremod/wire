@@ -144,8 +144,8 @@ end
 
 -- Prints <...> like lua's print(...), except to the chat area
 e2function void print(...)
-	if not checkOwner(self) then return end
-	if not checkDelay( self.player ) then return end
+	if not checkOwner(self) then return self:throw("Invalid owner") end
+	if not checkDelay( self.player ) then return self:throw("Hit print cooldown!") end
 	local args = {...}
 	local nargs = select("#", ...)
 	if nargs>0 then

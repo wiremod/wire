@@ -190,21 +190,22 @@ end
 
 -- Gets a list of args and returns a string signature
 -- Works with usertypes by using struct's id versus the full signature.
-local function getArgStr(args)
+local function getOperatorArgs(args)
 	local pars = {}
 	for k, tp in ipairs(args) do
+		-- Strip struct name from struct, since structs will just use generic operations.
 		pars[k] = tp:match("^(struct)%[.*%]$") or tp
 	end
 	return table.concat(pars)
 end
 
 function Compiler:HasOperator(instr, name, tps)
-	local a = wire_expression2_funcs["op:" .. name .. "(" .. getArgStr(tps) .. ")"]
+	local a = wire_expression2_funcs["op:" .. name .. "(" .. getOperatorArgs(tps) .. ")"]
 	return a and true or false
 end
 
 function Compiler:GetOperator(instr, name, tps)
-	local op = wire_expression2_funcs["op:" .. name .. "(" .. getArgStr(tps) .. ")"]
+	local op = wire_expression2_funcs["op:" .. name .. "(" .. getOperatorArgs(tps) .. ")"]
 	if not op then
 		self:Error("No such operator: " .. op_find(name) .. "(" .. tps_pretty(tps) .. ")", instr)
 		return
@@ -546,7 +547,7 @@ function Compiler:InstrGET(args)
 		end
 
 		local rt = self:GetOperator(args, "idx", { tp2, "=", tp, tp1 })
-		return { rt[1], ex, ex1 }, tp2
+		return { rt[1], ex, ex1, tp2 }, tp2
 	end
 end
 
@@ -1014,12 +1015,12 @@ function Compiler:InstrSTRUCT(args)
 	local type_name = args[3]
 	local type_obj = args[4] -- This is the type object that defines what a struct is called and the field type.
 
-	--[[local default_fields = {}
+	local default_fields = {}
 	for field_name, field_type in pairs(type_obj.fields) do
-		default_fields[field_name] = "n"--self:GetType( field_type:match("(struct)%[.*%]") or field_type )[2]
-	end]]
+		default_fields[field_name] = self:GetType( field_type:match("(struct)%[.*%]") or field_type )[2]
+	end
 
-	local default_value = newStruct(type_name)
+	local default_value = newStruct(type_name, default_fields)
 	type_obj[2] = default_value
 
 	self.prfcounter = self.prfcounter + 30
@@ -1099,7 +1100,7 @@ function Compiler:InstrFIELDSET(args)
 			self:Error("Expected " .. tps_pretty(desired_t) .. ", got " .. tps_pretty(set_tp) .. " for field " .. field_name, args)
 		end
 
-		local rt = self:GetOperator(args, "fieldset", {"struct=any"})
+		local rt = self:GetOperator(args, "fieldset", {"struct=<T>"})
 		return { rt[1], obj, field_name, setobj }, rt[2]
 	end
 

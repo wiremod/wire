@@ -16,8 +16,9 @@
 		This is used for if(X), &, |, etc.
 ]]
 
-wire_expression_types["STRUCT"] = {
+--[[wire_expression_types["STRUCT"] = {
 	[1] = "struct",
+	[2] = { fields = setmetatable({}, { __index = function() return 59 end }) },
 	[4] = function(self, output) return output end,
 	[5] = function(retval)
 		if not istable(retval) then return end
@@ -26,7 +27,8 @@ wire_expression_types["STRUCT"] = {
 	[6] = function(v)
 		return not v.struct
 	end
-}
+}]]
+
 
 __e2setcost(1)
 registerOperator("struct", "", "", function(self, args)
@@ -61,7 +63,7 @@ end)
 ]]
 
 -- A.B
-registerOperator("fieldset", "struct=any", "", function(self, args)
+registerOperator("fieldset", "struct=<T>", "", function(self, args)
 	local op1, field_name, op2 = args[2], args[3], args[4]
 	local obj = op1[1](self, op1)
 
@@ -78,7 +80,7 @@ end)
 -- Logical Ops
 registerOperator("ass", "struct", "struct", function(self, args)
 	local op1, op2, scope = args[2], args[3], args[4]
-	local rv2 = op2[1](self, op2)
+	local rv2 = op2[1](self, op2, "AAAAAAAA")
 	self.Scopes[scope][op1] = rv2
 	self.Scopes[scope].vclk[op1] = true
 	return rv2
@@ -112,6 +114,7 @@ end)
 registerOperator("or", "structstruct", "n", function(self, args)
 	local op = args[2]
 	local struct = op[1](self, op)
+
 	if struct.initialized then return 1 end
 
 	op = args[3]
@@ -121,6 +124,35 @@ registerOperator("or", "structstruct", "n", function(self, args)
 	return 0
 end)
 
--- TODO: Table/Array interop
+-- We know the default value will always be a table, so we use table.Copy directly instead of E2Lib.fixDefault
+local tbl_copy = table.Copy
+registerOperator("idx", "struct=tn", "struct", function(self, args)
+	local op1, op2, inner_t = args[2], args[3], args[4]:sub(8, -2)
 
-local fixDefault = E2Lib.fixDefault
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	if not rv1.n[rv2] or rv1.ntypes[rv2] ~= id then return tbl_copy(self.structs[inner_t][2]) end
+	if v[6] and v[6](rv1.n[rv2]) then return tbl_copy(self.structs[inner_t][2]) end
+	return rv1.n[rv2]
+end)
+
+registerOperator("idx", "struct=ts", "struct", function(self, args)
+	local op1, op2, inner_t = args[2], args[3], args[4]:sub(8, -2)
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	if not rv1.s[rv2] or rv1.stypes[rv2] ~= id then return tbl_copy(self.structs[inner_t][2]) end
+	if v[6] and v[6](rv1.s[rv2]) then return tbl_copy(self.structs[inner_t][2]) end
+	return rv1.s[rv2]
+end)
+
+local math_floor = math.floor
+registerOperator("idx", "struct=rn", "struct", function(self, args)
+	local op1, op2, inner_t = args[2], args[3], args[4]:sub(8, -2)
+	local array, index = op1[1](self, op1), op2[1](self, op2)
+
+	if array == nil or index == nil then return tbl_copy(self.structs[inner_t][2]) end -- Make sure array and index are value
+	local val = array[math_floor(index)]
+
+	if not istable(val) then return tbl_copy(self.structs[inner_t][2]) end -- Not a table
+	if not val.struct then return tbl_copy(self.structs[inner_t][2]) end -- Not a struct
+	if val.name ~= inner_t then return tbl_copy(self.structs[inner_t][2]) end -- Not an instanceof <T>
+	return val
+end)

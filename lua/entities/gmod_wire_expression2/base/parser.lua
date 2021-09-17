@@ -760,7 +760,7 @@ end
 function Parser:Stmt14()
 	if self:AcceptRoamingToken("struct") then
 		local trace = self:GetTokenTrace()
-		local type_name = self:AssertType("Lowercase type name expected after type keyword")
+		local type_name = self:AssertType("Expected lowercase struct name")
 
 		if self:GetType(type_name) then
 			self:Error("Type '" .. type_name .. "' already exists")
