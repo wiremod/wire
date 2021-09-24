@@ -159,18 +159,6 @@ typeSanitizers = {
 
 				return safeTable
 			end,
-	["v"] = function ( self, glonOutputObject, safeGlonObjectMap )
-				if not glonOutputObject then return table.Copy(wire_expression_types2["v"][2]) end
-				if isvector(glonOutputObject) then return { glonOutputObject.x, glonOutputObject.y, glonOutputObject.z } end
-				if !istable(glonOutputObject) then return table.Copy(wire_expression_types2["v"][2]) end
-
-				local safeValue = {}
-				for i = 1, 3 do
-					safeValue[i] = tonumber(glonOutputObject[i]) or wire_expression_types2["v"][2][i]
-				end
-
-				return safeValue
-			end,
 	["external_t"] = function ( self, glonOutputObject, safeGlonObjectMap )
 				if safeGlonObjectMap["t"][glonOutputObject] then
 					return safeGlonObjectMap["t"][glonOutputObject]
@@ -199,7 +187,6 @@ typeSanitizers = {
 -- Default sanitizer for types that are arrays of numbers
 local numericArrayDataTypes =
 {
-	["a"]	= 3,
 	["c"]	= 2,
 	["m"]	= 9,
 	["q"]	= 4,
@@ -557,5 +544,3 @@ e2function table jsonDecode( string data )
 	local copied_tables = {}
 	return jsonDecode_recurse( self, luatable, copied_tables )
 end
-
-__e2setcost(nil)
