@@ -107,10 +107,12 @@ function registerType(name, id, def, ...)
 		"character long, or three characters long starting with an x", id), 2)
 	end
 
-	wire_expression_types[string.upper(name)] = { id, def, ... }
-	wire_expression_types2[id] = { string.upper(name), def, ... }
-	if not WireLib.DT[string.upper(name)] then
-		WireLib.DT[string.upper(name)] = { Zero = def }
+	name = string.upper(name)
+
+	wire_expression_types[name] = { id, def, ... }
+	wire_expression_types2[id] = { name, def, ... }
+	if not WireLib.DT[name] then
+		WireLib.DT[name] = { Zero = def }
 	end
 end
 

@@ -27,7 +27,7 @@ function Compiler:CallInstruction(name, trace, ...)
 	return self["Instr" .. string_upper(name)](self, trace, ...)
 end
 
-function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used.
+function Compiler:Process(root, inputs, outputs, persist, delta, includes, const_data) -- Took params out becuase it isnt used.
 	self.context = {}
 
 	self:InitScope() -- Creates global scope!
@@ -40,7 +40,7 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.prfcounters = {}
 	self.tvars = {}
 	self.funcs = {} -- user defined functions
-	self.structs = {} -- user defined types
+	self.structs = const_data.structs -- user defined types. We get a default table of data from the parser so that directive structs can be used.
 	self.dvars = {}
 	self.funcs_ret = {}
 	self.EnclosingFunctions = { --[[ { ReturnType: string } ]] }
@@ -72,7 +72,6 @@ end
 
 function tps_pretty(tps)
 	if not tps or #tps == 0 then return "void" end
-	if tps == "struct" then return "struct" end
 	if type(tps) == "string" then tps = { tps } end
 	local ttt = {}
 	for i = 1, #tps do
@@ -159,6 +158,8 @@ end
 function Compiler:SetType(name, type_struct)
 	-- Types are defined as { fields = table, name = string, [1] = "struct[<name>]", [2] = default }
 	self.structs[name] = type_struct
+	self.structs[name:upper()] = type_struct
+	self.structs["struct[" .. name .. "]"] = type_struct
 end
 
 function Compiler:GetType(name)
@@ -556,8 +557,9 @@ function Compiler:InstrSET(args)
 	local ex, tp = self:Evaluate(args, 1)
 	local ex1, tp1 = self:Evaluate(args, 2)
 	local ex2, tp2 = self:Evaluate(args, 3)
+	local value_type = args[6]
 
-	if args[6] == nil then
+	if value_type == nil then
 		if not self:HasOperator(args, "idx", { tp, tp1, tp2 }) then
 			self:Error("No such operator: set " .. tps_pretty({ tp }) .. "[" .. tps_pretty({ tp1 }) .. "]=" .. tps_pretty({ tp2 }), args)
 		end
@@ -566,8 +568,8 @@ function Compiler:InstrSET(args)
 
 		return { rt[1], ex, ex1, ex2, nil }, rt[2]
 	else
-		if tp2 ~= args[6] then
-			self:Error("Indexing type mismatch, specified [" .. tps_pretty({ args[6] }) .. "] but value is [" .. tps_pretty({ tp2 }) .. "]", args)
+		if tp2 ~= value_type then
+			self:Error("Indexing type mismatch, specified [" .. tps_pretty({ value_type }) .. "] but value is [" .. tps_pretty({ tp2 }) .. "]", args)
 		end
 
 		if not self:HasOperator(args, "idx", { tp2, "=", tp, tp1, tp2 }) then
@@ -575,7 +577,7 @@ function Compiler:InstrSET(args)
 		end
 		local rt = self:GetOperator(args, "idx", { tp2, "=", tp, tp1, tp2 })
 
-		return { rt[1], ex, ex1, ex2 }, tp2
+		return { rt[1], ex, ex1, ex2, value_type }, tp2
 	end
 end
 
@@ -1020,14 +1022,24 @@ function Compiler:InstrSTRUCT(args)
 		default_fields[field_name] = self:GetType( field_type:match("(struct)%[.*%]") or field_type )[2]
 	end
 
-	local default_value = newStruct(type_name, default_fields)
+	local default_value = newStruct(type_name, default_fields, false)
 	type_obj[2] = default_value
 
-	self.prfcounter = self.prfcounter + 30
+	self.prfcounter = self.prfcounter + 10
 
 	self:SetType( type_name, type_obj )
 
-	return { self:GetOperator(args, "struct", {})[1], type_name, type_obj }
+	local not_initialized = true
+	return {
+		function(instance)
+			-- E2 can't const :(
+			if not_initialized then
+				instance.structs[type_name] = type_obj
+				not_initialized = nil
+			end
+		end,
+		type_name, type_obj
+	}
 end
 
 function Compiler:InstrSTRUCTBUILD(args)

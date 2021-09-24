@@ -124,7 +124,7 @@ function ENT:Execute()
 	if self.error or not self.context or self.context.resetting then return end
 
 	for k, v in pairs(self.tvars) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
+		self.GlobalScope[k] = fixDefault( self:GetE2Type(v)[2] ) -- wire_expression_types2
 	end
 
 	self:PCallHook("preexecute")
@@ -156,14 +156,14 @@ function ENT:Execute()
 	self.duped = false -- if hooks call execute
 	self.context.triggerinput = nil -- if hooks call execute
 
-	self:PCallHook('postexecute')
+	self:PCallHook("postexecute")
 
 	self:TriggerOutputs()
 
 	for k, v in pairs(self.inports[3]) do
 		if self.GlobalScope[k] then
-			if wire_expression_types[self.Inputs[k].Type][3] then
-				self.GlobalScope[k] = wire_expression_types[self.Inputs[k].Type][3](self.context, self.Inputs[k].Value)
+			if self:GetE2Type(self.Inputs[k].Type)[3] then
+				self.GlobalScope[k] = self:GetE2Type(self.Inputs[k].Type)[3](self.context, self.Inputs[k].Value)
 			else
 				self.GlobalScope[k] = self.Inputs[k].Value
 			end
@@ -172,14 +172,22 @@ function ENT:Execute()
 
 	self.GlobalScope.vclk = {}
 	for k, v in pairs(self.globvars) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
+		local typ = self:GetE2Type(v) -- wire_expression_types2
+		if typ then
+			self.GlobalScope[k] = fixDefault(typ[2])
+		else
+			typ = self.structs[v]
+			if typ then
+				self.GlobalScope[k] = fixDefault(typ[2])
+			end
+		end
 	end
 
 	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
 		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "hard quota exceeded")
 	end
 
-	if self.error then self:PCallHook('destruct') end
+	if self.error then self:PCallHook("destruct") end
 end
 
 function ENT:Think()
@@ -193,7 +201,7 @@ function ENT:Think()
 
 		if e2_timequota > 0 and self.context.timebench > e2_timequota then
 			self:Error("Expression 2 (" .. self.name .. "): time quota exceeded", "time quota exceeded")
-			self:PCallHook('destruct')
+			self:PCallHook("destruct")
 		end
 
 		if self.context.prfcount < 0 then self.context.prfcount = 0 end
@@ -244,7 +252,7 @@ function ENT:CompileCode(buffer, files, filepath)
 		self.filepath = filepath
 	end
 
-	local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer,nil,self)
+	local status, directives, buffer, const_data = E2Lib.PreProcessor.Execute(buffer,nil,self)
 	if not status then self:Error(directives) return end
 	self.buffer = buffer
 	self.error = false
@@ -267,7 +275,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	local status, tokens = E2Lib.Tokenizer.Execute(self.buffer)
 	if not status then self:Error(tokens) return end
 
-	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
+	local status, tree, dvars, _files, const_data = E2Lib.Parser.Execute(tokens, const_data)
 	if not status then self:Error(tree) return end
 
 	if not self:PrepareIncludes(files) then return end
@@ -275,7 +283,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	status,tree = E2Lib.Optimizer.Execute(tree)
 	if not status then self:Error(tree) return end
 
-	local status, script, inst = E2Lib.Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars, self.includes)
+	local status, script, inst = E2Lib.Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars, self.includes, const_data)
 	if not status then self:Error(script) return end
 
 	self.script = script
@@ -285,6 +293,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.structs = inst.structs
 	self.funcs_ret = inst.funcs_ret
 	self.globvars = inst.GlobalScope
+	self.GetE2Type = inst.GetType
 
 	self:ResetContext()
 end
@@ -388,30 +397,30 @@ function ENT:ResetContext()
 	for k, v in pairs(self.inports[3]) do
 		self._inputs[1][#self._inputs[1] + 1] = k
 		self._inputs[2][#self._inputs[2] + 1] = v
-		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault(self:GetE2Type(v)[2])
 		self.globvars[k] = nil
 	end
 
 	for k, v in pairs(self.outports[3]) do
 		self._outputs[1][#self._outputs[1] + 1] = k
 		self._outputs[2][#self._outputs[2] + 1] = v
-		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault( self:GetE2Type(v)[2] )
 		self.GlobalScope.vclk[k] = true
 		self.globvars[k] = nil
 	end
 
 	for k, v in pairs(self.persists[3]) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault( self:GetE2Type(v)[2] )
 		self.globvars[k] = nil
 	end
 
 	for k, v in pairs(self.globvars) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
+		self.GlobalScope[k] = fixDefault( self:GetE2Type(v)[2] )
 	end
 
 	for k, v in pairs(self.Inputs) do
-		if wire_expression_types[v.Type][3] then
-			self.GlobalScope[k] = wire_expression_types[v.Type][3](self.context, v.Value)
+		if self:GetE2Type(v.Type)[3] then
+			self.GlobalScope[k] = self:GetE2Type(v.Type)[3](self.context, v.Value)
 		else
 			self.GlobalScope[k] = v.Value
 		end
@@ -501,8 +510,8 @@ function ENT:TriggerInput(key, value)
 		local t = self.inports[3][key]
 
 		self.GlobalScope["$" .. key] = self.GlobalScope[key]
-		if wire_expression_types[t][3] then
-			self.GlobalScope[key] = wire_expression_types[t][3](self.context, value)
+		if self:GetE2Type(t)[3] then
+			self.GlobalScope[key] = self:GetE2Type(t)[3](self.context, value)
 		else
 			self.GlobalScope[key] = value
 		end
@@ -516,8 +525,8 @@ end
 function ENT:TriggerOutputs()
 	for key, t in pairs(self.outports[3]) do
 		if self.GlobalScope.vclk[key] or self.first then
-			if wire_expression_types[t][4] then
-				WireLib.TriggerOutput(self, key, wire_expression_types[t][4](self.context, self.GlobalScope[key]))
+			if self:GetE2Type(t)[4] then
+				WireLib.TriggerOutput(self, key, self:GetE2Type(t)[4](self.context, self.GlobalScope[key]))
 			else
 				WireLib.TriggerOutput(self, key, self.GlobalScope[key])
 			end

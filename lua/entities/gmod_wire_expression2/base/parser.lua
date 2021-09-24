@@ -114,7 +114,8 @@ function Parser:Error(message, token)
 	end
 end
 
-function Parser:Process(tokens, params)
+function Parser:Process(tokens, const_data)
+	-- If we wanted to, could allow creating struct instances before they're defined with const_data. Won't be doing that though since it doesn't follow E2's standard
 	self.tokens = tokens
 	self.index = 0
 	self.count = #tokens
@@ -127,7 +128,8 @@ function Parser:Process(tokens, params)
 	if parserDebug:GetBool() then
 		print(E2Lib.AST.dump(tree))
 	end
-	return tree, self.delta, self.includes
+	-- 4th return is a table of constant datas that will be passed to the compiler (such as structs). Made a table for future use
+	return tree, self.delta, self.includes, { structs = self.structs }
 end
 
 -- ---------------------------------------------------------------------
@@ -763,6 +765,8 @@ function Parser:Stmt14()
 		local type_name = self:AssertType("Expected lowercase struct name")
 
 		if self:GetType(type_name) then
+			-- By default, self.structs is filled with { <name> = true, ... }, data found from the preprocessor.
+			-- This is so we can declare struct instances before they're even defined.
 			self:Error("Type '" .. type_name .. "' already exists")
 		end
 
@@ -783,6 +787,7 @@ function Parser:Stmt14()
 		]]
 		local tobj = { [1] = "struct[" .. type_name .. "]", fields = fields, name = type_name, structdef = true }
 		self.structs[type_name] = tobj
+		self.structs[type_name:upper()] = tobj
 
 		return self:Instruction(trace, "struct", type_name, tobj)
 	end

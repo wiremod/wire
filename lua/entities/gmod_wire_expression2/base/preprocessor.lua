@@ -45,7 +45,7 @@ end
 function PreProcessor:FindComments(line)
 	local ret, count, pos, found = {}, 0, 1
 	repeat
-		found = line:find('[#"\\]', pos)
+		found = line:find("[#\"\\]", pos)
 		if found then -- We found something
 			local char = line:sub(found, found)
 			if char == "#" then -- We found a comment
@@ -78,8 +78,8 @@ function PreProcessor:FindComments(line)
 	return ret, count
 end
 
-function PreProcessor:RemoveComments(line)
-
+--@param handle If we want to handle preprocessor commands.
+function PreProcessor:RemoveComments(line, handle)
 	local comments, num = self:FindComments(line) -- Find all comments and strings on this line
 
 	if num == 0 and self.blockcomment then
@@ -112,7 +112,9 @@ function PreProcessor:RemoveComments(line)
 						ret = ret .. line:sub(lastpos)
 					else
 						ret = ret .. line:sub(lastpos, pos - 1)
-						self:HandlePPCommand(line:sub(pos + 1))
+						if handle then
+							self:HandlePPCommand(line:sub(pos + 1))
+						end
 					end
 
 					lastpos = -1
@@ -132,10 +134,10 @@ function PreProcessor:RemoveComments(line)
 end
 
 -- Handle inputs, outputs & persist, name is "inputs", "outputs", etc.
-local function handleIO(name)
+local function handleIO(name, forbid_structs)
 	return function(self, value)
 		local ports = self.directives[name]
-		local retval, columns = self:ParsePorts(value, #name + 2)
+		local retval, columns = self:ParsePorts(value, #name + 2, forbid_structs)
 
 		for i, key in ipairs(retval[1]) do
 			if ports[3][key] then
@@ -171,9 +173,9 @@ local directive_handlers = {
 		end
 	end,
 
-	["inputs"] = handleIO("inputs"),
-	["outputs"] = handleIO("outputs"),
-	["persist"] = handleIO("persist"),
+	["inputs"] = handleIO("inputs", true),
+	["outputs"] = handleIO("outputs", true),
+	["persist"] = handleIO("persist", false),
 
 	["trigger"] = function(self, value)
 		local trimmed = string.Trim(value)
@@ -193,7 +195,7 @@ local directive_handlers = {
 			end
 
 			self.directives.trigger[1] = false
-			local retval, columns = self:ParsePorts(value, 9)
+			local retval, columns = self:ParsePorts(value, 9, true)
 
 			for i, key in ipairs(retval[1]) do
 				if self.directives.trigger[2][key] then
@@ -257,10 +259,19 @@ function PreProcessor:ParseDirectives(line)
 	return ""
 end
 
+-- Scan the line for any information (eg structs which define custom types.)
+-- This happens after stripping comments and strings, so there's no false alarms. Invalid syntax can be handled by the parser/tokenizer.
+function PreProcessor:ScanLine(line)
+	local match
+	match = line:match("struct%s+([%l_]+)")
+	if match then self.structs[match] = true end
+end
+
 function PreProcessor:Process(buffer, directives, ent)
 	-- entity is needed for autoupdate
 	self.ent = ent
 	self.ifdefStack = {}
+	self.structs = {}
 
 	local lines = string.Explode("\n", buffer)
 
@@ -279,11 +290,21 @@ function PreProcessor:Process(buffer, directives, ent)
 		self.ignorestuff = true
 	end
 
+	-- Type finding / other stuff pass. In the future I think the preprocessor/parser/editor should be more intertwined so we don't have to do this.
+	for i, line in ipairs(lines) do
+		-- Do all the trimming here so we don't waste time doing it twice
+		self.readline = i
+
+		line = string.TrimRight(line)
+		local stripped = self:RemoveComments(line, false)
+		self:ScanLine(stripped)
+
+		lines[i] = line
+	end
+
 	for i, line in ipairs(lines) do
 		self.readline = i
-		line = string.TrimRight(line)
-
-		line = self:RemoveComments(line)
+		line = self:RemoveComments(line, true)
 		line = self:ParseDirectives(line)
 
 		lines[i] = line
@@ -292,10 +313,10 @@ function PreProcessor:Process(buffer, directives, ent)
 	if self.directives.trigger[1] == nil then self.directives.trigger[1] = true end
 	if not self.directives.name then self.directives.name = "" end
 
-	return self.directives, string.Implode("\n", lines)
+	return self.directives, table.concat(lines, "\n"), { structs = self.structs }
 end
 
-function PreProcessor:ParsePorts(ports, startoffset)
+function PreProcessor:ParsePorts(ports, startoffset, forbid_structs)
 	local names = {}
 	local types = {}
 	local columns = {}
@@ -351,9 +372,13 @@ function PreProcessor:ParsePorts(ports, startoffset)
 				self:Error("Variable type [" .. E2Lib.limitString(vtype, 10) .. "] must be lowercase", column + i + 1)
 			end
 
-			if vtype == "number" then vtype = "normal" end
-
-			if not wire_expression_types[vtype:upper()] then
+			if vtype == "number" then
+				vtype = "normal"
+			elseif self.structs[vtype] then
+				if forbid_structs then
+					self:Error("Structs are currently not allowed in I/O", column + i + 1)
+				end
+			elseif not wire_expression_types[vtype] then
 				self:Error("Unknown variable type [" .. E2Lib.limitString(vtype, 10) .. "] specified for variable(s) (" .. E2Lib.limitString(namestring, 10) .. ")", column + i + 1)
 			end
 		elseif character == "" then

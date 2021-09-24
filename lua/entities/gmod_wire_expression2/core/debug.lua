@@ -115,30 +115,28 @@ local function SpecialCase( arg )
 				fields[nfields] = fmt("%s = %s", k, v)
 				nfields = nfields + 1
 			end
-			return string.format( "struct [%s] {%s}", arg.name, table.concat(fields, ", ") )
+			return string.format( "[%s]{%s}", arg.name, table.concat(fields, ", ") )
 		elseif arg.isfunction then
 			return "function " .. arg[3] .. " = (" .. arg[2] .. ")"
-		elseif (seq(arg)) then -- A table with only numerical indexes
-			local str = "["
-			for k,v in ipairs( arg ) do
-				if istable(v) then
-					if (k != #arg) then
-						str = str .. SpecialCase( v ) .. ","
-					else
-						str = str .. SpecialCase( v ) .. "]"
-					end
+		elseif seq(arg) then -- A table with only numerical indexes
+			local out, nout = {"["}, 2
+			local nobj = #arg
+			PrintTable(arg)
+			for k, v in ipairs( arg ) do
+				if k ~= nobj then
+					out[nout] = SpecialCase(v) .. ","
+					nout = nout + 1
 				else
-					if (k != #arg) then
-						str = str .. tostring(v) .. ","
-					else
-						str = str .. tostring(v) .. "]"
-					end
+					out[nout] = SpecialCase(v) .. "]"
+					nout = nout + 1
 				end
 			end
-			return str
+			return table.concat(out, '')
 		else -- Else it's a table with string indexes (which this function can't handle)
 			return "[table]"
 		end
+	else
+		return tostring(arg)
 	end
 end
 
@@ -151,7 +149,7 @@ e2function void print(...)
 	if nargs>0 then
 		for i=1, math.min(nargs, 256) do
 			local v = args[i]
-			args[i] = string.Left(SpecialCase( v ) or tostring(v), 249)
+			args[i] = string.Left(SpecialCase( v ), 249)
 		end
 		local text = table.concat(args, "\t")
 		if #text>0 then

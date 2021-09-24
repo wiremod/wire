@@ -46,11 +46,11 @@ end
 
 -- Returns a new E2 struct instance. The first argument is the struct name.
 -- The second argument is a table of the form { fieldname = value, "XYZ" = Value }.
-function E2Lib.newStruct(usertype, fields)
+function E2Lib.newStruct(usertype, fields, initialized)
 	if fields then
-		return { struct = true, fields = fields, name = usertype, initialized = true }
+		return { struct = true, fields = fields, name = usertype, initialized = initialized == nil and true }
 	else
-		return { struct = true, fields = {}, name = usertype, initialized = false }
+		return { struct = true, fields = {}, name = usertype, initialized = initialized }
 	end
 end
 
@@ -97,8 +97,9 @@ local simpletypes = {
 function E2Lib.typeName(typeid)
 	if simpletypes[typeid] then return simpletypes[typeid] end
 
-	local struct_name = typeid:match("^struct%[(.*)%]$")
-	if struct_name then return struct_name end
+	if typeid:sub(1, 8) == "struct[" then
+		return typeid:sub(9, -2)
+	end
 
 	local tp = wire_expression_types2[typeid]
 	if not tp then error("Type ID '" .. typeid .. "' not found", 2) end
