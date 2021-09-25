@@ -378,7 +378,7 @@ function PreProcessor:ParsePorts(ports, startoffset, forbid_structs)
 				if forbid_structs then
 					self:Error("Structs are currently not allowed in I/O", column + i + 1)
 				end
-			elseif not wire_expression_types[vtype] then
+			elseif not wire_expression_types[vtype:upper()] then
 				self:Error("Unknown variable type [" .. E2Lib.limitString(vtype, 10) .. "] specified for variable(s) (" .. E2Lib.limitString(namestring, 10) .. ")", column + i + 1)
 			end
 		elseif character == "" then

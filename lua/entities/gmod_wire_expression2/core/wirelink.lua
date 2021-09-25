@@ -190,7 +190,6 @@ end
 /******************************************************************************/
 
 registerCallback("postinit", function()
-
 	local getf, setf
 	-- generate getters and setters for all types
 	for typename, v in pairs( wire_expression_types ) do
@@ -199,6 +198,12 @@ registerCallback("postinit", function()
 		local input_serializer = v[3]
 		local output_serializer = v[4]
 		local fname = typename == "NORMAL" and "NUMBER" or typename
+
+		if typename == "NUMBER" then
+			-- Wire entities use NORMAL as the number type.
+			-- Hopefully this will be removed at some point.
+			typename = "NORMAL"
+		end
 
 		-- for T:number() etc
 		local getter = fname:lower()
@@ -375,7 +380,7 @@ e2function string wirelink:outputType(string Output)
 	if(!this.Outputs or !this.Outputs[Output]) then return "" end
 
 	local Type = this.Outputs[Output].Type or ""
-	if Type == "NORMAL" then Type = "number" end
+	if Type == "NORMAL" then return "number" end
 	return string.lower(Type)
 end
 
@@ -400,7 +405,7 @@ end
 e2function array wirelink:readArray(start, size)
 	if size < 0 then return {} end
 	if !validWirelink(self, this) or !this.ReadCell then return {} end
-	
+
 	self.prf = self.prf + size
 
 	local ret = {}
