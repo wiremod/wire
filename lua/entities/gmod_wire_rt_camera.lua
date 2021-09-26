@@ -54,15 +54,12 @@ end
 if SERVER then
     hook.Add("SetupPlayerVisibility", "ImprovedRTCamera", function(ply, plyView)
         for _, screen in ipairs(ents.FindByClass("gmod_wire_rt_screen")) do
-            if not screen:GetActive() then continue end
-            if not screen:ShouldDrawCamera(ply) then continue end
-
-
-            local camera = screen:GetCamera()
-            if not IsValid(camera) then continue end
-            if not camera:GetActive() then continue end
-
-            AddOriginToPVS(camera:GetPos())
+            if screen:GetActive() and screen:ShouldDrawCamera(ply) then
+                local camera = screen:GetCamera()
+                if IsValid(camera) and camera:GetActive() then
+                    AddOriginToPVS(camera:GetPos())
+                end
+            end
         end
     end)
 end
@@ -175,35 +172,28 @@ if CLIENT then
         local renderW = wire_rt_camera_resolution_w:GetInt()
 
         for ent, _ in pairs(ActiveCameras) do
-            if not ent.IsObserved then
-                continue
+            if IsValid(ent) and ent.IsObserved then
+                render.PushRenderTarget(ent.RenderTarget)
+                    local oldNoDraw = ent:GetNoDraw()
+                    ent:SetNoDraw(true)
+                        CameraIsDrawn = true
+                        cam.Start2D()
+                            render.OverrideAlphaWriteEnable(true, true)
+                            render.RenderView({
+                                origin = ent:GetPos(),
+                                angles = ent:GetAngles(),
+                                x = 0, y = 0, h = renderH, w = renderW,
+                                drawmonitors = true,
+                                drawviewmodel = false,
+                                fov = ent:GetCamFOV(),
+                                bloomtone = isHDR
+                            })
+
+                        cam.End2D()
+                        CameraIsDrawn = false
+                    ent:SetNoDraw(oldNoDraw)
+                render.PopRenderTarget()
             end
-
-            if not IsValid(ent) then
-                Error("Camera ",ent," is invalid!")
-                continue
-            end
-
-            render.PushRenderTarget(ent.RenderTarget)
-                local oldNoDraw = ent:GetNoDraw()
-                ent:SetNoDraw(true)
-                    CameraIsDrawn = true
-                    cam.Start2D()
-                        render.OverrideAlphaWriteEnable(true, true)
-                        render.RenderView({
-                            origin = ent:GetPos(),
-                            angles = ent:GetAngles(),
-                            x = 0, y = 0, h = renderH, w = renderW,
-                            drawmonitors = true,
-                            drawviewmodel = false,
-                            fov = ent:GetCamFOV(),
-                            bloomtone = isHDR
-                        })
-
-                    cam.End2D()
-                    CameraIsDrawn = false
-                ent:SetNoDraw(oldNoDraw)
-            render.PopRenderTarget()
         end
     end)
 
