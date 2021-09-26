@@ -47,7 +47,7 @@ end
 
 if SERVER then
     hook.Add("SetupPlayerVisibility", "ImprovedRTCamera", function(ply, plyView)
-        for _, screen in ipairs(ents.FindByClass("improvedrt_screen")) do
+        for _, screen in ipairs(ents.FindByClass("gmod_wire_rt_screen")) do
             if not screen:GetActive() then continue end
             if not screen:ShouldDrawCamera(ply) then continue end
 
@@ -63,16 +63,15 @@ end
 
 
 if CLIENT then
-    --local improvedrt_camera_maxactive = CreateClientConVar("improvedrt_camera_resolution_h", "-1", true, nil, nil, -1)
-    local improvedrt_camera_resolution_h = CreateClientConVar("improvedrt_camera_resolution_h", "512", true, nil, nil, 128)
-    local improvedrt_camera_resolution_w = CreateClientConVar("improvedrt_camera_resolution_w", "512", true, nil, nil, 128)
-    local improvedrt_camera_filtering = CreateClientConVar("improvedrt_camera_filtering", "2", true, nil, nil, 0, 2)
-    local improvedrt_camera_hdr = CreateClientConVar("improvedrt_camera_hdr", "1", true, nil, nil, 0, 1)
+    local wire_rt_camera_resolution_h = CreateClientConVar("wire_rt_camera_resolution_h", "512", true, nil, nil, 128)
+    local wire_rt_camera_resolution_w = CreateClientConVar("wire_rt_camera_resolution_w", "512", true, nil, nil, 128)
+    local wire_rt_camera_filtering = CreateClientConVar("wire_rt_camera_filtering", "2", true, nil, nil, 0, 2)
+    local wire_rt_camera_hdr = CreateClientConVar("wire_rt_camera_hdr", "1", true, nil, nil, 0, 1)
 
     local ActiveCameras = {}
     local ObservedCameras = {}
 
-    concommand.Add("improvedrt_camera_recreate", function()
+    concommand.Add("wire_rt_camera_recreate", function()
         for _, cam in ipairs(ObservedCameras) do
             cam:InitRTTexture()
         end
@@ -124,9 +123,9 @@ if CLIENT then
     end
 
     local function CreateRTName(index)
-        return "improvedrtcamera_rt_"..tostring(index).."_"..improvedrt_camera_filtering:GetString().."_"
-            ..improvedrt_camera_resolution_h:GetString().."x"..improvedrt_camera_resolution_w:GetString()..
-            (improvedrt_camera_hdr:GetInt() and "_hdr" or "_ldr")
+        return "improvedrtcamera_rt_"..tostring(index).."_"..wire_rt_camera_filtering:GetString().."_"
+            ..wire_rt_camera_resolution_h:GetString().."x"..wire_rt_camera_resolution_w:GetString()..
+            (wire_rt_camera_hdr:GetInt() and "_hdr" or "_ldr")
     end
 
     function ENT:InitRTTexture()
@@ -134,17 +133,17 @@ if CLIENT then
 
         local filteringFlag = 1 -- pointsample
 
-        if improvedrt_camera_filtering:GetInt() == 1 then
+        if wire_rt_camera_filtering:GetInt() == 1 then
             filteringFlag = 2 -- trilinear
-        elseif improvedrt_camera_filtering:GetInt() == 2 then
+        elseif wire_rt_camera_filtering:GetInt() == 2 then
             filteringFlag = 16 -- anisotropic
         end
 
-        local isHDR = improvedrt_camera_hdr:GetInt() ~= 0
+        local isHDR = wire_rt_camera_hdr:GetInt() ~= 0
 
         local rt = GetRenderTargetEx(CreateRTName(index), 
-            improvedrt_camera_resolution_w:GetInt(),
-            improvedrt_camera_resolution_h:GetInt(),
+            wire_rt_camera_resolution_w:GetInt(),
+            wire_rt_camera_resolution_h:GetInt(),
             RT_SIZE_LITERAL,
             MATERIAL_RT_DEPTH_SEPARATE,
             filteringFlag + 256 + 32768,
@@ -165,9 +164,9 @@ if CLIENT then
     end)
 
     hook.Add("PreRender", "ImprovedRTCamera", function()
-        local isHDR = improvedrt_camera_hdr:GetInt() ~= 0
-        local renderH = improvedrt_camera_resolution_h:GetInt()
-        local renderW = improvedrt_camera_resolution_w:GetInt()
+        local isHDR = wire_rt_camera_hdr:GetInt() ~= 0
+        local renderH = wire_rt_camera_resolution_h:GetInt()
+        local renderW = wire_rt_camera_resolution_w:GetInt()
 
         for ent, _ in pairs(ActiveCameras) do
             if not ent.IsObserved then
@@ -204,4 +203,6 @@ if CLIENT then
 
 end
 
+
 duplicator.RegisterEntityClass("improvedrt_camera", WireLib.MakeWireEnt, "Data", --[["Model",]] "CamFOV")
+duplicator.RegisterEntityClass("gmod_wire_rt_camera", WireLib.MakeWireEnt, "Data", --[["Model",]] "CamFOV")

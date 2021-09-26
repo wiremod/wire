@@ -114,7 +114,7 @@ function ENT:TriggerInput( name, value )
         if value ~= nil and not value:IsValid() then
             return
         end
-        if value == nil or value:GetClass() == "improvedrt_camera" then
+        if value == nil or value:GetClass() == "gmod_wire_rt_camera" then
             self:SetCamera(value)
         end
     elseif name == "Scroll X" then
@@ -132,13 +132,13 @@ function ENT:TriggerInput( name, value )
 end
 
 function ENT:ShouldDrawCamera(ply)
-    local maxDist = ply:GetInfoNum("improvedrt_screen_renderdistance", 512)
+    local maxDist = ply:GetInfoNum("wire_rt_screen_renderdistance", 512)
 
     return ply:EyePos():DistToSqr(self:GetPos()) <= maxDist * maxDist
 end
 
 if CLIENT then
-    CreateClientConVar("improvedrt_screen_renderdistance","512", nil,true,nil, 0)
+    CreateClientConVar("wire_rt_screen_renderdistance","512", nil,true,nil, 0)
 
     local MATERIALS = {}
 
@@ -286,3 +286,4 @@ if CLIENT then
 end
 
 duplicator.RegisterEntityClass("improvedrt_screen", WireLib.MakeWireEnt, "Data",--[["Model",]] "ScreenMaterial")
+duplicator.RegisterEntityClass("gmod_wire_rt_screen", WireLib.MakeWireEnt, "Data",--[["Model",]] "ScreenMaterial")
