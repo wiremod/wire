@@ -35,7 +35,7 @@
 	"$FinalOffset" "0.0"
 
 	"$param_noisescale" "8.0"
-	"!Parameters" 
+	"!Parameters"
 	{
 		"$param_noisescale"
 		{
@@ -86,7 +86,7 @@
 			"srcVar2" "$Sine1"
 			"resultVar" "$Offsetamount"
 		}
-	
+
 		"Multiply"
 		{
 			"srcVar1" "$param_noisescale"
