@@ -147,7 +147,7 @@ if CLIENT then
 
         local isHDR = wire_rt_camera_hdr:GetInt() ~= 0
 
-        local rt = GetRenderTargetEx(CreateRTName(index), 
+        local rt = GetRenderTargetEx(CreateRTName(index),
             wire_rt_camera_resolution_w:GetInt(),
             wire_rt_camera_resolution_h:GetInt(),
             RT_SIZE_LITERAL,

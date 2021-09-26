@@ -65,12 +65,12 @@
 		}
 
 		"add"
-		{	
+		{
 			"srcVar1" "$SineNoise"
 			"srcVar2" "$Sine1"
 			"resultVar" "$Offsetamount"
 		}
-	
+
 		"TextureScroll"
 		{
 			"texturescrollvar" "$basetexturetransform"

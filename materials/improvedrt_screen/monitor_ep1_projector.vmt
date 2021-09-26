@@ -31,7 +31,7 @@
 	"$Sine1" "0"
 	"$SinePeriod" "0"
 	"$Sine2" "0"
-	
+
 	"$FinalOffset" "0.0"
 
 	"$param_noisescale" "8.0"
@@ -81,7 +81,7 @@
 		}
 
 		"add"
-		{	
+		{
 			"srcVar1" "$SineNoise"
 			"srcVar2" "$Sine1"
 			"resultVar" "$Offsetamount"

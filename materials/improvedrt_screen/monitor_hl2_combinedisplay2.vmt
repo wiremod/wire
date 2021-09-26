@@ -4,7 +4,7 @@
     !targettex1 "$basetexture"
     $vertexcolor 1
     $nolod 1
-    
+
 	"$texture2" "Models/props_combine/masterinterface_disp2"
 	"Proxies"
 	{
@@ -16,6 +16,4 @@
 			"texturescrollangle" -90
 		}
 	}
-
-
 }

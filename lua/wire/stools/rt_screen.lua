@@ -39,7 +39,7 @@ function TOOL.BuildCPanel(panel)
 
     local files = file.Find("materials/rt_screen/monitor_*.vmt", "GAME")
 
-    for i, mtlfile in ipairs(files) do
+    for _, mtlfile in ipairs(files) do
         local name = mtlfile:match("monitor_(.+)%.vmt")
         if name ~= nil then materials:AddChoice(name) end
     end

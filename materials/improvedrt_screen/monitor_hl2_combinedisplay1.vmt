@@ -5,7 +5,7 @@
 
 	$basetexture "matsys_regressiontest/background"
     !targettex1 "$basetexture"
-    
+
 	"$texture2"	"models/props_combine/combinescanline"
 	"$selfillum" "1"
 	"$mod2x" "1"
@@ -15,7 +15,7 @@
     $param_colortint2   "[1 1 1]"
 	$param_period 0.1
 
-	"!Parameters" 
+	"!Parameters"
 	{
 		"$param_colortint1"
 		{
