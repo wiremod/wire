@@ -184,6 +184,7 @@ if CLIENT then
             if IsValid(camera) then
                 camera:SetIsObserved(false)
             end
+            self.ShouldRenderCamera = false
 
             return
         end
