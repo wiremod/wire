@@ -13,12 +13,12 @@ local function IsAllowed( self, ply, ent )
 		ply:ChatPrint( "Entity:entFire() or Entity:entKVSet() error: Players can not be manipulated.", 2 )
 		return false
 	end
-	
+
 	if !(ply:IsAdmin() or NoRestriction:GetBool() or isOwner(self, ent) or ent:MapCreationID() ~= -1) then
 		ply:ChatPrint( "Entity:entFire() or Entity:entKVSet() error: You are only allowed to manipulate your own or map-created entities." )
 		return false
 	end
-	
+
 	return true
 end
 
@@ -62,7 +62,7 @@ end
 
 local function Entity_Fire( self, ent, input, param, activator )
     if not IsAllowed( self, self.player, ent ) then
-		return 
+		return
 	end
 
 	if ent:MapCreationID() ~= -1 and (input == "Kill" or input == "KillHierarchy") then
@@ -85,7 +85,7 @@ end
 local function Entity_SetDatadescValue(self, ent, key, value)
 	if IsAllowed( self, self.player, ent ) then
 		if not ent:SetSaveValue( key, value ) then
-			self.player:ChatPrint( "Entity:entDatadescSet(): error setting "..tostring(key).." to "..tostring(value) ) 
+			self.player:ChatPrint( "Entity:entDatadescSet(): error setting "..tostring(key).." to "..tostring(value) )
 		end
 	end
 end
@@ -149,9 +149,9 @@ e2function void entity:entDatadescSet( string key, entity value )
 end
 
 e2function string entity:entGetNameOrAssignRandom()
-	if not IsValid(this) or 
+	if not IsValid(this) or
 		this:IsPlayer() or  -- Player entity has overriden GetName()
-		not IsAllowed(self, self.player, this) 
+		not IsAllowed(self, self.player, this)
 	then
 		return ""
 	end
@@ -211,7 +211,7 @@ end
 -------------------------------------------
 -- Entity spawn
 
-local SpawnFilter = {}	
+local SpawnFilter = {}
 local SpawnFilterCache = {}
 
 local function LoadSpawnFilter()
@@ -222,7 +222,7 @@ local function LoadSpawnFilter()
 
 	if _file == nil then
 		print("Error opening", filePath, "in DATA search path")
-		return 
+		return
 	end
 
 	local rules = {}
@@ -254,7 +254,7 @@ end
 
 hook.Add("Initialize", "stpM64_E2Entity_Initialize", LoadSpawnFilter)
 
-concommand.Add("wire_expression2_entmanipulation_reload_spawn_filter", LoadSpawnFilter, nil, 
+concommand.Add("wire_expression2_entmanipulation_reload_spawn_filter", LoadSpawnFilter, nil,
 	"Reloads entSpawnEx class black-/whitelist file (data/stpm64_e2/spawn_filter.txt)")
 
 
@@ -353,7 +353,7 @@ local OutputHookerEntity
 local OutputHookerListeners = {}
 
 local function CreateOutputHooker()
-	if IsValid(OutputHookerEntity) then 
+	if IsValid(OutputHookerEntity) then
 		OutputHookerEntity:Remove()
 	end
 

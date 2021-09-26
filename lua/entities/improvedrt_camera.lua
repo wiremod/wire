@@ -165,7 +165,6 @@ if CLIENT then
     end)
 
     hook.Add("PreRender", "ImprovedRTCamera", function()
-        local ply = LocalPlayer()
         local isHDR = improvedrt_camera_hdr:GetInt() ~= 0
         local renderH = improvedrt_camera_resolution_h:GetInt()
         local renderW = improvedrt_camera_resolution_w:GetInt()

@@ -50,4 +50,4 @@ E2Helper.Descriptions["entityOutputClkEntity"] =
 E2Helper.Descriptions["entityOutputClkOutput"] =
     "Returns name of output that triggered this E2"
 E2Helper.Descriptions["entityOutputClkParam"] =
-    "Returns parameter of output that triggered this E2" 
+    "Returns parameter of output that triggered this E2"

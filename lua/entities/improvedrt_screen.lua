@@ -138,6 +138,8 @@ function ENT:ShouldDrawCamera(ply)
 end
 
 if CLIENT then
+    CreateClientConVar("improvedrt_screen_renderdistance","512", nil,true,nil, 0)
+
     local MATERIALS = {}
 
     local function GetOrAllocMaterial(name)
@@ -173,10 +175,6 @@ if CLIENT then
         self.MaterialParams = util.JSONToTable(materialParams)
     end
 
-    local improvedrt_camera_resolution_h = GetConVar("improvedrt_camera_resolution_h")
-    local improvedrt_camera_resolution_w = GetConVar("improvedrt_camera_resolution_w") 
-    local improvedrt_screen_renderdistance = CreateClientConVar("improvedrt_screen_renderdistance","512", nil,true,nil, 0)
-
     function ENT:Think()
         local camera = self:GetCamera()
 
@@ -188,8 +186,6 @@ if CLIENT then
 
             return
         end
-
-        local maxDistance = improvedrt_screen_renderdistance:GetFloat()
         self.ShouldRenderCamera = self:ShouldDrawCamera(LocalPlayer())
 
         if IsValid(camera) then
