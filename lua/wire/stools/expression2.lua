@@ -499,7 +499,6 @@ if SERVER then
 					)
 				end
 				WireLib.Expression2Download(player, E2)
-				
 			end
 		else
 			RequestView(E2, player)
