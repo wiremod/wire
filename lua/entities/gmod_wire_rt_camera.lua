@@ -20,6 +20,12 @@ function ENT:Initialize()
 	end
 
     self.IsObserved = false
+
+    -- At https://wiki.facepunch.com/gmod/Entity:NetworkVarNotify
+    -- The callback will not be called clientside if the var is changed right after entity spawn.
+    if CLIENT and self:GetActive() then
+        self:ActiveChanged(nil, nil, true)
+    end
 end
 
 function ENT:Setup(default_fov) --(model, default_fov)
