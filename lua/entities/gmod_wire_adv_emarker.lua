@@ -17,7 +17,7 @@ function ENT:Initialize()
 		outputs[i] = "Entity" .. (i-2) .. " [ENTITY]"
 	end
 	self.Inputs = WireLib.CreateInputs( self, { 
-		"Entity (This entity\n will be added or removed\n once the other\n two inputs are changed) [ENTITY]", 
+		"Entity (This entity will be added or removed once the other two inputs are changed) [ENTITY]", 
 		"Add Entity (Change to non-zero value to add the entity specified by the 'Entity' input)", 
 		"Remove Entity (Change to non-zero value to remove the entity specified by the 'Entity' input)", 
 		"Clear Entities (Removes all entities from the marker)"
