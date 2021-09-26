@@ -1,7 +1,7 @@
 local NoRestriction = CreateConVar( "wire_expression2_entmanipulation_norestriction", 0, FCVAR_ARCHIVE )
 
 E2Lib.RegisterExtension("entmanipulate", true, "Allows spawning of entities, changing their keyvalues, datadesc, calling their inputs",
-	"It is possible to create NPCs with extremely fast regeneration, to put smoke on players and to abuse Source and custom entities in other ways")
+	"It is possible to crash server or client, create NPCs with extremely fast regeneration, to put smoke on players and to abuse Source and custom entities in other ways")
 
 
 local function IsAllowed( self, ply, ent )
