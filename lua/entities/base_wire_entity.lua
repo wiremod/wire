@@ -52,6 +52,23 @@ if CLIENT then
 		local maxx = pos.x - 32
 		local maxy = pos.y - 32
 
+
+		if WireLib.WiringToolRenderAvoid then
+			local avoidMinX = WireLib.WiringToolRenderAvoid[1]
+			local avoidMinY = WireLib.WiringToolRenderAvoid[2]
+			local avoidMaxX = WireLib.WiringToolRenderAvoid[3]
+			local avoidMaxY = WireLib.WiringToolRenderAvoid[4]-8
+
+   			if maxx - w < avoidMaxX and
+   				maxx > avoidMinX and
+   				maxy - h < avoidMaxY and
+   				maxy > avoidMinY then
+
+				maxx = avoidMinX - 8
+				maxy = avoidMaxY - (avoidMaxY-avoidMinY)/2 + h/2
+			end
+		end
+
 		local minx = maxx - w
 		local miny = maxy - h
 
