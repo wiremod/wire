@@ -5,17 +5,17 @@ E2Lib.RegisterExtension("entmanipulate", true, "Allows spawning of entities, cha
 
 
 local function IsAllowed( self, ply, ent )
-	if !IsValid( ent ) then 
+	if !IsValid( ent ) then
 		return false
 	end
 
-	if ent:IsPlayer() then 
-		ply:ChatPrint( "Entity:entFire() or Entity:entKVSet() error: Players can not be manipulated.", 2 ) 
+	if ent:IsPlayer() then
+		ply:ChatPrint( "Entity:entFire() or Entity:entKVSet() error: Players can not be manipulated.", 2 )
 		return false
 	end
 	
-	if !(ply:IsAdmin() or NoRestriction:GetBool() or isOwner(self, ent) or ent:MapCreationID() ~= -1) then 
-		ply:ChatPrint( "Entity:entFire() or Entity:entKVSet() error: You are only allowed to manipulate your own or map-created entities." ) 
+	if !(ply:IsAdmin() or NoRestriction:GetBool() or isOwner(self, ent) or ent:MapCreationID() ~= -1) then
+		ply:ChatPrint( "Entity:entFire() or Entity:entKVSet() error: You are only allowed to manipulate your own or map-created entities." )
 		return false
 	end
 	
@@ -153,7 +153,7 @@ e2function string entity:entGetNameOrAssignRandom()
 		this:IsPlayer() or  -- Player entity has overriden GetName()
 		not IsAllowed(self, self.player, this) 
 	then
-		return ""	
+		return ""
 	end
 
 	local name = this:GetName()
@@ -232,12 +232,12 @@ local function LoadSpawnFilter()
 
 
 		if thisLine[1] == '+' then
-			rules[#rules + 1] = { 
+			rules[#rules + 1] = {
 				Allow = true,
 				Regexp = string.sub(thisLine, 3) -- Skip + and space
 			}
 		elseif thisLine[1] == '-' then
-			rules[#rules + 1] = { 
+			rules[#rules + 1] = {
 				Allow = false,
 				Regexp = string.sub(thisLine, 3) -- Skip - and space
 			}

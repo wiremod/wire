@@ -22,7 +22,7 @@ function ENT:Initialize()
     self.IsObserved = false
 end
 
-function ENT:Setup(default_fov)--(model, default_fov)
+function ENT:Setup(default_fov) --(model, default_fov)
     --self:SetModel(model or "models/maxofs2d/camera.mdl")
     self:SetCamFOV(default_fov or 80)
 end
@@ -51,7 +51,7 @@ if SERVER then
             if not screen:GetActive() then continue end
             if not screen:ShouldDrawCamera(ply) then continue end
 
-            
+
             local camera = screen:GetCamera()
             if not IsValid(camera) then continue end
             if not camera:GetActive() then continue end
@@ -65,9 +65,9 @@ end
 if CLIENT then
     --local improvedrt_camera_maxactive = CreateClientConVar("improvedrt_camera_resolution_h", "-1", true, nil, nil, -1)
     local improvedrt_camera_resolution_h = CreateClientConVar("improvedrt_camera_resolution_h", "512", true, nil, nil, 128)
-    local improvedrt_camera_resolution_w = CreateClientConVar("improvedrt_camera_resolution_w", "512", true, nil, nil, 128)    
-    local improvedrt_camera_filtering = CreateClientConVar("improvedrt_camera_filtering", "2", true, nil, nil, 0, 2) 
-    local improvedrt_camera_hdr = CreateClientConVar("improvedrt_camera_hdr", "1", true, nil, nil, 0, 1) 
+    local improvedrt_camera_resolution_w = CreateClientConVar("improvedrt_camera_resolution_w", "512", true, nil, nil, 128)
+    local improvedrt_camera_filtering = CreateClientConVar("improvedrt_camera_filtering", "2", true, nil, nil, 0, 2)
+    local improvedrt_camera_hdr = CreateClientConVar("improvedrt_camera_hdr", "1", true, nil, nil, 0, 1)
 
     local ActiveCameras = {}
     local ObservedCameras = {}
@@ -114,11 +114,11 @@ if CLIENT then
             local index = #ObservedCameras + 1
             ObservedCameras[index] = self
             self.ObservedCamerasIndex = index
-    
+
             self:InitRTTexture()
         else
-            ObservedCameras[self.ObservedCamerasIndex] = nil 
-            self.ObservedCamerasIndex = nil 
+            ObservedCameras[self.ObservedCamerasIndex] = nil
+            self.ObservedCamerasIndex = nil
             self.RenderTarget = nil
         end
     end
@@ -158,7 +158,7 @@ if CLIENT then
         self.RenderTarget = rt
     end
 
-    local CameraIsDrawn = false 
+    local CameraIsDrawn = false
 
     hook.Add("ShouldDrawLocalPlayer", "ImprovedRTCamera", function(ply)
         if CameraIsDrawn then return true end
@@ -173,17 +173,17 @@ if CLIENT then
         for ent, _ in pairs(ActiveCameras) do
             if not ent.IsObserved then
                 continue
-            end 
+            end
 
             if not IsValid(ent) then
                 Error("Camera ",ent," is invalid!")
-                continue 
+                continue
             end
-            
+
             render.PushRenderTarget(ent.RenderTarget)
                 local oldNoDraw = ent:GetNoDraw()
                 ent:SetNoDraw(true)
-                    CameraIsDrawn = true 
+                    CameraIsDrawn = true
                     cam.Start2D()
                         render.OverrideAlphaWriteEnable(true, true)
                         render.RenderView({

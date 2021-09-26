@@ -4,7 +4,7 @@
 	$vertexcolor 1
 	$basetexture "matsys_regressiontest/background"
     !targettex1 "$basetexture"
-    
+
 	"$texture2"	"dev/dev_scanline"
 
 	"$one"		1

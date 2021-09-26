@@ -52,7 +52,7 @@ local function GetMaterialParameters(mtl)
 
     local mtl = util.KeyValuesToTable(mtlFile)
     local params = {}
-    
+
     for mtlParam, tbl in pairs(mtl["!parameters"] or {}) do
         local defaultParse = assert(MTLPARAM_TYPE[tbl.type])[3]
 
@@ -92,19 +92,19 @@ if SERVER then
         self:SetMaterialParams("{}")
     end
 
-    function ENT:Setup(screen_material)--(model, screen_material)
+    function ENT:Setup(screen_material) --(model, screen_material)
         --self:SetModel(model or "models/kobilica/wiremonitorbig.mdl")
         self:SetScreenMaterial(screen_material or "normal")
-        
+
         local Inputs = table.Copy(InputsTable)
-        
+
         for _, tbl in pairs(GetMaterialParameters(self:GetScreenMaterial())) do
             table.insert(Inputs, tbl.WireName.." ["..tbl.WireType.."]")
         end
 
         self.Inputs = Wire_CreateInputs( self, Inputs )
     end
-    
+
 end
 
 function ENT:TriggerInput( name, value )
@@ -144,7 +144,7 @@ if CLIENT then
         if MATERIALS[name] ~= nil then
             return MATERIALS[name]
         end
-        
+
         local path = "improvedrt_screen/monitor_"..name..".vmt"
 
         if not file.Exists("materials/"..path, "GAME") then
@@ -155,7 +155,7 @@ if CLIENT then
 
         local mtl = Material(path)
         MATERIALS[name] = mtl
-        return mtl 
+        return mtl
     end
 
     function ENT:Initialize()
@@ -168,13 +168,13 @@ if CLIENT then
         self.Material = GetOrAllocMaterial(mtl)
         self.MaterialParamsDesc = GetMaterialParameters(mtl)
     end
-    
+
     function ENT:MaterialParamsChanged(_,_,materialParams)
         self.MaterialParams = util.JSONToTable(materialParams)
     end
-    
+
     local improvedrt_camera_resolution_h = GetConVar("improvedrt_camera_resolution_h")
-    local improvedrt_camera_resolution_w = GetConVar("improvedrt_camera_resolution_w")    
+    local improvedrt_camera_resolution_w = GetConVar("improvedrt_camera_resolution_w") 
     local improvedrt_screen_renderdistance = CreateClientConVar("improvedrt_screen_renderdistance","512", nil,true,nil, 0)
 
     function ENT:Think()
@@ -191,7 +191,7 @@ if CLIENT then
 
         local maxDistance = improvedrt_screen_renderdistance:GetFloat()
         self.ShouldRenderCamera = self:ShouldDrawCamera(LocalPlayer())
-    
+
         if IsValid(camera) then
             camera:SetIsObserved(self.ShouldRenderCamera)
         end
@@ -286,7 +286,7 @@ if CLIENT then
         elseif not self.translucent then
             self:DrawDummy()
         end
-    end    
+    end
 end
 
 duplicator.RegisterEntityClass("improvedrt_screen", WireLib.MakeWireEnt, "Data",--[["Model",]] "ScreenMaterial")

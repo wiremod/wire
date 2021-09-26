@@ -6,7 +6,7 @@
 	$basetexture "matsys_regressiontest/background"
     !targettex1 "$basetexture"
 
-	"$texture2" "models/props_lab/projector_noise"	
+	"$texture2" "models/props_lab/projector_noise"
 	"$mod2x" "1"
 	"$no_fullbright" "1"
 	"$saturation" ".08"

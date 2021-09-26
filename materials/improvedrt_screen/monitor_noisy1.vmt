@@ -14,7 +14,7 @@
 	{
 		"AnimatedTexture"
 		{
-			"animatedtexturevar" "$texture2" 
+			"animatedtexturevar" "$texture2"
 			"animatedtextureframenumvar" "$frame2"
 			"animatedtextureframerate" .3
 		}
