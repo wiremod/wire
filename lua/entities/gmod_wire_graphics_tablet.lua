@@ -86,7 +86,7 @@ function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-	self.Outputs = Wire_CreateOutputs(self, { "X", "Y", "Use", "OnScreen" })
+	self.Outputs = Wire_CreateOutputs(self, { "X", "Y", "Use (Outputs 1 as long as any player is holding the use key while aiming at the screen.)", "OnScreen (Outputs 1 as long as any player is aiming at the screen)" })
 
 	Wire_TriggerOutput(self, "X", 0)
 	Wire_TriggerOutput(self, "Y", 0)

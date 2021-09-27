@@ -108,14 +108,18 @@ function ENT:Initialize()
 	local outputs = {
 		-- Keys
 		"W", "A", "S", "D", "Mouse1", "Mouse2",
-		"R", "Space", "Shift", "Zoom", "Alt", "TurnLeftKey", "TurnRightKey",
+		"R", "Space", "Shift", "Zoom", "Alt", 
+		"TurnLeftKey (Not bound to a key by default. Bind a key to '+left' to use.\nOutside of a vehicle, makes the player's camera rotate left.)", 
+		"TurnRightKey (Not bound to a key by default. Bind a key to '+right' to use.\nOutside of a vehicle, makes the player's camera rotate right.)",
 
 		-- Clientside keys
-		"PrevWeapon", "NextWeapon", "Light",
+		"PrevWeapon (Usually bound to the mouse scroller, so will only be active for a single tick.)", 
+		"NextWeapon (Usually bound to the mouse scroller, so will only be active for a single tick.)",
+		"Light",
 
 		-- Aim Position
 		"X", "Y", "Z", "AimPos [VECTOR]",
-		"Distance", "Bearing", "Elevation",
+		"Distance", "Bearing (If the 'Relative' input is non-zero, this will be relative to the vehicle.)", "Elevation (If the 'Relative' input is non-zero, this will be relative to the vehicle.)",
 
 		-- Other info
 		"ThirdPerson", "Team", "Health", "Armor",
@@ -133,7 +137,8 @@ function ENT:Initialize()
 	local inputs = {
 		"Lock", "Terminate", "Strip weapons", "Eject",
 		"Disable", "Crosshairs", "Brake", "Allow Buttons",
-		"Relative", "Damage Health", "Damage Armor", "Hide Player", "Hide HUD", "Show Cursor",
+		"Relative (If this is non-zero, the 'Bearing' and 'Elevation' outputs will be relative to the vehicle.)", 
+		"Damage Health (Damages the driver's health.)", "Damage Armor (Damages the driver's armor.)", "Hide Player", "Hide HUD", "Show Cursor",
 		"Vehicle [ENTITY]"
 	}
 

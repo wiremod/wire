@@ -77,7 +77,7 @@ function ENT:Initialize()
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetUseType(SIMPLE_USE)
 
-	self.Inputs=WireLib.CreateInputs(self,{"Block Input","Prompt"})
+	self.Inputs=WireLib.CreateInputs(self,{"Block Input (When set to a non-zero value, blocks any further inputs.)","Prompt (When set to a non-zero value, opens the prompt popup for the driver of the linked vehicle.\nIf no vehicle is linked, opens the prompt for the owner of this entity instead.)"})
 	self.Outputs=WireLib.CreateOutputs(self,{"In Use","Text [STRING]","User [ENTITY]"})
 
 	self.BlockInput=false

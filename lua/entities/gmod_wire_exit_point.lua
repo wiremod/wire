@@ -7,7 +7,14 @@ if CLIENT then return end -- No more client
 function ENT:Initialize()
 	BaseClass.Initialize(self)
 
-	self.Inputs = WireLib.CreateInputs(self, {"Entity [ENTITY]", "Entities [ARRAY]", "Position [VECTOR]", "Local Position [VECTOR]", "Angle [ANGLE]", "Local Angle [ANGLE]"})
+	self.Inputs = WireLib.CreateInputs(self, {
+		"Entity (Links the exit point controller to a single specified vehicle and unlinks all others.) [ENTITY]", 
+		"Entities (Links the exit point controller to the specified array of vehicles.) [ARRAY]", 
+		"Position (Whenever a player exits a linked vehicle, they will be teleported to this position.\nOnly either this or 'Local Position' can be used at a time. The last changed input is used.) [VECTOR]", 
+		"Local Position (Whenever a player exits a linked vehicle, they will be teleported to this position, relative to the vehicle they just exited.\nOnly either this or 'Position' can be used at a time. The last changed input is used.) [VECTOR]", 
+		"Angle (Whenever a player exits a linked vehicle, they will be rotated to face this angle.\nOnly either this or 'Local Angle' can be used at a time. The last changed input is used.) [ANGLE]", 
+		"Local Angle (Whenever a player exits a linked vehicle, they will rotated to face this angle, relative to the vehicle they just exited.\nOnly either this or 'Angle' can be used at a time. The last changed input is used.) [ANGLE]"
+	})
 
 	self.Position = Vector(0,0,0)
 	self.Angle = Angle(0,0,0)

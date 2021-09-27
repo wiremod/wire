@@ -32,7 +32,7 @@ function ENT:Initialize()
 
 	RegisterReceiver( self )
 
-	self.Outputs = WireLib.CreateOutputs( self, { "Message [STRING]", "Player [ENTITY]", "Clk" } )
+	self.Outputs = WireLib.CreateOutputs( self, { "Message [STRING]", "Player [ENTITY]", "Clk (Will output 1 for a single tick after both 'Message' and 'Player' have been updated.)" } )
 
 	self.UseLuaPatterns = false
 	self.CaseInsensitive = true
@@ -40,11 +40,11 @@ function ENT:Initialize()
 end
 
 function ENT:Setup( UseLuaPatterns, Matches, CaseInsensitive )
-	local outputs = { "Message", "Player", "Clk" }
+	local outputs = { "Message", "Player", "Clk (Will output 1 for a single tick after both 'Message' and 'Player' have been updated.)" }
 	local types = { "STRING", "ENTITY", "NORMAL" }
 
 	if UseLuaPatterns then
-		outputs[#outputs+1] = "PatternError"
+		outputs[#outputs+1] = "PatternError (If there are any errors in your Lua patterns, this string will contain a list of each error message.)"
 		types[#types+1] = "STRING"
 	end
 

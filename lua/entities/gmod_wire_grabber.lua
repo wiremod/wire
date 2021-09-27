@@ -14,7 +14,7 @@ function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = Wire_CreateInputs(self, { "Grab","Strength","Range" })
+	self.Inputs = Wire_CreateInputs(self, { "Grab","Strength (The strength of the weld. The weld will break if enough force is applied. Setting to zero makes the weld unbreakable.)","Range" })
 	self.Outputs = Wire_CreateOutputs(self, {"Holding", "Grabbed Entity [ENTITY]"})
 	self.WeldStrength = 0
 	self.Weld = nil
