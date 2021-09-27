@@ -1055,7 +1055,10 @@ elseif CLIENT then
 			surface.SetTextPos( x, y )
 			surface.DrawText( name )
 
-			local isconstvalue = ent:GetClass() == "gmod_wire_value" -- special case for constant value to force render all descriptions at all times
+			-- special case for constant value to force render all descriptions at all times
+			-- and doesn't draw \n on separate lines,
+			-- and also doesn't automatically wrap too long lines
+			local isconstvalue = ent:GetClass() == "gmod_wire_value" 
 
 			-- draw description
 			if desc ~= "" and (self:GetStage() == 0 or self:GetStage() == 2 or isconstvalue) then
@@ -1076,11 +1079,11 @@ elseif CLIENT then
 						return w, h
 					end
 
-					local lines = string.Explode("\n", desc)
+					local lines = isconstvalue and {desc} or string.Explode("\n", desc)
 					local descw, desch = getTextSize(lines)
 
 					local inf = 0
-					while descx + descw + 16 > ScrW() and inf < 10 do
+					while not isconstvalue and descx + descw + 16 > ScrW() and inf < 10 do
 						inf = inf + 1
 						-- if it would've gone beyond the edge of the screen
 						-- break up the lines in the middle and hope for the best
