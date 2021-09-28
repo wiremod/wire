@@ -375,7 +375,7 @@ function ENT:Initialize()
 		"Position (Sets the position of the camera.\nIf clientside movement is enabled, this specifies the center of the camera's orbit.) [VECTOR]",
 		"Distance (Sets the 'distance' of the camera.\nIn other words, the camera will be moved away from the specified position by this amount.\nIf clientside zooming is enabled, this is the farthest you can zoom in.)", 
 		"UnRoll (If free movement is enabled, this resets the roll back to zero.)", 
-		"Parent (Parents the camera to this entity. If used, other position and angle inputs are treated as offsets from this entity.) [ENTITY]", 
+		"Parent (Parents the camera to this entity.) [ENTITY]", 
 		"FilterEntities (In addition to ignoring the contraption of the 'Parent' entity, or the cam controller itself\nif parent isn't used, entities in this list will be ignored by the 'HitPos' and 'Trace' outputs) [ARRAY]", 
 		"FLIR", 
 		"FOV" 
