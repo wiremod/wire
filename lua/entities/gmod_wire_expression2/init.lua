@@ -370,8 +370,8 @@ function ENT:ResetContext()
 	self.GlobalScope = context.GlobalScope
 	self._vars = self.GlobalScope -- Dupevars
 
-	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2])
-	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2])
+	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2], self.inports[4])
+	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2], self.outports[4])
 
 	if self.extended then -- It was extended before the adjustment, recreate the wirelink
 		WireLib.CreateWirelinkOutput( self.player, self, {true} )
