@@ -157,6 +157,11 @@ function PreProcessor:RemoveComments(line)
 		return ""
 	elseif lastpos ~= -1 and not self.blockcomment then
 		return ret .. line:sub(lastpos, -1)
+	elseif lastpos ~= -1 and self.blockcomment then
+		if self.description_cache then
+			table.insert(self.description_cache.blockcomment,line:sub(lastpos))
+		end
+		return ret
 	else
 		return ret
 	end
