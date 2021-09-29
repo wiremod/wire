@@ -1,5 +1,5 @@
 WireToolSetup.setCategory("Visuals")
-WireToolSetup.open("rt_screen", "Render-Target Screen", "gmod_wire_rt_screen", nil, "RT Screens")
+WireToolSetup.open("rt_screen", "RT Screen", "gmod_wire_rt_screen", nil, "RT Screens")
 
 if CLIENT then
     language.Add("tool.wire_rt_screen.name", "Render-Target Screen")
@@ -12,7 +12,7 @@ if CLIENT then
 
     language.Add("tool.wire_rt_screen.settings.hint_clientside",
         "Following settings are client-side, they are player-specific, not stored via duplication and not visible by other players")
-    language.Add("tool.wire_rt_screen.settings.cl_renderdistance", "Range in wich screens will be rendered")
+    language.Add("tool.wire_rt_screen.settings.cl_renderdistance", "Render range")
 
     WireToolSetup.setToolMenuIcon( "icon16/camera.png" )
 end

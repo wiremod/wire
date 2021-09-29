@@ -1,5 +1,5 @@
 WireToolSetup.setCategory("Visuals")
-WireToolSetup.open("rt_camera", "Render-Target Camera", "gmod_wire_rt_camera", nil, "RT Cameras")
+WireToolSetup.open("rt_camera", "RT Camera", "gmod_wire_rt_camera", nil, "RT Cameras")
 
 if CLIENT then
     language.Add("tool.wire_rt_camera.name", "Render-Target Camera")
