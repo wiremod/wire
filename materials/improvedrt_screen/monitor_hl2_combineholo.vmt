@@ -1,0 +1,83 @@
+"Unlittwotexture"
+{
+    $nolod 1
+    $vertexcolor 1
+
+	$basetexture "matsys_regressiontest/background"
+	!targettex1 "$basetexture"
+	"$additive" "1"
+
+    $param_colortint1 "[0.99 0.99 0.99]"
+    $param_colortint2   "[1 1 1]"
+
+	"$texture2"	"dev/dev_combinescanline"
+
+	$param_colortint1 "[0.99 0.99 0.99]"
+    $param_colortint2   "[1 1 1]"
+	$param_period 0.1
+
+	"!Parameters"
+	{
+		"$param_colortint1"
+		{
+			"WireName" "Param Color1"
+			"Type" "vector3"
+			"Default" {
+				"x" 0.99
+				"y" 0.99
+				"z" 0.99
+			}
+		}
+		"$param_colortint2"
+		{
+			"WireName" "Param Color2"
+			"Type" "vector3"
+			"Default" {
+				"x" 1
+				"y" 1
+				"z" 1
+			}
+		}
+		"$param_period"
+		{
+			"WireName" "Param ColorPeriod"
+			"Type" "numfloat"
+			"Default" 0.1
+		}
+	}
+
+	"Proxies"
+	{
+
+		"Sine"
+		{
+			"resultVar" "$color[0]"
+			"sineperiod" "$param_period"
+			"sinemin" "$param_colortint1[0]"
+			"sinemax" "$param_colortint2[0]"
+		}
+		"Sine"
+		{
+			"resultVar" "$color[1]"
+			"sineperiod" "$param_period"
+			"sinemin" "$param_colortint1[1]"
+			"sinemax" "$param_colortint2[1]"
+		}
+		"Sine"
+		{
+			"resultVar" "$color[2]"
+			"sineperiod" "$param_period"
+			"sinemin" "$param_colortint1[2]"
+			"sinemax" "$param_colortint2[2]"
+		}
+
+		"TextureScroll"
+		{
+			"texturescrollvar" "$texture2transform"
+			"texturescrollrate" .06
+			"texturescrollangle" -90
+		}
+
+
+	}
+}

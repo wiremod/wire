@@ -1,0 +1,97 @@
+"MonitorScreen"
+{
+	$nolod 1
+	$vertexcolor 1
+
+	$basetexture "matsys_regressiontest/background"
+    !targettex1 "$basetexture"
+
+	"$texture2" "models/props_lab/projector_noise"
+	"$mod2x" "1"
+	"$no_fullbright" "1"
+	"$saturation" ".08"
+	"$contrast" "0"
+	"$basetexturetransform" "[ 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 ]"
+	"$frame2" "0"
+
+	"$one"		1
+	"$zero"		0
+	"$temp"		0
+	"$texoffset"	"[0 0]"
+	"$texscale"	.25
+	"$tex2offset"	"[0 0]"
+	"$tex2scale"	0
+
+	"$OffsetAmount" "0"
+	"$OffsetSine" "0"
+	"$SineNoise" "0"
+	"$Sine1" "0"
+	"$SinePeriod" "0"
+	"$Sine2" "0"
+
+	"Proxies"
+	{
+		"GaussianNoise"
+		{
+			"mean"	".000001"
+			"minVal"	".0000001"
+			"maxVal"	".00001"
+			"resultVar" "$SineNoise"
+		}
+
+		"GaussianNoise"
+		{
+			"mean"	"8"
+			"minVal"	"7.999"
+			"maxVal"	"8.001"
+			"resultVar" "$SinePeriod"
+		}
+
+		"Sine"
+		{
+			"sineperiod" "1"
+			"sinemin" .00003
+			"sinemax" .0001
+			"resultVar" "$Sine2"
+		}
+
+
+		"Sine"
+		{
+			"sineperiod" "$SinePeriod"
+			"sinemin" -.00005
+			"sinemax" "$Sine2"
+			"resultVar" "$Sine1"
+		}
+
+		"add"
+		{
+			"srcVar1" "$SineNoise"
+			"srcVar2" "$Sine1"
+			"resultVar" "$Offsetamount"
+		}
+
+		"TextureScroll"
+		{
+			"texturescrollvar" "$basetexturetransform"
+			"texturescrollrate" "$Offsetamount"
+			"texturescrollangle" "0"
+		}
+
+		"Sine"
+		{
+			"resultVar" "$color[0]"
+			"sineperiod" 1
+			"sinemin" .9
+			"sinemax" .9
+		}
+
+		"Sine"
+		{
+			"resultVar" "$color[1]"
+			"sineperiod" .01
+			"sinemin" .9
+			"sinemax" 1
+		}
+	}
+}
