@@ -424,10 +424,10 @@ end
 // Converts a rotation matrix to angle form (assumes matrix is orthogonal)
 local rad2deg = 180 / math.pi
 
-local function toEulerZYX(a)
-	local pitch = math.asin( -a[7] ) * rad2deg
-	local yaw = math.atan2( a[4], a[1] ) * rad2deg
-	local roll = math.atan2( a[8], a[9] ) * rad2deg
+local function toEulerZYX(a1, a4, a7, a8, a9)
+	local pitch = math.asin( -a7 ) * rad2deg
+	local yaw = math.atan2( a4, a1 ) * rad2deg
+	local roll = math.atan2( a8, a9 ) * rad2deg
 	return { pitch, yaw, roll }
 end
 
@@ -887,7 +887,7 @@ e2function matrix matrix(angle ang)
 end
 
 e2function angle matrix:toAngle()
-  return toEulerZYX(this)
+  return toEulerZYX(this[1], this[4], this[7], this[8], this[9])
 end
 
 // Create a rotation matrix in the format (v,n) where v is the axis direction vector and n is degrees (right-handed rotation)
@@ -1532,11 +1532,7 @@ e2function matrix4 matrix4(angle ang, vector pos)
 end
 
 e2function angle matrix4:toAngle()
-  return toEulerZYX({
-    this[1], this[2], this[3],
-    this[5], this[6], this[7],
-    this[9], this[10], this[11],
-  })
+  return toEulerZYX(this[1], this[5], this[9], this[10], this[11])
 end
 
 e2function matrix matrix4:rotationMatrix()
