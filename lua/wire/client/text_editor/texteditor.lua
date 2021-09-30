@@ -458,31 +458,37 @@ function EDITOR:PaintLine(row)
 
 	local offset = -self.Scroll[2] + 1
 	for _, cell in ipairs(self.PaintRows[row]) do
-		if offset >= 0 then
-            if cell[2][2] then
-				draw_SimpleText(cell[1] .. " ", self.CurrentFont .. "_Bold", offset * width + self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, cell[2][1])
-			else
-				draw_SimpleText(cell[1] .. " ", self.CurrentFont, offset * width + self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, cell[2][1])
-			end
+        local text = cell[1]
+        local color = cell[2][1]
+        local bold = cell[2][2]
 
-			offset = offset + utf8_len(cell[1])
-        elseif utf8_len(cell[1]) > -offset then
-            local line = utf8_sub(cell[1], 1-offset)
-            offset = utf8_len(line)
-
-            if cell[2][2] then
-                draw_SimpleText(line .. " ", self.CurrentFont .. "_Bold", self.LineNumberWidth + 6,
-                    (row - self.Scroll[1]) * height, cell[2][1])
-            else
-                draw_SimpleText(line .. " ", self.CurrentFont, self.LineNumberWidth + 6,
-                    (row - self.Scroll[1]) * height, cell[2][1])
-            end
+        if offset <= -utf8_len(text) then
+            offset = offset + utf8_len(text)
         else
-            offset = offset + utf8_len(cell[1])
+            local draw_offset
+
+            if offset >= 0 then
+                draw_offset = offset * width
+            else
+                text = utf8_sub(text, 1 - offset)
+                draw_offset = 0
+            end
+
+            draw_SimpleText(
+                text .. " ",
+                self.CurrentFont .. (bold and "_Bold" or ""),
+                draw_offset + self.LineNumberWidth + 6,
+                (row - self.Scroll[1]) * height,
+                color
+            )
+
+            if offset >= 0 then
+                offset = offset + utf8_len(text)
+            else
+                offset = utf8_len(text)
+            end
         end
 	end
-
-
 end
 
 function EDITOR:PerformLayout()
