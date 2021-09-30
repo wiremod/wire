@@ -576,22 +576,15 @@ function EDITOR:PaintLine(row)
         local text_width = surface_GetTextSize(text) -- Text height is ignored
 
         if offset > -text_width then
-            --local draw_offset
-
-            --if offset >= 0 then
-            --    draw_offset = offset * width
-            --else
-            --    text = utf8_sub(text, 1 - offset)
-            --    draw_offset = 0
-            --end
+			if offset < 0 then
+				text = utf8_sub(text, 1 - (offset / self.FontWidth))
+				offset = 0
+            end
 
             surface_SetTextPos(self.LineNumberWidth + 6 + offset, text_pos_y)
             surface_SetTextColor(color)
             surface_DrawText(text)
 
-            if offset < 0 then
-                offset = 0
-            end
 
         end
         offset = offset + text_width
