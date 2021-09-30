@@ -136,6 +136,77 @@ function EDITOR:Init()
 	}
 end
 
+local function GetCharPosInLine(self, row, char_pos)
+    local line_index = 1
+    local cur_pos = 0
+    
+    for _, cell in ipairs(self.PaintRows[row]) do
+        local part_text = cell[1]
+        local part_bold = cell[2][2]
+        local part_text_len = utf8_len(part_text)
+
+        local is_final = cur_pos + part_text_len > char_pos
+
+        if is_final then
+            part_text = utf8_sub(part_text, 1, char_pos - cur_pos)
+        end
+
+        surface_SetFont(self.CurrentFont .. (part_bold and "_Bold" or ""))
+        local part_length = surface_GetTextSize(part_text)
+
+        cur_pos = cur_pos + part_length
+        
+        if is_final then
+            return cur_pos
+        end
+
+        line_index = line_index + part_text_len
+    end
+
+    return cur_pos
+end
+
+local function GetCharIndexByPos(self, row, pos)
+    local line_len = self.RowsLength[row]
+    local char_fonts = {}
+
+    do
+        local font = self.CurrentFont
+        local font_bold = self.CurrentFont.."_Bold"
+
+        local text_index = 0
+        for _, part in ipairs(self.PaintRows[row]) do
+            local part_text = part[1]
+            local part_text_len = utf8_len(part_text)
+            local font = font
+
+            if part[2][2] then -- is bold?
+                font = font_bold
+            end
+
+            for i = 1, part_text_len do
+                table_insert(char_fonts, font)
+            end
+
+            text_index = text_index + part_text_len
+        end
+    end
+
+    local char_pos_start = 0
+    for i, font in ipairs(char_fonts) do
+        surface_SetFont(font)
+        local char_len = surface_GetTextSize(utf8_GetChar(self.Rows[row], i))
+
+        if char_pos_start + char_len > pos then
+            return i
+        end
+
+        char_pos_start = char_pos_start + char_len
+    end
+
+    return self.RowsLength[row] + 1
+end
+
 function EDITOR:SetMode(mode_name)
 	self.CurrentMode = WireTextEditor.Modes[mode_name or "Default"]
 	if not self.CurrentMode then
@@ -171,16 +242,12 @@ function EDITOR:CursorToCaret()
 	if y < 0 then y = 0 end
 
 	local line = math_floor(y / self.FontHeight)
-	local char = math_floor(x / self.FontWidth+0.5)
+	local char_pos = x + self.Scroll[2] * self.FontWidth
 
 	line = line + self.Scroll[1]
-	char = char + self.Scroll[2]
-
 	if line > #self.Rows then line = #self.Rows end
-	local length = self.RowsLength[line]
-	if char > length + 1 then char = length + 1 end
 
-	return { line, char }
+	return { line, GetCharIndexByPos(self, line, char_pos) }
 end
 
 local wire_expression2_editor_highlight_on_double_click = CreateClientConVar( "wire_expression2_editor_highlight_on_double_click", "1", true, false )
@@ -639,36 +706,6 @@ do
 
 		return matchBalanced(self, pos, char, info[1], info[2])
 	end
-
-    local function GetCharPosInLine(self, row, char_pos)
-        local line_index = 1
-        local cur_pos = 0
-        
-        for _, cell in ipairs(self.PaintRows[row]) do
-            local part_text = cell[1]
-            local part_bold = cell[2][2]
-            local part_text_len = utf8_len(part_text)
-
-            local is_final = cur_pos + part_text_len > char_pos
-
-            if is_final then
-                part_text = utf8_sub(part_text, 1, char_pos - cur_pos)
-            end
-
-            surface_SetFont(self.CurrentFont .. (part_bold and "_Bold" or ""))
-            local part_length = surface_GetTextSize(part_text)
-
-            cur_pos = cur_pos + part_length
-            
-            if is_final then
-                return cur_pos
-            end
-
-            line_index = line_index + part_text_len
-        end
-
-        return cur_pos
-    end
 
     function EDITOR:PaintCaret()
 		if not self.TextEntry:HasFocus() then
