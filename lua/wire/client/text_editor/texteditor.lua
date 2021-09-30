@@ -32,18 +32,11 @@ local surface_DrawText = surface.DrawText
 local draw_SimpleText = draw.SimpleText
 local draw_WordBox = draw.WordBox
 local draw_RoundedBox = draw.RoundedBox
-local utf8_len = function(str, startpos, endpos)
-    local len, error = utf8.len(str, startpos, endpos)
-
-    if len == false then
-        error("String has non-UTF-8 byte at "..tosring(error).." \n String: "..str)
-    end
-
-    return len
-end
 local utf8_sub = utf8.sub
 local utf8_GetChar = utf8.GetChar
 local utf8_codes = utf8.codes
+local utf8_codepoint = utf8.codepoint
+local utf8_char = utf8.char
 
 local function utf8_bytepos_to_charindex(string, bytepos)
     assert(bytepos >= 1)
@@ -57,6 +50,35 @@ local function utf8_bytepos_to_charindex(string, bytepos)
     end
 
     return char_index
+end
+
+local function table_reverse_inplace(tbl)
+    local count = #tbl
+    local reverse_count = math_floor(count / 2)
+
+    for i = 1, reverse_count do
+        local temp = tbl[i]
+        tbl[i] = tbl[count + 1 - i]
+        tbl[count + 1 - i] = temp
+    end
+end
+
+-- Not so optimal, probably
+-- Not handles grapheme clusters
+local function utf8_reverse(str)
+    local codepoints = { utf8_codepoint(str, 1, -1) }
+    table_reverse_inplace(codepoints)
+    return utf8_char(unpack(codepoints))
+end
+
+local utf8_len = function(str, startpos, endpos)
+    local len, error = utf8.len(str, startpos, endpos)
+
+    if len == false then
+        error("String has non-UTF-8 byte at "..tosring(error).." \n String: "..str)
+    end
+
+    return len
 end
 
 WireTextEditor = { Modes = {} }
@@ -1101,8 +1123,8 @@ function EDITOR:Find( str, looped )
 		local line = self.Rows[self.Start[1]]
 		text = text .. "\n" .. utf8_sub(line, 1, self.Start[2]-1 )
 
-		str = string_reverse( str )
-		text = string_reverse( text )
+		str = utf8_reverse( str )
+		text = utf8_reverse( text )
 
 		if ignore_case then text = text:lower() end
 
@@ -1976,7 +1998,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 			self:SetCaret(self.Caret)
 		elseif code == KEY_HOME then
 			local row = self.Rows[self.Caret[1]]
-			local first_char = row:find("%S") 
+			local first_char = row:find("%S")
             if first_char ~= nil then
                 first_char = utf8_bytepos_to_charindex(row, first_char)
             else
