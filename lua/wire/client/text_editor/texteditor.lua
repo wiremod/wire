@@ -32,6 +32,32 @@ local surface_DrawText = surface.DrawText
 local draw_SimpleText = draw.SimpleText
 local draw_WordBox = draw.WordBox
 local draw_RoundedBox = draw.RoundedBox
+local utf8_len = function(str, startpos, endpos)
+    local len, error = utf8.len(str, startpos, endpos)
+
+    if len == false then
+        error("String has non-UTF-8 byte at "..tosring(error).." \n String: "..str)
+    end
+
+    return len
+end
+local utf8_sub = utf8.sub
+local utf8_GetChar = utf8.GetChar
+local utf8_codes = utf8.codes
+
+local function utf8_bytepos_to_charindex(string, bytepos)
+    assert(bytepos >= 1)
+    local char_index = 0
+    for char_start, _ in utf8_codes(string) do
+        if char_start > bytepos then
+            return char_index
+        end
+
+        char_index = char_index + 1
+    end
+
+    return char_index
+end
 
 WireTextEditor = { Modes = {} }
 include("modes/e2.lua")
@@ -53,6 +79,7 @@ function EDITOR:Init()
 	self:SetCursor("beam")
 
 	self.Rows = {""}
+    self.RowsLength = {0}
 	self.Caret = {1, 1}
 	self.Start = {1, 1}
 	self.Scroll = {1, 1}
@@ -73,6 +100,7 @@ function EDITOR:Init()
 	self.TextEntry = vgui.Create("TextEntry", self)
 	self.TextEntry:SetMultiline(true)
 	self.TextEntry:SetSize(0, 0)
+    self.TextEntry:SetAllowNonAsciiCharacters(true)
 
 	self.TextEntry.OnLoseFocus = function (self) self.Parent:_OnLoseFocus() end
 	self.TextEntry.OnTextChanged = function (self) self.Parent:_OnTextChanged() end
@@ -130,7 +158,7 @@ function EDITOR:CursorToCaret()
 	char = char + self.Scroll[2]
 
 	if line > #self.Rows then line = #self.Rows end
-	local length = #self.Rows[line]
+	local length = self.RowsLength[line]
 	if char > length + 1 then char = length + 1 end
 
 	return { line, char }
@@ -223,7 +251,7 @@ function EDITOR:OpenContextMenu()
 		local prev_colors
 		local first_loop = true
 
-		for i=1,#self.Rows do
+		for i = 1,#self.Rows do
 			local colors = self:SyntaxColorLine(i)
 
 			for _, v in pairs( colors ) do
@@ -271,7 +299,7 @@ function EDITOR:OnMousePressed(code)
 				if all_finds then
 					all_finds[0] = {1,1} -- Set [0] so the [i-1]'s don't fail on the first iteration
 					self.HighlightedAreasByDoubleClick[0] = {{1,1}, {1,1}}
-					for i=1,#all_finds do
+					for i = 1,#all_finds do
 						-- Instead of finding the caret by searching from the beginning every time, start searching from the previous caret
 						local start = all_finds[i][1] - all_finds[i-1][1]
 						local stop = all_finds[i][2] - all_finds[i-1][2]
@@ -329,6 +357,11 @@ function EDITOR:SetText(text)
 		self.Rows[#self.Rows + 1] = ""
 	end
 
+    self.RowsLength = {}
+    for i, row in ipairs(self.Rows) do
+        self.RowsLength[i] = utf8_len(row)
+    end
+
 	self.Caret = {1, 1}
 	self.Start = {1, 1}
 	self.Scroll = {1, 1}
@@ -383,7 +416,7 @@ function EDITOR:PaintLine(row)
 		local endline, endchar = stop[1], stop[2]
 
 		surface_SetDrawColor(0, 0, 160, 255)
-		local length = self.Rows[row]:len() - self.Scroll[2] + 1
+		local length = self.RowsLength[row] - self.Scroll[2] + 1
 
 		char = char - self.Scroll[2]
 		endchar = endchar - self.Scroll[2]
@@ -406,28 +439,28 @@ function EDITOR:PaintLine(row)
 
 	local offset = -self.Scroll[2] + 1
 	for _, cell in ipairs(self.PaintRows[row]) do
-		if offset < 0 then
-			if cell[1]:len() > -offset then
-				local line = cell[1]:sub(1-offset)
-				offset = line:len()
-
-				if cell[2][2] then
-					draw_SimpleText(line .. " ", self.CurrentFont .. "_Bold", self.LineNumberWidth+ 6, (row - self.Scroll[1]) * height, cell[2][1])
-				else
-					draw_SimpleText(line .. " ", self.CurrentFont, self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, cell[2][1])
-				end
-			else
-				offset = offset + cell[1]:len()
-			end
-		else
-			if cell[2][2] then
+		if offset >= 0 then
+            if cell[2][2] then
 				draw_SimpleText(cell[1] .. " ", self.CurrentFont .. "_Bold", offset * width + self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, cell[2][1])
 			else
 				draw_SimpleText(cell[1] .. " ", self.CurrentFont, offset * width + self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, cell[2][1])
 			end
 
-			offset = offset + cell[1]:len()
-		end
+			offset = offset + utf8_len(cell[1])
+        elseif utf8_len(cell[1]) > -offset then
+            local line = utf8_sub(cell[1], 1-offset)
+            offset = utf8_len(line)
+
+            if cell[2][2] then
+                draw_SimpleText(line .. " ", self.CurrentFont .. "_Bold", self.LineNumberWidth + 6,
+                    (row - self.Scroll[1]) * height, cell[2][1])
+            else
+                draw_SimpleText(line .. " ", self.CurrentFont, self.LineNumberWidth + 6,
+                    (row - self.Scroll[1]) * height, cell[2][1])
+            end
+        else
+            offset = offset + utf8_len(cell[1])
+        end
 	end
 
 
@@ -479,9 +512,11 @@ do
 
 	-- This will convert forward text position to reverse text position and vice versa
 	local function fixPos(row, pos, downward)
-		return downward and pos or #row - pos + 1
+		return downward and pos or utf8_len(row) - pos + 1
 	end
 
+    -- NOTE:
+    -- I this code not supports non-ASCII braces
 	local function matchBalanced(self, startPos, opening, closing, downward)
 		local searchStr = "[" .. string.PatternSafe(opening .. closing) .. "]"
 		local balance = 0
@@ -498,6 +533,8 @@ do
 				local foundPos = rowStr:find(searchStr, pos)
 
 				if foundPos then
+                    foundpos = utf8_bytepos_to_charindex(searchStr, foundPos)
+
 					local editorPos = { row, fixPos(rowStr, foundPos, downward) }
 					local token = self:GetTokenAtPosition(editorPos)
 
@@ -522,7 +559,7 @@ do
 	end
 
 	local function isMatchable(self, pos)
-		local char = self.Rows[pos[1]]:sub(pos[2], pos[2])
+		local char = utf8_GetChar(self.Rows[pos[1]], pos[2])
 		if not matchSearch[char] then return false end
 
 		local token = self:GetTokenAtPosition(pos)
@@ -532,74 +569,102 @@ do
 	end
 
 	local function getMatchingCharacter(self, pos)
-		local char = self.Rows[pos[1]]:sub(pos[2], pos[2])
+		local char = utf8_GetChar(self.Rows[pos[1]], pos[2])
 		local info = matchSearch[char]
 
 		return matchBalanced(self, pos, char, info[1], info[2])
 	end
 
-	function EDITOR:PaintTextOverlay()
+    function EDITOR:PaintCaret()
+		if not self.TextEntry:HasFocus() or self.Caret[2] - self.Scroll[2] < 0 then
+            return
+        end
 
-		if self.TextEntry:HasFocus() and self.Caret[2] - self.Scroll[2] >= 0 then
-			local width, height = self.FontWidth, self.FontHeight
+        local width, height = self.FontWidth, self.FontHeight
 
-			if (RealTime() - self.Blink) % 0.8 < 0.4 then
-				surface_SetDrawColor(240, 240, 240, 255)
-				surface_DrawRect((self.Caret[2] - self.Scroll[2]) * width + self.LineNumberWidth + 6, (self.Caret[1] - self.Scroll[1]) * height, 1, height)
-			end
+        if (RealTime() - self.Blink) % 0.8 < 0.4 then
+            surface_SetDrawColor(240, 240, 240, 255)
+            surface_DrawRect(
+                (self.Caret[2] - self.Scroll[2]) * width + self.LineNumberWidth + 6,
+                (self.Caret[1] - self.Scroll[1]) * height,
+                1, height)
+        end
+    end
 
-			-- Area highlighting
-			if self.HighlightedAreas then
-				local xofs = self.LineNumberWidth + 6
-				for _, data in pairs( self.HighlightedAreas ) do
-					local area, r,g,b,a = data[1], data[2], data[3], data[4], data[5]
-					surface_SetDrawColor( r,g,b,a )
-					local start, stop = self:MakeSelection( area )
+    function EDITOR:PaintHighlightedAreas()
+        local width, height = self.FontWidth, self.FontHeight
 
-					if start[1] == stop[1] then -- On the same line
-						surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (start[1]-self.Scroll[1]) * height, (stop[2]-start[2]) * width, height )
-					elseif start[1] < stop[1] then -- Ends below start
-						for i=start[1],stop[1] do
-							if i == start[1] then
-								surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (i-self.Scroll[1]) * height, (#self.Rows[start[1]]-start[2]) * width, height )
-							elseif i == stop[1] then
-								surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, (#self.Rows[stop[1]]-stop[2]) * width, height )
-							else
-								surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, #self.Rows[i] * width, height )
-							end
-						end
-					end
-				end
-			end
+        if not self.HighlightedAreas then
+            return
+        end
 
-			-- Bracket matching
-			local startPos, endPos
+        local xofs = self.LineNumberWidth + 6
+        for _, data in pairs( self.HighlightedAreas ) do
+            local area, r,g,b,a = data[1], data[2], data[3], data[4], data[5]
+            surface_SetDrawColor( r,g,b,a )
+            local start, stop = self:MakeSelection( area )
 
-			startPos = self:CopyPosition(self.Caret)
-			startPos[2] = startPos[2] - 1
+            if start[1] == stop[1] then -- On the same line
+                surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (start[1]-self.Scroll[1]) * height, (stop[2]-start[2]) * width, height )
+            elseif start[1] < stop[1] then -- Ends below start
+                for i = start[1],stop[1] do
+                    if i == start[1] then
+                        surface_DrawRect(
+                            xofs + (start[2]-self.Scroll[2]) * width,
+                            (i-self.Scroll[1]) * height,
+                            (self.RowsLength[start[1]]-start[2]) * width,
+                            height
+                        )
+                    elseif i == stop[1] then
+                        surface_DrawRect(
+                            xofs + (self.Scroll[2]-1) * width,
+                            (i-self.Scroll[1]) * height,
+                            (self.RowsLength[stop[1]]-stop[2]) * width,
+                            height
+                        )
+                    else
+                        surface_DrawRect(
+                            xofs + (self.Scroll[2]-1) * width,
+                            (i-self.Scroll[1]) * height,
+                            self.RowsLength[i] * width,
+                            height
+                        )
+                    end
+                end
+            end
+        end
+    end
 
-			if isMatchable(self, startPos) then
-				endPos = getMatchingCharacter(self, startPos)
-			end
+	function EDITOR:PaintMatchingBrackets()
+        local width, height = self.FontWidth, self.FontHeight
 
-			-- If we fail to get a match on the left side of the cursor, check the right side
-			if not endPos then
-				startPos[2] = startPos[2] + 1
+        -- Bracket matching
+        local startPos, endPos
 
-				if isMatchable(self, startPos) then
-					endPos = getMatchingCharacter(self, startPos)
-				end
-			end
+        startPos = self:CopyPosition(self.Caret)
+        startPos[2] = startPos[2] - 1
 
-			if startPos and endPos then
-				surface_SetDrawColor(255, 0, 0, 50)
+        if isMatchable(self, startPos) then
+            endPos = getMatchingCharacter(self, startPos)
+        end
 
-				local xofs = self.LineNumberWidth + 6
-				surface_DrawRect((startPos[2] - self.Scroll[2]) * width + xofs, (startPos[1] - self.Scroll[1]) * height, width, height)
-				surface_DrawRect((endPos[2] - self.Scroll[2]) * width + xofs, (endPos[1] - self.Scroll[1]) * height, width, height)
-			end
-		end
-	end
+        -- If we fail to get a match on the left side of the cursor, check the right side
+        if not endPos then
+            startPos[2] = startPos[2] + 1
+
+            if isMatchable(self, startPos) then
+                endPos = getMatchingCharacter(self, startPos)
+            end
+        end
+
+        if startPos and endPos then
+            surface_SetDrawColor(255, 0, 0, 50)
+
+            local xofs = self.LineNumberWidth + 6
+            surface_DrawRect((startPos[2] - self.Scroll[2]) * width + xofs, (startPos[1] - self.Scroll[1]) * height, width, height)
+            surface_DrawRect((endPos[2] - self.Scroll[2]) * width + xofs, (endPos[1] - self.Scroll[1]) * height, width, height)
+        end
+    end
 end
 
 local wire_expression2_editor_display_caret_pos = CreateClientConVar("wire_expression2_editor_display_caret_pos","0",true,false)
@@ -632,7 +697,9 @@ function EDITOR:Paint()
 	end
 
 	-- Paint the overlay of the text (bracket highlighting and carret postition)
-	self:PaintTextOverlay()
+    self:PaintCaret()
+	self:PaintHighlightedAreas()
+    self:PaintMatchingBrackets()
 
 	if wire_expression2_editor_display_caret_pos:GetBool() then
 		local str = "Length: " .. #self:GetValue() .. " Lines: " .. #self.Rows .. " Ln: " .. self.Caret[1] .. " Col: " .. self.Caret[2]
@@ -657,7 +724,7 @@ function EDITOR:SetCaret(caret, maintain_selection)
 	self.Caret = self:CopyPosition(caret)
 
 	self.Caret[1] = math.Clamp(self.Caret[1], 1, #self.Rows)
-	self.Caret[2] = math.Clamp(self.Caret[2], 1, #self.Rows[self.Caret[1]] + 1)
+	self.Caret[2] = math.Clamp(self.Caret[2], 1, self.RowsLength[self.Caret[1]] + 1)
 
 	if maintain_selection == nil then
 		maintain_selection = input.IsKeyDown(KEY_LSHIFT) or input.IsKeyDown(KEY_RSHIFT)
@@ -681,7 +748,7 @@ function EDITOR:MovePosition(caret, offset)
 	if offset > 0 then
 		local numRows = #self.Rows
 		while true do
-			local length = #(self.Rows[row]) - col + 2
+			local length = self.RowsLength[row] - col + 2
 			if offset < length then
 				col = col + offset
 				break
@@ -707,7 +774,7 @@ function EDITOR:MovePosition(caret, offset)
 			else
 				offset = offset - col
 				row = row - 1
-				col = #(self.Rows[row]) + 1
+				col = self.RowsLength[row] + 1
 			end
 		end
 	end
@@ -739,15 +806,15 @@ function EDITOR:GetArea(selection)
 	local start, stop = self:MakeSelection(selection)
 
 	if start[1] == stop[1] then
-		return string_sub(self.Rows[start[1]], start[2], stop[2] - 1)
+		return utf8_sub(self.Rows[start[1]], start[2], stop[2] - 1)
 	else
-		local text = string_sub(self.Rows[start[1]], start[2])
+		local text = utf8_sub(self.Rows[start[1]], start[2])
 
 		for i=start[1]+1,stop[1]-1 do
 			text = text .. "\n" .. self.Rows[i]
 		end
 
-		return text .. "\n" .. string_sub(self.Rows[stop[1]], 1, stop[2] - 1)
+		return text .. "\n" .. utf8_sub(self.Rows[stop[1]], 1, stop[2] - 1)
 	end
 end
 
@@ -758,19 +825,22 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 
 	if start[1] ~= stop[1] or start[2] ~= stop[2] then
 		-- clear selection
-		self.Rows[start[1]] = string_sub(self.Rows[start[1]], 1, start[2] - 1) .. string_sub(self.Rows[stop[1]], stop[2])
+		self.Rows[start[1]] = utf8_sub(self.Rows[start[1]], 1, start[2] - 1) .. utf8_sub(self.Rows[stop[1]], stop[2])
 		self.PaintRows[start[1]] = false
 
-		for _=start[1]+1,stop[1] do
+		for _ = start[1] + 1, stop[1] do
 			table_remove(self.Rows, start[1] + 1)
+            table_remove(self.RowsLength, start[1] + 1)
 			table_remove(self.PaintRows, start[1] + 1)
 			self.PaintRows = {} -- TODO: fix for cache errors
 		end
 
 		-- add empty row at end of file (TODO!)
 		if self.Rows[#self.Rows] ~= "" then
-			self.Rows[#self.Rows + 1] = ""
-			self.PaintRows[#self.Rows + 1] = false
+            local index = #self.Rows + 1
+			self.Rows[index] = ""
+            self.RowsLength[index] = 0
+			self.PaintRows[index] = false
 		end
 	end
 
@@ -797,25 +867,31 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 	-- insert text
 	local rows = string_Explode("\n", text)
 
-	local remainder = string_sub(self.Rows[start[1]], start[2])
-	self.Rows[start[1]] = string_sub(self.Rows[start[1]], 1, start[2] - 1) .. rows[1]
+	local remainder = utf8_sub(self.Rows[start[1]], start[2])
+    local first_new_row = utf8_sub(self.Rows[start[1]], 1, start[2] - 1) .. rows[1]
+	self.Rows[start[1]] = first_new_row
+    self.RowsLength[start[1]] = utf8_len(first_new_row)
 	self.PaintRows[start[1]] = false
 
 	for i=2,#rows do
-		table_insert(self.Rows, start[1] + i - 1, rows[i])
-		table_insert(self.PaintRows, start[1] + i - 1, false)
+        local index = start[1] + i - 1
+		table_insert(self.Rows, index, rows[i])
+        table_insert(self.RowsLength, index, utf8_len(rows[i]))
+		table_insert(self.PaintRows, index, false)
 		self.PaintRows = {} -- TODO: fix for cache errors
 	end
 
-	stop = { start[1] + #rows - 1, #(self.Rows[start[1] + #rows - 1]) + 1 }
+	stop = { start[1] + #rows - 1, utf8_len(self.Rows[start[1] + #rows - 1]) + 1 }
 
 	self.Rows[stop[1]] = self.Rows[stop[1]] .. remainder
 	self.PaintRows[stop[1]] = false
 
 	-- add empty row at end of file (TODO!)
 	if self.Rows[#self.Rows] ~= "" then
-		self.Rows[#self.Rows + 1] = ""
-		self.PaintRows[#self.Rows + 1] = false
+        local index = #self.Rows + 1
+		self.Rows[index] = ""
+        self.RowsLength[index] = 0
+		self.PaintRows[index] = false
 		self.PaintRows = {} -- TODO: fix for cache errors
 	end
 
@@ -891,7 +967,7 @@ function EDITOR:_OnTextChanged()
 				local caret = self:Selection()[1]
 				self:Indent(true)
 				self.Caret = caret
-				self.Caret[2] = #(self.Rows[caret[1]]) + 1
+				self.Caret[2] = self.RowsLength[caret[1]] + 1
 				self.Start[2] = self.Caret[2]
 			end
 			return
@@ -994,7 +1070,7 @@ function EDITOR:Find( str, looped )
 
 	if dir then -- Down
 		local line = self.Rows[self.Start[1]]
-		local text = line:sub(self.Start[2]) .. "\n"
+		local text = utf8_sub(line, self.Start[2]) .. "\n"
 		text = text .. table_concat( self.Rows, "\n", self.Start[1]+1 )
 		if ignore_case then text = text:lower() end
 
@@ -1008,6 +1084,8 @@ function EDITOR:Find( str, looped )
 
 		local start, stop = text:find(str, 2)
 		if start and stop then
+            start = utf8_bytepos_to_charindex(text, start)
+            stop = utf8_bytepos_to_charindex(text, stop)
 			self:HighlightFoundWord(nil, start - 1, stop - 1)
 			return true
 		end
@@ -1021,7 +1099,7 @@ function EDITOR:Find( str, looped )
 	else -- Up
 		local text = table_concat( self.Rows, "\n", 1, self.Start[1]-1 )
 		local line = self.Rows[self.Start[1]]
-		text = text .. "\n" .. line:sub( 1, self.Start[2]-1 )
+		text = text .. "\n" .. utf8_sub(line, 1, self.Start[2]-1 )
 
 		str = string_reverse( str )
 		text = string_reverse( text )
@@ -1038,12 +1116,14 @@ function EDITOR:Find( str, looped )
 
 		local start, stop = text:find(str, 2)
 		if start and stop then
+            start = utf8_bytepos_to_charindex(text, start)
+            stop = utf8_bytepos_to_charindex(text, stop)
 			self:HighlightFoundWord( nil, -(start-1), -(stop+1) )
 			return true
 		end
 
 		if wrap_around then
-			self:SetCaret( { #self.Rows,#self.Rows[#self.Rows] }, false )
+			self:SetCaret( { #self.Rows,self.RowsLength[#self.Rows] }, false )
 			return self:Find( _str, (looped or 0) + 1 )
 		end
 
@@ -1110,7 +1190,7 @@ function EDITOR:ReplaceAll( str, replacewith )
 		-- Do the replacing backwards, or it won't work
 		for i=#positions,1,-1 do
 			local startpos, endpos = positions[i][1], positions[i][2]
-			txt2 = string_sub(txt2,1,startpos-1) .. replacewith .. string_sub(txt2,endpos)
+			txt2 = utf8_sub(txt2,1,startpos-1) .. replacewith .. utf8_sub(txt2,endpos)
 		end
 
 		-- Replace everything with the edited copy
@@ -1452,7 +1532,7 @@ function EDITOR:CreateFindWindow()
 		local val = tonumber(GoToEntry:GetValue())
 		if val then
 			val = math_Clamp(val, 1, #self.Rows)
-			self:SetCaret({val, #self.Rows[val] + 1}, false)
+			self:SetCaret({val, self.RowsLength[val] + 1}, false)
 		end
 		GoToEntry:SetText(tostring(val))
 		self.FindWindow:Close()
@@ -1560,7 +1640,7 @@ function EDITOR:DoRedo()
 end
 
 function EDITOR:SelectAll()
-	self.Caret = {#self.Rows, #(self.Rows[#self.Rows]) + 1}
+	self.Caret = {#self.Rows, self.RowsLength[#self.Rows] + 1}
 	self.Start = {1, 1}
 	self:ScrollCaret()
 end
@@ -1664,10 +1744,10 @@ function EDITOR:ContextHelp()
 	else
 		local row, col = unpack(self.Caret)
 		local line = self.Rows[row]
-		if not line:sub(col, col):match("^[a-zA-Z0-9_]$") then
+		if not utf8_sub(line, col, col):match("^[a-zA-Z0-9_]$") then
 			col = col - 1
 		end
-		if not line:sub(col, col):match("^[a-zA-Z0-9_]$") then
+		if not utf8_sub(line, col, col):match("^[a-zA-Z0-9_]$") then
 			surface_PlaySound("buttons/button19.wav")
 			return
 		end
@@ -1680,9 +1760,13 @@ function EDITOR:ContextHelp()
 
 		-- TODO substitute this for getWordEnd, if it fits.
 		local _,endcol = line:find("[^a-zA-Z0-9_]", col)
-		endcol = (endcol or 0) - 1
+		if endcol ~= nil then
+            endcol = utf8_bytepos_to_charindex(line, endcol) - 1
+        else
+            endcol = -1
+        end
 
-		word = line:sub(startcol, endcol)
+		word = utf8_sub(line, startcol, endcol)
 	end
 
 	self:DoAction("ShowContextHelp", word)
@@ -1731,7 +1815,7 @@ function EDITOR:DuplicateLine()
 	else -- If you don't
 	-- Select the current line
 	self.Start = { self.Start[1], 1 }
-	self.Caret = { self.Start[1], #self.Rows[self.Start[1]]+1 }
+	self.Caret = { self.Start[1], self.RowsLength[self.Start[1]]+1 }
 	-- Get the text
 	local str = self:GetSelection()
 	-- Repeat it
@@ -1837,8 +1921,8 @@ function EDITOR:_OnKeyCodeTyped(code)
 			if mode == AC_STYLE_ECLIPSE and self.AC_HasSuggestions and self.AC_Suggestions[1] and self.AC_Panel and self.AC_Panel:IsVisible() then
 				if self:AC_Use( self.AC_Suggestions[1] ) then return end
 			end
-			local row = self.Rows[self.Caret[1]]:sub(1,self.Caret[2]-1)
-			local diff = (row:find("%S") or (row:len()+1))-1
+			local row = utf8_sub(self.Rows[self.Caret[1]], 1,self.Caret[2]-1)
+			local diff = (row:find("%S") or (utf8_len(row)+1))-1
 			local tabs = string_rep("    ", math_floor(diff / 4))
 			if GetConVarNumber('wire_expression2_autoindent') ~= 0 then
 				local row = string_gsub(row,'%b""',"") -- erase strings on this line
@@ -1892,7 +1976,12 @@ function EDITOR:_OnKeyCodeTyped(code)
 			self:SetCaret(self.Caret)
 		elseif code == KEY_HOME then
 			local row = self.Rows[self.Caret[1]]
-			local first_char = row:find("%S") or row:len()+1
+			local first_char = row:find("%S") 
+            if first_char ~= nil then
+                first_char = utf8_bytepos_to_charindex(row, first_char)
+            else
+                first_char = utf8_len(row)+1
+            end
 			if self.Caret[2] == first_char then
 				self.Caret[2] = 1
 			else
@@ -1900,7 +1989,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 			end
 			self:SetCaret(self.Caret)
 		elseif code == KEY_END then
-			local length = #(self.Rows[self.Caret[1]])
+			local length = self.RowsLength[self.Caret[1]]
 			self.Caret[2] = length + 1
 			self:SetCaret(self.Caret)
 		elseif code == KEY_BACKSPACE then
@@ -1920,7 +2009,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 			else
 				local buffer = self:GetArea({{self.Caret[1], self.Caret[2] + 4}, {self.Caret[1], 1}})
 				local delta = 1
-				if self.Caret[2] % 4 == 1 and string_rep(" ", #(buffer)) == buffer and #(self.Rows[self.Caret[1]]) >= self.Caret[2] + 4 - 1 then
+				if self.Caret[2] % 4 == 1 and string_rep(" ", #(buffer)) == buffer and self.RowsLength[self.Caret[1]] >= self.Caret[2] + 4 - 1 then
 					delta = 4
 				end
 				self:SetCaret(self:SetArea({self.Caret, self:MovePosition(self.Caret, delta)}))
@@ -1998,8 +2087,10 @@ function EDITOR:getWordStart(caret,getword)
 	local line = self.Rows[caret[1]]
 
 	for startpos, endpos in line:gmatch( "()[a-zA-Z0-9_]+()" ) do -- "()%w+()"
+        startpos = utf8_bytepos_to_charindex(line, startpos)
+        endpos = utf8_bytepos_to_charindex(line, endpos)
 		if startpos <= caret[2] and endpos >= caret[2] then
-			return { caret[1], startpos }, getword and line:sub(startpos,endpos-1) or nil
+			return { caret[1], startpos }, getword and utf8_sub(line, startpos,endpos-1) or nil
 		end
 	end
 	return {caret[1],1}
@@ -2009,8 +2100,10 @@ function EDITOR:getWordEnd(caret,getword)
 	local line = self.Rows[caret[1]]
 
 	for startpos, endpos in line:gmatch( "()[a-zA-Z0-9_]+()" ) do -- "()%w+()"
+        startpos = utf8_bytepos_to_charindex(line, startpos)
+        endpos = utf8_bytepos_to_charindex(line, endpos)
 		if startpos <= caret[2] and endpos >= caret[2] then
-			return { caret[1], endpos }, getword and line:sub(startpos,endpos-1) or nil
+			return { caret[1], endpos }, getword and utf8_sub(line, startpos,endpos-1) or nil
 		end
 	end
 	return {caret[1],#line+1}
@@ -2753,11 +2846,18 @@ function EDITOR:wordLeft(caret)
 	local row = self.Rows[caret[1]]
 	if caret[2] == 1 then
 		if caret[1] == 1 then return caret end
-		caret = { caret[1]-1, #self.Rows[caret[1]-1] }
+		caret = { caret[1]-1, self.RowsLength[caret[1]-1] }
 		row = self.Rows[caret[1]]
 	end
-	local pos = row:sub(1,caret[2]-1):match("[^%w@]()[%w@]+[^%w@]*$")
-	caret[2] = pos or 1
+
+    local row_sub = utf8_sub(row,1,caret[2]-1)
+	local pos = row_sub:match("[^%w@]()[%w@]+[^%w@]*$")
+	if pos ~= nil then
+        caret[2] = utf8_bytepos_to_charindex(row_sub, pos)
+    else
+        caret[2] = 1
+    end
+
 	return caret
 end
 
@@ -2769,8 +2869,14 @@ function EDITOR:wordRight(caret)
 		row = self.Rows[caret[1]]
 		if row:sub(1,1) ~= " " then return caret end
 	end
+
 	local pos = row:match("[^%w@]()[%w@]",caret[2])
-	caret[2] = pos or (#row+1)
+    if pos ~= nil then
+        caret[2] = utf8_bytepos_to_charindex(row, pos)
+    else
+        caret[2] = utf8_length(row) + 1
+    end
+
 	return caret
 end
 
