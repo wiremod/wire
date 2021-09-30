@@ -409,6 +409,48 @@ function EDITOR:HighlightLine( line, r, g, b, a )
 end
 function EDITOR:ClearHighlightedLines() self.HighlightedLines = nil end
 
+function EDITOR:PaintLineSelection(row)
+    local sel_start, sel_end = self:MakeSelection(self:Selection())
+
+    local line_start, line_end = sel_start[1], sel_end[1]
+    
+    if row < line_start or row > line_end then
+        return -- This line is not in selection
+    end
+
+    local char_start_i, char_end_i = sel_start[2], sel_end[2]
+
+    local row_text = self.Rows[row]
+
+    local char_start_pos
+    if line_start == row then -- This line contains start of the selection
+        char_start_pos = surface_GetTextSize(utf8_sub(row_text, 1, char_start_i))
+    else
+        char_start_pos = 0
+    end
+
+    local char_end_pos
+    if line_end == row then -- This line contains end of the selection
+        char_end_pos = surface_GetTextSize(utf8_sub(row_text, 1, char_end_i))
+    else
+        char_end_pos = surface_GetTextSize(row_text)
+    end
+
+    char_start_pos = char_start_pos - self.Scroll[2]
+    char_end_pos = char_end_pos - self.Scroll[2]
+
+    if char_end_pos < 0 then return end -- Selection end is not visible
+    if char_start_pos < 0 then char_start_pos = 0 end
+
+    surface_SetDrawColor(0, 0, 160, 255)
+    surface_DrawRect(
+        self.LineNumberWidth + 6 + char_start_pos,
+        (row - self.Scroll[1]) * self.FontHeight,
+        char_end_pos - char_start_pos,
+        self.FontHeight
+    )
+end
+
 function EDITOR:PaintLine(row)
 	if row > #self.Rows then return end
 
@@ -416,78 +458,76 @@ function EDITOR:PaintLine(row)
 		self.PaintRows[row] = self:SyntaxColorLine(row)
 	end
 
-	local width, height = self.FontWidth, self.FontHeight
+	--local text_width = self.FontWidth
+    local text_height = self.FontHeight
 
 	if row == self.Caret[1] and self.TextEntry:HasFocus() then
 		surface_SetDrawColor(48, 48, 48, 255)
-		surface_DrawRect(self.LineNumberWidth + 5, (row - self.Scroll[1]) * height, self:GetWide() - (self.LineNumberWidth + 5), height)
+		surface_DrawRect(
+            self.LineNumberWidth + 5,
+            (row - self.Scroll[1]) * text_height,
+            self:GetWide() - (self.LineNumberWidth + 5),
+            text_height
+        )
 	end
 
 	if self.HighlightedLines and self.HighlightedLines[row] then
 		local color = self.HighlightedLines[row]
 		surface_SetDrawColor( color[1], color[2], color[3], color[4] )
-		surface_DrawRect(self.LineNumberWidth + 5, (row - self.Scroll[1]) * height, self:GetWide() - (self.LineNumberWidth + 5), height)
+		surface_DrawRect(
+            self.LineNumberWidth + 5,
+            (row - self.Scroll[1]) * text_height,
+            self:GetWide() - (self.LineNumberWidth + 5),
+            text_height
+        )
 	end
+
+    surface.SetFont(self.CurrentFont)
 
 	if self:HasSelection() then
-		local start, stop = self:MakeSelection(self:Selection())
-		local line, char = start[1], start[2]
-		local endline, endchar = stop[1], stop[2]
-
-		surface_SetDrawColor(0, 0, 160, 255)
-		local length = self.RowsLength[row] - self.Scroll[2] + 1
-
-		char = char - self.Scroll[2]
-		endchar = endchar - self.Scroll[2]
-		if char < 0 then char = 0 end
-		if endchar < 0 then endchar = 0 end
-
-		if row == line and line == endline then
-			surface_DrawRect(char * width + self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, width * (endchar - char), height)
-		elseif row == line then
-			surface_DrawRect(char * width + self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, width * (length - char + 1), height)
-		elseif row == endline then
-			surface_DrawRect(self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, width * endchar, height)
-		elseif row > line and row < endline then
-			surface_DrawRect(self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, width * (length + 1), height)
-		end
+        self:PaintLineSelection(row)
 	end
 
 
-	draw_SimpleText(tostring(row), self.CurrentFont, self.LineNumberWidth + 2, (row - self.Scroll[1]) * height, Color(128, 128, 128, 255), TEXT_ALIGN_RIGHT)
+	draw_SimpleText(
+        tostring(row),
+        self.CurrentFont, -- Font is set again here
+        self.LineNumberWidth + 2,
+        (row - self.Scroll[1]) * text_height,
+        Color(128, 128, 128, 255),
+        TEXT_ALIGN_RIGHT
+    )
 
-	local offset = -self.Scroll[2] + 1
+    local text_pos_y = (row - self.Scroll[1]) * text_height
+	local offset = (-self.Scroll[2] + 1) * self.FontWidth
 	for _, cell in ipairs(self.PaintRows[row]) do
         local text = cell[1]
         local color = cell[2][1]
         local bold = cell[2][2]
 
-        if offset <= -utf8_len(text) then
-            offset = offset + utf8_len(text)
-        else
-            local draw_offset
+        surface_SetFont(self.CurrentFont .. (bold and "_Bold" or ""))
+        local text_width = surface_GetTextSize(text) -- Text height is ignored
 
-            if offset >= 0 then
-                draw_offset = offset * width
-            else
-                text = utf8_sub(text, 1 - offset)
-                draw_offset = 0
+        if offset > -text_width then
+            --local draw_offset
+
+            --if offset >= 0 then
+            --    draw_offset = offset * width
+            --else
+            --    text = utf8_sub(text, 1 - offset)
+            --    draw_offset = 0
+            --end
+
+            surface_SetTextPos(self.LineNumberWidth + 6 + offset, text_pos_y)
+            surface_SetTextColor(color)
+            surface_DrawText(text)
+
+            if offset < 0 then
+                offset = 0
             end
 
-            draw_SimpleText(
-                text .. " ",
-                self.CurrentFont .. (bold and "_Bold" or ""),
-                draw_offset + self.LineNumberWidth + 6,
-                (row - self.Scroll[1]) * height,
-                color
-            )
-
-            if offset >= 0 then
-                offset = offset + utf8_len(text)
-            else
-                offset = utf8_len(text)
-            end
         end
+        offset = offset + text_width
 	end
 end
 
@@ -600,20 +640,58 @@ do
 		return matchBalanced(self, pos, char, info[1], info[2])
 	end
 
+    local function GetCharPosInLine(self, row, char_pos)
+        local line_index = 1
+        local cur_pos = 0
+        
+        for _, cell in ipairs(self.PaintRows[row]) do
+            local part_text = cell[1]
+            local part_bold = cell[2][2]
+            local part_text_len = utf8_len(part_text)
+
+            local is_final = cur_pos + part_text_len > char_pos
+
+            if is_final then
+                part_text = utf8_sub(part_text, 1, char_pos - cur_pos)
+            end
+
+            surface_SetFont(self.CurrentFont .. (part_bold and "_Bold" or ""))
+            local part_length = surface_GetTextSize(part_text)
+
+            cur_pos = cur_pos + part_length
+            
+            if is_final then
+                return cur_pos
+            end
+
+            line_index = line_index + part_text_len
+        end
+
+        return cur_pos
+    end
+
     function EDITOR:PaintCaret()
-		if not self.TextEntry:HasFocus() or self.Caret[2] - self.Scroll[2] < 0 then
+		if not self.TextEntry:HasFocus() then
             return
         end
 
-        local width, height = self.FontWidth, self.FontHeight
+        local scroll_pos_x = self.Scroll[2] * self.FontWidth
+        local caret_pos_x = GetCharPosInLine(self, self.Caret[1], self.Caret[2])
 
-        if (RealTime() - self.Blink) % 0.8 < 0.4 then
-            surface_SetDrawColor(240, 240, 240, 255)
-            surface_DrawRect(
-                (self.Caret[2] - self.Scroll[2]) * width + self.LineNumberWidth + 6,
-                (self.Caret[1] - self.Scroll[1]) * height,
-                1, height)
+        if caret_pos_x < scroll_pos_x then
+            return
         end
+
+        if (RealTime() - self.Blink) % 0.8 >= 0.4 then
+            return
+        end
+
+        local height = self.FontHeight
+        surface_SetDrawColor(240, 240, 240, 255)
+        surface_DrawRect(
+            self.LineNumberWidth + 6 - scroll_pos_x + caret_pos_x,
+            (self.Caret[1] - self.Scroll[1]) * height,
+            1, height)
     end
 
     function EDITOR:PaintHighlightedAreas()
@@ -623,44 +701,60 @@ do
             return
         end
 
-        local xofs = self.LineNumberWidth + 6
+        local x_offset = self.LineNumberWidth + 6 - self.Scroll[2] * width
+
         for _, data in pairs( self.HighlightedAreas ) do
+
             local area, r,g,b,a = data[1], data[2], data[3], data[4], data[5]
             surface_SetDrawColor( r,g,b,a )
             local start, stop = self:MakeSelection( area )
 
-            if start[1] == stop[1] then -- On the same line
-                surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (start[1]-self.Scroll[1]) * height, (stop[2]-start[2]) * width, height )
-            elseif start[1] < stop[1] then -- Ends below start
-                for i = start[1],stop[1] do
-                    if i == start[1] then
-                        surface_DrawRect(
-                            xofs + (start[2]-self.Scroll[2]) * width,
-                            (i-self.Scroll[1]) * height,
-                            (self.RowsLength[start[1]]-start[2]) * width,
-                            height
-                        )
-                    elseif i == stop[1] then
-                        surface_DrawRect(
-                            xofs + (self.Scroll[2]-1) * width,
-                            (i-self.Scroll[1]) * height,
-                            (self.RowsLength[stop[1]]-stop[2]) * width,
-                            height
-                        )
-                    else
-                        surface_DrawRect(
-                            xofs + (self.Scroll[2]-1) * width,
-                            (i-self.Scroll[1]) * height,
-                            self.RowsLength[i] * width,
-                            height
-                        )
-                    end
+            local start_line, stop_line = start[1], stop[1]
+            local start_char, stop_char = start[2], stop[2]
+
+            local start_char_pos = GetCharPosInLine(self, start_line, start_char)
+            local stop_char_pos = GetCharPosInLine(self, stop_line, stop_char)
+
+            if start_line == stop_line then
+                surface_DrawRect(
+                    x_offset + start_char_pos,
+                    (start_line-self.Scroll[1]) * height,
+                    stop_char_pos - start_char_pos,
+                    height
+                )
+            elseif stop_line > start_line then
+                local start_char_end_pos = GetCharPosInLine(self, start_line, self.RowsLength[start_line])
+                surface_DrawRect( -- First line
+                    x_offset + start_char_pos,
+                    (start_line-self.Scroll[1]) * height,
+                    start_char_end_pos - start_char_pos,
+                    height
+                )
+
+                surface_DrawRect( -- Last line
+                    x_offset,
+                    (stop_line-self.Scroll[1]) * height,
+                    stop_char_pos,
+                    height
+                )
+
+                for i = start_line + 1, stop_line - 2 do
+                    local line_length = GetCharPosInLine(self, i, self.RowsLength[i])
+
+                    surface_DrawRect(
+                        x_offset,
+                        (i-self.Scroll[1]) * height,
+                        line_length,
+                        height
+                    )
                 end
             end
         end
     end
 
 	function EDITOR:PaintMatchingBrackets()
+        -- Code assumes that brackets are ASCII brackets,
+        -- And part of font containing ASCII is monospaced
         local width, height = self.FontWidth, self.FontHeight
 
         -- Bracket matching
@@ -686,8 +780,18 @@ do
             surface_SetDrawColor(255, 0, 0, 50)
 
             local xofs = self.LineNumberWidth + 6
-            surface_DrawRect((startPos[2] - self.Scroll[2]) * width + xofs, (startPos[1] - self.Scroll[1]) * height, width, height)
-            surface_DrawRect((endPos[2] - self.Scroll[2]) * width + xofs, (endPos[1] - self.Scroll[1]) * height, width, height)
+            surface_DrawRect(
+                xofs + GetCharPosInLine(self, startPos[1], startPos[2]) - self.Scroll[2] * width,
+                (startPos[1] - self.Scroll[1]) * height,
+                width,
+                height
+            )
+            surface_DrawRect(
+                xofs + GetCharPosInLine(self, endPos[1], endPos[2]) - self.Scroll[2] * width,
+                (endPos[1] - self.Scroll[1]) * height,
+                width,
+                height
+            )
         end
     end
 end
