@@ -5,19 +5,16 @@
 
 local string_Explode = string.Explode
 local table_concat = table.concat
-local string_sub = string.sub
 local table_remove = table.remove
 local math_floor = math.floor
 local math_Clamp = math.Clamp
 local math_ceil = math.ceil
-local string_match = string.match
 local string_gmatch = string.gmatch
 local string_gsub = string.gsub
 local string_rep = string.rep
 local string_byte = string.byte
 local string_format = string.format
 local string_Trim = string.Trim
-local string_reverse = string.reverse
 local math_min = math.min
 local table_insert = table.insert
 local table_sort = table.sort
@@ -75,7 +72,7 @@ local utf8_len = function(str, startpos, endpos)
     local len, error = utf8.len(str, startpos, endpos)
 
     if len == false then
-        error("String has non-UTF-8 byte at "..tosring(error).." \n String: "..str)
+        error("String has non-UTF-8 byte at "..tostring(error).." \n String: "..str)
     end
 
     return len
@@ -555,7 +552,7 @@ do
 				local foundPos = rowStr:find(searchStr, pos)
 
 				if foundPos then
-                    foundpos = utf8_bytepos_to_charindex(searchStr, foundPos)
+                    foundPos = utf8_bytepos_to_charindex(searchStr, foundPos)
 
 					local editorPos = { row, fixPos(rowStr, foundPos, downward) }
 					local token = self:GetTokenAtPosition(editorPos)
@@ -981,7 +978,7 @@ function EDITOR:_OnTextChanged()
 
 	if text == "" then return end
 	if not ctrlv then
-		if text == "\n" or text == "`" then return end
+		if text == "\n" or input.IsKeyDown(KEY_BACKQUOTE) then return end
 		if text == "}" and GetConVarNumber('wire_expression2_autoindent') ~= 0 then
 			local row = self.Rows[self.Caret[1]]
 			self:SetSelection(text)
@@ -2896,7 +2893,7 @@ function EDITOR:wordRight(caret)
     if pos ~= nil then
         caret[2] = utf8_bytepos_to_charindex(row, pos)
     else
-        caret[2] = utf8_length(row) + 1
+        caret[2] = utf8_len(row) + 1
     end
 
 	return caret
