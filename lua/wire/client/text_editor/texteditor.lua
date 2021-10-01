@@ -740,7 +740,7 @@ do
             return
         end
 
-        local x_offset = self.LineNumberWidth + 6 - self.Scroll[2] * width
+        local x_offset = self.LineNumberWidth + 6 - (self.Scroll[2] - 1) * width
 
         for _, data in pairs( self.HighlightedAreas ) do
 
