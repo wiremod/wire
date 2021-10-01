@@ -15,6 +15,7 @@ local string_rep = string.rep
 local string_byte = string.byte
 local string_format = string.format
 local string_Trim = string.Trim
+local string_len = string.len
 local math_min = math.min
 local table_insert = table.insert
 local table_sort = table.sort
@@ -644,13 +645,15 @@ do
 		[")"] = { "(", false },
 	}
 
-	-- This will convert forward text position to reverse text position and vice versa
+	-- This will convert forward text _byte_ position to reverse text position and vice versa
 	local function fixPos(row, pos, downward)
-		return downward and pos or utf8_len(row) - pos + 1
+		if downward then
+			return pos
+		else
+			return string_len(row) - pos + 1
+		end
 	end
 
-    -- NOTE:
-    -- I this code not supports non-ASCII braces
 	local function matchBalanced(self, startPos, opening, closing, downward)
 		local searchStr = "[" .. string.PatternSafe(opening .. closing) .. "]"
 		local balance = 0
@@ -667,13 +670,11 @@ do
 				local foundPos = rowStr:find(searchStr, pos)
 
 				if foundPos then
-                    foundPos = utf8_bytepos_to_charindex(searchStr, foundPos)
-
 					local editorPos = { row, fixPos(rowStr, foundPos, downward) }
 					local token = self:GetTokenAtPosition(editorPos)
 
 					if token ~= "comment" and token ~= "string" then
-						local char = utf8_GetChar(rowStr, foundPos)
+						local char = utf8_GetChar(rowStr, utf8_bytepos_to_charindex(rowStr, foundPos))
 
 						if char == opening then
 							balance = balance + 1
@@ -682,7 +683,7 @@ do
 						end
 
 						if balance == 0 then
-							return editorPos
+							return { editorPos[1], utf8_bytepos_to_charindex(rowStr, editorPos[2]) }
 						end
 					end
 
