@@ -229,11 +229,10 @@ end
 
 function E2Lib.isOwner(self, entity)
 	if game.SinglePlayer() then return true end
-	local player = self.player
 	local owner = E2Lib.getOwner(self, entity)
 	if not IsValid(owner) then return false end
 
-	return E2Lib.isFriend(owner, player)
+	return E2Lib.isFriend(owner, self.player)
 end
 
 local isOwner = E2Lib.isOwner
@@ -737,6 +736,9 @@ hook.Add("InitPostEntity", "e2lib", function()
 			E2Lib.replace_function("isFriend", function(owner, player)
 				if owner == nil then return false end
 				if owner == player then return true end
+				if not owner:IsPlayer() then
+					return player:GetOwner() == owner
+				end
 
 				local friends = owner:CPPIGetFriends()
 				if not istable(friends) then return end
