@@ -136,34 +136,43 @@ function EDITOR:Init()
 	}
 end
 
-local function GetCharPosInLine(self, row, char_pos)
-    local line_index = 1
-    local cur_pos = 0
-    
-    for _, cell in ipairs(self.PaintRows[row]) do
+local function GetCharPosInLine(self, row, search_index)
+    local char_index = 1
+    local char_pos = 0
+
+	--MsgN("GetCharPosInLine > @", search_index, " ", self.Rows[row])
+
+    for i, cell in ipairs(self.PaintRows[row]) do
         local part_text = cell[1]
         local part_bold = cell[2][2]
         local part_text_len = utf8_len(part_text)
 
-        local is_final = cur_pos + part_text_len > char_pos
+        local is_final = char_index + part_text_len >= search_index
+
+		--MsgN("#", i, " Char ", char_index, "/", char_pos,
+		--	is_final and " fin " or " imm ", part_text_len, "|", part_text)
 
         if is_final then
-            part_text = utf8_sub(part_text, 1, char_pos - cur_pos)
+            part_text = utf8_sub(part_text, 1, search_index - char_index)
+			part_text_len = search_index - char_index
+			--MsgN("# Rewrite ", part_text_len,"|", part_text)
         end
 
         surface_SetFont(self.CurrentFont .. (part_bold and "_Bold" or ""))
         local part_length = surface_GetTextSize(part_text)
 
-        cur_pos = cur_pos + part_length
-        
-        if is_final then
-            return cur_pos
-        end
+        char_pos = char_pos + part_length
+		--MsgN("# Length ", part_length, " Total ", char_pos)
 
-        line_index = line_index + part_text_len
+        if is_final then break end
+
+        char_index = char_index + part_text_len
     end
 
-    return cur_pos
+	--char_pos = char_pos + self.FontWidth
+	--MsgN("GetCharPosInLine < @", char_index, " Pos ", char_pos)
+
+    return char_pos
 end
 
 local function GetCharIndexByPos(self, row, pos)
@@ -197,7 +206,7 @@ local function GetCharIndexByPos(self, row, pos)
         surface_SetFont(font)
         local char_len = surface_GetTextSize(utf8_GetChar(self.Rows[row], i))
 
-        if char_pos_start + char_len > pos then
+        if char_pos_start + char_len >= pos then
             return i
         end
 
@@ -491,20 +500,20 @@ function EDITOR:PaintLineSelection(row)
 
     local char_start_pos
     if line_start == row then -- This line contains start of the selection
-        char_start_pos = surface_GetTextSize(utf8_sub(row_text, 1, char_start_i))
+        char_start_pos = surface_GetTextSize(utf8_sub(row_text, 1, char_start_i - 1))
     else
         char_start_pos = 0
     end
 
     local char_end_pos
     if line_end == row then -- This line contains end of the selection
-        char_end_pos = surface_GetTextSize(utf8_sub(row_text, 1, char_end_i))
+        char_end_pos = surface_GetTextSize(utf8_sub(row_text, 1, char_end_i - 1))
     else
         char_end_pos = surface_GetTextSize(row_text)
     end
 
-    char_start_pos = char_start_pos - self.Scroll[2]
-    char_end_pos = char_end_pos - self.Scroll[2]
+    char_start_pos = char_start_pos - (self.Scroll[2] - 1) * self.FontWidth
+    char_end_pos = char_end_pos - (self.Scroll[2] - 1) * self.FontWidth
 
     if char_end_pos < 0 then return end -- Selection end is not visible
     if char_start_pos < 0 then char_start_pos = 0 end
@@ -651,7 +660,7 @@ do
 		local skip = downward and 1 or -1
 
 		for row = startIndex, endIndex, skip do
-			local rowStr = downward and self.Rows[row] or self.Rows[row]:reverse()
+			local rowStr = downward and self.Rows[row] or utf8_reverse(self.Rows[row])
 			local pos = row == startPos[1] and fixPos(rowStr, startPos[2], downward) or 1
 
 			repeat
@@ -664,7 +673,7 @@ do
 					local token = self:GetTokenAtPosition(editorPos)
 
 					if token ~= "comment" and token ~= "string" then
-						local char = rowStr[foundPos]
+						local char = utf8_GetChar(rowStr, foundPos)
 
 						if char == opening then
 							balance = balance + 1
@@ -705,7 +714,7 @@ do
             return
         end
 
-        local scroll_pos_x = self.Scroll[2] * self.FontWidth
+        local scroll_pos_x = (self.Scroll[2] - 1) * self.FontWidth
         local caret_pos_x = GetCharPosInLine(self, self.Caret[1], self.Caret[2])
 
         if caret_pos_x < scroll_pos_x then
@@ -726,7 +735,6 @@ do
 
     function EDITOR:PaintHighlightedAreas()
         local width, height = self.FontWidth, self.FontHeight
-
         if not self.HighlightedAreas then
             return
         end
@@ -809,15 +817,15 @@ do
         if startPos and endPos then
             surface_SetDrawColor(255, 0, 0, 50)
 
-            local xofs = self.LineNumberWidth + 6
+            local xofs = self.LineNumberWidth + 6 - (self.Scroll[2] - 1) * width
             surface_DrawRect(
-                xofs + GetCharPosInLine(self, startPos[1], startPos[2]) - self.Scroll[2] * width,
+                xofs + GetCharPosInLine(self, startPos[1], startPos[2]),
                 (startPos[1] - self.Scroll[1]) * height,
                 width,
                 height
             )
             surface_DrawRect(
-                xofs + GetCharPosInLine(self, endPos[1], endPos[2]) - self.Scroll[2] * width,
+                xofs + GetCharPosInLine(self, endPos[1], endPos[2]),
                 (endPos[1] - self.Scroll[1]) * height,
                 width,
                 height
@@ -1300,11 +1308,11 @@ function EDITOR:Replace( str, replacewith )
 	local _str = str
 	if not use_patterns then
 		str = string.PatternSafe(str)
-		replacewith = replacewith:gsub( "%%", "%%%1" )
+		replacewith = string_gsub(replacewith, "%%", "%%%1" )
 	end
 
 	if selection:match( str ) ~= nil then
-		self:SetSelection( selection:gsub( str, replacewith ) )
+		self:SetSelection( string_gsub(selection, str, replacewith ) )
 		return self:Find( _str )
 	else
 		return self:Find( _str )
@@ -1320,7 +1328,7 @@ function EDITOR:ReplaceAll( str, replacewith )
 
 	if not use_patterns then
 		str = string.PatternSafe(str)
-		replacewith = replacewith:gsub( "%%", "%%%1" )
+		replacewith = string_gsub(replacewith, "%%", "%%%1" )
 	end
 
 	if ignore_case then
@@ -1385,7 +1393,7 @@ function EDITOR:CountFinds( str )
 		str = "%f[%w_]()" .. str .. "%f[^%w_]()"
 	end
 
-	return select(2, txt:gsub(str, ""))
+	return select(2, string_gsub(txt, str, ""))
 end
 
 function EDITOR:FindAllWords( str )
@@ -1827,13 +1835,13 @@ function EDITOR:Indent(shift)
 	end
 	if shift then
 		-- shift-TAB with a selection --
-		local tmp = self:GetSelection():gsub("\n ? ? ? ?", "\n")
+		local tmp = string_gsub(self:GetSelection(), "\n ? ? ? ?", "\n")
 
 		-- makes sure that the first line is outdented
 		self:SetSelection(unindent(tmp))
 	else
 		-- plain TAB with a selection --
-		self:SetSelection("    " .. self:GetSelection():gsub("\n", "\n    "))
+		self:SetSelection("    " .. string_gsub(self:GetSelection(), "\n", "\n    "))
 	end
 	-- restore selection
 	self.Caret = self:CopyPosition(tab_caret)
@@ -1913,7 +1921,7 @@ function EDITOR:ContextHelp()
 
 		-- TODO substitute this for getWordStart, if it fits.
 		local startcol = col
-		while startcol > 1 and line:sub(startcol-1, startcol-1):match("^[a-zA-Z0-9_]$") do
+		while startcol > 1 and utf8_sub(line, startcol-1, startcol-1):match("^[a-zA-Z0-9_]$") do
 			startcol = startcol - 1
 		end
 
@@ -2320,14 +2328,14 @@ local function GetTableForConstant( str )
 end
 
 local function FindConstants( self, word )
-	local len = #word
+	local len = utf8_len(word)
 	local wordu = word:upper()
 	local count = 0
 
 	local suggestions = {}
 
 	for name, _ in pairs( wire_expression2_constants ) do
-		if name:sub(1,len) == wordu then
+		if utf8_sub(name, 1,len) == wordu then
 			count = count + 1
 			suggestions[count] = GetTableForConstant( name )
 		end
@@ -2338,7 +2346,7 @@ end
 
 tbl[1] = function( self )
 	local word = self:AC_GetCurrentWord()
-	if word and word ~= "" and word:sub(1,1) == "_" then
+	if word and word ~= "" and word[1] == "_" then
 		return FindConstants( self, word )
 	end
 end
@@ -2375,14 +2383,14 @@ local function FindFunctions( self, has_colon, word )
 	-- Filter out magic characters
 	word = string.PatternSafe(word)
 
-	local len = #word
+	local len = utf8_len(word)
 	local wordl = word:lower()
 	local count = 0
 	local suggested = {}
 	local suggestions = {}
 
 	for func_id,_ in pairs( wire_expression2_funcs ) do
-		if wordl == func_id:lower():sub(1,len) then -- Check if the beginning of the word matches
+		if wordl == utf8_sub(func_id:lower(), 1,len) then -- Check if the beginning of the word matches
 			local name, types = func_id:match( "(.+)(%b())" ) -- Get the function name and types
 			local first_type, colon, other_types = types:match( "%((%w*)(:?)(.*)%)" ) -- Sort the function types
 			if (colon == ":") == has_colon then -- If they both have colons (or not)
@@ -2426,7 +2434,7 @@ end
 
 tbl[2] = function( self )
 	local word, symbolinfront = self:AC_GetCurrentWord()
-	if word and word ~= "" and word:sub(1,1):upper() ~= word:sub(1,1) then
+	if word and word ~= "" and utf8_GetChar(word,1):upper() ~= utf8_GetChar(word,1) then
 		return FindFunctions( self, (symbolinfront == ":"), word )
 	end
 end
@@ -2460,7 +2468,7 @@ end
 
 
 local function FindVariables( self, word )
-	local len = #word
+	local len = utf8_len(word)
 	local wordl = word:lower()
 	local count = 0
 
@@ -2476,7 +2484,7 @@ local function FindVariables( self, word )
 	end
 
 	for _, v in pairs( directives["inputs"][1] ) do
-		if v:lower():sub(1,len) == wordl then
+		if utf8_sub(v:lower(),1,len) == wordl then
 			if not suggested[v] then
 				suggested[v] = true
 				count = count + 1
@@ -2486,7 +2494,7 @@ local function FindVariables( self, word )
 	end
 
 	for _, v in pairs( directives["outputs"][1] ) do
-		if v:lower():sub(1,len) == wordl then
+		if utf8_sub(v:lower(), 1,len) == wordl then
 			if not suggested[v] then
 				suggested[v] = true
 				count = count + 1
@@ -2496,7 +2504,7 @@ local function FindVariables( self, word )
 	end
 
 	for _, v in pairs( directives["persist"][1] ) do
-		if v:lower():sub(1,len) == wordl then
+		if utf8_sub(v:lower(),1,len) == wordl then
 			if not suggested[v] then
 				suggested[v] = true
 				count = count + 1
@@ -2510,7 +2518,7 @@ end
 
 tbl[3] = function( self )
 	local word = self:AC_GetCurrentWord()
-	if word and word ~= "" and word:sub(1,1):upper() == word:sub(1,1) then
+	if word and word ~= "" and utf8_GetChar(word, 1):upper() == utf8_GetChar(word, 1) then
 		return FindVariables( self, word )
 	end
 end
@@ -3026,7 +3034,7 @@ function EDITOR:wordRight(caret)
 		if caret[1] == #self.Rows then return caret end
 		caret = { caret[1]+1, 1 }
 		row = self.Rows[caret[1]]
-		if row:sub(1,1) ~= " " then return caret end
+		if row[1] ~= " " then return caret end
 	end
 
 	local pos = row:match("[^%w@]()[%w@]",caret[2])
@@ -3068,8 +3076,8 @@ function EDITOR:NextCharacter()
 	self.tokendata = self.tokendata .. self.character
 	self.position = self.position + 1
 
-	if self.position <= self.line:len() then
-		self.character = self.line:sub(self.position, self.position)
+	if self.position <= utf8_len(self.line) then
+		self.character = utf8_GetChar(self.line, self.position)
 	else
 		self.character = nil
 	end
@@ -3088,8 +3096,8 @@ function EDITOR:SkipPattern(pattern)
 
 
 	self.position = endpos + 1
-	if self.position <= #self.line then
-		self.character = self.line:sub(self.position, self.position)
+	if self.position <= utf8_len(self.line) then
+		self.character = utf8_GetChar(self.line, self.position)
 	else
 		self.character = nil
 	end
@@ -3108,8 +3116,8 @@ function EDITOR:NextPattern(pattern)
 
 
 	self.position = endpos + 1
-	if self.position <= #self.line then
-		self.character = self.line:sub(self.position, self.position)
+	if self.position <= utf8_len(self.line) then
+		self.character = utf8_GetChar(self.line, self.position)
 	else
 		self.character = nil
 	end
