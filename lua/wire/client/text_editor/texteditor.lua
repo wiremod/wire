@@ -588,6 +588,7 @@ function EDITOR:PaintLine(row)
         if offset > -text_width then
 			if offset < 0 then
 				text = utf8_sub(text, 1 - (offset / self.FontWidth))
+				text_width = surface_GetTextSize(text)
 				offset = 0
             end
 
