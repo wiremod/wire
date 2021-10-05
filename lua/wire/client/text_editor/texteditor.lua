@@ -647,11 +647,11 @@ do
 	}
 
 	-- This will convert forward text _byte_ position to reverse text position and vice versa
-	local function fixPos(row, pos, downward)
+	local function fixPos(row_len, pos, downward)
 		if downward then
 			return pos
 		else
-			return string_len(row) - pos + 1
+			return row_len - pos + 1
 		end
 	end
 
@@ -664,14 +664,15 @@ do
 		local skip = downward and 1 or -1
 
 		for row = startIndex, endIndex, skip do
+			local row_len = self.RowsLength[row]
 			local rowStr = downward and self.Rows[row] or utf8_reverse(self.Rows[row])
-			local pos = row == startPos[1] and fixPos(rowStr, startPos[2], downward) or 1
+			local pos = row == startPos[1] and fixPos(row_len, startPos[2], downward) or 1
 
 			repeat
 				local foundPos = rowStr:find(searchStr, pos)
 
 				if foundPos then
-					local editorPos = { row, fixPos(rowStr, foundPos, downward) }
+					local editorPos = { row, fixPos(row_len, foundPos, downward) }
 					local token = self:GetTokenAtPosition(editorPos)
 
 					if token ~= "comment" and token ~= "string" then
