@@ -825,18 +825,25 @@ do
             surface_SetDrawColor(255, 0, 0, 50)
 
             local xofs = self.LineNumberWidth + 6 - (self.Scroll[2] - 1) * width
-            surface_DrawRect(
-                xofs + GetCharPosInLine(self, startPos[1], startPos[2]),
-                (startPos[1] - self.Scroll[1]) * height,
-                width,
-                height
-            )
-            surface_DrawRect(
-                xofs + GetCharPosInLine(self, endPos[1], endPos[2]),
-                (endPos[1] - self.Scroll[1]) * height,
-                width,
-                height
-            )
+			local start_height = (startPos[1] - self.Scroll[1]) * height
+			local end_height = (endPos[1] - self.Scroll[1]) * height
+
+			if start_height > 0 and start_height <= self.Size[1] * height then
+            	surface_DrawRect(
+                	xofs + GetCharPosInLine(self, startPos[1], startPos[2]),
+                	start_height,
+                	width,
+                	height
+            	) 
+			end
+            if end_height > 0 and end_height <= self.Size[1] * height then
+				surface_DrawRect(
+                	xofs + GetCharPosInLine(self, endPos[1], endPos[2]),
+                	end_height,
+                	width,
+                	height
+            	)
+			end
         end
     end
 end
