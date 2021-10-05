@@ -6,6 +6,7 @@
 local string_Explode = string.Explode
 local table_concat = table.concat
 local table_remove = table.remove
+local table_ForceInsert = table.ForceInsert
 local math_floor = math.floor
 local math_Clamp = math.Clamp
 local math_ceil = math.ceil
@@ -16,6 +17,9 @@ local string_byte = string.byte
 local string_format = string.format
 local string_Trim = string.Trim
 local string_len = string.len
+local string_lower = string.lower
+local string_upper = string.upper
+local string_PatternSafe = string.PatternSafe
 local math_min = math.min
 local table_insert = table.insert
 local table_sort = table.sort
@@ -2358,90 +2362,139 @@ end
 -- FindFunctions
 -- Adds all matching functions to the suggestions table
 --------------------
+do
 
-local function GetTableForFunction()
-	return { nice_str = function( t ) return t.data[2] end,
-			str = function( t ) return t.data[1] end,
-			replacement = function( t, editor )
+	local function_tree = {}
+
+	local function GenerateFunctionTree()
+		for fn_name,_ in pairs( wire_expression2_funcs ) do
+			local current = function_tree
+
+
+			for _, fn_name_char_cp in utf8_codes(fn_name) do
+				local fn_name_char = string_lower(utf8_char(fn_name_char_cp))
+
+				local current2 = current[fn_name_char] or {}
+				current[fn_name_char] = current2
+				current = current2
+			end
+
+			local entry = {}
+			function entry:nice_str() return self.data[2] end
+			function entry:str() return self.data[1] end
+			function entry:replacement(editor)
 				local caret = editor:CopyPosition( editor.Caret )
 				caret[2] = caret[2] - 1
 				local wordend = editor:getWordEnd( caret )
-				local has_bracket = editor:GetArea( { wordend, { wordend[1], wordend[2] + 1 } } ) == "(" -- If there already is a bracket, we don't want to add more of them.
-				local ret = t:str()
-				return ret..(has_bracket and "" or "()"), #ret+1
-			end,
-			others = function( t ) return t.data[3] end,
-			description = function( t )
-				if t.data[4] and E2Helper.Descriptions[t.data[4]] then
-					return E2Helper.Descriptions[t.data[4]]
+				local has_bracket = editor:GetArea( { wordend, { wordend[1], wordend[2] + 1 } } ) == "("
+				-- If there already is a bracket, we don't want to add more of them.
+				local ret = self:str()
+				return ret..(has_bracket and "" or "()"), utf8_len(ret)+1
+			end
+			function entry:description()
+				if self.data[3] and E2Helper.Descriptions[self.data[3]] then
+					return E2Helper.Descriptions[self.data[3]]
 				end
-				if t.data[1] and E2Helper.Descriptions[t.data[1]] then
-					return E2Helper.Descriptions[t.data[1]]
+				if self.data[1] and E2Helper.Descriptions[self.data[1]] then
+					return E2Helper.Descriptions[self.data[1]]
 				end
-			end,
-			data = {} }
-end
+			end
 
-local function FindFunctions( self, has_colon, word )
-	-- Filter out magic characters
-	word = string.PatternSafe(word)
+			local name, types = fn_name:match( "(.+)(%b())" ) -- Get the function name and types
+			local type_1, type_2, type_3 = types:match( "%((%w*)(:?)(.*)%)" ) -- Sort the function types
 
-	local len = utf8_len(word)
-	local wordl = word:lower()
-	local count = 0
-	local suggested = {}
-	local suggestions = {}
+			local ac_name_full
 
-	for func_id,_ in pairs( wire_expression2_funcs ) do
-		if wordl == utf8_sub(func_id:lower(), 1,len) then -- Check if the beginning of the word matches
-			local name, types = func_id:match( "(.+)(%b())" ) -- Get the function name and types
-			local first_type, colon, other_types = types:match( "%((%w*)(:?)(.*)%)" ) -- Sort the function types
-			if (colon == ":") == has_colon then -- If they both have colons (or not)
-				first_type = first_type:upper()
-				other_types = other_types:upper()
-				if not suggested[name] then -- If it hasn't already been suggested
-					count = count + 1
-					suggested[name] = count
+			if type_2 == ":" then
+				ac_name_full = string_upper(type_1)..":"..name.."("..string_upper(type_3)..")"
+			else
+				ac_name_full = name.."("..string_upper(type_1)..")"
+			end
 
-					-- Add to suggestions
-					if colon == ":" then
-						local t = GetTableForFunction()
-						t.data = { name, first_type .. ":" .. name .. "(" .. other_types .. ")", {}, func_id }
-						suggestions[count] = t
-					else
-						local t = GetTableForFunction()
-						t.data = { name, name .. "(" .. first_type .. ")", {}, func_id }
-						suggestions[count] = t
-					end
-				else -- If it has already been suggested
-					-- Get previous data
-					local others = suggestions[suggested[name]]:others(self)
-					local i = #others+1
+			entry.data = {
+				name,
+				ac_name_full,
+				fn_name
+			}
 
-					-- Add it to the end of the list
-					if colon == ":" then
-						local t = GetTableForFunction()
-						t.data = { name, first_type .. ":" .. name .. "(" .. other_types .. ")", nil, func_id }
-						others[i] = t
-					else
-						local t = GetTableForFunction()
-						t.data = { name, name .. "(" .. first_type .. ")", nil, func_id }
-						others[i] = t
-					end
-				end
+			entry.has_colon = type_2 == ":"
+
+			current.FUNC = table_ForceInsert(current.FUNC, entry)
+		end
+	end
+
+	hook.Add("InitPostEntity", "Wiremod_E2_Editor", GenerateFunctionTree)
+	hook.Add("OnReloaded", "Wiremod_E2_Editor", function()
+		function_tree = {}
+		GenerateFunctionTree()
+	end)
+
+	if E2_RELOAD_EDITOR then
+		GenerateFunctionTree()
+	end
+
+	local function GetFunctionTreeBranch(word)
+		local current = function_tree
+
+		for _, char_cp in utf8_codes(word) do
+			local char = string_lower(utf8_char(char_cp))
+			current = current[char]
+			if current == nil then return nil end
+		end
+
+		return current
+	end
+
+	local function FlattenTreeRecursive(tree_branch, dest)
+		if tree_branch.FUNC ~= nil then
+			table.Add(dest, tree_branch.FUNC)
+		end
+
+		for key, value in SortedPairs(tree_branch) do
+			if key ~= "FUNC" then
+				FlattenTreeRecursive(value, dest)
 			end
 		end
 	end
-	return suggestions
-end
 
-tbl[2] = function( self )
-	local word, symbolinfront = self:AC_GetCurrentWord()
-	if word and word ~= "" and utf8_GetChar(word,1):upper() ~= utf8_GetChar(word,1) then
-		return FindFunctions( self, (symbolinfront == ":"), word )
+	local function FindFunctions(self, has_colon, word)
+		local branch = GetFunctionTreeBranch(string_PatternSafe(word))
+
+		if branch == nil then
+			return nil
+		end
+
+		local suggestions_raw = {}
+		FlattenTreeRecursive(branch, suggestions_raw)
+
+		local suggestions = {}
+		local suggestion_extras_by_name = {}
+
+		for i, suggestion in ipairs(suggestions_raw) do
+			local name = suggestion:str()
+			
+			if suggestion_extras_by_name[name] == nil then
+				suggestion_extras_by_name[name] = {}
+
+				suggestion.others = function(sugg) return suggestion_extras_by_name[name] end
+
+				table.insert(suggestions, suggestion)
+			else
+				suggestion.others = function(sugg) return nil end
+				table.insert(suggestion_extras_by_name[name], suggestion)
+			end
+		end
+
+		return suggestions
+	end
+
+	tbl[2] = function( self )
+		local word, symbolinfront = self:AC_GetCurrentWord()
+		if word and word ~= "" and utf8_GetChar(word,1):upper() ~= utf8_GetChar(word,1) then
+			return FindFunctions( self, (symbolinfront == ":"), word )
+		end
 	end
 end
-
 -----------------------------------------------------------
 -- SaveVariables
 -- Saves all variables to a table
@@ -3157,8 +3210,10 @@ concommand.Add("wire_expression2_reloadeditor", function(ply, command, args)
 	wire_expression2_editor = nil
 	ZCPU_Editor = nil
 	ZGPU_Editor = nil
+	E2_RELOAD_EDITOR = true
 	include("wire/client/text_editor/texteditor.lua")
 	include("wire/client/text_editor/wire_expression2_editor.lua")
+	E2_RELOAD_EDITOR = nil
 	initE2Editor()
 	if code then wire_expression2_editor:SetCode(code) end
 end)
