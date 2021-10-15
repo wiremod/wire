@@ -472,7 +472,8 @@ function EDITOR:SetText(text)
 end
 
 function EDITOR:GetValue()
-    return string_gsub(table_concat(self.Rows, "\n"), "\r", "")
+    local val = string_gsub(table_concat(self.Rows, "\n"), "\r", "")
+    return val
 end
 
 function EDITOR:HighlightLine( line, r, g, b, a )
@@ -673,6 +674,10 @@ do
             else
                 char_first = 1
                 char_last = row_i == start_row and start_pos[2] or row_length
+            end
+
+            if char_last < char_first then
+                goto row_loop_end
             end
 
             local row_cps = { utf8_codepoint(utf8_sub(row, char_first, char_last),1,-1) }
@@ -2011,15 +2016,15 @@ function EDITOR:DuplicateLine()
 
     local str = self:GetSelection()
     if str ~= "" then -- If you have a selection
-    	self:SetSelection( str:rep(2) ) -- Repeat it
+        self:SetSelection( str:rep(2) ) -- Repeat it
     else -- If you don't
-    	-- Select the current line
-    	self.Start = { self.Start[1], 1 }
-    	self.Caret = { self.Start[1], self.RowsLength[self.Start[1]]+1 }
-    	-- Get the text
-    	local str = self:GetSelection()
-    	-- Repeat it
-    	self:SetSelection( str .. "\n" .. str )
+        -- Select the current line
+        self.Start = { self.Start[1], 1 }
+        self.Caret = { self.Start[1], self.RowsLength[self.Start[1]]+1 }
+        -- Get the text
+        local str = self:GetSelection()
+        -- Repeat it
+        self:SetSelection( str .. "\n" .. str )
     end
 
     -- Restore selection
@@ -2527,7 +2532,7 @@ end
 -----------------------------------------------------------
 
 function EDITOR:AC_SaveVariables()
-    local OK, directives,_ = E2Lib.PreProcessor.Execute( self:GetValue() )
+    local OK, directives, _ = E2Lib.PreProcessor.Execute( self:GetValue() )
 
     if not OK or not directives then
         return
