@@ -16,7 +16,6 @@ local string_rep = string.rep
 local string_byte = string.byte
 local string_format = string.format
 local string_Trim = string.Trim
-local string_len = string.len
 local string_lower = string.lower
 local string_upper = string.upper
 local string_PatternSafe = string.PatternSafe
@@ -39,7 +38,6 @@ local utf8_GetChar = utf8.GetChar
 local utf8_codes = utf8.codes
 local utf8_codepoint = utf8.codepoint
 local utf8_char = utf8.char
-local utf8_offset = utf8.offset
 
 local function utf8_bytepos_to_charindex(string, bytepos)
     assert(bytepos >= 1)
@@ -182,7 +180,6 @@ local function GetCharPosInLine(self, row, search_index)
 end
 
 local function GetCharIndexByPos(self, row, pos)
-    local line_len = self.RowsLength[row]
     local char_fonts = {}
 
     do
@@ -411,8 +408,8 @@ function EDITOR:OnMousePressed(code)
                         -- This checks if it's NOT the word the user just highlighted
                         if caretstart[1] ~= self.Start[1] or caretstart[2] ~= self.Start[2] or
                             caretstop[1] ~= self.Caret[1] or caretstop[2] ~= self.Caret[2] then
-                                local c = self:GetSyntaxColor("dblclickhighlight")
-                                self:HighlightArea( { caretstart, caretstop }, c.r, c.g, c.b, 100 )
+                            local c = self:GetSyntaxColor("dblclickhighlight")
+                            self:HighlightArea( { caretstart, caretstop }, c.r, c.g, c.b, 100 )
                         end
                     end
                 end
@@ -475,7 +472,7 @@ function EDITOR:SetText(text)
 end
 
 function EDITOR:GetValue()
-    return (string_gsub(table_concat(self.Rows, "\n"), "\r", ""))
+    return string_gsub(table_concat(self.Rows, "\n"), "\r", "")
 end
 
 function EDITOR:HighlightLine( line, r, g, b, a )
@@ -495,7 +492,7 @@ function EDITOR:PaintLineSelection(row)
     local sel_start, sel_end = self:MakeSelection(self:Selection())
 
     local line_start, line_end = sel_start[1], sel_end[1]
-    
+
     if row < line_start or row > line_end then
         return -- This line is not in selection
     end
@@ -856,7 +853,7 @@ do
                     start_height,
                     width,
                     height
-                ) 
+                )
             end
             if end_height > 0 and end_height <= self.Size[1] * height then
                 surface_DrawRect(
@@ -1489,7 +1486,7 @@ function EDITOR:CreateFindWindow()
 
     local use_patterns = vgui.Create( "DCheckBoxLabel", common_panel )
     use_patterns:SetText( "Use Patterns" )
-    use_patterns:SetToolTip( "Use/Don't use Lua patterns in the find." )
+    use_patterns:SetTooltip( "Use/Don't use Lua patterns in the find." )
     use_patterns:SizeToContents()
     use_patterns:SetConVar( "wire_expression2_editor_find_use_patterns" )
     use_patterns:SetPos( 4, 4 )
@@ -1503,14 +1500,14 @@ function EDITOR:CreateFindWindow()
 
     local case_sens = vgui.Create( "DCheckBoxLabel", common_panel )
     case_sens:SetText( "Ignore Case" )
-    case_sens:SetToolTip( "Ignore/Don't ignore case in the find." )
+    case_sens:SetTooltip( "Ignore/Don't ignore case in the find." )
     case_sens:SizeToContents()
     case_sens:SetConVar( "wire_expression2_editor_find_ignore_case" )
     case_sens:SetPos( 4, 24 )
 
     local whole_word = vgui.Create( "DCheckBoxLabel", common_panel )
     whole_word:SetText( "Match Whole Word" )
-    whole_word:SetToolTip( "Match/Don't match the entire word in the find." )
+    whole_word:SetTooltip( "Match/Don't match the entire word in the find." )
     whole_word:SizeToContents()
     whole_word:SetConVar( "wire_expression2_editor_find_whole_word_only" )
     whole_word:SetPos( 4, 44 )
@@ -1524,7 +1521,7 @@ function EDITOR:CreateFindWindow()
 
     local wrap_around = vgui.Create( "DCheckBoxLabel", common_panel )
     wrap_around:SetText( "Wrap Around" )
-    wrap_around:SetToolTip( "Start/Don't start from the top after reaching the bottom, or the bottom after reaching the top." )
+    wrap_around:SetTooltip( "Start/Don't start from the top after reaching the bottom, or the bottom after reaching the top." )
     wrap_around:SizeToContents()
     wrap_around:SetConVar( "wire_expression2_editor_find_wrap_around" )
     wrap_around:SetPos( 130, 4 )
@@ -1576,7 +1573,7 @@ function EDITOR:CreateFindWindow()
         -- Find next button
         local FindNext = vgui.Create( "DButton", findtab )
         FindNext:SetText("Find Next")
-        FindNext:SetToolTip( "Find the next match and highlight it." )
+        FindNext:SetTooltip( "Find the next match and highlight it." )
         FindNext:SetPos(233,4)
         FindNext:SetSize(70,20)
         FindNext.DoClick = function(pnl)
@@ -1586,7 +1583,7 @@ function EDITOR:CreateFindWindow()
         -- Find button
         local Find = vgui.Create( "DButton", findtab )
         Find:SetText("Find")
-        Find:SetToolTip( "Find the next match, highlight it, and close the Find window." )
+        Find:SetTooltip( "Find the next match, highlight it, and close the Find window." )
         Find:SetPos(233,29)
         Find:SetSize(70,20)
         Find.DoClick = function(pnl)
@@ -1658,7 +1655,7 @@ function EDITOR:CreateFindWindow()
         -- Find next button
         local FindNext = vgui.Create( "DButton", replacetab )
         FindNext:SetText("Find Next")
-        FindNext:SetToolTip( "Find the next match and highlight it." )
+        FindNext:SetTooltip( "Find the next match and highlight it." )
         FindNext:SetPos(233,4)
         FindNext:SetSize(70,20)
         FindNext.DoClick = function(pnl)
@@ -1668,7 +1665,7 @@ function EDITOR:CreateFindWindow()
         -- Replace next button
         local ReplaceNext = vgui.Create( "DButton", replacetab )
         ReplaceNext:SetText("Replace")
-        ReplaceNext:SetToolTip( "Replace the current selection if it matches, else find the next match." )
+        ReplaceNext:SetTooltip( "Replace the current selection if it matches, else find the next match." )
         ReplaceNext:SetPos(233,29)
         ReplaceNext:SetSize(70,20)
         ReplaceNext.DoClick = function(pnl)
@@ -1678,7 +1675,7 @@ function EDITOR:CreateFindWindow()
         -- Replace all button
         local ReplaceAll = vgui.Create( "DButton", replacetab )
         ReplaceAll:SetText("Replace All")
-        ReplaceAll:SetToolTip( "Replace all occurences of the match in the entire file, and close the Find window." )
+        ReplaceAll:SetTooltip( "Replace all occurences of the match in the entire file, and close the Find window." )
         ReplaceAll:SetPos(233,54)
         ReplaceAll:SetSize(70,20)
         ReplaceAll.DoClick = function(pnl)
@@ -2014,15 +2011,15 @@ function EDITOR:DuplicateLine()
 
     local str = self:GetSelection()
     if str ~= "" then -- If you have a selection
-    self:SetSelection( str:rep(2) ) -- Repeat it
+    	self:SetSelection( str:rep(2) ) -- Repeat it
     else -- If you don't
-    -- Select the current line
-    self.Start = { self.Start[1], 1 }
-    self.Caret = { self.Start[1], self.RowsLength[self.Start[1]]+1 }
-    -- Get the text
-    local str = self:GetSelection()
-    -- Repeat it
-    self:SetSelection( str .. "\n" .. str )
+    	-- Select the current line
+    	self.Start = { self.Start[1], 1 }
+    	self.Caret = { self.Start[1], self.RowsLength[self.Start[1]]+1 }
+    	-- Get the text
+    	local str = self:GetSelection()
+    	-- Repeat it
+    	self:SetSelection( str .. "\n" .. str )
     end
 
     -- Restore selection
@@ -2201,7 +2198,7 @@ function EDITOR:_OnKeyCodeTyped(code)
             else
                 local buffer = self:GetArea({self.Caret, {self.Caret[1], 1}})
                 local delta = -1
-                if self.Caret[2] % 4 == 1 and #(buffer) > 0 and string_rep(" ", #(buffer)) == buffer then
+                if self.Caret[2] % 4 == 1 and #buffer > 0 and string_rep(" ", #buffer) == buffer then
                     delta = -4
                 end
                 self:SetCaret(self:SetArea({self.Caret, self:MovePosition(self.Caret, delta)}))
@@ -2212,7 +2209,7 @@ function EDITOR:_OnKeyCodeTyped(code)
             else
                 local buffer = self:GetArea({{self.Caret[1], self.Caret[2] + 4}, {self.Caret[1], 1}})
                 local delta = 1
-                if self.Caret[2] % 4 == 1 and string_rep(" ", #(buffer)) == buffer and self.RowsLength[self.Caret[1]] >= self.Caret[2] + 4 - 1 then
+                if self.Caret[2] % 4 == 1 and string_rep(" ", #buffer) == buffer and self.RowsLength[self.Caret[1]] >= self.Caret[2] + 4 - 1 then
                     delta = 4
                 end
                 self:SetCaret(self:SetArea({self.Caret, self:MovePosition(self.Caret, delta)}))
@@ -2278,7 +2275,7 @@ end
 function EDITOR:IsVarLine()
     local line = self.Rows[self.Caret[1]]
     local word = line:match( "^@(%w+)" )
-    return (word == "inputs" or word == "outputs" or word == "persist")
+    return word == "inputs" or word == "outputs" or word == "persist"
 end
 
 function EDITOR:IsDirectiveLine()
@@ -2501,7 +2498,7 @@ do
 
         for i, suggestion in ipairs(suggestions_raw) do
             local name = suggestion:str()
-            
+
             if suggestion_extras_by_name[name] == nil then
                 suggestion_extras_by_name[name] = {}
 
@@ -2520,7 +2517,7 @@ do
     tbl[2] = function( self )
         local word, symbolinfront = self:AC_GetCurrentWord()
         if word and word ~= "" and utf8_GetChar(word,1):upper() ~= utf8_GetChar(word,1) then
-            return FindFunctions( self, (symbolinfront == ":"), word )
+            return FindFunctions( self, symbolinfront == ":", word )
         end
     end
 end
