@@ -146,6 +146,7 @@ local function GetCharPosInLine(self, row, search_index)
 
     --MsgN("GetCharPosInLine > @", search_index, " ", self.Rows[row])
 
+    -- self.PaintRows[row] can be nil if row is not currently visible 
     for i, cell in ipairs(self.PaintRows[row]) do
         local part_text = cell[1]
         local part_bold = cell[2][2]
@@ -609,8 +610,8 @@ function EDITOR:PerformLayout()
     self.ScrollBar:SetSize(16, self:GetTall())
     self.ScrollBar:SetPos(self:GetWide() - 16, 0)
 
-    self.Size[1] = math_floor(self:GetTall() / self.FontHeight) - 1
-    self.Size[2] = math_floor((self:GetWide() - (self.LineNumberWidth + 6) - 16) / self.FontWidth) - 1
+    self.Size[1] = math_ceil(self:GetTall() / self.FontHeight) - 1
+    self.Size[2] = math_ceil((self:GetWide() - (self.LineNumberWidth + 6) - 16) / self.FontWidth) - 1
 
     self.ScrollBar:SetUp(self.Size[1], #self.Rows - 1)
 end
@@ -619,11 +620,11 @@ function EDITOR:HighlightArea( area, r,g,b,a )
     if not self.HighlightedAreas then self.HighlightedAreas = {} end
     if not r then
         local _start, _stop = area[1], area[2]
-        for k,v in pairs( self.HighlightedAreas ) do
+        for i,v in ipairs( self.HighlightedAreas ) do
             local start = v[1][1]
             local stop = v[1][2]
             if start[1] == _start[1] and start[2] == _start[2] and stop[1] == _stop[1] and stop[2] == _stop[2] then
-                table.remove( self.HighlightedAreas, k )
+                table.remove( self.HighlightedAreas, i )
                 break
             end
         end
@@ -770,9 +771,11 @@ do
             return
         end
 
+        local visible_line_end = self.Scroll[1] + self.Size[1]
+
         local x_offset = self.LineNumberWidth + 6 - (self.Scroll[2] - 1) * width
 
-        for _, data in pairs( self.HighlightedAreas ) do
+        for _, data in ipairs( self.HighlightedAreas ) do
 
             local area, r,g,b,a = data[1], data[2], data[3], data[4], data[5]
             surface_SetDrawColor( r,g,b,a )
@@ -780,6 +783,15 @@ do
 
             local start_line, stop_line = start[1], stop[1]
             local start_char, stop_char = start[2], stop[2]
+
+            if start_line > visible_line_end then
+                goto for_ares_end
+            end
+
+            if stop_line > visible_line_end then
+                stop_line = visible_line_end
+                stop_char = self.RowsLength[stop_line]
+            end
 
             local start_char_pos = GetCharPosInLine(self, start_line, start_char)
             local stop_char_pos = GetCharPosInLine(self, stop_line, stop_char)
@@ -818,6 +830,8 @@ do
                     )
                 end
             end
+
+            ::for_ares_end::
         end
     end
 
@@ -875,7 +889,7 @@ end
 local wire_expression2_editor_display_caret_pos = CreateClientConVar("wire_expression2_editor_display_caret_pos","0",true,false)
 
 function EDITOR:Paint()
-    self.LineNumberWidth = self.FontWidth * #tostring(self.Scroll[1]+self.Size[1]+1)
+    self.LineNumberWidth = self.FontWidth * #tostring(self.Scroll[1]+self.Size[1])
 
     if not input.IsMouseDown(MOUSE_LEFT) then
         self:OnMouseReleased(MOUSE_LEFT)
@@ -897,7 +911,7 @@ function EDITOR:Paint()
 
     self.Scroll[1] = math_floor(self.ScrollBar:GetScroll() + 1)
 
-    for i=self.Scroll[1],self.Scroll[1]+self.Size[1]+1 do
+    for i=self.Scroll[1],self.Scroll[1]+self.Size[1] do
         self:PaintLine(i)
     end
 
@@ -1038,7 +1052,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
             table_remove(self.Rows, start[1] + 1)
             table_remove(self.RowsLength, start[1] + 1)
             table_remove(self.PaintRows, start[1] + 1)
-            self.PaintRows = {} -- TODO: fix for cache errors
+            --self.PaintRows = {} -- TODO: fix for cache errors
         end
 
         -- add empty row at end of file (TODO!)
@@ -1084,7 +1098,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
         table_insert(self.Rows, index, rows[i])
         table_insert(self.RowsLength, index, utf8_len(rows[i]))
         table_insert(self.PaintRows, index, false)
-        self.PaintRows = {} -- TODO: fix for cache errors
+        --self.PaintRows = {} -- TODO: fix for cache errors
     end
 
     stop = { start[1] + #rows - 1, utf8_len(self.Rows[start[1] + #rows - 1]) + 1 }
@@ -1099,12 +1113,12 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
         self.Rows[index] = ""
         self.RowsLength[index] = 0
         self.PaintRows[index] = false
-        self.PaintRows = {} -- TODO: fix for cache errors
+        --self.PaintRows = {} -- TODO: fix for cache errors
     end
 
     self.ScrollBar:SetUp(self.Size[1], #self.Rows - 1)
 
-    self.PaintRows = {}
+    --self.PaintRows = {}
 
     self:OnTextChanged()
 
