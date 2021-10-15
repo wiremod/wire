@@ -1031,6 +1031,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
     if start[1] ~= stop[1] or start[2] ~= stop[2] then
         -- clear selection
         self.Rows[start[1]] = utf8_sub(self.Rows[start[1]], 1, start[2] - 1) .. utf8_sub(self.Rows[stop[1]], stop[2])
+        self.RowsLength[start[1]] = utf8_len(self.Rows[start[1]])
         self.PaintRows[start[1]] = false
 
         for _ = start[1] + 1, stop[1] do
@@ -1089,6 +1090,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
     stop = { start[1] + #rows - 1, utf8_len(self.Rows[start[1] + #rows - 1]) + 1 }
 
     self.Rows[stop[1]] = self.Rows[stop[1]] .. remainder
+    self.RowsLength[stop[1]] = utf8_len(self.Rows[stop[1]])
     self.PaintRows[stop[1]] = false
 
     -- add empty row at end of file (TODO!)
