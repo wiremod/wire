@@ -39,6 +39,7 @@ local utf8_GetChar = utf8.GetChar
 local utf8_codes = utf8.codes
 local utf8_codepoint = utf8.codepoint
 local utf8_char = utf8.char
+local utf8_offset = utf8.offset
 
 local function utf8_bytepos_to_charindex(string, bytepos)
     assert(bytepos >= 1)
@@ -650,54 +651,75 @@ do
 		[")"] = { "(", false },
 	}
 
-	-- This will convert forward text _byte_ position to reverse text position and vice versa
-	local function fixPos(row_len, pos, downward)
-		if downward then
-			return pos
-		else
-			return row_len - pos + 1
-		end
-	end
+	local function matchBalanced(self, start_pos, char_open, char_close, dir_down)
+		local cp_open = utf8_codepoint(char_open)
+		local cp_close = utf8_codepoint(char_close)
 
-	local function matchBalanced(self, startPos, opening, closing, downward)
-		local searchStr = "[" .. string.PatternSafe(opening .. closing) .. "]"
+		local start_row = start_pos[1]
+		local end_row = dir_down and #self.Rows or 1
+		local step_row = dir_down and 1 or -1
+
 		local balance = 0
 
-		local startIndex = startPos[1]
-		local endIndex = downward and #self.Rows or 1
-		local skip = downward and 1 or -1
+		for row_i = start_row, end_row, step_row do
+			local row = self.Rows[row_i]
+			local row_length = self.RowsLength[row_i]
 
-		for row = startIndex, endIndex, skip do
-			local row_len = self.RowsLength[row]
-			local rowStr = downward and self.Rows[row] or utf8_reverse(self.Rows[row])
-			local pos = row == startPos[1] and fixPos(row_len, startPos[2], downward) or 1
+			if row_length == 0 then
+				goto row_loop_end
+			end
 
-			repeat
-				local foundPos = rowStr:find(searchStr, pos)
+			local char_first, char_last
+			if dir_down then
+				char_first = row_i == start_row and start_pos[2] or 1
+				char_last = row_length
+			else
+				char_first = 1
+				char_last = row_i == start_row and start_pos[2] or row_length
+			end
 
-				if foundPos then
-					local editorPos = { row, fixPos(row_len, foundPos, downward) }
-					local token = self:GetTokenAtPosition(editorPos)
+			local row_cps = { utf8_codepoint(utf8_sub(row, char_first, char_last),1,-1) }
 
-					if token ~= "comment" and token ~= "string" then
-						local char = utf8_GetChar(rowStr, utf8_bytepos_to_charindex(rowStr, foundPos))
+			if not dir_down then
+				table_reverse_inplace(row_cps)
+			end
 
-						if char == opening then
-							balance = balance + 1
-						else
-							balance = balance - 1
-						end
-
-						if balance == 0 then
-							return { editorPos[1], utf8_bytepos_to_charindex(rowStr, editorPos[2]) }
-						end
-					end
-
-					pos = foundPos + 1
+			for i, cp in ipairs(row_cps) do
+				if cp ~= cp_open and cp ~= cp_close then
+					goto char_loop_end
 				end
-			until not foundPos
+
+				local char_pos
+				if dir_down then
+					char_pos = char_first + i - 1
+				else
+					char_pos = char_last - i + 1
+				end
+
+				local cur_pos = { row_i, char_pos }
+				local cur_token = self:GetTokenAtPosition(cur_pos)
+
+				if cur_token == "comment" or cur_token == "string" then
+					goto char_loop_end
+				end
+
+				if cp == cp_open then
+					balance = balance + 1
+				else
+					balance = balance - 1
+				end
+
+				if balance == 0 then
+					return cur_pos
+				end
+
+				::char_loop_end::
+			end
+
+			::row_loop_end::
 		end
 	end
+
 
 	local function isMatchable(self, pos)
 		local char = utf8_GetChar(self.Rows[pos[1]], pos[2])
