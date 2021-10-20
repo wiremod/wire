@@ -345,6 +345,7 @@ function Parser:Stmt4()
 			if keytype == nil then
 				self:Error("Unknown type: " .. keytype)
 			end
+			keytype = keytype[1]
 		end
 
 		if not self:AcceptRoamingToken("com") then
