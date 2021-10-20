@@ -74,7 +74,7 @@ local function isusertype(self, tp)
 end
 
 local function ise2type(self, tp)
-	return SIMPLE_TYPES[tp] or wire_expression_types[tp:upper()]
+	return SIMPLE_TYPES[tp] or self.e2types[tp]
 end
 
 function EDITOR:GetSyntaxColor(name)

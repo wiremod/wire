@@ -30,6 +30,11 @@ local type_map = {
 	wl = "xwl",
 	number = "n",
 }
+
+function PreProcessor:GetType(tp)
+	return self.types[ tp:Trim():lower() ]
+end
+
 local function gettype(tp)
 	tp = tp:Trim():lower()
 	local up = tp:upper()
@@ -262,15 +267,18 @@ end
 -- Scan the line for any information (eg structs which define custom types.)
 -- This happens after stripping comments and strings, so there's no false alarms. Invalid syntax can be handled by the parser/tokenizer.
 function PreProcessor:ScanLine(line)
-	local match
-	match = line:match("struct%s+([%l_]+)")
-	if match then self.structs[match] = true end
+	local match = line:match("struct%s+([%l_]+)")
+	if match then
+		self.types[match] = true
+		self.structs[match] = true
+	end
 end
 
 function PreProcessor:Process(buffer, directives, ent)
 	-- entity is needed for autoupdate
 	self.ent = ent
 	self.ifdefStack = {}
+	self.types = setmetatable({}, {__index = wire_expression_types})
 	self.structs = {}
 
 	local lines = string.Explode("\n", buffer)
@@ -374,11 +382,7 @@ function PreProcessor:ParsePorts(ports, startoffset, forbid_structs)
 
 			if vtype == "number" then
 				vtype = "normal"
-			elseif self.structs[vtype] then
-				if forbid_structs then
-					self:Error("Structs are currently not allowed in I/O", column + i + 1)
-				end
-			elseif not wire_expression_types[vtype:upper()] then
+			elseif not self:GetType(vtype) then
 				self:Error("Unknown variable type [" .. E2Lib.limitString(vtype, 10) .. "] specified for variable(s) (" .. E2Lib.limitString(namestring, 10) .. ")", column + i + 1)
 			end
 		elseif character == "" then
@@ -407,12 +411,11 @@ function PreProcessor:GetFunction(args, type)
 	local thistype, colon, name, argtypes = args:match("([^:]-)(:?)([^:(]+)%(([^)]*)%)")
 	if not thistype or (thistype ~= "") ~= (colon ~= "") then self:Error("Malformed " .. type .. " argument " .. args) end
 
-	thistype = gettype(thistype)
+	thistype = self:GetType(thistype)
 
 	local tps = {thistype .. colon}
-	for _, argtype in ipairs(string.Explode(",", argtypes)) do
-		argtype = gettype(argtype)
-		table.insert(tps, argtype)
+	for argtype in string.gmatch(argtypes, "[^,]+") do
+		table.insert(tps, self:GetType(argtype))
 	end
 	local pars = table.concat(tps)
 	return wire_expression2_funcs[name .. "(" .. pars .. ")"]

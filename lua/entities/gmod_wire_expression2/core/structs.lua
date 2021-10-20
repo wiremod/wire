@@ -32,6 +32,15 @@ wire_expression_types["STRUCT"] = {
 }
 ]]
 
+registerType("struct", "xst", E2Lib.newStruct("struct"), function(i)
+	return table.Copy(i)
+end,
+function(i)
+	return table.Copy(i)
+end, function(i)
+	return istable(i) and i.struct
+end)
+
 registerOperator("structbuild", "", "struct", function(self, args)
 	local name, fields = args[2], args[3]
 
@@ -43,14 +52,9 @@ registerOperator("structbuild", "", "struct", function(self, args)
 	return { name = name, fields = fs, struct = true, initialized = true }
 end)
 
-registerOperator("eq", "structstruct", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	if op1[1](self, op1) == op2[1](self, op2) then
-		return 1
-	else
-		return 0
-	end
-end)
+e2function number operator==( struct rv1, struct rv2 )
+	return rv1 == rv2
+end
 
 -- Defining field(get|set) for types other than struct would look like this:
 --[[
@@ -63,14 +67,14 @@ end)
 ]]
 
 -- A.B
-registerOperator("fieldset", "struct=<T>", "", function(self, args)
+registerOperator("fieldset", "xst=<T>", "", function(self, args)
 	local op1, field_name, op2 = args[2], args[3], args[4]
 	local obj = op1[1](self, op1)
 
 	obj.fields[field_name] = op2[1](self, op2)
 end)
 
-registerOperator("fieldget", "struct", "n", function(self, args)
+registerOperator("fieldget", "xst", "n", function(self, args)
 	local op1, field_name = args[2], args[3]
 	local obj = op1[1](self, op1)
 
@@ -78,7 +82,7 @@ registerOperator("fieldget", "struct", "n", function(self, args)
 end)
 
 -- Logical Ops
-registerOperator("ass", "struct", "struct", function(self, args)
+registerOperator("ass", "xst", "xst", function(self, args)
 	local op1, op2, scope = args[2], args[3], args[4]
 	local rv2 = op2[1](self, op2)
 	self.Scopes[scope][op1] = rv2
@@ -86,18 +90,18 @@ registerOperator("ass", "struct", "struct", function(self, args)
 	return rv2
 end)
 
-registerOperator("is", "struct", "n", function(self, args)
+registerOperator("is", "xst", "n", function(self, args)
 	local op = args[2]
 	local struct = op[1](self, op)
 	if struct.initialized then return 1 else return 0 end
 end)
 
-registerOperator("not", "struct", "n", function(self, args)
+registerOperator("not", "xst", "n", function(self, args)
 	local op = args[2]
 	if op[1](self, op).initialized then return 0 else return 1 end
 end)
 
-registerOperator("and", "structstruct", "n", function(self, args)
+registerOperator("and", "xstxst", "n", function(self, args)
 	local op = args[2]
 	local struct = op[1](self, op)
 	if not struct.initialized then return 0 end
@@ -109,7 +113,7 @@ registerOperator("and", "structstruct", "n", function(self, args)
 	return 1
 end)
 
-registerOperator("or", "structstruct", "n", function(self, args)
+registerOperator("or", "xstxst", "n", function(self, args)
 	local op = args[2]
 	local struct = op[1](self, op)
 
@@ -123,25 +127,23 @@ registerOperator("or", "structstruct", "n", function(self, args)
 end)
 
 -- We know the default value will always be a table, so we use table.Copy directly instead of E2Lib.fixDefault
--- Localize string.sub to get the type out of struct[<type>]
 local table_copy, string_sub = table.Copy, string.sub
-local function struct_default(self, inner_t)
-	inner_t = string_sub(inner_t, 8, -2)
-	return table_copy(self.structs[inner_t][2])
+local function struct_default(self, typeid)
+	return table_copy(self.typeid_lookup[typeid][2])
 end
 
 -- table()[1, <struct_name>]
-registerOperator("idx", "struct=tn", "struct", function(self, args)
-	local op1, op2, inner_t = args[2], args[3], args[4]
+registerOperator("idx", "xst=tn", "xst", function(self, args)
+	local op1, op2, typeid = args[2], args[3], args[4]
 
 	local tbl, index = op1[1](self, op1), op2[1](self, op2)
 	local set_val = tbl.n[index]
-	if set_val == nil or tbl.ntypes[index] ~= inner_t then return struct_default(self, inner_t) end
+	if set_val == nil or tbl.ntypes[index] ~= typeid then return struct_default(self, typeid) end
 	return set_val
 end)
 
 -- table()[1, <struct_name>] = Var
-registerOperator("idx", "struct=tnstruct", "struct", function(self, args)
+registerOperator("idx", "xst=tnxst", "xst", function(self, args)
 	local op1, op2, op3, inner_t = args[2], args[3], args[4], args[5]
 	local tbl, index, value = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 
@@ -162,7 +164,7 @@ registerOperator("idx", "struct=tnstruct", "struct", function(self, args)
 end)
 
 -- table()["index", <struct_name>]
-registerOperator("idx", "struct=ts", "struct", function(self, args)
+registerOperator("idx", "xst=ts", "xst", function(self, args)
 	local op1, op2, inner_t = args[2], args[3], args[4]
 
 	local tbl, index = op1[1](self, op1), op2[1](self, op2)
@@ -173,7 +175,7 @@ registerOperator("idx", "struct=ts", "struct", function(self, args)
 end)
 
 -- table()["index", <struct_name>] = Var
-registerOperator("idx", "struct=tsstruct", "struct", function(self, args)
+registerOperator("idx", "xst=tsxst", "xst", function(self, args)
 	local op1, op2, op3, inner_t = args[2], args[3], args[4], args[5]
 	local tbl, index, value = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 
@@ -195,7 +197,7 @@ end)
 
 local math_floor = math.floor
 -- array()[1, <struct_name>]
-registerOperator("idx", "struct=rn", "struct", function(self, args)
+registerOperator("idx", "xst=rn", "xst", function(self, args)
 	local op1, op2, inner_t = args[2], args[3], args[4]
 	local array, index = op1[1](self, op1), op2[1](self, op2)
 
@@ -207,13 +209,13 @@ registerOperator("idx", "struct=rn", "struct", function(self, args)
 
 	-- We know it's a struct now, so we can use some extra cpu to string.sub in here. Also inlining what struct_default does since we've already done string.sub
 	inner_t = string_sub(inner_t, 8, -2)
-	if val.name ~= inner_t then return table_copy(self.structs[inner_t][2]) end -- Different struct type
+	if val.name ~= inner_t then return table_copy(self.types[inner_t][2]) end -- Different struct type
 
 	return val
 end)
 
 -- array()[1, <struct_name>] = Var
-registerOperator("idx", "struct=rnstruct", "struct", function(self, args)
+registerOperator("idx", "xst=rnxst", "xst", function(self, args)
 	local op1, op2, op3, inner_t = args[2], args[3], args[4], args[5]
 	local array, index, val = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 
@@ -225,6 +227,10 @@ registerOperator("idx", "struct=rnstruct", "struct", function(self, args)
 	self.GlobalScope.vclk[array] = true
 	return val
 end)
+
+e2function string struct:name()
+	return this.name
+end
 
 --[[
 	This is commented out because gtables would be type unsafe.

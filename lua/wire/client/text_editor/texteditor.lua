@@ -83,7 +83,7 @@ function EDITOR:Init()
 	self.LastClick = 0
 
 	self.e2fs_functions = {}
-	self.e2types = {}
+	self.e2types = setmetatable({}, {__index = wire_expression_types})
 
 	self.Colors = {
 		dblclickhighlight = Color(0, 100, 0),

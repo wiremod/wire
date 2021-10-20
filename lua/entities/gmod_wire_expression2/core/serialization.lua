@@ -70,7 +70,7 @@ local function luaTypeToWireTypeid( v )
 	if typename == "number" then typename = "normal" end
 
 	-- convert full type name to typeid
-	return wire_expression_types[ string.upper( typename ) ][1], v
+	return wire_expression_types[ typename ][1], v
 end
 
 local forbiddenTypes = {

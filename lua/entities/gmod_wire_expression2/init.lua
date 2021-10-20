@@ -176,7 +176,7 @@ function ENT:Execute()
 		if typ then
 			self.GlobalScope[k] = fixDefault(typ[2])
 		else
-			typ = self.structs[v]
+			typ = self.types[v]
 			if typ then
 				self.GlobalScope[k] = fixDefault(typ[2])
 			end
@@ -290,7 +290,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.dvars = inst.dvars
 	self.tvars = inst.tvars
 	self.funcs = inst.funcs
-	self.structs = inst.structs
+	self.types = inst.types
 	self.funcs_ret = inst.funcs_ret
 	self.globvars = inst.GlobalScope
 	self.GetE2Type = inst.GetType
@@ -349,7 +349,7 @@ function ENT:ResetContext()
 		vclk = {}, -- Used only by arrays and tables!
 		funcs = self.funcs,
 		funcs_ret = self.funcs_ret,
-		structs = self.structs,
+		types = self.types,
 		entity = self,
 		player = self.player,
 		uid = self.uid,

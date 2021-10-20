@@ -46,6 +46,9 @@ end
 
 -- Returns a new E2 struct instance. The first argument is the struct name.
 -- The second argument is a table of the form { fieldname = value, "XYZ" = Value }.
+---@param usertype string
+---@param fields table?
+---@param initialized boolean?
 function E2Lib.newStruct(usertype, fields, initialized)
 	if fields then
 		return { struct = true, fields = fields, name = usertype, initialized = initialized == nil and true }
@@ -97,10 +100,6 @@ local simpletypes = {
 function E2Lib.typeName(typeid)
 	if simpletypes[typeid] then return simpletypes[typeid] end
 
-	if typeid:sub(1, 8) == "struct[" then
-		return typeid:sub(9, -2)
-	end
-
 	local tp = wire_expression_types2[typeid]
 	if not tp then error("Type ID '" .. typeid .. "' not found", 2) end
 
@@ -114,13 +113,6 @@ function E2Lib.splitType(args)
 	local i = 1
 
 	while i <= #args do
-		local didstruct, ed, match = args:find("^struct%[(.*)%]", i)
-		if didstruct then
-			i = ed + 1
-			table.insert(ret, match)
-			continue
-		end
-
 		local letter = args:sub(i, i)
 		if letter == ":" then
 			if #ret ~= 1 then error("Misplaced ':' in args", 2) end
@@ -139,7 +131,16 @@ function E2Lib.splitType(args)
 				typeid = args:sub(i, i + 2)
 				i = i + 2
 			end
-			table.insert(ret, E2Lib.typeName(typeid))
+
+			if letter == "u" then
+				-- User defined / Unnamed types.
+				local _, ed, ind = args:find("(%d)", i)
+				typeid = ind
+				i = ed
+				table.insert(ret, "usertype")
+			else
+				table.insert(ret, E2Lib.typeName(typeid))
+			end
 		end
 		i = i + 1
 	end

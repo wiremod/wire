@@ -121,7 +121,7 @@ function Parser:Process(tokens, const_data)
 	self.count = #tokens
 	self.delta = {}
 	self.includes = {}
-	self.structs = {}
+	self.types = setmetatable(const_data.structs, { __index = wire_expression_types })
 
 	self:NextToken()
 	local tree = self:Root()
@@ -129,7 +129,7 @@ function Parser:Process(tokens, const_data)
 		print(E2Lib.AST.dump(tree))
 	end
 	-- 4th return is a table of constant datas that will be passed to the compiler (such as structs). Made a table for future use
-	return tree, self.delta, self.includes, { structs = self.structs }
+	return tree, self.delta, self.includes, { structs = const_data.structs }
 end
 
 -- ---------------------------------------------------------------------
@@ -765,7 +765,8 @@ function Parser:Stmt14()
 		local trace = self:GetTokenTrace()
 		local type_name = self:AssertType("Expected lowercase struct name")
 
-		if self:GetType(type_name) then
+		local t = self:GetType(type_name)
+		if t ~= nil and t ~= true then
 			-- By default, self.structs is filled with { <name> = true, ... }, data found from the preprocessor.
 			-- This is so we can declare struct instances before they're even defined.
 			self:Error("Type '" .. type_name .. "' already exists")
@@ -785,10 +786,29 @@ function Parser:Stmt14()
 				fields = {fieldname = { [1] = typename, [2] = typeid }, ...},
 				name = struct_name
 			}
+			[1] = "struct",
+	[2] = { fields = {} },
+	[4] = function(self, output) return output end,
+	[5] = function(retval)
+		if not istable(retval) then return end
+		if not retval.struct then error("Return value is neither nil nor a Struct, but a " .. type(retval) .. "!",0) end
+	end,
+	[6] = function(v)
+		return not v.struct
+	end
 		]]
-		local tobj = { [1] = "struct[" .. type_name .. "]", fields = fields, name = type_name, structdef = true }
-		self.structs[type_name] = tobj
-		self.structs[type_name:upper()] = tobj
+
+
+		local tobj = {
+			[1] = type_name,
+			["extends"] = "xst", -- Inherit from struct type
+
+			fields = fields,
+			name = type_name,
+			structdef = true
+		}
+
+		self.types[type_name] = tobj
 
 		return self:Instruction(trace, "struct", type_name, tobj)
 	end
@@ -849,7 +869,7 @@ end
 --- Assumes type_name is already uppercase
 -- To be used after AssertType
 function Parser:GetType(type_name)
-	return wire_expression_types[type_name:upper()] or self.structs[type_name]
+	return self.types[type_name]
 end
 
 function Parser:FunctionArgs(Temp, Args)

@@ -40,7 +40,12 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes, const
 	self.prfcounters = {}
 	self.tvars = {}
 	self.funcs = {} -- user defined functions
-	self.structs = const_data.structs -- user defined types. We get a default table of data from the parser so that directive structs can be used.
+
+	-- Immutable types local to the chip. Inherits from wire_expression_types(2)
+	self.types = setmetatable(const_data.structs, {__index = wire_expression_types})
+	self.typeid_lookup = setmetatable({}, {__index = wire_expression_types2})
+	self.typeid_counter = 0
+
 	self.dvars = {}
 	self.funcs_ret = {}
 	self.EnclosingFunctions = { --[[ { ReturnType: string } ]] }
@@ -155,15 +160,19 @@ function Compiler:GetVariableType(instance, name)
 	return nil
 end
 
-function Compiler:SetType(name, type_struct)
-	-- Types are defined as { fields = table, name = string, [1] = "struct[<name>]", [2] = default }
-	self.structs[name] = type_struct
-	self.structs[name:upper()] = type_struct
-	self.structs["struct[" .. name .. "]"] = type_struct
+function Compiler:TypeID(name)
+	self.typeid_counter = self.typeid_counter + 1
+	return "u" .. self.typeid_counter
 end
 
-function Compiler:GetType(name)
-	return wire_expression_types[name:upper()] or self.structs[name] or wire_expression_types2[name]
+-- Sets a type in the local compiler.
+function Compiler:SetType(name, type_struct)
+	self.types[name] = type_struct
+	self.typeid_lookup[type_struct[1]] = type_struct
+end
+
+function Compiler:GetType(name_or_id)
+	return self.types[name_or_id] or self.typeid_lookup[name_or_id]
 end
 
 -- ---------------------------------------------------------------------------
@@ -189,28 +198,46 @@ function Compiler:Evaluate(args, index)
 	return ex, tp
 end
 
--- Gets a list of args and returns a string signature
--- Works with usertypes by using struct's id versus the full signature.
-local function getOperatorArgs(args)
-	local pars = {}
-	for k, tp in ipairs(args) do
-		-- Strip struct name from struct, since structs will just use generic operations.
-		pars[k] = tp:match("^(struct)%[.*%]$") or tp
-	end
-	return table.concat(pars)
-end
-
 function Compiler:HasOperator(instr, name, tps)
-	local a = wire_expression2_funcs["op:" .. name .. "(" .. getOperatorArgs(tps) .. ")"]
-	return a and true or false
+	local op = wire_expression2_funcs["op:" .. name .. "(" .. table.concat(tps, "") .. ")"]
+	if op then return true end
+
+	local extend_cache = {}
+
+	for k, tp in ipairs(tps) do
+		local extension = extend_cache[tp] or self.typeid_lookup[tp].extends
+		if extension then
+			extend_cache[tp] = extension
+			tps[k] = extension
+			if self:HasOperator(instr, name, tps) then
+				return true
+			end
+			tps[k] = tp
+		end
+	end
+
+	return false
 end
 
 function Compiler:GetOperator(instr, name, tps)
-	local op = wire_expression2_funcs["op:" .. name .. "(" .. getOperatorArgs(tps) .. ")"]
-	if not op then
-		self:Error("No such operator: " .. op_find(name) .. "(" .. tps_pretty(tps) .. ")", instr)
-		return
+	local op = wire_expression2_funcs["op:" .. name .. "(" .. table.concat(tps, "") .. ")"]
+	if op then return { op[3], op[2], op[1] } end
+
+	local extend_cache = {}
+
+	for k, tp in ipairs(tps) do
+		local extension = extend_cache[tp] or self.typeid_lookup[tp].extends
+		if extension then
+			extend_cache[tp] = extension
+			tps[k] = extension
+			if self:HasOperator(instr, name, tps) then
+				return self:GetOperator(instr, name, tps)
+			end
+			tps[k] = tp
+		end
 	end
+
+	self:Error("No such operator: " .. op_find(name) .. "(" .. tps_pretty(tps) .. ")", instr)
 
 	self.prfcounter = self.prfcounter + (op[4] or 3)
 
@@ -238,55 +265,113 @@ function Compiler:UDFunction(Sig)
 	end
 end
 
+---@return table? data The function data, or nil if the function doesn't exist
+function Compiler:MaybeFunction(instr, name, args)
+	local params = table.concat(args)
+	local func = wire_expression2_funcs[name .. "(" .. params .. ")"]
 
-function Compiler:GetFunction(instr, Name, Args)
-	local Params = table.concat(Args)
-	local Func = wire_expression2_funcs[Name .. "(" .. Params .. ")"]
-
-	if not Func then
-		Func = self:UDFunction(Name .. "(" .. Params .. ")")
+	if not func then
+		func = self:UDFunction(name .. "(" .. params .. ")")
 	end
 
-	if not Func then
-		for I = #Params, 0, -1 do
-			Func = wire_expression2_funcs[Name .. "(" .. Params:sub(1, I) .. "...)"]
-			if Func then break end
+	if not func then
+		for I = #params, 0, -1 do
+			func = wire_expression2_funcs[name .. "(" .. params:sub(1, I) .. "...)"]
+			if func then
+				return func
+			end
 		end
 	end
 
-	if not Func then
-		self:Error("No such function: " .. Name .. "(" .. tps_pretty(Args) .. ")", instr)
-		return
+	if not func then
+		local extend_cache = {}
+
+		for k, tp in ipairs(args) do
+			local extension = extend_cache[tp] or self.typeid_lookup[tp].extends
+			if extension then
+				extend_cache[tp] = extension
+				args[k] = extension
+				local maybe = self:MaybeFunction(instr, name, args)
+				if maybe then
+					return maybe
+				end
+				args[k] = tp
+			end
+		end
 	end
 
-	self.prfcounter = self.prfcounter + (Func[4] or 20)
-
-	return { Func[3], Func[2], Func[1] }
+	return func
 end
 
-function Compiler:GetMethod(instr, Name, Meta, Args)
-	local Params = Meta .. ":" .. table.concat(Args)
-	local Func = wire_expression2_funcs[Name .. "(" .. Params .. ")"]
 
-	if not Func then
-		Func = self:UDFunction(Name .. "(" .. Params .. ")")
-	end
+function Compiler:GetFunction(instr, name, args)
+	local func = self:MaybeFunction(instr, name, args)
 
-	if not Func then
-		for I = #Params, #Meta + 1, -1 do
-			Func = wire_expression2_funcs[Name .. "(" .. Params:sub(1, I) .. "...)"]
-			if Func then break end
-		end
-	end
-
-	if not Func then
-		self:Error("No such function: " .. tps_pretty({ Meta }) .. ":" .. Name .. "(" .. tps_pretty(Args) .. ")", instr)
+	if not func then
+		self:Error("No such function: " .. name .. "(" .. tps_pretty(args) .. ")", instr)
 		return
 	end
 
-	self.prfcounter = self.prfcounter + (Func[4] or 20)
+	self.prfcounter = self.prfcounter + (func[4] or 20)
 
-	return { Func[3], Func[2], Func[1] }
+	return { func[3], func[2], func[1] }
+end
+
+function Compiler:MaybeMethod(instr, name, meta, args)
+	local params = meta .. ":" .. table.concat(args)
+	local func = wire_expression2_funcs[name .. "(" .. params .. ")"]
+	if func then return func end
+
+	local extension = self.typeid_lookup[meta].extends
+
+	if extension then
+		repeat
+			extension = self.typeid_lookup[extension].extends
+		until not extension
+
+		func = wire_expression2_funcs[name .. "(" .. self.typeid_lookup[meta].extends .. ":" .. table.concat(args) .. ")"]
+		if func then return func end
+	end
+
+	func = self:UDFunction(name .. "(" .. params .. ")")
+	if func then return func end
+
+	for I = #params, #meta + 1, -1 do
+		func = wire_expression2_funcs[name .. "(" .. params:sub(1, I) .. "...)"]
+		if func then
+			return func
+		end
+	end
+
+	local extend_cache = {}
+
+	for k, tp in ipairs(args) do
+		local extension = extend_cache[tp] or self.typeid_lookup[tp].extends
+		if extension then
+			extend_cache[tp] = extension
+			args[k] = extension
+			local maybe = self:MaybeMethod(instr, name, meta, args)
+			if maybe then
+				return maybe
+			end
+			args[k] = tp
+		end
+	end
+
+	return func
+end
+
+function Compiler:GetMethod(instr, name, meta, args)
+	local func = self:MaybeMethod(instr, name, meta, args)
+
+	if not func then
+		self:Error("No such function: " .. tps_pretty({ meta }) .. ":" .. name .. "(" .. tps_pretty(args) .. ")", instr)
+		return
+	end
+
+	self.prfcounter = self.prfcounter + (func[4] or 20)
+
+	return { func[3], func[2], func[1] }
 end
 
 function Compiler:PushPrfCounter()
@@ -557,9 +642,9 @@ function Compiler:InstrSET(args)
 	local ex, tp = self:Evaluate(args, 1)
 	local ex1, tp1 = self:Evaluate(args, 2)
 	local ex2, tp2 = self:Evaluate(args, 3)
-	local value_type = args[6]
+	local expected_type = args[6]
 
-	if value_type == nil then
+	if expected_type == nil then
 		if not self:HasOperator(args, "idx", { tp, tp1, tp2 }) then
 			self:Error("No such operator: set " .. tps_pretty({ tp }) .. "[" .. tps_pretty({ tp1 }) .. "]=" .. tps_pretty({ tp2 }), args)
 		end
@@ -568,8 +653,8 @@ function Compiler:InstrSET(args)
 
 		return { rt[1], ex, ex1, ex2, nil }, rt[2]
 	else
-		if tp2 ~= value_type then
-			self:Error("Indexing type mismatch, specified [" .. tps_pretty({ value_type }) .. "] but value is [" .. tps_pretty({ tp2 }) .. "]", args)
+		if tp2 ~= expected_type then
+			self:Error("Indexing type mismatch, specified [" .. tps_pretty({ expected_type }) .. "] but value is [" .. tps_pretty({ tp2 }) .. "]", args)
 		end
 
 		if not self:HasOperator(args, "idx", { tp2, "=", tp, tp1, tp2 }) then
@@ -577,7 +662,7 @@ function Compiler:InstrSET(args)
 		end
 		local rt = self:GetOperator(args, "idx", { tp2, "=", tp, tp1, tp2 })
 
-		return { rt[1], ex, ex1, ex2, value_type }, tp2
+		return { rt[1], ex, ex1, ex2, expected_type }, tp2
 	end
 end
 
@@ -1019,10 +1104,12 @@ function Compiler:InstrSTRUCT(args)
 
 	local default_fields = {}
 	for field_name, field_type in pairs(type_obj.fields) do
-		default_fields[field_name] = self:GetType( field_type:match("(struct)%[.*%]") or field_type )[2]
+		default_fields[field_name] = self:GetType( field_type )[2]
 	end
 
 	local default_value = newStruct(type_name, default_fields, false)
+
+	type_obj[1] = self:TypeID(type_name)
 	type_obj[2] = default_value
 
 	self.prfcounter = self.prfcounter + 10
@@ -1034,7 +1121,7 @@ function Compiler:InstrSTRUCT(args)
 		function(instance)
 			-- E2 can't const :(
 			if not_initialized then
-				instance.structs[type_name] = type_obj
+				instance.types[type_name] = type_obj
 				not_initialized = nil
 			end
 		end,
@@ -1046,8 +1133,10 @@ function Compiler:InstrSTRUCTBUILD(args)
 	-- args = { "structbuild", trace, type_name, type }
 	local type_name, values = args[3], args[4]
 
-	local struct_types = self.structs[type_name].fields
-	for field in pairs(struct_types) do
+	local struct_type = self.types[type_name]
+	local field_types = struct_type.fields
+
+	for field in pairs(field_types) do
 		if not values[field] then
 			self:Error("Missing field '" .. field .. "' in struct '" .. type_name .. "'", args)
 		end
@@ -1058,7 +1147,7 @@ function Compiler:InstrSTRUCTBUILD(args)
 	local fields = {}
 	for k, value in pairs(values) do
 		local val, typ = self:CallInstruction(value[1], value)
-		local expected = struct_types[k]
+		local expected = field_types[k]
 		if typ == expected then
 			fields[k] = val
 		else
@@ -1066,7 +1155,7 @@ function Compiler:InstrSTRUCTBUILD(args)
 		end
 	end
 
-	return { self:GetOperator(args, "structbuild", {})[1], type_name, fields }, "struct[" .. type_name .. "]"
+	return { self:GetOperator(args, "structbuild", {})[1], type_name, fields }, struct_type[1]
 end
 
 function Compiler:InstrFIELDGET(args)
@@ -1081,7 +1170,7 @@ function Compiler:InstrFIELDGET(args)
 
 	local desired_t
 	if usertype then
-		desired_t = self.structs[usertype].fields[field_name]
+		desired_t = self.types[usertype].fields[field_name]
 		if not desired_t then self:Error("Field '" .. E2Lib.limitString(field_name, 15) .. "' does not exist in struct '" .. usertype .. "'", args) end
 	end
 
@@ -1105,7 +1194,7 @@ function Compiler:InstrFIELDSET(args)
 
 	local desired_t
 	if usertype then
-		desired_t = self.structs[usertype].fields[field_name]
+		desired_t = self.types[usertype].fields[field_name]
 		if not desired_t then self:Error("Field '" .. E2Lib.limitString(field_name, 15) .. "' does not exist in struct '" .. usertype .. "'", args) end
 
 		if desired_t ~= set_tp then

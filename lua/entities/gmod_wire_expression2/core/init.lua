@@ -81,7 +81,16 @@ function wire_expression2_reset_extensions()
 		postexecute = {},
 	}
 
-	wire_expression_types = {}
+	wire_expression_types = setmetatable({},{
+		-- Backwards compatibility for UPPERCASE types
+		__index = function(t, k)
+			return rawget(t, string.lower(k))
+		end,
+
+		__newindex = function(t, k, v)
+			return rawset(t, string.lower(k), v)
+		end
+	})
 	wire_expression_types2 = {
 		[""] = {
 			[5] = function(retval) if retval ~= nil then error("Return value of void function is not nil.", 0) end end
@@ -97,20 +106,38 @@ local function isValidTypeId(id)
 	return #id == (string.sub(id, 1, 1) == "x" and 3 or 1)
 end
 
--- additional args: <input serializer>, <output serializer>, <type checker>
-function registerType(name, id, def, ...)
+local fmt = string.format
+
+---@param name string
+---@param id string
+---@param def any
+---@param ser function
+---@param de function
+---@param type_check function
+---@param validity_check function
+---@param inherits string @Typeid to inherit
+function registerType(name, id, def, ser, de, type_check, validity_check, extends)
 	if not isValidTypeId(id) then
 		-- this type ID format is relied on in various places including
 		-- E2Lib.splitType, and malformed type IDs cause confusing and subtle
 		-- errors. Catch this early and blame the caller.
-		error(string.format("malformed type ID '%s' - type IDs must be one " ..
-		"character long, or three characters long starting with an x", id), 2)
+		error("malformed type ID '" .. id .. "' - type IDs must be one character long, or three characters long starting with an x", 2)
 	end
 
-	name = string.upper(name)
+	-- Inherit a type.
+	-- This is the base system for structs
+	if extends ~= nil then
+		if not isValidTypeId(extends) then
+			error("malformed type ID '" .. extends .. "' - type IDs must be one character long, or three characters long starting with an x", 2)
+		end
 
-	wire_expression_types[name] = { id, def, ... }
-	wire_expression_types2[id] = { name, def, ... }
+		if wire_expression_types[extends] == nil then
+			error("inherited type '" .. extends .. "' does not exist", 2)
+		end
+	end
+
+	wire_expression_types[name] = { id, def, ser, de, type_check, validity_check, ["extends"] = extends }
+	wire_expression_types2[id] = { name, def, type_check, validity_check, ["extends"] = extends }
 	if not WireLib.DT[name] then
 		WireLib.DT[name] = { Zero = def }
 	end
