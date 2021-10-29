@@ -1,0 +1,185 @@
+"UnlitTwoTexture"
+{
+	$nolod 1
+	$vertexcolor 1
+	$basetexture "matsys_regressiontest/background"
+    !targettex1 "$basetexture"
+
+	"$texture2"	"dev/dev_scanline"
+
+	"$one"		1
+	"$zero"		0
+	"$temp"		0
+	"$texoffset"	"[0 0]"
+	"$texscale"	.25
+	"$tex2offset"	"[0 0]"
+	"$tex2scale"	0
+
+	"$a_b_halfwidth" 	0.1
+	"$a_b_noise"		0
+
+	"$a_s_halfwidth" 	0.025
+	"$a_s_noise"		0
+
+	"$a_t_halfwidth" 	0.00
+	"$a_threshold"		0.7
+
+	"$alpha_bias"		0.2
+
+//
+	"$j_b_halfwidth" 	2
+	"$j_b_noise"		0
+
+	"$j_s_halfwidth" 	0.05
+	"$j_s_noise"		0
+
+	"$j_t_halfwidth" 	0.25
+	"$j_threshold"		3
+
+	"$j_basescale"		2
+
+//
+	"$xo_b_halfwidth" 	0.035
+	"$xo_b_noise"		0
+
+	"$xo_s_halfwidth" 	0.001
+	"$xo_s_noise"		0
+
+	"$xo_t_halfwidth" 	0.0
+	"$xo_threshold"		0.1
+
+	"Proxies"
+	{
+
+		"Sine"
+		{
+			"resultVar" "$color[0]"
+			"sineperiod" 1
+			"sinemin" .9
+			"sinemax" .9
+		}
+		"Sine"
+		{
+			"resultVar" "$color[1]"
+			"sineperiod" .01
+			"sinemin" .9
+			"sinemax" 1
+		}
+
+
+
+
+//		alpha noise
+
+		"GaussianNoise"
+		{
+			"mean"	"$zero"
+			"halfwidth"	"$a_b_halfwidth"
+			"resultVar"	"$a_b_noise"
+		}
+		"Abs"
+		{
+			"srcVar1"	"$a_b_noise"
+			"resultVar"	"$a_b_noise"
+		}
+		"Subtract"
+		{
+			"srcvar1"	"$one"
+			"srcvar2"	"$a_b_noise"
+			"resultvar"	"$a_b_noise"
+		}
+		"GaussianNoise"
+		{
+			"mean"	"$zero"
+			"halfwidth"	"$a_s_halfwidth"
+			"resultVar"	"$a_s_noise"
+		}
+		"Abs"
+		{
+			"srcVar1"	"$a_s_noise"
+			"resultVar"	"$a_s_noise"
+		}
+		"Subtract"
+		{
+			"srcvar1"	"$one"
+			"srcvar2"	"$a_s_noise"
+			"resultvar"	"$a_s_noise"
+		}
+		"GaussianNoise"
+		{
+			"mean"	"$a_threshold"
+			"halfwidth"	"$a_t_halfwidth"
+			"resultVar"	"$a_threshold"
+		}
+		"LessOrEqual"
+		{
+			"srcVar1"	"$a_b_noise"
+			"srcVar2"	"$a_threshold"
+			"lessEqualVar"	"$a_b_noise"
+			"greaterVar"	"$a_s_noise"
+			"resultVar"	"$temp"
+		}
+
+
+
+//		interlace noise
+
+
+		"GaussianNoise"
+		{
+			"mean"	"$zero"
+			"halfwidth"	"$j_b_halfwidth"
+			"resultVar"	"$j_b_noise"
+		}
+		"GaussianNoise"
+		{
+			"mean"	"$zero"
+			"halfwidth"	"$j_s_halfwidth"
+			"resultVar"	"$j_s_noise"
+		}
+		"GaussianNoise"
+		{
+			"mean"	"$j_threshold"
+			"halfwidth"	"$j_t_halfwidth"
+			"resultVar"	"$j_threshold"
+		}
+		"Abs"
+		{
+			"srcVar1"	"$j_b_noise"
+			"resultVar"	"$temp"
+		}
+		"LessOrEqual"
+		{
+			"srcVar1"	"$temp"
+			"srcVar2"	"$j_threshold"
+			"lessEqualVar"	"$j_s_noise"
+			"greaterVar"	"$j_b_noise"
+			"resultVar"	"$temp"
+		}
+		"Add"
+		{
+			"srcvar1"	"$temp"
+			"srcvar2"	"$j_basescale"
+			"resultvar"	"$tex2scale"
+		}
+
+		"TextureTransform"
+		{
+			"translateVar" "$texoffset"
+			"resultVar" "$basetexturetransform"
+		}
+
+		"LinearRamp"
+		{
+			"resultVar" "$tex2offset[1]"
+			"rate" -.91
+		}
+
+		"TextureTransform"
+		{
+//			"scaleVar"	"$tex2scale"
+			"translateVar"	"$tex2offset"
+			"resultVar"	"$texture2transform"
+		}
+	}
+}

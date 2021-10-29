@@ -1,0 +1,7 @@
+"UnlitGeneric"
+{
+	$basetexture "matsys_regressiontest/background"
+    !targettex1 "$basetexture"
+    $vertexcolor 1
+    $nolod 1
+}

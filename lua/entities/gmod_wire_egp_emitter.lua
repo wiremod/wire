@@ -20,7 +20,11 @@ if SERVER then
 		self:SetDrawOffsetAng(DrawOffsetAng)
 		self:SetDrawScale(DrawScale)
 
-		self.Inputs = WireLib.CreateSpecialInputs(self, { "Scale", "Position", "Angle" }, {"NORMAL", "VECTOR", "ANGLE"})
+		WireLib.CreateInputs(self, { 
+			"Scale (Increase or decrease draw scale. Limited between 0.04 and 2)", 
+			"Position (Offsets the draw position. Limited between -150 to +150 in any direction away from the emitter.) [VECTOR]", 
+			"Angle (Offsets the draw angle.) [ANGLE]" 
+		})
 	end
 
 	function ENT:TriggerInput(iname, value)

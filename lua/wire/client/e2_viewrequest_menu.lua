@@ -81,7 +81,7 @@ list.Set("DesktopWindows", "WireExpression2_ViewRequestMenu", {
 
 			for initiator, requests in pairs(viewRequests) do
 				for chip, request in pairs(requests) do
-					if not displayed[initiator][chip] and ValidateRequest(initiator, chip) then
+					if (not displayed[initiator] or not displayed[initiator][chip]) and ValidateRequest(initiator, chip) then
 						local line = self:AddLine(tostring(chip:EntIndex()), initiator:Nick(), request.name, tostring(math.ceil(request.expiry - CurTime())))
 						line.initiator = initiator
 						line.chip = chip
