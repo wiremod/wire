@@ -42,24 +42,31 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes, const
 	self.funcs = {} -- user defined functions
 
 	-- Immutable types local to the chip. Inherits from wire_expression_types(2)
-	self.types = setmetatable(const_data.structs, {__index = wire_expression_types})
 	self.typeid_lookup = setmetatable({}, {__index = wire_expression_types2})
 	self.typeid_counter = 0
+
+	local types = {}
+	self.types = types
+	for k, typ in pairs(const_data.structs) do
+		typ[1] = self:GetTypeID(k)
+		self:SetType(k, typ)
+	end
+	self.types = setmetatable(types, {__index = wire_expression_types})
 
 	self.dvars = {}
 	self.funcs_ret = {}
 	self.EnclosingFunctions = { --[[ { ReturnType: string } ]] }
 
 	for name, v in pairs(inputs) do
-		self:SetGlobalVariableType(name, self:GetType(v)[1], { nil, { 0, 0 } })
+		self:SetGlobalVariableType(name, self:GetTypeID(v), { nil, { 0, 0 } })
 	end
 
 	for name, v in pairs(outputs) do
-		self:SetGlobalVariableType(name, self:GetType(v)[1], { nil, { 0, 0 } })
+		self:SetGlobalVariableType(name, self:GetTypeID(v), { nil, { 0, 0 } })
 	end
 
 	for name, v in pairs(persist) do
-		self:SetGlobalVariableType(name, self:GetType(v)[1], { nil, { 0, 0 } })
+		self:SetGlobalVariableType(name, self:GetTypeID(v), { nil, { 0, 0 } })
 	end
 
 	for name, v in pairs(delta) do
@@ -160,9 +167,16 @@ function Compiler:GetVariableType(instance, name)
 	return nil
 end
 
-function Compiler:TypeID(name)
-	self.typeid_counter = self.typeid_counter + 1
-	return "u" .. self.typeid_counter
+--- Gets or allocates a typeid for a type name.
+---@param name string Type name
+function Compiler:GetTypeID(name)
+	local lookup = self.types[name]
+	if lookup then
+		return lookup[1]
+	else
+		self.typeid_counter = self.typeid_counter + 1
+		return "u" .. self.typeid_counter
+	end
 end
 
 -- Sets a type in the local compiler.
@@ -1107,14 +1121,16 @@ function Compiler:InstrSTRUCT(args)
 		default_fields[field_name] = self:GetType( field_type )[2]
 	end
 
-	local default_value = newStruct(type_name, default_fields, false)
+	local default_value = newStruct(type_name, default_fields, type_obj.fields, false)
 
-	type_obj[1] = self:TypeID(type_name)
+	if not self:GetType(type_name) then
+		type_obj[1] = self:GetTypeID(type_name)
+		self:SetType( type_name, type_obj )
+	end
+
 	type_obj[2] = default_value
 
 	self.prfcounter = self.prfcounter + 10
-
-	self:SetType( type_name, type_obj )
 
 	local not_initialized = true
 	return {
@@ -1148,14 +1164,32 @@ function Compiler:InstrSTRUCTBUILD(args)
 	for k, value in pairs(values) do
 		local val, typ = self:CallInstruction(value[1], value)
 		local expected = field_types[k]
-		if typ == expected then
+		if not expected then
+			self:Error("Field '" .. k .. "' does not exist in struct '" .. type_name .. "'", args)
+		elseif typ == self:GetTypeID(expected) then
 			fields[k] = val
 		else
 			self:Error("Expected " .. tps_pretty(expected) .. ", got " .. tps_pretty(typ) .. " for field " .. k, args)
 		end
 	end
 
-	return { self:GetOperator(args, "structbuild", {})[1], type_name, fields }, struct_type[1]
+	return { self:GetOperator(args, "structbuild", {})[1], type_name, fields, field_types }, struct_type[1]
+end
+
+-- Checks if a given type object (t) extends type (extend_id) or is the type.
+-- Can be used to see if a type 'implements' something.
+---@param t_id string
+---@param extend_id string
+function Compiler:TypeExtends(t_id, extend_id)
+	while t_id ~= extend_id do
+		local ext = self:GetType(t_id).extends
+		if ext then
+			t_id = ext
+		else
+			return false
+		end
+	end
+	return true
 end
 
 function Compiler:InstrFIELDGET(args)
@@ -1165,13 +1199,17 @@ function Compiler:InstrFIELDGET(args)
 
 	self.prfcounter = self.prfcounter + 1
 
-	local t, usertype = obj_tp:match("^(struct)%[(.+)%]$")
-	if t then obj_tp = t end
-
 	local desired_t
-	if usertype then
-		desired_t = self.types[usertype].fields[field_name]
-		if not desired_t then self:Error("Field '" .. E2Lib.limitString(field_name, 15) .. "' does not exist in struct '" .. usertype .. "'", args) end
+	if self:TypeExtends(obj_tp, "xst") then
+		-- Struct type!
+		local typeof_obj = self:GetType(obj_tp)
+		local fields = typeof_obj.fields
+		if fields then
+			desired_t = fields[field_name]
+			if not desired_t then self:Error("Field '" .. E2Lib.limitString(field_name, 15) .. "' does not exist in struct '" .. typeof_obj.name .. "'", args) end
+		else
+			self:Error("Illegal generic struct access", args)
+		end
 	end
 
 	if not self:HasOperator(args, "fieldget", { obj_tp }) then
@@ -1189,12 +1227,9 @@ function Compiler:InstrFIELDSET(args)
 	local field_name = args[4]
 	local setobj, set_tp = self:Evaluate(args, 3)
 
-	local t, usertype = obj_tp:match("^(struct)%[(.+)%]$")
-	if t then obj_tp = t end
 
-	local desired_t
-	if usertype then
-		desired_t = self.types[usertype].fields[field_name]
+	if self:TypeExtends(obj_tp, "xst") then
+		local desired_t = self:GetType(obj_tp).fields[field_name]
 		if not desired_t then self:Error("Field '" .. E2Lib.limitString(field_name, 15) .. "' does not exist in struct '" .. usertype .. "'", args) end
 
 		if desired_t ~= set_tp then

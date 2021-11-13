@@ -776,7 +776,7 @@ function Parser:Stmt14()
 			self:Error("Left curly bracket ({) expected after type statement")
 		end
 
-		local fields = self:TypeDecl(type_name)
+		local fields = self:StructDecl(type_name)
 
 		--[[
 			{
@@ -815,12 +815,12 @@ function Parser:Stmt14()
 	return self:Expr1()
 end
 
-function Parser:TypeDecl(t_being_declared)
+function Parser:StructDecl(t_being_declared)
 	local fields = {}
 	if self:HasTokens() and not self:AcceptRoamingToken("rcb") then
 		while true do
 			if not self:AcceptRoamingToken("var") then
-				self:Error("Expected field name in type declaration")
+				self:Error("Expected field name in struct declaration")
 			end
 			local field_name = self:GetTokenData()
 
@@ -839,8 +839,8 @@ function Parser:TypeDecl(t_being_declared)
 				self:Error("Type " .. field_type .. " does not exist")
 			end
 
-			-- Save name and id for later
-			fields[field_name] = typeobj[1] --{ name = field_type, id = typeobj[1] }
+			-- Save name and type for later
+			fields[field_name] = field_type
 
 			if self:AcceptRoamingToken("rcb") then
 				return fields

@@ -74,7 +74,7 @@ local function isusertype(self, tp)
 end
 
 local function ise2type(self, tp)
-	return SIMPLE_TYPES[tp] or self.e2types[tp]
+	return SIMPLE_TYPES[tp] or wire_expression_types[tp]
 end
 
 function EDITOR:GetSyntaxColor(name)
@@ -422,7 +422,7 @@ function EDITOR:SyntaxColorLine(row)
 		end
 	end
 
-	found = self:SkipPattern("( *struct)")
+	found = self:SkipPattern("( *struct )")
 
 	if found then
 		addToken("keyword", found)

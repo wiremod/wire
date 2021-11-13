@@ -32,13 +32,7 @@ local type_map = {
 }
 
 function PreProcessor:GetType(tp)
-	return self.types[ tp:Trim():lower() ]
-end
-
-local function gettype(tp)
-	tp = tp:Trim():lower()
-	local up = tp:upper()
-	return type_map[tp] or (wire_expression_types[up] and wire_expression_types[up][1]) or tp
+	return self.types[tp]
 end
 
 function PreProcessor:HandlePPCommand(comment)
@@ -173,10 +167,10 @@ function PreProcessor:RemoveComments(line, handle)
 end
 
 -- Handle inputs, outputs & persist, name is "inputs", "outputs", etc.
-local function handleIO(name, forbid_structs)
+local function handleIO(name)
 	return function(self, value)
 		local ports = self.directives[name]
-		local retval, columns = self:ParsePorts(value, #name + 2, forbid_structs)
+		local retval, columns = self:ParsePorts(value, #name + 2)
 
 		for i, key in ipairs(retval[1]) do
 			if ports[3][key] then
@@ -212,9 +206,9 @@ local directive_handlers = {
 		end
 	end,
 
-	["inputs"] = handleIO("inputs", true),
-	["outputs"] = handleIO("outputs", true),
-	["persist"] = handleIO("persist", false),
+	["inputs"] = handleIO("inputs"),
+	["outputs"] = handleIO("outputs"),
+	["persist"] = handleIO("persist"),
 
 	["trigger"] = function(self, value)
 		local trimmed = string.Trim(value)
@@ -362,7 +356,7 @@ function PreProcessor:Process(buffer, directives, ent)
 	return self.directives, table.concat(lines, "\n"), { structs = self.structs }
 end
 
-function PreProcessor:ParsePorts(ports, startoffset, forbid_structs)
+function PreProcessor:ParsePorts(ports, startoffset)
 	local names = {}
 	local types = {}
 	local columns = {}
@@ -433,7 +427,7 @@ function PreProcessor:ParsePorts(ports, startoffset, forbid_structs)
 
 		-- fill in the missing types
 		for i = #types + 1, #names do
-			types[i] = vtype:upper()
+			types[i] = vtype
 			columns[i] = column
 		end
 	end

@@ -16,30 +16,16 @@
 		This is used for if(X), &, |, etc.
 ]]
 
-
---[[
-wire_expression_types["STRUCT"] = {
-	[1] = "struct",
-	[2] = { fields = {} },
-	[4] = function(self, output) return output end,
-	[5] = function(retval)
-		if not istable(retval) then return end
-		if not retval.struct then error("Return value is neither nil nor a Struct, but a " .. type(retval) .. "!",0) end
-	end,
-	[6] = function(v)
-		return not v.struct
-	end
-}
-]]
-
-registerType("struct", "xst", E2Lib.newStruct("struct"), function(i)
-	return table.Copy(i)
-end,
-function(i)
-	return table.Copy(i)
-end, function(i)
+registerType("struct", "xst", E2Lib.newStruct("struct"), nil, nil, function(i)
 	return istable(i) and i.struct
 end)
+
+-- Put these so we don't have to check if the fields exist at runtime.
+-- Hack to save perf.
+wire_expression_types["struct"].fields = {}
+wire_expression_types2["xst"].fields = {}
+
+local newStruct = E2Lib.newStruct
 
 registerOperator("structbuild", "", "struct", function(self, args)
 	local name, fields = args[2], args[3]
@@ -49,11 +35,11 @@ registerOperator("structbuild", "", "struct", function(self, args)
 		fs[field] = value[1](self, value)
 	end
 
-	return { name = name, fields = fs, struct = true, initialized = true }
+	return newStruct(name, fs, args[4], true)
 end)
 
 e2function number operator==( struct rv1, struct rv2 )
-	return rv1 == rv2
+	if rv1 == rv2 then return 1 else return 0 end
 end
 
 -- Defining field(get|set) for types other than struct would look like this:
@@ -230,6 +216,22 @@ end)
 
 e2function string struct:name()
 	return this.name
+end
+
+e2function table struct:fields()
+	local t, size = E2Lib.newE2Table(), 0
+
+	local s, stypes = t.s, t.stypes
+	local ftypes = this.ftypes
+	for k, v in pairs(this.fields) do
+		s[k] = v
+		stypes[k] = ftypes[k]
+		size = size + 1
+	end
+
+	t.size = size
+
+	return t
 end
 
 --[[

@@ -66,8 +66,8 @@ function WireLib.TriggerInput(ent, name, value, ...)
 end
 
 -- an array of data types
-WireLib.DT = {
-	NORMAL = {
+WireLib.DT = setmetatable({
+	NUMBER = {
 		Zero = 0
 	},	-- Numbers
 	VECTOR = {
@@ -86,10 +86,10 @@ WireLib.DT = {
 		Zero = ""
 	},
 	TABLE = {
-		Zero = {n={},ntypes={},s={},stypes={},size=0},
+		Zero = {n = {}, ntypes = {}, s = {}, stypes = {}, size = 0},
 	},
 	BIDIRTABLE = {
-		Zero = {n={},ntypes={},s={},stypes={},size=0},
+		Zero = {n = {}, ntypes = {}, s = {}, stypes = {}, size = 0},
 		BiDir = true
 	},
 	ANY = {
@@ -102,14 +102,28 @@ WireLib.DT = {
 		Zero = {},
 		BiDir = true
 	},
-}
+	STRUCT = {
+		Zero = {
+			struct = true,
+			fields = {},
+			name = "",
+			hash = -1
+		}
+	}
+}, {
+	__index = function(t, input_tp)
+		local res = rawget(t, string.upper(input_tp))
+		if res then return res end
+	end
+})
+WireLib.DT.NORMAL = WireLib.DT.NUMBER
 
 function WireLib.CreateSpecialInputs(ent, names, types, descs)
 	types = types or {}
 	descs = descs or {}
 	local ent_ports = {}
 	ent.Inputs = ent_ports
-	for n,v in pairs(names) do
+	for n, v in pairs(names) do
 		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
 
 		local port = {
@@ -125,8 +139,8 @@ function WireLib.CreateSpecialInputs(ent, names, types, descs)
 		}
 
 		local idx = 1
-		while (Inputs[idx]) do
-			idx = idx+1
+		while Inputs[idx] do
+			idx = idx + 1
 		end
 		port.Idx = idx
 
@@ -145,7 +159,7 @@ function WireLib.CreateSpecialOutputs(ent, names, types, descs)
 	local ent_ports = {}
 	ent.Outputs = ent_ports
 	for n,v in pairs(names) do
-		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
+		local name, desc, tp = ParsePortName(v, types[n] or "NUMBER", descs and descs[n])
 
 		local port = {
 			Entity = ent,
@@ -159,8 +173,8 @@ function WireLib.CreateSpecialOutputs(ent, names, types, descs)
 		}
 
 		local idx = 1
-		while (Outputs[idx]) do
-			idx = idx+1
+		while Outputs[idx] do
+			idx = idx + 1
 		end
 		port.Idx = idx
 
@@ -179,7 +193,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 	descs = descs or {}
 	local ent_ports = ent.Inputs or {}
 	for n,v in ipairs(names) do
-		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
+		local name, desc, tp = ParsePortName(v, types[n] or "NUMBER", descs and descs[n])
 
 		if (ent_ports[name]) then
 			if tp ~= ent_ports[name].Type then

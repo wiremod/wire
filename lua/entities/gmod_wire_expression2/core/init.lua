@@ -115,7 +115,7 @@ local fmt = string.format
 ---@param de function
 ---@param type_check function
 ---@param validity_check function
----@param inherits string @Typeid to inherit
+---@param extends string @Typeid to inherit
 function registerType(name, id, def, ser, de, type_check, validity_check, extends)
 	if not isValidTypeId(id) then
 		-- this type ID format is relied on in various places including
@@ -135,9 +135,10 @@ function registerType(name, id, def, ser, de, type_check, validity_check, extend
 			error("inherited type '" .. extends .. "' does not exist", 2)
 		end
 	end
+	name = string.lower(name)
 
-	wire_expression_types[name] = { id, def, ser, de, type_check, validity_check, ["extends"] = extends }
-	wire_expression_types2[id] = { name, def, type_check, validity_check, ["extends"] = extends }
+	wire_expression_types[name] = { id, def, ser, de, type_check, validity_check, ["extends"] = extends, ["name"] = name }
+	wire_expression_types2[id] = { name, def, type_check, validity_check, ["extends"] = extends, ["name"] = name }
 	if not WireLib.DT[name] then
 		WireLib.DT[name] = { Zero = def }
 	end

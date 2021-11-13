@@ -112,7 +112,7 @@ local function SpecialCase( arg )
 		if arg.struct then
 			local fields, nfields = {}, 1
 			for k, v in pairs(arg.fields) do
-				fields[nfields] = k .. " = " .. ( isstring(v) and '"' .. v .. '"' or tostring(v) )
+				fields[nfields] = k .. " = " .. ( isstring(v) and '"' .. v .. '"' or SpecialCase(v) )
 				nfields = nfields + 1
 			end
 			return string.format( '[' .. arg.name .. "]{" .. table.concat(fields, ", ") .. '}' )

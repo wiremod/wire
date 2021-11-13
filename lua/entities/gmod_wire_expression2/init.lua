@@ -293,7 +293,28 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.types = inst.types
 	self.funcs_ret = inst.funcs_ret
 	self.globvars = inst.GlobalScope
-	self.GetE2Type = inst.GetType
+	self.GetE2Type = function(_, t) return inst:GetType(t) end
+
+	for k, typ in pairs(self.inports[2]) do
+		typ = string.upper(typ) -- E2's type system is now lowercase. This is different from Wirelib's which is completely uppercase.
+		if not WireLib.DT[typ] then self:Error("Input  '" .. self.inports[1][k] .. "' cannot be a '" .. typ .. "'") end
+		self.inports[2][k] = typ
+	end
+
+	for k, typ in pairs(self.outports[2]) do
+		if not WireLib.DT[typ] then
+			local type_obj = self:GetE2Type(typ)
+			while not WireLib.DT[type_obj.name] do
+				if type_obj.extends then
+					type_obj = self:GetE2Type(type_obj.extends)
+				else
+					self:Error("Output '" .. self.outports[1][k] .. "' cannot be a '" .. typ .. "'!")
+				end
+			end
+			typ = type_obj.name
+		end
+		self.outports[2][k] = string.upper(typ) -- Name of object
+	end
 
 	self:ResetContext()
 end
@@ -341,6 +362,10 @@ function ENT:PrepareIncludes(files)
 	end
 
 	return true
+end
+
+function ENT:GetSanitizedOutputs()
+
 end
 
 function ENT:ResetContext()

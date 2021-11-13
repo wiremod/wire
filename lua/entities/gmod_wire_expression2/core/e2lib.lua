@@ -46,14 +46,27 @@ end
 
 -- Returns a new E2 struct instance. The first argument is the struct name.
 -- The second argument is a table of the form { fieldname = value, "XYZ" = Value }.
----@param usertype string
+---@param name string
 ---@param fields table?
+---@param ftypes table?
 ---@param initialized boolean?
-function E2Lib.newStruct(usertype, fields, initialized)
+function E2Lib.newStruct(name, fields, ftypes, initialized)
 	if fields then
-		return { struct = true, fields = fields, name = usertype, initialized = initialized == nil and true }
+		return {
+			struct = true,
+			fields = fields,
+			name = name,
+			initialized = initialized == nil and true,
+			ftypes = ftypes
+		}
 	else
-		return { struct = true, fields = {}, name = usertype, initialized = initialized }
+		return {
+			struct = true,
+			fields = {},
+			name = name,
+			initialized = initialized,
+			ftypes = {}
+		}
 	end
 end
 
@@ -134,7 +147,10 @@ function E2Lib.splitType(args)
 
 			if letter == "u" then
 				-- User defined / Unnamed types.
-				local _, ed, ind = args:find("(%d)", i)
+				local m, ed, ind = args:find("([0-9]*)", i)
+				if m == nil then
+					error("Misplaced 'u' in args [" .. args, 2)
+				end
 				typeid = ind
 				i = ed
 				table.insert(ret, "usertype")
