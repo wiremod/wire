@@ -9,6 +9,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool",  0, "ShowBeam" )
 	self:NetworkVar( "Float", 1, "SkewX" )
 	self:NetworkVar( "Float", 2, "SkewY" )
+	self:NetworkVar( "Vector", 0, "Target" )
 end
 
 if CLIENT then return end -- No more client
@@ -19,7 +20,7 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self:StartMotionController()
 
-	self.Inputs = WireLib.CreateInputs(self, { "X", "Y", "SelectValue","Length"})
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "X", "Y", "SelectValue", "Length", "Target"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR"})
 	self.Outputs = WireLib.CreateOutputs(self, { "Dist" })
 	self.hires = false
 end
@@ -111,6 +112,8 @@ function ENT:TriggerInput(iname, value)
 		self:SetSkewY(value)
 	elseif (iname == "Length") then
 		self:SetBeamLength(math.min(value, 64000))
+	elseif (iname == "Target") then
+		self:SetTarget(value)
 	end
 end
 
@@ -119,7 +122,9 @@ function ENT:Think()
 
 	local tracedata = {}
 	tracedata.start = self:GetPos()
-	if (self.Inputs.X.Value == 0 and self.Inputs.Y.Value == 0) then
+	if self.Inputs.Target.Value ~= Vector() then
+		tracedata.endpos = self:GetPos()+(self:GetTarget()-self:GetPos()):Angle():Forward()*self:GetBeamLength()
+	elseif (self.Inputs.X.Value == 0 and self.Inputs.Y.Value == 0) then
 		tracedata.endpos = tracedata.start + self:GetUp() * self:GetBeamLength()
 	else
 		local skew = Vector(self.Inputs.X.Value, self.Inputs.Y.Value, 1)
