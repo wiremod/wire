@@ -27,23 +27,18 @@ if CLIENT then
 
 	FLIR.entcol = {
 		["$pp_colour_colour" ] = 0,
-		["$pp_colour_brightness"] = -0.35,
-		["$pp_colour_contrast"] = 1.3
+		["$pp_colour_brightness"] = -0.00,
+		["$pp_colour_contrast"] = 4
 	}
 
 	FLIR.mapcol = {
-		[ "$pp_colour_brightness" ] = 0.8,
-		[ "$pp_colour_contrast" ] = 0.5,
-		[ "$pp_colour_colour"] = 0.0,
+		[ "$pp_colour_brightness" ] = 0,
+		[ "$pp_colour_contrast" ] = 0.2
 	}
 
 	FLIR.skycol = {
-		[ "$pp_colour_brightness" ] = -0.3
-	}
-
-	local materialOverrides = {
-			PlayerDraw = { FLIR.living, FLIR.normal },
-			DrawSkybox = { FLIR.normal, nil }
+		[ "$pp_colour_contrast" ] = 0.2,
+		[ "$pp_colour_brightness" ] = 1
 	}
 
 	local function SetFLIRMat(ent)
@@ -72,63 +67,43 @@ if CLIENT then
 		if FLIR.enabled then return else FLIR.enabled = true end
 
 		bright = false
-		hook.Add("PreRender", "flirbright", function()			--rendermode 2 avoids fullbright issues with particles freaking out
-			render.SetLightingMode(2)								    --but still brightness dark areas as they should
-			bright = true
+		hook.Add("PreRender", "flir", function()			--lighting mode 1  = fullbright
+			render.SetLightingMode(1)			
 		end)
 
-		hook.Add("PostRender", "flirbright", function()
-			if bright then
-				render.SetLightingMode(0)
-				bright = false
-			end
-		end)
-
-		hook.Add("PreDrawHUD", "flirbright", function()
-			if bright then
-				render.SetLightingMode(0)
-				bright = false
-			end
-		end)
-
-
-
-		for hookName, materials in pairs(materialOverrides) do
-			hook.Add("Pre" .. hookName, "flir", function() render.MaterialOverride(materials[1]) end)
-			hook.Add("Post" .. hookName, "flir", function() render.MaterialOverride(materials[2]) end)
-		end
 
 		hook.Add("PostDraw2DSkyBox", "flir", function() --overrides 2d skybox to be gray, as it normally becomes white
 			DrawColorModify(FLIR.skycol)
 		end)
 
-		hook.Add("PostDrawTranslucentRenderables", "flir", function(_a, _b, sky)
-			if not sky then DrawColorModify(FLIR.mapcol) end		--rendermode 2 saturates a lot
+		hook.Add("PostDrawTranslucentRenderables", "flir", function(_a, _b, sky) 
+			if not sky then 
+				render.SetLightingMode(0)
+				DrawColorModify(FLIR.mapcol)
+			end
 		end)
 
 		hook.Add("RenderScreenspaceEffects", "flir", function()
 			DrawColorModify(FLIR.entcol)
 			DrawBloom(0.5,1.0,2,2,2,1, 1, 1, 1)
 			DrawBokehDOF(1, 0.1, 0.1)
+			
 		end)
 
 		for k, v in pairs(ents.GetAll()) do
 			SetFLIRMat(v)
-			print(v)
 		end
 	end
 
 	function FLIR.stop()
 		if FLIR.enabled then FLIR.enabled = false else return end
-		for hookName, materials in pairs(materialOverrides) do
-			hook.Remove("Pre" .. hookName, "flir")
-			hook.Remove("Post" .. hookName, "flir")
-		end
+
+		render.SetLightingMode(0)
+
+		hook.Remove("PostDrawTranslucentRenderables", "flir")
 		hook.Remove("RenderScreenspaceEffects", "flir")
 		hook.Remove("PostDraw2DSkyBox", "flir")
-		hook.Remove("PostDrawTranslucentRenderables", "flir")
-		hook.Remove("PreRender", "flirbright")
-		hook.Remove("PostRender", "flirbright")
+		hook.Remove("PreRender", "flir")
 		hook.Remove("OnEntityCreated", "flir")
 		hook.Remove("CreateClientsideRagdoll", "flir")
 		render.MaterialOverride(nil)
