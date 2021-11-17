@@ -13,11 +13,6 @@ if not FLIR then FLIR = { enabled = false } end
 
 if CLIENT then
 
-	FLIR.living = CreateMaterial("flir_living", "UnlitGeneric", {
-		["$basetexture"] = "color/white",
-		["$model"] = 1,
-	})
-
 	FLIR.normal = CreateMaterial("flir_normal", "VertexLitGeneric", {
 		["$basetexture"] = "color/white",
 		["$model"] = 1,
@@ -59,23 +54,23 @@ if CLIENT then
 		
 
 		bright = false
-		hook.Add("PreRender", "flir", function()			--lighting mode 1  = fullbright
+		hook.Add("PreRender", "wire_flir", function()			--lighting mode 1  = fullbright
 			render.SetLightingMode(1)			
 		end)
 
 
-		hook.Add("PostDraw2DSkyBox", "flir", function() --overrides 2d skybox to be gray, as it normally becomes white
+		hook.Add("PostDraw2DSkyBox", "wire_flir", function() --overrides 2d skybox to be gray, as it normally becomes white
 			DrawColorModify(FLIR.skycol)
 		end)
 
-		hook.Add("PostDrawTranslucentRenderables", "flir", function(_a, _b, sky) 
+		hook.Add("PostDrawTranslucentRenderables", "wire_flir", function(_a, _b, sky) 
 			if not sky then 
 				render.SetLightingMode(0)
 				DrawColorModify(FLIR.mapcol)
 			end
 		end)
 
-		hook.Add("RenderScreenspaceEffects", "flir", function()
+		hook.Add("RenderScreenspaceEffects", "wire_flir", function()
 			DrawColorModify(FLIR.entcol)
 			DrawBloom(0.5,1.0,2,2,2,1, 1, 1, 1)
 			DrawBokehDOF(1, 0.1, 0.1)
@@ -83,13 +78,13 @@ if CLIENT then
 		end)
 
 
-		hook.Add("OnEntityCreated", "flir", function(ent)
+		hook.Add("OnEntityCreated", "wire_flir", function(ent)
 			if FLIR.enabled then
 				SetFLIRMat(ent)
 			end
 		end)
 
-		hook.Add("CreateClientsideRagdoll", "flir", function(ent, rag)
+		hook.Add("CreateClientsideRagdoll", "wire_flir", function(ent, rag)
 			if FLIR.enabled then
 				SetFLIRMat(rag)
 			end
@@ -105,12 +100,12 @@ if CLIENT then
 
 		render.SetLightingMode(0)
 
-		hook.Remove("PostDrawTranslucentRenderables", "flir")
-		hook.Remove("RenderScreenspaceEffects", "flir")
-		hook.Remove("PostDraw2DSkyBox", "flir")
-		hook.Remove("PreRender", "flir")
-		hook.Remove("OnEntityCreated", "flir")
-		hook.Remove("CreateClientsideRagdoll", "flir")
+		hook.Remove("PostDrawTranslucentRenderables", "wire_flir")
+		hook.Remove("RenderScreenspaceEffects", "wire_flir")
+		hook.Remove("PostDraw2DSkyBox", "wire_flir")
+		hook.Remove("PreRender", "wire_flir")
+		hook.Remove("OnEntityCreated", "wire_flir")
+		hook.Remove("CreateClientsideRagdoll", "wire_flir")
 		render.MaterialOverride(nil)
 
 		
