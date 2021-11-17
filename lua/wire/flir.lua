@@ -91,7 +91,6 @@ if CLIENT then
 
 		hook.Add("CreateClientsideRagdoll", "flir", function(ent, rag)
 			if FLIR.enabled then
-				print("test")
 				SetFLIRMat(rag)
 			end
 		end)
