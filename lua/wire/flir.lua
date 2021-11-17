@@ -27,8 +27,8 @@ if CLIENT then
 
 	FLIR.entcol = {
 		["$pp_colour_colour" ] = 0,
-		["$pp_colour_brightness"] = -0.3,
-		["$pp_colour_contrast"] = 1.0
+		["$pp_colour_brightness"] = -0.35,
+		["$pp_colour_contrast"] = 1.3
 	}
 
 	FLIR.mapcol = {
@@ -102,8 +102,8 @@ if CLIENT then
 			DrawColorModify(FLIR.skycol)
 		end)
 
-		hook.Add("PreDrawOpaqueRenderables", "flir", function()
-			DrawColorModify(FLIR.mapcol)		--rendermode 2 saturates a lot
+		hook.Add("PostDrawTranslucentRenderables", "flir", function(_a, _b, sky)
+			if not sky then DrawColorModify(FLIR.mapcol) end		--rendermode 2 saturates a lot
 		end)
 
 		hook.Add("RenderScreenspaceEffects", "flir", function()
@@ -114,6 +114,7 @@ if CLIENT then
 
 		for k, v in pairs(ents.GetAll()) do
 			SetFLIRMat(v)
+			print(v)
 		end
 	end
 
@@ -125,9 +126,11 @@ if CLIENT then
 		end
 		hook.Remove("RenderScreenspaceEffects", "flir")
 		hook.Remove("PostDraw2DSkyBox", "flir")
-		hook.Remove("PreDrawOpaqueRenderables", "flir")
+		hook.Remove("PostDrawTranslucentRenderables", "flir")
 		hook.Remove("PreRender", "flirbright")
 		hook.Remove("PostRender", "flirbright")
+		hook.Remove("OnEntityCreated", "flir")
+		hook.Remove("CreateClientsideRagdoll", "flir")
 		render.MaterialOverride(nil)
 
 		
