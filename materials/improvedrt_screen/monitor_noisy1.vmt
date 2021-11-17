@@ -1,0 +1,28 @@
+"MonitorScreen"
+{
+	$nolod 1
+	$vertexcolor 1
+	$basetexture "matsys_regressiontest/background"
+    !targettex1 "$basetexture"
+
+	"$texture2" "Effects/security_noise2"
+	"$saturation" "0"
+	"$tint" "[.8 .9 1]"
+	"$texture2transform" "center .5 .5 scale 1 1 rotate 0 translate 0 0"
+
+	"Proxies"
+	{
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$texture2"
+			"animatedtextureframenumvar" "$frame2"
+			"animatedtextureframerate" .3
+		}
+		"TextureScroll"
+		{
+			"texturescrollvar" "$texture2transform"
+			"texturescrollrate" 60
+			"texturescrollangle" 90
+		}
+	}
+}

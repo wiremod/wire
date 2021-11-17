@@ -164,6 +164,7 @@ function WireLib.CreateSpecialOutputs(ent, names, types, descs)
 		end
 		port.Idx = idx
 
+
 		ent_ports[name] = port
 		Outputs[idx] = port
 	end
@@ -188,7 +189,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 			end
 			ent_ports[name].Keep = true
 			ent_ports[name].Num = n
-			ent_ports[name].Desc = descs[n]
+			ent_ports[name].Desc = desc
 		else
 			local port = {
 				Entity = ent,
@@ -244,12 +245,12 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 			end
 			ent_ports[name].Keep = true
 			ent_ports[name].Num = n
-			ent_ports[name].Desc = descs[n]
+			ent_ports[name].Desc = desc
 		else
 			local port = {
 				Keep = true,
 				Name = name,
-				Desc = descs[n],
+				Desc = desc,
 				Type = tp,
 				Value = WireLib.DT[ tp ].Zero,
 				Connected = {},

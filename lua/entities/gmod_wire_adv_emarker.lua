@@ -16,7 +16,12 @@ function ENT:Initialize()
 	for i=3,12 do
 		outputs[i] = "Entity" .. (i-2) .. " [ENTITY]"
 	end
-	self.Inputs = WireLib.CreateInputs( self, { "Entity [ENTITY]", "Add Entity", "Remove Entity", "Clear Entities" } )
+	self.Inputs = WireLib.CreateInputs( self, { 
+		"Entity (This entity will be added or removed once the other two inputs are changed) [ENTITY]", 
+		"Add Entity (Change to non-zero value to add the entity specified by the 'Entity' input)", 
+		"Remove Entity (Change to non-zero value to remove the entity specified by the 'Entity' input)", 
+		"Clear Entities (Removes all entities from the marker)"
+	} )
 	self.Outputs = WireLib.CreateOutputs( self, outputs )
 	self:SetOverlayText( "Number of entities linked: 0" )
 end

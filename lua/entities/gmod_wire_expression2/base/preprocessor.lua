@@ -43,12 +43,20 @@ function PreProcessor:HandlePPCommand(comment)
 end
 
 function PreProcessor:FindComments(line)
+	local isinput = not self.blockcomment and not self.multilinestring and line:match("^@inputs") ~= nil
+	local isoutput = not self.blockcomment and not self.multilinestring and line:match("^@outputs") ~= nil
+
 	local ret, count, pos, found = {}, 0, 1
 	repeat
-		found = line:find('[#"\\]', pos)
+		found = line:find((isinput or isoutput) and '[#"\\A-Z]' or '[#"\\]', pos)
 		if found then -- We found something
 			local char = line:sub(found, found)
-			if char == "#" then -- We found a comment
+			if (isinput or isoutput) and char:match("[A-Z]") ~= nil then -- we found the start of an input/output variable definition
+				local varname, endpos = line:match("^([A-Z][A-Za-z0-9_]*)()",found)
+				count = count + 1
+				ret[count] = {type = isinput and "inputs" or "outputs", name=varname, pos=found, blockcomment = {}}
+				pos = endpos + 1
+			elseif char == "#" then -- We found a comment
 				local before = line:sub(found - 1, found - 1)
 				if before == "]" then -- We found an ending
 					count = count + 1
@@ -83,7 +91,14 @@ function PreProcessor:RemoveComments(line)
 	local comments, num = self:FindComments(line) -- Find all comments and strings on this line
 
 	if num == 0 and self.blockcomment then
+		if self.description_cache then
+			table.insert(self.description_cache.blockcomment, line)
+		end
 		return ""
+	end
+
+	if not self.blockcomment then
+		self.description_cache = nil
 	end
 
 	local prev_disabled, ret, lastpos = self:Disabled(), "", 1
@@ -96,27 +111,43 @@ function PreProcessor:RemoveComments(line)
 			if self.blockcomment then -- Time to look for a ]#
 				if type == "end" then -- We found one
 					local pos = comments[i].pos
+					local comment_str = line:sub(lastpos,pos-1)
 					ret = ret .. (" "):rep(pos - lastpos + 4) -- Replace the stuff in between with spaces
 					lastpos = pos + 2
 					self.blockcomment = nil -- We're no longer in a block comment
+
+					if self.description_cache then
+						table.insert(self.description_cache.blockcomment,comment_str)
+						self.directives[self.description_cache.type][4][self.description_cache.name] = table.concat(self.description_cache.blockcomment,"\n")
+						self.description_cache = nil
+					end
 				end
 			else -- Time to look for a #[
-				if type == "start" then -- We found one
-					local pos = comments[i].pos
-					ret = ret .. line:sub(lastpos, pos - 1)
-					lastpos = pos + 2
-					self.blockcomment = true -- We're now inside a block comment
-				elseif type == "normal" then -- We found a # instead
-					local pos = comments[i].pos
-					if line:sub(pos + 1, pos + 7) == "include" then
-						ret = ret .. line:sub(lastpos)
-					else
+				if type == "inputs" or type == "outputs" then -- an input/output definition
+					self.description_cache = comments[i]
+				else
+					if type == "start" then -- We found a #[
+						local pos = comments[i].pos
 						ret = ret .. line:sub(lastpos, pos - 1)
-						self:HandlePPCommand(line:sub(pos + 1))
-					end
+						lastpos = pos + 2
+						self.blockcomment = true -- We're now inside a block comment
+					elseif type == "normal" then -- We found a # instead
+						local pos = comments[i].pos
+						if line:sub(pos + 1, pos + 7) == "include" then
+							ret = ret .. line:sub(lastpos)
+						else
+							ret = ret .. line:sub(lastpos, pos - 1)
+							self:HandlePPCommand(line:sub(pos + 1))
+						end
 
-					lastpos = -1
-					break -- Don't care what comes after
+						if self.description_cache then
+							self.directives[self.description_cache.type][4][self.description_cache.name] = line:sub(pos+1)
+							self.description_cache = nil
+						end
+
+						lastpos = -1
+						break -- Don't care what comes after
+					end
 				end
 			end
 		end
@@ -126,6 +157,11 @@ function PreProcessor:RemoveComments(line)
 		return ""
 	elseif lastpos ~= -1 and not self.blockcomment then
 		return ret .. line:sub(lastpos, -1)
+	elseif lastpos ~= -1 and self.blockcomment then
+		if self.description_cache then
+			table.insert(self.description_cache.blockcomment,line:sub(lastpos))
+		end
+		return ret
 	else
 		return ret
 	end
@@ -268,8 +304,8 @@ function PreProcessor:Process(buffer, directives, ent)
 		self.directives = {
 			name = nil,
 			model = nil,
-			inputs = { {}, {}, {} },
-			outputs = { {}, {}, {} },
+			inputs = { {}, {}, {}, {} }, -- 1: names, 2: types, 3: names=types lookup, 4: descriptions
+			outputs = { {}, {}, {}, {} }, -- 1: names, 2: types, 3: names=types lookup, 4: descriptions
 			persist = { {}, {}, {} },
 			delta = { {}, {}, {} },
 			trigger = { nil, {} },
@@ -288,6 +324,10 @@ function PreProcessor:Process(buffer, directives, ent)
 
 		lines[i] = line
 	end
+
+	-- convert description lookup table into an array that WireLib understands
+	self:ConvertDescriptions(self.directives.inputs)
+	self:ConvertDescriptions(self.directives.outputs)
 
 	if self.directives.trigger[1] == nil then self.directives.trigger[1] = true end
 	if not self.directives.name then self.directives.name = "" end
@@ -372,6 +412,21 @@ function PreProcessor:ParsePorts(ports, startoffset)
 	end
 
 	return { names, types }, columns
+end
+
+function PreProcessor:ConvertDescriptions(portstbl)
+	local ports = portstbl[1]
+	local lookup = portstbl[4]
+
+	local new = {}
+	for i=1,#ports do
+		local port = ports[i]
+		if lookup[port] then
+			new[i] = lookup[port]
+		end
+	end
+
+	portstbl[4] = new
 end
 
 function PreProcessor:Disabled()

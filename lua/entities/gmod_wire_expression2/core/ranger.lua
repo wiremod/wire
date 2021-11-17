@@ -420,7 +420,7 @@ end
 
 --- Returns the position of the input ranger data trace IF it hit anything, else returns vec(0,0,0)
 e2function vector ranger:position()
-	if not this then return { 0, 0, 0 } end
+	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
 	if this.StartSolid then return this.StartPos end
 	return this.HitPos
 end
@@ -428,19 +428,19 @@ end
 -- Returns the position of the input ranger data trace IF it it anything, else returns vec(0,0,0).
 -- NOTE: This function works like Lua's trace, while the above "position" function returns the same as positionLeftSolid IF it was created inside the world.
 e2function vector ranger:pos()
-	if not this then return {0,0,0} end
+	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
 	return this.HitPos
 end
 
 --- Returns the entity of the input ranger data trace IF it hit an entity, else returns nil
 e2function entity ranger:entity()
-	if not this then return nil end
+	if not this then return self:throw("Invalid ranger!", nil) end
 	return this.Entity
 end
 
 --- Returns the bone of the input ranger data trace IF it hit an entity, else returns nil
 e2function bone ranger:bone()
-	if not this then return nil end
+	if not this then return self:throw("Invalid ranger!", nil) end
 
 	local ent = this.Entity
 	if not IsValid(ent) then return nil end
@@ -468,13 +468,13 @@ end
 -- Returns 1 if the ranger hit the world, else 0
 e2function number ranger:hitWorld()
 	if not this then return self:throw("Invalid ranger!", 0) end
-	return this.HitWorld and 1 or 0
+	if this.HitWorld then return 1 else return 0 end
 end
 
 -- Returns 1 if the ranger hit the skybox, else 0
 e2function number ranger:hitSky()
 	if not this then return self:throw("Invalid ranger!", 0) end
-	return this.HitSky and 1 or 0
+	if this.HitSky then return 1 else return 0 end
 end
 
 -- Returns the position at which the trace left the world if it was started inside the world
@@ -497,7 +497,7 @@ end
 -- Returns 1 if the trace started inside the world, else 0
 e2function number ranger:startSolid()
 	if not this then return self:throw("Invalid ranger!", 0) end
-	return this.StartSolid and 1 or 0
+	if this.StartSolid then return 1 else return 0 end
 end
 
 local mat_enums = {}
