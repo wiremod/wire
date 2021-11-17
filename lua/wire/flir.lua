@@ -51,20 +51,12 @@ if CLIENT then
 
 	end
 
-	hook.Add("OnEntityCreated", "flir", function(ent)
-		if FLIR.enabled then
-			SetFLIRMat(ent)
-		end
-	end)
-
-	hook.Add("CreateClientsideRagdoll", "flir", function(ent, rag)
-		if FLIR.enabled then
-			SetFLIRMat(rag)
-		end
-	end)
+	
 
 	function FLIR.start()
 		if FLIR.enabled then return else FLIR.enabled = true end
+
+		
 
 		bright = false
 		hook.Add("PreRender", "flir", function()			--lighting mode 1  = fullbright
@@ -88,6 +80,20 @@ if CLIENT then
 			DrawBloom(0.5,1.0,2,2,2,1, 1, 1, 1)
 			DrawBokehDOF(1, 0.1, 0.1)
 			
+		end)
+
+
+		hook.Add("OnEntityCreated", "flir", function(ent)
+			if FLIR.enabled then
+				SetFLIRMat(ent)
+			end
+		end)
+
+		hook.Add("CreateClientsideRagdoll", "flir", function(ent, rag)
+			if FLIR.enabled then
+				print("test")
+				SetFLIRMat(rag)
+			end
 		end)
 
 		for k, v in pairs(ents.GetAll()) do
