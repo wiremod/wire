@@ -162,13 +162,12 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 	if (beam_length > 0) then
 
 		local x, y = 0, 0
-		if (ent.GetSkewX and ent.GetSkewY) then
+		if ent.GetTarget then
+			ent.endpos = ent:GetTarget()
+		elseif (ent.GetSkewX and ent.GetSkewY) then
 			x, y = ent:GetSkewX(beam_num), ent:GetSkewY(beam_num)
-		end
-
-		local start, ang = ent:GetPos(), ent:GetAngles()
-
-		if (ent.ls != start or ent.la != ang or ent.ll != beam_length or ent.lx != x or ent.ly != y) then
+			
+			if (ent.ls != start or ent.la != ang or ent.ll != beam_length or ent.lx != x or ent.ly != y) then
 			ent.ls, ent.la = start, ang
 
 			if (ent.ll != beam_length or ent.lx != x or ent.ly != y) then
@@ -190,6 +189,11 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 				ent.endpos = ent:LocalToWorld(ent.ExtraRBoxPoints[beam_num])
 			end
 		end
+		end
+
+		local start, ang = ent:GetPos(), ent:GetAngles()
+
+		
 
 		local trace = {}
 		trace.start = start
