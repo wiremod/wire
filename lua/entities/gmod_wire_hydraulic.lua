@@ -67,7 +67,6 @@ function ENT:UpdateOutputs( OnlyLength )
 	WireLib.TriggerOutput( self, "Length", curLength )
 	WireLib.TriggerOutput( self, "Target Length", self.TargetLength )
 	if not OnlyLength then
-		WireLib.TriggerOutput( self, "Length", self.TargetLength )
 		WireLib.TriggerOutput( self, "Constant", self.current_constant )
 		WireLib.TriggerOutput( self, "Damping", self.current_damping )
 	end
