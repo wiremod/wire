@@ -170,7 +170,7 @@ function ENT:Think()
 			if (self.out_val and ent.Outputs) then
 				local i = 1
 				for k,v in pairs(ent.Outputs) do
-					if (v.Value != nil and type(v.Value) == "number") then
+					if (v.Value ~= nil and type(v.Value) == "number") then
 						val[i] = v.Value
 						i = i + 1
 					end
