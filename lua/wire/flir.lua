@@ -22,7 +22,7 @@ if CLIENT then
 	})
 
 	FLIR.mapcol = {
-		[ "$pp_colour_brightness" ] = 0.3,
+		[ "$pp_colour_brightness" ] = 0.4,
 		[ "$pp_colour_contrast" ] = 0.4	
 	}
 
