@@ -41,7 +41,6 @@ if CLIENT then
 		if not IsValid(ent) then return end
 
 		if ent:GetMoveType() == MOVETYPE_VPHYSICS or ent:IsPlayer() or ent:IsNPC() or ent:IsRagdoll() or ent:GetClass() == "gmod_wire_hologram" then
-			ent.FLIRMode = ent:GetRenderMode()
 			ent.FLIRCol = ent:GetColor()	
 			ent.RenderOverride = FLIR.Render
 
@@ -50,11 +49,8 @@ if CLIENT then
 	end
 
 	local function RemoveFLIRMat(ent)
-		if ent.FLIRMode then
-				ent:SetRenderMode(ent.FLIRMode)
-				ent.FLIRMODE = nil 
-				ent.RenderOverride = nil
-			end
+		ent.RenderOverride = nil
+		
 		if ent.FLIRCol then
 			ent:SetColor(ent.FLIRCol)
 		end
