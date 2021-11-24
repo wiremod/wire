@@ -163,14 +163,18 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 
 		local x, y = 0, 0
 		if ent.GetTarget then
-			ent.endpos = ent:GetTarget()
+			if ent:GetTarget().X ~= 0 or ent:GetTarget().Y ~= 0 or ent:GetTarget().Z ~= 0 then
+				ent.endpos = ent:GetPos() + ( ent:GetTarget() - ent:GetPos() ):Angle():Forward()*beam_length
+			else
+				ent.endpos = ent:GetPos() + ent:GetUp()*beam_length
+			end
 		elseif (ent.GetSkewX and ent.GetSkewY) then
 			x, y = ent:GetSkewX(beam_num), ent:GetSkewY(beam_num)
 			
-			if (ent.ls ~= start or ent.la ~= ang or ent.ll ~= beam_length or ent.lx ~= x or ent.ly ~= y) then
+			if (ent.ls != start or ent.la != ang or ent.ll != beam_length or ent.lx != x or ent.ly != y) then
 			ent.ls, ent.la = start, ang
 
-			if (ent.ll ~= beam_length or ent.lx ~= x or ent.ly ~= y) then
+			if (ent.ll != beam_length or ent.lx != x or ent.ly != y) then
 				ent.ll, ent.lx, ent.ly = beam_length, x, y
 
 				if (x == 0 and y == 0) then
@@ -189,6 +193,8 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 				ent.endpos = ent:LocalToWorld(ent.ExtraRBoxPoints[beam_num])
 			end
 		end
+		else
+			ent.endpos = ent:GetPos() + ent:GetUp()*beam_length
 		end
 
 		local start, ang = ent:GetPos(), ent:GetAngles()
