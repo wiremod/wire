@@ -3661,6 +3661,7 @@ stds.wiremod.globals = {
   "WireSPU_GetSound",
   "WireSPU_MaxChannels",
   "WireGPU_Monitors",
+  "E2_RELOAD_EDITOR",
 
   -- TODO: Move these into E2Lib:
   "__e2setcost",

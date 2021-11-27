@@ -146,8 +146,8 @@ local function GetCharPosInLine(self, row, search_index)
 
     --MsgN("GetCharPosInLine > @", search_index, " ", self.Rows[row])
 
-    -- self.PaintRows[row] can be nil if row is not currently visible 
-    for i, cell in ipairs(self.PaintRows[row]) do
+    -- self.PaintRows[row] can be nil if row is not currently visible
+    for _, cell in ipairs(self.PaintRows[row]) do
         local part_text = cell[1]
         local part_bold = cell[2][2]
         local part_text_len = utf8_len(part_text)
@@ -197,7 +197,7 @@ local function GetCharIndexByPos(self, row, pos)
                 font = font_bold
             end
 
-            for i = 1, part_text_len do
+            for _ = 1, part_text_len do
                 table_insert(char_fonts, font)
             end
 
@@ -2321,7 +2321,7 @@ function EDITOR:getWordEnd(caret,getword)
     local line = self.Rows[caret[1]]
     local linelen = self.RowsLength[caret[1]]
 
-    for startpos, dbg, endpos in string_gmatch(line, "()([a-zA-Z0-9_]+)()") do -- "()%w+()"
+    for startpos, endpos in string_gmatch(line, "()[a-zA-Z0-9_]+()") do -- "()%w+()"
         startpos = utf8_bytepos_to_charindex(line, startpos)
         endpos = utf8_bytepos_to_charindex(line, endpos)
         if startpos <= caret[2] and caret[2] <= endpos then
@@ -2521,7 +2521,7 @@ do
         local suggestions = {}
         local suggestion_extras_by_name = {}
 
-        for i, suggestion in ipairs(suggestions_raw) do
+        for _, suggestion in ipairs(suggestions_raw) do
             local name = suggestion:str()
 
             if suggestion_extras_by_name[name] == nil then
