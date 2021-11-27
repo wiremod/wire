@@ -1462,7 +1462,7 @@ function EDITOR:FindAllWords( str )
     local pattern = "%f[%w_]()" .. string.PatternSafe(str) .. "%f[^%w_]()"
 
     local ret = {}
-    for start,stop in txt:gmatch( pattern ) do
+    for start,stop in string_gmatch(txt, pattern) do
         ret[#ret+1] = { start, stop }
     end
 
@@ -2307,10 +2307,10 @@ end
 function EDITOR:getWordStart(caret,getword)
     local line = self.Rows[caret[1]]
 
-    for startpos, endpos in line:gmatch( "()[a-zA-Z0-9_]+()" ) do -- "()%w+()"
+    for startpos, endpos in string_gmatch(line, "()[a-zA-Z0-9_]+()") do -- "()%w+()"
         startpos = utf8_bytepos_to_charindex(line, startpos)
-        endpos = utf8_bytepos_to_charindex(line, endpos)
-        if startpos <= caret[2] and endpos >= caret[2] then
+        endpos = utf8_bytepos_to_charindex(line, endpos) + 1
+        if startpos <= caret[2] and caret[2] <= endpos then
             return { caret[1], startpos }, getword and utf8_sub(line, startpos,endpos-1) or nil
         end
     end
@@ -2319,15 +2319,19 @@ end
 
 function EDITOR:getWordEnd(caret,getword)
     local line = self.Rows[caret[1]]
+    local linelen = self.RowsLength[caret[1]]
 
-    for startpos, endpos in line:gmatch( "()[a-zA-Z0-9_]+()" ) do -- "()%w+()"
+    for startpos, dbg, endpos in string_gmatch(line, "()([a-zA-Z0-9_]+)()") do -- "()%w+()"
         startpos = utf8_bytepos_to_charindex(line, startpos)
         endpos = utf8_bytepos_to_charindex(line, endpos)
-        if startpos <= caret[2] and endpos >= caret[2] then
+        if startpos <= caret[2] and caret[2] <= endpos then
+            if endpos == linelen then
+                endpos = endpos + 1
+            end
             return { caret[1], endpos }, getword and utf8_sub(line, startpos,endpos-1) or nil
         end
     end
-    return {caret[1],#line+1}
+    return {caret[1],linelen+1}
 end
 
 -----------------------------------------------------------
@@ -2433,7 +2437,7 @@ do
                 local caret = editor:CopyPosition( editor.Caret )
                 caret[2] = caret[2] - 1
                 local wordend = editor:getWordEnd( caret )
-                local has_bracket = editor:GetArea( { wordend, { wordend[1], wordend[2] + 1 } } ) == "("
+                local has_bracket = editor:GetArea( { wordend, { wordend[1], wordend[2] } } ) == "("
                 -- If there already is a bracket, we don't want to add more of them.
                 local ret = self:str()
                 return ret..(has_bracket and "" or "()"), utf8_len(ret)+1
@@ -2914,7 +2918,7 @@ local function SimpleWrap( txt, width )
     local ret = ""
 
     local prev_end, prev_newline = 0, 0
-    for cur_end in txt:gmatch( "[^ \n]+()" ) do
+    for cur_end in string_gmatch(txt, "[^ \n]+()") do
         local w, _ = surface_GetTextSize( txt:sub( prev_newline, cur_end ) )
         if w > width then
             ret = ret .. txt:sub( prev_newline, prev_end ) .. "\n"
