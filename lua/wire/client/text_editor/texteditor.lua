@@ -1052,7 +1052,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
             table_remove(self.Rows, start[1] + 1)
             table_remove(self.RowsLength, start[1] + 1)
             table_remove(self.PaintRows, start[1] + 1)
-            --self.PaintRows = {} -- TODO: fix for cache errors
+            self.PaintRows = {} -- TODO: fix for cache errors
         end
 
         -- add empty row at end of file (TODO!)
@@ -1098,7 +1098,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
         table_insert(self.Rows, index, rows[i])
         table_insert(self.RowsLength, index, utf8_len(rows[i]))
         table_insert(self.PaintRows, index, false)
-        --self.PaintRows = {} -- TODO: fix for cache errors
+        self.PaintRows = {} -- TODO: fix for cache errors
     end
 
     stop = { start[1] + #rows - 1, utf8_len(self.Rows[start[1] + #rows - 1]) + 1 }
@@ -1113,12 +1113,12 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
         self.Rows[index] = ""
         self.RowsLength[index] = 0
         self.PaintRows[index] = false
-        --self.PaintRows = {} -- TODO: fix for cache errors
+        self.PaintRows = {} -- TODO: fix for cache errors
     end
 
     self.ScrollBar:SetUp(self.Size[1], #self.Rows - 1)
 
-    --self.PaintRows = {}
+    self.PaintRows = {}
 
     self:OnTextChanged()
 
