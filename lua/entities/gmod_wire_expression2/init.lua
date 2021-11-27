@@ -477,6 +477,8 @@ function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 	self.duped = false
 
 	if not restore then
+		self.context.prf = 0
+		self.context.time = 0
 		self.first = true
 		self:Execute()
 		self:Think()
