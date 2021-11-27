@@ -7,9 +7,6 @@
 	!targettex1 "$basetexture"
 	"$additive" "1"
 
-    $param_colortint1 "[0.99 0.99 0.99]"
-    $param_colortint2   "[1 1 1]"
-
 	"$texture2"	"dev/dev_combinescanline"
 
 	$param_colortint1 "[0.99 0.99 0.99]"

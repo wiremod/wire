@@ -200,5 +200,5 @@ if CLIENT then
 end
 
 
-duplicator.RegisterEntityClass("improvedrt_camera", WireLib.MakeWireEnt, "Data", --[["Model",]] "CamFOV")
+scripted_ents.Alias("improvedrt_camera", "gmod_wire_rt_camera")
 duplicator.RegisterEntityClass("gmod_wire_rt_camera", WireLib.MakeWireEnt, "Data", --[["Model",]] "CamFOV")

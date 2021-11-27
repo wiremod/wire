@@ -285,5 +285,5 @@ if CLIENT then
     end
 end
 
-duplicator.RegisterEntityClass("improvedrt_screen", WireLib.MakeWireEnt, "Data",--[["Model",]] "ScreenMaterial")
+scripted_ents.Alias("improvedrt_screen","gmod_wire_rt_screen")
 duplicator.RegisterEntityClass("gmod_wire_rt_screen", WireLib.MakeWireEnt, "Data",--[["Model",]] "ScreenMaterial")
