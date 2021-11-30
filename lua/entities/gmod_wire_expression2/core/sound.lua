@@ -85,7 +85,7 @@ local function soundCreate(self, entity, index, time, path, fade)
 		data.count = data.count + 1
 	end
 
-	local filter = RecipientFilter()
+	local filter = RecipientFilter(true)
 	filter:AddAllPlayers()
 	local sound = CreateSound( entity, path, filter )
 	data.sounds[index] = sound
