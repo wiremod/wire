@@ -19,6 +19,7 @@ function ENT:Initialize()
 	self.WeldStrength = 0
 	self.Weld = nil
 	self.WeldEntity = nil
+	self.EntHadGravity = true
 	self.ExtraProp = nil
 	self.ExtraPropWeld = nil
 	self:GetPhysicsObject():SetMass(10)
@@ -57,7 +58,7 @@ end
 function ENT:ResetGrab()
 	if IsValid(self.Weld) then
 		self.Weld:Remove()
-		if IsValid(self.WeldEntity) and IsValid(self.WeldEntity:GetPhysicsObject()) and self.Gravity then
+		if self.EntHadGravity and IsValid(self.WeldEntity) and IsValid(self.WeldEntity:GetPhysicsObject()) and self.Gravity then
 			self.WeldEntity:GetPhysicsObject():EnableGravity(true)
 		end
 	end
@@ -118,6 +119,7 @@ function ENT:TriggerInput(iname, value)
 					--Msg("+Weld2\n")
 				end
 			end
+
 			if self.Gravity then
 				trace.Entity:GetPhysicsObject():EnableGravity(false)
 			end
@@ -125,6 +127,7 @@ function ENT:TriggerInput(iname, value)
 			self.WeldEntity = trace.Entity
 			self.Weld = const
 			self.ExtraPropWeld = const2
+			self.EntHadGravity = trace.Entity:GetPhysicsObject():IsGravityEnabled()
 
 			self:SetColor(Color(255, 0, 0, self:GetColor().a))
 			Wire_TriggerOutput(self, "Holding", 1)
