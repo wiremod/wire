@@ -454,13 +454,19 @@ e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle
 
 --------------------------------------------------------------------------------
 
-local function parent_check( child, parent )
+-- Checks if there is recursive parenting and returns false if so
+-- Also adds ops for how deeply nested the prop is parented
+local function parent_check( self, child, parent )
+	local parents = 1
 	while IsValid( parent ) do
 		if (child == parent) then
 			return false
 		end
+		parents = parents + 1
+		self.prf = self.prf + parents * 20
 		parent = parent:GetParent()
 	end
+
 	return true
 end
 
@@ -474,12 +480,12 @@ local function parent_antispam( child )
 end
 
 e2function void entity:parentTo(entity target)
-	if not PropCore.ValidAction(self, this, "parent") then return end
-	if not IsValid(target) then return nil end
-	if(!isOwner(self, target)) then return end
-	if not parent_antispam( this ) then return end
-	if this == target then return end
-	if (!parent_check( this, target )) then return end
+	if not PropCore.ValidAction(self, this, "parent") then return self:throw("You do not have permission to parent to this prop!", nil) end
+	if not IsValid(target) then return self:throw("Target prop is invalid.", nil) end
+	if not isOwner(self, target) then return self:throw("You do not own the target prop!", nil) end
+	if not parent_antispam( this ) then return self:throw("You are parenting too fast!", nil) end
+	if this == target then return self:throw("You cannot parent a prop to itself") end
+	if not parent_check( self, this, target ) then return self:throw("Cannot parent recursively!", nil) end
 	this:SetParent(target)
 end
 
