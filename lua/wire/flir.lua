@@ -13,22 +13,17 @@ if not FLIR then FLIR = { enabled = false } end
 
 if CLIENT then
 
-	FLIR.normal = CreateMaterial("flir_normal", "VertexLitGeneric", {
+	FLIR.RenderStack = {}
+	FLIR.Render = 0
+
+	FLIR.bright = CreateMaterial("flir_bright", "UnlitGeneric", {
 		["$basetexture"] = "color/white",
-		["$model"] = 1,
-		["$halflambert"] = 1, -- causes the diffuse lighting to 'wrap around' more
-		["$color2"] = "[10.0 10.0 10.0]"
+		["$model"] = 1
 	})
 
-	FLIR.entcol = {
-		["$pp_colour_colour" ] = 0,
-		["$pp_colour_brightness"] = -0.00,
-		["$pp_colour_contrast"] = 4
-	}
-
 	FLIR.mapcol = {
-		[ "$pp_colour_brightness" ] = 0,
-		[ "$pp_colour_contrast" ] = 0.2
+		[ "$pp_colour_brightness" ] = 0.4,
+		[ "$pp_colour_contrast" ] = 0.4	
 	}
 
 	FLIR.skycol = {
@@ -36,45 +31,80 @@ if CLIENT then
 		[ "$pp_colour_brightness" ] = 1
 	}
 
+	FLIR.desat = {
+		["$pp_colour_colour"] = 0,
+		["$pp_colour_contrast"] = 1,
+		["$pp_colour_brightness"] = 0
+	}
+
 	local function SetFLIRMat(ent)
 		if not IsValid(ent) then return end
 
-		if ent:GetMoveType() == MOVETYPE_VPHYSICS or IsValid(ent:GetParent()) or ent:IsPlayer() or ent:IsNPC() or ent:IsRagdoll() then
-				ent.FLIRMat = ent:GetMaterial()
-				ent:SetMaterial("!flir_normal")	
-		end
+		if ent:GetMoveType() == MOVETYPE_VPHYSICS or ent:IsPlayer() or ent:IsNPC() or ent:IsRagdoll() or ent:GetClass() == "gmod_wire_hologram" then
+			ent.FLIRCol = ent:GetColor()	
+			ent.RenderOverride = FLIR.Render
 
+			table.insert(FLIR.RenderStack, ent)			--add entity to the FLIR renderstack and remove it from regular opaque rendering
+		end
 	end
 
-	
+	local function RemoveFLIRMat(ent)
+		ent.RenderOverride = nil
+		
+		if ent.FLIRCol then
+			ent:SetColor(ent.FLIRCol)
+		end
+		table.RemoveByValue(FLIR.RenderStack, ent)
+	end
+
+	function FLIR.Render(self)
+		if FLIR.Render == 1 then self:DrawModel() end
+	end
+
 
 	function FLIR.start()
 		if FLIR.enabled then return else FLIR.enabled = true end
 
-		
-
 		bright = false
 		hook.Add("PreRender", "wire_flir", function()			--lighting mode 1  = fullbright
-			render.SetLightingMode(1)			
+			render.SetLightingMode(1)
+			FLIR.Render = 0
 		end)
 
 
-		hook.Add("PostDraw2DSkyBox", "wire_flir", function() --overrides 2d skybox to be gray, as it normally becomes white
+		hook.Add("PostDraw2DSkyBox", "wire_flir", function() --overrides 2d skybox to be gray, as it normally becomes white or black
 			DrawColorModify(FLIR.skycol)
 		end)
 
-		hook.Add("PostDrawTranslucentRenderables", "wire_flir", function(_a, _b, sky) 
-			if not sky then 
-				render.SetLightingMode(0)
+		hook.Add("PreDrawTranslucentRenderables", "wire_flir", function(a, b, sky)
+			if not sky then
 				DrawColorModify(FLIR.mapcol)
 			end
 		end)
+		
+		hook.Add("PostDrawTranslucentRenderables", "wire_flir", function(_a, _b, sky)
+			if sky then return end
+
+			render.SetLightingMode(0)
+			FLIR.Render = 1
+			render.MaterialOverride(FLIR.bright)
+
+			for k, v in pairs(FLIR.RenderStack) do				--draw all the FLIR highlighted enemies after the opaque render
+				if v:IsValid() then v:DrawModel() end									--to separate then from the rest of the map	
+			end
+
+			FLIR.Render = 0
+			render.MaterialOverride(nil)
+			render.SetLightingMode(1)
+		end)
+
 
 		hook.Add("RenderScreenspaceEffects", "wire_flir", function()
-			DrawColorModify(FLIR.entcol)
+			render.SetLightingMode(0)
+
+			DrawColorModify(FLIR.desat)
 			DrawBloom(0.5,1.0,2,2,2,1, 1, 1, 1)
 			DrawBokehDOF(1, 0.1, 0.1)
-			
 		end)
 
 
@@ -100,6 +130,7 @@ if CLIENT then
 
 		render.SetLightingMode(0)
 
+		hook.Remove("PreDrawTranslucentRenderables", "wire_flir")
 		hook.Remove("PostDrawTranslucentRenderables", "wire_flir")
 		hook.Remove("RenderScreenspaceEffects", "wire_flir")
 		hook.Remove("PostDraw2DSkyBox", "wire_flir")
@@ -108,12 +139,8 @@ if CLIENT then
 		hook.Remove("CreateClientsideRagdoll", "wire_flir")
 		render.MaterialOverride(nil)
 
-		
 		for k, v in pairs(ents.GetAll()) do
-			if v.FLIRMat then
-				v:SetMaterial(v.FLIRMat)
-				v.FLIRMat = nil
-			end
+			RemoveFLIRMat(v)
 		end
 	end
 
