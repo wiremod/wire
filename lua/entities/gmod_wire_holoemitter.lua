@@ -114,14 +114,13 @@ if CLIENT then
 			end
 		end
 
+		local points = self.Points
 		local selfpos = ent:GetPos()
 
-		local n = #self.Points
+		if (#self.Points == 0 or self:GetNWBool("Active",true) == false) then return end
 
-		if (n == 0 or self:GetNWBool("Active",true) == false) then return end
-
-		for k=1, n do
-			local v = self.Points[k]
+		render.SetMaterial( matbeam )
+		for k, v in ipairs(points) do
 			local Pos = v.Pos
 
 			if (v.Local or forcelocal) then
@@ -129,7 +128,6 @@ if CLIENT then
 			end
 
 			if (v.GroundBeam) then
-				render.SetMaterial( matbeam )
 				render.DrawBeam(
 					selfpos,
 					Pos,
@@ -140,9 +138,7 @@ if CLIENT then
 			end
 
 			if (v.LineBeam and k < n) then
-				render.SetMaterial( matbeam )
-
-				local NextPoint = self.Points[k+1]
+				local NextPoint = points[k+1]
 				local NextPos = NextPoint.Pos
 				if (NextPoint.Local or forcelocal) then
 					NextPos = ent:LocalToWorld( NextPos )
@@ -157,11 +153,20 @@ if CLIENT then
 				)
 			end
 
-			render.SetMaterial( matpoint )
+
+		end
+
+		render.SetMaterial( matpoint )
+		for i, pt in ipairs(points) do
+			local Pos = pt.Pos
+			if pt.Local or forcelocal then
+				Pos = ent:LocalToWorld(Pos)
+			end
+
 			render.DrawSprite(
 				Pos,
-				v.Size, v.Size,
-				v.Color
+				pt.Size, pt.Size,
+				pt.Color
 			)
 		end
 	end
