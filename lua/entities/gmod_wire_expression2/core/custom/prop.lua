@@ -454,19 +454,27 @@ e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle
 
 --------------------------------------------------------------------------------
 
--- Checks if there is recursive parenting and returns false if so
--- Also adds ops for how deeply nested the prop is parented
+local function getChildLength(curchild, count)
+	local max = 0
+	for _, v in pairs(curchild:GetChildren()) do
+		max = math.max(max, getChildLength(v, count + 1))
+	end
+	return math.max(max, count)
+end
+
+-- Checks if there is recursive parenting, if so then returns false
+-- Also checks if parent/child chain length is > 16, and if so, hard errors.
 local function parent_check( self, child, parent )
 	local parents = 1
-	while IsValid( parent ) do
-		if (child == parent) then
-			return false
-		end
+	while parent:IsValid() do
 		parents = parents + 1
-		self.prf = self.prf + parents * 20
+		if child == parent then return false end
 		parent = parent:GetParent()
 	end
 
+	if ( parents + getChildLength(child, 1) ) > 16 then
+		return self:throw("Parenting chain of entities can't exceed 16 or crash may occur", false)
+	end
 	return true
 end
 
@@ -485,7 +493,8 @@ e2function void entity:parentTo(entity target)
 	if not isOwner(self, target) then return self:throw("You do not own the target prop!", nil) end
 	if not parent_antispam( this ) then return self:throw("You are parenting too fast!", nil) end
 	if this == target then return self:throw("You cannot parent a prop to itself") end
-	if not parent_check( self, this, target ) then return self:throw("Cannot parent recursively!", nil) end
+	if not parent_check( self, this, target ) then return self:throw("You cannot parent recursively!", nil) end
+
 	this:SetParent(target)
 end
 
