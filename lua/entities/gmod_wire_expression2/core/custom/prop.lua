@@ -468,13 +468,13 @@ local function parent_check( self, child, parent )
 	local parents = 1
 	while parent:IsValid() do
 		parents = parents + 1
-		if child == parent then return false end
 		parent = parent:GetParent()
 	end
 
 	if ( parents + getChildLength(child, 1) ) > 16 then
-		return self:throw("Parenting chain of entities can't exceed 16 or crash may occur", false)
+		return false
 	end
+
 	return true
 end
 
@@ -493,7 +493,7 @@ e2function void entity:parentTo(entity target)
 	if not isOwner(self, target) then return self:throw("You do not own the target prop!", nil) end
 	if not parent_antispam( this ) then return self:throw("You are parenting too fast!", nil) end
 	if this == target then return self:throw("You cannot parent a prop to itself") end
-	if not parent_check( self, this, target ) then return self:throw("You cannot parent recursively!", nil) end
+	if not parent_check( self, this, target ) then return self:throw("Parenting chain of entities can't exceed 16 or crash may occur", nil) end
 
 	this:SetParent(target)
 end
