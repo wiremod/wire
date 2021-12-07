@@ -465,17 +465,13 @@ end
 -- Checks if there is recursive parenting, if so then returns false
 -- Also checks if parent/child chain length is > 16, and if so, hard errors.
 local function parent_check( self, child, parent )
-	local parents = 1
+	local parents = 0
 	while parent:IsValid() do
 		parents = parents + 1
 		parent = parent:GetParent()
 	end
 
-	if ( parents + getChildLength(child, 1) ) > 16 then
-		return false
-	end
-
-	return true
+	return ( parents + getChildLength(child, 1) ) <= 16
 end
 
 local function parent_antispam( child )
