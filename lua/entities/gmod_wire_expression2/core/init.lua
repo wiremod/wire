@@ -336,4 +336,6 @@ elseif CLIENT then
 	end)
 end
 
-include("e2doc.lua")
+-- this file just generates the docs so it doesn't need to run every time. 
+-- uncomment this line or use an openscript concmd if you want to generate docs
+-- include("e2doc.lua")
