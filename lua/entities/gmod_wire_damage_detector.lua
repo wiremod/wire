@@ -89,10 +89,11 @@ end
 
 -- Update overlay
 function ENT:ShowOutput()
-	self:SetOverlayText(string.format("(%s)\nLinked to %d entities\n%s",
+	local num = #self.linked_entities
+	self:SetOverlayText(string.format("(%s)\nLinked to %s entities%s",
 		(self.includeconstrained == 0) and "Individual Props" or "Constrained Props",
-		#self.linked_entities,
-		(#self.linked_entities == 1 and self.linked_entities[1] == self) and "Linked to self" or ""
+		num,
+		(num == 1 and self.linked_entities[1] == self) and "\nLinked only to self" or ""
 	))
 end
 
