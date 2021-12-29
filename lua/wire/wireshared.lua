@@ -729,34 +729,6 @@ elseif CLIENT then
 	end
 end
 
--- For transmitting the yellow lines showing links between controllers and ents, as used by the Adv Entity Marker
-if SERVER then
-	util.AddNetworkString("WireLinkedEnts")
-	function WireLib.SendMarks(controller, marks)
-		if not IsValid(controller) or not (controller.Marks or marks) then return end
-		net.Start("WireLinkedEnts")
-			net.WriteEntity(controller)
-			net.WriteUInt(#(controller.Marks or marks), 16)
-			for _,v in pairs(controller.Marks or marks) do
-				net.WriteEntity(v)
-			end
-		net.Broadcast()
-	end
-else
-	net.Receive("WireLinkedEnts", function(netlen)
-		local Controller = net.ReadEntity()
-		if IsValid(Controller) then
-			Controller.Marks = {}
-			for _=1, net.ReadUInt(16) do
-				local link = net.ReadEntity()
-				if IsValid(link) then
-					table.insert(Controller.Marks, link)
-				end
-			end
-		end
-	end)
-end
-
 --[[
 	Returns the "distance" between two strings
 	ie the amount of character swaps you have to do to get the first string to equal the second
