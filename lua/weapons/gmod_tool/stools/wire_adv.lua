@@ -320,6 +320,7 @@ elseif CLIENT then
 		self.ShowWirelink = false
 		self.ShowEntity = false
 		self:SetStage(0)
+		WireLib.WiringToolRenderAvoid = nil
 	end
 
 	-----------------------------------------------------------------
