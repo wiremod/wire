@@ -1028,6 +1028,23 @@ local function IsRealVehicle(pod)
 	return valid_vehicles[pod:GetClass()]
 end
 
+-- Helper function for GetClosestRealVehicle
+-- we don't use constraint.GetAllConstrainedEntities here because it's far worse for performance
+local function getContraption(ent, already_checked, callback)
+	for _, con in pairs( ent.Constraints or {} ) do
+		if IsValid(con) then
+			for i=1, 6 do
+				local e = con["Ent" .. i]
+				if e and not already_checked[e] then
+					already_checked[e] = true
+					callback(e)
+					getContraption(e,already_checked,callback)
+				end
+			end
+		end
+	end
+end
+
 -- GetClosestRealVehicle
 -- Args:
 --  vehicle; the vehicle that the user would like to link a controller to
@@ -1040,24 +1057,6 @@ function WireLib.GetClosestRealVehicle(vehicle,position,notify_this_player)
 	-- If this is a valid entity, but not a real vehicle, then let's get started
 	if IsValid(vehicle) and not IsRealVehicle(vehicle) then
 		local distance = math.huge
-
-		-- we don't use constraint.GetAllConstrainedEntities here because it's far worse for performance
-		function getContraption( ent, already_checked, callback)
-			for _, con in pairs( ent.Constraints or {} ) do
-				if IsValid(con) then
-					for i=1, 6 do
-						local e = con["Ent" .. i]
-						if e and not already_checked[e] then
-							already_checked[e] = true
-							callback(e)
-							if getContraption(e,already_checked,callback) == false then
-								return false
-							end
-						end
-					end
-				end
-			end
-		end
 
 		getContraption(vehicle,{[vehicle]=true},
 			function(ent)

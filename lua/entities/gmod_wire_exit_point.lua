@@ -140,7 +140,7 @@ function ENT:SendMarks()
 end
 
 function ENT:LinkEnt( ent, dontNotify )
-	ent = WireLib.GetClosestRealVehicle(ent,self:GetPos(),(not dontNotify) and self:GetPlayer())
+	ent = WireLib.GetClosestRealVehicle(ent,nil,(not dontNotify) and self:GetPlayer())
 
 	if not IsValid(ent) or not ent:IsVehicle() then return false, "Must link to a vehicle" end
 	if self.Entities[ent] then return end
