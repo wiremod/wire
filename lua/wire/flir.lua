@@ -14,7 +14,7 @@ if not FLIR then FLIR = { enabled = false } end
 if CLIENT then
 
 	FLIR.RenderStack = {}
-	FLIR.Render = 0
+	FLIR.ShouldRender = false
 
 	FLIR.bright = CreateMaterial("flir_bright", "UnlitGeneric", {
 		["$basetexture"] = "color/white",
@@ -41,24 +41,18 @@ if CLIENT then
 		if not IsValid(ent) then return end
 
 		if ent:GetMoveType() == MOVETYPE_VPHYSICS or ent:IsPlayer() or ent:IsNPC() or ent:IsRagdoll() or ent:GetClass() == "gmod_wire_hologram" then
-			ent.FLIRCol = ent:GetColor()	
 			ent.RenderOverride = FLIR.Render
-
-			table.insert(FLIR.RenderStack, ent)			--add entity to the FLIR renderstack and remove it from regular opaque rendering
+			FLIR.RenderStack[ent] = true
 		end
 	end
 
 	local function RemoveFLIRMat(ent)
 		ent.RenderOverride = nil
-		
-		if ent.FLIRCol then
-			ent:SetColor(ent.FLIRCol)
-		end
-		table.RemoveByValue(FLIR.RenderStack, ent)
+		FLIR.RenderStack[ent] = nil
 	end
 
 	function FLIR.Render(self)
-		if FLIR.Render == 1 then self:DrawModel() end
+		if FLIR.ShouldRender then self:DrawModel() end
 	end
 
 
@@ -68,7 +62,7 @@ if CLIENT then
 		bright = false
 		hook.Add("PreRender", "wire_flir", function()			--lighting mode 1  = fullbright
 			render.SetLightingMode(1)
-			FLIR.Render = 0
+			FLIR.ShouldRender = false
 		end)
 
 
@@ -86,14 +80,15 @@ if CLIENT then
 			if sky then return end
 
 			render.SetLightingMode(0)
-			FLIR.Render = 1
+			FLIR.ShouldRender = true
 			render.MaterialOverride(FLIR.bright)
-
-			for k, v in pairs(FLIR.RenderStack) do				--draw all the FLIR highlighted enemies after the opaque render
-				if v:IsValid() then v:DrawModel() end									--to separate then from the rest of the map	
+			
+			--draw all the FLIR highlighted enemies after the opaque render to separate then from the rest of the map	
+			for v in pairs(FLIR.RenderStack) do
+				if v:IsValid() then v:DrawModel() else FLIR.RenderStack[v] = nil end end
 			end
 
-			FLIR.Render = 0
+			FLIR.ShouldRender = false
 			render.MaterialOverride(nil)
 			render.SetLightingMode(1)
 		end)
