@@ -175,14 +175,14 @@ end
 
 e2function number wirelink:hasInput(string portname)
 	if not validWirelink(self, this) then return 0 end
-
+	if not this.Inputs then return 0 end
 	if not this.Inputs[portname] then return 0 end
 	return 1
 end
 
 e2function number wirelink:hasOutput(string portname)
 	if not validWirelink(self, this) then return 0 end
-
+	if not this.Outputs then return 0 end
 	if not this.Outputs[portname] then return 0 end
 	return 1
 end
