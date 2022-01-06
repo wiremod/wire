@@ -164,7 +164,7 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 		local x, y = 0, 0
 		if ent.GetTarget then
 			if ent:GetTarget().X ~= 0 or ent:GetTarget().Y ~= 0 or ent:GetTarget().Z ~= 0 then
-				ent.endpos = ent:GetPos() + ( ent:GetTarget() - ent:GetPos() ):Angle():Forward()*beam_length
+				ent.endpos = ent:GetPos() + ( ent:GetTarget() - ent:GetPos() ):GetNormalized()*beam_length
 			else
 				ent.endpos = ent:GetPos() + ent:GetUp()*beam_length
 			end
