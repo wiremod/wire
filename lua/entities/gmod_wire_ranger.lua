@@ -122,7 +122,7 @@ function ENT:Think()
 
 	local tracedata = {}
 	tracedata.start = self:GetPos()
-	if self.Inputs.Target.Value ~= Vector() then
+	if self.Inputs.Target.Value ~= vector_origin then
 		tracedata.endpos = self:GetPos()+(self:GetTarget()-self:GetPos()):GetNormalized()*self:GetBeamLength()
 		if tracedata.endpos[1] ~= tracedata.endpos[1] then tracedata.endpos = self:GetPos()+Vector(self:GetBeamLength(), 0, 0) end
 	elseif (self.Inputs.X.Value == 0 and self.Inputs.Y.Value == 0) then
