@@ -218,7 +218,7 @@ registerCallback("postinit", function()
 					if not validWirelink(self, this) then return {} end
 
 					portname = mapOutputAlias(this, portname)
-					
+
 					if not this.Outputs then return {} end
 					if not this.Outputs[portname] then return {} end
 					if this.Outputs[portname].Type ~= typename then return {} end
@@ -234,7 +234,7 @@ registerCallback("postinit", function()
 					if not validWirelink(self, this) then return input_serializer(self, zero) end
 
 					portname = mapOutputAlias(this, portname)
-					
+
 					if not this.Outputs then return input_serializer(self, zero) end
 					if not this.Outputs[portname] then return input_serializer(self, zero) end
 					if this.Outputs[portname].Type ~= typename then return input_serializer(self, zero) end
