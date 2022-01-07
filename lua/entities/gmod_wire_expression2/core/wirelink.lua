@@ -175,6 +175,7 @@ end
 
 e2function number wirelink:hasInput(string portname)
 	if not validWirelink(self, this) then return 0 end
+
 	if not this.Inputs then return 0 end
 	if not this.Inputs[portname] then return 0 end
 	return 1
@@ -182,6 +183,7 @@ end
 
 e2function number wirelink:hasOutput(string portname)
 	if not validWirelink(self, this) then return 0 end
+
 	if not this.Outputs then return 0 end
 	if not this.Outputs[portname] then return 0 end
 	return 1
@@ -216,7 +218,8 @@ registerCallback("postinit", function()
 					if not validWirelink(self, this) then return {} end
 
 					portname = mapOutputAlias(this, portname)
-
+					
+					if not this.Outputs then return {} end
 					if not this.Outputs[portname] then return {} end
 					if this.Outputs[portname].Type ~= typename then return {} end
 
@@ -231,7 +234,8 @@ registerCallback("postinit", function()
 					if not validWirelink(self, this) then return input_serializer(self, zero) end
 
 					portname = mapOutputAlias(this, portname)
-
+					
+					if not this.Outputs then return input_serializer(self, zero) end
 					if not this.Outputs[portname] then return input_serializer(self, zero) end
 					if this.Outputs[portname].Type ~= typename then return input_serializer(self, zero) end
 
@@ -249,6 +253,7 @@ registerCallback("postinit", function()
 
 				portname = mapOutputAlias(this, portname)
 
+				if not this.Outputs then return zero end
 				if not this.Outputs[portname] then return zero end
 				if this.Outputs[portname].Type ~= typename then return zero end
 
@@ -304,6 +309,7 @@ end
 e2function vector wirelink:xyz()
 	if not validWirelink(self, this) then return { 0, 0, 0 } end
 
+	if not this.Outputs then return { 0, 0, 0 } end
 	local x, y, z = this.Outputs["X"], this.Outputs["Y"], this.Outputs["Z"]
 
 	if not x or not y or not z then return { 0, 0, 0 } end
