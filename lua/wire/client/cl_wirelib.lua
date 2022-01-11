@@ -173,27 +173,27 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 			x, y = ent:GetSkewX(beam_num), ent:GetSkewY(beam_num)
 			
 			if (ent.ls ~= start or ent.la ~= ang or ent.ll ~= beam_length or ent.lx ~= x or ent.ly ~= y) then
-			ent.ls, ent.la = start, ang
+				ent.ls, ent.la = start, ang
 
-			if (ent.ll ~= beam_length or ent.lx ~= x or ent.ly ~= y) then
-				ent.ll, ent.lx, ent.ly = beam_length, x, y
+				if (ent.ll ~= beam_length or ent.lx ~= x or ent.ly ~= y) then
+					ent.ll, ent.lx, ent.ly = beam_length, x, y
 
-				if (x == 0 and y == 0) then
-					ent.endpos = start + (ent:GetUp() * beam_length)
+					if (x == 0 and y == 0) then
+						ent.endpos = start + (ent:GetUp() * beam_length)
+					else
+						local skew = Vector(x, y, 1)
+						skew = skew*(beam_length/skew:Length())
+						local beam_x = ent:GetRight()*skew.x
+						local beam_y = ent:GetForward()*skew.y
+						local beam_z = ent:GetUp()*skew.z
+						ent.endpos = start + beam_x + beam_y + beam_z
+					end
+					ent.ExtraRBoxPoints = ent.ExtraRBoxPoints or {}
+					ent.ExtraRBoxPoints[beam_num] = ent:WorldToLocal(ent.endpos)
 				else
-					local skew = Vector(x, y, 1)
-					skew = skew*(beam_length/skew:Length())
-					local beam_x = ent:GetRight()*skew.x
-					local beam_y = ent:GetForward()*skew.y
-					local beam_z = ent:GetUp()*skew.z
-					ent.endpos = start + beam_x + beam_y + beam_z
+					ent.endpos = ent:LocalToWorld(ent.ExtraRBoxPoints[beam_num])
 				end
-				ent.ExtraRBoxPoints = ent.ExtraRBoxPoints or {}
-				ent.ExtraRBoxPoints[beam_num] = ent:WorldToLocal(ent.endpos)
-			else
-				ent.endpos = ent:LocalToWorld(ent.ExtraRBoxPoints[beam_num])
 			end
-		end
 		else
 			ent.endpos = ent:GetPos() + ent:GetUp()*beam_length
 		end
