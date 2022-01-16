@@ -85,7 +85,7 @@ if CLIENT then
 			
 			--draw all the FLIR highlighted enemies after the opaque render to separate then from the rest of the map	
 			for v in pairs(FLIR.RenderStack) do
-				if v:IsValid() then v:DrawModel() else FLIR.RenderStack[v] = nil end end
+				if v:IsValid() then v:DrawModel() else FLIR.RenderStack[v] = nil end
 			end
 
 			FLIR.ShouldRender = false
