@@ -199,7 +199,7 @@ if CLIENT then
         local monitor = self.MonitorDesc
         local material = self.Material
         local rt = camera.RenderTarget
-        assert(rt ~= nil)
+        if not rt then return end
 
         material:SetTexture(material:GetString("!targettex1"), rt)
 
