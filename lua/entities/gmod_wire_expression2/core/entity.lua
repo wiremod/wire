@@ -677,7 +677,7 @@ e2function void entity:killPod()
 	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 	local ply = this:GetDriver()
-	if IsValid(ply) then ply:Kill() end
+	if IsValid(ply) and ply:IsPlayer() and ply:Alive() then ply:Kill() end
 end
 
 e2function void entity:ejectPod()
