@@ -1165,8 +1165,8 @@ registerCallback( "postinit", function()
 			local op1, op2, op3 = args[2], args[3], args[4]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self,op3)
 			if rv3 == nil then return end
-			if rv2 < 0 then return end
-			if rv2 > 2^31 then return end -- too large, possibility of crashing gmod
+			if rv2 < 0 then return self:throw("Insert key cannot be negative!") end
+			if rv2 > 2^31 then return self:throw("Insert key too large!") end -- too large, possibility of crashing gmod
 			rv1.size = rv1.size + 1
 			table.insert( rv1.n, rv2, rv3 )
 			table.insert( rv1.ntypes, rv2, id )

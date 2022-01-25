@@ -129,7 +129,8 @@ e2function void soundPlay( index, duration, string path )
 end
 
 e2function void entity:soundPlay( index, duration, string path)
-	if not IsValid(this) or not isOwner(self, this) then return end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 	soundCreate(self,this,index,duration,path,0)
 end
 
@@ -138,7 +139,8 @@ e2function void soundPlay( index, duration, string path, fade )
 end
 
 e2function void entity:soundPlay( index, duration, string path, fade )
-	if not IsValid(this) or not isOwner(self, this) then return end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 	soundCreate(self,this,index,duration,path,fade)
 end
 
@@ -163,14 +165,14 @@ end
 
 e2function void soundVolume( index, volume )
 	local sound = getSound( self, index )
-	if not sound then return end
+	if not sound then return self:throw("Invalid sound: " .. index, nil) end
 
 	sound:ChangeVolume( math.Clamp( volume, 0, 1 ), 0 )
 end
 
 e2function void soundVolume( index, volume, fadetime )
 	local sound = getSound( self, index )
-	if not sound then return end
+	if not sound then return self:throw("Invalid sound: " .. index, nil) end
 
 	sound:ChangeVolume( math.Clamp( volume, 0, 1 ), math.abs( fadetime ) )
 end
@@ -178,14 +180,14 @@ end
 
 e2function void soundPitch( index, pitch )
 	local sound = getSound( self, index )
-	if not sound then return end
+	if not sound then return self:throw("Invalid sound: " .. index, nil) end
 
 	sound:ChangePitch( math.Clamp( pitch, 0, 255 ), 0 )
 end
 
 e2function void soundPitch( index, pitch, fadetime )
 	local sound = getSound( self, index )
-	if not sound then return end
+	if not sound then return self:throw("Invalid sound: " .. index, nil) end
 
 	sound:ChangePitch( math.Clamp( pitch, 0, 255 ), math.abs( fadetime ) )
 end

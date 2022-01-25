@@ -181,7 +181,7 @@ __e2setcost(20)
 
 --- Returns an '''array''' containing all entities directly or indirectly constrained to <this>, except <this> itself.
 e2function array entity:getConstraints()
-	if not IsValid(this) then return {} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
 	if not constraint.HasConstraints(this) then return {} end
 
 	local result = getConnectedEntities(this)
@@ -196,7 +196,7 @@ end
 	supports filtering, see buildFilter above
 ]]
 e2function array entity:getConnectedEntities(...)
-	if not IsValid(this) then return {} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
 	local result = getConnectedEntities(this,buildFilter({...}))
 	self.prf = self.prf + #result * 30
 	return result
@@ -212,7 +212,7 @@ __e2setcost(5)
 
 --- Returns the number of constraints on <this>.
 e2function number entity:hasConstraints()
-	if not IsValid(this) then return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 
 	return #constraint_GetTable(this)
 end
@@ -226,7 +226,7 @@ end
 
 --- Returns 1 if <this> is constrained to anything, 0 otherwise.
 e2function number entity:isConstrained()
-	if not IsValid(this) then return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if not constraint.HasConstraints(this) then return 0 end
 
 	return 1
@@ -234,7 +234,7 @@ end
 
 --- Returns the first entity <this> was welded to.
 e2function entity entity:isWeldedTo()
-	if not IsValid(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not constraint.HasConstraints(this) then return nil end
 
 	local filter = {Weld=true} -- create filter directly, no need to call buildFilter here, since it's static
@@ -243,7 +243,7 @@ end
 
 --- Returns the <index>th entity <this> was welded to.
 e2function entity entity:isWeldedTo(index)
-	if not IsValid(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not constraint.HasConstraints(this) then return nil end
 
 	local filter = {Weld=true} -- create filter directly, no need to call buildFilter here, since it's static
@@ -252,7 +252,7 @@ end
 
 --- Returns the first entity <this> was constrained to.
 e2function entity entity:isConstrainedTo()
-	if not IsValid(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not constraint.HasConstraints(this) then return nil end
 
 	return ent1or2(this,constraint_GetTable(this),1)
@@ -260,7 +260,7 @@ end
 
 --- Returns the <index>th entity <this> was constrained to.
 e2function entity entity:isConstrainedTo(index)
-	if not IsValid(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not constraint.HasConstraints(this) then return nil end
 
 	return ent1or2(this,constraint_GetTable(this), math.floor(index))
@@ -268,7 +268,7 @@ end
 
 --- Returns the first entity <this> was constrained to with the given constraint type <constraintType>.
 e2function entity entity:isConstrainedTo(string constraintType)
-	if not IsValid(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not constraint.HasConstraints(this) then return nil end
 
 	return ent1or2(this,constraint_FindConstraint(this, buildFilter({constraintType})))
@@ -276,7 +276,7 @@ end
 
 --- Returns the <index>th entity <this> was constrained to with the given constraint type <constraintType>.
 e2function entity entity:isConstrainedTo(string constraintType, index)
-	if not IsValid(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not constraint.HasConstraints(this) then return nil end
 
 	return ent1or2(this,constraint_FindConstraints(this, buildFilter({constraintType})), math.floor(index))
