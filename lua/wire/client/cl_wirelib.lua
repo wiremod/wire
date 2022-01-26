@@ -162,13 +162,9 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 	if (beam_length > 0) then
 
 		local x, y = 0, 0
-		if ent.GetTarget then
-			if ent:GetTarget().X ~= 0 or ent:GetTarget().Y ~= 0 or ent:GetTarget().Z ~= 0 then
-				ent.endpos = ent:GetPos() + ( ent:GetTarget() - ent:GetPos() ):GetNormalized()*beam_length
-				if tracedata.endpos[1] ~= tracedata.endpos[1] then tracedata.endpos = self:GetPos()+Vector(self:GetBeamLength(), 0, 0) end
-			else
-				ent.endpos = ent:GetPos() + ent:GetUp()*beam_length
-			end
+		if ent.GetTarget and ( ent:GetTarget().X ~= 0 or ent:GetTarget().Y ~= 0 or ent:GetTarget().Z ~= 0 ) then
+			ent.endpos = ent:GetPos() + ( ent:GetTarget() - ent:GetPos() ):GetNormalized()*beam_length
+			if tracedata.endpos[1] ~= tracedata.endpos[1] then tracedata.endpos = self:GetPos()+Vector(self:GetBeamLength(), 0, 0) end
 		elseif (ent.GetSkewX and ent.GetSkewY) then
 			x, y = ent:GetSkewX(beam_num), ent:GetSkewY(beam_num)
 			
