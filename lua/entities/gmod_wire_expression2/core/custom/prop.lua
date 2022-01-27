@@ -31,7 +31,9 @@ function PropCore.ValidSpawn(ply, model, isVehicle)
 	local limithit = playerMeta.LimitHit
 	playerMeta.LimitHit = function() end
 
-	if not (util.IsValidProp( model ) and WireLib.CanModel(ply, model)) then
+	if not PropCore.WithinPropcoreLimits() then
+		ret = false
+	elseif not (util.IsValidProp( model ) and WireLib.CanModel(ply, model)) then
 		ret = false
 	elseif isVehicle then
 		ret = gamemode.Call( "PlayerSpawnVehicle", ply, model, "Seat_Airboat", list.Get( "Vehicles" ).Seat_Airboat ) ~= false
