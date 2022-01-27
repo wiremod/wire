@@ -1,301 +1,251 @@
-AddCSLuaFile()
-DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Ranger"
-ENT.RenderGroup		= RENDERGROUP_BOTH
-ENT.WireDebugName	= "Ranger"
+--[[----------------------------------------------------------
+	lua/wire/client/cl_wirelib.lua
+	----------------------------------------------------------
+	Renders beams
+--]]----------------------------------------------------------
+local WIRE_SCROLL_SPEED 			= 	0.5
+local WIRE_BLINKS_PER_SECOND 		= 	2
+local Wire_DisableWireRender 		= 	0
 
-function ENT:SetupDataTables()
-	self:NetworkVar( "Float", 0, "BeamLength" )
-	self:NetworkVar( "Bool",  0, "ShowBeam" )
-	self:NetworkVar( "Float", 1, "SkewX" )
-	self:NetworkVar( "Float", 2, "SkewY" )
-	self:NetworkVar( "Vector", 0, "Target" )
+list.Add( "WireMaterials", "cable/rope_icon" )
+list.Add( "WireMaterials", "cable/cable2" )
+list.Add( "WireMaterials", "cable/xbeam" )
+list.Add( "WireMaterials", "cable/redlaser" )
+list.Add( "WireMaterials", "cable/blue_elec" )
+list.Add( "WireMaterials", "cable/physbeam" )
+list.Add( "WireMaterials", "cable/hydra" )
+list.Add( "WireMaterials", "arrowire/arrowire" )
+list.Add( "WireMaterials", "arrowire/arrowire2" )
+
+list.Add( "WireMaterials", "tripmine_laser" )
+list.Add( "WireMaterials", "Models/effects/comball_tape" )
+
+WireLib.Wire_GrayOutWires 	= 	false
+WIRE_CLIENT_INSTALLED 		= 	1
+
+mats_cache = {
+	["tripmine_laser"] 					=	Material("tripmine_laser"),
+	["Models/effects/comball_tape"]		=	Material("Models/effects/comball_tape")
+}	 
+
+BeamMat 	= 	Material("tripmine_laser")
+BeamMatHR 	= 	Material("Models/effects/comball_tape")
+local lastrender, scroll, shouldblink = 0, 0, false
+
+--Precache everything we're going to use
+local CurTime 		= 	CurTime 			--Yes, in lua we can do this
+local net_start 	= 	net.Start
+local net_writeEnt 	= 	net.WriteEntity
+local net_send		=	net.SendToServer
+
+local function getmat( mat )
+	if not mats_cache[ mat ] then mats_cache[ mat ] = Material(mat) end --Just not to create a material every frame
+	return mats_cache[mat]
 end
 
-if CLIENT then return end -- No more client
-
-function ENT:Initialize()
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
-	self:StartMotionController()
-
-	self.Inputs = WireLib.CreateSpecialInputs(self, { "X", "Y", "SelectValue", "Length", "Target"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR"})
-	self.Outputs = WireLib.CreateOutputs(self, { "Dist" })
-	self.hires = false
-end
-
-function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hiRes )
-	--for duplication
-	self.default_zero   = default_zero
-	self.show_beam      = show_beam
-	self.ignore_world   = ignore_world
-	self.trace_water    = trace_water
-	self.out_dist       = out_dist
-	self.out_pos        = out_pos
-	self.out_vel        = out_vel
-	self.out_ang        = out_ang
-	self.out_col        = out_col
-	self.out_val        = out_val
-	self.out_sid        = out_sid
-	self.out_uid        = out_uid
-	self.out_eid        = out_eid
-	self.out_hnrm       = out_hnrm
-	self.hires          = hiRes
-
-	self.PrevOutput = nil
-
-	if range then self:SetBeamLength(math.min(range, 64000)) end
-	if show_beam ~= nil then self:SetShowBeam(show_beam) end
-
-	self:SetNWBool("TraceWater", trace_water)
-
-	local onames, otypes = {}, {}
-
-
-	local function add(...)
-		local args = {...}
-		for i=1,#args,2 do
-			onames[#onames+1] = args[i]
-			otypes[#otypes+1] = args[i+1]
-		end
+function Wire_Render(ent)
+	if Wire_DisableWireRender ~= 0 then return end	--We shouldn't render anything
+	
+	local wires = ent.WirePaths
+	if not wires then
+		ent.WirePaths = {}
+		net_start("WireLib.Paths.RequestPaths")
+			net_writeEnt(ent)
+		net_send()
+		return
+	end
+	
+	if not next(wires) then return end
+	
+	local t = CurTime()
+	if lastrender ~= t then
+		local w, f 		= math.modf(t*WIRE_BLINKS_PER_SECOND)
+		shouldblink 	= f < 0.5
+		scroll 			= t*WIRE_SCROLL_SPEED
+		lastrender 		= t
 	end
 
-
-	if (out_dist) then add("Dist","NORMAL") end
-	if (out_pos) then
-		add("Pos", "VECTOR",
-			"Pos X", "NORMAL",
-			"Pos Y", "NORMAL",
-			"Pos Z", "NORMAL")
-	end
-	if (out_vel) then
-		add("Vel","VECTOR",
-			"Vel X","NORMAL",
-			"Vel Y","NORMAL",
-			"Vel Z","NORMAL")
-	end
-	if (out_ang) then
-		add("Ang","ANGLE",
-			"Ang Pitch","NORMAL",
-			"Ang Yaw","NORMAL",
-			"Ang Roll","NORMAL")
-	end
-	if (out_col) then
-		add("Col RGB","VECTOR",
-			"Col R","NORMAL",
-			"Col G","NORMAL",
-			"Col B","NORMAL",
-			"Col A","NORMAL")
-	end
-	if (out_val) then add("Val","NORMAL","ValSize","NORMAL") end
-	if (out_sid) then add( "SteamID", "STRING" ) end
-	if (out_uid) then add( "UniqueID","NORMAL" ) end
-	if (out_eid) then add( "EntID", "NORMAL", "Entity", "ENTITY" ) end
-	if (out_hnrm) then
-		add("HitNormal","VECTOR",
-			"HitNormal X","NORMAL",
-			"HitNormal Y","NORMAL",
-			"HitNormal Z","NORMAL")
-	end
-	add( "RangerData", "RANGER" )
-	WireLib.AdjustSpecialOutputs(self, onames, otypes)
-
-	self:TriggerOutput(0, Vector(0, 0, 0), Vector(0, 0, 0), Angle(0, 0, 0), Color(255, 255, 255, 255),nil,0,0,NULL, Vector(0, 0, 0),nil)
-	self:ShowOutput(0, Vector(0, 0, 0), Vector(0, 0, 0), Angle(0, 0, 0), Color(255, 255, 255, 255),nil,0,0,NULL, Vector(0, 0, 0),nil)
-end
-
-function ENT:TriggerInput(iname, value)
-	if (iname == "X") then
-		self:SetSkewX(value)
-	elseif (iname == "Y") then
-		self:SetSkewY(value)
-	elseif (iname == "Length") then
-		self:SetBeamLength(math.min(value, 64000))
-	elseif (iname == "Target") then
-		self:SetTarget(value)
-	end
-end
-
-function ENT:Think()
-	BaseClass.Think(self)
-
-	local tracedata = {}
-	tracedata.start = self:GetPos()
-	if self.Inputs.Target.Value ~= vector_origin then
-		tracedata.endpos = self:GetPos()+(self:GetTarget()-self:GetPos()):GetNormalized()*self:GetBeamLength()
-		if tracedata.endpos[1] ~= tracedata.endpos[1] then tracedata.endpos = self:GetPos()+Vector(self:GetBeamLength(), 0, 0) end
-	elseif (self.Inputs.X.Value == 0 and self.Inputs.Y.Value == 0) then
-		tracedata.endpos = tracedata.start + self:GetUp() * self:GetBeamLength()
-	else
-		local skew = Vector(self.Inputs.X.Value, self.Inputs.Y.Value, 1)
-		skew = skew*(self:GetBeamLength()/skew:Length())
-		local beam_x = self:GetRight()*skew.x
-		local beam_y = self:GetForward()*skew.y
-		local beam_z = self:GetUp()*skew.z
-		tracedata.endpos = tracedata.start + beam_x + beam_y + beam_z
-	end
-	tracedata.filter = { self }
-	if (self.trace_water) then tracedata.mask = -1 end
-	local trace = util.TraceLine(tracedata)
-	trace.RealStartPos = tracedata.start
-
-	local dist = 0
-	local pos = Vector(0, 0, 0)
-	local vel = Vector(0, 0, 0)
-	local ang = Angle(0, 0, 0)
-	local col = Color(255, 255, 255, 255)
-	local ent = NULL
-	local sid = ""
-	local uid = 0
-	local val = {}
-	local hnrm = Vector(0,0,0)
-
-	if (trace.Hit) then
-		dist = trace.Fraction * self:GetBeamLength()
-		pos = trace.HitPos
-		hnrm = trace.HitNormal
-		ent = trace.Entity
-
-		if (ent:IsValid()) then
-
-			vel = ent:GetVelocity()
-			ang = ent:GetAngles()
-			col = ent:GetColor()
-
-			if (self.out_sid or self.out_uid) and (ent:IsPlayer()) then
-				sid = ent:SteamID() or ""
-				uid = tonumber(ent:UniqueID()) or -1
+	local blink = shouldblink and ent:GetNWString("BlinkWire")
+	--CREATING (Not assigning a value) local variables OUTSIDE of cycle a bit faster
+	local start, color, nodes, len, h, s, v, tmpColor, endpos, node, node_ent
+	for net_name, wiretbl in pairs(wires) do
+	
+		width = wiretbl.Width
+		if width > 0 and blink ~= net_name then
+			start = IsValid(ent) and ent:LocalToWorld(start) or wiretbl.StartPos
+			color = wiretbl.Color
+			
+			if WireLib.Wire_GrayOutWires then
+				h, s, v 	= 	ColorToHSV(color)
+				v 			= 	0.175
+				tmpColor 	= 	HSVToColor(h, s, v)
+				color 		= 	Color(tmpColor.r, tmpColor.g, tmpColor.b, tmpColor.a) -- HSVToColor does not return a proper Color structure.
 			end
 
-			if (self.out_val and ent.Outputs) then
-				local i = 1
-				for k,v in pairs(ent.Outputs) do
-					if (v.Value ~= nil and type(v.Value) == "number") then
-						val[i] = v.Value
-						i = i + 1
+			nodes 	= 	wiretbl.Path
+			len 	= 	#nodes
+			if len>0 then
+				render.SetMaterial( getmat(wiretbl.Material) )	--Maybe every wire addon should precache it's materials on setup?
+				render.StartBeam(len * 2 + 1)
+				render.AddBeam(start, width, scroll, color)
+				
+				for j=1, len do
+					node 		= 	nodes[j]
+					node_ent 	= 	node.Entity
+					if IsValid( node_ent ) then
+						endpos 	= 	node_ent:LocalToWorld(node.Pos)
+						scroll 	= 	scroll+(endpos-start):Length()/10
+						render.AddBeam(endpos, width, scroll, color)
+						render.AddBeam(endpos, width, scroll, color) -- A second beam in the same position ensures the line stays consistent and doesn't change width/become distorted.
+						start 	= 	endpos
 					end
 				end
+				
+				render.EndBeam()
 			end
+		end
+	end
+end
 
-		elseif(self.ignore_world) then
-			if (trace.HitWorld) then
-				if (self.default_zero) then
-					dist = 0
-				else
-					dist = self:GetBeamLength()
+
+local function Wire_GetWireRenderBounds(ent)
+	if not IsValid(ent) then return end
+
+	local bbmin, bbmax 	= 	ent:OBBMins(), ent:OBBMaxs()
+
+	if ent.WirePaths then
+		local nodes, len, node_ent, nodepos
+		for net_name, wiretbl in pairs(ent.WirePaths) do
+			nodes 	= 	wiretbl.Path
+			len 	= 	#nodes
+			for j=1, len do
+				node_ent 	= 	nodes[j].Entity
+				nodepos 	= 	nodes[j].Pos
+				if (node_ent:IsValid()) then
+					nodepos 	= 	ent:WorldToLocal(node_ent:LocalToWorld(nodepos))
+
+					if nodepos.x < bbmin.x then bbmin.x = nodepos.x end
+					if nodepos.y < bbmin.y then bbmin.y = nodepos.y end
+					if nodepos.z < bbmin.z then bbmin.z = nodepos.z end
+					if nodepos.x > bbmax.x then bbmax.x = nodepos.x end
+					if nodepos.y > bbmax.y then bbmax.y = nodepos.y end
+					if nodepos.z > bbmax.z then bbmax.z = nodepos.z end
 				end
-				pos = Vector(0,0,0)
+			end
+		end
+	end
+
+	if ent.ExtraRBoxPoints then
+		for _,point in pairs( ent.ExtraRBoxPoints ) do
+			if point.x < bbmin.x then bbmin.x = point.x end
+			if point.y < bbmin.y then bbmin.y = point.y end
+			if point.z < bbmin.z then bbmin.z = point.z end
+			if point.x > bbmax.x then bbmax.x = point.x end
+			if point.y > bbmax.y then bbmax.y = point.y end
+			if point.z > bbmax.z then bbmax.z = point.z end
+		end
+	end
+	return bbmin, bbmax
+end
+
+
+function Wire_UpdateRenderBounds(ent)
+	local bbmin, bbmax 		= 	Wire_GetWireRenderBounds(ent)
+	ent:SetRenderBounds(bbmin, bbmax)
+end
+
+local function WireDisableRender(pl, cmd, args)
+	if args[1] then
+		Wire_DisableWireRender 	= 	tonumber(args[1])
+	end
+	Msg("\nWire DisableWireRender/WireRenderMode = "..tostring(Wire_DisableWireRender).."\n")
+end
+
+concommand.Add( "cl_Wire_DisableWireRender", WireDisableRender )
+concommand.Add( "cl_Wire_SetWireRenderMode", WireDisableRender )
+
+
+function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
+	local beam_length 	= 	beam_length or ent:GetBeamLength(beam_num)
+	if beam_length == 0 then return end
+	local start 		= 	ent:GetPos()
+	local trace 		= 	{}
+	
+	if ent.GetTarget and ( ent:GetTarget().X ~= 0 or ent:GetTarget().Y ~= 0 or ent:GetTarget().Z ~= 0 ) then
+		trace.endpos 	= 	ent:GetPos() + ( ent:GetTarget() - ent:GetPos() ):GetNormalized()*beam_length
+		if trace.endpos[1] ~= trace.endpos[1] then trace.endpos = self:GetPos()+Vector(self:GetBeamLength(), 0, 0) end
+	elseif (ent.GetSkewX and ent.GetSkewY) then
+		local x, y = ent:GetSkewX(beam_num), ent:GetSkewY(beam_num)
+		if x ~= 0 or y ~= 0 then
+			local skew 		= 	Vector(x, y, 1)
+			skew 			= 	skew*(beam_length/skew:Length())
+			local beam_x 	= 	ent:GetRight()*skew.x
+			local beam_y 	= 	ent:GetForward()*skew.y
+			local beam_z 	= 	ent:GetUp()*skew.z
+			trace.endpos 		= 	start + beam_x + beam_y + beam_z
+		else
+			trace.endpos 	= 	ent:GetPos() + ent:GetUp()*beam_length
+		end
+	else
+		trace.endpos 		= 	ent:GetPos() + ent:GetUp()*beam_length
+	end
+	
+	trace.start 		= 	ent:GetPos()
+	trace.filter 		= 	{ ent }
+	if ent:GetNWBool("TraceWater") then trace.mask = MASK_ALL end
+	trace 				= 	util.TraceLine(trace)
+
+	
+	if hilight then
+		render.SetMaterial(BeamMatHR)
+		render.DrawBeam(start, trace.HitPos, 6, 0, 10, Color(255,255,255,255))
+	else
+		render.SetMaterial(BeamMat)
+		render.DrawBeam(start, trace.HitPos, 6, 0, 10, ent:GetColor())
+	end
+end
+
+hook.Add("InitPostEntity", "language_strings", function()
+	for class, tbl in pairs(scripted_ents.GetList()) do
+		if tbl.t.PrintName and tbl.t.PrintName ~= "" then
+			language.Add( class, tbl.t.PrintName )
+		end
+	end
+end)
+
+if not CanRunConsoleCommand then
+	function CanRunConsoleCommand() return false end
+	hook.Add("Initialize", "CanRunConsoleCommand", function()
+		function CanRunConsoleCommand() return true end
+	end)
+end
+
+function Derma_StringRequestNoBlur(...)
+	local f = math.max
+
+	function math.max(...)
+		local ret = f(...)
+
+		for i = 1,20 do
+			local name, value = debug.getlocal(2, i)
+			if name == "Window" then
+				value:SetBackgroundBlur( false )
+				break
 			end
 		end
 
-	else
-		if (not self.default_zero) then
-			dist = self:GetBeamLength()
-		end
+		return ret
 	end
+	local ok, ret = xpcall(Derma_StringRequest, debug.traceback, ...)
+	math.max = f
 
-	if (COLOSSAL_SANDBOX) then
-		vel = vel * 6.25
-		pos = pos * 6.25
-		dist = dist * 6.25
-	end
-
-	self:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace)
-	self:ShowOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace)
-
-	if (self.hires) then
-		self:NextThink(CurTime())
-	else
-		self:NextThink(CurTime()+0.04)
-	end
-
-	return true
+	if not ok then error(ret, 0) end
+	return ret
 end
 
-local round = math.Round
-
-function ENT:ShowOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace)
-	local txt = "Max Range: " .. self:GetBeamLength()
-
-	if (self.out_dist) then txt = txt .. "\nRange = " .. round(dist,3) end
-	if (self.out_pos) then txt = txt .. string.format("\nPosition = %s, %s, %s", round(pos.x,3), round(pos.y,3), round(pos.z,3)) end
-	if (self.out_vel) then txt = txt .. string.format("\nVelocity = %s, %s, %s", round(vel.x,3), round(vel.y,3), round(vel.z,3)) end
-	if (self.out_ang) then txt = txt .. string.format("\nAngles = %s, %s, %s", round(ang.pitch,3), round(ang.yaw,3), round(ang.roll,3)) end
-	if (self.out_col) then txt = txt .. string.format("\nColor = %s, %s, %s, %s", round(col.r), round(col.g), round(col.b), round(col.a)) end
-	if (self.out_val) then txt = txt .. string.format("\nValue = %s ValSize = %s", round(self.Outputs["Val"].Value or 0,3), #(val or {}) ) end
-	if (self.out_sid) then txt = txt .. "\nSteamID = " .. (sid or "") end
-	if (self.out_uid) then txt = txt .. "\nUniqueID = " .. (uid or 0) end
-	if (self.out_eid) then txt = txt .. "\nEntID = " .. ent:EntIndex() end
-	if (self.out_hnrm) then txt = txt .. string.format("\nHitNormal = %s, %s, %s", round(hnrm.x,3), round(hnrm.y,3), round(hnrm.z,3)) end
-
-	self:SetOverlayText(txt)
+function WireLib.hud_debug(text, oneframe)
+	hook.Add("HUDPaint","wire_hud_debug",function()
+		if oneframe then hook.Remove("HUDPaint","wire_hud_debug") end
+		draw.DrawText(text,"Trebuchet24",10,200,Color(255,255,255,255),0)
+	end)
 end
-
-function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace)
-
-	if (self.out_dist) then
-		WireLib.TriggerOutput(self, "Dist", dist)
-	end
-
-	if (self.out_pos) then
-		WireLib.TriggerOutput(self, "Pos", pos)
-		WireLib.TriggerOutput(self, "Pos X", pos.x)
-		WireLib.TriggerOutput(self, "Pos Y", pos.y)
-		WireLib.TriggerOutput(self, "Pos Z", pos.z)
-	end
-
-	if (self.out_vel) then
-		WireLib.TriggerOutput(self, "Vel", vel)
-		WireLib.TriggerOutput(self, "Vel X", vel.x)
-		WireLib.TriggerOutput(self, "Vel Y", vel.y)
-		WireLib.TriggerOutput(self, "Vel Z", vel.z)
-	end
-
-	if (self.out_ang) then
-		WireLib.TriggerOutput(self, "Ang", ang)
-		WireLib.TriggerOutput(self, "Ang Pitch", ang.p)
-		WireLib.TriggerOutput(self, "Ang Yaw", ang.y)
-		WireLib.TriggerOutput(self, "Ang Roll", ang.r)
-	end
-
-	if (self.out_col) then
-		WireLib.TriggerOutput(self, "Col RGB", Vector(col.r, col.g, col.b))
-		WireLib.TriggerOutput(self, "Col R", col.r)
-		WireLib.TriggerOutput(self, "Col G", col.g)
-		WireLib.TriggerOutput(self, "Col B", col.b)
-		WireLib.TriggerOutput(self, "Col A", col.a)
-	end
-
-	if (self.out_sid) then
-		WireLib.TriggerOutput(self, "SteamID", sid)
-	end
-
-	if (self.out_uid) then
-		WireLib.TriggerOutput(self, "UniqueID", uid)
-	end
-
-	if (self.out_eid) then
-		WireLib.TriggerOutput(self, "EntID", ent:EntIndex())
-		WireLib.TriggerOutput(self, "Entity", ent)
-	end
-
-	if (self.out_hnrm and hnrm) then
-		WireLib.TriggerOutput(self, "HitNormal", hnrm)
-		WireLib.TriggerOutput(self, "HitNormal X", hnrm.x)
-		WireLib.TriggerOutput(self, "HitNormal Y", hnrm.y)
-		WireLib.TriggerOutput(self, "HitNormal Z", hnrm.z)
-	end
-
-	if (val ~= nil and #val > 0 and self.Inputs.SelectValue.Value <= #val) then
-		WireLib.TriggerOutput(self, "Val", val[self.Inputs.SelectValue.Value])
-		WireLib.TriggerOutput(self, "ValSize", #val)
-	else
-		WireLib.TriggerOutput(self, "Val", 0)
-		WireLib.TriggerOutput(self, "ValSize", 0)
-	end
-	WireLib.TriggerOutput(self, "RangerData", trace)
-
-end
-
-duplicator.RegisterEntityClass("gmod_wire_ranger", WireLib.MakeWireEnt, "Data", "range", "default_zero", "show_beam", "ignore_world", "trace_water", "out_dist", "out_pos", "out_vel", "out_ang", "out_col", "out_val", "out_sid", "out_uid", "out_eid", "out_hnrm", "hires")
