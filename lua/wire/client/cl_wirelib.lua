@@ -60,7 +60,7 @@ function Wire_Render(ent)
 	local t = CurTime()
 	if lastrender ~= t then
 		local w, f 		= math.modf(t*WIRE_BLINKS_PER_SECOND)
-		shouldblink 	= f < 0.5
+		shouldblink 		= f < 0.5
 		scroll 			= t*WIRE_SCROLL_SPEED
 		lastrender 		= t
 	end
@@ -77,7 +77,7 @@ function Wire_Render(ent)
 			
 			if WireLib.Wire_GrayOutWires then
 				h, s, v 	= 	ColorToHSV(color)
-				v 			= 	0.175
+				v 		= 	0.175
 				tmpColor 	= 	HSVToColor(h, s, v)
 				color 		= 	Color(tmpColor.r, tmpColor.g, tmpColor.b, tmpColor.a) -- HSVToColor does not return a proper Color structure.
 			end
@@ -168,40 +168,40 @@ concommand.Add( "cl_Wire_SetWireRenderMode", WireDisableRender )
 function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 	local beam_length 	= 	beam_length or ent:GetBeamLength(beam_num)
 	if beam_length == 0 then return end
-	local start 		= 	ent:GetPos()
+	local pos 		= 	ent:GetPos()
 	local trace 		= 	{}
 	
 	if ent.GetTarget and ( ent:GetTarget().X ~= 0 or ent:GetTarget().Y ~= 0 or ent:GetTarget().Z ~= 0 ) then
-		trace.endpos 	= 	ent:GetPos() + ( ent:GetTarget() - ent:GetPos() ):GetNormalized()*beam_length
-		if trace.endpos[1] ~= trace.endpos[1] then trace.endpos = self:GetPos()+Vector(self:GetBeamLength(), 0, 0) end
+		trace.endpos 	= 	pos + ( ent:GetTarget() - pos ):GetNormalized()*beam_length
+		if trace.endpos[1] ~= trace.endpos[1] then trace.endpos = pos+Vector(ent:GetBeamLength(), 0, 0) end
 	elseif (ent.GetSkewX and ent.GetSkewY) then
 		local x, y = ent:GetSkewX(beam_num), ent:GetSkewY(beam_num)
 		if x ~= 0 or y ~= 0 then
 			local skew 		= 	Vector(x, y, 1)
 			skew 			= 	skew*(beam_length/skew:Length())
-			local beam_x 	= 	ent:GetRight()*skew.x
-			local beam_y 	= 	ent:GetForward()*skew.y
-			local beam_z 	= 	ent:GetUp()*skew.z
-			trace.endpos 		= 	start + beam_x + beam_y + beam_z
+			local beam_x 		= 	ent:GetRight()*skew.x
+			local beam_y 		= 	ent:GetForward()*skew.y
+			local beam_z 		= 	ent:GetUp()*skew.z
+			trace.endpos 		= 	pos + beam_x + beam_y + beam_z
 		else
-			trace.endpos 	= 	ent:GetPos() + ent:GetUp()*beam_length
+			trace.endpos 	= 	pos + ent:GetUp()*beam_length
 		end
 	else
-		trace.endpos 		= 	ent:GetPos() + ent:GetUp()*beam_length
+		trace.endpos 		= 	pos + ent:GetUp()*beam_length
 	end
 	
-	trace.start 		= 	ent:GetPos()
+	trace.start 		= 	pos
 	trace.filter 		= 	{ ent }
 	if ent:GetNWBool("TraceWater") then trace.mask = MASK_ALL end
-	trace 				= 	util.TraceLine(trace)
+	trace 			= 	util.TraceLine(trace)
 
 	
 	if hilight then
 		render.SetMaterial(BeamMatHR)
-		render.DrawBeam(start, trace.HitPos, 6, 0, 10, Color(255,255,255,255))
+		render.DrawBeam(pos, trace.HitPos, 6, 0, 10, Color(255,255,255,255))
 	else
 		render.SetMaterial(BeamMat)
-		render.DrawBeam(start, trace.HitPos, 6, 0, 10, ent:GetColor())
+		render.DrawBeam(pos, trace.HitPos, 6, 0, 10, ent:GetColor())
 	end
 end
 
