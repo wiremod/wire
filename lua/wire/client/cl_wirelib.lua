@@ -34,9 +34,6 @@ local lastrender, scroll, shouldblink = 0, 0, false
 
 --Precache everything we're going to use
 local CurTime 		= 	CurTime 			--Yes, in lua we can do this
-local net_start 	= 	net.Start
-local net_writeEnt 	= 	net.WriteEntity
-local net_send		=	net.SendToServer
 
 local function getmat( mat )
 	if not mats_cache[ mat ] then mats_cache[ mat ] = Material(mat) end --Just not to create a material every frame
@@ -49,9 +46,9 @@ function Wire_Render(ent)
 	local wires = ent.WirePaths
 	if not wires then
 		ent.WirePaths = {}
-		net_start("WireLib.Paths.RequestPaths")
-			net_writeEnt(ent)
-		net_send()
+		net.Start("WireLib.Paths.RequestPaths")
+			net.WriteEntity(ent)
+		net.SendToServer()
 		return
 	end
 	
