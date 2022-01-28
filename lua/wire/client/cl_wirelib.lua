@@ -194,14 +194,15 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 	trace.filter 		= 	{ ent }
 	if ent:GetNWBool("TraceWater") then trace.mask = MASK_ALL end
 	trace 			= 	util.TraceLine(trace)
-
+	--Update render bounds
+	ent.ExtraRBoxPoints = ent.ExtraRBoxPoints or {}
+	ent.ExtraRBoxPoints[beam_num] = ent:WorldToLocal(trace.HitPos)
 	
-	if hilight then
+	render.SetMaterial(BeamMat)
+	render.DrawBeam(pos, trace.HitPos, 6, 0, 10, ent:GetColor())
+	if hilight then	--This is intended behaivour
 		render.SetMaterial(BeamMatHR)
 		render.DrawBeam(pos, trace.HitPos, 6, 0, 10, Color(255,255,255,255))
-	else
-		render.SetMaterial(BeamMat)
-		render.DrawBeam(pos, trace.HitPos, 6, 0, 10, ent:GetColor())
 	end
 end
 
