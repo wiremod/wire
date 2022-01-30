@@ -41,8 +41,10 @@ if CLIENT then
 		if not IsValid(ent) then return end
 
 		if ent:GetMoveType() == MOVETYPE_VPHYSICS or ent:IsPlayer() or ent:IsNPC() or ent:IsRagdoll() or ent:GetClass() == "gmod_wire_hologram" then
-			ent.RenderOverride = FLIR.Render
-			FLIR.RenderStack[ent] = true
+			if ent:GetColor().a > 0 then
+				ent.RenderOverride = FLIR.Render
+				FLIR.RenderStack[ent] = true
+			end
 		end
 	end
 
