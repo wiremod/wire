@@ -1,5 +1,39 @@
+local HoloDisplayCVar = GetConVar("wire_holograms_display_owners_maxdist")
+
+local HoloDisplayCVarCL = CreateClientConVar("wire_holograms_display_owners_maxdist_cl","-1",true,false,
+"The maximum distance that wire_holograms_display_owners will allow names to be seen. -1 for original function.",-1,32768)
+
 local function WireHologramsShowOwners()
-	for _,ent in pairs( ents.FindByClass( "gmod_wire_hologram" ) ) do
+	local Eye = EyePos()
+	local EntList = ents.FindByClass( "gmod_wire_hologram" )
+	local FinalEntList = {}
+
+	local FinalCVar = HoloDisplayCVar:GetInt()
+	local CVA = HoloDisplayCVar:GetInt()
+	local CVB = HoloDisplayCVarCL:GetInt()
+
+	if CVA == -1 then -- Server allows mapwide visibility for display, default to the client's setting
+		FinalCVar = CVB
+	else
+		if CVB >= 0 then -- Use whichever value is lower, as long as the client isn't trying to get mapwide visibility of names while the server prevents it
+			FinalCVar = math.min(CVA,CVB)
+		else -- If all else fails, settle with what the server is using
+			FinalCVar = CVA
+		end
+	end
+
+	local HoloDisplayDist = FinalCVar ^ 2
+
+	if FinalCVar >= 0 then -- Can't check for -1 from the above variable since it is squared, and it needs to be squared for performance reasons comparing distances
+		for _,ent in pairs(EntList) do
+			local DistToEye = Eye:DistToSqr(ent:GetPos())
+			if DistToEye < HoloDisplayDist then FinalEntList[#FinalEntList + 1] = ent end
+		end
+	else -- Default to the original function of showing ALL holograms
+		if FinalCVar == -1 then FinalEntList = EntList end
+	end
+
+	for _,ent in pairs( FinalEntList ) do
 		local id = ent:GetNWInt( "ownerid" )
 
 		for _,ply in pairs( player.GetAll() ) do
