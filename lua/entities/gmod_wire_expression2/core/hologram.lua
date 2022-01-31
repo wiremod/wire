@@ -17,7 +17,7 @@ local wire_holograms_modelany = CreateConVar( "wire_holograms_modelany", "0", {F
 	"1: Allow holograms to use models besides the official hologram models." ..
 	"2: Allow holograms to additionally use models not present on the server." )
 local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50", {FCVAR_ARCHIVE} )
-local wire_holograms_max_show_owner_dist = CreateConVar( "wire_holograms_display_owners_maxdist", "-1", {FCVAR_ARCHIVE + FCVAR_REPLICATED},
+CreateConVar( "wire_holograms_display_owners_maxdist", "-1", {FCVAR_ARCHIVE + FCVAR_REPLICATED},
 	"The maximum distance that wire_holograms_display_owners will allow names to be seen. -1 for original function. Server-side and has priority over clients.", -1, 32768)
 util.AddNetworkString("wire_holograms_set_visible")
 util.AddNetworkString("wire_holograms_clip")
