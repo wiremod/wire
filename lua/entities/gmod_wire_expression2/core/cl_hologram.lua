@@ -24,12 +24,13 @@ local function WireHologramsShowOwners()
 
 	local HoloDisplayDist = FinalCVar ^ 2
 
-	if FinalCVar >= 0 then -- Can't check for -1 from the above variable since it is squared, and it needs to be squared for performance reasons comparing distances
+	if FinalCVar > 0 then -- Can't check for -1 from the above variable since it is squared, and it needs to be squared for performance reasons comparing distances
 		for _,ent in pairs(EntList) do
 			local DistToEye = Eye:DistToSqr(ent:GetPos())
 			if DistToEye < HoloDisplayDist then FinalEntList[#FinalEntList + 1] = ent end
 		end
 	else -- Default to the original function of showing ALL holograms
+		-- if, in the end, both are 0, why even bother trying to do it at all (and why is this running?)
 		if FinalCVar == -1 then FinalEntList = EntList end
 	end
 
