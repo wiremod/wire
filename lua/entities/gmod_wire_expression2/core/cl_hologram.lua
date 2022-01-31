@@ -8,7 +8,7 @@ local function WireHologramsShowOwners()
 	local EntList = ents.FindByClass( "gmod_wire_hologram" )
 	local FinalEntList = {}
 
-	local FinalCVar = HoloDisplayCVar:GetInt()
+	local FinalCVar = 0
 	local CVA = HoloDisplayCVar:GetInt()
 	local CVB = HoloDisplayCVarCL:GetInt()
 
