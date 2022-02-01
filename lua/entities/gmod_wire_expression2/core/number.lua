@@ -240,6 +240,12 @@ end
 
 --[[************************************************************************]]--
 
+__e2setcost(2)
+
+e2function number remap(value, in_min, in_max, out_min, out_max)
+	return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+end
+
 __e2setcost(2) -- approximation
 
 e2function number abs(value)
