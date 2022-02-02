@@ -135,7 +135,7 @@ end
 
 -- Get the name of another E2 or compatible entity or component name of wiremod components
 e2function string entity:getName()
-	if not IsValid(this) then return "" end
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	if this.GetGateName then
 		return this:GetGateName() or ""
 	end

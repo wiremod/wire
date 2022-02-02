@@ -52,10 +52,10 @@ local canHaveInvalidPhysics = {
 }
 function PropCore.ValidAction(self, entity, cmd)
 	if(cmd=="spawn" or cmd=="Tdelete") then return true end
-	if(!IsValid(entity)) then return false end
-	if(!canHaveInvalidPhysics[cmd] and !validPhysics(entity)) then return false end
-	if(!isOwner(self, entity)) then return false end
-	if entity:IsPlayer() then return false end
+	if(!IsValid(entity)) then return self:throw("Invalid entity!", false) end
+	if(!canHaveInvalidPhysics[cmd] and !validPhysics(entity)) then return self:throw("Invalid physics object!", false) end
+	if(!isOwner(self, entity)) then return self:throw("You do not own this entity!", false) end
+	if entity:IsPlayer() then return self:throw("You cannot modify players", false) end
 
 	-- make sure we can only perform the same action on this prop once per tick
 	-- to prevent spam abuse
@@ -63,7 +63,7 @@ function PropCore.ValidAction(self, entity, cmd)
 		entity.e2_propcore_last_action = {}
 	end
 	if 	entity.e2_propcore_last_action[cmd] and
-		entity.e2_propcore_last_action[cmd] == CurTime() then return false end
+		entity.e2_propcore_last_action[cmd] == CurTime() then return self:throw("You can only perform one type of action per tick!", false) end
 	entity.e2_propcore_last_action[cmd] = CurTime()
 
 	local ply = self.player
@@ -79,6 +79,7 @@ local function MakePropNoEffect(...)
 end
 
 function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
+	if not PropCore.WithinPropcoreLimits() then return self:throw("Prop limit reached! (cooldown or max)", NULL) end
 	if not PropCore.ValidSpawn(self.player, model, isVehicle) then return NULL end
 
 	pos = WireLib.clampPos( pos )
