@@ -17,6 +17,8 @@ local wire_holograms_modelany = CreateConVar( "wire_holograms_modelany", "0", {F
 	"1: Allow holograms to use models besides the official hologram models." ..
 	"2: Allow holograms to additionally use models not present on the server." )
 local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50", {FCVAR_ARCHIVE} )
+CreateConVar( "wire_holograms_display_owners_maxdist", "-1", {FCVAR_ARCHIVE + FCVAR_REPLICATED},
+	"The maximum distance that wire_holograms_display_owners will allow names to be seen. -1 for original function. Server-side and has priority over clients.", -1, 32768)
 util.AddNetworkString("wire_holograms_set_visible")
 util.AddNetworkString("wire_holograms_clip")
 util.AddNetworkString("wire_holograms_set_scale")
@@ -176,8 +178,8 @@ local clip_queue = {}
 local vis_queue = {}
 local player_color_queue = {}
 
---[[ helper function to add items to a queue 
-	parameters: 
+--[[ helper function to add items to a queue
+	parameters:
 		queue - the queue to add to
 		ply - the player who ran the command
 		holo - holo table entry
@@ -368,7 +370,7 @@ local function rescale(Holo, scale, bone)
 			local y = math.Clamp( b_scale[2], minval, maxval )
 			local z = math.Clamp( b_scale[3], minval, maxval )
 			local scale = Vector(x, y, z)
-			
+
 			add_queue( bone_scale_queue, Holo.e2owner, Holo, bidx, scale )
 			Holo.bone_scale[bidx] =  scale
 		else  -- reset holo bone scale
