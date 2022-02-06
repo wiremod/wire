@@ -24,7 +24,7 @@ WireLib.Wire_GrayOutWires = false
 WIRE_CLIENT_INSTALLED = 1
 
 mats_cache = {
-	["tripmine_laser"] =	Material("tripmine_laser"),
+	["tripmine_laser"] = Material("tripmine_laser"),
 	["Models/effects/comball_tape"] = Material("Models/effects/comball_tape")
 }	 
 
