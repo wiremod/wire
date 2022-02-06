@@ -27,21 +27,21 @@ end
 
 function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hiRes )
 	--for duplication
-	self.default_zero   = default_zero
-	self.show_beam      = show_beam
-	self.ignore_world   = ignore_world
-	self.trace_water    = trace_water
-	self.out_dist       = out_dist
-	self.out_pos        = out_pos
-	self.out_vel        = out_vel
-	self.out_ang        = out_ang
-	self.out_col        = out_col
-	self.out_val        = out_val
-	self.out_sid        = out_sid
-	self.out_uid        = out_uid
-	self.out_eid        = out_eid
-	self.out_hnrm       = out_hnrm
-	self.hires          = hiRes
+	self.default_zero = default_zero
+	self.show_beam = show_beam
+	self.ignore_world = ignore_world
+	self.trace_water = trace_water
+	self.out_dist = out_dist
+	self.out_pos = out_pos
+	self.out_vel = out_vel
+	self.out_ang = out_ang
+	self.out_col = out_col
+	self.out_val = out_val
+	self.out_sid = out_sid
+	self.out_uid = out_uid
+	self.out_eid = out_eid
+	self.out_hnrm = out_hnrm
+	self.hires = hiRes
 
 	self.PrevOutput = nil
 
