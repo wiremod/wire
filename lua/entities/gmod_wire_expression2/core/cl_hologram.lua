@@ -1,5 +1,5 @@
 -- Replicated from serverside, same function as the one below except this takes precedence
-local holoDisplayCVar = GetConVar("wire_holograms_display_owners_maxdist")
+local holoDisplayCVar = CreateConVar("wire_holograms_display_owners_maxdist", "-1", {FCVAR_REPLICATED})
 
 local holoDisplayCVarCL = CreateClientConVar( "wire_holograms_display_owners_maxdist_cl" , "-1", true, false,
 "The maximum distance that wire_holograms_display_owners will allow names to be seen. -1 for original function.", -1, 32768)
