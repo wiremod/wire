@@ -118,11 +118,16 @@ if CLIENT then
 end
 
 -- Server
+
+local pods = {}
+
 function ENT:Initialize()
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
     self:SetUseType(SIMPLE_USE)
+
+	table.insert(pods, self)
 
     local outputs = {"W", "A", "S", "D", "Mouse1", "Mouse2", "R", "Space", "Shift", "Zoom", "Alt", "TurnLeftKey (Not bound to a key by default. Bind a key to '+left' to use.\nOutside of a vehicle, makes the player's camera rotate left.)", "TurnRightKey (Not bound to a key by default. Bind a key to '+right' to use.\nOutside of a vehicle, makes the player's camera rotate right.)", "PrevWeapon (Usually bound to the mouse scroller, so will only be active for a single tick.)", "NextWeapon (Usually bound to the mouse scroller, so will only be active for a single tick.)", "Light", "X", "Y", "Z", "AimPos [VECTOR]", "Distance", "Bearing (If the 'Relative' input is non-zero, this will be relative to the vehicle.)", "Elevation (If the 'Relative' input is non-zero, this will be relative to the vehicle.)", "ThirdPerson", "Team", "Health", "Armor", "Active", "Entity [ENTITY]", "Driver [ENTITY]"}
 
@@ -207,7 +212,7 @@ function ENT:UnlinkEnt()
     if IsValid(self.Pod) then
         self.Pod:RemoveCallOnRemove("wire_pod_remove")
     end
-
+	table.remove(pods, self)
     self:SetShowCursor(0)
     self.Pod = nil
     self:PlayerExited()
@@ -327,7 +332,7 @@ hook.Add("PlayerBindDown", "gmod_wire_pod", function(player, binding)
     local output = bindingToOutput[binding]
     if not output then return end
 
-    for _, pod in ipairs(ents.FindByClass("gmod_wire_pod")) do
+    for _, pod in ipairs(pods) do
         if pod:GetPly() == player and not pod.Disable then
             WireLib.TriggerOutput(pod, output, 1)
         end
@@ -339,7 +344,7 @@ hook.Add("PlayerBindUp", "gmod_wire_pod", function(player, binding)
     local output = bindingToOutput[binding]
     if not output then return end
 
-    for _, pod in ipairs(ents.FindByClass("gmod_wire_pod")) do
+    for _, pod in ipairs() do
         if pod:GetPly() == player and not pod.Disable then
             WireLib.TriggerOutput(pod, output, 0)
         end
@@ -613,7 +618,7 @@ function ENT:PlayerExited()
 end
 
 hook.Add("PlayerEnteredVehicle", "Wire_Pod_EnterVehicle", function(ply, vehicle)
-    for _, v in ipairs(ents.FindByClass("gmod_wire_pod")) do
+    for _, v in ipairs(pods) do
         if (v:HasPod() and v:GetPod() == vehicle) then
             v:PlayerEntered(ply)
         end
@@ -621,7 +626,7 @@ hook.Add("PlayerEnteredVehicle", "Wire_Pod_EnterVehicle", function(ply, vehicle)
 end)
 
 hook.Add("PlayerLeaveVehicle", "Wire_Pod_ExitVehicle", function(ply, vehicle)
-    for _, v in ipairs(ents.FindByClass("gmod_wire_pod")) do
+    for _, v in ipairs(pods) do
         if (v:HasPod() and v:GetPod() == vehicle) then
             v:PlayerExited()
         end
@@ -629,7 +634,7 @@ hook.Add("PlayerLeaveVehicle", "Wire_Pod_ExitVehicle", function(ply, vehicle)
 end)
 
 hook.Add("CanExitVehicle", "Wire_Pod_CanExitVehicle", function(vehicle, ply)
-    for _, v in ipairs(ents.FindByClass("gmod_wire_pod")) do
+    for _, v in ipairs(pods) do
         if (v:HasPod() and v:GetPod() == vehicle) and v.Locked and v.AllowLockInsideVehicle:GetBool() then return false end
     end
 end)
@@ -682,7 +687,6 @@ function ENT:Use(User, caller)
         User:SelectWeapon("remotecontroller")
     end)
 end
-
 duplicator.RegisterEntityClass("gmod_wire_pod", WireLib.MakeWireEnt, "Data")
 duplicator.RegisterEntityClass("gmod_wire_adv_pod", WireLib.MakeWireEnt, "Data")
 scripted_ents.Alias("gmod_wire_adv_pod", "gmod_wire_pod")
