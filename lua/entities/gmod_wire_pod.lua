@@ -212,7 +212,7 @@ function ENT:UnlinkEnt()
     if IsValid(self.Pod) then
         self.Pod:RemoveCallOnRemove("wire_pod_remove")
     end
-	table.remove(pods, self)
+	table.RemoveByValue(pods, self)
     self:SetShowCursor(0)
     self.Pod = nil
     self:PlayerExited()
@@ -344,7 +344,7 @@ hook.Add("PlayerBindUp", "gmod_wire_pod", function(player, binding)
     local output = bindingToOutput[binding]
     if not output then return end
 
-    for _, pod in ipairs() do
+    for _, pod in ipairs(pods) do
         if pod:GetPly() == player and not pod.Disable then
             WireLib.TriggerOutput(pod, output, 0)
         end
