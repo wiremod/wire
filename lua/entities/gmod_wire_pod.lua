@@ -212,7 +212,6 @@ function ENT:UnlinkEnt()
 	if IsValid(self.Pod) then
 		self.Pod:RemoveCallOnRemove("wire_pod_remove")
 	end
-	table.RemoveByValue(pods, self)
 	self:SetShowCursor(0)
 	self.Pod = nil
 	self:PlayerExited()
@@ -225,6 +224,7 @@ end
 
 function ENT:OnRemove()
 	self:UnlinkEnt()
+	table.RemoveByValue(pods, self)
 end
 
 function ENT:HasPod()
