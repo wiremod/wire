@@ -59,6 +59,9 @@ local function get_active_tool(ply, tool)
 	return activeWep:GetToolObject(tool)
 end
 
+-- check that the table exists and isn't empty at the same time
+local function isTableEmpty(t) return t ~= nil and next(t) ~= nil end
+
 if SERVER then
 	-----------------------------------------------------------------
 	-- Duplicator modifiers
@@ -503,10 +506,8 @@ elseif CLIENT then
 	-- Mouse buttons
 	-----------------------------------------------------------------
 
-	TOOL.wtfgarry = 0
 	function TOOL:LeftClick(trace)
-		if self.wtfgarry > CurTime() then return end
-		self.wtfgarry = CurTime() + 0.1
+		if not IsFirstTimePredicted() then return end
 
 		local shift = self:GetOwner():KeyDown(IN_SPEED)
 		local alt = self:GetOwner():KeyDown(IN_WALK)
@@ -517,7 +518,7 @@ elseif CLIENT then
 				self:BeginRenderingCurrentWire()
 
 				local inputs, _ = self:GetPorts( trace.Entity )
-				if not inputs then return end
+				if not isTableEmpty(inputs) then return end
 
 				if alt then -- Select everything
 					for i=1,#inputs do
@@ -539,7 +540,7 @@ elseif CLIENT then
 			elseif self:GetStage() == 1 then
 				self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
 				local _, outputs = self:GetPorts( trace.Entity )
-				if not outputs then return end
+				if not isTableEmpty(outputs) then return end
 
 				self.CurrentEntity = trace.Entity
 				self:AutoWiringTypeLookup( self.CurrentEntity )
@@ -551,7 +552,6 @@ elseif CLIENT then
 				end
 
 				if next(outputs,next(outputs)) == nil then -- there's only one element in the table
-					self.wtfgarry = 0
 					self:LeftClick( trace ) -- wire it right away
 					return
 				end
@@ -650,8 +650,7 @@ elseif CLIENT then
 	end
 
 	function TOOL:RightClick(trace)
-		if self.wtfgarry > CurTime() then return end
-		self.wtfgarry = CurTime() + 0.1
+		if not IsFirstTimePredicted() then return end
 
 		self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
 		if self:GetStage() == 0 or self:GetStage() == 2 then
@@ -665,12 +664,11 @@ elseif CLIENT then
 	end
 
 	function TOOL:Reload(trace)
-		if self.wtfgarry > CurTime() then return end
-		self.wtfgarry = CurTime() + 0.1
+		if not IsFirstTimePredicted() then return end
 
 		if self:GetStage() == 0 and IsValid( trace.Entity ) and WireLib.HasPorts( trace.Entity ) then
 			local inputs, outputs = self:GetPorts( trace.Entity )
-			if not inputs then return end
+			if not isTableEmpty(inputs) then return end
 			if self:GetOwner():KeyDown( IN_WALK ) then
 				local t = {}
 				for i=1,#inputs do
@@ -692,7 +690,7 @@ elseif CLIENT then
 		local ent = self:GetStage() == 0 and trace.Entity or self.CurrentEntity
 		if IsValid(ent) then
 			local inputs, outputs = self:GetPorts( ent )
-			if not inputs and not outputs then return end
+			if not isTableEmpty(inputs) and not isTableEmpty(outputs) then return end
 			local check = self:GetStage() == 0 and inputs or outputs
 			if #check == 0 then return end
 
@@ -931,16 +929,14 @@ elseif CLIENT then
 			end
 			return true
 		elseif name == "Selected" and self:GetStage() == 2 then
+			local inputs, outputs = self:GetPorts( ent )
+			if not isTableEmpty(outputs) then return false end
 			if self:GetOwner():KeyDown( IN_WALK ) then -- Gray out the ones that won't be able to be wired to any input
-				local inputs, outputs = self:GetPorts( ent )
-				if not outputs then return false end
 				for i=1,#outputs do
 					if tbl[idx][2] == outputs[i][2] then return false end
 				end
 				return true
 			else -- Gray out the ones that won't be able to be wired to the selected output
-				local inputs, outputs = self:GetPorts( ent )
-				if not outputs then return false end
 				return tbl[idx][2] ~= outputs[self.CurrentWireIndex][2]
 			end
 		end
