@@ -249,7 +249,7 @@ function ENT:SetPod( pod )
 	if not IsValid(pod) then return true end
 
 	pod:CallOnRemove("wire_pod_remove",function()
-		self:UnlinkEnt(pod)
+		if self:IsValid() then self:UnlinkEnt(pod) end
 	end)
 
 	if IsValid(pod:GetDriver()) then
