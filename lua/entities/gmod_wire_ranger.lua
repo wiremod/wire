@@ -100,8 +100,8 @@ function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, o
 	add( "RangerData", "RANGER" )
 	WireLib.AdjustSpecialOutputs(self, onames, otypes)
 
-	self:TriggerOutput(0, Vector(0, 0, 0), Vector(0, 0, 0), Angle(0, 0, 0), Color(255, 255, 255, 255),nil,0,0,NULL, Vector(0, 0, 0),nil)
-	self:ShowOutput(0, Vector(0, 0, 0), Vector(0, 0, 0), Angle(0, 0, 0), Color(255, 255, 255, 255),nil,0,0,NULL, Vector(0, 0, 0),nil)
+	self:TriggerOutput(0, Vector(0, 0, 0), Vector(0, 0, 0), Angle(0, 0, 0), Color(255, 255, 255, 255),nil,"",0,NULL, Vector(0, 0, 0),nil)
+	self:ShowOutput(0, Vector(0, 0, 0), Vector(0, 0, 0), Angle(0, 0, 0), Color(255, 255, 255, 255),nil,"",0,NULL, Vector(0, 0, 0),nil)
 end
 
 function ENT:TriggerInput(iname, value)
