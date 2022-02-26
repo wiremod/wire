@@ -106,7 +106,6 @@ local function getdesc(name, args)
 end
 
 function E2Helper.Create(reset)
-	local x, y, w, h
 
 	E2Helper.Frame = vgui.Create("DFrame")
 	E2Helper.Frame:SetSize(340, 425)
@@ -332,7 +331,7 @@ function E2Helper.Update()
 	if count < maxcount then
 		for _, v in pairs(CurrentTable()) do
 			if E2Helper.CurrentMode == true then
-				local from, argnames, signature, rets, func, cost = v.extension, v.argnames, unpack(v)
+				local from, signature, rets, cost = v.extension, v[1], v[2], v[4]
 				local name, args = string.match(signature, "^([^(]+)%(([^)]*)%)$")
 
 				if signature:sub(1, 3) ~= "op:" and
