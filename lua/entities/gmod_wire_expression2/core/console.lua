@@ -44,6 +44,8 @@ local function validConCmd(self, command)
 
 	local whitelist = (ply:GetInfo("wire_expression2_concmd_whitelist") or ""):Trim()
 	if whitelist == "" then return true end
+	
+	if IsConCommandBlocked( command ) then return self:throw("Concommand/Var is blacklisted by Garrys mod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
 
 	local whitelistTbl = {}
 	for k, v in pairs(string.Split(whitelist, ",")) do whitelistTbl[v] = true end
