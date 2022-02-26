@@ -46,7 +46,7 @@ local function validConCmd(self, command)
 
 	local whitelist = (ply:GetInfo("wire_expression2_concmd_whitelist") or ""):Trim()
 	if whitelist == "" then return true end
-	
+
 	local whitelistTbl = {}
 	for k, v in pairs(string.Split(whitelist, ",")) do whitelistTbl[v] = true end
 
