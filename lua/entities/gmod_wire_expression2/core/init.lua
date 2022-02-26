@@ -135,7 +135,7 @@ end
 
 
 local extension_file_cache = {}
-local function lookupExtension(func) 
+local function lookupExtension(func)
 	local location = debug.getinfo(func, "S").source:sub(2)
 	return extension_file_cache[location] or findExtension(location)
 end
@@ -359,6 +359,6 @@ elseif CLIENT then
 	end)
 end
 
--- this file just generates the docs so it doesn't need to run every time. 
+-- this file just generates the docs so it doesn't need to run every time.
 -- uncomment this line or use an openscript concmd if you want to generate docs
 -- include("e2doc.lua")

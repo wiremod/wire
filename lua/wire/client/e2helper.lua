@@ -1,6 +1,6 @@
 --[[
   Expression 2 Helper for Expression 2
-  -HP- (and tomylobo, though he breaks a lot ^^) 
+  -HP- (and tomylobo, though he breaks a lot ^^)
   Divran made CPU support
   Fasteroid made the "from" column
 ]] --
