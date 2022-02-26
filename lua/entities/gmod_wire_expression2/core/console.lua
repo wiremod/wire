@@ -42,11 +42,11 @@ local function validConCmd(self, command)
 	-- Validating the concmd length to ensure that it won't crash the server. 512 is the max
 	if #command >= 512 then return self:throw("Concommand/Var is too long!", false) end
 
+    if IsConCommandBlocked( command ) then return self:throw("Concommand/Var is blacklisted by Garrys mod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
+
 	local whitelist = (ply:GetInfo("wire_expression2_concmd_whitelist") or ""):Trim()
 	if whitelist == "" then return true end
 	
-	if IsConCommandBlocked( command ) then return self:throw("Concommand/Var is blacklisted by Garrys mod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
-
 	local whitelistTbl = {}
 	for k, v in pairs(string.Split(whitelist, ",")) do whitelistTbl[v] = true end
 
