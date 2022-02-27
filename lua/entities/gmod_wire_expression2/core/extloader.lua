@@ -81,7 +81,7 @@ end
 local function e2_include_pass2(name, luaname, contents)
 	local preprocessedSource = e2_extpp_pass2(contents)
 
-	E2Lib.currentextension = string.gsub(name,"%.lua","")
+	E2Lib.currentextension = string.gsub(string.gsub(name,"custom/",""),"%.lua","")
 
 	if not preprocessedSource then return include(name) end
 
