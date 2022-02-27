@@ -133,25 +133,6 @@ function wire_expression2_CallHook(hookname, ...)
 	return ret_array
 end
 
-
-local extension_file_cache = {}
-local function lookupExtension(func)
-	local location = debug.getinfo(func, "S").source:sub(2)
-	return extension_file_cache[location] or findExtension(location)
-end
-
-function findExtension(location)
-	local code = file.Read(location,"LUA")
-	local extname = -- dear god this is hacky please help
-		E2Lib.currentextension or
-		string.match(location,".+/(.-)%.lua") or
-		"unknown"
-	extname = extname:lower()
-	extension_file_cache[location] = extname -- cache this so we don't read files for every function
-	return extname
-end
-
-
 function registerCallback(event, callback)
 	if not wire_expression_callbacks[event] then wire_expression_callbacks[event] = {} end
 	table.insert(wire_expression_callbacks[event], callback)
@@ -177,8 +158,7 @@ end
 function registerFunction(name, pars, rets, func, cost, argnames)
 	local signature = name .. "(" .. pars .. ")"
 
-	local extension = lookupExtension(func)
-	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, extension = extension }
+	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, extension = E2Lib.currentextension }
 
 	wire_expression2_funclist[name] = true
 	if wire_expression2_debug:GetBool() then makecheck(signature) end
