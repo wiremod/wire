@@ -143,8 +143,7 @@ end
 function findExtension(location)
 	local code = file.Read(location,"LUA")
 	local extname = -- dear god this is hacky please help
-		string.match(code,'E2Lib%.RegisterExtension[(%s]%s-"(.-)"') or
-		string.match(code,"E2Lib%.RegisterExtension[(%s]%s-'(.-)'") or
+		E2Lib.currentextension or
 		string.match(location,".+/(.-)%.lua") or
 		"unknown"
 	extname = extname:lower()
