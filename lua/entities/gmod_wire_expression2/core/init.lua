@@ -165,7 +165,6 @@ function registerFunction(name, pars, rets, func, cost, argnames)
 end
 
 function E2Lib.registerConstant(name, value, literal)
-
 	if name:sub(1, 1) ~= "_" then name = "_" .. name end
 	if not value and not literal then value = _G[name] end
 
