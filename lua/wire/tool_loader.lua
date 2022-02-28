@@ -353,16 +353,30 @@ end
 -- function used by TOOL.BuildCPanel
 WireToolHelpers = {}
 
-if CLIENT then
-	-- gets the TOOL since TOOL.BuildCPanel isn't passed this var. wts >_<
-	function WireToolHelpers.GetTOOL(mode)
-		for _,wep in ipairs(LocalPlayer():GetWeapons()) do
-			if wep:GetClass() == "gmod_tool" then
-				return wep:GetToolObject(mode)
-			end
+-- gets the TOOL since TOOL.BuildCPanel isn't passed this var. wts >_<
+function WireToolHelpers.GetTOOL(mode, ply)
+	if CLIENT then ply = LocalPlayer() end
+	if not ply then return end
+
+	for _,wep in ipairs(ply:GetWeapons()) do
+		if wep:GetClass() == "gmod_tool" then
+			return wep:GetToolObject(mode)
 		end
 	end
+end
 
+-- similar to GetTool (above), gets the specified tool, but only if it's the currently actively held weapon by the player
+function WireToolHelpers.GetActiveTOOL(mode, ply)
+	if CLIENT then ply = LocalPlayer() end
+	if not ply then return end
+
+	local activeWep = ply:GetActiveWeapon()
+	if not IsValid(activeWep) or activeWep:GetClass() ~= "gmod_tool" or activeWep.Mode ~= mode then return end
+
+	return activeWep:GetToolObject(mode)
+end
+
+if CLIENT then
 	-- makes the preset control for use cause we're lazy
 	function WireToolHelpers.MakePresetControl(panel, mode, folder)
 		if not mode or not panel then return end

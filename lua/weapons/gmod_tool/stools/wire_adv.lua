@@ -51,14 +51,6 @@ util.PrecacheSound("weapons/pistol/pistol_empty.wav")
 util.PrecacheSound("buttons/lightswitch2.wav")
 util.PrecacheSound("buttons/button16.wav")
 
-local function get_active_tool(ply, tool)
-	-- find toolgun
-	local activeWep = ply:GetActiveWeapon()
-	if not IsValid(activeWep) or activeWep:GetClass() ~= "gmod_tool" or activeWep.Mode ~= tool then return end
-
-	return activeWep:GetToolObject(tool)
-end
-
 -- check that the table exists and isn't empty at the same time
 local function isTableEmpty(t) return t ~= nil and next(t) ~= nil end
 
@@ -138,7 +130,7 @@ if SERVER then
 	net.Receive( "wire_adv_upload", function( len, ply )
 		local wirings = net.ReadTable()
 
-		local tool = get_active_tool(ply,"wire_adv")
+		local tool = WireToolHelpers.GetActiveTOOL("wire_adv",ply)
 		if not tool then return end
 
 		local material = tool:GetClientInfo("material")
@@ -507,7 +499,7 @@ elseif CLIENT then
 	-----------------------------------------------------------------
 
 	function TOOL:LeftClick(trace)
-		if not IsFirstTimePredicted() then return end
+		if not game.SinglePlayer() and not IsFirstTimePredicted() then return end
 
 		local shift = self:GetOwner():KeyDown(IN_SPEED)
 		local alt = self:GetOwner():KeyDown(IN_WALK)
@@ -650,7 +642,7 @@ elseif CLIENT then
 	end
 
 	function TOOL:RightClick(trace)
-		if not IsFirstTimePredicted() then return end
+		if not game.SinglePlayer() and not IsFirstTimePredicted() then return end
 
 		self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
 		if self:GetStage() == 0 or self:GetStage() == 2 then
@@ -664,7 +656,7 @@ elseif CLIENT then
 	end
 
 	function TOOL:Reload(trace)
-		if not IsFirstTimePredicted() then return end
+		if not game.SinglePlayer() and not IsFirstTimePredicted() then return end
 
 		if self:GetStage() == 0 and IsValid( trace.Entity ) and WireLib.HasPorts( trace.Entity ) then
 			local inputs, outputs = self:GetPorts( trace.Entity )
@@ -731,20 +723,18 @@ elseif CLIENT then
 		if not pressed then return end
 
 		if bind == "invnext" then
-			local self = get_active_tool(ply, "wire_adv")
+			local self = WireToolHelpers.GetActiveTOOL("wire_adv",ply)
 			if not self then return end
-
 			return self:ScrollDown(ply:GetEyeTraceNoCursor())
 		elseif bind == "invprev" then
-			local self = get_active_tool(ply, "wire_adv")
+			local self = WireToolHelpers.GetActiveTOOL("wire_adv",ply)
 			if not self then return end
-
 			return self:ScrollUp(ply:GetEyeTraceNoCursor())
 		elseif bind == "impulse 100" then
 			if ply:KeyDown( IN_SPEED ) then
-				local self = get_active_tool(ply, "wire_adv")
+				local self = WireToolHelpers.GetActiveTOOL("wire_adv",ply)
 				if not self then
-					self = get_active_tool(ply, "wire_debugger")
+					self = WireToolHelpers.GetActiveTOOL("wire_debugger",ply)
 					if not self then return end
 
 					spawnmenu.ActivateTool( "wire_adv") -- switch back to wire adv
@@ -754,7 +744,7 @@ elseif CLIENT then
 				spawnmenu.ActivateTool("wire_debugger") -- switch to debugger
 				return true
 			else
-				local self = get_active_tool(ply, "wire_adv")
+				local self = WireToolHelpers.GetActiveTOOL("wire_adv",ply)
 				if self and self:GetStage() == 1 then
 					local len = #self.Wiring
 					if len > 0 then
