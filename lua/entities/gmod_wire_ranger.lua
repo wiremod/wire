@@ -9,6 +9,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool",  0, "ShowBeam" )
 	self:NetworkVar( "Float", 1, "SkewX" )
 	self:NetworkVar( "Float", 2, "SkewY" )
+	self:NetworkVar( "Vector", 0, "Target" )
 end
 
 if CLIENT then return end -- No more client
@@ -19,28 +20,28 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self:StartMotionController()
 
-	self.Inputs = WireLib.CreateInputs(self, { "X", "Y", "SelectValue","Length"})
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "X", "Y", "SelectValue", "Length", "Target"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR"})
 	self.Outputs = WireLib.CreateOutputs(self, { "Dist" })
 	self.hires = false
 end
 
 function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hiRes )
 	--for duplication
-	self.default_zero   = default_zero
-	self.show_beam      = show_beam
-	self.ignore_world   = ignore_world
-	self.trace_water    = trace_water
-	self.out_dist       = out_dist
-	self.out_pos        = out_pos
-	self.out_vel        = out_vel
-	self.out_ang        = out_ang
-	self.out_col        = out_col
-	self.out_val        = out_val
-	self.out_sid        = out_sid
-	self.out_uid        = out_uid
-	self.out_eid        = out_eid
-	self.out_hnrm       = out_hnrm
-	self.hires          = hiRes
+	self.default_zero = default_zero
+	self.show_beam = show_beam
+	self.ignore_world = ignore_world
+	self.trace_water = trace_water
+	self.out_dist = out_dist
+	self.out_pos = out_pos
+	self.out_vel = out_vel
+	self.out_ang = out_ang
+	self.out_col = out_col
+	self.out_val = out_val
+	self.out_sid = out_sid
+	self.out_uid = out_uid
+	self.out_eid = out_eid
+	self.out_hnrm = out_hnrm
+	self.hires = hiRes
 
 	self.PrevOutput = nil
 
@@ -111,6 +112,8 @@ function ENT:TriggerInput(iname, value)
 		self:SetSkewY(value)
 	elseif (iname == "Length") then
 		self:SetBeamLength(math.min(value, 64000))
+	elseif (iname == "Target") then
+		self:SetTarget(value)
 	end
 end
 
@@ -119,7 +122,10 @@ function ENT:Think()
 
 	local tracedata = {}
 	tracedata.start = self:GetPos()
-	if (self.Inputs.X.Value == 0 and self.Inputs.Y.Value == 0) then
+	if self.Inputs.Target.Value ~= vector_origin then
+		tracedata.endpos = self:GetPos()+(self:GetTarget()-self:GetPos()):GetNormalized()*self:GetBeamLength()
+		if tracedata.endpos[1] ~= tracedata.endpos[1] then tracedata.endpos = self:GetPos()+Vector(self:GetBeamLength(), 0, 0) end
+	elseif (self.Inputs.X.Value == 0 and self.Inputs.Y.Value == 0) then
 		tracedata.endpos = tracedata.start + self:GetUp() * self:GetBeamLength()
 	else
 		local skew = Vector(self.Inputs.X.Value, self.Inputs.Y.Value, 1)
@@ -165,7 +171,7 @@ function ENT:Think()
 			if (self.out_val and ent.Outputs) then
 				local i = 1
 				for k,v in pairs(ent.Outputs) do
-					if (v.Value != nil and type(v.Value) == "number") then
+					if (v.Value ~= nil and type(v.Value) == "number") then
 						val[i] = v.Value
 						i = i + 1
 					end
