@@ -158,7 +158,7 @@ end
 function registerFunction(name, pars, rets, func, cost, argnames)
 	local signature = name .. "(" .. pars .. ")"
 
-	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames }
+	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, extension = E2Lib.currentextension }
 
 	wire_expression2_funclist[name] = true
 	if wire_expression2_debug:GetBool() then makecheck(signature) end
@@ -198,7 +198,7 @@ if SERVER then
 
 	do
 		local miscdata = {} -- Will contain {E2 types info, constants}, this whole table is under 1kb
-		local functiondata = {} -- Will contain {functionname = {returntype, cost, argnames}, this will be between 50-100kb
+		local functiondata = {} -- Will contain {functionname = {returntype, cost, argnames, extension}, this will be between 50-100kb
 
 		-- Fills out the above two tables
 		function wire_expression2_prepare_functiondata()
@@ -209,7 +209,7 @@ if SERVER then
 			end
 
 			for signature, v in pairs(wire_expression2_funcs) do
-				functiondata[signature] = { v[2], v[4], v.argnames } -- ret (s), cost (n), argnames (t)
+				functiondata[signature] = { v[2], v[4], v.argnames, v.extension } -- ret (s), cost (n), argnames (t), extension (s)
 			end
 		end
 
@@ -242,6 +242,7 @@ if SERVER then
 						net.WriteString(tab[1]) -- The function's return type ["s"]
 						net.WriteUInt(tab[2] or 0, 16) -- The function's cost [5]
 						net.WriteTable(tab[3] or {}) -- The function's argnames table (if a table isn't set, it'll just send a 1 byte blank table)
+						net.WriteString(tab[4] or "unknown")
 					end
 					net.WriteString("") -- Needed to break out of the receiving for loop without affecting the final completion bit boolean
 					net.WriteBit(signature == nil) -- If we're at the end of the table, next will return nil, thus sending a true here
@@ -289,7 +290,7 @@ elseif CLIENT then
 				wire_expression2_funclist_lowercase[fname:lower()] = fname
 			end
 			if not next(tab[3]) then tab[3] = nil end -- If the function has no argnames table, the server will just send a blank table
-			wire_expression2_funcs[signature] = { signature, tab[1], false, tab[2], argnames = tab[3] }
+			wire_expression2_funcs[signature] = { signature, tab[1], false, tab[2], argnames = tab[3], extension = tab[4] }
 		end
 
 		e2_function_data_received = true
@@ -327,7 +328,7 @@ elseif CLIENT then
 		while true do
 			local signature = net.ReadString()
 			if signature == "" then break end -- We've reached the end of the packet
-			buffer[signature] = { net.ReadString(), net.ReadUInt(16), net.ReadTable() } -- ret, cost, argnames
+			buffer[signature] = { net.ReadString(), net.ReadUInt(16), net.ReadTable(), net.ReadString() } -- ret, cost, argnames, extension
 		end
 
 		if net.ReadBit() == 1 then
@@ -336,6 +337,6 @@ elseif CLIENT then
 	end)
 end
 
--- this file just generates the docs so it doesn't need to run every time. 
+-- this file just generates the docs so it doesn't need to run every time.
 -- uncomment this line or use an openscript concmd if you want to generate docs
 -- include("e2doc.lua")
