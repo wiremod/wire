@@ -152,13 +152,14 @@ function ENT:Execute()
 
 	self.context:PopScope()
 
+	local forceTriggerOutputs = self.first or self.duped
 	self.first = false -- if hooks call execute
 	self.duped = false -- if hooks call execute
 	self.context.triggerinput = nil -- if hooks call execute
 
 	self:PCallHook('postexecute')
 
-	self:TriggerOutputs()
+	self:TriggerOutputs(forceTriggerOutputs)
 
 	for k, v in pairs(self.inports[3]) do
 		if self.GlobalScope[k] then
@@ -521,9 +522,9 @@ function ENT:TriggerInput(key, value)
 	end
 end
 
-function ENT:TriggerOutputs()
+function ENT:TriggerOutputs(force)
 	for key, t in pairs(self.outports[3]) do
-		if self.GlobalScope.vclk[key] or self.first then
+		if self.GlobalScope.vclk[key] or force then
 			if wire_expression_types[t][4] then
 				WireLib.TriggerOutput(self, key, wire_expression_types[t][4](self.context, self.GlobalScope[key]))
 			else
@@ -539,8 +540,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	if not self.error then
 		for k, v in pairs(self.dupevars) do
 			self.GlobalScope[k] = v
-		end -- Rusketh Broke this :(
-		-- table.Merge(self.context.vars, self.dupevars)
+		end
 		self.dupevars = nil
 
 		self.duped = true
