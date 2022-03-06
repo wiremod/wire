@@ -19,6 +19,7 @@ if SERVER then
 		self:SetDrawOffsetPos(DrawOffsetPos)
 		self:SetDrawOffsetAng(DrawOffsetAng)
 		self:SetDrawScale(DrawScale)
+		self:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
 
 		WireLib.CreateInputs(self, { 
 			"Scale (Increase or decrease draw scale. Limited between 0.04 and 2)", 

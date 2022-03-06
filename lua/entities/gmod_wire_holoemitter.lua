@@ -178,6 +178,7 @@ function ENT:Initialize( )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 	self:DrawShadow( false )
+	self:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
 
 	self:SetNWBool( "Clear", false )
 	self:SetNWBool( "Active", true )
