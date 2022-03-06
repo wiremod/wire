@@ -936,9 +936,11 @@ local fixDefault = E2Lib.fixDefault
 
 local non_allowed_types = {
 	xgt = true,
-	t = true,
-	r = true,
-	}
+}
+
+registerCallback("construct", function(self)
+	self.data.enttbls = setmetatable({},{__index=function(t,k) local r={} t[k]=r return r end})
+end)
 
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
@@ -952,9 +954,7 @@ registerCallback("postinit",function()
 				local op1, op2 = args[2], args[3]
 				local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 				if not IsValid(rv1) or not rv2 then return fixDefault( v[2] ) end
-				local id = self.uid
-				if not rv1["EVar_"..id] then return fixDefault( v[2] ) end
-				return rv1["EVar_"..id][rv2] or fixDefault( v[2] )
+				return self.data.enttbls[rv1][rv2] or fixDefault( v[2] )
 			end
 
 			local function setf( self, args )
@@ -962,10 +962,7 @@ registerCallback("postinit",function()
 				local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 				local id = self.uid
 				if not IsValid(rv1) or not rv2 or not rv3 then return end
-				if not rv1["EVar_"..id] then
-					rv1["EVar_"..id] = {}
-				end
-				rv1["EVar_"..id][rv2] = rv3
+				self.data.enttbls[rv1][rv2] = rv3
 				return rv3
 			end
 
