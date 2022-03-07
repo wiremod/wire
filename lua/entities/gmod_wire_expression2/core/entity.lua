@@ -942,6 +942,19 @@ registerCallback("construct", function(self)
 	self.data.enttbls = setmetatable({},{__index=function(t,k) local r={} t[k]=r return r end})
 end)
 
+local enttbls
+local function createEntsTbls()
+	enttbls = setmetatable({},{__index=function(t,k) local r=setmetatable({},{__index=function(t,k) local r={} t[k]=r return r end} t[k]=r return r end})
+end
+createEntsTbls()
+hook.Add("Wire_EmergencyRamClear","E2_ClearEntTbls",createEntsTbls)
+hook.Add("EntityRemoved","E2_ClearEntTbls",function(ent)
+	enttbls[ent] = nil
+	for k, v in pairs(enttbls) do
+		v[ent] = nil
+	end
+end)
+
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
 		if not non_allowed_types[v[1]] then
@@ -953,16 +966,15 @@ registerCallback("postinit",function()
 			local function getf( self, args )
 				local op1, op2 = args[2], args[3]
 				local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-				if not IsValid(rv1) or not rv2 then return fixDefault( v[2] ) end
-				return self.data.enttbls[rv1][rv2] or fixDefault( v[2] )
+				if not IsValid(rv1) or not rv2 or not rawget(enttbls, self.owner) or not rawget(enttbls[self.owner], rv1) then return fixDefault( v[2] ) end
+				return enttbls[self.owner][rv1][rv2] or fixDefault( v[2] )
 			end
 
 			local function setf( self, args )
 				local op1, op2, op3 = args[2], args[3], args[4]
 				local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-				local id = self.uid
 				if not IsValid(rv1) or not rv2 or not rv3 then return end
-				self.data.enttbls[rv1][rv2] = rv3
+				enttbls[self.owner][rv1][rv2] = rv3
 				return rv3
 			end
 
