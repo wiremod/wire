@@ -938,10 +938,6 @@ local non_allowed_types = {
 	xgt = true,
 }
 
-registerCallback("construct", function(self)
-	self.data.enttbls = setmetatable({},{__index=function(t,k) local r={} t[k]=r return r end})
-end)
-
 local enttbls
 local function createEntsTbls()
 	enttbls = setmetatable({},{__index=function(t,k) local r=setmetatable({},{__index=function(t,k) local r={} t[k]=r return r end} t[k]=r return r end})
