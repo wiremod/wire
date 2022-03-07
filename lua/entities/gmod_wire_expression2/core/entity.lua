@@ -964,7 +964,7 @@ registerCallback("postinit",function()
 			local function getf( self, args )
 				local op1, op2 = args[2], args[3]
 				local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-				if not IsValid(rv1) or not rv2 or not rawget(enttbls, self.owner) or not rawget(enttbls[self.owner], rv1) then return fixDefault( v[2] ) end
+				if not IsValid(rv1) or not rv2 or not rawget(enttbls, self.uid) or not rawget(enttbls[self.uid], rv1) then return fixDefault( v[2] ) end
 				return enttbls[self.uid][rv1][rv2] or fixDefault( v[2] )
 			end
 
