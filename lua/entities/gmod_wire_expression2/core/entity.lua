@@ -940,7 +940,7 @@ local non_allowed_types = {
 
 local enttbls
 local function createEntsTbls()
-	enttbls = setmetatable({},{__index=function(t,k) local r=setmetatable({},{__index=function(t,k) local r={} t[k]=r return r end} t[k]=r return r end})
+	enttbls = setmetatable({},{__index=function(t,k) local r=setmetatable({},{__index=function(t,k) local r={} t[k]=r return r end}) t[k]=r return r end})
 end
 createEntsTbls()
 hook.Add("Wire_EmergencyRamClear","E2_ClearEntTbls",createEntsTbls)
