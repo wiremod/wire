@@ -63,7 +63,7 @@ if SERVER then
 	-- Default MakeEnt function, override to use a different MakeWire* function
 	function WireToolObj:MakeEnt( ply, model, Ang, trace )
 		local ent = WireLib.MakeWireEnt( ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars() )
-		if ent.RestoreNetworkVars then ent:RestoreNetworkVars(self:GetDataTables()) end
+		if ent and ent.RestoreNetworkVars then ent:RestoreNetworkVars(self:GetDataTables()) end
 		return ent
 	end
 
@@ -74,8 +74,10 @@ if SERVER then
 	--
 	-- to prevent update, set TOOL.NoLeftOnClass = true
 	function WireToolObj:LeftClick_Update( trace )
-		if trace.Entity.Setup then trace.Entity:Setup(self:GetConVars()) end
-		if trace.Entity.RestoreNetworkVars then trace.Entity:RestoreNetworkVars(self:GetDataTables()) end
+		if trace.Entity:IsValid() then
+			if trace.Entity.Setup then trace.Entity:Setup(self:GetConVars()) end
+			if trace.Entity.RestoreNetworkVars then trace.Entity:RestoreNetworkVars(self:GetDataTables()) end
+		end
 	end
 
 	--
