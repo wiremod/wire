@@ -47,9 +47,9 @@ local function WireHologramsShowOwners()
 		end
 	end})
 	for _, ent in pairs( finalEntList ) do
-		local id = ids[ent:GetNWEntity("holoowner")]
 		local vec = ent:GetPos():ToScreen()
 		if vec.visible then
+			local id = ids[ent:GetNWEntity("holoowner")]
 			draw.DrawText( id.name .. "\n" .. id.steamid, "DermaDefault", vec.x, vec.y, Color(255,0,0,255), 1 )
 		end
 	end
