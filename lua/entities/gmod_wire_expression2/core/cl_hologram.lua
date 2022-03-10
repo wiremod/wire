@@ -37,14 +37,20 @@ local function WireHologramsShowOwners()
 	end
 
 	local ids = setmetatable({},{__index=function(self, ply)
+		local id
 		if ply:IsValid() and ply:IsPlayer() then
-			local id = {
+			id = {
 				name = ply:GetName(),
 				steamid = ply:SteamID()
 			}
-			self[ply] = id
-			return id
+		else
+			id = {
+				name = "disconnected player",
+				steamid = ""
+			}
 		end
+		self[ply] = id
+		return id
 	end})
 	for _, ent in pairs( finalEntList ) do
 		local vec = ent:GetPos():ToScreen()
