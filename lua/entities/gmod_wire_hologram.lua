@@ -45,8 +45,7 @@ if CLIENT then
 	function ENT:Initialize()
 		self.bone_scale = {}
 		self:DoScale()
-		local ownerid = self:GetNWInt("ownerid")
-		self.blocked = blocked[ownerid] or false
+		self.blocked = blocked[self:GetNWEntity("holoowner")] or false
 
 		self.clips = {}
 		self:DoClip()
@@ -342,10 +341,9 @@ if CLIENT then
 			end
 			if not toblock then error("Player not found") end
 
-			local id = toblock:UserID()
-			blocked[id] = true
+			blocked[toblock] = true
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-				if ent:GetNWInt("ownerid") == id then
+				if ent:GetNWEntity("holoowner") == toblock then
 					ent.blocked = true
 				end
 			end
@@ -370,10 +368,9 @@ if CLIENT then
 			end
 			if not toblock then error("Player not found") end
 
-			local id = toblock:UserID()
-			blocked[id] = nil
+			blocked[toblock] = nil
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-				if ent:GetNWInt("ownerid") == id then
+				if ent:GetNWEntity("holoowner") == toblock then
 					ent.blocked = false
 				end
 			end
@@ -381,7 +378,7 @@ if CLIENT then
 		function()
 			local names = {}
 			for _, ply in ipairs(player.GetAll()) do
-				if blocked[ply:UserID()] then
+				if blocked[ply] then
 					table.insert(names, "wire_holograms_unblock_client \"" .. ply:Name() .. "\"")
 				end
 			end
