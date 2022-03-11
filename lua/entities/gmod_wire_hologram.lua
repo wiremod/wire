@@ -4,15 +4,16 @@ ENT.PrintName = "Wire Hologram"
 ENT.RenderGroup = RENDERGROUP_OPAQUE
 ENT.DisableDuplicator = true
 
-function ENT:SetPlayer(ply)
-	self:SetVar("Founder", ply)
-	self:SetVar("FounderIndex", ply:UniqueID())
+function ENT:SetupDataTables()
+	self:NetworkVar( "String", 0, "Founder" )
+end
 
-	self:SetNWString("FounderName", ply:Nick())
+function ENT:SetPlayer(ply)
+	self:SetFounder(ply:SteamID())
 end
 
 function ENT:GetPlayer()
-	return self:GetVar("Founder", NULL)
+	return player.GetBySteamID(self:GetFounder()) or NULL
 end
 
 if CLIENT then
@@ -45,7 +46,7 @@ if CLIENT then
 	function ENT:Initialize()
 		self.bone_scale = {}
 		self:DoScale()
-		self.blocked = blocked[self:GetNWEntity("holoowner")] or false
+		self.blocked = blocked[self:GetFounder()]~=nil
 
 		self.clips = {}
 		self:DoClip()
@@ -330,60 +331,49 @@ if CLIENT then
 
 	-- -----------------------------------------------------------------------------
 
+	local function checkSteamid(steamid)
+		return string.match(steamid, "STEAM_%d+:%d+:%d+")
+	end
 	concommand.Add("wire_holograms_block_client",
 		function(ply, command, args)
-			local toblock
-			for _, ply in ipairs(player.GetAll()) do
-				if ply:Name() == args[1] then
-					toblock = ply
-					break
-				end
-			end
-			if not toblock then error("Player not found") end
+			local toblock = checkSteamid(args[1])
+			if not toblock then print("Invalid SteamId") return end
 
 			blocked[toblock] = true
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-				if ent:GetNWEntity("holoowner") == toblock then
+				if ent:GetFounder() == toblock then
 					ent.blocked = true
 				end
 			end
 		end,
-		function()
-			local names = {}
+		function(cmd)
+			local help = {}
 			for _, ply in ipairs(player.GetAll()) do
-				table.insert(names, "wire_holograms_block_client \"" .. ply:Name() .. "\"")
+				table.insert(help, cmd.." \"" .. ply:Name() .. "\"")
 			end
-			table.sort(names)
-			return names
+			return help
 		end)
 
 	concommand.Add("wire_holograms_unblock_client",
 		function(ply, command, args)
-			local toblock
-			for _, ply in ipairs(player.GetAll()) do
-				if ply:Name() == args[1] then
-					toblock = ply
-					break
-				end
-			end
-			if not toblock then error("Player not found") end
+			local toblock = checkSteamid(args[1])
+			if not toblock then print("Invalid SteamId") return end
 
 			blocked[toblock] = nil
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-				if ent:GetNWEntity("holoowner") == toblock then
+				if ent:GetFounder() == toblock then
 					ent.blocked = false
 				end
 			end
 		end,
-		function()
-			local names = {}
-			for _, ply in ipairs(player.GetAll()) do
-				if blocked[ply] then
-					table.insert(names, "wire_holograms_unblock_client \"" .. ply:Name() .. "\"")
-				end
+		function(cmd)
+			local help = {}
+			for steamid in pairs(blocked) do
+				local ply = player.GetBySteamID(steamid)
+				local name = ply and ply:GetName() or "(disconnected)"
+				table.insert(help, {name=cmd.." \""..ply:SteamID().."\" // "..name)
 			end
-			table.sort(names)
-			return names
+			return help
 		end)
 
 	-- Severe lagspikes can detach the source entity from its lua, so we need to reapply things when its reattached
