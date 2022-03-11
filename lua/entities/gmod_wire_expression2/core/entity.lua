@@ -936,9 +936,22 @@ local fixDefault = E2Lib.fixDefault
 
 local non_allowed_types = {
 	xgt = true,
-	t = true,
-	r = true,
-	}
+}
+
+local enttbls
+local function createEntsTbls()
+	enttbls = setmetatable({},{__index=function(t,k) local r=setmetatable({},{__index=function(t,k) local r={} t[k]=r return r end}) t[k]=r return r end})
+end
+createEntsTbls()
+hook.Add("Wire_EmergencyRamClear","E2_ClearEntTbls",createEntsTbls)
+local function cleanEntsTbls(ent)
+	for k, v in pairs(enttbls) do
+		v[ent] = nil
+		if next(v)==nil then
+			enttbls[k] = nil
+		end
+	end
+end
 
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
@@ -951,21 +964,16 @@ registerCallback("postinit",function()
 			local function getf( self, args )
 				local op1, op2 = args[2], args[3]
 				local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-				if not IsValid(rv1) or not rv2 then return fixDefault( v[2] ) end
-				local id = self.uid
-				if not rv1["EVar_"..id] then return fixDefault( v[2] ) end
-				return rv1["EVar_"..id][rv2] or fixDefault( v[2] )
+				if not IsValid(rv1) or not rv2 or not rawget(enttbls, self.uid) or not rawget(enttbls[self.uid], rv1) then return fixDefault( v[2] ) end
+				return enttbls[self.uid][rv1][rv2] or fixDefault( v[2] )
 			end
 
 			local function setf( self, args )
 				local op1, op2, op3 = args[2], args[3], args[4]
 				local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-				local id = self.uid
 				if not IsValid(rv1) or not rv2 or not rv3 then return end
-				if not rv1["EVar_"..id] then
-					rv1["EVar_"..id] = {}
-				end
-				rv1["EVar_"..id][rv2] = rv3
+				rv1:CallOnRemove("E2_ClearEntTbls", cleanEntsTbls)
+				enttbls[self.uid][rv1][rv2] = rv3
 				return rv3
 			end
 
