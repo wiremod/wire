@@ -349,7 +349,7 @@ if CLIENT then
 		function(cmd)
 			local help = {}
 			for _, ply in ipairs(player.GetAll()) do
-				table.insert(help, cmd.." \"" .. ply:Name() .. "\"")
+				table.insert(help, cmd.." \""..ply:SteamID().."\" // "..ply:Name())
 			end
 			return help
 		end)
@@ -358,6 +358,7 @@ if CLIENT then
 		function(ply, command, args)
 			local toblock = checkSteamid(args[1])
 			if not toblock then print("Invalid SteamId") return end
+			if not blocked[toblock] then print("This steamid isn't blocked") return end
 
 			blocked[toblock] = nil
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
@@ -371,7 +372,7 @@ if CLIENT then
 			for steamid in pairs(blocked) do
 				local ply = player.GetBySteamID(steamid)
 				local name = ply and ply:GetName() or "(disconnected)"
-				table.insert(help, {name=cmd.." \""..ply:SteamID().."\" // "..name)
+				table.insert(help, cmd.." \""..steamid.."\" // "..name)
 			end
 			return help
 		end)
