@@ -5,15 +5,8 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE
 ENT.DisableDuplicator = true
 
 function ENT:SetupDataTables()
-	self:NetworkVar( "String", 0, "Founder" )
-end
-
-function ENT:SetPlayer(ply)
-	self:SetFounder(ply:SteamID())
-end
-
-function ENT:GetPlayer()
-	return player.GetBySteamID(self:GetFounder()) or NULL
+	self:NetworkVar( "Entity", 0, "Player" )
+	self:NetworkVar( "String", 0, "PlayerID" )
 end
 
 if CLIENT then
@@ -46,7 +39,7 @@ if CLIENT then
 	function ENT:Initialize()
 		self.bone_scale = {}
 		self:DoScale()
-		self.blocked = blocked[self:GetFounder()]~=nil
+		self.blocked = blocked[self:GetPlayerID()]~=nil
 
 		self.clips = {}
 		self:DoClip()
@@ -341,7 +334,7 @@ if CLIENT then
 
 			blocked[toblock] = true
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-				if ent:GetFounder() == toblock then
+				if ent:GetPlayerID() == toblock then
 					ent.blocked = true
 				end
 			end
@@ -362,7 +355,7 @@ if CLIENT then
 
 			blocked[toblock] = nil
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-				if ent:GetFounder() == toblock then
+				if ent:GetPlayerID() == toblock then
 					ent.blocked = false
 				end
 			end

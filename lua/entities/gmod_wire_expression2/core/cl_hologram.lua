@@ -36,17 +36,15 @@ local function WireHologramsShowOwners()
 		if finalCVar == -1 then finalEntList = entList end
 	end
 
-	local names = setmetatable({},{__index=function(self, steamid)
-		local ply = player.GetBySteamID(steamid)
-		local name = ply and ply:GetName() or "disconnected player"
-		self[steamid] = name
+	local names = setmetatable({},{__index=function(t, ply)
+		local name = ply:IsValid() and ply:GetName() or "(disconnected)"
+		t[ply] = name
 		return name
 	end})
 	for _, ent in pairs( finalEntList ) do
 		local vec = ent:GetPos():ToScreen()
 		if vec.visible then
-			local steamid = ent:GetFounder()
-			draw.DrawText( names[steamid] .. "\n" .. steamid, "DermaDefault", vec.x, vec.y, Color(255,0,0,255), 1 )
+			draw.DrawText( names[ent:GetPlayer()] .. "\n" .. ent:GetPlayerID(), "DermaDefault", vec.x, vec.y, Color(255,0,0,255), 1 )
 		end
 	end
 end
