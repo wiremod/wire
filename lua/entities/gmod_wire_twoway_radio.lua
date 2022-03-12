@@ -5,6 +5,12 @@ ENT.WireDebugName = "2W Radio"
 
 if CLIENT then return end -- No more client
 
+local radio_twowaycounter = 0
+function Radio_GetTwoWayID()
+	radio_twowaycounter = radio_twowaycounter + 1
+	return radio_twowaycounter
+end
+
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )

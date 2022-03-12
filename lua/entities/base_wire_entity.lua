@@ -419,7 +419,7 @@ function ENT:OnRemove()
 end
 
 function ENT:OnRestore()
-    WireLib.Restored(self)
+	WireLib.Restored(self)
 end
 
 function ENT:BuildDupeInfo()
