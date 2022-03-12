@@ -149,7 +149,7 @@ function ENT:Unregister()
 end
 
 function ENT:NotifyDataRecieved(subch)
-	if subch then
+	if subch and self.onames[subch] then
 		WireLib.TriggerOutput(self,self.onames[subch],self.ChannelData.data[subch])
 	else
 		for i=1,self.values do
