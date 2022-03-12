@@ -44,7 +44,7 @@ local function WireHologramsShowOwners()
 	for _, ent in pairs( finalEntList ) do
 		local vec = ent:GetPos():ToScreen()
 		if vec.visible then
-			draw.DrawText( names[ent:GetPlayer()] .. "\n" .. ent:GetPlayerID(), "DermaDefault", vec.x, vec.y, Color(255,0,0,255), 1 )
+			draw.DrawText( names[ent:GetPlayer()] .. "\n" .. ent.steamid, "DermaDefault", vec.x, vec.y, Color(255,0,0,255), 1 )
 		end
 	end
 end

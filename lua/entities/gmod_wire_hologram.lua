@@ -5,8 +5,30 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE
 ENT.DisableDuplicator = true
 
 function ENT:SetupDataTables()
-	self:NetworkVar( "Entity", 0, "Player" )
-	self:NetworkVar( "String", 0, "PlayerID" )
+	self:NetworkVar( "Entity", 0, "PlayerEnt" )
+end
+
+function ENT:GetPlayer()
+	local ply = self:GetPlayerEnt()
+
+	if self.steamid == "" then
+		if ply:IsValid() then
+			self.steamid = ply:SteamID()
+		end
+	elseif SERVER and not ply:IsValid() then
+		local newply = player.GetBySteamID(self.steamid)
+		if newply then
+			self:SetPlayer(newply)
+			ply = newply
+		end
+	end
+
+	return ply
+end
+
+function ENT:SetPlayer(ply)
+	self:SetPlayerEnt(ply)
+	self.steamid = ply:SteamID()
 end
 
 if CLIENT then
@@ -37,9 +59,11 @@ if CLIENT then
 	end)
 
 	function ENT:Initialize()
+		self.steamid = ""
 		self.bone_scale = {}
 		self:DoScale()
-		self.blocked = blocked[self:GetPlayerID()]~=nil
+		self:GetPlayer() -- populate steamid
+		self.blocked = blocked[self.steamid]~=nil
 
 		self.clips = {}
 		self:DoClip()
@@ -334,7 +358,7 @@ if CLIENT then
 
 			blocked[toblock] = true
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-				if ent:GetPlayerID() == toblock then
+				if ent.steamid == toblock then
 					ent.blocked = true
 				end
 			end
@@ -355,7 +379,7 @@ if CLIENT then
 
 			blocked[toblock] = nil
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-				if ent:GetPlayerID() == toblock then
+				if ent.steamid == toblock then
 					ent.blocked = false
 				end
 			end
@@ -395,6 +419,7 @@ function ENT:OnRemove()
 end
 
 function ENT:Initialize()
+	self.steamid = ""
 	self:SetSolid(SOLID_NONE)
 	self:SetMoveType(MOVETYPE_NONE)
 	self:DrawShadow(false)
