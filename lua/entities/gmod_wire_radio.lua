@@ -9,15 +9,20 @@ local MODEL = Model( "models/props_lab/binderblue.mdl" )
 
 local Channel = {
 	__index = {
-		register = function(self, ent)
+		register = function(self, ent, channel)
 			local olddata = ent.ChannelData
+			if olddata == self then return end
+
+			ent.Channel = channel
 			ent.ChannelData = self
+			table.insert(self.subscribers, ent)
+
 			if olddata then
+				olddata:unregister(ent)
 				self:updateChannel(olddata)
 			else
 				ent:NotifyDataRecieved()
 			end
-			table.insert(self.subscribers, ent)
 		end,
 		unregister = function(self, ent)
 			table.RemoveByValue(self.subscribers, ent)
@@ -53,50 +58,6 @@ setmetatable(Channel, Channel)
 
 local Channels = setmetatable({},{__index = function(t,k) local r=Channel() t[k]=r return r end})
 local Secure_Channels = setmetatable({},{__index = function(t,k) local r=setmetatable({},{__index = function(t,k) local r=Channel() t[k]=r return r end}) t[k]=r return r end})
-
-function Radio_Register(ent, channel)
-	local chan
-	if ent.Secure then
-		chan = Secure_Channels[ent.Steamid][channel]
-	else
-		chan = Channels[channel]
-	end
-	if ent.ChannelData ~= nil then
-		if ent.ChannelData == chan then
-			return
-		else
-			Radio_ChangeChannel(ent, channel)
-			return
-		end
-	end
-	ent.Channel = channel
-	chan:register(ent)
-end
-
-function Radio_Unregister(ent)
-	ent.ChannelData = nil
-	if ent.Secure then
-		local chan = Secure_Channels[ent.Steamid][ent.Channel]
-		chan:unregister(ent)
-		if chan:isEmpty() then
-			Secure_Channels[ent.Steamid][ent.Channel] = nil
-			if next(Secure_Channels[ent.Steamid])==nil then
-				Secure_Channels[ent.Steamid] = nil
-			end
-		end
-	else
-		local chan = Channels[ent.Channel]
-		chan:unregister(ent)
-		if chan:isEmpty() then
-			Channels[ent.Channel] = nil
-		end
-	end
-end
-
-function Radio_ChangeChannel(ent, chan)
-	Radio_Unregister(ent)
-	Radio_Register(ent, chan)
-end
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -134,12 +95,12 @@ function ENT:Setup(channel,values,secure)
 	self.Outputs = WireLib.CreateOutputs(self,onames)
 
 	self.Steamid = self:GetPlayer():SteamID()
-	Radio_Register(self, self.Channel)
+	self:Register(self, self.Channel)
 end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Channel") then
-		Radio_ChangeChannel(self, tostring(value))
+		self:Register(tostring(value))
 	else
 		if (self.Old == true) then
 			if (iname == "A") then
@@ -158,8 +119,43 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
+function ENT:Register(channel)
+	local chan
+	if self.Secure then
+		chan = Secure_Channels[self.Steamid][channel]
+	else
+		chan = Channels[channel]
+	end
+	chan:register(self, channel)
+end
+
+function ENT:Unregister()
+	if self.Secure then
+		local chan = Secure_Channels[self.Steamid][self.Channel]
+		chan:unregister(self)
+		if chan:isEmpty() then
+			Secure_Channels[self.Steamid][self.Channel] = nil
+			if next(Secure_Channels[self.Steamid])==nil then
+				Secure_Channels[self.Steamid] = nil
+			end
+		end
+	else
+		local chan = Channels[self.Channel]
+		chan:unregister(self)
+		if chan:isEmpty() then
+			Channels[self.Channel] = nil
+		end
+	end
+end
+
 function ENT:NotifyDataRecieved(subch)
-	WireLib.TriggerOutput(self,self.onames[subch],self.ChannelData.data[subch])
+	if subch then
+		WireLib.TriggerOutput(self,self.onames[subch],self.ChannelData.data[subch])
+	else
+		for i=1,self.values do
+			WireLib.TriggerOutput(self,self.onames[i],self.ChannelData.data[i])
+		end
+	end
 	self:NextThink(CurTime())
 end
 
@@ -198,12 +194,12 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-	Radio_Register(self, self.Channel)
+	self:Register(self.Channel)
 	BaseClass.OnRestore(self)
 end
 
 function ENT:OnRemove()
-	Radio_Unregister(self)
+	self:Unregister()
 end
 
 function ENT:Think()
