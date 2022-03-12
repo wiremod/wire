@@ -69,7 +69,7 @@ function Wire_Render(ent)
 	
 		width = wiretbl.Width
 		if width > 0 and blink ~= net_name then
-			start = IsValid(ent) and ent:LocalToWorld(start) or wiretbl.StartPos
+			start = IsValid(ent) and ent:LocalToWorld(wiretbl.StartPos) or wiretbl.StartPos
 			color = wiretbl.Color
 			
 			if WireLib.Wire_GrayOutWires then
