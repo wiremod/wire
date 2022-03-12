@@ -120,13 +120,11 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Register(channel)
-	local chan
 	if self.Secure then
-		chan = Secure_Channels[self.Steamid][channel]
+		Secure_Channels[self.Steamid][channel]:register(self, channel)
 	else
-		chan = Channels[channel]
+		Channels[channel]:register(self, channel)
 	end
-	chan:register(self, channel)
 end
 
 function ENT:Unregister()
