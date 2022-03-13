@@ -328,7 +328,7 @@ hook.Add("PlayerBindUp", "Exp2KeyReceivingUp", function(player, binding, button)
 end)
 
 local function toggleRunOnKeys(self,ply,on,filter)
-	if not IsValid(ply) or not ply:IsPlayer() then return end
+	if not IsValid(ply) or not ply:IsPlayer() then return self:throw("Invalid player for runOnKeys!", nil) end
 
 	local ent = self.entity
 	local uid = ply:UniqueID()
@@ -600,8 +600,8 @@ end
 --------------------------------------------------------------------------------
 
 e2function entity entity:aimEntity()
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", nil) end
 
 	local ent = this:GetEyeTraceNoCursor().Entity
 	if not ent:IsValid() then return nil end
@@ -767,24 +767,24 @@ e2function number lastDeathTime()
 end
 
 -- To avoid a lot of repeated checks
-local function getDeathEntry(ply,key)
-	if not IsValid(ply) then return end
-	if not ply:IsPlayer() then return end
+local function getDeathEntry(self, ply, key)
+	if not IsValid(ply) then return self:throw("Invalid player!", nil) end
+	if not ply:IsPlayer() then return self:throw("Expected a Player, got Entity", nil) end
 	local entry = DeathList[ply]
 	if not entry then return end -- Player has never died.
 	return entry[key]
 end
 
-local function getRespawnEntry(ply,key)
-	if not IsValid(ply) then return end
-	if not ply:IsPlayer() then return end
+local function getRespawnEntry(self, ply, key)
+	if not IsValid(ply) then return self:throw("Invalid player!", nil) end
+	if not ply:IsPlayer() then return self:throw("Expected a Player, got Entity", nil) end
 	local entry = RespawnList[ply]
 	if not entry then return end -- Player has never respawned.
 	return entry[key]
 end
 
 e2function number lastDeathTime(entity ply) -- When the player provided last died.
-	return getDeathEntry(ply,"timestamp") or 0
+	return getDeathEntry(self, ply,"timestamp") or 0
 end
 
 e2function entity lastDeathVictim()
@@ -796,7 +796,7 @@ e2function entity lastDeathInflictor()
 end
 
 e2function entity lastDeathInflictor(entity ply)
-	return getDeathEntry(ply,"inflictor") or NULL
+	return getDeathEntry(self, ply,"inflictor") or NULL
 end
 
 e2function entity lastDeathAttacker()
@@ -804,7 +804,7 @@ e2function entity lastDeathAttacker()
 end
 
 e2function entity lastDeathAttacker(entity ply)
-	return getDeathEntry(ply,"attacker") or NULL
+	return getDeathEntry(self, ply,"attacker") or NULL
 end
 
 -- Respawn Functions
@@ -821,7 +821,7 @@ e2function number lastSpawnTime()
 end
 
 e2function number lastSpawnTime(entity ply)
-	return getRespawnEntry(ply,"timestamp") or 0
+	return getRespawnEntry(self, ply,"timestamp") or 0
 end
 
 e2function entity lastSpawnedPlayer()

@@ -46,7 +46,12 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 
 	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Clk", "Damage", "Attacker", "Victim", "Victims", "Position", "Force", "Type" } , { "NORMAL", "NORMAL", "ENTITY", "ENTITY", "TABLE", "VECTOR", "VECTOR", "STRING" } )
-	self.Inputs = WireLib.CreateSpecialInputs(self, { "On", "Entity", "Entities", "Reset" }, { "NORMAL", "ENTITY", "ARRAY", "NORMAL" } )
+	self.Inputs = WireLib.CreateInputs(self, { 
+		"On", 
+		"Entity (This entity will be added whenever this input changes to a valid entity) [ENTITY]",
+		"Entities (These entities will be added whenever this input changes.\nCan be changed at most once per second.) [ARRAY]", 
+		"Reset"
+	})
 
 	self.on = false
 	self.updated = false -- Tracks whether constraints were updated that tick
@@ -84,26 +89,12 @@ end
 
 -- Update overlay
 function ENT:ShowOutput()
-	local text
-	if self.includeconstrained == 0 then
-		text = "(Individual Props)\n"
-	else
-		text = "(Constrained Props)\n"
-	end
-
-	if #self.linked_entities == 0 then
-		text = text .. "Not linked"
-	else
-		if #self.linked_entities == 1 and self.linked_entities[1] == self then
-			text = text .. "Linked to self"
-		else
-			text = text .. "Linked to " .. #self.linked_entities .. " entities."
-		end
-	end
-
-	self:SetOverlayText( text )
-
-	self:SetOverlayText(text)
+	local num = #self.linked_entities
+	self:SetOverlayText(string.format("(%s)\nLinked to %s entities%s",
+		(self.includeconstrained == 0) and "Individual Props" or "Constrained Props",
+		num,
+		(num == 1 and self.linked_entities[1] == self) and "\nLinked only to self" or ""
+	))
 end
 
 function ENT:Setup( includeconstrained )
@@ -111,7 +102,7 @@ function ENT:Setup( includeconstrained )
 	self:ShowOutput()
 end
 
-function ENT:LinkEnt( ent )
+function ENT:LinkEnt( ent, dontupdateoutput )
 	if self.linked_entities_lookup[ent] then return false end
 
 	self.linked_entities_lookup[ent] = true
@@ -122,7 +113,7 @@ function ENT:LinkEnt( ent )
 		end
 	end )
 
-	self:ShowOutput()
+	if not dontupdateoutput then self:ShowOutput() end
 	WireLib.SendMarks( self, self.linked_entities )
 	return true
 end
@@ -166,13 +157,16 @@ function ENT:TriggerInput( iname, value )
 		self.on = value ~= 0
 	elseif iname == "Entities" then -- Populate linked_entities from "Array"
 		if value then
+			if self.arrayInputNextChange and self.arrayInputNextChange > CurTime() then return end
 			self:ClearEntities()
 
 			for _, v in pairs( value ) do
 				if IsValid( v ) then
-					self:LinkEnt( v )
+					self:LinkEnt( v, true )
 				end
 			end
+			self.arrayInputNextChange = CurTime() + 1
+			self:ShowOutput()
 		end
 	elseif iname == "Entity" then
 		if IsValid( value )then

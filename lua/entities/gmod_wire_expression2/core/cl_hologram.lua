@@ -1,5 +1,42 @@
+-- Replicated from serverside, same function as the one below except this takes precedence
+local holoDisplayCVar = CreateConVar("wire_holograms_display_owners_maxdist", "-1", {FCVAR_REPLICATED})
+
+local holoDisplayCVarCL = CreateClientConVar( "wire_holograms_display_owners_maxdist_cl" , "-1", true, false,
+"The maximum distance that wire_holograms_display_owners will allow names to be seen. -1 for original function.", -1, 32768)
+
 local function WireHologramsShowOwners()
-	for _,ent in pairs( ents.FindByClass( "gmod_wire_hologram" ) ) do
+	local eye = EyePos()
+	local entList = ents.FindByClass( "gmod_wire_hologram" )
+	local finalEntList = {}
+
+	local finalCVar = 0
+	-- Both cvars, server-replicated and clientside
+	local cva = holoDisplayCVar:GetInt()
+	local cvb = holoDisplayCVarCL:GetInt()
+
+	if cva == -1 then -- Server allows mapwide visibility for display, default to the client's setting
+		finalCVar = cvb
+	else
+		if cvb >= 0 then -- Use whichever value is lower, as long as the client isn't trying to get mapwide visibility of names while the server prevents it
+			finalCVar = math.min( cva, cvb)
+		else -- If all else fails, settle with what the server is using
+			finalCVar = cva
+		end
+	end
+
+	local holoDisplayDist = finalCVar ^ 2
+
+	if finalCVar > 0 then -- Can't check for -1 from the above variable since it is squared, and it needs to be squared for performance reasons comparing distances
+		for _,ent in pairs( entList ) do
+			local distToEye = eye:DistToSqr( ent:GetPos() )
+			if distToEye < holoDisplayDist then finalEntList[ #finalEntList + 1 ] = ent end
+		end
+	else -- Default to the original function of showing ALL holograms
+		-- if, in the end, both are 0, why even bother trying to do it at all (and why is this running?)
+		if finalCVar == -1 then finalEntList = entList end
+	end
+
+	for _,ent in pairs( finalEntList ) do
 		local id = ent:GetNWInt( "ownerid" )
 
 		for _,ply in pairs( player.GetAll() ) do

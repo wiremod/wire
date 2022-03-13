@@ -16,6 +16,7 @@ function ENT:Initialize()
 	self.RenderTable = {}
 
 	self:SetUseType(SIMPLE_USE)
+	self:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
 
 	self.Inputs = WireLib.CreateInputs( self, { "0 to 512 (If enabled, changes the resolution of the egp hud to be between 0 and 512 instead of the user's monitor's resolution.\nWill cause objects to look stretched out on most screens, so your UI will need to be designed with this in mind.\nIt's recommended to use the egpScrW, egpScrH, and egpScrSize functions instead.)" } )
 	WireLib.CreateWirelinkOutput( nil, self, {true} )

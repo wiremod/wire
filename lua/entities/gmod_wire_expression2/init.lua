@@ -152,13 +152,14 @@ function ENT:Execute()
 
 	self.context:PopScope()
 
+	local forceTriggerOutputs = self.first or self.duped
 	self.first = false -- if hooks call execute
 	self.duped = false -- if hooks call execute
 	self.context.triggerinput = nil -- if hooks call execute
 
 	self:PCallHook('postexecute')
 
-	self:TriggerOutputs()
+	self:TriggerOutputs(forceTriggerOutputs)
 
 	for k, v in pairs(self.inports[3]) do
 		if self.GlobalScope[k] then
@@ -234,6 +235,7 @@ function ENT:Error(message, overlaytext)
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
 
 	self.error = true
+	self.lastResetOrError = CurTime()
 	-- ErrorNoHalt(message .. "\n")
 	WireLib.ClientError(message, self.player)
 end
@@ -334,6 +336,15 @@ function ENT:PrepareIncludes(files)
 end
 
 function ENT:ResetContext()
+	local resetPrfMult = 1
+	if self.lastResetOrError then
+		-- reduces all the opcounters based on the time passed since 
+		-- the last time the chip was reset or errored
+		-- waiting up to 30s before resetting results in a 0.1 multiplier 
+		resetPrfMult = math.max(0.1,(30 - (CurTime() - self.lastResetOrError)) / 30)
+	end
+	self.lastResetOrError = CurTime()
+
 	local context = {
 		data = {},
 		vclk = {}, -- Used only by arrays and tables!
@@ -342,11 +353,11 @@ function ENT:ResetContext()
 		entity = self,
 		player = self.player,
 		uid = self.uid,
-		prf = (self.context and self.context.prf) or 0,
-		prfcount = (self.context and self.context.prfcount) or 0,
-		prfbench = (self.context and self.context.prfbench) or 0,
-		time = (self.context and self.context.time) or 0,
-		timebench = (self.context and self.context.timebench) or 0,
+		prf = (self.context and (self.context.prf*resetPrfMult)) or 0,
+		prfcount = (self.context and (self.context.prfcount*resetPrfMult)) or 0,
+		prfbench = (self.context and (self.context.prfbench*resetPrfMult)) or 0,
+		time = (self.context and (self.context.time*resetPrfMult)) or 0,
+		timebench = (self.context and (self.context.timebench*resetPrfMult)) or 0,
 		includes = self.includes
 	}
 
@@ -511,9 +522,9 @@ function ENT:TriggerInput(key, value)
 	end
 end
 
-function ENT:TriggerOutputs()
+function ENT:TriggerOutputs(force)
 	for key, t in pairs(self.outports[3]) do
-		if self.GlobalScope.vclk[key] or self.first then
+		if self.GlobalScope.vclk[key] or force then
 			if wire_expression_types[t][4] then
 				WireLib.TriggerOutput(self, key, wire_expression_types[t][4](self.context, self.GlobalScope[key]))
 			else
@@ -529,8 +540,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	if not self.error then
 		for k, v in pairs(self.dupevars) do
 			self.GlobalScope[k] = v
-		end -- Rusketh Broke this :(
-		-- table.Merge(self.context.vars, self.dupevars)
+		end
 		self.dupevars = nil
 
 		self.duped = true
