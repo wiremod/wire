@@ -143,11 +143,14 @@ end
 local function GetCharPosInLine(self, row, search_index)
     local char_index = 1
     local char_pos = 0
+    local row_tbl = self.PaintRows[row]
 
+    if row_tbl == nil then
+        Error("Line ",row," not exists or not cached")
+    end
+    
     --MsgN("GetCharPosInLine > @", search_index, " ", self.Rows[row])
-
-    -- self.PaintRows[row] can be nil if row is not currently visible
-    for _, cell in ipairs(self.PaintRows[row]) do
+    for _, cell in ipairs(row_tbl) do
         local part_text = cell[1]
         local part_bold = cell[2][2]
         local part_text_len = utf8_len(part_text)
@@ -262,8 +265,6 @@ function EDITOR:CursorToCaret()
 
     return { line, GetCharIndexByPos(self, line, char_pos) }
 end
-
-local wire_expression2_editor_highlight_on_double_click = CreateClientConVar( "wire_expression2_editor_highlight_on_double_click", "1", true, false )
 
 function EDITOR:OpenContextMenu()
     self:AC_SetVisible( false )
@@ -384,46 +385,60 @@ function EDITOR:OpenContextMenu()
     return menu
 end
 
+local wire_expression2_editor_highlight_on_double_click = CreateClientConVar( "wire_expression2_editor_highlight_on_double_click", "1", true, false )
+
+function EDITOR:DoDoubleClickSelection()
+    if not wire_expression2_editor_highlight_on_double_click:GetBool() then
+        return
+    end
+
+    self.HighlightedAreasByDoubleClick = {}
+    local all_finds = self:FindAllWords( self:GetSelection() )
+    if not all_finds then
+        return
+    end
+
+    all_finds[0] = {1,1} -- Set [0] so the [i-1]'s don't fail on the first iteration
+    self.HighlightedAreasByDoubleClick[0] = {{1,1}, {1,1}}
+    for i = 1,#all_finds do
+
+        -- Instead of finding the caret by searching from the beginning every time, start searching from the previous caret
+        local start = all_finds[i][1] - all_finds[i-1][1]
+        local stop = all_finds[i][2] - all_finds[i-1][2]
+        local caretstart = self:MovePosition( self.HighlightedAreasByDoubleClick[i-1][1], start )
+        local caretstop = self:MovePosition( self.HighlightedAreasByDoubleClick[i-1][2], stop )
+        self.HighlightedAreasByDoubleClick[i] = { caretstart, caretstop }
+
+        -- This checks if it's NOT the word the user just highlighted
+        if caretstart[1] ~= self.Start[1] or caretstart[2] ~= self.Start[2] or
+            caretstop[1] ~= self.Caret[1] or caretstop[2] ~= self.Caret[2] then
+            local c = self:GetSyntaxColor("dblclickhighlight")
+            self:HighlightArea( { caretstart, caretstop }, c.r, c.g, c.b, 100 )
+        end
+    end
+end
+
 function EDITOR:OnMousePressed(code)
     if code == MOUSE_LEFT then
         local cursor = self:CursorToCaret()
-        if (CurTime() - self.LastClick) < 1 and self.tmp and cursor[1] == self.Caret[1] and cursor[2] == self.Caret[2] then
+        if (CurTime() - self.LastClick) < 1 and self.NotDoubleClick and cursor[1] == self.Caret[1] and cursor[2] == self.Caret[2] then
             self.Start = self:getWordStart(self.Caret)
             self.Caret = self:getWordEnd(self.Caret)
-            self.tmp = false
+            self.NotDoubleClick = false
 
-            if wire_expression2_editor_highlight_on_double_click:GetBool() then
-                self.HighlightedAreasByDoubleClick = {}
-                local all_finds = self:FindAllWords( self:GetSelection() )
-                if all_finds then
-                    all_finds[0] = {1,1} -- Set [0] so the [i-1]'s don't fail on the first iteration
-                    self.HighlightedAreasByDoubleClick[0] = {{1,1}, {1,1}}
-                    for i = 1,#all_finds do
-                        -- Instead of finding the caret by searching from the beginning every time, start searching from the previous caret
-                        local start = all_finds[i][1] - all_finds[i-1][1]
-                        local stop = all_finds[i][2] - all_finds[i-1][2]
-                        local caretstart = self:MovePosition( self.HighlightedAreasByDoubleClick[i-1][1], start )
-                        local caretstop = self:MovePosition( self.HighlightedAreasByDoubleClick[i-1][2], stop )
-                        self.HighlightedAreasByDoubleClick[i] = { caretstart, caretstop }
+            self:DoDoubleClickSelection()
 
-                        -- This checks if it's NOT the word the user just highlighted
-                        if caretstart[1] ~= self.Start[1] or caretstart[2] ~= self.Start[2] or
-                            caretstop[1] ~= self.Caret[1] or caretstop[2] ~= self.Caret[2] then
-                            local c = self:GetSyntaxColor("dblclickhighlight")
-                            self:HighlightArea( { caretstart, caretstop }, c.r, c.g, c.b, 100 )
-                        end
-                    end
-                end
-            end
             return
-        elseif self.HighlightedAreasByDoubleClick then
+        end
+
+        if self.HighlightedAreasByDoubleClick then
             for i=1,#self.HighlightedAreasByDoubleClick do
                 self:HighlightArea( self.HighlightedAreasByDoubleClick[i] )
             end
             self.HighlightedAreasByDoubleClick = nil
         end
 
-        self.tmp = true
+        self.NotDoubleClick = true
 
         self.LastClick = CurTime()
         self:RequestFocus()
@@ -434,6 +449,7 @@ function EDITOR:OnMousePressed(code)
         if not input.IsKeyDown(KEY_LSHIFT) and not input.IsKeyDown(KEY_RSHIFT) then
             self.Start = self:CopyPosition( cursor )
         end
+
         self:AC_Check()
     elseif code == MOUSE_RIGHT then
         self:OpenContextMenu()
@@ -445,7 +461,7 @@ function EDITOR:OnMouseReleased(code)
 
     if code == MOUSE_LEFT then
         self.MouseDown = nil
-        if not self.tmp then return end
+        if not self.NotDoubleClick then return end
         self.Caret = self:CursorToCaret()
     end
 end
@@ -785,7 +801,7 @@ do
             local start_char, stop_char = start[2], stop[2]
 
             if start_line > visible_line_end then
-                goto for_ares_end
+                goto for_areas_end
             end
 
             if stop_line > visible_line_end then
@@ -831,7 +847,7 @@ do
                 end
             end
 
-            ::for_ares_end::
+            ::for_areas_end::
         end
     end
 
@@ -1452,6 +1468,8 @@ end
 
 function EDITOR:FindAllWords( str )
     if str == "" then return end
+    print("FindAllWords (",str,")")
+
 
     local txt = self:GetValue()
     -- %f[set] is a 'frontier' pattern - it matches an empty string at a position such that the
