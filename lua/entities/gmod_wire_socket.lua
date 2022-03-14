@@ -229,27 +229,23 @@ function ENT:ResendValues()
 	end
 end
 
-function ENT:OnWeldRemoved()
-	self.Weld = nil
-
-	self.Plug:SetNWBool( "Linked", false )
-	self:SetNWBool( "Linked", false )
-
-	self.Plug.Socket = nil
-	self.Plug:ResetValues()
-
-	self.Plug = nil
-	self:ResetValues()
-
-	self.DoNextThink = CurTime() + NEW_PLUG_WAIT_TIME
-end
-
 function ENT:AttachWeld(weld)
-	if self.Plug then self.Plug:DeleteOnRemove( weld ) end
-	self:DeleteOnRemove( weld )
-	if self.Weld then self.Weld:RemoveCallOnRemove("wire_socket_remove_on_weld") end
 	self.Weld = weld
-	weld:CallOnRemove("wire_socket_remove_on_weld",function() self:OnWeldRemoved() end)
+	local plug = self.Plug
+	weld:CallOnRemove("wire_socket_remove_on_weld",function()
+		if self:IsValid() then
+			self.Weld = nil
+			self:SetNWBool( "Linked", false )
+			self:ResetValues()
+			self.DoNextThink = CurTime() + NEW_PLUG_WAIT_TIME
+			self.Plug = nil
+		end
+		if plug and plug:IsValid() then
+			plug:SetNWBool( "Linked", false )
+			plug.Socket = nil
+			plug:ResetValues()
+		end
+	end)
 end
 
 -- helper function
