@@ -4,9 +4,7 @@ ENT.Type = "anim"
 ENT.PrintName = "Improved RT Camera"
 ENT.WireDebugName = "Improved RT Camera"
 
-if SERVER then
-	local cameras = {}
-end
+local cameras = {}
 
 function ENT:Initialize()
     if ( SERVER ) then
