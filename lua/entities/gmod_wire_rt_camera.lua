@@ -4,6 +4,9 @@ ENT.Type = "anim"
 ENT.PrintName = "Improved RT Camera"
 ENT.WireDebugName = "Improved RT Camera"
 
+if SERVER then
+	local cameras = {}
+end
 
 function ENT:Initialize()
     if ( SERVER ) then
@@ -14,6 +17,8 @@ function ENT:Initialize()
 
 		-- Don't collide with the player
 		self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+
+		table.insert(cameras, self)
 
 		--self.health = rtcam.cameraHealth
 		self.Inputs = Wire_CreateInputs( self, {"Active", "FOV"} )
@@ -53,7 +58,7 @@ end
 
 if SERVER then
     hook.Add("SetupPlayerVisibility", "ImprovedRTCamera", function(ply, plyView)
-        for _, screen in ipairs(ents.FindByClass("gmod_wire_rt_screen")) do
+        for _, screen in ipairs(cameras) do
             if screen:GetActive() and screen:ShouldDrawCamera(ply) then
                 local camera = screen:GetCamera()
                 if IsValid(camera) and camera:GetActive() then
@@ -62,6 +67,11 @@ if SERVER then
             end
         end
     end)
+
+	function ENT:OnRemove()
+		table.RemoveByValue(cameras, self)
+	end
+
 end
 
 
