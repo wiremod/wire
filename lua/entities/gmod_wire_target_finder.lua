@@ -215,8 +215,11 @@ function ENT:CheckTheBuddyList(friend)
 	if not self.CheckBuddyList or not CPPI then return true end
 	if not IsValid(self:GetPlayer()) then return false end
 
-	for _, v in pairs(self:GetPlayer():CPPIGetFriends()) do
-		if v == friend then return self.OnBuddyList end
+	local friends = self:GetPlayer():CPPIGetFriends()
+	if istable(friends) then
+		for _, v in pairs(friends) do
+			if v == friend then return self.OnBuddyList end
+		end
 	end
 	return not self.OnBuddyList
 end
