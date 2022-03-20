@@ -1140,21 +1140,21 @@ elseif CLIENT then
 				maxx = math.max(maxx,x+ww)
 				maxy = math.max(maxy,y+hh+h)
 			end
-		end
 
-		if #self.WiringRender > 0 then
-			local w, h = self:fitFont( #self.WiringRender, ScrH() - 32 )
-			local ww, hh = getWidthHeight( self.WiringRender )
-			local ww = math.max(ww,w)
-			local hh = math.max(hh,h) + h
-			local x = centerx-maxwidth-ww-38
-			local y = centery-hh/2-16
-			self:DrawList( "Selected", self.WiringRender, ent, x, y, ww, hh, h )
+			if #self.WiringRender > 0 then
+				local w, h = self:fitFont( #self.WiringRender, ScrH() - 32 )
+				local ww, hh = getWidthHeight( self.WiringRender )
+				local ww = math.max(ww,w)
+				local hh = math.max(hh,h) + h
+				local x = centerx-maxwidth-ww-38
+				local y = centery-hh/2-16
+				self:DrawList( "Selected", self.WiringRender, ent, x, y, ww, hh, h )
 
-			minx = math.min(minx,x)
-			miny = math.min(miny,y)
-			maxx = math.max(maxx,x+ww)
-			maxy = math.max(maxy,y+hh+h)
+				minx = math.min(minx,x)
+				miny = math.min(miny,y)
+				maxx = math.max(maxx,x+ww)
+				maxy = math.max(maxy,y+hh+h)
+			end
 		end
 
 		if minx < centerx - 1 then
