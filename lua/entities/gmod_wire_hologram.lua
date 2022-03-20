@@ -15,15 +15,9 @@ function ENT:GetPlayer()
 		if ply:IsValid() then
 			self.steamid = ply:SteamID()
 		end
-	elseif SERVER and not ply:IsValid() then
-		local newply = player.GetBySteamID(self.steamid)
-		if newply then
-			self:SetPlayer(newply)
-			ply = newply
-		end
 	end
 
-	return ply
+	return self:GetPlayerEnt()
 end
 
 function ENT:SetPlayer(ply)
