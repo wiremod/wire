@@ -600,6 +600,11 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 			end
 		end
 	end
+	for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
+		if ent.steamid == sid then
+			ent:SetPlayer(ply)
+		end
+	end
 end)
 
 function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files, filepath)

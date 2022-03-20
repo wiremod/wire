@@ -514,8 +514,6 @@ local function MakeHolo(Player, Pos, Ang, model)
 	WireLib.setAng(prop, Ang)
 	prop:SetModel(model)
 	prop:SetPlayer(Player)
-	prop:SetNWInt("ownerid", Player:UserID())
-
 	return prop
 end
 
