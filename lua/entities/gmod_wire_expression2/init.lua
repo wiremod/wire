@@ -107,6 +107,7 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 
+	self.name = "(generic)"
 	self.Inputs = WireLib.CreateInputs(self, {})
 	self.Outputs = WireLib.CreateOutputs(self, {})
 
@@ -590,14 +591,18 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 			ent.context.player = ply
 			ent.player = ply
 			ent:SetNWEntity("player", ply)
-			if (ent.disconnectPaused) then
-				c = ent.disconnectPaused
-				ent:SetColor(Color(c[1], c[2], c[3], c[4]))
+			if ent.disconnectPaused then
+				ent:SetColor(ent.disconnectPaused)
 				ent:SetRenderMode(ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 				ent.error = false
-				ent.disconnectPaused = false
+				ent.disconnectPaused = nil
 				ent:SetOverlayText(ent.name)
 			end
+		end
+	end
+	for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
+		if ent.steamid == sid then
+			ent:SetPlayer(ply)
 		end
 	end
 end)
@@ -681,7 +686,7 @@ local function enableEmergencyShutdown()
 					current_ram > halt_max_amount:GetInt() * 1000 then -- or if the current ram goes over a set limit
 
 					local e2s = ents.FindByClass("gmod_wire_expression2") -- find all E2s and halt them
-					for _,v in pairs( e2s ) do
+					for _,v in ipairs( e2s ) do
 						if not v.error then
 							-- immediately clear any memory the E2 may be holding
 							hook.Run("Wire_EmergencyRamClear")

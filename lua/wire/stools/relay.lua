@@ -45,7 +45,7 @@ end
 
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool.wire_relay.name", Description = "#Tool.wire_relay.desc" })
-	WireToolHelpers.MakePresetControl(panel, "wire_radio")
+	WireToolHelpers.MakePresetControl(panel, "wire_relay")
 
 	panel:AddControl("Slider", {
 		Label = "#WireRelayTool_poles",

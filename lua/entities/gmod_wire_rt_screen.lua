@@ -76,12 +76,16 @@ if SERVER then
         "Scroll X", "Scroll Y", "Scale X", "Scale Y"
     }
 
+	local screens = {}
+
     function ENT:Initialize()
         self:PhysicsInit( SOLID_VPHYSICS )
         self:SetMoveType( MOVETYPE_VPHYSICS )
         self:SetSolid( SOLID_VPHYSICS )
         self:SetCollisionGroup( COLLISION_GROUP_NONE )
         self:DrawShadow( false )
+
+		table.insert(screens, self)
 
         self.Inputs = Wire_CreateInputs( self, InputsTable )
 
@@ -104,6 +108,21 @@ if SERVER then
 
         self.Inputs = Wire_CreateInputs( self, Inputs )
     end
+
+	hook.Add("SetupPlayerVisibility", "ImprovedRTCamera", function(ply, plyView)
+        for _, screen in ipairs(screens) do
+            if screen:GetActive() and screen:ShouldDrawCamera(ply) then
+                local camera = screen:GetCamera()
+                if IsValid(camera) and camera:GetActive() then
+                    AddOriginToPVS(camera:GetPos())
+                end
+            end
+        end
+    end)
+
+	function ENT:OnRemove()
+		table.RemoveByValue(screens, self)
+	end
 
 end
 

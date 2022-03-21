@@ -30,6 +30,12 @@ function ENT:Setup()
 	Wire_TriggerOutput(self, "D", self.Outputs.D.Value or 0)
 end
 
+local radio_twowaycounter = 0
+function ENT:GetTwoWayID()
+	radio_twowaycounter = radio_twowaycounter + 1
+	return radio_twowaycounter
+end
+
 function ENT:TriggerInput(iname, value)
 	if self.Other and self.Other:IsValid() and self.Other.Inputs then
 		self.Other:ReceiveRadio(iname, value)
@@ -85,7 +91,7 @@ function ENT:LinkEnt( other )
 		self.Other.UnlinkEnt()
 	end
 
-	local id = Radio_GetTwoWayID()
+	local id = self:GetTwoWayID()
 	self:RadioLink(other, id)
 	other:RadioLink(self, id)
 	WireLib.AddNotify(self:GetPlayer(), "The Radios are now paired. Pair ID is " .. tostring(id) .. ".", NOTIFY_GENERIC, 7)
@@ -164,7 +170,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		-- interference with current two-way radios
 		-- This works because ApplyDupeInfo is called after
 		-- all entities are already pasted (TheApathetic)
-		local id = other.PairID or Radio_GetTwoWayID()
+		local id = other.PairID or self:GetTwoWayID()
 		self:RadioLink(other, id)
 	end
 end
