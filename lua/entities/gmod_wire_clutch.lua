@@ -93,8 +93,8 @@ end
 
 
 -- Register a new clutch association with the controller
-function ENT:AddClutch( Ent1, Ent2, friction )
-	local ballsocket = NewBallSocket( Ent1, Ent2, friction or self.clutch_friction )
+function ENT:AddClutch( Ent1, Ent2 )
+	local ballsocket = NewBallSocket( Ent1, Ent2, self.clutch_friction )
 
 	if ballsocket then
 		self.clutch_ballsockets[ballsocket] = true
@@ -113,7 +113,6 @@ function ENT:AddClutch( Ent1, Ent2, friction )
 		end)
 	end
 
-	self:UpdateOverlay()
 	return ballsocket
 end
 
@@ -132,11 +131,7 @@ end
 function ENT:SetClutchFriction( const, Ent1, Ent2 )
 	-- There seems to be no direct way to edit constraint friction, so we must create a new ball socket constraint
 	self:RemoveClutch( const )
-
-	local newconst = NewBallSocket( Ent1, Ent2, self.clutch_friction )
-	if newconst then
-		self.clutch_ballsockets[newconst] = true
-	end
+	self:AddClutch( Ent1, Ent2 )
 end
 
 

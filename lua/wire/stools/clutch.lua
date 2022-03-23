@@ -246,6 +246,7 @@ function TOOL:RightClick( trace )
 
 		// Add this constraint to the clutch controller
 		self.controller:AddClutch( Ent1, Ent2 )
+		self.controller:UpdateOverlay()
 		WireLib.AddNotify( ply, "Entities registered with clutch controller", NOTIFY_GENERIC, 7 )
 
 		// Update client
