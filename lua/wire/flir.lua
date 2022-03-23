@@ -6,20 +6,19 @@
 		maybe we could use the physical properties to simulate this?
 	* the luminance of a texture contributes *negatively* to its emissivity
 	* IR sensors often have auto gain control that we might simulate with auto-exposure
-	* players are drawn fullbright but NPCs aren't.
+
+
+	TODO: 
+	* Find a way to separate particle and sun rendering (both are bugged on lightmode 1). Mat_fullbright would be perfect but only with cheats.
 --]]
+
 
 if not FLIR then FLIR = { enabled = false } end
 
 if CLIENT then
-
 	FLIR.RenderStack = {}
-	FLIR.ShouldRender = false
-
-	FLIR.bright = CreateMaterial("flir_bright", "UnlitGeneric", {
-		["$basetexture"] = "color/white",
-		["$model"] = 1
-	})
+	FLIR.enabled = false
+	local function hide() return end
 
 	FLIR.mapcol = {
 		[ "$pp_colour_brightness" ] = 0.4,
@@ -37,126 +36,170 @@ if CLIENT then
 		["$pp_colour_brightness"] = 0
 	}
 
-	local function SetFLIRMat(ent)
-		if not IsValid(ent) then return end
 
-		if (ent:GetMoveType() == MOVETYPE_VPHYSICS or ent:IsPlayer() or ent:IsNPC() or ent:IsRagdoll() or ent:GetClass() == "gmod_wire_hologram") and ent:GetColor().a > 0 then
-			ent.RenderOverride = FLIR.Render
-			FLIR.RenderStack[ent] = true
+
+	--add and remove entities from the FLIR rendering stack
+	local function SetFLIR(ent)
+		if not IsValid(ent) then return end
+		local c = ent:GetClass()
+
+		if (string.match(c, "^prop_") or ent:GetMoveType() == MOVETYPE_VPHYSICS or (ent:IsPlayer() and ent != ply) or ent:IsNPC() or ent:IsRagdoll() or c == "gmod_wire_hologram") and ent:GetColor().a > 0 then
+			table.insert(FLIR.RenderStack, ent)
+			ent:CallOnRemove("RemoveFLIR", RemoveFLIR)
+			ent.RenderOverride = hide	--we're already rendering later, so don't bother beforehand
 		end
 	end
 
-	local function RemoveFLIRMat(ent)
+	local function RemoveFLIR(ent)
+		if not IsValid(ent) then return end
+
+		table.RemoveByValue(FLIR.RenderStack, ent)
 		ent.RenderOverride = nil
-		FLIR.RenderStack[ent] = nil
 	end
 
-	function FLIR.Render(self)
-		if FLIR.ShouldRender then self:DrawModel() end
-	end
 
+
+	
 
 	function FLIR.start()
 		if FLIR.enabled then return else FLIR.enabled = true end
 
-		bright = false
+			for _, v in pairs(ents.GetAll()) do
+				SetFLIR(v)
+			end
+
+
 		hook.Add("PreRender", "wire_flir", function()			--lighting mode 1  = fullbright
 			render.SetLightingMode(1)
-			FLIR.ShouldRender = false
 		end)
-
 
 		hook.Add("PostDraw2DSkyBox", "wire_flir", function() --overrides 2d skybox to be gray, as it normally becomes white or black
 			DrawColorModify(FLIR.skycol)
 		end)
 
-		hook.Add("PreDrawTranslucentRenderables", "wire_flir", function(a, b, sky)
-			if not sky then
-				DrawColorModify(FLIR.mapcol)
-			end
-		end)
 		
-		hook.Add("PostDrawTranslucentRenderables", "wire_flir", function(_a, _b, sky)
+		hook.Add("PostDrawTranslucentRenderables", "wire_flir", function(depth, sky)
 			if sky then return end
 
-			render.SetLightingMode(0)
-			FLIR.ShouldRender = true
-			render.MaterialOverride(FLIR.bright)
+			DrawColorModify(FLIR.mapcol)
+
+			--Using stencil to draw  over FLIR entities
 			
-			--draw all the FLIR highlighted enemies after the opaque render to separate then from the rest of the map	
-			for v in pairs(FLIR.RenderStack) do
-				if v:IsValid() then v:DrawModel() else FLIR.RenderStack[v] = nil end
+			render.SetStencilEnable(true)
+			render.ClearStencil()			
+			render.SetStencilReferenceValue(1)
+			render.SetStencilPassOperation(STENCIL_REPLACE)
+			render.SetStencilZFailOperation(STENCIL_KEEP)
+			render.SetStencilFailOperation(STENCIL_KEEP)
+			render.SetStencilCompareFunction(STENCIL_ALWAYS)
+			render.SetStencilWriteMask(255)
+			render.SetStencilTestMask(255)
+			render.MaterialOverride(Material("Models/effects/vol_light001"))	--basically invisible
+
+			for _, v in pairs(FLIR.RenderStack) do
+				if not v:IsValid() or v:GetNoDraw() then
+					RemoveFLIR(v)
+					goto next
+				end
+
+				v.RenderOverride = nil
+				v:DrawModel()
+				v.RenderOverride = hide
+
+				::next::
 			end
 
-			FLIR.ShouldRender = false
+			
+			
+			--draw white color over stenciled sections
 			render.MaterialOverride(nil)
-			render.SetLightingMode(1)
+			render.SetColorMaterial()
+			render.SetStencilReferenceValue(1)
+			render.SetStencilCompareFunction(STENCIL_EQUAL)
+
+			local cpos = ply:EyePos()                       
+			cam.IgnoreZ(true)
+			render.DrawSphere(cpos, -500, 10, 10, Color(255,255,255,180))
+			cam.IgnoreZ(false)
+
+			render.SetStencilEnable( false )
 		end)
+
 
 
 		hook.Add("RenderScreenspaceEffects", "wire_flir", function()
-			render.SetLightingMode(0)
-
+			--post-processing
 			DrawColorModify(FLIR.desat)
 			DrawBloom(0.5,1.0,2,2,2,1, 1, 1, 1)
 			DrawBokehDOF(1, 0.1, 0.1)
+
+			--reset lighting so the menus are intelligble (try 1)
+			render.SetLightingMode(0)
 		end)
 
 
 		hook.Add("OnEntityCreated", "wire_flir", function(ent)
 			if FLIR.enabled then
-				SetFLIRMat(ent)
+				SetFLIR(ent)
 			end
 		end)
 
 		hook.Add("CreateClientsideRagdoll", "wire_flir", function(ent, rag)
 			if FLIR.enabled then
-				SetFLIRMat(rag)
+				SetFLIR(rag)
 			end
 		end)
-
-		for k, v in pairs(ents.GetAll()) do
-			SetFLIRMat(v)
-		end
 	end
+
+
 
 	function FLIR.stop()
 		if FLIR.enabled then FLIR.enabled = false else return end
 
+		timer.Destroy("wire_flir_update")
+
 		render.SetLightingMode(0)
 
-		hook.Remove("PreDrawTranslucentRenderables", "wire_flir")
 		hook.Remove("PostDrawTranslucentRenderables", "wire_flir")
 		hook.Remove("RenderScreenspaceEffects", "wire_flir")
 		hook.Remove("PostDraw2DSkyBox", "wire_flir")
 		hook.Remove("PreRender", "wire_flir")
 		hook.Remove("OnEntityCreated", "wire_flir")
 		hook.Remove("CreateClientsideRagdoll", "wire_flir")
-		render.MaterialOverride(nil)
 
-		for k, v in pairs(ents.GetAll()) do
-			RemoveFLIRMat(v)
+		for _, v in pairs(ents.GetAll()) do
+			RemoveFLIR(v)
 		end
 	end
+
+	
+	function FLIR.toggle()
+		if not FLIR.enabled then FLIR.start() else FLIR.stop() end
+	end
+
+
+	concommand.Add("flir_toggle", function()
+		FLIR.toggle()
+	end)
 
 	function FLIR.enable(enabled)
 		if enabled then FLIR.start() else FLIR.stop() end
 	end
 
-	usermessage.Hook("flir.enable",function(um)
-		FLIR.enable(um:ReadBool())
+	net.Receive("FLIR.enable", function()
+		local enabled = net.ReadBool()
+		FLIR.enable(enabled)
 	end)
 
-	concommand.Add("flir_enable", function(player, command, args)
-		FLIR.enable(tobool(args[1]))
-	end)
 else
-	function FLIR.start(player) FLIR.enable(player, true) end
-	function FLIR.stop(player) FLIR.enable(player, false) end
+	function FLIR.start(ply) FLIR.enable(ply, true) end
+	function FLIR.stop(ply) FLIR.enable(ply, false) end
 
-	function FLIR.enable(player, enabled)
-		umsg.Start( "flir.enable", player)
-			umsg.Bool( enabled )
-		umsg.End()
+	util.AddNetworkString("FLIR.enable")
+	
+	function FLIR.enable(ply, enabled)
+		net.Start("FLIR.enable")
+		net.WriteBool(enabled)
+		net.Send(ply)
 	end
 end
