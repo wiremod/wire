@@ -9,7 +9,7 @@
 
 
 	TODO: 
-	* Find a way to separate particle and sun rendering (both are bugged on lightmode 1). Mat_fullbright would be perfect but only with cheats.
+	
 --]]
 
 
@@ -62,42 +62,37 @@ if CLIENT then
 	
 
 	function FLIR.start()
+		local cheats = GetConVar("sv_cheats"):GetInt()
+		if not cheats then
+			ply:ChatPrint("sv_cheats must be enabled for wire FLIR to work!")
+			return
+		end
+
+
+
 		if FLIR.enabled then return else FLIR.enabled = true end
+
+			ply:ConCommand("mat_fullbright = 1")	--lightmodes suck. I tried to make them work. This is for the best. Illuminates whole map.
 
 			for _, v in pairs(ents.GetAll()) do
 				SetFLIR(v)
 			end
 
 
-		hook.Add("PreRender", "wire_flir", function()			--lighting mode 1  = fullbright
-			render.SetLightingMode(1)
-		end)
-
 		hook.Add("PostDraw2DSkyBox", "wire_flir", function() --overrides 2d skybox to be gray, as it normally becomes white or black
 			DrawColorModify(FLIR.skycol)
 		end)
 
 		
-		hook.Add("PostDrawTranslucentRenderables", "wire_flir", function(depth, sky)
+		hook.Add("PostDrawOpaqueRenderables", "wire_flir", function(_, sky)
 			if sky then return end
 
 			DrawColorModify(FLIR.mapcol)
-
-			--Using stencil to draw  over FLIR entities
-			
-			render.SetStencilEnable(true)
-			render.ClearStencil()			
-			render.SetStencilReferenceValue(1)
-			render.SetStencilPassOperation(STENCIL_REPLACE)
-			render.SetStencilZFailOperation(STENCIL_KEEP)
-			render.SetStencilFailOperation(STENCIL_KEEP)
-			render.SetStencilCompareFunction(STENCIL_ALWAYS)
-			render.SetStencilWriteMask(255)
-			render.SetStencilTestMask(255)
-			render.MaterialOverride(Material("Models/effects/vol_light001"))	--basically invisible
+			--render.SetColorMaterialIgnoreZ()
+			render.MaterialOverride(Material("models/debug/debugwhite"))
 
 			for _, v in pairs(FLIR.RenderStack) do
-				if not v:IsValid() or v:GetNoDraw() then
+				if not IsValid(v) or v:GetNoDraw() then
 					RemoveFLIR(v)
 					goto next
 				end
@@ -109,20 +104,7 @@ if CLIENT then
 				::next::
 			end
 
-			
-			
-			--draw white color over stenciled sections
 			render.MaterialOverride(nil)
-			render.SetColorMaterial()
-			render.SetStencilReferenceValue(1)
-			render.SetStencilCompareFunction(STENCIL_EQUAL)
-
-			local cpos = ply:EyePos()                       
-			cam.IgnoreZ(true)
-			render.DrawSphere(cpos, -500, 10, 10, Color(255,255,255,180))
-			cam.IgnoreZ(false)
-
-			render.SetStencilEnable( false )
 		end)
 
 
@@ -134,7 +116,6 @@ if CLIENT then
 			DrawBokehDOF(1, 0.1, 0.1)
 
 			--reset lighting so the menus are intelligble (try 1)
-			render.SetLightingMode(0)
 		end)
 
 
@@ -158,8 +139,9 @@ if CLIENT then
 
 		timer.Destroy("wire_flir_update")
 
-		render.SetLightingMode(0)
+		ply:ConCommand("mat_fullbright = 0")
 
+		hook.Remove("PostDrawOpaqueRenderables", "wire_flir")
 		hook.Remove("PostDrawTranslucentRenderables", "wire_flir")
 		hook.Remove("RenderScreenspaceEffects", "wire_flir")
 		hook.Remove("PostDraw2DSkyBox", "wire_flir")
