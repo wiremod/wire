@@ -10,8 +10,14 @@ e2function void enableConstraintUndo(state)
 end
 
 local function checkEnts(self, ent1, ent2)
-	if !ent1 || (!ent1:IsValid() && !ent1:IsWorld()) || !ent2 || (!ent2:IsValid() && !ent2:IsWorld()) || ent1 == ent2 then return false end
-	if !isOwner(self, ent1) || !isOwner(self, ent2) || ent1:IsPlayer() || ent2:IsPlayer() then return false end
+	if not IsValid(ent1) and not ent1:IsWorld() then return self:throw("Invalid entity!", false) end
+	if not IsValid(ent2) and not ent2:IsWorld() then return self:throw("Invalid target entity!", false) end
+	if ent1 == ent2 then return self:throw("Cannot constrain an entity to itself!", false) end
+
+	if not isOwner(self, ent1) then return self:throw("You are not the owner of the entity!", false) end
+	if not isOwner(self, ent2) then return self:throw("You are not the owner of the target entity!", false) end
+
+	if ent1:IsPlayer() or ent2:IsPlayer() then return self:throw("Cannot constrain players!", false) end
 	return true
 end
 local function addundo(self, prop, message)
@@ -56,35 +62,35 @@ end
 
 --- Creates a ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>
 e2function void ballsocket(entity ent1, vector v, entity ent2)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
 	addundo(self, constraint.Ballsocket(ent1, ent2, 0, 0, vec, 0, 0, 0), "ballsocket")
 end
 
 --- Creates a ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with friction <friction>
 e2function void ballsocket(entity ent1, vector v, entity ent2, friction)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
 	addundo(self, constraint.AdvBallsocket(ent1, ent2, 0, 0, Vector(), vec, 0, 0, -180, -180, -180, 180, 180, 180, friction, friction, friction, 0, 0), "ballsocket")
 end
 
 --- Creates an adv ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with many settings
 e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vector maxs, vector frictions)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
 	addundo(self, constraint.AdvBallsocket(ent1, ent2, 0, 0, Vector(), vec, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], 0, 0), "ballsocket")
 end
 
 --- Creates an adv ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with many settings
 e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vector maxs, vector frictions, rotateonly)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
 	addundo(self, constraint.AdvBallsocket(ent1, ent2, 0, 0, Vector(), vec, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], rotateonly, 0), "ballsocket")
 end
 
 --- Creates an angular weld (angles are fixed, position isn't) between <ent1> and <ent2> at <v>, which is local to <ent1>
 e2function void weldAng(entity ent1, vector v, entity ent2)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
 	addundo(self, constraint.AdvBallsocket(ent1, ent2, 0, 0, Vector(), vec, 0, 0, 0, -0, 0, 0, 0, 0, 0, 0, 0, 1, 0), "ballsocket")
 end
@@ -109,7 +115,7 @@ end
 // Note: Winch is just a rename of Hydraulic with the last parameter True.
 --- Makes a winch constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, with <width> width.
 e2function void winch(index, entity ent1, vector v1, entity ent2, vector v2, width)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	if !ent1.data then ent1.data = {} end
 	if !ent1.data.Ropes then ent1.data.Ropes = {} end
 	local vec1, vec2 = Vector(v1[1],v1[2],v1[3]), Vector(v2[1],v2[2],v2[3])
@@ -126,11 +132,11 @@ end
 
 --- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, with <width> width.
 e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, width)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	if !ent1.data then ent1.data = {} end
 	if !ent1.data.Ropes then ent1.data.Ropes = {} end
 	local vec1, vec2 = Vector(v1[1],v1[2],v1[3]), Vector(v2[1],v2[2],v2[3])
-	if width < 0 || width > 50 then width = 1 end
+	if width < 0 or width > 50 then width = 1 end
 
 	if IsValid(ent1.data.Ropes[index]) then
 		ent1.data.Ropes[index]:Remove()
@@ -285,29 +291,29 @@ __e2setcost(30)
 
 --- Creates a slider between <ent1> and <ent2> at vector positions local to each ent.
 e2function void slider(entity ent1, vector v1, entity ent2, vector v2)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 	addundo(self, constraint.Slider(ent1, ent2, 0, 0, vec1, vec2, 1), "slider")
 end
 
 --- Creates a slider between <ent1> and <ent2> at vector positions local to each ent, with <width> width.
 e2function void slider(entity ent1, vector v1, entity ent2, vector v2, width)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 	addundo(self, constraint.Slider(ent1, ent2, 0, 0, vec1, vec2, width), "slider")
 end
 
 --- Nocollides <ent1> to <ent2>
 e2function void noCollide(entity ent1, entity ent2)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	addundo(self, constraint.NoCollide(ent1, ent2, 0, 0), "nocollide")
 end
 
 --- Nocollides <ent> to entities/players, just like Right Click of No-Collide Stool
 e2function void noCollideAll(entity ent, state)
-	if !IsValid(ent) then return end
-	if !isOwner(self, ent) then return false end
-	if state != 0 then
+	if not IsValid(ent) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, ent) then return self:throw("You do not own this prop!", nil) end
+	if state ~= 0 then
 		ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
 	else
 		ent:SetCollisionGroup( COLLISION_GROUP_NONE )
@@ -316,7 +322,7 @@ end
 
 --- Welds <ent1> to <ent2>
 e2function void weld(entity ent1, entity ent2)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	addundo(self, constraint.Weld(ent1, ent2, 0, 0, 0, true), "weld")
 end
 
@@ -324,14 +330,14 @@ __e2setcost(5)
 
 --- Breaks EVERY CONSTRAINT on <this>
 e2function void entity:constraintBreak()
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return false end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this prop!", nil) end
 	constraint.RemoveAll(this)
 end
 
 --- Breaks all constraints between <this> and <ent2>
 e2function void entity:constraintBreak(entity ent2)
-	if !checkEnts(self, this, ent2) then return end
+	if not checkEnts(self, this, ent2) then return end
 	local consts = this.Constraints
 	local consts2 = ent2.Constraints
 	if !consts then
@@ -341,7 +347,7 @@ e2function void entity:constraintBreak(entity ent2)
 	for _,v in pairs( consts ) do
 		if IsValid(v) then
 			local CTab = v:GetTable()
-			if ( CTab.Ent1 == this && CTab.Ent2 == ent2 ) ||  ( CTab.Ent1 == ent2 && CTab.Ent2 == this ) then
+			if ( CTab.Ent1 == this and CTab.Ent2 == ent2 ) or  ( CTab.Ent1 == ent2 and CTab.Ent2 == this ) then
 				v:Remove()
 			end
 	 	end
@@ -350,24 +356,24 @@ end
 
 --- Breaks all constraints of type <type> on <this>
 e2function void entity:constraintBreak(string type)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return false end
+	if !IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if !isOwner(self, this) then return self:throw("You do not own this prop!", nil) end
 	constraint.RemoveConstraints(this, caps(type))
 end
 
 --- Breaks a constraint of type <type> between <this> and <ent2>
 e2function void entity:constraintBreak(string type, entity ent2)
-	if !checkEnts(self, this, ent2) then return end
+	if not checkEnts(self, this, ent2) then return end
 	local consts = this.Constraints
 	local consts2 = ent2.Constraints
-	if !consts then
-		if !consts2 then return end
+	if not consts then
+		if not consts2 then return end
 		consts = consts2
 	end
 	for _,v in pairs( consts ) do
 		if IsValid(v) then
 			local CTab = v:GetTable()
-			if CTab.Type == caps(type) && ( CTab.Ent1 == this && CTab.Ent2 == ent2 ) ||  ( CTab.Ent1 == ent2 && CTab.Ent2 == this ) then
+			if CTab.Type == caps(type) and ( CTab.Ent1 == this and CTab.Ent2 == ent2 ) or ( CTab.Ent1 == ent2 and CTab.Ent2 == this ) then
 				v:Remove()
 				break
 			end

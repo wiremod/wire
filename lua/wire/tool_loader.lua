@@ -63,7 +63,7 @@ if SERVER then
 	-- Default MakeEnt function, override to use a different MakeWire* function
 	function WireToolObj:MakeEnt( ply, model, Ang, trace )
 		local ent = WireLib.MakeWireEnt( ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars() )
-		if ent.RestoreNetworkVars then ent:RestoreNetworkVars(self:GetDataTables()) end
+		if ent and ent.RestoreNetworkVars then ent:RestoreNetworkVars(self:GetDataTables()) end
 		return ent
 	end
 
@@ -74,8 +74,10 @@ if SERVER then
 	--
 	-- to prevent update, set TOOL.NoLeftOnClass = true
 	function WireToolObj:LeftClick_Update( trace )
-		if trace.Entity.Setup then trace.Entity:Setup(self:GetConVars()) end
-		if trace.Entity.RestoreNetworkVars then trace.Entity:RestoreNetworkVars(self:GetDataTables()) end
+		if trace.Entity:IsValid() then
+			if trace.Entity.Setup then trace.Entity:Setup(self:GetConVars()) end
+			if trace.Entity.RestoreNetworkVars then trace.Entity:RestoreNetworkVars(self:GetDataTables()) end
+		end
 	end
 
 	--
@@ -353,16 +355,30 @@ end
 -- function used by TOOL.BuildCPanel
 WireToolHelpers = {}
 
-if CLIENT then
-	-- gets the TOOL since TOOL.BuildCPanel isn't passed this var. wts >_<
-	function WireToolHelpers.GetTOOL(mode)
-		for _,wep in ipairs(LocalPlayer():GetWeapons()) do
-			if wep:GetClass() == "gmod_tool" then
-				return wep:GetToolObject(mode)
-			end
+-- gets the TOOL since TOOL.BuildCPanel isn't passed this var. wts >_<
+function WireToolHelpers.GetTOOL(mode, ply)
+	if CLIENT then ply = LocalPlayer() end
+	if not ply then return end
+
+	for _,wep in ipairs(ply:GetWeapons()) do
+		if wep:GetClass() == "gmod_tool" then
+			return wep:GetToolObject(mode)
 		end
 	end
+end
 
+-- similar to GetTool (above), gets the specified tool, but only if it's the currently actively held weapon by the player
+function WireToolHelpers.GetActiveTOOL(mode, ply)
+	if CLIENT then ply = LocalPlayer() end
+	if not ply then return end
+
+	local activeWep = ply:GetActiveWeapon()
+	if not IsValid(activeWep) or activeWep:GetClass() ~= "gmod_tool" or activeWep.Mode ~= mode then return end
+
+	return activeWep:GetToolObject(mode)
+end
+
+if CLIENT then
 	-- makes the preset control for use cause we're lazy
 	function WireToolHelpers.MakePresetControl(panel, mode, folder)
 		if not mode or not panel then return end
@@ -564,16 +580,38 @@ function WireToolSetup.SetupLinking(SingleLink, linkedname)
 			language.Add( "Tool."..TOOL.Mode..".reload_2", "Reload on the same controller again to clear all linked entities.")
 		end
 
+		local lastRequested = 0
 		function TOOL:DrawHUD()
 			local trace = self:GetOwner():GetEyeTrace()
-			if self:CheckHitOwnClass(trace) and trace.Entity.Marks then
-				local markerpos = trace.Entity:GetPos():ToScreen()
-				for _, ent in pairs(trace.Entity.Marks) do
-					if IsValid(ent) then
-						local markpos = ent:GetPos():ToScreen()
-						surface.SetDrawColor( 255,255,100,255 )
-						surface.DrawLine( markerpos.x, markerpos.y, markpos.x, markpos.y )
+
+			if not trace.Entity then lastRequested = 0 end
+
+			if self:CheckHitOwnClass(trace) then
+				local controller = trace.Entity
+				if controller.WireLinkedEnts and controller.WireLinkedEnts.Marks then
+					local markerpos = controller:GetPos():ToScreen()
+					for _, ent in pairs(controller.WireLinkedEnts.Marks) do
+						if IsValid(ent) then
+							local markpos = ent:GetPos():ToScreen()
+							surface.SetDrawColor( 255,255,100,255 )
+							surface.DrawLine( markerpos.x, markerpos.y, markpos.x, markpos.y )
+						end
 					end
+				end
+
+				-- request updated marks when the player looks at the entity
+				if CurTime() - lastRequested > 1 then -- at most once per second
+					if not controller.WireLinkedEnts or CurTime() > controller.WireLinkedEnts.LastUpdated then
+						net.Start("WireLinkedEntsRequest")
+							net.WriteEntity(controller)
+							if controller.WireLinkedEnts then
+								net.WriteFloat(controller.WireLinkedEnts.LastUpdated)
+							else
+								net.WriteFloat(0)
+							end
+						net.SendToServer()
+					end
+					lastRequested = CurTime()
 				end
 			end
 		end
@@ -649,6 +687,54 @@ function WireToolSetup.SetupLinking(SingleLink, linkedname)
 			WireToolObj.Think(self) -- Basic ghost
 		end
 	end
+end
+
+-- For transmitting the yellow lines showing links between controllers and ents, as used by the Adv Entity Marker
+if SERVER then
+	util.AddNetworkString("WireLinkedEnts")
+	util.AddNetworkString("WireLinkedEntsRequest")
+	function WireLib.SendMarks(controller, marks)
+		if not IsValid(controller) then return end
+		controller.WireLinkedEnts = {
+			Marks = marks or controller.Marks,
+			LastUpdated = CurTime()
+		}
+	end
+	net.Receive("WireLinkedEntsRequest", function(netlen, ply)
+		local controller = net.ReadEntity()
+		local lastUpdated = net.ReadFloat()
+
+		if not IsValid(controller) then return end
+		if not controller.WireLinkedEnts then return end
+		if not controller.WireLinkedEnts.Marks then return end
+		if controller.WireLinkedEnts.LastUpdated < lastUpdated then return end
+			
+		net.Start("WireLinkedEnts")
+			net.WriteEntity(controller)
+			net.WriteFloat(controller.WireLinkedEnts.LastUpdated)
+			net.WriteUInt(#controller.WireLinkedEnts.Marks, 16)
+			for _,v in pairs(controller.WireLinkedEnts.Marks) do
+				net.WriteEntity(v)
+			end
+		net.Send( ply )
+	end)
+else
+	net.Receive("WireLinkedEnts", function(netlen)
+		local controller = net.ReadEntity()
+		local lastUpdated = net.ReadFloat()
+		if IsValid(controller) then
+			controller.WireLinkedEnts = {
+				Marks = {},
+				LastUpdated = lastUpdated
+			}
+			for _=1, net.ReadUInt(16) do
+				local link = net.ReadEntity()
+				if IsValid(link) then
+					table.insert(controller.WireLinkedEnts.Marks, link)
+				end
+			end
+		end
+	end)
 end
 
 LoadTools()

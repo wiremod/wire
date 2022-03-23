@@ -130,6 +130,7 @@ E2Helper.Descriptions["elevation(vav)"] = "Gets the elevation from the first pos
 E2Helper.Descriptions["heading(vav)"] = "Gets the elevation and bearing from the first position, at the specified angle, to the second position"
 E2Helper.Descriptions["changed"] = "Checks if the value or variable was changed. Accepts any type except table and array"
 E2Helper.Descriptions["wrap(nn)"] = "Performs (n1 + n2) % (n2 * 2) - n2"
+E2Helper.Descriptions["remap(nnnnn)"] = "Remaps an input value with an input minimum value and an input maximum value to an output minimum and output maximum."
 
 -- String
 E2Helper.Descriptions["index(s:n)"] = "Returns Nth letter of the string, formatted as a string"

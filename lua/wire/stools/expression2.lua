@@ -156,57 +156,60 @@ if SERVER then
 	end
 
 	util.AddNetworkString("WireExpression2_OpenEditor")
-	function TOOL:Think()
-		WireToolObj.Think(self)
+	hook.Add("KeyPress","gmod_expression2_tool_rightclick",function(ply,key)
 		--[[
-			I had to replace TOOL:RightClick with TOOL:Think as prop protection was preventing
+			TOOL:RightClick had to be replaced with KeyPress as prop protection was preventing
 			the view requests system from functioning as intended
 
 			So this manually handles right click meaning people don't need to give each other
 			full prop protection permissions in order to share a chip
 		]]
-		if not IsFirstTimePredicted() then return end
+		if key == IN_ATTACK2 then
+			local t = WireToolHelpers.GetActiveTOOL("wire_expression2",ply)
+			if t then
+				t:Do_RightClick()
+			end
+		end
+	end)
+	function TOOL:Do_RightClick()
+		local player = self:GetOwner()
+		local chip = player:GetEyeTrace().Entity
+		if chip:IsPlayer() then return end
 
 		local player = self:GetOwner()
-		if player:KeyPressed(IN_ATTACK2) then
-			local chip = player:GetEyeTrace().Entity
-			if chip:IsPlayer() then return end
 
-			local player = self:GetOwner()
-
-			if IsValid(chip) and chip:GetClass() == "gmod_wire_expression2" then
-				if chip.player == player then -- Just download if the toolgun user owns this chip
+		if IsValid(chip) and chip:GetClass() == "gmod_wire_expression2" then
+			if chip.player == player then -- Just download if the toolgun user owns this chip
+				self:Download(player, chip)
+				player:SetAnimation(PLAYER_ATTACK1)
+			elseif (chip.alwaysAllow and chip.alwaysAllow[player]) or not IsValid(chip.player) then -- If the tooling player is in the chip's always allow table, or the chip has no valid owner meaning we can't send a request, do a CanTool check
+				if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
 					self:Download(player, chip)
 					player:SetAnimation(PLAYER_ATTACK1)
-				elseif (chip.alwaysAllow and chip.alwaysAllow[player]) or not IsValid(chip.player) then -- If the tooling player is in the chip's always allow table, or the chip has no valid owner meaning we can't send a request, do a CanTool check
-					if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
-						self:Download(player, chip)
-						player:SetAnimation(PLAYER_ATTACK1)
+				end
+			elseif CheckBypass(player) then
+				if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
+					-- Warn the chip's owner their E2 was just taken via the bypass
+					if bypassModeCVar:GetInt() == 3 then
+						BetterChatPrint(
+							chip.player,
+							string.format("Warning, the player '%s' just accessed your chip '%s', as view requests are disabled", player:Nick(), chip.name)
+						)
+					else
+						BetterChatPrint(
+							chip.player,
+							string.format("Warning, the server admin '%s' just accessed your chip '%s', as the view request admin bypass is enabled", player:Nick(), chip.name)
+						)
 					end
-				elseif CheckBypass(player) then
-					if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
-						-- Warn the chip's owner their E2 was just taken via the bypass
-						if bypassModeCVar:GetInt() == 3 then
-							BetterChatPrint(
-								chip.player,
-								string.format("Warning, the player '%s' just accessed your chip '%s', as view requests are disabled", player:Nick(), chip.name)
-							)
-						else
-							BetterChatPrint(
-								chip.player,
-								string.format("Warning, the server admin '%s' just accessed your chip '%s', as the view request admin bypass is enabled", player:Nick(), chip.name)
-							)
-						end
-						self:Download(player, chip)
-						player:SetAnimation(PLAYER_ATTACK1)
-					end
-				else
-					RequestView(chip, player)
+					self:Download(player, chip)
 					player:SetAnimation(PLAYER_ATTACK1)
 				end
 			else
-				net.Start("WireExpression2_OpenEditor") net.Send(player)
+				RequestView(chip, player)
+				player:SetAnimation(PLAYER_ATTACK1)
 			end
+		else
+			net.Start("WireExpression2_OpenEditor") net.Send(player)
 		end
 	end
 	net.Receive("WireExpression2_AnswerRequest", function(len, plr)

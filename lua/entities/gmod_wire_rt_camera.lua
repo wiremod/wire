@@ -4,7 +4,6 @@ ENT.Type = "anim"
 ENT.PrintName = "Improved RT Camera"
 ENT.WireDebugName = "Improved RT Camera"
 
-
 function ENT:Initialize()
     if ( SERVER ) then
 		self:PhysicsInit( SOLID_VPHYSICS )
@@ -49,21 +48,6 @@ function ENT:TriggerInput( name, value )
         self:SetActive(value ~= 0)
     end
 end
-
-
-if SERVER then
-    hook.Add("SetupPlayerVisibility", "ImprovedRTCamera", function(ply, plyView)
-        for _, screen in ipairs(ents.FindByClass("gmod_wire_rt_screen")) do
-            if screen:GetActive() and screen:ShouldDrawCamera(ply) then
-                local camera = screen:GetCamera()
-                if IsValid(camera) and camera:GetActive() then
-                    AddOriginToPVS(camera:GetPos())
-                end
-            end
-        end
-    end)
-end
-
 
 if CLIENT then
     local wire_rt_camera_resolution_h = CreateClientConVar("wire_rt_camera_resolution_h", "512", true, nil, nil, 128)

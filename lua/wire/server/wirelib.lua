@@ -790,6 +790,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 	if IsValid(ply) then idx = ply:UniqueID() end -- Map Save loading does not have a ply
 	if (info.Wires) then
 		for k,input in pairs(info.Wires) do
+			k=tostring(k) -- For some reason duplicator will parse strings containing numbers as numbers?
 			local ent2 = GetEntByID(input.Src)
 
 			-- Input alias

@@ -55,7 +55,7 @@ function ENT:GetClosestPlug()
 	local Closest
 
 	for k,v in pairs( plugs ) do
-		if (v:GetClass() == self:GetPlugClass() and not v:GetNWBool( "Linked", false )) then
+		if (v:GetClass() == self:GetPlugClass() and not v:GetLinked()) then
 			local Dist = v:GetPos():Distance( Pos )
 			if (ClosestDist == nil or ClosestDist > Dist) then
 				ClosestDist = Dist
@@ -69,6 +69,10 @@ end
 
 function ENT:GetPlugClass()
 	return "gmod_wire_plug"
+end
+
+function ENT:SetupDataTables()
+	self:NetworkVar( "Bool", 0, "Linked" )
 end
 
 if CLIENT then
@@ -85,7 +89,7 @@ if CLIENT then
 
 			local Closest = self:GetClosestPlug()
 
-			if IsValid(Closest) and self:CanLink(Closest) and Closest:GetNWBool( "PlayerHolding", false ) and Closest:GetClosestSocket() == self then
+			if IsValid(Closest) and self:CanLink(Closest) and Closest:GetPlayerHolding() and Closest:GetClosestSocket() == self then
 				local plugpos = Closest:GetPos():ToScreen()
 				local socketpos = Pos:ToScreen()
 				surface.SetDrawColor(255,255,100,255)
@@ -110,7 +114,7 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self:SetNWBool( "Linked", false )
+	self:SetLinked( false )
 
 	self.Memory = {}
 
@@ -229,27 +233,23 @@ function ENT:ResendValues()
 	end
 end
 
-function ENT:OnWeldRemoved()
-	self.Weld = nil
-
-	self.Plug:SetNWBool( "Linked", false )
-	self:SetNWBool( "Linked", false )
-
-	self.Plug.Socket = nil
-	self.Plug:ResetValues()
-
-	self.Plug = nil
-	self:ResetValues()
-
-	self.DoNextThink = CurTime() + NEW_PLUG_WAIT_TIME
-end
-
 function ENT:AttachWeld(weld)
-	if self.Plug then self.Plug:DeleteOnRemove( weld ) end
-	self:DeleteOnRemove( weld )
-	if self.Weld then self.Weld:RemoveCallOnRemove("wire_socket_remove_on_weld") end
 	self.Weld = weld
-	weld:CallOnRemove("wire_socket_remove_on_weld",function() self:OnWeldRemoved() end)
+	local plug = self.Plug
+	weld:CallOnRemove("wire_socket_remove_on_weld",function()
+		if self:IsValid() then
+			self.Weld = nil
+			self:SetLinked( false )
+			self:ResetValues()
+			self.DoNextThink = CurTime() + NEW_PLUG_WAIT_TIME
+			self.Plug = nil
+		end
+		if plug and plug:IsValid() then
+			plug:SetLinked( false )
+			plug.Socket = nil
+			plug:ResetValues()
+		end
+	end)
 end
 
 -- helper function
@@ -308,8 +308,8 @@ function ENT:Think()
 			Closest:ResendValues()
 			self:ResendValues()
 
-			Closest:SetNWBool( "Linked", true )
-			self:SetNWBool( "Linked", true )
+			Closest:SetLinked( true )
+			self:SetLinked( true )
 		end
 
 		self:NextThink( CurTime() + 0.05 )
@@ -372,8 +372,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 				plug.Socket = ent
 				ent.Weld = nil
 
-				plug:SetNWBool( "Linked", true )
-				ent:SetNWBool( "Linked", true )
+				plug:SetLinked( true )
+				ent:SetLinked( true )
 				-- Resend all values
 				plug:ResendValues()
 				ent:ResendValues()

@@ -482,6 +482,8 @@ do
 
 		function E2Lib.RegisterExtension(name, default, description, warning)
 			name = name:Trim():lower()
+			E2Lib.currentextension = name
+
 			if extensions.status[ name ] == nil then
 				E2Lib.SetExtensionStatus( name, default )
 			end
