@@ -348,6 +348,7 @@ if (SERVER) then
 			end
 
 			Ent.RenderTable = {}
+			Ent.TopLeft = false
 
 			self:AddQueue( Ent, E2.player, ClearScreen, "ClearScreen" )
 		elseif (Action == "SaveFrame") then
