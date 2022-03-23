@@ -82,7 +82,7 @@ local function NewBallSocket( ent1, ent2, friction )
 
 	if ballsocket then
 		-- Prevent ball socket from being affected by dupe/remove functions
-		ballsocket.Type = "wire_clutch"
+		ballsocket.Type = ""
 	end
 
 	phys1:SetMass(mass1)
@@ -103,7 +103,6 @@ function ENT:AddClutch( Ent1, Ent2, friction )
 				-- The table value is still true so something unknown killed the ballsocket
 				-- Set the table so that nothing else runs into issues
 				self.clutch_ballsockets[ballsocket] = nil
-				self:UpdateOverlay()
 				-- Wait a frame so nothing bad happens, then rebuild it
 				timer.Simple(0, function()
 					if self:IsValid() then
@@ -123,18 +122,16 @@ end
 function ENT:RemoveClutch( const )
 	self.clutch_ballsockets[const] = nil
 
-	if IsValid( const ) then
+	if const:IsValid() then
+		const:RemoveCallOnRemove( "WireClutchRemove" )
 		const:Remove()
 	end
-
-	self:UpdateOverlay()
 end
 
 
 function ENT:SetClutchFriction( const, Ent1, Ent2 )
 	-- There seems to be no direct way to edit constraint friction, so we must create a new ball socket constraint
-	self.clutch_ballsockets[const] = nil
-	const:Remove()
+	self:RemoveClutch( const )
 
 	local newconst = NewBallSocket( Ent1, Ent2, self.clutch_friction )
 	if newconst then
