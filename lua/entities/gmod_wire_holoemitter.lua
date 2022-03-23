@@ -8,6 +8,10 @@ if CLIENT then
 	local cvar = CreateClientConVar("cl_wire_holoemitter_maxfadetime",5,true,false) -- "cl_" in the cvar name isn't very neat... probably too late to change it now, though.
 	local keeplatest = CreateClientConVar("wire_holoemitter_keeplatestdot", "0", true, false)
 
+	local render_SetMaterial = render.SetMaterial
+	local render_DrawBeam = render.DrawBeam
+	local render_DrawSprite = render.DrawSprite
+
 	-- Materials
 	local matbeam = Material( "tripmine_laser" )
 	local matpoint = Material( "sprites/gmdm_pickups/light" )
@@ -66,7 +70,7 @@ if CLIENT then
 			return true
 		end
 
-		if not next(self.Points) then return true end
+		if table.IsEmpty(self.Points) then return true end
 
 		-- To make it visible across the entire map
 		local p = LocalPlayer():GetPos()
@@ -117,23 +121,27 @@ if CLIENT then
 		local points = self.Points
 		local selfpos = ent:GetPos()
 
+		local ent_ltw = ent.LocalToWorld
+
 		if (#self.Points == 0 or self:GetNWBool("Active",true) == false) then return end
 
-		render.SetMaterial( matbeam )
+		render_SetMaterial( matbeam )
 		for k, v in ipairs(points) do
 			local Pos = v.Pos
+			local Size = v.Size
+			local Color = v.Color
 
 			if (v.Local or forcelocal) then
-				Pos = ent:LocalToWorld( Pos )
+				Pos = ent_ltw( ent, Pos )
 			end
 
 			if (v.GroundBeam) then
-				render.DrawBeam(
+				render_DrawBeam(
 					selfpos,
 					Pos,
-					v.Size,
+					Size,
 					0,1,
-					v.Color
+					Color
 				)
 			end
 
@@ -141,32 +149,35 @@ if CLIENT then
 				local NextPoint = points[k+1]
 				local NextPos = NextPoint.Pos
 				if (NextPoint.Local or forcelocal) then
-					NextPos = ent:LocalToWorld( NextPos )
+					NextPos = ent_ltw( ent, NextPos )
 				end
 
-				render.DrawBeam(
+				render_DrawBeam(
 					NextPos,
 					Pos,
-					v.Size * 2,
+					Size * 2,
 					0, 1,
-					v.Color
+					Color
 				)
 			end
 
 
 		end
 
-		render.SetMaterial( matpoint )
+		render_SetMaterial( matpoint )
 		for i, pt in ipairs(points) do
 			local Pos = pt.Pos
 			if pt.Local or forcelocal then
-				Pos = ent:LocalToWorld(Pos)
+				Pos = ent_ltw(ent, Pos)
 			end
 
-			render.DrawSprite(
+			local Size = pt.Size
+			local Color = pt.Color
+
+			render_DrawSprite(
 				Pos,
-				pt.Size, pt.Size,
-				pt.Color
+				Size, Size,
+				Color
 			)
 		end
 	end
