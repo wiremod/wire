@@ -27,6 +27,7 @@ if CLIENT then
 	FLIR.enabled = false
 	FLIR.col = Color(2, 2, 2) --the multipliers for each color channel
 	FLIR.mat = Material("phoenix_storms/concrete0")
+	FLIR.transmat = Material("models/props_combine/metal_combinebridge001")
 	FLIR.hide = false
 
 	function FLIR.Render(self)
@@ -56,7 +57,7 @@ if CLIENT then
 		if not IsValid(ent) then return end
 		local c = ent:GetClass()
 
-		if (string.match(c, "^prop_") or ent:GetMoveType() == MOVETYPE_VPHYSICS or (ent:IsPlayer() and ent != ply) or ent:IsNPC() or ent:IsRagdoll() or c == "gmod_wire_hologram") and ent:GetColor().a > 0 then
+		if (c == "prop_physics" or ent:GetMoveType() == MOVETYPE_VPHYSICS or (ent:IsPlayer() and ent != ply) or ent:IsNPC() or ent:IsRagdoll() or c == "gmod_wire_hologram") and ent:GetColor().a > 0 then
 			if ent:GetColor().a > 0 then
 				FLIR.RenderStack[ent] = true
 				ent.RenderOverride = FLIR.Render	--we're already rendering later, so don't bother beforehand
@@ -116,12 +117,18 @@ if CLIENT then
 				::next::
 			end
 
-			render.MaterialOverride(nil)
-			render.SuppressEngineLighting(false)
+			
 			render.SetColorModulation(1,1,1)
+			render.SuppressEngineLighting(false)
+			render.MaterialOverride(FLIR.transmat)
 
 		end)
 
+		hook.Add("PostDrawTranslucentRenderables", "wire_flir", function()
+		render.SuppressEngineLighting(false)
+		
+		render.MaterialOverride(nil)
+		end)
 
 
 		hook.Add("RenderScreenspaceEffects", "wire_flir", function()
@@ -156,6 +163,7 @@ if CLIENT then
 		render.SetLightingMode(0)
 
 		hook.Remove("PostDrawOpaqueRenderables", "wire_flir")
+		hook.Remove("PostDrawTranslucentRenderables", "wire_flir")
 		hook.Remove("RenderScreenspaceEffects", "wire_flir")
 		hook.Remove("PostDraw2DSkyBox", "wire_flir")
 		hook.Remove("PreRender", "wire_flir")
