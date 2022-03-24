@@ -8,11 +8,12 @@
 	* IR sensors often have auto gain control that we might simulate with auto-exposure
 
 
-	TODO:
+	To Fix:
 	* Find a way to make fog work. With rendermode 1 or 2, fog is disabled. mat_fullbright would be
 		perfect except that it causes a big stutter on being disabled.
 	* Add entities to the list as they are parented. If something is parented while FLIR is enabled, it doesn't
 		add itself until it's switched off and back on.
+	* Sun pops in and out of full brightness when looking around it
 	
 --]]
 
