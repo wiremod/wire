@@ -25,7 +25,15 @@ if CLIENT then
 
 	FLIR.RenderStack = {}
 	FLIR.enabled = false
-	--FLIR.col = Color(1, 1, 1) --the multipliers for each color channel
+
+	FLIR.gain = CreateClientConVar("wire_flir_gain", 2, true, false, "Brightness of FLIR ents. Higher = less detail, more visible.", 0, 10)
+	cvars.AddChangeCallback("wire_flir_gain", function(_,_,v) 
+		FLIR.col = Color(v,v,v)
+	end)
+
+	local g = FLIR.gain:GetInt()
+	FLIR.col = Color(g, g, g) --the multipliers for each color channel
+	
 	FLIR.mat = Material("phoenix_storms/concrete0")
 	FLIR.transmat = Material("models/props_combine/metal_combinebridge001")
 	FLIR.hide = false
@@ -102,8 +110,7 @@ if CLIENT then
 
 			render.MaterialOverride(FLIR.mat)
 			render.SuppressEngineLighting(true)
-			--currently set to 1
-			--render.SetColorModulation(FLIR.col.r, FLIR.col.g, FLIR.col.b)			--this works?? I could not for the life of me make it work in renderoverride. Well.
+			render.SetColorModulation(FLIR.col.r, FLIR.col.g, FLIR.col.b)			--this works?? I could not for the life of me make it work in renderoverride. Well.
 																					--It's a much better solution than the stencil I spent hours on...
 			for ent, valid in pairs(FLIR.RenderStack) do
 				if not IsValid(ent) or not valid or ent:GetNoDraw() then
@@ -183,6 +190,7 @@ if CLIENT then
 	concommand.Add("flir_toggle", function()
 		FLIR.toggle()
 	end)
+
 
 	function FLIR.enable(enabled)
 		if enabled then FLIR.start() else FLIR.stop() end
