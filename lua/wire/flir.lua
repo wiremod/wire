@@ -25,7 +25,7 @@ if CLIENT then
 
 	FLIR.RenderStack = {}
 	FLIR.enabled = false
-	FLIR.col = Color(2, 2, 2) --the multipliers for each color channel
+	FLIR.col = Color(0.9, 0.9, 0.9) --the multipliers for each color channel
 	FLIR.mat = Material("phoenix_storms/concrete0")
 	FLIR.transmat = Material("models/props_combine/metal_combinebridge001")
 	FLIR.hide = false
@@ -117,8 +117,6 @@ if CLIENT then
 				::next::
 			end
 
-			
-			render.SetColorModulation(1,1,1)
 			render.SuppressEngineLighting(false)
 			render.MaterialOverride(FLIR.transmat)
 
