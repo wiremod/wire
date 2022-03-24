@@ -8,7 +8,11 @@
 	* IR sensors often have auto gain control that we might simulate with auto-exposure
 
 
-	TODO: 
+	TODO:
+	* Find a way to make fog work. With rendermode 1 or 2, fog is disabled. mat_fullbright would be
+		perfect except that it causes a big stutter on being disabled.
+	* Add entities to the list as they are parented. If something is parented while FLIR is enabled, it doesn't
+		add itself until it's switched off and back on.
 	
 --]]
 
@@ -16,12 +20,20 @@
 if not FLIR then FLIR = { enabled = false } end
 
 if CLIENT then
+
+
 	FLIR.RenderStack = {}
 	FLIR.enabled = false
-	local function hide() return end
+	FLIR.col = Color(2, 2, 2) --the multipliers for each color channel
+	FLIR.mat = Material("phoenix_storms/concrete0")
+	FLIR.hide = false
+
+	function FLIR.Render(self)
+		if not FLIR.hide then self:DrawModel() return end
+	end
 
 	FLIR.mapcol = {
-		[ "$pp_colour_brightness" ] = 0.4,
+		[ "$pp_colour_brightness" ] = 0.5,
 		[ "$pp_colour_contrast" ] = 0.4	
 	}
 
@@ -44,16 +56,18 @@ if CLIENT then
 		local c = ent:GetClass()
 
 		if (string.match(c, "^prop_") or ent:GetMoveType() == MOVETYPE_VPHYSICS or (ent:IsPlayer() and ent != ply) or ent:IsNPC() or ent:IsRagdoll() or c == "gmod_wire_hologram") and ent:GetColor().a > 0 then
-			table.insert(FLIR.RenderStack, ent)
-			ent:CallOnRemove("RemoveFLIR", RemoveFLIR)
-			ent.RenderOverride = hide	--we're already rendering later, so don't bother beforehand
+			if ent:GetColor().a > 0 then
+				FLIR.RenderStack[ent] = true
+				ent.RenderOverride = FLIR.Render	--we're already rendering later, so don't bother beforehand
+				ent:CallOnRemove("RemoveFLIR", RemoveFLIR)
+			end
 		end
 	end
 
 	local function RemoveFLIR(ent)
 		if not IsValid(ent) then return end
 
-		table.RemoveByValue(FLIR.RenderStack, ent)
+		FLIR.RenderStack[ent] = nil
 		ent.RenderOverride = nil
 	end
 
@@ -62,22 +76,17 @@ if CLIENT then
 	
 
 	function FLIR.start()
-		local cheats = GetConVar("sv_cheats"):GetInt()
-		if not cheats then
-			ply:ChatPrint("sv_cheats must be enabled for wire FLIR to work!")
-			return
+		if FLIR.enabled then return else FLIR.enabled = true end
+
+		for _, v in pairs(ents.GetAll()) do
+			SetFLIR(v)
 		end
 
 
-
-		if FLIR.enabled then return else FLIR.enabled = true end
-
-			ply:ConCommand("mat_fullbright = 1")	--lightmodes suck. I tried to make them work. This is for the best. Illuminates whole map.
-
-			for _, v in pairs(ents.GetAll()) do
-				SetFLIR(v)
-			end
-
+		hook.Add("PreRender", "wire_flir", function()
+			render.SetLightingMode(2)
+			FLIR.hide = true
+		end)
 
 		hook.Add("PostDraw2DSkyBox", "wire_flir", function() --overrides 2d skybox to be gray, as it normally becomes white or black
 			DrawColorModify(FLIR.skycol)
@@ -88,23 +97,28 @@ if CLIENT then
 			if sky then return end
 
 			DrawColorModify(FLIR.mapcol)
-			--render.SetColorMaterialIgnoreZ()
-			render.MaterialOverride(Material("models/debug/debugwhite"))
 
-			for _, v in pairs(FLIR.RenderStack) do
-				if not IsValid(v) or v:GetNoDraw() then
-					RemoveFLIR(v)
+			render.MaterialOverride(FLIR.mat)
+			render.SuppressEngineLighting(true)
+			render.SetColorModulation(FLIR.col.r, FLIR.col.g, FLIR.col.b)			--this works?? I could not for the life of me make it work in renderoverride. Well.
+																					--It's a much better solution than the stencil I spent hours on...
+			for ent, valid in pairs(FLIR.RenderStack) do
+				if not IsValid(ent) or not valid then
+					RemoveFLIR(ent)
 					goto next
 				end
 
-				v.RenderOverride = nil
-				v:DrawModel()
-				v.RenderOverride = hide
+				FLIR.hide = false
+				ent:DrawModel()
+				FLIR.hide = true
 
 				::next::
 			end
 
 			render.MaterialOverride(nil)
+			render.SuppressEngineLighting(false)
+			render.SetColorModulation(1,1,1)
+
 		end)
 
 
@@ -115,6 +129,7 @@ if CLIENT then
 			DrawBloom(0.5,1.0,2,2,2,1, 1, 1, 1)
 			DrawBokehDOF(1, 0.1, 0.1)
 
+			render.SetLightingMode(0)
 			--reset lighting so the menus are intelligble (try 1)
 		end)
 
@@ -137,12 +152,9 @@ if CLIENT then
 	function FLIR.stop()
 		if FLIR.enabled then FLIR.enabled = false else return end
 
-		timer.Destroy("wire_flir_update")
-
-		ply:ConCommand("mat_fullbright = 0")
+		render.SetLightingMode(0)
 
 		hook.Remove("PostDrawOpaqueRenderables", "wire_flir")
-		hook.Remove("PostDrawTranslucentRenderables", "wire_flir")
 		hook.Remove("RenderScreenspaceEffects", "wire_flir")
 		hook.Remove("PostDraw2DSkyBox", "wire_flir")
 		hook.Remove("PreRender", "wire_flir")
