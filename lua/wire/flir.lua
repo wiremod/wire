@@ -176,7 +176,7 @@ if CLIENT then
 		hook.Remove("OnEntityCreated", "wire_flir")
 		hook.Remove("CreateClientsideRagdoll", "wire_flir")
 
-		for _, v in pairs(ents.GetAll()) do
+		for _, v in ipairs(ents.GetAll()) do
 			RemoveFLIR(v)
 		end
 	end
