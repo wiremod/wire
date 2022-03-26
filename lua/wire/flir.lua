@@ -33,7 +33,7 @@ if CLIENT then
 
 	FLIR.gain = FLIR.gcvar:GetInt()
 	FLIR.mat = Material("phoenix_storms/concrete0")
-	FLIR.transmat = Material("models/props/cs_assault/metal_stairs1")
+	FLIR.transmat = Material("phoenix_storms/iron_rails")
 	FLIR.hide = false
 
 	function FLIR.Render(self)
