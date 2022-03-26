@@ -116,16 +116,13 @@ if CLIENT then
 			render.SetColorModulation(FLIR.gain, FLIR.gain, FLIR.gain)  			--this works?? I could not for the life of me make it work in renderoverride. Well.
 																					--It's a much better solution than the stencil I spent hours on...
 			for ent, valid in pairs(FLIR.RenderStack) do
-				if not IsValid(ent) or not valid or ent:GetNoDraw() then
+				if valid and ent:IsValid() and not ent:GetNoDraw() then
+					FLIR.hide = false
+					ent:DrawModel()
+					FLIR.hide = true
+				else
 					RemoveFLIR(ent)
-					goto next
 				end
-
-				FLIR.hide = false
-				ent:DrawModel()
-				FLIR.hide = true
-
-				::next::
 			end
 
 			render.SuppressEngineLighting(false)
