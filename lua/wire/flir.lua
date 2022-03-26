@@ -56,9 +56,19 @@ if CLIENT then
 		["$pp_colour_brightness"] = 0
 	}
 
-
-
 	--add and remove entities from the FLIR rendering stack
+
+	local function RemoveFLIR(ent)
+		FLIR.RenderStack[ent] = nil
+		if IsValid(ent) then ent.RenderOverride = nil end
+	end
+
+	local function RemoveCheck(ent)		--make sure entity has actually been removed, not weird call
+		timer.Create(tostring(ent).."rmcheck", 0, 1, function()
+			if not IsValid(ent) then RemoveFLIR(ent) end
+		end)
+	end
+
 	local function SetFLIR(ent)
 		if not IsValid(ent) then return end
 		local c = ent:GetClass()
@@ -67,17 +77,12 @@ if CLIENT then
 			if ent:GetColor().a > 0 then
 				FLIR.RenderStack[ent] = true
 				ent.RenderOverride = FLIR.Render	--we're already rendering later, so don't bother beforehand
-				ent:CallOnRemove("RemoveFLIR", RemoveFLIR)
+				ent:CallOnRemove("rmcheck", RemoveCheck(ent))
 			end
 		end
 	end
 
-	local function RemoveFLIR(ent)
-		if not IsValid(ent) then return end
 
-		FLIR.RenderStack[ent] = nil
-		ent.RenderOverride = nil
-	end
 
 
 
