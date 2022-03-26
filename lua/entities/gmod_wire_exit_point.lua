@@ -76,7 +76,7 @@ function ENT:Think()
 
 	if self.ToLink then
 		self.ToLinkCounter = (self.ToLinkCounter or 0) + 1
-		if self.ToLinkCounter >= #self.ToLink then
+		if self.ToLinkCounter > #self.ToLink then
 			self.ToLink = nil
 			self.ToLinkCounter = nil
 		else
