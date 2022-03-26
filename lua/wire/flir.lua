@@ -26,14 +26,14 @@ if CLIENT then
 	FLIR.RenderStack = {}
 	FLIR.enabled = false
 
-	FLIR.gcvar = CreateClientConVar("wire_flir_gain", 2, true, false, "Brightness of FLIR ents. Higher = less detail, more visible.", 0, 10)
+	FLIR.gcvar = CreateClientConVar("wire_flir_gain", 2.2, true, false, "Brightness of FLIR ents. Higher = less detail, more visible.", 0, 10)
 	cvars.AddChangeCallback("wire_flir_gain", function(_,_,v) 
 		FLIR.gain = v
 	end)
 
 	FLIR.gain = FLIR.gcvar:GetInt()
 	FLIR.mat = Material("phoenix_storms/concrete0")
-	FLIR.transmat = Material("models/props_combine/metal_combinebridge001")
+	FLIR.transmat = Material("models/props/cs_assault/metal_stairs1")
 	FLIR.hide = false
 
 	function FLIR.Render(self)
