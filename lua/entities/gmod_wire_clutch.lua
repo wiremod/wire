@@ -127,14 +127,6 @@ function ENT:RemoveClutch( const )
 	end
 end
 
-
-function ENT:SetClutchFriction( const, Ent1, Ent2 )
-	-- There seems to be no direct way to edit constraint friction, so we must create a new ball socket constraint
-	self:RemoveClutch( const )
-	self:AddClutch( Ent1, Ent2 )
-end
-
-
 function ENT:OnRemove()
 	for k in pairs( self.clutch_ballsockets ) do
 		self:RemoveClutch( k )
@@ -152,7 +144,9 @@ function ENT:UpdateFriction(value)
 		if const:IsValid() then
 			local ent1, ent2 = const.Ent1, const.Ent2
 			if ent1:IsValid() and ent2:IsValid() then
-				self:SetClutchFriction( const, ent1, ent2 )
+				-- There seems to be no direct way to edit constraint friction, so we must create a new ball socket constraint
+				self:RemoveClutch( const )
+				self:AddClutch( ent1, ent2 )
 			else
 				self.clutch_ballsockets[const] = nil
 			end
