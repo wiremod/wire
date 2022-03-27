@@ -106,7 +106,7 @@ function ENT:AddClutch( Ent1, Ent2 )
 				-- Wait a frame so nothing bad happens, then rebuild it
 				timer.Simple(0, function()
 					if self:IsValid() then
-						self:AddClutch( Ent1, Ent2, friction )
+						self:AddClutch( Ent1, Ent2 )
 					end
 				end)
 			end
