@@ -283,8 +283,8 @@ function TOOL:Reload( trace )
 			self.controller = nil
 
 		else
-			for k, v in pairs( self.controller.clutch_ballsockets ) do
-				if k.Ent1 == trace.Entity or k.Ent2 == trace.Entity then
+			for clutch in pairs( self.controller.clutch_ballsockets ) do
+				if clutch.ent1 == trace.Entity or clutch.ent2 == trace.Entity then
 					self.controller:RemoveClutch( k )
 				end
 			end
