@@ -289,6 +289,19 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.globvars = inst.GlobalScope
 
 	self:ResetContext()
+
+	-- '@strict' try/catch Error handling.
+	if directives.strict then
+		local err = E2Lib.raiseException
+		function self.context:throw(msg)
+			err(msg, 2, self.trace)
+		end
+	else
+		-- '@strict' is not enabled, pass the default variable.
+		function self.context:throw(_msg, variable)
+			return variable
+		end
+	end
 end
 
 function ENT:GetGateName()
@@ -361,19 +374,6 @@ function ENT:ResetContext()
 		timebench = (self.context and (self.context.timebench*resetPrfMult)) or 0,
 		includes = self.includes
 	}
-
-	-- '@strict' try/catch Error handling.
-	if self.directives.strict then
-		local err = E2Lib.raiseException
-		function context:throw(msg)
-			err(msg, 2, self.trace)
-		end
-	else
-		-- '@strict' is not enabled, pass the default variable.
-		function context:throw(_msg, variable)
-			return variable
-		end
-	end
 
 	setmetatable(context, ScopeManager)
 	context:InitScope()
