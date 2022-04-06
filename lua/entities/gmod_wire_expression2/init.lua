@@ -111,6 +111,7 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateInputs(self, {})
 	self.Outputs = WireLib.CreateOutputs(self, {})
 
+	self.error = true
 	self:UpdateOverlay(true)
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
 end
