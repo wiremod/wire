@@ -348,7 +348,7 @@ function ENT:ResetContext()
 
 	local context = {
 		data = {},
-		vclk = {}, -- Used only by arrays and tables!
+		vclk = {},
 		funcs = self.funcs,
 		funcs_ret = self.funcs_ret,
 		entity = self,
