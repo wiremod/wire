@@ -8,6 +8,7 @@ EGP.Frames = WireLib.RegisterPlayerTable()
 
 function EGP:SaveFrame( ply, Ent, index )
 	if not EGP.Frames[ply] then EGP.Frames[ply] = {} end
+	if table.Count(EGP.Frames[ply]) > 256 then return end -- TODO convar to change limit, 256 seems enough for an obscure feature
 	EGP.Frames[ply][index] = table.Copy(Ent.RenderTable)
 end
 
