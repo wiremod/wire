@@ -5,10 +5,13 @@
 local EGP = EGP
 
 EGP.Frames = WireLib.RegisterPlayerTable()
+EGP.FrameCounts = WireLib.RegisterPlayerTable()
 
 function EGP:SaveFrame( ply, Ent, index )
 	if not EGP.Frames[ply] then EGP.Frames[ply] = {} end
-	if table.Count(EGP.Frames[ply]) > 256 then return end -- TODO convar to change limit, 256 seems enough for an obscure feature
+	if not EGP.FrameCounts[ply] then EGP.FrameCounts[ply] = 0 end
+	if EGP.FrameCounts[ply] > 256 then return end -- TODO convar to change limit, 256 seems enough for an obscure feature
+	if not EGP.Frames[ply][index] then EGP.FrameCounts[ply] = EGP.FrameCounts[ply] + 1 end
 	EGP.Frames[ply][index] = table.Copy(Ent.RenderTable)
 end
 
