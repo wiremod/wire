@@ -259,12 +259,9 @@ registerOperator("ass", "t", "t", function(self, args)
 	local      rhs = op2[1](self, op2)
 
 	local Scope = self.Scopes[scope]
-	if !Scope.lookup then Scope.lookup = {} end
-
 	local lookup = Scope.lookup
-	if (lookup[rhs]) then lookup[rhs][lhs] = nil end
-	if (!lookup[rhs]) then lookup[rhs] = {} end
-	lookup[rhs][lhs] = true
+	if !lookup then lookup = {} Scope.lookup = lookup end
+	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
 
 	Scope[lhs] = rhs
 	Scope.vclk[lhs] = true
@@ -1297,6 +1294,11 @@ end)
 local tbls = {
 	ARRAY = true,
 	TABLE = true,
+	VECTOR = true,
+	VECTOR2 = true,
+	VECTOR4 = true,
+	ANGLE = true,
+	QUATERNION = true,
 }
 
 registerCallback("construct", function(self)

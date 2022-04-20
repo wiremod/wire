@@ -251,8 +251,13 @@ registerOperator("ass", "q", "q", function(self, args)
 	local lhs, op2, scope = args[2], args[3], args[4]
 	local      rhs = op2[1](self, op2)
 
-	self.Scopes[scope][lhs] = rhs
-	self.Scopes[scope].vclk[lhs] = true
+	local Scope = self.Scopes[scope]
+	local lookup = Scope.lookup
+	if !lookup then lookup = {} Scope.lookup = lookup end
+	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
+
+	Scope[lhs] = rhs
+	Scope.vclk[lhs] = true
 	return rhs
 end)
 
@@ -452,6 +457,7 @@ end
 e2function number quaternion:operator[](index, value)
 	index = math.Round(math.Clamp(index,1,4))
 	this[index] = value
+	self.GlobalScope.vclk[this] = true
 	return value
 end
 

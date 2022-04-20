@@ -89,17 +89,9 @@ registerOperator("ass", "r", "r", function(self, args)
 	local      rhs = op2[1](self, op2)
 
 	local Scope = self.Scopes[scope]
-	if !Scope.lookup then Scope.lookup = {} end
 	local lookup = Scope.lookup
-
-	--remove old lookup entry
-	if (lookup[rhs]) then lookup[rhs][lhs] = nil end
-
-	--add new
-	if (!lookup[rhs]) then
-		lookup[rhs] = {}
-	end
-	lookup[rhs][lhs] = true
+	if !lookup then lookup = {} Scope.lookup = lookup end
+	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
 
 	Scope[lhs] = rhs
 	Scope.vclk[lhs] = true
