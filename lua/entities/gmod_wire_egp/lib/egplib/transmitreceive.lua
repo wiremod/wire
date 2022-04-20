@@ -358,8 +358,7 @@ if (SERVER) then
 				E2.prf = E2.prf + 10
 			end
 
-			local status = EGP:SaveFrame( E2.player, Ent, Data[1] )
-			if status then
+			if EGP:SaveFrame( E2.player, Ent, Data[1] ) then
 				self:AddQueue( Ent, E2.player, SaveFrame, "SaveFrame", Data[1] )
 			end
 		elseif (Action == "LoadFrame") then
