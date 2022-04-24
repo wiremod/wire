@@ -99,7 +99,7 @@ if CLIENT then
 		end)
 
 		
-		hook.Add("PostDrawOpaqueRenderables", "wire_flir", function(_, sky)
+		hook.Add("PostDrawOpaqueRenderables", "wire_flir", function(_, _, sky)
 			if sky then return end
 
 			DrawColorModify(FLIR.mapcol)
