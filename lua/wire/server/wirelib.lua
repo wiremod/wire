@@ -1137,18 +1137,18 @@ end, nil, "Prints the server's Wiremod version")
 
 function WireLib.CheckRegex(data, pattern)
 	local limits = {[0] = 50000000, 15000, 500, 150, 70, 40} -- Worst case is about 200ms
-	local stripped, nrepl, nrep2
+	local stripped, nrepl, nrepl2
 	-- strip escaped things
 	stripped, nrepl = string.gsub(pattern, "%%.", "")
 	-- strip bracketed things
-	stripped, nrep2 = string.gsub(stripped, "%[.-%]", "")
+	stripped, nrepl2 = string.gsub(stripped, "%[.-%]", "")
 	-- strip captures
 	stripped = string.gsub(stripped, "[()]", "")
 	-- Find extenders
 	local n = 0 for i in string.gmatch(stripped, "[%+%-%*]") do n = n + 1 end
 	local msg
 	if n<=#limits then
-		if #data*(#stripped + nrepl - n + nrep2)>limits[n] then msg = n.." ext search length too long ("..limits[n].." max)" else return end
+		if #data*(#stripped + nrepl - n + nrepl2)>limits[n] then msg = n.." ext search length too long ("..limits[n].." max)" else return end
 	else
 		msg = "too many extenders"
 	end
