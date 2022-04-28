@@ -33,7 +33,7 @@ function ENT:Initialize()
 	RegisterReceiver( self )
 
 	self.Outputs = WireLib.CreateOutputs( self, { "Message [STRING]", "Player [ENTITY]", "Clk (Will output 1 for a single tick after both 'Message' and 'Player' have been updated.)" } )
-	
+
 	self.UseLuaPatterns = false
 	self.CaseInsensitive = true
 	self.Matches = {}
