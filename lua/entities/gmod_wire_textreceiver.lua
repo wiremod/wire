@@ -15,26 +15,6 @@ local function RemoveReceiver( ent )
 	receivers[ent] = nil
 end
 
-
-local function checkregex(data, pattern)
-	local limits = {[0] = 50000000, 15000, 500, 150, 70, 40} -- Worst case is about 200ms
-	-- strip escaped things
-	local stripped, nrepl = string.gsub(pattern, "%%.", "")
-	-- strip bracketed things
-	stripped, nrepl2 = string.gsub(stripped, "%[.-%]", "")
-	-- strip captures
-	stripped = string.gsub(stripped, "[()]", "")
-	-- Find extenders
-	local n = 0 for i in string.gmatch(stripped, "[%+%-%*]") do n = n + 1 end
-	local msg
-	if n<=#limits then
-		if #data*(#stripped + nrepl - n + nrepl2)>limits[n] then msg = n.." ext search length too long ("..limits[n].." max)" else return end
-	else
-		msg = "too many extenders"
-	end
-	error("Regex is too complex! " .. msg)
-end
-
 hook.Add( "PlayerSay", "Wire Text receiver PlayerSay", function( ply, txt )
 	for ent,_ in pairs( receivers ) do
 		if not ent or not ent:IsValid() then
@@ -100,7 +80,7 @@ local string_match = string.match
 
 function ENT:PcallFind( text, match )
 	if self.UseLuaPatterns then
-		local ok,err = pcall(function() checkregex(text, match) end)
+		local ok,err = pcall(function() WireLib.CheckRegex(text, match) end)
 		if not ok then
 			self.PatternError = err
 			return false
@@ -121,7 +101,7 @@ function ENT:AddError( err, idx )
 end
 
 function ENT:PcallMatch( text, match, idx )
-	local ok,err = pcall(function() checkregex(text, match) end)
+	local ok,err = pcall(function() WireLib.CheckRegex(text, match) end)
 	if not ok then
 		self:AddError( err, idx )
 		return {}
