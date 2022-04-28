@@ -337,32 +337,13 @@ end)
 
 /******************************************************************************/
 
-local function checkregex(data, pattern)
-	local limits = {[0] = 50000000, 15000, 500, 150, 70, 40} -- Worst case is about 200ms
-	-- strip escaped things
-	local stripped, nrepl = string.gsub(pattern, "%%.", "")
-	-- strip bracketed things
-	stripped, nrepl2 = string.gsub(stripped, "%[.-%]", "")
-	-- strip captures
-	stripped = string.gsub(stripped, "[()]", "")
-	-- Find extenders
-	local n = 0 for i in string.gmatch(stripped, "[%+%-%*]") do n = n + 1 end
-	local msg
-	if n<=#limits then
-		if #data*(#stripped + nrepl - n + nrepl2)>limits[n] then msg = n.." ext search length too long ("..limits[n].." max)" else return end
-	else
-		msg = "too many extenders"
-	end
-	error("Regex is too complex! " .. msg)
-end
-
 local sub = string.sub
 local gsub = string.gsub
 local find = string.find
 
 --- Returns the 1st occurrence of the string <pattern>, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern)
-	local OK, Ret = pcall(function() checkregex(this, pattern) return string.find(this, pattern) end)
+	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string.find(this, pattern) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return 0
@@ -373,7 +354,7 @@ end
 
 ---  Returns the 1st occurrence of the string <pattern> starting at <start> and going to the end of the string, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern, start)
-	local OK, Ret = pcall(function() checkregex(this, pattern) return find(this, pattern, start) end)
+	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return find(this, pattern, start) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return 0
@@ -404,7 +385,7 @@ end
 e2function string string:replaceRE(string pattern, string new)
 	self.prf = self.prf + #this * 0.1 + #new * 0.1
 	if self.prf > e2_tickquota then error("perf", 0) end
-	local OK, Ret = pcall(function() checkregex(this, pattern) return gsub(this, pattern, new) end)
+	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return gsub(this, pattern, new) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return ""
@@ -424,7 +405,7 @@ e2function array string:explode(string delim)
 end
 
 e2function array string:explodeRE( string delim )
-	local ok, ret = pcall(function() checkregex(this, delim) return string_Explode( delim, this, true ) end)
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, delim) return string_Explode( delim, this, true ) end)
 	if not ok then
 		self.player:ChatPrint(ret)
 		ret = {}
@@ -463,7 +444,7 @@ local table_remove = table.remove
 
 --- runs [[string.match]](<this>, <pattern>) and returns the sub-captures as an array. Prints malformed pattern errors to the chat area.
 e2function array string:match(string pattern)
-	local args = {pcall(function() checkregex(this, pattern) return string_match(this, pattern) end)}
+	local args = {pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern) end)}
 	if not args[1] then
 		self.player:ChatPrint(args[2] or "Unknown error in str:match")
 		return {}
@@ -475,7 +456,7 @@ end
 
 --- runs [[string.match]](<this>, <pattern>, <position>) and returns the sub-captures as an array. Prints malformed pattern errors to the chat area.
 e2function array string:match(string pattern, position)
-	local args = {pcall(function() checkregex(this, pattern) return string_match(this, pattern, position) end)}
+	local args = {pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern, position) end)}
 	if not args[1] then
 		self.player:ChatPrint(args[2] or "Unknown error in str:match")
 		return {}
@@ -511,7 +492,7 @@ end
 --- runs [[string.gmatch]](<this>, <pattern>) and returns the captures in an array in a table. Prints malformed pattern errors to the chat area.
 -- (By Divran)
 e2function table string:gmatch(string pattern)
-	local OK, ret = pcall(function() checkregex(this, pattern) return gmatch(self, this, pattern) end)
+	local OK, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
 	if (!OK) then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
 		return newE2Table()
@@ -524,7 +505,7 @@ end
 -- (By Divran)
 e2function table string:gmatch(string pattern, position)
 	this = this:Right( -position-1 )
-	local OK, ret = pcall(function() checkregex(this, pattern) return gmatch(self, this, pattern) end)
+	local OK, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
 	if (!OK) then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
 		return newE2Table()
@@ -535,7 +516,7 @@ end
 
 --- runs [[string.match]](<this>, <pattern>) and returns the first match or an empty string if the match failed. Prints malformed pattern errors to the chat area.
 e2function string string:matchFirst(string pattern)
-	local OK, Ret = pcall(function() checkregex(this, pattern) return string_match(this, pattern) end)
+	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return ""
@@ -546,7 +527,7 @@ end
 
 --- runs [[string.match]](<this>, <pattern>, <position>) and returns the first match or an empty string if the match failed. Prints malformed pattern errors to the chat area.
 e2function string string:matchFirst(string pattern, position)
-	local OK, Ret = pcall(function() checkregex(this, pattern) return string_match(this, pattern, position) end)
+	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern, position) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return ""
