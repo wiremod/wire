@@ -77,19 +77,19 @@ end
 function ENT:SetConstraint( c )
 	self.constraint = c
 
-	if self.current_constant ~= 0 or (self.Inputs and self.Inputs.Constant.Src) then
+	if self.Inputs and self.Inputs.Constant.Src then
 		self:TriggerInput("Constant", self.Inputs.Constant.Value)
 	else
 		self.current_constant = self.constraint:GetKeyValues().constant
 	end
 
-	if self.current_damping ~= 0 or (self.Inputs and self.Inputs.Damping.Src) then
+	if self.Inputs and self.Inputs.Damping.Src then
 		self:TriggerInput("Damping", self.Inputs.Damping.Value)
 	else
 		self.current_damping = self.constraint:GetKeyValues().damping
 	end
 
-	if self.TargetLength ~= 0 or (self.Inputs and self.Inputs.Length.Src) then
+	if self.Inputs and self.Inputs.Length.Src then
 		self:TriggerInput("Length", self.Inputs.Length.Value)
 	else
 		self.TargetLength = self:GetDistance()
