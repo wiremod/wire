@@ -89,7 +89,11 @@ function ENT:SetConstraint( c )
 		self.current_damping = self.constraint:GetKeyValues().damping
 	end
 
-	self:SetLength(self:GetDistance())
+	if self.TargetLength ~= 0 or (self.Inputs and self.Inputs.Length.Src) then
+		self:TriggerInput("Length", self.Inputs.Length.Value)
+	else
+		self.TargetLength = self:GetDistance()
+	end
 
 	self:UpdateOutputs()
 end
@@ -100,12 +104,11 @@ end
 
 function ENT:SetLength(value)
 	self.TargetLength = value
-	self.constraint:Fire("SetSpringLength", value, 0)
+	if IsValid(self.constraint) then self.constraint:Fire("SetSpringLength", value, 0) end
 	if IsValid(self.rope) then self.rope:Fire("SetLength", value, 0) end
 end
 
 function ENT:TriggerInput(iname, value)
-	if not IsValid(self.constraint) then return end
 	if (iname == "Length") then
 		self:SetLength(math.max(value,1))
 	elseif (iname == "In") then
@@ -118,7 +121,7 @@ function ENT:TriggerInput(iname, value)
 		else
 			self.current_constant = value
 		end
-		self.constraint:Fire("SetSpringConstant",self.current_constant)
+		if IsValid(self.constraint) then self.constraint:Fire("SetSpringConstant",self.current_constant) end
 		timer.Simple( 0.1, function() if IsValid(self) then self:UpdateOutputs() end end) -- Needs to be delayed because ent:Fire doesn't update that fast.
 	elseif (iname == "Damping") then
 		if value == 0 then
@@ -126,7 +129,7 @@ function ENT:TriggerInput(iname, value)
 		else
 			self.current_damping = value
 		end
-		self.constraint:Fire("SetSpringDamping",self.current_damping)
+		if IsValid(self.constraint) then self.constraint:Fire("SetSpringDamping",self.current_damping) end
 		timer.Simple( 0.1, function() if IsValid(self) then self:UpdateOutputs() end end)
 	end
 end
