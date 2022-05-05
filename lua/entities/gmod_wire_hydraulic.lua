@@ -74,8 +74,9 @@ function ENT:UpdateOutputs( OnlyLength )
 	self:SetOverlayText(string.format("%s length: %.2f\nConstant: %i\nDamping: %i", (self.constraint.stretchonly and "Winch" or "Hydraulic"), curLength, self.current_constant, self.current_damping))
 end
 
-function ENT:SetConstraint( c )
+function ENT:SetConstraint( c, rope )
 	self.constraint = c
+	self.rope = rope
 
 	if self.Inputs and self.Inputs.Constant.Src then
 		self:TriggerInput("Constant", self.Inputs.Constant.Value)
@@ -96,10 +97,6 @@ function ENT:SetConstraint( c )
 	end
 
 	self:UpdateOutputs()
-end
-
-function ENT:SetRope( r )
-	self.rope = r
 end
 
 function ENT:SetLength(value)
@@ -207,10 +204,9 @@ function MakeWireHydraulic( pl, Ent1, Ent2, Bone1, Bone2, LPos1, LPos2, width, m
 		const.MyCrtl = controller:EntIndex()
 		controller.MyId = controller:EntIndex()
 
-		controller:SetConstraint( const )
+		controller:SetConstraint( const, rope )
 		controller:DeleteOnRemove( const )
-		if (rope) then
-			controller:SetRope( rope )
+		if rope then
 			controller:DeleteOnRemove( rope )
 		end
 
