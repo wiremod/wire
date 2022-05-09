@@ -1272,7 +1272,7 @@ registerCallback("postexecute", function(self)
 		local still_assigned = false
 		-- For each value, go through the variables they're assigned to and trigger them.
 		for varname,_ in pairs(varnames) do
-			if value == Scope[varname] then
+			if rawequal(value,Scope[varname]) then
 				-- The value is still assigned to the variable? => trigger it.
 				if clk then vclk[varname] = true end
 				still_assigned = true
