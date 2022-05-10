@@ -74,38 +74,38 @@ function ENT:UpdateOutputs( OnlyLength )
 	self:SetOverlayText(string.format("%s length: %.2f\nConstant: %i\nDamping: %i", (self.constraint.stretchonly and "Winch" or "Hydraulic"), curLength, self.current_constant, self.current_damping))
 end
 
-function ENT:SetConstraint( c )
+function ENT:SetConstraint( c, rope )
 	self.constraint = c
+	self.rope = rope
 
-	if self.current_constant ~= 0 or (self.Inputs and self.Inputs.Constant.Src) then
+	if self.Inputs and self.Inputs.Constant.Src then
 		self:TriggerInput("Constant", self.Inputs.Constant.Value)
 	else
 		self.current_constant = self.constraint:GetKeyValues().constant
 	end
 
-	if self.current_damping ~= 0 or (self.Inputs and self.Inputs.Damping.Src) then
+	if self.Inputs and self.Inputs.Damping.Src then
 		self:TriggerInput("Damping", self.Inputs.Damping.Value)
 	else
 		self.current_damping = self.constraint:GetKeyValues().damping
 	end
 
-	self:SetLength(self:GetDistance())
+	if self.Inputs and self.Inputs.Length.Src then
+		self:TriggerInput("Length", self.Inputs.Length.Value)
+	else
+		self.TargetLength = self:GetDistance()
+	end
 
 	self:UpdateOutputs()
 end
 
-function ENT:SetRope( r )
-	self.rope = r
-end
-
 function ENT:SetLength(value)
 	self.TargetLength = value
-	self.constraint:Fire("SetSpringLength", value, 0)
+	if IsValid(self.constraint) then self.constraint:Fire("SetSpringLength", value, 0) end
 	if IsValid(self.rope) then self.rope:Fire("SetLength", value, 0) end
 end
 
 function ENT:TriggerInput(iname, value)
-	if not IsValid(self.constraint) then return end
 	if (iname == "Length") then
 		self:SetLength(math.max(value,1))
 	elseif (iname == "In") then
@@ -118,7 +118,7 @@ function ENT:TriggerInput(iname, value)
 		else
 			self.current_constant = value
 		end
-		self.constraint:Fire("SetSpringConstant",self.current_constant)
+		if IsValid(self.constraint) then self.constraint:Fire("SetSpringConstant",self.current_constant) end
 		timer.Simple( 0.1, function() if IsValid(self) then self:UpdateOutputs() end end) -- Needs to be delayed because ent:Fire doesn't update that fast.
 	elseif (iname == "Damping") then
 		if value == 0 then
@@ -126,7 +126,7 @@ function ENT:TriggerInput(iname, value)
 		else
 			self.current_damping = value
 		end
-		self.constraint:Fire("SetSpringDamping",self.current_damping)
+		if IsValid(self.constraint) then self.constraint:Fire("SetSpringDamping",self.current_damping) end
 		timer.Simple( 0.1, function() if IsValid(self) then self:UpdateOutputs() end end)
 	end
 end
@@ -204,10 +204,9 @@ function MakeWireHydraulic( pl, Ent1, Ent2, Bone1, Bone2, LPos1, LPos2, width, m
 		const.MyCrtl = controller:EntIndex()
 		controller.MyId = controller:EntIndex()
 
-		controller:SetConstraint( const )
+		controller:SetConstraint( const, rope )
 		controller:DeleteOnRemove( const )
-		if (rope) then
-			controller:SetRope( rope )
+		if rope then
 			controller:DeleteOnRemove( rope )
 		end
 
