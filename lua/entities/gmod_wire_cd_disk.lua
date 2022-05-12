@@ -71,12 +71,12 @@ function ENT:Setup(precision, iradius, skin)
 
 	self.StackStartHeight = -min.z
 
+	self.FirstTrack = math.floor((self.IRadius) / self.Precision)
 	self.DiskStacks = math.max(1,math.floor((max.z - min.z) / self.Precision)+1)
-	self.DiskTracks = math.max(math.ceil((0.5*math.min(max.x - min.x,max.y - min.y) - self.IRadius) / self.Precision), 0)
+	self.DiskTracks = math.max(math.ceil(0.5*math.min(max.x - min.x,max.y - min.y) / self.Precision) - self.FirstTrack, 0)
 
 	self.DiskSectors = 0
 	self.TrackSectors = {}
-	self.FirstTrack = math.floor((self.IRadius) / self.Precision)
 	for i=0,self.DiskTracks-1 do
 		self.TrackSectors[i+self.FirstTrack] = self.DiskSectors
 		self.DiskSectors = self.DiskSectors + math.floor(2*3.1415926*i) + 1
