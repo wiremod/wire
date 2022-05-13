@@ -63,6 +63,7 @@ function ENT:Think()
 end
 
 function ENT:UpdateOutputs( OnlyLength )
+	if not IsValid(self.constraint) then return end
 	local curLength = self:GetDistance()
 	WireLib.TriggerOutput( self, "Length", curLength )
 	WireLib.TriggerOutput( self, "Target Length", self.TargetLength )
