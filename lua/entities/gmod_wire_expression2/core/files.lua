@@ -399,7 +399,7 @@ net.Receive("wire_expression2_file_finish", function(netlen, ply)
 	end
 
 	local pfile = uploads[ply]
-	if !pfile then return end
+	if !pfile or !pfile.buffer then return end
 
 	pfile.uploading = false
 	pfile.data = E2Lib.decode( pfile.buffer )
