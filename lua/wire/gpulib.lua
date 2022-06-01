@@ -514,9 +514,9 @@ if CLIENT then
     { "[1-byte]", "[2-byte]", "[4-byte]", "[marker]" },
   } ]]--
 
-  local function GPULib_MemorySync(um)
+  local function GPULib_MemorySync(len, ply)
     -- Find the referenced entity
-    local GPUIdx = um:ReadLong()
+    local GPUIdx = net.ReadUInt(32)
     local GPU = ents.GetByIndex(GPUIdx)
     if not GPU then return end
     if not GPU:IsValid() then return end
@@ -528,10 +528,10 @@ if CLIENT then
     while true do
       -- Read next block
       blockCount = blockCount + 1
-      if blockCount > 256 then error("GPULib usermessage read error") return end
+      if blockCount > 65536 then error("GPULib net message read error") return end
 
       -- Read block flags
-      local dataFlags = um:ReadChar()+128
+      local dataFlags = net.ReadUInt(8)
       if dataFlags == 240 then return end
 
       local offsetSize  = dataFlags % 4
@@ -544,20 +544,20 @@ if CLIENT then
 
       if offsetSize > 0 then
         local deltaOffset = 0
-        if offsetSize == 1 then deltaOffset = um:ReadChar () end
-        if offsetSize == 2 then deltaOffset = um:ReadShort() end
-        if offsetSize == 3 then deltaOffset = um:ReadFloat() end
+        if offsetSize == 1 then deltaOffset = net.ReadInt(8) end
+        if offsetSize == 2 then deltaOffset = net.ReadInt(16) end
+        if offsetSize == 3 then deltaOffset = net.ReadFloat() end
         currentOffset = currentOffset + deltaOffset
         --print("  dOffset = "..deltaOffset..", offset = "..currentOffset)
       end
 
       if dataCount == 0 then Count = 1 end
-      if dataCount == 1 then Count = um:ReadChar()+130 end
+      if dataCount == 1 then Count = net.ReadInt(8)+130 end
       if dataCount == 2 then Count = 2 end
       if dataCount == 3 then Count = 3 end
 
       if repeatCount == 0 then Repeat = 1 end
-      if repeatCount == 1 then Repeat = um:ReadChar()+130 end
+      if repeatCount == 1 then Repeat = net.ReadInt(8)+130 end
       if repeatCount == 2 then Repeat = 2 end
       if repeatCount == 3 then Repeat = 4 end
 
@@ -569,10 +569,10 @@ if CLIENT then
 
       for i=1,Count do
         local Value = 0
-        if valueSize == 0 then Value = um:ReadChar()  end
-        if valueSize == 1 then Value = um:ReadShort() end
-        if valueSize == 2 then Value = um:ReadLong() end
-        if valueSize == 3 then Value = um:ReadFloat() end
+        if valueSize == 0 then Value = net.ReadInt(8)  end
+        if valueSize == 1 then Value = net.ReadInt(16) end
+        if valueSize == 2 then Value = net.ReadInt(32) end
+        if valueSize == 3 then Value = net.ReadFloat() end
 
         for j=1,Repeat do
           --print("    ["..currentOffset.."] = "..Value)
@@ -582,12 +582,14 @@ if CLIENT then
       end
     end
   end
-  usermessage.Hook("wire_memsync", GPULib_MemorySync)
+  --usermessage.Hook("wire_memsync", GPULib_MemorySync)
+  net.Receive("wire_memsync", GPULib_MemorySync)
 elseif SERVER then
   local CACHEMGR = {}
   CACHEMGR.__index = CACHEMGR
   GPULib.CACHEMGR = CACHEMGR
 
+  util.AddNetworkString("wire_memsync")
 
   ------------------------------------------------------------------------------
   -- Create new cache manager (serverside)
@@ -645,13 +647,17 @@ elseif SERVER then
   -- Send value right away
   ------------------------------------------------------------------------------
   function CACHEMGR:WriteNow(Address,Value,forcePlayer)
-    umsg.Start("wire_memsync", forcePlayer)
-      umsg.Long(self.EntIndex)
-      umsg.Char(195-128)
-      umsg.Float(Address)
-      umsg.Float(Value)
-      umsg.Char(240-128)
-    umsg.End()
+    net.Start("wire_memsync")
+      net.WriteUInt(self.EntIndex, 32)
+      net.WriteUInt(195, 8)
+      net.WriteFloat(Address)
+      net.WriteFloat(Value)
+      net.WriteUInt(240, 8)
+    if forcePlayer then
+      net.Send(forcePlayer)
+    else
+      net.Broadcast()
+    end
   end
 
 
@@ -746,8 +752,8 @@ elseif SERVER then
 
     -- Start the message
     local messageSize = 4
-    umsg.Start("wire_memsync", forcePlayer)
-    umsg.Long(self.EntIndex)
+    net.Start("wire_memsync")
+    net.WriteUInt(self.EntIndex, 32)
 
     -- Start sending all compressed blocks
     for k,v in ipairs(compressInfo) do
@@ -811,7 +817,7 @@ elseif SERVER then
       if (v.Size == 4) and (not v.IsFloat) then dataFlags = dataFlags + 128 end
       if (v.Size == 4) and (    v.IsFloat) then dataFlags = dataFlags + 192 end
 
-      umsg.Char(dataFlags-128)
+      net.WriteUInt(dataFlags, 8)
       messageSize = messageSize + 4
 
 
@@ -820,26 +826,26 @@ elseif SERVER then
       --======================================================================--
       if v.SetOffset then
         local offsetSize = getSize(v.SetOffset)
-        if offsetSize == 1 then umsg.Char (v.SetOffset) messageSize = messageSize + 1 end
-        if offsetSize == 2 then umsg.Short(v.SetOffset) messageSize = messageSize + 2 end
-        if offsetSize == 4 then umsg.Float(v.SetOffset) messageSize = messageSize + 4 end
+        if offsetSize == 1 then net.WriteInt  (v.SetOffset,  8) messageSize = messageSize + 1 end
+        if offsetSize == 2 then net.WriteUInt (v.SetOffset, 16) messageSize = messageSize + 2 end
+        if offsetSize == 4 then net.WriteFloat(v.SetOffset)     messageSize = messageSize + 4 end
       end
 
       if (#v.Data > 2) then
         if (#v.Data ~= 3) or (v.IsFloat) then
-          umsg.Char(#v.Data-130) messageSize = messageSize + 1
+          net.WriteInt(#v.Data-130, 8) messageSize = messageSize + 1
         end
       end
 
       if (v.Repeat > 1) and
          (v.Repeat ~= 2) and
-         (v.Repeat ~= 4) then umsg.Char(v.Repeat-130) messageSize = messageSize + 1 end
+         (v.Repeat ~= 4) then net.WriteInt(v.Repeat-130, 8) messageSize = messageSize + 1 end
 
       for _,value in ipairs(v.Data) do
-        if v.Size == 1 then umsg.Char (value) messageSize = messageSize + 1 end
-        if v.Size == 2 then umsg.Short(value) messageSize = messageSize + 2 end
-        if (v.Size == 4) and (not v.IsFloat) then umsg.Long(value)  messageSize = messageSize + 4 end
-        if (v.Size == 4) and (    v.IsFloat) then umsg.Float(value) messageSize = messageSize + 4 end
+        if v.Size == 1 then net.WriteInt(value,  8) messageSize = messageSize + 1 end
+        if v.Size == 2 then net.WriteInt(value, 16) messageSize = messageSize + 2 end
+        if (v.Size == 4) and (not v.IsFloat) then net.WriteInt(value, 32) messageSize = messageSize + 4 end
+        if (v.Size == 4) and (    v.IsFloat) then net.WriteFloat(value)     messageSize = messageSize + 4 end
       end
 
 
@@ -849,17 +855,25 @@ elseif SERVER then
       --======================================================================--
       if compressInfo[k+1] then
         local nextSize = #compressInfo[k+1].Data*compressInfo[k+1].Repeat*compressInfo[k+1].Size
-        if nextSize + messageSize > 248 then
-          umsg.Char(240-128)
-          umsg.End()
+        if nextSize + messageSize > 65528 then
+          net.WriteUInt(240, 8)
+          if forcePlayer then
+            net.Send(forcePlayer)
+          else
+            net.Broadcast()
+          end
           messageSize = 4
-          umsg.Start("wire_memsync", forcePlayer)
-          umsg.Long(self.EntIndex)
+          net.Start("wire_memsync")
+          net.WriteUInt(self.EntIndex, 32)
           compressInfo[k+1].SetOffset = compressInfo[k+1].Offset -- Force set offset
         end
       else
-        umsg.Char(240-128)
-        umsg.End()
+        net.WriteUInt(240, 8)
+        if forcePlayer then
+          net.Send(forcePlayer)
+        else
+          net.Broadcast()
+        end
       end
     end
 
