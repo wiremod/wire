@@ -824,7 +824,7 @@ function Compiler:InstrFUNCTION(args)
 		if VariadicType then
 			local nargs = #Args
 			-- There's 100% a better way to structure this mess but this works fine for now...
-			local offset = methodType and 1 or 0
+			local offset = methodType ~= "" and 1 or 0
 
 			for parameterIndex = 2, nargs do
 				local parameterExpression = runtimeArgs[parameterIndex]
@@ -848,6 +848,7 @@ function Compiler:InstrFUNCTION(args)
 					len = len + 1
 				end
 
+				tbl.size = len - 1
 				parameterValues[nargs] = tbl
 			else
 				-- Array
