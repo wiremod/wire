@@ -229,9 +229,13 @@ function Compiler:GetFunction(instr, Name, Args)
 
 		if not Func then
 			for I = #Params, 0, -1 do
-				local sig = Name .. "(" .. Params:sub(1, I) .. "..r)"
-				if self.funcs_ret[sig] then
-					Func = self:UDFunction(sig)
+				local sig = Name .. "(" .. Params:sub(1, I)
+				local arrsig, tblsig = sig .. "..r)", sig .. "..t)"
+				if self.funcs_ret[arrsig] then
+					Func = self:UDFunction(arrsig)
+					break
+				elseif self.funcs_ret[tblsig] then
+					Func = self:UDFunction(tblsig)
 					break
 				end
 			end
@@ -265,9 +269,13 @@ function Compiler:GetMethod(instr, Name, Meta, Args)
 
 		if not Func then
 			for I = #Params, 0, -1 do
-				local sig = Name .. "(" .. Params:sub(1, I) .. "..r)"
-				if self.funcs_ret[sig] then
-					Func = self:UDFunction(sig)
+				local sig = Name .. "(" .. Params:sub(1, I)
+				local arrsig, tblsig = sig .. "..r)", sig .. "..t)"
+				if self.funcs_ret[arrsig] then
+					Func = self:UDFunction(arrsig)
+					break
+				elseif self.funcs_ret[tblsig] then
+					Func = self:UDFunction(tblsig)
 					break
 				end
 			end
@@ -772,11 +780,20 @@ function Compiler:InstrFUNCTION(args)
 	self:InitScope() -- Create a new Scope Enviroment
 	self:PushScope()
 
-	local IsVariadic
+	local VariadicType
 	for _, D in pairs(Args) do
 		local Name, Type, Variadic = D[1], wire_expression_types[D[2]][1], D[3]
-		IsVariadic = Variadic -- Variadic param will be last (so no need to check if false)
+		VariadicType = Variadic and Type
 		self:SetLocalVariableType(Name, Type, args)
+	end
+
+	if VariadicType then
+		-- Don't allow users to define two functions with different variadic types
+		-- Because that'd cause ambiguity.
+		local opposite = VariadicType == "r" and "t" or "r"
+		if self.funcs_ret[Sig:gsub("%.%." .. VariadicType, ".." .. opposite)] then
+			self:Error("Cannot override variadic " .. tps_pretty(opposite) .. " function with variadic " .. tps_pretty(VariadicType) .. " function to avoid ambiguity.", args)
+		end
 	end
 
 	if self.funcs_ret[Sig] and self.funcs_ret[Sig] ~= Return then
@@ -795,7 +812,7 @@ function Compiler:InstrFUNCTION(args)
 	self:PopScope()
 	self:LoadScopes(OldScopes) -- Reload the old enviroment
 
-	self.prfcounter = self.prfcounter + (IsVariadic and 80 or 40)
+	self.prfcounter = self.prfcounter + (VariadicType and 80 or 40)
 
 	-- This is the function that will be bound to to the function name, ie. the
 	-- one that's called at runtime when code calls the function
@@ -804,8 +821,10 @@ function Compiler:InstrFUNCTION(args)
 		-- we need to evaluate the arguments before switching to the new scope
 
 		local parameterValues = {}
-		if IsVariadic then
+		if VariadicType then
 			local nargs = #Args
+			-- There's 100% a better way to structure this mess but this works fine for now...
+			local offset = methodType and 1 or 0
 
 			for parameterIndex = 2, nargs do
 				local parameterExpression = runtimeArgs[parameterIndex]
@@ -813,26 +832,45 @@ function Compiler:InstrFUNCTION(args)
 				parameterValues[parameterIndex - 1] = parameterValue
 			end
 
-			-- Construct array here w/ dynamic values
-			local arr, len = {}, 1
 			local types = runtimeArgs[#runtimeArgs]
+			if VariadicType == "t" then
+				-- Table argument.
+				local tbl, len = E2Lib.newE2Table(), 1
+				local n, ntypes = tbl.n, tbl.ntypes
 
-			for parameterIndex = nargs + 1, #runtimeArgs - 1 do
-				local ty = types[nargs - 1 + len]
-				if BLOCKED_ARRAY_TYPES[ty] then
-					self:throw("Cannot use type " .. tps_pretty(ty) .. " as an argument for variadic array function", nil)
-					break
+				for parameterIndex = nargs + 1, #runtimeArgs - 1 do
+					local ty = types[nargs - 1 - offset + len]
+
+					local parameterExpression = runtimeArgs[parameterIndex]
+					local parameterValue = parameterExpression[1](self, parameterExpression)
+
+					n[len], ntypes[len] = parameterValue, ty
+					len = len + 1
 				end
 
-				local parameterExpression = runtimeArgs[parameterIndex]
-				local parameterValue = parameterExpression[1](self, parameterExpression)
+				parameterValues[nargs] = tbl
+			else
+				-- Array
+				-- Construct array here w/ dynamic values
+				local arr, len = {}, 1
 
-				arr[len] = parameterValue
-				len = len + 1
+				for parameterIndex = nargs + 1, #runtimeArgs - 1 do
+					local ty = types[nargs - 1 - offset + len]
+
+					if BLOCKED_ARRAY_TYPES[ty] then
+						self:throw("Cannot use type " .. tps_pretty(ty) .. " as an argument for variadic array function", nil)
+						break
+					end
+
+					local parameterExpression = runtimeArgs[parameterIndex]
+					local parameterValue = parameterExpression[1](self, parameterExpression)
+
+					arr[len] = parameterValue
+					len = len + 1
+				end
+
+				parameterValues[nargs] = arr
 			end
-
-			-- Final value is an array for variadic functions
-			parameterValues[nargs] = arr
 		else
 			for parameterIndex = 2, #Args + 1 do
 				local parameterExpression = runtimeArgs[parameterIndex]

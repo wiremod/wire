@@ -804,9 +804,8 @@ function Parser:FunctionArgs(Temp, Args)
 					self:Error("Invalid type specified")
 				end
 
-				if type ~= "ARRAY" then
-					-- in the future might want to support table for named arguments like in python or something.
-					self:Error("Only array type is supported for spread arguments")
+				if type ~= "ARRAY" and type ~= "TABLE" then
+					self:Error("Only array or table type is supported for spread arguments")
 				end
 
 				if self:AcceptRoamingToken("com") then
