@@ -224,6 +224,16 @@ function Compiler:GetFunction(instr, Name, Args)
 
 	if not Func then
 		Func = self:UDFunction(Name .. "(" .. Params .. ")")
+
+		if not Func then
+			for I = #Params, 0, -1 do
+				local sig = Name .. "(" .. Params:sub(1, I) .. "..r)"
+				if self.funcs_ret[sig] then
+					Func = self:UDFunction(sig)
+					break
+				end
+			end
+		end
 	end
 
 	if not Func then
@@ -750,8 +760,10 @@ function Compiler:InstrFUNCTION(args)
 	self:InitScope() -- Create a new Scope Enviroment
 	self:PushScope()
 
+	local IsVariadic
 	for _, D in pairs(Args) do
-		local Name, Type = D[1], wire_expression_types[D[2]][1]
+		local Name, Type, Variadic = D[1], wire_expression_types[D[2]][1], D[3]
+		IsVariadic = Variadic -- Variadic param will be last (so no need to check if false)
 		self:SetLocalVariableType(Name, Type, args)
 	end
 
@@ -771,18 +783,41 @@ function Compiler:InstrFUNCTION(args)
 	self:PopScope()
 	self:LoadScopes(OldScopes) -- Reload the old enviroment
 
-	self.prfcounter = self.prfcounter + 40
+	self.prfcounter = self.prfcounter + (IsVariadic and 80 or 40)
 
 	-- This is the function that will be bound to to the function name, ie. the
 	-- one that's called at runtime when code calls the function
 	local function body(self, runtimeArgs)
 		-- runtimeArgs = { body, parameterExpression1, ..., parameterExpressionN, parameterTypes }
 		-- we need to evaluate the arguments before switching to the new scope
+
 		local parameterValues = {}
-		for parameterIndex = 2, #Args + 1 do
-			local parameterExpression = runtimeArgs[parameterIndex]
-			local parameterValue = parameterExpression[1](self, parameterExpression)
-			parameterValues[parameterIndex - 1] = parameterValue
+		if IsVariadic then
+			for parameterIndex = 2, #Args do
+				local parameterExpression = runtimeArgs[parameterIndex]
+				local parameterValue = parameterExpression[1](self, parameterExpression)
+				parameterValues[parameterIndex - 1] = parameterValue
+			end
+
+			-- Construct array here w/ dynamic values
+			local arr, len = {}, 1
+
+			for parameterIndex = #Args + 1, #runtimeArgs - 1 do
+				local parameterExpression = runtimeArgs[parameterIndex]
+				local parameterValue = parameterExpression[1](self, parameterExpression)
+
+				arr[len] = parameterValue
+				len = len + 1
+			end
+
+			-- Final value is an array for variadic functions
+			parameterValues[#Args] = arr
+		else
+			for parameterIndex = 2, #Args + 1 do
+				local parameterExpression = runtimeArgs[parameterIndex]
+				local parameterValue = parameterExpression[1](self, parameterExpression)
+				parameterValues[parameterIndex - 1] = parameterValue
+			end
 		end
 
 		local OldScopes = self:SaveScopes()

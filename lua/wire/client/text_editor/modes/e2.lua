@@ -81,6 +81,7 @@ end
 local cols = {}
 local lastcol
 local function addToken(tokenname, tokendata)
+	if tokendata == "+" or tokendata == "..." then print(tokendata) debug.Trace() end
 	local color = colors[tokenname]
 	if lastcol and color == lastcol[2] then
 		lastcol[1] = lastcol[1] .. tokendata
@@ -341,6 +342,10 @@ function EDITOR:SyntaxColorLine(row)
 
 				local spaces = self:SkipPattern( " *" )
 				if spaces then addToken( "comment", spaces ) end
+
+				-- Exception for the spread "..." operator
+				local dots = self:SkipPattern( "%.%.%." )
+				if dots then addToken( "operator", dots ) end
 
 				local invalidInput = self:SkipPattern( "[^A-Z:%[]*" )
 				if invalidInput then addToken( "notfound", invalidInput ) end

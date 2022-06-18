@@ -346,6 +346,7 @@ E2Lib.optable_inv = {
 	dlt = "$",
 	trg = "~",
 	imp = "->",
+	spread = "..."
 }
 
 E2Lib.optable = {}
