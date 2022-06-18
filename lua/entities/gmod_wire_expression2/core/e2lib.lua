@@ -101,8 +101,9 @@ function E2Lib.splitType(args)
 			thistype = ret[1]
 			ret = {}
 		elseif letter == "." then
-			if args:sub(i) ~= "..." then error("Misplaced '.' in args", 2) end
-			table.insert(ret, "...")
+			local slice = args:sub(i)
+			if slice ~= "..." and slice ~= "..r" then error("Misplaced '.' in args", 2) end
+			table.insert(ret, slice)
 			i = i + 2
 		elseif letter == "=" then
 			if #ret ~= 1 then error("Misplaced '=' in args", 2) end
