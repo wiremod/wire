@@ -81,7 +81,6 @@ end
 local cols = {}
 local lastcol
 local function addToken(tokenname, tokendata)
-	if tokendata == "+" or tokendata == "..." then print(tokendata) debug.Trace() end
 	local color = colors[tokenname]
 	if lastcol and color == lastcol[2] then
 		lastcol[1] = lastcol[1] .. tokendata
