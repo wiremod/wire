@@ -262,6 +262,16 @@ function Compiler:GetMethod(instr, Name, Meta, Args)
 
 	if not Func then
 		Func = self:UDFunction(Name .. "(" .. Params .. ")")
+
+		if not Func then
+			for I = #Params, 0, -1 do
+				local sig = Name .. "(" .. Params:sub(1, I) .. "..r)"
+				if self.funcs_ret[sig] then
+					Func = self:UDFunction(sig)
+					break
+				end
+			end
+		end
 	end
 
 	if not Func then
