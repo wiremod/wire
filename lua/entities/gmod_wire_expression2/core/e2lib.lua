@@ -385,6 +385,12 @@ function E2Lib.printops()
 	print("}")
 end
 
+E2Lib.blocked_array_types = {
+	["t"] = true,
+	["r"] = true,
+	["xgt"] = true
+}
+
 -- ------------------------------ string stuff ---------------------------------
 
 -- limits the given string to the given length and adds "..." to the end if too long.

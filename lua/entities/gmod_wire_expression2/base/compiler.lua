@@ -9,6 +9,8 @@ E2Lib.Compiler = {}
 local Compiler = E2Lib.Compiler
 Compiler.__index = Compiler
 
+local BLOCKED_ARRAY_TYPES = E2Lib.blocked_array_types
+
 function Compiler.Execute(...)
 	-- instantiate Compiler
 	local instance = setmetatable({}, Compiler)
@@ -793,7 +795,9 @@ function Compiler:InstrFUNCTION(args)
 
 		local parameterValues = {}
 		if IsVariadic then
-			for parameterIndex = 2, #Args do
+			local nargs = #Args
+
+			for parameterIndex = 2, nargs do
 				local parameterExpression = runtimeArgs[parameterIndex]
 				local parameterValue = parameterExpression[1](self, parameterExpression)
 				parameterValues[parameterIndex - 1] = parameterValue
@@ -801,8 +805,15 @@ function Compiler:InstrFUNCTION(args)
 
 			-- Construct array here w/ dynamic values
 			local arr, len = {}, 1
+			local types = runtimeArgs[#runtimeArgs]
 
-			for parameterIndex = #Args + 1, #runtimeArgs - 1 do
+			for parameterIndex = nargs + 1, #runtimeArgs - 1 do
+				local ty = types[nargs - 1 + len]
+				if BLOCKED_ARRAY_TYPES[ty] then
+					self:throw("Cannot use type " .. tps_pretty(ty) .. " as an argument for variadic array function", nil)
+					break
+				end
+
 				local parameterExpression = runtimeArgs[parameterIndex]
 				local parameterValue = parameterExpression[1](self, parameterExpression)
 
@@ -811,7 +822,7 @@ function Compiler:InstrFUNCTION(args)
 			end
 
 			-- Final value is an array for variadic functions
-			parameterValues[#Args] = arr
+			parameterValues[nargs] = arr
 		else
 			for parameterIndex = 2, #Args + 1 do
 				local parameterExpression = runtimeArgs[parameterIndex]
