@@ -666,6 +666,11 @@ function Parser:Stmt10()
 
 		if wire_expression2_funcs[Sig] then self:Error("Function '" .. Sig .. "' already exists") end
 
+		-- Variadic signatures for lua created functions are ..., while user defined ones use ..<t>.
+		-- Check if ... functions exist as to not essentially override them
+		local lua_variadic_sig = string.gsub(Sig, "%.%.[rt]", "...")
+		if wire_expression2_funcs[lua_variadic_sig] then self:Error("Can't override function " .. lua_variadic_sig .. " with user defined variadic function " .. Sig) end
+
 		local Inst = self:Instruction(Trace, "function", Sig, Return, Type, Args, self:Block("function declaration"))
 
 		return Inst
