@@ -221,6 +221,7 @@ function ENT:OnRemove()
 		self.removing = true
 		self:PCallHook('destruct')
 	end
+	BaseClass.OnRemove(self)
 end
 
 function ENT:PCallHook(...)
