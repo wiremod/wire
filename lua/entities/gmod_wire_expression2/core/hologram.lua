@@ -900,6 +900,42 @@ e2function vector holoBoneScale(index, string bone)
 	return Holo.bone_scale[boneindex] or {1,1,1}
 end
 
+e2function vector holoBonePos(index, boneindex)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return {0,0,0} end
+	if not CheckBone(self, index, boneindex, Holo) then return {0,0,0} end
+	
+	return Holo.ent:GetBoneMatrix(boneindex):GetTranslation()
+end
+
+
+e2function vector holoBonePos(index, string bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
+
+	local boneindex = Holo.ent:LookupBone(bone)
+	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", {0,0,0}) end
+	return Holo.ent:GetBoneMatrix(boneindex):GetTranslation()
+end
+
+e2function angle holoBoneAng(index, boneindex)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return {0,0,0} end
+	if not CheckBone(self, index, boneindex, Holo) then return {0,0,0} end
+	
+	return Holo.ent:GetBoneMatrix(boneindex):GetAngles()
+end
+
+
+e2function angle holoBoneAng(index, string bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
+
+	local boneindex = Holo.ent:LookupBone(bone)
+	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", {0,0,0}) end
+	return Holo.ent:GetBoneMatrix(boneindex):GetAngles()
+end
+
 -- -----------------------------------------------------------------------------
 
 __e2setcost(1)
