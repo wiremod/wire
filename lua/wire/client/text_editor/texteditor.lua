@@ -3226,7 +3226,6 @@ function EDITOR:SkipPattern(pattern)
     local position_byte = utf8.offset(self.line, self.position - 1)
 
     local startpos_byte,endpos_byte,text = string.find(self.line, pattern, position_byte)
-    print(startpos_byte, endpos_byte, text)
 
     if startpos_byte == nil or endpos_byte <= 0 then return nil end
 
