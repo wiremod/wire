@@ -1468,8 +1468,6 @@ end
 
 function EDITOR:FindAllWords( str )
     if str == "" then return end
-    print("FindAllWords (",str,")")
-
 
     local txt = self:GetValue()
     -- %f[set] is a 'frontier' pattern - it matches an empty string at a position such that the
@@ -3199,7 +3197,7 @@ function EDITOR:ResetTokenizer(row)
 end
 
 function EDITOR:NextCharacter()
-    --MsgN("NextCharacter(),\tline '",utf8_sub(self.line, self.position),"'")
+    MsgN("NextCharacter(),\tline '",self.line,"'")
     if not self.character then return end
 
     self.tokendata = self.tokendata .. self.character
@@ -3210,11 +3208,11 @@ function EDITOR:NextCharacter()
     else
         self.character = nil
     end
-    --MsgN("\t->'",self.tokendata,"'-'",self.character,"'")
+    MsgN("\t->Tk'",self.tokendata,"' Ch'",self.character,"'")
 end
 
 function EDITOR:SkipPattern(pattern)
-    --MsgN("SkipPattern(", pattern,"),\tline '",utf8_sub(self.line, self.position),"'")
+    MsgN("SkipPattern(", pattern,"),\tline '",self.line,"'")
 
     if not self.character then return nil end
 
@@ -3222,21 +3220,24 @@ function EDITOR:SkipPattern(pattern)
     local position_byte = utf8.offset(self.line, self.position - 1)
 
     local startpos_byte,endpos_byte,text = string.find(self.line, pattern, position_byte)
+    print(startpos_byte, endpos_byte, text)
 
-    if startpos_byte == nil then return nil end
+    if startpos_byte == nil or endpos_byte <= 0 then return nil end
 
-    if endpos_byte < startpos_byte then
-        endpos_byte = startpos_byte
-    end
+    --[[
+    if endpos_byte <= 0  then
+        endpos_byte = 1
+    end]]
 
     local startpos = utf8_bytepos_to_charindex(self.line, startpos_byte)
     local endpos = utf8_bytepos_to_charindex(self.line, endpos_byte)
 
     if startpos ~= self.position then return nil end
 
-    if not text then
+    -- If pattern has no capture group,
+    -- use complete string matched by pattern
+    if text == nil then
         local buf = utf8_sub(self.line, startpos, endpos)
-        --MsgN("\t'",text,"'->'",buf,"'")
         text = buf
     end
 
@@ -3246,12 +3247,12 @@ function EDITOR:SkipPattern(pattern)
     else
         self.character = nil
     end
-    --MsgN("\t->'",text,"'-'",self.character,"'")
+    MsgN("\t->Tx'",text,"' Ch'",self.character,"'")
     return text
 end
 
 function EDITOR:NextPattern(pattern)
-    --MsgN("NextPattern(", pattern,"),\tline '",utf8_sub(self.line, self.position),"'")
+    MsgN("NextPattern")
 
     local matched = self:SkipPattern(pattern)
     if matched == nil then return false end

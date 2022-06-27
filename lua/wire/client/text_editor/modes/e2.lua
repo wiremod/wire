@@ -201,7 +201,7 @@ function EDITOR:SyntaxColorLine(row)
 	local cols,lastcol = {}, nil
 
 	local function addToken(tokenname, tokendata)
-		--MsgN("addToken(",tokenname,")\t'",tokendata,"'\n\n")
+		MsgN("addToken(",tokenname,")\t'",tokendata,"'\n\n")
 
 		local color = colors[tokenname]
 		if lastcol and color == lastcol[2] then
@@ -509,6 +509,7 @@ function EDITOR:SyntaxColorLine(row)
 			end
 		-- String literal
 		elseif self.character == '"' then
+			print("String literal found")
 			self:NextCharacter()
 			local tokenname = ""
 			while self.character do -- Find the ending "
@@ -526,6 +527,8 @@ function EDITOR:SyntaxColorLine(row)
 			else
 				self:NextCharacter()
 			end
+
+			addToken(tokenname, self.tokendata)
 		-- Single-line or multiline comment
 		elseif self.character == "#" then
 			local tokenname = ""
@@ -551,7 +554,9 @@ function EDITOR:SyntaxColorLine(row)
 				end
 			end
 
-			if tokenname == "" then
+			if tokenname ~= "" then
+				addToken(tokenname, self.tokendata)
+			else
 
 				self:NextPattern("[^ ]*") -- Find the whole word
 
