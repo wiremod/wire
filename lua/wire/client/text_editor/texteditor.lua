@@ -40,7 +40,7 @@ local utf8_codepoint = utf8.codepoint
 local utf8_char = utf8.char
 
 local function utf8_bytepos_to_charindex(string, bytepos)
-    assert(bytepos >= 1)
+    assert(bytepos >= 1, 'bytepos is negative or zero')
     local char_index = 0
     for char_start, _ in utf8_codes(string) do
         if char_start > bytepos then
@@ -1302,7 +1302,7 @@ function EDITOR:Find( str, looped )
         temptext = temptext:lower()
         str = str:lower()
     end
-    local _start,_stop = temptext:find( str, 1, not use_patterns )
+    local _start,_stop = string.find(temptext, str, 1, not use_patterns )
     if not _start or not _stop then return false end
 
     if dir then -- Down
@@ -1319,7 +1319,7 @@ function EDITOR:Find( str, looped )
             str = "%f[%w_]" .. str .. "%f[^%w_]"
         end
 
-        local start, stop = text:find(str, 2)
+        local start, stop = string.find(text, str, 2)
         if start and stop then
             start = utf8_bytepos_to_charindex(text, start)
             stop = utf8_bytepos_to_charindex(text, stop)
@@ -1351,7 +1351,7 @@ function EDITOR:Find( str, looped )
             str = "%f[%w_]" .. str .. "%f[^%w_]"
         end
 
-        local start, stop = text:find(str, 2)
+        local start, stop = string.find(text, str, 2)
         if start and stop then
             start = utf8_bytepos_to_charindex(text, start)
             stop = utf8_bytepos_to_charindex(text, stop)
@@ -1481,6 +1481,8 @@ function EDITOR:FindAllWords( str )
 
     local ret = {}
     for start,stop in string_gmatch(txt, pattern) do
+        start = utf8_bytepos_to_charindex(txt, start)
+        stop = utf8_bytepos_to_charindex(txt, stop)
         ret[#ret+1] = { start, stop }
     end
 
@@ -1998,7 +2000,7 @@ function EDITOR:ContextHelp()
         end
 
         -- TODO substitute this for getWordEnd, if it fits.
-        local _,endcol = line:find("[^a-zA-Z0-9_]", col)
+        local _,endcol = string.find(line, "[^a-zA-Z0-9_]", col)
         if endcol ~= nil then
             endcol = utf8_bytepos_to_charindex(line, endcol) - 1
         else
@@ -2161,6 +2163,7 @@ function EDITOR:_OnKeyCodeTyped(code)
                 if self:AC_Use( self.AC_Suggestions[1] ) then return end
             end
             local row = utf8_sub(self.Rows[self.Caret[1]], 1,self.Caret[2]-1)
+            -- TODO row:find
             local diff = (row:find("%S") or (utf8_len(row)+1))-1
             local tabs = string_rep("    ", math_floor(diff / 4))
             if GetConVarNumber('wire_expression2_autoindent') ~= 0 then
@@ -2215,7 +2218,7 @@ function EDITOR:_OnKeyCodeTyped(code)
             self:SetCaret(self.Caret)
         elseif code == KEY_HOME then
             local row = self.Rows[self.Caret[1]]
-            local first_char = row:find("%S")
+            local first_char = string.find(row, "%S")
             if first_char ~= nil then
                 first_char = utf8_bytepos_to_charindex(row, first_char)
             else
@@ -2281,7 +2284,7 @@ function EDITOR:_OnKeyCodeTyped(code)
                 local newpos = self.Caret[2]-4
                 if newpos < 1 then newpos = 1 end
                 self.Start = { self.Caret[1], newpos }
-                if self:GetSelection():find("%S") then
+                if string.find(self:GetSelection(), "%S") then
                     -- TODO: what to do if shift-tab is pressed within text?
                     self.Start = self:CopyPosition(self.Caret)
                 else
@@ -3188,14 +3191,15 @@ end
 
 function EDITOR:ResetTokenizer(row)
     self.line = self.Rows[row]
-    self.position = 0
-    self.character = ""
-    self.tokendata = ""
+    self.position = 0 -- Position at current line (in codepoints)
+    self.character = "" -- Current character (at self.position)
+    self.tokendata = "" -- Currently-grabbed part of string
 
     self:DoAction("ResetTokenizer", row)
 end
 
 function EDITOR:NextCharacter()
+    --MsgN("NextCharacter(),\tline '",utf8_sub(self.line, self.position),"'")
     if not self.character then return end
 
     self.tokendata = self.tokendata .. self.character
@@ -3206,19 +3210,35 @@ function EDITOR:NextCharacter()
     else
         self.character = nil
     end
+    --MsgN("\t->'",self.tokendata,"'-'",self.character,"'")
 end
 
 function EDITOR:SkipPattern(pattern)
-    -- TODO: share code with NextPattern
+    --MsgN("SkipPattern(", pattern,"),\tline '",utf8_sub(self.line, self.position),"'")
+
     if not self.character then return nil end
-    local startpos,endpos,text = self.line:find(pattern, self.position)
+
+
+    local position_byte = utf8.offset(self.line, self.position - 1)
+
+    local startpos_byte,endpos_byte,text = string.find(self.line, pattern, position_byte)
+
+    if startpos_byte == nil then return nil end
+
+    if endpos_byte < startpos_byte then
+        endpos_byte = startpos_byte
+    end
+
+    local startpos = utf8_bytepos_to_charindex(self.line, startpos_byte)
+    local endpos = utf8_bytepos_to_charindex(self.line, endpos_byte)
 
     if startpos ~= self.position then return nil end
-    local buf = self.line:sub(startpos, endpos)
-    if not text then text = buf end
 
-    --self.tokendata = self.tokendata .. text
-
+    if not text then
+        local buf = utf8_sub(self.line, startpos, endpos)
+        --MsgN("\t'",text,"'->'",buf,"'")
+        text = buf
+    end
 
     self.position = endpos + 1
     if self.position <= utf8_len(self.line) then
@@ -3226,26 +3246,18 @@ function EDITOR:SkipPattern(pattern)
     else
         self.character = nil
     end
+    --MsgN("\t->'",text,"'-'",self.character,"'")
     return text
 end
 
 function EDITOR:NextPattern(pattern)
-    if not self.character then return false end
-    local startpos,endpos,text = self.line:find(pattern, self.position)
+    --MsgN("NextPattern(", pattern,"),\tline '",utf8_sub(self.line, self.position),"'")
 
-    if startpos ~= self.position then return false end
-    local buf = self.line:sub(startpos, endpos)
-    if not text then text = buf end
+    local matched = self:SkipPattern(pattern)
+    if matched == nil then return false end
 
-    self.tokendata = self.tokendata .. text
+    self.tokendata = self.tokendata .. matched
 
-
-    self.position = endpos + 1
-    if self.position <= utf8_len(self.line) then
-        self.character = utf8_GetChar(self.line, self.position)
-    else
-        self.character = nil
-    end
     return true
 end
 
@@ -3268,7 +3280,8 @@ function EDITOR:SetSyntaxColor(name, color)
 end
 
 function EDITOR:SyntaxColorLine(row)
-    return self:DoAction("SyntaxColorLine", row)
+    local line_markup = self:DoAction("SyntaxColorLine", row)
+    return line_markup
 end
 
 -- register editor panel
