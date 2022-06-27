@@ -3197,7 +3197,7 @@ function EDITOR:ResetTokenizer(row)
 end
 
 function EDITOR:NextCharacter()
-    MsgN("NextCharacter(),\tline '",self.line,"'")
+    --MsgN("NextCharacter(),\tline '",self.line,"'")
     if not self.character then return end
 
     self.tokendata = self.tokendata .. self.character
@@ -3208,11 +3208,11 @@ function EDITOR:NextCharacter()
     else
         self.character = nil
     end
-    MsgN("\t->Tk'",self.tokendata,"' Ch'",self.character,"'")
+    --MsgN("\t->Tk'",self.tokendata,"' Ch'",self.character,"'")
 end
 
 function EDITOR:SkipPattern(pattern)
-    MsgN("SkipPattern(", pattern,"),\tline '",self.line,"'")
+    --MsgN("SkipPattern(", pattern,"),\tline '",self.line,"'")
 
     if not self.character then return nil end
 
@@ -3247,12 +3247,12 @@ function EDITOR:SkipPattern(pattern)
     else
         self.character = nil
     end
-    MsgN("\t->Tx'",text,"' Ch'",self.character,"'")
+    --MsgN("\t->Tx'",text,"' Ch'",self.character,"'")
     return text
 end
 
 function EDITOR:NextPattern(pattern)
-    MsgN("NextPattern")
+    --MsgN("NextPattern")
 
     local matched = self:SkipPattern(pattern)
     if matched == nil then return false end
