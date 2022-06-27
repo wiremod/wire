@@ -60,11 +60,17 @@ end)
 /******************************************************************************/
 
 registerOperator("ass", "xv2", "xv2", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
+	local lhs, op2, scope = args[2], args[3], args[4]
+	local      rhs = op2[1](self, op2)
+
+	local Scope = self.Scopes[scope]
+	local lookup = Scope.lookup
+	if !lookup then lookup = {} Scope.lookup = lookup end
+	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
+
+	Scope[lhs] = rhs
+	Scope.vclk[lhs] = true
+	return rhs
 end)
 
 /******************************************************************************/
@@ -167,6 +173,7 @@ end
 
 e2function number vector2:operator[](index, value)
 	this[floor(math.Clamp(index, 1, 2) + 0.5)] = value
+	self.GlobalScope.vclk[this] = true
 	return value
 end
 
@@ -604,11 +611,17 @@ end)
 /******************************************************************************/
 
 registerOperator("ass", "xv4", "xv4", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
+	local lhs, op2, scope = args[2], args[3], args[4]
+	local      rhs = op2[1](self, op2)
+
+	local Scope = self.Scopes[scope]
+	local lookup = Scope.lookup
+	if !lookup then lookup = {} Scope.lookup = lookup end
+	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
+
+	Scope[lhs] = rhs
+	Scope.vclk[lhs] = true
+	return rhs
 end)
 
 /******************************************************************************/
@@ -717,6 +730,7 @@ end
 
 e2function number vector4:operator[](index, value)
 	this[floor(math.Clamp(index, 1, 4) + 0.5)] = value
+	self.GlobalScope.vclk[this] = true
 	return value
 end
 

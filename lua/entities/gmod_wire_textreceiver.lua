@@ -79,6 +79,14 @@ local string_lower = string.lower
 local string_match = string.match
 
 function ENT:PcallFind( text, match )
+	if self.UseLuaPatterns then
+		local ok,err = pcall(function() WireLib.CheckRegex(text, match) end)
+		if not ok then
+			self.PatternError = err
+			return false
+		end
+	end
+	
 	local ok, ret = pcall( string_find, text, match, 1, not self.UseLuaPatterns )
 
 	if ok == true then
@@ -93,6 +101,12 @@ function ENT:AddError( err, idx )
 end
 
 function ENT:PcallMatch( text, match, idx )
+	local ok,err = pcall(function() WireLib.CheckRegex(text, match) end)
+	if not ok then
+		self:AddError( err, idx )
+		return {}
+	end
+
 	local ret = { pcall( string_match, text, match ) }
 
 	if ret[1] == true then

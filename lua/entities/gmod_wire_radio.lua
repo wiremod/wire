@@ -95,7 +95,7 @@ function ENT:Setup(channel,values,secure)
 	self.Outputs = WireLib.CreateOutputs(self,onames)
 
 	self.Steamid = self:GetPlayer():SteamID()
-	self:Register(self, self.Channel)
+	self:Register(self.Channel)
 end
 
 function ENT:TriggerInput(iname, value)

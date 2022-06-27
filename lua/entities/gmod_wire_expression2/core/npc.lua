@@ -133,7 +133,7 @@ e2function void entity:npcRelationship(string rv2, string rv3, rv4)
 	if not isOwner(self, this) then return self:throw("You do not own this NPC!") end
 
 	local target = rv2
-	local disp = npc_disp_str[rv3]
+	local disp = NPC_DISP_STR[rv3]
 	local prior = math.floor( rv4 / 10 )
 	local input = string.format("%s %s %s", target, disp, prior)
 	if disp == "D_ER" then return end

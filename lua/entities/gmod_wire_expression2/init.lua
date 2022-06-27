@@ -111,6 +111,7 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateInputs(self, {})
 	self.Outputs = WireLib.CreateOutputs(self, {})
 
+	self.error = true
 	self:UpdateOverlay(true)
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
 end
@@ -220,6 +221,7 @@ function ENT:OnRemove()
 		self.removing = true
 		self:PCallHook('destruct')
 	end
+	BaseClass.OnRemove(self)
 end
 
 function ENT:PCallHook(...)
@@ -348,7 +350,7 @@ function ENT:ResetContext()
 
 	local context = {
 		data = {},
-		vclk = {}, -- Used only by arrays and tables!
+		vclk = {},
 		funcs = self.funcs,
 		funcs_ret = self.funcs_ret,
 		entity = self,
@@ -630,12 +632,11 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 		self.buffer = buffer
 		self:SetOverlayText(name)
 
-		self.inc_files = inc_files or {}
-
 		self.Inputs = WireLib.AdjustSpecialInputs(self, inputs[1], inputs[2])
 		self.Outputs = WireLib.AdjustSpecialOutputs(self, outputs[1], outputs[2])
 
-		self.dupevars = vars
+		self.inc_files = inc_files or {}
+		self.dupevars = vars or {}
 
 		self.filepath = filepath
 	else

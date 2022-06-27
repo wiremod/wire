@@ -67,11 +67,9 @@ function TOOL:LeftClick_Update( trace )
 
 		-- Set the new references
 		const.MyCrtl = trace.Entity:EntIndex()
-		trace.Entity:SetConstraint( const )
+		trace.Entity:SetConstraint( const, rope )
 		trace.Entity:DeleteOnRemove( const )
-
 		if rope then
-			trace.Entity:SetRope( rope )
 			trace.Entity:DeleteOnRemove( rope )
 		end
 	end
