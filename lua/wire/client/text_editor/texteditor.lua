@@ -2160,9 +2160,15 @@ function EDITOR:_OnKeyCodeTyped(code)
             if mode == AC_STYLE_ECLIPSE and self.AC_HasSuggestions and self.AC_Suggestions[1] and self.AC_Panel and self.AC_Panel:IsVisible() then
                 if self:AC_Use( self.AC_Suggestions[1] ) then return end
             end
+
             local row = utf8_sub(self.Rows[self.Caret[1]], 1,self.Caret[2]-1)
-            -- TODO row:find
-            local diff = (row:find("%S") or (utf8_len(row)+1))-1
+            local diff = string.find(row, "%S")
+            if diff ~= nil then
+                diff = utf8_bytepos_to_charindex(row, diff) - 1
+            else
+                diff = utf8_len(row)
+            end
+
             local tabs = string_rep("    ", math_floor(diff / 4))
             if GetConVarNumber('wire_expression2_autoindent') ~= 0 then
                 local row = string_gsub(row,'%b""',"") -- erase strings on this line
