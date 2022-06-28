@@ -41,10 +41,11 @@ local function getWhitelist(ply, cvar)
 	local whitelist = (ply:GetInfo(cvar) or ""):Trim()
 
 	local whitelistTbl = {}
-	if whitelist == "" then return whitelistTbl end
 
 	for k, v in pairs(string.Split(whitelist, ",")) do
-		whitelistTbl[v] = true
+		if v~="" then
+			whitelistTbl[v] = true
+		end
 	end
 
 	return whitelistTbl
