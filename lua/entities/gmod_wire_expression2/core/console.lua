@@ -35,18 +35,19 @@ local function tokenizeAndGetCommands(str)
 	return commands
 end
 
----@param cmd_var "cmd"|"var"
----@return boolean override # Whether the user set their whitelist to "" (allow everything)
----@return table whitelist # Whitelist for specific commands otherwise.
-local function getWhitelist(ply, cmd_var)
-	local whitelist = (ply:GetInfo("wire_expression2_con" .. cmd_var .. "_whitelist") or ""):Trim()
-	if whitelist == "" then return true end
+---@param cvar "wire_expression2_concmd_whitelist"|"wire_expression2_convar_whitelist"
+---@return table whitelist # Whitelist for specific commands, if empty, disregard whitelist and allow everything
+local function getWhitelist(ply, cvar)
+	local whitelist = (ply:GetInfo(cvar) or ""):Trim()
 
 	local whitelistTbl = {}
+	if whitelist == "" then return whitelistTbl end
+
 	for k, v in pairs(string.Split(whitelist, ",")) do
 		whitelistTbl[v] = true
 	end
-	return false, whitelistTbl
+
+	return whitelistTbl
 end
 
 local function checkConCmd(self, cmd)
@@ -59,8 +60,8 @@ local function checkConCmd(self, cmd)
 	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return self:throw("Concmd is disabled through wire_expression2_concmd", false) end
 	if IsConCommandBlocked(command) then return self:throw("This concmd is blacklisted by gmod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
 
-	local override, whitelist = getWhitelist(ply, "cmd")
-	if override then return true end
+	local whitelist = getWhitelist(ply, "wire_expression2_concmd_whitelist")
+	if table.IsEmpty(whitelist) then return true end
 
 	local commands = tokenizeAndGetCommands(cmd)
 	for _, command in pairs(commands) do
@@ -80,8 +81,8 @@ local function checkConVar(self, var)
 	if ply:GetInfoNum("wire_expression2_convar", 0) == 0 then return self:throw("Convar is disabled through wire_expression2_convar", false) end
 	var = var:match("%s*([%w_]+)%s*")
 
-	local override, whitelist = getWhitelist(ply, "var")
-	if override then return true end
+	local whitelist = getWhitelist(ply, "wire_expression2_convar_whitelist")
+	if table.IsEmpty(whitelist) then return true end
 
 	if whitelist[var] == nil then return self:throw("Convar '" .. var .. "' is not whitelisted w/ wire_expression2_convar_whitelist ", false) end
 	return true
