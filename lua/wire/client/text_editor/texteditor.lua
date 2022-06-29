@@ -39,48 +39,11 @@ local utf8_codes = utf8.codes
 local utf8_codepoint = utf8.codepoint
 local utf8_char = utf8.char
 
-local function utf8_bytepos_to_charindex(string, bytepos)
-	assert(bytepos >= 1, 'bytepos is negative or zero')
-	local char_index = 0
-	for char_start, _ in utf8_codes(string) do
-		if char_start > bytepos then
-			return char_index
-		end
+local utf8_len = utf8.len_checked
+local utf8_bytepos_to_charindex = utf8.bytepos_to_charindex
+local utf8_reverse = utf8.reverse
 
-		char_index = char_index + 1
-	end
 
-	return char_index
-end
-
-local function table_reverse_inplace(tbl)
-	local count = #tbl
-	local reverse_count = math_floor(count / 2)
-
-	for i = 1, reverse_count do
-		local temp = tbl[i]
-		tbl[i] = tbl[count + 1 - i]
-		tbl[count + 1 - i] = temp
-	end
-end
-
--- Not so optimal, probably
--- Not handles grapheme clusters
-local function utf8_reverse(str)
-	local codepoints = { utf8_codepoint(str, 1, -1) }
-	table_reverse_inplace(codepoints)
-	return utf8_char(unpack(codepoints))
-end
-
-local utf8_len = function(str, startpos, endpos)
-	local len, error = utf8.len(str, startpos, endpos)
-
-	if len == false then
-		error("String has non-UTF-8 byte at "..tostring(error).." \n String: "..str)
-	end
-
-	return len
-end
 
 WireTextEditor = { Modes = {} }
 include("modes/e2.lua")

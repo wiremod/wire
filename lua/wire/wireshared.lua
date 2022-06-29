@@ -11,6 +11,12 @@ local Entity = Entity
 local string = string
 local hook = hook
 
+local utf8_codes = utf8.codes
+local math_floor = math.floor
+local utf8_codepoint = utf8.codepoint
+local utf8_char = utf8.char
+local utf8_len = utf8.len
+
 -- extra table functions
 
 -- Returns a noniterable version of tbl. So indexing still works, but pairs(tbl) won't find anything
@@ -74,6 +80,52 @@ function string.GetNormalizedFilepath( path ) -- luacheck: ignore
 	end
 	return table.concat(tbl, "/")
 end
+
+
+function utf8.bytepos_to_charindex(string, bytepos)
+	assert(bytepos >= 1, 'bytepos is negative or zero')
+	local char_index = 0
+	for char_start, _ in utf8_codes(string) do
+		if char_start > bytepos then
+			return char_index
+		end
+
+		char_index = char_index + 1
+	end
+
+	return char_index
+end
+
+function table.reverse_inplace(tbl)
+	local count = #tbl
+	local reverse_count = math_floor(count / 2)
+
+	for i = 1, reverse_count do
+		local temp = tbl[i]
+		tbl[i] = tbl[count + 1 - i]
+		tbl[count + 1 - i] = temp
+	end
+end
+
+-- Not so optimal, probably
+-- Not handles grapheme clusters
+function utf8.reverse(str)
+	local codepoints = { utf8_codepoint(str, 1, -1) }
+	table.reverse_inplace(codepoints)
+	return utf8_char(unpack(codepoints))
+end
+
+function utf8.len_checked(str, startpos, endpos)
+	local len, error = utf8.len(str, startpos, endpos)
+
+	if len == false then
+		error("String has non-UTF-8 byte at "..tostring(error).." \n String: "..str)
+	end
+
+	return len
+end
+
+
 
 -- works like pairs() except that it iterates sorted by keys.
 -- criterion is optional and should be a function(a,b) returning whether a is less than b. (same as table.sort's criterions)

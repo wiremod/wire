@@ -18,15 +18,9 @@ local utf8_GetChar = utf8.GetChar
 local utf8_codes = utf8.codes
 local utf8_char = utf8.char
 
-local utf8_len = function(str, startpos, endpos)
-	local len, error = utf8.len(str, startpos, endpos)
-
-	if len == false then
-		error("String has non-UTF-8 byte at "..tostring(error).." \n String: "..str)
-	end
-
-	return len
-end
+local utf8_len = utf8.len_checked
+local utf8_bytepos_to_charindex = utf8.bytepos_to_charindex
+local utf8_reverse = utf8.reverse
 
 ---------------------------------------------------------------------------------------------------------
 -- Auto Completion

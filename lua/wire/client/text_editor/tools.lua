@@ -34,6 +34,10 @@ local utf8_codes = utf8.codes
 local utf8_codepoint = utf8.codepoint
 local utf8_char = utf8.char
 
+local utf8_len = utf8.len_checked
+local utf8_bytepos_to_charindex = utf8.bytepos_to_charindex
+local utf8_reverse = utf8.reverse
+
 -----------------------------------------------------------------
 
 local EDITOR = vgui.GetControlTable("Expression2Editor")
