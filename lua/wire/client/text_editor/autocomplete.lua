@@ -28,7 +28,11 @@ local utf8_len = function(str, startpos, endpos)
 	return len
 end
 
------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+-- Auto Completion
+-- By Divran
+-- Sligthly refactored by stpM64
+---------------------------------------------------------------------------------------------------------
 
 
 local wire_expression2_autocomplete_controlstyle = CreateClientConVar( "wire_expression2_autocomplete_controlstyle", "0", true, false )
