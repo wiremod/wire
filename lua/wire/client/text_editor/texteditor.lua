@@ -140,6 +140,7 @@ function EDITOR:Init()
 	}
 end
 
+-- TODO: cache me
 local function GetCharPosInLine(self, row, search_index)
 	local char_index = 1
 	local char_pos = 0
@@ -519,6 +520,7 @@ function EDITOR:PaintLineSelection(row)
 
 	local row_text = self.Rows[row]
 
+	-- TODO: realy slow due to utf8_sub!
 	local char_start_pos
 	if line_start == row then -- This line contains start of the selection
 		char_start_pos = surface_GetTextSize(utf8_sub(row_text, 1, char_start_i - 1))
@@ -607,6 +609,7 @@ function EDITOR:PaintLine(row)
 
 		if offset > -text_width then
 			if offset < 0 then
+				-- TODO: replace with string.sub, cache offset
 				text = utf8_sub(text, 1 - (offset / self.FontWidth))
 				text_width = surface_GetTextSize(text)
 				offset = 0
