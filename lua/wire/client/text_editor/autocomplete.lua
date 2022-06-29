@@ -1,71 +1,22 @@
-local string_Explode = string.Explode
-local table_concat = table.concat
-local table_remove = table.remove
 local table_ForceInsert = table.ForceInsert
-local math_floor = math.floor
-local math_Clamp = math.Clamp
-local math_ceil = math.ceil
 local string_gmatch = string.gmatch
-local string_gsub = string.gsub
-local string_rep = string.rep
 local string_byte = string.byte
-local string_format = string.format
-local string_Trim = string.Trim
 local string_lower = string.lower
 local string_upper = string.upper
 local string_PatternSafe = string.PatternSafe
 local math_min = math.min
-local table_insert = table.insert
 local table_sort = table.sort
 local surface_SetDrawColor = surface.SetDrawColor
 local surface_DrawRect = surface.DrawRect
 local surface_SetFont = surface.SetFont
 local surface_GetTextSize = surface.GetTextSize
-local surface_PlaySound = surface.PlaySound
 local surface_SetTextPos = surface.SetTextPos
 local surface_SetTextColor = surface.SetTextColor
 local surface_DrawText = surface.DrawText
-local draw_SimpleText = draw.SimpleText
-local draw_WordBox = draw.WordBox
-local draw_RoundedBox = draw.RoundedBox
 local utf8_sub = utf8.sub
 local utf8_GetChar = utf8.GetChar
 local utf8_codes = utf8.codes
-local utf8_codepoint = utf8.codepoint
 local utf8_char = utf8.char
-
-local function utf8_bytepos_to_charindex(string, bytepos)
-	assert(bytepos >= 1, 'bytepos is negative or zero')
-	local char_index = 0
-	for char_start, _ in utf8_codes(string) do
-		if char_start > bytepos then
-			return char_index
-		end
-
-		char_index = char_index + 1
-	end
-
-	return char_index
-end
-
-local function table_reverse_inplace(tbl)
-	local count = #tbl
-	local reverse_count = math_floor(count / 2)
-
-	for i = 1, reverse_count do
-		local temp = tbl[i]
-		tbl[i] = tbl[count + 1 - i]
-		tbl[count + 1 - i] = temp
-	end
-end
-
--- Not so optimal, probably
--- Not handles grapheme clusters
-local function utf8_reverse(str)
-	local codepoints = { utf8_codepoint(str, 1, -1) }
-	table_reverse_inplace(codepoints)
-	return utf8_char(unpack(codepoints))
-end
 
 local utf8_len = function(str, startpos, endpos)
 	local len, error = utf8.len(str, startpos, endpos)
