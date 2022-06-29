@@ -59,6 +59,7 @@ if SERVER then
 
 	-- text editor
 	AddCSLuaFile("wire/client/text_editor/texteditor.lua")
+	AddCSLuaFile("wire/client/text_editor/autocomplete.lua")
 	AddCSLuaFile("wire/client/text_editor/wire_expression2_editor.lua")
 	AddCSLuaFile("wire/client/text_editor/modes/e2.lua")
 	AddCSLuaFile("wire/client/text_editor/modes/zcpu.lua")
