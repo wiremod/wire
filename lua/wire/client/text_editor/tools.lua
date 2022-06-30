@@ -37,6 +37,7 @@ local utf8_char = utf8.char
 local utf8_len = utf8.len_checked
 local utf8_bytepos_to_charindex = utf8.bytepos_to_charindex
 local utf8_reverse = utf8.reverse
+local table_reverse_inplace = table.reverse_inplace
 
 -----------------------------------------------------------------
 
@@ -46,24 +47,33 @@ assert(EDITOR ~= nil)
 --------------------------------- Key handling
 
 function EDITOR:Tool_HandleKey(code, control, shift, alt)
+	if alt then return false end
+
 	if control and code == KEY_F then
 		self:OpenFindWindow( "find" )
-	elseif control and code == KEY_H then
+		return true
+	elseif control and not shift and code == KEY_H then
 		self:OpenFindWindow( "find and replace" )
+		return true
 	elseif control and code == KEY_G then
 		self:OpenFindWindow( "go to line" )
+		return true
+	elseif control and shift and code == KEY_H then
+		self:ContextHelp()
+		return true
 	elseif control and code == KEY_K then
 		self:CommentSelection(shift)
+		return true
 	elseif control and code == KEY_L then
 		self.Start = { self.Start[1], 1 }
 		self.Caret = { self.Start[1] + 1, 1 }
 
 		if not shift then self:Copy() end
 		self:SetSelection("")
+		return true
 	elseif control and code == KEY_D then
 		self:DuplicateLine()
-	elseif not control and code == KEY_F1 then
-		self:ContextHelp()	
+		return true
 	elseif code == KEY_TAB or (control and (code == KEY_I or code == KEY_O)) then
 		if code == KEY_O then shift = not shift end
 		if code == KEY_TAB and control then shift = not shift end
@@ -88,8 +98,7 @@ function EDITOR:Tool_HandleKey(code, control, shift, alt)
 		end
 		-- signal that we want our focus back after (since TAB normally switches focus)
 		if code == KEY_TAB then self.TabFocus = true end
-	else
-		return false
+		return true
 	end
 end
 

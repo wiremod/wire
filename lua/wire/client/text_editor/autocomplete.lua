@@ -836,6 +836,7 @@ end
 --------------------------------------------------------
 
 function EDITOR:AC_HandleKey(keycode, control, shift, alt)
+	if alt then return end
 	if not self.AC_Panel or not self.AC_Panel:IsVisible() then return end
 
 	local mode = wire_expression2_autocomplete_controlstyle:GetInt()

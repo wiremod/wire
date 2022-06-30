@@ -899,7 +899,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 	self.Blink = RealTime()
 
 	local alt = input.IsKeyDown(KEY_LALT) or input.IsKeyDown(KEY_RALT)
-	if alt then return end
+	
 
 	local shift = input.IsKeyDown(KEY_LSHIFT) or input.IsKeyDown(KEY_RSHIFT)
 	local control = input.IsKeyDown(KEY_LCONTROL) or input.IsKeyDown(KEY_RCONTROL)
@@ -915,10 +915,12 @@ function EDITOR:_OnKeyCodeTyped(code)
 		return
 	end
 
-	if self:Tool_HandleKey(code, control, shift, alt) ~= false then
+	if self:Tool_HandleKey(code, control, shift, alt) then
 		self:AC_Check()
 		return true
 	end
+
+	if alt then return end
 
 	if control then
 		if code == KEY_A then
