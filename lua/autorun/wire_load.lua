@@ -58,6 +58,7 @@ if SERVER then
 	AddCSLuaFile("wire/client/customspawnmenu.lua")
 
 	-- text editor
+	AddCSLuaFile("wire/client/text_editor/editor_db.lua")
 	AddCSLuaFile("wire/client/text_editor/texteditor.lua")
 	AddCSLuaFile("wire/client/text_editor/autocomplete.lua")
 	AddCSLuaFile("wire/client/text_editor/tools.lua")

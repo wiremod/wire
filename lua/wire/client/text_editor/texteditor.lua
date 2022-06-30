@@ -44,6 +44,7 @@ local utf8_bytepos_to_charindex = utf8.bytepos_to_charindex
 local utf8_reverse = utf8.reverse
 
 
+include("editor_db.lua")
 
 WireTextEditor = { Modes = {} }
 include("modes/e2.lua")
