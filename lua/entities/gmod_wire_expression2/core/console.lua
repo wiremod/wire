@@ -35,27 +35,57 @@ local function tokenizeAndGetCommands(str)
 	return commands
 end
 
-local function validConCmd(self, command)
-	local ply = self.player
-	if not ply:IsValid() then return false end
-	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return self:throw("Concmd is disabled through wire_expression2_concmd", false) end
-	-- Validating the concmd length to ensure that it won't crash the server. 512 is the max
-	if #command >= 512 then return self:throw("Concommand/Var is too long!", false) end
-
-	if IsConCommandBlocked( command ) then return self:throw("Concommand/Var is blacklisted by Garrys mod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
-
-	local whitelist = (ply:GetInfo("wire_expression2_concmd_whitelist") or ""):Trim()
-	if whitelist == "" then return true end
+---@param cvar "wire_expression2_concmd_whitelist"|"wire_expression2_convar_whitelist"
+---@return table whitelist # Whitelist for specific commands, if empty, disregard whitelist and allow everything
+local function getWhitelist(ply, cvar)
+	local whitelist = (ply:GetInfo(cvar) or ""):Trim()
 
 	local whitelistTbl = {}
-	for k, v in pairs(string.Split(whitelist, ",")) do whitelistTbl[v] = true end
 
-	local commands = tokenizeAndGetCommands(command)
-	for _, command in pairs(commands) do
-		if not whitelistTbl[command] then
-			return false
+	for k, v in pairs(string.Split(whitelist, ",")) do
+		if v~="" then
+			whitelistTbl[v] = true
 		end
 	end
+
+	return whitelistTbl
+end
+
+local function checkConCmd(self, cmd)
+	local ply = self.player
+	if not ply:IsValid() then return self:throw("Invalid chip owner to run console command", false) end
+
+	-- Validating the concmd length to ensure that it won't crash the server. 512 is the max
+	if #cmd >= 512 then return self:throw("Concmd is too long!", false) end
+
+	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return self:throw("Concmd is disabled through wire_expression2_concmd", false) end
+	if IsConCommandBlocked(cmd) then return self:throw("This concmd is blacklisted by gmod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
+
+	local whitelist = getWhitelist(ply, "wire_expression2_concmd_whitelist")
+	if table.IsEmpty(whitelist) then return true end
+
+	local commands = tokenizeAndGetCommands(cmd)
+	for _, command in pairs(commands) do
+		if not whitelist[command] then
+			return self:throw("Command '" .. command .. "' is not whitelisted w/ wire_expression2_concmd_whitelist", false)
+		end
+	end
+
+	return true
+end
+
+local function checkConVar(self, var)
+	local ply = self.player
+	if not ply:IsValid() then return self:throw("Invalid chip owner to check convar", false) end
+
+	if #var >= 512 then return self:throw("Convar is too long!", false) end
+	if ply:GetInfoNum("wire_expression2_convar", 0) == 0 then return self:throw("Convar is disabled through wire_expression2_convar", false) end
+	var = var:match("%s*([%w_]+)%s*")
+
+	local whitelist = getWhitelist(ply, "wire_expression2_convar_whitelist")
+	if table.IsEmpty(whitelist) then return true end
+
+	if whitelist[var] == nil then return self:throw("Convar '" .. var .. "' is not whitelisted w/ wire_expression2_convar_whitelist ", false) end
 	return true
 end
 
@@ -63,18 +93,18 @@ end
 __e2setcost(5)
 
 e2function number concmd(string command)
-	if not validConCmd(self, command) then return self:throw("Invalid concommand", 0) end
+	if not checkConCmd(self, command) then return 0 end
 	self.player:ConCommand(command:gsub("%%", "%%%%"))
 	return 1
 end
 
 e2function string convar(string cvar)
-	if not validConCmd(self, cvar) then return self:throw("Invalid convar", "") end
+	if not checkConVar(self, cvar) then return "" end
 	return self.player:GetInfo(cvar) or ""
 end
 
 e2function number convarnum(string cvar)
-	if not validConCmd(self, cvar) then return self:throw("Invalid convar", 0) end
+	if not checkConVar(self, cvar) then return 0 end
 	return self.player:GetInfoNum(cvar, 0)
 end
 
