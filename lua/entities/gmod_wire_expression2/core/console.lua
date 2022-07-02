@@ -67,7 +67,7 @@ local function checkConCmd(self, cmd)
 	local commands = tokenizeAndGetCommands(cmd)
 	for _, command in pairs(commands) do
 		if not whitelist[command] then
-			return self:throw("Command '" .. command "' is not whitelisted w/ wire_expression2_concmd_whitelist", false)
+			return self:throw("Command '" .. command .. "' is not whitelisted w/ wire_expression2_concmd_whitelist", false)
 		end
 	end
 
