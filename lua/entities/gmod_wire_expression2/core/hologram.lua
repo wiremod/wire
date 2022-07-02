@@ -531,6 +531,13 @@ local function CheckIndex(self, index, shouldbenil)
 	return Holo
 end
 
+-- checks if a bone id is valid for a holo, throws an error for @strict if not.
+local function CheckBone(self, index, boneindex, Holo)
+	local name = Holo.ent:GetBoneName(boneindex)
+	if not name or name == "__INVALIDBONE__" then return self:throw("Holo at index " .. index .. " does not have a bone " .. boneindex .. "!", nil) end
+	return true
+end
+
 -- Sets the given index to the given hologram.
 local function SetIndex(self, index, Holo)
 	index = index - index % 1
@@ -857,10 +864,12 @@ e2function vector holoScaleUnits(index)
 	return Vector(scale[1] * propsize.x, scale[2] * propsize.y, scale[3] * propsize.z)
 end
 
+-- -----------------------------------------------------------------------------
 
 e2function void holoBoneScale(index, boneindex, vector scale)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
+	if not CheckBone(self, index, boneindex, Holo) then return end
 
 	rescale(Holo, nil, {boneindex, scale})
 end
@@ -869,29 +878,66 @@ e2function void holoBoneScale(index, string bone, vector scale)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 	local boneindex = Holo.ent:LookupBone(bone)
-	if boneindex == nil then return self:throw("Invalid bone ['" .. bone .. "']", nil) end
+	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", nil) end
 
 	rescale(Holo, nil, {boneindex, scale})
 end
 
 e2function vector holoBoneScale(index, boneindex)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
+	if not Holo then return {0,0,0} end
+	if not CheckBone(self, index, boneindex, Holo) then return {0,0,0} end
 
-	local scale = Holo.bone_scale[boneindex]
-	if not scale then return self:throw("Bone " .. index .. " does not exist!", {0, 0, 0}) end
-	return scale
+	return Holo.bone_scale[boneindex] or {1,1,1}
 end
 
 e2function vector holoBoneScale(index, string bone)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
+	if not Holo then return {0,0,0} end
 	local boneindex = Holo.ent:LookupBone(bone)
 
-	local scale = Holo.bone_scale[boneindex]
-	if not boneindex or not scale then return self:throw("Bone ['" .. index .. "'] does not exist!", {0, 0, 0}) end
-	return scale
+	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", {0,0,0}) end
+	return Holo.bone_scale[boneindex] or {1,1,1}
 end
+
+e2function vector holoBonePos(index, boneindex)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return {0,0,0} end
+	if not CheckBone(self, index, boneindex, Holo) then return {0,0,0} end
+	
+	return Holo.ent:GetBoneMatrix(boneindex):GetTranslation()
+end
+
+
+e2function vector holoBonePos(index, string bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
+
+	local boneindex = Holo.ent:LookupBone(bone)
+	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", {0,0,0}) end
+	return Holo.ent:GetBoneMatrix(boneindex):GetTranslation()
+end
+
+e2function angle holoBoneAng(index, boneindex)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return {0,0,0} end
+	if not CheckBone(self, index, boneindex, Holo) then return {0,0,0} end
+	
+	return Holo.ent:GetBoneMatrix(boneindex):GetAngles()
+end
+
+
+e2function angle holoBoneAng(index, string bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
+
+	local boneindex = Holo.ent:LookupBone(bone)
+	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", {0,0,0}) end
+	return Holo.ent:GetBoneMatrix(boneindex):GetAngles()
+end
+
+-- -----------------------------------------------------------------------------
+
 __e2setcost(1)
 e2function number holoClipsAvailable()
 	return wire_holograms_max_clips:GetInt()
