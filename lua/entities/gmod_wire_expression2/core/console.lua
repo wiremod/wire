@@ -59,7 +59,7 @@ local function checkConCmd(self, cmd)
 	if #cmd >= 512 then return self:throw("Concmd is too long!", false) end
 
 	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return self:throw("Concmd is disabled through wire_expression2_concmd", false) end
-	if IsConCommandBlocked(command) then return self:throw("This concmd is blacklisted by gmod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
+	if IsConCommandBlocked(cmd) then return self:throw("This concmd is blacklisted by gmod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
 
 	local whitelist = getWhitelist(ply, "wire_expression2_concmd_whitelist")
 	if table.IsEmpty(whitelist) then return true end
