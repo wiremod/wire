@@ -342,6 +342,10 @@ function EDITOR:SyntaxColorLine(row)
 				local spaces = self:SkipPattern( " *" )
 				if spaces then addToken( "comment", spaces ) end
 
+				-- Exception for the spread "..." operator
+				local dots = self:SkipPattern( "%.%.%." )
+				if dots then addToken( "operator", dots ) end
+
 				local invalidInput = self:SkipPattern( "[^A-Z:%[]*" )
 				if invalidInput then addToken( "notfound", invalidInput ) end
 

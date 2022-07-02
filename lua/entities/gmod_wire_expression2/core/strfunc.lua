@@ -41,12 +41,43 @@ local function findFunc( self, funcname, typeids, typeids_str )
 
 		if not func then
 			for i = typeIDsLength, 1, -1 do
-				func, func_return_type, func_custom = checkFuncName( self, funcname .. "(" .. concat(typeids,"",1,i) .. "...)" )
+				local sig_prefix = funcname .. "(" .. concat(typeids,"",1,i)
+				func, func_return_type, func_custom = checkFuncName( self, sig_prefix .. "...)" )
 				if func then break end
+
+				-- Try to find user-variadic functions.
+				-- Only do a single table op unless function is discovered as an optimization
+				func = self.funcs[sig_prefix .. "..r)"]
+				if func then
+					func_return_type = self.funcs_ret[sig_prefix .. "..r)"]
+					func_custom = true
+
+					break
+				else
+					func = self.funcs[sig_prefix .. "..t)"]
+					if func then
+						func_return_type = self.funcs_ret[sig_prefix .. "..t)"]
+						func_custom = true
+
+						break
+					end
+				end
 			end
 
 			if not func then
-				func, func_return_type, func_custom = checkFuncName( self, funcname .. "(...)" )
+				func = self.funcs[funcname .. "(..r)"]
+				if func then
+					func_return_type = self.funcs_ret[funcname .. "(..r)"]
+					func_custom = true
+				else
+					func = self.funcs[funcname .. "(..t)"]
+					if func then
+						func_return_type = self.funcs_ret[funcname .. "(..t)"]
+						func_custom = true
+					else
+						func, func_return_type, func_custom = checkFuncName( self, funcname .. "(...)" )
+					end
+				end
 			end
 		end
 
