@@ -24,7 +24,8 @@ util.AddNetworkString("wire_holograms_clip")
 util.AddNetworkString("wire_holograms_set_scale")
 util.AddNetworkString("wire_holograms_set_bone_scale")
 util.AddNetworkString("wire_holograms_set_player_color")
-
+util.AddNetworkString("wire_holograms_set_bone_pos")
+util.AddNetworkString("wire_holograms_set_bone_ang")
 
 -- context = chip.context = self
 -- uid = context.uid = self.uid = chip.uid = player:UniqueID()
@@ -177,6 +178,8 @@ local bone_scale_queue = {}
 local clip_queue = {}
 local vis_queue = {}
 local player_color_queue = {}
+local bone_pos_queue = {}
+local bone_ang_queue = {}
 
 --[[ helper function to add items to a queue
 	parameters:
@@ -223,6 +226,8 @@ local function remove_from_queues( holo_ent )
 	remove_from_queue( clip_queue )
 	remove_from_queue( vis_queue )
 	remove_from_queue( player_color_queue )
+	remove_from_queue( bone_pos_queue )
+	remove_from_queue( bone_ang_queue )
 end
 
 local function remove_holo( Holo )
@@ -328,6 +333,47 @@ local function flush_player_color_queue()
 	net.Broadcast()
 end
 
+local function flush_bone_pos_queue(queue, recipient)
+	if not queue then queue = bone_pos_queue end
+	if not next(queue) then return end
+
+	net.Start("wire_holograms_set_bone_pos")
+	for _, plyqueue in pairs(queue) do
+		for Holo, holoqueue in pairs(plyqueue) do
+			for bone, pos in pairs(holoqueue) do
+				net.WriteUInt(Holo.ent:EntIndex(), 16)
+				net.WriteUInt(bone + 1, 16) -- using +1 to be able reset holo bones pos with -1 and not use signed int
+				net.WriteFloat(pos[1])
+				net.WriteFloat(pos[2])
+				net.WriteFloat(pos[3])
+			end
+		end
+	end
+	net.WriteUInt(0, 16)
+	net.WriteUInt(0, 16)
+	if recipient then net.Send(recipient) else net.Broadcast() end
+end
+
+local function flush_bone_ang_queue(queue, recipient)
+	if not queue then queue = bone_ang_queue end
+	if not next(queue) then return end
+	net.Start("wire_holograms_set_bone_ang")
+	for _, plyqueue in pairs(queue) do
+		for Holo, holoqueue in pairs(plyqueue) do
+			for bone, ang in pairs(holoqueue) do
+				net.WriteUInt(Holo.ent:EntIndex(), 16)
+				net.WriteUInt(bone + 1, 16) -- using +1 to be able reset holo bones ang with -1 and not use signed int
+				net.WriteFloat(ang[1])
+				net.WriteFloat(ang[2])
+				net.WriteFloat(ang[3])
+			end
+		end
+	end
+	net.WriteUInt(0, 16)
+	net.WriteUInt(0, 16)
+	if recipient then net.Send(recipient) else net.Broadcast() end
+end
+
 registerCallback("postexecute", function(self)
 	if timer.Exists("wire_hologram_postexecute_"..self.uid) then return end
 	timer.Create("wire_hologram_postexecute_"..self.uid,0.1,1,function()
@@ -337,12 +383,16 @@ registerCallback("postexecute", function(self)
 		flush_clip_queue()
 		flush_vis_queue()
 		flush_player_color_queue()
+		flush_bone_pos_queue()
+		flush_bone_ang_queue()
 
 		scale_queue = {}
 		bone_scale_queue = {}
 		clip_queue = {}
 		vis_queue = {}
 		player_color_queue = {}
+		bone_pos_queue = {}
+		bone_ang_queue = {}
 	end)
 end)
 
@@ -350,33 +400,57 @@ local function rescale(Holo, scale, bone)
 	local maxval = wire_holograms_size_max:GetInt()
 	local minval = -maxval
 
-	if scale then
-		local x = math.Clamp( scale[1], minval, maxval )
-		local y = math.Clamp( scale[2], minval, maxval )
-		local z = math.Clamp( scale[3], minval, maxval )
+	local x = math.Clamp( scale[1], minval, maxval )
+	local y = math.Clamp( scale[2], minval, maxval )
+	local z = math.Clamp( scale[3], minval, maxval )
+	local scale = Vector(x, y, z)
+
+	if Holo.scale ~= scale then
+		add_queue( scale_queue, Holo.e2owner, Holo, nil, scale )
+		Holo.scale = scale
+	end
+end
+
+local function rescale_bone(Holo, bone)
+	local maxval = wire_holograms_size_max:GetInt()
+	local minval = -maxval
+	Holo.bone_scale = Holo.bone_scale or {}
+	if #bone == 2 then
+		local bidx, b_scale = bone[1], bone[2]
+		local x = math.Clamp( b_scale[1], minval, maxval )
+		local y = math.Clamp( b_scale[2], minval, maxval )
+		local z = math.Clamp( b_scale[3], minval, maxval )
 		local scale = Vector(x, y, z)
 
-		if Holo.scale ~= scale then
-			add_queue( scale_queue, Holo.e2owner, Holo, nil, scale )
-			Holo.scale = scale
-		end
+		add_queue( bone_scale_queue, Holo.e2owner, Holo, bidx, scale )
+		Holo.bone_scale[bidx] =  scale
+	else  -- reset holo bone scale
+		add_queue( bone_scale_queue, Holo.e2owner, Holo, -1, Vector(0,0,0) )
+		Holo.bone_scale = {}
 	end
+end
 
-	if bone then
-		Holo.bone_scale = Holo.bone_scale or {}
-		if #bone == 2 then
-			local bidx, b_scale = bone[1], bone[2]
-			local x = math.Clamp( b_scale[1], minval, maxval )
-			local y = math.Clamp( b_scale[2], minval, maxval )
-			local z = math.Clamp( b_scale[3], minval, maxval )
-			local scale = Vector(x, y, z)
+local function repos_bone(Holo, bone)
+	if #bone == 2 then
+		local bidx, b_pos = bone[1], bone[2]
+		local pos = Vector(b_pos[1],b_pos[2],b_pos[3])
+		add_queue( bone_pos_queue, Holo.e2owner, Holo, bidx, pos )
+		Holo.bone_pos[bidx] = pos
+	else  -- reset
+		add_queue( bone_pos_queue, Holo.e2owner, Holo, -1, Vector(0,0,0) )
+		Holo.bone_pos = {}
+	end
+end
 
-			add_queue( bone_scale_queue, Holo.e2owner, Holo, bidx, scale )
-			Holo.bone_scale[bidx] =  scale
-		else  -- reset holo bone scale
-			add_queue( bone_scale_queue, Holo.e2owner, Holo, -1, Vector(0,0,0) )
-			Holo.bone_scale = {}
-		end
+local function reang_bone(Holo, bone)
+	if #bone == 2 then
+		local bidx, b_ang = bone[1], bone[2]
+		local ang = Angle(b_ang[1],b_ang[2],b_ang[3])
+		add_queue( bone_ang_queue, Holo.e2owner, Holo, bidx, ang )
+		Holo.bone_ang[bidx] = ang
+	else  -- reset
+		add_queue( bone_ang_queue, Holo.e2owner, Holo, -1, Angle(0,0,0) )
+		Holo.bone_ang = {}
 	end
 end
 
@@ -445,7 +519,10 @@ local function reset_clholo(Holo, scale)
 		end
 		Holo.clips = {}
 	end
-	rescale(Holo, scale, {})
+	rescale(Holo, scale)
+	rescale_bone(Holo,{})
+	repos_bone(Holo,{})
+	reang_bone(Holo,{})
 	if Holo.visible then
 		for ply, state in pairs(Holo.visible) do
 			if not state then
@@ -464,6 +541,8 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 	local temp_scale_queue = {}
 	local temp_bone_scale_queue = {}
 	local temp_clip_queue = {}
+	local temp_bone_pos_queue = {}
+	local temp_bone_ang_queue = {}
 
 	for pl_uid,rep in pairs( E2HoloRepo ) do
 		for k,Holo in pairs( rep ) do
@@ -471,6 +550,8 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 				local clips = Holo.clips
 				local scale = Holo.scale
 				local bone_scales = Holo.bone_scale
+				local bone_poss   = Holo.bone_pos
+				local bone_angs   = Holo.bone_ang
 
 				add_queue( temp_scale_queue, ply, Holo, nil, scale )
 
@@ -478,6 +559,16 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 				if bone_scales and next(bone_scales) ~= nil then
 					for bidx,b_scale in pairs(bone_scales) do
 						add_queue( temp_bone_scale_queue, ply, Holo, bidx, b_scale )
+					end
+				end
+				if bone_poss and next(bone_poss) ~= nil then
+					for bidx,b_pos in pairs(bone_poss) do
+						add_queue( temp_bone_pos_queue, ply, Holo, bidx, b_pos )
+					end
+				end
+				if bone_angs and next(bone_angs) ~= nil then
+					for bidx,b_ang in pairs(bone_angs) do
+						add_queue( temp_bone_ang_queue, ply, Holo, bidx, b_ang )
 					end
 				end
 
@@ -504,6 +595,8 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 	flush_scale_queue(temp_scale_queue, ply)
 	flush_bone_scale_queue(temp_bone_scale_queue, ply)
 	flush_clip_queue(temp_clip_queue, ply)
+	flush_bone_pos_queue(temp_bone_pos_queue, ply)
+	flush_bone_ang_queue(temp_bone_ang_queue, ply)
 end)
 
 -- -----------------------------------------------------------------------------
@@ -871,7 +964,7 @@ e2function void holoBoneScale(index, boneindex, vector scale)
 	if not Holo then return end
 	if not CheckBone(self, index, boneindex, Holo) then return end
 
-	rescale(Holo, nil, {boneindex, scale})
+	rescale_bone(Holo, {boneindex, scale})
 end
 
 e2function void holoBoneScale(index, string bone, vector scale)
@@ -880,7 +973,7 @@ e2function void holoBoneScale(index, string bone, vector scale)
 	local boneindex = Holo.ent:LookupBone(bone)
 	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", nil) end
 
-	rescale(Holo, nil, {boneindex, scale})
+	rescale_bone(Holo, {boneindex, scale})
 end
 
 e2function vector holoBoneScale(index, boneindex)
@@ -900,7 +993,41 @@ e2function vector holoBoneScale(index, string bone)
 	return Holo.bone_scale[boneindex] or {1,1,1}
 end
 
+e2function void holoBonePos(index, boneindex, vector position)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not CheckBone(self, index, boneindex, Holo) then return end
+
+	repos_bone(Holo, {boneindex, position})
+end
+
+e2function void holoBonePos(index, string bone, vector position)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	local boneindex = Holo.ent:LookupBone(bone)
+	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", nil) end
+
+	repos_bone(Holo, {boneindex, position})
+end
+
 e2function vector holoBonePos(index, boneindex)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return {0,0,0} end
+	if not CheckBone(self, index, boneindex, Holo) then return {0,0,0} end
+	
+	return Holo.bone_pos[boneindex] or {0,0,0}
+end
+
+e2function vector holoBonePos(index, string bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
+
+	local boneindex = Holo.ent:LookupBone(bone)
+	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", {0,0,0}) end
+	return Holo.bone_pos[boneindex] or {0,0,0}
+end
+
+e2function vector holoBonePosW(index, boneindex)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return {0,0,0} end
 	if not CheckBone(self, index, boneindex, Holo) then return {0,0,0} end
@@ -908,8 +1035,7 @@ e2function vector holoBonePos(index, boneindex)
 	return Holo.ent:GetBoneMatrix(boneindex):GetTranslation()
 end
 
-
-e2function vector holoBonePos(index, string bone)
+e2function vector holoBonePosW(index, string bone)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
 
@@ -918,7 +1044,41 @@ e2function vector holoBonePos(index, string bone)
 	return Holo.ent:GetBoneMatrix(boneindex):GetTranslation()
 end
 
+e2function void holoBoneAng(index, boneindex, angle rotation)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not CheckBone(self, index, boneindex, Holo) then return end
+
+	reang_bone(Holo, {boneindex, rotation})
+end
+
+e2function void holoBoneAng(index, string bone, angle rotation)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	local boneindex = Holo.ent:LookupBone(bone)
+	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", nil) end
+
+	reang_bone(Holo, {boneindex, rotation})
+end
+
 e2function angle holoBoneAng(index, boneindex)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return {0,0,0} end
+	if not CheckBone(self, index, boneindex, Holo) then return {0,0,0} end
+	
+	return Holo.bone_ang[boneindex] or {0,0,0}
+end
+
+e2function angle holoBoneAng(index, string bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
+
+	local boneindex = Holo.ent:LookupBone(bone)
+	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", {0,0,0}) end
+	return Holo.bone_ang[boneindex] or {0,0,0}
+end
+
+e2function angle holoBoneAngW(index, boneindex)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return {0,0,0} end
 	if not CheckBone(self, index, boneindex, Holo) then return {0,0,0} end
@@ -926,8 +1086,7 @@ e2function angle holoBoneAng(index, boneindex)
 	return Holo.ent:GetBoneMatrix(boneindex):GetAngles()
 end
 
-
-e2function angle holoBoneAng(index, string bone)
+e2function angle holoBoneAngW(index, string bone)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", {0,0,0}) end
 

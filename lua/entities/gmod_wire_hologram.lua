@@ -32,6 +32,8 @@ if CLIENT then
 	local clip_buffer = {}
 	local vis_buffer = {}
 	local player_color_buffer = {}
+	local bone_pos_buffer = {}
+	local bone_ang_buffer = {}
 
 	net.Receive( "holoQueueClear", function()
 		local id = net.ReadUInt(16)
@@ -50,11 +52,17 @@ if CLIENT then
 
 		--Holo Colors
 		player_color_buffer[id] = nil
+
+		--Bone Offsets
+		bone_pos_buffer[id] = nil
+		bone_ang_buffer[id] = nil
 	end)
 
 	function ENT:Initialize()
 		self.steamid = ""
 		self.bone_scale = {}
+		self.bone_pos = {}
+		self.bone_ang = {}
 		self:DoScale()
 		self:GetPlayer() -- populate steamid
 		self.blocked = blocked[self.steamid]~=nil
@@ -217,6 +225,40 @@ if CLIENT then
 		end
 	end
 
+	local function SetBonePos(entindex, bindex, pos)
+		if bone_pos_buffer[entindex] == nil then bone_pos_buffer[entindex] = {} end
+
+		if bindex == -1 then
+			bone_pos_buffer[entindex] = nil
+		else
+			bone_pos_buffer[entindex][bindex] = pos
+		end
+
+		local ent = Entity(entindex)
+
+		if ent and ent.DoScale then
+			if bindex == -1 then ent.bone_pos = {} end -- reset
+			ent:DoScale()
+		end
+	end
+
+	local function SetBoneAng(entindex, bindex, ang)
+		if bone_ang_buffer[entindex] == nil then bone_ang_buffer[entindex] = {} end
+
+		if bindex == -1 then
+			bone_ang_buffer[entindex] = nil
+		else
+			bone_ang_buffer[entindex][bindex] = ang
+		end
+
+		local ent = Entity(entindex)
+
+		if ent and ent.DoScale then
+			if bindex == -1 then ent.bone_ang = {} end -- reset
+			ent:DoScale()
+		end
+	end
+
 	function ENT:DoScale()
 		local eidx = self:EntIndex()
 
@@ -232,6 +274,20 @@ if CLIENT then
 			bone_scale_buffer[eidx] = {}
 		end
 
+		if bone_pos_buffer[eidx] ~= nil then
+			for b, s in pairs(bone_pos_buffer[eidx]) do
+				self.bone_pos[b] = s
+			end
+			bone_pos_buffer[eidx] = {}
+		end
+
+		if bone_ang_buffer[eidx] ~= nil then
+			for b, s in pairs(bone_ang_buffer[eidx]) do
+				self.bone_ang[b] = s
+			end
+			bone_ang_buffer[eidx] = {}
+		end
+
 		local scale = self.scale or Vector(1, 1, 1)
 
 		if self.EnableMatrix then
@@ -243,12 +299,31 @@ if CLIENT then
 			self:SetModelScale((scale.x + scale.y + scale.z) / 3, 0)
 		end
 
+		local count
 		if table.Count( self.bone_scale ) > 0 then
-			local count = self:GetBoneCount() or -1
+			count = count or self:GetBoneCount() or -1
 
 			for i = count, 0, -1 do
 				local bone_scale = self.bone_scale[i] or Vector(1,1,1)
 				self:ManipulateBoneScale(i, bone_scale) // Note: Using ManipulateBoneScale currently causes RenderBounds to be reset every frame!
+			end
+		end
+		
+		if table.Count( self.bone_pos ) > 0 then
+			count = count or self:GetBoneCount() or -1
+
+			for i = count, 0, -1 do
+				local bone_pos = self.bone_pos[i] or Vector(0,0,0)
+				self:ManipulateBonePosition(i, bone_pos)
+			end
+		end
+
+		if table.Count( self.bone_ang ) > 0 then
+			count = count or self:GetBoneCount() or -1
+
+			for i = count, 0, -1 do
+				local bone_ang = self.bone_ang[i] or Angle(0,0,0)
+				self:ManipulateBoneAngles(i, bone_ang)
 			end
 		end
 
@@ -277,6 +352,27 @@ if CLIENT then
 		end
 	end)
 
+	net.Receive("wire_holograms_set_bone_pos", function(netlen)
+		local index = net.ReadUInt(16)
+		local bindex = net.ReadUInt(16) - 1 -- using -1 to get negative -1 for reset
+
+		while index ~= 0 do
+			SetBonePos(index, bindex, Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()))
+			index = net.ReadUInt(16)
+			bindex = net.ReadUInt(16) - 1
+		end
+	end)
+
+	net.Receive("wire_holograms_set_bone_ang", function(netlen)
+		local index = net.ReadUInt(16)
+		local bindex = net.ReadUInt(16) - 1 -- using -1 to get negative -1 for reset
+
+		while index ~= 0 do
+			SetBoneAng(index, bindex, Angle(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()))
+			index = net.ReadUInt(16)
+			bindex = net.ReadUInt(16) - 1
+		end
+	end)
 	-- -----------------------------------------------------------------------------
 
 	function ENT:DoVisible()
