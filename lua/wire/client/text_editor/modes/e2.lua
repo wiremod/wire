@@ -77,6 +77,19 @@ function EDITOR:SetSyntaxColor( colorname, colr )
 	colors[colorname][1] = colr
 end
 
+-- cols[n] = { tokendata, color }
+local cols = {}
+local lastcol
+local function addToken(tokenname, tokendata)
+	local color = colors[tokenname]
+	if lastcol and color == lastcol[2] then
+		lastcol[1] = lastcol[1] .. tokendata
+	else
+		cols[#cols + 1] = { tokendata, color, tokenname }
+		lastcol = cols[#cols]
+	end
+end
+
 function EDITOR:CommentSelection(removecomment)
 	local sel_start, sel_caret = self:MakeSelection( self:Selection() )
 	local mode = self:GetParent().BlockCommentStyleConVar:GetInt()
@@ -198,19 +211,7 @@ function EDITOR:ResetTokenizer(row)
 end
 
 function EDITOR:SyntaxColorLine(row)
-	local cols,lastcol = {}, nil
-
-	local function addToken(tokenname, tokendata)
-		--MsgN("addToken(",tokenname,")\t'",tokendata,"'\n\n")
-
-		local color = colors[tokenname]
-		if lastcol and color == lastcol[2] then
-			lastcol[1] = lastcol[1] .. tokendata
-		else
-			cols[#cols + 1] = { tokendata, color, tokenname }
-			lastcol = cols[#cols]
-		end
-	end
+	cols,lastcol = {}, nil
 
 
 	self:ResetTokenizer(row)
@@ -262,15 +263,11 @@ function EDITOR:SyntaxColorLine(row)
 		addToken( "keyword", found ) -- Add "function"
 		self.tokendata = "" -- Reset tokendata
 
-
 		local spaces = self:SkipPattern( " *" )
 		if spaces then addToken( "comment", spaces ) end
 
-		-- 'function' returntype typeindex:funcname
-		-- 'function' already parsed
-		if self:NextPattern( "[a-z][a-zA-Z0-9]*%s+[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9_]*" ) then
-			local returntype, spaces, typeindex, funcname
-				= self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s+)([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9_]*)" )
+		if self:NextPattern( "[a-z][a-zA-Z0-9]*%s%s*[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9_]*" ) then -- Everything specified (returntype typeindex:funcname)
+			local returntype, spaces, typeindex, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s%s*)([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9_]*)" )
 
 			if istype( returntype ) or returntype == "void" then
 				addToken( "typename", returntype )
@@ -291,10 +288,8 @@ function EDITOR:SyntaxColorLine(row)
 			end
 
 			self.tokendata = ""
-		-- 'function' returntype funcname
-		elseif self:NextPattern( "[a-z][a-zA-Z0-9]*%s+[a-z][a-zA-Z0-9_]*" ) then
-			local returntype, spaces, funcname
-				= self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s+)([a-z][a-zA-Z0-9_]*)" )
+		elseif self:NextPattern( "[a-z][a-zA-Z0-9]*%s%s*[a-z][a-zA-Z0-9_]*" ) then -- returntype funcname
+			local returntype, spaces, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s%s*)([a-z][a-zA-Z0-9_]*)" )
 
 			if istype( returntype ) or returntype == "void" then
 				addToken( "typename", returntype )
@@ -309,8 +304,7 @@ function EDITOR:SyntaxColorLine(row)
 			end
 
 			self.tokendata = ""
-		-- 'function' typeindex:funcname
-		elseif self:NextPattern( "[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9_]*" ) then
+		elseif self:NextPattern( "[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9_]*" ) then -- typeindex:funcname
 			local typeindex, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9_]*)" )
 
 			if istype( typeindex ) then
@@ -326,8 +320,7 @@ function EDITOR:SyntaxColorLine(row)
 			end
 
 			self.tokendata = ""
-		-- 'function' funcname
-		elseif self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then
+		elseif self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then -- funcname
 			local funcname = self.tokendata:match( "[a-z][a-zA-Z0-9_]*" )
 
 			addToken( "userfunction", funcname )
@@ -408,44 +401,50 @@ function EDITOR:SyntaxColorLine(row)
 	end
 
 	while self.character do
+		local tokenname = ""
 		self.tokendata = ""
 
 		-- eat all spaces
 		local spaces = self:SkipPattern(" *")
-		if spaces and #spaces ~= 0 then addToken("operator", spaces) end
-		
+		if spaces then addToken("operator", spaces) end
 		if not self.character then break end
 
 		-- eat next token
-
-		-- Constant
 		if self:NextPattern("^_[A-Z][A-Z_0-9]*") then
 			local word = self.tokendata
-			local valid_constant = false
 			for k,_ in pairs( wire_expression2_constants ) do
 				if k == word then
-					valid_constant = true
+					tokenname = "constant"
 				end
 			end
-			addToken(valid_constant and "constant" or "notfound", self.tokendata)
-	
-		-- Hex or binary number
+			if tokenname == "" then tokenname = "notfound" end
 		elseif self:NextPattern("^0[xb][0-9A-F]+") then
-			addToken("number", self.tokendata)
-		-- Decimal number (including scientific notation)
+			tokenname = "number"
 		elseif self:NextPattern("^[0-9][0-9.e]*") then
-			addToken("number", self.tokendata)
-		-- Lowercase identifier
+			tokenname = "number"
+
 		elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
 			local sstr = self.tokendata
-			if not highlightmode then
+			if highlightmode then
+				if highlightmode == 1 and istype(sstr) then
+					tokenname = "typename"
+				elseif highlightmode == 2 and (sstr == "all" or sstr == "none") then
+					tokenname = "directive"
+				elseif (highlightmode == 4 or highlightmode == 5) and istype(sstr) then
+					tokenname = "typename"
+
+					if highlightmode == 5 then
+						highlightmode = nil
+					end
+				else
+					tokenname = "notfound"
+				end
+			else
 				-- is this a keyword or a function?
 				local char = self.character or ""
 				local keyword = char ~= "("
 
 				local spaces = self:SkipPattern(" *") or ""
-
-				local tokenname = ""
 
 				if self.character == "]" then
 					-- X[Y,typename]
@@ -487,34 +486,21 @@ function EDITOR:SyntaxColorLine(row)
 						end
 					end
 				end
-
 				addToken(tokenname, self.tokendata)
+				tokenname = "operator"
 				self.tokendata = spaces
-				addToken("operator", self.tokendata)
-			elseif highlightmode == 2 and (sstr == "all" or sstr == "none") then
-				addToken("directive", self.tokendata)
-			elseif (highlightmode == 1 or highlightmode == 4 or highlightmode == 5) and istype(sstr) then
-				addToken("typename", self.tokendata)
-
-				if highlightmode == 5 then
-					highlightmode = nil
-				end
-			else
-				addToken("notfound", self.tokendata)
 			end
-		-- Uppercase identifier - variable
+
 		elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
-			addToken("variable", self.tokendata)
+			tokenname = "variable"
 
 			if highlightmode == 3 then
 				highlightmode = 4
 			elseif highlightmode == 4 then
 				highlightmode = 5
 			end
-		-- String literal
 		elseif self.character == '"' then
 			self:NextCharacter()
-			local tokenname = ""
 			while self.character do -- Find the ending "
 				if self.character == '"' then
 					tokenname = "string"
@@ -531,11 +517,7 @@ function EDITOR:SyntaxColorLine(row)
 				self:NextCharacter()
 			end
 
-			addToken(tokenname, self.tokendata)
-		-- Single-line or multiline comment
 		elseif self.character == "#" then
-			local tokenname = ""
-
 			self:NextCharacter()
 			if self.character == "[" then -- Check if there is a [ directly after the #
 				while self.character do -- Find the ending ]
@@ -557,38 +539,29 @@ function EDITOR:SyntaxColorLine(row)
 				end
 			end
 
-			if tokenname ~= "" then
-				addToken(tokenname, self.tokendata)
-			else
+			if tokenname == "" then
 
 				self:NextPattern("[^ ]*") -- Find the whole word
 
 				if E2Lib.PreProcessor["PP_"..self.tokendata:sub(2)] then
 					-- there is a preprocessor command by that name => mark as such
-					addToken("ppcommand", self.tokendata)
+					tokenname = "ppcommand"
 				elseif self.tokendata == "#include" then
-					addToken("keyword", self.tokendata)
+					tokenname = "keyword"
 				else
 					-- eat the rest and mark as a comment
 					self:NextPattern(".*")
-					addToken("comment", self.tokendata)
+					tokenname = "comment"
 				end
 
 			end
-		-- Something other
 		else
-			--[[local codepoint = utf8.codepoint(self.character)
-			if system.IsWindows() and codepoint > 0xFFFF then
-
-			else
-
-			end]]
-
 			self:NextCharacter()
 
-			addToken("operator", self.tokendata)
+			tokenname = "operator"
 		end
 
+		addToken(tokenname, self.tokendata)
 	end
 
 	return cols
