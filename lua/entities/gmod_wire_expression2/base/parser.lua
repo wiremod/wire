@@ -657,7 +657,7 @@ function Parser:Stmt10()
 		local Sig = Name .. "("
 		for I = 1, #Args do
 			local Arg = Args[I]
-			Sig = Sig .. wire_expression_types[Arg[2]][1]
+			Sig = Sig .. (Arg[3] and ".." or "") .. wire_expression_types[Arg[2]][1]
 			if I == 1 and Arg[1] == "This" and Type ~= '' then
 				Sig = Sig .. ":"
 			end
@@ -665,6 +665,11 @@ function Parser:Stmt10()
 		Sig = Sig .. ")"
 
 		if wire_expression2_funcs[Sig] then self:Error("Function '" .. Sig .. "' already exists") end
+
+		-- Variadic signatures for lua created functions are ..., while user defined ones use ..<t>.
+		-- Check if ... functions exist as to not essentially override them
+		local lua_variadic_sig = string.gsub(Sig, "%.%.[rt]", "...")
+		if wire_expression2_funcs[lua_variadic_sig] then self:Error("Can't override function " .. lua_variadic_sig .. " with user defined variadic function " .. Sig) end
 
 		local Inst = self:Instruction(Trace, "function", Sig, Return, Type, Args, self:Block("function declaration"))
 
@@ -772,6 +777,51 @@ function Parser:FunctionArgs(Temp, Args)
 
 			if self:AcceptRoamingToken("com") then self:Error("Argument separator (,) must not appear multiple times") end
 
+			-- ...Array:array
+			if self:AcceptRoamingToken("spread") then
+				if not self:AcceptRoamingToken("fun") and not self:AcceptRoamingToken("var") then
+					self:Error("Variable name expected after spread operator")
+				end
+
+				local name = self:GetTokenData()
+
+				if not self:AcceptRoamingToken("col") then
+					self:Error("Colon (:) expected after spread argument name")
+				end
+
+				if not self:AcceptRoamingToken("fun") then
+					self:Error("Variable type expected after colon (:)")
+				end
+
+				local type = self:GetTokenData()
+				if type ~= type:lower() then
+					self:Error("Variable type must be lowercased")
+				end
+
+				type = type:upper()
+
+				if not wire_expression_types[type] then
+					self:Error("Invalid type specified")
+				end
+
+				if type ~= "ARRAY" and type ~= "TABLE" then
+					self:Error("Only array or table type is supported for spread arguments")
+				end
+
+				if self:AcceptRoamingToken("com") then
+					self:Error("Spread argument must be the last argument")
+				end
+
+				if not self:AcceptRoamingToken("rpa") then
+					self:Error("Right parenthesis ()) expected after spread argument")
+				end
+
+				Temp[name] = true
+				Args[#Args + 1] = { name, type, true }
+
+				return
+			end
+
 			if self:AcceptRoamingToken("var") or self:AcceptRoamingToken("fun") then
 				self:FunctionArg(Temp, Args)
 			elseif self:AcceptRoamingToken("lsb") then
@@ -820,7 +870,7 @@ function Parser:FunctionArg(Temp, Args)
 
 
 	Temp[Name] = true
-	Args[#Args + 1] = { Name, Type }
+	Args[#Args + 1] = { Name, Type, false }
 end
 
 function Parser:FunctionArgList(Temp, Args)
@@ -876,7 +926,7 @@ function Parser:FunctionArgList(Temp, Args)
 		end
 
 		for I = 1, #Vars do
-			Args[#Args + 1] = { Vars[I], Type }
+			Args[#Args + 1] = { Vars[I], Type, false }
 		end
 
 	else
@@ -1547,6 +1597,8 @@ function Parser:ExprError()
 			self:Error("Comma (,) not expected here, missing an argument?")
 		elseif self:AcceptRoamingToken("col") then
 			self:Error("Method operator (:) must not be preceded by whitespace")
+		elseif self:AcceptRoamingToken("spread") then
+			self:Error("Spread operator (...) must only be used as a function parameter")
 
 		elseif self:AcceptRoamingToken("if") then
 			self:Error("If keyword (if) must not appear inside an equation")

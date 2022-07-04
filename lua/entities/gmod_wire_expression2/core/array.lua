@@ -12,11 +12,7 @@ local table_insert = table.insert
 local table_remove = table.remove
 local floor = math.floor
 
-local blocked_types = {
-	["t"] = true,
-	["r"] = true,
-	["xgt"] = true
-}
+local blocked_types = E2Lib.blocked_array_types
 
 -- Fix return values
 local fixDefault = E2Lib.fixDefault

@@ -2,7 +2,7 @@
 	String gates  !  :P
 ]]
 
-local MAX_LEN = 1024*1024 -- max string length of 1MB
+local MAX_LEN = 64*1024 -- max string length of 64k
 
 GateActions("String")
 

@@ -101,8 +101,9 @@ function E2Lib.splitType(args)
 			thistype = ret[1]
 			ret = {}
 		elseif letter == "." then
-			if args:sub(i) ~= "..." then error("Misplaced '.' in args", 2) end
-			table.insert(ret, "...")
+			local slice = args:sub(i)
+			if slice ~= "..." and slice ~= "..r" and slice ~= "..t" then error("Misplaced '.' in args", 2) end
+			table.insert(ret, slice)
 			i = i + 2
 		elseif letter == "=" then
 			if #ret ~= 1 then error("Misplaced '=' in args", 2) end
@@ -346,6 +347,7 @@ E2Lib.optable_inv = {
 	dlt = "$",
 	trg = "~",
 	imp = "->",
+	spread = "..."
 }
 
 E2Lib.optable = {}
@@ -383,6 +385,12 @@ function E2Lib.printops()
 	end
 	print("}")
 end
+
+E2Lib.blocked_array_types = {
+	["t"] = true,
+	["r"] = true,
+	["xgt"] = true
+}
 
 -- ------------------------------ string stuff ---------------------------------
 
