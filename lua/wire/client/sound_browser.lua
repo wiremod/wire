@@ -128,7 +128,6 @@ local function GenerateInfoTree(strfile, backnode, count)
 			subnode = node:AddNode(SoundData[index], "icon16/page.png")
 			subnode.IsSoundNode = true
 			subnode.IsDataNode = true
-			subnode2 = node:AddNode(SoundData[index])
 		end
 		do
 			index = "Duration"
