@@ -6,3 +6,5 @@ luac.out
 # vscode
 .vscode/*
 .history
+*.sublime-workspace
+*.sublime-project
