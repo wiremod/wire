@@ -547,7 +547,7 @@ function PANEL:Setup()
 end
 
 function PANEL:SetOpenFilename(filename)
-	if(not isstring(filename)) then filename = "" end
+	if not isstring(filename) then filename = "" end
 
 	self.m_strOpenFilename = filename
 	self.m_strOpenFile = ConnectPathes(self.m_strOpenPath, self.m_strOpenFilename)
@@ -566,7 +566,7 @@ function PANEL:SetOpenPath(path)
 end
 
 function PANEL:SetOpenFile(file)
-	if(not isstring(file)) then file = "" end
+	if not isstring(file) then file = "" end
 
 	self:SetOpenPath(string.GetPathFromFilename(file))
 	self:SetOpenFilename(string.GetFileFromFilename("/" .. file))
@@ -584,7 +584,7 @@ function PANEL:SetPage(page)
 	self:UpdatePageToolTips()
 
 	local filepage
-	if(self.PageMode) then
+	if self.PageMode then
 		filepage = {}
 		for i=1, self.m_nMaxItemsPerPage do
 			local index = i + self.m_nMaxItemsPerPage * (page - 1)

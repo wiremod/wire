@@ -66,7 +66,7 @@ local function GetInfoTable(strfile)
 	if not nsize then return end
 
 	nduration = SoundDuration(strfile) --Get the duration for the info text only.
-	if(nduration) then
+	if nduration then
 		nduration = math.Round(nduration * 1000) / 1000
 	end
 	local nduration, strduration = FormatLength(nduration, nsize)
@@ -91,7 +91,7 @@ end
 -- Output the infos about the given sound.
 local oldstrfile
 local function GenerateInfoTree(strfile, backnode, count)
-	if(oldstrfile == strfile and strfile) then return end
+	if oldstrfile == strfile and strfile then return end
 	oldstrfile = strfile
 
 	local SoundData, IsFile = GetInfoTable(strfile)
@@ -101,7 +101,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 			SoundInfoTreeRoot:Remove()
 		end
 	end
-	if(not SoundData) then return end
+	if not SoundData then return end
 
 	local strcount = ""
 	if count then
@@ -124,10 +124,11 @@ local function GenerateInfoTree(strfile, backnode, count)
 
 		do
 			index = "Path"
-			node = mainnode:AddNode(index, "icon16/sound.png")
+			node = mainnode:AddNode(index, "icon16/link.png")
 			subnode = node:AddNode(SoundData[index], "icon16/page.png")
 			subnode.IsSoundNode = true
 			subnode.IsDataNode = true
+			subnode2 = node:AddNode(SoundData[index])
 		end
 		do
 			index = "Duration"
@@ -262,21 +263,21 @@ end
 
 -- Set the volume of the sound.
 local function SetSoundVolume(volume)
-	if(not SoundObj) then return end
+	if not SoundObj then return end
 
 	SoundObj:ChangeVolume(tonumber(volume) or 1, 0.1)
 end
 
 -- Set the pitch of the sound.
 local function SetSoundPitch(pitch)
-	if(not SoundObj) then return end
+	if not SoundObj then return end
 
 	SoundObj:ChangePitch(tonumber(pitch) or 100, 0.1)
 end
 
 -- Play the given sound, if no sound is given then mute a playing sound.
 local function PlaySound(file, volume, pitch)
-	if(SoundObj) then
+	if SoundObj then
 		SoundObj:Stop()
 		SoundObj = nil
 	end
@@ -289,14 +290,14 @@ local function PlaySound(file, volume, pitch)
 	util.PrecacheSound(file)
 
 	SoundObj = CreateSound(ply, file)
-	if(SoundObj) then
+	if SoundObj then
 		SoundObj:PlayEx(tonumber(volume) or 1, tonumber(pitch) or 100)
 	end
 end
 
 -- Play the given sound without effects, if no sound is given then mute a playing sound.
 local function PlaySoundNoEffect(file)
-	if(SoundObjNoEffect) then
+	if SoundObjNoEffect then
 		SoundObjNoEffect:Stop()
 		SoundObjNoEffect = nil
 	end
@@ -309,7 +310,7 @@ local function PlaySoundNoEffect(file)
 	util.PrecacheSound(file)
 
 	SoundObjNoEffect = CreateSound(ply, file)
-	if(SoundObjNoEffect) then
+	if SoundObjNoEffect then
 		SoundObjNoEffect:PlayEx(1, 100)
 	end
 end
@@ -470,13 +471,13 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) -- Op
 end
 
 local function Infomenu(parent, node, SoundEmitter, nSoundVolume, nSoundPitch)
-	if(not IsValid(node)) then return end
-	if(not node.IsDataNode) then return end
+	if not IsValid(node) then return end
+	if not node.IsDataNode then return end
 
 	local strNodeName = node:GetText()
 	local IsSoundNode = node.IsSoundNode
 
-	if(IsSoundNode) then
+	if IsSoundNode then
 		Sendmenu(strNodeName, SoundEmitter, nSoundVolume, nSoundPitch)
 		return
 	end
@@ -545,12 +546,12 @@ local function CreateSoundBrowser(path, se)
 	local nSoundVolume = 1
 	local nSoundPitch = 100
 
-	if(IsValid(SoundBrowserPanel)) then SoundBrowserPanel:Remove() end
-	if(IsValid(TabFileBrowser)) then TabFileBrowser:Remove() end
-	if(IsValid(TabSoundPropertyList)) then TabSoundPropertyList:Remove() end
-	if(IsValid(TabFavourites)) then TabFavourites:Remove() end
-	if(IsValid(SoundInfoTree)) then SoundInfoTree:Remove() end
-	if(IsValid(SoundInfoTreeRoot)) then SoundInfoTreeRoot:Remove() end
+	if IsValid(SoundBrowserPanel) then SoundBrowserPanel:Remove() end
+	if IsValid(TabFileBrowser) then TabFileBrowser:Remove() end
+	if IsValid(TabSoundPropertyList) then TabSoundPropertyList:Remove() end
+	if IsValid(TabFavourites) then TabFavourites:Remove() end
+	if IsValid(SoundInfoTree) then SoundInfoTree:Remove() end
+	if IsValid(SoundInfoTreeRoot) then SoundInfoTreeRoot:Remove() end
 
 	SoundBrowserPanel = vgui.Create("DFrame") -- The main frame.
 	SoundBrowserPanel:SetPos(50,25)
@@ -733,7 +734,7 @@ local function CreateSoundBrowser(path, se)
 	TabFavourites:SetRootPath("soundlists")
 
 	TabFavourites.DoClick = function(parent, item, data)
-		if(file.Exists("sound/"..item, "GAME")) then
+		if file.Exists("sound/"..item, "GAME") then
 			TabFileBrowser:SetOpenFile(item)
 		end
 
@@ -742,7 +743,7 @@ local function CreateSoundBrowser(path, se)
 	end
 
 	TabFavourites.DoDoubleClick = function(parent, item, data)
-		if(file.Exists("sound/"..item, "GAME")) then
+		if file.Exists("sound/"..item, "GAME") then
 			TabFileBrowser:SetOpenFile(item)
 		end
 
@@ -752,7 +753,7 @@ local function CreateSoundBrowser(path, se)
 	end
 
 	TabFavourites.DoRightClick = function(parent, item, data)
-		if(file.Exists("sound/"..item, "GAME")) then
+		if file.Exists("sound/"..item, "GAME") then
 			TabFileBrowser:SetOpenFile(item)
 		end
 
