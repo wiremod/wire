@@ -42,14 +42,18 @@ function ENT:_EGP_Update( bool )
 			local oldtex = EGP:SetMaterial( v.material )
 
 			if v.filtering != currentfilter then
-				render.PopFilterMin()
-				render.PopFilterMag()
 				render.PushFilterMag(v.filtering)
 				render.PushFilterMin(v.filtering)
-				currentfilter = v.filtering
 			end
 
 			v:Draw(self, mat)
+				
+			if v.filtering != currentfilter then
+				render.PopFilterMin()
+				render.PopFilterMag()
+				currentfilter = v.filtering
+			end
+
 			EGP:FixMaterial( oldtex )
 		end
 	end)
