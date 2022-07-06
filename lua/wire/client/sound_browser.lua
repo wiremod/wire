@@ -147,7 +147,7 @@ local function GetInfoTable(strfile)
 	if tabproperty then
 		T = tabproperty
 	else
-		T.Path = {strfile, strSource or "n/a", strSourceType}
+		T.Path = {strfile, strSource or "n/a", strSourceType or ""}
 		T.Duration = {strduration or "n/a", nduration and nduration.." sec"}
 		T.Size = {strsize or "n/a", nsizeB and nsizeB.." Bytes"}
 		T.Format = strformat
