@@ -30,6 +30,39 @@ local TranslateCHAN = {
 	[CHAN_USER_BASE] = "CHAN_USER_BASE"
 }
 
+local TranslateGameMounts = {
+	ageofchivalry = "Age of Chivalry",
+	berimbau = "Blade Symphony", --what?
+	csgo = "Counter Strike: Global Offensive",
+	cstrike = "Counter Strike: Source",
+	dinodday = "Dino D-Day",
+	diprip = "D.I.P.R.I.P.",
+	dod = "Day of Defeat Source",
+	dystopia = "Dystopia",
+	fof = "Fistful of Frags",
+	garrysmod = "Garry's Mod",
+	gstring = "G-String Game",
+	hl1 = "Half Life: Source",
+	hl1mp = "Half Life Deathmatch: Source",
+	hl2 = "Half Life 2",
+	hl2mp = "Half Life 2: Deathmatch",
+	infra = "INFRA",
+	insmod = "Insurgency (Source mod)",
+	insurgency = "Insurgency", -- ...
+	left4dead = "Left 4 Dead",
+	left4dead2 = "Left 4 Dead 2",
+	lostcoast = "Half Life 2: Lost Coast",
+	nucleardawn = "Nuclear Dawn",
+	portal = "Portal",
+	portal2 = "Portal 2",
+	pvkii = "Pirates, Vikings and Knights II",
+	swarm = "Alien Swarm",
+	tf = "Team Fortress 2",
+	thestanleyparable = "The Stanley Parable",
+	zeno_clash = "Zeno Clash",
+	zps = "Zombie Panic! Source"
+}
+
 // Output the infos about the given sound.
 local function GetFileInfos(strfile)
 	if (!isstring(strfile) or strfile == "") then return end
@@ -38,6 +71,41 @@ local function GetFileInfos(strfile)
 	local strformat = string.lower(string.GetExtensionFromFilename(strfile) or "n/a")
 
 	return nsize, strformat
+end
+
+local function GetFileSource(strFile) -- we have to do this because util.RelativePathToFull_Menu is restricted to menu state :( --this doesn't follow the sound/file convention.
+	if not isstring(strFile) or strFile == "" then return end
+
+	if file.Exists(strFile,"MOD") then
+		return "garrysmod", "game"
+	end
+
+	for _, v in ipairs(engine.GetGames()) do --steam mounted games (or mount.cfg)
+		if v.mounted then
+			local game = v.folder
+			if file.Exists(strFile, game) then
+				return game, "game"
+			end
+		end
+	end
+
+	local _, legacyAddons = file.Find("garrysmod/addons/*", "BASE_PATH")
+	for _,folder in ipairs(legacyAddons) do
+		if file.Exists("garrysmod/addons/"..folder.."/"..strFile, "BASE_PATH") then
+			return folder, "legacy"
+		end
+	end
+
+	for _,v in ipairs(engine.GetAddons()) do
+		if v.mounted then
+			local addon = v.title
+			if file.Exists(strFile, addon) then
+				return addon, "workshop"
+			end
+		end
+	end
+
+	--Couldn't find the file source, just leave with no return.
 end
 
 local function FormatSize(nsize)
@@ -63,6 +131,7 @@ end
 
 local function GetInfoTable(strfile)
 	local nsize, strformat, nduration = GetFileInfos(strfile)
+	local strSource, strSourceType = GetFileSource("sound/"..strfile)
 	if (!nsize) then return end
 
 	nduration = SoundDuration(strfile) //Get the duration for the info text only.
@@ -78,7 +147,7 @@ local function GetInfoTable(strfile)
 	if (tabproperty) then
 		T = tabproperty
 	else
-		T.Path = strfile
+		T.Path = {strfile, strSource or "n/a", strSourceType}
 		T.Duration = {strduration or "n/a", nduration and nduration.." sec"}
 		T.Size = {strsize or "n/a", nsizeB and nsizeB.." Bytes"}
 		T.Format = strformat
@@ -124,10 +193,15 @@ local function GenerateInfoTree(strfile, backnode, count)
 
 		do
 			index = "Path"
-			node = mainnode:AddNode(index, "icon16/sound.png")
-			subnode = node:AddNode(SoundData[index], "icon16/page.png")
-			subnode.IsSoundNode = true
+			node = mainnode:AddNode(index, "icon16/link.png")
+			subnode = node:AddNode(SoundData[index][1], "icon16/page.png")
 			subnode.IsDataNode = true
+			subnode.IsSoundNode = true
+			subnode = node:AddNode(SoundData[index][3]=="game" and TranslateGameMounts[SoundData[index][2]] or SoundData[index][2],
+				SoundData[index][3]=="game" and "games/16/"..SoundData[index][2]..".png" or
+				SoundData[index][3]=="legacy" and "icon16/folder_brick.png" or
+				SoundData[index][3]=="workshop" and "games/16/all.png" or
+				"icon16/folder_link.png")
 		end
 		do
 			index = "Duration"
