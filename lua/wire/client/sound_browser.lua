@@ -73,7 +73,7 @@ local function GetFileInfos(strfile)
 	return nsize, strformat
 end
 
-function GetFileSource(strFile) -- we have to do this because util.RelativePathToFull_Menu is restricted to menu state :( --this doesn't follow the sound/file convention.
+local function GetFileSource(strFile) -- we have to do this because util.RelativePathToFull_Menu is restricted to menu state :( --this doesn't follow the sound/file convention.
 	if not isstring(strFile) or strFile == "" then return end
 
 	if file.Exists(strFile,"MOD") then
