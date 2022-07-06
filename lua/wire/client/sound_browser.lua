@@ -147,7 +147,7 @@ local function GetInfoTable(strfile)
 	if tabproperty then
 		T = tabproperty
 	else
-		T.Path = {strfile, strSource or "n/a", strSourceType or ""}
+		T.Path = {strfile, strSource or "n/a", strSourceType}
 		T.Duration = {strduration or "n/a", nduration and nduration.." sec"}
 		T.Size = {strsize or "n/a", nsizeB and nsizeB.." Bytes"}
 		T.Format = strformat
@@ -198,7 +198,8 @@ local function GenerateInfoTree(strfile, backnode, count)
 			subnode.IsDataNode = true
 			subnode.IsSoundNode = true
 			subnode = node:AddNode(SoundData[index][3]=="game" and TranslateGameMounts[SoundData[index][2]] or SoundData[index][2],
-				SoundData[index][3]=="game" and "games/16/"..SoundData[index][2]..".png" or
+				SoundData[index][3]=="game" and TranslateGameMounts[SoundData[index][2]] and "games/16/"..SoundData[index][2]..".png" or 
+				SoundData[index][3]=="game" and "icon16/folder_link.png" or
 				SoundData[index][3]=="legacy" and "icon16/folder_brick.png" or
 				SoundData[index][3]=="workshop" and "icon16/bricks.png"
 				or "icon16/page.png")
