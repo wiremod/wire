@@ -56,19 +56,19 @@ local function GetFileSource(strFile) -- we have to do this because util.Relativ
 		end
 	end
 
+	local _, legacyAddons = file.Find("garrysmod/addons/*", "BASE_PATH")
+	for _,folder in ipairs(legacyAddons) do
+		if file.Exists("garrysmod/addons/"..folder.."/"..strFile, "BASE_PATH") then
+			return folder, "legacy"
+		end
+	end
+
 	for _,v in ipairs(engine.GetAddons()) do
 		if v.mounted then
 			local addon = v.title
 			if file.Exists(strFile, addon) then
 				return addon, "workshop"
 			end
-		end
-	end
-
-	local _, legacyAddons = file.Find("garrysmod/addons/*", "BASE_PATH")
-	for _,folder in ipairs(legacyAddons) do
-		if file.Exists("garrysmod/addons/"..folder.."/"..strFile, "BASE_PATH") then
-			return folder, "legacy"
 		end
 	end
 
