@@ -40,6 +40,41 @@ local function GetFileInfos(strfile)
 	return nsize, strformat
 end
 
+local function GetFileSource(strFile) -- we have to do this because util.RelativePathToFull_Menu is restricted to menu state :( --this doesn't follow the sound/file convention.
+	if not isstring(strFile) or strFile == "" then return end
+
+	if file.Exists(strFile,"MOD") then
+		return "garrysmod", "game"
+	end
+
+	for _, v in ipairs(engine.GetGames()) do --steam mounted games (or mount.cfg)
+		if v.mounted then
+			local game, title = v.folder, v.title
+			if file.Exists(strFile, game) then
+				return game, "game", title
+			end
+		end
+	end
+
+	for _,v in ipairs(engine.GetAddons()) do
+		if v.mounted then
+			local addon = v.title
+			if file.Exists(strFile, addon) then
+				return addon, "workshop"
+			end
+		end
+	end
+
+	local _, legacyAddons = file.Find("garrysmod/addons/*", "BASE_PATH")
+	for _,folder in ipairs(legacyAddons) do
+		if file.Exists("garrysmod/addons/"..folder.."/"..strFile, "BASE_PATH") then
+			return folder, "legacy"
+		end
+	end
+
+	--Couldn't find the file source, just leave with no return.
+end
+
 local function FormatSize(nsize)
 	if not nsize then return end
 
@@ -63,6 +98,7 @@ end
 
 local function GetInfoTable(strfile)
 	local nsize, strformat, nduration = GetFileInfos(strfile)
+	local strSource, strSourceType, strSourceName = GetFileSource("sound/"..strfile)
 	if not nsize then return end
 
 	nduration = SoundDuration(strfile) --Get the duration for the info text only.
@@ -78,7 +114,7 @@ local function GetInfoTable(strfile)
 	if tabproperty then
 		T = tabproperty
 	else
-		T.Path = strfile
+		T.Path = {strfile, strSource or "n/a", strSourceType, strSourceName}
 		T.Duration = {strduration or "n/a", nduration and nduration.." sec"}
 		T.Size = {strsize or "n/a", nsizeB and nsizeB.." Bytes"}
 		T.Format = strformat
@@ -124,10 +160,15 @@ local function GenerateInfoTree(strfile, backnode, count)
 
 		do
 			index = "Path"
-			node = mainnode:AddNode(index, "icon16/sound.png")
-			subnode = node:AddNode(SoundData[index], "icon16/page.png")
-			subnode.IsSoundNode = true
+			node = mainnode:AddNode(index, "icon16/link.png")
+			subnode = node:AddNode(SoundData[index][1], "icon16/page.png")
 			subnode.IsDataNode = true
+			subnode.IsSoundNode = true
+			subnode = node:AddNode(SoundData[index][3]=="game" and SoundData[index][4] or SoundData[index][2],
+				SoundData[index][3]=="game" and "games/16/"..SoundData[index][2]..".png" or
+				SoundData[index][3]=="legacy" and "icon16/folder_brick.png" or
+				SoundData[index][3]=="workshop" and "games/16/all.png" or
+				"icon16/folder_link.png")
 		end
 		do
 			index = "Duration"
