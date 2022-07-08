@@ -44,7 +44,7 @@ local function GetFileSource(strFile) -- we have to do this because util.Relativ
 	if not isstring(strFile) or strFile == "" then return end
 
 	if file.Exists(strFile,"MOD") then
-		return "garrysmod", "game"
+		return "garrysmod", "game", "Garry's Mod"
 	end
 
 	for _, v in ipairs(engine.GetGames()) do --steam mounted games (or mount.cfg)
