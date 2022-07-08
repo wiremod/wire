@@ -43,6 +43,11 @@ end
 local function GetFileSource(strFile) -- we have to do this because util.RelativePathToFull_Menu is restricted to menu state :( --this doesn't follow the sound/file convention.
 	if not isstring(strFile) or strFile == "" then return end
 
+	-- check if the file is a soundscript
+	if not string.match(strFile,"/") then return end --GetSoundScriptSource(strFile) --alright this literally has no use whatsoever
+	-- remove "special" characters from sound files, used in soundscripts.
+	if strFile:sub(1,5) == "sound" then strFile = string.gsub(strFile,"sound/%W*","sound/") end
+
 	if file.Exists(strFile,"MOD") then
 		return "garrysmod", "game", "Garry's Mod"
 	end
