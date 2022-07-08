@@ -46,7 +46,7 @@ local function GetFileSource(strFile) -- we have to do this because util.Relativ
 	-- check if the file is a soundscript
 	if not string.match(strFile,"/") then return end --GetSoundScriptSource(strFile) --alright this literally has no use whatsoever
 	-- remove "special" characters from sound files, used in soundscripts.
-	if strFile:sub(1,5) == "sound" then strFile = string.gsub(strFile,"sound/%W*","sound/") end
+	if strFile:sub(1,5) == "sound" then strFile = string.gsub(strFile,"^sound/%W*","sound/") end
 
 	if file.Exists(strFile, "MOD") then
 		return "garrysmod", "game", "Garry's Mod"
