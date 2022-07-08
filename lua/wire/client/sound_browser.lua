@@ -72,6 +72,10 @@ local function GetFileSource(strFile) -- we have to do this because util.Relativ
 		end
 	end
 
+	if file.Exists(strFile,"DOWNLOAD") then return "Server Download", "download" end
+
+	if file.Exists(strFile,"BSP") then return "Current Map ("..game.GetMap()..")", "bspfile" end
+
 	--Couldn't find the file source, just leave with no return.
 end
 
@@ -168,6 +172,8 @@ local function GenerateInfoTree(strfile, backnode, count)
 				SoundData[index][3]=="game" and "games/16/"..SoundData[index][2]..".png" or
 				SoundData[index][3]=="legacy" and "icon16/folder_brick.png" or
 				SoundData[index][3]=="workshop" and "games/16/all.png" or
+				SoundData[index][3]=="download" and "icon16/transmit.png" or
+				SoundData[index][3]=="bspfile" and "icon16/world.png" or
 				"icon16/folder_link.png")
 		end
 		do
