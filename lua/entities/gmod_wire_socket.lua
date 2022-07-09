@@ -84,7 +84,7 @@ if CLIENT then
 
 	hook.Add("HUDPaint","Wire_Socket_DrawLinkHelperLine",function()
 		local sockets = ents.FindByClass("gmod_wire_socket")
-		for k,self in pairs( sockets ) do
+		for k,self in ipairs( sockets ) do
 			local Pos, _ = self:GetLinkPos()
 
 			local Closest = self:GetClosestPlug()
