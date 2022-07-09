@@ -120,7 +120,7 @@ end
 local NEW_PLUG_WAIT_TIME = 2
 local LETTERS = { "A", "B", "C", "D", "E", "F", "G", "H" }
 local LETTERS_INV = {}
-for k,v in pairs( LETTERS ) do
+for k,v in ipairs( LETTERS ) do
 	LETTERS_INV[v] = k
 end
 
@@ -271,7 +271,7 @@ end
 local function FindConstraint( ent, plug )
 	if IsValid(ent) then
 		local welds = constraint.FindConstraints( ent, "Weld" )
-		for k,v in pairs( welds ) do
+		for k,v in ipairs( welds ) do
 			if (v.Ent2 == plug) then
 				return v.Constraint
 			end
@@ -279,7 +279,7 @@ local function FindConstraint( ent, plug )
 	end
 	if IsValid(plug) then
 		local welds = constraint.FindConstraints( plug, "Weld" )
-		for k,v in pairs( welds ) do
+		for k,v in ipairs( welds ) do
 			if (v.Ent2 == ent) then
 				return v.Constraint
 			end
