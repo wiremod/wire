@@ -75,15 +75,16 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "Linked" )
 end
 
+
 if CLIENT then
+	local sockets = {}
 	function ENT:DrawEntityOutline()
 		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
 			BaseClass.DrawEntityOutline( self )
 		end
 	end
 
-	hook.Add("HUDPaint","Wire_Socket_DrawLinkHelperLine",function()
-		local sockets = ents.FindByClass("gmod_wire_socket")
+	local function DrawLinkHelperLinefunction()
 		for k,self in ipairs( sockets ) do
 			local Pos, _ = self:GetLinkPos()
 
@@ -96,7 +97,21 @@ if CLIENT then
 				surface.DrawLine(plugpos.x, plugpos.y, socketpos.x, socketpos.y)
 			end
 		end
-	end)
+	end
+
+	function ENT:Initialize()
+		table.insert(sockets, self)
+		if #sockets == 1 then
+			hook.Add("HUDPaint", "Wire_Socket_DrawLinkHelperLine",DrawLinkHelperLinefunction)
+		end
+	end
+
+	function ENT:OnRemove()
+		table.RemoveByValue(sockets, self)
+		if #sockets == 0 then
+			hook.Remove("HUDPaint", "Wire_Socket_DrawLinkHelperLine")
+		end
+	end
 
 	return  -- No more client
 end
