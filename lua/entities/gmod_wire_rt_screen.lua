@@ -76,7 +76,7 @@ if SERVER then
         "Scroll X", "Scroll Y", "Scale X", "Scale Y"
     }
 
-	local screens = {}
+	local screens = ents.FindByClass("gmod_wire_rt_screen") or {}
 
 	local function ImprovedRTCamera(ply, plyView)
         for _, screen in ipairs(screens) do

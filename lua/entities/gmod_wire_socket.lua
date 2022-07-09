@@ -77,7 +77,7 @@ end
 
 
 if CLIENT then
-	local sockets = {}
+	local sockets = ents.FindByClass("gmod_wire_socket") or {}
 	function ENT:DrawEntityOutline()
 		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
 			BaseClass.DrawEntityOutline( self )

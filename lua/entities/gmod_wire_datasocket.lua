@@ -8,7 +8,7 @@ function ENT:GetPlugClass()
 end
 
 if CLIENT then
-	local sockets = {}
+	local sockets = ents.FindByClass("gmod_wire_datasocket") or {}
 	local function DrawLinkHelperLinefunction()
 		for k,self in ipairs( sockets ) do
 			local Pos, _ = self:GetLinkPos()

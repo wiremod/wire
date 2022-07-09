@@ -99,7 +99,7 @@ end
 
 -- Server
 
-local pods = {}
+local pods = ents.FindByClass("gmod_wire_pod") or {}
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
