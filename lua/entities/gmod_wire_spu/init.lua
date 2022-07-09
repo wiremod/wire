@@ -123,7 +123,7 @@ function ENT:ResendCache(player)
 end
 
 local function SPU_PlayerRespawn(player)
-  for _,Entity in pairs(ents.FindByClass("gmod_wire_spu")) do
+  for _,Entity in ipairs(ents.FindByClass("gmod_wire_spu")) do
     Entity:ResendCache(player)
   end
 end

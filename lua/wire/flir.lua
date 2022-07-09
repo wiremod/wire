@@ -84,7 +84,7 @@ if CLIENT then
 	function FLIR.start()
 		if FLIR.enabled then return else FLIR.enabled = true end
 
-		for _, v in pairs(ents.GetAll()) do
+		for _, v in ipairs(ents.GetAll()) do
 			SetFLIR(v)
 		end
 
