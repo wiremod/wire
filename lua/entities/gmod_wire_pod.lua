@@ -100,6 +100,7 @@ end
 -- Server
 
 local pods = ents.FindByClass("gmod_wire_pod") or {}
+local PlayerBindDownHook, PlayerBindUpHook, Wire_Pod_EnterVehicle, Wire_Pod_ExitVehicle, Wire_Pod_CanExitVehicle
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -338,7 +339,7 @@ local bindingToOutput = {
 	["impulse 100"] = "Light",
 }
 
-local function PlayerBindDownHook(player, binding)
+function PlayerBindDownHook(player, binding)
 	if not binding then return end
 	local output = bindingToOutput[binding]
 	if not output then return end
@@ -350,7 +351,7 @@ local function PlayerBindDownHook(player, binding)
 	end
 end
 
-local function PlayerBindUpHook(player, binding)
+function PlayerBindUpHook(player, binding)
 	if not binding then return end
 	local output = bindingToOutput[binding]
 	if not output then return end
@@ -594,7 +595,7 @@ function ENT:PlayerExited()
 	self:SetPly( nil )
 end
 
-local function Wire_Pod_EnterVehicle( ply, vehicle )
+function Wire_Pod_EnterVehicle( ply, vehicle )
 	for _, v in ipairs(pods) do
 		if (v:HasPod() and v:GetPod() == vehicle) then
 			v:PlayerEntered( ply )
@@ -602,7 +603,7 @@ local function Wire_Pod_EnterVehicle( ply, vehicle )
 	end
 end
 
-local function Wire_Pod_ExitVehicle( ply, vehicle )
+function Wire_Pod_ExitVehicle( ply, vehicle )
 	for _, v in ipairs(pods) do
 		if (v:HasPod() and v:GetPod() == vehicle) then
 			v:PlayerExited()
@@ -610,7 +611,7 @@ local function Wire_Pod_ExitVehicle( ply, vehicle )
 	end
 end
 
-local function Wire_Pod_CanExitVehicle( vehicle, ply )
+function Wire_Pod_CanExitVehicle( vehicle, ply )
 	for _, v in ipairs(pods) do
 		if (v:HasPod() and v:GetPod() == vehicle) and v.Locked and v.AllowLockInsideVehicle:GetBool() then
 			return false
