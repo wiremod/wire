@@ -53,7 +53,7 @@ end
 util.AddNetworkString("wire_expression2_request_file_sp")
 util.AddNetworkString("wire_expression2_request_file")
 local function file_Upload( ply, entity, filename )
-	if !file_canUpload( ply ) or !IsValid( entity ) or !IsValid( ply ) or !ply:IsPlayer() or string.Right( filename, 4 ) != ".txt" then return false end
+	if !file_canUpload( ply ) or !IsValid( entity ) or !IsValid( ply ) or !ply:IsPlayer() or !E2Lib.isValidFileWritePath(filename) then return false end
 
 	uploads[ply] = {
 		name = filename,
@@ -82,7 +82,7 @@ local function file_canDownload( ply )
 end
 
 local function file_Download( ply, filename, data, append )
-	if !file_canDownload( ply ) or !IsValid( ply ) or !ply:IsPlayer() or string.Right( filename, 4 ) != ".txt" then return false end
+	if !file_canDownload( ply ) or !IsValid( ply ) or !ply:IsPlayer() or !E2Lib.isValidFileWritePath(filename) then return false end
 	if string.len( data ) > (cv_max_transfer_size:GetInt() * 1024) then return false end
 
 	-- if we're trying to append an empty string then we don't need to queue up
@@ -399,7 +399,7 @@ net.Receive("wire_expression2_file_finish", function(netlen, ply)
 	end
 
 	local pfile = uploads[ply]
-	if !pfile then return end
+	if !pfile or !pfile.buffer then return end
 
 	pfile.uploading = false
 	pfile.data = E2Lib.decode( pfile.buffer )

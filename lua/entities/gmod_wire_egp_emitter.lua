@@ -19,8 +19,13 @@ if SERVER then
 		self:SetDrawOffsetPos(DrawOffsetPos)
 		self:SetDrawOffsetAng(DrawOffsetAng)
 		self:SetDrawScale(DrawScale)
+		self:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
 
-		self.Inputs = WireLib.CreateSpecialInputs(self, { "Scale", "Position", "Angle" }, {"NORMAL", "VECTOR", "ANGLE"})
+		WireLib.CreateInputs(self, { 
+			"Scale (Increase or decrease draw scale. Limited between 0.04 and 2)", 
+			"Position (Offsets the draw position. Limited between -150 to +150 in any direction away from the emitter.) [VECTOR]", 
+			"Angle (Offsets the draw angle.) [ANGLE]" 
+		})
 	end
 
 	function ENT:TriggerInput(iname, value)
@@ -68,8 +73,8 @@ if CLIENT then
 		-- the parent checks need to be processed here if we aren't using a GPU
 		self.UpdateConstantly = nil
 		if self.GPU == nil then
-			for k,object in pairs(self.RenderTable) do
-				if object.parent == -1 or object.Is3DTracker then self.UpdateConstantly = true end -- Check if an object is parented to the cursor (or for 3DTrackers)
+			for _,object in pairs(self.RenderTable) do
+				if object.parent == -1 or object.NeedsConstantUpdate then self.UpdateConstantly = true end -- Check if an object is parented to the cursor (or for 3DTrackers)
 	 			if object.parent and object.parent ~= 0 then
 					if not object.IsParented then EGP:SetParent(self, object.index, object.parent) end
 					local _, data = EGP:GetGlobalPos(self, object.index)

@@ -51,13 +51,8 @@ util.PrecacheSound("weapons/pistol/pistol_empty.wav")
 util.PrecacheSound("buttons/lightswitch2.wav")
 util.PrecacheSound("buttons/button16.wav")
 
-local function get_active_tool(ply, tool)
-	-- find toolgun
-	local activeWep = ply:GetActiveWeapon()
-	if not IsValid(activeWep) or activeWep:GetClass() ~= "gmod_tool" or activeWep.Mode ~= tool then return end
-
-	return activeWep:GetToolObject(tool)
-end
+-- check that the table exists and isn't empty at the same time
+local function isTableEmpty(t) return t ~= nil and next(t) ~= nil end
 
 if SERVER then
 	-----------------------------------------------------------------
@@ -135,7 +130,7 @@ if SERVER then
 	net.Receive( "wire_adv_upload", function( len, ply )
 		local wirings = net.ReadTable()
 
-		local tool = get_active_tool(ply,"wire_adv")
+		local tool = WireToolHelpers.GetActiveTOOL("wire_adv",ply)
 		if not tool then return end
 
 		local material = tool:GetClientInfo("material")
@@ -320,6 +315,7 @@ elseif CLIENT then
 		self.ShowWirelink = false
 		self.ShowEntity = false
 		self:SetStage(0)
+		WireLib.WiringToolRenderAvoid = nil
 	end
 
 	-----------------------------------------------------------------
@@ -502,10 +498,8 @@ elseif CLIENT then
 	-- Mouse buttons
 	-----------------------------------------------------------------
 
-	TOOL.wtfgarry = 0
 	function TOOL:LeftClick(trace)
-		if self.wtfgarry > CurTime() then return end
-		self.wtfgarry = CurTime() + 0.1
+		if not game.SinglePlayer() and not IsFirstTimePredicted() then return end
 
 		local shift = self:GetOwner():KeyDown(IN_SPEED)
 		local alt = self:GetOwner():KeyDown(IN_WALK)
@@ -516,7 +510,7 @@ elseif CLIENT then
 				self:BeginRenderingCurrentWire()
 
 				local inputs, _ = self:GetPorts( trace.Entity )
-				if not inputs then return end
+				if not isTableEmpty(inputs) then return end
 
 				if alt then -- Select everything
 					for i=1,#inputs do
@@ -538,7 +532,7 @@ elseif CLIENT then
 			elseif self:GetStage() == 1 then
 				self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
 				local _, outputs = self:GetPorts( trace.Entity )
-				if not outputs then return end
+				if not isTableEmpty(outputs) then return end
 
 				self.CurrentEntity = trace.Entity
 				self:AutoWiringTypeLookup( self.CurrentEntity )
@@ -550,7 +544,6 @@ elseif CLIENT then
 				end
 
 				if next(outputs,next(outputs)) == nil then -- there's only one element in the table
-					self.wtfgarry = 0
 					self:LeftClick( trace ) -- wire it right away
 					return
 				end
@@ -649,8 +642,7 @@ elseif CLIENT then
 	end
 
 	function TOOL:RightClick(trace)
-		if self.wtfgarry > CurTime() then return end
-		self.wtfgarry = CurTime() + 0.1
+		if not game.SinglePlayer() and not IsFirstTimePredicted() then return end
 
 		self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
 		if self:GetStage() == 0 or self:GetStage() == 2 then
@@ -664,12 +656,11 @@ elseif CLIENT then
 	end
 
 	function TOOL:Reload(trace)
-		if self.wtfgarry > CurTime() then return end
-		self.wtfgarry = CurTime() + 0.1
+		if not game.SinglePlayer() and not IsFirstTimePredicted() then return end
 
 		if self:GetStage() == 0 and IsValid( trace.Entity ) and WireLib.HasPorts( trace.Entity ) then
 			local inputs, outputs = self:GetPorts( trace.Entity )
-			if not inputs then return end
+			if not isTableEmpty(inputs) then return end
 			if self:GetOwner():KeyDown( IN_WALK ) then
 				local t = {}
 				for i=1,#inputs do
@@ -691,7 +682,7 @@ elseif CLIENT then
 		local ent = self:GetStage() == 0 and trace.Entity or self.CurrentEntity
 		if IsValid(ent) then
 			local inputs, outputs = self:GetPorts( ent )
-			if not inputs and not outputs then return end
+			if not isTableEmpty(inputs) and not isTableEmpty(outputs) then return end
 			local check = self:GetStage() == 0 and inputs or outputs
 			if #check == 0 then return end
 
@@ -732,20 +723,18 @@ elseif CLIENT then
 		if not pressed then return end
 
 		if bind == "invnext" then
-			local self = get_active_tool(ply, "wire_adv")
+			local self = WireToolHelpers.GetActiveTOOL("wire_adv",ply)
 			if not self then return end
-
 			return self:ScrollDown(ply:GetEyeTraceNoCursor())
 		elseif bind == "invprev" then
-			local self = get_active_tool(ply, "wire_adv")
+			local self = WireToolHelpers.GetActiveTOOL("wire_adv",ply)
 			if not self then return end
-
 			return self:ScrollUp(ply:GetEyeTraceNoCursor())
 		elseif bind == "impulse 100" then
 			if ply:KeyDown( IN_SPEED ) then
-				local self = get_active_tool(ply, "wire_adv")
+				local self = WireToolHelpers.GetActiveTOOL("wire_adv",ply)
 				if not self then
-					self = get_active_tool(ply, "wire_debugger")
+					self = WireToolHelpers.GetActiveTOOL("wire_debugger",ply)
 					if not self then return end
 
 					spawnmenu.ActivateTool( "wire_adv") -- switch back to wire adv
@@ -755,7 +744,7 @@ elseif CLIENT then
 				spawnmenu.ActivateTool("wire_debugger") -- switch to debugger
 				return true
 			else
-				local self = get_active_tool(ply, "wire_adv")
+				local self = WireToolHelpers.GetActiveTOOL("wire_adv",ply)
 				if self and self:GetStage() == 1 then
 					local len = #self.Wiring
 					if len > 0 then
@@ -930,16 +919,14 @@ elseif CLIENT then
 			end
 			return true
 		elseif name == "Selected" and self:GetStage() == 2 then
+			local inputs, outputs = self:GetPorts( ent )
+			if not isTableEmpty(outputs) then return false end
 			if self:GetOwner():KeyDown( IN_WALK ) then -- Gray out the ones that won't be able to be wired to any input
-				local inputs, outputs = self:GetPorts( ent )
-				if not outputs then return false end
 				for i=1,#outputs do
 					if tbl[idx][2] == outputs[i][2] then return false end
 				end
 				return true
 			else -- Gray out the ones that won't be able to be wired to the selected output
-				local inputs, outputs = self:GetPorts( ent )
-				if not outputs then return false end
 				return tbl[idx][2] ~= outputs[self.CurrentWireIndex][2]
 			end
 		end
@@ -950,7 +937,7 @@ elseif CLIENT then
 		local name = input[1]
 		local tp = input[8] or (type(input[2]) == "string" and input[2] or "")
 		local desc = (IsEntity(input[3]) and "" or input[3]) or ""
-		return name .. (desc ~= "" and " (" .. desc .. ")" or "") .. (tp ~= "NORMAL" and " [" .. tp.. "]" or "")
+		return name .. (tp ~= "NORMAL" and " [" .. tp.. "]" or ""), desc
 	end
 
 	local function getWidthHeight( inputs )
@@ -1032,7 +1019,7 @@ elseif CLIENT then
 				local clr = Color(0,150,0,192)
 				if diffcolor and (self.CurrentWireIndex == i or self:GetOwner():KeyDown( IN_WALK )) then clr = Color(100,100,175,192)
 				elseif diffcolor then clr = Color(0,0,150,192) end
-				draw.RoundedBox( 4, x-4,y, w+8,fonth+2, clr )
+				draw.RoundedBox( 4, x-4, y, w+8,fonth+2, clr )
 			end
 
 			if tbl[i][4] == true then
@@ -1051,13 +1038,73 @@ elseif CLIENT then
 				surface.SetFont( self.CurrentFont )
 			end
 
+			local name, desc = getName( tbl[i] )
 			surface.SetTextPos( x, y )
-			surface.DrawText( getName( tbl[i] ) )
+			surface.DrawText( name )
+
+			-- special case for constant value to force render all descriptions at all times
+			-- and doesn't draw \n on separate lines,
+			-- and also doesn't automatically wrap too long lines
+			local isconstvalue = ent:GetClass() == "gmod_wire_value" 
+
+			-- draw description
+			if desc ~= "" and (self:GetStage() == 0 or self:GetStage() == 2 or isconstvalue) then
+				if self.CurrentWireIndex == i and not self:GetOwner():KeyDown( IN_WALK ) or isconstvalue then
+					local descx = x + w + 16
+					local descy = y
+
+					local function getTextSize(lines)
+						local w = 0
+						local h = 0
+						for i=1,#lines do
+							lines[i] = string.Trim(lines[i])
+							local ww, hh = surface.GetTextSize( lines[i] )
+							w = math.max(w,ww)
+							h = h + hh + 2
+						end
+
+						return w, h
+					end
+
+					local lines = isconstvalue and {desc} or string.Explode("\n", desc)
+					local descw, desch = getTextSize(lines)
+
+					local inf = 0
+					while not isconstvalue and descx + descw + 16 > ScrW() and inf < 10 do
+						inf = inf + 1
+						-- if it would've gone beyond the edge of the screen
+						-- break up the lines in the middle and hope for the best
+						-- while this code is a bit inefficient, most of the time it won't need to be used
+						local new = {}
+						local idx = 1
+						for i=1,#lines do
+							local line = lines[i]
+							new[idx] = string.sub(line,1,#line/2)
+							new[idx+1] = string.sub(line,#line/2+1,#line)
+							idx = idx + 2
+						end
+						lines = new
+
+						descw, desch = getTextSize(lines)
+					end
+
+					descy = descy - (desch-fonth) / 2
+					draw.RoundedBox( 4, descx, descy+1, descw+12, desch-2, Color(50,50,75,192) )
+
+					for i=1,#lines do
+						surface.SetTextPos( descx+6, descy )
+						surface.DrawText( lines[i] )
+						descy = descy + fonth + 2
+					end
+				end
+			end
 		end
 	end
 
 	function TOOL:DrawHUD()
 		local centerx, centery = ScrW()/2, ScrH()/2
+
+		local minx, miny, maxx, maxy = centerx, centery, centerx, centery
 
 		local ent = self:GetStage() == 2 and self.CurrentEntity or self:GetOwner():GetEyeTrace().Entity
 		local maxwidth = 0
@@ -1072,6 +1119,11 @@ elseif CLIENT then
 				local x = centerx-ww-38
 				local y = centery-hh/2-16
 				self:DrawList( "Inputs", inputs, ent, x, y, ww, hh, h )
+
+				minx = math.min(minx,x)
+				miny = math.min(miny,y)
+				maxx = math.max(maxx,x+ww)
+				maxy = math.max(maxy,y+hh+h)
 			end
 
 			if outputs and #outputs > 0 and self:GetStage() > 0 then
@@ -1079,20 +1131,36 @@ elseif CLIENT then
 				local ww, hh = getWidthHeight( outputs )
 				ww = math.max(ww,w)
 				hh = math.max(hh,h) + h
-				local x = centerx+38
+				local x = centerx+22
 				local y = centery-hh/2-16
 				self:DrawList( "Outputs", outputs, ent, x, y, ww, hh, h )
+
+				minx = math.min(minx,x)
+				miny = math.min(miny,y)
+				maxx = math.max(maxx,x+ww)
+				maxy = math.max(maxy,y+hh+h)
+			end
+
+			if #self.WiringRender > 0 then
+				local w, h = self:fitFont( #self.WiringRender, ScrH() - 32 )
+				local ww, hh = getWidthHeight( self.WiringRender )
+				local ww = math.max(ww,w)
+				local hh = math.max(hh,h) + h
+				local x = centerx-maxwidth-ww-38
+				local y = centery-hh/2-16
+				self:DrawList( "Selected", self.WiringRender, ent, x, y, ww, hh, h )
+
+				minx = math.min(minx,x)
+				miny = math.min(miny,y)
+				maxx = math.max(maxx,x+ww)
+				maxy = math.max(maxy,y+hh+h)
 			end
 		end
 
-		if #self.WiringRender > 0 then
-			local w, h = self:fitFont( #self.WiringRender, ScrH() - 32 )
-			local ww, hh = getWidthHeight( self.WiringRender )
-			local ww = math.max(ww,w)
-			local hh = math.max(hh,h) + h
-			local x = centerx-maxwidth-ww-38
-			local y = centery-hh/2-16
-			self:DrawList( "Selected", self.WiringRender, ent, x, y, ww, hh, h )
+		if minx < centerx - 1 then
+			WireLib.WiringToolRenderAvoid = {minx,miny, maxx,maxy}
+		else
+			WireLib.WiringToolRenderAvoid = nil
 		end
 	end
 

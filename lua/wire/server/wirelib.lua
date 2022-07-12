@@ -164,6 +164,7 @@ function WireLib.CreateSpecialOutputs(ent, names, types, descs)
 		end
 		port.Idx = idx
 
+
 		ent_ports[name] = port
 		Outputs[idx] = port
 	end
@@ -188,7 +189,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 			end
 			ent_ports[name].Keep = true
 			ent_ports[name].Num = n
-			ent_ports[name].Desc = descs[n]
+			ent_ports[name].Desc = desc
 		else
 			local port = {
 				Entity = ent,
@@ -233,7 +234,16 @@ end
 function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 	types = types or {}
 	descs = descs or {}
+
 	local ent_ports = ent.Outputs or {}
+
+	if ent_ports.wirelink then
+		local n = #names+1
+
+		names[n] = "wirelink"
+		types[n] = "WIRELINK"
+	end
+
 	for n,v in ipairs(names) do
 		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
 
@@ -244,12 +254,12 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 			end
 			ent_ports[name].Keep = true
 			ent_ports[name].Num = n
-			ent_ports[name].Desc = descs[n]
+			ent_ports[name].Desc = desc
 		else
 			local port = {
 				Keep = true,
 				Name = name,
-				Desc = descs[n],
+				Desc = desc,
 				Type = tp,
 				Value = WireLib.DT[ tp ].Zero,
 				Connected = {},
@@ -501,7 +511,7 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 	if (not ent.Outputs) then return end
 
 	local output = ent.Outputs[oname]
-	if (output) and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE") then
+	if (output) and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]])) then
 		local timeOfFrame = CurTime()
 		if timeOfFrame ~= output.TriggerTime then
 			-- Reset the TriggerLimit every frame
@@ -789,6 +799,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 	if IsValid(ply) then idx = ply:UniqueID() end -- Map Save loading does not have a ply
 	if (info.Wires) then
 		for k,input in pairs(info.Wires) do
+			k=tostring(k) -- For some reason duplicator will parse strings containing numbers as numbers?
 			local ent2 = GetEntByID(input.Src)
 
 			-- Input alias
@@ -1124,6 +1135,25 @@ concommand.Add("wireversion", function(ply,cmd,args)
 	end
 end, nil, "Prints the server's Wiremod version")
 
+function WireLib.CheckRegex(data, pattern)
+	local limits = {[0] = 50000000, 15000, 500, 150, 70, 40} -- Worst case is about 200ms
+	local stripped, nrepl, nrepl2
+	-- strip escaped things
+	stripped, nrepl = string.gsub(pattern, "%%.", "")
+	-- strip bracketed things
+	stripped, nrepl2 = string.gsub(stripped, "%[.-%]", "")
+	-- strip captures
+	stripped = string.gsub(stripped, "[()]", "")
+	-- Find extenders
+	local n = 0 for i in string.gmatch(stripped, "[%+%-%*]") do n = n + 1 end
+	local msg
+	if n<=#limits then
+		if #data*(#stripped + nrepl - n + nrepl2)>limits[n] then msg = n.." ext search length too long ("..limits[n].." max)" else return end
+	else
+		msg = "too many extenders"
+	end
+	error("Regex is too complex! " .. msg)
+end
 
 local material_blacklist = {
 	["engine/writez"] = true,

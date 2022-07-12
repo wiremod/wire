@@ -99,23 +99,31 @@ end
 
 -- Server
 
+local pods = {}
+
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 	self:SetUseType( SIMPLE_USE )
 
+	table.insert(pods, self)
+
 	local outputs = {
 		-- Keys
 		"W", "A", "S", "D", "Mouse1", "Mouse2",
-		"R", "Space", "Shift", "Zoom", "Alt", "TurnLeftKey", "TurnRightKey",
+		"R", "Space", "Shift", "Zoom", "Alt", 
+		"TurnLeftKey (Not bound to a key by default. Bind a key to '+left' to use.\nOutside of a vehicle, makes the player's camera rotate left.)", 
+		"TurnRightKey (Not bound to a key by default. Bind a key to '+right' to use.\nOutside of a vehicle, makes the player's camera rotate right.)",
 
 		-- Clientside keys
-		"PrevWeapon", "NextWeapon", "Light",
+		"PrevWeapon (Usually bound to the mouse scroller, so will only be active for a single tick.)", 
+		"NextWeapon (Usually bound to the mouse scroller, so will only be active for a single tick.)",
+		"Light",
 
 		-- Aim Position
 		"X", "Y", "Z", "AimPos [VECTOR]",
-		"Distance", "Bearing", "Elevation",
+		"Distance", "Bearing (If the 'Relative' input is non-zero, this will be relative to the vehicle.)", "Elevation (If the 'Relative' input is non-zero, this will be relative to the vehicle.)",
 
 		-- Other info
 		"ThirdPerson", "Team", "Health", "Armor",
@@ -133,7 +141,8 @@ function ENT:Initialize()
 	local inputs = {
 		"Lock", "Terminate", "Strip weapons", "Eject",
 		"Disable", "Crosshairs", "Brake", "Allow Buttons",
-		"Relative", "Damage Health", "Damage Armor", "Hide Player", "Hide HUD", "Show Cursor",
+		"Relative (If this is non-zero, the 'Bearing' and 'Elevation' outputs will be relative to the vehicle.)", 
+		"Damage Health (Damages the driver's health.)", "Damage Armor (Damages the driver's armor.)", "Hide Player", "Hide HUD", "Show Cursor",
 		"Vehicle [ENTITY]"
 	}
 
@@ -217,6 +226,7 @@ function ENT:UnlinkEnt()
 	end
 	self:SetShowCursor( 0 )
 	self.Pod = nil
+	self:PlayerExited()
 	WireLib.SendMarks(self, {})
 	WireLib.TriggerOutput( self, "Entity", NULL )
 	self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
@@ -224,6 +234,7 @@ function ENT:UnlinkEnt()
 end
 function ENT:OnRemove()
 	self:UnlinkEnt()
+	table.RemoveByValue(pods, self)
 end
 
 function ENT:HasPod() return (self.Pod and self.Pod:IsValid()) end
@@ -232,7 +243,7 @@ function ENT:SetPod( pod )
 	if pod and pod:IsValid() and not pod:IsVehicle() then return false end
 
 	if self:HasPly() then
-		self:PlayerExited(self:GetPly())
+		self:PlayerExited()
 	else
 		self:ColorByLinkStatus(IsValid(pod) and self.LINK_STATUS_LINKED or self.LINK_STATUS_UNLINKED)
 	end
@@ -243,7 +254,7 @@ function ENT:SetPod( pod )
 	if not IsValid(pod) then return true end
 
 	pod:CallOnRemove("wire_pod_remove",function()
-		self:UnlinkEnt(pod)
+		if self:IsValid() then self:UnlinkEnt(pod) end
 	end)
 
 	if IsValid(pod:GetDriver()) then
@@ -318,7 +329,7 @@ hook.Add("PlayerBindDown", "gmod_wire_pod", function(player, binding)
 	local output = bindingToOutput[binding]
 	if not output then return end
 
-	for _, pod in pairs(ents.FindByClass("gmod_wire_pod")) do
+	for _, pod in ipairs(pods) do
 		if pod:GetPly() == player and not pod.Disable then
 			WireLib.TriggerOutput(pod, output, 1)
 		end
@@ -330,7 +341,7 @@ hook.Add("PlayerBindUp", "gmod_wire_pod", function(player, binding)
 	local output = bindingToOutput[binding]
 	if not output then return end
 
-	for _, pod in pairs(ents.FindByClass("gmod_wire_pod")) do
+	for _, pod in ipairs(pods) do
 		if pod:GetPly() == player and not pod.Disable then
 			WireLib.TriggerOutput(pod, output, 0)
 		end
@@ -456,11 +467,13 @@ function ENT:Think()
 			if (self.Relative) then
 				local originalangle
 				if (self.RC) then
-					originalangle = ply.InitialAngle
+					originalangle = self.RC.InitialAngle
 				else
-					originalangle = pod:GetAngles()
-					if pod:GetClass() ~= "prop_vehicle_prisoner_pod" then
-						originalangle.y = originalangle.y + 90
+					local attachment = pod:LookupAttachment( "vehicle_driver_eyes" )
+					if (attachment > 0) then
+						originalangle = pod:GetAttachment( attachment ).Ang
+					else
+						originalangle = pod:GetAngles()
 					end
 				end
 				WireLib.TriggerOutput( self, "Bearing", fixupangle( angle.y - originalangle.y ) )
@@ -482,7 +495,7 @@ function ENT:Think()
 		-- Button pressing
 		if (self.AllowButtons and distance < 82) then
 			local button = trace.Entity
-			if IsValid(button) and (ply:KeyDown( IN_ATTACK ) and not self.MouseDown) and button.Use then
+			if IsValid(button) and (ply:KeyDown( IN_ATTACK ) and not self.MouseDown) and not button:IsVehicle() and button.Use then
 				-- Generic support (Buttons, Dynamic Buttons, Levers, EGP screens, etc)
 				self.MouseDown = true
 				button:Use(ply, self, USE_ON, 0)
@@ -533,8 +546,10 @@ function ENT:PlayerEntered( ply, RC )
 	self:SetActivated( true )
 end
 
-function ENT:PlayerExited( ply )
+function ENT:PlayerExited()
 	if not self:HasPly() then return end
+
+	local ply = self:GetPly()
 
 	self:HidePlayer( false )
 
@@ -566,7 +581,7 @@ function ENT:PlayerExited( ply )
 end
 
 hook.Add( "PlayerEnteredVehicle", "Wire_Pod_EnterVehicle", function( ply, vehicle )
-	for _, v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
+	for _, v in ipairs(pods) do
 		if (v:HasPod() and v:GetPod() == vehicle) then
 			v:PlayerEntered( ply )
 		end
@@ -574,15 +589,15 @@ hook.Add( "PlayerEnteredVehicle", "Wire_Pod_EnterVehicle", function( ply, vehicl
 end)
 
 hook.Add( "PlayerLeaveVehicle", "Wire_Pod_ExitVehicle", function( ply, vehicle )
-	for _, v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
+	for _, v in ipairs(pods) do
 		if (v:HasPod() and v:GetPod() == vehicle) then
-			v:PlayerExited( ply )
+			v:PlayerExited()
 		end
 	end
 end)
 
 hook.Add("CanExitVehicle","Wire_Pod_CanExitVehicle", function( vehicle, ply )
-	for _, v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
+	for _, v in ipairs(pods) do
 		if (v:HasPod() and v:GetPod() == vehicle) and v.Locked and v.AllowLockInsideVehicle:GetBool() then
 			return false
 		end

@@ -103,7 +103,6 @@ function ENT:Initialize()
 	self.pitch = 0
 	self.mul = 0
 	self.force = 0
-	self.calcforce = true
 
 	self.ForceLinear = vector_origin
 	self.ForceAngular = vector_origin
@@ -162,17 +161,24 @@ function ENT:CalcForce(phys)
 		self.mul = ThrustLen
 	end
 
+	local LinearForceLength
 	if ThrustLen>0 then
 		local ThrustNormal = ThrusterWorldForce/ThrustLen
 		self:SetNormal( -ThrustNormal )
 		self.ForceLinear, self.ForceAngular = phys:CalculateVelocityOffset( ThrustNormal * ( math.min( self.force * self.mul, self.force_max ) * 50 ), phys:LocalToWorld( self.ThrustOffset ) )
+
+		self.ForceLinear = WireLib.clampForce(self.ForceLinear)
+		self.ForceAngular = WireLib.clampForce(self.ForceAngular)
+
+		LinearForceLength = self.ForceLinear:Length()
 	else
 		self:SetNormal( vector_origin )
 		self.ForceLinear, self.ForceAngular = vector_origin, vector_origin
+		LinearForceLength = 0
 	end
 
 	if self.neteffect then
-		self:SetNWFloat("Thrust", self.ForceLinear:Length())
+		self:SetNWFloat("Thrust", LinearForceLength)
 	end
 end
 
@@ -188,7 +194,6 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.uwater = uwater
 	self.angleinputs = angleinputs
 	self.lengthismul = lengthismul
-	self.calcforce = true
 
 	-- Preventing client crashes
 	local BlockedChars = '["?]'
@@ -236,22 +241,22 @@ function ENT:TriggerInput(iname, value)
 
 	local phys = self:GetPhysicsObject()
 	if phys:IsValid() then
-		self.calcforce = true
 		if phys:IsMotionEnabled() then
 			phys:Wake()
 		else
 			self:PhysicsSimulate(phys)
 		end
 	end
+
+	if self.lengthismul then
+		self:SetOn(true)
+	else
+		self:SetOn(self.mul ~= 0 and ( (self.bidir) and (math.abs(self.mul) > 0.01) and (math.abs(self.mul) > self.force_min) ) or ( (self.mul > 0.01) and (self.mul > self.force_min) ))
+	end
+		self:ShowOutput()
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )
-	if self.calcforce then
-		self:CalcForce(phys)
-		self:SetOn(self.mul ~= 0 and ( (self.bidir) and (math.abs(self.mul) > 0.01) and (math.abs(self.mul) > self.force_min) ) or ( (self.mul > 0.01) and (self.mul > self.force_min) ))
-		self:ShowOutput()
-	end
-
 	if (!self:IsOn()) then return SIM_NOTHING end
 	if (self:IsPlayerHolding()) then return SIM_NOTHING end
 
@@ -274,6 +279,8 @@ function ENT:PhysicsSimulate( phys, deltatime )
 
 		self:SetEffect(self.oweffect)
 	end
+
+	self:CalcForce(phys)
 
 	return self.ForceAngular, self.ForceLinear, SIM_GLOBAL_ACCELERATION
 end

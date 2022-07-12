@@ -11,77 +11,46 @@ local emitter = ParticleEmitter(Vector(0,0,0))
 WireLib.ThrusterEffectThink = {}
 WireLib.ThrusterEffectDraw = {}
 
-WireLib.ThrusterEffectDraw.fire = function(self)
+local function fire(fireMaterial, heatwaveMaterial)
+	return function(self)
 
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
+		local vOffset = self:LocalToWorld(self:GetOffset())
+		local vNormal = self:CalcNormal()
 
-	local scroll = CurTime() * -10
+		local scroll = CurTime() * -10
 
-	render.SetMaterial( matFire )
+		render.SetMaterial(fireMaterial)
 
-	render.StartBeam( 3 )
-		render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 60, 32, scroll + 1, Color( 255, 255, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 148, 32, scroll + 3, Color( 255, 255, 255, 0) )
-	render.EndBeam()
+		render.StartBeam( 3 )
+			render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
+			render.AddBeam( vOffset + vNormal * 60, 32, scroll + 1, Color( 255, 255, 255, 128) )
+			render.AddBeam( vOffset + vNormal * 148, 32, scroll + 3, Color( 255, 255, 255, 0) )
+		render.EndBeam()
 
-	scroll = scroll * 0.5
+		scroll = scroll * 0.5
 
-	render.UpdateRefractTexture()
-	render.SetMaterial( matHeatWave )
-	render.StartBeam( 3 )
-		render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 32, 32, scroll + 2, Color( 255, 255, 255, 255) )
-		render.AddBeam( vOffset + vNormal * 128, 48, scroll + 5, Color( 0, 0, 0, 0) )
-	render.EndBeam()
+		render.UpdateRefractTexture()
+		render.SetMaterial(heatwaveMaterial)
+		render.StartBeam( 3 )
+			render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
+			render.AddBeam( vOffset + vNormal * 32, 32, scroll + 2, Color( 255, 255, 255, 255) )
+			render.AddBeam( vOffset + vNormal * 128, 48, scroll + 5, Color( 0, 0, 0, 0) )
+		render.EndBeam()
 
 
-	scroll = scroll * 1.3
-	render.SetMaterial( matFire )
-	render.StartBeam( 3 )
-		render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 60, 16, scroll + 1, Color( 255, 255, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 148, 16, scroll + 3, Color( 255, 255, 255, 0) )
-	render.EndBeam()
+		scroll = scroll * 1.3
+		render.SetMaterial(fireMaterial)
+		render.StartBeam( 3 )
+			render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
+			render.AddBeam( vOffset + vNormal * 60, 16, scroll + 1, Color( 255, 255, 255, 128) )
+			render.AddBeam( vOffset + vNormal * 148, 16, scroll + 3, Color( 255, 255, 255, 0) )
+		render.EndBeam()
 
+	end
 end
 
-WireLib.ThrusterEffectDraw.heatwave = function(self)
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local scroll = CurTime() * -10
-
-	render.SetMaterial( matHeatWave )
-
-	render.StartBeam( 3 )
-		render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 60, 32, scroll + 1, Color( 255, 255, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 148, 32, scroll + 3, Color( 255, 255, 255, 0) )
-	render.EndBeam()
-
-	scroll = scroll * 0.5
-
-	render.UpdateRefractTexture()
-	render.SetMaterial( matHeatWave )
-	render.StartBeam( 3 )
-		render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 32, 32, scroll + 2, Color( 255, 255, 255, 255) )
-		render.AddBeam( vOffset + vNormal * 128, 48, scroll + 5, Color( 0, 0, 0, 0) )
-	render.EndBeam()
-
-
-	scroll = scroll * 1.3
-	render.SetMaterial( matHeatWave )
-	render.StartBeam( 3 )
-		render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 60, 16, scroll + 1, Color( 255, 255, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 148, 16, scroll + 3, Color( 255, 255, 255, 0) )
-	render.EndBeam()
-
-end
+WireLib.ThrusterEffectDraw.fire = fire(matFire, matHeatWave)
+WireLib.ThrusterEffectDraw.heatwave = fire(matHeatWave, matHeatWave)
 
 WireLib.ThrusterEffectDraw.color = function(self)
 
@@ -322,86 +291,32 @@ WireLib.ThrusterEffectDraw.fire_smoke_big = function(self)
 	util.Effect( "ThumperDust ", effectdata )
 end
 
-WireLib.ThrusterEffectThink.smoke = function(self)
+local function smoke(color)
+	return function(self)
 
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+		self.SmokeTimer = self.SmokeTimer or 0
+		if ( self.SmokeTimer > CurTime() ) then return end
 
-	self.SmokeTimer = CurTime() + 0.015
+		self.SmokeTimer = CurTime() + 0.015
 
-	local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
-	local vNormal = self:CalcNormal()
-
-		local particle = emitter:Add( "particles/smokey", vOffset )
-			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
-			particle:SetDieTime( 2.0 )
-			particle:SetStartAlpha( math.Rand( 50, 150 ) )
-			particle:SetStartSize( math.Rand( 16, 32 ) )
-			particle:SetEndSize( math.Rand( 64, 128 ) )
-			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-			particle:SetColor( 200, 200, 210 )
-end
-
-WireLib.ThrusterEffectThink.smoke_firecolors = function(self)
-
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.015
-
-	local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
-	local vNormal = self:CalcNormal()
+		local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
+		local vNormal = self:CalcNormal()
 
 		local particle = emitter:Add( "particles/smokey", vOffset )
-			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
-			particle:SetDieTime( 2.0 )
-			particle:SetStartAlpha( math.Rand( 50, 150 ) )
-			particle:SetStartSize( math.Rand( 16, 32 ) )
-			particle:SetEndSize( math.Rand( 64, 128 ) )
-			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-			particle:SetColor(math.random(220,255),math.random(110,220),0 )
+		particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
+		particle:SetDieTime( 2.0 )
+		particle:SetStartAlpha( math.Rand( 50, 150 ) )
+		particle:SetStartSize( math.Rand( 16, 32 ) )
+		particle:SetEndSize( math.Rand( 64, 128 ) )
+		particle:SetRoll( math.Rand( -0.2, 0.2 ) )
+		particle:SetColor(color(self))
+	end
 end
 
-WireLib.ThrusterEffectThink.smoke_random = function(self)
-
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.015
-
-	local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
-	local vNormal = self:CalcNormal()
-
-		local particle = emitter:Add( "particles/smokey", vOffset )
-			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
-			particle:SetDieTime( 2.0 )
-			particle:SetStartAlpha( math.Rand( 50, 150 ) )
-			particle:SetStartSize( math.Rand( 16, 32 ) )
-			particle:SetEndSize( math.Rand( 64, 128 ) )
-			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-			particle:SetColor( math.random(100,255),math.random(100,255),math.random(100,255) )
-end
-
-WireLib.ThrusterEffectThink.smoke_diy = function(self)
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.015
-
-	local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
-	local vNormal = self:CalcNormal()
-
-	local c = self:GetColor()
-
-		local particle = emitter:Add( "particles/smokey", vOffset )
-			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
-			particle:SetDieTime( 2.0 )
-			particle:SetStartAlpha( math.Rand( 50, 150 ) )
-			particle:SetStartSize( math.Rand( 16, 32 ) )
-			particle:SetEndSize( math.Rand( 64, 128 ) )
-			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-			particle:SetColor(c.r, c.g, c.b)
-end
+WireLib.ThrusterEffectThink.smoke = smoke(function() return 200, 200, 210 end)
+WireLib.ThrusterEffectThink.smoke_firecolors = smoke(function() return math.random(220, 255), math.random(110, 220), 0 end)
+WireLib.ThrusterEffectThink.smoke_random = smoke(function() return math.random(100, 255), math.random(100, 255), math.random(100, 255) end)
+WireLib.ThrusterEffectThink.smoke_diy = smoke(function(self) local c = self:GetColor() return c.r, c.g, c.b end)
 
 WireLib.ThrusterEffectDraw.color_magic = function(self)
 
@@ -479,68 +394,32 @@ WireLib.ThrusterEffectThink.money = function(self)
 			particle:SetRoll( math.Rand( -90, 90 ) )
 end
 
-WireLib.ThrusterEffectThink.debug_10 = function(self)
+local function debugcross(lifetime)
+	return function(self)
 
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+		self.SmokeTimer = self.SmokeTimer or 0
+		if ( self.SmokeTimer > CurTime() ) then return end
 
-	self.SmokeTimer = CurTime() + 0.05
+		self.SmokeTimer = CurTime() + 0.05
 
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-		local particle = emitter:Add( "decals/cross", vOffset )
-			particle:SetVelocity( vNormal * 0 )
-			particle:SetDieTime( 10 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 255 )
-			particle:SetColor(0,255,0 )
-			particle:SetStartSize( 5 )
-			particle:SetEndSize( math.Rand(7,10) )
-			particle:SetRoll(0)
-end
-
-WireLib.ThrusterEffectThink.debug_30 = function(self)
-
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.05
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
+		local vOffset = self:LocalToWorld(self:GetOffset())
+		local vNormal = self:CalcNormal()
 
 		local particle = emitter:Add( "decals/cross", vOffset )
-			particle:SetVelocity( vNormal * 0 )
-			particle:SetDieTime( 30 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 255 )
-			particle:SetColor(0,255,0 )
-			particle:SetStartSize( 5 )
-			particle:SetEndSize( math.Rand(7,10) )
-			particle:SetRoll(0)
+		particle:SetVelocity( vNormal * 0 )
+		particle:SetDieTime(lifetime)
+		particle:SetStartAlpha( 255 )
+		particle:SetEndAlpha( 255 )
+		particle:SetColor(0,255,0 )
+		particle:SetStartSize( 5 )
+		particle:SetEndSize( math.Rand(7,10) )
+		particle:SetRoll(0)
+	end
 end
 
-WireLib.ThrusterEffectThink.debug_60 = function(self)
-
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.05
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-		local particle = emitter:Add( "decals/cross", vOffset )
-			particle:SetVelocity( vNormal * 0 )
-			particle:SetDieTime( 60 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 255 )
-			particle:SetColor(0,255,0 )
-			particle:SetStartSize( 5 )
-			particle:SetEndSize( math.Rand(7,10) )
-			particle:SetRoll(0)
-end
+WireLib.ThrusterEffectThink.debug_10 = debugcross(10)
+WireLib.ThrusterEffectThink.debug_30 = debugcross(30)
+WireLib.ThrusterEffectThink.debug_60 = debugcross(60)
 
 WireLib.ThrusterEffectThink.souls = function(self)
 
@@ -673,302 +552,86 @@ WireLib.ThrusterEffectThink.candy_cane = function(self)
 			particle:SetRoll( math.Rand( -90, 90 ) )
 end
 
-WireLib.ThrusterEffectThink.jetflame = function(self)
+local function jetflame(color)
+	return function(self)
 
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+		self.SmokeTimer = self.SmokeTimer or 0
+		if ( self.SmokeTimer > CurTime() ) then return end
 
-	self.SmokeTimer = CurTime() + 0.0000005
+		self.SmokeTimer = CurTime() + 0.0000005
 
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
+		local vOffset = self:LocalToWorld(self:GetOffset())
+		local vNormal = self:CalcNormal()
 
-	local speed = math.Rand(90,252)
-	local roll = math.Rand(-90,90)
+		--vOffset = vOffset + VectorRand() * 5
 
-		local particle = emitter:Add( "particle/fire", vOffset )
-			particle:SetVelocity( vNormal * speed )
-			particle:SetDieTime( 0.3 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 150 )
-			particle:SetStartSize( 15.8 )
-			particle:SetEndSize( 9 )
-			particle:SetColor( math.Rand(220,255),math.Rand(180,220),55 )
-			particle:SetRoll( roll )
-
-		local particle3 = emitter:Add( "sprites/heatwave", vOffset )
-			particle3:SetVelocity( vNormal * speed )
-			particle3:SetDieTime( 0.7 )
-			particle3:SetStartAlpha( 255 )
-			particle3:SetEndAlpha( 255 )
-			particle3:SetStartSize( 16 )
-			particle3:SetEndSize( 18 )
-			particle3:SetColor( 255,255,255 )
-			particle3:SetRoll( roll )
-
-			vOffset = self:LocalToWorld(self:GetOffset())
-
-		local particle2 = emitter:Add( "particle/fire", vOffset )
-			particle2:SetVelocity( vNormal * speed )
-			particle2:SetDieTime( 0.2 )
-			particle2:SetStartAlpha( 200 )
-			particle2:SetEndAlpha( 50 )
-			particle2:SetStartSize( 8.8 )
-			particle2:SetEndSize( 5 )
-			particle2:SetColor( 200,200,200 )
-			particle2:SetRoll( roll )
-end
-
-WireLib.ThrusterEffectThink.jetflame_diy = function(self)
-
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.0000005
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local speed = math.Rand(90,252)
-	local roll = math.Rand(-90,90)
-
-	local c = self:GetColor()
+		local speed = math.Rand(90,252)
+		local roll = math.Rand(-90,90)
 
 		local particle = emitter:Add( "particle/fire", vOffset )
-			particle:SetVelocity( vNormal * speed )
-			particle:SetDieTime( 0.3 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 150 )
-			particle:SetStartSize( 15.8 )
-			particle:SetEndSize( 9 )
-			particle:SetColor( c.r, c.g, c.b )
-			particle:SetRoll( roll )
+		particle:SetVelocity( vNormal * speed )
+		particle:SetDieTime( 0.3 )
+		particle:SetStartAlpha( 255 )
+		particle:SetEndAlpha( 150 )
+		particle:SetStartSize( 15.8 )
+		particle:SetEndSize( 9 )
+		particle:SetColor(color(self))
+		particle:SetRoll( roll )
 
 		local particle3 = emitter:Add( "sprites/heatwave", vOffset )
-			particle3:SetVelocity( vNormal * speed )
-			particle3:SetDieTime( 0.7 )
-			particle3:SetStartAlpha( 255 )
-			particle3:SetEndAlpha( 255 )
-			particle3:SetStartSize( 16 )
-			particle3:SetEndSize( 18 )
-			particle3:SetColor( 255,255,255 )
-			particle3:SetRoll( roll )
-
-			vOffset = self:LocalToWorld(self:GetOffset())
+		particle3:SetVelocity( vNormal * speed )
+		particle3:SetDieTime( 0.7 )
+		particle3:SetStartAlpha( 255 )
+		particle3:SetEndAlpha( 255 )
+		particle3:SetStartSize( 16 )
+		particle3:SetEndSize( 18 )
+		particle3:SetColor( 255,255,255 )
+		particle3:SetRoll( roll )
 
 		local particle2 = emitter:Add( "particle/fire", vOffset )
-			particle2:SetVelocity( vNormal * speed )
-			particle2:SetDieTime( 0.2 )
-			particle2:SetStartAlpha( 200 )
-			particle2:SetEndAlpha( 50 )
-			particle2:SetStartSize( 8.8 )
-			particle2:SetEndSize( 5 )
-			particle2:SetColor( 200,200,200 )
-			particle2:SetRoll( roll )
+		particle2:SetVelocity( vNormal * speed )
+		particle2:SetDieTime( 0.2 )
+		particle2:SetStartAlpha( 200 )
+		particle2:SetEndAlpha( 50 )
+		particle2:SetStartSize( 8.8 )
+		particle2:SetEndSize( 5 )
+		particle2:SetColor( 200,200,200 )
+		particle2:SetRoll( roll )
+	end
 end
 
-WireLib.ThrusterEffectThink.jetflame_purple = function(self)
+WireLib.ThrusterEffectThink.jetflame = jetflame(function() return math.Rand(220, 255), math.Rand(180, 220), 55 end)
+WireLib.ThrusterEffectThink.jetflame_purple = jetflame(function() return math.Rand(220, 255), 55, math.Rand(180, 220) end)
+WireLib.ThrusterEffectThink.jetflame_red = jetflame(function() return math.Rand(220, 255), 55, 55 end)
+WireLib.ThrusterEffectThink.jetflame_blue = jetflame(function() return 55, 55, math.Rand(220, 255) end)
+WireLib.ThrusterEffectThink.jetflame_diy = jetflame(function(self) local c = self:GetColor() return c.r, c.g, c.b end)
 
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+local function balls(color)
+	return function(self)
+		self.SmokeTimer = self.SmokeTimer or 0
+		if ( self.SmokeTimer > CurTime() ) then return end
 
-	self.SmokeTimer = CurTime() + 0.0000005
+		self.SmokeTimer = CurTime() + 0.025
 
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local speed = math.Rand(90,252)
-	local roll = math.Rand(-90,90)
-
-		local particle = emitter:Add( "particle/fire", vOffset )
-			particle:SetVelocity( vNormal * speed )
-			particle:SetDieTime( 0.3 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 150 )
-			particle:SetStartSize( 15.8 )
-			particle:SetEndSize( 9 )
-			particle:SetColor(  math.Rand(220,255),55, math.Rand(220,255) )
-			particle:SetRoll( roll )
-
-		local particle3 = emitter:Add( "sprites/heatwave", vOffset )
-			particle3:SetVelocity( vNormal * speed )
-			particle3:SetDieTime( 0.7 )
-			particle3:SetStartAlpha( 255 )
-			particle3:SetEndAlpha( 255 )
-			particle3:SetStartSize( 16 )
-			particle3:SetEndSize( 18 )
-			particle3:SetColor( 255,255,255 )
-			particle3:SetRoll( roll )
-
-			vOffset = self:LocalToWorld(self:GetOffset())
-
-		local particle2 = emitter:Add( "particle/fire", vOffset )
-			particle2:SetVelocity( vNormal * speed )
-			particle2:SetDieTime( 0.2 )
-			particle2:SetStartAlpha( 200 )
-			particle2:SetEndAlpha( 50 )
-			particle2:SetStartSize( 8.8 )
-			particle2:SetEndSize( 5 )
-			particle2:SetColor( 200,200,200 )
-			particle2:SetRoll( roll )
-end
-
-WireLib.ThrusterEffectThink.jetflame_red = function(self)
-
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.0000005
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local speed = math.Rand(90,252)
-	local roll = math.Rand(-90,90)
-
-		local particle = emitter:Add( "particle/fire", vOffset )
-			particle:SetVelocity( vNormal * speed )
-			particle:SetDieTime( 0.3 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 150 )
-			particle:SetStartSize( 15.8 )
-			particle:SetEndSize( 9 )
-			particle:SetColor( math.Rand(220,255),55,55 )
-			particle:SetRoll( roll )
-
-		local particle3 = emitter:Add( "sprites/heatwave", vOffset )
-			particle3:SetVelocity( vNormal * speed )
-			particle3:SetDieTime( 0.7 )
-			particle3:SetStartAlpha( 255 )
-			particle3:SetEndAlpha( 255 )
-			particle3:SetStartSize( 16 )
-			particle3:SetEndSize( 18 )
-			particle3:SetColor( 255,255,255 )
-			particle3:SetRoll( roll )
-
-			vOffset = self:LocalToWorld(self:GetOffset())
-
-		local particle2 = emitter:Add( "particle/fire", vOffset )
-			particle2:SetVelocity( vNormal * speed )
-			particle2:SetDieTime( 0.2 )
-			particle2:SetStartAlpha( 200 )
-			particle2:SetEndAlpha( 50 )
-			particle2:SetStartSize( 8.8 )
-			particle2:SetEndSize( 5 )
-			particle2:SetColor( 200,200,200 )
-			particle2:SetRoll( roll )
-end
-
-WireLib.ThrusterEffectThink.jetflame_blue = function(self)
-
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.0000005
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local speed = math.Rand(90,252)
-	local roll = math.Rand(-90,90)
-
-		local particle = emitter:Add( "particle/fire", vOffset )
-			particle:SetVelocity( vNormal * speed )
-			particle:SetDieTime( 0.3 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 150 )
-			particle:SetStartSize( 15.8 )
-			particle:SetEndSize( 9 )
-			particle:SetColor( 55,55, math.Rand(220,255) )
-			particle:SetRoll( roll )
-
-		local particle3 = emitter:Add( "sprites/heatwave", vOffset )
-			particle3:SetVelocity( vNormal * speed )
-			particle3:SetDieTime( 0.7 )
-			particle3:SetStartAlpha( 255 )
-			particle3:SetEndAlpha( 255 )
-			particle3:SetStartSize( 16 )
-			particle3:SetEndSize( 18 )
-			particle3:SetColor( 255,255,255 )
-			particle3:SetRoll( roll )
-
-			vOffset = self:LocalToWorld(self:GetOffset())
-
-		local particle2 = emitter:Add( "particle/fire", vOffset )
-			particle2:SetVelocity( vNormal * speed )
-			particle2:SetDieTime( 0.2 )
-			particle2:SetStartAlpha( 200 )
-			particle2:SetEndAlpha( 50 )
-			particle2:SetStartSize( 8.8 )
-			particle2:SetEndSize( 5 )
-			particle2:SetColor( 200,200,200 )
-			particle2:SetRoll( roll )
-end
-
-WireLib.ThrusterEffectThink.balls_firecolors = function(self)
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.025
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-	vOffset = vOffset + VectorRand() * 2
+		local vOffset = self:LocalToWorld(self:GetOffset())
+		local vNormal = self:CalcNormal()
+		vOffset = vOffset + VectorRand() * 2
 
 		local particle = emitter:Add( "sprites/sent_ball", vOffset )
-			particle:SetVelocity( vNormal * 80 )
-			particle:SetDieTime( 1 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 255 )
-			particle:SetColor(math.random(220,255),math.random(100,200),0)
-			particle:SetStartSize( 4 )
-			particle:SetEndSize( 0 )
-			particle:SetRoll( 0 )
+		particle:SetVelocity( vNormal * 80 )
+		particle:SetDieTime( 1 )
+		particle:SetStartAlpha( 255 )
+		particle:SetEndAlpha( 255 )
+		particle:SetColor(color(self))
+		particle:SetStartSize( 4 )
+		particle:SetEndSize( 0 )
+		particle:SetRoll( 0 )
+	end
 end
 
-WireLib.ThrusterEffectThink.balls_random = function(self)
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.025
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-	vOffset = vOffset + VectorRand() * 2
-
-		local particle = emitter:Add( "sprites/sent_ball", vOffset )
-			particle:SetVelocity( vNormal * 80 )
-			particle:SetDieTime( 1 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 255 )
-			particle:SetColor(math.random(0,255),math.random(0,255),math.random(0,255))
-			particle:SetStartSize( 4 )
-			particle:SetEndSize( 0 )
-			particle:SetRoll( 0 )
-end
-
-WireLib.ThrusterEffectThink.balls = function(self)
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.025
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-	vOffset = vOffset + VectorRand() * 2
-
-	local c = self:GetColor()
-
-		local particle = emitter:Add( "sprites/sent_ball", vOffset )
-			particle:SetVelocity( vNormal * 80 )
-			particle:SetDieTime( 1 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 255 )
-			particle:SetColor(c.r, c.g, c.b)
-			particle:SetStartSize( 4 )
-			particle:SetEndSize( 0 )
-			particle:SetRoll( 0 )
-end
+WireLib.ThrusterEffectThink.balls_firecolors = balls(function() return math.random(220,255), math.random(100,200), 0 end)
+WireLib.ThrusterEffectThink.balls_random = balls(function() return math.random(0, 255), math.random(0, 255), math.random(0, 255) end)
+WireLib.ThrusterEffectThink.balls = balls(function(self) local color = self:GetColor() return color.r, color.g, color.b end)
 
 WireLib.ThrusterEffectThink.plasma_rings = function(self)
 
@@ -982,390 +645,96 @@ WireLib.ThrusterEffectThink.plasma_rings = function(self)
 
 	vOffset = vOffset + VectorRand() * 5
 
-		local particle = emitter:Add( "sprites/magic", vOffset )
-			particle:SetVelocity( vNormal * math.Rand( 50, 80 ) )
-			particle:SetDieTime( 1 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 255 )
-			particle:SetStartSize( math.Rand( 3,5 ) )
-			particle:SetEndSize( 0 )
-			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
+	local particle = emitter:Add( "sprites/magic", vOffset )
+	particle:SetVelocity( vNormal * math.Rand( 50, 80 ) )
+	particle:SetDieTime( 1 )
+	particle:SetStartAlpha( 255 )
+	particle:SetEndAlpha( 255 )
+	particle:SetStartSize( math.Rand( 3,5 ) )
+	particle:SetEndSize( 0 )
+	particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 end
 
-WireLib.ThrusterEffectThink.magic_firecolors = function(self)
+local function magic(color)
+	return function(self)
 
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+		self.SmokeTimer = self.SmokeTimer or 0
+		if ( self.SmokeTimer > CurTime() ) then return end
 
-	self.SmokeTimer = CurTime() + 0.00005
+		self.SmokeTimer = CurTime() + 0.00005
 
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
+		local vOffset = self:LocalToWorld(self:GetOffset())
+		local vNormal = self:CalcNormal()
 
-	vOffset = vOffset + VectorRand() * 5
+		vOffset = vOffset + VectorRand() * 5
 
 		local particle = emitter:Add( "sprites/gmdm_pickups/light", vOffset )
-			particle:SetVelocity( vNormal * math.Rand( 50, 80 ) )
-			particle:SetDieTime( 1 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 255 )
-			particle:SetColor(math.random(220,255),math.random(100,200),0)
-			particle:SetStartSize( math.Rand( 1, 3 ) )
-			particle:SetEndSize( 0 )
-			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
+		particle:SetVelocity( vNormal * math.Rand( 50, 80 ) )
+		particle:SetDieTime( 1 )
+		particle:SetStartAlpha( 255 )
+		particle:SetEndAlpha( 255 )
+		particle:SetColor(color(self))
+		particle:SetStartSize( math.Rand( 1, 3 ) )
+		particle:SetEndSize( 0 )
+		particle:SetRoll( math.Rand( -0.2, 0.2 ) )
+	end
 end
 
-WireLib.ThrusterEffectThink.magic = function(self)
+WireLib.ThrusterEffectThink.magic_firecolors = magic(function() return math.random(220, 255), math.random(100, 200), 0 end)
+WireLib.ThrusterEffectThink.magic = magic(function() return 255, 255, 255 end)
+WireLib.ThrusterEffectThink.magic_diy = magic(function(self) local c = self:GetColor() return c.r, c.g, c.b end)
+WireLib.ThrusterEffectThink.magic_color = magic(function() return math.random(0,255), math.random(0,255), math.random(0,255) end)
 
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+local function squirt(effect, delay, scale, growthrate)
+	growthrate = growthrate or 0
+	return function(self)
+		self.RingTimer = self.RingTimer or 0
+		if ( self.RingTimer > CurTime() ) then return end
+		self.RingTimer = CurTime() + delay
 
-	self.SmokeTimer = CurTime() + 0.00005
+		local vOffset = self:LocalToWorld(self:GetOffset())
+		local vNormal = self:CalcNormal()
 
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	vOffset = vOffset + VectorRand() * 5
-
-		local particle = emitter:Add( "sprites/gmdm_pickups/light", vOffset )
-			particle:SetVelocity( vNormal * math.Rand( 50, 80 ) )
-			particle:SetDieTime( 1 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 255 )
-			particle:SetStartSize( math.Rand( 1, 3 ) )
-			particle:SetEndSize( 0 )
-			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-end
-
-WireLib.ThrusterEffectThink.magic_diy = function(self)
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.00005
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	vOffset = vOffset + VectorRand() * 5
-
-	local c = self:GetColor()
-
-		local particle = emitter:Add( "sprites/gmdm_pickups/light", vOffset )
-			particle:SetVelocity( vNormal * math.Rand( 50, 80 ) )
-			particle:SetDieTime( 1 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 255 )
-			particle:SetColor(c.r, c.g, c.b)
-			particle:SetStartSize( math.Rand( 1, 3 ) )
-			particle:SetEndSize( 0 )
-			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-end
-
-WireLib.ThrusterEffectThink.magic_color = function(self)
-
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
-
-	self.SmokeTimer = CurTime() + 0.00005
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	vOffset = vOffset + VectorRand() * 5
-
-		local particle = emitter:Add( "sprites/gmdm_pickups/light", vOffset )
-			particle:SetVelocity( vNormal * math.Rand( 50, 80) )
-			particle:SetDieTime( 1 )
-			particle:SetStartAlpha( 255 )
-			particle:SetEndAlpha( 255 )
-			particle:SetColor( math.random(0,255),math.random(0,255),math.random(0,255))
-			particle:SetStartSize( math.Rand( 1, 3 ) )
-			particle:SetEndSize( 0 )
-			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-end
-
-WireLib.ThrusterEffectDraw.rings = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
+		local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
 		effectdata:SetNormal( vNormal )
-	effectdata:SetMagnitude(0) -- growth rate
-	util.Effect( "thruster_ring", effectdata )
-
+		effectdata:SetRadius(scale)
+		effectdata:SetScale(scale)
+		effectdata:SetMagnitude(growthrate)
+		util.Effect(effect, effectdata )
+	end
 end
 
-WireLib.ThrusterEffectDraw.tesla = function(self)
+WireLib.ThrusterEffectDraw.rings = squirt("thruster_ring", 0.00005, 1)
+WireLib.ThrusterEffectDraw.tesla = squirt("TeslaZap", 0.00005, 1)
 
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
+WireLib.ThrusterEffectDraw.blood = squirt("BloodImpact", 0.00005, 1)
 
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
+WireLib.ThrusterEffectDraw.some_sparks = squirt("StunstickImpact", 0.00005, 1)
+WireLib.ThrusterEffectDraw.spark_fountain = squirt("ManhackSparks", 0.00005, 1)
+WireLib.ThrusterEffectDraw.more_sparks = squirt("cball_explode", 0.00005, 1)
 
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 1 )
-		effectdata:SetScale( 1 )
-	util.Effect( "TeslaZap ", effectdata )
+WireLib.ThrusterEffectDraw.water_small = squirt("watersplash", 0.05, 2)
+WireLib.ThrusterEffectDraw.water_medium = squirt("watersplash", 0.05, 6)
+WireLib.ThrusterEffectDraw.water_big = squirt("watersplash", 0.05, 10)
+WireLib.ThrusterEffectDraw.water_huge = squirt("watersplash", 0.05, 18)
 
-end
+WireLib.ThrusterEffectDraw.striderblood_small = squirt("StriderBlood", 0.05, 0.1)
+WireLib.ThrusterEffectDraw.striderblood_medium = squirt("StriderBlood", 0.05, 0.7)
+WireLib.ThrusterEffectDraw.striderblood_big = squirt("StriderBlood", 0.05, 1.15)
+WireLib.ThrusterEffectDraw.striderblood_huge = squirt("StriderBlood", 0.05, 2)
 
-WireLib.ThrusterEffectDraw.blood = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 1 )
-		effectdata:SetScale( 1 )
-	util.Effect( "BloodImpact", effectdata )
-
-end
-
-WireLib.ThrusterEffectDraw.some_sparks = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 1 )
-		effectdata:SetScale( 1 )
-	util.Effect( "StunstickImpact", effectdata )
-
-end
-
-WireLib.ThrusterEffectDraw.spark_fountain = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 1 )
-		effectdata:SetScale( 1 )
-	util.Effect( "ManhackSparks", effectdata )
-
-end
-
-WireLib.ThrusterEffectDraw.more_sparks = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 1 )
-		effectdata:SetScale( 1 )
-	util.Effect( "cball_explode", effectdata )
-
-end
-
-WireLib.ThrusterEffectDraw.water_small = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.05
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 2 )
-		effectdata:SetScale( 2 )
-	util.Effect( "watersplash", effectdata )
-
-end
-
-WireLib.ThrusterEffectDraw.water_medium = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.05
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 6 )
-		effectdata:SetScale( 6 )
-
-	util.Effect( "watersplash", effectdata )
-
-end
-
-WireLib.ThrusterEffectDraw.water_big = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.05
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 10 )
-		effectdata:SetScale( 10 )
-	util.Effect( "watersplash", effectdata )
-
-end
-
-WireLib.ThrusterEffectDraw.water_huge = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.05
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 18 )
-		effectdata:SetScale( 18 )
-	util.Effect( "watersplash", effectdata )
-
-end
-
-WireLib.ThrusterEffectDraw.striderblood_small = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.05
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 0.1 )
-		effectdata:SetScale( 0.1 )
-	util.Effect( "StriderBlood", effectdata )
-
-end
-
-WireLib.ThrusterEffectDraw.striderblood_medium = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.05
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 0.7 )
-		effectdata:SetScale( 0.7 )
-
-	util.Effect( "StriderBlood", effectdata )
-
-end
-
-WireLib.ThrusterEffectDraw.striderblood_big = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.05
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 1.15 )
-		effectdata:SetScale( 1.15 )
-	util.Effect( "StriderBlood", effectdata )
-
-end
-
-WireLib.ThrusterEffectDraw.striderblood_huge = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.05
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 2 )
-		effectdata:SetScale( 2 )
-	util.Effect( "StriderBlood", effectdata )
-
-end
-
-WireLib.ThrusterEffectDraw.rings_grow = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-	effectdata:SetMagnitude(0.08) -- growth rate
-	util.Effect("thruster_ring", effectdata)
-
-end
+WireLib.ThrusterEffectDraw.rings_grow = squirt("thruster_ring", 0.00005, 1, 0.08)
 
 WireLib.ThrusterEffectDraw.rings_grow_rings = function(self)
-
 	self.RingTimer = self.RingTimer or 0
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.00005
 
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
 	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
+	effectdata:SetOrigin(self:LocalToWorld(self:GetOffset()))
+	effectdata:SetNormal(self:CalcNormal())
+
 	effectdata:SetMagnitude(0.08) -- growth rate
 	util.Effect("thruster_ring", effectdata)
 	effectdata:SetMagnitude(0.06)
@@ -1378,22 +747,7 @@ WireLib.ThrusterEffectDraw.rings_grow_rings = function(self)
 	util.Effect("thruster_ring", effectdata)
 end
 
-WireLib.ThrusterEffectDraw.rings_shrink = function(self)
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
-
-	local vOffset = self:LocalToWorld(self:GetOffset())
-	local vNormal = self:CalcNormal()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-	effectdata:SetMagnitude(-0.02) -- growth rate
-	util.Effect("thruster_ring", effectdata)
-
-end
+WireLib.ThrusterEffectDraw.rings_shrink = squirt("thruster_ring", 0.00005, 1, -0.02)
 
 WireLib.ThrusterEffectThink.bubble = function(self)
 	self.SmokeTimer = self.SmokeTimer or 0
@@ -1417,6 +771,4 @@ WireLib.ThrusterEffectThink.bubble = function(self)
 	particle:SetStartSize( 7 )
 	particle:SetEndSize( 0 )
 	particle:SetRoll( 0 )
-
-
 end

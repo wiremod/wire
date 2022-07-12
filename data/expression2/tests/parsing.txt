@@ -18,6 +18,10 @@ foreach (K, V: number = array(1, 2, 3)) { A = 0 }
 while (A) { break }
 while (A) { continue }
 
+do { A = 0 } while (A)
+do { break } while (A)
+do { continue } while (A)
+
 A++
 A--
 A += 1
@@ -86,3 +90,5 @@ $In
 A
 
 table(1 = 1, 2 = 2)
+
+try {} catch(Err) {}

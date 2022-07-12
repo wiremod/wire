@@ -198,7 +198,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
   BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
   self.SerialNo = info.SerialNo or 999999
-  self.RAMSize  = info.RAMSize or 65536
+  self.RAMSize  = math.Clamp(info.RAMSize or 65536, 0, 2097152)
   self.ChipType = info.ChipType or 0
   self.Memory = {}
 

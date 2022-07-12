@@ -776,6 +776,7 @@ function Editor:InitComponents()
 	self.C.Menu = vgui.Create("DPanel", self.C.MainPane)
 	self.C.Val = vgui.Create("Button", self.C.MainPane) -- Validation line
 	self.C.TabHolder = vgui.Create("DPropertySheet", self.C.MainPane)
+	self.C.TabHolder:SetPadding(1)
 
 	self.C.Btoggle = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Toggle Browser being shown
 	self.C.Sav = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Save button
@@ -1282,7 +1283,24 @@ function Editor:InitControlPanel(frame)
 	local ConcmdWhitelist = vgui.Create("DTextEntry")
 	dlist:AddItem(ConcmdWhitelist)
 	ConcmdWhitelist:SetConVar("wire_expression2_concmd_whitelist")
-	ConcmdWhitelist:SetToolTip("Separate the commands with commas.")
+	ConcmdWhitelist:SetTooltip("Separate the commands with commas.")
+
+	local Convar = vgui.Create("DCheckBoxLabel")
+	dlist:AddItem(Convar)
+	Convar:SetConVar("wire_expression2_convar")
+	Convar:SetText("convar")
+	Convar:SizeToContents()
+	Convar:SetTooltip("Allow/disallow the E2 from getting convar values from your player.")
+
+	label = vgui.Create("DLabel")
+	dlist:AddItem(label)
+	label:SetText("Convar whitelist")
+	label:SizeToContents()
+
+	local ConvarWhitelist = vgui.Create("DTextEntry")
+	dlist:AddItem(ConvarWhitelist)
+	ConvarWhitelist:SetConVar("wire_expression2_convar_whitelist")
+	ConvarWhitelist:SetTooltip("Separate the convars with commas.")
 
 	label = vgui.Create("DLabel")
 	dlist:AddItem(label)
@@ -1785,18 +1803,25 @@ function Editor:SaveFile(Line, close, SaveAs)
 
 	file.Write(Line, self:GetCode())
 
-	local panel = self.C.Val
-	timer.Simple(0, function() panel.SetText(panel, "   Saved as " .. Line) end)
-	surface.PlaySound("ambient/water/drip3.wav")
+	local f = file.Open(Line, "r", "DATA")
+	if f then
+		f:Close()
+		local panel = self.C.Val
+		timer.Simple(0, function() panel.SetText(panel, "   Saved as " .. Line) end)
+		surface.PlaySound("ambient/water/drip3.wav")
 
-	if not self.chip then self:ChosenFile(Line) end
-	if close then
-		if self.E2 then
-			GAMEMODE:AddNotify("Expression saved as " .. Line .. ".", NOTIFY_GENERIC, 7)
-		else
-			GAMEMODE:AddNotify("Source code saved as " .. Line .. ".", NOTIFY_GENERIC, 7)
+		if not self.chip then self:ChosenFile(Line) end
+		if close then
+			if self.E2 then
+				GAMEMODE:AddNotify("Expression saved as " .. Line .. ".", NOTIFY_GENERIC, 7)
+			else
+				GAMEMODE:AddNotify("Source code saved as " .. Line .. ".", NOTIFY_GENERIC, 7)
+			end
+			self:Close()
 		end
-		self:Close()
+	else
+		surface.PlaySound("buttons/button10.wav")
+		GAMEMODE:AddNotify("Failed to save file as " .. Line .. ".", NOTIFY_ERROR, 7)
 	end
 end
 

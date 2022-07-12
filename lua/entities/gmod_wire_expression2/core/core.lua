@@ -6,16 +6,16 @@ local delta = wire_expression2_delta
 
 __e2setcost(1) -- approximation
 
+local fix_default = E2Lib.fixDefault
 registerOperator("dat", "", "", function(self, args)
-	return istable(args[2]) and table.Copy(args[2]) or args[2]
+	return fix_default(args[2])
 end)
 
 __e2setcost(2) -- approximation
 
 registerOperator("var", "", "", function(self, args)
 	local op1, scope = args[2], args[3]
-	local val = self.Scopes[scope][op1]
-	return val
+	return self.Scopes[scope][op1]
 end)
 
 --------------------------------------------------------------------------------
@@ -24,17 +24,20 @@ __e2setcost(0)
 
 registerOperator("seq", "", "", function(self, args)
 	self.prf = self.prf + args[2]
+
 	if self.prf > e2_tickquota then error("perf", 0) end
 
 	local n = #args
 	if n == 2 then return end
 
-	for i=3,n-1 do
+	for i = 3, n-1 do
 		local op = args[i]
+		self.trace = op.Trace
 		op[1](self, op)
 	end
 
 	local op = args[n]
+	self.trace = op.Trace
 	return op[1](self, op)
 end)
 
@@ -44,10 +47,13 @@ __e2setcost(0) -- approximation
 
 registerOperator("whl", "", "", function(self, args)
 	local op1, op2 = args[2], args[3]
+	local skipCond = args[5] -- skipCondFirstTime
 
 	self.prf = self.prf + args[4] + 3
-	while op1[1](self, op1) ~= 0 do
+	while skipCond or (op1[1](self, op1) ~= 0) do
 		self:PushScope()
+		skipCond = false
+
 		local ok, msg = pcall(op2[1], self, op2)
 		if not ok then
 			if msg == "break" then self:PopScope() break
@@ -176,7 +182,7 @@ registerOperator("cnd", "n", "", function(self, args)
 	end
 end)
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------
 
 __e2setcost(1) -- approximation
 
@@ -198,6 +204,7 @@ registerOperator("owc","","n",function(self,args)
 	for i=1,ret do if (not IsValid(tbl[i].Entity)) then ret = ret - 1 end end
 	return ret
 end)
+
 
 --------------------------------------------------------------------------------
 
@@ -314,16 +321,19 @@ e2function void exit()
 	error("exit", 0)
 end
 
-e2function void error( string reason )
-	error(reason, 2)
-end
+do
+	local raise = E2Lib.raiseException
+	e2function void error( string reason )
+		raise(reason, 2, self.trace)
+	end
 
-e2function void assert(condition)
-	if condition == 0 then error("assert failed", 2) end
-end
+	e2function void assert(condition)
+		if condition == 0 then raise("assert failed", 2, self.trace) end
+	end
 
-e2function void assert(condition, string reason)
-	if condition == 0 then error(reason, 2) end
+	e2function void assert(condition, string reason)
+		if condition == 0 then raise(reason, 2, self.trace) end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -510,9 +520,42 @@ registerOperator("include", "", "", function(self, args)
 		self:InitScope() -- Create a new Scope Enviroment
 		self:PushScope()
 
-		Script[1](self, Script)
+		local ok, msg = pcall(Script[1], self, Script)
 
 		self:PopScope()
 		self:LoadScopes(OldScopes)
+
+		if not ok then
+			error(msg, 0)
+		end
+	end
+end)
+
+local unpackException = E2Lib.unpackException
+registerOperator("try", "", "", function(self, args)
+	local prf, stmt, var_name, stmt2 = args[2], args[3], args[4], args[5]
+	self.prf = self.prf + prf
+	if self.prf > e2_tickquota then error("perf", 0) end
+
+	self:PushScope()
+		local ok, msg = pcall(stmt[1], self, stmt)
+	self:PopScope()
+
+	if not ok then
+		local catchable, msg = unpackException(msg)
+		if not catchable then
+			-- Anything other than context:throw / e2's error is not catchable.
+			error(msg, 0)
+		end
+		self:PushScope()
+			self.Scope[var_name] = isstring(msg) and msg or "" -- isstring check if we want to be paranoid about the sandbox.
+			self.Scope.vclk[var_name] = true
+
+			local ok, msg = pcall(stmt2[1], self, stmt2)
+		self:PopScope()
+
+		if not ok then
+			error(msg, 0)
+		end
 	end
 end)

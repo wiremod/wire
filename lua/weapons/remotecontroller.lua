@@ -75,6 +75,7 @@ function SWEP:On()
 
 	self.Active = true
 	self.OldMoveType = not ply:InVehicle() and ply:GetMoveType() or MOVETYPE_WALK
+	self.InitialAngle = ply:EyeAngles()
 	ply:SetMoveType(MOVETYPE_NONE)
 	ply:DrawViewModel(false)
 
@@ -95,7 +96,7 @@ function SWEP:Off()
 	ply:DrawViewModel(true)
 
 	if IsValid(self.Linked) and self.Linked:GetPly() == ply then
-		self.Linked:PlayerExited(ply)
+		self.Linked:PlayerExited()
 	end
 end
 

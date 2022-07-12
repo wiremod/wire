@@ -9,6 +9,8 @@ E2Lib.Compiler = {}
 local Compiler = E2Lib.Compiler
 Compiler.__index = Compiler
 
+local BLOCKED_ARRAY_TYPES = E2Lib.blocked_array_types
+
 function Compiler.Execute(...)
 	-- instantiate Compiler
 	local instance = setmetatable({}, Compiler)
@@ -19,6 +21,12 @@ end
 
 function Compiler:Error(message, instr)
 	error(message .. " at line " .. instr[2][1] .. ", char " .. instr[2][2], 0)
+end
+
+local string_upper = string.upper
+
+function Compiler:CallInstruction(name, trace, ...)
+	return self["Instr" .. string_upper(name)](self, trace, ...)
 end
 
 function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used.
@@ -56,7 +64,7 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 
 	self:PushScope()
 
-	local script = Compiler["Instr" .. string.upper(root[1])](self, root)
+	local script = self:CallInstruction(root[1], root)
 
 	self:PopScope()
 
@@ -151,10 +159,13 @@ end
 -- ---------------------------------------------------------------------------
 
 function Compiler:EvaluateStatement(args, index)
-	local name = string.upper(args[index + 2][1])
-	local ex, tp = Compiler["Instr" .. name](self, args[index + 2])
-	-- ex.TraceBack = args[index + 2]
+	local trace = args[index + 2]
+
+	local name = string_upper(trace[1])
+	local ex, tp = self:CallInstruction(name, trace)
 	ex.TraceName = name
+	ex.Trace = trace[2]
+
 	return ex, tp
 end
 
@@ -215,6 +226,20 @@ function Compiler:GetFunction(instr, Name, Args)
 
 	if not Func then
 		Func = self:UDFunction(Name .. "(" .. Params .. ")")
+
+		if not Func then
+			for I = #Params, 0, -1 do
+				local sig = Name .. "(" .. Params:sub(1, I)
+				local arrsig, tblsig = sig .. "..r)", sig .. "..t)"
+				if self.funcs_ret[arrsig] then
+					Func = self:UDFunction(arrsig)
+					break
+				elseif self.funcs_ret[tblsig] then
+					Func = self:UDFunction(tblsig)
+					break
+				end
+			end
+		end
 	end
 
 	if not Func then
@@ -241,6 +266,20 @@ function Compiler:GetMethod(instr, Name, Meta, Args)
 
 	if not Func then
 		Func = self:UDFunction(Name .. "(" .. Params .. ")")
+
+		if not Func then
+			for I = #Params, 0, -1 do
+				local sig = Name .. "(" .. Params:sub(1, I)
+				local arrsig, tblsig = sig .. "..r)", sig .. "..t)"
+				if self.funcs_ret[arrsig] then
+					Func = self:UDFunction(arrsig)
+					break
+				elseif self.funcs_ret[tblsig] then
+					Func = self:UDFunction(tblsig)
+					break
+				end
+			end
+		end
 	end
 
 	if not Func then
@@ -324,7 +363,11 @@ function Compiler:InstrFOR(args)
 end
 
 function Compiler:InstrWHL(args)
-	-- args = { "whl", trace, condition expression, loop body }
+	-- args = { "whl", trace, condition expression, loop body, skip condition check first time? }
+
+
+	local skipCondFirstTime = args[5]
+
 	self:PushScope()
 
 	self:PushPrfCounter()
@@ -334,7 +377,7 @@ function Compiler:InstrWHL(args)
 	local stmt = self:EvaluateStatement(args, 2)
 	self:PopScope()
 
-	return { self:GetOperator(args, "whl", {})[1], cond, stmt, prf_cond }
+	return { self:GetOperator(args, "whl", {})[1], cond, stmt, prf_cond, skipCondFirstTime }
 end
 
 
@@ -737,9 +780,20 @@ function Compiler:InstrFUNCTION(args)
 	self:InitScope() -- Create a new Scope Enviroment
 	self:PushScope()
 
+	local VariadicType
 	for _, D in pairs(Args) do
-		local Name, Type = D[1], wire_expression_types[D[2]][1]
+		local Name, Type, Variadic = D[1], wire_expression_types[D[2]][1], D[3]
+		VariadicType = Variadic and Type
 		self:SetLocalVariableType(Name, Type, args)
+	end
+
+	if VariadicType then
+		-- Don't allow users to define two functions with different variadic types
+		-- Because that'd cause ambiguity.
+		local opposite = VariadicType == "r" and "t" or "r"
+		if self.funcs_ret[Sig:gsub("%.%." .. VariadicType, ".." .. opposite)] then
+			self:Error("Cannot override variadic " .. tps_pretty(opposite) .. " function with variadic " .. tps_pretty(VariadicType) .. " function to avoid ambiguity.", args)
+		end
 	end
 
 	if self.funcs_ret[Sig] and self.funcs_ret[Sig] ~= Return then
@@ -758,18 +812,72 @@ function Compiler:InstrFUNCTION(args)
 	self:PopScope()
 	self:LoadScopes(OldScopes) -- Reload the old enviroment
 
-	self.prfcounter = self.prfcounter + 40
+	self.prfcounter = self.prfcounter + (VariadicType and 80 or 40)
 
 	-- This is the function that will be bound to to the function name, ie. the
 	-- one that's called at runtime when code calls the function
 	local function body(self, runtimeArgs)
 		-- runtimeArgs = { body, parameterExpression1, ..., parameterExpressionN, parameterTypes }
 		-- we need to evaluate the arguments before switching to the new scope
+
 		local parameterValues = {}
-		for parameterIndex = 2, #Args + 1 do
-			local parameterExpression = runtimeArgs[parameterIndex]
-			local parameterValue = parameterExpression[1](self, parameterExpression)
-			parameterValues[parameterIndex - 1] = parameterValue
+		if VariadicType then
+			local nargs = #Args
+			-- There's 100% a better way to structure this mess but this works fine for now...
+			local offset = methodType ~= "" and 1 or 0
+
+			for parameterIndex = 2, nargs do
+				local parameterExpression = runtimeArgs[parameterIndex]
+				local parameterValue = parameterExpression[1](self, parameterExpression)
+				parameterValues[parameterIndex - 1] = parameterValue
+			end
+
+			local types = runtimeArgs[#runtimeArgs]
+			if VariadicType == "t" then
+				-- Table argument.
+				local tbl, len = E2Lib.newE2Table(), 1
+				local n, ntypes = tbl.n, tbl.ntypes
+
+				for parameterIndex = nargs + 1, #runtimeArgs - 1 do
+					local ty = types[nargs - 1 - offset + len]
+
+					local parameterExpression = runtimeArgs[parameterIndex]
+					local parameterValue = parameterExpression[1](self, parameterExpression)
+
+					n[len], ntypes[len] = parameterValue, ty
+					len = len + 1
+				end
+
+				tbl.size = len - 1
+				parameterValues[nargs] = tbl
+			else
+				-- Array
+				-- Construct array here w/ dynamic values
+				local arr, len = {}, 1
+
+				for parameterIndex = nargs + 1, #runtimeArgs - 1 do
+					local ty = types[nargs - 1 - offset + len]
+
+					if BLOCKED_ARRAY_TYPES[ty] then
+						self:throw("Cannot use type " .. tps_pretty(ty) .. " as an argument for variadic array function", nil)
+						break
+					end
+
+					local parameterExpression = runtimeArgs[parameterIndex]
+					local parameterValue = parameterExpression[1](self, parameterExpression)
+
+					arr[len] = parameterValue
+					len = len + 1
+				end
+
+				parameterValues[nargs] = arr
+			end
+		else
+			for parameterIndex = 2, #Args + 1 do
+				local parameterExpression = runtimeArgs[parameterIndex]
+				local parameterValue = parameterExpression[1](self, parameterExpression)
+				parameterValues[parameterIndex - 1] = parameterValue
+			end
 		end
 
 		local OldScopes = self:SaveScopes()
@@ -783,7 +891,12 @@ function Compiler:InstrFUNCTION(args)
 		end
 
 		self.func_rv = nil
-		local ok, msg = pcall(Stmt[1],self,Stmt)
+		local ok, err = pcall(Stmt[1], self, Stmt)
+
+		local msg = err
+		if istable(err) then
+			msg = err.msg
+		end
 
 		self:PopScope()
 		self:LoadScopes(OldScopes)
@@ -793,7 +906,7 @@ function Compiler:InstrFUNCTION(args)
 
 		if not ok and msg == "return" then return self.func_rv end
 
-		if not ok then error(msg,0) end
+		if not ok then error(err, 0) end
 
 		if Return ~= "" then
 			local argNames = {}
@@ -841,9 +954,9 @@ function Compiler:InstrKVTABLE(args)
 
 	local exprs = args[3]
 	for k, v in pairs(exprs) do
-		local key, type = self["Instr" .. string.upper(k[1])](self, k)
+		local key, type = self:CallInstruction(k[1], k)
 		if type == "s" or type == "n" then
-			local value, type = self["Instr" .. string.upper(v[1])](self, v)
+			local value, type = self:CallInstruction(v[1], v)
 			s[key] = value
 			stypes[key] = type
 		else
@@ -861,9 +974,9 @@ function Compiler:InstrKVARRAY(args)
 
 	local exprs = args[3]
 	for k, v in pairs(exprs) do
-		local key, type = self["Instr" .. string.upper(k[1])](self, k)
+		local key, type = self:CallInstruction(k[1], k)
 		if type == "n" then
-			local value, type = self["Instr" .. string.upper(v[1])](self, v)
+			local value, type = self:CallInstruction(v[1], v)
 			values[key] = value
 			types[key] = type
 		else
@@ -878,7 +991,7 @@ function Compiler:InstrSWITCH(args)
 	-- args = { "switch", trace, value expression, { { case expression or nil, body }... } }
 	-- up to one case can have a nil case expression, this is the default case
 	self:PushPrfCounter()
-	local value, type = Compiler["Instr" .. string.upper(args[3][1])](self, args[3]) -- This is the value we are passing though the switch statment
+	local value, type = self:CallInstruction(args[3][1], args[3]) -- This is the value we are passing though the switch statment
 	local prf_cond = self:PopPrfCounter()
 
 	self:PushScope()
@@ -891,7 +1004,7 @@ function Compiler:InstrSWITCH(args)
 		if case then -- The default will not have one
 			self.ScopeID = self.ScopeID - 1 -- For the case statments we pop the scope back
 			self:PushPrfCounter()
-			local ex, tp = Compiler["Instr" .. string.upper(case[1])](self, case) --This is the value we are checking against
+			local ex, tp = self:CallInstruction(case[1], case) -- This is the value we are checking against
 			prf_eq = self:PopPrfCounter() -- We add some pref
 			self.ScopeID = self.ScopeID + 1
 			if tp == "" then -- There is no value
@@ -903,7 +1016,7 @@ function Compiler:InstrSWITCH(args)
 		else
 			default=i
 		end
-		local stmts = Compiler["Instr" .. string.upper(block[1])](self, block) -- This is statments that are run when Values match
+		local stmts = self:CallInstruction(block[1], block) -- This is statments that are run when Values match
 		cases[i] = { eq, stmts, prf_eq }
 	end
 
@@ -923,25 +1036,26 @@ function Compiler:InstrINCLU(args)
 	end
 
 	if not include[2] then
-
-		include[2] = true -- Tempory value to prvent E2 compiling itself when itself. (INFINATE LOOOP!)
+		include[2] = true -- Temporary value to prevent E2 compiling itself in itself.
 
 		local OldScopes = self:SaveScopes()
 		self:InitScope() -- Create a new Scope Enviroment
 		self:PushScope()
 
 		local root = include[1]
-		local status, script = pcall(Compiler["Instr" .. string.upper(root[1])], self, root)
+		local status, script = pcall(self.CallInstruction, self, root[1], root)
 
 		if not status then
-			if script:find("C stack overflow") then script = "Include depth to deep" end
+			local reason = istable(script) and script.msg or script
+
+			if reason:find("C stack overflow") then reason = "Include depth too deep" end
 
 			if not self.IncludeError then
 				-- Otherwise Errors messages will be wrapped inside other error messages!
 				self.IncludeError = true
-				self:Error("include '" .. file .. "' -> " .. script, args)
+				self:Error("include '" .. file .. "' -> " .. reason, args)
 			else
-				error(script, 0)
+				error(reason, 0)
 			end
 		end
 
@@ -953,4 +1067,19 @@ function Compiler:InstrINCLU(args)
 
 
 	return { self:GetOperator(args, "include", {})[1], file }
+end
+
+function Compiler:InstrTRY(args)
+	-- args = { "try", trace, try_block, variable, catch_block }
+	self:PushPrfCounter()
+	local stmt = self:EvaluateStatement(args, 1)
+	local var_name = args[4]
+	self:PushScope()
+		self:SetLocalVariableType(var_name, "s", args)
+		local stmt2 = self:EvaluateStatement(args, 3)
+	self:PopScope()
+
+	local prf_cond = self:PopPrfCounter()
+
+	return { self:GetOperator(args, "try", {})[1], prf_cond, stmt, var_name, stmt2 }
 end

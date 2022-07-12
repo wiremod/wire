@@ -7,45 +7,56 @@ E2Lib.RegisterExtension("npc", true, "Allows controlling of NPCs.", "NPCs can be
 __e2setcost(5) -- temporary
 
 local function validNPC(entity)
-	return IsValid(entity) && entity:IsNPC()
+	return IsValid(entity) and entity:IsNPC()
 end
 
 e2function void entity:npcGoWalk(vector rv2)
-	if !validNPC(this) || !isOwner(self,this) then return end
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", nil) end
+
 	this:SetLastPosition( Vector(rv2[1], rv2[2], rv2[3]) )
 	this:SetSchedule( SCHED_FORCED_GO )
 end
 
 e2function void entity:npcGoRun(vector rv2)
-	if !validNPC(this) || !isOwner(self,this) then return end
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", nil) end
+
 	this:SetLastPosition( Vector(rv2[1], rv2[2], rv2[3]) )
 	this:SetSchedule( SCHED_FORCED_GO_RUN )
 end
 
 e2function void entity:npcAttack()
-	if !validNPC(this) || !isOwner(self,this) then return end
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", nil) end
+
 	this:SetSchedule( SCHED_MELEE_ATTACK1 )
 end
 
 e2function void entity:npcShoot()
-	if !validNPC(this) || !isOwner(self,this) then return end
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", nil) end
+
 --	if !this:HasCondition( 6 ) then return end -- COND_NO_WEAPON. See http://maurits.tv/data/garrysmod/wiki/wiki.garrysmod.com/index4389.html
 	this:SetSchedule( SCHED_RANGE_ATTACK1 )
 end
 
 e2function void entity:npcFace(vector rv2)
-	if !validNPC(this) || !isOwner(self,this) then return end
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", nil) end
+
 	local Vec = Vector(rv2[1], rv2[2], rv2[3]) - self.entity:GetPos()
 	local ang = Vec:Angle()
-	this:SetAngles( Angle(0,ang.y,0) )
+	this:SetAngles( Angle(0, ang.y ,0) )
 end
 
 e2function void entity:npcGiveWeapon()
-	if !validNPC(this) || !isOwner(self,this) then return end
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", nil) end
 
 	local weapon = this:GetActiveWeapon()
-	if (weapon:IsValid()) then
-		if (weapon:GetClass() == "weapon_smg1") then return end
+	if weapon:IsValid() then
+		if weapon:GetClass() == "weapon_smg1" then return end
 		weapon:Remove()
 	end
 
@@ -53,11 +64,12 @@ e2function void entity:npcGiveWeapon()
 end
 
 e2function void entity:npcGiveWeapon(string rv2)
-	if !validNPC(this) || !isOwner(self,this) then return end
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", nil) end
 
 	local weapon = this:GetActiveWeapon()
-	if (weapon:IsValid()) then
-		if (weapon:GetClass() == "weapon_" .. rv2) then return end
+	if weapon:IsValid() then
+		if weapon:GetClass() == ("weapon_" .. rv2) then return end
 		weapon:Remove()
 	end
 
@@ -65,12 +77,14 @@ e2function void entity:npcGiveWeapon(string rv2)
 end
 
 e2function void entity:npcStop()
-	if !validNPC(this) || !isOwner(self,this) then return end
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", nil) end
 	this:SetSchedule( SCHED_NONE )
 end
 
 e2function entity entity:npcGetTarget()
-	if !validNPC(this) or !isOwner(self, this) then return end
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", nil) end
 	return this:GetEnemy()
 end
 
@@ -79,76 +93,80 @@ e2function void entity:npcSetTarget(entity ent)
 	this:SetEnemy(ent)
 end
 
-//--Relationship functions--//
+--- Relationship functions ---
+-- Disposition: 0 - Error, 1 - hate, 2 - fear, 3 - like, 4 - neutral
+-- Error: 0 or D_ER
 
-// Disposition: 0 - Error, 1 - hate, 2 - fear, 3 - like, 4 - neutral
+local NPC_DISP_STR = setmetatable({
+	["hate"] = "D_HT",
+	["fear"] = "D_FR",
+	["like"] = "D_LI",
+	["neutral"] = "D_NU"
+}, { __index = function() return "D_ER" end })
 
-local function NpcDisp(string)
-	if(string == "hate") then return 1 end
-	if(string == "fear") then return 2 end
-	if(string == "like") then return 3 end
-	if(string == "neutral") then return 4 end
-	return 0
-end
+local NPC_DISP_NUM = setmetatable({
+	["hate"] = 1,
+	["fear"] = 2,
+	["like"] = 3,
+	["neutral"] = 4,
 
-local function DispToString(number)
-	if(number == 1) then return "hate" end
-	if(number == 2) then return "fear" end
-	if(number == 3) then return "like" end
-	if(number == 4) then return "neutral" end
-	return 0
-end
-
-local function NpcDispString(string)
-	if(string == "hate") then return "D_HT" end
-	if(string == "fear") then return "D_FR" end
-	if(string == "like") then return "D_LI" end
-	if(string == "neutral") then return "D_NU" end
-	return "D_ER"
-end
+	[1] = "hate",
+	[2] = "fear",
+	[3] = "like",
+	[4] = "neutral"
+}, {__index = function() return 0 end})
 
 e2function void entity:npcRelationship(entity rv2, string rv3, rv4)
-	if !validNPC(this) || !IsValid(rv2) || !isOwner(self,this) then return end
-	local entity = this
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", 0) end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", 0) end
+	if not IsValid(rv2) then return self:throw("Invalid entity (arg 1)!", 0) end
+
 	local target = rv2
-	local disp = NpcDisp(rv3)
+	local disp = NPC_DISP_NUM[rv3]
 	local prior = rv4
 	if disp == 0 then return end
-	entity:AddEntityRelationship( target, disp, prior )
+	this:AddEntityRelationship( target, disp, prior )
 end
 
 e2function void entity:npcRelationship(string rv2, string rv3, rv4)
-	if !validNPC(this) || !isOwner(self,this) then return end
-	local entity = this
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!") end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!") end
+
 	local target = rv2
-	local disp = NpcDispString(rv3)
+	local disp = NPC_DISP_STR[rv3]
 	local prior = math.floor( rv4 / 10 )
-	local input = target.." "..disp.." "..tostring(prior)
+	local input = string.format("%s %s %s", target, disp, prior)
 	if disp == "D_ER" then return end
-	entity:AddRelationship( input )
+	this:AddRelationship( input )
 end
 
 e2function number entity:npcRelationshipByOwner(entity rv2, string rv3, rv4)
-	if !validNPC(this) || !IsValid(rv2) || !isOwner(self,this) then return 0 end
-	local entity = this
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", 0) end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", 0) end
+	if not IsValid(rv2) then return self:throw("Invalid entity!", 0) end
+
 	local owner = rv2
-	local disp = NpcDisp(rv3)
+	local disp = NPC_DISP_NUM[rv3]
 	local prior = rv4
 	if disp == 0 then return 0 end
-	local Table = ents.FindByClass("npc_*")
+	local npc_tbl = ents.FindByClass("npc_*")
 
-	for i=1,#Table do
-		if(isOwner(self, Table[i])) then entity:AddEntityRelationship( Table[i], disp, prior ) end
+	for _, v in ipairs(npc_tbl) do
+		if isOwner(self, v) then
+			this:AddEntityRelationship( v, disp, prior )
+		end
 	end
 
-	return #Table
+	return #npc_tbl
 end
 
 e2function string entity:npcDisp(entity rv2)
-	if !validNPC(this) || !IsValid(rv2) || !isOwner(self,this) then return "" end
-	local entity = this
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", "") end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", "") end
+	if not IsValid(rv2) then return self:throw("Invalid entity!", "") end
+
 	local target = rv2
-	local disp = entity:Disposition( target )
+	local disp = this:Disposition( target )
 	if disp == 0 then return "" end
-	return DispToString(disp)
+	return NPC_DISP_NUM[disp]
 end

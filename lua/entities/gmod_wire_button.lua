@@ -64,8 +64,8 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self:SetUseType( SIMPLE_USE )
 
-	self.Outputs = Wire_CreateOutputs(self, { "Out" })
-	self.Inputs = Wire_CreateInputs(self, { "Set" })
+	WireLib.CreateOutputs(self, { "Out" })
+	WireLib.CreateInputs(self, { "Set" })
 	local anim = anims[self:GetModel()]
 	if anim then self:SetSequence(anim[2]) end
 end
@@ -127,7 +127,11 @@ function ENT:Setup(toggle, value_off, value_on, description, entityout)
 	self.entityout = entityout
 
 	if entityout then
-		WireLib.AdjustSpecialOutputs(self, { "Out", "EntID" , "Entity" }, { "NORMAL", "NORMAL" , "ENTITY" })
+		WireLib.AdjustOutputs(self, { 
+			"Out (The button's main output) [NORMAL]", 
+			"EntID (The entity ID of the player who pressed the button) [NORMAL]" , 
+			"Entity (The player who pressed the button) [ENTITY]"
+		})
 		Wire_TriggerOutput(self, "EntID", 0)
 		Wire_TriggerOutput(self, "Entity", nil)
 		self.OutputEntID=true

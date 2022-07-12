@@ -7,6 +7,10 @@ local gvars = {}
 gvars.shared = {}
 gvars.safe = {} -- Safe from hacking using gTableSafe
 
+hook.Add("Wire_EmergencyRamClear","gvars_EmergencyRamClear",function()
+	gvars = {}
+end)
+
 ------------------------------------------------------------------------------------------------
 -- GVARS V2
 ------------------------------------------------------------------------------------------------
@@ -31,21 +35,10 @@ registerOperator("ass", "xgt", "xgt", function(self, args)
 	local      rhs = op2[1](self, op2)
 
 	local Scope = self.Scopes[scope]
-	if !Scope.lookup then Scope.lookup = {} end
 	local lookup = Scope.lookup
+	if !lookup then lookup = {} Scope.lookup = lookup end
+	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
 
-	-- remove old lookup entry
-	if lookup[rhs] then lookup[rhs][lhs] = nil end
-
-	-- add new lookup entry
-	local lookup_entry = lookup[rhs]
-	if not lookup_entry then
-		lookup_entry = {}
-		lookup[rhs] = lookup_entry
-	end
-	lookup_entry[lhs] = true
-
-	--Scope.vars[lhs] = rhs
 	Scope[lhs] = rhs
 	Scope.vclk[lhs] = true
 	return rhs

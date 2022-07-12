@@ -31,7 +31,7 @@ function ENT:Initialize()
 
 	self:ShowOutput()
 
-	self.Inputs = Wire_CreateInputs( self, { "Jump", "TargetPos [VECTOR]", "X", "Y", "Z", "TargetAngle [ANGLE]", "Sound" })
+	self.Inputs = Wire_CreateInputs( self, { "Jump (Activates the teleporter.\nIf nothing happens and an error noise is played, the destination does not have enough room to fit your contraption.)", "TargetPos [VECTOR]", "X", "Y", "Z", "TargetAngle [ANGLE]", "Sound" })
 end
 
 function ENT:TriggerInput(iname, value)

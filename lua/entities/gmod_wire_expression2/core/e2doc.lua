@@ -137,7 +137,7 @@ if SERVER then
 							local argname = argnames[idx] or ""
 							if argname ~= "" then argname = " " .. upperFirst(argname) end
 							parsed_params[idx] = getTypeImage(s) .. argname
-						until pos>=#params
+						until pos>#params
 					end
 				end
 
@@ -197,6 +197,8 @@ if SERVER then
 
 			collapseTable(nav)
 			nav = "# Table of Contents\n\n"..table.concat(nav,"\n")
+			file.Write("e2doc/e2-docs-toc.txt",nav)
+			print("writing file: ","e2doc/e2-docs-toc.txt")
 
 			for filepath, data in pairs( files ) do
 				-- github table header, not used for now because it's not great for longer function names
@@ -208,7 +210,7 @@ if SERVER then
 				end)
 
 				collapseTable(data)
-				data = string.format("%s\n***\n\n# %s\n\n%s",nav,upperFirst(filepath),table.concat(data,"\n\n"))
+				data = string.format("[[Jump to table of contents|#table-of-contents]]\n\n# %s\n\n%s\n",upperFirst(filepath),table.concat(data,"\n\n"))
 
 				filepath = string.gsub(filepath,"custom/","custom-")
 				local filename = "e2doc/e2-docs-" .. filepath .. ".txt"

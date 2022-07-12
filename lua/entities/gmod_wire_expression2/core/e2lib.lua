@@ -39,6 +39,18 @@ function E2Lib.setSubMaterial(ent, index, material)
 	duplicator.StoreEntityModifier(ent, "submaterial", { ["SubMaterialOverride_"..index] = material })
 end
 
+-- Returns a default e2 table.
+function E2Lib.newE2Table()
+	return {n={},ntypes={},s={},stypes={},size=0}
+end
+
+-- Returns a cloned table of the variable given if it is a table.
+local istable = istable
+local table_Copy = table.Copy
+function E2Lib.fixDefault(var)
+	return istable(var) and table_Copy(var) or var
+end
+
 -- getHash
 -- Returns a hash for the given string
 
@@ -89,8 +101,9 @@ function E2Lib.splitType(args)
 			thistype = ret[1]
 			ret = {}
 		elseif letter == "." then
-			if args:sub(i) ~= "..." then error("Misplaced '.' in args", 2) end
-			table.insert(ret, "...")
+			local slice = args:sub(i)
+			if slice ~= "..." and slice ~= "..r" and slice ~= "..t" then error("Misplaced '.' in args", 2) end
+			table.insert(ret, slice)
 			i = i + 2
 		elseif letter == "=" then
 			if #ret ~= 1 then error("Misplaced '=' in args", 2) end
@@ -191,11 +204,10 @@ end
 
 function E2Lib.isOwner(self, entity)
 	if game.SinglePlayer() then return true end
-	local player = self.player
 	local owner = E2Lib.getOwner(self, entity)
 	if not IsValid(owner) then return false end
 
-	return E2Lib.isFriend(owner, player)
+	return E2Lib.isFriend(owner, self.player)
 end
 
 local isOwner = E2Lib.isOwner
@@ -335,6 +347,7 @@ E2Lib.optable_inv = {
 	dlt = "$",
 	trg = "~",
 	imp = "->",
+	spread = "..."
 }
 
 E2Lib.optable = {}
@@ -372,6 +385,12 @@ function E2Lib.printops()
 	end
 	print("}")
 end
+
+E2Lib.blocked_array_types = {
+	["t"] = true,
+	["r"] = true,
+	["xgt"] = true
+}
 
 -- ------------------------------ string stuff ---------------------------------
 
@@ -471,6 +490,8 @@ do
 
 		function E2Lib.RegisterExtension(name, default, description, warning)
 			name = name:Trim():lower()
+			E2Lib.currentextension = name
+
 			if extensions.status[ name ] == nil then
 				E2Lib.SetExtensionStatus( name, default )
 			end
@@ -698,6 +719,9 @@ hook.Add("InitPostEntity", "e2lib", function()
 			E2Lib.replace_function("isFriend", function(owner, player)
 				if owner == nil then return false end
 				if owner == player then return true end
+				if not owner:IsPlayer() then
+					return player:GetOwner() == owner
+				end
 
 				local friends = owner:CPPIGetFriends()
 				if not istable(friends) then return end
@@ -724,3 +748,47 @@ hook.Add("InitPostEntity", "e2lib", function()
 		end
 	end
 end)
+
+--- Valid file extensions kept to avoid trying to make files with extensions gmod doesn't allow.
+-- https://wiki.facepunch.com/gmod/file.Write
+local file_extensions = {
+	["txt"] = true,
+	["dat"] = true,
+	["json"] = true,
+	["xml"] = true,
+	["csv"] = true,
+	["jpg"] = true,
+	["jpeg"] = true,
+	["png"] = true,
+	["vtf"] = true,
+	["vmt"] = true,
+	["mp3"] = true,
+	["wav"] = true,
+	["ogg"] = true
+}
+
+-- Returns whether the file has an extension garrysmod can write to, to avoid useless net messages, etc
+function E2Lib.isValidFileWritePath(path)
+	local ext = string.GetExtensionFromFilename(path)
+	if ext then return file_extensions[string.lower(ext)] end
+end
+
+-- Different from Context:throw, which does not error the chip if
+-- @strict is not enabled and instead returns a default value.
+-- This is what Context:throw calls internally if @strict
+-- By default E2 can catch these errors.
+function E2Lib.raiseException(msg, level, trace, can_catch)
+	error({
+		catchable = (can_catch == nil) and true or can_catch,
+		msg = msg,
+		trace = trace
+	}, level)
+end
+
+--- Unpacks either an exception object as seen above or an error string.
+function E2Lib.unpackException(struct)
+	if isstring(struct) then
+		return false, struct, nil
+	end
+	return struct.catchable, struct.msg, struct.trace
+end

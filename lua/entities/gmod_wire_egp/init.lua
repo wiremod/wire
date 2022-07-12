@@ -9,10 +9,11 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 	self:SetUseType( SIMPLE_USE )
+	self:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
 
 	self.RenderTable = {}
 
-	WireLib.CreateOutputs( self, { "User [ENTITY]" } )
+	WireLib.CreateOutputs( self, { "User (Outputs the player who used the screen for a single tick) [ENTITY]" } )
 	WireLib.CreateWirelinkOutput( nil, self, {true} )
 
 	self.xScale = { 0, 512 }

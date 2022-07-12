@@ -71,7 +71,7 @@ if CLIENT then
 	end
 
 	-- Handles rendertarget caching
-	local RT_CACHE_SIZE = 32
+	local RT_CACHE_SIZE = 64
 	local RenderTargetCache = { }
 
 	for i = 1,RT_CACHE_SIZE do

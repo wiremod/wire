@@ -1,6 +1,8 @@
 --[[
   Expression 2 Helper for Expression 2
-  -HP- (and tomylobo, though he breaks a lot ^^) Divran made CPU support
+  -HP- (and tomylobo, though he breaks a lot ^^)
+  Divran made CPU support
+  Fasteroid made the "from" column
 ]] --
 
 E2Helper = {}
@@ -104,10 +106,9 @@ local function getdesc(name, args)
 end
 
 function E2Helper.Create(reset)
-	local x, y, w, h
 
 	E2Helper.Frame = vgui.Create("DFrame")
-	E2Helper.Frame:SetSize(280, 425)
+	E2Helper.Frame:SetSize(340, 425)
 	E2Helper.Frame:Center()
 	E2Helper.Frame:SetSizable(true)
 	E2Helper.Frame:SetScreenLock(true)
@@ -117,7 +118,7 @@ function E2Helper.Create(reset)
 	E2Helper.Frame._PerformLayout = E2Helper.Frame.PerformLayout
 	function E2Helper.Frame:PerformLayout(...)
 		local w, h = E2Helper.Frame:GetSize()
-		if w < 240 then w = 240 end
+		if w < 300 then w = 300 end
 		if h < 300 then h = 300 end
 		E2Helper.Frame:SetSize(w, h)
 
@@ -130,20 +131,22 @@ function E2Helper.Create(reset)
 
 	E2Helper.DescriptionEntry = vgui.Create("DTextEntry", E2Helper.Frame)
 	E2Helper.DescriptionEntry:SetPos(5, 330)
-	E2Helper.DescriptionEntry:SetSize(270, 45)
+	E2Helper.DescriptionEntry:SetSize(330, 45)
 	E2Helper.DescriptionEntry:SetEditable(true)
 	E2Helper.DescriptionEntry:SetMultiline(true)
 
 	E2Helper.ResultFrame = vgui.Create("DListView", E2Helper.Frame)
 	E2Helper.ResultFrame:SetPos(5, 60)
-	E2Helper.ResultFrame:SetSize(270, 240)
+	E2Helper.ResultFrame:SetSize(330, 240)
 	E2Helper.ResultFrame:SetMultiSelect(false)
 	E2Helper.ResultFrame:AddColumn("Function"):SetWidth(126)
+	E2Helper.FromColumn = E2Helper.ResultFrame:AddColumn("From")
+	E2Helper.FromColumn:SetWidth(80)
 	E2Helper.ResultFrame:AddColumn("Takes"):SetWidth(60)
 	E2Helper.ReturnsColumn = E2Helper.ResultFrame:AddColumn("Returns")
 	E2Helper.ReturnsColumn:SetWidth(60)
 	E2Helper.CostColumn = E2Helper.ResultFrame:AddColumn("Cost")
-	E2Helper.CostColumn:SetWidth(30)
+	E2Helper.CostColumn:SetWidth(40)
 
 	function E2Helper.ResultFrame:OnClickLine(line)
 		self:ClearSelection()
@@ -156,8 +159,8 @@ function E2Helper.Create(reset)
 			E2Helper.DescriptionEntry:SetText("Constants do not support descriptions (yet)")
 			E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))
 		else
-			E2Helper.FuncEntry:SetText(E2Helper.GetFunctionSyntax(line:GetValue(1), line:GetValue(2), line:GetValue(3)))
-			local desc = getdesc(line:GetValue(1), line:GetValue(2))
+			E2Helper.FuncEntry:SetText(E2Helper.GetFunctionSyntax(line:GetValue(1), line:GetValue(3), line:GetValue(4)))
+			local desc = getdesc(line:GetValue(1), line:GetValue(3))
 			if desc then
 				E2Helper.DescriptionEntry:SetText(desc)
 				E2Helper.DescriptionEntry:SetTextColor(Color(0, 0, 0))
@@ -180,22 +183,26 @@ function E2Helper.Create(reset)
 	E2Helper.ResultLabel:SizeToContents()
 
 	E2Helper.CredLabel = vgui.Create("DLabel", E2Helper.Frame)
-	E2Helper.CredLabel:SetPos(238, 405)
+	E2Helper.CredLabel:SetPos(298, 405)
 	E2Helper.CredLabel:SetText("By -HP-")
 	E2Helper.CredLabel:SizeToContents()
 	E2Helper.CredLabel.Resize = { true, true, false, false }
 
 	E2Helper.NameEntry = vgui.Create("DTextEntry", E2Helper.Frame)
 	E2Helper.NameEntry:SetPos(5, 32)
-	E2Helper.NameEntry:SetWide(129)
+	E2Helper.NameEntry:SetWide(83)
+
+	E2Helper.FromEntry = vgui.Create("DTextEntry", E2Helper.Frame)
+	E2Helper.FromEntry:SetPos(5+83, 32)
+	E2Helper.FromEntry:SetWide(83)
 
 	E2Helper.ParamEntry = vgui.Create("DTextEntry", E2Helper.Frame)
-	E2Helper.ParamEntry:SetPos(136, 32)
-	E2Helper.ParamEntry:SetWide(68)
+	E2Helper.ParamEntry:SetPos(5+83*2, 32)
+	E2Helper.ParamEntry:SetWide(83)
 
 	E2Helper.ReturnEntry = vgui.Create("DTextEntry", E2Helper.Frame)
-	E2Helper.ReturnEntry:SetPos(206, 32)
-	E2Helper.ReturnEntry:SetWide(68)
+	E2Helper.ReturnEntry:SetPos(5+83*3, 32)
+	E2Helper.ReturnEntry:SetWide(82)
 
 	E2Helper.Tooltip = vgui.Create("DCheckBoxLabel", E2Helper.Frame)
 	E2Helper.Tooltip:SetPos(5, 384)
@@ -205,11 +212,11 @@ function E2Helper.Create(reset)
 
 	E2Helper.FuncEntry = vgui.Create("DTextEntry", E2Helper.Frame)
 	E2Helper.FuncEntry:SetText("")
-	E2Helper.FuncEntry:SetWidth(270)
+	E2Helper.FuncEntry:SetWidth(330)
 	E2Helper.FuncEntry:SetPos(5, 305)
 
 	E2Helper.MaxEntry = vgui.Create("DNumberWang", E2Helper.Frame)
-	E2Helper.MaxEntry:SetPos(235, 380)
+	E2Helper.MaxEntry:SetPos(295, 380)
 	E2Helper.MaxEntry:SetWide(40)
 	E2Helper.MaxEntry:SetTooltip("E2 is being loaded, please wait...")
 	timer.Create("E2Helper.SetMaxEntry", 1, 0, function()
@@ -223,7 +230,7 @@ function E2Helper.Create(reset)
 	E2Helper.MaxEntry:SetDecimals(0)
 
 	E2Helper.MaxLabel = vgui.Create("DLabel", E2Helper.Frame)
-	E2Helper.MaxLabel:SetPos(170, 384)
+	E2Helper.MaxLabel:SetPos(233, 384)
 	E2Helper.MaxLabel:SetText("Max results:")
 	E2Helper.MaxLabel:SizeToContents()
 
@@ -256,6 +263,7 @@ function E2Helper.Create(reset)
 	end
 
 	E2Helper.NameEntry.OnTextChanged = delayed(0.1, E2Helper.Update)
+	E2Helper.FromEntry.OnTextChanged = delayed(0.1, E2Helper.Update)
 	E2Helper.ParamEntry.OnTextChanged = delayed(0.1, E2Helper.Update)
 	E2Helper.ReturnEntry.OnTextChanged = delayed(0.1, E2Helper.Update)
 	E2Helper.Tooltip.OnChange = E2Helper.Update
@@ -297,7 +305,7 @@ function E2Helper.Update()
 
 	E2Helper.ResultFrame:Clear()
 
-	local search_name, search_args, search_rets = E2Helper.NameEntry:GetValue():lower(), E2Helper.ParamEntry:GetValue():lower(), E2Helper.ReturnEntry:GetValue():lower()
+	local search_name, search_from, search_args, search_rets = E2Helper.NameEntry:GetValue():lower(), E2Helper.FromEntry:GetValue():lower(), E2Helper.ParamEntry:GetValue():lower(), E2Helper.ReturnEntry:GetValue():lower()
 	local count = 0
 	local maxcount = E2Helper.MaxEntry:GetValue()
 	local tooltip = E2Helper.Tooltip:GetChecked(true)
@@ -310,9 +318,9 @@ function E2Helper.Update()
 			local strType = E2Lib.guess_type(v)
 
 			-- constants have no arguments and no cost
-			local name, args, rets, cost = k, nil, strType, nil
-			if name:lower():find(search_name, 1, true) and search_args == "" and rets:lower():find(search_rets, 1, true) then
-				local line = E2Helper.ResultFrame:AddLine(name, args, rets, cost, "constant")
+			local name, args, rets, cost = k, nil, strType, 0
+			if name:lower():find(search_name, 1, true) and search_args == "" and rets:lower():find(search_rets, 1, true) and string.find("constants",search_from, 1, true) then
+				local line = E2Helper.ResultFrame:AddLine(name, "constants", args, rets, cost)
 				E2Helper.constants[line] = true
 				count = count + 1
 				if count >= maxcount then break end
@@ -323,14 +331,15 @@ function E2Helper.Update()
 	if count < maxcount then
 		for _, v in pairs(CurrentTable()) do
 			if E2Helper.CurrentMode == true then
-				local argnames, signature, rets, func, cost = v.argnames, unpack(v)
+				local from, signature, rets, cost = v.extension, v[1], v[2], v[4]
 				local name, args = string.match(signature, "^([^(]+)%(([^)]*)%)$")
 
 				if signature:sub(1, 3) ~= "op:" and
 						name:lower():find(search_name, 1, true) and
+						from:lower():find(search_from, 1, true) and
 						args:lower():find(search_args, 1, true) and
 						rets:lower():find(search_rets, 1, true) then
-					local line = E2Helper.ResultFrame:AddLine(name, args, rets, cost or 20)
+					local line = E2Helper.ResultFrame:AddLine(name, from, args, rets, cost or 20)
 					if tooltip then line:SetTooltip(E2Helper.GetFunctionSyntax(name, args, rets)) end
 					count = count + 1
 					if count >= maxcount then break end
@@ -340,7 +349,7 @@ function E2Helper.Update()
 				if (funcname:lower():find(search_name, 1, true) and
 						args:lower():find(search_args, 1, true) and
 						forwhat:lower():find(search_rets, 1, true)) then
-					local line = E2Helper.ResultFrame:AddLine(funcname, args, forwhat, functype)
+					local line = E2Helper.ResultFrame:AddLine(funcname, "", args, forwhat, functype) -- TODO: make this column useful for CPU/GPU
 					if tooltip then line:SetTooltip(funcname .. " " .. args) end
 					count = count + 1
 					if count >= maxcount then break end
@@ -409,7 +418,9 @@ function E2Helper.Resize()
 	E2Helper.E2Mode:SetPos(orig.E2Mode[1], orig.E2Mode[2] + changeh)
 	E2Helper.CPUMode:SetPos(orig.CPUMode[1], orig.CPUMode[2] + changeh)
 
-	E2Helper.NameEntry:SetSize(orig.NameEntry[3] + changew * 0.5, orig.NameEntry[4])
+	E2Helper.NameEntry:SetSize(orig.NameEntry[3] + changew * 0.25, orig.NameEntry[4])
+	E2Helper.FromEntry:SetPos(orig.FromEntry[1] + changew * 0.25, orig.FromEntry[2])
+	E2Helper.FromEntry:SetSize(orig.FromEntry[3] + changew * 0.25, orig.FromEntry[4])
 	E2Helper.ParamEntry:SetPos(orig.ParamEntry[1] + changew * 0.5, orig.ParamEntry[2])
 	E2Helper.ParamEntry:SetSize(orig.ParamEntry[3] + changew * 0.25, orig.ParamEntry[4])
 	E2Helper.ReturnEntry:SetPos(orig.ReturnEntry[1] + changew * 0.75, orig.ReturnEntry[2])

@@ -25,7 +25,7 @@ __e2setcost( 20 )
 
 e2function void httpRequest( string url )
 	local ply = self.player
-	if !player_can_request( ply ) or url == "" then return end
+	if !player_can_request( ply ) or url == "" then return self:throw("httpRequest cooldown!", nil) end
 
 	requests[ply] = {
 		in_progress = true,

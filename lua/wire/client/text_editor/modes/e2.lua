@@ -20,6 +20,7 @@ local keywords = {
 	["switch"] 	 = { [true] = true, [false] = true },
 	["case"]     = { [true] = true, [false] = true },
 	["default"]  = { [true] = true, [false] = true },
+	["catch"]    = { [true] = true, [false] = true },
 
 	-- keywords that cannot be followed by a "(":
 	["else"]     = { [true] = true },
@@ -28,19 +29,27 @@ local keywords = {
 	--["function"] = { [true] = true },
 	["return"] = { [true] = true },
 	["local"]  = { [true] = true },
+	["try"]    = { [true] = true },
+	["do"] = { [true] = true }
 }
 
 -- fallback for nonexistant entries:
 setmetatable(keywords, { __index=function(tbl,index) return {} end })
 
+-- Directive colors
+local FULL = 0       -- Entire thing is yellow
+local VARS = 1 -- Directive yellow + Rest are green/variable + Orange types
+local PARTIAL = 2       -- Directive yellow + lowercase yellow, uppercase variable
+
 local directives = {
-	["@name"] = 0, -- all yellow
-	["@model"] = 0,
-	["@inputs"] = 1, -- directive yellow, types orange, rest normal
-	["@outputs"] = 1,
-	["@persist"] = 1,
-	["@trigger"] = 2, -- like 1, except that all/none are yellow
-	["@autoupdate"] = 0,
+	["@name"]       = FULL,
+	["@model"]      = FULL,
+	["@inputs"]     = VARS,
+	["@outputs"]    = VARS,
+	["@persist"]    = VARS,
+	["@trigger"]    = PARTIAL,
+	["@autoupdate"] = FULL,
+	["@strict"]     = PARTIAL
 }
 
 local colors = {
@@ -332,6 +341,10 @@ function EDITOR:SyntaxColorLine(row)
 
 				local spaces = self:SkipPattern( " *" )
 				if spaces then addToken( "comment", spaces ) end
+
+				-- Exception for the spread "..." operator
+				local dots = self:SkipPattern( "%.%.%." )
+				if dots then addToken( "operator", dots ) end
 
 				local invalidInput = self:SkipPattern( "[^A-Z:%[]*" )
 				if invalidInput then addToken( "notfound", invalidInput ) end

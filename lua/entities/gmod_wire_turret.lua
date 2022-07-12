@@ -23,6 +23,7 @@ function ENT:Initialize()
 	self.Firing       = false
 	self.spreadvector = Vector()
 	self.effectdata   = EffectData()
+	self.attachmentPos = phys:WorldToLocal(self:GetAttachment(1).Pos)
 
 	self.Inputs = WireLib.CreateSpecialInputs(self,
 		{ "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound", "Tracer" },
@@ -42,12 +43,16 @@ function ENT:FireShot()
 		self:EmitSound( self.sound )
 	end
 
-	-- Get the muzzle attachment (this is pretty much always 1)
-	local Attachment = self:GetAttachment( 1 )
-
-	-- Get the shot angles and stuff.
-	local shootOrigin = Attachment.Pos + self:GetVelocity() * engine.TickInterval()
-	local shootAngles = self:GetAngles()
+	local shootOrigin, shootAngles
+	local parent = self:GetParent()
+	if parent:IsValid() then
+		shootOrigin = self:LocalToWorld(self.attachmentPos)
+		shootAngles = self:GetAngles()
+	else
+		local phys = self:GetPhysicsObject()
+		shootOrigin = phys:LocalToWorld(self.attachmentPos)
+		shootAngles = phys:GetAngles()
+	end
 
 	-- Shoot a bullet
 	local bullet      = {}
@@ -103,9 +108,9 @@ local ValidTracers = {
 }
 
 function ENT:SetSound( sound )
-	local sound = string.Trim( tostring( sound or "" ) ) -- Remove whitespace ( manual )
+	sound = string.Trim( tostring( sound or "" ) ) -- Remove whitespace ( manual )
 	local check = string.find( sound, "[\"?]" ) -- Preventing client crashes
-	self.sound = check ~= nil and sound ~= "" and sound or nil -- Apply the pattern check
+	self.sound = check == nil and sound ~= "" and sound or nil -- Apply the pattern check
 end
 
 function ENT:SetDelay( delay )

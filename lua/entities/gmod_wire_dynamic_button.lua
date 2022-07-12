@@ -120,7 +120,11 @@ function ENT:Setup(toggle, value_on, value_off, description, entityout, material
     self:SetColor(Color(self.off_r, self.off_g, self.off_b, 255))
 
 	if entityout then
-		WireLib.AdjustSpecialOutputs(self, { "Out", "EntID" , "Entity" }, { "NORMAL", "NORMAL" , "ENTITY" })
+		WireLib.AdjustOutputs(self, { 
+			"Out (The button's main output) [NORMAL]", 
+			"EntID (The entity ID of the player who pressed the button) [NORMAL]" , 
+			"Entity (The player who pressed the button) [ENTITY]" 
+		})
 		Wire_TriggerOutput(self, "EntID", 0)
 		Wire_TriggerOutput(self, "Entity", nil)
 		self.OutputEntID=true

@@ -11,12 +11,12 @@ function ENT:Initialize()
 	self:SetSolid(SOLID_VPHYSICS)
 
 	self.DiskMemory = {}
-	self.Precision = 1 //1 unit
-	self.IRadius = 12 //units
+	self.Precision = 1 --1 unit
+	self.IRadius = 12 --units
 
-	//Use Z axis for Sector address
-	//Use XY radius for Track address
-	//Use Z height for Stack address
+	--Use Z axis for Sector address
+	--Use XY radius for Track address
+	--Use Z height for Stack address
 	self:Setup()
 end
 
@@ -83,16 +83,16 @@ function ENT:Setup(precision, iradius, skin)
 	end
 
 	self.DiskVolume = self.DiskSectors*self.DiskStacks
-	self.BytesPerBlock = 512//*self.Precision
+	self.BytesPerBlock = 512--*self.Precision
 	self.DiskSize = self.DiskSectors*self.BytesPerBlock
 
-//	print("Precision: "..(self.Precision))
-//	print("H: "..(max.z - min.z))
-//	print("R: "..(0.5*((max.x - min.x)^2+(max.y - min.y)^2)^0.5))
-//	print("Disk stacks: "..self.DiskStacks)
-//	print("Disk tracks: "..self.DiskTracks)
-//	print("Disk sectors total: "..self.DiskSectors)
-//	print("Disk volume "..self.DiskVolume)
+--	print("Precision: "..(self.Precision))
+--	print("H: "..(max.z - min.z))
+--	print("R: "..(0.5*((max.x - min.x)^2+(max.y - min.y)^2)^0.5))
+--	print("Disk stacks: "..self.DiskStacks)
+--	print("Disk tracks: "..self.DiskTracks)
+--	print("Disk sectors total: "..self.DiskSectors)
+--	print("Disk volume "..self.DiskVolume)
 
 	self:ShowOutput()
 end

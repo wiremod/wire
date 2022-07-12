@@ -45,9 +45,7 @@ do
 	updateQuotas()
 end
 
-local function copytype(var)
-	return istable(var) and table.Copy(var) or var
-end
+local fixDefault = E2Lib.fixDefault
 
 
 local ScopeManager = {}
@@ -109,9 +107,11 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 
+	self.name = "(generic)"
 	self.Inputs = WireLib.CreateInputs(self, {})
 	self.Outputs = WireLib.CreateOutputs(self, {})
 
+	self.error = true
 	self:UpdateOverlay(true)
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
 end
@@ -126,7 +126,7 @@ function ENT:Execute()
 	if self.error or not self.context or self.context.resetting then return end
 
 	for k, v in pairs(self.tvars) do
-		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 	end
 
 	self:PCallHook('preexecute')
@@ -136,10 +136,15 @@ function ENT:Execute()
 	local bench = SysTime()
 
 	local ok, msg = pcall(self.script[1], self.context, self.script)
+
 	if not ok then
+		local _catchable, msg, trace = E2Lib.unpackException(msg)
+
 		if msg == "exit" then
 		elseif msg == "perf" then
 			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
+		elseif trace then
+			self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
 		else
 			self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
 		end
@@ -149,13 +154,14 @@ function ENT:Execute()
 
 	self.context:PopScope()
 
+	local forceTriggerOutputs = self.first or self.duped
 	self.first = false -- if hooks call execute
 	self.duped = false -- if hooks call execute
 	self.context.triggerinput = nil -- if hooks call execute
 
 	self:PCallHook('postexecute')
 
-	self:TriggerOutputs()
+	self:TriggerOutputs(forceTriggerOutputs)
 
 	for k, v in pairs(self.inports[3]) do
 		if self.GlobalScope[k] then
@@ -169,7 +175,7 @@ function ENT:Execute()
 
 	self.GlobalScope.vclk = {}
 	for k, v in pairs(self.globvars) do
-		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 	end
 
 	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
@@ -215,6 +221,7 @@ function ENT:OnRemove()
 		self.removing = true
 		self:PCallHook('destruct')
 	end
+	BaseClass.OnRemove(self)
 end
 
 function ENT:PCallHook(...)
@@ -231,6 +238,7 @@ function ENT:Error(message, overlaytext)
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
 
 	self.error = true
+	self.lastResetOrError = CurTime()
 	-- ErrorNoHalt(message .. "\n")
 	WireLib.ClientError(message, self.player)
 end
@@ -331,21 +339,43 @@ function ENT:PrepareIncludes(files)
 end
 
 function ENT:ResetContext()
+	local resetPrfMult = 1
+	if self.lastResetOrError then
+		-- reduces all the opcounters based on the time passed since 
+		-- the last time the chip was reset or errored
+		-- waiting up to 30s before resetting results in a 0.1 multiplier 
+		resetPrfMult = math.max(0.1,(30 - (CurTime() - self.lastResetOrError)) / 30)
+	end
+	self.lastResetOrError = CurTime()
+
 	local context = {
 		data = {},
-		vclk = {}, -- Used only by arrays and tables!
+		vclk = {},
 		funcs = self.funcs,
 		funcs_ret = self.funcs_ret,
 		entity = self,
 		player = self.player,
 		uid = self.uid,
-		prf = 0,
-		prfcount = 0,
-		prfbench = 0,
-		time = 0,
-		timebench = 0,
+		prf = (self.context and (self.context.prf*resetPrfMult)) or 0,
+		prfcount = (self.context and (self.context.prfcount*resetPrfMult)) or 0,
+		prfbench = (self.context and (self.context.prfbench*resetPrfMult)) or 0,
+		time = (self.context and (self.context.time*resetPrfMult)) or 0,
+		timebench = (self.context and (self.context.timebench*resetPrfMult)) or 0,
 		includes = self.includes
 	}
+
+	-- '@strict' try/catch Error handling.
+	if self.directives.strict then
+		local err = E2Lib.raiseException
+		function context:throw(msg)
+			err(msg, 2, self.trace)
+		end
+	else
+		-- '@strict' is not enabled, pass the default variable.
+		function context:throw(_msg, variable)
+			return variable
+		end
+	end
 
 	setmetatable(context, ScopeManager)
 	context:InitScope()
@@ -354,8 +384,8 @@ function ENT:ResetContext()
 	self.GlobalScope = context.GlobalScope
 	self._vars = self.GlobalScope -- Dupevars
 
-	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2])
-	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2])
+	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2], self.inports[4])
+	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2], self.outports[4])
 
 	if self.extended then -- It was extended before the adjustment, recreate the wirelink
 		WireLib.CreateWirelinkOutput( self.player, self, {true} )
@@ -370,25 +400,25 @@ function ENT:ResetContext()
 	for k, v in pairs(self.inports[3]) do
 		self._inputs[1][#self._inputs[1] + 1] = k
 		self._inputs[2][#self._inputs[2] + 1] = v
-		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
 		self.globvars[k] = nil
 	end
 
 	for k, v in pairs(self.outports[3]) do
 		self._outputs[1][#self._outputs[1] + 1] = k
 		self._outputs[2][#self._outputs[2] + 1] = v
-		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
 		self.GlobalScope.vclk[k] = true
 		self.globvars[k] = nil
 	end
 
 	for k, v in pairs(self.persists[3]) do
-		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
 		self.globvars[k] = nil
 	end
 
 	for k, v in pairs(self.globvars) do
-		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 	end
 
 	for k, v in pairs(self.Inputs) do
@@ -495,9 +525,9 @@ function ENT:TriggerInput(key, value)
 	end
 end
 
-function ENT:TriggerOutputs()
+function ENT:TriggerOutputs(force)
 	for key, t in pairs(self.outports[3]) do
-		if self.GlobalScope.vclk[key] or self.first then
+		if self.GlobalScope.vclk[key] or force then
 			if wire_expression_types[t][4] then
 				WireLib.TriggerOutput(self, key, wire_expression_types[t][4](self.context, self.GlobalScope[key]))
 			else
@@ -513,8 +543,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	if not self.error then
 		for k, v in pairs(self.dupevars) do
 			self.GlobalScope[k] = v
-		end -- Rusketh Broke this :(
-		-- table.Merge(self.context.vars, self.dupevars)
+		end
 		self.dupevars = nil
 
 		self.duped = true
@@ -564,14 +593,18 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 			ent.context.player = ply
 			ent.player = ply
 			ent:SetNWEntity("player", ply)
-			if (ent.disconnectPaused) then
-				c = ent.disconnectPaused
-				ent:SetColor(Color(c[1], c[2], c[3], c[4]))
+			if ent.disconnectPaused then
+				ent:SetColor(ent.disconnectPaused)
 				ent:SetRenderMode(ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 				ent.error = false
-				ent.disconnectPaused = false
+				ent.disconnectPaused = nil
 				ent:SetOverlayText(ent.name)
 			end
+		end
+	end
+	for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
+		if ent.steamid == sid then
+			ent:SetPlayer(ply)
 		end
 	end
 end)
@@ -599,12 +632,11 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 		self.buffer = buffer
 		self:SetOverlayText(name)
 
-		self.inc_files = inc_files or {}
-
 		self.Inputs = WireLib.AdjustSpecialInputs(self, inputs[1], inputs[2])
 		self.Outputs = WireLib.AdjustSpecialOutputs(self, outputs[1], outputs[2])
 
-		self.dupevars = vars
+		self.inc_files = inc_files or {}
+		self.dupevars = vars or {}
 
 		self.filepath = filepath
 	else
@@ -655,9 +687,10 @@ local function enableEmergencyShutdown()
 					current_ram > halt_max_amount:GetInt() * 1000 then -- or if the current ram goes over a set limit
 
 					local e2s = ents.FindByClass("gmod_wire_expression2") -- find all E2s and halt them
-					for _,v in pairs( e2s ) do
+					for _,v in ipairs( e2s ) do
 						if not v.error then
 							-- immediately clear any memory the E2 may be holding
+							hook.Run("Wire_EmergencyRamClear")
 							v:PCallHook("destruct")
 							v:ResetContext()
 							v:PCallHook("construct")
@@ -667,6 +700,7 @@ local function enableEmergencyShutdown()
 						end
 					end
 					collectgarbage() -- collect the garbage now
+					timer.Simple(0,collectgarbage) -- timers fix everything
 					average_ram = collectgarbage("count") -- reset average ram when we're done
 				end
 			end

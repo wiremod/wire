@@ -2,7 +2,7 @@
 -- Formerly known as "mtable", this extension has now (15-11-2010) replaced the old table extension.
 -- Made by Divran
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-local function IsEmpty( t ) return !next(t) end
+local IsEmpty = table.IsEmpty
 local rep = string.rep
 local tostring = tostring
 local table = table
@@ -19,13 +19,13 @@ local tbls = {
 
 -- Types not allowed in tables
 local blocked_types = {
-	xgt = true,
+	xgt = true
 }
 
 --------------------------------------------------------------------------------
 
 local function checkOwner(self)
-	return IsValid(self.player);
+	return IsValid(self.player)
 end
 
 
@@ -33,12 +33,12 @@ end
 -- Type defining
 --------------------------------------------------------------------------------
 
-local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
+local newE2Table = E2Lib.newE2Table
 
-registerType("table", "t", table.Copy(DEFAULT),
+registerType("table", "t", newE2Table(),
 	function(self, input)
 		if input.size == 0 then
-			return table.Copy(DEFAULT)
+			return newE2Table()
 		end
 		return input
 	end,
@@ -116,9 +116,7 @@ end)
 --------------------------------------------------------------------------------
 
 -- Fix default values
-local function fixdef( def )
-	return istable(def) and table.Copy(def) or def
-end
+local fixDefault = E2Lib.fixDefault
 
 -- Uppercases the first letter
 local function upperfirst( word )
@@ -229,7 +227,7 @@ local function var_tostring( k, v, typeid, indenting, printed, abortafter, cost 
 	else -- if it's anything else
 		ret = rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
 	end
-	return ret, cost
+	return ret, cost + #ret * 0.05
 end
 
 table_tostring = function( tbl, indenting, printed, abortafter, cost )
@@ -261,12 +259,9 @@ registerOperator("ass", "t", "t", function(self, args)
 	local      rhs = op2[1](self, op2)
 
 	local Scope = self.Scopes[scope]
-	if !Scope.lookup then Scope.lookup = {} end
-
 	local lookup = Scope.lookup
-	if (lookup[rhs]) then lookup[rhs][lhs] = nil end
-	if (!lookup[rhs]) then lookup[rhs] = {} end
-	lookup[rhs][lhs] = true
+	if !lookup then lookup = {} Scope.lookup = lookup end
+	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
 
 	Scope[lhs] = rhs
 	Scope.vclk[lhs] = true
@@ -290,8 +285,7 @@ end
 __e2setcost(nil)
 
 registerOperator( "kvtable", "", "t", function( self, args )
-	local ret = table.Copy( DEFAULT )
-
+	local ret = newE2Table()
 
 	local types = args[3]
 
@@ -330,20 +324,59 @@ __e2setcost(1)
 
 -- Creates a table
 e2function table table(...)
+	local ret = newE2Table()
+	if select("#", ...) == 0 then return ret end -- Don't construct table
+
 	local tbl = {...}
-	if (#tbl == 0) then return table.Copy(DEFAULT) end
-	local ret = table.Copy(DEFAULT)
 	local size = 0
-	for k,v in ipairs( tbl ) do
-		if (!blocked_types[typeids[k]]) then
+
+	for k, v in ipairs( tbl ) do
+		local tid = typeids[k]
+		if blocked_types[tid] then
+			self:throw("Type '" .. wire_expression_types2[tid][1] .. "' is not allowed inside of a table")
+		else
 			size = size + 1
 			ret.n[k] = v
-			ret.ntypes[k] = typeids[k]
+			ret.ntypes[k] = tid
 		end
 	end
+
 	ret.size = size
 	self.prf = self.prf + size * opcost
 	return ret
+end
+
+-- Clones a table while adding prf for the size of the clone.
+local function prf_clone(self, tbl, lookup)
+	local copy = {}
+
+	lookup = lookup or {}
+	lookup[tbl] = copy
+
+	if self.prf > e2_tickquota then
+		error("perf", 0)
+	end
+
+	local prf = 0
+
+	for k, v in pairs(tbl) do
+		if istable(v) then
+			if lookup[v] then
+				prf = prf + opcost -- simple assign operation
+				copy[k] = lookup[v]
+			else
+				self.prf = self.prf + prf + opcost * 3 -- creating new table
+				prf = 0
+				copy[k] = prf_clone(self, v, lookup)
+			end
+		else
+			prf = prf + opcost -- simple assign operation
+			copy[k] = v
+		end
+	end
+
+	self.prf = self.prf + prf
+	return copy
 end
 
 __e2setcost(1)
@@ -375,17 +408,17 @@ end
 __e2setcost(1)
 -- Returns 1 if any value exists at the specified index, else 0
 e2function number table:exists( index )
-	return this.n[index] != nil and 1 or 0
+	return this.n[index] ~= nil and 1 or 0
 end
 e2function number table:exists( string index )
-	return this.s[index] != nil and 1 or 0
+	return this.s[index] ~= nil and 1 or 0
 end
 
 __e2setcost(5)
 
 e2function void printTable( table tbl )
-	if (not checkOwner(self)) then return; end
-	if (tbl.size > 200) then
+	if not checkOwner(self) then return end
+	if tbl.size > 200 then
 		self.player:ChatPrint("Table has more than 200 ("..tbl.size..") elements. PrintTable cancelled to prevent lag")
 		return
 	end
@@ -406,7 +439,7 @@ __e2setcost(5)
 
 -- Flip the numbers and strings of the table
 e2function table table:flip()
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	for k,v in pairs( this.n ) do
 		if (this.ntypes[k] == "s") then
 			ret.s[v] = k
@@ -425,15 +458,18 @@ end
 
 -- Returns an table with the typesids of both the array- and table-parts
 e2function table table:typeids()
-	local ret = table.Copy(DEFAULT)
-	ret.n = table.Copy(this.ntypes)
+	local ret = newE2Table()
+	ret.n = prf_clone(self, this.ntypes)
+
 	for k,v in pairs( ret.n ) do
 		ret.ntypes[k] = "s"
 	end
-	ret.s = table.Copy( this.stypes )
+
+	ret.s = prf_clone(self, this.stypes )
 	for k,v in pairs( ret.s ) do
 		ret.stypes[k] = "s"
 	end
+
 	ret.size = this.size
 	self.prf = self.prf + this.size * opcost
 	return ret
@@ -485,41 +521,50 @@ e2function number table:unset( string index ) = e2function number table:remove( 
 
 -- Removes all variables not of the type
 e2function table table:clipToTypeid( string typeid )
-	local ret = table.Copy(DEFAULT)
-	for k,v in pairs( this.n ) do
-		if (this.ntypes[k] == typeid) then
-			local n = #ret.n+1
+	local ret, ret_size = newE2Table(), 0
+
+	local this_ntypes, this_stypes = this.ntypes, this.stypes
+	local ret_ntypes, ret_stypes = ret.ntypes, ret.stypes
+	local ret_n, ret_s = ret.n, ret.s
+
+	for k, v in pairs( this.n ) do
+		if this_ntypes[k] == typeid then
+			local n = ret_size + 1
 			if istable(v) then
-				ret.n[n] = table.Copy(v)
+				ret_n[n] = prf_clone(self, v)
 			else
-				ret.n[n] = v
+				ret_n[n] = v
 			end
-			ret.ntypes[n] = this.ntypes[k]
-			ret.size = ret.size + 1
+			ret_ntypes[n] = this_ntypes[k]
+			ret_size = ret_size + 1
 		end
 	end
-	for k,v in pairs( this.s ) do
-		if (this.stypes[k] == typeid) then
+
+	for k, v in pairs( this.s ) do
+		if this_stypes[k] == typeid then
 			if istable(v) then
-				ret.s[k] = table.Copy(v)
+				ret_s[k] = prf_clone(self, v)
 			else
-				ret.s[k] = v
+				ret_s[k] = v
 			end
-			ret.stypes[k] = this.stypes[k]
-			ret.size = ret.size + 1
+			ret_stypes[k] = this_stypes[k]
+			ret_size = ret_size + 1
 		end
 	end
+
+	ret.size = ret_size
 	self.prf = self.prf + this.size * opcost
 	return ret
 end
 
 -- Removes all variables of the type
 e2function table table:clipFromTypeid( string typeid )
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
+
 	for k,v in pairs( this.n ) do
 		if (this.ntypes[k] != typeid) then
 			if istable(v) then
-				ret.n[k] = table.Copy(v)
+				ret.n[k] = prf_clone(self, v)
 			else
 				ret.n[k] = v
 			end
@@ -527,10 +572,11 @@ e2function table table:clipFromTypeid( string typeid )
 			ret.size = ret.size + 1
 		end
 	end
-	for k,v in pairs( this.s ) do
+
+	for k, v in pairs( this.s ) do
 		if (this.stypes[k] != typeid) then
 			if istable(v) then
-				ret.s[k] = table.Copy(v)
+				ret.s[k] = prf_clone(self, v)
 			else
 				ret.s[k] = v
 			end
@@ -538,38 +584,15 @@ e2function table table:clipFromTypeid( string typeid )
 			ret.size = ret.size + 1
 		end
 	end
+
 	self.prf = self.prf + this.size * opcost
 	return ret
 end
 
 __e2setcost(10)
 
-local function clone(self, tbl, lookup)
-	local copy = {}
-
-	lookup = lookup or {}
-	lookup[tbl] = copy
-
-	for k, v in pairs(tbl) do
-		if type(v) == "table" then
-			if lookup[v] then
-				self.prf = self.prf + opcost -- simple assign operation
-				copy[k] = lookup[v]
-			else
-				self.prf = self.prf + opcost * 3 -- creating new table
-				copy[k] = clone(self, v, lookup)
-			end
-		else
-			self.prf = self.prf + opcost -- simple assign operation
-			copy[k] = v
-		end
-	end
-
-	return copy
-end
-
 e2function table table:clone()
-	return clone(self, this)
+	return prf_clone(self, this)
 end
 
 __e2setcost(1)
@@ -583,37 +606,46 @@ __e2setcost(5)
 -- Formats the table as a human readable string
 e2function string table:toString()
 	local printed = { [this] = true }
-	local ret, cost = table_tostring( this, 0, printed, 400 )
+	local ret, cost = table_tostring( this, 0, printed, 4000 )
 	self.prf = self.prf + cost * opcost
+	if self.prf > e2_tickquota then error("perf", 0) end
 	return ret
 end
 
 -- Adds rv2 to the end of 'this' (adds numerical indexes to the end of the array-part, and only inserts string indexes that don't exist on rv1)
 e2function table table:add( table rv2 )
-	local ret = table.Copy(this)
+	local ret = prf_clone(self, this)
 	local cost = this.size
 	local size = this.size
 
+	local ret_n, ret_ntypes = ret.n, ret.ntypes
+	local ret_s, ret_stypes = ret.s, ret.stypes
+
+	local rv2_n, rv2_ntypes = rv2.n, rv2.ntypes
+	local rv2_s, rv2_stypes = rv2.s, rv2.stypes
+
 	local count = #ret.n
-	for k,v in pairs( rv2.n ) do
+	for k, v in pairs( rv2_n ) do
 		cost = cost + 1
-		local id = rv2.ntypes[k]
-		if (!blocked_types[id]) then
+		local id = rv2_ntypes[k]
+		if not blocked_types[id] then
 			count = count + 1
 			size = size + 1
-			ret.n[count] = v
-			ret.ntypes[count] = id
+
+			ret_n[count] = v
+			ret_ntypes[count] = id
 		end
 	end
 
-	for k,v in pairs( rv2.s ) do
+	for k, v in pairs( rv2_s ) do
 		cost = cost + 1
-		if (!ret.s[k]) then
-			local id = rv2.stypes[k]
-			if (!blocked_types[id]) then
+		if not ret_s[k] then
+			local id = rv2_stypes[k]
+			if not blocked_types[id] then
 				size = size + 1
-				ret.s[k] = v
-				ret.stypes[k] = id
+
+				ret_s[k] = v
+				ret_stypes[k] = id
 			end
 		end
 	end
@@ -625,15 +657,15 @@ end
 
 -- Merges rv2 with 'this' (both numerical and string indexes are overwritten)
 e2function table table:merge( table rv2 )
-	local ret = table.Copy(this)
+	local ret = prf_clone(self, this)
 	local cost = this.size
 	local size = this.size
 
 	for k,v in pairs( rv2.n ) do
 		cost = cost + 1
 		local id = rv2.ntypes[k]
-		if (!blocked_types[id]) then
-			if (!ret.n[k]) then size = size + 1 end
+		if not blocked_types[id] then
+			if not ret.n[k] then size = size + 1 end
 			ret.n[k] = v
 			ret.ntypes[k] = id
 		end
@@ -642,8 +674,8 @@ e2function table table:merge( table rv2 )
 	for k,v in pairs( rv2.s ) do
 		cost = cost + 1
 		local id = rv2.stypes[k]
-		if (!blocked_types[id]) then
-			if (!ret.s[k]) then size = size + 1 end
+		if not blocked_types[id] then
+			if not ret.s[k] then size = size + 1 end
 			ret.s[k] = v
 			ret.stypes[k] = id
 		end
@@ -656,13 +688,13 @@ end
 
 -- Removes all variables from 'this' which have keys which exist in rv2
 e2function table table:difference( table rv2 )
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	local cost = 0
 	local size = 0
 
 	for k,v in pairs( this.n ) do
 		cost = cost + 1
-		if (!rv2.n[k]) then
+		if not rv2.n[k] then
 			size = size + 1
 			ret.n[size] = v
 			ret.ntypes[size] = this.ntypes[k]
@@ -671,7 +703,7 @@ e2function table table:difference( table rv2 )
 
 	for k,v in pairs( this.s ) do
 		cost = cost + 1
-		if (!rv2.s[k]) then
+		if not rv2.s[k] then
 			size = size + 1
 			ret.s[k] = v
 			ret.stypes[k] = this.stypes[k]
@@ -685,13 +717,13 @@ end
 
 -- Removes all variables from 'this' which don't have keys which exist in rv2
 e2function table table:intersect( table rv2 )
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	local cost = 0
 	local size = 0
 
 	for k,v in pairs( this.n ) do
 		cost = cost + 1
-		if (rv2.n[k]) then
+		if rv2.n[k] then
 			size = size + 1
 			ret.n[size] = v
 			ret.ntypes[size] = this.ntypes[k]
@@ -700,7 +732,7 @@ e2function table table:intersect( table rv2 )
 
 	for k,v in pairs( this.s ) do
 		cost = cost + 1
-		if (rv2.s[k]) then
+		if rv2.s[k] then
 			size = size + 1
 			ret.s[k] = v
 			ret.stypes[k] = this.stypes[k]
@@ -814,14 +846,14 @@ end
 
 -- Returns the types of the variables in the array-part
 e2function array table:typeidsArray()
-	if (IsEmpty(this.n)) then return {} end
+	if IsEmpty(this.n) then return {} end
 	self.prf = self.prf + table.Count(this.ntypes) * opcost
-	return table.Copy(this.ntypes)
+	return prf_clone(self, this.ntypes)
 end
 
 -- Converts the table into an array
 e2function array table:toArray()
-	if (IsEmpty(this.n)) then return {} end
+	if IsEmpty(this.n) then return {} end
 	local ret = {}
 	local cost = 0
 	for k,v in pairs( this.n ) do
@@ -839,7 +871,7 @@ __e2setcost(20)
 
 -- Returns the find in the array part of an table
 e2function table findToTable()
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	for k,v in ipairs( self.data.findlist ) do
 		ret.n[k] = v
 		ret.ntypes[k] = "e"
@@ -870,22 +902,27 @@ e2function string table:concat()
 	self.prf = self.prf + #this * opcost
 	return concat(this.n)
 end
+
 e2function string table:concat(string delimiter)
 	self.prf = self.prf + #this * opcost
 	return concat(this.n,delimiter)
 end
+
 e2function string table:concat(string delimiter, startindex)
 	self.prf = self.prf + #this * opcost
 	return concat(this.n,delimiter,startindex)
 end
+
 e2function string table:concat(string delimiter, startindex, endindex)
 	self.prf = self.prf + #this * opcost
 	return concat(this.n,delimiter,startindex,endindex)
 end
+
 e2function string table:concat(startindex)
 	self.prf = self.prf + #this * opcost
 	return concat(this.n,"",startindex,endindex)
 end
+
 e2function string table:concat(startindex,endindex)
 	self.prf = self.prf + #this * opcost
 	return concat(this.n,"",startindex,endindex)
@@ -904,7 +941,7 @@ __e2setcost(5)
 --- Returns a lookup table for <arr>. Usage: Index = T:number(toString(Value)).
 --- Don't overuse this function, as it can become expensive for arrays with > 10 entries!
 e2function table invert(array arr)
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	local c = 0
 	local size = 0
 	for i,v in ipairs(arr) do
@@ -926,7 +963,7 @@ end
 --- Returns a lookup table for <tbl>. Usage: Key = T:string(toString(Value)).
 --- Don't overuse this function, as it can become expensive for tables with > 10 entries!
 e2function table invert(table tbl)
-	local ret = table.Copy(DEFAULT)
+	local ret = newE2Table()
 	local c = 0
 	local size = 0
 	for i,v in pairs(tbl.n) do
@@ -937,7 +974,7 @@ e2function table invert(table tbl)
 			ret.s[tostring_this(v)] = i
 			ret.stypes[tostring_this(v)] = "n"
 			size = size + 1
-		elseif (checkOwner(self)) then
+		elseif checkOwner(self) then
 			self.player:ChatPrint("E2: invert(T): Invalid type ("..typeid..") in table. Ignored.")
 		end
 	end
@@ -949,7 +986,7 @@ e2function table invert(table tbl)
 			ret.s[tostring_this(v)] = i
 			ret.stypes[tostring_this(v)] = "s"
 			size = size + 1
-		elseif (checkOwner(self)) then
+		elseif checkOwner(self) then
 			self.player:ChatPrint("E2: invert(T): Invalid type ("..typeid..") in table. Ignored.")
 		end
 	end
@@ -1014,16 +1051,16 @@ registerCallback( "postinit", function()
 		registerOperator("idx",	id.."=ts"		, id, function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixdef(v[2]) end
-			if (v[6] and v[6](rv1.s[rv2])) then return fixdef(v[2]) end -- Type check
+			if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixDefault(v[2]) end
+			if (v[6] and v[6](rv1.s[rv2])) then return fixDefault(v[2]) end -- Type check
 			return rv1.s[rv2]
 		end)
 
 		registerOperator("idx",	id.."=tn"		, id, function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixdef(v[2]) end
-			if (v[6] and v[6](rv1.n[rv2])) then return fixdef(v[2]) end -- Type check
+			if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixDefault(v[2]) end
+			if (v[6] and v[6](rv1.n[rv2])) then return fixDefault(v[2]) end -- Type check
 			return rv1.n[rv2]
 		end)
 
@@ -1058,9 +1095,9 @@ registerCallback( "postinit", function()
 		__e2setcost(8)
 
 		local function removefunc( self, rv1, rv2, numidx )
-			if (!rv1 or !rv2) then return fixdef(v[2]) end
+			if (!rv1 or !rv2) then return fixDefault(v[2]) end
 			if (numidx) then
-				if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixdef(v[2]) end
+				if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixDefault(v[2]) end
 				local ret = rv1.n[rv2]
 				if rv2 < 1 then -- table.remove doesn't work if the index is below 1
 					rv1.n[rv2] = nil
@@ -1073,7 +1110,7 @@ registerCallback( "postinit", function()
 				self.GlobalScope.vclk[rv1] = true
 				return ret
 			else
-				if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixdef(v[2]) end
+				if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixDefault(v[2]) end
 				local ret = rv1.s[rv2]
 				rv1.s[rv2] = nil
 				rv1.stypes[rv2] = nil
@@ -1125,8 +1162,8 @@ registerCallback( "postinit", function()
 			local op1, op2, op3 = args[2], args[3], args[4]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self,op3)
 			if rv3 == nil then return end
-			if rv2 < 0 then return end
-			if rv2 > 2^31 then return end -- too large, possibility of crashing gmod
+			if rv2 < 0 then return self:throw("Insert key cannot be negative!") end
+			if rv2 > 2^31 then return self:throw("Insert key too large!") end -- too large, possibility of crashing gmod
 			rv1.size = rv1.size + 1
 			table.insert( rv1.n, rv2, rv3 )
 			table.insert( rv1.ntypes, rv2, id )
@@ -1235,7 +1272,7 @@ registerCallback("postexecute", function(self)
 		local still_assigned = false
 		-- For each value, go through the variables they're assigned to and trigger them.
 		for varname,_ in pairs(varnames) do
-			if value == Scope[varname] then
+			if rawequal(value,Scope[varname]) then
 				-- The value is still assigned to the variable? => trigger it.
 				if clk then vclk[varname] = true end
 				still_assigned = true
@@ -1257,6 +1294,11 @@ end)
 local tbls = {
 	ARRAY = true,
 	TABLE = true,
+	VECTOR = true,
+	VECTOR2 = true,
+	VECTOR4 = true,
+	ANGLE = true,
+	QUATERNION = true,
 }
 
 registerCallback("construct", function(self)

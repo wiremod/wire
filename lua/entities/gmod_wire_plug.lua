@@ -6,6 +6,11 @@ ENT.Purpose         = "Links with a socket"
 ENT.Instructions    = "Move a plug close to a socket to link them, and data will be transferred through the link."
 ENT.WireDebugName = "Plug"
 
+function ENT:SetupDataTables()
+	self:NetworkVar( "Bool", 0, "PlayerHolding" )
+	self:NetworkVar( "Bool", 1, "Linked" )
+end
+
 function ENT:GetSocketClass()
 	return "gmod_wire_socket"
 end
@@ -17,7 +22,7 @@ function ENT:GetClosestSocket()
 	local Closest
 
 	for k,v in pairs( sockets ) do
-		if (v:GetClass() == self:GetSocketClass() and not v:GetNWBool( "Linked", false )) then
+		if (v:GetClass() == self:GetSocketClass() and not v:GetLinked()) then
 			local pos, _ = v:GetLinkPos()
 			local Dist = self:GetPos():Distance( pos )
 			if (ClosestDist == nil or ClosestDist > Dist) then
@@ -53,7 +58,7 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self:SetNWBool( "Linked", false )
+	self:SetLinked( false )
 
 	self.Memory = {}
 end
@@ -141,7 +146,7 @@ end
 
 function ENT:Think()
 	BaseClass.Think( self )
-	self:SetNWBool( "PlayerHolding", self:IsPlayerHolding() )
+	self:SetPlayerHolding( self:IsPlayerHolding() )
 end
 
 function ENT:ResetValues()

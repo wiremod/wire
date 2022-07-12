@@ -676,10 +676,8 @@ GateActions["entity_aimentity"] = {
 	outputtypes = { "ENTITY" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return NULL end
-		local EntR = Ent:GetEyeTraceNoCursor().Entity
-		if !EntR:IsValid() then return NULL end
-		return EntR
+		if !Ent:IsValid() or !Ent:IsPlayer() then return NULL end
+		return Ent:GetEyeTraceNoCursor().Entity
 	end,
 	label = function(Out)
 		return string.format ("Aim Entity = %s", tostring(Out))
@@ -849,7 +847,8 @@ GateActions["entity_aimpos"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() or !Ent:IsPlayer() then return Vector(0,0,0) else return Ent:GetEyeTraceNoCursor().HitPos end
+		if !Ent:IsValid() or !Ent:IsPlayer() then return Vector(0,0,0) end
+		return Ent:GetEyeTraceNoCursor().HitPos
 	end,
 	label = function(Out)
 		return string.format ("Aim Position = (%f , %f , %f)", Out.x , Out.y , Out.z)

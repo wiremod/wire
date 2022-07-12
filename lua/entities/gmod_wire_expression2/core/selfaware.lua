@@ -58,10 +58,12 @@ local function setOutput( self, args, Type )
 	end
 end
 
+local fixDefault = E2Lib.fixDefault
+
 local function getInput( self, args, default, Type )
 	local op1 = args[2]
 	local rv1 = op1[1](self,op1)
-	if istable(default) then default = table.Copy(default) end
+	default = fixDefault(default)
 	if (self.entity.Inputs[rv1] and self.entity.Inputs[rv1].Type == Type) then
 		return self.GlobalScope[rv1] or default
 	end
@@ -126,13 +128,14 @@ end
 
 -- Set the name of an entity (component name if not E2)
 e2function void entity:setName( string name )
-	if not IsValid(this) or E2Lib.getOwner(self, this) ~= self.player then return end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if E2Lib.getOwner(self, this) ~= self.player then return self:throw("You do not own this entity!", nil) end
 	doSetName(self,this,name)
 end
 
 -- Get the name of another E2 or compatible entity or component name of wiremod components
 e2function string entity:getName()
-	if not IsValid(this) then return "" end
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	if this.GetGateName then
 		return this:GetGateName() or ""
 	end

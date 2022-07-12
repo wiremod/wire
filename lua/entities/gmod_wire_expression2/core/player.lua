@@ -43,26 +43,32 @@ end
 __e2setcost(8)
 
 e2function vector entity:shootPos()
-	if(not IsValid(this)) then return {0,0,0} end
-	if(this:IsPlayer() or this:IsNPC()) then
-		return this:GetShootPos()
-	else return {0,0,0} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not this:IsPlayer() and not this:IsNPC() then return self:throw("Expected a Player or NPC in shootPos", {0, 0, 0}) end
+	return this:GetShootPos()
 end
 
 e2function vector entity:eye()
-	if (not IsValid(this)) then return {0,0,0} end
-	if (this:IsPlayer()) then
-		return this:GetAimVector()
-	else
-		return this:GetForward()
-	end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	return this:IsPlayer() and this:GetAimVector() or this:GetForward()
 end
 
---- Returns a local angle describing player <this>'s view angles.
+--- Returns an angle describing player <this>'s view angles.
 e2function angle entity:eyeAngles()
-	if not IsValid(this) then return { 0, 0, 0} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
 	local ang = this:EyeAngles()
 	return { ang.p, ang.y, ang.r }
+end
+
+-- TODO: remove this check at some point in the future when LocalEyeAngles is available in the stable version of gmod
+if FindMetaTable("Player").LocalEyeAngles then
+	--- Gets a player's view direction, relative to any vehicle they sit in. This function is needed to reproduce the behavior of cam controller. This is different from Vehicle:toLocal(Ply:eyeAngles()).
+	e2function angle entity:eyeAnglesVehicle()
+		if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+		if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", {0, 0, 0}) end
+		local ang = this:LocalEyeAngles()
+		return { ang.p, ang.y, ang.r }
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -70,18 +76,22 @@ end
 __e2setcost(5)
 
 e2function string entity:steamID()
-	if(not IsValid(this)) then return "" end
-	if(not this:IsPlayer()) then return "" end
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", "") end
 	return this:SteamID()
 end
 
 e2function string entity:steamID64()
-	return IsValid(this) and this:IsPlayer() and this:SteamID64() or ""
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", "") end
+
+	return this:SteamID64() or ""
 end
 
 e2function number entity:armor()
-	if(not IsValid(this)) then return 0 end
-	if(this:IsPlayer() or this:IsNPC()) then return this:Armor() else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() and not this:IsNPC() then return self:throw("Expected a Player or NPC but got an entity!", 0) end
+	return this:Armor()
 end
 
 --------------------------------------------------------------------------------
@@ -89,47 +99,48 @@ end
 __e2setcost(5)
 
 e2function number entity:isCrouch()
-	if(not IsValid(this)) then return 0 end
-	if(this:IsPlayer() and this:Crouching()) then return 1 else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:IsPlayer() and this:Crouching() and 1 or 0
 end
 
 e2function number entity:isAlive()
-	if(not IsValid(this)) then return 0 end
-	if(this:IsPlayer() and this:Alive()) then return 1 end
-	if(this:IsNPC() and this:Health() > 0) then return 1 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if this:IsPlayer() and this:Alive() then return 1 end
+	if this:IsNPC() and this:Health() > 0 then return 1 end
 	return 0
 end
 
 -- returns 1 if players has flashlight on or 0 if not
 e2function number entity:isFlashlightOn()
-	if not IsValid(this) then return 0 end
-	if not this:IsPlayer() then return 0 end
-	if this:FlashlightIsOn() then return 1 else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:FlashlightIsOn() and 1 or 0
 end
 
 --------------------------------------------------------------------------------
 
 e2function number entity:frags()
-	if(not IsValid(this)) then return 0 end
-	if(this:IsPlayer()) then return this:Frags() else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:Frags()
 end
 
 e2function number entity:deaths()
-	if(not this or not this:IsValid()) then return 0 end
-	if(this:IsPlayer()) then return this:Deaths() else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:Deaths()
 end
 
 --------------------------------------------------------------------------------
 
 e2function number entity:team()
-	if(not IsValid(this)) then return 0 end
-	if(this:IsPlayer()) then return this:Team() else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:Team()
 end
 
 e2function string teamName(rv1)
-	local str = team.GetName(rv1)
-	if str == nil then return "" end
-	return str
+	return team.GetName(rv1) or ""
 end
 
 e2function number teamScore(rv1)
@@ -272,13 +283,6 @@ number_of_keys = number_of_keys + 7
 -- add three more for flashlight "impulse 100" and next/prev weapon binds
 number_of_keys = number_of_keys + 3
 
-registerCallback("destruct",function(self)
-	KeyAlert[self.entity] = nil
-	--Used futher below. Didn't want to create more then one of these per file
-	spawnAlert[self.entity] = nil
-	leaveAlert[self.entity] = nil
-end)
-
 local function UpdateKeys(ply, bind, key, state)
 	local uid = ply:UniqueID()
 
@@ -324,7 +328,7 @@ hook.Add("PlayerBindUp", "Exp2KeyReceivingUp", function(player, binding, button)
 end)
 
 local function toggleRunOnKeys(self,ply,on,filter)
-	if not IsValid(ply) or not ply:IsPlayer() then return end
+	if not IsValid(ply) or not ply:IsPlayer() then return self:throw("Invalid player for runOnKeys!", nil) end
 
 	local ent = self.entity
 	local uid = ply:UniqueID()
@@ -443,11 +447,10 @@ end
 --------------------------------------------------------------------------------
 
 __e2setcost(2)
-local Trusts
 
 if CPPI and debug.getregistry().Player.CPPIGetFriends then
 
-	function Trusts(ply, whom)
+	local function Trusts(ply, whom)
 		if ply == whom then return true end
 		local friends = ply:CPPIGetFriends()
 		if not istable(friends) then return false end
@@ -476,10 +479,6 @@ if CPPI and debug.getregistry().Player.CPPIGetFriends then
 	end
 
 else
-
-	function Trusts(ply, whom)
-		return ply == whom
-	end
 
 	e2function array entity:friends()
 		return {}
@@ -516,7 +515,7 @@ __e2setcost(15)
 e2function array entity:steamFriends()
 	if not IsValid(this) then return {} end
 	if not this:IsPlayer() then return {} end
-	if not Trusts(this, self.player) then return {} end
+	if this~=self.player then return {} end
 
 	return steamfriends[this:EntIndex()] or {}
 end
@@ -525,7 +524,7 @@ end
 e2function number entity:isSteamFriend(entity friend)
 	if not IsValid(this) then return 0 end
 	if not this:IsPlayer() then return 0 end
-	if not Trusts(this, self.player) then return 0 end
+	if this~=self.player then return 0 end
 
 	local friends = steamfriends[this:EntIndex()]
 	if not friends then return 0 end
@@ -601,8 +600,8 @@ end
 --------------------------------------------------------------------------------
 
 e2function entity entity:aimEntity()
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", nil) end
 
 	local ent = this:GetEyeTraceNoCursor().Entity
 	if not ent:IsValid() then return nil end
@@ -610,23 +609,23 @@ e2function entity entity:aimEntity()
 end
 
 e2function vector entity:aimPos()
-	if not IsValid(this) then return {0,0,0} end
-	if not this:IsPlayer() then return {0,0,0} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", {0, 0, 0}) end
 
 	return this:GetEyeTraceNoCursor().HitPos
 end
 
 e2function vector entity:aimNormal()
-	if not IsValid(this) then return {0,0,0} end
-	if not this:IsPlayer() then return {0,0,0} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", {0, 0, 0}) end
 
 	return this:GetEyeTraceNoCursor().HitNormal
 end
 
 --- Returns the bone the player is currently aiming at.
 e2function bone entity:aimBone()
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", nil) end
 
 	local trace = this:GetEyeTraceNoCursor()
 	local ent = trace.Entity
@@ -696,40 +695,57 @@ e2function entity lastDisconnectedPlayer()
 	return lastLeft
 end
 
------ Deaths+Spawns, Dev: Vurv, 12/28/19 -----
-local DeathAlert = {} -- table of e2s that have runOnDeath(1)
+----- Death+Respawns by Vurv -----
+
+local DeathAlert = {}
 local RespawnAlert = {}
-local DeathList = { last = {} }
-local RespawnList = { last = {} }
+local DeathList = WireLib.RegisterPlayerTable() -- See PR: https://github.com/wiremod/wire/pull/2110, This automatically cleans itself up when a player leaves.
+DeathList.last = {
+	timestamp = 0,
+	victim = NULL,
+	inflictor = NULL,
+	attacker = NULL
+}
+local RespawnList = WireLib.RegisterPlayerTable()
+RespawnList.last = {
+	timestamp = 0,
+	ply = NULL
+}
 
 hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
-	local entry = {} -- default table
-	entry.victim = victim
-	entry.inflictor = inflictor
-	entry.timestamp = CurTime()
-	entry.attacker = attacker
-	DeathList[victim:EntIndex()] = entry -- victim's death is saved in victims death list.
+	local entry = {
+		inflictor = inflictor,
+		timestamp = CurTime(),
+		attacker = attacker,
+		victim = victim
+	}
+	DeathList[victim] = entry -- victim's death is saved as their most recent death
 	DeathList.last = entry -- the most recent death's table is stored here for later use.
-	for ex,_ in pairs(DeathAlert) do -- loops over all chips in deathalert, ignores key.
-		if IsValid(ex) then
-			ex.context.data.runByDeath = entry
-			ex:Execute()
-			ex.context.data.runByDeath = nil
+	for e2 in next,DeathAlert do
+		if IsValid(e2) then
+			e2.context.data.runByDeath = true
+			e2:Execute()
+			e2.context.data.runByDeath = nil
+		else
+			DeathAlert[e2] = nil
 		end
 	end
 end)
 
-hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(player,transition)
-	local entry = {}
-	entry.ply = player
-	entry.timestamp = CurTime()
-	RespawnList[player:EntIndex()] = entry
+hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(player)
+	local entry = {
+		timestamp = CurTime(),
+		ply = player
+	}
+	RespawnList[player] = entry
 	RespawnList.last = entry
-	for ex,_ in pairs(RespawnAlert) do
-		if IsValid(ex) then
-			ex.context.data.runByRespawned = entry
-			ex:Execute()
-			ex.context.data.runByRespawned = nil
+	for e2 in next,RespawnAlert do
+		if IsValid(e2) then
+			e2.context.data.runByRespawned = true
+			e2:Execute()
+			e2.context.data.runByRespawned = nil
+		else
+			RespawnAlert[e2] = nil
 		end
 	end
 end)
@@ -737,97 +753,91 @@ end)
 __e2setcost(5)
 
 --- If active is 0, the chip will no longer run on death.
-e2function void runOnDeath(number activate)
-	if activate ~= 0 then
-		DeathAlert[self.entity] = true
-	else
-		DeathAlert[self.entity] = nil
-	end
+e2function void runOnDeath(number active)
+	DeathAlert[self.entity] = active~=0 and true or nil
 end
 
---If ran by death, (defined in e2 data), gives 1 or 0 (ternary)
+-- Give 1 or 0 depending on whether the chip was run by a death event.
 e2function number deathClk()
 	return self.data.runByDeath and 1 or 0
 end
 
-e2function number lastDeathTime() -- returns when the last death happened
-	local Timestamp = DeathList.last.timestamp
-	if not IsValid(Timestamp) then return 0 end
-	return Timestamp -- Checks if num is valid, if so then returns the timestamp from the table, else returns 0.
+e2function number lastDeathTime()
+	return DeathList.last.timestamp or 0
 end
 
-e2function number lastDeathTime(entity ply) -- returns when the player provided last died
-	if not IsValid(ply) then return NULL end
-	if not ply:IsPlayer() then return NULL end
-	local Timestamp = DeathList[ply:EntIndex()].timestamp
-	if not IsValid(Timestamp) then return 0 end
-	return Timestamp -- Checks if num is valid, if so then returns the timestamp from the table, else returns 0. (also checks if ply is player and valid)
+-- To avoid a lot of repeated checks
+local function getDeathEntry(self, ply, key)
+	if not IsValid(ply) then return self:throw("Invalid player!", nil) end
+	if not ply:IsPlayer() then return self:throw("Expected a Player, got Entity", nil) end
+	local entry = DeathList[ply]
+	if not entry then return end -- Player has never died.
+	return entry[key]
 end
 
-e2function entity lastDeathVictim() -- Gives Death Victim
-	local Victim = DeathList.last.victim
-	if not IsValid(Victim) then return NULL end
-	return Victim
+local function getRespawnEntry(self, ply, key)
+	if not IsValid(ply) then return self:throw("Invalid player!", nil) end
+	if not ply:IsPlayer() then return self:throw("Expected a Player, got Entity", nil) end
+	local entry = RespawnList[ply]
+	if not entry then return end -- Player has never respawned.
+	return entry[key]
+end
+
+e2function number lastDeathTime(entity ply) -- When the player provided last died.
+	return getDeathEntry(self, ply,"timestamp") or 0
+end
+
+e2function entity lastDeathVictim()
+	return DeathList.last.victim
 end
 
 e2function entity lastDeathInflictor()
-	local Inflictor = DeathList.last.inflictor
-	if not IsValid(Inflictor) then return NULL end
-	return Inflictor
+	return DeathList.last.inflictor
 end
 
 e2function entity lastDeathInflictor(entity ply)
-	if not IsValid(ply) then return NULL end
-	if not ply:IsPlayer() then return NULL end
-	local Inflictor = DeathList[ply:EntIndex()].inflictor
-	if not IsValid(Inflictor) then return NULL end
-	return Inflictor
+	return getDeathEntry(self, ply,"inflictor") or NULL
 end
 
 e2function entity lastDeathAttacker()
-	local Attacker = DeathList.last.attacker
-	if not IsValid(Attacker) then return NULL end
-	return Attacker
+	return DeathList.last.attacker
 end
 
 e2function entity lastDeathAttacker(entity ply)
-	if not IsValid(ply) then return NULL end
-	if not ply:IsPlayer() then return NULL end
-	local Attacker = DeathList[ply:EntIndex()].attacker
-	if not IsValid(Attacker) then return NULL end
-	return Attacker
+	return getDeathEntry(self, ply,"attacker") or NULL
 end
 
--- Spawn Functions
+-- Respawn Functions
 e2function number spawnClk()
 	return self.data.runByRespawned and 1 or 0
 end
 
-e2function void runOnSpawn(number activate)
-	if activate ~= 0 then
-		RespawnAlert[self.entity] = true
-	else
-		RespawnAlert[self.entity] = nil
-	end
+e2function void runOnSpawn(number activate) -- If 1, make the chip run on a player respawning. Not joining.
+	RespawnAlert[self.entity] = active~=0 and true or nil
 end
 
 e2function number lastSpawnTime()
-	local Timestamp = RespawnList.last.timestamp
-	if not IsValid(Timestamp) then return 0 end
-	return Timestamp
+	return RespawnList.last.timestamp or 0
 end
 
-e2function number lastSpawnTime(entity ply) -- returns the last time player provided spawned.
-	if not IsValid(ply) then return 0 end
-	if not ply:IsPlayer() then return 0 end
-	local Timestamp = SpawnList[ply:EntIndex()].timestamp
-	if not IsValid(Timestamp) then return 0 end
-	return Timestamp
+e2function number lastSpawnTime(entity ply)
+	return getRespawnEntry(self, ply,"timestamp") or 0
 end
 
 e2function entity lastSpawnedPlayer()
-	local Ply = RespawnList.last.ply
-	if not IsValid(Ply) then return NULL end
-	return Ply
+	return RespawnList.last.ply
 end
 --******************************************--
+
+
+-- Destructor to avoid invalid chips being called in hooks.
+-- Moved down here to avoid memory leak with Death/Respawn alerts
+
+-- Maybe another E2Lib / WireLib function could be made for this to be automated?
+registerCallback("destruct",function(self)
+	KeyAlert[self.entity] = nil
+	spawnAlert[self.entity] = nil
+	leaveAlert[self.entity] = nil
+	DeathAlert[self.entity] = nil
+	RespawnAlert[self.entity] = nil
+end)

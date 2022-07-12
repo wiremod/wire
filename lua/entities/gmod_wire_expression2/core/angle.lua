@@ -6,11 +6,12 @@ registerType("angle", "a", { 0, 0, 0 },
 	function(self, input) return { input.p or input[1], input.y or input[2], input.r or input[3] } end,
 	function(self, output) return Angle(output[1], output[2], output[3]) end,
 	function(retval)
+		if isangle(retval) then return end
 		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 3 then error("Return value does not have exactly 3 entries!",0) end
 	end,
 	function(v)
-		return !istable(v) or #v ~= 3
+		return not isangle(v) and (not istable(v) or #v ~= 3)
 	end
 )
 
@@ -43,11 +44,17 @@ end
 /******************************************************************************/
 
 registerOperator("ass", "a", "a", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
+	local lhs, op2, scope = args[2], args[3], args[4]
+	local      rhs = op2[1](self, op2)
+
+	local Scope = self.Scopes[scope]
+	local lookup = Scope.lookup
+	if !lookup then lookup = {} Scope.lookup = lookup end
+	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
+
+	Scope[lhs] = rhs
+	Scope.vclk[lhs] = true
+	return rhs
 end)
 
 /******************************************************************************/
@@ -163,6 +170,7 @@ end
 
 e2function number angle:operator[](index, value)
 	this[floor(math.Clamp(index, 1, 3) + 0.5)] = value
+	self.GlobalScope.vclk[this] = true
 	return value
 end
 

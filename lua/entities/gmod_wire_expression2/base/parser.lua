@@ -33,7 +33,9 @@ Stmt7 ← (Var ("+=" / "-=" / "*=" / "/="))? Stmt8
 Stmt8 ← "local"? (Var (&"[" Index ("=" Stmt8)? / "=" Stmt8))? Stmt9
 Stmt9 ← ("switch" "(" Expr1 ")" "{" SwitchBlock)? Stmt10
 Stmt10 ← (FunctionStmt / ReturnStmt)? Stmt11
-Stmt11 ← ("#include" String)? Expr1
+Stmt11 ← ("#include" String)? Stmt12
+Stmt12 ← ("try" Block "catch" "(" Var ")" Block)? Stmt13
+Stmt13 ← ("do" Block "while" Cond)? Expr1
 
 FunctionStmt ← "function" FunctionHead "(" FunctionArgs Block
 FunctionHead ← (Type Type ":" Fun / Type ":" Fun / Type Fun / Fun)
@@ -254,7 +256,8 @@ function Parser:Stmt2()
 	if self:AcceptRoamingToken("whl") then
 		local trace = self:GetTokenTrace()
 		loopdepth = loopdepth + 1
-		local whl = self:Instruction(trace, "whl", self:Cond(), self:Block("while condition"))
+		local whl = self:Instruction(trace, "whl", self:Cond(), self:Block("while condition"),
+			false) -- Skip condition check first time?
 		loopdepth = loopdepth - 1
 		return whl
 	end
@@ -654,7 +657,7 @@ function Parser:Stmt10()
 		local Sig = Name .. "("
 		for I = 1, #Args do
 			local Arg = Args[I]
-			Sig = Sig .. wire_expression_types[Arg[2]][1]
+			Sig = Sig .. (Arg[3] and ".." or "") .. wire_expression_types[Arg[2]][1]
 			if I == 1 and Arg[1] == "This" and Type ~= '' then
 				Sig = Sig .. ":"
 			end
@@ -662,6 +665,11 @@ function Parser:Stmt10()
 		Sig = Sig .. ")"
 
 		if wire_expression2_funcs[Sig] then self:Error("Function '" .. Sig .. "' already exists") end
+
+		-- Variadic signatures for lua created functions are ..., while user defined ones use ..<t>.
+		-- Check if ... functions exist as to not essentially override them
+		local lua_variadic_sig = string.gsub(Sig, "%.%.[rt]", "...")
+		if wire_expression2_funcs[lua_variadic_sig] then self:Error("Can't override function " .. lua_variadic_sig .. " with user defined variadic function " .. Sig) end
 
 		local Inst = self:Instruction(Trace, "function", Sig, Return, Type, Args, self:Block("function declaration"))
 
@@ -710,6 +718,56 @@ function Parser:Stmt11()
 		return self:Instruction(Trace, "inclu", Path)
 	end
 
+	return self:Stmt12()
+end
+
+function Parser:Stmt12()
+	if self:AcceptRoamingToken("try") then
+		local trace = self:GetTokenTrace()
+		local stmt = self:Block("try block")
+		if self:AcceptRoamingToken("catch") then
+			if not self:AcceptRoamingToken("lpa") then
+				self:Error("Left parenthesis (() expected after catch keyword")
+			end
+
+			if not self:AcceptRoamingToken("var") then
+				self:Error("Variable expected after left parenthesis (() in catch statement")
+			end
+			local var_name = self:GetTokenData()
+
+			if not self:AcceptRoamingToken("rpa") then
+				self:Error("Right parenthesis ()) missing, to close catch statement")
+			end
+
+			return self:Instruction(trace, "try", stmt, var_name, self:Block("catch block") )
+		else
+			self:Error("Try block must be followed by catch statement")
+		end
+	end
+	return self:Stmt13()
+end
+
+function Parser:Stmt13()
+	if self:AcceptRoamingToken("do") then
+		local trace = self:GetTokenTrace()
+
+		loopdepth = loopdepth + 1
+		local code = self:Block("do keyword")
+
+		if not self:AcceptRoamingToken("whl") then
+			self:Error("while expected after do and code block (do {...} )")
+		end
+
+		local condition = self:Cond()
+
+
+		local whl = self:Instruction(trace, "whl", condition, code,
+			true) -- Skip condition check first time?
+		loopdepth = loopdepth - 1
+
+		return whl
+	end
+
 	return self:Expr1()
 end
 
@@ -718,6 +776,51 @@ function Parser:FunctionArgs(Temp, Args)
 		while true do
 
 			if self:AcceptRoamingToken("com") then self:Error("Argument separator (,) must not appear multiple times") end
+
+			-- ...Array:array
+			if self:AcceptRoamingToken("spread") then
+				if not self:AcceptRoamingToken("fun") and not self:AcceptRoamingToken("var") then
+					self:Error("Variable name expected after spread operator")
+				end
+
+				local name = self:GetTokenData()
+
+				if not self:AcceptRoamingToken("col") then
+					self:Error("Colon (:) expected after spread argument name")
+				end
+
+				if not self:AcceptRoamingToken("fun") then
+					self:Error("Variable type expected after colon (:)")
+				end
+
+				local type = self:GetTokenData()
+				if type ~= type:lower() then
+					self:Error("Variable type must be lowercased")
+				end
+
+				type = type:upper()
+
+				if not wire_expression_types[type] then
+					self:Error("Invalid type specified")
+				end
+
+				if type ~= "ARRAY" and type ~= "TABLE" then
+					self:Error("Only array or table type is supported for spread arguments")
+				end
+
+				if self:AcceptRoamingToken("com") then
+					self:Error("Spread argument must be the last argument")
+				end
+
+				if not self:AcceptRoamingToken("rpa") then
+					self:Error("Right parenthesis ()) expected after spread argument")
+				end
+
+				Temp[name] = true
+				Args[#Args + 1] = { name, type, true }
+
+				return
+			end
 
 			if self:AcceptRoamingToken("var") or self:AcceptRoamingToken("fun") then
 				self:FunctionArg(Temp, Args)
@@ -767,7 +870,7 @@ function Parser:FunctionArg(Temp, Args)
 
 
 	Temp[Name] = true
-	Args[#Args + 1] = { Name, Type }
+	Args[#Args + 1] = { Name, Type, false }
 end
 
 function Parser:FunctionArgList(Temp, Args)
@@ -823,7 +926,7 @@ function Parser:FunctionArgList(Temp, Args)
 		end
 
 		for I = 1, #Vars do
-			Args[#Args + 1] = { Vars[I], Type }
+			Args[#Args + 1] = { Vars[I], Type, false }
 		end
 
 	else
@@ -1494,6 +1597,8 @@ function Parser:ExprError()
 			self:Error("Comma (,) not expected here, missing an argument?")
 		elseif self:AcceptRoamingToken("col") then
 			self:Error("Method operator (:) must not be preceded by whitespace")
+		elseif self:AcceptRoamingToken("spread") then
+			self:Error("Spread operator (...) must only be used as a function parameter")
 
 		elseif self:AcceptRoamingToken("if") then
 			self:Error("If keyword (if) must not appear inside an equation")

@@ -145,13 +145,9 @@ end
 
 
 function ENT:OnRemove()
-
-	for k, v in pairs( self.clutch_ballsockets ) do
-
+	for k in pairs( self.clutch_ballsockets ) do
 		self:RemoveClutch( k )
-
 	end
-
 end
 
 
@@ -161,7 +157,7 @@ end
 ---------------------------------------------------------]]
 -- Used for setting/restoring entity mass when creating the clutch constraint
 local function SaveMass( MassTable, ent )
-	if IsValid( ent ) and !MassTable[ent] then
+	if IsValid( ent ) and not MassTable[ent] then
 		local Phys = ent:GetPhysicsObject()
 		if IsValid( Phys ) then
 			MassTable[ent] = Phys:GetMass()
@@ -219,15 +215,16 @@ local function ClutchDelayEnd( ent )
 	end
 end
 
+local Clutch_Max = GetConVar("wire_clutch_maxrate")
 
 function ENT:TriggerInput( iname, value )
 	if iname == "Friction" then
-		if !self.ClutchDelay then
+		if not self.ClutchDelay then
 			self.clutch_friction = value
 
 			-- Create a delay to avoid server lag
 			local numconstraints = self:UpdateFriction()
-			local maxrate = math.max( GetConVarNumber( "wire_clutch_maxrate", 20 ), 1 )
+			local maxrate = math.max( Clutch_Max:GetInt() or 20, 1 )
 			local Delay = numconstraints / maxrate
 
 			self.ClutchDelay = true
@@ -235,7 +232,7 @@ function ENT:TriggerInput( iname, value )
 
 		else
 			-- This should only happen if an error prevents the ClutchDelayEnd function from being called
-			if !timer.Exists( "wire_clutch_delay_" .. tostring(self:EntIndex())) then
+			if not timer.Exists( "wire_clutch_delay_" .. tostring(self:EntIndex())) then
 				self.ClutchDelay = false
 			end
 

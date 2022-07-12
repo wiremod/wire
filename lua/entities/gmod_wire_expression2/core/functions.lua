@@ -9,7 +9,12 @@ __e2setcost(1)
 registerOperator("function", "", "", function(self, args)
 	local sig, body = args[2], args[3]
 	self.funcs[sig] = body
-	self.strfunc_cache = {}
+
+	local cached = self.strfunc_cache[1][sig]
+	if cached then
+		self.strfunc_cache[2][ cached[3] ] = nil
+		self.strfunc_cache[1][sig] = nil
+	end
 end)
 
 __e2setcost(2)

@@ -88,7 +88,11 @@ local function wtfgarry( str )
 		w = math.max(w,_w)
 		h = h + _h
 	end
-	return w, h
+	return math.max(w, 24), math.max(h, 24)
+end
+
+function ENT:GetGateName()
+    return self:GetNWString("name", self.name)
 end
 
 local h_of_lower = 100 -- height of the lower section (the prfbench/percent bar section)

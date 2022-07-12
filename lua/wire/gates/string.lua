@@ -2,7 +2,7 @@
 	String gates  !  :P
 ]]
 
-local MAX_LEN = 1024*1024 -- max string length of 1MB
+local MAX_LEN = 64*1024 -- max string length of 64k
 
 GateActions("String")
 
@@ -181,6 +181,7 @@ GateActions["string_replace"] = {
 		if !A then A = "" end
 		if !B then B = "" end
 		if !C then C = "" end
+		if #A + #B + #C > MAX_LEN then return false end
 		return string.gsub(A,B,C)
 	end,
 	label = function(Out, A, B, C)
@@ -265,7 +266,7 @@ GateActions["string_repeat"] = {
 	outputtypes = { "STRING" },
 	output = function(gate, A, B)
 		if !A then A = "" end
-		if !B or B<1 then B = 1 end
+		if !B or B<0 then B = 0 end
 
 		if B * #A > MAX_LEN then return false end
 
