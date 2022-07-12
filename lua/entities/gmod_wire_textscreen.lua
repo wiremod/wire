@@ -149,14 +149,14 @@ if CLIENT then
 		else
 			self.GPU = WireGPU(self, false, self.rwidth, self.rheight)
 		end
-		print(self.autoaspect)
+
 	end
 	
 	function ENT:Initialize()
 		self:InitializeShared()
 		
 		WireLib.netRegister(self)
-		print(self.rwidth)
+
 		self.GPU = WireGPU(self, false, self.rwidth, self.rheight)
 		self.layouter = MakeTextScreenLayouter()
 		self:CreateFont(self.tfont, self.chrPerLine)
@@ -182,7 +182,7 @@ if CLIENT then
 
 				surface.SetFont(self.tfont..self.chrPerLine)
 				surface.SetTextColor(self.fgcolor)
-				print(self.fgcolor)
+
 				self.layouter:DrawText(self.text, 0, 0, w, h, self.textJust, self.valign)
 			end)
 		end
@@ -307,12 +307,10 @@ function ENT:SendConfig(ply)
 		net.WriteUInt(self.fgcolor.r, 8)
 		net.WriteUInt(self.fgcolor.g, 8)
 		net.WriteUInt(self.fgcolor.b, 8)
-		print(self.bgcolor)
 		net.WriteUInt(self.bgcolor.r, 8)
 		net.WriteUInt(self.bgcolor.g, 8)
 		net.WriteUInt(self.bgcolor.b, 8)
 		net.WriteString(string.sub(self.tfont,0,31))
-		print(self.rwidth)
 		net.WriteUInt(self.rwidth, 10)
 		net.WriteUInt(self.rheight, 10)
 		net.WriteUInt(self.autoaspect, 1)
