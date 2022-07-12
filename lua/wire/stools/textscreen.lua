@@ -7,12 +7,15 @@ if CLIENT then
 	language.Add("tool.wire_textscreen.desc", "Spawns a screen that displays text." )
 
 	language.Add("Tool_wire_textscreen_tsize", "Text size:")
+	language.Add("Tool_wire_textscreen_rwidth", "Resolution width:")
+	language.Add("Tool_wire_textscreen_rheight", "Resolution height:")
 	language.Add("Tool_wire_textscreen_tjust", "Horizontal alignment:")
 	language.Add("Tool_wire_textscreen_valign", "Vertical alignment:")
 	language.Add("Tool_wire_textscreen_tfont", "Text font:")
 	language.Add("Tool_wire_textscreen_colour", "Text colour:")
 	language.Add("Tool_wire_textscreen_bgcolour", "Background colour:")
 	language.Add("Tool_wire_textscreen_createflat", "Create flat to surface")
+	language.Add("Tool_wire_textscreen_autoaspect", "Automatic aspect ratio")
 	language.Add("Tool_wire_textscreen_text", "Default text:")
 	TOOL.Information = {
 		{ name = "left", text = "Create/Update " .. TOOL.Name },
@@ -43,7 +46,10 @@ if SERVER then
 				math.Clamp(self:GetClientNumber("tbgred"), 0, 255),
 				math.Clamp(self:GetClientNumber("tbggreen"), 0, 255),
 				math.Clamp(self:GetClientNumber("tbgblue"), 0, 255)
-			)
+			),
+			self:GetClientInfo("rwidth"),
+			self:GetClientInfo("rheight"),
+			self:GetClientInfo("autoaspect")
 	end
 
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
@@ -63,7 +69,10 @@ TOOL.ClientConVar = {
 	tbggreen      = 0,
 	ninputs     = 3,
 	createflat  = 1,
+	autoaspect  = 1,
 	text        = "",
+	rwidth		= 512,
+	rheight		= 512
 }
 
 function TOOL:RightClick( trace )
@@ -132,5 +141,8 @@ function TOOL.BuildCPanel(panel)
 		ShowRGB = "1",
 		Multiplier = "255"
 	})
+	panel:NumSlider("#Tool_wire_textscreen_rwidth", "wire_textscreen_rwidth", 1, 512, 0)
+	panel:NumSlider("#Tool_wire_textscreen_rheight", "wire_textscreen_rheight", 1, 512, 0)
+	panel:CheckBox("#Tool_wire_textscreen_autoaspect", "wire_textscreen_autoaspect")
 	WireDermaExts.ModelSelect(panel, "wire_textscreen_model", list.Get( "WireScreenModels" ), 5)
 end
