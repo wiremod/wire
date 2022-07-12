@@ -116,6 +116,8 @@ end
 
 __e2setcost(5)
 
+local BLOCKED_ARRAY_TYPES = E2Lib.blocked_array_types
+
 registerOperator( "stringcall", "", "", function(self, args)
 	local op1, funcargs, typeids, typeids_str, returntype = args[2], args[3], args[4], args[5], args[6]
 	local funcname = op1[1](self,op1)
@@ -129,6 +131,25 @@ registerOperator( "stringcall", "", "", function(self, args)
 	end
 
 	if returntype ~= "" then
+		if funcname == "array" then
+			local types = funcargs[#funcargs]
+
+			local k = 1
+
+			local ty = types[k]
+			while ty do
+				if BLOCKED_ARRAY_TYPES[ty] then
+					table.remove(types, k)
+					table.remove(funcargs, k + 1)
+
+					self:throw("Cannot use type " .. tps_pretty(ty) .. " for argument #" .. k .. " in stringcall array creation")
+				else
+					k = k + 1
+				end
+
+				ty = types[k]
+			end
+		end
 		local ret = func( self, funcargs )
 		return ret
 	else
