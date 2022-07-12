@@ -455,14 +455,13 @@ function Compiler:InstrCALL(args)
 			if BLOCKED_ARRAY_TYPES[tp] then
 				self:Error("Cannot have type " .. tps_pretty(tp) .. " in array creation argument #" .. i, args[4][i])
 			end
-			tps[#tps + 1] = tp
-			exprs[#exprs + 1] = ex
+
+			exprs[i + 1] = ex
+			tps[i] = tp
 		end
 	else
 		for i = 1, #args[4] do
-			local ex, tp = self:Evaluate(args[4], i - 2)
-			tps[#tps + 1] = tp
-			exprs[#exprs + 1] = ex
+			exprs[i + 1], tps[i] = self:Evaluate(args[4], i - 2)
 		end
 	end
 
