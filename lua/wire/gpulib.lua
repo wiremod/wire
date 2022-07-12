@@ -83,13 +83,15 @@ if CLIENT then
 	end
 
 	-- Returns a render target from the cache pool and marks it as used
-	local function GetRT()
-
+	local function GetRT(resx,resy)
+		resx = resx or 512
+		resy = resy or 512
 		for i, RT in pairs( RenderTargetCache ) do
 			if not RT[1] then -- not used
-
 				local rendertarget = RT[2]
 				if rendertarget then
+					rendertarget = GetRenderTargetEx("WireGPU_RT_"..i.."_"..resx.."_"..resy, resx, resy, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, bit.bor(2, 256), 0, IMAGE_FORMAT_BGRA8888)
+					RT[2] = rendertarget
 					RT[1] = true -- Mark as used
 					return rendertarget
 				end
@@ -101,7 +103,7 @@ if CLIENT then
 		for i, RT in pairs( RenderTargetCache ) do
 			if not RT[1] and  RT[2] == false then -- not used and doesn't exist, let's create the render target.
 
-					local rendertarget = GetRenderTarget("WireGPU_RT_"..i, 512, 512)
+					local rendertarget = GetRenderTargetEx("WireGPU_RT_"..i.."_"..resx.."_"..resy, resx, resy, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, bit.bor(2, 256), 0, IMAGE_FORMAT_BGRA8888)
 
 					if rendertarget then
 						RT[1] = true -- Mark as used
@@ -125,7 +127,7 @@ if CLIENT then
 
 		for i, RT in pairs( RenderTargetCache ) do
 			if RT[2] == rt then
-
+				RT[2] = false
 				RT[1] = false
 				return
 			end
@@ -166,7 +168,9 @@ if CLIENT then
 	})
 
 
-	function GPU:Initialize(no_rendertarget)
+	function GPU:Initialize(no_rendertarget,width,height)
+		width = width or 512
+		height = height or 512
 		if no_rendertarget then return nil end
 		-- Rendertarget cache management
 
@@ -177,7 +181,7 @@ if CLIENT then
 		end
 
 		-- find a free one
-		self.RT = GetRT()
+		self.RT = GetRT(width,height)
 		if not self.RT then
 			return nil
 		end
@@ -245,7 +249,7 @@ if CLIENT then
 		},
 	}
 	-- helper function for GPU:Render
-	function GPU.DrawScreen(x, y, w, h, rotation, scale)
+	function GPU.DrawScreen(x, y, w, h, rotation, scale, aspect)
 		-- generate vertex data
 		local vertices = {
 			--[[
@@ -270,9 +274,9 @@ if CLIENT then
 				vertex.u = tex.u+scale
 			end
 			if tex.v == 0 then
-				vertex.v = tex.v-scale
+				vertex.v = tex.v-scale+(0.5-((1/aspect)/2))
 			else
-				vertex.v = tex.v+scale
+				vertex.v = tex.v+scale-(0.5-((1/aspect)/2))
 			end
 		end
 
@@ -329,7 +333,7 @@ if CLIENT then
 		cam.End3D2D()
 	end
 
-	function GPU:Render(rotation, scale, width, height, postrenderfunction)
+	function GPU:Render(rotation, scale, width, height, postrenderfunction, overrideaspect)
 		if not self.RT then return end
 
 		local monitor, pos, ang = self:GetInfo()
@@ -341,11 +345,10 @@ if CLIENT then
 		cam.Start3D2D(pos, ang, res)
 			local ok, err = xpcall(function()
 				local aspect = 1/monitor.RatioX
-				local w = (width  or 512)*aspect
-				local h = (height or 512)
+				local w = (not overrideaspect and width  or 512)*aspect
+				local h = (not overrideaspect and height or 512)
 				local x = -w/2
 				local y = -h/2
-
 				local translucent = self.translucent;
 
 				if translucent == nil then
@@ -362,9 +365,9 @@ if CLIENT then
 
 				render.PushFilterMag(self.texture_filtering or TEXFILTER.POINT)
 				render.PushFilterMin(self.texture_filtering or TEXFILTER.POINT)
-
-				self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
-
+				aspect = not overrideaspect and aspect or overrideaspect
+				self.DrawScreen(x, y, w, h, rotation or 0, scale or 0, aspect)
+				aspect = 1/monitor.RatioX
 				render.PopFilterMin()
 				render.PopFilterMag()
 
