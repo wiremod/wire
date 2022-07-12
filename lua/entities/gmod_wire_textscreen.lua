@@ -9,9 +9,13 @@ function ENT:InitializeShared()
 	self.textJust = 0
 	self.valign = 0
 	self.tfont = "Arial"
+	
 
 	self.fgcolor = Color(255,255,255)
 	self.bgcolor = Color(0,0,0)
+	self.rwidth = 512
+	self.rheight = 512
+	self.autoaspect = 1
 end
 
 
@@ -121,15 +125,42 @@ if CLIENT then
 		return minoffset and self.x2 - minoffset or 0, self.y
 	end
 	--------------------------------------------------------------------------------
+	function ENT:Receive()
+		if net.ReadBit() ~= 0 then
+			self.chrPerLine = net.ReadUInt(4)
+			self.textJust = net.ReadUInt(2)
+			self.valign = net.ReadUInt(2)
+			self.fgcolor = Color(net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8))
+			self.bgcolor = Color(net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8))
+			
+			self.tfont = net.ReadString()
+			self.rwidth = net.ReadUInt(10)
+			self.rheight = net.ReadUInt(10)
+			self.autoaspect = net.ReadUInt(1)
+			self:CreateFont(self.tfont, self.chrPerLine)
 
+			self.NeedRefresh = true
+		else
+			self:SetText(net.ReadString())
+		end
+		self.GPU:FreeRT()
+		if self.autoaspect == 0 then
+			self.GPU = WireGPU(self, false, self.rheight, self.rheight)
+		else
+			self.GPU = WireGPU(self, false, self.rwidth, self.rheight)
+		end
+		print(self.autoaspect)
+	end
+	
 	function ENT:Initialize()
 		self:InitializeShared()
-
-		self.GPU = WireGPU(self)
+		
+		WireLib.netRegister(self)
+		print(self.rwidth)
+		self.GPU = WireGPU(self, false, self.rwidth, self.rheight)
 		self.layouter = MakeTextScreenLayouter()
 		self:CreateFont(self.tfont, self.chrPerLine)
-
-		WireLib.netRegister(self)
+		
 	end
 
 	function ENT:OnRemove()
@@ -145,16 +176,21 @@ if CLIENT then
 				local w = 512
 				local h = 512
 
+				
 				surface.SetDrawColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b, 255)
 				surface.DrawRect(0, 0, w, h)
 
 				surface.SetFont(self.tfont..self.chrPerLine)
 				surface.SetTextColor(self.fgcolor)
+				print(self.fgcolor)
 				self.layouter:DrawText(self.text, 0, 0, w, h, self.textJust, self.valign)
 			end)
 		end
-
-		self.GPU:Render()
+		if self.autoaspect == 0 then
+			self.GPU:Render(0,0,self.rwidth,self.rheight,false,self.rheight/self.rwidth)
+		else
+			self.GPU:Render(0,0)
+		end
 		--[[
 		self.GPU:RenderToWorld(512, nil, function(x, y, w, h)
 
@@ -174,22 +210,7 @@ if CLIENT then
 		self.NeedRefresh = true
 	end
 
-	function ENT:Receive()
-		if net.ReadBit() ~= 0 then
-			self.chrPerLine = net.ReadUInt(4)
-			self.textJust = net.ReadUInt(2)
-			self.valign = net.ReadUInt(2)
-
-			self.fgcolor = Color(net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8))
-			self.bgcolor = Color(net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8))
-			self.tfont = net.ReadString()
-			self:CreateFont(self.tfont, self.chrPerLine)
-
-			self.NeedRefresh = true
-		else
-			self:SetText(net.ReadString())
-		end
-	end
+	
 
 	local createdFonts = {}
 	function ENT:CreateFont(font, chrPerLine)
@@ -223,13 +244,16 @@ function ENT:Initialize()
 	self:InitializeShared()
 end
 
-function ENT:Setup(DefaultText, chrPerLine, textJust, valign, tfont, fgcolor, bgcolor)
+function ENT:Setup(DefaultText, chrPerLine, textJust, valign, tfont, fgcolor, bgcolor, rheight, rwidth, autoaspect)
 	self.fgcolor = fgcolor or Color(255,255,255)
 	self.bgcolor = bgcolor or Color(0,0,0)
 	self.chrPerLine = math.Clamp(math.ceil(chrPerLine or 10), 1, 15)
 	self.textJust = textJust or 1
 	self.valign = valign or 0
 	self.tfont = tfont or "Arial"
+	self.rwidth = rwidth or 512
+	self.rheight = rheight or 512
+	self.autoaspect = autoaspect or 1
 	self:SendConfig()
 
 	self:TriggerInput("String", DefaultText or "")
@@ -279,15 +303,19 @@ function ENT:SendConfig(ply)
 		net.WriteUInt(self.chrPerLine, 4)
 		net.WriteUInt(self.textJust, 2)
 		net.WriteUInt(self.valign, 2)
-
+		--self.fgcolor = Color(255,255,255)
 		net.WriteUInt(self.fgcolor.r, 8)
 		net.WriteUInt(self.fgcolor.g, 8)
 		net.WriteUInt(self.fgcolor.b, 8)
-
+		print(self.bgcolor)
 		net.WriteUInt(self.bgcolor.r, 8)
 		net.WriteUInt(self.bgcolor.g, 8)
 		net.WriteUInt(self.bgcolor.b, 8)
 		net.WriteString(string.sub(self.tfont,0,31))
+		print(self.rwidth)
+		net.WriteUInt(self.rwidth, 10)
+		net.WriteUInt(self.rheight, 10)
+		net.WriteUInt(self.autoaspect, 1)
 	WireLib.netEnd(ply)
 end
 
@@ -296,4 +324,4 @@ function ENT:Retransmit(ply)
 	self:SendConfig(ply)
 end
 
-duplicator.RegisterEntityClass("gmod_wire_textscreen", WireLib.MakeWireEnt, "Data", "text", "chrPerLine", "textJust", "valign", "tfont", "fgcolor", "bgcolor")
+duplicator.RegisterEntityClass("gmod_wire_textscreen", WireLib.MakeWireEnt, "Data", "text", "chrPerLine", "textJust", "valign", "tfont", "fgcolor", "bgcolor", "rwidth", "rheight", "autoaspect")
