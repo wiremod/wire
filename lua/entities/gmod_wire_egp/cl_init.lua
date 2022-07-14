@@ -27,6 +27,7 @@ function ENT:_EGP_Update( bool )
 		--render.ClearRenderTarget( 0, 0, 0, 0 )
 
 		local currentfilter = self.GPU.texture_filtering
+		local pushedFilter = false
 
 		local mat = self:GetEGPMatrix()
 
@@ -42,15 +43,23 @@ function ENT:_EGP_Update( bool )
 			local oldtex = EGP:SetMaterial( v.material )
 
 			if v.filtering != currentfilter then
-				render.PopFilterMin()
-				render.PopFilterMag()
+				if pushedFilter then
+					render.PopFilterMin()
+					render.PopFilterMag()
+				end
 				render.PushFilterMag(v.filtering)
 				render.PushFilterMin(v.filtering)
 				currentfilter = v.filtering
+				pushedFilter = true
 			end
 
 			v:Draw(self, mat)
 			EGP:FixMaterial( oldtex )
+		end
+
+		if pushedFilter then
+			render.PopFilterMin()
+			render.PopFilterMag()
 		end
 	end)
 end
