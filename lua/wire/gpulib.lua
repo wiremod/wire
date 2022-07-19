@@ -86,11 +86,12 @@ if CLIENT then
 	local function GetRT(resx,resy)
 		resx = resx or 512
 		resy = resy or 512
+		PrintTable(RenderTargetCache)
 		for i, RT in pairs( RenderTargetCache ) do
 			if not RT[1] then -- not used
 				local rendertarget = RT[2]
 				if rendertarget then
-					rendertarget = GetRenderTargetEx("WireGPU_RT_"..i.."_"..resx.."_"..resy, resx, resy, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, bit.bor(2, 256), 0, IMAGE_FORMAT_BGRA8888)
+					rendertarget = GetRenderTargetEx("WireGPU_RT_"..i, resx, resy, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, bit.bor(2, 256), 0, IMAGE_FORMAT_BGRA8888)
 					RT[2] = rendertarget
 					RT[1] = true -- Mark as used
 					return rendertarget
@@ -103,7 +104,7 @@ if CLIENT then
 		for i, RT in pairs( RenderTargetCache ) do
 			if not RT[1] and  RT[2] == false then -- not used and doesn't exist, let's create the render target.
 
-					local rendertarget = GetRenderTargetEx("WireGPU_RT_"..i.."_"..resx.."_"..resy, resx, resy, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, bit.bor(2, 256), 0, IMAGE_FORMAT_BGRA8888)
+					local rendertarget = GetRenderTargetEx("WireGPU_RT_"..i, resx, resy, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, bit.bor(2, 256), 0, IMAGE_FORMAT_BGRA8888)
 
 					if rendertarget then
 						RT[1] = true -- Mark as used
@@ -124,7 +125,8 @@ if CLIENT then
 
 	-- Frees an used RT
 	local function FreeRT(rt)
-
+		print("freeing rt")
+		PrintTable(RenderTargetCache)
 		for i, RT in pairs( RenderTargetCache ) do
 			if RT[2] == rt then
 				RT[2] = false
@@ -284,22 +286,27 @@ if CLIENT then
 		--render.DrawQuad(unpack(vertices))
 	end
 
-	function GPU:RenderToGPU(renderfunction)
+	function GPU:RenderToGPU(renderfunction,width,height)
 		if not self.RT then return end
-
+		width = width or 512
+		height = height or 512
+		--print(height)
 		if self.ForceClear then
 			self:Clear()
 			self.ForceClear = nil
 		end
-
+		
+		local w = width
+		local h = height
+		
 		local oldw = ScrW()
 		local oldh = ScrH()
 
 		local NewRT = self.RT
-		local OldRT = render.GetRenderTarget()
+		local OldRT = render.GetRenderTarget(nil, width, height)
 
 		render.SetRenderTarget(NewRT)
-		render.SetViewPort(0, 0, 512, 512)
+		render.SetViewPort(0, 0, width, height)
 		cam.Start2D()
 			local ok, err = xpcall(renderfunction, debug.traceback)
 			if not ok then WireLib.ErrorNoHalt(err) end
@@ -345,10 +352,11 @@ if CLIENT then
 		cam.Start3D2D(pos, ang, res)
 			local ok, err = xpcall(function()
 				local aspect = 1/monitor.RatioX
-				local w = (not overrideaspect and width  or 512)*aspect
-				local h = (not overrideaspect and height or 512)
+				local w = (width  or 512)*aspect
+				local h = (height or 512)
 				local x = -w/2
 				local y = -h/2
+				
 				local translucent = self.translucent;
 
 				if translucent == nil then
@@ -365,7 +373,7 @@ if CLIENT then
 
 				render.PushFilterMag(self.texture_filtering or TEXFILTER.POINT)
 				render.PushFilterMin(self.texture_filtering or TEXFILTER.POINT)
-				aspect = not overrideaspect and aspect or overrideaspect
+				aspect = not overrideaspect and 1 or aspect
 				self.DrawScreen(x, y, w, h, rotation or 0, scale or 0, aspect)
 				aspect = 1/monitor.RatioX
 				render.PopFilterMin()
