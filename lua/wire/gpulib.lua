@@ -91,7 +91,7 @@ if CLIENT then
 			if not RT[1] then -- not used
 				local rendertarget = RT[2]
 				if rendertarget then
-					rendertarget = GetRenderTargetEx("WireGPU_RT_"..i, resx, resy, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, bit.bor(2, 256), 0, IMAGE_FORMAT_BGRA8888)
+					rendertarget = GetRenderTargetEx("WireGPU_RT_"..i.."_"..resx.."_"..resy, resx, resy, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, bit.bor(2, 256), 0, IMAGE_FORMAT_BGRA8888)
 					RT[2] = rendertarget
 					RT[1] = true -- Mark as used
 					return rendertarget
@@ -104,7 +104,7 @@ if CLIENT then
 		for i, RT in pairs( RenderTargetCache ) do
 			if not RT[1] and  RT[2] == false then -- not used and doesn't exist, let's create the render target.
 
-					local rendertarget = GetRenderTargetEx("WireGPU_RT_"..i, resx, resy, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, bit.bor(2, 256), 0, IMAGE_FORMAT_BGRA8888)
+					local rendertarget = GetRenderTargetEx("WireGPU_RT_"..i.."_"..resx.."_"..resy, resx, resy, RT_SIZE_LITERAL, MATERIAL_RT_DEPTH_SEPARATE, bit.bor(2, 256), 0, IMAGE_FORMAT_BGRA8888)
 
 					if rendertarget then
 						RT[1] = true -- Mark as used
