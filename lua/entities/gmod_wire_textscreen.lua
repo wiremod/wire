@@ -145,9 +145,9 @@ if CLIENT then
 		end
 		self.GPU:FreeRT()
 		if self.autoaspect == 0 then
-			self.GPU = WireGPU(self, false, self.rheight, self.rheight)
+			self.GPU = WireGPU(self, false, self.rheight, self.rwidth)
 		else
-			self.GPU = WireGPU(self, false, self.rwidth, self.rheight)
+			self.GPU = WireGPU(self, false, self.rheight, self.rwidth)
 		end
 
 	end
@@ -157,7 +157,7 @@ if CLIENT then
 		
 		WireLib.netRegister(self)
 
-		self.GPU = WireGPU(self, false, self.rwidth, self.rheight)
+		self.GPU = WireGPU(self, false, self.rheight, self.rwidth)
 		self.layouter = MakeTextScreenLayouter()
 		self:CreateFont(self.tfont, self.chrPerLine)
 		
@@ -173,9 +173,9 @@ if CLIENT then
 		if self.NeedRefresh then
 			self.NeedRefresh = nil
 			self.GPU:RenderToGPU(function()
-				local w = 512
-				local h = 512
-
+				local w = (self.autoaspect == 0 and self.rheight) or 512
+				local h = (self.autoaspect == 0 and self.rwidth) or 512
+				--h = 512
 				
 				surface.SetDrawColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b, 255)
 				surface.DrawRect(0, 0, w, h)
@@ -184,12 +184,13 @@ if CLIENT then
 				surface.SetTextColor(self.fgcolor)
 
 				self.layouter:DrawText(self.text, 0, 0, w, h, self.textJust, self.valign)
-			end)
+			end, self.autoaspect == 0 and self.rheight or 512, self.autoaspect == 0 and self.rwidth or 512)
 		end
 		if self.autoaspect == 0 then
-			self.GPU:Render(0,0,self.rwidth,self.rheight,false,self.rheight/self.rwidth)
-		else
 			self.GPU:Render(0,0)
+			--,false,self.rheight/self.rwidth
+		else
+			self.GPU:Render(0,0,nil,nil,nil,1)
 		end
 		--[[
 		self.GPU:RenderToWorld(512, nil, function(x, y, w, h)
