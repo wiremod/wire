@@ -86,7 +86,7 @@ if CLIENT then
 	local function GetRT(resx,resy)
 		resx = resx or 512
 		resy = resy or 512
-		PrintTable(RenderTargetCache)
+		--PrintTable(RenderTargetCache)
 		for i, RT in pairs( RenderTargetCache ) do
 			if not RT[1] then -- not used
 				local rendertarget = RT[2]
@@ -125,8 +125,8 @@ if CLIENT then
 
 	-- Frees an used RT
 	local function FreeRT(rt)
-		print("freeing rt")
-		PrintTable(RenderTargetCache)
+		--print("freeing rt")
+		--PrintTable(RenderTargetCache)
 		for i, RT in pairs( RenderTargetCache ) do
 			if RT[2] == rt then
 				RT[2] = false
