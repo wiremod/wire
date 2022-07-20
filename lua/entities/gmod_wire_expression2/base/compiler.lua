@@ -447,10 +447,22 @@ function Compiler:InstrCALL(args)
 	local exprs = { false }
 
 	local tps = {}
-	for i = 1, #args[4] do
-		local ex, tp = self:Evaluate(args[4], i - 2)
-		tps[#tps + 1] = tp
-		exprs[#exprs + 1] = ex
+	if args[3] == "array" then
+		-- Hack for array creation.
+		-- Check if illegal arguments are passed
+		for i = 1, #args[4] do
+			local ex, tp = self:Evaluate(args[4], i - 2)
+			if BLOCKED_ARRAY_TYPES[tp] then
+				self:Error("Cannot have type " .. tps_pretty(tp) .. " in array creation argument #" .. i, args[4][i])
+			end
+
+			exprs[i + 1] = ex
+			tps[i] = tp
+		end
+	else
+		for i = 1, #args[4] do
+			exprs[i + 1], tps[i] = self:Evaluate(args[4], i - 2)
+		end
 	end
 
 	local rt = self:GetFunction(args, args[3], tps)
@@ -977,6 +989,10 @@ function Compiler:InstrKVARRAY(args)
 		local key, type = self:CallInstruction(k[1], k)
 		if type == "n" then
 			local value, type = self:CallInstruction(v[1], v)
+			if BLOCKED_ARRAY_TYPES[type] then
+				self:Error("Cannot have type " .. tps_pretty(type) .. " in array creation for keyvalue", v)
+			end
+
 			values[key] = value
 			types[key] = type
 		else

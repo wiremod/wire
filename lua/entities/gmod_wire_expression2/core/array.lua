@@ -48,30 +48,27 @@ registerType("array", "r", {},
 --------------------------------------------------------------------------------
 __e2setcost(1)
 e2function array array(...)
-	local ret = {...}
-	if (#ret == 0) then return {} end -- This is in place of the old "array()" function (now deleted because array(...) overwrote it)
-	for k,v in pairs( ret ) do
-		self.prf = self.prf + 1/3
-		if (blocked_types[typeids[k]]) then ret[k] = nil end
-	end
-	return ret
+	local len = select("#", ...)
+	if len == 0 then return {} end -- This is in place of the old "array()" function (now deleted because array(...) overwrote it)
+
+	-- Assume the arguments passed to the array do not contain illegal array types,
+	-- from the compile time checks.
+	self.prf = self.prf + len * (1 / 4)
+
+	return {...}
 end
 
 registerOperator( "kvarray", "", "r", function( self, args )
 	local ret = {}
-
 	local values = args[2]
-	local types = args[3]
 
-	for k,v in pairs( values ) do
-		if not blocked_types[types[k]] then
-			local key = k[1]( self, k )
-			local value = v[1]( self, v )
+	for k, v in pairs( values ) do
+		local key = k[1]( self, k )
+		local value = v[1]( self, v )
 
-			ret[key] = value
+		ret[key] = value
 
-			self.prf = self.prf + 1/3
-		end
+		self.prf = self.prf + 1/3
 	end
 
 	return ret
