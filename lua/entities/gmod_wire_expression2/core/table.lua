@@ -323,14 +323,13 @@ end)
 __e2setcost(1)
 
 -- Creates a table
-e2function table table(...)
+e2function table table(...tbl)
 	local ret = newE2Table()
-	if select("#", ...) == 0 then return ret end -- Don't construct table
+	if #tbl == 0 then return ret end -- Don't construct table
 
-	local tbl = {...}
 	local size = 0
 
-	for k, v in ipairs( tbl ) do
+	for k, v in ipairs(tbl) do
 		local tid = typeids[k]
 		if blocked_types[tid] then
 			self:throw("Type '" .. wire_expression_types2[tid][1] .. "' is not allowed inside of a table")

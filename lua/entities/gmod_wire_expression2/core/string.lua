@@ -561,8 +561,8 @@ end
 __e2setcost(1)
 
 --- Returns the UTF-8 string from the given Unicode code-points.
-e2function string toUnicodeChar(...)
-	return ToUnicodeChar(self, { ... })
+e2function string toUnicodeChar(...args)
+	return ToUnicodeChar(self, args)
 end
 
 --- Returns the UTF-8 string from the given Unicode code-points.

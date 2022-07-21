@@ -267,11 +267,10 @@ __e2setcost(20)
 
 local function maxvertices() return EGP.ConVars.MaxVertices:GetInt() end
 
-e2function void wirelink:egpPoly( number index, ... )
+e2function void wirelink:egpPoly( number index, ...args )
 	if (!EGP:IsAllowed( self, this )) then return end
 	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
-	local args = {...}
-	if (#args<3) then return end -- No less than 3
+	if #args < 3 then return end -- No less than 3
 
 	local max = maxvertices()
 
@@ -322,11 +321,10 @@ end
 -- PolyOutline
 --------------------------------------------------------
 
-e2function void wirelink:egpPolyOutline( number index, ... )
+e2function void wirelink:egpPolyOutline( number index, ...args )
 	if (!EGP:IsAllowed( self, this )) then return end
 	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
-	local args = {...}
-	if (#args<3) then return end -- No less than 3
+	if #args < 3 then return end -- No less than 3
 
 	local max = maxvertices()
 
@@ -408,11 +406,10 @@ end
 -- egpLineStrip (PolyOutline without the final connecting line)
 --------------------------------------------------------
 
-e2function void wirelink:egpLineStrip( number index, ... )
+e2function void wirelink:egpLineStrip( number index, ...args )
 	if (!EGP:IsAllowed( self, this )) then return end
 	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
-	local args = {...}
-	if (#args<2) then return end -- No less than 2
+	if #args < 2 then return end -- No less than 2
 
 	local max = maxvertices()
 
