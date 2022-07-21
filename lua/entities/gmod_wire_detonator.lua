@@ -37,14 +37,14 @@ function ENT:ShowOutput( Trigger )
 end
 
 function ENT:DoDamage()
-	if self.target and self.target:IsValid() and self.target:Health() > 0 then
-		if self.target:Health() <= self.damage then
-			self.target:SetHealth(0)
-			self.target:Fire( "break", "", 0 )
-			self.target:Fire( "kill", "", 0.2 )
-		else
-			self.target:SetHealth( self.target:Health() - self.damage )
-		end
+	if self.target and self.target:IsValid() then
+		local dmg = DamageInfo()
+		dmg:SetDamage(self.damage)
+		dmg:SetDamageType(DMG_BLAST)
+		dmg:SetAttacker(self:GetPlayer())
+		dmg:SetInflictor(self)
+		
+		self.target:TakeDamageInfo(dmg)
 	end
 
 	local effectdata = EffectData()
