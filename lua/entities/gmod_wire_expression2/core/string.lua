@@ -38,14 +38,14 @@ end)
 
 registerOperator("fea", "nss", "", function(self, args)
 	local keyname, valname = args[2], args[3]
-
+	local sub = utf8.sub
 	local str = args[4]
 	str = str[1](self, str)
 
 	local statement = args[5]
 
 	for key=1, #str do
-		local value = str[key]
+		local value = sub(str,key,key)
 		if type(value) == 'string' then
 			self:PushScope()
 
