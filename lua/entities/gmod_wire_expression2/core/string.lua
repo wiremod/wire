@@ -69,6 +69,41 @@ registerOperator("fea", "nss", "", function(self, args)
 	end
 end)
 
+registerOperator("fea", "nns", "", function(self, args)
+	local keyname, valname = args[2], args[3]
+	local byte = string.byte
+
+	local str = args[4]
+	str = str[1](self, str)
+
+	local statement = args[5]
+	PrintTable(args)
+
+	for key=1, #str do
+		local value = byte(str,key,key)
+		if type(value) == 'number' then
+			self:PushScope()
+
+			self.prf = self.prf + 1
+
+			self.Scope.vclk[keyname] = true
+			self.Scope.vclk[valname] = true
+
+			self.Scope[keyname] = key
+			self.Scope[valname] = value
+
+			local ok, msg = pcall(statement[1], self, statement)
+
+			if not ok then
+				if msg == "break" then	self:PopScope() break
+				elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+			end
+
+			self:PopScope()
+		end
+	end
+end)
+
 /******************************************************************************/
 
 registerOperator("is", "s", "n", function(self, args)
