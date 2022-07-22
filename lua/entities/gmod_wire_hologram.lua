@@ -66,7 +66,7 @@ if CLIENT then
 	end
 
 	hook.Add("PlayerBindPress", "wire_hologram_scale_setup", function() -- For initial spawn
-		for _, ent in pairs(ents.FindByClass("gmod_wire_hologram")) do
+		for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
 			if ent:IsValid() and ent.DoScale then
 				ent:DoScale()
 				ent:DoClip()

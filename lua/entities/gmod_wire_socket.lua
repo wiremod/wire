@@ -75,16 +75,17 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "Linked" )
 end
 
+
 if CLIENT then
+	local sockets = ents.FindByClass("gmod_wire_socket") or {}
 	function ENT:DrawEntityOutline()
 		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
 			BaseClass.DrawEntityOutline( self )
 		end
 	end
 
-	hook.Add("HUDPaint","Wire_Socket_DrawLinkHelperLine",function()
-		local sockets = ents.FindByClass("gmod_wire_socket")
-		for k,self in pairs( sockets ) do
+	local function DrawLinkHelperLinefunction()
+		for k,self in ipairs( sockets ) do
 			local Pos, _ = self:GetLinkPos()
 
 			local Closest = self:GetClosestPlug()
@@ -96,7 +97,21 @@ if CLIENT then
 				surface.DrawLine(plugpos.x, plugpos.y, socketpos.x, socketpos.y)
 			end
 		end
-	end)
+	end
+
+	function ENT:Initialize()
+		table.insert(sockets, self)
+		if #sockets == 1 then
+			hook.Add("HUDPaint", "Wire_Socket_DrawLinkHelperLine",DrawLinkHelperLinefunction)
+		end
+	end
+
+	function ENT:OnRemove()
+		table.RemoveByValue(sockets, self)
+		if #sockets == 0 then
+			hook.Remove("HUDPaint", "Wire_Socket_DrawLinkHelperLine")
+		end
+	end
 
 	return  -- No more client
 end
@@ -105,7 +120,7 @@ end
 local NEW_PLUG_WAIT_TIME = 2
 local LETTERS = { "A", "B", "C", "D", "E", "F", "G", "H" }
 local LETTERS_INV = {}
-for k,v in pairs( LETTERS ) do
+for k,v in ipairs( LETTERS ) do
 	LETTERS_INV[v] = k
 end
 
@@ -256,7 +271,7 @@ end
 local function FindConstraint( ent, plug )
 	if IsValid(ent) then
 		local welds = constraint.FindConstraints( ent, "Weld" )
-		for k,v in pairs( welds ) do
+		for k,v in ipairs( welds ) do
 			if (v.Ent2 == plug) then
 				return v.Constraint
 			end
@@ -264,7 +279,7 @@ local function FindConstraint( ent, plug )
 	end
 	if IsValid(plug) then
 		local welds = constraint.FindConstraints( plug, "Weld" )
-		for k,v in pairs( welds ) do
+		for k,v in ipairs( welds ) do
 			if (v.Ent2 == ent) then
 				return v.Constraint
 			end

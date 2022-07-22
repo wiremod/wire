@@ -96,7 +96,7 @@ function ENT:ResendCache(player)
 end
 
 local function GPU_PlayerRespawn(player)
-  for _,Entity in pairs(ents.FindByClass("gmod_wire_gpu")) do
+  for _,Entity in ipairs(ents.FindByClass("gmod_wire_gpu")) do
     Entity:ResendCache(player)
   end
 end
