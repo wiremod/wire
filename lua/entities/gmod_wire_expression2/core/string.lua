@@ -36,6 +36,7 @@ end)
 
 /******************************************************************************/
 
+local string_sub = string.sub
 registerOperator("fea", "nss", "", function(self, args)
 	local keyname, valname = args[2], args[3]
 	local str = args[4]
@@ -44,7 +45,7 @@ registerOperator("fea", "nss", "", function(self, args)
 	local statement = args[5]
 
 	for key=1, #str do
-		local value = str[key]
+		local value = string_sub(str, key, key)
 		self:PushScope()
 
 		self.prf = self.prf + 1
