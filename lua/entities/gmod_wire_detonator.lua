@@ -40,7 +40,7 @@ function ENT:DoDamage()
 	if self.target and self.target:IsValid() then
 		local dmg = DamageInfo()
 		dmg:SetDamage(self.damage)
-		dmg:SetDamageType(DMG_BLAST)
+		dmg:SetDamageType(DMG_GENERIC)
 		dmg:SetAttacker(self:GetPlayer())
 		dmg:SetInflictor(self)
 		
