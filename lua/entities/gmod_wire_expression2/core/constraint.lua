@@ -195,12 +195,13 @@ end
 	Returns an '''array''' constaining all entities directly or indirectly connected to <this>
 	supports filtering, see buildFilter above
 ]]
-e2function array entity:getConnectedEntities(...)
+e2function array entity:getConnectedEntities(...filters)
 	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
-	local result = getConnectedEntities(this,buildFilter({...}))
+	local result = getConnectedEntities(this,buildFilter(filters))
 	self.prf = self.prf + #result * 30
 	return result
 end
+
 e2function array entity:getConnectedEntities(array filters)
 	if not IsValid(this) then return {} end
 	local result = getConnectedEntities(this,buildFilter(filters))

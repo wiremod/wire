@@ -134,18 +134,19 @@ local function SpecialCase( arg )
 end
 
 -- Prints <...> like lua's print(...), except to the chat area
-e2function void print(...)
+e2function void print(...args)
 	if not checkOwner(self) then return end
 	if not checkDelay( self.player ) then return end
-	local args = {...}
-	local nargs = select("#", ...)
-	if nargs>0 then
+
+	local nargs = #args
+	if nargs > 0 then
 		for i=1, math.min(nargs, 256) do
 			local v = args[i]
 			args[i] = string.Left(SpecialCase( v ) or tostring(v), 249)
 		end
+
 		local text = table.concat(args, "\t")
-		if #text>0 then
+		if #text > 0 then
 			self.player:ChatPrint(string.Left(text,249)) -- Should we switch to net messages? We probably don't want to print more than 249 chars at once anyway
 		end
 	end

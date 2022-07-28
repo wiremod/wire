@@ -47,15 +47,12 @@ registerType("array", "r", {},
 -- Constructs and returns an array with the given values as elements. If you specify values that are not supported by the array data type, they are skipped
 --------------------------------------------------------------------------------
 __e2setcost(1)
-e2function array array(...)
-	local len = select("#", ...)
-	if len == 0 then return {} end -- This is in place of the old "array()" function (now deleted because array(...) overwrote it)
-
+e2function array array(...args)
 	-- Assume the arguments passed to the array do not contain illegal array types,
 	-- from the compile time checks.
-	self.prf = self.prf + len * (1 / 4)
+	self.prf = self.prf + #args * (1 / 4)
 
-	return {...}
+	return args
 end
 
 registerOperator( "kvarray", "", "r", function( self, args )
