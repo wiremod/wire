@@ -36,6 +36,71 @@ end)
 
 /******************************************************************************/
 
+local string_sub = string.sub
+registerOperator("fea", "nss", "", function(self, args)
+	local keyname, valname = args[2], args[3]
+	local str = args[4]
+	str = str[1](self, str)
+
+	local statement = args[5]
+
+	for key=1, #str do
+		local value = string_sub(str, key, key)
+		self:PushScope()
+
+		self.prf = self.prf + 1
+
+		self.Scope.vclk[keyname] = true
+		self.Scope.vclk[valname] = true
+
+		self.Scope[keyname] = key
+		self.Scope[valname] = value
+
+		local ok, msg = pcall(statement[1], self, statement)
+
+		if not ok then
+			if msg == "break" then	self:PopScope() break
+			elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+		end
+
+		self:PopScope()
+	end
+end)
+
+local string_byte = string.byte
+registerOperator("fea", "nns", "", function(self, args)
+	local keyname, valname = args[2], args[3]
+
+	local str = args[4]
+	str = str[1](self, str)
+
+	local statement = args[5]
+
+	for key=1, #str do
+		local value = string_byte(str,key,key)
+		self:PushScope()
+
+		self.prf = self.prf + 1
+
+		self.Scope.vclk[keyname] = true
+		self.Scope.vclk[valname] = true
+
+		self.Scope[keyname] = key
+		self.Scope[valname] = value
+
+		local ok, msg = pcall(statement[1], self, statement)
+
+		if not ok then
+			if msg == "break" then	self:PopScope() break
+			elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+		end
+
+		self:PopScope()
+	end
+end)
+
+/******************************************************************************/
+
 registerOperator("is", "s", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
