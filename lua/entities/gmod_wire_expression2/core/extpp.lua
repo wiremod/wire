@@ -369,19 +369,12 @@ function E2Lib.ExtPP.Pass2(contents)
 
 							local ]] .. args_varname .. [[ = __varargs_priv
 					]]))
-				elseif args_kind == ArgsKind.Static then
+				else
 					-- generate a registerFunction line
 					table.insert(function_register, string.format('if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
 
 					-- generate a new function header and append it to the output
 					table.insert(output, 'function registeredfunctions.' .. mangled_name .. '(self, args)')
-				else -- No args
-
-					-- generate a registerFunction line
-					table.insert(function_register, string.format('if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
-
-					-- generate a new function header and append it to the output
-					table.insert(output, 'function registeredfunctions.' .. mangled_name .. '(self)')
 				end
 
 				-- if the function has arguments, insert argument fetch code
