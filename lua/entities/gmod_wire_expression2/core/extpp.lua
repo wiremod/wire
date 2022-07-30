@@ -358,8 +358,8 @@ function E2Lib.ExtPP.Pass2(contents)
 					table.insert(output, compact([[
 						function registeredfunctions.]] .. mangled_name .. [[(self, args, typeids, __varargs_priv)
 							if not typeids then
-								__varargs_priv = {}
-								local typeids, source_typeids, tmp = {}, {}, args[#args]
+								__varargs_priv, typeids = {}, {}
+								local source_typeids, tmp = args[#args]
 								for i = ]] .. 2 + #argtable.typeids .. [[, #args - 1 do
 									tmp = args[i]
 									__varargs_priv[i - ]] .. 1 + #argtable.typeids .. [[] = tmp[1](self, tmp)
@@ -367,7 +367,7 @@ function E2Lib.ExtPP.Pass2(contents)
 								end
 							end
 
-							local ]] .. args_varname .. [[ = __varargs_priv
+							]] .. (#argtable.argnames == 0 and ("local " .. args_varname .. " = __varargs_priv") or "") .. [[
 					]]))
 				else
 					-- generate a registerFunction line
@@ -400,6 +400,11 @@ function E2Lib.ExtPP.Pass2(contents)
 						argfetch,
 						opfetch_l,
 						opfetch_r))
+
+					-- Workaround if someone names their variadic args an internally used variable
+					if args_kind == ArgsKind.VariadicTbl then
+						table.insert(output, " local " .. args_varname .. " = __varargs_priv")
+					end
 				end -- if #argtable.argnames ~= 0
 			end -- if aliasflag
 			table.insert(output, whitespace)
