@@ -104,6 +104,27 @@ e2function vector entity:getWeaponColor()
 	return { RGBClamp(Round(c.r * 255), Round(c.g * 255), Round(c.b * 255)) }
 end
 
+e2function vector entity:setWeaponColor(vector c)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You cannot set other player's weapon colors!", nil) end
+    if not this:IsPlayer() then return self:throw("You cannot set the weapon color of non-players!", nil) end
+
+	local r, g, b = RGBClamp(c[1]/255, c[2]/255, c[3]/255)
+
+	this:SetWeaponColor(Vector(r, g, b))
+end
+
+
+e2function vector entity:setPlayerColor(vector c)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You cannot set other player's weapon colors!", nil) end
+    if not this:IsPlayer() then return self:throw("You cannot set the weapon color of non-players!", nil) end
+
+	local r, g, b = RGBClamp(c[1]/255, c[2]/255, c[3]/255)
+
+	this:SetPlayerColor(Vector(r, g, b))
+end
+
 --- HSV
 
 --- Converts <hsv> from the [http://en.wikipedia.org/wiki/HSV_color_space HSV color space] to the [http://en.wikipedia.org/wiki/RGB_color_space RGB color space]
