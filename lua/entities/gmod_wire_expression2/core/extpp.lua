@@ -367,7 +367,7 @@ function E2Lib.ExtPP.Pass2(contents)
 								end
 							end
 
-							]] .. (#argtable.argnames == 0 and "local " .. args_varname .. " = __varargs_priv" or "") .. [[
+							]] .. (#argtable.argnames == 0 and ("local " .. args_varname .. " = __varargs_priv") or "") .. [[
 					]]))
 				else
 					-- generate a registerFunction line
