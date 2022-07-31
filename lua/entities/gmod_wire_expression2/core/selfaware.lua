@@ -245,36 +245,52 @@ e2function number hash( string str )
 end
 
 local PreProcessor, Tokenizer, Parser, Optimizer, Compiler = E2Lib.PreProcessor.Execute, E2Lib.Tokenizer.Execute, E2Lib.Parser.Execute, E2Lib.Optimizer.Execute, E2Lib.Compiler.Execute
-local raise = E2Lib.raiseException
+local raise_exception = E2Lib.raiseException
 
 --- Runs E2 code from a string. Be sure to use try {} catch() {} if you want to handle the errors
 local fmt = string.format
 
-__e2setcost(500)
+__e2setcost(1000)
 e2function void runString(string code)
 	local chip = self.entity
 
 	-- Have a check just in case tick quota isn't enough (servers have it really high)
 	self.data.runstring_stack = (self.data.runstring_stack or 0) + 1
-	if self.data.runstring_stack >= 50 then
+	if self.data.runstring_stack >= 30 then
 		error("runString stack overflow")
 	end
 
+	local function raise(msg, level, trace)
+		self.data.runstring_stack = self.data.runstring_stack - 1
+		raise_exception(msg, level, trace)
+	end
+
+	self.data.runstring_config = self.data.runstring_config or {
+		each_hook = function()
+			self.prf = self.prf + 50
+		end
+	}
+
+	local default_config = self.data.runstring_config
+
+	self.prf = self.prf + #code / 2
 
 	local status, directives, code = PreProcessor(code, nil, self)
 	if not status then return raise( fmt("Preprocessor Error [%s]", directives), 2, self.trace) end
 
-	local status, tokens = Tokenizer(code)
+	local status, tokens = Tokenizer(code, default_config)
 	if not status then return raise( fmt("Tokenizer Error [%s]", tokens), 2, self.trace) end
 
-	local status, tree, dvars = Parser(tokens)
+	local status, tree, dvars = Parser(tokens, default_config)
 	if not status then return raise( fmt("Parser Error [%s]", tree), 2, self.trace) end
+
+	self.prf = self.prf + #tree * 20
 
 	status, tree = Optimizer(tree)
 	if not status then return raise( fmt("Optimizer Error [%s]", tree), 2, self.trace) end
+	self.prf = self.prf + #tree * 10
 
 	local status, script, inst = Compiler(tree, chip.inports[3], chip.outports[3], chip.persists and chip.persists[3] or {}, dvars, chip.includes)
-
 	if not status then return raise( fmt("Compiler Error [%s]", script), 2, self.trace) end
 
 	self:PushScope()
@@ -282,10 +298,10 @@ e2function void runString(string code)
 		local success, why = pcall( script[1], self, script )
 	self:PopScope()
 
+	self.data.runstring_stack = self.data.runstring_stack - 1
+
 	if not success then
 		-- Failed, throw the error back to the error handler
 		error(why, 0)
 	end
-
-	self.data.runstring_stack = self.data.runstring_stack - 1
 end

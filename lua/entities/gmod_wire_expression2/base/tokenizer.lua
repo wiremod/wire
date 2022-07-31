@@ -21,7 +21,10 @@ function Tokenizer:Error(message, offset)
 	error(message .. " at line " .. self.tokenline .. ", char " .. (self.tokenchar + (offset or 0)), 0)
 end
 
-function Tokenizer:Process(buffer, params)
+---@alias TokenizerConfig { each_hook: fun()? }
+
+---@param config TokenizerConfig
+function Tokenizer:Process(buffer, config)
 	self.buffer = buffer
 	self.length = buffer:len()
 	self.position = 0
@@ -32,26 +35,52 @@ function Tokenizer:Process(buffer, params)
 	local tokenname, tokendata, tokenspace
 	self.tokendata = ""
 
-	while self.character do
-		tokenspace = self:NextPattern("%s+") and true or false
+	if config and config.each_hook then
+		local hook = config.each_hook
+		while self.character do
+			tokenspace = self:NextPattern("%s+") and true or false
 
-		if not self.character then break end
+			if not self.character then break end
 
-		self.tokenline = self.readline
-		self.tokenchar = self.readchar
-		self.tokendata = ""
+			self.tokenline = self.readline
+			self.tokenchar = self.readchar
+			self.tokendata = ""
 
-		tokenname, tokendata = self:NextSymbol()
-
-		if tokenname == nil then
-			tokenname, tokendata = self:NextOperator()
+			tokenname, tokendata = self:NextSymbol()
 
 			if tokenname == nil then
-				self:Error("Unknown character found (" .. self.character .. ")")
-			end
-		end
+				tokenname, tokendata = self:NextOperator()
 
-		tokens[#tokens + 1] = { tokenname, tokendata, tokenspace, self.tokenline, self.tokenchar }
+				if tokenname == nil then
+					self:Error("Unknown character found (" .. self.character .. ")")
+				end
+			end
+
+			hook()
+			tokens[#tokens + 1] = { tokenname, tokendata, tokenspace, self.tokenline, self.tokenchar }
+		end
+	else
+		while self.character do
+			tokenspace = self:NextPattern("%s+") and true or false
+
+			if not self.character then break end
+
+			self.tokenline = self.readline
+			self.tokenchar = self.readchar
+			self.tokendata = ""
+
+			tokenname, tokendata = self:NextSymbol()
+
+			if tokenname == nil then
+				tokenname, tokendata = self:NextOperator()
+
+				if tokenname == nil then
+					self:Error("Unknown character found (" .. self.character .. ")")
+				end
+			end
+
+			tokens[#tokens + 1] = { tokenname, tokendata, tokenspace, self.tokenline, self.tokenchar }
+		end
 	end
 
 	return tokens

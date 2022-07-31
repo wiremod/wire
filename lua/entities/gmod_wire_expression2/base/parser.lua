@@ -104,7 +104,10 @@ function Parser:Error(message, token)
 	end
 end
 
-function Parser:Process(tokens, params)
+---@alias ParserConfig { each_hook: fun()? }
+
+---@param config ParserConfig
+function Parser:Process(tokens, config)
 	self.tokens = tokens
 	self.index = 0
 	self.count = #tokens
@@ -112,7 +115,7 @@ function Parser:Process(tokens, params)
 	self.includes = {}
 
 	self:NextToken()
-	local tree = self:Root()
+	local tree = self:Root(config and config.each_hook)
 	if parserDebug:GetBool() then
 		print(E2Lib.AST.dump(tree))
 	end
@@ -211,30 +214,51 @@ end
 
 local loopdepth
 
-function Parser:Root()
+---@param hook fun()?
+function Parser:Root(hook)
 	loopdepth = 0
 	return self:Stmts()
 end
 
 
-function Parser:Stmts()
+---@param hook fun()?
+function Parser:Stmts(hook)
 	local trace = self:GetTokenTrace()
 	local stmts = self:Instruction(trace, "seq")
 
 	if not self:HasTokens() then return stmts end
 
-	while true do
-		if self:AcceptRoamingToken("com") then
-			self:Error("Statement separator (,) must not appear multiple times")
+	if hook then
+		while true do
+			if self:AcceptRoamingToken("com") then
+				self:Error("Statement separator (,) must not appear multiple times")
+			end
+
+			hook()
+			stmts[#stmts + 1] = self:Stmt1()
+
+			if not self:HasTokens() then break end
+
+			if not self:AcceptRoamingToken("com") then
+				if self.readtoken[3] == false then
+					self:Error("Statements must be separated by comma (,) or whitespace")
+				end
+			end
 		end
+	else
+		while true do
+			if self:AcceptRoamingToken("com") then
+				self:Error("Statement separator (,) must not appear multiple times")
+			end
 
-		stmts[#stmts + 1] = self:Stmt1()
+			stmts[#stmts + 1] = self:Stmt1()
 
-		if not self:HasTokens() then break end
+			if not self:HasTokens() then break end
 
-		if not self:AcceptRoamingToken("com") then
-			if self.readtoken[3] == false then
-				self:Error("Statements must be separated by comma (,) or whitespace")
+			if not self:AcceptRoamingToken("com") then
+				if self.readtoken[3] == false then
+					self:Error("Statements must be separated by comma (,) or whitespace")
+				end
 			end
 		end
 	end
