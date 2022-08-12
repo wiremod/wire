@@ -347,6 +347,8 @@ if CLIENT then
 	end
 	concommand.Add("wire_holograms_block_client",
 		function(ply, command, args)
+			if not args[1] or args[1]:Trim() == "" then return end
+
 			local toblock = checkSteamid(args[1])
 			if not toblock then print("Invalid SteamId") return end
 
