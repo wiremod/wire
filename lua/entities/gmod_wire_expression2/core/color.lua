@@ -100,8 +100,25 @@ e2function vector entity:getWeaponColor()
 	if not this:IsPlayer() then return self:throw("Expected player but got an entity", {0, 0, 0}) end
 
 	local c = this:GetWeaponColor()
-
 	return { RGBClamp(Round(c.r * 255), Round(c.g * 255), Round(c.b * 255)) }
+end
+
+e2function void entity:setWeaponColor(vector c)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You cannot set other player's weapon colors!", nil) end
+	if not this:IsPlayer() then return self:throw("You cannot set the weapon color of non-players!", nil) end
+
+	local r, g, b = RGBClamp(c[1], c[2], c[3])
+	this:SetWeaponColor( Vector(r / 255, g / 255, b / 255) )
+end
+
+e2function void entity:setPlayerColor(vector c)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You cannot set other player's colors!", nil) end
+ 	if not this:IsPlayer() then return self:throw("You cannot set the player color of non-players!", nil) end
+
+	 local r, g, b = RGBClamp(c[1], c[2], c[3])
+	this:SetPlayerColor( Vector(r / 255, g / 255, b / 255) )
 end
 
 --- HSV
