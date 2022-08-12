@@ -347,8 +347,10 @@ if CLIENT then
 	end
 	concommand.Add("wire_holograms_block_client",
 		function(ply, command, args)
+			if not args[1] then print("Invalid steamid") return end
+
 			local toblock = checkSteamid(args[1])
-			if not toblock then print("Invalid SteamId") return end
+			if not toblock then print("Invalid steamid") return end
 
 			blocked[toblock] = true
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
