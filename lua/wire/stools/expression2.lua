@@ -123,11 +123,10 @@ if SERVER then
 	end
 
 	local function RequestView(chip, initiator)
-		local index = chip:EntIndex()
 		local truncName = string.sub(chip.name, 1, 256) -- In case someone starts making cursed names
 
 		-- Make sure this isn't creating a request for a chip with an outstanding valid request
-		if ValidateRequest(initiator, index) then -- Note that ValidateRequest also deletes the invalid request and handles the expiry notif
+		if ValidateRequest(initiator, chip) then -- Note that ValidateRequest also deletes the invalid request and handles the expiry notif
 			BetterChatPrint(initiator, "Request to view '"..truncName.."' already sent")
 			return
 		end
@@ -143,9 +142,9 @@ if SERVER then
 			name = truncName,
 			expiry = CurTime() + 60 -- 1 minute for the request before it's invalidated (could make this a convar)
 		}
-		if not hook.GetTable().Tick.WireExpression2_InvalidateRequests then -- If there's no invalidation hook added, create it now we have requests to invalidate
-			hook.Add("Tick", "WireExpression2_InvalidateRequests", InvalidateRequests)
-		end
+		
+		-- Invalidate expired requests
+		hook.Add("Tick", "WireExpression2_InvalidateRequests", InvalidateRequests)
 
 		net.Start("WireExpression2_ViewRequest")
 			net.WriteEntity(initiator)                           -- The player attempting to view the E2
