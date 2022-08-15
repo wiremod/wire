@@ -142,9 +142,9 @@ if SERVER then
 			name = truncName,
 			expiry = CurTime() + 60 -- 1 minute for the request before it's invalidated (could make this a convar)
 		}
-		if not hook.GetTable().Tick or not hook.GetTable().Tick.WireExpression2_InvalidateRequests then -- If there's no invalidation hook added, create it now we have requests to invalidate
-			hook.Add("Tick", "WireExpression2_InvalidateRequests", InvalidateRequests)
-		end
+		
+		-- Invalidate expired requests
+		hook.Add("Tick", "WireExpression2_InvalidateRequests", InvalidateRequests)
 
 		net.Start("WireExpression2_ViewRequest")
 			net.WriteEntity(initiator)                           -- The player attempting to view the E2
