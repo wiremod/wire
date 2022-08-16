@@ -54,7 +54,7 @@ function ENT:GetClosestPlug()
 	local ClosestDist
 	local Closest
 
-	for k,v in pairs( plugs ) do
+	for k,v in ipairs( plugs ) do
 		if (v:GetClass() == self:GetPlugClass() and not v:GetLinked()) then
 			local Dist = v:GetPos():Distance( Pos )
 			if (ClosestDist == nil or ClosestDist > Dist) then
