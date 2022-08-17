@@ -99,7 +99,7 @@ end
 
 function Compiler:PushScope(Scope)
 	self.ScopeID = self.ScopeID + 1
-	self.Scope = Scope or { Dead = false }
+	self.Scope = Scope or {}
 	self.Scopes[self.ScopeID] = self.Scope
 end
 
@@ -1010,9 +1010,6 @@ function Compiler:InstrSWITCH(args)
 	self:PushPrfCounter()
 	local value, type = self:CallInstruction(args[3][1], args[3]) -- This is the value we are passing though the switch statment
 	local prf_cond = self:PopPrfCounter()
-
-	print("value", value)
-	PrintTable(value)
 
 	local cases = {}
 	local Cases = args[4]
