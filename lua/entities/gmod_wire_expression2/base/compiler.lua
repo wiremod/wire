@@ -99,7 +99,7 @@ end
 
 function Compiler:PushScope(Scope)
 	self.ScopeID = self.ScopeID + 1
-	self.Scope = Scope or {}
+	self.Scope = Scope or { Dead = false }
 	self.Scopes[self.ScopeID] = self.Scope
 end
 
@@ -108,6 +108,15 @@ function Compiler:PopScope()
 	self.Scope = self.Scopes[self.ScopeID]
 	self.Scopes[self.ScopeID] = self.Scope
 	return table.remove(self.Scopes, self.ScopeID + 1)
+end
+
+--- Marks a scope as "dead" (e.g. terminated through continue or break), so that any further statements are dead code.
+function Compiler:MarkDeadScope()
+	self.Scope.Dead = true
+end
+
+function Compiler:IsScopeDead()
+	return self.Scope and self.Scope.Dead
 end
 
 function Compiler:SaveScopes()
@@ -162,6 +171,11 @@ function Compiler:EvaluateStatement(args, index)
 	local trace = args[index + 2]
 
 	local name = string_upper(trace[1])
+
+	if self:IsScopeDead() then
+		self:Error("Unreachable code detected", args[index + 2])
+	end
+
 	local ex, tp = self:CallInstruction(name, trace)
 	ex.TraceName = name
 	ex.Trace = trace[2]
@@ -330,11 +344,13 @@ end
 
 function Compiler:InstrBRK(args)
 	-- args = { "brk", trace }
+	self:MarkDeadScope()
 	return { self:GetOperator(args, "brk", {})[1] }
 end
 
 function Compiler:InstrCNT(args)
 	-- args = { "cnt", trace }
+	self:MarkDeadScope()
 	return { self:GetOperator(args, "cnt", {})[1] }
 end
 
@@ -956,6 +972,7 @@ function Compiler:InstrRETURN(args)
 		self:Error("Return type mismatch: " .. tps_pretty(expectedType) .. " expected, got " .. tps_pretty(actualType), args)
 	end
 
+	self:MarkDeadScope()
 	return { self:GetOperator(args, "return", {})[1], value, actualType }
 end
 
@@ -1015,24 +1032,33 @@ function Compiler:InstrSWITCH(args)
 	local cases = {}
 	local Cases = args[4]
 	local default
+
 	for i = 1, #Cases do
 		local case, block, prf_eq, eq = Cases[i][1], Cases[i][2], 0, nil
+
 		if case then -- The default will not have one
-			self.ScopeID = self.ScopeID - 1 -- For the case statments we pop the scope back
 			self:PushPrfCounter()
 			local ex, tp = self:CallInstruction(case[1], case) -- This is the value we are checking against
 			prf_eq = self:PopPrfCounter() -- We add some pref
-			self.ScopeID = self.ScopeID + 1
+
 			if tp == "" then -- There is no value
 				self:Error("Function has no return value (void), cannot be part of expression or assigned", args)
 			elseif tp ~= type then -- Value types do not match.
-				self:Error("Case missmatch can not compare " .. tps_pretty(type) .. " with " .. tps_pretty(tp), args)
+				self:Error("Case mismatch can not compare " .. tps_pretty(type) .. " with " .. tps_pretty(tp), args)
 			end
 			eq = { self:GetOperator(args, "eq", { type, tp })[1], value, ex } -- This is the equals operator to check if values match
 		else
 			default=i
 		end
+
 		local stmts = self:CallInstruction(block[1], block) -- This is statments that are run when Values match
+
+		if self.Scope.Dead then
+			-- Previous Scope Broke (Already popped)
+			self:PopScope()
+			self:PushScope()
+		end
+
 		cases[i] = { eq, stmts, prf_eq }
 	end
 
