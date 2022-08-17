@@ -110,15 +110,6 @@ function Compiler:PopScope()
 	return table.remove(self.Scopes, self.ScopeID + 1)
 end
 
---- Marks a scope as "dead" (e.g. terminated through continue or break), so that any further statements are dead code.
-function Compiler:MarkDeadScope()
-	self.Scope.Dead = true
-end
-
-function Compiler:IsScopeDead()
-	return self.Scope and self.Scope.Dead
-end
-
 function Compiler:SaveScopes()
 	return { self.Scopes, self.ScopeID, self.Scope }
 end
@@ -171,10 +162,6 @@ function Compiler:EvaluateStatement(args, index)
 	local trace = args[index + 2]
 
 	local name = string_upper(trace[1])
-
-	if self:IsScopeDead() then
-		self:Error("Unreachable code detected", args[index + 2])
-	end
 
 	local ex, tp = self:CallInstruction(name, trace)
 	ex.TraceName = name
@@ -344,13 +331,11 @@ end
 
 function Compiler:InstrBRK(args)
 	-- args = { "brk", trace }
-	self:MarkDeadScope()
 	return { self:GetOperator(args, "brk", {})[1] }
 end
 
 function Compiler:InstrCNT(args)
 	-- args = { "cnt", trace }
-	self:MarkDeadScope()
 	return { self:GetOperator(args, "cnt", {})[1] }
 end
 
@@ -972,7 +957,6 @@ function Compiler:InstrRETURN(args)
 		self:Error("Return type mismatch: " .. tps_pretty(expectedType) .. " expected, got " .. tps_pretty(actualType), args)
 	end
 
-	self:MarkDeadScope()
 	return { self:GetOperator(args, "return", {})[1], value, actualType }
 end
 
@@ -1027,7 +1011,8 @@ function Compiler:InstrSWITCH(args)
 	local value, type = self:CallInstruction(args[3][1], args[3]) -- This is the value we are passing though the switch statment
 	local prf_cond = self:PopPrfCounter()
 
-	self:PushScope()
+	print("value", value)
+	PrintTable(value)
 
 	local cases = {}
 	local Cases = args[4]
@@ -1036,6 +1021,7 @@ function Compiler:InstrSWITCH(args)
 	for i = 1, #Cases do
 		local case, block, prf_eq, eq = Cases[i][1], Cases[i][2], 0, nil
 
+		self:PushScope()
 		if case then -- The default will not have one
 			self:PushPrfCounter()
 			local ex, tp = self:CallInstruction(case[1], case) -- This is the value we are checking against
@@ -1052,17 +1038,10 @@ function Compiler:InstrSWITCH(args)
 		end
 
 		local stmts = self:CallInstruction(block[1], block) -- This is statments that are run when Values match
-
-		if self.Scope.Dead then
-			-- Previous Scope Broke (Already popped)
-			self:PopScope()
-			self:PushScope()
-		end
+		self:PopScope()
 
 		cases[i] = { eq, stmts, prf_eq }
 	end
-
-	self:PopScope()
 
 	local rtswitch = self:GetOperator(args, "switch", {})
 	return { rtswitch[1], prf_cond, cases, default }
