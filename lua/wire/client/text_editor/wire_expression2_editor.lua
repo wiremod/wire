@@ -937,6 +937,7 @@ local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n@strict\n\n"
 local code2 = [[#[
     Documentation and examples are available at:
     https://github.com/wiremod/wire/wiki/Expression-2
+    ^ Read what @strict and other directives do here ^
 
     Discord is available at https://discord.gg/H8UKY3Y
     Reddit is available at https://www.reddit.com/r/wiremod
