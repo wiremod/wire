@@ -477,7 +477,6 @@ __e2setcost(3) -- approximation
 registerOperator("switch", "", "", function(self, args)
 	local cases, startcase = args[3], args[4]
 
-	self:PushScope()
 
 	for i=1, #cases do -- We figure out what we can run.
 		local case = cases[i]
@@ -495,19 +494,19 @@ registerOperator("switch", "", "", function(self, args)
 	if startcase then
 		for i=startcase, #cases do
 			local stmts = cases[i][2]
-			local ok, msg = pcall(stmts[1], self, stmts)
-			if not ok then
-				if msg == "break" then
-					break
-				elseif msg ~= "continue" then
-					self:PopScope()
-					error(msg, 0)
+			self:PushScope()
+				local ok, msg = pcall(stmts[1], self, stmts)
+				if not ok then
+					if msg == "break" then
+						break
+					elseif msg ~= "continue" then
+						self:PopScope()
+						error(msg, 0)
+					end
 				end
-			end
+			self:PopScope()
 		end
 	end
-
-	self:PopScope()
 end)
 
 registerOperator("include", "", "", function(self, args)

@@ -162,6 +162,7 @@ function Compiler:EvaluateStatement(args, index)
 	local trace = args[index + 2]
 
 	local name = string_upper(trace[1])
+
 	local ex, tp = self:CallInstruction(name, trace)
 	ex.TraceName = name
 	ex.Trace = trace[2]
@@ -1010,33 +1011,34 @@ function Compiler:InstrSWITCH(args)
 	local value, type = self:CallInstruction(args[3][1], args[3]) -- This is the value we are passing though the switch statment
 	local prf_cond = self:PopPrfCounter()
 
-	self:PushScope()
-
 	local cases = {}
 	local Cases = args[4]
 	local default
+
 	for i = 1, #Cases do
 		local case, block, prf_eq, eq = Cases[i][1], Cases[i][2], 0, nil
+
+		self:PushScope()
 		if case then -- The default will not have one
-			self.ScopeID = self.ScopeID - 1 -- For the case statments we pop the scope back
 			self:PushPrfCounter()
 			local ex, tp = self:CallInstruction(case[1], case) -- This is the value we are checking against
 			prf_eq = self:PopPrfCounter() -- We add some pref
-			self.ScopeID = self.ScopeID + 1
+
 			if tp == "" then -- There is no value
 				self:Error("Function has no return value (void), cannot be part of expression or assigned", args)
 			elseif tp ~= type then -- Value types do not match.
-				self:Error("Case missmatch can not compare " .. tps_pretty(type) .. " with " .. tps_pretty(tp), args)
+				self:Error("Case mismatch can not compare " .. tps_pretty(type) .. " with " .. tps_pretty(tp), args)
 			end
 			eq = { self:GetOperator(args, "eq", { type, tp })[1], value, ex } -- This is the equals operator to check if values match
 		else
 			default=i
 		end
+
 		local stmts = self:CallInstruction(block[1], block) -- This is statments that are run when Values match
+		self:PopScope()
+
 		cases[i] = { eq, stmts, prf_eq }
 	end
-
-	self:PopScope()
 
 	local rtswitch = self:GetOperator(args, "switch", {})
 	return { rtswitch[1], prf_cond, cases, default }
