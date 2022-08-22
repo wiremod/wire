@@ -167,13 +167,13 @@ function Compiler:EvaluateStatement(args, index)
 
 	local name = string_upper(trace[1])
 
-	local ex, tp = self:CallInstruction(name, trace)
+	local ex, tp, extra = self:CallInstruction(name, trace)
 	ex.TraceName = name
 	ex.Trace = trace[2]
 
-	return ex, tp, name
+	return ex, tp, name, extra
 end
-
+ 
 function Compiler:Evaluate(args, index)
 	local ex, tp, name = self:EvaluateStatement(args, index)
 
@@ -330,7 +330,15 @@ function Compiler:InstrSEQ(args)
 			self:Warning("Unreachable code detected", args[i + 2])
 			break
 		else
-			stmts[#stmts + 1] = self:EvaluateStatement(args, i)
+			local stmt, _, instr, extra = self:EvaluateStatement(args, i)
+			if instr == "CALL" or instr == "METHODCALL" then
+				if extra.nodiscard then
+					self:Warning("The return value of this function cannot be discarded", args[i + 2])
+				end
+			elseif instr == "GET" then
+				self:Warning("Cannot discard the value of an index (Remove pointless indexing)", args[i + 2])
+			end
+			stmts[#stmts + 1] = stmt
 		end
 	end
 
@@ -499,7 +507,7 @@ function Compiler:InstrCALL(args)
 		self:Warning("Use of deprecated function: " .. rt[3], args)
 	end
 
-	return exprs, rt[2]
+	return exprs, rt[2], rt[4]
 end
 
 function Compiler:InstrSTRINGCALL(args)
@@ -551,7 +559,7 @@ function Compiler:InstrMETHODCALL(args)
 		self:Warning("Use of deprecated function: " .. rt[3], args)
 	end
 
-	return exprs, rt[2]
+	return exprs, rt[2], rt[4]
 end
 
 function Compiler:InstrASS(args)

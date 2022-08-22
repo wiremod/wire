@@ -396,7 +396,7 @@ e2function(deprecated) number wirelink:writeCell(address, value)
 	if this:WriteCell(address, value) then return 1 else return 0 end
 end
 
-e2function(deprecated) number wirelink:readCell(address)
+e2function(deprecated, nodiscard) number wirelink:readCell(address)
 	if not validWirelink(self, this) then return 0 end
 
 	if not this.ReadCell then return 0 end

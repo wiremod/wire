@@ -221,16 +221,15 @@ function E2Lib.ExtPP.Pass2(contents)
 
 	-- This flag helps determine whether the preprocessor changed, so we can tell the environment about it.
 	local changed = false
-	for h_begin, attributes, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()e2function%(?([%w,]*)%)?%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
+	for h_begin, attributes, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()e2function%(?([%w, ]*)%)?%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
 		-- Convert attributes to a lookup table passed to registerFunction
 		if attributes ~= "" then
-			-- e2function(deprecated,nodiscard) void test()
-			-- Note nodiscard isn't a real attribute right now.
+			-- e2function(deprecated, nodiscard) void test()
 			attributes = attributes:Split(",")
 
 			local lookup = {}
 			for _, tag in ipairs(attributes) do
-				lookup[ tag:lower() ] = true
+				lookup[ tag:lower():Trim() ] = true
 			end
 
 			local buf = "{"
