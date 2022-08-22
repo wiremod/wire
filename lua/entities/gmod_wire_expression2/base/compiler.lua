@@ -13,7 +13,7 @@ local BLOCKED_ARRAY_TYPES = E2Lib.blocked_array_types
 
 function Compiler.Execute(...)
 	-- instantiate Compiler
-	local instance = setmetatable({}, Compiler)
+	local instance = setmetatable({ warnings = {} }, Compiler)
 
 	-- and pcall the new instance's Process method.
 	return xpcall(Compiler.Process, E2Lib.errorHandler, instance, ...)
@@ -21,6 +21,10 @@ end
 
 function Compiler:Error(message, instr)
 	error(message .. " at line " .. instr[2][1] .. ", char " .. instr[2][2], 0)
+end
+
+function Compiler:Warning(message, instr)
+	self.warnings[#self.warnings + 1] = { message = message, line = instr[2][1], char = instr[2][2] }
 end
 
 local string_upper = string.upper
@@ -167,17 +171,17 @@ function Compiler:EvaluateStatement(args, index)
 	ex.TraceName = name
 	ex.Trace = trace[2]
 
-	return ex, tp
+	return ex, tp, name
 end
 
 function Compiler:Evaluate(args, index)
-	local ex, tp = self:EvaluateStatement(args, index)
+	local ex, tp, name = self:EvaluateStatement(args, index)
 
 	if tp == "" then
 		self:Error("Function has no return value (void), cannot be part of expression or assigned", args[index + 2])
 	end
 
-	return ex, tp
+	return ex, tp, name
 end
 
 function Compiler:HasOperator(instr, name, tps)
@@ -257,7 +261,7 @@ function Compiler:GetFunction(instr, Name, Args)
 
 	self.prfcounter = self.prfcounter + (Func[4] or 20)
 
-	return { Func[3], Func[2], Func[1] }
+	return { Func[3], Func[2], Func[1], Func.attributes }
 end
 
 
@@ -297,7 +301,7 @@ function Compiler:GetMethod(instr, Name, Meta, Args)
 
 	self.prfcounter = self.prfcounter + (Func[4] or 20)
 
-	return { Func[3], Func[2], Func[1] }
+	return { Func[3], Func[2], Func[1], Func.attributes }
 end
 
 function Compiler:PushPrfCounter()
@@ -321,7 +325,13 @@ function Compiler:InstrSEQ(args)
 	local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
 
 	for i = 1, #args - 2 do
-		stmts[#stmts + 1] = self:EvaluateStatement(args, i)
+		if self.Scope.Dead then
+			-- Don't compile dead code.
+			self:Warning("Unreachable code detected", args[i + 2])
+			break
+		else
+			stmts[#stmts + 1] = self:EvaluateStatement(args, i)
+		end
 	end
 
 	stmts[2] = self:PopPrfCounter()
@@ -331,11 +341,13 @@ end
 
 function Compiler:InstrBRK(args)
 	-- args = { "brk", trace }
+	self.Scope.Dead = true
 	return { self:GetOperator(args, "brk", {})[1] }
 end
 
 function Compiler:InstrCNT(args)
 	-- args = { "cnt", trace }
+	self.Scope.Dead = true
 	return { self:GetOperator(args, "cnt", {})[1] }
 end
 
@@ -447,8 +459,8 @@ function Compiler:InstrCALL(args)
 	-- args = { "call", trace, function name, { argument expressions... } }
 	local exprs = { false }
 
-	local tps = {}
-	if args[3] == "array" then
+	local tps, fname = {}, args[3]
+	if fname == "array" then
 		-- Hack for array creation.
 		-- Check if illegal arguments are passed
 		for i = 1, #args[4] do
@@ -460,6 +472,19 @@ function Compiler:InstrCALL(args)
 			exprs[i + 1] = ex
 			tps[i] = tp
 		end
+	elseif fname == "changed" then
+		for i = 1, #args[4] do
+			local ex, tp, instr = self:Evaluate(args[4], i - 2)
+			if instr == "LITERAL" then
+				self:Warning("Using changed on a literal will only evaluate once", args[4][i])
+			elseif instr == "VAR" then
+				local varname = args[4][i][3]
+				if self.inputs[varname] then
+					self:Warning("Using changed on an input is bad, use the ~ operator instead", args[4][i])
+				end
+			end
+			exprs[i + 1], tps[i] = ex, tp
+		end
 	else
 		for i = 1, #args[4] do
 			exprs[i + 1], tps[i] = self:Evaluate(args[4], i - 2)
@@ -469,6 +494,10 @@ function Compiler:InstrCALL(args)
 	local rt = self:GetFunction(args, args[3], tps)
 	exprs[1] = rt[1]
 	exprs[#exprs + 1] = tps
+
+	if rt[4] and rt[4].deprecated then
+		self:Warning("Use of deprecated function: " .. rt[3], args)
+	end
 
 	return exprs, rt[2]
 end
@@ -517,6 +546,10 @@ function Compiler:InstrMETHODCALL(args)
 	local rt = self:GetMethod(args, args[3], tp, tps)
 	exprs[1] = rt[1]
 	exprs[#exprs + 1] = tps
+
+	if rt[4] and rt[4].deprecated then
+		self:Warning("Use of deprecated function: " .. rt[3], args)
+	end
 
 	return exprs, rt[2]
 end
@@ -735,8 +768,8 @@ end
 function Compiler:InstrVAR(args)
 	-- args = { "var", trace, variable name }
 	self.prfcounter = self.prfcounter + 1.0
-	local tp, ScopeID = self:GetVariableType(args, args[3])
 	local name = args[3]
+	local tp, ScopeID = self:GetVariableType(args, name)
 
 	return {function(self)
 		return self.Scopes[ScopeID][name]
@@ -957,6 +990,7 @@ function Compiler:InstrRETURN(args)
 		self:Error("Return type mismatch: " .. tps_pretty(expectedType) .. " expected, got " .. tps_pretty(actualType), args)
 	end
 
+	self.Scope.Dead = true
 	return { self:GetOperator(args, "return", {})[1], value, actualType }
 end
 

@@ -141,7 +141,7 @@ registerCallback( "postinit", function()
 				local op1, op2 = args[2], args[3]
 				local array, index = op1[1](self,op1), op2[1](self,op2)
 				return getter( self, array, index )
-			end)
+			end, nil, nil, { deprecated = true })
 
 			--------------------------------------------------------------------------------
 			-- Set functions
@@ -171,7 +171,7 @@ registerCallback( "postinit", function()
 				local op1, op2, op3 = args[2], args[3], args[4]
 				local array, index, value = op1[1](self,op1), op2[1](self,op2), op3[1](self,op3)
 				return setter( self, array, index, value )
-			end)
+			end, nil, nil, { deprecated = true })
 
 
 			--------------------------------------------------------------------------------

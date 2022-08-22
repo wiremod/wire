@@ -261,7 +261,6 @@ registerCallback("postinit",function()
 	end -- loop
 end) -- postinit
 
-
 ------------------------------------------------------------------------------------------------
 -- ALL BELOW FUNCTIONS ARE DEPRECATED (Only for compability)
 ------------------------------------------------------------------------------------------------
@@ -270,23 +269,23 @@ end) -- postinit
 ------------------------------------------------
 __e2setcost(1)
 
-e2function void gSetGroup( string groupname )
+e2function(deprecated) void gSetGroup( string groupname )
 	self.data.gvars.group = groupname
 end
 
-e2function string gGetGroup()
+e2function(deprecated) string gGetGroup()
 	return self.data.gvars.group or ""
 end
 
-e2function void gShare( number share )
+e2function(deprecated) void gShare( number share )
 	self.data.gvars.shared = math.Clamp(share,0,1)
 end
 
-e2function number gGetShare()
+e2function(deprecated) number gGetShare()
 	return self.data.gvars.shared or 0
 end
 
-e2function void gResetGroup()
+e2function(deprecated) void gResetGroup()
 	self.data.gvars.group = "default"
 end
 
