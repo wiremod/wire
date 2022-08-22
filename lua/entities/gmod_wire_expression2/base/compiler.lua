@@ -480,7 +480,7 @@ function Compiler:InstrCALL(args)
 			elseif instr == "VAR" then
 				local varname = args[4][i][3]
 				if self.inputs[varname] then
-					self:Warning("Using changed on an input is bad, use the ~ operator instead", args[4][i])
+					self:Warning("Using changed on an input is bad, use the ~ or -> operators instead", args[4][i])
 				end
 			end
 			exprs[i + 1], tps[i] = ex, tp
