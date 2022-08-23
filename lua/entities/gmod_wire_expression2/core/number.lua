@@ -322,7 +322,7 @@ e2function number inrange(value, min, max)
 	return 1
 end
 
-e2function number lerp(number fraction, number from, number to)
+e2function number lerp(number from, number to, number fraction)
 	return Lerp(fraction, from, to)
 end
 
