@@ -12,7 +12,36 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Vector", 0, "Target" )
 end
 
-if CLIENT then return end -- No more client
+if CLIENT then
+	function ENT:Initialize()
+		local owner = self:CPPIGetOwner() or self:GetOwner()
+		if owner ~= LocalPlayer() then return end
+		local friends = {}
+		for k,v in ipairs(player.GetHumans()) do
+			if v:GetFriendStatus() ~= "friend" then continue end
+			table.insert(friends, v)
+		end
+		if not table.IsEmpty(friends) then
+			net.Start("wire_ranger_friends")
+			net.WriteEntity(self)
+			net.WriteTable(friends)
+			net.SendToServer()
+		end
+	end
+return end -- No more client
+util.AddNetworkString("wire_ranger_friends")
+
+net.Receive("wire_ranger_friends", function(len, ply)
+	local ent = net.ReadEntity()
+	if not IsValid(ent) then return end
+	if ent:GetClass() ~= "gmod_wire_ranger" then return end
+	local owner = ent:CPPIGetOwner() or ent:GetOwner()
+	if owner ~= ply then return end
+	ent.friends = ent.friends or {}
+	for k,v in ipairs(net.ReadTable()) do
+		ent.friends[v] = true
+	end
+end)
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -23,13 +52,15 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateSpecialInputs(self, { "X", "Y", "SelectValue", "Length", "Target"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR"})
 	self.Outputs = WireLib.CreateOutputs(self, { "Dist" })
 	self.hires = false
+	self.friends = {}
 end
 
-function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hiRes )
+function ENT:Setup( range, default_zero, show_beam, ignore_world, ignore_friends, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hiRes )
 	--for duplication
 	self.default_zero = default_zero
 	self.show_beam = show_beam
 	self.ignore_world = ignore_world
+	self.ignore_friends = ignore_friends
 	self.trace_water = trace_water
 	self.out_dist = out_dist
 	self.out_pos = out_pos
@@ -158,24 +189,32 @@ function ENT:Think()
 		ent = trace.Entity
 
 		if (ent:IsValid()) then
+			if not (ent:IsPlayer() and self.friends and self.friends[ent]) then
+				vel = ent:GetVelocity()
+				ang = ent:GetAngles()
+				col = ent:GetColor()
 
-			vel = ent:GetVelocity()
-			ang = ent:GetAngles()
-			col = ent:GetColor()
+				if (self.out_sid or self.out_uid) and (ent:IsPlayer()) then
+					sid = ent:SteamID() or ""
+					uid = tonumber(ent:UniqueID()) or -1
+				end
 
-			if (self.out_sid or self.out_uid) and (ent:IsPlayer()) then
-				sid = ent:SteamID() or ""
-				uid = tonumber(ent:UniqueID()) or -1
-			end
-
-			if (self.out_val and ent.Outputs) then
-				local i = 1
-				for k,v in pairs(ent.Outputs) do
-					if (v.Value ~= nil and type(v.Value) == "number") then
-						val[i] = v.Value
-						i = i + 1
+				if (self.out_val and ent.Outputs) then
+					local i = 1
+					for k,v in pairs(ent.Outputs) do
+						if (v.Value ~= nil and type(v.Value) == "number") then
+							val[i] = v.Value
+							i = i + 1
+						end
 					end
 				end
+			else
+				if (self.default_zero) then
+					dist = 0
+				else
+					dist = self:GetBeamLength()
+				end
+				pos = Vector(0,0,0)
 			end
 
 		elseif(self.ignore_world) then
@@ -298,4 +337,4 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 
 end
 
-duplicator.RegisterEntityClass("gmod_wire_ranger", WireLib.MakeWireEnt, "Data", "range", "default_zero", "show_beam", "ignore_world", "trace_water", "out_dist", "out_pos", "out_vel", "out_ang", "out_col", "out_val", "out_sid", "out_uid", "out_eid", "out_hnrm", "hires")
+duplicator.RegisterEntityClass("gmod_wire_ranger", WireLib.MakeWireEnt, "Data", "range", "default_zero", "show_beam", "ignore_world", "ignore_friends", "trace_water", "out_dist", "out_pos", "out_vel", "out_ang", "out_col", "out_val", "out_sid", "out_uid", "out_eid", "out_hnrm", "hires")
