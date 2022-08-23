@@ -8,6 +8,7 @@ if CLIENT then
 	language.Add( "Tool.wire_ranger.default_zero", "Default to zero" )
 	language.Add( "Tool.wire_ranger.show_beam", "Show Beam" )
 	language.Add( "Tool.wire_ranger.ignore_world", "Ignore world" )
+	language.Add( "Tool.wire_ranger.ignore_friends", "Ignore friends" )
 	language.Add( "Tool.wire_ranger.trace_water", "Hit water" )
 	language.Add( "Tool.wire_ranger.out_dist", "Output Distance" )
 	language.Add( "Tool.wire_ranger.out_pos", "Output Position" )
@@ -27,7 +28,7 @@ WireToolSetup.SetupMax( 10 )
 
 if SERVER then
 	function TOOL:GetConVars()
-		return self:GetClientNumber("range"), self:GetClientNumber("default_zero")~=0, self:GetClientNumber("show_beam")~=0, self:GetClientNumber("ignore_world")~=0,
+		return self:GetClientNumber("range"), self:GetClientNumber("default_zero")~=0, self:GetClientNumber("show_beam")~=0, self:GetClientNumber("ignore_world")~=0, self:GetClientNumber("ignore_friends")~=0,
 			self:GetClientNumber("trace_water")~=0, self:GetClientNumber("out_dist")~=0, self:GetClientNumber("out_pos")~=0, self:GetClientNumber("out_vel")~=0,
 			self:GetClientNumber("out_ang")~=0, self:GetClientNumber("out_col")~=0, self:GetClientNumber("out_val")~=0, self:GetClientNumber("out_sid")~=0,
 			self:GetClientNumber("out_uid")~=0, self:GetClientNumber("out_eid")~=0, self:GetClientNumber("out_hnrm")~=0, self:GetClientNumber("hires")~=0
@@ -40,6 +41,7 @@ TOOL.ClientConVar = {
 	default_zero = 1,
 	show_beam = 1,
 	ignore_world = 0,
+	ignore_friends = 0,
 	trace_water = 0,
 	out_dist = 1,
 	out_pos = 0,
@@ -60,6 +62,7 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#Tool.wire_ranger.default_zero","wire_ranger_default_zero")
 	panel:CheckBox("#Tool.wire_ranger.show_beam","wire_ranger_show_beam")
 	panel:CheckBox("#Tool.wire_ranger.ignore_world","wire_ranger_ignore_world")
+	panel:CheckBox("#Tool.wire_ranger.ignore_friends","wire_ranger_ignore_friends")
 	panel:CheckBox("#Tool.wire_ranger.trace_water","wire_ranger_trace_water")
 	panel:CheckBox("#Tool.wire_ranger.out_dist","wire_ranger_out_dist")
 	panel:CheckBox("#Tool.wire_ranger.out_pos","wire_ranger_out_pos")
