@@ -75,6 +75,7 @@ E2Helper.Descriptions["int(n)"] = "Returns the Integer part of the Argument (alw
 E2Helper.Descriptions["frac(n)"] = "Returns the Fractional part (decimal places) of the Argument"
 E2Helper.Descriptions["clamp(nnn)"] = "If Arg1 = Arg3 (max) returns Arg3; otherwise returns Arg1"
 E2Helper.Descriptions["inrange(nnn)"] = "Returns 1 if N is in the interval [N2; N3], 0 otherwise. This means it is equivalent to ((N2 <= N) & (N <= N3))"
+E2Helper.Descriptions["lerp(nnn)"] = "Performs linear interpolation. Returns a new value between 'from' and 'to', based on a 0-1 percentage ('fraction')"
 E2Helper.Descriptions["sign(n)"] = "Returns the sign of argument (-1,0,1) [sign(N) = N / abs(N) ]"
 E2Helper.Descriptions["min(nn)"] = "Returns the lowest value Argument"
 E2Helper.Descriptions["min(nnn)"] = "Returns the lowest value Argument"
