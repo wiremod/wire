@@ -29,7 +29,6 @@ local from_easings = {"OutElastic","OutCirc","InOutQuint","InCubic","InOutCubic"
 
 for k, v in pairs(from_easings) do
 	local function_call = math.ease[v]
-	--Player(4):ChatPrint(v .. tostring(function_call))
 	local name = "ease" .. v
 	registerFunction(name, "n", "n", function(self, args)
 		local op1 = args[2]
