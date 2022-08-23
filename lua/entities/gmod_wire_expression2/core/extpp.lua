@@ -221,20 +221,38 @@ function E2Lib.ExtPP.Pass2(contents)
 
 	-- This flag helps determine whether the preprocessor changed, so we can tell the environment about it.
 	local changed = false
-	for h_begin, attributes, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()e2function%(?([%w, ]*)%)?%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
+	for a_begin, attributes, h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()(%[?[%l%d,_ =\"]*%]?)\r?\n?()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
 		-- Convert attributes to a lookup table passed to registerFunction
-		if attributes ~= "" then
-			-- e2function(deprecated, nodiscard) void test()
+		attributes = attributes ~= "" and attributes or nil
+		-- attributes = attributes ~= ""
+		local attributes_str
+
+		if attributes and attributes:sub(1, 1) == "[" and attributes:sub(-1, -1) == "]" then
+			attributes_str = attributes
+			attributes = attributes:sub(2, -2) -- Remove surrounding brackets
+			-- [deprecated, nodiscard]
+			-- e2function void test()
+
 			attributes = attributes:Split(",")
 
 			local lookup = {}
 			for _, tag in ipairs(attributes) do
-				lookup[ tag:lower():Trim() ] = true
+				local k = tag:lower():Trim()
+				if k:find("=", 1, true) then
+					-- [xyz = 567, event = "Tick"]
+					-- e2function number foo()
+					local key, value = unpack( k:Split("="), 1, 2 )
+					key, value = key:lower():Trim(), tonumber(value:match("%d+")) or value:Trim()
+
+					lookup[key] = value
+				else
+					lookup[ tag:lower():Trim() ] = "true"
+				end
 			end
 
 			local buf = "{"
-			for attr in pairs(lookup) do
-				buf = buf .. "['" .. attr .. "'] = true,"
+			for attr, val in pairs(lookup) do
+				buf = buf .. "['" .. attr .. "'] = " .. val .. ","
 			end
 
 			attributes = buf .. "}"
@@ -267,7 +285,13 @@ function E2Lib.ExtPP.Pass2(contents)
 			if thistype:match("^[0-9]") then error("PP syntax error: Type names may not start with a number.", 0) end
 
 			-- append everything since the last function to the output.
-			table.insert(output, contents:sub(lastpos, h_begin - 1))
+			if attributes_str then
+				table.insert(output, contents:sub(lastpos, a_begin - 1))
+				table.insert(output, "--" .. attributes_str .. "\n")
+			else
+				table.insert(output, contents:sub(lastpos, h_begin - 1))
+			end
+
 			-- advance lastpos to the end of the function header
 			lastpos = h_end
 
