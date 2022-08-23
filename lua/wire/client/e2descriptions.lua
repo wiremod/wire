@@ -1550,3 +1550,22 @@ E2Helper.Descriptions["setRadius(xef:n)"] = "Sets the radius of the effect"
 E2Helper.Descriptions["setScale(xef:n)"] = "Sets the scale of the effect"
 E2Helper.Descriptions["setStart(xef:v)"] = "Sets the start of the effect"
 E2Helper.Descriptions["setSurfaceProp(xef:n)"] = "Sets the surface property index of the effect"
+
+--Interpolations
+
+
+local from_easings = {"OutElastic","OutCirc","InOutQuint","InCubic","InOutCubic","InOutBounce","InOutSine","OutQuad","InOutCirc","InElastic","OutBack","InQuint","InSine","InBounce","InQuart","OutSine","OutExpo","InOutExpo","InQuad","InOutElastic","InOutQuart","InExpo","OutCubic","OutQuint","OutBounce","InCirc","InBack","InOutQuad","OutQuart","InOutBack"}
+
+for k, v in pairs(from_easings) do
+	local name = "ease" .. v
+	
+	E2Helper.Descriptions[name .. "(n)"] = "Performs " .. v .. " interpolation on the argument. You can see how all of these interpolation functions look here: https://imgur.com/XZPgymK"
+end
+
+E2Helper.Descriptions["lerp(nnn)"] = "Performs linear interpolation, where the 0-1 range of fraction is shifted to from-to."
+
+E2Helper.Descriptions["lerpVec(nvv)"] = "Performs linear interpolation, where the 0-1 range of fraction is shifted to from-to."
+E2Helper.Descriptions["lerpVec2(nxv2xv2)"] = "Performs linear interpolation, where the 0-1 range of fraction is shifted to from-to."
+E2Helper.Descriptions["lerpVec4(nxv4xv4)"] = "Performs linear interpolation, where the 0-1 range of fraction is shifted to from-to."
+
+E2Helper.Descriptions["lerpAng(naa)"] = "Performs linear interpolation, where the 0-1 range of fraction is shifted to from-to."
