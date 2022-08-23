@@ -332,7 +332,7 @@ function Compiler:InstrSEQ(args)
 		else
 			local stmt, _, instr, extra = self:EvaluateStatement(args, i)
 			if instr == "CALL" or instr == "METHODCALL" then
-				if extra.nodiscard then
+				if extra and extra.nodiscard then
 					self:Warning("The return value of this function cannot be discarded", args[i + 2])
 				end
 			elseif instr == "GET" then
