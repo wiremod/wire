@@ -49,18 +49,16 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self:StartMotionController()
 
-	self.Inputs = WireLib.CreateSpecialInputs(self, { "X", "Y", "SelectValue", "Length", "Target"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR"})
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "X", "Y", "SelectValue", "Length", "Target", "Ignore"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR", "ARRAY"})
 	self.Outputs = WireLib.CreateOutputs(self, { "Dist" })
 	self.hires = false
-	self.friends = {}
 end
 
-function ENT:Setup( range, default_zero, show_beam, ignore_world, ignore_friends, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hiRes )
+function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hiRes )
 	--for duplication
 	self.default_zero = default_zero
 	self.show_beam = show_beam
 	self.ignore_world = ignore_world
-	self.ignore_friends = ignore_friends
 	self.trace_water = trace_water
 	self.out_dist = out_dist
 	self.out_pos = out_pos
@@ -145,6 +143,11 @@ function ENT:TriggerInput(iname, value)
 		self:SetBeamLength(math.min(value, 64000))
 	elseif (iname == "Target") then
 		self:SetTarget(value)
+	elseif (iname == "Ignore") then
+		self.ignore = {}
+		for k,v in ipairs(value) do
+			self.ignore[v] = true
+		end
 	end
 end
 
@@ -189,7 +192,7 @@ function ENT:Think()
 		ent = trace.Entity
 
 		if (ent:IsValid()) then
-			if not (ent:IsPlayer() and self.friends and self.friends[ent]) then
+			if not (ent:IsPlayer() and self.ignore and self.ignore[ent]) then
 				vel = ent:GetVelocity()
 				ang = ent:GetAngles()
 				col = ent:GetColor()
@@ -337,4 +340,4 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 
 end
 
-duplicator.RegisterEntityClass("gmod_wire_ranger", WireLib.MakeWireEnt, "Data", "range", "default_zero", "show_beam", "ignore_world", "ignore_friends", "trace_water", "out_dist", "out_pos", "out_vel", "out_ang", "out_col", "out_val", "out_sid", "out_uid", "out_eid", "out_hnrm", "hires")
+duplicator.RegisterEntityClass("gmod_wire_ranger", WireLib.MakeWireEnt, "Data", "range", "default_zero", "show_beam", "ignore_world", "trace_water", "out_dist", "out_pos", "out_vel", "out_ang", "out_col", "out_val", "out_sid", "out_uid", "out_eid", "out_hnrm", "hires")
