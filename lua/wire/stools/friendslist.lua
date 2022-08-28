@@ -12,6 +12,8 @@ if CLIENT then
 
 	language.Add( "wire_friendslist_save_on_entity", "Save On Entity" )
 	language.Add( "wire_friendslist_save_on_entity_tooltip", "When enabled, the friends list will be saved on the entity and carried across in dupes. When disabled, the friends list will mirror any changes you make in this UI." )
+	language.Add( "wire_friendslist_sync_with_steam", "Sync With Steam" )
+	language.Add( "wire_friendslist_sync_with_steam_tooltip", "Sync With Steam" )
 	language.Add( "wire_friendslist_invalid_steamid", "Invalid SteamID" )
 	language.Add( "wire_friendslist_connected_players", "Currently connected players" )
 	language.Add( "wire_friendslist_not_connected", "Not Connected" )
@@ -24,7 +26,8 @@ WireToolSetup.SetupMax(8)
 
 TOOL.ClientConVar = {
 	model = "models/kobilica/value.mdl",
-	save_on_entity = 0
+	save_on_entity = 0,
+	sync_with_steam = 0
 }
 
 -- shared helper functions
@@ -62,7 +65,7 @@ if SERVER then
 	end)
 
 	function TOOL:GetConVars()
-		return self:GetClientNumber( "save_on_entity" ) ~= 0, friends[self:GetOwner()] or {}
+		return self:GetClientNumber( "save_on_entity" ) ~= 0, friends[self:GetOwner()] or {}, self:GetClientNumber( "sync_with_steam" ) ~= 0
 	end
 
 	hook.Add( "OnEntityCreated", "wire_friendslist_created", function( ent )
@@ -179,7 +182,8 @@ else
 
 		local save_on_entity = panel:CheckBox( "#wire_friendslist_save_on_entity", "wire_friendslist_save_on_entity" )
 		save_on_entity:SetToolTip( "#wire_friendslist_save_on_entity_tooltip" )
-
+		local sync_with_steam = panel:CheckBox( "#wire_friendslist_sync_with_steam", "wire_friendslist_sync_with_steam" )
+		sync_with_steam:SetToolTip( "#wire_friendslist_sync_with_steam" )
 		local pnl = vgui.Create( "DPanel", panel )
 		pnl:Dock( TOP )
 		pnl:DockMargin( 2,2,2,2 )
