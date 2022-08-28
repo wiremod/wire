@@ -3,6 +3,24 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Friends List"
 ENT.WireDebugName	= "Friends List"
 
+local function sync_all_friends()
+	local friends = {}
+	for k,v in ipairs(player.GetAll()) do
+		--if v:GetFriendStatus() ~= "friend" then continue end--commented for testing purposes
+		table.insert(friends, v)
+	end
+	if not table.IsEmpty(friends) then
+		net.Start("wire_sync_steam_friends")
+		net.WriteTable(friends)
+		net.SendToServer()
+	end
+end
+
+net.Receive("wire_sync_steam_friends", function()
+	sync_all_friends()
+	timer.Create("Wire_Friendslist_Sync_Steam", 300, 0, sync_all_friends)
+end)
+
 if CLIENT then return end -- No more client
 
 function ENT:Initialize()
@@ -18,11 +36,35 @@ function ENT:Initialize()
 	self:UpdateOutputs()
 end
 
-function ENT:Setup( save_on_entity, friends_steamids )
+util.AddNetworkString("wire_sync_steam_friends")
+
+net.Receive("wire_sync_steam_friends", function(len,ply)
+	if not ply.wire_steam_friendslists or ply.wire_steam_friendslists < 1 then return end
+	local tab = net.ReadTable()
+	ply.wire_steam_friends = tab
+	for k,v in ipairs(ents.FindByClass("gmod_wire_friendslist")) do
+		v:UpdateOutputs()
+	end
+end)
+
+function ENT:Setup( save_on_entity, friends_steamids, sync_with_steam )
 	self.save_on_entity = false
 	self:UpdateFriendslist( friends_steamids )
 	self.save_on_entity = save_on_entity or false
+	self.sync_with_steam = sync_with_steam or false
+	local ply = self:GetPlayer()
+	if sync_with_steam then
+		ply.wire_steam_friendslists = ply.wire_steam_friendslists and ply.wire_steam_friendslists + 1 or 1
+		net.Start("wire_sync_steam_friends")
+		net.Send(ply)
+	end
 	self:UpdateOutputs()
+end
+
+function ENT:OnRemove()
+	if not self.sync_with_steam then return end
+	local ply = self:GetPlayer()
+	ply.wire_steam_friendslists = ply.wire_steam_friendslists - 1
 end
 
 function ENT:UpdateFriendslist( friends_steamids )
@@ -59,12 +101,25 @@ end
 function ENT:Disconnected( ply )
 	local steamid = ply:SteamID()
 
-	-- not already added
-	if not self.friends_lookup[ply] then return end
+	if self.sync_with_steam and self:GetPlayer() and self:GetPlayer().wire_steam_friends then
+		local owner = self:GetPlayer()
+		local changed = false
+		for k,v in ipairs(owner.wire_steam_friends) do
+			if not table.HasValue(owner.wire_steam_friends, v) then continue end
+			changed = true
+			timer.Simple(0, function() table.remove(owner.wire_steam_friends, k) end)
+		end
+		if changed then
+			timer.Simple(.25, function() self:UpdateOutputs() end)
+		end
+	else
+		-- not already added
+		if not self.friends_lookup[ply] then return end
 
-	if self.steamids_lookup[ply:SteamID()] then
-		self.friends_lookup[ply] = nil
-		self:UpdateOutputs()
+		if self.steamids_lookup[ply:SteamID()] then
+			self.friends_lookup[ply] = nil
+			self:UpdateOutputs()
+		end
 	end
 end
 
@@ -106,15 +161,16 @@ end
 
 function ENT:UpdateOutputs()
 	local str = {}
-
 	str[#str+1] = "Saved on entity: " .. (self.save_on_entity and "Yes" or "No") .. "\n"
 	str[#str+1] = #self.steamids .. " total friends"
 	str[#str+1] = "\nConnected:"
 
+	local ply = self:GetPlayer()
+
 	local not_connected = {}
 	local connected = {}
-
-	for i=1, #self.steamids do
+	local total = #self.steamids
+	for i=1, total do
 		local steamid = self.steamids[i]
 		local ply = player.GetBySteamID( steamid )
 
@@ -125,12 +181,21 @@ function ENT:UpdateOutputs()
 			not_connected[#not_connected+1] = steamid
 		end
 	end
-
+	if self.sync_with_steam and ply.wire_steam_friends then
+		for k,v in pairs(ply.wire_steam_friends) do
+			if table.HasValue(connected, v) then continue end
+			if not IsValid(v) then continue end
+			str[#str+1] = v:Nick() .. " (" .. v:SteamID() .. ")"
+			total = total + 1
+			table.insert(connected, v)
+		end
+		--table.Merge(connected, wire_steam_friends)
+	end
 	table.insert( str, 2, #connected .. " connected friends" )
 
 	WireLib.TriggerOutput( self, "Friends", connected )
 	WireLib.TriggerOutput( self, "AmountConnected", #connected )
-	WireLib.TriggerOutput( self, "AmountTotal", #self.steamids )
+	WireLib.TriggerOutput( self, "AmountTotal", total )
 
 	local str = table.concat( str, "\n" )
 	if #not_connected > 0 then str = str .. "\n\nNot connected:\n" .. table.concat( not_connected, "\n" ) end
