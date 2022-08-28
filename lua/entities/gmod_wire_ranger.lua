@@ -12,36 +12,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Vector", 0, "Target" )
 end
 
-if CLIENT then
-	function ENT:Initialize()
-		local owner = self:CPPIGetOwner() or self:GetOwner()
-		if owner ~= LocalPlayer() then return end
-		local friends = {}
-		for k,v in ipairs(player.GetHumans()) do
-			if v:GetFriendStatus() ~= "friend" then continue end
-			table.insert(friends, v)
-		end
-		if not table.IsEmpty(friends) then
-			net.Start("wire_ranger_friends")
-			net.WriteEntity(self)
-			net.WriteTable(friends)
-			net.SendToServer()
-		end
-	end
-return end -- No more client
-util.AddNetworkString("wire_ranger_friends")
-
-net.Receive("wire_ranger_friends", function(len, ply)
-	local ent = net.ReadEntity()
-	if not IsValid(ent) then return end
-	if ent:GetClass() ~= "gmod_wire_ranger" then return end
-	local owner = ent:CPPIGetOwner() or ent:GetOwner()
-	if owner ~= ply then return end
-	ent.friends = ent.friends or {}
-	for k,v in ipairs(net.ReadTable()) do
-		ent.friends[v] = true
-	end
-end)
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
