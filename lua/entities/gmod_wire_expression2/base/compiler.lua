@@ -1136,7 +1136,7 @@ function Compiler:InstrINCLU(args)
 
 			local nwarnings = #self.warnings[file]
 			if nwarnings ~= 0 then
-				self:Warning("include '" .. file .. "' has " .. nwarnings .. " warnings.", args)
+				self:Warning("include '" .. file .. "' has " .. nwarnings .. " warning(s).", args)
 			end
 		end
 
