@@ -5,6 +5,11 @@
 
 AddCSLuaFile()
 
+---@alias Warning { message: string, line: integer, char: integer }
+
+---@class Compiler
+---@field warnings table<number|string, Warning> # Array of warnings (main file) with keys to included file warnings.
+---@field include string? # Current include file or nil if main file
 E2Lib.Compiler = {}
 local Compiler = E2Lib.Compiler
 Compiler.__index = Compiler
@@ -24,7 +29,12 @@ function Compiler:Error(message, instr)
 end
 
 function Compiler:Warning(message, instr)
-	self.warnings[#self.warnings + 1] = { message = message, line = instr[2][1], char = instr[2][2] }
+	if self.include then
+		local tbl = self.warnings[self.include]
+		tbl[#tbl + 1] = { message = message, line = instr[2][1], char = instr[2][2] }
+	else
+		self.warnings[#self.warnings + 1] = { message = message, line = instr[2][1], char = instr[2][2] }
+	end
 end
 
 local string_upper = string.upper
@@ -1102,12 +1112,16 @@ function Compiler:InstrINCLU(args)
 		self:InitScope() -- Create a new Scope Enviroment
 		self:PushScope()
 
+		local last_file = self.include
+		self.include = file
+
+		self.warnings[file] = self.warnings[file] or {}
+
 		local root = include[1]
 		local status, script = pcall(self.CallInstruction, self, root[1], root)
 
 		if not status then
-			local reason = istable(script) and script.msg or script
-
+			local _catchable, reason =  E2Lib.unpackException(script)
 			if reason:find("C stack overflow") then reason = "Include depth too deep" end
 
 			if not self.IncludeError then
@@ -1115,7 +1129,14 @@ function Compiler:InstrINCLU(args)
 				self.IncludeError = true
 				self:Error("include '" .. file .. "' -> " .. reason, args)
 			else
-				error(reason, 0)
+				error(script, 0)
+			end
+		else
+			self.include = last_file
+
+			local nwarnings = #self.warnings[file]
+			if nwarnings ~= 0 then
+				self:Warning("include '" .. file .. "' has " .. nwarnings .. " warnings.", args)
 			end
 		end
 
