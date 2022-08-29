@@ -29,7 +29,6 @@ local sinh   = math.sinh
 local cosh   = math.cosh
 local tanh   = math.tanh
 
-
 --[[************************************************************************]]--
 --  Numeric support
 --[[************************************************************************]]--
@@ -321,6 +320,10 @@ e2function number inrange(value, min, max)
 	if value < min then return 0 end
 	if value > max then return 0 end
 	return 1
+end
+
+e2function number lerp(number from, number to, number fraction)
+	return Lerp(fraction, from, to)
 end
 
 registerFunction("sign", "n", "n", function(self, args)
