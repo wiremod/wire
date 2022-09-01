@@ -13,12 +13,43 @@ function ENT:Initialize()
 	self.State = false
 	self.CollisionState = 0
 	self.Marks = {}
-	self.Inputs = WireLib.CreateInputs(self, {"Activate", "Disable Collisions"})
+	self.Inputs = WireLib.CreateInputs(self, {
+		"Activate", 
+		"Disable Collisions", 
+		"Entity (This entity will be added or removed once the 'Add Entity' or 'Remove Entity' inputs are changed) [ENTITY]",
+		"Add Entity (Change to non-zero value to add the entity specified by the 'Entity' input)", 
+		"Remove Entity (Change to non-zero value to remove the entity specified by the 'Entity' input)",
+		"Clear Entities (Removes all entities from the freezer)"
+	})
 	self:UpdateOutputs()
 end
 
 function ENT:TriggerInput(name, value)
-	if name == "Activate" then
+	if name == "Entity" then
+		if IsValid(value) then
+			self.Target = value
+		end
+	elseif name == "Add Entity" then
+		if IsValid(self.Target) then
+			if value != 0 then
+				local bool, index = self:CheckEnt(self.Target)
+				if !bool then
+					self:LinkEnt(self.Target)
+				end
+			end
+		end
+	elseif name == "Remove Entity" then
+		if IsValid(self.Target) then
+			if (value != 0) then
+				local bool, index = self:CheckEnt(self.Target)
+				if bool then
+					self:UnlinkEnt(self.Target)
+				end
+			end
+		end
+	elseif name == "Clear Entities" then
+		self:ClearEntities()
+	elseif name == "Activate" then
 		self.State = value ~= 0
 		for _, ent in pairs(self.Marks) do
 			if IsValid(ent) and IsValid(ent:GetPhysicsObject()) then
