@@ -505,7 +505,7 @@ concommand.Add("wire_expression2_friend_status", function(ply, command, args)
 	steamfriends[ply] = friends
 end)
 
-hook.Add("EntityRemoved", "wire_expression2_friend_status", function(ply)
+hook.Add("PlayerDisconnected", "wire_expression2_friend_status", function(ply)
 	for _, friends in pairs(steamfriends) do
 		friends[ply] = nil
 	end
