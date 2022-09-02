@@ -106,7 +106,8 @@ e2function number playerCanPrint()
 end
 
 local function SpecialCase( arg )
-	if istable(arg) then
+	local t = type(arg)
+	if t == "table" then
 		if (arg.isfunction) then
 			return "function " .. arg[3] .. " = (" .. arg[2] .. ")"
 		elseif (seq(arg)) then -- A table with only numerical indexes
@@ -130,6 +131,10 @@ local function SpecialCase( arg )
 		else -- Else it's a table with string indexes (which this function can't handle)
 			return "[table]"
 		end
+	elseif t == "Vector" then
+		return string.format("vec(%.2f,%.2f,%.2f)", arg[1], arg[2], arg[3])
+	elseif t == "Angle" then
+		return string.format("ang(%d,%d,%d)", arg[1], arg[2], arg[3])
 	end
 end
 

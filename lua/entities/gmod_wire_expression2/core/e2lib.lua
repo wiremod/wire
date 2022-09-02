@@ -45,10 +45,16 @@ function E2Lib.newE2Table()
 end
 
 -- Returns a cloned table of the variable given if it is a table.
+-- TODO: Ditch this system for instead having users provide a function that returns the default value.
+-- Would be much more efficient and avoid type checks.
 local istable = istable
 local table_Copy = table.Copy
 function E2Lib.fixDefault(var)
-	return istable(var) and table_Copy(var) or var
+	local t = type(var)
+	return t == "table" and table_Copy(var)
+		or t == "Vector" and Vector( var:Unpack() )
+		or t == "Angle" and Angle( var:Unpack() )
+		or var
 end
 
 -- getHash

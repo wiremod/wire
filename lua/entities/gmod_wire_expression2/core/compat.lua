@@ -31,7 +31,7 @@ local clamp = WireLib.clampForce
 e2function void applyForce(vector force)
 	force = clamp(force)
 	local phys = self.entity:GetPhysicsObject()
-	phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
+	phys:ApplyForceCenter(force)
 end
 
 e2function void applyOffsetForce(vector force, vector position)
