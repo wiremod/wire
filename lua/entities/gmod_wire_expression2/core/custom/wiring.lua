@@ -114,3 +114,29 @@ e2function wirelink entity:wirelink()
 	end
 	return this
 end
+
+__e2setcost(10)
+
+--- Links <this> to <ent2> if applicable
+e2function number entity:linkTo(entity ent2)
+	if not IsValid(this) then return self:throw("Invalid Entity!", nil) end
+	if not IsValid(ent2) then return self:throw("Invalid Entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity", nil) end
+	if not isOwner(self, ent2) then return self:throw("You do not own this entity", nil) end
+
+	local error, result = pcall(function() ent2:LinkEnt(this) end)
+	if error == true then return 1 end
+	return 0
+end
+
+--- Unlinks <this> from <ent2> if applicable
+e2function number entity:unlinkFrom(entity ent2)
+	if not IsValid(this) then return self:throw("Invalid Entity!", nil) end
+	if not IsValid(ent2) then return self:throw("Invalid Entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity", nil) end
+	if not isOwner(self, ent2) then return self:throw("You do not own this entity", nil) end
+
+	local error, result = pcall(function() ent2:UnlinkEnt(this) end)
+	if error == true then return 1 end
+	return 0
+end
