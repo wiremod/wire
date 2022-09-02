@@ -20,7 +20,11 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self:StartMotionController()
 
-	self.Inputs = WireLib.CreateSpecialInputs(self, { "X", "Y", "SelectValue", "Length", "Target", "Ignore"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR", "ARRAY"})
+	self.Inputs = WireLib.CreateInputs(self, { 
+		"X", "Y", "SelectValue", "Length", 
+		"Target [VECTOR]", 
+		"Ignore (Adds all specified entities to the ranger's filter.\nKeep in mind that this filtering is not synced to the client and is therefore not visible in the ranger's beam.) [ARRAY]"}
+	)
 	self.Outputs = WireLib.CreateOutputs(self, { "Dist" })
 	self.hires = false
 end
@@ -115,9 +119,11 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Target") then
 		self:SetTarget(value)
 	elseif (iname == "Ignore") then
-		self.ignore = {}
+		self.ignore = { self }
 		for k,v in ipairs(value) do
-			self.ignore[v] = true
+			if IsEntity(v) and IsValid(v) then
+				self.ignore[#self.ignore+1] = v
+			end
 		end
 	end
 end
@@ -140,7 +146,7 @@ function ENT:Think()
 		local beam_z = self:GetUp()*skew.z
 		tracedata.endpos = tracedata.start + beam_x + beam_y + beam_z
 	end
-	tracedata.filter = { self }
+	tracedata.filter = self.ignore or { self }
 	if (self.trace_water) then tracedata.mask = -1 end
 	local trace = util.TraceLine(tracedata)
 	trace.RealStartPos = tracedata.start
@@ -163,32 +169,24 @@ function ENT:Think()
 		ent = trace.Entity
 
 		if (ent:IsValid()) then
-			if not (ent:IsPlayer() and self.ignore and self.ignore[ent]) then
-				vel = ent:GetVelocity()
-				ang = ent:GetAngles()
-				col = ent:GetColor()
 
-				if (self.out_sid or self.out_uid) and (ent:IsPlayer()) then
-					sid = ent:SteamID() or ""
-					uid = tonumber(ent:UniqueID()) or -1
-				end
+			vel = ent:GetVelocity()
+			ang = ent:GetAngles()
+			col = ent:GetColor()
 
-				if (self.out_val and ent.Outputs) then
-					local i = 1
-					for k,v in pairs(ent.Outputs) do
-						if (v.Value ~= nil and type(v.Value) == "number") then
-							val[i] = v.Value
-							i = i + 1
-						end
+			if (self.out_sid or self.out_uid) and (ent:IsPlayer()) then
+				sid = ent:SteamID() or ""
+				uid = tonumber(ent:UniqueID()) or -1
+			end
+
+			if (self.out_val and ent.Outputs) then
+				local i = 1
+				for k,v in pairs(ent.Outputs) do
+					if (v.Value ~= nil and type(v.Value) == "number") then
+						val[i] = v.Value
+						i = i + 1
 					end
 				end
-			else
-				if (self.default_zero) then
-					dist = 0
-				else
-					dist = self:GetBeamLength()
-				end
-				pos = Vector(0,0,0)
 			end
 
 		elseif(self.ignore_world) then
