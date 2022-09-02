@@ -119,10 +119,8 @@ __e2setcost(10)
 
 --- Links <this> to <ent2> if applicable
 e2function number entity:linkTo(entity ent2)
-	if not IsValid(this) then return self:throw("Invalid Entity!", 0) end
-	if not IsValid(ent2) then return self:throw("Invalid Entity!", 0) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity", 0) end
-	if not isOwner(self, ent2) then return self:throw("You do not own this entity", 0) end
+	if not IsValid(this) or not IsValid(ent2) then return self:throw("Invalid Entity!", 0) end
+	if not isOwner(self, this) or not isOwner(self, ent2) then return self:throw("You do not own this entity", 0) end
 	
 	if not this.LinkEnt then return self:throw("Entity can't be linked", 0) end
 	return this:LinkEnt(ent2) and 1 or 0
@@ -130,10 +128,8 @@ end
 
 --- Unlinks <this> from <ent2> if applicable
 e2function number entity:unlinkFrom(entity ent2)
-	if not IsValid(this) then return self:throw("Invalid Entity!", 0) end
-	if not IsValid(ent2) then return self:throw("Invalid Entity!", 0) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity", 0) end
-	if not isOwner(self, ent2) then return self:throw("You do not own this entity", 0) end
+	if not IsValid(this) or not IsValid(ent2) then return self:throw("Invalid Entity!", 0) end
+	if not isOwner(self, this) or not isOwner(self, ent2) then return self:throw("You do not own this entity", 0) end
 
 	if not this.UnlinkEnt then return self:throw("Entity can't be unlinked", 0) end
 	return this:UnlinkEnt(ent2) and 1 or 0
