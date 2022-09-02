@@ -792,3 +792,91 @@ function E2Lib.unpackException(struct)
 	end
 	return struct.catchable, struct.msg, struct.trace
 end
+
+
+--- Mimics an E2 Context as if it were really on an entity.
+--- This code can probably be deduplicated but that'd needlessly complicate things, and I've made this compact enough.
+---@param owner GEntity? # Owner, or assumes world
+---@param strict boolean? # Whether the context should be in @strict mode. 
+---@return ScopeManager? # Context or nil if failed
+local function makeContext(owner, strict)
+	local ctx = setmetatable({
+		data = {}, vclk = {}, funcs = {}, funcs_ret = {},
+		entity = owner, player = owner, uid = IsValid(owner) and owner:UniqueID() or "World",
+		prf = 0, prfcount = 0, prfbench = 0,
+		time = 0, timebench = 0, includes = {}
+	}, E2Lib.ScopeManager)
+
+	ctx:InitScope()
+
+	do
+		ctx.entity.outports = { {}, {}, {} }
+		ctx.entity.inports = { {}, {}, {} }
+		ctx.entity.context = ctx
+		ctx.entity.GlobalScope = ctx.GlobalScope
+		ctx.entity._vars = ctx.GlobalScope
+
+		if strict then
+			local err = E2Lib.raiseException
+			function ctx:throw(msg)
+				err(msg, 2, self.trace)
+			end
+		else
+			function ctx:throw(_msg, variable)
+				return variable
+			end
+		end
+	end
+
+	local ok, why = pcall(wire_expression2_CallHook, "construct", ctx)
+	if not ok then
+		pcall(wire_expression2_CallHook, "destruct", ctx)
+	else
+		return ctx
+	end
+end
+
+--- Runs an E2 script with
+---@param code string E2 Code to run.
+---@param owner GEntity? Entity or nil to run the E2 from world.
+---@param strict boolean Whether to run as strict
+---@return boolean success If ran successfully
+---@return string? message If errored, 
+function E2Lib.runScript(code, owner, strict)
+	local ctx = makeContext(owner or game.GetWorld(), strict)
+	ctx:PushScope()
+
+	do
+		local status, directives, code = E2Lib.PreProcessor.Execute(code,nil,ctx)
+		if not status then return false, directives end -- Preprocessor failed.
+
+		local status, tokens = E2Lib.Tokenizer.Execute(code)
+		if not status then return false, tokens end -- Tokenizer failed.
+
+		local status, tree, dvars = E2Lib.Parser.Execute(tokens)
+		if not status then return false, tree end -- Parser failed.
+
+		status,tree = E2Lib.Optimizer.Execute(tree)
+		if not status then return false, tree end -- Optimizer failed.
+
+		local status, script, inst = E2Lib.Compiler.Execute(tree, {}, {}, directives.persist[3], dvars, {})
+		if not status then return false, script end -- Compiler failed
+
+		local success, why = pcall( script[1], ctx, script )
+		ctx:PopScope()
+
+		-- Cleanup so hooks like runOnTick won't run after this call
+		pcall(wire_expression2_CallHook, "destruct", ctx)
+
+		return success, (not success) and why
+	end
+
+	do
+		-- Cleanup
+		ctx.entity.outports = nil
+		ctx.entity.inports = nil
+		ctx.entity.context = nil
+		ctx.entity.GlobalScope = nil
+		ctx.entity._vars = nil
+	end
+end

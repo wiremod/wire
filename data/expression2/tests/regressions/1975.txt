@@ -1,7 +1,7 @@
 vec() * 0
 0 * vec()
 
-local Calls = 0
+Calls = 0
 function number f() {
     Calls++
     return 1
