@@ -491,7 +491,7 @@ else
 end
 
 
-local steamfriends = WireLib.RegisterPlayerTable()
+local steamfriends = {}
 
 concommand.Add("wire_expression2_friend_status", function(ply, command, args)
 	local friends = {}
@@ -503,6 +503,14 @@ concommand.Add("wire_expression2_friend_status", function(ply, command, args)
 	end
 
 	steamfriends[ply] = friends
+end)
+
+hook.Add("EntityRemoved", "wire_expression2_friend_status", function(ply)
+	for _, friends in pairs(steamfriends) do
+		friends[ply] = nil
+	end
+
+	steamfriends[ply] = nil
 end)
 
 function E2Lib.getSteamFriends(ply)
