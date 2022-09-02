@@ -39,15 +39,15 @@ end
 function ENT:TriggerInput( name, value )
 	if (name == "Force") then
 		self.Force = value
-		self:SetBeamHighlight(value != 0)
+		self:SetBeamHighlight(value ~= 0)
 		self:ShowOutput()
 	elseif (name == "OffsetForce") then
 		self.OffsetForce = value
-		self:SetBeamHighlight(value != 0)
+		self:SetBeamHighlight(value ~= 0)
 		self:ShowOutput()
 	elseif (name == "Velocity") then
 		self.Velocity = math.Clamp(value,-100000,100000)
-		self:SetBeamHighlight(value != 0)
+		self:SetBeamHighlight(value ~= 0)
 		self:ShowOutput()
 	elseif (name == "Length") then
 		self:SetBeamLength(math.Round(value))
