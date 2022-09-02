@@ -71,9 +71,10 @@ function ENT:Think()
 
 	if not IsValid(trace.Entity) then return end
 	local convar_value = wire_forcer_permissions:GetInt()
-	if IsValid(self:GetPlayer()) and convar_value > 0 then
-		if convar_value == 2 and not gamemode.Call( "GravGunPickupAllowed", self:GetPlayer(), trace.Entity ) then return end
-		if convar_value == 1 and not gamemode.Call( "GravGunPunt", self:GetPlayer(), trace.Entity ) then return end
+	if convar_value==1 then
+		if not IsValid(self:GetPlayer()) or gamemode.Call( "GravGunPunt", self:GetPlayer(), trace.Entity )==false then return end
+	elseif convar_value==2 then
+		if not IsValid(self:GetPlayer()) or gamemode.Call( "GravGunPickupAllowed", self:GetPlayer(), trace.Entity )==false then return end
 	end
 
 	if trace.Entity:GetMoveType() == MOVETYPE_VPHYSICS then
