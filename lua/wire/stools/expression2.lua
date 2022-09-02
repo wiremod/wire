@@ -709,10 +709,10 @@ elseif CLIENT then
 		if not code and not wire_expression2_editor then return end -- If the player leftclicks without opening the editor or cpanel (first spawn)
 		code = code or wire_expression2_editor:GetCode()
 		filepath = filepath or wire_expression2_editor:GetChosenFile()
-		local err, includes
+		local err, includes, warnings
 
 		if e2_function_data_received then
-			err, includes = wire_expression2_validate(code)
+			err, includes, warnings = wire_expression2_validate(code)
 			if err then
 				WireLib.AddNotify(err, NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
 				return

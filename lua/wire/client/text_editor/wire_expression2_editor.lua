@@ -1612,11 +1612,27 @@ end
 
 function Editor:Validate(gotoerror)
 	if self.EditorType == "E2" then
-		local errors = wire_expression2_validate(self:GetCode())
+		local errors, _, warnings = wire_expression2_validate(self:GetCode())
 		if not errors then
-			self.C.Val:SetBGColor(0, 110, 20, 255)
-			self.C.Val:SetText("   Validation successful")
-			return true
+			if warnings then
+				self.C.Val:SetBGColor(150, 150, 0, 255)
+
+				local nwarnings = #warnings
+				local warning = table.remove(warnings, 1)
+
+				if gotoerror then
+					self.C.Val:SetText("   Warning (1/" .. nwarnings .. "): " .. warning.message)
+					self:GetCurrentEditor():SetCaret { warning.line, warning.char  }
+				else
+					self.C.Val:SetText("   Validated with " .. nwarnings .. " warning(s).")
+				end
+
+				return true
+			else
+				self.C.Val:SetBGColor(0, 110, 20, 255)
+				self.C.Val:SetText("   Validation successful")
+				return true
+			end
 		end
 		if gotoerror then
 			local row, col = errors:match("at line ([0-9]+), char ([0-9]+)$")

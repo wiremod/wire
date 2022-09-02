@@ -155,10 +155,10 @@ function registerOperator(name, pars, rets, func, cost, argnames)
 	if wire_expression2_debug:GetBool() then makecheck(signature) end
 end
 
-function registerFunction(name, pars, rets, func, cost, argnames)
+function registerFunction(name, pars, rets, func, cost, argnames, attributes)
 	local signature = name .. "(" .. pars .. ")"
 
-	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, extension = E2Lib.currentextension }
+	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, extension = E2Lib.currentextension, attributes = attributes }
 
 	wire_expression2_funclist[name] = true
 	if wire_expression2_debug:GetBool() then makecheck(signature) end
@@ -209,7 +209,7 @@ if SERVER then
 			end
 
 			for signature, v in pairs(wire_expression2_funcs) do
-				functiondata[signature] = { v[2], v[4], v.argnames, v.extension } -- ret (s), cost (n), argnames (t), extension (s)
+				functiondata[signature] = { v[2], v[4], v.argnames, v.extension, v.attributes } -- ret (s), cost (n), argnames (t), extension (s), attributes (t)
 			end
 		end
 
@@ -243,6 +243,7 @@ if SERVER then
 						net.WriteUInt(tab[2] or 0, 16) -- The function's cost [5]
 						net.WriteTable(tab[3] or {}) -- The function's argnames table (if a table isn't set, it'll just send a 1 byte blank table)
 						net.WriteString(tab[4] or "unknown")
+						net.WriteTable(tab[5] or {})
 					end
 					net.WriteString("") -- Needed to break out of the receiving for loop without affecting the final completion bit boolean
 					net.WriteBit(signature == nil) -- If we're at the end of the table, next will return nil, thus sending a true here
@@ -290,7 +291,7 @@ elseif CLIENT then
 				wire_expression2_funclist_lowercase[fname:lower()] = fname
 			end
 			if not next(tab[3]) then tab[3] = nil end -- If the function has no argnames table, the server will just send a blank table
-			wire_expression2_funcs[signature] = { signature, tab[1], false, tab[2], argnames = tab[3], extension = tab[4] }
+			wire_expression2_funcs[signature] = { signature, tab[1], false, tab[2], argnames = tab[3], extension = tab[4], attributes = tab[5] }
 		end
 
 		e2_function_data_received = true
@@ -328,7 +329,7 @@ elseif CLIENT then
 		while true do
 			local signature = net.ReadString()
 			if signature == "" then break end -- We've reached the end of the packet
-			buffer[signature] = { net.ReadString(), net.ReadUInt(16), net.ReadTable(), net.ReadString() } -- ret, cost, argnames, extension
+			buffer[signature] = { net.ReadString(), net.ReadUInt(16), net.ReadTable(), net.ReadString(), net.ReadTable() } -- ret, cost, argnames, extension, attributes
 		end
 
 		if net.ReadBit() == 1 then

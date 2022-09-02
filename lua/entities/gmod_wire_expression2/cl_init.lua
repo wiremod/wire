@@ -40,8 +40,6 @@ local function Include(e2, directives, includes, scripts)
 end
 
 function wire_expression2_validate(buffer)
-	-- removed CLIENT as this is client file
-	-- if CLIENT and
 	if not e2_function_data_received then return "Loading extensions. Please try again in a few seconds..." end
 
 	-- invoke preprocessor
@@ -50,10 +48,7 @@ function wire_expression2_validate(buffer)
 
 	-- decompose directives
 	local inports, outports, persists = directives.inputs, directives.outputs, directives.persist
-	-- removed CLIENT as this is client file
-	-- if CLIENT then
 	RunConsoleCommand("wire_expression2_scriptmodel", directives.model or "")
-	-- end
 
 	-- invoke tokenizer (=lexer)
 	local status, tokens = E2Lib.Tokenizer.Execute(buffer)
@@ -74,7 +69,7 @@ function wire_expression2_validate(buffer)
 	local status, script, instance = E2Lib.Compiler.Execute(tree, inports[3], outports[3], persists[3], dvars, scripts)
 	if not status then return script end
 
-	return nil, includes
+	return nil, includes, #instance.warnings ~= 0 and instance.warnings
 end
 
 -- string.GetTextSize shits itself if the string is both wide and tall,

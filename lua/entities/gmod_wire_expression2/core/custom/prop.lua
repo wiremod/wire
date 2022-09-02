@@ -444,6 +444,7 @@ e2function void entity:setPos(vector pos)
 	PropCore.PhysManipulate(this, pos, nil, nil, nil, nil)
 end
 
+[deprecated]
 e2function void entity:reposition(vector pos) = e2function void entity:setPos(vector pos)
 
 e2function void entity:setAng(angle rot)
@@ -451,6 +452,7 @@ e2function void entity:setAng(angle rot)
 	PropCore.PhysManipulate(this, nil, rot, nil, nil, nil)
 end
 
+[deprecated]
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
 
 --------------------------------------------------------------------------------

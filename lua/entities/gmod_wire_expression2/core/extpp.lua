@@ -221,7 +221,45 @@ function E2Lib.ExtPP.Pass2(contents)
 
 	-- This flag helps determine whether the preprocessor changed, so we can tell the environment about it.
 	local changed = false
-	for h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
+	for a_begin, attributes, h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()(%[?[%l%d,_ =\"]*%]?)\r?\n?()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
+		-- Convert attributes to a lookup table passed to registerFunction
+		attributes = attributes ~= "" and attributes or nil
+		-- attributes = attributes ~= ""
+		local attributes_str
+
+		if attributes and attributes:sub(1, 1) == "[" and attributes:sub(-1, -1) == "]" then
+			attributes_str = attributes
+			attributes = attributes:sub(2, -2) -- Remove surrounding brackets
+			-- [deprecated, nodiscard]
+			-- e2function void test()
+
+			attributes = attributes:Split(",")
+
+			local lookup = {}
+			for _, tag in ipairs(attributes) do
+				local k = tag:lower():Trim()
+				if k:find("=", 1, true) then
+					-- [xyz = 567, event = "Tick"]
+					-- e2function number foo()
+					local key, value = unpack( k:Split("="), 1, 2 )
+					key, value = key:lower():Trim(), tonumber(value:match("%d+")) or value:Trim()
+
+					lookup[key] = value
+				else
+					lookup[ tag:lower():Trim() ] = "true"
+				end
+			end
+
+			local buf = "{"
+			for attr, val in pairs(lookup) do
+				buf = buf .. "['" .. attr .. "'] = " .. val .. ","
+			end
+
+			attributes = buf .. "}"
+		else
+			attributes = "{}"
+		end
+
 		changed = true
 
 		local function handle_function()
@@ -247,7 +285,13 @@ function E2Lib.ExtPP.Pass2(contents)
 			if thistype:match("^[0-9]") then error("PP syntax error: Type names may not start with a number.", 0) end
 
 			-- append everything since the last function to the output.
-			table.insert(output, contents:sub(lastpos, h_begin - 1))
+			if attributes_str then
+				table.insert(output, contents:sub(lastpos, a_begin - 1))
+				table.insert(output, "--" .. attributes_str .. "\n")
+			else
+				table.insert(output, contents:sub(lastpos, h_begin - 1))
+			end
+
 			-- advance lastpos to the end of the function header
 			lastpos = h_end
 
@@ -324,18 +368,28 @@ function E2Lib.ExtPP.Pass2(contents)
 			if aliasflag then
 				if aliasflag == 1 then
 					-- left hand side of an alias definition
-					aliasdata = { regfn, name, arg_typeids, ret_typeid }
+					aliasdata = { regfn, name, arg_typeids, ret_typeid, attributes }
 				elseif aliasflag == 2 then
 					-- right hand side of an alias definition
-					regfn, name, arg_typeids, ret_typeid = unpack(aliasdata)
-					table.insert(function_register, ('if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n'):format(mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
+					regfn, name, arg_typeids, ret_typeid, attributes = unpack(aliasdata)
+					table.insert(function_register,
+						string.format(
+							'if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s, %s) end\n',
+							mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1), attributes
+						)
+					)
 				end
 			else
 				-- save tempcost
 				table.insert(output, string.format("tempcosts[%q]=__e2getcost() ", mangled_name))
 				if args_kind == ArgsKind.Variadic then
 					-- generate a registerFunction line
-					table.insert(function_register, string.format('if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids .. "...", ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
+					table.insert(function_register,
+						string.format(
+							'if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n',
+							mangled_name, regfn, name, arg_typeids .. "...", ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1), attributes
+						)
+					)
 
 					table.insert(output, compact([[
 						function registeredfunctions.]] .. mangled_name .. [[(self, args, typeids, ...)
@@ -352,7 +406,13 @@ function E2Lib.ExtPP.Pass2(contents)
 					]]))
 				elseif args_kind == ArgsKind.VariadicTbl then
 					-- generate a registerFunction line
-					table.insert(function_register, string.format('if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids .. "...", ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
+					table.insert(function_register,
+						string.format(
+							'if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s, %s) end\n',
+							mangled_name, regfn, name, arg_typeids .. "...", ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1), attributes
+						)
+					)
+					
 
 					-- Using __varargs_priv to avoid shadowing variables like `args` and breaking this implementation.
 					table.insert(output, compact([[
@@ -371,7 +431,12 @@ function E2Lib.ExtPP.Pass2(contents)
 					]]))
 				else
 					-- generate a registerFunction line
-					table.insert(function_register, string.format('if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
+					table.insert(function_register,
+						string.format(
+							'if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s, %s) end\n',
+							mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1), attributes
+						)
+					)
 
 					-- generate a new function header and append it to the output
 					table.insert(output, 'function registeredfunctions.' .. mangled_name .. '(self, args)')

@@ -389,6 +389,7 @@ end
 
 __e2setcost(5) -- temporary
 
+[deprecated]
 e2function number wirelink:writeCell(address, value)
 	if not validWirelink(self, this) then return 0 end
 
@@ -396,6 +397,7 @@ e2function number wirelink:writeCell(address, value)
 	if this:WriteCell(address, value) then return 1 else return 0 end
 end
 
+[deprecated, nodiscard]
 e2function number wirelink:readCell(address)
 	if not validWirelink(self, this) then return 0 end
 
