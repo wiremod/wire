@@ -23,8 +23,8 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateInputs(self, { 
 		"X", "Y", "SelectValue", "Length", 
 		"Target [VECTOR]", 
-		"Ignore (Adds all specified entities to the ranger's filter.\nKeep in mind that this filtering is not synced to the client and is therefore not visible in the ranger's beam.) [ARRAY]"}
-	)
+		"Ignore (Adds all specified entities to the ranger's filter.\nKeep in mind that this filtering is not synced to the client and is therefore not visible in the ranger's beam.) [ARRAY]"
+	})
 	self.Outputs = WireLib.CreateOutputs(self, { "Dist" })
 	self.hires = false
 end
