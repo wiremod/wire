@@ -502,19 +502,19 @@ concommand.Add("wire_expression2_friend_status", function(ply, command, args)
 		friends[Entity(n)] = true
 	end
 
-	steamfriends[ply:EntIndex()] = friends
+	steamfriends[ply] = friends
 end)
 
 hook.Add("EntityRemoved", "wire_expression2_friend_status", function(ply)
-	for plyID, friends in pairs(steamfriends) do
-		friends[ply:EntIndex()] = nil
+	for _, friends in pairs(steamfriends) do
+		friends[ply] = nil
 	end
 
-	steamfriends[ply:EntIndex()] = nil
+	steamfriends[ply] = nil
 end)
 
 function E2Lib.getSteamFriends(ply)
-	return steamfriends[ply:EntIndex()]
+	return steamfriends[ply]
 end
 
 __e2setcost(15)
@@ -527,7 +527,7 @@ e2function array entity:steamFriends()
 
 	-- make a copy
 	local ret = {}
-	for friend in pairs(steamfriends[this:EntIndex()]) do
+	for friend in pairs(steamfriends[this]) do
 		ret[#ret+1] = friend
 	end
 
@@ -540,7 +540,7 @@ e2function number entity:isSteamFriend(entity friend)
 	if not this:IsPlayer() then return 0 end
 	if this~=self.player then return 0 end
 
-	local friends = steamfriends[this:EntIndex()]
+	local friends = steamfriends[this]
 	if not friends then return 0 end
 
 	return friends[friend] and 1 or 0
