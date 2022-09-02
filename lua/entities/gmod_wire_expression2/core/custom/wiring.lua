@@ -138,3 +138,17 @@ e2function number entity:unlinkFrom(entity ent2)
 	if not this.UnlinkEnt then return self:throw("Entity can't be unlinked", 0) end
 	return this:UnlinkEnt(ent2) and 1 or 0
 end
+
+--- Clears <this>'s links if applicable 
+e2function void entity:clearLinks()
+	if not IsValid(this) then return self:throw("Invalid Entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+
+	if this.ClearEntities then
+		this:ClearEntities()
+	elseif this.UnlinkEnt then
+		this:UnlinkEnt()
+	else 
+		self:throw("Entity links cannot be cleared!")
+	end
+end
