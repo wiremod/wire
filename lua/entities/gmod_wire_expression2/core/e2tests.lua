@@ -17,7 +17,6 @@ end
 ---@param path string
 ---@param name string
 ---@return boolean ok
----@return string? message # Error message if not ok
 local function runE2Test(path, name)
 	local source = file.Read(path, "GAME")
 
@@ -26,16 +25,15 @@ local function runE2Test(path, name)
 	local should, step = source:match("^## SHOULD_(%w+):(%w+)")
 	local function assertmsg(v, step, err)
 		if not v then
-			local msg = "FAILED " .. step .. " (" .. name .. "): " .. err .. "\n"
-			Msg(msg)
-			return false, msg
+			Msg("FAILED " .. step .. " (" .. name .. "): " .. err .. "\n")
+			return false
 		end
 		return true
 	end
 
 	if step == "COMPILE" then
 		if should == "FAIL" then
-			return assertmsg(not ok, "COMPILING", "Should have failed to compile")			
+			return assertmsg(not ok, "COMPILING", "Should have failed to compile")
 		else
 			return assertmsg(ok, "COMPILING", err_or_func)
 		end
@@ -45,10 +43,10 @@ local function runE2Test(path, name)
 		local ok, err = err_or_func()
 		if not ok and err == "exit" then
 			return true
-		elseif should == "FAIL" then			
-			return assertmsg(not ok, "EXECUTION", err_or_func)			
+		elseif should == "FAIL" then
+			return assertmsg(not ok, "EXECUTION", err_or_func)
 		else
-			return assertmsg(ok, "EXECUTION", err_or_func)			
+			return assertmsg(ok, "EXECUTION", err_or_func)
 		end
 	else
 		error("Unhandled unit test combination (" .. name .. "): " .. (should or "nil") .. " + " .. (step or "nil"))
@@ -64,7 +62,7 @@ local function runE2Tests(path, failures, passes)
 
 	for _, name in ipairs(files) do
 		if string.match(name, "%.txt$") then
-			local ok, err = runE2Test(AddonRoot .. '/' .. path .. '/' .. name, name)
+			local ok = runE2Test(AddonRoot .. '/' .. path .. '/' .. name, name)
 			if ok then
 				passes[#passes + 1] = name
 			else
