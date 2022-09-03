@@ -1,3 +1,5 @@
+## SHOULD_PASS:COMPILE
+
 @name Parsing Test
 @persist [XYZ ZYX]:number FOO BAR:entity
 @inputs In
@@ -72,17 +74,16 @@ Ops = !(+(-(0 >> 1 << 2 * 3 + 4 - 5 / 6 % 7 && 8 || 9 != 10 == 11 <= 12 >= 13 ^^
 Logical = 0 | 1 & 2 != 3 == 4
 
 array():count()
-array()[0, number]
+array()[1, number]
 table(1 = 1, 2 = 2)
 
-#[
-    Can't test these for now.
-    Unit tests doesn't recognize inputs and outputs as such.
+~In
+$In
+->In
 
-    ~In
-    $In
-    ->In
-]#
+0
+1
+"Hello"
 
 
 #ifdef print(...)

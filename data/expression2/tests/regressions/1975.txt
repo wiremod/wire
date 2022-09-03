@@ -1,3 +1,5 @@
+## SHOULD_PASS:EXECUTE
+
 vec() * 0
 0 * vec()
 

@@ -797,9 +797,8 @@ end
 --- Mimics an E2 Context as if it were really on an entity.
 --- This code can probably be deduplicated but that'd needlessly complicate things, and I've made this compact enough.
 ---@param owner GEntity? # Owner, or assumes world
----@param strict boolean? # Whether the context should be in @strict mode. 
 ---@return ScopeManager? # Context or nil if failed
-local function makeContext(owner, strict)
+local function makeContext(owner)
 	local ctx = setmetatable({
 		data = {}, vclk = {}, funcs = {}, funcs_ret = {},
 		entity = owner, player = owner, uid = IsValid(owner) and owner:UniqueID() or "World",
@@ -809,74 +808,81 @@ local function makeContext(owner, strict)
 
 	ctx:InitScope()
 
-	do
-		ctx.entity.outports = { {}, {}, {} }
-		ctx.entity.inports = { {}, {}, {} }
-		ctx.entity.context = ctx
-		ctx.entity.GlobalScope = ctx.GlobalScope
-		ctx.entity._vars = ctx.GlobalScope
-
-		if strict then
-			local err = E2Lib.raiseException
-			function ctx:throw(msg)
-				err(msg, 2, self.trace)
-			end
-		else
-			function ctx:throw(_msg, variable)
-				return variable
-			end
-		end
-	end
-
+	-- Construct the context to run code.
+	-- If not done, 
 	local ok, why = pcall(wire_expression2_CallHook, "construct", ctx)
 	if not ok then
 		pcall(wire_expression2_CallHook, "destruct", ctx)
-	else
-		return ctx
 	end
+
+	return ctx
 end
 
---- Runs an E2 script with
----@param code string E2 Code to run.
----@param owner GEntity? Entity or nil to run the E2 from world.
----@param strict boolean Whether to run as strict
+--- Compiles an E2 script without an entity owning it.
+--- This doesn't have 1:1 behavior with an actual E2 chip existing, but is useful for testing.
+---@param code string E2 Code to compile.
+---@param owner GEntity? 'Owner' entity, default world.
 ---@return boolean success If ran successfully
----@return string? message If errored, 
-function E2Lib.runScript(code, owner, strict)
-	local ctx = makeContext(owner or game.GetWorld(), strict)
-	ctx:PushScope()
+---@return string|function compiled Compiled function, or error message if not success
+function E2Lib.compileScript(code, owner, run)
+	local status, directives, code = E2Lib.PreProcessor.Execute(code,nil,ctx)
+	if not status then return false, directives end -- Preprocessor failed.
 
-	do
-		local status, directives, code = E2Lib.PreProcessor.Execute(code,nil,ctx)
-		if not status then return false, directives end -- Preprocessor failed.
+	local status, tokens = E2Lib.Tokenizer.Execute(code)
+	if not status then return false, tokens end
 
-		local status, tokens = E2Lib.Tokenizer.Execute(code)
-		if not status then return false, tokens end -- Tokenizer failed.
+	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
+	if not status then return false, tree end
 
-		local status, tree, dvars = E2Lib.Parser.Execute(tokens)
-		if not status then return false, tree end -- Parser failed.
+	status,tree = E2Lib.Optimizer.Execute(tree)
+	if not status then return false, tree end
 
-		status,tree = E2Lib.Optimizer.Execute(tree)
-		if not status then return false, tree end -- Optimizer failed.
+	local status, script, inst = E2Lib.Compiler.Execute(tree, directives.inputs[3], directives.outputs[3], directives.persist[3], dvars, {})
+	if not status then return false, script end
 
-		local status, script, inst = E2Lib.Compiler.Execute(tree, {}, {}, directives.persist[3], dvars, {})
-		if not status then return false, script end -- Compiler failed
+	local ctx = makeContext(owner or game.GetWorld())
+	if directives.strict then
+		local err = E2Lib.raiseException
+		function ctx:throw(msg)
+			err(msg, 2, self.trace)
+		end
+	else
+		function ctx:throw(_msg, variable)
+			return variable
+		end
+	end
 
-		local success, why = pcall( script[1], ctx, script )
+	return true, function(ctx2)
+		ctx = ctx2 or ctx
+
+		do
+			-- This was originally in makeContext, but I put it here in order to ensure the owner entity
+			-- Isn't polluted by these fields, so they reset each time the compiled script is used.
+
+			ctx.entity.context = ctx
+			ctx.entity.outports, ctx.entity.inports = { {}, {}, {} }, { {}, {}, {} }
+			ctx.entity.GlobalScope, ctx.entity._vars = ctx.GlobalScope, ctx.GlobalScope
+		end
+
+		ctx:PushScope()
+			local success, why = pcall( script[1], ctx, script )
 		ctx:PopScope()
 
 		-- Cleanup so hooks like runOnTick won't run after this call
 		pcall(wire_expression2_CallHook, "destruct", ctx)
 
-		return success, (not success) and why
-	end
+		do
+			-- Cleanup
+			ctx.entity.context = nil
+			ctx.entity.outports, ctx.entity.inports = nil, nil
+			ctx.entity.GlobalScope, ctx.entity._vars = nil, nil
+		end
 
-	do
-		-- Cleanup
-		ctx.entity.outports = nil
-		ctx.entity.inports = nil
-		ctx.entity.context = nil
-		ctx.entity.GlobalScope = nil
-		ctx.entity._vars = nil
+		if success then
+			return true
+		else
+			why = select(2, E2Lib.unpackException(why))
+			return false, why
+		end
 	end
 end
