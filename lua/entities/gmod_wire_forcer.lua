@@ -70,13 +70,16 @@ function ENT:Think()
 	}
 
 	if not IsValid(trace.Entity) then return end
+	
+	if trace.Entity:GetMoveType() == MOVETYPE_PUSH then return end
+	
 	local convar_value = wire_forcer_permissions:GetInt()
 	if convar_value==1 then
 		if not IsValid(self:GetPlayer()) or gamemode.Call( "GravGunPunt", self:GetPlayer(), trace.Entity )==false then return end
 	elseif convar_value==2 then
 		if not IsValid(self:GetPlayer()) or gamemode.Call( "GravGunPickupAllowed", self:GetPlayer(), trace.Entity )==false then return end
 	end
-
+	
 	if trace.Entity:GetMoveType() == MOVETYPE_VPHYSICS then
 		local phys = trace.Entity:GetPhysicsObject()
 		if not IsValid(phys) then return end
