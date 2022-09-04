@@ -498,6 +498,7 @@ registerOperator("switch", "", "", function(self, args)
 				local ok, msg = pcall(stmts[1], self, stmts)
 				if not ok then
 					if msg == "break" then
+						self:PopScope()
 						break
 					elseif msg ~= "continue" then
 						self:PopScope()
