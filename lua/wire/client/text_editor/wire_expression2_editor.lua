@@ -1818,6 +1818,15 @@ function Editor:SaveFile(Line, close, SaveAs)
 		return
 	end
 
+	local path = ""
+	for k,v in ipairs(string.Explode("/", Line)) do
+		if string.EndsWith(v, ".txt") then continue end
+		path = path..v.."/"
+		if not file.IsDir(path, "DATA") then
+			file.CreateDir(path)
+		end
+	end
+
 	file.Write(Line, self:GetCode())
 
 	local f = file.Open(Line, "r", "DATA")
