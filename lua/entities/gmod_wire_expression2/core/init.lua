@@ -342,4 +342,6 @@ end
 -- uncomment this line or use an openscript concmd if you want to generate docs
 -- include("e2doc.lua")
 
-include("e2tests.lua")
+if SERVER then
+	include("e2tests.lua")
+end

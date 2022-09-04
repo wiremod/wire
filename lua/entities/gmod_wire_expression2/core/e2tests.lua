@@ -87,8 +87,18 @@ local function runE2Tests(path, failures, passes)
 	return failures, passes
 end
 
-concommand.Add("e2test", function()
+concommand.Add("e2test", function(ply)
+	if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then
+		ply:PrintMessage( 2, "Sorry " .. ply:Name() .. ", you don't have access to this command." )
+		return
+	end
+
 	local failed, passed = runE2Tests("data/expression2/tests")
 
-	print(#passed .. "/" .. (#passed + #failed) .. " tests passed")
+	local msg = #passed .. "/" .. (#passed + #failed) .. " tests passed"
+	if IsValid(ply) then
+		ply:PrintMessage(2, msg)
+	else
+		print(#passed .. "/" .. (#passed + #failed) .. " tests passed")
+	end
 end)
