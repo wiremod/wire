@@ -1,0 +1,10 @@
+## SHOULD_FAIL:COMPILE
+switch (1) {
+	case 2,
+		local A = 55
+		break
+
+	default,
+		# This should not compile, A is inside another scope
+		min(A, 5)
+}

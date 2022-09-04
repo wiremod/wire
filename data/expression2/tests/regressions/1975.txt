@@ -1,10 +1,12 @@
+## SHOULD_PASS:EXECUTE
+
 vec() * 0
 0 * vec()
 
-local Calls = 0
+Calls = 0
 function number f() {
-    Calls++
-    return 1
+	Calls++
+	return 1
 }
 f() * 0
 0 * f()

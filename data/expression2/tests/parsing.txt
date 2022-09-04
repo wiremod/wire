@@ -1,13 +1,49 @@
+## SHOULD_PASS:COMPILE
+
+@name Parsing Test
+@persist [XYZ ZYX]:number FOO BAR:entity
 @inputs In
 @outputs Out
+@strict
+@trigger none
 
-local A = 0
+#[ Comment ]#
+# Single line
 
-if (A) { A = 0 }
-if (A) { A = 0 } else { A = 0 }
-if (A) { A = 0 } elseif (A) { A = 0 }
-if (A) { A = 0 } elseif (A) { A = 0 }
+Str = "abcdefghijklmnopqrs\n\t\r"
 
+Num1 = 0x2042
+Num2 = 0b00111001
+Num3 = 2432.2352
+Num4 = 2193e2
+
+function f() {}
+
+function number test() { return 55 }
+function entity:test() { return void }
+function number test(X, Y: vector) { return X }
+function number test([X Y]) { return X + Y }
+function number test([X Y]: number) { return X + Y }
+
+function number entity:test(...Variadic:array) {
+	Expression = ( test() + 2 )
+	return Expression
+}
+
+local Var = 2
+switch (2) {
+	case 1,
+		break
+
+	case Var,
+		break
+
+	default,
+		break
+}
+
+local A = 1
+if (A) {} elseif(2) {} else {}
 while (A) { A = 0 }
 
 for (B = 1, 2) { A = 0 }
@@ -22,6 +58,8 @@ do { A = 0 } while (A)
 do { break } while (A)
 do { continue } while (A)
 
+try {} catch(Err) {}
+
 A++
 A--
 A += 1
@@ -29,66 +67,29 @@ A -= 1
 A *= 1
 A /= 1
 
-local B = vec()
-B[1] = 2
+Ternary = 1 ?: 2
+Ternary2 = 1 ? 2 : 1
 
-switch (A) {
-    case A + A,
-        A = 0
-        A = 0
-    case A + A + A,
-        A = 0
-        break
-    default,
-        A = 0
-}
-
-function f() {}
-function void f() {}
-function void f() { return }
-function number g() { return 0 }
-function number f(X) { return X }
-function vector f(X: vector) { return X }
-function number f(X, Y) { return X + Y }
-function number f(X, Y: vector) { return X }
-function number f([X Y]) { return X + Y }
-function number f([X Y]: number) { return X + Y }
-
-A ? A : A
-A ?: A
-A | A
-A & A
-A || A
-A && A
-A ^^ A
-A == A
-A != A
-A > A
-A < A
-A >= A
-A <= A
-A << A
-A >> A
-A + A
-A - A
-A * A
-A / A
-A % A
-A ^ A
-+A
--A
-!A
+Ops = !(+(-(0 >> 1 << 2 * 3 + 4 - 5 / 6 % 7 && 8 || 9 != 10 == 11 <= 12 >= 13 ^^ 14)))
+Logical = 0 | 1 & 2 != 3 == 4
 
 array():count()
-array()[0, number]
-(A)
-0
-"foo"
+array()[1, number]
+table(1 = 1, 2 = 2)
+
 ~In
 $In
 ->In
-A
 
-table(1 = 1, 2 = 2)
+0
+1
+"Hello"
 
-try {} catch(Err) {}
+
+#ifdef print(...)
+#else
+#endif
+
+#ifndef print(...)
+#else
+#endif

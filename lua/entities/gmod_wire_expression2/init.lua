@@ -50,6 +50,7 @@ local fixDefault = E2Lib.fixDefault
 
 local ScopeManager = {}
 ScopeManager.__index = ScopeManager
+E2Lib.ScopeManager = ScopeManager
 
 function ScopeManager:InitScope()
 	self.Scopes = {}
