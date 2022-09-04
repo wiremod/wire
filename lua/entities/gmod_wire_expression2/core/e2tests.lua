@@ -21,32 +21,40 @@ local function runE2Test(path, name)
 	local source = file.Read(path, "GAME")
 
 	local ok, err_or_func = E2Lib.compileScript(source, nil, true)
-
 	local should, step = source:match("^## SHOULD_(%w+):(%w+)")
-	local function assertmsg(v, step, err)
-		if not v then
-			Msg("FAILED " .. step .. " (" .. name .. "): " .. err .. "\n")
-			return false
-		end
-		return true
+
+	local function msgf(...)
+		Msg( string.format(...) )
 	end
 
 	if step == "COMPILE" then
-		if should == "FAIL" then
-			return assertmsg(not ok, "COMPILING", "Should have failed to compile")
+		if should == "FAIL" and ok then
+			msgf("FAILED COMPILING (%s): %s\n", name, "Should have failed to compile")
+			return false
+		elseif should == "PASS" and not ok then
+			msgf("FAILED COMPILING (%s): %s\n", name, err_or_func)
+			return false
 		else
-			return assertmsg(ok, "COMPILING", err_or_func)
+			return true
 		end
 	elseif step == "EXECUTE" then
-		assertmsg(ok, "COMPILING", err_or_func)
+		if not ok then
+			msgf("FAILED COMPILING (%s): %s\n", name, err_or_func)
+			return false
+		end
 
 		local ok, err = err_or_func()
-		if not ok and err == "exit" then
+		if not ok and err == "exit" and should == "PASS" then
+			-- Exception for exit(). That should count as a pass
 			return true
-		elseif should == "FAIL" then
-			return assertmsg(not ok, "EXECUTION", err_or_func)
+		elseif should == "FAIL" and ok then
+			msgf("FAILED EXECUTION (%s): %s\n", name, "Should have failed to execute")
+			return false
+		elseif should == "PASS" and not ok then
+			msgf("FAILED EXECUTION (%s): %s\n", name, err)
+			return false
 		else
-			return assertmsg(ok, "EXECUTION", err_or_func)
+			return true
 		end
 	else
 		error("Unhandled unit test combination (" .. name .. "): " .. (should or "nil") .. " + " .. (step or "nil"))

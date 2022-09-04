@@ -5,8 +5,8 @@ vec() * 0
 
 Calls = 0
 function number f() {
-    Calls++
-    return 1
+	Calls++
+	return 1
 }
 f() * 0
 0 * f()
