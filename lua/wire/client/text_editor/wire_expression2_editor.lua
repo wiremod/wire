@@ -1818,7 +1818,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 		return
 	end
 
-	local path = string.Left(Line, -(#string.GetFileFromFilename(Line)+1))
+	local path = string.GetPathFromFilename(Line
 	if not file.IsDir(path, "DATA") then
 		file.CreateDir(path)
 	end
