@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  Player-Entity support
+	Player-Entity support
 ------------------------------------------------------------------------------]]
 
 local IsValid = IsValid
@@ -499,15 +499,23 @@ concommand.Add("wire_expression2_friend_status", function(ply, command, args)
 	for index in args[1]:gmatch("[^,]+") do
 		local n = tonumber(index)
 		if not n then return end
-		table.insert(friends, Entity(n))
+		friends[Entity(n)] = true
 	end
 
-	steamfriends[ply:EntIndex()] = friends
+	steamfriends[ply] = friends
 end)
 
-hook.Add("EntityRemoved", "wire_expression2_friend_status", function(ply)
-	steamfriends[ply:EntIndex()] = nil
+hook.Add("PlayerDisconnected", "wire_expression2_friend_status", function(ply)
+	for _, friends in pairs(steamfriends) do
+		friends[ply] = nil
+	end
+
+	steamfriends[ply] = nil
 end)
+
+function E2Lib.getSteamFriends(ply)
+	return steamfriends[ply]
+end
 
 __e2setcost(15)
 
@@ -517,7 +525,13 @@ e2function array entity:steamFriends()
 	if not this:IsPlayer() then return {} end
 	if this~=self.player then return {} end
 
-	return steamfriends[this:EntIndex()] or {}
+	-- make a copy
+	local ret = {}
+	for friend in pairs(steamfriends[this]) do
+		ret[#ret+1] = friend
+	end
+
+	return ret
 end
 
 --- Returns 1 if <this> and <friend> are steam friends, 0 otherwise.
@@ -526,10 +540,10 @@ e2function number entity:isSteamFriend(entity friend)
 	if not this:IsPlayer() then return 0 end
 	if this~=self.player then return 0 end
 
-	local friends = steamfriends[this:EntIndex()]
+	local friends = steamfriends[this]
 	if not friends then return 0 end
 
-	return table.HasValue(friends, friend) and 1 or 0
+	return friends[friend] and 1 or 0
 end
 
 --------------------------------------------------------------------------------

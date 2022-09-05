@@ -11,11 +11,14 @@ if CLIENT then
 	}
 
 	language.Add( "wire_friendslist_save_on_entity", "Save On Entity" )
-	language.Add( "wire_friendslist_save_on_entity_tooltip", "When enabled, the friends list will be saved on the entity and carried across in dupes. When disabled, the friends list will mirror any changes you make in this UI." )
+	language.Add( "wire_friendslist_save_on_entity_help", "When 'Save On Entity' is enabled, the SteamIDs entered into the user interface below will be saved on the entity and carried across in dupes. When disabled, any changes you make in this UI below will be immediately synced to the friendslist entity." )
 	language.Add( "wire_friendslist_invalid_steamid", "Invalid SteamID" )
 	language.Add( "wire_friendslist_connected_players", "Currently connected players" )
 	language.Add( "wire_friendslist_not_connected", "Not Connected" )
-
+	
+	language.Add( "wire_friendslist_sync_with_steam", "Sync With Steam Friends" )
+	language.Add( "wire_friendslist_sync_with_cppi", "Sync With CPPI (Prop Protection)" )
+	language.Add( "wire_friendslist_sync_with_help", "Sync with Steam/CPPI. These synced settings ignore the 'save on entity' setting - friends on your steam/cppi lists will always be synced regardless." )
 
 	WireToolSetup.setToolMenuIcon( "icon16/group.png" )
 end
@@ -24,7 +27,9 @@ WireToolSetup.SetupMax(8)
 
 TOOL.ClientConVar = {
 	model = "models/kobilica/value.mdl",
-	save_on_entity = 0
+	save_on_entity = 0,
+	sync_with_steam = 0,
+	sync_with_cppi = 0
 }
 
 -- shared helper functions
@@ -62,7 +67,11 @@ if SERVER then
 	end)
 
 	function TOOL:GetConVars()
-		return self:GetClientNumber( "save_on_entity" ) ~= 0, friends[self:GetOwner()] or {}
+		return 
+			self:GetClientNumber( "save_on_entity" ) ~= 0, 
+			friends[self:GetOwner()] or {},
+			self:GetClientNumber( "sync_with_steam" ) ~= 0,
+			self:GetClientNumber( "sync_with_cppi" ) ~= 0
 	end
 
 	hook.Add( "OnEntityCreated", "wire_friendslist_created", function( ent )
@@ -177,8 +186,12 @@ else
 		WireToolHelpers.MakeModelSizer(panel, "wire_friendslist_modelsize")
 		ModelPlug_AddToCPanel(panel, "Value", "wire_friendslist", true)
 
+		local sync_with_steam = panel:CheckBox( "#wire_friendslist_sync_with_steam", "wire_friendslist_sync_with_steam" )
+		local sync_with_cppi = panel:CheckBox( "#wire_friendslist_sync_with_cppi", "wire_friendslist_sync_with_cppi" )
+		panel:Help( "#wire_friendslist_sync_with_help" )
+
 		local save_on_entity = panel:CheckBox( "#wire_friendslist_save_on_entity", "wire_friendslist_save_on_entity" )
-		save_on_entity:SetToolTip( "#wire_friendslist_save_on_entity_tooltip" )
+		panel:Help( "#wire_friendslist_save_on_entity_help" )
 
 		local pnl = vgui.Create( "DPanel", panel )
 		pnl:Dock( TOP )
