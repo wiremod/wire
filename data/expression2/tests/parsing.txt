@@ -10,7 +10,8 @@
 #[ Comment ]#
 # Single line
 
-Str = "abcdefghijklmnopqrs\n\t\r"
+Str = "abcdefghijklm
+nopqrs\n\t\r\a\v\b\\"
 
 Num1 = 0x2042
 Num2 = 0b00111001
@@ -18,6 +19,7 @@ Num3 = 2432.2352
 Num4 = 2193e2
 
 function f() {}
+function r() { return }
 
 function number test() { return 55 }
 function entity:test() { return void }

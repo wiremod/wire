@@ -704,7 +704,7 @@ function Parser:Stmt10()
 
 		local Trace = self:GetTokenTrace()
 
-		if self:AcceptRoamingToken(TokenVariant.LowerIdent, "void") or (self.readtoken.value and self.readtoken.value == "}") then
+		if self:AcceptRoamingToken(TokenVariant.LowerIdent, "void") or (self.readtoken.variant == TokenVariant.Grammar and self.readtoken.value == Grammar.RCurly) then
 			return self:Instruction(Trace, "return")
 		end
 
