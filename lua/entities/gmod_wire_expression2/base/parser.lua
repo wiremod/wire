@@ -1447,12 +1447,15 @@ function Parser:Expr16()
 end
 
 function Parser:Expr17()
-	if self:AcceptRoamingToken(TokenVariant.Decimal) or self:AcceptRoamingToken(TokenVariant.Hexadecimal) or self:AcceptRoamingToken(TokenVariant.Binary) or self:AcceptRoamingToken(TokenVariant.Complex) then
+	-- Basic lua supported numeric literals (decimal, hex, binary)
+	if self:AcceptRoamingToken(TokenVariant.Decimal) or self:AcceptRoamingToken(TokenVariant.Hexadecimal) or self:AcceptRoamingToken(TokenVariant.Binary) then
+		return self:Instruction(self:GetTokenTrace(), "literal", self:GetTokenData(), "n")
+	end
+
+	if self:AcceptRoamingToken(TokenVariant.Complex) or self:AcceptRoamingToken(TokenVariant.Quat) then
 		local trace = self:GetTokenTrace()
 		local tokendata = self:GetTokenData()
-		if isnumber(tokendata) then
-			return self:Instruction(trace, "literal", tokendata, "n")
-		end
+
 		local num, suffix = tokendata:match("^([-+e0-9.]*)(.*)$")
 		num = assert(tonumber(num), "unparseable numeric literal")
 		local value, type
@@ -1465,7 +1468,7 @@ function Parser:Expr17()
 		elseif suffix == "k" then
 			value, type = {0, 0, 0, num}, "q"
 		else
-			assert(false, "unrecognized numeric suffix " .. suffix)
+			error("unrecognized numeric suffix " .. suffix)
 		end
 		return self:Instruction(trace, "literal", value, type)
 	end

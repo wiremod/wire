@@ -28,21 +28,22 @@ local TokenVariant = {
 	Hexadecimal = 1,
 	Binary = 2,
 	Decimal = 3,
-	Quat = 4, -- quat number (4j)
+	Quat = 4, -- quat number (4j, 4k)
+	Complex = 5, -- complex number literal (4i)
 
-	String = 5, -- "foo"
+	String = 6, -- "foo"
 
-	Boolean = 6, -- true, false
+	Boolean = 7, -- true, false
 
-	Grammar = 7, -- [] () {} ,
-	Operator = 8, -- += + / *
+	Grammar = 8, -- [] () {} ,
+	Operator = 9, -- += + / *
 
-	Keyword = 9,
-	LowerIdent = 10, -- function_name
+	Keyword = 10,
+	LowerIdent = 11, -- function_name
 
-	Ident = 11, -- VariableName
+	Ident = 12, -- VariableName
 
-	Constant = 12, -- _CONST
+	Constant = 13, -- _CONST
 }
 
 Tokenizer.Variant = TokenVariant
@@ -148,7 +149,7 @@ function Tokenizer:Next()
 
 	match = self:ConsumePattern("^0b[0-1]+")
 	if match then
-		local val = tonumber(match) or self:Error("Invalid number format (" .. E2Lib.limitString(match, 10) .. ")")
+		local val = tonumber( match:sub(3), 2 ) or self:Error("Invalid number format (" .. E2Lib.limitString(match, 10) .. ")")
 		return Token.new(TokenVariant.Binary, val)
 	end
 
@@ -159,11 +160,24 @@ function Tokenizer:Next()
 		return Token.new(TokenVariant.Decimal, val)
 	end
 
-	match = self:ConsumePattern("^[0-9]+%.?[0-9]*[ijk]")
+	match = self:ConsumePattern("^[0-9]+%.?[0-9]*[jk]")
 	if match then
 		-- Quaternion number
-		local val = tonumber(match) or self:Error("Invalid number format (" .. E2Lib.limitString(match, 10) .. ")")
-		return Token.new(TokenVariant.Quat, val)
+		local badmatch = self:ConsumePattern("^[a-zA-Z_]")
+		if badmatch then
+			self:Error("Invalid number format (" .. E2Lib.limitString(match .. badmatch, 10) .. ")")
+		end
+		return Token.new(TokenVariant.Quat, match)
+	end
+
+	match = self:ConsumePattern("^[0-9]+%.?[0-9]*i")
+	if match then
+		-- Complex number
+		local badmatch = self:ConsumePattern("^[a-zA-Z_]")
+		if badmatch then
+			self:Error("Invalid number format (" .. E2Lib.limitString(match .. badmatch, 10) .. ")")
+		end
+		return Token.new(TokenVariant.Complex, match)
 	end
 
 	match = self:ConsumePattern("^[0-9]+%.?[0-9]*")
@@ -172,10 +186,6 @@ function Tokenizer:Next()
 		local val = tonumber(match) or self:Error("Invalid number format (" .. E2Lib.limitString(match, 10) .. ")")
 		return Token.new(TokenVariant.Decimal, val)
 	end
-
-	--[[
-		TODO: Quaternion/Complex numbers
-	]]
 
 	match = self:ConsumePattern("^[a-z#][a-zA-Z0-9_]*")
 	if match then
@@ -186,8 +196,11 @@ function Tokenizer:Next()
 			return Token.new(TokenVariant.Boolean, true)
 		elseif match == "false" then
 			return Token.new(TokenVariant.Boolean, false)
+		elseif match == "k" or match == "j" then
+			return Token.new(TokenVariant.Quat, "1" .. match)
+		elseif match == "i" then
+			return Token.new(TokenVariant.Complex, "1i")
 		else
-			-- TODO: Also check if it's a complex number call ? god these are a headache
 			return Token.new(TokenVariant.LowerIdent, match)
 		end
 	end
