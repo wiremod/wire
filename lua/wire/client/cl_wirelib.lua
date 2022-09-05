@@ -241,6 +241,29 @@ function Derma_StringRequestNoBlur(...)
 	return ret
 end
 
+function Derma_QueryNoBlur(...)
+	local f = math.max
+
+	function math.max(...)
+		local ret = f(...)
+
+		for i = 1,20 do
+			local name, value = debug.getlocal(2, i)
+			if name == "Window" then
+				value:SetBackgroundBlur( false )
+				break
+			end
+		end
+
+		return ret
+	end
+	local ok, ret = xpcall(Derma_Query, debug.traceback, ...)
+	math.max = f
+
+	if not ok then error(ret, 0) end
+	return ret
+end
+
 function WireLib.hud_debug(text, oneframe)
 	hook.Add("HUDPaint","wire_hud_debug",function()
 		if oneframe then hook.Remove("HUDPaint","wire_hud_debug") end
