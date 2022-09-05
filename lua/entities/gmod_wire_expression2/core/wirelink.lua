@@ -449,11 +449,11 @@ e2function vector wirelink:operator[T](address)
 	if not validWirelink(self, this) then return Vector(0, 0, 0) end
 
 	if not this.ReadCell then return 0 end
-	return {
+	return Vector(
 		this:ReadCell(address) or 0,
 		this:ReadCell(address+1) or 0,
 		this:ReadCell(address+2) or 0,
-	}
+	)
 end
 
 --- XWL[N,string]=S

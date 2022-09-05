@@ -559,9 +559,9 @@ e2function matrix operator*(matrix rv1, rv2)
 end
 
 e2function vector operator*(matrix rv1, vector rv2)
-	return { rv1[1] * rv2[1] + rv1[2] * rv2[2] + rv1[3] * rv2[3],
+	return Vector( rv1[1] * rv2[1] + rv1[2] * rv2[2] + rv1[3] * rv2[3],
 			 rv1[4] * rv2[1] + rv1[5] * rv2[2] + rv1[6] * rv2[3],
-			 rv1[7] * rv2[1] + rv1[8] * rv2[2] + rv1[9] * rv2[3] }
+			 rv1[7] * rv2[1] + rv1[8] * rv2[2] + rv1[9] * rv2[3] )
 end
 
 e2function matrix operator*(matrix rv1, matrix rv2)

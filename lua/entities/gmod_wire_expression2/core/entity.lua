@@ -215,36 +215,34 @@ __e2setcost(15)
 
 e2function vector entity:toWorld(vector localPosition)
 	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
-	return this:LocalToWorld(Vector(localPosition[1],localPosition[2],localPosition[3]))
+	return this:LocalToWorld(localPosition)
 end
 
 e2function vector entity:toLocal(vector worldPosition)
 	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
-	return this:WorldToLocal(Vector(worldPosition[1],worldPosition[2],worldPosition[3]))
+	return this:WorldToLocal(worldPosition)
 end
 
 e2function vector entity:toWorldAxis(vector localAxis)
 	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
-	return this:LocalToWorld(Vector(localAxis[1],localAxis[2],localAxis[3]))-this:GetPos()
+	return this:LocalToWorld(localAxis)-this:GetPos()
 end
 
 e2function vector entity:toLocalAxis(vector worldAxis)
 	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
-	return this:WorldToLocal(Vector(worldAxis[1],worldAxis[2],worldAxis[3])+this:GetPos())
+	return this:WorldToLocal(worldAxis+this:GetPos())
 end
 
 --- Transforms from an angle local to <this> to a world angle.
 e2function angle entity:toWorld(angle localAngle)
 	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
-	local worldAngle = this:LocalToWorldAngles(Angle(localAngle[1],localAngle[2],localAngle[3]))
-	return Angle(worldAngle.p, worldAngle.y, worldAngle.r)
+	return this:LocalToWorldAngles(localAngle)
 end
 
 --- Transforms from a world angle to an angle local to <this>.
 e2function angle entity:toLocal(angle worldAngle)
 	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
-	local localAngle = this:WorldToLocalAngles(Angle(worldAngle[1],worldAngle[2],worldAngle[3]))
-	return Angle(localAngle.p, localAngle.y, localAngle.r)
+	return this:WorldToLocalAngles(worldAngle)
 end
 
 /******************************************************************************/
@@ -275,16 +273,16 @@ __e2setcost(15)
 e2function number entity:bearing(vector pos)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 
-	pos = this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
+	pos = this:WorldToLocal(pos)
 
-	return rad2deg*-atan2(pos.y, pos.x)
+	return rad2deg * -atan2(pos.y, pos.x)
 end
 
 --- Returns the elevation (pitch) from <this> to <pos>
 e2function number entity:elevation(vector pos)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 
-	pos = this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
+	pos = this:WorldToLocal(pos)
 
 	local len = pos:Length()
 	if len < delta then return 0 end
@@ -295,7 +293,7 @@ end
 e2function angle entity:heading(vector pos)
 	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
 
-	pos = this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
+	pos = this:WorldToLocal(pos)
 
 	-- bearing
 	local bearing = rad2deg*-atan2(pos.y, pos.x)
@@ -303,7 +301,7 @@ e2function angle entity:heading(vector pos)
 	-- elevation
 	local len = pos:Length()--sqrt(x*x + y*y + z*z)
 	if len < delta then return Angle(0, bearing, 0) end
-	local elevation = rad2deg*asin(pos.z / len)
+	local elevation = rad2deg * asin(pos.z / len)
 
 	return Angle(elevation, bearing, 0)
 end
@@ -569,7 +567,7 @@ e2function void entity:applyForce(vector force)
 	force = clamp(force)
 
 	local phys = this:GetPhysicsObject()
-	phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
+	phys:ApplyForceCenter(force)
 end
 
 e2function void entity:applyOffsetForce(vector force, vector position)
@@ -580,14 +578,14 @@ e2function void entity:applyOffsetForce(vector force, vector position)
 	position 	= clamp(position)
 
 	local phys = this:GetPhysicsObject()
-	phys:ApplyForceOffset(Vector(force[1],force[2],force[3]), Vector(position[1],position[2],position[3]))
+	phys:ApplyForceOffset(force, position)
 end
 
 e2function void entity:applyAngForce(angle angForce)
 	if not validPhysics(this) then return self:throw("Invalid physics object!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
-	if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
+	if angForce:IsZero() then return end
 	angForce = clamp(angForce)
 
 	local phys = this:GetPhysicsObject()
@@ -624,27 +622,26 @@ e2function void entity:applyTorque(vector torque)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
-	if torque[1] == 0 and torque[2] == 0 and torque[3] == 0 then return end
+	if torque:IsZero() then return end
 	torque = clamp(torque)
 
 	local phys = this:GetPhysicsObject()
 
-	local tq = Vector(torque[1], torque[2], torque[3])
-	local torqueamount = tq:Length()
+	local torqueamount = torque:Length()
 
 	-- Convert torque from local to world axis
-	tq = phys:LocalToWorld( tq ) - phys:GetPos()
+	torque = phys:LocalToWorld( torque ) - phys:GetPos()
 
 	-- Find two vectors perpendicular to the torque axis
 	local off
-	if abs(tq.x) > torqueamount * 0.1 or abs(tq.z) > torqueamount * 0.1 then
-		off = Vector(-tq.z, 0, tq.x)
+	if abs(torque.x) > torqueamount * 0.1 or abs(torque.z) > torqueamount * 0.1 then
+		off = Vector(-torque.z, 0, torque.x)
 	else
-		off = Vector(-tq.y, tq.x, 0)
+		off = Vector(-torque.y, torque.x, 0)
 	end
 	off = off:GetNormal() * torqueamount * 0.5
 
-	local dir = ( tq:Cross(off) ):GetNormal()
+	local dir = ( torque:Cross(off) ):GetNormal()
 
 	dir = clamp(dir)
 	off = clamp(off)
@@ -923,7 +920,7 @@ __e2setcost(15)
 
 e2function vector entity:nearestPoint( vector point )
 	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
-	return this:NearestPoint( Vector(point[1],point[2],point[3]) )
+	return this:NearestPoint(point)
 end
 
 /******************************************************************************/

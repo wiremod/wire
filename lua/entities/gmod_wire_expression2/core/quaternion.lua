@@ -621,22 +621,22 @@ end
 e2function vector quaternion:right()
 	local this1, this2, this3, this4 = this[1], this[2], this[3], this[4]
 	local t2, t3, t4 = this2 * 2, this3 * 2, this4 * 2
-	return {
+	return Vector(
 		t4 * this1 - t2 * this3,
 		this2 * this2 - this1 * this1 + this4 * this4 - this3 * this3,
 		- t2 * this1 - t3 * this4
-	}
+	)
 end
 
 --- Returns vector pointing up for <this>
 e2function vector quaternion:up()
 	local this1, this2, this3, this4 = this[1], this[2], this[3], this[4]
 	local t2, t3, t4 = this2 * 2, this3 * 2, this4 * 2
-	return {
+	return Vector(
 		t3 * this1 + t2 * this4,
 		t3 * this4 - t2 * this1,
 		this1 * this1 - this2 * this2 - this3 * this3 + this4 * this4
-	}
+	)
 end
 
 /******************************************************************************/

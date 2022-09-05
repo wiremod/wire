@@ -110,7 +110,7 @@ end
 --------------------------------------------------------------------------------
 
 e2function vector vector:operator_neg()
-	return Vector(-this[1], -this[2], -this[3])
+	return -this
 end
 
 e2function vector operator+(lhs, vector rhs)
@@ -122,7 +122,7 @@ e2function vector operator+(vector lhs, rhs)
 end
 
 e2function vector operator+(vector lhs, vector rhs)
-	return Vector(lhs[1] + rhs[1], lhs[2] + rhs[2], lhs[3] + rhs[3])
+	return lhs + rhs
 end
 
 e2function vector operator-(lhs, vector rhs)
@@ -134,7 +134,7 @@ e2function vector operator-(vector lhs, rhs)
 end
 
 e2function vector operator-(vector lhs, vector rhs)
-	return Vector(lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3])
+	return lhs - rhs
 end
 
 e2function vector operator*(lhs, vector rhs)
@@ -146,7 +146,7 @@ e2function vector operator*(vector lhs, rhs)
 end
 
 e2function vector operator*(vector lhs, vector rhs)
-	return Vector(lhs[1] * rhs[1], lhs[2] * rhs[2], lhs[3] * rhs[3])
+	return lhs * rhs
 end
 
 e2function vector operator/(lhs, vector rhs)
@@ -158,7 +158,7 @@ e2function vector operator/(vector lhs, rhs)
 end
 
 e2function vector operator/(vector lhs, vector rhs)
-	return Vector(lhs[1] / rhs[1], lhs[2] / rhs[2], lhs[3] / rhs[3] )
+	return lhs / rhs
 end
 
 e2function number vector:operator[](index)
@@ -262,11 +262,11 @@ e2function number vector:dot( vector other )
 end
 
 e2function vector vector:cross( vector other )
-	return {
+	return Vector(
 		this[2] * other[3] - this[3] * other[2],
 		this[3] * other[1] - this[1] * other[3],
 		this[1] * other[2] - this[2] * other[1],
-	}
+	)
 end
 
 __e2setcost(10)
@@ -287,16 +287,16 @@ e2function vector vector:rotateAroundAxis(vector axis, degrees)
 	local length = (x*x+y*y+z*z)^0.5
 	x,y,z = x/length, y/length, z/length
 
-	return {(ca + (x^2)*(1-ca)) * this[1] + (x*y*(1-ca) - z*sa) * this[2] + (x*z*(1-ca) + y*sa) * this[3],
+	return Vector((ca + (x^2)*(1-ca)) * this[1] + (x*y*(1-ca) - z*sa) * this[2] + (x*z*(1-ca) + y*sa) * this[3],
 			(y*x*(1-ca) + z*sa) * this[1] + (ca + (y^2)*(1-ca)) * this[2] + (y*z*(1-ca) - x*sa) * this[3],
-			(z*x*(1-ca) - y*sa) * this[1] + (z*y*(1-ca) + x*sa) * this[2] + (ca + (z^2)*(1-ca)) * this[3]}
+			(z*x*(1-ca) - y*sa) * this[1] + (z*y*(1-ca) + x*sa) * this[2] + (ca + (z^2)*(1-ca)) * this[3])
 end
 
 __e2setcost(5)
 
 e2function vector vector:rotate( angle ang )
 	local v = Vector(this[1], this[2], this[3])
-	v:Rotate(Angle(ang[1], ang[2], ang[3]))
+	v:Rotate(ang)
 	return v
 end
 
@@ -313,11 +313,11 @@ e2function vector2 vector:dehomogenized()
 end
 
 e2function vector positive(vector rv1)
-	return {
+	return Vector(
 		rv1[1] >= 0 and rv1[1] or -rv1[1],
 		rv1[2] >= 0 and rv1[2] or -rv1[2],
 		rv1[3] >= 0 and rv1[3] or -rv1[3],
-	}
+	)
 end
 
 __e2setcost(3)
@@ -390,54 +390,54 @@ end
 __e2setcost(6)
 
 e2function vector round(vector rv1)
-	return {
+	return Vector(
 		floor(rv1[1] + 0.5),
 		floor(rv1[2] + 0.5),
 		floor(rv1[3] + 0.5)
-	}
+	)
 end
 
 e2function vector round(vector rv1, decimals)
 	local shf = 10 ^ decimals
-	return {
+	return Vector(
 		floor(rv1[1] * shf + 0.5) / shf,
 		floor(rv1[2] * shf + 0.5) / shf,
 		floor(rv1[3] * shf + 0.5) / shf
-	}
+	)
 end
 
 e2function vector ceil( vector rv1 )
-	return {
+	return Vector(
 		ceil(rv1[1]),
 		ceil(rv1[2]),
 		ceil(rv1[3])
-	}
+	)
 end
 
 e2function vector ceil(vector rv1, decimals)
 	local shf = 10 ^ decimals
-	return {
+	return Vector (
 		ceil(rv1[1] * shf) / shf,
 		ceil(rv1[2] * shf) / shf,
 		ceil(rv1[3] * shf) / shf
-	}
+	)
 end
 
 e2function vector floor(vector rv1)
-	return {
+	return Vector(
 		floor(rv1[1]),
 		floor(rv1[2]),
 		floor(rv1[3])
-	}
+	)
 end
 
 e2function vector floor(vector rv1, decimals)
 	local shf = 10 ^ decimals
-	return {
+	return Vector(
 		floor(rv1[1] * shf) / shf,
 		floor(rv1[2] * shf) / shf,
 		floor(rv1[3] * shf) / shf
-	}
+	)
 end
 
 __e2setcost(10)
@@ -457,37 +457,37 @@ end
 
 --- component-wise min/max
 e2function vector maxVec(vector rv1, vector rv2)
-	return {
+	return Vector(
 		rv1[1] > rv2[1] and rv1[1] or rv2[1],
 		rv1[2] > rv2[2] and rv1[2] or rv2[2],
 		rv1[3] > rv2[3] and rv1[3] or rv2[3],
-	}
+	)
 end
 
 e2function vector minVec(vector rv1, vector rv2)
-	return {
+	return Vector(
 		rv1[1] < rv2[1] and rv1[1] or rv2[1],
 		rv1[2] < rv2[2] and rv1[2] or rv2[2],
 		rv1[3] < rv2[3] and rv1[3] or rv2[3],
-	}
+	)
 end
 
 --- Performs modulo on x,y,z separately
 e2function vector mod(vector rv1, rv2)
-	return {
+	return Vector(
 		rv1[1] >= 0 and rv1[1] % rv2 or rv1[1] % -rv2,
 		rv1[2] >= 0 and rv1[2] % rv2 or rv1[2] % -rv2,
 		rv1[3] >= 0 and rv1[3] % rv2 or rv1[3] % -rv2,
-	}
+	)
 end
 
 --- Modulo where divisors are defined as a vector
 e2function vector mod(vector rv1, vector rv2)
-	return {
+	return Vector(
 		rv1[1] >= 0 and rv1[1] % rv2[1] or rv1[1] % -rv2[1],
 		rv1[2] >= 0 and rv1[2] % rv2[2] or rv1[2] % -rv2[2],
 		rv1[3] >= 0 and rv1[3] % rv2[3] or rv1[3] % -rv2[3],
-	}
+	)
 end
 
 --- Clamp according to limits defined by two min/max vectors
@@ -511,19 +511,19 @@ end
 
 --- Mix two vectors by a given proportion (between 0 and 1)
 e2function vector mix(vector vec1, vector vec2, ratio)
-	return {
+	return Vector(
 		vec1[1] * ratio + vec2[1] * (1-ratio),
 		vec1[2] * ratio + vec2[2] * (1-ratio),
 		vec1[3] * ratio + vec2[3] * (1-ratio)
-	}
+	)
 end
 
 e2function vector bezier(vector startVec, vector control, vector endVec, ratio)
-	return {
+	return Vector(
 		(1-ratio)^2 * startVec[1] + (2 * (1-ratio) * ratio * control[1]) + ratio^2 * endVec[1],
 		(1-ratio)^2 * startVec[2] + (2 * (1-ratio) * ratio * control[2]) + ratio^2 * endVec[2],
 		(1-ratio)^2 * startVec[3] + (2 * (1-ratio) * ratio * control[3]) + ratio^2 * endVec[3]
-	}
+	)
 end
 
 __e2setcost(2)
@@ -558,13 +558,11 @@ end
 __e2setcost(3)
 
 e2function angle vector:toAngle()
-	local angle = Vector(this[1], this[2], this[3]):Angle()
-	return Angle(angle.p, angle.y, angle.r)
+	return Vector(this[1], this[2], this[3]):Angle()
 end
 
 e2function angle vector:toAngle(vector up)
-	local angle = Vector(this[1], this[2], this[3]):AngleEx(Vector(up[1], up[2], up[3]))
-	return Angle(angle.p, angle.y, angle.r)
+	return Vector(this[1], this[2], this[3]):AngleEx(up)
 end
 
 --------------------------------------------------------------------------------
@@ -624,11 +622,11 @@ end
 __e2setcost( 15 )
 
 e2function string pointContents( vector point )
-	return cache_concatenated_parts[util.PointContents( Vector(point[1],point[2],point[3]))]
+	return cache_concatenated_parts[util.PointContents(point)]
 end
 
 e2function array pointContentsArray( vector point )
-	return cache_parts_array[util.PointContents( Vector(point[1],point[2],point[3]))]
+	return cache_parts_array[util.PointContents(point)]
 end
 
 --------------------------------------------------------------------------------
@@ -637,67 +635,42 @@ __e2setcost(15)
 
 --- Converts a local position/angle to a world position/angle and returns the position
 e2function vector toWorld( vector localpos, angle localang, vector worldpos, angle worldang )
-	local localpos = Vector(localpos[1],localpos[2],localpos[3])
-	local localang = Angle(localang[1],localang[2],localang[3])
-	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
-	local worldang = Angle(worldang[1],worldang[2],worldang[3])
-	return LocalToWorld(localpos,localang,worldpos,worldang)
+	return LocalToWorld(localpos, localang, worldpos, worldang)
 end
 
 --- Converts a local position/angle to a world position/angle and returns the angle
 e2function angle toWorldAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local localpos = Vector(localpos[1],localpos[2],localpos[3])
-	local localang = Angle(localang[1],localang[2],localang[3])
-	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
-	local worldang = Angle(worldang[1],worldang[2],worldang[3])
-	local pos, ang = LocalToWorld(localpos,localang,worldpos,worldang)
-	return Angle(ang.p, ang.y, ang.r)
+	local pos, ang = LocalToWorld(localpos, localang, worldpos, worldang)
+	return ang
 end
 
 --- Converts a local position/angle to a world position/angle and returns both in an array
 e2function array toWorldPosAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local localpos = Vector(localpos[1],localpos[2],localpos[3])
-	local localang = Angle(localang[1],localang[2],localang[3])
-	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
-	local worldang = Angle(worldang[1],worldang[2],worldang[3])
-	local pos, ang = LocalToWorld(localpos,localang,worldpos,worldang)
-	return {pos, Angle(ang.p, ang.y, ang.r)}
+	return { LocalToWorld(localpos,localang,worldpos,worldang) }
 end
 
 --- Converts a world position/angle to a local position/angle and returns the position
 e2function vector toLocal( vector localpos, angle localang, vector worldpos, angle worldang )
-	local localpos = Vector(localpos[1],localpos[2],localpos[3])
-	local localang = Angle(localang[1],localang[2],localang[3])
-	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
-	local worldang = Angle(worldang[1],worldang[2],worldang[3])
 	return WorldToLocal(localpos,localang,worldpos,worldang)
 end
 
 --- Converts a world position/angle to a local position/angle and returns the angle
 e2function angle toLocalAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local localpos = Vector(localpos[1],localpos[2],localpos[3])
-	local localang = Angle(localang[1],localang[2],localang[3])
-	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
-	local worldang = Angle(worldang[1],worldang[2],worldang[3])
 	local vec, ang = WorldToLocal(localpos,localang,worldpos,worldang)
-	return Angle(ang.p, ang.y, ang.r)
+	return ang
 end
 
 --- Converts a world position/angle to a local position/angle and returns both in an array
 e2function array toLocalPosAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local localpos = Vector(localpos[1],localpos[2],localpos[3])
-	local localang = Angle(localang[1],localang[2],localang[3])
-	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
-	local worldang = Angle(worldang[1],worldang[2],worldang[3])
 	local pos, ang = WorldToLocal(localpos,localang,worldpos,worldang)
-	return {pos, Angle(ang.p, ang.y, ang.r)}
+	return {pos, ang}
 end
 
 --------------------------------------------------------------------------------
 -- Credits to Wizard of Ass for bearing(v,a,v) and elevation(v,a,v)
 
 local ANG_ZERO = Angle(0, 0, 0)
-e2function number bearing(vector originpos,angle originangle, vector pos)
+e2function number bearing(vector originpos, angle originangle, vector pos)
 	pos = WorldToLocal(pos, ANG_ZERO, originpos, originangle)
 	return rad2deg * -atan2(pos.y, pos.x)
 end
