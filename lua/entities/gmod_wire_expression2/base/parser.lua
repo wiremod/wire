@@ -144,8 +144,7 @@ function Parser:GetTokenData()
 end
 
 function Parser:GetTokenTrace()
-	-- print("trace", self.token:display())
-	return { self.token.start_line, self.token.start_col, self.token:display() }
+	return { self.token.start_line, self.token.start_col }
 end
 
 
