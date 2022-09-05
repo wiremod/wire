@@ -1818,6 +1818,11 @@ function Editor:SaveFile(Line, close, SaveAs)
 		return
 	end
 
+	local path = string.GetPathFromFilename(Line
+	if not file.IsDir(path, "DATA") then
+		file.CreateDir(path)
+	end
+
 	file.Write(Line, self:GetCode())
 
 	local f = file.Open(Line, "r", "DATA")
