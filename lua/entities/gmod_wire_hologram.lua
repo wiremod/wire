@@ -243,7 +243,7 @@ if CLIENT then
 			self:SetModelScale((scale.x + scale.y + scale.z) / 3, 0)
 		end
 
-		if table.Count( self.bone_scale ) > 0 then
+		if not table.IsEmpty( self.bone_scale ) then
 			local count = self:GetBoneCount() or -1
 
 			for i = count, 0, -1 do
