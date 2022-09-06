@@ -68,20 +68,21 @@ function ENT:Think()
 		endpos = BeamOrigin + self:GetBeamLength() * Forward,
 		filter = self
 	}
+	local ent = trace.Entity
 
-	if not IsValid(trace.Entity) then return end
+	if not IsValid(ent) then return end
 	
-	if trace.Entity:GetMoveType() == MOVETYPE_PUSH then return end
+	if ent:GetMoveType() == MOVETYPE_PUSH then return end
 	
 	local convar_value = wire_forcer_permissions:GetInt()
 	if convar_value==1 then
-		if not IsValid(self:GetPlayer()) or gamemode.Call( "GravGunPunt", self:GetPlayer(), trace.Entity )==false then return end
+		if not IsValid(self:GetPlayer()) or gamemode.Call( "GravGunPunt", self:GetPlayer(), ent )==false then return end
 	elseif convar_value==2 then
-		if not IsValid(self:GetPlayer()) or gamemode.Call( "GravGunPickupAllowed", self:GetPlayer(), trace.Entity )==false then return end
+		if not IsValid(self:GetPlayer()) or gamemode.Call( "GravGunPickupAllowed", self:GetPlayer(), ent )==false then return end
 	end
 	
-	if trace.Entity:GetMoveType() == MOVETYPE_VPHYSICS then
-		local phys = trace.Entity:GetPhysicsObject()
+	if ent:GetMoveType() == MOVETYPE_VPHYSICS then
+		local phys = ent:GetPhysicsObject()
 		if not IsValid(phys) then return end
 
 		local force = clamp(Forward * self.Force * self.ForceMul)
@@ -93,7 +94,7 @@ function ENT:Think()
 		if self.Velocity ~= 0 then phys:SetVelocityInstantaneous( velocity ) end
 	else
 		local velocity = clamp(Forward * self.Velocity)
-		if self.Velocity ~= 0 then trace.Entity:SetVelocity( velocity ) end
+		if self.Velocity ~= 0 then ent:SetVelocity( velocity ) end
 	end
 
 	if self.Reaction and IsValid(self:GetPhysicsObject()) and (self.Force + self.OffsetForce ~= 0) then
