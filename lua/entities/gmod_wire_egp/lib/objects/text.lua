@@ -58,7 +58,7 @@ function Obj:Draw(ent, drawMat)
 		if self.angle == 0 then
 			local w,h
 			local x, y = self.x, self.y
-			if (self.halign != 0) then
+			if (self.halign ~= 0) then
 				w,h = surface_GetTextSize( self.text )
 				x = x - (w * ((self.halign%10)/2))
 			end
@@ -72,7 +72,7 @@ function Obj:Draw(ent, drawMat)
 		else
 			local w,h
 			local x, y = 0,0
-			if (self.halign != 0) then
+			if (self.halign ~= 0) then
 				w,h = surface_GetTextSize( self.text )
 				x = (w * ((self.halign%10)/2))
 			end

@@ -113,13 +113,13 @@ local function SpecialCase( arg )
 			local str = "["
 			for k,v in ipairs( arg ) do
 				if istable(v) then
-					if (k != #arg) then
+					if (k ~= #arg) then
 						str = str .. SpecialCase( v ) .. ","
 					else
 						str = str .. SpecialCase( v ) .. "]"
 					end
 				else
-					if (k != #arg) then
+					if (k ~= #arg) then
 						str = str .. tostring(v) .. ","
 					else
 						str = str .. tostring(v) .. "]"

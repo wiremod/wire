@@ -103,7 +103,7 @@ end
 function ENT:OnRemove()
 	BaseClass.OnRemove(self)
 
-	if (self.soundname and self.soundname != "") then
+	if (self.soundname and self.soundname ~= "") then
 		self:StopSound(self.soundname)
 	end
 end
@@ -252,7 +252,7 @@ function ENT:Switch( on, mul )
 
 
 	if (on) then
-		if (changed) and (self.soundname and self.soundname != "") then
+		if (changed) and (self.soundname and self.soundname ~= "") then
 			self:StopSound( self.soundname )
 			self:EmitSound( self.soundname )
 		end
@@ -261,7 +261,7 @@ function ENT:Switch( on, mul )
 
 		self:SetForce( nil, mul )
 	else
-		if (self.soundname and self.soundname != "") then
+		if (self.soundname and self.soundname ~= "") then
 			self:StopSound( self.soundname )
 		end
 

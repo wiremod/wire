@@ -97,7 +97,7 @@ function TOOL:RightClick( trace )
 		if (trace.Entity:IsPlayer()) then return false end
 		if (trace.Entity:GetClass() == "gmod_wire_plug") then
 			if (CLIENT) then return true end
-			trace.Entity:Setup( self:GetClientNumber( "array" ) != 0 )
+			trace.Entity:Setup( self:GetClientNumber( "array" ) ~= 0 )
 			return true
 		end
 	end
@@ -107,7 +107,7 @@ function TOOL:RightClick( trace )
 	local ply = self:GetOwner()
 	local plugmodel = SocketModels[self:GetModel()]
 
-	local plug = WireLib.MakeWireEnt(ply, {Class = "gmod_wire_plug", Pos=trace.HitPos, Angle=self:GetAngle(trace), Model=plugmodel}, self:GetClientNumber( "array" ) != 0)
+	local plug = WireLib.MakeWireEnt(ply, {Class = "gmod_wire_plug", Pos=trace.HitPos, Angle=self:GetAngle(trace), Model=plugmodel}, self:GetClientNumber( "array" ) ~= 0)
 	if not IsValid(plug) then return false end
 
 	plug:SetPos( trace.HitPos - trace.HitNormal * plug:OBBMins().x )

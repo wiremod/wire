@@ -35,7 +35,7 @@ end
 
 function ENT:TriggerInput(iname, value)
     if(iname == "Reset")then
-        if(value != 0)then
+        if(value ~= 0)then
             self.Value = self.value_start
             self:ShowOutput()
 	        Wire_TriggerOutput(self,"Out",self.Value)

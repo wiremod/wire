@@ -81,7 +81,7 @@ function EGP:GetGlobalPos( Ent, index )
 	local bool, k, v = self:HasObject( Ent, index )
 	if (bool) then
 		if (v.verticesindex) then -- Object has vertices
-			if (v.parent and v.parent != 0) then -- Object is parented
+			if (v.parent and v.parent ~= 0) then -- Object is parented
 				if (v.parent == -1) then -- object is parented to the cursor
 					local xy = {0,0}
 					if (CLIENT) then
@@ -143,7 +143,7 @@ function EGP:GetGlobalPos( Ent, index )
 			if isstring(v.verticesindex) then ret = { [v.verticesindex] = makeTable( v, makeArray( v ) ) }	else ret = makeTable( v, makeArray( v ) ) end
 			return true, ret
 		else -- Object does not have vertices, parent does not
-			if (v.parent and v.parent != 0) then -- Object is parented
+			if (v.parent and v.parent ~= 0) then -- Object is parented
 				if (v.parent == -1) then -- Object is parented to the cursor
 					local xy = {0,0}
 					if (CLIENT) then

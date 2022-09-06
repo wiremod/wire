@@ -232,22 +232,22 @@ end
 
 function ENT:TriggerInput( name, value )
 	if (name == "X") then -- X
-		if (self.Data.Pos.x != value) then
+		if (self.Data.Pos.x ~= value) then
 			self.Data.Pos.x = value
 			self:AddPoint()
 		end
 	elseif (name == "Y") then -- Y
-		if (self.Data.Pos.y != value) then
+		if (self.Data.Pos.y ~= value) then
 			self.Data.Pos.y = value
 			self:AddPoint()
 		end
 	elseif (name == "Z") then -- Z
-		if (self.Data.Pos.z != value) then
+		if (self.Data.Pos.z ~= value) then
 			self.Data.Pos.z = value
 			self:AddPoint()
 		end
 	elseif (name == "Pos") then -- XYZ
-		if (self.Data.Pos != value) then
+		if (self.Data.Pos ~= value) then
 			self.Data.Pos = value
 			self:AddPoint()
 		end

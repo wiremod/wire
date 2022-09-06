@@ -217,7 +217,7 @@ function WireToolObj:GetModel()
 	local model_convar = self:GetClientInfo( "model" )
 	if self.ClientConVar.modelsize then
 		local modelsize = self:GetClientInfo( "modelsize" )
-		if modelsize != "" then
+		if modelsize ~= "" then
 			local model = string.sub(model_convar, 1, -5) .."_".. modelsize .. string.sub(model_convar, -4)
 			if self:CheckValidModel(model) then return model end
 			model = string.GetPathFromFilename(model_convar) .. modelsize .."_".. string.GetFileFromFilename(model_convar)

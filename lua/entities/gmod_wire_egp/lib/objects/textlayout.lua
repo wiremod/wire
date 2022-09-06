@@ -42,7 +42,7 @@ function Obj:Draw(ent, drawMat)
 		surface.SetFont( font )
 
 		--if (!self.layouter) then self.layouter = EGP:MakeTextLayouter() end -- Trying to make my own layouter...
-		--self.layouter:SetText( self.text, self.x, self.y, self.w, self.h, self.halign, self.valign, (self.fontid != self.oldfontid) )
+		--self.layouter:SetText( self.text, self.x, self.y, self.w, self.h, self.halign, self.valign, (self.fontid ~= self.oldfontid) )
 		--self.layouter:DrawText()
 		--self.oldfontid = self.fontid
 
@@ -72,15 +72,15 @@ function Obj:Draw(ent, drawMat)
 			self.layouter:SetLimitHeight( true )
 			self.oldvalues = {}
 		end
-		if (self.oldvalues.x != self.x or
-			self.oldvalues.y != self.y or
-			self.oldvalues.w != self.w or
-			self.oldvalues.h != self.h or
-			self.oldvalues.text != self.text or
-			self.oldvalues.size != self.size or
-			self.oldvalues.halign != self.halign or
-			self.oldvalues.valign != self.valign or
-			self.oldvalues.fontid != self.fontid) then
+		if (self.oldvalues.x ~= self.x or
+			self.oldvalues.y ~= self.y or
+			self.oldvalues.w ~= self.w or
+			self.oldvalues.h ~= self.h or
+			self.oldvalues.text ~= self.text or
+			self.oldvalues.size ~= self.size or
+			self.oldvalues.halign ~= self.halign or
+			self.oldvalues.valign ~= self.valign or
+			self.oldvalues.fontid ~= self.fontid) then
 			self.layouter:SetSize( self.w, self.h )
 			self.layouter:SetPos( self.x, self.y )
 			self.layouter:SetText( self.text )

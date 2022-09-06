@@ -33,7 +33,7 @@ function ENT:TriggerInput( name, value )
 		end
 	elseif (name == "Add Entity") then
 		if IsValid(self.Target) then
-			if (value != 0) then
+			if (value ~= 0) then
 				local bool, index = self:CheckEnt( self.Target )
 				if (!bool) then
 					self:LinkEnt( self.Target )
@@ -42,7 +42,7 @@ function ENT:TriggerInput( name, value )
 		end
 	elseif (name == "Remove Entity") then
 		if IsValid(self.Target) then
-			if (value != 0) then
+			if (value ~= 0) then
 				local bool, index = self:CheckEnt( self.Target )
 				if (bool) then
 					self:UnlinkEnt( self.Target )

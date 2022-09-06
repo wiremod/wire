@@ -104,7 +104,7 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "On") then
 		self:Switch( value ~= 0 )
 	elseif (iname == "Texture") then
-		if value != "" then self.Texture = value else self.Texture = "effects/flashlight001" end
+		if value ~= "" then self.Texture = value else self.Texture = "effects/flashlight001" end
 	end
 	self:UpdateLight()
 end

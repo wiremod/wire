@@ -171,7 +171,7 @@ function ENT:TriggerOutputs(dist, brng, distc, gpscords,dirvec,velo)
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "Target") and ( self.ToSense != self.Inputs.Target.Src ) then
+	if (iname == "Target") and ( self.ToSense ~= self.Inputs.Target.Src ) then
 		self:LinkEnt(self.Inputs.Target.Src)
 	end
 end

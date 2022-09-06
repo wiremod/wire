@@ -30,7 +30,7 @@ end
 
 function ENT:TriggerInput( name, value )
 	if (name == "0 to 512") then
-		self:SetNWBool( "Resolution", value != 0 )
+		self:SetNWBool( "Resolution", value ~= 0 )
 	end
 end
 
