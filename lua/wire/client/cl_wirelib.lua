@@ -219,26 +219,15 @@ if not CanRunConsoleCommand then
 end
 
 function Derma_StringRequestNoBlur(...)
-	local f = math.max
+	local panel = Derma_StringRequest(...)
+	panel:SetBackgroundBlur(false)
+	return panel
+end
 
-	function math.max(...)
-		local ret = f(...)
-
-		for i = 1,20 do
-			local name, value = debug.getlocal(2, i)
-			if name == "Window" then
-				value:SetBackgroundBlur( false )
-				break
-			end
-		end
-
-		return ret
-	end
-	local ok, ret = xpcall(Derma_StringRequest, debug.traceback, ...)
-	math.max = f
-
-	if not ok then error(ret, 0) end
-	return ret
+function Derma_QueryNoBlur(...)
+	local panel = Derma_Query(...)
+	panel:SetBackgroundBlur(false)
+	return panel
 end
 
 function WireLib.hud_debug(text, oneframe)
