@@ -263,7 +263,7 @@ if (SERVER) then
 			end
 			dbginfo = dbginfo .. " (" ..cmp:EntIndex() .. ") - "
 
-			if (cmp.Inputs and table.Count(cmp.Inputs) > 0) then
+			if (cmp.Inputs and not table.IsEmpty(cmp.Inputs)) then
 				if OrientVertical then
 					dbginfo = dbginfo .. "\n"
 				end
@@ -283,8 +283,8 @@ if (SERVER) then
 				end
 			end
 
-			if (cmp.Outputs and table.Count(cmp.Outputs) > 0) then
-				if(cmp.Inputs and table.Count(cmp.Inputs) > 0) then
+			if (cmp.Outputs and not table.IsEmpty(cmp.Outputs)) then
+				if(cmp.Inputs and not table.IsEmpty(cmp.Inputs)) then
 					dbginfo = dbginfo .. "\n "
 				end
 				if not cmp.Inputs and OrientVertical then
