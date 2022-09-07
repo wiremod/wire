@@ -235,7 +235,7 @@ end
 __e2setcost( 5 )
 
 e2function void runOnFile( active )
-	run_on.file.ents[self.entity] = (active != 0)
+	run_on.file.ents[self.entity] = (active ~= 0)
 end
 
 e2function number fileClk()
@@ -251,7 +251,7 @@ end
 __e2setcost( 5 )
 
 e2function void runOnList( active )
-	run_on.list.ents[self.entity] = (active != 0)
+	run_on.list.ents[self.entity] = (active ~= 0)
 end
 
 e2function number fileListClk()
@@ -405,7 +405,7 @@ net.Receive("wire_expression2_file_finish", function(netlen, ply)
 	pfile.data = E2Lib.decode( pfile.buffer )
 	pfile.buffer = ""
 
-	if string.len( pfile.data ) != pfile.len then -- transfer error
+	if string.len( pfile.data ) ~= pfile.len then -- transfer error
 		pfile.data = ""
 		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
 		return

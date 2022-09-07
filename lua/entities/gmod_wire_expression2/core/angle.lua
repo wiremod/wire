@@ -60,7 +60,7 @@ end)
 /******************************************************************************/
 
 e2function number operator_is(angle rv1)
-	if rv1[1] != 0 || rv1[2] != 0 || rv1[3] != 0
+	if rv1[1] ~= 0 || rv1[2] ~= 0 || rv1[3] ~= 0
 	   then return 1 else return 0 end
 end
 

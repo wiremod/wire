@@ -561,7 +561,7 @@ e2function table table:clipFromTypeid( string typeid )
 	local ret = newE2Table()
 
 	for k,v in pairs( this.n ) do
-		if (this.ntypes[k] != typeid) then
+		if (this.ntypes[k] ~= typeid) then
 			if istable(v) then
 				ret.n[k] = prf_clone(self, v)
 			else
@@ -573,7 +573,7 @@ e2function table table:clipFromTypeid( string typeid )
 	end
 
 	for k, v in pairs( this.s ) do
-		if (this.stypes[k] != typeid) then
+		if (this.stypes[k] ~= typeid) then
 			if istable(v) then
 				ret.s[k] = prf_clone(self, v)
 			else
@@ -858,7 +858,7 @@ e2function array table:toArray()
 	for k,v in pairs( this.n ) do
 		cost = cost + 1
 		local id = this.ntypes[k]
-		if (tbls[id] != true) then
+		if (tbls[id] ~= true) then
 			ret[k] = v
 		end
 	end
@@ -1050,7 +1050,7 @@ registerCallback( "postinit", function()
 		registerOperator("idx",	id.."=ts"		, id, function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixDefault(v[2]) end
+			if (!rv1.s[rv2] or rv1.stypes[rv2] ~= id) then return fixDefault(v[2]) end
 			if (v[6] and v[6](rv1.s[rv2])) then return fixDefault(v[2]) end -- Type check
 			return rv1.s[rv2]
 		end)
@@ -1058,7 +1058,7 @@ registerCallback( "postinit", function()
 		registerOperator("idx",	id.."=tn"		, id, function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixDefault(v[2]) end
+			if (!rv1.n[rv2] or rv1.ntypes[rv2] ~= id) then return fixDefault(v[2]) end
 			if (v[6] and v[6](rv1.n[rv2])) then return fixDefault(v[2]) end -- Type check
 			return rv1.n[rv2]
 		end)
@@ -1096,7 +1096,7 @@ registerCallback( "postinit", function()
 		local function removefunc( self, rv1, rv2, numidx )
 			if (!rv1 or !rv2) then return fixDefault(v[2]) end
 			if (numidx) then
-				if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixDefault(v[2]) end
+				if (!rv1.n[rv2] or rv1.ntypes[rv2] ~= id) then return fixDefault(v[2]) end
 				local ret = rv1.n[rv2]
 				if rv2 < 1 then -- table.remove doesn't work if the index is below 1
 					rv1.n[rv2] = nil
@@ -1109,7 +1109,7 @@ registerCallback( "postinit", function()
 				self.GlobalScope.vclk[rv1] = true
 				return ret
 			else
-				if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixDefault(v[2]) end
+				if (!rv1.s[rv2] or rv1.stypes[rv2] ~= id) then return fixDefault(v[2]) end
 				local ret = rv1.s[rv2]
 				rv1.s[rv2] = nil
 				rv1.stypes[rv2] = nil
@@ -1305,7 +1305,7 @@ registerCallback("construct", function(self)
 	Scope.lookup = {}
 
 	for k,v in pairs( Scope ) do
-		if k != "lookup" then
+		if k ~= "lookup" then
 			local datatype = self.entity.outports[3][k]
 			if (tbls[datatype]) then
 				if (!Scope.lookup[v]) then Scope.lookup[v] = {} end

@@ -1228,7 +1228,7 @@ end
 e2function void wirelink:egpRunOnQueue( yesno )
 	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
 	local bool = false
-	if (yesno != 0) then bool = true end
+	if (yesno ~= 0) then bool = true end
 	self.data.EGP.RunOnEGP[this] = bool
 end
 

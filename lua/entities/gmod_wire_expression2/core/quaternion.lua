@@ -45,19 +45,19 @@ local function format(value)
 	dbginfo = r
 	if abs(value[2]) > 0.0005 then
 		i = tostring(Round(value[2]*1000)/1000)
-		if string.sub(i,1,1)!="-" and dbginfo != "" then i = "+"..i end
+		if string.sub(i,1,1)~="-" and dbginfo ~= "" then i = "+"..i end
 		i = i .. "i"
 	end
 	dbginfo = dbginfo .. i
 	if abs(value[3]) > 0.0005 then
 		j = tostring(Round(value[3]*1000)/1000)
-		if string.sub(j,1,1)!="-" and dbginfo != "" then j = "+"..j end
+		if string.sub(j,1,1)~="-" and dbginfo ~= "" then j = "+"..j end
 		j = j .. "j"
 	end
 	dbginfo = dbginfo .. j
 	if abs(value[4]) > 0.0005 then
 		k = tostring(Round(value[4]*1000)/1000)
-		if string.sub(k,1,1)!="-" and dbginfo != "" then k = "+"..k end
+		if string.sub(k,1,1)~="-" and dbginfo ~= "" then k = "+"..k end
 		k = k .. "k"
 	end
 	dbginfo = dbginfo .. k
