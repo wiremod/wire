@@ -467,10 +467,10 @@ __e2setcost(6)
 
 e2function number operator==(quaternion lhs, quaternion rhs)
 	local rvd1, rvd2, rvd3, rvd4 = lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3], lhs[4] - rhs[4]
-	if rvd1 <= delta && rvd1 >= -delta &&
-	   rvd2 <= delta && rvd2 >= -delta &&
-	   rvd3 <= delta && rvd3 >= -delta &&
-	   rvd4 <= delta && rvd4 >= -delta
+	if rvd1 <= delta and rvd1 >= -delta and
+	   rvd2 <= delta and rvd2 >= -delta and
+	   rvd3 <= delta and rvd3 >= -delta and
+	   rvd4 <= delta and rvd4 >= -delta
 	   then return 1 else return 0 end
 end
 

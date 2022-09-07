@@ -86,8 +86,8 @@ end)
 registerOperator("eq", "xv2xv2", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1[1] - rv2[1] <= delta && rv2[1] - rv1[1] <= delta &&
-	   rv1[2] - rv2[2] <= delta && rv2[2] - rv1[2] <= delta
+	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
+	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta
 	   then return 1 else return 0 end
 end)
 
@@ -639,10 +639,10 @@ end)
 registerOperator("eq", "xv4xv4", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1[1] - rv2[1] <= delta && rv2[1] - rv1[1] <= delta &&
-	   rv1[2] - rv2[2] <= delta && rv2[2] - rv1[2] <= delta &&
-	   rv1[3] - rv2[3] <= delta && rv2[3] - rv1[3] <= delta &&
-	   rv1[4] - rv2[4] <= delta && rv2[4] - rv1[4] <= delta
+	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
+	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta and
+	   rv1[3] - rv2[3] <= delta and rv2[3] - rv1[3] <= delta and
+	   rv1[4] - rv2[4] <= delta and rv2[4] - rv1[4] <= delta
 	   then return 1 else return 0 end
 end)
 
