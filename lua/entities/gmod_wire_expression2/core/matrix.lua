@@ -100,10 +100,10 @@ end)
 // Comparison
 
 e2function number operator_is(matrix2 rv1)
-	if rv1[1] > delta || -rv1[1] > delta ||
-	   rv1[2] > delta || -rv1[2] > delta ||
-	   rv1[3] > delta || -rv1[3] > delta ||
-	   rv1[4] > delta || -rv1[4] > delta
+	if rv1[1] > delta or -rv1[1] > delta or
+	   rv1[2] > delta or -rv1[2] > delta or
+	   rv1[3] > delta or -rv1[3] > delta or
+	   rv1[4] > delta or -rv1[4] > delta
 	   then return 1 else return 0 end
 end
 
@@ -487,15 +487,15 @@ end)
 // Comparison
 
 e2function number operator_is(matrix rv1)
-	if rv1[1] > delta || -rv1[1] > delta ||
-	   rv1[2] > delta || -rv1[2] > delta ||
-	   rv1[3] > delta || -rv1[3] > delta ||
-	   rv1[4] > delta || -rv1[4] > delta ||
-	   rv1[5] > delta || -rv1[5] > delta ||
-	   rv1[6] > delta || -rv1[6] > delta ||
-	   rv1[7] > delta || -rv1[7] > delta ||
-	   rv1[8] > delta || -rv1[8] > delta ||
-	   rv1[9] > delta || -rv1[9] > delta
+	if rv1[1] > delta or -rv1[1] > delta or
+	   rv1[2] > delta or -rv1[2] > delta or
+	   rv1[3] > delta or -rv1[3] > delta or
+	   rv1[4] > delta or -rv1[4] > delta or
+	   rv1[5] > delta or -rv1[5] > delta or
+	   rv1[6] > delta or -rv1[6] > delta or
+	   rv1[7] > delta or -rv1[7] > delta or
+	   rv1[8] > delta or -rv1[8] > delta or
+	   rv1[9] > delta or -rv1[9] > delta
 	   then return 1 else return 0 end
 end
 
@@ -705,15 +705,15 @@ e2function matrix matrix:swapRows(rv2, rv3)
 	else r2 = rv3 - rv3 % 1 end
 
 	if r1 == r2 then return this
-	elseif (r1 == 1 and r2 == 2) || (r1 == 2 and r2 == 1) then
+	elseif (r1 == 1 and r2 == 2) or (r1 == 2 and r2 == 1) then
 		this = { this[4], this[5], this[6],
 				this[1], this[2], this[3],
 				this[7], this[8], this[9] }
-	elseif (r1 == 2 and r2 == 3) || (r1 == 3 and r2 == 2) then
+	elseif (r1 == 2 and r2 == 3) or (r1 == 3 and r2 == 2) then
 		this = { this[1], this[2], this[3],
 				this[7], this[8], this[9],
 				this[4], this[5], this[6] }
-	elseif (r1 == 1 and r2 == 3) || (r1 == 3 and r2 == 1) then
+	elseif (r1 == 1 and r2 == 3) or (r1 == 3 and r2 == 1) then
 		this = { this[7], this[8], this[9],
 				this[4], this[5], this[6],
 				this[1], this[2], this[3] }
@@ -732,15 +732,15 @@ e2function matrix matrix:swapColumns(rv2, rv3)
 	else r2 = rv3 - rv3 % 1 end
 
 	if r1 == r2 then return this
-	elseif (r1 == 1 and r2 == 2) || (r1 == 2 and r2 == 1) then
+	elseif (r1 == 1 and r2 == 2) or (r1 == 2 and r2 == 1) then
 		this = { this[2], this[1], this[3],
 				this[5], this[4], this[6],
 				this[8], this[7], this[9] }
-	elseif (r1 == 2 and r2 == 3) || (r1 == 3 and r2 == 2) then
+	elseif (r1 == 2 and r2 == 3) or (r1 == 3 and r2 == 2) then
 		this = { this[1], this[3], this[2],
 				this[4], this[6], this[5],
 				this[7], this[9], this[8] }
-	elseif (r1 == 1 and r2 == 3) || (r1 == 3 and r2 == 1) then
+	elseif (r1 == 1 and r2 == 3) or (r1 == 3 and r2 == 1) then
 		this = { this[3], this[2], this[1],
 				this[6], this[5], this[4],
 				this[9], this[8], this[7] }
@@ -1017,22 +1017,22 @@ end)
 // Comparison
 
 e2function number operator_is(matrix4 rv1)
-	if rv1[1] > delta || -rv1[1] > delta ||
-	   rv1[2] > delta || -rv1[2] > delta ||
-	   rv1[3] > delta || -rv1[3] > delta ||
-	   rv1[4] > delta || -rv1[4] > delta ||
-	   rv1[5] > delta || -rv1[5] > delta ||
-	   rv1[6] > delta || -rv1[6] > delta ||
-	   rv1[7] > delta || -rv1[7] > delta ||
-	   rv1[8] > delta || -rv1[8] > delta ||
-	   rv1[9] > delta || -rv1[9] > delta ||
-	   rv1[10] > delta || -rv1[10] > delta ||
-	   rv1[11] > delta || -rv1[11] > delta ||
-	   rv1[12] > delta || -rv1[12] > delta ||
-	   rv1[13] > delta || -rv1[13] > delta ||
-	   rv1[14] > delta || -rv1[14] > delta ||
-	   rv1[15] > delta || -rv1[15] > delta ||
-	   rv1[16] > delta || -rv1[16] > delta
+	if rv1[1] > delta or -rv1[1] > delta or
+	   rv1[2] > delta or -rv1[2] > delta or
+	   rv1[3] > delta or -rv1[3] > delta or
+	   rv1[4] > delta or -rv1[4] > delta or
+	   rv1[5] > delta or -rv1[5] > delta or
+	   rv1[6] > delta or -rv1[6] > delta or
+	   rv1[7] > delta or -rv1[7] > delta or
+	   rv1[8] > delta or -rv1[8] > delta or
+	   rv1[9] > delta or -rv1[9] > delta or
+	   rv1[10] > delta or -rv1[10] > delta or
+	   rv1[11] > delta or -rv1[11] > delta or
+	   rv1[12] > delta or -rv1[12] > delta or
+	   rv1[13] > delta or -rv1[13] > delta or
+	   rv1[14] > delta or -rv1[14] > delta or
+	   rv1[15] > delta or -rv1[15] > delta or
+	   rv1[16] > delta or -rv1[16] > delta
 	   then return 1 else return 0 end
 end
 
@@ -1289,32 +1289,32 @@ e2function matrix matrix:swapRows(rv2, rv3)
 	else r2 = rv3 - rv3 % 1 end
 
 	if r1 == r2 then return this
-	elseif (r1 == 1 and r2 == 2) || (r1 == 2 and r2 == 1) then
+	elseif (r1 == 1 and r2 == 2) or (r1 == 2 and r2 == 1) then
 		this = { this[5], this[6], this[7], this[8],
 				this[1], this[2], this[3], this[4],
 				this[9], this[10], this[11], this[12],
 				this[13], this[14], this[15], this[16] }
-	elseif (r1 == 2 and r2 == 3) || (r1 == 3 and r2 == 2) then
+	elseif (r1 == 2 and r2 == 3) or (r1 == 3 and r2 == 2) then
 		this = { this[1], this[2], this[3], this[4],
 				this[9], this[10], this[11], this[12],
 				this[5], this[6], this[7], this[8],
 				this[13], this[14], this[15], this[16] }
-	elseif (r1 == 3 and r2 == 4) || (r1 == 4 and r2 == 3) then
+	elseif (r1 == 3 and r2 == 4) or (r1 == 4 and r2 == 3) then
 		this = { this[1], this[2], this[3], this[4],
 				this[5], this[6], this[7], this[8],
 				this[13], this[14], this[15], this[16],
 				this[9], this[10], this[11], this[12] }
-	elseif (r1 == 1 and r2 == 3) || (r1 == 3 and r2 == 1) then
+	elseif (r1 == 1 and r2 == 3) or (r1 == 3 and r2 == 1) then
 		this = { this[9], this[10], this[11], this[12],
 				this[5], this[6], this[7], this[8],
 				this[1], this[2], this[3], this[4],
 				this[13], this[14], this[15], this[16] }
-	elseif (r1 == 2 and r2 == 4) || (r1 == 4 and r2 == 2) then
+	elseif (r1 == 2 and r2 == 4) or (r1 == 4 and r2 == 2) then
 		this = { this[1], this[2], this[3], this[4],
 				this[13], this[14], this[15], this[16],
 				this[9], this[10], this[11], this[12],
 				this[5], this[6], this[7], this[8] }
-	elseif (r1 == 1 and r2 == 4) || (r1 == 4 and r2 == 1) then
+	elseif (r1 == 1 and r2 == 4) or (r1 == 4 and r2 == 1) then
 		this = { this[13], this[14], this[15], this[16],
 				this[5], this[6], this[7], this[8],
 				this[9], this[10], this[11], this[12],
@@ -1334,32 +1334,32 @@ e2function matrix4 matrix4:swapColumns(rv2, rv3)
 	else r2 = rv3 - rv3 % 1 end
 
 	if r1 == r2 then return this
-	elseif (r1 == 1 and r2 == 2) || (r1 == 2 and r2 == 1) then
+	elseif (r1 == 1 and r2 == 2) or (r1 == 2 and r2 == 1) then
 		this = { this[2], this[1], this[3], this[4],
 				this[6], this[5], this[7], this[8],
 				this[10], this[9], this[11], this[12],
 				this[14], this[13], this[15], this[16] }
-	elseif (r1 == 2 and r2 == 3) || (r1 == 3 and r2 == 2) then
+	elseif (r1 == 2 and r2 == 3) or (r1 == 3 and r2 == 2) then
 		this = { this[1], this[3], this[2], this[4],
 				this[5], this[7], this[6], this[8],
 				this[9], this[11], this[10], this[12],
 				this[13], this[15], this[14], this[16] }
-	elseif (r1 == 3 and r2 == 4) || (r1 == 4 and r2 == 3) then
+	elseif (r1 == 3 and r2 == 4) or (r1 == 4 and r2 == 3) then
 		this = { this[1], this[2], this[4], this[3],
 				this[5], this[6], this[8], this[7],
 				this[9], this[10], this[12], this[11],
 				this[13], this[14], this[16], this[15] }
-	elseif (r1 == 1 and r2 == 3) || (r1 == 3 and r2 == 1) then
+	elseif (r1 == 1 and r2 == 3) or (r1 == 3 and r2 == 1) then
 		this = { this[3], this[2], this[1], this[4],
 				this[7], this[6], this[5], this[8],
 				this[11], this[10], this[9], this[12],
 				this[15], this[14], this[13], this[16] }
-	elseif (r1 == 2 and r2 == 4) || (r1 == 4 and r2 == 2) then
+	elseif (r1 == 2 and r2 == 4) or (r1 == 4 and r2 == 2) then
 		this = { this[1], this[4], this[3], this[2],
 				this[5], this[8], this[7], this[6],
 				this[9], this[12], this[11], this[10],
 				this[13], this[16], this[15], this[14] }
-	elseif (r1 == 1 and r2 == 4) || (r1 == 4 and r2 == 1) then
+	elseif (r1 == 1 and r2 == 4) or (r1 == 4 and r2 == 1) then
 		this = { this[4], this[2], this[3], this[1],
 				this[8], this[6], this[7], this[5],
 				this[12], this[10], this[11], this[9],
