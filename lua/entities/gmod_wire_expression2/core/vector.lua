@@ -23,7 +23,7 @@ local deg2rad = pi / 180
 
 registerType("vector", "v", Vector(0, 0, 0),
 	nil,
-	function(self, output) return Vector(output:Unpack()) end,
+	function(self, output) return Vector(output) end,
 	function(retval)
 		if isvector(retval) then return end
 		error("Return value is not a Vector, but a "..type(retval).."!",0)
