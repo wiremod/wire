@@ -183,7 +183,7 @@ function TextWrapIndex:JustifyLine( width, startI, endI )
 	if( not self:GetJustify() ) then return; end
 
 	// TODO: figure out why this needs to be here
-	if( not self.TextData[ startI ] || not self.TextData[ endI ] ) then return; end
+	if( not self.TextData[ startI ] or not self.TextData[ endI ] ) then return; end
 
 	// calculate the new width of the space character
 	local x = self.TextData[ startI ][1];

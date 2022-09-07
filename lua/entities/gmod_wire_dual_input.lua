@@ -23,7 +23,7 @@ function ENT:Setup(keygroup, keygroup2, toggle, value_off, value_on, value_on2)
 	numpad.OnDown( pl, keygroup2, "WireDualInput_On", self, -1 )
 	numpad.OnUp( pl, keygroup2, "WireDualInput_Off", self, -1 )
 
-	self.toggle = (toggle == 1 || toggle == true)
+	self.toggle = (toggle == 1 or toggle == true)
 	self.value_off = value_off
 	self.value_on = value_on
 	self.value_on2 = value_on2

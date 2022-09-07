@@ -85,7 +85,7 @@ function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, no
 
 	self.NormInfo = ""
 	if (self.Damage > 0) then self.NormInfo = self.NormInfo.."Damage: "..self.Damage end
-	if (self.Radius > 0 || self.Delaytime > 0) then self.NormInfo = self.NormInfo.."\n" end
+	if (self.Radius > 0 or self.Delaytime > 0) then self.NormInfo = self.NormInfo.."\n" end
 	if (self.Radius > 0 ) then self.NormInfo = self.NormInfo.." Rad: "..self.Radius end
 	if (self.Delaytime > 0) then self.NormInfo = self.NormInfo.." Delay: "..self.Delaytime end
 
@@ -136,8 +136,8 @@ function ENT:OnTakeDamage( dmginfo )
 
 	if ( not self.Notaffected ) then self:TakePhysicsDamage( dmginfo ) end
 
-	if (dmginfo:IsBulletDamage() && self.BulletProof) ||
-		(dmginfo:IsExplosionDamage() && self.ExplosionProof) ||
+	if (dmginfo:IsBulletDamage() && self.BulletProof) or
+		(dmginfo:IsExplosionDamage() && self.ExplosionProof) or
 		(dmginfo:IsFallDamage() && self.FallProof) then return end //fix fall damage, it doesn't happen
 
 	if (self:Health() > 0) then //don't need to beat a dead horse

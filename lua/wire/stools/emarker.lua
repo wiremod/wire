@@ -33,7 +33,7 @@ function TOOL:LeftClick(trace)
 	if ( trace.Entity:GetClass() == "gmod_wire_emarker" ) then
 		self.marker = trace.Entity
 
-		if ( not self.marker.mark || not self.marker.mark:IsValid() ) then
+		if ( not self.marker.mark or not self.marker.mark:IsValid() ) then
 			ply:PrintMessage(HUD_PRINTTALK, "Entity Marker not linked")
 			return false
 		end

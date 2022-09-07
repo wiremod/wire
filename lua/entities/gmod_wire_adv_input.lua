@@ -23,7 +23,7 @@ function ENT:Setup(key_more,key_less,toggle,value_min,value_max,value_start,spee
 	numpad.OnDown( pl, key_less, "WireAdvInput_On", self, -1 )
 	numpad.OnUp( pl, key_less, "WireAdvInput_Off", self, -1 )
 
-	self.toggle = (toggle == 1 || toggle == true)
+	self.toggle = (toggle == 1 or toggle == true)
 	self.value_min = value_min
 	self.value_max = value_max
 	self.Value = value_start

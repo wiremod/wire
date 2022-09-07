@@ -27,7 +27,7 @@ end
 
 function ENT:Setup(keygroup, toggle, value_off, value_on)
 	self.keygroup = keygroup
-	self.toggle = (toggle == 1 || toggle == true)
+	self.toggle = (toggle == 1 or toggle == true)
 	self.value_off = value_off
 	self.value_on = value_on
 	self.Value = value_off
