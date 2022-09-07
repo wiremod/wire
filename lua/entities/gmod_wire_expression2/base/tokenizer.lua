@@ -246,7 +246,7 @@ function Tokenizer:Next()
 						c = '\\'
 					end
 
-					self:NextChar()
+					self:NextChar(true)
 
 					nbuffer = nbuffer + 1
 					buffer[nbuffer] = c
@@ -297,10 +297,21 @@ function Tokenizer:PeekChar()
 	return self.code:sub(self.pos + 1, self.pos + 1)
 end
 
+--- Doesn't take into account newlines.
+---@param ws boolean?
 ---@return string?
-function Tokenizer:NextChar()
+function Tokenizer:NextChar(ws)
 	self.pos = self.pos + 1
-	return self.code:sub(self.pos, self.pos)
+	local c = self.code:sub(self.pos, self.pos)
+
+	if ws and c == '\n' then
+		self.line = self.line + 1
+		self.col = 1
+	else
+		self.col = self.col + 1
+	end
+
+	return c
 end
 
 ---@param pattern string
@@ -321,6 +332,7 @@ function Tokenizer:ConsumePattern(pattern, ws)
 
 			self.pos = ed + 1
 			self.col = final_char - final_nl + 1
+
 			self.line = self.line + newlines
 
 			return match
@@ -329,7 +341,7 @@ function Tokenizer:ConsumePattern(pattern, ws)
 
 	-- Assume no newlines were matched past here.
 
-	self.pos = self.pos + (ed - start + 1)
+	self.pos = ed + 1
 	self.col = self.col + (ed - start + 1)
 
 	return match
@@ -342,9 +354,10 @@ function Tokenizer:Process(code)
 	local tokens, ntok = {}, 0
 	self.code = code
 
-	local line, col = self.line, self.col
+	local line, col
 	while self.pos <= length do
 		local whitespaced = self:ConsumePattern("^%s+", true) ~= nil
+		line, col = self.line, self.col
 
 		if self.pos > length then
 			break
@@ -355,8 +368,8 @@ function Tokenizer:Process(code)
 			self:Error("Failed to parse token")
 		end
 
-		tok.start_line, tok.start_col = line, col + 1
-		tok.end_line, tok.end_col = self.line, self.col + 1
+		tok.start_line, tok.start_col = line, col
+		tok.end_line, tok.end_col = self.line, self.col
 		tok.whitespaced = whitespaced
 
 		line, col = self.line, self.col
