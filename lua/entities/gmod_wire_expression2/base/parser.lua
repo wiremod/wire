@@ -80,9 +80,19 @@ KeyValue = Expr1 ("=" Expr1)?
 ]]
 -- ----------------------------------------------------------------------------------
 
-E2Lib.Parser = {}
-local Parser = E2Lib.Parser
+---@class Parser
+---@field readtoken Token
+---@field tokens Token[]
+---@field index integer
+---@field count integer
+local Parser = {}
 Parser.__index = Parser
+
+E2Lib.Parser = Parser
+
+local Tokenizer = E2Lib.Tokenizer
+local Token, TokenVariant = Tokenizer.Token, Tokenizer.Variant
+local Keyword, Grammar, Operator = E2Lib.Keyword, E2Lib.Grammar, E2Lib.Operator
 
 local parserDebug = CreateConVar("wire_expression2_parser_debug", 0,
 	"Print an E2's abstract syntax tree after parsing"
@@ -96,14 +106,17 @@ function Parser.Execute(...)
 	return xpcall(Parser.Process, E2Lib.errorHandler, instance, ...)
 end
 
+---@param message string
+---@param token Token?
 function Parser:Error(message, token)
 	if token then
-		error(message .. " at line " .. token[4] .. ", char " .. token[5], 0)
+		error(message .. " at line " .. token.start_line .. ", char " .. token.start_col, 0)
 	else
-		error(message .. " at line " .. self.token[4] .. ", char " .. self.token[5], 0)
+		error(message .. " at line " .. self.token.start_line .. ", char " .. self.token.start_col, 0)
 	end
 end
 
+---@param tokens Token[]
 function Parser:Process(tokens, params)
 	self.tokens = tokens
 	self.index = 0
@@ -121,16 +134,17 @@ end
 
 -- ---------------------------------------------------------------------
 
+---@return Token?
 function Parser:GetToken()
 	return self.token
 end
 
 function Parser:GetTokenData()
-	return self.token[2]
+	return self.token.value
 end
 
 function Parser:GetTokenTrace()
-	return { self.token[4], self.token[5] }
+	return { self.token.start_line, self.token.start_col }
 end
 
 
@@ -148,7 +162,7 @@ function Parser:NextToken()
 		if self.index > 0 then
 			self.token = self.readtoken
 		else
-			self.token = { "", "", false, 1, 1 }
+			self.token = setmetatable({ value = "", variant = 1, whitespaced = false, start_col = 1, start_line = 1, end_col = 1, end_line = 1 }, Token) -- { "", "", false, 1, 1 }
 		end
 
 		self.index = self.index + 1
@@ -164,41 +178,51 @@ function Parser:TrackBack()
 end
 
 
-function Parser:AcceptRoamingToken(name)
+---@param variant TokenVariant
+---@param value? number|string|boolean
+---@return boolean
+function Parser:AcceptRoamingToken(variant, value)
 	local token = self.readtoken
-	if not token or token[1] ~= name then return false end
+	if not token or token.variant ~= variant then return false end
+	if value ~= nil and token.value ~= value then return false end
 
 	self:NextToken()
 	return true
 end
 
-function Parser:AcceptTailingToken(name)
+---@param variant TokenVariant
+---@param value? number|string|boolean
+function Parser:AcceptTailingToken(variant, value)
 	local token = self.readtoken
-	if not token or token[3] then return false end
+	if not token or token.whitespaced then return false end
 
-	return self:AcceptRoamingToken(name)
+	return self:AcceptRoamingToken(variant, value)
 end
 
-function Parser:AcceptLeadingToken(name)
+---@param variant TokenVariant
+---@param value? number|string|boolean
+function Parser:AcceptLeadingToken(variant, value)
 	local token = self.tokens[self.index + 1]
-	if not token or token[3] then return false end
+	if not token or token.whitespaced then return false end
 
-	return self:AcceptRoamingToken(name)
+	return self:AcceptRoamingToken(variant, value)
 end
 
 
+---@param func function
+---@param tbl Operator[]
 function Parser:RecurseLeft(func, tbl)
 	local expr = func(self)
 	local hit = true
 
 	while hit do
 		hit = false
-		for i = 1, #tbl do
-			if self:AcceptRoamingToken(tbl[i]) then
+		for _, op in ipairs(tbl) do
+			if self:AcceptRoamingToken(TokenVariant.Operator, op) then
 				local trace = self:GetTokenTrace()
 
 				hit = true
-				expr = self:Instruction(trace, tbl[i], expr, func(self))
+				expr = self:Instruction(trace, E2Lib.OperatorNames[op]:lower(), expr, func(self))
 				break
 			end
 		end
@@ -224,7 +248,7 @@ function Parser:Stmts()
 	if not self:HasTokens() then return stmts end
 
 	while true do
-		if self:AcceptRoamingToken("com") then
+		if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 			self:Error("Statement separator (,) must not appear multiple times")
 		end
 
@@ -232,8 +256,8 @@ function Parser:Stmts()
 
 		if not self:HasTokens() then break end
 
-		if not self:AcceptRoamingToken("com") then
-			if self.readtoken[3] == false then
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
+			if not self.readtoken.whitespaced then
 				self:Error("Statements must be separated by comma (,) or whitespace")
 			end
 		end
@@ -244,7 +268,7 @@ end
 
 
 function Parser:Stmt1()
-	if self:AcceptRoamingToken("if") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.If) then
 		local trace = self:GetTokenTrace()
 		return self:Instruction(trace, "if", self:Cond(), self:Block("if condition"), self:IfElseIf())
 	end
@@ -253,7 +277,7 @@ function Parser:Stmt1()
 end
 
 function Parser:Stmt2()
-	if self:AcceptRoamingToken("whl") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.While) then
 		local trace = self:GetTokenTrace()
 		loopdepth = loopdepth + 1
 		local whl = self:Instruction(trace, "whl", self:Cond(), self:Block("while condition"),
@@ -266,38 +290,38 @@ function Parser:Stmt2()
 end
 
 function Parser:Stmt3()
-	if self:AcceptRoamingToken("for") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.For) then
 		local trace = self:GetTokenTrace()
 		loopdepth = loopdepth + 1
 
-		if not self:AcceptRoamingToken("lpa") then
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Operator.LParen) then
 			self:Error("Left parenthesis (() must appear before condition")
 		end
 
-		if not self:AcceptRoamingToken("var") then
+		if not self:AcceptRoamingToken(TokenVariant.Ident) then
 			self:Error("Variable expected for the numeric index")
 		end
 
 		local var = self:GetTokenData()
 
-		if not self:AcceptRoamingToken("ass") then
+		if not self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
 			self:Error("Assignment operator (=) expected to preceed variable")
 		end
 
 		local estart = self:Expr1()
 
-		if not self:AcceptRoamingToken("com") then
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 			self:Error("Comma (,) expected after start value")
 		end
 
 		local estop = self:Expr1()
 
 		local estep
-		if self:AcceptRoamingToken("com") then
+		if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 			estep = self:Expr1()
 		end
 
-		if not self:AcceptRoamingToken("rpa") then
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 			self:Error("Right parenthesis ()) missing, to close condition")
 		end
 
@@ -311,23 +335,23 @@ function Parser:Stmt3()
 end
 
 function Parser:Stmt4()
-	if self:AcceptRoamingToken("fea") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Foreach) then
 		local trace = self:GetTokenTrace()
 		loopdepth = loopdepth + 1
 
-		if not self:AcceptRoamingToken("lpa") then
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LParen) then
 			self:Error("Left parenthesis missing (() after foreach statement")
 		end
 
-		if not self:AcceptRoamingToken("var") then
+		if not self:AcceptRoamingToken(TokenVariant.Ident) then
 			self:Error("Variable expected to hold the key")
 		end
 		local keyvar = self:GetTokenData()
 
 		local keytype
 
-		if self:AcceptRoamingToken("col") then
-			if not self:AcceptRoamingToken("fun") then
+		if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
+			if not self:AcceptRoamingToken(TokenVariant.LowerIdent) then
 				self:Error("Type expected after colon")
 			end
 
@@ -341,22 +365,23 @@ function Parser:Stmt4()
 			keytype = wire_expression_types[string.upper(keytype)][1]
 		end
 
-		if not self:AcceptRoamingToken("com") then
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 			self:Error("Comma (,) expected after key variable")
 		end
 
-		if not self:AcceptRoamingToken("var") then
+		if not self:AcceptRoamingToken(TokenVariant.Ident) then
 			self:Error("Variable expected to hold the value")
 		end
 		local valvar = self:GetTokenData()
 
-		if not self:AcceptRoamingToken("col") then
+		if not self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
 			self:Error("Colon (:) expected to separate type from variable")
 		end
 
-		if not self:AcceptRoamingToken("fun") and not self:AcceptRoamingToken("udf") then
+		if not self:AcceptRoamingToken(TokenVariant.LowerIdent) then
 			self:Error("Type expected after colon")
 		end
+
 		local valtype = self:GetTokenData()
 		if valtype == "number" then valtype = "normal" end
 		if wire_expression_types[string.upper(valtype)] == nil then
@@ -364,13 +389,13 @@ function Parser:Stmt4()
 		end
 		valtype = wire_expression_types[string.upper(valtype)][1]
 
-		if not self:AcceptRoamingToken("ass") then
+		if not self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
 			self:Error("Equals sign (=) expected after value type to specify table")
 		end
 
 		local tableexpr = self:Expr1()
 
-		if not self:AcceptRoamingToken("rpa") then
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 			self:Error("Missing right parenthesis after foreach statement")
 		end
 
@@ -383,14 +408,14 @@ function Parser:Stmt4()
 end
 
 function Parser:Stmt5()
-	if self:AcceptRoamingToken("brk") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Break) then
 		if loopdepth > 0 then
 			local trace = self:GetTokenTrace()
 			return self:Instruction(trace, "brk")
 		else
 			self:Error("Break may not exist outside of a loop")
 		end
-	elseif self:AcceptRoamingToken("cnt") then
+	elseif self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Continue) then
 		if loopdepth > 0 then
 			local trace = self:GetTokenTrace()
 			return self:Instruction(trace, "cnt")
@@ -403,19 +428,19 @@ function Parser:Stmt5()
 end
 
 function Parser:Stmt6()
-	if self:AcceptRoamingToken("var") then
+	if self:AcceptRoamingToken(TokenVariant.Ident) then
 		local trace = self:GetTokenTrace()
 		local var = self:GetTokenData()
 
-		if self:AcceptTailingToken("inc") then
+		if self:AcceptTailingToken(TokenVariant.Operator, Operator.Inc) then
 			return self:Instruction(trace, "inc", var)
-		elseif self:AcceptRoamingToken("inc") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Inc) then
 			self:Error("Increment operator (++) must not be preceded by whitespace")
 		end
 
-		if self:AcceptTailingToken("dec") then
+		if self:AcceptTailingToken(TokenVariant.Operator, Operator.Dec) then
 			return self:Instruction(trace, "dec", var)
-		elseif self:AcceptRoamingToken("dec") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Dec) then
 			self:Error("Decrement operator (--) must not be preceded by whitespace")
 		end
 
@@ -426,17 +451,17 @@ function Parser:Stmt6()
 end
 
 function Parser:Stmt7()
-	if self:AcceptRoamingToken("var") then
+	if self:AcceptRoamingToken(TokenVariant.Ident) then
 		local trace = self:GetTokenTrace()
 		local var = self:GetTokenData()
 
-		if self:AcceptRoamingToken("aadd") then
+		if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Aadd) then
 			return self:Instruction(trace, "ass", var, self:Instruction(trace, "add", self:Instruction(trace, "var", var), self:Expr1()))
-		elseif self:AcceptRoamingToken("asub") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Asub) then
 			return self:Instruction(trace, "ass", var, self:Instruction(trace, "sub", self:Instruction(trace, "var", var), self:Expr1()))
-		elseif self:AcceptRoamingToken("amul") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Amul) then
 			return self:Instruction(trace, "ass", var, self:Instruction(trace, "mul", self:Instruction(trace, "var", var), self:Expr1()))
-		elseif self:AcceptRoamingToken("adiv") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Adiv) then
 			return self:Instruction(trace, "ass", var, self:Instruction(trace, "div", self:Instruction(trace, "var", var), self:Expr1()))
 		end
 
@@ -447,12 +472,12 @@ function Parser:Stmt7()
 end
 
 function Parser:Index()
-	if self:AcceptTailingToken("lsb") then
+	if self:AcceptTailingToken(TokenVariant.Grammar, Grammar.LSquare) then
 		local trace = self:GetTokenTrace()
 		local exp = self:Expr1()
 
-		if self:AcceptRoamingToken("com") then
-			if not self:AcceptRoamingToken("fun") then
+		if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
+			if not self:AcceptRoamingToken(TokenVariant.LowerIdent) then
 				self:Error("Indexing operator ([]) requires a lower case type [X,t]")
 			end
 
@@ -460,7 +485,7 @@ function Parser:Index()
 			if typename == "number" then typename = "normal" end
 			local type = wire_expression_types[string.upper(typename)]
 
-			if not self:AcceptRoamingToken("rsb") then
+			if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RSquare) then
 				self:Error("Right square bracket (]) missing, to close indexing operator [X,t]")
 			end
 
@@ -470,7 +495,7 @@ function Parser:Index()
 
 			return { exp, type[1], trace }, self:Index()
 
-		elseif self:AcceptTailingToken("rsb") then
+		elseif self:AcceptTailingToken(TokenVariant.Grammar, Grammar.RSquare) then
 			return { exp, nil, trace }
 
 		else
@@ -482,21 +507,21 @@ end
 
 function Parser:Stmt8(parentLocalized)
 	local localized
-	if self:AcceptRoamingToken("loc") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Local) then
 		if parentLocalized ~= nil then self:Error("Assignment can't contain roaming local operator") end
 		localized = true
 	end
 
-	if self:AcceptRoamingToken("var") then
+	if self:AcceptRoamingToken(TokenVariant.Ident) then
 		local tbpos = self.index
 		local trace = self:GetTokenTrace()
 		local var = self:GetTokenData()
 
-		if self:AcceptTailingToken("lsb") then
+		if self:AcceptTailingToken(TokenVariant.Grammar, Grammar.LSquare) then
 			self:TrackBack()
 			local indexs = { self:Index() }
 
-			if self:AcceptRoamingToken("ass") then
+			if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
 				if localized or parentLocalized then
 					self:Error("Invalid operator (local).")
 				end
@@ -515,7 +540,7 @@ function Parser:Stmt8(parentLocalized)
 				return inst
 			end
 
-		elseif self:AcceptRoamingToken("ass") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
 			if localized or parentLocalized then
 				return self:Instruction(trace, "assl", var, self:Stmt8(true))
 			else
@@ -535,20 +560,20 @@ function Parser:Stmt8(parentLocalized)
 end
 
 function Parser:Stmt9()
-	if self:AcceptRoamingToken("swh") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Switch) then
 		local trace = self:GetTokenTrace()
 
-		if not self:AcceptRoamingToken("lpa") then
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LParen) then
 			self:Error("Left parenthesis (() expected before switch condition")
 		end
 
 		local expr = self:Expr1()
 
-		if not self:AcceptRoamingToken("rpa") then
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 			self:Error("Right parenthesis ()) expected after switch condition")
 		end
 
-		if not self:AcceptRoamingToken("lcb") then
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LCurly) then
 			self:Error("Left curly bracket ({) expected after switch condition")
 		end
 
@@ -563,7 +588,7 @@ function Parser:Stmt9()
 end
 
 function Parser:Stmt10()
-	if self:AcceptRoamingToken("func") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Function) then
 
 		local Trace = self:GetTokenTrace()
 
@@ -573,13 +598,12 @@ function Parser:Stmt10()
 		local Args, Temp = {}, {}
 
 
-		-- Errors are handeled after line 49, both 'fun' and 'var' tokens are used for accurate error reports.
-		if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") or self:AcceptRoamingToken("void") then --get the name
+		if self:AcceptRoamingToken(TokenVariant.LowerIdent) or self:AcceptRoamingToken(TokenVariant.Ident) then --get the name
 			Name = self:GetTokenData()
 			NameToken = self.token -- Copy the current token for error reporting
 
 			-- We check if the previous token was actualy the return not the name
-			if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") or self:AcceptRoamingToken("void") then
+			if self:AcceptRoamingToken(TokenVariant.LowerIdent) or self:AcceptRoamingToken(TokenVariant.Ident) then
 				Return = Name
 				ReturnToken = NameToken
 
@@ -587,9 +611,9 @@ function Parser:Stmt10()
 				NameToken = self.token
 			end
 
-			-- We check if the name token is actualy the type
-			if self:AcceptRoamingToken("col") then
-				if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
+			-- We check if the name token is actually the type
+			if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
+				if self:AcceptRoamingToken(TokenVariant.LowerIdent) or self:AcceptRoamingToken(TokenVariant.Ident) then
 					Type = Name
 					TypeToken = NameToken
 
@@ -648,7 +672,7 @@ function Parser:Stmt10()
 		if Name[1] ~= Name[1]:lower() then self:Error("Function name must start with a lower case letter", NameToken) end
 
 
-		if not self:AcceptRoamingToken("lpa") then
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LParen) then
 			self:Error("Left parenthesis (() must appear after function name")
 		end
 
@@ -676,18 +700,18 @@ function Parser:Stmt10()
 		return Inst
 
 		-- Return Statment
-	elseif self:AcceptRoamingToken("ret") then
+	elseif self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Return) then
 
 		local Trace = self:GetTokenTrace()
 
-		if self:AcceptRoamingToken("void") or (self.readtoken[1] and self.readtoken[1] == "rcb") then
+		if self:AcceptRoamingToken(TokenVariant.LowerIdent, "void") or (self.readtoken.variant == TokenVariant.Grammar and self.readtoken.value == Grammar.RCurly) then
 			return self:Instruction(Trace, "return")
 		end
 
 		return self:Instruction(Trace, "return", self:Expr1())
 
 		-- Void Missplacement
-	elseif self:AcceptRoamingToken("void") then
+	elseif self:AcceptRoamingToken(TokenVariant.LowerIdent, "void") then
 		self:Error("Void may only exist after return")
 	end
 
@@ -695,21 +719,21 @@ function Parser:Stmt10()
 end
 
 function Parser:Stmt11()
-	if self:AcceptRoamingToken("inclu") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword["#Include"]) then
 
 		local Trace = self:GetTokenTrace()
 
-		-- if not self:AcceptRoamingToken("lpa") then
+		-- if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LParen) then
 		-- self:Error("Left parenthesis (() must appear after include")
 		-- end
 
-		if not self:AcceptRoamingToken("str") then
+		if not self:AcceptRoamingToken(TokenVariant.String) then
 			self:Error("include path (string) expected after include")
 		end
 
 		local Path = self:GetTokenData()
 
-		-- if not self:AcceptRoamingToken("rpa") then
+		-- if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 		-- self:Error("Right parenthesis ()) must appear after include path")
 		-- end
 
@@ -722,20 +746,20 @@ function Parser:Stmt11()
 end
 
 function Parser:Stmt12()
-	if self:AcceptRoamingToken("try") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Try) then
 		local trace = self:GetTokenTrace()
 		local stmt = self:Block("try block")
-		if self:AcceptRoamingToken("catch") then
-			if not self:AcceptRoamingToken("lpa") then
+		if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Catch) then
+			if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LParen) then
 				self:Error("Left parenthesis (() expected after catch keyword")
 			end
 
-			if not self:AcceptRoamingToken("var") then
+			if not self:AcceptRoamingToken(TokenVariant.Ident) then
 				self:Error("Variable expected after left parenthesis (() in catch statement")
 			end
 			local var_name = self:GetTokenData()
 
-			if not self:AcceptRoamingToken("rpa") then
+			if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 				self:Error("Right parenthesis ()) missing, to close catch statement")
 			end
 
@@ -748,13 +772,13 @@ function Parser:Stmt12()
 end
 
 function Parser:Stmt13()
-	if self:AcceptRoamingToken("do") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Do) then
 		local trace = self:GetTokenTrace()
 
 		loopdepth = loopdepth + 1
 		local code = self:Block("do keyword")
 
-		if not self:AcceptRoamingToken("whl") then
+		if not self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.While) then
 			self:Error("while expected after do and code block (do {...} )")
 		end
 
@@ -772,24 +796,24 @@ function Parser:Stmt13()
 end
 
 function Parser:FunctionArgs(Temp, Args)
-	if self:HasTokens() and not self:AcceptRoamingToken("rpa") then
+	if self:HasTokens() and not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 		while true do
 
-			if self:AcceptRoamingToken("com") then self:Error("Argument separator (,) must not appear multiple times") end
+			if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then self:Error("Argument separator (,) must not appear multiple times") end
 
 			-- ...Array:array
-			if self:AcceptRoamingToken("spread") then
-				if not self:AcceptRoamingToken("fun") and not self:AcceptRoamingToken("var") then
+			if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Spread) then
+				if not self:AcceptRoamingToken(TokenVariant.LowerIdent) and not self:AcceptRoamingToken(TokenVariant.Ident) then
 					self:Error("Variable name expected after spread operator")
 				end
 
 				local name = self:GetTokenData()
 
-				if not self:AcceptRoamingToken("col") then
+				if not self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
 					self:Error("Colon (:) expected after spread argument name")
 				end
 
-				if not self:AcceptRoamingToken("fun") then
+				if not self:AcceptRoamingToken(TokenVariant.LowerIdent) then
 					self:Error("Variable type expected after colon (:)")
 				end
 
@@ -808,11 +832,11 @@ function Parser:FunctionArgs(Temp, Args)
 					self:Error("Only array or table type is supported for spread arguments")
 				end
 
-				if self:AcceptRoamingToken("com") then
+				if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 					self:Error("Spread argument must be the last argument")
 				end
 
-				if not self:AcceptRoamingToken("rpa") then
+				if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 					self:Error("Right parenthesis ()) expected after spread argument")
 				end
 
@@ -822,16 +846,16 @@ function Parser:FunctionArgs(Temp, Args)
 				return
 			end
 
-			if self:AcceptRoamingToken("var") or self:AcceptRoamingToken("fun") then
+			if self:AcceptRoamingToken(TokenVariant.Ident) or self:AcceptRoamingToken(TokenVariant.LowerIdent) then
 				self:FunctionArg(Temp, Args)
-			elseif self:AcceptRoamingToken("lsb") then
+			elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LSquare) then
 				self:FunctionArgList(Temp, Args)
 			end
 
-			if self:AcceptRoamingToken("rpa") then
+			if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 				break
 
-			elseif not self:AcceptRoamingToken("com") then
+			elseif not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 				self:NextToken()
 				self:Error("Right parenthesis ()) expected after function arguments")
 			end
@@ -850,8 +874,8 @@ function Parser:FunctionArg(Temp, Args)
 
 	if Temp[Name] then self:Error("Variable '" .. Name .. "' is already used as an argument,") end
 
-	if self:AcceptRoamingToken("col") then
-		if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
+	if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
+		if self:AcceptRoamingToken(TokenVariant.LowerIdent) or self:AcceptRoamingToken(TokenVariant.Ident) then
 			Type = self:GetTokenData()
 		else
 			self:Error("Type expected after colon (:)")
@@ -879,7 +903,7 @@ function Parser:FunctionArgList(Temp, Args)
 
 		local Vars = {}
 		while true do
-			if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
+			if self:AcceptRoamingToken(TokenVariant.LowerIdent) or self:AcceptRoamingToken(TokenVariant.Ident) then
 				local Name = self:GetTokenData()
 
 				if not Name then self:Error("Variable required") end
@@ -890,7 +914,7 @@ function Parser:FunctionArgList(Temp, Args)
 
 				Temp[Name] = true
 				Vars[#Vars + 1] = Name
-			elseif self:AcceptRoamingToken("rsb") then
+			elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RSquare) then
 				break
 
 			else -- if !self:HasTokens() then
@@ -907,8 +931,8 @@ function Parser:FunctionArgList(Temp, Args)
 
 		local Type = "normal"
 
-		if self:AcceptRoamingToken("col") then
-			if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
+		if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
+			if self:AcceptRoamingToken(TokenVariant.LowerIdent) or self:AcceptRoamingToken(TokenVariant.Ident) then
 				Type = self:GetTokenData()
 			else
 				self:Error("Type expected after colon (:)")
@@ -935,7 +959,7 @@ function Parser:FunctionArgList(Temp, Args)
 end
 
 function Parser:IfElseIf()
-	if self:AcceptRoamingToken("eif") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Elseif) then
 		local trace = self:GetTokenTrace()
 		return self:Instruction(trace, "if", self:Cond(), self:Block("elseif condition"), self:IfElseIf())
 	end
@@ -944,7 +968,7 @@ function Parser:IfElseIf()
 end
 
 function Parser:IfElse()
-	if self:AcceptRoamingToken("els") then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Else) then
 		return self:Block("else")
 	end
 
@@ -953,13 +977,13 @@ function Parser:IfElse()
 end
 
 function Parser:Cond()
-	if not self:AcceptRoamingToken("lpa") then
+	if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LParen) then
 		self:Error("Left parenthesis (() expected before condition")
 	end
 
 	local expr = self:Expr1()
 
-	if not self:AcceptRoamingToken("rpa") then
+	if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 		self:Error("Right parenthesis ()) missing, to close condition")
 	end
 
@@ -971,34 +995,34 @@ function Parser:Block(block_type)
 	local trace = self:GetTokenTrace()
 	local stmts = self:Instruction(trace, "seq")
 
-	if not self:AcceptRoamingToken("lcb") then
+	if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LCurly) then
 		self:Error("Left curly bracket ({) expected after " .. (block_type or "condition"))
 	end
 
 	local token = self:GetToken()
 
-	if self:AcceptRoamingToken("rcb") then
+	if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RCurly) then
 		return stmts
 	end
 
 	if self:HasTokens() then
 		while true do
-			if self:AcceptRoamingToken("com") then
+			if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 				self:Error("Statement separator (,) must not appear multiple times")
-			elseif self:AcceptRoamingToken("rcb") then
+			elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RCurly) then
 				self:Error("Statement separator (,) must be suceeded by statement")
 			end
 
 			stmts[#stmts + 1] = self:Stmt1()
 
-			if self:AcceptRoamingToken("rcb") then
+			if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RCurly) then
 				return stmts
 			end
 
-			if not self:AcceptRoamingToken("com") then
+			if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 				if not self:HasTokens() then break end
 
-				if self.readtoken[3] == false then
+				if not self.readtoken.whitespaced then
 					self:Error("Statements must be separated by comma (,) or whitespace")
 				end
 			end
@@ -1012,9 +1036,9 @@ function Parser:SwitchBlock() -- Shhh this is a secret. Do not tell anybody abou
 	local cases = {}
 	local default
 
-	if self:HasTokens() and not self:AcceptRoamingToken("rpa") then
+	if self:HasTokens() and not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 
-		if not self:AcceptRoamingToken("case") and not self:AcceptRoamingToken("default") then
+		if not self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Case) and not self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Default) then
 			self:Error("Case Operator (case) expected in case block.", self:GetToken())
 		end
 
@@ -1022,22 +1046,22 @@ function Parser:SwitchBlock() -- Shhh this is a secret. Do not tell anybody abou
 
 		while true do
 
-			if self:AcceptRoamingToken("case") then
+			if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Case) then
 				local expr = self:Expr1()
 
-				if not self:AcceptRoamingToken("com") then
+				if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 					self:Error("Comma (,) expected after case condition")
 				end
 
 				cases[#cases + 1] = { expr, self:CaseBlock() }
 
-			elseif self:AcceptRoamingToken("default") then
+			elseif self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Default) then
 
 				if default then
 					self:Error("Only one default case (default:) may exist.")
 				end
 
-				if not self:AcceptRoamingToken("com") then
+				if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 					self:Error("Comma (,) expected after default case")
 				end
 
@@ -1050,7 +1074,7 @@ function Parser:SwitchBlock() -- Shhh this is a secret. Do not tell anybody abou
 		end
 	end
 
-	if not self:AcceptRoamingToken("rcb") then
+	if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RCurly) then
 		self:Error("Right curly bracket (}) missing, to close statement block", self:GetToken())
 	end
 
@@ -1064,21 +1088,21 @@ function Parser:CaseBlock() -- Shhh this is a secret. Do not tell anybody about 
 		if self:HasTokens() then
 			while true do
 
-				if self:AcceptRoamingToken("case") or self:AcceptRoamingToken("default") or self:AcceptRoamingToken("rcb") then
+				if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Case) or self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Default) or self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RCurly) then
 					self:TrackBack()
 					return stmts
-				elseif self:AcceptRoamingToken("com") then
+				elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 					self:Error("Statement separator (,) must not appear multiple times")
-				elseif self:AcceptRoamingToken("rcb") then
+				elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RCurly) then
 					self:Error("Statement separator (,) must be suceeded by statement")
 				end
 
 				stmts[#stmts + 1] = self:Stmt1()
 
-				if not self:AcceptRoamingToken("com") then
+				if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 					if not self:HasTokens() then break end
 
-					if self.readtoken[3] == false then
+					if not self.readtoken.whitespaced then
 						self:Error("Statements must be separated by comma (,) or whitespace")
 					end
 				end
@@ -1092,18 +1116,18 @@ end
 function Parser:Expr1()
 	self.exprtoken = self:GetToken()
 
-	if self:AcceptRoamingToken("var") then
-		if self:AcceptRoamingToken("ass") then
+	if self:AcceptRoamingToken(TokenVariant.Ident) then
+		if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
 			self:Error("Assignment operator (=) must not be part of equation")
 		end
 
-		if self:AcceptRoamingToken("aadd") then
+		if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Aadd) then
 			self:Error("Additive assignment operator (+=) must not be part of equation")
-		elseif self:AcceptRoamingToken("asub") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Asub) then
 			self:Error("Subtractive assignment operator (-=) must not be part of equation")
-		elseif self:AcceptRoamingToken("amul") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Amul) then
 			self:Error("Multiplicative assignment operator (*=) must not be part of equation")
-		elseif self:AcceptRoamingToken("adiv") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Adiv) then
 			self:Error("Divisive assignment operator (/=) must not be part of equation")
 		end
 
@@ -1116,18 +1140,18 @@ end
 function Parser:Expr2()
 	local expr = self:Expr3()
 
-	if self:AcceptRoamingToken("qsm") then
+	if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Qsm) then
 		local trace = self:GetTokenTrace()
 		local exprtrue = self:Expr1()
 
-		if not self:AcceptRoamingToken("col") then -- perhaps we want to make sure there is space around this (method bug)
+		if not self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then -- perhaps we want to make sure there is space around this (method bug)
 			self:Error("Conditional operator (:) must appear after expression to complete conditional", self:GetToken())
 		end
 
 		return self:Instruction(trace, "cnd", expr, exprtrue, self:Expr1())
 	end
 
-	if self:AcceptRoamingToken("def") then
+	if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Def) then
 		local trace = self:GetTokenTrace()
 
 		return self:Instruction(trace, "def", expr, self:Expr1())
@@ -1137,67 +1161,67 @@ function Parser:Expr2()
 end
 
 function Parser:Expr3()
-	return self:RecurseLeft(self.Expr4, { "or" })
+	return self:RecurseLeft(self.Expr4, { Operator.Or })
 end
 
 function Parser:Expr4()
-	return self:RecurseLeft(self.Expr5, { "and" })
+	return self:RecurseLeft(self.Expr5, { Operator.And })
 end
 
 function Parser:Expr5()
-	return self:RecurseLeft(self.Expr6, { "bor" })
+	return self:RecurseLeft(self.Expr6, { Operator.Bor })
 end
 
 function Parser:Expr6()
-	return self:RecurseLeft(self.Expr7, { "band" })
+	return self:RecurseLeft(self.Expr7, { Operator.Band })
 end
 
 function Parser:Expr7()
-	return self:RecurseLeft(self.Expr8, { "bxor" })
+	return self:RecurseLeft(self.Expr8, { Operator.Bxor })
 end
 
 function Parser:Expr8()
-	return self:RecurseLeft(self.Expr9, { "eq", "neq" })
+	return self:RecurseLeft(self.Expr9, { Operator.Eq, Operator.Neq })
 end
 
 function Parser:Expr9()
-	return self:RecurseLeft(self.Expr10, { "gth", "lth", "geq", "leq" })
+	return self:RecurseLeft(self.Expr10, { Operator.Gth, Operator.Lth, Operator.Geq, Operator.Leq })
 end
 
 function Parser:Expr10()
-	return self:RecurseLeft(self.Expr11, { "bshr", "bshl" })
+	return self:RecurseLeft(self.Expr11, { Operator.Bshr, Operator.Bshl })
 end
 
 function Parser:Expr11()
-	return self:RecurseLeft(self.Expr12, { "add", "sub" })
+	return self:RecurseLeft(self.Expr12, { Operator.Add, Operator.Sub })
 end
 
 function Parser:Expr12()
-	return self:RecurseLeft(self.Expr13, { "mul", "div", "mod" })
+	return self:RecurseLeft(self.Expr13, { Operator.Mul, Operator.Div, Operator.Mod })
 end
 
 function Parser:Expr13()
-	return self:RecurseLeft(self.Expr14, { "exp" })
+	return self:RecurseLeft(self.Expr14, { Operator.Exp })
 end
 
 function Parser:Expr14()
-	if self:AcceptLeadingToken("add") then
+	if self:AcceptLeadingToken(TokenVariant.Operator, Operator.Add) then
 		return self:Expr15()
-	elseif self:AcceptRoamingToken("add") then
+	elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Add) then
 		self:Error("Identity operator (+) must not be succeeded by whitespace")
 	end
 
-	if self:AcceptLeadingToken("sub") then
+	if self:AcceptLeadingToken(TokenVariant.Operator, Operator.Sub) then
 		local trace = self:GetTokenTrace()
 		return self:Instruction(trace, "neg", self:Expr15())
-	elseif self:AcceptRoamingToken("sub") then
+	elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Sub) then
 		self:Error("Negation operator (-) must not be succeeded by whitespace")
 	end
 
-	if self:AcceptLeadingToken("not") then
+	if self:AcceptLeadingToken(TokenVariant.Operator, Operator.Not) then
 		local trace = self:GetTokenTrace()
 		return self:Instruction(trace, "not", self:Expr14())
-	elseif self:AcceptRoamingToken("not") then
+	elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Not) then
 		self:Error("Logical not operator (!) must not be succeeded by whitespace")
 	end
 
@@ -1208,9 +1232,9 @@ function Parser:Expr15()
 	local expr = self:Expr16()
 
 	while true do
-		if self:AcceptTailingToken("col") then
-			if not self:AcceptTailingToken("fun") then
-				if self:AcceptRoamingToken("fun") then
+		if self:AcceptTailingToken(TokenVariant.Operator, Operator.Col) then
+			if not self:AcceptTailingToken(TokenVariant.LowerIdent) then
+				if self:AcceptRoamingToken(TokenVariant.LowerIdent) then
 					self:Error("Method operator (:) must not be preceded by whitespace")
 				else
 					self:Error("Method operator (:) must be followed by method name")
@@ -1220,8 +1244,8 @@ function Parser:Expr15()
 			local trace = self:GetTokenTrace()
 			local fun = self:GetTokenData()
 
-			if not self:AcceptTailingToken("lpa") then
-				if self:AcceptRoamingToken("lpa") then
+			if not self:AcceptTailingToken(TokenVariant.Grammar, Grammar.LParen) then
+				if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LParen) then
 					self:Error("Left parenthesis (() must not be preceded by whitespace")
 				else
 					self:Error("Left parenthesis (() must appear after method name")
@@ -1230,39 +1254,39 @@ function Parser:Expr15()
 
 			local token = self:GetToken()
 
-			if self:AcceptRoamingToken("rpa") then
+			if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 				expr = self:Instruction(trace, "methodcall", fun, expr, {})
 			else
 				local exprs = { self:Expr1() }
 
-				while self:AcceptRoamingToken("com") do
+				while self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) do
 					exprs[#exprs + 1] = self:Expr1()
 				end
 
-				if not self:AcceptRoamingToken("rpa") then
+				if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 					self:Error("Right parenthesis ()) missing, to close method argument list", token)
 				end
 
 				expr = self:Instruction(trace, "methodcall", fun, expr, exprs)
 			end
-			--elseif self:AcceptRoamingToken("col") then
+			--elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
 			--	self:Error("Method operator (:) must not be preceded by whitespace")
-		elseif self:AcceptTailingToken("lsb") then
+		elseif self:AcceptTailingToken(TokenVariant.Grammar, Grammar.LSquare) then
 			local trace = self:GetTokenTrace()
 
-			if self:AcceptRoamingToken("rsb") then
+			if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RSquare) then
 				self:Error("Indexing operator ([]) requires an index [X]")
 			end
 
 			local aexpr = self:Expr1()
-			if self:AcceptRoamingToken("com") then
-				if not self:AcceptRoamingToken("fun") then
+			if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
+				if not self:AcceptRoamingToken(TokenVariant.LowerIdent) then
 					self:Error("Indexing operator ([]) requires a lower case type [X,t]")
 				end
 
 				local longtp = self:GetTokenData()
 
-				if not self:AcceptRoamingToken("rsb") then
+				if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RSquare) then
 					self:Error("Right square bracket (]) missing, to close indexing operator [X,t]")
 				end
 
@@ -1273,41 +1297,41 @@ function Parser:Expr15()
 
 				local tp = wire_expression_types[string.upper(longtp)][1]
 				expr = self:Instruction(trace, "get", expr, aexpr, tp)
-			elseif self:AcceptRoamingToken("rsb") then
+			elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RSquare) then
 				expr = self:Instruction(trace, "get", expr, aexpr)
 			else
 				self:Error("Indexing operator ([]) needs to be closed with comma (,) or right square bracket (])")
 			end
-		elseif self:AcceptRoamingToken("lsb") then
+		elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LSquare) then
 			self:Error("Indexing operator ([]) must not be preceded by whitespace")
-		elseif self:AcceptTailingToken("lpa") then
+		elseif self:AcceptTailingToken(TokenVariant.Grammar, Grammar.LParen) then
 			local trace = self:GetTokenTrace()
 
 			local token = self:GetToken()
 			local exprs
 
-			if self:AcceptRoamingToken("rpa") then
+			if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 				exprs = {}
 			else
 				exprs = { self:Expr1() }
 
-				while self:AcceptRoamingToken("com") do
+				while self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) do
 					exprs[#exprs + 1] = self:Expr1()
 				end
 
-				if not self:AcceptRoamingToken("rpa") then
+				if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 					self:Error("Right parenthesis ()) missing, to close function argument list", token)
 				end
 			end
 
-			if self:AcceptRoamingToken("lsb") then
-				if not self:AcceptRoamingToken("fun") then
+			if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LSquare) then
+				if not self:AcceptRoamingToken(TokenVariant.LowerIdent) then
 					self:Error("Return type operator ([]) requires a lower case type [type]")
 				end
 
 				local longtp = self:GetTokenData()
 
-				if not self:AcceptRoamingToken("rsb") then
+				if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RSquare) then
 					self:Error("Right square bracket (]) missing, to close return type operator [type]")
 				end
 
@@ -1331,24 +1355,24 @@ function Parser:Expr15()
 end
 
 function Parser:Expr16()
-	if self:AcceptRoamingToken("lpa") then
+	if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LParen) then
 		local token = self:GetToken()
 
 		local expr = self:Expr1()
 
-		if not self:AcceptRoamingToken("rpa") then
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 			self:Error("Right parenthesis ()) missing, to close grouped equation", token)
 		end
 
 		return expr
 	end
 
-	if self:AcceptRoamingToken("fun") then
+	if self:AcceptRoamingToken(TokenVariant.LowerIdent) then
 		local trace = self:GetTokenTrace()
 		local fun = self:GetTokenData()
 
-		if not self:AcceptTailingToken("lpa") then
-			if self:AcceptRoamingToken("lpa") then
+		if not self:AcceptTailingToken(TokenVariant.Grammar, Grammar.LParen) then
+			if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LParen) then
 				self:Error("Left parenthesis (() must not be preceded by whitespace")
 			else
 				self:Error("Left parenthesis (() must appear after function name, variables must start with uppercase letter,")
@@ -1357,7 +1381,7 @@ function Parser:Expr16()
 
 		local token = self:GetToken()
 
-		if self:AcceptRoamingToken("rpa") then
+		if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 			return self:Instruction(trace, "call", fun, {})
 		else
 
@@ -1369,8 +1393,8 @@ function Parser:Expr16()
 
 				local key = self:Expr1()
 
-				if self:AcceptRoamingToken("ass") then
-					if self:AcceptRoamingToken("rpa") then
+				if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
+					if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 						self:Error("Expression expected, got right paranthesis ())", self:GetToken())
 					end
 
@@ -1382,12 +1406,12 @@ function Parser:Expr16()
 				end
 
 				if kvtable then
-					while self:AcceptRoamingToken("com") do
+					while self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) do
 						local key = self:Expr1()
 						local token = self:GetToken()
 
-						if self:AcceptRoamingToken("ass") then
-							if self:AcceptRoamingToken("rpa") then
+						if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
+							if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 								self:Error("Expression expected, got right paranthesis ())", self:GetToken())
 							end
 
@@ -1397,7 +1421,7 @@ function Parser:Expr16()
 						end
 					end
 
-					if not self:AcceptRoamingToken("rpa") then
+					if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 						self:Error("Right parenthesis ()) missing, to close function argument list", self:GetToken())
 					end
 
@@ -1407,11 +1431,11 @@ function Parser:Expr16()
 				exprs = { self:Expr1() }
 			end
 
-			while self:AcceptRoamingToken("com") do
+			while self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) do
 				exprs[#exprs + 1] = self:Expr1()
 			end
 
-			if not self:AcceptRoamingToken("rpa") then
+			if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 				self:Error("Right parenthesis ()) missing, to close function argument list", token)
 			end
 
@@ -1423,12 +1447,15 @@ function Parser:Expr16()
 end
 
 function Parser:Expr17()
-	if self:AcceptRoamingToken("num") then
+	-- Basic lua supported numeric literals (decimal, hex, binary)
+	if self:AcceptRoamingToken(TokenVariant.Decimal) or self:AcceptRoamingToken(TokenVariant.Hexadecimal) or self:AcceptRoamingToken(TokenVariant.Binary) then
+		return self:Instruction(self:GetTokenTrace(), "literal", self:GetTokenData(), "n")
+	end
+
+	if self:AcceptRoamingToken(TokenVariant.Complex) or self:AcceptRoamingToken(TokenVariant.Quat) then
 		local trace = self:GetTokenTrace()
 		local tokendata = self:GetTokenData()
-		if isnumber(tokendata) then
-			return self:Instruction(trace, "literal", tokendata, "n")
-		end
+
 		local num, suffix = tokendata:match("^([-+e0-9.]*)(.*)$")
 		num = assert(tonumber(num), "unparseable numeric literal")
 		local value, type
@@ -1441,22 +1468,23 @@ function Parser:Expr17()
 		elseif suffix == "k" then
 			value, type = {0, 0, 0, num}, "q"
 		else
-			assert(false, "unrecognized numeric suffix " .. suffix)
+			error("unrecognized numeric suffix " .. suffix)
 		end
 		return self:Instruction(trace, "literal", value, type)
 	end
 
-	if self:AcceptRoamingToken("str") then
+	if self:AcceptRoamingToken(TokenVariant.String) then
 		local trace = self:GetTokenTrace()
 		local str = self:GetTokenData()
+
 		return self:Instruction(trace, "literal", str, "s")
 	end
 
-	if self:AcceptRoamingToken("trg") then
+	if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Trg) then
 		local trace = self:GetTokenTrace()
 
-		if not self:AcceptTailingToken("var") then
-			if self:AcceptRoamingToken("var") then
+		if not self:AcceptTailingToken(TokenVariant.Ident) then
+			if self:AcceptRoamingToken(TokenVariant.Ident) then
 				self:Error("Triggered operator (~) must not be succeeded by whitespace")
 			else
 				self:Error("Triggered operator (~) must be preceded by variable")
@@ -1467,11 +1495,11 @@ function Parser:Expr17()
 		return self:Instruction(trace, "trg", var)
 	end
 
-	if self:AcceptRoamingToken("dlt") then
+	if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Dlt) then
 		local trace = self:GetTokenTrace()
 
-		if not self:AcceptTailingToken("var") then
-			if self:AcceptRoamingToken("var") then
+		if not self:AcceptTailingToken(TokenVariant.Ident) then
+			if self:AcceptRoamingToken(TokenVariant.Ident) then
 				self:Error("Delta operator ($) must not be succeeded by whitespace")
 			else
 				self:Error("Delta operator ($) must be preceded by variable")
@@ -1484,11 +1512,11 @@ function Parser:Expr17()
 		return self:Instruction(trace, "dlt", var)
 	end
 
-	if self:AcceptRoamingToken("imp") then
+	if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Imp) then
 		local trace = self:GetTokenTrace()
 
-		if not self:AcceptTailingToken("var") then
-			if self:AcceptRoamingToken("var") then
+		if not self:AcceptTailingToken(TokenVariant.Ident) then
+			if self:AcceptRoamingToken(TokenVariant.Ident) then
 				self:Error("Connected operator (->) must not be succeeded by whitespace")
 			else
 				self:Error("Connected operator (->) must be preceded by variable")
@@ -1504,16 +1532,16 @@ function Parser:Expr17()
 end
 
 function Parser:Expr18()
-	if self:AcceptRoamingToken("var") then
-		if self:AcceptTailingToken("inc") then
+	if self:AcceptRoamingToken(TokenVariant.Ident) then
+		if self:AcceptTailingToken(TokenVariant.Operator, Operator.Inc) then
 			self:Error("Increment operator (++) must not be part of equation")
-		elseif self:AcceptRoamingToken("inc") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Inc) then
 			self:Error("Increment operator (++) must not be preceded by whitespace")
 		end
 
-		if self:AcceptTailingToken("dec") then
+		if self:AcceptTailingToken(TokenVariant.Operator, Operator.Dec) then
 			self:Error("Decrement operator (--) must not be part of equation")
-		elseif self:AcceptRoamingToken("dec") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Dec) then
 			self:Error("Decrement operator (--) must not be preceded by whitespace")
 		end
 
@@ -1524,7 +1552,7 @@ function Parser:Expr18()
 end
 
 function Parser:Expr19()
-	if self:AcceptRoamingToken("var") then
+	if self:AcceptRoamingToken(TokenVariant.Ident) then
 		local trace = self:GetTokenTrace()
 		local var = self:GetTokenData()
 		return self:Instruction(trace, "var", var)
@@ -1535,80 +1563,80 @@ end
 
 function Parser:ExprError()
 	if self:HasTokens() then
-		if self:AcceptRoamingToken("add") then
+		if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Add) then
 			self:Error("Addition operator (+) must be preceded by equation or value")
-		elseif self:AcceptRoamingToken("sub") then -- can't occur (unary minus)
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Sub) then -- can't occur (unary minus)
 			self:Error("Subtraction operator (-) must be preceded by equation or value")
-		elseif self:AcceptRoamingToken("mul") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Mul) then
 			self:Error("Multiplication operator (*) must be preceded by equation or value")
-		elseif self:AcceptRoamingToken("div") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Div) then
 			self:Error("Division operator (/) must be preceded by equation or value")
-		elseif self:AcceptRoamingToken("mod") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Mod) then
 			self:Error("Modulo operator (%) must be preceded by equation or value")
-		elseif self:AcceptRoamingToken("exp") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Exp) then
 			self:Error("Exponentiation operator (^) must be preceded by equation or value")
 
-		elseif self:AcceptRoamingToken("ass") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
 			self:Error("Assignment operator (=) must be preceded by variable")
-		elseif self:AcceptRoamingToken("aadd") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Aadd) then
 			self:Error("Additive assignment operator (+=) must be preceded by variable")
-		elseif self:AcceptRoamingToken("asub") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Asub) then
 			self:Error("Subtractive assignment operator (-=) must be preceded by variable")
-		elseif self:AcceptRoamingToken("amul") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Amul) then
 			self:Error("Multiplicative assignment operator (*=) must be preceded by variable")
-		elseif self:AcceptRoamingToken("adiv") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Adiv) then
 			self:Error("Divisive assignment operator (/=) must be preceded by variable")
 
-		elseif self:AcceptRoamingToken("and") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.And) then
 			self:Error("Logical and operator (&) must be preceded by equation or value")
-		elseif self:AcceptRoamingToken("or") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Or) then
 			self:Error("Logical or operator (|) must be preceded by equation or value")
 
-		elseif self:AcceptRoamingToken("eq") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Eq) then
 			self:Error("Equality operator (==) must be preceded by equation or value")
-		elseif self:AcceptRoamingToken("neq") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Neq) then
 			self:Error("Inequality operator (!=) must be preceded by equation or value")
-		elseif self:AcceptRoamingToken("gth") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Gth) then
 			self:Error("Greater than or equal to operator (>=) must be preceded by equation or value")
-		elseif self:AcceptRoamingToken("lth") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Lth) then
 			self:Error("Less than or equal to operator (<=) must be preceded by equation or value")
-		elseif self:AcceptRoamingToken("geq") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Geq) then
 			self:Error("Greater than operator (>) must be preceded by equation or value")
-		elseif self:AcceptRoamingToken("leq") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Leq) then
 			self:Error("Less than operator (<) must be preceded by equation or value")
 
-		elseif self:AcceptRoamingToken("inc") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Inc) then
 			self:Error("Increment operator (++) must be preceded by variable")
-		elseif self:AcceptRoamingToken("dec") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Dec) then
 			self:Error("Decrement operator (--) must be preceded by variable")
 
-		elseif self:AcceptRoamingToken("rpa") then
+		elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
 			self:Error("Right parenthesis ()) without matching left parenthesis")
-		elseif self:AcceptRoamingToken("lcb") then
+		elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LCurly) then
 			self:Error("Left curly bracket ({) must be part of an if/while/for-statement block")
-		elseif self:AcceptRoamingToken("rcb") then
+		elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RCurly) then
 			self:Error("Right curly bracket (}) without matching left curly bracket")
-		elseif self:AcceptRoamingToken("lsb") then
+		elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LSquare) then
 			self:Error("Left square bracket ([) must be preceded by variable")
-		elseif self:AcceptRoamingToken("rsb") then
+		elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RSquare) then
 			self:Error("Right square bracket (]) without matching left square bracket")
 
-		elseif self:AcceptRoamingToken("com") then
+		elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 			self:Error("Comma (,) not expected here, missing an argument?")
-		elseif self:AcceptRoamingToken("col") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
 			self:Error("Method operator (:) must not be preceded by whitespace")
-		elseif self:AcceptRoamingToken("spread") then
+		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Spread) then
 			self:Error("Spread operator (...) must only be used as a function parameter")
 
-		elseif self:AcceptRoamingToken("if") then
+		elseif self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.If) then
 			self:Error("If keyword (if) must not appear inside an equation")
-		elseif self:AcceptRoamingToken("eif") then
+		elseif self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Elseif) then
 			self:Error("Else-if keyword (elseif) must be part of an if-statement")
-		elseif self:AcceptRoamingToken("els") then
+		elseif self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Else) then
 			self:Error("Else keyword (else) must be part of an if-statement")
 
 		else
-			self:Error("Unexpected token found (" .. self.readtoken[1] .. ")")
+			self:Error("Unexpected token found (" .. self.readtoken:display() .. ")")
 		end
 	else
 		self:Error("Further input required at end of code, incomplete expression", self.exprtoken)
