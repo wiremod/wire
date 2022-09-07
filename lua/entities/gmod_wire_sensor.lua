@@ -18,7 +18,7 @@ function ENT:Initialize()
 end
 
 function ENT:Setup(xyz_mode, outdist, outbrng, gpscord, direction_vector, direction_normalized, target_velocity, velocity_normalized)
-	if !xyz_mode and !outdist and !outbrng and !gpscord and !direction_vector and !target_velocity then outdist = true end
+	if not xyz_mode and not outdist and not outbrng and not gpscord and not direction_vector and not target_velocity then outdist = true end
 
 	self.xyz_mode = xyz_mode
 	self.PrevOutput = nil

@@ -21,9 +21,9 @@ if CLIENT then
 		end
 
 		local ang = self:GetAngles()
-		if (ang.p < 0 && !self:GetOut180()) then ang.p = ang.p + 360 end
-		if (ang.y < 0 && !self:GetOut180()) then ang.y = ang.y + 360 end
-		if (ang.r < 0 && !self:GetOut180()) then ang.r = ang.r + 360
+		if (ang.p < 0 && not self:GetOut180()) then ang.p = ang.p + 360 end
+		if (ang.y < 0 && not self:GetOut180()) then ang.y = ang.y + 360 end
+		if (ang.r < 0 && not self:GetOut180()) then ang.r = ang.r + 360
 		elseif (ang.r > 180 && self:GetOut180()) then ang.r = ang.r - 360 end
 		self:ShowOutput(ang.p, ang.y, ang.r)
 
@@ -61,9 +61,9 @@ function ENT:Think()
 	BaseClass.Think(self)
 
     local ang = self:GetAngles()
-	if (ang.p < 0 && !self:GetOut180()) then ang.p = ang.p + 360 end
-	if (ang.y < 0 && !self:GetOut180()) then ang.y = ang.y + 360 end
-	if (ang.r < 0 && !self:GetOut180()) then ang.r = ang.r + 360
+	if (ang.p < 0 && not self:GetOut180()) then ang.p = ang.p + 360 end
+	if (ang.y < 0 && not self:GetOut180()) then ang.y = ang.y + 360 end
+	if (ang.r < 0 && not self:GetOut180()) then ang.r = ang.r + 360
 	elseif (ang.r > 180 && self:GetOut180()) then ang.r = ang.r - 360 end
 	Wire_TriggerOutput(self, "Pitch", ang.p)
 	Wire_TriggerOutput(self, "Yaw", ang.y)

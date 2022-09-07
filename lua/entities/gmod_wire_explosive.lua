@@ -36,7 +36,7 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Detonate") then
-		if ( !self.exploding && !self.reloading ) then
+		if ( not self.exploding && not self.reloading ) then
 			if ( math.abs(value) == self.key ) then
 				self:Trigger()
 			end
@@ -132,9 +132,9 @@ end
 
 function ENT:OnTakeDamage( dmginfo )
 
-	if ( dmginfo:GetInflictor():GetClass() == "gmod_wire_explosive"  && !self.Affectother ) then return end
+	if ( dmginfo:GetInflictor():GetClass() == "gmod_wire_explosive"  && not self.Affectother ) then return end
 
-	if ( !self.Notaffected ) then self:TakePhysicsDamage( dmginfo ) end
+	if ( not self.Notaffected ) then self:TakePhysicsDamage( dmginfo ) end
 
 	if (dmginfo:IsBulletDamage() && self.BulletProof) ||
 		(dmginfo:IsExplosionDamage() && self.ExplosionProof) ||
@@ -212,11 +212,11 @@ end
 
 function ENT:Explode( )
 
-	if ( !self:IsValid() ) then return end
+	if ( not self:IsValid() ) then return end
 
 	self:Extinguish()
 
-	if (!self.exploding) then return end //why are we exploding if we shouldn't be
+	if (not self.exploding) then return end //why are we exploding if we shouldn't be
 
 	ply = self:GetPlayer() or self
 	if(not IsValid(ply)) then ply = self end;
@@ -254,7 +254,7 @@ function ENT:ShowOutput( )
 	local txt = ""
 	if (self.reloading && self.Delayreloadtime > 0) then
 		txt = "Rearming... "..self.count
-		if (self.ColorEffect && !self.InvisibleAtZero) then
+		if (self.ColorEffect && not self.InvisibleAtZero) then
 			local c = 255 * ((self.Delayreloadtime - self.count) / self.Delayreloadtime)
 			self:SetColor(Color(255, c, c, 255))
 		end

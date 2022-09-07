@@ -3,7 +3,7 @@ WireGPU_Monitors = {}
 function WireGPU_AddMonitor(name,model,tof,tou,tor,trs,x1,x2,y1,y2,rot,translucent)
 	if not rot then
 		rot = Angle(0,90,90)
-	elseif !isangle(rot) then
+	elseif not isangle(rot) then
 		rot = Angle(0,90,0)
 	end
 	local RatioX = (y2-y1)/(x2-x1)

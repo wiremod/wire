@@ -34,7 +34,7 @@ end
 
 
 function TOOL:RightClick(trace)
-	if (!trace.HitPos) then return false end
+	if (not trace.HitPos) then return false end
 	if (trace.Entity:IsPlayer()) then return false end
 	if ( CLIENT ) then return true end
 
@@ -44,7 +44,7 @@ function TOOL:RightClick(trace)
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_cd_locks" ) ) then return false end
+	if ( not self:GetSWEP():CheckLimit( "wire_cd_locks" ) ) then return false end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90

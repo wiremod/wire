@@ -106,7 +106,7 @@ end
 
 
 function ENT:Switch( mul )
-	if (!self:IsValid()) then return false end
+	if (not self:IsValid()) then return false end
 	self.selinput = mul
 	for p,v in ipairs(self.outputs) do
 		self.Value[p] = self.Last[ mul .. v ] or 0
@@ -148,12 +148,12 @@ end
 
 
 local function On( pl, ent, mul )
-	if (!ent:IsValid()) then return false end
+	if (not ent:IsValid()) then return false end
 	return ent:InputActivate( mul )
 end
 
 local function Off( pl, ent, mul )
-	if (!ent:IsValid()) then return false end
+	if (not ent:IsValid()) then return false end
 	return ent:InputDeactivate( mul )
 end
 

@@ -22,7 +22,7 @@ function SWEP:Equip( newOwner )
 end
 
 function SWEP:PrimaryAttack()
-	self.Pointing = !self.Pointing
+	self.Pointing = not self.Pointing
 	self.Weapon:SetNWBool("Active", self.Pointing)
 	if self.Pointing and IsValid(self.Receiver) then
 		Wire_TriggerOutput(self.Receiver,"Active",1)

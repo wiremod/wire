@@ -110,7 +110,7 @@ if CLIENT then
 		local DrawnEnts = {}	-- Used to keep track of which ents already have a circle
 
 		local controller = self:GetWeapon():GetNWEntity( "WireClutchController" )
-		if !IsValid( controller ) then return end
+		if not IsValid( controller ) then return end
 
 		// Draw circle around the controller
 		local viewpos = LocalPlayer():GetViewModel():GetPos()
@@ -134,7 +134,7 @@ if CLIENT then
 				if IsValid1 then pos1 = v.Ent1:GetPos():ToScreen() end
 				if IsValid2 then pos2 = v.Ent2:GetPos():ToScreen() end
 
-				if !IsValid1 and !IsValid2 then
+				if not IsValid1 and not IsValid2 then
 					table.remove( Linked_Ents, k )
 				elseif v.Ent1:IsWorld() then
 					basepos = v.Ent2:GetPos() + Vector(0, 0, -30)
@@ -148,12 +148,12 @@ if CLIENT then
 					if InView( pos1 ) and InView( pos2 ) then
 						surface.DrawLine( pos1.x, pos1.y, pos2.x, pos2.y )
 
-						if !DrawnEnts[v.Ent1] and IsValid1 then
+						if not DrawnEnts[v.Ent1] and IsValid1 then
 							surface.DrawCircle( pos1.x, pos1.y, 5, Color(100, 255, 100, 255 ) )
 							DrawnEnts[v.Ent1] = true
 						end
 
-						if !DrawnEnts[v.Ent2] and IsValid2 then
+						if not DrawnEnts[v.Ent2] and IsValid2 then
 							surface.DrawCircle( pos2.x, pos2.y, 5, Color(100, 255, 100, 255 ) )
 							DrawnEnts[v.Ent2] = true
 						end
@@ -202,12 +202,12 @@ function TOOL:RightClick( trace )
 	local ply = self:GetOwner()
 	local stage = self:NumObjects()
 
-	if !IsValid( self.controller ) then
+	if not IsValid( self.controller ) then
 		ply:PrintMessage( HUD_PRINTTALK, "Select a clutch controller with left click first" )
 		return
 	end
 
-	if ( !IsValid( trace.Entity ) and !trace.Entity:IsWorld() ) or trace.Entity:IsPlayer() then return end
+	if ( not IsValid( trace.Entity ) and not trace.Entity:IsWorld() ) or trace.Entity:IsPlayer() then return end
 
 	// First click: select the first entity
 	if stage == 0 then

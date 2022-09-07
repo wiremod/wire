@@ -67,7 +67,7 @@ cleanup.Register( "wire_plugs" )
 
 function TOOL:GetModel()
 	local model = self:GetClientInfo( "model" )
-	if (!util.IsValidModel( model ) or !util.IsValidProp( model ) or !SocketModels[ model ]) then return "models/props_lab/tpplugholder_single.mdl" end
+	if (not util.IsValidModel( model ) or not util.IsValidProp( model ) or not SocketModels[ model ]) then return "models/props_lab/tpplugholder_single.mdl" end
 	return model
 end
 
@@ -92,7 +92,7 @@ end
 
 -- Create Plug
 function TOOL:RightClick( trace )
-	if (!trace) then return false end
+	if (not trace) then return false end
 	if (trace.Entity) then
 		if (trace.Entity:IsPlayer()) then return false end
 		if (trace.Entity:GetClass() == "gmod_wire_plug") then

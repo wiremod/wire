@@ -257,7 +257,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )
-	if (!self:IsOn()) then return SIM_NOTHING end
+	if (not self:IsOn()) then return SIM_NOTHING end
 	if (self:IsPlayerHolding()) then return SIM_NOTHING end
 
 	if (self:WaterLevel() > 0) then

@@ -75,7 +75,7 @@ function ENT:Jump( withangles )
 	end
 
 	-- The target position is outside the world
-	if (!util.IsInWorld( self.TargetPos )) then
+	if (not util.IsInWorld( self.TargetPos )) then
 		self:EmitSound("buttons/button8.wav")
 		return
 	end

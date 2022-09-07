@@ -394,9 +394,9 @@ GateActions["udcounter"] = {
 		local lClk = (Clk > 0)
 		local lReset = (Reset > 0)
 		if ((gate.PrevInc ~= lInc || gate.PrevDec ~= lDec || gate.PrevClk ~= lClk) && lClk) then
-			if (lInc) and (!lDec) and (!lReset) then
+			if (lInc) and (not lDec) and (not lReset) then
 				gate.countStore = (gate.countStore or 0) + 1
-			elseif (!lInc) and (lDec) and (!lReset) then
+			elseif (not lInc) and (lDec) and (not lReset) then
 				gate.countStore = (gate.countStore or 0) - 1
 			end
 			gate.PrevInc = lInc

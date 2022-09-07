@@ -91,7 +91,7 @@ if SERVER then
 		if self:GetClientNumber( "parent" ) == 1 then
 			if (trace.Entity:IsValid()) then
 				-- Nocollide the gate to the prop to make adv duplicator (and normal duplicator) find it
-				if (!self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1) then
+				if (not self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1) then
 					nocollide = constraint.NoCollide( ent, trace.Entity, 0,trace.PhysicsBone )
 				end
 

@@ -27,7 +27,7 @@ function Obj:Draw(ent, drawMat)
 		surface.SetTextColor( self.r, self.g, self.b, self.a )
 
 		local font = "WireEGP_" .. self.size .. "_" .. self.font
-		if (!EGP.ValidFonts_Lookup[font]) then
+		if (not EGP.ValidFonts_Lookup[font]) then
 			local fontTable =
 			{
 				font=self.font,
@@ -41,12 +41,12 @@ function Obj:Draw(ent, drawMat)
 		end
 		surface.SetFont( font )
 
-		--if (!self.layouter) then self.layouter = EGP:MakeTextLayouter() end -- Trying to make my own layouter...
+		--if (not self.layouter) then self.layouter = EGP:MakeTextLayouter() end -- Trying to make my own layouter...
 		--self.layouter:SetText( self.text, self.x, self.y, self.w, self.h, self.halign, self.valign, (self.fontid ~= self.oldfontid) )
 		--self.layouter:DrawText()
 		--self.oldfontid = self.fontid
 
-		if (!self.layouter) then self.layouter = MakeTextScreenLayouter() end
+		if (not self.layouter) then self.layouter = MakeTextScreenLayouter() end
 
 		if self.angle == 0 then
 			self.layouter:DrawText(self.text, self.x, self.y, self.w, self.h, self.halign, self.valign)
@@ -64,7 +64,7 @@ function Obj:Draw(ent, drawMat)
 		end
 
 		--[[
-		if (!self.layouter) then
+		if (not self.layouter) then
 			self.layouter = EGP:TextLayouter( font )
 			self.layouter:SetJustify( false )
 			self.layouter:SetJustifyLast( false )

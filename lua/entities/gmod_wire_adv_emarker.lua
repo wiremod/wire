@@ -35,7 +35,7 @@ function ENT:TriggerInput( name, value )
 		if IsValid(self.Target) then
 			if (value ~= 0) then
 				local bool, index = self:CheckEnt( self.Target )
-				if (!bool) then
+				if (not bool) then
 					self:LinkEnt( self.Target )
 				end
 			end

@@ -81,7 +81,7 @@ function ENT:NumpadDeactivate( key )
 end
 
 function ENT:Switch( on, key )
-	if (!self:IsValid()) then return false end
+	if (not self:IsValid()) then return false end
 
 	self.Buffer[key] = on and 1 or 0
 
