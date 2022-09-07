@@ -42,7 +42,7 @@ function SWEP:SecondaryAttack()
 end
 
 function SWEP:Think()
-	if(self.Pointing && self.Receiver && self.Receiver:IsValid())then
+	if(self.Pointing and self.Receiver and self.Receiver:IsValid())then
 		local owner = self:GetOwner()
 		local trace
 		if IsValid(owner) then

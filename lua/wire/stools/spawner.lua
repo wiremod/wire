@@ -19,7 +19,7 @@ WireToolSetup.SetupMax(10)
 function TOOL:LeftClick(trace)
 	local ent = trace.Entity
 	if not ent or not ent:IsValid() then return false end
-	if ent:GetClass() ~= "prop_physics" && ent:GetClass() ~= "gmod_wire_spawner" then return false end
+	if ent:GetClass() ~= "prop_physics" and ent:GetClass() ~= "gmod_wire_spawner" then return false end
 	if CLIENT then return true end
 
 	local pl			= self:GetOwner()

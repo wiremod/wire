@@ -342,7 +342,7 @@ GateActions["vector_dmx"] = {
 		local Out = { Vector (0, 0, 0), Vector (0, 0, 0), Vector (0, 0, 0), Vector (0, 0, 0),
 			Vector (0, 0, 0), Vector (0, 0, 0), Vector (0, 0, 0), Vector (0, 0, 0) }
 		Sel = math.floor (Sel)
-		if (Sel > 0 && Sel <= 8) then
+		if (Sel > 0 and Sel <= 8) then
 			Out[Sel] = In
 		end
 		return unpack (Out)

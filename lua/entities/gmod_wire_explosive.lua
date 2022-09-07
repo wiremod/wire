@@ -36,7 +36,7 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Detonate") then
-		if ( not self.exploding && not self.reloading ) then
+		if ( not self.exploding and not self.reloading ) then
 			if ( math.abs(value) == self.key ) then
 				self:Trigger()
 			end
@@ -132,13 +132,13 @@ end
 
 function ENT:OnTakeDamage( dmginfo )
 
-	if ( dmginfo:GetInflictor():GetClass() == "gmod_wire_explosive"  && not self.Affectother ) then return end
+	if ( dmginfo:GetInflictor():GetClass() == "gmod_wire_explosive"  and not self.Affectother ) then return end
 
 	if ( not self.Notaffected ) then self:TakePhysicsDamage( dmginfo ) end
 
-	if (dmginfo:IsBulletDamage() && self.BulletProof) or
-		(dmginfo:IsExplosionDamage() && self.ExplosionProof) or
-		(dmginfo:IsFallDamage() && self.FallProof) then return end //fix fall damage, it doesn't happen
+	if (dmginfo:IsBulletDamage() and self.BulletProof) or
+		(dmginfo:IsExplosionDamage() and self.ExplosionProof) or
+		(dmginfo:IsFallDamage() and self.FallProof) then return end //fix fall damage, it doesn't happen
 
 	if (self:Health() > 0) then //don't need to beat a dead horse
 		local dammage = dmginfo:GetDamage()
@@ -252,9 +252,9 @@ end
 -- don't foreget to call this when changes happen
 function ENT:ShowOutput( )
 	local txt = ""
-	if (self.reloading && self.Delayreloadtime > 0) then
+	if (self.reloading and self.Delayreloadtime > 0) then
 		txt = "Rearming... "..self.count
-		if (self.ColorEffect && not self.InvisibleAtZero) then
+		if (self.ColorEffect and not self.InvisibleAtZero) then
 			local c = 255 * ((self.Delayreloadtime - self.count) / self.Delayreloadtime)
 			self:SetColor(Color(255, c, c, 255))
 		end

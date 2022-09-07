@@ -35,7 +35,7 @@ function ENT:Setup(keygroup, keygroup2, toggle, value_off, value_on, value_on2)
 end
 
 function ENT:InputActivate( mul )
-	if ( self.toggle && self.Select == mul ) then
+	if ( self.toggle and self.Select == mul ) then
 		return self:Switch( not self.On, mul )
 	end
 
@@ -54,10 +54,10 @@ function ENT:Switch( on, mul )
 	self.On = on
 	self.Select = mul
 
-	if (on && mul == 1) then
+	if (on and mul == 1) then
 		self:ShowOutput(self.value_on)
 		self.Value = self.value_on
-	elseif (on && mul == -1) then
+	elseif (on and mul == -1) then
 		self:ShowOutput(self.value_on2)
 		self.Value = self.value_on2
 	else

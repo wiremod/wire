@@ -95,7 +95,7 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Switch") then
-		if (math.abs(value) >= 0 && math.abs(value) <= self.throws) then
+		if (math.abs(value) >= 0 and math.abs(value) <= self.throws) then
 			self:Switch(math.abs(value))
 		end
 	elseif (iname) then
@@ -134,7 +134,7 @@ end
 
 
 function ENT:InputActivate( mul )
-	if ( self.toggle && self.selinput == mul) then //only toggle for the same key
+	if ( self.toggle and self.selinput == mul) then //only toggle for the same key
 		return self:Switch( self.normclose )
 	else
 		return self:Switch( mul )

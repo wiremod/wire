@@ -27,7 +27,7 @@ end
 -- These two high speed functions want to access a zero indexed array of what keys are pressed (0-15), our buffer is 1-16
 function ENT:ReadCell( Address )
 	Address = math.floor(Address)
-	if (Address >= 0) && (Address < #keynames) then
+	if (Address >= 0) and (Address < #keynames) then
 		return self.Buffer[Address+1]
 	else
 		return nil
@@ -36,7 +36,7 @@ end
 
 function ENT:WriteCell( Address, value )
 	Address = math.floor(Address)
-	if (Address >= 0) && (Address < #keynames) then
+	if (Address >= 0) and (Address < #keynames) then
 		self:TriggerInput(keynames[Address+1], value)
 		return true
 	else

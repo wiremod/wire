@@ -40,7 +40,7 @@ function TOOL:RightClick(trace)
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_lock" ) then
+	if ( trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_cd_lock" ) then
 		return true
 	end
 
