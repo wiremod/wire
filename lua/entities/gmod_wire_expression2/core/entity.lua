@@ -159,52 +159,52 @@ __e2setcost(5) -- temporary
 /******************************************************************************/
 // Functions getting vector
 e2function vector entity:pos()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:GetPos()
 end
 
 e2function vector entity:forward()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:GetForward()
 end
 
 e2function vector entity:right()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:GetRight()
 end
 
 e2function vector entity:up()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:GetUp()
 end
 
 e2function vector entity:vel()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:GetVelocity()
 end
 
 e2function vector entity:velL()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:WorldToLocal(this:GetVelocity() + this:GetPos())
 end
 
 e2function angle entity:angVel()
-	if not validPhysics(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not validPhysics(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
 	local phys = this:GetPhysicsObject()
 	local vec = phys:GetAngleVelocity()
-	return { vec.y, vec.z, vec.x }
+	return Angle(vec.y, vec.z, vec.x)
 end
 
 --- Returns a vector describing rotation axis, magnitude and sense given as the vector's direction, magnitude and orientation.
 e2function vector entity:angVelVector()
-	if not validPhysics(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not validPhysics(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	local phys = this:GetPhysicsObject()
 	return phys:GetAngleVelocity()
 end
 
 --- Specific to env_sun because Source is dum. Use this to trace towards the sun or something.
 e2function vector sunDirection()
-	if not IsValid(sun) then return {0, 0, 0} end
+	if not IsValid(sun) then return Vector(0, 0, 0) end
 	return sun:GetKeyValues().sun_dir
 end
 
@@ -214,37 +214,35 @@ end
 __e2setcost(15)
 
 e2function vector entity:toWorld(vector localPosition)
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
-	return this:LocalToWorld(Vector(localPosition[1],localPosition[2],localPosition[3]))
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
+	return this:LocalToWorld(localPosition)
 end
 
 e2function vector entity:toLocal(vector worldPosition)
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
-	return this:WorldToLocal(Vector(worldPosition[1],worldPosition[2],worldPosition[3]))
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
+	return this:WorldToLocal(worldPosition)
 end
 
 e2function vector entity:toWorldAxis(vector localAxis)
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
-	return this:LocalToWorld(Vector(localAxis[1],localAxis[2],localAxis[3]))-this:GetPos()
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
+	return this:LocalToWorld(localAxis)-this:GetPos()
 end
 
 e2function vector entity:toLocalAxis(vector worldAxis)
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
-	return this:WorldToLocal(Vector(worldAxis[1],worldAxis[2],worldAxis[3])+this:GetPos())
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
+	return this:WorldToLocal(worldAxis+this:GetPos())
 end
 
 --- Transforms from an angle local to <this> to a world angle.
 e2function angle entity:toWorld(angle localAngle)
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
-	local worldAngle = this:LocalToWorldAngles(Angle(localAngle[1],localAngle[2],localAngle[3]))
-	return { worldAngle.p, worldAngle.y, worldAngle.r }
+	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
+	return this:LocalToWorldAngles(localAngle)
 end
 
 --- Transforms from a world angle to an angle local to <this>.
 e2function angle entity:toLocal(angle worldAngle)
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
-	local localAngle = this:WorldToLocalAngles(Angle(worldAngle[1],worldAngle[2],worldAngle[3]))
-	return { localAngle.p, localAngle.y, localAngle.r }
+	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
+	return this:WorldToLocalAngles(worldAngle)
 end
 
 /******************************************************************************/
@@ -275,16 +273,16 @@ __e2setcost(15)
 e2function number entity:bearing(vector pos)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 
-	pos = this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
+	pos = this:WorldToLocal(pos)
 
-	return rad2deg*-atan2(pos.y, pos.x)
+	return rad2deg * -atan2(pos.y, pos.x)
 end
 
 --- Returns the elevation (pitch) from <this> to <pos>
 e2function number entity:elevation(vector pos)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 
-	pos = this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
+	pos = this:WorldToLocal(pos)
 
 	local len = pos:Length()
 	if len < delta then return 0 end
@@ -293,19 +291,19 @@ end
 
 --- Returns the elevation (pitch) and bearing (yaw) from <this> to <pos>
 e2function angle entity:heading(vector pos)
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
 
-	pos = this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
+	pos = this:WorldToLocal(pos)
 
 	-- bearing
 	local bearing = rad2deg*-atan2(pos.y, pos.x)
 
 	-- elevation
 	local len = pos:Length()--sqrt(x*x + y*y + z*z)
-	if len < delta then return { 0, bearing, 0 } end
-	local elevation = rad2deg*asin(pos.z / len)
+	if len < delta then return Angle(0, bearing, 0) end
+	local elevation = rad2deg * asin(pos.z / len)
 
-	return { elevation, bearing, 0 }
+	return Angle(elevation, bearing, 0)
 end
 
 __e2setcost(10)
@@ -318,16 +316,16 @@ e2function number entity:mass()
 end
 
 e2function vector entity:massCenter()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	local phys = this:GetPhysicsObject()
-	if not phys:IsValid() then return self:throw("Invalid physics object!", {0, 0, 0}) end
+	if not phys:IsValid() then return self:throw("Invalid physics object!", Vector(0, 0, 0)) end
 	return this:LocalToWorld(phys:GetMassCenter())
 end
 
 e2function vector entity:massCenterL()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	local phys = this:GetPhysicsObject()
-	if not phys:IsValid() then return self:throw("Invalid physics object!", {0, 0, 0}) end
+	if not phys:IsValid() then return self:throw("Invalid physics object!", Vector(0, 0, 0)) end
 	return phys:GetMassCenter()
 end
 
@@ -450,9 +448,9 @@ end
 // Functions getting angles
 
 e2function angle entity:angles()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
 	local ang = this:GetAngles()
-	return {ang.p, ang.y, ang.r}
+	return Angle(ang.p, ang.y, ang.r)
 end
 
 /******************************************************************************/
@@ -569,7 +567,7 @@ e2function void entity:applyForce(vector force)
 	force = clamp(force)
 
 	local phys = this:GetPhysicsObject()
-	phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
+	phys:ApplyForceCenter(force)
 end
 
 e2function void entity:applyOffsetForce(vector force, vector position)
@@ -580,14 +578,14 @@ e2function void entity:applyOffsetForce(vector force, vector position)
 	position 	= clamp(position)
 
 	local phys = this:GetPhysicsObject()
-	phys:ApplyForceOffset(Vector(force[1],force[2],force[3]), Vector(position[1],position[2],position[3]))
+	phys:ApplyForceOffset(force, position)
 end
 
 e2function void entity:applyAngForce(angle angForce)
 	if not validPhysics(this) then return self:throw("Invalid physics object!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
-	if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
+	if angForce:IsZero() then return end
 	angForce = clamp(angForce)
 
 	local phys = this:GetPhysicsObject()
@@ -624,27 +622,26 @@ e2function void entity:applyTorque(vector torque)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
-	if torque[1] == 0 and torque[2] == 0 and torque[3] == 0 then return end
+	if torque:IsZero() then return end
 	torque = clamp(torque)
 
 	local phys = this:GetPhysicsObject()
 
-	local tq = Vector(torque[1], torque[2], torque[3])
-	local torqueamount = tq:Length()
+	local torqueamount = torque:Length()
 
 	-- Convert torque from local to world axis
-	tq = phys:LocalToWorld( tq ) - phys:GetPos()
+	torque = phys:LocalToWorld( torque ) - phys:GetPos()
 
 	-- Find two vectors perpendicular to the torque axis
 	local off
-	if abs(tq.x) > torqueamount * 0.1 or abs(tq.z) > torqueamount * 0.1 then
-		off = Vector(-tq.z, 0, tq.x)
+	if abs(torque.x) > torqueamount * 0.1 or abs(torque.z) > torqueamount * 0.1 then
+		off = Vector(-torque.z, 0, torque.x)
 	else
-		off = Vector(-tq.y, tq.x, 0)
+		off = Vector(-torque.y, torque.x, 0)
 	end
 	off = off:GetNormal() * torqueamount * 0.5
 
-	local dir = ( tq:Cross(off) ):GetNormal()
+	local dir = ( torque:Cross(off) ):GetNormal()
 
 	dir = clamp(dir)
 	off = clamp(off)
@@ -654,7 +651,7 @@ e2function void entity:applyTorque(vector torque)
 end
 
 e2function vector entity:inertia()
-	if not validPhysics(this) then return self:throw("Invalid physics object!", {0, 0, 0}) end
+	if not validPhysics(this) then return self:throw("Invalid physics object!", Vector(0, 0, 0)) end
 	return this:GetPhysicsObject():GetInertia()
 end
 
@@ -702,28 +699,28 @@ end
 __e2setcost(10)
 
 e2function vector entity:boxSize()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:OBBMaxs() - this:OBBMins()
 end
 
 e2function vector entity:boxCenter()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:OBBCenter()
 end
 
 -- Same as using E:toWorld(E:boxCenter()) in E2, but since Lua runs faster, this is more efficient.
 e2function vector entity:boxCenterW()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:LocalToWorld(this:OBBCenter())
 end
 
 e2function vector entity:boxMax()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:OBBMaxs()
 end
 
 e2function vector entity:boxMin()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:OBBMins()
 end
 
@@ -732,21 +729,21 @@ end
 
 -- Returns the entity's (min) axis-aligned bounding box
 e2function vector entity:aabbMin()
-	if not IsValid(this) or not IsValid(this:GetPhysicsObject()) then return self:throw("Invalid physics object!", {0, 0, 0}) end
+	if not IsValid(this) or not IsValid(this:GetPhysicsObject()) then return self:throw("Invalid physics object!", Vector(0, 0, 0)) end
 	local ret, _ = this:GetPhysicsObject():GetAABB()
-	return ret or {0,0,0}
+	return ret or Vector(0, 0, 0)
 end
 
 -- Returns the entity's (max) axis-aligned bounding box
 e2function vector entity:aabbMax()
-	if not IsValid(this) or not IsValid(this:GetPhysicsObject()) then return self:throw("Invalid physics object!", {0, 0, 0}) end
+	if not IsValid(this) or not IsValid(this:GetPhysicsObject()) then return self:throw("Invalid physics object!", Vector(0, 0, 0)) end
 	local _, ret = this:GetPhysicsObject():GetAABB()
-	return ret or {0,0,0}
+	return ret or Vector(0, 0, 0)
 end
 
 -- Returns the entity's axis-aligned bounding box size
 e2function vector entity:aabbSize()
-	if not IsValid(this) or not IsValid(this:GetPhysicsObject()) then return self:throw("Invalid physics object!", {0, 0, 0}) end
+	if not IsValid(this) or not IsValid(this:GetPhysicsObject()) then return self:throw("Invalid physics object!", Vector(0, 0, 0)) end
 	local ret, ret2 = this:GetPhysicsObject():GetAABB()
 	ret = ret or Vector(0,0,0)
 	ret2 = ret2 or Vector(0,0,0)
@@ -758,21 +755,21 @@ end
 
 -- Returns the rotated entity's min world-axis-aligned bounding box corner
 e2function vector entity:aabbWorldMin()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	local ret, _ = this:WorldSpaceAABB()
-	return ret or {0,0,0}
+	return ret or Vector(0, 0, 0)
 end
 
 -- Returns the rotated entity's max world-axis-aligned bounding box corner
 e2function vector entity:aabbWorldMax()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	local _, ret = this:WorldSpaceAABB()
-	return ret or {0,0,0}
+	return ret or Vector(0, 0, 0)
 end
 
 -- Returns the rotated entity's world-axis-aligned bounding box size
 e2function vector entity:aabbWorldSize()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	local ret, ret2 = this:WorldSpaceAABB()
 	ret = ret or Vector(0,0,0)
 	ret2 = ret2 or Vector(0,0,0)
@@ -872,36 +869,36 @@ end
 
 --- Returns <this>'s attachment position associated with <attachmentID>
 e2function vector entity:attachmentPos(attachmentID)
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	local attachment = this:GetAttachment(attachmentID)
-	if not attachment then return { 0, 0, 0 } end
+	if not attachment then return Vector(0, 0, 0) end
 	return attachment.Pos
 end
 
 --- Returns <this>'s attachment angle associated with <attachmentID>
 e2function angle entity:attachmentAng(attachmentID)
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
 	local attachment = this:GetAttachment(attachmentID)
-	if not attachment then return { 0, 0, 0 } end
+	if not attachment then return Angle(0, 0, 0) end
 	local ang = attachment.Ang
-	return { ang.p, ang.y, ang.r }
+	return Angle(ang.p, ang.y, ang.r)
 end
 
 --- Same as <this>:attachmentPos(entity:lookupAttachment(<attachmentName>))
 e2function vector entity:attachmentPos(string attachmentName)
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	local attachment = this:GetAttachment(this:LookupAttachment(attachmentName))
-	if not attachment then return { 0, 0, 0 } end
+	if not attachment then return Vector(0, 0, 0) end
 	return attachment.Pos
 end
 
 --- Same as <this>:attachmentAng(entity:lookupAttachment(<attachmentName>))
 e2function angle entity:attachmentAng(string attachmentName)
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
 	local attachment = this:GetAttachment(this:LookupAttachment(attachmentName))
-	if not attachment then return { 0, 0, 0 } end
+	if not attachment then return Angle(0, 0, 0) end
 	local ang = attachment.Ang
-	return { ang.p, ang.y, ang.r }
+	return Angle(ang.p, ang.y, ang.r)
 end
 
 __e2setcost(20)
@@ -922,8 +919,8 @@ end
 __e2setcost(15)
 
 e2function vector entity:nearestPoint( vector point )
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
-	return this:NearestPoint( Vector(point[1],point[2],point[3]) )
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
+	return this:NearestPoint(point)
 end
 
 /******************************************************************************/

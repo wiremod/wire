@@ -610,33 +610,33 @@ __e2setcost(7)
 e2function vector quaternion:forward()
 	local this1, this2, this3, this4 = this[1], this[2], this[3], this[4]
 	local t2, t3, t4 = this2 * 2, this3 * 2, this4 * 2
-	return {
+	return Vector(
 		this1 * this1 + this2 * this2 - this3 * this3 - this4 * this4,
 		t3 * this2 + t4 * this1,
 		t4 * this2 - t3 * this1
-	}
+	)
 end
 
 --- Returns vector pointing right for <this>
 e2function vector quaternion:right()
 	local this1, this2, this3, this4 = this[1], this[2], this[3], this[4]
 	local t2, t3, t4 = this2 * 2, this3 * 2, this4 * 2
-	return {
+	return Vector(
 		t4 * this1 - t2 * this3,
 		this2 * this2 - this1 * this1 + this4 * this4 - this3 * this3,
 		- t2 * this1 - t3 * this4
-	}
+	)
 end
 
 --- Returns vector pointing up for <this>
 e2function vector quaternion:up()
 	local this1, this2, this3, this4 = this[1], this[2], this[3], this[4]
 	local t2, t3, t4 = this2 * 2, this3 * 2, this4 * 2
-	return {
+	return Vector(
 		t3 * this1 + t2 * this4,
 		t3 * this4 - t2 * this1,
 		this1 * this1 - this2 * this2 - this3 * this3 + this4 * this4
-	}
+	)
 end
 
 /******************************************************************************/
@@ -674,20 +674,20 @@ end
 --- Returns the axis of rotation (by coder0xff)
 e2function vector rotationAxis(quaternion q)
 	local m2 = q[2] * q[2] + q[3] * q[3] + q[4] * q[4]
-	if m2 == 0 then return { 0, 0, 1 } end
+	if m2 == 0 then return Vector(0, 0, 1) end
 	local m = sqrt(m2)
-	return { q[2] / m, q[3] / m, q[4] / m}
+	return Vector(q[2] / m, q[3] / m, q[4] / m)
 end
 
 --- Returns the rotation vector - rotation axis where magnitude is the angle of rotation in degress (by coder0xff)
 e2function vector rotationVector(quaternion q)
 	local l2 = q[1]*q[1] + q[2]*q[2] + q[3]*q[3] + q[4]*q[4]
 	local m2 = math.max( q[2]*q[2] + q[3]*q[3] + q[4]*q[4], 0 )
-	if l2 == 0 or m2 == 0 then return { 0, 0, 0 } end
+	if l2 == 0 or m2 == 0 then return Vector(0, 0, 0) end
 	local s = 2 * acos( math.Clamp( q[1] / sqrt(l2), -1, 1 ) ) * rad2deg
 	if s > 180 then s = s - 360 end
 	s = s / sqrt(m2)
-	return { q[2] * s, q[3] * s, q[4] * s }
+	return Vector( q[2] * s, q[3] * s, q[4] * s )
 end
 
 /******************************************************************************/
@@ -695,7 +695,7 @@ __e2setcost(3)
 
 --- Converts <q> to a vector by dropping the real component
 e2function vector vec(quaternion q)
-	return { q[2], q[3], q[4] }
+	return Vector(q[2], q[3], q[4])
 end
 
 __e2setcost(15)
@@ -713,7 +713,7 @@ end
 --- Returns angle represented by <this>
 e2function angle quaternion:toAngle()
 	local l = sqrt(this[1]*this[1]+this[2]*this[2]+this[3]*this[3]+this[4]*this[4])
-	if l == 0 then return {0,0,0} end
+	if l == 0 then return Angle(0, 0, 0) end
 	local q1, q2, q3, q4 = this[1]/l, this[2]/l, this[3]/l, this[4]/l
 
 	local x = Vector(q1*q1 + q2*q2 - q3*q3 - q4*q4,
@@ -736,7 +736,7 @@ e2function angle quaternion:toAngle()
 	local dot = q2*q1 + q3*q4
 	if dot < 0 then roll = -roll end
 
-	return {ang.p, ang.y, roll}
+	return Angle(ang.p, ang.y, roll)
 end
 
 --- Returns new normalized quaternion

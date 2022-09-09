@@ -420,7 +420,7 @@ end
 
 --- Returns the position of the input ranger data trace IF it hit anything, else returns vec(0,0,0)
 e2function vector ranger:position()
-	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
+	if not this then return self:throw("Invalid ranger!", Vector(0, 0, 0)) end
 	if this.StartSolid then return this.StartPos end
 	return this.HitPos
 end
@@ -428,7 +428,7 @@ end
 -- Returns the position of the input ranger data trace IF it it anything, else returns vec(0,0,0).
 -- NOTE: This function works like Lua's trace, while the above "position" function returns the same as positionLeftSolid IF it was created inside the world.
 e2function vector ranger:pos()
-	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
+	if not this then return self:throw("Invalid ranger!", Vector(0, 0, 0)) end
 	return this.HitPos
 end
 
@@ -455,7 +455,7 @@ end
 
 --- Outputs a normalized vector perpendicular to the surface the ranger is pointed at.
 e2function vector ranger:hitNormal()
-	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
+	if not this then return self:throw("Invalid ranger!", Vector(0, 0, 0)) end
 	return this.HitNormal
 end
 
@@ -479,7 +479,7 @@ end
 
 -- Returns the position at which the trace left the world if it was started inside the world
 e2function vector ranger:positionLeftSolid()
-	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
+	if not this then return self:throw("Invalid ranger!", Vector(0, 0, 0)) end
 	return this.StartPos
 end
 

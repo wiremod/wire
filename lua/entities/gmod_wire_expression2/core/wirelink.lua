@@ -307,14 +307,14 @@ e2function void wirelink:setXyz(vector value)
 end
 
 e2function vector wirelink:xyz()
-	if not validWirelink(self, this) then return { 0, 0, 0 } end
+	if not validWirelink(self, this) then return Vector(0, 0, 0) end
 
-	if not this.Outputs then return { 0, 0, 0 } end
+	if not this.Outputs then return Vector(0, 0, 0) end
 	local x, y, z = this.Outputs["X"], this.Outputs["Y"], this.Outputs["Z"]
 
-	if not x or not y or not z then return { 0, 0, 0 } end
-	if x.Type ~= "NORMAL" or y.Type ~= "NORMAL" or z.Type ~= "NORMAL" then return { 0, 0, 0 } end
-	return { x.Value, y.Value, z.Value }
+	if not x or not y or not z then return Vector(0, 0, 0) end
+	if x.Type ~= "NORMAL" or y.Type ~= "NORMAL" or z.Type ~= "NORMAL" then return Vector(0, 0, 0) end
+	return Vector(x.Value, y.Value, z.Value)
 end
 
 /******************************************************************************/
@@ -446,14 +446,14 @@ end
 
 --- V=XWL[N,vector]
 e2function vector wirelink:operator[T](address)
-	if not validWirelink(self, this) then return { 0, 0, 0 } end
+	if not validWirelink(self, this) then return Vector(0, 0, 0) end
 
 	if not this.ReadCell then return 0 end
-	return {
+	return Vector(
 		this:ReadCell(address) or 0,
 		this:ReadCell(address+1) or 0,
 		this:ReadCell(address+2) or 0,
-	}
+	)
 end
 
 --- XWL[N,string]=S

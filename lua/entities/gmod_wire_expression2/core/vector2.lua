@@ -801,8 +801,8 @@ registerFunction("dehomogenized", "xv4:", "v", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	local w = rv1[4]
-	if w == 0 then return { rv1[1], rv1[2], rv1[3] } end
-	return { rv1[1]/w, rv1[2]/w, rv1[3]/w }
+	if w == 0 then return Vector(rv1[1], rv1[2], rv1[3]) end
+	return Vector(rv1[1]/w, rv1[2]/w, rv1[3]/w)
 end)
 
 __e2setcost(4)

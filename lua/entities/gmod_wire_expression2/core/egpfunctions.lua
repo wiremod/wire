@@ -816,9 +816,9 @@ __e2setcost(20)
 e2function vector wirelink:egpGlobalPos( number index )
 	local hasvertices, posang = EGP:GetGlobalPos( this, index )
 	if (!hasvertices) then
-		return { posang.x, posang.y, posang.angle }
+		return Vector( posang.x, posang.y, posang.angle )
 	end
-	return { 0,0,0 }
+	return Vector(0, 0, 0)
 end
 
 e2function array wirelink:egpGlobalVertices( number index )
@@ -840,7 +840,7 @@ e2function array wirelink:egpGlobalVertices( number index )
 			return {{data.x,data.y},{data.x2,data.y2}}
 		end
 	end
-	return { 0,0,0 }
+	return { 0, 0, 0 }
 end
 
 __e2setcost(5)
@@ -879,10 +879,10 @@ e2function vector wirelink:egpColor( number index )
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
 		if (v.r and v.g and v.b) then
-			return {v.r,v.g,v.b}
+			return Vector(v.r, v.g, v.b)
 		end
 	end
-	return {-1,-1,-1}
+	return Vector(-1, -1, -1)
 end
 
 e2function number wirelink:egpAlpha( number index )

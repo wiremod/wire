@@ -149,8 +149,8 @@ function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 	local phys = this:GetPhysicsObject()
 	local physOrThis = IsValid(phys) and phys or this
 
-	if pos ~= nil then WireLib.setPos( physOrThis, Vector( pos[1],pos[2],pos[3] ) ) end
-	if rot ~= nil then WireLib.setAng( physOrThis, Angle( rot[1],rot[2],rot[3] ) ) end
+	if pos ~= nil then WireLib.setPos( physOrThis, pos ) end
+	if rot ~= nil then WireLib.setAng( physOrThis, rot ) end
 
 	if IsValid( phys ) then
 		if freeze ~= nil and this:GetUnFreezable() ~= true then phys:EnableMotion( freeze == 0 ) end
