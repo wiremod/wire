@@ -265,7 +265,7 @@ e2function vector vector:cross( vector other )
 	return Vector(
 		this[2] * other[3] - this[3] * other[2],
 		this[3] * other[1] - this[1] * other[3],
-		this[1] * other[2] - this[2] * other[1],
+		this[1] * other[2] - this[2] * other[1]
 	)
 end
 
@@ -316,7 +316,7 @@ e2function vector positive(vector rv1)
 	return Vector(
 		rv1[1] >= 0 and rv1[1] or -rv1[1],
 		rv1[2] >= 0 and rv1[2] or -rv1[2],
-		rv1[3] >= 0 and rv1[3] or -rv1[3],
+		rv1[3] >= 0 and rv1[3] or -rv1[3]
 	)
 end
 
@@ -460,7 +460,7 @@ e2function vector maxVec(vector rv1, vector rv2)
 	return Vector(
 		rv1[1] > rv2[1] and rv1[1] or rv2[1],
 		rv1[2] > rv2[2] and rv1[2] or rv2[2],
-		rv1[3] > rv2[3] and rv1[3] or rv2[3],
+		rv1[3] > rv2[3] and rv1[3] or rv2[3]
 	)
 end
 
@@ -468,7 +468,7 @@ e2function vector minVec(vector rv1, vector rv2)
 	return Vector(
 		rv1[1] < rv2[1] and rv1[1] or rv2[1],
 		rv1[2] < rv2[2] and rv1[2] or rv2[2],
-		rv1[3] < rv2[3] and rv1[3] or rv2[3],
+		rv1[3] < rv2[3] and rv1[3] or rv2[3]
 	)
 end
 
@@ -477,7 +477,7 @@ e2function vector mod(vector rv1, rv2)
 	return Vector(
 		rv1[1] >= 0 and rv1[1] % rv2 or rv1[1] % -rv2,
 		rv1[2] >= 0 and rv1[2] % rv2 or rv1[2] % -rv2,
-		rv1[3] >= 0 and rv1[3] % rv2 or rv1[3] % -rv2,
+		rv1[3] >= 0 and rv1[3] % rv2 or rv1[3] % -rv2
 	)
 end
 
@@ -486,7 +486,7 @@ e2function vector mod(vector rv1, vector rv2)
 	return Vector(
 		rv1[1] >= 0 and rv1[1] % rv2[1] or rv1[1] % -rv2[1],
 		rv1[2] >= 0 and rv1[2] % rv2[2] or rv1[2] % -rv2[2],
-		rv1[3] >= 0 and rv1[3] % rv2[3] or rv1[3] % -rv2[3],
+		rv1[3] >= 0 and rv1[3] % rv2[3] or rv1[3] % -rv2[3]
 	)
 end
 
