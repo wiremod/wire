@@ -452,7 +452,7 @@ e2function vector wirelink:operator[T](address)
 	return Vector(
 		this:ReadCell(address) or 0,
 		this:ReadCell(address+1) or 0,
-		this:ReadCell(address+2) or 0,
+		this:ReadCell(address+2) or 0
 	)
 end
 
