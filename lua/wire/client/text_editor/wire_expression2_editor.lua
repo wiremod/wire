@@ -1387,7 +1387,7 @@ Text here]# ]]
 		local E2s = ents.FindByClass("gmod_wire_expression2")
 		dlist2:Clear()
 		local size = 0
-		for _, v in pairs(E2s) do
+		for _, v in ipairs(E2s) do
 			local ply = v:GetNWEntity("player", NULL)
 			if IsValid(ply) and ply == LocalPlayer() or showall then
 				local nick
