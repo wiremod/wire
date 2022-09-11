@@ -138,27 +138,28 @@ e2function vector operator-(vector lhs, vector rhs)
 end
 
 e2function vector operator*(lhs, vector rhs)
-	return Vector(lhs * rhs[1], lhs * rhs[2], lhs * rhs[3])
-end
-
-e2function vector operator*(vector lhs, rhs)
-	return Vector(lhs[1] * rhs, lhs[2] * rhs, lhs[3] * rhs)
-end
-
-e2function vector operator*(vector lhs, vector rhs)
 	return lhs * rhs
 end
 
+e2function vector operator*(vector lhs, rhs)
+	return lhs * rhs
+end
+
+e2function vector operator*(vector lhs, vector rhs)
+	return Vector( lhs[1] * rhs[1], lhs[2] * rhs[2], lhs[3] * rhs[3] )
+end
+
+-- Yes this needs to be in pure lua. Angle/Vector operations in reverse order act as Angle / Number rather than Number / Angle properly. Amazing.
 e2function vector operator/(lhs, vector rhs)
-	return Vector(lhs / rhs[1], lhs / rhs[2], lhs / rhs[3])
+	return Vector( lhs / rhs[1], lhs / rhs[2], lhs / rhs[3] )
 end
 
 e2function vector operator/(vector lhs, rhs)
-	return Vector(lhs[1] / rhs, lhs[2] / rhs, lhs[3] / rhs )
+	return lhs / rhs
 end
 
 e2function vector operator/(vector lhs, vector rhs)
-	return lhs / rhs
+	return Vector( lhs[1] / rhs[1], lhs[2] / rhs[2], lhs[3] / rhs[3] )
 end
 
 e2function number vector:operator[](index)
