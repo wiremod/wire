@@ -281,7 +281,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	status,tree = E2Lib.Optimizer.Execute(tree)
 	if not status then self:Error(tree) return end
 
-	local status, script, inst = E2Lib.Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars, self.includes)
+	local status, script, inst = E2Lib.Compiler.Execute(tree, self.inports, self.outports, self.persists, dvars, self.includes)
 	if not status then self:Error(script) return end
 
 	self.script = script

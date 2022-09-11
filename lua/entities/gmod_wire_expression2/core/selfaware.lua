@@ -4,10 +4,12 @@
 
 __e2setcost(1) -- temporary
 
+[nodiscard]
 e2function entity entity()
 	return self.entity
 end
 
+[nodiscard]
 e2function entity owner()
 	return self.player
 end
@@ -34,6 +36,7 @@ end
 __e2setcost(10)
 
 -- Returns an array of all entities wired to the output
+[nodiscard]
 e2function array ioOutputEntities( string output )
 	local ret = {}
 	if (self.entity.Outputs[output]) then
@@ -45,6 +48,7 @@ e2function array ioOutputEntities( string output )
 end
 
 -- Returns the entity the input is wired to
+[nodiscard]
 e2function entity ioInputEntity( string input )
 	if (self.entity.Inputs[input] and self.entity.Inputs[input].Src and IsValid(self.entity.Inputs[input].Src)) then return self.entity.Inputs[input].Src end
 end
@@ -134,6 +138,7 @@ e2function void entity:setName( string name )
 end
 
 -- Get the name of another E2 or compatible entity or component name of wiremod components
+[nodiscard]
 e2function string entity:getName()
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	if this.GetGateName then
@@ -152,6 +157,7 @@ end)
 __e2setcost(1)
 
 -- This is the prototype for everything that can be compared using the == operator
+[nodiscard]
 e2function number changed(value)
 	local chg = self.data.changed
 
@@ -162,6 +168,7 @@ e2function number changed(value)
 end
 
 -- vectors can be of gmod type Vector, so we need to treat them separately
+[nodiscard]
 e2function number changed(vector value)
 	local chg = self.data.changed
 
@@ -181,6 +188,7 @@ e2function number changed(vector value)
 end
 
 -- This is the prototype for all table types.
+[nodiscard]
 e2function number changed(angle value)
 	local chg = self.data.changed
 
@@ -232,14 +240,17 @@ end)
 __e2setcost( 5 )
 
 local getHash = E2Lib.getHash
+[nodiscard]
 e2function number hash()
 	return getHash( self, self.entity.original )
 end
 
+[nodiscard]
 e2function number hashNoComments()
 	return getHash( self, self.entity.buffer )
 end
 
+[nodiscard]
 e2function number hash( string str )
 	return getHash( self, str )
 end

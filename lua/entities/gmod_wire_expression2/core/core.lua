@@ -248,18 +248,22 @@ end)
 
 __e2setcost(1) -- approximation
 
+[nodiscard]
 e2function number first()
 	return self.entity.first and 1 or 0
 end
 
+[nodiscard]
 e2function number duped()
 	return self.entity.duped and 1 or 0
 end
 
+[nodiscard]
 e2function number inputClk()
 	return self.triggerinput and 1 or 0
 end
 
+[nodiscard]
 e2function string inputClkName()
 	return self.triggerinput or ""
 end
@@ -280,6 +284,7 @@ registerCallback("destruct", function(self)
 end)
 
 --- Returns 1 if it is being called on the last execution of the expression gate before it is removed or reset. This execution must be requested with the runOnLast(1) command.
+[nodiscard]
 e2function number last()
 	return self.data.last and 1 or 0
 end
@@ -298,11 +303,13 @@ local function dupefinished( TimedPasteData, TimedPasteDataCurrent )
 end
 hook.Add("AdvDupe_FinishPasting", "E2_dupefinished", dupefinished )
 
+[nodiscard]
 e2function number dupefinished()
 	return self.entity.dupefinished and 1 or 0
 end
 
 --- Returns 1 if this is the last() execution and caused by the entity being removed.
+[nodiscard]
 e2function number removing()
 	return self.entity.removing and 1 or 0
 end
@@ -374,29 +381,35 @@ local round  = math.Round
 
 __e2setcost(1) -- approximation
 
+[nodiscard]
 e2function number ops()
 	return round(self.prfbench)
 end
 
+[nodiscard]
 e2function number entity:ops()
 	if not IsValid(this) or this:GetClass() ~= "gmod_wire_expression2" or not this.context then return 0 end
 	return round(this.context.prfbench)
 end
 
+[nodiscard]
 e2function number opcounter()
 	return ceil(self.prf + self.prfcount)
 end
 
+[nodiscard]
 e2function number cpuUsage()
 	return self.timebench
 end
 
+[nodiscard]
 e2function number entity:cpuUsage()
 	if not IsValid(this) or this:GetClass() ~= "gmod_wire_expression2" or not this.context then return 0 end
 	return this.context.timebench
 end
 
 --- If used as a while loop condition, stabilizes the expression around <maxexceed> hardquota used.
+[nodiscard]
 e2function number perf()
 	if self.prf >= e2_tickquota*0.95-200 then return 0 end
 	if self.prf + self.prfcount >= e2_hardquota then return 0 end
@@ -404,6 +417,7 @@ e2function number perf()
 	return 1
 end
 
+[nodiscard]
 e2function number perf(number n)
 	n = math.Clamp(n, 0, 100)
 	if self.prf >= e2_tickquota*n*0.01 then return 0 end
@@ -416,6 +430,7 @@ e2function number perf(number n)
 	return 1
 end
 
+[nodiscard]
 e2function number minquota()
 	if self.prf < e2_softquota then
 		return floor(e2_softquota - self.prf)
@@ -424,6 +439,7 @@ e2function number minquota()
 	end
 end
 
+[nodiscard]
 e2function number maxquota()
 	if self.prf < e2_tickquota then
 		local tickquota = e2_tickquota - self.prf
@@ -439,14 +455,17 @@ e2function number maxquota()
 	end
 end
 
+[nodiscard]
 e2function number softQuota()
 	return e2_softquota
 end
 
+[nodiscard]
 e2function number hardQuota()
 	return e2_hardquota
 end
 
+[nodiscard]
 e2function number timeQuota()
 	return e2_timequota
 end
