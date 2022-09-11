@@ -1,0 +1,39 @@
+## SHOULD_PASS:EXECUTE
+
+local Ang = ang(1, 2, 3)
+
+assert(Ang:pitch() == 1)
+assert(Ang:yaw() == 2)
+assert(Ang:roll() == 3)
+
+assert(Ang == ang(1, 2, 3))
+assert(Ang * 2 == ang(2, 4, 6))
+assert(2 * Ang == ang(2, 4, 6))
+
+assert(Ang / 2 == ang(0.5, 1, 1.5))
+assert(2 / Ang == ang(2, 1, 2/3))
+
+assert(Ang + 2 == ang(3, 4, 5))
+assert(2 + Ang == ang(3, 4, 5))
+
+assert(Ang - 2 == ang(-1, 0, 1))
+assert(2 - Ang == ang(1, 0, -1))
+
+local Vec = vec(1, 2, 3)
+
+assert(Vec:x() == 1)
+assert(Vec:y() == 2)
+assert(Vec:z() == 3)
+
+assert(Vec == vec(1, 2, 3))
+assert(Vec * 2 == vec(2, 4, 6))
+assert(2 * Vec == vec(2, 4, 6))
+
+assert(Vec / 2 == vec(0.5, 1, 3/2))
+assert(2 / Vec == vec(2, 1, 2/3))
+
+assert(Vec + 2 == vec(3, 4, 5))
+assert(2 + Vec == vec(3, 4, 5))
+
+assert(Vec - 2 == vec(-1, 0, 1))
+assert(2 - Vec == vec(1, 0, -1))

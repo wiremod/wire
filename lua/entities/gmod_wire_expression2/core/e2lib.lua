@@ -979,6 +979,9 @@ function E2Lib.raiseException(msg, level, trace, can_catch)
 end
 
 --- Unpacks either an exception object as seen above or an error string.
+---@return boolean catchable
+---@return string msg
+---@return TokenTrace? trace
 function E2Lib.unpackException(struct)
 	if isstring(struct) then
 		return false, struct, nil
@@ -1074,8 +1077,13 @@ function E2Lib.compileScript(code, owner, run)
 		if success then
 			return true
 		else
-			why = select(2, E2Lib.unpackException(why))
-			return false, why
+			local _, why, trace = E2Lib.unpackException(why)
+
+			if trace then
+				return false, "Runtime error: '" .. why .. "' at line " .. trace[1] .. ", col " .. trace[2]
+			else
+				return false, why
+			end
 		end
 	end
 end
