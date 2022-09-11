@@ -73,17 +73,6 @@ if SERVER then
 		end
 	end
 
-	local bypassModeCVar = CreateConVar(
-		"wire_expression2_viewrequest_bypass", 1, {FCVAR_ARCHIVE, FCVAR_NOTIFY},
-		"Sets the admin bypass mode for E2 view requests\n0 - No one can bypass\n1 - Superadmins can bypass (default)\n2 - Superadmins and admins can bypass\n3 - View requests disabled"
-	)
-	local function CheckBypass(plr)
-		local bypassMode = bypassModeCVar:GetInt()
-
-		-- Need the or between IsAdmin and IsSuperAdmin as superadmins may not count as admins due to certain addons
-		return bypassMode == 3 or (bypassMode == 2 and (plr:IsAdmin() or plr:IsSuperAdmin())) or (bypassMode == 1 and plr:IsSuperAdmin())
-	end
-
 	-- Simple serverside only local table for storing view requests to make handling them not spaghetti code
 	local viewRequests = {}
 
@@ -175,35 +164,17 @@ if SERVER then
 		local chip = player:GetEyeTrace().Entity
 		if chip:IsPlayer() then return end
 
-		local player = self:GetOwner()
-
 		if IsValid(chip) and chip:GetClass() == "gmod_wire_expression2" then
 			if chip.player == player then -- Just download if the toolgun user owns this chip
 				self:Download(player, chip)
 				player:SetAnimation(PLAYER_ATTACK1)
-			elseif (chip.alwaysAllow and chip.alwaysAllow[player]) or not IsValid(chip.player) then -- If the tooling player is in the chip's always allow table, or the chip has no valid owner meaning we can't send a request, do a CanTool check
-				if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
-					self:Download(player, chip)
-					player:SetAnimation(PLAYER_ATTACK1)
-				end
-			elseif CheckBypass(player) then
-				if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
-					-- Warn the chip's owner their E2 was just taken via the bypass
-					if bypassModeCVar:GetInt() == 3 then
-						BetterChatPrint(
-							chip.player,
-							string.format("Warning, the player '%s' just accessed your chip '%s', as view requests are disabled", player:Nick(), chip.name)
-						)
-					else
-						BetterChatPrint(
-							chip.player,
-							string.format("Warning, the server admin '%s' just accessed your chip '%s', as the view request admin bypass is enabled", player:Nick(), chip.name)
-						)
-					end
-					self:Download(player, chip)
-					player:SetAnimation(PLAYER_ATTACK1)
-				end
-			else
+			elseif hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then -- The player has prop protection perms on the chip
+				self:Download(player, chip)
+				player:SetAnimation(PLAYER_ATTACK1)
+			elseif (chip.alwaysAllow and chip.alwaysAllow[player]) or not IsValid(chip.player) then -- The player doesnt have prop protection perms, however the owner always allows for this chip (or they're invalid)
+				self:Download(player, chip)
+				player:SetAnimation(PLAYER_ATTACK1)
+			else -- The player doesn't have prop protection perms on the chip, ask the owner to give contents
 				RequestView(chip, player)
 				player:SetAnimation(PLAYER_ATTACK1)
 			end
@@ -482,26 +453,10 @@ if SERVER then
 		-- Same check as tool code
 		if E2.player == player then
 			WireLib.Expression2Download(player, E2)
+		elseif hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
+			WireLib.Expression2Download(player, E2)
 		elseif (E2.alwaysAllow and E2.alwaysAllow[player]) or not IsValid(E2.player) then
-			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
-				WireLib.Expression2Download(player, E2)
-			end
-		elseif CheckBypass(player) then
-			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
-				-- Warn the chip's owner their E2 was just taken via the bypass
-				if bypassModeCVar:GetInt() == 3 then
-					BetterChatPrint(
-						E2.player,
-						string.format("Warning, the player '%s' just accessed your chip '%s', as view requests are disabled", player:Nick(), E2.name)
-					)
-				else
-					BetterChatPrint(
-						E2.player,
-						string.format("Warning, the server admin '%s' just accessed your chip '%s', as the view request admin bypass is enabled", player:Nick(), E2.name)
-					)
-				end
-				WireLib.Expression2Download(player, E2)
-			end
+			WireLib.Expression2Download(player, E2)
 		else
 			RequestView(E2, player)
 		end
