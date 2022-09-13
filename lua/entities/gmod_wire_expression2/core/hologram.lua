@@ -520,7 +520,7 @@ end
 -- Returns the hologram with the given index or nil if it doesn't exist.
 -- if shouldbenil is nil or false, assert that the hologram exists on @strict with an error. Otherwise, don't check (for holo creation, etc)
 local function CheckIndex(self, index, shouldbenil)
-	index = math.Clamp(math.floor(index), -2^16, 2^16)
+	index = math.Clamp(math.floor(index), -2^31, 2^31)
 	local Holo
 	if index<0 then
 		Holo = E2HoloRepo[self.uid][-index]
@@ -540,7 +540,7 @@ end
 
 -- Sets the given index to the given hologram.
 local function SetIndex(self, index, Holo)
-	index = math.Clamp(math.floor(index), -2^16, 2^16)
+	index = math.Clamp(math.floor(index), -2^31, 2^31)
 	local rep = E2HoloRepo[self.uid]
 	if index<0 then
 		rep[-index] = Holo
