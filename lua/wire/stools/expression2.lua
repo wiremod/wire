@@ -171,6 +171,15 @@ if SERVER then
 			elseif hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then -- The player has prop protection perms on the chip
 				self:Download(player, chip)
 				player:SetAnimation(PLAYER_ATTACK1)
+
+				local playerType = "player"
+				if player:IsAdmin() then
+					playerType = player:IsSuperAdmin() and "superadmin" or "admin"
+				end
+				BetterChatPrint(
+					chip.player,
+					string.format("The %s '%s' just accessed your chip '%s' via prop protection", playerType, player:Nick(), chip.name)
+				)
 			elseif (chip.alwaysAllow and chip.alwaysAllow[player]) or not IsValid(chip.player) then -- The player doesnt have prop protection perms, however the owner always allows for this chip (or they're invalid)
 				self:Download(player, chip)
 				player:SetAnimation(PLAYER_ATTACK1)
@@ -455,6 +464,15 @@ if SERVER then
 			WireLib.Expression2Download(player, E2)
 		elseif hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
 			WireLib.Expression2Download(player, E2)
+
+			local playerType = "player"
+			if player:IsAdmin() then
+				playerType = player:IsSuperAdmin() and "superadmin" or "admin"
+			end
+			BetterChatPrint(
+				E2.player,
+				string.format("The %s '%s' just accessed your chip '%s' via prop protection", playerType, player:Nick(), E2.name)
+			)
 		elseif (E2.alwaysAllow and E2.alwaysAllow[player]) or not IsValid(E2.player) then
 			WireLib.Expression2Download(player, E2)
 		else
