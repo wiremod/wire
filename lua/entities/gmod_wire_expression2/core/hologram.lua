@@ -1368,7 +1368,7 @@ concommand.Add( "wire_holograms_block_id", function( ply, com, args )
 			player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. steamID .. " added to holograms blocklist" )
 		end
 		local uid
-		for _,v in pairs( player.GetAll() ) do
+		for _,v in ipairs( player.GetAll() ) do
 			if v:SteamID() == steamID then
 				uid = v:UniqueID()
 				if (E2HoloRepo[uid]) then
