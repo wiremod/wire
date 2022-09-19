@@ -423,6 +423,14 @@ e2function void entity:propSetAngVelocity(vector velocity)
 	end
 end
 
+e2function void entity:propSetAngVelocityInstant(vector velocity)
+	if not PropCore.ValidAction(self, this, "angvelinst") then return end
+	local phys = this:GetPhysicsObject()
+	if IsValid( phys ) then
+		phys:SetAngleVelocityInstantaneous(Vector(velocity[1], velocity[2], velocity[3]))
+	end
+end
+
 hook.Add( "CanDrive", "checkPropStaticE2", function( ply, ent ) if ent.propStaticE2 ~= nil then return false end end )
 e2function void entity:propStatic( number static )
 	if not PropCore.ValidAction( self, this, "static" ) then return end
