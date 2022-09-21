@@ -21,39 +21,45 @@ function ENT:TriggerInput(name, value)
 	if name == "Activate" then
 		self.State = value ~= 0
 		for _, ent in pairs(self.Marks) do
-			if IsValid(ent) and IsValid(ent:GetPhysicsObject()) then
-				if self.State then
-					-- Garry's Mod provides an OnPhysgunFreeze hook, which will
-					-- unfreeze the object if prop protection allows it...
-					gamemode.Call("OnPhysgunFreeze", self, ent:GetPhysicsObject(), ent, self:GetPlayer())
-				else
-					-- ...and a CanPlayerUnfreeze hook, which will return whether
-					-- prop protection allows it, but won't unfreeze do the unfreezing.
-					if not gamemode.Call("CanPlayerUnfreeze", self:GetPlayer(), ent, ent:GetPhysicsObject()) then return end
-					ent:GetPhysicsObject():EnableMotion(true)
-					ent:GetPhysicsObject():Wake()
+			if IsValid(ent) then
+				local phys = ent:GetPhysicsObject()
+				if IsValid(phys) then
+					if self.State then
+						-- Garry's Mod provides an OnPhysgunFreeze hook, which will
+						-- unfreeze the object if prop protection allows it...
+						gamemode.Call("OnPhysgunFreeze", self, phys, ent, self:GetPlayer())
+					else
+						-- ...and a CanPlayerUnfreeze hook, which will return whether
+						-- prop protection allows it, but won't unfreeze do the unfreezing.
+						if not gamemode.Call("CanPlayerUnfreeze", self:GetPlayer(), ent, phys) then return end
+						phys:EnableMotion(true)
+						phys:Wake()
+					end
 				end
 			end
 		end
 	elseif name == "Disable Collisions" then
 		self.CollisionState = math.Clamp(math.Round(value), 0, 4)
 		for _, ent in pairs(self.Marks) do
-			if IsValid(ent) and IsValid(ent:GetPhysicsObject()) and gamemode.Call("CanTool", self:GetPlayer(), WireLib.dummytrace(ent), "nocollide") then
-				if self.CollisionState == 0 then
-					ent:SetCollisionGroup( COLLISION_GROUP_NONE )
-					ent:GetPhysicsObject():EnableCollisions(true)
-				elseif self.CollisionState == 1 then
-					ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
-					ent:GetPhysicsObject():EnableCollisions(true)
-				elseif self.CollisionState == 2 then
-					ent:SetCollisionGroup( COLLISION_GROUP_NONE )
-					ent:GetPhysicsObject():EnableCollisions(false)
-				elseif self.CollisionState == 3 then
-					ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
-					ent:GetPhysicsObject():EnableCollisions(true)
-				elseif self.CollisionState == 4 then
-					ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
-					ent:GetPhysicsObject():EnableCollisions(false)
+			if IsValid(ent) then
+				local phys = ent:GetPhysicsObject()
+				if IsValid(phys) and gamemode.Call("CanTool", self:GetPlayer(), WireLib.dummytrace(ent), "nocollide") then
+					if self.CollisionState == 0 then
+						ent:SetCollisionGroup( COLLISION_GROUP_NONE )
+						phys:EnableCollisions(true)
+					elseif self.CollisionState == 1 then
+						ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
+						phys:EnableCollisions(true)
+					elseif self.CollisionState == 2 then
+						ent:SetCollisionGroup( COLLISION_GROUP_NONE )
+						phys:EnableCollisions(false)
+					elseif self.CollisionState == 3 then
+						ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+						phys:EnableCollisions(true)
+					elseif self.CollisionState == 4 then
+						ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+						phys:EnableCollisions(false)
+					end
 				end
 			end
 		end
