@@ -1785,6 +1785,9 @@ function Editor:SaveFile(Line, close, SaveAs)
 		self:Close()
 		return
 	end
+	
+	if string.GetFileFromFilename(Line) == ".txt" then Line = string.GetPathFromFilename(Line) .. "_.txt" end
+	
 	if not Line or SaveAs or Line == self.Location .. "/" .. ".txt" then
 		local str
 		if self.C.Browser.File then
