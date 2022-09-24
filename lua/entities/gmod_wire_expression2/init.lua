@@ -123,7 +123,7 @@ end
 
 local SysTime = SysTime
 
-local ENT:UpdatePerf()
+function ENT:UpdatePerf()
 	if not self.context then return end
 	if self.error then return end
 	
@@ -164,8 +164,9 @@ function ENT:Execute()
 		local _catchable, msg, trace = E2Lib.unpackException(msg)
 
 		if msg == "exit" then
-			ENT:UpdatePerf()
+			self:UpdatePerf()
 		elseif msg == "perf" then
+			self:UpdatePerf()
 			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
 		elseif trace then
 			self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
@@ -213,7 +214,7 @@ function ENT:Think()
 	BaseClass.Think(self)
 	self:NextThink(CurTime()+0.030303)
 
-	ENT:UpdatePerf()
+	self:UpdatePerf()
 
 	return true
 end
