@@ -266,24 +266,20 @@ function Tokenizer:Next()
 	end
 
 	---@type string|Operator|nil
-	local op = self:At()
-	while E2Lib.OperatorChars[self:At()] do
-		local c = self:NextChar()
-		if E2Lib.OperatorLookup[op .. c] then
-			op = op .. c
-		elseif E2Lib.OperatorLookup[op .. c .. self:PeekChar()] then
-			op = op .. c .. self:NextChar()
-		elseif E2Lib.OperatorLookup[op] then
-			op = E2Lib.OperatorLookup[op]
-			break
+	local op = E2Lib.optable[self:At()]
+
+	while op do
+		if op[2] and op[2][self:PeekChar()] then
+			op = op[2][self:NextChar()]
 		else
-			op = nil
 			break
 		end
 	end
 
+	self:NextChar()
+
 	if op then
-		return Token.new(TokenVariant.Operator, op)
+		return Token.new(TokenVariant.Operator, E2Lib.OperatorLookup[E2Lib.optable_inv[op[1]]])
 	end
 end
 
