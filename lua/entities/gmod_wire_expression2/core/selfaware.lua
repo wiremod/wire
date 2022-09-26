@@ -180,7 +180,7 @@ e2function number changed(vector value)
 end
 
 -- This is the prototype for all table types.
-e2function number changed(table value)
+e2function number changed(vector4 value)
 	local chg = self.data.changed
 
 	local this_chg = chg[args]
@@ -201,6 +201,7 @@ local excluded_types = {
 	n = true,
 	v = true,
 	a = true,
+	xv4 = true,
 	[""] = true,
 
 	r = true,
@@ -223,7 +224,7 @@ registerCallback("postinit", function()
 			if comparable_types[typeid] then
 				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_n)
 			else
-				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_t)
+				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_xv4)
 			end
 		end
 	end
