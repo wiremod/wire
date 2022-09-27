@@ -88,7 +88,7 @@ function ENT:UpdateOutputs()
 end
 
 function ENT:CheckEnt( ent )
-	if ent:IsValid() then
+	if IsValid(ent) then
 		for index, e in pairs( self.Marks ) do
 			if (e == ent) then return true, index end
 		end
