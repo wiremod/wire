@@ -1786,8 +1786,6 @@ function Editor:SaveFile(Line, close, SaveAs)
 		return
 	end
 	
-	if string.GetFileFromFilename(Line) == ".txt" then Line = string.GetPathFromFilename(Line) .. "_.txt" end
-	
 	if not Line or SaveAs or Line == self.Location .. "/" .. ".txt" then
 		local str
 		if self.C.Browser.File then
@@ -1826,6 +1824,12 @@ function Editor:SaveFile(Line, close, SaveAs)
 
 				self:UpdateActiveTabTitle()
 			end)
+		return
+	end
+
+	if string.GetFileFromFilename(Line) == ".txt" then
+		surface.PlaySound("buttons/button10.wav")
+		GAMEMODE:AddNotify("Failed to save file without filename!", NOTIFY_ERROR, 7)
 		return
 	end
 
