@@ -21,9 +21,9 @@ function ENT:TriggerInput(name, value)
 	if name == "Activate" then
 		self.State = value ~= 0
 		for _, ent in pairs(self.Marks) do
-			if IsValid(ent) then
+			if ent:IsValid() then
 				local phys = ent:GetPhysicsObject()
-				if IsValid(phys) then
+				if phys:IsValid() then
 					if self.State then
 						-- Garry's Mod provides an OnPhysgunFreeze hook, which will
 						-- unfreeze the object if prop protection allows it...
@@ -41,9 +41,9 @@ function ENT:TriggerInput(name, value)
 	elseif name == "Disable Collisions" then
 		self.CollisionState = math.Clamp(math.Round(value), 0, 4)
 		for _, ent in pairs(self.Marks) do
-			if IsValid(ent) then
+			if ent:IsValid() then
 				local phys = ent:GetPhysicsObject()
-				if IsValid(phys) and gamemode.Call("CanTool", self:GetPlayer(), WireLib.dummytrace(ent), "nocollide") then
+				if phys:IsValid() and gamemode.Call("CanTool", self:GetPlayer(), WireLib.dummytrace(ent), "nocollide") then
 					if self.CollisionState == 0 then
 						ent:SetCollisionGroup( COLLISION_GROUP_NONE )
 						phys:EnableCollisions(true)
@@ -88,7 +88,7 @@ function ENT:UpdateOutputs()
 end
 
 function ENT:CheckEnt( ent )
-	if IsValid(ent) then
+	if ent:IsValid() then
 		for index, e in pairs( self.Marks ) do
 			if (e == ent) then return true, index end
 		end
@@ -100,7 +100,7 @@ function ENT:LinkEnt( ent )
 	if (self:CheckEnt( ent )) then return false	end
 	self.Marks[#self.Marks+1] = ent
 	ent:CallOnRemove("AdvEMarker.Unlink", function(ent)
-		if IsValid(self) then self:UnlinkEnt(ent) end
+		if self:IsValid() then self:UnlinkEnt(ent) end
 	end)
 	self:UpdateOutputs()
 	return true
