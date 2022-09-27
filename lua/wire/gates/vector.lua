@@ -363,7 +363,7 @@ GateActions["vector_latch"] = {
 	outputtypes = { "VECTOR" },
 	output = function(gate, In, Clk)
 		Clk = (Clk > 0)
-		if (gate.PrevClk not = Clk) then
+		if (gate.PrevClk ~= Clk) then
 			gate.PrevClk = Clk
 			if (Clk) then
 				if not isvector (In) then In = Vector (0, 0, 0) end
