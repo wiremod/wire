@@ -19,11 +19,6 @@ function table.MakeNonIterable(tbl) -- luacheck: ignore
     return setmetatable({}, { __index = tbl, __setindex = tbl})
 end
 
--- Checks if the table is empty, it's faster than table.Count(Table) > 0
-function table.IsEmpty(Table) -- luacheck: ignore
-	return (next(Table) == nil)
-end
-
 -- Compacts an array by rejecting entries according to cb.
 function table.Compact(tbl, cb, n) -- luacheck: ignore
 	n = n or #tbl
