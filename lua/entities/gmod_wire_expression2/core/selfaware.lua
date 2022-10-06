@@ -167,7 +167,6 @@ e2function number changed(value)
 	return 1
 end
 
--- vectors can be of gmod type Vector, so we need to treat them separately
 [nodiscard]
 e2function number changed(vector value)
 	local chg = self.data.changed
@@ -189,7 +188,7 @@ end
 
 -- This is the prototype for all table types.
 [nodiscard]
-e2function number changed(angle value)
+e2function number changed(vector4 value)
 	local chg = self.data.changed
 
 	local this_chg = chg[args]
@@ -210,6 +209,7 @@ local excluded_types = {
 	n = true,
 	v = true,
 	a = true,
+	xv4 = true,
 	[""] = true,
 
 	r = true,
@@ -223,13 +223,16 @@ local comparable_types = {
 }
 
 registerCallback("postinit", function()
+	-- Angle is the same as vector
+	registerFunction("changed", "a", "n", registeredfunctions.e2_changed_v)
+
 	-- generate this function for all types
 	for typeid,_ in pairs(wire_expression_types2) do
 		if not excluded_types[typeid] then
 			if comparable_types[typeid] then
 				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_n)
 			else
-				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_a)
+				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_xv4)
 			end
 		end
 	end
