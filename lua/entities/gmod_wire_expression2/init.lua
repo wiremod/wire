@@ -175,8 +175,8 @@ function ENT:Execute()
 	end
 
 	self.GlobalScope.vclk = {}
-	for k, v in pairs(self.globvars) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
+	for k, var in pairs(self.globvars) do
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
 	end
 
 	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
@@ -418,8 +418,8 @@ function ENT:ResetContext()
 		self.globvars[k] = nil
 	end
 
-	for k, v in pairs(self.globvars) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
+	for k, var in pairs(self.globvars) do
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
 	end
 
 	for k, v in pairs(self.Inputs) do

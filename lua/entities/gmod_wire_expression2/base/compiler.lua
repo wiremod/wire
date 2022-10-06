@@ -5,8 +5,6 @@
 
 AddCSLuaFile()
 
----@alias Warning { message: string, line: integer, char: integer }
-
 ---@class Compiler
 ---@field warnings table<number|string, Warning> # Array of warnings (main file) with keys to included file warnings.
 ---@field include string? # Current include file or nil if main file
@@ -26,12 +24,12 @@ local BLOCKED_ARRAY_TYPES = E2Lib.blocked_array_types
 ---@return boolean ok
 ---@return function script
 ---@return Compiler self
-function Compiler.Execute(...)
+function Compiler.Execute(root, inputs, outputs, persist, delta, includes)
 	-- instantiate Compiler
 	local instance = setmetatable({ warnings = {} }, Compiler)
 
 	-- and pcall the new instance's Process method.
-	local ok, script = xpcall(Compiler.Process, E2Lib.errorHandler, instance, ...)
+	local ok, script = xpcall(Compiler.Process, E2Lib.errorHandler, instance, root, inputs, outputs, persist, delta, includes)
 
 	return ok, script, instance
 end
@@ -418,10 +416,8 @@ function Compiler:InstrSEQ(args)
 			break
 		else
 			local stmt, _, instr, extra = self:EvaluateStatement(args, i)
-			if instr == "CALL" or instr == "METHODCALL" then
-				if extra and extra.nodiscard then
-					self:Warning("The return value of this function cannot be discarded", args[i + 2])
-				end
+			if (instr == "CALL" or instr == "METHODCALL") and (extra and extra.nodiscard) then
+				self:Warning("The return value of this function cannot be discarded", args[i + 2])
 			elseif ExprWarnings[instr] then
 				self:Warning(ExprWarnings[instr], args[i + 2])
 			end
@@ -662,9 +658,13 @@ function Compiler:InstrASS(args)
 	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
 
+	local keep_as_used = self.persist[op] and not self.GlobalScope[op].var_tok
+
 	local ScopeID = self:SetGlobalVariableType(op, tp, args, true)
-	if ScopeID == 0 and self.outputs[op] then
+	if keep_as_used or (ScopeID == 0 and self.outputs[op]) then
 		-- Mark output variable as being used to prevent warnings.
+		-- Also mark @persist variable as used if already used in InstrVAR prior to assignment
+		-- (Without this, the InstrASS would mark it as unused once again even if it was used prior)
 		self.Scopes[ScopeID][op].var_tok = nil
 	end
 
@@ -880,6 +880,9 @@ function Compiler:InstrVAR(args)
 	self.prfcounter = self.prfcounter + 1.0
 	local name = args[3]
 	local tp, ScopeID, initialized = self:GetVariableType(args, name)
+
+	-- Mark variable as used.
+	self.Scopes[ScopeID][name].var_tok = nil
 
 	if ScopeID == 0 and not initialized then
 		self:Warning("Use of variable [" .. name .. "] before initialization", args)
