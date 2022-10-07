@@ -634,10 +634,10 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 		buffer = string.Replace(string.Replace(buffer, string.char(163), "\""), string.char(128), "\n")
 
 		-- Check codeAuthor actually exists, it wont be present on old dupes
-		-- No need to check if buffer already has an @disabled directive, as chips with compiler errors can't be duped
+		-- No need to check if buffer already has a dupe related #error directive, as chips with compiler errors can't be duped
 		if codeAuthor and player:SteamID() ~= codeAuthor.steamID then
 			buffer = string.format(
-				"@disabled Dupe pasted with code authored by %s (%s). Please review the contents of the E2 before removing this directive\n",
+				"#error Dupe pasted with code authored by %s (%s). Please review the contents of the E2 before removing this directive\n\n",
 				codeAuthor.name, codeAuthor.steamID
 			) .. buffer
 		end
@@ -653,7 +653,7 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 
 		self.filepath = filepath
 	else
-		self.buffer = "@disabled You tried to dupe an E2 with compile errors!\n#Unfortunately, no code can be saved when duping an E2 with compile errors.\n#Fix your errors and try again."
+		self.buffer = "#error You tried to dupe an E2 with compile errors!\n#Unfortunately, no code can be saved when duping an E2 with compile errors.\n#Fix your errors and try again."
 
 		self.inc_files = {}
 		self.dupevars = {}

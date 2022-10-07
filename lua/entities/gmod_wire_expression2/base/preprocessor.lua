@@ -247,10 +247,6 @@ local directive_handlers = {
 		WireLib.Expression2Upload( self.ent:GetPlayer(), self.ent, self.ent.filepath )
 	end,
 
-	["disabled"] = function(self, value)
-		self:Error(value, 1)
-	end,
-
 	-- Maybe it can have multiple levels in the future but I think one is fine for now.
 	["strict"] = function(self)
 		self.directives.strict = true
@@ -486,4 +482,8 @@ function PreProcessor:PP_endif(args)
 	if state == nil then self:Error("Found #endif outside #ifdef/#ifndef block") end
 
 	if args:Trim() ~= "" then self:Error("Must not pass an argument to #endif") end
+end
+
+function PreProcessor:PP_error(args)
+	self:Error(args)
 end

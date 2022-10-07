@@ -415,7 +415,7 @@ if SERVER then
 				-- Note that the SENT and CPPI owners aren't set here to allow the original owner to still access their chip
 			end
 
-			-- This is needed when formatting the @disabled directive on dupe
+			-- This is needed when formatting the #error directive on dupe
 			toent.code_author = {
 				name = ply:GetName(),
 				steamID = ply:SteamID()
