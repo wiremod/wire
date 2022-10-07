@@ -153,7 +153,14 @@ if CLIENT then
 
 		local txt = data.txt
 		local class = getWireName( self ) .. " [" .. self:EntIndex() .. "]"
-		local name = "(" .. self:GetPlayerName() .. ")"
+
+		local name
+		if CPPI then
+			local owner = self:CPPIGetOwner()
+			name = string.format("(%s)", (owner and owner:IsPlayer()) and owner:GetName() or "World")
+		else
+			name = "(" .. self:GetPlayerName() .. ")"
+		end
 
 		local w_body, 	h_body = self:GetWorldTipBodySize()
 		local w_class, 	h_class = surface.GetTextSize( class )
