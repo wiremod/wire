@@ -98,6 +98,7 @@ local colors = {
 	["operator"] = Color(224, 224, 224), -- white
 	["comment"] = Color(128, 128, 128), -- grey
 	["ppcommand"] = Color(240, 96, 240), -- purple
+	["ppcommandargs"] = Color(128, 128, 128), -- same as comment
 	["typename"] = Color(240, 160, 96), -- orange
 	["constant"] = Color(240, 160, 240), -- pink
 	["userfunction"] = Color(102, 122, 102), -- dark grayish-green

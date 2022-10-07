@@ -63,6 +63,7 @@ local colors = {
 	["operator"]  = { Color(224, 224, 224), false}, -- white
 	["comment"]   = { Color(128, 128, 128), false}, -- grey
 	["ppcommand"] = { Color(240,  96, 240), false}, -- purple
+	["ppcommandargs"] = { Color(128, 128, 128), false}, -- same as comment
 	["typename"]  = { Color(240, 160,  96), false}, -- orange
 	["constant"]  = { Color(240, 160, 240), false}, -- pink
 	["userfunction"] = { Color(102, 122, 102), false}, -- dark grayish-green
@@ -545,7 +546,11 @@ function EDITOR:SyntaxColorLine(row)
 
 				if E2Lib.PreProcessor["PP_"..self.tokendata:sub(2)] then
 					-- there is a preprocessor command by that name => mark as such
-					tokenname = "ppcommand"
+					addToken("ppcommand", self.tokendata)
+					self.tokendata = ""
+
+					self:NextPattern(".*")
+					tokenname = "ppcommandargs"
 				elseif self.tokendata == "#include" then
 					tokenname = "keyword"
 				else
