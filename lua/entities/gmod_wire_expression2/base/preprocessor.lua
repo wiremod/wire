@@ -485,5 +485,7 @@ function PreProcessor:PP_endif(args)
 end
 
 function PreProcessor:PP_error(args)
-	self:Error(args)
+	if not self:Disabled() then
+		self:Error(args)
+	end
 end
