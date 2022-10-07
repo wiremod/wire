@@ -594,6 +594,8 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 			ent.context.player = ply
 			ent.player = ply
 			ent:SetNWEntity("player", ply)
+			ent:SetPlayer(ply)
+
 			if ent.disconnectPaused then
 				ent:SetColor(ent.disconnectPaused)
 				ent:SetRenderMode(ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
@@ -610,7 +612,7 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 	end
 end)
 
-function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files, filepath)
+function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files, filepath, codeAuthor)
 	if not player then player = game.GetWorld() end -- For Garry's Map Saver
 	if IsValid(player) and not player:CheckLimit("wire_expressions") then return false end
 	if not WireLib.CanModel(player, model) then return false end
@@ -630,6 +632,16 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 
 	if isstring( buffer ) then -- if someone dupes an E2 with compile errors, then all these values will be invalid
 		buffer = string.Replace(string.Replace(buffer, string.char(163), "\""), string.char(128), "\n")
+
+		-- Check codeAuthor actually exists, it wont be present on old dupes
+		-- No need to check if buffer already has an @disabled directive, as chips with compiler errors can't be duped
+		if codeAuthor and player:SteamID() ~= codeAuthor.steamID then
+			buffer = string.format(
+				"@disabled Dupe pasted with code authored by %s (%s). Please review the contents of the E2 before removing this directive\n",
+				codeAuthor.name, codeAuthor.steamID
+			) .. buffer
+		end
+
 		self.buffer = buffer
 		self:SetOverlayText(name)
 
@@ -641,7 +653,7 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 
 		self.filepath = filepath
 	else
-		self.buffer = "error(\"You tried to dupe an E2 with compile errors!\")\n#Unfortunately, no code can be saved when duping an E2 with compile errors.\n#Fix your errors and try again."
+		self.buffer = "@disabled You tried to dupe an E2 with compile errors!\n#Unfortunately, no code can be saved when duping an E2 with compile errors.\n#Fix your errors and try again."
 
 		self.inc_files = {}
 		self.dupevars = {}
@@ -655,7 +667,7 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 	end
 	return self
 end
-duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars", "inc_files", "filepath")
+duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars", "inc_files", "filepath", "code_author")
 
 --------------------------------------------------
 -- Emergency shutdown (beta testing so far)

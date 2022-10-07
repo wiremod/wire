@@ -247,8 +247,8 @@ local directive_handlers = {
 		WireLib.Expression2Upload( self.ent:GetPlayer(), self.ent, self.ent.filepath )
 	end,
 
-	["disabled"] = function(self)
-		self:Error("Disabled for security reasons. Remove @disabled to enable.", 1)
+	["disabled"] = function(self, value)
+		self:Error(value, 1)
 	end,
 
 	-- Maybe it can have multiple levels in the future but I think one is fine for now.
