@@ -1412,9 +1412,16 @@ Text here]# ]]
 				local label = vgui.Create("DLabel", panel)
 				local idx = v:EntIndex()
 
-				local str = string.format("Name: %s\nEntity ID: '%d'\nOwner: %s",name,idx,nick)
+				local ownerStr
+				if CPPI and v:CPPIGetOwner():GetName() ~= nick then
+					ownerStr = string.format("Owner: %s | Code Author: %s", v:CPPIGetOwner():GetName(), nick)
+				else
+					ownerStr = "Owner: " .. nick
+				end
+
+				local str = string.format("Name: %s\nEntity ID: '%d'\n%s", name, idx, ownerStr)
 				if LocalPlayer():IsAdmin() then
-					str = string.format("Name: %s\nEntity ID: '%d'\n%i ops, %i%% %s\ncpu time: %ius\nOwner: %s",name,idx,0,0,"",0,nick)
+					str = string.format("Name: %s\nEntity ID: '%d'\n%i ops, %i%% %s\ncpu time: %ius\n%s", name, idx, 0, 0, "", 0, ownerStr)
 				end
 
 				label:SetText(str)
@@ -1445,7 +1452,13 @@ Text here]# ]]
 
 							local hardtext = (prfcount / e2_hardquota > 0.33) and "(+" .. tostring(math.Round(prfcount / e2_hardquota * 100)) .. "%)" or ""
 
-							label:SetText(string.format("Name: %s\nEntity ID: '%d'\n%i ops, %i%% %s\ncpu time: %ius\nOwner: %s",name,idx,prfbench,prfbench / e2_softquota * 100,hardtext,timebench*1000000,nick))
+							label:SetText(string.format(
+								"Name: %s\nEntity ID: '%d'\n%i ops, %i%% %s\ncpu time: %ius\n%s",
+								name, idx,
+								prfbench, prfbench / e2_softquota * 100, hardtext,
+								timebench * 1000000,
+								ownerStr
+							))
 						end
 					end
 				end
