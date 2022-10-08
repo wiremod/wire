@@ -1033,7 +1033,7 @@ function E2Lib.compileScript(code, owner, run)
 	status,tree = E2Lib.Optimizer.Execute(tree)
 	if not status then return false, tree end
 
-	local status, script, inst = E2Lib.Compiler.Execute(tree, directives.inputs[3], directives.outputs[3], directives.persist[3], dvars, {})
+	local status, script, inst = E2Lib.Compiler.Execute(tree, directives.inputs, directives.outputs, directives.persist, dvars, {})
 	if not status then return false, script end
 
 	local ctx = makeContext(owner or game.GetWorld())

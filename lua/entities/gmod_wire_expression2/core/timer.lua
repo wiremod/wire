@@ -81,14 +81,18 @@ e2function void stoptimer(string rv1)
 end
 
 __e2setcost(1)
+
+[nodiscard]
 e2function number clk()
 	return self.data.timer.runner == "interval" and 1 or 0
 end
 
+[nodiscard]
 e2function number clk(string rv1)
 	return self.data.timer.runner == rv1 and 1 or 0
 end
 
+[nodiscard]
 e2function string clkName()
 	return self.data.timer.runner or ""
 end
@@ -113,14 +117,17 @@ end
 
 /******************************************************************************/
 
+[nodiscard]
 e2function number curtime()
 	return CurTime()
 end
 
+[nodiscard]
 e2function number realtime()
 	return RealTime()
 end
 
+[nodiscard]
 e2function number systime()
 	return SysTime()
 end
@@ -182,6 +189,7 @@ end
 
 __e2setcost(2)
 -- Returns the time in seconds
+[nodiscard]
 e2function number time()
 	return os.time()
 end
@@ -190,6 +198,7 @@ end
 -- The table structure must be the same as in the above date functions
 -- If any values are missing or of the wrong type, that value is ignored (it will be nil)
 local validkeys = {hour = true, min = true, day = true, sec = true, yday = true, wday = true, month = true, year = true, isdst = true}
+[nodiscard]
 e2function number time(table data)
 	local args = {}
 

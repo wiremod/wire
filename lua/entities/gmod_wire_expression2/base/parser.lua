@@ -85,6 +85,7 @@ KeyValue = Expr1 ("=" Expr1)?
 ---@field tokens Token[]
 ---@field index integer
 ---@field count integer
+---@field warnings Warning[]
 local Parser = {}
 Parser.__index = Parser
 
@@ -98,12 +99,18 @@ local parserDebug = CreateConVar("wire_expression2_parser_debug", 0,
 	"Print an E2's abstract syntax tree after parsing"
 )
 
+---@return boolean ok
+---@return table tree
+---@return table delta
+---@return table includes
+---@return Parser self
 function Parser.Execute(...)
 	-- instantiate Parser
 	local instance = setmetatable({}, Parser)
 
 	-- and pcall the new instance's Process method.
-	return xpcall(Parser.Process, E2Lib.errorHandler, instance, ...)
+	local ok, tree, delta, includes = xpcall(Parser.Process, E2Lib.errorHandler, instance, ...)
+	return ok, tree, delta, includes, instance
 end
 
 ---@param message string
@@ -116,13 +123,27 @@ function Parser:Error(message, token)
 	end
 end
 
+---@param message string
+---@param token Token?
+function Parser:Warning(message, token)
+	if token then
+		self.warnings[#self.warnings + 1] = { message = message, line = token.start_line, char = token.start_col }
+	else
+		self.warnings[#self.warnings + 1] = { message = message, line = self.token.start_line, char = self.token.start_col }
+	end
+end
+
 ---@param tokens Token[]
+---@return table tree
+---@return table delta
+---@return table includes
 function Parser:Process(tokens, params)
 	self.tokens = tokens
 	self.index = 0
 	self.count = #tokens
 	self.delta = {}
 	self.includes = {}
+	self.warnings = {}
 
 	self:NextToken()
 	local tree = self:Root()

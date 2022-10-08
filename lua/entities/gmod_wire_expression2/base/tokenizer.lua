@@ -18,6 +18,7 @@ AddCSLuaFile()
 ---@field col integer
 ---@field line integer
 ---@field code string?
+---@field warnings Warning[]
 local Tokenizer = {}
 Tokenizer.__index = Tokenizer
 
@@ -55,7 +56,6 @@ for k, v in pairs(TokenVariant) do
 end
 
 Tokenizer.VariantLookup = VariantLookup
-
 
 ---@class Token
 ---@field variant TokenVariant
@@ -107,12 +107,16 @@ function Token:display()
 	end
 end
 
+---@return boolean ok
+---@return Token[]
+---@return Tokenizer self
 function Tokenizer.Execute(code)
 	-- instantiate Tokenizer
 	local instance = setmetatable({}, Tokenizer)
 
 	-- and pcall the new instance's Process method.
-	return xpcall(Tokenizer.Process, E2Lib.errorHandler, instance, code)
+	local ok, tokens = xpcall(Tokenizer.Process, E2Lib.errorHandler, instance, code)
+	return ok, tokens, instance
 end
 
 function Tokenizer:Reset()
@@ -120,10 +124,19 @@ function Tokenizer:Reset()
 	self.col = 1
 	self.line = 1
 	self.code = nil
+	self.warnings = {}
 end
 
+---@param message string
+---@param offset integer?
 function Tokenizer:Error(message, offset)
 	error(message .. " at line " .. self.line .. ", char " .. (self.col + (offset or 0)), 0)
+end
+
+---@param message string
+---@param offset integer?
+function Tokenizer:Warning(message, offset)
+	self.warnings[#self.warnings + 1] = { message = message, line = self.line, char = (self.col + (offset or 0)) }
 end
 
 local Escapes = {
@@ -197,8 +210,10 @@ function Tokenizer:Next()
 		elseif match == "false" then
 			return Token.new(TokenVariant.Boolean, false)
 		elseif match == "k" or match == "j" then
+			self:Warning("Avoid using quaternion literal '" .. match .. "' on its own. (Use 1" .. match .. " instead)")
 			return Token.new(TokenVariant.Quat, "1" .. match)
 		elseif match == "i" then
+			-- self:Warning("Avoid using complex literal 'i' on its own. (Use 1i instead)")
 			return Token.new(TokenVariant.Complex, "1i")
 		else
 			return Token.new(TokenVariant.LowerIdent, match)
@@ -239,11 +254,12 @@ function Tokenizer:Next()
 					break
 				else -- Escape
 					local c = self:At()
-					c = Escapes[c] or c
 
-					if not c then
-						-- self:Error("Invalid escape \\" .. c)
-						c = '\\'
+					if not Escapes[c] then
+						self:Warning("Invalid escape \\" .. c)
+						c = '\\' .. c
+					else
+						c = Escapes[c]
 					end
 
 					self:NextChar(true)
@@ -343,6 +359,7 @@ function Tokenizer:ConsumePattern(pattern, ws)
 	return match
 end
 
+---@return Token[]
 function Tokenizer:Process(code)
 	self:Reset()
 
