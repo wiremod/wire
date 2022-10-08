@@ -521,3 +521,9 @@ function PreProcessor:PP_error(args)
 		self:Error(args)
 	end
 end
+
+function PreProcessor:PP_warning(args)
+	if not self:Disabled() then
+		self:Warning(args)
+	end
+end
