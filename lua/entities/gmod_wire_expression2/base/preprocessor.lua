@@ -59,10 +59,10 @@ function PreProcessor:GetType(tp, column)
 	return type_map[tp] or (wire_expression_types[up] and wire_expression_types[up][1]) or tp
 end
 
-function PreProcessor:HandlePPCommand(comment)
+function PreProcessor:HandlePPCommand(comment, col)
 	local command, args = comment:match("^([^ ]*) ?(.*)$")
 	local handler = self["PP_" .. command]
-	if handler then return handler(self, args) end
+	if handler then return handler(self, args, col) end
 end
 
 function PreProcessor:FindComments(line)
@@ -160,7 +160,7 @@ function PreProcessor:RemoveComments(line)
 							ret = ret .. line:sub(lastpos)
 						else
 							ret = ret .. line:sub(lastpos, pos - 1)
-							self:HandlePPCommand(line:sub(pos + 1))
+							self:HandlePPCommand(line:sub(pos + 1), pos)
 						end
 
 						if self.description_cache then
@@ -476,7 +476,7 @@ function PreProcessor:GetFunction(args, type)
 	return wire_expression2_funcs[name .. "(" .. pars .. ")"]
 end
 
-function PreProcessor:PP_ifdef(args)
+function PreProcessor:PP_ifdef(args, col)
 	local func = self:GetFunction(args, "#ifdef")
 
 	if self:Disabled() then
@@ -486,7 +486,7 @@ function PreProcessor:PP_ifdef(args)
 	end
 end
 
-function PreProcessor:PP_ifndef(args)
+function PreProcessor:PP_ifndef(args, col)
 	local func = self:GetFunction(args, "#ifndef")
 
 	if self:Disabled() then
@@ -496,11 +496,11 @@ function PreProcessor:PP_ifndef(args)
 	end
 end
 
-function PreProcessor:PP_else(args)
+function PreProcessor:PP_else(args, col)
 	local state = table.remove(self.ifdefStack)
-	if state == nil then self:Error("Found #else outside #ifdef/#ifndef block") end
+	if state == nil then self:Error("Found #else outside #ifdef/#ifndef block", col) end
 
-	if args:Trim() ~= "" then self:Error("Must not pass an argument to #else") end
+	if args:Trim() ~= "" then self:Error("Must not pass an argument to #else", col) end
 
 	if self:Disabled() then
 		table.insert(self.ifdefStack, false)
@@ -509,21 +509,21 @@ function PreProcessor:PP_else(args)
 	end
 end
 
-function PreProcessor:PP_endif(args)
+function PreProcessor:PP_endif(args, col)
 	local state = table.remove(self.ifdefStack)
-	if state == nil then self:Error("Found #endif outside #ifdef/#ifndef block") end
+	if state == nil then self:Error("Found #endif outside #ifdef/#ifndef block", col) end
 
-	if args:Trim() ~= "" then self:Error("Must not pass an argument to #endif") end
+	if args:Trim() ~= "" then self:Error("Must not pass an argument to #endif", col) end
 end
 
-function PreProcessor:PP_error(args)
+function PreProcessor:PP_error(args, col)
 	if not self:Disabled() then
-		self:Error(args)
+		self:Error(args, col)
 	end
 end
 
-function PreProcessor:PP_warning(args)
+function PreProcessor:PP_warning(args, col)
 	if not self:Disabled() then
-		self:Warning(args)
+		self:Warning(args, col)
 	end
 end
