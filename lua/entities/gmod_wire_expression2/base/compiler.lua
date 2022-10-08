@@ -5,23 +5,33 @@
 
 AddCSLuaFile()
 
----@alias Warning { message: string, line: integer, char: integer }
-
 ---@class Compiler
 ---@field warnings table<number|string, Warning> # Array of warnings (main file) with keys to included file warnings.
 ---@field include string? # Current include file or nil if main file
-E2Lib.Compiler = {}
-local Compiler = E2Lib.Compiler
+---@field Scopes Scope[]
+---@field Scope Scope?
+---@field ScopeID integer
+---@field GlobalScope Scope
+---@field persist table<string, string> # Variable: Type
+---@field inputs table<string, string> # Variable: Type
+---@field outputs table<string, string> # Variable: Type
+local Compiler = {}
 Compiler.__index = Compiler
+E2Lib.Compiler = Compiler
 
 local BLOCKED_ARRAY_TYPES = E2Lib.blocked_array_types
 
-function Compiler.Execute(...)
+---@return boolean ok
+---@return function script
+---@return Compiler self
+function Compiler.Execute(root, inputs, outputs, persist, delta, includes)
 	-- instantiate Compiler
 	local instance = setmetatable({ warnings = {} }, Compiler)
 
 	-- and pcall the new instance's Process method.
-	return xpcall(Compiler.Process, E2Lib.errorHandler, instance, ...)
+	local ok, script = xpcall(Compiler.Process, E2Lib.errorHandler, instance, root, inputs, outputs, persist, delta, includes)
+
+	return ok, script, instance
 end
 
 function Compiler:Error(message, instr)
@@ -43,14 +53,15 @@ function Compiler:CallInstruction(name, trace, ...)
 	return self["Instr" .. string_upper(name)](self, trace, ...)
 end
 
+---@return function script
 function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used.
 	self.context = {}
 
 	self:InitScope() -- Creates global scope!
 
-	self.inputs = inputs
-	self.outputs = outputs
-	self.persist = persist
+	self.inputs = inputs[3]
+	self.outputs = outputs[3]
+	self.persist = persist[3]
 	self.includes = includes or {}
 	self.prfcounter = 0
 	self.prfcounters = {}
@@ -60,16 +71,16 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.funcs_ret = {}
 	self.EnclosingFunctions = { --[[ { ReturnType: string } ]] }
 
-	for name, v in pairs(inputs) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
+	for name, v in pairs(inputs[3]) do
+		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, inputs[5][name] }, true)
 	end
 
-	for name, v in pairs(outputs) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
+	for name, v in pairs(outputs[3]) do
+		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, outputs[5][name] }, false)
 	end
 
-	for name, v in pairs(persist) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
+	for name, v in pairs(persist[3]) do
+		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, persist[5][name] }, false)
 	end
 
 	for name, v in pairs(delta) do
@@ -80,9 +91,15 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 
 	local script = self:CallInstruction(root[1], root)
 
+	for name, var in pairs(self.GlobalScope) do
+		if var.var_tok then
+			self:Warning("Unused global variable [" .. name .. "]", var.var_tok)
+		end
+	end
+
 	self:PopScope()
 
-	return script, self
+	return script
 end
 
 function tps_pretty(tps)
@@ -99,6 +116,13 @@ end
 local function op_find(name)
 	return E2Lib.optable_inv[name] or "unknown?!"
 end
+
+---@class ScopeData
+---@field type string
+---@field var_tok table? # Instance token pointing to the declaration, only exists if variable has yet to be used.
+---@field initialized boolean # Whether the variable is defined as initialized (e.g. whether a @persist variable has been assigned to by the user)
+
+---@alias Scope table<string, ScopeData>
 
 --[[
 	Scopes: Rusketh
@@ -135,34 +159,46 @@ function Compiler:LoadScopes(Scopes)
 end
 
 function Compiler:SetLocalVariableType(name, type, instance)
-	local typ = self.Scope[name]
-	if typ and typ ~= type then
-		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ typ }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
+	local var = self.Scope[name]
+	if var and var.type ~= type then
+		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ var.type }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
 	end
 
-	self.Scope[name] = type
+	self.Scope[name] = { type = type, var_tok = instance, initialized = true }
 	return self.ScopeID
 end
 
-function Compiler:SetGlobalVariableType(name, type, instance)
+---@param initialized boolean
+function Compiler:SetGlobalVariableType(name, type, instance, initialized)
 	for i = self.ScopeID, 0, -1 do
-		local typ = self.Scopes[i][name]
-		if typ and typ ~= type then
-			self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ typ }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
-		elseif typ then
+		local var = self.Scopes[i][name]
+		if var then
+			if var.type ~= type then
+				self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ var.type }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
+			elseif i == 0 and not var.initialized then
+				var.var_tok = instance
+				var.initialized = true
+				return i
+			end
+			return i
+		end
+		if var and var.type ~= type then
+			self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ var.type }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
+		elseif var then
 			return i
 		end
 	end
 
-	self.GlobalScope[name] = type
+	self.GlobalScope[name] = { type = type, var_tok = instance, initialized = initialized }
 	return 0
 end
 
 function Compiler:GetVariableType(instance, name)
 	for i = self.ScopeID, 0, -1 do
-		local type = self.Scopes[i][name]
-		if type then
-			return type, i
+		local var = self.Scopes[i][name]
+		if var then
+			var.var_tok = nil
+			return var.type, i, var.initialized
 		end
 	end
 
@@ -183,7 +219,7 @@ function Compiler:EvaluateStatement(args, index)
 
 	return ex, tp, name, extra
 end
- 
+
 function Compiler:Evaluate(args, index)
 	local ex, tp, name = self:EvaluateStatement(args, index)
 
@@ -328,6 +364,45 @@ end
 
 -- ------------------------------------------------------------------------
 
+--- Warnings for expressions in statement positions
+-- "add", "sub", "mul", "div", "mod", "exp", "eq", "neq", "geq", "leq", "gth", "lth", "band", "band", "bor", "bxor", "bshl", "bshr"
+local ExprWarnings = {
+	["GET"] = "Cannot discard value of an index (Remove this pointless indexing)",
+	["LITERAL"] = "This literal won't have any effect on the code",
+
+	["NOT"] = "Cannot discard result of logical NOT operation (!)",
+	["AND"] = "Cannot discard result of logical AND operation (&)",
+	["OR"] = "Cannot discard result of logical OR operation (|)",
+
+	["BAND"] = "Cannot discard result of binary AND operation (&&)",
+	["BOR"] = "Cannot discard result of binary OR operation (||)",
+
+	["BXOR"] = "Cannot discard result of binary XOR operation (^^)",
+
+	["BSHL"] = "Cannot discard result of binary left shift operation (<<)",
+	["BSHR"] = "Cannot discard result of binary right shift operation (>>)",
+
+	["ADD"] = "Cannot discard result of addition operation (+)",
+	["SUB"] = "Cannot discard result of subtraction operation (-)",
+	["MUL"] = "Cannot discard result of multiplication operation (*)",
+	["DIV"] = "Cannot discard result of division operation (/)",
+	["MOD"] = "Cannot discard result of modulus operation (%)",
+	["EXP"] = "Cannot discard result of exponential operation (^)",
+
+	["EQ"] = "Cannot discard result of equal to comparison (==)",
+	["NEQ"] = "Cannot discard result of not equal to comparison (!=)",
+	["GEQ"] = "Cannot discard result of greater than or equal to comparison (>=)",
+	["LEQ"] = "Cannot discard result of less than than or equal to comparison (<=)",
+	["GTH"] = "Cannot discard result of greater than comparison (>)",
+	["LTH"] = "Cannot discard result of less than comparison (<)",
+
+	["TRG"] = "Cannot discard result of triggered (~) operation",
+	["DLT"] = "Cannot discard result of delta ($) operator",
+	["IWC"] = "Cannot discard result of connected (->) operator",
+
+	["VAR"] = "Cannot discard variable"
+}
+
 function Compiler:InstrSEQ(args)
 	-- args = { "seq", trace, subexpressions... }
 	self:PushPrfCounter()
@@ -341,14 +416,19 @@ function Compiler:InstrSEQ(args)
 			break
 		else
 			local stmt, _, instr, extra = self:EvaluateStatement(args, i)
-			if instr == "CALL" or instr == "METHODCALL" then
-				if extra and extra.nodiscard then
-					self:Warning("The return value of this function cannot be discarded", args[i + 2])
-				end
-			elseif instr == "GET" then
-				self:Warning("Cannot discard the value of an index (Remove pointless indexing)", args[i + 2])
+			if (instr == "CALL" or instr == "METHODCALL") and (extra and extra.nodiscard) then
+				self:Warning("The return value of this function cannot be discarded", args[i + 2])
+			elseif ExprWarnings[instr] then
+				self:Warning(ExprWarnings[instr], args[i + 2])
 			end
+
 			stmts[#stmts + 1] = stmt
+		end
+	end
+
+	for varname, var in pairs(self.Scope) do
+		if var ~= true and var.var_tok then
+			self:Warning("Unused variable [" .. varname .. "]", var.var_tok)
 		end
 	end
 
@@ -386,6 +466,8 @@ function Compiler:InstrFOR(args)
 
 	self:PushScope()
 	self:SetLocalVariableType(var, "n", args)
+	self.Scope[var].var_tok = nil -- TODO: Remove this when a solution for unused for loop variables is determined.
+	-- E2 can't use _ as a variable identifier and has no non-variable binding for loop, so warning users for what they can't control isn't very nice.
 
 	local stmt = self:EvaluateStatement(args, 5)
 	self:PopScope()
@@ -395,7 +477,6 @@ end
 
 function Compiler:InstrWHL(args)
 	-- args = { "whl", trace, condition expression, loop body, skip condition check first time? }
-
 
 	local skipCondFirstTime = args[5]
 
@@ -576,7 +657,17 @@ function Compiler:InstrASS(args)
 	-- args = { "ass", trace, variable name, assigned expression }
 	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
-	local ScopeID = self:SetGlobalVariableType(op, tp, args)
+
+	local keep_as_used = self.persist[op] and not self.GlobalScope[op].var_tok
+
+	local ScopeID = self:SetGlobalVariableType(op, tp, args, true)
+	if keep_as_used or (ScopeID == 0 and self.outputs[op]) then
+		-- Mark output variable as being used to prevent warnings.
+		-- Also mark @persist variable as used if already used in InstrVAR prior to assignment
+		-- (Without this, the InstrASS would mark it as unused once again even if it was used prior)
+		self.Scopes[ScopeID][op].var_tok = nil
+	end
+
 	local rt = self:GetOperator(args, "ass", { tp })
 
 	if ScopeID == 0 and self.dvars[op] then
@@ -659,6 +750,7 @@ end
 
 -- generic code for all binary non-boolean operators
 for _, operator in ipairs({ "add", "sub", "mul", "div", "mod", "exp", "eq", "neq", "geq", "leq", "gth", "lth", "band", "band", "bor", "bxor", "bshl", "bshr" }) do
+
 	Compiler["Instr" .. operator:upper()] = function(self, args)
 		-- args = { operator, trace, left expression, right expression }
 		local ex1, tp1 = self:Evaluate(args, 1)
@@ -787,7 +879,14 @@ function Compiler:InstrVAR(args)
 	-- args = { "var", trace, variable name }
 	self.prfcounter = self.prfcounter + 1.0
 	local name = args[3]
-	local tp, ScopeID = self:GetVariableType(args, name)
+	local tp, ScopeID, initialized = self:GetVariableType(args, name)
+
+	-- Mark variable as used.
+	self.Scopes[ScopeID][name].var_tok = nil
+
+	if ScopeID == 0 and not initialized then
+		self:Warning("Use of variable [" .. name .. "] before initialization", args)
+	end
 
 	return {function(self)
 		return self.Scopes[ScopeID][name]
@@ -825,6 +924,9 @@ function Compiler:InstrFEA(args)
 	self:PushScope()
 
 	self:SetLocalVariableType(keyvar, keytype, args)
+	self.Scope[keyvar].var_tok = nil -- TODO: Remove this when a solution for unused for loop variables is determined.
+	-- E2 can't use _ as a variable identifier and has no non-variable binding for loop, so warning users for what they can't control isn't very nice.
+
 	self:SetLocalVariableType(valvar, valtype, args)
 
 	local stmt = self:EvaluateStatement(args, 6)

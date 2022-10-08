@@ -175,8 +175,8 @@ function ENT:Execute()
 	end
 
 	self.GlobalScope.vclk = {}
-	for k, v in pairs(self.globvars) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
+	for k, var in pairs(self.globvars) do
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
 	end
 
 	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
@@ -281,7 +281,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	status,tree = E2Lib.Optimizer.Execute(tree)
 	if not status then self:Error(tree) return end
 
-	local status, script, inst = E2Lib.Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars, self.includes)
+	local status, script, inst = E2Lib.Compiler.Execute(tree, self.inports, self.outports, self.persists, dvars, self.includes)
 	if not status then self:Error(script) return end
 
 	self.script = script
@@ -418,8 +418,8 @@ function ENT:ResetContext()
 		self.globvars[k] = nil
 	end
 
-	for k, v in pairs(self.globvars) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
+	for k, var in pairs(self.globvars) do
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
 	end
 
 	for k, v in pairs(self.Inputs) do

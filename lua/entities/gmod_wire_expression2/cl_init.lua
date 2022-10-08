@@ -42,21 +42,27 @@ end
 function wire_expression2_validate(buffer)
 	if not e2_function_data_received then return "Loading extensions. Please try again in a few seconds..." end
 
+	---@type Warning[]
+	local warnings = {}
+
 	-- invoke preprocessor
-	local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer)
+	local status, directives, buffer, preprocessor = E2Lib.PreProcessor.Execute(buffer)
 	if not status then return directives end
+	table.Add(warnings, preprocessor.warnings)
 
 	-- decompose directives
 	local inports, outports, persists = directives.inputs, directives.outputs, directives.persist
 	RunConsoleCommand("wire_expression2_scriptmodel", directives.model or "")
 
 	-- invoke tokenizer (=lexer)
-	local status, tokens = E2Lib.Tokenizer.Execute(buffer)
+	local status, tokens, tokenizer = E2Lib.Tokenizer.Execute(buffer)
 	if not status then return tokens end
+	table.Add(warnings, tokenizer.warnings)
 
 	-- invoke parser
-	local status, tree, dvars, files = E2Lib.Parser.Execute(tokens)
+	local status, tree, dvars, files, parser = E2Lib.Parser.Execute(tokens)
 	if not status then return tree end
+	table.Add(warnings, parser.warnings)
 
 	-- prepare includes
 	local includes, scripts = {}, {}
@@ -66,10 +72,11 @@ function wire_expression2_validate(buffer)
 	end
 
 	-- invoke compiler
-	local status, script, instance = E2Lib.Compiler.Execute(tree, inports[3], outports[3], persists[3], dvars, scripts)
+	local status, script, compiler = E2Lib.Compiler.Execute(tree, inports, outports, persists, dvars, scripts)
 	if not status then return script end
+	table.Add(warnings, compiler.warnings)
 
-	return nil, includes, #instance.warnings ~= 0 and instance.warnings
+	return nil, includes, #warnings ~= 0 and warnings
 end
 
 -- string.GetTextSize shits itself if the string is both wide and tall,
