@@ -102,7 +102,8 @@ function ENT:GetWorldTipBodySize()
 	local data = self:GetOverlayData()
 	if not data then return 100, 20 end
 
-	local w_total,h_total = wtfgarry( data.txt )
+	local txt = data.txt .. "\nauthor: " .. self:GetPlayerName()
+	local w_total,h_total = wtfgarry(txt)
 	h_total = h_total + 18
 
 	local prfbench = data.prfbench
@@ -137,7 +138,7 @@ function ENT:DrawWorldTipBody( pos )
 	local data = self:GetOverlayData()
 	if not data then return end
 
-	local txt = data.txt
+	local txt = data.txt .. "\nauthor: " .. self:GetPlayerName()
 	local err = data.error -- this isn't used (yet), might do something with it later
 
 	local white = Color(255,255,255,255)

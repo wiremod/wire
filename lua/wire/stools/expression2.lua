@@ -20,8 +20,7 @@ TOOL.ClientConVar = {
 	modelsize = "",
 	scriptmodel = "",
 	select = "",
-	autoindent = 1,
-	friendwrite = 0,
+	autoindent = 1
 }
 
 TOOL.MaxLimitName = "wire_expressions"
@@ -408,9 +407,19 @@ if SERVER then
 
 			local filepath = ret[3]
 
-			if ply ~= toent.player and toent.player:GetInfoNum("wire_expression2_friendwrite", 0) ~= 1 then
-				code = "@disabled for security reasons. Remove this line (Ctrl+Shift+L) and left-click the chip to enable. 'wire_expression2_friendwrite 1' disables security.\n" .. code
+			if ply ~= toent.player then
+				toent.player = ply
+				toent:SetPlayer(ply)
+				toent:SetNWEntity("player", ply)
+
+				-- Note that the SENT and CPPI owners aren't set here to allow the original owner to still access their chip
 			end
+
+			-- This is needed when formatting the #error directive on dupe
+			toent.code_author = {
+				name = ply:GetName(),
+				steamID = ply:SteamID()
+			}
 
 			toent:Setup(code, includes, nil, nil, filepath)
 		end
