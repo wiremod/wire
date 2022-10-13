@@ -67,6 +67,7 @@ local colors = {
 	["typename"]  = { Color(240, 160,  96), false}, -- orange
 	["constant"]  = { Color(240, 160, 240), false}, -- pink
 	["userfunction"] = { Color(102, 122, 102), false}, -- dark grayish-green
+	["eventname"] = { Color(74, 194, 116), false} -- green
 }
 
 function EDITOR:GetSyntaxColor(name)
@@ -411,7 +412,7 @@ function EDITOR:SyntaxColorLine(row)
 
 		if self:NextPattern( "%w+" ) then -- event <name>
 			local eventname = self.tokendata:match( "%w+" )
-			addToken("typename", eventname)
+			addToken("eventname", eventname)
 
 			self.tokendata = ""
 		end
