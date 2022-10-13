@@ -15,7 +15,7 @@ AddCSLuaFile()
 ---@field persist table<string, string> # Variable: Type
 ---@field inputs table<string, string> # Variable: Type
 ---@field outputs table<string, string> # Variable: Type
----@field registered_events table<string, table>
+---@field registered_events table<string, function>
 local Compiler = {}
 Compiler.__index = Compiler
 E2Lib.Compiler = Compiler
@@ -67,7 +67,6 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.includes = includes or {}
 	self.prfcounter = 0
 	self.prfcounters = {}
-	self.tvars = {}
 	self.funcs = {}
 	self.dvars = {}
 	self.funcs_ret = {}
@@ -1276,23 +1275,58 @@ function Compiler:InstrTRY(args)
 	return { self:GetOperator(args, "try", {})[1], prf_cond, stmt, var_name, stmt2 }
 end
 
-function Compiler:InstrYEET(args)
-	-- args = { "yeet", trace, name, args, yeet_block }
+function Compiler:InstrEVENT(args)
+	-- args = { "event", trace, name, args, event_block }
 	local name, hargs = args[3], args[4]
 
-	--[[if not E2Lib.Env.Events[name] then
+	if not E2Lib.Env.Events[name] then
 		self:Error("No such event exists: '" .. name .. "'", args)
-	end]]
+	end
+
+	local event = E2Lib.Env.Events[name]
+
+	if #hargs > #event.args then
+		local extra_arg_types = {}
+		for i = #event.args + 1, #hargs do
+			-- name, type, variadic
+			extra_arg_types[#extra_arg_types + 1] = hargs[i][2]
+		end
+
+		self:Error("Event '" .. name .. "' does not take arguments (" .. table.concat(extra_arg_types, ", ") .. ")", args)
+	end
+
+	for k, typeid in ipairs(event.args) do
+		if not hargs[k] then
+			-- TODO: Maybe this should be a warning so that events can have extra params added without breaking old code?
+			self:Error("Event '" .. name .. "' missing argument #" .. k .. " of type " .. tps_pretty(typeid), args)
+		end
+
+		local param_id = wire_expression_types[hargs[k][2]][1]
+		if typeid ~= param_id then
+			self:Error("Mismatched event argument: " .. tps_pretty(arg) .. " vs " .. tps_pretty(param_id), args)
+		end
+	end
 
 	if self.registered_events[name] then
 		self:Error("You can only register one callback per event", args)
 	end
 
 	local OldScopes = self:SaveScopes()
-	self:InitScope() -- Create a new Scope Enviroment
+	self:InitScope()
 	self:PushScope()
+		for k, typeid in ipairs(event.args) do
+			self:SetLocalVariableType(hargs[k][1], typeid, args)
+		end
+
 		local block = self:EvaluateStatement(args, 3)
 	self:LoadScopes(OldScopes)
 
-	self.registered_events[name] = block
+	self.registered_events[name] = function(self, args)
+		for i, arg in ipairs(hargs) do
+			local name = arg[1]
+			self.Scope[name] = args[i]
+		end
+
+		block[1](self, block)
+	end
 end

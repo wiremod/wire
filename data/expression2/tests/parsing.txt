@@ -64,7 +64,7 @@ do { continue } while (A)
 
 try {} catch(Err) {}
 
-yeet tick(A:array) {}
+event tick(A) {}
 
 A++
 A--

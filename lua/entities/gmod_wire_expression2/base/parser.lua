@@ -36,7 +36,7 @@ Stmt10 ← (FunctionStmt / ReturnStmt)? Stmt11
 Stmt11 ← ("#include" String)? Stmt12
 Stmt12 ← ("try" Block "catch" "(" Var ")" Block)? Stmt13
 Stmt13 ← ("do" Block "while" Cond)? Expr1
-Stmt14 ← ("yeet" Fun "(" FunctionArgs Block)
+Stmt14 ← ("event" Fun "(" FunctionArgs Block)
 
 FunctionStmt ← "function" FunctionHead "(" FunctionArgs Block
 FunctionHead ← (Type Type ":" Fun / Type ":" Fun / Type Fun / Fun)
@@ -818,12 +818,12 @@ function Parser:Stmt13()
 end
 
 function Parser:Stmt14()
-	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Yeet) then
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Event) then
 		local trace = self:GetTokenTrace()
 
 		local name = self:AcceptRoamingToken(TokenVariant.LowerIdent)
 		if not name then
-			self:Error("Expected event name after 'yeet' keyword")
+			self:Error("Expected event name after 'event' keyword")
 		end
 		local name = self:GetTokenData()
 
@@ -834,7 +834,7 @@ function Parser:Stmt14()
 		local temp, args = {}, {}
 		self:FunctionArgs(temp, args)
 
-		return self:Instruction(trace, "yeet", name, args, self:Block("yeet block"))
+		return self:Instruction(trace, "event", name, args, self:Block("event block"))
 	end
 
 	return self:Expr1()

@@ -427,8 +427,8 @@ local Keyword = {
 	Catch = 17,
 	-- ``do``
 	Do = 18,
-	-- ``yeet``
-	Yeet = 19
+	-- ``event``
+	Event = 19
 }
 
 E2Lib.Keyword = Keyword

@@ -134,10 +134,6 @@ end
 function ENT:Execute()
 	if self.error or not self.context or self.context.resetting then return end
 
-	for k, v in pairs(self.tvars) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
-	end
-
 	self:PCallHook('preexecute')
 
 	self.context:PushScope()
@@ -202,19 +198,15 @@ function ENT:ExecuteEvent(evt, args)
 	assert(evt, "Expected event name, got nil (or false)")
 	if self.error or not self.context or self.context.resetting then return end
 
-	local block = self.registered_events[evt]
-	if not block then return end
-
-	for k, v in pairs(self.tvars) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
-	end
+	local handler = self.registered_events[evt]
+	if not handler then return end
 
 	self:PCallHook("preexecute")
 	self.context:PushScope()
 
 	local bench = SysTime()
 
-	local ok, msg = pcall(block[1], self.context, block)
+	local ok, msg = pcall(handler, self.context, args)
 
 	if not ok then
 		local _catchable, msg, trace = E2Lib.unpackException(msg)
@@ -359,7 +351,6 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.registered_events = inst.registered_events
 
 	self.dvars = inst.dvars
-	self.tvars = inst.tvars
 	self.funcs = inst.funcs
 	self.funcs_ret = inst.funcs_ret
 	self.globvars = inst.GlobalScope
