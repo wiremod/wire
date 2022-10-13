@@ -123,6 +123,14 @@ end
 
 local SysTime = SysTime
 
+function ENT:Destruct()
+	self:PCallHook("destruct")
+
+	for evt in pairs(self.registered_events) do
+		E2Lib.Env.Events[evt].listening[self] = nil
+	end
+end
+
 function ENT:Execute()
 	if self.error or not self.context or self.context.resetting then return end
 
@@ -183,7 +191,69 @@ function ENT:Execute()
 		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "hard quota exceeded")
 	end
 
-	if self.error then self:PCallHook('destruct') end
+	if self.error then
+		self:Destruct()
+	end
+end
+
+---@param evt string
+---@param args table?
+function ENT:ExecuteEvent(evt, args)
+	assert(evt, "Expected event name, got nil (or false)")
+	if self.error or not self.context or self.context.resetting then return end
+
+	local block = self.registered_events[evt]
+	if not block then return end
+
+	for k, v in pairs(self.tvars) do
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
+	end
+
+	self:PCallHook("preexecute")
+	self.context:PushScope()
+
+	local bench = SysTime()
+
+	local ok, msg = pcall(block[1], self.context, block)
+
+	if not ok then
+		local _catchable, msg, trace = E2Lib.unpackException(msg)
+
+		if msg == "exit" then
+		elseif msg == "perf" then
+			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
+		elseif trace then
+			self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
+		else
+			self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
+		end
+	end
+
+	self.context.time = self.context.time + (SysTime() - bench)
+
+	self.context:PopScope()
+
+	local forceTriggerOutputs = self.first or self.duped
+	self.first = false -- if hooks call execute
+	self.duped = false -- if hooks call execute
+	self.context.triggerinput = nil -- if hooks call execute
+
+	self:PCallHook("postexecute")
+
+	self:TriggerOutputs(forceTriggerOutputs)
+
+	self.GlobalScope.vclk = {}
+	for k, var in pairs(self.globvars) do
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
+	end
+
+	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
+		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "hard quota exceeded")
+	end
+
+	if self.error then
+		self:Destruct()
+	end
 end
 
 function ENT:Think()
@@ -197,7 +267,7 @@ function ENT:Think()
 
 		if e2_timequota > 0 and self.context.timebench > e2_timequota then
 			self:Error("Expression 2 (" .. self.name .. "): time quota exceeded", "time quota exceeded")
-			self:PCallHook('destruct')
+			self:Destruct()
 		end
 
 		if self.context.prfcount < 0 then self.context.prfcount = 0 end
@@ -220,8 +290,9 @@ end
 function ENT:OnRemove()
 	if not self.error and not self.removing then -- make sure destruct hooks aren't called twice (once on error, once on remove)
 		self.removing = true
-		self:PCallHook('destruct')
+		self:Destruct()
 	end
+
 	BaseClass.OnRemove(self)
 end
 
@@ -285,6 +356,8 @@ function ENT:CompileCode(buffer, files, filepath)
 	if not status then self:Error(script) return end
 
 	self.script = script
+	self.registered_events = inst.registered_events
+
 	self.dvars = inst.dvars
 	self.tvars = inst.tvars
 	self.funcs = inst.funcs
@@ -457,7 +530,7 @@ end
 
 function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 	if self.script then
-		self:PCallHook('destruct')
+		self:Destruct()
 	end
 
 	self.uid = IsValid(self.player) and self.player:UniqueID() or "World"
@@ -495,6 +568,11 @@ function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 		self.first = true
 		self:Execute()
 		self:Think()
+	end
+
+	-- Register events only after E2 has executed once
+	for evt, _ in pairs(self.registered_events) do
+		E2Lib.Env.Events[evt].listening[self] = true
 	end
 
 	self:NextThink(CurTime())
@@ -704,7 +782,7 @@ local function enableEmergencyShutdown()
 						if not v.error then
 							-- immediately clear any memory the E2 may be holding
 							hook.Run("Wire_EmergencyRamClear")
-							v:PCallHook("destruct")
+							v:Destruct()
 							v:ResetContext()
 							v:PCallHook("construct")
 

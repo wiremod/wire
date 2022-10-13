@@ -133,10 +133,12 @@ function wire_expression2_CallHook(hookname, ...)
 	return ret_array
 end
 
-function registerCallback(event, callback)
+function E2Lib.registerCallback(event, callback)
 	if not wire_expression_callbacks[event] then wire_expression_callbacks[event] = {} end
 	table.insert(wire_expression_callbacks[event], callback)
 end
+
+registerCallback = E2Lib.registerCallback
 
 local tempcost
 
@@ -169,6 +171,32 @@ function E2Lib.registerConstant(name, value, literal)
 	if not value and not literal then value = _G[name] end
 
 	wire_expression2_constants[name] = value
+end
+
+--- Example:
+--- E2Lib.registerEvent("propSpawned", { "e" }, nil)
+---@param name string
+---@param args string[]?
+function E2Lib.registerEvent(name, args)
+	name = name:lower()
+	-- assert(not E2Lib.Env.Events[name], "Possible addon conflict: Trying to override existing E2 event '" .. name .. "'")
+
+	E2Lib.Env.Events[name] = {
+		name = name,
+		args = args,
+
+		listening = {}
+	}
+end
+
+---@param name string
+---@param args table?
+function E2Lib.triggerEvent(name, args)
+	assert(E2Lib.Env.Events[name], "E2Lib.triggerEvent on nonexisting event: '" .. name .. "'")
+
+	for ent in pairs(E2Lib.Env.Events[name].listening) do
+		ent:ExecuteEvent(name, args)
+	end
 end
 
 -- ---------------------------------------------------------------

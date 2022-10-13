@@ -15,6 +15,7 @@ AddCSLuaFile()
 ---@field persist table<string, string> # Variable: Type
 ---@field inputs table<string, string> # Variable: Type
 ---@field outputs table<string, string> # Variable: Type
+---@field registered_events table<string, table>
 local Compiler = {}
 Compiler.__index = Compiler
 E2Lib.Compiler = Compiler
@@ -56,6 +57,7 @@ end
 ---@return function script
 function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used.
 	self.context = {}
+	self.registered_events = {}
 
 	self:InitScope() -- Creates global scope!
 
@@ -208,14 +210,18 @@ end
 
 -- ---------------------------------------------------------------------------
 
+--- May return nil in the case of a statement without any runtime side effects.
+---@return table?, string, string, any
 function Compiler:EvaluateStatement(args, index)
 	local trace = args[index + 2]
 
 	local name = string_upper(trace[1])
 
 	local ex, tp, extra = self:CallInstruction(name, trace)
-	ex.TraceName = name
-	ex.Trace = trace[2]
+	if ex then
+		ex.TraceName = name
+		ex.Trace = trace[2]
+	end
 
 	return ex, tp, name, extra
 end
@@ -422,7 +428,10 @@ function Compiler:InstrSEQ(args)
 				self:Warning(ExprWarnings[instr], args[i + 2])
 			end
 
-			stmts[#stmts + 1] = stmt
+			if stmt then
+				-- Statement has a runtime side effect.
+				stmts[#stmts + 1] = stmt
+			end
 		end
 	end
 
@@ -1265,4 +1274,25 @@ function Compiler:InstrTRY(args)
 	local prf_cond = self:PopPrfCounter()
 
 	return { self:GetOperator(args, "try", {})[1], prf_cond, stmt, var_name, stmt2 }
+end
+
+function Compiler:InstrYEET(args)
+	-- args = { "yeet", trace, name, args, yeet_block }
+	local name, hargs = args[3], args[4]
+
+	--[[if not E2Lib.Env.Events[name] then
+		self:Error("No such event exists: '" .. name .. "'", args)
+	end]]
+
+	if self.registered_events[name] then
+		self:Error("You can only register one callback per event", args)
+	end
+
+	local OldScopes = self:SaveScopes()
+	self:InitScope() -- Create a new Scope Enviroment
+	self:PushScope()
+		local block = self:EvaluateStatement(args, 3)
+	self:LoadScopes(OldScopes)
+
+	self.registered_events[name] = block
 end

@@ -64,6 +64,8 @@ do { continue } while (A)
 
 try {} catch(Err) {}
 
+yeet tick(A:array) {}
+
 A++
 A--
 A += 1

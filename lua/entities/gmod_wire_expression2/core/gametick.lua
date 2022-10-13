@@ -42,8 +42,12 @@ local function Expression2TickClock()
 		entity:Execute()
 		entity.context.data.tickrun = nil
 	end
+
+	E2Lib.triggerEvent("tick")
 end
 hook.Add("Think", "Expression2TickClock", Expression2TickClock)
 timer.Create("Expression2TickClock", 5, 0, function()
 	hook.Add("Think", "Expression2TickClock", Expression2TickClock)
 end)
+
+E2Lib.registerEvent("tick")
