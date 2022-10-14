@@ -22,6 +22,8 @@ hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, teamchat)
 
 	chipHideChat = false
 	local hideCurrent = false
+	E2Lib.triggerEvent("chat", { ply, text, teamchat and 1 or 0 })
+
 	for e,_ in pairs(ChatAlert) do
 		if IsValid(e) then
 			chipHideChat = nil
@@ -48,6 +50,7 @@ end)
 __e2setcost(3)
 
 --- If <activate> == 0, the chip will no longer run on chat events, otherwise it makes this chip execute when someone chats. Only needs to be called once, not in every execution.
+[nodiscard, deprecated = "Use the chat event instead"]
 e2function void runOnChat(activate)
 	if activate ~= 0 then
 		ChatAlert[self.entity] = true
@@ -57,11 +60,13 @@ e2function void runOnChat(activate)
 end
 
 --- Returns 1 if the chip is being executed because of a chat event. Returns 0 otherwise.
+[nodiscard, deprecated = "Use the chat event instead"]
 e2function number chatClk()
 	return self.data.runByChat and 1 or 0
 end
 
 --- Returns 1 if the chip is being executed because of a chat event by player <ply>. Returns 0 otherwise.
+[nodiscard, deprecated = "Use the chat event instead"]
 e2function number chatClk(entity ply)
 	if not IsValid(ply) then return self:throw("Invalid player!", 0) end
 	local cause = self.data.runByChat
@@ -76,6 +81,7 @@ end
 --[[************************************************************************]]--
 
 --- Returns the last player to speak.
+[nodiscard, deprecated = "Use the chat event instead"]
 e2function entity lastSpoke()
 	local entry = TextList.last
 	if not entry then return nil end
@@ -88,6 +94,7 @@ e2function entity lastSpoke()
 end
 
 --- Returns the last message in the chat log.
+[nodiscard, deprecated = "Use the chat event instead"]
 e2function string lastSaid()
 	local entry = TextList.last
 	if not entry then return "" end
@@ -104,6 +111,7 @@ e2function number lastSaidWhen()
 end
 
 --- Returns 1 if the last message was sent in the team chat, 0 otherwise.
+[nodiscard, deprecated = "Use the chat event instead"]
 e2function number lastSaidTeam()
 	local entry = TextList.last
 	if not entry then return 0 end
@@ -112,6 +120,7 @@ e2function number lastSaidTeam()
 end
 
 --- Returns what the player <this> last said.
+[nodiscard, deprecated = "Use the chat event instead"]
 e2function string entity:lastSaid()
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	if not this:IsPlayer() then return self:throw("Not a player", "") end
@@ -134,6 +143,7 @@ e2function number entity:lastSaidWhen()
 end
 
 --- Returns 1 if the last message was sent in the team chat, 0 otherwise.
+[nodiscard, deprecated = "Use the chat event instead"]
 e2function number entity:lastSaidTeam()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if not this:IsPlayer() then return self:throw("Not a player", 0) end
@@ -143,3 +153,6 @@ e2function number entity:lastSaidTeam()
 
 	return entry[4] and 1 or 0
 end
+
+-- Ply: entity, Msg: string, Team: number
+E2Lib.registerEvent("chat", { "e", "s", "n" })

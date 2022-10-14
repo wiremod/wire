@@ -26,7 +26,7 @@ if ENT then
 		local chips = ents.FindByClass( "gmod_wire_expression2" )
 		for _, chip in ipairs( chips ) do
 			if not chip.error then
-				chip:PCallHook( "destruct" )
+				chip:Destruct()
 			end
 			chip.script = nil
 		end

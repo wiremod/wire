@@ -433,7 +433,6 @@ e2function number wirelink:operator[](address) = e2function number wirelink:read
 
 __e2setcost(20) -- temporary
 
---- XWL[N,vector]=V
 e2function vector wirelink:operator[T](address, vector value)
 	if not validWirelink(self, this) then return value end
 
@@ -444,7 +443,6 @@ e2function vector wirelink:operator[T](address, vector value)
 	return value
 end
 
---- V=XWL[N,vector]
 e2function vector wirelink:operator[T](address)
 	if not validWirelink(self, this) then return Vector(0, 0, 0) end
 
@@ -456,14 +454,12 @@ e2function vector wirelink:operator[T](address)
 	)
 end
 
---- XWL[N,string]=S
 e2function string wirelink:operator[T](address, string value)
 	if not validWirelink(self, this) or not this.WriteCell then return "" end
 	WriteStringZero(this, address, value)
 	return value
 end
 
---- S=XWL[N,string]
 e2function string wirelink:operator[T](address)
 	if not validWirelink(self, this) or not this.ReadCell then return "" end
 	return ReadStringZero(this, address)

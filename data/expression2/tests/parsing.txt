@@ -64,7 +64,7 @@ do { continue } while (A)
 
 try {} catch(Err) {}
 
-event tick(A) {}
+event tick() {}
 
 A++
 A--

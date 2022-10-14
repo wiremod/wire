@@ -258,24 +258,28 @@ e2function number duped()
 	return self.entity.duped and 1 or 0
 end
 
-[nodiscard]
+[nodiscard, deprecated = "Use the input event instead"]
 e2function number inputClk()
 	return self.triggerinput and 1 or 0
 end
 
-[nodiscard]
+[nodiscard, deprecated = "Use the input event instead"]
 e2function string inputClkName()
 	return self.triggerinput or ""
 end
+
+E2Lib.registerEvent("input", {"s"})
 
 -- This MUST be the first destruct hook!
 registerCallback("destruct", function(self)
 	local entity = self.entity
 	if entity.error then return end
 	if not entity.script then return end
-	if not self.data.runOnLast then return end
 
 	self.resetting = false
+	entity:ExecuteEvent("removed", { entity.removing and 0 or 1 })
+
+	if not self.data.runOnLast then return end
 	self.data.runOnLast = false
 
 	self.data.last = true
@@ -284,10 +288,13 @@ registerCallback("destruct", function(self)
 end)
 
 --- Returns 1 if it is being called on the last execution of the expression gate before it is removed or reset. This execution must be requested with the runOnLast(1) command.
-[nodiscard]
+[nodiscard, deprecated = "Use the removed event instead"]
 e2function number last()
 	return self.data.last and 1 or 0
 end
+
+-- number (whether it is being reset or just removed)
+E2Lib.registerEvent("removed", { "n" })
 
 -- dupefinished()
 -- Made by Divran
@@ -309,12 +316,13 @@ e2function number dupefinished()
 end
 
 --- Returns 1 if this is the last() execution and caused by the entity being removed.
-[nodiscard]
+[nodiscard, deprecated = "Use the removed event instead"]
 e2function number removing()
 	return self.entity.removing and 1 or 0
 end
 
 --- If <activate> != 0, the chip will run once when it is removed, setting the last() flag when it does.
+[nodiscard, deprecated = "Use the removed event instead"]
 e2function void runOnLast(activate)
 	if self.data.last then return end
 	self.data.runOnLast = activate ~= 0

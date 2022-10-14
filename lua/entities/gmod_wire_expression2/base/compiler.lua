@@ -603,7 +603,12 @@ function Compiler:InstrCALL(args)
 	exprs[#exprs + 1] = tps
 
 	if rt[4] and rt[4].deprecated then
-		self:Warning("Use of deprecated function: " .. args[3] .. "(" .. tps_pretty(tps) .. ")", args)
+		if rt[4].deprecated ~= true then
+			-- Deprecation message
+			self:Warning("Use of deprecated function: " .. args[3] .. "(" .. tps_pretty(tps) .. "): '" .. rt[4].deprecated .. "'", args)
+		else
+			self:Warning("Use of deprecated function: " .. args[3] .. "(" .. tps_pretty(tps) .. ")", args)
+		end
 	end
 
 	return exprs, rt[2], rt[4]

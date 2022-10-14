@@ -196,7 +196,12 @@ function E2Lib.triggerEvent(name, args)
 	assert(E2Lib.Env.Events[name], "E2Lib.triggerEvent on nonexisting event: '" .. name .. "'")
 
 	for ent in pairs(E2Lib.Env.Events[name].listening) do
-		ent:ExecuteEvent(name, args)
+		-- wtf
+		if ent.ExecuteEvent then
+			ent:ExecuteEvent(name, args)
+		else
+			E2Lib.Env.Events[name].listening[ent] = nil
+		end
 	end
 end
 

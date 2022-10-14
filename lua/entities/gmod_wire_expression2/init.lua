@@ -590,7 +590,10 @@ function ENT:TriggerInput(key, value)
 		end
 
 		self.context.triggerinput = key
-		if self.trigger[1] or self.trigger[2][key] then self:Execute() end
+		if self.trigger[1] or self.trigger[2][key] then
+			self:Execute()
+			self:ExecuteEvent("input", { key })
+		end
 		self.context.triggerinput = nil
 	end
 end

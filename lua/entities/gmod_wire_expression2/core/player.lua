@@ -321,10 +321,12 @@ end
 
 hook.Add("PlayerBindDown", "Exp2KeyReceivingDown", function(player, binding, button)
 	triggerKey(player,binding,button,true)
+	E2Lib.triggerEvent("keyPressed", {player, keys_lookup[button], 1, binding})
 end)
 
 hook.Add("PlayerBindUp", "Exp2KeyReceivingUp", function(player, binding, button)
 	triggerKey(player,binding,button,false)
+	E2Lib.triggerEvent("keyPressed", {player, keys_lookup[button], 0, binding})
 end)
 
 local function toggleRunOnKeys(self,ply,on,filter)
@@ -383,6 +385,7 @@ end
 __e2setcost(1)
 
 --- Returns user if the chip is being executed because of a key event.
+[nodiscard, deprecated = "Use the keyPressed event instead"]
 e2function entity keyClk()
 	if not self.data.runOnKeys then return nil end
 	return self.data.runOnKeys.runByKey
@@ -390,6 +393,7 @@ end
 
 --- Returns 1 or -1 if the chip is being executed because of a key event by player <ply>
 --- depending of whether the key was just pressed or released
+[nodiscard, deprecated = "Use the keyPressed event instead"]
 e2function number keyClk(entity ply)
 	if not self.data.runOnKeys then return 0 end
 	if not IsValid(ply) then return 0 end
@@ -399,16 +403,21 @@ e2function number keyClk(entity ply)
 end
 
 -- Returns the key which caused the keyClk event to trigger
+[nodiscard, deprecated = "Use the keyPressed event instead"]
 e2function string keyClkPressed()
 	if not self.data.runOnKeys then return "" end
 	return self.data.runOnKeys.pressedKey
 end
 
 -- Returns the bind which caused the keyClk event to trigger (if any)
+[nodiscard, deprecated = "Use the keyPressed event instead"]
 e2function string keyClkPressedBind()
 	if not self.data.runOnKeys then return "" end
 	return self.data.runOnKeys.pressedBind
 end
+
+-- Player, Key, UporDown, KeyBind
+E2Lib.registerEvent("keyPressed", {"e", "s", "n", "s"})
 
 -- Use Support --
 
