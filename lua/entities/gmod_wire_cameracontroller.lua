@@ -963,9 +963,12 @@ end
 function ENT:ClearEntities()
 	self:DisableCam()
 
-	for i=1,#self.Vehicles do
-		self.Vehicles[i]:RemoveCallOnRemove( "wire_camera_controller_remove_pod" )
-		self.Vehicles[i].CamController = nil
+	for i=1, #self.Vehicles do
+		local vehicle = self.Vehicles[i]
+		if IsValid( vehicle ) then
+			vehicle:RemoveCallOnRemove( "wire_camera_controller_remove_pod" )
+			vehicle.CamController = nil
+		end
 	end
 
 	self.Vehicles = {}

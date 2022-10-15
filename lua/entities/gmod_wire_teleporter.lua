@@ -152,7 +152,10 @@ function ENT:Jump( withangles )
 	end
 
 	-- Call the next stage after a short time. This small delay is necessary for sounds and effects to work properly.
-	timer.Simple( 0.05, function() self:Jump_Part2( withangles ) end )
+	timer.Simple( 0.05, function()
+		if not IsValid( self ) then return end
+		self:Jump_Part2( withangles )
+	end )
 end
 
 function ENT:Jump_Part2( withangles )

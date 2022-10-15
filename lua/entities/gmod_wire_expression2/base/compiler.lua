@@ -27,7 +27,7 @@ local BLOCKED_ARRAY_TYPES = E2Lib.blocked_array_types
 ---@return Compiler self
 function Compiler.Execute(root, inputs, outputs, persist, delta, includes)
 	-- instantiate Compiler
-	local instance = setmetatable({ warnings = {} }, Compiler)
+	local instance = setmetatable({}, Compiler)
 
 	-- and pcall the new instance's Process method.
 	local ok, script = xpcall(Compiler.Process, E2Lib.errorHandler, instance, root, inputs, outputs, persist, delta, includes)
@@ -58,6 +58,7 @@ end
 function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used.
 	self.context = {}
 	self.registered_events = {}
+	self.warnings = {}
 
 	self:InitScope() -- Creates global scope!
 
