@@ -897,7 +897,7 @@ function Editor:InitComponents()
 		end
 	end
 	self.C.Val.OnIssueClicked = function(panel, issue)
-		if issue.line ~= nil and issue.char ~= nil  then
+		if issue.line ~= nil and issue.char ~= nil then
 			self:GetCurrentEditor():SetCaret({issue.line, issue.char})
 		end
 	end
