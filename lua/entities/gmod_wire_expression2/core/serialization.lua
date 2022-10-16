@@ -104,13 +104,13 @@ typeSanitizers = {
 
 	-- Two sanitizers to help out with making older serialized data from before #2399 usable
 	["v"] = function ( self, glonOutputObject, safeGlonObjectMap )
-		if type(glonOutputObject) ~= "vector" then
+		if type(glonOutputObject) ~= "Vector" then
 			return Vector( glonOutputObject[1], glonOutputObject[2], glonOutputObject[3] )
 		end
 		return glonOutputObject
 	end,
 	["a"] = function ( self, glonOutputObject, safeGlonObjectMap )
-		if type(glonOutputObject) ~= "angle" then
+		if type(glonOutputObject) ~= "Angle" then
 			return Angle( glonOutputObject[1], glonOutputObject[2], glonOutputObject[3] )
 		end
 		return glonOutputObject
