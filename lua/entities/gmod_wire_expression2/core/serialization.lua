@@ -101,6 +101,21 @@ local function sanitizeGlonOutput ( self, glonOutputObject, objectType, safeGlon
 end
 
 typeSanitizers = {
+
+	-- Two sanitizers to help out with making older serialized data from before #2399 usable
+	["v"] = function ( self, glonOutputObject, safeGlonObjectMap )
+		if type(glonOutputObject) ~= "Vector" then
+			return Vector( glonOutputObject[1], glonOutputObject[2], glonOutputObject[3] )
+		end
+		return glonOutputObject
+	end,
+	["a"] = function ( self, glonOutputObject, safeGlonObjectMap )
+		if type(glonOutputObject) ~= "Angle" then
+			return Angle( glonOutputObject[1], glonOutputObject[2], glonOutputObject[3] )
+		end
+		return glonOutputObject
+	end,
+
 	["r"] = function ( self, glonOutputObject, safeGlonObjectMap )
 				if safeGlonObjectMap["r"][glonOutputObject] then
 					return safeGlonObjectMap["r"][glonOutputObject]
