@@ -897,7 +897,9 @@ function Editor:InitComponents()
 		end
 	end
 	self.C.Val.OnIssueClicked = function(panel, issue)
-		self:GetCurrentEditor():SetCaret({issue.line, issue.char})
+		if issue.line ~= nil and issue.char ~= nil  then
+			self:GetCurrentEditor():SetCaret({issue.line, issue.char})
+		end
 	end
 	self.C.Btoggle:SetImage("icon16/application_side_contract.png")
 	function self.C.Btoggle.DoClick(button)
