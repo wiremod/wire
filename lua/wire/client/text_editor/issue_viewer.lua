@@ -84,6 +84,7 @@ function PANEL:Init()
     self.ValidationButton = self:Add("DButton")
     self.ValidationButton:SetText("")
     self.ValidationButton:Dock(TOP)
+    self.ValidationButton:DockMargin(2, 0, 2, 0)
     self.ValidationButton:SetSize(0, 28)
 
     self.IssuesView = self:Add("DTree")
@@ -137,7 +138,7 @@ function PANEL:Init()
         surface_DrawRect(0, 0, w, h)
 
         surface_SetDrawColor(base.ValidationColorOutline)
-        surface_DrawOutlinedRect(0, 0, w, h, 1)
+        surface_DrawOutlinedRect(0, 0, w, h, 2)
         
         draw_SimpleText(base.ValidationText, "DermaDefault", w / 2, h / 2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
         if base.ShowWhatPopupDoes > 0 then
