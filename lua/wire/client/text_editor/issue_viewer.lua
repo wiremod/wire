@@ -111,8 +111,9 @@ function PANEL:Init()
         return n
     end
     
+    local IssuesView_BackgroundColor = Color(32, 32, 32)
     function self.IssuesView:Paint(w, h)
-        surface_SetDrawColor(Color(32, 32, 32))
+        surface_SetDrawColor(IssuesView_BackgroundColor)
         surface_DrawRect(0, 0, w, h)
     end
     
