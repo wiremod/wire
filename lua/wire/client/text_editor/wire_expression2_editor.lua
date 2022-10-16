@@ -775,7 +775,7 @@ function Editor:InitComponents()
 
 	self.C.MainPane = vgui.Create("DPanel", self.C.Divider)
 	self.C.Menu = vgui.Create("DPanel", self.C.MainPane)
-	self.C.Val = vgui.Create("Button", self.C.MainPane) -- Validation line
+	self.C.Val = vgui.Create("Wire.IssueViewer", self.C.MainPane) -- Validation line
 	self.C.TabHolder = vgui.Create("DPropertySheet", self.C.MainPane)
 	self.C.TabHolder:SetPadding(1)
 
@@ -814,7 +814,7 @@ function Editor:InitComponents()
 
 	self.C.Menu:SetHeight(24)
 	self.C.Menu:DockPadding(2,2,2,2)
-	self.C.Val:SetHeight(22)
+	self.C.Val:SetHeight(self.C.Val.CollapseSize)
 
 	self.C.SaE:SetSize(80, 20)
 	self.C.SaE:Dock(RIGHT)
@@ -879,9 +879,6 @@ function Editor:InitComponents()
 	self.C.Val.UpdateColours = function(button, skin)
 		return button:SetTextStyleColor(skin.Colours.Button.Down)
 	end
-	self.C.Val.SetBGColor = function(button, r, g, b, a)
-		self.C.Val.bgcolor = Color(r, g, b, a)
-	end
 	self.C.Val.bgcolor = Color(255, 255, 255)
 	self.C.Val.Paint = function(button)
 		local w, h = button:GetSize()
@@ -892,12 +889,15 @@ function Editor:InitComponents()
 		if btn == MOUSE_RIGHT then
 			local menu = DermaMenu()
 			menu:AddOption("Copy to clipboard", function()
-				SetClipboardText(self.C.Val:GetValue():sub(4))
+				SetClipboardText(self.C.Val:GetValue())
 			end)
 			menu:Open()
 		else
 			self:Validate(true)
 		end
+	end
+	self.C.Val.OnIssueClicked = function(panel, issue)
+		self:GetCurrentEditor():SetCaret({issue.line, issue.char})
 	end
 	self.C.Btoggle:SetImage("icon16/application_side_contract.png")
 	function self.C.Btoggle.DoClick(button)
@@ -1625,43 +1625,52 @@ function Editor:OpenOldTabs()
 end
 
 function Editor:Validate(gotoerror)
+	local header_color, header_text = nil, nil
+	local problems_errors, problems_warnings = {}, {}
+	
 	if self.EditorType == "E2" then
 		local errors, _, warnings = wire_expression2_validate(self:GetCode())
+		
 		if not errors then
 			if warnings then
-				self.C.Val:SetBGColor(150, 150, 0, 255)
+				header_color = Color(163, 130, 64, 255)
 
 				local nwarnings = #warnings
-				local warning = table.remove(warnings, 1)
+				local warning = warnings[1]
 
 				if gotoerror then
-					self.C.Val:SetText("   Warning (1/" .. nwarnings .. "): " .. warning.message)
+					header_text = "Warning (1/" .. nwarnings .. "): " .. warning.message
 					self:GetCurrentEditor():SetCaret { warning.line, warning.char  }
 				else
-					self.C.Val:SetText("   Validated with " .. nwarnings .. " warning(s).")
+					header_text = "Validated with " .. nwarnings .. " warning(s)."
 				end
-
-				return true
+				problems_warnings = warnings
 			else
-				self.C.Val:SetBGColor(0, 110, 20, 255)
-				self.C.Val:SetText("   Validation successful")
-				return true
+				header_color = Color(0, 110, 20, 255)
+				header_text ="Validation successful"
 			end
-		end
-		if gotoerror then
+		else
+			header_color = Color(110, 0, 20, 255)
+			header_text = ("" .. errors)
 			local row, col = errors:match("at line ([0-9]+), char ([0-9]+)$")
 			if not row then
 				row, col = errors:match("at line ([0-9]+)$"), 1
 			end
-			if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
+			
+			problems_errors = {{message = string.Explode(" at line", errors)[1], line = row, char = col}}
+
+			if gotoerror then
+				if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
+			end
 		end
-		self.C.Val:SetBGColor(110, 0, 20, 255)
-		self.C.Val:SetText("   " .. errors)
+		
 	elseif self.EditorType == "CPU" or self.EditorType == "GPU" or self.EditorType == "SPU" then
-		self.C.Val:SetBGColor(64, 64, 64, 180)
-		self.C.Val:SetText("   Recompiling...")
+		header_color = Color(64, 64, 64, 180)
+		header_text = "Recompiling..."
 		CPULib.Validate(self, self:GetCode(), self:GetChosenFile())
 	end
+
+	self.C.Val:Update(problems_errors, problems_warnings, header_text, header_color)
 	return true
 end
 
