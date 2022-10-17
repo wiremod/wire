@@ -254,10 +254,10 @@ function ENT:TriggerInput( name, value )
 	else
 		-- Clear & Active
 		if (name == "Clear" or name == "Active") then
-			self:SetNWBool(name,not (value == 0 and true) or false)
+			self:SetNWBool(name,value ~= 0)
 		else
 			-- Other data
-			if (self.bools[name]) then value = not (value == 0 and true) or false end
+			if (self.bools[name]) then value ~= 0 end
 			self.Data[name] = value
 		end
 	end
@@ -342,19 +342,19 @@ function ENT:WriteCell( Address, value )
 		self.Data.FadeTime = value
 		return true
 	elseif (Address == 9) then
-		self.Data.LineBeam = not (value == 0 and true) or false
+		self.Data.LineBeam = value ~= 0
 		return true
 	elseif (Address == 10) then
-		self.Data.GroundBeam = not (value == 0 and true) or false
+		self.Data.GroundBeam = value ~= 0
 		return true
 	elseif (Address == 11) then
 		self.Data.Size = value
 		return true
 	elseif (Address == 12) then
-		self:SetNWBool( "Clear", not (value == 0 and true) or false )
+		self:SetNWBool( "Clear", value ~= 0 )
 		return true
 	elseif (Address == 13) then
-		self:SetNWBool( "Active", not (value == 0 and true) or false )
+		self:SetNWBool( "Active", value ~= 0 )
 		return true
 	end
 	return false
