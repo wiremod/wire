@@ -16,6 +16,7 @@ end
 
 Editor.FontConVar = CreateClientConVar("wire_expression2_editor_font", defaultFont, true, false)
 Editor.FontSizeConVar = CreateClientConVar("wire_expression2_editor_font_size", 16, true, false)
+Editor.FontAntialiasingConvar = CreateClientConVar("wire_expression2_editor_font_antialiasing", 0, true, false)
 Editor.BlockCommentStyleConVar = CreateClientConVar("wire_expression2_editor_block_comment_style", 1, true, false)
 Editor.NewTabOnOpen = CreateClientConVar("wire_expression2_new_tab_on_open", "1", true, false)
 Editor.ops_sync_subscribe = CreateClientConVar("wire_expression_ops_sync_subscribe",0,true,false)
@@ -56,24 +57,26 @@ end
 
 function Editor:ChangeFont(FontName, Size)
 	if not FontName or FontName == "" or not Size then return end
+	local antialias = self.FontAntialiasingConvar:GetInt() > 0 and true or false
+	local antialias_suffix = antialias and "_AA" or ""
 
 	-- If font is not already created, create it.
-	if not self.CreatedFonts[FontName .. "_" .. Size] then
+	if not self.CreatedFonts[FontName .. "_" .. Size .. antialias_suffix] then
 		local fontTable =
 		{
 			font = FontName,
 			size = Size,
 			weight = 400,
-			antialias = false,
+			antialias = antialias,
 			additive = false,
 		}
-		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size, fontTable)
+		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. antialias_suffix, fontTable)
 		fontTable.weight = 700
-		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. "_Bold", fontTable)
-		self.CreatedFonts[FontName .. "_" .. Size] = true
+		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. "_Bold"  .. antialias_suffix, fontTable)
+		self.CreatedFonts[FontName .. "_" .. Size .. antialias_suffix] = true
 	end
 
-	self.CurrentFont = "Expression2_" .. FontName .. "_" .. Size
+	self.CurrentFont = "Expression2_" .. FontName .. "_" .. Size  .. antialias_suffix
 	surface.SetFont(self.CurrentFont)
 	self.FontWidth, self.FontHeight = surface.GetTextSize(" ")
 
@@ -1138,6 +1141,16 @@ function Editor:InitControlPanel(frame)
 	end
 	FontSizeSelect:SetPos(FontSelect:GetWide() + 4, 0)
 	FontSizeSelect:SetSize(50, 20)
+
+	local AntialiasEditor = vgui.Create("DCheckBoxLabel")
+	dlist:AddItem(AntialiasEditor)
+	AntialiasEditor:SetConVar("wire_expression2_editor_font_antialiasing")
+	AntialiasEditor:SetText("Enable antialiasing")
+	AntialiasEditor:SizeToContents()
+	AntialiasEditor:SetTooltip("Enables antialiasing of the editor's text.")
+	AntialiasEditor.OnChange = function(check, val)
+		self:ChangeFont(self.FontConVar:GetString(), self.FontSizeConVar:GetInt())
+	end
 
 
 	local label = vgui.Create("DLabel")
