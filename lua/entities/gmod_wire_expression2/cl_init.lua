@@ -74,7 +74,12 @@ function wire_expression2_validate(buffer)
 	-- invoke compiler
 	local status, script, compiler = E2Lib.Compiler.Execute(tree, inports, outports, persists, dvars, scripts)
 	if not status then return script end
-	table.Add(warnings, compiler.warnings)
+
+	-- Need to do this manually since table.Add loses its mind with non-numeric keys (and compiler can emit warnings per include file) (should be refactored out at some point to just having warnings separated per include)
+	local nwarnings = #compiler.warnings
+	for k, warning in ipairs(compiler.warnings) do
+		warnings[nwarnings + k] = warning
+	end
 
 	return nil, includes, #warnings ~= 0 and warnings
 end
