@@ -30,7 +30,7 @@ TOOL.ClientConVar = {
 }
 
 function TOOL:RightClick( trace )
-	if SERVER and !game.SinglePlayer() then return false end
+	if SERVER and not game.SinglePlayer() then return false end
 	RunConsoleCommand("wire_sound_browser_open", self:GetClientInfo("sound"), "1")
 
 	return false

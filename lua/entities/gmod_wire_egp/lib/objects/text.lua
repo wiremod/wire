@@ -41,7 +41,7 @@ function Obj:Draw(ent, drawMat)
 		surface_SetTextColor( self.r, self.g, self.b, self.a )
 
 		local font = "WireEGP_" .. self.size .. "_" .. self.font
-		if (!EGP.ValidFonts_Lookup[font]) then
+		if (not EGP.ValidFonts_Lookup[font]) then
 			local fontTable =
 			{
 				font=self.font,
@@ -58,12 +58,12 @@ function Obj:Draw(ent, drawMat)
 		if self.angle == 0 then
 			local w,h
 			local x, y = self.x, self.y
-			if (self.halign != 0) then
+			if (self.halign ~= 0) then
 				w,h = surface_GetTextSize( self.text )
 				x = x - (w * ((self.halign%10)/2))
 			end
 			if (self.valign) then
-				if (!h) then _,h = surface_GetTextSize( self.text ) end
+				if (not h) then _,h = surface_GetTextSize( self.text ) end
 				y = y - (h * ((self.valign%10)/2))
 			end
 
@@ -72,12 +72,12 @@ function Obj:Draw(ent, drawMat)
 		else
 			local w,h
 			local x, y = 0,0
-			if (self.halign != 0) then
+			if (self.halign ~= 0) then
 				w,h = surface_GetTextSize( self.text )
 				x = (w * ((self.halign%10)/2))
 			end
 			if (self.valign) then
-				if (!h) then _,h = surface_GetTextSize( self.text ) end
+				if (not h) then _,h = surface_GetTextSize( self.text ) end
 				y = (h * ((self.valign%10)/2))
 			end
 

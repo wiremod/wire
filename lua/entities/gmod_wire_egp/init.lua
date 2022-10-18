@@ -38,7 +38,7 @@ function ENT:SetEGPOwner( ply )
 end
 
 function ENT:GetEGPOwner()
-	if (!self.ply or !self.ply:IsValid()) then
+	if (not self.ply or not self.ply:IsValid()) then
 		local ply = player.GetByUniqueID( self.plyID )
 		if (ply) then self.ply = ply end
 		return ply

@@ -36,16 +36,16 @@ if SERVER then
 		local ClampX = 0
 		local ClampY = 0
 		--test clamp
-		if ( (ClampXMin != 0 or ClampXMax != 0) and (ClampYMin != 0 or ClampYMax != 0) and
-			ClampXMin != ClampXMax and ClampYMin != ClampYMax and
+		if ( (ClampXMin ~= 0 or ClampXMax ~= 0) and (ClampYMin ~= 0 or ClampYMax ~= 0) and
+			ClampXMin ~= ClampXMax and ClampYMin ~= ClampYMax and
 			ClampXMin < ClampXMax and ClampYMin < ClampYMax ) then
 			ClampX = 1
 			ClampY = 1
 		elseif( (ClampXMin == 0 and ClampXMax == 0) or (ClampYMin == 0 or ClampYMax == 0) )then
-			if(ClampXMin == 0 and ClampXMax == 0 and (ClampYMin != 0 or ClampYMax != 0)) then
+			if(ClampXMin == 0 and ClampXMax == 0 and (ClampYMin ~= 0 or ClampYMax ~= 0)) then
 				ClampX = 0
 				ClampY = 1
-			elseif(ClampYMin == 0 and ClampYMax == 0 and (ClampXMin != 0 or ClampXMax != 0)) then
+			elseif(ClampYMin == 0 and ClampYMax == 0 and (ClampXMin ~= 0 or ClampXMax ~= 0)) then
 				ClampX = 1
 				ClampY = 0
 			else

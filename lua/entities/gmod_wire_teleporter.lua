@@ -75,7 +75,7 @@ function ENT:Jump( withangles )
 	end
 
 	-- The target position is outside the world
-	if (!util.IsInWorld( self.TargetPos )) then
+	if (not util.IsInWorld( self.TargetPos )) then
 		self:EmitSound("buttons/button8.wav")
 		return
 	end
@@ -312,7 +312,7 @@ function ENT:Jump_Part2( withangles )
 end
 
 function ENT:CheckAllowed( e )
-	if (e:GetParent():EntIndex() != 0) then return false end
+	if (e:GetParent():EntIndex() ~= 0) then return false end
 
 	-- These shouldn't happen, ever, but they're here just to be safe
 	local c = e:GetClass()

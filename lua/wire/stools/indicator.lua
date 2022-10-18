@@ -60,7 +60,7 @@ function TOOL:GetAngle( trace )
 	local Ang = trace.HitNormal:Angle()
 	local Model = self:GetModel()
 	--these models get mounted differently
-	if Model == "models/props_borealis/bluebarrel001.mdl" || Model == "models/props_junk/PopCan01a.mdl" then
+	if Model == "models/props_borealis/bluebarrel001.mdl" or Model == "models/props_junk/PopCan01a.mdl" then
 		return Ang + Angle(-90, 0, 0)
 	elseif Model == "models/props_trainstation/trainstation_clock001.mdl" or Model == "models/segment.mdl" or Model == "models/segment2.mdl" then
 		return Ang + Angle(0, 0, (self:GetClientNumber("rotate90") * 90))

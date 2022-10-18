@@ -114,13 +114,13 @@ local function SpecialCase( arg )
 			local str = "["
 			for k,v in ipairs( arg ) do
 				if istable(v) then
-					if (k != #arg) then
+					if (k ~= #arg) then
 						str = str .. SpecialCase( v ) .. ","
 					else
 						str = str .. SpecialCase( v ) .. "]"
 					end
 				else
-					if (k != #arg) then
+					if (k ~= #arg) then
 						str = str .. tostring(v) .. ","
 					else
 						str = str .. tostring(v) .. "]"
@@ -250,7 +250,7 @@ do
 		local keys = table.GetKeys( t )
 
 		table.sort( keys, function( a, b )
-			if ( isnumber( a ) && isnumber( b ) ) then return a < b end
+			if ( isnumber( a ) and isnumber( b ) ) then return a < b end
 			return tostring( a ) < tostring( b )
 		end )
 
@@ -259,7 +259,7 @@ do
 			local value = t[ key ]
 			Msg( string.rep( "\t", indent ) )
 
-			if  ( istable( value ) && !done[ value ] ) then
+			if  ( istable( value ) and !done[ value ] ) then
 
 				done[ value ] = true
 				Msg( tostring( key ) .. ":" .. "\n" )

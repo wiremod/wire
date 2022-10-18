@@ -119,7 +119,7 @@ e2function void winch(index, entity ent1, vector v1, entity ent2, vector v2, wid
 	if !ent1.data then ent1.data = {} end
 	if !ent1.data.Ropes then ent1.data.Ropes = {} end
 	local vec1, vec2 = Vector(v1[1],v1[2],v1[3]), Vector(v2[1],v2[2],v2[3])
-	if width < 0 || width > 50 then width = 1 end
+	if width < 0 or width > 50 then width = 1 end
 
 	if IsValid(ent1.data.Ropes[index]) then
 		ent1.data.Ropes[index]:Remove()

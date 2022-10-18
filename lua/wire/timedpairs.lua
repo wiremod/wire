@@ -14,7 +14,7 @@
 -- Its arguments are the same as the last arguments of WireLib.Timedpairs
 -- endcallback(lastkey, lastvalue, ...)
 
-if (!WireLib) then return end
+if (not WireLib) then return end
 
 local next = next
 local pairs = pairs

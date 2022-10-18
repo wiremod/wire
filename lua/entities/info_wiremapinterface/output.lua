@@ -60,12 +60,12 @@ end
 -- This function is used to trigger an output.
 -- This changed version supports value replacemant and delay offsets.
 function ENT:TriggerOutput(name, activator, value, delayoffset)
-	if (!self._OutputsToMap) then return end
+	if (not self._OutputsToMap) then return end
 	local OutputsToMap = self._OutputsToMap[name]
-	if (!OutputsToMap) then return end
+	if (not OutputsToMap) then return end
 
 	for idx,op in pairs(OutputsToMap) do
-		if (!FireSingleOutput(op, self, activator, value, delayoffset)) then
+		if (not FireSingleOutput(op, self, activator, value, delayoffset)) then
 			self._OutputsToMap[name][idx] = nil
 		end
 	end

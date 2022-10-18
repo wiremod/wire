@@ -43,7 +43,7 @@ end
 local function playerDeath( victim, weapon, killer)
 	if(victim:HasWeapon("laserPointer"))then
 		local pointer = victim:GetWeapon("laserPointer")
-		if(pointer && pointer:IsValid())then
+		if(pointer and pointer:IsValid())then
 			victim.LasReceiver = pointer.Receiver
 		end
 	end

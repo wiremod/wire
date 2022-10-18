@@ -271,7 +271,7 @@ end)
 registerFunction("toByte", "sn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv2 < 1 || rv2 > string_len(rv1) then return -1 end
+	if rv2 < 1 or rv2 > string_len(rv1) then return -1 end
 	return string_byte(rv1, rv2)
 end)
 

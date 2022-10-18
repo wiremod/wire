@@ -47,7 +47,7 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Detonate") then
-		if (!self.Exploded) and ( math.abs(value) == self.key ) then
+		if (not self.Exploded) and ( math.abs(value) == self.key ) then
 			self:Explode()
 		elseif (value == 0) then
 			self.Exploded = false
@@ -57,7 +57,7 @@ end
 
 function ENT:Explode( )
 
-	if ( !self:IsValid() ) then return end
+	if ( not self:IsValid() ) then return end
 	if (self.Exploded) then return end
 	if self.DisabledByTimeUntil > CurTime() then return end
 	self.DisabledByTimeUntil = CurTime() + wire_explosive_delay:GetFloat()

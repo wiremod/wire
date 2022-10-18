@@ -279,7 +279,7 @@ function ENT:TriggerInput(iname, value)
 		end
 		Wire_TriggerOutput(self, "Error", 0)
 	elseif iname == "Interrupt" then
-		if (value >= 32) && (value < 256) then
+		if (value >= 32) and (value < 256) then
 			if (self.Clk and not self.VMStopped) then self.VM:ExternalInterrupt(math.floor(value)) end
 		end
 	end

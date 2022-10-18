@@ -23,7 +23,7 @@ function ENT:Setup(key_more,key_less,toggle,value_min,value_max,value_start,spee
 	numpad.OnDown( pl, key_less, "WireAdvInput_On", self, -1 )
 	numpad.OnUp( pl, key_less, "WireAdvInput_Off", self, -1 )
 
-	self.toggle = (toggle == 1 || toggle == true)
+	self.toggle = (toggle == 1 or toggle == true)
 	self.value_min = value_min
 	self.value_max = value_max
 	self.Value = value_start
@@ -35,7 +35,7 @@ end
 
 function ENT:TriggerInput(iname, value)
     if(iname == "Reset")then
-        if(value != 0)then
+        if(value ~= 0)then
             self.Value = self.value_start
             self:ShowOutput()
 	        Wire_TriggerOutput(self,"Out",self.Value)
@@ -45,7 +45,7 @@ end
 
 function ENT:InputActivate(mul)
 	if (self.toggle) then
-		return self:Switch( !self.On, mul )
+		return self:Switch( not self.On, mul )
 	end
 	return self:Switch( true, mul )
 end
@@ -56,7 +56,7 @@ function ENT:InputDeactivate( mul )
 end
 
 function ENT:Switch( on, mul )
-	if (!self:IsValid()) then return false end
+	if (not self:IsValid()) then return false end
 	self.On = on
 	if(on) then
 		self.dir = mul
@@ -89,13 +89,13 @@ function ENT:ShowOutput()
 end
 
 local function On( pl, ent, mul )
-	if (!ent:IsValid()) then return false end
+	if (not ent:IsValid()) then return false end
 	if not gamemode.Call("PlayerUse", pl, ent) then return end
 	return ent:InputActivate( mul )
 end
 
 local function Off( pl, ent, mul )
-	if (!ent:IsValid()) then return false end
+	if (not ent:IsValid()) then return false end
 	if not gamemode.Call("PlayerUse", pl, ent) then return end
 	return ent:InputDeactivate( mul )
 end

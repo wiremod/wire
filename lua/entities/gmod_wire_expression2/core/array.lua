@@ -331,7 +331,7 @@ end
 --------------------------------------------------------------------------------
 __e2setcost(1)
 e2function number array:exists( index )
-	return this[index] != nil and 1 or 0
+	return this[index] ~= nil and 1 or 0
 end
 
 --------------------------------------------------------------------------------

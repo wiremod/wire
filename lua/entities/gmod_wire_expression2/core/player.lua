@@ -415,7 +415,7 @@ end
 __e2setcost(50)
 --- Makes the chip "Use"able
 e2function void runOnUse(value)
-	if value != 0 then
+	if value ~= 0 then
 		self.entity:SetUseType( SIMPLE_USE )
 		self.entity.Use = function(selfEnt,activator)
 			self.data.runByUse = activator

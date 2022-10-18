@@ -48,7 +48,7 @@ if CLIENT then
 			render.SetMaterial( matLight )
 			local Visibile	= util.PixelVisible( LightPos, 16, self.PixVis )
 
-			if (!Visibile) then return end
+			if (not Visibile) then return end
 
 			local Size = math.Clamp( Distance * Visibile * ViewDot * 2, 64, 512 )
 
@@ -104,7 +104,7 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "On") then
 		self:Switch( value ~= 0 )
 	elseif (iname == "Texture") then
-		if value != "" then self.Texture = value else self.Texture = "effects/flashlight001" end
+		if value ~= "" then self.Texture = value else self.Texture = "effects/flashlight001" end
 	end
 	self:UpdateLight()
 end
@@ -150,7 +150,7 @@ end
 
 function ENT:UpdateLight()
 	self:SetColor( Color( self.r, self.g, self.b, self:GetColor().a ) )
-	if ( !IsValid( self.flashlight ) ) then return end
+	if ( not IsValid( self.flashlight ) ) then return end
 
 	self.flashlight:Input( "SpotlightTexture", NULL, NULL, self.Texture )
 	self.flashlight:Input( "FOV", NULL, NULL, tostring( self.FOV ) )
