@@ -76,7 +76,7 @@ function wire_expression2_validate(buffer)
 	if not status then return script end
 
 	-- Need to do this manually since table.Add loses its mind with non-numeric keys (and compiler can emit warnings per include file) (should be refactored out at some point to just having warnings separated per include)
-	local nwarnings = #compiler.warnings
+	local nwarnings = #warnings
 	for k, warning in ipairs(compiler.warnings) do
 		warnings[nwarnings + k] = warning
 	end
