@@ -51,10 +51,27 @@ local CurTime = CurTime
 
 -- helper function that pcalls an input
 function WireLib.TriggerInput(ent, name, value, ...)
-	if (not IsValid(ent) or not HasPorts(ent) or not ent.Inputs or not ent.Inputs[name]) then return end
-	ent.Inputs[name].Value = value
+	if (not IsValid(ent) or not HasPorts(ent) or not ent.Inputs) then return end
 
+	local input = ent.Inputs[name]
+	if not input then return end
+
+	input.Value = value
 	if (not ent.TriggerInput) then return end
+
+	-- Limit inputs the same way outputs are limited.
+	-- This is in case a wire input would somehow trigger itself and stack overflow.
+	-- Notably this happens with E2 (postexecute hook), but adding this here in case other wire components do it in the future.
+	local now = CurTime()
+	if input.TriggerTime ~= now then
+		input.TriggerTime = now
+		input.TriggerLimit = 4
+	elseif input.TriggerLimit <= 0 then
+		return
+	else
+		input.TriggerLimit = input.TriggerLimit - 1
+	end
+
 	local ok, ret = xpcall(ent.TriggerInput, debug.traceback, ent, name, value, ...)
 	if not ok then
 		local ply = WireLib.GetOwner(ent)
