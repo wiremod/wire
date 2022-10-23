@@ -57,7 +57,7 @@ end
 
 function Editor:ChangeFont(FontName, Size)
 	if not FontName or FontName == "" or not Size then return end
-	local antialias = self.FontAntialiasingConvar:GetInt() > 0 and true or false
+	local antialias = self.FontAntialiasingConvar:GetBool()
 	local antialias_suffix = antialias and "_AA" or ""
 
 	-- If font is not already created, create it.
