@@ -134,15 +134,15 @@ e2function vector operator-(vector lhs, rhs)
 end
 
 e2function vector operator-(vector lhs, vector rhs)
-	return lhs - rhs
+	return Vector(lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3])
 end
 
 e2function vector operator*(lhs, vector rhs)
-	return lhs * rhs
+	return Vector(lhs * rhs[1], lhs * rhs[2], lhs * rhs[3])
 end
 
 e2function vector operator*(vector lhs, rhs)
-	return lhs * rhs
+	return Vector(lhs[1] * rhs, lhs[2] * rhs, lhs[3] * rhs)
 end
 
 e2function vector operator*(vector lhs, vector rhs)
@@ -155,7 +155,7 @@ e2function vector operator/(lhs, vector rhs)
 end
 
 e2function vector operator/(vector lhs, rhs)
-	return lhs / rhs
+	return Vector( lhs[1] / rhs, lhs[2] / rhs, lhs[3] / rhs )
 end
 
 e2function vector operator/(vector lhs, vector rhs)
