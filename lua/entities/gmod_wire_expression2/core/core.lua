@@ -330,6 +330,8 @@ end
 
 do
 	local raise = E2Lib.raiseException
+
+	[noreturn]
 	e2function void error( string reason )
 		raise(reason, 2, self.trace)
 	end
@@ -347,6 +349,7 @@ end
 
 __e2setcost(100) -- approximation
 
+[noreturn]
 e2function void reset()
 	if self.data.last or self.entity.first then error("exit", 0) end
 

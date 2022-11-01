@@ -595,8 +595,12 @@ function Compiler:InstrCALL(args)
 	exprs[1] = rt[1]
 	exprs[#exprs + 1] = tps
 
-	if rt[4] and rt[4].deprecated then
-		self:Warning("Use of deprecated function: " .. args[3] .. "(" .. tps_pretty(tps) .. ")", args)
+	if rt[4] then
+		if rt[4].deprecated then
+			self:Warning("Use of deprecated function: " .. args[3] .. "(" .. tps_pretty(tps) .. ")", args)
+		elseif rt[4].noreturn then
+			self.Scope.Dead = true
+		end
 	end
 
 	return exprs, rt[2], rt[4]
