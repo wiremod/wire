@@ -1552,6 +1552,8 @@ E2Helper.Descriptions["setRadius(xef:n)"] = "Sets the radius of the effect"
 E2Helper.Descriptions["setScale(xef:n)"] = "Sets the scale of the effect"
 E2Helper.Descriptions["setStart(xef:v)"] = "Sets the start of the effect"
 E2Helper.Descriptions["setSurfaceProp(xef:n)"] = "Sets the surface property index of the effect"
+E2Helper.Descriptions["effectCanPlay()"] = "Returns whether you can play an effect (or 0 if you've hit the burst limit)"
+E2Helper.Descriptions["effectCanPlay(s)"] = "Same as effectCanPlay(), but also checks if the specific effect is not allowed"
 
 --Interpolations
 
