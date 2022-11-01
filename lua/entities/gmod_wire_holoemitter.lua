@@ -257,7 +257,7 @@ function ENT:TriggerInput( name, value )
 			self:SetNWBool(name,value ~= 0)
 		else
 			-- Other data
-			if (self.bools[name]) then value ~= 0 end
+			if (self.bools[name]) then value = value ~= 0 end
 			self.Data[name] = value
 		end
 	end
