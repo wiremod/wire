@@ -644,12 +644,14 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 
 		-- Check codeAuthor actually exists, it wont be present on old dupes
 		-- No need to check if buffer already has a dupe related #error directive, as chips with compiler errors can't be duped
+		--[[
 		if codeAuthor and player:SteamID() ~= codeAuthor.steamID then
 			buffer = string.format(
 				"#error Dupe pasted with code authored by %s (%s). Please review the contents of the E2 before removing this directive\n\n",
 				codeAuthor.name, codeAuthor.steamID
 			) .. buffer
 		end
+		--]]
 
 		self.buffer = buffer
 		self:SetOverlayText(name)
