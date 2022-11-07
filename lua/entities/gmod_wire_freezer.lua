@@ -27,7 +27,9 @@ function ENT:TriggerInput(name, value)
 					if self.State then
 						-- Garry's Mod provides an OnPhysgunFreeze hook, which will
 						-- unfreeze the object if prop protection allows it...
-						gamemode.Call("OnPhysgunFreeze", self, phys, ent, self:GetPlayer())
+						if self:GetPlayer():IsValid() then
+							gamemode.Call("OnPhysgunFreeze", self, phys, ent, self:GetPlayer())
+						end
 					else
 						-- ...and a CanPlayerUnfreeze hook, which will return whether
 						-- prop protection allows it, but won't unfreeze do the unfreezing.
