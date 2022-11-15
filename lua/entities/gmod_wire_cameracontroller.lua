@@ -37,28 +37,6 @@ local function doRotate(curpos,curang,ply,parent,AutoMove,LocalMove,distance,off
 	return curpos, curang
 end
 
-local function getAngOffset(ply, LocalMove)
-	local coffset = Angle(0, 90, 0)
-	local offset = Angle(0, 0, 0)
-
-	if LocalMove then
-		offset = -coffset	--chairs are always oriented 90 degrees yaw from forward, subtract 90 to get dynamic forward
-	else
-		local veh = ply:GetVehicle()
-		if IsValid(veh) then
-			local ang = veh:GetAngles()
-			local up = veh:GetUp()
-			
-			ang:RotateAroundAxis(up, 90)
-			angpy = Angle(ang.p, ang.y, 0)	--spin ang to forward, then remove roll
-
-			offset = angpy - coffset	--difference between forward and initial 90yaw offset
-		end
-	end
-
-	return offset
-end
-
 if CLIENT then
 
 	--------------------------------------------------
@@ -760,7 +738,22 @@ function ENT:EnableCam( ply )
 
 		self:ColorByLinkStatus(self.LINK_STATUS_ACTIVE)
 
-		self.AngOffset = getAngOffset(ply, self.LocalMove)
+		local veh = ply:GetVehicle()
+		if self.AutoMove and IsValid(veh) then	--calculate angle offset to make free look face forward
+			local coffset = Angle(0, 90, 0)
+
+			if self.LocalMove then
+				self.AngOffset = -coffset	--chairs are always oriented 90 degrees yaw from forward, subtract 90 to get dynamic forward
+			else
+				local ang = veh:GetAngles()
+				local up = veh:GetUp()
+				
+				ang:RotateAroundAxis(up, 90)
+				angpy = Angle(ang.p, ang.y, 0)	--spin ang to forward, then remove roll
+
+				self.AngOffset = angpy - coffset	--difference between forward and initial 90yaw offset
+			end
+		end
 
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
