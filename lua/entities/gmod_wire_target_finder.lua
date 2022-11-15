@@ -213,9 +213,10 @@ end
 
 function ENT:CheckTheBuddyList(friend)
 	if not self.CheckBuddyList or not CPPI then return true end
-	if not IsValid(self:GetPlayer()) then return false end
+	local ply = self:GetPlayer()
+	if not ply:IsValid() then return false end
 
-	local friends = self:GetPlayer():CPPIGetFriends()
+	local friends = ply:CPPIGetFriends()
 	if istable(friends) then
 		for _, v in pairs(friends) do
 			if v == friend then return self.OnBuddyList end
@@ -392,7 +393,8 @@ function ENT:OnRestore()
 end
 
 function ENT:TargetPainter( tt, targeted )
-	if tt and IsValid(tt) and tt:EntIndex() ~= 0 and hook.Run( "CanTool", self:GetPlayer(), WireLib.dummytrace(tt), "colour" ) then
+	local ply = self:GetPlayer()
+	if tt and IsValid(tt) and tt:EntIndex() ~= 0 and ply:IsValid() and hook.Run( "CanTool", ply, WireLib.dummytrace(tt), "colour" ) then
 		if (targeted) then
 			self.OldColor = tt:GetColor()
 			tt:SetColor(Color(255, 0, 0, 255))
