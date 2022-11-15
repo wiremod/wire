@@ -37,6 +37,28 @@ local function doRotate(curpos,curang,ply,parent,AutoMove,LocalMove,distance,off
 	return curpos, curang
 end
 
+local function getAngOffset(ply, LocalMove)
+	local coffset = Angle(0, 90, 0)
+	local offset = Angle(0, 0, 0)
+
+	if LocalMove then
+		offset = -coffset	--chairs are always oriented 90 degrees yaw from forward, subtract 90 to get dynamic forward
+	else
+		local veh = LocalPlayer():GetVehicle()
+		if IsValid(veh) then
+			local ang = veh:GetAngles()
+			local up = veh:GetUp()
+			
+			ang:RotateAroundAxis(up, 90)
+			angpy = Angle(ang.p, ang.y, 0)	--spin ang to forward, then remove roll
+
+			offset = angpy - coffset	--difference between forward and initial 90yaw offset
+		end
+	end
+
+	return offset
+end
+
 if CLIENT then
 
 	--------------------------------------------------
@@ -339,15 +361,7 @@ if CLIENT then
 			end
 
 			if AutoMove then  --if using Clientside movement, add an offset to the camera
-				if LocalMove then
-					angoffset = Angle(0,-90,0)	--chairs are always oriented 90 degrees yaw from forward, subtract 90 to get dynamic forward
-				else
-					local veh = LocalPlayer():GetVehicle()
-					if IsValid(veh) then
-						local ang = veh:GetAngles()
-						angoffset = Angle(-ang.roll, ang.yaw, 0)	--add the chair yaw ang to get static forward
-					end
-				end
+				angoffset = getAngOffset(ply, LocalMove)
 			end
 		else
 			WaitingForID = nil
@@ -739,8 +753,7 @@ function ENT:EnableCam( ply )
 
 		self:ColorByLinkStatus(self.LINK_STATUS_ACTIVE)
 
-		local veh = ply:GetVehicle()
-		if IsValid(veh) then self.AngOffset = veh:GetAngles() end
+		self.AngOffset = getAngOffset(ply, self.AutoMove)
 
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
