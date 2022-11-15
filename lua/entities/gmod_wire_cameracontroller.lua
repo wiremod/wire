@@ -338,9 +338,16 @@ if CLIENT then
 				zoomdistance = 0
 			end
 
-			local veh = LocalPlayer():GetVehicle()
-			if IsValid(veh) then
-				angoffset = veh:GetAngles()
+			if AutoMove then  --if using Clientside movement, add an offset to the camera
+				if LocalMove then
+					angoffset = Angle(0,-90,0)	--chairs are always oriented 90 degrees yaw from forward, subtract 90 to get dynamic forward
+				else
+					local veh = LocalPlayer():GetVehicle()
+					if IsValid(veh) then
+						local ang = veh:GetAngles()
+						angoffset = Angle(-ang.roll, ang.yaw, 0)	--add the chair yaw ang to get static forward
+					end
+				end
 			end
 		else
 			WaitingForID = nil
