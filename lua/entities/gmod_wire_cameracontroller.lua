@@ -574,7 +574,7 @@ function ENT:UpdateOutputs()
 		local curang = ang
 		
 		local offset = self.AngOffset or nil
-		curpos, curang = doRotate(curpos,curang,ply,parent,self.AutoMove,self.LocalMove,self.Distance,offset)
+		curpos, curang = doRotate(curpos,curang,ply,parent,self.AutoMove,self.LocalMove,self.Distance)
 
 		-- AutoUnclip
 		if self.AutoUnclip then
