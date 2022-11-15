@@ -4,7 +4,7 @@ ENT.PrintName       = "Wire Camera Controller"
 ENT.WireDebugName	= "Camera Controller"
 
 -- Helper function, code for both client and serverside camera rotation adjustments
-local function doRotate(curpos,curang,ply,parent,AutoMove,LocalMove,distance)
+local function doRotate(curpos,curang,ply,parent,AutoMove,LocalMove,distance,offset)
 	if AutoMove then
 		-- TODO: remove this check at some point in the future when LocalEyeAngles is available in the stable version of gmod
 		if ply.LocalEyeAngles then
@@ -14,6 +14,8 @@ local function doRotate(curpos,curang,ply,parent,AutoMove,LocalMove,distance)
 			local veh = ply:GetVehicle()
 			if SERVER and IsValid( veh ) then curang = veh:WorldToLocalAngles( curang ) end
 		end
+
+		if offset then curang = curang + offset end
 
 		if IsValid( parent ) then
 			if LocalMove then
@@ -66,6 +68,8 @@ if CLIENT then
 
 	local oldeyeang = Angle(0,0,0)
 	local unroll = false
+
+	local angoffset = Angle(0,0,0)
 
 	-- Options
 	local ParentLocal = false
@@ -130,7 +134,7 @@ if CLIENT then
 
 	hook.Remove("CalcView","wire_camera_controller_calcview")
 	hook.Add( "CalcView", "wire_camera_controller_calcview", function()
-		if not enabled then return end
+  if not enabled then return end
 		if not IsValid( self ) then enabled = false return end
 
 		local pos_speed = pos_speed_convar:GetFloat()
@@ -161,7 +165,7 @@ if CLIENT then
 			end
 
 			smoothdistance = Lerp( FrameTime() * pos_speed, smoothdistance, curdistance )
-			curpos, curang = doRotate(curpos,curang,LocalPlayer(),parent,AutoMove,LocalMove,smoothdistance)
+			curpos, curang = doRotate(curpos,curang,LocalPlayer(),parent,AutoMove,LocalMove,smoothdistance, angoffset)
 
 			if AutoUnclip then
 				curpos = DoAutoUnclip( curpos, parent, HasParent )
@@ -332,6 +336,11 @@ if CLIENT then
 				curdistance = distance
 				smoothdistance = distance
 				zoomdistance = 0
+			end
+
+			local veh = LocalPlayer():GetVehicle()
+			if IsValid(veh) then
+				angoffset = veh:GetAngles()
 			end
 		else
 			WaitingForID = nil
@@ -542,7 +551,9 @@ function ENT:UpdateOutputs()
 
 		local curpos = pos
 		local curang = ang
-		curpos, curang = doRotate(curpos,curang,ply,parent,self.AutoMove,self.LocalMove,self.Distance)
+		
+		local offset = self.AngOffset or nil
+		curpos, curang = doRotate(curpos,curang,ply,parent,self.AutoMove,self.LocalMove,self.Distance,offset)
 
 		-- AutoUnclip
 		if self.AutoUnclip then
@@ -720,6 +731,9 @@ function ENT:EnableCam( ply )
 		self.Active = true
 
 		self:ColorByLinkStatus(self.LINK_STATUS_ACTIVE)
+
+		local veh = ply:GetVehicle()
+		if IsValid(veh) then self.AngOffset = veh:GetAngles() end
 
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
