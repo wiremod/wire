@@ -44,7 +44,7 @@ local function getAngOffset(ply, LocalMove)
 	if LocalMove then
 		offset = -coffset	--chairs are always oriented 90 degrees yaw from forward, subtract 90 to get dynamic forward
 	else
-		local veh = LocalPlayer():GetVehicle()
+		local veh = ply:GetVehicle()
 		if IsValid(veh) then
 			local ang = veh:GetAngles()
 			local up = veh:GetUp()
@@ -753,13 +753,7 @@ function ENT:EnableCam( ply )
 
 		self:ColorByLinkStatus(self.LINK_STATUS_ACTIVE)
 
-		local veh = ply:GetVehicle()
-		if IsValid(veh) then
-			local ang = veh:GetAngles()
-			self.CamAngOffset = Angle(ang.p,ang.y,0)
-		else
-			self.CamAngOffset = Angle(0,0,0)
-		end
+		self.CamAngOffset = getAngOffset(ply, self.LocalMove)
 
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
