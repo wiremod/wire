@@ -573,8 +573,8 @@ function ENT:UpdateOutputs()
 		local curpos = pos
 		local curang = ang
 		
-		local offset = self.AngOffset or nil
-		curpos, curang = doRotate(curpos,curang,ply,parent,self.AutoMove,self.LocalMove,self.Distance)
+		local offset = self.CamAngOffset or nil
+		curpos, curang = doRotate(curpos,curang,ply,parent,self.AutoMove,self.LocalMove,self.Distance, offset)
 
 		-- AutoUnclip
 		if self.AutoUnclip then
@@ -753,7 +753,13 @@ function ENT:EnableCam( ply )
 
 		self:ColorByLinkStatus(self.LINK_STATUS_ACTIVE)
 
-		self.AngOffset = getAngOffset(ply, self.AutoMove)
+		local veh = ply:GetVehicle()
+		if IsValid(veh) then
+			local ang = veh:GetAngles()
+			self.CamAngOffset = Angle(ang.p,ang.y,0)
+		else
+			self.CamAngOffset = Angle(0,0,0)
+		end
 
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
