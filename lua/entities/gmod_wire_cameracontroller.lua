@@ -305,6 +305,10 @@ if CLIENT then
 			WaitingForID = nil
 		end
 
+		-- angle offset
+		angoffset.p = net.ReadFloat()
+		angoffset.y = net.ReadFloat()
+		angoffset.r = net.ReadFloat()
 	end
 
 	-- if the camera is parented to an entity that was very recently
@@ -360,9 +364,6 @@ if CLIENT then
 				zoomdistance = 0
 			end
 
-			if AutoMove then  --if using Clientside movement, add an offset to the camera
-				angoffset = getAngOffset(ply, LocalMove)
-			end
 		else
 			WaitingForID = nil
 			if enabled then -- only do this if it was enabled
@@ -469,6 +470,7 @@ function ENT:Setup(ParentLocal,AutoMove,FreeMove,LocalMove,AllowZoom,AutoUnclip,
 	self.AutoUnclip_IgnoreWater = tobool(AutoUnclip_IgnoreWater)
 	self.DrawPlayer = tobool(DrawPlayer)
 	self.DrawParent = tobool(DrawParent)
+	self.AngOffset = Angle(0,0,0)
 
 	self:UpdateOverlay()
 end
@@ -477,7 +479,7 @@ end
 -- Data sending
 --------------------------------------------------
 
-local function SendPositions( pos, ang, dist, parent, unroll )
+local function SendPositions( pos, ang, dist, parent, unroll, offset)
 	-- pos/ang
 	net.WriteFloat( pos.x )
 	net.WriteFloat( pos.y )
@@ -494,6 +496,11 @@ local function SendPositions( pos, ang, dist, parent, unroll )
 	-- parent
 	local id = IsValid( parent ) and parent:EntIndex() or -1
 	net.WriteInt( id, 32 )
+
+	--offset ang
+	net.WriteFloat( offset.p)
+	net.WriteFloat( offset.y)
+	net.WriteFloat( offset.r)
 end
 
 util.AddNetworkString( "wire_camera_controller_toggle" )
@@ -513,7 +520,7 @@ function ENT:SyncSettings( ply, active )
 			net.WriteBit( self.AutoUnclip_IgnoreWater )
 			net.WriteBit( self.DrawPlayer )
 			net.WriteBit( self.DrawParent )
-			SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll )
+			SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll, self.AngOffset )
 		end
 	net.Send( ply )
 end
@@ -524,7 +531,7 @@ function ENT:SyncPositions( ply )
 	if not IsValid(ply) then ply = self.Players end
 	net.Start( "wire_camera_controller_sync" )
 		net.WriteEntity( self )
-		SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll )
+		SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll, self.AngOffset )
 	net.Send( ply )
 end
 
@@ -573,7 +580,7 @@ function ENT:UpdateOutputs()
 		local curpos = pos
 		local curang = ang
 		
-		local offset = self.CamAngOffset or nil
+		local offset = self.AngOffset or nil
 		curpos, curang = doRotate(curpos,curang,ply,parent,self.AutoMove,self.LocalMove,self.Distance, offset)
 
 		-- AutoUnclip
@@ -753,7 +760,7 @@ function ENT:EnableCam( ply )
 
 		self:ColorByLinkStatus(self.LINK_STATUS_ACTIVE)
 
-		self.CamAngOffset = getAngOffset(ply, self.LocalMove)
+		self.AngOffset = getAngOffset(ply, self.LocalMove)
 
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
