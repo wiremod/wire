@@ -409,7 +409,7 @@ function WireLib.Restored(ent, force_outputs)
 	end
 end
 
-local function ClearPorts(ports, ConnectEnt, DontSendToCL)
+local function ClearPorts(ports, ConnectEnt, DontSendToCL, Removing)
 	local Valid, EmergencyBreak = true, 0
 
 	-- There is a strange bug, not all the links get removed at once.
@@ -424,7 +424,7 @@ local function ClearPorts(ports, ConnectEnt, DontSendToCL)
 				if (ports) then
 					local port = ports[Name]
 					if (port) then
-						WireLib.Link_Clear(Ent, Name, DontSendToCL)
+						WireLib.Link_Clear(Ent, Name, DontSendToCL, Removing)
 						newValid = true
 					end
 				end
@@ -448,7 +448,7 @@ function WireLib.Remove(ent, DontUnList)
 				if (Outports) then
 					local outport = Outports[inport.SrcId]
 					if (outport) then
-						ClearPorts(outport.Connected, ent, true)
+						ClearPorts(outport.Connected, ent, true, true)
 					end
 				end
 			end
@@ -563,7 +563,7 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 	end
 end
 
-local function Wire_Unlink(ent, iname, DontSendToCL)
+local function Wire_Unlink(ent, iname, DontSendToCL, Removing)
 	if not HasPorts(ent) then return end
 
 	local input = ent.Inputs[iname]
@@ -594,6 +594,7 @@ local function Wire_Unlink(ent, iname, DontSendToCL)
 		input.SrcId = nil
 		input.Path = nil
 
+		if (Removing) then return end
 		WireLib.TriggerInput(ent, iname, WireLib.DT[input.Type].Zero, nil)
 
 		if (DontSendToCL) then return end
@@ -702,9 +703,9 @@ function WireLib.Link_Cancel(idx)
 end
 
 
-function WireLib.Link_Clear(ent, iname, DontSendToCL)
+function WireLib.Link_Clear(ent, iname, DontSendToCL, Removing)
 	WireLib.Paths.Add({Entity = ent, Name = iname, Width = 0})
-	Wire_Unlink(ent, iname, DontSendToCL)
+	Wire_Unlink(ent, iname, DontSendToCL, Removing)
 end
 
 function WireLib.WireAll(ply, ient, oent, ipos, opos, material, color, width)
