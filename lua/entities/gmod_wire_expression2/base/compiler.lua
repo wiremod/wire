@@ -601,7 +601,7 @@ function Compiler:InstrCALL(args)
 	exprs[#exprs + 1] = tps
 
 	if rt[4] then
-		if rt[4].deprecated ~= true then
+		if rt[4].deprecated ~= nil and rt[4].deprecated ~= true then
 			-- Deprecation message (string)
 			self:Warning("Use of deprecated function: " .. args[3] .. "(" .. tps_pretty(tps) .. "): '" .. rt[4].deprecated .. "'", args)
 		elseif rt[4].deprecated then

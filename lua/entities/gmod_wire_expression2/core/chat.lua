@@ -7,8 +7,10 @@ local TextList = {
 	last = { "", 0, nil }
 }
 local ChatAlert = {}
-local chipHideChat = false
-local chipChatReplacement = false
+
+local chatAuthor
+local chipHideChat
+local chipChatReplacement
 
 --[[************************************************************************]]--
 
@@ -21,39 +23,24 @@ hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, teamchat)
 	TextList[ply:EntIndex()] = entry
 	TextList.last = entry
 
-
-	-- For now ignore hideChat(), modifyChat(). Need to implement event return values.
+	chatAuthor = ply
 	E2Lib.triggerEvent("chat", { ply, text, teamchat and 1 or 0 })
-
-	chipHideChat = false
-	chipChatReplacement = false
-
-	local hideCurrent = false
-	local replacementCurrent = false
 
 	for e, _ in pairs(ChatAlert) do
 		if IsValid(e) then
-			chipHideChat = nil
-			chipChatReplacement = nil
-
 			e.context.data.runByChat = entry
 			e:Execute()
 			e.context.data.runByChat = nil
-			--if chipHideChat ~= nil and ply == e.player then
-			if chipHideChat and ply == e.player then
-				hideCurrent = chipHideChat
-			end
-
-			if chipChatReplacement and ply == e.player then
-				replacementCurrent = chipChatReplacement
-			end
 		else
 			ChatAlert[e] = nil
 		end
 	end
 
-	if hideCurrent then return "" end
-	if replacementCurrent then return replacementCurrent end
+	local hide, repl = 	chipHideChat, chipChatReplacement
+	chipHideChat, chipChatReplacement = nil, nil
+
+	if hide then return "" end
+	return repl
 end)
 
 hook.Add("EntityRemoved","Exp2ChatPlayerDisconnect", function(ply)
@@ -89,12 +76,16 @@ end
 
 --- If <hide> != 0, hide the chat message that is currently being processed.
 e2function void hideChat(hide)
-	chipHideChat = hide ~= 0
+	if self.player == chatAuthor then
+		chipHideChat = hide ~= 0
+	end
 end
 
 --- Changes the chat message, if the chat message was written by the E2 owner.
 e2function void modifyChat(string new)
-	chipChatReplacement = new
+	if self.player == chatAuthor then
+		chipChatReplacement = new
+	end
 end
 
 --[[************************************************************************]]--
