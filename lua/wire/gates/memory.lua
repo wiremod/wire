@@ -157,14 +157,14 @@ GateActions["ram8"] = {
 		"\nReadAddr:"..AddrRead.." = "..Out
 	end,
 	ReadCell = function(dummy,gate,Address)
-		if (Address < 0) || (Address >= 8) then
+		if (Address < 0) or (Address >= 8) then
 			return 0
 		else
 			return gate.LatchStore[Address] or 0
 		end
 	end,
 	WriteCell = function(dummy,gate,Address,value)
-		if (Address < 0) || (Address >= 8) then
+		if (Address < 0) or (Address >= 8) then
 			return false
 		else
 			gate.LatchStore[Address] = value
@@ -198,14 +198,14 @@ GateActions["ram64"] = {
 			"\nReadAddr:"..AddrRead.." = "..Out
 	end,
 	ReadCell = function(dummy,gate,Address)
-		if (Address < 0) || (Address >= 64) then
+		if (Address < 0) or (Address >= 64) then
 			return 0
 		else
 			return gate.LatchStore[Address] or 0
 		end
 	end,
 	WriteCell = function(dummy,gate,Address,value)
-		if (Address < 0) || (Address >= 64) then
+		if (Address < 0) or (Address >= 64) then
 			return false
 		else
 			gate.LatchStore[Address] = value
@@ -239,14 +239,14 @@ GateActions["ram1k"] = {
 			"\nReadAddr:"..AddrRead.." = "..Out
 	end,
 	ReadCell = function(dummy,gate,Address)
-		if (Address < 0) || (Address >= 1024) then
+		if (Address < 0) or (Address >= 1024) then
 			return 0
 		else
 			return gate.LatchStore[Address] or 0
 		end
 	end,
 	WriteCell = function(dummy,gate,Address,value)
-		if (Address < 0) || (Address >= 1024) then
+		if (Address < 0) or (Address >= 1024) then
 			return false
 		else
 			gate.LatchStore[Address] = value
@@ -280,14 +280,14 @@ GateActions["ram32k"] = {
 			"\nReadAddr:"..AddrRead.." = "..Out
 	end,
 	ReadCell = function(dummy,gate,Address)
-		if (Address < 0) || (Address >= 32768) then
+		if (Address < 0) or (Address >= 32768) then
 			return 0
 		else
 			return gate.LatchStore[Address] or 0
 		end
 	end,
 	WriteCell = function(dummy,gate,Address,value)
-		if (Address < 0) || (Address >= 32768) then
+		if (Address < 0) or (Address >= 32768) then
 			return false
 		else
 			gate.LatchStore[Address] = value
@@ -321,14 +321,14 @@ GateActions["ram128k"] = {
 			"\nReadAddr:"..AddrRead.." = "..Out
 	end,
 	ReadCell = function(dummy,gate,Address)
-		if (Address < 0) || (Address >= 131072) then
+		if (Address < 0) or (Address >= 131072) then
 			return 0
 		else
 			return gate.LatchStore[Address] or 0
 		end
 	end,
 	WriteCell = function(dummy,gate,Address,value)
-		if (Address < 0) || (Address >= 131072) then
+		if (Address < 0) or (Address >= 131072) then
 			return false
 		else
 			gate.LatchStore[Address] = value
@@ -369,14 +369,14 @@ GateActions["ram64x64"] = {
 		"\nReadAddr:"..AddrReadX..", "..AddrReadY.." = "..Out
 	end,
 	ReadCell = function(dummy,gate,Address)
-		if (Address < 0) || (Address >= 4096) then
+		if (Address < 0) or (Address >= 4096) then
 			return 0
 		else
 			return gate.LatchStore[Address] or 0
 		end
 	end,
 	WriteCell = function(dummy,gate,Address,value)
-		if (Address < 0) || (Address >= 4096) then
+		if (Address < 0) or (Address >= 4096) then
 			return false
 		else
 			gate.LatchStore[Address] = value
@@ -393,10 +393,10 @@ GateActions["udcounter"] = {
 		local lDec = (Dec > 0)
 		local lClk = (Clk > 0)
 		local lReset = (Reset > 0)
-		if ((gate.PrevInc ~= lInc || gate.PrevDec ~= lDec || gate.PrevClk ~= lClk) && lClk) then
-			if (lInc) and (!lDec) and (!lReset) then
+		if ((gate.PrevInc ~= lInc or gate.PrevDec ~= lDec or gate.PrevClk ~= lClk) and lClk) then
+			if (lInc) and (not lDec) and (not lReset) then
 				gate.countStore = (gate.countStore or 0) + 1
-			elseif (!lInc) and (lDec) and (!lReset) then
+			elseif (not lInc) and (lDec) and (not lReset) then
 				gate.countStore = (gate.countStore or 0) - 1
 			end
 			gate.PrevInc = lInc

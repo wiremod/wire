@@ -30,7 +30,7 @@ if SERVER then
 end
 
 function TOOL:LeftClick(trace)
-	if (!trace.HitPos) then return false end
+	if (not trace.HitPos) then return false end
 	if (trace.Entity:IsPlayer()) then return false end
 	if ( CLIENT ) then return true end
 	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
@@ -57,7 +57,7 @@ function TOOL:LeftClick(trace)
 	local ret = self:LeftClick_PostMake( ent, ply, trace )
 
 	// Auto-link (itsbth)
-	if ( self.OldWaypoint && self.OldWaypoint:IsValid() and self:GetClientNumber("alink") == 1 ) then
+	if ( self.OldWaypoint and self.OldWaypoint:IsValid() and self:GetClientNumber("alink") == 1 ) then
 		self.OldWaypoint:SetNextWaypoint(ent)
 	end
 	self.OldWaypoint = ent

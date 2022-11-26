@@ -10,7 +10,7 @@ function EFFECT:Init( data )
 
 	local TargetEntity = data:GetEntity()
 
-	if ( !TargetEntity || !TargetEntity:IsValid() ) then return end
+	if ( not TargetEntity or not TargetEntity:IsValid() ) then return end
 
 	local vOffset = TargetEntity:GetPos()
 

@@ -232,32 +232,32 @@ end
 
 function ENT:TriggerInput( name, value )
 	if (name == "X") then -- X
-		if (self.Data.Pos.x != value) then
+		if (self.Data.Pos.x ~= value) then
 			self.Data.Pos.x = value
 			self:AddPoint()
 		end
 	elseif (name == "Y") then -- Y
-		if (self.Data.Pos.y != value) then
+		if (self.Data.Pos.y ~= value) then
 			self.Data.Pos.y = value
 			self:AddPoint()
 		end
 	elseif (name == "Z") then -- Z
-		if (self.Data.Pos.z != value) then
+		if (self.Data.Pos.z ~= value) then
 			self.Data.Pos.z = value
 			self:AddPoint()
 		end
 	elseif (name == "Pos") then -- XYZ
-		if (self.Data.Pos != value) then
+		if (self.Data.Pos ~= value) then
 			self.Data.Pos = value
 			self:AddPoint()
 		end
 	else
 		-- Clear & Active
 		if (name == "Clear" or name == "Active") then
-			self:SetNWBool(name,!(value == 0 and true) or false)
+			self:SetNWBool(name,value ~= 0)
 		else
 			-- Other data
-			if (self.bools[name]) then value = !(value == 0 and true) or false end
+			if (self.bools[name]) then value = value ~= 0 end
 			self.Data[name] = value
 		end
 	end
@@ -342,19 +342,19 @@ function ENT:WriteCell( Address, value )
 		self.Data.FadeTime = value
 		return true
 	elseif (Address == 9) then
-		self.Data.LineBeam = !(value == 0 and true) or false
+		self.Data.LineBeam = value ~= 0
 		return true
 	elseif (Address == 10) then
-		self.Data.GroundBeam = !(value == 0 and true) or false
+		self.Data.GroundBeam = value ~= 0
 		return true
 	elseif (Address == 11) then
 		self.Data.Size = value
 		return true
 	elseif (Address == 12) then
-		self:SetNWBool( "Clear", !(value == 0 and true) or false )
+		self:SetNWBool( "Clear", value ~= 0 )
 		return true
 	elseif (Address == 13) then
-		self:SetNWBool( "Active", !(value == 0 and true) or false )
+		self:SetNWBool( "Active", value ~= 0 )
 		return true
 	end
 	return false

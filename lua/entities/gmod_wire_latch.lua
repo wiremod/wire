@@ -38,7 +38,7 @@ end
 -- Run if weld is removed (will run *after* Create_Weld)
 local function Weld_Removed( weld, ent )
 	if IsValid(ent) then
-		if !ent.Constraint or ent.Constraint == weld then
+		if not ent.Constraint or ent.Constraint == weld then
 			ent.Constraint = nil
 			Wire_TriggerOutput( ent, "Welded", 0 )
 			ent:UpdateOverlay()
@@ -190,8 +190,8 @@ end
 duplicator.RegisterEntityClass("gmod_wire_latch", WireLib.MakeWireEnt, "Data")
 
 function MakeWireLatch( Ent1, Ent2, Bone1, Bone2, forcelimit )
-	if ( !constraint.CanConstrain( Ent1, Bone1 ) ) then return false end
-	if ( !constraint.CanConstrain( Ent2, Bone2 ) ) then return false end
+	if ( not constraint.CanConstrain( Ent1, Bone1 ) ) then return false end
+	if ( not constraint.CanConstrain( Ent2, Bone2 ) ) then return false end
 
 	local Phys1 = Ent1:GetPhysicsObjectNum( Bone1 )
 	local Phys2 = Ent2:GetPhysicsObjectNum( Bone2 )
@@ -200,7 +200,7 @@ function MakeWireLatch( Ent1, Ent2, Bone1, Bone2, forcelimit )
 
 	local const = constraint.Weld( Ent1, Ent2, Bone1, Bone2, forcelimit or 0 )
 
-	if !IsValid(const) then return nil end
+	if not IsValid(const) then return nil end
 
 	const.Type = "" -- prevents the duplicator from copying this weld
 

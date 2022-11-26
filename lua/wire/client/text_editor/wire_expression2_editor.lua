@@ -16,6 +16,7 @@ end
 
 Editor.FontConVar = CreateClientConVar("wire_expression2_editor_font", defaultFont, true, false)
 Editor.FontSizeConVar = CreateClientConVar("wire_expression2_editor_font_size", 16, true, false)
+Editor.FontAntialiasingConvar = CreateClientConVar("wire_expression2_editor_font_antialiasing", 0, true, false)
 Editor.BlockCommentStyleConVar = CreateClientConVar("wire_expression2_editor_block_comment_style", 1, true, false)
 Editor.NewTabOnOpen = CreateClientConVar("wire_expression2_new_tab_on_open", "1", true, false)
 Editor.ops_sync_subscribe = CreateClientConVar("wire_expression_ops_sync_subscribe",0,true,false)
@@ -56,24 +57,26 @@ end
 
 function Editor:ChangeFont(FontName, Size)
 	if not FontName or FontName == "" or not Size then return end
+	local antialias = self.FontAntialiasingConvar:GetBool()
+	local antialias_suffix = antialias and "_AA" or ""
 
 	-- If font is not already created, create it.
-	if not self.CreatedFonts[FontName .. "_" .. Size] then
+	if not self.CreatedFonts[FontName .. "_" .. Size .. antialias_suffix] then
 		local fontTable =
 		{
 			font = FontName,
 			size = Size,
 			weight = 400,
-			antialias = false,
+			antialias = antialias,
 			additive = false,
 		}
-		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size, fontTable)
+		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. antialias_suffix, fontTable)
 		fontTable.weight = 700
-		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. "_Bold", fontTable)
-		self.CreatedFonts[FontName .. "_" .. Size] = true
+		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. "_Bold"  .. antialias_suffix, fontTable)
+		self.CreatedFonts[FontName .. "_" .. Size .. antialias_suffix] = true
 	end
 
-	self.CurrentFont = "Expression2_" .. FontName .. "_" .. Size
+	self.CurrentFont = "Expression2_" .. FontName .. "_" .. Size  .. antialias_suffix
 	surface.SetFont(self.CurrentFont)
 	self.FontWidth, self.FontHeight = surface.GetTextSize(" ")
 
@@ -776,7 +779,7 @@ function Editor:InitComponents()
 
 	self.C.MainPane = vgui.Create("DPanel", self.C.Divider)
 	self.C.Menu = vgui.Create("DPanel", self.C.MainPane)
-	self.C.Val = vgui.Create("Button", self.C.MainPane) -- Validation line
+	self.C.Val = vgui.Create("Wire.IssueViewer", self.C.MainPane) -- Validation line
 	self.C.TabHolder = vgui.Create("DPropertySheet", self.C.MainPane)
 	self.C.TabHolder:SetPadding(1)
 
@@ -815,7 +818,7 @@ function Editor:InitComponents()
 
 	self.C.Menu:SetHeight(24)
 	self.C.Menu:DockPadding(2,2,2,2)
-	self.C.Val:SetHeight(22)
+	self.C.Val:SetHeight(self.C.Val.CollapseSize)
 
 	self.C.SaE:SetSize(80, 20)
 	self.C.SaE:Dock(RIGHT)
@@ -880,9 +883,6 @@ function Editor:InitComponents()
 	self.C.Val.UpdateColours = function(button, skin)
 		return button:SetTextStyleColor(skin.Colours.Button.Down)
 	end
-	self.C.Val.SetBGColor = function(button, r, g, b, a)
-		self.C.Val.bgcolor = Color(r, g, b, a)
-	end
 	self.C.Val.bgcolor = Color(255, 255, 255)
 	self.C.Val.Paint = function(button)
 		local w, h = button:GetSize()
@@ -893,11 +893,16 @@ function Editor:InitComponents()
 		if btn == MOUSE_RIGHT then
 			local menu = DermaMenu()
 			menu:AddOption("Copy to clipboard", function()
-				SetClipboardText(self.C.Val:GetValue():sub(4))
+				SetClipboardText(self.C.Val:GetValue())
 			end)
 			menu:Open()
 		else
 			self:Validate(true)
+		end
+	end
+	self.C.Val.OnIssueClicked = function(panel, issue)
+		if issue.line ~= nil and issue.char ~= nil then
+			self:GetCurrentEditor():SetCaret({issue.line, issue.char})
 		end
 	end
 	self.C.Btoggle:SetImage("icon16/application_side_contract.png")
@@ -1139,6 +1144,16 @@ function Editor:InitControlPanel(frame)
 	end
 	FontSizeSelect:SetPos(FontSelect:GetWide() + 4, 0)
 	FontSizeSelect:SetSize(50, 20)
+
+	local AntialiasEditor = vgui.Create("DCheckBoxLabel")
+	dlist:AddItem(AntialiasEditor)
+	AntialiasEditor:SetConVar("wire_expression2_editor_font_antialiasing")
+	AntialiasEditor:SetText("Enable antialiasing")
+	AntialiasEditor:SizeToContents()
+	AntialiasEditor:SetTooltip("Enables antialiasing of the editor's text.")
+	AntialiasEditor.OnChange = function(check, val)
+		self:ChangeFont(self.FontConVar:GetString(), self.FontSizeConVar:GetInt())
+	end
 
 
 	local label = vgui.Create("DLabel")
@@ -1626,43 +1641,52 @@ function Editor:OpenOldTabs()
 end
 
 function Editor:Validate(gotoerror)
+	local header_color, header_text = nil, nil
+	local problems_errors, problems_warnings = {}, {}
+	
 	if self.EditorType == "E2" then
 		local errors, _, warnings = wire_expression2_validate(self:GetCode())
+		
 		if not errors then
 			if warnings then
-				self.C.Val:SetBGColor(150, 150, 0, 255)
+				header_color = Color(163, 130, 64, 255)
 
 				local nwarnings = #warnings
-				local warning = table.remove(warnings, 1)
+				local warning = warnings[1]
 
 				if gotoerror then
-					self.C.Val:SetText("   Warning (1/" .. nwarnings .. "): " .. warning.message)
+					header_text = "Warning (1/" .. nwarnings .. "): " .. warning.message
 					self:GetCurrentEditor():SetCaret { warning.line, warning.char  }
 				else
-					self.C.Val:SetText("   Validated with " .. nwarnings .. " warning(s).")
+					header_text = "Validated with " .. nwarnings .. " warning(s)."
 				end
-
-				return true
+				problems_warnings = warnings
 			else
-				self.C.Val:SetBGColor(0, 110, 20, 255)
-				self.C.Val:SetText("   Validation successful")
-				return true
+				header_color = Color(0, 110, 20, 255)
+				header_text ="Validation successful"
 			end
-		end
-		if gotoerror then
+		else
+			header_color = Color(110, 0, 20, 255)
+			header_text = ("" .. errors)
 			local row, col = errors:match("at line ([0-9]+), char ([0-9]+)$")
 			if not row then
 				row, col = errors:match("at line ([0-9]+)$"), 1
 			end
-			if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
+			
+			problems_errors = {{message = string.Explode(" at line", errors)[1], line = row, char = col}}
+
+			if gotoerror then
+				if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
+			end
 		end
-		self.C.Val:SetBGColor(110, 0, 20, 255)
-		self.C.Val:SetText("   " .. errors)
+		
 	elseif self.EditorType == "CPU" or self.EditorType == "GPU" or self.EditorType == "SPU" then
-		self.C.Val:SetBGColor(64, 64, 64, 180)
-		self.C.Val:SetText("   Recompiling...")
+		header_color = Color(64, 64, 64, 180)
+		header_text = "Recompiling..."
 		CPULib.Validate(self, self:GetCode(), self:GetChosenFile())
 	end
+
+	self.C.Val:Update(problems_errors, problems_warnings, header_text, header_color)
 	return true
 end
 

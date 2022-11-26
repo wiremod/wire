@@ -74,7 +74,7 @@ function TOOL:RightClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ent:IsValid() && ent:GetClass() == "gmod_wire_textscreen" then
+	if ent:IsValid() and ent:GetClass() == "gmod_wire_textscreen" then
 		ply:ConCommand('wire_textscreen_text "'..ent.text..'"')
 		ply:ConCommand('wire_textscreen_model "'..ent:GetModel()..'"')
 		ply:ConCommand('wire_textscreen_tsize "'..(16 -ent.chrPerLine)..'"')

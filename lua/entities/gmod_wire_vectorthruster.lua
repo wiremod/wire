@@ -15,12 +15,12 @@ end
 function ENT:SetOn( boolon )
 	if (self:IsOn() ~= boolon) then
 		if (boolon) then
-			if (self.soundname and self.soundname != "") then
+			if (self.soundname and self.soundname ~= "") then
 				self:StopSound( self.soundname )
 				self:EmitSound( self.soundname )
 			end
 		else
-			if (self.soundname and self.soundname != "") then
+			if (self.soundname and self.soundname ~= "") then
 				self:StopSound( self.soundname )
 			end
 		end
@@ -201,7 +201,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 		soundname = ""
 	end
 
-	if (soundname and soundname == "" and self.soundname and self.soundname != "") then
+	if (soundname and soundname == "" and self.soundname and self.soundname ~= "") then
 		self:StopSound(self.soundname)
 	end
 
@@ -257,7 +257,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )
-	if (!self:IsOn()) then return SIM_NOTHING end
+	if (not self:IsOn()) then return SIM_NOTHING end
 	if (self:IsPlayerHolding()) then return SIM_NOTHING end
 
 	if (self:WaterLevel() > 0) then

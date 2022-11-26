@@ -23,7 +23,7 @@ function ENT:Setup(keygroup, keygroup2, toggle, value_off, value_on, value_on2)
 	numpad.OnDown( pl, keygroup2, "WireDualInput_On", self, -1 )
 	numpad.OnUp( pl, keygroup2, "WireDualInput_Off", self, -1 )
 
-	self.toggle = (toggle == 1 || toggle == true)
+	self.toggle = (toggle == 1 or toggle == true)
 	self.value_off = value_off
 	self.value_on = value_on
 	self.value_on2 = value_on2
@@ -35,8 +35,8 @@ function ENT:Setup(keygroup, keygroup2, toggle, value_off, value_on, value_on2)
 end
 
 function ENT:InputActivate( mul )
-	if ( self.toggle && self.Select == mul ) then
-		return self:Switch( !self.On, mul )
+	if ( self.toggle and self.Select == mul ) then
+		return self:Switch( not self.On, mul )
 	end
 
 	return self:Switch( true, mul )
@@ -49,15 +49,15 @@ function ENT:InputDeactivate( mul )
 end
 
 function ENT:Switch( on, mul )
-	if (!self:IsValid()) then return false end
+	if (not self:IsValid()) then return false end
 
 	self.On = on
 	self.Select = mul
 
-	if (on && mul == 1) then
+	if (on and mul == 1) then
 		self:ShowOutput(self.value_on)
 		self.Value = self.value_on
-	elseif (on && mul == -1) then
+	elseif (on and mul == -1) then
 		self:ShowOutput(self.value_on2)
 		self.Value = self.value_on2
 	else
@@ -75,13 +75,13 @@ function ENT:ShowOutput(value)
 end
 
 local function On( pl, ent, mul )
-	if (!ent:IsValid()) then return false end
+	if (not ent:IsValid()) then return false end
 	if not gamemode.Call("PlayerUse", pl, ent) then return end
 	return ent:InputActivate( mul )
 end
 
 local function Off( pl, ent, mul )
-	if (!ent:IsValid()) then return false end
+	if (not ent:IsValid()) then return false end
 	if not gamemode.Call("PlayerUse", pl, ent) then return end
 	return ent:InputDeactivate( mul )
 end

@@ -152,7 +152,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	else
 		tracedata.start = chip:GetPos()
 
-		if rangertype == 1 && (p1!=0 || p2!=0) then
+		if rangertype == 1 and (p1~=0 or p2~=0) then
 			p1 = math.rad(p1)
 			p2 = math.rad(p2+270)
 			local zoff = -math.cos(p1)*range
@@ -160,7 +160,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			local xoff = math.cos(p2)*zoff
 			zoff = math.sin(p2)*zoff
 			tracedata.endpos = chip:LocalToWorld(Vector(xoff,yoff,zoff))
-		elseif rangertype == 0 && (p1!=0 || p2!=0) then
+		elseif rangertype == 0 and (p1~=0 or p2~=0) then
 			local skew = Vector(p2, -p1, 1)
 			tracedata.endpos = chip:LocalToWorld(skew:GetNormalized()*range)
 		else

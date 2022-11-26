@@ -8,6 +8,7 @@ local TextList = {
 }
 local ChatAlert = {}
 local chipHideChat = false
+local chipChatReplacement = false
 
 --[[************************************************************************]]--
 
@@ -20,13 +21,21 @@ hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, teamchat)
 	TextList[ply:EntIndex()] = entry
 	TextList.last = entry
 
-	chipHideChat = false
-	local hideCurrent = false
+
+	-- For now ignore hideChat(), modifyChat(). Need to implement event return values.
 	E2Lib.triggerEvent("chat", { ply, text, teamchat and 1 or 0 })
 
-	for e,_ in pairs(ChatAlert) do
+	chipHideChat = false
+	chipChatReplacement = false
+
+	local hideCurrent = false
+	local replacementCurrent = false
+
+	for e, _ in pairs(ChatAlert) do
 		if IsValid(e) then
 			chipHideChat = nil
+			chipChatReplacement = nil
+
 			e.context.data.runByChat = entry
 			e:Execute()
 			e.context.data.runByChat = nil
@@ -34,12 +43,17 @@ hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, teamchat)
 			if chipHideChat and ply == e.player then
 				hideCurrent = chipHideChat
 			end
+
+			if chipChatReplacement and ply == e.player then
+				replacementCurrent = chipChatReplacement
+			end
 		else
 			ChatAlert[e] = nil
 		end
 	end
 
 	if hideCurrent then return "" end
+	if replacementCurrent then return replacementCurrent end
 end)
 
 hook.Add("EntityRemoved","Exp2ChatPlayerDisconnect", function(ply)
@@ -76,6 +90,11 @@ end
 --- If <hide> != 0, hide the chat message that is currently being processed.
 e2function void hideChat(hide)
 	chipHideChat = hide ~= 0
+end
+
+--- Changes the chat message, if the chat message was written by the E2 owner.
+e2function void modifyChat(string new)
+	chipChatReplacement = new
 end
 
 --[[************************************************************************]]--

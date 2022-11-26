@@ -71,6 +71,10 @@ local function checkConCmd(self, cmd)
 		end
 	end
 
+    if hook.Run( "Expression2_CanConCmd", ply, cmd ) == false then
+        return self:throw("Command '" .. cmd .. "' was blocked by the server. ", false)
+    end
+
 	return true
 end
 
@@ -86,6 +90,11 @@ local function checkConVar(self, var)
 	if table.IsEmpty(whitelist) then return true end
 
 	if whitelist[var] == nil then return self:throw("Convar '" .. var .. "' is not whitelisted w/ wire_expression2_convar_whitelist ", false) end
+
+    if hook.Run("Expression2_CanConVar", ply, var) == false then
+        return self:throw("Convar '" .. var .. "' was blocked by the server. ", false)
+    end
+
 	return true
 end
 

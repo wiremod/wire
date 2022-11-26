@@ -78,7 +78,7 @@ function PreProcessor:FindComments(line)
 				local varname, endpos = line:match("^([A-Z][A-Za-z0-9_]*)()",found)
 				count = count + 1
 				ret[count] = {type = isinput and "inputs" or "outputs", name=varname, pos=found, blockcomment = {}}
-				pos = endpos + 1
+				pos = endpos
 			elseif char == "#" then -- We found a comment
 				local before = line:sub(found - 1, found - 1)
 				if before == "]" then -- We found an ending

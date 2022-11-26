@@ -18,6 +18,8 @@ function ENT:Initialize()
 end
 
 function ENT:TriggerInput(name, value)
+	local ply = self:GetPlayer()
+	if not ply:IsValid() then return end
 	if name == "Activate" then
 		self.State = value ~= 0
 		for _, ent in pairs(self.Marks) do
@@ -27,11 +29,11 @@ function ENT:TriggerInput(name, value)
 					if self.State then
 						-- Garry's Mod provides an OnPhysgunFreeze hook, which will
 						-- unfreeze the object if prop protection allows it...
-						gamemode.Call("OnPhysgunFreeze", self, phys, ent, self:GetPlayer())
+						gamemode.Call("OnPhysgunFreeze", self, phys, ent, ply)
 					else
 						-- ...and a CanPlayerUnfreeze hook, which will return whether
 						-- prop protection allows it, but won't unfreeze do the unfreezing.
-						if not gamemode.Call("CanPlayerUnfreeze", self:GetPlayer(), ent, phys) then return end
+						if not gamemode.Call("CanPlayerUnfreeze", ply, ent, phys) then return end
 						phys:EnableMotion(true)
 						phys:Wake()
 					end
@@ -43,7 +45,7 @@ function ENT:TriggerInput(name, value)
 		for _, ent in pairs(self.Marks) do
 			if ent:IsValid() then
 				local phys = ent:GetPhysicsObject()
-				if phys:IsValid() and gamemode.Call("CanTool", self:GetPlayer(), WireLib.dummytrace(ent), "nocollide") then
+				if phys:IsValid() and gamemode.Call("CanTool", ply, WireLib.dummytrace(ent), "nocollide") then
 					if self.CollisionState == 0 then
 						ent:SetCollisionGroup( COLLISION_GROUP_NONE )
 						phys:EnableCollisions(true)

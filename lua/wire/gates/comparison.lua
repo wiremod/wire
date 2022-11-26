@@ -85,7 +85,7 @@ GateActions["inrangei"] = {
 			Max = Min
 			Min = temp
 		end
-		if ((Value >= Min) && (Value <= Max)) then return 1 end
+		if ((Value >= Min) and (Value <= Max)) then return 1 end
 		return 0
 	end,
 	label = function(Out, Min, Max, Value)
@@ -102,7 +102,7 @@ GateActions["inrangee"] = {
 			Max = Min
 			Min = temp
 		end
-		if ((Value > Min) && (Value < Max)) then return 1 end
+		if ((Value > Min) and (Value < Max)) then return 1 end
 		return 0
 	end,
 	label = function(Out, Min, Max, Value)

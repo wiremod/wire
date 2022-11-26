@@ -126,9 +126,6 @@ end
 
 ---@alias Scope table<string, ScopeData>
 
---[[
-	Scopes: Rusketh
-]] --
 function Compiler:InitScope()
 	self.Scopes = {}
 	self.ScopeID = 0
@@ -199,7 +196,7 @@ function Compiler:GetVariableType(instance, name)
 	for i = self.ScopeID, 0, -1 do
 		local var = self.Scopes[i][name]
 		if var then
-			var.var_tok = nil
+			var.var_tok = nil -- Mark variable as used
 			return var.type, i, var.initialized
 		end
 	end
@@ -416,7 +413,7 @@ function Compiler:InstrSEQ(args)
 	local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
 
 	for i = 1, #args - 2 do
-		if self.Scope.Dead then
+		if self.Scope._dead then
 			-- Don't compile dead code.
 			self:Warning("Unreachable code detected", args[i + 2])
 			break
@@ -448,13 +445,13 @@ end
 
 function Compiler:InstrBRK(args)
 	-- args = { "brk", trace }
-	self.Scope.Dead = true
+	self.Scope._dead = true
 	return { self:GetOperator(args, "brk", {})[1] }
 end
 
 function Compiler:InstrCNT(args)
 	-- args = { "cnt", trace }
-	self.Scope.Dead = true
+	self.Scope._dead = true
 	return { self:GetOperator(args, "cnt", {})[1] }
 end
 
@@ -603,12 +600,16 @@ function Compiler:InstrCALL(args)
 	exprs[1] = rt[1]
 	exprs[#exprs + 1] = tps
 
-	if rt[4] and rt[4].deprecated then
+	if rt[4] then
 		if rt[4].deprecated ~= true then
-			-- Deprecation message
+			-- Deprecation message (string)
 			self:Warning("Use of deprecated function: " .. args[3] .. "(" .. tps_pretty(tps) .. "): '" .. rt[4].deprecated .. "'", args)
-		else
+		elseif rt[4].deprecated then
 			self:Warning("Use of deprecated function: " .. args[3] .. "(" .. tps_pretty(tps) .. ")", args)
+		end
+
+		if rt[4].noreturn then
+			self.Scope._dead = true
 		end
 	end
 
@@ -846,9 +847,15 @@ end
 function Compiler:InstrTRG(args)
 	-- args = { "trg", trace, variable name }
 	local op = args[3]
-	if not self.inputs[op] then
+	local _tp, ScopeID = self:GetVariableType(args, op)
+
+	if ScopeID ~= 0 or not self.inputs[op] then
 		self:Error("Triggered operator (~" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs", args)
 	end
+
+	-- Necessary since this doesn't use Compiler:Evaluate (which would call InstrVAR, and do this.)
+	self.Scopes[0][op].var_tok = nil
+
 	local rt = self:GetOperator(args, "trg", {})
 	return { rt[1], op }, rt[2]
 end
@@ -871,17 +878,21 @@ end
 function Compiler:InstrIWC(args)
 	-- args = { "iwc", trace, variable name }
 	local op = args[3]
+	local _tp, ScopeID = self:GetVariableType(args, op)
 
-	if self.inputs[op] then
-		local rt = self:GetOperator(args, "iwc", {})
-		return { rt[1], op }, rt[2]
-	elseif self.outputs[op] then
-		local rt = self:GetOperator(args, "owc", {})
-		return { rt[1], op }, rt[2]
-	else
-		self:Error("Connected operator (->" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs or outputs", args)
+	if ScopeID == 0 then
+		if self.inputs[op] then
+			local rt = self:GetOperator(args, "iwc", {})
+			return { rt[1], op }, rt[2]
+		elseif self.outputs[op] then
+			local rt = self:GetOperator(args, "owc", {})
+			return { rt[1], op }, rt[2]
+		end
 	end
+
+	self:Error("Connected operator (->" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs or outputs", args)
 end
+
 function Compiler:InstrLITERAL(args)
 	-- args = { "literal", trace, value, value type }
 	self.prfcounter = self.prfcounter + 0.5
@@ -1124,7 +1135,7 @@ function Compiler:InstrRETURN(args)
 		self:Error("Return type mismatch: " .. tps_pretty(expectedType) .. " expected, got " .. tps_pretty(actualType), args)
 	end
 
-	self.Scope.Dead = true
+	self.Scope._dead = true
 	return { self:GetOperator(args, "return", {})[1], value, actualType }
 end
 

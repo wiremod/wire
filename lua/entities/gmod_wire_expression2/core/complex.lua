@@ -99,46 +99,46 @@ registerOperator("ass", "c", "c", function(self, args)
 end)
 
 e2function number operator_is(complex z)
-	if (z[1]==0) && (z[2]==0) then return 0 else return 1 end
+	if (z[1]==0) and (z[2]==0) then return 0 else return 1 end
 end
 
 e2function number operator==(complex lhs, complex rhs)
-	if abs(lhs[1]-rhs[1])<=delta &&
+	if abs(lhs[1]-rhs[1])<=delta and
 		abs(lhs[2]-rhs[2])<=delta then
 			return 1
 		else return 0 end
 end
 
 e2function number operator==(complex lhs, number rhs)
-	if abs(lhs[1]-rhs)<=delta &&
+	if abs(lhs[1]-rhs)<=delta and
 		abs(lhs[2])<=delta then
 			return 1
 		else return 0 end
 end
 
 e2function number operator==(number lhs, complex rhs)
-	if abs(lhs-rhs[1])<=delta &&
+	if abs(lhs-rhs[1])<=delta and
 		abs(rhs[2])<=delta then
 			return 1
 		else return 0 end
 end
 
 e2function number operator!=(complex lhs, complex rhs)
-	if abs(lhs[1]-rhs[1])>delta ||
+	if abs(lhs[1]-rhs[1])>delta or
 		abs(lhs[2]-rhs[2])>delta then
 			return 1
 		else return 0 end
 end
 
 e2function number operator!=(complex lhs, number rhs)
-	if abs(lhs[1]-rhs)>delta ||
+	if abs(lhs[1]-rhs)>delta or
 		abs(lhs[2])>delta then
 			return 1
 		else return 0 end
 end
 
 e2function number operator!=(number lhs, complex rhs)
-	if abs(lhs-rhs[1])>delta ||
+	if abs(lhs-rhs[1])>delta or
 		abs(rhs[2])>delta then
 			return 1
 		else return 0 end

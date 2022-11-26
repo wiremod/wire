@@ -179,7 +179,7 @@ function ENT:Execute()
 	end
 
 	self.GlobalScope.vclk = {}
-	for k, var in pairs(self.globvars) do
+	for k, var in pairs(self.globvars_mut) do
 		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
 	end
 
@@ -353,6 +353,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.dvars = inst.dvars
 	self.funcs = inst.funcs
 	self.funcs_ret = inst.funcs_ret
+	self.globvars_mut = table.Copy(inst.GlobalScope) -- table.Copy because we will mutate this
 	self.globvars = inst.GlobalScope
 
 	self:ResetContext()
@@ -466,7 +467,7 @@ function ENT:ResetContext()
 		self._inputs[1][#self._inputs[1] + 1] = k
 		self._inputs[2][#self._inputs[2] + 1] = v
 		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
-		self.globvars[k] = nil
+		self.globvars_mut[k] = nil
 	end
 
 	for k, v in pairs(self.outports[3]) do
@@ -474,15 +475,15 @@ function ENT:ResetContext()
 		self._outputs[2][#self._outputs[2] + 1] = v
 		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
 		self.GlobalScope.vclk[k] = true
-		self.globvars[k] = nil
+		self.globvars_mut[k] = nil
 	end
 
 	for k, v in pairs(self.persists[3]) do
 		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
-		self.globvars[k] = nil
+		self.globvars_mut[k] = nil
 	end
 
-	for k, var in pairs(self.globvars) do
+	for k, var in pairs(self.globvars_mut) do
 		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
 	end
 
@@ -615,7 +616,15 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 
 	if not self.error then
 		for k, v in pairs(self.dupevars) do
-			self.GlobalScope[k] = v
+			-- Backwards compatibility to fix dupes with the old {n, n, n} angle and vector types
+			local vartype = self.globvars[k] and self.globvars[k].type
+			if vartype == "a" then
+				self.GlobalScope[k] = istable(v) and Angle(v[1], v[2], v[3]) or v
+			elseif vartype == "v" then
+				self.GlobalScope[k] = istable(v) and Vector(v[1], v[2], v[3]) or v
+			else
+				self.GlobalScope[k] = v
+			end
 		end
 		self.dupevars = nil
 
@@ -707,12 +716,14 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 
 		-- Check codeAuthor actually exists, it wont be present on old dupes
 		-- No need to check if buffer already has a dupe related #error directive, as chips with compiler errors can't be duped
+		--[[
 		if codeAuthor and player:SteamID() ~= codeAuthor.steamID then
 			buffer = string.format(
 				"#error Dupe pasted with code authored by %s (%s). Please review the contents of the E2 before removing this directive\n\n",
 				codeAuthor.name, codeAuthor.steamID
 			) .. buffer
 		end
+		--]]
 
 		self.buffer = buffer
 		self:SetOverlayText(name)

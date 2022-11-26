@@ -15,7 +15,7 @@ if (CLIENT) then
 		if type(Mat) == "IMaterial" then
 			SetMaterial( Mat )
 		elseif isentity(Mat) then
-			if (!Mat:IsValid() or !Mat.GPU or !Mat.GPU.RT) then NoTexture() return end
+			if (not Mat:IsValid() or not Mat.GPU or not Mat.GPU.RT) then NoTexture() return end
 			local OldTex = WireGPU_matScreen:GetTexture("$basetexture")
 			WireGPU_matScreen:SetTexture("$basetexture", Mat.GPU.RT)
 			SetMaterial(WireGPU_matScreen)
@@ -26,7 +26,7 @@ if (CLIENT) then
 	end
 
 	function EGP:FixMaterial( OldTex )
-		if (!OldTex) then return end
+		if (not OldTex) then return end
 		WireGPU_matScreen:SetTexture("$basetexture", OldTex)
 	end
 end

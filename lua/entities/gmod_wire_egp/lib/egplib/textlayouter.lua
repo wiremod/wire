@@ -129,7 +129,7 @@ end
 //----------------------------------------------------------------------------------------------
 function TextWrapIndex:Draw()
 
-	if( !self.TextData ) then
+	if( not self.TextData ) then
 
 		self:Reset();
 
@@ -180,10 +180,10 @@ end
 //----------------------------------------------------------------------------------------------
 function TextWrapIndex:JustifyLine( width, startI, endI )
 
-	if( !self:GetJustify() ) then return; end
+	if( not self:GetJustify() ) then return; end
 
 	// TODO: figure out why this needs to be here
-	if( !self.TextData[ startI ] || !self.TextData[ endI ] ) then return; end
+	if( not self.TextData[ startI ] or not self.TextData[ endI ] ) then return; end
 
 	// calculate the new width of the space character
 	local x = self.TextData[ startI ][1];
@@ -284,7 +284,7 @@ function TextWrapIndex:ComputeParagraph( line, y, numWords )
 
 
 		// the SplitWord method handles this stuff on its own
-		if( !splitWord ) then
+		if( not splitWord ) then
 
 			// this word exceeds the width, move it down
 			if( ( x + self.SpaceW + width ) >= self:GetWide() ) then
