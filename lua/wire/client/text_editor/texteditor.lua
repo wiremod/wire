@@ -2027,6 +2027,15 @@ function EDITOR:AC_GetCurrentWord()
 	return word, symbolinfront
 end
 
+function EDITOR:AC_GetPreviousWord()
+	local ln, col = self.Caret[1], self.Caret[2]
+	local row = self.Rows[ln]
+	local startpos, epos, word, current = row:sub(1, col - 1):find("(%w+)%s+(%w*)$", 1)
+	if not startpos then startpos, epos, word = 1, 1, "" end
+
+	return word, self:GetArea({ { ln, startpos - 1 }, { ln, startpos } })
+end
+
 -- Thank you http://lua-users.org/lists/lua-l/2009-07/msg00461.html
 -- Returns the minimum number of character changes required to make one of the words equal the other
 -- Used to sort the suggestions in order of relevance
@@ -2085,6 +2094,8 @@ local function FindConstants( self, word )
 end
 
 tbl[1] = function( self )
+	if self.ac_event then return end
+
 	local word = self:AC_GetCurrentWord()
 	if word and word ~= "" and word:sub(1,1) == "_" then
 		return FindConstants( self, word )
@@ -2173,6 +2184,8 @@ local function FindFunctions( self, has_colon, word )
 end
 
 tbl[2] = function( self )
+	if self.ac_event then return end
+
 	local word, symbolinfront = self:AC_GetCurrentWord()
 	if word and word ~= "" and word:sub(1,1):upper() ~= word:sub(1,1) then
 		return FindFunctions( self, (symbolinfront == ":"), word )
@@ -2257,6 +2270,8 @@ local function FindVariables( self, word )
 end
 
 tbl[3] = function( self )
+	if self.ac_event then return end
+
 	local word = self:AC_GetCurrentWord()
 	if word and word ~= "" and word:sub(1,1):upper() == word:sub(1,1) then
 		return FindVariables( self, word )
@@ -2294,6 +2309,8 @@ tbl.RunOnCheck = function( self )
 		self:AC_SetVisible( false )
 		return false
 	end
+
+	self.ac_event = self:AC_GetPreviousWord() == "event"
 
 	return true
 end
@@ -2373,6 +2390,49 @@ function EDITOR:AC_Check( notimer )
 	end
 
 	self:AC_SetVisible( false )
+end
+
+local function FindEvents(self, word)
+	local suggestions, count = {}, 0
+	for name, data in pairs(E2Lib.Env.Events) do
+		if name:sub(1, #word) == word then
+			count = count + 1
+
+			-- Cache replacement string
+			if not data.replacement then
+				local buf = {}
+				for k, ty in ipairs(data.args) do
+					local tyname = wire_expression_types2[ty][1]:lower()
+					if tyname == "normal" then tyname = "number" end
+					buf[k] = ty:upper() .. ":" .. tyname
+				end
+				data.replacement = name .. "(" .. table.concat(buf, ", ") .. ")"
+			end
+
+			-- Cache display signature
+			if not data.display then
+				data.display = name .. "(" .. table.concat(data.args, ",") .. ")"
+			end
+
+			local function repl() return data.replacement end
+			local function get() return data.display end
+
+			suggestions[count] = { nice_str = get, str = get, replacement = repl, data = { name } }
+		end
+	end
+
+	return suggestions
+end
+
+tbl[4] = function(self)
+	if not self.ac_event then return end
+
+	local word, symbol = self:AC_GetCurrentWord()
+
+	if not word or word == "" then return end
+	if word:sub(1, 1):lower() ~= word:sub(1, 1) then return end
+
+	return FindEvents(self, word)
 end
 
 -----------------------------------------------------------
