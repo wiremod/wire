@@ -661,8 +661,17 @@ function Compiler:InstrMETHODCALL(args)
 	exprs[1] = rt[1]
 	exprs[#exprs + 1] = tps
 
-	if rt[4] and rt[4].deprecated then
-		self:Warning("Use of deprecated method: " .. tps_pretty(tp) .. ":" .. args[3] .. "(" .. tps_pretty(tps) .. ")", args)
+	if rt[4] then
+		if rt[4].deprecated ~= nil and rt[4].deprecated ~= true then
+			-- Deprecation message (string)
+			self:Warning("Use of deprecated method: " .. tps_pretty(tp) .. ":" .. args[3] .. "(" .. tps_pretty(tps) .. "): '" .. rt[4].deprecated .. "'", args)
+		elseif rt[4].deprecated then
+			self:Warning("Use of deprecated method: " .. tps_pretty(tp) .. ":" .. args[3] .. "(" .. tps_pretty(tps) .. ")", args)
+		end
+
+		if rt[4].noreturn then
+			self.Scope._dead = true
+		end
 	end
 
 	return exprs, rt[2], rt[4]
@@ -1324,9 +1333,11 @@ function Compiler:InstrEVENT(args)
 		end
 	end
 
-	if self.registered_events[name] then
-		self:Error("You can only register one callback per event", args)
+	if (self.registered_events[name] and self.registered_events[name][self.include or "__main__"]) then
+		self:Error("You can only register one event callback per file", args)
 	end
+
+	self.registered_events[name] = self.registered_events[name] or {}
 
 	local OldScopes = self:SaveScopes()
 	self:InitScope()
@@ -1338,7 +1349,7 @@ function Compiler:InstrEVENT(args)
 		local block = self:EvaluateStatement(args, 3)
 	self:LoadScopes(OldScopes)
 
-	self.registered_events[name] = function(self, args)
+	self.registered_events[name][self.include or "__main__"] = function(self, args)
 		for i, arg in ipairs(hargs) do
 			local name = arg[1]
 			self.Scope[name] = args[i]

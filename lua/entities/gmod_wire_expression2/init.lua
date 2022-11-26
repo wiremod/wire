@@ -198,41 +198,39 @@ function ENT:ExecuteEvent(evt, args)
 	assert(evt, "Expected event name, got nil (or false)")
 	if self.error or not self.context or self.context.resetting then return end
 
-	local handler = self.registered_events[evt]
-	if not handler then return end
+	local handlers = self.registered_events[evt]
+	if not handlers then return end
 
 	self:PCallHook("preexecute")
-	self.context:PushScope()
 
-	local bench = SysTime()
+	for name, handler in pairs(handlers) do
+		self.context:PushScope()
 
-	local ok, msg = pcall(handler, self.context, args)
+		local bench = SysTime()
+		local ok, msg = pcall(handler, self.context, args)
 
-	if not ok then
-		local _catchable, msg, trace = E2Lib.unpackException(msg)
+		if not ok then
+			local _catchable, msg, trace = E2Lib.unpackException(msg)
 
-		if msg == "exit" then
-		elseif msg == "perf" then
-			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
-		elseif trace then
-			self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
-		else
-			self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
+			if msg == "exit" then
+			elseif msg == "perf" then
+				self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
+			elseif trace then
+				self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
+			else
+				self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
+			end
 		end
+		self.context.time = self.context.time + (SysTime() - bench)
+
+		self.context:PopScope()
 	end
 
-	self.context.time = self.context.time + (SysTime() - bench)
 
-	self.context:PopScope()
-
-	local forceTriggerOutputs = self.first or self.duped
-	self.first = false -- if hooks call execute
-	self.duped = false -- if hooks call execute
 	self.context.triggerinput = nil -- if hooks call execute
 
 	self:PCallHook("postexecute")
-
-	self:TriggerOutputs(forceTriggerOutputs)
+	self:TriggerOutputs()
 
 	self.GlobalScope.vclk = {}
 	for k, var in pairs(self.globvars) do
