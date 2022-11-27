@@ -60,6 +60,14 @@ function childVisitors.switch(node, action)
     end
 end
 
+childVisitors["if"] = function(node, action)
+    local cond, true_case, false_case = node[3], node[4], node[5]
+    cond = action(cond) or cond
+
+    true_case = action(true_case) or true_case
+    false_case = action(false_case) or false_case
+end
+
 --- Call `action` on every child of `node`.
 -- If it returns a value, then that value will replace the node.
 -- For example:

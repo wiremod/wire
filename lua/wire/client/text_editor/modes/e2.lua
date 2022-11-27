@@ -580,7 +580,11 @@ function EDITOR:SyntaxColorLine(row)
 			end
 
 		elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
-			tokenname = "variable"
+			if self.tokendata == "This" then
+				tokenname = "typename"
+			else
+				tokenname = "variable"
+			end
 
 			if highlightmode == 3 then
 				highlightmode = 4
