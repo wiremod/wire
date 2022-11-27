@@ -238,7 +238,7 @@ function ENT:ExecuteEvent(evt, args)
 	self:TriggerOutputs()
 
 	self.GlobalScope.vclk = {}
-	for k, var in pairs(self.globvars) do
+	for k, var in pairs(self.globvars_mut) do
 		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
 	end
 
