@@ -2278,32 +2278,13 @@ function EDITOR:AC_SaveVariables()
 	local variable_names, count = {}, 0
 	local ident_variant = E2Lib.Tokenizer.Variant.Ident
 
+	-- For now, scan tokens with the Tokenizer. Don't use the parser since it is quite costly (and hasn't been rewritten yet).
 	for _, tok in ipairs(tokens) do
 		if tok.variant == ident_variant then
 			count = count + 1
 			variable_names[count] = tok.value
 		end
 	end
-
-	-- Below implementation is with the parser, which is quite costly to run a lot of times.
-	-- Until it's rewritten, scanning the tokens with the tokenizer shouldn't be too bad.
-	-- Especially since identifiers can only be uppercase.
-
-	--[[
-	-- Basic variable autocomplete, doesn't take into account scoping variables or anything, since the editor doesn't even use the parser right now.
-	local ok, ast = E2Lib.Parser.Execute(tokens)
-	if not ok then return end
-
-	local function handleChild(child)
-		if child[1] == "ass" or child[1] == "assl" then
-			count = count + 1
-			local var_name = child[3]
-			variable_names[count] = var_name
-		else
-			E2Lib.AST.visitChildren(child, handleChild)
-		end
-	end
-	E2Lib.AST.visitChildren(ast, handleChild)]]
 
 	self.AC_Directives = directives
 	self.AC_Variables = variable_names
