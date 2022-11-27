@@ -105,6 +105,7 @@ local colors = {
 	["typename"] = Color(240, 160, 96), -- orange
 	["constant"] = Color(240, 160, 240), -- pink
 	["userfunction"] = Color(102, 122, 102), -- dark grayish-green
+	["eventname"] = Color(74, 194, 116), -- green
 	["dblclickhighlight"] = Color(0, 100, 0) -- dark green
 }
 

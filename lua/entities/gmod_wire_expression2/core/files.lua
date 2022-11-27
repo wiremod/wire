@@ -325,7 +325,15 @@ end)
 --- Uploading ---
 
 local function file_execute( ent, filename, status )
-	if !IsValid( ent ) or !run_on.file.ents[ent] then return end
+	if IsValid(ent) then
+		if status == FILE_OK then
+			ent:ExecuteEvent("fileLoaded", {filename, uploads[ent.player].data})
+		else
+			ent:ExecuteEvent("fileErrored", {filename, status})
+		end
+	elseif !run_on.file.ents[ent] then
+		return
+	end
 
 	run_on.file.run = 1
 	run_on.file.name = filename
@@ -467,3 +475,6 @@ net.Receive("wire_expression2_file_list", function(netlen, ply)
 	run_on.list.run = 0
 	run_on.list.dir = ""
 end )
+
+E2Lib.registerEvent("fileErrored", {"s", "n"})
+E2Lib.registerEvent("fileLoaded", {"s", "s"})

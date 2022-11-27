@@ -123,12 +123,21 @@ end
 
 local SysTime = SysTime
 
+function ENT:Destruct()
+	self:PCallHook("destruct")
+
+	for evt in pairs(self.registered_events) do
+		if E2Lib.Env.Events[evt].destructor then
+			-- If the event has a destructor to run when the E2 is removed and listening to the event.
+			E2Lib.Env.Events[evt].destructor(self.context)
+		end
+
+		E2Lib.Env.Events[evt].listening[self] = nil
+	end
+end
+
 function ENT:Execute()
 	if self.error or not self.context or self.context.resetting then return end
-
-	for k, v in pairs(self.tvars) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
-	end
 
 	self:PCallHook('preexecute')
 
@@ -183,7 +192,63 @@ function ENT:Execute()
 		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "hard quota exceeded")
 	end
 
-	if self.error then self:PCallHook('destruct') end
+	if self.error then
+		self:Destruct()
+	end
+end
+
+---@param evt string
+---@param args table?
+function ENT:ExecuteEvent(evt, args)
+	assert(evt, "Expected event name, got nil (or false)")
+	if self.error or not self.context or self.context.resetting then return end
+
+	local handlers = self.registered_events[evt]
+	if not handlers then return end
+
+	self:PCallHook("preexecute")
+
+	for name, handler in pairs(handlers) do
+		self.context:PushScope()
+
+		local bench = SysTime()
+		local ok, msg = pcall(handler, self.context, args)
+
+		if not ok then
+			local _catchable, msg, trace = E2Lib.unpackException(msg)
+
+			if msg == "exit" then
+			elseif msg == "perf" then
+				self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
+			elseif trace then
+				self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
+			else
+				self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
+			end
+		end
+		self.context.time = self.context.time + (SysTime() - bench)
+
+		self.context:PopScope()
+	end
+
+
+	self.context.triggerinput = nil -- if hooks call execute
+
+	self:PCallHook("postexecute")
+	self:TriggerOutputs()
+
+	self.GlobalScope.vclk = {}
+	for k, var in pairs(self.globvars) do
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
+	end
+
+	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
+		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "hard quota exceeded")
+	end
+
+	if self.error then
+		self:Destruct()
+	end
 end
 
 function ENT:Think()
@@ -197,7 +262,7 @@ function ENT:Think()
 
 		if e2_timequota > 0 and self.context.timebench > e2_timequota then
 			self:Error("Expression 2 (" .. self.name .. "): time quota exceeded", "time quota exceeded")
-			self:PCallHook('destruct')
+			self:Destruct()
 		end
 
 		if self.context.prfcount < 0 then self.context.prfcount = 0 end
@@ -220,8 +285,9 @@ end
 function ENT:OnRemove()
 	if not self.error and not self.removing then -- make sure destruct hooks aren't called twice (once on error, once on remove)
 		self.removing = true
-		self:PCallHook('destruct')
+		self:Destruct()
 	end
+
 	BaseClass.OnRemove(self)
 end
 
@@ -285,8 +351,9 @@ function ENT:CompileCode(buffer, files, filepath)
 	if not status then self:Error(script) return end
 
 	self.script = script
+	self.registered_events = inst.registered_events
+
 	self.dvars = inst.dvars
-	self.tvars = inst.tvars
 	self.funcs = inst.funcs
 	self.funcs_ret = inst.funcs_ret
 	self.globvars_mut = table.Copy(inst.GlobalScope) -- table.Copy because we will mutate this
@@ -458,7 +525,7 @@ end
 
 function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 	if self.script then
-		self:PCallHook('destruct')
+		self:Destruct()
 	end
 
 	self.uid = IsValid(self.player) and self.player:UniqueID() or "World"
@@ -498,6 +565,15 @@ function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 		self:Think()
 	end
 
+	-- Register events only after E2 has executed once
+	for evt, _ in pairs(self.registered_events) do
+		if E2Lib.Env.Events[evt].constructor then
+			-- If the event has a constructor to run when the E2 is made and listening to the event.
+			E2Lib.Env.Events[evt].constructor(self.context)
+		end
+		E2Lib.Env.Events[evt].listening[self] = true
+	end
+
 	self:NextThink(CurTime())
 end
 
@@ -522,7 +598,10 @@ function ENT:TriggerInput(key, value)
 		end
 
 		self.context.triggerinput = key
-		if self.trigger[1] or self.trigger[2][key] then self:Execute() end
+		if self.trigger[1] or self.trigger[2][key] then
+			self:Execute()
+			self:ExecuteEvent("input", { key })
+		end
 		self.context.triggerinput = nil
 	end
 end
@@ -715,7 +794,7 @@ local function enableEmergencyShutdown()
 						if not v.error then
 							-- immediately clear any memory the E2 may be holding
 							hook.Run("Wire_EmergencyRamClear")
-							v:PCallHook("destruct")
+							v:Destruct()
 							v:ResetContext()
 							v:PCallHook("construct")
 

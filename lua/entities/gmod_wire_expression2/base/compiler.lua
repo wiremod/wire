@@ -15,6 +15,7 @@ AddCSLuaFile()
 ---@field persist table<string, string> # Variable: Type
 ---@field inputs table<string, string> # Variable: Type
 ---@field outputs table<string, string> # Variable: Type
+---@field registered_events table<string, function>
 local Compiler = {}
 Compiler.__index = Compiler
 E2Lib.Compiler = Compiler
@@ -56,6 +57,7 @@ end
 ---@return function script
 function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used.
 	self.context = {}
+	self.registered_events = {}
 	self.warnings = {}
 
 	self:InitScope() -- Creates global scope!
@@ -66,7 +68,6 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.includes = includes or {}
 	self.prfcounter = 0
 	self.prfcounters = {}
-	self.tvars = {}
 	self.funcs = {}
 	self.dvars = {}
 	self.funcs_ret = {}
@@ -206,14 +207,18 @@ end
 
 -- ---------------------------------------------------------------------------
 
+--- May return nil in the case of a statement without any runtime side effects.
+---@return table?, string, string, any
 function Compiler:EvaluateStatement(args, index)
 	local trace = args[index + 2]
 
 	local name = string_upper(trace[1])
 
 	local ex, tp, extra = self:CallInstruction(name, trace)
-	ex.TraceName = name
-	ex.Trace = trace[2]
+	if ex then
+		ex.TraceName = name
+		ex.Trace = trace[2]
+	end
 
 	return ex, tp, name, extra
 end
@@ -420,7 +425,10 @@ function Compiler:InstrSEQ(args)
 				self:Warning(ExprWarnings[instr], args[i + 2])
 			end
 
-			stmts[#stmts + 1] = stmt
+			if stmt then
+				-- Statement has a runtime side effect.
+				stmts[#stmts + 1] = stmt
+			end
 		end
 	end
 
@@ -593,9 +601,14 @@ function Compiler:InstrCALL(args)
 	exprs[#exprs + 1] = tps
 
 	if rt[4] then
-		if rt[4].deprecated then
+		if rt[4].deprecated ~= nil and rt[4].deprecated ~= true then
+			-- Deprecation message (string)
+			self:Warning("Use of deprecated function: " .. args[3] .. "(" .. tps_pretty(tps) .. "): '" .. rt[4].deprecated .. "'", args)
+		elseif rt[4].deprecated then
 			self:Warning("Use of deprecated function: " .. args[3] .. "(" .. tps_pretty(tps) .. ")", args)
-		elseif rt[4].noreturn then
+		end
+
+		if rt[4].noreturn then
 			self.Scope._dead = true
 		end
 	end
@@ -648,8 +661,17 @@ function Compiler:InstrMETHODCALL(args)
 	exprs[1] = rt[1]
 	exprs[#exprs + 1] = tps
 
-	if rt[4] and rt[4].deprecated then
-		self:Warning("Use of deprecated method: " .. tps_pretty(tp) .. ":" .. args[3] .. "(" .. tps_pretty(tps) .. ")", args)
+	if rt[4] then
+		if rt[4].deprecated ~= nil and rt[4].deprecated ~= true then
+			-- Deprecation message (string)
+			self:Warning("Use of deprecated method: " .. tps_pretty(tp) .. ":" .. args[3] .. "(" .. tps_pretty(tps) .. "): '" .. rt[4].deprecated .. "'", args)
+		elseif rt[4].deprecated then
+			self:Warning("Use of deprecated method: " .. tps_pretty(tp) .. ":" .. args[3] .. "(" .. tps_pretty(tps) .. ")", args)
+		end
+
+		if rt[4].noreturn then
+			self.Scope._dead = true
+		end
 	end
 
 	return exprs, rt[2], rt[4]
@@ -1277,4 +1299,62 @@ function Compiler:InstrTRY(args)
 	local prf_cond = self:PopPrfCounter()
 
 	return { self:GetOperator(args, "try", {})[1], prf_cond, stmt, var_name, stmt2 }
+end
+
+function Compiler:InstrEVENT(args)
+	-- args = { "event", trace, name, args, event_block }
+	local name, hargs = args[3], args[4]
+
+	if not E2Lib.Env.Events[name] then
+		self:Error("No such event exists: '" .. name .. "'", args)
+	end
+
+	local event = E2Lib.Env.Events[name]
+
+	if #hargs > #event.args then
+		local extra_arg_types = {}
+		for i = #event.args + 1, #hargs do
+			-- name, type, variadic
+			extra_arg_types[#extra_arg_types + 1] = hargs[i][2]
+		end
+
+		self:Error("Event '" .. name .. "' does not take arguments (" .. table.concat(extra_arg_types, ", ") .. ")", args)
+	end
+
+	for k, typeid in ipairs(event.args) do
+		if not hargs[k] then
+			-- TODO: Maybe this should be a warning so that events can have extra params added without breaking old code?
+			self:Error("Event '" .. name .. "' missing argument #" .. k .. " of type " .. tps_pretty(typeid), args)
+		end
+
+		local param_id = wire_expression_types[hargs[k][2]][1]
+		if typeid ~= param_id then
+			self:Error("Mismatched event argument: " .. tps_pretty(arg) .. " vs " .. tps_pretty(param_id), args)
+		end
+	end
+
+	if (self.registered_events[name] and self.registered_events[name][self.include or "__main__"]) then
+		self:Error("You can only register one event callback per file", args)
+	end
+
+	self.registered_events[name] = self.registered_events[name] or {}
+
+	local OldScopes = self:SaveScopes()
+	self:InitScope()
+	self:PushScope()
+		for k, typeid in ipairs(event.args) do
+			self:SetLocalVariableType(hargs[k][1], typeid, args)
+		end
+
+		local block = self:EvaluateStatement(args, 3)
+	self:LoadScopes(OldScopes)
+
+	self.registered_events[name][self.include or "__main__"] = function(self, args)
+		for i, arg in ipairs(hargs) do
+			local name = arg[1]
+			self.Scope[name] = args[i]
+		end
+
+		block[1](self, block)
+	end
 end

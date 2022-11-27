@@ -1,6 +1,10 @@
 AddCSLuaFile()
 
-E2Lib = {}
+E2Lib = {
+	Env = {
+		Events = {}
+	}
+}
 
 local type = type
 local function checkargtype(argn, value, argtype)
@@ -422,7 +426,9 @@ local Keyword = {
 	-- ``catch``
 	Catch = 17,
 	-- ``do``
-	Do = 18
+	Do = 18,
+	-- ``event``
+	Event = 19
 }
 
 E2Lib.Keyword = Keyword

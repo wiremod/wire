@@ -1983,6 +1983,22 @@ end
 -- By Divran
 ---------------------------------------------------------------------------------------------------------
 
+local AC_COLOR_CONSTANT = Color(204, 137, 204)
+local AC_COLOR_CONSTANT_SELECTED = Color(168, 113, 168, 192)
+
+local AC_COLOR_FUNCTION = Color(65, 105, 255)
+local AC_COLOR_FUNCTION_SELECTED = Color(49, 80, 169, 192)
+
+local AC_COLOR_VARIABLE = Color(137, 204, 137)
+local AC_COLOR_VARIABLE_SELECTED = Color(113, 168, 113, 192)
+
+local AC_COLOR_EVENT = Color(64, 168, 100)
+local AC_COLOR_EVENT_SELECTED = Color(43, 112, 67, 192)
+
+local AC_COLOR_KEYWORD = Color(137, 204, 204)
+local AC_COLOR_KEYWORD_SELECTED = Color(113, 168, 168, 192)
+
+
 function EDITOR:IsVarLine()
 	local line = self.Rows[self.Caret[1]]
 	local word = line:match( "^@(%w+)" )
@@ -2027,6 +2043,15 @@ function EDITOR:AC_GetCurrentWord()
 	return word, symbolinfront
 end
 
+function EDITOR:AC_GetPreviousWord()
+	local ln, col = self.Caret[1], self.Caret[2]
+	local row = self.Rows[ln]
+	local startpos, epos, word, current = row:sub(1, col - 1):find("(%w+)%s+(%w*)$", 1)
+	if not startpos then startpos, epos, word = 1, 1, "" end
+
+	return word, self:GetArea({ { ln, startpos - 1 }, { ln, startpos } })
+end
+
 -- Thank you http://lua-users.org/lists/lua-l/2009-07/msg00461.html
 -- Returns the minimum number of character changes required to make one of the words equal the other
 -- Used to sort the suggestions in order of relevance
@@ -2061,10 +2086,15 @@ local tbl = {}
 -----------------------------------------------------------
 
 local function GetTableForConstant( str )
-	return { nice_str = function( t ) return t.data[1] end,
-			str = function( t ) return t.data[1] end,
-			replacement = function( t ) return t.data[1] end,
-			data = { str } }
+	return {
+		nice_str = function( t ) return t.data[1] end,
+		str = function( t ) return t.data[1] end,
+		replacement = function( t ) return t.data[1] end,
+		data = { str },
+
+		selected_color = AC_COLOR_CONSTANT_SELECTED,
+		color = AC_COLOR_CONSTANT
+	}
 end
 
 local function FindConstants( self, word )
@@ -2084,7 +2114,45 @@ local function FindConstants( self, word )
 	return suggestions
 end
 
-tbl[1] = function( self )
+local function FindKeywords(self, word)
+	local suggestions, count = {}, 0
+	for kw in pairs(self.CurrentMode.Keywords) do
+		if kw:sub(1, #word) == word then
+			count = count + 1
+			local function get() return kw end
+
+			suggestions[count] = {
+				nice_str = get, str = get, data = { kw },
+
+				replacement = function(self, editor)
+					return kw, #kw
+				end,
+
+				selected_color = AC_COLOR_KEYWORD_SELECTED,
+				color = AC_COLOR_KEYWORD,
+
+				description = function() return "The keyword " .. kw end
+			}
+		end
+	end
+
+	return suggestions
+end
+
+tbl[1] = function(self)
+	if self.ac_event then return end
+
+	local word, symbol = self:AC_GetCurrentWord()
+
+	if not word or word == "" then return end
+	if word:sub(1, 1):lower() ~= word:sub(1, 1) then return end
+
+	return FindKeywords(self, word)
+end
+
+tbl[2] = function( self )
+	if self.ac_event then return end
+
 	local word = self:AC_GetCurrentWord()
 	if word and word ~= "" and word:sub(1,1) == "_" then
 		return FindConstants( self, word )
@@ -2097,7 +2165,8 @@ end
 --------------------
 
 local function GetTableForFunction()
-	return { nice_str = function( t ) return t.data[2] end,
+	return {
+		nice_str = function( t ) return t.data[2] end,
 			str = function( t ) return t.data[1] end,
 			replacement = function( t, editor )
 				local caret = editor:CopyPosition( editor.Caret )
@@ -2116,7 +2185,11 @@ local function GetTableForFunction()
 					return E2Helper.Descriptions[t.data[1]]
 				end
 			end,
-			data = {} }
+			data = {},
+
+			selected_color = AC_COLOR_FUNCTION_SELECTED,
+			color = AC_COLOR_FUNCTION
+		}
 end
 
 local function FindFunctions( self, has_colon, word )
@@ -2172,7 +2245,9 @@ local function FindFunctions( self, has_colon, word )
 	return suggestions
 end
 
-tbl[2] = function( self )
+tbl[3] = function( self )
+	if self.ac_event then return end
+
 	local word, symbolinfront = self:AC_GetCurrentWord()
 	if word and word ~= "" and word:sub(1,1):upper() ~= word:sub(1,1) then
 		return FindFunctions( self, (symbolinfront == ":"), word )
@@ -2200,10 +2275,14 @@ end
 -----------------------------------------------------------
 
 local function GetTableForVariables( str )
-	return { nice_str = function( t ) return t.data[1] end,
-			str = function( t ) return t.data[1] end,
-			replacement = function( t ) return t.data[1] end,
-			data = { str } }
+	return {
+		nice_str = function( t ) return t.data[1] end,
+		str = function( t ) return t.data[1] end,
+		replacement = function( t ) return t.data[1] end,
+		data = { str },
+		selected_color = AC_COLOR_VARIABLE_SELECTED,
+		color = AC_COLOR_VARIABLE
+	}
 end
 
 
@@ -2256,7 +2335,9 @@ local function FindVariables( self, word )
 	return suggestions
 end
 
-tbl[3] = function( self )
+tbl[4] = function( self )
+	if self.ac_event then return end
+
 	local word = self:AC_GetCurrentWord()
 	if word and word ~= "" and word:sub(1,1):upper() == word:sub(1,1) then
 		return FindVariables( self, word )
@@ -2295,6 +2376,8 @@ tbl.RunOnCheck = function( self )
 		return false
 	end
 
+	self.ac_event = self:AC_GetPreviousWord() == "event"
+
 	return true
 end
 
@@ -2325,11 +2408,10 @@ function EDITOR:AC_Check( notimer )
 	self.AC_HasSuggestions = false
 
 	local suggestions = {}
-	for i=1,#self.AC_AutoCompletion do
-		local _suggestions = self.AC_AutoCompletion[i]( self )
-		if _suggestions ~= nil and #_suggestions > 0 then
-			suggestions = _suggestions
-			break
+	for i, ac in ipairs(self.AC_AutoCompletion) do
+		local _suggestions = ac( self )
+		if _suggestions and #_suggestions > 0 then
+			suggestions = table.Add(suggestions, _suggestions)
 		end
 	end
 
@@ -2373,6 +2455,59 @@ function EDITOR:AC_Check( notimer )
 	end
 
 	self:AC_SetVisible( false )
+end
+
+local function FindEvents(self, word)
+	local suggestions, count = {}, 0
+	for name, data in pairs(E2Lib.Env.Events) do
+		if name:sub(1, #word) == word then
+			count = count + 1
+
+			-- Cache replacement string
+			if not data.replacement then
+				local buf = {}
+				for k, ty in ipairs(data.args) do
+					local tyname = wire_expression_types2[ty][1]:lower()
+					if tyname == "normal" then tyname = "number" end
+					buf[k] = ty:upper() .. ":" .. tyname
+				end
+				data.replacement = name .. "(" .. table.concat(buf, ", ") .. ")"
+			end
+
+			-- Cache display signature
+			if not data.display then
+				data.display = name .. "(" .. table.concat(data.args, ",") .. ")"
+			end
+
+			local function repl(self, editor)
+				local caret = editor:CopyPosition( editor.Caret )
+				caret[2] = caret[2] + 1
+				return data.replacement, #data.replacement
+			end
+
+			local function get() return data.display end
+
+			suggestions[count] = {
+				nice_str = get, str = get, replacement = repl, data = { name },
+
+				selected_color = AC_COLOR_EVENT_SELECTED,
+				color = AC_COLOR_EVENT
+			}
+		end
+	end
+
+	return suggestions
+end
+
+tbl[5] = function(self)
+	if not self.ac_event then return end
+
+	local word, symbol = self:AC_GetCurrentWord()
+
+	if not word or word == "" then return end
+	if word:sub(1, 1):lower() ~= word:sub(1, 1) then return end
+
+	return FindEvents(self, word)
 end
 
 -----------------------------------------------------------
@@ -2591,7 +2726,7 @@ function EDITOR:AC_FillInfoList( suggestion )
 		desc = "Description:\n" .. desc
 	end
 
-	if #others > 0 then -- If there are other functions with the same name...
+	if others and #others > 0 then -- If there are other functions with the same name...
 		desc = (desc or "") .. ((desc and desc ~= "") and "\n" or "") .. "Others with the same name:"
 
 		-- Loop through the "others" table to add all of them
@@ -2605,7 +2740,7 @@ function EDITOR:AC_FillInfoList( suggestion )
 			label:SetText( "" )
 			label.Paint = function( pnl )
 				local w,h = pnl:GetSize()
-				surface_SetDrawColor(65, 105, 255)
+				surface_SetDrawColor(v.color)
 				surface_DrawRect(0, 0, w, h)
 				surface_SetFont(self.CurrentFont)
 				surface_SetTextPos( 6, h/2-nameh/2 )
@@ -2667,9 +2802,9 @@ function EDITOR:AC_FillList()
 		txt.Paint = function( pnl, w, h )
 			local backgroundColor
 			if panel.Selected == pnl.count then
-				backgroundColor = Color(49, 80, 169, 192)
+				backgroundColor = suggestion.selected_color
 			else
-				backgroundColor = Color(65, 105, 225, 255)
+				backgroundColor = suggestion.color
 			end
 			surface_SetDrawColor(backgroundColor)
 			surface_DrawRect(0, 0, w, h)

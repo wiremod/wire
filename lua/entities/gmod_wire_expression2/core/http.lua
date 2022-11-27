@@ -45,10 +45,14 @@ e2function void httpRequest( string url )
 		preq.success = 1
 
 		local ent = self.entity
-		if IsValid(ent) and run_on.ents[ent] then
-			self.data.httpClk = preq
-			ent:Execute()
-			self.data.httpClk = nil
+		if IsValid(ent) then
+			if run_on.ents[ent] then
+				self.data.httpClk = preq
+				ent:Execute()
+				self.data.httpClk = nil
+			else
+				ent:ExecuteEvent("httpLoaded", { contents or "", size, preq.url })
+			end
 		end
 
 	end, function( err )
@@ -62,10 +66,14 @@ e2function void httpRequest( string url )
 		preq.success = 0
 
 		local ent = self.entity
-		if IsValid(ent) and run_on.ents[ent] then
-			self.data.httpClk = preq
-			ent:Execute()
-			self.data.httpClk = nil
+		if IsValid(ent) then
+			if run_on.ents[ent] then
+				self.data.httpClk = preq
+				ent:Execute()
+				self.data.httpClk = nil
+			else
+				ent:ExecuteEvent("httpErrored", { err, preq.url })
+			end
 		end
 	end)
 end
@@ -123,3 +131,9 @@ end
 registerCallback( "destruct", function( self )
 	run_on.ents[self.entity] = nil
 end )
+
+-- error: string, url: string
+E2Lib.registerEvent("httpErrored", { "s", "s" })
+
+-- body: string, size: number, url: string
+E2Lib.registerEvent("httpLoaded", { "s", "n", "s" })

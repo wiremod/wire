@@ -450,7 +450,7 @@ if SERVER then
 		if canhas(player) then return end
 		if E2.error then return end
 		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "halt execution" ) then
-			E2:PCallHook("destruct")
+			E2:Destruct()
 			E2:Error("Execution halted (Triggered by: " .. player:Nick() .. ")", "Execution halted")
 			if E2.player ~= player then
 				WireLib.AddNotify(player, "Expression halted.", NOTIFY_GENERIC, 5, math.random(1, 5))

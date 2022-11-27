@@ -205,6 +205,12 @@ local function compact(lua)
 	return ( lua:gsub("\n\t*", " ") )
 end
 
+local valid_attributes = {
+	["deprecated"] = true,
+	["nodiscard"] = true,
+	["noreturn"] = true
+}
+
 function E2Lib.ExtPP.Pass2(contents)
 	-- We add some stuff to both ends of the string so we can look for %W (non-word characters) at the ends of the patterns.
 	local prelude = "local tempcosts, registeredfunctions = {}, {};"
@@ -221,7 +227,7 @@ function E2Lib.ExtPP.Pass2(contents)
 
 	-- This flag helps determine whether the preprocessor changed, so we can tell the environment about it.
 	local changed = false
-	for a_begin, attributes, h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()(%[?[%l%d,_ =\"]*%]?)\r?\n?[ \t]*()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
+	for a_begin, attributes, h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()(%[?[%w,_ =\"]*%]?)[\r\n\t ]*()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
 		-- Convert attributes to a lookup table passed to registerFunction
 		attributes = attributes ~= "" and attributes or nil
 		-- attributes = attributes ~= ""
@@ -238,6 +244,7 @@ function E2Lib.ExtPP.Pass2(contents)
 			local lookup = {}
 			for _, tag in ipairs(attributes) do
 				local k = tag:lower():Trim()
+
 				if k:find("=", 1, true) then
 					-- [xyz = 567, event = "Tick"]
 					-- e2function number foo()
@@ -246,6 +253,9 @@ function E2Lib.ExtPP.Pass2(contents)
 
 					lookup[key] = value
 				else
+					if not valid_attributes[k] then
+						ErrorNoHalt("Invalid attribute fed to ExtPP: " .. k)
+					end
 					lookup[ tag:lower():Trim() ] = "true"
 				end
 			end
