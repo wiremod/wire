@@ -1998,6 +1998,12 @@ local AC_COLOR_EVENT_SELECTED = Color(43, 112, 67, 192)
 local AC_COLOR_KEYWORD = Color(137, 204, 204)
 local AC_COLOR_KEYWORD_SELECTED = Color(113, 168, 168, 192)
 
+local AC_COLOR_TYPE = Color(179, 120, 71)
+local AC_COLOR_TYPE_SELECTED = Color(153, 103, 61, 192)
+
+local AC_COLOR_USERFUNCTION = Color(75, 89, 75)
+local AC_COLOR_USERFUNCTION_SELECTED = Color(64, 77, 64, 192)
+
 
 function EDITOR:IsVarLine()
 	local line = self.Rows[self.Caret[1]]
@@ -2046,8 +2052,8 @@ end
 function EDITOR:AC_GetPreviousWord()
 	local ln, col = self.Caret[1], self.Caret[2]
 	local row = self.Rows[ln]
-	local startpos, epos, word, current = row:sub(1, col - 1):find("(%w+)%s+(%w*)$", 1)
-	if not startpos then startpos, epos, word = 1, 1, "" end
+	local startpos, _, word = row:sub(1, col - 1):find("(%w+)[^%w]+(%w*)$", 1)
+	if not startpos then startpos, word = 1, "" end
 
 	return word, self:GetArea({ { ln, startpos - 1 }, { ln, startpos } })
 end
@@ -2140,18 +2146,18 @@ local function FindKeywords(self, word)
 end
 
 tbl[1] = function(self)
-	if self.ac_event then return end
+	if self.ac_event or self.ac_directive_line or self.ac_function_type then return end
 
-	local word, symbol = self:AC_GetCurrentWord()
-
+	local word, sym = self:AC_GetCurrentWord()
 	if not word or word == "" then return end
+	if sym == ":" then return end
 	if word:sub(1, 1):lower() ~= word:sub(1, 1) then return end
 
 	return FindKeywords(self, word)
 end
 
 tbl[2] = function( self )
-	if self.ac_event then return end
+	if self.ac_event or self.ac_directive_line then return end
 
 	local word = self:AC_GetCurrentWord()
 	if word and word ~= "" and word:sub(1,1) == "_" then
@@ -2246,7 +2252,7 @@ local function FindFunctions( self, has_colon, word )
 end
 
 tbl[3] = function( self )
-	if self.ac_event then return end
+	if self.ac_event or self.ac_directive_line or self.ac_function_type then return end
 
 	local word, symbolinfront = self:AC_GetCurrentWord()
 	if word and word ~= "" and word:sub(1,1):upper() ~= word:sub(1,1) then
@@ -2260,13 +2266,28 @@ end
 -----------------------------------------------------------
 
 function EDITOR:AC_SaveVariables()
-	local OK, directives,_ = E2Lib.PreProcessor.Execute( self:GetValue() )
+	local ok, directives, code = E2Lib.PreProcessor.Execute( self:GetValue() )
 
-	if not OK or not directives then
+	if not ok or not directives then
 		return
 	end
 
+	local ok, tokens = E2Lib.Tokenizer.Execute(code)
+	if not ok then return end
+
+	local variable_names, count = {}, 0
+	local ident_variant = E2Lib.Tokenizer.Variant.Ident
+
+	-- For now, scan tokens with the Tokenizer. Don't use the parser since it is quite costly (and hasn't been rewritten yet).
+	for _, tok in ipairs(tokens) do
+		if tok.variant == ident_variant then
+			count = count + 1
+			variable_names[count] = tok.value
+		end
+	end
+
 	self.AC_Directives = directives
+	self.AC_Variables = variable_names
 end
 
 -----------------------------------------------------------
@@ -2278,7 +2299,7 @@ local function GetTableForVariables( str )
 	return {
 		nice_str = function( t ) return t.data[1] end,
 		str = function( t ) return t.data[1] end,
-		replacement = function( t ) return t.data[1] end,
+		replacement = function( t ) return t.data[1], #t.data[1] end,
 		data = { str },
 		selected_color = AC_COLOR_VARIABLE_SELECTED,
 		color = AC_COLOR_VARIABLE
@@ -2294,11 +2315,10 @@ local function FindVariables( self, word )
 	local suggested = {}
 	local suggestions = {}
 
-	local directives = self.AC_Directives
-	if not directives then self:AC_SaveVariables() end -- If directives is nil, attempt to find
-	directives = self.AC_Directives
-	if not directives then -- If finding failed, abort
-		self:AC_SetVisible( false )
+	if not self.AC_Directives or not self.AC_Variables then self:AC_SaveVariables() end
+	local directives, variables = self.AC_Directives, self.AC_Variables
+
+	if not directives and not variables then
 		return
 	end
 
@@ -2332,11 +2352,23 @@ local function FindVariables( self, word )
 		end
 	end
 
+	if variables then
+		for _, v in ipairs(variables) do
+			if v:lower():sub(1, len) == wordl then
+				if not suggested[v] then
+					suggested[v] = true
+					count = count + 1
+					suggestions[count] = GetTableForVariables( v )
+				end
+			end
+		end
+	end
+
 	return suggestions
 end
 
 tbl[4] = function( self )
-	if self.ac_event then return end
+	if self.ac_event or self.ac_directive_line or self.ac_function_type then return end
 
 	local word = self:AC_GetCurrentWord()
 	if word and word ~= "" and word:sub(1,1):upper() == word:sub(1,1) then
@@ -2370,13 +2402,22 @@ tbl.RunOnCheck = function( self )
 	elseif not self:IsVarLine() and self.AC_WasVarLine then -- If the user ISN'T editing a var line, and they WERE editing a var line before this..
 		self.AC_WasVarLine = nil
 		self:AC_SaveVariables()
-	end
-	if self:IsDirectiveLine() then -- In case you're wondering, DirectiveLine ~= VarLine (A directive line is any line starting with @, a var line is @inputs, @outputs, and @persists)
-		self:AC_SetVisible( false )
-		return false
+	else
+		local word = self:AC_GetCurrentWord()
+		if word and word:match("^%u") then
+			-- Writing a variable. Wait for user to stop writing to avoid calling the tokenizer a ton of times.
+			timer.Create("E2_AC_SaveVariable", 1, 0.6, function()
+				self:AC_SaveVariables()
+			end)
+		end
 	end
 
-	self.ac_event = self:AC_GetPreviousWord() == "event"
+	self.ac_directive_line = self:IsDirectiveLine() -- In case you're wondering, DirectiveLine ~= VarLine (A directive line is any line starting with @, a var line is @inputs, @outputs, and @persists)
+
+	local prev_word = self:AC_GetPreviousWord()
+
+	self.ac_event = prev_word == "event"
+	self.ac_function_type = prev_word == "function"
 
 	return true
 end
@@ -2500,7 +2541,7 @@ local function FindEvents(self, word)
 end
 
 tbl[5] = function(self)
-	if not self.ac_event then return end
+	if not self.ac_event or self.ac_directive_line then return end
 
 	local word, symbol = self:AC_GetCurrentWord()
 
@@ -2508,6 +2549,49 @@ tbl[5] = function(self)
 	if word:sub(1, 1):lower() ~= word:sub(1, 1) then return end
 
 	return FindEvents(self, word)
+end
+
+local function FindTypes(self, word)
+	local suggestions, count = {}, 0
+
+	for type_name in pairs(wire_expression_types) do
+		type_name = type_name:lower()
+		if type_name == "normal" then type_name = "number" end
+
+		if type_name:sub(1, #word) == word then
+			count = count + 1
+
+			local function get() return type_name end
+			suggestions[count] = {
+				nice_str = get, str = get, replacement = function() return type_name, #type_name end, data = { type_name },
+
+				selected_color = AC_COLOR_TYPE_SELECTED,
+				color = AC_COLOR_TYPE
+			}
+		end
+	end
+
+	return suggestions
+end
+
+-- Type
+tbl[6] = function( self )
+	if self.ac_event then return end
+	local word, sym = self:AC_GetCurrentWord()
+
+	if not word or word == "" then return end
+
+	if self.ac_function_type then
+		return FindTypes(self, word)
+	end
+
+	if word:sub(1,1):lower() == word:sub(1,1) and sym == ":" then
+		local last_word = self:AC_GetPreviousWord()
+		if last_word:sub(1, 1):match("%u") then
+			-- Ensure last word is a variable
+			return FindTypes( self, word )
+		end
+	end
 end
 
 -----------------------------------------------------------
