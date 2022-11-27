@@ -23,6 +23,7 @@ local table_insert = table.insert
 local table_sort = table.sort
 local surface_SetDrawColor = surface.SetDrawColor
 local surface_DrawRect = surface.DrawRect
+local surface_DrawOutlinedRect = surface.DrawOutlinedRect
 local surface_SetFont = surface.SetFont
 local surface_GetTextSize = surface.GetTextSize
 local surface_PlaySound = surface.PlaySound
@@ -2568,9 +2569,12 @@ function EDITOR:AC_CreatePanel()
 	local panel = vgui.Create( "DPanel",self )
 	panel:SetSize( 100, 202 )
 	panel.Selected = {}
-	panel.Paint = function( pnl )
-		surface_SetDrawColor( 0,0,0,230 )
-		surface_DrawRect( 0,0,pnl:GetWide(), pnl:GetTall() )
+	panel.Paint = function( pnl, w, h )
+		surface_SetDrawColor(20, 20, 20, 220)
+		surface_DrawRect(0, 0, w, h)
+
+		surface_SetDrawColor(70, 70, 70, 255)
+		surface_DrawOutlinedRect(0, 0, w, h)
 	end
 
 	-- Override think, to make it listen for key presses
@@ -2741,7 +2745,7 @@ function EDITOR:AC_FillInfoList( suggestion )
 			label.Paint = function( pnl )
 				local w,h = pnl:GetSize()
 				surface_SetDrawColor(v.color)
-				surface_DrawRect(0, 0, w, h)
+				surface_DrawRect(0, 0, 4, h)
 				surface_SetFont(self.CurrentFont)
 				surface_SetTextPos( 6, h/2-nameh/2 )
 				surface_SetTextColor( 255,255,255,255 )
@@ -2795,6 +2799,7 @@ function EDITOR:AC_FillList()
 
 		local txt = vgui.Create("DLabel")
 		txt:SetText( "" )
+		txt:SetCursor("hand")
 		txt.count = count
 		txt.suggestion = suggestion
 
@@ -2802,12 +2807,17 @@ function EDITOR:AC_FillList()
 		txt.Paint = function( pnl, w, h )
 			local backgroundColor
 			if panel.Selected == pnl.count then
+				surface_SetDrawColor(50, 50, 50)
 				backgroundColor = suggestion.selected_color
 			else
+				surface_SetDrawColor(30, 30, 30)
 				backgroundColor = suggestion.color
 			end
-			surface_SetDrawColor(backgroundColor)
+
 			surface_DrawRect(0, 0, w, h)
+
+			surface_SetDrawColor(backgroundColor)
+			surface_DrawRect(0, 0, 4, h)
 
 			surface.SetFont(self.CurrentFont)
 			local _, h2 = surface.GetTextSize( nice_name )
