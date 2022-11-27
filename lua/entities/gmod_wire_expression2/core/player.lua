@@ -422,7 +422,7 @@ E2Lib.registerEvent("keyPressed", {"e", "s", "n", "s"})
 -- Use Support --
 
 __e2setcost(50)
---- Makes the chip "Use"able
+[nodiscard, deprecated = "Use the chipUsed event instead"]
 e2function void runOnUse(value)
 	if value ~= 0 then
 		self.entity:SetUseType( SIMPLE_USE )
@@ -437,7 +437,7 @@ e2function void runOnUse(value)
 end
 
 __e2setcost(1)
---- Returns the entity who is using the chip
+[nodiscard, deprecated = "Use the chipUsed event instead"]
 e2function entity useClk()
 	return self.data.runByUse or NULL
 end
@@ -699,6 +699,7 @@ end)
 
 __e2setcost(3)
 
+[deprecated = "Use the playerConnected event instead"]
 e2function void runOnPlayerConnect(activate)
 	if activate ~= 0 then
 		spawnAlert[self.entity] = true
@@ -707,14 +708,17 @@ e2function void runOnPlayerConnect(activate)
 	end
 end
 
+[nodiscard, deprecated = "Use the playerConnected event instead"]
 e2function number playerConnectClk()
 	return self.data.runBySpawn and 1 or 0
 end
 
+[nodiscard, deprecated = "Use the playerConnected event instead"]
 e2function entity lastConnectedPlayer()
 	return lastJoined
 end
 
+[deprecated = "Use the playerDisconnected event instead"]
 e2function void runOnPlayerDisconnect(activate)
 	if activate ~= 0 then
 		leaveAlert[self.entity] = true
@@ -723,10 +727,12 @@ e2function void runOnPlayerDisconnect(activate)
 	end
 end
 
+[nodiscard, deprecated = "Use the playerDisconnected event instead"]
 e2function number playerDisconnectClk()
 	return self.data.runByLeave and 1 or 0
 end
 
+[nodiscard, deprecated = "Use the playerDisconnected event instead"]
 e2function entity lastDisconnectedPlayer()
 	return lastLeft
 end
@@ -795,16 +801,17 @@ end)
 
 __e2setcost(5)
 
---- If active is 0, the chip will no longer run on death.
+[deprecated = "Use the playerDeath event instead"]
 e2function void runOnDeath(number active)
 	DeathAlert[self.entity] = active~=0 and true or nil
 end
 
--- Give 1 or 0 depending on whether the chip was run by a death event.
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function number deathClk()
 	return self.data.runByDeath and 1 or 0
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function number lastDeathTime()
 	return DeathList.last.timestamp or 0
 end
@@ -826,47 +833,58 @@ local function getRespawnEntry(self, ply, key)
 	return entry[key]
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function number lastDeathTime(entity ply) -- When the player provided last died.
 	return getDeathEntry(self, ply,"timestamp") or 0
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function entity lastDeathVictim()
 	return DeathList.last.victim
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function entity lastDeathInflictor()
 	return DeathList.last.inflictor
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function entity lastDeathInflictor(entity ply)
 	return getDeathEntry(self, ply,"inflictor") or NULL
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function entity lastDeathAttacker()
 	return DeathList.last.attacker
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function entity lastDeathAttacker(entity ply)
 	return getDeathEntry(self, ply,"attacker") or NULL
 end
 
 -- Respawn Functions
+[nodiscard, deprecated = "Use the playerSpawn event instead"]
 e2function number spawnClk()
 	return self.data.runByRespawned and 1 or 0
 end
 
+[deprecated = "Use the playerSpawn event instead"]
 e2function void runOnSpawn(number activate) -- If 1, make the chip run on a player respawning. Not joining.
 	RespawnAlert[self.entity] = active~=0 and true or nil
 end
 
+[nodiscard, deprecated = "Use the playerSpawn event instead"]
 e2function number lastSpawnTime()
 	return RespawnList.last.timestamp or 0
 end
 
+[nodiscard, deprecated = "Use the playerSpawn event instead"]
 e2function number lastSpawnTime(entity ply)
 	return getRespawnEntry(self, ply,"timestamp") or 0
 end
 
+[nodiscard, deprecated = "Use the playerSpawn event instead"]
 e2function entity lastSpawnedPlayer()
 	return RespawnList.last.ply
 end
