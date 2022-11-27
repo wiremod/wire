@@ -2807,10 +2807,10 @@ function EDITOR:AC_FillList()
 		txt.Paint = function( pnl, w, h )
 			local backgroundColor
 			if panel.Selected == pnl.count then
-				surface_SetDrawColor(50, 50, 50)
+				surface_SetDrawColor(50, 50, 50, 150)
 				backgroundColor = suggestion.selected_color
 			else
-				surface_SetDrawColor(30, 30, 30)
+				surface_SetDrawColor(30, 30, 30, 150)
 				backgroundColor = suggestion.color
 			end
 
