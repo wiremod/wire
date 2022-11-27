@@ -26,12 +26,16 @@ local keywords = {
 	["else"]     = { [true] = true },
 	["break"]    = { [true] = true },
 	["continue"] = { [true] = true },
-	--["function"] = { [true] = true },
+	["function"] = { [true] = true },
 	["return"] = { [true] = true },
 	["local"]  = { [true] = true },
 	["try"]    = { [true] = true },
-	["do"] = { [true] = true }
+	["do"] = { [true] = true },
+	["event"] = { [true] = true },
+	["#include"] = { [true] = true }
 }
+
+EDITOR.Keywords = keywords
 
 -- fallback for nonexistant entries:
 setmetatable(keywords, { __index=function(tbl,index) return {} end })

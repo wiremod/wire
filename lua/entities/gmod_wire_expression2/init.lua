@@ -127,6 +127,11 @@ function ENT:Destruct()
 	self:PCallHook("destruct")
 
 	for evt in pairs(self.registered_events) do
+		if E2Lib.Env.Events[evt].destructor then
+			-- If the event has a destructor to run when the E2 is removed and listening to the event.
+			E2Lib.Env.Events[evt].destructor(self.context)
+		end
+
 		E2Lib.Env.Events[evt].listening[self] = nil
 	end
 end
@@ -562,6 +567,10 @@ function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 
 	-- Register events only after E2 has executed once
 	for evt, _ in pairs(self.registered_events) do
+		if E2Lib.Env.Events[evt].constructor then
+			-- If the event has a constructor to run when the E2 is made and listening to the event.
+			E2Lib.Env.Events[evt].constructor(self.context)
+		end
 		E2Lib.Env.Events[evt].listening[self] = true
 	end
 

@@ -177,7 +177,9 @@ end
 --- E2Lib.registerEvent("propSpawned", { "e" }, nil)
 ---@param name string
 ---@param args string[]?
-function E2Lib.registerEvent(name, args)
+---@param constructor fun(self: table)? # Constructor to run when E2 initially starts listening to this event. Passes E2 context
+---@param destructor fun(self: table)? # Destructor to run when E2 stops listening to this event. Passes E2 context
+function E2Lib.registerEvent(name, args, constructor, destructor)
 	-- Ensure event starts with lowercase letter
 	name = name:sub(1, 1):lower() .. name:sub(2)
 	-- assert(not E2Lib.Env.Events[name], "Possible addon conflict: Trying to override existing E2 event '" .. name .. "'")
@@ -185,6 +187,9 @@ function E2Lib.registerEvent(name, args)
 	E2Lib.Env.Events[name] = {
 		name = name,
 		args = args or {},
+
+		constructor = constructor,
+		destructor = destructor,
 
 		listening = {}
 	}

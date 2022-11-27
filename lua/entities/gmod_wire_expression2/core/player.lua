@@ -442,6 +442,15 @@ e2function entity useClk()
 	return self.data.runByUse or NULL
 end
 
+E2Lib.registerEvent("chipUsed", { "e" }, function(self)
+	self.entity:SetUseType(SIMPLE_USE)
+	self.entity.Use = function(selfent, activator)
+		self.entity:ExecuteEvent("chipUsed", { activator })
+	end
+end, function(self)
+	self.entity.Use = nil
+end)
+
 
 -- isTyping
 local plys = {}
@@ -660,6 +669,8 @@ end
 
 hook.Add("PlayerInitialSpawn","Exp2RunOnJoin", function(ply)
 	lastJoined = ply
+	E2Lib.triggerEvent("playerConnected", { ply })
+
 	for e,_ in pairs(spawnAlert) do
 		if IsValid(e) then
 			e.context.data.runBySpawn = true
@@ -673,6 +684,8 @@ end)
 
 hook.Add("PlayerDisconnected","Exp2RunOnLeave", function(ply)
 	lastLeft = ply
+	E2Lib.triggerEvent("playerDisconnected", { ply })
+
 	for e,_ in pairs(leaveAlert) do
 		if IsValid(e) then
 			e.context.data.runByLeave = true
@@ -718,6 +731,9 @@ e2function entity lastDisconnectedPlayer()
 	return lastLeft
 end
 
+E2Lib.registerEvent("playerConnected", { "e" })
+E2Lib.registerEvent("playerDisconnected", { "e" })
+
 ----- Death+Respawns by Vurv -----
 
 local DeathAlert = {}
@@ -744,6 +760,8 @@ hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
 	}
 	DeathList[victim] = entry -- victim's death is saved as their most recent death
 	DeathList.last = entry -- the most recent death's table is stored here for later use.
+
+	E2Lib.triggerEvent("playerDeath", { victim, inflictor, attacker })
 	for e2 in next,DeathAlert do
 		if IsValid(e2) then
 			e2.context.data.runByDeath = true
@@ -762,6 +780,8 @@ hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(player)
 	}
 	RespawnList[player] = entry
 	RespawnList.last = entry
+
+	E2Lib.triggerEvent("playerSpawn", { player })
 	for e2 in next,RespawnAlert do
 		if IsValid(e2) then
 			e2.context.data.runByRespawned = true
@@ -850,6 +870,11 @@ end
 e2function entity lastSpawnedPlayer()
 	return RespawnList.last.ply
 end
+
+E2Lib.registerEvent("playerSpawn", { "e" })
+E2Lib.registerEvent("playerDeath", { "e", "e", "e" })
+
+
 --******************************************--
 
 
