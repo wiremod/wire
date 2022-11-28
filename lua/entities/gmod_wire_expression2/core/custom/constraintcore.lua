@@ -1,6 +1,25 @@
 E2Lib.RegisterExtension("constraintcore", false, "Allows the creation and manipulation of constraints between entities.")
 
+local cvFlags = {FCVAR_ARCHIVE}
+local maxWeld = CreateConVar( "wire_expression2_max_constraints_weld", "0", cvFlags, 0 )
+local maxRope = CreateConVar( "wire_expression2_max_constraints_rope", "0", cvFlags, 0 )
+local maxAxis = CreateConVar( "wire_expression2_max_constraints_axis", "0", cvFlags, 0 )
+local maxTotal = CreateConVar( "wire_expression2_max_constraints_total", "0", cvFlags, 0 )
+local maxSlider = CreateConVar( "wire_expression2_max_constraints_slider", "0", cvFlags, 0 )
+local maxElastic = CreateConVar( "wire_expression2_max_constraints_elastic", "0", cvFlags, 0 )
+local maxNocollide = CreateConVar( "wire_expression2_max_constraints_nocollide", "0", cvFlags, 0 )
+local maxHydraulic = CreateConVar( "wire_expression2_max_constraints_hydraulic", "0", cvFlags, 0 )
+local maxPerEntity = CreateConVar( "wire_expression2_max_consttraints_per_entity", "0", cvFlags, 0 )
+local maxBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsocket", "0", cvFlags, 0 )
+local maxAdvBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsocket_adv", "0", cvFlags, 0)
+
+local edictCutOff = CreateConVar( "wire_expression2_constraints_edict_cutoff", "7500", cvFlags, "At what edict count will E2s be prevented from creating new rope-like constraints", 0, 8192 )
+local shouldCleanup = CreateConVar( "Wire_expression2_constraints_cleanup", "0", cvFlags, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted", 0, 1 )
+
+
 local function clearCreatedConstraints(self)
+	if not shouldCleanup:GetBool() then return end
+
 	for _, constraint in pairs( self.data.allConstraints ) do
 		if constraint:IsValid() then
 			constraint:Remove()
@@ -34,6 +53,18 @@ local math_max = math.max
 local table_insert = table.insert
 
 local emptyVector = Vector()
+local countLookup = {
+	Weld = maxWeld,
+	Rope = maxRope,
+	Axis = maxAxis,
+	Slider = maxSlider,
+	Elastic = maxElastic,
+	NoCollide = maxNocollide,
+	Hydraulic = maxHydraulic,
+	Ballsocket = maxBallsocket,
+	AdvBallsocket = maxAdvBallsocket,
+}
+
 
 local function checkEnts(self, ent1, ent2)
 	if not IsValid(ent1) and not ent1:IsWorld() then return self:throw("Invalid entity!", false) end
@@ -46,34 +77,6 @@ local function checkEnts(self, ent1, ent2)
 	if ent1:IsPlayer() or ent2:IsPlayer() then return self:throw("Cannot constrain players!", false) end
 	return true
 end
-
-local cvFlags = {FCVAR_ARCHIVE}
-local maxWeld = CreateConVar( "wire_expression2_max_constraints_weld", "250", cvFlags )
-local maxRope = CreateConVar( "wire_expression2_max_constraints_rope", "250", cvFlags )
-local maxAxis = CreateConVar( "wire_expression2_max_constraints_axis", "250", cvFlags )
-local maxTotal = CreateConVar( "wire_expression2_max_constraints_total", "250", cvFlags )
-local maxSlider = CreateConVar( "wire_expression2_max_constraints_slider", "250", cvFlags )
-local maxElastic = CreateConVar( "wire_expression2_max_constraints_elastic", "250", cvFlags )
-local maxNocollide = CreateConVar( "wire_expression2_max_constraints_nocollide", "250", cvFlags )
-local maxHydraulic = CreateConVar( "wire_expression2_max_constraints_hydraulic", "250", cvFlags )
-local maxPerEntity = CreateConVar( "wire_expression2_max_consttraints_per_entity", "150", cvFlags )
-local maxBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsocket", "250", cvFlags )
-local maxAdvBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsocket_adv", "250", cvFlags )
-
--- At what edict count will E2s be prevented from creating new rope-like constraints (elastic, rope, slider, hydraulic)
-local edictCutOff = CreateConVar( "wire_expression2_constraints_edict_cutoff", "7500", cvFlags )
-
-local countLookup = {
-	Weld = maxWeld,
-	Rope = maxRope,
-	Axis = maxAxis,
-	Slider = maxSlider,
-	Elastic = maxElastic,
-	NoCollide = maxNocollide,
-	Hydraulic = maxHydraulic,
-	Ballsocket = maxBallsocket,
-	AdvBallsocket = maxAdvBallsocket,
-}
 
 local function verifyConstraint(self, cons)
 	if cons ~= false then return true end
@@ -104,27 +107,33 @@ local function checkCount(self, consType, ent1, ent2)
 	local typeCounts = data.constraintCounts
 
 	-- Total
-	local totalCount = data.totalConstraints
 	local totalLimit = maxTotal:GetInt()
-	if totalCount >= totalLimit then
-		return self:throw( "Total constraint limit reached!", false )
+	if totalLimit > 0 then
+		local totalCount = data.totalConstraints
+		if totalCount >= totalLimit then
+			return self:throw( "Total constraint limit reached!", false )
+		end
 	end
 
 	-- Type
-	local typeCount = typeCounts[consType] or 0
 	local typeLimit = countLookup[consType]:GetInt()
-	if typeCount >= typeLimit then
-		return self:throw( consType .. " limit reached!", false )
+	if typeLimit > 0 then
+		local typeCount = typeCounts[consType] or 0
+		if typeCount >= typeLimit then
+			return self:throw( consType .. " limit reached!", false )
+		end
 	end
 
 	-- Ents
 	local entityLimit = maxPerEntity:GetInt()
-	local entCounts = data.entityConstraints
+	if entityLimit > 0 then
+		local entCounts = data.entityConstraints
 
-	local ent1Count = entCounts[ent1] or 0
-	local ent2Count = entCounts[ent2] or 0
-	if math_max( ent1Count, ent2Count ) >= entityLimit then
-		return self:throw( "Entity limit reached!", false )
+		local ent1Count = entCounts[ent1] or 0
+		local ent2Count = entCounts[ent2] or 0
+		if math_max( ent1Count, ent2Count ) >= entityLimit then
+			return self:throw( "Entity limit reached!", false )
+		end
 	end
 
 	return true
