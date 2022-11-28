@@ -320,7 +320,7 @@ function Parser:Stmt3()
 			self:Error("Left parenthesis (() must appear before condition")
 		end
 
-		if not self:AcceptRoamingToken(TokenVariant.Ident) then
+		if not self:AcceptRoamingToken(TokenVariant.Ident) and not self:AcceptRoamingToken(TokenVariant.Discard) then
 			self:Error("Variable expected for the numeric index")
 		end
 
@@ -365,7 +365,7 @@ function Parser:Stmt4()
 			self:Error("Left parenthesis missing (() after foreach statement")
 		end
 
-		if not self:AcceptRoamingToken(TokenVariant.Ident) then
+		if not self:AcceptRoamingToken(TokenVariant.Ident) and not self:AcceptRoamingToken(TokenVariant.Discard) then
 			self:Error("Variable expected to hold the key")
 		end
 		local keyvar = self:GetTokenData()
@@ -391,7 +391,7 @@ function Parser:Stmt4()
 			self:Error("Comma (,) expected after key variable")
 		end
 
-		if not self:AcceptRoamingToken(TokenVariant.Ident) then
+		if not self:AcceptRoamingToken(TokenVariant.Ident) and not self:AcceptRoamingToken(TokenVariant.Discard) then
 			self:Error("Variable expected to hold the value")
 		end
 		local valvar = self:GetTokenData()
@@ -776,7 +776,7 @@ function Parser:Stmt12()
 				self:Error("Left parenthesis (() expected after catch keyword")
 			end
 
-			if not self:AcceptRoamingToken(TokenVariant.Ident) then
+			if not self:AcceptRoamingToken(TokenVariant.Ident) and not self:AcceptRoamingToken(TokenVariant.Discard) then
 				self:Error("Variable expected after left parenthesis (() in catch statement")
 			end
 			local var_name = self:GetTokenData()

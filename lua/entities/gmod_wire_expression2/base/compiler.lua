@@ -157,13 +157,13 @@ function Compiler:LoadScopes(Scopes)
 	self.Scope = Scopes[3]
 end
 
-function Compiler:SetLocalVariableType(name, type, instance)
+function Compiler:SetLocalVariableType(name, type, instance, binding)
 	local var = self.Scope[name]
 	if var and var.type ~= type then
 		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ var.type }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
 	end
 
-	self.Scope[name] = { type = type, var_tok = instance, initialized = true }
+	self.Scope[name] = { type = type, var_tok = name ~= "_" and instance, initialized = true, binding = binding }
 	return self.ScopeID
 end
 
@@ -434,7 +434,11 @@ function Compiler:InstrSEQ(args)
 
 	for varname, var in pairs(self.Scope) do
 		if var ~= true and var.var_tok then
-			self:Warning("Unused variable [" .. varname .. "]", var.var_tok)
+			if var.binding then
+				self:Warning("Unused variable [" .. varname .. "] (You can use _ to discard it)", var.var_tok)
+			else
+				self:Warning("Unused variable [" .. varname .. "]", var.var_tok)
+			end
 		end
 	end
 
@@ -471,9 +475,9 @@ function Compiler:InstrFOR(args)
 	end
 
 	self:PushScope()
-	self:SetLocalVariableType(var, "n", args)
-	self.Scope[var].var_tok = nil -- TODO: Remove this when a solution for unused for loop variables is determined.
-	-- E2 can't use _ as a variable identifier and has no non-variable binding for loop, so warning users for what they can't control isn't very nice.
+	if var ~= "_" then
+		self:SetLocalVariableType(var, "n", args, true)
+	end
 
 	local stmt = self:EvaluateStatement(args, 5)
 	self:PopScope()
@@ -957,11 +961,13 @@ function Compiler:InstrFEA(args)
 
 	self:PushScope()
 
-	self:SetLocalVariableType(keyvar, keytype, args)
-	self.Scope[keyvar].var_tok = nil -- TODO: Remove this when a solution for unused for loop variables is determined.
-	-- E2 can't use _ as a variable identifier and has no non-variable binding for loop, so warning users for what they can't control isn't very nice.
+	if keyvar ~= "_" then
+		self:SetLocalVariableType(keyvar, keytype, args, true)
+	end
 
-	self:SetLocalVariableType(valvar, valtype, args)
+	if valvar ~= "_" then
+		self:SetLocalVariableType(valvar, valtype, args, true)
+	end
 
 	local stmt = self:EvaluateStatement(args, 6)
 
@@ -986,7 +992,7 @@ function Compiler:InstrFUNCTION(args)
 		VariadicType = Variadic and Type
 
 		if not Discard then
-			self:SetLocalVariableType(Name, Type, args)
+			self:SetLocalVariableType(Name, Type, args, true)
 		end
 	end
 
@@ -1295,7 +1301,10 @@ function Compiler:InstrTRY(args)
 	local stmt = self:EvaluateStatement(args, 1)
 	local var_name = args[4]
 	self:PushScope()
-		self:SetLocalVariableType(var_name, "s", args)
+		if var_name ~= "_" then
+			self:SetLocalVariableType(var_name, "s", args, true)
+		end
+
 		local stmt2 = self:EvaluateStatement(args, 3)
 	self:PopScope()
 
@@ -1347,7 +1356,7 @@ function Compiler:InstrEVENT(args)
 	self:PushScope()
 		for k, typeid in ipairs(event.args) do
 			if not hargs[k][4] --[[ ensure it isn't a discard parameter ]] then
-				self:SetLocalVariableType(hargs[k][1], typeid, args)
+				self:SetLocalVariableType(hargs[k][1], typeid, args, true)
 			end
 		end
 

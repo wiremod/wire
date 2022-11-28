@@ -583,7 +583,7 @@ function EDITOR:SyntaxColorLine(row)
 				self.tokendata = spaces
 			end
 
-		elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
+		elseif AcceptIdent(self) then
 			if self.tokendata == "This" then
 				tokenname = "typename"
 			else
