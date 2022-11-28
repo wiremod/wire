@@ -613,7 +613,8 @@ end
 
 --- Breaks all constraints between <this> and <ent2>
 e2function void entity:constraintBreak(entity ent2)
-	if not checkEnts( self, this, ent2 ) then return end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this prop!", nil) end
 
 	local consts = this.Constraints or ent2.Constraints
 	if not consts then return end
@@ -637,7 +638,8 @@ end
 
 --- Breaks a constraint of type <consType> between <this> and <ent2>
 e2function void entity:constraintBreak(string consType, entity ent2)
-	if not checkEnts(self, this, ent2) then return end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this prop!", nil) end
 
 	local consts = this.Constraints or ent2.Constraints
 	if not consts then return end
