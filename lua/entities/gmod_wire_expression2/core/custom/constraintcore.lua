@@ -340,7 +340,7 @@ e2function void winch(index, entity ent1, vector v1, entity ent2, vector v2, wid
 	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, vec1, vec2, constant, dampen, 0, "cable/cable2", width, true )
 	if not verifyConstraint( self, cons ) then return end
 
-	ropes[index] = cons
+	constraints[index] = cons
 	postCreate( self, "Hydraulic", ent1, ent2, cons, rope )
 end
 
@@ -349,19 +349,19 @@ e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2,
 	if not checkEnts( self, ent1, ent2 ) then return end
 	if not checkCount( self, "Hydraulic", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-	local ropes = setupEntConstraints( ent1 )
+	local constraints = setupEntConstraints( ent1 )
 
 	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	if width < 0 or width > 50 then width = 1 end
 
-	local existing = ropes[index]
+	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
 	local constant, dampen = CalcElasticConsts( ent1:GetPhysicsObject(), ent2:GetPhysicsObject(), ent1, ent2 )
 	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, vec1, vec2, constant, dampen, 0, "cable/cable2", width, false )
 	if not verifyConstraint( self, cons ) then return end
 
-	ropes[index] = cons
+	constraints[index] = cons
 	postCreate( self, "Hydraulic", ent1, ent2, cons, rope )
 end
 
@@ -370,18 +370,18 @@ e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2,
 	if not checkEnts( self, ent1, ent2 ) then return end
 	if not checkCount( self, "Hydraulic", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-	local ropes = setupEntConstraints( ent1 )
+	local constraints = setupEntConstraints( ent1 )
 
 	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	if width < 0 or width > 50 then width = 1 end
 
-	local existing = ropes[index]
+	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
 	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, vec1, vec2, constant, damping, 0, mat, width, tobool( stretch ) )
 	if not verifyConstraint( self, cons ) then return end
 
-	ropes[index] = cons
+	constraints[index] = cons
 	postCreate( self, "Hydraulic", ent1, ent2, cons, rope )
 end
 
@@ -390,18 +390,18 @@ e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2,
 	if not checkEnts( self, ent1, ent2 ) then return end
 	if not checkCount( self, "Hydraulic", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-	local ropes = setupEntConstraints( ent1 )
+	local constraints = setupEntConstraints( ent1 )
 
 	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	if width < 0 or width > 50 then width = 1 end
 
-	local existing = ropes[index]
+	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
 	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, vec1, vec2, constant, damping, rdamping, mat, width, tobool( stretch ) )
 	if not verifyConstraint( self, cons ) then return end
 
-	ropes[index] = cons
+	constraints[index] = cons
 	postCreate( self, "Hydraulic", ent1, ent2, cons, rope )
 end
 
@@ -413,18 +413,18 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2)
 	if not checkEnts( self, ent1, ent2 ) then return end
 	if not checkCount( self, "Rope", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-	local ropes = setupEntConstraints( ent1 )
+	local constraints = setupEntConstraints( ent1 )
 
 	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	local length = ( ent1:LocalToWorld( vec1 ) - ent2:LocalToWorld( vec2 ) ):Length()
 
-	local existing = ropes[index]
+	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
 	local cons, rope = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, 0, 0, 1, "cable/rope", false )
 	if not verifyConstraint( self, cons ) then return end
 
-	ropes[index] = cons
+	constraints[index] = cons
 	postCreate( self, "Rope", ent1, ent2, cons, rope )
 end
 
@@ -433,18 +433,18 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addl
 	if not checkEnts( self, ent1, ent2 ) then return end
 	if not checkCount( self, "Rope", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-	local ropes = setupEntConstraints( ent1 )
+	local constraints = setupEntConstraints( ent1 )
 
 	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	local length = (ent1:LocalToWorld(vec1) - ent2:LocalToWorld(vec2)):Length()
 
-	local existing = ropes[index]
+	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
 	local cons, rope = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, addlength, 0, width, mat, false )
 	if not verifyConstraint( self, cons ) then return end
 
-	ropes[index] = cons
+	constraints[index] = cons
 	postCreate( self, "Rope", ent1, ent2, cons, rope )
 end
 
@@ -453,18 +453,18 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addl
 	if not checkEnts( self, ent1, ent2 ) then return end
 	if not checkCount( self, "Rope", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-	local ropes = setupEntConstraints( ent1 )
+	local constraints = setupEntConstraints( ent1 )
 
 	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	local length = ( ent1:LocalToWorld( vec1 ) - ent2:LocalToWorld( vec2 ) ):Length()
 
-	local existing = ropes[index]
+	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
 	local cons, rope = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, addlength, 0, width, mat, tobool( rigid ) )
 	if not verifyConstraint( self, cons ) then return end
 
-	ropes[index] = cons
+	constraints[index] = cons
 	postCreate( self, "Rope", ent1, ent2, cons, rope )
 end
 
@@ -476,9 +476,9 @@ e2function void entity:setLength(index, length)
 	if not isOwner(self, this) then return false end
 	if length < 0 then length = 0 end
 
-	local ropes = setupEntConstraints(ent1)
+	local constraints = setupEntConstraints(this)
 
-	local cons = ropes[index]
+	local cons = constraints[index]
 	if not IsValid(cons) then return end
 
 	if cons.Type == "Rope" then
@@ -494,13 +494,13 @@ e2function void entity:setConstant(index, constant)
 	if not isOwner(self, this) then return false end
 	if constant < 0 then constant = 0 end
 
-	local ropes = setupEntConstraints(ent1)
-	if not ropes then return end
+	local constraints = setupEntConstraints(this)
+	if not constraints then return end
 
-	local cons = ropes[index]
+	local cons = constraints[index]
 	if not IsValid(con) then return end
 
-	con:Fire("SetSpringConstant", constant, 0)
+	cons:Fire("SetSpringConstant", constant, 0)
 end
 
 --- Sets a hydraulic/winch stored at index <index> inside <this> (the first entity) to be <constant> constant and <dampen> damping.
@@ -510,14 +510,14 @@ e2function void entity:setConstant(index, constant, damping)
 	if constant < 0 then constant = 0 end
 	if damping < 0 then damping = 0 end
 
-	local ropes = setupEntConstraints(this)
-	if not this.data.Ropes then return end
+	local constraints = setupEntConstraints(this)
+	if not constraints then return end
 
-	local cons = ropes[index]
+	local cons = constraints[index]
 	if not IsValid(cons) then return end
 
-	con:Fire("SetSpringConstant", constant, 0)
-	con:Fire("SetSpringDamping", damping, 0)
+	cons:Fire("SetSpringConstant", constant, 0)
+	cons:Fire("SetSpringDamping", damping, 0)
 end
 
 --- Sets a hydraulic/winch stored at index <index> inside <this> to be <dampen> damping.
@@ -526,13 +526,13 @@ e2function void entity:setDamping(index, damping)
 	if not isOwner(self, this) then return false end
 	if damping < 0 then damping = 0 end
 
-	local ropes = setupEntConstraints(this)
-	if not ropes then return end
+	local constraints = setupEntConstraints(this)
+	if not constraints then return end
 
-	local cons = this.data.Ropes[index]
+	local cons = constraints[index]
 	if not IsValid(con) then return end
 
-	con:Fire("SetSpringDamping", damping, 0)
+	cons:Fire("SetSpringDamping", damping, 0)
 end
 
 __e2setcost(30)
