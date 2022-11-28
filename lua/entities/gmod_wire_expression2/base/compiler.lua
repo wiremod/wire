@@ -982,9 +982,12 @@ function Compiler:InstrFUNCTION(args)
 
 	local VariadicType
 	for _, D in pairs(Args) do
-		local Name, Type, Variadic = D[1], wire_expression_types[D[2]][1], D[3]
+		local Name, Type, Variadic, Discard = D[1], wire_expression_types[D[2]][1], D[3], D[4]
 		VariadicType = Variadic and Type
-		self:SetLocalVariableType(Name, Type, args)
+
+		if not Discard then
+			self:SetLocalVariableType(Name, Type, args)
+		end
 	end
 
 	if VariadicType then
@@ -1343,7 +1346,9 @@ function Compiler:InstrEVENT(args)
 	self:InitScope()
 	self:PushScope()
 		for k, typeid in ipairs(event.args) do
-			self:SetLocalVariableType(hargs[k][1], typeid, args)
+			if not hargs[k][4] --[[ ensure it isn't a discard parameter ]] then
+				self:SetLocalVariableType(hargs[k][1], typeid, args)
+			end
 		end
 
 		local block = self:EvaluateStatement(args, 3)
