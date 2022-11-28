@@ -13,7 +13,7 @@ local maxPerEntity = CreateConVar( "wire_expression2_max_consttraints_per_entity
 local maxBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsocket", "0", cvFlags, 0 )
 local maxAdvBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsocket_adv", "0", cvFlags, 0)
 
-local edictCutOff = CreateConVar( "wire_expression2_constraints_edict_cutoff", "7500", cvFlags, "At what edict count will E2s be prevented from creating new rope-like constraints", 0, 8192 )
+local edictCutOff = CreateConVar( "wire_expression2_constraints_edict_cutoff", "0", cvFlags, "At what edict count will E2s be prevented from creating new rope-like constraints (0 turns the check off)", 0, 8192 )
 local shouldCleanup = CreateConVar( "Wire_expression2_constraints_cleanup", "0", cvFlags, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted", 0, 1 )
 
 
@@ -141,6 +141,8 @@ end
 
 local function checkEdicts(self)
 	local maxEdicts = edictCutOff:GetInt()
+	if maxEdicts == 0 then return true end
+
 	if ents.GetEdictCount() >= maxEdicts then
 		return self:throw( "Global edict limit reached!", false )
 	end
