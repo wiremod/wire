@@ -210,7 +210,7 @@ __e2setcost(30)
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent.
 e2function void axis(entity ent1, vector v1, entity ent2, vector v2)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Axis") then return end
+	if not checkCount(self, "Axis", ent1, ent2) then return end
 	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 
 	local cons = constraint.Axis(ent1, ent2, 0, 0, vec1, vec2, 0, 0, 0, 0)
@@ -220,7 +220,7 @@ end
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent, with <friction> friction.
 e2function void axis(entity ent1, vector v1, entity ent2, vector v2, friction)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Axis") then return end
+	if not checkCount(self, "Axis", ent1, ent2) then return end
 	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 
 	local cons = constraint.Axis(ent1, ent2, 0, 0, vec1, vec2, 0, 0, friction, 0)
@@ -230,7 +230,7 @@ end
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent, with <friction> friction and <localaxis> rotation axis.
 e2function void axis(entity ent1, vector v1, entity ent2, vector v2, friction, vector localaxis)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Axis") then return end
+	if not checkCount(self, "Axis", ent1, ent2) then return end
 	local vec1, vec2, laxis = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3]), Vector(localaxis[1], localaxis[2], localaxis[3])
 
 	local cons = constraint.Axis(ent1, ent2, 0, 0, vec1, vec2, 0, 0, friction, 0, laxis)
@@ -245,7 +245,7 @@ end
 --- Creates a ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>
 e2function void ballsocket(entity ent1, vector v, entity ent2)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Ballsocket") then return end
+	if not checkCount(self, "Ballsocket", ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
 
 	local cons = constraint.Ballsocket(ent1, ent2, 0, 0, vec, 0, 0, 0)
@@ -257,7 +257,7 @@ end
 --- Creates a ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with friction <friction>
 e2function void ballsocket(entity ent1, vector v, entity ent2, friction)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "AdvBallsocket") then return end
+	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
 
 	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, vec, emptyVector, 0, 0, -180, -180, -180, 180, 180, 180, friction, friction, friction, 0, 0)
@@ -269,7 +269,7 @@ end
 --- Creates an adv ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with many settings
 e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vector maxs, vector frictions)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "AdvBallsocket") then return end
+	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
 
 	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, vec, emptyVector, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], 0, 0)
@@ -281,7 +281,7 @@ end
 --- Creates an adv ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with many settings
 e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vector maxs, vector frictions, rotateonly)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "AdvBallsocket") then return end
+	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
 
 	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, vec, emptyVector, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], rotateonly, 0)
@@ -293,7 +293,7 @@ end
 --- Creates an angular weld (angles are fixed, position isn't) between <ent1> and <ent2> at <v>, which is local to <ent1>
 e2function void weldAng(entity ent1, vector v, entity ent2)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "AdvBallsocket") then return end
+	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
 
 	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, vec, emptyVector, 0, 0, 0, -0, 0, 0, 0, 0, 0, 0, 0, 1, 0)
@@ -326,7 +326,7 @@ end
 --- Makes a winch constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, with <width> width.
 e2function void winch(index, entity ent1, vector v1, entity ent2, vector v2, width)
 	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Hydraulic" ) then return end
+	if not checkCount( self, "Hydraulic" , ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
 	local constraints = setupEntConstraints( ent1 )
 
@@ -347,9 +347,9 @@ end
 --- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, with <width> width.
 e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, width)
 	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Hydraulic" ) then return end
+	if not checkCount( self, "Hydraulic", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-	local ropes = setupRopes( ent1 )
+	local ropes = setupEntConstraints( ent1 )
 
 	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	if width < 0 or width > 50 then width = 1 end
@@ -368,9 +368,9 @@ end
 --- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, constant and damping, with <width> width, <mat> material, and <stretch> stretch only option.
 e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, constant, damping, string mat, width, stretch)
 	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Hydraulic" ) then return end
+	if not checkCount( self, "Hydraulic", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-	local ropes = setupRopes( ent1 )
+	local ropes = setupEntConstraints( ent1 )
 
 	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	if width < 0 or width > 50 then width = 1 end
@@ -388,9 +388,9 @@ end
 --- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, constant, damping and relative damping, with <width> width, <mat> material, and <stretch> stretch only option.
 e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, constant, damping, rdamping, string mat, width, stretch)
 	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Hydraulic" ) then return end
+	if not checkCount( self, "Hydraulic", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-	local ropes = setupRopes( ent1 )
+	local ropes = setupEntConstraints( ent1 )
 
 	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	if width < 0 or width > 50 then width = 1 end
@@ -411,9 +411,9 @@ end
 --- Creates a rope between <ent1> and <ent2> at vector positions local to each ent.
 e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2)
 	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Rope" ) then return end
+	if not checkCount( self, "Rope", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-	local ropes = setupRopes( ent1 )
+	local ropes = setupEntConstraints( ent1 )
 
 	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	local length = ( ent1:LocalToWorld( vec1 ) - ent2:LocalToWorld( vec2 ) ):Length()
@@ -431,9 +431,9 @@ end
 --- Creates a rope between <ent1> and <ent2> at vector positions local to each ent, with <addlength> additional length, <width> width, and <mat> material.
 e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, string mat)
 	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Rope" ) then return end
+	if not checkCount( self, "Rope", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-	local ropes = setupRopes( ent1 )
+	local ropes = setupEntConstraints( ent1 )
 
 	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	local length = (ent1:LocalToWorld(vec1) - ent2:LocalToWorld(vec2)):Length()
@@ -451,9 +451,9 @@ end
 --- Creates a rope between <ent1> and <ent2> at vector positions local to each ent, with <addlength> additional length, <width> width, and <mat> material.
 e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, string mat, rigid )
 	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Rope" ) then return end
+	if not checkCount( self, "Rope", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-	local ropes = setupRopes( ent1 )
+	local ropes = setupEntConstraints( ent1 )
 
 	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	local length = ( ent1:LocalToWorld( vec1 ) - ent2:LocalToWorld( vec2 ) ):Length()
@@ -476,7 +476,7 @@ e2function void entity:setLength(index, length)
 	if not isOwner(self, this) then return false end
 	if length < 0 then length = 0 end
 
-	local ropes = setupRopes(ent1)
+	local ropes = setupEntConstraints(ent1)
 
 	local cons = ropes[index]
 	if not IsValid(cons) then return end
@@ -494,7 +494,7 @@ e2function void entity:setConstant(index, constant)
 	if not isOwner(self, this) then return false end
 	if constant < 0 then constant = 0 end
 
-	local ropes = setupRopes(ent1)
+	local ropes = setupEntConstraints(ent1)
 	if not ropes then return end
 
 	local cons = ropes[index]
@@ -510,7 +510,7 @@ e2function void entity:setConstant(index, constant, damping)
 	if constant < 0 then constant = 0 end
 	if damping < 0 then damping = 0 end
 
-	local ropes = setupRopes(this)
+	local ropes = setupEntConstraints(this)
 	if not this.data.Ropes then return end
 
 	local cons = ropes[index]
@@ -526,7 +526,7 @@ e2function void entity:setDamping(index, damping)
 	if not isOwner(self, this) then return false end
 	if damping < 0 then damping = 0 end
 
-	local ropes = setupRopes(this)
+	local ropes = setupEntConstraints(this)
 	if not ropes then return end
 
 	local cons = this.data.Ropes[index]
@@ -543,7 +543,7 @@ __e2setcost(30)
 --- Creates a slider between <ent1> and <ent2> at vector positions local to each ent.
 e2function void slider(entity ent1, vector v1, entity ent2, vector v2)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Slider") then return end
+	if not checkCount(self, "Slider", ent1, ent2) then return end
 	if not checkEdicts(self) then return end
 	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 
@@ -556,7 +556,7 @@ end
 --- Creates a slider between <ent1> and <ent2> at vector positions local to each ent, with <width> width.
 e2function void slider(entity ent1, vector v1, entity ent2, vector v2, width)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Slider") then return end
+	if not checkCount(self, "Slider", ent1, ent2) then return end
 	if not checkEdicts(self) then return end
 	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 
@@ -572,7 +572,7 @@ end
 --- Nocollides <ent1> to <ent2>
 e2function void noCollide(entity ent1, entity ent2)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "NoCollide") then return end
+	if not checkCount(self, "NoCollide", ent1, ent2) then return end
 
 	local cons = constraint.NoCollide(ent1, ent2, 0, 0)
 	if not verifyConstraint(self, cons) then return end
@@ -594,7 +594,7 @@ end
 --- Welds <ent1> to <ent2>
 e2function void weld(entity ent1, entity ent2)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Weld") then return end
+	if not checkCount(self, "Weld", ent1, ent2) then return end
 
 	local cons = constraint.Weld(ent1, ent2, 0, 0, 0, true)
 	if not verifyConstraint(self, cons) then return end
