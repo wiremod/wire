@@ -2407,7 +2407,9 @@ tbl.RunOnCheck = function( self )
 		if word and word:match("^%u") then
 			-- Writing a variable. Wait for user to stop writing to avoid calling the tokenizer a ton of times.
 			timer.Create("E2_AC_SaveVariable", 1, 0.6, function()
-				self:AC_SaveVariables()
+				if self and self.AC_SaveVariables then
+					self:AC_SaveVariables()
+				end
 			end)
 		end
 	end
