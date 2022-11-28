@@ -210,7 +210,7 @@ if SERVER then
 				end)
 
 				collapseTable(data)
-				data = string.format("[[Jump to table of contents|#table-of-contents]]\n\n# %s\n\n%s\n",upperFirst(filepath),table.concat(data,"\n\n"))
+				data = string.format("[[Jump to table of contents|#table-of-contents]]\n\n# %s\n\n%s%s\n", upperFirst(filepath), E2Helper.Descriptions["_doc_"..filepath], table.concat(data,"\n\n"))
 
 				filepath = string.gsub(filepath,"custom/","custom-")
 				local filename = "e2doc/e2-docs-" .. filepath .. ".txt"

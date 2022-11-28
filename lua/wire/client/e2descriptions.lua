@@ -1234,6 +1234,7 @@ E2Helper.Descriptions["runOnFile(n)"] = "Specifies whether the E2 will run when 
 E2Helper.Descriptions["runOnList(n)"] = "Specifies whether the E2 will run when a list finishes uploading"
 
 -- Datasignals
+E2Helper.Descriptions["_doc_datasignal"] = "An extension for sending signals with data between two or more E2 chips in a [signal group](#dsjoingroup-groupname). To share data between multiple chips without triggering them, consider using [gtables](../e2-docs-globalvars). For sending signals without data, see [Signal](../e2-docs.signal).\n\n## [dsSend](#--dssend--)[[Direct]](#--dssenddirect--)\n\n**Basic formats**:\n\n`dsSend(SignalName:string, SignalGroup:string, [SignalScope:number], ...)`\n\n`dsSendDirect(SignalName:string, Destination:entity, ...)`\n\nSignalName is the name of the Signal to be sent.\n\nSignalGroup is the name of the SignalGroup which will receive the Signal.\n\n[SignalScope](#dsSetScope-Scope) modifies who can receive the signals and whose signals you receive, ranging from 0 to 2:\n\n\n| Scope | Owner | PP Friends | Everyone |\n| ------- | ------- | ------------ | ---------- |\n| 0     | Yes   | No         | No       |\n| 1     | Yes   | Yes        | No       |\n| 2     | Yes   | Yes        | Yes      |\n\n"
 E2Helper.Descriptions["dsSend"] = "Sends a datasignal to the specified group and scope"
 E2Helper.Descriptions["dsSendDirect"] = "Sends a datasignal to the specified E2 (or use an array for several E2s)"
 E2Helper.Descriptions["dsGetSender()"] = "Returns the entity of the E2 which sent the signal"
