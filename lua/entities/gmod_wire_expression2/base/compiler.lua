@@ -157,16 +157,18 @@ function Compiler:LoadScopes(Scopes)
 	self.Scope = Scopes[3]
 end
 
+-- Should not be used with discard (_) variables
 function Compiler:SetLocalVariableType(name, type, instance, binding)
 	local var = self.Scope[name]
 	if var and var.type ~= type then
 		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ var.type }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
 	end
 
-	self.Scope[name] = { type = type, var_tok = name ~= "_" and instance, initialized = true, binding = binding }
+	self.Scope[name] = { type = type, var_tok = instance, initialized = true, binding = binding }
 	return self.ScopeID
 end
 
+-- Should not be used with discard (_) variables
 ---@param initialized boolean
 function Compiler:SetGlobalVariableType(name, type, instance, initialized)
 	for i = self.ScopeID, 0, -1 do
