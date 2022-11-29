@@ -1,5 +1,11 @@
 E2Lib.RegisterExtension("constraintcore", false, "Allows the creation and manipulation of constraints between entities.")
 
+local Vector = Vector
+local IsValid = IsValid
+local math_min = math.min
+local math_max = math.max
+local table_insert = table.insert
+
 local cvFlags = {FCVAR_ARCHIVE}
 local maxWeld = CreateConVar( "wire_expression2_max_constraints_weld", "0", cvFlags, 0 )
 local maxRope = CreateConVar( "wire_expression2_max_constraints_rope", "0", cvFlags, 0 )
@@ -16,23 +22,41 @@ local maxAdvBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsoc
 local edictCutOff = CreateConVar( "wire_expression2_constraints_edict_cutoff", "0", cvFlags, "At what edict count will E2s be prevented from creating new rope-like constraints (0 turns the check off)", 0, 8192 )
 local shouldCleanup = CreateConVar( "Wire_expression2_constraints_cleanup", "0", cvFlags, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted", 0, 1 )
 
+-- Returns the table being used to keep track of counts
+local function getCountHolder(self)
+	return IsValid( self.player ) and self.player.E2Data or self.data
+end
 
 local function clearCreatedConstraints(self)
 	if not shouldCleanup:GetBool() then return end
 
-	for _, constraint in pairs( self.data.allConstraints ) do
+	local data = getCountHolder( self )
+	for _, constraint in ipairs( data.allConstraints ) do
 		if constraint:IsValid() then
 			constraint:Remove()
 		end
 	end
+
+	data.allConstraints = {}
+end
+
+local function setupCounts(holder)
+	holder.allConstraints = holder.allConstraints or {}
+	holder.constraintCounts = holder.cosntraintCounts or {}
+	holder.entityConstraints = holder.entityConstraints or {}
+	holder.totalConstraints = holder.totalConstraints or 0
 end
 
 registerCallback("construct", function(self)
-	self.data.allConstraints = {}
-	self.data.constraintCounts = {}
-	self.data.entityConstraints = {}
+	-- Set up counts on both the E2 and the player in case the player is, or becomes invalid
+	setupCounts( self.data )
 
-	self.data.totalConstraints = 0
+	local ply = self.player
+	if IsValid( ply ) then
+		ply.E2Data = ply.E2Data or {}
+		setupCounts( ply.E2Data )
+	end
+
 	self.data.constraintUndos = true
 end)
 
@@ -46,11 +70,6 @@ e2function void enableConstraintUndo(state)
 	self.data.constraintUndos = state ~= 0
 end
 
-local Vector = Vector
-local IsValid = IsValid
-local math_min = math.min
-local math_max = math.max
-local table_insert = table.insert
 
 local emptyVector = Vector()
 local countLookup = {
@@ -80,7 +99,7 @@ end
 
 local function verifyConstraint(self, cons)
 	if cons ~= false then return true end
-	self:throw("Constraint creation failed!", false)
+	self:throw( "Constraint creation failed!", false )
 end
 
 local function setupEntConstraints(ent)
@@ -103,7 +122,7 @@ local function setupEntConstraints(ent)
 end
 
 local function checkCount(self, consType, ent1, ent2)
-	local data = self.data
+	local data = getCountHolder( self )
 	local typeCounts = data.constraintCounts
 
 	-- Total
@@ -168,7 +187,7 @@ local function addUndo(self, consType, cons, rope)
 end
 
 local function increment(self, consType, ent1, ent2, cons)
-	local data = self.data
+	local data = getCountHolder( self )
 	local entCounts = data.entityConstraints
 	local typeCounts = data.constraintCounts
 	local totalCount = data.totalConstraints
@@ -184,8 +203,8 @@ local function increment(self, consType, ent1, ent2, cons)
 	entCounts[ent2] = ( entCounts[ent2] or 0 ) + 1
 
 	-- Decrement relevant counts
-	cons:CallOnRemove( "wire_expression2_constraints_" .. self.entity:EntIndex(), function()
-		if not IsValid( self ) then return end
+	cons:CallOnRemove( "wire_expression2_constraints_" .. self.uid, function()
+		if not IsValid( self.entity ) then return end
 
 		-- Total
 		data.totalConstraints = math_max( 0, data.totalConstraints - 1 )
@@ -197,13 +216,17 @@ local function increment(self, consType, ent1, ent2, cons)
 		entCounts[cons.Ent1] = math_max( 0, entCounts[cons.Ent1] - 1 )
 		entCounts[cons.Ent2] = math_max( 0, entCounts[cons.Ent2] - 1 )
 	end )
-
 end
 
 local function postCreate(self, consType, ent1, ent2, cons, rope)
 	addUndo( self, consType, cons, rope )
 	increment( self, consType, ent1, ent2, cons )
-	table_insert( self.data.allConstraints, cons )
+
+	-- Don't bother tracking the constraints if we won't clean them up
+	if not shouldCleanup:GetBool() then return end
+
+	local data = getCountHolder( self )
+	table_insert( data.allConstraints, cons )
 end
 
 local function caps(text)
@@ -630,7 +653,7 @@ e2function void entity:constraintBreak(entity ent2)
 	local consts = this.Constraints or ent2.Constraints
 	if not consts then return end
 
-	for _, v in pairs( consts ) do
+	for _, v in ipairs( consts ) do
 		if v:IsValid() then
 			local case1 = v.Ent1 == this and v.Ent2 == ent2
 			local case2 = case1 or ( v.Ent1 == ent2 and v.Ent2 == this )
