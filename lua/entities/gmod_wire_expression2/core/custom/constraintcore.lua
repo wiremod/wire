@@ -22,9 +22,12 @@ local maxAdvBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsoc
 local edictCutOff = CreateConVar( "wire_expression2_constraints_edict_cutoff", "0", cvFlags, "At what edict count will E2s be prevented from creating new rope-like constraints (0 turns the check off)", 0, 8192 )
 local shouldCleanup = CreateConVar( "Wire_expression2_constraints_cleanup", "0", cvFlags, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted", 0, 1 )
 
+local playerCounts = {}
+
 -- Returns the table being used to keep track of counts
 local function getCountHolder(self)
-	return IsValid( self.player ) and self.player.E2Data or self.data
+	local ply = self.player
+	return IsValid( ply ) and playerCounts[ply] or self.data
 end
 
 local function clearCreatedConstraints(self)
@@ -53,8 +56,8 @@ registerCallback("construct", function(self)
 
 	local ply = self.player
 	if IsValid( ply ) then
-		ply.E2Data = ply.E2Data or {}
-		setupCounts( ply.E2Data )
+		playerCounts[ply] = playerCounts[ply] or {}
+		setupCounts( playerCounts[ply] )
 	end
 
 	self.data.constraintUndos = true
@@ -63,6 +66,10 @@ end)
 
 registerCallback("destruct", function(self)
 	clearCreatedConstraints(self)
+end)
+
+hook.Add("PlayerDisconnected", "Wire_Expression2_ConstraintsCleanup", function(ply)
+	playerCounts[ply] = nil
 end)
 
 __e2setcost(1)
