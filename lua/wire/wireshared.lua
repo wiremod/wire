@@ -1175,17 +1175,6 @@ do
 			local binding = player.SyncedBindings[button]
 			hook.Run("PlayerBindUp", player, binding, button)
 		end)
-
-		hook.Add("StartCommand", MESSAGE_NAME, function(player, command)
-			if not player.SyncedBindings then return end
-			local wheel = command:GetMouseWheel()
-			if wheel == 0 then return end
-			local button = wheel > 0 and MOUSE_WHEEL_UP or MOUSE_WHEEL_DOWN
-			local binding = player.SyncedBindings[button]
-			if not binding then return end
-			hook.Run("PlayerBindDown", player, binding, button)
-			hook.Run("PlayerBindUp", player, binding, button)
-		end)
 	end
 end
 
