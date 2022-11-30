@@ -22,7 +22,7 @@ local maxAdvBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsoc
 local edictCutOff = CreateConVar( "wire_expression2_constraints_edict_cutoff", "0", cvFlags, "At what edict count will E2s be prevented from creating new rope-like constraints (0 turns the check off)", 0, 8192 )
 local shouldCleanup = CreateConVar( "Wire_expression2_constraints_cleanup", "0", cvFlags, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted", 0, 1 )
 
-local playerCounts = {}
+local playerCounts = WireLib.RegisterPlayerTable()
 
 -- Returns the table being used to keep track of counts
 local function getCountHolder(self)
