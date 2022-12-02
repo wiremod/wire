@@ -51,10 +51,27 @@ local CurTime = CurTime
 
 -- helper function that pcalls an input
 function WireLib.TriggerInput(ent, name, value, ...)
-	if (not IsValid(ent) or not HasPorts(ent) or not ent.Inputs or not ent.Inputs[name]) then return end
-	ent.Inputs[name].Value = value
+	if (not IsValid(ent) or not HasPorts(ent) or not ent.Inputs) then return end
 
+	local input = ent.Inputs[name]
+	if not input then return end
+
+	input.Value = value
 	if (not ent.TriggerInput) then return end
+
+	-- Limit inputs the same way outputs are limited.
+	-- This is in case a wire input would somehow trigger itself and stack overflow.
+	-- Notably this happens with E2 (postexecute hook), but adding this here in case other wire components do it in the future.
+	local now = CurTime()
+	if input.TriggerTime ~= now then
+		input.TriggerTime = now
+		input.TriggerLimit = 4
+	elseif input.TriggerLimit <= 0 then
+		return
+	else
+		input.TriggerLimit = input.TriggerLimit - 1
+	end
+
 	local ok, ret = xpcall(ent.TriggerInput, debug.traceback, ent, name, value, ...)
 	if not ok then
 		local ply = WireLib.GetOwner(ent)
@@ -392,7 +409,7 @@ function WireLib.Restored(ent, force_outputs)
 	end
 end
 
-local function ClearPorts(ports, ConnectEnt, DontSendToCL)
+local function ClearPorts(ports, ConnectEnt, DontSendToCL, Removing)
 	local Valid, EmergencyBreak = true, 0
 
 	-- There is a strange bug, not all the links get removed at once.
@@ -407,7 +424,7 @@ local function ClearPorts(ports, ConnectEnt, DontSendToCL)
 				if (ports) then
 					local port = ports[Name]
 					if (port) then
-						WireLib.Link_Clear(Ent, Name, DontSendToCL)
+						WireLib.Link_Clear(Ent, Name, DontSendToCL, Removing)
 						newValid = true
 					end
 				end
@@ -431,7 +448,7 @@ function WireLib.Remove(ent, DontUnList)
 				if (Outports) then
 					local outport = Outports[inport.SrcId]
 					if (outport) then
-						ClearPorts(outport.Connected, ent, true)
+						ClearPorts(outport.Connected, ent, true, true)
 					end
 				end
 			end
@@ -511,7 +528,7 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 	if (not ent.Outputs) then return end
 
 	local output = ent.Outputs[oname]
-	if (output) and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE") then
+	if (output) and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]])) then
 		local timeOfFrame = CurTime()
 		if timeOfFrame ~= output.TriggerTime then
 			-- Reset the TriggerLimit every frame
@@ -546,7 +563,7 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 	end
 end
 
-local function Wire_Unlink(ent, iname, DontSendToCL)
+local function Wire_Unlink(ent, iname, DontSendToCL, Removing)
 	if not HasPorts(ent) then return end
 
 	local input = ent.Inputs[iname]
@@ -577,6 +594,7 @@ local function Wire_Unlink(ent, iname, DontSendToCL)
 		input.SrcId = nil
 		input.Path = nil
 
+		if (Removing) then return end
 		WireLib.TriggerInput(ent, iname, WireLib.DT[input.Type].Zero, nil)
 
 		if (DontSendToCL) then return end
@@ -685,9 +703,9 @@ function WireLib.Link_Cancel(idx)
 end
 
 
-function WireLib.Link_Clear(ent, iname, DontSendToCL)
+function WireLib.Link_Clear(ent, iname, DontSendToCL, Removing)
 	WireLib.Paths.Add({Entity = ent, Name = iname, Width = 0})
-	Wire_Unlink(ent, iname, DontSendToCL)
+	Wire_Unlink(ent, iname, DontSendToCL, Removing)
 end
 
 function WireLib.WireAll(ply, ient, oent, ipos, opos, material, color, width)
@@ -1135,6 +1153,25 @@ concommand.Add("wireversion", function(ply,cmd,args)
 	end
 end, nil, "Prints the server's Wiremod version")
 
+function WireLib.CheckRegex(data, pattern)
+	local limits = {[0] = 50000000, 15000, 500, 150, 70, 40} -- Worst case is about 200ms
+	local stripped, nrepl, nrepl2
+	-- strip escaped things
+	stripped, nrepl = string.gsub(pattern, "%%.", "")
+	-- strip bracketed things
+	stripped, nrepl2 = string.gsub(stripped, "%[.-%]", "")
+	-- strip captures
+	stripped = string.gsub(stripped, "[()]", "")
+	-- Find extenders
+	local n = 0 for i in string.gmatch(stripped, "[%+%-%*]") do n = n + 1 end
+	local msg
+	if n<=#limits then
+		if #data*(#stripped + nrepl - n + nrepl2)>limits[n] then msg = n.." ext search length too long ("..limits[n].." max)" else return end
+	else
+		msg = "too many extenders"
+	end
+	error("Regex is too complex! " .. msg)
+end
 
 local material_blacklist = {
 	["engine/writez"] = true,

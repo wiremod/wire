@@ -33,7 +33,7 @@ function TOOL:LeftClick(trace)
 	if ( trace.Entity:GetClass() == "gmod_wire_emarker" ) then
 		self.marker = trace.Entity
 
-		if ( !self.marker.mark || !self.marker.mark:IsValid() ) then
+		if ( not self.marker.mark or not self.marker.mark:IsValid() ) then
 			ply:PrintMessage(HUD_PRINTTALK, "Entity Marker not linked")
 			return false
 		end
@@ -52,7 +52,7 @@ function TOOL:RightClick(trace)
 	if not trace.HitPos or not IsValid(trace.Entity) or trace.Entity:IsPlayer() then return false end
 	if ( CLIENT ) then return true end
 
-	if ( self:GetStage() == 0 && trace.Entity:GetClass() == "gmod_wire_emarker" ) then
+	if ( self:GetStage() == 0 and trace.Entity:GetClass() == "gmod_wire_emarker" ) then
 		self.marker = trace.Entity
 		self:SetStage(1)
 		return true
@@ -91,7 +91,7 @@ function TOOL:DrawHUD()
 
 	local markerpos = marker:GetPos():ToScreen()
 	local markpos = mark:GetPos():ToScreen()
-	if ( markpos.x > 0 && markpos.y > 0 && markpos.x < ScrW() && markpos.y < ScrH( ) ) then
+	if ( markpos.x > 0 and markpos.y > 0 and markpos.x < ScrW() and markpos.y < ScrH( ) ) then
 		surface.SetDrawColor( 255, 255, 100, 255 )
 		surface.DrawLine(markerpos.x, markerpos.y, markpos.x, markpos.y)
 	end

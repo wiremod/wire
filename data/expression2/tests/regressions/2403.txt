@@ -1,0 +1,12 @@
+## SHOULD_PASS:EXECUTE
+
+for(I = 1, 2) { # Needs to iterate at least twice?
+	switch (I) {
+		default,
+		break # This is also necessary
+	}
+}
+
+for(Other = 1, 1) {
+	assert(Other == 1)
+}

@@ -34,17 +34,17 @@ end
 
 
 function TOOL:RightClick(trace)
-	if (!trace.HitPos) then return false end
+	if (not trace.HitPos) then return false end
 	if (trace.Entity:IsPlayer()) then return false end
 	if ( CLIENT ) then return true end
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_lock" ) then
+	if ( trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_cd_lock" ) then
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_cd_locks" ) ) then return false end
+	if ( not self:GetSWEP():CheckLimit( "wire_cd_locks" ) ) then return false end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90

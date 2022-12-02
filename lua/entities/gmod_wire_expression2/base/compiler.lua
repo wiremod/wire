@@ -5,20 +5,47 @@
 
 AddCSLuaFile()
 
-E2Lib.Compiler = {}
-local Compiler = E2Lib.Compiler
+---@class Compiler
+---@field warnings table<number|string, Warning> # Array of warnings (main file) with keys to included file warnings.
+---@field include string? # Current include file or nil if main file
+---@field Scopes Scope[]
+---@field Scope Scope?
+---@field ScopeID integer
+---@field GlobalScope Scope
+---@field persist table<string, string> # Variable: Type
+---@field inputs table<string, string> # Variable: Type
+---@field outputs table<string, string> # Variable: Type
+---@field registered_events table<string, function>
+local Compiler = {}
 Compiler.__index = Compiler
+E2Lib.Compiler = Compiler
 
-function Compiler.Execute(...)
+local BLOCKED_ARRAY_TYPES = E2Lib.blocked_array_types
+
+---@return boolean ok
+---@return function script
+---@return Compiler self
+function Compiler.Execute(root, inputs, outputs, persist, delta, includes)
 	-- instantiate Compiler
 	local instance = setmetatable({}, Compiler)
 
 	-- and pcall the new instance's Process method.
-	return xpcall(Compiler.Process, E2Lib.errorHandler, instance, ...)
+	local ok, script = xpcall(Compiler.Process, E2Lib.errorHandler, instance, root, inputs, outputs, persist, delta, includes)
+
+	return ok, script, instance
 end
 
 function Compiler:Error(message, instr)
 	error(message .. " at line " .. instr[2][1] .. ", char " .. instr[2][2], 0)
+end
+
+function Compiler:Warning(message, instr)
+	if self.include then
+		local tbl = self.warnings[self.include]
+		tbl[#tbl + 1] = { message = message, line = instr[2][1], char = instr[2][2] }
+	else
+		self.warnings[#self.warnings + 1] = { message = message, line = instr[2][1], char = instr[2][2] }
+	end
 end
 
 local string_upper = string.upper
@@ -27,33 +54,35 @@ function Compiler:CallInstruction(name, trace, ...)
 	return self["Instr" .. string_upper(name)](self, trace, ...)
 end
 
+---@return function script
 function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used.
 	self.context = {}
+	self.registered_events = {}
+	self.warnings = {}
 
 	self:InitScope() -- Creates global scope!
 
-	self.inputs = inputs
-	self.outputs = outputs
-	self.persist = persist
+	self.inputs = inputs[3]
+	self.outputs = outputs[3]
+	self.persist = persist[3]
 	self.includes = includes or {}
 	self.prfcounter = 0
 	self.prfcounters = {}
-	self.tvars = {}
 	self.funcs = {}
 	self.dvars = {}
 	self.funcs_ret = {}
 	self.EnclosingFunctions = { --[[ { ReturnType: string } ]] }
 
-	for name, v in pairs(inputs) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
+	for name, v in pairs(inputs[3]) do
+		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, inputs[5][name] }, true)
 	end
 
-	for name, v in pairs(outputs) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
+	for name, v in pairs(outputs[3]) do
+		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, outputs[5][name] }, false)
 	end
 
-	for name, v in pairs(persist) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
+	for name, v in pairs(persist[3]) do
+		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, persist[5][name] }, false)
 	end
 
 	for name, v in pairs(delta) do
@@ -64,9 +93,15 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 
 	local script = self:CallInstruction(root[1], root)
 
+	for name, var in pairs(self.GlobalScope) do
+		if var.var_tok then
+			self:Warning("Unused global variable [" .. name .. "]", var.var_tok)
+		end
+	end
+
 	self:PopScope()
 
-	return script, self
+	return script
 end
 
 function tps_pretty(tps)
@@ -84,9 +119,13 @@ local function op_find(name)
 	return E2Lib.optable_inv[name] or "unknown?!"
 end
 
---[[
-	Scopes: Rusketh
-]] --
+---@class ScopeData
+---@field type string
+---@field var_tok table? # Instance token pointing to the declaration, only exists if variable has yet to be used.
+---@field initialized boolean # Whether the variable is defined as initialized (e.g. whether a @persist variable has been assigned to by the user)
+
+---@alias Scope table<string, ScopeData>
+
 function Compiler:InitScope()
 	self.Scopes = {}
 	self.ScopeID = 0
@@ -119,34 +158,46 @@ function Compiler:LoadScopes(Scopes)
 end
 
 function Compiler:SetLocalVariableType(name, type, instance)
-	local typ = self.Scope[name]
-	if typ and typ ~= type then
-		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ typ }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
+	local var = self.Scope[name]
+	if var and var.type ~= type then
+		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ var.type }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
 	end
 
-	self.Scope[name] = type
+	self.Scope[name] = { type = type, var_tok = instance, initialized = true }
 	return self.ScopeID
 end
 
-function Compiler:SetGlobalVariableType(name, type, instance)
+---@param initialized boolean
+function Compiler:SetGlobalVariableType(name, type, instance, initialized)
 	for i = self.ScopeID, 0, -1 do
-		local typ = self.Scopes[i][name]
-		if typ and typ ~= type then
-			self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ typ }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
-		elseif typ then
+		local var = self.Scopes[i][name]
+		if var then
+			if var.type ~= type then
+				self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ var.type }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
+			elseif i == 0 and not var.initialized then
+				var.var_tok = instance
+				var.initialized = true
+				return i
+			end
+			return i
+		end
+		if var and var.type ~= type then
+			self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ var.type }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
+		elseif var then
 			return i
 		end
 	end
 
-	self.GlobalScope[name] = type
+	self.GlobalScope[name] = { type = type, var_tok = instance, initialized = initialized }
 	return 0
 end
 
 function Compiler:GetVariableType(instance, name)
 	for i = self.ScopeID, 0, -1 do
-		local type = self.Scopes[i][name]
-		if type then
-			return type, i
+		local var = self.Scopes[i][name]
+		if var then
+			var.var_tok = nil -- Mark variable as used
+			return var.type, i, var.initialized
 		end
 	end
 
@@ -156,25 +207,30 @@ end
 
 -- ---------------------------------------------------------------------------
 
+--- May return nil in the case of a statement without any runtime side effects.
+---@return table?, string, string, any
 function Compiler:EvaluateStatement(args, index)
 	local trace = args[index + 2]
 
 	local name = string_upper(trace[1])
-	local ex, tp = self:CallInstruction(name, trace)
-	ex.TraceName = name
-	ex.Trace = trace[2]
 
-	return ex, tp
+	local ex, tp, extra = self:CallInstruction(name, trace)
+	if ex then
+		ex.TraceName = name
+		ex.Trace = trace[2]
+	end
+
+	return ex, tp, name, extra
 end
 
 function Compiler:Evaluate(args, index)
-	local ex, tp = self:EvaluateStatement(args, index)
+	local ex, tp, name = self:EvaluateStatement(args, index)
 
 	if tp == "" then
 		self:Error("Function has no return value (void), cannot be part of expression or assigned", args[index + 2])
 	end
 
-	return ex, tp
+	return ex, tp, name
 end
 
 function Compiler:HasOperator(instr, name, tps)
@@ -224,6 +280,20 @@ function Compiler:GetFunction(instr, Name, Args)
 
 	if not Func then
 		Func = self:UDFunction(Name .. "(" .. Params .. ")")
+
+		if not Func then
+			for I = #Params, 0, -1 do
+				local sig = Name .. "(" .. Params:sub(1, I)
+				local arrsig, tblsig = sig .. "..r)", sig .. "..t)"
+				if self.funcs_ret[arrsig] then
+					Func = self:UDFunction(arrsig)
+					break
+				elseif self.funcs_ret[tblsig] then
+					Func = self:UDFunction(tblsig)
+					break
+				end
+			end
+		end
 	end
 
 	if not Func then
@@ -240,7 +310,7 @@ function Compiler:GetFunction(instr, Name, Args)
 
 	self.prfcounter = self.prfcounter + (Func[4] or 20)
 
-	return { Func[3], Func[2], Func[1] }
+	return { Func[3], Func[2], Func[1], Func.attributes }
 end
 
 
@@ -250,6 +320,20 @@ function Compiler:GetMethod(instr, Name, Meta, Args)
 
 	if not Func then
 		Func = self:UDFunction(Name .. "(" .. Params .. ")")
+
+		if not Func then
+			for I = #Params, 0, -1 do
+				local sig = Name .. "(" .. Params:sub(1, I)
+				local arrsig, tblsig = sig .. "..r)", sig .. "..t)"
+				if self.funcs_ret[arrsig] then
+					Func = self:UDFunction(arrsig)
+					break
+				elseif self.funcs_ret[tblsig] then
+					Func = self:UDFunction(tblsig)
+					break
+				end
+			end
+		end
 	end
 
 	if not Func then
@@ -266,7 +350,7 @@ function Compiler:GetMethod(instr, Name, Meta, Args)
 
 	self.prfcounter = self.prfcounter + (Func[4] or 20)
 
-	return { Func[3], Func[2], Func[1] }
+	return { Func[3], Func[2], Func[1], Func.attributes }
 end
 
 function Compiler:PushPrfCounter()
@@ -283,6 +367,45 @@ end
 
 -- ------------------------------------------------------------------------
 
+--- Warnings for expressions in statement positions
+-- "add", "sub", "mul", "div", "mod", "exp", "eq", "neq", "geq", "leq", "gth", "lth", "band", "band", "bor", "bxor", "bshl", "bshr"
+local ExprWarnings = {
+	["GET"] = "Cannot discard value of an index (Remove this pointless indexing)",
+	["LITERAL"] = "This literal won't have any effect on the code",
+
+	["NOT"] = "Cannot discard result of logical NOT operation (!)",
+	["AND"] = "Cannot discard result of logical AND operation (&)",
+	["OR"] = "Cannot discard result of logical OR operation (|)",
+
+	["BAND"] = "Cannot discard result of binary AND operation (&&)",
+	["BOR"] = "Cannot discard result of binary OR operation (||)",
+
+	["BXOR"] = "Cannot discard result of binary XOR operation (^^)",
+
+	["BSHL"] = "Cannot discard result of binary left shift operation (<<)",
+	["BSHR"] = "Cannot discard result of binary right shift operation (>>)",
+
+	["ADD"] = "Cannot discard result of addition operation (+)",
+	["SUB"] = "Cannot discard result of subtraction operation (-)",
+	["MUL"] = "Cannot discard result of multiplication operation (*)",
+	["DIV"] = "Cannot discard result of division operation (/)",
+	["MOD"] = "Cannot discard result of modulus operation (%)",
+	["EXP"] = "Cannot discard result of exponential operation (^)",
+
+	["EQ"] = "Cannot discard result of equal to comparison (==)",
+	["NEQ"] = "Cannot discard result of not equal to comparison (!=)",
+	["GEQ"] = "Cannot discard result of greater than or equal to comparison (>=)",
+	["LEQ"] = "Cannot discard result of less than than or equal to comparison (<=)",
+	["GTH"] = "Cannot discard result of greater than comparison (>)",
+	["LTH"] = "Cannot discard result of less than comparison (<)",
+
+	["TRG"] = "Cannot discard result of triggered (~) operation",
+	["DLT"] = "Cannot discard result of delta ($) operator",
+	["IWC"] = "Cannot discard result of connected (->) operator",
+
+	["VAR"] = "Cannot discard variable"
+}
+
 function Compiler:InstrSEQ(args)
 	-- args = { "seq", trace, subexpressions... }
 	self:PushPrfCounter()
@@ -290,7 +413,29 @@ function Compiler:InstrSEQ(args)
 	local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
 
 	for i = 1, #args - 2 do
-		stmts[#stmts + 1] = self:EvaluateStatement(args, i)
+		if self.Scope._dead then
+			-- Don't compile dead code.
+			self:Warning("Unreachable code detected", args[i + 2])
+			break
+		else
+			local stmt, _, instr, extra = self:EvaluateStatement(args, i)
+			if (instr == "CALL" or instr == "METHODCALL") and (extra and extra.nodiscard) then
+				self:Warning("The return value of this function cannot be discarded", args[i + 2])
+			elseif ExprWarnings[instr] then
+				self:Warning(ExprWarnings[instr], args[i + 2])
+			end
+
+			if stmt then
+				-- Statement has a runtime side effect.
+				stmts[#stmts + 1] = stmt
+			end
+		end
+	end
+
+	for varname, var in pairs(self.Scope) do
+		if var ~= true and var.var_tok then
+			self:Warning("Unused variable [" .. varname .. "]", var.var_tok)
+		end
 	end
 
 	stmts[2] = self:PopPrfCounter()
@@ -300,11 +445,13 @@ end
 
 function Compiler:InstrBRK(args)
 	-- args = { "brk", trace }
+	self.Scope._dead = true
 	return { self:GetOperator(args, "brk", {})[1] }
 end
 
 function Compiler:InstrCNT(args)
 	-- args = { "cnt", trace }
+	self.Scope._dead = true
 	return { self:GetOperator(args, "cnt", {})[1] }
 end
 
@@ -325,6 +472,8 @@ function Compiler:InstrFOR(args)
 
 	self:PushScope()
 	self:SetLocalVariableType(var, "n", args)
+	self.Scope[var].var_tok = nil -- TODO: Remove this when a solution for unused for loop variables is determined.
+	-- E2 can't use _ as a variable identifier and has no non-variable binding for loop, so warning users for what they can't control isn't very nice.
 
 	local stmt = self:EvaluateStatement(args, 5)
 	self:PopScope()
@@ -334,7 +483,6 @@ end
 
 function Compiler:InstrWHL(args)
 	-- args = { "whl", trace, condition expression, loop body, skip condition check first time? }
-
 
 	local skipCondFirstTime = args[5]
 
@@ -416,18 +564,56 @@ function Compiler:InstrCALL(args)
 	-- args = { "call", trace, function name, { argument expressions... } }
 	local exprs = { false }
 
-	local tps = {}
-	for i = 1, #args[4] do
-		local ex, tp = self:Evaluate(args[4], i - 2)
-		tps[#tps + 1] = tp
-		exprs[#exprs + 1] = ex
+	local tps, fname = {}, args[3]
+	if fname == "array" then
+		-- Hack for array creation.
+		-- Check if illegal arguments are passed
+		for i = 1, #args[4] do
+			local ex, tp = self:Evaluate(args[4], i - 2)
+			if BLOCKED_ARRAY_TYPES[tp] then
+				self:Error("Cannot have type " .. tps_pretty(tp) .. " in array creation argument #" .. i, args[4][i])
+			end
+
+			exprs[i + 1] = ex
+			tps[i] = tp
+		end
+	elseif fname == "changed" then
+		for i = 1, #args[4] do
+			local ex, tp, instr = self:Evaluate(args[4], i - 2)
+			if instr == "LITERAL" then
+				self:Warning("Using changed on a literal will only evaluate once", args[4][i])
+			elseif instr == "VAR" then
+				local varname = args[4][i][3]
+				if self.inputs[varname] then
+					self:Warning("Using changed on an input is bad, use the ~ or -> operators instead", args[4][i])
+				end
+			end
+			exprs[i + 1], tps[i] = ex, tp
+		end
+	else
+		for i = 1, #args[4] do
+			exprs[i + 1], tps[i] = self:Evaluate(args[4], i - 2)
+		end
 	end
 
 	local rt = self:GetFunction(args, args[3], tps)
 	exprs[1] = rt[1]
 	exprs[#exprs + 1] = tps
 
-	return exprs, rt[2]
+	if rt[4] then
+		if rt[4].deprecated ~= nil and rt[4].deprecated ~= true then
+			-- Deprecation message (string)
+			self:Warning("Use of deprecated function: " .. args[3] .. "(" .. tps_pretty(tps) .. "): '" .. rt[4].deprecated .. "'", args)
+		elseif rt[4].deprecated then
+			self:Warning("Use of deprecated function: " .. args[3] .. "(" .. tps_pretty(tps) .. ")", args)
+		end
+
+		if rt[4].noreturn then
+			self.Scope._dead = true
+		end
+	end
+
+	return exprs, rt[2], rt[4]
 end
 
 function Compiler:InstrSTRINGCALL(args)
@@ -475,14 +661,37 @@ function Compiler:InstrMETHODCALL(args)
 	exprs[1] = rt[1]
 	exprs[#exprs + 1] = tps
 
-	return exprs, rt[2]
+	if rt[4] then
+		if rt[4].deprecated ~= nil and rt[4].deprecated ~= true then
+			-- Deprecation message (string)
+			self:Warning("Use of deprecated method: " .. tps_pretty(tp) .. ":" .. args[3] .. "(" .. tps_pretty(tps) .. "): '" .. rt[4].deprecated .. "'", args)
+		elseif rt[4].deprecated then
+			self:Warning("Use of deprecated method: " .. tps_pretty(tp) .. ":" .. args[3] .. "(" .. tps_pretty(tps) .. ")", args)
+		end
+
+		if rt[4].noreturn then
+			self.Scope._dead = true
+		end
+	end
+
+	return exprs, rt[2], rt[4]
 end
 
 function Compiler:InstrASS(args)
 	-- args = { "ass", trace, variable name, assigned expression }
 	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
-	local ScopeID = self:SetGlobalVariableType(op, tp, args)
+
+	local keep_as_used = self.persist[op] and not self.GlobalScope[op].var_tok
+
+	local ScopeID = self:SetGlobalVariableType(op, tp, args, true)
+	if keep_as_used or (ScopeID == 0 and self.outputs[op]) then
+		-- Mark output variable as being used to prevent warnings.
+		-- Also mark @persist variable as used if already used in InstrVAR prior to assignment
+		-- (Without this, the InstrASS would mark it as unused once again even if it was used prior)
+		self.Scopes[ScopeID][op].var_tok = nil
+	end
+
 	local rt = self:GetOperator(args, "ass", { tp })
 
 	if ScopeID == 0 and self.dvars[op] then
@@ -565,6 +774,7 @@ end
 
 -- generic code for all binary non-boolean operators
 for _, operator in ipairs({ "add", "sub", "mul", "div", "mod", "exp", "eq", "neq", "geq", "leq", "gth", "lth", "band", "band", "bor", "bxor", "bshl", "bshr" }) do
+
 	Compiler["Instr" .. operator:upper()] = function(self, args)
 		-- args = { operator, trace, left expression, right expression }
 		local ex1, tp1 = self:Evaluate(args, 1)
@@ -646,9 +856,15 @@ end
 function Compiler:InstrTRG(args)
 	-- args = { "trg", trace, variable name }
 	local op = args[3]
-	if not self.inputs[op] then
+	local _tp, ScopeID = self:GetVariableType(args, op)
+
+	if ScopeID ~= 0 or not self.inputs[op] then
 		self:Error("Triggered operator (~" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs", args)
 	end
+
+	-- Necessary since this doesn't use Compiler:Evaluate (which would call InstrVAR, and do this.)
+	self.Scopes[0][op].var_tok = nil
+
 	local rt = self:GetOperator(args, "trg", {})
 	return { rt[1], op }, rt[2]
 end
@@ -671,17 +887,21 @@ end
 function Compiler:InstrIWC(args)
 	-- args = { "iwc", trace, variable name }
 	local op = args[3]
+	local _tp, ScopeID = self:GetVariableType(args, op)
 
-	if self.inputs[op] then
-		local rt = self:GetOperator(args, "iwc", {})
-		return { rt[1], op }, rt[2]
-	elseif self.outputs[op] then
-		local rt = self:GetOperator(args, "owc", {})
-		return { rt[1], op }, rt[2]
-	else
-		self:Error("Connected operator (->" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs or outputs", args)
+	if ScopeID == 0 then
+		if self.inputs[op] then
+			local rt = self:GetOperator(args, "iwc", {})
+			return { rt[1], op }, rt[2]
+		elseif self.outputs[op] then
+			local rt = self:GetOperator(args, "owc", {})
+			return { rt[1], op }, rt[2]
+		end
 	end
+
+	self:Error("Connected operator (->" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs or outputs", args)
 end
+
 function Compiler:InstrLITERAL(args)
 	-- args = { "literal", trace, value, value type }
 	self.prfcounter = self.prfcounter + 0.5
@@ -692,8 +912,15 @@ end
 function Compiler:InstrVAR(args)
 	-- args = { "var", trace, variable name }
 	self.prfcounter = self.prfcounter + 1.0
-	local tp, ScopeID = self:GetVariableType(args, args[3])
 	local name = args[3]
+	local tp, ScopeID, initialized = self:GetVariableType(args, name)
+
+	-- Mark variable as used.
+	self.Scopes[ScopeID][name].var_tok = nil
+
+	if ScopeID == 0 and not initialized then
+		self:Warning("Use of variable [" .. name .. "] before initialization", args)
+	end
 
 	return {function(self)
 		return self.Scopes[ScopeID][name]
@@ -731,6 +958,9 @@ function Compiler:InstrFEA(args)
 	self:PushScope()
 
 	self:SetLocalVariableType(keyvar, keytype, args)
+	self.Scope[keyvar].var_tok = nil -- TODO: Remove this when a solution for unused for loop variables is determined.
+	-- E2 can't use _ as a variable identifier and has no non-variable binding for loop, so warning users for what they can't control isn't very nice.
+
 	self:SetLocalVariableType(valvar, valtype, args)
 
 	local stmt = self:EvaluateStatement(args, 6)
@@ -750,9 +980,20 @@ function Compiler:InstrFUNCTION(args)
 	self:InitScope() -- Create a new Scope Enviroment
 	self:PushScope()
 
+	local VariadicType
 	for _, D in pairs(Args) do
-		local Name, Type = D[1], wire_expression_types[D[2]][1]
+		local Name, Type, Variadic = D[1], wire_expression_types[D[2]][1], D[3]
+		VariadicType = Variadic and Type
 		self:SetLocalVariableType(Name, Type, args)
+	end
+
+	if VariadicType then
+		-- Don't allow users to define two functions with different variadic types
+		-- Because that'd cause ambiguity.
+		local opposite = VariadicType == "r" and "t" or "r"
+		if self.funcs_ret[Sig:gsub("%.%." .. VariadicType, ".." .. opposite)] then
+			self:Error("Cannot override variadic " .. tps_pretty(opposite) .. " function with variadic " .. tps_pretty(VariadicType) .. " function to avoid ambiguity.", args)
+		end
 	end
 
 	if self.funcs_ret[Sig] and self.funcs_ret[Sig] ~= Return then
@@ -771,18 +1012,72 @@ function Compiler:InstrFUNCTION(args)
 	self:PopScope()
 	self:LoadScopes(OldScopes) -- Reload the old enviroment
 
-	self.prfcounter = self.prfcounter + 40
+	self.prfcounter = self.prfcounter + (VariadicType and 80 or 40)
 
 	-- This is the function that will be bound to to the function name, ie. the
 	-- one that's called at runtime when code calls the function
 	local function body(self, runtimeArgs)
 		-- runtimeArgs = { body, parameterExpression1, ..., parameterExpressionN, parameterTypes }
 		-- we need to evaluate the arguments before switching to the new scope
+
 		local parameterValues = {}
-		for parameterIndex = 2, #Args + 1 do
-			local parameterExpression = runtimeArgs[parameterIndex]
-			local parameterValue = parameterExpression[1](self, parameterExpression)
-			parameterValues[parameterIndex - 1] = parameterValue
+		if VariadicType then
+			local nargs = #Args
+			-- There's 100% a better way to structure this mess but this works fine for now...
+			local offset = methodType ~= "" and 1 or 0
+
+			for parameterIndex = 2, nargs do
+				local parameterExpression = runtimeArgs[parameterIndex]
+				local parameterValue = parameterExpression[1](self, parameterExpression)
+				parameterValues[parameterIndex - 1] = parameterValue
+			end
+
+			local types = runtimeArgs[#runtimeArgs]
+			if VariadicType == "t" then
+				-- Table argument.
+				local tbl, len = E2Lib.newE2Table(), 1
+				local n, ntypes = tbl.n, tbl.ntypes
+
+				for parameterIndex = nargs + 1, #runtimeArgs - 1 do
+					local ty = types[nargs - 1 - offset + len]
+
+					local parameterExpression = runtimeArgs[parameterIndex]
+					local parameterValue = parameterExpression[1](self, parameterExpression)
+
+					n[len], ntypes[len] = parameterValue, ty
+					len = len + 1
+				end
+
+				tbl.size = len - 1
+				parameterValues[nargs] = tbl
+			else
+				-- Array
+				-- Construct array here w/ dynamic values
+				local arr, len = {}, 1
+
+				for parameterIndex = nargs + 1, #runtimeArgs - 1 do
+					local ty = types[nargs - 1 - offset + len]
+
+					if BLOCKED_ARRAY_TYPES[ty] then
+						self:throw("Cannot use type " .. tps_pretty(ty) .. " as an argument for variadic array function", nil)
+						break
+					end
+
+					local parameterExpression = runtimeArgs[parameterIndex]
+					local parameterValue = parameterExpression[1](self, parameterExpression)
+
+					arr[len] = parameterValue
+					len = len + 1
+				end
+
+				parameterValues[nargs] = arr
+			end
+		else
+			for parameterIndex = 2, #Args + 1 do
+				local parameterExpression = runtimeArgs[parameterIndex]
+				local parameterValue = parameterExpression[1](self, parameterExpression)
+				parameterValues[parameterIndex - 1] = parameterValue
+			end
 		end
 
 		local OldScopes = self:SaveScopes()
@@ -849,6 +1144,7 @@ function Compiler:InstrRETURN(args)
 		self:Error("Return type mismatch: " .. tps_pretty(expectedType) .. " expected, got " .. tps_pretty(actualType), args)
 	end
 
+	self.Scope._dead = true
 	return { self:GetOperator(args, "return", {})[1], value, actualType }
 end
 
@@ -882,6 +1178,10 @@ function Compiler:InstrKVARRAY(args)
 		local key, type = self:CallInstruction(k[1], k)
 		if type == "n" then
 			local value, type = self:CallInstruction(v[1], v)
+			if BLOCKED_ARRAY_TYPES[type] then
+				self:Error("Cannot have type " .. tps_pretty(type) .. " in array creation for keyvalue", v)
+			end
+
 			values[key] = value
 			types[key] = type
 		else
@@ -899,33 +1199,34 @@ function Compiler:InstrSWITCH(args)
 	local value, type = self:CallInstruction(args[3][1], args[3]) -- This is the value we are passing though the switch statment
 	local prf_cond = self:PopPrfCounter()
 
-	self:PushScope()
-
 	local cases = {}
 	local Cases = args[4]
 	local default
+
 	for i = 1, #Cases do
 		local case, block, prf_eq, eq = Cases[i][1], Cases[i][2], 0, nil
+
+		self:PushScope()
 		if case then -- The default will not have one
-			self.ScopeID = self.ScopeID - 1 -- For the case statments we pop the scope back
 			self:PushPrfCounter()
 			local ex, tp = self:CallInstruction(case[1], case) -- This is the value we are checking against
 			prf_eq = self:PopPrfCounter() -- We add some pref
-			self.ScopeID = self.ScopeID + 1
+
 			if tp == "" then -- There is no value
 				self:Error("Function has no return value (void), cannot be part of expression or assigned", args)
 			elseif tp ~= type then -- Value types do not match.
-				self:Error("Case missmatch can not compare " .. tps_pretty(type) .. " with " .. tps_pretty(tp), args)
+				self:Error("Case mismatch can not compare " .. tps_pretty(type) .. " with " .. tps_pretty(tp), args)
 			end
 			eq = { self:GetOperator(args, "eq", { type, tp })[1], value, ex } -- This is the equals operator to check if values match
 		else
 			default=i
 		end
+
 		local stmts = self:CallInstruction(block[1], block) -- This is statments that are run when Values match
+		self:PopScope()
+
 		cases[i] = { eq, stmts, prf_eq }
 	end
-
-	self:PopScope()
 
 	local rtswitch = self:GetOperator(args, "switch", {})
 	return { rtswitch[1], prf_cond, cases, default }
@@ -947,12 +1248,16 @@ function Compiler:InstrINCLU(args)
 		self:InitScope() -- Create a new Scope Enviroment
 		self:PushScope()
 
+		local last_file = self.include
+		self.include = file
+
+		self.warnings[file] = self.warnings[file] or {}
+
 		local root = include[1]
 		local status, script = pcall(self.CallInstruction, self, root[1], root)
 
 		if not status then
-			local reason = istable(script) and script.msg or script
-
+			local _catchable, reason =  E2Lib.unpackException(script)
 			if reason:find("C stack overflow") then reason = "Include depth too deep" end
 
 			if not self.IncludeError then
@@ -960,7 +1265,14 @@ function Compiler:InstrINCLU(args)
 				self.IncludeError = true
 				self:Error("include '" .. file .. "' -> " .. reason, args)
 			else
-				error(reason, 0)
+				error(script, 0)
+			end
+		else
+			self.include = last_file
+
+			local nwarnings = #self.warnings[file]
+			if nwarnings ~= 0 then
+				self:Warning("include '" .. file .. "' has " .. nwarnings .. " warning(s).", args)
 			end
 		end
 
@@ -987,4 +1299,62 @@ function Compiler:InstrTRY(args)
 	local prf_cond = self:PopPrfCounter()
 
 	return { self:GetOperator(args, "try", {})[1], prf_cond, stmt, var_name, stmt2 }
+end
+
+function Compiler:InstrEVENT(args)
+	-- args = { "event", trace, name, args, event_block }
+	local name, hargs = args[3], args[4]
+
+	if not E2Lib.Env.Events[name] then
+		self:Error("No such event exists: '" .. name .. "'", args)
+	end
+
+	local event = E2Lib.Env.Events[name]
+
+	if #hargs > #event.args then
+		local extra_arg_types = {}
+		for i = #event.args + 1, #hargs do
+			-- name, type, variadic
+			extra_arg_types[#extra_arg_types + 1] = hargs[i][2]
+		end
+
+		self:Error("Event '" .. name .. "' does not take arguments (" .. table.concat(extra_arg_types, ", ") .. ")", args)
+	end
+
+	for k, typeid in ipairs(event.args) do
+		if not hargs[k] then
+			-- TODO: Maybe this should be a warning so that events can have extra params added without breaking old code?
+			self:Error("Event '" .. name .. "' missing argument #" .. k .. " of type " .. tps_pretty(typeid), args)
+		end
+
+		local param_id = wire_expression_types[hargs[k][2]][1]
+		if typeid ~= param_id then
+			self:Error("Mismatched event argument: " .. tps_pretty(arg) .. " vs " .. tps_pretty(param_id), args)
+		end
+	end
+
+	if (self.registered_events[name] and self.registered_events[name][self.include or "__main__"]) then
+		self:Error("You can only register one event callback per file", args)
+	end
+
+	self.registered_events[name] = self.registered_events[name] or {}
+
+	local OldScopes = self:SaveScopes()
+	self:InitScope()
+	self:PushScope()
+		for k, typeid in ipairs(event.args) do
+			self:SetLocalVariableType(hargs[k][1], typeid, args)
+		end
+
+		local block = self:EvaluateStatement(args, 3)
+	self:LoadScopes(OldScopes)
+
+	self.registered_events[name][self.include or "__main__"] = function(self, args)
+		for i, arg in ipairs(hargs) do
+			local name = arg[1]
+			self.Scope[name] = args[i]
+		end
+
+		block[1](self, block)
+	end
 end

@@ -58,6 +58,7 @@ if SERVER then
 	AddCSLuaFile("wire/client/customspawnmenu.lua")
 
 	-- text editor
+	AddCSLuaFile("wire/client/text_editor/issue_viewer.lua")
 	AddCSLuaFile("wire/client/text_editor/texteditor.lua")
 	AddCSLuaFile("wire/client/text_editor/wire_expression2_editor.lua")
 	AddCSLuaFile("wire/client/text_editor/modes/e2.lua")
@@ -113,6 +114,7 @@ if CLIENT then
 	include("wire/client/wiremenus.lua")
 	include("wire/client/text_editor/texteditor.lua")
 	include("wire/client/wire_expression2_browser.lua")
+	include("wire/client/text_editor/issue_viewer.lua")
 	include("wire/client/text_editor/wire_expression2_editor.lua")
 	include("wire/client/wire_filebrowser.lua")
 	include("wire/client/wire_listeditor.lua")

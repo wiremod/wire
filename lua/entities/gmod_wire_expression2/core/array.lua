@@ -12,11 +12,7 @@ local table_insert = table.insert
 local table_remove = table.remove
 local floor = math.floor
 
-local blocked_types = {
-	["t"] = true,
-	["r"] = true,
-	["xgt"] = true
-}
+local blocked_types = E2Lib.blocked_array_types
 
 -- Fix return values
 local fixDefault = E2Lib.fixDefault
@@ -51,31 +47,25 @@ registerType("array", "r", {},
 -- Constructs and returns an array with the given values as elements. If you specify values that are not supported by the array data type, they are skipped
 --------------------------------------------------------------------------------
 __e2setcost(1)
-e2function array array(...)
-	local ret = {...}
-	if (#ret == 0) then return {} end -- This is in place of the old "array()" function (now deleted because array(...) overwrote it)
-	for k,v in pairs( ret ) do
-		self.prf = self.prf + 1/3
-		if (blocked_types[typeids[k]]) then ret[k] = nil end
-	end
-	return ret
+e2function array array(...args)
+	-- Assume the arguments passed to the array do not contain illegal array types,
+	-- from the compile time checks.
+	self.prf = self.prf + #args * (1 / 4)
+
+	return args
 end
 
 registerOperator( "kvarray", "", "r", function( self, args )
 	local ret = {}
-
 	local values = args[2]
-	local types = args[3]
 
-	for k,v in pairs( values ) do
-		if not blocked_types[types[k]] then
-			local key = k[1]( self, k )
-			local value = v[1]( self, v )
+	for k, v in pairs( values ) do
+		local key = k[1]( self, k )
+		local value = v[1]( self, v )
 
-			ret[key] = value
+		ret[key] = value
 
-			self.prf = self.prf + 1/3
-		end
+		self.prf = self.prf + 1/3
 	end
 
 	return ret
@@ -151,7 +141,7 @@ registerCallback( "postinit", function()
 				local op1, op2 = args[2], args[3]
 				local array, index = op1[1](self,op1), op2[1](self,op2)
 				return getter( self, array, index )
-			end)
+			end, nil, nil, { deprecated = true })
 
 			--------------------------------------------------------------------------------
 			-- Set functions
@@ -181,7 +171,7 @@ registerCallback( "postinit", function()
 				local op1, op2, op3 = args[2], args[3], args[4]
 				local array, index, value = op1[1](self,op1), op2[1](self,op2), op3[1](self,op3)
 				return setter( self, array, index, value )
-			end)
+			end, nil, nil, { deprecated = true })
 
 
 			--------------------------------------------------------------------------------
@@ -341,7 +331,7 @@ end
 --------------------------------------------------------------------------------
 __e2setcost(1)
 e2function number array:exists( index )
-	return this[index] != nil and 1 or 0
+	return this[index] ~= nil and 1 or 0
 end
 
 --------------------------------------------------------------------------------

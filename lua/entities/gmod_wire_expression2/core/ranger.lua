@@ -152,7 +152,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	else
 		tracedata.start = chip:GetPos()
 
-		if rangertype == 1 && (p1!=0 || p2!=0) then
+		if rangertype == 1 and (p1~=0 or p2~=0) then
 			p1 = math.rad(p1)
 			p2 = math.rad(p2+270)
 			local zoff = -math.cos(p1)*range
@@ -160,7 +160,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			local xoff = math.cos(p2)*zoff
 			zoff = math.sin(p2)*zoff
 			tracedata.endpos = chip:LocalToWorld(Vector(xoff,yoff,zoff))
-		elseif rangertype == 0 && (p1!=0 || p2!=0) then
+		elseif rangertype == 0 and (p1~=0 or p2~=0) then
 			local skew = Vector(p2, -p1, 1)
 			tracedata.endpos = chip:LocalToWorld(skew:GetNormalized()*range)
 		else
@@ -420,7 +420,7 @@ end
 
 --- Returns the position of the input ranger data trace IF it hit anything, else returns vec(0,0,0)
 e2function vector ranger:position()
-	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
+	if not this then return self:throw("Invalid ranger!", Vector(0, 0, 0)) end
 	if this.StartSolid then return this.StartPos end
 	return this.HitPos
 end
@@ -428,7 +428,7 @@ end
 -- Returns the position of the input ranger data trace IF it it anything, else returns vec(0,0,0).
 -- NOTE: This function works like Lua's trace, while the above "position" function returns the same as positionLeftSolid IF it was created inside the world.
 e2function vector ranger:pos()
-	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
+	if not this then return self:throw("Invalid ranger!", Vector(0, 0, 0)) end
 	return this.HitPos
 end
 
@@ -455,7 +455,7 @@ end
 
 --- Outputs a normalized vector perpendicular to the surface the ranger is pointed at.
 e2function vector ranger:hitNormal()
-	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
+	if not this then return self:throw("Invalid ranger!", Vector(0, 0, 0)) end
 	return this.HitNormal
 end
 
@@ -479,7 +479,7 @@ end
 
 -- Returns the position at which the trace left the world if it was started inside the world
 e2function vector ranger:positionLeftSolid()
-	if not this then return self:throw("Invalid ranger!", {0, 0, 0}) end
+	if not this then return self:throw("Invalid ranger!", Vector(0, 0, 0)) end
 	return this.StartPos
 end
 

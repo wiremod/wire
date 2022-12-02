@@ -20,7 +20,11 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self:StartMotionController()
 
-	self.Inputs = WireLib.CreateSpecialInputs(self, { "X", "Y", "SelectValue", "Length", "Target"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR"})
+	self.Inputs = WireLib.CreateInputs(self, { 
+		"X", "Y", "SelectValue", "Length", 
+		"Target [VECTOR]", 
+		"Ignore (Adds all specified entities to the ranger's filter.\nKeep in mind that this filtering is not synced to the client and is therefore not visible in the ranger's beam.) [ARRAY]"
+	})
 	self.Outputs = WireLib.CreateOutputs(self, { "Dist" })
 	self.hires = false
 end
@@ -114,6 +118,13 @@ function ENT:TriggerInput(iname, value)
 		self:SetBeamLength(math.min(value, 64000))
 	elseif (iname == "Target") then
 		self:SetTarget(value)
+	elseif (iname == "Ignore") then
+		self.ignore = { self }
+		for k,v in ipairs(value) do
+			if IsEntity(v) and IsValid(v) then
+				self.ignore[#self.ignore+1] = v
+			end
+		end
 	end
 end
 
@@ -135,7 +146,7 @@ function ENT:Think()
 		local beam_z = self:GetUp()*skew.z
 		tracedata.endpos = tracedata.start + beam_x + beam_y + beam_z
 	end
-	tracedata.filter = { self }
+	tracedata.filter = self.ignore or { self }
 	if (self.trace_water) then tracedata.mask = -1 end
 	local trace = util.TraceLine(tracedata)
 	trace.RealStartPos = tracedata.start

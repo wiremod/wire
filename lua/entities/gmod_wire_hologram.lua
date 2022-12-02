@@ -66,7 +66,7 @@ if CLIENT then
 	end
 
 	hook.Add("PlayerBindPress", "wire_hologram_scale_setup", function() -- For initial spawn
-		for _, ent in pairs(ents.FindByClass("gmod_wire_hologram")) do
+		for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
 			if ent:IsValid() and ent.DoScale then
 				ent:DoScale()
 				ent:DoClip()
@@ -243,7 +243,7 @@ if CLIENT then
 			self:SetModelScale((scale.x + scale.y + scale.z) / 3, 0)
 		end
 
-		if table.Count( self.bone_scale ) > 0 then
+		if not table.IsEmpty( self.bone_scale ) then
 			local count = self:GetBoneCount() or -1
 
 			for i = count, 0, -1 do
@@ -347,8 +347,10 @@ if CLIENT then
 	end
 	concommand.Add("wire_holograms_block_client",
 		function(ply, command, args)
+			if not args[1] then print("Invalid steamid") return end
+
 			local toblock = checkSteamid(args[1])
-			if not toblock then print("Invalid SteamId") return end
+			if not toblock then print("Invalid steamid") return end
 
 			blocked[toblock] = true
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do

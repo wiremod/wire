@@ -198,6 +198,7 @@ end
 
 function ENT:OnRemove()
 	self:Unregister()
+	BaseClass.OnRemove(self)
 end
 
 function ENT:Think()

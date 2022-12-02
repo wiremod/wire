@@ -21,7 +21,7 @@ function TOOL:LeftClick( trace )
 	if trace.Entity:IsValid() and trace.Entity:IsPlayer() then return end
 
 	// If there's no physics object then we can't constraint it!
-	if SERVER and !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
+	if SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local iNum = self:NumObjects()
 
@@ -40,7 +40,7 @@ function TOOL:LeftClick( trace )
 
 		local controller = self:LeftClick_Make( trace, ply )
 		if isbool(controller) then return controller end
-		if !IsValid(controller) then
+		if not IsValid(controller) then
 			WireLib.AddNotify( self:GetOwner(), "Weld latch controller placement failed!", NOTIFY_GENERIC, 7 )
 			self.Constraint = nil
 			self:ClearObjects()

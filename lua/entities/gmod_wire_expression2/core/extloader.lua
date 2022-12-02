@@ -26,7 +26,7 @@ if ENT then
 		local chips = ents.FindByClass( "gmod_wire_expression2" )
 		for _, chip in ipairs( chips ) do
 			if not chip.error then
-				chip:PCallHook( "destruct" )
+				chip:Destruct()
 			end
 			chip.script = nil
 		end
@@ -63,7 +63,7 @@ include("extpp.lua")
 local included_files
 
 local function e2_include_init()
-	e2_extpp_init()
+	E2Lib.ExtPP.Init()
 	included_files = {}
 end
 
@@ -73,13 +73,13 @@ local function e2_include(name)
 
 	local luaname = "entities/gmod_wire_expression2/core/" .. name
 	local contents = file.Read(luaname, "LUA") or ""
-	e2_extpp_pass1(contents)
+	E2Lib.ExtPP.Pass1(contents)
 	table.insert(included_files, { name, luaname, contents })
 end
 
 -- parses and executes an extension
 local function e2_include_pass2(name, luaname, contents)
-	local preprocessedSource = e2_extpp_pass2(contents)
+	local preprocessedSource = E2Lib.ExtPP.Pass2(contents)
 
 	E2Lib.currentextension = string.StripExtension( string.GetFileFromFilename(name) )
 
@@ -160,6 +160,7 @@ e2_include("egpfunctions.lua")
 e2_include("functions.lua")
 e2_include("strfunc.lua")
 e2_include("steamidconv.lua")
+e2_include("easings.lua")
 
 -- Load serverside files here, they need additional parsing
 do

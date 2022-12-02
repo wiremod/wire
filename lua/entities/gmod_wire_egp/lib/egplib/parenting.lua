@@ -18,8 +18,8 @@ EGP.ParentingFuncs.addUV = addUV
 local function makeArray( v, fakepos )
 	local ret = {}
 	if isstring(v.verticesindex) then
-		if (!fakepos) then
-			if (!v["_"..v.verticesindex]) then EGP:AddParentIndexes( v ) end
+		if (not fakepos) then
+			if (not v["_"..v.verticesindex]) then EGP:AddParentIndexes( v ) end
 			for k,v in ipairs( v["_"..v.verticesindex] ) do
 				ret[#ret+1] = v.x
 				ret[#ret+1] = v.y
@@ -31,7 +31,7 @@ local function makeArray( v, fakepos )
 			end
 		end
 	else
-		if (!fakepos) then
+		if (not fakepos) then
 			for k,v2 in ipairs( v.verticesindex ) do
 				ret[#ret+1] = v["_"..v2[1]]
 				ret[#ret+1] = v["_"..v2[2]]
@@ -81,7 +81,7 @@ function EGP:GetGlobalPos( Ent, index )
 	local bool, k, v = self:HasObject( Ent, index )
 	if (bool) then
 		if (v.verticesindex) then -- Object has vertices
-			if (v.parent and v.parent != 0) then -- Object is parented
+			if (v.parent and v.parent ~= 0) then -- Object is parented
 				if (v.parent == -1) then -- object is parented to the cursor
 					local xy = {0,0}
 					if (CLIENT) then
@@ -143,7 +143,7 @@ function EGP:GetGlobalPos( Ent, index )
 			if isstring(v.verticesindex) then ret = { [v.verticesindex] = makeTable( v, makeArray( v ) ) }	else ret = makeTable( v, makeArray( v ) ) end
 			return true, ret
 		else -- Object does not have vertices, parent does not
-			if (v.parent and v.parent != 0) then -- Object is parented
+			if (v.parent and v.parent ~= 0) then -- Object is parented
 				if (v.parent == -1) then -- Object is parented to the cursor
 					local xy = {0,0}
 					if (CLIENT) then
@@ -209,11 +209,11 @@ local function CheckParents( Ent, Obj, parentindex, checked )
 	if (Obj.index == parentindex) then
 		return false
 	end
-	if (!checked[Obj.index]) then
+	if (not checked[Obj.index]) then
 		checked[Obj.index] = true
 		local ret = true
 		for k,v in ipairs( GetChildren( Ent, Obj )) do
-			if (!CheckParents( Ent, v, parentindex, checked )) then
+			if (not CheckParents( Ent, v, parentindex, checked )) then
 				ret = false
 				break
 			end
@@ -240,7 +240,7 @@ function EGP:SetParent( Ent, index, parentindex )
 				-- If the user is trying to parent it to itself
 				if (v.parent and v.parent == v.index) then return false end
 				-- If the user is trying to create a circle of parents, causing an infinite loop
-				if (!CheckParents( Ent, v, parentindex, {} )) then return false end
+				if (not CheckParents( Ent, v, parentindex, {} )) then return false end
 
 				if (self:EditObject( v, { parent = parentindex } )) then return true, v end
 			end
@@ -280,7 +280,7 @@ function EGP:UnParent( Ent, index )
 		local hasVertices, data = self:GetGlobalPos( Ent, index )
 		self:RemoveParentIndexes( v, hasVertices )
 
-		if (!v.parent or v.parent == 0) then return false end
+		if (not v.parent or v.parent == 0) then return false end
 
 		data.parent = 0
 

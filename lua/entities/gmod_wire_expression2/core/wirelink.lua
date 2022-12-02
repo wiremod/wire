@@ -307,14 +307,14 @@ e2function void wirelink:setXyz(vector value)
 end
 
 e2function vector wirelink:xyz()
-	if not validWirelink(self, this) then return { 0, 0, 0 } end
+	if not validWirelink(self, this) then return Vector(0, 0, 0) end
 
-	if not this.Outputs then return { 0, 0, 0 } end
+	if not this.Outputs then return Vector(0, 0, 0) end
 	local x, y, z = this.Outputs["X"], this.Outputs["Y"], this.Outputs["Z"]
 
-	if not x or not y or not z then return { 0, 0, 0 } end
-	if x.Type ~= "NORMAL" or y.Type ~= "NORMAL" or z.Type ~= "NORMAL" then return { 0, 0, 0 } end
-	return { x.Value, y.Value, z.Value }
+	if not x or not y or not z then return Vector(0, 0, 0) end
+	if x.Type ~= "NORMAL" or y.Type ~= "NORMAL" or z.Type ~= "NORMAL" then return Vector(0, 0, 0) end
+	return Vector(x.Value, y.Value, z.Value)
 end
 
 /******************************************************************************/
@@ -389,6 +389,7 @@ end
 
 __e2setcost(5) -- temporary
 
+[deprecated]
 e2function number wirelink:writeCell(address, value)
 	if not validWirelink(self, this) then return 0 end
 
@@ -396,6 +397,7 @@ e2function number wirelink:writeCell(address, value)
 	if this:WriteCell(address, value) then return 1 else return 0 end
 end
 
+[deprecated, nodiscard]
 e2function number wirelink:readCell(address)
 	if not validWirelink(self, this) then return 0 end
 
@@ -431,7 +433,6 @@ e2function number wirelink:operator[](address) = e2function number wirelink:read
 
 __e2setcost(20) -- temporary
 
---- XWL[N,vector]=V
 e2function vector wirelink:operator[T](address, vector value)
 	if not validWirelink(self, this) then return value end
 
@@ -442,26 +443,23 @@ e2function vector wirelink:operator[T](address, vector value)
 	return value
 end
 
---- V=XWL[N,vector]
 e2function vector wirelink:operator[T](address)
-	if not validWirelink(self, this) then return { 0, 0, 0 } end
+	if not validWirelink(self, this) then return Vector(0, 0, 0) end
 
 	if not this.ReadCell then return 0 end
-	return {
+	return Vector(
 		this:ReadCell(address) or 0,
 		this:ReadCell(address+1) or 0,
-		this:ReadCell(address+2) or 0,
-	}
+		this:ReadCell(address+2) or 0
+	)
 end
 
---- XWL[N,string]=S
 e2function string wirelink:operator[T](address, string value)
 	if not validWirelink(self, this) or not this.WriteCell then return "" end
 	WriteStringZero(this, address, value)
 	return value
 end
 
---- S=XWL[N,string]
 e2function string wirelink:operator[T](address)
 	if not validWirelink(self, this) or not this.ReadCell then return "" end
 	return ReadStringZero(this, address)

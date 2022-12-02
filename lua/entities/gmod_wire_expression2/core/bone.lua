@@ -164,7 +164,7 @@ end
 
 --- Returns <this>'s position.
 e2function vector bone:pos()
-	if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+	if not isValidBone(this) then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
 	return this:GetPos()
 end
 
@@ -173,32 +173,32 @@ do
 
 	--- Returns a vector describing <this>'s forward direction.
 	e2function vector bone:forward()
-		if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+		if not isValidBone(this) then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
 		return this:LocalToWorld(fwd)-this:GetPos()
 	end
 
 	--- Returns a vector describing <this>'s right direction.
 	e2function vector bone:right()
-		if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+		if not isValidBone(this) then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
 		return this:LocalToWorld(right)-this:GetPos() -- the y coordinate in local coords is left, not right. hence -1
 	end
 
 	--- Returns a vector describing <this>'s up direction.
 	e2function vector bone:up()
-		if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+		if not isValidBone(this) then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
 		return this:LocalToWorld(up)-this:GetPos()
 	end
 end
 
 --- Returns <this>'s velocity.
 e2function vector bone:vel()
-	if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+	if not isValidBone(this) then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
 	return this:GetVelocity()
 end
 
 --- Returns <this>'s velocity in local coordinates.
 e2function vector bone:velL()
-	if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+	if not isValidBone(this) then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
 	return this:WorldtoLocal(this:GetVelocity() + this:GetPos())
 end
 
@@ -206,13 +206,13 @@ end
 
 --- Transforms <pos> from local coordinates (as seen from <this>) to world coordinates.
 e2function vector bone:toWorld(vector pos)
-	if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+	if not isValidBone(this) then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
 	return this:LocalToWorld(Vector(pos[1],pos[2],pos[3]))
 end
 
 --- Transforms <pos> from world coordinates to local coordinates (as seen from <this>).
 e2function vector bone:toLocal(vector pos)
-	if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+	if not isValidBone(this) then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
 	return this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
 end
 
@@ -220,22 +220,22 @@ end
 
 --- Returns <this>'s angular velocity.
 e2function angle bone:angVel()
-	if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+	if not isValidBone(this) then return self:throw("Invalid bone!", Angle(0, 0, 0)) end
 	local vec = this:GetAngleVelocity()
-	return { vec.y, vec.z, vec.x }
+	return Angle(vec.y, vec.z, vec.x)
 end
 
 --- Returns a vector describing rotation axis, magnitude and sense given as the vector's direction, magnitude and orientation.
 e2function vector bone:angVelVector()
-	if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+	if not isValidBone(this) then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
 	return this:GetAngleVelocity()
 end
 
 --- Returns <this>'s pitch, yaw and roll angles.
 e2function angle bone:angles()
-	if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+	if not isValidBone(this) then return self:throw("Invalid bone!", Angle(0, 0, 0)) end
 	local ang = this:GetAngles()
-	return { ang.p, ang.y, ang.r }
+	return Angle(ang.p, ang.y, ang.r)
 end
 
 --[[************************************************************************]]--
@@ -261,7 +261,7 @@ end
 
 --- Returns the elevation (pitch) and bearing (yaw) from <this> to <pos>
 e2function angle bone:heading(vector pos)
-	if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+	if not isValidBone(this) then return self:throw("Invalid bone!", Angle(0, 0, 0)) end
 
 	pos = this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
 
@@ -270,10 +270,10 @@ e2function angle bone:heading(vector pos)
 
 	-- elevation
 	local len = pos:Length()--sqrt(x*x + y*y + z*z)
-	if len < delta then return { 0, bearing, 0 } end
+	if len < delta then return Angle(0, bearing, 0) end
 	local elevation = rad2deg*asin(pos.z / len)
 
-	return { elevation, bearing, 0 }
+	return Angle(elevation, bearing, 0)
 end
 
 --- Returns <this>'s mass.
@@ -284,13 +284,13 @@ end
 
 --- Returns <this>'s Center of Mass.
 e2function vector bone:massCenter()
-	if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+	if not isValidBone(this) then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
 	return this:LocalToWorld(this:GetMassCenter())
 end
 
 --- Returns <this>'s Center of Mass in local coordinates.
 e2function vector bone:massCenterL()
-	if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+	if not isValidBone(this) then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
 	return this:GetMassCenter()
 end
 
@@ -305,7 +305,7 @@ end
 
 --- Gets the principal components of <this>'s inertia tensor in the form vec(Ixx, Iyy, Izz)
 e2function vector bone:inertia()
-	if not isValidBone(this) then return self:throw("Invalid bone!", {0, 0, 0}) end
+	if not isValidBone(this) then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
 	return this:GetInertia()
 end
 

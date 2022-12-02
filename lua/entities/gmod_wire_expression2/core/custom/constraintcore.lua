@@ -71,28 +71,28 @@ end
 e2function void ballsocket(entity ent1, vector v, entity ent2, friction)
 	if not checkEnts(self, ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
-	addundo(self, constraint.AdvBallsocket(ent1, ent2, 0, 0, Vector(), vec, 0, 0, -180, -180, -180, 180, 180, 180, friction, friction, friction, 0, 0), "ballsocket")
+	addundo(self, constraint.AdvBallsocket(ent1, ent2, 0, 0, vec, Vector(), 0, 0, -180, -180, -180, 180, 180, 180, friction, friction, friction, 0, 0), "ballsocket")
 end
 
 --- Creates an adv ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with many settings
 e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vector maxs, vector frictions)
 	if not checkEnts(self, ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
-	addundo(self, constraint.AdvBallsocket(ent1, ent2, 0, 0, Vector(), vec, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], 0, 0), "ballsocket")
+	addundo(self, constraint.AdvBallsocket(ent1, ent2, 0, 0, vec, Vector(), 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], 0, 0), "ballsocket")
 end
 
 --- Creates an adv ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with many settings
 e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vector maxs, vector frictions, rotateonly)
 	if not checkEnts(self, ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
-	addundo(self, constraint.AdvBallsocket(ent1, ent2, 0, 0, Vector(), vec, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], rotateonly, 0), "ballsocket")
+	addundo(self, constraint.AdvBallsocket(ent1, ent2, 0, 0, vec, Vector(), 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], rotateonly, 0), "ballsocket")
 end
 
 --- Creates an angular weld (angles are fixed, position isn't) between <ent1> and <ent2> at <v>, which is local to <ent1>
 e2function void weldAng(entity ent1, vector v, entity ent2)
 	if not checkEnts(self, ent1, ent2) then return end
 	local vec = Vector(v[1], v[2], v[3])
-	addundo(self, constraint.AdvBallsocket(ent1, ent2, 0, 0, Vector(), vec, 0, 0, 0, -0, 0, 0, 0, 0, 0, 0, 0, 1, 0), "ballsocket")
+	addundo(self, constraint.AdvBallsocket(ent1, ent2, 0, 0, vec, Vector(), 0, 0, 0, -0, 0, 0, 0, 0, 0, 0, 0, 1, 0), "ballsocket")
 end
 
 
@@ -119,7 +119,7 @@ e2function void winch(index, entity ent1, vector v1, entity ent2, vector v2, wid
 	if !ent1.data then ent1.data = {} end
 	if !ent1.data.Ropes then ent1.data.Ropes = {} end
 	local vec1, vec2 = Vector(v1[1],v1[2],v1[3]), Vector(v2[1],v2[2],v2[3])
-	if width < 0 || width > 50 then width = 1 end
+	if width < 0 or width > 50 then width = 1 end
 
 	if IsValid(ent1.data.Ropes[index]) then
 		ent1.data.Ropes[index]:Remove()

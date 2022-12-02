@@ -154,7 +154,7 @@ end
 function ENT:BuildDupeInfo()
 	local info = BaseClass.BuildDupeInfo(self) or {}
 
-	if (self.Other) && (self.Other:IsValid()) then
+	if (self.Other) and (self.Other:IsValid()) then
 		info.Other = self.Other:EntIndex()
 	end
 

@@ -60,7 +60,7 @@ if CLIENT then
 		local Effect = self:GetEffect()
 
 		// Missing effect... replace it if possible :/
-		if ( !self.Effects[ Effect ] ) then if ( self.Effects[1] ) then Effect = 1 else return end end
+		if ( not self.Effects[ Effect ] ) then if ( self.Effects[1] ) then Effect = 1 else return end end
 
 		local Angle = self:GetAngles()
 
@@ -72,7 +72,7 @@ if CLIENT then
 
 		local b, e = pcall( self.Effects[Effect], FXPos, Angle )
 
-		if (!b) then
+		if (not b) then
 			// Report the error
 			Print(self.Effects)
 			Print(FXPos)

@@ -95,7 +95,7 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Switch") then
-		if (math.abs(value) >= 0 && math.abs(value) <= self.throws) then
+		if (math.abs(value) >= 0 and math.abs(value) <= self.throws) then
 			self:Switch(math.abs(value))
 		end
 	elseif (iname) then
@@ -106,7 +106,7 @@ end
 
 
 function ENT:Switch( mul )
-	if (!self:IsValid()) then return false end
+	if (not self:IsValid()) then return false end
 	self.selinput = mul
 	for p,v in ipairs(self.outputs) do
 		self.Value[p] = self.Last[ mul .. v ] or 0
@@ -134,7 +134,7 @@ end
 
 
 function ENT:InputActivate( mul )
-	if ( self.toggle && self.selinput == mul) then //only toggle for the same key
+	if ( self.toggle and self.selinput == mul) then //only toggle for the same key
 		return self:Switch( self.normclose )
 	else
 		return self:Switch( mul )
@@ -148,12 +148,12 @@ end
 
 
 local function On( pl, ent, mul )
-	if (!ent:IsValid()) then return false end
+	if (not ent:IsValid()) then return false end
 	return ent:InputActivate( mul )
 end
 
 local function Off( pl, ent, mul )
-	if (!ent:IsValid()) then return false end
+	if (not ent:IsValid()) then return false end
 	return ent:InputDeactivate( mul )
 end
 

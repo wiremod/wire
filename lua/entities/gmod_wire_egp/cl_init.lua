@@ -27,30 +27,39 @@ function ENT:_EGP_Update( bool )
 		--render.ClearRenderTarget( 0, 0, 0, 0 )
 
 		local currentfilter = self.GPU.texture_filtering
+		local pushedFilter = false
 
 		local mat = self:GetEGPMatrix()
 
 		for k,v in pairs( Table ) do
 			if (v.parent == -1) then self.UpdateConstantly = true end -- Check if an object is parented to the cursor
-			if (v.parent and v.parent != 0) then
-				if (!v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
+			if (v.parent and v.parent ~= 0) then
+				if (not v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
 				local _, data = EGP:GetGlobalPos( self, v.index )
 				EGP:EditObject( v, data )
-			elseif ((!v.parent or v.parent == 0) and v.IsParented) then
+			elseif ((not v.parent or v.parent == 0) and v.IsParented) then
 				EGP:UnParent( self, v.index )
 			end
 			local oldtex = EGP:SetMaterial( v.material )
 
-			if v.filtering != currentfilter then
-				render.PopFilterMin()
-				render.PopFilterMag()
+			if v.filtering ~= currentfilter then
+				if pushedFilter then
+					render.PopFilterMin()
+					render.PopFilterMag()
+				end
 				render.PushFilterMag(v.filtering)
 				render.PushFilterMin(v.filtering)
 				currentfilter = v.filtering
+				pushedFilter = true
 			end
 
 			v:Draw(self, mat)
 			EGP:FixMaterial( oldtex )
+		end
+
+		if pushedFilter then
+			render.PopFilterMin()
+			render.PopFilterMag()
 		end
 	end)
 end

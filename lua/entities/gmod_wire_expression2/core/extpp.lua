@@ -50,19 +50,21 @@ local optable = {
 -- This is an array for types that were parsed from all E2 extensions.
 local preparsed_types
 
+E2Lib.ExtPP = {}
+
 -- This function initialized extpp's dynamic fields
-function e2_extpp_init()
+function E2Lib.ExtPP.Init()
 	-- We initialize the array of preparsed types  with an alias "number" for "normal".
 	preparsed_types = { ["NUMBER"] = "n" }
 end
 
 -- This function checks whether its argument is a valid type id.
-local function is_valid_typeid(typeid)
+local function isValidTypeId(typeid)
 	return (typeid:match("^[a-wy-zA-WY-Z]$") or typeid:match("^[xX][a-wy-zA-WY-Z0-9][a-wy-zA-WY-Z0-9]$")) and true
 end
 
 -- Returns the typeid associated with the given typename
-function e2_get_typeid(typename)
+local function getTypeId(typename)
 	local n = string.upper(typename)
 
 	-- was the type registered with E-2?
@@ -72,23 +74,40 @@ function e2_get_typeid(typename)
 	if preparsed_types[n] then return preparsed_types[n] end
 
 	-- is the type name a valid typeid? use the type name as the typeid
-	if is_valid_typeid(typename) then return typename end
-	return nil
+	if isValidTypeId(typename) then return typename end
 end
 
+---@class ArgsKind
+local ArgsKind = {
+	None = 0,
+	Static = 1,
+	Variadic = 2,
+	VariadicTbl = 3
+}
+
 -- parses an argument list
-function e2_parse_args(args)
-	local ellipses = false
+---@return { typeids: string[], argnames: string[] }, integer, string?
+local function parseArgs(args)
 	local argtable = { typeids = {}, argnames = {} }
-	if args:find("%S") == nil then return argtable end -- no arguments
-	local function handle_arg(arg)
-		-- ellipses before this argument? raise error
-		if ellipses then error("PP syntax error: Ellipses (...) must be the last argument.", 0) end
+	if args:find("%S") == nil then return argtable, ArgsKind.None end -- no arguments
+
+	local args = args:Split(",")
+	local len = #args
+
+	for k, arg in ipairs(args) do
 		-- is this argument an ellipsis?
-		if string.match(arg, "^%s*%.%.%.%s*$") then
-			-- signal ellipses-ness
-			ellipses = true
-			return false
+		if arg:match( "^%s*%.%.%.%s*$") then
+			assert(k == len, "PP syntax error: Ellipses (...) must be the last argument.")
+			return argtable, ArgsKind.Variadic
+		else
+			local name = arg:match("^%s*%.%.%.(%w+)%s*$")
+			if name then
+				assert(k == len, "PP syntax error: Ellipses table (..." .. name .. ") must be the last argument.")
+
+				-- assert(name ~= "args" and name ~= "typeids" and name ~= "self", "PP syntax error: Variadic table name shadows internal variable (" .. name .. ")")
+
+				return argtable, ArgsKind.VariadicTbl, name
+			end
 		end
 
 		-- assume a type name was given and split up the argument into type name and argument name.
@@ -102,26 +121,15 @@ function e2_parse_args(args)
 		end
 
 		-- this failed as well? give up and print an error
-		if not argname then error("PP syntax error: Invalid function parameter syntax.", 0) end
+		assert(argname, "PP syntax error: Invalid function parameter syntax.")
 
-		local typeid = e2_get_typeid(typename)
+		local typeid = assert(getTypeId(typename), "PP syntax error: Invalid parameter type '" .. typename .. "' for argument '" .. argname .. "'.")
 
-		if not typeid then error("PP syntax error: Invalid parameter type '" .. typename .. "' for argument '" .. argname .. "'.", 0) end
-
-		table.insert(argtable.typeids, typeid)
-		table.insert(argtable.argnames, argname)
-		return false
+		argtable.typeids[k] = typeid
+		argtable.argnames[k] = argname
 	end
 
-	-- find the argument before the first comma
-	local firstarg = args:find(",") or (args:len() + 1)
-	firstarg = args:sub(1, firstarg - 1)
-	-- handle it
-	handle_arg(firstarg)
-
-	-- find and handle the remaining arguments.
-	args:gsub(",([^,]*)", handle_arg)
-	return argtable, ellipses
+	return argtable, ArgsKind.Static
 end
 
 local function mangle(name, arg_typeids, op_type)
@@ -184,16 +192,29 @@ local function makestringtable(tbl, i, j)
 	return ret
 end
 
-function e2_extpp_pass1(contents)
+function E2Lib.ExtPP.Pass1(contents)
 	-- look for registerType lines and fill preparsed_types with them
 	for typename, typeid in string.gmatch("\n" .. contents, '%WregisterType%(%s*"(' .. p_typename .. ')"%s*,%s*"(' .. p_typeid .. ')"') do
 		preparsed_types[string.upper(typename)] = typeid
 	end
 end
 
-function e2_extpp_pass2(contents)
+local fmt = string.format
+--- Compact lua code to a single line to avoid changing lua's tracebacks.
+local function compact(lua)
+	return ( lua:gsub("\n\t*", " ") )
+end
+
+local valid_attributes = {
+	["deprecated"] = true,
+	["nodiscard"] = true,
+	["noreturn"] = true
+}
+
+function E2Lib.ExtPP.Pass2(contents)
 	-- We add some stuff to both ends of the string so we can look for %W (non-word characters) at the ends of the patterns.
-	contents = "\nlocal tempcosts,registeredfunctions={},{}" .. contents .. "\n     "
+	local prelude = "local tempcosts, registeredfunctions = {}, {};"
+	contents = ("\n" .. prelude .. contents .. "\n     ")
 
 	-- this is a list of pieces that make up the final code
 	local output = {}
@@ -206,7 +227,49 @@ function e2_extpp_pass2(contents)
 
 	-- This flag helps determine whether the preprocessor changed, so we can tell the environment about it.
 	local changed = false
-	for h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
+	for a_begin, attributes, h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()(%[?[%w,_ =\"]*%]?)[\r\n\t ]*()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
+		-- Convert attributes to a lookup table passed to registerFunction
+		attributes = attributes ~= "" and attributes or nil
+		-- attributes = attributes ~= ""
+		local attributes_str
+
+		if attributes and attributes:sub(1, 1) == "[" and attributes:sub(-1, -1) == "]" then
+			attributes_str = attributes
+			attributes = attributes:sub(2, -2) -- Remove surrounding brackets
+			-- [deprecated, nodiscard]
+			-- e2function void test()
+
+			attributes = attributes:Split(",")
+
+			local lookup = {}
+			for _, tag in ipairs(attributes) do
+				local k = tag:lower():Trim()
+
+				if k:find("=", 1, true) then
+					-- [xyz = 567, event = "Tick"]
+					-- e2function number foo()
+					local key, value = unpack( k:Split("="), 1, 2 )
+					key, value = key:lower():Trim(), tonumber(value:match("%d+")) or value:Trim()
+
+					lookup[key] = value
+				else
+					if not valid_attributes[k] then
+						ErrorNoHalt("Invalid attribute fed to ExtPP: " .. k)
+					end
+					lookup[ tag:lower():Trim() ] = "true"
+				end
+			end
+
+			local buf = "{"
+			for attr, val in pairs(lookup) do
+				buf = buf .. "['" .. attr .. "'] = " .. val .. ","
+			end
+
+			attributes = buf .. "}"
+		else
+			attributes = "{}"
+		end
+
 		changed = true
 
 		local function handle_function()
@@ -232,21 +295,27 @@ function e2_extpp_pass2(contents)
 			if thistype:match("^[0-9]") then error("PP syntax error: Type names may not start with a number.", 0) end
 
 			-- append everything since the last function to the output.
-			table.insert(output, contents:sub(lastpos, h_begin - 1))
+			if attributes_str then
+				table.insert(output, contents:sub(lastpos, a_begin - 1))
+				table.insert(output, "--" .. attributes_str .. "\n")
+			else
+				table.insert(output, contents:sub(lastpos, h_begin - 1))
+			end
+
 			-- advance lastpos to the end of the function header
 			lastpos = h_end
 
 			-- this table contains the arguments in the following form:
 			-- argtable.argname[n] = "<argument #n name>"
 			-- argtable.typeids[n] = "<argument #n typeid>"
-			local argtable, ellipses = e2_parse_args(args)
+			local argtable, args_kind, args_varname = parseArgs(args)
 
 			-- take care of operators: give them a different name and register function
 			-- op_type is nil if we register a function and a number if it as operator
 			local name, regfn, op_type = handleop(name)
 
 			-- return type (void means "returns nothing", i.e. "" in registerFunctionese)
-			local ret_typeid = (ret == "void") and "" or e2_get_typeid(ret) -- ret_typeid = (ret == "void") ? "" : e2_get_typeid(ret)
+			local ret_typeid = (ret == "void") and "" or getTypeId(ret)
 
 			-- return type not found => throw an error
 			if not ret_typeid then error("PP syntax error: Invalid return type: '" .. ret .. "'", 0) end
@@ -254,12 +323,12 @@ function e2_extpp_pass2(contents)
 			-- if "typename:" was found in front of the function name
 			if thistype ~= "" then
 				-- evaluate the type name
-				local this_typeid = e2_get_typeid(thistype)
+				local this_typeid = getTypeId(thistype)
 
 				-- the type was not found?
 				if this_typeid == nil then
 					-- is the type name a valid typeid?
-					if is_valid_typeid(thistype) then
+					if isValidTypeId(thistype) then
 						-- use the type name as the typeid
 						this_typeid = thistype
 					else
@@ -309,38 +378,75 @@ function e2_extpp_pass2(contents)
 			if aliasflag then
 				if aliasflag == 1 then
 					-- left hand side of an alias definition
-					aliasdata = { regfn, name, arg_typeids, ret_typeid }
+					aliasdata = { regfn, name, arg_typeids, ret_typeid, attributes }
 				elseif aliasflag == 2 then
 					-- right hand side of an alias definition
-					regfn, name, arg_typeids, ret_typeid = unpack(aliasdata)
-					table.insert(function_register, ('if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n'):format(mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
+					regfn, name, arg_typeids, ret_typeid, attributes = unpack(aliasdata)
+					table.insert(function_register,
+						string.format(
+							'if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s, %s) end\n',
+							mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1), attributes
+						)
+					)
 				end
 			else
 				-- save tempcost
 				table.insert(output, string.format("tempcosts[%q]=__e2getcost() ", mangled_name))
-				if ellipses then
+				if args_kind == ArgsKind.Variadic then
 					-- generate a registerFunction line
-					table.insert(function_register, string.format('if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids .. "...", ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
+					table.insert(function_register,
+						string.format(
+							'if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n',
+							mangled_name, regfn, name, arg_typeids .. "...", ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1), attributes
+						)
+					)
 
-					-- generate a new function header and append it to the output
-					table.insert(output, 'function registeredfunctions.' .. mangled_name .. '(self, args, typeids, ...)')
-					table.insert(output, " if not typeids then")
-					table.insert(output, " local arr,typeids,source_typeids,tmp={},{},args[#args]")
-					table.insert(output, " for i=" .. (2 + #argtable.typeids) .. ",#args-1 do")
-					table.insert(output, " tmp=args[i]")
-					table.insert(output, " arr[#arr+1]=tmp[1](self,tmp)")
-					if thistype ~= "" then
-						-- offset to compensate the absence of this's typeid
-						table.insert(output, " typeids[#typeids+1]=source_typeids[i-2]")
-					else
-						table.insert(output, " typeids[#typeids+1]=source_typeids[i-1]")
-					end
-					table.insert(output, " end")
-					table.insert(output, " return registeredfunctions." .. mangled_name .. "(self,args,typeids,unpack(arr))")
-					table.insert(output, " end")
+					table.insert(output, compact([[
+						function registeredfunctions.]] .. mangled_name .. [[(self, args, typeids, ...)
+							if not typeids then
+								local arr, typeids, source_typeids, tmp = {}, {}, args[#args]
+								for i = ]] .. 2 + #argtable.typeids .. [[, #args - 1 do
+									tmp = args[i]
+
+									arr[i - ]] .. 1 + #argtable.typeids .. [[] = tmp[1](self, tmp)
+									typeids[i - ]] .. 1 + #argtable.typeids .. [[] = source_typeids[i - ]] .. (thistype ~= "" and 2 or 1) .. [[]
+								end
+								return registeredfunctions.]] .. mangled_name .. [[(self, args, typeids, unpack(arr))
+							end
+					]]))
+				elseif args_kind == ArgsKind.VariadicTbl then
+					-- generate a registerFunction line
+					table.insert(function_register,
+						string.format(
+							'if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s, %s) end\n',
+							mangled_name, regfn, name, arg_typeids .. "...", ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1), attributes
+						)
+					)
+					
+
+					-- Using __varargs_priv to avoid shadowing variables like `args` and breaking this implementation.
+					table.insert(output, compact([[
+						function registeredfunctions.]] .. mangled_name .. [[(self, args, typeids, __varargs_priv)
+							if not typeids then
+								__varargs_priv, typeids = {}, {}
+								local source_typeids, tmp = args[#args]
+								for i = ]] .. 2 + #argtable.typeids .. [[, #args - 1 do
+									tmp = args[i]
+									__varargs_priv[i - ]] .. 1 + #argtable.typeids .. [[] = tmp[1](self, tmp)
+									typeids[i - ]] .. 1 + #argtable.typeids .. [[] = source_typeids[i - ]] .. (thistype ~= "" and 2 or 1) .. [[]
+								end
+							end
+
+							]] .. (#argtable.argnames == 0 and ("local " .. args_varname .. " = __varargs_priv") or "") .. [[
+					]]))
 				else
 					-- generate a registerFunction line
-					table.insert(function_register, string.format('if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
+					table.insert(function_register,
+						string.format(
+							'if registeredfunctions.%s then %s(%q, %q, %q, registeredfunctions.%s, tempcosts[%q], %s, %s) end\n',
+							mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1), attributes
+						)
+					)
 
 					-- generate a new function header and append it to the output
 					table.insert(output, 'function registeredfunctions.' .. mangled_name .. '(self, args)')
@@ -369,12 +475,15 @@ function e2_extpp_pass2(contents)
 						argfetch,
 						opfetch_l,
 						opfetch_r))
+
+					-- Workaround if someone names their variadic args an internally used variable
+					if args_kind == ArgsKind.VariadicTbl then
+						table.insert(output, " local " .. args_varname .. " = __varargs_priv")
+					end
 				end -- if #argtable.argnames ~= 0
 			end -- if aliasflag
 			table.insert(output, whitespace)
 		end
-
-		-- function handle_function()
 
 		-- use pcall, so we can add line numbers to all errors
 		local ok, msg = pcall(handle_function)

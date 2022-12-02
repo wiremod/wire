@@ -1,5 +1,5 @@
 --[[----------------------------------------------------------------------------
-  Player-Entity support
+	Player-Entity support
 ------------------------------------------------------------------------------]]
 
 local IsValid = IsValid
@@ -43,31 +43,31 @@ end
 __e2setcost(8)
 
 e2function vector entity:shootPos()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
-	if not this:IsPlayer() and not this:IsNPC() then return self:throw("Expected a Player or NPC in shootPos", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
+	if not this:IsPlayer() and not this:IsNPC() then return self:throw("Expected a Player or NPC in shootPos", Vector(0, 0, 0)) end
 	return this:GetShootPos()
 end
 
 e2function vector entity:eye()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:IsPlayer() and this:GetAimVector() or this:GetForward()
 end
 
 --- Returns an angle describing player <this>'s view angles.
 e2function angle entity:eyeAngles()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
 	local ang = this:EyeAngles()
-	return { ang.p, ang.y, ang.r }
+	return Angle(ang.p, ang.y, ang.r)
 end
 
 -- TODO: remove this check at some point in the future when LocalEyeAngles is available in the stable version of gmod
 if FindMetaTable("Player").LocalEyeAngles then
 	--- Gets a player's view direction, relative to any vehicle they sit in. This function is needed to reproduce the behavior of cam controller. This is different from Vehicle:toLocal(Ply:eyeAngles()).
 	e2function angle entity:eyeAnglesVehicle()
-		if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
-		if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", {0, 0, 0}) end
+		if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
+		if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", Angle(0, 0, 0)) end
 		local ang = this:LocalEyeAngles()
-		return { ang.p, ang.y, ang.r }
+		return Angle(ang.p, ang.y, ang.r)
 	end
 end
 
@@ -161,7 +161,7 @@ end
 
 e2function vector teamColor(index)
 	local col = team.GetColor(index)
-	return { col.r, col.g, col.b }
+	return Vector(col.r, col.g, col.b)
 end
 
 __e2setcost(10)
@@ -321,10 +321,12 @@ end
 
 hook.Add("PlayerBindDown", "Exp2KeyReceivingDown", function(player, binding, button)
 	triggerKey(player,binding,button,true)
+	E2Lib.triggerEvent("keyPressed", {player, keys_lookup[button], 1, binding})
 end)
 
 hook.Add("PlayerBindUp", "Exp2KeyReceivingUp", function(player, binding, button)
 	triggerKey(player,binding,button,false)
+	E2Lib.triggerEvent("keyPressed", {player, keys_lookup[button], 0, binding})
 end)
 
 local function toggleRunOnKeys(self,ply,on,filter)
@@ -383,6 +385,7 @@ end
 __e2setcost(1)
 
 --- Returns user if the chip is being executed because of a key event.
+[nodiscard, deprecated = "Use the keyPressed event instead"]
 e2function entity keyClk()
 	if not self.data.runOnKeys then return nil end
 	return self.data.runOnKeys.runByKey
@@ -390,6 +393,7 @@ end
 
 --- Returns 1 or -1 if the chip is being executed because of a key event by player <ply>
 --- depending of whether the key was just pressed or released
+[nodiscard, deprecated = "Use the keyPressed event instead"]
 e2function number keyClk(entity ply)
 	if not self.data.runOnKeys then return 0 end
 	if not IsValid(ply) then return 0 end
@@ -399,23 +403,28 @@ e2function number keyClk(entity ply)
 end
 
 -- Returns the key which caused the keyClk event to trigger
+[nodiscard, deprecated = "Use the keyPressed event instead"]
 e2function string keyClkPressed()
 	if not self.data.runOnKeys then return "" end
 	return self.data.runOnKeys.pressedKey
 end
 
 -- Returns the bind which caused the keyClk event to trigger (if any)
+[nodiscard, deprecated = "Use the keyPressed event instead"]
 e2function string keyClkPressedBind()
 	if not self.data.runOnKeys then return "" end
 	return self.data.runOnKeys.pressedBind
 end
 
+-- Player, Key, UporDown, KeyBind
+E2Lib.registerEvent("keyPressed", {"e", "s", "n", "s"})
+
 -- Use Support --
 
 __e2setcost(50)
---- Makes the chip "Use"able
+[nodiscard, deprecated = "Use the chipUsed event instead"]
 e2function void runOnUse(value)
-	if value != 0 then
+	if value ~= 0 then
 		self.entity:SetUseType( SIMPLE_USE )
 		self.entity.Use = function(selfEnt,activator)
 			self.data.runByUse = activator
@@ -428,10 +437,19 @@ e2function void runOnUse(value)
 end
 
 __e2setcost(1)
---- Returns the entity who is using the chip
+[nodiscard, deprecated = "Use the chipUsed event instead"]
 e2function entity useClk()
 	return self.data.runByUse or NULL
 end
+
+E2Lib.registerEvent("chipUsed", { "e" }, function(self)
+	self.entity:SetUseType(SIMPLE_USE)
+	self.entity.Use = function(selfent, activator)
+		self.entity:ExecuteEvent("chipUsed", { activator })
+	end
+end, function(self)
+	self.entity.Use = nil
+end)
 
 
 -- isTyping
@@ -499,15 +517,23 @@ concommand.Add("wire_expression2_friend_status", function(ply, command, args)
 	for index in args[1]:gmatch("[^,]+") do
 		local n = tonumber(index)
 		if not n then return end
-		table.insert(friends, Entity(n))
+		friends[Entity(n)] = true
 	end
 
-	steamfriends[ply:EntIndex()] = friends
+	steamfriends[ply] = friends
 end)
 
-hook.Add("EntityRemoved", "wire_expression2_friend_status", function(ply)
-	steamfriends[ply:EntIndex()] = nil
+hook.Add("PlayerDisconnected", "wire_expression2_friend_status", function(ply)
+	for _, friends in pairs(steamfriends) do
+		friends[ply] = nil
+	end
+
+	steamfriends[ply] = nil
 end)
+
+function E2Lib.getSteamFriends(ply)
+	return steamfriends[ply]
+end
 
 __e2setcost(15)
 
@@ -517,7 +543,13 @@ e2function array entity:steamFriends()
 	if not this:IsPlayer() then return {} end
 	if this~=self.player then return {} end
 
-	return steamfriends[this:EntIndex()] or {}
+	-- make a copy
+	local ret = {}
+	for friend in pairs(steamfriends[this]) do
+		ret[#ret+1] = friend
+	end
+
+	return ret
 end
 
 --- Returns 1 if <this> and <friend> are steam friends, 0 otherwise.
@@ -526,10 +558,10 @@ e2function number entity:isSteamFriend(entity friend)
 	if not this:IsPlayer() then return 0 end
 	if this~=self.player then return 0 end
 
-	local friends = steamfriends[this:EntIndex()]
+	local friends = steamfriends[this]
 	if not friends then return 0 end
 
-	return table.HasValue(friends, friend) and 1 or 0
+	return friends[friend] and 1 or 0
 end
 
 --------------------------------------------------------------------------------
@@ -609,15 +641,15 @@ e2function entity entity:aimEntity()
 end
 
 e2function vector entity:aimPos()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
-	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", Vector(0, 0, 0)) end
 
 	return this:GetEyeTraceNoCursor().HitPos
 end
 
 e2function vector entity:aimNormal()
-	if not IsValid(this) then return self:throw("Invalid entity!", {0, 0, 0}) end
-	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", {0, 0, 0}) end
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", Vector(0, 0, 0)) end
 
 	return this:GetEyeTraceNoCursor().HitNormal
 end
@@ -637,6 +669,8 @@ end
 
 hook.Add("PlayerInitialSpawn","Exp2RunOnJoin", function(ply)
 	lastJoined = ply
+	E2Lib.triggerEvent("playerConnected", { ply })
+
 	for e,_ in pairs(spawnAlert) do
 		if IsValid(e) then
 			e.context.data.runBySpawn = true
@@ -650,6 +684,8 @@ end)
 
 hook.Add("PlayerDisconnected","Exp2RunOnLeave", function(ply)
 	lastLeft = ply
+	E2Lib.triggerEvent("playerDisconnected", { ply })
+
 	for e,_ in pairs(leaveAlert) do
 		if IsValid(e) then
 			e.context.data.runByLeave = true
@@ -663,6 +699,7 @@ end)
 
 __e2setcost(3)
 
+[deprecated = "Use the playerConnected event instead"]
 e2function void runOnPlayerConnect(activate)
 	if activate ~= 0 then
 		spawnAlert[self.entity] = true
@@ -671,14 +708,17 @@ e2function void runOnPlayerConnect(activate)
 	end
 end
 
+[nodiscard, deprecated = "Use the playerConnected event instead"]
 e2function number playerConnectClk()
 	return self.data.runBySpawn and 1 or 0
 end
 
+[nodiscard, deprecated = "Use the playerConnected event instead"]
 e2function entity lastConnectedPlayer()
 	return lastJoined
 end
 
+[deprecated = "Use the playerDisconnected event instead"]
 e2function void runOnPlayerDisconnect(activate)
 	if activate ~= 0 then
 		leaveAlert[self.entity] = true
@@ -687,13 +727,18 @@ e2function void runOnPlayerDisconnect(activate)
 	end
 end
 
+[nodiscard, deprecated = "Use the playerDisconnected event instead"]
 e2function number playerDisconnectClk()
 	return self.data.runByLeave and 1 or 0
 end
 
+[nodiscard, deprecated = "Use the playerDisconnected event instead"]
 e2function entity lastDisconnectedPlayer()
 	return lastLeft
 end
+
+E2Lib.registerEvent("playerConnected", { "e" })
+E2Lib.registerEvent("playerDisconnected", { "e" })
 
 ----- Death+Respawns by Vurv -----
 
@@ -721,6 +766,8 @@ hook.Add("PlayerDeath","Exp2PlayerDetDead",function(victim,inflictor,attacker)
 	}
 	DeathList[victim] = entry -- victim's death is saved as their most recent death
 	DeathList.last = entry -- the most recent death's table is stored here for later use.
+
+	E2Lib.triggerEvent("playerDeath", { victim, inflictor, attacker })
 	for e2 in next,DeathAlert do
 		if IsValid(e2) then
 			e2.context.data.runByDeath = true
@@ -739,6 +786,8 @@ hook.Add("PlayerSpawn","Exp2PlayerDetRespn",function(player)
 	}
 	RespawnList[player] = entry
 	RespawnList.last = entry
+
+	E2Lib.triggerEvent("playerSpawn", { player })
 	for e2 in next,RespawnAlert do
 		if IsValid(e2) then
 			e2.context.data.runByRespawned = true
@@ -752,16 +801,17 @@ end)
 
 __e2setcost(5)
 
---- If active is 0, the chip will no longer run on death.
+[deprecated = "Use the playerDeath event instead"]
 e2function void runOnDeath(number active)
 	DeathAlert[self.entity] = active~=0 and true or nil
 end
 
--- Give 1 or 0 depending on whether the chip was run by a death event.
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function number deathClk()
 	return self.data.runByDeath and 1 or 0
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function number lastDeathTime()
 	return DeathList.last.timestamp or 0
 end
@@ -783,50 +833,66 @@ local function getRespawnEntry(self, ply, key)
 	return entry[key]
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function number lastDeathTime(entity ply) -- When the player provided last died.
 	return getDeathEntry(self, ply,"timestamp") or 0
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function entity lastDeathVictim()
 	return DeathList.last.victim
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function entity lastDeathInflictor()
 	return DeathList.last.inflictor
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function entity lastDeathInflictor(entity ply)
 	return getDeathEntry(self, ply,"inflictor") or NULL
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function entity lastDeathAttacker()
 	return DeathList.last.attacker
 end
 
+[nodiscard, deprecated = "Use the playerDeath event instead"]
 e2function entity lastDeathAttacker(entity ply)
 	return getDeathEntry(self, ply,"attacker") or NULL
 end
 
 -- Respawn Functions
+[nodiscard, deprecated = "Use the playerSpawn event instead"]
 e2function number spawnClk()
 	return self.data.runByRespawned and 1 or 0
 end
 
+[deprecated = "Use the playerSpawn event instead"]
 e2function void runOnSpawn(number activate) -- If 1, make the chip run on a player respawning. Not joining.
 	RespawnAlert[self.entity] = active~=0 and true or nil
 end
 
+[nodiscard, deprecated = "Use the playerSpawn event instead"]
 e2function number lastSpawnTime()
 	return RespawnList.last.timestamp or 0
 end
 
+[nodiscard, deprecated = "Use the playerSpawn event instead"]
 e2function number lastSpawnTime(entity ply)
 	return getRespawnEntry(self, ply,"timestamp") or 0
 end
 
+[nodiscard, deprecated = "Use the playerSpawn event instead"]
 e2function entity lastSpawnedPlayer()
 	return RespawnList.last.ply
 end
+
+E2Lib.registerEvent("playerSpawn", { "e" })
+E2Lib.registerEvent("playerDeath", { "e", "e", "e" })
+
+
 --******************************************--
 
 

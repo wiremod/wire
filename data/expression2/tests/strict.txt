@@ -1,3 +1,5 @@
+## SHOULD_PASS:EXECUTE
+
 @strict
 
 try {

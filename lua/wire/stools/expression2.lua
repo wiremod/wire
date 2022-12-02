@@ -20,8 +20,7 @@ TOOL.ClientConVar = {
 	modelsize = "",
 	scriptmodel = "",
 	select = "",
-	autoindent = 1,
-	friendwrite = 0,
+	autoindent = 1
 }
 
 TOOL.MaxLimitName = "wire_expressions"
@@ -73,17 +72,6 @@ if SERVER then
 		end
 	end
 
-	local bypassModeCVar = CreateConVar(
-		"wire_expression2_viewrequest_bypass", 1, {FCVAR_ARCHIVE, FCVAR_NOTIFY},
-		"Sets the admin bypass mode for E2 view requests\n0 - No one can bypass\n1 - Superadmins can bypass (default)\n2 - Superadmins and admins can bypass\n3 - View requests disabled"
-	)
-	local function CheckBypass(plr)
-		local bypassMode = bypassModeCVar:GetInt()
-
-		-- Need the or between IsAdmin and IsSuperAdmin as superadmins may not count as admins due to certain addons
-		return bypassMode == 3 or (bypassMode == 2 and (plr:IsAdmin() or plr:IsSuperAdmin())) or (bypassMode == 1 and plr:IsSuperAdmin())
-	end
-
 	-- Simple serverside only local table for storing view requests to make handling them not spaghetti code
 	local viewRequests = {}
 
@@ -123,11 +111,10 @@ if SERVER then
 	end
 
 	local function RequestView(chip, initiator)
-		local index = chip:EntIndex()
 		local truncName = string.sub(chip.name, 1, 256) -- In case someone starts making cursed names
 
 		-- Make sure this isn't creating a request for a chip with an outstanding valid request
-		if ValidateRequest(initiator, index) then -- Note that ValidateRequest also deletes the invalid request and handles the expiry notif
+		if ValidateRequest(initiator, chip) then -- Note that ValidateRequest also deletes the invalid request and handles the expiry notif
 			BetterChatPrint(initiator, "Request to view '"..truncName.."' already sent")
 			return
 		end
@@ -143,9 +130,9 @@ if SERVER then
 			name = truncName,
 			expiry = CurTime() + 60 -- 1 minute for the request before it's invalidated (could make this a convar)
 		}
-		if not hook.GetTable().Tick.WireExpression2_InvalidateRequests then -- If there's no invalidation hook added, create it now we have requests to invalidate
-			hook.Add("Tick", "WireExpression2_InvalidateRequests", InvalidateRequests)
-		end
+		
+		-- Invalidate expired requests
+		hook.Add("Tick", "WireExpression2_InvalidateRequests", InvalidateRequests)
 
 		net.Start("WireExpression2_ViewRequest")
 			net.WriteEntity(initiator)                           -- The player attempting to view the E2
@@ -176,35 +163,26 @@ if SERVER then
 		local chip = player:GetEyeTrace().Entity
 		if chip:IsPlayer() then return end
 
-		local player = self:GetOwner()
-
 		if IsValid(chip) and chip:GetClass() == "gmod_wire_expression2" then
 			if chip.player == player then -- Just download if the toolgun user owns this chip
 				self:Download(player, chip)
 				player:SetAnimation(PLAYER_ATTACK1)
-			elseif (chip.alwaysAllow and chip.alwaysAllow[player]) or not IsValid(chip.player) then -- If the tooling player is in the chip's always allow table, or the chip has no valid owner meaning we can't send a request, do a CanTool check
-				if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
-					self:Download(player, chip)
-					player:SetAnimation(PLAYER_ATTACK1)
+			elseif hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then -- The player has prop protection perms on the chip
+				self:Download(player, chip)
+				player:SetAnimation(PLAYER_ATTACK1)
+
+				local playerType = "player"
+				if player:IsAdmin() then
+					playerType = player:IsSuperAdmin() and "superadmin" or "admin"
 				end
-			elseif CheckBypass(player) then
-				if hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then
-					-- Warn the chip's owner their E2 was just taken via the bypass
-					if bypassModeCVar:GetInt() == 3 then
-						BetterChatPrint(
-							chip.player,
-							string.format("Warning, the player '%s' just accessed your chip '%s', as view requests are disabled", player:Nick(), chip.name)
-						)
-					else
-						BetterChatPrint(
-							chip.player,
-							string.format("Warning, the server admin '%s' just accessed your chip '%s', as the view request admin bypass is enabled", player:Nick(), chip.name)
-						)
-					end
-					self:Download(player, chip)
-					player:SetAnimation(PLAYER_ATTACK1)
-				end
-			else
+				BetterChatPrint(
+					chip.player,
+					string.format("The %s '%s' just accessed your chip '%s' via prop protection", playerType, player:Nick(), chip.name)
+				)
+			elseif (chip.alwaysAllow and chip.alwaysAllow[player]) or not IsValid(chip.player) then -- The player doesnt have prop protection perms, however the owner always allows for this chip (or they're invalid)
+				self:Download(player, chip)
+				player:SetAnimation(PLAYER_ATTACK1)
+			else -- The player doesn't have prop protection perms on the chip, ask the owner to give contents
 				RequestView(chip, player)
 				player:SetAnimation(PLAYER_ATTACK1)
 			end
@@ -429,9 +407,19 @@ if SERVER then
 
 			local filepath = ret[3]
 
-			if ply ~= toent.player and toent.player:GetInfoNum("wire_expression2_friendwrite", 0) ~= 1 then
-				code = "@disabled for security reasons. Remove this line (Ctrl+Shift+L) and left-click the chip to enable. 'wire_expression2_friendwrite 1' disables security.\n" .. code
+			if ply ~= toent.player then
+				toent.player = ply
+				toent:SetPlayer(ply)
+				toent:SetNWEntity("player", ply)
+
+				-- Note that the SENT and CPPI owners aren't set here to allow the original owner to still access their chip
 			end
+
+			-- This is needed when formatting the #error directive on dupe
+			toent.code_author = {
+				name = ply:GetName(),
+				steamID = ply:SteamID()
+			}
 
 			toent:Setup(code, includes, nil, nil, filepath)
 		end
@@ -462,7 +450,7 @@ if SERVER then
 		if canhas(player) then return end
 		if E2.error then return end
 		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "halt execution" ) then
-			E2:PCallHook("destruct")
+			E2:Destruct()
 			E2:Error("Execution halted (Triggered by: " .. player:Nick() .. ")", "Execution halted")
 			if E2.player ~= player then
 				WireLib.AddNotify(player, "Expression halted.", NOTIFY_GENERIC, 5, math.random(1, 5))
@@ -483,26 +471,19 @@ if SERVER then
 		-- Same check as tool code
 		if E2.player == player then
 			WireLib.Expression2Download(player, E2)
+		elseif hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
+			WireLib.Expression2Download(player, E2)
+
+			local playerType = "player"
+			if player:IsAdmin() then
+				playerType = player:IsSuperAdmin() and "superadmin" or "admin"
+			end
+			BetterChatPrint(
+				E2.player,
+				string.format("The %s '%s' just accessed your chip '%s' via prop protection", playerType, player:Nick(), E2.name)
+			)
 		elseif (E2.alwaysAllow and E2.alwaysAllow[player]) or not IsValid(E2.player) then
-			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
-				WireLib.Expression2Download(player, E2)
-			end
-		elseif CheckBypass(player) then
-			if hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
-				-- Warn the chip's owner their E2 was just taken via the bypass
-				if bypassModeCVar:GetInt() == 3 then
-					BetterChatPrint(
-						E2.player,
-						string.format("Warning, the player '%s' just accessed your chip '%s', as view requests are disabled", player:Nick(), E2.name)
-					)
-				else
-					BetterChatPrint(
-						E2.player,
-						string.format("Warning, the server admin '%s' just accessed your chip '%s', as the view request admin bypass is enabled", player:Nick(), E2.name)
-					)
-				end
-				WireLib.Expression2Download(player, E2)
-			end
+			WireLib.Expression2Download(player, E2)
 		else
 			RequestView(E2, player)
 		end
@@ -710,10 +691,10 @@ elseif CLIENT then
 		if not code and not wire_expression2_editor then return end -- If the player leftclicks without opening the editor or cpanel (first spawn)
 		code = code or wire_expression2_editor:GetCode()
 		filepath = filepath or wire_expression2_editor:GetChosenFile()
-		local err, includes
+		local err, includes, warnings
 
 		if e2_function_data_received then
-			err, includes = wire_expression2_validate(code)
+			err, includes, warnings = wire_expression2_validate(code)
 			if err then
 				WireLib.AddNotify(err, NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
 				return

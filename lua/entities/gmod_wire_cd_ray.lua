@@ -57,14 +57,14 @@ end
 
 function ENT:ReadCell(Address)
 	Address = math.floor(Address)
-	if (Address >= 0) && (Address < 512) then
+	if (Address >= 0) and (Address < 512) then
 		if (self.Command[Address]) then
 			return self.Command[Address]
 		else
 			return 0
 		end
 	end
-	if (Address >= 512) && (Address < 1024) then
+	if (Address >= 512) and (Address < 1024) then
 		if (self.WriteBuffer[Address-512]) then
 			return self.WriteBuffer[Address-512]
 		else
@@ -76,14 +76,14 @@ end
 
 function ENT:WriteCell(Address, value)
 	Address = math.floor(Address)
-	if (Address >= 0) && (Address < 512) then
+	if (Address >= 0) and (Address < 512) then
 		self.Command[Address] = value
 		if (Address == 8) then
 			self:DoJob()
 		end
 		return true
 	end
-	if (Address >= 512) && (Address < 1024) then
+	if (Address >= 512) and (Address < 1024) then
 		if (value ~= 0) then
 			self.WriteBuffer[Address-512] = value
 		else
@@ -126,7 +126,7 @@ function ENT:DoJob()
 			if (self.Command[11] ~= self.Command[7]) then dojob = false end
 		end
 		if (self.Command[12] ~= 0) then
-			if (self.Command[13] ~= self.Command[3]) || (self.Command[14] ~= self.Command[4]) then
+			if (self.Command[13] ~= self.Command[3]) or (self.Command[14] ~= self.Command[4]) then
 				dojob = false
 			end
 		end

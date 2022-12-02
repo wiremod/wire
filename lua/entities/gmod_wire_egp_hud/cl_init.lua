@@ -82,14 +82,14 @@ end
 function ENT:EGP_Update()
 	for k,v in pairs( self.RenderTable ) do
 		if (v.res == nil) then v.res = false end
-		if (v.res != self.Resolution) then
-			self:ScaleObject( !v.res, v )
+		if (v.res ~= self.Resolution) then
+			self:ScaleObject( not v.res, v )
 		end
-		if (v.parent and v.parent != 0) then
-			if (!v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
+		if (v.parent and v.parent ~= 0) then
+			if (not v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
 			local _, data = EGP:GetGlobalPos( self, v.index )
 			EGP:EditObject( v, data )
-		elseif (!v.parent or v.parent == 0 and v.IsParented) then
+		elseif (not v.parent or v.parent == 0 and v.IsParented) then
 			EGP:UnParent( self, v.index )
 		end
 	end
@@ -100,7 +100,7 @@ function ENT:DrawEntityOutline() end
 
 function ENT:Draw()
 	self.Resolution = self:GetNWBool("Resolution",false)
-	if (self.Resolution != self.OldResolution) then
+	if (self.Resolution ~= self.OldResolution) then
 		self:EGP_Update()
 	end
 	self:DrawModel()

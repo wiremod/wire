@@ -235,7 +235,7 @@ end
 __e2setcost( 5 )
 
 e2function void runOnFile( active )
-	run_on.file.ents[self.entity] = (active != 0)
+	run_on.file.ents[self.entity] = (active ~= 0)
 end
 
 e2function number fileClk()
@@ -251,7 +251,7 @@ end
 __e2setcost( 5 )
 
 e2function void runOnList( active )
-	run_on.list.ents[self.entity] = (active != 0)
+	run_on.list.ents[self.entity] = (active ~= 0)
 end
 
 e2function number fileListClk()
@@ -325,7 +325,15 @@ end)
 --- Uploading ---
 
 local function file_execute( ent, filename, status )
-	if !IsValid( ent ) or !run_on.file.ents[ent] then return end
+	if IsValid(ent) then
+		if status == FILE_OK then
+			ent:ExecuteEvent("fileLoaded", {filename, uploads[ent.player].data})
+		else
+			ent:ExecuteEvent("fileErrored", {filename, status})
+		end
+	elseif !run_on.file.ents[ent] then
+		return
+	end
 
 	run_on.file.run = 1
 	run_on.file.name = filename
@@ -399,13 +407,13 @@ net.Receive("wire_expression2_file_finish", function(netlen, ply)
 	end
 
 	local pfile = uploads[ply]
-	if !pfile then return end
+	if !pfile or !pfile.buffer then return end
 
 	pfile.uploading = false
 	pfile.data = E2Lib.decode( pfile.buffer )
 	pfile.buffer = ""
 
-	if string.len( pfile.data ) != pfile.len then -- transfer error
+	if string.len( pfile.data ) ~= pfile.len then -- transfer error
 		pfile.data = ""
 		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
 		return
@@ -467,3 +475,6 @@ net.Receive("wire_expression2_file_list", function(netlen, ply)
 	run_on.list.run = 0
 	run_on.list.dir = ""
 end )
+
+E2Lib.registerEvent("fileErrored", {"s", "n"})
+E2Lib.registerEvent("fileLoaded", {"s", "s"})

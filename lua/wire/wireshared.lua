@@ -19,11 +19,6 @@ function table.MakeNonIterable(tbl) -- luacheck: ignore
     return setmetatable({}, { __index = tbl, __setindex = tbl})
 end
 
--- Checks if the table is empty, it's faster than table.Count(Table) > 0
-function table.IsEmpty(Table) -- luacheck: ignore
-	return (next(Table) == nil)
-end
-
 -- Compacts an array by rejecting entries according to cb.
 function table.Compact(tbl, cb, n) -- luacheck: ignore
 	n = n or #tbl
@@ -974,7 +969,6 @@ function WireLib.setAng(ent, ang)
 	if abs(ang.pitch) == huge or abs(ang.yaw) == huge or abs(ang.roll) == huge then return false end -- SetAngles'ing inf crashes the server
 
 	ang = Angle(ang)
-	ang:Normalize()
 
 	return ent:SetAngles(ang)
 end
@@ -1179,17 +1173,6 @@ do
 		hook.Add("PlayerButtonUp", MESSAGE_NAME, function(player, button)
 			if not player.SyncedBindings then return end
 			local binding = player.SyncedBindings[button]
-			hook.Run("PlayerBindUp", player, binding, button)
-		end)
-
-		hook.Add("StartCommand", MESSAGE_NAME, function(player, command)
-			if not player.SyncedBindings then return end
-			local wheel = command:GetMouseWheel()
-			if wheel == 0 then return end
-			local button = wheel > 0 and MOUSE_WHEEL_UP or MOUSE_WHEEL_DOWN
-			local binding = player.SyncedBindings[button]
-			if not binding then return end
-			hook.Run("PlayerBindDown", player, binding, button)
 			hook.Run("PlayerBindUp", player, binding, button)
 		end)
 	end

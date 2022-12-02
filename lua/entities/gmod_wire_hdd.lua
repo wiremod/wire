@@ -142,7 +142,7 @@ end
 function ENT:ReadCell(Address)
 	Address = math.floor(Address)
 	--DriveID should be > 0, and less than  4 in MP
-	if ((self.DriveID < 0) || (!game.SinglePlayer() && (self.DriveID >= 4))) then
+	if ((self.DriveID < 0) or (not game.SinglePlayer() and (self.DriveID >= 4))) then
 		return nil
 	end
 
@@ -201,7 +201,7 @@ end
 function ENT:WriteCell(Address, value)
 	Address = math.floor(Address)
 	--DriveID should be > 0, and less than  4 in MP
-	if ((self.DriveID < 0) || (!game.SinglePlayer() && (self.DriveID >= 4))) then
+	if ((self.DriveID < 0) or (not game.SinglePlayer() and (self.DriveID >= 4))) then
 		return false
 	end
 

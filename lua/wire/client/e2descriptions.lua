@@ -75,6 +75,7 @@ E2Helper.Descriptions["int(n)"] = "Returns the Integer part of the Argument (alw
 E2Helper.Descriptions["frac(n)"] = "Returns the Fractional part (decimal places) of the Argument"
 E2Helper.Descriptions["clamp(nnn)"] = "If Arg1 = Arg3 (max) returns Arg3; otherwise returns Arg1"
 E2Helper.Descriptions["inrange(nnn)"] = "Returns 1 if N is in the interval [N2; N3], 0 otherwise. This means it is equivalent to ((N2 <= N) & (N <= N3))"
+E2Helper.Descriptions["lerp(nnn)"] = "Performs linear interpolation. Returns a new value between 'from' and 'to', based on a 0-1 percentage ('fraction')"
 E2Helper.Descriptions["sign(n)"] = "Returns the sign of argument (-1,0,1) [sign(N) = N / abs(N) ]"
 E2Helper.Descriptions["min(nn)"] = "Returns the lowest value Argument"
 E2Helper.Descriptions["min(nnn)"] = "Returns the lowest value Argument"
@@ -221,6 +222,7 @@ E2Helper.Descriptions["right(e:)"] = "Gets the right direction of the entity"
 E2Helper.Descriptions["up(e:)"] = "Gets the up direction of the entity"
 E2Helper.Descriptions["vel(e:)"] = "Gets the velocity of the entity"
 E2Helper.Descriptions["velL(e:)"] = "Gets the local velocity of the entity"
+E2Helper.Descriptions["velAtPoint(e:v)"] = "Gets the world velocity of a point in world coordinates attached to the entity"
 E2Helper.Descriptions["boxCenter(e:)"] = "Gets the center of the entity's bounding box, as a local position vector"
 E2Helper.Descriptions["boxMax(e:)"] = "Gets the maximum local XYZ of the entity's bounding box (the \"highest\" corner), as a local position vector"
 E2Helper.Descriptions["boxMin(e:)"] = "Gets the minimum local XYZ of the entity's bounding box (the \"lowest\" corner), as a local position vector"
@@ -949,6 +951,7 @@ E2Helper.Descriptions["lastSaid(e:)"] = "Returns what the player E last said"
 E2Helper.Descriptions["lastSaidWhen(e:)"] = "Returns when the given player last said something"
 E2Helper.Descriptions["lastSaidTeam(e:)"] = "Returns 1 if the last message was sent in the team chat, 0 otherwise"
 E2Helper.Descriptions["hideChat(n)"] = "Hides the chat messages written by E2 owner"
+E2Helper.Descriptions["modifyChat(s)"] = "Changes the chat message, if the chat message was written by the E2 owner"
 E2Helper.Descriptions["runOnChat(n)"] = "If set to 0, the chip will no longer run on chat events, otherwise it makes this chip execute when someone chats. Only needs to be called once, not in every execution"
 
 -- Color
@@ -1188,6 +1191,10 @@ E2Helper.Descriptions["holoBoneScale(ns)"] = "Returns the scale of the given hol
 E2Helper.Descriptions["holoBoneScale(nsv)"] = "Sets the scale of the given hologram named bone, as a multiplier"
 E2Helper.Descriptions["holoScaleUnits(n)"] = "Returns the scale of the given hologram in source units"
 E2Helper.Descriptions["holoScaleUnits(nv)"] = "Sets the scale of the given hologram, in source units"
+E2Helper.Descriptions["holoBonePos(nn)"] = "Returns the position of the given hologram bone"
+E2Helper.Descriptions["holoBoneAng(nn)"] = "Returns the angles of the given hologram bone"
+E2Helper.Descriptions["holoBonePos(ns)"] = "Returns the position of the given hologram named bone"
+E2Helper.Descriptions["holoBoneAng(ns)"] = "Returns the angles of the given hologram named bone"
 E2Helper.Descriptions["holoShadow(nn)"] = "Enables the hologram's shadow"
 E2Helper.Descriptions["holoVisible(nen)"] = "If 0, prevents a specific player from seeing the hologram"
 E2Helper.Descriptions["holoVisible(nrn)"] = "If 0, prevents an array of players from seeing the hologram"
@@ -1546,3 +1553,15 @@ E2Helper.Descriptions["setRadius(xef:n)"] = "Sets the radius of the effect"
 E2Helper.Descriptions["setScale(xef:n)"] = "Sets the scale of the effect"
 E2Helper.Descriptions["setStart(xef:v)"] = "Sets the start of the effect"
 E2Helper.Descriptions["setSurfaceProp(xef:n)"] = "Sets the surface property index of the effect"
+E2Helper.Descriptions["effectCanPlay()"] = "Returns whether you can play an effect (or 0 if you've hit the burst limit)"
+E2Helper.Descriptions["effectCanPlay(s)"] = "Same as effectCanPlay(), but also checks if the specific effect is not allowed"
+
+--Interpolations
+
+local from_easings = {"OutElastic","OutCirc","InOutQuint","InCubic","InOutCubic","InOutBounce","InOutSine","OutQuad","InOutCirc","InElastic","OutBack","InQuint","InSine","InBounce","InQuart","OutSine","OutExpo","InOutExpo","InQuad","InOutElastic","InOutQuart","InExpo","OutCubic","OutQuint","OutBounce","InCirc","InBack","InOutQuad","OutQuart","InOutBack"}
+
+for k, v in pairs(from_easings) do
+	local name = "ease" .. v
+	
+	E2Helper.Descriptions[name .. "(n)"] = "Performs " .. v .. " interpolation on the argument. You can see how all of these interpolation functions look here: https://imgur.com/XZPgymK"
+end

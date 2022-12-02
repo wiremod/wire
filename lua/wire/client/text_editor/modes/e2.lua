@@ -26,12 +26,16 @@ local keywords = {
 	["else"]     = { [true] = true },
 	["break"]    = { [true] = true },
 	["continue"] = { [true] = true },
-	--["function"] = { [true] = true },
+	["function"] = { [true] = true },
 	["return"] = { [true] = true },
 	["local"]  = { [true] = true },
 	["try"]    = { [true] = true },
-	["do"] = { [true] = true }
+	["do"] = { [true] = true },
+	["event"] = { [true] = true },
+	["#include"] = { [true] = true }
 }
+
+EDITOR.Keywords = keywords
 
 -- fallback for nonexistant entries:
 setmetatable(keywords, { __index=function(tbl,index) return {} end })
@@ -63,9 +67,11 @@ local colors = {
 	["operator"]  = { Color(224, 224, 224), false}, -- white
 	["comment"]   = { Color(128, 128, 128), false}, -- grey
 	["ppcommand"] = { Color(240,  96, 240), false}, -- purple
+	["ppcommandargs"] = { Color(128, 128, 128), false}, -- same as comment
 	["typename"]  = { Color(240, 160,  96), false}, -- orange
 	["constant"]  = { Color(240, 160, 240), false}, -- pink
 	["userfunction"] = { Color(102, 122, 102), false}, -- dark grayish-green
+	["eventname"] = { Color(74, 194, 116), false} -- green
 }
 
 function EDITOR:GetSyntaxColor(name)
@@ -342,6 +348,92 @@ function EDITOR:SyntaxColorLine(row)
 				local spaces = self:SkipPattern( " *" )
 				if spaces then addToken( "comment", spaces ) end
 
+				-- Exception for the spread "..." operator
+				local dots = self:SkipPattern( "%.%.%." )
+				if dots then addToken( "operator", dots ) end
+
+				local invalidInput = self:SkipPattern( "[^A-Z:%[]*" )
+				if invalidInput then addToken( "notfound", invalidInput ) end
+
+				if self:NextPattern( "%[" ) then -- Found a [
+					-- Color the bracket
+					addToken( "operator", self.tokendata )
+					self.tokendata = ""
+
+					while self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) do -- If we found a variable
+						addToken( "variable", self.tokendata )
+						self.tokendata = ""
+
+						local spaces = self:SkipPattern( " *" )
+						if spaces then addToken( "comment", spaces ) end
+					end
+
+					if self:NextPattern( "%]" ) then
+						addToken( "operator", "]" )
+						self.tokendata = ""
+					end
+				elseif self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) then -- If we found a variable
+					-- Color the variable
+					addToken( "variable", self.tokendata )
+					self.tokendata = ""
+				end
+
+				if self:NextPattern( ":" ) then -- Check for the colon
+					addToken( "operator", ":" )
+					self.tokendata = ""
+				end
+
+				-- Find the type
+				if self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then
+					if istype( self.tokendata ) or self.tokendata == "void" then -- If it's a type
+						addToken( "typename", self.tokendata )
+					else -- aww
+						addToken( "notfound", self.tokendata )
+					end
+				end
+
+				local spaces = self:SkipPattern( " *" )
+				if spaces then addToken( "comment", spaces ) end
+
+				-- If we found a comma, skip it
+				if self.character == "," then addToken( "operator", "," ) self:NextCharacter() end
+			end
+		end
+
+		self.tokendata = ""
+		if self:NextPattern( "%) *{?" ) then -- check for ending bracket (and perhaps an ending {?)
+			addToken( "operator", self.tokendata )
+		end
+	end
+
+	local found = self:SkipPattern("( *event)")
+	if found then
+		addToken( "keyword", found ) -- Add "event"
+		self.tokendata = "" -- Reset tokendata
+
+		local spaces = self:SkipPattern( " *" )
+		if spaces then addToken( "comment", spaces ) end
+
+		if self:NextPattern( "%w+" ) then -- event <name>
+			local eventname = self.tokendata:match( "%w+" )
+			addToken("eventname", eventname)
+
+			self.tokendata = ""
+		end
+
+		if self:NextPattern( "%(" ) then -- We found a bracket
+			addToken( "operator", self.tokendata )
+
+			while self.character and self.character ~= ")" do -- Loop until the ending bracket
+				self.tokendata = ""
+
+				local spaces = self:SkipPattern( " *" )
+				if spaces then addToken( "comment", spaces ) end
+
+				-- Exception for the spread "..." operator
+				local dots = self:SkipPattern( "%.%.%." )
+				if dots then addToken( "operator", dots ) end
+
 				local invalidInput = self:SkipPattern( "[^A-Z:%[]*" )
 				if invalidInput then addToken( "notfound", invalidInput ) end
 
@@ -488,7 +580,11 @@ function EDITOR:SyntaxColorLine(row)
 			end
 
 		elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
-			tokenname = "variable"
+			if self.tokendata == "This" then
+				tokenname = "typename"
+			else
+				tokenname = "variable"
+			end
 
 			if highlightmode == 3 then
 				highlightmode = 4
@@ -541,7 +637,11 @@ function EDITOR:SyntaxColorLine(row)
 
 				if E2Lib.PreProcessor["PP_"..self.tokendata:sub(2)] then
 					-- there is a preprocessor command by that name => mark as such
-					tokenname = "ppcommand"
+					addToken("ppcommand", self.tokendata)
+					self.tokendata = ""
+
+					self:NextPattern(".*")
+					tokenname = "ppcommandargs"
 				elseif self.tokendata == "#include" then
 					tokenname = "keyword"
 				else

@@ -36,7 +36,7 @@ if CLIENT then
 		local x = net.ReadFloat()
 		local y = net.ReadFloat()
 
-		if IsValid(ent) then
+		if IsValid(ent) and ent.AddNode then
 			ent:AddNode(x,y)
 		end
 	end)

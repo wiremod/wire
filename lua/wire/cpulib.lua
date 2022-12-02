@@ -113,20 +113,23 @@ if CLIENT then
   function CPULib.Validate(editor,source,fileName)
     CPULib.Compile(source,fileName,
       function()
-        editor.C.Val:SetBGColor(50, 128, 20, 180)
-        editor.C.Val:SetFGColor(255, 255, 255, 128)
-        editor.C.Val:SetText("   Success, "..(HCOMP.WritePointer or "?").." bytes compiled.")
+        editor.C.Val:Update(nil, nil, "   Success, "..(HCOMP.WritePointer or "?").." bytes compiled.", Color(50, 128, 20))
       end,
       function(error,errorPos)
-        editor.C.Val:SetBGColor(128, 20, 50, 180)
-        editor.C.Val:SetFGColor(255, 255, 255, 128)
-        editor.C.Val:SetText("   "..(error or "unknown error"))
+        local issue = (error or "unknown error")
 
-        if not errorPos then return end
+        local line, char = 0, 0
 
-        local textEditor = CPULib.SelectTab(editor,errorPos.File)
-        if not textEditor then return end
-        textEditor:SetCaret({errorPos.Line,errorPos.Col})
+        if errorPos then 
+          line = errorPos.Line
+          char = errorPos.Col
+
+          local textEditor = CPULib.SelectTab(editor,errorPos.File)
+          if not textEditor then return end
+          textEditor:SetCaret({errorPos.Line,errorPos.Col})
+        end
+
+        editor.C.Val:Update({{message = issue, line = line, char = char}}, nil, issue, Color(128, 20, 50))
       end,editor.EditorType)
   end
 

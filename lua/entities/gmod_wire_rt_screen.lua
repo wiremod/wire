@@ -76,7 +76,18 @@ if SERVER then
         "Scroll X", "Scroll Y", "Scale X", "Scale Y"
     }
 
-	local screens = {}
+	local screens = ents.FindByClass("gmod_wire_rt_screen") or {}
+
+	local function ImprovedRTCamera(ply, plyView)
+        for _, screen in ipairs(screens) do
+            if screen:GetActive() and screen:ShouldDrawCamera(ply) then
+                local camera = screen:GetCamera()
+                if IsValid(camera) and camera:GetActive() then
+                    AddOriginToPVS(camera:GetPos())
+                end
+            end
+        end
+    end
 
     function ENT:Initialize()
         self:PhysicsInit( SOLID_VPHYSICS )
@@ -86,6 +97,9 @@ if SERVER then
         self:DrawShadow( false )
 
 		table.insert(screens, self)
+		if #screens == 1 then
+			hook.Add("SetupPlayerVisibility", "ImprovedRTCamera", ImprovedRTCamera)
+		end
 
         self.Inputs = Wire_CreateInputs( self, InputsTable )
 
@@ -109,19 +123,11 @@ if SERVER then
         self.Inputs = Wire_CreateInputs( self, Inputs )
     end
 
-	hook.Add("SetupPlayerVisibility", "ImprovedRTCamera", function(ply, plyView)
-        for _, screen in ipairs(screens) do
-            if screen:GetActive() and screen:ShouldDrawCamera(ply) then
-                local camera = screen:GetCamera()
-                if IsValid(camera) and camera:GetActive() then
-                    AddOriginToPVS(camera:GetPos())
-                end
-            end
-        end
-    end)
-
 	function ENT:OnRemove()
 		table.RemoveByValue(screens, self)
+		if #screens == 0 then
+			hook.Remove("SetupPlayerVisibility", "ImprovedRTCamera")
+		end
 	end
 
 end

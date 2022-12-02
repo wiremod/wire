@@ -989,7 +989,7 @@ e2function number findClipFromEntity( entity ent )
 	if !IsValid( ent ) then return -1 end
 	return applyClip( self, function( ent2 )
 		if !IsValid(ent2) then return false end
-		return ent != ent2
+		return ent ~= ent2
 	end)
 end
 

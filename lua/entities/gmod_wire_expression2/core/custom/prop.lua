@@ -149,8 +149,8 @@ function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 	local phys = this:GetPhysicsObject()
 	local physOrThis = IsValid(phys) and phys or this
 
-	if pos ~= nil then WireLib.setPos( physOrThis, Vector( pos[1],pos[2],pos[3] ) ) end
-	if rot ~= nil then WireLib.setAng( physOrThis, Angle( rot[1],rot[2],rot[3] ) ) end
+	if pos ~= nil then WireLib.setPos( physOrThis, pos ) end
+	if rot ~= nil then WireLib.setAng( physOrThis, rot ) end
 
 	if IsValid( phys ) then
 		if freeze ~= nil and this:GetUnFreezable() ~= true then phys:EnableMotion( freeze == 0 ) end
@@ -415,6 +415,22 @@ e2function void entity:propSetVelocityInstant(vector velocity)
 	end
 end
 
+e2function void entity:propSetAngVelocity(vector velocity)
+	if not PropCore.ValidAction(self, this, "angvel") then return end
+	local phys = this:GetPhysicsObject()
+	if IsValid( phys ) then
+		phys:SetAngleVelocity(Vector(velocity[1], velocity[2], velocity[3]))
+	end
+end
+
+e2function void entity:propSetAngVelocityInstant(vector velocity)
+	if not PropCore.ValidAction(self, this, "angvelinst") then return end
+	local phys = this:GetPhysicsObject()
+	if IsValid( phys ) then
+		phys:SetAngleVelocityInstantaneous(Vector(velocity[1], velocity[2], velocity[3]))
+	end
+end
+
 hook.Add( "CanDrive", "checkPropStaticE2", function( ply, ent ) if ent.propStaticE2 ~= nil then return false end end )
 e2function void entity:propStatic( number static )
 	if not PropCore.ValidAction( self, this, "static" ) then return end
@@ -444,6 +460,7 @@ e2function void entity:setPos(vector pos)
 	PropCore.PhysManipulate(this, pos, nil, nil, nil, nil)
 end
 
+[deprecated]
 e2function void entity:reposition(vector pos) = e2function void entity:setPos(vector pos)
 
 e2function void entity:setAng(angle rot)
@@ -451,6 +468,7 @@ e2function void entity:setAng(angle rot)
 	PropCore.PhysManipulate(this, nil, rot, nil, nil, nil)
 end
 
+[deprecated]
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
 
 --------------------------------------------------------------------------------

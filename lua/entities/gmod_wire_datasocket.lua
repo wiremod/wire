@@ -8,9 +8,9 @@ function ENT:GetPlugClass()
 end
 
 if CLIENT then
-	hook.Add("HUDPaint","Wire_DataSocket_DrawLinkHelperLine",function()
-		local sockets = ents.FindByClass("gmod_wire_datasocket")
-		for k,self in pairs( sockets ) do
+	local sockets = ents.FindByClass("gmod_wire_datasocket") or {}
+	local function DrawLinkHelperLinefunction()
+		for k,self in ipairs( sockets ) do
 			local Pos, _ = self:GetLinkPos()
 
 			local Closest = self:GetClosestPlug()
@@ -22,9 +22,23 @@ if CLIENT then
 				surface.DrawLine(plugpos.x, plugpos.y, socketpos.x, socketpos.y)
 			end
 		end
-	end)
+	end
 
 	function ENT:DrawEntityOutline() end -- never draw outline
+	
+	function ENT:Initialize()
+		table.insert(sockets, self)
+		if #sockets == 1 then
+			hook.Add("HUDPaint", "Wire_DataSocket_DrawLinkHelperLine",DrawLinkHelperLinefunction)
+		end
+	end
+
+	function ENT:OnRemove()
+		table.RemoveByValue(sockets, self)
+		if #sockets == 0 then	
+			hook.Remove("HUDPaint", "Wire_DataSocket_DrawLinkHelperLine")
+		end
+	end
 
 	return
 end

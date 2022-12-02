@@ -41,12 +41,43 @@ local function findFunc( self, funcname, typeids, typeids_str )
 
 		if not func then
 			for i = typeIDsLength, 1, -1 do
-				func, func_return_type, func_custom = checkFuncName( self, funcname .. "(" .. concat(typeids,"",1,i) .. "...)" )
+				local sig_prefix = funcname .. "(" .. concat(typeids,"",1,i)
+				func, func_return_type, func_custom = checkFuncName( self, sig_prefix .. "...)" )
 				if func then break end
+
+				-- Try to find user-variadic functions.
+				-- Only do a single table op unless function is discovered as an optimization
+				func = self.funcs[sig_prefix .. "..r)"]
+				if func then
+					func_return_type = self.funcs_ret[sig_prefix .. "..r)"]
+					func_custom = true
+
+					break
+				else
+					func = self.funcs[sig_prefix .. "..t)"]
+					if func then
+						func_return_type = self.funcs_ret[sig_prefix .. "..t)"]
+						func_custom = true
+
+						break
+					end
+				end
 			end
 
 			if not func then
-				func, func_return_type, func_custom = checkFuncName( self, funcname .. "(...)" )
+				func = self.funcs[funcname .. "(..r)"]
+				if func then
+					func_return_type = self.funcs_ret[funcname .. "(..r)"]
+					func_custom = true
+				else
+					func = self.funcs[funcname .. "(..t)"]
+					if func then
+						func_return_type = self.funcs_ret[funcname .. "(..t)"]
+						func_custom = true
+					else
+						func, func_return_type, func_custom = checkFuncName( self, funcname .. "(...)" )
+					end
+				end
 			end
 		end
 
@@ -85,6 +116,8 @@ end
 
 __e2setcost(5)
 
+local BLOCKED_ARRAY_TYPES = E2Lib.blocked_array_types
+
 registerOperator( "stringcall", "", "", function(self, args)
 	local op1, funcargs, typeids, typeids_str, returntype = args[2], args[3], args[4], args[5], args[6]
 	local funcname = op1[1](self,op1)
@@ -98,6 +131,25 @@ registerOperator( "stringcall", "", "", function(self, args)
 	end
 
 	if returntype ~= "" then
+		if funcname == "array" then
+			local types = funcargs[#funcargs]
+
+			local k = 1
+
+			local ty = types[k]
+			while ty do
+				if BLOCKED_ARRAY_TYPES[ty] then
+					table.remove(types, k)
+					table.remove(funcargs, k + 1)
+
+					self:throw("Cannot use type " .. tps_pretty(ty) .. " for argument #" .. k .. " in stringcall array creation")
+				else
+					k = k + 1
+				end
+
+				ty = types[k]
+			end
+		end
 		local ret = func( self, funcargs )
 		return ret
 	else

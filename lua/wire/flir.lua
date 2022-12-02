@@ -67,7 +67,7 @@ if CLIENT then
 		if not ent:IsValid() then return end
 		local c = ent:GetClass()
 
-		if (c == "prop_physics" or ent:GetMoveType() == MOVETYPE_VPHYSICS or (ent:IsPlayer() and ent != ply) or ent:IsNPC() or ent:IsRagdoll() or c == "gmod_wire_hologram") and ent:GetColor().a > 0 then
+		if (c == "prop_physics" or ent:GetMoveType() == MOVETYPE_VPHYSICS or (ent:IsPlayer() and ent ~= ply) or ent:IsNPC() or ent:IsRagdoll() or c == "gmod_wire_hologram") and ent:GetColor().a > 0 then
 			if ent:GetColor().a > 0 then
 				FLIR.RenderStack[ent] = true
 				ent.RenderOverride = FLIR.Render	--we're already rendering later, so don't bother beforehand
@@ -84,7 +84,7 @@ if CLIENT then
 	function FLIR.start()
 		if FLIR.enabled then return else FLIR.enabled = true end
 
-		for _, v in pairs(ents.GetAll()) do
+		for _, v in ipairs(ents.GetAll()) do
 			SetFLIR(v)
 		end
 
@@ -99,7 +99,7 @@ if CLIENT then
 		end)
 
 		
-		hook.Add("PostDrawOpaqueRenderables", "wire_flir", function(_, sky)
+		hook.Add("PostDrawOpaqueRenderables", "wire_flir", function(_, _, sky)
 			if sky then return end
 
 			DrawColorModify(FLIR.mapcol)

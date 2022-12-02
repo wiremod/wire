@@ -1,6 +1,10 @@
 AddCSLuaFile()
 
-E2Lib = {}
+E2Lib = {
+	Env = {
+		Events = {}
+	}
+}
 
 local type = type
 local function checkargtype(argn, value, argtype)
@@ -45,10 +49,16 @@ function E2Lib.newE2Table()
 end
 
 -- Returns a cloned table of the variable given if it is a table.
+-- TODO: Ditch this system for instead having users provide a function that returns the default value.
+-- Would be much more efficient and avoid type checks.
 local istable = istable
 local table_Copy = table.Copy
 function E2Lib.fixDefault(var)
-	return istable(var) and table_Copy(var) or var
+	local t = type(var)
+	return t == "table" and table_Copy(var)
+		or t == "Vector" and Vector(var)
+		or t == "Angle" and Angle(var)
+		or var
 end
 
 -- getHash
@@ -101,8 +111,9 @@ function E2Lib.splitType(args)
 			thistype = ret[1]
 			ret = {}
 		elseif letter == "." then
-			if args:sub(i) ~= "..." then error("Misplaced '.' in args", 2) end
-			table.insert(ret, "...")
+			local slice = args:sub(i)
+			if slice ~= "..." and slice ~= "..r" and slice ~= "..t" then error("Misplaced '.' in args", 2) end
+			table.insert(ret, slice)
 			i = i + 2
 		elseif letter == "=" then
 			if #ret ~= 1 then error("Misplaced '=' in args", 2) end
@@ -336,16 +347,10 @@ E2Lib.optable_inv = {
 	qsm = "?",
 	col = ":",
 	def = "?:",
-	com = ",",
-	lpa = "(",
-	rpa = ")",
-	lcb = "{",
-	rcb = "}",
-	lsb = "[",
-	rsb = "]",
 	dlt = "$",
 	trg = "~",
 	imp = "->",
+	spread = "..."
 }
 
 E2Lib.optable = {}
@@ -372,7 +377,7 @@ for token, op in pairs(E2Lib.optable_inv) do
 end
 
 function E2Lib.printops()
-	local op_order = { ["+"] = 1, ["-"] = 2, ["*"] = 3, ["/"] = 4, ["%"] = 5, ["^"] = 6, ["="] = 7, ["!"] = 8, [">"] = 9, ["<"] = 10, ["&"] = 11, ["|"] = 12, ["?"] = 13, [":"] = 14, [","] = 15, ["("] = 16, [")"] = 17, ["{"] = 18, ["}"] = 19, ["["] = 20, ["]"] = 21, ["$"] = 22, ["~"] = 23 }
+	local op_order = { ["+"] = 1, ["-"] = 2, ["*"] = 3, ["/"] = 4, ["%"] = 5, ["^"] = 6, ["="] = 7, ["!"] = 8, [">"] = 9, ["<"] = 10, ["&"] = 11, ["|"] = 12, ["?"] = 13, [":"] = 14, ["$"] = 15, ["~"] = 16 }
 	print("E2Lib.optable = {")
 	for k, v in pairs_sortkeys(E2Lib.optable, function(a, b) return (op_order[a] or math.huge) < (op_order[b] or math.huge) end) do
 		local tblstring = table.ToString(v)
@@ -383,6 +388,208 @@ function E2Lib.printops()
 	end
 	print("}")
 end
+
+---@enum Keyword
+local Keyword = {
+	-- ``if``
+	If = 1,
+	-- ``elseif``
+	Elseif = 2,
+	-- ``else``
+	Else = 3,
+	-- ``local``
+	Local = 4,
+	-- ``while``
+	While = 5,
+	-- ``for``
+	For = 6,
+	-- ``break``
+	Break = 7,
+	-- ``continue``
+	Continue = 8,
+	-- ``switch``
+	Switch = 9,
+	-- ``case``
+	Case = 10,
+	-- ``default``
+	Default = 11,
+	-- ``foreach``
+	Foreach = 12,
+	-- ``function``
+	Function = 13,
+	-- ``return``
+	Return = 14,
+	-- ``#include``
+	["#Include"] = 15,
+	-- ``try``
+	Try = 16,
+	-- ``catch``
+	Catch = 17,
+	-- ``do``
+	Do = 18,
+	-- ``event``
+	Event = 19
+}
+
+E2Lib.Keyword = Keyword
+
+---@type table<string, Keyword>
+E2Lib.KeywordLookup = {}
+
+for kw, v in pairs(Keyword) do
+	E2Lib.KeywordLookup[kw:lower()] = v
+end
+
+local KeywordNames = {}
+for name, val in pairs(Keyword) do
+	KeywordNames[val] = name
+end
+E2Lib.KeywordNames = KeywordNames
+
+---@enum Grammar
+local Grammar = {
+	-- {
+	LCurly = 1,
+	-- }
+	RCurly = 2,
+	-- (
+	LParen = 3,
+	-- )
+	RParen = 4,
+	-- [
+	LSquare = 5,
+	-- ]
+	RSquare = 6,
+	-- ,
+	Comma = 7
+}
+
+E2Lib.Grammar = Grammar
+E2Lib.GrammarLookup = {
+	['{'] = Grammar.LCurly,
+	['}'] = Grammar.RCurly,
+	['('] = Grammar.LParen,
+	[')'] = Grammar.RParen,
+	['['] = Grammar.LSquare,
+	[']'] = Grammar.RSquare,
+	[','] = Grammar.Comma
+}
+
+local GrammarNames = {}
+for name, val in pairs(Grammar) do
+	GrammarNames[val] = name
+end
+E2Lib.GrammarNames = GrammarNames
+
+---@enum Operator
+local Operator = {
+	-- `+`
+	Add = 1,
+	-- `-`
+	Sub = 2,
+	-- `*`
+	Mul = 3,
+	-- `/`
+	Div = 4,
+	-- `%`
+	Mod = 5,
+	-- `^`
+	Exp = 6,
+	-- `=`
+	Ass = 7,
+	-- +=
+	Aadd = 8,
+	-- -=
+	Asub = 9,
+	-- `*=`
+	Amul = 10,
+	-- `/=`
+	Adiv = 11,
+	-- `++`
+	Inc = 12,
+	-- `--`
+	Dec = 13,
+	-- `==`
+	Eq = 14,
+	-- `!=`
+	Neq = 15,
+	-- `<`
+	Lth = 16,
+	-- `>=`
+	Geq = 17,
+	-- `<=`
+	Leq = 18,
+	-- `>`
+	Gth = 19,
+	-- `&&`
+	Band = 20,
+	-- `||`
+	Bor = 21,
+	-- `^^`
+	Bxor = 22,
+	-- `>>`
+	Bshr = 23,
+	-- `<<`
+	Bshl = 24,
+	-- `!`
+	Not = 25,
+	-- `&`
+	And = 26,
+	-- `|`
+	Or = 27,
+	-- `?`
+	Qsm = 28,
+	-- `:`
+	Col = 29,
+	-- `?:`
+	Def = 30,
+	-- `$`
+	Dlt = 31,
+	-- `~`
+	Trg = 32,
+	-- `->`
+	Imp = 33,
+	-- `...`
+	Spread = 34
+}
+
+E2Lib.Operator = Operator
+
+local OperatorNames = {}
+for name, val in pairs(Operator) do
+	OperatorNames[val] = name
+end
+E2Lib.OperatorNames = OperatorNames
+
+local OperatorLookup = {
+	["+"] = Operator.Add, ["-"] = Operator.Sub, ["*"] = Operator.Mul, ["/"] = Operator.Div,
+	["%"] = Operator.Mod, ["^"] = Operator.Exp, ["="] = Operator.Ass, ["+="] = Operator.Aadd,
+	["-="] = Operator.Asub, ["*="] = Operator.Amul, ["/="] = Operator.Adiv, ["++"] = Operator.Inc,
+	["--"] = Operator.Dec, ["=="] = Operator.Eq, ["!="] = Operator.Neq, ["<"] = Operator.Lth,
+	[">="] = Operator.Geq, ["<="] = Operator.Leq, [">"] = Operator.Gth, ["&&"] = Operator.Band,
+	["||"] = Operator.Bor, ["^^"] = Operator.Bxor, [">>"] = Operator.Bshr, ["<<"] = Operator.Bshl,
+	["!"] = Operator.Not, ["&"] = Operator.And, ["|"] = Operator.Or, ["?"] = Operator.Qsm,
+	[":"] = Operator.Col, ["?:"] = Operator.Def, ["$"] = Operator.Dlt, ["~"] = Operator.Trg,
+	["->"] = Operator.Imp, ["..."] = Operator.Spread
+}
+
+E2Lib.OperatorLookup = OperatorLookup
+
+local OperatorChars = {}
+for op in pairs(OperatorLookup) do
+	for i = 1, #op do
+		local c = op:sub(i, i)
+		OperatorChars[c] = true
+	end
+end
+
+E2Lib.OperatorChars = OperatorChars
+
+E2Lib.blocked_array_types = {
+	["t"] = true,
+	["r"] = true,
+	["xgt"] = true
+}
 
 -- ------------------------------ string stuff ---------------------------------
 
@@ -778,9 +985,111 @@ function E2Lib.raiseException(msg, level, trace, can_catch)
 end
 
 --- Unpacks either an exception object as seen above or an error string.
+---@return boolean catchable
+---@return string msg
+---@return TokenTrace? trace
 function E2Lib.unpackException(struct)
 	if isstring(struct) then
 		return false, struct, nil
 	end
 	return struct.catchable, struct.msg, struct.trace
+end
+
+
+--- Mimics an E2 Context as if it were really on an entity.
+--- This code can probably be deduplicated but that'd needlessly complicate things, and I've made this compact enough.
+---@param owner GEntity? # Owner, or assumes world
+---@return ScopeManager? # Context or nil if failed
+local function makeContext(owner)
+	local ctx = setmetatable({
+		data = {}, vclk = {}, funcs = {}, funcs_ret = {},
+		entity = owner, player = owner, uid = IsValid(owner) and owner:UniqueID() or "World",
+		prf = 0, prfcount = 0, prfbench = 0,
+		time = 0, timebench = 0, includes = {}
+	}, E2Lib.ScopeManager)
+
+	ctx:InitScope()
+
+	-- Construct the context to run code.
+	-- If not done, 
+	local ok, why = pcall(wire_expression2_CallHook, "construct", ctx)
+	if not ok then
+		pcall(wire_expression2_CallHook, "destruct", ctx)
+	end
+
+	return ctx
+end
+
+--- Compiles an E2 script without an entity owning it.
+--- This doesn't have 1:1 behavior with an actual E2 chip existing, but is useful for testing.
+---@param code string E2 Code to compile.
+---@param owner GEntity? 'Owner' entity, default world.
+---@return boolean success If ran successfully
+---@return string|function compiled Compiled function, or error message if not success
+function E2Lib.compileScript(code, owner, run)
+	local status, directives, code = E2Lib.PreProcessor.Execute(code)
+	if not status then return false, directives end -- Preprocessor failed.
+
+	local status, tokens = E2Lib.Tokenizer.Execute(code)
+	if not status then return false, tokens end
+
+	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
+	if not status then return false, tree end
+
+	status,tree = E2Lib.Optimizer.Execute(tree)
+	if not status then return false, tree end
+
+	local status, script, inst = E2Lib.Compiler.Execute(tree, directives.inputs, directives.outputs, directives.persist, dvars, {})
+	if not status then return false, script end
+
+	local ctx = makeContext(owner or game.GetWorld())
+	if directives.strict then
+		local err = E2Lib.raiseException
+		function ctx:throw(msg)
+			err(msg, 2, self.trace)
+		end
+	else
+		function ctx:throw(_msg, variable)
+			return variable
+		end
+	end
+
+	return true, function(ctx2)
+		ctx = ctx2 or ctx
+
+		do
+			-- This was originally in makeContext, but I put it here in order to ensure the owner entity
+			-- Isn't polluted by these fields, so they reset each time the compiled script is used.
+
+			ctx.entity.context = ctx
+			ctx.entity.outports, ctx.entity.inports = { {}, {}, {} }, { {}, {}, {} }
+			ctx.entity.GlobalScope, ctx.entity._vars = ctx.GlobalScope, ctx.GlobalScope
+		end
+
+		ctx:PushScope()
+			local success, why = pcall( script[1], ctx, script )
+		ctx:PopScope()
+
+		-- Cleanup so hooks like runOnTick won't run after this call
+		pcall(wire_expression2_CallHook, "destruct", ctx)
+
+		do
+			-- Cleanup
+			ctx.entity.context = nil
+			ctx.entity.outports, ctx.entity.inports = nil, nil
+			ctx.entity.GlobalScope, ctx.entity._vars = nil, nil
+		end
+
+		if success then
+			return true
+		else
+			local _, why, trace = E2Lib.unpackException(why)
+
+			if trace then
+				return false, "Runtime error: '" .. why .. "' at line " .. trace[1] .. ", col " .. trace[2]
+			else
+				return false, why
+			end
+		end
+	end
 end

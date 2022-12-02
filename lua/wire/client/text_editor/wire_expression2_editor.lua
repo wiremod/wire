@@ -16,6 +16,7 @@ end
 
 Editor.FontConVar = CreateClientConVar("wire_expression2_editor_font", defaultFont, true, false)
 Editor.FontSizeConVar = CreateClientConVar("wire_expression2_editor_font_size", 16, true, false)
+Editor.FontAntialiasingConvar = CreateClientConVar("wire_expression2_editor_font_antialiasing", 0, true, false)
 Editor.BlockCommentStyleConVar = CreateClientConVar("wire_expression2_editor_block_comment_style", 1, true, false)
 Editor.NewTabOnOpen = CreateClientConVar("wire_expression2_new_tab_on_open", "1", true, false)
 Editor.ops_sync_subscribe = CreateClientConVar("wire_expression_ops_sync_subscribe",0,true,false)
@@ -56,24 +57,26 @@ end
 
 function Editor:ChangeFont(FontName, Size)
 	if not FontName or FontName == "" or not Size then return end
+	local antialias = self.FontAntialiasingConvar:GetBool()
+	local antialias_suffix = antialias and "_AA" or ""
 
 	-- If font is not already created, create it.
-	if not self.CreatedFonts[FontName .. "_" .. Size] then
+	if not self.CreatedFonts[FontName .. "_" .. Size .. antialias_suffix] then
 		local fontTable =
 		{
 			font = FontName,
 			size = Size,
 			weight = 400,
-			antialias = false,
+			antialias = antialias,
 			additive = false,
 		}
-		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size, fontTable)
+		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. antialias_suffix, fontTable)
 		fontTable.weight = 700
-		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. "_Bold", fontTable)
-		self.CreatedFonts[FontName .. "_" .. Size] = true
+		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. "_Bold"  .. antialias_suffix, fontTable)
+		self.CreatedFonts[FontName .. "_" .. Size .. antialias_suffix] = true
 	end
 
-	self.CurrentFont = "Expression2_" .. FontName .. "_" .. Size
+	self.CurrentFont = "Expression2_" .. FontName .. "_" .. Size  .. antialias_suffix
 	surface.SetFont(self.CurrentFont)
 	self.FontWidth, self.FontHeight = surface.GetTextSize(" ")
 
@@ -98,9 +101,11 @@ local colors = {
 	["operator"] = Color(224, 224, 224), -- white
 	["comment"] = Color(128, 128, 128), -- grey
 	["ppcommand"] = Color(240, 96, 240), -- purple
+	["ppcommandargs"] = Color(128, 128, 128), -- same as comment
 	["typename"] = Color(240, 160, 96), -- orange
 	["constant"] = Color(240, 160, 240), -- pink
 	["userfunction"] = Color(102, 122, 102), -- dark grayish-green
+	["eventname"] = Color(74, 194, 116), -- green
 	["dblclickhighlight"] = Color(0, 100, 0) -- dark green
 }
 
@@ -774,7 +779,7 @@ function Editor:InitComponents()
 
 	self.C.MainPane = vgui.Create("DPanel", self.C.Divider)
 	self.C.Menu = vgui.Create("DPanel", self.C.MainPane)
-	self.C.Val = vgui.Create("Button", self.C.MainPane) -- Validation line
+	self.C.Val = vgui.Create("Wire.IssueViewer", self.C.MainPane) -- Validation line
 	self.C.TabHolder = vgui.Create("DPropertySheet", self.C.MainPane)
 	self.C.TabHolder:SetPadding(1)
 
@@ -813,7 +818,7 @@ function Editor:InitComponents()
 
 	self.C.Menu:SetHeight(24)
 	self.C.Menu:DockPadding(2,2,2,2)
-	self.C.Val:SetHeight(22)
+	self.C.Val:SetHeight(self.C.Val.CollapseSize)
 
 	self.C.SaE:SetSize(80, 20)
 	self.C.SaE:Dock(RIGHT)
@@ -878,9 +883,6 @@ function Editor:InitComponents()
 	self.C.Val.UpdateColours = function(button, skin)
 		return button:SetTextStyleColor(skin.Colours.Button.Down)
 	end
-	self.C.Val.SetBGColor = function(button, r, g, b, a)
-		self.C.Val.bgcolor = Color(r, g, b, a)
-	end
 	self.C.Val.bgcolor = Color(255, 255, 255)
 	self.C.Val.Paint = function(button)
 		local w, h = button:GetSize()
@@ -891,11 +893,16 @@ function Editor:InitComponents()
 		if btn == MOUSE_RIGHT then
 			local menu = DermaMenu()
 			menu:AddOption("Copy to clipboard", function()
-				SetClipboardText(self.C.Val:GetValue():sub(4))
+				SetClipboardText(self.C.Val:GetValue())
 			end)
 			menu:Open()
 		else
 			self:Validate(true)
+		end
+	end
+	self.C.Val.OnIssueClicked = function(panel, issue)
+		if issue.line ~= nil and issue.char ~= nil then
+			self:GetCurrentEditor():SetCaret({issue.line, issue.char})
 		end
 	end
 	self.C.Btoggle:SetImage("icon16/application_side_contract.png")
@@ -932,11 +939,12 @@ function Editor:InitComponents()
 end
 
 -- code1 contains the code that is not to be marked
-local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
+local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n@strict\n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[#[
     Documentation and examples are available at:
     https://github.com/wiremod/wire/wiki/Expression-2
+    ^ Read what @strict and other directives do here ^
 
     Discord is available at https://discord.gg/H8UKY3Y
     Reddit is available at https://www.reddit.com/r/wiremod
@@ -1137,6 +1145,16 @@ function Editor:InitControlPanel(frame)
 	FontSizeSelect:SetPos(FontSelect:GetWide() + 4, 0)
 	FontSizeSelect:SetSize(50, 20)
 
+	local AntialiasEditor = vgui.Create("DCheckBoxLabel")
+	dlist:AddItem(AntialiasEditor)
+	AntialiasEditor:SetConVar("wire_expression2_editor_font_antialiasing")
+	AntialiasEditor:SetText("Enable antialiasing")
+	AntialiasEditor:SizeToContents()
+	AntialiasEditor:SetTooltip("Enables antialiasing of the editor's text.")
+	AntialiasEditor.OnChange = function(check, val)
+		self:ChangeFont(self.FontConVar:GetString(), self.FontSizeConVar:GetInt())
+	end
+
 
 	local label = vgui.Create("DLabel")
 	dlist:AddItem(label)
@@ -1283,7 +1301,24 @@ function Editor:InitControlPanel(frame)
 	local ConcmdWhitelist = vgui.Create("DTextEntry")
 	dlist:AddItem(ConcmdWhitelist)
 	ConcmdWhitelist:SetConVar("wire_expression2_concmd_whitelist")
-	ConcmdWhitelist:SetToolTip("Separate the commands with commas.")
+	ConcmdWhitelist:SetTooltip("Separate the commands with commas.")
+
+	local Convar = vgui.Create("DCheckBoxLabel")
+	dlist:AddItem(Convar)
+	Convar:SetConVar("wire_expression2_convar")
+	Convar:SetText("convar")
+	Convar:SizeToContents()
+	Convar:SetTooltip("Allow/disallow the E2 from getting convar values from your player.")
+
+	label = vgui.Create("DLabel")
+	dlist:AddItem(label)
+	label:SetText("Convar whitelist")
+	label:SizeToContents()
+
+	local ConvarWhitelist = vgui.Create("DTextEntry")
+	dlist:AddItem(ConvarWhitelist)
+	ConvarWhitelist:SetConVar("wire_expression2_convar_whitelist")
+	ConvarWhitelist:SetTooltip("Separate the convars with commas.")
 
 	label = vgui.Create("DLabel")
 	dlist:AddItem(label)
@@ -1369,7 +1404,7 @@ Text here]# ]]
 		local E2s = ents.FindByClass("gmod_wire_expression2")
 		dlist2:Clear()
 		local size = 0
-		for _, v in pairs(E2s) do
+		for _, v in ipairs(E2s) do
 			local ply = v:GetNWEntity("player", NULL)
 			if IsValid(ply) and ply == LocalPlayer() or showall then
 				local nick
@@ -1394,9 +1429,16 @@ Text here]# ]]
 				local label = vgui.Create("DLabel", panel)
 				local idx = v:EntIndex()
 
-				local str = string.format("Name: %s\nEntity ID: '%d'\nOwner: %s",name,idx,nick)
+				local ownerStr
+				if CPPI and v:CPPIGetOwner():GetName() ~= nick then
+					ownerStr = string.format("Owner: %s | Code Author: %s", v:CPPIGetOwner():GetName(), nick)
+				else
+					ownerStr = "Owner: " .. nick
+				end
+
+				local str = string.format("Name: %s\nEntity ID: '%d'\n%s", name, idx, ownerStr)
 				if LocalPlayer():IsAdmin() then
-					str = string.format("Name: %s\nEntity ID: '%d'\n%i ops, %i%% %s\ncpu time: %ius\nOwner: %s",name,idx,0,0,"",0,nick)
+					str = string.format("Name: %s\nEntity ID: '%d'\n%i ops, %i%% %s\ncpu time: %ius\n%s", name, idx, 0, 0, "", 0, ownerStr)
 				end
 
 				label:SetText(str)
@@ -1427,7 +1469,13 @@ Text here]# ]]
 
 							local hardtext = (prfcount / e2_hardquota > 0.33) and "(+" .. tostring(math.Round(prfcount / e2_hardquota * 100)) .. "%)" or ""
 
-							label:SetText(string.format("Name: %s\nEntity ID: '%d'\n%i ops, %i%% %s\ncpu time: %ius\nOwner: %s",name,idx,prfbench,prfbench / e2_softquota * 100,hardtext,timebench*1000000,nick))
+							label:SetText(string.format(
+								"Name: %s\nEntity ID: '%d'\n%i ops, %i%% %s\ncpu time: %ius\n%s",
+								name, idx,
+								prfbench, prfbench / e2_softquota * 100, hardtext,
+								timebench * 1000000,
+								ownerStr
+							))
 						end
 					end
 				end
@@ -1593,27 +1641,52 @@ function Editor:OpenOldTabs()
 end
 
 function Editor:Validate(gotoerror)
+	local header_color, header_text = nil, nil
+	local problems_errors, problems_warnings = {}, {}
+	
 	if self.EditorType == "E2" then
-		local errors = wire_expression2_validate(self:GetCode())
+		local errors, _, warnings = wire_expression2_validate(self:GetCode())
+		
 		if not errors then
-			self.C.Val:SetBGColor(0, 110, 20, 255)
-			self.C.Val:SetText("   Validation successful")
-			return true
-		end
-		if gotoerror then
+			if warnings then
+				header_color = Color(163, 130, 64, 255)
+
+				local nwarnings = #warnings
+				local warning = warnings[1]
+
+				if gotoerror then
+					header_text = "Warning (1/" .. nwarnings .. "): " .. warning.message
+					self:GetCurrentEditor():SetCaret { warning.line, warning.char  }
+				else
+					header_text = "Validated with " .. nwarnings .. " warning(s)."
+				end
+				problems_warnings = warnings
+			else
+				header_color = Color(0, 110, 20, 255)
+				header_text ="Validation successful"
+			end
+		else
+			header_color = Color(110, 0, 20, 255)
+			header_text = ("" .. errors)
 			local row, col = errors:match("at line ([0-9]+), char ([0-9]+)$")
 			if not row then
 				row, col = errors:match("at line ([0-9]+)$"), 1
 			end
-			if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
+			
+			problems_errors = {{message = string.Explode(" at line", errors)[1], line = row, char = col}}
+
+			if gotoerror then
+				if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
+			end
 		end
-		self.C.Val:SetBGColor(110, 0, 20, 255)
-		self.C.Val:SetText("   " .. errors)
+		
 	elseif self.EditorType == "CPU" or self.EditorType == "GPU" or self.EditorType == "SPU" then
-		self.C.Val:SetBGColor(64, 64, 64, 180)
-		self.C.Val:SetText("   Recompiling...")
+		header_color = Color(64, 64, 64, 180)
+		header_text = "Recompiling..."
 		CPULib.Validate(self, self:GetCode(), self:GetChosenFile())
 	end
+
+	self.C.Val:Update(problems_errors, problems_warnings, header_text, header_color)
 	return true
 end
 
@@ -1751,6 +1824,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 		self:Close()
 		return
 	end
+	
 	if not Line or SaveAs or Line == self.Location .. "/" .. ".txt" then
 		local str
 		if self.C.Browser.File then
@@ -1778,10 +1852,29 @@ function Editor:SaveFile(Line, close, SaveAs)
 		Derma_StringRequestNoBlur("Save to New File", "", (str ~= nil and str .. "/" or "") .. self.savefilefn,
 			function(strTextOut)
 				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-				self:SaveFile(self.Location .. "/" .. strTextOut .. ".txt", close)
+				local save_location = self.Location .. "/" .. strTextOut .. ".txt"
+				if file.Exists(save_location, "DATA") then
+					Derma_QueryNoBlur("The file '" .. strTextOut .. "' already exists. Do you want to overwrite it?", "File already exists", 
+					"Yes", function() self:SaveFile(save_location, close) end,
+					"No", function() end)
+				else
+					self:SaveFile(save_location, close)
+				end
+
 				self:UpdateActiveTabTitle()
 			end)
 		return
+	end
+
+	if string.GetFileFromFilename(Line) == ".txt" then
+		surface.PlaySound("buttons/button10.wav")
+		GAMEMODE:AddNotify("Failed to save file without filename!", NOTIFY_ERROR, 7)
+		return
+	end
+
+	local path = string.GetPathFromFilename(Line)
+	if not file.IsDir(path, "DATA") then
+		file.CreateDir(path)
 	end
 
 	file.Write(Line, self:GetCode())

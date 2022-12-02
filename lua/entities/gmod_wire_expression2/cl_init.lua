@@ -40,28 +40,29 @@ local function Include(e2, directives, includes, scripts)
 end
 
 function wire_expression2_validate(buffer)
-	-- removed CLIENT as this is client file
-	-- if CLIENT and
 	if not e2_function_data_received then return "Loading extensions. Please try again in a few seconds..." end
 
+	---@type Warning[]
+	local warnings = {}
+
 	-- invoke preprocessor
-	local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer)
+	local status, directives, buffer, preprocessor = E2Lib.PreProcessor.Execute(buffer)
 	if not status then return directives end
+	table.Add(warnings, preprocessor.warnings)
 
 	-- decompose directives
 	local inports, outports, persists = directives.inputs, directives.outputs, directives.persist
-	-- removed CLIENT as this is client file
-	-- if CLIENT then
 	RunConsoleCommand("wire_expression2_scriptmodel", directives.model or "")
-	-- end
 
 	-- invoke tokenizer (=lexer)
-	local status, tokens = E2Lib.Tokenizer.Execute(buffer)
+	local status, tokens, tokenizer = E2Lib.Tokenizer.Execute(buffer)
 	if not status then return tokens end
+	table.Add(warnings, tokenizer.warnings)
 
 	-- invoke parser
-	local status, tree, dvars, files = E2Lib.Parser.Execute(tokens)
+	local status, tree, dvars, files, parser = E2Lib.Parser.Execute(tokens)
 	if not status then return tree end
+	table.Add(warnings, parser.warnings)
 
 	-- prepare includes
 	local includes, scripts = {}, {}
@@ -71,10 +72,16 @@ function wire_expression2_validate(buffer)
 	end
 
 	-- invoke compiler
-	local status, script, instance = E2Lib.Compiler.Execute(tree, inports[3], outports[3], persists[3], dvars, scripts)
+	local status, script, compiler = E2Lib.Compiler.Execute(tree, inports, outports, persists, dvars, scripts)
 	if not status then return script end
 
-	return nil, includes
+	-- Need to do this manually since table.Add loses its mind with non-numeric keys (and compiler can emit warnings per include file) (should be refactored out at some point to just having warnings separated per include)
+	local nwarnings = #warnings
+	for k, warning in ipairs(compiler.warnings) do
+		warnings[nwarnings + k] = warning
+	end
+
+	return nil, includes, #warnings ~= 0 and warnings
 end
 
 -- string.GetTextSize shits itself if the string is both wide and tall,
@@ -100,7 +107,8 @@ function ENT:GetWorldTipBodySize()
 	local data = self:GetOverlayData()
 	if not data then return 100, 20 end
 
-	local w_total,h_total = wtfgarry( data.txt )
+	local txt = data.txt .. "\nauthor: " .. self:GetPlayerName()
+	local w_total,h_total = wtfgarry(txt)
 	h_total = h_total + 18
 
 	local prfbench = data.prfbench
@@ -135,7 +143,7 @@ function ENT:DrawWorldTipBody( pos )
 	local data = self:GetOverlayData()
 	if not data then return end
 
-	local txt = data.txt
+	local txt = data.txt .. "\nauthor: " .. self:GetPlayerName()
 	local err = data.error -- this isn't used (yet), might do something with it later
 
 	local white = Color(255,255,255,255)

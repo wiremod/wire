@@ -74,8 +74,19 @@ function TOOL:RightClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ent:IsValid() && ent:GetClass() == "gmod_wire_textscreen" then
+	if ent:IsValid() and ent:GetClass() == "gmod_wire_textscreen" then
 		ply:ConCommand('wire_textscreen_text "'..ent.text..'"')
+		ply:ConCommand('wire_textscreen_model "'..ent:GetModel()..'"')
+		ply:ConCommand('wire_textscreen_tsize "'..(16 -ent.chrPerLine)..'"')
+		ply:ConCommand('wire_textscreen_tjust "'..ent.textJust..'"')
+		ply:ConCommand('wire_textscreen_valign "'..ent.valign..'"')
+		ply:ConCommand('wire_textscreen_tfont "'..ent.tfont..'"')
+		ply:ConCommand('wire_textscreen_tred "'..ent.fgcolor.r..'"')
+		ply:ConCommand('wire_textscreen_tgreen "'..ent.fgcolor.g..'"')
+		ply:ConCommand('wire_textscreen_tblue "'..ent.fgcolor.b..'"')
+		ply:ConCommand('wire_textscreen_tbgred "'..ent.bgcolor.r..'"')
+		ply:ConCommand('wire_textscreen_tbggreen "'..ent.bgcolor.g..'"')
+		ply:ConCommand('wire_textscreen_tbgblue "'..ent.bgcolor.b..'"')
 		return true
 	end
 
