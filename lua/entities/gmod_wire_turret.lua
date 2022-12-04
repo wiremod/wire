@@ -202,4 +202,18 @@ function ENT:Setup(delay, damage, force, sound, numbullets, spread, blastdamage,
 	self:SetNumBullets(numbullets)
 end
 
+-- Legacy Support
+function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, tracernum)
+	self:SetForce(force)
+	self:SetDelay(delay)
+	self:SetSound(sound)
+	self:SetDamage(damage)
+	self:SetSpread(spread)
+	self:SetTracer(tracer)
+	self:SetTraceNum(tracernum)
+	self:SetNumBullets(numbullets)
+end
+
 duplicator.RegisterEntityClass( "gmod_wire_turret", WireLib.MakeWireEnt, "Data", "delay", "damage", "force", "sound", "numbullets", "spread", "blastdamage", "blastradius", "tracer", "tracernum" )
+-- Legacy Support
+duplicator.RegisterEntityClass( "gmod_wire_turret", WireLib.MakeWireEnt, "Data", "delay", "damage", "force", "sound", "numbullets", "spread", "tracer", "tracernum" )
