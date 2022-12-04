@@ -7,13 +7,15 @@ Sound( "NPC_FloorTurret.Shoot" )
 
 -- Add Default Language translation (saves adding it to the txt files)
 if CLIENT then
-	language.Add( "tool.wire_turret.name", "Turret" )
+	language.Add( "tool.wire_turret.name", "Extended Turret" )
 	language.Add( "tool.wire_turret.desc", "Throws bullets at things" )
 
 	language.Add( "Tool_wire_turret_spread", "Bullet Spread" )
 	language.Add( "Tool_wire_turret_numbullets", "Bullets per Shot" )
 	language.Add( "Tool_wire_turret_force", "Bullet Force" )
 	language.Add( "Tool_wire_turret_sound", "Shoot Sound" )
+	language.Add( "Tool_wire_turret_blastdamage", "Blast Damage" )
+	language.Add( "Tool_wire_turret_blastradius", "Blast Radius" )
 	language.Add( "Tool_wire_turret_tracernum", "Tracer Every x Bullets:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
@@ -25,6 +27,8 @@ TOOL.ClientConVar = {
 	force 		= 1,
 	sound 		= 0,
 	damage 		= 10,
+	blastdamage = 0,
+	blastradius = 0,
 	spread 		= 0,
 	numbullets	= 1,
 	automatic	= 1,
@@ -39,7 +43,7 @@ TOOL.GetGhostMin = function() return -2 end
 if SERVER then
 	function TOOL:GetConVars()
 		return self:GetClientNumber("delay"), self:GetClientNumber("damage"), self:GetClientNumber("force"), self:GetClientInfo("sound"),
-			self:GetClientNumber("numbullets"), self:GetClientNumber("spread"), self:GetClientInfo("tracer"), self:GetClientNumber("tracernum")
+			self:GetClientNumber("numbullets"), self:GetClientNumber("spread"), self:GetClientNumber("blastdamage"), self:GetClientNumber("blastradius"), self:GetClientInfo("tracer"), self:GetClientNumber("tracernum")
 	end
 end
 

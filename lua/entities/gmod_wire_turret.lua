@@ -26,8 +26,8 @@ function ENT:Initialize()
 	self.attachmentPos = phys:WorldToLocal(self:GetAttachment(1).Pos)
 
 	self.Inputs = WireLib.CreateSpecialInputs(self,
-		{ "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound", "Tracer" },
-		{ "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "STRING", "STRING" })
+		{ "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Blast Damage", "Blast Radius", "Sound", "Tracer" },
+		{ "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "STRING", "STRING" })
 
 	self.Outputs = WireLib.CreateSpecialOutputs(self, { "HitEntity" }, { "ENTITY" })
 end
@@ -65,8 +65,11 @@ function ENT:FireShot()
 	bullet.Force      = self.force
 	bullet.Damage     = self.damage
 	bullet.Attacker   = self:GetPlayer()
+	bullet.BlastDamage   = self.blastdamage
+	bullet.BlastRadius = self.blastradius
 	bullet.Callback   = function(attacker, traceres, cdamageinfo)
 		WireLib.TriggerOutput(self, "HitEntity", traceres.Entity)
+		return BlastTrace(0, self, self:GetPlayer(), traceres, self.blastdamage, self.blastradius)
 	end
 
 	self:FireBullets( bullet )
@@ -76,6 +79,12 @@ function ENT:FireShot()
 	self.effectdata:SetAngles( shootAngles )
 	self.effectdata:SetScale( 1 )
 	util.Effect( "MuzzleEffect", self.effectdata )
+end
+
+function BlastTrace(num, self, attacker, tr, dmg, radius)
+	if (num > 1) then return end
+
+	util.BlastDamage(self, attacker, tr.HitPos, radius, dmg)
 end
 
 function ENT:OnTakeDamage( dmginfo )
@@ -140,6 +149,14 @@ function ENT:SetDamage( damage )
 	self.damage = math.Clamp( damage, 0, 100 )
 end
 
+function ENT:SetBlastDamage( blastdamage )
+	self.blastdamage = math.Clamp( blastdamage, 0, 100 )
+end
+
+function ENT:SetBlastRadius( blastradius )
+	self.blastradius = math.Clamp( blastradius, 0, 500 )
+end
+
 function ENT:SetForce( force )
 	self.force = math.Clamp( force, 0, 500 )
 end
@@ -160,7 +177,11 @@ function ENT:TriggerInput( iname, value )
 	elseif (iname == "Spread") then
 		self:SetSpread( value )
 	elseif (iname == "Delay") then
-		self:SetDelay( value )
+		self:SetDelay( value )	
+	elseif (iname == "Blast Damage") then
+		self:SetBlastDamage( value )		
+	elseif (iname == "Blast Radius") then
+		self:SetBlastRadius( value )
 	elseif (iname == "Sound") then
 		self:SetSound( value )
 	elseif (iname == "Tracer") then
@@ -168,15 +189,17 @@ function ENT:TriggerInput( iname, value )
 	end
 end
 
-function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, tracernum)
+function ENT:Setup(delay, damage, force, sound, numbullets, spread, blastdamage, blastradius, tracer, tracernum)
 	self:SetForce(force)
 	self:SetDelay(delay)
 	self:SetSound(sound)
 	self:SetDamage(damage)
 	self:SetSpread(spread)
+	self:SetBlastDamage(blastdamage)
+	self:SetBlastRadius(blastradius)
 	self:SetTracer(tracer)
 	self:SetTraceNum(tracernum)
 	self:SetNumBullets(numbullets)
 end
 
-duplicator.RegisterEntityClass( "gmod_wire_turret", WireLib.MakeWireEnt, "Data", "delay", "damage", "force", "sound", "numbullets", "spread", "tracer", "tracernum" )
+duplicator.RegisterEntityClass( "gmod_wire_turret", WireLib.MakeWireEnt, "Data", "delay", "damage", "force", "sound", "numbullets", "spread", "blastdamage", "blastradius", "tracer", "tracernum" )
