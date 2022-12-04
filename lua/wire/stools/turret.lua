@@ -61,6 +61,11 @@ function TOOL:GetModel()
 	return ValidTurretModels[model] and model or "models/weapons/w_smg1.mdl"
 end
 
+-- Add convar values for the controversial blast functions
+-- To all wire devs/contributors, why do we hardlock values instead of making them convars?
+CreateConVar( "wire_turret_blastdamage_max", "100", {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_NOTIFY}, "Sets the max damage that Turrets can have in regards to Blast Damage, This hardlocks the menu slider and actual damage" .. "0 to Disable", 0, 99999)
+CreateConVar( "wire_turret_blastradius_max", "500", {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_NOTIFY}, "Sets the max radius that Turrets can have in regards to Blast Radius, This hardlocks the menu slider and actual damage" .. "0 to Disable", 0, 99999)
+
 function TOOL.BuildCPanel( CPanel )
 	WireToolHelpers.MakePresetControl(CPanel, "wire_turret")
 
@@ -95,6 +100,8 @@ function TOOL.BuildCPanel( CPanel )
 	end
 	CPanel:NumSlider("#Damage", "wire_turret_damage", 0, 100, 0)
 	CPanel:NumSlider("#Tool_wire_turret_spread", "wire_turret_spread", 0, 1.0, 2)
+	CPanel:NumSlider("#Tool_wire_turret_blastdamage", "wire_turret_spread", 0, GetConVar("wire_turret_blastdamage_max"), 0)
+	CPanel:NumSlider("#Tool_wire_turret_blastdradius", "wire_turret_spread", 0, GetConVar("wire_turret_blastradius_max"), 0)
 	CPanel:NumSlider("#Tool_wire_turret_force", "wire_turret_force", 0, 500, 1)
 
 	-- The delay between shots.
