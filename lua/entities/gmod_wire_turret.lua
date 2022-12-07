@@ -150,11 +150,11 @@ function ENT:SetDamage( damage )
 end
 
 function ENT:SetBlastDamage( blastdamage )
-	self.blastdamage = math.Clamp( blastdamage, 0, GetConVar("wire_turret_blastdamage_max") )
+	self.blastdamage = math.Clamp( blastdamage, 0, GetConVar("wire_turret_blastdamage_max"):GetInt() )
 end
 
 function ENT:SetBlastRadius( blastradius )
-	self.blastradius = math.Clamp( blastradius, 0, GetConVar("wire_turret_blastradius_max") )
+	self.blastradius = math.Clamp( blastradius, 0, GetConVar("wire_turret_blastradius_max"):GetInt() )
 end
 
 function ENT:SetForce( force )
