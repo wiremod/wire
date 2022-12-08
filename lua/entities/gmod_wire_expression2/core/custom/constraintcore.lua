@@ -68,10 +68,6 @@ registerCallback("destruct", function(self)
 	clearCreatedConstraints(self)
 end)
 
-hook.Add("PlayerDisconnected", "Wire_Expression2_ConstraintsCleanup", function(ply)
-	playerCounts[ply] = nil
-end)
-
 __e2setcost(1)
 e2function void enableConstraintUndo(state)
 	self.data.constraintUndos = state ~= 0
