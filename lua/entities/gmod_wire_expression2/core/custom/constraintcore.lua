@@ -45,7 +45,7 @@ end
 
 local function setupCounts(holder)
 	holder.allConstraints = holder.allConstraints or {}
-	holder.constraintCounts = holder.cosntraintCounts or {}
+	holder.constraintCounts = holder.constraintCounts or {}
 	holder.entityConstraints = holder.entityConstraints or {}
 	holder.totalConstraints = holder.totalConstraints or 0
 end
