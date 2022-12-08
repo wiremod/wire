@@ -252,9 +252,8 @@ __e2setcost(30)
 e2function void axis(entity ent1, vector v1, entity ent2, vector v2)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "Axis", ent1, ent2) then return end
-	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 
-	local cons = constraint.Axis(ent1, ent2, 0, 0, vec1, vec2, 0, 0, 0, 0)
+	local cons = constraint.Axis(ent1, ent2, 0, 0, v1, v2, 0, 0, 0, 0)
 	postCreate(self, "Axis", ent1, ent2, cons)
 end
 
@@ -262,9 +261,8 @@ end
 e2function void axis(entity ent1, vector v1, entity ent2, vector v2, friction)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "Axis", ent1, ent2) then return end
-	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 
-	local cons = constraint.Axis(ent1, ent2, 0, 0, vec1, vec2, 0, 0, friction, 0)
+	local cons = constraint.Axis(ent1, ent2, 0, 0, v1, v2, 0, 0, friction, 0)
 	postCreate(self, "Axis", ent1, ent2, cons)
 end
 
@@ -272,9 +270,8 @@ end
 e2function void axis(entity ent1, vector v1, entity ent2, vector v2, friction, vector localaxis)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "Axis", ent1, ent2) then return end
-	local vec1, vec2, laxis = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3]), Vector(localaxis[1], localaxis[2], localaxis[3])
 
-	local cons = constraint.Axis(ent1, ent2, 0, 0, vec1, vec2, 0, 0, friction, 0, laxis)
+	local cons = constraint.Axis(ent1, ent2, 0, 0, v1, v2, 0, 0, friction, 0, localaxis)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "Axis", ent1, ent2, cons)
@@ -287,9 +284,8 @@ end
 e2function void ballsocket(entity ent1, vector v, entity ent2)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "Ballsocket", ent1, ent2) then return end
-	local vec = Vector(v[1], v[2], v[3])
 
-	local cons = constraint.Ballsocket(ent1, ent2, 0, 0, vec, 0, 0, 0)
+	local cons = constraint.Ballsocket(ent1, ent2, 0, 0, v, 0, 0, 0)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "Ballsocket", ent1, ent2, cons)
@@ -299,9 +295,8 @@ end
 e2function void ballsocket(entity ent1, vector v, entity ent2, friction)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
-	local vec = Vector(v[1], v[2], v[3])
 
-	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, vec, emptyVector, 0, 0, -180, -180, -180, 180, 180, 180, friction, friction, friction, 0, 0)
+	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, emptyVector, 0, 0, -180, -180, -180, 180, 180, 180, friction, friction, friction, 0, 0)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
@@ -311,9 +306,8 @@ end
 e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vector maxs, vector frictions)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
-	local vec = Vector(v[1], v[2], v[3])
 
-	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, vec, emptyVector, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], 0, 0)
+	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, emptyVector, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], 0, 0)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
@@ -323,9 +317,8 @@ end
 e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vector maxs, vector frictions, rotateonly)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
-	local vec = Vector(v[1], v[2], v[3])
 
-	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, vec, emptyVector, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], rotateonly, 0)
+	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, emptyVector, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], rotateonly, 0)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
@@ -335,9 +328,8 @@ end
 e2function void weldAng(entity ent1, vector v, entity ent2)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
-	local vec = Vector(v[1], v[2], v[3])
 
-	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, vec, emptyVector, 0, 0, 0, -0, 0, 0, 0, 0, 0, 0, 0, 1, 0)
+	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, emptyVector, 0, 0, 0, -0, 0, 0, 0, 0, 0, 0, 0, 1, 0)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
@@ -371,14 +363,13 @@ e2function void winch(index, entity ent1, vector v1, entity ent2, vector v2, wid
 	if not checkEdicts( self ) then return end
 	local constraints = setupEntConstraints( ent1 )
 
-	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	if width < 0 or width > 50 then width = 1 end
 
 	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
 	local constant, dampen = CalcElasticConsts( ent1:GetPhysicsObject(), ent2:GetPhysicsObject(), ent1, ent2 )
-	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, vec1, vec2, constant, dampen, 0, "cable/cable2", width, true )
+	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, v1, v2, constant, dampen, 0, "cable/cable2", width, true )
 	if not verifyConstraint( self, cons ) then return end
 
 	constraints[index] = cons
@@ -392,14 +383,13 @@ e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2,
 	if not checkEdicts( self ) then return end
 	local constraints = setupEntConstraints( ent1 )
 
-	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	if width < 0 or width > 50 then width = 1 end
 
 	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
 	local constant, dampen = CalcElasticConsts( ent1:GetPhysicsObject(), ent2:GetPhysicsObject(), ent1, ent2 )
-	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, vec1, vec2, constant, dampen, 0, "cable/cable2", width, false )
+	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, v1, v2, constant, dampen, 0, "cable/cable2", width, false )
 	if not verifyConstraint( self, cons ) then return end
 
 	constraints[index] = cons
@@ -413,13 +403,12 @@ e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2,
 	if not checkEdicts( self ) then return end
 	local constraints = setupEntConstraints( ent1 )
 
-	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	if width < 0 or width > 50 then width = 1 end
 
 	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
-	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, vec1, vec2, constant, damping, 0, mat, width, tobool( stretch ) )
+	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, v1, v2, constant, damping, 0, mat, width, tobool( stretch ) )
 	if not verifyConstraint( self, cons ) then return end
 
 	constraints[index] = cons
@@ -433,13 +422,12 @@ e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2,
 	if not checkEdicts( self ) then return end
 	local constraints = setupEntConstraints( ent1 )
 
-	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
 	if width < 0 or width > 50 then width = 1 end
 
 	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
-	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, vec1, vec2, constant, damping, rdamping, mat, width, tobool( stretch ) )
+	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, v1, v2, constant, damping, rdamping, mat, width, tobool( stretch ) )
 	if not verifyConstraint( self, cons ) then return end
 
 	constraints[index] = cons
@@ -456,13 +444,12 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2)
 	if not checkEdicts( self ) then return end
 	local constraints = setupEntConstraints( ent1 )
 
-	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
-	local length = ( ent1:LocalToWorld( vec1 ) - ent2:LocalToWorld( vec2 ) ):Length()
+	local length = ( ent1:LocalToWorld( v1 ) - ent2:LocalToWorld( v2 ) ):Length()
 
 	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
-	local cons, rope = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, 0, 0, 1, "cable/rope", false )
+	local cons, rope = constraint.Rope( ent1, ent2, 0, 0, v1, v2, length, 0, 0, 1, "cable/rope", false )
 	if not verifyConstraint( self, cons ) then return end
 
 	constraints[index] = cons
@@ -476,13 +463,12 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addl
 	if not checkEdicts( self ) then return end
 	local constraints = setupEntConstraints( ent1 )
 
-	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
-	local length = (ent1:LocalToWorld(vec1) - ent2:LocalToWorld(vec2)):Length()
+	local length = ( ent1:LocalToWorld(v1) - ent2:LocalToWorld(v2)):Length( )
 
 	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
-	local cons, rope = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, addlength, 0, width, mat, false )
+	local cons, rope = constraint.Rope( ent1, ent2, 0, 0, v1, v2, length, addlength, 0, width, mat, false )
 	if not verifyConstraint( self, cons ) then return end
 
 	constraints[index] = cons
@@ -496,13 +482,12 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addl
 	if not checkEdicts( self ) then return end
 	local constraints = setupEntConstraints( ent1 )
 
-	local vec1, vec2 = Vector( v1[1], v1[2], v1[3] ), Vector( v2[1], v2[2], v2[3] )
-	local length = ( ent1:LocalToWorld( vec1 ) - ent2:LocalToWorld( vec2 ) ):Length()
+	local length = ( ent1:LocalToWorld( v1 ) - ent2:LocalToWorld( v2 ) ):Length()
 
 	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
-	local cons, rope = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, addlength, 0, width, mat, tobool( rigid ) )
+	local cons, rope = constraint.Rope( ent1, ent2, 0, 0, v1, v2, length, addlength, 0, width, mat, tobool( rigid ) )
 	if not verifyConstraint( self, cons ) then return end
 
 	constraints[index] = cons
@@ -583,26 +568,24 @@ __e2setcost(30)
 
 --- Creates a slider between <ent1> and <ent2> at vector positions local to each ent.
 e2function void slider(entity ent1, vector v1, entity ent2, vector v2)
-	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Slider", ent1, ent2) then return end
-	if not checkEdicts(self) then return end
-	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
+	if not checkEnts( self, ent1, ent2 ) then return end
+	if not checkCount( self, "Slider", ent1, ent2 ) then return end
+	if not checkEdicts( self ) then return end
 
-	local cons, rope = constraint.Slider(ent1, ent2, 0, 0, vec1, vec2, 1)
-	if not verifyConstraint(self, cons) then return end
+	local cons, rope = constraint.Slider( ent1, ent2, 0, 0, v1, v2, 1 )
+	if not verifyConstraint( self, cons ) then return end
 
-	postCreate(self, "Slider", ent1, ent2, cons, rope)
+	postCreate( self, "Slider", ent1, ent2, cons, rope )
 end
 
 --- Creates a slider between <ent1> and <ent2> at vector positions local to each ent, with <width> width.
 e2function void slider(entity ent1, vector v1, entity ent2, vector v2, width)
-	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Slider", ent1, ent2) then return end
-	if not checkEdicts(self) then return end
-	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
+	if not checkEnts( self, ent1, ent2 ) then return end
+	if not checkCount( self, "Slider", ent1, ent2 ) then return end
+	if not checkEdicts( self ) then return end
 
-	local cons, rope = constraint.Slider(ent1, ent2, 0, 0, vec1, vec2, width)
-	if not verifyConstraint(self, cons) then return end
+	local cons, rope = constraint.Slider( ent1, ent2, 0, 0, v1, v2, width )
+	if not verifyConstraint( self, cons ) then return end
 
 	postCreate(self, "Slider", ent1, ent2, cons, rope)
 end
