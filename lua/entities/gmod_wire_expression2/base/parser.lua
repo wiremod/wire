@@ -1,9 +1,155 @@
 --[[
-  Expression 2 Parser for Garry's Mod
-  Andreas "Syranide" Svensson, me@syranide.com
+	Expression 2 Parser for Garry's Mod
+
+	Rewritten by Vurv
+	Notable changes:
+		* Now uses Nodes and NodeVariant rather than strings (Much faster and better for intellisense)
 ]]
 
 AddCSLuaFile()
+
+---@class Parser
+---@field tokens Token[]
+---@field ntokens integer
+---@field index integer
+---@field warnings Warning[]
+---@field traces NodeTrace[] # Stack of Traces to push and pop.
+---@field delta_vars table<string, boolean>
+---@field include_files string[]
+local Parser = {}
+Parser.__index = Parser
+
+---@param tokens table?
+function Parser.new(tokens)
+	return setmetatable({ tokens = tokens or {}, ntokens = tokens and #tokens or 0, index = 1, warnings = {} }, Parser)
+end
+
+E2Lib.Parser = Parser
+
+---@class Node
+---@field variant NodeVariant
+---@field data any
+---@field start_col integer
+---@field start_line integer
+---@field end_col integer
+---@field end_line integer
+local Node = {}
+Node.__index = Node
+
+---@param variant NodeVariant
+---@param data any
+---@return Node
+function Node.new(variant, data)
+	return setmetatable({ variant = variant, data = data }, Node)
+end
+
+---@enum NodeVariant
+local NodeVariant = {
+	--- Statements
+	Sequence = 1,
+
+	-- `if (1) {} elseif (1) {} else {}`
+	If = 2,
+	-- `while (1) {}`, `do {} while(1)`
+	While = 3,
+	-- `for (I = 1, 2, 3) {}`
+	For = 4,
+	-- `foreach(K, V = T) {}`
+	Foreach = 5,
+
+	Break = 6,
+	Continue = 7,
+	Return = 8,
+
+	-- `++`
+	Increment = 9,
+	-- `--`
+	Decrement = 10,
+
+	-- `+=`, `-=`, `*=`, `/=`
+	CompoundArithmetic = 11,
+
+	-- `local X = 5`
+	DefineLocal = 12,
+
+	-- `X=Y=Z=5`
+	Assignment = 13,
+
+	-- `X[Y] = 5`
+	IndexSet = 14,
+	-- `X[Y, type][2]`
+	IndexGet = 15,
+
+	Switch = 16,
+	Function = 17,
+
+	Include = 18,
+	Try = 19,
+
+	--- Compile time constructs
+	Event = 20,
+
+	--- Expressions
+
+	-- `X ? Y : Z`
+	ExprTernary = 21,
+
+	-- `X ?: Y`
+	ExprDefault = 22,
+
+	-- `|` `&` (Yes they are flipped.)
+	ExprLogicalOp = 23,
+
+	-- `||` `&&` `^^`
+	ExprBinaryOp = 24,
+
+
+	-- `>` `<` `>=` `<=`
+	ExprComparison = 25,
+
+	-- `==`
+	ExprEquals = 26,
+
+	-- `>>` `<<`
+	ExprBitShift = 27,
+
+	-- `+` `-` `*` `/` `^` `%`
+	ExprArithmetic = 28,
+
+	-- `-` `+` `!`
+	ExprUnaryOp = 29,
+
+	-- `<EXPR>:call()`
+	ExprMethodCall = 30,
+
+	-- `<EXPR>[<EXPR>, <type>?]`
+	ExprIndex = 31,
+
+	-- (<EXPR>)
+	ExprGrouped = 32,
+
+	-- `call()`
+	ExprCall = 33,
+
+	-- `~Var` `$Var` `->Var`
+	ExprUnaryWire = 34,
+
+	-- `23` `"str"`
+	ExprLiteral = 35,
+
+	-- `Variable`
+	ExprVar = 36
+}
+
+local NodeVariantLookup = {}
+for var, i in pairs(NodeVariant) do
+	NodeVariantLookup[i] = var
+end
+
+function Node:debug()
+	return string.format("Node { variant = %s, data = %s }", NodeVariantLookup[self.variant], self.data)
+end
+Node.__tostring = Node.debug
 
 --[[
 
@@ -79,39 +225,58 @@ KeyValueList ← (KeyValue ("," KeyValue))*
 KeyValue = Expr1 ("=" Expr1)?
 
 ]]
--- ----------------------------------------------------------------------------------
 
----@class Parser
----@field readtoken Token
----@field tokens Token[]
----@field index integer
----@field count integer
----@field warnings Warning[]
-local Parser = {}
-Parser.__index = Parser
-
-E2Lib.Parser = Parser
+---@param tokens Token[]
+---@return boolean ok
+---@return table ast
+function Parser.Execute(tokens)
+	return xpcall(Parser.Process, E2Lib.errorHandler, Parser.new(tokens), tokens)
+end
 
 local Tokenizer = E2Lib.Tokenizer
 local Token, TokenVariant = Tokenizer.Token, Tokenizer.Variant
 local Keyword, Grammar, Operator = E2Lib.Keyword, E2Lib.Grammar, E2Lib.Operator
 
-local parserDebug = CreateConVar("wire_expression2_parser_debug", 0,
-	"Print an E2's abstract syntax tree after parsing"
-)
+function Parser:Eof()
+	return self.index > self.ntokens
+end
 
----@return boolean ok
----@return table tree
----@return table delta
----@return table includes
----@return Parser self
-function Parser.Execute(...)
-	-- instantiate Parser
-	local instance = setmetatable({}, Parser)
+function Parser:Peek()
+	return self.tokens[self.index + 1]
+end
 
-	-- and pcall the new instance's Process method.
-	local ok, tree, delta, includes = xpcall(Parser.Process, E2Lib.errorHandler, instance, ...)
-	return ok, tree, delta, includes, instance
+---@param i integer?
+function Parser:At(i)
+	return self.tokens[i or self.index]
+end
+
+function Parser:Prev()
+	return self.tokens[self.index - 1]
+end
+
+---@param variant TokenVariant
+---@param value? number|string|boolean
+---@return Token?
+function Parser:Consume(variant, value)
+	local token = self:At()
+	if not token or token.variant ~= variant then return end
+	if value ~= nil and token.value ~= value then return end
+
+	self.index = self.index + 1
+	return token
+end
+
+---@param variant TokenVariant
+---@param value? number|string|boolean
+---@param message string
+---@return Token?
+function Parser:MustConsume(variant, value, message)
+	local token = self:At()
+	if not token or token.variant ~= variant then self:Error(message) end
+	if value ~= nil and token.value ~= value then self:Error(message) end
+
+	self.index = self.index + 1
+	return token
 end
 
 ---@param message string
@@ -120,467 +285,234 @@ function Parser:Error(message, token)
 	if token then
 		error(message .. " at line " .. token.start_line .. ", char " .. token.start_col, 0)
 	else
-		error(message .. " at line " .. self.token.start_line .. ", char " .. self.token.start_col, 0)
+		error(message .. " at line " .. self:At().start_line .. ", char " .. self:At().start_col, 0)
 	end
 end
 
 ---@param message string
----@param token Token?
-function Parser:Warning(message, token)
-	if token then
-		self.warnings[#self.warnings + 1] = { message = message, line = token.start_line, char = token.start_col }
-	else
-		self.warnings[#self.warnings + 1] = { message = message, line = self.token.start_line, char = self.token.start_col }
-	end
-end
-
----@param tokens Token[]
----@return table tree
----@return table delta
----@return table includes
-function Parser:Process(tokens, params)
-	self.tokens = tokens
-	self.index = 0
-	self.count = #tokens
-	self.delta = {}
-	self.includes = {}
-	self.warnings = {}
-
-	self:NextToken()
-	local tree = self:Root()
-	if parserDebug:GetBool() then
-		print(E2Lib.AST.dump(tree))
-	end
-	return tree, self.delta, self.includes
-end
-
--- ---------------------------------------------------------------------
-
----@return Token?
-function Parser:GetToken()
-	return self.token
-end
-
-function Parser:GetTokenData()
-	return self.token.value
-end
-
-function Parser:GetTokenTrace()
-	return { self.token.start_line, self.token.start_col }
+function Parser:Assert(v, message)
+	if not v then self:Error(message) end
+	return v
 end
 
 
-function Parser:Instruction(trace, name, ...)
-	return { __instruction = true, name, trace, ... }
-end
+function Parser:Process(tokens)
+	self.index, self.tokens, self.warnings, self.delta_vars, self.include_files = 1, tokens, {}, {}, {}
 
-
-function Parser:HasTokens()
-	return self.readtoken ~= nil
-end
-
-function Parser:NextToken()
-	if self.index <= self.count then
-		if self.index > 0 then
-			self.token = self.readtoken
-		else
-			self.token = setmetatable({ value = "", variant = 1, whitespaced = false, start_col = 1, start_line = 1, end_col = 1, end_line = 1 }, Token) -- { "", "", false, 1, 1 }
-		end
-
-		self.index = self.index + 1
-		self.readtoken = self.tokens[self.index]
-	else
-		self.readtoken = nil
-	end
-end
-
-function Parser:TrackBack()
-	self.index = self.index - 2
-	self:NextToken()
-end
-
-
----@param variant TokenVariant
----@param value? number|string|boolean
----@return boolean
-function Parser:AcceptRoamingToken(variant, value)
-	local token = self.readtoken
-	if not token or token.variant ~= variant then return false end
-	if value ~= nil and token.value ~= value then return false end
-
-	self:NextToken()
-	return true
-end
-
----@param variant TokenVariant
----@param value? number|string|boolean
-function Parser:AcceptTailingToken(variant, value)
-	local token = self.readtoken
-	if not token or token.whitespaced then return false end
-
-	return self:AcceptRoamingToken(variant, value)
-end
-
----@param variant TokenVariant
----@param value? number|string|boolean
-function Parser:AcceptLeadingToken(variant, value)
-	local token = self.tokens[self.index + 1]
-	if not token or token.whitespaced then return false end
-
-	return self:AcceptRoamingToken(variant, value)
-end
-
-
----@param func function
----@param tbl Operator[]
-function Parser:RecurseLeft(func, tbl)
-	local expr = func(self)
-	local hit = true
-
-	while hit do
-		hit = false
-		for _, op in ipairs(tbl) do
-			if self:AcceptRoamingToken(TokenVariant.Operator, op) then
-				local trace = self:GetTokenTrace()
-
-				hit = true
-				expr = self:Instruction(trace, E2Lib.OperatorNames[op]:lower(), expr, func(self))
-				break
-			end
-		end
-	end
-
-	return expr
-end
-
--- --------------------------------------------------------------------------
-
-local loopdepth
-
-function Parser:Root()
-	loopdepth = 0
-	return self:Stmts()
-end
-
-
-function Parser:Stmts()
-	local trace = self:GetTokenTrace()
-	local stmts = self:Instruction(trace, "seq")
-
-	if not self:HasTokens() then return stmts end
+	local stmts = {}
+	if self:Eof() then return stmts end
 
 	while true do
-		if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
+		if self:Consume(TokenVariant.Grammar, Grammar.Comma) then
 			self:Error("Statement separator (,) must not appear multiple times")
 		end
 
-		stmts[#stmts + 1] = self:Stmt1()
+		local prior = self.index
+		local stmt = self:Stmt()
+		local start, ed = self:At(prior), self:At() or self:At(self.index - 1)
 
-		if not self:HasTokens() then break end
+		stmt.start_col = start.start_col
+		stmt.start_line = start.start_line
+		stmt.end_col = ed.end_col
+		stmt.end_line = ed.end_line
 
-		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
-			if not self.readtoken.whitespaced then
+		stmts[#stmts + 1] = stmt
+
+		if self:Eof() then break end
+
+		if not self:Consume(TokenVariant.Grammar, Grammar.Comma) then
+			if not self:Peek().whitespaced then
 				self:Error("Statements must be separated by comma (,) or whitespace")
 			end
 		end
 	end
 
-	return stmts
+	return stmts, self.delta_vars, self.include_files
 end
 
+---@param variant TokenVariant
+---@param value? number|string|boolean
+function Parser:ConsumeTailing(variant, value)
+	local token = self:At()
+	if not token or token.whitespaced then return false end
 
-function Parser:Stmt1()
-	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.If) then
-		local trace = self:GetTokenTrace()
-		return self:Instruction(trace, "if", self:Cond(), self:Block("if condition"), self:IfElseIf())
+	return self:Consume(variant, value)
+end
+
+---@param variant TokenVariant
+---@param value? number|string|boolean
+function Parser:ConsumeLeading(variant, value)
+	local token = self:Peek()
+	if not token or token.whitespaced then return false end
+
+	return self:Consume(variant, value)
+end
+
+function Parser:Stmt()
+	if self:Consume(TokenVariant.Keyword, Keyword.If) then
+		return Node.new(NodeVariant.If, { self:Cond(), self:Block(), self:IfElseIf() })
 	end
 
-	return self:Stmt2()
-end
-
-function Parser:Stmt2()
-	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.While) then
-		local trace = self:GetTokenTrace()
-		loopdepth = loopdepth + 1
-		local whl = self:Instruction(trace, "whl", self:Cond(), self:Block("while condition"),
-			false) -- Skip condition check first time?
-		loopdepth = loopdepth - 1
-		return whl
+	if self:Consume(TokenVariant.Keyword, Keyword.While) then
+		return Node.new(NodeVariant.While, { self:Cond(), self:Block("while condition"), false })
 	end
 
-	return self:Stmt3()
-end
-
-function Parser:Stmt3()
-	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.For) then
-		local trace = self:GetTokenTrace()
-		loopdepth = loopdepth + 1
-
-		if not self:AcceptRoamingToken(TokenVariant.Grammar, Operator.LParen) then
-			self:Error("Left parenthesis (() must appear before condition")
+	if self:Consume(TokenVariant.Keyword, Keyword.For) then
+		if not self:Consume(TokenVariant.Grammar, Grammar.LParen) then
+			self:Error("Left Parenthesis (() must appear before condition")
 		end
 
-		if not self:AcceptRoamingToken(TokenVariant.Ident) then
-			self:Error("Variable expected for the numeric index")
+		local var = self:MustConsume(TokenVariant.Ident, nil, "Variable expected for numeric index")
+		self:MustConsume(TokenVariant.Operator, Operator.Ass, "Assignment operator (=) expected to preceed variable")
+
+		local start = self:Expr1()
+		self:MustConsume(TokenVariant.Grammar, Grammar.Comma, "Comma (,) expected after start value")
+
+		local stop = self:Expr1()
+
+		local step
+		if self:Consume(TokenVariant.Grammar, Grammar.Comma) then
+			step = self:Expr1()
 		end
 
-		local var = self:GetTokenData()
+		self:MustConsume(TokenVariant.Grammar, Grammar.RParen, "Right parenthesis ()) missing, to close for statement")
 
-		if not self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
-			self:Error("Assignment operator (=) expected to preceed variable")
-		end
-
-		local estart = self:Expr1()
-
-		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
-			self:Error("Comma (,) expected after start value")
-		end
-
-		local estop = self:Expr1()
-
-		local estep
-		if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
-			estep = self:Expr1()
-		end
-
-		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
-			self:Error("Right parenthesis ()) missing, to close condition")
-		end
-
-		local sfor = self:Instruction(trace, "for", var, estart, estop, estep, self:Block("for statement"))
-
-		loopdepth = loopdepth - 1
-		return sfor
+		return Node.new(NodeVariant.For, { var, start, stop, step, self:Block("for statement") })
 	end
 
-	return self:Stmt4()
-end
+	if self:Consume(TokenVariant.Keyword, Keyword.Foreach) then
+		self:MustConsume(TokenVariant.Grammar, Grammar.LParen, "Left parenthesis (() missing after foreach statement")
 
-function Parser:Stmt4()
-	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Foreach) then
-		local trace = self:GetTokenTrace()
-		loopdepth = loopdepth + 1
+		local key = self:MustConsume(TokenVariant.Ident, nil, "Variable expected to hold the key")
 
-		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LParen) then
-			self:Error("Left parenthesis missing (() after foreach statement")
+		local key_type
+		if self:Consume(TokenVariant.Operator, Operator.Col) then
+			key_type = self:Assert(self:Type(), "Type expected after colon")
 		end
 
-		if not self:AcceptRoamingToken(TokenVariant.Ident) then
-			self:Error("Variable expected to hold the key")
-		end
-		local keyvar = self:GetTokenData()
+		self:MustConsume(TokenVariant.Grammar, Grammar.Comma, "Comma (,) expected after key variable")
 
-		local keytype
+		local value = self:MustConsume(TokenVariant.Ident, nil, "Variable expected to hold the value")
+		self:MustConsume(TokenVariant.Operator, Operator.Col, "Colon (:) expected to separate type from variable")
 
-		if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
-			if not self:AcceptRoamingToken(TokenVariant.LowerIdent) then
-				self:Error("Type expected after colon")
-			end
+		local value_type = self:Assert(self:Type(), "Type expected after colon")
+		self:MustConsume(TokenVariant.Operator, Operator.Ass, "Equals sign (=) expected after value type to specify table")
 
-			keytype = self:GetTokenData()
-			if keytype == "number" then keytype = "normal" end
+		local table = self:Expr1()
 
-			if wire_expression_types[string.upper(keytype)] == nil then
-				self:Error("Unknown type: " .. keytype)
-			end
+		self:MustConsume(TokenVariant.Grammar, Grammar.RParen, "Missing right parenthesis after foreach statement")
 
-			keytype = wire_expression_types[string.upper(keytype)][1]
-		end
-
-		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
-			self:Error("Comma (,) expected after key variable")
-		end
-
-		if not self:AcceptRoamingToken(TokenVariant.Ident) then
-			self:Error("Variable expected to hold the value")
-		end
-		local valvar = self:GetTokenData()
-
-		if not self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
-			self:Error("Colon (:) expected to separate type from variable")
-		end
-
-		if not self:AcceptRoamingToken(TokenVariant.LowerIdent) then
-			self:Error("Type expected after colon")
-		end
-
-		local valtype = self:GetTokenData()
-		if valtype == "number" then valtype = "normal" end
-		if wire_expression_types[string.upper(valtype)] == nil then
-			self:Error("Unknown type: " .. valtype)
-		end
-		valtype = wire_expression_types[string.upper(valtype)][1]
-
-		if not self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
-			self:Error("Equals sign (=) expected after value type to specify table")
-		end
-
-		local tableexpr = self:Expr1()
-
-		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RParen) then
-			self:Error("Missing right parenthesis after foreach statement")
-		end
-
-		local sfea = self:Instruction(trace, "fea", keyvar, keytype, valvar, valtype, tableexpr, self:Block("foreach statement"))
-		loopdepth = loopdepth - 1
-		return sfea
+		return Node.new(NodeVariant.Foreach, { key, key_type, value,  value_type, table, self:Block("foreach statement") })
 	end
 
-	return self:Stmt5()
-end
-
-function Parser:Stmt5()
-	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Break) then
-		if loopdepth > 0 then
-			local trace = self:GetTokenTrace()
-			return self:Instruction(trace, "brk")
-		else
-			self:Error("Break may not exist outside of a loop")
-		end
-	elseif self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Continue) then
-		if loopdepth > 0 then
-			local trace = self:GetTokenTrace()
-			return self:Instruction(trace, "cnt")
-		else
-			self:Error("Continue may not exist outside of a loop")
-		end
+	if self:Consume(TokenVariant.Keyword, Keyword.Break) then
+		return Node.new(NodeVariant.Break)
 	end
 
-	return self:Stmt6()
-end
+	if self:Consume(TokenVariant.Keyword, Keyword.Continue) then
+		return Node.new(NodeVariant.Continue)
+	end
 
-function Parser:Stmt6()
-	if self:AcceptRoamingToken(TokenVariant.Ident) then
-		local trace = self:GetTokenTrace()
-		local var = self:GetTokenData()
-
-		if self:AcceptTailingToken(TokenVariant.Operator, Operator.Inc) then
-			return self:Instruction(trace, "inc", var)
-		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Inc) then
+	local var = self:Consume(TokenVariant.Ident)
+	if var then
+		--- Increment / Decrement
+		if self:ConsumeTailing(TokenVariant.Operator, Operator.Inc) then
+			return Node.new(NodeVariant.Increment, var)
+		elseif self:Consume(TokenVariant.Operator, Operator.Inc) then
 			self:Error("Increment operator (++) must not be preceded by whitespace")
 		end
 
-		if self:AcceptTailingToken(TokenVariant.Operator, Operator.Dec) then
-			return self:Instruction(trace, "dec", var)
-		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Dec) then
+		if self:ConsumeTailing(TokenVariant.Operator, Operator.Dec) then
+			return Node.new(NodeVariant.Decrement, var)
+		elseif self:Consume(TokenVariant.Operator, Operator.Dec) then
 			self:Error("Decrement operator (--) must not be preceded by whitespace")
 		end
 
-		self:TrackBack()
-	end
-
-	return self:Stmt7()
-end
-
-function Parser:Stmt7()
-	if self:AcceptRoamingToken(TokenVariant.Ident) then
-		local trace = self:GetTokenTrace()
-		local var = self:GetTokenData()
-
-		if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Aadd) then
-			return self:Instruction(trace, "ass", var, self:Instruction(trace, "add", self:Instruction(trace, "var", var), self:Expr1()))
-		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Asub) then
-			return self:Instruction(trace, "ass", var, self:Instruction(trace, "sub", self:Instruction(trace, "var", var), self:Expr1()))
-		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Amul) then
-			return self:Instruction(trace, "ass", var, self:Instruction(trace, "mul", self:Instruction(trace, "var", var), self:Expr1()))
-		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Adiv) then
-			return self:Instruction(trace, "ass", var, self:Instruction(trace, "div", self:Instruction(trace, "var", var), self:Expr1()))
+		--- Compound Assignment
+		if self:Consume(TokenVariant.Operator, Operator.Aadd) then
+			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Aadd, self:Expr1() })
+		elseif self:Consume(TokenVariant.Operator, Operator.Asub) then
+			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Asub, self:Expr1() })
+		elseif self:Consume(TokenVariant.Operator, Operator.Amul) then
+			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Amul, self:Expr1() })
+		elseif self:Consume(TokenVariant.Operator, Operator.Adiv) then
+			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Adiv, self:Expr1() })
 		end
 
-		self:TrackBack()
+		-- Didn't match anything. Might be something else.
+		self.index = self.index - 1
 	end
 
-	return self:Stmt8()
+	self:Error("Didn't match any statement")
+end
+
+function Parser:Type()
+	local type = self:Consume(TokenVariant.LowerIdent)
+	return type and wire_expression_types[string.upper(type.value)]
 end
 
 function Parser:Index()
-	if self:AcceptTailingToken(TokenVariant.Grammar, Grammar.LSquare) then
-		local trace = self:GetTokenTrace()
+	local indices = {}
+	self:PushTrace()
+	while self:ConsumeTailing(TokenVariant.Grammar, Grammar.LSquare) do
 		local exp = self:Expr1()
 
-		if self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
-			if not self:AcceptRoamingToken(TokenVariant.LowerIdent) then
-				self:Error("Indexing operator ([]) requires a lower case type [X,t]")
-			end
+		if self:Consume(TokenVariant.Grammar, Grammar.Comma) then
+			local type = self:Assert(self:Type(), "Indexing operator ([]) requires a valid type [X, t]")
+			self:MustConsume(TokenVariant.Grammar, Grammar.RSquare, "Right square bracket (]) missing, to close indexing operator [X,t]")
 
-			local typename = self:GetTokenData()
-			if typename == "number" then typename = "normal" end
-			local type = wire_expression_types[string.upper(typename)]
-
-			if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RSquare) then
-				self:Error("Right square bracket (]) missing, to close indexing operator [X,t]")
-			end
-
-			if not type then
-				self:Error("Indexing operator ([]) does not support the type [" .. typename .. "]")
-			end
-
-			return { exp, type[1], trace }, self:Index()
-
-		elseif self:AcceptTailingToken(TokenVariant.Grammar, Grammar.RSquare) then
-			return { exp, nil, trace }
-
+			indices[#indices + 1] = { exp, type[1], self:PopTrace() }
+		elseif self:ConsumeTailing(TokenVariant.Grammar, Grammar.RSquare) then
+			indices[#indices + 1] = { exp, nil, self:PopTrace() }
+			return indices
 		else
 			self:Error("Indexing operator ([]) must not be preceded by whitespace")
 		end
 	end
 end
 
-
 function Parser:Stmt8(parentLocalized)
-	local localized
-	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Local) then
-		if parentLocalized ~= nil then self:Error("Assignment can't contain roaming local operator") end
-		localized = true
-	end
+	-- Example result: NodeVariant.AssignmentLocal { Var,  }
+	local sets, localized = {}, false
+	while true do
+		if self:Consume(TokenVariant.Keyword, Keyword.Local) then
+			-- Can't do local Var = local E = 5
+			-- Can do local Var = E = 5
+			localized = self:Assert(not localized, "Assignment can't contain roaming local operator")
+		end
 
-	if self:AcceptRoamingToken(TokenVariant.Ident) then
+		local var = self:Consume(TokenVariant.Ident)
+		if not var then
+			self:Assert(not localized, "Invalid operator (local) must be used for variable declaration.")
+			break
+		end
+
 		local tbpos = self.index
-		local trace = self:GetTokenTrace()
-		local var = self:GetTokenData()
 
-		if self:AcceptTailingToken(TokenVariant.Grammar, Grammar.LSquare) then
-			self:TrackBack()
-			local indexs = { self:Index() }
+		if self:ConsumeTailing(TokenVariant.Grammar, Grammar.LSquare) then
+			local indexes = self:Index()
 
-			if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
-				if localized or parentLocalized then
-					self:Error("Invalid operator (local).")
-				end
+			if self:Consume(TokenVariant.Operator, Operator.Ass) then
+				self:Assert(not localized and not parentLocalized, "Invalid operator (local).")
 
-				local total = #indexs
-				local inst = self:Instruction(trace, "var", var)
-
-				for i = 1, total do -- Yep, All this took me 2 hours to figure out!
-					local key, type, trace = indexs[i][1], indexs[i][2], indexs[i][3]
-					if i == total then
-						inst = self:Instruction(trace, "set", inst, key, self:Stmt8(false), type)
-					else
-						inst = self:Instruction(trace, "get", inst, key, type)
-					end
-				end -- Example Result: set( get( get(Var,1,table) ,1,table) ,3,"hello",string)
-				return inst
+				-- Example Result: NodeVariant.Assignment { ExprVar, { NodeVariant.IndexGet(1, table), NodeVariant.IndexGet(1, table), NodeVariant.IndexGet(2, nil) } }
+				sets[#sets + 1] = Node.new(NodeVariant.Assignment, { Node.new(NodeVariant.ExprVar, var), indexes })
 			end
-
-		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
+		elseif self:Consume(TokenVariant.Operator, Operator.Ass) then
 			if localized or parentLocalized then
-				return self:Instruction(trace, "assl", var, self:Stmt8(true))
+				return Node.new(NodeVariant.DefineLocal, var, self:Stmt8(true))
 			else
-				return self:Instruction(trace, "ass", var, self:Stmt8(false))
+				return Node.new(NodeVariant.Assignment, var, self:Stmt8(false))
 			end
 		elseif localized then
 			self:Error("Invalid operator (local) must be used for variable declaration.")
 		end
 
-		self.index = tbpos - 2
-		self:NextToken()
-	elseif localized then
-		self:Error("Invalid operator (local) must be used for variable declaration.")
+		self.index = tbpos
 	end
-
-	return self:Stmt9()
 end
 
+--[======[
 function Parser:Stmt9()
 	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Switch) then
 		local trace = self:GetTokenTrace()
@@ -1687,3 +1619,5 @@ function Parser:ExprError()
 		self:Error("Further input required at end of code, incomplete expression", self.exprtoken)
 	end
 end
+
+]======]

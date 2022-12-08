@@ -339,21 +339,21 @@ function ENT:CompileCode(buffer, files, filepath)
 	local status, tokens = E2Lib.Tokenizer.Execute(self.buffer)
 	if not status then self:Error(tokens) return end
 
-	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
-	if not status then self:Error(tree) return end
+	local status, ast, dvars, files = E2Lib.Parser.Execute(tokens)
+	if not status then self:Error(ast) return end
 
 	if not self:PrepareIncludes(files) then return end
 
-	status,tree = E2Lib.Optimizer.Execute(tree)
-	if not status then self:Error(tree) return end
+	status, ast = E2Lib.Optimizer.Execute(ast)
+	if not status then self:Error(ast) return end
 
-	local status, script, inst = E2Lib.Compiler.Execute(tree, self.inports, self.outports, self.persists, dvars, self.includes)
+	local status, script, inst = E2Lib.Compiler.Execute(ast, self.inports, self.outports, self.persists, dvars, self.includes)
 	if not status then self:Error(script) return end
 
 	self.script = script
 	self.registered_events = inst.registered_events
 
-	self.dvars = inst.dvars
+	self.dvars = dvars
 	self.funcs = inst.funcs
 	self.funcs_ret = inst.funcs_ret
 	self.globvars_mut = table.Copy(inst.GlobalScope) -- table.Copy because we will mutate this
