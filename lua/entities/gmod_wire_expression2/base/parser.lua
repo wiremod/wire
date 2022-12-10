@@ -36,7 +36,6 @@ Stmt10 ← (FunctionStmt / ReturnStmt)? Stmt11
 Stmt11 ← ("#include" String)? Stmt12
 Stmt12 ← ("try" Block "catch" "(" Var ")" Block)? Stmt13
 Stmt13 ← ("do" Block "while" Cond)? Expr1
-Stmt14 ← ("event" Fun "(" FunctionArgs Block)
 
 FunctionStmt ← "function" FunctionHead "(" FunctionArgs Block
 FunctionHead ← (Type Type ":" Fun / Type ":" Fun / Type Fun / Fun)
@@ -96,7 +95,7 @@ local Tokenizer = E2Lib.Tokenizer
 local Token, TokenVariant = Tokenizer.Token, Tokenizer.Variant
 local Keyword, Grammar, Operator = E2Lib.Keyword, E2Lib.Grammar, E2Lib.Operator
 
-local parserDebug = CreateConVar("wire_expression2_parser_debug", 0,
+local parserDebug = CreateConVar("wire_expression2_parser_debug", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE}
 	"Print an E2's abstract syntax tree after parsing"
 )
 
@@ -812,29 +811,6 @@ function Parser:Stmt13()
 		loopdepth = loopdepth - 1
 
 		return whl
-	end
-
-	return self:Stmt14()
-end
-
-function Parser:Stmt14()
-	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Event) then
-		local trace = self:GetTokenTrace()
-
-		local name = self:AcceptRoamingToken(TokenVariant.LowerIdent)
-		if not name then
-			self:Error("Expected event name after 'event' keyword")
-		end
-		local name = self:GetTokenData()
-
-		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LParen) then
-			self:Error("Left parenthesis (() must appear after event name")
-		end
-
-		local temp, args = {}, {}
-		self:FunctionArgs(temp, args)
-
-		return self:Instruction(trace, "event", name, args, self:Block("event block"))
 	end
 
 	return self:Expr1()
