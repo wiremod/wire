@@ -96,7 +96,7 @@ local Tokenizer = E2Lib.Tokenizer
 local Token, TokenVariant = Tokenizer.Token, Tokenizer.Variant
 local Keyword, Grammar, Operator = E2Lib.Keyword, E2Lib.Grammar, E2Lib.Operator
 
-local parserDebug = CreateConVar("wire_expression2_parser_debug", 0,
+local parserDebug = CreateConVar("wire_expression2_parser_debug", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE},
 	"Print an E2's abstract syntax tree after parsing"
 )
 
