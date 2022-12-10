@@ -332,6 +332,7 @@ if CLIENT then
 
 	-- Build context menu panel
 	function TOOL.BuildCPanel( panel )
+		WireToolHelpers.MakePresetControl(panel, "wire_value")
 		WireToolHelpers.MakeModelSizer(panel, "wire_value_modelsize")
 		ModelPlug_AddToCPanel(panel, "Value", "wire_value", true)
 
