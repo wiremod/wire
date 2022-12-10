@@ -26,17 +26,19 @@ function PropCore.WithinPropcoreLimits()
 	return (sbox_E2_maxProps:GetInt() <= 0 or E2totalspawnedprops<sbox_E2_maxProps:GetInt()) and E2tempSpawnedProps < sbox_E2_maxPropsPerSecond:GetInt()
 end
 
-function PropCore.ValidSpawn(ply, model, isVehicle)
+function PropCore.ValidSpawn(ply, model, isVehicle, seat)
 	local ret -- DO NOT RETURN MID-FUNCTION OR 'LimitHit' WILL BREAK
 	local limithit = playerMeta.LimitHit
 	playerMeta.LimitHit = function() end
+	
+	if seat == "" then seat == "Seat_Airboat"
 
 	if not PropCore.WithinPropcoreLimits() then
 		ret = false
 	elseif not (util.IsValidProp( model ) and WireLib.CanModel(ply, model)) then
 		ret = false
 	elseif isVehicle then
-		ret = gamemode.Call( "PlayerSpawnVehicle", ply, model, "Seat_Airboat", list.Get( "Vehicles" ).Seat_Airboat ) ~= false
+		ret = gamemode.Call( "PlayerSpawnVehicle", ply, model, seat, list.Get( "Vehicles" ).seat ) ~= false
 	else
 		ret = gamemode.Call( "PlayerSpawnProp", ply, model ) ~= false
 	end
@@ -80,7 +82,7 @@ end
 
 function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 	if not PropCore.WithinPropcoreLimits() then return self:throw("Prop limit reached! (cooldown or max)", NULL) end
-	if not PropCore.ValidSpawn(self.player, model, isVehicle) then return NULL end
+	if not PropCore.ValidSpawn(self.player, model, isVehicle, seat) then return NULL end
 
 	pos = WireLib.clampPos( pos )
 
@@ -216,10 +218,24 @@ e2function entity seatSpawn(string model, number frozen)
 	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen,true)
 end
 
+e2function entity seatSpawn(string model, number frozen, string seat)
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if model=="" then model = "models/nova/airboat_seat.mdl" end
+	if seat=="" then seat = "Seat_Airboat"
+	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen,seat,true)
+end
+
 e2function entity seatSpawn(string model, vector pos, angle rot, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	if model=="" then model = "models/nova/airboat_seat.mdl" end
 	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen,true)
+end
+
+e2function entity seatSpawn(string model, vector pos, angle rot, number frozen, string seat)
+	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
+	if model=="" then model = "models/nova/airboat_seat.mdl" end
+	if seat=="" then seat = "Seat_Airboat"
+	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen,seat,true)
 end
 
 --------------------------------------------------------------------------------
