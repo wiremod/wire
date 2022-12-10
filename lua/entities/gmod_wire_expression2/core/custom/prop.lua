@@ -31,7 +31,7 @@ function PropCore.ValidSpawn(ply, model, isVehicle, seat)
 	local limithit = playerMeta.LimitHit
 	playerMeta.LimitHit = function() end
 	
-	if seat == "" then seat == "Seat_Airboat"
+	if seat == "" then seat == "Seat_Airboat" end
 
 	if not PropCore.WithinPropcoreLimits() then
 		ret = false
@@ -221,7 +221,7 @@ end
 e2function entity seatSpawn(string model, number frozen, string seat)
 	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	if model=="" then model = "models/nova/airboat_seat.mdl" end
-	if seat=="" then seat = "Seat_Airboat"
+	if seat=="" then seat = "Seat_Airboat" end
 	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen,seat,true)
 end
 
@@ -234,7 +234,7 @@ end
 e2function entity seatSpawn(string model, vector pos, angle rot, number frozen, string seat)
 	if not PropCore.ValidAction(self, nil, "spawn") then return NULL end
 	if model=="" then model = "models/nova/airboat_seat.mdl" end
-	if seat=="" then seat = "Seat_Airboat"
+	if seat=="" then seat = "Seat_Airboat" end
 	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen,seat,true)
 end
 
