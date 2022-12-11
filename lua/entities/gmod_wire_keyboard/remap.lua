@@ -68,7 +68,6 @@ remap[KEY_BACKSPACE] 	= 127
 remap[KEY_TAB] 			= 9
 remap[KEY_CAPSLOCK] 	= 144
 remap[KEY_NUMLOCK] 		= 145
-remap[KEY_ESCAPE] 		= 18
 remap[KEY_SCROLLLOCK] 	= 146
 remap[KEY_INSERT] 		= 147
 remap[KEY_DELETE] 		= 148
