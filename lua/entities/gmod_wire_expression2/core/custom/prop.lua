@@ -38,7 +38,7 @@ function PropCore.ValidSpawn(ply, model, isVehicle, seat)
 	elseif not (util.IsValidProp( model ) and WireLib.CanModel(ply, model)) then
 		ret = false
 	elseif isVehicle then
-		ret = gamemode.Call( "PlayerSpawnVehicle", ply, model, seat, list.Get( "Vehicles" ).seat ) ~= false
+		ret = gamemode.Call( "PlayerSpawnVehicle", ply, model, seat, list.Get( "Vehicles" )[seat] ) ~= false
 	else
 		ret = gamemode.Call( "PlayerSpawnProp", ply, model ) ~= false
 	end
