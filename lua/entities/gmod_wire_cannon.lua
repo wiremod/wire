@@ -1,0 +1,206 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName     = "Wire Cannon"
+ENT.WireDebugName = "Cannon"
+
+if ( CLIENT ) then return end -- No more client
+
+function ENT:Initialize()
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+
+	self:DrawShadow( false )
+	self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+
+	local phys = self:GetPhysicsObject()
+	if ( phys:IsValid() ) then
+		phys:Wake()
+	end
+
+	-- Allocating internal values on initialize
+	self.NextShot     = 0
+	self.Firing       = false
+	self.spreadvector = Vector()
+	self.effectdata   = EffectData()
+	self.attachmentPos = phys:WorldToLocal(self:GetAttachment(1).Pos)
+
+	self.Inputs = WireLib.CreateSpecialInputs(self,
+		{ "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Blast Damage", "Blast Radius", "Sound", "Tracer"},
+		{ "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "STRING", "STRING"})
+
+	self.Outputs = WireLib.CreateSpecialOutputs(self, { "HitEntity" }, { "ENTITY" })
+end
+
+function ENT:FireShot()
+
+	if ( self.NextShot > CurTime() ) then return end
+
+	self.NextShot = CurTime() + self.delay
+
+	-- Make a sound if you want to.
+	if ( self.sound ) then
+		self:EmitSound( self.sound )
+	end
+
+	local shootOrigin, shootAngles
+	local parent = self:GetParent()
+	if parent:IsValid() then
+		shootOrigin = self:LocalToWorld(self.attachmentPos)
+		shootAngles = self:GetAngles()
+	else
+		local phys = self:GetPhysicsObject()
+		shootOrigin = phys:LocalToWorld(self.attachmentPos)
+		shootAngles = phys:GetAngles()
+	end
+
+	-- Shoot a bullet
+	local bullet      = {}
+	bullet.Num        = self.numbullets
+	bullet.Src        = shootOrigin
+	bullet.Dir        = shootAngles:Forward()
+	bullet.Spread     = self.spreadvector
+	bullet.Tracer     = self.tracernum
+	bullet.TracerName = self.tracer
+	bullet.Force      = self.force
+	bullet.Damage     = self.damage
+	bullet.Attacker   = self:GetPlayer()
+	bullet.BlastDamage   = self.blastdamage
+	bullet.BlastRadius = self.blastradius
+	bullet.Callback   = function(attacker, traceres, cdamageinfo)
+		WireLib.TriggerOutput(self, "HitEntity", traceres.Entity)
+		return BlastTrace(0, self, self:GetPlayer(), traceres, self.blastdamage, self.blastradius)
+	end
+
+	self:FireBullets( bullet )
+
+	-- Make a muzzle flash
+	self.effectdata:SetOrigin( shootOrigin )
+	self.effectdata:SetAngles( shootAngles )
+	self.effectdata:SetScale( 1 )
+	util.Effect( "MuzzleEffect", self.effectdata )
+end
+
+function BlastTrace(num, self, attacker, tr, dmg, radius)
+	if (num > 1) then return end
+
+	util.BlastDamage(self, attacker, tr.HitPos, radius, dmg)
+end
+
+function ENT:OnTakeDamage( dmginfo )
+	self:TakePhysicsDamage( dmginfo )
+end
+
+function ENT:Think()
+	BaseClass.Think( self )
+
+	if ( self.Firing ) then
+		self:FireShot()
+	end
+
+	self:NextThink( CurTime() )
+	return true
+end
+
+local ValidTracers = {
+	["Tracer"]                = true,
+	["AR2Tracer"]             = true,
+	["ToolTracer"]            = true,
+	["GaussTracer"]           = true,
+	["LaserTracer"]           = true,
+	["StriderTracer"]         = true,
+	["GunshipTracer"]         = true,
+	["HelicopterTracer"]      = true,
+	["AirboatGunTracer"]      = true,
+	["AirboatGunHeavyTracer"] = true,
+	[""]                      = true
+}
+
+function ENT:SetSound( sound )
+	sound = string.Trim( tostring( sound or "" ) ) -- Remove whitespace ( manual )
+	local check = string.find( sound, "[\"?]" ) -- Preventing client crashes
+	self.sound = check == nil and sound ~= "" and sound or nil -- Apply the pattern check
+end
+
+function ENT:SetDelay( delay )
+	local check = game.SinglePlayer() -- clamp delay if it's not single player
+	local limit = check and 0.01 or 0.05
+	self.delay = math.Clamp( delay, limit, 1 )
+end
+
+function ENT:SetNumBullets( numbullets )
+	local check = game.SinglePlayer() -- clamp num bullets if it's not single player
+	local limit = math.floor( math.max( 1, numbullets ) )
+	self.numbullets = check and limit or math.Clamp( limit, 1, 10 )
+end
+
+function ENT:SetTracer( tracer )
+	local tracer = string.Trim(tracer)
+	self.tracer = ValidTracers[tracer] and tracer or ""
+end
+
+function ENT:SetSpread( spread )
+	self.spread = math.Clamp( spread, 0, 1 )
+	self.spreadvector.x = self.spread
+	self.spreadvector.y = self.spread
+end
+
+function ENT:SetDamage( damage )
+	self.damage = math.Clamp( damage, 0, 100 )
+end
+
+function ENT:SetBlastDamage( blastdamage )
+	self.blastdamage = math.Clamp( blastdamage, 0, GetConVar("wire_cannon_blastdamage_max"):GetInt() )
+end
+
+function ENT:SetBlastRadius( blastradius )
+	self.blastradius = math.Clamp( blastradius, 0, GetConVar("wire_cannon_blastradius_max"):GetInt() )
+end
+
+function ENT:SetForce( force )
+	self.force = math.Clamp( force, 0, 500 )
+end
+
+function ENT:SetTraceNum( tracernum )
+	self.tracernum = math.floor( math.max( tracernum or 1 ) )
+end
+
+function ENT:TriggerInput( iname, value )
+	if (iname == "Fire") then
+		self.Firing = value > 0
+	elseif (iname == "Force") then
+		self:SetForce( value )
+	elseif (iname == "Damage") then
+		self:SetDamage( value )
+	elseif (iname == "NumBullets") then
+		self:SetNumBullets( value )
+	elseif (iname == "Spread") then
+		self:SetSpread( value )
+	elseif (iname == "Delay") then
+		self:SetDelay( value )	
+	elseif (iname == "Blast Damage") then
+		self:SetBlastDamage( value )		
+	elseif (iname == "Blast Radius") then
+		self:SetBlastRadius( value )
+	elseif (iname == "Sound") then
+		self:SetSound( value )
+	elseif (iname == "Tracer") then
+		self:SetTracer( value )
+	end
+end
+
+function ENT:Setup(delay, damage, force, sound, numbullets, spread, blastdamage, blastradius, tracer, tracernum)
+	self:SetForce(force)
+	self:SetDelay(delay)
+	self:SetSound(sound)
+	self:SetDamage(damage)
+	self:SetSpread(spread)
+	self:SetBlastDamage(blastdamage)
+	self:SetBlastRadius(blastradius)
+	self:SetTracer(tracer)
+	self:SetTraceNum(tracernum)
+	self:SetNumBullets(numbullets)
+
+end
+
+duplicator.RegisterEntityClass( "gmod_wire_cannon", WireLib.MakeWireEnt, "Data", "delay", "damage", "force", "sound", "numbullets", "spread", "blastdamage", "blastradius", "tracer", "tracernum")
