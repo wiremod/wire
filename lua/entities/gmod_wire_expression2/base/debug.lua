@@ -30,6 +30,13 @@ function Trace:stitch(other)
 	self.end_line = other.end_line
 end
 
+--- Returns the a new trace that spans both traces.
+---@param other Trace
+---@return Trace
+function Trace:getStitched(other)
+	return setmetatable({ start_col = self.start_col, end_col = other.end_col, start_line = self.start_line, end_line = other.end_line }, Trace)
+end
+
 ---@class Warning
 ---@field message string
 ---@field trace Trace
@@ -46,6 +53,11 @@ end
 function Warning:debug()
 	return string.format("Warning { message = %q, trace = %s }", self.message, self.trace)
 end
+
+function Warning:display()
+	return string.format("Warning at line %u, char %u: %q", self.trace.start_line, self.trace.start_col, self.message)
+end
+
 Warning.__tostring = Warning.debug
 
 ---@class Error
@@ -64,6 +76,11 @@ end
 function Error:debug()
 	return string.format("Error { message = %q, trace = %s }", self.message, self.trace)
 end
+
+function Error:display()
+	return string.format("Error at line %u, char %u: %q", self.trace.start_line, self.trace.start_col, self.message)
+end
+
 Error.__tostring = Error.debug
 
 
