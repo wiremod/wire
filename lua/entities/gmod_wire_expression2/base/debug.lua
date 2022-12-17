@@ -1,3 +1,8 @@
+--[[
+	Expression 2 Debugging for Garry's Mod
+	by Vurv
+]]
+
 AddCSLuaFile()
 
 ---@class Trace
