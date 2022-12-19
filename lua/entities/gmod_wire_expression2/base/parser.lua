@@ -4,11 +4,18 @@
 	Rewritten by Vurv
 	Notable changes:
 		* Now uses Nodes and NodeVariant rather than strings (Much faster and better for intellisense)
+		* Removed excessive use of functions / recursion as an optimization
+		* This no longer does any analysis based on the environment like whether a type is valid or not since a Parser shouldn't be doing that.
+		* Removed PEG-style grammar.
+		* Condensed from 1.7k LOC -> 1k LOC
 ]]
 
 AddCSLuaFile()
 
 local Trace, Warning, Error = E2Lib.Debug.Trace, E2Lib.Debug.Warning, E2Lib.Debug.Error
+local Tokenizer = E2Lib.Tokenizer
+local TokenVariant = Tokenizer.Variant
+local Keyword, Grammar, Operator = E2Lib.Keyword, E2Lib.Grammar, E2Lib.Operator
 
 ---@class Parser
 ---@field tokens Token[]
@@ -28,16 +35,18 @@ end
 
 E2Lib.Parser = Parser
 
----@class Node
+---@class Node<T>: { data: T, variant: NodeVariant, trace: Trace }
 ---@field variant NodeVariant
 ---@field trace Trace
 ---@field data any
 local Node = {}
 Node.__index = Node
 
+Parser.Node = Node
+
 ---@param variant NodeVariant
----@param trace Trace
 ---@param data any
+---@param trace Trace?
 ---@return Node
 function Node.new(variant, data, trace)
 	return setmetatable({ variant = variant, trace = trace, data = data }, Node)
@@ -45,99 +54,55 @@ end
 
 ---@enum NodeVariant
 local NodeVariant = {
+	Block = 1,
+
 	--- Statements
-	Sequence = 1,
+	If = 2, -- `if (1) {} elseif (1) {} else {}`
+	While = 3, -- `while (1) {}`, `do {} while(1)`
+	For = 4, -- `for (I = 1, 2, 3) {}`
+	Foreach = 5, -- `foreach(K, V = T) {}`
 
-	-- `if (1) {} elseif (1) {} else {}`
-	If = 2,
-	-- `while (1) {}`, `do {} while(1)`
-	While = 3,
-	-- `for (I = 1, 2, 3) {}`
-	For = 4,
-	-- `foreach(K, V = T) {}`
-	Foreach = 5,
+	Break = 6, -- break
+	Continue = 7, -- `continue`
+	Return = 8, -- `return`
 
-	Break = 6,
-	Continue = 7,
-	Return = 8,
+	Increment = 9, -- `++`
+	Decrement = 10, -- `--`
+	CompoundArithmetic = 11, -- `+=`, `-=`, `*=`, `/=`
+	DefineLocal = 12, -- `local X = 5`
+	Assignment = 13, -- `X = Y[2, number] = Z[2] = 5`
 
-	-- `++`
-	Increment = 9,
-	-- `--`
-	Decrement = 10,
-
-	-- `+=`, `-=`, `*=`, `/=`
-	CompoundArithmetic = 11,
-
-	-- `local X = 5`
-	DefineLocal = 12,
-
-	-- `X = Y[2, number] = Z[2] = 5`
-	Assignment = 13,
-
-	Switch = 14,
+	Switch = 14, -- `switch (<EXPR>) { case <EXPR>, <STMT>* default, <STMT*> }
 	Function = 15,
-
-	Include = 16,
-	Try = 17,
+	Include = 16, -- #include "file"
+	Try = 17, -- try {} catch (Err) {}
 
 	--- Compile time constructs
-	Event = 18,
+	Event = 18, -- event tick() {}
 
 	--- Expressions
-
-	-- `X ? Y : Z`
-	ExprTernary = 19,
-
-	-- `X ?: Y`
-	ExprDefault = 20,
-
-	-- `|` `&` (Yes they are flipped.)
-	ExprLogicalOp = 21,
-
-	-- `||` `&&` `^^`
-	ExprBinaryOp = 22,
-
-	-- `>` `<` `>=` `<=`
-	ExprComparison = 23,
-
-	-- `==` `!=`
-	ExprEquals = 24,
-
-	-- `>>` `<<`
-	ExprBitShift = 25,
-
-	-- `+` `-` `*` `/` `^` `%`
-	ExprArithmetic = 26,
-
-	-- `-` `+` `!`
-	ExprUnaryOp = 27,
-
-	-- `<EXPR>:call()`
-	ExprMethodCall = 28,
-
-	-- `<EXPR>[<EXPR>, <type>?]`
-	ExprIndex = 29,
-
-	-- (<EXPR>)
-	ExprGrouped = 30,
-
-	-- `call()`
-	ExprCall = 31,
-
-	-- Temporary until lambdas are made.
-	-- `""()`
-	ExprStringCall = 32,
-
-	-- `~Var` `$Var` `->Var`
-	ExprUnaryWire = 33,
-
-	-- `23` `"str"`
-	ExprLiteral = 34,
-
-	-- `Ident`
-	ExprIdent = 35
+	ExprTernary = 19, -- `X ? Y : Z`
+	ExprDefault = 20, -- `X ?: Y`
+	ExprLogicalOp = 21, -- `|` `&` (Yes they are flipped.)
+	ExprBinaryOp = 22, -- `||` `&&` `^^`
+	ExprComparison = 23, -- `>` `<` `>=` `<=`
+	ExprEquals = 24, -- `==` `!=`
+	ExprBitShift = 25, -- `>>` `<<`
+	ExprArithmetic = 26, -- `+` `-` `*` `/` `^` `%`
+	ExprUnaryOp = 27, -- `-` `+` `!`
+	ExprMethodCall = 28, -- `<EXPR>:call()`
+	ExprIndex = 29,	-- `<EXPR>[<EXPR>, <type>?]`
+	ExprGrouped = 30, -- (<EXPR>)
+	ExprCall = 31, -- `call()`
+	ExprStringCall = 32, -- `""()` (Temporary until lambdas are made)
+	ExprUnaryWire = 33, -- `~Var` `$Var` `->Var`
+	ExprArray = 34, -- `array(1, 2, 3)` or `array(1 = 2, 2 = 3)`
+	ExprTable = 35, -- `table(1, 2, 3)` or `table(1 = 2, "test" = 3)`
+	ExprLiteral = 36, -- `"test"` `5e2` `4.023` `4j`
+	ExprIdent = 37 -- `Variable`
 }
+
+Parser.Variant = NodeVariant
 
 local NodeVariantLookup = {}
 for var, i in pairs(NodeVariant) do
@@ -147,6 +112,12 @@ end
 function Node:debug()
 	return string.format("Node { variant = %s, data = %s, trace = %s }", NodeVariantLookup[self.variant], self.data, self.trace)
 end
+
+---@return string
+function Node:instr()
+	return NodeVariantLookup[self.variant]
+end
+
 Node.__tostring = Node.debug
 
 ---@param tokens Token[]
@@ -156,26 +127,10 @@ function Parser.Execute(tokens)
 	return xpcall(Parser.Process, E2Lib.errorHandler, Parser.new(tokens), tokens)
 end
 
-local Tokenizer = E2Lib.Tokenizer
-local Token, TokenVariant = Tokenizer.Token, Tokenizer.Variant
-local Keyword, Grammar, Operator = E2Lib.Keyword, E2Lib.Grammar, E2Lib.Operator
-
-function Parser:Eof()
-	return self.index > self.ntokens
-end
-
-function Parser:Peek()
-	return self.tokens[self.index + 1]
-end
-
----@param i integer?
-function Parser:At(i)
-	return self.tokens[i or self.index]
-end
-
-function Parser:Prev()
-	return self.tokens[self.index - 1]
-end
+function Parser:Eof() return self.index > self.ntokens end
+function Parser:Peek() return self.tokens[self.index + 1] end
+function Parser:At() return self.tokens[self.index] end
+function Parser:Prev() return self.tokens[self.index - 1] end
 
 ---@param variant TokenVariant
 ---@param value? number|string|boolean
@@ -215,7 +170,10 @@ function Parser:Warning(message, trace)
 	self.warnings[#self.warnings + 1] = Warning.new( message, trace or self:GetTrace() )
 end
 
+---@generic T
+---@param v? T
 ---@param message string
+---@return T
 function Parser:Assert(v, message)
 	if not v then error( Error.new( message, self:GetTrace() ):display(), 2 ) end
 	return v
@@ -225,8 +183,9 @@ end
 function Parser:Process(tokens)
 	self.index, self.tokens, self.warnings, self.delta_vars, self.include_files = 1, tokens, {}, {}, {}
 
+	self:PushTrace()
 	local stmts = {}
-	if self:Eof() then return stmts end
+	if self:Eof() then return Node.new(NodeVariant.Block, stmts, self:PopTrace()) end
 
 	while true do
 		if self:Consume(TokenVariant.Grammar, Grammar.Comma) then
@@ -235,21 +194,19 @@ function Parser:Process(tokens)
 
 		self:PushTrace()
 			local stmt = self:Stmt() or self:Expr()
-
-			print(#self.traces)
 			stmt.trace = self:PopTrace()
 		stmts[#stmts + 1] = stmt
 
 		if self:Eof() then break end
 
 		if not self:Consume(TokenVariant.Grammar, Grammar.Comma) then
-			if not self:Peek().whitespaced then
+			if not self:At().whitespaced then
 				self:Error("Statements must be separated by comma (,) or whitespace", stmt.trace)
 			end
 		end
 	end
 
-	return stmts, self.delta_vars, self.include_files
+	return Node.new(NodeVariant.Block, stmts, self:PopTrace()), self.delta_vars, self.include_files
 end
 
 ---@param variant TokenVariant
@@ -272,17 +229,20 @@ end
 
 ---@return Node
 function Parser:Condition()
-	self:Assert( self:Consume(TokenVariant.Grammar, Grammar.LParen), "Left parenthesis (() expected before condition")
-	local expr = self:Expr()
-	self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RParen), "Right parenthesis ()) missing, to close condition")
+	self:PushTrace()
+		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.LParen), "Left parenthesis (() expected before condition")
+		local expr = self:Expr()
+		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RParen), "Right parenthesis ()) missing, to close condition")
+	expr.trace = self:PopTrace()
 	return expr
 end
 
+---@return Node?
 function Parser:Stmt()
 	if self:Consume(TokenVariant.Keyword, Keyword.If) then
 		local cond, block = self:Condition(), self:Assert( self:Block(), "Expected block after if condition")
 
-		---@type { [1]: Node?, [2]: Node[] }
+		---@type { [1]: Node?, [2]: Node }[]
 		local chain = { {cond, block} }
 		while self:Consume(TokenVariant.Keyword, Keyword.Elseif) do
 			local cond, block = self:Condition(), self:Assert( self:Block(), "Expected block after elseif condition")
@@ -320,7 +280,7 @@ function Parser:Stmt()
 
 		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RParen), "Right parenthesis ()) missing, to close for statement" )
 
-		return Node.new(NodeVariant.For, { var, start, stop, step, self:Block("for statement") })
+		return Node.new(NodeVariant.For, { var, start, stop, step, self:Block() })
 	end
 
 	if self:Consume(TokenVariant.Keyword, Keyword.Foreach) then
@@ -345,7 +305,7 @@ function Parser:Stmt()
 
 		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RParen), "Missing right parenthesis after foreach statement" )
 
-		return Node.new(NodeVariant.Foreach, { key, key_type, value,  value_type, table, self:Block("foreach statement") })
+		return Node.new(NodeVariant.Foreach, { key, key_type, value, value_type, table, self:Block() })
 	end
 
 	if self:Consume(TokenVariant.Keyword, Keyword.Break) then
@@ -407,7 +367,7 @@ function Parser:Stmt()
 				-- Var = Var = ...
 				exprs[#exprs + 1] = { id.value, self:Indices() }
 			else
-				return Node.new(NodeVariant.Assignment, { exprs, self:Expr() })
+				return Node.new(NodeVariant.Assignment, { is_local, exprs, self:Expr() })
 			end
 		end
 
@@ -416,7 +376,7 @@ function Parser:Stmt()
 		local last = table.remove(exprs)
 		last = Node.new(NodeVariant.ExprIndex, { Node.new(NodeVariant.ExprIdent, last[1]), last[2] })
 
-		return Node.new(NodeVariant.Assignment, { exprs, last })
+		return Node.new(NodeVariant.Assignment, { is_local, exprs, last })
 	end
 
 	-- Switch Case
@@ -448,7 +408,7 @@ function Parser:Stmt()
 				end
 
 				if self:Eof() then
-					return self:Error("Case block is missing after case declaration.")
+					self:Error("Case block is missing after case declaration.")
 				end
 
 				local block = {}
@@ -462,7 +422,10 @@ function Parser:Stmt()
 						self:Error("Statement separator (,) must be suceeded by statement")
 					end
 
-					block[#block + 1] = self:Stmt()
+					self:PushTrace()
+						local stmt = self:Stmt() or self:Expr()
+						stmt.trace = self:PopTrace()
+					block[#block + 1] = stmt
 
 					if not self:Consume(TokenVariant.Grammar, Grammar.Comma) then
 						if self:Eof() then break end
@@ -478,10 +441,12 @@ function Parser:Stmt()
 				else
 					cases[#cases + 1] = block
 				end
+
+				self:PopTrace()
 			end
 		end
 
-		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.LCurly), "Right curly bracket (}) missing, to close switch block")
+		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RCurly), "Right curly bracket (}) missing, to close switch block")
 
 		return Node.new(NodeVariant.Switch, { expr, cases, default })
 	end
@@ -588,9 +553,10 @@ function Parser:Block()
 		self:Error("Left curly bracket ({) expected for block")
 	end
 
+	self:PushTrace()
 	local stmts = {}
 	if self:Consume(TokenVariant.Grammar, Grammar.RCurly) then
-		return stmts
+		return Node.new(NodeVariant.Block, stmts, self:PopTrace())
 	end
 
 	if not self:Eof() then
@@ -601,10 +567,13 @@ function Parser:Block()
 				self:Error("Statement separator (,) must be suceeded by statement")
 			end
 
-			stmts[#stmts + 1] = self:Stmt() or self:Expr()
+			self:PushTrace()
+				local stmt = self:Stmt() or self:Expr()
+				stmt.trace = self:PopTrace()
+			stmts[#stmts + 1] = stmt
 
 			if self:Consume(TokenVariant.Grammar, Grammar.RCurly) then
-				return stmts
+				return Node.new(NodeVariant.Block, stmts, self:PopTrace())
 			end
 
 			if not self:Consume(TokenVariant.Grammar, Grammar.Comma) then
@@ -692,9 +661,10 @@ function Parser:Expr()
 		self.index = self.index - 1
 	end
 
-	-- Ternary or Default
-	local cond = self:Expr3()
+	self:PushTrace()
 
+	-- Ternary or Default
+	local cond = self:Expr2()
 	if self:Consume(TokenVariant.Operator, Operator.Qsm) then
 		local if_true = self:Expr()
 
@@ -702,27 +672,28 @@ function Parser:Expr()
 			self:Error("Conditional operator (:) must appear after expression to complete conditional")
 		end
 
-		return Node.new(NodeVariant.ExprTernary, { cond, if_true, self:Expr() })
+		return Node.new(NodeVariant.ExprTernary, { cond, if_true, self:Expr() }, self:PopTrace())
 	end
 
 	if self:Consume(TokenVariant.Operator, Operator.Def) then
-		return Node.new(NodeVariant.ExprDefault, { cond, self:Expr() })
+		return Node.new(NodeVariant.ExprDefault, { cond, self:Expr() }, self:PopTrace())
 	end
+
+	cond.trace = self:PopTrace()
+	return cond
 end
 
----@param func function
+---@param func fun(self: Parser): Node
 ---@param variant NodeVariant
 ---@param tbl Operator[]
+---@return Node
 function Parser:RecurseLeft(func, variant, tbl)
-	local expr = func(self)
-	local hit = true
-
+	local expr, hit = func(self), true
 	while hit do
 		hit = false
 		for _, op in ipairs(tbl) do
 			if self:Consume(TokenVariant.Operator, op) then
-				hit = true
-				expr = Node.new(variant, { expr, op, func(self) })
+				hit, expr = true, Node.new(variant, { expr, op, func(self) })
 				break
 			end
 		end
@@ -731,60 +702,62 @@ function Parser:RecurseLeft(func, variant, tbl)
 	return expr
 end
 
+function Parser:Expr2()
+	return self:RecurseLeft(self.Expr3, NodeVariant.ExprLogicalOp, { Operator.Or, Operator.And })
+end
+
 function Parser:Expr3()
-	return self:RecurseLeft(self.Expr4, NodeVariant.ExprLogicalOp, { Operator.Or, Operator.And })
+	return self:RecurseLeft(self.Expr4, NodeVariant.ExprBinaryOp, { Operator.Band, Operator.Bor, Operator.Bxor })
 end
 
 function Parser:Expr4()
-	return self:RecurseLeft(self.Expr5, NodeVariant.ExprBinaryOp, { Operator.Band, Operator.Bor, Operator.Bxor })
+	return self:RecurseLeft(self.Expr5, NodeVariant.ExprEquals, { Operator.Eq, Operator.Neq })
 end
 
 function Parser:Expr5()
-	return self:RecurseLeft(self.Expr6, NodeVariant.ExprEquals, { Operator.Eq, Operator.Neq })
+	return self:RecurseLeft(self.Expr6, NodeVariant.ExprComparison, { Operator.Gth, Operator.Lth, Operator.Geq, Operator.Leq })
 end
 
 function Parser:Expr6()
-	return self:RecurseLeft(self.Expr7, NodeVariant.ExprComparison, { Operator.Gth, Operator.Lth, Operator.Geq, Operator.Leq })
+	return self:RecurseLeft(self.Expr7, NodeVariant.ExprBitShift, { Operator.Bshr, Operator.Bshl })
 end
 
 function Parser:Expr7()
-	return self:RecurseLeft(self.Expr8, NodeVariant.ExprBitShift, { Operator.Bshr, Operator.Bshl })
+	return self:RecurseLeft(self.Expr8, NodeVariant.ExprArithmetic, { Operator.Add, Operator.Sub })
 end
 
 function Parser:Expr8()
-	return self:RecurseLeft(self.Expr9, NodeVariant.ExprArithmetic, { Operator.Add, Operator.Sub })
+	return self:RecurseLeft(self.Expr9, NodeVariant.ExprArithmetic, { Operator.Mul, Operator.Div, Operator.Mod })
 end
 
 function Parser:Expr9()
-	return self:RecurseLeft(self.Expr10, NodeVariant.ExprArithmetic, { Operator.Mul, Operator.Div, Operator.Mod })
+	return self:RecurseLeft(self.Expr10, NodeVariant.ExprArithmetic, { Operator.Exp })
 end
 
+---@return Node
 function Parser:Expr10()
-	return self:RecurseLeft(self.Expr11, NodeVariant.ExprArithmetic, { Operator.Exp })
-end
-
-function Parser:Expr11()
 	if self:ConsumeLeading(TokenVariant.Operator, Operator.Add) then
-		return self:Expr12()
+		return self:Expr11()
 	elseif self:Consume(TokenVariant.Operator, Operator.Add) then
 		self:Error("Identity operator (+) must not be succeeded by whitespace")
 	end
 
 	if self:ConsumeLeading(TokenVariant.Operator, Operator.Sub) then
-		return Node.new(NodeVariant.ExprUnaryOp, { Operator.Sub, self:Expr12() })
+		return Node.new(NodeVariant.ExprUnaryOp, { Operator.Sub, self:Expr11() })
 	elseif self:Consume(TokenVariant.Operator, Operator.Sub) then
 		self:Error("Negation operator (-) must not be succeeded by whitespace")
 	end
 
 	if self:ConsumeLeading(TokenVariant.Operator, Operator.Not) then
-		return Node.new(NodeVariant.ExprUnaryOp, { Operator.Not, self:Expr11() })
+		return Node.new(NodeVariant.ExprUnaryOp, { Operator.Not, self:Expr10() })
 	elseif self:Consume(TokenVariant.Operator, Operator.Not) then
 		self:Error("Logical not operator (!) must not be succeeded by whitespace")
 	end
 
-	return self:Expr12()
+	return self:Expr11()
 end
 
+---@return Node[]
 function Parser:Arguments()
 	if not self:ConsumeTailing(TokenVariant.Grammar, Grammar.LParen) then
 		if self:Consume(TokenVariant.Grammar, Grammar.LParen) then
@@ -805,13 +778,58 @@ function Parser:Arguments()
 		if self:Consume(TokenVariant.Grammar, Grammar.RParen) then
 			return arguments
 		elseif not self:Consume(TokenVariant.Grammar, Grammar.Comma) then
-			self:Error("Right parenthesis ()) missing, to close method argument list")
+			self:Error("Right parenthesis ()) missing, to close argument list")
 		end
 	end
 end
 
-function Parser:Expr12()
-	local expr = self:Expr13()
+---@param start_bracket Grammar
+---@param end_bracket Grammar
+---@return { [1]: Node, [2]: Node }[]?
+function Parser:ArgumentsKV(start_bracket, end_bracket)
+	local before = self.index
+	if not self:ConsumeTailing(TokenVariant.Grammar, start_bracket) then
+		if self:Consume(TokenVariant.Grammar, start_bracket) then
+			self:Error("Bracket must not be preceded by whitespace")
+		else
+			self.index = before
+			return
+		end
+	end
+
+	if self:Consume(TokenVariant.Grammar, end_bracket) then
+		return {}
+	end
+
+	local first = self:Expr()
+
+	if not self:Consume(TokenVariant.Operator, Operator.Ass) then
+		self.index = before
+		return
+	else
+		local arguments = { { first, self:Expr() } }
+
+		if self:Consume(TokenVariant.Grammar, end_bracket) then
+			return arguments
+		end
+
+		while true do
+			self:Assert( self:Consume(TokenVariant.Grammar, Grammar.Comma), "Expected comma (,) in between key value arguments" )
+
+			local key = self:Expr()
+			self:Assert( self:Consume(TokenVariant.Operator, Operator.Ass), "Assignment operator (=) missing, to complete expression" )
+			arguments[#arguments + 1] = {key, self:Expr()}
+
+			if self:Consume(TokenVariant.Grammar, end_bracket) then
+				return arguments
+			end
+		end
+	end
+end
+
+---@return Node
+function Parser:Expr11()
+	local expr = self:Expr12()
 
 	while true do
 		if self:ConsumeTailing(TokenVariant.Operator, Operator.Col) then
@@ -824,12 +842,11 @@ function Parser:Expr12()
 				end
 			end
 
-			local arguments = self:Arguments()
-			return Node.new(NodeVariant.ExprMethodCall, { fn, arguments })
+			return Node.new(NodeVariant.ExprMethodCall, { fn, self:Arguments() })
 		else
 			local indices = self:Indices()
-			if indices then
-				return Node.new(NodeVariant.ExprIndexGet, { expr, indices })
+			if #indices > 0 then
+				return Node.new(NodeVariant.ExprIndex, { expr, indices })
 			elseif self:Consume(TokenVariant.Grammar, Grammar.LSquare) then
 				self:Error("Indexing operator ([]) must not be preceded by whitespace")
 			end
@@ -860,8 +877,8 @@ function Parser:Expr12()
 	return expr
 end
 
-
-function Parser:Expr13()
+---@return Node
+function Parser:Expr12()
 	if self:Consume(TokenVariant.Grammar, Grammar.LParen) then
 		local expr = self:Expr()
 
@@ -874,24 +891,26 @@ function Parser:Expr13()
 
 	local fn = self:Consume(TokenVariant.LowerIdent)
 	if fn then
-		if fn == "table" or fn == "array" then
-			self:Warning("Unimplemented: keyvalue syntax")
+		-- Transform key value
+		if fn.value == "array" then
+			return Node.new(NodeVariant.ExprArray, { self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments() })
+		elseif fn.value == "table" then
+			return Node.new(NodeVariant.ExprTable, { self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments() })
 		end
-
-		return Node.new(NodeVariant.ExprCall, { fn, self:Arguments() })
+		return Node.new(NodeVariant.ExprCall, { fn.value, self:Arguments() })
 	end
 
-	-- Basic lua supported numeric literals (decimal, hex, binary)
+	-- Decimal / Hexadecimal / Binary numbers
 	local num = self:Consume(TokenVariant.Decimal) or self:Consume(TokenVariant.Hexadecimal) or self:Consume(TokenVariant.Binary)
 	if num then
-		return Node.new(NodeVariant.ExprLiteral, { "n", num })
+		return Node.new(NodeVariant.ExprLiteral, { "number", num.value })
 	end
 
 	-- Complex / Quaternion numbers
 	local adv_num = self:Consume(TokenVariant.Complex) or self:Consume(TokenVariant.Quat)
 	if adv_num then
 		local num, suffix = adv_num.value:match("^([-+e0-9.]*)(.*)$")
-		num = assert(tonumber(num), "unparseable numeric literal")
+		num = self:Assert(tonumber(num), "Malformed numeric literal")
 		local value, type
 		if suffix == "" then
 			value, type = num, "n"
@@ -911,7 +930,7 @@ function Parser:Expr13()
 	-- String
 	local str = self:Consume(TokenVariant.String)
 	if str then
-		return Node.new(NodeVariant.ExprLiteral, { "s", str })
+		return Node.new(NodeVariant.ExprLiteral, { "s", str.value })
 	end
 
 	-- Unary Wiremod Operators
@@ -952,12 +971,12 @@ function Parser:Expr13()
 	-- Variables
 	local ident =  self:Consume(TokenVariant.Ident)
 	if ident then
-		return Node.new(NodeVariant.ExprIdent, ident)
+		return Node.new(NodeVariant.ExprIdent, ident.value)
 	end
 
 	-- Error Messages
 	if self:Eof() then
-		return self:Error("Further input required at end of code, incomplete expression")
+		self:Error("Further input required at end of code, incomplete expression")
 	end
 
 	if self:Consume(TokenVariant.Operator, Operator.Add) then
@@ -1034,4 +1053,6 @@ function Parser:Expr13()
 	else
 		self:Error("Unexpected token found (" .. self:At():display() .. ")")
 	end
+
+	error("unreachable")
 end

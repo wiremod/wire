@@ -2,8 +2,19 @@ AddCSLuaFile()
 
 E2Lib = {
 	Env = {
-		Events = {}
-	}
+		Events = {},
+		Types = {},
+
+		---@type table<string, { types: TypeSignature[], op: RuntimeOperator }[]?>
+		Operators = {},
+
+		---@type table<string, { types: TypeSignature[], op: RuntimeOperator }[]?>
+		Functions = {
+			["print"] = {
+				{ types = {"s", "..."}, op = function(args) print(unpack(args)) end }
+			}
+		}
+	},
 }
 
 local type = type
@@ -14,15 +25,6 @@ end
 -- -------------------------- Helper functions -----------------------------
 local unpack = unpack
 local IsValid = IsValid
-
--- This functions should not be used in functions that tend to be used very often, as it is slower than getting the arguments manually.
-function E2Lib.getArguments(self, args)
-	local ret = {}
-	for i = 2, #args[7] + 1 do
-		ret[i - 1] = args[i][1](self, args[i])
-	end
-	return unpack(ret)
-end
 
 -- Backwards compatibility
 E2Lib.isnan = WireLib.isnan
@@ -555,6 +557,7 @@ local Operator = {
 
 E2Lib.Operator = Operator
 
+---@type table<Operator, string>
 local OperatorNames = {}
 for name, val in pairs(Operator) do
 	OperatorNames[val] = name
@@ -1034,9 +1037,6 @@ function E2Lib.compileScript(code, owner, run)
 	if not status then return false, tokens end
 
 	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
-	if not status then return false, tree end
-
-	status,tree = E2Lib.Optimizer.Execute(tree)
 	if not status then return false, tree end
 
 	local status, script, inst = E2Lib.Compiler.Execute(tree, directives.inputs, directives.outputs, directives.persist, dvars, {})

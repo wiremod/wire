@@ -344,9 +344,6 @@ function ENT:CompileCode(buffer, files, filepath)
 
 	if not self:PrepareIncludes(files) then return end
 
-	status, ast = E2Lib.Optimizer.Execute(ast)
-	if not status then self:Error(ast) return end
-
 	local status, script, inst = E2Lib.Compiler.Execute(ast, self.inports, self.outports, self.persists, dvars, self.includes)
 	if not status then self:Error(script) return end
 
@@ -390,12 +387,6 @@ function ENT:PrepareIncludes(files)
 		end
 
 		local status, tree, dvars = E2Lib.Parser.Execute(tokens)
-		if not status then
-			self:Error("(" .. file .. ")" .. tree)
-			return
-		end
-
-		status, tree = E2Lib.Optimizer.Execute(tree)
 		if not status then
 			self:Error("(" .. file .. ")" .. tree)
 			return

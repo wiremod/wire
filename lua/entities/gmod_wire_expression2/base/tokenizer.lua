@@ -9,6 +9,7 @@
 		* boolean literals are reserved for later use.
 		* internal representations are stored as enums for faster computation (operators, keywords, grammar)
 		* emmylua annotations
+		* skips past errors
 ]]
 
 AddCSLuaFile()
@@ -23,6 +24,10 @@ local Trace, Warning, Error = E2Lib.Debug.Trace, E2Lib.Debug.Warning, E2Lib.Debu
 ---@field warnings Warning[]
 local Tokenizer = {}
 Tokenizer.__index = Tokenizer
+
+function Tokenizer.new()
+	return setmetatable({}, Tokenizer)
+end
 
 E2Lib.Tokenizer = Tokenizer
 
@@ -61,11 +66,11 @@ end
 
 Tokenizer.VariantLookup = VariantLookup
 
----@class Token
+---@class Token<T>: { value: T, variant: TokenVariant, whitespaced: boolean, trace: Trace }
 ---@field variant TokenVariant
----@field value number|string|boolean
 ---@field whitespaced boolean
 ---@field trace Trace
+---@field value any
 local Token = {}
 Token.__index = Token
 
@@ -73,9 +78,10 @@ Tokenizer.Token = Token
 
 --- Creates a new (partially filled) token
 --- Line, column and whitespaced need to be added manually.
+---@generic T
 ---@param variant TokenVariant
----@param value number|string|boolean
----@return Token
+---@param value T
+---@return Token<T>
 function Token.new(variant, value)
 	return setmetatable({ variant = variant, value = value }, Token)
 end
@@ -113,12 +119,11 @@ end
 ---@return Token[]
 ---@return Tokenizer self
 function Tokenizer.Execute(code)
-	-- instantiate Tokenizer
-	local instance = setmetatable({}, Tokenizer)
+	local instance = Tokenizer.new()
+	local tokens = instance:Process(code)
 
-	-- and pcall the new instance's Process method.
-	local ok, tokens = xpcall(Tokenizer.Process, E2Lib.errorHandler, instance, code)
-	return ok, tokens, instance
+	local ok = #instance.errors == 0
+	return ok, ok and tokens or instance.errors[1], instance
 end
 
 ---@param message string
