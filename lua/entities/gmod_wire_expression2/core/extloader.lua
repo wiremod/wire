@@ -31,7 +31,18 @@ if ENT then
 			chip.script = nil
 		end
 
+
+		_Msg("Reloading Expression 2 internals.")
+		include("entities/gmod_wire_expression2/core/e2lib.lua")
+		include("entities/gmod_wire_expression2/base/debug.lua")
+		include("entities/gmod_wire_expression2/base/preprocessor.lua")
+		include("entities/gmod_wire_expression2/base/tokenizer.lua")
+		include("entities/gmod_wire_expression2/base/parser.lua")
+		include("entities/gmod_wire_expression2/base/compiler.lua")
+
 		_Msg( "Reloading Expression 2 extensions." )
+		include("entities/gmod_wire_expression2/core/init.lua")
+
 		ENT = wire_expression2_ENT
 		wire_expression2_is_reload = true
 		include( "entities/gmod_wire_expression2/core/extloader.lua" )

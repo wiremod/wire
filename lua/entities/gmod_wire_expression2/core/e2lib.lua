@@ -1,17 +1,51 @@
 AddCSLuaFile()
 
+---@class EnvEvent
+---@field name string
+---@field args TypeSignature[]
+---@field constructor function
+---@field destructor function
+---@field listening table<userdata, boolean>
+
+---@class EnvType
+---@field name string
+---@field id string
+
+---@class EnvConstant: { name: string, type: TypeSignature, value: any }
+
+---@class EnvOperator
+---@field args TypeSignature[]
+---@field returns TypeSignature[]
+---@field op RuntimeOperator
+
+---@class EnvFunction: EnvOperator
+---@field attrs table<string, boolean|string>
+
+---@class EnvMethod: EnvFunction
+---@field meta TypeSignature
+
+---@class EnvLibrary
+---@field Constants table<string, EnvConstant>
+---@field Functions table<string, EnvFunction[]>
+---@field Methods table<string, EnvMethod[]>
+
 E2Lib = {
 	Env = {
+		---@type table<string, EnvEvent>
 		Events = {},
+
+		---@type table<string, EnvType>
 		Types = {},
 
-		---@type table<string, { types: TypeSignature[], op: RuntimeOperator }[]?>
+		---@type table<string, EnvOperator[]?>
 		Operators = {},
 
-		---@type table<string, { types: TypeSignature[], op: RuntimeOperator }[]?>
-		Functions = {
-			["print"] = {
-				{ types = {"s", "..."}, op = function(args) print(unpack(args)) end }
+		---@type table<string, EnvLibrary>
+		Libraries = {
+			Builtins = {
+				Constants = {},
+				Functions = {},
+				Methods = {}
 			}
 		}
 	},
@@ -23,7 +57,6 @@ local function checkargtype(argn, value, argtype)
 end
 
 -- -------------------------- Helper functions -----------------------------
-local unpack = unpack
 local IsValid = IsValid
 
 -- Backwards compatibility
@@ -130,6 +163,7 @@ function E2Lib.splitType(args)
 		end
 		i = i + 1
 	end
+
 	return thistype, ret
 end
 
@@ -310,12 +344,15 @@ end
 -- usable error message. If not, then it's an error not caused by an error in
 -- user code, and so we dump a stack trace to the console to help debug it.
 function E2Lib.errorHandler(message)
-	if string.match(message, " at line ") then return message end
+	if getmetatable(message) == E2Lib.Debug.Error then
+		return message
+	end
 
 	print("Internal error - please report to https://github.com/wiremod/wire/issues")
 	print(message)
 	debug.Trace()
-	return "Internal error, see console for more details"
+
+	return E2Lib.Debug.Error.new("Internal error, see console for more details")
 end
 
 E2Lib.optable_inv = {
@@ -990,7 +1027,7 @@ end
 --- Unpacks either an exception object as seen above or an error string.
 ---@return boolean catchable
 ---@return string msg
----@return TokenTrace? trace
+---@return Trace? trace
 function E2Lib.unpackException(struct)
 	if isstring(struct) then
 		return false, struct, nil
@@ -1067,7 +1104,7 @@ function E2Lib.compileScript(code, owner, run)
 		end
 
 		ctx:PushScope()
-			local success, why = pcall( script[1], ctx, script )
+			local success, why = pcall( script, ctx )
 		ctx:PopScope()
 
 		-- Cleanup so hooks like runOnTick won't run after this call

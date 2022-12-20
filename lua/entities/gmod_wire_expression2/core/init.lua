@@ -107,6 +107,8 @@ function registerType(name, id, def, ...)
 		"character long, or three characters long starting with an x", id), 2)
 	end
 
+	E2Lib.Env.Types[name] = { name = name, id = id }
+
 	wire_expression_types[string.upper(name)] = { id, def, ... }
 	wire_expression_types2[id] = { string.upper(name), def, ... }
 	if not WireLib.DT[string.upper(name)] then
@@ -150,7 +152,46 @@ function __e2getcost()
 	return tempcost
 end
 
+---@param args string
+---@return string?, table
+local function getArgumentTypeIds(args)
+	local thistype, nargs = args:match("^([^:]+):(.*)$")
+	if nargs then args = nargs end
+
+	local out, ptr = {}, 1
+	while ptr <= #args do
+		local c = args:sub(ptr, ptr)
+		if c == "x" then
+			out[#out + 1] = args:sub(ptr, ptr + 2)
+			ptr = ptr + 3
+		elseif args:sub(ptr) == "..." then
+			out[#out + 1] = "..."
+			ptr = ptr + 3
+		elseif c:match("^%w") then
+			out[#out + 1] = c
+			ptr = ptr + 1
+		else
+			error("Invalid signature: " .. args)
+		end
+	end
+
+	return thistype, out
+end
+
 function registerOperator(name, pars, rets, func, cost, argnames)
+	-- Compatibility with new system
+	do
+		--[[local _, args = getArgumentTypeIds(pars)
+		local _, returns = getArgumentTypeIds(rets)
+
+		E2Lib.Env.Operators[name] = E2Lib.Env.Operators[name] or {}
+		table.insert(E2Lib.Env.Operators[name], {
+			args = args,
+			returns = returns,
+			op = func
+		})]]
+	end
+
 	local signature = "op:" .. name .. "(" .. pars .. ")"
 
 	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames }
@@ -158,6 +199,26 @@ function registerOperator(name, pars, rets, func, cost, argnames)
 end
 
 function registerFunction(name, pars, rets, func, cost, argnames, attributes)
+	if attributes and attributes.legacy == nil then
+		-- can explicitly mark "false" (will be used by extpp later.)
+		attributes.legacy = true
+	end
+
+	-- Compatibility with new system
+	do
+		local meta, args = getArgumentTypeIds(pars)
+		local _, returns = getArgumentTypeIds(rets)
+
+		local library = E2Lib.Env.Libraries.Builtins
+		if meta then
+			library.Methods[name] = library.Methods[name] or {}
+			table.insert(library.Methods[name], { meta = meta, args = args, returns = returns, attrs = attributes or {}, op = func })
+		else
+			library.Functions[name] = library.Functions[name] or {}
+			table.insert(library.Functions[name], { args = args, returns = returns, attrs = attributes or {}, op = func })
+		end
+	end
+
 	local signature = name .. "(" .. pars .. ")"
 
 	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, extension = E2Lib.currentextension, attributes = attributes }
@@ -166,10 +227,10 @@ function registerFunction(name, pars, rets, func, cost, argnames, attributes)
 	if wire_expression2_debug:GetBool() then makecheck(signature) end
 end
 
-function E2Lib.registerConstant(name, value, literal)
-	if name:sub(1, 1) ~= "_" then name = "_" .. name end
-	if not value and not literal then value = _G[name] end
+function E2Lib.registerConstant(name, value)
+	E2Lib.Env.Libraries.Builtins.Constants[name] = { name = name, type = "n", value = value }
 
+	if name:sub(1, 1) ~= "_" then name = "_" .. name end
 	wire_expression2_constants[name] = value
 end
 

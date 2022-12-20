@@ -14,7 +14,7 @@ AddCSLuaFile()
 
 local Trace, Warning, Error = E2Lib.Debug.Trace, E2Lib.Debug.Warning, E2Lib.Debug.Error
 local Tokenizer = E2Lib.Tokenizer
-local TokenVariant = Tokenizer.Variant
+local Token, TokenVariant = Tokenizer.Token, Tokenizer.Variant
 local Keyword, Grammar, Operator = E2Lib.Keyword, E2Lib.Grammar, E2Lib.Operator
 
 ---@class Parser
@@ -22,7 +22,7 @@ local Keyword, Grammar, Operator = E2Lib.Keyword, E2Lib.Grammar, E2Lib.Operator
 ---@field ntokens integer
 ---@field index integer
 ---@field warnings Warning[]
----@field traces Trace[] # Stack of Traces to push and pop.
+---@field traces Trace[] # Stack of traces to push and pop
 ---@field delta_vars table<string, boolean>
 ---@field include_files string[]
 local Parser = {}
@@ -120,11 +120,11 @@ end
 
 Node.__tostring = Node.debug
 
----@param tokens Token[]
----@return boolean ok
----@return table ast
+---@return boolean ok, Node|Error ast, table<string, boolean> dvars, string[] include_files, Parser self
 function Parser.Execute(tokens)
-	return xpcall(Parser.Process, E2Lib.errorHandler, Parser.new(tokens), tokens)
+	local instance = Parser.new(tokens)
+	local ok, ast, dvars, include_files = xpcall(Parser.Process, E2Lib.errorHandler, instance, tokens)
+	return ok, ast, dvars, include_files, instance
 end
 
 function Parser:Eof() return self.index > self.ntokens end
@@ -146,22 +146,22 @@ end
 
 ---@return Trace
 function Parser:GetTrace()
-	return assert(self.traces[#self.traces], "GetTrace() without any current trace in stack."):getStitched(assert(self:At(), "No active token").trace)
+	return assert(self.traces[#self.traces], "GetTrace() without any current trace in stack."):stitch(assert(self:At() or self:Prev(), "No active token").trace)
 end
 
 function Parser:PushTrace()
-	self.traces[#self.traces + 1] = assert(self:At(), "PushTrace without an active token").trace
+	self.traces[#self.traces + 1] = assert(self:Peek() or self:At(), "PushTrace without a proceeding token").trace
 end
 
 ---@return Trace
 function Parser:PopTrace()
-	return assert(table.remove(self.traces), "PopTrace without trace on top of stack"):getStitched(assert(self:At() or self:Prev(), "No active token").trace)
+	return assert(table.remove(self.traces), "PopTrace without trace on top of stack"):stitch(assert(self:At() or self:Prev(), "No active token").trace)
 end
 
 ---@param message string
 ---@param trace Trace?
 function Parser:Error(message, trace)
-	error( Error.new( message, trace or self:GetTrace() ):display(), 2 )
+	error( Error.new( message, trace or self:GetTrace() ), 2 )
 end
 
 ---@param message string
@@ -180,12 +180,13 @@ function Parser:Assert(v, message)
 end
 
 
+---@return Node ast, table<string, boolean> dvars, string[] include_files
 function Parser:Process(tokens)
 	self.index, self.tokens, self.warnings, self.delta_vars, self.include_files = 1, tokens, {}, {}, {}
 
 	self:PushTrace()
 	local stmts = {}
-	if self:Eof() then return Node.new(NodeVariant.Block, stmts, self:PopTrace()) end
+	if self:Eof() then return Node.new(NodeVariant.Block, stmts, self:PopTrace()), self.delta_vars, self.include_files end
 
 	while true do
 		if self:Consume(TokenVariant.Grammar, Grammar.Comma) then
@@ -229,11 +230,10 @@ end
 
 ---@return Node
 function Parser:Condition()
+	self:Assert( self:Consume(TokenVariant.Grammar, Grammar.LParen), "Left parenthesis (() expected before condition")
 	self:PushTrace()
-		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.LParen), "Left parenthesis (() expected before condition")
 		local expr = self:Expr()
-		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RParen), "Right parenthesis ()) missing, to close condition")
-	expr.trace = self:PopTrace()
+	self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RParen), "Right parenthesis ()) missing, to close condition")
 	return expr
 end
 
@@ -360,12 +360,13 @@ function Parser:Stmt()
 	if not var then
 		self:Assert(not is_local, "Invalid operator (local) must be used for variable declaration.")
 	else
-		local exprs, val = { { var.value, {} } }, nil
+		local exprs = { { var, is_local and {} or self:Indices(), self:GetTrace() } }
 		while self:Consume(TokenVariant.Operator, Operator.Ass) do
 			local id = self:Consume(TokenVariant.Ident)
 			if id then
+				self:PushTrace()
 				-- Var = Var = ...
-				exprs[#exprs + 1] = { id.value, self:Indices() }
+				exprs[#exprs + 1] = { id, self:Indices(), self:PopTrace() }
 			else
 				return Node.new(NodeVariant.Assignment, { is_local, exprs, self:Expr() })
 			end
@@ -441,8 +442,6 @@ function Parser:Stmt()
 				else
 					cases[#cases + 1] = block
 				end
-
-				self:PopTrace()
 			end
 		end
 
@@ -451,27 +450,27 @@ function Parser:Stmt()
 		return Node.new(NodeVariant.Switch, { expr, cases, default })
 	end
 
-	-- Function definition { string return, string? meta, string name, Parameters params, Node[] body }
+	-- Function definition
 	if self:Consume(TokenVariant.Keyword, Keyword.Function) then
 		local type_or_name = self:Assert( self:Consume(TokenVariant.LowerIdent), "Expected function return type or name after function keyword")
 
 		if self:Consume(TokenVariant.Operator, Operator.Col) then
 			-- function entity:xyz()
-			return Node.new(NodeVariant.Function, { "", type_or_name.value, self:Assert(self:Consume(TokenVariant.LowerIdent), "Expected function name after colon (:)").value, self:Parameters(), self:Block() })
+			return Node.new(NodeVariant.Function, { nil, type_or_name, self:Assert(self:Consume(TokenVariant.LowerIdent), "Expected function name after colon (:)"), self:Parameters(), self:Block() })
 		end
 
 		local meta_or_name = self:Consume(TokenVariant.LowerIdent)
 		if meta_or_name then
 			if self:Consume(TokenVariant.Operator, Operator.Col) then
 				-- function void entity:xyz()
-				return Node.new(NodeVariant.Function, { type_or_name.value, meta_or_name.value, self:Assert(self:Consume(TokenVariant.LowerIdent), "Expected function name after colon (:)").value, self:Parameters(), self:Block() })
+				return Node.new(NodeVariant.Function, { type_or_name, meta_or_name, self:Assert(self:Consume(TokenVariant.LowerIdent), "Expected function name after colon (:)"), self:Parameters(), self:Block() })
 			else
 				-- function void test()
-				return Node.new(NodeVariant.Function, { type_or_name.value, nil, meta_or_name.value, self:Parameters(), self:Block() })
+				return Node.new(NodeVariant.Function, { type_or_name, nil, meta_or_name, self:Parameters(), self:Block() })
 			end
 		else
 			-- function test()
-			return Node.new(NodeVariant.Function, { "", nil, type_or_name.value, self:Parameters(), self:Block() })
+			return Node.new(NodeVariant.Function, { nil, nil, type_or_name, self:Parameters(), self:Block() })
 		end
 	end
 
@@ -523,10 +522,13 @@ end
 
 function Parser:Type()
 	local type = self:Consume(TokenVariant.LowerIdent)
-	return type and (type.value == "normal" and "number" or type.value)
+	if type and type.value == "normal" then
+		type.value = "number"
+	end
+	return type
 end
 
----@return { [0]: Node, [1]: string?, [2]: Trace }[]
+---@return { [1]: Node, [2]: string?, [3]: Trace }[]
 function Parser:Indices()
 	local indices = {}
 	while self:ConsumeTailing(TokenVariant.Grammar, Grammar.LSquare) do
@@ -589,7 +591,8 @@ function Parser:Block()
 	self:Error("Right curly bracket (}) missing, to close block")
 end
 
----@alias Parameter { name: string, type: string }
+--- `type` is nil in case of the default param type. (number)
+---@alias Parameter { name: Token<string>, type: Token<string>? }
 
 ---@return Parameter[]?
 function Parser:Parameters()
@@ -608,7 +611,7 @@ function Parser:Parameters()
 				temp[#temp + 1] = self:Assert(self:Consume(TokenVariant.Ident), "Expected parameter name")
 			until self:Consume(TokenVariant.Grammar, Grammar.RSquare)
 
-			local typ, len = "number", #params
+			local typ, len = nil, #params
 			if self:Consume(TokenVariant.Operator, Operator.Col) then
 				typ = self:Assert( self:Type(), "Expected type after colon (:)" )
 			else
@@ -621,7 +624,7 @@ function Parser:Parameters()
 		else
 			variadic = self:Consume(TokenVariant.Operator, Operator.Spread)
 
-			local name, type = self:Assert(self:Consume(TokenVariant.Ident), "Expected parameter name"), "number"
+			local name, type = self:Assert(self:Consume(TokenVariant.Ident), "Expected parameter name")
 			if self:Consume(TokenVariant.Operator, Operator.Col) then
 				type = self:Assert(self:Type(), "Expected valid parameter type")
 			end
@@ -661,9 +664,8 @@ function Parser:Expr()
 		self.index = self.index - 1
 	end
 
-	self:PushTrace()
-
 	-- Ternary or Default
+	self:PushTrace()
 	local cond = self:Expr2()
 	if self:Consume(TokenVariant.Operator, Operator.Qsm) then
 		local if_true = self:Expr()
@@ -672,14 +674,14 @@ function Parser:Expr()
 			self:Error("Conditional operator (:) must appear after expression to complete conditional")
 		end
 
-		return Node.new(NodeVariant.ExprTernary, { cond, if_true, self:Expr() }, self:PopTrace())
+		return Node.new(NodeVariant.ExprTernary, { cond, if_true, self:Expr() })
 	end
 
 	if self:Consume(TokenVariant.Operator, Operator.Def) then
-		return Node.new(NodeVariant.ExprDefault, { cond, self:Expr() }, self:PopTrace())
+		return Node.new(NodeVariant.ExprDefault, { cond, self:Expr() })
 	end
 
-	cond.trace = self:PopTrace()
+	cond.trace = cond.trace or self:PopTrace()
 	return cond
 end
 
@@ -688,18 +690,19 @@ end
 ---@param tbl Operator[]
 ---@return Node
 function Parser:RecurseLeft(func, variant, tbl)
-	local expr, hit = func(self), true
+	local lhs, hit = func(self), true
 	while hit do
 		hit = false
 		for _, op in ipairs(tbl) do
 			if self:Consume(TokenVariant.Operator, op) then
-				hit, expr = true, Node.new(variant, { expr, op, func(self) })
+				local rhs = func(self)
+				hit, lhs = true, Node.new(variant, { lhs, op, rhs }, lhs.trace:stitch(rhs.trace))
 				break
 			end
 		end
 	end
 
-	return expr
+	return lhs
 end
 
 function Parser:Expr2()
@@ -903,7 +906,7 @@ function Parser:Expr12()
 	-- Decimal / Hexadecimal / Binary numbers
 	local num = self:Consume(TokenVariant.Decimal) or self:Consume(TokenVariant.Hexadecimal) or self:Consume(TokenVariant.Binary)
 	if num then
-		return Node.new(NodeVariant.ExprLiteral, { "number", num.value })
+		return Node.new(NodeVariant.ExprLiteral, { "n", num.value }, num.trace)
 	end
 
 	-- Complex / Quaternion numbers
@@ -930,7 +933,7 @@ function Parser:Expr12()
 	-- String
 	local str = self:Consume(TokenVariant.String)
 	if str then
-		return Node.new(NodeVariant.ExprLiteral, { "s", str.value })
+		return Node.new(NodeVariant.ExprLiteral, { "s", str.value }, str.trace)
 	end
 
 	-- Unary Wiremod Operators
@@ -971,7 +974,7 @@ function Parser:Expr12()
 	-- Variables
 	local ident =  self:Consume(TokenVariant.Ident)
 	if ident then
-		return Node.new(NodeVariant.ExprIdent, ident.value)
+		return Node.new(NodeVariant.ExprIdent, ident)
 	end
 
 	-- Error Messages

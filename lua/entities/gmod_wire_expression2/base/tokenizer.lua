@@ -116,14 +116,14 @@ function Token:display()
 end
 
 ---@return boolean ok
----@return Token[]
+---@return Token[]|Error[] tokens_or_errors
 ---@return Tokenizer self
 function Tokenizer.Execute(code)
 	local instance = Tokenizer.new()
 	local tokens = instance:Process(code)
 
 	local ok = #instance.errors == 0
-	return ok, ok and tokens or instance.errors[1], instance
+	return ok, ok and tokens or instance.errors, instance
 end
 
 ---@param message string

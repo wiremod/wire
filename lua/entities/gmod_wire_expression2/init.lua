@@ -145,7 +145,7 @@ function ENT:Execute()
 
 	local bench = SysTime()
 
-	local ok, msg = pcall(self.script[1], self.context, self.script)
+	local ok, msg = pcall(self.script, self.context)
 
 	if not ok then
 		local _catchable, msg, trace = E2Lib.unpackException(msg)

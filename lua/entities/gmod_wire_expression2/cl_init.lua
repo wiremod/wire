@@ -1,32 +1,34 @@
 include('shared.lua')
 
+local Trace, Error = E2Lib.Debug.Trace, E2Lib.Debug.Error
+
+---@return Error[]?
 local function Include(e2, directives, includes, scripts)
 	if scripts[e2] then
 		return
 	end
 
+	local errors = {}
 	local code = file.Read("expression2/" .. e2 .. ".txt")
-	-- removed CLIENT as this is client file
-	-- local code
-	-- if CLIENT the code = file.Read("expression2/" .. e2 .. ".txt")
 
 	if not code then
-		return false, "Could not find include '" .. e2 .. ".txt'"
+		return false, { Error.new("Could not find include '" .. e2 .. ".txt'") }
 	end
 
-	local status, err, buffer = E2Lib.PreProcessor.Execute(code, directives)
+	local status, err, buffer, preprocessor = E2Lib.PreProcessor.Execute(code, directives)
 	if not status then
-		return "include '" .. e2 .. "' -> " .. err
+		table.Add(errors, preprocessor.errors)
 	end
 
-	local status, tokens = E2Lib.Tokenizer.Execute(buffer)
+	local status, tokens, tokenizer = E2Lib.Tokenizer.Execute(buffer)
 	if not status then
-		return "include '" .. e2 .. "' -> " .. tokens
+		table.Add(errors, tokenizer.errors)
 	end
 
 	local status, tree, dvars, files = E2Lib.Parser.Execute(tokens)
 	if not status then
-		return "include '" .. e2 .. "' -> " .. tree
+		table.insert(errors, tree)
+		return errors
 	end
 
 	includes[e2] = code
@@ -34,20 +36,23 @@ local function Include(e2, directives, includes, scripts)
 	scripts[e2] = { tree }
 
 	for i = 1, #files do
-		local error = Include(files[i], directives, includes, scripts)
-		if error then return error end
+		local ierrors = Include(files[i], directives, includes, scripts)
+		if ierrors then table.Add(errors, errors) end
 	end
+
+	if #errors ~= 0 then return errors end
 end
 
+---@return Error[]?, table[]?, Warning[]?
 function wire_expression2_validate(buffer)
-	if not e2_function_data_received then return "Loading extensions. Please try again in a few seconds..." end
+	if not e2_function_data_received then return Error.new("Loading extensions. Please try again in a few seconds...") end
 
 	---@type Warning[]
-	local warnings = {}
+	local warnings, errors = {}, {}
 
 	-- invoke preprocessor
 	local status, directives, buffer, preprocessor = E2Lib.PreProcessor.Execute(buffer)
-	if not status then return directives end
+	if not status then table.Add(errors, preprocessor.errors) end
 	table.Add(warnings, preprocessor.warnings)
 
 	-- decompose directives
@@ -56,24 +61,26 @@ function wire_expression2_validate(buffer)
 
 	-- invoke tokenizer (=lexer)
 	local status, tokens, tokenizer = E2Lib.Tokenizer.Execute(buffer)
-	if not status then return tokens end
+	if not status then table.Add(errors, tokenizer.errors) return errors end
 	table.Add(warnings, tokenizer.warnings)
 
 	-- invoke parser
 	local status, tree, dvars, files, parser = E2Lib.Parser.Execute(tokens)
-	if not status then return tree end
+	if not status then table.insert(errors, tree) return errors end
 	table.Add(warnings, parser.warnings)
 
 	-- prepare includes
 	local includes, scripts = {}, {}
 	for i = 1, #files do
-		local error = Include(files[i], directives, includes, scripts)
-		if error then return error end
+		local ierrors = Include(files[i], directives, includes, scripts)
+		if ierrors then table.Add(errors, ierrors) end
 	end
+
+	if not table.IsEmpty(errors) then return errors end
 
 	-- invoke compiler
 	local status, script, compiler = E2Lib.Compiler.Execute(tree, inports, outports, persists, dvars, scripts)
-	if not status then return script end
+	if not status then table.insert(errors, script) return errors end
 
 	-- Need to do this manually since table.Add loses its mind with non-numeric keys (and compiler can emit warnings per include file) (should be refactored out at some point to just having warnings separated per include)
 	local nwarnings = #warnings

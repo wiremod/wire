@@ -1643,10 +1643,10 @@ end
 function Editor:Validate(gotoerror)
 	local header_color, header_text = nil, nil
 	local problems_errors, problems_warnings = {}, {}
-	
+
 	if self.EditorType == "E2" then
 		local errors, _, warnings = wire_expression2_validate(self:GetCode())
-		
+
 		if not errors then
 			if warnings then
 				header_color = Color(163, 130, 64, 255)
@@ -1656,7 +1656,8 @@ function Editor:Validate(gotoerror)
 
 				if gotoerror then
 					header_text = "Warning (1/" .. nwarnings .. "): " .. warning.message
-					self:GetCurrentEditor():SetCaret { warning.line, warning.char  }
+
+					self:GetCurrentEditor():SetCaret { warning.trace.start_line, warning.trace.start_col  }
 				else
 					header_text = "Validated with " .. nwarnings .. " warning(s)."
 				end
@@ -1667,19 +1668,22 @@ function Editor:Validate(gotoerror)
 			end
 		else
 			header_color = Color(110, 0, 20, 255)
-			header_text = ("" .. errors)
-			local row, col = errors:match("at line ([0-9]+), char ([0-9]+)$")
-			if not row then
-				row, col = errors:match("at line ([0-9]+)$"), 1
-			end
-			
-			problems_errors = {{message = string.Explode(" at line", errors)[1], line = row, char = col}}
+
+			local nerrors, error = #errors, errors[1]
 
 			if gotoerror then
-				if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
+				header_text = "Error (1/" .. nerrors .. "): " .. error.message
+
+				if error.trace then
+					self:GetCurrentEditor():SetCaret { error.trace.start_line, error.trace.start_col  }
+				end
+			else
+				header_text = "Validated with " .. nerrors .. " errors(s)."
 			end
+
+			problems_errors = errors
 		end
-		
+
 	elseif self.EditorType == "CPU" or self.EditorType == "GPU" or self.EditorType == "SPU" then
 		header_color = Color(64, 64, 64, 180)
 		header_text = "Recompiling..."

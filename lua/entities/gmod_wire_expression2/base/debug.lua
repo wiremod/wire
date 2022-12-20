@@ -28,17 +28,10 @@ function Trace:debug()
 end
 Trace.__tostring = Trace.debug
 
---- Stitches the trace to end at the ending of the other trace (Assumes other trace is ahead)
----@param other Trace
-function Trace:stitch(other)
-	self.end_col = other.end_col
-	self.end_line = other.end_line
-end
-
 --- Returns the a new trace that spans both traces.
 ---@param other Trace
 ---@return Trace
-function Trace:getStitched(other)
+function Trace:stitch(other)
 	return setmetatable({ start_col = self.start_col, end_col = other.end_col, start_line = self.start_line, end_line = other.end_line }, Trace)
 end
 
@@ -72,7 +65,7 @@ local Error = {}
 Error.__index = Error
 
 ---@param message string
----@param trace Trace
+---@param trace Trace?
 ---@return Error
 function Error.new(message, trace)
 	return setmetatable({ message = message, trace = trace }, Error)
@@ -83,7 +76,14 @@ function Error:debug()
 end
 
 function Error:display()
-	return string.format("Error at line %u, char %u: %q", self.trace.start_line, self.trace.start_col, self.message)
+	local first
+	if self.trace.start_line ~= self.trace.end_line then
+		first = "Error from lines " .. self.trace.start_line .. " to " .. self.trace.end_line
+	else
+		first = "Error at line " .. self.trace.start_line
+	end
+
+	return string.format("%s, chars %u to %u: %q", first, self.trace.start_col, self.trace.end_col, self.message)
 end
 
 Error.__tostring = Error.debug
