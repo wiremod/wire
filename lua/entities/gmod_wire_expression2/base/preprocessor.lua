@@ -476,6 +476,49 @@ function PreProcessor:GetFunction(args, type)
 	return wire_expression2_funcs[name .. "(" .. pars .. ")"]
 end
 
+function PreProcessor:GetEvent(args, type) -- gets an event such as GetFunction, returning the event that is made with E2Lib.registerEvent; ex: "chat(esn)"
+	local name, argtypes = args:match("([^:(]+)%(*([^)]*)%)*") -- events dont need a type! so you can use "tick" without the () and it will still work!
+	if not name then self:Error("Malformed " .. type .. " argument " .. args) end
+
+	local event = E2Lib.Env.Events[name] -- this will need to be changed if events will be overloadable like functions ?
+	if event == nil then return nil end -- event with the name doesnt exist!
+
+	-- verify arguments
+	local tps = {}
+	for _, argtype in ipairs(string.Explode(",", argtypes)) do
+		argtype = self:GetType(argtype)
+		table.insert(tps, argtype)
+	end
+
+	local pars = table.concat(tps)
+	if table.concat(event.args) == pars then
+		return event -- equal!
+	end
+
+	return nil
+end
+
+function PreProcessor:PP_ifdefe(args, col)
+	local event = self:GetEvent(args, "#ifdefe")
+
+	if self:Disabled() then
+		table.insert(self.ifdefStack, false)
+	else
+		table.insert(self.ifdefStack, event ~= nil)
+		-- table.insert(self.ifdefStack, E2Lib.Env.Events[args] ~= nil) -- only checks name
+	end
+end
+
+function PreProcessor:PP_ifndefe(args, col)
+	local event = self:GetEvent(args, "#ifndefe")
+
+	if self:Disabled() then
+		table.insert(self.ifdefStack, false)
+	else
+		table.insert(self.ifdefStack, event == nil)
+	end
+end
+
 function PreProcessor:PP_ifdef(args, col)
 	local func = self:GetFunction(args, "#ifdef")
 
@@ -498,7 +541,7 @@ end
 
 function PreProcessor:PP_else(args, col)
 	local state = table.remove(self.ifdefStack)
-	if state == nil then self:Error("Found #else outside #ifdef/#ifndef block", col) end
+	if state == nil then self:Error("Found #else outside #ifdef/#ifndef/#ifdefe/#ifndefe block", col) end
 
 	if args:Trim() ~= "" then self:Error("Must not pass an argument to #else", col) end
 
@@ -511,7 +554,7 @@ end
 
 function PreProcessor:PP_endif(args, col)
 	local state = table.remove(self.ifdefStack)
-	if state == nil then self:Error("Found #endif outside #ifdef/#ifndef block", col) end
+	if state == nil then self:Error("Found #endif outside #ifdef/#ifndef/#ifdefe/#ifndefe block", col) end
 
 	if args:Trim() ~= "" then self:Error("Must not pass an argument to #endif", col) end
 end
