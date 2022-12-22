@@ -27,7 +27,7 @@ AddCSLuaFile()
 ---@class EnvLibrary
 ---@field Constants table<string, EnvConstant>
 ---@field Functions table<string, EnvFunction[]>
----@field Methods table<string, EnvMethod[]>
+---@field Methods table<TypeSignature, table<string, EnvMethod[]>>
 
 E2Lib = {
 	Env = {
@@ -236,11 +236,6 @@ function E2Lib.getOwner(self, entity)
 	end
 
 	return nil
-end
-
-function E2Lib.abuse(ply)
-	ply:Kick("Be good and don't abuse -- sincerely yours, the E2")
-	error("abuse", 0)
 end
 
 -- This function gets replaced when CPPI is detected, see very end of this file
@@ -1016,29 +1011,34 @@ end
 -- @strict is not enabled and instead returns a default value.
 -- This is what Context:throw calls internally if @strict
 -- By default E2 can catch these errors.
-function E2Lib.raiseException(msg, level, trace, can_catch)
-	error({
-		catchable = (can_catch == nil) and true or can_catch,
-		msg = msg,
-		trace = trace
-	}, level)
+---@param message string
+---@param level integer
+---@param trace Trace
+---@param can_catch boolean
+function E2Lib.raiseException(message, level, trace, can_catch)
+	error(E2Lib.Debug.Error.new(
+		message,
+		trace,
+		{ catchable = (can_catch == nil) and true or can_catch }
+	), level)
 end
 
 --- Unpacks either an exception object as seen above or an error string.
+---@param struct string|Error
 ---@return boolean catchable
----@return string msg
+---@return string message
 ---@return Trace? trace
 function E2Lib.unpackException(struct)
-	if isstring(struct) then
+	if type(struct) == "string" then
 		return false, struct, nil
 	end
-	return struct.catchable, struct.msg, struct.trace
+	return struct.userdata and struct.userdata.catchable or false, struct:display(), struct.trace
 end
 
 
 --- Mimics an E2 Context as if it were really on an entity.
 --- This code can probably be deduplicated but that'd needlessly complicate things, and I've made this compact enough.
----@param owner GEntity? # Owner, or assumes world
+---@param owner userdata? # Owner, or assumes world
 ---@return ScopeManager? # Context or nil if failed
 local function makeContext(owner)
 	local ctx = setmetatable({
@@ -1051,7 +1051,6 @@ local function makeContext(owner)
 	ctx:InitScope()
 
 	-- Construct the context to run code.
-	-- If not done, 
 	local ok, why = pcall(wire_expression2_CallHook, "construct", ctx)
 	if not ok then
 		pcall(wire_expression2_CallHook, "destruct", ctx)
@@ -1076,7 +1075,7 @@ function E2Lib.compileScript(code, owner, run)
 	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
 	if not status then return false, tree end
 
-	local status, script, inst = E2Lib.Compiler.Execute(tree, directives.inputs, directives.outputs, directives.persist, dvars, {})
+	local status, script, inst = E2Lib.Compiler.Execute(tree, directives, dvars, {})
 	if not status then return false, script end
 
 	local ctx = makeContext(owner or game.GetWorld())

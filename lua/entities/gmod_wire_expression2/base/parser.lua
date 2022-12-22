@@ -179,15 +179,14 @@ function Parser:Assert(v, message)
 	return v
 end
 
-
 ---@return Node ast, table<string, boolean> dvars, string[] include_files
 function Parser:Process(tokens)
-	self.index, self.tokens, self.warnings, self.delta_vars, self.include_files = 1, tokens, {}, {}, {}
+	self.index, self.tokens, self.ntokens, self.warnings, self.delta_vars, self.include_files = 1, tokens, #tokens, {}, {}, {}
+
+	local stmts = {}
+	if self:Eof() then return Node.new(NodeVariant.Block, stmts, Trace.new(0, 0, 0, 0)), self.delta_vars, self.include_files end
 
 	self:PushTrace()
-	local stmts = {}
-	if self:Eof() then return Node.new(NodeVariant.Block, stmts, self:PopTrace()), self.delta_vars, self.include_files end
-
 	while true do
 		if self:Consume(TokenVariant.Grammar, Grammar.Comma) then
 			self:Error("Statement separator (,) must not appear multiple times")
@@ -318,12 +317,12 @@ function Parser:Stmt()
 
 	if self:Consume(TokenVariant.Keyword, Keyword.Return) then
 		if self:Consume(TokenVariant.LowerIdent, "void") then
-			return Node.new(NodeVariant.Return, {})
+			return Node.new(NodeVariant.Return)
 		elseif self:Consume(TokenVariant.Grammar, Grammar.RCurly) then
 			self.index = self.index - 1
-			return Node.new(NodeVariant.Return, {})
+			return Node.new(NodeVariant.Return)
 		end
-		return Node.new(NodeVariant.Return, { self:Expr() })
+		return Node.new(NodeVariant.Return, self:Expr())
 	end
 
 	local var = self:Consume(TokenVariant.Ident)
@@ -414,6 +413,7 @@ function Parser:Stmt()
 
 				local block = {}
 				while true do
+					self:PushTrace()
 					if self:Consume(TokenVariant.Keyword, Keyword.Case) or self:Consume(TokenVariant.Keyword, Keyword.Default) or self:Consume(TokenVariant.Grammar, Grammar.RCurly) then
 						self.index = self.index - 1
 						break
@@ -438,9 +438,9 @@ function Parser:Stmt()
 				end
 
 				if default_ then
-					default = block
+					default = Node.new(NodeVariant.Block, block, self:PopTrace())
 				else
-					cases[#cases + 1] = block
+					cases[#cases + 1] = { expr, Node.new(NodeVariant.Block, block, self:PopTrace()) }
 				end
 			end
 		end
@@ -528,7 +528,8 @@ function Parser:Type()
 	return type
 end
 
----@return { [1]: Node, [2]: string?, [3]: Trace }[]
+---@alias Index { [1]: Node, [2]: Token<string>?, [3]: Trace }
+---@return Index[]
 function Parser:Indices()
 	local indices = {}
 	while self:ConsumeTailing(TokenVariant.Grammar, Grammar.LSquare) do
@@ -539,7 +540,7 @@ function Parser:Indices()
 			local type = self:Assert(self:Type(), "Indexing operator ([]) requires a valid type [X, t]")
 			self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RSquare), "Right square bracket (]) missing, to close indexing operator [X,t]" )
 
-			indices[#indices + 1] = { exp, type[1], self:PopTrace() }
+			indices[#indices + 1] = { exp, type, self:PopTrace() }
 		elseif self:ConsumeTailing(TokenVariant.Grammar, Grammar.RSquare) then
 			indices[#indices + 1] = { exp, nil, self:PopTrace() }
 		else
@@ -674,14 +675,14 @@ function Parser:Expr()
 			self:Error("Conditional operator (:) must appear after expression to complete conditional")
 		end
 
-		return Node.new(NodeVariant.ExprTernary, { cond, if_true, self:Expr() })
+		return Node.new(NodeVariant.ExprTernary, { cond, if_true, self:Expr() }, self:PopTrace())
 	end
 
 	if self:Consume(TokenVariant.Operator, Operator.Def) then
-		return Node.new(NodeVariant.ExprDefault, { cond, self:Expr() })
+		return Node.new(NodeVariant.ExprDefault, { cond, self:Expr() }, self:PopTrace())
 	end
 
-	cond.trace = cond.trace or self:PopTrace()
+	cond.trace = self:PopTrace()
 	return cond
 end
 
@@ -696,7 +697,7 @@ function Parser:RecurseLeft(func, variant, tbl)
 		for _, op in ipairs(tbl) do
 			if self:Consume(TokenVariant.Operator, op) then
 				local rhs = func(self)
-				hit, lhs = true, Node.new(variant, { lhs, op, rhs }, lhs.trace:stitch(rhs.trace))
+				hit, lhs = true, Node.new(variant, { lhs, op, rhs }, self:GetTrace())
 				break
 			end
 		end
@@ -845,7 +846,7 @@ function Parser:Expr11()
 				end
 			end
 
-			return Node.new(NodeVariant.ExprMethodCall, { fn, self:Arguments() })
+			return Node.new(NodeVariant.ExprMethodCall, { expr, fn, self:Arguments() }, self:GetTrace())
 		else
 			local indices = self:Indices()
 			if #indices > 0 then
@@ -870,7 +871,7 @@ function Parser:Expr11()
 					end
 				end
 
-				return Node.new(NodeVariant.ExprStringCall, { expr, args, typ or "" })
+				return Node.new(NodeVariant.ExprStringCall, { expr, args, typ })
 			else
 				break
 			end
@@ -896,11 +897,11 @@ function Parser:Expr12()
 	if fn then
 		-- Transform key value
 		if fn.value == "array" then
-			return Node.new(NodeVariant.ExprArray, { self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments() })
+			return Node.new(NodeVariant.ExprArray, self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments(), self:GetTrace())
 		elseif fn.value == "table" then
-			return Node.new(NodeVariant.ExprTable, { self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments() })
+			return Node.new(NodeVariant.ExprTable, self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments(), self:GetTrace())
 		end
-		return Node.new(NodeVariant.ExprCall, { fn.value, self:Arguments() })
+		return Node.new(NodeVariant.ExprCall, { fn.value, self:Arguments() }, self:GetTrace())
 	end
 
 	-- Decimal / Hexadecimal / Binary numbers
@@ -927,7 +928,7 @@ function Parser:Expr12()
 			self:Error("unrecognized numeric suffix " .. suffix)
 		end
 
-		return Node.new(NodeVariant.ExprLiteral, { type, value })
+		return Node.new(NodeVariant.ExprLiteral, { type, value }, adv_num.trace)
 	end
 
 	-- String
@@ -939,8 +940,6 @@ function Parser:Expr12()
 	-- Unary Wiremod Operators
 	for _, v in ipairs { { "~", Operator.Trg }, { "$", Operator.Dlt }, { "->", Operator.Imp } } do
 		if self:Consume(TokenVariant.Operator, v[2]) then
-			local trace = self:GetTrace()
-
 			local ident = self:ConsumeTailing(TokenVariant.Ident)
 			if not ident then
 				if self:Consume(TokenVariant.Ident) then
@@ -950,7 +949,7 @@ function Parser:Expr12()
 				end
 			end
 
-			return Node.new(NodeVariant.ExprUnaryWire, ident)
+			return Node.new(NodeVariant.ExprUnaryWire, { v[2], ident })
 		end
 	end
 
@@ -974,7 +973,7 @@ function Parser:Expr12()
 	-- Variables
 	local ident =  self:Consume(TokenVariant.Ident)
 	if ident then
-		return Node.new(NodeVariant.ExprIdent, ident)
+		return Node.new(NodeVariant.ExprIdent, ident, ident.trace)
 	end
 
 	-- Error Messages

@@ -321,6 +321,12 @@ function PreProcessor:ParseDirectives(line)
 	return ""
 end
 
+
+---@alias IODirective { [1]: string[], [2]: TypeSignature[], [3]: table<string, TypeSignature>, [4]: table<string, string>, [5]: table<string, { [1]: integer, [2]: integer }>  }
+---@alias PPDirectives { inputs: IODirective, outputs: IODirective, persist: IODirective, name: string?, model: string?, trigger: { [1]: boolean?, [2]: table<string, boolean> } }
+
+---@param buffer string
+---@param directives PPDirectives
 function PreProcessor:Process(buffer, directives, ent)
 	-- entity is needed for autoupdate
 	self.ent = ent
@@ -336,7 +342,6 @@ function PreProcessor:Process(buffer, directives, ent)
 			inputs = { {}, {}, {}, {}, {} }, -- 1: names, 2: types, 3: names=types lookup, 4: descriptions, 5: names={line, column} lookup
 			outputs = { {}, {}, {}, {}, {} }, -- 1: names, 2: types, 3: names=types lookup, 4: descriptions, 5: names={line, column} lookup
 			persist = { {}, {}, {}, nil, {} },
-			delta = { {}, {}, {} },
 			trigger = { nil, {} },
 		}
 	else
@@ -424,18 +429,14 @@ function PreProcessor:ParsePorts(ports, startoffset)
 
 			if vtype ~= vtype:lower() then
 				self:Error("Variable type [" .. E2Lib.limitString(vtype, 10) .. "] must be lowercase", column + i + 1)
+			elseif vtype == "number" then
+				vtype = "normal"
 			elseif vtype == "normal" then
 				self:Warning("Variable type [normal] is deprecated (use number instead)", column + i + 1)
-			else
-				if vtype == "number" then vtype = "normal" end
-
-				if not wire_expression_types[vtype:upper()] then
-					self:Error("Unknown variable type [" .. E2Lib.limitString(vtype, 10) .. "] specified for variable(s) (" .. E2Lib.limitString(namestring, 10) .. ")", column + i + 1)
-				end
 			end
 		elseif character == "" then
-			-- type is not specified -> default to NORMAL
-			vtype = "NORMAL"
+			-- type is not specified -> default to number
+			vtype = "normal"
 		else
 			-- invalid -> raise an error
 			self:Error("Variable declaration (" .. E2Lib.limitString(key, 10) .. ") contains invalid characters", column + i)
@@ -443,9 +444,14 @@ function PreProcessor:ParsePorts(ports, startoffset)
 
 		-- fill in the missing types
 		for i = #types + 1, #names do
-			types[i] = vtype:upper()
-			columns[i] = column
-			lines[i] = self.readline
+			local ty = wire_expression_types[vtype:upper()]
+			if ty then
+				types[i] = ty[1]
+				columns[i] = column
+				lines[i] = self.readline
+			else
+				self:Error("Unknown variable type [" .. E2Lib.limitString(vtype, 10) .. "]", column + i + 1)
+			end
 		end
 
 		::cont::

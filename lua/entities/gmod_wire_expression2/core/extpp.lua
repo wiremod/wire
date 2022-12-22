@@ -77,7 +77,7 @@ local function getTypeId(typename)
 	if isValidTypeId(typename) then return typename end
 end
 
----@class ArgsKind
+---@enum ArgsKind
 local ArgsKind = {
 	None = 0,
 	Static = 1,
@@ -422,7 +422,7 @@ function E2Lib.ExtPP.Pass2(contents)
 							mangled_name, regfn, name, arg_typeids .. "...", ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1), attributes
 						)
 					)
-					
+
 
 					-- Using __varargs_priv to avoid shadowing variables like `args` and breaking this implementation.
 					table.insert(output, compact([[

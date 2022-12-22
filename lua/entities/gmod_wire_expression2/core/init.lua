@@ -179,19 +179,6 @@ local function getArgumentTypeIds(args)
 end
 
 function registerOperator(name, pars, rets, func, cost, argnames)
-	-- Compatibility with new system
-	do
-		--[[local _, args = getArgumentTypeIds(pars)
-		local _, returns = getArgumentTypeIds(rets)
-
-		E2Lib.Env.Operators[name] = E2Lib.Env.Operators[name] or {}
-		table.insert(E2Lib.Env.Operators[name], {
-			args = args,
-			returns = returns,
-			op = func
-		})]]
-	end
-
 	local signature = "op:" .. name .. "(" .. pars .. ")"
 
 	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames }
@@ -204,21 +191,6 @@ function registerFunction(name, pars, rets, func, cost, argnames, attributes)
 		attributes.legacy = true
 	end
 
-	-- Compatibility with new system
-	do
-		local meta, args = getArgumentTypeIds(pars)
-		local _, returns = getArgumentTypeIds(rets)
-
-		local library = E2Lib.Env.Libraries.Builtins
-		if meta then
-			library.Methods[name] = library.Methods[name] or {}
-			table.insert(library.Methods[name], { meta = meta, args = args, returns = returns, attrs = attributes or {}, op = func })
-		else
-			library.Functions[name] = library.Functions[name] or {}
-			table.insert(library.Functions[name], { args = args, returns = returns, attrs = attributes or {}, op = func })
-		end
-	end
-
 	local signature = name .. "(" .. pars .. ")"
 
 	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, extension = E2Lib.currentextension, attributes = attributes }
@@ -228,8 +200,6 @@ function registerFunction(name, pars, rets, func, cost, argnames, attributes)
 end
 
 function E2Lib.registerConstant(name, value)
-	E2Lib.Env.Libraries.Builtins.Constants[name] = { name = name, type = "n", value = value }
-
 	if name:sub(1, 1) ~= "_" then name = "_" .. name end
 	wire_expression2_constants[name] = value
 end
@@ -311,12 +281,13 @@ if SERVER then
 				}
 			end
 
-			miscdata = { {}, wire_expression2_constants, events_sanitized }
-
-			functiondata = {}
+			local types = {}
 			for typename, v in pairs(wire_expression_types) do
-				miscdata[1][typename] = v[1] -- typeid (s)
+				types[typename] = v[1] -- typeid (s)
 			end
+
+			miscdata = { types, wire_expression2_constants, events_sanitized }
+			functiondata = {}
 
 			for signature, v in pairs(wire_expression2_funcs) do
 				functiondata[signature] = { v[2], v[4], v.argnames, v.extension, v.attributes } -- ret (s), cost (n), argnames (t), extension (s), attributes (t)

@@ -344,7 +344,7 @@ function ENT:CompileCode(buffer, files, filepath)
 
 	if not self:PrepareIncludes(files) then return end
 
-	local status, script, inst = E2Lib.Compiler.Execute(ast, self.inports, self.outports, self.persists, dvars, self.includes)
+	local status, script, inst = E2Lib.Compiler.Execute(ast, directives, dvars, self.includes)
 	if not status then self:Error(script) return end
 
 	self.script = script

@@ -6,19 +6,19 @@ try {
     # chatClk should throw an error for a NULL player parameter.
     chatClk( noentity() )
 } catch(Err) {
-    assert(Err == "Invalid player!")
+    assert(Err == "Invalid player!", "L9")
 
     try {
         # Nonexistent function stringcalls should be catchable
         "notreal"()
     } catch(Err) {
-        assert(Err == "No such function: notreal(void)")
+        assert(Err == "No such function: notreal()", "L15: " + Err)
 
         try {
             error("exit")
             # Chip should NOT exit here. error() will now throw separate table errors that are catchable and don't care about the name.
         } catch(Err) {
-            assert(Err == "exit")
+            assert(Err == "exit", "L21: " + Err)
 
             print("@strict tests passed (Unless there's an error after this)")
 

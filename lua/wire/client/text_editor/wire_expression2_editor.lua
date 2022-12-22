@@ -1645,7 +1645,7 @@ function Editor:Validate(gotoerror)
 	local problems_errors, problems_warnings = {}, {}
 
 	if self.EditorType == "E2" then
-		local errors, _, warnings = wire_expression2_validate(self:GetCode())
+		local errors, _, warnings = E2Lib.Validate(self:GetCode())
 
 		if not errors then
 			if warnings then

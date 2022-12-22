@@ -58,17 +58,21 @@ end
 
 Warning.__tostring = Warning.debug
 
+---@alias ErrorUserdata { catchable: boolean }
+
 ---@class Error
 ---@field message string
 ---@field trace Trace
+---@field userdata ErrorUserdata
 local Error = {}
 Error.__index = Error
 
 ---@param message string
 ---@param trace Trace?
+---@param userdata ErrorUserdata?
 ---@return Error
-function Error.new(message, trace)
-	return setmetatable({ message = message, trace = trace }, Error)
+function Error.new(message, trace, userdata)
+	return setmetatable({ message = message, trace = trace, userdata = userdata }, Error)
 end
 
 function Error:debug()
@@ -76,14 +80,18 @@ function Error:debug()
 end
 
 function Error:display()
-	local first
-	if self.trace.start_line ~= self.trace.end_line then
-		first = "Error from lines " .. self.trace.start_line .. " to " .. self.trace.end_line
-	else
-		first = "Error at line " .. self.trace.start_line
-	end
+	if self.trace then
+		local first
+		if self.trace.start_line ~= self.trace.end_line then
+			first = "Error from lines " .. self.trace.start_line .. " to " .. self.trace.end_line
+		else
+			first = "Error at line " .. self.trace.start_line
+		end
 
-	return string.format("%s, chars %u to %u: %q", first, self.trace.start_col, self.trace.end_col, self.message)
+		return string.format("%s, chars %u to %u: %q", first, self.trace.start_col, self.trace.end_col, self.message)
+	else
+		return self.message
+	end
 end
 
 Error.__tostring = Error.debug

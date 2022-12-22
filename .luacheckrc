@@ -3690,7 +3690,6 @@ stds.wiremod.globals = {
   "wire_expression2_reload",
   "wire_expression2_reset_extensions",
   "wire_expression2_sendfunctions",
-  "wire_expression2_validate",
   "registerCallback",
   "tps_pretty",
 

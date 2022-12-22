@@ -2,6 +2,10 @@ include('shared.lua')
 
 local Trace, Error = E2Lib.Debug.Trace, E2Lib.Debug.Error
 
+---@param e2 string
+---@param directives PPDirectives
+---@param includes table<string, string>
+---@param scripts RuntimeOperator[]
 ---@return Error[]?
 local function Include(e2, directives, includes, scripts)
 	if scripts[e2] then
@@ -43,8 +47,9 @@ local function Include(e2, directives, includes, scripts)
 	if #errors ~= 0 then return errors end
 end
 
+---@param buffer string
 ---@return Error[]?, table[]?, Warning[]?
-function wire_expression2_validate(buffer)
+function E2Lib.Validate(buffer)
 	if not e2_function_data_received then return Error.new("Loading extensions. Please try again in a few seconds...") end
 
 	---@type Warning[]
