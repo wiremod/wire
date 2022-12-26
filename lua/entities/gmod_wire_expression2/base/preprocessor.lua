@@ -5,20 +5,37 @@
 
 AddCSLuaFile()
 
-E2Lib.PreProcessor = {}
-local PreProcessor = E2Lib.PreProcessor
+---@class PreProcessor
+---@field blockcomment boolean # Whether preprocessor is inside a block comment
+---@field multilinestring boolean # Whether preprocessor is inside a multiline string
+---@field readline integer
+---@field warnings Warning[]
+local PreProcessor = {}
 PreProcessor.__index = PreProcessor
 
+E2Lib.PreProcessor = PreProcessor
+
+---@return boolean ok
+---@return table? directives
+---@return string? newcode
+---@return PreProcessor self
 function PreProcessor.Execute(...)
 	-- instantiate PreProcessor
 	local instance = setmetatable({}, PreProcessor)
 
 	-- and pcall the new instance's Process method.
-	return xpcall(instance.Process, E2Lib.errorHandler, instance, ...)
+	local ok, directives, newcode = xpcall(instance.Process, E2Lib.errorHandler, instance, ...)
+	return ok, directives, newcode, instance
 end
 
 function PreProcessor:Error(message, column)
 	error(message .. " at line " .. self.readline .. ", char " .. (column or 1), 0)
+end
+
+---@param message string
+---@param column integer?
+function PreProcessor:Warning(message, column)
+	self.warnings[#self.warnings + 1] = { message = message, line = self.readline, char = column or 1 }
 end
 
 local type_map = {
@@ -30,16 +47,22 @@ local type_map = {
 	wl = "xwl",
 	number = "n",
 }
-local function gettype(tp)
+
+function PreProcessor:GetType(tp, column)
 	tp = tp:Trim():lower()
 	local up = tp:upper()
+
+	if tp == "normal" then
+		self:Warning("Use of deprecated type [normal]", column)
+	end
+
 	return type_map[tp] or (wire_expression_types[up] and wire_expression_types[up][1]) or tp
 end
 
-function PreProcessor:HandlePPCommand(comment)
+function PreProcessor:HandlePPCommand(comment, col)
 	local command, args = comment:match("^([^ ]*) ?(.*)$")
 	local handler = self["PP_" .. command]
-	if handler then return handler(self, args) end
+	if handler then return handler(self, args, col) end
 end
 
 function PreProcessor:FindComments(line)
@@ -55,7 +78,7 @@ function PreProcessor:FindComments(line)
 				local varname, endpos = line:match("^([A-Z][A-Za-z0-9_]*)()",found)
 				count = count + 1
 				ret[count] = {type = isinput and "inputs" or "outputs", name=varname, pos=found, blockcomment = {}}
-				pos = endpos + 1
+				pos = endpos
 			elseif char == "#" then -- We found a comment
 				local before = line:sub(found - 1, found - 1)
 				if before == "]" then -- We found an ending
@@ -137,7 +160,7 @@ function PreProcessor:RemoveComments(line)
 							ret = ret .. line:sub(lastpos)
 						else
 							ret = ret .. line:sub(lastpos, pos - 1)
-							self:HandlePPCommand(line:sub(pos + 1))
+							self:HandlePPCommand(line:sub(pos + 1), pos)
 						end
 
 						if self.description_cache then
@@ -171,16 +194,17 @@ end
 local function handleIO(name)
 	return function(self, value)
 		local ports = self.directives[name]
-		local retval, columns = self:ParsePorts(value, #name + 2)
+		local retval, columns, lines = self:ParsePorts(value, #name + 2)
 
 		for i, key in ipairs(retval[1]) do
 			if ports[3][key] then
 				self:Error("Directive (@" .. name .. ") contains multiple definitions of the same variable", columns[i])
 			else
 				local index = #ports[1] + 1
-				ports[1][index] = key
-				ports[2][index] = retval[2][i]
-				ports[3][key] = retval[2][i]
+				ports[1][index] = key -- Index: Name
+				ports[2][index] = retval[2][i] -- Index: Type
+				ports[3][key] = retval[2][i] -- Name: Type
+				ports[5][key] = { lines[i], columns[i] } -- Name: { Line, Column }
 			end
 		end
 	end
@@ -200,6 +224,10 @@ local directive_handlers = {
 	["model"] = function(self, value)
 		if not self.ignorestuff then
 			if self.directives.model == nil then
+				if not util.IsValidModel(value) then
+					self:Warning("Directive (@model) has an invalid model: " .. value)
+				end
+
 				self.directives.model = value
 			else
 				self:Error("Directive (@model) must not be specified twice")
@@ -245,10 +273,6 @@ local directive_handlers = {
 		if CLIENT then return "" end
 		if not IsValid( self.ent ) or not self.ent.duped or not self.ent.filepath or self.ent.filepath == "" then return "" end
 		WireLib.Expression2Upload( self.ent:GetPlayer(), self.ent, self.ent.filepath )
-	end,
-
-	["disabled"] = function(self)
-		self:Error("Disabled for security reasons. Remove @disabled to enable.", 1)
 	end,
 
 	-- Maybe it can have multiple levels in the future but I think one is fine for now.
@@ -297,6 +321,7 @@ function PreProcessor:Process(buffer, directives, ent)
 	-- entity is needed for autoupdate
 	self.ent = ent
 	self.ifdefStack = {}
+	self.warnings = {}
 
 	local lines = string.Explode("\n", buffer)
 
@@ -304,9 +329,9 @@ function PreProcessor:Process(buffer, directives, ent)
 		self.directives = {
 			name = nil,
 			model = nil,
-			inputs = { {}, {}, {}, {} }, -- 1: names, 2: types, 3: names=types lookup, 4: descriptions
-			outputs = { {}, {}, {}, {} }, -- 1: names, 2: types, 3: names=types lookup, 4: descriptions
-			persist = { {}, {}, {} },
+			inputs = { {}, {}, {}, {}, {} }, -- 1: names, 2: types, 3: names=types lookup, 4: descriptions, 5: names={line, column} lookup
+			outputs = { {}, {}, {}, {}, {} }, -- 1: names, 2: types, 3: names=types lookup, 4: descriptions, 5: names={line, column} lookup
+			persist = { {}, {}, {}, nil, {} },
 			delta = { {}, {}, {} },
 			trigger = { nil, {} },
 		}
@@ -336,9 +361,7 @@ function PreProcessor:Process(buffer, directives, ent)
 end
 
 function PreProcessor:ParsePorts(ports, startoffset)
-	local names = {}
-	local types = {}
-	local columns = {}
+	local names, types, columns, lines = {}, {}, {}, {}
 
 	-- Preprocess [Foo Bar]:entity into [Foo,Bar]:entity so we don't have to deal with split-up multi-variable definitions in the main loop
 	ports = ports:gsub("%[.-%]", function(s)
@@ -391,10 +414,14 @@ function PreProcessor:ParsePorts(ports, startoffset)
 				self:Error("Variable type [" .. E2Lib.limitString(vtype, 10) .. "] must be lowercase", column + i + 1)
 			end
 
-			if vtype == "number" then vtype = "normal" end
+			if vtype == "normal" then
+				self:Warning("Variable type [normal] is deprecated (use number instead)", column + i + 1)
+			else
+				if vtype == "number" then vtype = "normal" end
 
-			if not wire_expression_types[vtype:upper()] then
-				self:Error("Unknown variable type [" .. E2Lib.limitString(vtype, 10) .. "] specified for variable(s) (" .. E2Lib.limitString(namestring, 10) .. ")", column + i + 1)
+				if not wire_expression_types[vtype:upper()] then
+					self:Error("Unknown variable type [" .. E2Lib.limitString(vtype, 10) .. "] specified for variable(s) (" .. E2Lib.limitString(namestring, 10) .. ")", column + i + 1)
+				end
 			end
 		elseif character == "" then
 			-- type is not specified -> default to NORMAL
@@ -408,10 +435,11 @@ function PreProcessor:ParsePorts(ports, startoffset)
 		for i = #types + 1, #names do
 			types[i] = vtype:upper()
 			columns[i] = column
+			lines[i] = self.readline
 		end
 	end
 
-	return { names, types }, columns
+	return { names, types }, columns, lines
 end
 
 function PreProcessor:ConvertDescriptions(portstbl)
@@ -437,18 +465,18 @@ function PreProcessor:GetFunction(args, type)
 	local thistype, colon, name, argtypes = args:match("([^:]-)(:?)([^:(]+)%(([^)]*)%)")
 	if not thistype or (thistype ~= "") ~= (colon ~= "") then self:Error("Malformed " .. type .. " argument " .. args) end
 
-	thistype = gettype(thistype)
+	thistype = self:GetType(thistype)
 
 	local tps = {thistype .. colon}
 	for _, argtype in ipairs(string.Explode(",", argtypes)) do
-		argtype = gettype(argtype)
+		argtype = self:GetType(argtype)
 		table.insert(tps, argtype)
 	end
 	local pars = table.concat(tps)
 	return wire_expression2_funcs[name .. "(" .. pars .. ")"]
 end
 
-function PreProcessor:PP_ifdef(args)
+function PreProcessor:PP_ifdef(args, col)
 	local func = self:GetFunction(args, "#ifdef")
 
 	if self:Disabled() then
@@ -458,7 +486,7 @@ function PreProcessor:PP_ifdef(args)
 	end
 end
 
-function PreProcessor:PP_ifndef(args)
+function PreProcessor:PP_ifndef(args, col)
 	local func = self:GetFunction(args, "#ifndef")
 
 	if self:Disabled() then
@@ -468,11 +496,11 @@ function PreProcessor:PP_ifndef(args)
 	end
 end
 
-function PreProcessor:PP_else(args)
+function PreProcessor:PP_else(args, col)
 	local state = table.remove(self.ifdefStack)
-	if state == nil then self:Error("Found #else outside #ifdef/#ifndef block") end
+	if state == nil then self:Error("Found #else outside #ifdef/#ifndef block", col) end
 
-	if args:Trim() ~= "" then self:Error("Must not pass an argument to #else") end
+	if args:Trim() ~= "" then self:Error("Must not pass an argument to #else", col) end
 
 	if self:Disabled() then
 		table.insert(self.ifdefStack, false)
@@ -481,9 +509,21 @@ function PreProcessor:PP_else(args)
 	end
 end
 
-function PreProcessor:PP_endif(args)
+function PreProcessor:PP_endif(args, col)
 	local state = table.remove(self.ifdefStack)
-	if state == nil then self:Error("Found #endif outside #ifdef/#ifndef block") end
+	if state == nil then self:Error("Found #endif outside #ifdef/#ifndef block", col) end
 
-	if args:Trim() ~= "" then self:Error("Must not pass an argument to #endif") end
+	if args:Trim() ~= "" then self:Error("Must not pass an argument to #endif", col) end
+end
+
+function PreProcessor:PP_error(args, col)
+	if not self:Disabled() then
+		self:Error(args, col)
+	end
+end
+
+function PreProcessor:PP_warning(args, col)
+	if not self:Disabled() then
+		self:Warning(args, col)
+	end
 end

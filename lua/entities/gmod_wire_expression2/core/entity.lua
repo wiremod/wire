@@ -188,6 +188,13 @@ e2function vector entity:velL()
 	return this:WorldToLocal(this:GetVelocity() + this:GetPos())
 end
 
+[nodiscard]
+e2function vector entity:velAtPoint(vector worldPosition)
+	local physobj = this:GetPhysicsObject()
+	if not IsValid(this) or not IsValid(physobj) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
+	return physobj:GetVelocityAtPoint(worldPosition)
+end
+
 e2function angle entity:angVel()
 	if not validPhysics(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
 	local phys = this:GetPhysicsObject()

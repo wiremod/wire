@@ -81,7 +81,7 @@ function formatPort.ARRAY(value, OrientVertical)
 			RetText = RetText..tostring(Element)
 		elseif(type(Element) == "Weapon") then --weapon
 			RetText = RetText..tostring(Element)..Element:GetClass()
-		elseif(type(Element) == "PhysObj" and e2_tostring_bone(Element) != "(null)") then --Bone
+		elseif(type(Element) == "PhysObj" and e2_tostring_bone(Element) ~= "(null)") then --Bone
 			RetText = RetText..formatPort.BONE(Element)
 		else
 			RetText = RetText.."No Display for "..type(Element)

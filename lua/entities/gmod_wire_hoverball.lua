@@ -172,7 +172,7 @@ function ENT:PhysicsSimulate( phys, deltatime )
 	if (self:IsOn()) then
 		local Pos = phys:GetPos()
 
-		if ( self:GetZVelocity() != 0 ) then
+		if ( self:GetZVelocity() ~= 0 ) then
 			self:SetZTarget( self:GetZTarget() + (self:GetZVelocity() * deltatime * self:GetSpeed()) )
 		end
 

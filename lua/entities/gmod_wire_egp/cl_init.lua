@@ -33,16 +33,16 @@ function ENT:_EGP_Update( bool )
 
 		for k,v in pairs( Table ) do
 			if (v.parent == -1) then self.UpdateConstantly = true end -- Check if an object is parented to the cursor
-			if (v.parent and v.parent != 0) then
-				if (!v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
+			if (v.parent and v.parent ~= 0) then
+				if (not v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
 				local _, data = EGP:GetGlobalPos( self, v.index )
 				EGP:EditObject( v, data )
-			elseif ((!v.parent or v.parent == 0) and v.IsParented) then
+			elseif ((not v.parent or v.parent == 0) and v.IsParented) then
 				EGP:UnParent( self, v.index )
 			end
 			local oldtex = EGP:SetMaterial( v.material )
 
-			if v.filtering != currentfilter then
+			if v.filtering ~= currentfilter then
 				if pushedFilter then
 					render.PopFilterMin()
 					render.PopFilterMag()

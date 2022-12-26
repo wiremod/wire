@@ -3,11 +3,11 @@
 local WIREENT = {}
 -- Trigger wire input
 function WIREENT:TriggerInput(name, value, ...)
-	if (!name or (name == "") or !value) then return end
+	if (not name or (name == "") or not value) then return end
 
 	local Entity = self._WireMapInterfaceEnt
-	if (!IsValid(Entity)) then return end
-	if (!Entity.TriggerWireInput) then return end
+	if (not IsValid(Entity)) then return end
+	if (not Entity.TriggerWireInput) then return end
 
 	local Input = self.Inputs[name] or {}
 	Entity:TriggerWireInput(name, value, (IsValid(Input.Src) == true), self, ...)
@@ -75,12 +75,12 @@ end
 
 -- This function is used to store an output.
 function WIREENT:TriggerOutput(name, activator)
-	if (!self._OutputsToMap) then return end
+	if (not self._OutputsToMap) then return end
 	local OutputsToMap = self._OutputsToMap[name]
-	if (!OutputsToMap) then return end
+	if (not OutputsToMap) then return end
 
 	for idx,op in pairs(OutputsToMap) do
-		if (!FireSingleOutput(op, self, activator)) then
+		if (not FireSingleOutput(op, self, activator)) then
 			self._OutputsToMap[name][idx] = nil
 		end
 	end
@@ -100,7 +100,7 @@ function WIREENT:_RemoveOverrides()
 	self._Added_WireMapInterfaceEnt = nil
 
 	for key, value in pairs(self._Settings_WireMapInterfaceEnt or {}) do
-		if (!value or (value == 0) or (value == "")) then
+		if (not value or (value == 0) or (value == "")) then
 			self[key] = nil
 		else
 			self[key] = value

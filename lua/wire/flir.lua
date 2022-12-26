@@ -67,7 +67,7 @@ if CLIENT then
 		if not ent:IsValid() then return end
 		local c = ent:GetClass()
 
-		if (c == "prop_physics" or ent:GetMoveType() == MOVETYPE_VPHYSICS or (ent:IsPlayer() and ent != ply) or ent:IsNPC() or ent:IsRagdoll() or c == "gmod_wire_hologram") and ent:GetColor().a > 0 then
+		if (c == "prop_physics" or ent:GetMoveType() == MOVETYPE_VPHYSICS or (ent:IsPlayer() and ent ~= ply) or ent:IsNPC() or ent:IsRagdoll() or c == "gmod_wire_hologram") and ent:GetColor().a > 0 then
 			if ent:GetColor().a > 0 then
 				FLIR.RenderStack[ent] = true
 				ent.RenderOverride = FLIR.Render	--we're already rendering later, so don't bother beforehand

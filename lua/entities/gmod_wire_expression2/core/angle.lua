@@ -59,50 +59,50 @@ end)
 /******************************************************************************/
 
 e2function number operator_is(angle rv1)
-	if rv1[1] != 0 || rv1[2] != 0 || rv1[3] != 0
+	if rv1[1] ~= 0 or rv1[2] ~= 0 or rv1[3] ~= 0
 	   then return 1 else return 0 end
 end
 
 __e2setcost(3)
 
 e2function number operator==(angle rv1, angle rv2)
-	if rv1[1] - rv2[1] <= delta && rv2[1] - rv1[1] <= delta &&
-	   rv1[2] - rv2[2] <= delta && rv2[2] - rv1[2] <= delta &&
-	   rv1[3] - rv2[3] <= delta && rv2[3] - rv1[3] <= delta
+	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
+	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta and
+	   rv1[3] - rv2[3] <= delta and rv2[3] - rv1[3] <= delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator!=(angle rv1, angle rv2)
-	if rv1[1] - rv2[1] > delta || rv2[1] - rv1[1] > delta ||
-	   rv1[2] - rv2[2] > delta || rv2[2] - rv1[2] > delta ||
-	   rv1[3] - rv2[3] > delta || rv2[3] - rv1[3] > delta
+	if rv1[1] - rv2[1] > delta or rv2[1] - rv1[1] > delta or
+	   rv1[2] - rv2[2] > delta or rv2[2] - rv1[2] > delta or
+	   rv1[3] - rv2[3] > delta or rv2[3] - rv1[3] > delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator>=(angle rv1, angle rv2)
-	if rv2[1] - rv1[1] <= delta &&
-	   rv2[2] - rv1[2] <= delta &&
+	if rv2[1] - rv1[1] <= delta and
+	   rv2[2] - rv1[2] <= delta and
 	   rv2[3] - rv1[3] <= delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator<=(angle rv1, angle rv2)
-	if rv1[1] - rv2[1] <= delta &&
-	   rv1[2] - rv2[2] <= delta &&
+	if rv1[1] - rv2[1] <= delta and
+	   rv1[2] - rv2[2] <= delta and
 	   rv1[3] - rv2[3] <= delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator>(angle rv1, angle rv2)
-	if rv1[1] - rv2[1] > delta &&
-	   rv1[2] - rv2[2] > delta &&
+	if rv1[1] - rv2[1] > delta and
+	   rv1[2] - rv2[2] > delta and
 	   rv1[3] - rv2[3] > delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator<(angle rv1, angle rv2)
-	if rv2[1] - rv1[1] > delta &&
-	   rv2[2] - rv1[2] > delta &&
+	if rv2[1] - rv1[1] > delta and
+	   rv2[2] - rv1[2] > delta and
 	   rv2[3] - rv1[3] > delta
 	   then return 1 else return 0 end
 end

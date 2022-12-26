@@ -91,7 +91,7 @@ if SERVER then
 		if self:GetClientNumber( "parent" ) == 1 then
 			if (trace.Entity:IsValid()) then
 				-- Nocollide the gate to the prop to make adv duplicator (and normal duplicator) find it
-				if (!self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1) then
+				if (not self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1) then
 					nocollide = constraint.NoCollide( ent, trace.Entity, 0,trace.PhysicsBone )
 				end
 
@@ -217,7 +217,7 @@ function WireToolObj:GetModel()
 	local model_convar = self:GetClientInfo( "model" )
 	if self.ClientConVar.modelsize then
 		local modelsize = self:GetClientInfo( "modelsize" )
-		if modelsize != "" then
+		if modelsize ~= "" then
 			local model = string.sub(model_convar, 1, -5) .."_".. modelsize .. string.sub(model_convar, -4)
 			if self:CheckValidModel(model) then return model end
 			model = string.GetPathFromFilename(model_convar) .. modelsize .."_".. string.GetFileFromFilename(model_convar)

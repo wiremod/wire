@@ -36,6 +36,7 @@ Stmt10 ← (FunctionStmt / ReturnStmt)? Stmt11
 Stmt11 ← ("#include" String)? Stmt12
 Stmt12 ← ("try" Block "catch" "(" Var ")" Block)? Stmt13
 Stmt13 ← ("do" Block "while" Cond)? Expr1
+Stmt14 ← ("event" Fun "(" FunctionArgs Block)
 
 FunctionStmt ← "function" FunctionHead "(" FunctionArgs Block
 FunctionHead ← (Type Type ":" Fun / Type ":" Fun / Type Fun / Fun)
@@ -85,6 +86,7 @@ KeyValue = Expr1 ("=" Expr1)?
 ---@field tokens Token[]
 ---@field index integer
 ---@field count integer
+---@field warnings Warning[]
 local Parser = {}
 Parser.__index = Parser
 
@@ -94,16 +96,22 @@ local Tokenizer = E2Lib.Tokenizer
 local Token, TokenVariant = Tokenizer.Token, Tokenizer.Variant
 local Keyword, Grammar, Operator = E2Lib.Keyword, E2Lib.Grammar, E2Lib.Operator
 
-local parserDebug = CreateConVar("wire_expression2_parser_debug", 0,
+local parserDebug = CreateConVar("wire_expression2_parser_debug", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE},
 	"Print an E2's abstract syntax tree after parsing"
 )
 
+---@return boolean ok
+---@return table tree
+---@return table delta
+---@return table includes
+---@return Parser self
 function Parser.Execute(...)
 	-- instantiate Parser
 	local instance = setmetatable({}, Parser)
 
 	-- and pcall the new instance's Process method.
-	return xpcall(Parser.Process, E2Lib.errorHandler, instance, ...)
+	local ok, tree, delta, includes = xpcall(Parser.Process, E2Lib.errorHandler, instance, ...)
+	return ok, tree, delta, includes, instance
 end
 
 ---@param message string
@@ -116,13 +124,27 @@ function Parser:Error(message, token)
 	end
 end
 
+---@param message string
+---@param token Token?
+function Parser:Warning(message, token)
+	if token then
+		self.warnings[#self.warnings + 1] = { message = message, line = token.start_line, char = token.start_col }
+	else
+		self.warnings[#self.warnings + 1] = { message = message, line = self.token.start_line, char = self.token.start_col }
+	end
+end
+
 ---@param tokens Token[]
+---@return table tree
+---@return table delta
+---@return table includes
 function Parser:Process(tokens, params)
 	self.tokens = tokens
 	self.index = 0
 	self.count = #tokens
 	self.delta = {}
 	self.includes = {}
+	self.warnings = {}
 
 	self:NextToken()
 	local tree = self:Root()
@@ -790,6 +812,29 @@ function Parser:Stmt13()
 		loopdepth = loopdepth - 1
 
 		return whl
+	end
+
+	return self:Stmt14()
+end
+
+function Parser:Stmt14()
+	if self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Event) then
+		local trace = self:GetTokenTrace()
+
+		local name = self:AcceptRoamingToken(TokenVariant.LowerIdent)
+		if not name then
+			self:Error("Expected event name after 'event' keyword")
+		end
+		local name = self:GetTokenData()
+
+		if not self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LParen) then
+			self:Error("Left parenthesis (() must appear after event name")
+		end
+
+		local temp, args = {}, {}
+		self:FunctionArgs(temp, args)
+
+		return self:Instruction(trace, "event", name, args, self:Block("event block"))
 	end
 
 	return self:Expr1()

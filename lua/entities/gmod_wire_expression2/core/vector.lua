@@ -109,8 +109,8 @@ end
 
 --------------------------------------------------------------------------------
 
-e2function vector vector:operator_neg()
-	return -this
+e2function vector operator_neg(vector v)
+	return -v
 end
 
 e2function vector operator+(lhs, vector rhs)

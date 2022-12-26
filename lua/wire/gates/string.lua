@@ -36,8 +36,8 @@ GateActions["string_index"] = {
 	inputtypes = { "STRING" , "NORMAL" },
 	outputtypes = { "STRING" },
 	output = function(gate, A, B)
-		if !A then A = "" end
-		if !B then B = 0 end
+		if not A then A = "" end
+		if not B then B = 0 end
 		return string.sub(A,B,B)
 	end,
 	label = function(Out, A, B)
@@ -50,7 +50,7 @@ GateActions["string_length"] = {
 	inputs = { "A" },
 	inputtypes = { "STRING" },
 	output = function(gate, A)
-		if !A then A = "" end
+		if not A then A = "" end
 		return #A
 	end,
 	label = function(Out, A)
@@ -64,7 +64,7 @@ GateActions["string_upper"] = {
 	inputtypes = { "STRING" },
 	outputtypes = { "STRING" },
 	output = function(gate, A)
-		if !A then A = "" end
+		if not A then A = "" end
 		return string.upper(A)
 	end,
 	label = function(Out, A)
@@ -78,7 +78,7 @@ GateActions["string_lower"] = {
 	inputtypes = { "STRING" },
 	outputtypes = { "STRING" },
 	output = function(gate, A)
-		if !A then A = "" end
+		if not A then A = "" end
 		return string.lower(A)
 	end,
 	label = function(Out, A)
@@ -92,9 +92,9 @@ GateActions["string_sub"] = {
 	inputtypes = { "STRING" , "NORMAL" , "NORMAL" },
 	outputtypes = { "STRING" },
 	output = function(gate, A, B, C)
-		if !A then A = "" end
-		if !B then B = 1 end  -- defaults to start of string
-		if !C then C = -1 end -- defaults to end of string
+		if not A then A = "" end
+		if not B then B = 1 end  -- defaults to start of string
+		if not C then C = -1 end -- defaults to end of string
 		return string.sub(A,B,C)
 	end,
 	label = function(Out, A, B, C)
@@ -108,8 +108,8 @@ GateActions["string_explode"] = {
 	inputtypes = { "STRING" , "STRING" },
 	outputtypes = { "ARRAY" },
 	output = function(gate, A, B)
-		if !A then A = "" end
-		if !B then B = "" end
+		if not A then A = "" end
+		if not B then B = "" end
 		return string.Explode(B,A)
 	end,
 	label = function(Out, A, B)
@@ -164,7 +164,7 @@ GateActions["string_trim"] = {
 	inputtypes = { "STRING" },
 	outputtypes = { "STRING" },
 	output = function(gate, A)
-		if !A then A = "" end
+		if not A then A = "" end
 		return string.Trim(A)
 	end,
 	label = function(Out, A)
@@ -178,9 +178,9 @@ GateActions["string_replace"] = {
 	inputtypes = { "STRING" , "STRING" , "STRING" },
 	outputtypes = { "STRING" },
 	output = function(gate, A, B, C)
-		if !A then A = "" end
-		if !B then B = "" end
-		if !C then C = "" end
+		if not A then A = "" end
+		if not B then B = "" end
+		if not C then C = "" end
 		if #A + #B + #C > MAX_LEN then return false end
 		return string.gsub(A,B,C)
 	end,
@@ -195,7 +195,7 @@ GateActions["string_reverse"] = {
 	inputtypes = { "STRING" },
 	outputtypes = { "STRING" },
 	output = function(gate, A)
-		if !A then A = "" end
+		if not A then A = "" end
 		return string.reverse(A)
 	end,
 	label = function(Out, A)
@@ -209,7 +209,7 @@ GateActions["string_tonum"] = {
 	inputtypes = { "STRING" },
 	outputtypes = { "NORMAL" },
 	output = function(gate, A)
-		if !A then A = "" end
+		if not A then A = "" end
 		return tonumber(A)
 	end,
 	label = function(Out, A)
@@ -223,7 +223,7 @@ GateActions["string_tostr"] = {
 	inputtypes = { "NORMAL" },
 	outputtypes = { "STRING" },
 	output = function(gate, A)
-		if !A then A = 0 end
+		if not A then A = 0 end
 		return tostring(A)
 	end,
 	label = function(Out, A)
@@ -237,7 +237,7 @@ GateActions["string_tobyte"] = {
 	inputtypes = { "STRING" },
 	outputtypes = { "NORMAL" },
 	output = function(gate, A)
-		if !A then A = "" end
+		if not A then A = "" end
 		return string.byte(A)
 	end,
 	label = function(Out, A)
@@ -251,7 +251,7 @@ GateActions["string_tochar"] = {
 	inputtypes = { "NORMAL" },
 	outputtypes = { "STRING" },
 	output = function(gate, A)
-		if !A then A = 0 end
+		if not A then A = 0 end
 		return string.char(A)
 	end,
 	label = function(Out, A)
@@ -265,8 +265,8 @@ GateActions["string_repeat"] = {
 	inputtypes = { "STRING" , "NORMAL" },
 	outputtypes = { "STRING" },
 	output = function(gate, A, B)
-		if !A then A = "" end
-		if !B or B<0 then B = 0 end
+		if not A then A = "" end
+		if not B or B<0 then B = 0 end
 
 		if B * #A > MAX_LEN then return false end
 

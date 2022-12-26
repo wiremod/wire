@@ -5,7 +5,7 @@
 -- Removing wire stuff and other changes that were done.
 local OverRiddenEnts = {}
 local function RemoveWire(Entity)
-	if (!IsValid(Entity)) then return end
+	if (not IsValid(Entity)) then return end
 
 	local ID = Entity:EntIndex()
 
@@ -15,7 +15,7 @@ local function RemoveWire(Entity)
 	WireLib._RemoveWire(ID) -- Remove entity, so it doesn't count as a wire able entity anymore.
 
 	for key, value in pairs(Entity._Settings_WireMapInterfaceEnt or {}) do
-		if (!value or (value == 0) or (value == "")) then
+		if (not value or (value == 0) or (value == "")) then
 			Entity[key] = nil
 		else
 			Entity[key] = value
@@ -29,8 +29,8 @@ usermessage.Hook("WireMapInterfaceEnt", function(data)
 	local Entity = data:ReadEntity()
 	local Flags = data:ReadChar()
 	local Remove = (Flags == -1)
-	if (!WIRE_CLIENT_INSTALLED) then return end
-	if (!IsValid(Entity)) then return end
+	if (not WIRE_CLIENT_INSTALLED) then return end
+	if (not IsValid(Entity)) then return end
 
 	if (Remove) then
 		RemoveWire(Entity)
@@ -61,7 +61,7 @@ end)
 hook.Add("Think", "WireMapInterface_Think", function()
 	for ID, _ in pairs(OverRiddenEnts) do
 		local self = Entity(ID)
-		if (!IsValid(self) or !WIRE_CLIENT_INSTALLED) then
+		if (not IsValid(self) or not WIRE_CLIENT_INSTALLED) then
 			OverRiddenEnts[ID] = nil
 
 			return
@@ -78,7 +78,7 @@ end)
 hook.Add("PostDrawOpaqueRenderables", "WireMapInterface_Draw", function()
 	for ID, _ in pairs(OverRiddenEnts) do
 		local self = Entity(ID)
-		if (!IsValid(self) or !WIRE_CLIENT_INSTALLED) then
+		if (not IsValid(self) or not WIRE_CLIENT_INSTALLED) then
 			OverRiddenEnts[ID] = nil
 
 			return

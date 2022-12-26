@@ -45,19 +45,19 @@ local function format(value)
 	dbginfo = r
 	if abs(value[2]) > 0.0005 then
 		i = tostring(Round(value[2]*1000)/1000)
-		if string.sub(i,1,1)!="-" and dbginfo != "" then i = "+"..i end
+		if string.sub(i,1,1)~="-" and dbginfo ~= "" then i = "+"..i end
 		i = i .. "i"
 	end
 	dbginfo = dbginfo .. i
 	if abs(value[3]) > 0.0005 then
 		j = tostring(Round(value[3]*1000)/1000)
-		if string.sub(j,1,1)!="-" and dbginfo != "" then j = "+"..j end
+		if string.sub(j,1,1)~="-" and dbginfo ~= "" then j = "+"..j end
 		j = j .. "j"
 	end
 	dbginfo = dbginfo .. j
 	if abs(value[4]) > 0.0005 then
 		k = tostring(Round(value[4]*1000)/1000)
-		if string.sub(k,1,1)!="-" and dbginfo != "" then k = "+"..k end
+		if string.sub(k,1,1)~="-" and dbginfo ~= "" then k = "+"..k end
 		k = k .. "k"
 	end
 	dbginfo = dbginfo .. k
@@ -467,19 +467,19 @@ __e2setcost(6)
 
 e2function number operator==(quaternion lhs, quaternion rhs)
 	local rvd1, rvd2, rvd3, rvd4 = lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3], lhs[4] - rhs[4]
-	if rvd1 <= delta && rvd1 >= -delta &&
-	   rvd2 <= delta && rvd2 >= -delta &&
-	   rvd3 <= delta && rvd3 >= -delta &&
-	   rvd4 <= delta && rvd4 >= -delta
+	if rvd1 <= delta and rvd1 >= -delta and
+	   rvd2 <= delta and rvd2 >= -delta and
+	   rvd3 <= delta and rvd3 >= -delta and
+	   rvd4 <= delta and rvd4 >= -delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator!=(quaternion lhs, quaternion rhs)
 	local rvd1, rvd2, rvd3, rvd4 = lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3], lhs[4] - rhs[4]
-	if rvd1 > delta || rvd1 < -delta ||
-	   rvd2 > delta || rvd2 < -delta ||
-	   rvd3 > delta || rvd3 < -delta ||
-	   rvd4 > delta || rvd4 < -delta
+	if rvd1 > delta or rvd1 < -delta or
+	   rvd2 > delta or rvd2 < -delta or
+	   rvd3 > delta or rvd3 < -delta or
+	   rvd4 > delta or rvd4 < -delta
 	   then return 1 else return 0 end
 end
 

@@ -15,6 +15,8 @@ local optimizerDebug = CreateConVar("wire_expression2_optimizer_debug", 0,
     "Print an E2's abstract syntax tree after optimization"
 )
 
+---@return boolean ok
+---@return table ast
 function Optimizer.Execute(root)
     local ok, result = xpcall(Optimizer.Process, E2Lib.errorHandler, root)
     if ok and optimizerDebug:GetBool() then
@@ -25,6 +27,7 @@ end
 
 Optimizer.Passes = {}
 
+---@return table ast
 function Optimizer.Process(tree)
     E2Lib.AST.visitChildren(tree, Optimizer.Process)
 

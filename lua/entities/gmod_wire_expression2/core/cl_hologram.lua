@@ -51,7 +51,7 @@ end
 
 local display_owners = false
 concommand.Add( "wire_holograms_display_owners", function()
-	display_owners = !display_owners
+	display_owners = not display_owners
 	if display_owners then
 		hook.Add( "HUDPaint", "wire_holograms_showowners", WireHologramsShowOwners)
 	else

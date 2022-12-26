@@ -133,10 +133,12 @@ function wire_expression2_CallHook(hookname, ...)
 	return ret_array
 end
 
-function registerCallback(event, callback)
+function E2Lib.registerCallback(event, callback)
 	if not wire_expression_callbacks[event] then wire_expression_callbacks[event] = {} end
 	table.insert(wire_expression_callbacks[event], callback)
 end
+
+registerCallback = E2Lib.registerCallback
 
 local tempcost
 
@@ -171,6 +173,43 @@ function E2Lib.registerConstant(name, value, literal)
 	wire_expression2_constants[name] = value
 end
 
+--- Example:
+--- E2Lib.registerEvent("propSpawned", { "e" }, nil)
+---@param name string
+---@param args string[]?
+---@param constructor fun(self: table)? # Constructor to run when E2 initially starts listening to this event. Passes E2 context
+---@param destructor fun(self: table)? # Destructor to run when E2 stops listening to this event. Passes E2 context
+function E2Lib.registerEvent(name, args, constructor, destructor)
+	-- Ensure event starts with lowercase letter
+	name = name:sub(1, 1):lower() .. name:sub(2)
+	-- assert(not E2Lib.Env.Events[name], "Possible addon conflict: Trying to override existing E2 event '" .. name .. "'")
+
+	E2Lib.Env.Events[name] = {
+		name = name,
+		args = args or {},
+
+		constructor = constructor,
+		destructor = destructor,
+
+		listening = {}
+	}
+end
+
+---@param name string
+---@param args table?
+function E2Lib.triggerEvent(name, args)
+	assert(E2Lib.Env.Events[name], "E2Lib.triggerEvent on nonexisting event: '" .. name .. "'")
+
+	for ent in pairs(E2Lib.Env.Events[name].listening) do
+		-- wtf
+		if ent.ExecuteEvent then
+			ent:ExecuteEvent(name, args)
+		else
+			E2Lib.Env.Events[name].listening[ent] = nil
+		end
+	end
+end
+
 -- ---------------------------------------------------------------
 
 -- Load clientside files here
@@ -202,7 +241,17 @@ if SERVER then
 
 		-- Fills out the above two tables
 		function wire_expression2_prepare_functiondata()
-			miscdata = { {}, wire_expression2_constants }
+			-- Sanitize events so 'listening' e2's aren't networked
+			local events_sanitized = {}
+			for evt, data in pairs(E2Lib.Env.Events) do
+				events_sanitized[evt] = {
+					name = data.name,
+					args = data.args
+				}
+			end
+
+			miscdata = { {}, wire_expression2_constants, events_sanitized }
+
 			functiondata = {}
 			for typename, v in pairs(wire_expression_types) do
 				miscdata[1][typename] = v[1] -- typeid (s)
@@ -223,6 +272,7 @@ if SERVER then
 				net.Start("e2_functiondata_start")
 				net.WriteTable(miscdata[1])
 				net.WriteTable(miscdata[2])
+				net.WriteTable(miscdata[3])
 				net.Send(target)
 			end
 		end
@@ -243,7 +293,7 @@ if SERVER then
 						net.WriteUInt(tab[2] or 0, 16) -- The function's cost [5]
 						net.WriteTable(tab[3] or {}) -- The function's argnames table (if a table isn't set, it'll just send a 1 byte blank table)
 						net.WriteString(tab[4] or "unknown")
-						net.WriteTable(tab[5] or {})
+						net.WriteTable(tab[5] or {}) -- Attributes
 					end
 					net.WriteString("") -- Needed to break out of the receiving for loop without affecting the final completion bit boolean
 					net.WriteBit(signature == nil) -- If we're at the end of the table, next will return nil, thus sending a true here
@@ -306,7 +356,8 @@ elseif CLIENT then
 		end
 	end
 
-	local function insertMiscData(types, constants)
+	---@param events table<string, {name: string, args: string[]}>
+	local function insertMiscData(types, constants, events)
 		wire_expression2_reset_extensions()
 
 		-- types
@@ -317,12 +368,13 @@ elseif CLIENT then
 
 		-- constants
 		wire_expression2_constants = constants
+		E2Lib.Env.Events = events
 	end
 
 	local buffer = {}
 	net.Receive("e2_functiondata_start", function(len)
 		buffer = {}
-		insertMiscData(net.ReadTable(), net.ReadTable())
+		insertMiscData(net.ReadTable(), net.ReadTable(), net.ReadTable())
 	end)
 
 	net.Receive("e2_functiondata_chunk", function(len)

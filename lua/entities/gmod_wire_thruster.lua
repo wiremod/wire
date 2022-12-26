@@ -103,7 +103,7 @@ end
 function ENT:OnRemove()
 	BaseClass.OnRemove(self)
 
-	if (self.soundname and self.soundname != "") then
+	if (self.soundname and self.soundname ~= "") then
 		self:StopSound(self.soundname)
 	end
 end
@@ -116,7 +116,7 @@ function ENT:SetForce( force, mul )
 	self.mul = mul or 1
 
 	local phys = self:GetPhysicsObject()
-	if (!phys:IsValid()) then
+	if (not phys:IsValid()) then
 		Msg("Warning: [",self,"] Physics object isn't valid!\n")
 		return
 	end
@@ -180,7 +180,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.owater = owater
 	self.uwater = uwater
 
-	if (!soundname) then soundname = "" end
+	if (not soundname) then soundname = "" end
 
 	-- Preventing client crashes
 	local BlockedChars = '["?]'
@@ -217,7 +217,7 @@ function ENT:Think()
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )
-	if (!self:IsOn()) then return SIM_NOTHING end
+	if (not self:IsOn()) then return SIM_NOTHING end
 
 	if (self:WaterLevel() > 0) then
 		if (not self.uwater) then
@@ -245,14 +245,14 @@ function ENT:PhysicsSimulate( phys, deltatime )
 end
 
 function ENT:Switch( on, mul )
-	if (!self:IsValid()) then return false end
+	if (not self:IsValid()) then return false end
 
 	local changed = (self:IsOn() ~= on)
 	self:SetOn( on )
 
 
 	if (on) then
-		if (changed) and (self.soundname and self.soundname != "") then
+		if (changed) and (self.soundname and self.soundname ~= "") then
 			self:StopSound( self.soundname )
 			self:EmitSound( self.soundname )
 		end
@@ -261,7 +261,7 @@ function ENT:Switch( on, mul )
 
 		self:SetForce( nil, mul )
 	else
-		if (self.soundname and self.soundname != "") then
+		if (self.soundname and self.soundname ~= "") then
 			self:StopSound( self.soundname )
 		end
 

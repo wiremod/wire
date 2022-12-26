@@ -36,7 +36,7 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Detonate") then
-		if ( !self.exploding && !self.reloading ) then
+		if ( not self.exploding and not self.reloading ) then
 			if ( math.abs(value) == self.key ) then
 				self:Trigger()
 			end
@@ -85,7 +85,7 @@ function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, no
 
 	self.NormInfo = ""
 	if (self.Damage > 0) then self.NormInfo = self.NormInfo.."Damage: "..self.Damage end
-	if (self.Radius > 0 || self.Delaytime > 0) then self.NormInfo = self.NormInfo.."\n" end
+	if (self.Radius > 0 or self.Delaytime > 0) then self.NormInfo = self.NormInfo.."\n" end
 	if (self.Radius > 0 ) then self.NormInfo = self.NormInfo.." Rad: "..self.Radius end
 	if (self.Delaytime > 0) then self.NormInfo = self.NormInfo.." Delay: "..self.Delaytime end
 
@@ -132,13 +132,13 @@ end
 
 function ENT:OnTakeDamage( dmginfo )
 
-	if ( dmginfo:GetInflictor():GetClass() == "gmod_wire_explosive"  && !self.Affectother ) then return end
+	if ( dmginfo:GetInflictor():GetClass() == "gmod_wire_explosive"  and not self.Affectother ) then return end
 
-	if ( !self.Notaffected ) then self:TakePhysicsDamage( dmginfo ) end
+	if ( not self.Notaffected ) then self:TakePhysicsDamage( dmginfo ) end
 
-	if (dmginfo:IsBulletDamage() && self.BulletProof) ||
-		(dmginfo:IsExplosionDamage() && self.ExplosionProof) ||
-		(dmginfo:IsFallDamage() && self.FallProof) then return end //fix fall damage, it doesn't happen
+	if (dmginfo:IsBulletDamage() and self.BulletProof) or
+		(dmginfo:IsExplosionDamage() and self.ExplosionProof) or
+		(dmginfo:IsFallDamage() and self.FallProof) then return end //fix fall damage, it doesn't happen
 
 	if (self:Health() > 0) then //don't need to beat a dead horse
 		local dammage = dmginfo:GetDamage()
@@ -212,11 +212,11 @@ end
 
 function ENT:Explode( )
 
-	if ( !self:IsValid() ) then return end
+	if ( not self:IsValid() ) then return end
 
 	self:Extinguish()
 
-	if (!self.exploding) then return end //why are we exploding if we shouldn't be
+	if (not self.exploding) then return end //why are we exploding if we shouldn't be
 
 	ply = self:GetPlayer() or self
 	if(not IsValid(ply)) then ply = self end;
@@ -252,9 +252,9 @@ end
 -- don't foreget to call this when changes happen
 function ENT:ShowOutput( )
 	local txt = ""
-	if (self.reloading && self.Delayreloadtime > 0) then
+	if (self.reloading and self.Delayreloadtime > 0) then
 		txt = "Rearming... "..self.count
-		if (self.ColorEffect && !self.InvisibleAtZero) then
+		if (self.ColorEffect and not self.InvisibleAtZero) then
 			local c = 255 * ((self.Delayreloadtime - self.count) / self.Delayreloadtime)
 			self:SetColor(Color(255, c, c, 255))
 		end

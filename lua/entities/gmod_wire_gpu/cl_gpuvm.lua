@@ -2260,8 +2260,8 @@ VM.OpcodeTable[284] = function(self)  --DDTERRAIN
   self:Dyn_Emit("$L MaxY = math.Clamp(math.floor(H/2 + V + R),1,H-1)")
 
   -- Draw terrain
-  self:Dyn_Emit("for X=MinX,MaxX do")
-    self:Dyn_Emit("for Y=MinY,MaxY do")
+  self:Dyn_Emit("for X=MinX,math.min(MaxX, 64) do")
+    self:Dyn_Emit("for Y=MinY,math.min(MaxY, 64) do")
       self:Dyn_Emit("$L XPOS = X - W/2 - U - 0.5")
       self:Dyn_Emit("$L YPOS = Y - H/2 - U - 0.5")
 

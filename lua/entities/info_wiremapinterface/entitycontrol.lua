@@ -5,9 +5,9 @@
 -- The removing function
 -- Its for removing all the wiremod stuff from unused entities.
 local function RemoveWire(Entity, SendToCL)
-	if (!IsValid(Entity)) then return end
+	if (not IsValid(Entity)) then return end
 
-	Wire_Remove(Entity, !SendToCL)
+	Wire_Remove(Entity, not SendToCL)
 
 	local self = Entity._WireMapInterfaceEnt
 	if (IsValid(self)) then
@@ -23,7 +23,7 @@ local function RemoveWire(Entity, SendToCL)
 		end
 	end
 
-	if (!SendToCL) then return end
+	if (not SendToCL) then return end
 
 	Entity:_RemoveOverrides()
 	WireLib._RemoveWire(Entity:EntIndex(), true) -- Remove entity from the list, so it doesn't count as a wire able entity anymore.
@@ -65,7 +65,7 @@ function ENT:Timedpairs(name, tab, steps, cb, endcb, ...)
 end
 
 local function CallOnEnd(self, AddedEnts)
-	if (!IsValid(self)) then return end
+	if (not IsValid(self)) then return end
 
 	self.WirePortsChanged = true
 	self:GiveWireInterfeceClient(nil, AddedEnts)
@@ -74,13 +74,13 @@ local function CallOnEnd(self, AddedEnts)
 end
 
 function ENT:GiveWireInterfece(EntsToAdd)
-	if (!EntsToAdd) then return end
-	if (table.IsEmpty(EntsToAdd) or !self.WirePortsChanged) then return end
+	if (not EntsToAdd) then return end
+	if (table.IsEmpty(EntsToAdd) or not self.WirePortsChanged) then return end
 	local AddedEnts = {}
 	self:UpdateData()
 
 	self:Timedpairs("WireMapInterface_Adding", EntsToAdd, 1, function(obj1, obj2, self)
-		if (!IsValid(self)) then return false end -- Stop loop when the entity gets removed.
+		if (not IsValid(self)) then return false end -- Stop loop when the entity gets removed.
 		if (self.WirePortsChanged) then
 			self:TriggerOutput("onwireentsstartchanging", self)
 		end
@@ -90,21 +90,21 @@ function ENT:GiveWireInterfece(EntsToAdd)
 
 		local Ent, Func = self:AddSingleEntity(Entity, CallOnEnd, AddedEnts)
 		if (Ent == "limid_exceeded") then return false end -- Stop loop when maximum got exceeded
-		if (!IsValid(Ent) or !Func) then return end
+		if (not IsValid(Ent) or not Func) then return end
 
 		AddedEnts[Ent] = Func
 	end, function(k, v, self) CallOnEnd(self, AddedEnts) end, self)
 end
 
 function ENT:GiveWireInterfeceClient(ply, EntsToAdd)
-	if (!self.WireEnts) then return end
+	if (not self.WireEnts) then return end
 
 	self:Timedpairs((IsValid(ply) and (ply:EntIndex().."") or "").."WireMapInterface_Adding_CL", EntsToAdd or self.WireEnts, 1, function(Entity, Func, self)
-		if (!IsValid(self)) then return false end -- Stop loop when the entity gets removed.
-		if (!IsValid(Entity)) then return end
-		if (!self:IsWireableEntity(Entity)) then return end
+		if (not IsValid(self)) then return false end -- Stop loop when the entity gets removed.
+		if (not IsValid(Entity)) then return end
+		if (not self:IsWireableEntity(Entity)) then return end
 
-		Func(self, Entity, ply, !IsValid(ply))
+		Func(self, Entity, ply, not IsValid(ply))
 	end, nil, self)
 end
 
@@ -118,16 +118,16 @@ function ENT:AddEntitiesByName(Name)
 end
 
 function ENT:AddEntitiesByTable(Table)
-	if (!Table) then return end
+	if (not Table) then return end
 
 	self:GiveWireInterfece(Table)
 end
 
 local function AddSingleEntityCL(self, Entity, ply, SendToAll)
-	if (!IsValid(Entity)) then return end
-	if (!IsValid(self)) then return end
-	if (!self.WireEnts[Entity]) then return end
-	if (!SendToAll and !IsValid(ply)) then return end
+	if (not IsValid(Entity)) then return end
+	if (not IsValid(self)) then return end
+	if (not self.WireEnts[Entity]) then return end
+	if (not SendToAll and not IsValid(ply)) then return end
 
 	if (SendToAll) then
 		umsg.Start("WireMapInterfaceEnt")
@@ -141,9 +141,9 @@ local function AddSingleEntityCL(self, Entity, ply, SendToAll)
 end
 
 function ENT:AddSingleEntity(Entity, callOnEnd, AddedEnts)
-	if (!IsValid(Entity)) then return end
-	if (!self:IsWireableEntity(Entity)) then return end
-	if (!self:CheckEntLimid(callOnEnd, AddedEnts)) then return "limid_exceeded" end
+	if (not IsValid(Entity)) then return end
+	if (not self:IsWireableEntity(Entity)) then return end
+	if (not self:CheckEntLimid(callOnEnd, AddedEnts)) then return "limid_exceeded" end
 
 	if (IsValid(Entity._WireMapInterfaceEnt)) then
 		RemoveWire(Entity, true)
@@ -187,15 +187,15 @@ function ENT:RemoveEntitiesByName(Name, callback)
 end
 
 function ENT:RemoveEntitiesByTable(Table, callback)
-	if (!Table) then return end
-	if (table.IsEmpty(Table) or !self.WirePortsChanged) then return end
+	if (not Table) then return end
+	if (table.IsEmpty(Table) or not self.WirePortsChanged) then return end
 
 	local Removed = nil
 	self:Timedpairs("WireMapInterface_Removing", Table, 1, function(obj1, obj2, self)
 		local Entity = (IsEntity(obj1) and obj1) or (IsEntity(obj2) and obj2)
 
-		if (!IsValid(Entity)) then return end
-		if (!IsValid(Entity._WireMapInterfaceEnt)) then return end
+		if (not IsValid(Entity)) then return end
+		if (not IsValid(Entity._WireMapInterfaceEnt)) then return end
 		if (Entity._WireMapInterfaceEnt ~= self) then return end
 		if (self and self.WirePortsChanged) then
 			self:TriggerOutput("onwireentsstartchanging", self)
@@ -206,14 +206,14 @@ function ENT:RemoveEntitiesByTable(Table, callback)
 		Removed = true
 	end,
 	function(k, v, self, callback)
-		if (!IsValid(self)) then return end
+		if (not IsValid(self)) then return end
 		self.WirePortsChanged = true
 
 		if (callback) then
 			callback(self, Removed)
 		end
 
-		if (!Removed) then return end
+		if (not Removed) then return end
 		self:TriggerOutput("onwireentsremoved", self)
 		self:TriggerOutput("onwireentsready", self)
 	end, self, callback)
@@ -221,8 +221,8 @@ function ENT:RemoveEntitiesByTable(Table, callback)
 end
 
 function ENT:RemoveSingleEntity(Entity)
-	if (!IsValid(Entity)) then return end
-	if (!IsValid(Entity._WireMapInterfaceEnt)) then return end
+	if (not IsValid(Entity)) then return end
+	if (not IsValid(Entity._WireMapInterfaceEnt)) then return end
 	if (Entity._WireMapInterfaceEnt ~= self) then return end
 
 	RemoveWire(Entity, true)
@@ -237,7 +237,7 @@ function ENT:GetWiredEntities()
 end
 
 function ENT:SetWiredEntities(Table)
-	if (!Table) then return end
+	if (not Table) then return end
 
 	local Ents = {}
 	local Count = 0

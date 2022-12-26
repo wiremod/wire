@@ -183,6 +183,19 @@ e2function void effect:play(string name)
 	util.Effect(name,this)
 end
 
+e2function number effectCanPlay()
+	return isAllowed(self) and 1 or 0
+end
+
+e2function number effectCanPlay(string name)
+	if not isAllowed(self) then return 0 end
+	if effect_blacklist[name] then return 0 end
+	if hook.Run( "Expression2_CanEffect", name:lower(), self ) == false then return 0 end
+
+	return 1
+end
+
+
 registerCallback("construct", function(self)
 	self.data.effect_burst = wire_expression2_effect_burst_max:GetInt()
 end)

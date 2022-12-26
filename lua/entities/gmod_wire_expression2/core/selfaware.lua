@@ -4,10 +4,12 @@
 
 __e2setcost(1) -- temporary
 
+[nodiscard]
 e2function entity entity()
 	return self.entity
 end
 
+[nodiscard]
 e2function entity owner()
 	return self.player
 end
@@ -34,6 +36,7 @@ end
 __e2setcost(10)
 
 -- Returns an array of all entities wired to the output
+[nodiscard]
 e2function array ioOutputEntities( string output )
 	local ret = {}
 	if (self.entity.Outputs[output]) then
@@ -45,6 +48,7 @@ e2function array ioOutputEntities( string output )
 end
 
 -- Returns the entity the input is wired to
+[nodiscard]
 e2function entity ioInputEntity( string input )
 	if (self.entity.Inputs[input] and self.entity.Inputs[input].Src and IsValid(self.entity.Inputs[input].Src)) then return self.entity.Inputs[input].Src end
 end
@@ -134,6 +138,7 @@ e2function void entity:setName( string name )
 end
 
 -- Get the name of another E2 or compatible entity or component name of wiremod components
+[nodiscard]
 e2function string entity:getName()
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	if this.GetGateName then
@@ -152,6 +157,7 @@ end)
 __e2setcost(1)
 
 -- This is the prototype for everything that can be compared using the == operator
+[nodiscard]
 e2function number changed(value)
 	local chg = self.data.changed
 
@@ -161,7 +167,7 @@ e2function number changed(value)
 	return 1
 end
 
--- vectors can be of gmod type Vector, so we need to treat them separately
+[nodiscard]
 e2function number changed(vector value)
 	local chg = self.data.changed
 
@@ -181,7 +187,8 @@ e2function number changed(vector value)
 end
 
 -- This is the prototype for all table types.
-e2function number changed(angle value)
+[nodiscard]
+e2function number changed(vector4 value)
 	local chg = self.data.changed
 
 	local this_chg = chg[args]
@@ -202,6 +209,7 @@ local excluded_types = {
 	n = true,
 	v = true,
 	a = true,
+	xv4 = true,
 	[""] = true,
 
 	r = true,
@@ -215,13 +223,16 @@ local comparable_types = {
 }
 
 registerCallback("postinit", function()
+	-- Angle is the same as vector
+	registerFunction("changed", "a", "n", registeredfunctions.e2_changed_v)
+
 	-- generate this function for all types
 	for typeid,_ in pairs(wire_expression_types2) do
 		if not excluded_types[typeid] then
 			if comparable_types[typeid] then
 				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_n)
 			else
-				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_a)
+				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_xv4)
 			end
 		end
 	end
@@ -232,14 +243,17 @@ end)
 __e2setcost( 5 )
 
 local getHash = E2Lib.getHash
+[nodiscard]
 e2function number hash()
 	return getHash( self, self.entity.original )
 end
 
+[nodiscard]
 e2function number hashNoComments()
 	return getHash( self, self.entity.buffer )
 end
 
+[nodiscard]
 e2function number hash( string str )
 	return getHash( self, str )
 end

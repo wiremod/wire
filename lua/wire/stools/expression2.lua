@@ -20,8 +20,7 @@ TOOL.ClientConVar = {
 	modelsize = "",
 	scriptmodel = "",
 	select = "",
-	autoindent = 1,
-	friendwrite = 0,
+	autoindent = 1
 }
 
 TOOL.MaxLimitName = "wire_expressions"
@@ -408,9 +407,19 @@ if SERVER then
 
 			local filepath = ret[3]
 
-			if ply ~= toent.player and toent.player:GetInfoNum("wire_expression2_friendwrite", 0) ~= 1 then
-				code = "@disabled for security reasons. Remove this line (Ctrl+Shift+L) and left-click the chip to enable. 'wire_expression2_friendwrite 1' disables security.\n" .. code
+			if ply ~= toent.player then
+				toent.player = ply
+				toent:SetPlayer(ply)
+				toent:SetNWEntity("player", ply)
+
+				-- Note that the SENT and CPPI owners aren't set here to allow the original owner to still access their chip
 			end
+
+			-- This is needed when formatting the #error directive on dupe
+			toent.code_author = {
+				name = ply:GetName(),
+				steamID = ply:SteamID()
+			}
 
 			toent:Setup(code, includes, nil, nil, filepath)
 		end
@@ -441,7 +450,7 @@ if SERVER then
 		if canhas(player) then return end
 		if E2.error then return end
 		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "halt execution" ) then
-			E2:PCallHook("destruct")
+			E2:Destruct()
 			E2:Error("Execution halted (Triggered by: " .. player:Nick() .. ")", "Execution halted")
 			if E2.player ~= player then
 				WireLib.AddNotify(player, "Expression halted.", NOTIFY_GENERIC, 5, math.random(1, 5))
