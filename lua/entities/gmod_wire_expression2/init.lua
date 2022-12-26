@@ -124,24 +124,10 @@ end
 local SysTime = SysTime
 
 function ENT:UpdatePerf()
-	if not self.context then return end
-	if self.error then return end
 	
 	self.context.prfbench = self.context.prfbench * 0.95 + self.context.prf * 0.05
 	self.context.prfcount = self.context.prfcount + self.context.prf - e2_softquota
 	self.context.timebench = self.context.timebench * 0.95 + self.context.time * 0.05 -- Average it over the last 20 ticks
-
-	if e2_timequota > 0 and self.context.timebench > e2_timequota then
-		self:Error("Expression 2 (" .. self.name .. "): time quota exceeded", "time quota exceeded")
-		self:PCallHook('destruct')
-	end
-
-	if self.context.prfcount < 0 then self.context.prfcount = 0 end
-
-	self:UpdateOverlay()
-
-	self.context.prf = 0
-	self.context.time = 0
 
 end
 
@@ -215,6 +201,20 @@ function ENT:Think()
 	self:NextThink(CurTime()+0.030303)
 
 	self:UpdatePerf()
+
+	if not self.context then return true end
+	if self.error then return true end
+	if e2_timequota > 0 and self.context.timebench > e2_timequota then
+		self:Error("Expression 2 (" .. self.name .. "): time quota exceeded", "time quota exceeded")
+		self:PCallHook('destruct')
+	end
+
+	if self.context.prfcount < 0 then self.context.prfcount = 0 end
+
+	self:UpdateOverlay()
+
+	self.context.prf = 0
+	self.context.time = 0
 
 	return true
 end
