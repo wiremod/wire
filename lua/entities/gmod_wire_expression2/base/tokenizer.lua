@@ -43,8 +43,9 @@ local TokenVariant = {
 	LowerIdent = 11, -- function_name
 
 	Ident = 12, -- VariableName
+	Discard = 13, -- _
 
-	Constant = 13, -- _CONST
+	Constant = 14, -- _CONST
 }
 
 Tokenizer.Variant = TokenVariant
@@ -223,6 +224,13 @@ function Tokenizer:Next()
 	match = self:ConsumePattern("^[A-Z][a-zA-Z0-9_]*")
 	if match then
 		return Token.new(TokenVariant.Ident, match)
+	end
+
+	if self:ConsumePattern("^_") then
+		-- A discard is used to signal intent that something is intentionally not used.
+		-- This is mainly to avoid warnings for unused variables from events or functions.
+		-- You are not allowed to actually use the discard anywhere but in a signature, since you can have multiple in the signature.
+		return Token.new(TokenVariant.Discard, "_")
 	end
 
 	match = self:ConsumePattern("^_[A-Z0-9_]*")

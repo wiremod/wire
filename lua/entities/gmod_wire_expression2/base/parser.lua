@@ -320,7 +320,7 @@ function Parser:Stmt3()
 			self:Error("Left parenthesis (() must appear before condition")
 		end
 
-		if not self:AcceptRoamingToken(TokenVariant.Ident) then
+		if not self:AcceptRoamingToken(TokenVariant.Ident) and not self:AcceptRoamingToken(TokenVariant.Discard) then
 			self:Error("Variable expected for the numeric index")
 		end
 
@@ -365,7 +365,7 @@ function Parser:Stmt4()
 			self:Error("Left parenthesis missing (() after foreach statement")
 		end
 
-		if not self:AcceptRoamingToken(TokenVariant.Ident) then
+		if not self:AcceptRoamingToken(TokenVariant.Ident) and not self:AcceptRoamingToken(TokenVariant.Discard) then
 			self:Error("Variable expected to hold the key")
 		end
 		local keyvar = self:GetTokenData()
@@ -391,7 +391,7 @@ function Parser:Stmt4()
 			self:Error("Comma (,) expected after key variable")
 		end
 
-		if not self:AcceptRoamingToken(TokenVariant.Ident) then
+		if not self:AcceptRoamingToken(TokenVariant.Ident) and not self:AcceptRoamingToken(TokenVariant.Discard) then
 			self:Error("Variable expected to hold the value")
 		end
 		local valvar = self:GetTokenData()
@@ -776,7 +776,7 @@ function Parser:Stmt12()
 				self:Error("Left parenthesis (() expected after catch keyword")
 			end
 
-			if not self:AcceptRoamingToken(TokenVariant.Ident) then
+			if not self:AcceptRoamingToken(TokenVariant.Ident) and not self:AcceptRoamingToken(TokenVariant.Discard) then
 				self:Error("Variable expected after left parenthesis (() in catch statement")
 			end
 			local var_name = self:GetTokenData()
@@ -893,6 +893,8 @@ function Parser:FunctionArgs(Temp, Args)
 
 			if self:AcceptRoamingToken(TokenVariant.Ident) or self:AcceptRoamingToken(TokenVariant.LowerIdent) then
 				self:FunctionArg(Temp, Args)
+			elseif self:AcceptRoamingToken(TokenVariant.Discard) then
+				self:FunctionArg(Temp, Args, true)
 			elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.LSquare) then
 				self:FunctionArgList(Temp, Args)
 			end
@@ -908,7 +910,7 @@ function Parser:FunctionArgs(Temp, Args)
 	end
 end
 
-function Parser:FunctionArg(Temp, Args)
+function Parser:FunctionArg(Temp, Args, Discard)
 	local Type = "normal"
 
 	local Name = self:GetTokenData()
@@ -937,9 +939,8 @@ function Parser:FunctionArg(Temp, Args)
 		self:Error("Invalid type specified")
 	end
 
-
-	Temp[Name] = true
-	Args[#Args + 1] = { Name, Type, false }
+	Temp[Name] = not Discard
+	Args[#Args + 1] = { Name, Type, false, Discard }
 end
 
 function Parser:FunctionArgList(Temp, Args)
@@ -959,6 +960,9 @@ function Parser:FunctionArgList(Temp, Args)
 
 				Temp[Name] = true
 				Vars[#Vars + 1] = Name
+
+			elseif self:AcceptRoamingToken(TokenVariant.Discard) then
+				Vars[#Vars + 1] = "_"
 			elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.RSquare) then
 				break
 
@@ -995,7 +999,7 @@ function Parser:FunctionArgList(Temp, Args)
 		end
 
 		for I = 1, #Vars do
-			Args[#Args + 1] = { Vars[I], Type, false }
+			Args[#Args + 1] = { Vars[I], Type, false, Vars[I] == "_" }
 		end
 
 	else
@@ -1679,6 +1683,10 @@ function Parser:ExprError()
 			self:Error("Else-if keyword (elseif) must be part of an if-statement")
 		elseif self:AcceptRoamingToken(TokenVariant.Keyword, Keyword.Else) then
 			self:Error("Else keyword (else) must be part of an if-statement")
+
+
+		elseif self:AcceptRoamingToken(TokenVariant.Discard) then
+			self:Error("Discard (_) can only be used to discard function parameter")
 
 		else
 			self:Error("Unexpected token found (" .. self.readtoken:display() .. ")")
