@@ -34,7 +34,7 @@ do
 			e2_softquota = wire_expression2_quotasoft:GetInt()
 			e2_hardquota = wire_expression2_quotahard:GetInt()
 			e2_tickquota = wire_expression2_quotatick:GetInt()
-			e2_timequota = wire_expression2_quotatime:GetInt()*0.001
+			e2_timequota = wire_expression2_quotatime:GetInt() * 0.001
 		end
 	end
 	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
@@ -444,11 +444,11 @@ function ENT:ResetContext()
 		entity = self,
 		player = self.player,
 		uid = self.uid,
-		prf = (self.context and (self.context.prf*resetPrfMult)) or 0,
-		prfcount = (self.context and (self.context.prfcount*resetPrfMult)) or 0,
-		prfbench = (self.context and (self.context.prfbench*resetPrfMult)) or 0,
-		time = (self.context and (self.context.time*resetPrfMult)) or 0,
-		timebench = (self.context and (self.context.timebench*resetPrfMult)) or 0,
+		prf = (self.context and (self.context.prf * resetPrfMult)) or 0,
+		prfcount = (self.context and (self.context.prfcount * resetPrfMult)) or 0,
+		prfbench = (self.context and (self.context.prfbench * resetPrfMult)) or 0,
+		time = (self.context and (self.context.time * resetPrfMult)) or 0,
+		timebench = (self.context and (self.context.timebench * resetPrfMult)) or 0,
 		includes = self.includes
 	}
 
