@@ -102,6 +102,7 @@ $In
 1
 "Hello"
 
+X = _PI
 
 #ifdef print(...)
 #else
