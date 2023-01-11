@@ -96,6 +96,10 @@ local function addToken(tokenname, tokendata)
 	end
 end
 
+local function AcceptIdent(self)
+	return self:NextPattern("^[A-Z][a-zA-Z0-9_]*") or self:NextPattern("^_")
+end
+
 function EDITOR:CommentSelection(removecomment)
 	local sel_start, sel_caret = self:MakeSelection( self:Selection() )
 	local mode = self:GetParent().BlockCommentStyleConVar:GetInt()
@@ -352,7 +356,7 @@ function EDITOR:SyntaxColorLine(row)
 				local dots = self:SkipPattern( "%.%.%." )
 				if dots then addToken( "operator", dots ) end
 
-				local invalidInput = self:SkipPattern( "[^A-Z:%[]*" )
+				local invalidInput = self:SkipPattern( "[^A-Z:%[_]*" )
 				if invalidInput then addToken( "notfound", invalidInput ) end
 
 				if self:NextPattern( "%[" ) then -- Found a [
@@ -360,7 +364,7 @@ function EDITOR:SyntaxColorLine(row)
 					addToken( "operator", self.tokendata )
 					self.tokendata = ""
 
-					while self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) do -- If we found a variable
+					while AcceptIdent(self) do -- If we found a variable
 						addToken( "variable", self.tokendata )
 						self.tokendata = ""
 
@@ -372,7 +376,7 @@ function EDITOR:SyntaxColorLine(row)
 						addToken( "operator", "]" )
 						self.tokendata = ""
 					end
-				elseif self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) then -- If we found a variable
+				elseif AcceptIdent(self) then -- If we found a variable
 					-- Color the variable
 					addToken( "variable", self.tokendata )
 					self.tokendata = ""
@@ -434,7 +438,7 @@ function EDITOR:SyntaxColorLine(row)
 				local dots = self:SkipPattern( "%.%.%." )
 				if dots then addToken( "operator", dots ) end
 
-				local invalidInput = self:SkipPattern( "[^A-Z:%[]*" )
+				local invalidInput = self:SkipPattern( "[^A-Z:%[_]*" )
 				if invalidInput then addToken( "notfound", invalidInput ) end
 
 				if self:NextPattern( "%[" ) then -- Found a [
@@ -442,7 +446,7 @@ function EDITOR:SyntaxColorLine(row)
 					addToken( "operator", self.tokendata )
 					self.tokendata = ""
 
-					while self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) do -- If we found a variable
+					while AcceptIdent(self) do -- If we found a variable
 						addToken( "variable", self.tokendata )
 						self.tokendata = ""
 
@@ -454,7 +458,7 @@ function EDITOR:SyntaxColorLine(row)
 						addToken( "operator", "]" )
 						self.tokendata = ""
 					end
-				elseif self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) then -- If we found a variable
+				elseif AcceptIdent(self) then -- If we found a variable
 					-- Color the variable
 					addToken( "variable", self.tokendata )
 					self.tokendata = ""
@@ -579,7 +583,7 @@ function EDITOR:SyntaxColorLine(row)
 				self.tokendata = spaces
 			end
 
-		elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
+		elseif AcceptIdent(self) then
 			if self.tokendata == "This" then
 				tokenname = "typename"
 			else

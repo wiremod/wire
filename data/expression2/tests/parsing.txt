@@ -65,6 +65,17 @@ do { continue } while (A)
 try {} catch(Err) {}
 
 event tick() {}
+event chat(_:entity, _:string, _) {}
+
+for (_ = 1, 5) {}
+foreach (K:number, _:entity = table()) {}
+foreach (_, _:entity = table()) {}
+
+function unimplemented(_) {}
+unimplemented(5)
+
+try {} catch(_) {}
+
 
 A++
 A--
@@ -91,6 +102,7 @@ $In
 1
 "Hello"
 
+X = _PI
 
 #ifdef print(...)
 #else

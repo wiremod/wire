@@ -83,6 +83,7 @@ function TOOL:DrawHUD()
 	end
 end
 function TOOL:RightClick( tr )
+	if SERVER then return end
 
 	if IsValid( tr.Entity ) then
 		local ent = tr.Entity
