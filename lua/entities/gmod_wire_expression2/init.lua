@@ -275,7 +275,10 @@ end
 function ENT:Think()
 	BaseClass.Think(self)
 	self:NextThink(CurTime() + 0.030303)
-
+	
+	if not self.context then return true end
+	if self.error then return true end
+	
 	self:UpdatePerf()
 
 	if self.context.prfcount < 0 then self.context.prfcount = 0 end
@@ -285,8 +288,6 @@ function ENT:Think()
 	self.context.prf = 0
 	self.context.time = 0
 
-	if not self.context then return true end
-	if self.error then return true end
 	if e2_timequota > 0 and self.context.timebench > e2_timequota then
 		self:Error("Expression 2 (" .. self.name .. "): time quota exceeded", "time quota exceeded")
 		self:PCallHook('destruct')
