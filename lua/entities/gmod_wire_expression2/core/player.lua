@@ -321,12 +321,12 @@ end
 
 hook.Add("PlayerBindDown", "Exp2KeyReceivingDown", function(player, binding, button)
 	triggerKey(player,binding,button,true)
-	E2Lib.triggerEvent("keyPressed", {player, keys_lookup[button], 1, binding})
+	E2Lib.triggerEvent("keyPressed", {player, keys_lookup[button], 1, binding or ""})
 end)
 
 hook.Add("PlayerBindUp", "Exp2KeyReceivingUp", function(player, binding, button)
 	triggerKey(player,binding,button,false)
-	E2Lib.triggerEvent("keyPressed", {player, keys_lookup[button], 0, binding})
+	E2Lib.triggerEvent("keyPressed", {player, keys_lookup[button], 0, binding or ""})
 end)
 
 local function toggleRunOnKeys(self,ply,on,filter)
