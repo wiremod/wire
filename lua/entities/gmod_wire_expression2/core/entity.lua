@@ -634,7 +634,7 @@ e2function void entity:applyTorque(vector torque)
 
 	-- Convert torque from local to world axis
 	torque = phys:LocalToWorldVector( clamp(torque) )
-	phys:ApplyTorqueCenter( torque --[[TODO Figure out conversion constant]] )
+	phys:ApplyTorqueCenter( torque * (180 / math.pi / 39.3701^2) )
 end
 
 e2function vector entity:inertia()
