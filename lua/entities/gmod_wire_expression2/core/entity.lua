@@ -626,7 +626,7 @@ end
 
 --- Applies torque according to a local torque vector, with magnitude and sense given by the vector's direction, magnitude and orientation.
 e2function void entity:applyTorque(vector torque)
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not validPhysics(this) then return self:throw("Invalid physics object!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 	if torque:IsZero() then return end
 
