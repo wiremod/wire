@@ -628,33 +628,14 @@ end
 e2function void entity:applyTorque(vector torque)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
-
 	if torque:IsZero() then return end
-	torque = clamp(torque)
 
 	local phys = this:GetPhysicsObject()
 
-	local torqueamount = torque:Length()
-
 	-- Convert torque from local to world axis
-	torque = phys:LocalToWorld( torque ) - phys:GetPos()
-
-	-- Find two vectors perpendicular to the torque axis
-	local off
-	if abs(torque.x) > torqueamount * 0.1 or abs(torque.z) > torqueamount * 0.1 then
-		off = Vector(-torque.z, 0, torque.x)
-	else
-		off = Vector(-torque.y, torque.x, 0)
-	end
-	off = off:GetNormal() * torqueamount * 0.5
-
-	local dir = ( torque:Cross(off) ):GetNormal()
-
-	dir = clamp(dir)
-	off = clamp(off)
-
-	phys:ApplyForceOffset( dir, off )
-	phys:ApplyForceOffset( dir * -1, off * -1 )
+	torque = phys:LocalToWorldVector( clamp(torque) )
+	-- Convert rad*in^2 to deg*m^2
+	phys:ApplyTorqueCenter( torque * (180 / math.pi / 39.3701^2) )
 end
 
 e2function vector entity:inertia()
