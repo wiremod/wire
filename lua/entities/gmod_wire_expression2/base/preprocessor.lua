@@ -19,7 +19,7 @@ PreProcessor.__index = PreProcessor
 E2Lib.PreProcessor = PreProcessor
 
 ---@return boolean ok
----@return table|Error[]? directives
+---@return PPDirectives|Error[]? directives
 ---@return string? newcode
 ---@return PreProcessor self
 function PreProcessor.Execute(...)
@@ -327,6 +327,7 @@ end
 
 ---@param buffer string
 ---@param directives PPDirectives
+---@return PPDirectives directives, string buf
 function PreProcessor:Process(buffer, directives, ent)
 	-- entity is needed for autoupdate
 	self.ent = ent
@@ -366,7 +367,7 @@ function PreProcessor:Process(buffer, directives, ent)
 	if self.directives.trigger[1] == nil then self.directives.trigger[1] = true end
 	if not self.directives.name then self.directives.name = "" end
 
-	return self.directives, string.Implode("\n", lines)
+	return self.directives, table.concat(lines, "\n")
 end
 
 function PreProcessor:ParsePorts(ports, startoffset)

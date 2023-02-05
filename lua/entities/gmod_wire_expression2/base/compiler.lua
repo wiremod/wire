@@ -18,7 +18,20 @@ local Token, TokenVariant = E2Lib.Tokenizer.Token, E2Lib.Tokenizer.Variant
 local Node, NodeVariant = E2Lib.Parser.Node, E2Lib.Parser.Variant
 local Keyword, Grammar, Operator = E2Lib.Keyword, E2Lib.Grammar, E2Lib.Operator
 
----@alias ScopeData { dead: boolean?, loop: boolean?, switch_case: boolean?, function: {[1]: string, [2]: EnvFunction}? }
+local TickQuota = GetConVar("wire_expression2_quotatick"):GetInt()
+
+cvars.RemoveChangeCallback("wire_expression2_quotatick", "compiler_quota_check")
+cvars.AddChangeCallback("wire_expression2_quotatick", function(_, old, new)
+	TickQuota = tonumber(new)
+end, "compiler_quota_check")
+
+---@class ScopeData
+---@field dead boolean?
+---@field loop boolean?
+---@field switch_case boolean?
+---@field function { [1]: string, [2]: EnvFunction}?
+---@field ops integer
+
 ---@alias VarData { type: string, trace_if_unused: Trace?, initialized: boolean, scope: Scope }
 
 ---@class Scope
@@ -30,7 +43,7 @@ Scope.__index = Scope
 
 ---@param parent Scope?
 function Scope.new(parent)
-	return setmetatable({ data = {}, vars = {}, parent = parent }, Scope)
+	return setmetatable({ data = { ops = 0 }, vars = {}, parent = parent }, Scope)
 end
 
 ---@param name string
@@ -63,7 +76,8 @@ end
 --- Below is analyzed data
 ---@field include string? # Current include file or nil if main file
 ---@field registered_events table<string, function>
----@field user_functions table<string, table<string, EnvFunction>>
+---@field user_functions table<string, table<string, EnvFunction>> # applyForce -> v
+---@field user_methods table<string, table<string, table<string, EnvFunction>>> # e: -> applyForce -> vava
 --- External Data
 ---@field delta_vars table<string, true> # Variable: True
 ---@field persist table<string, string> # Variable: Type
@@ -99,7 +113,7 @@ local BLOCKED_ARRAY_TYPES = E2Lib.blocked_array_types
 ---@param dvars table<string, boolean>
 ---@param includes string[]
 ---@return boolean ok, function|Error script, Compiler self
-function Compiler.Execute(ast, directives, persists, dvars, includes)
+function Compiler.Execute(ast, directives, dvars, includes)
 	local instance = Compiler.from(directives, dvars, includes)
 	local ok, script = xpcall(Compiler.Process, E2Lib.errorHandler, instance, ast)
 	return ok, script, instance
@@ -145,8 +159,7 @@ end
 function Compiler:CheckType(ty)
 	-- if not E2Lib.Env.Types[ty.value] then self:Error("Invalid type (" .. ty.value .. ")", ty.trace) end
 	if ty.value == "number" then return "n" end
-	local t = wire_expression_types[ty.value:upper()]
-	return t[1] or self:Error("Invalid type (" .. ty.value .. ")", ty.trace)
+	return self:Assert(wire_expression_types[ty.value:upper()], "Invalid type (" .. ty.value .. ")", ty.trace)[1]
 end
 
 ---@alias RuntimeScope table
@@ -157,7 +170,7 @@ local function handleInfixOperation(self, trace, data)
 	local lhs, lhs_ty = self:CompileNode(data[1])
 	local rhs, rhs_ty = self:CompileNode(data[3])
 
-	local op, op_ret = self:GetOperator(E2Lib.OperatorNames[data[2]]:lower(), { lhs_ty, rhs_ty }, trace)
+	local op, op_ret, ops = self:GetOperator(E2Lib.OperatorNames[data[2]]:lower(), { lhs_ty, rhs_ty }, trace)
 
 	if true then
 		-- legacy
@@ -202,8 +215,14 @@ local CompileVisitors = {
 			end
 		end
 
-		if self.scope:ResolveData("loop") then
+		local cost = self.scope.data.ops
+		self.scope.data.ops = 0
+
+		if self.scope:ResolveData("loop") then -- Inside loop, check if continued or broken
 			return function(state)
+				state.prf = state.prf + cost
+				if state.prf > TickQuota then error("perf", 0) end
+
 				for _, stmt in ipairs(stmts) do
 					if state.__break__ or state.__return__ then break end
 					if not state.__continue__ then
@@ -211,15 +230,21 @@ local CompileVisitors = {
 					end
 				end
 			end
-		elseif self.scope:ResolveData("function") then
+		elseif self.scope:ResolveData("function") then -- If inside a function, check if returned.
 			return function(state)
+				state.prf = state.prf + cost
+				if state.prf > TickQuota then error("perf", 0) end
+
 				for _, stmt in ipairs(stmts) do
 					if state.__return__ then break end
 					stmt(state)
 				end
 			end
-		else
+		else -- Most optimized case, not inside a function or loop.
 			return function(state)
+				state.prf = state.prf + cost
+				if state.prf > TickQuota then error("perf", 0) end
+
 				for _, stmt in ipairs(stmts) do
 					stmt(state)
 				end
@@ -235,7 +260,6 @@ local CompileVisitors = {
 				chain[i] = {ifeif[1] and self:CompileNode(ifeif[1]), self:CompileNode(ifeif[2])}
 			end)
 		end
-
 		return function(state)
 			for _, data in ipairs(chain) do
 				local cond, block = data[1], data[2]
@@ -255,24 +279,39 @@ local CompileVisitors = {
 
 	---@param data { [1]: Node, [2]: Node, [3]: boolean }
 	[NodeVariant.While] = function(self, trace, data)
-		local expr = self:CompileNode(data[1])
-		local block
+		local expr, block, cost = nil, nil, 3
 		self:Scope(function(scope)
+			expr = self:CompileNode(data[1])
 			scope.data.loop = true
 			block = self:CompileNode(data[2])
+			cost = cost + scope.data.ops
 		end)
 
 		if data[3] then
 			-- do while
 			return function(state)
 				repeat
-					block(state)
+					state.prf = state.prf + cost
+					if state.__continue__ then
+						if state.prf > TickQuota then error("perf", 0) end
+						state.__continue__ = false
+					else
+						block(state)
+						if state.__break__ or state.__return__ then break end
+					end
 				until expr(state) == 0
 			end
 		else
 			return function(state)
 				while expr(state) ~= 0 do
-					block(state)
+					state.prf = state.prf + cost
+					if state.__continue__ then
+						if state.prf > TickQuota then error("perf", 0) end
+						state.__continue__ = false
+					else
+						block(state)
+						if state.__break__ or state.__return__ then break end
+					end
 				end
 			end
 		end
@@ -281,29 +320,28 @@ local CompileVisitors = {
 	---@param data { [1]: Token<string>, [2]: Node, [3]: Node, [4]: Node?, [5]: Node } var start stop step block
 	[NodeVariant.For] = function (self, trace, data)
 		local var, start, stop, step = data[1], self:CompileNode(data[2]), self:CompileNode(data[3]), data[4] and self:CompileNode(data[4]) or data[4]
-		local stmts
+
+		local block, cost = nil, 3
 		self:Scope(function(scope)
 			scope.data.loop = true
 			scope:DeclVar(var.value, { initialized = true, type = "n", trace_if_unused = var.trace })
 
-			stmts = {}
-			for i, stmt in ipairs(data[5].data) do
-				stmts[i] = self:CompileNode(stmt)
-			end
+			block = self:CompileNode(data[5])
+			cost = cost + scope.data.ops
 		end)
 
 		local var = var.value
 		return function(state)
 			local step = step and step(state) or 1
 			for i = start(state), stop(state), step do
+				state.prf = state.prf + cost
 				state[var] = i
-				for _, stmt in ipairs(stmts) do
-					if state.__continue__ then
-						state.__continue__ = false
-					else
-						stmt(state)
-					end
 
+				if state.__continue__ then
+					if state.prf > TickQuota then error("perf", 0) end
+					state.__continue__ = false
+				else
+					block(state)
 					if state.__break__ or state.__return__ then break end
 				end
 			end
@@ -324,7 +362,7 @@ local CompileVisitors = {
 			block = self:CompileNode(data[6])
 		end)
 
-		local foreach = self:GetOperator("fea", { key_type, value_type, iterator_ty }, trace)
+		local foreach, _, ops = self:GetOperator("fea", { key_type, value_type, iterator_ty }, trace)
 		return function(state)
 			local iterator, block = iterator(state), block(state)
 			return foreach(state, iterator, block)
@@ -404,10 +442,24 @@ local CompileVisitors = {
 			meta_type = self:CheckType(data[2])
 		end
 
-		local param_types, param_names = {}, {}
+		local param_types, param_names, variadic, variadic_ty = {}, {}, nil, nil
 		if data[4] then
 			for i, param in ipairs(data[4]) do
-				param_types[i] = param.type and self:CheckType(param.type) or "n"
+				if param.type then
+					local t = self:CheckType(param.type)
+					if param.variadic then
+						self:Assert(t == "r" or t == "t", "Variadic parameter must be of type array or table", param.type.trace)
+						param_types[i] = ".." .. t
+						variadic, variadic_ty = param.name, t
+					else
+						param_types[i] = t
+					end
+				elseif param.variadic then
+					self:Error("Variadic parameter requires explicit type", param.name.trace)
+				else
+					param_types[i] = "n"
+					self:Warning("Use of implicit parameter type is deprecated (add :number)", name.trace)
+				end
 				param_names[i] = param.name.value
 			end
 		end
@@ -422,8 +474,11 @@ local CompileVisitors = {
 
 		local block, op
 		if return_type then
-			function op(state, ...)
-				-- todo: set vars at runtime
+			function op(state, args)
+				for i, arg in ipairs(args) do
+					state[param_names[i]] = arg
+				end
+
 				block(state)
 				if state.__return__ then
 					state.__return__ = false
@@ -432,19 +487,58 @@ local CompileVisitors = {
 					state:throw("Expected function return at runtime of type (" .. return_type .. ")")
 				end
 			end
+		elseif variadic then
+			local last, non_variadic = #param_types, #param_types - 1
+			if variadic_ty == "r" then
+				function op(state, args)
+					for i = 1, non_variadic do
+						state[param_names[i]] = args[i]
+					end
+
+					local a, n = {}, 1
+					for i = last, #args do
+						a[n] = args[i]
+						n = n + 1
+					end
+					state[param_names[last]] = a
+
+					block(state)
+				end
+			else -- table
+				function op(state, args, arg_types)
+					for i = 1, non_variadic do
+						state[param_names[i]] = args[i]
+					end
+
+					local t = { s = {}, stypes = {}, n = {}, ntypes = {}, size = last }
+					for i = last, #args do
+						t.n[i], t.ntypes[i] = args[i], arg_types[i]
+					end
+					state[param_names[last]] = t
+
+					block(state)
+				end
+			end
 		else
-			function op(state, ...)
+			function op(state, args)
+				for i in ipairs(args) do
+					state[param_names[i]] = arg
+				end
+
 				block(state)
 			end
 		end
 
-		local fn = { args = param_types, returns = nil, meta = meta_type, op = op, attrs = {} }
+		local fn = { args = param_types, returns = nil, meta = meta_type, op = op, cost = 20, attrs = {} }
 		local sig = table.concat(param_types)
 		if meta_type then
 			self.user_methods[meta_type] = self.user_methods[meta_type] or {}
-			self.user_methods[meta_type][sig] = fn
+
+			self.user_methods[meta_type][name.value] = self.user_methods[meta_type][name.value] or {}
+			self.user_methods[meta_type][name.value][sig] = fn
 		else
 			self.user_functions[name.value] = self.user_functions[name.value] or {}
+			print(name.value, sig, "= fn")
 			self.user_functions[name.value][sig] = fn
 		end
 
@@ -613,6 +707,8 @@ local CompileVisitors = {
 	---@param data { [1]: string, [2]: string|number|table }
 	[NodeVariant.ExprLiteral] = function (self, trace, data)
 		local val = data[2]
+
+		self.scope.data.ops = self.scope.data.ops + 0.5
 		return function()
 			return val
 		end, data[1]
@@ -620,9 +716,10 @@ local CompileVisitors = {
 
 	---@param data Token<string>
 	[NodeVariant.ExprIdent] = function (self, trace, data)
-		local var = self:Assert(self.scope:LookupVar(data.value), "Undefined variable: " .. data.value, trace)
+		local var, name = self:Assert(self.scope:LookupVar(data.value), "Undefined variable: " .. data.value, trace), data.value
 
-		local name = data.value
+		self.scope.data.ops = self.scope.data.ops + 1
+
 		return function(state)
 			return state[name]
 		end, var.type
@@ -769,6 +866,8 @@ local CompileVisitors = {
 		local fn_data = self:Assert(self:GetFunction(data[1], types), "No such function: " .. data[1] .. "(" .. table.concat(types, ", ") .. ")", trace)
 		local fn = fn_data.op
 
+		self.scope.data.ops = self.scope.data.ops + ((fn_data.cost or 20) + (fn_data.attrs["legacy"] and 10 or 0))
+
 		if fn_data.attrs["legacy"] then
 			local largs = { [1] = {}, [#args + 2] = types }
 			for i, arg in ipairs(args) do
@@ -785,7 +884,7 @@ local CompileVisitors = {
 					rargs[k] = arg(state)
 				end
 
-				return fn(state, rargs)
+				return fn(state, rargs, types)
 			end, fn_data.returns[1]
 		end
 	end,
@@ -869,11 +968,14 @@ local CompileVisitors = {
 ---@param variant string
 ---@param types TypeSignature[]
 ---@param trace Trace
----@return RuntimeOperator
----@return TypeSignature
+---@return RuntimeOperator fn
+---@return TypeSignature signature
 function Compiler:GetOperator(variant, types, trace)
 	local fn = wire_expression2_funcs["op:" .. variant .. "(" .. table.concat(types) .. ")"]
-	if fn then return fn[3], fn[2] end
+	if fn then
+		self.scope.data.ops = self.scope.data.ops + (fn[4] or 3)
+		return fn[3], fn[2]
+	end
 
 	self:Error("No such operator: " .. variant .. " (" .. table.concat(types, ", ") .. ")", trace)
 end
@@ -884,7 +986,15 @@ end
 ---@return EnvFunction? function
 ---@return boolean? variadic
 function Compiler:GetUserFunction(name, types, method)
-	local overloads = (method and self.user_methods or self.user_functions)[method or name]
+	---@type EnvFunction
+	local overloads
+	if method then
+		overloads = self.user_methods[method]
+		if not overloads then return end
+		overloads = overloads[name]
+	else
+		overloads = self.user_functions[name]
+	end
 	if not overloads then return end
 
 	local param_sig = table.concat(types)
@@ -910,14 +1020,14 @@ function Compiler:GetFunction(name, types, method)
 	local sig, method_prefix = table.concat(types), method and (method .. ":") or ""
 
 	local fn = wire_expression2_funcs[name .. "(" .. method_prefix .. sig .. ")"]
-	if fn then return { op = fn[3], returns = { fn[2] }, args = types, attrs = fn.attributes }, false end
+	if fn then return { op = fn[3], returns = { fn[2] }, args = types, cost = fn[4], attrs = fn.attributes }, false end
 
 	local fn, variadic = self:GetUserFunction(name, types, method)
 	if fn then return fn, variadic end
 
 	for i = #sig, 0, -1 do
 		fn = wire_expression2_funcs[name .. "(" .. method_prefix .. sig:sub(1, i) .. "...)"]
-		if fn then return { op = fn[3], returns = { fn[2] }, args = types, attrs = fn.attributes }, true end
+		if fn then return { op = fn[3], returns = { fn[2] }, args = types, cost = fn[4], attrs = fn.attributes }, true end
 	end
 end
 

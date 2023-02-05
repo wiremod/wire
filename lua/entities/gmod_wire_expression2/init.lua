@@ -48,6 +48,7 @@ end
 local fixDefault = E2Lib.fixDefault
 
 
+-- Will be replaced with a runtime context object later.
 local ScopeManager = {}
 ScopeManager.__index = ScopeManager
 E2Lib.ScopeManager = ScopeManager
@@ -339,22 +340,21 @@ function ENT:CompileCode(buffer, files, filepath)
 	local status, tokens = E2Lib.Tokenizer.Execute(self.buffer)
 	if not status then self:Error(tokens) return end
 
-	local status, ast, dvars, files = E2Lib.Parser.Execute(tokens)
-	if not status then self:Error(ast) return end
+	local status, tree, dvars, files = E2Lib.Parser.Execute(tokens)
+	if not status then self:Error(tree) return end
 
 	if not self:PrepareIncludes(files) then return end
 
-	local status, script, inst = E2Lib.Compiler.Execute(ast, directives, dvars, self.includes)
+	local status, script, inst = E2Lib.Compiler.Execute(tree, directives, dvars, self.includes)
 	if not status then self:Error(script) return end
 
 	self.script = script
 	self.registered_events = inst.registered_events
 
 	self.dvars = dvars
-	self.funcs = inst.funcs
-	self.funcs_ret = inst.funcs_ret
-	self.globvars_mut = table.Copy(inst.GlobalScope) -- table.Copy because we will mutate this
-	self.globvars = inst.GlobalScope
+	self.funcs = inst.user_functions
+	self.globvars_mut = table.Copy(inst.global_scope.vars) -- table.Copy because we will mutate this
+	self.globvars = inst.global_scope.vars
 
 	self:ResetContext()
 end
@@ -412,7 +412,6 @@ function ENT:ResetContext()
 		data = {},
 		vclk = {},
 		funcs = self.funcs,
-		funcs_ret = self.funcs_ret,
 		entity = self,
 		player = self.player,
 		uid = self.uid,

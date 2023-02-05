@@ -50,7 +50,7 @@ end
 ---@param buffer string
 ---@return Error[]?, table[]?, Warning[]?
 function E2Lib.Validate(buffer)
-	if not e2_function_data_received then return Error.new("Loading extensions. Please try again in a few seconds...") end
+	if not e2_function_data_received then return { Error.new("Loading extensions. Please try again in a few seconds...") } end
 
 	---@type Warning[]
 	local warnings, errors = {}, {}
@@ -84,7 +84,7 @@ function E2Lib.Validate(buffer)
 	if not table.IsEmpty(errors) then return errors end
 
 	-- invoke compiler
-	local status, script, compiler = E2Lib.Compiler.Execute(tree, inports, outports, persists, dvars, scripts)
+	local status, script, compiler = E2Lib.Compiler.Execute(tree, directives, dvars, scripts)
 	if not status then table.insert(errors, script) return errors end
 
 	-- Need to do this manually since table.Add loses its mind with non-numeric keys (and compiler can emit warnings per include file) (should be refactored out at some point to just having warnings separated per include)

@@ -17,6 +17,7 @@ AddCSLuaFile()
 ---@field args TypeSignature[]
 ---@field returns TypeSignature[]
 ---@field op RuntimeOperator
+---@field cost integer
 
 ---@class EnvFunction: EnvOperator
 ---@field attrs table<string, boolean|string>
@@ -1042,7 +1043,7 @@ end
 ---@return ScopeManager? # Context or nil if failed
 local function makeContext(owner)
 	local ctx = setmetatable({
-		data = {}, vclk = {}, funcs = {}, funcs_ret = {},
+		data = {}, vclk = {}, funcs = {},
 		entity = owner, player = owner, uid = IsValid(owner) and owner:UniqueID() or "World",
 		prf = 0, prfcount = 0, prfbench = 0,
 		time = 0, timebench = 0, includes = {}

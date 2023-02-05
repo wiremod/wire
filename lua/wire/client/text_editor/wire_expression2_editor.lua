@@ -1678,7 +1678,7 @@ function Editor:Validate(gotoerror)
 					self:GetCurrentEditor():SetCaret { error.trace.start_line, error.trace.start_col  }
 				end
 			else
-				header_text = "Validated with " .. nerrors .. " errors(s)."
+				header_text = "Failed to compile with " .. nerrors .. " errors(s)."
 			end
 
 			problems_errors = errors

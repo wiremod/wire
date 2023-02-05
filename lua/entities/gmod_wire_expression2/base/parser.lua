@@ -520,6 +520,7 @@ function Parser:Stmt()
 	end
 end
 
+---@return Token<string>?
 function Parser:Type()
 	local type = self:Consume(TokenVariant.LowerIdent)
 	if type and type.value == "normal" then
@@ -593,7 +594,7 @@ function Parser:Block()
 end
 
 --- `type` is nil in case of the default param type. (number)
----@alias Parameter { name: Token<string>, type: Token<string>? }
+---@alias Parameter { name: Token<string>, type: Token<string>?, variadic: boolean }
 
 ---@return Parameter[]?
 function Parser:Parameters()
@@ -620,7 +621,7 @@ function Parser:Parameters()
 			end
 
 			for k, name in ipairs(temp) do
-				params[len + k] = { name = name, type = typ }
+				params[len + k] = { name = name, type = typ, variadic = false }
 			end
 		else
 			variadic = self:Consume(TokenVariant.Operator, Operator.Spread)
@@ -630,12 +631,12 @@ function Parser:Parameters()
 				type = self:Assert(self:Type(), "Expected valid parameter type")
 			end
 
-			params[#params + 1] = { name = name, type = type }
+			params[#params + 1] = { name = name, type = type, variadic = variadic ~= nil }
 		end
 
 		if variadic then
 			self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RParen), "Variadic parameter must be final in list" )
-			break
+			return params
 		elseif self:Consume(TokenVariant.Grammar, Grammar.Comma) then
 		elseif self:Consume(TokenVariant.Grammar, Grammar.RParen) then
 			return params
