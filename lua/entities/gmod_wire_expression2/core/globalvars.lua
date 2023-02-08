@@ -111,7 +111,7 @@ end
 
 local string_sub = string.sub
 e2function table gtable:toTable()
-	local ret = {n={},ntypes={},s={},stypes={},size=0}
+	local ret = E2Lib.newE2Table()
 
 	for k,v in pairs( this ) do
 		if self.prf > e2_tickquota then error("perf", 0) end
