@@ -87,6 +87,7 @@ function EDITOR:Init()
 
 	self.Colors = {
 		dblclickhighlight = Color(0, 100, 0),
+		background = Color(32, 32, 32)
 	}
 end
 
@@ -367,8 +368,10 @@ function EDITOR:PaintLine(row)
 
 	local width, height = self.FontWidth, self.FontHeight
 
+	local backgroundColor = self:GetSyntaxColor("background")
+
 	if row == self.Caret[1] and self.TextEntry:HasFocus() then
-		surface_SetDrawColor(48, 48, 48, 255)
+		surface_SetDrawColor(backgroundColor.r+10, backgroundColor.g+10, backgroundColor.b+10, 255)
 		surface_DrawRect(self.LineNumberWidth + 5, (row - self.Scroll[1]) * height, self:GetWide() - (self.LineNumberWidth + 5), height)
 	end
 
@@ -619,11 +622,13 @@ function EDITOR:Paint()
 	if self.MouseDown then
 		self.Caret = self:CursorToCaret()
 	end
+	
+	local backgroundColor = self:GetSyntaxColor("background")
 
-	surface_SetDrawColor(0, 0, 0, 255)
+	surface_SetDrawColor(backgroundColor.r - 28,backgroundColor.g - 28,backgroundColor.b - 28)
 	surface_DrawRect(0, 0, self.LineNumberWidth + 4, self:GetTall())
 
-	surface_SetDrawColor(32, 32, 32, 255)
+	surface_SetDrawColor(backgroundColor)
 	surface_DrawRect(self.LineNumberWidth + 5, 0, self:GetWide() - (self.LineNumberWidth + 5), self:GetTall())
 
 	self.Scroll[1] = math_floor(self.ScrollBar:GetScroll() + 1)
