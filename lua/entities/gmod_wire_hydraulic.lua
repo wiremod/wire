@@ -117,7 +117,7 @@ function ENT:TriggerInput(iname, value)
 		if value ~= 0 then
 			self.current_constant = value
 		elseif IsValid(self.constraint) then
-			self.current_constant, _ = WireLib.CalcElasticConsts(self.constraint.Ent1, self.constraint.Ent2)
+			self.current_constant = WireLib.CalcElasticConsts(self.constraint.Ent1, self.constraint.Ent2)
 		end
 		if IsValid(self.constraint) then self.constraint:Fire("SetSpringConstant",self.current_constant) end
 		timer.Simple( 0.1, function() if IsValid(self) then self:UpdateOutputs() end end) -- Needs to be delayed because ent:Fire doesn't update that fast.
@@ -125,7 +125,7 @@ function ENT:TriggerInput(iname, value)
 		if value ~= 0 then
 			self.current_damping = value
 		elseif IsValid(self.constraint) then
-			_, self.current_damping = WireLib.CalcElasticConsts(self.constraint.Ent1, self.constraint.Ent2)
+			self.current_damping = select(2, WireLib.CalcElasticConsts(self.constraint.Ent1, self.constraint.Ent2))
 		end
 		if IsValid(self.constraint) then self.constraint:Fire("SetSpringDamping",self.current_damping) end
 		timer.Simple( 0.1, function() if IsValid(self) then self:UpdateOutputs() end end)
