@@ -43,9 +43,17 @@ function E2Lib.setSubMaterial(ent, index, material)
 	duplicator.StoreEntityModifier(ent, "submaterial", { ["SubMaterialOverride_"..index] = material })
 end
 
+local weak_values = { __type = "kv" }
+
 -- Returns a default e2 table.
 function E2Lib.newE2Table()
-	return {n={},ntypes={},s={},stypes={},size=0}
+	return setmetatable({
+		n = setmetatable({}, weak_values),
+		ntypes = setmetatable({}, weak_values),
+		s = setmetatable({}, weak_values),
+		stypes = setmetatable({}, weak_values),
+		size = 0
+	}, { __type = "v" })
 end
 
 -- Returns a cloned table of the variable given if it is a table.

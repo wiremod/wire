@@ -111,9 +111,11 @@ end
 
 local string_sub = string.sub
 e2function table gtable:toTable()
-	local ret = {n={},ntypes={},s={},stypes={},size=0,istable=true,depth=0}
+	local ret = {n={},ntypes={},s={},stypes={},size=0}
 
 	for k,v in pairs( this ) do
+		if self.prf > e2_tickquota then error("perf", 0) end
+
 		local typeid, index = string_sub( k, 1,1 ), string_sub( k, 2 )
 		if typeid == "x" then
 			typeid = string_sub( k, 1,3 )
@@ -123,9 +125,9 @@ e2function table gtable:toTable()
 		ret.s[index] = v
 		ret.stypes[index] = typeid
 		ret.size = ret.size + 1
-	end
 
-	self.prf = self.prf + ret.size / 3
+		self.prf = self.prf + 3
+	end
 
 	return ret
 end
@@ -159,9 +161,7 @@ registerCallback("postinit",function()
 				if (val) then -- If the var exists
 					return val -- return it
 				end
-				local default = v[2]
-				if istable(default) then default = table.Copy(default) end
-				return default
+				return E2Lib.fixDefault(v[2])
 			end
 			local function setf( self, args )
 				local op1, op2, op3 = args[2], args[3], args[4]
@@ -186,9 +186,7 @@ registerCallback("postinit",function()
 					rv1[v[1]..rv2] = nil
 					return val
 				end
-				local default = v[2]
-				if istable(default) then default = table.Copy(default) end
-				return default
+				return E2Lib.fixDefault(v[2])
 			end)
 
 			-- gRemoveAll*() - Remove all variables of a type in the player's non-shared table
@@ -340,15 +338,11 @@ registerCallback("postinit",function()
 			if (self.data.gvars.shared == 1) then
 				local ret = GetVar(self.data.gvars.group,gvars.shared,rv1,v[1])
 				if (ret) then return ret end
-				local default = v[2][2]
-				if istable(default) then default = table.Copy(default) end
-				return default
+				return E2Lib.fixDefault(v[2][2])
 			else
 				local ret = GetVar(self.data.gvars.group,gvars[self.uid],rv1,v[1])
 				if (ret) then return ret end
-				local default = v[2][2]
-				if istable(default) then default = table.Copy(default) end
-				return default
+				return E2Lib.fixDefault(v[2][2])
 			end
 		end)
 
@@ -372,15 +366,11 @@ registerCallback("postinit",function()
 			if (self.data.gvars.shared == 1) then
 				local ret = GetVar(self.data.gvars.group,gvars.shared,rv1,v[1])
 				if (ret) then return ret end
-				local default = v[2][2]
-				if istable(default) then default = table.Copy(default) end
-				return default
+				return E2Lib.fixDefault(v[2][2])
 			else
 				local ret = GetVar(self.data.gvars.group,gvars[self.uid],rv1,v[1])
 				if (ret) then return ret end
-				local default = v[2][2]
-				if istable(default) then default = table.Copy(default) end
-				return default
+				return E2Lib.fixDefault(v[2][2])
 			end
 		end)
 
@@ -405,9 +395,7 @@ registerCallback("postinit",function()
 					end
 				end
 			end
-			local default = v[2][2]
-			if istable(default) then default = table.Copy(default) end
-			return default
+			return E2Lib.fixDefault(v[2][2])
 		end)
 
 		-- gDelete*(N) (same as gDelete*(N:toString()))
@@ -431,9 +419,7 @@ registerCallback("postinit",function()
 					end
 				end
 			end
-			local default = v[2][2]
-			if istable(default) then default = table.Copy(default) end
-			return default
+			return E2Lib.fixDefault(v[2][2])
 		end)
 
 		__e2setcost(5)

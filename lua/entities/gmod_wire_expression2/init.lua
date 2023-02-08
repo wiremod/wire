@@ -433,7 +433,8 @@ function ENT:ResetContext()
 		-- reduces all the opcounters based on the time passed since 
 		-- the last time the chip was reset or errored
 		-- waiting up to 30s before resetting results in a 0.1 multiplier 
-		resetPrfMult = math.max(0.1,(30 - (CurTime() - self.lastResetOrError)) / 30)
+		local passed = CurTime() - self.lastResetOrError
+		resetPrfMult = math.max(0.1, (30 - passed) / 30)
 	end
 	self.lastResetOrError = CurTime()
 
@@ -601,8 +602,18 @@ function ENT:Reset()
 	-- prevent E2 from executing anything
 	self.context.resetting = true
 
+	if self.context.timebench > e2_timequota then -- Abusing reset() at end of excution.
+		-- E2Lib.abuse(self.player)
+		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
+		return
+	end
+
 	-- reset the chip in the next tick
-	timer.Simple(0, function() if IsValid(self) then self:Setup(self.original, self.inc_files) end end)
+	timer.Simple(0, function()
+		if IsValid(self) then
+			self:Setup(self.original, self.inc_files)
+		end
+	end)
 end
 
 function ENT:TriggerInput(key, value)

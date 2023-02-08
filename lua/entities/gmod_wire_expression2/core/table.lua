@@ -347,7 +347,7 @@ end
 
 -- Clones a table while adding prf for the size of the clone.
 local function prf_clone(self, tbl, lookup)
-	local copy = {}
+	local copy, before = {}, collectgarbage("count")
 
 	lookup = lookup or {}
 	lookup[tbl] = copy
@@ -372,6 +372,11 @@ local function prf_clone(self, tbl, lookup)
 			prf = prf + opcost -- simple assign operation
 			copy[k] = v
 		end
+	end
+
+	local mem = (collectgarbage("count") - before)
+	if mem > 0 then
+		self.prf = self.prf + mem * 20
 	end
 
 	self.prf = self.prf + prf
@@ -591,6 +596,7 @@ end
 __e2setcost(10)
 
 e2function table table:clone()
+	self.prf = self.prf + this.size * 2
 	return prf_clone(self, this)
 end
 
