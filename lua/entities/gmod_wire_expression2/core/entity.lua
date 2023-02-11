@@ -765,6 +765,14 @@ e2function vector entity:aabbWorldSize()
 end
 /******************************************************************************/
 
+hook.Add("PlayerLeaveVehicle","Exp2RunOnLeaveVehicle",function(ply, vehicle)
+	E2Lib.triggerEvent("playerLeftVehicle", { ply, vehicle } )
+end)
+
+hook.Add("PlayerEnteredVehicle","Exp2RunOnEnteredVehicle", function(ply, vehicle)
+	E2Lib.triggerEvent("playerEnteredVehicle", { ply, vehicle })
+end)
+
 __e2setcost(5)
 
 e2function entity entity:driver()
@@ -784,6 +792,9 @@ e2function string toString(entity ent)
 end
 
 e2function string entity:toString() = e2function string toString(entity ent)
+
+E2Lib.registerEvent("playerLeftVehicle", { "e", "e" })
+E2Lib.registerEvent("playerEnteredVehicle", { "e", "e" })
 
 /******************************************************************************/
 
