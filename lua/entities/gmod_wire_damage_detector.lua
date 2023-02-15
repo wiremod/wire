@@ -103,9 +103,9 @@ function ENT:Setup( includeconstrained )
 end
 
 function ENT:LinkEnt( ent, dontupdateoutput )
-	if self.linked_entities_lookup[ent] then return false end
-	
 	if not ent or not ent:IsValid() then return end
+
+	if self.linked_entities_lookup[ent] then return false end
 	
 	self.linked_entities_lookup[ent] = true
 	self.linked_entities[#self.linked_entities+1] = ent
