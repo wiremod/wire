@@ -354,11 +354,7 @@ function ZVM:Precompile_Finalize()
   -- Emit finalizer
   self:Dyn_EndBlock()
 
-  local result,message
-  if CompileString
-  then result,message = CompileString(self.EmitBlock,"ZVM:["..self.PrecompileStartXEIP.."]")
-  else result,message = loadstring(self.EmitBlock,"ZVM:["..self.PrecompileStartXEIP.."]")
-  end
+  local result,message = CompileString(self.EmitBlock,"ZVM:[".. tonumber(self.PrecompileStartXEIP) or 0 .."]")
   if not result then
     print("[ZVM ERROR]: "..(message or "unknown error"))
   else
@@ -377,7 +373,7 @@ end
 function ZVM:Precompile_Fetch()
   local prevIF = self.IF
   self.IF = 0
-  local value = self:ReadCell(self.PrecompileXEIP)
+  local value = tonumber(self:ReadCell(self.PrecompileXEIP)) or 0
   self.IF = prevIF
 
   self.PrecompileXEIP = self.PrecompileXEIP + 1
