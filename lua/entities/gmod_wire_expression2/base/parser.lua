@@ -1167,7 +1167,7 @@ function Parser:Expr1()
 
 	if self:AcceptRoamingToken(TokenVariant.Ident) then
 		if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Ass) then
-			self:Error("Assignment operator (=) must not be part of equation")
+			self:Error("Assignment operator (=) must not be part of equation (Did you mean to use == ?)")
 		end
 
 		if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Aadd) then
