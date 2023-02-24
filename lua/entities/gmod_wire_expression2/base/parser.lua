@@ -69,37 +69,36 @@ local NodeVariant = {
 	Increment = 9, -- `++`
 	Decrement = 10, -- `--`
 	CompoundArithmetic = 11, -- `+=`, `-=`, `*=`, `/=`
-	DefineLocal = 12, -- `local X = 5`
-	Assignment = 13, -- `X = Y[2, number] = Z[2] = 5`
+	Assignment = 12, -- `X = Y[2, number] = Z[2] = 5` or `local X = 5`
 
-	Switch = 14, -- `switch (<EXPR>) { case <EXPR>, <STMT>* default, <STMT*> }
-	Function = 15,
-	Include = 16, -- #include "file"
-	Try = 17, -- try {} catch (Err) {}
+	Switch = 13, -- `switch (<EXPR>) { case <EXPR>, <STMT>* default, <STMT*> }
+	Function = 14, -- `function test() {}`
+	Include = 15, -- #include "file"
+	Try = 16, -- try {} catch (Err) {}
 
 	--- Compile time constructs
-	Event = 18, -- event tick() {}
+	Event = 17, -- event tick() {}
 
 	--- Expressions
-	ExprTernary = 19, -- `X ? Y : Z`
-	ExprDefault = 20, -- `X ?: Y`
-	ExprLogicalOp = 21, -- `|` `&` (Yes they are flipped.)
-	ExprBinaryOp = 22, -- `||` `&&` `^^`
-	ExprComparison = 23, -- `>` `<` `>=` `<=`
-	ExprEquals = 24, -- `==` `!=`
-	ExprBitShift = 25, -- `>>` `<<`
-	ExprArithmetic = 26, -- `+` `-` `*` `/` `^` `%`
-	ExprUnaryOp = 27, -- `-` `+` `!`
-	ExprMethodCall = 28, -- `<EXPR>:call()`
-	ExprIndex = 29,	-- `<EXPR>[<EXPR>, <type>?]`
-	ExprGrouped = 30, -- (<EXPR>)
-	ExprCall = 31, -- `call()`
-	ExprStringCall = 32, -- `""()` (Temporary until lambdas are made)
-	ExprUnaryWire = 33, -- `~Var` `$Var` `->Var`
-	ExprArray = 34, -- `array(1, 2, 3)` or `array(1 = 2, 2 = 3)`
-	ExprTable = 35, -- `table(1, 2, 3)` or `table(1 = 2, "test" = 3)`
-	ExprLiteral = 36, -- `"test"` `5e2` `4.023` `4j`
-	ExprIdent = 37 -- `Variable`
+	ExprTernary = 18, -- `X ? Y : Z`
+	ExprDefault = 19, -- `X ?: Y`
+	ExprLogicalOp = 20, -- `|` `&` (Yes they are flipped.)
+	ExprBinaryOp = 21, -- `||` `&&` `^^`
+	ExprComparison = 22, -- `>` `<` `>=` `<=`
+	ExprEquals = 23, -- `==` `!=`
+	ExprBitShift = 24, -- `>>` `<<`
+	ExprArithmetic = 25, -- `+` `-` `*` `/` `^` `%`
+	ExprUnaryOp = 26, -- `-` `+` `!`
+	ExprMethodCall = 27, -- `<EXPR>:call()`
+	ExprIndex = 28,	-- `<EXPR>[<EXPR>, <type>?]`
+	ExprGrouped = 29, -- (<EXPR>)
+	ExprCall = 30, -- `call()`
+	ExprStringCall = 31, -- `""()` (Temporary until lambdas are made)
+	ExprUnaryWire = 32, -- `~Var` `$Var` `->Var`
+	ExprArray = 33, -- `array(1, 2, 3)` or `array(1 = 2, 2 = 3)`
+	ExprTable = 34, -- `table(1, 2, 3)` or `table(1 = 2, "test" = 3)`
+	ExprLiteral = 35, -- `"test"` `5e2` `4.023` `4j`
+	ExprIdent = 36 -- `Variable`
 }
 
 Parser.Variant = NodeVariant
@@ -650,7 +649,7 @@ function Parser:Expr()
 	-- Error for compound operators in expression
 	if self:Consume(TokenVariant.Ident) then
 		if self:Consume(TokenVariant.Operator, Operator.Ass) then
-			self:Error("Assignment operator (=) must not be part of equation")
+			self:Error("Assignment operator (=) must not be part of equation ( Did you mean == ? )")
 		end
 
 		if self:Consume(TokenVariant.Operator, Operator.Aadd) then
@@ -697,8 +696,7 @@ function Parser:RecurseLeft(func, variant, tbl)
 		hit = false
 		for _, op in ipairs(tbl) do
 			if self:Consume(TokenVariant.Operator, op) then
-				local rhs = func(self)
-				hit, lhs = true, Node.new(variant, { lhs, op, rhs }, self:GetTrace())
+				hit, lhs = true, Node.new(variant, { lhs, op, func(self) }, self:GetTrace())
 				break
 			end
 		end
@@ -851,7 +849,7 @@ function Parser:Expr11()
 		else
 			local indices = self:Indices()
 			if #indices > 0 then
-				return Node.new(NodeVariant.ExprIndex, { expr, indices })
+				return Node.new(NodeVariant.ExprIndex, { expr, indices }, self:GetTrace())
 			elseif self:Consume(TokenVariant.Grammar, Grammar.LSquare) then
 				self:Error("Indexing operator ([]) must not be preceded by whitespace")
 			end

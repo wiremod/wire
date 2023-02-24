@@ -79,6 +79,7 @@ end
 ---@field user_functions table<string, table<string, EnvFunction>> # applyForce -> v
 ---@field user_methods table<string, table<string, table<string, EnvFunction>>> # e: -> applyForce -> vava
 --- External Data
+---@field includes table<string, Node>
 ---@field delta_vars table<string, true> # Variable: True
 ---@field persist table<string, string> # Variable: Type
 ---@field inputs table<string, string> # Variable: Type
@@ -97,12 +98,14 @@ function Compiler.new()
 end
 
 ---@param directives PPDirectives
-function Compiler.from(directives)
+---@param dvars table<string, true>?
+---@param includes table<string, Node>?
+function Compiler.from(directives, dvars, includes)
 	local global_scope = Scope.new()
 	return setmetatable({
 		persist = directives.persist[3], inputs = directives.inputs[3], outputs = directives.outputs[3],
 		global_scope = global_scope, scope = global_scope, warnings = {}, registered_events = {}, user_functions = {}, user_methods = {},
-		delta_vars = {}
+		delta_vars = dvars or {}, includes = includes or {}
 	}, Compiler)
 end
 
@@ -111,7 +114,7 @@ local BLOCKED_ARRAY_TYPES = E2Lib.blocked_array_types
 ---@param ast Node
 ---@param directives PPDirectives
 ---@param dvars table<string, boolean>
----@param includes string[]
+---@param includes table<string, Node>
 ---@return boolean ok, function|Error script, Compiler self
 function Compiler.Execute(ast, directives, dvars, includes)
 	local instance = Compiler.from(directives, dvars, includes)
@@ -209,9 +212,12 @@ local CompileVisitors = {
 	---@param data Node[]
 	[NodeVariant.Block] = function(self, trace, data)
 		local stmts = {}
-		for i, stmt in ipairs(data) do
+		for _, stmt in ipairs(data) do
 			if not self.scope.data.dead then
-				stmts[i] = self:CompileNode(stmt)
+				stmts[#stmts + 1] = self:CompileNode(stmt) -- Needs to use [#stmts + 1], can return nil in this case.
+			else
+				self:Warning("Unreachable code detected", stmt.trace)
+				break
 			end
 		end
 
@@ -472,19 +478,63 @@ local CompileVisitors = {
 		end
 		]]
 
+		-- Code below is gargantuan as it's duplicated for each scenario at compile time for
+		-- the least amount of runtime overhead (and the variadic syntax sugar is annoying)
+
 		local block, op
 		if return_type then
-			function op(state, args)
-				for i, arg in ipairs(args) do
-					state[param_names[i]] = arg
-				end
+			if variadic then
+				local last, non_variadic = #param_types, #param_types - 1
+				if variadic_ty == "r" then
+					function op(state, args)
+						for i = 1, non_variadic do
+							state[param_names[i]] = args[i]
+						end
 
-				block(state)
-				if state.__return__ then
-					state.__return__ = false
-					return state.func_rv
-				else
-					state:throw("Expected function return at runtime of type (" .. return_type .. ")")
+						local a, n = {}, 1
+						for i = last, #args do
+							a[n] = args[i]
+							n = n + 1
+						end
+
+						state[param_names[last]] = a
+						block(state)
+					end
+				else -- table
+					function op(state, args, arg_types)
+						for i = 1, non_variadic do
+							state[param_names[i]] = args[i]
+						end
+
+						local n, ntypes = {}, {}
+						for i = last, #args do
+							n[i], ntypes[i] = args[i], arg_types[i]
+						end
+
+						state[param_names[last]] = { s = {}, stypes = {}, n = n, ntypes = ntypes, size = last }
+
+						block(state)
+						if state.__return__ then
+							state.__return__ = false
+							return state.func_rv
+						else
+							E2Lib.raiseException("Expected function return at runtime of type (" .. return_type .. ")")
+						end
+					end
+				end
+			else
+				function op(state, args)
+					for i, arg in ipairs(args) do
+						state[param_names[i]] = arg
+					end
+
+					block(state)
+					if state.__return__ then
+						state.__return__ = false
+						return state.func_rv
+					else
+						E2Lib.raiseException("Expected function return at runtime of type (" .. return_type .. ")")
+					end
 				end
 			end
 		elseif variadic then
@@ -500,8 +550,8 @@ local CompileVisitors = {
 						a[n] = args[i]
 						n = n + 1
 					end
-					state[param_names[last]] = a
 
+					state[param_names[last]] = a
 					block(state)
 				end
 			else -- table
@@ -510,18 +560,18 @@ local CompileVisitors = {
 						state[param_names[i]] = args[i]
 					end
 
-					local t = { s = {}, stypes = {}, n = {}, ntypes = {}, size = last }
+					local n, ntypes = {}, {}
 					for i = last, #args do
-						t.n[i], t.ntypes[i] = args[i], arg_types[i]
+						n[i], ntypes[i] = args[i], arg_types[i]
 					end
-					state[param_names[last]] = t
 
+					state[param_names[last]] = { s = {}, stypes = {}, n = n, ntypes = ntypes, size = last }
 					block(state)
 				end
 			end
 		else
 			function op(state, args)
-				for i in ipairs(args) do
+				for i, arg in ipairs(args) do
 					state[param_names[i]] = arg
 				end
 
@@ -538,7 +588,6 @@ local CompileVisitors = {
 			self.user_methods[meta_type][name.value][sig] = fn
 		else
 			self.user_functions[name.value] = self.user_functions[name.value] or {}
-			print(name.value, sig, "= fn")
 			self.user_functions[name.value][sig] = fn
 		end
 
@@ -562,6 +611,55 @@ local CompileVisitors = {
 		local sig = name.value .. "(" .. sig .. ")"
 		return function(state)
 			state.funcs[sig] = op
+		end
+	end,
+
+	---@param data string
+	[NodeVariant.Include] = function (self, trace, data)
+		local include = self.includes[data]
+		if not include or not include[1] then
+			self:Error("Problem including file '" .. data .. "'", trace)
+		end
+
+		if not include[2] then
+			include[2] = true -- Prevent self-compiling infinite loop
+
+			local old_scope = self.scope
+			self.scope = Scope.new()
+
+			local last_file = self.include
+			self.include = data
+			self.warnings[data] = self.warnings[data] or {}
+
+			local root = include[1]
+			local status, script = pcall(self.CompileNode, self, root)
+
+			if not status then ---@cast script Error
+				local reason = script.message
+				if reason:find("C stack overflow") then reason = "Include depth too deep" end
+
+				if not self.IncludeError then
+					-- Otherwise Errors messages will be wrapped inside other error messages!
+					self.IncludeError = true
+					self:Error("include '" .. data .. "' -> " .. reason, trace)
+				else
+					error(script, 0) -- re-throw
+				end
+			else
+				self.include = last_file
+
+				local nwarnings = #self.warnings[data]
+				if nwarnings ~= 0 then
+					self:Warning("include '" .. data .. "' has " .. nwarnings .. " warning(s).", trace)
+				end
+			end
+
+			include[2] = script
+			self.scope = old_scope -- Reload the old enviroment
+		end
+
+		return function(state)
+			include[2](state) -- todo: separate scope when it's properly implemented
 		end
 	end,
 
@@ -725,21 +823,35 @@ local CompileVisitors = {
 		end, var.type
 	end,
 
-	---@alias ArgumentsKV { [1]: Node, [2]: Node }
-	---@alias Arguments Node[]
-
-	---@param data ArgumentsKV|Arguments
+	---@param data Node[]|{ [1]: Node, [2]:Node }[]
 	[NodeVariant.ExprArray] = function (self, trace, data)
 		if #data == 0 then
 			return function(state)
 				return {}
 			end, "r"
-		elseif data[1][2] then
-			-- key value
-			local args = {}
-			return function(state)
-				error("Unimplemented: kv array")
+		elseif data[1][2] then -- key value array
+			---@cast data { [1]: Node, [2]: Node }[] # Key value pair arguments
+
+			local numbers = {}
+			for _, kvpair in ipairs(data) do
+				local key, key_ty = self:CompileNode(kvpair[1])
+
+				if key_ty == "n" then
+					numbers[key] = self:CompileNode(kvpair[2])
+				else
+					self:Error("Cannot use type " .. key_ty .. " as array key", kvpair[1].trace)
+				end
 			end
+
+			return function(state)
+				local array = {}
+
+				for key, value in pairs(numbers) do
+					array[key(state)] = value(state)
+				end
+
+				return array
+			end, "r"
 		else
 			local args = {}
 			for k, arg in ipairs(data) do
@@ -756,22 +868,48 @@ local CompileVisitors = {
 		end
 	end,
 
-	---@param data ArgumentsKV|Arguments
 	[NodeVariant.ExprTable] = function (self, trace, data)
 		if #data == 0 then
-			return function(state)
-				return {}
+			return function(_state)
+				return { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 }
 			end, "t"
 		elseif data[1][2] then
-			-- key value
-			local args = {}
+			---@cast data { [1]: Node, [2]: Node }[] # Key value pair arguments
+
+			local strings, numbers, size = {}, {}, #data
+			for _, kvpair in ipairs(data) do
+				local key, key_ty = self:CompileNode(kvpair[1])
+				local value, value_ty = self:CompileNode(kvpair[2])
+
+				if key_ty == "s" then
+					strings[key] = { value, value_ty }
+				elseif key_ty == "n" then
+					numbers[key] = { value, value_ty }
+				else
+					self:Error("Cannot use type " .. key_ty .. " as table key", kvpair[1].trace)
+				end
+			end
+
 			return function(state)
-				error("Unimplemented: kvtable")
+				local s, stypes, n, ntypes = {}, {}, {}, {}
+
+				for key, data in pairs(strings) do
+					local k = key(state)
+					s[k], stypes[k] = data[1](state), data[2]
+				end
+
+				for key, data in pairs(numbers) do
+					local k = key(state)
+					n[k], ntypes[k] = data[1](state), data[2]
+				end
+
+				return { s = s, stypes = stypes, n = n, ntypes = ntypes, size = size }
 			end, "t"
 		else
-			local args = {}
+			---@cast data Node[]
+			local args, argtypes = {}, {}
 			for k, arg in ipairs(data) do
-				args[k] = self:CompileNode(arg)
+				args[k], argtypes[k] = self:CompileNode(arg)
 			end
 
 			return function(state)
@@ -779,7 +917,7 @@ local CompileVisitors = {
 				for i, val in ipairs(args) do
 					array[i] = val(state)
 				end
-				return array
+				return { n = array, ntypes = argtypes, s = {}, stypes = {}, size = #array }
 			end, "t"
 		end
 	end,
@@ -846,14 +984,13 @@ local CompileVisitors = {
 				op, expr_ty = self:GetOperator("idx", { expr_ty, key_ty }, index[3])
 			end
 
+			local handle = expr -- need this, or stack overflow...
 			expr = function(state)
-				op(state, expr, key)
+				return op(state, handle(state), key(state))
 			end
 		end
 
-		return function(state)
-			return expr(state)
-		end, expr_ty
+		return expr, expr_ty
 	end,
 
 	---@param data { [1]: string, [2]: Node[] }

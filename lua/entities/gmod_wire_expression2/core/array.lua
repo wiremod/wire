@@ -116,7 +116,7 @@ registerCallback( "postinit", function()
 			-- Get functions
 			-- value = R[N,type], and value = R:<type>(N)
 			--------------------------------------------------------------------------------
-			__e2setcost(5)
+			__e2setcost(1)
 
 			local function getter( self, array, index, doremove )
 				if (!array or !index) then return fixDefault( default ) end -- Make sure array and index are value
@@ -131,13 +131,24 @@ registerCallback( "postinit", function()
 				return ret
 			end
 
-			registerOperator("idx", id.."=rn", id, function(self,args)
-				local op1, op2 = args[2], args[3]
-				local array, index = op1[1](self,op1), op2[1](self,op2)
-				return getter( self, array, index )
-			end)
+			if typecheck then
+				registerOperator("idx", id.."=rn", id, function(self, array, index)
+					local ret = array[floor(index)]
+					if typecheck(ret) then
+						return fixDefault(default)
+					end
 
-			registerFunction( name, "r:n", id, function(self,args)
+					return ret
+				end)
+			else
+				registerOperator("idx", id.."=rn", id, function(self, array, index)
+					return array[floor(index)]
+				end)
+			end
+
+			__e2setcost(5)
+
+			registerFunction( name, "r:n", id, function(self, args)
 				local op1, op2 = args[2], args[3]
 				local array, index = op1[1](self,op1), op2[1](self,op2)
 				return getter( self, array, index )

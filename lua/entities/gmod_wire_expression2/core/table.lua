@@ -1037,6 +1037,8 @@ registerCallback( "postinit", function()
 	for k,v in pairs( wire_expression_types ) do
 		local name = k
 		local id = v[1]
+		local default = v[2]
+		local typecheck = v[6]
 
 		if (not blocked_types[id]) then -- blocked check start
 
@@ -1044,46 +1046,74 @@ registerCallback( "postinit", function()
 		-- Set/Get functions, t[index,type] syntax
 		--------------------------------------------------------------------------------
 
-		__e2setcost(5)
+		__e2setcost(3)
 
 		-- Getters
-		registerOperator("idx",	id.."=ts"		, id, function(self,args)
-			local op1, op2 = args[2], args[3]
-			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (not rv1.s[rv2] or rv1.stypes[rv2] ~= id) then return fixDefault(v[2]) end
-			if (v[6] and v[6](rv1.s[rv2])) then return fixDefault(v[2]) end -- Type check
-			return rv1.s[rv2]
-		end)
+		if typecheck then -- If there's a type check
+			registerOperator("idx", id.."=ts", id, function(self, tbl, key)
+				if not tbl.s[key] or tbl.stypes[key] ~= id then
+					return fixDefault(default)
+				end
 
-		registerOperator("idx",	id.."=tn"		, id, function(self,args)
-			local op1, op2 = args[2], args[3]
-			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (not rv1.n[rv2] or rv1.ntypes[rv2] ~= id) then return fixDefault(v[2]) end
-			if (v[6] and v[6](rv1.n[rv2])) then return fixDefault(v[2]) end -- Type check
-			return rv1.n[rv2]
-		end)
+				if not typecheck(tbl.s[key]) then -- Todo move verify check to outside function as optimization
+					return fixDefault(v[2])
+				end
+
+				return tbl.s[key]
+			end)
+
+			registerOperator("idx", id.."=tn", id, function(self, tbl, key)
+				if not tbl.n[key] or tbl.ntypes[key] ~= id then
+					return fixDefault(default)
+				end
+
+				if not typecheck(tbl.n[key]) then
+					return fixDefault(v[2])
+				end
+
+				return tbl.n[key]
+			end)
+		else
+			registerOperator("idx", id.."=ts", id, function(self, tbl, key)
+				if not tbl.s[key] or tbl.stypes[key] ~= id then
+					return fixDefault(default)
+				end
+
+				return tbl.s[key]
+			end)
+
+			registerOperator("idx", id.."=tn", id, function(self, tbl, key)
+				if not tbl.n[key] or tbl.ntypes[key] ~= id then
+					return fixDefault(default)
+				end
+
+				return tbl.n[key]
+			end)
+		end
 
 		-- Setters
-		registerOperator("idx", id.."=ts"..id , id, function( self, args )
-			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
-			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if (rv1.s[rv2] == nil and rv3 ~= nil) then rv1.size = rv1.size + 1
-			elseif (rv1.n[rv2] ~= nil and rv3 == nil) then rv1.size = rv1.size - 1 end
-			rv1.s[rv2] = rv3
-			rv1.stypes[rv2] = id
-			self.GlobalScope.vclk[rv1] = true
-			return rv3
+		registerOperator("idx", id.."=ts"..id , id, function(self, tbl, key, value)
+			if tbl.s[key] == nil and value ~= nil then
+				tbl.size = tbl.size + 1
+			elseif tbl.s[key] ~= nil and value == nil then
+				tbl.size = tbl.size - 1
+			end
+
+			tbl.s[key], tbl.stypes[key] = value, id
+			self.GlobalScope.vclk[tbl] = true
+			return value
 		end)
 
-		registerOperator("idx", id.."=tn"..id, id, function(self,args)
-			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
-			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if (rv1.n[rv2] == nil and rv3 ~= nil) then rv1.size = rv1.size + 1
-			elseif (rv1.n[rv2] ~= nil and rv3 == nil) then rv1.size = rv1.size - 1 end
-			rv1.n[rv2] = rv3
-			rv1.ntypes[rv2] = id
-			self.GlobalScope.vclk[rv1] = true
-			return rv3
+		registerOperator("idx", id.."=tn"..id, id, function(self, tbl, key, value)
+			if tbl.n[key] == nil and value ~= nil then
+				tbl.size = tbl.size + 1
+			elseif tbl.n[key] ~= nil and value == nil then
+				tbl.size = tbl.size - 1
+			end
+
+			tbl.n[key], tbl.ntypes[key] = value, id
+			self.GlobalScope.vclk[tbl] = true
+			return value
 		end)
 
 

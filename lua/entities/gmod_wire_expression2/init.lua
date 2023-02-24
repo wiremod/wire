@@ -47,43 +47,6 @@ end
 
 local fixDefault = E2Lib.fixDefault
 
-
--- Will be replaced with a runtime context object later.
-local ScopeManager = {}
-ScopeManager.__index = ScopeManager
-E2Lib.ScopeManager = ScopeManager
-
-function ScopeManager:InitScope()
-	self.Scopes = {}
-	self.ScopeID = 0
-	self.Scopes[0] = self.GlobalScope or { vclk = {} } -- for creating new enviroments
-	self.Scope = self.Scopes[0]
-	self.GlobalScope = self.Scope
-end
-
-function ScopeManager:PushScope()
-	self.Scope = { vclk = {} }
-	self.ScopeID = self.ScopeID + 1
-	self.Scopes[self.ScopeID] = self.Scope
-end
-
-function ScopeManager:PopScope()
-	self.ScopeID = self.ScopeID - 1
-	self.Scope = self.Scopes[self.ScopeID]
-	self.Scopes[self.ScopeID] = self.Scope
-	return table.remove(self.Scopes, self.ScopeID + 1)
-end
-
-function ScopeManager:SaveScopes()
-	return { self.Scopes, self.ScopeID, self.Scope }
-end
-
-function ScopeManager:LoadScopes(Scopes)
-	self.Scopes = Scopes[1]
-	self.ScopeID = Scopes[2]
-	self.Scope = Scopes[3]
-end
-
 function ENT:UpdateOverlay(clear)
 	if clear then
 		self:SetOverlayData( {
@@ -127,13 +90,15 @@ local SysTime = SysTime
 function ENT:Destruct()
 	self:PCallHook("destruct")
 
-	for evt in pairs(self.registered_events) do
-		if E2Lib.Env.Events[evt].destructor then
-			-- If the event has a destructor to run when the E2 is removed and listening to the event.
-			E2Lib.Env.Events[evt].destructor(self.context)
-		end
+	if self.registered_events then
+		for evt in pairs(self.registered_events) do
+			if E2Lib.Env.Events[evt].destructor then
+				-- If the event has a destructor to run when the E2 is removed and listening to the event.
+				E2Lib.Env.Events[evt].destructor(self.context)
+			end
 
-		E2Lib.Env.Events[evt].listening[self] = nil
+			E2Lib.Env.Events[evt].listening[self] = nil
+		end
 	end
 end
 
@@ -340,7 +305,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	local status, tokens = E2Lib.Tokenizer.Execute(self.buffer)
 	if not status then self:Error(tokens) return end
 
-	local status, tree, dvars, files = E2Lib.Parser.Execute(tokens)
+	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
 	if not status then self:Error(tree) return end
 
 	if not self:PrepareIncludes(files) then return end
@@ -367,28 +332,27 @@ function ENT:GetCode()
 	return self.original, self.inc_files
 end
 
+---@param files table<string, string>
 function ENT:PrepareIncludes(files)
-
 	self.inc_files = files
-
 	self.includes = {}
 
 	for file, buffer in pairs(files) do
 		local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer, self.directives)
-		if not status then
-			self:Error("(" .. file .. ")" .. directives)
+		if not status then ---@cast directives Error[]
+			self:Error("(" .. file .. ") " .. directives[1].message)
 			return
 		end
 
 		local status, tokens = E2Lib.Tokenizer.Execute(buffer)
-		if not status then
-			self:Error("(" .. file .. ")" .. tokens)
+		if not status then ---@cast tokens Error[]
+			self:Error("(" .. file .. ") " .. tokens[1].message)
 			return
 		end
 
 		local status, tree, dvars = E2Lib.Parser.Execute(tokens)
-		if not status then
-			self:Error("(" .. file .. ")" .. tree)
+		if not status then ---@cast tree Error
+			self:Error("(" .. file .. ") " .. tree.message)
 			return
 		end
 
@@ -436,7 +400,7 @@ function ENT:ResetContext()
 		end
 	end
 
-	setmetatable(context, ScopeManager)
+	setmetatable(context, E2Lib.ScopeManager)
 	context:InitScope()
 
 	self.context = context

@@ -1036,6 +1036,43 @@ function E2Lib.unpackException(struct)
 	return struct.userdata and struct.userdata.catchable or false, struct:display(), struct.trace
 end
 
+-- Will be replaced with a runtime context object later.
+---@class ScopeManager
+local ScopeManager = {}
+ScopeManager.__index = ScopeManager
+
+E2Lib.ScopeManager = ScopeManager
+
+function ScopeManager:InitScope()
+	self.Scopes = {}
+	self.ScopeID = 0
+	self.Scopes[0] = self.GlobalScope or { vclk = {} } -- for creating new enviroments
+	self.Scope = self.Scopes[0]
+	self.GlobalScope = self.Scope
+end
+
+function ScopeManager:PushScope()
+	self.Scope = { vclk = {} }
+	self.ScopeID = self.ScopeID + 1
+	self.Scopes[self.ScopeID] = self.Scope
+end
+
+function ScopeManager:PopScope()
+	self.ScopeID = self.ScopeID - 1
+	self.Scope = self.Scopes[self.ScopeID]
+	self.Scopes[self.ScopeID] = self.Scope
+	return table.remove(self.Scopes, self.ScopeID + 1)
+end
+
+function ScopeManager:SaveScopes()
+	return { self.Scopes, self.ScopeID, self.Scope }
+end
+
+function ScopeManager:LoadScopes(Scopes)
+	self.Scopes = Scopes[1]
+	self.ScopeID = Scopes[2]
+	self.Scope = Scopes[3]
+end
 
 --- Mimics an E2 Context as if it were really on an entity.
 --- This code can probably be deduplicated but that'd needlessly complicate things, and I've made this compact enough.
@@ -1047,7 +1084,7 @@ local function makeContext(owner)
 		entity = owner, player = owner, uid = IsValid(owner) and owner:UniqueID() or "World",
 		prf = 0, prfcount = 0, prfbench = 0,
 		time = 0, timebench = 0, includes = {}
-	}, E2Lib.ScopeManager)
+	}, ScopeManager)
 
 	ctx:InitScope()
 
@@ -1063,7 +1100,7 @@ end
 --- Compiles an E2 script without an entity owning it.
 --- This doesn't have 1:1 behavior with an actual E2 chip existing, but is useful for testing.
 ---@param code string E2 Code to compile.
----@param owner GEntity? 'Owner' entity, default world.
+---@param owner userdata? 'Owner' entity, default world.
 ---@return boolean success If ran successfully
 ---@return string|function compiled Compiled function, or error message if not success
 function E2Lib.compileScript(code, owner, run)

@@ -178,16 +178,23 @@ local function getArgumentTypeIds(args)
 	return thistype, out
 end
 
-function registerOperator(name, pars, rets, func, cost, argnames)
+function registerOperator(name, pars, rets, func, cost, argnames, attributes)
+	if attributes and attributes.legacy == nil then
+		-- can explicitly mark "false" (used by extpp)
+		attributes.legacy = true
+	elseif not attributes then
+		attributes = { legacy = true }
+	end
+
 	local signature = "op:" .. name .. "(" .. pars .. ")"
 
-	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames }
+	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, attributes = attributes }
 	if wire_expression2_debug:GetBool() then makecheck(signature) end
 end
 
 function registerFunction(name, pars, rets, func, cost, argnames, attributes)
 	if attributes and attributes.legacy == nil then
-		-- can explicitly mark "false" (will be used by extpp later.)
+		-- can explicitly mark "false" (used by extpp)
 		attributes.legacy = true
 	elseif not attributes then
 		attributes = { legacy = true }
