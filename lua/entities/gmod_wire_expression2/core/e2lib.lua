@@ -1161,7 +1161,7 @@ function E2Lib.compileScript(code, owner, run)
 			local _, why, trace = E2Lib.unpackException(why)
 
 			if trace then
-				return false, "Runtime error: '" .. why .. "' at line " .. trace[1] .. ", col " .. trace[2]
+				return false, "Runtime error: '" .. why .. "' at line " .. trace.start_line .. ", col " .. trace.start_col
 			else
 				return false, why
 			end
