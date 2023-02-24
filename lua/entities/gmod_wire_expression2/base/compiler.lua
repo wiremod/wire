@@ -211,10 +211,14 @@ end
 local CompileVisitors = {
 	---@param data Node[]
 	[NodeVariant.Block] = function(self, trace, data)
-		local stmts = {}
+		local stmts, traces = {}, {}
 		for _, stmt in ipairs(data) do
 			if not self.scope.data.dead then
-				stmts[#stmts + 1] = self:CompileNode(stmt) -- Needs to use [#stmts + 1], can return nil in this case.
+				local trace, stmt = stmt.trace, self:CompileNode(stmt)
+				if stmt then -- Need to append because CompileNode can return nil (despite me not annotating it as such) for compile time constructs
+					local i = #stmts + 1
+					stmts[i], traces[i] = stmt, trace
+				end
 			else
 				self:Warning("Unreachable code detected", stmt.trace)
 				break
@@ -229,9 +233,10 @@ local CompileVisitors = {
 				state.prf = state.prf + cost
 				if state.prf > TickQuota then error("perf", 0) end
 
-				for _, stmt in ipairs(stmts) do
+				for i, stmt in ipairs(stmts) do
 					if state.__break__ or state.__return__ then break end
 					if not state.__continue__ then
+						state.trace = traces[i]
 						stmt(state)
 					end
 				end
@@ -241,8 +246,9 @@ local CompileVisitors = {
 				state.prf = state.prf + cost
 				if state.prf > TickQuota then error("perf", 0) end
 
-				for _, stmt in ipairs(stmts) do
+				for i, stmt in ipairs(stmts) do
 					if state.__return__ then break end
+					state.trace = traces[i]
 					stmt(state)
 				end
 			end
@@ -251,7 +257,8 @@ local CompileVisitors = {
 				state.prf = state.prf + cost
 				if state.prf > TickQuota then error("perf", 0) end
 
-				for _, stmt in ipairs(stmts) do
+				for i, stmt in ipairs(stmts) do
+					state.trace = traces[i]
 					stmt(state)
 				end
 			end

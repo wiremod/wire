@@ -1008,10 +1008,11 @@ function E2Lib.isValidFileWritePath(path)
 	if ext then return file_extensions[string.lower(ext)] end
 end
 
--- Different from Context:throw, which does not error the chip if
--- @strict is not enabled and instead returns a default value.
--- This is what Context:throw calls internally if @strict
--- By default E2 can catch these errors.
+--- Different from `Context:throw`, which does not error the chip if @strict is not enabled,
+--- and instead returns a default value.  
+---
+--- This is what `Context:throw` calls internally if @strict  
+--- By default E2 can catch these errors.
 ---@param message string
 ---@param level integer
 ---@param trace Trace
@@ -1033,7 +1034,7 @@ function E2Lib.unpackException(struct)
 	if type(struct) == "string" then
 		return false, struct, nil
 	end
-	return struct.userdata and struct.userdata.catchable or false, struct:display(), struct.trace
+	return struct.userdata and struct.userdata.catchable or false, struct.message, struct.trace
 end
 
 -- Will be replaced with a runtime context object later.
