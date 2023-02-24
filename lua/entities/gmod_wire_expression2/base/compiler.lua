@@ -892,7 +892,7 @@ local CompileVisitors = {
 	---@param data { [1]: Node, [2]: Token<string>, [3]: Node[] }
 	[NodeVariant.ExprMethodCall] = function (self, trace, data)
 		local name, args, types = data[2], {}, {}
-		for k, arg in ipairs(data[2]) do
+		for k, arg in ipairs(data[3]) do
 			args[k], types[k] = self:CompileNode(arg)
 		end
 

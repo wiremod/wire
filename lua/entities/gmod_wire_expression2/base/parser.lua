@@ -777,15 +777,15 @@ function Parser:Arguments()
 		return arguments
 	end
 
-	while true do
+	repeat
 		arguments[#arguments + 1] = self:Expr()
+	until not self:Consume(TokenVariant.Grammar, Grammar.Comma)
 
-		if self:Consume(TokenVariant.Grammar, Grammar.RParen) then
-			return arguments
-		elseif not self:Consume(TokenVariant.Grammar, Grammar.Comma) then
-			self:Error("Right parenthesis ()) missing, to close argument list")
-		end
+	if not self:Consume(TokenVariant.Grammar, Grammar.RParen) then
+		self:Error("Right parenthesis ()) missing, to close argument list")
 	end
+
+	return arguments
 end
 
 ---@param start_bracket Grammar

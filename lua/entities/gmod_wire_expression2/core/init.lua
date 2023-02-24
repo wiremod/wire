@@ -189,6 +189,8 @@ function registerFunction(name, pars, rets, func, cost, argnames, attributes)
 	if attributes and attributes.legacy == nil then
 		-- can explicitly mark "false" (will be used by extpp later.)
 		attributes.legacy = true
+	elseif not attributes then
+		attributes = { legacy = true }
 	end
 
 	local signature = name .. "(" .. pars .. ")"
