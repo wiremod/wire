@@ -2506,6 +2506,14 @@ function EDITOR:AC_Check( notimer )
 	self:AC_SetVisible( false )
 end
 
+local function concat_args(args_table, where, cend)
+	local res = ""
+	for k, v in ipairs(args_table) do
+		res = res .. v[where] .. cend
+	end
+	return res:sub(1, -#cend - 1) -- remove the last "cend" (ie. ", ")
+end
+
 local function FindEvents(self, word)
 	local suggestions, count = {}, 0
 	for name, data in pairs(E2Lib.Env.Events) do
@@ -2515,17 +2523,19 @@ local function FindEvents(self, word)
 			-- Cache replacement string
 			if not data.replacement then
 				local buf = {}
-				for k, ty in ipairs(data.args) do
+				for k, event_arg in ipairs(data.args) do
+					local ty = event_arg["type"]
 					local tyname = wire_expression_types2[ty][1]:lower()
 					if tyname == "normal" then tyname = "number" end
-					buf[k] = ty:upper() .. ":" .. tyname
+					buf[k] = event_arg["placeholder"] .. ":" .. tyname
 				end
-				data.replacement = name .. "(" .. table.concat(buf, ", ") .. ")"
+				data.replacement = name .. "(" .. table.concat(buf, ", ") .. ") {"
 			end
 
 			-- Cache display signature
 			if not data.display then
-				data.display = name .. "(" .. table.concat(data.args, ",") .. ")"
+				--data.display = name .. "(" .. table.concat(data.args["type"], ",") .. ")"
+				data.display = name .. "(" .. concat_args(data.args, "type", ",") .. ")"
 			end
 
 			local function repl(self, editor)

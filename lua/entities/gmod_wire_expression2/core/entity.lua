@@ -793,8 +793,8 @@ end
 
 e2function string entity:toString() = e2function string toString(entity ent)
 
-E2Lib.registerEvent("playerLeftVehicle", { "e", "e" })
-E2Lib.registerEvent("playerEnteredVehicle", { "e", "e" })
+E2Lib.registerEvent("playerLeftVehicle", { "Player:e", "Vehicle:e" })
+E2Lib.registerEvent("playerEnteredVehicle", { "Player:e", "Vehicle:e" })
 
 /******************************************************************************/
 
