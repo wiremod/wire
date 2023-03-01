@@ -297,7 +297,7 @@ end
 
 -- number (whether it is being reset or just removed)
 E2Lib.registerEvent("removed", {
-	{ "Reason", "n" }
+	{ "Resetting", "n" }
 })
 
 -- dupefinished()

@@ -187,10 +187,25 @@ function E2Lib.registerEvent(name, args, constructor, destructor)
 	
 	if args ~= nil then
 		for k, v in pairs(args) do
-			extended_args[k] = {
-				["placeholder"] = v[1]:match("(%u%w*)"),
-				["type"]		= v[2]:match("(%w+)")
-			}
+
+			if type(v) == "string" then -- backwards compatibility for old method without name
+				extended_args[k] = {
+					placeholder = v:upper() .. k,
+					type = v
+				}
+			else
+				extended_args[k] = {
+					placeholder = assert(v[1], "Expected name for event argument #" .. k),
+					type = assert(v[2], "Expected type for event argument #" .. k)
+				}
+			end
+			
+			--[[
+				extended_args[k] = {
+					["placeholder"] = v[1]:match("(%u%w*)"),
+					["type"]		= v[2]:match("(%w+)")
+				}
+			]]
 		end
 	end
 
