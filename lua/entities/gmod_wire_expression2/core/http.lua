@@ -133,7 +133,14 @@ registerCallback( "destruct", function( self )
 end )
 
 -- error: string, url: string
-E2Lib.registerEvent("httpErrored", { "Error:s", "Url:s" })
+E2Lib.registerEvent("httpErrored", {
+	{ "Error",		"s" },
+	{ "Url",		"s" }
+})
 
 -- body: string, size: number, url: string
-E2Lib.registerEvent("httpLoaded", { "Body:s", "Size:n", "Url:s" })
+E2Lib.registerEvent("httpLoaded", {
+	{ "Body",		"s" },
+	{ "Size",		"s" },
+	{ "Url",		"s" }
+})

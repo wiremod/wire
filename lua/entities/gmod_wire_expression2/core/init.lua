@@ -181,33 +181,15 @@ end
 ---@param destructor fun(self: table)? # Destructor to run when E2 stops listening to this event. Passes E2 context
 function E2Lib.registerEvent(name, args, constructor, destructor)
 	-- Ensure event starts with lowercase letter
-	name = name:sub(1, 1):lower() .. name:sub(2)
 	-- assert(not E2Lib.Env.Events[name], "Possible addon conflict: Trying to override existing E2 event '" .. name .. "'")
 
 	local extended_args = {}
 	
-	if args != nil then
+	if args ~= nil then
 		for k, v in pairs(args) do
-
-			local exploded = string.Explode(":", v)
-
-			local a_type = ""
-			local a_placeholder = ""
-
-			if #exploded <= 1 then
-				a_type = exploded[1]
-				a_placeholder = a_type:upper()
-			else
-				a_type = exploded[2]
-				a_placeholder = exploded[1]
-
-				-- Ensure that event arg's placeholder start with uppercase letter
-				a_placeholder = a_placeholder:sub(1,1):upper() .. a_placeholder:sub(2)
-			end
-
 			extended_args[k] = {
-				["type"] = a_type,
-				["placeholder"] = a_placeholder
+				["placeholder"] = v[1]:match("(%u%w*)"),
+				["type"]		= v[2]:match("(%w+)")
 			}
 		end
 	end

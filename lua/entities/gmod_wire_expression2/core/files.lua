@@ -476,5 +476,11 @@ net.Receive("wire_expression2_file_list", function(netlen, ply)
 	run_on.list.dir = ""
 end )
 
-E2Lib.registerEvent("fileErrored", {"s", "n"})
-E2Lib.registerEvent("fileLoaded", {"Filename:s", "Data:s"})
+E2Lib.registerEvent("fileErrored", {
+	{ "Filename",	"s" },
+	{ "Status",		"n" }
+})
+E2Lib.registerEvent("fileLoaded", {
+	{ "Filename",	"s" },
+	{ "Data",		"s" }
+})
