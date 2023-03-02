@@ -2166,7 +2166,11 @@ tbl[2] = function( self )
 	if self.ac_event or self.ac_directive_line then return end
 
 	local word = self:AC_GetCurrentWord()
-	if word and word ~= "" and word:sub(1,1) == "_" then
+
+	local line, char = self.Caret[1], self.Caret[2]
+	local after = self.Rows[line]:sub(char, char + 1) -- Slicing with two chars because you can for some reason trigger autocomplete with the caret before the first character.
+
+	if word and word ~= "" and word:sub(1,1) == "_" and not after:find(":", 1, true) then -- Don't show constant if it's _: (discard was used)
 		return FindConstants( self, word )
 	end
 end
@@ -2515,17 +2519,24 @@ local function FindEvents(self, word)
 			-- Cache replacement string
 			if not data.replacement then
 				local buf = {}
-				for k, ty in ipairs(data.args) do
+				for k, event_arg in ipairs(data.args) do
+					local ty = event_arg.type
 					local tyname = wire_expression_types2[ty][1]:lower()
 					if tyname == "normal" then tyname = "number" end
-					buf[k] = ty:upper() .. ":" .. tyname
+					buf[k] = ( event_arg.placeholder or ty:upper() ) .. ":" .. tyname
 				end
-				data.replacement = name .. "(" .. table.concat(buf, ", ") .. ")"
+				data.replacement = name .. "(" .. table.concat(buf, ", ") .. ") {"
 			end
 
 			-- Cache display signature
 			if not data.display then
-				data.display = name .. "(" .. table.concat(data.args, ",") .. ")"
+
+				local arg_types = {}
+				for k, v in ipairs(data.args) do
+					arg_types[k] = v.type
+				end
+
+				data.display = name .. "(" .. table.concat(arg_types, ", ").. ")"
 			end
 
 			local function repl(self, editor)

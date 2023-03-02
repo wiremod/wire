@@ -165,4 +165,8 @@ e2function number entity:lastSaidTeam()
 end
 
 -- Ply: entity, Msg: string, Team: number
-E2Lib.registerEvent("chat", { "e", "s", "n" })
+E2Lib.registerEvent("chat", {
+	{ "Player", "e" },
+	{ "Message", "s" },
+	{ "Team", "n" }
+})

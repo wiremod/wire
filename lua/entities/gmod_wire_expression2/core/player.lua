@@ -417,7 +417,12 @@ e2function string keyClkPressedBind()
 end
 
 -- Player, Key, UporDown, KeyBind
-E2Lib.registerEvent("keyPressed", {"e", "s", "n", "s"})
+E2Lib.registerEvent("keyPressed", {
+	{ "Player", "e" },
+	{ "Key", "s" },
+	{ "Down", "n" },
+	{ "KeyBind", "s" }
+})
 
 -- Use Support --
 
@@ -442,7 +447,7 @@ e2function entity useClk()
 	return self.data.runByUse or NULL
 end
 
-E2Lib.registerEvent("chipUsed", { "e" }, function(self)
+E2Lib.registerEvent("chipUsed", { { "Player", "e" } }, function(self)
 	self.entity:SetUseType(SIMPLE_USE)
 	self.entity.Use = function(selfent, activator)
 		self.entity:ExecuteEvent("chipUsed", { activator })
@@ -737,8 +742,12 @@ e2function entity lastDisconnectedPlayer()
 	return lastLeft
 end
 
-E2Lib.registerEvent("playerConnected", { "e" })
-E2Lib.registerEvent("playerDisconnected", { "e" })
+E2Lib.registerEvent("playerConnected", {
+	{ "Player", "e" }
+})
+E2Lib.registerEvent("playerDisconnected", {
+	{ "Player", "e" }
+})
 
 ----- Death+Respawns by Vurv -----
 
@@ -889,8 +898,15 @@ e2function entity lastSpawnedPlayer()
 	return RespawnList.last.ply
 end
 
-E2Lib.registerEvent("playerSpawn", { "e" })
-E2Lib.registerEvent("playerDeath", { "e", "e", "e" })
+E2Lib.registerEvent("playerSpawn", {
+	{ "Player", "e" }
+})
+
+E2Lib.registerEvent("playerDeath", {
+	{ "Victim", "e" },
+	{ "Inflictor", "e" },
+	{ "Attacker", "e" }
+})
 
 
 --******************************************--

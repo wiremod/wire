@@ -1335,14 +1335,15 @@ function Compiler:InstrEVENT(args)
 		self:Error("Event '" .. name .. "' does not take arguments (" .. table.concat(extra_arg_types, ", ") .. ")", args)
 	end
 
-	for k, typeid in ipairs(event.args) do
+	for k, arg in ipairs(event.args) do
 		if not hargs[k] then
 			-- TODO: Maybe this should be a warning so that events can have extra params added without breaking old code?
-			self:Error("Event '" .. name .. "' missing argument #" .. k .. " of type " .. tps_pretty(typeid), args)
+			self:Error("Event '" .. name .. "' missing argument #" .. k .. " of type " .. tps_pretty(arg.type), args)
 		end
 
 		local param_id = wire_expression_types[hargs[k][2]][1]
-		if typeid ~= param_id then
+
+		if arg.type ~= param_id then
 			self:Error("Mismatched event argument: " .. tps_pretty(arg) .. " vs " .. tps_pretty(param_id), args)
 		end
 	end
@@ -1356,9 +1357,9 @@ function Compiler:InstrEVENT(args)
 	local OldScopes = self:SaveScopes()
 	self:InitScope()
 	self:PushScope()
-		for k, typeid in ipairs(event.args) do
+		for k, arg in ipairs(event.args) do
 			if not hargs[k][4] --[[ ensure it isn't a discard parameter ]] then
-				self:SetLocalVariableType(hargs[k][1], typeid, args, true)
+				self:SetLocalVariableType(hargs[k][1], arg.type, args, true)
 			end
 		end
 
