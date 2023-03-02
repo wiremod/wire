@@ -2166,7 +2166,11 @@ tbl[2] = function( self )
 	if self.ac_event or self.ac_directive_line then return end
 
 	local word = self:AC_GetCurrentWord()
-	if word and word ~= "" and word:sub(1,1) == "_" then
+
+	local line, char = self.Caret[1], self.Caret[2]
+	local after = self.Rows[line]:sub(char, char + 1) -- Slicing with two chars because you can for some reason trigger autocomplete with the caret before the first character.
+
+	if word and word ~= "" and word:sub(1,1) == "_" and not after:find(":", 1, true) then -- Don't show constant if it's _: (discard was used)
 		return FindConstants( self, word )
 	end
 end
@@ -2527,14 +2531,12 @@ local function FindEvents(self, word)
 			-- Cache display signature
 			if not data.display then
 
-				local concated_args = {}
-
+				local arg_types = {}
 				for k, v in ipairs(data.args) do
-					concated_args[k] = v.type
+					arg_types[k] = v.type
 				end
 
-				--data.display = name .. "(" .. table.concat(data.args["type"], ",") .. ")"
-				data.display = name .. "(" .. table.concat(concated_args, ", ").. ")"
+				data.display = name .. "(" .. table.concat(arg_types, ", ").. ")"
 			end
 
 			local function repl(self, editor)
