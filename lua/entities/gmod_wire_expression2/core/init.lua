@@ -174,44 +174,43 @@ function E2Lib.registerConstant(name, value, literal)
 end
 
 --- Example:
---- E2Lib.registerEvent("propSpawned", { "e" }, nil)
+--- E2Lib.registerEvent("propSpawned", { {"TheProp", "e"} })
 ---@param name string
----@param args string[]?
+---@param args { [1]: string, [2]: string }[]?
 ---@param constructor fun(self: table)? # Constructor to run when E2 initially starts listening to this event. Passes E2 context
 ---@param destructor fun(self: table)? # Destructor to run when E2 stops listening to this event. Passes E2 context
 function E2Lib.registerEvent(name, args, constructor, destructor)
 	-- Ensure event starts with lowercase letter
 	-- assert(not E2Lib.Env.Events[name], "Possible addon conflict: Trying to override existing E2 event '" .. name .. "'")
 
-	local extended_args = {}
-	
-	if args ~= nil then
-		for k, v in pairs(args) do
+	---@cast args { [1]: string, [2]: string }[]
 
+	local printed = false
+
+	if args then
+		for k, v in ipairs(args) do
 			if type(v) == "string" then -- backwards compatibility for old method without name
-				extended_args[k] = {
+				if not printed then
+					ErrorNoHaltWithStack("Using E2Lib.registerEvent with string arguments is deprecated (event: " .. name .. ").")
+					printed = true
+				end
+
+				args[k] = {
 					placeholder = v:upper() .. k,
 					type = v
 				}
 			else
-				extended_args[k] = {
+				args[k] = {
 					placeholder = assert(v[1], "Expected name for event argument #" .. k),
 					type = assert(v[2], "Expected type for event argument #" .. k)
 				}
 			end
-			
-			--[[
-				extended_args[k] = {
-					["placeholder"] = v[1]:match("(%u%w*)"),
-					["type"]		= v[2]:match("(%w+)")
-				}
-			]]
 		end
 	end
 
 	E2Lib.Env.Events[name] = {
 		name = name,
-		args = extended_args,
+		args = args or {},
 
 		constructor = constructor,
 		destructor = destructor,
@@ -381,7 +380,7 @@ elseif CLIENT then
 		end
 	end
 
-	---@param events table<string, {name: string, args: string[]}>
+	---@param events table<string, {name: string, args: { [1]: string, [2]: string }[]}>
 	local function insertMiscData(types, constants, events)
 		wire_expression2_reset_extensions()
 

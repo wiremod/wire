@@ -269,7 +269,7 @@ e2function string inputClkName()
 end
 
 E2Lib.registerEvent("input", {
-	{ "Key", "s" }
+	{ "InputName", "s" }
 })
 
 -- This MUST be the first destruct hook!

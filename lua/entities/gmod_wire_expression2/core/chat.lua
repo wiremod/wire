@@ -166,7 +166,7 @@ end
 
 -- Ply: entity, Msg: string, Team: number
 E2Lib.registerEvent("chat", {
-	{ "Player",		"e" },
-	{ "Message",	"s" },
-	{ "Team",		"n" }
+	{ "Player", "e" },
+	{ "Message", "s" },
+	{ "Team", "n" }
 })

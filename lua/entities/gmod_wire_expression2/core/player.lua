@@ -418,10 +418,10 @@ end
 
 -- Player, Key, UporDown, KeyBind
 E2Lib.registerEvent("keyPressed", {
-	{ "Player",		"e" },
-	{ "Key",		"s" },
-	{ "Direction",	"n" },
-	{ "KeyBind",	"s" }
+	{ "Player", "e" },
+	{ "Key", "s" },
+	{ "Down", "n" },
+	{ "KeyBind", "s" }
 })
 
 -- Use Support --
@@ -743,10 +743,10 @@ e2function entity lastDisconnectedPlayer()
 end
 
 E2Lib.registerEvent("playerConnected", {
-	{ "Player",		"e" }
+	{ "Player", "e" }
 })
 E2Lib.registerEvent("playerDisconnected", {
-	{ "Player",		"e" }
+	{ "Player", "e" }
 })
 
 ----- Death+Respawns by Vurv -----
@@ -899,13 +899,13 @@ e2function entity lastSpawnedPlayer()
 end
 
 E2Lib.registerEvent("playerSpawn", {
-	{ "Player",		"e" }
+	{ "Player", "e" }
 })
 
 E2Lib.registerEvent("playerDeath", {
-	{ "Victim",		"e" },
-	{ "Inflictor",	"e" },
-	{ "Attacker",	"e" }
+	{ "Victim", "e" },
+	{ "Inflictor", "e" },
+	{ "Attacker", "e" }
 })
 
 
