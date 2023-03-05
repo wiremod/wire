@@ -1016,7 +1016,7 @@ end
 ---@param message string
 ---@param level integer
 ---@param trace Trace
----@param can_catch boolean
+---@param can_catch boolean?
 function E2Lib.raiseException(message, level, trace, can_catch)
 	error(E2Lib.Debug.Error.new(
 		message,
@@ -1037,55 +1037,68 @@ function E2Lib.unpackException(struct)
 	return struct.userdata and struct.userdata.catchable or false, struct.message, struct.trace
 end
 
+---@alias RuntimeScope table<string, any>
+
 -- Will be replaced with a runtime context object later.
----@class ScopeManager
-local ScopeManager = {}
-ScopeManager.__index = ScopeManager
+---@class RuntimeContext
+---@field Scope RuntimeScope
+---@field Scopes RuntimeScope[]
+---@field ScopeID integer
+---@field GlobalScope RuntimeScope
+---@field prf integer
+---@field trace Trace
+---@field __break__ boolean
+---@field __continue__ boolean
+---@field __return__ boolean
+---@field __returnval__ any
+---@field funcs table<string, RuntimeOperator>
+local RuntimeContext = {}
+RuntimeContext.__index = RuntimeContext
 
-E2Lib.ScopeManager = ScopeManager
+E2Lib.RuntimeContext = RuntimeContext
 
-function ScopeManager:InitScope()
-	self.Scopes = {}
+function RuntimeContext:InitScope()
+	local global = { vclk = {} }
+	self.Scopes = { [0] = global }
+	self.Scope, self.GlobalScope = self.Scopes[0], self.Scopes[0]
 	self.ScopeID = 0
-	self.Scopes[0] = self.GlobalScope or { vclk = {} } -- for creating new enviroments
-	self.Scope = self.Scopes[0]
-	self.GlobalScope = self.Scope
 end
 
-function ScopeManager:PushScope()
-	self.Scope = { vclk = {} }
-	self.ScopeID = self.ScopeID + 1
+function RuntimeContext:PushScope()
+	local scope = { vclk = {} }
+	self.Scope, self.ScopeID = scope, self.ScopeID + 1
 	self.Scopes[self.ScopeID] = self.Scope
 end
 
-function ScopeManager:PopScope()
+function RuntimeContext:PopScope()
 	self.ScopeID = self.ScopeID - 1
 	self.Scope = self.Scopes[self.ScopeID]
-	self.Scopes[self.ScopeID] = self.Scope
 	return table.remove(self.Scopes, self.ScopeID + 1)
 end
 
-function ScopeManager:SaveScopes()
+---@return { [1]: RuntimeScope[], [2]: integer, [3]: RuntimeScope }
+function RuntimeContext:SaveScopes()
 	return { self.Scopes, self.ScopeID, self.Scope }
 end
 
-function ScopeManager:LoadScopes(Scopes)
-	self.Scopes = Scopes[1]
-	self.ScopeID = Scopes[2]
-	self.Scope = Scopes[3]
+---@param scopes { [1]: RuntimeScope[], [2]: integer, [3]: RuntimeScope }
+function RuntimeContext:LoadScopes(scopes)
+	self.Scopes = scopes[1]
+	self.ScopeID = scopes[2]
+	self.Scope = scopes[3]
 end
 
 --- Mimics an E2 Context as if it were really on an entity.
 --- This code can probably be deduplicated but that'd needlessly complicate things, and I've made this compact enough.
 ---@param owner userdata? # Owner, or assumes world
----@return ScopeManager? # Context or nil if failed
+---@return RuntimeContext? # Context or nil if failed
 local function makeContext(owner)
 	local ctx = setmetatable({
 		data = {}, vclk = {}, funcs = {},
 		entity = owner, player = owner, uid = IsValid(owner) and owner:UniqueID() or "World",
 		prf = 0, prfcount = 0, prfbench = 0,
 		time = 0, timebench = 0, includes = {}
-	}, ScopeManager)
+	}, RuntimeContext)
 
 	ctx:InitScope()
 

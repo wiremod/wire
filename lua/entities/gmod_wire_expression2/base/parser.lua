@@ -112,6 +112,11 @@ function Node:debug()
 	return string.format("Node { variant = %s, data = %s, trace = %s }", NodeVariantLookup[self.variant], self.data, self.trace)
 end
 
+--- Returns whether the node is an expression variant.
+function Node:isExpr()
+	return self.variant >= NodeVariant.ExprTernary
+end
+
 ---@return string
 function Node:instr()
 	return NodeVariantLookup[self.variant]
@@ -361,19 +366,23 @@ function Parser:Stmt()
 		local exprs = { { var, is_local and {} or self:Indices(), self:GetTrace() } }
 		while self:Consume(TokenVariant.Operator, Operator.Ass) do
 			local id = self:Consume(TokenVariant.Ident)
-			if id then
-				self:PushTrace()
+			if id then -- todo stitch trace instead of this garbage
 				-- Var = Var = ...
-				exprs[#exprs + 1] = { id, self:Indices(), self:PopTrace() }
+				exprs[#exprs + 1] = { id, self:Indices(), self:GetTrace() }
 			else
-				return Node.new(NodeVariant.Assignment, { is_local, exprs, self:Expr() })
+				local exp = self:Expr()
+				return Node.new(NodeVariant.Assignment, { is_local, exprs, exp })
 			end
 		end
 
-		-- Edge case where last assignment is an indexing operation.
-		-- X = Y = T[5]
 		local last = table.remove(exprs)
-		last = Node.new(NodeVariant.ExprIndex, { Node.new(NodeVariant.ExprIdent, last[1]), last[2] })
+		if #last[2] ~= 0 then
+			-- Edge case where last assignment is an indexing operation.
+			-- X = Y = T[5]
+			last = Node.new(NodeVariant.ExprIndex, { Node.new(NodeVariant.ExprIdent, last[1]), last[2] })
+		else
+			last = Node.new(NodeVariant.ExprIdent, last[1], last[1].trace)
+		end
 
 		return Node.new(NodeVariant.Assignment, { is_local, exprs, last })
 	end
@@ -900,7 +909,7 @@ function Parser:Expr12()
 		elseif fn.value == "table" then
 			return Node.new(NodeVariant.ExprTable, self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments(), self:GetTrace())
 		end
-		return Node.new(NodeVariant.ExprCall, { fn.value, self:Arguments() }, self:GetTrace())
+		return Node.new(NodeVariant.ExprCall, { fn, self:Arguments() }, self:GetTrace())
 	end
 
 	-- Decimal / Hexadecimal / Binary numbers

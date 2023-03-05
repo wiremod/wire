@@ -172,11 +172,23 @@ registerCallback( "postinit", function()
 				return value
 			end
 
-			registerOperator("idx", id.."=rn"..id, id, function(self,args)
-				local op1, op2, op3 = args[2], args[3], args[4]
-				local array, index, value = op1[1](self,op1), op2[1](self,op2), op3[1](self,op3)
-				return setter( self, array, index, value )
-			end)
+			if typecheck then
+				registerOperator("idx", id.."=rn"..id, id, function(self, array, index, value)
+					if typecheck(value) then
+						return fixDefault(default)
+					end
+
+					array[floor(index)] = value
+					self.GlobalScope.vclk[array] = true
+					return value
+				end, 3, nil, { legacy = false })
+			else
+				registerOperator("idx", id.."=rn"..id, id, function(self, array, index, value)
+					array[floor(index)] = value
+					self.GlobalScope.vclk[array] = true
+					return value
+				end, 2, nil, { legacy = false })
+			end
 
 			registerFunction("set" .. nameupperfirst, "r:n"..id, id, function(self,args)
 				local op1, op2, op3 = args[2], args[3], args[4]

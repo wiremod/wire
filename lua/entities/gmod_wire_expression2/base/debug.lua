@@ -58,7 +58,7 @@ end
 
 Warning.__tostring = Warning.debug
 
----@alias ErrorUserdata { catchable: boolean }
+---@alias ErrorUserdata { catchable: boolean? }
 
 ---@class Error
 ---@field message string

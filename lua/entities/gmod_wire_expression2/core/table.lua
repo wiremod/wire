@@ -1055,24 +1055,24 @@ registerCallback( "postinit", function()
 					return fixDefault(default)
 				end
 
-				if not typecheck(tbl.s[key]) then -- Todo move verify check to outside function as optimization
+				if typecheck(tbl.s[key]) then -- Todo move verify check to outside function as optimization
 					return fixDefault(v[2])
 				end
 
 				return tbl.s[key]
-			end)
+			end, 2)
 
 			registerOperator("idx", id.."=tn", id, function(self, tbl, key)
 				if not tbl.n[key] or tbl.ntypes[key] ~= id then
 					return fixDefault(default)
 				end
 
-				if not typecheck(tbl.n[key]) then
+				if typecheck(tbl.n[key]) then
 					return fixDefault(v[2])
 				end
 
 				return tbl.n[key]
-			end)
+			end, 2)
 		else
 			registerOperator("idx", id.."=ts", id, function(self, tbl, key)
 				if not tbl.s[key] or tbl.stypes[key] ~= id then
@@ -1080,7 +1080,7 @@ registerCallback( "postinit", function()
 				end
 
 				return tbl.s[key]
-			end)
+			end, 1)
 
 			registerOperator("idx", id.."=tn", id, function(self, tbl, key)
 				if not tbl.n[key] or tbl.ntypes[key] ~= id then
@@ -1088,7 +1088,7 @@ registerCallback( "postinit", function()
 				end
 
 				return tbl.n[key]
-			end)
+			end, 1)
 		end
 
 		-- Setters

@@ -10,31 +10,22 @@ local p_func_operator = "[-a-zA-Z0-9+*/%%^=!><&|$_%[%]]*"
 
 local OPTYPE_FUNCTION
 local OPTYPE_NORMAL = 0
-local OPTYPE_DONT_FETCH_FIRST = 1
-local OPTYPE_ASSIGN = 2
 local OPTYPE_APPEND_RET = 3
 
 local optable = {
 	["operator+"] = "add",
-	["operator++"] = { "inc", OPTYPE_DONT_FETCH_FIRST },
 	["operator-"] = "sub",
-	["operator--"] = { "dec", OPTYPE_DONT_FETCH_FIRST },
 	["operator*"] = "mul",
 	["operator/"] = "div",
 	["operator%"] = "mod",
 	["operator^"] = "exp",
-	["operator="] = { "ass", OPTYPE_ASSIGN },
 	["operator=="] = "eq",
-	["operator!"] = "not",
+	-- ["operator!"] = "not",
 	["operator!="] = "neq",
 	["operator>"] = "gth",
 	["operator>="] = "geq",
 	["operator<"] = "lth",
 	["operator<="] = "leq",
-	["operator&"] = "and",
-	["operator&&"] = "and",
-	["operator|"] = "or",
-	["operator||"] = "or",
 	["operator[]"] = "idx", -- typeless op[]
 	["operator[T]"] = { "idx", OPTYPE_APPEND_RET }, -- typed op[]
 
@@ -347,23 +338,7 @@ function E2Lib.ExtPP.Pass2(contents)
 				table.insert(argtable.argnames, 1, "this")
 			end -- if thistype ~= ""
 
-			-- add a sub-table for flagging arguments as "no opfetch"
-			argtable.no_opfetch = {}
-
-			if op_type == OPTYPE_ASSIGN then -- assignment
-				-- the assignment operator is registered with only argument typeid, hence we need a special case.
-				-- we need to make sure the two types match:
-				if argtable.typeids[1] ~= argtable.typeids[2] then error("PP syntax error: operator= needs two arguments of the same type.", 0) end
-
-				-- remove the typeid of one of the arguments from the list
-				argtable.typeids[1] = ""
-
-				-- mark the argument as "no opfetch"
-				argtable.no_opfetch[1] = true
-			elseif op_type == OPTYPE_DONT_FETCH_FIRST then -- delta/increment/decrement
-				-- mark the argument as "no opfetch"
-				argtable.no_opfetch[1] = true
-			elseif op_type == OPTYPE_APPEND_RET then
+			if op_type == OPTYPE_APPEND_RET then
 				table.insert(argtable.typeids, 1, ret_typeid .. "=")
 			end
 
@@ -456,11 +431,9 @@ function E2Lib.ExtPP.Pass2(contents)
 				if #argtable.argnames ~= 0 then
 					local argfetch, opfetch_l, opfetch_r = '', '', ''
 					for i, name in ipairs(argtable.argnames) do
-						if not argtable.no_opfetch[i] then
-							-- generate opfetch code if not flagged as "no opfetch"
-							opfetch_l = string.format('%s%s, ', opfetch_l, name)
-							opfetch_r = string.format('%s%s[1](self, %s), ', opfetch_r, name, name)
-						end
+						opfetch_l = string.format('%s%s, ', opfetch_l, name)
+						opfetch_r = string.format('%s%s[1](self, %s), ', opfetch_r, name, name)
+
 						argfetch = string.format('%sargs[%d], ', argfetch, i + 1)
 					end
 
