@@ -162,15 +162,14 @@ e2function vector operator/(vector lhs, vector rhs)
 	return Vector( lhs[1] / rhs[1], lhs[2] / rhs[2], lhs[3] / rhs[3] )
 end
 
-e2function number vector:operator[](index)
+registerOperator("idx", "vn", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 3) + 0.5)]
-end
+end)
 
-e2function number vector:operator[](index, value)
+registerOperator("idx", "vnn", "", function(state, this, index, value)
 	this[floor(math.Clamp(index, 1, 3) + 0.5)] = value
-	self.GlobalScope.vclk[this] = true
-	return value
-end
+	state.GlobalScope.vclk[this] = true
+end)
 
 --------------------------------------------------------------------------------
 

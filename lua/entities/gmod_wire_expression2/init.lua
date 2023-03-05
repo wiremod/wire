@@ -372,39 +372,20 @@ function ENT:ResetContext()
 	end
 	self.lastResetOrError = CurTime()
 
-	---@type RuntimeContext
-	local context = {
-		data = {},
-		vclk = {},
-		funcs = self.funcs,
-		entity = self,
-		player = self.player,
-		uid = self.uid,
-		prf = (self.context and (self.context.prf*resetPrfMult)) or 0,
-		prfcount = (self.context and (self.context.prfcount*resetPrfMult)) or 0,
-		prfbench = (self.context and (self.context.prfbench*resetPrfMult)) or 0,
-		time = (self.context and (self.context.time*resetPrfMult)) or 0,
-		timebench = (self.context and (self.context.timebench*resetPrfMult)) or 0,
-		includes = self.includes
-	}
+	local context = E2Lib.RuntimeContext.builder()
+		:withChip(self)
+		:withOwner(self.player)
+		:withStrict(self.directives.strict)
+		:withUserFunctions(self.funcs)
+		:withIncludes(self.includes)
 
-	-- '@strict' try/catch Error handling.
-	if self.directives.strict then
-		local err = E2Lib.raiseException
-		function context:throw(msg)
-			err(msg, 2, self.trace)
-		end
-	else
-		-- '@strict' is not enabled, pass the default variable.
-		function context:throw(_msg, variable)
-			return variable
-		end
+	if self.context then
+		context = context
+			:withPrf(self.context.prf * resetPrfMult, self.context.prfcount * resetPrfMult, self.context.prfbench * resetPrfMult)
+			:withTime(self.context.time * resetPrfMult, self.context.timebench * resetPrfMult)
 	end
 
-	setmetatable(context, E2Lib.RuntimeContext)
-	context:InitScope()
-
-	self.context = context
+	self.context = context:build()
 	self.GlobalScope = context.GlobalScope
 	self._vars = self.GlobalScope -- Dupevars
 

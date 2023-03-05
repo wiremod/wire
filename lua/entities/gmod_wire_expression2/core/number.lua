@@ -78,90 +78,60 @@ end)
 
 __e2setcost(1.5)
 
-registerOperator("eq", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if rvd <= delta and -rvd <= delta
-	   then return 1 else return 0 end
-end)
-
-registerOperator("neq", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if rvd > delta or -rvd > delta
-	   then return 1 else return 0 end
+registerOperator("eq", "nn", "n", function(state, lhs, rhs)
+	return lhs == rhs and 1 or 0
 end)
 
 __e2setcost(1.25)
 
-registerOperator("geq", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if -rvd <= delta
-	   then return 1 else return 0 end
+registerOperator("geq", "nn", "n", function(state, lhs, rhs)
+	return lhs >= rhs and 1 or 0
 end)
 
-registerOperator("leq", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if rvd <= delta
-	   then return 1 else return 0 end
+registerOperator("leq", "nn", "n", function(state, lhs, rhs)
+	return lhs <= rhs and 1 or 0
 end)
 
-registerOperator("gth", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if rvd > delta
-	   then return 1 else return 0 end
+registerOperator("gth", "nn", "n", function(state, lhs, rhs)
+	return lhs > rhs and 1 or 0
 end)
 
-registerOperator("lth", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if -rvd > delta
-	   then return 1 else return 0 end
+registerOperator("lth", "nn", "n", function(state, lhs, rhs)
+	return lhs < rhs and 1 or 0
 end)
 
 --[[************************************************************************]]--
 
 __e2setcost(0.5) -- approximation
 
-registerOperator("neg", "n", "n", function(self, args)
-	local op1 = args[2]
-	return -op1[1](self, op1)
+registerOperator("neg", "n", "n", function(state, num)
+	return -num
 end)
 
 __e2setcost(1)
 
-registerOperator("add", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) + op2[1](self, op2)
+registerOperator("add", "nn", "n", function(state, lhs, rhs)
+	return lhs + rhs
 end)
 
-registerOperator("sub", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) - op2[1](self, op2)
+registerOperator("sub", "nn", "n", function(state, lhs, rhs)
+	return lhs - rhs
 end)
 
-registerOperator("mul", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) * op2[1](self, op2)
+registerOperator("mul", "nn", "n", function(state, lhs, rhs)
+	return lhs * rhs
 end)
 
-registerOperator("div", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) / op2[1](self, op2)
+registerOperator("div", "nn", "n", function(state, lhs, rhs)
+	return lhs / rhs
 end)
 
-registerOperator("exp", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) ^ op2[1](self, op2)
+registerOperator("exp", "nn", "n", function(state, lhs, rhs)
+	return lhs ^ rhs
 end)
 
-registerOperator("mod", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) % op2[1](self, op2)
+registerOperator("mod", "nn", "n", function(state, lhs, rhs)
+	return lhs % rhs
 end)
 
 --[[************************************************************************]]--

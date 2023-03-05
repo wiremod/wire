@@ -111,26 +111,16 @@ local function SpecialCase( arg )
 		if (arg.isfunction) then
 			return "function " .. arg[3] .. " = (" .. arg[2] .. ")"
 		elseif (seq(arg)) then -- A table with only numerical indexes
-			local str = "["
-			for k,v in ipairs( arg ) do
-				if istable(v) then
-					if (k ~= #arg) then
-						str = str .. SpecialCase( v ) .. ","
-					else
-						str = str .. SpecialCase( v ) .. "]"
-					end
-				else
-					if (k ~= #arg) then
-						str = str .. tostring(v) .. ","
-					else
-						str = str .. tostring(v) .. "]"
-					end
-				end
+			local buf = {}
+			for k, v in ipairs( arg ) do
+				buf[k] = (type(v) == "table") and SpecialCase(v) or tostring(v)
 			end
-			return str
+			return "array(" .. table.concat(buf, ",") .. ")"
 		else -- Else it's a table with string indexes (which this function can't handle)
-			return "[table]"
+			return "table(...)"
 		end
+	elseif t == "string" then
+		return string.format("%q", arg)
 	elseif t == "Vector" then
 		return string.format("vec(%.2f,%.2f,%.2f)", arg[1], arg[2], arg[3])
 	elseif t == "Angle" then
@@ -145,9 +135,9 @@ e2function void print(...args)
 
 	local nargs = #args
 	if nargs > 0 then
-		for i=1, math.min(nargs, 256) do
+		for i= 1, math.min(nargs, 256) do
 			local v = args[i]
-			args[i] = string.Left(SpecialCase( v ) or tostring(v), 249)
+			args[i] = string.Left(SpecialCase(v) or tostring(v), 249)
 		end
 
 		local text = table.concat(args, "\t")
@@ -156,11 +146,6 @@ e2function void print(...args)
 		end
 	end
 end
-
---- Posts <text> to the chat area. (deprecated due to print(...))
---e2 function void print(string text)
---	self.player:ChatPrint(text)
---end
 
 --- Posts a string to the chat of <this>'s driver. Returns 1 if the text was printed, 0 if not.
 e2function number entity:printDriver(string text)

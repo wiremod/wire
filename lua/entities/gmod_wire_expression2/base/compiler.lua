@@ -47,6 +47,10 @@ function Scope.new(parent)
 	return setmetatable({ data = { ops = 0 }, vars = {}, parent = parent }, Scope)
 end
 
+function Scope:Depth()
+	return self.parent and (1 + self.parent:Depth()) or 0
+end
+
 ---@param name string
 ---@param data VarData
 function Scope:DeclVar(name, data)
@@ -178,7 +182,7 @@ local function handleInfixOperation(self, trace, data)
 
 	local op, op_ret, ops = self:GetOperator(E2Lib.OperatorNames[data[2]]:lower(), { lhs_ty, rhs_ty }, trace)
 
-	if true then
+	if false then
 		-- legacy
 		local largs = { [1] = {}, [2] = { lhs }, [3] = { rhs }, [4] = { lhs_ty, rhs_ty } }
 
@@ -340,7 +344,7 @@ local CompileVisitors = {
 
 	---@param data { [1]: Node, [2]: Node, [3]: boolean }
 	[NodeVariant.While] = function(self, trace, data)
-		local expr, block, cost = nil, nil, 3
+		local expr, block, cost = nil, nil, 1 / 20
 		self:Scope(function(scope)
 			expr = self:CompileNode(data[1])
 			scope.data.loop = true
@@ -351,6 +355,7 @@ local CompileVisitors = {
 		if data[3] then
 			-- do while
 			return function(state) ---@param state RuntimeContext
+				state:PushScope()
 				repeat
 					state.prf = state.prf + cost
 					if state.__continue__ then
@@ -361,6 +366,7 @@ local CompileVisitors = {
 						if state.__break__ or state.__return__ then break end
 					end
 				until expr(state) == 0
+				state:PopScope()
 			end
 		else
 			return function(state) ---@param state RuntimeContext
@@ -382,7 +388,7 @@ local CompileVisitors = {
 	[NodeVariant.For] = function (self, trace, data)
 		local var, start, stop, step = data[1], self:CompileNode(data[2]), self:CompileNode(data[3]), data[4] and self:CompileNode(data[4]) or data[4]
 
-		local block, cost = nil, 3
+		local block, cost = nil, 1 / 20
 		self:Scope(function(scope)
 			scope.data.loop = true
 			scope:DeclVar(var.value, { initialized = true, type = "n", trace_if_unused = var.trace })
@@ -393,6 +399,7 @@ local CompileVisitors = {
 
 		local var = var.value
 		return function(state) ---@param state RuntimeContext
+			state:PushScope()
 			local step = step and step(state) or 1
 			for i = start(state), stop(state), step do
 				state.prf = state.prf + cost
@@ -406,6 +413,7 @@ local CompileVisitors = {
 					if state.__break__ or state.__return__ then break end
 				end
 			end
+			state:PopScope()
 		end
 	end,
 
@@ -475,6 +483,8 @@ local CompileVisitors = {
 			catch_block = self:CompileNode(data[3])
 		end)
 
+		self.scope.data.ops = self.scope.data.ops + 1
+
 		return function(state) ---@param state RuntimeContext
 			local ok, err = pcall(try_block, state)
 			if not ok then
@@ -524,7 +534,6 @@ local CompileVisitors = {
 				param_names[i] = param.name.value
 			end
 		end
-
 
 		--[[
 		local fn_data, variadic = self:GetFunction(name.value, param_types, meta_type)
@@ -651,9 +660,22 @@ local CompileVisitors = {
 			self.user_methods[meta_type] = self.user_methods[meta_type] or {}
 
 			self.user_methods[meta_type][name.value] = self.user_methods[meta_type][name.value] or {}
+
+			if variadic then
+				local opposite = variadic_ty == "r" and "t" or "r"
+				if self.user_methods[meta_type][name.value][sig:gsub(".." .. variadic_ty, ".." .. opposite)] then
+					self:Error("Cannot override variadic " .. opposite .. " function with variadic " .. variadic_ty .. " function to avoid ambiguity.", trace)
+				end
+			end
 			self.user_methods[meta_type][name.value][sig] = fn
 		else
 			self.user_functions[name.value] = self.user_functions[name.value] or {}
+			if variadic then
+				local opposite = variadic_ty == "r" and "t" or "r"
+				if self.user_functions[name.value][sig:gsub(".." .. variadic_ty, ".." .. opposite)] then
+					self:Error("Cannot override variadic " .. opposite .. " function with variadic " .. variadic_ty .. " function to avoid ambiguity.", trace)
+				end
+			end
 			self.user_functions[name.value][sig] = fn
 		end
 
@@ -784,7 +806,6 @@ local CompileVisitors = {
 				-- It can have indices, it already exists
 				if #indices > 0 then
 					local setter = table.remove(indices)
-
 					stmts[i] = function(state)
 						return state.Scope[var]
 					end
@@ -820,8 +841,10 @@ local CompileVisitors = {
 					end
 				else
 					self:Assert(existing.type == value_ty, "Cannot assign type (" .. value_ty .. ") to variable of type (" .. existing.type .. ")", trace)
+
+					local id = existing.scope:Depth()
 					stmts[i] = function(state) ---@param state RuntimeContext
-						state.Scope[var] = value(state)
+						state.Scopes[id][var] = value(state)
 					end
 				end
 			else
@@ -874,25 +897,8 @@ local CompileVisitors = {
 		self:Assert(op_ty == var.type, "Cannot use compound arithmetic on differing types", trace)
 
 		local name = data[1].value
-
-		local function fetch(state)
-			return state.Scope[name]
-		end
-
-		if true then
-			-- legacy
-			local largs = { [1] = {}, [2] = { fetch }, [3] = { expr }, [4] = { var.type, expr_ty } }
-			return function(state)
-				state.Scope[name] = op(state, largs)
-			end
-		else
-			return function(state)
-				state.Scope[name] = op(state, fetch(state), expr(state))
-			end
-		end
-
-		return function(state) ---@param state RuntimeContext
-			state.Scope[name] = op(state, var, expr)
+		return function(state)
+			state.Scope[name] = op(state, state.Scope[name], expr(state))
 		end
 	end,
 
@@ -930,7 +936,7 @@ local CompileVisitors = {
 	[NodeVariant.ExprLiteral] = function (self, trace, data)
 		local val = data[2]
 
-		self.scope.data.ops = self.scope.data.ops + 0.5
+		self.scope.data.ops = self.scope.data.ops + 1 / 8
 		return function()
 			return val
 		end, data[1]
@@ -960,7 +966,9 @@ local CompileVisitors = {
 				local key, key_ty = self:CompileNode(kvpair[1])
 
 				if key_ty == "n" then
-					numbers[key] = self:CompileNode(kvpair[2])
+					local value, ty = self:CompileNode(kvpair[2])
+					self:Assert(not BLOCKED_ARRAY_TYPES[ty], "Cannot use type " .. ty .. " as array value", kvpair[2].trace)
+					numbers[key] = value
 				else
 					self:Error("Cannot use type " .. key_ty .. " as array key", kvpair[1].trace)
 				end
@@ -978,7 +986,9 @@ local CompileVisitors = {
 		else
 			local args = {}
 			for k, arg in ipairs(data) do
-				args[k] = self:CompileNode(arg)
+				local value, ty = self:CompileNode(arg)
+				self:Assert(not BLOCKED_ARRAY_TYPES[ty], "Cannot use type " .. ty .. " as array value", trace)
+				args[k] = value
 			end
 
 			return function(state) ---@param state RuntimeContext
@@ -1046,12 +1056,71 @@ local CompileVisitors = {
 	end,
 
 	[NodeVariant.ExprArithmetic] = handleInfixOperation,
-	[NodeVariant.ExprLogicalOp] = handleInfixOperation,
+
+
+	---@param data { [1]: Node, [2]: Operator, [3]: self }
+	[NodeVariant.ExprLogicalOp] = function(self, trace, data)
+		local lhs, lhs_ty = self:CompileNode(data[1])
+		local rhs, rhs_ty = self:CompileNode(data[3])
+
+		self:Assert(lhs_ty == rhs_ty, "Cannot perform logical operation on differing types", trace)
+
+		local op, op_ret, ops = self:GetOperator("is", { lhs_ty }, trace)
+		self:Assert(op_ret == "n", "Cannot use perform logical operation on type " .. lhs_ty, trace)
+
+		if data[2] == Operator.Or then
+			return function(state)
+				return (op(lhs(state)) ~= 0 or op(rhs(state)) ~= 0) and 1 or 0
+			end, "n"
+		else -- Operator.And
+			return function(state)
+				return (op(lhs(state)) ~= 0 and op(rhs(state)) ~= 0) and 1 or 0
+			end, "n"
+		end
+	end,
+
 	[NodeVariant.ExprBinaryOp] = handleInfixOperation,
 	[NodeVariant.ExprComparison] = handleInfixOperation,
-	[NodeVariant.ExprEquals] = handleInfixOperation,
+
+	[NodeVariant.ExprEquals] = function(self, trace, data)
+		local lhs, lhs_ty = self:CompileNode(data[1])
+		local rhs, rhs_ty = self:CompileNode(data[3])
+
+		self:Assert(lhs_ty == rhs_ty, "Cannot perform equality operation on differing types", trace)
+
+		local op, op_ret = self:GetOperator("eq", { lhs_ty, rhs_ty }, trace)
+		self:Assert(op_ret == "n", "Cannot use perform equality operation on type " .. lhs_ty, trace)
+
+		if data[2] == Operator.Eq then
+			return function(state)
+				return op(state, lhs(state), rhs(state)) ~= 0 and 1 or 0
+			end, "n"
+		else -- Operator.Neq
+			return function(state)
+				return op(state, lhs(state), rhs(state)) == 0 and 1 or 0
+			end, "n"
+		end
+	end,
+
 	[NodeVariant.ExprBitShift] = handleInfixOperation,
-	[NodeVariant.ExprUnaryOp] = handleUnaryOperation,
+
+	---@param data { [1]: Operator, [2]: Node, [3]: self }
+	[NodeVariant.ExprUnaryOp] = function(self, trace, data)
+		local exp, ty = self:CompileNode(data[2])
+
+		if data[1] == Operator.Not then -- Return opposite of operator_is result
+			local op, op_ret = self:GetOperator("is", { ty }, trace)
+			self:Assert(op_ret == "n", "Cannot perform not operation on type " .. ty, trace)
+			return function(state)
+				return op(state, exp(state)) == 0 and 1 or 0
+			end, "n"
+		else
+			local op, op_ret = self:GetOperator(data[1] == Operator.Sub and "neg" or E2Lib.OperatorNames[data[1]]:lower(), { ty }, trace)
+			return function(state)
+				return op(state, exp(state))
+			end, op_ret
+		end
+	end,
 
 	---@param data { [1]: Operator, [2]: Token<string> }
 	[NodeVariant.ExprUnaryWire] = function(self, trace, data)
@@ -1217,15 +1286,16 @@ local CompileVisitors = {
 			self:Error("Events cannot be nested inside of statements, they are compile time constructs", trace)
 		end
 
-		local name, params = data[1], data[2]
-
-		local name = data[1]
-		local params = {}
+		local name, params = data[1].value, {}
 		for i, param in ipairs(data[2]) do
 			params[i] = { param.name.value, param.type and self:CheckType(param.type) or "n" }
 		end
 
 		local event = E2Lib.Env.Events[name]
+		if not event then
+			self:Error("No such event exists: '" .. name .. "'", trace)
+		end
+
 		if #params > #event.args then
 			local extra_arg_types = {}
 			for i = #event.args + 1, #params do
@@ -1239,13 +1309,11 @@ local CompileVisitors = {
 		for k, arg in ipairs(event.args) do
 			if not params[k] then
 				-- TODO: Maybe this should be a warning so that events can have extra params added without breaking old code?
-				self:Error("Event '" .. name .. "' missing argument #" .. k .. " of type " .. tostring(arg.type), trace)
+				self:Error("Event '" .. name .. "' missing argument #" .. k .. " of type " .. tostring(arg), trace)
 			end
 
-			local param_id = wire_expression_types[params[k][2]][1]
-
-			if arg.type ~= param_id then
-				self:Error("Mismatched event argument: " .. tostring(arg.type) .. " vs " .. tostring(param_id), trace)
+			if arg ~= params[k][2] then
+				self:Error("Mismatched event argument: " .. tostring(arg) .. " vs " .. tostring(param_id), trace)
 			end
 		end
 
@@ -1258,7 +1326,7 @@ local CompileVisitors = {
 		local block = self:Scope(function(scope)
 			for k, arg in ipairs(event.args) do
 				if not params[k].discard then
-					scope:DeclVar(params[k][1], arg.type)
+					scope:DeclVar(params[k][1], { type = arg, initialized = true, trace_if_unused = params[k][3] })
 				end
 			end
 
@@ -1314,11 +1382,18 @@ function Compiler:GetUserFunction(name, types, method)
 	local param_sig = table.concat(types)
 	if overloads[param_sig] then return overloads[param_sig], false end
 
-	for i = #param_sig, 0, -1 do
-		local sig = param_sig:sub(1, i)
+	for i = #types, 0, -1 do
+		local sig = table.concat(types, "", 1, i)
 
 		local fn = overloads[sig .. "..r"]
-		if fn then return fn, true end
+		if fn then
+			for j = i, #types do
+				if BLOCKED_ARRAY_TYPES[types[j]] then
+					self:Error("Cannot call variadic array function (" .. name .. ") with a " .. tostring(types[j]) .. " value.", trace)
+				end
+			end
+			return fn, true
+		end
 
 		fn = overloads[sig .. "..t"]
 		if fn then return fn, true end

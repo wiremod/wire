@@ -1037,35 +1037,140 @@ function E2Lib.unpackException(struct)
 	return struct.userdata and struct.userdata.catchable or false, struct.message, struct.trace
 end
 
----@alias RuntimeScope table<string, any>
+---@class RuntimeScope: table<string, any>
+---@field vclk table<string, boolean>
+---@field parent RuntimeScope?
 
--- Will be replaced with a runtime context object later.
+--- Context of an Expression 2 at runtime.
 ---@class RuntimeContext
+---
 ---@field Scope RuntimeScope
 ---@field Scopes RuntimeScope[]
 ---@field ScopeID integer
 ---@field GlobalScope RuntimeScope
+---
 ---@field prf integer
+---@field prfcount integer
+---@field prfbench integer
+---
+---@field time integer
+---@field timebench integer
+---
+---@field entity userdata
+---@field player userdata
+---@field uid integer
+---
 ---@field trace Trace
 ---@field __break__ boolean
 ---@field __continue__ boolean
 ---@field __return__ boolean
 ---@field __returnval__ any
+---
 ---@field funcs table<string, RuntimeOperator>
+---@field includes table
+---
+---@field data table # Userdata
+---@field throw fun(self: RuntimeContext, msg: string, value: any?)
 local RuntimeContext = {}
 RuntimeContext.__index = RuntimeContext
 
+function RuntimeContext:__tostring()
+	return "RuntimeContext"
+end
+
 E2Lib.RuntimeContext = RuntimeContext
 
-function RuntimeContext:InitScope()
-	local global = { vclk = {} }
-	self.Scopes = { [0] = global }
-	self.Scope, self.GlobalScope = self.Scopes[0], self.Scopes[0]
-	self.ScopeID = 0
+---@class RuntimeContextBuilder: RuntimeContext
+local RuntimeContextBuilder = {}
+RuntimeContextBuilder.__index = RuntimeContextBuilder
+
+---@return RuntimeContextBuilder
+function RuntimeContext.builder()
+	local global = { vclk = {}, parent = nil }
+	return setmetatable({
+		GlobalScope = global,
+		Scopes = { [0] = global },
+		ScopeID = 0,
+		Scope = global,
+
+		prf = 0, prfcount = 0, prfbench = 0,
+		time = 0, timebench = 0,
+
+		entity = game.GetWorld(), player = game.GetWorld(), uid = "World",
+
+		trace = nil, -- Should be set at runtime
+		__break__ = false, __continue__ = false, __return__ = false,
+
+		funcs = {}, includes = {}, data = {}
+	}, RuntimeContextBuilder)
+end
+
+---@param ply userdata
+function RuntimeContextBuilder:withOwner(ply)
+	self.player = assert(ply)
+	self.uid = (self.player.UniqueID and self.player:UniqueID()) or "World"
+	return self
+end
+
+---@param chip userdata
+function RuntimeContextBuilder:withChip(chip)
+	self.entity = assert(chip)
+	return self
+end
+
+---@param prf integer
+---@param prfcount integer
+---@param prfbench integer
+function RuntimeContextBuilder:withPrf(prf, prfcount, prfbench)
+	self.prf, self.prfcount, self.prfbench = assert(prf), assert(prfcount), assert(prfbench)
+	return self
+end
+
+---@param time integer
+---@param timebench integer
+function RuntimeContextBuilder:withTime(time, timebench)
+	self.time, self.timebench = assert(time), assert(timebench)
+	return self
+end
+
+---@param functions table
+function RuntimeContextBuilder:withUserFunctions(functions)
+	self.funcs = assert(functions)
+	return self
+end
+
+---@param includes table
+function RuntimeContextBuilder:withIncludes(includes)
+	self.includes = assert(includes)
+	return self
+end
+
+---@param strict boolean?
+function RuntimeContextBuilder:withStrict(strict)
+	self.strict = strict == true
+	return self
+end
+
+---@return RuntimeContext
+function RuntimeContextBuilder:build()
+	if self.strict then
+		local err = E2Lib.raiseException
+		function self:throw(msg)
+			err(msg, 2, self.trace)
+		end
+	else
+		function self:throw(_msg, variable)
+			return variable
+		end
+	end
+	return setmetatable(self, RuntimeContext)
 end
 
 function RuntimeContext:PushScope()
 	local scope = { vclk = {} }
+	if self.ScopeID ~= 0 then
+		setmetatable(scope, { __index = self.Scopes[self.ScopeID - 1] })
+	end
 	self.Scope, self.ScopeID = scope, self.ScopeID + 1
 	self.Scopes[self.ScopeID] = self.Scope
 end
@@ -1093,14 +1198,8 @@ end
 ---@param owner userdata? # Owner, or assumes world
 ---@return RuntimeContext? # Context or nil if failed
 local function makeContext(owner)
-	local ctx = setmetatable({
-		data = {}, vclk = {}, funcs = {},
-		entity = owner, player = owner, uid = IsValid(owner) and owner:UniqueID() or "World",
-		prf = 0, prfcount = 0, prfbench = 0,
-		time = 0, timebench = 0, includes = {}
-	}, RuntimeContext)
-
-	ctx:InitScope()
+	local context = RuntimeContext.builder()
+		:build()
 
 	-- Construct the context to run code.
 	local ok, why = pcall(wire_expression2_CallHook, "construct", ctx)
@@ -1108,7 +1207,7 @@ local function makeContext(owner)
 		pcall(wire_expression2_CallHook, "destruct", ctx)
 	end
 
-	return ctx
+	return context
 end
 
 --- Compiles an E2 script without an entity owning it.

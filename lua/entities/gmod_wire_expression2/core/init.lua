@@ -5,9 +5,6 @@ AddCSLuaFile()
   Andreas "Syranide" Svensson, me@syranide.com
 ]]
 
-wire_expression2_delta = 0.0000001000000
-delta = wire_expression2_delta
-
 -- functions to type-check function return values.
 
 local wire_expression2_debug = CreateConVar("wire_expression2_debug", 0, 0)
@@ -178,6 +175,13 @@ local function getArgumentTypeIds(args)
 	return thistype, out
 end
 
+---@param name string
+---@param pars string
+---@param rets string
+---@param func fun(state: RuntimeContext, ...): any
+---@param cost integer?
+---@param argnames string[]?
+---@param attributes table<string, string|boolean>?
 function registerOperator(name, pars, rets, func, cost, argnames, attributes)
 	if attributes and attributes.legacy == nil then
 		-- can explicitly mark "false" (used by extpp)

@@ -89,15 +89,6 @@ end
 
 __e2setcost(2)
 
-registerOperator("ass", "c", "c", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	self.Scopes[scope][lhs] = rhs
-	self.Scopes[scope].vclk[lhs] = true
-	return rhs
-end)
-
 e2function number operator_is(complex z)
 	if (z[1]==0) and (z[2]==0) then return 0 else return 1 end
 end

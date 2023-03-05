@@ -6,11 +6,6 @@ local delta = wire_expression2_delta
 
 __e2setcost(1) -- approximation
 
-local fix_default = E2Lib.fixDefault
-registerOperator("dat", "", "", function(self, args)
-	return fix_default(args[2])
-end)
-
 ------------------------------------------------------------------------
 
 __e2setcost(1) -- approximation
@@ -38,38 +33,8 @@ end)
 
 __e2setcost(0) -- cascaded
 
-registerOperator("is", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1 ~= 0 and 1 or 0
-end)
-
-__e2setcost(1) -- approximation
-
-registerOperator("not", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1 == 0 and 1 or 0
-end)
-
-registerOperator("and", "nn", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 == 0 then return 0 end
-
-	local op2 = args[3]
-	local rv2 = op2[1](self, op2)
-	return rv2 ~= 0 and 1 or 0
-end)
-
-registerOperator("or", "nn", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 ~= 0 then return 1 end
-
-	local op2 = args[3]
-	local rv2 = op2[1](self, op2)
-	return rv2 ~= 0 and 1 or 0
+registerOperator("is", "n", "n", function(state, num)
+	return num ~= 0 and 1 or 0
 end)
 
 --------------------------------------------------------------------------------

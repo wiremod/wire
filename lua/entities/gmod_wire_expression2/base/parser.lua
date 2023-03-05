@@ -375,16 +375,20 @@ function Parser:Stmt()
 			end
 		end
 
-		local last = table.remove(exprs)
-		if #last[2] ~= 0 then
-			-- Edge case where last assignment is an indexing operation.
-			-- X = Y = T[5]
-			last = Node.new(NodeVariant.ExprIndex, { Node.new(NodeVariant.ExprIdent, last[1]), last[2] })
+		if #exprs == 1 then -- No assignment
+			self.index = self.index - 1
 		else
-			last = Node.new(NodeVariant.ExprIdent, last[1], last[1].trace)
-		end
+			local last = table.remove(exprs)
+			if #last[2] ~= 0 then
+				-- Edge case where last assignment is an indexing operation.
+				-- X = Y = T[5]
+				last = Node.new(NodeVariant.ExprIndex, { Node.new(NodeVariant.ExprIdent, last[1]), last[2] })
+			else
+				last = Node.new(NodeVariant.ExprIdent, last[1], last[1].trace)
+			end
 
-		return Node.new(NodeVariant.Assignment, { is_local, exprs, last })
+			return Node.new(NodeVariant.Assignment, { is_local, exprs, last })
+		end
 	end
 
 	-- Switch Case
@@ -755,13 +759,13 @@ function Parser:Expr10()
 	end
 
 	if self:ConsumeLeading(TokenVariant.Operator, Operator.Sub) then
-		return Node.new(NodeVariant.ExprUnaryOp, { Operator.Sub, self:Expr11() })
+		return Node.new(NodeVariant.ExprUnaryOp, { Operator.Sub, self:Expr11() }, self:GetTrace())
 	elseif self:Consume(TokenVariant.Operator, Operator.Sub) then
 		self:Error("Negation operator (-) must not be succeeded by whitespace")
 	end
 
 	if self:ConsumeLeading(TokenVariant.Operator, Operator.Not) then
-		return Node.new(NodeVariant.ExprUnaryOp, { Operator.Not, self:Expr10() })
+		return Node.new(NodeVariant.ExprUnaryOp, { Operator.Not, self:Expr10() }, self:GetTrace())
 	elseif self:Consume(TokenVariant.Operator, Operator.Not) then
 		self:Error("Logical not operator (!) must not be succeeded by whitespace")
 	end
