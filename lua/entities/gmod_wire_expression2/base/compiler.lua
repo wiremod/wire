@@ -180,9 +180,9 @@ local function handleInfixOperation(self, trace, data)
 	local lhs, lhs_ty = self:CompileNode(data[1])
 	local rhs, rhs_ty = self:CompileNode(data[3])
 
-	local op, op_ret, ops = self:GetOperator(E2Lib.OperatorNames[data[2]]:lower(), { lhs_ty, rhs_ty }, trace)
+	local op, op_ret, legacy = self:GetOperator(E2Lib.OperatorNames[data[2]]:lower(), { lhs_ty, rhs_ty }, trace)
 
-	if false then
+	if legacy then
 		-- legacy
 		local largs = { [1] = {}, [2] = { lhs }, [3] = { rhs }, [4] = { lhs_ty, rhs_ty } }
 
@@ -192,24 +192,6 @@ local function handleInfixOperation(self, trace, data)
 	else
 		return function(state)
 			return op(state, lhs(state), rhs(state))
-		end, op_ret
-	end
-end
-
----@type fun(self: Compiler, trace: Trace, data: { [1]: Operator, [2]: Node, [3]: self }): RuntimeOperator, string?
-local function handleUnaryOperation(self, trace, data)
-	local exp, ty = self:CompileNode(data[2])
-	local op, op_ret = self:GetOperator(data[1] == Operator.Sub and "neg" or E2Lib.OperatorNames[data[1]]:lower(), { ty }, trace)
-
-	if true then
-		local largs = { [1] = {}, [2] = { exp }, [4] = { ty } }
-
-		return function(state)
-			return op(state, largs)
-		end, op_ret
-	else
-		return function(state)
-			return op(state, exp(state))
 		end, op_ret
 	end
 end
@@ -1065,17 +1047,33 @@ local CompileVisitors = {
 
 		self:Assert(lhs_ty == rhs_ty, "Cannot perform logical operation on differing types", trace)
 
-		local op, op_ret, ops = self:GetOperator("is", { lhs_ty }, trace)
+		local op, op_ret, legacy = self:GetOperator("is", { lhs_ty }, trace)
 		self:Assert(op_ret == "n", "Cannot use perform logical operation on type " .. lhs_ty, trace)
 
 		if data[2] == Operator.Or then
-			return function(state)
-				return (op(lhs(state)) ~= 0 or op(rhs(state)) ~= 0) and 1 or 0
-			end, "n"
+			if legacy then
+				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
+				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
+				return function(state)
+					return (op(lhs(state, largs_lhs)) ~= 0 or op(rhs(state, largs_rhs)) ~= 0) and 1 or 0
+				end
+			else
+				return function(state)
+					return (op(lhs(state)) ~= 0 or op(rhs(state)) ~= 0) and 1 or 0
+				end, "n"
+			end
 		else -- Operator.And
-			return function(state)
-				return (op(lhs(state)) ~= 0 and op(rhs(state)) ~= 0) and 1 or 0
-			end, "n"
+			if legacy then
+				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
+				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
+				return function(state)
+					return (op(lhs(state, largs_lhs)) ~= 0 and op(rhs(state, largs_rhs)) ~= 0) and 1 or 0
+				end
+			else
+				return function(state)
+					return (op(lhs(state)) ~= 0 and op(rhs(state)) ~= 0) and 1 or 0
+				end, "n"
+			end
 		end
 	end,
 
@@ -1088,17 +1086,31 @@ local CompileVisitors = {
 
 		self:Assert(lhs_ty == rhs_ty, "Cannot perform equality operation on differing types", trace)
 
-		local op, op_ret = self:GetOperator("eq", { lhs_ty, rhs_ty }, trace)
+		local op, op_ret, legacy = self:GetOperator("eq", { lhs_ty, rhs_ty }, trace)
 		self:Assert(op_ret == "n", "Cannot use perform equality operation on type " .. lhs_ty, trace)
 
 		if data[2] == Operator.Eq then
-			return function(state)
-				return op(state, lhs(state), rhs(state)) ~= 0 and 1 or 0
-			end, "n"
+			if legacy then
+				local largs = { [1] = {}, [2] = { lhs }, [3] = { rhs }, [4] = { lhs_ty, rhs_ty } }
+				return function(state)
+					return op(state, largs) ~= 0 and 1 or 0
+				end, "n"
+			else
+				return function(state)
+					return op(state, lhs(state), rhs(state)) ~= 0 and 1 or 0
+				end, "n"
+			end
 		else -- Operator.Neq
-			return function(state)
-				return op(state, lhs(state), rhs(state)) == 0 and 1 or 0
-			end, "n"
+			if legacy then
+				local largs = { [1] = {}, [2] = { lhs }, [3] = { rhs }, [4] = { lhs_ty, rhs_ty } }
+				return function(state)
+					return op(state, largs) == 0 and 1 or 0
+				end, "n"
+			else
+				return function(state)
+					return op(state, lhs(state), rhs(state)) == 0 and 1 or 0
+				end, "n"
+			end
 		end
 	end,
 
@@ -1109,16 +1121,31 @@ local CompileVisitors = {
 		local exp, ty = self:CompileNode(data[2])
 
 		if data[1] == Operator.Not then -- Return opposite of operator_is result
-			local op, op_ret = self:GetOperator("is", { ty }, trace)
+			local op, op_ret, legacy = self:GetOperator("is", { ty }, trace)
 			self:Assert(op_ret == "n", "Cannot perform not operation on type " .. ty, trace)
-			return function(state)
-				return op(state, exp(state)) == 0 and 1 or 0
-			end, "n"
+
+			if legacy then
+				local largs = { [1] = {}, [2] = { exp }, [3] = { ty } }
+				return function(state)
+					return op(state, largs)
+				end
+			else
+				return function(state)
+					return op(state, exp(state)) == 0 and 1 or 0
+				end, "n"
+			end
 		else
-			local op, op_ret = self:GetOperator(data[1] == Operator.Sub and "neg" or E2Lib.OperatorNames[data[1]]:lower(), { ty }, trace)
-			return function(state)
-				return op(state, exp(state))
-			end, op_ret
+			local op, op_ret, legacy = self:GetOperator(data[1] == Operator.Sub and "neg" or E2Lib.OperatorNames[data[1]]:lower(), { ty }, trace)
+			if legacy then
+				local largs = { [1] = {}, [2] = { exp }, [3] = { ty } }
+				return function(state)
+					return op(state, largs)
+				end
+			else
+				return function(state)
+					return op(state, exp(state))
+				end, op_ret
+			end
 		end
 	end,
 
@@ -1352,11 +1379,12 @@ local CompileVisitors = {
 ---@param trace Trace
 ---@return RuntimeOperator fn
 ---@return TypeSignature signature
+---@return boolean legacy
 function Compiler:GetOperator(variant, types, trace)
 	local fn = wire_expression2_funcs["op:" .. variant .. "(" .. table.concat(types) .. ")"]
 	if fn then
 		self.scope.data.ops = self.scope.data.ops + (fn[4] or 3)
-		return fn[3], fn[2]
+		return fn[3], fn[2], fn.attributes.legacy
 	end
 
 	self:Error("No such operator: " .. variant .. " (" .. table.concat(types, ", ") .. ")", trace)

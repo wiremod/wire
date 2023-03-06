@@ -76,29 +76,25 @@ end)
 
 --[[************************************************************************]]--
 
-__e2setcost(1.5)
-
 registerOperator("eq", "nn", "n", function(state, lhs, rhs)
 	return lhs == rhs and 1 or 0
-end)
-
-__e2setcost(1.25)
+end, 1, nil, { legacy = false })
 
 registerOperator("geq", "nn", "n", function(state, lhs, rhs)
 	return lhs >= rhs and 1 or 0
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("leq", "nn", "n", function(state, lhs, rhs)
 	return lhs <= rhs and 1 or 0
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("gth", "nn", "n", function(state, lhs, rhs)
 	return lhs > rhs and 1 or 0
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("lth", "nn", "n", function(state, lhs, rhs)
 	return lhs < rhs and 1 or 0
-end)
+end, 1, nil, { legacy = false })
 
 --[[************************************************************************]]--
 
@@ -106,33 +102,33 @@ __e2setcost(0.5) -- approximation
 
 registerOperator("neg", "n", "n", function(state, num)
 	return -num
-end)
+end, 1, nil, { legacy = false })
 
 __e2setcost(1)
 
 registerOperator("add", "nn", "n", function(state, lhs, rhs)
 	return lhs + rhs
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("sub", "nn", "n", function(state, lhs, rhs)
 	return lhs - rhs
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("mul", "nn", "n", function(state, lhs, rhs)
 	return lhs * rhs
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("div", "nn", "n", function(state, lhs, rhs)
 	return lhs / rhs
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("exp", "nn", "n", function(state, lhs, rhs)
 	return lhs ^ rhs
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("mod", "nn", "n", function(state, lhs, rhs)
 	return lhs % rhs
-end)
+end, 1, nil, { legacy = false })
 
 --[[************************************************************************]]--
 -- TODO: select, average

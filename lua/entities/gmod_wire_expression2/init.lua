@@ -107,8 +107,6 @@ function ENT:Execute()
 
 	self:PCallHook('preexecute')
 
-	self.context:PushScope()
-
 	local bench = SysTime()
 
 	local ok, msg = pcall(self.script, self.context)
@@ -127,8 +125,6 @@ function ENT:Execute()
 	end
 
 	self.context.time = self.context.time + (SysTime() - bench)
-
-	self.context:PopScope()
 
 	local forceTriggerOutputs = self.first or self.duped
 	self.first = false -- if hooks call execute
@@ -175,8 +171,6 @@ function ENT:ExecuteEvent(evt, args)
 	self:PCallHook("preexecute")
 
 	for name, handler in pairs(handlers) do
-		self.context:PushScope()
-
 		local bench = SysTime()
 		local ok, msg = pcall(handler, self.context, args)
 
@@ -193,8 +187,6 @@ function ENT:ExecuteEvent(evt, args)
 			end
 		end
 		self.context.time = self.context.time + (SysTime() - bench)
-
-		self.context:PopScope()
 	end
 
 

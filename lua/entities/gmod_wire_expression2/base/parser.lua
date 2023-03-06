@@ -365,12 +365,10 @@ function Parser:Stmt()
 	else
 		local exprs = { { var, is_local and {} or self:Indices(), self:GetTrace() } }
 		while self:Consume(TokenVariant.Operator, Operator.Ass) do
-			local id = self:Consume(TokenVariant.Ident)
-			if id then -- todo stitch trace instead of this garbage
-				-- Var = Var = ...
-				exprs[#exprs + 1] = { id, self:Indices(), self:GetTrace() }
+			local exp = self:Expr()
+			if exp.variant == NodeVariant.ExprIdent then
+				exprs[#exprs + 1] = { exp.data, self:Indices(), self:GetTrace() }
 			else
-				local exp = self:Expr()
 				return Node.new(NodeVariant.Assignment, { is_local, exprs, exp })
 			end
 		end
