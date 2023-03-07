@@ -5,7 +5,7 @@ local Trace, Error = E2Lib.Debug.Trace, E2Lib.Debug.Error
 ---@param e2 string
 ---@param directives PPDirectives
 ---@param includes table<string, string>
----@param scripts RuntimeOperator[]
+---@param scripts Node[]
 ---@return Error[]?
 local function Include(e2, directives, includes, scripts)
 	if scripts[e2] then
@@ -19,14 +19,14 @@ local function Include(e2, directives, includes, scripts)
 		return false, { Error.new("Could not find include '" .. e2 .. ".txt'") }
 	end
 
-	local status, err, buffer, preprocessor = E2Lib.PreProcessor.Execute(code, directives)
+	local status, err, buffer = E2Lib.PreProcessor.Execute(code, directives)
 	if not status then
-		table.Add(errors, preprocessor.errors)
+		table.Add(errors, err)
 	end
 
-	local status, tokens, tokenizer = E2Lib.Tokenizer.Execute(buffer)
+	local status, tokens = E2Lib.Tokenizer.Execute(buffer)
 	if not status then
-		table.Add(errors, tokenizer.errors)
+		table.Add(errors, tokens)
 	end
 
 	local status, tree, dvars, files = E2Lib.Parser.Execute(tokens)
@@ -39,9 +39,9 @@ local function Include(e2, directives, includes, scripts)
 
 	scripts[e2] = { tree }
 
-	for i = 1, #files do
-		local ierrors = Include(files[i], directives, includes, scripts)
-		if ierrors then table.Add(errors, errors) end
+	for i, file in ipairs(files) do
+		local ierrors = Include(file, directives, includes, scripts)
+		if ierrors then table.Add(errors, ierrors) end
 	end
 
 	if #errors ~= 0 then return errors end
@@ -57,11 +57,11 @@ function E2Lib.Validate(buffer)
 
 	-- invoke preprocessor
 	local status, directives, buffer, preprocessor = E2Lib.PreProcessor.Execute(buffer)
-	if not status then table.Add(errors, preprocessor.errors) end
+	if not status then table.Add(errors, directives) end
+	---@cast directives PPDirectives
 	table.Add(warnings, preprocessor.warnings)
 
 	-- decompose directives
-	local inports, outports, persists = directives.inputs, directives.outputs, directives.persist
 	RunConsoleCommand("wire_expression2_scriptmodel", directives.model or "")
 
 	-- invoke tokenizer (=lexer)
@@ -75,9 +75,9 @@ function E2Lib.Validate(buffer)
 	table.Add(warnings, parser.warnings)
 
 	-- prepare includes
-	local includes, scripts = {}, {}
-	for i = 1, #files do
-		local ierrors = Include(files[i], directives, includes, scripts)
+	local includes, scripts = {}, {} ---@type table<string, string>, Node[]
+	for i, file in ipairs(files) do
+		local ierrors = Include(file, directives, includes, scripts)
 		if ierrors then table.Add(errors, ierrors) end
 	end
 

@@ -546,8 +546,8 @@ end
 function ENT:TriggerOutputs(force)
 	for key, t in pairs(self.outports[3]) do
 		if self.GlobalScope.vclk[key] or force then
-			if wire_expression_types[t][4] then
-				WireLib.TriggerOutput(self, key, wire_expression_types[t][4](self.context, self.GlobalScope[key]))
+			if wire_expression_types2[t][4] then
+				WireLib.TriggerOutput(self, key, wire_expression_types2[t][4](self.context, self.GlobalScope[key]))
 			else
 				WireLib.TriggerOutput(self, key, self.GlobalScope[key])
 			end

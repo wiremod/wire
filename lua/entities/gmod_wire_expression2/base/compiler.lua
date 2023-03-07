@@ -538,7 +538,7 @@ local CompileVisitors = {
 				if variadic_ty == "r" then
 					function op(state, args) ---@param state RuntimeContext
 						for i = 1, non_variadic do
-							state.Scope[param_names[i]] = args[i](state)
+							state.Scope[param_names[i]] = args[i]
 						end
 
 						local a, n = {}, 1
@@ -560,7 +560,7 @@ local CompileVisitors = {
 					function op(state, args, arg_types) ---@param state RuntimeContext
 						local scope = state.Scope
 						for i = 1, non_variadic do
-							scope[param_names[i]] = args[i](state)
+							scope[param_names[i]] = args[i]
 						end
 
 						local n, ntypes = {}, {}
@@ -583,7 +583,7 @@ local CompileVisitors = {
 				function op(state, args) ---@param state RuntimeContext
 					local scope = state.Scope
 					for i, arg in ipairs(args) do
-						scope[param_names[i]] = arg(state)
+						scope[param_names[i]] = arg
 					end
 
 					block(state)
@@ -601,7 +601,7 @@ local CompileVisitors = {
 				function op(state, args) ---@param state RuntimeContext
 					local scope = state.Scope
 					for i = 1, non_variadic do
-						scope[param_names[i]] = args[i](state)
+						scope[param_names[i]] = args[i]
 					end
 
 					local a, n = {}, 1
@@ -617,7 +617,7 @@ local CompileVisitors = {
 				function op(state, args, arg_types) ---@param state RuntimeContext
 					local scope = state.Scope
 					for i = 1, non_variadic do
-						scope[param_names[i]] = args[i](state)
+						scope[param_names[i]] = args[i]
 					end
 
 					local n, ntypes = {}, {}
@@ -633,15 +633,16 @@ local CompileVisitors = {
 			function op(state, args) ---@param state RuntimeContext
 				local scope = state.Scope
 				for i, arg in ipairs(args) do
-					scope[param_names[i]] = arg(state)
+					scope[param_names[i]] = arg
 				end
 
 				block(state)
 			end
 		end
 
-		local fn = { args = param_types, returns = nil, meta = meta_type, op = op, cost = 20, attrs = {} }
+		local fn = { args = param_types, returns = return_type and { return_type }, meta = meta_type, op = op, cost = 20, attrs = {} }
 		local sig = table.concat(param_types)
+
 		if meta_type then
 			self.user_methods[meta_type] = self.user_methods[meta_type] or {}
 
@@ -677,6 +678,7 @@ local CompileVisitors = {
 			end
 
 			scope.data["function"] = { name.value, fn }
+
 			block = self:CompileNode(data[5])
 		end)
 
@@ -770,7 +772,7 @@ local CompileVisitors = {
 			local name, fn = fn[1], fn[2]
 
 			if fn.returns then
-				self:Assert(fn.returns[1] == ret_ty, "Function " .. name .. " expects return type (" .. fn.returns[1] .. ") but was given (" .. ret_ty .. ")", trace)
+				self:Assert(fn.returns[1] == ret_ty, "Function " .. name .. " expects return type (" .. (fn.returns[1] or "void") .. ") but was given (" .. (ret_ty or "void") .. ")", trace)
 			end
 
 			fn.returns = { ret_ty }

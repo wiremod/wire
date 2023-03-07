@@ -18,16 +18,19 @@ PreProcessor.__index = PreProcessor
 
 E2Lib.PreProcessor = PreProcessor
 
+---@param buffer string
+---@param directives PPDirectives
+---@param ent userdata?
 ---@return boolean ok
 ---@return PPDirectives|Error[]? directives
 ---@return string? newcode
 ---@return PreProcessor self
-function PreProcessor.Execute(...)
+function PreProcessor.Execute(buffer, directives, ent)
 	-- instantiate PreProcessor
 	local instance = setmetatable({}, PreProcessor)
 
 	-- and pcall the new instance's Process method.
-	local directives, newcode = instance:Process(...)
+	local directives, newcode = instance:Process(buffer, directives, ent)
 	local ok = #instance.errors == 0
 	return ok, directives, newcode, instance
 end
@@ -327,6 +330,7 @@ end
 
 ---@param buffer string
 ---@param directives PPDirectives
+---@param ent userdata?
 ---@return PPDirectives directives, string buf
 function PreProcessor:Process(buffer, directives, ent)
 	-- entity is needed for autoupdate
