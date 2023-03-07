@@ -57,13 +57,13 @@ end)
 
 registerOperator("is", "a", "n", function(state, a)
 	return a:IsZero() and 1 or 0
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("eq", "aa", "n", function(state, lhs, rhs)
 	return lhs[1] == rhs[1]
 		and lhs[2] == rhs[2]
 		and lhs[3] == rhs[3]
-end)
+end, 1, nil, { legacy = false })
 
 __e2setcost(2)
 
@@ -72,38 +72,34 @@ registerOperator("geq", "aa", "n", function(state, lhs, rhs)
 		and lhs[2] >= rhs[2]
 		and lhs[3] >= rhs[3])
 		and 1 or 0
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("leq", "aa", "n", function(state, lhs, rhs)
 	return (lhs[1] <= rhs[1]
 		and lhs[2] <= rhs[2]
 		and lhs[3] <= rhs[3])
 		and 1 or 0
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("gth", "aa", "n", function(state, lhs, rhs)
 	return (lhs[1] > rhs[1]
 		and lhs[2] > rhs[2]
 		and lhs[3] > rhs[3])
 		and 1 or 0
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("lth", "aa", "n", function(state, lhs, rhs)
 	return (lhs[1] < rhs[1]
 		and lhs[2] < rhs[2]
 		and lhs[3] < rhs[3])
 		and 1 or 0
-end)
+end, 1, nil, { legacy = false })
 
 __e2setcost(2)
 
 registerOperator("neg", "a", "a", function(state, a)
 	return -a
-end)
-
-e2function angle operator_neg(angle rv1)
-	return -rv1
-end
+end, 1, nil, { legacy = false })
 
 e2function angle operator+(rv1, angle rv2)
 	return Angle(rv1 + rv2[1], rv1 + rv2[2], rv1 + rv2[3])

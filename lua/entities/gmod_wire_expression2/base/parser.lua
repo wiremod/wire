@@ -365,11 +365,11 @@ function Parser:Stmt()
 	else
 		local exprs = { { var, is_local and {} or self:Indices(), self:GetTrace() } }
 		while self:Consume(TokenVariant.Operator, Operator.Ass) do
-			local exp = self:Expr()
-			if exp.variant == NodeVariant.ExprIdent then
-				exprs[#exprs + 1] = { exp.data, self:Indices(), self:GetTrace() }
+			local ident = self:Consume(TokenVariant.Ident)
+			if ident then
+				exprs[#exprs + 1] = { ident, self:Indices(), self:GetTrace() }
 			else
-				return Node.new(NodeVariant.Assignment, { is_local, exprs, exp })
+				return Node.new(NodeVariant.Assignment, { is_local, exprs, self:Expr() })
 			end
 		end
 
@@ -381,8 +381,9 @@ function Parser:Stmt()
 				-- Edge case where last assignment is an indexing operation.
 				-- X = Y = T[5]
 				last = Node.new(NodeVariant.ExprIndex, { Node.new(NodeVariant.ExprIdent, last[1]), last[2] })
-			else
-				last = Node.new(NodeVariant.ExprIdent, last[1], last[1].trace)
+			else -- X = Y = Z (or X = Y = Z + 2)
+				self.index = self.index - 1
+				last = self:Expr()
 			end
 
 			return Node.new(NodeVariant.Assignment, { is_local, exprs, last })
@@ -856,7 +857,7 @@ function Parser:Expr11()
 				end
 			end
 
-			return Node.new(NodeVariant.ExprMethodCall, { expr, fn, self:Arguments() }, self:GetTrace())
+			expr = Node.new(NodeVariant.ExprMethodCall, { expr, fn, self:Arguments() }, self:GetTrace())
 		else
 			local indices = self:Indices()
 			if #indices > 0 then

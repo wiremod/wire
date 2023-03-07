@@ -99,6 +99,8 @@ hook.Add("PlayerDisconnected", "e2_print_delays_player_dc", function(ply) printD
 
 /******************************************************************************/
 
+__e2setcost(2)
+
 -- Returns whether or not the next print-message will be printed or omitted by antispam
 e2function number playerCanPrint()
 	if not checkOwner(self) then return end
@@ -128,6 +130,8 @@ local function SpecialCase( arg )
 	end
 end
 
+__e2setcost(40)
+
 -- Prints <...> like lua's print(...), except to the chat area
 e2function void print(...args)
 	if not checkOwner(self) then return end
@@ -147,6 +151,8 @@ e2function void print(...args)
 	end
 end
 
+__e2setcost(30)
+
 --- Posts a string to the chat of <this>'s driver. Returns 1 if the text was printed, 0 if not.
 e2function number entity:printDriver(string text)
 	if not checkVehicle(self, this) then return 0 end
@@ -162,6 +168,8 @@ e2function number entity:printDriver(string text)
 end
 
 /******************************************************************************/
+
+__e2setcost(30)
 
 --- Displays a hint popup with message <text> for <duration> seconds (<duration> being clamped between 0.7 and 7).
 e2function void hint(string text, duration)
@@ -191,6 +199,8 @@ for _,cname in ipairs({ "HUD_PRINTCENTER", "HUD_PRINTCONSOLE", "HUD_PRINTNOTIFY"
 	valid_print_types[value] = true
 	E2Lib.registerConstant(cname, value)
 end
+
+__e2setcost(30)
 
 --- Same as print(<text>), but can make the text show up in different places. <print_type> can be one of the following: _HUD_PRINTCENTER, _HUD_PRINTCONSOLE, _HUD_PRINTNOTIFY, _HUD_PRINTTALK.
 e2function void print(print_type, string text)
@@ -268,6 +278,8 @@ do
 	end
 end
 
+__e2setcost(150)
+
 --- Prints an array like the lua function [[G.PrintTable|PrintTable]] does, except to the chat area.
 e2function void printTable(array arr)
 	if not checkOwner(self) then return end
@@ -282,7 +294,7 @@ end
 
 /******************************************************************************/
 
-__e2setcost(100)
+__e2setcost(150)
 
 util.AddNetworkString("wire_expression2_printColor")
 

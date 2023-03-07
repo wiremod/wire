@@ -310,7 +310,7 @@ function ENT:CompileCode(buffer, files, filepath)
 
 	self.dvars = dvars
 	self.funcs = inst.user_functions
-	self.globvars_mut = table.Copy(inst.global_scope.vars) -- table.Copy because we will mutate this
+	self.globvars_mut = table.Copy(inst.global_scope.vars) ---@type table<string, VarData> # table.Copy because we will mutate this
 	self.globvars = inst.global_scope.vars
 
 	self:ResetContext()
@@ -381,8 +381,16 @@ function ENT:ResetContext()
 	self.GlobalScope = context.GlobalScope
 	self._vars = self.GlobalScope -- Dupevars
 
-	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2], self.inports[4])
-	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2], self.outports[4])
+	local conv_inputs, conv_outputs = {}, {}
+	for i, input in ipairs(self.inports[2]) do
+		conv_inputs[i] = wire_expression_types2[input][1]
+	end
+	for i, input in ipairs(self.outports[2]) do
+		conv_outputs[i] = wire_expression_types2[input][1]
+	end
+
+	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], conv_inputs, self.inports[4])
+	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], conv_outputs, self.outports[4])
 
 	if self.extended then -- It was extended before the adjustment, recreate the wirelink
 		WireLib.CreateWirelinkOutput( self.player, self, {true} )
@@ -519,8 +527,9 @@ function ENT:TriggerInput(key, value)
 		local t = self.inports[3][key]
 
 		self.GlobalScope["$" .. key] = self.GlobalScope[key]
-		if wire_expression_types[t][3] then
-			self.GlobalScope[key] = wire_expression_types[t][3](self.context, value)
+		local iowrap = wire_expression_types2[t][3]
+		if iowrap then
+			self.GlobalScope[key] = iowrap(self.context, value)
 		else
 			self.GlobalScope[key] = value
 		end

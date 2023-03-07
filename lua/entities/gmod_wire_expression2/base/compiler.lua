@@ -166,10 +166,11 @@ end
 
 --- Ensure that a token of variant LowerIdent is a valid type
 ---@param ty Token<string>
----@return string type_id
+---@return string? type_id # Type id or nil if void
 function Compiler:CheckType(ty)
 	-- if not E2Lib.Env.Types[ty.value] then self:Error("Invalid type (" .. ty.value .. ")", ty.trace) end
 	if ty.value == "number" then return "n" end
+	if ty.value == "void" then return end
 	return self:Assert(wire_expression_types[ty.value:upper()], "Invalid type (" .. ty.value .. ")", ty.trace)[1]
 end
 
@@ -232,7 +233,7 @@ local CompileVisitors = {
 						end
 
 						local meta_type = select(2, self:CompileNode(method))
-						local fn = self:Assert(self:GetFunction(name.value, types, meta_type), "No such method: " .. meta_type .. ":" .. name.value .. "(" .. table.concat(types, ", ") .. ")", name.trace)
+						local fn = self:Assert(self:GetFunction(name.value, types, meta_type), "Unreachable", name.trace)
 
 						if fn.attrs["nodiscard"] then
 							self:Warning("Cannot discard return value of pure method", node.trace)
@@ -493,6 +494,9 @@ local CompileVisitors = {
 		local meta_type
 		if data[2] then
 			meta_type = self:CheckType(data[2])
+			if meta_type == "" then
+				self:Error("Cannot use void as meta type", trace)
+			end
 		end
 
 		local param_types, param_names, variadic, variadic_ty = {}, {}, nil, nil
@@ -511,7 +515,7 @@ local CompileVisitors = {
 					self:Error("Variadic parameter requires explicit type", param.name.trace)
 				else
 					param_types[i] = "n"
-					self:Warning("Use of implicit parameter type is deprecated (add :number)", name.trace)
+					self:Warning("Use of implicit parameter type is deprecated (add :number)", param.name.trace)
 				end
 				param_names[i] = param.name.value
 			end
@@ -534,7 +538,7 @@ local CompileVisitors = {
 				if variadic_ty == "r" then
 					function op(state, args) ---@param state RuntimeContext
 						for i = 1, non_variadic do
-							state.Scope[param_names[i]] = args[i]
+							state.Scope[param_names[i]] = args[i](state)
 						end
 
 						local a, n = {}, 1
@@ -556,7 +560,7 @@ local CompileVisitors = {
 					function op(state, args, arg_types) ---@param state RuntimeContext
 						local scope = state.Scope
 						for i = 1, non_variadic do
-							scope[param_names[i]] = args[i]
+							scope[param_names[i]] = args[i](state)
 						end
 
 						local n, ntypes = {}, {}
@@ -579,7 +583,7 @@ local CompileVisitors = {
 				function op(state, args) ---@param state RuntimeContext
 					local scope = state.Scope
 					for i, arg in ipairs(args) do
-						scope[param_names[i]] = arg
+						scope[param_names[i]] = arg(state)
 					end
 
 					block(state)
@@ -597,7 +601,7 @@ local CompileVisitors = {
 				function op(state, args) ---@param state RuntimeContext
 					local scope = state.Scope
 					for i = 1, non_variadic do
-						scope[param_names[i]] = args[i]
+						scope[param_names[i]] = args[i](state)
 					end
 
 					local a, n = {}, 1
@@ -613,7 +617,7 @@ local CompileVisitors = {
 				function op(state, args, arg_types) ---@param state RuntimeContext
 					local scope = state.Scope
 					for i = 1, non_variadic do
-						scope[param_names[i]] = args[i]
+						scope[param_names[i]] = args[i](state)
 					end
 
 					local n, ntypes = {}, {}
@@ -629,7 +633,7 @@ local CompileVisitors = {
 			function op(state, args) ---@param state RuntimeContext
 				local scope = state.Scope
 				for i, arg in ipairs(args) do
-					scope[param_names[i]] = arg
+					scope[param_names[i]] = arg(state)
 				end
 
 				block(state)
@@ -649,7 +653,12 @@ local CompileVisitors = {
 					self:Error("Cannot override variadic " .. opposite .. " function with variadic " .. variadic_ty .. " function to avoid ambiguity.", trace)
 				end
 			end
+
 			self.user_methods[meta_type][name.value][sig] = fn
+
+			-- Insert "This" variable
+			table.insert(param_names, 1, "This")
+			table.insert(param_types, 1, meta_type)
 		else
 			self.user_functions[name.value] = self.user_functions[name.value] or {}
 			if variadic then
@@ -664,7 +673,7 @@ local CompileVisitors = {
 		self:Scope(function (scope)
 			for i, type in ipairs(param_types) do
 				-- I know this is horrible
-				scope:DeclVar(data[4][i].name.value, { type = type, initialized = true, trace_if_unused = data[4][i].name.trace })
+				scope:DeclVar(param_names[i], { type = type, initialized = true })
 			end
 
 			scope.data["function"] = { name.value, fn }
@@ -1128,7 +1137,7 @@ local CompileVisitors = {
 				local largs = { [1] = {}, [2] = { exp }, [3] = { ty } }
 				return function(state)
 					return op(state, largs)
-				end
+				end, "n"
 			else
 				return function(state)
 					return op(state, exp(state)) == 0 and 1 or 0
@@ -1257,8 +1266,9 @@ local CompileVisitors = {
 		end
 
 		local meta, meta_type = self:CompileNode(data[1])
+		self:Assert(meta_type, "Cannot call value of <void>", trace)
 
-		local fn_data = self:Assert(self:GetFunction(name.value, types, meta_type), "No such method: " .. meta_type .. ":" .. name.value .. "(" .. table.concat(types, ", ") .. ")", name.trace)
+		local fn_data = self:Assert(self:GetFunction(name.value, types, meta_type), "No such method: " .. (meta_type or "void") .. ":" .. name.value .. "(" .. table.concat(types, ", ") .. ")", name.trace)
 		local fn = fn_data.op
 
 		if fn_data.attrs["legacy"] then

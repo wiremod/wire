@@ -26,14 +26,6 @@ registerType("string", "s", "",
 
 __e2setcost(3) -- temporary
 
-registerOperator("ass", "s", "s", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
-
 /******************************************************************************/
 
 local string_sub = string.sub
@@ -101,95 +93,57 @@ end)
 
 /******************************************************************************/
 
-registerOperator("is", "s", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+registerOperator("is", "s", "n", function(ctx, str)
+	return str ~= "" and 1 or 0
+end, 1, nil, { legacy = false })
 
-	return rv1 ~= "" and 1 or 0
-end)
+registerOperator("eq", "ss", "n", function(ctx, lhs, rhs)
+	return lhs == rhs and 1 or 0
+end, 1, nil, { legacy = false })
 
-registerOperator("eq", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+registerOperator("geq", "ss", "n", function(ctx, lhs, rhs)
+	ctx.prf = ctx.prf + math.min(#lhs, #rhs) / 10
+	return lhs >= rhs and 1 or 0
+end, 2, nil, { legacy = false })
 
-	return rv1 == rv2 and 1 or 0
-end)
+registerOperator("leq", "ss", "n", function(ctx, lhs, rhs)
+	ctx.prf = ctx.prf + math.min(#lhs, #rhs) / 10
+	return lhs <= rhs and 1 or 0
+end, 2, nil, { legacy = false })
 
-registerOperator("neq", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+registerOperator("gth", "ss", "n", function(ctx, lhs, rhs)
+	ctx.prf = ctx.prf + math.min(#lhs, #rhs) / 10
+	return lhs > rhs and 1 or 0
+end, 2, nil, { legacy = false })
 
-	return rv1 ~= rv2 and 1 or 0
-end)
-
-registerOperator("geq", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + math.min(#rv1, #rv2) / 10
-
-	return rv1 >= rv2 and 1 or 0
-end)
-
-registerOperator("leq", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + math.min(#rv1, #rv2) / 10
-
-	return rv1 <= rv2 and 1 or 0
-end)
-
-registerOperator("gth", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + math.min(#rv1, #rv2) / 10
-
-	return rv1 > rv2 and 1 or 0
-end)
-
-registerOperator("lth", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + math.min(#rv1, #rv2) / 10
-
-	return rv1 < rv2 and 1 or 0
-end)
+registerOperator("lth", "ss", "n", function(ctx, lhs, rhs)
+	ctx.prf = ctx.prf + math.min(#lhs, #rhs) / 10
+	return lhs < rhs and 1 or 0
+end, 2, nil, { legacy = false })
 
 /******************************************************************************/
 
 __e2setcost(10) -- temporary
 
-registerOperator("add", "ss", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+registerOperator("add", "ss", "s", function(ctx, lhs, rhs)
+	ctx.prf = ctx.prf + #lhs * 0.01 + #rhs * 0.01
+	return lhs .. rhs
+end, 1, nil, { legacy = false })
 
-	self.prf = self.prf + #rv1*0.01 + #rv2*0.01
+registerOperator("add", "sn", "s", function(ctx, lhs, rhs)
+	local rhs = tostring(rhs)
+	ctx.prf = ctx.prf + #lhs * 0.01 + #rhs * 0.01
+	return lhs .. rhs
+end, 1, nil, { legacy = false })
 
-	return rv1 .. rv2
-end)
+registerOperator("add", "ns", "s", function(ctx, lhs, rhs)
+	local lhs = tostring(lhs)
+	ctx.prf = ctx.prf + #lhs * 0.01 + #rhs * 0.01
+	return lhs .. rhs
+end, 1, nil, { legacy = false })
 
 /******************************************************************************/
 
-registerOperator("add", "sn", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv1*0.01
-
-	return rv1 .. tostring(rv2)
-end)
-
-registerOperator("add", "ns", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv2*0.01
-
-	return tostring(rv1) .. rv2
-end)
 
 /******************************************************************************/
 
