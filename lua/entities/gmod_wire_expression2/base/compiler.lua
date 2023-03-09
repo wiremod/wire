@@ -521,12 +521,16 @@ local CompileVisitors = {
 			end
 		end
 
-		--[[
-		local fn_data, variadic = self:GetFunction(name.value, param_types, meta_type)
-		if fn_data and not variadic then
-			self:Error("Cannot overwrite existing function: " .. name.value .. "(" .. table.concat(param_types, ", ") .. ")", name.trace)
+		local fn_data, variadic, userfunction = self:GetFunction(name.value, param_types, meta_type)
+		if fn_data then
+			if not userfunction then
+				if not variadic then
+					self:Error("Cannot overwrite existing function: " .. (meta_type and (meta_type .. ":") or "") .. name.value .. "(" .. table.concat(param_types, ", ") .. ")", name.trace)
+				end
+			else
+				self:Assert(fn_data.returns[1] == return_type, "Cannot override with differing return type", trace)
+			end
 		end
-		]]
 
 		-- Code below is gargantuan as it's duplicated for each scenario at compile time for
 		-- the least amount of runtime overhead (and the variadic syntax sugar is annoying)
@@ -537,6 +541,7 @@ local CompileVisitors = {
 				local last, non_variadic = #param_types, #param_types - 1
 				if variadic_ty == "r" then
 					function op(state, args) ---@param state RuntimeContext
+						state:PushScope()
 						for i = 1, non_variadic do
 							state.Scope[param_names[i]] = args[i]
 						end
@@ -549,6 +554,7 @@ local CompileVisitors = {
 
 						state.Scope[param_names[last]] = a
 						block(state)
+						state:PopScope()
 						if state.__return__ then
 							state.__return__ = false
 							return state.__returnval__
@@ -558,6 +564,7 @@ local CompileVisitors = {
 					end
 				else -- table
 					function op(state, args, arg_types) ---@param state RuntimeContext
+						state:PushScope()
 						local scope = state.Scope
 						for i = 1, non_variadic do
 							scope[param_names[i]] = args[i]
@@ -571,6 +578,7 @@ local CompileVisitors = {
 						scope[param_names[last]] = { s = {}, stypes = {}, n = n, ntypes = ntypes, size = last }
 
 						block(state)
+						state:PopScope()
 						if state.__return__ then
 							state.__return__ = false
 							return state.__returnval__
@@ -581,12 +589,20 @@ local CompileVisitors = {
 				end
 			else
 				function op(state, args) ---@param state RuntimeContext
-					local scope = state.Scope
+					local save = state:SaveScopes()
+
+					local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
+					state.Scopes = { [1] = scope }
+					state.Scope = scope
+					state.ScopeID = 1
+
 					for i, arg in ipairs(args) do
 						scope[param_names[i]] = arg
 					end
 
 					block(state)
+					state:LoadScopes(save)
+
 					if state.__return__ then
 						state.__return__ = false
 						return state.__returnval__
@@ -599,6 +615,7 @@ local CompileVisitors = {
 			local last, non_variadic = #param_types, #param_types - 1
 			if variadic_ty == "r" then
 				function op(state, args) ---@param state RuntimeContext
+					state:PushScope()
 					local scope = state.Scope
 					for i = 1, non_variadic do
 						scope[param_names[i]] = args[i]
@@ -612,9 +629,11 @@ local CompileVisitors = {
 
 					scope[param_names[last]] = a
 					block(state)
+					state:PopScope()
 				end
 			else -- table
 				function op(state, args, arg_types) ---@param state RuntimeContext
+					state:PushScope()
 					local scope = state.Scope
 					for i = 1, non_variadic do
 						scope[param_names[i]] = args[i]
@@ -627,16 +646,25 @@ local CompileVisitors = {
 
 					scope[param_names[last]] = { s = {}, stypes = {}, n = n, ntypes = ntypes, size = last }
 					block(state)
+					state:PopScope()
 				end
+			end
+		elseif #param_types == 0 then -- Fastest case, no arguments to push
+			function op(state) ---@param state RuntimeContext
+				state:PushScope()
+				block(state)
+				state:PopScope()
 			end
 		else
 			function op(state, args) ---@param state RuntimeContext
+				state:PushScope()
 				local scope = state.Scope
 				for i, arg in ipairs(args) do
 					scope[param_names[i]] = arg
 				end
 
 				block(state)
+				state:PopScope()
 			end
 		end
 
@@ -673,7 +701,6 @@ local CompileVisitors = {
 
 		self:Scope(function (scope)
 			for i, type in ipairs(param_types) do
-				-- I know this is horrible
 				scope:DeclVar(param_names[i], { type = type, initialized = true })
 			end
 
@@ -692,6 +719,7 @@ local CompileVisitors = {
 		local sig = name.value .. "(" .. sig .. ")"
 		return function(state) ---@param state RuntimeContext
 			state.funcs[sig] = op
+			state.funcs_ret[sig] = return_type
 		end
 	end,
 
@@ -786,7 +814,7 @@ local CompileVisitors = {
 	---@param data { [1]: boolean, [2]: { [1]: Token<string>, [2]: { [1]: Node, [2]: Token<string>?, [3]: Trace }[] }[], [3]: Node } is_local, vars, value
 	[NodeVariant.Assignment] = function (self, trace, data)
 		local value, value_ty = self:CompileNode(data[3])
-		assert(value_ty, "Assigning to expression without return type ? " .. tostring(data[3]))
+		self:Assert(value_ty, "Cannot assign variable to expression of type void", data[3].trace)
 
 		local stmts = {}
 		for i, v in ipairs(data[2]) do
@@ -862,9 +890,8 @@ local CompileVisitors = {
 	---@param data Token<string>
 	[NodeVariant.Increment] = function (self, trace, data)
 		local var = data.value
-		self:Assert(self.scope:LookupVar(var), "Unknown variable to increment: " .. var, trace)
-
-		-- todo: operator support
+		local existing = self:Assert(self.scope:LookupVar(var), "Unknown variable to increment: " .. var, trace)
+		self:Assert(existing.type == "n", "Cannot increment type of " .. existing.type, trace)
 		return function(state) ---@param state RuntimeContext
 			state.Scope[var] = state.Scope[var] + 1
 		end
@@ -873,9 +900,9 @@ local CompileVisitors = {
 	---@param data Token<string>
 	[NodeVariant.Decrement] = function (self, trace, data)
 		local var = data.value
-		self:Assert(self.scope:LookupVar(var), "Unknown variable to decrement: " .. var, trace)
+		local existing = self:Assert(self.scope:LookupVar(var), "Unknown variable to decrement: " .. var, trace)
+		self:Assert(existing.type == "n", "Cannot increment type of " .. existing.type, trace)
 
-		-- todo: operator support
 		return function(state) ---@param state RuntimeContext
 			state.Scope[var] = state.Scope[var] - 1
 		end
@@ -940,8 +967,10 @@ local CompileVisitors = {
 		local var, name = self:Assert(self.scope:LookupVar(data.value), "Undefined variable: " .. data.value, trace), data.value
 
 		self.scope.data.ops = self.scope.data.ops + 1
+
+		local id = var.scope:Depth()
 		return function(state) ---@param state RuntimeContext
-			return state.Scope[name]
+			return state.Scopes[id][name]
 		end, var.type
 	end,
 
@@ -1066,11 +1095,11 @@ local CompileVisitors = {
 				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
 				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
 				return function(state)
-					return (op(lhs(state, largs_lhs)) ~= 0 or op(rhs(state, largs_rhs)) ~= 0) and 1 or 0
-				end
+					return ((op(state, largs_lhs) ~= 0) or (op(state, largs_rhs) ~= 0)) and 1 or 0
+				end, "n"
 			else
 				return function(state)
-					return (op(lhs(state)) ~= 0 or op(rhs(state)) ~= 0) and 1 or 0
+					return ((op(state, lhs(state)) ~= 0) or (op(state, rhs(state)) ~= 0)) and 1 or 0
 				end, "n"
 			end
 		else -- Operator.And
@@ -1229,6 +1258,7 @@ local CompileVisitors = {
 		local args, types = {}, {}
 		for k, arg in ipairs(data[2]) do
 			args[k], types[k] = self:CompileNode(arg)
+			self:Assert(types[k], "Cannot use void expression as call argument", arg.trace)
 		end
 
 		local fn_data = self:Assert(self:GetFunction(data[1].value, types), "No such function: " .. data[1].value .. "(" .. table.concat(types, ", ") .. ")", data[1].trace)
@@ -1304,6 +1334,8 @@ local CompileVisitors = {
 		end
 
 		local arg_sig = table.concat(arg_types)
+		local ret_type = self:CheckType(data[3])
+
 		return function(state) ---@param state RuntimeContext
 			local rargs = {}
 			for k, arg in ipairs(args) do
@@ -1311,12 +1343,18 @@ local CompileVisitors = {
 			end
 
 			local fn = expr(state)
-			if state.funcs[fn] then
-				return state.funcs[fn](rargs)
+			local sig = fn .. "(" .. arg_sig .. ")"
+			if state.funcs[sig] then
+				local r = state.funcs_ret[sig]
+				if r ~= ret_type then
+					error( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"), 0)
+				end
+
+				return state.funcs[sig](state, rargs)
 			else
 				E2Lib.raiseException("No such function: " .. fn .. "(" .. arg_sig .. ")", 0, state.trace)
 			end
-		end, data[3] and self:CheckType(data[3])
+		end, ret_type
 	end,
 
 	---@param data { [1]: Token<string>, [2]: Parameter[], [3]: Node }
@@ -1445,18 +1483,19 @@ end
 ---@param method? string
 ---@return EnvFunction?
 ---@return boolean? variadic
+---@return boolean? userfunction
 function Compiler:GetFunction(name, types, method)
 	local sig, method_prefix = table.concat(types), method and (method .. ":") or ""
 
 	local fn = wire_expression2_funcs[name .. "(" .. method_prefix .. sig .. ")"]
-	if fn then return { op = fn[3], returns = { fn[2] }, args = types, cost = fn[4], attrs = fn.attributes }, false end
+	if fn then return { op = fn[3], returns = { fn[2] }, args = types, cost = fn[4], attrs = fn.attributes }, false, false end
 
 	local fn, variadic = self:GetUserFunction(name, types, method)
-	if fn then return fn, variadic end
+	if fn then return fn, variadic, true end
 
 	for i = #sig, 0, -1 do
 		fn = wire_expression2_funcs[name .. "(" .. method_prefix .. sig:sub(1, i) .. "...)"]
-		if fn then return { op = fn[3], returns = { fn[2] }, args = types, cost = fn[4], attrs = fn.attributes }, true end
+		if fn then return { op = fn[3], returns = { fn[2] }, args = types, cost = fn[4], attrs = fn.attributes }, true, false end
 	end
 end
 

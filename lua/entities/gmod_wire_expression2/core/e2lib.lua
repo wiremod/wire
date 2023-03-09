@@ -1067,6 +1067,7 @@ end
 ---@field __returnval__ any
 ---
 ---@field funcs table<string, RuntimeOperator>
+---@field funcs_ret table<string, string> # dumb stringcall thing delete soon please
 ---@field includes table
 ---
 ---@field data table # Userdata
@@ -1101,7 +1102,7 @@ function RuntimeContext.builder()
 		trace = nil, -- Should be set at runtime
 		__break__ = false, __continue__ = false, __return__ = false,
 
-		funcs = {}, includes = {}, data = {}
+		funcs = {}, funcs_ret = {}, includes = {}, data = {}
 	}, RuntimeContextBuilder)
 end
 
@@ -1133,9 +1134,11 @@ function RuntimeContextBuilder:withTime(time, timebench)
 	return self
 end
 
----@param functions table
-function RuntimeContextBuilder:withUserFunctions(functions)
+---@param functions table<string, RuntimeOperator>
+---@param rets table<string, string>
+function RuntimeContextBuilder:withUserFunctions(functions, rets)
 	self.funcs = assert(functions)
+	self.funcs_ret = rets or self.funcs_ret
 	return self
 end
 
@@ -1166,11 +1169,18 @@ function RuntimeContextBuilder:build()
 	return setmetatable(self, RuntimeContext)
 end
 
+function RuntimeContext:IsolatedScope()
+	local scope = { vclk = {} }
+	self.Scopes = { [0] = scope }
+	self.Scope = scope
+	self.ScopeID = 0
+end
+
 function RuntimeContext:PushScope()
 	local scope = { vclk = {} }
-	if self.ScopeID ~= 0 then
+	--[[if self.ScopeID ~= 0 then
 		setmetatable(scope, { __index = self.Scopes[self.ScopeID - 1] })
-	end
+	end]]
 	self.Scope, self.ScopeID = scope, self.ScopeID + 1
 	self.Scopes[self.ScopeID] = self.Scope
 end
@@ -1188,9 +1198,7 @@ end
 
 ---@param scopes { [1]: RuntimeScope[], [2]: integer, [3]: RuntimeScope }
 function RuntimeContext:LoadScopes(scopes)
-	self.Scopes = scopes[1]
-	self.ScopeID = scopes[2]
-	self.Scope = scopes[3]
+	self.Scopes, self.ScopeID, self.Scope = scopes[1], scopes[2], scopes[3]
 end
 
 --- Mimics an E2 Context as if it were really on an entity.
