@@ -816,6 +816,16 @@ local CompileVisitors = {
 		local value, value_ty = self:CompileNode(data[3])
 		self:Assert(value_ty, "Cannot assign variable to expression of type void", data[3].trace)
 
+		if data[1] then
+			-- Local declaration.
+			local var_name = data[2][1][1].value
+			self:Assert(not self.scope.vars[var_name], "Cannot redeclare existing variable " .. var_name, trace)
+			self.scope:DeclVar(var_name, { initialized = true, type = value_ty })
+			return function(state) ---@param state RuntimeContext
+				state.Scope[var_name] = value(state)
+			end
+		end
+
 		local stmts = {}
 		for i, v in ipairs(data[2]) do
 			local var, indices, trace = v[1].value, v[2], v[3]
@@ -892,8 +902,10 @@ local CompileVisitors = {
 		local var = data.value
 		local existing = self:Assert(self.scope:LookupVar(var), "Unknown variable to increment: " .. var, trace)
 		self:Assert(existing.type == "n", "Cannot increment type of " .. existing.type, trace)
+
+		local id = existing.scope:Depth()
 		return function(state) ---@param state RuntimeContext
-			state.Scope[var] = state.Scope[var] + 1
+			state.Scopes[id][var] = state.Scopes[id][var] + 1
 		end
 	end,
 
@@ -903,8 +915,9 @@ local CompileVisitors = {
 		local existing = self:Assert(self.scope:LookupVar(var), "Unknown variable to decrement: " .. var, trace)
 		self:Assert(existing.type == "n", "Cannot increment type of " .. existing.type, trace)
 
+		local id = existing.scope:Depth()
 		return function(state) ---@param state RuntimeContext
-			state.Scope[var] = state.Scope[var] - 1
+			state.Scopes[id][var] = state.Scopes[id][var] - 1
 		end
 	end,
 
