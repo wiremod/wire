@@ -861,12 +861,10 @@ function Parser:Expr11()
 		else
 			local indices = self:Indices()
 			if #indices > 0 then
-				return Node.new(NodeVariant.ExprIndex, { expr, indices }, self:GetTrace())
+				expr = Node.new(NodeVariant.ExprIndex, { expr, indices }, self:GetTrace())
 			elseif self:Consume(TokenVariant.Grammar, Grammar.LSquare) then
 				self:Error("Indexing operator ([]) must not be preceded by whitespace")
-			end
-
-			if self:ConsumeTailing(TokenVariant.Grammar, Grammar.LParen) then
+			elseif self:ConsumeTailing(TokenVariant.Grammar, Grammar.LParen) then
 				self.index = self.index - 1
 
 				local args, typ = self:Arguments()
@@ -912,6 +910,7 @@ function Parser:Expr12()
 		elseif fn.value == "table" then
 			return Node.new(NodeVariant.ExprTable, self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments(), self:GetTrace())
 		end
+
 		return Node.new(NodeVariant.ExprCall, { fn, self:Arguments() }, self:GetTrace())
 	end
 
@@ -960,7 +959,7 @@ function Parser:Expr12()
 				end
 			end
 
-			return Node.new(NodeVariant.ExprUnaryWire, { v[2], ident })
+			return Node.new(NodeVariant.ExprUnaryWire, { v[2], ident }, self:GetTrace())
 		end
 	end
 
