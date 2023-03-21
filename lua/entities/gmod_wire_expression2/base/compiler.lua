@@ -1438,7 +1438,7 @@ local CompileVisitors = {
 			end, fn_data.returns[1]
 		else
 			return function(state) ---@param state RuntimeContext
-				local rargs = { meta }
+				local rargs = { meta(state) }
 				for k, arg in ipairs(args) do
 					rargs[k + 1] = arg(state)
 				end
