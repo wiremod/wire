@@ -180,7 +180,17 @@ WireGPU_AddMonitor("Panel 2x2",         "models/hunter/plates/plate2x2.mdl",    
 WireGPU_AddMonitor("Panel 0.5x0.5",     "models/hunter/plates/plate05x05.mdl",            0   , 1.7  , 0  , nil   , -11.8265, 11.8265, -11.8265,11.8265,true)
 WireGPU_AddMonitor("Tray",              "models/props/cs_militia/reload_bullet_tray.mdl", 0   , 0.8  , 0  , nil   ,  0      , 7.68   ,  0     , 4.608 , true)
 WireGPU_FromBox_Helper("Wall-mounted TV", "models/props_wasteland/controlroom_monitor001b.mdl", Vector(-10.2,-12.6,-3), Vector(10.7,4.7,15.38), Angle(0, 90, 103.2))
-WireGPU_FromBox_Helper("Oscilloscope", "models/props_lab/reciever01b.mdl", Vector(-5.93,-2,-3), Vector(-1.74,2.1,6.225), Angle(0, 90, 90))
+WireGPU_FromBox_Helper("Oscilloscope", "models/props_lab/reciever01b.mdl", Vector(-5.93,-2,-3), Vector(-1.74,2.1,6.225), Angle(0, 90, 90))WireGPU_FromBox_Helper("Oscilloscope 2", "models/props_c17/consolebox03a.mdl", Vector(4,2,-10), Vector(10.6,7.1,10), Angle(0, 90, 90))
+WireGPU_FromBox_Helper("Oscilloscope 3", "models/props_c17/consolebox05a.mdl", Vector(-6,0,-10), Vector(0.9,5.1,11), Angle(0, 90, 87))
+WireGPU_FromBox_Helper("Receiver", "models/props_lab/reciever01c.mdl", Vector(-5.2,-1.7,-3), Vector(-0.2,0.8,5.5), Angle(0, 90, 90))
+WireGPU_FromBox_Helper("Receiver 2", "models/props_lab/reciever01d.mdl", Vector(-5.2,-1.7,-3), Vector(-0.2,0.8,5.5), Angle(0, 90, 90))
+WireGPU_FromBox_Helper("Oscilloscope 4", "models/props_c17/consolebox01a.mdl", Vector(8.5,7.2,-10), Vector(15,9.4,16.4), Angle(0, 90, 90))
+WireGPU_FromBox_Helper("Combine Console", "models/props_combine/combine_interface001.mdl", Vector(-9.9,25.6,-10), Vector(5.7,33.5,34.2), Angle(0, 90, 41.5))
+WireGPU_FromBox_Helper("Cash Register", "models/props_c17/cashregister01a.mdl", Vector(-9.2,8.5,-10), Vector(4.4,11.6,-5.9), Angle(0, 180, 90))
+WireGPU_FromBox_Helper("Combine Monitor", "models/props_combine/combine_monitorbay.mdl", Vector(-30.7,-26,-10), Vector(38,34.7,-4.31), Angle(0, 90, 90))
+WireGPU_FromBox_Helper("Workspace 001", "models/props_lab/workspace001.mdl", Vector(4,37,0), Vector(21.2,52,11.1), Angle(0, 15, 83))
+WireGPU_FromBox_Helper("Radio", "models/props_lab/citizenradio.mdl", Vector(-5.8,11.7,-3), Vector(11.3,15.3,8.2), Angle(0, 90, 90))
+WireGPU_FromBox_Helper("Security Bank", "models/props_lab/securitybank.mdl", Vector(-4.6,66,-3), Vector(25,86.5,12), Angle(0, 90, 90))
 -- Offset front, offset up, offset right, resolution/scale                                OF    OU     OR   SCALE   LOWX      HIGHX    LOWY     HIGHY   ROTATE90
 --WireGPU_AddMonitor("LED Board (1:1)",   "models/blacknecro/ledboard60.mdl",               6.1, 18.5 , 11 , 0.065 , -60     , 60     , -60    , 60    ) -- broken
 
@@ -226,3 +236,4 @@ local function fallback(self, model)
 end
 
 setmetatable(WireGPU_Monitors, { __index = fallback })
+
