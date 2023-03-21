@@ -2,10 +2,6 @@
 --  Core language support
 --------------------------------------------------------------------------------
 
-local delta = wire_expression2_delta
-
---------------------------------------------------------------------------------
-
 __e2setcost(0) -- cascaded
 
 registerOperator("is", "n", "n", function(state, num)

@@ -1,6 +1,4 @@
 -- these upvalues (locals in an enclosing scope) are faster to access than globals.
-local delta  = wire_expression2_delta
-
 local math   = math
 local random = math.random
 local pi     = math.pi
@@ -292,13 +290,11 @@ e2function number lerp(number from, number to, number fraction)
 	return Lerp(fraction, from, to)
 end
 
-registerFunction("sign", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 > delta then return 1
-	elseif rv1 < -delta then return -1
+registerFunction("sign", "n", "n", function(self, this)
+	if this > 0 then return 1
+	elseif this < 0 then return -1
 	else return 0 end
-end)
+end, 2, nil, { legacy = false })
 
 --[[************************************************************************]]--
 

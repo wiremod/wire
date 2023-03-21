@@ -2,8 +2,6 @@
 --  Vector support                                                            --
 --------------------------------------------------------------------------------
 
-local delta  = wire_expression2_delta
-
 local random = math.random
 local Vector = Vector
 local sqrt = math.sqrt
@@ -71,10 +69,7 @@ end
 --------------------------------------------------------------------------------
 
 e2function number vector:operator_is()
-	if this[1] > delta or -this[1] > delta or
-	   this[2] > delta or -this[2] > delta or
-	   this[3] > delta or -this[3] > delta
-	   then return 1 else return 0 end
+	return (this[1] ~= 0 or this[2] ~= 0 or this[3] ~= 0) and 1 or 0
 end
 
 e2function number vector:operator==( vector other )
@@ -227,7 +222,7 @@ end
 
 e2function vector vector:normalized()
 	local len = (this[1] * this[1] + this[2] * this[2] + this[3] * this[3]) ^ 0.5
-	if len > delta then
+	if len > 0 then
 		return Vector(this[1] / len, this[2] / len, this[3] / len )
 	else
 		return Vector(0, 0, 0)
@@ -655,7 +650,7 @@ end
 e2function number elevation(vector originpos, angle originangle, vector pos)
 	pos = WorldToLocal(pos, ANG_ZERO, originpos, originangle)
 	local len = pos:Length()
-	if (len < delta) then return 0 end
+	if len < 0 then return 0 end
 	return rad2deg * asin(pos.z / len)
 end
 
@@ -665,7 +660,7 @@ e2function angle heading(vector originpos,angle originangle, vector pos)
 	local bearing = rad2deg*-atan2(pos.y, pos.x)
 
 	local len = pos:Length()
-	if (len < delta) then return Angle(0, bearing, 0) end
+	if len < 0 then return Angle(0, bearing, 0) end
 	return Angle(rad2deg*asin(pos.z / len), bearing, 0)
 end
 

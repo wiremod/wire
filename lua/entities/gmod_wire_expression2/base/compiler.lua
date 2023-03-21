@@ -1186,17 +1186,22 @@ local CompileVisitors = {
 		self:Assert(op_lhs_ret == "n", "Cannot perform logical operation on type " .. op_lhs_ret, trace)
 		self:Assert(op_rhs_ret == "n", "Cannot perform logical operation on type " .. op_rhs_ret, trace)
 
-		self:Assert(legacy == legacy2, "Internal error", trace)
-
-		-- local op, op_ret, legacy = self:GetOperator("is", { lhs_ty }, trace)
-		-- self:Assert(op_ret == "n", "Cannot use perform logical operation on type " .. lhs_ty, trace)
-
 		if data[2] == Operator.Or then
-			if legacy then
+			if legacy and legacy2 then
 				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
 				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
 				return function(state)
 					return ((op_lhs(state, largs_lhs) ~= 0) or (op_rhs(state, largs_rhs) ~= 0)) and 1 or 0
+				end, "n"
+			elseif legacy then
+				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
+				return function(state)
+					return ((op_lhs(state, largs_lhs) ~= 0) or (op_rhs(state, rhs(state)) ~= 0)) and 1 or 0
+				end, "n"
+			elseif legacy2 then
+				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
+				return function(state)
+					return ((op_lhs(state, lhs(state)) ~= 0) or (op_rhs(state, largs_rhs) ~= 0)) and 1 or 0
 				end, "n"
 			else
 				return function(state)
@@ -1204,12 +1209,22 @@ local CompileVisitors = {
 				end, "n"
 			end
 		else -- Operator.And
-			if legacy then
+			if legacy and legacy2 then
 				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
 				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
 				return function(state)
 					return (op_lhs(state, lhs(state, largs_lhs)) ~= 0 and op_rhs(state, rhs(state, largs_rhs)) ~= 0) and 1 or 0
-				end
+				end, "n"
+			elseif legacy then
+				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
+				return function(state)
+					return ((op_lhs(state, largs_lhs) ~= 0) and (op_rhs(state, rhs(state)) ~= 0)) and 1 or 0
+				end, "n"
+			elseif legacy2 then
+				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
+				return function(state)
+					return ((op_lhs(state, lhs(state)) ~= 0) and (op_rhs(state, largs_rhs) ~= 0)) and 1 or 0
+				end, "n"
 			else
 				return function(state)
 					return (op_lhs(state, lhs(state)) ~= 0 and op_rhs(state, rhs(state)) ~= 0) and 1 or 0

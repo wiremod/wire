@@ -3678,7 +3678,6 @@ stds.wiremod.globals = {
   "wire_expression2_CallHook",
   "wire_expression2_PreLoadExtensions",
   "wire_expression2_PostLoadExtensions",
-  "wire_expression2_delta",
   "wire_expression2_editor",
   "wire_expression2_funcs",
   "wire_expression2_is_reload",

@@ -2,8 +2,6 @@
   2D Vector support
 \******************************************************************************/
 
-local delta  = wire_expression2_delta
-
 local floor = math.floor
 local ceil = math.ceil
 local random = math.random
@@ -57,29 +55,15 @@ registerFunction("vec2", "xv4", "xv2", function(self, args)
 	return { rv1[1], rv1[2] }
 end)
 
-registerOperator("is", "xv2", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1[1] > delta or -rv1[1] > delta or
-	   rv1[2] > delta or -rv1[2] > delta
-	   then return 1 else return 0 end
-end)
+registerOperator("is", "xv2", "n", function(self, this)
+	return (this[1] ~= 0 and this[2] ~= 0) and 1 or 0
+end, 2, nil, { legacy = false })
 
-registerOperator("eq", "xv2xv2", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
-	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta
-	   then return 1 else return 0 end
-end)
-
-registerOperator("neq", "xv2xv2", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1[1] - rv2[1] > delta or rv2[1] - rv1[1] > delta or
-	   rv1[2] - rv2[2] > delta or rv2[2] - rv1[2] > delta
-	   then return 1 else return 0 end
-end)
+registerOperator("eq", "xv2xv2", "n", function(self, lhs, rhs)
+	return (lhs[1] == rhs[1]
+		and lhs[2] == rhs[2])
+		and 1 or 0
+end, 2, nil, { legacy = false })
 
 /******************************************************************************/
 
@@ -192,7 +176,7 @@ registerFunction("normalized", "xv2:", "xv2", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	local len = (rv1[1] * rv1[1] + rv1[2] * rv1[2] ) ^ 0.5
-	if len > delta then
+	if len > 0 then
 		return { rv1[1] / len, rv1[2] / len }
 	else
 		return { 0, 0 }
@@ -591,35 +575,17 @@ end)
 
 /******************************************************************************/
 
-registerOperator("is", "xv4", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1[1] > delta or -rv1[1] > delta or
-	   rv1[2] > delta or -rv1[2] > delta or
-	   rv1[3] > delta or -rv1[3] > delta or
-	   rv1[4] > delta or -rv1[4] > delta
-	   then return 1 else return 0 end
-end)
+registerOperator("is", "xv4", "n", function(self, this)
+	return (this[1] ~= 0 or this[2] ~= 0 or this[3] ~= 0 or this[4] ~= 0) and 1 or 0
+end, 2, nil, { legacy = false })
 
-registerOperator("eq", "xv4xv4", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
-	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta and
-	   rv1[3] - rv2[3] <= delta and rv2[3] - rv1[3] <= delta and
-	   rv1[4] - rv2[4] <= delta and rv2[4] - rv1[4] <= delta
-	   then return 1 else return 0 end
-end)
-
-registerOperator("neq", "xv4xv4", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1[1] - rv2[1] > delta or rv2[1] - rv1[1] > delta or
-	   rv1[2] - rv2[2] > delta or rv2[2] - rv1[2] > delta or
-	   rv1[3] - rv2[3] > delta or rv2[3] - rv1[3] > delta or
-	   rv1[4] - rv2[4] > delta or rv2[4] - rv1[4] > delta
-	   then return 1 else return 0 end
-end)
+registerOperator("eq", "xv4xv4", "n", function(self, lhs, rhs)
+	return (lhs[1] == rhs[1]
+		and lhs[2] == rhs[2]
+		and lhs[3] == rhs[3]
+		and lhs[4] == rhs[4])
+		and 1 or 0
+end, 2, nil, { legacy = false })
 
 /******************************************************************************/
 
@@ -753,7 +719,7 @@ registerFunction("normalized", "xv4:", "xv4", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	local len = (rv1[1] * rv1[1] + rv1[2] * rv1[2] + rv1[3] * rv1[3] + rv1[4] * rv1[4]) ^ 0.5
-	if len > delta then
+	if len > 0 then
 		return { rv1[1] / len, rv1[2] / len, rv1[3] / len, rv1[4] / len }
 	else
 		return { 0, 0, 0, 0 }
