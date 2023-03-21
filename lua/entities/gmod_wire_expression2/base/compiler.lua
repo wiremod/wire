@@ -488,14 +488,14 @@ local CompileVisitors = {
 
 		return function(state) ---@param state RuntimeContext
 			state:PushScope()
-			local ok, err = pcall(try_block, state)
+				local ok, err = pcall(try_block, state)
 			state:PopScope()
 			if not ok then
 				local catchable, msg, trace = E2Lib.unpackException(err)
 				if catchable then
-					state.Scope[err_var.value] = (type(msg) == "string") and msg or ""
 					state:PushScope()
-					catch_block(state)
+						state.Scope[err_var.value] = (type(msg) == "string") and msg or ""
+						catch_block(state)
 					state:PopScope()
 				else
 					error(err, 0)
@@ -872,7 +872,6 @@ local CompileVisitors = {
 	---@param data { [1]: boolean, [2]: { [1]: Token<string>, [2]: { [1]: Node, [2]: Token<string>?, [3]: Trace }[] }[], [3]: Node } is_local, vars, value
 	[NodeVariant.Assignment] = function (self, trace, data)
 		local value, value_ty = self:CompileExpr(data[3])
-		self:Assert(value_ty, "Cannot assign variable to expression of type void", data[3].trace)
 
 		if data[1] then
 			-- Local declaration.
@@ -1625,7 +1624,7 @@ end
 
 ---@param node Node
 ---@return RuntimeOperator
----@return string? expr_type
+---@return string expr_type
 function Compiler:CompileExpr(node)
 	if not node.trace then
 		error("Incomplete node: " .. tostring(node), 2)

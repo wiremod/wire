@@ -1261,9 +1261,7 @@ function E2Lib.compileScript(code, owner, run)
 			ctx.entity.GlobalScope, ctx.entity._vars = ctx.GlobalScope, ctx.GlobalScope
 		end
 
-		ctx:PushScope()
 			local success, why = pcall( script, ctx )
-		ctx:PopScope()
 
 		-- Cleanup so hooks like runOnTick won't run after this call
 		pcall(wire_expression2_CallHook, "destruct", ctx)
