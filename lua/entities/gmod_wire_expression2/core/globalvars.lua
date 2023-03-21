@@ -30,20 +30,6 @@ registerType( "gtable", "xgt", {},
 
 __e2setcost(1)
 
-registerOperator("ass", "xgt", "xgt", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	local lookup = Scope.lookup
-	if !lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
-
 e2function number operator_is( gtable tbl )
 	return istable(tbl) and 1 or 0
 end

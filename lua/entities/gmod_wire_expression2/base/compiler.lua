@@ -885,9 +885,9 @@ local CompileVisitors = {
 
 				-- It can have indices, it already exists
 				if #indices > 0 then
-					local setter = table.remove(indices)
+					local setter, id = table.remove(indices), existing.scope:Depth()
 					stmts[i] = function(state)
-						return state.Scope[var]
+						return state.Scopes[id][var]
 					end
 
 					for j, index in ipairs(indices) do
@@ -923,17 +923,39 @@ local CompileVisitors = {
 					self:Assert(existing.type == value_ty, "Cannot assign type (" .. value_ty .. ") to variable of type (" .. existing.type .. ")", trace)
 
 					local id = existing.scope:Depth()
-					stmts[i] = function(state) ---@param state RuntimeContext
-						state.Scopes[id][var] = value(state)
+					if id == 0 then
+						stmts[i] = function(state) ---@param state RuntimeContext
+							local val = value(state)
+							state.GlobalScope[var] = val
+							state.GlobalScope.vclk[var] = true
+
+							if state.GlobalScope.lookup[val] then
+								state.GlobalScope.lookup[val][var] = true
+							else
+								state.GlobalScope.lookup[val] = { [var] = true }
+							end
+						end
+					else
+						stmts[i] = function(state) ---@param state RuntimeContext
+							state.Scopes[id][var] = value(state)
+						end
 					end
 				end
 			else
 				-- Cannot have indices.
 				self:Assert(#indices == 0, "Variable (" .. var .. ") does not exist", trace)
-				self.scope:DeclVar(var, { type = value_ty, initialized = true, trace_if_unused = trace })
+				self.global_scope:DeclVar(var, { type = value_ty, initialized = true, trace_if_unused = trace })
 
 				stmts[i] = function(state) ---@param state RuntimeContext
-					state.Scope[var] = value(state)
+					local val = value(state)
+					state.GlobalScope[var] = val
+					state.GlobalScope.vclk[var] = true
+
+					if state.GlobalScope.lookup[val] then
+						state.GlobalScope.lookup[val][var] = true
+					else
+						state.GlobalScope.lookup[val] = { [var] = true }
+					end
 				end
 			end
 		end
@@ -1177,11 +1199,11 @@ local CompileVisitors = {
 				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
 				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
 				return function(state)
-					return (op_lhs(lhs(state, largs_lhs)) ~= 0 and op_rhs(rhs(state, largs_rhs)) ~= 0) and 1 or 0
+					return (op_lhs(state, lhs(state, largs_lhs)) ~= 0 and op_rhs(state, rhs(state, largs_rhs)) ~= 0) and 1 or 0
 				end
 			else
 				return function(state)
-					return (op_lhs(lhs(state)) ~= 0 and op_rhs(rhs(state)) ~= 0) and 1 or 0
+					return (op_lhs(state, lhs(state)) ~= 0 and op_rhs(state, rhs(state)) ~= 0) and 1 or 0
 				end, "n"
 			end
 		end

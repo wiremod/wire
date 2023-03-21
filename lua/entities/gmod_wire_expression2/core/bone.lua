@@ -93,11 +93,6 @@ e2function number operator==(bone lhs, bone rhs)
 	if lhs == rhs then return 1 else return 0 end
 end
 
---- B != B
-e2function number operator!=(bone lhs, bone rhs)
-	if lhs ~= rhs then return 1 else return 0 end
-end
-
 --[[************************************************************************]]--
 __e2setcost(3)
 

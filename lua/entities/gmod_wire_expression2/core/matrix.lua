@@ -115,14 +115,6 @@ e2function number operator==(matrix2 rv1, matrix2 rv2)
 	   then return 1 else return 0 end
 end
 
-e2function number operator!=(matrix2 rv1, matrix2 rv2)
-	if rv1[1] - rv2[1] > delta and rv2[1] - rv1[1] > delta and
-	   rv1[2] - rv2[2] > delta and rv2[2] - rv1[2] > delta and
-	   rv1[3] - rv2[3] > delta and rv2[3] - rv1[3] > delta and
-	   rv1[4] - rv2[4] > delta and rv2[4] - rv1[4] > delta
-	   then return 1 else return 0 end
-end
-
 /******************************************************************************/
 // Basic operations
 
@@ -1053,26 +1045,6 @@ e2function number operator==(matrix4 rv1, matrix4 rv2)
 	   rv1[14] - rv2[14] <= delta and rv2[14] - rv1[14] <= delta and
 	   rv1[15] - rv2[15] <= delta and rv2[15] - rv1[15] <= delta and
 	   rv1[16] - rv2[16] <= delta and rv2[16] - rv1[16] <= delta
-	   then return 1 else return 0 end
-end
-
-e2function number operator!=(matrix4 rv1, matrix4 rv2)
-	if rv1[1] - rv2[1] > delta and rv2[1] - rv1[1] > delta and
-	   rv1[2] - rv2[2] > delta and rv2[2] - rv1[2] > delta and
-	   rv1[3] - rv2[3] > delta and rv2[3] - rv1[3] > delta and
-	   rv1[4] - rv2[4] > delta and rv2[4] - rv1[4] > delta and
-	   rv1[5] - rv2[5] > delta and rv2[5] - rv1[5] > delta and
-	   rv1[6] - rv2[6] > delta and rv2[6] - rv1[6] > delta and
-	   rv1[7] - rv2[7] > delta and rv2[7] - rv1[7] > delta and
-	   rv1[8] - rv2[8] > delta and rv2[8] - rv1[8] > delta and
-	   rv1[9] - rv2[9] > delta and rv2[9] - rv1[9] > delta and
-	   rv1[10] - rv2[10] > delta and rv2[10] - rv1[10] > delta and
-	   rv1[11] - rv2[11] > delta and rv2[11] - rv1[11] > delta and
-	   rv1[12] - rv2[12] > delta and rv2[12] - rv1[12] > delta and
-	   rv1[13] - rv2[13] > delta and rv2[13] - rv1[13] > delta and
-	   rv1[14] - rv2[14] > delta and rv2[14] - rv1[14] > delta and
-	   rv1[15] - rv2[15] > delta and rv2[15] - rv1[15] > delta and
-	   rv1[16] - rv2[16] > delta and rv2[16] - rv1[16] > delta
 	   then return 1 else return 0 end
 end
 

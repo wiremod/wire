@@ -252,22 +252,6 @@ end
 -- Operators
 --------------------------------------------------------------------------------
 
-__e2setcost(5)
-
-registerOperator("ass", "t", "t", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	local lookup = Scope.lookup
-	if not lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
-
 __e2setcost(1)
 
 e2function number operator_is( table tbl )
@@ -276,10 +260,6 @@ end
 
 e2function number operator==( table rv1, table rv2 )
 	return (rv1 == rv2) and 1 or 0
-end
-
-e2function number operator!=( table rv1, table rv2 )
-	return (rv1 ~= rv2) and 1 or 0
 end
 
 __e2setcost(nil)
@@ -1253,7 +1233,7 @@ end)
 --------------------------------------------------------------------------------
 
 -- these postexecute and construct hooks handle changes to both tables and arrays.
-registerCallback("postexecute", function(self)
+registerCallback("postexecute", function(self) --- @param self RuntimeContext
 	local Scope = self.GlobalScope
 	local vclk, lookup = Scope.vclk, Scope.lookup
 

@@ -40,21 +40,6 @@ e2function angle ang(vector rv1)
 	return Angle(rv1[1], rv1[2], rv1[3])
 end
 
-
-registerOperator("ass", "a", "a", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	local lookup = Scope.lookup
-	if !lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
-
 registerOperator("is", "a", "n", function(state, a)
 	return a:IsZero() and 1 or 0
 end, 1, nil, { legacy = false })

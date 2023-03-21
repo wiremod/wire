@@ -72,25 +72,6 @@ registerOperator( "kvarray", "", "r", function( self, args )
 end)
 
 --------------------------------------------------------------------------------
--- = operator
---------------------------------------------------------------------------------
-registerOperator("ass", "r", "r", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	local lookup = Scope.lookup
-	if !lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
-
-
-
---------------------------------------------------------------------------------
 -- IS operator
 --------------------------------------------------------------------------------
 e2function number operator_is(array arr)

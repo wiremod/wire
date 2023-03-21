@@ -63,14 +63,6 @@ end
 
 __e2setcost(5) -- temporary
 
-registerOperator("ass", "e", "e", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
-
 /******************************************************************************/
 
 e2function number operator_is(entity ent)
@@ -79,10 +71,6 @@ end
 
 e2function number operator==(entity lhs, entity rhs)
 	if lhs == rhs then return 1 else return 0 end
-end
-
-e2function number operator!=(entity lhs, entity rhs)
-	if lhs ~= rhs then return 1 else return 0 end
 end
 
 /******************************************************************************/

@@ -148,15 +148,11 @@ end)
 /******************************************************************************/
 
 registerOperator("is", "xwl", "n", function(state, this)
-	return validWirelink(this) and 1 or 0
+	return validWirelink(state, this) and 1 or 0
 end, 2, nil, { legacy = false })
 
 e2function number operator==(wirelink lhs, wirelink rhs)
 	if lhs == rhs then return 1 else return 0 end
-end
-
-e2function number operator!=(wirelink lhs, wirelink rhs)
-	if lhs ~= rhs then return 1 else return 0 end
 end
 
 /******************************************************************************/
@@ -244,10 +240,7 @@ registerCallback("postinit", function()
 		else
 			-- all types without an input serializer
 			-- a check for {} is not needed here, since array and table both have input serializers and are thus handled in the above branch.
-			function getf(self, args)
-				local this, portname = args[2], args[3]
-				this, portname = this[1](self, this), portname[1](self, portname)
-
+			function getf(self, this, portname)
 				if not validWirelink(self, this) then return zero end
 
 				portname = mapOutputAlias(this, portname)
@@ -261,10 +254,7 @@ registerCallback("postinit", function()
 		end
 
 		if output_serializer then
-			function setf(self, args)
-				local this, portname, value = args[2], args[3], args[4]
-				this, portname, value = this[1](self, this), portname[1](self, portname), value[1](self, value)
-
+			function setf(self, this, portname, value)
 				if not validWirelink(self, this) then return value end
 				if not this.Inputs then return value end
 
@@ -274,10 +264,7 @@ registerCallback("postinit", function()
 				return value
 			end
 		else
-			function setf(self, args)
-				local this, portname, value = args[2], args[3], args[4]
-				this, portname, value = this[1](self, this), portname[1](self, portname), value[1](self, value)
-
+			function setf(self, this, portname, value)
 				if not validWirelink(self, this) then return value end
 				if not this.Inputs then return value end
 

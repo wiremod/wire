@@ -247,20 +247,6 @@ end
 
 __e2setcost(2)
 
-registerOperator("ass", "q", "q", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	local lookup = Scope.lookup
-	if !lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
-
 /******************************************************************************/
 // TODO: define division as multiplication with (1/x), or is it not useful?
 
@@ -471,15 +457,6 @@ e2function number operator==(quaternion lhs, quaternion rhs)
 	   rvd2 <= delta and rvd2 >= -delta and
 	   rvd3 <= delta and rvd3 >= -delta and
 	   rvd4 <= delta and rvd4 >= -delta
-	   then return 1 else return 0 end
-end
-
-e2function number operator!=(quaternion lhs, quaternion rhs)
-	local rvd1, rvd2, rvd3, rvd4 = lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3], lhs[4] - rhs[4]
-	if rvd1 > delta or rvd1 < -delta or
-	   rvd2 > delta or rvd2 < -delta or
-	   rvd3 > delta or rvd3 < -delta or
-	   rvd4 > delta or rvd4 < -delta
 	   then return 1 else return 0 end
 end
 

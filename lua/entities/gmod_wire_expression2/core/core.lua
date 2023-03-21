@@ -34,7 +34,7 @@ end)
 __e2setcost(0) -- cascaded
 
 registerOperator("is", "n", "n", function(state, num)
-	return num ~= 0 and 1 or 0
+	return (num ~= 0) and 1 or 0
 end, 1, nil, { legacy = false })
 
 --------------------------------------------------------------------------------
