@@ -267,35 +267,16 @@ registerCallback( "postinit", function()
 			--------------------------------------------------------------------------------
 			__e2setcost(0)
 
-			registerOperator("fea", "n" .. id .. "r", "", function(self, args)
-				local keyname, valname = args[2], args[3]
+			local function iter(tbl, i)
+				local v = tbl[i + 1]
+				if not typecheck(v) then
+					return i + 1, v
+				end
+			end
 
-				local tbl = args[4]
-				tbl = tbl[1](self, tbl)
-
-				local statement = args[5]
-
-				for key, value in pairs(tbl) do
-					if not typecheck(value) then
-						self:PushScope()
-
-						self.prf = self.prf + 3
-
-						self.Scope.vclk[keyname] = true
-						self.Scope.vclk[valname] = true
-
-						self.Scope[keyname] = key
-						self.Scope[valname] = value
-
-						local ok, msg = pcall(statement[1], self, statement)
-
-						if not ok then
-							if msg == "break" then	self:PopScope() break
-							elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-						end
-
-						self:PopScope()
-					end
+			registerOperator("iter", "n" .. id .. "=r", "", function(state, array)
+				return function()
+					return iter, array, 0
 				end
 			end)
 

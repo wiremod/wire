@@ -28,66 +28,34 @@ __e2setcost(3) -- temporary
 
 /******************************************************************************/
 
-local string_sub = string.sub
-registerOperator("fea", "nss", "", function(self, args)
-	local keyname, valname = args[2], args[3]
-	local str = args[4]
-	str = str[1](self, str)
 
-	local statement = args[5]
+local string_sub, string_byte = string.sub, string.byte
 
-	for key=1, #str do
-		local value = string_sub(str, key, key)
-		self:PushScope()
+local function iterc(str, i)
+	i = i + 1
+	if i < #str then
+		return i, string_sub(str, i, i)
+	end
+end
 
-		self.prf = self.prf + 1
+local function iterb(str, i)
+	i = i + 1
+	if i < #str then
+		return i, string_byte(string_sub(str, i, i))
+	end
+end
 
-		self.Scope.vclk[keyname] = true
-		self.Scope.vclk[valname] = true
-
-		self.Scope[keyname] = key
-		self.Scope[valname] = value
-
-		local ok, msg = pcall(statement[1], self, statement)
-
-		if not ok then
-			if msg == "break" then	self:PopScope() break
-			elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-		end
-
-		self:PopScope()
+registerOperator("iter", "ns=s", "", function(state, str)
+	state.prf = state.prf + #str
+	return function()
+		return iterc, str, 0
 	end
 end)
 
-local string_byte = string.byte
-registerOperator("fea", "nns", "", function(self, args)
-	local keyname, valname = args[2], args[3]
-
-	local str = args[4]
-	str = str[1](self, str)
-
-	local statement = args[5]
-
-	for key=1, #str do
-		local value = string_byte(str,key,key)
-		self:PushScope()
-
-		self.prf = self.prf + 1
-
-		self.Scope.vclk[keyname] = true
-		self.Scope.vclk[valname] = true
-
-		self.Scope[keyname] = key
-		self.Scope[valname] = value
-
-		local ok, msg = pcall(statement[1], self, statement)
-
-		if not ok then
-			if msg == "break" then	self:PopScope() break
-			elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-		end
-
-		self:PopScope()
+registerOperator("iter", "nn=s", "", function(state, str)
+	state.prf = state.prf + #str
+	return function()
+		return iterb, str, 0
 	end
 end)
 

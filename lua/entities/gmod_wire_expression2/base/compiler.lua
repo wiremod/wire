@@ -155,13 +155,14 @@ function Compiler:Warning(message, trace)
 end
 
 ---@generic T
----@param fn fun(scope: Scope): T?
----@return T?
+---@generic T2
+---@param fn fun(scope: Scope): T?, T2?
+---@return T?, T2?
 function Compiler:Scope(fn)
 	self.scope = Scope.new(self.scope)
-	local ret = fn(self.scope)
+	local ret, ret2 = fn(self.scope)
 	self.scope = self.scope.parent
-	return ret
+	return ret, ret2
 end
 
 --- Ensure that a token of variant LowerIdent is a valid type
@@ -373,13 +374,12 @@ local CompileVisitors = {
 	[NodeVariant.For] = function (self, trace, data)
 		local var, start, stop, step = data[1], self:CompileExpr(data[2]), self:CompileExpr(data[3]), data[4] and self:CompileExpr(data[4]) or data[4]
 
-		local block, cost = nil, 1 / 20
-		self:Scope(function(scope)
+		local block, cost = self:Scope(function(scope)
 			scope.data.loop = true
 			scope:DeclVar(var.value, { initialized = true, type = "n", trace_if_unused = var.trace })
 
 			block = self:CompileStmt(data[5])
-			cost = cost + scope.data.ops
+			return block, 1 / 20 + scope.data.ops
 		end)
 
 		local var = var.value
@@ -407,19 +407,32 @@ local CompileVisitors = {
 		local key, key_type, value, value_type = data[1], data[2] and self:CheckType(data[2]) or "n", data[3], self:CheckType(data[4])
 
 		local iterator, iterator_ty = self:CompileExpr(data[5])
-		self:Scope(function(scope)
+		local block, cost = self:Scope(function(scope)
 			scope.data.loop = true
 
 			scope:DeclVar(key.value, { initialized = true, trace_if_unused = key.trace, type = key_type })
 			scope:DeclVar(value.value, { initialized = true, trace_if_unused = value.trace, type = value_type })
 
-			block = self:CompileStmt(data[6])
+			return self:CompileStmt(data[6]), 1 / 15 + scope.data.ops
 		end)
 
-		local foreach, _, ops = self:GetOperator("fea", { key_type, value_type, iterator_ty }, trace)
+		local foreach, _, ops = self:GetOperator("iter", { key_type, value_type, "=", iterator_ty }, trace)
+		local key, value = key.value, value.value
 		return function(state) ---@param state RuntimeContext
-			local iterator, block = iterator(state), block(state)
-			return foreach(state, iterator, block)
+			local iter = foreach(state, iterator(state))
+
+			for k, v in iter() do
+				state:PushScope()
+
+				state.prf = state.prf + cost
+
+				state.Scope[key] = k
+				state.Scope[value] = v
+
+				block(state)
+
+				state:PopScope()
+			end
 		end
 	end,
 

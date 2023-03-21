@@ -1214,69 +1214,32 @@ registerCallback( "postinit", function()
 		--------------------------------------------------------------------------------
 		-- Foreach operators
 		--------------------------------------------------------------------------------
-		__e2setcost(nil)
+		__e2setcost(0)
 
-		registerOperator("fea", "s" .. id .. "t", "", function(self, args)
-			local keyname, valname = args[2], args[3]
+		local function iteri(tbl, i)
+			i = i + 1
+			local v = tbl.n[i]
+			if tbl.ntypes[i] == id then
+				return i, v
+			end
+		end
 
-			local tbl = args[4]
-			tbl = tbl[1](self, tbl)
+		local function iter(tbl, i)
+			local key, value = next(tbl.s, i)
+			if tbl.stypes[key] == id then
+				return key, value
+			end
+		end
 
-			local statement = args[5]
-
-			for key, value in pairs(tbl.s) do
-				if tbl.stypes[key] == id then
-					self:PushScope()
-
-					self.prf = self.prf + 3
-
-					self.Scope.vclk[keyname] = true
-					self.Scope.vclk[valname] = true
-
-					self.Scope[keyname] = key
-					self.Scope[valname] = value
-
-					local ok, msg = pcall(statement[1], self, statement)
-
-					if not ok then
-						if msg == "break" then	self:PopScope() break
-						elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-					end
-
-					self:PopScope()
-				end
+		registerOperator("iter", "s" .. id .. "=t", "", function(state, table)
+			return function()
+				return iter, table
 			end
 		end)
 
-		registerOperator("fea", "n" .. id .. "t", "", function(self, args)
-			local keyname, valname = args[2], args[3]
-
-			local tbl = args[4]
-			tbl = tbl[1](self, tbl)
-
-			local statement = args[5]
-
-			for key, value in pairs(tbl.n) do
-				if tbl.ntypes[key] == id then
-					self:PushScope()
-
-					self.prf = self.prf + 3
-
-					self.Scope.vclk[keyname] = true
-					self.Scope.vclk[valname] = true
-
-					self.Scope[keyname] = key
-					self.Scope[valname] = value
-
-					local ok, msg = pcall(statement[1], self, statement)
-
-					if not ok then
-						if msg == "break" then	self:PopScope() break
-						elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-					end
-
-					self:PopScope()
-				end
+		registerOperator("iter", "n" .. id .. "=t", "", function(state, table)
+			return function()
+				return iteri, table, 0
 			end
 		end)
 

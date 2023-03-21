@@ -142,6 +142,8 @@ local non_allowed_types = { -- If anyone can think of any other types that shoul
 	xgt = true,
 }
 
+local fixDefault = E2Lib.fixDefault
+
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
 		if (!non_allowed_types[v[1]]) then
@@ -151,24 +153,20 @@ registerCallback("postinit",function()
 			__e2setcost(5)
 
 			-- Table[index,type] functions
-			local function getf( self, args )
-				local op1, op2 = args[2], args[3]
-				local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-				if isnumber(rv2) then rv2 = tostring(rv2) end
-				local val = rv1[v[1]..rv2]
-				if (val) then -- If the var exists
+			local function getf(state, gtable, key)
+				if isnumber(key) then key = tostring(key) end
+				local val = gtable[v[1]..key]
+				if val then -- If the var exists
 					return val -- return it
+				else
+					return fixDefault(v[2])
 				end
-				local default = v[2]
-				if istable(default) then default = table.Copy(default) end
-				return default
 			end
-			local function setf( self, args )
-				local op1, op2, op3 = args[2], args[3], args[4]
-				local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-				if isnumber(rv2) then rv2 = tostring(rv2) end
-				rv1[v[1]..rv2] = rv3
-				return rv3
+
+			local function setf(state, gtable, key, value)
+				if isnumber(key) then key = tostring(key) end
+				gtable[v[1]..key] = value
+				return value
 			end
 
 			registerOperator("idx", v[1].."=xgts", v[1], getf) -- G[S,type]
@@ -224,36 +222,18 @@ registerCallback("postinit",function()
 			--------------------------------------------------------------------------------
 			__e2setcost(1)
 
-			registerOperator("fea", "s" .. v[1] .. "xgt", "", function(self, args)
-				local keyname, valname = args[2], args[3]
+			local len = #v[1]
 
-				local tbl = args[4]
-				tbl = tbl[1](self, tbl)
+			local function iter(tbl, i)
+				local key, value = next(tbl, i)
+				if key and key:sub(1, len) == v[1] then
+					return key, value
+				end
+			end
 
-				local statement = args[5]
-				local len = #v[1]
-
-				for key, value in pairs(tbl) do
-					if key:sub(1, len) == v[1] then
-						self:PushScope()
-
-						self.prf = self.prf + 3
-
-						self.Scope.vclk[keyname] = true
-						self.Scope.vclk[valname] = true
-
-						self.Scope[keyname] = key:sub(len + 1)
-						self.Scope[valname] = value
-
-						local ok, msg = pcall(statement[1], self, statement)
-
-						if not ok then
-							if msg == "break" then	self:PopScope() break
-							elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-						end
-
-						self:PopScope()
-					end
+			registerOperator("iter", "s" .. v[1] .. "=xgt", "", function(state, gtable)
+				return function()
+					return iter, gtable
 				end
 			end)
 
