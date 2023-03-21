@@ -4,31 +4,6 @@
 
 local delta = wire_expression2_delta
 
-__e2setcost(1) -- approximation
-
-------------------------------------------------------------------------
-
-__e2setcost(1) -- approximation
-
-registerOperator("trg", "", "n", function(self, args)
-	local op1 = args[2]
-	return self.triggerinput == op1 and 1 or 0
-end)
-
-registerOperator("iwc", "", "n", function(self, args)
-	local op1 = args[2]
-	return IsValid(self.entity.Inputs[op1].Src) and 1 or 0
-end)
-
-registerOperator("owc","","n",function(self,args)
-	local op1 = args[2]
-	local tbl = self.entity.Outputs[op1].Connected
-	local ret = #tbl
-	for i=1,ret do if (not IsValid(tbl[i].Entity)) then ret = ret - 1 end end
-	return ret
-end)
-
-
 --------------------------------------------------------------------------------
 
 __e2setcost(0) -- cascaded

@@ -1300,31 +1300,31 @@ local CompileVisitors = {
 			self.delta_vars[var_name] = true
 
 			local sub_op, sub_ty = self:GetOperator("sub", { var.type, var.type }, trace)
-			local var = Node.new(NodeVariant.ExprIdent, data[2])
-
-			local tok = Token.new(TokenVariant.Ident, "$" .. data[2].value)
-			tok.trace = data[2].trace
-			local var_dlt = Node.new(NodeVariant.ExprIdent, tok)
+			local id = var.scope:Depth()
 
 			return function(state) ---@param state RuntimeContext
-				sub_op(state, var, var_dlt)
+				return sub_op(state, state.Scopes[id][var_name], state.Scopes[id]["$" .. var_name])
 			end, sub_ty
 		elseif data[1] == Operator.Trg then -- ~
-			local op, op_ret = self:GetOperator("trg", {}, trace)
 			return function(state) ---@param state RuntimeContext
-				return op(state, var_name)
-			end, op_ret
+				return state.triggerinput == var_name and 1 or 0
+			end, "n"
 		elseif data[1] == Operator.Imp then -- ->
 			if self.inputs[var_name] then
-				local op, op_ret = self:GetOperator("iwc", {}, trace)
 				return function(state) ---@param state RuntimeContext
-					return op(state, var_name)
-				end, op_ret
+					return IsValid(state.entity.Inputs[var_name].Src) and 1 or 0
+				end, "n"
 			elseif self.outputs[var_name] then
-				local op, op_ret = self:GetOperator("owc", {}, trace)
 				return function(state) ---@param state RuntimeContext
-					return op(state, var_name)
-				end, op_ret
+					local tbl = state.entity.Outputs[var_name].Connected
+					local ret = #tbl
+					for i = 1, ret do
+						if not IsValid(tbl[i].Entity)then
+							ret = ret - 1
+						end
+					end
+					return ret
+				end, "n"
 			else
 				self:Error("Can only use connected (->) operator on inputs or outputs", trace)
 			end
