@@ -178,8 +178,8 @@ end
 
 ---@type fun(self: Compiler, trace: Trace, data: { [1]: Node, [2]: Operator, [3]: self }): RuntimeOperator, string?
 local function handleInfixOperation(self, trace, data)
-	local lhs, lhs_ty = self:CompileNode(data[1])
-	local rhs, rhs_ty = self:CompileNode(data[3])
+	local lhs, lhs_ty = self:CompileExpr(data[1])
+	local rhs, rhs_ty = self:CompileExpr(data[3])
 
 	local op, op_ret, legacy = self:GetOperator(E2Lib.OperatorNames[data[2]]:lower(), { lhs_ty, rhs_ty }, trace)
 
@@ -204,15 +204,15 @@ local CompileVisitors = {
 		local stmts, traces = {}, {}
 		for _, node in ipairs(data) do
 			if not self.scope.data.dead then
-				local trace, stmt = node.trace, self:CompileNode(node)
-				if stmt then -- Need to append because CompileNode can return nil (despite me not annotating it as such) for compile time constructs
+				local trace, stmt = node.trace, self:CompileStmt(node)
+				if stmt then -- Need to append because Compile* can return nil (despite me not annotating it as such) for compile time constructs
 					local i = #stmts + 1
 					stmts[i], traces[i] = stmt, trace
 
 					if node.variant == NodeVariant.ExprCall then -- Check if nodiscard (hacky :\)
 						local name, argtypes = node.data[1].value, {}
 						for k, arg in ipairs(node.data[2]) do
-							argtypes[k] = select(2, self:CompileNode(arg))
+							argtypes[k] = select(2, self:CompileExpr(arg))
 						end
 						local fn = self:Assert(self:GetFunction(name, argtypes), "Unreachable", trace)
 						if fn.attrs["nodiscard"] then
@@ -229,10 +229,10 @@ local CompileVisitors = {
 					elseif node.variant == NodeVariant.ExprMethodCall then
 						local method, name, types = node.data[1], node.data[2], {}
 						for k, arg in ipairs(node.data[3]) do
-							types[k] = select(2, self:CompileNode(arg))
+							types[k] = select(2, self:CompileExpr(arg))
 						end
 
-						local meta_type = select(2, self:CompileNode(method))
+						local meta_type = select(2, self:CompileExpr(method))
 						local fn = self:Assert(self:GetFunction(name.value, types, meta_type), "Unreachable", name.trace)
 
 						if fn.attrs["nodiscard"] then
@@ -301,7 +301,7 @@ local CompileVisitors = {
 		local chain = {} ---@type { [1]: RuntimeOperator?, [2]: RuntimeOperator }[]
 		for i, ifeif in ipairs(data) do
 			self:Scope(function()
-				chain[i] = {ifeif[1] and self:CompileNode(ifeif[1]), self:CompileNode(ifeif[2])}
+				chain[i] = {ifeif[1] and self:CompileExpr(ifeif[1]), self:CompileStmt(ifeif[2])}
 			end)
 		end
 		return function(state) ---@param state RuntimeContext
@@ -327,11 +327,11 @@ local CompileVisitors = {
 
 	---@param data { [1]: Node, [2]: Node, [3]: boolean }
 	[NodeVariant.While] = function(self, trace, data)
-		local expr, block, cost = nil, nil, 1 / 20
+		local expr, block, cost = nil, nil, 1 / 10
 		self:Scope(function(scope)
-			expr = self:CompileNode(data[1])
+			expr = self:CompileExpr(data[1])
 			scope.data.loop = true
-			block = self:CompileNode(data[2])
+			block = self:CompileStmt(data[2])
 			cost = cost + scope.data.ops
 		end)
 
@@ -353,6 +353,7 @@ local CompileVisitors = {
 			end
 		else
 			return function(state) ---@param state RuntimeContext
+				state:PushScope()
 				while expr(state) ~= 0 do
 					state.prf = state.prf + cost
 					if state.__continue__ then
@@ -363,20 +364,21 @@ local CompileVisitors = {
 						if state.__break__ or state.__return__ then break end
 					end
 				end
+				state:PopScope()
 			end
 		end
 	end,
 
 	---@param data { [1]: Token<string>, [2]: Node, [3]: Node, [4]: Node?, [5]: Node } var start stop step block
 	[NodeVariant.For] = function (self, trace, data)
-		local var, start, stop, step = data[1], self:CompileNode(data[2]), self:CompileNode(data[3]), data[4] and self:CompileNode(data[4]) or data[4]
+		local var, start, stop, step = data[1], self:CompileExpr(data[2]), self:CompileExpr(data[3]), data[4] and self:CompileExpr(data[4]) or data[4]
 
 		local block, cost = nil, 1 / 20
 		self:Scope(function(scope)
 			scope.data.loop = true
 			scope:DeclVar(var.value, { initialized = true, type = "n", trace_if_unused = var.trace })
 
-			block = self:CompileNode(data[5])
+			block = self:CompileStmt(data[5])
 			cost = cost + scope.data.ops
 		end)
 
@@ -404,14 +406,14 @@ local CompileVisitors = {
 	[NodeVariant.Foreach] = function (self, trace, data)
 		local key, key_type, value, value_type = data[1], data[2] and self:CheckType(data[2]) or "n", data[3], self:CheckType(data[4])
 
-		local iterator, iterator_ty = self:CompileNode(data[5])
+		local iterator, iterator_ty = self:CompileExpr(data[5])
 		self:Scope(function(scope)
 			scope.data.loop = true
 
 			scope:DeclVar(key.value, { initialized = true, trace_if_unused = key.trace, type = key_type })
 			scope:DeclVar(value.value, { initialized = true, trace_if_unused = value.trace, type = value_type })
 
-			block = self:CompileNode(data[6])
+			block = self:CompileStmt(data[6])
 		end)
 
 		local foreach, _, ops = self:GetOperator("fea", { key_type, value_type, iterator_ty }, trace)
@@ -423,28 +425,22 @@ local CompileVisitors = {
 
 	---@param data { [1]: Node, [2]: {[1]: Node, [2]: Node}[], [3]: Node? }
 	[NodeVariant.Switch] = function (self, trace, data)
-		local expr, expr_ty = self:CompileNode(data[1])
+		local expr, expr_ty = self:CompileExpr(data[1])
 
 		local cases = {} ---@type { [1]: RuntimeOperator, [2]: RuntimeOperator }[]
 		for i, case in ipairs(data[2]) do
-			local cond, cond_ty = self:CompileNode(case[1])
+			local cond, cond_ty = self:CompileExpr(case[1])
 			local block
 			self:Scope(function(scope)
 				scope.data.switch_case = true
-				block = self:CompileNode(case[2])
+				block = self:CompileStmt(case[2])
 			end)
 
 			local eq =  self:GetOperator("eq", { expr_ty, cond_ty }, case[1].trace)
 			cases[i] = { eq, block }
 		end
 
-		local default
-		if data[3] then
-			self:Scope(function(_scope)
-				default = self:CompileNode(data[3])
-			end)
-		end
-
+		local default = data[3] and self:Scope(function() return self:CompileStmt(data[3]) end)
 		return function(state) ---@param state RuntimeContext
 			for i, case in ipairs(cases) do
 				if case[1](state) then
@@ -458,23 +454,27 @@ local CompileVisitors = {
 	[NodeVariant.Try] = function (self, trace, data)
 		local try_block, catch_block, err_var = nil, nil, data[2]
 		self:Scope(function(scope)
-			try_block = self:CompileNode(data[1])
+			try_block = self:CompileStmt(data[1])
 		end)
 
 		self:Scope(function (scope)
 			scope:DeclVar(err_var.value, { initialized = true, trace_if_unused = err_var.trace, type = "s" })
-			catch_block = self:CompileNode(data[3])
+			catch_block = self:CompileStmt(data[3])
 		end)
 
 		self.scope.data.ops = self.scope.data.ops + 1
 
 		return function(state) ---@param state RuntimeContext
+			state:PushScope()
 			local ok, err = pcall(try_block, state)
+			state:PopScope()
 			if not ok then
 				local catchable, msg, trace = E2Lib.unpackException(err)
 				if catchable then
 					state.Scope[err_var.value] = (type(msg) == "string") and msg or ""
+					state:PushScope()
 					catch_block(state)
+					state:PopScope()
 				else
 					error(err, 0)
 				end
@@ -541,9 +541,15 @@ local CompileVisitors = {
 				local last, non_variadic = #param_types, #param_types - 1
 				if variadic_ty == "r" then
 					function op(state, args) ---@param state RuntimeContext
-						state:PushScope()
+						local save = state:SaveScopes()
+
+						local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
+						state.Scopes = { [0] = state.GlobalScope, [1] = scope }
+						state.Scope = scope
+						state.ScopeID = 1
+
 						for i = 1, non_variadic do
-							state.Scope[param_names[i]] = args[i]
+							scope[param_names[i]] = args[i]
 						end
 
 						local a, n = {}, 1
@@ -552,9 +558,9 @@ local CompileVisitors = {
 							n = n + 1
 						end
 
-						state.Scope[param_names[last]] = a
+						scope[param_names[last]] = a
 						block(state)
-						state:PopScope()
+						state:LoadScopes(save)
 						if state.__return__ then
 							state.__return__ = false
 							return state.__returnval__
@@ -564,8 +570,13 @@ local CompileVisitors = {
 					end
 				else -- table
 					function op(state, args, arg_types) ---@param state RuntimeContext
-						state:PushScope()
-						local scope = state.Scope
+						local save = state:SaveScopes()
+
+						local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
+						state.Scopes = { [0] = state.GlobalScope, [1] = scope }
+						state.Scope = scope
+						state.ScopeID = 1
+
 						for i = 1, non_variadic do
 							scope[param_names[i]] = args[i]
 						end
@@ -578,7 +589,8 @@ local CompileVisitors = {
 						scope[param_names[last]] = { s = {}, stypes = {}, n = n, ntypes = ntypes, size = last }
 
 						block(state)
-						state:PopScope()
+						state:LoadScopes(save)
+
 						if state.__return__ then
 							state.__return__ = false
 							return state.__returnval__
@@ -592,7 +604,7 @@ local CompileVisitors = {
 					local save = state:SaveScopes()
 
 					local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
-					state.Scopes = { [1] = scope }
+					state.Scopes = { [0] = state.GlobalScope, [1] = scope }
 					state.Scope = scope
 					state.ScopeID = 1
 
@@ -615,8 +627,13 @@ local CompileVisitors = {
 			local last, non_variadic = #param_types, #param_types - 1
 			if variadic_ty == "r" then
 				function op(state, args) ---@param state RuntimeContext
-					state:PushScope()
-					local scope = state.Scope
+					local save = state:SaveScopes()
+
+					local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
+					state.Scopes = { [0] = state.GlobalScope, [1] = scope }
+					state.Scope = scope
+					state.ScopeID = 1
+
 					for i = 1, non_variadic do
 						scope[param_names[i]] = args[i]
 					end
@@ -629,12 +646,18 @@ local CompileVisitors = {
 
 					scope[param_names[last]] = a
 					block(state)
-					state:PopScope()
+
+					state:LoadScopes(save)
 				end
 			else -- table
 				function op(state, args, arg_types) ---@param state RuntimeContext
-					state:PushScope()
-					local scope = state.Scope
+					local save = state:SaveScopes()
+
+					local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
+					state.Scopes = { [0] = state.GlobalScope, [1] = scope }
+					state.Scope = scope
+					state.ScopeID = 1
+
 					for i = 1, non_variadic do
 						scope[param_names[i]] = args[i]
 					end
@@ -646,25 +669,38 @@ local CompileVisitors = {
 
 					scope[param_names[last]] = { s = {}, stypes = {}, n = n, ntypes = ntypes, size = last }
 					block(state)
-					state:PopScope()
+
+					state:LoadScopes(save)
 				end
 			end
 		elseif #param_types == 0 then -- Fastest case, no arguments to push
 			function op(state) ---@param state RuntimeContext
-				state:PushScope()
+				local save = state:SaveScopes()
+
+				local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
+				state.Scopes = { [0] = state.GlobalScope, [1] = scope }
+				state.Scope = scope
+				state.ScopeID = 1
+
 				block(state)
-				state:PopScope()
+
+				state:LoadScopes(save)
 			end
 		else
 			function op(state, args) ---@param state RuntimeContext
-				state:PushScope()
-				local scope = state.Scope
+				local save = state:SaveScopes()
+
+				local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
+				state.Scopes = { [0] = state.GlobalScope, [1] = scope }
+				state.Scope = scope
+				state.ScopeID = 1
+
 				for i, arg in ipairs(args) do
 					scope[param_names[i]] = arg
 				end
 
 				block(state)
-				state:PopScope()
+				state:LoadScopes(save)
 			end
 		end
 
@@ -706,7 +742,7 @@ local CompileVisitors = {
 
 			scope.data["function"] = { name.value, fn }
 
-			block = self:CompileNode(data[5])
+			block = self:CompileStmt(data[5])
 		end)
 
 		-- No `return` statement found. Returns void
@@ -741,7 +777,7 @@ local CompileVisitors = {
 			self.warnings[data] = self.warnings[data] or {}
 
 			local root = include[1]
-			local status, script = pcall(self.CompileNode, self, root)
+			local status, script = pcall(self.CompileStmt, self, root)
 
 			if not status then ---@cast script Error
 				local reason = script.message
@@ -795,7 +831,7 @@ local CompileVisitors = {
 
 		local retval, ret_ty
 		if data then
-			retval, ret_ty = self:CompileNode(data)
+			retval, ret_ty = self:CompileExpr(data)
 
 			local name, fn = fn[1], fn[2]
 
@@ -813,7 +849,7 @@ local CompileVisitors = {
 
 	---@param data { [1]: boolean, [2]: { [1]: Token<string>, [2]: { [1]: Node, [2]: Token<string>?, [3]: Trace }[] }[], [3]: Node } is_local, vars, value
 	[NodeVariant.Assignment] = function (self, trace, data)
-		local value, value_ty = self:CompileNode(data[3])
+		local value, value_ty = self:CompileExpr(data[3])
 		self:Assert(value_ty, "Cannot assign variable to expression of type void", data[3].trace)
 
 		if data[1] then
@@ -842,7 +878,7 @@ local CompileVisitors = {
 					end
 
 					for j, index in ipairs(indices) do
-						local key, key_ty = self:CompileNode(index[1])
+						local key, key_ty = self:CompileExpr(index[1])
 
 						if index[2] then -- <EXPR>[<EXPR>, <type>]
 							local ty = self:CheckType(index[2])
@@ -857,7 +893,7 @@ local CompileVisitors = {
 						end
 					end
 
-					local key, key_ty = self:CompileNode(setter[1])
+					local key, key_ty = self:CompileExpr(setter[1])
 
 					if setter[2] then -- <EXPR>[<EXPR>, <type>]
 						local ty = self:CheckType(setter[2])
@@ -924,7 +960,7 @@ local CompileVisitors = {
 	---@param data { [1]: Token<string>, [2]: Operator, [3]: Node }
 	[NodeVariant.CompoundArithmetic] = function(self, trace, data)
 		local var = self:Assert(self.scope:LookupVar(data[1].value), "Variable " .. data[1].value .. " does not exist.", trace)
-		local expr, expr_ty = self:CompileNode(data[3])
+		local expr, expr_ty = self:CompileExpr(data[3])
 
 		local op, op_ty = self:GetOperator(E2Lib.OperatorNames[data[2]]:lower():sub(2), { var.type, expr_ty }, trace)
 		self:Assert(op_ty == var.type, "Cannot use compound arithmetic on differing types", trace)
@@ -937,8 +973,8 @@ local CompileVisitors = {
 
 	---@param data { [1]: Node, [2]: Node }
 	[NodeVariant.ExprDefault] = function(self, trace, data)
-		local cond, cond_ty = self:CompileNode(data[1])
-		local expr, expr_ty = self:CompileNode(data[2])
+		local cond, cond_ty = self:CompileExpr(data[1])
+		local expr, expr_ty = self:CompileExpr(data[2])
 
 		self:Assert(cond_ty == expr_ty, "Cannot use default (?:) operator with differing types", trace)
 
@@ -952,9 +988,9 @@ local CompileVisitors = {
 
 	---@param data { [1]: Node, [2]: Node }
 	[NodeVariant.ExprTernary] = function(self, trace, data)
-		local cond, cond_ty = self:CompileNode(data[1])
-		local iff, iff_ty = self:CompileNode(data[2])
-		local els, els_ty = self:CompileNode(data[2])
+		local cond, cond_ty = self:CompileExpr(data[1])
+		local iff, iff_ty = self:CompileExpr(data[2])
+		local els, els_ty = self:CompileExpr(data[2])
 
 		self:Assert(iff_ty == els_ty, "Cannot use ternary (A ? B : C) operator with differing types", trace)
 
@@ -998,10 +1034,10 @@ local CompileVisitors = {
 
 			local numbers = {}
 			for _, kvpair in ipairs(data) do
-				local key, key_ty = self:CompileNode(kvpair[1])
+				local key, key_ty = self:CompileExpr(kvpair[1])
 
 				if key_ty == "n" then
-					local value, ty = self:CompileNode(kvpair[2])
+					local value, ty = self:CompileExpr(kvpair[2])
 					self:Assert(not BLOCKED_ARRAY_TYPES[ty], "Cannot use type " .. ty .. " as array value", kvpair[2].trace)
 					numbers[key] = value
 				else
@@ -1021,7 +1057,7 @@ local CompileVisitors = {
 		else
 			local args = {}
 			for k, arg in ipairs(data) do
-				local value, ty = self:CompileNode(arg)
+				local value, ty = self:CompileExpr(arg)
 				self:Assert(not BLOCKED_ARRAY_TYPES[ty], "Cannot use type " .. ty .. " as array value", trace)
 				args[k] = value
 			end
@@ -1046,8 +1082,8 @@ local CompileVisitors = {
 
 			local strings, numbers, size = {}, {}, #data
 			for _, kvpair in ipairs(data) do
-				local key, key_ty = self:CompileNode(kvpair[1])
-				local value, value_ty = self:CompileNode(kvpair[2])
+				local key, key_ty = self:CompileExpr(kvpair[1])
+				local value, value_ty = self:CompileExpr(kvpair[2])
 
 				if key_ty == "s" then
 					strings[key] = { value, value_ty }
@@ -1077,7 +1113,7 @@ local CompileVisitors = {
 			---@cast data Node[]
 			local args, argtypes = {}, {}
 			for k, arg in ipairs(data) do
-				args[k], argtypes[k] = self:CompileNode(arg)
+				args[k], argtypes[k] = self:CompileExpr(arg)
 			end
 
 			return function(state) ---@param state RuntimeContext
@@ -1095,24 +1131,32 @@ local CompileVisitors = {
 
 	---@param data { [1]: Node, [2]: Operator, [3]: self }
 	[NodeVariant.ExprLogicalOp] = function(self, trace, data)
-		local lhs, lhs_ty = self:CompileNode(data[1])
-		local rhs, rhs_ty = self:CompileNode(data[3])
+		local lhs, lhs_ty = self:CompileExpr(data[1])
+		local rhs, rhs_ty = self:CompileExpr(data[3])
 
-		self:Assert(lhs_ty == rhs_ty, "Cannot perform logical operation on differing types", trace)
+		-- self:Assert(lhs_ty == rhs_ty, "Cannot perform logical operation on differing types", trace)
 
-		local op, op_ret, legacy = self:GetOperator("is", { lhs_ty }, trace)
-		self:Assert(op_ret == "n", "Cannot use perform logical operation on type " .. lhs_ty, trace)
+		local op_lhs, op_lhs_ret, legacy = self:GetOperator("is", { lhs_ty }, trace)
+		local op_rhs, op_rhs_ret, legacy2 = self:GetOperator("is", { rhs_ty }, trace)
+
+		self:Assert(op_lhs_ret == "n", "Cannot perform logical operation on type " .. op_lhs_ret, trace)
+		self:Assert(op_rhs_ret == "n", "Cannot perform logical operation on type " .. op_rhs_ret, trace)
+
+		self:Assert(legacy == legacy2, "Internal error", trace)
+
+		-- local op, op_ret, legacy = self:GetOperator("is", { lhs_ty }, trace)
+		-- self:Assert(op_ret == "n", "Cannot use perform logical operation on type " .. lhs_ty, trace)
 
 		if data[2] == Operator.Or then
 			if legacy then
 				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
 				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
 				return function(state)
-					return ((op(state, largs_lhs) ~= 0) or (op(state, largs_rhs) ~= 0)) and 1 or 0
+					return ((op_lhs(state, largs_lhs) ~= 0) or (op_rhs(state, largs_rhs) ~= 0)) and 1 or 0
 				end, "n"
 			else
 				return function(state)
-					return ((op(state, lhs(state)) ~= 0) or (op(state, rhs(state)) ~= 0)) and 1 or 0
+					return ((op_lhs(state, lhs(state)) ~= 0) or (op_rhs(state, rhs(state)) ~= 0)) and 1 or 0
 				end, "n"
 			end
 		else -- Operator.And
@@ -1120,11 +1164,11 @@ local CompileVisitors = {
 				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
 				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
 				return function(state)
-					return (op(lhs(state, largs_lhs)) ~= 0 and op(rhs(state, largs_rhs)) ~= 0) and 1 or 0
+					return (op_lhs(lhs(state, largs_lhs)) ~= 0 and op_rhs(rhs(state, largs_rhs)) ~= 0) and 1 or 0
 				end
 			else
 				return function(state)
-					return (op(lhs(state)) ~= 0 and op(rhs(state)) ~= 0) and 1 or 0
+					return (op_lhs(lhs(state)) ~= 0 and op_rhs(rhs(state)) ~= 0) and 1 or 0
 				end, "n"
 			end
 		end
@@ -1134,8 +1178,8 @@ local CompileVisitors = {
 	[NodeVariant.ExprComparison] = handleInfixOperation,
 
 	[NodeVariant.ExprEquals] = function(self, trace, data)
-		local lhs, lhs_ty = self:CompileNode(data[1])
-		local rhs, rhs_ty = self:CompileNode(data[3])
+		local lhs, lhs_ty = self:CompileExpr(data[1])
+		local rhs, rhs_ty = self:CompileExpr(data[3])
 
 		self:Assert(lhs_ty == rhs_ty, "Cannot perform equality operation on differing types", trace)
 
@@ -1171,7 +1215,7 @@ local CompileVisitors = {
 
 	---@param data { [1]: Operator, [2]: Node, [3]: self }
 	[NodeVariant.ExprUnaryOp] = function(self, trace, data)
-		local exp, ty = self:CompileNode(data[2])
+		local exp, ty = self:CompileExpr(data[2])
 
 		if data[1] == Operator.Not then -- Return opposite of operator_is result
 			local op, op_ret, legacy = self:GetOperator("is", { ty }, trace)
@@ -1245,9 +1289,9 @@ local CompileVisitors = {
 
 	---@param data { [1]: Node, [2]: Index[] }
 	[NodeVariant.ExprIndex] = function (self, trace, data)
-		local expr, expr_ty = self:CompileNode(data[1])
+		local expr, expr_ty = self:CompileExpr(data[1])
 		for i, index in ipairs(data[2]) do
-			local key, key_ty = self:CompileNode(index[1])
+			local key, key_ty = self:CompileExpr(index[1])
 
 			local op
 			if index[2] then -- <EXPR>[<EXPR>, <type>]
@@ -1270,7 +1314,7 @@ local CompileVisitors = {
 	[NodeVariant.ExprCall] = function (self, trace, data)
 		local args, types = {}, {}
 		for k, arg in ipairs(data[2]) do
-			args[k], types[k] = self:CompileNode(arg)
+			args[k], types[k] = self:CompileExpr(arg)
 			self:Assert(types[k], "Cannot use void expression as call argument", arg.trace)
 		end
 
@@ -1307,11 +1351,10 @@ local CompileVisitors = {
 	[NodeVariant.ExprMethodCall] = function (self, trace, data)
 		local name, args, types = data[2], {}, {}
 		for k, arg in ipairs(data[3]) do
-			args[k], types[k] = self:CompileNode(arg)
+			args[k], types[k] = self:CompileExpr(arg)
 		end
 
-		local meta, meta_type = self:CompileNode(data[1])
-		self:Assert(meta_type, "Cannot call value of <void>", trace)
+		local meta, meta_type = self:CompileExpr(data[1])
 
 		local fn_data = self:Assert(self:GetFunction(name.value, types, meta_type), "No such method: " .. (meta_type or "void") .. ":" .. name.value .. "(" .. table.concat(types, ", ") .. ")", name.trace)
 		local fn = fn_data.op
@@ -1339,15 +1382,15 @@ local CompileVisitors = {
 
 	---@param data { [1]: Node, [2]: Node[], [3]: Token<string>? }
 	[NodeVariant.ExprStringCall] = function (self, trace, data)
-		local expr = self:CompileNode(data[1])
+		local expr = self:CompileExpr(data[1])
 
 		local args, arg_types = {}, {}
 		for i, arg in ipairs(data[2]) do
-			args[i], arg_types[i] = self:CompileNode(arg)
+			args[i], arg_types[i] = self:CompileExpr(arg)
 		end
 
 		local arg_sig = table.concat(arg_types)
-		local ret_type = self:CheckType(data[3])
+		local ret_type = data[3] and self:CheckType(data[3])
 
 		return function(state) ---@param state RuntimeContext
 			local rargs = {}
@@ -1420,15 +1463,24 @@ local CompileVisitors = {
 				end
 			end
 
-			return self:CompileNode(data[3])
+			return self:CompileStmt(data[3])
 		end)
 
 		self.registered_events[name][self.include or "__main__"] = function(state, args) ---@param state RuntimeContext
+			local save = state:SaveScopes()
+
+			local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
+			state.Scopes = { [0] = state.GlobalScope, [1] = scope }
+			state.Scope = scope
+			state.ScopeID = 1
+
 			for i, param in ipairs(params) do
 				state.Scope[param[1]] = args[i]
 			end
 
 			block(state)
+
+			state:LoadScopes(save)
 		end
 
 		return nil
@@ -1515,10 +1567,22 @@ end
 ---@param node Node
 ---@return RuntimeOperator
 ---@return string? expr_type
-function Compiler:CompileNode(node)
+function Compiler:CompileExpr(node)
 	if not node.trace then
 		error("Incomplete node: " .. tostring(node), 2)
 	end
+
+	local op, ty = assert(CompileVisitors[node.variant], "Unimplemented Compile Step: " .. node:instr())(self, node.trace, node.data)
+	self:Assert(ty, "Cannot use void in expression position", node.trace)
+	return op, ty
+end
+
+---@return RuntimeOperator
+function Compiler:CompileStmt(node)
+	if not node.trace then
+		error("Incomplete node: " .. tostring(node), 2)
+	end
+
 	return assert(CompileVisitors[node.variant], "Unimplemented Compile Step: " .. node:instr())(self, node.trace, node.data)
 end
 
@@ -1537,5 +1601,5 @@ function Compiler:Process(ast)
 		self.scope:DeclVar(var, { initialized = false, type = type })
 	end
 
-	return self:CompileNode(ast)
+	return self:CompileStmt(ast)
 end

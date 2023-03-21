@@ -380,7 +380,7 @@ function Parser:Stmt()
 			if #last[2] ~= 0 then
 				-- Edge case where last assignment is an indexing operation.
 				-- X = Y = T[5]
-				last = Node.new(NodeVariant.ExprIndex, { Node.new(NodeVariant.ExprIdent, last[1]), last[2] })
+				last = Node.new(NodeVariant.ExprIndex, { Node.new(NodeVariant.ExprIdent, last[1], self:GetTrace()), last[2] }, self:GetTrace())
 			else -- X = Y = Z (or X = Y = Z + 2)
 				self.index = self.index - 1
 				last = self:Expr()

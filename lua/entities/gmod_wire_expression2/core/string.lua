@@ -280,9 +280,9 @@ e2function string string:sub(start)
 	return this:sub(start)
 end
 
-e2function string string:operator[](index)
-	return this:sub(index,index)
-end
+registerOperator("idx", "sn", "s", function(state, this, n)
+	return this:sub(n, n)
+end)
 
 registerFunction("upper", "s:", "s", function(self, args)
 	local op1 = args[2], args[3]

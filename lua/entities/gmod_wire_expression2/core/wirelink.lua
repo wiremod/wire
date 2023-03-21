@@ -147,10 +147,9 @@ end)
 
 /******************************************************************************/
 
-e2function number operator_is(wirelink value)
-	if not validWirelink(self, value) then return 0 end
-	return 1
-end
+registerOperator("is", "xwl", "n", function(state, this)
+	return validWirelink(this) and 1 or 0
+end, 2, nil, { legacy = false })
 
 e2function number operator==(wirelink lhs, wirelink rhs)
 	if lhs == rhs then return 1 else return 0 end
@@ -420,50 +419,59 @@ e2function array wirelink:readArray(start, size)
 	return ret
 end
 
-e2function number wirelink:operator[](address, value)
-	if not validWirelink(self, this) then return value end
+registerOperator("idx", "xwlnn", "n", function(state, this, address, value)
+	if not validWirelink(state, this) then return end
 
-	if not this.WriteCell then return value end
-	this:WriteCell(address, value)
-	return value
-end
-e2function number wirelink:operator[](address) = e2function number wirelink:readCell(address)
+	if this.WriteCell then
+		this:WriteCell(address, value)
+	end
+end, 3)
+
+registerOperator("idx", "xwln", "n", function(state, this, address)
+	if not validWirelink(self, this) then return 0 end
+
+	if not this.ReadCell then return 0 end
+	return this:ReadCell(address) or 0
+end, 3)
 
 /******************************************************************************/
 
 __e2setcost(20) -- temporary
 
-e2function vector wirelink:operator[T](address, vector value)
-	if not validWirelink(self, this) then return value end
+registerOperator("idx", "v=xwlnv", "", function(state, this, address, value)
+	if not validWirelink(state, this) then return end
 
-	if not this.WriteCell then return value end
-	this:WriteCell(address, value[1])
-	this:WriteCell(address+1, value[2])
-	this:WriteCell(address+2, value[3])
-	return value
-end
+	if this.WriteCell then
+		this:WriteCell(address, value[1])
+		this:WriteCell(address + 1, value[2])
+		this:WriteCell(address + 2, value[3])
+	end
+end, 20)
 
-e2function vector wirelink:operator[T](address)
-	if not validWirelink(self, this) then return Vector(0, 0, 0) end
+registerOperator("idx", "v=xwln", "v", function(state, this, address, value)
+	if not validWirelink(state, this) then return end
 
-	if not this.ReadCell then return 0 end
-	return Vector(
-		this:ReadCell(address) or 0,
-		this:ReadCell(address+1) or 0,
-		this:ReadCell(address+2) or 0
-	)
-end
+	if this.ReadCell then
+		return Vector(
+			this:ReadCell(address) or 0,
+			this:ReadCell(address+1) or 0,
+			this:ReadCell(address+2) or 0
+		)
+	else
+		return Vector(0, 0, 0)
+	end
+end, 20)
 
-e2function string wirelink:operator[T](address, string value)
-	if not validWirelink(self, this) or not this.WriteCell then return "" end
+registerOperator("idx", "s=xwlns", "", function(state, this, address, value)
+	if not validWirelink(state, this) or not this.WriteCell then return "" end
 	WriteStringZero(this, address, value)
-	return value
-end
+end, 20)
 
-e2function string wirelink:operator[T](address)
-	if not validWirelink(self, this) or not this.ReadCell then return "" end
+registerOperator("idx", "s=xwln", "s", function(state, this, address)
+	if not validWirelink(state, this) or not this.ReadCell then return "" end
 	return ReadStringZero(this, address)
-end
+end, 20)
+
 
 /******************************************************************************/
 
