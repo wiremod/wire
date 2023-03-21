@@ -156,13 +156,27 @@ end
 
 ---@generic T
 ---@generic T2
----@param fn fun(scope: Scope): T?, T2?
----@return T?, T2?
+---@generic T3
+---@param fn fun(scope: Scope): T?, T2?, T3?
+---@return T?, T2?, T3?
 function Compiler:Scope(fn)
 	self.scope = Scope.new(self.scope)
-	local ret, ret2 = fn(self.scope)
+	local ret, ret2, ret3 = fn(self.scope)
 	self.scope = self.scope.parent
-	return ret, ret2
+	return ret, ret2, ret3
+end
+
+---@generic T
+---@generic T2
+---@generic T3
+---@param fn fun(scope: Scope): T?, T2?, T3?
+---@return T?, T2?, T3?
+function Compiler:IsolatedScope(fn)
+	local old = self.scope
+	self.scope = Scope.new(self.global_scope)
+	local ret, ret2, ret3 = fn(self.scope)
+	self.scope = old
+	return ret, ret2, ret3
 end
 
 --- Ensure that a token of variant LowerIdent is a valid type
@@ -328,12 +342,8 @@ local CompileVisitors = {
 
 	---@param data { [1]: Node, [2]: Node, [3]: boolean }
 	[NodeVariant.While] = function(self, trace, data)
-		local expr, block, cost = nil, nil, 1 / 10
-		self:Scope(function(scope)
-			expr = self:CompileExpr(data[1])
-			scope.data.loop = true
-			block = self:CompileStmt(data[2])
-			cost = cost + scope.data.ops
+		local expr, block, cost = self:Scope(function(scope)
+			return self:CompileExpr(data[1]), self:CompileStmt(data[2]), 1 / 10 + scope.data.ops
 		end)
 
 		if data[3] then
@@ -491,7 +501,7 @@ local CompileVisitors = {
 				local ok, err = pcall(try_block, state)
 			state:PopScope()
 			if not ok then
-				local catchable, msg, trace = E2Lib.unpackException(err)
+				local catchable, msg = E2Lib.unpackException(err)
 				if catchable then
 					state:PushScope()
 						state.Scope[err_var.value] = (type(msg) == "string") and msg or ""
@@ -757,7 +767,7 @@ local CompileVisitors = {
 			self.user_functions[name.value][sig] = fn
 		end
 
-		self:Scope(function (scope)
+		self:IsolatedScope(function (scope)
 			for i, type in ipairs(param_types) do
 				scope:DeclVar(param_names[i], { type = type, initialized = true })
 			end
@@ -1514,7 +1524,7 @@ local CompileVisitors = {
 
 		self.registered_events[name] = self.registered_events[name] or {}
 
-		local block = self:Scope(function(scope)
+		local block = self:IsolatedScope(function(scope)
 			for k, arg in ipairs(event.args) do
 				if not params[k].discard then
 					scope:DeclVar(params[k][1], { type = arg, initialized = true, trace_if_unused = params[k][3] })
