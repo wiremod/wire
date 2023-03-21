@@ -450,16 +450,25 @@ local CompileVisitors = {
 			end)
 
 			local eq =  self:GetOperator("eq", { expr_ty, cond_ty }, case[1].trace)
-			cases[i] = { eq, block }
+			cases[i] = {
+				function(state, expr)
+					return eq(state, cond(state), expr)
+				end,
+				block
+			}
 		end
 
 		local default = data[3] and self:Scope(function() return self:CompileStmt(data[3]) end)
 		return function(state) ---@param state RuntimeContext
+			local expr = expr(state)
 			for i, case in ipairs(cases) do
-				if case[1](state) then
+				if case[1](state, expr) ~= 0 then
 					case[2](state)
+					return
 				end
 			end
+
+			default(state)
 		end
 	end,
 
