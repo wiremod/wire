@@ -1006,6 +1006,7 @@ local CompileVisitors = {
 	[NodeVariant.Increment] = function (self, trace, data)
 		local var = data.value
 		local existing = self:Assert(self.scope:LookupVar(var), "Unknown variable to increment: " .. var, trace)
+		existing.trace_if_unused = nil
 		self:Assert(existing.type == "n", "Cannot increment type of " .. existing.type, trace)
 
 		local id = existing.scope:Depth()
@@ -1018,6 +1019,7 @@ local CompileVisitors = {
 	[NodeVariant.Decrement] = function (self, trace, data)
 		local var = data.value
 		local existing = self:Assert(self.scope:LookupVar(var), "Unknown variable to decrement: " .. var, trace)
+		existing.trace_if_unused = nil
 		self:Assert(existing.type == "n", "Cannot increment type of " .. existing.type, trace)
 
 		local id = existing.scope:Depth()
@@ -1028,13 +1030,14 @@ local CompileVisitors = {
 
 	---@param data { [1]: Token<string>, [2]: Operator, [3]: Node }
 	[NodeVariant.CompoundArithmetic] = function(self, trace, data)
-		local var = self:Assert(self.scope:LookupVar(data[1].value), "Variable " .. data[1].value .. " does not exist.", trace)
+		local existing = self:Assert(self.scope:LookupVar(data[1].value), "Variable " .. data[1].value .. " does not exist.", trace)
+		existing.trace_if_unused = nil
 		local expr, expr_ty = self:CompileExpr(data[3])
 
-		local op, op_ty = self:GetOperator(E2Lib.OperatorNames[data[2]]:lower():sub(2), { var.type, expr_ty }, trace)
-		self:Assert(op_ty == var.type, "Cannot use compound arithmetic on differing types", trace)
+		local op, op_ty = self:GetOperator(E2Lib.OperatorNames[data[2]]:lower():sub(2), { existing.type, expr_ty }, trace)
+		self:Assert(op_ty == existing.type, "Cannot use compound arithmetic on differing types", trace)
 
-		local name, id = data[1].value, var.scope:Depth()
+		local name, id = data[1].value, existing.scope:Depth()
 		return function(state)
 			state.Scopes[id][name] = op(state, state.Scopes[id][name], expr(state))
 		end
@@ -1326,6 +1329,7 @@ local CompileVisitors = {
 	[NodeVariant.ExprUnaryWire] = function(self, trace, data)
 		local var_name = data[2].value
 		local var = self:Assert(self.scope:LookupVar(var_name), "Undefined variable (" .. var_name .. ")", trace)
+		var.trace_if_unused = nil
 
 		if data[1] == Operator.Dlt then -- $
 			self:Assert(var.scope:IsGlobalScope(), "Delta operator ($) can not be used on temporary variables", trace)
