@@ -84,14 +84,14 @@ registerType("bone", "b", nil,
 __e2setcost(1)
 
 --- if (B)
-e2function number operator_is(bone b)
-	if isValidBone(b) then return 1 else return 0 end
-end
+registerOperator("is", "b", "n", function(state, this)
+	return isValidBone(this) and 1 or 0
+end)
 
 --- B == B
-e2function number operator==(bone lhs, bone rhs)
-	if lhs == rhs then return 1 else return 0 end
-end
+registerOperator("eq", "bb", "n", function(state, lhs, rhs)
+	return (lhs == rhs) and 1 or 0
+end)
 
 --[[************************************************************************]]--
 __e2setcost(3)

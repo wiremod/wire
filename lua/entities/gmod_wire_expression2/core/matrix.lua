@@ -84,13 +84,12 @@ e2function matrix2 identity2()
 			 0, 1 }
 end
 
-e2function number operator_is(matrix2 rv1)
-	if rv1[1] ~= 0 or rv1[2] ~= 0 or rv1[3] ~= 0 or rv1[4] ~= 0 then
-		return 1
-	else
-		return 0
-	end
-end
+registerOperator("is", "xm2", "n", function(state, this)
+	return (this[1] ~= 0
+		or this[2] ~= 0
+		or this[3] ~= 0)
+		and 1 or 0
+end)
 
 e2function number operator==(matrix2 rv1, matrix2 rv2)
 	return (rv1[1] == rv2[1]
@@ -450,13 +449,13 @@ e2function matrix identity()
 			 0, 0, 1 }
 end
 
-e2function number operator_is(matrix rv1)
+registerOperator("is", "m", "n", function(state, rv1)
 	return (
 		rv1[1] ~= 0 or rv1[2] ~= 0 or rv1[3] ~= 0
 		or rv1[4] ~= 0 or rv1[5] ~= 0 or rv1[6] ~= 0
 		or rv1[7] ~= 0 or rv1[8] ~= 0 or rv1[9] ~= 0
 	) and 1 or 0
-end
+end)
 
 e2function number operator==(matrix rv1, matrix rv2)
 	return (rv1[1] == rv2[1]
@@ -949,14 +948,14 @@ e2function matrix4 identity4()
 			 0, 0, 0, 1 }
 end
 
-e2function number operator_is(matrix4 rv1)
+registerOperator("is", "xm4", "n", function(state, rv1)
 	return (
 		rv1[1] ~= 0 or rv1[2] ~= 0 or rv1[3] ~= 0 or rv1[4] ~= 0
 		or rv1[5] ~= 0 or rv1[6] ~= 0 or rv1[7] ~= 0 or rv1[8] ~= 0
 		or rv1[9] ~= 0 or rv1[10] ~= 0 or rv1[11] ~= 0 or rv1[12] ~= 0
 		or rv1[13] ~= 0 or rv1[14] ~= 0 or rv1[15] ~= 0 or rv1[16] ~= 0
 	) and 1 or 0
-end
+end)
 
 e2function number operator==(matrix4 rv1, matrix4 rv2)
 	return (rv1[1] == rv2[1]

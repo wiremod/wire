@@ -30,9 +30,9 @@ registerType( "gtable", "xgt", {},
 
 __e2setcost(1)
 
-e2function number operator_is( gtable tbl )
-	return istable(tbl) and 1 or 0
-end
+registerOperator("is", "xgt", "n", function(state, this)
+	return istable(this) and 1 or 0
+end)
 
 ------------------------------------------------
 -- gTable

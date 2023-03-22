@@ -27,11 +27,10 @@ registerOperator("ass", "xrd", "xrd", function(self, args)
 	return rhs
 end)
 
-e2function number operator_is(ranger walker)
-	if walker then return 1 else return 0 end
-end
 
-/******************************************************************************/
+registerOperator("is", "xrd", "n", function(state, this)
+	return this and 1 or 0
+end)
 
 E2Lib.RegisterExtension("ranger", true, "Lets E2 chips trace rays and check for collisions.")
 

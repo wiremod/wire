@@ -14,10 +14,9 @@
 
 AddCSLuaFile()
 
-local Trace, Warning, Error = E2Lib.Debug.Trace, E2Lib.Debug.Warning, E2Lib.Debug.Error
-local Token, TokenVariant = E2Lib.Tokenizer.Token, E2Lib.Tokenizer.Variant
-local Node, NodeVariant = E2Lib.Parser.Node, E2Lib.Parser.Variant
-local Keyword, Grammar, Operator = E2Lib.Keyword, E2Lib.Grammar, E2Lib.Operator
+local Warning, Error = E2Lib.Debug.Warning, E2Lib.Debug.Error
+local NodeVariant = E2Lib.Parser.Variant
+local Operator = E2Lib.Operator
 
 local TickQuota = GetConVar("wire_expression2_quotatick"):GetInt()
 
@@ -343,7 +342,7 @@ local CompileVisitors = {
 	---@param data { [1]: Node, [2]: Node, [3]: boolean }
 	[NodeVariant.While] = function(self, trace, data)
 		local expr, block, cost = self:Scope(function(scope)
-			return self:CompileExpr(data[1]), self:CompileStmt(data[2]), 1 / 10 + scope.data.ops
+			return self:CompileExpr(data[1]), self:CompileStmt(data[2]), 1 / 20
 		end)
 
 		if data[3] then
@@ -388,8 +387,7 @@ local CompileVisitors = {
 			scope.data.loop = true
 			scope:DeclVar(var.value, { initialized = true, type = "n", trace_if_unused = var.trace })
 
-			block = self:CompileStmt(data[5])
-			return block, 1 / 20 + scope.data.ops
+			return self:CompileStmt(data[5]), 1 / 20
 		end)
 
 		local var = var.value
@@ -423,7 +421,7 @@ local CompileVisitors = {
 			scope:DeclVar(key.value, { initialized = true, trace_if_unused = key.trace, type = key_type })
 			scope:DeclVar(value.value, { initialized = true, trace_if_unused = value.trace, type = value_type })
 
-			return self:CompileStmt(data[6]), 1 / 15 + scope.data.ops
+			return self:CompileStmt(data[6]), 1 / 15
 		end)
 
 		local foreach, _, ops = self:GetOperator("iter", { key_type, value_type, "=", iterator_ty }, trace)
@@ -1051,7 +1049,6 @@ local CompileVisitors = {
 		self:Assert(iff_ty == els_ty, "Cannot use ternary (A ? B : C) operator with differing types", trace)
 
 		local op = self:GetOperator("is", { cond_ty }, trace)
-
 		return function(state) ---@param state RuntimeContext
 			return op(state, cond(state)) ~= 0 and iff(state) or els(state)
 		end, iff_ty
@@ -1291,18 +1288,10 @@ local CompileVisitors = {
 		if data[1] == Operator.Not then -- Return opposite of operator_is result
 			local op, op_ret, legacy = self:GetOperator("is", { ty }, trace)
 			self:Assert(op_ret == "n", "Cannot perform not operation on type " .. ty, trace)
-
-			if legacy then
-				local largs = { [1] = {}, [2] = { exp }, [3] = { ty } }
-				return function(state)
-					return op(state, largs)
-				end, "n"
-			else
-				return function(state)
-					return op(state, exp(state)) == 0 and 1 or 0
-				end, "n"
-			end
-		else
+			return function(state)
+				return op(state, exp(state)) == 0 and 1 or 0
+			end, "n"
+		else -- Negate
 			local op, op_ret, legacy = self:GetOperator(data[1] == Operator.Sub and "neg" or E2Lib.OperatorNames[data[1]]:lower(), { ty }, trace)
 			if legacy then
 				local largs = { [1] = {}, [2] = { exp }, [3] = { ty } }

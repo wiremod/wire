@@ -89,9 +89,9 @@ end
 
 __e2setcost(2)
 
-e2function number operator_is(complex z)
-	if (z[1]==0) and (z[2]==0) then return 0 else return 1 end
-end
+registerOperator("is", "c", "n", function(state, this)
+	return (this[1] ~= 0 or this[2] ~= 0) and 1 or 0
+end)
 
 e2function number operator==(complex lhs, complex rhs)
 	return (lhs[1] == rhs[1]

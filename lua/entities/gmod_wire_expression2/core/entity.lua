@@ -65,13 +65,13 @@ __e2setcost(5) -- temporary
 
 /******************************************************************************/
 
-e2function number operator_is(entity ent)
-	if IsValid(ent) then return 1 else return 0 end
-end
+registerOperator("is", "e", "n", function(state, ent)
+	return IsValid(ent) and 1 or 0
+end)
 
-e2function number operator==(entity lhs, entity rhs)
-	if lhs == rhs then return 1 else return 0 end
-end
+registerOperator("eq", "ee", "n", function(state, lhs, rhs)
+	return (lhs == rhs) and 1 or 0
+end)
 
 /******************************************************************************/
 

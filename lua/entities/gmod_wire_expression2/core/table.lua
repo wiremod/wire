@@ -254,9 +254,9 @@ end
 
 __e2setcost(1)
 
-e2function number operator_is( table tbl )
-	return (tbl.size > 0) and 1 or 0
-end
+registerOperator("is", "t", "n", function(state, this)
+	return (this.size > 0) and 1 or 0
+end)
 
 e2function number operator==( table rv1, table rv2 )
 	return (rv1 == rv2) and 1 or 0

@@ -68,9 +68,9 @@ end
 
 --------------------------------------------------------------------------------
 
-e2function number vector:operator_is()
-	return (this[1] ~= 0 or this[2] ~= 0 or this[3] ~= 0) and 1 or 0
-end
+registerOperator("is", "v", "n", function(state, this)
+	return this:IsZero() and 0 or 1
+end)
 
 e2function number vector:operator==( vector other )
 	return (this[1] == other[1]
