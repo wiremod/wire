@@ -53,8 +53,10 @@ end
 ---@param name string
 ---@param data VarData
 function Scope:DeclVar(name, data)
-	data.scope = self
-	self.vars[name] = data
+	if name ~= "_" then
+		data.scope = self
+		self.vars[name] = data
+	end
 end
 
 function Scope:IsGlobalScope()
@@ -85,9 +87,9 @@ end
 --- External Data
 ---@field includes table<string, Node>
 ---@field delta_vars table<string, true> # Variable: True
----@field persist table<string, string> # Variable: Type
----@field inputs table<string, string> # Variable: Type
----@field outputs table<string, string> # Variable: Type
+---@field persist IODirective
+---@field inputs IODirective
+---@field outputs IODirective
 local Compiler = {}
 Compiler.__index = Compiler
 
@@ -107,7 +109,7 @@ end
 function Compiler.from(directives, dvars, includes)
 	local global_scope = Scope.new()
 	return setmetatable({
-		persist = directives.persist[3], inputs = directives.inputs[3], outputs = directives.outputs[3],
+		persist = directives.persist, inputs = directives.inputs, outputs = directives.outputs,
 		global_scope = global_scope, scope = global_scope, warnings = {}, registered_events = {}, user_functions = {}, user_methods = {},
 		delta_vars = dvars or {}, includes = includes or {}
 	}, Compiler)
@@ -267,6 +269,12 @@ local CompileVisitors = {
 			else
 				self:Warning("Unreachable code detected", node.trace)
 				break
+			end
+		end
+
+		for name, var in pairs(self.scope.vars) do
+			if name ~= "_" and var.trace_if_unused then
+				self:Warning("Unused variable: " .. name, var.trace_if_unused)
 			end
 		end
 
@@ -531,6 +539,7 @@ local CompileVisitors = {
 
 		local param_types, param_names, variadic, variadic_ty = {}, {}, nil, nil
 		if data[4] then
+			local existing = {}
 			for i, param in ipairs(data[4]) do
 				if param.type then
 					local t = self:CheckType(param.type)
@@ -547,7 +556,13 @@ local CompileVisitors = {
 					param_types[i] = "n"
 					self:Warning("Use of implicit parameter type is deprecated (add :number)", param.name.trace)
 				end
-				param_names[i] = param.name.value
+
+				if param.name.value ~= "_" and existing[param.name.value] then
+					self:Error("Variable '" .. param.name.value .. "' is already used as a parameter", param.name.trace)
+				else
+					param_names[i] = param.name.value
+					existing[param.name.value] = true
+				end
 			end
 		end
 
@@ -765,14 +780,14 @@ local CompileVisitors = {
 			self.user_functions[name.value][sig] = fn
 		end
 
-		self:IsolatedScope(function (scope)
+		block = self:IsolatedScope(function (scope)
 			for i, type in ipairs(param_types) do
-				scope:DeclVar(param_names[i], { type = type, initialized = true })
+				scope:DeclVar(param_names[i], { type = type, trace_if_unused = data[4][i].name.trace, initialized = true })
 			end
 
 			scope.data["function"] = { name.value, fn }
 
-			block = self:CompileStmt(data[5])
+			return self:CompileStmt(data[5])
 		end)
 
 		-- No `return` statement found. Returns void
@@ -885,7 +900,7 @@ local CompileVisitors = {
 			-- Local declaration.
 			local var_name = data[2][1][1].value
 			self:Assert(not self.scope.vars[var_name], "Cannot redeclare existing variable " .. var_name, trace)
-			self.scope:DeclVar(var_name, { initialized = true, type = value_ty })
+			self.scope:DeclVar(var_name, { initialized = true, trace_if_unused = data[2][1][1].trace, type = value_ty })
 			return function(state) ---@param state RuntimeContext
 				state.Scope[var_name] = value(state)
 			end
@@ -1067,6 +1082,7 @@ local CompileVisitors = {
 	---@param data Token<string>
 	[NodeVariant.ExprIdent] = function (self, trace, data)
 		local var, name = self:Assert(self.scope:LookupVar(data.value), "Undefined variable: " .. data.value, trace), data.value
+		var.trace_if_unused = nil
 
 		self.scope.data.ops = self.scope.data.ops + 1
 
@@ -1479,9 +1495,15 @@ local CompileVisitors = {
 			self:Error("Events cannot be nested inside of statements, they are compile time constructs", trace)
 		end
 
+		---@type string, { [1]: string, [2]: string }[]
 		local name, params = data[1].value, {}
 		for i, param in ipairs(data[2]) do
-			params[i] = { param.name.value, param.type and self:CheckType(param.type) or "n" }
+			local type = param.type and self:CheckType(param.type)
+			if not type then
+				self:Warning("Use of implicit parameter type is deprecated (add :number)", param.name.trace)
+				type = "n"
+			end
+			params[i] = { param.name.value, type }
 		end
 
 		local event = E2Lib.Env.Events[name]
@@ -1649,15 +1671,15 @@ end
 ---@param ast Node
 ---@return RuntimeOperator
 function Compiler:Process(ast)
-	for var, type in pairs(self.persist) do
-		self.scope:DeclVar(var, { initialized = false, type = type })
+	for var, type in pairs(self.persist[3]) do
+		self.scope:DeclVar(var, { initialized = false, trace_if_unused = self.persist[5][var], type = type })
 	end
 
-	for var, type in pairs(self.inputs) do
-		self.scope:DeclVar(var, { initialized = true, type = type })
+	for var, type in pairs(self.inputs[3]) do
+		self.scope:DeclVar(var, { initialized = true, trace_if_unused = self.inputs[5][var], type = type })
 	end
 
-	for var, type in pairs(self.outputs) do
+	for var, type in pairs(self.outputs[3]) do
 		self.scope:DeclVar(var, { initialized = false, type = type })
 	end
 

@@ -211,7 +211,7 @@ local function handleIO(name)
 				ports[1][index] = key -- Index: Name
 				ports[2][index] = retval[2][i] -- Index: Type
 				ports[3][key] = retval[2][i] -- Name: Type
-				ports[5][key] = { lines[i], columns[i] } -- Name: { Line, Column }
+				ports[5][key] = Trace.new(lines[i], columns[i], lines[i], columns[i]) -- Name: Trace
 			end
 		end
 	end
@@ -325,7 +325,7 @@ function PreProcessor:ParseDirectives(line)
 end
 
 
----@alias IODirective { [1]: string[], [2]: TypeSignature[], [3]: table<string, TypeSignature>, [4]: table<string, string>, [5]: table<string, { [1]: integer, [2]: integer }>  }
+---@alias IODirective { [1]: string[], [2]: TypeSignature[], [3]: table<string, TypeSignature>, [4]: table<string, string>, [5]: table<string, Trace>  }
 ---@alias PPDirectives { inputs: IODirective, outputs: IODirective, persist: IODirective, name: string?, model: string?, trigger: { [1]: boolean?, [2]: table<string, boolean> } }
 
 ---@param buffer string
