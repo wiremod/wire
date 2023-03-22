@@ -262,40 +262,6 @@ e2function number operator==( table rv1, table rv2 )
 	return (rv1 == rv2) and 1 or 0
 end
 
-__e2setcost(nil)
-
-registerOperator( "kvtable", "", "t", function( self, args )
-	local ret = newE2Table()
-
-	local types = args[3]
-
-	local s, stypes, n, ntypes = {}, {}, {}, {}
-
-	local size = 0
-	for k,v in pairs( args[2] ) do
-		if not blocked_types[types[k]] then
-			local key = k[1]( self, k )
-
-			if isstring(key) then
-				s[key] = v[1]( self, v )
-				stypes[key] = types[k]
-			elseif isnumber(key) then
-				n[key] = v[1]( self, v )
-				ntypes[key] = types[k]
-			end
-			size = size + 1
-		end
-	end
-
-	self.prf = self.prf + size * opcost
-	ret.size = size
-	ret.s = s
-	ret.stypes = stypes
-	ret.n = n
-	ret.ntypes = ntypes
-	return ret
-end)
-
 --------------------------------------------------------------------------------
 -- Common functions
 --------------------------------------------------------------------------------
@@ -1030,31 +996,31 @@ registerCallback( "postinit", function()
 
 		-- Getters
 		if typecheck then -- If there's a type check
-			registerOperator("idx", id.."=ts", id, function(self, tbl, key)
+			registerOperator("indexget", "ts" .. id, id, function(self, tbl, key)
 				if not tbl.s[key] or tbl.stypes[key] ~= id then
 					return fixDefault(default)
 				end
 
-				if typecheck(tbl.s[key]) then -- Todo move verify check to outside function as optimization
-					return fixDefault(v[2])
+				if typecheck(tbl.s[key]) then
+					return fixDefault(default)
 				end
 
 				return tbl.s[key]
-			end, 2)
+			end)
 
-			registerOperator("idx", id.."=tn", id, function(self, tbl, key)
+			registerOperator("indexget", "tn" .. id, id, function(self, tbl, key)
 				if not tbl.n[key] or tbl.ntypes[key] ~= id then
 					return fixDefault(default)
 				end
 
 				if typecheck(tbl.n[key]) then
-					return fixDefault(v[2])
+					return fixDefault(default)
 				end
 
 				return tbl.n[key]
 			end, 2)
 		else
-			registerOperator("idx", id.."=ts", id, function(self, tbl, key)
+			registerOperator("indexget", "ts" .. id, id, function(self, tbl, key)
 				if not tbl.s[key] or tbl.stypes[key] ~= id then
 					return fixDefault(default)
 				end
@@ -1062,7 +1028,7 @@ registerCallback( "postinit", function()
 				return tbl.s[key]
 			end, 1)
 
-			registerOperator("idx", id.."=tn", id, function(self, tbl, key)
+			registerOperator("indexget", "tn" .. id, id, function(self, tbl, key)
 				if not tbl.n[key] or tbl.ntypes[key] ~= id then
 					return fixDefault(default)
 				end
@@ -1072,7 +1038,7 @@ registerCallback( "postinit", function()
 		end
 
 		-- Setters
-		registerOperator("idx", id.."=ts"..id , id, function(self, tbl, key, value)
+		registerOperator("indexset", "ts" .. id , "", function(self, tbl, key, value)
 			if tbl.s[key] == nil and value ~= nil then
 				tbl.size = tbl.size + 1
 			elseif tbl.s[key] ~= nil and value == nil then
@@ -1081,10 +1047,9 @@ registerCallback( "postinit", function()
 
 			tbl.s[key], tbl.stypes[key] = value, id
 			self.GlobalScope.vclk[tbl] = true
-			return value
 		end)
 
-		registerOperator("idx", id.."=tn"..id, id, function(self, tbl, key, value)
+		registerOperator("indexset", "tn" .. id, "", function(self, tbl, key, value)
 			if tbl.n[key] == nil and value ~= nil then
 				tbl.size = tbl.size + 1
 			elseif tbl.n[key] ~= nil and value == nil then
@@ -1093,7 +1058,6 @@ registerCallback( "postinit", function()
 
 			tbl.n[key], tbl.ntypes[key] = value, id
 			self.GlobalScope.vclk[tbl] = true
-			return value
 		end)
 
 
@@ -1204,6 +1168,7 @@ registerCallback( "postinit", function()
 			end
 		end
 
+		local next = next
 		local function iter(tbl, i)
 			local key, value = next(tbl.s, i)
 			if tbl.stypes[key] == id then

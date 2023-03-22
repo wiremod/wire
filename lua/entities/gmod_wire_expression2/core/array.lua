@@ -55,22 +55,6 @@ e2function array array(...args)
 	return args
 end
 
-registerOperator( "kvarray", "", "r", function( self, args )
-	local ret = {}
-	local values = args[2]
-
-	for k, v in pairs( values ) do
-		local key = k[1]( self, k )
-		local value = v[1]( self, v )
-
-		ret[key] = value
-
-		self.prf = self.prf + 1/3
-	end
-
-	return ret
-end)
-
 --------------------------------------------------------------------------------
 -- IS operator
 --------------------------------------------------------------------------------
@@ -113,7 +97,7 @@ registerCallback( "postinit", function()
 			end
 
 			if typecheck then
-				registerOperator("idx", id.."=rn", id, function(self, array, index)
+				registerOperator("indexget", "rn" .. id, id, function(self, array, index)
 					local ret = array[floor(index)]
 					if typecheck(ret) then
 						return fixDefault(default)
@@ -122,7 +106,7 @@ registerCallback( "postinit", function()
 					return ret
 				end)
 			else
-				registerOperator("idx", id.."=rn", id, function(self, array, index)
+				registerOperator("indexget", "rn" .. id, id, function(self, array, index)
 					return array[floor(index)]
 				end)
 			end
@@ -154,21 +138,19 @@ registerCallback( "postinit", function()
 			end
 
 			if typecheck then
-				registerOperator("idx", id.."=rn"..id, id, function(self, array, index, value)
+				registerOperator("indexset", "rn" .. id, id, function(self, array, index, value)
 					if typecheck(value) then
 						return fixDefault(default)
 					end
 
 					array[floor(index)] = value
 					self.GlobalScope.vclk[array] = true
-					return value
-				end, 3, nil, { legacy = false })
+				end, 2)
 			else
-				registerOperator("idx", id.."=rn"..id, id, function(self, array, index, value)
+				registerOperator("indexset", "rn" .. id, id, function(self, array, index, value)
 					array[floor(index)] = value
 					self.GlobalScope.vclk[array] = true
-					return value
-				end, 2, nil, { legacy = false })
+				end, 1)
 			end
 
 			registerFunction("set" .. nameupperfirst, "r:n"..id, id, function(self,args)

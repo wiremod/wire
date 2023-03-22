@@ -134,11 +134,11 @@ e2function vector operator/(vector lhs, vector rhs)
 	return Vector( lhs[1] / rhs[1], lhs[2] / rhs[2], lhs[3] / rhs[3] )
 end
 
-registerOperator("idx", "vn", "n", function(state, this, index)
+registerOperator("indexget", "vn", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 3) + 0.5)]
 end)
 
-registerOperator("idx", "vnn", "", function(state, this, index, value)
+registerOperator("indexset", "vnn", "", function(state, this, index, value)
 	this[floor(math.Clamp(index, 1, 3) + 0.5)] = value
 	state.GlobalScope.vclk[this] = true
 end)

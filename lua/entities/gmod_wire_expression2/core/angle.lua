@@ -135,11 +135,11 @@ e2function angle operator/(angle rv1, angle rv2)
 	return Angle( rv1[1] / rv2[1], rv1[2] / rv2[2], rv1[3] / rv2[3] )
 end
 
-registerOperator("idx", "an", "n", function(state, this, index)
+registerOperator("indexget", "an", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 3) + 0.5)]
 end)
 
-registerOperator("idx", "ann", "", function(state, this, index, value)
+registerOperator("indexset", "ann", "", function(state, this, index, value)
 	this[floor(math.Clamp(index, 1, 3) + 0.5)] = value
 	state.GlobalScope.vclk[this] = true
 end)

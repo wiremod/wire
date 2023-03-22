@@ -248,8 +248,8 @@ e2function string string:sub(start)
 	return this:sub(start)
 end
 
-registerOperator("idx", "sn", "s", function(state, this, n)
-	return this:sub(n, n)
+registerOperator("indexget", "sn", "s", function(state, this, index)
+	return this:sub(index, index)
 end)
 
 registerFunction("upper", "s:", "s", function(self, args)

@@ -26,8 +26,6 @@ local optable = {
 	["operator>="] = "geq",
 	["operator<"] = "lth",
 	["operator<="] = "leq",
-	["operator[]"] = "idx", -- typeless op[]
-	["operator[T]"] = { "idx", OPTYPE_APPEND_RET }, -- typed op[]
 
 	["operator_is"] = "is",
 	["operator_neg"] = "neg",

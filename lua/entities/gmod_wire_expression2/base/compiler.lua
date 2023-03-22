@@ -899,7 +899,7 @@ local CompileVisitors = {
 
 			local existing = self.scope:LookupVar(var)
 			if existing then
-				local op, expr_ty = nil, existing.type
+				local expr_ty = existing.type
 
 				-- It can have indices, it already exists
 				if #indices > 0 then
@@ -911,11 +911,12 @@ local CompileVisitors = {
 					for j, index in ipairs(indices) do
 						local key, key_ty = self:CompileExpr(index[1])
 
+						local op
 						if index[2] then -- <EXPR>[<EXPR>, <type>]
 							local ty = self:CheckType(index[2])
-							op, expr_ty = self:GetOperator("idx", { ty, "=", expr_ty, key_ty }, index[3])
+							op, expr_ty = self:GetOperator("indexget", { expr_ty, key_ty, ty }, index[3])
 						else -- <EXPR>[<EXPR>]
-							op, expr_ty = self:GetOperator("idx", { expr_ty, key_ty }, index[3])
+							op, expr_ty = self:GetOperator("indexget", { expr_ty, key_ty }, index[3])
 						end
 
 						local handle = stmts[i] -- need this, or stack overflow...
@@ -926,16 +927,18 @@ local CompileVisitors = {
 
 					local key, key_ty = self:CompileExpr(setter[1])
 
+					local op
 					if setter[2] then -- <EXPR>[<EXPR>, <type>]
 						local ty = self:CheckType(setter[2])
-						op, expr_ty = self:GetOperator("idx", { ty, "=", expr_ty, key_ty, ty }, setter[3])
+						self:Assert(ty == value_ty, "Cannot assign type " .. value_ty .. " to object expecting " .. ty, trace)
+						op, expr_ty = self:GetOperator("indexset", { expr_ty, key_ty, ty }, setter[3])
 					else -- <EXPR>[<EXPR>]
-						op, expr_ty = self:GetOperator("idx", { expr_ty, key_ty, value_ty }, setter[3])
+						op, expr_ty = self:GetOperator("indexset", { expr_ty, key_ty, value_ty }, setter[3])
 					end
 
 					local handle = stmts[i] -- need this, or stack overflow...
 					stmts[i] = function(state) ---@param state RuntimeContext
-						return op(state, handle(state), key(state), value(state))
+						op(state, handle(state), key(state), value(state))
 					end
 				else
 					self:Assert(existing.type == value_ty, "Cannot assign type (" .. value_ty .. ") to variable of type (" .. existing.type .. ")", trace)
@@ -1018,9 +1021,9 @@ local CompileVisitors = {
 		local op, op_ty = self:GetOperator(E2Lib.OperatorNames[data[2]]:lower():sub(2), { var.type, expr_ty }, trace)
 		self:Assert(op_ty == var.type, "Cannot use compound arithmetic on differing types", trace)
 
-		local name = data[1].value
+		local name, id = data[1].value, var.scope:Depth()
 		return function(state)
-			state.Scope[name] = op(state, state.Scope[name], expr(state))
+			state.Scopes[id][name] = op(state, state.Scopes[id][name], expr(state))
 		end
 	end,
 
@@ -1043,7 +1046,7 @@ local CompileVisitors = {
 	[NodeVariant.ExprTernary] = function(self, trace, data)
 		local cond, cond_ty = self:CompileExpr(data[1])
 		local iff, iff_ty = self:CompileExpr(data[2])
-		local els, els_ty = self:CompileExpr(data[2])
+		local els, els_ty = self:CompileExpr(data[3])
 
 		self:Assert(iff_ty == els_ty, "Cannot use ternary (A ? B : C) operator with differing types", trace)
 
@@ -1364,9 +1367,9 @@ local CompileVisitors = {
 			local op
 			if index[2] then -- <EXPR>[<EXPR>, <type>]
 				local ty = self:CheckType(index[2])
-				op, expr_ty = self:GetOperator("idx", { ty, "=", expr_ty, key_ty }, index[3])
+				op, expr_ty = self:GetOperator("indexget", { expr_ty, key_ty, ty }, index[3])
 			else -- <EXPR>[<EXPR>]
-				op, expr_ty = self:GetOperator("idx", { expr_ty, key_ty }, index[3])
+				op, expr_ty = self:GetOperator("indexget", { expr_ty, key_ty }, index[3])
 			end
 
 			local handle = expr -- need this, or stack overflow...

@@ -276,9 +276,9 @@ registerCallback("postinit", function()
 		end
 
 		registerFunction(getter, "xwl:s", id, getf, 5)
-		registerOperator("idx", id.."=xwls", id, getf, 5)
-		registerFunction(setter, "xwl:s"..id, id, setf, 5)
-		registerOperator("idx", id.."=xwls"..id, id, setf, 5)
+		registerOperator("indexget", "xwls" .. id, id, getf, 5)
+		registerFunction(setter, "xwl:s" .. id, id, setf, 5)
+		registerOperator("indexset", "xwls" .. id, id, setf, 5)
 	end
 end)
 
@@ -406,7 +406,7 @@ e2function array wirelink:readArray(start, size)
 	return ret
 end
 
-registerOperator("idx", "xwlnn", "n", function(state, this, address, value)
+registerOperator("indexset", "xwlnn", "", function(state, this, address, value)
 	if not validWirelink(state, this) then return end
 
 	if this.WriteCell then
@@ -414,7 +414,7 @@ registerOperator("idx", "xwlnn", "n", function(state, this, address, value)
 	end
 end, 3)
 
-registerOperator("idx", "xwln", "n", function(state, this, address)
+registerOperator("indexget", "xwln", "n", function(state, this, address)
 	if not validWirelink(self, this) then return 0 end
 
 	if not this.ReadCell then return 0 end
@@ -425,7 +425,7 @@ end, 3)
 
 __e2setcost(20) -- temporary
 
-registerOperator("idx", "v=xwlnv", "", function(state, this, address, value)
+registerOperator("indexset", "xwlnv", "", function(state, this, address, value)
 	if not validWirelink(state, this) then return end
 
 	if this.WriteCell then
@@ -435,7 +435,7 @@ registerOperator("idx", "v=xwlnv", "", function(state, this, address, value)
 	end
 end, 20)
 
-registerOperator("idx", "v=xwln", "v", function(state, this, address, value)
+registerOperator("indexget", "xwlnv", "v", function(state, this, address, value)
 	if not validWirelink(state, this) then return end
 
 	if this.ReadCell then
@@ -449,18 +449,16 @@ registerOperator("idx", "v=xwln", "v", function(state, this, address, value)
 	end
 end, 20)
 
-registerOperator("idx", "s=xwlns", "", function(state, this, address, value)
+registerOperator("indexset", "xwlns", "", function(state, this, address, value)
 	if not validWirelink(state, this) or not this.WriteCell then return "" end
 	WriteStringZero(this, address, value)
 end, 20)
 
-registerOperator("idx", "s=xwln", "s", function(state, this, address)
+registerOperator("indexget", "xwlns", "s", function(state, this, address)
 	if not validWirelink(state, this) or not this.ReadCell then return "" end
 	return ReadStringZero(this, address)
 end, 20)
 
-
-/******************************************************************************/
 
 __e2setcost(20) -- temporary
 

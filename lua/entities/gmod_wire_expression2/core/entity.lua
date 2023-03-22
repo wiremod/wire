@@ -280,7 +280,7 @@ e2function number entity:elevation(vector pos)
 	pos = this:WorldToLocal(pos)
 
 	local len = pos:Length()
-	if len < delta then return 0 end
+	if len < 0 then return 0 end
 	return rad2deg*asin(pos.z / len)
 end
 
@@ -295,7 +295,7 @@ e2function angle entity:heading(vector pos)
 
 	-- elevation
 	local len = pos:Length()--sqrt(x*x + y*y + z*z)
-	if len < delta then return Angle(0, bearing, 0) end
+	if len < 0 then return Angle(0, bearing, 0) end
 	local elevation = rad2deg * asin(pos.z / len)
 
 	return Angle(elevation, bearing, 0)
@@ -946,31 +946,28 @@ local function cleanEntsTbls(ent)
 end
 
 registerCallback("postinit",function()
-	for k,v in pairs( wire_expression_types ) do
+	for k, v in pairs( wire_expression_types ) do
 		if not non_allowed_types[v[1]] then
 			if k == "NORMAL" then k = "NUMBER" end
 			k = upperfirst(k)
 
 			__e2setcost(5)
 
-			local function getf( self, args )
-				local op1, op2 = args[2], args[3]
-				local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-				if not IsValid(rv1) or not rv2 or not rawget(enttbls, self.uid) or not rawget(enttbls[self.uid], rv1) then return fixDefault( v[2] ) end
-				return enttbls[self.uid][rv1][rv2] or fixDefault( v[2] )
+			local function getf(self, ent, key)
+				if IsValid(ent) and key and rawget(enttbls, self.uid) and rawget(enttbls[self.uid], ent) then
+					return enttbls[self.uid][ent][key] or fixDefault( v[2] )
+				end
 			end
 
-			local function setf( self, args )
-				local op1, op2, op3 = args[2], args[3], args[4]
-				local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-				if not IsValid(rv1) or not rv2 or not rv3 then return end
-				rv1:CallOnRemove("E2_ClearEntTbls", cleanEntsTbls)
-				enttbls[self.uid][rv1][rv2] = rv3
-				return rv3
+			local function setf(self, ent, key, value)
+				if IsValid(ent) and key and value ~= nil then
+					ent:CallOnRemove("E2_ClearEntTbls", cleanEntsTbls)
+					enttbls[self.uid][ent][key] = value
+				end
 			end
 
-			registerOperator("idx", v[1].."=es", v[1], getf)
-			registerOperator("idx", v[1].."=es"..v[1], v[1], setf)
+			registerOperator("indexget", "es" .. v[1], v[1], getf)
+			registerOperator("indexset", "es" .. v[1], v[1], setf)
 		end -- allowed check
 	end -- loop
 end) -- postinit

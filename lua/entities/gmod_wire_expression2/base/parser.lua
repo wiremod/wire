@@ -363,6 +363,7 @@ function Parser:Stmt()
 	if not var then
 		self:Assert(not is_local, "Invalid operator (local) must be used for variable declaration.")
 	else
+		local prev = self.index
 		local exprs = { { var, is_local and {} or self:Indices(), self:GetTrace() } }
 		while self:Consume(TokenVariant.Operator, Operator.Ass) do
 			local ident = self:Consume(TokenVariant.Ident)
@@ -374,7 +375,7 @@ function Parser:Stmt()
 		end
 
 		if #exprs == 1 then -- No assignment
-			self.index = self.index - 1
+			self.index = prev - 1
 		else
 			local last = table.remove(exprs)
 			if #last[2] ~= 0 then

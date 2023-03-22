@@ -151,14 +151,14 @@ registerCallback("postinit",function()
 
 			local function setf(state, gtable, key, value)
 				if isnumber(key) then key = tostring(key) end
-				gtable[v[1]..key] = value
+				gtable[v[1] .. key] = value
 				return value
 			end
 
-			registerOperator("idx", v[1].."=xgts", v[1], getf) -- G[S,type]
-			registerOperator("idx", v[1].."=xgts"..v[1], v[1], setf) -- G[S,type]
-			registerOperator("idx", v[1].."=xgtn", v[1], getf) -- G[N,type] (same as G[N:toString(),type])
-			registerOperator("idx", v[1].."=xgtn"..v[1], v[1], setf) -- G[N,type] (same as G[N:toString(),type])
+			registerOperator("indexget", "xgts" .. v[1], v[1], getf) -- G[S,type]
+			registerOperator("indexset", "xgts".. v[1], "", setf) -- G[S,type]
+			registerOperator("indexget", "xgtn" .. v[1], v[1], getf) -- G[N,type] (same as G[N:toString(),type])
+			registerOperator("indexset", "xgtn".. v[1], "", setf) -- G[N,type] (same as G[N:toString(),type])
 			------
 
 			--gRemove* -- Remove the variable at the specified index and return it

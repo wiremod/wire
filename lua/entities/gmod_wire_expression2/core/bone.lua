@@ -241,7 +241,7 @@ e2function number bone:elevation(vector pos)
 	pos = this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
 
 	local len = pos:Length()
-	if len < delta then return 0 end
+	if len < 0 then return 0 end
 	return rad2deg*asin(pos.z / len)
 end
 
@@ -256,7 +256,7 @@ e2function angle bone:heading(vector pos)
 
 	-- elevation
 	local len = pos:Length()--sqrt(x*x + y*y + z*z)
-	if len < delta then return Angle(0, bearing, 0) end
+	if len < 0 then return Angle(0, bearing, 0) end
 	local elevation = rad2deg*asin(pos.z / len)
 
 	return Angle(elevation, bearing, 0)

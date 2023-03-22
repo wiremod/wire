@@ -133,11 +133,11 @@ registerOperator("div", "xv2xv2", "xv2", function(self, args)
 	return { rv1[1] / rv2[1], rv1[2] / rv2[2] }
 end)
 
-registerOperator("idx", "xv2n", "n", function(state, this, index)
+registerOperator("indexget", "xv2n", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 2) + 0.5)]
 end)
 
-registerOperator("idx", "xv2nn", "", function(state, this, index, value)
+registerOperator("indexset", "xv2nn", "", function(state, this, index, value)
 	this[floor(math.Clamp(index, 1, 2) + 0.5)] = value
 	state.GlobalScope.vclk[this] = true
 end)
@@ -655,17 +655,14 @@ registerOperator("div", "xv4xv4", "xv4", function(self, args)
 	return { rv1[1] / rv2[1], rv1[2] / rv2[2], rv1[3] / rv2[3], rv1[4] / rv2[4] }
 end)
 
-e2function number vector4:operator[](index)
+registerOperator("indexget", "xv4n", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 4) + 0.5)]
-end
+end)
 
-e2function number vector4:operator[](index, value)
+registerOperator("indexset", "xv4nn", "", function(state, this, index, value)
 	this[floor(math.Clamp(index, 1, 4) + 0.5)] = value
 	self.GlobalScope.vclk[this] = true
-	return value
-end
-
-/******************************************************************************/
+end)
 
 __e2setcost(7)
 
