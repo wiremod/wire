@@ -245,7 +245,7 @@ if CLIENT then
 		},
 	}
 	-- helper function for GPU:Render
-	function GPU.DrawScreen(x, y, w, h, rotation, scale)
+	function GPU.DrawScreen(x, y, w, h, rotation, scale, uvclipx, uvclipy)
 		-- generate vertex data
 		local vertices = {
 			--[[
@@ -267,12 +267,12 @@ if CLIENT then
 			if tex.u == 0 then
 				vertex.u = tex.u-scale
 			else
-				vertex.u = tex.u+scale
+				vertex.u = tex.u+scale+uvclipx
 			end
 			if tex.v == 0 then
 				vertex.v = tex.v-scale
 			else
-				vertex.v = tex.v+scale
+				vertex.v = tex.v+scale+uvclipy
 			end
 		end
 
@@ -329,7 +329,7 @@ if CLIENT then
 		cam.End3D2D()
 	end
 
-	function GPU:Render(rotation, scale, width, height, postrenderfunction)
+	function GPU:Render(rotation, scale, width, height, postrenderfunction, uvclipx, uvclipy)
 		if not self.RT then return end
 
 		local monitor, pos, ang = self:GetInfo()
@@ -363,7 +363,7 @@ if CLIENT then
 				render.PushFilterMag(self.texture_filtering or TEXFILTER.POINT)
 				render.PushFilterMin(self.texture_filtering or TEXFILTER.POINT)
 
-				self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
+				self.DrawScreen(x, y, w, h, rotation or 0, scale or 0, uvclipx or 0, uvclipy or 0)
 
 				render.PopFilterMin()
 				render.PopFilterMag()
