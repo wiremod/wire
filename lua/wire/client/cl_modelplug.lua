@@ -81,6 +81,29 @@ list.Set( "WireScreenModels","models/props_combine/combine_monitorbay.mdl",    t
 list.Set( "WireScreenModels","models/props_lab/workspace001.mdl",              true )
 list.Set( "WireScreenModels","models/props_lab/citizenradio.mdl",              true )
 list.Set( "WireScreenModels","models/props_lab/securitybank.mdl",              true )
+list.Set( "WireScreenModels","models/beer/wiremod/gate_e2.mdl",                true )
+list.Set( "WireScreenModels","models/beer/wiremod/targetfinder.mdl",           true )
+list.Set( "WireScreenModels","models/bull/gates/microcontroller1.mdl",         true )
+list.Set( "WireScreenModels","models/bull/gates/microcontroller2.mdl",         true )
+list.Set( "WireScreenModels","models/jaanus/wiretool/wiretool_gate.mdl",       true )
+list.Set( "WireScreenModels","models/jaanus/wiretool/wiretool_controlchip.mdl",true )
+list.Set( "WireScreenModels","models/props_lab/keypad.mdl",                    true )
+list.Set( "WireScreenModels","models/weapons/w_c4_planted.mdl",                true )
+list.Set( "WireScreenModels","models/weapons/w_toolgun.mdl",                   true )
+list.Set( "WireScreenModels","models/xqm/panel1x1.mdl",                        true )
+list.Set( "WireScreenModels","models/xqm/panel1x2.mdl",                        true )
+list.Set( "WireScreenModels","models/xqm/box5s.mdl",                           true )
+list.Set( "WireScreenModels","models/props_lab/miniteleport.mdl",              true )
+list.Set( "WireScreenModels","models/props_lab/plotter.mdl",                   true )
+list.Set( "WireScreenModels","models/props_combine/combine_interface002.mdl",  true )
+list.Set( "WireScreenModels","models/props_combine/combine_interface003.mdl",  true )
+list.Set( "WireScreenModels","models/props_combine/combine_intmonitor003.mdl", true )
+list.Set( "WireScreenModels","models/props_combine/combine_intmonitor001.mdl", true )
+list.Set( "WireScreenModels","models/props_lab/workspace003.mdl",              true )
+list.Set( "WireScreenModels","models/props_lab/workspace004.mdl",              true )
+list.Set( "WireScreenModels","models/props_lab/servers.mdl",                   true )
+list.Set( "WireScreenModels","models/props_phx/rt_screen.mdl",                 true )
+
 
 --list.Set( "WireScreenModels", "models/blacknecro/ledboard60.mdl", true ) --broken
 list.Set( "WireScreenModels", "models/props_wasteland/controlroom_monitor001b.mdl", true )
@@ -89,11 +112,13 @@ list.Set( "WireScreenModels", "models/props_mining/billboard001.mdl", true )
 list.Set( "WireScreenModels", "models/props_mining/billboard002.mdl", true )
 
 --PHX3
+list.Set( "WireScreenModels", "models/hunter/plates/plate025.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate025x025.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate025x05.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate05x075.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate05x1.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate1x1.mdl", true )
+
 
 list.Set( "WireScreenModels", "models/hunter/plates/plate2x2.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate4x4.mdl", true )
