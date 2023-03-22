@@ -108,10 +108,10 @@ end
 function ENT:TriggerInput(iname, value)
   if iname == "CharAddress" then
     self.CharAddress = value
-    self:SendPixel()
+    self:WriteCell(1021, value)
   elseif iname == "Char" then
     self.Char = value
-    self:SendPixel()
+    self:WriteCell(1011,value)
   elseif iname == "Contrast" then
     self.Contrast = value
     self:WriteCell(1016, self.Contrast)
