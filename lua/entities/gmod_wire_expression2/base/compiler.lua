@@ -718,7 +718,7 @@ local CompileVisitors = {
 					state:LoadScopes(save)
 				end
 			end
-		elseif #param_types == 0 then -- Fastest case, no arguments to push
+		elseif #param_types == 0 and not meta_type then -- Fastest case, no arguments to push
 			function op(state) ---@param state RuntimeContext
 				local save = state:SaveScopes()
 
