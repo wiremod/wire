@@ -67,11 +67,11 @@ __e2setcost(5) -- temporary
 
 registerOperator("is", "e", "n", function(state, ent)
 	return IsValid(ent) and 1 or 0
-end)
+end, 1, nil, { legacy = false })
 
 registerOperator("eq", "ee", "n", function(state, lhs, rhs)
 	return (lhs == rhs) and 1 or 0
-end)
+end, 1, nil, { legacy = false })
 
 /******************************************************************************/
 

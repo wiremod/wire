@@ -91,7 +91,7 @@ end)
 --- B == B
 registerOperator("eq", "bb", "n", function(state, lhs, rhs)
 	return (lhs == rhs) and 1 or 0
-end)
+end, 1, nil, { legacy = false })
 
 --[[************************************************************************]]--
 __e2setcost(3)
