@@ -782,7 +782,7 @@ local CompileVisitors = {
 
 		block = self:IsolatedScope(function (scope)
 			for i, type in ipairs(param_types) do
-				scope:DeclVar(param_names[i], { type = type, trace_if_unused = data[4][i].name.trace, initialized = true })
+				scope:DeclVar(param_names[i], { type = type, trace_if_unused = data[4][i] and data[4][i].name.trace or trace, initialized = true })
 			end
 
 			scope.data["function"] = { name.value, fn }
