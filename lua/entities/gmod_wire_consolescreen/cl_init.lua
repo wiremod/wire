@@ -97,6 +97,8 @@ function ENT:Initialize()
   WireLib.netRegister(self)
 end
 function ENT:Setup(ScreenWidth,ScreenHeight)
+  print(ScreenWidth)
+  print(tonumber(ScreenWidth))
   self.ScreenHeight = tonumber(ScreenHeight) or 2
 	self.ScreenWidth = tonumber(ScreenWidth) or 16
 end
@@ -560,8 +562,8 @@ function ENT:Draw()
     self.GPU:RenderToGPU(function()
       -- Draw terminal here
       -- W/H = 16
-      local szx = 512/31
-      local szy = 512/19
+      local szx = 1024/31
+      local szy = 1024/19
 
       local ch = self.Memory1[2042]
 
@@ -569,7 +571,7 @@ function ENT:Draw()
       local hg = 28*math.fmod(math.floor(ch / 10), 10)*self.Memory1[2027]*self.Memory1[2025] + self.Memory1[2036]
       local hr = 28*math.fmod(math.floor(ch / 100),10)*self.Memory1[2028]*self.Memory1[2025] + self.Memory1[2036]
       surface.SetDrawColor(hr,hg,hb,255)
-      surface.DrawRect(0,0,512,512)
+      surface.DrawRect(0,0,1024,1024)
 
       for ty = 0, 17 do
         for tx = 0, 29 do

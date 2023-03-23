@@ -84,7 +84,6 @@ if CLIENT then
 
 	-- Returns a render target from the cache pool and marks it as used
 	local function GetRT()
-
 		for i, RT in pairs( RenderTargetCache ) do
 			if not RT[1] then -- not used
 
@@ -101,7 +100,7 @@ if CLIENT then
 		for i, RT in pairs( RenderTargetCache ) do
 			if not RT[1] and  RT[2] == false then -- not used and doesn't exist, let's create the render target.
 
-					local rendertarget = GetRenderTarget("WireGPU_RT_"..i, 512, 512)
+					local rendertarget = GetRenderTarget("WireGPU_RT_"..i, 1024, 1024)
 
 					if rendertarget then
 						RT[1] = true -- Mark as used
@@ -141,12 +140,23 @@ if CLIENT then
 	local fontData =
 	{
 		font="lucida console",
-		size=20,
+		size=40,
 		weight=800,
 		antialias= true,
 		additive = false,
 	}
 	surface.CreateFont("WireGPU_ConsoleFont", fontData)
+  surface.CreateFont("LCDFontBlur", {
+        font = "Alphanumeric LCD",
+        size = 26,
+        antialias = false,
+        blursize = 1
+      })
+  surface.CreateFont("LCDFont", {
+    font = "Alphanumeric LCD",
+    size = 26,
+    antialias = false
+  })
 	//
 	// Create screen textures and materials
 	//
@@ -295,7 +305,7 @@ if CLIENT then
 		local OldRT = render.GetRenderTarget()
 
 		render.SetRenderTarget(NewRT)
-		render.SetViewPort(0, 0, 512, 512)
+		render.SetViewPort(0, 0, 1024, 1024)
 		cam.Start2D()
 			local ok, err = xpcall(renderfunction, debug.traceback)
 			if not ok then WireLib.ErrorNoHalt(err) end
@@ -317,12 +327,12 @@ if CLIENT then
 			pos = pos - ang:Forward()*(monitor.x2-monitor.x1)/2
 		end
 
-		local h = width and width*monitor.RatioX or height or 512
+		local h = width and width*monitor.RatioX or height or 1024
 		local w = width or h/monitor.RatioX
 		local x = -w/2
 		local y = -h/2
 
-		local res = monitor.RS*512/h
+		local res = monitor.RS*1024/h
 		cam.Start3D2D(pos, ang, res)
 			local ok, err = xpcall(renderfunction, debug.traceback, x, y, w, h, monitor, pos, ang, res)
 			if not ok then WireLib.ErrorNoHalt(err) end
@@ -341,8 +351,8 @@ if CLIENT then
 		cam.Start3D2D(pos, ang, res)
 			local ok, err = xpcall(function()
 				local aspect = 1/monitor.RatioX
-				local w = (width  or 512)*aspect
-				local h = (height or 512)
+				local w = (width  or 1024)*aspect
+				local h = (height or 1024)
 				local x = -w/2
 				local y = -h/2
 
@@ -354,7 +364,7 @@ if CLIENT then
 
 				if not translucent then
 					surface.SetDrawColor(0,0,0,255)
-					surface.DrawRect(-256*aspect,-256,512*aspect,512)
+					surface.DrawRect(-512*aspect,-512,1024*aspect,1024)
 				end
 
 				surface.SetDrawColor(255,255,255,255)
@@ -423,7 +433,7 @@ if CLIENT then
 		local model = ent:GetModel()
 		local monitor = WireGPU_Monitors[model]
 
-		local h = 512*monitor.RS
+		local h = 1024*monitor.RS
 		local w = h/monitor.RatioX
 		local x = -w/2
 		local y = -h/2

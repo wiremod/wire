@@ -60,8 +60,8 @@ function TOOL.BuildCPanel(panel)
 		ShowRGB = "1",
 		Multiplier = "255"
 	})
-	panel:NumSlider("Width", "wire_characterlcd_width", 1, 32, 0)
-	panel:NumSlider("Height", "wire_characterlcd_height", 1, 8, 0)
+	panel:NumSlider("Width", "wire_characterlcd_width", 1, 56, 0)
+	panel:NumSlider("Height", "wire_characterlcd_height", 1, 16, 0)
 	panel:CheckBox("#Create Flat to Surface", "wire_characterlcd_createflat")
   
 end

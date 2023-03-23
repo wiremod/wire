@@ -87,6 +87,7 @@ function ENT:Initialize()
   end)
 
   WireLib.netRegister(self)
+  
 end
 
 function ENT:OnRemove()
@@ -144,14 +145,13 @@ function ENT:WriteCell(Address,value)
   if Address >= 1024 then return false end
 
   if Address == 1023 then self.NewClk = value ~= 0 end
-  if Address == 1009 and (value*self.Memory2[1010] > 1003 or value*16 > 512) then return false end
-  if Address == 1010 and (value*self.Memory2[1009] > 1003 or value*27 > 512) then return false end
+  if Address == 1009 and (value*self.Memory2[1010] > 1003 or value*18 > 1024) then return false end
+  if Address == 1010 and (value*self.Memory2[1009] > 1003 or value*24 > 1024) then return false end
   if self.NewClk then
     self.Memory1[Address] = value -- Vis mem
     self.NeedRefresh = true
   end
   self.Memory2[Address] = value -- Invis mem
-
 
   if Address == 1011 then
     
@@ -479,8 +479,8 @@ function ENT:Draw()
   self.PrevTime = curtime
   self.IntTimer = self.IntTimer + DeltaTime
   self.FramesSinceRedraw = self.FramesSinceRedraw + 1
-  local szx = 16
-  local szy = 27
+  local szx = 18
+  local szy = 24
   if self.NeedRefresh == true then
     self.FramesSinceRedraw = 0
     self.NeedRefresh = false
@@ -508,7 +508,7 @@ function ENT:Draw()
       local fg = (1-fc)*self.Memory2[1004]+fc*self.Memory2[1007]
       local fb = (1-fc)*self.Memory2[1005]+fc*self.Memory2[1008]
       surface.SetDrawColor(br,bg,bb,255)
-      surface.DrawRect(0,0,512,512)
+      surface.DrawRect(0,0,1024,1024)
 
       for ty = 0, self.ScreenHeight-1 do
         for tx = 0, self.ScreenWidth-1 do
@@ -526,7 +526,9 @@ function ENT:Draw()
        
           surface.SetDrawColor(sqr,sqg,sqb,255)
           surface.DrawRect((tx)*szx+1,(ty)*szy+1,szx-2,szy-2)
-
+          surface.SetDrawColor(sqr,sqg,sqb,127)
+          surface.DrawRect((tx)*szx+2,(ty)*szy+2,szx-2,szy-2)
+          
           if (c1 ~= 0) then
             -- Note: the source engine does not handle unicode characters above 65535 properly.
             local utf8 = ""
@@ -548,8 +550,14 @@ function ENT:Draw()
             else
               draw.DrawText(
                 utf8,
-                "WireGPU_ConsoleFont",
-                tx * szx + 1, ty * szy + 1,
+                "LCDFontBlur",
+                tx * szx + 2, ty * szy,
+                Color(fr,fg,fb,255),0
+              )
+              draw.DrawText(
+                utf8,
+                "LCDFont",
+                tx * szx + 1, ty * szy -1 ,
                 Color(fr,fg,fb,255),0
               )
             end
@@ -603,7 +611,7 @@ function ENT:Draw()
     end
   end
 
-  self.GPU:Render(0,0,512,512,nil,-(512-self.ScreenWidth*szx)/512,-(512-self.ScreenHeight*szy)/512)
+  self.GPU:Render(0,0,1024,1024,nil,-(1024-self.ScreenWidth*szx)/1024,-(1024-self.ScreenHeight*szy)/1024)
   Wire_Render(self)
 end
 

@@ -74,10 +74,10 @@ function ENT:WriteCell(Address, value)
   if Address < 1003 then -- text/attribute data
     if self.Memory[Address] == value then return true end
   else
-  if Address == 1009 and value*self.ScreenHeight < 1003 and value*16 <= 512 then
+  if Address == 1009 and value*self.ScreenHeight < 1003 and value*18 <= 1024 then
     self.ScreenWidth = value
   end
-  if Address == 1010 and value*self.ScreenWidth < 1003 and value*27 <= 512 then
+  if Address == 1010 and value*self.ScreenWidth < 1003 and value*24 <= 1024 then
     self.ScreenHeight = value
   end
 --    self.Memory[Address] = value
@@ -142,17 +142,19 @@ function ENT:ShiftScreenLeft()
 end
 
 function ENT:ClientWriteCell(Address, value)
-  if Address == 1009 and (value*self.Memory[1010] > 1003 or value*16 > 512) then return false end
-  if Address == 1010 and (value*self.Memory[1009] > 1003 or value*26 > 512) then return false end
+  if Address == 1009 and (value*self.Memory[1010] > 1003 or value*18 > 1024) then return false end
+  if Address == 1010 and (value*self.Memory[1009] > 1003 or value*24 > 1024) then return false end
   if Address == 1011 then
-    self.Memory[self.Memory[1021]] = value
+    
     if self.Memory[1015] >= 1 then
       if self.Memory[1014] >= 1 then
         self:ShiftScreenRight()
       else
         self:ShiftScreenLeft()
       end
+      self.Memory[self.Memory[1021]] = value
     else
+      self.Memory[self.Memory[1021]] = value
       if self.Memory[1014] >= 1 then
         self.Memory[1021] = math.max(0,self.Memory[1021] - 1)
       else

@@ -248,8 +248,8 @@ function ENT:RedrawPixel(a)
 		cr, cg, cb = (transformcolor[colormode] or transformcolor[0])(c)
 	end
 
-	local xstep = (512/self.ScreenWidth)
-	local ystep = (512/self.ScreenHeight)
+	local xstep = (1024/self.ScreenWidth)
+	local ystep = (1024/self.ScreenHeight)
 
 	surface.SetDrawColor(cr,cg,cb,255)
 	local tx, ty = floor(x*xstep), floor(y*ystep)
@@ -257,8 +257,8 @@ function ENT:RedrawPixel(a)
 end
 
 function ENT:RedrawRow(y)
-	local xstep = (512/self.ScreenWidth)
-	local ystep = (512/self.ScreenHeight)
+	local xstep = (1024/self.ScreenWidth)
+	local ystep = (1024/self.ScreenHeight)
 	if y >= self.ScreenHeight then return end
 	local a = y*self.ScreenWidth
 
@@ -294,7 +294,7 @@ function ENT:Draw()
 
 			if self.ClearQueued then
 				surface.SetDrawColor(0,0,0,255)
-				surface.DrawRect(0,0, 512,512)
+				surface.DrawRect(0,0, 1024,1024)
 				self.ClearQueued = false
 				return
 			end

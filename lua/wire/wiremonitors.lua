@@ -11,7 +11,7 @@ function WireGPU_AddMonitor(name,model,tof,tou,tor,trs,x1,x2,y1,y2,rot,transluce
 	local monitor = {
 		Name = name,
 		offset = Vector(tof, -tor, tou),
-		RS = trs or (y2 - y1) / 512,
+		RS = (trs or (y2 - y1) / 512)/2,
 		RatioX = RatioX,
 
 		x1 = x1,
@@ -116,7 +116,7 @@ function WireGPU_FromBox_Helper(name, model, boxmin, boxmax, rot, translucent)
 	local monitor = {
 		Name = name,
 		offset = offset,
-		RS = (y2-y1)/512,
+		RS = (y2-y1)/1024,
 		RatioX = (y2-y1)/(x2-x1),
 
 		x1 = x1,
