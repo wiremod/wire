@@ -458,11 +458,6 @@ function ENT:DrawSpecialCharacter(c,x,y,w,h,r,g,b)
 
   local vertices = table.Copy(specialCharacters[c])
   if vertices then
-    --[[local vertexData = {
-      { x = vertices[1].x*w+x, y = vertices[1].y*h+y },
-      { x = vertices[2].x*w+x, y = vertices[2].y*h+y },
-      { x = vertices[3].x*w+x, y = vertices[3].y*h+y },
-    }]]
     local tf = Matrix() tf:SetScale(Vector(w, h, 1)) tf:SetTranslation(Vector(x, y, 0))
     cam.PushModelMatrix(tf, true)
     surface.DrawPoly(vertices)
