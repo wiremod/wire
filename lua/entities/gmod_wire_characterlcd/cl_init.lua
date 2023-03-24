@@ -463,11 +463,10 @@ function ENT:DrawSpecialCharacter(c,x,y,w,h,r,g,b)
       { x = vertices[2].x*w+x, y = vertices[2].y*h+y },
       { x = vertices[3].x*w+x, y = vertices[3].y*h+y },
     }]]
-    for i=1,#vertices do
-      vertices[i].x = vertices[i].x*w+x
-      vertices[i].y = vertices[i].y*h+y
-    end
+    local tf = Matrix() tf:SetScale(Vector(w, h, 1)) tf:SetTranslation(Vector(x, y, 0))
+    cam.PushModelMatrix(tf, true)
     surface.DrawPoly(vertices)
+    cam.PopModelMatrix()
   end
 end
 
