@@ -456,7 +456,7 @@ function ENT:DrawSpecialCharacter(c,x,y,w,h,r,g,b)
   surface.SetDrawColor(r,g,b,255)
   surface.SetTexture(0)
 
-  local vertices = table.Copy(specialCharacters[c])
+  local vertices = specialCharacters[c]
   if vertices then
     local tf = Matrix() tf:SetScale(Vector(w, h, 1)) tf:SetTranslation(Vector(x, y, 0))
     cam.PushModelMatrix(tf, true)
