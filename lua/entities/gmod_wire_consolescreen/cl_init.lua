@@ -96,12 +96,6 @@ function ENT:Initialize()
 
   WireLib.netRegister(self)
 end
-function ENT:Setup(ScreenWidth,ScreenHeight)
-  print(ScreenWidth)
-  print(tonumber(ScreenWidth))
-  self.ScreenHeight = tonumber(ScreenHeight) or 2
-	self.ScreenWidth = tonumber(ScreenWidth) or 16
-end
 function ENT:OnRemove()
   self.GPU:Finalize()
   self.NeedRefresh = true

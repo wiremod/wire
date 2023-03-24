@@ -216,6 +216,8 @@ WireGPU_FromBox_Helper("Workspace 003",     "models/props_lab/workspace003.mdl",
 WireGPU_FromBox_Helper("Workspace 004",     "models/props_lab/workspace004.mdl",              Vector(4.2,37,0), Vector(21.4,52,11.1), Angle(0, 15, 83))
 WireGPU_FromBox_Helper("Servers",           "models/props_lab/servers.mdl",                   Vector(-18.2,7.8,0), Vector(-4.7,19.1,12.1), Angle(0, 90, 82))
 WireGPU_AddMonitor("Plasma TV (16:10) 2",   "models/props_phx/rt_screen.mdl",                 6.1 , 18.93, 0  , 0.065 , -28.5   , 28.5   , 2      , 36    )
+WireGPU_FromBox_Helper("8x2 LCD",         "models/fasteroid/bull/lcd1.mdl",         Vector(-4.91,-1.02,-3), Vector(1.31,1.02,0.8), Angle(0, 90, 0))
+WireGPU_FromBox_Helper("16x2 LCD",         "models/fasteroid/bull/lcd2.mdl",         Vector(-4.91,-1.02,-3), Vector(7.52,1.02,0.8), Angle(0, 90, 0))
 
 -- Offset front, offset up, offset right, resolution/scale                                OF    OU     OR   SCALE   LOWX      HIGHX    LOWY     HIGHY   ROTATE90
 --WireGPU_AddMonitor("LED Board (1:1)",   "models/blacknecro/ledboard60.mdl",               6.1, 18.5 , 11 , 0.065 , -60     , 60     , -60    , 60    ) -- broken
