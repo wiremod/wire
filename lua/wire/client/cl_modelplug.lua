@@ -130,6 +130,7 @@ list.Set( "WireScreenModels","models/fasteroid/bull/lcd1.mdl",    true )
 list.Set( "WireScreenModels","models/fasteroid/bull/lcd2.mdl",    true )    
 list.Set( "WireScreenModels","models/fasteroid/bull/lcd3.mdl",    true )    
 list.Set( "WireScreenModels","models/fasteroid/bull/lcd4.mdl",    true )    
+list.Set( "WireScreenModels","models/fasteroid/bull/lcd5.mdl",    true )    
 
 
 

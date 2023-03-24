@@ -218,8 +218,9 @@ WireGPU_FromBox_Helper("Servers",           "models/props_lab/servers.mdl",     
 WireGPU_AddMonitor("Plasma TV (16:10) 2",   "models/props_phx/rt_screen.mdl",                 6.1 , 18.93, 0  , 0.065 , -28.5   , 28.5   , 2      , 36    )
 WireGPU_FromBox_Helper("8x2 LCD",         "models/fasteroid/bull/lcd1.mdl",         Vector(-4.91,-1.02,-3), Vector(1.31,1.02,0.8), Angle(0, 90, 0))
 WireGPU_FromBox_Helper("16x2 LCD",         "models/fasteroid/bull/lcd2.mdl",         Vector(-4.91,-1.02,-3), Vector(7.52,1.02,0.8), Angle(0, 90, 0))
-WireGPU_FromBox_Helper("16x4 LCD",         "models/fasteroid/bull/lcd3.mdl",         Vector(-4.91,-3.09,-3), Vector(7.52,1.02,0.8), Angle(0, 90, 0))
-WireGPU_FromBox_Helper("40x4 LCD",         "models/fasteroid/bull/lcd4.mdl",         Vector(-4.91,-3.09,-3), Vector(26.22,1.02,0.8), Angle(0, 90, 0))
+WireGPU_FromBox_Helper("16x4 LCD",         "models/fasteroid/bull/lcd3.mdl",         Vector(-4.91,-3.11,-3), Vector(7.52,1.02,0.8), Angle(0, 90, 0))
+WireGPU_FromBox_Helper("40x4 LCD",         "models/fasteroid/bull/lcd4.mdl",         Vector(-4.91,-3.11,-3), Vector(26.22,1.02,0.8), Angle(0, 90, 0))
+WireGPU_FromBox_Helper("20x4 LCD",         "models/fasteroid/bull/lcd5.mdl",         Vector(-4.91,-3.11,-3), Vector(10.65,1.02,0.8), Angle(0, 90, 0))
 
 -- Offset front, offset up, offset right, resolution/scale                                OF    OU     OR   SCALE   LOWX      HIGHX    LOWY     HIGHY   ROTATE90
 --WireGPU_AddMonitor("LED Board (1:1)",   "models/blacknecro/ledboard60.mdl",               6.1, 18.5 , 11 , 0.065 , -60     , 60     , -60    , 60    ) -- broken
