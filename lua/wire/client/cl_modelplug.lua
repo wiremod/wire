@@ -46,7 +46,7 @@ local function listAddGeneric( listName, tbl )
 	end
 end
 
-local function listAddModels( listName, models, value, skipExistCheck )
+local function listAddModels( listName, models, value )
 	for k, v in ipairs(models) do
 		if skipExistCheck or file.Exists(v, "GAME") then
 			list_set(listName, v, value or true)
@@ -314,6 +314,13 @@ listAddModels("Wire_satellitedish_Models", {
 	"models/props_rooftop/satellitedish02.mdl" -- EP2, but its perfect (no, it's not EP2?)
 })
 
+listAddModels("Wire_Light_Models", {
+	"models/jaanus/wiretool/wiretool_range.mdl",
+	"models/jaanus/wiretool/wiretool_siren.mdl",
+	"models/MaxOfS2D/light_tubular.mdl",
+	"models/fasteroid/led.mdl"
+})
+
 --Beer's models
 --MsgN("\tBeer's Model pack")
 
@@ -372,7 +379,8 @@ listAddModels("Wire_Misc_Tools_Models", {
 listAddModels("Wire_Laser_Tools_Models", {
 	"models/jaanus/wiretool/wiretool_range.mdl",
 	"models/jaanus/wiretool/wiretool_siren.mdl",
-	"models/jaanus/wiretool/wiretool_beamcaster.mdl"
+	"models/jaanus/wiretool/wiretool_beamcaster.mdl",
+	"models/fasteroid/led.mdl"
 })
 
 -- everything below is from the old converted model packs, except now it's sorted
@@ -582,7 +590,8 @@ listAddModels("Wire_indicator_Models", {
 	"models/props_junk/TrafficCone001a.mdl",
 	"models/props_trainstation/trainstation_clock001.mdl",
 	"models/segment.mdl",
-	"models/segment2.mdl"
+	"models/segment2.mdl",
+	"models/fasteroid/led.mdl"
 })
 
 listAddModels("Wire_pixel_Models", {
@@ -595,7 +604,8 @@ listAddModels("Wire_pixel_Models", {
 	"models/led2.mdl",
 	"models/props_junk/PopCan01a.mdl",
 	"models/segment.mdl",
-	"models/segment2.mdl"
+	"models/segment2.mdl",
+	"models/fasteroid/led.mdl"
 })
 
 listAddModels("Wire_radio_Models", {
