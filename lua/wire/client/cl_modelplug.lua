@@ -1,44 +1,13 @@
---Msg("=== Loading Wire Model Packs ===\n")
-
 CreateConVar("cl_showmodeltextbox", "0")
 
-
---[[
--- 3/25/2023: I have no idea what this code does, but it looks important, so I'm leaving it.
--- Loads and converts model lists from the old WireModelPacks format
-do
-	local converted = {}
-
-
-	MsgN("WM: Loading models...")
-	for _,filename in ipairs( file.Find("WireModelPacks/*", "DATA") ) do
-	--for _,filename in ipairs{"bull_buttons.txt","bull_modelpack.txt","cheeze_buttons2.txt","default.txt","expression2.txt","wire_model_pack_1.txt","wire_model_pack_1plus.txt"} do
-		filename = "WireModelPacks/"..filename
-		print("Loading from WireModelPacks/"..filename)
-		local f = file.Read(filename, "DATA")
-		if f then
-			converted[#converted+1] = "-- Converted from "..filename
-			local packtbl = util.KeyValuesToTable(f)
-			for name,entry in pairs(packtbl) do
-				print(string.format("\tLoaded model %s => %s", name, entry.model))
-				local categorytable = string.Explode(",", entry.categories or "none") or { "none" }
-				for _,cat in pairs(categorytable) do
-					list.Set( "Wire_"..cat.."_Models", entry.model, true )
-					converted[#converted+1] = string.format('list.Set("Wire_%s_Models", "%s", true)', cat, entry.model)
-				end
-			end
-			converted[#converted+1] = ""
-		else
-			print("Error opening "..filename)
-		end
-	end
-	MsgN("End loading models")
-
-	file.Write("converted.txt", table.concat(converted, "\n"))
-end
-]]
-
 local list_set = list.Set
+
+local function listAddModels( listName, models, value )
+	value = value or true
+	for k, v in ipairs(models) do
+		list_set(listName, v, value)
+	end
+end
 
 local function listAddGeneric( listName, tbl )
 	for k, v in pairs(tbl) do
@@ -46,25 +15,54 @@ local function listAddGeneric( listName, tbl )
 	end
 end
 
-local function listAddModels( listName, models, value )
-	for k, v in ipairs(models) do
-		if skipExistCheck or file.Exists(v, "GAME") then
-			list_set(listName, v, value or true)
-		end
-	end
+-- These models are not packaged as part of Wire or base Garry's Mod, so they need special handling:
+local externalModels = {
+	{"WireScreenModels",			"models/props/cs_office/tv_plasma.mdl"},
+	{"WireScreenModels",			"models/props/cs_office/computer_monitor.mdl"},
+	{"WireScreenModels",			"models/props/cs_assault/Billboard.mdl"},
+	{"WireScreenModels",			"models/props/cs_militia/reload_bullet_tray.mdl"},
+	{"WireScreenModels",			"models/props_mining/billboard001.mdl"},
+	{"WireScreenModels",			"models/props_mining/billboard002.mdl"},
+	{"WireNoGPULibScreenModels",	"models/props/cs_office/tv_plasma.mdl"},
+	{"WireNoGPULibScreenModels",	"models/props/cs_office/computer_monitor.mdl"},
+	{"Wire_button_Models",			"models/props/switch001.mdl"},
+	{"Wire_button_Models",			"models/props_mining/control_lever01.mdl"},
+	{"Wire_button_Models",			"models/props_mining/freightelevatorbutton01.mdl"},
+	{"Wire_button_Models",			"models/props_mining/freightelevatorbutton02.mdl"},
+	{"Wire_button_Models",			"models/props_mining/switch01.mdl"},
+	{"Wire_button_Models",			"models/props_mining/switch_updown01.mdl"},
+	-- These seem to be missing from wire itself.  Where are they?  Who knows?!
+	-- {"ThrusterModels",				"models/jaanus/thruster_invisi.mdl"},
+	-- {"ThrusterModels",				"models/jaanus/thruster_shoop.mdl"},
+	-- {"ThrusterModels",				"models/jaanus/thruster_smile.mdl"},
+	-- {"ThrusterModels",				"models/jaanus/thruster_muff.mdl"},
+	-- {"ThrusterModels",				"models/jaanus/thruster_rocket.mdl"},
+	-- {"ThrusterModels",				"models/jaanus/thruster_megaphn.mdl"},
+	-- {"ThrusterModels",				"models/jaanus/thruster_stun.mdl"},
+	-- {"Wire_Value_Models",			"models/cheeze/wires/chip.mdl"},
+	{"WireTeleporterModels",		"models/props_c17/pottery03a.mdl"},
+	{"Wire_Keyboard_Models",		"models/props/kb_mouse/keyboard.mdl"},
+}
+for k, v in ipairs(externalModels) do
+	if file.Exists(v[2], "GAME") then
+		list.Set(listName, v[1], true)
+	else
 end
 
---screens with a GPULib setup
+-- Everything else can just be added without checking if it exists
 
+-- first we'll handle these weird singleton lists
+list.Set("Wire_waypoint_Models","models/jaanus/wiretool/wiretool_waypoint.mdl")
+list.Set("Wire_control_Models","models/jaanus/wiretool/wiretool_controlchip.mdl")
+list.Set("Wire_beamcasting_Models", "models/jaanus/wiretool/wiretool_beamcaster.mdl")
+
+--screens with a GPULib setup
 listAddModels("WireScreenModels", {
 	"models/props_lab/monitor01b.mdl",
 	"models/props_c17/tv_monitor01.mdl",
-	"models/props/cs_office/tv_plasma.mdl",
 	"models/blacknecro/tv_plasma_4_3.mdl",
-	"models/props/cs_office/computer_monitor.mdl",
 	"models/kobilica/wiremonitorbig.mdl",
 	"models/kobilica/wiremonitorsmall.mdl",
-	"models/props/cs_assault/Billboard.mdl",
 	"models/cheeze/pcb/pcb4.mdl",
 	"models/cheeze/pcb/pcb6.mdl",
 	"models/cheeze/pcb/pcb5.mdl",
@@ -73,16 +71,9 @@ listAddModels("WireScreenModels", {
 	"models/cheeze/pcb2/pcb8.mdl",
 	"models/props_lab/monitor01a.mdl",
 	"models/props_lab/monitor02.mdl",
-	"models/props/cs_militia/reload_bullet_tray.mdl",
 	"models/props_lab/workspace002.mdl",
 	"models/props_lab/reciever01b.mdl",
 	"models/props_wasteland/controlroom_monitor001b.mdl",
-
-	-- TF2 Billboards
-	"models/props_mining/billboard001.mdl",
-	"models/props_mining/billboard002.mdl",
-
-	--PHX3
 	"models/hunter/plates/plate1x1.mdl",
 	"models/hunter/plates/plate2x2.mdl",
 	"models/hunter/plates/plate4x4.mdl",
@@ -95,8 +86,6 @@ listAddModels("WireScreenModels", {
 --screens without a GPULib setup (for the tools wire_panel and wire_screen)
 listAddModels("WireNoGPULibScreenModels", {
 	"models/props_lab/monitor01b.mdl",
-	"models/props/cs_office/tv_plasma.mdl",
-	"models/props/cs_office/computer_monitor.mdl",
 	"models/kobilica/wiremonitorbig.mdl",
 	"models/kobilica/wiremonitorsmall.mdl"
 })
@@ -123,7 +112,6 @@ listAddGeneric("WireSounds", {
 	["Heartbeat"] = "k_lab.teleport_heartbeat",
 	["Breathing"] = "k_lab.teleport_breathing"
 })
-
 
 --some extra wheels that wired wheels have
 listAddModels("WheelModels", {
@@ -187,14 +175,7 @@ listAddModels("Wire_button_Models", {
 	"models/cheeze/buttons2/7.mdl",
 	"models/cheeze/buttons2/9.mdl",
 	--animated buttons from here
-	"models/props_lab/freightelevatorbutton.mdl",
-	"models/props/switch001.mdl",
 	"models/props_combine/combinebutton.mdl",
-	"models/props_mining/control_lever01.mdl",
-	"models/props_mining/freightelevatorbutton01.mdl",
-	"models/props_mining/freightelevatorbutton02.mdl",
-	"models/props_mining/switch01.mdl",
-	"models/props_mining/switch_updown01.mdl",
 	"models/maxofs2d/button_01.mdl",
 	"models/maxofs2d/button_02.mdl",
 	"models/maxofs2d/button_03.mdl",
@@ -206,20 +187,9 @@ listAddModels("Wire_button_Models", {
 	"models/bull/buttons/key_switch.mdl"
 })
 
---Thrusters
---Jaanus Thruster Pack
---MsgN("\tJaanus' Thruster Pack")
 listAddModels("ThrusterModels", {
 	"models/props_junk/garbage_metalcan001a.mdl",
 	"models/jaanus/thruster_flat.mdl",
-	-- The rest of these have been lost to time, how sad!
-	"models/jaanus/thruster_invisi.mdl",
-	"models/jaanus/thruster_shoop.mdl",
-	"models/jaanus/thruster_smile.mdl",
-	"models/jaanus/thruster_muff.mdl",
-	"models/jaanus/thruster_rocket.mdl",
-	"models/jaanus/thruster_megaphn.mdl",
-	"models/jaanus/thruster_stun.mdl"
 })
 
 listAddModels("Wire_Explosive_Models", {
@@ -277,9 +247,8 @@ listAddModels("Wire_Value_Models", {
 	"models/bull/gates/transistor1.mdl",
 	"models/bull/gates/transistor2.mdl",
 	"models/cheeze/wires/cpu.mdl",
-	"models/cheeze/wires/chip.mdl",
 	"models/cheeze/wires/ram.mdl",
-	"models/cheeze/wires/nano_value.mdl" -- This guy doesn't have a normal sized one in that folder
+	"models/cheeze/wires/nano_value.mdl"
 })
 
 listAddModels("WireTeleporterModels", {
@@ -296,7 +265,6 @@ listAddModels("WireTeleporterModels", {
 	"models/props_lab/reciever01a.mdl",
 	"models/props_lab/reciever01b.mdl",
 	"models/props_lab/reciever01d.mdl",
-	"models/props_c17/pottery03a.mdl",
 	"models/props_wasteland/laundry_washer003.mdl"
 })
 
@@ -311,7 +279,7 @@ listAddModels("WireTurretModels", {
 
 listAddModels("Wire_satellitedish_Models", {
 	"models/props_wasteland/prison_lamp001c.mdl",
-	"models/props_rooftop/satellitedish02.mdl" -- EP2, but its perfect (no, it's not EP2?)
+	"models/props_rooftop/satellitedish02.mdl"
 })
 
 listAddModels("Wire_Light_Models", {
@@ -321,44 +289,34 @@ listAddModels("Wire_Light_Models", {
 	"models/fasteroid/led.mdl"
 })
 
---Beer's models
---MsgN("\tBeer's Model pack")
-
---Keyboard
 listAddModels("Wire_Keyboard_Models",{
 	"models/beer/wiremod/keyboard.mdl",
 	"models/jaanus/wiretool/wiretool_input.mdl",
-	"models/props/kb_mouse/keyboard.mdl",
 	"models/props_c17/computer01_keyboard.mdl"
 })
 
---Hydraulic
 listAddModels("Wire_Hydraulic_Models",{
 	"models/beer/wiremod/hydraulic.mdl",
 	"models/jaanus/wiretool/wiretool_siren.mdl",
 	"models/xqm/hydcontrolbox.mdl"
 })
 
---GPS
 listAddModels("Wire_GPS_Models",{
 	"models/beer/wiremod/gps.mdl",
 	"models/jaanus/wiretool/wiretool_speed.mdl"
 })
 
---Numpad
 listAddModels("Wire_Numpad_Models", {
 	"models/beer/wiremod/numpad.mdl",
 	"models/jaanus/wiretool/wiretool_input.mdl",
 	"models/jaanus/wiretool/wiretool_output.mdl"
 })
 
---Water Sensor
 listAddModels("Wire_WaterSensor_Models", {
 	"models/beer/wiremod/watersensor.mdl",
 	"models/jaanus/wiretool/wiretool_range.mdl"
 })
 
---Target Finder
 listAddModels("Wire_TargetFinder_Models", {
 	"models/beer/wiremod/targetfinder.mdl",
 	"models/props_lab/powerbox02d.mdl"
@@ -383,7 +341,6 @@ listAddModels("Wire_Laser_Tools_Models", {
 	"models/fasteroid/led.mdl"
 })
 
--- everything below is from the old converted model packs, except now it's sorted
 listAddModels("Wire_Socket_Models",{
 	"models/props_lab/tpplugholder_single.mdl",
 	"models/bull/various/usb_socket.mdl",
@@ -632,11 +589,6 @@ listAddModels("Wire_weight_Models", {
 	"models/props_lab/huladoll.mdl"
 })
 
--- miscellaneous singleton lists
-list.Set("Wire_waypoint_Models","models/jaanus/wiretool/wiretool_waypoint.mdl")
-list.Set("Wire_control_Models","models/jaanus/wiretool/wiretool_controlchip.mdl")
-list.Set("Wire_beamcasting_Models", "models/jaanus/wiretool/wiretool_beamcaster.mdl")
-
 --Dynamic button materials
 local WireDynamicButtonMaterials = {
 	["No Material"] = "",
@@ -672,10 +624,8 @@ local CheezesButtons = {
 	"models/cheeze/buttons/button_stop.mdl",
 }
 for k,v in ipairs(CheezesButtons) do
-	if file.Exists(v,"GAME") then
-		list.Set( "ButtonModels", v, {} )
-		list.Set( "Wire_button_Models", v, true )
-	end
+	list.Set( "ButtonModels", v, {} )
+	list.Set( "Wire_button_Models", v, true )
 end
 
 local CheezesSmallButtons = {
@@ -691,8 +641,6 @@ local CheezesSmallButtons = {
 	"models/cheeze/buttons/button_9.mdl",
 }
 for k,v in ipairs(CheezesSmallButtons) do
-	if file.Exists(v,"GAME") then
-		list.Set( "ButtonModels", v, {} )
-		list.Set( "Wire_button_small_Models", v, true )
-	end
+	list.Set( "ButtonModels", v, {} )
+	list.Set( "Wire_button_small_Models", v, true )
 end
