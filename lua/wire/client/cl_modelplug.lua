@@ -1,5 +1,40 @@
 CreateConVar("cl_showmodeltextbox", "0")
 
+
+--[[
+-- 3/25/2023: I have no idea what this code does, but it looks important, so I'm leaving it.
+-- Loads and converts model lists from the old WireModelPacks format
+do
+	local converted = {}
+
+	MsgN("WM: Loading models...")
+	for _,filename in ipairs( file.Find("WireModelPacks/*", "DATA") ) do
+	--for _,filename in ipairs{"bull_buttons.txt","bull_modelpack.txt","cheeze_buttons2.txt","default.txt","expression2.txt","wire_model_pack_1.txt","wire_model_pack_1plus.txt"} do
+		filename = "WireModelPacks/"..filename
+		print("Loading from WireModelPacks/"..filename)
+		local f = file.Read(filename, "DATA")
+		if f then
+			converted[#converted+1] = "-- Converted from "..filename
+			local packtbl = util.KeyValuesToTable(f)
+			for name,entry in pairs(packtbl) do
+				print(string.format("\tLoaded model %s => %s", name, entry.model))
+				local categorytable = string.Explode(",", entry.categories or "none") or { "none" }
+				for _,cat in pairs(categorytable) do
+					list.Set( "Wire_"..cat.."_Models", entry.model, true )
+					converted[#converted+1] = string.format('list.Set("Wire_%s_Models", "%s", true)', cat, entry.model)
+				end
+			end
+			converted[#converted+1] = ""
+		else
+			print("Error opening "..filename)
+		end
+	end
+	MsgN("End loading models")
+
+	file.Write("converted.txt", table.concat(converted, "\n"))
+end
+]]
+
 local list_set = list.Set
 
 local function listAddModels( listName, models, value )
@@ -45,8 +80,8 @@ local externalModels = {
 }
 for k, v in ipairs(externalModels) do
 	if file.Exists(v[2], "GAME") then
-		list.Set(listName, v[1], true)
-	else
+		list.Set(v[1], v[2], true)
+	end
 end
 
 -- Everything else can just be added without checking if it exists
@@ -238,7 +273,8 @@ listAddModels("Wire_Gimbal_Models", {
 	"models/props_interiors/Furniture_Lamp01a.mdl",
 	"models/props_c17/oildrum001.mdl",
 	"models/props_phx/misc/smallcannon.mdl",
-	"models/props_c17/fountain_01.mdl"
+	"models/props_c17/fountain_01.mdl",
+	"models/fasteroid/pointer.mdl"
 })
 
 listAddModels("Wire_Value_Models", {
@@ -644,3 +680,4 @@ for k,v in ipairs(CheezesSmallButtons) do
 	list.Set( "ButtonModels", v, {} )
 	list.Set( "Wire_button_small_Models", v, true )
 end
+//
