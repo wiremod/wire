@@ -1,0 +1,8 @@
+"UnlitGeneric"
+{
+	"$basetexture"		"fasteroid/ledtape02_sprite"
+	"$nocull"			1
+	"$additive"			1
+	"$vertexcolor"		1
+	"$decal"        	1
+}

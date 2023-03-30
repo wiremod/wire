@@ -1,0 +1,8 @@
+"Cable"
+{
+	"$basetexture"      	"fasteroid/elwire"
+	"$vertexcolor"			1
+	$alphatest				1
+	$alphatestreference		.5
+	$allowalphatocoverage	1
+}

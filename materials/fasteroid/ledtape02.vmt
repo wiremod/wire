@@ -1,0 +1,5 @@
+"Cable"
+{
+	"$basetexture" "fasteroid/ledtape02"
+	"$vertexcolor"		1
+}
