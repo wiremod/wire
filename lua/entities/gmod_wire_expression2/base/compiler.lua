@@ -913,6 +913,7 @@ local CompileVisitors = {
 			local existing = self.scope:LookupVar(var)
 			if existing then
 				local expr_ty = existing.type
+				existing.trace_if_unused = nil
 
 				-- It can have indices, it already exists
 				if #indices > 0 then
