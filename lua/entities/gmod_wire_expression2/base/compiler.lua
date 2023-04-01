@@ -1317,7 +1317,7 @@ local CompileVisitors = {
 				local largs = { [1] = {}, [2] = { exp }, [3] = { ty } }
 				return function(state)
 					return op(state, largs)
-				end
+				end, op_ret
 			else
 				return function(state)
 					return op(state, exp(state))

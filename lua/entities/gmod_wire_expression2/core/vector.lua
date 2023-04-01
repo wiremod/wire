@@ -81,58 +81,60 @@ end
 
 --------------------------------------------------------------------------------
 
-e2function vector operator_neg(vector v)
+registerOperator("neg", "v", "v", function(state, v)
 	return -v
-end
+end, 1, nil, { legacy = false })
 
-e2function vector operator+(lhs, vector rhs)
+registerOperator("add", "nv", "v", function(state, lhs, rhs)
 	return Vector(lhs + rhs[1], lhs + rhs[2], lhs + rhs[3])
-end
+end, 1, nil, { legacy = false })
 
-e2function vector operator+(vector lhs, rhs)
+
+registerOperator("add", "vn", "v", function(state, lhs, rhs)
 	return Vector(lhs[1] + rhs, lhs[2] + rhs, lhs[3] + rhs)
-end
+end, 1, nil, { legacy = false })
 
-e2function vector operator+(vector lhs, vector rhs)
+registerOperator("add", "vv", "v", function(state, lhs, rhs)
 	return lhs + rhs
-end
+end, 1, nil, { legacy = false })
 
-e2function vector operator-(lhs, vector rhs)
+registerOperator("sub", "nv", "v", function(state, lhs, rhs)
 	return Vector(lhs - rhs[1], lhs - rhs[2], lhs - rhs[3])
-end
+end, 1, nil, { legacy = false })
 
-e2function vector operator-(vector lhs, rhs)
+registerOperator("sub", "vn", "v", function(state, lhs, rhs)
 	return Vector(lhs[1] - rhs, lhs[2] - rhs, lhs[3] - rhs)
-end
+end, 1, nil, { legacy = false })
 
-e2function vector operator-(vector lhs, vector rhs)
+registerOperator("sub", "vv", "v", function(state, lhs, rhs)
 	return lhs - rhs
-end
+end, 1, nil, { legacy = false })
 
-e2function vector operator*(lhs, vector rhs)
+registerOperator("mul", "nv", "v", function(state, lhs, rhs)
 	return lhs * rhs
-end
+end, 1, nil, { legacy = false })
 
-e2function vector operator*(vector lhs, rhs)
+registerOperator("mul", "vn", "v", function(state, lhs, rhs)
 	return lhs * rhs
-end
+end, 1, nil, { legacy = false })
 
-e2function vector operator*(vector lhs, vector rhs)
+registerOperator("mul", "vv", "v", function(state, lhs, rhs)
 	return Vector( lhs[1] * rhs[1], lhs[2] * rhs[2], lhs[3] * rhs[3] )
-end
+end, 1, nil, { legacy = false })
 
 -- Yes this needs to be in pure lua. Angle/Vector operations in reverse order act as Angle / Number rather than Number / Angle properly. Amazing.
-e2function vector operator/(lhs, vector rhs)
+registerOperator("div", "nv", "v", function(state, lhs, rhs)
 	return Vector( lhs / rhs[1], lhs / rhs[2], lhs / rhs[3] )
-end
+end, 1, nil, { legacy = false })
 
-e2function vector operator/(vector lhs, rhs)
+
+registerOperator("div", "vn", "v", function(state, lhs, rhs)
 	return lhs / rhs
-end
+end, 1, nil, { legacy = false })
 
-e2function vector operator/(vector lhs, vector rhs)
+registerOperator("div", "vv", "v", function(state, lhs, rhs)
 	return Vector( lhs[1] / rhs[1], lhs[2] / rhs[2], lhs[3] / rhs[3] )
-end
+end, 1, nil, { legacy = false })
 
 registerOperator("indexget", "vn", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 3) + 0.5)]
