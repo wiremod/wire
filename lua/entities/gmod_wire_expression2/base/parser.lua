@@ -363,31 +363,24 @@ function Parser:Stmt()
 	if not var then
 		self:Assert(not is_local, "Invalid operator (local) must be used for variable declaration.")
 	else
-		local prev = self.index
-		local exprs = { { var, is_local and {} or self:Indices(), self:GetTrace() } }
+		local revert, prev = self.index, self.index
+		local assignments = { { var, is_local and {} or self:Indices(), self:GetTrace() } }
 		while self:Consume(TokenVariant.Operator, Operator.Ass) do
 			local ident = self:Consume(TokenVariant.Ident)
 			if ident then
-				exprs[#exprs + 1] = { ident, self:Indices(), self:GetTrace() }
+				prev = self.index
+				assignments[#assignments + 1] = { ident, self:Indices(), self:GetTrace() }
 			else
-				return Node.new(NodeVariant.Assignment, { is_local, exprs, self:Expr() })
+				return Node.new(NodeVariant.Assignment, { is_local, assignments, self:Expr() })
 			end
 		end
 
-		if #exprs == 1 then -- No assignment
+		if #assignments == 1 then -- No assignment
+			self.index = revert - 1
+		else -- Last 'assignment' is the expression.
+			table.remove(assignments)
 			self.index = prev - 1
-		else
-			local last = table.remove(exprs)
-			if #last[2] ~= 0 then
-				-- Edge case where last assignment is an indexing operation.
-				-- X = Y = T[5]
-				last = Node.new(NodeVariant.ExprIndex, { Node.new(NodeVariant.ExprIdent, last[1], self:GetTrace()), last[2] }, self:GetTrace())
-			else -- X = Y = Z (or X = Y = Z + 2)
-				self.index = self.index - 1
-				last = self:Expr()
-			end
-
-			return Node.new(NodeVariant.Assignment, { is_local, exprs, last })
+			return Node.new(NodeVariant.Assignment, { is_local, assignments, self:Expr() })
 		end
 	end
 
