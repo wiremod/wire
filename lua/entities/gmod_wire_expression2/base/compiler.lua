@@ -899,7 +899,10 @@ local CompileVisitors = {
 		if data[1] then
 			-- Local declaration.
 			local var_name = data[2][1][1].value
-			self:Assert(not self.scope.vars[var_name], "Cannot redeclare existing variable " .. var_name, trace)
+			if self.scope.vars[var_name] then
+				self:Warning("Do not redeclare existing variable: " .. var_name, trace)
+			end
+			-- self:Assert(not self.scope.vars[var_name], "Cannot redeclare existing variable " .. var_name, trace)
 			self.scope:DeclVar(var_name, { initialized = true, trace_if_unused = data[2][1][1].trace, type = value_ty })
 			return function(state) ---@param state RuntimeContext
 				state.Scope[var_name] = value(state)
@@ -1347,11 +1350,11 @@ local CompileVisitors = {
 				return state.triggerinput == var_name and 1 or 0
 			end, "n"
 		elseif data[1] == Operator.Imp then -- ->
-			if self.inputs[var_name] then
+			if self.inputs[3][var_name] then
 				return function(state) ---@param state RuntimeContext
 					return IsValid(state.entity.Inputs[var_name].Src) and 1 or 0
 				end, "n"
-			elseif self.outputs[var_name] then
+			elseif self.outputs[3][var_name] then
 				return function(state) ---@param state RuntimeContext
 					local tbl = state.entity.Outputs[var_name].Connected
 					local ret = #tbl
