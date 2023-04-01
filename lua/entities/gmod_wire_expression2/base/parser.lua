@@ -177,9 +177,10 @@ end
 ---@generic T
 ---@param v? T
 ---@param message string
+---@param trace Trace?
 ---@return T
-function Parser:Assert(v, message)
-	if not v then error( Error.new( message, self:GetTrace() ):display(), 2 ) end
+function Parser:Assert(v, message, trace)
+	if not v then error( Error.new( message, trace or self:GetTrace() ), 2 ) end
 	return v
 end
 
