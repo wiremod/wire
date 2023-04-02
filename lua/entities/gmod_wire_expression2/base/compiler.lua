@@ -807,9 +807,7 @@ local CompileVisitors = {
 	---@param data string
 	[NodeVariant.Include] = function (self, trace, data)
 		local include = self.includes[data]
-		if not include or not include[1] then
-			self:Error("Problem including file '" .. data .. "'", trace)
-		end
+		self:Assert(include and include[1], "Problem including file '" .. data .. "'", trace)
 
 		if not include[2] then
 			include[2] = true -- Prevent self-compiling infinite loop
@@ -821,8 +819,7 @@ local CompileVisitors = {
 			self.include = data
 			self.warnings[data] = self.warnings[data] or {}
 
-			local root = include[1]
-			local status, script = pcall(self.CompileStmt, self, root)
+			local status, script = pcall(self.CompileStmt, self, include[1])
 
 			if not status then ---@cast script Error
 				local reason = script.message
@@ -849,7 +846,13 @@ local CompileVisitors = {
 		end
 
 		return function(state) ---@param state RuntimeContext
-			include[2](state) -- todo: separate scope when it's properly implemented
+			local save = state:SaveScopes()
+
+			state:IsolatedScope()
+
+			include[2](state)
+
+			state:LoadScopes(save)
 		end
 	end,
 
