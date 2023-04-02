@@ -400,11 +400,11 @@ local CompileVisitors = {
 
 		local var = var.value
 		return function(state) ---@param state RuntimeContext
-			state:PushScope()
-			local step = step and step(state) or 1
+			state:PushScope() -- Push scope only first time, compiler should enforce not using variables ahead of time.
+			local step, scope, prf = step and step(state) or 1, state.Scope, state.prf
 			for i = start(state), stop(state), step do
 				state.prf = state.prf + cost
-				state.Scope[var] = i
+				scope[var] = i
 
 				if state.__continue__ then
 					if state.prf > TickQuota then error("perf", 0) end
@@ -422,7 +422,7 @@ local CompileVisitors = {
 	[NodeVariant.Foreach] = function (self, trace, data)
 		local key, key_type, value, value_type = data[1], data[2] and self:CheckType(data[2]) or "n", data[3], self:CheckType(data[4])
 
-		local iterator, iterator_ty = self:CompileExpr(data[5])
+		local item, item_ty = self:CompileExpr(data[5])
 		local block, cost = self:Scope(function(scope)
 			scope.data.loop = true
 
@@ -432,23 +432,21 @@ local CompileVisitors = {
 			return self:CompileStmt(data[6]), 1 / 15
 		end)
 
-		local foreach, _, ops = self:GetOperator("iter", { key_type, value_type, "=", iterator_ty }, trace)
+		local into_iter = self:GetOperator("iter", { key_type, value_type, "=", item_ty }, trace)
 		local key, value = key.value, value.value
 		return function(state) ---@param state RuntimeContext
-			local iter = foreach(state, iterator(state))
+			local iter = into_iter(state, item(state))
 
+			state:PushScope() -- Only push scope once as an optimization, compiler should disallow using variable ahead of time anyway.
 			for k, v in iter() do
-				state:PushScope()
-
 				state.prf = state.prf + cost
 
 				state.Scope[key] = k
 				state.Scope[value] = v
 
 				block(state)
-
-				state:PopScope()
 			end
+			state:PopScope()
 		end
 	end,
 
@@ -477,14 +475,18 @@ local CompileVisitors = {
 		local default = data[3] and self:Scope(function() return self:CompileStmt(data[3]) end)
 		return function(state) ---@param state RuntimeContext
 			local expr = expr(state)
-			for i, case in ipairs(cases) do
+
+			state:PushScope()
+			for _, case in ipairs(cases) do
 				if case[1](state, expr) ~= 0 then
 					case[2](state)
+					state:PopScope()
 					return
 				end
 			end
 
 			default(state)
+			state:PopScope()
 		end
 	end,
 
@@ -1659,10 +1661,7 @@ end
 ---@return RuntimeOperator
 ---@return string expr_type
 function Compiler:CompileExpr(node)
-	if not node.trace then
-		error("Incomplete node: " .. tostring(node), 2)
-	end
-
+	assert(node.trace, "Incomplete node: " .. tostring(node))
 	local op, ty = assert(CompileVisitors[node.variant], "Unimplemented Compile Step: " .. node:instr())(self, node.trace, node.data)
 	self:Assert(ty, "Cannot use void in expression position", node.trace)
 	return op, ty
@@ -1670,10 +1669,7 @@ end
 
 ---@return RuntimeOperator
 function Compiler:CompileStmt(node)
-	if not node.trace then
-		error("Incomplete node: " .. tostring(node), 2)
-	end
-
+	assert(node.trace, "Incomplete node: " .. tostring(node))
 	return assert(CompileVisitors[node.variant], "Unimplemented Compile Step: " .. node:instr())(self, node.trace, node.data)
 end
 
