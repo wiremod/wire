@@ -116,11 +116,13 @@ function ENT:Execute()
 
 		if msg == "exit" then
 		elseif msg == "perf" then
-			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
+			local trace = self.context.trace
+			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
 		elseif trace then
 			self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 		else
-			self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
+			local trace = self.context.trace
+			self:Error("Expression 2 (" .. self.name .. "): Internal error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 		end
 	end
 
@@ -151,7 +153,8 @@ function ENT:Execute()
 	end
 
 	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
-		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "hard quota exceeded")
+		local trace = self.context.trace
+		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "hard quota exceeded")
 	end
 
 	if self.error then
@@ -179,11 +182,13 @@ function ENT:ExecuteEvent(evt, args)
 
 			if msg == "exit" then
 			elseif msg == "perf" then
-				self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
+				local trace = self.context.trace
+				self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
 			elseif trace then
-				self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
+				self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
 			else
-				self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
+				local trace = self.context.trace
+				self:Error("Expression 2 (" .. self.name .. "): Internal error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 			end
 		end
 		self.context.time = self.context.time + (SysTime() - bench)
@@ -201,7 +206,8 @@ function ENT:ExecuteEvent(evt, args)
 	end
 
 	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
-		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "hard quota exceeded")
+		local trace = self.context.trace
+		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "hard quota exceeded")
 	end
 
 	if self.error then
