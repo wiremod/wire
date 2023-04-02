@@ -485,7 +485,10 @@ local CompileVisitors = {
 				end
 			end
 
-			default(state)
+			if default then
+				default(state)
+			end
+
 			state:PopScope()
 		end
 	end,
