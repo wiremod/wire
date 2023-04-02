@@ -957,6 +957,7 @@ local CompileVisitors = {
 					end
 				else
 					self:Assert(existing.type == value_ty, "Cannot assign type (" .. value_ty .. ") to variable of type (" .. existing.type .. ")", trace)
+					existing.initialized = true
 
 					local id = existing.scope:Depth()
 					if id == 0 then

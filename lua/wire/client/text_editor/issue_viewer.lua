@@ -268,7 +268,7 @@ function PANEL:Update(errors, warnings, header_text, header_color)
     if warnings ~= nil and not table.IsEmpty(warnings) then
         for k, v in ipairs(warnings) do
             if v.message ~= nil then
-                local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [%d:%d]", v.trace.start_line, v.trace.start_col) or ""))
+                local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [line %u, char %u]", v.trace.start_line, v.trace.start_col) or ""))
                 node:SetIcon("icon16/error.png")
                 node.line = v.trace and v.trace.start_line
                 node.char = v.trace and v.trace.start_col
@@ -279,7 +279,7 @@ function PANEL:Update(errors, warnings, header_text, header_color)
 
     if errors ~= nil and not table.IsEmpty(errors) then
         for k, v in ipairs(errors) do
-            local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [%d:%d]", v.trace.start_line, v.trace.start_col) or ""))
+            local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [line %u, char %u]", v.trace.start_line, v.trace.start_col) or ""))
             node:SetIcon("icon16/cancel.png")
             node.line = v.trace and v.trace.start_line
             node.char = v.trace and v.trace.start_col
