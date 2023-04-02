@@ -85,7 +85,7 @@ end
 ---@field user_functions table<string, table<string, EnvFunction>> # applyForce -> v
 ---@field user_methods table<string, table<string, table<string, EnvFunction>>> # e: -> applyForce -> vava
 --- External Data
----@field includes table<string, Node>
+---@field includes table<string, { [1]: Node, [2]: boolean }>
 ---@field delta_vars table<string, true> # Variable: True
 ---@field persist IODirective
 ---@field inputs IODirective
@@ -812,14 +812,13 @@ local CompileVisitors = {
 		if not include[2] then
 			include[2] = true -- Prevent self-compiling infinite loop
 
-			local old_scope = self.scope
-			self.scope = Scope.new()
-
 			local last_file = self.include
 			self.include = data
 			self.warnings[data] = self.warnings[data] or {}
 
-			local status, script = pcall(self.CompileStmt, self, include[1])
+			local status, script = self:IsolatedScope(function(_)
+				return pcall(self.CompileStmt, self, include[1])
+			end)
 
 			if not status then ---@cast script Error
 				local reason = script.message
@@ -842,7 +841,6 @@ local CompileVisitors = {
 			end
 
 			include[2] = script
-			self.scope = old_scope -- Reload the old enviroment
 		end
 
 		return function(state) ---@param state RuntimeContext

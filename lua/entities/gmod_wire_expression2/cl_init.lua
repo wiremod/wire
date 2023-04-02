@@ -5,7 +5,7 @@ local Trace, Error = E2Lib.Debug.Trace, E2Lib.Debug.Error
 ---@param e2 string
 ---@param directives PPDirectives
 ---@param includes table<string, string>
----@param scripts Node[]
+---@param scripts table<string, Node>
 ---@return Error[]?
 local function Include(e2, directives, includes, scripts)
 	if scripts[e2] then
@@ -16,7 +16,7 @@ local function Include(e2, directives, includes, scripts)
 	local code = file.Read("expression2/" .. e2 .. ".txt")
 
 	if not code then
-		return false, { Error.new("Could not find include '" .. e2 .. ".txt'") }
+		return { Error.new("Could not find include '" .. e2 .. ".txt'") }
 	end
 
 	local status, err, buffer = E2Lib.PreProcessor.Execute(code, directives)
@@ -52,7 +52,7 @@ end
 function E2Lib.Validate(buffer)
 	if not e2_function_data_received then return { Error.new("Loading extensions. Please try again in a few seconds...") } end
 
-	---@type Warning[]
+	---@type Warning[], Error[]
 	local warnings, errors = {}, {}
 
 	-- invoke preprocessor
