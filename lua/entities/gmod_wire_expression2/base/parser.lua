@@ -875,7 +875,7 @@ function Parser:Expr11()
 					end
 				end
 
-				return Node.new(NodeVariant.ExprStringCall, { expr, args, typ })
+				return Node.new(NodeVariant.ExprStringCall, { expr, args, typ }, self:GetTrace())
 			else
 				break
 			end

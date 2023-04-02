@@ -706,7 +706,7 @@ local CompileVisitors = {
 					end
 				end
 			end
-		elseif variadic then
+		elseif variadic_ty then
 			local last, non_variadic = #param_types, #param_types - 1
 			if variadic_ty == "r" then
 				function op(state, args) ---@param state RuntimeContext
@@ -795,7 +795,7 @@ local CompileVisitors = {
 
 			self.user_methods[meta_type][name.value] = self.user_methods[meta_type][name.value] or {}
 
-			if variadic then
+			if variadic_ty then
 				local opposite = variadic_ty == "r" and "t" or "r"
 				if self.user_methods[meta_type][name.value][sig:gsub(".." .. variadic_ty, ".." .. opposite)] then
 					self:Error("Cannot override variadic " .. opposite .. " function with variadic " .. variadic_ty .. " function to avoid ambiguity.", trace)
@@ -809,7 +809,7 @@ local CompileVisitors = {
 			table.insert(param_types, 1, meta_type)
 		else
 			self.user_functions[name.value] = self.user_functions[name.value] or {}
-			if variadic then
+			if variadic_ty then
 				local opposite = variadic_ty == "r" and "t" or "r"
 				if self.user_functions[name.value][sig:gsub(".." .. variadic_ty, ".." .. opposite)] then
 					self:Error("Cannot override variadic " .. opposite .. " function with variadic " .. variadic_ty .. " function to avoid ambiguity.", trace)
@@ -835,7 +835,7 @@ local CompileVisitors = {
 
 		self:Assert(fn.returns[1] == return_type, "Function " .. name.value .. " expects to return type (" .. (return_type or "void") .. ") but got type (" .. (fn.returns[1] or "void") .. ")", trace)
 
-		local sig = name.value .. "(" .. sig .. ")"
+		local sig = name.value .. "(" .. (meta_type and (meta_type .. ":") or "") .. sig .. ")"
 		return function(state) ---@param state RuntimeContext
 			state.funcs[sig] = op
 			state.funcs_ret[sig] = return_type
@@ -1512,7 +1512,9 @@ local CompileVisitors = {
 			args[i], arg_types[i] = self:CompileExpr(arg)
 		end
 
-		local arg_sig = table.concat(arg_types)
+		local arg_sig = "(" .. table.concat(arg_types) .. ")"
+		local meta_arg_sig = #arg_types >= 1 and ("(" .. arg_types[1] .. ":" .. table.concat(arg_types, "", 2) .. ")") or "()"
+
 		local ret_type = data[3] and self:CheckType(data[3])
 
 		return function(state) ---@param state RuntimeContext
@@ -1521,17 +1523,29 @@ local CompileVisitors = {
 				rargs[k] = arg(state)
 			end
 
-			local fn = expr(state)
-			local sig = fn .. "(" .. arg_sig .. ")"
-			if state.funcs[sig] then
+			local fn_name = expr(state)
+			local sig, meta_sig = fn_name .. arg_sig, fn_name .. meta_arg_sig
+
+			local fn = state.funcs[sig] or state.funcs[meta_sig]
+			if fn then
 				local r = state.funcs_ret[sig]
 				if r ~= ret_type then
 					error( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"), 0)
 				end
 
-				return state.funcs[sig](state, rargs)
+				return fn(state, rargs)
 			else
-				E2Lib.raiseException("No such function: " .. fn .. "(" .. arg_sig .. ")", 0, state.trace)
+				fn = wire_expression2_funcs[sig] or wire_expression2_funcs[meta_sig]
+				if fn then
+					local r = fn[2]
+					if r ~= ret_type and not (ret_type == nil and r == "") then
+						error( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"), 0)
+					end
+
+					return fn[3](state, rargs) -- todo: legacy support
+				else
+					E2Lib.raiseException("No such function: " .. fn_name .. arg_sig, 0, state.trace)
+				end
 			end
 		end, ret_type
 	end,
