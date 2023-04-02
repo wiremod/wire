@@ -278,17 +278,20 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 						end
 					]]))
 
-
-					local param_get = {}
-					for i = 1, #param_names do
-						param_get[i] = "args[" .. i .. "]"
-					end
-
 					if #param_names == 0 then
 						table.insert(output, compact([[
 							function registeredfunctions.]] .. mangled .. [[(self, args, types)
 						]]))
+					elseif is_operator then
+						table.insert(output, compact([[
+							function registeredfunctions.]] .. mangled .. [[(self, ]] .. table.concat(param_names, ", ") .. [[)
+						]]))
 					else
+						local param_get = {}
+						for i = 1, #param_names do
+							param_get[i] = "args[" .. i .. "]"
+						end
+
 						table.insert(output, compact([[
 							function registeredfunctions.]] .. mangled .. [[(self, args, types)
 								local ]] .. table.concat(param_names, ", ") .. [[ = ]] .. table.concat(param_get, ",") .. [[
