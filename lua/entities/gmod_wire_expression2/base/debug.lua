@@ -1,6 +1,6 @@
 --[[
-	Expression 2 Debugging for Garry's Mod
-	by Vurv
+	Expression 2 Debugging
+		by Vurv
 ]]
 
 AddCSLuaFile()
