@@ -278,9 +278,22 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 						end
 					]]))
 
-					table.insert(output, compact([[
-						function registeredfunctions.]] .. mangled .. [[(self]] .. (#param_names ~= 0 and "," or "") .. table.concat(param_names, ", ") .. [[)
-					]]))
+
+					local param_get = {}
+					for i = 1, #param_names do
+						param_get[i] = "args[" .. i .. "]"
+					end
+
+					if #param_names == 0 then
+						table.insert(output, compact([[
+							function registeredfunctions.]] .. mangled .. [[(self, args, types)
+						]]))
+					else
+						table.insert(output, compact([[
+							function registeredfunctions.]] .. mangled .. [[(self, args, types)
+								local ]] .. table.concat(param_names, ", ") .. [[ = ]] .. table.concat(param_get, ",") .. [[
+						]]))
+					end
 				elseif kind == ArgsKind.VariadicTbl then
 					table.insert(footer, compact([[
 						if registeredfunctions.]] .. mangled .. [[ then
