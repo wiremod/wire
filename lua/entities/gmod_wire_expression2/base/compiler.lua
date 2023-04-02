@@ -542,7 +542,7 @@ local CompileVisitors = {
 			end
 		end
 
-		local param_types, param_names, variadic, variadic_ty = {}, {}, nil, nil
+		local param_types, param_names, variadic_ind, variadic_ty = {}, {}, nil, nil
 		if data[4] then
 			local existing = {}
 			for i, param in ipairs(data[4]) do
@@ -551,7 +551,7 @@ local CompileVisitors = {
 					if param.variadic then
 						self:Assert(t == "r" or t == "t", "Variadic parameter must be of type array or table", param.type.trace)
 						param_types[i] = ".." .. t
-						variadic, variadic_ty = param.name, t
+						variadic_ind, variadic_ty = i, t
 					else
 						param_types[i] = t
 					end
@@ -571,11 +571,11 @@ local CompileVisitors = {
 			end
 		end
 
-		local fn_data, variadic, userfunction = self:GetFunction(name.value, param_types, meta_type)
+		local fn_data, lookup_variadic, userfunction = self:GetFunction(name.value, param_types, meta_type)
 		if fn_data then
 			if not userfunction then
-				if not variadic then
-					self:Error("Cannot overwrite existing function: " .. (meta_type and (meta_type .. ":") or "") .. name.value .. "(" .. table.concat(param_types, ", ") .. ")", name.trace)
+				if not lookup_variadic or variadic_ind == 1 then -- Allow overrides like print(nnn) and print(n..r) to override print(...), but not print(...r)
+					self:Error("Cannot overwrite existing function: " .. (meta_type and (meta_type .. ":") or "") .. name.value .. "(" .. table.concat(fn_data.args, ", ") .. ")", name.trace)
 				end
 			else
 				self:Assert(fn_data.returns[1] == return_type, "Cannot override with differing return type", trace)
