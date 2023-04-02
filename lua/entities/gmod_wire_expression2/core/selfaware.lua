@@ -83,7 +83,7 @@ registerCallback("postinit",function()
 					return self.GlobalScope[rv1] or default
 				end
 				return default
-			end)
+			end, 3, nil, { legacy = false })
 		end
 	end
 end)

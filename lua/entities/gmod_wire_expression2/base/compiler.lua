@@ -399,22 +399,41 @@ local CompileVisitors = {
 		end)
 
 		local var = var.value
-		return function(state) ---@param state RuntimeContext
-			state:PushScope() -- Push scope only first time, compiler should enforce not using variables ahead of time.
-			local step, scope, prf = step and step(state) or 1, state.Scope, state.prf
-			for i = start(state), stop(state), step do
-				state.prf = state.prf + cost
-				scope[var] = i
+		if var == "_" then -- Discarded for loop value
+			return function(state) ---@param state RuntimeContext
+				state:PushScope() -- Push scope only first time, compiler should enforce not using variables ahead of time.
+				local step = step and step(state) or 1
+				for _ = start(state), stop(state), step do
+					state.prf = state.prf + cost
 
-				if state.__continue__ then
-					if state.prf > TickQuota then error("perf", 0) end
-					state.__continue__ = false
-				else
-					block(state)
-					if state.__break__ or state.__return__ then break end
+					if state.__continue__ then
+						if state.prf > TickQuota then error("perf", 0) end
+						state.__continue__ = false
+					else
+						block(state)
+						if state.__break__ or state.__return__ then break end
+					end
 				end
+				state:PopScope()
 			end
-			state:PopScope()
+		else
+			return function(state) ---@param state RuntimeContext
+				state:PushScope() -- Push scope only first time, compiler should enforce not using variables ahead of time.
+				local step, scope = step and step(state) or 1, state.Scope
+				for i = start(state), stop(state), step do
+					state.prf = state.prf + cost
+					scope[var] = i
+
+					if state.__continue__ then
+						if state.prf > TickQuota then error("perf", 0) end
+						state.__continue__ = false
+					else
+						block(state)
+						if state.__break__ or state.__return__ then break end
+					end
+				end
+				state:PopScope()
+			end
 		end
 	end,
 
@@ -434,19 +453,33 @@ local CompileVisitors = {
 
 		local into_iter = self:GetOperator("iter", { key_type, value_type, "=", item_ty }, trace)
 		local key, value = key.value, value.value
-		return function(state) ---@param state RuntimeContext
-			local iter = into_iter(state, item(state))
 
-			state:PushScope() -- Only push scope once as an optimization, compiler should disallow using variable ahead of time anyway.
-			for k, v in iter() do
-				state.prf = state.prf + cost
+		if key == "_" then -- Not using key
+			return function(state) ---@param state RuntimeContext
+				local iter = into_iter(state, item(state))
 
-				state.Scope[key] = k
-				state.Scope[value] = v
+				state:PushScope() -- Only push scope once as an optimization, compiler should disallow using variable ahead of time anyway.
+				for _, v in iter() do
+					state.prf = state.prf + cost
 
-				block(state)
+					state.Scope[value] = v
+					block(state)
+				end
+				state:PopScope()
 			end
-			state:PopScope()
+		else -- todo: optimize for discard value case
+			return function(state) ---@param state RuntimeContext
+				local iter = into_iter(state, item(state))
+
+				state:PushScope() -- Only push scope once as an optimization, compiler should disallow using variable ahead of time anyway.
+				for k, v in iter() do
+					state.prf = state.prf + cost
+
+					state.Scope[key], state.Scope[value] = k, v
+					block(state)
+				end
+				state:PopScope()
+			end
 		end
 	end,
 
@@ -1094,7 +1127,7 @@ local CompileVisitors = {
 
 	---@param data Token<string>
 	[NodeVariant.ExprIdent] = function (self, trace, data)
-		local var, name = self:Assert(self.scope:LookupVar(data.value), "Undefined variable: " .. data.value, trace), data.value
+		local var, name = self:Assert(self.scope:LookupVar(data.value), "Undefined variable (" .. data.value .. ")", trace), data.value
 		var.trace_if_unused = nil
 
 		self.scope.data.ops = self.scope.data.ops + 1
