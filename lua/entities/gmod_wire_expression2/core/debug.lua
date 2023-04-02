@@ -306,17 +306,16 @@ local printColor_typeids = {
 	e = function(e) return IsValid(e) and e:IsPlayer() and e or "" end,
 }
 
-local function printColorVarArg(chip, ply, console, typeids, ...)
+local function printColorVarArg(chip, ply, console, typeids, vararg)
 	if not IsValid(ply) then return end
 	if not checkDelay(ply) then return end
-	local send_array = { ... }
 
 	local i = 1
 	for i,tp in ipairs(typeids) do
 		if printColor_typeids[tp] then
-			send_array[i] = printColor_typeids[tp](send_array[i])
+			vararg[i] = printColor_typeids[tp](vararg[i])
 		else
-			send_array[i] = ""
+			vararg[i] = ""
 		end
 		if i == 256 then break end
 		i = i + 1
@@ -325,7 +324,7 @@ local function printColorVarArg(chip, ply, console, typeids, ...)
 	net.Start("wire_expression2_printColor")
 		net.WriteEntity(chip)
 		net.WriteBool(console)
-		net.WriteTable(send_array)
+		net.WriteTable(vararg)
 	net.Send(ply)
 end
 
@@ -370,8 +369,8 @@ end
 
 
 --- Works like [[chat.AddText]](...). Parameters can be any amount and combination of numbers, strings, player entities, color vectors (both 3D and 4D).
-e2function void printColor(...)
-	printColorVarArg(nil, self.player, false, typeids, ...)
+e2function void printColor(...args)
+	printColorVarArg(nil, self.player, false, typeids, args)
 end
 
 --- Like printColor(...), except taking an array containing all the parameters.
@@ -380,8 +379,8 @@ e2function void printColor(array arr)
 end
 
 --- Works like MsgC(...). Parameters can be any amount and combination of numbers, strings, player entities, color vectors (both 3D and 4D).
-e2function void printColorC(...)
-	printColorVarArg(nil, self.player, true, typeids, ...)
+e2function void printColorC(...args)
+	printColorVarArg(nil, self.player, true, typeids, args)
 end
 
 --- Like printColorC(...), except taking an array containing all the parameters.
@@ -390,7 +389,7 @@ e2function void printColorC(array arr)
 end
 
 --- Like printColor(...), except printing in <this>'s driver's chat area instead of yours.
-e2function void entity:printColorDriver(...)
+e2function void entity:printColorDriver(...args)
 	if not checkVehicle(self, this) then return end
 
 	local driver = this:GetDriver()
@@ -398,7 +397,7 @@ e2function void entity:printColorDriver(...)
 
 	if not checkDelay( driver ) then return end
 
-	printColorVarArg(self.entity, driver, false, typeids, ...)
+	printColorVarArg(self.entity, driver, false, typeids, args)
 end
 
 --- Like printColor(R), except printing in <this>'s driver's chat area instead of yours.

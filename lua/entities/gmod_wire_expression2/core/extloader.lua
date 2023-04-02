@@ -90,10 +90,8 @@ end
 
 -- parses and executes an extension
 local function e2_include_pass2(name, luaname, contents)
-	local preprocessedSource = E2Lib.ExtPP.Pass2(contents)
-
+	local preprocessedSource = E2Lib.ExtPP.Pass2(contents, luaname)
 	E2Lib.currentextension = string.StripExtension( string.GetFileFromFilename(name) )
-
 	if not preprocessedSource then return include(name) end
 
 	local func = CompileString(preprocessedSource, luaname)
