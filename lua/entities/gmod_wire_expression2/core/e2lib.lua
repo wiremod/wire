@@ -621,10 +621,21 @@ end
 
 E2Lib.OperatorChars = OperatorChars
 
-E2Lib.blocked_array_types = {
+E2Lib.blocked_array_types = { -- todo: fix casing
 	["t"] = true,
 	["r"] = true,
 	["xgt"] = true
+}
+
+--- Types that will trigger their I/O connections on assignment/index change.
+E2Lib.IOTableTypes = {
+	ARRAY = true, ["r"] = true,
+	TABLE = true, ["t"] = true,
+	VECTOR = true, ["v"] = true,
+	VECTOR2 = true, ["xv2"] = true,
+	VECTOR4 = true, ["xv4"] = true,
+	ANGLE = true, ["a"] = true,
+	QUATERNION = true, ["q"] = true
 }
 
 -- ------------------------------ string stuff ---------------------------------

@@ -1228,16 +1228,6 @@ registerCallback("postexecute", function(self) --- @param self RuntimeContext
 	end
 end)
 
-local tbls = {
-	ARRAY = true,
-	TABLE = true,
-	VECTOR = true,
-	VECTOR2 = true,
-	VECTOR4 = true,
-	ANGLE = true,
-	QUATERNION = true,
-}
-
 registerCallback("construct", function(self)
 	local Scope = self.GlobalScope
 	Scope.lookup = {}
@@ -1245,7 +1235,7 @@ registerCallback("construct", function(self)
 	for k,v in pairs( Scope ) do
 		if k ~= "lookup" then
 			local datatype = self.entity.outports[3][k]
-			if (tbls[datatype]) then
+			if (E2Lib.IOTableTypes[datatype]) then
 				if (not Scope.lookup[v]) then Scope.lookup[v] = {} end
 				Scope.lookup[v][k] = true
 			end

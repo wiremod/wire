@@ -961,15 +961,23 @@ local CompileVisitors = {
 
 					local id = existing.scope:Depth()
 					if id == 0 then
-						stmts[i] = function(state) ---@param state RuntimeContext
-							local val = value(state)
-							state.GlobalScope[var] = val
-							state.GlobalScope.vclk[var] = true
+						if E2Lib.IOTableTypes[value_ty] then
+							stmts[i] = function(state) ---@param state RuntimeContext
+								local val = value(state)
+								state.GlobalScope[var] = val
+								state.GlobalScope.vclk[var] = true
 
-							if state.GlobalScope.lookup[val] then
-								state.GlobalScope.lookup[val][var] = true
-							else
-								state.GlobalScope.lookup[val] = { [var] = true }
+								if state.GlobalScope.lookup[val] then
+									state.GlobalScope.lookup[val][var] = true
+								else
+									state.GlobalScope.lookup[val] = { [var] = true }
+								end
+							end
+						else
+							stmts[i] = function(state) ---@param state RuntimeContext
+								local val = value(state)
+								state.GlobalScope[var] = val
+								state.GlobalScope.vclk[var] = true
 							end
 						end
 					else
