@@ -620,7 +620,7 @@ local CompileVisitors = {
 
 		local block, op
 		if return_type then
-			if variadic then
+			if variadic_ty then
 				local last, non_variadic = #param_types, #param_types - 1
 				if variadic_ty == "r" then
 					function op(state, args) ---@param state RuntimeContext
@@ -1552,7 +1552,7 @@ local CompileVisitors = {
 
 	---@param data { [1]: Token<string>, [2]: Parameter[], [3]: Node }
 	[NodeVariant.Event] = function (self, trace, data)
-		if self.scope.parent then
+		if not self.scope:IsGlobalScope() and not (self.include and self.scope:Depth() == 1) then
 			self:Error("Events cannot be nested inside of statements, they are compile time constructs", trace)
 		end
 

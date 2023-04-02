@@ -957,6 +957,8 @@ registerCallback("postinit",function()
 				if IsValid(ent) and key and rawget(enttbls, self.uid) and rawget(enttbls[self.uid], ent) then
 					return enttbls[self.uid][ent][key] or fixDefault( v[2] )
 				end
+
+				return fixDefault( v[2] )
 			end
 
 			local function setf(self, ent, key, value)
