@@ -964,8 +964,7 @@ local CompileVisitors = {
 						if E2Lib.IOTableTypes[value_ty] then
 							stmts[i] = function(state) ---@param state RuntimeContext
 								local val = value(state)
-								state.GlobalScope[var] = val
-								state.GlobalScope.vclk[var] = true
+								state.GlobalScope[var], state.GlobalScope.vclk[var] = val, true
 
 								if state.GlobalScope.lookup[val] then
 									state.GlobalScope.lookup[val][var] = true
@@ -975,9 +974,7 @@ local CompileVisitors = {
 							end
 						else
 							stmts[i] = function(state) ---@param state RuntimeContext
-								local val = value(state)
-								state.GlobalScope[var] = val
-								state.GlobalScope.vclk[var] = true
+								state.GlobalScope[var], state.GlobalScope.vclk[var] = value(state), true
 							end
 						end
 					else
@@ -991,15 +988,20 @@ local CompileVisitors = {
 				self:Assert(#indices == 0, "Variable (" .. var .. ") does not exist", trace)
 				self.global_scope:DeclVar(var, { type = value_ty, initialized = true, trace_if_unused = trace })
 
-				stmts[i] = function(state) ---@param state RuntimeContext
-					local val = value(state)
-					state.GlobalScope[var] = val
-					state.GlobalScope.vclk[var] = true
+				if E2Lib.IOTableTypes[value_ty] then
+					stmts[i] = function(state) ---@param state RuntimeContext
+						local val = value(state)
+						state.GlobalScope[var], state.GlobalScope.vclk[var] = val, true
 
-					if state.GlobalScope.lookup[val] then
-						state.GlobalScope.lookup[val][var] = true
-					else
-						state.GlobalScope.lookup[val] = { [var] = true }
+						if state.GlobalScope.lookup[val] then
+							state.GlobalScope.lookup[val][var] = true
+						else
+							state.GlobalScope.lookup[val] = { [var] = true }
+						end
+					end
+				else
+					stmts[i] = function(state) ---@param state RuntimeContext
+						state.GlobalScope[var], state.GlobalScope.vclk[var] = value(state), true
 					end
 				end
 			end
@@ -1466,7 +1468,7 @@ local CompileVisitors = {
 
 		if fn_data.attrs["deprecated"] then
 			local value = fn_data.attrs["deprecated"]
-			self:Warning("Use of deprecated function (" .. data[1].value .. ") " .. (type(value) == "string" and value or ""), trace)
+			self:Warning("Use of deprecated function (" .. name.value .. ") " .. (type(value) == "string" and value or ""), trace)
 		end
 
 		if fn_data.attrs["legacy"] then
