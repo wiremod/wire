@@ -415,7 +415,7 @@ registerOperator("indexset", "xwlnn", "", function(state, this, address, value)
 end, 3)
 
 registerOperator("indexget", "xwln", "n", function(state, this, address)
-	if not validWirelink(self, this) then return 0 end
+	if not validWirelink(state, this) then return 0 end
 
 	if not this.ReadCell then return 0 end
 	return this:ReadCell(address) or 0
