@@ -196,10 +196,11 @@ function ENT:ExecuteEvent(evt, args)
 		local bench = SysTime()
 		local ok, msg = pcall(handler, self.context, args)
 
-	if not ok then
-		local _catchable, msg, trace = E2Lib.unpackException(msg)
+		if not ok then
+			local _catchable, msg, trace = E2Lib.unpackException(msg)
 
 			if msg == "exit" then
+				self:UpdatePerf()
 			elseif msg == "perf" then
 				local trace = self.context.trace
 				self:UpdatePerf()
@@ -211,7 +212,7 @@ function ENT:ExecuteEvent(evt, args)
 				self:Error("Expression 2 (" .. self.name .. "): Internal error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 			end
 		end
-	end
+
 		self.context.time = self.context.time + (SysTime() - bench)
 	end
 
