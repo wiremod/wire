@@ -235,12 +235,6 @@ function Tokenizer:Next()
 			return Token.new(TokenVariant.Boolean, true)
 		elseif match == "false" then
 			return Token.new(TokenVariant.Boolean, false)
-		elseif match == "k" or match == "j" then
-			self:Warning("Avoid using quaternion literal '" .. match .. "' on its own. (Use 1" .. match .. " instead)")
-			return Token.new(TokenVariant.Quat, "1" .. match)
-		elseif match == "i" then
-			self:Warning("Avoid using complex literal 'i' on its own. (Use 1i instead)")
-			return Token.new(TokenVariant.Complex, "1i")
 		elseif match:sub(1, 1) ~= "#" then
 			return Token.new(TokenVariant.LowerIdent, match)
 		end
