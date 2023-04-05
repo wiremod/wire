@@ -33,7 +33,7 @@ function PreProcessor.Execute(buffer, directives, ent)
 	-- and pcall the new instance's Process method.
 	local directives, newcode = instance:Process(buffer, directives, ent)
 	local ok = #instance.errors == 0
-	return ok, directives, newcode, instance
+	return ok, ok and directives or instance.errors, newcode, instance
 end
 
 function PreProcessor:Error(message, column)
