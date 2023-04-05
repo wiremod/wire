@@ -122,7 +122,7 @@ local function SpecialCase( arg )
 			return "table(...)"
 		end
 	elseif t == "string" then
-		return string.format("%q", arg)
+		return arg
 	elseif t == "Vector" then
 		return string.format("vec(%.2f,%.2f,%.2f)", arg[1], arg[2], arg[3])
 	elseif t == "Angle" then

@@ -63,19 +63,12 @@ local function getTypeId(ty)
 		or (isValidTypeId(ty) and ty) -- It is a type id. Weird.
 end
 
----@enum ArgsKind
-local ArgsKind = {
-	Static = 1,
-	Variadic = 2,
-	VariadicTbl = 3
-}
-
 -- Parses list of parameters
 ---@param raw string
 ---@param trace string
----@return { [1]: string, [2]: string }[], ArgsKind, string?
-local function parseParameters(raw, trace)
-	if not raw:match("%S") then return {}, ArgsKind.Static end
+---@return { [1]: string, [2]: string }[] parameters, boolean variadic, string? variadic_tbl
+local function parseParameters(raw, trace, trace_ext)
+	if not raw:match("%S") then return {}, false end
 
 	local parsed, split = {}, raw:Split(",")
 	local len = #split
@@ -84,10 +77,11 @@ local function parseParameters(raw, trace)
 		local name = raw_param:match("^%s*%.%.%.(%w+)%s*$")
 		if name then -- Variadic table parameter
 			assert(k == len, "PP syntax error: Ellipses table (..." .. name .. ") must be the last argument.")
-			return parsed, ArgsKind.VariadicTbl, name
+			return parsed, true, name
 		elseif raw_param:match("^%s*%.%.%.%s*$") then -- Variadic lua parameter
 			assert(k == len, "PP syntax error: Ellipses (...) must be the last argument.")
-			return parsed, ArgsKind.Variadic
+			ErrorNoHalt("Warning: Use of variadic parameter with ExtPP is not recommended and deprecated. Instead use ...<name> (which passes a table) or the `args` variable " .. trace_ext .. "\n")
+			return parsed, true
 		else
 			local typename, argname = string.match(raw_param, "^%s*(" .. p_typename .. ")%s+(" .. p_argname .. ")%s*$")
 			if not typename then -- Implicit 'number' type
@@ -101,7 +95,7 @@ local function parseParameters(raw, trace)
 		end
 	end
 
-	return parsed, ArgsKind.Static
+	return parsed, false
 end
 
 ---@param attributes string
@@ -193,15 +187,13 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 				name, is_operator = Operators[name], true
 			end
 
-			local params, kind, vartbl_name = parseParameters(args, trace)
+			local params, has_vararg, vartbl_name = parseParameters(args, trace, trace_ext)
 
 			local attributes = parseAttributes(attributes, trace)
 
 			local attr_str
 			if attributes then
-				if kind == ArgsKind.Static then
-					attributes.legacy = "false"
-				end
+				attributes.legacy = "false"
 
 				attr_str = "{"
 				for k, v in pairs(attributes) do
@@ -212,7 +204,7 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 				table.insert(output, contents:sub(lastpos, a_begin - 1))
 				table.insert(output, "-- attributes: " .. attr_str .. " \n") -- Add line for annotations
 			else
-				attr_str = kind ~= ArgsKind.Static and "{}" or "{ legacy = false }"
+				attr_str = "{ legacy = false }"
 				table.insert(output, contents:sub(lastpos, h_begin - 1)) -- Append stuff in between functions
 			end
 
@@ -242,123 +234,58 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 			end
 
 			if aliasflag == 1 then
-				aliasdata = { is_operator, name, param_sig, ret_typeid, attributes }
-			elseif aliasflag == 2 then
-				local is_operator, name, param_sig, ret_typeid, attributes = aliasdata[1], aliasdata[2], aliasdata[3], aliasdata[4], aliasdata[5]
-				table.insert(footer, compact([[
-						if registeredfunctions.]] .. mangled .. [[ then
-							]] .. (is_operator and "registerOperator" or "registerFunction") .. [[(
-								"]] .. name .. [[",
-								"]] .. param_sig .. [[",
-								"]] .. ret_typeid .. [[",
-								registeredfunctions.]] .. mangled .. [[,
-								tempcosts.]] .. mangled .. [[,
-								]] .. "{" .. table.concat(param_names_quot, ",", thistype ~= "" and 2 or 1) .. "}" .. [[,
-								]] .. attr_str .. [[
-							)
-						end
-					]]))
-			else
+				aliasdata = { is_operator, name, param_sig, ret_typeid, attr_str }
+			elseif aliasflag == 2 then -- Override information with alias information.
+				is_operator, name, param_sig, ret_typeid, attr_str = aliasdata[1], aliasdata[2], aliasdata[3], aliasdata[4], aliasdata[5]
+			end
+
+			table.insert(footer, compact([[
+				if registeredfunctions.]] .. mangled .. [[ then
+					]] .. (is_operator and "registerOperator" or "registerFunction") .. [[(
+						"]] .. name .. [[",
+						"]] .. param_sig .. (has_vararg and "..." or "") .. [[",
+						"]] .. ret_typeid .. [[",
+						registeredfunctions.]] .. mangled .. [[,
+						tempcosts.]] .. mangled .. [[,
+						]] .. "{" .. table.concat(param_names_quot, ",", thistype ~= "" and 2 or 1) .. "}" .. [[,
+						]] .. attr_str .. [[
+					)
+				end
+			]]))
+
+			if not aliasflag then
 				table.insert(output, compact([[
 					tempcosts.]] .. mangled .. [[ = __e2getcost()
 				]]))
 
-				if kind == ArgsKind.Static then
-					table.insert(footer, compact([[
-						if registeredfunctions.]] .. mangled .. [[ then
-							]] .. (is_operator and "registerOperator" or "registerFunction") .. [[(
-								"]] .. name .. [[",
-								"]] .. param_sig .. [[",
-								"]] .. ret_typeid .. [[",
-								registeredfunctions.]] .. mangled .. [[,
-								tempcosts.]] .. mangled .. [[,
-								]] .. "{" .. table.concat(param_names_quot, ",", thistype ~= "" and 2 or 1) .. "}" .. [[,
-								]] .. attr_str .. [[
-							)
-						end
-					]]))
-
-					if #param_names == 0 then
+				if #param_names == 0 then -- No parameters, simple case.
+					if has_vararg then
 						table.insert(output, compact([[
-							function registeredfunctions.]] .. mangled .. [[(self, args, types)
+							function registeredfunctions.]] .. mangled .. [[(self, args, types]] .. ((has_vararg and not vartbl_name) and ", ..." or "") .. [[)
+								]] .. (vartbl_name and ("local " .. vartbl_name .. " = args") or "") .. [[
+								]] .. ((has_vararg and not vartbl_name) and ("if not ... then return registeredfunctions." .. mangled .. "(self, args, types, unpack(args)) end") or "") .. [[
 						]]))
-					elseif is_operator then
-						table.insert(output, compact([[
-							function registeredfunctions.]] .. mangled .. [[(self, ]] .. table.concat(param_names, ", ") .. [[)
-						]]))
-					else
-						local param_get = {}
-						for i = 1, #param_names do
-							param_get[i] = "args[" .. i .. "]"
-						end
-
-						table.insert(output, compact([[
-							function registeredfunctions.]] .. mangled .. [[(self, args, types)
-								local ]] .. table.concat(param_names, ", ") .. [[ = ]] .. table.concat(param_get, ",") .. [[
-						]]))
+					else -- No varargs either, simplest case
+						table.insert(output, [[function registeredfunctions.]] .. mangled .. [[(self)]])
 					end
-				elseif kind == ArgsKind.VariadicTbl then
-					table.insert(footer, compact([[
-						if registeredfunctions.]] .. mangled .. [[ then
-							]] .. (is_operator and "registerOperator" or "registerFunction") .. [[(
-								"]] .. name .. [[",
-								"]] .. (param_sig .. "...") .. [[",
-								"]] .. ret_typeid .. [[",
-								registeredfunctions.]] .. mangled .. [[,
-								tempcosts.]] .. mangled .. [[,
-								]] .. "{" .. table.concat(param_names_quot, ",", thistype ~= "" and 2 or 1) .. "}" .. [[,
-								]] .. attr_str .. [[
-							)
-						end
-					]]))
-
-					-- Using __varargs_priv to avoid shadowing variables like `args` and breaking this implementation.
+				elseif is_operator then -- Operators are directly passed the arguments, since they're known at compile time.
 					table.insert(output, compact([[
-						function registeredfunctions.]] .. mangled .. [[(self, args, typeids, __varargs_priv)
-							if not typeids then
-								__varargs_priv, typeids = {}, {}
-								local source_typeids, tmp = args[#args]
-								for i = ]] .. 2 + #params .. [[, #args - 1 do
-									tmp = args[i]
-									__varargs_priv[i - ]] .. 1 + #params .. [[] = tmp[1](self, tmp)
-									typeids[i - ]] .. 1 + #params .. [[] = source_typeids[i - ]] .. (thistype ~= "" and 2 or 1) .. [[]
-								end
-							end
-
-							]] .. ("local " .. vartbl_name .. " = __varargs_priv") .. [[
-					]]))
-				elseif kind == ArgsKind.Variadic then
-					ErrorNoHalt("Warning: Use of variadic parameter with ExtPP is not recommended and deprecated. Instead use ...<name> which passes a table " .. trace_ext .. "\n")
-
-					table.insert(footer, compact([[
-						if registeredfunctions.]] .. mangled .. [[ then
-							]] .. (is_operator and "registerOperator" or "registerFunction") .. [[(
-								"]] .. name .. [[",
-								"]] .. (param_sig .. "...") .. [[",
-								"]] .. ret_typeid .. [[",
-								registeredfunctions.]] .. mangled .. [[,
-								tempcosts.]] .. mangled .. [[,
-								]] .. "{" .. table.concat(param_names_quot, ",", thistype ~= "" and 2 or 1) .. "}" .. [[,
-								]] .. attr_str .. [[
-							)
-						end
-					]]))
-
-					table.insert(output, compact([[
-						function registeredfunctions.]] .. mangled .. [[(self, args, typeids, ...)
-							if not typeids then
-								local arr, typeids, source_typeids, tmp = {}, {}, args[#args]
-								for i = ]] .. 2 + #params .. [[, #args - 1 do
-									tmp = args[i]
-
-									arr[i - ]] .. 1 + #params .. [[] = tmp[1](self, tmp)
-									typeids[i - ]] .. 1 + #params .. [[] = source_typeids[i - ]] .. (thistype ~= "" and 2 or 1) .. [[]
-								end
-								return registeredfunctions.]] .. mangled .. [[(self, args, typeids, unpack(arr))
-							end
+						function registeredfunctions.]] .. mangled .. [[(self, ]] .. table.concat(param_names, ", ") .. [[)
 					]]))
 				else
-					error("wtf")
+					local param_get = {}
+					for i = 1, #param_names do
+						param_get[i] = "args[" .. i .. "]"
+					end
+
+					local pivot = #param_names + 1
+
+					table.insert(output, compact([[
+						function registeredfunctions.]] .. mangled .. [[(self, args, types]] .. ((has_vararg and not vartbl_name) and ", ..." or "") .. [[)
+							]] .. (#param_names ~= 0 and ("local " .. table.concat(param_names, ", ") .. "=" .. table.concat(param_get, ",")) or "") .. [[
+							]] .. (vartbl_name and ("local " .. vartbl_name .. " = { unpack(args, " .. pivot .. ") }") or "") .. [[
+							]] .. ((has_vararg and not vartbl_name) and ("if not ... then return registeredfunctions." .. mangled .. "(self, args, types, unpack(args, " .. pivot .. ")) end") or "") .. [[
+					]]))
 				end
 			end
 
