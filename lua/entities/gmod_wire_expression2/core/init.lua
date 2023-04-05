@@ -104,8 +104,6 @@ function registerType(name, id, def, ...)
 		"character long, or three characters long starting with an x", id), 2)
 	end
 
-	E2Lib.Env.Types[name] = { name = name, id = id }
-
 	wire_expression_types[string.upper(name)] = { id, def, ... }
 	wire_expression_types2[id] = { string.upper(name), def, ... }
 	if not WireLib.DT[string.upper(name)] then
