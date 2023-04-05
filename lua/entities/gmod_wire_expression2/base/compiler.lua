@@ -846,7 +846,10 @@ local CompileVisitors = {
 		return function(state) ---@param state RuntimeContext
 			local save = state:SaveScopes()
 
-			state:IsolatedScope()
+			local scope = { vclk = {} } -- Isolated scope, except global variables are shared.
+			state.Scope = scope
+			state.ScopeID = 1
+			state.Scopes = { [0] = state.GlobalScope, [1] = scope }
 
 			include[2](state)
 

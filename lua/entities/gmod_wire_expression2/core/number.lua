@@ -290,9 +290,9 @@ e2function number lerp(number from, number to, number fraction)
 	return Lerp(fraction, from, to)
 end
 
-registerFunction("sign", "n", "n", function(self, this)
-	if this > 0 then return 1
-	elseif this < 0 then return -1
+registerFunction("sign", "n", "n", function(self, args)
+	if args[1] > 0 then return 1
+	elseif args[1] < 0 then return -1
 	else return 0 end
 end, 2, nil, { legacy = false })
 

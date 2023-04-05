@@ -1180,26 +1180,16 @@ function RuntimeContextBuilder:build()
 	return setmetatable(self, RuntimeContext)
 end
 
-function RuntimeContext:IsolatedScope()
-	local scope = { vclk = {} }
-	self.Scopes = { [0] = scope }
-	self.Scope = scope
-	self.ScopeID = 0
-end
-
 function RuntimeContext:PushScope()
 	local scope = { vclk = {} }
-	--[[if self.ScopeID ~= 0 then
-		setmetatable(scope, { __index = self.Scopes[self.ScopeID - 1] })
-	end]]
 	self.Scope, self.ScopeID = scope, self.ScopeID + 1
 	self.Scopes[self.ScopeID] = self.Scope
 end
 
 function RuntimeContext:PopScope()
+	self.Scopes[self.ScopeID] = nil
 	self.ScopeID = self.ScopeID - 1
 	self.Scope = self.Scopes[self.ScopeID]
-	return table.remove(self.Scopes, self.ScopeID + 1)
 end
 
 ---@return { [1]: RuntimeScope[], [2]: integer, [3]: RuntimeScope }
