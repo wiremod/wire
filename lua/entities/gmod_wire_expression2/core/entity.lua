@@ -614,35 +614,16 @@ end
 
 --- Applies torque according to a local torque vector, with magnitude and sense given by the vector's direction, magnitude and orientation.
 e2function void entity:applyTorque(vector torque)
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not validPhysics(this) then return self:throw("Invalid physics object!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
-
 	if torque:IsZero() then return end
-	torque = clamp(torque)
 
 	local phys = this:GetPhysicsObject()
 
-	local torqueamount = torque:Length()
-
 	-- Convert torque from local to world axis
-	torque = phys:LocalToWorld( torque ) - phys:GetPos()
-
-	-- Find two vectors perpendicular to the torque axis
-	local off
-	if abs(torque.x) > torqueamount * 0.1 or abs(torque.z) > torqueamount * 0.1 then
-		off = Vector(-torque.z, 0, torque.x)
-	else
-		off = Vector(-torque.y, torque.x, 0)
-	end
-	off = off:GetNormal() * torqueamount * 0.5
-
-	local dir = ( torque:Cross(off) ):GetNormal()
-
-	dir = clamp(dir)
-	off = clamp(off)
-
-	phys:ApplyForceOffset( dir, off )
-	phys:ApplyForceOffset( dir * -1, off * -1 )
+	torque = phys:LocalToWorldVector( clamp(torque) )
+	-- Convert rad*in^2 to deg*m^2
+	phys:ApplyTorqueCenter( torque * (180 / math.pi / 39.3701^2) )
 end
 
 e2function vector entity:inertia()
@@ -772,6 +753,14 @@ e2function vector entity:aabbWorldSize()
 end
 /******************************************************************************/
 
+hook.Add("PlayerLeaveVehicle","Exp2RunOnLeaveVehicle",function(ply, vehicle)
+	E2Lib.triggerEvent("playerLeftVehicle", { ply, vehicle } )
+end)
+
+hook.Add("PlayerEnteredVehicle","Exp2RunOnEnteredVehicle", function(ply, vehicle)
+	E2Lib.triggerEvent("playerEnteredVehicle", { ply, vehicle })
+end)
+
 __e2setcost(5)
 
 e2function entity entity:driver()
@@ -791,6 +780,15 @@ e2function string toString(entity ent)
 end
 
 e2function string entity:toString() = e2function string toString(entity ent)
+
+E2Lib.registerEvent("playerLeftVehicle", {
+	{ "Player", "e" },
+	{ "Vehicle", "e" },
+})
+E2Lib.registerEvent("playerEnteredVehicle", {
+	{ "Player", "e" },
+	{ "Vehicle", "e" },
+})
 
 /******************************************************************************/
 

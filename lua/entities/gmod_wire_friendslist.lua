@@ -96,7 +96,7 @@ end)
 local checkActions = {}
 
 local function isInArray(r, ply)
-	if r ~= nil then
+	if istable(r) then
 		for i=1, #r do
 			if IsValid(r[i]) and r[i] == ply then
 				return true
@@ -117,8 +117,8 @@ local function checkSingle(self, ply)
 		end
 	end
 
-	if self.sync_with_cppi then
-		if isInArray(self:GetPlayer():CPPIGetFriends()) then
+	if self.sync_with_cppi and self:GetPlayer().CPPIGetFriends then
+		if isInArray(self:GetPlayer():CPPIGetFriends(), ply) then
 			return true
 		end
 	end

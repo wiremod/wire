@@ -34,7 +34,7 @@ do
 			e2_softquota = wire_expression2_quotasoft:GetInt()
 			e2_hardquota = wire_expression2_quotahard:GetInt()
 			e2_tickquota = wire_expression2_quotatick:GetInt()
-			e2_timequota = wire_expression2_quotatime:GetInt()*0.001
+			e2_timequota = wire_expression2_quotatime:GetInt() * 0.001
 		end
 	end
 	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
@@ -102,6 +102,23 @@ function ENT:Destruct()
 	end
 end
 
+function ENT:UpdatePerf()
+	if not self.context then return end
+	if self.error then return end
+	
+	self.context.prfbench = self.context.prfbench * 0.95 + self.context.prf * 0.05
+	self.context.prfcount = self.context.prfcount + self.context.prf - e2_softquota
+	self.context.timebench = self.context.timebench * 0.95 + self.context.time * 0.05 -- Average it over the last 20 ticks
+
+	if self.context.prfcount < 0 then self.context.prfcount = 0 end
+
+	self:UpdateOverlay()
+
+	self.context.prf = 0
+	self.context.time = 0
+
+end
+
 function ENT:Execute()
 	if self.error or not self.context or self.context.resetting then return end
 
@@ -115,8 +132,10 @@ function ENT:Execute()
 		local _catchable, msg, trace = E2Lib.unpackException(msg)
 
 		if msg == "exit" then
+			self:UpdatePerf()
 		elseif msg == "perf" then
 			local trace = self.context.trace
+			self:UpdatePerf()
 			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
 		elseif trace then
 			self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
@@ -177,12 +196,13 @@ function ENT:ExecuteEvent(evt, args)
 		local bench = SysTime()
 		local ok, msg = pcall(handler, self.context, args)
 
-		if not ok then
-			local _catchable, msg, trace = E2Lib.unpackException(msg)
+	if not ok then
+		local _catchable, msg, trace = E2Lib.unpackException(msg)
 
 			if msg == "exit" then
 			elseif msg == "perf" then
 				local trace = self.context.trace
+				self:UpdatePerf()
 				self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
 			elseif trace then
 				self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
@@ -191,6 +211,7 @@ function ENT:ExecuteEvent(evt, args)
 				self:Error("Expression 2 (" .. self.name .. "): Internal error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 			end
 		end
+	end
 		self.context.time = self.context.time + (SysTime() - bench)
 	end
 
@@ -217,24 +238,23 @@ end
 
 function ENT:Think()
 	BaseClass.Think(self)
-	self:NextThink(CurTime()+0.030303)
+	self:NextThink(CurTime() + 0.030303)
+	
+	if not self.context then return true end
+	if self.error then return true end
+	
+	self:UpdatePerf()
 
-	if self.context and not self.error then
-		self.context.prfbench = self.context.prfbench * 0.95 + self.context.prf * 0.05
-		self.context.prfcount = self.context.prfcount + self.context.prf - e2_softquota
-		self.context.timebench = self.context.timebench * 0.95 + self.context.time * 0.05 -- Average it over the last 20 ticks
+	if self.context.prfcount < 0 then self.context.prfcount = 0 end
 
-		if e2_timequota > 0 and self.context.timebench > e2_timequota then
-			self:Error("Expression 2 (" .. self.name .. "): time quota exceeded", "time quota exceeded")
-			self:Destruct()
-		end
+	self:UpdateOverlay()
 
-		if self.context.prfcount < 0 then self.context.prfcount = 0 end
+	self.context.prf = 0
+	self.context.time = 0
 
-		self:UpdateOverlay()
-
-		self.context.prf = 0
-		self.context.time = 0
+	if e2_timequota > 0 and self.context.timebench > e2_timequota then
+		self:Error("Expression 2 (" .. self.name .. "): time quota exceeded", "time quota exceeded")
+		self:PCallHook('destruct')
 	end
 
 	return true

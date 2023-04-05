@@ -51,7 +51,7 @@ end)
 __e2setcost(3)
 
 --- If <activate> == 0, the chip will no longer run on chat events, otherwise it makes this chip execute when someone chats. Only needs to be called once, not in every execution.
-[nodiscard, deprecated = "Use the chat event instead"]
+[deprecated = "Use the chat event instead"]
 e2function void runOnChat(activate)
 	if activate ~= 0 then
 		ChatAlert[self.entity] = true
@@ -165,4 +165,8 @@ e2function number entity:lastSaidTeam()
 end
 
 -- Ply: entity, Msg: string, Team: number
-E2Lib.registerEvent("chat", { "e", "s", "n" })
+E2Lib.registerEvent("chat", {
+	{ "Player", "e" },
+	{ "Message", "s" },
+	{ "Team", "n" }
+})

@@ -106,7 +106,8 @@ local colors = {
 	["constant"] = Color(240, 160, 240), -- pink
 	["userfunction"] = Color(102, 122, 102), -- dark grayish-green
 	["eventname"] = Color(74, 194, 116), -- green
-	["dblclickhighlight"] = Color(0, 100, 0) -- dark green
+	["dblclickhighlight"] = Color(0, 100, 0), -- dark green
+	["background"] = Color(32, 32, 32) -- dark-grey
 }
 
 local colors_defaults = {}

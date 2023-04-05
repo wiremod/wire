@@ -32,24 +32,9 @@ AddCSLuaFile()
 
 E2Lib = {
 	Env = {
-		---@type table<string, EnvEvent>
-		Events = {},
-
-		---@type table<string, EnvType>
-		Types = {},
-
-		---@type table<string, EnvOperator[]?>
-		Operators = {},
-
-		---@type table<string, EnvLibrary>
-		Libraries = {
-			Builtins = {
-				Constants = {},
-				Functions = {},
-				Methods = {}
-			}
-		}
-	},
+		---@type { name: string, args: { [1]: string, [2]: string }[], constructor: fun(t: table)?, destructor: fun(t: table)?, listening: table<userdata, boolean> }
+		Events = {}
+	}
 }
 
 local type = type

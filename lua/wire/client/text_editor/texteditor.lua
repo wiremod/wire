@@ -87,6 +87,7 @@ function EDITOR:Init()
 
 	self.Colors = {
 		dblclickhighlight = Color(0, 100, 0),
+		background = Color(32, 32, 32)
 	}
 end
 
@@ -367,8 +368,10 @@ function EDITOR:PaintLine(row)
 
 	local width, height = self.FontWidth, self.FontHeight
 
+	local backgroundColor = self:GetSyntaxColor("background")
+
 	if row == self.Caret[1] and self.TextEntry:HasFocus() then
-		surface_SetDrawColor(48, 48, 48, 255)
+		surface_SetDrawColor(backgroundColor.r+10, backgroundColor.g+10, backgroundColor.b+10, 255)
 		surface_DrawRect(self.LineNumberWidth + 5, (row - self.Scroll[1]) * height, self:GetWide() - (self.LineNumberWidth + 5), height)
 	end
 
@@ -619,11 +622,13 @@ function EDITOR:Paint()
 	if self.MouseDown then
 		self.Caret = self:CursorToCaret()
 	end
+	
+	local backgroundColor = self:GetSyntaxColor("background")
 
-	surface_SetDrawColor(0, 0, 0, 255)
+	surface_SetDrawColor(backgroundColor.r - 28,backgroundColor.g - 28,backgroundColor.b - 28)
 	surface_DrawRect(0, 0, self.LineNumberWidth + 4, self:GetTall())
 
-	surface_SetDrawColor(32, 32, 32, 255)
+	surface_SetDrawColor(backgroundColor)
 	surface_DrawRect(self.LineNumberWidth + 5, 0, self:GetWide() - (self.LineNumberWidth + 5), self:GetTall())
 
 	self.Scroll[1] = math_floor(self.ScrollBar:GetScroll() + 1)
@@ -2161,7 +2166,11 @@ tbl[2] = function( self )
 	if self.ac_event or self.ac_directive_line then return end
 
 	local word = self:AC_GetCurrentWord()
-	if word and word ~= "" and word:sub(1,1) == "_" then
+
+	local line, char = self.Caret[1], self.Caret[2]
+	local after = self.Rows[line]:sub(char, char + 1) -- Slicing with two chars because you can for some reason trigger autocomplete with the caret before the first character.
+
+	if word and word ~= "" and word:sub(1,1) == "_" and not after:find(":", 1, true) then -- Don't show constant if it's _: (discard was used)
 		return FindConstants( self, word )
 	end
 end
@@ -2510,17 +2519,24 @@ local function FindEvents(self, word)
 			-- Cache replacement string
 			if not data.replacement then
 				local buf = {}
-				for k, ty in ipairs(data.args) do
+				for k, event_arg in ipairs(data.args) do
+					local ty = event_arg.type
 					local tyname = wire_expression_types2[ty][1]:lower()
 					if tyname == "normal" then tyname = "number" end
-					buf[k] = ty:upper() .. ":" .. tyname
+					buf[k] = ( event_arg.placeholder or ty:upper() ) .. ":" .. tyname
 				end
-				data.replacement = name .. "(" .. table.concat(buf, ", ") .. ")"
+				data.replacement = name .. "(" .. table.concat(buf, ", ") .. ") {"
 			end
 
 			-- Cache display signature
 			if not data.display then
-				data.display = name .. "(" .. table.concat(data.args, ",") .. ")"
+
+				local arg_types = {}
+				for k, v in ipairs(data.args) do
+					arg_types[k] = v.type
+				end
+
+				data.display = name .. "(" .. table.concat(arg_types, ", ").. ")"
 			end
 
 			local function repl(self, editor)

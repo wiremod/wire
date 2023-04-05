@@ -32,7 +32,9 @@ e2function string inputClkName()
 	return self.triggerinput or ""
 end
 
-E2Lib.registerEvent("input", {"s"})
+E2Lib.registerEvent("input", {
+	{ "InputName", "s" }
+})
 
 -- This MUST be the first destruct hook!
 registerCallback("destruct", function(self)
@@ -58,7 +60,9 @@ e2function number last()
 end
 
 -- number (whether it is being reset or just removed)
-E2Lib.registerEvent("removed", { "n" })
+E2Lib.registerEvent("removed", {
+	{ "Resetting", "n" }
+})
 
 -- dupefinished()
 -- Made by Divran
