@@ -32,7 +32,7 @@ AddCSLuaFile()
 
 E2Lib = {
 	Env = {
-		---@type { name: string, args: { [1]: string, [2]: string }[], constructor: fun(t: table)?, destructor: fun(t: table)?, listening: table<userdata, boolean> }
+		---@type { name: string, args: { placeholder: string, type: string }[], constructor: fun(t: table)?, destructor: fun(t: table)?, listening: table<userdata, boolean> }
 		Events = {}
 	}
 }

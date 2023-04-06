@@ -1,0 +1,32 @@
+## SHOULD_PASS:EXECUTE
+
+local Num = 0
+if (1) {
+	Num = 1
+}
+
+assert(Num == 1)
+
+if (0) {
+	error("fail")
+} elseif (1) {
+	Num = 2
+}
+
+assert(Num == 2)
+
+if (0) {
+	error("fail")
+} else {
+	Num = 3
+}
+
+assert(Num == 3)
+
+if (1) {
+	# pass
+} elseif (0) {
+	error("fail")
+} else {
+	error("fail")
+}

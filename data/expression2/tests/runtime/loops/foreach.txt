@@ -1,0 +1,15 @@
+## SHOULD_PASS:EXECUTE
+
+local I = 0
+foreach(K, V:number = array(1, 2, 3, 4, 5)) {
+	assert(array(1, 2, 3, 4, 5)[K, number] == V)
+	I++
+}
+
+assert(I == 5)
+
+foreach(_, V:number = array(1, 2, 3, 4, 5)) {
+	I++
+}
+
+assert(I == 10)

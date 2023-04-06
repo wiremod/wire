@@ -41,14 +41,15 @@ e2function angle ang(vector rv1)
 end
 
 registerOperator("is", "a", "n", function(state, a)
-	return a:IsZero() and 1 or 0
-end, 1, nil, { legacy = false })
+	return a:IsZero() and 0 or 1
+end, 1)
 
-registerOperator("eq", "aa", "n", function(state, lhs, rhs)
-	return lhs[1] == rhs[1]
+e2function number operator==(angle lhs, angle rhs)
+	return (lhs[1] == rhs[1]
 		and lhs[2] == rhs[2]
-		and lhs[3] == rhs[3]
-end, 1, nil, { legacy = false })
+		and lhs[3] == rhs[3])
+		and 1 or 0
+end
 
 __e2setcost(2)
 

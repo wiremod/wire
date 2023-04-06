@@ -1,0 +1,8 @@
+## SHOULD_PASS:EXECUTE
+
+local Ent = noentity()
+
+assert(!Ent:isValid())
+assert(Ent == Ent)
+assert(!(Ent & Ent))
+assert(!(Ent | Ent))

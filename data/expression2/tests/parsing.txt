@@ -17,8 +17,8 @@ Num1 = 0x2042
 Num2 = 0b00111001
 Num3 = 2432.2352
 Num4 = 2193e2
-Num5 = 2j + 4.4k + k + j
-Num6 = 3i + 2.7i + i
+Num5 = 2j + 4.4k + 1k + 1j
+Num6 = 3i + 2.7i + 1i
 
 function f() {}
 function r() { return }

@@ -240,7 +240,7 @@ local CompileVisitors = {
 			end
 		end
 
-		local cost = self.scope.data.ops
+		local cost, nstmts = self.scope.data.ops, #stmts
 		self.scope.data.ops = 0
 
 		if self.scope:ResolveData("loop") then -- Inside loop, check if continued or broken
@@ -248,12 +248,11 @@ local CompileVisitors = {
 				state.prf = state.prf + cost
 				if state.prf > TickQuota then error("perf", 0) end
 
-				for i, stmt in ipairs(stmts) do
-					if state.__break__ or state.__return__ then break end
-					if not state.__continue__ then
-						state.trace = traces[i]
-						stmt(state)
-					end
+				for i = 1, nstmts do
+					if state.__break__ or state.__return__ or state.__continue__ then break end
+
+					state.trace = traces[i]
+					stmts[i](state)
 				end
 			end
 		elseif self.scope:ResolveData("function") then -- If inside a function, check if returned.
@@ -261,10 +260,10 @@ local CompileVisitors = {
 				state.prf = state.prf + cost
 				if state.prf > TickQuota then error("perf", 0) end
 
-				for i, stmt in ipairs(stmts) do
+				for i = 1, nstmts do
 					if state.__return__ then break end
 					state.trace = traces[i]
-					stmt(state)
+					stmts[i](state)
 				end
 			end
 		else -- Most optimized case, not inside a function or loop.
@@ -272,9 +271,9 @@ local CompileVisitors = {
 				state.prf = state.prf + cost
 				if state.prf > TickQuota then error("perf", 0) end
 
-				for i, stmt in ipairs(stmts) do
+				for i = 1, nstmts do
 					state.trace = traces[i]
-					stmt(state)
+					stmts[i](state)
 				end
 			end
 		end
@@ -326,7 +325,12 @@ local CompileVisitors = {
 						state.__continue__ = false
 					else
 						block(state)
-						if state.__break__ or state.__return__ then break end
+						if state.__break__ then
+							state.__break__ = false
+							break
+						elseif state.__return__ then
+							break
+						end
 					end
 				until expr(state) == 0
 				state:PopScope()
@@ -341,7 +345,12 @@ local CompileVisitors = {
 						state.__continue__ = false
 					else
 						block(state)
-						if state.__break__ or state.__return__ then break end
+						if state.__break__ then
+							state.__break__ = false
+							break
+						elseif state.__return__ then
+							break
+						end
 					end
 				end
 				state:PopScope()
@@ -373,7 +382,12 @@ local CompileVisitors = {
 						state.__continue__ = false
 					else
 						block(state)
-						if state.__break__ or state.__return__ then break end
+						if state.__break__ then
+							state.__break__ = false
+							break
+						elseif state.__return__ then
+							break
+						end
 					end
 				end
 				state:PopScope()
@@ -391,7 +405,12 @@ local CompileVisitors = {
 						state.__continue__ = false
 					else
 						block(state)
-						if state.__break__ or state.__return__ then break end
+						if state.__break__ then
+							state.__break__ = false
+							break
+						elseif state.__return__ then
+							break
+						end
 					end
 				end
 				state:PopScope()
@@ -468,15 +487,31 @@ local CompileVisitors = {
 		end
 
 		local default = data[3] and self:Scope(function() return self:CompileStmt(data[3]) end)
+		local ncases = #cases
+
 		return function(state) ---@param state RuntimeContext
 			local expr = expr(state)
 
 			state:PushScope()
-			for _, case in ipairs(cases) do
+			for i = 1, ncases do
+				local case = cases[i]
 				if case[1](state, expr) ~= 0 then
 					case[2](state)
-					state:PopScope()
-					return
+
+					if state.__break__ then
+						state.__break__ = false
+						state:PopScope()
+						return
+					else -- Fallthrough, run every case until break found.
+						for j = i, ncases do
+							cases[j][2](state)
+							if state.__break__ then
+								state.__break__ = false
+								state:PopScope()
+								return
+							end
+						end
+					end
 				end
 			end
 
@@ -1578,8 +1613,8 @@ local CompileVisitors = {
 				self:Error("Event '" .. name .. "' missing argument #" .. k .. " of type " .. tostring(arg), trace)
 			end
 
-			if arg ~= params[k][2] then
-				self:Error("Mismatched event argument: " .. tostring(arg) .. " vs " .. tostring(param_id), trace)
+			if arg.type ~= params[k][2] then
+				self:Error("Mismatched event argument: " .. arg.type .. " vs " .. tostring(params[k][2]), trace)
 			end
 		end
 

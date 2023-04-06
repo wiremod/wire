@@ -1,0 +1,17 @@
+## SHOULD_PASS:EXECUTE
+
+local Num = 0
+while(Num < 1000) {
+	Num++
+	if(Num == 500) {
+		break
+	}
+}
+
+assert(Num == 500)
+
+do {
+	Num++
+} while(Num < 1000)
+
+assert(Num == 1000)

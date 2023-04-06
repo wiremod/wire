@@ -423,7 +423,7 @@ elseif CLIENT then
 		end
 	end
 
-	---@param events table<string, {name: string, args: { [1]: string, [2]: string }[]}>
+	---@param events table<string, {name: string, args: { placeholder: string, type: string }[]}>
 	local function insertMiscData(types, constants, events)
 		wire_expression2_reset_extensions()
 
