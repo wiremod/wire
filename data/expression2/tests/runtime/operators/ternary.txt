@@ -1,0 +1,17 @@
+## SHOULD_PASS:EXECUTE
+
+# ternary operator
+
+local X = 1 ? 50 : 20
+assert(X == 50)
+
+local Y = 0 ? 500 : 10
+assert(Y == 10)
+
+# default operator
+
+local Z = 50 ?: 20
+assert(Z == 50)
+
+local W = 0 ?: 100
+assert(W == 100)

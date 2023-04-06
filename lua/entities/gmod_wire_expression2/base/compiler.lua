@@ -420,9 +420,20 @@ local CompileVisitors = {
 
 	---@param data { [1]: Token<string>, [2]: Token<string>?, [3]: Token<string>, [4]: Token<string>, [5]: Node, [6]: Node } key key_type value value_type iterator block
 	[NodeVariant.Foreach] = function (self, trace, data)
-		local key, key_type, value, value_type = data[1], data[2] and self:CheckType(data[2]) or "n", data[3], self:CheckType(data[4])
+		local key, key_type, value, value_type = data[1], data[2] and self:CheckType(data[2]), data[3], self:CheckType(data[4])
 
 		local item, item_ty = self:CompileExpr(data[5])
+
+		if not key_type then -- If no key type specified, fall back to string for tables and number for everything else.
+			if item_ty == "t" then
+				self:Warning("This key will default to type (string). Annotate it with :string or :number", key.trace)
+				key_type = "s"
+			else
+				self:Warning("This key will default to type (number). Annotate it with :string or :number", key.trace)
+				key_type = "n"
+			end
+		end
+
 		local block, cost = self:Scope(function(scope)
 			scope.data.loop = true
 
