@@ -15,3 +15,41 @@ test(1, 2, 3)
 assert(X == 500)
 assert(Y == 1000)
 assert(Z == 5000)
+
+function number returning() {
+	return 5
+}
+
+assert(returning() == 5)
+
+function number returning2(X:array) {
+	return X[1, number] + 5
+}
+
+assert(returning2(array(5)) == 10)
+assert(returning2(array()) == 5)
+
+function array returningref(X:array) {
+	return X
+}
+
+local A = array()
+assert(returningref(A):id() == A:id())
+
+function returnvoid() {
+	if (1) { return }
+}
+
+returnvoid()
+
+function void returnvoid2() {
+	return void
+}
+
+returnvoid2()
+
+function returnvoid3() {
+	return void
+}
+
+returnvoid3()

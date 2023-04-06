@@ -916,18 +916,24 @@ local CompileVisitors = {
 		local retval, ret_ty
 		if data then
 			retval, ret_ty = self:CompileExpr(data)
-
-			local name, fn = fn[1], fn[2]
-
-			if fn.returns then
-				self:Assert(fn.returns[1] == ret_ty, "Function " .. name .. " expects return type (" .. (fn.returns[1] or "void") .. ") but was given (" .. (ret_ty or "void") .. ")", trace)
-			end
-
-			fn.returns = { ret_ty }
 		end
 
-		return function(state) ---@param state RuntimeContext
-			state.__returnval__, state.__return__ = retval(state), true
+		local name, fn = fn[1], fn[2]
+
+		if fn.returns then
+			self:Assert(fn.returns[1] == ret_ty, "Function " .. name .. " expects return type (" .. (fn.returns[1] or "void") .. ") but was given (" .. (ret_ty or "void") .. ")", trace)
+		end
+
+		fn.returns = { ret_ty }
+
+		if ret_ty then
+			return function(state) ---@param state RuntimeContext
+				state.__returnval__, state.__return__ = retval(state), true
+			end
+		else -- return void (or just return)
+			return function(state) ---@param state RuntimeContext
+				state.__returnval__, state.__return__ = nil, true
+			end
 		end
 	end,
 
