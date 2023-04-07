@@ -137,19 +137,11 @@ registerType("wirelink", "xwl", nil,
 
 __e2setcost(2) -- temporary
 
-registerOperator("ass", "xwl", "xwl", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-	self.Scopes[scope][lhs] = rhs
-	self.Scopes[scope].vclk[lhs] = true
-	return rhs
-end)
-
 /******************************************************************************/
 
-registerOperator("is", "xwl", "n", function(state, this)
+registerOperator("is", "xwl", "n", function (state, this)
 	return validWirelink(state, this) and 1 or 0
-end, 2, nil, { legacy = false })
+end, 1)
 
 e2function number operator==(wirelink lhs, wirelink rhs)
 	if lhs == rhs then return 1 else return 0 end

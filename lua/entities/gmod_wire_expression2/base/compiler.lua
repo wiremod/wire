@@ -284,7 +284,27 @@ local CompileVisitors = {
 		local chain = {} ---@type { [1]: RuntimeOperator?, [2]: RuntimeOperator }[]
 		for i, ifeif in ipairs(data) do
 			self:Scope(function()
-				chain[i] = {ifeif[1] and self:CompileExpr(ifeif[1]), self:CompileStmt(ifeif[2])}
+				if ifeif[1] then -- if or elseif
+					local expr, expr_ty = self:CompileExpr(ifeif[1])
+
+					if expr_ty ~= "n" or expr_ty ~= "s" then -- Optimization: Don't need to run operator_is on string or number.
+						chain[i] = {
+							expr,
+							self:CompileStmt(ifeif[2])
+						}
+					else
+						local op = self:GetOperator("is", { expr_ty }, trace)
+
+						chain[i] = {
+							function(state)
+								return op(state, expr(state))
+							end,
+							self:CompileStmt(ifeif[2])
+						}
+					end
+				else -- else block
+					chain[i] = { nil, self:CompileStmt(ifeif[2]) }
+				end
 			end)
 		end
 		return function(state) ---@param state RuntimeContext
@@ -1487,10 +1507,11 @@ local CompileVisitors = {
 			self.scope.data.dead = true
 		end
 
+		local nargs = #args
 		if fn_data.attrs["legacy"] then
 			local largs = { [1] = {}, [#args + 2] = types }
-			for i, arg in ipairs(args) do
-				largs[i + 1] = { [1] = arg }
+			for i = 1, nargs do
+				largs[i + 1] = { [1] = args[i] }
 			end
 			return function(state) ---@param state RuntimeContext
 				return fn(state, largs)
@@ -1498,8 +1519,8 @@ local CompileVisitors = {
 		else
 			return function(state) ---@param state RuntimeContext
 				local rargs = {}
-				for k, arg in ipairs(args) do
-					rargs[k] = arg(state)
+				for k = 1, nargs do
+					rargs[k] = args[k](state)
 				end
 
 				return fn(state, rargs, types)
@@ -1526,10 +1547,11 @@ local CompileVisitors = {
 			self:Warning("Use of deprecated function (" .. name.value .. ") " .. (type(value) == "string" and value or ""), trace)
 		end
 
+		local nargs = #args
 		if fn_data.attrs["legacy"] then
-			local largs = { [#args + 3] = types, [2] = { [1] = meta } }
-			for i, arg in ipairs(args) do
-				largs[i + 2] = { [1] = arg }
+			local largs = { [nargs + 3] = types, [2] = { [1] = meta } }
+			for k = 1, nargs do
+				largs[k + 2] = { [1] = args[k] }
 			end
 
 			return function(state) ---@param state RuntimeContext
@@ -1538,11 +1560,11 @@ local CompileVisitors = {
 		else
 			return function(state) ---@param state RuntimeContext
 				local rargs = { meta(state) }
-				for k, arg in ipairs(args) do
-					rargs[k + 1] = arg(state)
+				for k = 1, nargs do
+					rargs[k + 1] = args[k](state)
 				end
 
-				return fn(state, rargs)
+				return fn(state, rargs, types)
 			end, fn_data.returns[1]
 		end
 	end,
@@ -1561,10 +1583,11 @@ local CompileVisitors = {
 
 		local ret_type = data[3] and self:CheckType(data[3])
 
+		local nargs = #args
 		return function(state) ---@param state RuntimeContext
 			local rargs = {}
-			for k, arg in ipairs(args) do
-				rargs[k] = arg(state)
+			for k = 1, nargs do
+				rargs[k] = args[k](state)
 			end
 
 			local fn_name = expr(state)
