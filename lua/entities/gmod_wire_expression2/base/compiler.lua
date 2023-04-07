@@ -287,7 +287,7 @@ local CompileVisitors = {
 				if ifeif[1] then -- if or elseif
 					local expr, expr_ty = self:CompileExpr(ifeif[1])
 
-					if expr_ty ~= "n" or expr_ty ~= "s" then -- Optimization: Don't need to run operator_is on string or number.
+					if expr_ty == "n" or expr_ty == "s" then -- Optimization: Don't need to run operator_is on string or number.
 						chain[i] = {
 							expr,
 							self:CompileStmt(ifeif[2])
@@ -611,11 +611,9 @@ local CompileVisitors = {
 					local t = self:CheckType(param.type)
 					if param.variadic then
 						self:Assert(t == "r" or t == "t", "Variadic parameter must be of type array or table", param.type.trace)
-						param_types[i] = ".." .. t
 						variadic_ind, variadic_ty = i, t
-					else
-						param_types[i] = t
 					end
+					param_types[i] = t
 				elseif param.variadic then
 					self:Error("Variadic parameter requires explicit type", param.name.trace)
 				else
@@ -761,7 +759,7 @@ local CompileVisitors = {
 					state:LoadScopes(save)
 				end
 			else -- table
-				function op(state, args, arg_types) ---@param state RuntimeContext
+				function op(state, args, typeids) ---@param state RuntimeContext
 					local save = state:SaveScopes()
 
 					local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
@@ -775,7 +773,7 @@ local CompileVisitors = {
 
 					local n, ntypes = {}, {}
 					for i = last, #args do
-						n[i], ntypes[i] = args[i], arg_types[i]
+						n[i], ntypes[i] = args[i], typeids[i]
 					end
 
 					scope[param_names[last]] = { s = {}, stypes = {}, n = n, ntypes = ntypes, size = last }
@@ -816,7 +814,7 @@ local CompileVisitors = {
 		end
 
 		local fn = { args = param_types, returns = return_type and { return_type }, meta = meta_type, op = op, cost = 20, attrs = {} }
-		local sig = table.concat(param_types)
+		local sig = table.concat(param_types, "", 1, #param_types - 1) .. ((variadic_ty and ".." or "") .. (param_types[#param_types] or ""))
 
 		if meta_type then
 			self.user_methods[meta_type] = self.user_methods[meta_type] or {}

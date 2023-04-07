@@ -21,3 +21,11 @@ switch (5) { # Ensure fallthrough works
 }
 
 assert(Num == 121)
+
+switch (vec()) {
+	case vec(),
+	break
+
+	default,
+		error("fail")
+}

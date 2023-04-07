@@ -30,3 +30,11 @@ if (1) {
 } else {
 	error("fail")
 }
+
+if (vec(0, 0, 0)) { # Ensure if statements are using operator_is
+	error("fail")
+}
+
+if (ang(0, 0, 0)) { # ensure it wasn't a fluke
+	error("fail")
+}

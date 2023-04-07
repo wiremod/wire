@@ -261,9 +261,9 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 				if #param_names == 0 then -- No parameters, simple case.
 					if has_vararg then
 						table.insert(output, compact([[
-							function registeredfunctions.]] .. mangled .. [[(self, args, types]] .. ((has_vararg and not vartbl_name) and ", ..." or "") .. [[)
+							function registeredfunctions.]] .. mangled .. [[(self, args, typeids]] .. ((has_vararg and not vartbl_name) and ", ..." or "") .. [[)
 								]] .. (vartbl_name and ("local " .. vartbl_name .. " = args") or "") .. [[
-								]] .. ((has_vararg and not vartbl_name) and ("if not ... then return registeredfunctions." .. mangled .. "(self, args, types, unpack(args)) end") or "") .. [[
+								]] .. ((has_vararg and not vartbl_name) and ("if not ... then return registeredfunctions." .. mangled .. "(self, args, typeids, unpack(args)) end") or "") .. [[
 						]]))
 					else -- No varargs either, simplest case
 						table.insert(output, [[function registeredfunctions.]] .. mangled .. [[(self)]])
@@ -281,10 +281,10 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 					local pivot = #param_names + 1
 
 					table.insert(output, compact([[
-						function registeredfunctions.]] .. mangled .. [[(self, args, types]] .. ((has_vararg and not vartbl_name) and ", ..." or "") .. [[)
+						function registeredfunctions.]] .. mangled .. [[(self, args, typeids]] .. ((has_vararg and not vartbl_name) and ", ..." or "") .. [[)
 							]] .. (#param_names ~= 0 and ("local " .. table.concat(param_names, ", ") .. "=" .. table.concat(param_get, ",")) or "") .. [[
 							]] .. (vartbl_name and ("local " .. vartbl_name .. " = { unpack(args, " .. pivot .. ") }") or "") .. [[
-							]] .. ((has_vararg and not vartbl_name) and ("if not ... then return registeredfunctions." .. mangled .. "(self, args, types, unpack(args, " .. pivot .. ")) end") or "") .. [[
+							]] .. ((has_vararg and not vartbl_name) and ("if not ... then return registeredfunctions." .. mangled .. "(self, args, typeids, unpack(args, " .. pivot .. ")) end") or "") .. [[
 					]]))
 				end
 			end
