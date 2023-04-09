@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName		= "Interactive Prop (Wire)"
-ENT.WireDebugName	= "Interactive Prop"
+ENT.PrintName    = "Interactive Prop (Wire)"
+ENT.WireDebugName  = "Interactive Prop"
 
 local InteractiveModels
 
@@ -293,11 +293,11 @@ end
 
 if CLIENT then
 
-	local panel
+  local panel
   
-	----------------------------------------------------
-	-- Show the prompt
-	----------------------------------------------------
+  ----------------------------------------------------
+  -- Show the prompt
+  ----------------------------------------------------
   function ENT:Initialize()
     self.InteractiveData = {}
     self.LastButtons = {}
@@ -323,10 +323,10 @@ if CLIENT then
     end
   end
 
-	net.Receive("wire_interactiveprop_show",function()
-		local self = net.ReadEntity()
-		if not IsValid(self) then return end
-		panel = self:GetPanel()
+  net.Receive("wire_interactiveprop_show",function()
+    local self = net.ReadEntity()
+    if not IsValid(self) then return end
+    panel = self:GetPanel()
     panel.OnClose = function(panel) 
       net.Start("wire_interactiveprop_close")
       self.Buttons = {}
@@ -334,15 +334,15 @@ if CLIENT then
       net.WriteEntity(self)
       net.SendToServer()
     end
-	end)
+  end)
 
   net.Receive( "wire_interactiveprop_kick", function()
     self.Buttons = {}
     self.LastButtons = {}
-		if IsValid( panel ) then
-			panel:Remove()
-		end
-	end)
+    if IsValid( panel ) then
+      panel:Remove()
+    end
+  end)
 
   return
 
@@ -363,11 +363,11 @@ end
 ----------------------------------------------------
 function ENT:UpdateOverlay()
   txt = ""
-	if IsValid(self.User) then
-		txt = "In use by: " .. self.User:Nick()
-	end
+  if IsValid(self.User) then
+    txt = "In use by: " .. self.User:Nick()
+  end
 
-	self:SetOverlayText(txt)
+  self:SetOverlayText(txt)
 end
 
 
@@ -386,12 +386,12 @@ function ENT:Initialize()
   self.InteractiveData = {}
   
   self:InitData()
-	
+  
 
-	self.BlockInput=false
-	self.NextPrompt = 0
+  self.BlockInput=false
+  self.NextPrompt = 0
 
-	self:UpdateOverlay()
+  self:UpdateOverlay()
   
   
 end
@@ -399,7 +399,7 @@ end
 
 
 function ENT:OnRemove()
-	self:Unprompt( true )
+  self:Unprompt( true )
 end
 
 
@@ -415,12 +415,12 @@ end
 util.AddNetworkString("wire_interactiveprop_action")
 net.Receive("wire_interactiveprop_action",function(len,ply)
   self = net.ReadEntity()
-	if not IsValid( self ) or not IsValid( ply ) or ply ~= self.User then return end
+  if not IsValid( self ) or not IsValid( ply ) or ply ~= self.User then return end
  
-	self:ReceiveData()
+  self:ReceiveData()
 
 
-	self:UpdateOverlay()
+  self:UpdateOverlay()
 end)
 
 ----------------------------------------------------
@@ -429,25 +429,25 @@ end)
 ----------------------------------------------------
 util.AddNetworkString("wire_interactiveprop_show")
 function ENT:Prompt( ply )
-	if ply then
-		if CurTime() < self.NextPrompt then return end -- anti spam
-		self.NextPrompt = CurTime() + 0.1
+  if ply then
+    if CurTime() < self.NextPrompt then return end -- anti spam
+    self.NextPrompt = CurTime() + 0.1
 
-		if IsValid( self.User ) then
-			WireLib.AddNotify(ply,"That interactive prop is in use by another player!",NOTIFY_ERROR,5,6)
-			return
-		end
+    if IsValid( self.User ) then
+      WireLib.AddNotify(ply,"That interactive prop is in use by another player!",NOTIFY_ERROR,5,6)
+      return
+    end
 
-		self.User = ply
+    self.User = ply
 
-		net.Start( "wire_interactiveprop_show" )
-			net.WriteEntity( self )
-		net.Send( ply )
+    net.Start( "wire_interactiveprop_show" )
+      net.WriteEntity( self )
+    net.Send( ply )
 
-		self:UpdateOverlay()
-	else
-		self:Prompt( self:GetPlayer() ) -- prompt for owner
-	end
+    self:UpdateOverlay()
+  else
+    self:Prompt( self:GetPlayer() ) -- prompt for owner
+  end
 end
 
 util.AddNetworkString("wire_interactiveprop_close")
@@ -459,8 +459,8 @@ end)
 util.AddNetworkString("wire_interactiveprop_kick")
 function ENT:Unprompt( )
   
-	self.User = nil
-	self:UpdateOverlay()
+  self.User = nil
+  self:UpdateOverlay()
 end
 
 
@@ -468,9 +468,9 @@ end
 -- Use
 ----------------------------------------------------
 function ENT:Use(ply)
-	if not IsValid( ply ) then return end
+  if not IsValid( ply ) then return end
 
-	self:Prompt( ply )
+  self:Prompt( ply )
 end
 
 duplicator.RegisterEntityClass("gmod_wire_interactiveprop",WireLib.MakeWireEnt,"Data")

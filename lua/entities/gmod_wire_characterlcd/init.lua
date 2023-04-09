@@ -41,8 +41,8 @@ function ENT:Initialize()
   self.Cache = GPUCacheManager(self,true)
 end
 function ENT:Setup(ScreenWidth, ScreenHeight, bgred,bggreen,bgblue,fgred,fggreen,fgblue)
-	self:WriteCell(1010, tonumber(ScreenHeight) or 2)
-	self:WriteCell(1009, tonumber(ScreenWidth) or 16)
+  self:WriteCell(1010, tonumber(ScreenHeight) or 2)
+  self:WriteCell(1009, tonumber(ScreenWidth) or 16)
   self:WriteCell(1008, tonumber(fgblue) or 45)
   self:WriteCell(1007, tonumber(fggreen) or 91)
   self:WriteCell(1006, tonumber(fgred) or 45)
@@ -98,11 +98,11 @@ function ENT:Think()
 end
 
 function ENT:Retransmit(ply)
-	self.Cache:Flush()
-	for address,value in pairs(self.Memory) do
-		self.Cache:Write(address,value)
-	end
-	self.Cache:Flush(ply)
+  self.Cache:Flush()
+  for address,value in pairs(self.Memory) do
+    self.Cache:Write(address,value)
+  end
+  self.Cache:Flush(ply)
 end
 
 function ENT:TriggerInput(iname, value)
