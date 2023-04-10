@@ -418,7 +418,7 @@ function ENT:Draw()
 		self.IntTimer = self.IntTimer + FrameTime()
 		if self.IntTimer >= mem[1019] then
 			if self.IntTimer >= mem[1019]*2 then
-				self.IntTimer = self.IntTimer - mem[1019]*2
+				self.IntTimer = (self.IntTimer - mem[1019]*2) % math.max(mem[1019]*2,0.01)
 				if self.Flash then
 					self.Flash = false
 					mem[1023] = 1
