@@ -108,16 +108,18 @@ end
 function ENT:WriteCell(Address,value)
 	Address = math.floor(Address)
 	if Address < 0 or Address >= 1024 then return false end
-	value = math.floor(value)
 	if value ~= value then return false end
 
 	local mem = self.Memory
 
 	if Address == 1009 then -- Screen width
+		value = math.floor(value)
 		if (value*mem[1010] > 1003 or value*18 > 1024) then return false end
 	elseif Address == 1010 then -- Screen height
+		value = math.floor(value)
 		if (value*mem[1009] > 1003 or value*24 > 1024) then return false end
 	elseif Address == 1011 then -- Write char at cursor
+		value = math.floor(value)
 		if mem[1015] >= 1 then
 			if mem[1014] >= 1 then
 				self:ShiftScreenRight()
@@ -134,14 +136,17 @@ function ENT:WriteCell(Address,value)
 			end
 		end
 	elseif Address == 1017 then
+		value = math.floor(value)
+		if value<0 or value >= mem[1010] then return false end
 		for i = 0, mem[1009]-1 do
-			if value<0 or value >= mem[1010] then return false end
 			mem[value*mem[1009]+i] = 0
 		end
 	elseif Address == 1018 then
 		for i = 0, mem[1009]*mem[1010]-1 do
 			mem[i] = 0
 		end
+	elseif Address == 1021 then
+		value = math.floor(value)%(mem[1010]*mem[1009])
 	end
 
 	mem[Address] = value
