@@ -1,10 +1,10 @@
 include("shared.lua")
 
 function ENT:Initialize()
-	self.Memory1 = {}
-	self.Memory2 = {}
+	local mem = {}
+	self.Memory = mem
 	for i = 0, 1023 do
-		self.Memory1[i] = 0
+		mem[i] = 0
 	end
 	
 	-- Screen control:
@@ -43,43 +43,31 @@ function ENT:Initialize()
 	-- [1022] - Cursor Enabled
 	--
 	-- [1023] - Clk
-	self.Memory1[1003] = 148
-	self.Memory1[1004] = 178
-	self.Memory1[1005] = 15
-	self.Memory1[1006] = 45
-	self.Memory1[1007] = 91
-	self.Memory1[1008] = 45
-	self.Memory1[1012] = 0
-	self.Memory1[1013] = 0
-	self.Memory1[1014] = 0
-	self.Memory1[1015] = 0
-	self.Memory1[1016] = 1
-	self.Memory1[1017] = 0
-	self.Memory1[1018] = 0
-	self.Memory1[1019] = 0.5
-	self.Memory1[1020] = 0.25
-	self.Memory1[1021] = 0
-	self.Memory1[1022] = 1
+	mem[1003] = 148
+	mem[1004] = 178
+	mem[1005] = 15
+	mem[1006] = 45
+	mem[1007] = 91
+	mem[1008] = 45
+	mem[1012] = 0
+	mem[1013] = 0
+	mem[1014] = 0
+	mem[1015] = 0
+	mem[1016] = 1
+	mem[1017] = 0
+	mem[1018] = 0
+	mem[1019] = 0.5
+	mem[1020] = 0.25
+	mem[1021] = 0
+	mem[1022] = 1
+	mem[1023] = 0
 
-	for i = 0, 1023 do
-		self.Memory2[i] = self.Memory1[i]
-	end
-
-	self.LastClk = false
-
-	self.PrevTime = CurTime()
 	self.IntTimer = 0
-
-	self.NeedRefresh = true
 	self.Flash = false
-	self.FrameNeedsFlash = false
-
-	self.FramesSinceRedraw = 0
-	self.NewClk = true
 
 	self.GPU = WireGPU(self)
-	self.ScreenWidth = 16
-	self.ScreenHeight = 2
+	mem[1009] = 16
+	mem[1010] = 2
 
 	-- Setup caching
 	GPULib.ClientCacheCallback(self,function(Address,Value)
@@ -87,120 +75,77 @@ function ENT:Initialize()
 	end)
 
 	WireLib.netRegister(self)
-	
 end
 
 function ENT:OnRemove()
 	self.GPU:Finalize()
-	self.NeedRefresh = true
 end
 
 function ENT:ReadCell(Address,value)
-	Address = math.floor(Address)
-	if Address < 0 then return nil end
-	if Address >= 1024 then return nil end
-
-	return self.Memory2[Address]
+	return self.Memory[math.floor(Address)]
 end
 
-
-
 function ENT:ShiftScreenRight()
-	if self.NewClk then
-		for y=0,self.ScreenHeight-1 do
-			for x=self.ScreenWidth-1,1,-1 do
-				self.Memory1[x+y*self.ScreenWidth] = self.Memory1[x+y*self.ScreenWidth-1]
-			end
-			self.Memory1[y*self.ScreenWidth] = 0
+	local mem = self.Memory
+	for y=0,mem[1010]-1 do
+		for x=mem[1009]-1,1,-1 do
+			mem[x+y*mem[1009]] = mem[x+y*mem[1009]-1]
 		end
-	end
-	for y=0,self.ScreenHeight-1 do
-		for x=self.ScreenWidth-1,1,-1 do
-			self.Memory2[x+y*self.ScreenWidth] = self.Memory2[x+y*self.ScreenWidth-1]
-		end
-		self.Memory2[y*self.ScreenWidth] = 0
+		mem[y*mem[1009]] = 0
 	end
 end
 
 function ENT:ShiftScreenLeft()
-	if self.NewClk then
-		for y=0,self.ScreenHeight-1 do
-			for x=0,self.ScreenWidth-2 do
-			self.Memory1[x+y*self.ScreenWidth] = self.Memory1[x+y*self.ScreenWidth+1]
-			end
-		self.Memory1[y*self.ScreenWidth+self.ScreenWidth-1] = 0
+	local mem = self.Memory
+	for y=0,mem[1010]-1 do
+		for x=0,mem[1009]-2 do
+			mem[x+y*mem[1009]] = mem[x+y*mem[1009]+1]
 		end
-	end
-	for y=0,self.ScreenHeight-1 do
-		for x=0,self.ScreenWidth-2 do
-		self.Memory2[x+y*self.ScreenWidth] = self.Memory2[x+y*self.ScreenWidth+1]
-		end
-	self.Memory2[y*self.ScreenWidth+self.ScreenWidth-1] = 0
+		mem[y*mem[1009]+mem[1009]-1] = 0
 	end
 end
 
 function ENT:WriteCell(Address,value)
 	Address = math.floor(Address)
-	if Address < 0 then return false end
-	if Address >= 1024 then return false end
+	if Address < 0 or Address >= 1024 then return false end
+	value = math.floor(value)
+	if value ~= value then return false end
 
-	if Address == 1023 then self.NewClk = value ~= 0 end
-	if Address == 1009 and (value*self.Memory2[1010] > 1003 or value*18 > 1024) then return false end
-	if Address == 1010 and (value*self.Memory2[1009] > 1003 or value*24 > 1024) then return false end
-	if self.NewClk then
-		self.Memory1[Address] = value -- Vis mem
-		self.NeedRefresh = true
-	end
-	self.Memory2[Address] = value -- Invis mem
+	local mem = self.Memory
 
-	if Address == 1011 then
-		
-		if self.Memory1[1015] >= 1 then
-			if self.Memory1[1014] >= 1 then
+	if Address == 1009 then -- Screen width
+		if (value*mem[1010] > 1003 or value*18 > 1024) then return false end
+	elseif Address == 1010 then -- Screen height
+		if (value*mem[1009] > 1003 or value*24 > 1024) then return false end
+	elseif Address == 1011 then -- Write char at cursor
+		if mem[1015] >= 1 then
+			if mem[1014] >= 1 then
 				self:ShiftScreenRight()
 			else
 				self:ShiftScreenLeft()
 			end
-			self.Memory1[self.Memory1[1021]] = value
-			self.Memory2[self.Memory1[1021]] = value
+			mem[mem[1021]%(mem[1010]*mem[1009])] = value
 		else
-			self.Memory1[self.Memory1[1021]] = value
-			self.Memory2[self.Memory1[1021]] = value
-			if self.Memory1[1014] >= 1 then
-				self.Memory1[1021] = (self.Memory1[1021] - 1)%(self.ScreenHeight*self.ScreenWidth)
+			mem[mem[1021]%(mem[1010]*mem[1009])] = value
+			if mem[1014] >= 1 then
+				mem[1021] = (mem[1021] - 1)%(mem[1010]*mem[1009])
 			else
-				self.Memory1[1021] = (self.Memory1[1021] + 1)%(self.ScreenHeight*self.ScreenWidth)
+				mem[1021] = (mem[1021] + 1)%(mem[1010]*mem[1009])
 			end
-			self.Memory2[1021] = self.Memory1[1021]
 		end
-		
-	end
-	if Address == 1017 then
-		for i = 0, self.ScreenWidth-1 do
-			self.Memory1[value*self.ScreenWidth+i] = 0
-			self.Memory2[value*self.ScreenWidth+i] = 0
+	elseif Address == 1017 then
+		for i = 0, mem[1009]-1 do
+			if value<0 or value >= mem[1010] then return false end
+			mem[value*mem[1009]+i] = 0
 		end
-		self.NeedRefresh = true
-	end
-	if Address == 1018 then
-		for i = 0, self.ScreenWidth*self.ScreenHeight-1 do
-			self.Memory1[i] = 0
-			self.Memory2[i] = 0
+	elseif Address == 1018 then
+		for i = 0, mem[1009]*mem[1010]-1 do
+			mem[i] = 0
 		end
-		self.NeedRefresh = true
 	end
-	if Address == 1009 then
-		self.ScreenWidth = value
-	end
-	if Address == 1010 then
-		self.ScreenHeight = value
-	end
-	
-	if self.LastClk ~= self.NewClk then
-		self.LastClk = self.NewClk
-		self.Memory1 = table.Copy(self.Memory2) -- swap the memory if clock changes
-		self.NeedRefresh = true
-	end
+
+	mem[Address] = value
+
 	return true
 end
 
@@ -468,56 +413,65 @@ end
 function ENT:Draw()
 	self:DrawModel()
 
-	local curtime = CurTime()
-	local DeltaTime = curtime - self.PrevTime
-	self.PrevTime = curtime
-	self.IntTimer = self.IntTimer + DeltaTime
-	self.FramesSinceRedraw = self.FramesSinceRedraw + 1
+	local mem = self.Memory
+	if mem[1022] >= 1 then
+		self.IntTimer = self.IntTimer + FrameTime()
+		if self.IntTimer >= mem[1019] then
+			if self.IntTimer >= mem[1019]*2 then
+				self.IntTimer = self.IntTimer - mem[1019]*2
+				if self.Flash then
+					self.Flash = false
+					mem[1023] = 1
+				end
+			else
+				if not self.Flash then
+					self.Flash = true
+					mem[1023] = 1
+				end
+			end
+		end
+	end
+
 	local szx = 18
 	local szy = 24
-	if self.NeedRefresh == true then
-		self.FramesSinceRedraw = 0
-		self.NeedRefresh = false
-		self.FrameNeedsFlash = false
-
-		if self.Memory1[1022] >= 1 then self.FrameNeedsFlash = true end
+	if mem[1023] >= 1 then
+		mem[1023] = 0
  
 		self.GPU:RenderToGPU(function()
 			-- Draw terminal here
 			-- W/H = 16
-			
 
-			local bc = math.min(1,math.max(0,self.Memory2[1016]-1.8))
-			local br = (1-bc)*self.Memory2[1003]+bc*self.Memory2[1006]
-			local bg = (1-bc)*self.Memory2[1004]+bc*self.Memory2[1007]
-			local bb = (1-bc)*self.Memory2[1005]+bc*self.Memory2[1008]
+			local bc = math.min(1,math.max(0,mem[1016]-1.8))
+			local br = (1-bc)*mem[1003]+bc*mem[1006]
+			local bg = (1-bc)*mem[1004]+bc*mem[1007]
+			local bb = (1-bc)*mem[1005]+bc*mem[1008]
 			
-			local sqc = math.min(1,math.max(0,self.Memory2[1016]-0.9))
-			local sqr = (1-sqc)*self.Memory2[1003]+sqc*self.Memory2[1006]
-			local sqg = (1-sqc)*self.Memory2[1004]+sqc*self.Memory2[1007]
-			local sqb = (1-sqc)*self.Memory2[1005]+sqc*self.Memory2[1008]
+			local sqc = math.min(1,math.max(0,mem[1016]-0.9))
+			local sqr = (1-sqc)*mem[1003]+sqc*mem[1006]
+			local sqg = (1-sqc)*mem[1004]+sqc*mem[1007]
+			local sqb = (1-sqc)*mem[1005]+sqc*mem[1008]
 			
-			local fc = math.min(1,math.max(sqc,self.Memory2[1016]))
-			local fr = (1-fc)*self.Memory2[1003]+fc*self.Memory2[1006]
-			local fg = (1-fc)*self.Memory2[1004]+fc*self.Memory2[1007]
-			local fb = (1-fc)*self.Memory2[1005]+fc*self.Memory2[1008]
+			local fc = math.min(1,math.max(sqc,mem[1016]))
+			local fr = (1-fc)*mem[1003]+fc*mem[1006]
+			local fg = (1-fc)*mem[1004]+fc*mem[1007]
+			local fb = (1-fc)*mem[1005]+fc*mem[1008]
 			surface.SetDrawColor(br,bg,bb,255)
 			surface.DrawRect(0,0,1024,1024)
 
-			for ty = 0, self.ScreenHeight-1 do
-				for tx = 0, self.ScreenWidth-1 do
-					local a = tx + ty*self.ScreenWidth
+			for ty = 0, mem[1010]-1 do
+				for tx = 0, mem[1009]-1 do
+					local a = tx + ty*mem[1009]
 
 					--if (self.Flash == true) then
 					--	fb,bb = bb,fb
 					--	fg,bg = bg,fg
 					--	fr,br = br,fr
 					--end
-					local c1 = self.Memory1[a]
+					local c1 = mem[a]
 
 					if c1 >= 2097152 then c1 = 0 end
 					if c1 < 0 then c1 = 0 end
-			 
+
 					surface.SetDrawColor(sqr,sqg,sqb,255)
 					surface.DrawRect((tx)*szx+1,(ty)*szy+1,szx-2,szy-2)
 					surface.SetDrawColor(sqr,sqg,sqb,127)
@@ -560,52 +514,29 @@ function ENT:Draw()
 			end
 
 
-			if self.Memory1[1022] >= 1 then
-				if self.Flash == true then
-					local a = math.floor(self.Memory1[1021])
+			if mem[1022] >= 1 and self.Flash then
+				local a = math.floor(mem[1021])
 
-					local tx = a - math.floor(a / self.ScreenWidth)*self.ScreenWidth
-					local ty = math.floor(a / self.ScreenWidth)
+				local tx = a - math.floor(a / mem[1009])*mem[1009]
+				local ty = math.floor(a / mem[1009])
 
-
-					surface.SetDrawColor(
-						fr,
-						fg,
-						fb,
-						255
-					)
-					surface.DrawRect(
-						(tx)*szx+1,
-						(ty)*szy+szy*(1-self.Memory1[1020]),
-						szx-2,
-						szy*self.Memory1[1020]
-					)
-				end
+				surface.SetDrawColor(
+					fr,
+					fg,
+					fb,
+					255
+				)
+				surface.DrawRect(
+					(tx)*szx+1,
+					(ty)*szy+szy*(1-mem[1020]),
+					szx-2,
+					szy*mem[1020]
+				)
 			end
 		 end)
 	end
 
-	if self.FrameNeedsFlash == true then
-		if self.IntTimer < self.Memory1[1019] then
-			if (self.Flash == false) then
-				self.NeedRefresh = true
-			end
-			self.Flash = true
-		end
-
-		if self.IntTimer >= self.Memory1[1019] then
-			if self.Flash == true then
-				self.NeedRefresh = true
-			end
-			self.Flash = false
-		end
-
-		if self.IntTimer >= self.Memory1[1019]*2 then
-			self.IntTimer = 0
-		end
-	end
-
-	self.GPU:Render(0,0,1024,1024,nil,-(1024-self.ScreenWidth*szx)/1024,-(1024-self.ScreenHeight*szy)/1024)
+	self.GPU:Render(0,0,1024,1024,nil,-(1024-mem[1009]*szx)/1024,-(1024-mem[1010]*szy)/1024)
 	Wire_Render(self)
 end
 
