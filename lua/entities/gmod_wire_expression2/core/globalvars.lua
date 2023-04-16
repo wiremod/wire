@@ -9,6 +9,8 @@ gvars.safe = {} -- Safe from hacking using gTableSafe
 
 hook.Add("Wire_EmergencyRamClear","gvars_EmergencyRamClear",function()
 	gvars = {}
+	gvars.shared = {}
+	gvars.safe = {}
 end)
 
 ------------------------------------------------------------------------------------------------
