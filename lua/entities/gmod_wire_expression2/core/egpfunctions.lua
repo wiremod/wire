@@ -245,6 +245,7 @@ end
 ----------------------------
 e2function void wirelink:egpFont( number index, string font )
 	if (!EGP:IsAllowed( self, this )) then return end
+	if #font > 30 then return self:throw("Font string is too long!", nil) end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
 		if (EGP:EditObject( v, { font = font } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
@@ -253,6 +254,7 @@ end
 
 e2function void wirelink:egpFont( number index, string font, number size )
 	if (!EGP:IsAllowed( self, this )) then return end
+	if #font > 30 then return self:throw("Font string is too long!", nil) end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
 		if (EGP:EditObject( v, { font = font, size = size } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
