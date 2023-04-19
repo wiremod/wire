@@ -39,6 +39,7 @@ if CLIENT then
 		{ name = "right_1", stage = 1, text = "Place another point" },
 		{ name = "left_2", stage = 2, text = "Finish tape and place controller" },
 		{ name = "right_2", stage = 2, text = "Place more points" },
+		{ name = "left_3", stage = 3, text = "Finish tape and place controller" },
 	}
 	WireToolSetup.setToolMenuIcon( "icon16/chart_line.png" )
 
@@ -52,13 +53,13 @@ if CLIENT then
 
 	function TOOL:Preview()
 	
-		if (#self.ToolPath < 1) then hook.Remove("PostDrawOpaqueRenderables","LEDTape_Preview") return end -- something happened, bail
+		if #self.ToolPath < 1 then hook.Remove("PostDrawOpaqueRenderables","LEDTape_Preview") return end -- something happened, bail
 
 		render.SetMaterial(self.CurMater)
 
 		local pt2 = Wire_LEDTape.DrawFullbright(self.CurWidth, self.ScrollMul / 3, WHITE, self.CurMater, self.ToolPath)
 		
-		if pt2 then
+		if pt2 and (#self.ToolPath < Wire_LEDTape.MaxPoints) then
 			local eyetrace = LocalPlayer():GetEyeTrace()
 			local pt3 = eyetrace.HitPos + eyetrace.HitNormal * self.CurWidth * 0.5
 			render.DrawLine( pt2, pt3, YELLOW )
@@ -88,13 +89,17 @@ end
 hook.Remove("PostDrawOpaqueRenderables","LEDTape_Preview")
 function TOOL:RightClick( trace )
 
+	print(#self.ToolPath)
+
 	if not trace.Hit or ( trace.Entity:IsValid() and trace.Entity:IsPlayer() ) or trace.Entity:IsWorld() then return end
 	if ( SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
 
 	local mater, width = self:GetConVars()
 
+	if CLIENT then print(self:GetStage()) end
+	if self:GetStage() == 3 then return false end
+
 	if self:GetStage() == 0 then
-		
 		self.ToolPath = {}
 
 		self:SetStage(1)
@@ -110,7 +115,6 @@ function TOOL:RightClick( trace )
 			self.ScrollMul = metadata and metadata.scale or 1
 
 		end
-
 	end
 
 	local nextPos = trace.Entity:WorldToLocal(trace.HitPos + trace.HitNormal * self.CurWidth * 0.5)
@@ -124,8 +128,10 @@ function TOOL:RightClick( trace )
 
 	table.insert(self.ToolPath, {trace.Entity, nextPos})
 	
-	if #self.ToolPath > 1 then
+	if #self.ToolPath == 1 then
 		self:SetStage(2)
+	elseif #self.ToolPath == Wire_LEDTape.MaxPoints then
+		self:SetStage(3)
 	end
 	
 	return true
@@ -144,7 +150,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if self:GetStage() ~= 2 or isLookingAtController(trace) then return false end
+	if self:GetStage() < 1 or isLookingAtController(trace) then return false end
 
 	local ply = self:GetOwner()
 	self:SetStage(0)

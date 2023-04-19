@@ -8,9 +8,12 @@ function ENT:SharedInit()
 	self.Path  = {}
 end
 
-if CLIENT then
+Wire_LEDTape = Wire_LEDTape or {}
 
-	Wire_LEDTape = Wire_LEDTape or {}
+Wire_LEDTape.MaxPoints = 256
+Wire_LEDTape.NumBits   = math.ceil( math.log(Wire_LEDTape.MaxPoints, 2) )
+
+if CLIENT then
 
 	-- TODO: move this into modelplug after the cleanup PR gets accepted
 
@@ -49,7 +52,7 @@ if CLIENT then
 
 	local DEFAULT_SCALE = 0.5
 
-	local LIGHT_UPDATE_INTERVAL = 0.5
+	local LIGHT_UPDATE_INTERVAL = CreateClientConVar( "wire_ledtape_lightinterval", "0.5", true, false, "How often environmental lighting on LED tape is calculated", 0 )
 
 	local LIGHT_DIRECTIONS = {
 		Vector(1,0,0),
@@ -69,7 +72,7 @@ if CLIENT then
 			end
 			lightsum:Mul( 1/#LIGHT_DIRECTIONS )
 			node.lighting = lightsum:ToColor()
-			node.nextlight = CurTime() + LIGHT_UPDATE_INTERVAL
+			node.nextlight = CurTime() + LIGHT_UPDATE_INTERVAL:GetFloat()
 		end
 		return node.lighting
 	end
@@ -193,7 +196,7 @@ if CLIENT then
 
 		if not full then return end
 
-		local pathLength = net.ReadUInt(8)
+		local pathLength = net.ReadUInt(Wire_LEDTape.NumBits) + 1
 		for i=1, pathLength do
 			table.insert(controller.Path,{net.ReadEntity(), net.ReadVector()})
 		end
@@ -231,7 +234,7 @@ if SERVER then
 
 	function ENT:SendFullUpdate()
 		self:SendMaterialUpdate()
-		net.WriteUInt( #self.Path, 8 )
+		net.WriteUInt(#self.Path - 1, Wire_LEDTape.NumBits)
 		for k, node in ipairs(self.Path) do
 			net.WriteEntity(node[1])
 			net.WriteVector(node[2])
