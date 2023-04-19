@@ -77,6 +77,36 @@ if CLIENT then
 		return node.lighting
 	end
 
+
+	-- This system prevents calling LocalToWorld hundreds of times every frame, as it strains the garbage collector.
+	-- This is a necessary evil to prevent stuttering.
+	local LocalToWorld_NoGarbage_Ents = {}
+
+	local function LocalToWorld_NoGarbage(ent, pos)
+		ent.LEDTapeVecs = ent.LEDTapeVecs or {}
+		local LEDTapeVecs = ent.LEDTapeVecs
+
+		if ent.LEDTapeLastPos == ent:GetPos() and ent.LEDTapeLastAng==ent:GetAngles() then
+			if LEDTapeVecs[pos] then return LEDTapeVecs[pos] end
+		end
+
+		LEDTapeVecs[pos] = ent:LocalToWorld(pos)
+		LocalToWorld_NoGarbage_Ents[ent] = true -- update positions at the end
+
+		return LEDTapeVecs[pos]
+	end
+
+	local function LocalToWorld_NoGarbage_End()
+		for ent, _ in pairs(LocalToWorld_NoGarbage_Ents) do
+			if not IsValid(ent) then continue end
+			ent.LEDTapeLastPos = ent:GetPos()
+			ent.LEDTapeLastAng = ent:GetAngles()
+		end
+		LocalToWorld_NoGarbage_Ents = {}
+	end
+
+	hook.Add("PostDrawOpaqueRenderables","LEDTapeCleanup",LocalToWorld_NoGarbage_End)
+
 	local function DrawBeams(width, scrollmul, mater, path, getColor, extravertex)
 
 		if not IsValid(path[1][1]) then return end
@@ -93,7 +123,8 @@ if CLIENT then
 		render.StartBeam(#path * vertexnum)
 
 			local node1 = path[1]
-			local pt1 = node1[1]:LocalToWorld( node1[2] )
+
+			local pt1 = LocalToWorld_NoGarbage(node1[1], node1[2])
 
 			beam(pt1, width, scroll, getColor(node1))
 
@@ -103,7 +134,7 @@ if CLIENT then
 				if not IsValid(nodeEnt) then continue end
 				local nodeOffset = node2[2]
 
-				local pt2 = nodeEnt:LocalToWorld(nodeOffset)
+				local pt2 = LocalToWorld_NoGarbage(nodeEnt, nodeOffset)
 				local distance = pt2:Distance(pt1) * scrollmul * 0.5
 				
 				beam( pt1, width, scroll, getColor(node1))

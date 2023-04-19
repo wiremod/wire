@@ -59,7 +59,7 @@ if CLIENT then
 
 		local pt2 = Wire_LEDTape.DrawFullbright(self.CurWidth, self.ScrollMul / 3, WHITE, self.CurMater, self.ToolPath)
 		
-		if pt2 and (#self.ToolPath < Wire_LEDTape.MaxPoints) then
+		if pt2 and (#self.ToolPath+1 < Wire_LEDTape.MaxPoints) then
 			local eyetrace = LocalPlayer():GetEyeTrace()
 			local pt3 = eyetrace.HitPos + eyetrace.HitNormal * self.CurWidth * 0.5
 			render.DrawLine( pt2, pt3, YELLOW )
@@ -86,17 +86,13 @@ if SERVER then
 
 end
 
-hook.Remove("PostDrawOpaqueRenderables","LEDTape_Preview")
 function TOOL:RightClick( trace )
-
-	print(#self.ToolPath)
 
 	if not trace.Hit or ( trace.Entity:IsValid() and trace.Entity:IsPlayer() ) or trace.Entity:IsWorld() then return end
 	if ( SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
 
 	local mater, width = self:GetConVars()
 
-	if CLIENT then print(self:GetStage()) end
 	if self:GetStage() == 3 then return false end
 
 	if self:GetStage() == 0 then
