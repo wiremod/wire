@@ -106,8 +106,11 @@ if (SERVER) then
 			ent:SetTranslucent(self:GetClientNumber("translucent")~=0)
 		elseif (Type == 2) then -- HUD
 			ent = SpawnHUD( ply, trace.HitPos + trace.HitNormal * 0.25, trace.HitNormal:Angle() + Angle(90,0,0) )
+			if not IsValid(ent) then return end
 		elseif (Type == 3) then -- Emitter
 			ent = SpawnEmitter( ply, trace.HitPos + trace.HitNormal * 0.25, trace.HitNormal:Angle() + Angle(90,0,0) )
+			if not IsValid(ent) then return end
+
 			ent:SetUseRT(self:GetClientNumber("emitter_usert")~=0)
 		end
 
