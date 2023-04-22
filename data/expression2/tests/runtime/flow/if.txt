@@ -38,3 +38,9 @@ if (vec(0, 0, 0)) { # Ensure if statements are using operator_is
 if (ang(0, 0, 0)) { # ensure it wasn't a fluke
 	error("fail")
 }
+
+if ("") { # falsy string
+	error("fail")
+}
+
+assert(!"") # I don't think this was a thing before, using not on string, but since ! just checks the inverse of operator_is now, it works.

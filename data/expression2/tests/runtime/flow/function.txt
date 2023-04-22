@@ -43,7 +43,7 @@ function returnvoid() {
 returnvoid()
 
 function void returnvoid2() {
-	return void
+	return
 }
 
 returnvoid2()
@@ -53,3 +53,47 @@ function returnvoid3() {
 }
 
 returnvoid3()
+
+function number recurse(N:number) {
+	if (N == 1) {
+		return 5
+	} else {
+		return recurse(N - 1) + 1
+	}
+}
+
+assert(recurse(10) == 14, recurse(10):toString())
+
+Sentinel = -1
+function recursevoid() {
+	Sentinel++
+	if (Sentinel == 0) {
+		recursevoid()
+	}
+}
+
+recursevoid()
+
+assert(Sentinel == 1)
+
+# Now check variadic syntax sugar
+
+function number number:foo(...A:table) {
+	assert(A:typeids()[1, string] == "s")
+
+	assert(A[1, string] == "foo")
+	assert(A[2, number] == 55)
+
+	return This
+}
+
+assert(5:foo("foo", 55) == 5)
+
+function number number:bar(...A:array) {
+	assert(A[1, string] == "foo")
+	assert(A[2, number] == 55)
+
+	return This
+}
+
+assert( 5:bar("foo", 55) == 5 )

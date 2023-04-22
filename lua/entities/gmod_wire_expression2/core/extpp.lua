@@ -12,17 +12,18 @@ local Operators = {
 	["operator%"] = "mod", ["operator^"] = "exp",
 	["operator=="] = "eq", ["operator>"] = "gth",
 	["operator>="] = "geq", ["operator<"] = "lth",
-	["operator<="] = "leq", ["operator_is"] = "is",
-	["operator_neg"] = "neg",
+	["operator<="] = "leq", ["operator_neg"] = "neg",
 	["operator_band"] = "band", ["operator_bor"] = "bor",
 	["operator_bxor"] = "bxor", ["operator_bshl"] = "bshl",
-	["operator_bshr"] = "bshr",
+	["operator_bshr"] = "bshr", ["operator_is"] = "is"
 }
 
 local RemovedOperators = {
 	["operator!"] = true, ["operator!="] = true, -- These now use operator_is and operator== internally
 	["operator&"] = true, ["operator&&"] = true, -- Despite && being binary AND in E2, the preprocessor used to handle this as logical AND.
 	["operator|"] = true, ["operator||"] = true, -- Despite || being binary OR in E2, the preprocessor used to handle this as logical OR.
+	["operator++"] = true, ["operator--"] = true, -- Now use + and - internally.
+	["operator[]"] = true, ["operator[T]"] = true -- indexget and indexset now.
 }
 
 local ValidAttributes = { -- Expose to E2Lib?

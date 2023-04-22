@@ -287,7 +287,7 @@ local CompileVisitors = {
 				if ifeif[1] then -- if or elseif
 					local expr, expr_ty = self:CompileExpr(ifeif[1])
 
-					if expr_ty == "n" or expr_ty == "s" then -- Optimization: Don't need to run operator_is on string or number.
+					if expr_ty == "n" then -- Optimization: Don't need to run operator_is on number (since we already check if ~= 0 here.)
 						chain[i] = {
 							expr,
 							self:CompileStmt(ifeif[2])
@@ -597,14 +597,11 @@ local CompileVisitors = {
 
 		local meta_type
 		if data[2] then
-			meta_type = self:CheckType(data[2])
-			if meta_type == "" then
-				self:Error("Cannot use void as meta type", trace)
-			end
+			meta_type = self:Assert(self:CheckType(data[2]), "Cannot use void as meta type", trace)
 		end
 
 		local param_types, param_names, variadic_ind, variadic_ty = {}, {}, nil, nil
-		if data[4] then
+		if data[4] then -- Has parameters
 			local existing = {}
 			for i, param in ipairs(data[4]) do
 				if param.type then
@@ -641,179 +638,7 @@ local CompileVisitors = {
 			end
 		end
 
-		-- Code below is gargantuan as it's duplicated for each scenario at compile time for
-		-- the least amount of runtime overhead (and the variadic syntax sugar is annoying)
-
-		local block, op
-		if return_type then
-			if variadic_ty then
-				local last, non_variadic = #param_types, #param_types - 1
-				if variadic_ty == "r" then
-					function op(state, args) ---@param state RuntimeContext
-						local save = state:SaveScopes()
-
-						local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
-						state.Scopes = { [0] = state.GlobalScope, [1] = scope }
-						state.Scope = scope
-						state.ScopeID = 1
-
-						for i = 1, non_variadic do
-							scope[param_names[i]] = args[i]
-						end
-
-						local a, n = {}, 1
-						for i = last, #args do
-							a[n] = args[i]
-							n = n + 1
-						end
-
-						scope[param_names[last]] = a
-						block(state)
-						state:LoadScopes(save)
-						if state.__return__ then
-							state.__return__ = false
-							return state.__returnval__
-						else
-							E2Lib.raiseException("Expected function return at runtime of type (" .. return_type .. ")", 0, state.trace)
-						end
-					end
-				else -- table
-					function op(state, args, arg_types) ---@param state RuntimeContext
-						local save = state:SaveScopes()
-
-						local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
-						state.Scopes = { [0] = state.GlobalScope, [1] = scope }
-						state.Scope = scope
-						state.ScopeID = 1
-
-						for i = 1, non_variadic do
-							scope[param_names[i]] = args[i]
-						end
-
-						local n, ntypes = {}, {}
-						for i = last, #args do
-							n[i], ntypes[i] = args[i], arg_types[i]
-						end
-
-						scope[param_names[last]] = { s = {}, stypes = {}, n = n, ntypes = ntypes, size = last }
-
-						block(state)
-						state:LoadScopes(save)
-
-						if state.__return__ then
-							state.__return__ = false
-							return state.__returnval__
-						else
-							E2Lib.raiseException("Expected function return at runtime of type (" .. return_type .. ")", 0, state.trace)
-						end
-					end
-				end
-			else
-				function op(state, args) ---@param state RuntimeContext
-					local save = state:SaveScopes()
-
-					local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
-					state.Scopes = { [0] = state.GlobalScope, [1] = scope }
-					state.Scope = scope
-					state.ScopeID = 1
-
-					for i, arg in ipairs(args) do
-						scope[param_names[i]] = arg
-					end
-
-					block(state)
-					state:LoadScopes(save)
-
-					if state.__return__ then
-						state.__return__ = false
-						return state.__returnval__
-					else
-						E2Lib.raiseException("Expected function return at runtime of type (" .. return_type .. ")", 0, state.trace)
-					end
-				end
-			end
-		elseif variadic_ty then
-			local last, non_variadic = #param_types, #param_types - 1
-			if variadic_ty == "r" then
-				function op(state, args) ---@param state RuntimeContext
-					local save = state:SaveScopes()
-
-					local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
-					state.Scopes = { [0] = state.GlobalScope, [1] = scope }
-					state.Scope = scope
-					state.ScopeID = 1
-
-					for i = 1, non_variadic do
-						scope[param_names[i]] = args[i]
-					end
-
-					local a, n = {}, 1
-					for i = last, #args do
-						a[n] = args[i]
-						n = n + 1
-					end
-
-					scope[param_names[last]] = a
-					block(state)
-
-					state:LoadScopes(save)
-				end
-			else -- table
-				function op(state, args, typeids) ---@param state RuntimeContext
-					local save = state:SaveScopes()
-
-					local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
-					state.Scopes = { [0] = state.GlobalScope, [1] = scope }
-					state.Scope = scope
-					state.ScopeID = 1
-
-					for i = 1, non_variadic do
-						scope[param_names[i]] = args[i]
-					end
-
-					local n, ntypes = {}, {}
-					for i = last, #args do
-						n[i], ntypes[i] = args[i], typeids[i]
-					end
-
-					scope[param_names[last]] = { s = {}, stypes = {}, n = n, ntypes = ntypes, size = last }
-					block(state)
-
-					state:LoadScopes(save)
-				end
-			end
-		elseif #param_types == 0 and not meta_type then -- Fastest case, no arguments to push
-			function op(state) ---@param state RuntimeContext
-				local save = state:SaveScopes()
-
-				local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
-				state.Scopes = { [0] = state.GlobalScope, [1] = scope }
-				state.Scope = scope
-				state.ScopeID = 1
-
-				block(state)
-
-				state:LoadScopes(save)
-			end
-		else
-			function op(state, args) ---@param state RuntimeContext
-				local save = state:SaveScopes()
-
-				local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
-				state.Scopes = { [0] = state.GlobalScope, [1] = scope }
-				state.Scope = scope
-				state.ScopeID = 1
-
-				for i, arg in ipairs(args) do
-					scope[param_names[i]] = arg
-				end
-
-				block(state)
-				state:LoadScopes(save)
-			end
-		end
-
-		local fn = { args = param_types, returns = return_type and { return_type }, meta = meta_type, op = op, cost = 20, attrs = {} }
+		local fn = { args = param_types, returns = return_type and { return_type }, meta = meta_type, cost = 20, attrs = {} }
 		local sig = table.concat(param_types, "", 1, #param_types - 1) .. ((variadic_ty and ".." or "") .. (param_types[#param_types] or ""))
 
 		if meta_type then
@@ -844,6 +669,95 @@ local CompileVisitors = {
 			self.user_functions[name.value][sig] = fn
 		end
 
+
+		local block
+		if variadic_ty then
+			local last, non_variadic = #param_types, #param_types - 1
+			if variadic_ty == "r" then
+				function fn.op(state, args) ---@param state RuntimeContext
+					local save = state:SaveScopes()
+
+					local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
+					state.Scopes = { [0] = state.GlobalScope, [1] = scope }
+					state.Scope = scope
+					state.ScopeID = 1
+
+					for i = 1, non_variadic do
+						scope[param_names[i]] = args[i]
+					end
+
+					local a, n = {}, 1 -- todo: use table.move if present
+					for i = last, #args do
+						a[n] = args[i]
+						n = n + 1
+					end
+
+					scope[param_names[last]] = a
+					block(state)
+					state:LoadScopes(save)
+					if state.__return__ then
+						state.__return__ = false
+						return state.__returnval__
+					elseif return_type then
+						E2Lib.raiseException("Expected function return at runtime of type (" .. return_type .. ")", 0, state.trace)
+					end
+				end
+			else -- table
+				function fn.op(state, args, arg_types) ---@param state RuntimeContext
+					local save = state:SaveScopes()
+
+					local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
+					state.Scopes = { [0] = state.GlobalScope, [1] = scope }
+					state.Scope = scope
+					state.ScopeID = 1
+
+					for i = 1, non_variadic do
+						scope[param_names[i]] = args[i]
+					end
+
+					local n, ntypes = {}, {}
+					for i = last, #args do
+						n[i - last + 1], ntypes[i - last + 1] = args[i], arg_types[i]
+					end
+
+					scope[param_names[last]] = { s = {}, stypes = {}, n = n, ntypes = ntypes, size = last }
+
+					block(state)
+					state:LoadScopes(save)
+
+					if state.__return__ then
+						state.__return__ = false
+						return state.__returnval__
+					elseif return_type then
+						E2Lib.raiseException("Expected function return at runtime of type (" .. return_type .. ")", 0, state.trace)
+					end
+				end
+			end
+		else -- Todo: In the future with the optimizer, or here still, make this output a different function when it doesn't early return, and/or has no parameters as an optimization.
+			function fn.op(state, args) ---@param state RuntimeContext
+				local save = state:SaveScopes()
+
+				local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
+				state.Scopes = { [0] = state.GlobalScope, [1] = scope }
+				state.Scope = scope
+				state.ScopeID = 1
+
+				for i, arg in ipairs(args) do
+					scope[param_names[i]] = arg
+				end
+
+				block(state)
+				state:LoadScopes(save)
+
+				if state.__return__ then
+					state.__return__ = false
+					return state.__returnval__
+				elseif return_type then
+					E2Lib.raiseException("Expected function return at runtime of type (" .. return_type .. ")", 0, state.trace)
+				end
+			end
+		end
+
 		block = self:IsolatedScope(function (scope)
 			for i, type in ipairs(param_types) do
 				scope:DeclVar(param_names[i], { type = type, trace_if_unused = data[4][i] and data[4][i].name.trace or trace, initialized = true })
@@ -855,15 +769,15 @@ local CompileVisitors = {
 		end)
 
 		-- No `return` statement found. Returns void
-		if not fn.returns then
+		--[[if not fn.returns then
 			fn.returns = {}
-		end
+		end]]
 
-		self:Assert(fn.returns[1] == return_type, "Function " .. name.value .. " expects to return type (" .. (return_type or "void") .. ") but got type (" .. (fn.returns[1] or "void") .. ")", trace)
+		self:Assert((fn.returns and fn.returns[1]) == return_type, "Function " .. name.value .. " expects to return type (" .. (return_type or "void") .. ") but got type (" .. ((fn.returns and fn.returns[1]) or "void") .. ")", trace)
 
 		local sig = name.value .. "(" .. (meta_type and (meta_type .. ":") or "") .. sig .. ")"
 		return function(state) ---@param state RuntimeContext
-			state.funcs[sig] = op
+			state.funcs[sig] = fn.op
 			state.funcs_ret[sig] = return_type
 		end
 	end,
@@ -951,9 +865,9 @@ local CompileVisitors = {
 
 		if fn.returns then
 			self:Assert(fn.returns[1] == ret_ty, "Function " .. name .. " expects return type (" .. (fn.returns[1] or "void") .. ") but was given (" .. (ret_ty or "void") .. ")", trace)
+		else
+			fn.returns = { ret_ty }
 		end
-
-		fn.returns = { ret_ty }
 
 		if ret_ty then
 			return function(state) ---@param state RuntimeContext
@@ -1094,11 +1008,11 @@ local CompileVisitors = {
 		local existing = self:Assert(self.scope:LookupVar(var), "Unknown variable to increment: " .. var, trace)
 		existing.trace_if_unused = nil
 		self:AssertW(existing.initialized, "Use of variable [" .. data.value .. "] before initialization", trace)
-		self:Assert(existing.type == "n", "Cannot increment type of " .. existing.type, trace)
 
+		local op = self:GetOperator("add", {existing.type, "n"}, trace)
 		local id = existing.scope:Depth()
 		return function(state) ---@param state RuntimeContext
-			state.Scopes[id][var] = state.Scopes[id][var] + 1
+			state.Scopes[id][var] = op(state, state.Scopes[id][var], 1)
 		end
 	end,
 
@@ -1108,11 +1022,11 @@ local CompileVisitors = {
 		local existing = self:Assert(self.scope:LookupVar(var), "Unknown variable to decrement: " .. var, trace)
 		existing.trace_if_unused = nil
 		self:AssertW(existing.initialized, "Use of variable [" .. data.value .. "] before initialization", trace)
-		self:Assert(existing.type == "n", "Cannot increment type of " .. existing.type, trace)
 
+		local op = self:GetOperator("sub", {existing.type, "n"}, trace)
 		local id = existing.scope:Depth()
 		return function(state) ---@param state RuntimeContext
-			state.Scopes[id][var] = state.Scopes[id][var] - 1
+			state.Scopes[id][var] = op(state, state.Scopes[id][var], 1)
 		end
 	end,
 
@@ -1367,11 +1281,11 @@ local CompileVisitors = {
 			if legacy then
 				local largs = { [1] = {}, [2] = { lhs }, [3] = { rhs }, [4] = { lhs_ty, rhs_ty } }
 				return function(state)
-					return op(state, largs) ~= 0 and 1 or 0
+					return op(state, largs)
 				end, "n"
 			else
 				return function(state)
-					return op(state, lhs(state), rhs(state)) ~= 0 and 1 or 0
+					return op(state, lhs(state), rhs(state))
 				end, "n"
 			end
 		else -- Operator.Neq
@@ -1395,13 +1309,13 @@ local CompileVisitors = {
 		local exp, ty = self:CompileExpr(data[2])
 
 		if data[1] == Operator.Not then -- Return opposite of operator_is result
-			local op, op_ret, legacy = self:GetOperator("is", { ty }, trace)
+			local op, op_ret = self:GetOperator("is", { ty }, trace)
 			self:Assert(op_ret == "n", "Cannot perform not operation on type " .. ty, trace)
 			return function(state)
 				return op(state, exp(state)) == 0 and 1 or 0
 			end, "n"
-		else -- Negate
-			local op, op_ret, legacy = self:GetOperator(data[1] == Operator.Sub and "neg" or E2Lib.OperatorNames[data[1]]:lower(), { ty }, trace)
+		elseif data[1] == Operator.Sub then -- Negate
+			local op, op_ret, legacy = self:GetOperator("neg", { ty }, trace)
 			if legacy then
 				local largs = { [1] = {}, [2] = { exp }, [3] = { ty } }
 				return function(state)
@@ -1545,6 +1459,8 @@ local CompileVisitors = {
 			self:Warning("Use of deprecated function (" .. name.value .. ") " .. (type(value) == "string" and value or ""), trace)
 		end
 
+		table.insert(types, 1, meta_type)
+
 		local nargs = #args
 		if fn_data.attrs["legacy"] then
 			local largs = { [nargs + 3] = types, [2] = { [1] = meta } }
@@ -1554,7 +1470,7 @@ local CompileVisitors = {
 
 			return function(state) ---@param state RuntimeContext
 				return fn(state, largs)
-			end, fn_data.returns[1]
+			end, fn_data.returns and fn_data.returns[1]
 		else
 			return function(state) ---@param state RuntimeContext
 				local rargs = { meta(state) }
@@ -1563,7 +1479,7 @@ local CompileVisitors = {
 				end
 
 				return fn(state, rargs, types)
-			end, fn_data.returns[1]
+			end, fn_data.returns and fn_data.returns[1]
 		end
 	end,
 
