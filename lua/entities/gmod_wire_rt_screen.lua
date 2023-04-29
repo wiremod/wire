@@ -247,8 +247,8 @@ if CLIENT then
             material[tbl.MaterialFn](material, mtl_param, value)
         end
 
-        local xraw = 256 / monitor.RatioX
-        local yraw = 256
+        local xraw = 512 / monitor.RatioX
+        local yraw = 512
         local x1 = -xraw
         local x2 = xraw
         local y1 = -yraw
@@ -280,8 +280,8 @@ if CLIENT then
     function ENT:DrawDummy()
         local monitor = self.MonitorDesc
 
-        local xraw = 256 / monitor.RatioX
-        local yraw = 256
+        local xraw = 512 / monitor.RatioX
+        local yraw = 512
         local x1 = -xraw
         local x2 = xraw
         local y1 = -yraw
