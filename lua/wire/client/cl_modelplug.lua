@@ -225,6 +225,7 @@ listAddModels("Wire_button_Models", {
 listAddModels("ThrusterModels", {
 	"models/props_junk/garbage_metalcan001a.mdl",
 	"models/jaanus/thruster_flat.mdl",
+	"models/fasteroid/computerfan.mdl"
 })
 
 listAddModels("Wire_Explosive_Models", {
@@ -362,7 +363,8 @@ listAddModels("Wire_TargetFinder_Models", {
 
 listAddModels("Wire_Forcer_Models", {
 	"models/jaanus/wiretool/wiretool_grabber_forcer.mdl",
-	"models/jaanus/wiretool/wiretool_siren.mdl"
+	"models/jaanus/wiretool/wiretool_siren.mdl",
+	"models/fasteroid/computerfan.mdl"
 })
 
 listAddModels("Wire_Misc_Tools_Models", {
