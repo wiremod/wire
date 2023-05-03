@@ -44,9 +44,9 @@ function E2Lib.setSubMaterial(ent, index, material)
 	duplicator.StoreEntityModifier(ent, "submaterial", { ["SubMaterialOverride_"..index] = material })
 end
 
--- Returns a default e2 table.
+-- Returns a default e2 table instance.
 function E2Lib.newE2Table()
-	return {n={},ntypes={},s={},stypes={},size=0}
+	return { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 }
 end
 
 -- Returns a cloned table of the variable given if it is a table.

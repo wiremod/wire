@@ -433,7 +433,8 @@ function ENT:ResetContext()
 		-- reduces all the opcounters based on the time passed since 
 		-- the last time the chip was reset or errored
 		-- waiting up to 30s before resetting results in a 0.1 multiplier 
-		resetPrfMult = math.max(0.1,(30 - (CurTime() - self.lastResetOrError)) / 30)
+		local passed = CurTime() - self.lastResetOrError
+		resetPrfMult = math.max(0.1, (30 - passed) / 30)
 	end
 	self.lastResetOrError = CurTime()
 
@@ -602,7 +603,11 @@ function ENT:Reset()
 	self.context.resetting = true
 
 	-- reset the chip in the next tick
-	timer.Simple(0, function() if IsValid(self) then self:Setup(self.original, self.inc_files) end end)
+	timer.Simple(0, function()
+		if IsValid(self) then
+			self:Setup(self.original, self.inc_files)
+		end
+	end)
 end
 
 function ENT:TriggerInput(key, value)
