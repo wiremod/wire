@@ -315,9 +315,6 @@ registerCallback("postinit",function()
 	end
 
 	for k,v in pairs( types ) do
-
-		__e2setcost(8)
-
 		-- gSet*(S,*)
 		registerFunction("gSet"..k,"s"..v[1],"",function(self,args)
 			local op1, op2 = args[2], args[3]
@@ -329,7 +326,7 @@ registerCallback("postinit",function()
 				if (!gvars[self.uid][self.data.gvars.group]) then gvars[self.uid][self.data.gvars.group] = {} end
 				gvars[self.uid][self.data.gvars.group][v[1]..rv1] = rv2
 			end
-		end)
+		end, 8, nil, { deprecated = true })
 
 		-- gGet*(S)
 		registerFunction("gGet"..k,"s",v[1],function(self,args)
@@ -344,7 +341,7 @@ registerCallback("postinit",function()
 				if (ret) then return ret end
 				return E2Lib.fixDefault(v[2][2])
 			end
-		end)
+		end, 8, nil, { deprecated = true })
 
 		-- gSet*(N,*) (same as gSet*(N:toString(),*)
 		registerFunction("gSet"..k,"n"..v[1],"",function(self,args)
@@ -357,7 +354,7 @@ registerCallback("postinit",function()
 				if (!gvars[self.uid][self.data.gvars.group]) then gvars[self.uid][self.data.gvars.group] = {} end
 				gvars[self.uid][self.data.gvars.group][v[1]..tostring(rv1)] = rv2
 			end
-		end)
+		end, 8, nil, { deprecated = true })
 
 		-- gGet*(N) (same as gGet*(N:toString()))
 		registerFunction("gGet"..k,"n",v[1],function(self,args)
@@ -372,7 +369,7 @@ registerCallback("postinit",function()
 				if (ret) then return ret end
 				return E2Lib.fixDefault(v[2][2])
 			end
-		end)
+		end, 8, nil, { deprecated = true })
 
 		-- gDelete*(S)
 		registerFunction("gDelete"..k,"s",v[1],function(self,args)
@@ -396,7 +393,7 @@ registerCallback("postinit",function()
 				end
 			end
 			return E2Lib.fixDefault(v[2][2])
-		end)
+		end, 8, nil, { deprecated = true })
 
 		-- gDelete*(N) (same as gDelete*(N:toString()))
 		registerFunction("gDelete"..k,"n",v[1],function(self,args)
@@ -420,9 +417,7 @@ registerCallback("postinit",function()
 				end
 			end
 			return E2Lib.fixDefault(v[2][2])
-		end)
-
-		__e2setcost(5)
+		end, 8, nil, { deprecated = true })
 
 		-- gDeleteAll*()
 		registerFunction("gDeleteAll"..k,"","",function(self,args)
@@ -432,7 +427,7 @@ registerCallback("postinit",function()
 					v = nil
 				end
 			end
-		end)
+		end, 5, nil, { deprecated = true })
 	end
 
 end)

@@ -602,12 +602,6 @@ function ENT:Reset()
 	-- prevent E2 from executing anything
 	self.context.resetting = true
 
-	if self.context.timebench > e2_timequota then -- Abusing reset() at end of excution.
-		-- E2Lib.abuse(self.player)
-		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
-		return
-	end
-
 	-- reset the chip in the next tick
 	timer.Simple(0, function()
 		if IsValid(self) then
