@@ -1057,6 +1057,14 @@ e2function void holoDisableShading( index, disable )
 	Holo.ent:SetNWBool( "disable_shading", disable == 1 )
 end
 
+e2function void holoInvertModel( index, enable )
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	local enable = math.clamp(math.ceil(enable), 0, 1)
+	
+	Holo.ent:SetNWBool( "invert_model", enable)
+end
+
 -- -----------------------------------------------------------------------------
 
 e2function array holoModelList()
