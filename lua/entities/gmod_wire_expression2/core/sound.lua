@@ -4,6 +4,9 @@
 
 E2Lib.RegisterExtension("sound", true, "Allows E2s to play sounds.", "Sounds can be played out of arbitrary entities, including other players.")
 
+local SoundLib = SoundLib or {}
+E2Lib.SoundLib = SoundLib
+
 local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 16, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_burst_max", 8, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1, {FCVAR_ARCHIVE} )
@@ -38,11 +41,14 @@ local function isAllowed( self )
 
 	return true
 end
+SoundLib.isAllowed = isAllowed
 
 local function getSound( self, index )
 	if isnumber( index ) then index = math.floor( index ) end
 	return self.data.sound_data.sounds[index]
 end
+SoundLib.getSound = getSound
+
 
 local function soundStop(self, index, fade)
 	local sound = getSound( self, index )
@@ -65,6 +71,7 @@ local function soundStop(self, index, fade)
 
 	timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index )
 end
+SoundLib.soundStop = soundStop
 
 local function soundCreate(self, entity, index, time, path, fade)
 	if path:match('["?]') then return end
@@ -104,6 +111,7 @@ local function soundCreate(self, entity, index, time, path, fade)
 		soundStop( self, index, fade )
 	end)
 end
+SoundLib.soundCreate = soundCreate
 
 local function soundPurge( self )
 	local sound_data = self.data.sound_data
@@ -117,6 +125,7 @@ local function soundPurge( self )
 	sound_data.sounds = {}
 	sound_data.count = 0
 end
+SoundLib.soundPurge = soundPurge
 
 ---------------------------------------------------------------
 -- Play functions
