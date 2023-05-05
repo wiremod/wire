@@ -1060,9 +1060,8 @@ end
 e2function void holoInvertModel( index, enable )
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	local enable = math.clamp(math.ceil(enable), 0, 1)
 	
-	Holo.ent:SetNWBool( "invert_model", enable)
+	Holo.ent:SetNWBool( "invert_model", enable ~= 0 and 1 or 0)
 end
 
 -- -----------------------------------------------------------------------------
