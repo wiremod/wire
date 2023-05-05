@@ -323,7 +323,6 @@ listAddModels("Wire_Light_Models", {
 	"models/jaanus/wiretool/wiretool_range.mdl",
 	"models/jaanus/wiretool/wiretool_siren.mdl",
 	"models/MaxOfS2D/light_tubular.mdl",
-	"models/fasteroid/led.mdl",
 	"models/fasteroid/led_mini.mdl"
 ,	"models/fasteroid/led_nano.mdl"
 })
@@ -378,9 +377,7 @@ listAddModels("Wire_Laser_Tools_Models", {
 	"models/jaanus/wiretool/wiretool_range.mdl",
 	"models/jaanus/wiretool/wiretool_siren.mdl",
 	"models/jaanus/wiretool/wiretool_beamcaster.mdl",
-	"models/fasteroid/led.mdl",
 	"models/fasteroid/led_mini.mdl"
-,	"models/fasteroid/led_nano.mdl"
 })
 
 listAddModels("Wire_Socket_Models",{
@@ -590,7 +587,6 @@ listAddModels("Wire_indicator_Models", {
 	"models/props_trainstation/trainstation_clock001.mdl",
 	"models/segment.mdl",
 	"models/segment2.mdl",
-	"models/fasteroid/led.mdl",
 	"models/fasteroid/led_mini.mdl"
 ,	"models/fasteroid/led_nano.mdl"
 })
@@ -606,7 +602,6 @@ listAddModels("Wire_pixel_Models", {
 	"models/props_junk/PopCan01a.mdl",
 	"models/segment.mdl",
 	"models/segment2.mdl",
-	"models/fasteroid/led.mdl",
 	"models/fasteroid/led_mini.mdl"
 ,	"models/fasteroid/led_nano.mdl"
 })
