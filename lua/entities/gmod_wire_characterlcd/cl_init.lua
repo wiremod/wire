@@ -60,7 +60,7 @@ function ENT:Initialize()
 	mem[1020] = 0.25
 	mem[1021] = 0
 	mem[1022] = 1
-	mem[1023] = 0
+	mem[1023] = 1
 
 	self.IntTimer = 0
 	self.Flash = false
@@ -511,7 +511,7 @@ function ENT:Draw()
 			if self.IntTimer >= mem[1019]*2 then
 				self.IntTimer = (self.IntTimer - mem[1019]*2) % math.max(mem[1019]*2,0.01)
 			else
-				self.GPU:RenderToWorld(nil, nil, function()
+				self.GPU:RenderToWorld(mem[1009]*szx, mem[1010]*szy, function()
 					local a = math.floor(mem[1021])
 
 					local tx = a - math.floor(a / mem[1009])*mem[1009]
@@ -535,7 +535,7 @@ function ENT:Draw()
 						szx-2,
 						szy*mem[1020]
 					)
-				end)
+				end, nil, true)
 			end
 		end
 	end
