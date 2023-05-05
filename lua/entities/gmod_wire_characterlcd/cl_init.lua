@@ -418,27 +418,10 @@ end
 function ENT:Draw()
 	self:DrawModel()
 
-	local mem = self.Memory
-	if mem[1022] >= 1 then
-		self.IntTimer = self.IntTimer + FrameTime()
-		if self.IntTimer >= mem[1019] then
-			if self.IntTimer >= mem[1019]*2 then
-				self.IntTimer = (self.IntTimer - mem[1019]*2) % math.max(mem[1019]*2,0.01)
-				if self.Flash then
-					self.Flash = false
-					mem[1023] = 1
-				end
-			else
-				if not self.Flash then
-					self.Flash = true
-					mem[1023] = 1
-				end
-			end
-		end
-	end
-
 	local szx = 18
 	local szy = 24
+	local mem = self.Memory
+
 	if mem[1023] >= 1 then
 		mem[1023] = 0
  
@@ -517,31 +500,46 @@ function ENT:Draw()
 					end
 				end
 			end
-
-
-			if mem[1022] >= 1 and self.Flash then
-				local a = math.floor(mem[1021])
-
-				local tx = a - math.floor(a / mem[1009])*mem[1009]
-				local ty = math.floor(a / mem[1009])
-
-				surface.SetDrawColor(
-					fr,
-					fg,
-					fb,
-					255
-				)
-				surface.DrawRect(
-					(tx)*szx+1,
-					(ty)*szy+szy*(1-mem[1020]),
-					szx-2,
-					szy*mem[1020]
-				)
-			end
 		 end)
 	end
 
 	self.GPU:Render(0,0,1024,1024,nil,-(1024-mem[1009]*szx)/1024,-(1024-mem[1010]*szy)/1024)
+
+	if mem[1022] >= 1 then
+		self.IntTimer = self.IntTimer + FrameTime()
+		if self.IntTimer >= mem[1019] then
+			if self.IntTimer >= mem[1019]*2 then
+				self.IntTimer = (self.IntTimer - mem[1019]*2) % math.max(mem[1019]*2,0.01)
+			else
+				self.GPU:RenderToWorld(nil, nil, function()
+					local a = math.floor(mem[1021])
+
+					local tx = a - math.floor(a / mem[1009])*mem[1009]
+					local ty = math.floor(a / mem[1009])
+
+					local sqc = math.min(1,math.max(0,mem[1016]-0.9))
+					local fc = math.min(1,math.max(sqc,mem[1016]))
+					local fr = (1-fc)*mem[1003]+fc*mem[1006]
+					local fg = (1-fc)*mem[1004]+fc*mem[1007]
+					local fb = (1-fc)*mem[1005]+fc*mem[1008]
+
+					surface.SetDrawColor(
+						fr,
+						fg,
+						fb,
+						255
+					)
+					surface.DrawRect(
+						(tx)*szx+1,
+						(ty)*szy+szy*(1-mem[1020]),
+						szx-2,
+						szy*mem[1020]
+					)
+				end)
+			end
+		end
+	end
+
 	Wire_Render(self)
 end
 
