@@ -488,7 +488,8 @@ listAddModels("Wire_chip_Models", {
 	"models/kobilica/capacatitor.mdl",
 	"models/kobilica/lowpolygate.mdl",
 	"models/kobilica/transistor.mdl",
-	"models/kobilica/transistorsmall.mdl"
+	"models/kobilica/transistorsmall.mdl",
+	"models/fasteroid/inductor.mdl"
 })
 
 listAddModels("Wire_detonator_Models",{
@@ -563,7 +564,8 @@ listAddModels("Wire_gate_Models", {
 	"models/kobilica/capacatitor.mdl",
 	"models/kobilica/lowpolygate.mdl",
 	"models/kobilica/transistor.mdl",
-	"models/kobilica/transistorsmall.mdl"
+	"models/kobilica/transistorsmall.mdl",
+	"models/fasteroid/inductor.mdl"
 })
 
 listAddModels("Wire_gyroscope_Models",{
