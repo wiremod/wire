@@ -121,7 +121,8 @@ if CLIENT then
 
 		self:SetupClipping()
 		
-		render.CullMode(self:GetNWBool("invert_model", 0))
+		local invert_model = self:GetNWInt("invert_model")
+		render.CullMode(invert_model)
 		
 		if self:GetNWBool("disable_shading") then
 			render.SuppressEngineLighting(true)
@@ -131,7 +132,7 @@ if CLIENT then
 			self:DrawModel()
 		end
 		
-		if self:GetNWBool("invert_model") then
+		if invert_model ~= 0 then
 			render.CullMode(0)
 		end
 

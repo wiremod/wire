@@ -1061,7 +1061,7 @@ e2function void holoInvertModel( index, enable )
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 	
-	Holo.ent:SetNWBool( "invert_model", enable ~= 0 and 1 or 0 )
+	Holo.ent:SetNWInt("invert_model", enable ~= 0 and 1 or 0)
 end
 
 -- -----------------------------------------------------------------------------
