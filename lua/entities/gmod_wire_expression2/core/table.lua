@@ -1039,6 +1039,7 @@ end
 --------------------------------------------------------------------------------
 
 registerCallback( "postinit", function()
+	E2Lib.currentextension = "table"
 	local getf, setf
 	for k,v in pairs( wire_expression_types ) do
 		local name = k
