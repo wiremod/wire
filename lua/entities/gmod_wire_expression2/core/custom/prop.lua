@@ -58,26 +58,28 @@ local canHaveInvalidPhysics = {
 	shadow=true, draw=true, use=true, pos=true, ang=true,
 	manipulate=true
 }
-function PropCore.ValidAction(self, entity, cmd, parent, index)
-	if not parent then parent = entity end
+function PropCore.ValidAction(self, entity, cmd, bone, index)
 	if cmd == "spawn" or cmd == "Tdelete" then return true end
-	if not IsValid(parent) then return self:throw("Invalid entity!", false) end
-	if not canHaveInvalidPhysics[cmd] and not validPhysics(parent) then return self:throw("Invalid physics object!", false) end
-	if not isOwner(self, parent) then return self:throw("You do not own this entity!", false) end
-	if type(entity) == "PhysObj" then
-		if not parent["bone"..index] then 
-			parent["bone"..index] = {}
+	if not IsValid(entity) then return self:throw("Invalid entity!", false) end
+	if not canHaveInvalidPhysics[cmd] and not validPhysics(entity) then return self:throw("Invalid physics object!", false) end
+	if not isOwner(self, entity) then return self:throw("You do not own this entity!", false) end
+	if entity:IsPlayer() then return self:throw("You cannot modify players", false) end
+	
+	if bone then
+		if not entity["bone"..index] then 
+			entity["bone"..index] = {}
 		end
-	elseif entity:IsPlayer() then return self:throw("You cannot modify players", false) end
+		entity = entity["bone"..index]
+	end
 
 	-- make sure we can only perform the same action on this prop once per tick
 	-- to prevent spam abuse
-	if not parent.e2_propcore_last_action then
-		parent.e2_propcore_last_action = {}
+	if not entity.e2_propcore_last_action then
+		entity.e2_propcore_last_action = {}
 	end
-	if 	parent.e2_propcore_last_action[cmd] and
-		parent.e2_propcore_last_action[cmd] == CurTime() then return self:throw("You can only perform one type of action per tick!", false) end
-	parent.e2_propcore_last_action[cmd] = CurTime()
+	if 	entity.e2_propcore_last_action[cmd] and
+		entity.e2_propcore_last_action[cmd] == CurTime() then return self:throw("You can only perform one type of action per tick!", false) end
+	entity.e2_propcore_last_action[cmd] = CurTime()
 
 	local ply = self.player
 	return sbox_E2_PropCore:GetInt()==2 or (sbox_E2_PropCore:GetInt()==1 and ply:IsAdmin())
@@ -478,7 +480,7 @@ end
 
 e2function void bone:boneManipulate(vector pos, angle rot, isFrozen, gravity, collision)
 	ent, index = boneVerify(self, this)
-	if not ValidAction(self, this, "manipulate", ent, index) then return end
+	if not ValidAction(self, ent, "manipulate", this, index) then return end
 	
 	setPos(this, pos)
 	setAng(this, rot)
@@ -528,21 +530,21 @@ end
 
 e2function void bone:setVelocity(vector velocity)
 	ent, index = boneVerify(self, this)
-	if not ValidAction(self, this, "velocitynxt", ent, index) then return end
+	if not ValidAction(self, ent, "velocitynxt", this, index) then return end
 	this:SetVelocity(Vector(velocity[1], velocity[2], velocity[3]))
 	ent:PhysWake()
 end
 
 e2function void bone:setVelocityInstant(vector velocity)
 	ent, index = boneVerify(self, this)
-	if not ValidAction(self, this, "velocityins", ent, index) then return end
+	if not ValidAction(self, ent, "velocityins", this, index) then return end
 	this:SetVelocityInstantaneous(Vector(velocity[1], velocity[2], velocity[3]))
 	ent:PhysWake()
 end
 
 e2function void bone:setAngVelocity(vector velocity)
 	ent, index = boneVerify(self, this)
-	if not ValidAction(self, this, "angvelnxt", ent, index) then return end
+	if not ValidAction(self, ent, "angvelnxt", this, index) then return end
 	this:SetAngleVelocity(Vector(velocity[1], velocity[2], velocity[3]))
 	ent:PhysWake()
 end
@@ -631,14 +633,14 @@ e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle
 
 e2function void bone:setPos(vector pos)
 	ent, index = boneVerify(self, this)
-	if not ValidAction(self, this, "pos", ent, index) then return end
+	if not ValidAction(self, ent, "pos", this, index) then return end
 	setPos( this, pos )
 	ent:PhysWake()
 end
 	
 e2function void bone:setAng(angle rot)
 	ent, index = boneVerify(self, this)
-	if not ValidAction(self, this, "ang", ent, index) then return end
+	if not ValidAction(self, ent, "ang", this, index) then return end
 	setAng( this, rot )
 	ent:PhysWake()
 end
