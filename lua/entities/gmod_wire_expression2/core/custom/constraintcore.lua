@@ -750,7 +750,6 @@ registerCallback( "postinit", function()
 	for k,v in pairs(forms) do
 		for i = 0, 2, 2 do
 			registerFunction("weld",v..weldpars:sub(0,i), "", function(self, args)
-				print(args)
 				local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
 				local ent1, ent2, bone1, bone2, forcelimit, nocollide = op1[1](self, op1), op2[1](self, op2), 0, 0, 0, 1
 				if #args > 4 then
@@ -762,7 +761,6 @@ registerCallback( "postinit", function()
 					if type(ent2) == "PhysObj" then
 					ent2, bone2 = isValidBone(ent2)
 				end
-				print(ent1, ent2, forcelimit, nocollide)
 				weldCreate(self, ent1, ent2, bone1, bone2, forcelimit, nocollide)
 			end, 30, {"target", "forcelimit", "nocollide"})
 		end
@@ -776,7 +774,6 @@ registerCallback( "postinit", function()
 			if type(ent2) == "PhysObj" then
 				ent2, bone2 = isValidBone(ent2)
 			end
-			print(ent1, ent2, bone1, bone2)
 			noCollideCreate(self, ent1, ent2, bone1, bone2)
 		end, 30, {"target"})
 	end
