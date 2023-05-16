@@ -12,7 +12,7 @@ local function boneVerify(self, bone)
 	return ent, index
 end
 
--- Leveraged from Propcore. Probably not even necessary.
+-- Leveraged from Propcore. Not implemented for testing.
 --[[
 local function validAction(self, bone, cmd)
 	local ent = boneVerify(self, bone)
