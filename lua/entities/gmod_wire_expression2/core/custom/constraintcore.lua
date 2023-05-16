@@ -647,7 +647,7 @@ local function noCollideCreate(self, ent1, ent2, bone1, bone2)
 end
 
 e2function void entity:noCollide(entity target)
-	noCollideCreate(this, target)
+	noCollideCreate(self, this, target)
 end
 
 e2function void entity:noCollide(bone target)
