@@ -498,18 +498,6 @@ end
 
 __e2setcost(30)
 
-e2function void entity:ragdollFreeze(isFrozen)
-	if not ValidAction(self, this, "ragfreeze") then return end
-	local maxn = this:GetPhysicsObjectCount()-1
-	
-	for i = 0,maxn do
-		bone = getBone(this, i)
-		
-		bone:EnableMotion( isFrozen == 0 )
-		bone:Wake()
-	end
-end
-
 e2function void bone:setCollisions(enable)
 	if not boneVerify(self, this) then return end
 	this:EnableCollisions(enable ~= 0)
@@ -655,7 +643,21 @@ e2function void bone:setAng(angle rot)
 	ent:PhysWake()
 end
 
-__e2setcost(50)
+__e2setcost(60)
+
+e2function void entity:ragdollFreeze(isFrozen)
+	if not ValidAction(self, this, "ragfreeze") then return end
+	local maxn = this:GetPhysicsObjectCount()-1
+	
+	for i = 0,maxn do
+		bone = getBone(this, i)
+		
+		bone:EnableMotion( isFrozen == 0 )
+		bone:Wake()
+	end
+end
+
+__e2setcost(150)
 
 e2function void entity:ragdollSetPos(vector pos)
 	if not ValidAction(self, this, "pos") then return end
@@ -676,6 +678,8 @@ e2function void entity:ragdollSetPos(vector pos)
 	
 	this:PhysWake()
 end
+
+__e2setcost(300)
 
 e2function void entity:ragdollSetAng(angle rot)
 	if not ValidAction(self, this, "rot") then return end
