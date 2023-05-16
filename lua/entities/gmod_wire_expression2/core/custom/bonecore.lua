@@ -49,7 +49,7 @@ e2function void bone:setAng(angle rot)
 end
 
 e2function void entity:ragdollFreeze(isFrozen)
-	if not IsValid(this) then return {} end
+	if not IsValid(this) then return end
 	local maxn = this:GetPhysicsObjectCount()-1
 	
 	for i = 0,maxn do
@@ -57,6 +57,66 @@ e2function void entity:ragdollFreeze(isFrozen)
 		
 		bone:EnableMotion( isFrozen == 0 )
 		bone:Wake()
+	end
+end
+
+__e2setcost(500)
+
+-- This code was leveraged from Garry's Mod. Perhaps it would be a bit cleaner with a slight rewrite.
+e2function void entity:makeStatue(enable)
+	if not IsValid(this) then return end
+	if this:GetNWBool("IsStatue") and enable ~= 0 then return
+	elseif not this:GetNWBool("IsStatue") and enable == 0 then return end
+	
+	
+	local timeout = this.statueTimeout
+	if timeout and timeout.time > CurTime() then
+		self:throw("Wait before repeated statue operations", false)
+		return
+	end
+
+	local bones = this:GetPhysicsObjectCount()
+	if bones < 2 then return end
+	
+	if enable ~= 0 then
+		if this.StatueInfo then return end
+		local ply = self.player
+		
+		this.StatueInfo = {}
+
+		for bone = 1, bones - 1 do
+			local constraint = constraint.Weld(this, this, 0, bone, 0)
+
+			if constraint then
+				this.StatueInfo[ bone ] = constraint
+				ply:AddCleanup( "constraints", constraint )
+				undo.AddEntity( constraint )
+			end
+		end
+
+		this:SetNWBool( "IsStatue", true )
+
+		this.statueTimeout = { time = CurTime() + 1 }
+	else
+		if not this.StatueInfo then return end
+		local ply = self.player
+
+		for k, v in pairs( this.StatueInfo ) do
+
+			if IsValid( v ) then
+				v:Remove()
+			end
+
+		end
+
+		this:SetNWBool( "IsStatue", false )
+		this.StatueInfo = nil
+		if timeout.time + 5 < CurTime() then
+			this.statueTimeout = nil
+		else
+			this.statueTimeout = { time = CurTime() + 1 }
+		end
+
 	end
 end
 
