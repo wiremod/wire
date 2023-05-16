@@ -62,3 +62,5 @@ E2Helper.Descriptions["setAngVelocityInstant(b:v)"] = "Sets the initial angular 
 E2Helper.Descriptions["makeStatue(e:n)"] = "Applies the 'statue' effect on a ragdoll. Remove it by passing 0."
 E2Helper.Descriptions["setPos(b:v)"] = "Sets the position of a bone."
 E2Helper.Descriptions["setAng(b:a)"] = "Set the rotation of a bone."
+E2Helper.Descriptions["ragdollSetPos(e:v)"] = "Sets the position of a ragdoll while preserving pose."
+E2Helper.Descriptions["ragdollSetAng(e:a)"] = "Set the rotation of a ragdoll while preserving pose."
