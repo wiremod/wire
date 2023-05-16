@@ -673,7 +673,7 @@ local function weldCreate(self, ent1, ent2, bone1, bone2, forcelimit, nocollide)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "Weld", ent1, ent2) then return end
 
-	local cons = constraint.Weld(ent1, ent2, bone1 or 0, bone2 or 0, forcelimit or 0, nocollide == 1)
+	local cons = constraint.Weld(ent1, ent2, bone1 or 0, bone2 or 0, forcelimit or 0, nocollide ~= 0)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "Weld", ent1, ent2, cons)
