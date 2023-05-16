@@ -62,8 +62,7 @@ __e2setcost(10)
 
 e2function void bone:setDrag( number drag )
 	if not boneVerify(self, this) then return end
-		this:EnableDrag( drag ~= 0 )
-	end
+	this:EnableDrag( drag ~= 0 )
 end
 
 e2function void bone:setInertia( vector inertia )
@@ -77,6 +76,5 @@ end
 e2function void bone:setBuoyancy(number buoyancy)
 	if not boneVerify(self, this) then return end
 	this:SetBuoyancyRatio( math.Clamp(buoyancy, 0, 1) )
-	end
 end
 
