@@ -2,6 +2,8 @@ E2Lib.RegisterExtension("constraintcore", false, "Allows the creation and manipu
 
 local Vector = Vector
 local IsValid = IsValid
+local isValidBone = E2Lib.isValidBone
+local getBone = E2Lib.getBone
 local math_min = math.min
 local math_max = math.max
 local table_insert = table.insert
@@ -350,91 +352,103 @@ end
 
 
 --  == Hydraulic ==
+local function createHydraulic(self, index, ent1, ent2, v1, v2, width, bone1, bone2, constant, damping, rdamping, mat, stretch, color)
+	if not checkEnts( self, ent1, ent2 ) then return end
+	if not checkCount( self, "Hydraulic", ent1, ent2 ) then return end
+	if not checkEdicts( self ) then return end
+	local constraints = setupEntConstraints( ent1 )
+
+	width = math.Clamp(width, 0, 50)
+
+	local existing = constraints[index]
+	if IsValid( existing ) then existing:Remove() end
+	
+	if color ~= nil then
+		color = Color(color[1],color[2],color[3],255)
+	end
+	if not constant or not damping then
+		if bone1 then
+			phys1 = getBone(ent1,bone1)
+		else
+			phys1 = ent1:GetPhysicsObject()
+		end
+		if bone2 then
+			phys2 = getBone(ent2,bone2)
+		else
+			phys2 = ent2:GetPhysicsObject()
+		end
+		
+		constant, damping = CalcElasticConsts( phys1, phys2, ent1, ent2 )
+	end
+	
+	local cons, rope = constraint.Elastic( ent1, ent2, bone1 or 0, bone2 or 0, v1, v2, constant, damping, rdamping or 0, mat ~= "" and mat or "cable/cable2", width or 1, stretch ~= 0, color )
+	if not verifyConstraint( self, cons ) then return end
+
+	constraints[index] = cons
+	postCreate( self, "Hydraulic", ent1, ent2, cons, rope )
+end
+
+e2function void hydraulic(index, entity ent, vector v1, bone bone, vector v2, width)
+	entBone, index = isValidBone(bone)
+	createHydraulic(self, index, ent, entBone, v1, v2, width, 0, index)
+end
+
+e2function void hydraulic(index, entity ent, vector v1, bone bone, vector v2, constant, damping, rdamping, string mat, width, stretch)
+	entBone, index = isValidBone(bone)
+	createHydraulic(self, index, ent, entBone, v1, v2, width, 0, index, constant, damping, rdamping, mat, stretch)
+end
+
+e2function void hydraulic(index, entity ent, vector v1, bone bone, vector v2, constant, damping, rdamping, string mat, width, stretch, vector color)
+	entBone, index = isValidBone(bone)
+	createHydraulic(self, index, ent, entBone, v1, v2, width, 0, index, constant, damping, rdamping, mat, stretch, color)
+end
+
+e2function void hydraulic(index, bone bone1, vector v1, bone bone2, vector v2, width)
+	ent1, index1 = isValidBone(bone1)
+	ent2, index2 = isValidBone(bone2)
+	createHydraulic(self, index, ent1, ent2, v1, v2, width, index1, index2)
+end
+
+e2function void hydraulic(index, bone bone1, vector v1, bone bone2, vector v2, constant, damping, rdamping, string mat, width, stretch)
+	ent1, index1 = isValidBone(bone1)
+	ent2, index2 = isValidBone(bone2)
+	createHydraulic(self, index, ent1, ent2, v1, v2, width, index1, index2, constant, damping, rdamping, mat, stretch)
+end
+
+e2function void hydraulic(index, bone bone1, vector v1, bone bone2, vector v2, constant, damping, rdamping, string mat, width, stretch, vector color)
+	ent1, index1 = isValidBone(bone1)
+	ent2, index2 = isValidBone(bone2)
+	createHydraulic(self, index, ent1, ent2, v1, v2, width, index1, index2, constant, damping, rdamping, mat, stretch, color)
+end
+
+e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, constant, damping, rdamping, string mat, width, stretch, vector color)
+	createHydraulic(self, index, ent1, ent2, v1, v2, width, 0, 0, constant, damping, rdamping, mat, stretch, color)
+end
 
 -- Note: Winch is just a rename of Hydraulic with the last parameter True.
 --- Makes a winch constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, with <width> width.
 e2function void winch(index, entity ent1, vector v1, entity ent2, vector v2, width)
-	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Hydraulic" , ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
-	local constraints = setupEntConstraints( ent1 )
-
-	if width < 0 or width > 50 then width = 1 end
-
-	local existing = constraints[index]
-	if IsValid( existing ) then existing:Remove() end
-
-	local constant, dampen = CalcElasticConsts( ent1:GetPhysicsObject(), ent2:GetPhysicsObject(), ent1, ent2 )
-	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, v1, v2, constant, dampen, 0, "cable/cable2", width, true )
-	if not verifyConstraint( self, cons ) then return end
-
-	constraints[index] = cons
-	postCreate( self, "Hydraulic", ent1, ent2, cons, rope )
+	createHydraulic(self, index, ent1, ent2, v1, v2, width, 0, 0, nil, nil, nil, "cable/cable2", width, 1)
 end
 
 --- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, with <width> width.
 e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, width)
-	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Hydraulic", ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
-	local constraints = setupEntConstraints( ent1 )
-
-	if width < 0 or width > 50 then width = 1 end
-
-	local existing = constraints[index]
-	if IsValid( existing ) then existing:Remove() end
-
-	local constant, dampen = CalcElasticConsts( ent1:GetPhysicsObject(), ent2:GetPhysicsObject(), ent1, ent2 )
-	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, v1, v2, constant, dampen, 0, "cable/cable2", width, false )
-	if not verifyConstraint( self, cons ) then return end
-
-	constraints[index] = cons
-	postCreate( self, "Hydraulic", ent1, ent2, cons, rope )
+	createHydraulic(self, index, ent1, ent2, v1, v2, width)
 end
 
 --- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, constant and damping, with <width> width, <mat> material, and <stretch> stretch only option.
 e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, constant, damping, string mat, width, stretch)
-	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Hydraulic", ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
-	local constraints = setupEntConstraints( ent1 )
-
-	if width < 0 or width > 50 then width = 1 end
-
-	local existing = constraints[index]
-	if IsValid( existing ) then existing:Remove() end
-
-	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, v1, v2, constant, damping, 0, mat, width, tobool( stretch ) )
-	if not verifyConstraint( self, cons ) then return end
-
-	constraints[index] = cons
-	postCreate( self, "Hydraulic", ent1, ent2, cons, rope )
+	createHydraulic(self, index, ent1, ent2, v1, v2, width, 0, 0, constant, damping, 0, mat, stretch)
 end
 
 --- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, constant, damping and relative damping, with <width> width, <mat> material, and <stretch> stretch only option.
 e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, constant, damping, rdamping, string mat, width, stretch)
-	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Hydraulic", ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
-	local constraints = setupEntConstraints( ent1 )
-
-	if width < 0 or width > 50 then width = 1 end
-
-	local existing = constraints[index]
-	if IsValid( existing ) then existing:Remove() end
-
-	local cons, rope = constraint.Elastic( ent1, ent2, 0, 0, v1, v2, constant, damping, rdamping, mat, width, tobool( stretch ) )
-	if not verifyConstraint( self, cons ) then return end
-
-	constraints[index] = cons
-	postCreate( self, "Hydraulic", ent1, ent2, cons, rope )
+	createHydraulic(self, index, ent1, ent2, v1, v2, width, 0, 0, constant, damping, rdamping, mat, stretch)
 end
 
 
 -- == Rope ==
-
---- Creates a rope between <ent1> and <ent2> at vector positions local to each ent.
-e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2)
+local function createRope(self, index, ent1, ent2, v1, v2, bone1, bone2, addlength, width, mat, rigid, color)
 	if not checkEnts( self, ent1, ent2 ) then return end
 	if not checkCount( self, "Rope", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
@@ -445,49 +459,56 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2)
 	local existing = constraints[index]
 	if IsValid( existing ) then existing:Remove() end
 
-	local cons, rope = constraint.Rope( ent1, ent2, 0, 0, v1, v2, length, 0, 0, 1, "cable/rope", false )
+	if color then
+		color = Color(color[1],color[2],color[3],255)
+	end
+	
+	local cons, rope = constraint.Rope( ent1, ent2, bone1 or 0, bone2 or 0, v1, v2, length, addlength or 0, 0, width or 1, mat ~= "" and mat or "cable/rope", rigid ~= 0,  color )
 	if not verifyConstraint( self, cons ) then return end
 
 	constraints[index] = cons
 	postCreate( self, "Rope", ent1, ent2, cons, rope )
+end
+
+e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, string mat, rigid, vector color )
+	createRope(self, index, ent1, ent2, v1, v2, 0, 0, addlength, width, mat, rigid, color)
+end
+
+e2function void rope(index, entity ent, vector v1, bone bone, vector v2)
+	entBone, index = isValidBone(bone)
+	createRope(self, index, ent, entBone, v1, v2, 0, index)
+end
+
+e2function void rope(index, entity ent, vector v1, bone bone, vector v2, addlength, width, string mat, rigid, vector color )
+	entBone, index = isValidBone(bone)
+	createRope(self, index, ent, entBone, v1, v2, 0, index, addlength, width, mat, rigid, color)
+end
+
+e2function void rope(index, bone bone1, vector v1, bone bone2, vector v2)
+	ent1, index1 = isValidBone(bone1)
+	ent2, index2 = isValidBone(bone2)
+	createRope(self, index, ent1, ent2, v1, v2, index1, index2)
+end
+
+e2function void rope(index, bone bone1, vector v1, bone bone2, vector v2, addlength, width, string mat, rigid, vector color )
+	ent1, index1 = isValidBone(bone1)
+	ent2, index2 = isValidBone(bone2)
+	createRope(self, index, ent1, ent2, v1, v2, index1, index2, addlength, width, mat, rigid, color)
+end
+
+--- Creates a rope between <ent1> and <ent2> at vector positions local to each ent.
+e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2)
+	createRope(self, index, ent1, ent2, v1, v2)
 end
 
 --- Creates a rope between <ent1> and <ent2> at vector positions local to each ent, with <addlength> additional length, <width> width, and <mat> material.
 e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, string mat)
-	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Rope", ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
-	local constraints = setupEntConstraints( ent1 )
-
-	local length = ( ent1:LocalToWorld(v1) - ent2:LocalToWorld(v2)):Length( )
-
-	local existing = constraints[index]
-	if IsValid( existing ) then existing:Remove() end
-
-	local cons, rope = constraint.Rope( ent1, ent2, 0, 0, v1, v2, length, addlength, 0, width, mat, false )
-	if not verifyConstraint( self, cons ) then return end
-
-	constraints[index] = cons
-	postCreate( self, "Rope", ent1, ent2, cons, rope )
+	createRope(self, index, ent1, ent2, v1, v2, 0, 0, addlength, width, mat)
 end
 
 --- Creates a rope between <ent1> and <ent2> at vector positions local to each ent, with <addlength> additional length, <width> width, and <mat> material.
 e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, string mat, rigid )
-	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Rope", ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
-	local constraints = setupEntConstraints( ent1 )
-
-	local length = ( ent1:LocalToWorld( v1 ) - ent2:LocalToWorld( v2 ) ):Length()
-
-	local existing = constraints[index]
-	if IsValid( existing ) then existing:Remove() end
-
-	local cons, rope = constraint.Rope( ent1, ent2, 0, 0, v1, v2, length, addlength, 0, width, mat, tobool( rigid ) )
-	if not verifyConstraint( self, cons ) then return end
-
-	constraints[index] = cons
-	postCreate( self, "Rope", ent1, ent2, cons, rope )
+	createRope(self, index, ent1, ent2, v1, v2, 0, 0, addlength, width, mat, rigid)
 end
 
 __e2setcost(5)
@@ -561,46 +582,84 @@ __e2setcost(30)
 
 
 -- == Sliders ==
-
---- Creates a slider between <ent1> and <ent2> at vector positions local to each ent.
-e2function void slider(entity ent1, vector v1, entity ent2, vector v2)
+local function createSlider(self, ent1, ent2, v1, v2, width, bone1, bone2, mat, color)
 	if not checkEnts( self, ent1, ent2 ) then return end
 	if not checkCount( self, "Slider", ent1, ent2 ) then return end
 	if not checkEdicts( self ) then return end
-
-	local cons, rope = constraint.Slider( ent1, ent2, 0, 0, v1, v2, 1 )
-	if not verifyConstraint( self, cons ) then return end
-
-	postCreate( self, "Slider", ent1, ent2, cons, rope )
-end
-
---- Creates a slider between <ent1> and <ent2> at vector positions local to each ent, with <width> width.
-e2function void slider(entity ent1, vector v1, entity ent2, vector v2, width)
-	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Slider", ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
-
-	local cons, rope = constraint.Slider( ent1, ent2, 0, 0, v1, v2, width )
+	
+	if color then
+		color = Color(color[1],color[2],color[3],255)
+	end
+	
+	local cons, rope = constraint.Slider( ent1, ent2, bone1 or 0, bone2 or 0, v1, v2, width or 1, mat ~= "" and mat or "cable/cable2", color )
 	if not verifyConstraint( self, cons ) then return end
 
 	postCreate(self, "Slider", ent1, ent2, cons, rope)
 end
 
+e2function void slider(entity ent, vector v1, bone bone, vector v2)
+	entBone, index = isValidBone(bone)
+	createSlider(self, ent, entBone, v1, v2, 1, 0, index)
+end
+
+e2function void slider(entity ent, vector v1, bone bone, vector v2, width, string mat, vector color)
+	entBone, index = isValidBone(bone)
+	createSlider(self, ent, entBone, v1, v2, width, 0, index, mat, color)
+end
+
+e2function void slider(bone bone1, vector v1, bone bone2, vector v2)
+	ent1, index1 = isValidBone(bone1)
+	ent2, index2 = isValidBone(bone2)
+	createSlider(self, ent1, ent2, v1, v2, 1, index1, index2)
+end
+
+e2function void slider(bone bone1, vector v1, bone bone2, vector v2, width, string mat, vector color)
+	ent1, index1 = isValidBone(bone1)
+	ent2, index2 = isValidBone(bone2)
+	createSlider(self, ent1, ent2, v1, v2, width, index1, index2, mat, color)
+end
+
+e2function void slider(entity ent1, vector v1, entity ent2, vector v2, width, string mat, vector color)
+	createSlider(self, ent1, ent2, v1, v2, width, 0, 0, mat, color)
+end
+
+--- Creates a slider between <ent1> and <ent2> at vector positions local to each ent.
+e2function void slider(entity ent1, vector v1, entity ent2, vector v2)
+	createSlider(self, ent1, ent2, v1, v2)
+end
+
+--- Creates a slider between <ent1> and <ent2> at vector positions local to each ent, with <width> width.
+e2function void slider(entity ent1, vector v1, entity ent2, vector v2, width)
+	createSlider(self, ent1, ent2, v1, v2, width)
+end
+
 
 -- == NoCollide ==
-
---- Nocollides <ent1> to <ent2>
-e2function void noCollide(entity ent1, entity ent2)
+local function noCollideCreate(self, ent1, ent2, bone1, bone2)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "NoCollide", ent1, ent2) then return end
-
-	local cons = constraint.NoCollide(ent1, ent2, 0, 0)
+	
+	local cons = constraint.NoCollide(ent1, ent2, bone1 or 0, bone2 or 0)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "NoCollide", ent1, ent2, cons)
 end
 
+--- Nocollides <ent1> to <ent2>
+[deprecated]
+e2function void noCollide(entity ent1, entity ent2)
+	noCollideCreate(ent1, ent2)
+end
+
+e2function void entity:noCollideAll(state)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this prop!", nil) end
+
+	this:SetCollisionGroup(state == 0 and COLLISION_GROUP_NONE or COLLISION_GROUP_WORLD)
+end
+
 --- Nocollides <ent> to entities/players, just like Right Click of No-Collide Stool
+[deprecated]
 e2function void noCollideAll(entity ent, state)
 	if not IsValid(ent) then return self:throw("Invalid entity!", nil) end
 	if not isOwner(self, ent) then return self:throw("You do not own this prop!", nil) end
@@ -610,16 +669,20 @@ end
 
 
 -- == Welds ==
-
---- Welds <ent1> to <ent2>
-e2function void weld(entity ent1, entity ent2)
+local function weldCreate(self, ent1, ent2, bone1, bone2, forcelimit, nocollide)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "Weld", ent1, ent2) then return end
 
-	local cons = constraint.Weld(ent1, ent2, 0, 0, 0, true)
+	local cons = constraint.Weld(ent1, ent2, bone1 or 0, bone2 or 0, forcelimit or 0, nocollide == 1)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "Weld", ent1, ent2, cons)
+end
+
+--- Welds <ent1> to <ent2>
+[deprecated]
+e2function void weld(entity ent1, entity ent2)
+	weldCreate(self, ent1, ent2)
 end
 
 __e2setcost(5)
@@ -678,3 +741,43 @@ e2function void entity:constraintBreak(string consType, entity ent2)
 		end
 	end
 end
+
+registerCallback( "postinit", function()
+	E2Lib.currentextension = "constraintcore"
+	local forms = { "e:e", "e:b", "b:e", "b:b" }
+	local weldpars = "nn"
+	
+	for k,v in pairs(forms) do
+		for i = 0, 2, 2 do
+			registerFunction("weld",v..weldpars:sub(0,i), "", function(self, args)
+				print(args)
+				local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
+				local ent1, ent2, bone1, bone2, forcelimit, nocollide = op1[1](self, op1), op2[1](self, op2), 0, 0, 0, 1
+				if #args > 4 then
+					forcelimit, nocollide = op3[1](self, op3), op4[1](self, op4)
+				end
+				if type(ent1) == "PhysObj" then
+					ent1, bone1 = isValidBone(ent1)
+				end
+					if type(ent2) == "PhysObj" then
+					ent2, bone2 = isValidBone(ent2)
+				end
+				print(ent1, ent2, forcelimit, nocollide)
+				weldCreate(self, ent1, ent2, bone1, bone2, forcelimit, nocollide)
+			end, 30, {"target", "forcelimit", "nocollide"})
+		end
+		
+		registerFunction("noCollide", v, "", function(self, args)
+			local op1, op2 = args[2], args[3]
+			local ent1, ent2, bone1, bone2 = op1[1](self, op1), op2[1](self, op2), 0, 0
+			if type(ent1) == "PhysObj" then
+				ent1, bone1 = isValidBone(ent1)
+			end
+			if type(ent2) == "PhysObj" then
+				ent2, bone2 = isValidBone(ent2)
+			end
+			print(ent1, ent2, bone1, bone2)
+			noCollideCreate(self, ent1, ent2, bone1, bone2)
+		end, 30, {"target"})
+	end
+end)
