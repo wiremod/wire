@@ -93,7 +93,8 @@ local countLookup = {
 local function checkEnts(self, ent1, ent2)
 	if not IsValid(ent1) and not ent1:IsWorld() then return self:throw("Invalid entity!", false) end
 	if not IsValid(ent2) and not ent2:IsWorld() then return self:throw("Invalid target entity!", false) end
-	if ent1 == ent2 then return self:throw("Cannot constrain an entity to itself!", false) end
+	-- if ent1 == ent2 then return self:throw("Cannot constrain an entity to itself!", false) end
+	-- Constraints actually can be made to themselves - the corresponding constraint functions will handle this part
 
 	if not isOwner(self, ent1) then return self:throw("You are not the owner of the entity!", false) end
 	if not isOwner(self, ent2) then return self:throw("You are not the owner of the target entity!", false) end
@@ -645,6 +646,26 @@ local function noCollideCreate(self, ent1, ent2, bone1, bone2)
 	postCreate(self, "NoCollide", ent1, ent2, cons)
 end
 
+e2function void entity:noCollide(entity target)
+	noCollideCreate(this, target)
+end
+
+e2function void entity:noCollide(bone target)
+	ent, index = isValidBone(target)
+	noCollideCreate(self, this, ent, 0, index)
+end
+
+e2function void bone:noCollide(entity target)
+	ent, index = isValidBone(this)
+	noCollideCreate(self, ent, target, index)
+end
+
+e2function void bone:noCollide(bone target)
+	ent1, index1 = isValidBone(this)
+	ent2, index2 = isValidBone(target)
+	noCollideCreate(self, ent1, ent2, index1, index2)
+end
+
 --- Nocollides <ent1> to <ent2>
 [deprecated]
 e2function void noCollide(entity ent1, entity ent2)
@@ -677,6 +698,46 @@ local function weldCreate(self, ent1, ent2, bone1, bone2, forcelimit, nocollide)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "Weld", ent1, ent2, cons)
+end
+
+e2function void entity:weld(entity target)
+	weldCreate(self, this, target)
+end
+
+e2function void entity:weld(entity target, forcelimit, nocollide)
+	weldCreate(self, this, target, 0, 0, forcelimit, nocollide)
+end
+
+e2function void entity:weld(bone target)
+	ent, index = isValidBone(target)
+	weldCreate(self, this, ent, 0, index)
+end
+
+e2function void entity:weld(bone target, forcelimit, nocollide)
+	ent, index = isValidBone(target)
+	weldCreate(self, this, ent, 0, index, forcelimit, nocollide)
+end
+
+e2function void bone:weld(entity target)
+	ent, index = isValidBone(this)
+	weldCreate(self, ent, target, index)
+end
+
+e2function void bone:weld(entity target, forcelimit, nocollide)
+	ent, index = isValidBone(this)
+	weldCreate(self, ent, target, index, 0, forcelimit, nocollide)
+end
+
+e2function void bone:weld(bone target)
+	ent1, index1 = isValidBone(this)
+	ent2, index2 = isValidBone(target)
+	weldCreate(self, ent1, ent2, index1, index2)
+end
+
+e2function void bone:weld(bone target, forcelimit, nocollide)
+	ent1, index1 = isValidBone(this)
+	ent2, index2 = isValidBone(target)
+	weldCreate(self, ent1, ent2, index1, index2, forcelimit, nocollide)
 end
 
 --- Welds <ent1> to <ent2>
@@ -741,40 +802,3 @@ e2function void entity:constraintBreak(string consType, entity ent2)
 		end
 	end
 end
-
-registerCallback( "postinit", function()
-	E2Lib.currentextension = "constraintcore"
-	local forms = { "e:e", "e:b", "b:e", "b:b" }
-	local weldpars = "nn"
-	
-	for k,v in pairs(forms) do
-		for i = 0, 2, 2 do
-			registerFunction("weld",v..weldpars:sub(0,i), "", function(self, args)
-				local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-				local ent1, ent2, bone1, bone2, forcelimit, nocollide = op1[1](self, op1), op2[1](self, op2), 0, 0, 0, 1
-				if #args > 4 then
-					forcelimit, nocollide = op3[1](self, op3), op4[1](self, op4)
-				end
-				if type(ent1) == "PhysObj" then
-					ent1, bone1 = isValidBone(ent1)
-				end
-					if type(ent2) == "PhysObj" then
-					ent2, bone2 = isValidBone(ent2)
-				end
-				weldCreate(self, ent1, ent2, bone1, bone2, forcelimit, nocollide)
-			end, 30, {"target", "forcelimit", "nocollide"})
-		end
-		
-		registerFunction("noCollide", v, "", function(self, args)
-			local op1, op2 = args[2], args[3]
-			local ent1, ent2, bone1, bone2 = op1[1](self, op1), op2[1](self, op2), 0, 0
-			if type(ent1) == "PhysObj" then
-				ent1, bone1 = isValidBone(ent1)
-			end
-			if type(ent2) == "PhysObj" then
-				ent2, bone2 = isValidBone(ent2)
-			end
-			noCollideCreate(self, ent1, ent2, bone1, bone2)
-		end, 30, {"target"})
-	end
-end)
