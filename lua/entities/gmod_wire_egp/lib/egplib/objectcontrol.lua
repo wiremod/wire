@@ -179,7 +179,7 @@ function EGP:PerformReorder( Ent )
 	-- Second pass, remove objects from their original positions
 	for i=#Ent.RenderTable,1,-1 do
 		local obj = Ent.RenderTable[i]
-		if obj.ChangeOrder then
+		if obj and obj.ChangeOrder then
 			table.remove( Ent.RenderTable, i )
 		end
 	end
