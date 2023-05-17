@@ -416,7 +416,7 @@ end
 -- Note: Winch is just a rename of Hydraulic with the last parameter True.
 --- Makes a winch constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, with <width> width.
 e2function void winch(index, entity ent1, vector v1, entity ent2, vector v2, width)
-	createHydraulic(self, index, ent1, ent2, v1, v2, width, 0, 0, nil, nil, 0, "cable/cable2", width, 1)
+	createHydraulic(self, index, ent1, ent2, v1, v2, width, 0, 0, nil, nil, 0, "cable/cable2", 1)
 end
 
 --- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, with <width> width.
