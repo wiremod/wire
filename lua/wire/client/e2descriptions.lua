@@ -1205,6 +1205,7 @@ E2Helper.Descriptions["holoClip(nvve)"] = "Defines a plane used to clip a hologr
 E2Helper.Descriptions["holoClipEnabled(nn)"] = "Enables / disables clipping for a hologram with specified index"
 E2Helper.Descriptions["holoClipEnabled(nnn)"] = "Enables / disables clipping for a hologram with specified index. Clip index is for use with multiple clipping planes"
 E2Helper.Descriptions["holoClipsAvailable()"] = "Returns the maximum number of clipping planes allowed per hologram"
+E2Helper.Descriptions["holoInvertModel(nn)"] = "If not 0, inverts the model of the hologram"
 E2Helper.Descriptions["holoRenderFX(nn)"] = "Changes the RenderFX for a hologram"
 E2Helper.Descriptions["holoSkin(nn)"] = "Changes the skin of a hologram"
 
