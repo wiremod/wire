@@ -369,10 +369,10 @@ end
 
 e2function void entity:propInertia( vector inertia )
 	if not PropCore.ValidAction(self, this, "inertia") then return end
-	if Vector( inertia[1], inertia[2], inertia[3] ):IsZero() then return end
+	if inertia:IsZero() then return end
 	local phys = this:GetPhysicsObject()
 	if IsValid( phys ) then
-		phys:SetInertia(Vector(inertia[1], inertia[2], inertia[3]))
+		phys:SetInertia(inertia)
 	end
 end
 
@@ -427,7 +427,7 @@ e2function void entity:propSetVelocity(vector velocity)
 	if not ValidAction(self, this, "velocitynxt") then return end
 	local phys = this:GetPhysicsObject()
 	if IsValid( phys ) then
-		phys:SetVelocity(Vector(velocity[1], velocity[2], velocity[3]))
+		phys:SetVelocity(velocity)
 	end
 end
 
@@ -435,7 +435,7 @@ e2function void entity:propSetVelocityInstant(vector velocity)
 	if not ValidAction(self, this, "velocityins") then return end
 	local phys = this:GetPhysicsObject()
 	if IsValid( phys ) then
-		phys:SetVelocityInstantaneous(Vector(velocity[1], velocity[2], velocity[3]))
+		phys:SetVelocityInstantaneous(velocity)
 	end
 end
 
@@ -443,7 +443,7 @@ e2function void entity:propSetAngVelocity(vector velocity)
 	if not ValidAction(self, this, "angvel") then return end
 	local phys = this:GetPhysicsObject()
 	if IsValid( phys ) then
-		phys:SetAngleVelocity(Vector(velocity[1], velocity[2], velocity[3]))
+		phys:SetAngleVelocity(velocity)
 	end
 end
 
@@ -451,7 +451,7 @@ e2function void entity:propSetAngVelocityInstant(vector velocity)
 	if not ValidAction(self, this, "angvelinst") then return end
 	local phys = this:GetPhysicsObject()
 	if IsValid( phys ) then
-		phys:SetAngleVelocityInstantaneous(Vector(velocity[1], velocity[2], velocity[3]))
+		phys:SetAngleVelocityInstantaneous(velocity)
 	end
 end
 
@@ -479,7 +479,7 @@ end
 --------------------------------------------------------------------------------
 
 e2function void bone:boneManipulate(vector pos, angle rot, isFrozen, gravity, collision)
-	ent, index = boneVerify(self, this)
+	local ent, index = boneVerify(self, this)
 	if not ValidAction(self, ent, "manipulate", this, index) then return end
 	
 	setPos(this, pos)
@@ -513,8 +513,8 @@ end
 
 e2function void bone:setInertia( vector inertia )
 	if not boneVerify(self, this) then return end
-	if Vector( inertia[1], inertia[2], inertia[3] ):IsZero() then return end
-	this:SetInertia(Vector(inertia[1], inertia[2], inertia[3]))
+	if inertia:IsZero() then return end
+	this:SetInertia(inertia)
 end
 
 e2function void bone:setBuoyancy(number buoyancy)
@@ -529,30 +529,30 @@ e2function void bone:setPhysicalMaterial(string material)
 end
 
 e2function void bone:setVelocity(vector velocity)
-	ent, index = boneVerify(self, this)
+	local ent, index = boneVerify(self, this)
 	if not ValidAction(self, ent, "velocitynxt", this, index) then return end
-	this:SetVelocity(Vector(velocity[1], velocity[2], velocity[3]))
+	this:SetVelocity(velocity)
 	ent:PhysWake()
 end
 
 e2function void bone:setVelocityInstant(vector velocity)
-	ent, index = boneVerify(self, this)
+	local ent, index = boneVerify(self, this)
 	if not ValidAction(self, ent, "velocityins", this, index) then return end
-	this:SetVelocityInstantaneous(Vector(velocity[1], velocity[2], velocity[3]))
+	this:SetVelocityInstantaneous(velocity)
 	ent:PhysWake()
 end
 
 e2function void bone:setAngVelocity(vector velocity)
-	ent, index = boneVerify(self, this)
+	local ent, index = boneVerify(self, this)
 	if not ValidAction(self, ent, "angvelnxt", this, index) then return end
-	this:SetAngleVelocity(Vector(velocity[1], velocity[2], velocity[3]))
+	this:SetAngleVelocity(velocity))
 	ent:PhysWake()
 end
 
 e2function void bone:setAngVelocityInstant(vector velocity)
-	ent, index = boneVerify(self, this)
+	local ent, index = boneVerify(self, this)
 	if not ValidAction(self, this, "angvelinst", ent, index) then return end
-	this:SetAngleVelocityInstantaneous(Vector(velocity[1], velocity[2], velocity[3]))
+	this:SetAngleVelocityInstantaneous(velocity)
 	ent:PhysWake()
 end
 
@@ -632,14 +632,14 @@ end
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
 
 e2function void bone:setPos(vector pos)
-	ent, index = boneVerify(self, this)
+	local ent, index = boneVerify(self, this)
 	if not ValidAction(self, ent, "pos", this, index) then return end
 	setPos( this, pos )
 	ent:PhysWake()
 end
 	
 e2function void bone:setAng(angle rot)
-	ent, index = boneVerify(self, this)
+	local ent, index = boneVerify(self, this)
 	if not ValidAction(self, ent, "ang", this, index) then return end
 	setAng( this, rot )
 	ent:PhysWake()
@@ -649,9 +649,8 @@ __e2setcost(60)
 
 e2function void entity:ragdollFreeze(isFrozen)
 	if not ValidAction(self, this, "ragfreeze") then return end
-	local maxn = this:GetPhysicsObjectCount()-1
 	
-	for i = 0,maxn do
+	for i = 0, this:GetPhysicsObjectCount()-1 do
 		bone = getBone(this, i)
 		
 		bone:EnableMotion( isFrozen == 0 )
@@ -663,11 +662,10 @@ __e2setcost(150)
 
 e2function void entity:ragdollSetPos(vector pos)
 	if not ValidAction(self, this, "pos") then return end
-	local bonecount = this:GetPhysicsObjectCount()
 	local offsets = {}
 	local bones = {}
 	
-	for i = 0, bonecount - 1 do
+	for i = 0, this:GetPhysicsObjectCount() - 1 do
 		local bone = getBone(this, i)
 		offsets[i] = this:WorldToLocal(bone:GetPos())
 		bones[i] = bone
@@ -685,11 +683,10 @@ __e2setcost(300)
 
 e2function void entity:ragdollSetAng(angle rot)
 	if not ValidAction(self, this, "rot") then return end
-	local bonecount = this:GetPhysicsObjectCount()
 	local offsets = {}
 	local bones = {}
 	
-	for i = 0, bonecount - 1 do
+	for i = 0, this:GetPhysicsObjectCount() - 1 do
 		local bone = getBone(this, i)
 		offsets[i] = { this:WorldToLocal(bone:GetPos()), this:WorldToLocalAngles(bone:GetAngles()) }
 		bones[i] = bone
