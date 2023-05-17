@@ -83,11 +83,24 @@ end
 
 function EGP:MoveTopLeft( ent, v )
 	if not self:ValidEGP(ent) then return end
-
-	if (v.CanTopLeft and v.x and v.y and v.w and v.h) then
+	
+	local t = nil
+	if v.CanTopLeft and v.x and v.y and v.w and v.h then
 		local vec, ang = LocalToWorld( Vector( v.w/2, v.h/2, 0 ), Angle(0,0,0), Vector( v.x, v.y, 0 ), Angle( 0, -v.angle or 0, 0 ) )
-		local t = { x = vec.x, y = vec.y }
+		t = { x = vec.x, y = vec.y }
 		if (v.angle) then t.angle = -ang.yaw end
+	end
+	if v.IsParented then
+		local bool, _, parent = self:HasObject(ent, v.parent)
+		if bool and parent.CanTopLeft and parent.w and parent.h then
+			if not t then t = { x = 0, y = 0} end
+			t.x = t.x - parent.w/2
+			t.y = t.y - parent.h/2
+		end
+		if t and t.angle then t.angle = -t.angle end
+	end
+	
+	if t then
 		self:EditObject( v, t )
 	end
 end

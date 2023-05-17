@@ -624,17 +624,18 @@ e2function void wirelink:egpPos( number index, vector2 pos )
 	end
 end
 
-e2function void wirelink:egpPos( number index, vector2 pos1, ...args )
+e2function void wirelink:egpPos( number index, vector2 pos1, vector2 pos2, ...args )
 	if not EGP:IsAllowed( self, this ) then return end
 	local bool, k, v = EGP:HasObject( this, index )
 	if bool then
 		if v.Name == "Line" then
 			if #args[1] ~= 2 then self:throw("Expected vector2 argument!") end
-			if (EGP:EditObject( v, { x = pos1[1], y = pos1[2], x2 = args[1][1], y2 = args[1][2] } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+			if (EGP:EditObject( v, { x = pos1[1], y = pos1[2], x2 = pos2[1], y2 = pos2[2] } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 			self.prf = self.prf + 1
 		elseif v.vertices then
 			local data = {}
 			table.insert(args, 1, pos1)
+			table.insert(args, 2, pos2)
 			for k, vert in pairs(args) do
 				if #vert ~= 2 then self:throw("Expected vector2 argument!") end
 				data[k] = { x = vert[1], y = vert[2] }
