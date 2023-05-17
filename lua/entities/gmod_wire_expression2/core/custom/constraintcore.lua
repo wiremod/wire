@@ -363,21 +363,10 @@ local function createHydraulic(self, index, ent1, ent2, v1, v2, width, bone1, bo
 	if IsValid( existing ) then existing:Remove() end
 	
 	if color ~= nil then
-		color = Color(color[1],color[2],color[3],255)
+		color = Color(color[1], color[2], color[3])
 	end
 	if not constant or not damping then
-		if bone1 then
-			phys1 = getBone(ent1,bone1)
-		else
-			phys1 = ent1:GetPhysicsObject()
-		end
-		if bone2 then
-			phys2 = getBone(ent2,bone2)
-		else
-			phys2 = ent2:GetPhysicsObject()
-		end
-		
-		constant, damping = CalcElasticConsts( phys1, phys2, ent1, ent2 )
+		constant, damping = CalcElasticConsts( getBone(ent1,bone1), getBone(ent2,bone2), ent1, ent2 )
 	end
 	
 	local cons, rope = constraint.Elastic( ent1, ent2, bone1 or 0, bone2 or 0, v1, v2, constant, damping, rdamping or 0, mat ~= "" and mat or "cable/cable2", width or 1, stretch ~= 0, color )
@@ -427,12 +416,12 @@ end
 -- Note: Winch is just a rename of Hydraulic with the last parameter True.
 --- Makes a winch constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, with <width> width.
 e2function void winch(index, entity ent1, vector v1, entity ent2, vector v2, width)
-	createHydraulic(self, index, ent1, ent2, v1, v2, width, 0, 0, nil, nil, nil, "cable/cable2", width, 1)
+	createHydraulic(self, index, ent1, ent2, v1, v2, width, 0, 0, nil, nil, 0, "cable/cable2", width, 1)
 end
 
 --- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, with <width> width.
 e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, width)
-	createHydraulic(self, index, ent1, ent2, v1, v2, width)
+	createHydraulic(self, index, ent1, ent2, v1, v2, width, 0, 0)
 end
 
 --- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, constant and damping, with <width> width, <mat> material, and <stretch> stretch only option.
@@ -459,7 +448,7 @@ local function createRope(self, index, ent1, ent2, v1, v2, bone1, bone2, addleng
 	if IsValid( existing ) then existing:Remove() end
 
 	if color then
-		color = Color(color[1],color[2],color[3],255)
+		color = Color(color[1], color[2], color[3])
 	end
 	
 	local cons, rope = constraint.Rope( ent1, ent2, bone1 or 0, bone2 or 0, v1, v2, length, addlength or 0, 0, width or 1, mat ~= "" and mat or "cable/rope", rigid ~= 0,  color )
