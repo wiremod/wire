@@ -4,14 +4,6 @@ include('shared.lua')
 
 DEFINE_BASECLASS("base_wire_entity")
 
--- This makes E2s not save using garry's workshop save
--- Until someone can find the cause of the crashes, leave this in here
-local old = gmsave.ShouldSaveEntity
-function gmsave.ShouldSaveEntity( ent, ... )
-	if ent:GetClass() == "gmod_wire_expression2" then return false end
-	return old( ent, ... )
-end
-
 e2_softquota = nil
 e2_hardquota = nil
 e2_tickquota = nil
