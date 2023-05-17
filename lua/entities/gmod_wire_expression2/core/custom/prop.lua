@@ -561,18 +561,17 @@ __e2setcost(500)
 -- This code was leveraged from Garry's Mod. Perhaps it would be a bit cleaner with a slight rewrite.
 e2function void entity:makeStatue(enable)
 	if not ValidAction(self, this, "statue") then return end
-	if this:GetNWBool("IsStatue") and enable ~= 0 then return
-	elseif not this:GetNWBool("IsStatue") and enable == 0 then return end
+	if (enable ~= 0) == this:GetNWBool("IsStatue") then return end
 	
 	
 	local timeout = this.statueTimeout
 	if timeout and timeout.time > CurTime() then
-		self:throw("Wait before repeated statue operations", false)
+		self:throw("Wait before repeated statue operations", nil)
 		return
 	end
 
 	local bones = this:GetPhysicsObjectCount()
-	if bones < 2 then return end
+	if bones < 2 then self:throw("You can only makeStatue on ragdolls!", nil) end
 	
 	if enable ~= 0 then
 		if this.StatueInfo then return end
@@ -586,7 +585,6 @@ e2function void entity:makeStatue(enable)
 			if constraint then
 				this.StatueInfo[ bone ] = constraint
 				ply:AddCleanup( "constraints", constraint )
-				undo.AddEntity( constraint )
 			end
 		end
 
@@ -648,7 +646,7 @@ end
 __e2setcost(60)
 
 e2function void entity:ragdollFreeze(isFrozen)
-	if not ValidAction(self, this, "ragfreeze") then return end
+	if not ValidAction(self, this, "freeze") then return end
 	
 	for i = 0, this:GetPhysicsObjectCount()-1 do
 		bone = getBone(this, i)
