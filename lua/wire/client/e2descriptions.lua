@@ -1377,6 +1377,7 @@ E2Helper.Descriptions["egpParentToCursor(xwl:n)"] = "Parents the object to playe
 E2Helper.Descriptions["egpUnParent(xwl:n)"] = "Un-parents the object"
 E2Helper.Descriptions["egpPos(xwl:n)"] = "Returns the position of the object"
 E2Helper.Descriptions["egpPos(xwl:nxv2)"] = "Changes the position of the object"
+E2Helper.Descriptions["egpPos(xwl:nxv2...)"] = "Changes the position of each of the object's 2D vertices. Must be vector2 values only"
 E2Helper.Descriptions["egpPos(xwl:nv)"] = "Changes the world position of the 3D tracker object"
 E2Helper.Descriptions["egpQueue()"] = "Returns the number of items in your queue"
 E2Helper.Descriptions["egpQueueClk(e)"] = "Returns 1 if the current execution was caused by the EGP queue system of specified screen"

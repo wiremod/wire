@@ -591,9 +591,9 @@ e2function void wirelink:egpSize( number index, vector2 size )
 end
 
 e2function void wirelink:egpSize( number index, number size )
-	if (!EGP:IsAllowed( self, this )) then return end
+	if not EGP:IsAllowed( self, this ) then return end
 	local bool, k, v = EGP:HasObject( this, index )
-	if (bool) then
+	if bool then
 		if (EGP:EditObject( v, { size = size } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
@@ -602,10 +602,55 @@ end
 -- Position
 ----------------------------
 e2function void wirelink:egpPos( number index, vector2 pos )
-	if (!EGP:IsAllowed( self, this )) then return end
+	if not EGP:IsAllowed( self, this ) then return end
 	local bool, k, v = EGP:HasObject( this, index )
-	if (bool) then
-		if (EGP:EditObject( v, { x = pos[1], y = pos[2] } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+	if bool then
+		if v.Name == "Line" then
+			local offsetx, offsety = v.x2 - v.x, v.y2 - v.y
+			if (EGP:EditObject( v, { x = pos[1], y = pos[2], x2 = pos[1] + offsetx, y2 = pos[2] + offsety } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+			self.prf = self.prf + 2
+		elseif v.vertices then
+			local vertices = v.vertices
+			local data = {}
+			local originx, originy = vertices[1].x, vertices[1].y
+			for k, vert in pairs(vertices) do
+				data[k] = { x = vert.x - originx + pos[1], y = vert.y - originy + pos[2] }
+				self.prf = self.prf + 2
+			end
+			if EGP:EditObject( v, { vertices = data } ) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		else
+			if EGP:EditObject( v, { x = pos[1], y = pos[2] } ) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		end
+	end
+end
+
+e2function void wirelink:egpPos( number index, vector2 pos1, ...args )
+	if not EGP:IsAllowed( self, this ) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if bool then
+		if v.Name == "Line" then
+			if #args[1] ~= 2 then self:throw("Expected vector2 argument!") end
+			if (EGP:EditObject( v, { x = pos1[1], y = pos1[2], x2 = args[1][1], y2 = args[1][2] } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+			self.prf = self.prf + 1
+		elseif v.vertices then
+			local data = {}
+			table.insert(args, 1, pos1)
+			for k, vert in pairs(args) do
+				if #vert ~= 2 then self:throw("Expected vector2 argument!") end
+				data[k] = { x = vert[1], y = vert[2] }
+				self.prf = self.prf + 1
+			end
+			if #data < #v.vertices then 
+				local vertices = v.vertices
+				for i = #data+1, #v.vertices do
+					data[i] = vertices[i]
+					self.prf = self.prf + 0.5
+				end
+			end
+			if EGP:EditObject( v, { vertices = data } ) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		else
+			if EGP:EditObject( v, { x = pos1[1], y = pos1[2] } ) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		end
 	end
 end
 
@@ -1061,7 +1106,7 @@ e2function void wirelink:egpScale( vector2 xScale, vector2 yScale )
 end
 
 e2function void wirelink:egpResolution( vector2 topleft, vector2 bottomright )
-	if (!EGP:IsAllowed( self, this )) then return end
+	if not EGP:IsAllowed( self, this ) then return end
 	local xScale = { topleft[1], bottomright[1] }
 	local yScale = { topleft[2], bottomright[2] }
 	errorcheck(xScale,yScale)
@@ -1069,26 +1114,20 @@ e2function void wirelink:egpResolution( vector2 topleft, vector2 bottomright )
 end
 
 e2function vector2 wirelink:egpOrigin()
-	if (!EGP:IsAllowed( self, this )) then return {0,0} end
-	local xOrigin = this.xScale[1] + (this.xScale[2] - this.xScale[1])/2
-	local yOrigin = this.yScale[1] + (this.yScale[2] - this.yScale[1])/2
-	return { xOrigin, yOrigin }
+	if not EGP:IsAllowed( self, this ) then return {0,0} end
+	return { this.xScale[1] + (this.xScale[2] - this.xScale[1])/2, this.yScale[1] + (this.yScale[2] - this.yScale[1])/2 }
 	--return EGP:DoAction( this, self, "GetOrigin" )
 end
 
 e2function vector2 wirelink:egpSize()
-	if (!EGP:IsAllowed( self, this )) then return {0,0} end
-	local width = math.abs(this.xScale[1] - this.xScale[2])
-	local height = math.abs(this.yScale[1] - this.yScale[2])
-	return { width, height }
+	if not EGP:IsAllowed( self, this ) then return {0,0} end
+	return { math.abs(this.xScale[1] - this.xScale[2]), math.abs(this.yScale[1] - this.yScale[2]) }
 	--return EGP:DoAction( this, self, "GetScreenSize" )
 end
 
 e2function void wirelink:egpDrawTopLeft( number onoff )
-	if (!EGP:IsAllowed( self, this )) then return end
-	local bool = true
-	if (onoff == 0) then bool = false end
-	EGP:DoAction( this, self, "MoveTopLeft", bool )
+	if not EGP:IsAllowed( self, this ) then return end
+	EGP:DoAction( this, self, "MoveTopLeft", onoff ~= 0 )
 end
 
 -- this code has some wtf strange things
