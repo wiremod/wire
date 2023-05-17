@@ -93,8 +93,6 @@ local countLookup = {
 local function checkEnts(self, ent1, ent2)
 	if not IsValid(ent1) and not ent1:IsWorld() then return self:throw("Invalid entity!", false) end
 	if not IsValid(ent2) and not ent2:IsWorld() then return self:throw("Invalid target entity!", false) end
-	-- if ent1 == ent2 then return self:throw("Cannot constrain an entity to itself!", false) end
-	-- Constraints actually can be made to themselves - the corresponding constraint functions will handle this part
 
 	if not isOwner(self, ent1) then return self:throw("You are not the owner of the entity!", false) end
 	if not isOwner(self, ent2) then return self:throw("You are not the owner of the target entity!", false) end
@@ -390,35 +388,35 @@ local function createHydraulic(self, index, ent1, ent2, v1, v2, width, bone1, bo
 end
 
 e2function void hydraulic(index, entity ent, vector v1, bone bone, vector v2, width)
-	entBone, index = isValidBone(bone)
+	local entBone, index = isValidBone(bone)
 	createHydraulic(self, index, ent, entBone, v1, v2, width, 0, index)
 end
 
 e2function void hydraulic(index, entity ent, vector v1, bone bone, vector v2, constant, damping, rdamping, string mat, width, stretch)
-	entBone, index = isValidBone(bone)
+	local entBone, index = isValidBone(bone)
 	createHydraulic(self, index, ent, entBone, v1, v2, width, 0, index, constant, damping, rdamping, mat, stretch)
 end
 
 e2function void hydraulic(index, entity ent, vector v1, bone bone, vector v2, constant, damping, rdamping, string mat, width, stretch, vector color)
-	entBone, index = isValidBone(bone)
+	local entBone, index = isValidBone(bone)
 	createHydraulic(self, index, ent, entBone, v1, v2, width, 0, index, constant, damping, rdamping, mat, stretch, color)
 end
 
 e2function void hydraulic(index, bone bone1, vector v1, bone bone2, vector v2, width)
-	ent1, index1 = isValidBone(bone1)
-	ent2, index2 = isValidBone(bone2)
+	local ent1, index1 = isValidBone(bone1)
+	local ent2, index2 = isValidBone(bone2)
 	createHydraulic(self, index, ent1, ent2, v1, v2, width, index1, index2)
 end
 
 e2function void hydraulic(index, bone bone1, vector v1, bone bone2, vector v2, constant, damping, rdamping, string mat, width, stretch)
-	ent1, index1 = isValidBone(bone1)
-	ent2, index2 = isValidBone(bone2)
+	local ent1, index1 = isValidBone(bone1)
+	local ent2, index2 = isValidBone(bone2)
 	createHydraulic(self, index, ent1, ent2, v1, v2, width, index1, index2, constant, damping, rdamping, mat, stretch)
 end
 
 e2function void hydraulic(index, bone bone1, vector v1, bone bone2, vector v2, constant, damping, rdamping, string mat, width, stretch, vector color)
-	ent1, index1 = isValidBone(bone1)
-	ent2, index2 = isValidBone(bone2)
+	local ent1, index1 = isValidBone(bone1)
+	local ent2, index2 = isValidBone(bone2)
 	createHydraulic(self, index, ent1, ent2, v1, v2, width, index1, index2, constant, damping, rdamping, mat, stretch, color)
 end
 
@@ -476,24 +474,24 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addl
 end
 
 e2function void rope(index, entity ent, vector v1, bone bone, vector v2)
-	entBone, index = isValidBone(bone)
+	local entBone, index = isValidBone(bone)
 	createRope(self, index, ent, entBone, v1, v2, 0, index)
 end
 
 e2function void rope(index, entity ent, vector v1, bone bone, vector v2, addlength, width, string mat, rigid, vector color )
-	entBone, index = isValidBone(bone)
+	local entBone, index = isValidBone(bone)
 	createRope(self, index, ent, entBone, v1, v2, 0, index, addlength, width, mat, rigid, color)
 end
 
 e2function void rope(index, bone bone1, vector v1, bone bone2, vector v2)
-	ent1, index1 = isValidBone(bone1)
-	ent2, index2 = isValidBone(bone2)
+	local ent1, index1 = isValidBone(bone1)
+	local ent2, index2 = isValidBone(bone2)
 	createRope(self, index, ent1, ent2, v1, v2, index1, index2)
 end
 
 e2function void rope(index, bone bone1, vector v1, bone bone2, vector v2, addlength, width, string mat, rigid, vector color )
-	ent1, index1 = isValidBone(bone1)
-	ent2, index2 = isValidBone(bone2)
+	local ent1, index1 = isValidBone(bone1)
+	local ent2, index2 = isValidBone(bone2)
 	createRope(self, index, ent1, ent2, v1, v2, index1, index2, addlength, width, mat, rigid, color)
 end
 
@@ -599,24 +597,24 @@ local function createSlider(self, ent1, ent2, v1, v2, width, bone1, bone2, mat, 
 end
 
 e2function void slider(entity ent, vector v1, bone bone, vector v2)
-	entBone, index = isValidBone(bone)
+	local entBone, index = isValidBone(bone)
 	createSlider(self, ent, entBone, v1, v2, 1, 0, index)
 end
 
 e2function void slider(entity ent, vector v1, bone bone, vector v2, width, string mat, vector color)
-	entBone, index = isValidBone(bone)
+	local entBone, index = isValidBone(bone)
 	createSlider(self, ent, entBone, v1, v2, width, 0, index, mat, color)
 end
 
 e2function void slider(bone bone1, vector v1, bone bone2, vector v2)
-	ent1, index1 = isValidBone(bone1)
-	ent2, index2 = isValidBone(bone2)
+	local ent1, index1 = isValidBone(bone1)
+	local ent2, index2 = isValidBone(bone2)
 	createSlider(self, ent1, ent2, v1, v2, 1, index1, index2)
 end
 
 e2function void slider(bone bone1, vector v1, bone bone2, vector v2, width, string mat, vector color)
-	ent1, index1 = isValidBone(bone1)
-	ent2, index2 = isValidBone(bone2)
+	local ent1, index1 = isValidBone(bone1)
+	local ent2, index2 = isValidBone(bone2)
 	createSlider(self, ent1, ent2, v1, v2, width, index1, index2, mat, color)
 end
 
@@ -651,18 +649,18 @@ e2function void entity:noCollide(entity target)
 end
 
 e2function void entity:noCollide(bone target)
-	ent, index = isValidBone(target)
+	local ent, index = isValidBone(target)
 	noCollideCreate(self, this, ent, 0, index)
 end
 
 e2function void bone:noCollide(entity target)
-	ent, index = isValidBone(this)
+	local ent, index = isValidBone(this)
 	noCollideCreate(self, ent, target, index)
 end
 
 e2function void bone:noCollide(bone target)
-	ent1, index1 = isValidBone(this)
-	ent2, index2 = isValidBone(target)
+	local ent1, index1 = isValidBone(this)
+	local ent2, index2 = isValidBone(target)
 	noCollideCreate(self, ent1, ent2, index1, index2)
 end
 
@@ -709,34 +707,34 @@ e2function void entity:weld(entity target, forcelimit, nocollide)
 end
 
 e2function void entity:weld(bone target)
-	ent, index = isValidBone(target)
+	local ent, index = isValidBone(target)
 	weldCreate(self, this, ent, 0, index)
 end
 
 e2function void entity:weld(bone target, forcelimit, nocollide)
-	ent, index = isValidBone(target)
+	local ent, index = isValidBone(target)
 	weldCreate(self, this, ent, 0, index, forcelimit, nocollide)
 end
 
 e2function void bone:weld(entity target)
-	ent, index = isValidBone(this)
+	local ent, index = isValidBone(this)
 	weldCreate(self, ent, target, index)
 end
 
 e2function void bone:weld(entity target, forcelimit, nocollide)
-	ent, index = isValidBone(this)
+	local ent, index = isValidBone(this)
 	weldCreate(self, ent, target, index, 0, forcelimit, nocollide)
 end
 
 e2function void bone:weld(bone target)
-	ent1, index1 = isValidBone(this)
-	ent2, index2 = isValidBone(target)
+	local ent1, index1 = isValidBone(this)
+	local ent2, index2 = isValidBone(target)
 	weldCreate(self, ent1, ent2, index1, index2)
 end
 
 e2function void bone:weld(bone target, forcelimit, nocollide)
-	ent1, index1 = isValidBone(this)
-	ent2, index2 = isValidBone(target)
+	local ent1, index1 = isValidBone(this)
+	local ent2, index2 = isValidBone(target)
 	weldCreate(self, ent1, ent2, index1, index2, forcelimit, nocollide)
 end
 
