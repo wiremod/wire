@@ -42,6 +42,7 @@ function ENT:Initialize()
     self.SoundSources[i]:SetParent(self)
     self.SoundSources[i]:SetModel("models/cheeze/wires/nano_math.mdl")
     self.SoundSources[i]:SetPos(self:GetPos())
+	self.SoundSources[i].DoNotDuplicate = true
     self.SoundSources[i]:Spawn()
     self.SoundSources[i]:PhysicsDestroy()
   end
