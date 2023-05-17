@@ -545,7 +545,7 @@ end
 e2function void bone:setAngVelocity(vector velocity)
 	local ent, index = boneVerify(self, this)
 	if not ValidAction(self, ent, "angvelnxt", this, index) then return end
-	this:SetAngleVelocity(velocity))
+	this:SetAngleVelocity(velocity)
 	ent:PhysWake()
 end
 
