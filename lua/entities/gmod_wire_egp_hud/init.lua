@@ -8,6 +8,8 @@ DEFINE_BASECLASS("base_wire_entity")
 
 ENT.WireDebugName = "E2 Graphics Processor HUD"
 
+util.AddNetworkString("EGP_HUD_Use")
+
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -34,8 +36,8 @@ function ENT:TriggerInput( name, value )
 	end
 end
 
-function ENT:Use( ply )
-	umsg.Start( "EGP_HUD_Use", ply ) umsg.Entity( self ) umsg.End()
+function ENT:Use(ply)
+	net.Start("EGP_HUD_Use") net.WriteEntity(self) net.Send(ply)
 end
 
 function ENT:SetEGPOwner( ply )
