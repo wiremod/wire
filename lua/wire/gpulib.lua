@@ -84,15 +84,24 @@ if CLIENT then
 
 	-- Returns a render target from the cache pool and marks it as used
 	local function GetRT()
-		for i, RT in pairs( RenderTargetCache ) do
+		for i, RT in pairs(RenderTargetCache) do
 			if not RT[1] then -- not used
 
 				local rendertarget = RT[2]
 				if rendertarget then
 					RT[1] = true -- Mark as used
 					return rendertarget
+				else
+				local rendertarget = GetRenderTargetEx("WireGPU_RT_" .. i, 512, 512, RT_SIZE_NO_CHANGE, MATERIAL_RT_DEPTH_SEPARATE, 256, 0, 12)
+					if rendertarget then
+						RT[1] = true -- Mark as used
+						RT[2] = rendertarget -- Assign the RT
+						return rendertarget
+					else
+						RT[1] = true -- Mark as used since we couldn't create it
+						ErrorNoHalt("Wiremod: Render target WireGPU_RT_" .. i .. " could not be created!\n")
+					end
 				end
-
 			end
 		end
 
@@ -100,15 +109,14 @@ if CLIENT then
 		for i, RT in pairs( RenderTargetCache ) do
 			if not RT[1] and  RT[2] == false then -- not used and doesn't exist, let's create the render target.
 
-					local rendertarget = GetRenderTarget("WireGPU_RT_"..i, 1024, 1024)
-
+					local rendertarget = GetRenderTargetEx("WireGPU_RT_" .. i, 1024, 1024, RT_SIZE_NO_CHANGE, MATERIAL_RT_DEPTH_SEPARATE, 256, 0, 12)
 					if rendertarget then
 						RT[1] = true -- Mark as used
 						RT[2] = rendertarget -- Assign the RT
 						return rendertarget
 					else
 						RT[1] = true -- Mark as used since we couldn't create it
-						ErrorNoHalt("Wiremod: Render target ".."WireGPU_RT_"..i.." could not be created!\n")
+						ErrorNoHalt("Wiremod: Render target WireGPU_RT_" .. i .. " could not be created!\n")
 					end
 
 			end
@@ -130,7 +138,7 @@ if CLIENT then
 			end
 		end
 
-		ErrorNoHalt("RT Screen ",rt," could not be freed (not found)\n")
+		ErrorNoHalt("RT Screen ", rt, " could not be freed (not found)\n")
 
 	end
 
@@ -163,14 +171,14 @@ if CLIENT then
 	WireGPU_matScreen = CreateMaterial("sprites/GPURT","UnlitGeneric",{
 		["$vertexcolor"] = 1,
 		["$vertexalpha"] = 1,
-    ["$translucent"] = 1,
+		["$translucent"] = 1,
 		["$ignorez"] = 1,
 		["$nolod"] = 1,
 		})
 	WireGPU_matBuffer = CreateMaterial("sprites/GPUBUF","UnlitGeneric",{
 		["$vertexcolor"] = 1,
 		["$vertexalpha"] = 1,
-    ["$translucent"] = 1,
+		["$translucent"] = 1,
 		["$ignorez"] = 1,
 		["$nolod"] = 1,
 	})

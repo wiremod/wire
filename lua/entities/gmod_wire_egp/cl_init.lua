@@ -71,6 +71,8 @@ end
 function ENT:DrawEntityOutline() end
 
 function ENT:Draw()
+	local tone = render.GetToneMappingScaleLinear()
+	render.SetToneMappingScaleLinear(Vector(1, 1, 1))
 	self:DrawModel()
 	Wire_Render(self)
 	if self.UpdateConstantly or self.NeedsUpdate then
@@ -84,6 +86,7 @@ function ENT:Draw()
 	end
 
 	self.GPU:Render(0,0,1024,1024,nil,-0.5,-0.5)
+	render.SetToneMappingScaleLinear(tone)
 end
 
 function ENT:OnRemove()
