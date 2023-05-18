@@ -565,10 +565,7 @@ e2function void entity:makeStatue(enable)
 	
 	
 	local timeout = this.statueTimeout
-	if timeout and timeout.time > CurTime() then
-		self:throw("Wait before repeated statue operations", nil)
-		return
-	end
+	if timeout and timeout > CurTime() then self:throw("Wait 1 second before repeated statue operations", nil) return end
 
 	local bones = this:GetPhysicsObjectCount()
 	if bones < 2 then self:throw("You can only makeStatue on ragdolls!", nil) end
@@ -583,31 +580,30 @@ e2function void entity:makeStatue(enable)
 			local constraint = constraint.Weld(this, this, 0, bone, 0)
 
 			if constraint then
-				this.StatueInfo[ bone ] = constraint
-				ply:AddCleanup( "constraints", constraint )
+				this.StatueInfo[bone] = constraint
+				ply:AddCleanup("constraints", constraint)
 			end
 		end
 
-		this:SetNWBool( "IsStatue", true )
-
-		this.statueTimeout = { time = CurTime() + 1 }
+		this:SetNWBool("IsStatue", true)
+		
 	else
 		if not this.StatueInfo then return end
-		local ply = self.player
 
-		for k, v in pairs( this.StatueInfo ) do
+		for _, v in pairs(this.StatueInfo) do
 
-			if IsValid( v ) then
+			if IsValid(v) then
 				v:Remove()
 			end
 
 		end
 
-		this:SetNWBool( "IsStatue", false )
+		this:SetNWBool("IsStatue", false)
 		this.StatueInfo = nil
-		this.statueTimeout = { time = CurTime() + 1 }
 
 	end
+	
+	this.statueTimeout = CurTime() + 1
 end
 
 --------------------------------------------------------------------------------
@@ -632,14 +628,14 @@ e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle
 e2function void bone:setPos(vector pos)
 	local ent, index = boneVerify(self, this)
 	if not ValidAction(self, ent, "pos", this, index) then return end
-	setPos( this, pos )
+	setPos(this, pos)
 	ent:PhysWake()
 end
 	
 e2function void bone:setAng(angle rot)
 	local ent, index = boneVerify(self, this)
 	if not ValidAction(self, ent, "ang", this, index) then return end
-	setAng( this, rot )
+	setAng(this, rot)
 	ent:PhysWake()
 end
 
@@ -648,12 +644,12 @@ __e2setcost(60)
 e2function void entity:ragdollFreeze(isFrozen)
 	if not ValidAction(self, this, "freeze") then return end
 	
-	for i = 0, this:GetPhysicsObjectCount()-1 do
-		bone = getBone(this, i)
-		
-		bone:EnableMotion( isFrozen == 0 )
+	for _, bone in pairs(GetBones(this)) do
+		bone:EnableMotion(isFrozen == 0)
 		bone:Wake()
 	end
+	
+	
 end
 
 __e2setcost(150)
@@ -661,15 +657,13 @@ __e2setcost(150)
 e2function void entity:ragdollSetPos(vector pos)
 	if not ValidAction(self, this, "pos") then return end
 	local offsets = {}
-	local bones = {}
+	local bones = GetBones(this)
 	
-	for i = 0, this:GetPhysicsObjectCount() - 1 do
-		local bone = getBone(this, i)
-		offsets[i] = this:WorldToLocal(bone:GetPos())
-		bones[i] = bone
+	for k, bone in pairs(bones) do
+		offsets[k] = this:WorldToLocal(bone:GetPos())
 	end
 	
-	for k,v in pairs(bones) do
+	for k, bone in pairs(bones) do
 		local offset = offsets[k]
 		setPos(v, pos + offset)
 	end
@@ -682,17 +676,15 @@ __e2setcost(300)
 e2function void entity:ragdollSetAng(angle rot)
 	if not ValidAction(self, this, "rot") then return end
 	local offsets = {}
-	local bones = {}
+	local bones = GetBones(this)
 	
-	for i = 0, this:GetPhysicsObjectCount() - 1 do
-		local bone = getBone(this, i)
-		offsets[i] = { this:WorldToLocal(bone:GetPos()), this:WorldToLocalAngles(bone:GetAngles()) }
-		bones[i] = bone
+	for k, bone in pairs(bones) do
+		offsets[k] = { this:WorldToLocal(bone:GetPos()), this:WorldToLocalAngles(bone:GetAngles()) }
 	end
 	
 	setAng(this, rot)
 	
-	for k,v in pairs(bones) do
+	for k, v in pairs(bones) do
 		local offsetP, offsetA = offsets[k][1], offsets[k][2]
 		setAng(v, this:LocalToWorldAngles(offsetA))
 		setPos(v, this:LocalToWorld(offsetP))
