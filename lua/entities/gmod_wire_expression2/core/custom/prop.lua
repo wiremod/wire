@@ -747,19 +747,14 @@ e2function void entity:parentTo(entity target)
 	-- if this.Use then target:SetUseType(SIMPLE_USE) end
 	-- Fixes #2473 by replacing the Use function. This has to be done using tables because otherwise it will crash the game.
 	if this.Use then
-		local tab = this:GetTable()
-		tab.oldUse = tab.Use
-		
-		tab.Use = function()
+		this.oldUse = this:GetTable().Use
+
+		this.Use = function()
 			if this:GetParent() == NULL then
-				local tab = this:GetTable()
-				tab.Use = tab.oldUse
-				tab.oldUse = nil
-				this:SetTable(tab)
+				this.Use = this.oldUse
+				this.oldUse = nil
 			end
 		end
-		
-		this:SetTable(tab)
 	end
 	
 end
