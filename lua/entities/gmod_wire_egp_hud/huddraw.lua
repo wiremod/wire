@@ -64,7 +64,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		hook.Add("HUDPaint","EGP_HUDPaint",function()
 			for Ent, _ in pairs(tbl) do
 				if not Ent or not Ent:IsValid() then
-					EGP:RemoveHUDEGP( Ent )
+					EGP:RemoveHUDEGP(Ent)
 					break
 				else
 					if Ent.On == true then

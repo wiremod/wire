@@ -9,7 +9,7 @@ ENT.gmod_wire_egp_hud = true
 
 local makeArray
 local makeTable
-if (EGP) then -- If the table has been loaded
+if EGP then -- If the table has been loaded
 	makeArray = EGP.ParentingFuncs.makeArray
 	makeTable = EGP.ParentingFuncs.makeTable
 else -- If the table hasn't been loaded
@@ -23,9 +23,9 @@ function ENT:GetEGPMatrix()
 	return Matrix()
 end
 
-function ENT:ScaleObject( bool, v )
+function ENT:ScaleObject(bool, obj)
 	local xMin, xMax, yMin, yMax, _xMul, _yMul
-	if (bool) then -- 512 -> screen
+	if bool then -- 512 -> screen
 		xMin = 0
 		xMax = 512
 		yMin = 0
@@ -41,34 +41,34 @@ function ENT:ScaleObject( bool, v )
 		_yMul = 512
 	end
 
-	local xMul = _xMul/(xMax-xMin)
-	local yMul = _yMul/(yMax-yMin)
+	local xMul = _xMul / (xMax - xMin)
+	local yMul = _yMul / (yMax - yMin)
 
-	if (v.verticesindex) then -- Object has vertices
-		local r = makeArray( v, true )
-		for i=1,#r,2 do
+	if obj.verticesindex then -- Object has vertices
+		local r = makeArray(obj, true)
+		for i = 1, #r, 2 do
 			r[i] = (r[i] - xMin) * xMul
-			r[i+1] = (r[i+1]- yMin) * yMul
+			r[i + 1] = (r[i + 1]- yMin) * yMul
 		end
 		local settings = {}
-		if isstring(v.verticesindex) then settings = { [v.verticesindex] = makeTable( v, r ) } else settings = makeTable( v, r ) end
-		EGP:EditObject( v, settings )
+		if isstring(obj.verticesindex) then settings = { [obj.verticesindex] = makeTable(obj, r) } else settings = makeTable(obj, r) end
+		EGP:EditObject(obj, settings)
 	else
-		if (v.x) then
-			v.x = (v.x - xMin) * xMul
+		if (obj.x) then
+			obj.x = (obj.x - xMin) * xMul
 		end
-		if (v.y) then
-			v.y = (v.y - yMin) * yMul
+		if (obj.y) then
+			obj.y = (obj.y - yMin) * yMul
 		end
-		if (v.w) then
-			v.w = v.w * xMul
+		if (obj.w) then
+			obj.w = obj.w * xMul
 		end
-		if (v.h) then
-			v.h = v.h * yMul
+		if (obj.h) then
+			obj.h = obj.h * yMul
 		end
 	end
 
-	v.res = bool
+	obj.res = bool
 end
 
 function ENT:Initialize()
@@ -76,21 +76,21 @@ function ENT:Initialize()
 	self.Resolution = false -- False = Use screen res. True = 0-512 res.
 	self.OldResolution = false
 
-	EGP:AddHUDEGP( self )
+	EGP:AddHUDEGP(self)
 end
 
 function ENT:EGP_Update()
-	for k,v in pairs( self.RenderTable ) do
+	for k, v in pairs(self.RenderTable) do
 		if (v.res == nil) then v.res = false end
 		if (v.res ~= self.Resolution) then
-			self:ScaleObject( not v.res, v )
+			self:ScaleObject(not v.res, v)
 		end
-		if (v.parent and v.parent ~= 0) then
-			if (not v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
-			local _, data = EGP:GetGlobalPos( self, v.index )
-			EGP:EditObject( v, data )
-		elseif (not v.parent or v.parent == 0 and v.IsParented) then
-			EGP:UnParent( self, v.index )
+		if v.parent and v.parent ~= 0 then
+			if not v.IsParented then EGP:SetParent(self, v.index, v.parent) end
+			local _, data = EGP:GetGlobalPos(self, v.index)
+			EGP:EditObject(v, data)
+		elseif not v.parent or v.parent == 0 and v.IsParented then
+			EGP:UnParent(self, v.index)
 		end
 	end
 	self.OldResolution = self.Resolution
@@ -99,8 +99,8 @@ end
 function ENT:DrawEntityOutline() end
 
 function ENT:Draw()
-	self.Resolution = self:GetNWBool("Resolution",false)
-	if (self.Resolution ~= self.OldResolution) then
+	self.Resolution = self:GetNWBool("Resolution", false)
+	if self.Resolution ~= self.OldResolution then
 		self:EGP_Update()
 	end
 	self:DrawModel()

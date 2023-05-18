@@ -20,14 +20,14 @@ local LastErrorTime = 0
 
 EGP.umsg = {}
 
-function EGP.umsg.Start( name, sender )
+function EGP.umsg.Start(name, sender)
 	if CurSender then
-		if (LastErrorTime + 1 < CurTime()) then
+		if LastErrorTime + 1 < CurTime() then
 			ErrorNoHalt("[EGP] Umsg error. It seems another umsg is already sending, but it occured over 1 second ago. Ending umsg.")
 			EGP.umsg.End()
 		else
 			ErrorNoHalt("[EGP] Umsg error. Another umsg is already sending!")
-			if (LastErrorTime + 2 < CurTime()) then
+			if LastErrorTime + 2 < CurTime() then
 				LastErrorTime = CurTime()
 			end
 			return false
@@ -35,7 +35,7 @@ function EGP.umsg.Start( name, sender )
 	end
 	CurSender = sender
 
-	net.Start( name )
+	net.Start(name)
 	return true
 end
 
