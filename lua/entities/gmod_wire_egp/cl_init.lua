@@ -70,9 +70,10 @@ end
 
 function ENT:DrawEntityOutline() end
 
+local VECTOR_ONE = Vector(1, 1, 1)
 function ENT:Draw()
 	local tone = render.GetToneMappingScaleLinear()
-	render.SetToneMappingScaleLinear(Vector(1, 1, 1))
+	render.SetToneMappingScaleLinear(VECTOR_ONE)
 	self:DrawModel()
 	Wire_Render(self)
 	if self.UpdateConstantly or self.NeedsUpdate then
