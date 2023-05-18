@@ -8,10 +8,10 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		--------------------------------------------------------
 		-- Toggle
 		--------------------------------------------------------
-		local function EGP_Use(len)
+		local function EGP_Use()
 			local ent = net.ReadEntity()
 			if not ent or not ent:IsValid() then return end
-			local bool = net.ReadInt(2)
+			local bool = net.ReadInt(2) or 0
 			if bool == -1 then
 				ent.On = nil
 			elseif bool == 1 then

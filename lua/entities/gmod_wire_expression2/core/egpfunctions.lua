@@ -1185,7 +1185,7 @@ e2function void wirelink:egpHudToggle()
 	if not EGP:ValidEGP( this ) then return self:throw("Invalid wirelink!", nil) end
 	if antispam[self.player] and antispam[self.player] > CurTime() then return end
 	antispam[self.player] = CurTime() + 0.1
-	umsg.Start( "EGP_HUD_Use", self.player ) umsg.Entity( this ) umsg.End()
+	net.Start("EGP_HUD_Use") net.WriteEntity(this) net.WriteInt(0, 2) net.Send(self.player)
 end
 
 --------------------------------------------------------
