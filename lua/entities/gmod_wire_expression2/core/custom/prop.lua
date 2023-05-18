@@ -738,36 +738,17 @@ e2function void entity:parentTo(entity target)
 	if not ValidAction(self, this, "parent") then return self:throw("You do not have permission to parent to this prop!", nil) end
 	if not IsValid(target) then return self:throw("Target prop is invalid.", nil) end
 	if not isOwner(self, target) then return self:throw("You do not own the target prop!", nil) end
-	if not parent_antispam(this) then return self:throw("You are parenting too fast!", nil) end
+	if not parent_antispam( this ) then return self:throw("You are parenting too fast!", nil) end
 	if this == target then return self:throw("You cannot parent a prop to itself") end
-	if not parent_check(self, this, target) then return self:throw("Parenting chain of entities can't exceed 16 or crash may occur", nil) end
+	if not parent_check( self, this, target ) then return self:throw("Parenting chain of entities can't exceed 16 or crash may occur", nil) end
 
 	this:SetParent(target)
-	
-	-- if this.Use then target:SetUseType(SIMPLE_USE) end
-	-- Fixes #2473 by replacing the Use function. This has to be done using tables because otherwise it will crash the game.
-	if this.Use then
-		local tab = this:GetTable()
-		tab.oldUse = tab.Use
-		
-		tab.Use = function()
-			if this:GetParent() == NULL then
-				local tab = this:GetTable()
-				tab.Use = tab.oldUse
-				tab.oldUse = nil
-				this:SetTable(tab)
-			end
-		end
-		
-		this:SetTable(tab)
-	end
-	
 end
 
 __e2setcost(5)
 e2function void entity:deparent()
-	if not PropCore.ValidAction(self, this, "deparent") then return end
-	this:SetParent(nil)
+	if not ValidAction(self, this, "deparent") then return end
+	this:SetParent( nil )
 end
 e2function void entity:parentTo() = e2function void entity:deparent()
 
