@@ -116,17 +116,19 @@ function EGP:SetOrder( Ent, from, to, dir )
 end
 
 local already_reordered = {}
-function EGP:PerformReorder_Ex( Ent, i )
+local makeTable = {}
+function EGP:PerformReorder_Ex(Ent, i, maxn)
 	local obj = Ent.RenderTable[i]
+	local idx = obj.index
 	if obj then
 		-- Check if this object has already been reordered
-		if already_reordered[obj.index] then
+		if already_reordered[idx] then
 			-- if yes, get its new position (or old position if it didn't change)
-			return already_reordered[obj.index]
+			return already_reordered[idx]
 		end
 
 		-- Set old position (to prevent recursive loops)
-		already_reordered[obj.index] = i
+		already_reordered[idx] = i
 
 		if obj.ChangeOrder then
 			local target = obj.ChangeOrder.target
@@ -141,7 +143,7 @@ function EGP:PerformReorder_Ex( Ent, i )
 				local bool, k = self:HasObject( Ent, target )
 				if bool then
 					-- Check for order dependencies
-					k = self:PerformReorder_Ex( Ent, k ) or k
+					k = self:PerformReorder_Ex( Ent, k, maxn ) or k
 
 					target_idx = k + dir
 				end
@@ -149,12 +151,19 @@ function EGP:PerformReorder_Ex( Ent, i )
 
 			if target_idx ~= 0 then
 				-- Make a copy of the object and insert it at the new position
-				local copy = table.Copy(obj)
-				copy.ChangeOrder = nil
-				Ent.RenderTable_Indices[copy.index] = table.insert( Ent.RenderTable, target_idx, copy )
+				target_idx = math.Clamp(target_idx, 1, maxn)
+				local idxRT = Ent.RenderTable_Indices[idx]
+				if idxRT ~= target_idx then 
+					local copy = table.Copy(obj)
+					copy.ChangeOrder = nil
+					EGP:_RemoveObject(Ent, idxRT, idx)
+					EGP:_InsertObject(Ent, copy, idx, target_idx)
+				else
+					obj.ChangeOrder = nil
+				end
 
 				-- Update already reordered reference to new position
-				already_reordered[obj.index] = target_idx
+				already_reordered[idx] = target_idx
 
 				return target_idx
 			else
@@ -167,21 +176,21 @@ end
 function EGP:PerformReorder( Ent )
 	-- Reset, just to be sure
 	already_reordered = {}
+	makeTable = {}
 
-	-- First pass, insert objects at their wanted position
-	for i=1,#Ent.RenderTable do
-		self:PerformReorder_Ex( Ent, i )
+	-- Now we remove at first and create later, how fun
+	local maxn = #Ent.RenderTable
+	for i, _ in pairs(Ent.RenderTable) do
+		self:PerformReorder_Ex( Ent, i , maxn)
 	end
-
-	-- Second pass, remove objects from their original positions
-	for i, obj in pairs(Ent.RenderTable) do
-		if obj.ChangeOrder then
-			EGP:_RemoveObject(Ent, i, obj.index)
-		end
+	
+	for target_idx, v in pairs(makeTable) do
+		EGP:_InsertObject(Ent, v[1], v[2], target_idx)
 	end
 
 	-- Clear some memory
 	already_reordered = {}
+	makeTable = {}
 end
 
 ----------------------------
@@ -196,9 +205,9 @@ function EGP:CreateObject( Ent, ObjID, Settings )
 		return false
 	end
 
-	if #Ent.RenderTable >= self.ConVars.MaxObjects:GetInt() then return false end
+	if Settings.index < 1 or #Ent.RenderTable >= self.ConVars.MaxObjects:GetInt() then return false end
 
-	local bool, k, v = self:HasObject( Ent, Settings.index )
+	local bool, k, v = self:HasObject(Ent, Settings.index)
 	if bool then -- Already exists. Change settings:
 		if v.ID ~= ObjID then -- Not the same kind of object, create new
 			local Obj = self:GetObjectByID( ObjID )
@@ -214,7 +223,7 @@ function EGP:CreateObject( Ent, ObjID, Settings )
 		local Obj = self:GetObjectByID( ObjID )
 		self:EditObject( Obj, Settings )
 		Obj.index = Settings.index
-		Ent.RenderTable_Indices[Settings.index] = table.insert(Ent.RenderTable, Obj)
+		EGP:_InsertObject(Ent, Obj, Settings.index)
 		return true, Obj
 	end
 end
@@ -237,11 +246,24 @@ function EGP:_RemoveObject(ent, indexRT, indexObj)
 	else
 		table.remove(ent.RenderTable, indexRT)
 	end
+	
 	ent.RenderTable_Indices[indexObj] = nil
 	
+	--PrintTable({ rt = indexRT, obj = indexObj, table = ent.RenderTable_Indices })
+	
 	--Shift all the values down one.
-	for k, v in pairs(ent.RenderTable_Indices) do
-		if v >= indexRT then ent.RenderTable_Indices[k] = v - 1 end
+	for i, v in pairs(ent.RenderTable_Indices) do
+		if v > indexRT then ent.RenderTable_Indices[i] = v - 1 end
+	end
+end
+
+function EGP:_InsertObject(ent, obj, indexObj, indexRT)
+	if not indexRT then indexRT = #ent.RenderTable + 1 end
+	
+	ent.RenderTable_Indices[indexObj or obj.index] = table.insert(ent.RenderTable, indexRT, obj)
+	
+	for i, v in pairs(ent.RenderTable_Indices) do
+		if v > indexRT then ent.RenderTable_Indices[i] = v + 1 end
 	end
 end
 

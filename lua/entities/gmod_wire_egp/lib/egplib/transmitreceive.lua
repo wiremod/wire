@@ -259,7 +259,7 @@ if (SERVER) then
 							end
 						end
 
-						EGP:_RemoveObject(Ent.RenderTable, k, v.index)
+						EGP:_RemoveObject(Ent, k, v.index)
 					end
 				else
 					net.WriteUInt(v.ID, 8) -- Else send the ID of the object
@@ -533,7 +533,7 @@ else -- SERVER/CLIENT
 						self:EditObject(Obj, Obj:Receive())
 						Obj.index = index
 						if Obj.OnCreate then Obj:OnCreate() end
-						Ent.RenderTable_Indices[index] = table.insert(Ent.RenderTable, Obj)
+						EGP:_InsertObject(Ent, Obj, index)
 
 						current_obj = Obj
 					end
@@ -688,7 +688,7 @@ else
 					self:AddParentIndexes( Obj )
 				end
 				Obj.index = v.index
-				Ent.RenderTable_Indices[v.index] = table.insert(Ent.RenderTable, Obj)
+				EGP:_InsertObject(Ent, Obj, v.index)
 			end
 			Ent:EGP_Update()
 		end
