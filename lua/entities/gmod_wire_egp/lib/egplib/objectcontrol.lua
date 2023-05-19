@@ -146,21 +146,20 @@ function EGP:PerformReorder_Ex(Ent, i, maxn)
 					k = self:PerformReorder_Ex( Ent, k, maxn ) or k
 
 					target_idx = k + dir
+				else
+					target_idx = target
 				end
 			end
 
-			if target_idx ~= 0 then
+			if target_idx > 0 then
 				-- Make a copy of the object and insert it at the new position
 				target_idx = math.Clamp(target_idx, 1, maxn)
 				local idxRT = Ent.RenderTable_Indices[idx]
-				if idxRT ~= target_idx then 
-					local copy = table.Copy(obj)
-					copy.ChangeOrder = nil
-					EGP:_RemoveObject(Ent, idxRT, idx)
-					EGP:_InsertObject(Ent, copy, idx, target_idx)
-				else
-					obj.ChangeOrder = nil
+				if idxRT ~= target_idx then
+					EGP:_MoveObject(Ent, idxRT, target_idx, idx)
 				end
+				
+				obj.ChangeOrder = nil
 
 				-- Update already reordered reference to new position
 				already_reordered[idx] = target_idx
@@ -249,9 +248,7 @@ function EGP:_RemoveObject(ent, indexRT, indexObj)
 	
 	ent.RenderTable_Indices[indexObj] = nil
 	
-	--PrintTable({ rt = indexRT, obj = indexObj, table = ent.RenderTable_Indices })
-	
-	--Shift all the values down one.
+	-- Shift all the values down one.
 	for i, v in pairs(ent.RenderTable_Indices) do
 		if v > indexRT then ent.RenderTable_Indices[i] = v - 1 end
 	end
@@ -265,6 +262,23 @@ function EGP:_InsertObject(ent, obj, indexObj, indexRT)
 	for i, v in pairs(ent.RenderTable_Indices) do
 		if v > indexRT then ent.RenderTable_Indices[i] = v + 1 end
 	end
+end
+
+function EGP:_MoveObject(ent, indexRTFrom, indexRTTo, indexObj)
+	local obj = table.remove(ent.RenderTable, indexRTFrom)
+	
+	if ent.RenderTable_Indices[indexObj or obj.index]  == indexRTTo then return end
+	
+	ent.RenderTable_Indices[indexObj or obj.index] = table.insert(ent.RenderTable, indexRTTo, obj)
+	
+	-- Shift values such that only values between indexRTFrom and indexRTTo are modified
+	for i, v in pairs(ent.RenderTable_Indices) do
+		if i ~= indexObj then
+			if v >= indexRTTo and v < indexRTFrom then ent.RenderTable_Indices[i] = v + 1
+			elseif v > indexRTFrom and v <= indexRTTo then ent.RenderTable_Indices[i] = v - 1 end
+		end
+	end
+	if SERVER then PrintTable(ent.RenderTable_Indices) end
 end
 
 --------------------------------------------------------
