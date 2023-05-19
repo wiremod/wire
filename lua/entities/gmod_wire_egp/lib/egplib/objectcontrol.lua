@@ -278,7 +278,6 @@ function EGP:_MoveObject(ent, indexRTFrom, indexRTTo, indexObj)
 			elseif v > indexRTFrom and v <= indexRTTo then ent.RenderTable_Indices[i] = v - 1 end
 		end
 	end
-	if SERVER then PrintTable(ent.RenderTable_Indices) end
 end
 
 --------------------------------------------------------
