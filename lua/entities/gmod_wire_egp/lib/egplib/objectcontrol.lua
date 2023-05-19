@@ -50,9 +50,8 @@ end
 ----------------------------
 
 function EGP:GetObjectByID( ID )
-	for _, v in pairs( EGP.Objects ) do
-		if (v.ID == ID) then return table.Copy( v ) end
-	end
+	local name = EGP.Objects.Names_Inverted[ID]
+	if name then return table.Copy(EGP.Objects[name]) end
 	ErrorNoHalt( "[EGP] Error! Object with ID '" .. ID .. "' does not exist. Please post this bug message in the EGP thread on the wiremod forums.\n" )
 end
 
@@ -91,15 +90,13 @@ end
 ----------------------------
 -- Object existance check
 ----------------------------
-function EGP:HasObject( Ent, index )
+function EGP:HasObject( Ent, indexObj )
 	if not EGP:ValidEGP(Ent) then return false end
-	if SERVER then index = math.Round(math.Clamp(index or 1, 1, self.ConVars.MaxObjects:GetInt())) end
 	if not Ent.RenderTable or #Ent.RenderTable == 0 then return false end
-	for k,v in pairs( Ent.RenderTable ) do
-		if (v.index == index) then
-			return true, k, v
-		end
-	end
+	
+	local needle = Ent.RenderTable_Indices[indexObj]
+	if needle then return true, needle, Ent.RenderTable[needle] end
+	
 	return false
 end
 
@@ -154,7 +151,7 @@ function EGP:PerformReorder_Ex( Ent, i )
 				-- Make a copy of the object and insert it at the new position
 				local copy = table.Copy(obj)
 				copy.ChangeOrder = nil
-				table.insert( Ent.RenderTable, target_idx, copy )
+				Ent.RenderTable_Indices[copy.index] = table.insert( Ent.RenderTable, target_idx, copy )
 
 				-- Update already reordered reference to new position
 				already_reordered[obj.index] = target_idx
@@ -177,10 +174,9 @@ function EGP:PerformReorder( Ent )
 	end
 
 	-- Second pass, remove objects from their original positions
-	for i=#Ent.RenderTable,1,-1 do
-		local obj = Ent.RenderTable[i]
-		if obj and obj.ChangeOrder then
-			table.remove( Ent.RenderTable, i )
+	for i, obj in pairs(Ent.RenderTable) do
+		if obj.ChangeOrder then
+			EGP:_RemoveObject(Ent, i, obj.index)
 		end
 	end
 
@@ -195,20 +191,21 @@ end
 function EGP:CreateObject( Ent, ObjID, Settings )
 	if not self:ValidEGP(Ent) then return false end
 
-	if not self.Objects.Names_Inverted[ObjID] then
-		ErrorNoHalt("Trying to create nonexistant object! Please report this error to Divran at wiremod.com. ObjID: " .. ObjID .. "\n")
+	if not EGP.Objects.Names_Inverted[ObjID] then
+		ErrorNoHalt("Trying to create nonexistant object! Please report this error to the Wiremod team. ObjID: " .. ObjID .. "\n")
 		return false
 	end
 
-	if SERVER then Settings.index = math.Round(math.Clamp(Settings.index or 1, 1, self.ConVars.MaxObjects:GetInt())) end
+	if #Ent.RenderTable >= self.ConVars.MaxObjects:GetInt() then return false end
 
 	local bool, k, v = self:HasObject( Ent, Settings.index )
-	if (bool) then -- Already exists. Change settings:
+	if bool then -- Already exists. Change settings:
 		if v.ID ~= ObjID then -- Not the same kind of object, create new
 			local Obj = self:GetObjectByID( ObjID )
 			self:EditObject( Obj, Settings )
 			Obj.index = Settings.index
 			Ent.RenderTable[k] = Obj
+			Ent.RenderTable_Indices[Settings.index] = k
 			return true, Obj
 		else
 			return self:EditObject( v, Settings ), v
@@ -217,7 +214,7 @@ function EGP:CreateObject( Ent, ObjID, Settings )
 		local Obj = self:GetObjectByID( ObjID )
 		self:EditObject( Obj, Settings )
 		Obj.index = Settings.index
-		table.insert( Ent.RenderTable, Obj )
+		Ent.RenderTable_Indices[Settings.index] = table.insert(Ent.RenderTable, Obj)
 		return true, Obj
 	end
 end
@@ -233,7 +230,20 @@ function EGP:EditObject( Obj, Settings )
 	return ret
 end
 
-
+--Helper function just because now we need to keep track of indices
+function EGP:_RemoveObject(ent, indexRT, indexObj)
+	if not indexObj then
+		indexObj = table.remove(ent.RenderTable, indexRT).index
+	else
+		table.remove(ent.RenderTable, indexRT)
+	end
+	ent.RenderTable_Indices[indexObj] = nil
+	
+	--Shift all the values down one.
+	for k, v in pairs(ent.RenderTable_Indices) do
+		if v >= indexRT then ent.RenderTable_Indices[k] = v - 1 end
+	end
+end
 
 --------------------------------------------------------
 --  Homescreen

@@ -243,7 +243,7 @@ if (SERVER) then
 
 				-- Check if the object doesn't exist serverside anymore (It may have been removed by a command in the queue before this, like egpClear or egpRemove)
 				--if not EGP:HasObject( Ent, v.index ) then
-				--	EGP:CreateObject( Ent, v.ID, v )
+					--EGP:CreateObject( Ent, v.ID, v )
 				--end
 
 				net.WriteInt( v.index, 16 ) -- Send index of object
@@ -259,7 +259,7 @@ if (SERVER) then
 							end
 						end
 
-						table.remove( Ent.RenderTable, k )
+						EGP:_RemoveObject(Ent.RenderTable, k, v.index)
 					end
 				else
 					net.WriteUInt(v.ID, 8) -- Else send the ID of the object
@@ -320,13 +320,10 @@ if (SERVER) then
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 20
 			end
-
-			for i=1,#Ent.RenderTable do
-				E2.prf = E2.prf + 0.3
-				if Ent.RenderTable[i].index == Data[1] then
-					table.remove( Ent.RenderTable, i )
-					break
-				end
+			
+			local needle = Ent.RenderTable_Indices[Data[1]]
+			if needle then
+				EGP:_RemoveObject(Ent, needle, Data[1])
 			end
 
 			self:AddQueueObject( Ent, E2.player, SendObjects, { index = Data[1], remove = true } )
@@ -348,6 +345,7 @@ if (SERVER) then
 			end
 
 			Ent.RenderTable = {}
+			Ent.RenderTable_Indices = {}
 
 			self:AddQueue( Ent, E2.player, ClearScreen, "ClearScreen" )
 		elseif (Action == "SaveFrame") then
@@ -369,9 +367,10 @@ if (SERVER) then
 				E2.prf = E2.prf + 10
 			end
 
-			local bool, frame = EGP:LoadFrame( E2.player, Ent, Data[1] )
+			local bool, frame, indices = EGP:LoadFrame( E2.player, Ent, Data[1] )
 			if (bool) then
 				Ent.RenderTable = frame
+				Ent.RenderTable_Indices = indices
 			end
 
 			self:AddQueue( Ent, E2.player, LoadFrame, "LoadFrame", Data[1] )
@@ -394,6 +393,7 @@ else -- SERVER/CLIENT
 		local Action = net.ReadString()
 		if Action == "ClearScreen" then
 			Ent.RenderTable = {}
+			Ent.RenderTable_Indices = {}
 			Ent:EGP_Update()
 		elseif Action == "SaveFrame" then
 			local ply = net.ReadEntity()
@@ -487,7 +487,7 @@ else -- SERVER/CLIENT
 							end
 						end
 
-						table.remove(Ent.RenderTable, k)
+						EGP:_RemoveObject(Ent, k, v.index)
 					end
 				else
 
@@ -508,6 +508,7 @@ else -- SERVER/CLIENT
 							self:EditObject(Obj, data)
 							Obj.index = index
 							Ent.RenderTable[k] = Obj
+							Ent.RenderTable_Indices[index] = k
 							if Obj.OnCreate then Obj:OnCreate() end
 
 							-- For EGP HUD
@@ -532,7 +533,7 @@ else -- SERVER/CLIENT
 						self:EditObject(Obj, Obj:Receive())
 						Obj.index = index
 						if Obj.OnCreate then Obj:OnCreate() end
-						Ent.RenderTable[#Ent.RenderTable + 1] = Obj--table.insert( Ent.RenderTable, Obj )
+						Ent.RenderTable_Indices[index] = table.insert(Ent.RenderTable, Obj)
 
 						current_obj = Obj
 					end
@@ -675,6 +676,7 @@ else
 
 		if self:ValidEGP(Ent) then
 			Ent.RenderTable = {}
+			Ent.RenderTable_Indices = {}
 			if Ent.GPU then -- Only Screens use GPULib
 				Ent.GPU.texture_filtering = decoded.Filtering or TEXFILTER.ANISOTROPIC
 			end
@@ -686,7 +688,7 @@ else
 					self:AddParentIndexes( Obj )
 				end
 				Obj.index = v.index
-				table.insert(Ent.RenderTable, Obj)
+				Ent.RenderTable_Indices[v.index] = table.insert(Ent.RenderTable, Obj)
 			end
 			Ent:EGP_Update()
 		end

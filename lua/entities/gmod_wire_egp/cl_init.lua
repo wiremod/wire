@@ -7,6 +7,7 @@ function ENT:Initialize()
 	self.GPU.texture_filtering = TEXFILTER.ANISOTROPIC
 
 	self.RenderTable = {}
+	self.RenderTable_Indices = {}
 	self:EGP_Update( EGP.HomeScreen )
 end
 

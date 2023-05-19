@@ -12,6 +12,7 @@ function ENT:Initialize()
 	self:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
 
 	self.RenderTable = {}
+	self.RenderTable_Indices = {}
 
 	WireLib.CreateOutputs( self, { "User (Outputs the player who used the screen for a single tick) [ENTITY]" } )
 	WireLib.CreateWirelinkOutput( nil, self, {true} )
