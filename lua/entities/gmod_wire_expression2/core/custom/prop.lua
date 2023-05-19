@@ -706,7 +706,7 @@ end
 
 e2function void entity:ragdollSetPose(table pose, rotate)
 	if not ValidAction(self, this, "pose") then return end
-	if #pose.n == 0 then return end
+	if pose.size == 0 then return end
 	local bones = GetBones(this)
 	local originPos, originAng = bones[0]:GetPos()
 	if rotate ~= 0 then 
@@ -727,7 +727,7 @@ end
 
 e2function void entity:ragdollSetPose(table pose)
 	if not ValidAction(self, this, "pose") then return end
-	if #pose.n == 0 then return end
+	if pose.size == 0 then return end
 	local bones = GetBones(this)
 	local originPos, originAng = bones[0]:GetPos(), bones[0]:GetAngles() -- Rotate by default.
 	
