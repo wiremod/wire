@@ -116,7 +116,6 @@ function EGP:SetOrder( Ent, from, to, dir )
 end
 
 local already_reordered = {}
-local makeTable = {}
 function EGP:PerformReorder_Ex(Ent, i, maxn)
 	local obj = Ent.RenderTable[i]
 	local idx = obj.index
@@ -175,21 +174,15 @@ end
 function EGP:PerformReorder( Ent )
 	-- Reset, just to be sure
 	already_reordered = {}
-	makeTable = {}
 
-	-- Now we remove at first and create later, how fun
+	-- Now we remove and create at the same time!
 	local maxn = #Ent.RenderTable
 	for i, _ in pairs(Ent.RenderTable) do
 		self:PerformReorder_Ex( Ent, i , maxn)
 	end
-	
-	for target_idx, v in pairs(makeTable) do
-		EGP:_InsertObject(Ent, v[1], v[2], target_idx)
-	end
 
 	-- Clear some memory
 	already_reordered = {}
-	makeTable = {}
 end
 
 ----------------------------
