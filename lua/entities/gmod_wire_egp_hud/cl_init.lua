@@ -73,6 +73,7 @@ end
 
 function ENT:Initialize()
 	self.RenderTable = {}
+	self.RenderTable_Indices = {}
 	self.Resolution = false -- False = Use screen res. True = 0-512 res.
 	self.OldResolution = false
 
