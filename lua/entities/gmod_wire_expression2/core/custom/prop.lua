@@ -11,6 +11,7 @@ local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) 
 
 local isOwner = E2Lib.isOwner
 local getBone = E2Lib.getBone
+local GetBones = E2Lib.GetBones
 local isValidBone = E2Lib.isValidBone
 local setPos = WireLib.setPos
 local setAng = WireLib.setAng
@@ -56,33 +57,37 @@ local ValidSpawn = PropCore.ValidSpawn
 local canHaveInvalidPhysics = {
 	delete=true, parent=true, deparent=true, solid=true,
 	shadow=true, draw=true, use=true, pos=true, ang=true,
-	manipulate=true
+	manipulate=true, [0] = true
 }
+
 function PropCore.ValidAction(self, entity, cmd, bone, index)
 	if cmd == "spawn" or cmd == "Tdelete" then return true end
 	if not IsValid(entity) then return self:throw("Invalid entity!", false) end
-	if not canHaveInvalidPhysics[cmd] and not validPhysics(entity) then return self:throw("Invalid physics object!", false) end
+	if not canHaveInvalidPhysics[cmd or 0] and not validPhysics(entity) then return self:throw("Invalid physics object!", false) end
 	if not isOwner(self, entity) then return self:throw("You do not own this entity!", false) end
 	if entity:IsPlayer() then return self:throw("You cannot modify players", false) end
 	
-	if bone then
-		if not entity["bone"..index] then 
-			entity["bone"..index] = {}
+	-- For cases when we'd only want to check an entity
+	if cmd then
+		if bone then
+			if not entity["bone"..index] then 
+				entity["bone"..index] = {}
+			end
+			entity = entity["bone"..index]
 		end
-		entity = entity["bone"..index]
+
+		-- make sure we can only perform the same action on this prop once per tick
+		-- to prevent spam abuse
+		if not entity.e2_propcore_last_action then
+			entity.e2_propcore_last_action = {}
+		end
+		if 	entity.e2_propcore_last_action[cmd] and entity.e2_propcore_last_action[cmd] == CurTime() then
+			return self:throw("You can only perform one type of action per tick!", false)
+		end
+		entity.e2_propcore_last_action[cmd] = CurTime()
 	end
 
-	-- make sure we can only perform the same action on this prop once per tick
-	-- to prevent spam abuse
-	if not entity.e2_propcore_last_action then
-		entity.e2_propcore_last_action = {}
-	end
-	if 	entity.e2_propcore_last_action[cmd] and
-		entity.e2_propcore_last_action[cmd] == CurTime() then return self:throw("You can only perform one type of action per tick!", false) end
-	entity.e2_propcore_last_action[cmd] = CurTime()
-
-	local ply = self.player
-	return sbox_E2_PropCore:GetInt()==2 or (sbox_E2_PropCore:GetInt()==1 and ply:IsAdmin())
+	return sbox_E2_PropCore:GetInt()==2 or (sbox_E2_PropCore:GetInt()==1 and self.player:IsAdmin())
 end
 local ValidAction = PropCore.ValidAction
 
@@ -656,41 +661,84 @@ __e2setcost(150)
 
 e2function void entity:ragdollSetPos(vector pos)
 	if not ValidAction(self, this, "pos") then return end
-	local offsets = {}
-	local bones = GetBones(this)
 	
-	for k, bone in pairs(bones) do
-		offsets[k] = this:WorldToLocal(bone:GetPos())
-	end
-	
-	for k, bone in pairs(bones) do
-		local offset = offsets[k]
-		setPos(v, pos + offset)
+	for k, bone in pairs(GetBones(this)) do
+		setPos(bone, this:WorldToLocal(bone:GetPos()) + pos)
 	end
 	
 	this:PhysWake()
 end
 
-__e2setcost(300)
-
 e2function void entity:ragdollSetAng(angle rot)
 	if not ValidAction(self, this, "rot") then return end
-	local offsets = {}
-	local bones = GetBones(this)
 	
-	for k, bone in pairs(bones) do
-		offsets[k] = { this:WorldToLocal(bone:GetPos()), this:WorldToLocalAngles(bone:GetAngles()) }
-	end
-	
-	setAng(this, rot)
-	
-	for k, v in pairs(bones) do
-		local offsetP, offsetA = offsets[k][1], offsets[k][2]
-		setAng(v, this:LocalToWorldAngles(offsetA))
-		setPos(v, this:LocalToWorld(offsetP))
+	for _, bone in pairs(GetBones(this)) do
+		setAng(bone, bone:AlignAngles(this:GetForward():Angle(), rot))
 	end
 	
 	this:PhysWake()
+end
+
+e2function table entity:ragdollGetPose()
+	if not ValidAction(self, this) then return end
+	local pose = E2Lib.newE2Table()
+	local bones = GetBones(this)
+	local originPos, originAng = bones[0]:GetPos(), bones[0]:GetAngles()
+	
+	-- We want to skip bone 0 as that will be the reference point
+	for k, bone in pairs(bones) do
+		local value = E2Lib.newE2Table()
+		local pos, ang = WorldToLocal(bone:GetPos(), bone:GetAngles(), originPos, originAng)
+		
+		value.n[1] = pos
+		value.n[2] = ang
+		value.ntypes[1] = "v"
+		value.ntypes[2] = "a"
+		value.size = 2
+		
+		pose.n[k] = value
+		pose.ntypes[k] = "t"
+	end
+	
+	pose.size = #pose.n
+	return pose
+end
+
+e2function void entity:ragdollSetPose(table pose, rotate)
+	if not ValidAction(self, this, "pose") then return end
+	if #pose.n == 0 then return end
+	local bones = GetBones(this)
+	local originPos, originAng = bones[0]:GetPos()
+	if rotate ~= 0 then 
+		originAng = bones[0]:GetAngles()
+	else
+		originAng = this:GetForward():Angle()
+	end
+	
+	for k, v in pairs(pose.n) do
+		local pos, ang = LocalToWorld(v.n[1], v.n[2], originPos, originAng)
+		setAng(bones[k], ang)
+		setPos(bones[k], pos)
+	end
+	
+	this:PhysWake()
+	
+end
+
+e2function void entity:ragdollSetPose(table pose)
+	if not ValidAction(self, this, "pose") then return end
+	if #pose.n == 0 then return end
+	local bones = GetBones(this)
+	local originPos, originAng = bones[0]:GetPos(), bones[0]:GetAngles() -- Rotate by default.
+	
+	for k, v in pairs(pose.n) do
+		local pos, ang = LocalToWorld(v.n[1], v.n[2], originPos, originAng)
+		setAng(bones[k], ang)
+		setPos(bones[k], pos)
+	end
+	
+	this:PhysWake()
+	
 end
 
 
