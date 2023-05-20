@@ -150,6 +150,11 @@ if CLIENT then
         if CameraIsDrawn then return true end
     end)
 
+
+    hook.Add("ShouldDrawHalos", "ImprovedRTCamera", function()
+        if CameraIsDrawn then return false end
+    end)
+
     hook.Add("PreRender", "ImprovedRTCamera", function()
         local isHDR = wire_rt_camera_hdr:GetInt() ~= 0
         local renderH = wire_rt_camera_resolution_h:GetInt()

@@ -236,3 +236,12 @@ function WireLib.hud_debug(text, oneframe)
 		draw.DrawText(text,"Trebuchet24",10,200,Color(255,255,255,255),0)
 	end)
 end
+
+local old_renderhalos = old_renderhalos or hook.GetTable().PostDrawEffects.RenderHalos
+assert(old_renderhalos ~= nil, "Garry's mod internals updated, halos are now rendered in some other way")
+
+hook.Add("PostDrawEffects","RenderHalos", function()
+	if hook.Run("ShouldDrawHalos") == false then return end
+
+	old_renderhalos()
+end)
