@@ -188,7 +188,7 @@ WireGPU_FromBox_Helper("Receiver 2", "models/props_lab/reciever01d.mdl", Vector(
 WireGPU_FromBox_Helper("Oscilloscope 4", "models/props_c17/consolebox01a.mdl", Vector(8.5,7.2,-10), Vector(15,9.4,16.4), Angle(0, 90, 90))
 WireGPU_FromBox_Helper("Combine Console", "models/props_combine/combine_interface001.mdl", Vector(-9.9,25.6,-10), Vector(5.7,33.5,34.2), Angle(0, 90, 41.5))
 WireGPU_FromBox_Helper("Cash Register", "models/props_c17/cashregister01a.mdl", Vector(-9.2,8.5,-10), Vector(4.4,11.6,-5.9), Angle(0, 180, 90))
-WireGPU_FromBox_Helper("Combine Monitor", "models/props_combine/combine_monitorbay.mdl", Vector(-30.7,-26,-10), Vector(38,34.7,-4.31), Angle(0, 90, 90))
+WireGPU_FromBox_Helper("Combine Monitor", "models/props_combine/combine_monitorbay.mdl", Vector(-30.7,-26,-10), Vector(38,34.7,-2), Angle(0, 90, 90))
 WireGPU_FromBox_Helper("Workspace 001", "models/props_lab/workspace001.mdl", Vector(4,37,0), Vector(21.2,52,11.1), Angle(0, 15, 83))
 WireGPU_FromBox_Helper("Radio", "models/props_lab/citizenradio.mdl", Vector(-5.8,11.7,-3), Vector(11.3,15.3,8.2), Angle(0, 90, 90))
 WireGPU_FromBox_Helper("Security Bank", "models/props_lab/securitybank.mdl", Vector(-4.6,66,-3), Vector(25,86.5,12), Angle(0, 90, 90))
