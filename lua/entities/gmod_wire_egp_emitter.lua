@@ -142,9 +142,10 @@ if CLIENT then
 			end
 			self:EGP_Update()
 		elseif self:GetUseRT() == true and not hasGPU then
-			local t = self.RenderTable -- save reference
+			local t, t_i = self.RenderTable,  self.RenderTable_Indices -- save reference
 			self:Initialize() -- recreate gpu RT
 			self.RenderTable = t -- restore render table
+			self.RenderTable_Indices = t_i
 			self:EGP_Update()
 		end
 
