@@ -1188,6 +1188,24 @@ e2function void wirelink:egpHudToggle()
 	net.Start("EGP_HUD_Use") net.WriteEntity(this) net.WriteInt(0, 2) net.Send(self.player)
 end
 
+e2function void wirelink:egpHudToggle(enable)
+	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", nil) end
+	if antispam[self.player] and antispam[self.player] > CurTime() then return end
+	antispam[self.player] = CurTime() + 0.1
+	net.Start("EGP_HUD_Use") net.WriteEntity(this) net.WriteInt(enable ~= 0 and 1 or -1, 2) net.Send(self.player)
+end
+
+e2function array wirelink:egpConnectedUsers()
+	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", nil) end
+	local sanitised_array, i = {}, 0
+	
+	for _, v in pairs(this.Users) do
+		i = i + 1
+		sanitised_array[i] = v
+	end
+	return sanitised_array
+end
+
 --------------------------------------------------------
 -- Useful functions
 --------------------------------------------------------

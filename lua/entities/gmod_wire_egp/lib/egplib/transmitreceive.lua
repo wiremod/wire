@@ -34,7 +34,7 @@ if (SERVER) then
 			return
 		end
 
-		if not EGP.umsg.Start( "EGP_Transmit_Data", ply ) then return end
+		if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "ClearScreen" )
 		EGP.umsg.End()
@@ -51,7 +51,7 @@ if (SERVER) then
 		end
 
 		util.AddNetworkString( FrameName )
-		if not EGP.umsg.Start( "EGP_Transmit_Data", ply ) then return end
+		if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "SaveFrame" )
 			net.WriteEntity( ply )
@@ -72,7 +72,7 @@ if (SERVER) then
 		local bool, _ = EGP:LoadFrame( ply, Ent, FrameName )
 		if not bool then return end
 
-		if not EGP.umsg.Start( "EGP_Transmit_Data", ply ) then return end
+		if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "LoadFrame" )
 			net.WriteEntity( ply )
@@ -93,7 +93,7 @@ if (SERVER) then
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
-			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
+			if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "AddVertex" )
 				net.WriteInt( index, 16 )
@@ -125,7 +125,7 @@ if (SERVER) then
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
-			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
+			if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "SetVertex" )
 				net.WriteInt( index, 16 )
@@ -156,7 +156,7 @@ if (SERVER) then
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
-			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
+			if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "AddText" )
 				net.WriteInt( index, 16 )
@@ -178,7 +178,7 @@ if (SERVER) then
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
-			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
+			if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "SetText" )
 				net.WriteInt( index, 16 )
@@ -206,7 +206,7 @@ if (SERVER) then
 			EGP:InsertQueue( Ent, ply, EditFiltering, "EditFiltering", filtering )
 			return
 		end
-		if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
+		if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "EditFiltering" )
 			net.WriteUInt( filtering, 2 )
@@ -234,7 +234,7 @@ if (SERVER) then
 
 		local order_was_changed = false
 
-		if not EGP.umsg.Start( "EGP_Transmit_Data", ply ) then return end
+		if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "ReceiveObjects" )
 

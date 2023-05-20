@@ -1,5 +1,5 @@
 hook.Add("Initialize","EGP_HUD_Initialize",function()
-	if (CLIENT) then
+	if CLIENT then
 		local EGP_HUD_FirstPrint = true
 		local tbl = {}
 
@@ -14,17 +14,31 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 			local bool = net.ReadInt(2) or 0
 			if bool == -1 then
 				ent.On = nil
+				-- Clear the screen so there isn't a ghost frame next time it's enabled
+				ent.Users = nil
+				ent.RenderTable = {}
+				ent.RenderTable_Indices = {}
+				ent:EGP_Update()
+				EGP:RemoveHUDEGP(ent)
 			elseif bool == 1 then
-				ent.On = true
+				ent.EGPHudOn = true
+				ent.Users = true -- This value isn't actually used by the client, it's just here for UpdateTransmitState
+				if not tbl[ent] then EGP:AddHUDEGP(ent) end
 			elseif bool == 0 then
-				if ent.On == true then
-					ent.On = nil
+				if ent.EGPHudOn == true then
+					ent.EGPHudOn = nil
+					ent.Users = nil
+					ent.RenderTable = {}
+					ent.RenderTable_Indices = {}
+					ent:EGP_Update()
 					LocalPlayer():ChatPrint("[EGP] EGP HUD Disconnected.")
+					EGP:RemoveHUDEGP(ent)
 				else
-					if not tbl[ent] then -- strange... this entity should be in the table. Might have gotten removed due to a lagspike. Add it again
+					if not tbl[ent] then -- Why is this table even like this in the first place
 						EGP:AddHUDEGP(ent)
 					end
-					ent.On = true
+					ent.EGPHudOn = true
+					ent.Users = true
 					if EGP_HUD_FirstPrint then
 						LocalPlayer():ChatPrint("[EGP] EGP HUD Connected. NOTE: Type 'wire_egp_hud_unlink' in console to disconnect yourself from all EGP HUDs.")
 						EGP_HUD_FirstPrint = nil
@@ -33,6 +47,11 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 					end
 				end
 			end
+			
+			net.Start("EGP_HUD_Use")
+			net.WriteEntity(ent)
+			net.WriteBool(ent.EGPHudOn or false)
+			net.SendToServer()
 		end
 		net.Receive( "EGP_HUD_Use", EGP_Use )
 
@@ -67,12 +86,20 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 					EGP:RemoveHUDEGP(Ent)
 					break
 				else
-					if Ent.On == true then
+					if Ent.EGPHudOn == true then
 						if Ent.RenderTable and #Ent.RenderTable > 0 then
 							local mat = Ent:GetEGPMatrix()
 
 							for _, object in pairs(Ent.RenderTable) do
 								local oldtex = EGP:SetMaterial(object.material)
+								-- Why was this excluded from here? Fixes parenting breaking when not looking at EGP
+								if object.parent and object.parent ~= 0 then
+									if not object.IsParented then EGP:SetParent(Ent, object.index, object.parent) end
+									local _, data = EGP:GetGlobalPos(Ent, object.index)
+									EGP:EditObject(object, data)
+								elseif not object.parent or object.parent == 0 and object.IsParented then
+									EGP:UnParent(Ent, object.index)
+								end
 								object:Draw(Ent, mat)
 								EGP:FixMaterial(oldtex)
 
@@ -89,8 +116,35 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 				end
 			end
 		end) -- HUDPaint hook
-	else
+	else -- SERVER
 		local vehiclelinks = {}
+		
+		local function EGP_Use_Server(len, ply)
+			local ent = net.ReadEntity()
+			local state = net.ReadBool()
+			if not IsValid(ent) then return end
+			
+			if not ent.Users then ent.Users = {} end
+			
+			local id = ply:AccountID()
+			
+			if ent.Users[id] and not state then
+				ent.Users[id] = nil
+				-- Do not insert a DoAction for ClearScreen here. That would be a mistake
+			elseif state then
+				ent.Users[id] = ply
+				-- Fast-forward the player's RenderTable by creating every object that's on the server's
+				for _, v in pairs(ent.RenderTable) do
+					EGP:DoAction(ent, { player = ply }, "SendObject", v)
+				end
+			end
+			
+			if table.IsEmpty(ent.Users) and not ent.IsEGPHUD then
+				ent.Users = nil
+			end
+			
+		end
+		net.Receive( "EGP_HUD_Use", EGP_Use_Server )
 
 		function EGP:LinkHUDToVehicle(hud, vehicle)
 			if not hud.LinkedVehicles then hud.LinkedVehicles = {} end

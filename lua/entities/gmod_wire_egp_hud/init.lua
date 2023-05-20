@@ -17,6 +17,8 @@ function ENT:Initialize()
 
 	self.RenderTable = {}
 	self.RenderTable_Indices = {}
+	self.Users = {}
+	self.IsEGPHUD = true
 
 	self:SetUseType(SIMPLE_USE)
 	self:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
@@ -43,12 +45,12 @@ end
 
 function ENT:SetEGPOwner( ply )
 	self.ply = ply
-	self.plyID = ply:UniqueID()
+	self.plyID = ply:AccountID()
 end
 
 function ENT:GetEGPOwner()
 	if (not self.ply or not self.ply:IsValid()) then
-		local ply = player.GetByUniqueID( self.plyID )
+		local ply = player.GetByAccountID( self.plyID )
 		if (ply) then self.ply = ply end
 		return ply
 	else
@@ -57,7 +59,7 @@ function ENT:GetEGPOwner()
 	return false
 end
 
-function ENT:UpdateTransmitState() return TRANSMIT_ALWAYS end
+function ENT:UpdateTransmitState() return TRANSMIT_PVS end
 
 function ENT:LinkEnt( ent )
 	ent = WireLib.GetClosestRealVehicle(ent,self:GetPos(),self:GetPlayer())

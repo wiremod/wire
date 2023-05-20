@@ -4,6 +4,7 @@
 local EGP = EGP
 
 local CurSender
+local curEnt
 local LastErrorTime = 0
 --[[ Transmit Sizes:
 	Angle = 12
@@ -20,7 +21,7 @@ local LastErrorTime = 0
 
 EGP.umsg = {}
 
-function EGP.umsg.Start(name, sender)
+function EGP.umsg.Start(name, sender, ent)
 	if CurSender then
 		if LastErrorTime + 1 < CurTime() then
 			ErrorNoHalt("[EGP] Umsg error. It seems another umsg is already sending, but it occured over 1 second ago. Ending umsg.")
@@ -34,7 +35,8 @@ function EGP.umsg.Start(name, sender)
 		end
 	end
 	CurSender = sender
-
+	curEnt = ent
+	
 	net.Start(name)
 	return true
 end
@@ -44,6 +46,23 @@ function EGP.umsg.End()
 		if not EGP.IntervalCheck[CurSender] then EGP.IntervalCheck[CurSender] = { bytes = 0, time = 0 } end
 		EGP.IntervalCheck[CurSender].bytes = EGP.IntervalCheck[CurSender].bytes + net.BytesWritten()
 	end
-	net.Broadcast()
+	
+	if curEnt.Users then
+		local rf = RecipientFilter()
+		
+		-- Account for users who added themselves using egpHudToggle()
+		if not curEnt.IsEGPHUD then
+			rf:AddPVS(curEnt:GetPos())
+		end
+		
+		for _, v in pairs(curEnt.Users) do
+			rf:AddPlayer(v)
+		end
+		
+		net.Send(rf)
+	else
+		net.SendPVS(curEnt:GetPos())
+	end
 	CurSender = nil
+	curEnt = nil
 end
