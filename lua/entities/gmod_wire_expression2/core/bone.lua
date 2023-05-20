@@ -35,13 +35,14 @@ function getBone(entity, index)
 	local bone = entity2bone[entity][index]
 	if not bone then
 		bone = entity:GetPhysicsObjectNum(index)
+		if not bone then return nil end
 		entity2bone[entity][index] = bone
 		
 		bone2entity[bone] = entity
 		bone2index[bone] = index
 	end
 
-	return bone:IsValid() and bone or nil
+	return IsValid(bone) and bone or nil
 end
 E2Lib.getBone = getBone
 

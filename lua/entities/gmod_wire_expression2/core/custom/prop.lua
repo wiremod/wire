@@ -10,7 +10,6 @@ local sbox_E2_maxPropsPerSecond = CreateConVar( "sbox_E2_maxPropsPerSecond", "4"
 local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) -- 2: Players can affect their own props, 1: Only admins, 0: Disabled
 
 local isOwner = E2Lib.isOwner
-local getBone = E2Lib.getBone
 local GetBones = E2Lib.GetBones
 local isValidBone = E2Lib.isValidBone
 local setPos = WireLib.setPos
