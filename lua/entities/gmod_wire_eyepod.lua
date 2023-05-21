@@ -139,6 +139,7 @@ local Rotate90ModelList = {
 	["models/props_phx/carseat3.mdl"]			= true,
 	["models/buggy.mdl"]						= true,
 	["models/vehicle.mdl"]						= true,
+	-- Playermodel Chairs (https://steamcommunity.com/sharedfiles/filedetails/?id=2183798463)
 	["models/chairs_playerstart/airboatpose.mdl"]	= true,
 	["models/chairs_playerstart/jeeppose.mdl"]		= true,
 	["models/chairs_playerstart/sitposealt.mdl"]	= true,
