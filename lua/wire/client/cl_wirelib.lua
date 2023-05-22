@@ -238,10 +238,12 @@ function WireLib.hud_debug(text, oneframe)
 end
 
 local old_renderhalos = old_renderhalos or hook.GetTable().PostDrawEffects.RenderHalos
-assert(old_renderhalos ~= nil, "Garry's mod internals updated, halos are now rendered in some other way")
-
-hook.Add("PostDrawEffects","RenderHalos", function()
-	if hook.Run("ShouldDrawHalos") == false then return end
-
-	old_renderhalos()
-end)
+if old_renderhalos ~= nil then
+	hook.Add("PostDrawEffects","RenderHalos", function()
+		if hook.Run("ShouldDrawHalos") == false then return end
+	
+		old_renderhalos()
+	end)
+else
+	ErrorNoHalt("Wiremod RenderHalos detour failed (RenderHalos hook not found)!")
+end
