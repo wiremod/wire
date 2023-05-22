@@ -237,7 +237,9 @@ function WireLib.hud_debug(text, oneframe)
 	end)
 end
 
-local old_renderhalos = old_renderhalos or hook.GetTable().PostDrawEffects.RenderHalos
+
+local old_renderhalos = WireLib.__old_renderhalos or hook.GetTable().PostDrawEffects.RenderHalos
+WireLib.__old_renderhalos = old_renderhalos
 if old_renderhalos ~= nil then
 	hook.Add("PostDrawEffects","RenderHalos", function()
 		if hook.Run("ShouldDrawHalos") == false then return end
