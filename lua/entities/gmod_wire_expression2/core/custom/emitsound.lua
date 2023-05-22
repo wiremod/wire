@@ -6,8 +6,8 @@ local max_soundlevel = GetConVar("wire_expression2_sound_level_max")
 local function EmitSound(e2, ent, snd, level, pitch, volume)
     if not E2Lib.SoundLib.isAllowed(e2) then return end
 
-    if not IsValid(e2) then return self:throw("Invalid entity!", nil) end
-    if not isOwner(self, e2) then return self:throw("You do not own this entity!", nil) end
+    if not IsValid(ent) then return e2:throw("Invalid entity!", nil) end
+    if not isOwner(e2, ent) then return e2:throw("You do not own this entity!", nil) end
 
     local maxlevel = max_soundlevel:GetInt()
     if level ~= nil and level > maxlevel then
