@@ -32,7 +32,7 @@ function ENT:_EGP_Update( bool )
 
 		local mat = self:GetEGPMatrix()
 
-		for k,v in pairs( Table ) do
+		for _, v in ipairs(Table) do
 			if (v.parent == -1) then self.UpdateConstantly = true end -- Check if an object is parented to the cursor
 			if (v.parent and v.parent ~= 0) then
 				if (not v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
