@@ -186,7 +186,7 @@ local EGP_NUMS = { x = true, y = true, z = true, w = true, h = true, r = true, g
 				parent = true, angle = true, fidelity = true, radius = true, valign = true, halign = true, target_x = true,
 				target_y = true, target_z = true, directionality = true, ID = true, index = true, parent = true }
 local EGP_STRINGS = { material = true, Name = true, text = true, font = true }
-local EGP_BOOLS = { IsParented = true }
+-- local EGP_BOOLS = { IsParented = true }
 
 local function egpValidateTable(self, this, args, types, index)
 	-- Wipe any arguments that simply shouldn't be replaced
@@ -226,17 +226,18 @@ local function egpValidateTable(self, this, args, types, index)
 		if args.parententity ~= NULL and types.parententity ~= "e" or not IsValid(args.parententity) then self:throw("Argument parententity is not a valid entity! (" .. args.parententity .. ")") end
 	end
 	
+	if args.IsParented then
+		if types.IsParented == "s" then
+			if args.IsParented == "true" then args.IsParented = true elseif args.IsParented == "false" then args.IsParented = false end
+		elseif types.IsParented == "n" then
+			if args.IsParented ~= 0 then args.IsParented = true elseif args.IsParented == 0 then args.IsParented = false end
+		else self:throw(string.format("Argument IsParented is not a boolean! (%q)", val)) end
+	end
+	
 	-- Typecheck arguments, convert bools
 	for k, v in pairs(types) do
 		if EGP_NUMS[k] then 
 			if v ~= "n" then self:throw(string.format("Argument %q is not a number! (%q)", k, args[k])) end
-		elseif EGP_BOOLS[k] then
-			local val = args[k]
-			if v == "s" then
-				if val == "true" then args[k] = true elseif val == "false" then args[k] = false end
-			elseif v == "n" then
-				if val ~= 0 then args[k] = true elseif val == 0 then args[k] = false end
-			else self:throw(string.format("Argument %q is not a boolean! (%q)", k, val)) end
 		elseif EGP_STRINGS[k] then
 			if v ~= "s" then self:throw(string.format("Argument %q is not a string! (%q)", k, args[k])) end
 		end
