@@ -180,6 +180,95 @@ e2function void wirelink:egpTextLayout( number index, string text, vector2 pos, 
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 end
 
+__e2setcost(50)
+
+local EGP_NUMS = { x = true, y = true, z = true, w = true, h = true, r = true, g = true, b = true, a = true, size = true,
+				parent = true, angle = true, fidelity = true, radius = true, valign = true, halign = true, target_x = true,
+				target_y = true, target_z = true, directionality = true, ID = true, index = true, parent = true }
+local EGP_STRINGS = { material = true, Name = true, text = true, font = true }
+local EGP_BOOLS = { IsParented = true }
+
+local function egpValidateTable(self, this, args, index)
+	-- Wipe any arguments that simply shouldn't be replaced
+	args.BaseClass = nil
+	args.CanTopLeft = nil
+	args.Contains = nil
+	args.DataStreamInfo = nil
+	args.HasUV = nil
+	args.NeedsConstantUpdate = nil
+	args.Receive = nil
+	args.Transmit = nil
+	args.verticesindex = nil
+	-- Convert args.vertices into its meaningful part
+	if args.vertices then
+		if args.vertices.n then args.vertices = args.vertices.n else self:throw("Argument vertices is not a table!") end
+		for k, v in pairs(args.vertices) do
+			if v.x and v.y and type(v.x) ~= "number" or type(v.y) ~= "number" then self:throw(string.format("Malformed vertices argument! %d = { x = %q, y = %q }", k, v.x, v.y)) end
+		end
+	end
+	
+	if args.parententity then
+		if args.parententity ~= NULL and type(args.parententity) ~= "Entity" or not IsValid(args.parententity) then self:throw("Argument parententity is not a valid entity! (" .. args.parententity .. ")") end
+	end
+	
+	-- Typecheck arguments, convert bools
+	for k, v in pairs(args) do
+		local vType = type(v)
+		if EGP_NUMS[k] then 
+			if vType ~= "number" then self:throw(string.format("Argument %q is not a number! (%q)", k, v)) end
+		elseif EGP_BOOLS[k] then
+			if vType == "string" then
+				if v == "true" then args[k] = true elseif v == "false" then args[k] = false end
+			elseif vType == "number" then
+				if v ~= 0 then args[k] = true elseif v == 0 then args[k] = false end
+			else self:throw(string.format("Argument %q is not a boolean! (%q)", k, v)) end
+		elseif EGP_STRINGS[k] then
+			if vType ~= "string" then self:throw(string.format("Argument %q is not a string! (%q)", k, v)) end
+		end
+	end
+	
+	if not index then
+		if not args.index then
+			args.index = #this.RenderTable + 1
+		end
+		index = args.index
+	end
+	if args.parent then
+		if not EGP:HasObject(this, args.parent) then args.parent = 0 end
+		if args.parent == index then self:throw("EGP parent cannot be itself (" .. index .. ")!") end
+		if args.parent ~= 0 and not args.IsParented then args.IsParented = true end
+	end
+	
+	return true
+end
+
+-- Creates an object of name with all arguments listed in args
+e2function void wirelink:egpCreate(string objectName, table args)
+	if not EGP:IsAllowed(self, this) then return end
+	if not EGP.Objects.Names[objectName] then self:throw("EGP object name '" .. objectName .. "' does not exist!") end
+	args = table.Copy(args.s)
+	if not egpValidateTable(self, this, args) then return end
+	local bool, obj = EGP:CreateObject(this, EGP.Objects.Names[objectName], args, self.player)
+	if bool then
+		EGP:DoAction(this, self, "SendObject", obj)
+		Update(self, this) 
+	end
+end
+
+-- Modifies an object of index with all arguments listed in args
+e2function void wirelink:egpManipulate(number index, table args)
+	if not EGP:IsAllowed(self, this) then return end
+	local bool, _, v = EGP:HasObject(this, index)
+	if bool then
+		args = table.Copy(args.s)
+		if not egpValidateTable(self, this, args, index) then return end
+		if EGP:EditObject(v, table.Copy(args)) then
+			EGP:DoAction(this, self, "SendObject", v)
+			Update(self, this)
+		end
+	end
+end
+
 __e2setcost(10)
 
 ----------------------------

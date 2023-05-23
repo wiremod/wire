@@ -1456,6 +1456,9 @@ E2Helper.Descriptions["egpTriangleOutline(xwl:nxv2xv2xv2)"] = "Creates a outline
 E2Helper.Descriptions["egpWedge(xwl:nxv2xv2)"] = "Creates a wedge object. Wedge objects are like circles, except they have a cake-piece-like mouth which you can change using egpSize"
 E2Helper.Descriptions["egpWedgeOutline(xwl:nxv2xv2)"] = "Creates a outline wedge object. Wedge objects are like circles, except they have a cake-piece-like mouth which you can change using egpSize"
 
+E2Helper.Descriptions["egpCreate"] = "Creates an EGP object with the name and the arguments provided in the table. See the wiki or code to see valid arguments"
+E2Helper.Descriptions["egpManipulate"] = "Modifies an EGP object of the index with the arguments provided in the table. See the wiki or code to see valid arguments"
+
 -- (de)serialization
 E2Helper.Descriptions["glonDecode(s)"] = "Decodes a string into an array using GLON"
 E2Helper.Descriptions["glonDecodeTable(s)"] = "Decodes a string into a table using GLON"
