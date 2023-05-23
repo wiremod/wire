@@ -188,42 +188,57 @@ local EGP_NUMS = { x = true, y = true, z = true, w = true, h = true, r = true, g
 local EGP_STRINGS = { material = true, Name = true, text = true, font = true }
 local EGP_BOOLS = { IsParented = true }
 
-local function egpValidateTable(self, this, args, index)
+local function egpValidateTable(self, this, args, types, index)
 	-- Wipe any arguments that simply shouldn't be replaced
 	args.BaseClass = nil
+	types.BaseClass = nil
 	args.CanTopLeft = nil
+	types.BaseClass = nil
 	args.Contains = nil
+	types.Contains = nil
 	args.DataStreamInfo = nil
+	types.DataStreamInfo = nil
 	args.HasUV = nil
+	types.HasUV = nil
 	args.NeedsConstantUpdate = nil
+	types.NeedsConstantUpdate = nil
 	args.Receive = nil
+	types.Receive = nil
 	args.Transmit = nil
+	types.Transmit = nil
 	args.verticesindex = nil
-	-- Convert args.vertices into its meaningful part
+	types.verticesindex = nil
+	-- Convert args.vertices into its meaningful parts
 	if args.vertices then
-		if args.vertices.n then args.vertices = args.vertices.n else self:throw("Argument vertices is not a table!") end
-		for k, v in pairs(args.vertices) do
-			if v.x and v.y and type(v.x) ~= "number" or type(v.y) ~= "number" then self:throw(string.format("Malformed vertices argument! %d = { x = %q, y = %q }", k, v.x, v.y)) end
+		if types.vertices ~= "t" then self:throw("Argument vertices is not a table!") end
+		local tempVertices = {}
+		local vertTypes = args.vertices.ntypes
+		local verts = args.vertices.n
+		for k, v in pairs(verts) do
+			if vertTypes[k] ~= "t" then self:throw(string.format("Vertices argument is not table! (%d)", k))
+			elseif v.stypes.x ~= "n" or v.stypes.y ~= "n" then self:throw(string.format("Malformed vertices argument! (%d)", k))
+			else tempVertices[k] = v.s end
 		end
+		args.vertices = tempVertices
 	end
 	
 	if args.parententity then
-		if args.parententity ~= NULL and type(args.parententity) ~= "Entity" or not IsValid(args.parententity) then self:throw("Argument parententity is not a valid entity! (" .. args.parententity .. ")") end
+		if args.parententity ~= NULL and types.parententity ~= "e" or not IsValid(args.parententity) then self:throw("Argument parententity is not a valid entity! (" .. args.parententity .. ")") end
 	end
 	
 	-- Typecheck arguments, convert bools
-	for k, v in pairs(args) do
-		local vType = type(v)
+	for k, v in pairs(types) do
 		if EGP_NUMS[k] then 
-			if vType ~= "number" then self:throw(string.format("Argument %q is not a number! (%q)", k, v)) end
+			if v ~= "n" then self:throw(string.format("Argument %q is not a number! (%q)", k, args[k])) end
 		elseif EGP_BOOLS[k] then
-			if vType == "string" then
-				if v == "true" then args[k] = true elseif v == "false" then args[k] = false end
-			elseif vType == "number" then
-				if v ~= 0 then args[k] = true elseif v == 0 then args[k] = false end
-			else self:throw(string.format("Argument %q is not a boolean! (%q)", k, v)) end
+			local val = args[k]
+			if v == "s" then
+				if val == "true" then args[k] = true elseif val == "false" then args[k] = false end
+			elseif v == "n" then
+				if val ~= 0 then args[k] = true elseif val == 0 then args[k] = false end
+			else self:throw(string.format("Argument %q is not a boolean! (%q)", k, val)) end
 		elseif EGP_STRINGS[k] then
-			if vType ~= "string" then self:throw(string.format("Argument %q is not a string! (%q)", k, v)) end
+			if v ~= "s" then self:throw(string.format("Argument %q is not a string! (%q)", k, args[k])) end
 		end
 	end
 	
@@ -246,8 +261,9 @@ end
 e2function void wirelink:egpCreate(string objectName, table args)
 	if not EGP:IsAllowed(self, this) then return end
 	if not EGP.Objects.Names[objectName] then self:throw("EGP object name '" .. objectName .. "' does not exist!") end
+	local types = args.stypes
 	args = table.Copy(args.s)
-	if not egpValidateTable(self, this, args) then return end
+	if not egpValidateTable(self, this, args, types) then return end
 	local bool, obj = EGP:CreateObject(this, EGP.Objects.Names[objectName], args, self.player)
 	if bool then
 		EGP:DoAction(this, self, "SendObject", obj)
@@ -260,8 +276,9 @@ e2function void wirelink:egpManipulate(number index, table args)
 	if not EGP:IsAllowed(self, this) then return end
 	local bool, _, v = EGP:HasObject(this, index)
 	if bool then
+		local types = args.stypes
 		args = table.Copy(args.s)
-		if not egpValidateTable(self, this, args, index) then return end
+		if not egpValidateTable(self, this, args, types, index) then return end
 		if EGP:EditObject(v, table.Copy(args)) then
 			EGP:DoAction(this, self, "SendObject", v)
 			Update(self, this)
