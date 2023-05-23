@@ -145,7 +145,9 @@ local Rotate90ModelList = {
 	["models/chairs_playerstart/sitposealt.mdl"]	= true,
 	["models/chairs_playerstart/pronepose.mdl"] 	= true,
 	["models/chairs_playerstart/sitpose.mdl	"]		= true,
-	["models/chairs_playerstart/standingpose.mdl"]	= true
+	["models/chairs_playerstart/standingpose.mdl"]	= true,
+	-- ACF / ACE
+	["models/vehicles/pilot_seat.mdl"] = true
 }
 
 -- Old function alias
