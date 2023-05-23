@@ -182,32 +182,24 @@ end
 
 __e2setcost(50)
 
-local EGP_NUMS = { x = true, y = true, z = true, w = true, h = true, r = true, g = true, b = true, a = true, size = true,
-				parent = true, angle = true, fidelity = true, radius = true, valign = true, halign = true, target_x = true,
-				target_y = true, target_z = true, directionality = true, ID = true, index = true, parent = true }
+local EGP_NUMS = { x = true, y = true, x2 =true, y2 = true, z = true, w = true, h = true, r = true, g = true, b = true, a = true,
+				size = true, parent = true, angle = true, fidelity = true, radius = true, valign = true, halign = true,
+				target_x = true, target_y = true, target_z = true, directionality = true, ID = true, index = true, parent = true }
 local EGP_STRINGS = { material = true, Name = true, text = true, font = true }
--- local EGP_BOOLS = { IsParented = true }
+-- local EGP_BOOLS = { CanTopLeft = true, IsParented = true, remove = true }
+local DISALLOWED_ARGS = { "BaseClass", "CanTopLeft", "Contains", "DataStreamInfo", "IsParented", "HasUV", "NeedsConstantUpdate",
+						"OnCreate", "OnRemove", "parent", "Receive", "Transmit", "verticesindex" }
 
 local function egpValidateTable(self, this, args, types, index)
 	-- Wipe any arguments that simply shouldn't be replaced
-	args.BaseClass = nil
-	types.BaseClass = nil
-	args.CanTopLeft = nil
-	types.BaseClass = nil
-	args.Contains = nil
-	types.Contains = nil
-	args.DataStreamInfo = nil
-	types.DataStreamInfo = nil
-	args.HasUV = nil
-	types.HasUV = nil
-	args.NeedsConstantUpdate = nil
-	types.NeedsConstantUpdate = nil
-	args.Receive = nil
-	types.Receive = nil
-	args.Transmit = nil
-	types.Transmit = nil
-	args.verticesindex = nil
-	types.verticesindex = nil
+	for _, v in ipairs(DISALLOWED_ARGS) do
+		args[v] = nil
+		types[v] = nil
+	end
+	
+	-- Index is glitchy but we need it for creation
+	if index then args.index = nil elseif not args.index then args.index = #this.RenderTable + 1 end
+	
 	-- Convert args.vertices into its meaningful parts
 	if args.vertices then
 		if types.vertices ~= "t" then self:throw("Argument vertices is not a table!") end
@@ -222,18 +214,6 @@ local function egpValidateTable(self, this, args, types, index)
 		args.vertices = tempVertices
 	end
 	
-	if args.parententity then
-		if args.parententity ~= NULL and types.parententity ~= "e" or not IsValid(args.parententity) then self:throw("Argument parententity is not a valid entity! (" .. args.parententity .. ")") end
-	end
-	
-	if args.IsParented then
-		if types.IsParented == "s" then
-			if args.IsParented == "true" then args.IsParented = true elseif args.IsParented == "false" then args.IsParented = false end
-		elseif types.IsParented == "n" then
-			if args.IsParented ~= 0 then args.IsParented = true elseif args.IsParented == 0 then args.IsParented = false end
-		else self:throw(string.format("Argument IsParented is not a boolean! (%q)", val)) end
-	end
-	
 	-- Typecheck arguments, convert bools
 	for k, v in pairs(types) do
 		if EGP_NUMS[k] then 
@@ -243,18 +223,6 @@ local function egpValidateTable(self, this, args, types, index)
 		end
 	end
 	
-	if not index then
-		if not args.index then
-			args.index = #this.RenderTable + 1
-		end
-		index = args.index
-	end
-	if args.parent then
-		if not EGP:HasObject(this, args.parent) then args.parent = 0 end
-		if args.parent == index then self:throw("EGP parent cannot be itself (" .. index .. ")!") end
-		if args.parent ~= 0 and not args.IsParented then args.IsParented = true end
-	end
-	
 	return true
 end
 
@@ -262,7 +230,7 @@ end
 e2function void wirelink:egpCreate(string objectName, table args)
 	if not EGP:IsAllowed(self, this) then return end
 	if not EGP.Objects.Names[objectName] then self:throw("EGP object name '" .. objectName .. "' does not exist!") end
-	local types = args.stypes
+	local types = table.Copy(args.stypes)
 	args = table.Copy(args.s)
 	if not egpValidateTable(self, this, args, types) then return end
 	local bool, obj = EGP:CreateObject(this, EGP.Objects.Names[objectName], args, self.player)
@@ -277,7 +245,7 @@ e2function void wirelink:egpManipulate(number index, table args)
 	if not EGP:IsAllowed(self, this) then return end
 	local bool, _, v = EGP:HasObject(this, index)
 	if bool then
-		local types = args.stypes
+		local types = table.Copy(args.stypes)
 		args = table.Copy(args.s)
 		if not egpValidateTable(self, this, args, types, index) then return end
 		if EGP:EditObject(v, table.Copy(args)) then
