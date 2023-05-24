@@ -4,9 +4,6 @@
 
 E2Lib.RegisterExtension("sound", true, "Allows E2s to play sounds.", "Sounds can be played out of arbitrary entities, including other players.")
 
-local SoundLib = SoundLib or {}
-E2Lib.SoundLib = SoundLib
-
 local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 16, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_burst_max", 8, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1, {FCVAR_ARCHIVE} )
@@ -44,13 +41,11 @@ local function isAllowed( self )
 
 	return true
 end
-SoundLib.isAllowed = isAllowed
 
 local function getSound( self, index )
 	if isnumber( index ) then index = math.floor( index ) end
 	return self.data.sound_data.sounds[index]
 end
-SoundLib.getSound = getSound
 
 
 local function soundStop(self, index, fade)
@@ -74,7 +69,6 @@ local function soundStop(self, index, fade)
 
 	timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index )
 end
-SoundLib.soundStop = soundStop
 
 local function soundCreate(self, entity, index, time, path, fade)
 	if path:match('["?]') then return end
@@ -114,7 +108,6 @@ local function soundCreate(self, entity, index, time, path, fade)
 		soundStop( self, index, fade )
 	end)
 end
-SoundLib.soundCreate = soundCreate
 
 local function soundPurge( self )
 	local sound_data = self.data.sound_data
@@ -128,7 +121,6 @@ local function soundPurge( self )
 	sound_data.sounds = {}
 	sound_data.count = 0
 end
-SoundLib.soundPurge = soundPurge
 
 ---------------------------------------------------------------
 -- Play functions
@@ -297,6 +289,46 @@ e2function number soundPlaying( index )
 	return sound:IsPlaying() and 1 or 0
 end
 e2function number soundPlaying( string index ) = e2function number soundPlaying( index )
+
+-- EmitSound
+
+local function EmitSound(e2, ent, snd, level, pitch, volume)
+    if not isAllowed(e2) then return end
+
+    if not IsValid(ent) then return e2:throw("Invalid entity!", nil) end
+    if not isOwner(e2, ent) then return e2:throw("You do not own this entity!", nil) end
+
+    local maxlevel = wire_expression2_sound_level_max:GetInt()
+    if level ~= nil and level > maxlevel then
+        level = maxlevel
+    end
+
+    ent:EmitSound(snd, level, pitch, volume)
+end
+
+__e2setcost(20)
+e2function void entity:emitSound(string soundName, number soundLevel, number pitchPercent, number volume)
+    EmitSound(self, this, soundName, soundLevel, pitchPercent, volume)
+end
+
+e2function void entity:emitSound(string soundName, number soundLevel, number pitchPercent)
+    EmitSound(self, this, soundName, soundLevel, pitchPercent)
+end
+
+e2function void entity:emitSound(string soundName, number soundLevel)
+    EmitSound(self, this, soundName, soundLevel)
+end
+
+e2function void entity:emitSound(string soundName)
+    EmitSound(self, this, soundName)
+end
+
+e2function void entity:emitSoundStop(string soundName)
+    if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+    if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+
+    this:StopSound(soundName)
+end
 
 ---------------------------------------------------------------
 
