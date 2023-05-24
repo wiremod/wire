@@ -80,7 +80,7 @@ if SERVER then
 
 	local function ImprovedRTCamera(ply, plyView)
         for _, screen in ipairs(screens) do
-            if screen:GetActive() and screen:ShouldDrawCamera(ply) then
+            if screen:GetActive() and screen:IsScreenInRange(ply) then
                 local camera = screen:GetCamera()
                 if IsValid(camera) and camera:GetActive() then
                     AddOriginToPVS(camera:GetPos())
@@ -139,9 +139,11 @@ function ENT:TriggerInput( name, value )
         if value ~= nil and not value:IsValid() then
             return
         end
-        if value == nil or value:GetClass() == "gmod_wire_rt_camera" then
-            self:SetCamera(value)
+        if value ~= nil and value:GetClass() ~= "gmod_wire_rt_camera" then
+            value = nil
         end
+
+        self:SetCamera(value)
     elseif name == "Scroll X" then
         self:SetScrollX(value)
     elseif name == "Scroll Y" then
@@ -156,7 +158,7 @@ function ENT:TriggerInput( name, value )
     end
 end
 
-function ENT:ShouldDrawCamera(ply)
+function ENT:IsScreenInRange(ply)
     local maxDist = ply:GetInfoNum("wire_rt_screen_renderdistance", 512)
 
     return ply:EyePos():DistToSqr(self:GetPos()) <= maxDist * maxDist
@@ -170,6 +172,11 @@ if CLIENT then
     local function GetOrAllocMaterial(name)
         if MATERIALS[name] ~= nil then
             return MATERIALS[name]
+        end
+
+        if name == "" then
+            MsgN("ImprovedRTCameras: got empty name (typically happens at entity creation).")
+            return nil
         end
 
         local path = "improvedrt_screen/monitor_"..name..".vmt"
@@ -211,7 +218,8 @@ if CLIENT then
 
             return
         end
-        self.ShouldRenderCamera = self:ShouldDrawCamera(LocalPlayer())
+        
+        self.ShouldRenderCamera = self:IsScreenInRange(LocalPlayer())
 
         if IsValid(camera) then
             camera:SetIsObserved(self.ShouldRenderCamera)
@@ -302,7 +310,9 @@ if CLIENT then
             return
         end
 
-        if self:GetActive() and self.ShouldRenderCamera and self.Material ~= nil and IsValid(self:GetCamera()) then
+        if self:GetActive() and self.ShouldRenderCamera and self.Material ~= nil 
+            and IsValid(self:GetCamera()) and self:GetCamera():GetActive()
+        then
             self:DrawScreen()
         elseif not self.translucent then
             self:DrawDummy()
