@@ -138,7 +138,16 @@ local Rotate90ModelList = {
 	["models/props_phx/carseat2.mdl"]			= true,
 	["models/props_phx/carseat3.mdl"]			= true,
 	["models/buggy.mdl"]						= true,
-	["models/vehicle.mdl"]						= true
+	["models/vehicle.mdl"]						= true,
+	-- Playermodel Chairs (https://steamcommunity.com/sharedfiles/filedetails/?id=2183798463)
+	["models/chairs_playerstart/airboatpose.mdl"]	= true,
+	["models/chairs_playerstart/jeeppose.mdl"]		= true,
+	["models/chairs_playerstart/sitposealt.mdl"]	= true,
+	["models/chairs_playerstart/pronepose.mdl"] 	= true,
+	["models/chairs_playerstart/sitpose.mdl	"]		= true,
+	["models/chairs_playerstart/standingpose.mdl"]	= true,
+	-- ACF / ACE
+	["models/vehicles/pilot_seat.mdl"] = true
 }
 
 -- Old function alias
