@@ -48,8 +48,8 @@ function TOOL:RightClick( trace )
 	return true
 end
 
-function TOOL:Reload(trace)
-	if (self:GetStage() == 1) then
+function TOOL:Reload()
+	if self:GetStage() == 1 then
 		self:SetStage(0)
 		self.Linked = nil
 		return false
