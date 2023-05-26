@@ -116,7 +116,10 @@ if SERVER then
 
         local Inputs = table.Copy(InputsTable)
 
-        for _, tbl in pairs(GetMaterialParameters(self:GetScreenMaterial())) do
+		local matParams = GetMaterialParameters(self:GetScreenMaterial())
+		if not matParams then return end
+
+        for _, tbl in pairs(matParams) do
             table.insert(Inputs, tbl.WireName.." ["..tbl.WireType.."]")
         end
 
@@ -239,13 +242,15 @@ if CLIENT then
         local tex2 = material:GetString("!targettex2")
         if tex2 ~= nil then material:SetTexture(tex2, rt) end
 
-        for mtl_param, tbl in pairs(self.MaterialParamsDesc) do
-            --print(self.MaterialParams[tbl.WireName])
+		if self.MaterialParamsDesc then
+			for mtl_param, tbl in pairs(self.MaterialParamsDesc) do
+				--print(self.MaterialParams[tbl.WireName])
 
-            local value = self.MaterialParams[tbl.WireName] or tbl.Default
+				local value = self.MaterialParams[tbl.WireName] or tbl.Default
 
-            material[tbl.MaterialFn](material, mtl_param, value)
-        end
+				material[tbl.MaterialFn](material, mtl_param, value)
+			end
+		end
 
         local xraw = 256 / monitor.RatioX
         local yraw = 256
