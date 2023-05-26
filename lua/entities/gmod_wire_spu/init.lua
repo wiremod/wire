@@ -111,6 +111,7 @@ function ENT:ResendCache(player)
   timer.Simple(0.4+math.random()*1.2,
     function()
       if not self:IsValid() then return end
+      if not IsValid(player) then return end
 
       self.Cache:Flush()
       for address,value in pairs(self.Memory) do
