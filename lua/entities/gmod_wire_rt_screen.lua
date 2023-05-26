@@ -178,15 +178,14 @@ if CLIENT then
         end
 
         if name == "" then
-            MsgN("ImprovedRTCameras: got empty name (typically happens at entity creation).")
+            MsgN("WireRTScreen: got empty name (typically happens at entity creation).")
             return nil
         end
 
         local path = "improvedrt_screen/monitor_"..name..".vmt"
 
         if not file.Exists("materials/"..path, "GAME") then
-            MsgN("ImprovedRTCameras: material "..path.." does not exist on client for some reason!")
-            MsgN("Screen would not be rendered")
+            MsgN("WireRTScreen: material "..path.." does not exist on client for some reason! Screen will not be rendered")
             return nil
         end
 
