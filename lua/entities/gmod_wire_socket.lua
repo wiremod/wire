@@ -5,44 +5,55 @@ ENT.Purpose         = "Links with a plug"
 ENT.Instructions    = "Move a plug close to a plug to link them, and data will be transferred through the link."
 ENT.WireDebugName	= "Socket"
 
-local PositionOffsets = {
-	["models/wingf0x/isasocket.mdl"] = Vector(0,0,0),
-	["models/wingf0x/altisasocket.mdl"] = Vector(0,0,2.6),
-	["models/wingf0x/ethernetsocket.mdl"] = Vector(0,0,0),
-	["models/wingf0x/hdmisocket.mdl"] = Vector(0,0,0),
-	["models/props_lab/tpplugholder_single.mdl"] = Vector(5, 13, 10),
-	["models/bull/various/usb_socket.mdl"] = Vector(8,0,0),
-	["models/hammy/pci_slot.mdl"] = Vector(0,0,0),
-	["models//hammy/pci_slot.mdl"] = Vector(0,0,0), -- For some reason, GetModel on this model has two / on the client... Bug?
-}
-local AngleOffsets = {
-	["models/wingf0x/isasocket.mdl"] = Angle(0,0,0),
-	["models/wingf0x/altisasocket.mdl"] = Angle(0,0,0),
-	["models/wingf0x/ethernetsocket.mdl"] = Angle(0,0,0),
-	["models/wingf0x/hdmisocket.mdl"] = Angle(0,0,0),
-	["models/props_lab/tpplugholder_single.mdl"] = Angle(0,0,0),
-	["models/bull/various/usb_socket.mdl"] = Angle(0,0,0),
-	["models/hammy/pci_slot.mdl"] = Angle(0,0,0),
-	["models//hammy/pci_slot.mdl"] = Angle(0,0,0), -- For some reason, GetModel on this model has two / on the client... Bug?
-}
-local SocketModels = {
-	["models/wingf0x/isasocket.mdl"] = "models/wingf0x/isaplug.mdl",
-	["models/wingf0x/altisasocket.mdl"] = "models/wingf0x/isaplug.mdl",
-	["models/wingf0x/ethernetsocket.mdl"] = "models/wingf0x/ethernetplug.mdl",
-	["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl",
-	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
-	["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
-	["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
-	["models//hammy/pci_slot.mdl"] = "models//hammy/pci_card.mdl", -- For some reason, GetModel on this model has two / on the client... Bug?
+local SocketData = { -- this would be in modelplug, but that's clientside only
+	["models/bull/various/usb_socket.mdl"] = { 
+		ang = Angle(0, 0, 0),
+		plug = "models/bull/various/usb_stick.mdl",
+		pos = Vector(8, 0, 0)
+	},
+	["models/hammy/pci_slot.mdl"] = { 
+		ang = Angle(0, 0, 0),
+		plug = "models/hammy/pci_card.mdl",
+		pos = Vector(0, 0, 0)
+	},
+	["models/props_lab/tpplugholder_single.mdl"] = { 
+		ang = Angle(0, 0, 0),
+		plug = "models/props_lab/tpplug.mdl",
+		pos = Vector(5, 13, 10)
+	},
+	["models/wingf0x/altisasocket.mdl"] = { 
+		ang = Angle(0, 0, 0),
+		plug = "models/wingf0x/isaplug.mdl",
+		pos = Vector(0, 0, 2.6)
+	},
+	["models/wingf0x/ethernetsocket.mdl"] = { 
+		ang = Angle(0, 0, 0),
+		plug = "models/wingf0x/ethernetplug.mdl",
+		pos = Vector(0, 0, 0)
+	},
+	["models/wingf0x/hdmisocket.mdl"] = { 
+		ang = Angle(0, 0, 0),
+		plug = "models/wingf0x/hdmiplug.mdl",
+		pos = Vector(0, 0, 0)
+	},
+	["models/wingf0x/isasocket.mdl"] = { 
+		ang = Angle(0, 0, 0),
+		plug = "models/wingf0x/isaplug.mdl",
+		pos = Vector(0, 0, 0)
+	}
 }
 
+for k, v in pairs(SocketData) do
+	list.Set("Wire_socket_data", k, v)
+end
+
 function ENT:GetLinkPos()
-	return self:LocalToWorld(PositionOffsets[self:GetModel()] or Vector(0,0,0)), self:LocalToWorldAngles(AngleOffsets[self:GetModel()] or Angle(0,0,0))
+	return self:LocalToWorld(self.SockData.pos or Vector(0,0,0)), self:LocalToWorldAngles(self.SockData.ang or Angle(0,0,0))
 end
 
 function ENT:CanLink( Target )
 	if (Target.Socket and Target.Socket:IsValid()) then return false end
-	if (SocketModels[self:GetModel()] ~= Target:GetModel()) then return false end
+	if (self.SockData.plug ~= Target:GetModel()) then return false end
 	return true
 end
 
@@ -72,9 +83,9 @@ function ENT:GetPlugClass()
 end
 
 function ENT:SetupDataTables()
+	self.SockData = SocketData[self:GetModel()] or {} -- child class overrides init, you have forced my hand
 	self:NetworkVar( "Bool", 0, "Linked" )
 end
-
 
 if CLIENT then
 	local sockets = ents.FindByClass("gmod_wire_socket") or {}
