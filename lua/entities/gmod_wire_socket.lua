@@ -12,7 +12,7 @@ local SocketData = { -- this would be in modelplug, but that's clientside only
 		pos = Vector(8, 0, 0)
 	},
 	["models/hammy/pci_slot.mdl"] = { 
-		ang = Angle(0, 0, 0),
+		ang = Angle(90, 0, 0),
 		plug = "models/hammy/pci_card.mdl",
 		pos = Vector(0, 0, 0)
 	},
@@ -22,22 +22,22 @@ local SocketData = { -- this would be in modelplug, but that's clientside only
 		pos = Vector(5, 13, 10)
 	},
 	["models/wingf0x/altisasocket.mdl"] = { 
-		ang = Angle(0, 0, 0),
+		ang = Angle(90, 0, 0),
 		plug = "models/wingf0x/isaplug.mdl",
 		pos = Vector(0, 0, 2.6)
 	},
 	["models/wingf0x/ethernetsocket.mdl"] = { 
-		ang = Angle(0, 0, 0),
+		ang = Angle(90, 0, 0),
 		plug = "models/wingf0x/ethernetplug.mdl",
 		pos = Vector(0, 0, 0)
 	},
 	["models/wingf0x/hdmisocket.mdl"] = { 
-		ang = Angle(0, 0, 0),
+		ang = Angle(90, 0, 0),
 		plug = "models/wingf0x/hdmiplug.mdl",
 		pos = Vector(0, 0, 0)
 	},
 	["models/wingf0x/isasocket.mdl"] = { 
-		ang = Angle(0, 0, 0),
+		ang = Angle(90, 0, 0),
 		plug = "models/wingf0x/isaplug.mdl",
 		pos = Vector(0, 0, 0)
 	}
