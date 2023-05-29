@@ -183,12 +183,12 @@ end
 __e2setcost(50)
 
 local EGP_NUMS = { x = true, y = true, x2 =true, y2 = true, z = true, w = true, h = true, r = true, g = true, b = true, a = true,
-				size = true, parent = true, angle = true, fidelity = true, radius = true, valign = true, halign = true,
-				target_x = true, target_y = true, target_z = true, directionality = true, ID = true, index = true, parent = true }
-local EGP_STRINGS = { material = true, Name = true, text = true, font = true }
+				size = true, angle = true, fidelity = true, radius = true, valign = true, halign = true, target_x = true,
+				target_y = true, target_z = true, directionality = true, index = true }
+local EGP_STRINGS = { material = true, text = true, font = true }
 -- local EGP_BOOLS = { CanTopLeft = true, IsParented = true, remove = true }
 local DISALLOWED_ARGS = { "BaseClass", "CanTopLeft", "Contains", "DataStreamInfo", "IsParented", "HasUV", "NeedsConstantUpdate",
-						"OnCreate", "OnRemove", "parent", "Receive", "Transmit", "verticesindex" }
+						"OnCreate", "OnRemove", "parent", "Receive", "Transmit", "verticesindex", "ID", "Name" }
 
 local function egpValidateTable(self, this, args, types, index)
 	-- Wipe any arguments that simply shouldn't be replaced
@@ -222,6 +222,8 @@ local function egpValidateTable(self, this, args, types, index)
 			if v ~= "s" then self:throw(string.format("Argument %q is not a string! (%q)", k, args[k])) end
 		end
 	end
+	
+	if args.parentEntity and types.parentEntity ~= "e" then self:throw("Argument parentEntity is not an entity!") end
 	
 	return true
 end
