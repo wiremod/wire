@@ -1365,33 +1365,31 @@ e2function number egpQueue()
 end
 
 -- Choose whether or not to make this E2 run when the queue has finished sending all items for <this>
+[deprecated]
 e2function void wirelink:egpRunOnQueue( yesno )
 	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
-	local bool = false
-	if (yesno ~= 0) then bool = true end
-	self.data.EGP.RunOnEGP[this] = bool
+	self.data.EGP.RunOnEGP[this] = yesno ~= 0
 end
 
 -- Returns 1 if the current execution was caused by the EGP queue system OR if the EGP queue system finished in the current execution
+[deprecated]
 e2function number egpQueueClk()
 	return EGP.RunByEGPQueue and 1 or 0
 end
 
 -- Returns 1 if the current execution was caused by the EGP queue system regarding the entity <screen> OR if the EGP queue system finished in the current execution
+[deprecated]
 e2function number egpQueueClk( wirelink screen )
-	if (EGP.RunByEGPQueue and EGP.RunByEGPQueue_Ent == screen) then
-		return 1
-	end
-	return 0
+	return EGP.RunByEGPQueue and EGP.RunByEGPQueue_Ent == screen and 1 or 0
 end
 
 -- Returns 1 if the current execution was caused by the EGP queue system regarding the entity <screen> OR if the EGP queue system finished in the current execution
+[deprecated]
 e2function number egpQueueClk( entity screen )
-	if (EGP.RunByEGPQueue and EGP.RunByEGPQueue_Ent == screen) then
-		return 1
-	end
-	return 0
+	return EGP.RunByEGPQueue and EGP.RunByEGPQueue_Ent == screen and 1 or 0
 end
+
+E2Lib.registerEvent("egpQueueFinished", { { "Screen", "xwl" }, { "Player", "e" } })
 
 -- Returns the screen which the queue finished sending items for
 e2function entity egpQueueScreen()

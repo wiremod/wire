@@ -106,6 +106,8 @@ function EGP:SendQueueItem( ply )
 			-- Check if the queue has no more items for this screen
 			local Items = self:GetQueueItemsForScreen( ply, Ent )
 			if (Items and #Items == 0) then
+				E2Lib.triggerEvent("egpQueueFinished", { Ent, ply })
+			
 				EGP.RunByEGPQueue = 1
 				EGP.RunByEGPQueue_Ent = Ent
 				EGP.RunByEGPQueue_ply = ply
