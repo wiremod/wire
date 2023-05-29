@@ -177,7 +177,7 @@ function EGP:PerformReorder( Ent )
 
 	-- Now we remove and create at the same time!
 	local maxn = #Ent.RenderTable
-	for i, _ in pairs(Ent.RenderTable) do
+	for i, _ in ipairs(Ent.RenderTable) do
 		self:PerformReorder_Ex( Ent, i , maxn)
 	end
 

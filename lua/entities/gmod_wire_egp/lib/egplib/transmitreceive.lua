@@ -253,7 +253,7 @@ if (SERVER) then
 					local bool, k, v = EGP:HasObject( Ent, v.index )
 					if (bool) then
 						-- Unparent all objects parented to this object
-						for k2,v2 in pairs( Ent.RenderTable ) do
+						for k2, v2 in ipairs(Ent.RenderTable) do
 							if (v2.parent and v.index and v2.parent == v.index) then
 								EGP:UnParent( Ent, v2 )
 							end
@@ -481,7 +481,7 @@ else -- SERVER/CLIENT
 						if v.OnRemove then v:OnRemove() end
 
 						-- Unparent all objects parented to this object
-						for _, v2 in pairs(Ent.RenderTable) do
+						for _, v2 in ipairs(Ent.RenderTable) do
 							if v2.parent and v.index and v2.parent == v.index then
 								EGP:UnParent(Ent, v2)
 							end
@@ -614,7 +614,7 @@ if SERVER then
 		for k, v in ipairs(targets) do
 			if v.RenderTable and #v.RenderTable > 0 then
 				local DataToSend = {}
-				for _, v2 in pairs(v.RenderTable) do
+				for _, v2 in ipairs(v.RenderTable) do
 					local obj = v2
 
 					if v.Scaling or v.TopLeft then

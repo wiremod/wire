@@ -318,6 +318,7 @@ end
 
 --------------------------------------------------------------------------------
 -- Entity drawing function
+local VECTOR_ONE = Vector(1, 1, 1)
 function ENT:Draw()
   -- Calculate time-related variables
   self.CurrentTime = CurTime()
@@ -327,6 +328,8 @@ function ENT:Draw()
   -- Draw GPU itself
   self:DrawModel()
 
+  local tone = render.GetToneMappingScaleLinear()
+  render.SetToneMappingScaleLinear(VECTOR_ONE)
   -- Draw image from another GPU
   local videoSource = MonitorLookup[self:EntIndex()]
   if videoSource then
@@ -412,6 +415,7 @@ function ENT:Draw()
   end
 
   Wire_Render(self)
+  render.SetToneMappingScaleLinear(tone)
 end
 
 
