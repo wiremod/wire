@@ -56,7 +56,7 @@ function TOOL:Reload()
 	end
 end
 
-function TOOL:BuildCPanel( panel )
+function TOOL.BuildCPanel( panel )
 	WireToolHelpers.MakePresetControl(panel, "wire_holoemitter")
 	WireDermaExts.ModelSelect(panel, "wire_holoemitter_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 
