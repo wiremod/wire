@@ -1525,8 +1525,14 @@ E2Helper.Descriptions["soundVolume(s)"] = "Returns the volume of the sound at th
 E2Helper.Descriptions["soundPlaying(n)"] = "Returns 1 if the sound at the index is playing, 0 if not"
 E2Helper.Descriptions["soundPlaying(s)"] = "Returns 1 if the sound at the index is playing, 0 if not"
 
-E2Helper.Descriptions["emitSound"] = "Plays sound on entity. Note that one file can only be played once in a time."
-E2Helper.Descriptions["emitSoundStop"] = "Stops sound played with 'emitSound'"
+do
+	local EmitSoundDoc = "Plays sound on entity. Note that one file can only be played once in a time."
+	E2Helper.Descriptions["emitSound(e:s)"] = EmitSoundDoc
+	E2Helper.Descriptions["emitSound(e:sn)"] = EmitSoundDoc
+	E2Helper.Descriptions["emitSound(e:snn)"] = EmitSoundDoc
+	E2Helper.Descriptions["emitSound(e:snnn)"] = EmitSoundDoc
+end
+E2Helper.Descriptions["emitSoundStop(e:s)"] = "Stops sound played with 'emitSound'"
 
 -- UTF-8
 E2Helper.Descriptions["toUnicodeChar(...)"] = "Returns the UTF-8 string from the given Unicode code-points"
