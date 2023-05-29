@@ -8,6 +8,7 @@ PropCore = {}
 local sbox_E2_maxProps = CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
 local sbox_E2_maxPropsPerSecond = CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
 local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) -- 2: Players can affect their own props, 1: Only admins, 0: Disabled
+local sbox_E2_canMakeStatue = CreateConVar("sbox_E2_canMakeStatue", "1", FCVAR_ARCHIVE)
 
 local isOwner = E2Lib.isOwner
 local GetBones = E2Lib.GetBones
@@ -564,9 +565,9 @@ __e2setcost(500)
 
 -- This code was leveraged from Garry's Mod. Perhaps it would be a bit cleaner with a slight rewrite.
 e2function void entity:makeStatue(enable)
+	if sbox_E2_canMakeStatue:GetInt() == 0 then return end
 	if not ValidAction(self, this, "statue") then return end
 	if (enable ~= 0) == this:GetNWBool("IsStatue") then return end
-	
 	
 	local timeout = this.statueTimeout
 	if timeout and timeout > CurTime() then self:throw("Wait 1 second before repeated statue operations", nil) return end
@@ -594,7 +595,7 @@ e2function void entity:makeStatue(enable)
 	else
 		if not this.StatueInfo then return end
 
-		for _, v in pairs(this.StatueInfo) do
+		for _, v in ipairs(this.StatueInfo) do
 
 			if IsValid(v) then
 				v:Remove()
@@ -661,7 +662,7 @@ __e2setcost(150)
 e2function void entity:ragdollSetPos(vector pos)
 	if not ValidAction(self, this, "pos") then return end
 	
-	for k, bone in pairs(GetBones(this)) do
+	for _, bone in pairs(GetBones(this)) do
 		setPos(bone, this:WorldToLocal(bone:GetPos()) + pos)
 	end
 	
