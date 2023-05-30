@@ -1510,6 +1510,29 @@ E2Helper.Descriptions["soundVolume(snn)"] = "soundVolume(string Index, Volume, F
 E2Helper.Descriptions["soundVolume(sn)"] = "soundVolume(string Index, Volume), where Volume is a number between 0 and 1. Default Volume is 1"
 E2Helper.Descriptions["soundVolume(nn)"] = "soundVolume(integer Index, Volume), where Volume is a number between 0 and 1. Default Volume is 1"
 E2Helper.Descriptions["soundVolume(nnn)"] = "soundVolume(integer Index, Volume, FadeTime), where Volume is a number between 0 and 1. Default Volume is 1"
+E2Helper.Descriptions["soundDSP(nn)"] = "Sets the DSP effect for the sound at the index, then restarts the sound"
+E2Helper.Descriptions["soundDSP(sn)"] = "Sets the DSP effect for the sound at the index, then restarts the sound"
+E2Helper.Descriptions["soundLevel(nn)"] = "Sets the sound's level in dB, then restarts the sound. This affects how far away the sound can be heard."
+E2Helper.Descriptions["soundLevel(sn)"] = "Sets the sound's level in dB, then restarts the sound. This affects how far away the sound can be heard."
+E2Helper.Descriptions["soundDSP(n)"] = "Returns the DSP effect for the sound at the index (default 0)"
+E2Helper.Descriptions["soundDSP(s)"] = "Returns the DSP effect for the sound at the index (default 0)"
+E2Helper.Descriptions["soundLevel(n)"] = "Returns the sound level in dB for the sound at the index"
+E2Helper.Descriptions["soundLevel(s)"] = "Returns the sound level in dB for the sound at the index"
+E2Helper.Descriptions["soundPitch(n)"] = "Returns the pitch of the sound at the index"
+E2Helper.Descriptions["soundPitch(s)"] = "Returns the pitch of the sound at the index"
+E2Helper.Descriptions["soundVolume(n)"] = "Returns the volume of the sound at the index"
+E2Helper.Descriptions["soundVolume(s)"] = "Returns the volume of the sound at the index"
+E2Helper.Descriptions["soundPlaying(n)"] = "Returns 1 if the sound at the index is playing, 0 if not"
+E2Helper.Descriptions["soundPlaying(s)"] = "Returns 1 if the sound at the index is playing, 0 if not"
+
+do
+	local EmitSoundDoc = "Plays sound on entity. Note that one file can only be played once in a time."
+	E2Helper.Descriptions["emitSound(e:s)"] = EmitSoundDoc
+	E2Helper.Descriptions["emitSound(e:sn)"] = EmitSoundDoc
+	E2Helper.Descriptions["emitSound(e:snn)"] = EmitSoundDoc
+	E2Helper.Descriptions["emitSound(e:snnn)"] = EmitSoundDoc
+end
+E2Helper.Descriptions["emitSoundStop(e:s)"] = "Stops sound played with 'emitSound'"
 
 -- UTF-8
 E2Helper.Descriptions["toUnicodeChar(...)"] = "Returns the UTF-8 string from the given Unicode code-points"
