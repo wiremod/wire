@@ -202,13 +202,13 @@ local function egpValidateTable(self, this, args, types, index)
 	
 	-- Convert args.vertices into its meaningful parts
 	if args.vertices then
-		if types.vertices ~= "t" then self:throw("Argument vertices is not a table!") end
+		if types.vertices ~= "t" then return self:throw("Argument vertices is not a table!") end
 		local tempVertices = {}
 		local vertTypes = args.vertices.ntypes
 		local verts = args.vertices.n
 		for k, v in pairs(verts) do
-			if vertTypes[k] ~= "t" then self:throw(string.format("Vertices argument is not table! (%d)", k))
-			elseif v.stypes.x ~= "n" or v.stypes.y ~= "n" then self:throw(string.format("Malformed vertices argument! (%d)", k))
+			if vertTypes[k] ~= "t" then return self:throw(string.format("Vertices argument is not table! (%d)", k))
+			elseif v.stypes.x ~= "n" or v.stypes.y ~= "n" then return self:throw(string.format("Malformed vertices argument! (%d)", k))
 			else tempVertices[k] = v.s end
 		end
 		args.vertices = tempVertices
@@ -217,13 +217,13 @@ local function egpValidateTable(self, this, args, types, index)
 	-- Typecheck arguments, convert bools
 	for k, v in pairs(types) do
 		if EGP_NUMS[k] then 
-			if v ~= "n" then self:throw(string.format("Argument %q is not a number! (%q)", k, args[k])) end
+			if v ~= "n" then return self:throw(string.format("Argument %q is not a number! (%q)", k, args[k])) end
 		elseif EGP_STRINGS[k] then
-			if v ~= "s" then self:throw(string.format("Argument %q is not a string! (%q)", k, args[k])) end
+			if v ~= "s" then return self:throw(string.format("Argument %q is not a string! (%q)", k, args[k])) end
 		end
 	end
 	
-	if args.parentEntity and types.parentEntity ~= "e" then self:throw("Argument parentEntity is not an entity!") end
+	if args.parentEntity and types.parentEntity ~= "e" then return self:throw("Argument parentEntity is not an entity!") end
 	
 	return true
 end
@@ -231,7 +231,7 @@ end
 -- Creates an object of name with all arguments listed in args
 e2function void wirelink:egpCreate(string objectName, table args)
 	if not EGP:IsAllowed(self, this) then return end
-	if not EGP.Objects.Names[objectName] then self:throw("EGP object name '" .. objectName .. "' does not exist!") end
+	if not EGP.Objects.Names[objectName] then return self:throw("EGP object name '" .. objectName .. "' does not exist!") end
 	local types = table.Copy(args.stypes)
 	args = table.Copy(args.s)
 	if not egpValidateTable(self, this, args, types) then return end
@@ -1149,6 +1149,11 @@ end
 e2function number egpScrH( entity ply )
 	if (!ply or !ply:IsValid() or !ply:IsPlayer() or !EGP.ScrHW[ply]) then return -1 end
 	return EGP.ScrHW[ply][2]
+end
+
+e2function array wirelink:egpConnectedUsers()
+	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", nil) end
+	return this.Users end
 end
 
 __e2setcost(15)

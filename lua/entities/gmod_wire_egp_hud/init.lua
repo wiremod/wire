@@ -59,7 +59,7 @@ function ENT:GetEGPOwner()
 	return false
 end
 
-function ENT:UpdateTransmitState() return TRANSMIT_PVS end
+function ENT:UpdateTransmitState() return TRANSMIT_ALWAYS end
 
 function ENT:LinkEnt( ent )
 	ent = WireLib.GetClosestRealVehicle(ent,self:GetPos(),self:GetPlayer())
