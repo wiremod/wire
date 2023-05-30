@@ -1151,11 +1151,6 @@ e2function number egpScrH( entity ply )
 	return EGP.ScrHW[ply][2]
 end
 
-e2function array wirelink:egpConnectedUsers()
-	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", nil) end
-	return this.Users end
-end
-
 __e2setcost(15)
 
 e2function number wirelink:egpHasObject( index )
