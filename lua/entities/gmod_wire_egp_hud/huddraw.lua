@@ -15,30 +15,26 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 			if bool == -1 then
 				ent.On = nil
 				-- Clear the screen so there isn't a ghost frame next time it's enabled
-				ent.Users = nil
 				ent.RenderTable = {}
 				ent.RenderTable_Indices = {}
 				ent:EGP_Update()
-				EGP:RemoveHUDEGP(ent)
+				tbl[Ent] = nil
 			elseif bool == 1 then
 				ent.EGPHudOn = true
-				ent.Users = true -- This value isn't actually used by the client, it's just here for UpdateTransmitState
 				if not tbl[ent] then EGP:AddHUDEGP(ent) end
 			elseif bool == 0 then
 				if ent.EGPHudOn == true then
 					ent.EGPHudOn = nil
-					ent.Users = nil
 					ent.RenderTable = {}
 					ent.RenderTable_Indices = {}
 					ent:EGP_Update()
 					LocalPlayer():ChatPrint("[EGP] EGP HUD Disconnected.")
-					EGP:RemoveHUDEGP(ent)
+					tbl[Ent] = nil
 				else
 					if not tbl[ent] then -- Why is this table even like this in the first place
-						EGP:AddHUDEGP(ent)
+						tbl[Ent] = true
 					end
 					ent.EGPHudOn = true
-					ent.Users = true
 					if EGP_HUD_FirstPrint then
 						LocalPlayer():ChatPrint("[EGP] EGP HUD Connected. NOTE: Type 'wire_egp_hud_unlink' in console to disconnect yourself from all EGP HUDs.")
 						EGP_HUD_FirstPrint = nil
@@ -83,7 +79,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		hook.Add("HUDPaint","EGP_HUDPaint",function()
 			for Ent, _ in pairs(tbl) do
 				if not Ent or not Ent:IsValid() then
-					EGP:RemoveHUDEGP(Ent)
+					tbl[Ent] = nil
 					break
 				else
 					if Ent.EGPHudOn == true then
