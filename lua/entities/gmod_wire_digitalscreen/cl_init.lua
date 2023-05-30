@@ -248,17 +248,12 @@ function ENT:RedrawPixel(a)
 		cr, cg, cb = (transformcolor[colormode] or transformcolor[0])(c)
 	end
 
-	local xstep = (512/self.ScreenWidth)
-	local ystep = (512/self.ScreenHeight)
 
 	surface.SetDrawColor(cr,cg,cb,255)
-	local tx, ty = floor(x*xstep), floor(y*ystep)
-	surface.DrawRect( tx, ty, floor((x+1)*xstep-tx), floor((y+1)*ystep-ty) )
+	surface.DrawRect( x, y, 1, 1 )
 end
 
 function ENT:RedrawRow(y)
-	local xstep = (512/self.ScreenWidth)
-	local ystep = (512/self.ScreenHeight)
 	if y >= self.ScreenHeight then return end
 	local a = y*self.ScreenWidth
 
@@ -277,8 +272,7 @@ function ENT:RedrawRow(y)
 		end
 
 		surface.SetDrawColor(cr,cg,cb,255)
-		local tx, ty = floor(x*xstep), floor(y*ystep)
-		surface.DrawRect( tx, ty, floor((x+1)*xstep-tx), floor((y+1)*ystep-ty) )
+		surface.DrawRect( x, y, 1, 1 )
 	end
 end
 
@@ -294,7 +288,7 @@ function ENT:Draw()
 
 			if self.ClearQueued then
 				surface.SetDrawColor(0,0,0,255)
-				surface.DrawRect(0,0, 512,512)
+				surface.DrawRect(0,0, 1024,1024)
 				self.ClearQueued = false
 				return
 			end
@@ -320,7 +314,7 @@ function ENT:Draw()
 		end)
 	end
 
-	self.GPU:Render()
+	self.GPU:Render(0,0,1024,1024,nil,-(1024-self.ScreenWidth)/1024,-(1024-self.ScreenHeight)/1024)
 	Wire_Render(self)
 end
 

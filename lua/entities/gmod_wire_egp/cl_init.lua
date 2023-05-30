@@ -83,7 +83,7 @@ function ENT:Draw()
 		self:_EGP_Update()
 	end
 
-	self.GPU:Render()
+	self.GPU:Render(0,0,1024,1024,nil,-0.5,-0.5)
 end
 
 function ENT:OnRemove()
