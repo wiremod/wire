@@ -561,19 +561,16 @@ e2function void bone:setAngVelocityInstant(vector velocity)
 	ent:PhysWake()
 end
 
-__e2setcost(500)
+__e2setcost(5000)
 
 -- This code was leveraged from Garry's Mod. Perhaps it would be a bit cleaner with a slight rewrite.
 e2function void entity:makeStatue(enable)
 	if sbox_E2_canMakeStatue:GetInt() == 0 then return end
 	if not ValidAction(self, this, "statue") then return end
 	if (enable ~= 0) == this:GetNWBool("IsStatue") then return end
-	
-	local timeout = this.statueTimeout
-	if timeout and timeout > CurTime() then self:throw("Wait 1 second before repeated statue operations", nil) return end
 
 	local bones = this:GetPhysicsObjectCount()
-	if bones < 2 then self:throw("You can only makeStatue on ragdolls!", nil) end
+	if bones < 2 then return self:throw("You can only makeStatue on ragdolls!", nil) end
 	
 	if enable ~= 0 then
 		if this.StatueInfo then return end
@@ -607,8 +604,6 @@ e2function void entity:makeStatue(enable)
 		this.StatueInfo = nil
 
 	end
-	
-	this.statueTimeout = CurTime() + 1
 end
 
 --------------------------------------------------------------------------------
