@@ -55,7 +55,7 @@ local function makeTable(obj, data)
 		end
 	else
 		local n = 1
-		for _, v in ipairs(v.verticesindex) do
+		for _, v in ipairs(obj.verticesindex) do
 			ret[v[1]] = data[n]
 			ret[v[2]] = data[n + 1]
 			n = n + 2
