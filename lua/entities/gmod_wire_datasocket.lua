@@ -27,6 +27,7 @@ if CLIENT then
 	function ENT:DrawEntityOutline() end -- never draw outline
 	
 	function ENT:Initialize()
+		self:CacheData()
 		table.insert(sockets, self)
 		if #sockets == 1 then
 			hook.Add("HUDPaint", "Wire_DataSocket_DrawLinkHelperLine",DrawLinkHelperLinefunction)
@@ -44,6 +45,7 @@ if CLIENT then
 end
 
 function ENT:Initialize()
+	self:CacheData()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )

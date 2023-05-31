@@ -380,16 +380,6 @@ listAddModels("Wire_Laser_Tools_Models", {
 	"models/fasteroid/led_mini.mdl"
 })
 
-listAddModels("Wire_Socket_Models",{
-	"models/props_lab/tpplugholder_single.mdl",
-	"models/bull/various/usb_socket.mdl",
-	"models/hammy/pci_slot.mdl",
-	"models/wingf0x/isasocket.mdl",
-	"models/wingf0x/altisasocket.mdl",
-	"models/wingf0x/ethernetsocket.mdl",
-	"models/wingf0x/hdmisocket.mdl"
-})
-
 listAddModels("Wire_button_small_Models", {
 	"models/cheeze/buttons2/0_small.mdl",
 	"models/cheeze/buttons2/1_small.mdl",

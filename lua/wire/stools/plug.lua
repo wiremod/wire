@@ -37,7 +37,7 @@ TOOL.ClientConVar["attachrange"] = 5
 TOOL.ClientConVar["drawoutline"] = 1
 TOOL.ClientConVar["angleoffset"] = 0
 
-local SocketData = list.Get("Wire_socket_data")
+local SocketData = list.Get("Wire_Socket_Models")
 
 cleanup.Register( "wire_plugs" )
 

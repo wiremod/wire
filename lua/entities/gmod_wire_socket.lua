@@ -12,7 +12,7 @@ local SocketData = { -- this would be in modelplug, but that's clientside only
 		pos = Vector(8, 0, 0)
 	},
 	["models/hammy/pci_slot.mdl"] = { 
-		ang = Angle(90, 0, 0),
+		ang = Angle(0, 0, 0),
 		plug = "models/hammy/pci_card.mdl",
 		pos = Vector(0, 0, 0)
 	},
@@ -22,29 +22,34 @@ local SocketData = { -- this would be in modelplug, but that's clientside only
 		pos = Vector(5, 13, 10)
 	},
 	["models/wingf0x/altisasocket.mdl"] = { 
-		ang = Angle(90, 0, 0),
+		ang = Angle(0, 0, 0),
 		plug = "models/wingf0x/isaplug.mdl",
 		pos = Vector(0, 0, 2.6)
 	},
 	["models/wingf0x/ethernetsocket.mdl"] = { 
-		ang = Angle(90, 0, 0),
+		ang = Angle(0, 0, 0),
 		plug = "models/wingf0x/ethernetplug.mdl",
 		pos = Vector(0, 0, 0)
 	},
 	["models/wingf0x/hdmisocket.mdl"] = { 
-		ang = Angle(90, 0, 0),
+		ang = Angle(0, 0, 0),
 		plug = "models/wingf0x/hdmiplug.mdl",
 		pos = Vector(0, 0, 0)
 	},
 	["models/wingf0x/isasocket.mdl"] = { 
-		ang = Angle(90, 0, 0),
+		ang = Angle(0, 0, 0),
 		plug = "models/wingf0x/isaplug.mdl",
+		pos = Vector(0, 0, 0)
+	},
+	["models/fasteroid/plugs/usb_c_socket.mdl"] = { 
+		ang = Angle(0, 0, 0),
+		plug = "models/fasteroid/plugs/usb_c_plug.mdl",
 		pos = Vector(0, 0, 0)
 	}
 }
 
 for k, v in pairs(SocketData) do
-	list.Set("Wire_socket_data", k, v)
+	list.Set("Wire_Socket_Models", k, v)
 end
 
 function ENT:GetLinkPos()
@@ -74,7 +79,6 @@ function ENT:GetClosestPlug()
 			end
 		end
 	end
-
 	return Closest
 end
 
@@ -83,8 +87,11 @@ function ENT:GetPlugClass()
 end
 
 function ENT:SetupDataTables()
-	self.SockData = SocketData[self:GetModel()] or {} -- child class overrides init, you have forced my hand
 	self:NetworkVar( "Bool", 0, "Linked" )
+end
+
+function ENT:CacheData()
+	self.SockData = SocketData[ self:GetModel() ] or {}
 end
 
 if CLIENT then
@@ -111,6 +118,7 @@ if CLIENT then
 	end
 
 	function ENT:Initialize()
+		self:CacheData()
 		table.insert(sockets, self)
 		if #sockets == 1 then
 			hook.Add("HUDPaint", "Wire_Socket_DrawLinkHelperLine",DrawLinkHelperLinefunction)
@@ -136,6 +144,7 @@ for k,v in ipairs( LETTERS ) do
 end
 
 function ENT:Initialize()
+	self:CacheData()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
@@ -260,6 +269,7 @@ function ENT:ResendValues()
 end
 
 function ENT:AttachWeld(weld)
+	self:EmitSound("buttons/lightswitch2.wav", 60)
 	self.Weld = weld
 	local plug = self.Plug
 	weld:CallOnRemove("wire_socket_remove_on_weld",function()
@@ -310,10 +320,9 @@ function ENT:Think()
 		return true
 	end
 
-	if not IsValid(self.Plug) then -- currently not linked, check for nearby links
+	if not IsValid(self.Plug) then -- currently not linked, check for nearby links|
 		local Pos, Ang = self:GetLinkPos()
 		local Closest = self:GetClosestPlug()
-
 		if (Closest and Closest:IsValid() and self:CanLink( Closest ) and not Closest:IsPlayerHolding() and Closest:GetClosestSocket() == self) then
 			self.Plug = Closest
 			Closest.Socket = self

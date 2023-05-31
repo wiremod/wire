@@ -31,7 +31,7 @@ function TOOL:GetConVars()
 	return self:GetClientNumber("weldforce"), math.Clamp(self:GetClientNumber("attachrange"), 1, 100)
 end
 
-local SocketData = list.Get("Wire_socket_data")
+local SocketData = list.Get("Wire_Socket_Models")
 
 cleanup.Register( "wire_dataplugs" )
 
