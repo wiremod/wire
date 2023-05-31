@@ -116,7 +116,10 @@ if SERVER then
 
         local Inputs = table.Copy(InputsTable)
 
-        for _, tbl in pairs(GetMaterialParameters(self:GetScreenMaterial())) do
+		local matParams = GetMaterialParameters(self:GetScreenMaterial())
+		if not matParams then return end
+
+        for _, tbl in pairs(matParams) do
             table.insert(Inputs, tbl.WireName.." ["..tbl.WireType.."]")
         end
 
@@ -175,15 +178,14 @@ if CLIENT then
         end
 
         if name == "" then
-            MsgN("ImprovedRTCameras: got empty name (typically happens at entity creation).")
+            MsgN("WireRTScreen: got empty name (typically happens at entity creation).")
             return nil
         end
 
         local path = "improvedrt_screen/monitor_"..name..".vmt"
 
         if not file.Exists("materials/"..path, "GAME") then
-            MsgN("ImprovedRTCameras: material "..path.." does not exist on client for some reason!")
-            MsgN("Screen would not be rendered")
+            MsgN("WireRTScreen: material "..path.." does not exist on client for some reason! Screen will not be rendered")
             return nil
         end
 
@@ -239,13 +241,15 @@ if CLIENT then
         local tex2 = material:GetString("!targettex2")
         if tex2 ~= nil then material:SetTexture(tex2, rt) end
 
-        for mtl_param, tbl in pairs(self.MaterialParamsDesc) do
-            --print(self.MaterialParams[tbl.WireName])
+		if self.MaterialParamsDesc then
+			for mtl_param, tbl in pairs(self.MaterialParamsDesc) do
+				--print(self.MaterialParams[tbl.WireName])
 
-            local value = self.MaterialParams[tbl.WireName] or tbl.Default
+				local value = self.MaterialParams[tbl.WireName] or tbl.Default
 
-            material[tbl.MaterialFn](material, mtl_param, value)
-        end
+				material[tbl.MaterialFn](material, mtl_param, value)
+			end
+		end
 
         local xraw = 512 / monitor.RatioX
         local yraw = 512
