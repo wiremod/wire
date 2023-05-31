@@ -444,8 +444,6 @@ function EGP:EGPCursor( this, ply )
 end
 
 function EGP.ScreenSpaceToObjectSpace(object, point)
-	point = { x = point.x - object.x, y = point.y - object.y }
-
 	if object.angle and object.angle ~= 0 then
 		local theta = math.rad(object.angle)
 		local cos_theta, sin_theta = math.cos(theta), math.sin(theta)
