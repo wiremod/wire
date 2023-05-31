@@ -183,7 +183,9 @@ if SERVER then
 				self:Download(player, chip)
 				player:SetAnimation(PLAYER_ATTACK1)
 			else -- The player doesn't have prop protection perms on the chip, ask the owner to give contents
-				RequestView(chip, player)
+				if IsValid(chip.player) then
+					RequestView(chip, player)
+				end
 				player:SetAnimation(PLAYER_ATTACK1)
 			end
 		else
