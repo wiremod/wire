@@ -179,7 +179,7 @@ if SERVER then
 					chip.player,
 					string.format("The %s '%s' just accessed your chip '%s' via prop protection", playerType, player:Nick(), chip.name)
 				)
-			elseif (chip.alwaysAllow and chip.alwaysAllow[player]) or not IsValid(chip.player) then -- The player doesnt have prop protection perms, however the owner always allows for this chip (or they're invalid)
+			elseif (chip.alwaysAllow and chip.alwaysAllow[player]) then -- The player doesnt have prop protection perms, however the owner always allows for this chip (or they're invalid)
 				self:Download(player, chip)
 				player:SetAnimation(PLAYER_ATTACK1)
 			else -- The player doesn't have prop protection perms on the chip, ask the owner to give contents
