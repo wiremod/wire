@@ -57,23 +57,23 @@ local ValidSpawn = PropCore.ValidSpawn
 local canHaveInvalidPhysics = {
 	delete=true, parent=true, deparent=true, solid=true,
 	shadow=true, draw=true, use=true, pos=true, ang=true,
-	manipulate=true, [0] = true
+	manipulate=true
 }
 
-function PropCore.ValidAction(self, entity, cmd, bone, index)
+function PropCore.ValidAction(self, entity, cmd, bone)
 	if cmd == "spawn" or cmd == "Tdelete" then return true end
 	if not IsValid(entity) then return self:throw("Invalid entity!", false) end
-	if not canHaveInvalidPhysics[cmd or 0] and not validPhysics(entity) then return self:throw("Invalid physics object!", false) end
 	if not isOwner(self, entity) then return self:throw("You do not own this entity!", false) end
 	if entity:IsPlayer() then return self:throw("You cannot modify players", false) end
 	
 	-- For cases when we'd only want to check an entity
 	if cmd then
+		if not canHaveInvalidPhysics[cmd] and not validPhysics(entity) then return self:throw("Invalid physics object!", false) end
 		if bone then
-			if not entity["bone"..index] then 
-				entity["bone"..index] = {}
+			if not entity["bone" .. bone] then 
+				entity["bone" .. bone] = {}
 			end
-			entity = entity["bone"..index]
+			entity = entity["bone" .. bone]
 		end
 
 		-- make sure we can only perform the same action on this prop once per tick
@@ -485,7 +485,7 @@ end
 
 e2function void bone:boneManipulate(vector pos, angle rot, isFrozen, gravity, collision)
 	local ent, index = boneVerify(self, this)
-	if not ValidAction(self, ent, "manipulate", this, index) then return end
+	if not ValidAction(self, ent, "manipulate", index) then return end
 	
 	setPos(this, pos)
 	setAng(this, rot)
@@ -535,28 +535,28 @@ end
 
 e2function void bone:setVelocity(vector velocity)
 	local ent, index = boneVerify(self, this)
-	if not ValidAction(self, ent, "velocitynxt", this, index) then return end
+	if not ValidAction(self, ent, "velocitynxt", index) then return end
 	this:SetVelocity(velocity)
 	ent:PhysWake()
 end
 
 e2function void bone:setVelocityInstant(vector velocity)
 	local ent, index = boneVerify(self, this)
-	if not ValidAction(self, ent, "velocityins", this, index) then return end
+	if not ValidAction(self, ent, "velocityins", index) then return end
 	this:SetVelocityInstantaneous(velocity)
 	ent:PhysWake()
 end
 
 e2function void bone:setAngVelocity(vector velocity)
 	local ent, index = boneVerify(self, this)
-	if not ValidAction(self, ent, "angvelnxt", this, index) then return end
+	if not ValidAction(self, ent, "angvelnxt", index) then return end
 	this:SetAngleVelocity(velocity)
 	ent:PhysWake()
 end
 
 e2function void bone:setAngVelocityInstant(vector velocity)
 	local ent, index = boneVerify(self, this)
-	if not ValidAction(self, this, "angvelinst", ent, index) then return end
+	if not ValidAction(self, this, "angvelinst", index) then return end
 	this:SetAngleVelocityInstantaneous(velocity)
 	ent:PhysWake()
 end
@@ -627,14 +627,14 @@ e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle
 
 e2function void bone:setPos(vector pos)
 	local ent, index = boneVerify(self, this)
-	if not ValidAction(self, ent, "pos", this, index) then return end
+	if not ValidAction(self, ent, "pos", index) then return end
 	setPos(this, pos)
 	ent:PhysWake()
 end
 	
 e2function void bone:setAng(angle rot)
 	local ent, index = boneVerify(self, this)
-	if not ValidAction(self, ent, "ang", this, index) then return end
+	if not ValidAction(self, ent, "ang", index) then return end
 	setAng(this, rot)
 	ent:PhysWake()
 end
