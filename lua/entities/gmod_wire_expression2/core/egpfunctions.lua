@@ -1043,7 +1043,7 @@ e2function number wirelink:egpObjectContainsPoint(number index, vector2 point)
 		pos.x = pos.x + object.w / 2
 		pos.y = pos.y + object.h / 2
 	end
-	return bool and object:Contains({x = pos.x - point[1], y = pos.y - point[2]}) and 1 or 0
+	return bool and object:Contains({ x = pos.x - point[1], y = pos.y - point[2], angle = pos.angle }) and 1 or 0
 end
 
 __e2setcost(10)

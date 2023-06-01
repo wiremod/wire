@@ -55,7 +55,14 @@ Obj.DataStreamInfo = function( self )
 	return tbl
 end
 function Obj:Contains(point)
-	point = EGP.ScreenSpaceToObjectSpace(self, point)
+	local theta = math.rad(point.angle + self.angle)
+	if theta ~= 0 then
+		local cos_theta, sin_theta = math.cos(theta), math.sin(theta)
+		point.x, point.y =
+			point.x * cos_theta - point.y * sin_theta,
+			point.y * cos_theta + point.x * sin_theta
+	end
+	
 	local x, y = point.x / self.w, point.y / self.h
 	if x * x + y * y > 1 then return false end
 	local theta = math.deg(math.atan2(y, x))

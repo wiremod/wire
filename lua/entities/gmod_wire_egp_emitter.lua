@@ -8,7 +8,7 @@ ENT.gmod_wire_egp_emitter = true
 
 local DrawOffsetPos = Vector(0, 0, 71)
 local DrawOffsetAng = Angle(0, 0, 90)
-local DrawScale     = 0.25
+local DrawScale     = 0.125
 local DrawOffsetNoRT = Vector(-64,0,64)
 
 if SERVER then
