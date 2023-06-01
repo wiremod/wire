@@ -1,6 +1,7 @@
 --------------------------------------------------------
 -- Custom umsg System
 --------------------------------------------------------
+if SERVER then 
 local EGP = EGP
 
 local CurSender
@@ -38,7 +39,7 @@ function EGP.umsg.Start(name, sender, ent)
 	CurSender = sender
 	curEnt = ent
 	
-	net.Start(name)
+	net.Start(name, EGP.Broadcast ~= 0) -- Broadcasts should be reliable, but in-between updates can most likely be dropped, if that ever occurs
 	return true
 end
 
@@ -69,4 +70,5 @@ function EGP.umsg.End()
 	end
 	CurSender = nil
 	curEnt = nil
+end
 end

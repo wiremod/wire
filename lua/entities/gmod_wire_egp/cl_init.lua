@@ -33,13 +33,13 @@ function ENT:_EGP_Update( bool )
 		local mat = self:GetEGPMatrix()
 
 		for _, v in ipairs(Table) do
-			if (v.parent == -1) then self.UpdateConstantly = true end -- Check if an object is parented to the cursor
-			if (v.parent and v.parent ~= 0) then
-				if (not v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
-				local _, data = EGP:GetGlobalPos( self, v.index )
+			if v.parent == -1 or v.NeedsConstantUpdate then self.UpdateConstantly = true end -- Check if an object is parented to the cursor
+			if v.parent ~= 0 then
+				if not v.IsParented then EGP:SetParent( self, v.index, v.parent ) end
+				local _, data = EGP:GetGlobalPos( self, v )
 				EGP:EditObject( v, data )
-			elseif ((not v.parent or v.parent == 0) and v.IsParented) then
-				EGP:UnParent( self, v.index )
+			elseif v.IsParented then -- IsParented but no parent
+				EGP:UnParent( self, v )
 			end
 			local oldtex = EGP:SetMaterial( v.material )
 

@@ -12,10 +12,8 @@ function EGP:AddQueueObject( Ent, ply, Function, Object )
 		local LastItem = self.Queue[ply][n]
 		if (LastItem.Ent == Ent and LastItem.Action == "Object") then
 			local found = false
-			for k,v in ipairs( LastItem.Args[1] ) do
-				if (v.index == Object.index) then
-					--self:EditObject( v, Object )
-
+			for k, v in ipairs(LastItem.Args[1]) do
+				if v.index == Object.index then
 					if (Object.remove) then -- The object has been removed
 						table.remove( LastItem.Args[1], k )
 					elseif (v.ID ~= Object.ID) then -- Not the same kind of object, create new
@@ -64,8 +62,8 @@ function EGP:InsertQueueObjects( Ent, ply, Function, Objects )
 		local FirstItem = self.Queue[ply][1]
 		if (FirstItem.Ent == Ent and FirstItem.Action == "Object") then
 			local Args = FirstItem.Args
-			for k,v in ipairs( Objects ) do
-				table.insert( Args, v )
+			for _, v in ipairs(Objects) do
+				table.insert(Args, v)
 			end
 		else
 			self:InsertQueue( Ent, ply, Function, "Object", Objects )
@@ -81,8 +79,7 @@ function EGP:InsertQueue( Ent, ply, Function, Action, ... )
 end
 
 function EGP:GetNextItem( ply )
-	if not self.Queue[ply] then return false end
-	if (#self.Queue[ply] <= 0) then return false end
+	if not self.Queue[ply] or #self.Queue[ply] <= 0 then return false end
 	return table.remove( self.Queue[ply], 1 )
 end
 
@@ -144,7 +141,7 @@ end)
 function EGP:GetQueueItemsForScreen( ply, Ent )
 	if not self.Queue[ply] then return {} end
 	local ret = {}
-	for k,v in ipairs( self.Queue[ply] ) do
+	for _, v in ipairs(self.Queue[ply]) do
 		if (v.Ent == Ent) then
 			table.insert( ret, v )
 		end

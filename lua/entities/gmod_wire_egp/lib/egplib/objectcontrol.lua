@@ -260,10 +260,11 @@ end
 
 function EGP:_MoveObject(ent, indexRTFrom, indexRTTo, indexObj)
 	local obj = table.remove(ent.RenderTable, indexRTFrom)
+	indexObj = obj.index
 	
-	if ent.RenderTable_Indices[indexObj or obj.index]  == indexRTTo then return end
+	if ent.RenderTable_Indices[indexObj]  == indexRTTo then return end
 	
-	ent.RenderTable_Indices[indexObj or obj.index] = table.insert(ent.RenderTable, indexRTTo, obj)
+	ent.RenderTable_Indices[indexObj] = table.insert(ent.RenderTable, indexRTTo, obj)
 	
 	-- Shift values such that only values between indexRTFrom and indexRTTo are modified
 	for i, v in pairs(ent.RenderTable_Indices) do

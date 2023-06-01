@@ -74,10 +74,11 @@ if CLIENT then
 	local RT_CACHE_SIZE = 64
 	local RenderTargetCache = { }
 
+	-- Todo: Just dynamically create table elements instead of having them pre-defined?
 	for i = 1,RT_CACHE_SIZE do
 		local Target = {
 			false, -- Is rendertarget in use
-			false -- The rendertarget (false if doesn't exist)
+			nil -- The rendertarget
 		}
 		table.insert( RenderTargetCache, Target )
 	end

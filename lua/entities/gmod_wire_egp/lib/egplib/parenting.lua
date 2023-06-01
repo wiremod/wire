@@ -77,10 +77,17 @@ EGP.ParentingFuncs.getCenter = getCenter
 
 -- (returns true if obj has vertices, false if not, followed by the new position data)
 function EGP:GetGlobalPos(Ent, index)
-	local bool, _, obj = self:HasObject(Ent, index)
+	local bool, obj = false
+	if isnumber(index) then 
+		bool, _, obj = self:HasObject(Ent, index)
+	else
+		-- Assume input is the object itself - saves us from redundant hasobjects
+		bool, obj = true, index
+		index = obj.index
+	end
 	if bool then
 		if obj.verticesindex then -- Object has vertices
-			if obj.parent and obj.parent ~= 0 then -- Object is parented
+			if obj.parent ~= 0 then -- Object is parented
 				if obj.parent == -1 then -- object is parented to the cursor
 					local xy = { 0, 0 }
 					if CLIENT then
@@ -142,7 +149,7 @@ function EGP:GetGlobalPos(Ent, index)
 			if isstring(obj.verticesindex) then ret = { [obj.verticesindex] = makeTable(obj, makeArray(obj)) }	else ret = makeTable(obj, makeArray(obj)) end
 			return true, ret
 		else -- Object does not have vertices
-			if obj.parent and obj.parent ~= 0 then -- Object is parented
+			if obj.parent ~= 0 then -- Object is parented
 				if obj.parent == -1 then -- Object is parented to the cursor
 					local xy = { 0, 0 }
 					if CLIENT then
@@ -226,16 +233,15 @@ function EGP:SetParent(Ent, index, parentindex)
 		if parentindex == -1 then -- Parent to cursor?
 			if self:EditObject(obj, { parent = parentindex }) then return true, obj end
 		else
-			local bool2, k2, v2 = self:HasObject(Ent, parentindex)
-			if bool2 then
+			if self:HasObject(Ent, parentindex) then
 				self:AddParentIndexes(obj)
 
 				if SERVER then parentindex = math.Clamp(parentindex, 1, self.ConVars.MaxObjects:GetInt()) end
 
 				-- If it's already parented to that object
-				if obj.parent and obj.parent == parentindex then return false end
+				if obj.parent == parentindex then return false end
 				-- If the user is trying to parent it to itself
-				if obj.parent and obj.parent == obj.index then return false end
+				if obj.parent == obj.index then return false end
 				-- If the user is trying to create a circle of parents, causing an infinite loop
 				if not CheckParents(Ent, obj, parentindex, {}) then return false end
 
@@ -268,7 +274,7 @@ function EGP:UnParent(Ent, index)
 	local bool, obj = false
 	if isnumber(index) then
 		bool, _, obj = self:HasObject(Ent, index)
-	elseif istable(index) then
+	else
 		bool = true
 		obj = index
 		index = obj.index
@@ -277,7 +283,7 @@ function EGP:UnParent(Ent, index)
 		local hasVertices, data = self:GetGlobalPos(Ent, index)
 		self:RemoveParentIndexes(obj, hasVertices)
 
-		if not obj.parent or obj.parent == 0 then return false end
+		if obj.parent == 0 then return false end
 
 		data.parent = 0
 

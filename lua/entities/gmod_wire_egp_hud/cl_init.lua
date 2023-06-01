@@ -86,12 +86,12 @@ function ENT:EGP_Update()
 		if (v.res ~= self.Resolution) then
 			self:ScaleObject(not v.res, v)
 		end
-		if v.parent and v.parent ~= 0 then
+		if v.parent ~= 0 then
 			if not v.IsParented then EGP:SetParent(self, v.index, v.parent) end
 			local _, data = EGP:GetGlobalPos(self, v.index)
 			EGP:EditObject(v, data)
-		elseif not v.parent or v.parent == 0 and v.IsParented then
-			EGP:UnParent(self, v.index)
+		elseif v.IsParented then -- IsParented but no parent
+			EGP:UnParent(self, v)
 		end
 	end
 	self.OldResolution = self.Resolution

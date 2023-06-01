@@ -21,7 +21,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 				tbl[Ent] = nil
 			elseif bool == 1 then
 				ent.EGPHudOn = true
-				if not tbl[ent] then EGP:AddHUDEGP(ent) end
+				if not tbl[ent] then tbl[ent] = true end
 			elseif bool == 0 then
 				if ent.EGPHudOn == true then
 					ent.EGPHudOn = nil
@@ -77,6 +77,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		-- Paint
 		--------------------------------------------------------
 		hook.Add("HUDPaint","EGP_HUDPaint",function()
+			-- Todo fix this construct; why is it formed like this if you're going to access it sequentially
 			for Ent, _ in pairs(tbl) do
 				if not Ent or not Ent:IsValid() then
 					tbl[Ent] = nil
@@ -86,26 +87,21 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 						if Ent.RenderTable and #Ent.RenderTable > 0 then
 							local mat = Ent:GetEGPMatrix()
 
-							for _, object in pairs(Ent.RenderTable) do
-								local oldtex = EGP:SetMaterial(object.material)
-								-- Why was this excluded from here? Fixes parenting breaking when not looking at EGP
-								if object.parent and object.parent ~= 0 then
+							for _, object in ipairs(Ent.RenderTable) do
+								-- Fixes parenting breaking when not looking at EGP
+								if object.parent ~= 0 then
 									if not object.IsParented then EGP:SetParent(Ent, object.index, object.parent) end
-									local _, data = EGP:GetGlobalPos(Ent, object.index)
+									local _, data = EGP:GetGlobalPos(Ent, object)
 									EGP:EditObject(object, data)
-								elseif not object.parent or object.parent == 0 and object.IsParented then
-									EGP:UnParent(Ent, object.index)
+								elseif object.IsParented then
+									EGP:UnParent(Ent, object)
 								end
+								local oldtex = EGP:SetMaterial(object.material)
 								object:Draw(Ent, mat)
 								EGP:FixMaterial(oldtex)
 
-								-- Check for 3DTracker parent
-								if object.parent then
-									local hasObject, _, parent = EGP:HasObject(Ent, object.parent)
-									if hasObject and parent.NeedsConstantUpdate then
-										Ent:EGP_Update()
-									end
-								end
+								-- Check for 3DTracker or cursor parent
+								if object.NeedsConstantUpdate or object.parent == -1 then Ent:EGP_Update() end
 							end
 						end
 					end
