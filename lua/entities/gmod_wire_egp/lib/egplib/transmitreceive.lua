@@ -34,6 +34,7 @@ if (SERVER) then
 			return
 		end
 
+		EGP.Broadcast = EGP.Broadcast + 1
 		if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "ClearScreen" )
@@ -69,9 +70,9 @@ if (SERVER) then
 			return
 		end
 
-		local bool, _ = EGP:LoadFrame( ply, Ent, FrameName )
-		if not bool then return end
+		if not EGP:LoadFrame( ply, Ent, FrameName ) then return end
 
+		EGP.Broadcast = EGP.Broadcast + 1
 		if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "LoadFrame" )
@@ -154,8 +155,7 @@ if (SERVER) then
 			return
 		end
 
-		local bool, k, v = EGP:HasObject( Ent, index )
-		if (bool) then
+		if EGP:HasObject( Ent, index ) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "AddText" )
@@ -324,9 +324,9 @@ if (SERVER) then
 			local needle = Ent.RenderTable_Indices[Data[1]]
 			if needle then
 				EGP:_RemoveObject(Ent, needle, Data[1])
+				
+				self:AddQueueObject( Ent, E2.player, SendObjects, { index = Data[1], remove = true } )
 			end
-
-			self:AddQueueObject( Ent, E2.player, SendObjects, { index = Data[1], remove = true } )
 		elseif (Action == "ClearScreen") then
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 20
@@ -344,10 +344,13 @@ if (SERVER) then
 				end
 			end
 
-			Ent.RenderTable = {}
-			Ent.RenderTable_Indices = {}
+			-- Don't do anything if RT is already empty.
+			if next(Ent.RenderTable) ~= nil then
+				Ent.RenderTable = {}
+				Ent.RenderTable_Indices = {}
 
-			self:AddQueue( Ent, E2.player, ClearScreen, "ClearScreen" )
+				self:AddQueue( Ent, E2.player, ClearScreen, "ClearScreen" )
+			end
 		elseif (Action == "SaveFrame") then
 			local Data = {...}
 			if not Data[1] then return end

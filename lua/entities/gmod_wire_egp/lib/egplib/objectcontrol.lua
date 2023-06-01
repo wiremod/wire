@@ -216,6 +216,7 @@ function EGP:CreateObject( Ent, ObjID, Settings )
 		self:EditObject( Obj, Settings )
 		Obj.index = Settings.index
 		EGP:_InsertObject(Ent, Obj, Settings.index)
+		EGP.Broadcast = 1
 		return true, Obj
 	end
 end

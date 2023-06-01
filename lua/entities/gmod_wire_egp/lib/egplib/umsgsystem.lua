@@ -20,6 +20,7 @@ local LastErrorTime = 0
 ]]
 
 EGP.umsg = {}
+EGP.Broadcast = 0
 
 function EGP.umsg.Start(name, sender, ent)
 	if CurSender then
@@ -47,7 +48,10 @@ function EGP.umsg.End()
 		EGP.IntervalCheck[CurSender].bytes = EGP.IntervalCheck[CurSender].bytes + net.BytesWritten()
 	end
 	
-	if curEnt.Users then
+	if EGP.Broadcast > 0 then
+		EGP.Broadcast = EGP.Broadcast - 1
+		net.Broadcast()
+	elseif curEnt.Users then
 		local rf = RecipientFilter()
 		
 		-- Account for users who added themselves using egpHudToggle()
