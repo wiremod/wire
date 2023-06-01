@@ -334,13 +334,10 @@ if (SERVER) then
 
 			-- Remove all queued actions for this screen
 			local queue = self.Queue[E2.player] or {}
-			local i = 1
-			while i<=#queue do
-				if queue[i].Ent == Ent then
+			for  i, v in pairs(queue) do
+				if v.Ent == Ent then
 					E2.prf = E2.prf + 0.3
 					table.remove(queue, i)
-				else
-					i = i + 1
 				end
 			end
 
@@ -394,82 +391,7 @@ else -- SERVER/CLIENT
 		if not self:ValidEGP(Ent) or not Ent.RenderTable then return end
 
 		local Action = net.ReadString()
-		if Action == "ClearScreen" then
-			Ent.RenderTable = {}
-			Ent.RenderTable_Indices = {}
-			Ent:EGP_Update()
-		elseif Action == "SaveFrame" then
-			local ply = net.ReadEntity()
-			local FrameName = net.ReadString()
-			EGP:SaveFrame( ply, Ent, FrameName )
-		elseif Action == "LoadFrame" then
-			local ply = net.ReadEntity()
-			local FrameName = net.ReadString()
-			EGP:LoadFrame(ply, Ent, FrameName)
-			Ent:EGP_Update()
-		elseif Action == "SetText" then
-			local index = net.ReadInt(16)
-			local text = net.ReadString()
-			local bool, _, v = EGP:HasObject( Ent, index )
-			if bool then
-				if EGP:EditObject(v, { text = text }) then Ent:EGP_Update() end
-			end
-		elseif Action == "AddText" then
-			local index = net.ReadInt(16)
-			local text = net.ReadString()
-			local bool, _, v = EGP:HasObject(Ent, index)
-			if bool then
-				if EGP:EditObject( v, { text = v.text .. text }) then Ent:EGP_Update() end
-			end
-		elseif Action == "SetVertex" then
-			local index = net.ReadInt(16)
-			local bool, _, v = EGP:HasObject(Ent, index)
-			if bool then
-				local vertices = {}
-
-				if v.HasUV then
-					local n = 0
-					for i = 1, net.ReadUInt(8) do
-						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadFloat(), net.ReadFloat()
-						vertices[i] = { x = x, y = y, u = u, v = _v }
-					end
-				else
-					local n = 0
-					for i = 1, net.ReadUInt(8) do
-						local x, y = net.ReadInt(16), net.ReadInt(16)
-						vertices[i] = { x = x, y = y }
-					end
-				end
-
-				if EGP:EditObject(v, { vertices = vertices }) then Ent:EGP_Update() end
-			end
-		elseif Action == "AddVertex" then
-			local index = net.ReadInt(16)
-			local bool, _, v = EGP:HasObject(Ent, index)
-			if bool then
-				local vertices = table.Copy(v.vertices)
-
-				if v.HasUV then
-					local n = 0
-					for i = 1, net.ReadUInt(8) do
-						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadFloat(), net.ReadFloat()
-						vertices[#vertices + 1] = { x = x, y = y, u = u, v = _v }
-					end
-				else
-					local n = 0
-					for i = 1, net.ReadUInt(8) do
-						local x, y = net.ReadInt(16), net.ReadInt(16)
-						vertices[#vertices + 1] = { x = x, y = y }
-					end
-				end
-
-				if EGP:EditObject( v, { vertices = vertices }) then Ent:EGP_Update() end
-			end
-		elseif Action == "EditFiltering" then
-			if Ent.GPU then -- Only Screens use GPULib
-				Ent.GPU.texture_filtering = net.ReadUInt(2) or TEXFILTER.ANISOTROPIC
-			end
-		elseif Action == "ReceiveObjects" then
+		if Action == "ReceiveObjects" then
 			local order_was_changed = false
 
 			for i = 1, net.ReadUInt(16) do
@@ -556,6 +478,81 @@ else -- SERVER/CLIENT
 			end
 
 			Ent:EGP_Update()
+		elseif Action == "ClearScreen" then
+			Ent.RenderTable = {}
+			Ent.RenderTable_Indices = {}
+			Ent:EGP_Update()
+		elseif Action == "SaveFrame" then
+			local ply = net.ReadEntity()
+			local FrameName = net.ReadString()
+			EGP:SaveFrame( ply, Ent, FrameName )
+		elseif Action == "LoadFrame" then
+			local ply = net.ReadEntity()
+			local FrameName = net.ReadString()
+			EGP:LoadFrame(ply, Ent, FrameName)
+			Ent:EGP_Update()
+		elseif Action == "SetText" then
+			local index = net.ReadInt(16)
+			local text = net.ReadString()
+			local bool, _, v = EGP:HasObject( Ent, index )
+			if bool then
+				if EGP:EditObject(v, { text = text }) then Ent:EGP_Update() end
+			end
+		elseif Action == "AddText" then
+			local index = net.ReadInt(16)
+			local text = net.ReadString()
+			local bool, _, v = EGP:HasObject(Ent, index)
+			if bool then
+				if EGP:EditObject( v, { text = v.text .. text }) then Ent:EGP_Update() end
+			end
+		elseif Action == "SetVertex" then
+			local index = net.ReadInt(16)
+			local bool, _, v = EGP:HasObject(Ent, index)
+			if bool then
+				local vertices = {}
+
+				if v.HasUV then
+					local n = 0
+					for i = 1, net.ReadUInt(8) do
+						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadFloat(), net.ReadFloat()
+						vertices[i] = { x = x, y = y, u = u, v = _v }
+					end
+				else
+					local n = 0
+					for i = 1, net.ReadUInt(8) do
+						local x, y = net.ReadInt(16), net.ReadInt(16)
+						vertices[i] = { x = x, y = y }
+					end
+				end
+
+				if EGP:EditObject(v, { vertices = vertices }) then Ent:EGP_Update() end
+			end
+		elseif Action == "AddVertex" then
+			local index = net.ReadInt(16)
+			local bool, _, v = EGP:HasObject(Ent, index)
+			if bool then
+				local vertices = table.Copy(v.vertices)
+
+				if v.HasUV then
+					local n = 0
+					for i = 1, net.ReadUInt(8) do
+						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadFloat(), net.ReadFloat()
+						vertices[#vertices + 1] = { x = x, y = y, u = u, v = _v }
+					end
+				else
+					local n = 0
+					for i = 1, net.ReadUInt(8) do
+						local x, y = net.ReadInt(16), net.ReadInt(16)
+						vertices[#vertices + 1] = { x = x, y = y }
+					end
+				end
+
+				if EGP:EditObject( v, { vertices = vertices }) then Ent:EGP_Update() end
+			end
+		elseif Action == "EditFiltering" then
+			if Ent.GPU then -- Only Screens use GPULib
+				Ent.GPU.texture_filtering = net.ReadUInt(2) or TEXFILTER.ANISOTROPIC
+			end
 		end
 	end
 	net.Receive( "EGP_Transmit_Data", function(netlen) EGP:Receive(netlen) end)
