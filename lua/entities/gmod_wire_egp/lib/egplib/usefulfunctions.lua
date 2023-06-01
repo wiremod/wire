@@ -432,8 +432,8 @@ function EGP:EGPCursor( this, ply )
 			return {x,y}
 		else
 			local HitPos = WorldToLocal( Start + Dir * B, Angle(), Pos, Ang )
-			local x = (0.5+HitPos.x/(monitor.RS*512/monitor.RatioX)) * 512
-			local y = (0.5-HitPos.y/(monitor.RS*512)) * 512
+			local x = (0.5+HitPos.x/(monitor.RS*1024/monitor.RatioX)) * 512
+			local y = (0.5-HitPos.y/(monitor.RS*1024)) * 512
 			if (x < 0 or x > 512 or y < 0 or y > 512) then return ReturnFailure( this ) end -- Aiming off the screen
 			x, y = ScaleCursor( this, x, y )
 			return {x,y}
@@ -441,18 +441,4 @@ function EGP:EGPCursor( this, ply )
 	end
 
 	return ReturnFailure( this )
-end
-
-function EGP.ScreenSpaceToObjectSpace(object, point)
-	point = { x = point.x - object.x, y = point.y - object.y }
-
-	if object.angle and object.angle ~= 0 then
-		local theta = math.rad(object.angle)
-		local cos_theta, sin_theta = math.cos(theta), math.sin(theta)
-		point.x, point.y =
-			point.x * cos_theta - point.y * sin_theta,
-			point.y * cos_theta + point.x * sin_theta
-	end
-
-	return point
 end

@@ -1037,8 +1037,13 @@ end
 
 --- Returns 1 if the object with specified index contains the specified point.
 e2function number wirelink:egpObjectContainsPoint(number index, vector2 point)
-	local _, _, object = EGP:HasObject(this, index)
-	return object and object:Contains({x = point[1], y = point[2]}) and 1 or 0
+	local bool, _, object = EGP:HasObject(this, index)
+	local _, pos = EGP:GetGlobalPos(this, index)
+	if this.TopLeft and object.CanTopLeft and object.w and object.h then
+		pos.x = pos.x + object.w / 2
+		pos.y = pos.y + object.h / 2
+	end
+	return bool and object:Contains({ x = pos.x - point[1], y = pos.y - point[2], angle = pos.angle }) and 1 or 0
 end
 
 __e2setcost(10)

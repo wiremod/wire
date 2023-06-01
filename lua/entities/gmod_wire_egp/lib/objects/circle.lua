@@ -49,7 +49,6 @@ Obj.DataStreamInfo = function( self )
 	return tbl
 end
 function Obj:Contains(point)
-	point = EGP.ScreenSpaceToObjectSpace(self, point)
 	local x, y = point.x / self.w, point.y / self.h
 	return x * x + y * y <= 1
 end
