@@ -940,10 +940,16 @@ end
 __e2setcost(20)
 e2function vector wirelink:egpGlobalPos( number index )
 	local hasvertices, posang = EGP:GetGlobalPos( this, index )
-	if (!hasvertices) then
-		return Vector( posang.x, posang.y, posang.angle )
+	if hasvertices then
+		local x, y = 0, 0
+		for _, v in ipairs(posang.vertices) do
+			x = x + v.x
+			y = y + v.y
+		end
+		local n = #posang.vertices
+		posang.x, posang.y = x / n, y / n
 	end
-	return Vector(0, 0, 0)
+	return Vector( posang.x, posang.y, posang.angle ) -- posang guaranteed to have these values
 end
 
 e2function array wirelink:egpGlobalVertices( number index )

@@ -54,11 +54,11 @@ local function makeTable(obj, data)
 			ret[#ret+1] = { x = data[i], y = data[i+1] }
 		end
 	else
-		local n = 1
-		for _, v in ipairs(obj.verticesindex) do
+		local vindex = obj.verticesindex
+		for n = 1, #vindex, 2 do
+			local v = vindex[n]
 			ret[v[1]] = data[n]
 			ret[v[2]] = data[n + 1]
-			n = n + 2
 		end
 	end
 	return ret
@@ -67,7 +67,8 @@ EGP.ParentingFuncs.makeTable = makeTable
 
 local function getCenter(data)
 	local centerx, centery = 0, 0
-	for i = 1, #data, 2 do
+	local n = #data
+	for i = 1, n, 2 do
 		centerx = centerx + data[i]
 		centery = centery + data[i + 1]
 	end
