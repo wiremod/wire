@@ -93,7 +93,7 @@ if CLIENT then
 					RT[1] = true -- Mark as used
 					return rendertarget
 				else
-				local rendertarget = GetRenderTargetEx("WireGPU_RT_" .. i, 512, 512, RT_SIZE_NO_CHANGE, MATERIAL_RT_DEPTH_SEPARATE, 256, 0, 12)
+				local rendertarget = GetRenderTargetEx("WireGPU_RT_" .. i, 1024, 1024, RT_SIZE_NO_CHANGE, MATERIAL_RT_DEPTH_SEPARATE, 256, 0, 12)
 					if rendertarget then
 						RT[1] = true -- Mark as used
 						RT[2] = rendertarget -- Assign the RT
@@ -103,23 +103,6 @@ if CLIENT then
 						ErrorNoHalt("Wiremod: Render target WireGPU_RT_" .. i .. " could not be created!\n")
 					end
 				end
-			end
-		end
-
-		-- No free rendertargets. Find first non used and create it.
-		for i, RT in pairs( RenderTargetCache ) do
-			if not RT[1] and  RT[2] == false then -- not used and doesn't exist, let's create the render target.
-
-					local rendertarget = GetRenderTargetEx("WireGPU_RT_" .. i, 1024, 1024, RT_SIZE_NO_CHANGE, MATERIAL_RT_DEPTH_SEPARATE, 256, 0, 12)
-					if rendertarget then
-						RT[1] = true -- Mark as used
-						RT[2] = rendertarget -- Assign the RT
-						return rendertarget
-					else
-						RT[1] = true -- Mark as used since we couldn't create it
-						ErrorNoHalt("Wiremod: Render target WireGPU_RT_" .. i .. " could not be created!\n")
-					end
-
 			end
 		end
 
