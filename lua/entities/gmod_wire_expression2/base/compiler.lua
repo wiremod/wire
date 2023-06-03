@@ -717,7 +717,7 @@ local CompileVisitors = {
 
 					local n, ntypes = {}, {}
 					for i = last, #args do
-						n[i - last + 1], ntypes[i - last + 1] = args[i], arg_types[i]
+						n[i - last + 1], ntypes[i - last + 1] = args[i], arg_types[i - (meta_type and 1 or 0)]
 					end
 
 					scope[param_names[last]] = { s = {}, stypes = {}, n = n, ntypes = ntypes, size = last }
@@ -1458,8 +1458,6 @@ local CompileVisitors = {
 			local value = fn_data.attrs["deprecated"]
 			self:Warning("Use of deprecated function (" .. name.value .. ") " .. (type(value) == "string" and value or ""), trace)
 		end
-
-		table.insert(types, 1, meta_type)
 
 		local nargs = #args
 		if fn_data.attrs["legacy"] then

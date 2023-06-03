@@ -80,6 +80,7 @@ assert(Sentinel == 1)
 
 function number number:foo(...A:table) {
 	assert(A:typeids()[1, string] == "s")
+	assert(A:typeids()[2, string] == "n")
 
 	assert(A[1, string] == "foo")
 	assert(A[2, number] == 55)

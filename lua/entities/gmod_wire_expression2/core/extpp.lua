@@ -267,7 +267,7 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 								]] .. ((has_vararg and not vartbl_name) and ("if not ... then return registeredfunctions." .. mangled .. "(self, args, typeids, unpack(args)) end") or "") .. [[
 						]]))
 					else -- No varargs either, simplest case
-						table.insert(output, [[function registeredfunctions.]] .. mangled .. [[(self)]])
+						table.insert(output, [[function registeredfunctions.]] .. mangled .. [[(self, args, typeids)]])
 					end
 				elseif is_operator then -- Operators are directly passed the arguments, since they're known at compile time.
 					table.insert(output, compact([[
@@ -285,6 +285,7 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 						function registeredfunctions.]] .. mangled .. [[(self, args, typeids]] .. ((has_vararg and not vartbl_name) and ", ..." or "") .. [[)
 							]] .. (#param_names ~= 0 and ("local " .. table.concat(param_names, ", ") .. "=" .. table.concat(param_get, ",")) or "") .. [[
 							]] .. (vartbl_name and ("local " .. vartbl_name .. " = { unpack(args, " .. pivot .. ") }") or "") .. [[
+							]] .. (has_vararg and ("local typeids = { unpack(typeids, " .. pivot - (thistype == "" and 0 or 1) .. ") }" ) or "") .. [[
 							]] .. ((has_vararg and not vartbl_name) and ("if not ... then return registeredfunctions." .. mangled .. "(self, args, typeids, unpack(args, " .. pivot .. ")) end") or "") .. [[
 					]]))
 				end

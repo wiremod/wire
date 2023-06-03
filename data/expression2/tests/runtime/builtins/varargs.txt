@@ -5,3 +5,8 @@
 printColor(vec(), "foo")
 
 print("foo bar", 2, vec(), array())
+
+assert(format("%s %d", "foo", 232) == "foo 232")
+assert(format("%u", 232) == "232")
+
+assert(select(3, 1, 2, 3, 4) == 3)
