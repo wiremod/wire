@@ -484,10 +484,12 @@ if SERVER then
 				E2.player,
 				string.format("The %s '%s' just accessed your chip '%s' via prop protection", playerType, player:Nick(), E2.name)
 			)
-		elseif (E2.alwaysAllow and E2.alwaysAllow[player]) or not IsValid(E2.player) then
+		elseif (E2.alwaysAllow and E2.alwaysAllow[player]) or then
 			WireLib.Expression2Download(player, E2)
 		else
-			RequestView(E2, player)
+			if IsValid(E2.player) then
+				RequestView(E2, player)
+			end
 		end
 	end)
 
