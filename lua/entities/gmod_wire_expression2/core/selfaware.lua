@@ -155,9 +155,9 @@ __e2setcost(5)
 e2function number changed(value)
 	local chg = self.data.changed
 
-	if value == chg[types] then return 0 end
+	if value == chg[typeids] then return 0 end
 
-	chg[types] = value
+	chg[typeids] = value
 	return 1
 end
 
@@ -165,11 +165,11 @@ end
 e2function number changed(vector value)
 	local chg = self.data.changed
 
-	if chg[types] == value then
+	if chg[typeids] == value then
 		return 0
 	end
 
-	chg[types] = value
+	chg[typeids] = value
 	return 1
 end
 
@@ -178,14 +178,14 @@ end
 e2function number changed(vector4 value)
 	local chg = self.data.changed
 
-	local this_chg = chg[types]
+	local this_chg = chg[typeids]
 	if not this_chg then
-		chg[types] = value
+		chg[typeids] = value
 		return 1
 	end
 	for i,v in pairs(value) do
 		if v ~= this_chg[i] then
-			chg[types] = value
+			chg[typeids] = value
 			return 1
 		end
 	end
