@@ -36,6 +36,7 @@ if SERVER then
 	AddCSLuaFile("wire/default_data_decompressor.lua")
 	AddCSLuaFile("wire/flir.lua")
 	AddCSLuaFile("wire/von.lua")
+	AddCSLuaFile("wire/sh_modelplug.lua")
 
 	-- client includes
 	AddCSLuaFile("wire/client/cl_wirelib.lua")
@@ -87,6 +88,7 @@ if SERVER then
 end
 
 -- shared includes
+include("wire/sh_modelplug.lua")
 include("wire/wireshared.lua")
 include("wire/wire_paths.lua")
 include("wire/wiregates.lua")

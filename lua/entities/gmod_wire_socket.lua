@@ -5,52 +5,7 @@ ENT.Purpose         = "Links with a plug"
 ENT.Instructions    = "Move a plug close to a plug to link them, and data will be transferred through the link."
 ENT.WireDebugName	= "Socket"
 
-local SocketData = { -- this would be in modelplug, but that's clientside only
-	["models/bull/various/usb_socket.mdl"] = { 
-		ang = Angle(0, 0, 0),
-		plug = "models/bull/various/usb_stick.mdl",
-		pos = Vector(8, 0, 0)
-	},
-	["models/hammy/pci_slot.mdl"] = { 
-		ang = Angle(0, 0, 0),
-		plug = "models/hammy/pci_card.mdl",
-		pos = Vector(0, 0, 0)
-	},
-	["models/props_lab/tpplugholder_single.mdl"] = { 
-		ang = Angle(0, 0, 0),
-		plug = "models/props_lab/tpplug.mdl",
-		pos = Vector(5, 13, 10)
-	},
-	["models/wingf0x/altisasocket.mdl"] = { 
-		ang = Angle(0, 0, 0),
-		plug = "models/wingf0x/isaplug.mdl",
-		pos = Vector(0, 0, 2.6)
-	},
-	["models/wingf0x/ethernetsocket.mdl"] = { 
-		ang = Angle(0, 0, 0),
-		plug = "models/wingf0x/ethernetplug.mdl",
-		pos = Vector(0, 0, 0)
-	},
-	["models/wingf0x/hdmisocket.mdl"] = { 
-		ang = Angle(0, 0, 0),
-		plug = "models/wingf0x/hdmiplug.mdl",
-		pos = Vector(0, 0, 0)
-	},
-	["models/wingf0x/isasocket.mdl"] = { 
-		ang = Angle(0, 0, 0),
-		plug = "models/wingf0x/isaplug.mdl",
-		pos = Vector(0, 0, 0)
-	},
-	["models/fasteroid/plugs/usb_c_socket.mdl"] = { 
-		ang = Angle(0, 0, 0),
-		plug = "models/fasteroid/plugs/usb_c_plug.mdl",
-		pos = Vector(0, 0, 0)
-	}
-}
-
-for k, v in pairs(SocketData) do
-	list.Set("Wire_Socket_Models", k, v)
-end
+local SocketData = list.Get("Wire_Socket_Models")
 
 function ENT:GetLinkPos()
 	return self:LocalToWorld(self.SockData.pos or Vector(0,0,0)), self:LocalToWorldAngles(self.SockData.ang or Angle(0,0,0))

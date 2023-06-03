@@ -35,21 +35,6 @@ do
 end
 ]]
 
-local list_set = list.Set
-
-local function listAddModels( listName, models, value )
-	value = value or true
-	for k, v in ipairs(models) do
-		list_set(listName, v, value)
-	end
-end
-
-local function listAddGeneric( listName, tbl )
-	for k, v in pairs(tbl) do
-		list_set(listName, k, v)
-	end
-end
-
 -- These models are not packaged as part of Wire or base Garry's Mod, so they need special handling:
 local externalModels = {
 	{"WireScreenModels",			"models/props/cs_office/tv_plasma.mdl"},
@@ -92,7 +77,7 @@ list.Set("Wire_control_Models","models/jaanus/wiretool/wiretool_controlchip.mdl"
 list.Set("Wire_beamcasting_Models", "models/jaanus/wiretool/wiretool_beamcaster.mdl")
 
 --screens with a GPULib setup
-listAddModels("WireScreenModels", {
+ModelPlug.ListAddModels("WireScreenModels", {
 	"models/props_lab/monitor01b.mdl",
 	"models/props_c17/tv_monitor01.mdl",
 	"models/blacknecro/tv_plasma_4_3.mdl",
@@ -119,14 +104,14 @@ listAddModels("WireScreenModels", {
 })
 
 --screens without a GPULib setup (for the tools wire_panel and wire_screen)
-listAddModels("WireNoGPULibScreenModels", {
+ModelPlug.ListAddModels("WireNoGPULibScreenModels", {
 	"models/props_lab/monitor01b.mdl",
 	"models/kobilica/wiremonitorbig.mdl",
 	"models/kobilica/wiremonitorsmall.mdl"
 })
 
 --sounds
-listAddGeneric("WireSounds", {
+ModelPlug.ListAddGenerics("WireSounds", {
 	["Warning"] = "common/warning.wav",
 	["Talk"] = "common/talk.wav",
 	["Button"] = "buttons/button15.wav",
@@ -149,14 +134,14 @@ listAddGeneric("WireSounds", {
 })
 
 --some extra wheels that wired wheels have
-listAddModels("WheelModels", {
+ModelPlug.ListAddModels("WheelModels", {
 	"models/props_wasteland/wheel01a.mdl",
 	"models/props_wasteland/wheel02a.mdl",
 	"models/props_wasteland/wheel03a.mdl",
 	"models/props_wasteland/wheel03b.mdl"
 }, { wheel_rx = 90, wheel_ry = 0, wheel_rz = 90} )
 
-listAddModels("Wire_button_Models", {
+ModelPlug.ListAddModels("Wire_button_Models", {
 	"models/props_citizen_tech/Firetrap_button01a.mdl",
 	"models/props_c17/clock01.mdl",
 	"models/dav0r/buttons/switch.mdl",
@@ -222,13 +207,13 @@ listAddModels("Wire_button_Models", {
 	"models/bull/buttons/key_switch.mdl"
 })
 
-listAddModels("ThrusterModels", {
+ModelPlug.ListAddModels("ThrusterModels", {
 	"models/props_junk/garbage_metalcan001a.mdl",
 	"models/jaanus/thruster_flat.mdl",
 	"models/fasteroid/computerfan.mdl"
 })
 
-listAddModels("Wire_Explosive_Models", {
+ModelPlug.ListAddModels("Wire_Explosive_Models", {
 	"models/dav0r/tnt/tnt.mdl",
 	"models/Combine_Helicopter/helicopter_bomb01.mdl",
 	"models/jaanus/thruster_flat.mdl",
@@ -269,7 +254,7 @@ listAddModels("Wire_Explosive_Models", {
 	"models/props_junk/wood_pallet001a.mdl"
 })
 
-listAddModels("Wire_Gimbal_Models", {
+ModelPlug.ListAddModels("Wire_Gimbal_Models", {
 	"models/props_c17/canister01a.mdl",
 	"models/props_interiors/Furniture_Lamp01a.mdl",
 	"models/props_c17/oildrum001.mdl",
@@ -278,7 +263,7 @@ listAddModels("Wire_Gimbal_Models", {
 	"models/fasteroid/pointer.mdl"
 })
 
-listAddModels("Wire_Value_Models", {
+ModelPlug.ListAddModels("Wire_Value_Models", {
 	"models/kobilica/value.mdl",
 	"models/bull/gates/resistor.mdl",
 	"models/bull/gates/transistor1.mdl",
@@ -288,7 +273,7 @@ listAddModels("Wire_Value_Models", {
 	"models/cheeze/wires/nano_value.mdl"
 })
 
-listAddModels("WireTeleporterModels", {
+ModelPlug.ListAddModels("WireTeleporterModels", {
 	"models/props_c17/utilityconducter001.mdl",
 	"models/Combine_Helicopter/helicopter_bomb01.mdl",
 	"models/props_combine/combine_interface001.mdl",
@@ -305,7 +290,7 @@ listAddModels("WireTeleporterModels", {
 	"models/props_wasteland/laundry_washer003.mdl"
 })
 
-listAddModels("WireTurretModels", {
+ModelPlug.ListAddModels("WireTurretModels", {
 	"models/weapons/w_smg1.mdl",
 	"models/weapons/w_smg_mp5.mdl",
 	"models/weapons/w_smg_mac10.mdl",
@@ -314,12 +299,12 @@ listAddModels("WireTurretModels", {
 	"models/weapons/w_shot_m3super90.mdl"
 })
 
-listAddModels("Wire_satellitedish_Models", {
+ModelPlug.ListAddModels("Wire_satellitedish_Models", {
 	"models/props_wasteland/prison_lamp001c.mdl",
 	"models/props_rooftop/satellitedish02.mdl"
 })
 
-listAddModels("Wire_Light_Models", {
+ModelPlug.ListAddModels("Wire_Light_Models", {
 	"models/jaanus/wiretool/wiretool_range.mdl",
 	"models/jaanus/wiretool/wiretool_siren.mdl",
 	"models/MaxOfS2D/light_tubular.mdl",
@@ -327,60 +312,60 @@ listAddModels("Wire_Light_Models", {
 ,	"models/fasteroid/led_nano.mdl"
 })
 
-listAddModels("Wire_Keyboard_Models",{
+ModelPlug.ListAddModels("Wire_Keyboard_Models",{
 	"models/beer/wiremod/keyboard.mdl",
 	"models/jaanus/wiretool/wiretool_input.mdl",
 	"models/props_c17/computer01_keyboard.mdl"
 })
 
-listAddModels("Wire_Hydraulic_Models",{
+ModelPlug.ListAddModels("Wire_Hydraulic_Models",{
 	"models/beer/wiremod/hydraulic.mdl",
 	"models/jaanus/wiretool/wiretool_siren.mdl",
 	"models/xqm/hydcontrolbox.mdl"
 })
 
-listAddModels("Wire_GPS_Models",{
+ModelPlug.ListAddModels("Wire_GPS_Models",{
 	"models/beer/wiremod/gps.mdl",
 	"models/jaanus/wiretool/wiretool_speed.mdl"
 })
 
-listAddModels("Wire_Numpad_Models", {
+ModelPlug.ListAddModels("Wire_Numpad_Models", {
 	"models/beer/wiremod/numpad.mdl",
 	"models/jaanus/wiretool/wiretool_input.mdl",
 	"models/jaanus/wiretool/wiretool_output.mdl"
 })
 
-listAddModels("Wire_WaterSensor_Models", {
+ModelPlug.ListAddModels("Wire_WaterSensor_Models", {
 	"models/beer/wiremod/watersensor.mdl",
 	"models/jaanus/wiretool/wiretool_range.mdl"
 })
 
-listAddModels("Wire_TargetFinder_Models", {
+ModelPlug.ListAddModels("Wire_TargetFinder_Models", {
 	"models/beer/wiremod/targetfinder.mdl",
 	"models/props_lab/powerbox02d.mdl"
 })
 
-listAddModels("Wire_Forcer_Models", {
+ModelPlug.ListAddModels("Wire_Forcer_Models", {
 	"models/jaanus/wiretool/wiretool_grabber_forcer.mdl",
 	"models/jaanus/wiretool/wiretool_siren.mdl",
 	"models/fasteroid/computerfan.mdl"
 })
 
-listAddModels("Wire_Misc_Tools_Models", {
+ModelPlug.ListAddModels("Wire_Misc_Tools_Models", {
 	"models/jaanus/wiretool/wiretool_range.mdl",
 	"models/jaanus/wiretool/wiretool_siren.mdl",
 	"models/props_lab/powerbox02d.mdl"
 })
 
 --Laser Tools (Ranger, User, etc)
-listAddModels("Wire_Laser_Tools_Models", {
+ModelPlug.ListAddModels("Wire_Laser_Tools_Models", {
 	"models/jaanus/wiretool/wiretool_range.mdl",
 	"models/jaanus/wiretool/wiretool_siren.mdl",
 	"models/jaanus/wiretool/wiretool_beamcaster.mdl",
 	"models/fasteroid/led_mini.mdl"
 })
 
-listAddModels("Wire_button_small_Models", {
+ModelPlug.ListAddModels("Wire_button_small_Models", {
 	"models/cheeze/buttons2/0_small.mdl",
 	"models/cheeze/buttons2/1_small.mdl",
 	"models/cheeze/buttons2/2_small.mdl",
@@ -431,7 +416,7 @@ listAddModels("Wire_button_small_Models", {
 	"models/cheeze/buttons2/up_small.mdl"
 })
 
-listAddModels("Wire_chip_Models", {
+ModelPlug.ListAddModels("Wire_chip_Models", {
 	"models/bull/gates/capacitor.mdl",
 	"models/bull/gates/capacitor_mini.mdl",
 	"models/bull/gates/capacitor_nano.mdl",
@@ -482,32 +467,32 @@ listAddModels("Wire_chip_Models", {
 	"models/fasteroid/inductor.mdl"
 })
 
-listAddModels("Wire_detonator_Models",{
+ModelPlug.ListAddModels("Wire_detonator_Models",{
 	"models/jaanus/wiretool/wiretool_detonator.mdl",
 	"models/props_combine/breenclock.mdl"
 })
 
-listAddModels("Wire_dynamic_button_Models", {
+ModelPlug.ListAddModels("Wire_dynamic_button_Models", {
 	"models/bull/dynamicbutton.mdl",
 	"models/bull/dynamicbuttonflat.mdl",
 	"models/bull/dynamicbuttonmedium.mdl",
 	"models/maxofs2d/button_05.mdl"
 })
 
-listAddModels("Wire_dynamic_button_small_Models", {
+ModelPlug.ListAddModels("Wire_dynamic_button_small_Models", {
 	"models/bull/dynamicbutton_small.mdl",
 	"models/bull/dynamicbuttonflat_small.mdl",
 	"models/bull/dynamicbuttonmedium_small.mdl"
 })
 
 
-listAddModels("Wire_expr2_Models", {
+ModelPlug.ListAddModels("Wire_expr2_Models", {
 	"models/expression 2/cpu_controller.mdl",
 	"models/expression 2/cpu_expression.mdl",
 	"models/expression 2/cpu_microchip.mdl"
 })
 
-listAddModels("Wire_gate_Models", {
+ModelPlug.ListAddModels("Wire_gate_Models", {
 	"models/bull/gates/capacitor.mdl",
 	"models/bull/gates/capacitor_mini.mdl",
 	"models/bull/gates/capacitor_nano.mdl",
@@ -558,12 +543,12 @@ listAddModels("Wire_gate_Models", {
 	"models/fasteroid/inductor.mdl"
 })
 
-listAddModels("Wire_gyroscope_Models",{
+ModelPlug.ListAddModels("Wire_gyroscope_Models",{
 	"models/bull/various/gyroscope.mdl",
 	"models/cheeze/wires/gyroscope.mdl"
 })
 
-listAddModels("Wire_indicator_Models", {
+ModelPlug.ListAddModels("Wire_indicator_Models", {
 	"models/jaanus/wiretool/wiretool_pixel_lrg.mdl",
 	"models/jaanus/wiretool/wiretool_pixel_med.mdl",
 	"models/jaanus/wiretool/wiretool_pixel_sml.mdl",
@@ -583,7 +568,7 @@ listAddModels("Wire_indicator_Models", {
 ,	"models/fasteroid/led_nano.mdl"
 })
 
-listAddModels("Wire_pixel_Models", {
+ModelPlug.ListAddModels("Wire_pixel_Models", {
 	"models/jaanus/wiretool/wiretool_pixel_lrg.mdl",
 	"models/jaanus/wiretool/wiretool_pixel_med.mdl",
 	"models/jaanus/wiretool/wiretool_pixel_sml.mdl",
@@ -598,7 +583,7 @@ listAddModels("Wire_pixel_Models", {
 ,	"models/fasteroid/led_nano.mdl"
 })
 
-listAddModels("Wire_radio_Models", {
+ModelPlug.ListAddModels("Wire_radio_Models", {
 	"models/cheeze/wires/router.mdl",
 	"models/cheeze/wires/wireless_card.mdl",
 	"models/props_lab/binderblue.mdl",
@@ -607,7 +592,7 @@ listAddModels("Wire_radio_Models", {
 	"models/props_lab/reciever01c.mdl"
 })
 
-listAddModels("Wire_speaker_Models",{
+ModelPlug.ListAddModels("Wire_speaker_Models",{
 	"models/bull/various/speaker.mdl",
 	"models/bull/various/subwoofer.mdl",
 	"models/cheeze/wires/speaker.mdl",
@@ -617,7 +602,7 @@ listAddModels("Wire_speaker_Models",{
 	"models/props_junk/garbage_metalcan002a.mdl"
 })
 
-listAddModels("Wire_weight_Models", {
+ModelPlug.ListAddModels("Wire_weight_Models", {
 	"models/props_interiors/pot01a.mdl",
 	"models/props_lab/huladoll.mdl"
 })
