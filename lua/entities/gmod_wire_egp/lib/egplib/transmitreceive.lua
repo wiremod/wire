@@ -34,8 +34,8 @@ if (SERVER) then
 			return
 		end
 
-		EGP.Broadcast = EGP.Broadcast + 1
 		if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
+			EGP.Broadcast = EGP.Broadcast + 1
 			net.WriteEntity( Ent )
 			net.WriteString( "ClearScreen" )
 		EGP.umsg.End()
@@ -72,8 +72,8 @@ if (SERVER) then
 
 		if not EGP:LoadFrame( ply, Ent, FrameName ) then return end
 
-		EGP.Broadcast = EGP.Broadcast + 1
 		if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
+			EGP.Broadcast = EGP.Broadcast + 1
 			net.WriteEntity( Ent )
 			net.WriteString( "LoadFrame" )
 			net.WriteEntity( ply )
@@ -95,6 +95,7 @@ if (SERVER) then
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
+				EGP.Broadcast = EGP.Broadcast + 1
 				net.WriteEntity( Ent )
 				net.WriteString( "AddVertex" )
 				net.WriteInt( index, 16 )
@@ -155,8 +156,9 @@ if (SERVER) then
 			return
 		end
 
-		if EGP:HasObject( Ent, index ) then
+		if EGP:HasObject(Ent, index) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
+			EGP.Broadcast = EGP.Broadcast + 1
 				net.WriteEntity( Ent )
 				net.WriteString( "AddText" )
 				net.WriteInt( index, 16 )
@@ -176,8 +178,7 @@ if (SERVER) then
 			return
 		end
 
-		local bool, k, v = EGP:HasObject( Ent, index )
-		if (bool) then
+		if EGP:HasObject(Ent, index) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply, Ent) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "SetText" )

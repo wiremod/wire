@@ -39,7 +39,7 @@ function EGP.umsg.Start(name, sender, ent)
 	CurSender = sender
 	curEnt = ent
 	
-	net.Start(name, EGP.Broadcast ~= 0) -- Broadcasts should be reliable, but in-between updates can most likely be dropped, if that ever occurs
+	net.Start(name, EGP.Broadcast == 0) -- Broadcasts should be reliable, but in-between updates can most likely be dropped, if that ever occurs
 	return true
 end
 
