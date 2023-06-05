@@ -2,6 +2,10 @@ local function Update(self,this)
 	self.data.EGP.UpdatesNeeded[this] = true
 end
 
+local getCenter = EGP.ParentingFuncs.getCenter
+local getCenterFromPos = EGP.ParentingFuncs.getCenterFromPos
+local makeArray = EGP.ParentingFuncs.makeArray
+
 --------------------------------------------------------
 -- Frames
 --------------------------------------------------------
@@ -817,10 +821,11 @@ end
 __e2setcost(20)
 e2function vector wirelink:egpGlobalPos( number index )
 	local hasvertices, posang = EGP:GetGlobalPos( this, index )
-	if (!hasvertices) then
-		return Vector( posang.x, posang.y, posang.angle )
+	if hasvertices then
+		local x, y = getCenterFromPos(posang)
+		return Vector(x , y, 0)
 	end
-	return Vector(0, 0, 0)
+	return Vector(posang.x, posang.y, posang.angle)
 end
 
 e2function array wirelink:egpGlobalVertices( number index )
@@ -1035,15 +1040,25 @@ e2function number wirelink:egpHasObject( index )
 	return bool and 1 or 0
 end
 
+__e2setcost(20)
+
 --- Returns 1 if the object with specified index contains the specified point.
 e2function number wirelink:egpObjectContainsPoint(number index, vector2 point)
 	local bool, _, object = EGP:HasObject(this, index)
-	local _, pos = EGP:GetGlobalPos(this, index)
-	if this.TopLeft and object.CanTopLeft and object.w and object.h then
-		pos.x = pos.x + object.w / 2
-		pos.y = pos.y + object.h / 2
+	if bool then 
+		local hasVertices, pos = EGP:GetGlobalPos(this, index)
+		if this.TopLeft and object.CanTopLeft and object.w and object.h then
+			pos.x = pos.x + object.w / 2
+			pos.y = pos.y + object.h / 2
+		elseif hasVertices then
+			-- Localize the point to the object. Yeah.
+			local x, y = getCenterFromPos(pos)
+			local fakex, fakey = getCenter(makeArray(object), true)
+			return object:Contains({ x = x - point[1] + fakex, y = y - point[2] + fakey, angle = 0 }) and 1 or 0
+		end
+		return object:Contains({ x = pos.x - point[1], y = pos.y - point[2], angle = pos.angle }) and 1 or 0
 	end
-	return bool and object:Contains({ x = pos.x - point[1], y = pos.y - point[2], angle = pos.angle }) and 1 or 0
+	return 0
 end
 
 __e2setcost(10)
