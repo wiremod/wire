@@ -829,9 +829,7 @@ e2function vector wirelink:egpGlobalPos( number index )
 end
 
 e2function array wirelink:egpGlobalVertices( number index )
-	ErrorNoHalt = override
 	local hasvertices, data = EGP:GetGlobalPos( this, index )
-	ErrorNoHalt = olderror
 	if (hasvertices) then
 		if (data.vertices) then
 			local ret = {}
