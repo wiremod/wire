@@ -656,7 +656,7 @@ end
 --- Nocollides <ent1> to <ent2>
 [deprecated]
 e2function void noCollide(entity ent1, entity ent2)
-	noCollideCreate(ent1, ent2)
+	noCollideCreate(self, ent1, ent2)
 end
 
 e2function void entity:noCollideAll(state)
