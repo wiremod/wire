@@ -1052,9 +1052,9 @@ e2function number wirelink:egpObjectContainsPoint(number index, vector2 point)
 			-- Localize the point to the object. Yeah.
 			local x, y = getCenterFromPos(pos)
 			local fakex, fakey = getCenter(makeArray(object), true)
-			return object:Contains({ x = x - point[1] + fakex, y = y - point[2] + fakey, angle = 0 }) and 1 or 0
+			return object:Contains({ x = point[1] - x + fakex, y = point[2] - y + fakey, angle = 0 }) and 1 or 0
 		end
-		return object:Contains({ x = pos.x - point[1], y = pos.y - point[2], angle = pos.angle }) and 1 or 0
+		return object:Contains({ x = point[1] - pos.x, y = point[2] - pos.y, angle = pos.angle }) and 1 or 0
 	end
 	return 0
 end
