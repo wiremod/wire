@@ -2,6 +2,10 @@ local function Update(self,this)
 	self.data.EGP.UpdatesNeeded[this] = true
 end
 
+local getCenter = EGP.ParentingFuncs.getCenter
+local getCenterFromPos = EGP.ParentingFuncs.getCenterFromPos
+local makeArray = EGP.ParentingFuncs.makeArray
+
 --------------------------------------------------------
 -- Frames
 --------------------------------------------------------
@@ -605,7 +609,8 @@ e2function void wirelink:egpPos( number index, vector2 pos )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
-		if (EGP:EditObject( v, { x = pos[1], y = pos[2] } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		local x, y = pos[1], pos[2]
+		if (EGP:EditObject( v, { x = x, y = y, _x = x, _y = y } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -617,7 +622,7 @@ e2function void wirelink:egpAngle( number index, number angle )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
-		if (EGP:EditObject( v, { angle = angle } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if (EGP:EditObject( v, { angle = angle, _angle = angle } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -638,8 +643,8 @@ e2function void wirelink:egpAngle( number index, vector2 worldpos, vector2 axisp
 
 			angle = -ang.yaw
 
-			local t = { x = x, y = y }
-			if (v.angle) then t.angle = angle end
+			local t = { x = x, _x = x, y = y, _y = y }
+			if (v.angle) then t.angle, t._angle = angle, angle end
 
 			if (EGP:EditObject( v, t )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 		end
@@ -817,16 +822,15 @@ end
 __e2setcost(20)
 e2function vector wirelink:egpGlobalPos( number index )
 	local hasvertices, posang = EGP:GetGlobalPos( this, index )
-	if (!hasvertices) then
-		return Vector( posang.x, posang.y, posang.angle )
+	if hasvertices then
+		local x, y = getCenterFromPos(posang)
+		return Vector(x , y, 0)
 	end
-	return Vector(0, 0, 0)
+	return Vector(posang.x, posang.y, posang.angle)
 end
 
 e2function array wirelink:egpGlobalVertices( number index )
-	ErrorNoHalt = override
 	local hasvertices, data = EGP:GetGlobalPos( this, index )
-	ErrorNoHalt = olderror
 	if (hasvertices) then
 		if (data.vertices) then
 			local ret = {}
@@ -1035,15 +1039,12 @@ e2function number wirelink:egpHasObject( index )
 	return bool and 1 or 0
 end
 
+__e2setcost(20)
+
 --- Returns 1 if the object with specified index contains the specified point.
 e2function number wirelink:egpObjectContainsPoint(number index, vector2 point)
-	local bool, _, object = EGP:HasObject(this, index)
-	local _, pos = EGP:GetGlobalPos(this, index)
-	if this.TopLeft and object.CanTopLeft and object.w and object.h then
-		pos.x = pos.x + object.w / 2
-		pos.y = pos.y + object.h / 2
-	end
-	return bool and object:Contains({ x = pos.x - point[1], y = pos.y - point[2], angle = pos.angle }) and 1 or 0
+	local _, _, object = EGP:HasObject(this, index)
+	return object and object:Contains(this, point[1], point[2]) and 1 or 0
 end
 
 __e2setcost(10)

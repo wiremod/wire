@@ -54,17 +54,11 @@ Obj.DataStreamInfo = function( self )
 	table.Merge( tbl, { angle = self.angle, size = self.size, fidelity = self.fidelity } )
 	return tbl
 end
-function Obj:Contains(point)
-	local theta = math.rad(point.angle + self.angle)
-	if theta ~= 0 then
-		local cos_theta, sin_theta = math.cos(theta), math.sin(theta)
-		point.x, point.y =
-			point.x * cos_theta - point.y * sin_theta,
-			point.y * cos_theta + point.x * sin_theta
-	end
+function Obj:Contains(egp, x, y)
+	x, y = EGP.WorldToLocal(egp, self, x, y)
+	x, y = x / self.w, y / self.h
 	
-	local x, y = point.x / self.w, point.y / self.h
 	if x * x + y * y > 1 then return false end
-	local theta = math.deg(math.atan2(y, x))
+	theta = math.deg(math.atan2(y, x))
 	return theta <= -self.size or 0 <= theta
 end

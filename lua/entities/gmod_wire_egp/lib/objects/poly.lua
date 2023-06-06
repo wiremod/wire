@@ -55,22 +55,27 @@ end
 Obj.DataStreamInfo = function( self )
 	return { vertices = self.vertices, material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent }
 end
-function Obj:Contains(point)
+
+function Obj:Contains(egp, x, y)
 	if #self.vertices < 3 then return false end
+	-- Convert into {x,y} format that poly uses.
+	local point = { x = x, y = y }
+	local _, realpos = EGP:GetGlobalPos(egp, self.index)
+	local vertices = realpos.vertices
 
 	-- To check whether a point is in the polygon, we check whether it's to the
 	-- 'inside' side of each edge. (If the polygon is counterclockwise then the
 	-- inside is the left side; otherwise it's the right side.) This only works
 	-- for convex polygons, but so does `surface.drawPoly`.
 	local inside
-	if counterclockwise(self.vertices[1], self.vertices[2], self.vertices[3]) then
+	if counterclockwise(vertices[1], vertices[2], vertices[3]) then
 		inside = counterclockwise
 	else
 		inside = function(a, b, c) return counterclockwise(b, a, c) end
 	end
 
-	for i = 1, #self.vertices - 1 do
-		if not inside(self.vertices[i], self.vertices[i + 1], point) then return false end
+	for i = 1, #vertices - 1 do
+		if not inside(vertices[i], vertices[i + 1], point) then return false end
 	end
-	return inside(self.vertices[#self.vertices], self.vertices[1], point)
+	return inside(vertices[#vertices], vertices[1], point)
 end

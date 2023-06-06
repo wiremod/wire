@@ -471,3 +471,18 @@ function EGP:EGPCursor( this, ply )
 
 	return ReturnFailure( this )
 end
+
+function EGP.WorldToLocal(egp, object, x, y)
+	local _, realpos = EGP:GetGlobalPos(egp, object.index)
+	x, y = x - realpos.x, y - realpos.y
+	
+	local theta = math.rad(realpos.angle)
+	if theta ~= 0 then
+		local cos_theta, sin_theta = math.cos(theta), math.sin(theta)
+		x, y =
+			x * cos_theta - y * sin_theta,
+			y * cos_theta + x * sin_theta
+	end
+	
+	return x, y
+end
