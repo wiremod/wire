@@ -56,7 +56,7 @@ Obj.DataStreamInfo = function( self )
 	return { vertices = self.vertices, material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent }
 end
 
-function Obj:Contains(x, y, egp)
+function Obj:Contains(egp, x, y)
 	if #self.vertices < 3 then return false end
 	-- Convert into {x,y} format that poly uses.
 	local point = { x = x, y = y }

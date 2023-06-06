@@ -24,7 +24,7 @@ Obj.DataStreamInfo = function( self )
 	table.Merge( tbl, { angle = self.angle } )
 	return tbl
 end
-function Obj:Contains(x, y, egp)
+function Obj:Contains(egp, x, y)
 	x, y = EGP.WorldToLocal(egp, self, x, y)
 	
 	local w, h = self.w / 2, self.h / 2

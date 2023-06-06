@@ -48,7 +48,7 @@ Obj.DataStreamInfo = function( self )
 	table.Merge( tbl, { angle = self.angle, fidelity = self.fidelity } )
 	return tbl
 end
-function Obj:Contains(x, y, egp)
+function Obj:Contains(egp, x, y)
 	-- Just do this directly since angle doesn't affect circles
 	local _, realpos = EGP:GetGlobalPos(egp, self.index)
 	x, y = (x - realpos.x) / self.w, (y - realpos.y) / self.h
