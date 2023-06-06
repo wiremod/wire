@@ -57,3 +57,5 @@ ModelPlug.ListAddGenerics("Wire_Socket_Models", {
 		pos = Vector(0, 0, 0)
 	}
 })
+
+hook.Run("ModelPlugLuaRefresh")
