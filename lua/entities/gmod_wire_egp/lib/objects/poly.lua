@@ -56,9 +56,11 @@ Obj.DataStreamInfo = function( self )
 	return { vertices = self.vertices, material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent }
 end
 
-function Obj:Contains(point, this)
+function Obj:Contains(x, y, egp)
 	if #self.vertices < 3 then return false end
-	local _, realpos = EGP:GetGlobalPos(this, self.index)
+	-- Convert into {x,y} format that poly uses.
+	local point = { x = x, y = y }
+	local _, realpos = EGP:GetGlobalPos(egp, self.index)
 	local vertices = realpos.vertices
 
 	-- To check whether a point is in the polygon, we check whether it's to the
