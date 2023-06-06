@@ -55,8 +55,10 @@ end
 Obj.DataStreamInfo = function( self )
 	return { vertices = self.vertices, material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent }
 end
-function Obj:Contains(point)
+
+function Obj:Contains(point, this)
 	if #self.vertices < 3 then return false end
+	local _, realpos = EGP:GetGlobalPos(this, self.index)
 
 	-- To check whether a point is in the polygon, we check whether it's to the
 	-- 'inside' side of each edge. (If the polygon is counterclockwise then the
@@ -69,8 +71,8 @@ function Obj:Contains(point)
 		inside = function(a, b, c) return counterclockwise(b, a, c) end
 	end
 
-	for i = 1, #self.vertices - 1 do
-		if not inside(self.vertices[i], self.vertices[i + 1], point) then return false end
+	for i = 1, #realpos.vertices - 1 do
+		if not inside(realpos.vertices[i], realpos.vertices[i + 1], point) then return false end
 	end
-	return inside(self.vertices[#self.vertices], self.vertices[1], point)
+	return inside(realpos.vertices[#self.vertices], realpos.vertices[1], point)
 end

@@ -48,7 +48,8 @@ Obj.DataStreamInfo = function( self )
 	table.Merge( tbl, { angle = self.angle, fidelity = self.fidelity } )
 	return tbl
 end
-function Obj:Contains(point)
-	local x, y = point.x / self.w, point.y / self.h
+function Obj:Contains(point, this)
+	local _, realpos = EGP:GetGlobalPos(this, self.index)
+	local x, y = (point.x - realpos.x) / self.w, (point.y - realpos.y) / self.h
 	return x * x + y * y <= 1
 end

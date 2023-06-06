@@ -1042,21 +1042,8 @@ __e2setcost(20)
 
 --- Returns 1 if the object with specified index contains the specified point.
 e2function number wirelink:egpObjectContainsPoint(number index, vector2 point)
-	local bool, _, object = EGP:HasObject(this, index)
-	if bool then 
-		local hasVertices, pos = EGP:GetGlobalPos(this, index)
-		if this.TopLeft and object.CanTopLeft and object.w and object.h then
-			pos.x = pos.x + object.w / 2
-			pos.y = pos.y + object.h / 2
-		elseif hasVertices then
-			-- Localize the point to the object. Yeah.
-			local x, y = getCenterFromPos(pos)
-			local fakex, fakey = getCenter(makeArray(object), true)
-			return object:Contains({ x = point[1] - x + fakex, y = point[2] - y + fakey, angle = 0 }) and 1 or 0
-		end
-		return object:Contains({ x = point[1] - pos.x, y = point[2] - pos.y, angle = pos.angle }) and 1 or 0
-	end
-	return 0
+	local _, _, object = EGP:HasObject(this, index)
+	return object and object:Contains({ x = point[1], y = point[2] }, this) and 1 or 0
 end
 
 __e2setcost(10)
