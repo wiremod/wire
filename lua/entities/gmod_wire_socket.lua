@@ -12,7 +12,7 @@ hook.Add("ModelPlugLuaRefresh","gmod_wire_socket_updatemodels",function()
 end)
 
 function ENT:GetLinkPos()
-	return self:LocalToWorld(self.SockData.pos or Vector(0,0,0)), self:LocalToWorldAngles(self.SockData.ang or Angle(0,0,0))
+	return self:LocalToWorld(self.SockData.pos or Vector(0,0,0)), self:GetAngles()
 end
 
 function ENT:CanLink( Target )
