@@ -609,7 +609,8 @@ e2function void wirelink:egpPos( number index, vector2 pos )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
-		if (EGP:EditObject( v, { x = pos[1], y = pos[2] } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		local x, y = pos[1], pos[2]
+		if (EGP:EditObject( v, { x = x, y = y, _x = x, _y = y } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -621,7 +622,7 @@ e2function void wirelink:egpAngle( number index, number angle )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
-		if (EGP:EditObject( v, { angle = angle } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if (EGP:EditObject( v, { angle = angle, _angle = angle } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -642,8 +643,8 @@ e2function void wirelink:egpAngle( number index, vector2 worldpos, vector2 axisp
 
 			angle = -ang.yaw
 
-			local t = { x = x, y = y }
-			if (v.angle) then t.angle = angle end
+			local t = { x = x, _x = x, y = y, _y = y }
+			if (v.angle) then t.angle = angle, t._angle = angle end
 
 			if (EGP:EditObject( v, t )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 		end
