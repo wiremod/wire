@@ -81,14 +81,43 @@ end
 -- Draw from top left
 --------------------------------------------------------
 
-function EGP:MoveTopLeft( ent, v )
+function EGP:MoveTopLeft(ent, obj)
 	if not self:ValidEGP(ent) then return end
 
-	if (v.CanTopLeft and v.x and v.y and v.w and v.h) then
-		local vec, ang = LocalToWorld( Vector( v.w/2, v.h/2, 0 ), Angle(0,0,0), Vector( v.x, v.y, 0 ), Angle( 0, -v.angle or 0, 0 ) )
-		local t = { x = vec.x, y = vec.y }
-		if (v.angle) then t.angle = -ang.yaw end
-		self:EditObject( v, t )
+	local t = nil
+	if obj.CanTopLeft and obj.x and obj.y and obj.w and obj.h then
+		local vec, ang = LocalToWorld( Vector( obj.w / 2, obj.h / 2, 0 ), angle_zero, Vector( obj.x, obj.y, 0 ), Angle( 0, -obj.angle or 0, 0 ) )
+		t = { x = vec.x, y = vec.y }
+		if obj.angle then t.angle = -ang.yaw end
+	end
+	if obj.IsParented then
+		local bool, _, parent = self:HasObject(ent, obj.parent)
+		if bool and parent.CanTopLeft and parent.w and parent.h then
+			if isstring(obj.verticesindex) then
+				local vertices = {}
+				local w, h = parent.w / 2, parent.h / 2
+				for i, v in ipairs(obj[obj.verticesindex]) do
+					vertices[i] = { x = v.x - w, y = v.y - h }
+				end
+				t = { vertices = vertices }
+			elseif obj.verticesindex ~= nil then
+				t = {}
+				local w, h = parent.w / 2, parent.h / 2
+				for i, v in ipairs(obj.verticesindex) do
+					t[v[1]] = obj[v[1]] - w
+					t[v[2]] = obj[v[2]] - h
+				end
+			else
+				if not t then t = { x = 0, y = 0 } end
+				t.x = t.x - parent.w / 2
+				t.y = t.y - parent.h / 2
+			end
+		end
+		if t and t.angle then t.angle = -t.angle end
+	end
+
+	if t then
+		self:EditObject(obj, t)
 	end
 end
 
