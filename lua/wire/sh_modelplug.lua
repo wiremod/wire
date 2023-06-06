@@ -55,6 +55,11 @@ ModelPlug.ListAddGenerics("Wire_Socket_Models", {
 		ang = Angle(90, 0, 0),
 		plug = "models/fasteroid/plugs/usb_c_plug.mdl",
 		pos = Vector(0, 0, 0)
+	},
+	["models/fasteroid/plugs/sd_card_socket.mdl"] = { 
+		ang = Angle(90, 0, 0),
+		plug = "models/fasteroid/plugs/sd_card.mdl",
+		pos = Vector(0, 0, 0)
 	}
 })
 
