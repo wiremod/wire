@@ -101,6 +101,7 @@ end
 __e2setcost(2) -- approximation
 
 e2function void exit()
+	self.Scope, self.ScopeID, self.Scopes = self.GlobalScope, 0, { [0] = self.GlobalScope }
 	error("exit", 0)
 end
 
@@ -127,6 +128,8 @@ __e2setcost(100) -- approximation
 
 [noreturn]
 e2function void reset()
+	self.Scope, self.ScopeID, self.Scopes = self.GlobalScope, 0, { [0] = self.GlobalScope }
+
 	if self.data.last or self.entity.first then error("exit", 0) end
 
 	if self.entity.last_reset and self.entity.last_reset == CurTime() then
@@ -135,6 +138,7 @@ e2function void reset()
 	self.entity.last_reset = CurTime()
 
 	self.data.reset = true
+
 	error("exit", 0)
 end
 
