@@ -644,7 +644,7 @@ e2function void wirelink:egpAngle( number index, vector2 worldpos, vector2 axisp
 			angle = -ang.yaw
 
 			local t = { x = x, _x = x, y = y, _y = y }
-			if (v.angle) then t.angle = angle, t._angle = angle end
+			if (v.angle) then t.angle, t._angle = angle, angle end
 
 			if (EGP:EditObject( v, t )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 		end
