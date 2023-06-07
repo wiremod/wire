@@ -299,7 +299,6 @@ if SERVER then
 			targetEnt.DownloadAllowedPlayers = targetEnt.DownloadAllowedPlayers or {}
 			targetEnt.DownloadAllowedPlayers[ply] = true
 			timer.Simple(60, function() -- make permissions timeout after 60 seconds
-				if not targetEnt then return end
 				if not IsValid(targetEnt) then return end
 				if not targetEnt.DownloadAllowedPlayers then return end
 				if not targetEnt.DownloadAllowedPlayers[ply] then return end
