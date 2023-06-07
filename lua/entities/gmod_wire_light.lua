@@ -245,8 +245,8 @@ function ENT:TriggerInput(iname, value)
 	self:UpdateLight()
 end
 
-function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, spritesize, on)
-	self.on = on or false
+function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, spritesize, startOn)
+	self.startOn = startOn == nil or startOn
 	self.directional = directional or false
 	self.radiant = radiant or false
 	self.glow = glow or false
@@ -263,8 +263,7 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 		self.spritesize = math.Clamp( self.spritesize, 0, 256 )
 	end
 
-	if not self.on then self:SetOn(true) end
-	
+	self:SetOn(self.startOn)
 	self:Directional( self.directional )
 	self:Radiant( self.radiant )
 	self:SetGlow( self.glow )
@@ -272,14 +271,10 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 	self:SetSize( self.size )
 	self:SetSpriteSize( self.spritesize )
 
-	local inputs = {"Red", "Green", "Blue", "RGB [VECTOR]", "SpriteSize"}
+	local inputs = {"On", "Red", "Green", "Blue", "RGB [VECTOR]", "SpriteSize"}
 	if self.glow then
 		table.insert(inputs, 5, "GlowBrightness")
 		table.insert(inputs, 6, "GlowSize")
-	end
-	
-	if self.on then
-		table.insert(inputs, 1, "On")
 	end
 	
 	WireLib.AdjustInputs(self, inputs)
@@ -287,4 +282,4 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 	self:UpdateLight()
 end
 
-duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "R", "G", "B", "spritesize")
+duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "R", "G", "B", "spritesize", "startOn")
