@@ -13,6 +13,7 @@ if CLIENT then
 	language.Add( "WireLightTool_glow", "Glow Component" )
 	language.Add( "WireLightTool_const", "Constraint:" )
 	language.Add( "WireLightTool_color", "Initial Color:" )
+	language.Add("WireLightTool_on", "On component")
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 
 	WireToolSetup.setToolMenuIcon( "icon16/lightbulb.png" )
@@ -23,6 +24,7 @@ WireToolSetup.SetupMax(8)
 if SERVER then
 	function TOOL:GetConVars()
 		return
+			self:GetClientNumber("on") ~= 0,
 			self:GetClientNumber("directional") ~= 0,
 			self:GetClientNumber("radiant") ~= 0,
 			self:GetClientNumber("glow") ~= 0,
@@ -102,7 +104,8 @@ TOOL.ClientConVar = {
 	r            = 0,
 	g            = 0,
 	b            = 0,
-	spritesize   = 128
+	spritesize   = 128,
+	on			 = 0
 }
 
 function TOOL.BuildCPanel(panel)
@@ -113,6 +116,7 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#WireLightTool_directional", "wire_light_directional")
 	panel:CheckBox("#WireLightTool_radiant", "wire_light_radiant")
 	panel:CheckBox("#WireLightTool_glow", "wire_light_glow")
+	panel:CheckBox("#WireLightTool_on", "wire_light_on")
 	panel:NumSlider("#WireLightTool_bright", "wire_light_brightness", 0, 10, 0)
 	panel:NumSlider("#WireLightTool_size", "wire_light_size", 0, 1024, 0)
 	panel:NumSlider("#WireLightTool_spritesize", "wire_light_spritesize", 0, 256, 0)

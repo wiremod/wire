@@ -5,7 +5,8 @@ ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Light"
 
 function ENT:SetupDataTables()
-	self:NetworkVar( "Bool", 0, "Glow" )
+	self:NetworkVar("Bool", 0, "On")
+	self:NetworkVar( "Bool", 1, "Glow" )
 	self:NetworkVar( "Float", 0, "Brightness" )
 	self:NetworkVar( "Float", 1, "Size" )
 	self:NetworkVar( "Float", 2, "SpriteSize" )
@@ -34,6 +35,8 @@ if CLIENT then
 	end
 
 	function ENT:DrawTranslucent()
+		if not self:GetOn() then return end
+		
 		local LightPos = self:GetPos()
 		render.SetMaterial( matLight )
 
@@ -60,7 +63,7 @@ if CLIENT then
 	local wire_light_block = CreateClientConVar("wire_light_block", 0, false, false)
 
 	function ENT:Think()
-		if self:GetGlow() and not wire_light_block:GetBool() then
+		if self:GetOn() and self:GetGlow() and not wire_light_block:GetBool() and self:GetSize() > 0 then -- if size is 0 then the light is invisible
 			local dlight = DynamicLight(self:EntIndex())
 			if dlight then
 				dlight.Pos = self:GetPos()
@@ -136,7 +139,7 @@ function ENT:Initialize()
 end
 
 function ENT:Directional( On )
-	if On then
+	if On and self:GetOn() then
 		if IsValid( self.DirectionalComponent ) then return end
 
 		local flashlight = ents.Create( "env_projectedtexture" )
@@ -170,7 +173,7 @@ function ENT:Directional( On )
 end
 
 function ENT:Radiant( On )
-	if On then
+	if On and self:GetOn() then
 		if IsValid( self.RadiantComponent ) then
 			self.RadiantComponent:Fire( "TurnOn", "", "0" )
 		else
@@ -203,7 +206,9 @@ function ENT:UpdateLight()
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "Red") then
+	if iname == "On" and self.on then
+		self:SetOn(value ~= 0)
+	elseif (iname == "Red") then
 		self.R = math.Clamp(value,0,255)
 	elseif (iname == "Green") then
 		self.G = math.Clamp(value,0,255)
@@ -227,7 +232,8 @@ function ENT:TriggerInput(iname, value)
 	self:UpdateLight()
 end
 
-function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, spritesize)
+function ENT:Setup(on, directional, radiant, glow, brightness, size, r, g, b, spritesize)
+	self.on = on or false
 	self.directional = directional or false
 	self.radiant = radiant or false
 	self.glow = glow or false
@@ -244,6 +250,8 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 		self.spritesize = math.Clamp( self.spritesize, 0, 256 )
 	end
 
+	if not self.on then self:SetOn(true) end
+	
 	self:Directional( self.directional )
 	self:Radiant( self.radiant )
 	self:SetGlow( self.glow )
@@ -251,13 +259,19 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 	self:SetSize( self.size )
 	self:SetSpriteSize( self.spritesize )
 
+	local inputs = {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowSize", "SpriteSize"}
 	if self.glow then
-		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowSize", "SpriteSize"})
-	else
-		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "SpriteSize"})
+		table.insert(inputs, 5, "GlowBrightness")
+		table.insert(inputs, 6, "GlowSize")
 	end
+	
+	if self.on then
+		table.insert(inputs, 1, "On")
+	end
+	
+	WireLib.AdjustInputs(self, inputs)
 
 	self:UpdateLight()
 end
 
-duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "R", "G", "B", "spritesize")
+duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "on", "directional", "radiant", "glow", "brightness", "size", "R", "G", "B", "spritesize")
