@@ -245,7 +245,8 @@ function ENT:TriggerInput(iname, value)
 	self:UpdateLight()
 end
 
-function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, spritesize)
+function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, spritesize, on)
+	self.on = on or false
 	self.directional = directional or false
 	self.radiant = radiant or false
 	self.glow = glow or false
@@ -262,7 +263,7 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 		self.spritesize = math.Clamp( self.spritesize, 0, 256 )
 	end
 
-	self:SetOn(true)
+	if not self.on then self:SetOn(true) end
 	
 	self:Directional( self.directional )
 	self:Radiant( self.radiant )
@@ -271,12 +272,15 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 	self:SetSize( self.size )
 	self:SetSpriteSize( self.spritesize )
 
-	local inputs = {"On", "Red", "Green", "Blue", "RGB [VECTOR]", "SpriteSize"}
+	local inputs = {"Red", "Green", "Blue", "RGB [VECTOR]", "SpriteSize"}
 	if self.glow then
 		table.insert(inputs, 5, "GlowBrightness")
 		table.insert(inputs, 6, "GlowSize")
 	end
 	
+	if self.on then
+		table.insert(inputs, 1, "On")
+	end
 	
 	WireLib.AdjustInputs(self, inputs)
 
