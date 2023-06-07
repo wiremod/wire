@@ -1212,56 +1212,20 @@ local CompileVisitors = {
 
 		-- self:Assert(lhs_ty == rhs_ty, "Cannot perform logical operation on differing types", trace)
 
-		local op_lhs, op_lhs_ret, legacy = self:GetOperator("is", { lhs_ty }, trace)
-		local op_rhs, op_rhs_ret, legacy2 = self:GetOperator("is", { rhs_ty }, trace)
+		local op_lhs, op_lhs_ret = self:GetOperator("is", { lhs_ty }, trace)
+		local op_rhs, op_rhs_ret = self:GetOperator("is", { rhs_ty }, trace)
 
 		self:Assert(op_lhs_ret == "n", "Cannot perform logical operation on type " .. op_lhs_ret, trace)
 		self:Assert(op_rhs_ret == "n", "Cannot perform logical operation on type " .. op_rhs_ret, trace)
 
 		if data[2] == Operator.Or then
-			if legacy and legacy2 then
-				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
-				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
-				return function(state)
-					return ((op_lhs(state, largs_lhs) ~= 0) or (op_rhs(state, largs_rhs) ~= 0)) and 1 or 0
-				end, "n"
-			elseif legacy then
-				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
-				return function(state)
-					return ((op_lhs(state, largs_lhs) ~= 0) or (op_rhs(state, rhs(state)) ~= 0)) and 1 or 0
-				end, "n"
-			elseif legacy2 then
-				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
-				return function(state)
-					return ((op_lhs(state, lhs(state)) ~= 0) or (op_rhs(state, largs_rhs) ~= 0)) and 1 or 0
-				end, "n"
-			else
-				return function(state)
-					return ((op_lhs(state, lhs(state)) ~= 0) or (op_rhs(state, rhs(state)) ~= 0)) and 1 or 0
-				end, "n"
-			end
+			return function(state)
+				return ((op_lhs(state, lhs(state)) ~= 0) or (op_rhs(state, rhs(state)) ~= 0)) and 1 or 0
+			end, "n"
 		else -- Operator.And
-			if legacy and legacy2 then
-				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
-				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
-				return function(state)
-					return (op_lhs(state, lhs(state, largs_lhs)) ~= 0 and op_rhs(state, rhs(state, largs_rhs)) ~= 0) and 1 or 0
-				end, "n"
-			elseif legacy then
-				local largs_lhs = { [1] = {}, [2] = { lhs }, [3] = { lhs_ty } }
-				return function(state)
-					return ((op_lhs(state, largs_lhs) ~= 0) and (op_rhs(state, rhs(state)) ~= 0)) and 1 or 0
-				end, "n"
-			elseif legacy2 then
-				local largs_rhs = { [1] = {}, [2] = { rhs }, [3] = { rhs_ty } }
-				return function(state)
-					return ((op_lhs(state, lhs(state)) ~= 0) and (op_rhs(state, largs_rhs) ~= 0)) and 1 or 0
-				end, "n"
-			else
-				return function(state)
-					return (op_lhs(state, lhs(state)) ~= 0 and op_rhs(state, rhs(state)) ~= 0) and 1 or 0
-				end, "n"
-			end
+			return function(state)
+				return (op_lhs(state, lhs(state)) ~= 0 and op_rhs(state, rhs(state)) ~= 0) and 1 or 0
+			end, "n"
 		end
 	end,
 
@@ -1544,11 +1508,7 @@ local CompileVisitors = {
 			params[i] = { param.name.value, type }
 		end
 
-		local event = E2Lib.Env.Events[name]
-		if not event then
-			self:Error("No such event exists: '" .. name .. "'", trace)
-		end
-
+		local event = self:Assert(E2Lib.Env.Events[name], "No such event exists: '" .. name .. "'", trace)
 		if #params > #event.args then
 			local extra_arg_types = {}
 			for i = #event.args + 1, #params do
@@ -1578,9 +1538,7 @@ local CompileVisitors = {
 
 		local block = self:IsolatedScope(function(scope)
 			for k, arg in ipairs(event.args) do
-				if not params[k].discard then
-					scope:DeclVar(params[k][1], { type = arg, initialized = true, trace_if_unused = params[k][3] })
-				end
+				scope:DeclVar(params[k][1], { type = arg.type, initialized = true, trace_if_unused = params[k][3] })
 			end
 
 			return self:CompileStmt(data[3])
