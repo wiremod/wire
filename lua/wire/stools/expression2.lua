@@ -296,6 +296,19 @@ if SERVER then
 			net.WriteUInt(#datastr, 32)
 			net.WriteData(datastr, #datastr)
 			net.Send(ply)
+			targetEnt.DownloadAllowedPlayers = targetEnt.DownloadAllowedPlayers or {}
+			targetEnt.DownloadAllowedPlayers[ply] = true
+			timer.Simple(60, function() -- make permissions timeout after 60 seconds
+				if not targetEnt then return end
+				if not IsValid(targetEnt) then return end
+				if not targetEnt.DownloadAllowedPlayers then return end
+				if not targetEnt.DownloadAllowedPlayers[ply] then return end
+				targetEnt.DownloadAllowedPlayers[ply] = nil
+				if table.IsEmpty(targetEnt.DownloadAllowedPlayers) then
+					targetEnt.DownloadAllowedPlayers = nil 
+				end
+			end)
+
 		else
 			local data = { {}, {} }
 			if wantedfiles.main then
@@ -335,6 +348,9 @@ if SERVER then
 	local wantedfiles = WireLib.RegisterPlayerTable()
 	net.Receive("wire_expression2_download_wantedfiles", function(len, ply)
 		local toent = net.ReadEntity()
+
+		if not toent.DownloadAllowedPlayers or not toent.DownloadAllowedPlayers[ply] then return end
+
 		local uploadandexit = net.ReadBit() ~= 0
 		local numpackets = net.ReadUInt(16)
 
