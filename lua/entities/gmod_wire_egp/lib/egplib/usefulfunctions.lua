@@ -93,32 +93,16 @@ function EGP:MoveTopLeft(ent, obj)
 	if obj.IsParented then
 		local bool, _, parent = self:HasObject(ent, obj.parent)
 		if bool and parent.CanTopLeft and parent.w and parent.h then
-			if isstring(obj.verticesindex) then
-				local vertices = {}
-				local w, h = parent.w / 2, parent.h / 2
-				for i, v in ipairs(obj[obj.verticesindex]) do
-					vertices[i] = { x = v.x - w, y = v.y - h }
-				end
-				t = { vertices = vertices }
-			elseif obj.verticesindex ~= nil then
-				t = {}
-				local w, h = parent.w / 2, parent.h / 2
-				for i, v in ipairs(obj.verticesindex) do
-					t[v[1]] = obj[v[1]] - w
-					t[v[2]] = obj[v[2]] - h
-				end
-			else
-				if not t then t = { x = obj.x, y = obj.y, angle = obj.angle } end
-				t.x = t.x - parent.w / 2
-				t.y = t.y - parent.h / 2
-			end
+			if not t then t = { x = obj.x, y = obj.y, angle = obj.angle } end
+			t.x = t.x - parent.w / 2
+			t.y = t.y - parent.h / 2
 		end
 		if not t then t = { angle = obj.angle } end
 		if t.angle then t.angle = -t.angle end
 	end
 
 	if t then
-		self:EditObject(obj, t)
+		obj:EditObject(t)
 	end
 end
 
@@ -473,8 +457,8 @@ function EGP:EGPCursor( this, ply )
 	return ReturnFailure( this )
 end
 
-function EGP.WorldToLocal(egp, object, x, y)
-	local _, realpos = EGP:GetGlobalPos(egp, object.index)
+function EGP.WorldToLocal(object, x, y)
+	local _, realpos = EGP:GetGlobalPos(object.EGP, object)
 	x, y = x - realpos.x, y - realpos.y
 	
 	local theta = math.rad(realpos.angle)

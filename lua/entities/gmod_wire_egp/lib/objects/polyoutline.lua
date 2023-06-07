@@ -2,11 +2,13 @@
 local Obj = EGP:NewObject( "PolyOutline" )
 Obj.w = nil
 Obj.h = nil
-Obj.x = nil
-Obj.y = nil
+Obj.x = 0
+Obj.y = 0
+Obj.angle = 0
 Obj.vertices = {}
 Obj.verticesindex = "vertices"
 Obj.size = 1
+
 Obj.Draw = function( self )
 	local n = #self.vertices
 	if (self.a>0 and n>0 and self.size>0) then
@@ -39,4 +41,36 @@ Obj.Receive = function( self )
 end
 Obj.DataStreamInfo = function( self )
 	return { vertices = self.vertices, material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, parent = self.parent }
+end
+
+function Obj:Initialize(args)
+	self:EditObject(args)
+	self.x, self.y = EGP.ParentingFuncs.getCenterFromPos(self)
+end
+
+function Obj:EditObject(args)
+	local ret = false
+	if args.x or args.y then
+		ret = self:SetPos(args.x or self.x, args.y or self.y)
+		args.x = nil
+		args.y = nil
+	end
+	for k, v in pairs(args) do
+		if self[k] ~= nil and self[k] ~= v then
+			self[k] = v
+			ret = true
+		end
+	end
+	return ret
+end
+
+function Obj:SetPos(x, y)
+	local sx, sy = self.x, self.y
+	if sx == x and sy == y then return false end
+	for i, v in ipairs(self.vertices) do
+		v.x = v.x - sx + x
+		v.y = v.y - sy + y
+	end
+	self.x, self.y = x, y
+	return true
 end

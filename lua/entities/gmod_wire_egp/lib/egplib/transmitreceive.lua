@@ -438,7 +438,7 @@ else -- SERVER/CLIENT
 					end
 				end
 
-				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
+				if v:EditObject({ vertices = vertices }) then Ent:EGP_Update() end
 			end
 		elseif (Action == "AddVertex") then
 			local index = net.ReadInt(16)
@@ -505,7 +505,7 @@ else -- SERVER/CLIENT
 							if (v.OnRemove) then v:OnRemove() end
 							local Obj = self:GetObjectByID( ID )
 							local data = Obj:Receive()
-							self:EditObject( Obj, data )
+							Obj:Initialize(data)
 							Obj.index = index
 							Ent.RenderTable[k] = Obj
 							if (Obj.OnCreate) then Obj:OnCreate() end
@@ -515,7 +515,7 @@ else -- SERVER/CLIENT
 
 							current_obj = Obj
 						else -- Edit
-							self:EditObject( v, v:Receive() )
+							v:EditObject(v:Receive())
 
 							-- If parented, reset the parent indexes
 							if (v.parent and v.parent ~= 0) then
@@ -529,7 +529,7 @@ else -- SERVER/CLIENT
 						end
 					else -- Object does not exist. Create new
 						local Obj = self:GetObjectByID( ID )
-						self:EditObject( Obj, Obj:Receive() )
+						Obj:Initialize(Obj:Receive())
 						Obj.index = index
 						if (Obj.OnCreate) then Obj:OnCreate() end
 						Ent.RenderTable[#Ent.RenderTable+1] = Obj--table.insert( Ent.RenderTable, Obj )
@@ -680,7 +680,7 @@ else
 			end
 			for _,v in pairs( Objects ) do
 				local Obj = self:GetObjectByID(v.ID)
-				self:EditObject( Obj, v.Settings )
+				Obj:Initialize(v.Settings)
 				-- If parented, reset the parent indexes
 				if (Obj.parent and Obj.parent ~= 0) then
 					self:AddParentIndexes( Obj )

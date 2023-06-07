@@ -91,94 +91,87 @@ EGP.ParentingFuncs.getCenterFromPos = getCenterFromPos
 
 -- (returns true if obj has vertices, false if not, followed by the new position data)
 function EGP:GetGlobalPos( Ent, index )
-	local bool, k, v = self:HasObject( Ent, index )
-	if (bool) then
-		if (v.verticesindex) then -- Object has vertices
-			if (v.parent and v.parent ~= 0) then -- Object is parented
-				if (v.parent == -1) then -- object is parented to the cursor
-					local xy = {0,0}
-					if (CLIENT) then
-						xy = self:EGPCursor( Ent, LocalPlayer() )
+	local bool, obj
+	if istable(index) then
+		obj = index
+		bool = true
+	else
+		bool, _, obj = self:HasObject(Ent, index)
+	end
+	if bool then
+		if obj.verticesindex then -- Object has vertices
+			if obj.parent and obj.parent ~= 0 then -- Object is parented
+				local data, ret
+				if obj.parent == -1 then -- object is parented to the cursor
+					local xy = { 0, 0 }
+					if CLIENT then
+						xy = self:EGPCursor(Ent, LocalPlayer())
 					end
 					local x, y = xy[1], xy[2]
-					local r = makeArray( v )
-					for i=1,#r,2 do
+					local r = makeArray(obj)
+					for i = 1, #r, 2 do
 						local x_ = r[i]
-						local y_ = r[i+1]
-						local vec, ang = LocalToWorld( Vector( x_, y_, 0 ), Angle(), Vector( x, y, 0 ), Angle() )
+						local y_ = r[i + 1]
+						local vec = LocalToWorld(Vector(x_, y_, 0), Angle(0, obj._angle or 0, 0), Vector(x, y, 0), angle_zero)
 						r[i] = vec.x
-						r[i+1] = vec.y
+						r[i + 1] = vec.y
 					end
-					local ret = {}
-					if isstring(v.verticesindex) then
-						local temp = makeTable( v, r )
-						addUV( v, temp )
-						ret = { [v.verticesindex] = temp }
-					else ret = makeTable( v, r ) end
+
+					if isstring(obj.verticesindex) then
+						local temp = makeTable( obj, r )
+						addUV( obj, temp )
+						ret = { [obj.verticesindex] = temp }
+					else ret = makeTable(obj, r) end
+					local vec, ang = LocalToWorld(Vector(obj._x, obj._y, 0), Angle(0, obj._angle or 0, 0), Vector(x, y, 0), Angle(0, -data.angle or 0, 0))
+					ret.x, ret.y, ret.angle = vec.x, vec.y, -ang.y
 					return true, ret
 				else
-					local hasVertices, data = self:GetGlobalPos( Ent, v.parent )
-					if (hasVertices) then -- obj and parent have vertices
-						local _, _, prnt = self:HasObject( Ent, v.parent )
-						local centerx, centery = getCenter( makeArray( prnt, true ) )
-						local temp = makeArray( v )
-						for i=1,#temp,2 do
-							temp[i] = centerx + temp[i]
-							temp[i+1] = centery + temp[i+1]
-						end
-						local ret = {}
-						if isstring(v.verticesindex) then ret = { [v.verticesindex] = makeTable( v, temp ) } else ret = makeTable( v, temp ) end
-						return true, ret
-					else -- obj has vertices, parent does not
-						local x, y, ang = data.x, data.y, data.angle
-						local r = makeArray( v )
-						for i=1,#r,2 do
-							local x_ = r[i]
-							local y_ = r[i+1]
-							local vec, ang = LocalToWorld( Vector( x_, y_, 0 ), Angle( 0, 0, 0 ), Vector( x, y, 0 ), Angle( 0, -ang, 0 ) )
-							r[i] = vec.x
-							r[i+1] = vec.y
-						end
-						local ret = {}
-						if isstring(v.verticesindex) then
-							local temp = makeTable( v, r )
-							addUV( v, temp )
-							ret = { [v.verticesindex] = temp }
-						else ret = makeTable( v, r ) end
-						return true, ret
+					local _, _, prnt = self:HasObject(Ent, obj.parent)
+					local _, data = self:GetGlobalPos(Ent, prnt)
+					local x, y, ang = data.x, data.y, data.angle or 0
+					local objang = obj._angle or 0
+					local temp = makeArray( obj )
+					for i = 1, #temp, 2 do
+						local x_ = temp[i]
+						local y_ = temp[i + 1]
+						local vec = LocalToWorld(Vector(x_, y_, 0), Angle(0, objang, 0), Vector(x, y, 0), Angle(0, -ang, 0))
+						temp[i] = vec.x
+						temp[i + 1] = vec.y
 					end
+
+					if isstring(obj.verticesindex) then ret = { [obj.verticesindex] = makeTable(obj, temp) } else ret = makeTable(obj, temp) end
+					local vec, ang = LocalToWorld(Vector(obj._x, obj._y, 0), Angle(0, objang, 0), Vector(x, y, 0), Angle(0, -ang, 0))
+					ret.x, ret.y, ret.angle = vec.x, vec.y, -ang.y
+					return true, ret
 				end
-				local ret = {}
-				if isstring(v.verticesindex) then ret = { [v.verticesindex] = makeTable( v, makeArray( v ) ) } else ret = makeTable( v, makeArray( v ) ) end
+
+				if isstring(obj.verticesindex) then ret = { [obj.verticesindex] = makeTable(obj, makeArray(obj)) } else ret = makeTable(obj, makeArray(obj)) end
+				local vec, ang = LocalToWorld(Vector(obj._x, obj._y, 0), Angle(0, obj._angle or 0, 0), Vector(data.x, data.y, 0), Angle(0, -data.angle, 0))
+				ret.x, ret.y, ret.angle = vec.x, vec.y, -ang.y
 				return true, ret
 			end
-			local ret = {}
-			if isstring(v.verticesindex) then ret = { [v.verticesindex] = makeTable( v, makeArray( v ) ) }	else ret = makeTable( v, makeArray( v ) ) end
+			local ret
+			if isstring(obj.verticesindex) then ret = { [obj.verticesindex] = makeTable( obj, makeArray( obj ) ) }	else ret = makeTable( obj, makeArray( obj ) ) end
+			ret.x, ret.y, ret.angle = obj.x, obj.y, obj.angle
 			return true, ret
-		else -- Object does not have vertices, parent does not
-			if (v.parent and v.parent ~= 0) then -- Object is parented
-				if (v.parent == -1) then -- Object is parented to the cursor
-					local xy = {0,0}
+		else -- Object does not have vertices
+			if obj.parent and obj.parent ~= 0 then -- Object is parented
+				if obj.parent == -1 then -- Object is parented to the cursor
+					local xy = { 0, 0 }
 					if (CLIENT) then
 						xy = self:EGPCursor( Ent, LocalPlayer() )
 					end
 					local x, y = xy[1], xy[2]
-					local vec, ang = LocalToWorld( Vector( v._x, v._y, 0 ), Angle( 0, v._angle or 0, 0 ), Vector( x, y, 0 ), Angle() )
+					local vec, ang = LocalToWorld( Vector( obj._x, obj._y, 0 ), Angle( 0, obj._angle or 0, 0 ), Vector( x, y, 0 ), angle_zero )
 					return false, { x = vec.x, y = vec.y, angle = -ang.y }
 				else
-					local hasVertices, data = self:GetGlobalPos( Ent, v.parent )
-					if (hasVertices) then -- obj does not have vertices, parent does
-						local _, _, prnt = self:HasObject( Ent, v.parent )
-						local centerx, centery = getCenter( makeArray( prnt, true ) )
-						return false, { x = (v._x or v.x) + centerx, y = (v._y or v.y) + centery, angle = -(v._angle or v.angle) }
-					else -- Niether have vertices
-						local x, y, ang = data.x, data.y, data.angle
-						local vec, ang = LocalToWorld( Vector( v._x, v._y, 0 ), Angle( 0, v._angle or 0, 0 ), Vector( x, y, 0 ), Angle( 0, -(ang or 0), 0 ) )
-						return false, { x = vec.x, y = vec.y, angle = -ang.y }
-					end
+					local _, _, prnt = self:HasObject(Ent, obj.parent)
+					local _, data = self:GetGlobalPos(Ent, prnt)
+					local vec, ang = LocalToWorld( Vector( obj._x, obj._y, 0 ), Angle( 0, obj._angle or 0, 0 ), Vector( data.x, data.y, 0 ), Angle( 0, -(data.angle or 0), 0 ) )
+					return false, { x = vec.x, y = vec.y, angle = -ang.y }
 				end
 			end
-			return false, { x = v.x, y = v.y, angle = v.angle or 0 }
+			return false, { x = obj.x, y = obj.y, angle = obj.angle or 0 }
 		end
 	end
 
@@ -200,11 +193,10 @@ function EGP:AddParentIndexes( v )
 				v["_"..v2[2]] = v[v2[2]]
 			end
 		end
-	else
-		v._x = v.x
-		v._y = v.y
-		v._angle = v.angle
 	end
+	v._x = v.x
+	v._y = v.y
+	v._angle = v.angle
 	v.IsParented = true
 end
 
@@ -237,13 +229,22 @@ local function CheckParents( Ent, Obj, parentindex, checked )
 end
 
 function EGP:SetParent( Ent, index, parentindex )
-	local bool, k, v = self:HasObject( Ent, index )
+	local bool, v
+	if isnumber(index) then
+		bool, _, v = self:HasObject(Ent, index) 
+	else
+		bool, v = index ~= nil, index
+	end
 	if (bool) then
 		if (parentindex == -1) then -- Parent to cursor?
 			if (self:EditObject( v, { parent = parentindex } )) then return true, v end
 		else
-			local bool2, k2, v2 = self:HasObject( Ent, parentindex )
-			if (bool2) then
+			if isnumber(parentindex) then
+				bool = self:HasObject(Ent, parentindex)
+			else
+				bool, parentindex = parentindex ~= nil, parentindex.index
+			end
+			if (bool) then
 				self:AddParentIndexes( v )
 
 				if (SERVER) then parentindex = math.Clamp(parentindex,1,self.ConVars.MaxObjects:GetInt()) end
@@ -272,20 +273,19 @@ function EGP:RemoveParentIndexes( v, hasVertices )
 				v["_"..v2[2]] = nil
 			end
 		end
-	else
-		v._x = nil
-		v._y = nil
-		v._angle = nil
 	end
+	v._x = nil
+	v._y = nil
+	v._angle = nil
 	v.IsParented = nil
 end
 
 function EGP:UnParent( Ent, index )
-	local bool, k, v = false
+	local bool, v = false
 	if isnumber(index) then
-		bool, k, v = self:HasObject( Ent, index )
-	elseif istable(index) then
-		bool = true
+		bool, _, v = self:HasObject( Ent, index )
+	else
+		bool = istable(index)
 		v = index
 		index = v.index
 	end

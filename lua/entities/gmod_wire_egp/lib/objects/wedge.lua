@@ -54,8 +54,8 @@ Obj.DataStreamInfo = function( self )
 	table.Merge( tbl, { angle = self.angle, size = self.size, fidelity = self.fidelity } )
 	return tbl
 end
-function Obj:Contains(egp, x, y)
-	x, y = EGP.WorldToLocal(egp, self, x, y)
+function Obj:Contains(x, y)
+	x, y = EGP.WorldToLocal(self, x, y)
 	x, y = x / self.w, y / self.h
 	
 	if x * x + y * y > 1 then return false end

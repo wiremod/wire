@@ -22,6 +22,7 @@ EGP.Objects.Base.filtering = TEXFILTER.ANISOTROPIC
 EGP.Objects.Base.material = ""
 if CLIENT then EGP.Objects.Base.material = false end
 EGP.Objects.Base.parent = 0
+EGP.Objects.Base.EGP = NULL -- EGP entity parent
 EGP.Objects.Base.Transmit = function( self )
 	EGP:SendPosSize( self )
 	EGP:SendColor( self )
@@ -41,8 +42,33 @@ end
 EGP.Objects.Base.DataStreamInfo = function( self )
 	return { x = self.x, y = self.y, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, filtering = self.filtering, parent = self.parent }
 end
-function EGP.Objects.Base:Contains(point)
+function EGP.Objects.Base:Contains(x, y)
 	return false
+end
+function EGP.Objects.Base:EditObject(args)
+	local ret = false
+	for k, v in pairs(args) do
+		if self[k] ~= nil and self[k] ~= v then
+			self[k] = v
+			ret = true
+		end
+	end
+	return ret
+end
+EGP.Objects.Base.Initialize = EGP.Objects.Base.EditObject
+function EGP.Objects.Base:SetPos(x, y)
+	local ret = false
+	if self.x ~= x then self.x, ret = x, true end
+	if self.y ~= y then self.y, ret = y, true end
+	return ret
+end
+function EGP.Objects.Base:Set(member, value)
+	if self[member] and self[member] ~= value then
+		self[member] = value
+		return true
+	else
+		return false
+	end
 end
 
 ----------------------------
@@ -201,21 +227,22 @@ function EGP:CreateObject( Ent, ObjID, Settings )
 	end
 
 	if SERVER then Settings.index = math.Round(math.Clamp(Settings.index or 1, 1, self.ConVars.MaxObjects:GetInt())) end
+	Settings.EGP = Ent
 
 	local bool, k, v = self:HasObject( Ent, Settings.index )
 	if (bool) then -- Already exists. Change settings:
 		if v.ID ~= ObjID then -- Not the same kind of object, create new
 			local Obj = self:GetObjectByID( ObjID )
-			self:EditObject( Obj, Settings )
+			Obj:Initialize(Settings)
 			Obj.index = Settings.index
 			Ent.RenderTable[k] = Obj
 			return true, Obj
 		else
-			return self:EditObject( v, Settings ), v
+			return v:EditObject(Settings), v
 		end
 	else -- Did not exist. Create:
 		local Obj = self:GetObjectByID( ObjID )
-		self:EditObject( Obj, Settings )
+		Obj:Initialize(Settings)
 		Obj.index = Settings.index
 		table.insert( Ent.RenderTable, Obj )
 		return true, Obj
