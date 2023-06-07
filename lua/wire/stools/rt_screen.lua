@@ -37,7 +37,7 @@ function TOOL.BuildCPanel(panel)
     WireDermaExts.ModelSelect(panel, "wire_rt_screen_model", list.Get( "WireScreenModels" ), 5)
     local materials = panel:ComboBox("#tool.wire_rt_screen.settings.screenmaterial", "wire_rt_screen_screenmaterial")
 
-    local files = file.Find("materials/rt_screen/monitor_*.vmt", "GAME")
+    local files = file.Find("materials/improvedrt_screen/monitor_*.vmt", "GAME")
 
     for _, mtlfile in ipairs(files) do
         local name = mtlfile:match("monitor_(.+)%.vmt")

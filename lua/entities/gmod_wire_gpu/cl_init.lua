@@ -292,8 +292,8 @@ function ENT:RenderMisc(pos, ang, resolution, aspect, monitor)
 
     if (dist < 256) then
       local pos = WorldToLocal( trace.HitPos, Angle(), pos, ang )
-      local x = 0.5+pos.x/(monitor.RS*(512/monitor.RatioX))
-      local y = 0.5-pos.y/(monitor.RS*512)
+      local x = 0.5+pos.x/(monitor.RS*(1024/monitor.RatioX))
+      local y = 0.5-pos.y/(monitor.RS*1024)
 
       local cursorOffset = 0
       if self.VM:ReadCell(65532) == 1 then -- Check for vertex mode to counter the faulty offset
@@ -308,7 +308,7 @@ function ENT:RenderMisc(pos, ang, resolution, aspect, monitor)
         surface.SetTexture(surface.GetTextureID("gui/arrow"))
         x = math.Clamp(x,0 + cursorOffset, 1 + cursorOffset)
         y = math.Clamp(y,0 + cursorOffset, 1 + cursorOffset)
-        surface.DrawTexturedRectRotated(-256*aspect+x*512*aspect+10,-256+y*512+12,32,32,45)
+        surface.DrawTexturedRectRotated(-512*aspect+x*1024*aspect+10,-512+y*1024+12,32,32,45)
       end
     end
   end
@@ -376,10 +376,10 @@ function ENT:Draw()
     if self.VM.Memory[65532] == 0 then
       self.GPU:Render(
         self.VM:ReadCell(65522), self.VM:ReadCell(65523)-self.VM:ReadCell(65518)/512, -- rotation, scale
-        512*math.Clamp(self.VM:ReadCell(65525),0,1), 512*math.Clamp(self.VM:ReadCell(65524),0,1), -- width, height
+        1024*math.Clamp(self.VM:ReadCell(65525),0,1), 1024*math.Clamp(self.VM:ReadCell(65524),0,1), -- width, height
         function(pos, ang, resolution, aspect, monitor) -- postrenderfunction
           self:RenderMisc(pos, ang, resolution, aspect, monitor)
-        end
+        end,-0.5,-0.5
       )
     else
       -- Custom render to world
@@ -389,20 +389,20 @@ function ENT:Draw()
       pos = pos - ang:Right()*(monitor.y2-monitor.y1)/2
       pos = pos - ang:Forward()*(monitor.x2-monitor.x1)/2
 
-      local width,height = 512*math.Clamp(self.VM.Memory[65525],0,1),
-                           512*math.Clamp(self.VM.Memory[65524],0,1)
+      local width,height = 1024*math.Clamp(self.VM.Memory[65525],0,1),
+                           1024*math.Clamp(self.VM.Memory[65524],0,1)
 
-      local h = width and width*monitor.RatioX or height or 512
+      local h = width and width*monitor.RatioX or height or 1024
       local w = width or h/monitor.RatioX
       local x = -w/2
       local y = -h/2
 
-      local res = monitor.RS*512/h
+      local res = monitor.RS*1024/h
       self.VertexCamSettings = { pos, ang, res }
       cam.Start3D2D(pos, ang, res)
       self.In3D2D = true
         local ok, err = xpcall(function()
-          self:RenderVertex(512,512*monitor.RatioX)
+          self:RenderVertex(1024,1024*monitor.RatioX)
           self:RenderMisc(pos, ang, res, 1/monitor.RatioX, monitor)
           end, debug.traceback)
 		if not ok then WireLib.ErrorNoHalt(err) end

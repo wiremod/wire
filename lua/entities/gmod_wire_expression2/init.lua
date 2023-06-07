@@ -4,14 +4,6 @@ include('shared.lua')
 
 DEFINE_BASECLASS("base_wire_entity")
 
--- This makes E2s not save using garry's workshop save
--- Until someone can find the cause of the crashes, leave this in here
-local old = gmsave.ShouldSaveEntity
-function gmsave.ShouldSaveEntity( ent, ... )
-	if ent:GetClass() == "gmod_wire_expression2" then return false end
-	return old( ent, ... )
-end
-
 e2_softquota = nil
 e2_hardquota = nil
 e2_tickquota = nil
@@ -387,7 +379,8 @@ function ENT:ResetContext()
 		-- reduces all the opcounters based on the time passed since 
 		-- the last time the chip was reset or errored
 		-- waiting up to 30s before resetting results in a 0.1 multiplier 
-		resetPrfMult = math.max(0.1,(30 - (CurTime() - self.lastResetOrError)) / 30)
+		local passed = CurTime() - self.lastResetOrError
+		resetPrfMult = math.max(0.1, (30 - passed) / 30)
 	end
 	self.lastResetOrError = CurTime()
 
@@ -545,7 +538,11 @@ function ENT:Reset()
 	self.context.resetting = true
 
 	-- reset the chip in the next tick
-	timer.Simple(0, function() if IsValid(self) then self:Setup(self.original, self.inc_files) end end)
+	timer.Simple(0, function()
+		if IsValid(self) then
+			self:Setup(self.original, self.inc_files)
+		end
+	end)
 end
 
 function ENT:TriggerInput(key, value)

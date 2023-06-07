@@ -80,7 +80,7 @@ if SERVER then
 
 	local function ImprovedRTCamera(ply, plyView)
         for _, screen in ipairs(screens) do
-            if screen:GetActive() and screen:ShouldDrawCamera(ply) then
+            if screen:GetActive() and screen:IsScreenInRange(ply) then
                 local camera = screen:GetCamera()
                 if IsValid(camera) and camera:GetActive() then
                     AddOriginToPVS(camera:GetPos())
@@ -116,7 +116,10 @@ if SERVER then
 
         local Inputs = table.Copy(InputsTable)
 
-        for _, tbl in pairs(GetMaterialParameters(self:GetScreenMaterial())) do
+		local matParams = GetMaterialParameters(self:GetScreenMaterial())
+		if not matParams then return end
+
+        for _, tbl in pairs(matParams) do
             table.insert(Inputs, tbl.WireName.." ["..tbl.WireType.."]")
         end
 
@@ -139,9 +142,11 @@ function ENT:TriggerInput( name, value )
         if value ~= nil and not value:IsValid() then
             return
         end
-        if value == nil or value:GetClass() == "gmod_wire_rt_camera" then
-            self:SetCamera(value)
+        if value ~= nil and value:GetClass() ~= "gmod_wire_rt_camera" then
+            value = nil
         end
+
+        self:SetCamera(value)
     elseif name == "Scroll X" then
         self:SetScrollX(value)
     elseif name == "Scroll Y" then
@@ -156,7 +161,7 @@ function ENT:TriggerInput( name, value )
     end
 end
 
-function ENT:ShouldDrawCamera(ply)
+function ENT:IsScreenInRange(ply)
     local maxDist = ply:GetInfoNum("wire_rt_screen_renderdistance", 512)
 
     return ply:EyePos():DistToSqr(self:GetPos()) <= maxDist * maxDist
@@ -172,11 +177,15 @@ if CLIENT then
             return MATERIALS[name]
         end
 
+        if name == "" then
+            MsgN("WireRTScreen: got empty name (typically happens at entity creation).")
+            return nil
+        end
+
         local path = "improvedrt_screen/monitor_"..name..".vmt"
 
         if not file.Exists("materials/"..path, "GAME") then
-            MsgN("ImprovedRTCameras: material "..path.." does not exist on client for some reason!")
-            MsgN("Screen would not be rendered")
+            MsgN("WireRTScreen: material "..path.." does not exist on client for some reason! Screen will not be rendered")
             return nil
         end
 
@@ -211,7 +220,8 @@ if CLIENT then
 
             return
         end
-        self.ShouldRenderCamera = self:ShouldDrawCamera(LocalPlayer())
+        
+        self.ShouldRenderCamera = self:IsScreenInRange(LocalPlayer())
 
         if IsValid(camera) then
             camera:SetIsObserved(self.ShouldRenderCamera)
@@ -231,16 +241,18 @@ if CLIENT then
         local tex2 = material:GetString("!targettex2")
         if tex2 ~= nil then material:SetTexture(tex2, rt) end
 
-        for mtl_param, tbl in pairs(self.MaterialParamsDesc) do
-            --print(self.MaterialParams[tbl.WireName])
+		if self.MaterialParamsDesc then
+			for mtl_param, tbl in pairs(self.MaterialParamsDesc) do
+				--print(self.MaterialParams[tbl.WireName])
 
-            local value = self.MaterialParams[tbl.WireName] or tbl.Default
+				local value = self.MaterialParams[tbl.WireName] or tbl.Default
 
-            material[tbl.MaterialFn](material, mtl_param, value)
-        end
+				material[tbl.MaterialFn](material, mtl_param, value)
+			end
+		end
 
-        local xraw = 256 / monitor.RatioX
-        local yraw = 256
+        local xraw = 512 / monitor.RatioX
+        local yraw = 512
         local x1 = -xraw
         local x2 = xraw
         local y1 = -yraw
@@ -272,8 +284,8 @@ if CLIENT then
     function ENT:DrawDummy()
         local monitor = self.MonitorDesc
 
-        local xraw = 256 / monitor.RatioX
-        local yraw = 256
+        local xraw = 512 / monitor.RatioX
+        local yraw = 512
         local x1 = -xraw
         local x2 = xraw
         local y1 = -yraw
@@ -302,7 +314,9 @@ if CLIENT then
             return
         end
 
-        if self:GetActive() and self.ShouldRenderCamera and self.Material ~= nil and IsValid(self:GetCamera()) then
+        if self:GetActive() and self.ShouldRenderCamera and self.Material ~= nil 
+            and IsValid(self:GetCamera()) and self:GetCamera():GetActive()
+        then
             self:DrawScreen()
         elseif not self.translucent then
             self:DrawDummy()

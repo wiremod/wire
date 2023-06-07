@@ -81,14 +81,43 @@ end
 -- Draw from top left
 --------------------------------------------------------
 
-function EGP:MoveTopLeft( ent, v )
+function EGP:MoveTopLeft(ent, obj)
 	if not self:ValidEGP(ent) then return end
 
-	if (v.CanTopLeft and v.x and v.y and v.w and v.h) then
-		local vec, ang = LocalToWorld( Vector( v.w/2, v.h/2, 0 ), Angle(0,0,0), Vector( v.x, v.y, 0 ), Angle( 0, -v.angle or 0, 0 ) )
-		local t = { x = vec.x, y = vec.y }
-		if (v.angle) then t.angle = -ang.yaw end
-		self:EditObject( v, t )
+	local t = nil
+	if obj.CanTopLeft and obj.x and obj.y and obj.w and obj.h then
+		local vec, ang = LocalToWorld( Vector( obj.w / 2, obj.h / 2, 0 ), angle_zero, Vector( obj.x, obj.y, 0 ), Angle( 0, -obj.angle or 0, 0 ) )
+		t = { x = vec.x, y = vec.y }
+		if obj.angle then t.angle = -ang.yaw end
+	end
+	if obj.IsParented then
+		local bool, _, parent = self:HasObject(ent, obj.parent)
+		if bool and parent.CanTopLeft and parent.w and parent.h then
+			if isstring(obj.verticesindex) then
+				local vertices = {}
+				local w, h = parent.w / 2, parent.h / 2
+				for i, v in ipairs(obj[obj.verticesindex]) do
+					vertices[i] = { x = v.x - w, y = v.y - h }
+				end
+				t = { vertices = vertices }
+			elseif obj.verticesindex ~= nil then
+				t = {}
+				local w, h = parent.w / 2, parent.h / 2
+				for i, v in ipairs(obj.verticesindex) do
+					t[v[1]] = obj[v[1]] - w
+					t[v[2]] = obj[v[2]] - h
+				end
+			else
+				if not t then t = { x = 0, y = 0 } end
+				t.x = t.x - parent.w / 2
+				t.y = t.y - parent.h / 2
+			end
+		end
+		if t and t.angle then t.angle = -t.angle end
+	end
+
+	if t then
+		self:EditObject(obj, t)
 	end
 end
 
@@ -432,8 +461,8 @@ function EGP:EGPCursor( this, ply )
 			return {x,y}
 		else
 			local HitPos = WorldToLocal( Start + Dir * B, Angle(), Pos, Ang )
-			local x = (0.5+HitPos.x/(monitor.RS*512/monitor.RatioX)) * 512
-			local y = (0.5-HitPos.y/(monitor.RS*512)) * 512
+			local x = (0.5+HitPos.x/(monitor.RS*1024/monitor.RatioX)) * 512
+			local y = (0.5-HitPos.y/(monitor.RS*1024)) * 512
 			if (x < 0 or x > 512 or y < 0 or y > 512) then return ReturnFailure( this ) end -- Aiming off the screen
 			x, y = ScaleCursor( this, x, y )
 			return {x,y}
@@ -443,16 +472,17 @@ function EGP:EGPCursor( this, ply )
 	return ReturnFailure( this )
 end
 
-function EGP.ScreenSpaceToObjectSpace(object, point)
-	point = { x = point.x - object.x, y = point.y - object.y }
-
-	if object.angle and object.angle ~= 0 then
-		local theta = math.rad(object.angle)
+function EGP.WorldToLocal(egp, object, x, y)
+	local _, realpos = EGP:GetGlobalPos(egp, object.index)
+	x, y = x - realpos.x, y - realpos.y
+	
+	local theta = math.rad(realpos.angle)
+	if theta ~= 0 then
 		local cos_theta, sin_theta = math.cos(theta), math.sin(theta)
-		point.x, point.y =
-			point.x * cos_theta - point.y * sin_theta,
-			point.y * cos_theta + point.x * sin_theta
+		x, y =
+			x * cos_theta - y * sin_theta,
+			y * cos_theta + x * sin_theta
 	end
-
-	return point
+	
+	return x, y
 end
