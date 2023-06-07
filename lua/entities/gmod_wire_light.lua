@@ -139,7 +139,7 @@ function ENT:Initialize()
 end
 
 function ENT:Directional( On )
-	if On and self:GetOn() then
+	if On then
 		if IsValid( self.DirectionalComponent ) then return end
 
 		local flashlight = ents.Create( "env_projectedtexture" )
@@ -173,7 +173,7 @@ function ENT:Directional( On )
 end
 
 function ENT:Radiant( On )
-	if On and self:GetOn() then
+	if On then
 		if IsValid( self.RadiantComponent ) then
 			self.RadiantComponent:Fire( "TurnOn", "", "0" )
 		else
@@ -201,12 +201,25 @@ function ENT:UpdateLight()
 	self:SetG( self.G )
 	self:SetB( self.B )
 
-	if IsValid( self.DirectionalComponent ) then self.DirectionalComponent:SetKeyValue( "lightcolor", Format( "%i %i %i 255", self.R * self.brightness, self.G * self.brightness, self.B * self.brightness ) ) end
-	if IsValid( self.RadiantComponent ) then self.RadiantComponent:SetKeyValue( "_light", Format( "%i %i %i 255", self.R, self.G, self.B ) ) end
+	local onState = self:GetOn()
+	if self.directional and onState then
+		-- Creates the directional entity OR does nothing if it already exists
+		self:Directional(true)
+		self.DirectionalComponent:SetKeyValue("lightcolor", Format("%i %i %i 255", self.R * self.brightness, self.G * self.brightness, self.B * self.brightness))
+	else
+		-- Removes the directional entity, or does nothing if it doesn't exist
+		self:Directional(false)
+	end
+	
+	if self.radiant then
+		-- Does nothing if radiant already exists, otherwise turns it off
+		self:Radiant(onState)
+		self.RadiantComponent:SetKeyValue("_light", Format("%i %i %i 255", self.R, self.G, self.B))
+	end
 end
 
 function ENT:TriggerInput(iname, value)
-	if iname == "On" and self.on then
+	if iname == "On" then
 		self:SetOn(value ~= 0)
 	elseif (iname == "Red") then
 		self.R = math.Clamp(value,0,255)
@@ -259,7 +272,7 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 	self:SetSize( self.size )
 	self:SetSpriteSize( self.spritesize )
 
-	local inputs = {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowSize", "SpriteSize"}
+	local inputs = {"Red", "Green", "Blue", "RGB [VECTOR]", "SpriteSize"}
 	if self.glow then
 		table.insert(inputs, 5, "GlowBrightness")
 		table.insert(inputs, 6, "GlowSize")
