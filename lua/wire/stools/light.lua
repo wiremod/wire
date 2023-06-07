@@ -24,7 +24,6 @@ WireToolSetup.SetupMax(8)
 if SERVER then
 	function TOOL:GetConVars()
 		return
-			self:GetClientNumber("on") ~= 0,
 			self:GetClientNumber("directional") ~= 0,
 			self:GetClientNumber("radiant") ~= 0,
 			self:GetClientNumber("glow") ~= 0,
@@ -33,7 +32,8 @@ if SERVER then
 			self:GetClientNumber("r"),
 			self:GetClientNumber("g"),
 			self:GetClientNumber("b"),
-			self:GetClientNumber("spritesize")
+			self:GetClientNumber("spritesize"),
+			self:GetClientNumber("on") ~= 0
 	end
 
 	function TOOL:LeftClick_PostMake( ent, ply, trace )

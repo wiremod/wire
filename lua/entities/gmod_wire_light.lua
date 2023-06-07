@@ -232,7 +232,7 @@ function ENT:TriggerInput(iname, value)
 	self:UpdateLight()
 end
 
-function ENT:Setup(on, directional, radiant, glow, brightness, size, r, g, b, spritesize)
+function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, spritesize, on)
 	self.on = on or false
 	self.directional = directional or false
 	self.radiant = radiant or false
@@ -274,4 +274,4 @@ function ENT:Setup(on, directional, radiant, glow, brightness, size, r, g, b, sp
 	self:UpdateLight()
 end
 
-duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "on", "directional", "radiant", "glow", "brightness", "size", "R", "G", "B", "spritesize")
+duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "R", "G", "B", "spritesize", "on")
