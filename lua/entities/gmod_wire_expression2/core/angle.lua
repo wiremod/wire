@@ -40,9 +40,9 @@ e2function angle ang(vector rv1)
 	return Angle(rv1[1], rv1[2], rv1[3])
 end
 
-registerOperator("is", "a", "n", function(state, a)
+e2function number operator_is(angle this)
 	return a:IsZero() and 0 or 1
-end, 1)
+end
 
 e2function number operator==(angle lhs, angle rhs)
 	return (lhs[1] == rhs[1]

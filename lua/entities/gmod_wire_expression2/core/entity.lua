@@ -65,13 +65,13 @@ __e2setcost(5) -- temporary
 
 /******************************************************************************/
 
-registerOperator("is", "e", "n", function(state, ent)
-	return IsValid(ent) and 1 or 0
-end, 1, nil, { legacy = false })
+e2function number operator_is(entity this)
+	return IsValid(this) and 1 or 0
+end
 
-registerOperator("eq", "ee", "n", function(state, lhs, rhs)
+e2function number operator==(entity lhs, entity rhs)
 	return (lhs == rhs) and 1 or 0
-end, 1, nil, { legacy = false })
+end
 
 /******************************************************************************/
 

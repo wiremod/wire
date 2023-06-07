@@ -61,13 +61,13 @@ end)
 
 /******************************************************************************/
 
-registerOperator("is", "s", "n", function(ctx, str)
-	return str ~= "" and 1 or 0
-end, 1, nil, { legacy = false })
+e2function number operator_is(string this)
+	return this ~= "" and 1 or 0
+end
 
-registerOperator("eq", "ss", "n", function(ctx, lhs, rhs)
+e2function number operator==(string lhs, string rhs)
 	return lhs == rhs and 1 or 0
-end, 1, nil, { legacy = false })
+end
 
 registerOperator("geq", "ss", "n", function(ctx, lhs, rhs)
 	ctx.prf = ctx.prf + math.min(#lhs, #rhs) / 10

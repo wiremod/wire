@@ -68,9 +68,9 @@ end
 
 --------------------------------------------------------------------------------
 
-registerOperator("is", "v", "n", function(state, this)
+e2function number operator_is(vector this)
 	return this:IsZero() and 0 or 1
-end)
+end
 
 e2function number vector:operator==( vector other )
 	return (this[1] == other[1]

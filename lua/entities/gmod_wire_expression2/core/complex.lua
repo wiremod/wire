@@ -89,9 +89,9 @@ end
 
 __e2setcost(2)
 
-registerOperator("is", "c", "n", function(state, this)
+e2function number operator_is(complex this)
 	return (this[1] ~= 0 or this[2] ~= 0) and 1 or 0
-end)
+end
 
 e2function number operator==(complex lhs, complex rhs)
 	return (lhs[1] == rhs[1]

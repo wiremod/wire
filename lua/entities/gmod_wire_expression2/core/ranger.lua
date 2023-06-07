@@ -17,9 +17,9 @@ registerType("ranger", "xrd", nil,
 
 __e2setcost(1) -- temporary
 
-registerOperator("is", "xrd", "n", function (state, this)
+e2function number operator_is(ranger this)
 	return this and 1 or 0
-end)
+end
 
 E2Lib.RegisterExtension("ranger", true, "Lets E2 chips trace rays and check for collisions.")
 

@@ -4,9 +4,9 @@
 
 __e2setcost(0) -- cascaded
 
-registerOperator("is", "n", "n", function(state, num)
-	return (num ~= 0) and 1 or 0
-end, 1, nil, { legacy = false })
+e2function number operator_is(number this)
+	return (this ~= 0) and 1 or 0
+end
 
 --------------------------------------------------------------------------------
 

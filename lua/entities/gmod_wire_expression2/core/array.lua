@@ -59,9 +59,9 @@ end
 -- IS operator
 --------------------------------------------------------------------------------
 
-registerOperator("is", "r", "n", function(state, this)
+e2function number operator_is(array this)
 	return istable(this) and 1 or 0
-end)
+end
 
 --------------------------------------------------------------------------------
 -- Looped functions and operators
