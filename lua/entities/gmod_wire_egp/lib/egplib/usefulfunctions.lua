@@ -113,7 +113,8 @@ function EGP:MoveTopLeft(ent, obj)
 				t.y = t.y - parent.h / 2
 			end
 		end
-		if t and t.angle then t.angle = -t.angle end
+		if not t then t = { angle = obj.angle } end
+		if t.angle then t.angle = -t.angle end
 	end
 
 	if t then
