@@ -8,7 +8,7 @@ ENT.gmod_wire_egp_emitter = true
 
 local DrawOffsetPos = Vector(0, 0, 71)
 local DrawOffsetAng = Angle(0, 0, 90)
-local DrawScale     = 0.125
+local DrawScale     = 0.25
 local DrawOffsetNoRT = Vector(-64,0,64)
 
 if SERVER then
@@ -57,7 +57,7 @@ if CLIENT then
 		self.GPU.GetInfo = function()
 			local pos = self:LocalToWorld(self:GetDrawOffsetPos())
 			local ang = self:LocalToWorldAngles(self:GetDrawOffsetAng())
-			return {RS = self:GetDrawScale(), RatioX = 1, translucent = true}, pos, ang
+			return { RS = self:GetDrawScale() * 0.5, RatioX = 1, translucent = true }, pos, ang
 		end
 	end
 
