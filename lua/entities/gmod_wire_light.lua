@@ -246,7 +246,6 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, spritesize, startOn)
-	self.startOn = startOn == nil or startOn
 	self.directional = directional or false
 	self.radiant = radiant or false
 	self.glow = glow or false
@@ -263,7 +262,7 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 		self.spritesize = math.Clamp( self.spritesize, 0, 256 )
 	end
 
-	self:SetOn(self.startOn)
+	self:SetOn(startOn == nil or startOn)
 	self:Directional( self.directional )
 	self:Radiant( self.radiant )
 	self:SetGlow( self.glow )
