@@ -108,12 +108,13 @@ function EGP:MoveTopLeft(ent, obj)
 					t[v[2]] = obj[v[2]] - h
 				end
 			else
-				if not t then t = { x = 0, y = 0 } end
+				if not t then t = { x = obj.x, y = obj.y, angle = obj.angle } end
 				t.x = t.x - parent.w / 2
 				t.y = t.y - parent.h / 2
 			end
 		end
-		if t and t.angle then t.angle = -t.angle end
+		if not t then t = { angle = obj.angle } end
+		if t.angle then t.angle = -t.angle end
 	end
 
 	if t then
