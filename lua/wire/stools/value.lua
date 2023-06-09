@@ -329,9 +329,43 @@ if CLIENT then
 
 		loadValues()
 	end)
+	
+	local function loadPreset(data)
+		local values = {}
+		-- Did you know Garry's Mod has a cool feature where this table's keys can be strings OR numbers?
+		if isnumber(next(data)) then
+			for i = 1, #data, 2 do
+				table.insert(values, { DataType = data[i], Value = data[i + 1] })
+			end
+		else
+			for i = 1, table.Count(data), 2 do
+				table.insert(values, { DataType = data[tostring(i)], Value = data[tostring(i + 1)] })
+			end
+		end
+		saveValues(values)
+	end
 
 	-- Build context menu panel
 	function TOOL.BuildCPanel( panel )
+		local ctrl = vgui.Create("ControlPresets", panel)
+		ctrl.OnSelect = function(self, index, value, data)
+			if not data then return end
+			loadPreset(data)
+			loadValues()
+		end
+		ctrl.QuickSaveInternal = function(self, text)
+			local tbl = {}
+			for _, v in ipairs(selectedValues) do
+				table.insert(tbl, v.DataType)
+				table.insert(tbl, v.Value)
+			end
+			
+			presets.Add("wire_value", text, tbl)
+			ctrl:Update()
+		end
+		ctrl:SetPreset("wire_value")
+		panel:AddPanel(ctrl)
+		
 		WireToolHelpers.MakeModelSizer(panel, "wire_value_modelsize")
 		ModelPlug_AddToCPanel(panel, "Value", "wire_value", true)
 
