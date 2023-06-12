@@ -49,80 +49,88 @@ local function DrawHUDIndicators()
 
 	local currenty = hudy
 
+	local sorted, i = {}, 1
+	for index, indinfo in pairs(hudindicators) do
+		sorted[i] = { indinfo.Description, index, indinfo }
+		i = i + 1
+	end
+
+	table.sort(sorted, function(a, b)
+		return a[1] < b[1]
+	end)
+
 	-- Now draw HUD Indicators
-	for _, index in ipairs(table.MakeSortedKeys(hudindicators)) do
-		if (hudindicators[index]) then -- Is this necessary?
-			local ent = Entity(index)
+	for _, data in ipairs(sorted) do
+		local index, indinfo = data[2], data[3]
+		local ent = Entity(index)
 
-			if IsValid(ent) then
-				local indinfo = hudindicators[index]
-				if not indinfo.HideHUD and indinfo.Ready then
-					local txt = indinfo.FullText or ""
+		if IsValid(ent) then
+			if not indinfo.HideHUD and indinfo.Ready then
+				local txt = indinfo.FullText or ""
 
-					if (indinfo.Style == 0) then -- Basic
-						draw.WordBox(8, hudx, currenty, txt, "Default", Color(50, 50, 75, 192), Color(255, 255, 255, 255))
-					elseif (indinfo.Style == 1) then -- Gradient
-						draw.WordBox(8, hudx, currenty, txt, "Default", indinfo.DisplayColor, indinfo.TextColor)
-					elseif (indinfo.Style == 2) then -- Percent Bar
-						--surface.SetFont("Default")
-						--local pbarwidth, h = surface.GetTextSize(txt)
-						--pbarwidth = math.max(pbarwidth + 16, 100) -- The extra 16 pixels is a "buffer" to make it look better
-						local startx = hudx
-						--local w1 = math.floor(indinfo.Factor * pbarwidth)
-						--local w2 = math.ceil(pbarwidth - w1)
-						local pbarwidth = indinfo.BoxWidth
-						local w1 = indinfo.W1
-						local w2 = indinfo.W2
-						if (indinfo.Factor > 0) then -- Draw only if we have a factor
-							local BColor = indinfo.BColor
-							surface.SetDrawColor(BColor.r, BColor.g, BColor.b, 160)
-							surface.DrawRect(startx, currenty, w1, pbarheight)
-							startx = w1 + hudx
-						end
-
-						if (indinfo.Factor < 1) then
-							local AColor = indinfo.AColor
-							surface.SetDrawColor(AColor.r, AColor.g, AColor.b, 160)
-							surface.DrawRect(startx, currenty, w2, pbarheight)
-						end
-
-						-- Center the description (+ value if applicable) on the percent bar
-						draw.SimpleText(txt, "Default", hudx + (pbarwidth / 2), currenty + (pbarheight / 2), Color(255, 255, 255, 255), 1, 1)
-					elseif (indinfo.Style == 3) then -- Full Circle Gauge
-						draw.RoundedBox(8, hudx, currenty, indinfo.BoxWidth, 88 + dtextheight, Color(50, 50, 75, 192))
-
-						surface.SetTexture(fullcircletexid)
-						surface.DrawTexturedRect(hudx + 8, currenty + 8, 64, 64)
-
-						local startx = hudx + 40
-						local starty = currenty + 40
-						surface.SetDrawColor(0, 0, 0, 255)
-						surface.DrawLine(startx, starty, startx + indinfo.LineX, starty + indinfo.LineY)
-
-						-- Now the text
-						draw.SimpleText(txt, "Default", hudx + (indinfo.BoxWidth / 2), currenty + 72 + (pbarheight / 2), Color(255, 255, 255, 255), 1, 1)
-					elseif (indinfo.Style == 4) then -- Semi-Circle Gauge
-						draw.RoundedBox(8, hudx, currenty, indinfo.BoxWidth, 56 + dtextheight, Color(50, 50, 75, 192))
-
-						surface.SetTexture(semicircletexid)
-						surface.DrawTexturedRect(hudx + 8, currenty + 8, 64, 32)
-
-						local startx = hudx + 40
-						local starty = currenty + 39
-						surface.SetDrawColor(0, 0, 0, 255)
-						surface.DrawLine(startx, starty, startx + indinfo.LineX, starty + indinfo.LineY)
-
-						-- Now the text
-						draw.SimpleText(txt, "Default", hudx + (indinfo.BoxWidth / 2), currenty + 40 + (pbarheight / 2), Color(255, 255, 255, 255), 1, 1)
+				if (indinfo.Style == 0) then -- Basic
+					draw.WordBox(8, hudx, currenty, txt, "Default", Color(50, 50, 75, 192), Color(255, 255, 255, 255))
+				elseif (indinfo.Style == 1) then -- Gradient
+					draw.WordBox(8, hudx, currenty, txt, "Default", indinfo.DisplayColor, indinfo.TextColor)
+				elseif (indinfo.Style == 2) then -- Percent Bar
+					--surface.SetFont("Default")
+					--local pbarwidth, h = surface.GetTextSize(txt)
+					--pbarwidth = math.max(pbarwidth + 16, 100) -- The extra 16 pixels is a "buffer" to make it look better
+					local startx = hudx
+					--local w1 = math.floor(indinfo.Factor * pbarwidth)
+					--local w2 = math.ceil(pbarwidth - w1)
+					local pbarwidth = indinfo.BoxWidth
+					local w1 = indinfo.W1
+					local w2 = indinfo.W2
+					if (indinfo.Factor > 0) then -- Draw only if we have a factor
+						local BColor = indinfo.BColor
+						surface.SetDrawColor(BColor.r, BColor.g, BColor.b, 160)
+						surface.DrawRect(startx, currenty, w1, pbarheight)
+						startx = w1 + hudx
 					end
 
-					-- Go to next "line"
-					currenty = currenty + offsety[indinfo.Style + 1]
+					if (indinfo.Factor < 1) then
+						local AColor = indinfo.AColor
+						surface.SetDrawColor(AColor.r, AColor.g, AColor.b, 160)
+						surface.DrawRect(startx, currenty, w2, pbarheight)
+					end
+
+					-- Center the description (+ value if applicable) on the percent bar
+					draw.SimpleText(txt, "Default", hudx + (pbarwidth / 2), currenty + (pbarheight / 2), Color(255, 255, 255, 255), 1, 1)
+				elseif (indinfo.Style == 3) then -- Full Circle Gauge
+					draw.RoundedBox(8, hudx, currenty, indinfo.BoxWidth, 88 + dtextheight, Color(50, 50, 75, 192))
+
+					surface.SetTexture(fullcircletexid)
+					surface.DrawTexturedRect(hudx + 8, currenty + 8, 64, 64)
+
+					local startx = hudx + 40
+					local starty = currenty + 40
+					surface.SetDrawColor(0, 0, 0, 255)
+					surface.DrawLine(startx, starty, startx + indinfo.LineX, starty + indinfo.LineY)
+
+					-- Now the text
+					draw.SimpleText(txt, "Default", hudx + (indinfo.BoxWidth / 2), currenty + 72 + (pbarheight / 2), Color(255, 255, 255, 255), 1, 1)
+				elseif (indinfo.Style == 4) then -- Semi-Circle Gauge
+					draw.RoundedBox(8, hudx, currenty, indinfo.BoxWidth, 56 + dtextheight, Color(50, 50, 75, 192))
+
+					surface.SetTexture(semicircletexid)
+					surface.DrawTexturedRect(hudx + 8, currenty + 8, 64, 32)
+
+					local startx = hudx + 40
+					local starty = currenty + 39
+					surface.SetDrawColor(0, 0, 0, 255)
+					surface.DrawLine(startx, starty, startx + indinfo.LineX, starty + indinfo.LineY)
+
+					-- Now the text
+					draw.SimpleText(txt, "Default", hudx + (indinfo.BoxWidth / 2), currenty + 40 + (pbarheight / 2), Color(255, 255, 255, 255), 1, 1)
 				end
-			else
-				-- Clear this from the table so we don't check again
-				hudindicators[index] = nil
+
+				-- Go to next "line"
+				currenty = currenty + offsety[indinfo.Style + 1]
 			end
+		else
+			-- Clear this from the table so we don't check again
+			hudindicators[index] = nil
 		end
 	end
 end

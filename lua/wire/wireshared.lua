@@ -36,18 +36,6 @@ function table.Compact(tbl, cb, n) -- luacheck: ignore
 	end
 end
 
--- I don't even know if I need this one.
--- HUD indicator needs this one
-function table.MakeSortedKeys(tbl) -- luacheck: ignore
-	local result = {}
-
-	for k,_ in pairs(tbl) do table.insert(result, k) end
-	table.sort(result)
-
-	return result
-end
-
-
 function string.GetNormalizedFilepath( path ) -- luacheck: ignore
 	local null = string.find(path, "\x00", 1, true)
 	if null then path = string.sub(path, 1, null-1) end
