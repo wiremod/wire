@@ -271,9 +271,10 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		Ent2 = GetEntByID(v.Ent2, game.GetWorld())
 
 		if IsValid(Ent1) and
-		   Ent1 ~= Ent2 and
-		   hook.Run( "CanTool", ply, WireLib.dummytrace(Ent1), "ballsocket_adv" ) and
-		   hook.Run( "CanTool", ply, WireLib.dummytrace(Ent2), "ballsocket_adv" ) then
+			Ent1 ~= Ent2 and
+			WireLib.CanTool(ply, Ent1, "ballsocket_adv") and
+			WireLib.CanTool(ply, Ent2, "ballsocket_adv")
+		then
 			self:AddClutch( Ent1, Ent2 )
 		end
 	end
