@@ -112,8 +112,9 @@ function PropCore.CreateProp(self, model, pos, angles, freeze, vehicleType)
 	local undoName = "E2 Prop"
 
 	if vehicleType then
-		if not list.HasEntry("Vehicles", vehicleType) then
-			return self:throw("Seat type " .. vehicleType .. " is invalid", NULL)
+		local entry = list.Get("Vehicles")[vehicleType]
+		if not entry or entry.Class ~= "prop_vehicle_prisoner_pod" then
+			return self:throw("Seat type '" .. vehicleType .. "' is invalid", NULL)
 		end
 
 		cleanupCategory = "vehicles"
