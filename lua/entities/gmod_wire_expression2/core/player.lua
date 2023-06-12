@@ -908,6 +908,26 @@ E2Lib.registerEvent("playerDeath", {
 	{ "Attacker", "e" }
 })
 
+local Using = WireLib.RegisterPlayerTable()
+
+hook.Add("PlayerBindDown", "Exp2PlayerButtonDownUse", function(ply, binding, button)
+	if binding == "use" then
+		Using[ply] = nil
+	end
+end)
+
+hook.Add("PlayerUse", "Exp2PlayerUse", function(ply, ent)
+	if not Using[ply] then
+		Using[ply] = true
+		E2Lib.triggerEvent("playerUse", { ply, ent })
+	end
+end)
+
+E2Lib.registerEvent("playerUse", {
+	{ "Player", "e" },
+	{ "Entity", "e" }
+})
+
 
 --******************************************--
 
