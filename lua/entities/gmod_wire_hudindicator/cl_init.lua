@@ -32,7 +32,7 @@ function HUDIndicator_GetCurrentRegistered()
 	for eindex,_ in pairs(hudindicators) do
 		local ent = ents.GetByIndex(eindex)
 		if IsValid(ent) then
-			if (ent:CheckClientRegister()) then
+			if (ent:ClientCheckRegister()) then
 				local entry = {}
 				entry.EIndex = eindex
 				entry.Description = hudindicators[eindex].Description
@@ -49,19 +49,8 @@ local function DrawHUDIndicators()
 
 	local currenty = hudy
 
-	local sorted, i = {}, 1
-	for index, indinfo in pairs(hudindicators) do
-		sorted[i] = { indinfo.Description, index, indinfo }
-		i = i + 1
-	end
-
-	table.sort(sorted, function(a, b)
-		return a[1] < b[1]
-	end)
-
 	-- Now draw HUD Indicators
-	for _, data in ipairs(sorted) do
-		local index, indinfo = data[2], data[3]
+	for index, indinfo in SortedPairsByMemberValue(hudindicators, "Description") do
 		local ent = Entity(index)
 
 		if IsValid(ent) then
