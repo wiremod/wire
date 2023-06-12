@@ -3,7 +3,7 @@ DEFINE_BASECLASS( "base_gmodentity" )
 ENT.Type = "anim"
 ENT.PrintName       = "Wire Unnamed Ent"
 ENT.Purpose = "Base for all wired SEnts"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
+ENT.RenderGroup = RENDERGROUP_TRANSLUCENT
 ENT.Spawnable = false
 ENT.AdminOnly = false
 
@@ -246,17 +246,9 @@ if CLIENT then
 	function ENT:DoNormalDraw(nohalo, notip)
 		local looked_at = self:BeingLookedAtByLocalPlayer()
 		if not nohalo and wire_drawoutline:GetBool() and looked_at then
-			if self.RenderGroup == RENDERGROUP_OPAQUE then
-				self.OldRenderGroup = self.RenderGroup
-				self.RenderGroup = RENDERGROUP_TRANSLUCENT
-			end
 			self:DrawEntityOutline()
 			self:DrawModel()
 		else
-			if self.OldRenderGroup then
-				self.RenderGroup = self.OldRenderGroup
-				self.OldRenderGroup = nil
-			end
 			self:DrawModel()
 		end
 		if not notip and looked_at then
