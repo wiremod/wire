@@ -12,7 +12,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
-
       - uses: leafo/gh-actions-lua@v10
         with:
           luaVersion: "luajit-2.1.0-beta3"
@@ -21,5 +20,11 @@ jobs:
         run: |
           lua .github/workflows/preprocess.lua
 
+      - name: Download GluaFixer
+        run: |
+          curl -o glualint.zip -L https://github.com/FPtje/GLuaFixer/releases/download/1.24.6/glualint-1.24.6-x86_64-linux.zip
+          unzip glualint.zip
+
       - name: Lint Code
-        uses: FPtje/GLuaFixer/.github/workflows/glualint.yml@master
+        run: |
+          ./glualint lua
