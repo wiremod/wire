@@ -315,7 +315,7 @@ function ENT:RenderMisc(pos, ang, resolution, aspect, monitor)
 end
 
 
-
+local VECTOR_1_1_1 = Vector(1, 1, 1)
 --------------------------------------------------------------------------------
 -- Entity drawing function
 function ENT:Draw()
@@ -326,6 +326,9 @@ function ENT:Draw()
 
   -- Draw GPU itself
   self:DrawModel()
+  
+	local tone = render.GetToneMappingScaleLinear()
+	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
 
   -- Draw image from another GPU
   local videoSource = MonitorLookup[self:EntIndex()]
@@ -410,7 +413,8 @@ function ENT:Draw()
       self.VertexCamSettings = nil
     end
   end
-
+  
+	render.SetToneMappingScaleLinear(tone)
   Wire_Render(self)
 end
 
