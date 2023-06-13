@@ -1,0 +1,25 @@
+name: Lint
+
+on:
+  pull_request:
+    paths:
+      - "lua/**"
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "luajit-2.1.0-beta3"
+
+      - name: Run E2 Extension Preprocessor
+        run: |
+          lua .github/workflows/preprocess.lua
+
+      - name: Lint Code
+        uses: FPtje/GLuaFixer/.github/workflows/glualint.yml@master
