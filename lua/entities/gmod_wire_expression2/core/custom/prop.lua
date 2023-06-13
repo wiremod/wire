@@ -34,7 +34,7 @@ function PropCore.WithinPropcoreLimits()
 end
 local WithinPropcoreLimits = PropCore.WithinPropcoreLimits
 
-function PropCore.ValidSpawn(ply, model, isVehicle)
+function PropCore.ValidSpawn(ply, model, vehicleType)
 	local ret -- DO NOT RETURN MID-FUNCTION OR 'LimitHit' WILL BREAK
 	local limithit = playerMeta.LimitHit
 	playerMeta.LimitHit = function() end
@@ -43,8 +43,8 @@ function PropCore.ValidSpawn(ply, model, isVehicle)
 		ret = false
 	elseif not (util.IsValidProp( model ) and WireLib.CanModel(ply, model)) then
 		ret = false
-	elseif isVehicle then
-		ret = gamemode.Call( "PlayerSpawnVehicle", ply, model, "Seat_Airboat", list.Get( "Vehicles" ).Seat_Airboat ) ~= false
+	elseif vehicleType then
+		ret = gamemode.Call( "PlayerSpawnVehicle", ply, model, vehicleType, list.Get( "Vehicles" )[vehicleType] ) ~= false
 	else
 		ret = gamemode.Call( "PlayerSpawnProp", ply, model ) ~= false
 	end
@@ -99,9 +99,9 @@ local function MakePropNoEffect(...)
 	return ret
 end
 
-function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
+function PropCore.CreateProp(self, model, pos, angles, freeze, vehicleType)
 	if not WithinPropcoreLimits() then return self:throw("Prop limit reached! (cooldown or max)", NULL) end
-	if not ValidSpawn(self.player, model, isVehicle) then return NULL end
+	if not ValidSpawn(self.player, model, vehicleType) then return NULL end
 
 	pos = WireLib.clampPos( pos )
 
@@ -111,7 +111,12 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 	local undoCategory = "e2_spawned_prop"
 	local undoName = "E2 Prop"
 
-	if isVehicle then
+	if vehicleType then
+		local entry = list.Get("Vehicles")[vehicleType]
+		if not entry or entry.Class ~= "prop_vehicle_prisoner_pod" then
+			return self:throw("Seat type '" .. vehicleType .. "' is invalid", NULL)
+		end
+
 		cleanupCategory = "vehicles"
 		undoCategory = "e2_spawned_seat"
 		undoName = "E2 Seat"
@@ -120,13 +125,13 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 		prop:SetModel(model)
 		prop:SetPos(pos)
 		prop:SetAngles(angles)
+		prop:SetVehicleClass(vehicleType)
 
 		if self.data.propSpawnEffect then DoPropSpawnedEffect( prop ) end
 
 		prop:Spawn()
 		prop:SetKeyValue( "limitview", 0 )
 
-		table.Merge( prop, { HandleAnimation = function( _, ply ) return ply:SelectWeightedSequence( ACT_HL2MP_SIT ) end } )
 		gamemode.Call( "PlayerSpawnedVehicle", self.player, prop )
 	else
 		prop = self.data.propSpawnEffect and MakeProp( self.player, pos, angles, model, {}, {} ) or MakePropNoEffect( self.player, pos, angles, model, {}, {} )
@@ -238,17 +243,26 @@ end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(60)
+local offset = Vector(0, 0, 25)
+
+__e2setcost(50)
 e2function entity seatSpawn(string model, number frozen)
 	if not ValidAction(self, nil, "spawn") then return NULL end
-	if model=="" then model = "models/nova/airboat_seat.mdl" end
-	return CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen,true)
+	if model == "" then model = "models/nova/airboat_seat.mdl" end
+	return CreateProp(self, model, self.entity:LocalToWorld(offset), self.entity:GetAngles(), frozen, "Seat_Airboat")
 end
 
 e2function entity seatSpawn(string model, vector pos, angle rot, number frozen)
 	if not ValidAction(self, nil, "spawn") then return NULL end
-	if model=="" then model = "models/nova/airboat_seat.mdl" end
-	return CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen,true)
+	if model == "" then model = "models/nova/airboat_seat.mdl" end
+	return CreateProp(self, model, pos, rot, frozen, "Seat_Airboat")
+end
+
+e2function entity seatSpawn(string model, vector pos, angle rot, number frozen, string vehicleType)
+	if not ValidAction(self, nil, "spawn") then return NULL end
+	if model == "" then model = "models/nova/airboat_seat.mdl" end
+	if vehicleType == "" then vehicleType = "Seat_Airboat" end
+	return CreateProp(self, model, pos, rot, frozen, vehicleType)
 end
 
 --------------------------------------------------------------------------------
