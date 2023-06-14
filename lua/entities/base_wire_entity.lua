@@ -214,7 +214,9 @@ if CLIENT then
 		end
 	end
 
+	local cl_drawworldtooltips = CreateConVar("cl_drawworldtooltips", "1", { FCVAR_ARCHIVE })
 	hook.Add("HUDPaint","wire_draw_world_tips",function()
+		if not cl_drawworldtooltips:GetBool() then return end
 		if SysTime() > WorldTip.dietime then return end
 
 		local ent = WorldTip.ent
