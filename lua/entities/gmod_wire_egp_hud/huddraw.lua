@@ -1,28 +1,27 @@
 hook.Add("Initialize","EGP_HUD_Initialize",function()
-	if (CLIENT) then
+	if CLIENT then
 		local EGP_HUD_FirstPrint = true
 		local tbl = {}
+
+		
 
 		--------------------------------------------------------
 		-- Toggle
 		--------------------------------------------------------
-		local function EGP_Use( um )
-			local ent = um:ReadEntity()
+		local function EGP_Use()
+			local ent = net.ReadEntity()
 			if not ent or not ent:IsValid() then return end
-			local bool = um:ReadChar()
+			local bool = net.ReadInt(2) or 0
 			if bool == -1 then
-				ent.On = nil
+				tbl[ent] = nil
 			elseif bool == 1 then
-				ent.On = true
+				tbl[ent] = true
 			elseif bool == 0 then
-				if ent.On == true then
-					ent.On = nil
+				if tbl[ent] then
+					tbl[ent] = nil
 					LocalPlayer():ChatPrint("[EGP] EGP HUD Disconnected.")
 				else
-					if not tbl[ent] then -- strange... this entity should be in the table. Might have gotten removed due to a lagspike. Add it again
-						EGP:AddHUDEGP( ent )
-					end
-					ent.On = true
+					tbl[ent] = true
 					if EGP_HUD_FirstPrint then
 						LocalPlayer():ChatPrint("[EGP] EGP HUD Connected. NOTE: Type 'wire_egp_hud_unlink' in console to disconnect yourself from all EGP HUDs.")
 						EGP_HUD_FirstPrint = nil
@@ -31,88 +30,123 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 					end
 				end
 			end
+			
+			net.Start("EGP_HUD_Use")
+			net.WriteEntity(ent)
+			net.WriteBool(tbl[ent] or false)
+			net.SendToServer()
 		end
-		usermessage.Hook( "EGP_HUD_Use", EGP_Use )
+		net.Receive("EGP_HUD_Use", EGP_Use)
 
 		--------------------------------------------------------
 		-- Disconnect all HUDs
 		--------------------------------------------------------
 		concommand.Add("wire_egp_hud_unlink",function()
-			local en = ents.FindByClass("gmod_wire_egp_hud")
 			LocalPlayer():ChatPrint("[EGP] Disconnected from all EGP HUDs.")
-			for _,v in ipairs( en ) do
-				v.On = nil
-			end
+			tbl = {}
+			net.Start("EGP_HUD_Unlink")
+			net.SendToServer()
 		end)
 
-		--------------------------------------------------------
-		-- Add / Remove HUD Entities
-		--------------------------------------------------------
-		function EGP:AddHUDEGP( Ent )
-			tbl[Ent] = true
-		end
-
-		function EGP:RemoveHUDEGP( Ent )
-			tbl[Ent] = nil
-		end
 
 		--------------------------------------------------------
 		-- Paint
 		--------------------------------------------------------
 		hook.Add("HUDPaint","EGP_HUDPaint",function()
-			for Ent,_ in pairs( tbl ) do
+			for Ent, _ in pairs(tbl) do
 				if not Ent or not Ent:IsValid() then
-					EGP:RemoveHUDEGP( Ent )
+					tbl[Ent] = nil
 					break
 				else
-					if Ent.On == true then
-						if Ent.RenderTable and #Ent.RenderTable > 0 then
-							local mat = Ent:GetEGPMatrix()
+					if Ent.RenderTable and #Ent.RenderTable > 0 then
+						local mat = Ent:GetEGPMatrix()
 
-							for _,object in pairs( Ent.RenderTable ) do
-								local oldtex = EGP:SetMaterial( object.material )
-								object:Draw(Ent, mat)
-								EGP:FixMaterial( oldtex )
-
-								-- Check for 3DTracker parent
-								if object.parent then
-									local hasObject, _, parent = EGP:HasObject( Ent, object.parent )
-									if hasObject and parent.NeedsConstantUpdate then
-										Ent:EGP_Update()
-									end
-								end
+						for _, object in ipairs(Ent.RenderTable) do
+							-- Fixes parenting breaking when not looking at EGP
+							if object.parent ~= 0 then
+								if not object.IsParented then EGP:SetParent(Ent, object.index, object.parent) end
+								local _, data = EGP:GetGlobalPos(Ent, object.index)
+								EGP:EditObject(object, data)
+							elseif object.IsParented then
+								EGP:UnParent(Ent, object)
 							end
+							
+							local oldtex = EGP:SetMaterial(object.material)
+							object:Draw(Ent, mat)
+							EGP:FixMaterial(oldtex)
+
+							-- Check for 3DTracker or cursor parent
+							if object.NeedsConstantUpdate or object.parent == -1 then Ent:EGP_Update() end
 						end
 					end
 				end
 			end
 		end) -- HUDPaint hook
-	else
+	else -- SERVER
 		local vehiclelinks = {}
+		
+		local function EGP_Use_Server(len, ply)
+			local ent = net.ReadEntity()
+			local state = net.ReadBool()
+			if not IsValid(ent) then return end
+			
+			if not ent.Users then ent.Users = {} end
+			
+			if state then
+				if not ent.Users[ply] then
+					ent.Users[ply] = true
+				end
+			else
+				ent.Users[ply] = nil
+			end
+			
+			E2Lib.triggerEvent("egpHudConnect", { ent, ply, state and 1 or 0 })
+			
+			-- Remove Users if the EGP isn't a HUD
+			if table.IsEmpty(ent.Users) and not ent.IsEGPHUD then
+				ent.Users = nil
+			end
+			
+		end
+		net.Receive("EGP_HUD_Use", EGP_Use_Server)
+		
+		local function unlinkUser(ply)
+			local egps = ents.FindByClass("gmod_wire_egp*")
+			for _, egp in pairs(egps) do
+				if egp.Users and egp.Users[ply] then
+					egp.Users[ply] = nil
+					E2Lib.triggerEvent("egpHudConnect", { egp, ply, 0 })
+				end
+			end
+		end
+		
+		net.Receive("EGP_HUD_Unlink", function(len, ply)
+			unlinkUser(ply)
+		end)
 
-		function EGP:LinkHUDToVehicle( hud, vehicle )
+		function EGP:LinkHUDToVehicle(hud, vehicle)
 			if not hud.LinkedVehicles then hud.LinkedVehicles = {} end
 			if not hud.Marks then hud.Marks = {} end
 
-			hud.Marks[#hud.Marks+1] = vehicle
+			hud.Marks[#hud.Marks + 1] = vehicle
 			hud.LinkedVehicles[vehicle] = true
 			vehiclelinks[hud] = hud.LinkedVehicles
 
-			vehicle:CallOnRemove( "EGP HUD unlink on remove", function( ent )
-				EGP:UnlinkHUDFromVehicle( hud, ent )
+			vehicle:CallOnRemove("EGP HUD unlink on remove", function(ent)
+				EGP:UnlinkHUDFromVehicle(hud, ent)
 			end)
 
-			timer.Simple( 0.1, function() -- timers solve everything (this time, it's the fact that the entity isn't valid on the client after dupe)
-				WireLib.SendMarks( hud )
+			timer.Simple(0.1, function() -- timers solve everything (this time, it's the fact that the entity isn't valid on the client after dupe)
+				WireLib.SendMarks(hud)
 			end)
 		end
 
-		function EGP:UnlinkHUDFromVehicle( hud, vehicle )
+		function EGP:UnlinkHUDFromVehicle(hud, vehicle)
 			if not vehicle then -- unlink all
 				if hud.Marks then
-					for i=1,#hud.Marks do
+					for i = 1, #hud.Marks do
 						if hud.Marks[i]:IsValid() then
-							hud.Marks[i]:RemoveCallOnRemove( "EGP HUD unlink on remove" )
+							hud.Marks[i]:RemoveCallOnRemove("EGP HUD unlink on remove")
 						end
 					end
 				end
@@ -124,27 +158,27 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 					local bool = vehiclelinks[hud][vehicle]
 					if bool then
 						if vehicle:IsValid() then
-							vehicle:RemoveCallOnRemove( "EGP HUD unlink on remove" )
+							vehicle:RemoveCallOnRemove("EGP HUD unlink on remove")
 							if vehicle:GetDriver() and vehicle:GetDriver():IsValid() then
-								umsg.Start( "EGP_HUD_Use", vehicle:GetDriver() )
-									umsg.Entity( hud )
-									umsg.Char( -1 )
-								umsg.End()
+								net.Start("EGP_HUD_Use")
+									net.WriteEntity(hud)
+									net.WriteInt(-1, 2)
+								net.Send(vehicle:GetDriver())
 							end
 						end
 					end
 
 					if hud.Marks then
-						for i=1,#hud.Marks do
+						for i = 1, #hud.Marks do
 							if hud.Marks[i] == vehicle then
-								table.remove( hud.Marks, i )
+								table.remove(hud.Marks, i)
 								break
 							end
 						end
 					end
 
 					hud.LinkedVehicles[vehicle] = nil
-					if not next( hud.LinkedVehicles ) then
+					if not next(hud.LinkedVehicles) then
 						hud.LinkedVehicles = nil
 						hud.Marks = nil
 					end
@@ -153,29 +187,33 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 				end
 			end
 
-			WireLib.SendMarks( hud )
+			WireLib.SendMarks(hud)
 		end
 
-		hook.Add("PlayerEnteredVehicle","EGP_HUD_PlayerEnteredVehicle",function( ply, vehicle )
-			for k,v in pairs( vehiclelinks ) do
+		hook.Add("PlayerEnteredVehicle","EGP_HUD_PlayerEnteredVehicle",function(ply, vehicle)
+			for k, v in pairs( vehiclelinks ) do
 				if v[vehicle] ~= nil then
-					umsg.Start( "EGP_HUD_Use", ply )
-						umsg.Entity( k )
-						umsg.Char( 1 )
-					umsg.End()
+					net.Start("EGP_HUD_Use")
+						net.WriteEntity(k)
+						net.WriteInt(1, 2)
+					net.Send(ply)
 				end
 			end
 		end)
 
-		hook.Add("PlayerLeaveVehicle","EGP_HUD_PlayerLeaveVehicle",function( ply, vehicle )
-			for k,v in pairs( vehiclelinks ) do
+		hook.Add("PlayerLeaveVehicle","EGP_HUD_PlayerLeaveVehicle",function(ply, vehicle)
+			for k, v in pairs( vehiclelinks ) do
 				if v[vehicle] ~= nil then
-					umsg.Start( "EGP_HUD_Use", ply )
-						umsg.Entity( k )
-						umsg.Char( -1 )
-					umsg.End()
+					net.Start( "EGP_HUD_Use")
+						net.WriteEntity(k)
+						net.WriteInt(-1, 2)
+					net.Send(ply)
 				end
 			end
+		end)
+		
+		hook.Add("PlayerDisconnected", "EGP_HUD_PlayerDisconnected", function(ply)
+			unlinkUser(ply)
 		end)
 	end
 end)

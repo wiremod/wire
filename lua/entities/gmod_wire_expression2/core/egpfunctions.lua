@@ -1143,11 +1143,33 @@ end
 local antispam = {}
 __e2setcost(25)
 e2function void wirelink:egpHudToggle()
-	if not EGP:ValidEGP( this ) then return self:throw("Invalid wirelink!", nil) end
+	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", nil) end
 	if antispam[self.player] and antispam[self.player] > CurTime() then return end
 	antispam[self.player] = CurTime() + 0.1
-	umsg.Start( "EGP_HUD_Use", self.player ) umsg.Entity( this ) umsg.End()
+	net.Start("EGP_HUD_Use") net.WriteEntity(this) net.WriteInt(0, 2) net.Send(self.player)
 end
+
+e2function void wirelink:egpHudToggle(enable)
+	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", nil) end
+	if antispam[self.player] and antispam[self.player] > CurTime() then return end
+	antispam[self.player] = CurTime() + 0.1
+	net.Start("EGP_HUD_Use") net.WriteEntity(this) net.WriteInt(enable ~= 0 and 1 or -1, 2) net.Send(self.player)
+end
+
+e2function array wirelink:egpConnectedUsers()
+	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", nil) end
+	if not this.Users then return {} end
+	local sanitised_array, i = {}, 0
+	
+	
+	for k, _ in pairs(this.Users) do
+		i = i + 1
+		sanitised_array[i] = k
+	end
+	return sanitised_array
+end
+
+E2Lib.registerEvent("egpHudConnect", { { "Screen", "xwl" }, { "Player", "e" }, { "Connected", "n" } })
 
 --------------------------------------------------------
 -- Useful functions
