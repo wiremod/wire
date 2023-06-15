@@ -326,7 +326,7 @@ function EDITOR:OnMouseReleased(code)
 end
 
 function EDITOR:SetText(text)
-	self.Rows = string_Explode("\n", text)
+	self.Rows = string_Explode("\r?\n", text, true)
 	if self.Rows[#self.Rows] ~= "" then
 		self.Rows[#self.Rows + 1] = ""
 	end
@@ -801,7 +801,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 	end
 
 	-- insert text
-	local rows = string_Explode("\n", text)
+	local rows = string_Explode("\r?\n", text, true)
 
 	local remainder = string_sub(self.Rows[start[1]], start[2])
 	self.Rows[start[1]] = string_sub(self.Rows[start[1]], 1, start[2] - 1) .. rows[1]
