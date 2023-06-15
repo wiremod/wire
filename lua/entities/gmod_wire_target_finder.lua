@@ -405,7 +405,7 @@ end
 
 function ENT:TargetPainter( tt, targeted )
 	local ply = self:GetPlayer()
-	if tt and IsValid(tt) and tt:EntIndex() ~= 0 and ply:IsValid() and hook.Run( "CanTool", ply, WireLib.dummytrace(tt), "colour" ) then
+	if tt and IsValid(tt) and tt:EntIndex() ~= 0 and ply:IsValid() and WireLib.CanTool(ply, tt, "colour") then
 		if (targeted) then
 			self.OldColor = tt:GetColor()
 			tt:SetColor(Color(255, 0, 0, 255))

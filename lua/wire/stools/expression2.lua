@@ -167,7 +167,7 @@ if SERVER then
 			if chip.player == player then -- Just download if the toolgun user owns this chip
 				self:Download(player, chip)
 				player:SetAnimation(PLAYER_ATTACK1)
-			elseif hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then -- The player has prop protection perms on the chip
+			elseif WireLib.CanTool(player, chip, "wire_expression2") then -- The player has prop protection perms on the chip
 				self:Download(player, chip)
 				player:SetAnimation(PLAYER_ATTACK1)
 
@@ -391,7 +391,7 @@ if SERVER then
 			return
 		end
 
-		if not hook.Run( "CanTool", ply, WireLib.dummytrace( toent ), "wire_expression2" ) then
+		if not WireLib.CanTool(ply, toent, "wire_expression2") then
 			WireLib.AddNotify(ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
@@ -466,7 +466,7 @@ if SERVER then
 		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
 		if canhas(player) then return end
 		if E2.error then return end
-		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "halt execution" ) then
+		if WireLib.CanTool(player, E2, "wire_expression2") then
 			E2:Destruct()
 			E2:Error("Execution halted (Triggered by: " .. player:Nick() .. ")", "Execution halted")
 			if E2.player ~= player then
@@ -488,7 +488,7 @@ if SERVER then
 		-- Same check as tool code
 		if E2.player == player then
 			WireLib.Expression2Download(player, E2)
-		elseif hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
+		elseif WireLib.CanTool(player, E2, "wire_expression2") then
 			WireLib.Expression2Download(player, E2)
 
 			local playerType = "player"
@@ -514,7 +514,7 @@ if SERVER then
 		E2 = Entity(E2)
 		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
 		if canhas(player) then return end
-		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "reset" ) then
+		if WireLib.CanTool(player, E2, "wire_expression2") then
 			if E2.context.data.last or E2.first then return end
 
 			E2:Reset()

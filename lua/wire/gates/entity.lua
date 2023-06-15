@@ -740,7 +740,7 @@ GateActions["entity_setmass"] = {
 	output = function(gate, Ent, Val )
 		if not Ent:IsValid() then return end
 		if not Ent:GetPhysicsObject():IsValid() then return end
-		if not gamemode.Call("CanTool", WireLib.GetOwner(gate), WireLib.dummytrace(Ent), "weight") then return end
+		if not WireLib.CanTool(WireLib.GetOwner(gate), Ent, "weight") then return end
 		if not Val then Val = Ent:GetPhysicsObject():GetMass() end
 		Val = math.Clamp(Val, 0.001, 50000)
 		Ent:GetPhysicsObject():SetMass(Val)
@@ -780,7 +780,7 @@ GateActions["entity_setcol"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	output = function(gate, Ent, Col )
 		if not Ent:IsValid() then return end
-		if not gamemode.Call("CanTool", WireLib.GetOwner(gate), WireLib.dummytrace(Ent), "color") then return end
+		if not WireLib.CanTool(WireLib.GetOwner(gate), Ent, "color") then return end
 		if not isvector(Col) then Col = Vector(255,255,255) end
 		Ent:SetColor(Color(Col.x,Col.y,Col.z,255))
 	end,
