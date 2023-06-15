@@ -415,8 +415,12 @@ function ENT:DrawSpecialCharacter(c,x,y,w,h,r,g,b)
 	end
 end
 
+local VECTOR_1_1_1 = Vector(1, 1, 1)
 function ENT:Draw()
 	self:DrawModel()
+	
+	local tone = render.GetToneMappingScaleLinear()
+	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
 
 	local szx = 18
 	local szy = 24
@@ -540,6 +544,7 @@ function ENT:Draw()
 		end
 	end
 
+	render.SetToneMappingScaleLinear(tone)
 	Wire_Render(self)
 end
 

@@ -531,9 +531,12 @@ function ENT:DrawSpecialCharacter(c,x,y,w,h,r,g,b)
 	end
 end
 
+local VECTOR_1_1_1 = Vector(1, 1, 1)
 function ENT:Draw()
 	self:DrawModel()
-
+	
+	local tone = render.GetToneMappingScaleLinear()
+	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
 	local curtime = CurTime()
 	local DeltaTime = curtime - self.PrevTime
 	self.PrevTime = curtime
@@ -684,6 +687,7 @@ function ENT:Draw()
 	end
 
 	self.GPU:Render(self.Memory1[2024],self.Memory1[2023])
+	render.SetToneMappingScaleLinear(tone)
 	Wire_Render(self)
 end
 
