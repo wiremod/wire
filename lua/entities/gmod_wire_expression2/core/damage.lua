@@ -61,12 +61,12 @@ e2function number operator_is(damage dmg)
 	return dmg and 1 or 0
 end
 
-e2function number damage:getAmount()
-	return this:GetDamage()
-end
-
 e2function number damage:isType(number type)
 	return this:IsDamageType(type)
+end
+
+e2function number damage:getAmount()
+	return this:GetDamage()
 end
 
 e2function vector damage:getPosition()

@@ -1540,7 +1540,7 @@ E2Helper.Descriptions["toUnicodeChar(r)"] = "Returns the UTF-8 string from the g
 E2Helper.Descriptions["toUnicodeByte(s:nn)"] = "Returns the Unicode code-points from the given UTF-8 string"
 E2Helper.Descriptions["unicodeLength(s:nn)"] = "Returns the length of the given UTF-8 string"
 
--- Damage
+-- Deaths / Spawns
 E2Helper.Descriptions["runOnDeath(n)"] = "If set to 0, chip won't run on players dying"
 E2Helper.Descriptions["deathClk()"] = "Returns if the E2 was triggered by a death"
 E2Helper.Descriptions["lastDeathTime()"] = "Returns the last time a player died"
@@ -1580,12 +1580,19 @@ E2Helper.Descriptions["setSurfaceProp(xef:n)"] = "Sets the surface property inde
 E2Helper.Descriptions["effectCanPlay()"] = "Returns whether you can play an effect (or 0 if you've hit the burst limit)"
 E2Helper.Descriptions["effectCanPlay(s)"] = "Same as effectCanPlay(), but also checks if the specific effect is not allowed"
 
---Interpolations
+-- Interpolations
 
-local from_easings = {"OutElastic","OutCirc","InOutQuint","InCubic","InOutCubic","InOutBounce","InOutSine","OutQuad","InOutCirc","InElastic","OutBack","InQuint","InSine","InBounce","InQuart","OutSine","OutExpo","InOutExpo","InQuad","InOutElastic","InOutQuart","InExpo","OutCubic","OutQuint","OutBounce","InCirc","InBack","InOutQuad","OutQuart","InOutBack"}
-
-for k, v in pairs(from_easings) do
+for _, v in ipairs {"OutElastic","OutCirc","InOutQuint","InCubic","InOutCubic","InOutBounce","InOutSine","OutQuad","InOutCirc","InElastic","OutBack","InQuint","InSine","InBounce","InQuart","OutSine","OutExpo","InOutExpo","InQuad","InOutElastic","InOutQuart","InExpo","OutCubic","OutQuint","OutBounce","InCirc","InBack","InOutQuad","OutQuart","InOutBack"} do
 	local name = "ease" .. v
-	
 	E2Helper.Descriptions[name .. "(n)"] = "Performs " .. v .. " interpolation on the argument. You can see how all of these interpolation functions look here: https://imgur.com/XZPgymK"
 end
+
+-- Damage
+
+E2Helper.Descriptions["isType(xdm:n)"] = "Returns whether the damage contains the type flag provided. For example isType(_DMG_BLAST) would return 1 if the damage contains blast damage."
+E2Helper.Descriptions["getAmount(xdm:)"] = "Returns the amount of damage dealt"
+E2Helper.Descriptions["getPosition(xdm:)"] = "Returns the position where the damage was dealt"
+E2Helper.Descriptions["getForce(xdm:)"] = "Returns the force of the damage dealt"
+E2Helper.Descriptions["getInflictor(xdm:)"] = "Returns the inflictor (weapon) which caused the damage to be dealt"
+E2Helper.Descriptions["getAttacker(xdm:)"] = "Returns the attacker which used the inflictor to deal the damage"
+E2Helper.Descriptions["getAmmoType(xdm:)"] = "Returns the ammo type id of the damage dealt"
