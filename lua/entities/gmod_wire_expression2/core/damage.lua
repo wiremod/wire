@@ -1,4 +1,4 @@
-E2Lib.RegisterExtension("damage", false, "Lets E2 chips trigger on entity damage")
+E2Lib.RegisterExtension("damage", false, "Lets E2 chips trigger on entity damage, and in the future, cause damage.")
 
 local M_CTakeDamageInfo = FindMetaTable("CTakeDamageInfo")
 
@@ -61,7 +61,7 @@ e2function number operator_is(damage dmg)
 	return dmg and 1 or 0
 end
 
-e2function number damage:getDamage()
+e2function number damage:getAmount()
 	return this:GetDamage()
 end
 
