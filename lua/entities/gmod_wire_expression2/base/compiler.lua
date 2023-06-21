@@ -1156,15 +1156,17 @@ local CompileVisitors = {
 		elseif data[1][2] then
 			---@cast data { [1]: Node, [2]: Node }[] # Key value pair arguments
 
-			local strings, numbers, size = {}, {}, #data
+			local strings, numbers, nstrings, nnumbers, size = {}, {}, 0, 0, #data
 			for _, kvpair in ipairs(data) do
 				local key, key_ty = self:CompileExpr(kvpair[1])
 				local value, value_ty = self:CompileExpr(kvpair[2])
 
 				if key_ty == "s" then
-					strings[key] = { value, value_ty }
+					nstrings = nstrings + 1
+					strings[nstrings] = { key, value, value_ty }
 				elseif key_ty == "n" then
-					numbers[key] = { value, value_ty }
+					nnumbers = nnumbers + 1
+					numbers[nnumbers] = { key, value, value_ty }
 				else
 					self:Error("Cannot use type " .. key_ty .. " as table key", kvpair[1].trace)
 				end
@@ -1173,31 +1175,33 @@ local CompileVisitors = {
 			return function(state) ---@param state RuntimeContext
 				local s, stypes, n, ntypes = {}, {}, {}, {}
 
-				for key, data in pairs(strings) do
-					local k = key(state)
-					s[k], stypes[k] = data[1](state), data[2]
+				for i = 1, nstrings do
+					local data = strings[i]
+					local key, value, valuetype = data[1](state), data[2], data[3]
+					s[key], stypes[key] = value(state), valuetype
 				end
 
-				for key, data in pairs(numbers) do
-					local k = key(state)
-					n[k], ntypes[k] = data[1](state), data[2]
+				for i = 1, nnumbers do
+					local data = numbers[i]
+					local key, value, valuetype = data[1](state), data[2], data[3]
+					n[key], ntypes[key] = value(state), valuetype
 				end
 
 				return { s = s, stypes = stypes, n = n, ntypes = ntypes, size = size }
 			end, "t"
 		else
 			---@cast data Node[]
-			local args, argtypes = {}, {}
+			local args, argtypes, len = {}, {}, #data
 			for k, arg in ipairs(data) do
 				args[k], argtypes[k] = self:CompileExpr(arg)
 			end
 
 			return function(state) ---@param state RuntimeContext
 				local array = {}
-				for i, val in ipairs(args) do
-					array[i] = val(state)
+				for i = 1, len do
+					array[i] = args[i](state)
 				end
-				return { n = array, ntypes = argtypes, s = {}, stypes = {}, size = #array }
+				return { n = array, ntypes = argtypes, s = {}, stypes = {}, size = len }
 			end, "t"
 		end
 	end,
