@@ -406,7 +406,7 @@ function Parser:Stmt()
 					self:Error("Case block is missing after case declaration.")
 				end
 
-				local block = {}
+				local block --[=[@type Node[]]=] = {}
 				while true do
 					if self:Consume(TokenVariant.Keyword, Keyword.Case) or self:Consume(TokenVariant.Keyword, Keyword.Default) or self:Consume(TokenVariant.Grammar, Grammar.RCurly) then
 						self.index = self.index - 1
@@ -430,10 +430,10 @@ function Parser:Stmt()
 				end
 
 				if default_ then
-					local trace = (#block ~= 0) and default_.trace:stitch(block[1].trace):stitch(block[#block]) or default_.trace
+					local trace = (#block ~= 0) and default_.trace:stitch(block[1].trace):stitch(block[#block].trace) or default_.trace
 					default = Node.new(NodeVariant.Block, block, trace)
 				else ---@cast case Token # Know it isn't nil since (if not case then break end) above
-					local trace = (#block ~= 0) and case.trace:stitch(block[1].trace):stitch(block[#block]) or case.trace
+					local trace = (#block ~= 0) and case.trace:stitch(block[1].trace):stitch(block[#block].trace) or case.trace
 					cases[#cases + 1] = { expr, Node.new(NodeVariant.Block, block, trace) }
 				end
 			end
