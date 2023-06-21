@@ -46,7 +46,7 @@ Parser.Node = Node
 
 ---@param variant NodeVariant
 ---@param data any
----@param trace Trace?
+---@param trace Trace
 ---@return Node
 function Node.new(variant, data, trace)
 	return setmetatable({ variant = variant, trace = trace, data = data }, Node)
@@ -148,30 +148,16 @@ function Parser:Consume(variant, value)
 	return token
 end
 
----@return Trace
-function Parser:GetTrace()
-	return assert(self.traces[#self.traces], "GetTrace() without any current trace in stack."):stitch(assert(self:At() or self:Prev(), "No active token").trace)
-end
-
-function Parser:PushTrace()
-	self.traces[#self.traces + 1] = assert(self:Peek() or self:At(), "PushTrace without a proceeding token").trace
-end
-
----@return Trace
-function Parser:PopTrace()
-	return assert(table.remove(self.traces), "PopTrace without trace on top of stack"):stitch(assert(self:At() or self:Prev(), "No active token").trace)
-end
-
 ---@param message string
 ---@param trace Trace?
 function Parser:Error(message, trace)
-	error( Error.new( message, trace or self:GetTrace() ), 2 )
+	error( Error.new( message, trace or self:Prev().trace ), 2 )
 end
 
 ---@param message string
 ---@param trace Trace?
 function Parser:Warning(message, trace)
-	self.warnings[#self.warnings + 1] = Warning.new( message, trace or self:GetTrace() )
+	self.warnings[#self.warnings + 1] = Warning.new( message, trace or self:Prev().trace )
 end
 
 ---@generic T
@@ -180,7 +166,7 @@ end
 ---@param trace Trace?
 ---@return T
 function Parser:Assert(v, message, trace)
-	if not v then error( Error.new( message, trace or self:GetTrace() ), 2 ) end
+	if not v then error( Error.new( message, trace or self:Prev().trace ), 2 ) end
 	return v
 end
 
@@ -191,15 +177,12 @@ function Parser:Process(tokens)
 	local stmts = {}
 	if self:Eof() then return Node.new(NodeVariant.Block, stmts, Trace.new(0, 0, 0, 0)), self.delta_vars, self.include_files end
 
-	self:PushTrace()
 	while true do
 		if self:Consume(TokenVariant.Grammar, Grammar.Comma) then
 			self:Error("Statement separator (,) must not appear multiple times")
 		end
 
-		self:PushTrace()
-			local stmt = self:Stmt() or self:Expr()
-			stmt.trace = self:PopTrace()
+		local stmt = self:Stmt() or self:Expr()
 		stmts[#stmts + 1] = stmt
 
 		if self:Eof() then break end
@@ -211,7 +194,8 @@ function Parser:Process(tokens)
 		end
 	end
 
-	return Node.new(NodeVariant.Block, stmts, self:PopTrace()), self.delta_vars, self.include_files
+	local trace = (#stmts ~= 0) and stmts[1].trace:stitch(stmts[#stmts].trace) or Trace.new(1, 1, 1, 1)
+	return Node.new(NodeVariant.Block, stmts, trace), self.delta_vars, self.include_files
 end
 
 ---@param variant TokenVariant
@@ -235,7 +219,6 @@ end
 ---@return Node
 function Parser:Condition()
 	self:Assert( self:Consume(TokenVariant.Grammar, Grammar.LParen), "Left parenthesis (() expected before condition")
-	self:PushTrace()
 		local expr = self:Expr()
 	self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RParen), "Right parenthesis ()) missing, to close condition")
 	return expr
@@ -257,14 +240,16 @@ function Parser:Stmt()
 			chain[#chain + 1] = { nil, self:Assert( self:Block(), "Expected block after else keyword") }
 		end
 
-		return Node.new(NodeVariant.If, chain)
+		return Node.new(NodeVariant.If, chain, cond.trace:stitch(self:Prev().trace))
 	end
 
 	if self:Consume(TokenVariant.Keyword, Keyword.While) then
-		return Node.new(NodeVariant.While, { self:Condition(), self:Block(), false })
+		local trace = self:Prev().trace
+		return Node.new(NodeVariant.While, { self:Condition(), self:Block(), false }, trace:stitch(self:At().trace))
 	end
 
 	if self:Consume(TokenVariant.Keyword, Keyword.For) then
+		local trace = self:Prev().trace
 		if not self:Consume(TokenVariant.Grammar, Grammar.LParen) then
 			self:Error("Left Parenthesis (() must appear before condition")
 		end
@@ -284,10 +269,11 @@ function Parser:Stmt()
 
 		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RParen), "Right parenthesis ()) missing, to close for statement" )
 
-		return Node.new(NodeVariant.For, { var, start, stop, step, self:Block() })
+		return Node.new(NodeVariant.For, { var, start, stop, step, self:Block() }, trace:stitch(self:Prev().trace))
 	end
 
 	if self:Consume(TokenVariant.Keyword, Keyword.Foreach) then
+		local trace = self:Prev().trace
 		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.LParen), "Left parenthesis (() missing after foreach statement" )
 
 		local key = self:Assert( self:Consume(TokenVariant.Ident), "Variable expected to hold the key" )
@@ -309,70 +295,72 @@ function Parser:Stmt()
 
 		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RParen), "Missing right parenthesis after foreach statement" )
 
-		return Node.new(NodeVariant.Foreach, { key, key_type, value, value_type, table, self:Block() })
+		return Node.new(NodeVariant.Foreach, { key, key_type, value, value_type, table, self:Block() }, trace:stitch(self:Prev().trace))
 	end
 
 	if self:Consume(TokenVariant.Keyword, Keyword.Break) then
-		return Node.new(NodeVariant.Break)
+		return Node.new(NodeVariant.Break, nil, self:Prev().trace)
 	end
 
 	if self:Consume(TokenVariant.Keyword, Keyword.Continue) then
-		return Node.new(NodeVariant.Continue)
+		return Node.new(NodeVariant.Continue, nil, self:Prev().trace)
 	end
 
 	if self:Consume(TokenVariant.Keyword, Keyword.Return) then
+		local trace = self:Prev().trace
 		if self:Consume(TokenVariant.LowerIdent, "void") then
-			return Node.new(NodeVariant.Return)
+			return Node.new(NodeVariant.Return, nil, trace:stitch(self:Prev().trace))
 		elseif self:Consume(TokenVariant.Grammar, Grammar.RCurly) then
 			self.index = self.index - 1
-			return Node.new(NodeVariant.Return)
+			return Node.new(NodeVariant.Return, nil, trace)
+		else
+			return Node.new(NodeVariant.Return, self:Expr(), trace:stitch(self:At().trace))
 		end
-		return Node.new(NodeVariant.Return, self:Expr())
 	end
 
 	local var = self:Consume(TokenVariant.Ident)
 	if var then
 		--- Increment / Decrement
 		if self:ConsumeTailing(TokenVariant.Operator, Operator.Inc) then
-			return Node.new(NodeVariant.Increment, var)
+			return Node.new(NodeVariant.Increment, var, var.trace:stitch(self:Prev().trace))
 		elseif self:Consume(TokenVariant.Operator, Operator.Inc) then
 			self:Error("Increment operator (++) must not be preceded by whitespace")
 		end
 
 		if self:ConsumeTailing(TokenVariant.Operator, Operator.Dec) then
-			return Node.new(NodeVariant.Decrement, var)
+			return Node.new(NodeVariant.Decrement, var, var.trace:stitch(self:Prev().trace))
 		elseif self:Consume(TokenVariant.Operator, Operator.Dec) then
 			self:Error("Decrement operator (--) must not be preceded by whitespace")
 		end
 
 		--- Compound Assignment
 		if self:Consume(TokenVariant.Operator, Operator.Aadd) then
-			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Aadd, self:Expr() })
+			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Aadd, self:Expr() }, var.trace:stitch(self:Prev().trace))
 		elseif self:Consume(TokenVariant.Operator, Operator.Asub) then
-			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Asub, self:Expr() })
+			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Asub, self:Expr() }, var.trace:stitch(self:Prev().trace))
 		elseif self:Consume(TokenVariant.Operator, Operator.Amul) then
-			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Amul, self:Expr() })
+			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Amul, self:Expr() }, var.trace:stitch(self:Prev().trace))
 		elseif self:Consume(TokenVariant.Operator, Operator.Adiv) then
-			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Adiv, self:Expr() })
+			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Adiv, self:Expr() }, var.trace:stitch(self:Prev().trace))
 		end
 
 		-- Didn't match anything. Might be something else.
 		self.index = self.index - 1
 	end
 
-	local is_local, var = self:Consume(TokenVariant.Keyword, Keyword.Local) ~= nil, self:Consume(TokenVariant.Ident)
+	local is_local, var = self:Consume(TokenVariant.Keyword, Keyword.Local), self:Consume(TokenVariant.Ident)
 	if not var then
 		self:Assert(not is_local, "Invalid operator (local) must be used for variable declaration.")
 	else
 		local revert, prev = self.index, self.index
-		local assignments = { { var, is_local and {} or self:Indices(), self:GetTrace() } }
+		local assignments = { { var, is_local and {} or self:Indices(), (is_local or var).trace:stitch(self:Prev().trace) } }
 		while self:Consume(TokenVariant.Operator, Operator.Ass) do
 			local ident = self:Consume(TokenVariant.Ident)
 			if ident then
 				prev = self.index
-				assignments[#assignments + 1] = { ident, self:Indices(), self:GetTrace() }
+				assignments[#assignments + 1] = { ident, self:Indices(), ident.trace:stitch(self:Prev().trace) }
 			else
-				return Node.new(NodeVariant.Assignment, { is_local, assignments, self:Expr() })
+				return Node.new(NodeVariant.Assignment, { is_local, assignments, self:Expr() }, (is_local or var).trace:stitch(self:Prev().trace))
 			end
 		end
 
@@ -381,12 +369,13 @@ function Parser:Stmt()
 		else -- Last 'assignment' is the expression.
 			table.remove(assignments)
 			self.index = prev - 1
-			return Node.new(NodeVariant.Assignment, { is_local, assignments, self:Expr() })
+			return Node.new(NodeVariant.Assignment, { is_local, assignments, self:Expr() }, (is_local or var).trace:stitch(self:Prev().trace))
 		end
 	end
 
 	-- Switch Case
 	if self:Consume(TokenVariant.Keyword, Keyword.Switch) then
+		local trace = self:Prev().trace
 		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.LParen), "Left parenthesis (() expected before switch condition" )
 			local expr = self:Expr()
 		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RParen), "Right parenthesis ()) expected before switch condition" )
@@ -419,7 +408,6 @@ function Parser:Stmt()
 
 				local block = {}
 				while true do
-					self:PushTrace()
 					if self:Consume(TokenVariant.Keyword, Keyword.Case) or self:Consume(TokenVariant.Keyword, Keyword.Default) or self:Consume(TokenVariant.Grammar, Grammar.RCurly) then
 						self.index = self.index - 1
 						break
@@ -429,68 +417,68 @@ function Parser:Stmt()
 						self:Error("Statement separator (,) must be suceeded by statement")
 					end
 
-					self:PushTrace()
-						local stmt = self:Stmt() or self:Expr()
-						stmt.trace = self:PopTrace()
+					local stmt = self:Stmt() or self:Expr()
 					block[#block + 1] = stmt
 
 					if not self:Consume(TokenVariant.Grammar, Grammar.Comma) then
 						if self:Eof() then break end
 
 						if not self:At().whitespaced then
-							self:Error("Statements must be separated by comma (,) or whitespace")
+							self:Error("Statements must be separated by comma (,) or whitespace", stmt.trace)
 						end
 					end
 				end
 
 				if default_ then
-					default = Node.new(NodeVariant.Block, block, self:PopTrace())
-				else
-					cases[#cases + 1] = { expr, Node.new(NodeVariant.Block, block, self:PopTrace()) }
+					local trace = (#block ~= 0) and default_.trace:stitch(block[1].trace):stitch(block[#block]) or default_.trace
+					default = Node.new(NodeVariant.Block, block, trace)
+				else ---@cast case Token # Know it isn't nil since (if not case then break end) above
+					local trace = (#block ~= 0) and case.trace:stitch(block[1].trace):stitch(block[#block]) or case.trace
+					cases[#cases + 1] = { expr, Node.new(NodeVariant.Block, block, trace) }
 				end
 			end
 		end
 
 		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RCurly), "Right curly bracket (}) missing, to close switch block")
 
-		return Node.new(NodeVariant.Switch, { expr, cases, default })
+		return Node.new(NodeVariant.Switch, { expr, cases, default }, trace:stitch(self:Prev().trace))
 	end
 
 	-- Function definition
 	if self:Consume(TokenVariant.Keyword, Keyword.Function) then
-		local type_or_name = self:Assert( self:Consume(TokenVariant.LowerIdent), "Expected function return type or name after function keyword")
+		local trace, type_or_name = self:Prev().trace, self:Assert( self:Consume(TokenVariant.LowerIdent), "Expected function return type or name after function keyword")
 
 		if self:Consume(TokenVariant.Operator, Operator.Col) then
 			-- function entity:xyz()
-			return Node.new(NodeVariant.Function, { nil, type_or_name, self:Assert(self:Consume(TokenVariant.LowerIdent), "Expected function name after colon (:)"), self:Parameters(), self:Block() })
+			return Node.new(NodeVariant.Function, { nil, type_or_name, self:Assert(self:Consume(TokenVariant.LowerIdent), "Expected function name after colon (:)"), self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
 		end
 
 		local meta_or_name = self:Consume(TokenVariant.LowerIdent)
 		if meta_or_name then
 			if self:Consume(TokenVariant.Operator, Operator.Col) then
 				-- function void entity:xyz()
-				return Node.new(NodeVariant.Function, { type_or_name, meta_or_name, self:Assert(self:Consume(TokenVariant.LowerIdent), "Expected function name after colon (:)"), self:Parameters(), self:Block() })
+				return Node.new(NodeVariant.Function, { type_or_name, meta_or_name, self:Assert(self:Consume(TokenVariant.LowerIdent), "Expected function name after colon (:)"), self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
 			else
 				-- function void test()
-				return Node.new(NodeVariant.Function, { type_or_name, nil, meta_or_name, self:Parameters(), self:Block() })
+				return Node.new(NodeVariant.Function, { type_or_name, nil, meta_or_name, self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
 			end
 		else
 			-- function test()
-			return Node.new(NodeVariant.Function, { nil, nil, type_or_name, self:Parameters(), self:Block() })
+			return Node.new(NodeVariant.Function, { nil, nil, type_or_name, self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
 		end
 	end
 
 	-- #include
 	if self:Consume(TokenVariant.Keyword, Keyword["#Include"]) then
-		local path = self:Assert( self:Consume(TokenVariant.String), "include path (string) expected after #include")
+		local trace, path = self:Prev().trace, self:Assert( self:Consume(TokenVariant.String), "include path (string) expected after #include")
 
 		self.include_files[#self.include_files + 1] = path.value
-		return Node.new(NodeVariant.Include, path.value)
+		return Node.new(NodeVariant.Include, path.value, trace:stitch(path.trace))
 	end
 
 	-- Try catch
 	if self:Consume(TokenVariant.Keyword, Keyword.Try) then
-		local stmt = self:Block()
+		local trace, stmt = self:Prev().trace, self:Block()
 
 		if self:Consume(TokenVariant.Keyword, Keyword.Catch) then
 			if not self:Consume(TokenVariant.Grammar, Grammar.LParen) then
@@ -506,7 +494,7 @@ function Parser:Stmt()
 				self:Error("Right parenthesis ()) missing, to close catch statement")
 			end
 
-			return Node.new(NodeVariant.Try, {stmt, err_ident, self:Block()})
+			return Node.new(NodeVariant.Try, {stmt, err_ident, self:Block()}, trace:stitch(self:Prev().trace))
 		else
 			self:Error("Try block must be followed by catch statement")
 		end
@@ -514,15 +502,15 @@ function Parser:Stmt()
 
 	-- Do while
 	if self:Consume(TokenVariant.Keyword, Keyword.Do) then
-		local block = self:Block()
+		local trace, block = self:Prev().trace, self:Block()
 		self:Assert( self:Consume(TokenVariant.Keyword, Keyword.While), "while expected after do and code block (do {...} )")
-		return Node.new(NodeVariant.While, { self:Condition(), block })
+		return Node.new(NodeVariant.While, { self:Condition(), block }, trace:stitch(self:Prev().trace))
 	end
 
 	-- Event
 	if self:Consume(TokenVariant.Keyword, Keyword.Event) then
-		local name = self:Assert( self:Consume(TokenVariant.LowerIdent), "Expected event name after 'event' keyword")
-		return Node.new(NodeVariant.Event, { name, self:Parameters(), self:Block() })
+		local trace, name = self:Prev().trace, self:Assert( self:Consume(TokenVariant.LowerIdent), "Expected event name after 'event' keyword")
+		return Node.new(NodeVariant.Event, { name, self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
 	end
 end
 
@@ -539,17 +527,19 @@ end
 ---@return Index[]
 function Parser:Indices()
 	local indices = {}
-	while self:ConsumeTailing(TokenVariant.Grammar, Grammar.LSquare) do
-		self:PushTrace()
+	while true do
+		local lsb = self:ConsumeTailing(TokenVariant.Grammar, Grammar.LSquare)
+		if not lsb then break end
+
 		local exp = self:Expr()
 
 		if self:Consume(TokenVariant.Grammar, Grammar.Comma) then
 			local type = self:Assert(self:Type(), "Indexing operator ([]) requires a valid type [X, t]")
-			self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RSquare), "Right square bracket (]) missing, to close indexing operator [X,t]" )
+			local rsb = self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RSquare), "Right square bracket (]) missing, to close indexing operator [X,t]" )
 
-			indices[#indices + 1] = { exp, type, self:PopTrace() }
+			indices[#indices + 1] = { exp, type, lsb.trace:stitch(rsb.trace) }
 		elseif self:ConsumeTailing(TokenVariant.Grammar, Grammar.RSquare) then
-			indices[#indices + 1] = { exp, nil, self:PopTrace() }
+			indices[#indices + 1] = { exp, nil, lsb.trace:stitch(self:Prev().trace) }
 		else
 			self:Error("Indexing operator ([]) must not be preceded by whitespace")
 		end
@@ -559,14 +549,11 @@ function Parser:Indices()
 end
 
 function Parser:Block()
-	if not self:Consume(TokenVariant.Grammar, Grammar.LCurly) then
-		self:Error("Left curly bracket ({) expected for block")
-	end
+	local lcb = self:Assert( self:Consume(TokenVariant.Grammar, Grammar.LCurly), "Left curly bracket ({) expected for block" )
 
-	self:PushTrace()
 	local stmts = {}
 	if self:Consume(TokenVariant.Grammar, Grammar.RCurly) then
-		return Node.new(NodeVariant.Block, stmts, self:PopTrace())
+		return Node.new(NodeVariant.Block, stmts, lcb.trace:stitch(self:Prev().trace))
 	end
 
 	if not self:Eof() then
@@ -577,21 +564,15 @@ function Parser:Block()
 				self:Error("Statement separator (,) must be suceeded by statement")
 			end
 
-			self:PushTrace()
-				local stmt = self:Stmt() or self:Expr()
-				stmt.trace = self:PopTrace()
-			stmts[#stmts + 1] = stmt
+			stmts[#stmts + 1] = self:Stmt() or self:Expr()
 
 			if self:Consume(TokenVariant.Grammar, Grammar.RCurly) then
-				return Node.new(NodeVariant.Block, stmts, self:PopTrace())
+				return Node.new(NodeVariant.Block, stmts, lcb.trace:stitch(self:Prev().trace))
 			end
 
 			if not self:Consume(TokenVariant.Grammar, Grammar.Comma) then
 				if self:Eof() then break end
-
-				if not self:At().whitespaced then
-					self:Error("Statements must be separated by comma (,) or whitespace")
-				end
+				self:Assert(self:At().whitespaced, "Statements must be separated by comma (,) or whitespace")
 			end
 		end
 	end
@@ -673,7 +654,6 @@ function Parser:Expr()
 	end
 
 	-- Ternary or Default
-	self:PushTrace()
 	local cond = self:Expr2()
 	if self:Consume(TokenVariant.Operator, Operator.Qsm) then
 		local if_true = self:Expr()
@@ -682,14 +662,16 @@ function Parser:Expr()
 			self:Error("Conditional operator (:) must appear after expression to complete conditional")
 		end
 
-		return Node.new(NodeVariant.ExprTernary, { cond, if_true, self:Expr() }, self:PopTrace())
+		local if_false = self:Expr()
+
+		return Node.new(NodeVariant.ExprTernary, { cond, if_true, if_false }, cond.trace:stitch(if_true.trace):stitch(if_false.trace))
 	end
 
 	if self:Consume(TokenVariant.Operator, Operator.Def) then
-		return Node.new(NodeVariant.ExprDefault, { cond, self:Expr() }, self:PopTrace())
+		local rhs = self:Expr()
+		return Node.new(NodeVariant.ExprDefault, { cond, rhs }, cond.trace:stitch(rhs.trace))
 	end
 
-	cond.trace = self:PopTrace()
 	return cond
 end
 
@@ -703,7 +685,8 @@ function Parser:RecurseLeft(func, variant, tbl)
 		hit = false
 		for _, op in ipairs(tbl) do
 			if self:Consume(TokenVariant.Operator, op) then
-				hit, lhs = true, Node.new(variant, { lhs, op, func(self) }, self:GetTrace())
+				local rhs = func(self)
+				hit, lhs = true, Node.new(variant, { lhs, op, rhs }, lhs.trace:stitch(rhs.trace))
 				break
 			end
 		end
@@ -753,13 +736,15 @@ function Parser:Expr10()
 	end
 
 	if self:ConsumeLeading(TokenVariant.Operator, Operator.Sub) then
-		return Node.new(NodeVariant.ExprUnaryOp, { Operator.Sub, self:Expr11() }, self:GetTrace())
+		local trace, exp = self:Prev().trace, self:Expr11()
+		return Node.new(NodeVariant.ExprUnaryOp, { Operator.Sub, exp }, trace:stitch(exp.trace))
 	elseif self:Consume(TokenVariant.Operator, Operator.Sub) then
 		self:Error("Negation operator (-) must not be succeeded by whitespace")
 	end
 
 	if self:ConsumeLeading(TokenVariant.Operator, Operator.Not) then
-		return Node.new(NodeVariant.ExprUnaryOp, { Operator.Not, self:Expr10() }, self:GetTrace())
+		local trace, exp = self:Prev().trace, self:Expr10()
+		return Node.new(NodeVariant.ExprUnaryOp, { Operator.Not, exp }, trace:stitch(exp.trace))
 	elseif self:Consume(TokenVariant.Operator, Operator.Not) then
 		self:Error("Logical not operator (!) must not be succeeded by whitespace")
 	end
@@ -852,11 +837,11 @@ function Parser:Expr11()
 				end
 			end
 
-			expr = Node.new(NodeVariant.ExprMethodCall, { expr, fn, self:Arguments() }, self:GetTrace())
+			expr = Node.new(NodeVariant.ExprMethodCall, { expr, fn, self:Arguments() }, expr.trace:stitch(self:Prev().trace))
 		else
 			local indices = self:Indices()
 			if #indices > 0 then
-				expr = Node.new(NodeVariant.ExprIndex, { expr, indices }, self:GetTrace())
+				expr = Node.new(NodeVariant.ExprIndex, { expr, indices }, expr.trace:stitch(self:Prev().trace))
 			elseif self:Consume(TokenVariant.Grammar, Grammar.LSquare) then
 				self:Error("Indexing operator ([]) must not be preceded by whitespace")
 			elseif self:ConsumeTailing(TokenVariant.Grammar, Grammar.LParen) then
@@ -875,7 +860,7 @@ function Parser:Expr11()
 					end
 				end
 
-				return Node.new(NodeVariant.ExprStringCall, { expr, args, typ }, self:GetTrace())
+				return Node.new(NodeVariant.ExprStringCall, { expr, args, typ }, expr.trace:stitch(self:Prev().trace))
 			else
 				break
 			end
@@ -889,11 +874,7 @@ end
 function Parser:Expr12()
 	if self:Consume(TokenVariant.Grammar, Grammar.LParen) then
 		local expr = self:Expr()
-
-		if not self:Consume(TokenVariant.Grammar, Grammar.RParen) then
-			self:Error("Right parenthesis ()) missing, to close grouped equation")
-		end
-
+		self:Assert( self:Consume(TokenVariant.Grammar, Grammar.RParen), "Right parenthesis ()) missing, to close grouped equation" )
 		return expr
 	end
 
@@ -901,12 +882,12 @@ function Parser:Expr12()
 	if fn then
 		-- Transform key value
 		if fn.value == "array" then
-			return Node.new(NodeVariant.ExprArray, self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments(), self:GetTrace())
+			return Node.new(NodeVariant.ExprArray, self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments(), fn.trace:stitch(self:Prev().trace))
 		elseif fn.value == "table" then
-			return Node.new(NodeVariant.ExprTable, self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments(), self:GetTrace())
+			return Node.new(NodeVariant.ExprTable, self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments(), fn.trace:stitch(self:Prev().trace))
 		end
 
-		return Node.new(NodeVariant.ExprCall, { fn, self:Arguments() }, self:GetTrace())
+		return Node.new(NodeVariant.ExprCall, { fn, self:Arguments() }, fn.trace:stitch(self:Prev().trace))
 	end
 
 	-- Decimal / Hexadecimal / Binary numbers
@@ -944,7 +925,8 @@ function Parser:Expr12()
 
 	-- Unary Wiremod Operators
 	for _, v in ipairs { { "~", Operator.Trg }, { "$", Operator.Dlt }, { "->", Operator.Imp } } do
-		if self:Consume(TokenVariant.Operator, v[2]) then
+		local op = self:Consume(TokenVariant.Operator, v[2])
+		if op then
 			local ident = self:ConsumeTailing(TokenVariant.Ident)
 			if not ident then
 				if self:Consume(TokenVariant.Ident) then
@@ -952,9 +934,9 @@ function Parser:Expr12()
 				else
 					self:Error("Operator (" .. v[1] .. ") must be followed by variable")
 				end
-			end
+			end ---@cast ident Token # Know it isn't nil from above check
 
-			return Node.new(NodeVariant.ExprUnaryWire, { v[2], ident }, self:GetTrace())
+			return Node.new(NodeVariant.ExprUnaryWire, { v[2], ident }, op.trace:stitch(ident.trace))
 		end
 	end
 
