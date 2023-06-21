@@ -21,9 +21,8 @@ _G.wire_expression_types = {
 if not unpack then unpack = table.unpack end
 function istable(t) return type(t) == "table" end
 
-function string.Trim(s, char)
-	if ( char ) then char = string.PatternSafe( char ) else char = "%s" end
-	return string.match( s, "^" .. char .. "*(.-)" .. char .. "*$" ) or s
+function string.Trim(s)
+	return string.match( s, "^%s*(.-)%s*$" ) or s
 end
 
 function string.Split(str, separator)
