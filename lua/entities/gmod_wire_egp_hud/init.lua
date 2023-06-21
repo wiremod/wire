@@ -39,7 +39,7 @@ function ENT:TriggerInput( name, value )
 end
 
 function ENT:Use(ply)
-	EGP.EGPHudConnect(self, not self.Users[ply], true, ply)
+	EGP.EGPHudConnect(self, not self.Users[ply], ply)
 end
 
 function ENT:SetEGPOwner(ply)

@@ -2,9 +2,7 @@ local function Update(self,this)
 	self.data.EGP.UpdatesNeeded[this] = true
 end
 
-local getCenter = EGP.ParentingFuncs.getCenter
 local getCenterFromPos = EGP.ParentingFuncs.getCenterFromPos
-local makeArray = EGP.ParentingFuncs.makeArray
 
 --------------------------------------------------------
 -- Frames
@@ -1147,8 +1145,8 @@ e2function void wirelink:egpHudToggle()
 	if antispam[self.player] and antispam[self.player] > CurTime() then return end
 	antispam[self.player] = CurTime() + 0.1
 	
-	timer.Simple(0.02, function()
-		EGP.EGPHudConnect(this, not (this.Users ~= nil and this.Users[self.player] ~= nil), true, self.player)
+	timer.Simple(0, function()
+		EGP.EGPHudConnect(this, not (this.Users ~= nil and this.Users[self.player] ~= nil), self.player)
 	end)
 end
 
@@ -1157,8 +1155,8 @@ e2function void wirelink:egpHudEnable(enable)
 	if antispam[self.player] and antispam[self.player] > CurTime() then return end
 	antispam[self.player] = CurTime() + 0.1
 	
-	timer.Simple(0.02, function()
-		EGP.EGPHudConnect(this, enable ~= 0, true, self.player)
+	timer.Simple(0, function()
+		EGP.EGPHudConnect(this, enable ~= 0, self.player)
 	end)
 end
 
