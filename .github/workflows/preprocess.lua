@@ -5,17 +5,16 @@
 AddCSLuaFile = function() end
 _G.E2Lib = {}
 _G.wire_expression_types = {
-	["VECTOR"] = { "v" },
-	["VECTOR2"] = { "xv2" },
-	["VECTOR4"] = { "xv4" },
-	["STRING"] = { "s" },
-	["NORMAL"] = { "n" },
-	["ANGLE"] = { "a" },
-	["ARRAY"] = { "r" },
-	["TABLE"] = { "t" },
-	["ENTITY"] = { "e" },
-	["WIRELINK"] = { "xwl" },
-	["BONE"] = { "b" }, -- Rest of the types seem to properly be picked up by Pass1.
+	VECTOR = {"v"}, VECTOR2 = {"xv2"},
+	VECTOR4 = {"xv4"}, STRING = {"s"},
+	NORMAL = {"n"}, ANGLE = {"a"},
+	ARRAY = {"r"}, TABLE = {"t"},
+	ENTITY = {"e"}, WIRELINK = {"xwl"},
+	BONE = {"b"}, QUATERNION = {"q"},
+	COMPLEX = {"c"}, GTABLE = {"xgt"},
+	MATRIX = {"m"}, MATRIX2 = {"xm2"},
+	MATRIX4 = {"xm4"}, RANGER = {"xrd"},
+	EFFECT = {"xef"}
 }
 
 if not unpack then unpack = table.unpack end
