@@ -1162,16 +1162,6 @@ e2function void wirelink:egpHudEnable(enable)
 	end)
 end
 
-e2function void wirelink:egpHudEnableSilent(enable)
-	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", nil) end
-	if antispam[self.player] and antispam[self.player] > CurTime() then return end
-	antispam[self.player] = CurTime() + 0.1
-	
-	timer.Simple(0.02, function()
-		EGP.EGPHudConnect(this, enable ~= 0, false, self.player)
-	end)
-end
-
 e2function array wirelink:egpConnectedUsers()
 	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", nil) end
 	if not this.Users then return {} end
