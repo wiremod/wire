@@ -20,6 +20,7 @@ Editor.FontAntialiasingConvar = CreateClientConVar("wire_expression2_editor_font
 Editor.BlockCommentStyleConVar = CreateClientConVar("wire_expression2_editor_block_comment_style", 1, true, false)
 Editor.NewTabOnOpen = CreateClientConVar("wire_expression2_new_tab_on_open", "1", true, false)
 Editor.ops_sync_subscribe = CreateClientConVar("wire_expression_ops_sync_subscribe",0,true,false)
+Editor.ScrollToWarning = CreateClientConVar("wire_expression2_editor_show_warning_on_validate", 1, true, false)
 
 Editor.Fonts = {}
 -- 				Font					Description
@@ -1156,7 +1157,6 @@ function Editor:InitControlPanel(frame)
 		self:ChangeFont(self.FontConVar:GetString(), self.FontSizeConVar:GetInt())
 	end
 
-
 	local label = vgui.Create("DLabel")
 	dlist:AddItem(label)
 	label:SetText("Auto completion options")
@@ -1266,6 +1266,14 @@ function Editor:InitControlPanel(frame)
 	function WorldClicker.OnChange(pnl, bVal)
 		self:GetParent():SetWorldClicker(bVal)
 	end
+
+	local ScrollToWarning = vgui.Create("DCheckBoxLabel")
+	dlist:AddItem(ScrollToWarning)
+	ScrollToWarning:SetConVar("wire_expression2_editor_show_warning_on_validate")
+	ScrollToWarning:SetText("Scroll to warning on validate")
+	ScrollToWarning:SizeToContents()
+	ScrollToWarning:SetTooltip("Scrolls to the topmost warning in the editor on validate.")
+
 
 	--------------------------------------------- EXPRESSION 2 TAB
 	sheet = self:AddControlPanelTab("Expression 2", "icon16/computer.png", "Options for Expression 2.")
@@ -1655,7 +1663,7 @@ function Editor:Validate(gotoerror)
 				local nwarnings = #warnings
 				local warning = warnings[1]
 
-				if gotoerror then
+				if gotoerror and self.ScrollToWarning:GetBool() then
 					header_text = "Warning (1/" .. nwarnings .. "): " .. warning.message
 
 					self:GetCurrentEditor():SetCaret { warning.trace.start_line, warning.trace.start_col  }

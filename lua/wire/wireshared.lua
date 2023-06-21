@@ -36,18 +36,6 @@ function table.Compact(tbl, cb, n) -- luacheck: ignore
 	end
 end
 
--- I don't even know if I need this one.
--- HUD indicator needs this one
-function table.MakeSortedKeys(tbl) -- luacheck: ignore
-	local result = {}
-
-	for k,_ in pairs(tbl) do table.insert(result, k) end
-	table.sort(result)
-
-	return result
-end
-
-
 function string.GetNormalizedFilepath( path ) -- luacheck: ignore
 	local null = string.find(path, "\x00", 1, true)
 	if null then path = string.sub(path, 1, null-1) end
@@ -142,26 +130,6 @@ function pairs_map(tbl, mapfunction)
 end
 
 -- end extra table functions
-
-function WireLib.dummytrace(ent)
-	local pos = ent:GetPos()
-	return {
-		FractionLeftSolid = 0,
-		HitNonWorld       = true,
-		Fraction          = 0,
-		Entity            = ent,
-		HitPos            = pos,
-		HitNormal         = Vector(0,0,0),
-		HitBox            = 0,
-		Normal            = Vector(1,0,0),
-		Hit               = true,
-		HitGroup          = 0,
-		MatType           = 0,
-		StartPos          = pos,
-		PhysicsBone       = 0,
-		WorldToLocal      = Vector(0,0,0),
-	}
-end
 
 local table = table
 local pairs_sortvalues = pairs_sortvalues

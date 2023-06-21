@@ -74,43 +74,34 @@ if CLIENT then
 	local RT_CACHE_SIZE = 64
 	local RenderTargetCache = { }
 
-	for i = 1,RT_CACHE_SIZE do
+	-- Todo: Just dynamically create table elements instead of having them pre-defined?
+	for i = 1, RT_CACHE_SIZE do
 		local Target = {
 			false, -- Is rendertarget in use
-			false -- The rendertarget (false if doesn't exist)
+			nil -- The rendertarget
 		}
-		table.insert( RenderTargetCache, Target )
+		table.insert(RenderTargetCache, Target)
 	end
 
 	-- Returns a render target from the cache pool and marks it as used
 	local function GetRT()
-		for i, RT in pairs( RenderTargetCache ) do
+		for i, RT in ipairs(RenderTargetCache) do
 			if not RT[1] then -- not used
-
 				local rendertarget = RT[2]
 				if rendertarget then
 					RT[1] = true -- Mark as used
 					return rendertarget
-				end
-
-			end
-		end
-
-		-- No free rendertargets. Find first non used and create it.
-		for i, RT in pairs( RenderTargetCache ) do
-			if not RT[1] and  RT[2] == false then -- not used and doesn't exist, let's create the render target.
-
-					local rendertarget = GetRenderTarget("WireGPU_RT_"..i, 1024, 1024)
-
+				else
+				local rendertarget = GetRenderTargetEx("WireGPU_RT_" .. i, 1024, 1024, RT_SIZE_NO_CHANGE, MATERIAL_RT_DEPTH_SEPARATE, 256, 0, 12)
 					if rendertarget then
 						RT[1] = true -- Mark as used
 						RT[2] = rendertarget -- Assign the RT
 						return rendertarget
 					else
 						RT[1] = true -- Mark as used since we couldn't create it
-						ErrorNoHalt("Wiremod: Render target ".."WireGPU_RT_"..i.." could not be created!\n")
+						ErrorNoHalt("Wiremod: Render target WireGPU_RT_" .. i .. " could not be created!\n")
 					end
-
+				end
 			end
 		end
 

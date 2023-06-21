@@ -68,7 +68,7 @@ end
 
 function ENT:CheckPP(ent)
 	-- Check Prop Protection. Most block/allow all of CanTool, but lets check hoverdrive controller specifically, since if they can attach one to your vehicle, they can simulate this anyways
-	return IsValid(ent) and gamemode.Call("CanTool", self:GetPlayer(), WireLib.dummytrace(ent), "wire_hoverdrivecontroller")
+	return IsValid(ent) and WireLib.CanTool(self:GetPlayer(), ent, "wire_hoverdrivecontroller")
 end
 
 function ENT:Think()

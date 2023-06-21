@@ -315,103 +315,104 @@ function ENT:RenderMisc(pos, ang, resolution, aspect, monitor)
 end
 
 
-
+local VECTOR_1_1_1 = Vector(1, 1, 1)
 --------------------------------------------------------------------------------
 -- Entity drawing function
 function ENT:Draw()
-  -- Calculate time-related variables
-  self.CurrentTime = CurTime()
-  self.DeltaTime = math.min(1/30,self.CurrentTime - (self.PreviousTime or 0))
-  self.PreviousTime = self.CurrentTime
+	-- Calculate time-related variables
+	self.CurrentTime = CurTime()
+	self.DeltaTime = math.min(1/30,self.CurrentTime - (self.PreviousTime or 0))
+	self.PreviousTime = self.CurrentTime
 
-  -- Draw GPU itself
-  self:DrawModel()
+	-- Draw GPU itself
+	self:DrawModel()
+  
+	local tone = render.GetToneMappingScaleLinear()
+	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
 
-  -- Draw image from another GPU
-  local videoSource = MonitorLookup[self:EntIndex()]
-  if videoSource then
-    videoGPU = ents.GetByIndex(videoSource)
-    if videoGPU and videoGPU:IsValid() and videoGPU.GPU then
-      videoGPU.GPU.Entity = self
-      videoGPU.GPU:Render(
-       videoGPU.VM:ReadCell(65522), videoGPU.VM:ReadCell(65523)-videoGPU.VM:ReadCell(65518)/512, -- rotation, scale
-        512*math.Clamp(videoGPU.VM:ReadCell(65525),0,1), 512*math.Clamp(videoGPU.VM:ReadCell(65524),0,1)
-      )
-      videoGPU.GPU.Entity = videoGPU
-    end
-    Wire_Render(self)
-    return
-  end
+	-- Draw image from another GPU
+	local videoSource = MonitorLookup[self:EntIndex()]
+	if videoSource then
+		videoGPU = ents.GetByIndex(videoSource)
+		if videoGPU and videoGPU:IsValid() and videoGPU.GPU then
+			videoGPU.GPU.Entity = self
+			videoGPU.GPU:Render(
+				videoGPU.VM:ReadCell(65522), videoGPU.VM:ReadCell(65523)-videoGPU.VM:ReadCell(65518)/512, -- rotation, scale
+				512*math.Clamp(videoGPU.VM:ReadCell(65525),0,1), 512*math.Clamp(videoGPU.VM:ReadCell(65524),0,1)
+			)
+			videoGPU.GPU.Entity = videoGPU
+		end
+	else
+		if self.DeltaTime > 0 then
+			-- Run the per-frame GPU thread
+			if self.VM.Memory[65532] == 0 then
+				local FrameRate = wire_gpu_frameratio:GetFloat() or 4
+				self.FramesSinceRedraw = (self.FramesSinceRedraw or 0) + 1
+				self.FrameInstructions = 0
+				if self.FramesSinceRedraw >= FrameRate then
+				self.FramesSinceRedraw = 0
+				self:RenderGPU()
+				end
+			end
 
-  if self.DeltaTime > 0 then
-    -- Run the per-frame GPU thread
-    if self.VM.Memory[65532] == 0 then
-      local FrameRate = wire_gpu_frameratio:GetFloat() or 4
-      self.FramesSinceRedraw = (self.FramesSinceRedraw or 0) + 1
-      self.FrameInstructions = 0
-      if self.FramesSinceRedraw >= FrameRate then
-        self.FramesSinceRedraw = 0
-        self:RenderGPU()
-      end
-    end
+			-- Run asynchronous thread
+			if self.VM.Memory[65528] == 1 then
+				self.VM.VertexMode = 0
+				if self.VM.LastBuffer < 2
+				then self:SetRendertarget(self.VM.LastBuffer)
+				else self:SetRendertarget() end
 
-    -- Run asynchronous thread
-    if self.VM.Memory[65528] == 1 then
-      self.VM.VertexMode = 0
-      if self.VM.LastBuffer < 2
-      then self:SetRendertarget(self.VM.LastBuffer)
-      else self:SetRendertarget()
-      end
+				self.VM:RestoreAsyncThread()
+				self:Run(true)
+				self.VM:SaveAsyncThread()
 
-      self.VM:RestoreAsyncThread()
-      self:Run(true)
-      self.VM:SaveAsyncThread()
+				self:SetRendertarget()
+			end
+		end
 
-      self:SetRendertarget()
-    end
-  end
+	  -- Draw GPU to world
+		if self.ChipType == 0 then -- Not a microchip
+			if self.VM.Memory[65532] == 0 then
+				self.GPU:Render(
+				self.VM:ReadCell(65522), self.VM:ReadCell(65523)-self.VM:ReadCell(65518)/512, -- rotation, scale
+				1024*math.Clamp(self.VM:ReadCell(65525),0,1), 1024*math.Clamp(self.VM:ReadCell(65524),0,1), -- width, height
+				function(pos, ang, resolution, aspect, monitor) -- postrenderfunction
+					self:RenderMisc(pos, ang, resolution, aspect, monitor)
+				end,-0.5,-0.5
+			)
+			else
+				-- Custom render to world
+				local monitor, pos, ang = self.GPU:GetInfo()
 
-  -- Draw GPU to world
-  if self.ChipType == 0 then -- Not a microchip
-    if self.VM.Memory[65532] == 0 then
-      self.GPU:Render(
-        self.VM:ReadCell(65522), self.VM:ReadCell(65523)-self.VM:ReadCell(65518)/512, -- rotation, scale
-        1024*math.Clamp(self.VM:ReadCell(65525),0,1), 1024*math.Clamp(self.VM:ReadCell(65524),0,1), -- width, height
-        function(pos, ang, resolution, aspect, monitor) -- postrenderfunction
-          self:RenderMisc(pos, ang, resolution, aspect, monitor)
-        end,-0.5,-0.5
-      )
-    else
-      -- Custom render to world
-      local monitor, pos, ang = self.GPU:GetInfo()
+				--pos = pos + ang:Up()*zoffset
+				pos = pos - ang:Right()*(monitor.y2-monitor.y1)/2
+				pos = pos - ang:Forward()*(monitor.x2-monitor.x1)/2
 
-      --pos = pos + ang:Up()*zoffset
-      pos = pos - ang:Right()*(monitor.y2-monitor.y1)/2
-      pos = pos - ang:Forward()*(monitor.x2-monitor.x1)/2
+				local width,height = 1024*math.Clamp(self.VM.Memory[65525],0,1),
+									 1024*math.Clamp(self.VM.Memory[65524],0,1)
 
-      local width,height = 1024*math.Clamp(self.VM.Memory[65525],0,1),
-                           1024*math.Clamp(self.VM.Memory[65524],0,1)
+				local h = width and width*monitor.RatioX or height or 1024
+				local w = width or h/monitor.RatioX
+				local x = -w/2
+				local y = -h/2
 
-      local h = width and width*monitor.RatioX or height or 1024
-      local w = width or h/monitor.RatioX
-      local x = -w/2
-      local y = -h/2
-
-      local res = monitor.RS*1024/h
-      self.VertexCamSettings = { pos, ang, res }
-      cam.Start3D2D(pos, ang, res)
-      self.In3D2D = true
-        local ok, err = xpcall(function()
-          self:RenderVertex(1024,1024*monitor.RatioX)
-          self:RenderMisc(pos, ang, res, 1/monitor.RatioX, monitor)
-          end, debug.traceback)
-		if not ok then WireLib.ErrorNoHalt(err) end
-      if self.In3D2D then self.In3D2D = false cam.End3D2D() end
-      self.VertexCamSettings = nil
-    end
-  end
-
-  Wire_Render(self)
+				local res = monitor.RS*1024/h
+				self.VertexCamSettings = { pos, ang, res }
+				cam.Start3D2D(pos, ang, res)
+				self.In3D2D = true
+					local ok, err = xpcall(function()
+					self:RenderVertex(1024,1024*monitor.RatioX)
+					self:RenderMisc(pos, ang, res, 1/monitor.RatioX, monitor)
+					end, debug.traceback)
+					if not ok then WireLib.ErrorNoHalt(err) end
+				if self.In3D2D then self.In3D2D = false cam.End3D2D() end
+				self.VertexCamSettings = nil
+			end
+		end
+	end
+  
+	render.SetToneMappingScaleLinear(tone)
+	Wire_Render(self)
 end
 
 
