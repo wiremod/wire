@@ -27,7 +27,7 @@ jobs:
           files: lua/entities/gmod_wire_expression2/core/**.{lua}
 
       - name: Run E2 Extension Preprocessor if any changed
-        if: steps.changed-files-specific.outputs.any_changed == 'true'
+        if: steps.changed-core-files.outputs.any_changed == 'true'
         run: |
           lua .github/workflows/preprocess.lua
 
