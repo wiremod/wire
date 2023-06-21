@@ -81,7 +81,6 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		local vehiclelinks = {}
 		
 		local function EGPHudConnect(ent, state, prnt, ply)
-		print(ent, state, prnt, ply)
 			if state then
 				if not ent.Users then ent.Users = {} end
 				
@@ -98,9 +97,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 				return
 			end
 			
-			local t = { ent, ply, state and 1 or 0 }
-			PrintTable(t)
-			E2Lib.triggerEvent("egpHudConnect", t)
+			E2Lib.triggerEvent("egpHudConnect", { ent, ply, state and 1 or 0 })
 			
 			net.Start("EGP_HUD_Use") net.WriteEntity(ent) net.WriteBool(state) net.WriteBool(prnt) net.Send(ply)
 			
