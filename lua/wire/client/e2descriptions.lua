@@ -1417,7 +1417,6 @@ E2Helper.Descriptions["egpGlobalFiltering(xwl:n)"] = "Changes the texture filter
 E2Helper.Descriptions["egpHasObject(xwl:n)"] = "Returns 1 if the object with specified index exists on the screen, 0 if not"
 E2Helper.Descriptions["egpObjectContainsPoint(xwl:nxv2)"] = "Returns 1 if the object with specified index contains the specified point"
 E2Helper.Descriptions["egpHudEnable(xwl:n)"] = "Enables the HUD if the input is not 0"
-E2Helper.Descriptions["egpHudEnableSilent(xwl:n)"] = "Enables the HUD without printing to the chat"
 E2Helper.Descriptions["egpHudToggle(xwl:)"] = "Toggles the HUD on/off"
 E2Helper.Descriptions["egpLoadFrame(xwl:n)"] = "Loads the frame with specified index"
 E2Helper.Descriptions["egpLoadFrame(xwl:s)"] = "Loads the frame with specified name"
@@ -1589,6 +1588,6 @@ local from_easings = {"OutElastic","OutCirc","InOutQuint","InCubic","InOutCubic"
 
 for k, v in pairs(from_easings) do
 	local name = "ease" .. v
-	
+
 	E2Helper.Descriptions[name .. "(n)"] = "Performs " .. v .. " interpolation on the argument. You can see how all of these interpolation functions look here: https://imgur.com/XZPgymK"
 end
