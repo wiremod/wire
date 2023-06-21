@@ -11,30 +11,25 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		local function EGP_Use()
 			local ent = net.ReadEntity()
 			if not ent or not ent:IsValid() then return end
-			local bool = net.ReadInt(2) or 0
-			if bool == -1 then
-				tbl[ent] = nil
-			elseif bool == 1 then
+			
+			if net.ReadBool() then -- Enable
 				tbl[ent] = true
-			elseif bool == 0 then
+			else
+				tbl[ent] = nil
+			end
+				
+			if net.ReadBool() then -- Print
 				if tbl[ent] then
-					tbl[ent] = nil
-					LocalPlayer():ChatPrint("[EGP] EGP HUD Disconnected.")
-				else
-					tbl[ent] = true
 					if EGP_HUD_FirstPrint then
 						LocalPlayer():ChatPrint("[EGP] EGP HUD Connected. NOTE: Type 'wire_egp_hud_unlink' in console to disconnect yourself from all EGP HUDs.")
 						EGP_HUD_FirstPrint = nil
 					else
 						LocalPlayer():ChatPrint("[EGP] EGP HUD Connected.")
 					end
+				else
+					LocalPlayer():ChatPrint("[EGP] EGP HUD Disconnected.")
 				end
 			end
-			
-			net.Start("EGP_HUD_Use")
-			net.WriteEntity(ent)
-			net.WriteBool(tbl[ent] or false)
-			net.SendToServer()
 		end
 		net.Receive("EGP_HUD_Use", EGP_Use)
 
@@ -85,30 +80,32 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 	else -- SERVER
 		local vehiclelinks = {}
 		
-		local function EGP_Use_Server(len, ply)
-			local ent = net.ReadEntity()
-			local state = net.ReadBool()
-			if not IsValid(ent) then return end
-			
-			if not ent.Users then ent.Users = {} end
-			
+		local function EGPHudConnect(ent, state, prnt, ply)
+		print(ent, state, prnt, ply)
 			if state then
+				if not ent.Users then ent.Users = {} end
+				
 				if not ent.Users[ply] then
 					ent.Users[ply] = true
 				end
-			else
+			elseif ent.Users and ent.Users[ply] then
 				ent.Users[ply] = nil
+				
+				if table.IsEmpty(ent.Users) and not ent.IsEGPHUD then
+					ent.Users = nil
+				end
+			else -- Nothing changed
+				return
 			end
 			
-			E2Lib.triggerEvent("egpHudConnect", { ent, ply, state and 1 or 0 })
+			local t = { ent, ply, state and 1 or 0 }
+			PrintTable(t)
+			E2Lib.triggerEvent("egpHudConnect", t)
 			
-			-- Remove Users if the EGP isn't a HUD
-			if table.IsEmpty(ent.Users) and not ent.IsEGPHUD then
-				ent.Users = nil
-			end
+			net.Start("EGP_HUD_Use") net.WriteEntity(ent) net.WriteBool(state) net.WriteBool(prnt) net.Send(ply)
 			
 		end
-		net.Receive("EGP_HUD_Use", EGP_Use_Server)
+		EGP.EGPHudConnect = EGPHudConnect
 		
 		local function unlinkUser(ply)
 			local egps = ents.FindByClass("gmod_wire_egp*")
@@ -160,10 +157,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 						if vehicle:IsValid() then
 							vehicle:RemoveCallOnRemove("EGP HUD unlink on remove")
 							if vehicle:GetDriver() and vehicle:GetDriver():IsValid() then
-								net.Start("EGP_HUD_Use")
-									net.WriteEntity(hud)
-									net.WriteInt(-1, 2)
-								net.Send(vehicle:GetDriver())
+								EGPHudConnect(hud, false, false, vehicle:GetDriver())
 							end
 						end
 					end
@@ -193,10 +187,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		hook.Add("PlayerEnteredVehicle","EGP_HUD_PlayerEnteredVehicle",function(ply, vehicle)
 			for k, v in pairs( vehiclelinks ) do
 				if v[vehicle] ~= nil then
-					net.Start("EGP_HUD_Use")
-						net.WriteEntity(k)
-						net.WriteInt(1, 2)
-					net.Send(ply)
+					EGPHudConnect(k, true, false, ply)
 				end
 			end
 		end)
@@ -204,10 +195,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		hook.Add("PlayerLeaveVehicle","EGP_HUD_PlayerLeaveVehicle",function(ply, vehicle)
 			for k, v in pairs( vehiclelinks ) do
 				if v[vehicle] ~= nil then
-					net.Start( "EGP_HUD_Use")
-						net.WriteEntity(k)
-						net.WriteInt(-1, 2)
-					net.Send(ply)
+					EGPHudConnect(k, false, false, ply)
 				end
 			end
 		end)

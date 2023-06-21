@@ -39,7 +39,7 @@ function ENT:TriggerInput( name, value )
 end
 
 function ENT:Use(ply)
-	net.Start("EGP_HUD_Use") net.WriteEntity(self) net.WriteInt(0, 2) net.Send(ply)
+	EGP.EGPHudConnect(self, not self.Users[ply], true, ply)
 end
 
 function ENT:SetEGPOwner(ply)
