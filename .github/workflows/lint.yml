@@ -27,4 +27,4 @@ jobs:
 
       - name: Lint Code
         run: |
-          ./glualint lua
+          ./glualint $(git diff --name-only ${{github.ref}}...${{github.base_ref}})
