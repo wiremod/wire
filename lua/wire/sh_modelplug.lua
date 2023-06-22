@@ -60,7 +60,12 @@ ModelPlug.ListAddGenerics("Wire_Socket_Models", {
 		ang = Angle(90, 0, 0),
 		plug = "models/fasteroid/plugs/sd_card.mdl",
 		pos = Vector(0, 0, 0)
-	}
+	},
+	["models/fasteroid/plugs/microusb_socket.mdl"] = { 
+		ang = Angle(90, 0, 0),
+		plug = "models/fasteroid/plugs/microusb_plug.mdl",
+		pos = Vector(0, 0, 0)
+	},
 })
 
 hook.Run("ModelPlugLuaRefresh")
