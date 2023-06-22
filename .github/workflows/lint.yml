@@ -25,7 +25,7 @@ jobs:
 
       - name: Run E2 Extension Preprocessor
         run: |
-          lua .github/workflows/preprocess.lua
+          lua .github/workflows/preprocess.lua ${{ steps.changed-files.outputs.all_changed_files }}
 
       - name: Download GluaFixer
         run: |
