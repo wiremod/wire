@@ -243,7 +243,7 @@ function ZVM:ReadCell(Address)
     else
     -- Extra cycles for the external operation
       self.TMR = self.TMR + 15
-      value = tonumber(self:ExternalRead(Address)) or 0
+      value = self:ExternalRead(Address)
     end
 
     -- Check if page is overriden
@@ -268,7 +268,7 @@ function ZVM:ReadCell(Address)
   else
     -- Extra cycles for the external operation
     self.TMR = self.TMR + 15
-    return tonumber(self:ExternalRead(Address)) or 0
+    return self:ExternalRead(Address)
   end
 end
 
