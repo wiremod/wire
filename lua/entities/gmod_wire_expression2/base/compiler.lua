@@ -1312,7 +1312,10 @@ local CompileVisitors = {
 			local id = var.scope:Depth()
 
 			return function(state) ---@param state RuntimeContext
-				return sub_op(state, state.Scopes[id][var_name], state.Scopes[id]["$" .. var_name])
+				local current, past = state.Scopes[id][var_name], state.Scopes[id]["$" .. var_name]
+				local diff = sub_op(state, current, past)
+				state.Scopes[id]["$" .. var_name] = current
+				return diff
 			end, sub_ty
 		elseif data[1] == Operator.Trg then -- ~
 			return function(state) ---@param state RuntimeContext

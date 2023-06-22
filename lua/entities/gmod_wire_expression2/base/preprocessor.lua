@@ -19,13 +19,8 @@ PreProcessor.__index = PreProcessor
 
 E2Lib.PreProcessor = PreProcessor
 
----@param buffer string
----@param directives PPDirectives
----@param ent userdata?
----@return boolean ok
----@return PPDirectives|Error[]? directives
----@return string? newcode
----@return PreProcessor self
+---@overload fun(buffer: string, directives: PPDirectives, ent: userdata?): nil, Error[]
+---@overload fun(buffer: string, directives: PPDirectives, ent: userdata?): boolean, PPDirectives, string, PreProcessor
 function PreProcessor.Execute(buffer, directives, ent)
 	-- instantiate PreProcessor
 	local instance = setmetatable({}, PreProcessor)
@@ -327,7 +322,7 @@ end
 
 
 ---@alias IODirective { [1]: string[], [2]: TypeSignature[], [3]: table<string, TypeSignature>, [4]: table<string, string>, [5]: table<string, Trace>  }
----@alias PPDirectives { inputs: IODirective, outputs: IODirective, persist: IODirective, name: string?, model: string?, trigger: { [1]: boolean?, [2]: table<string, boolean> } }
+---@alias PPDirectives { inputs: IODirective, outputs: IODirective, persist: IODirective, name: string?, model: string?, trigger: { [1]: boolean?, [2]: table<string, boolean> }, strict: boolean? }
 
 ---@param buffer string
 ---@param directives PPDirectives

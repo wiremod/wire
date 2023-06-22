@@ -41,7 +41,7 @@ e2function angle ang(vector rv1)
 end
 
 e2function number operator_is(angle this)
-	return a:IsZero() and 0 or 1
+	return this:IsZero() and 0 or 1
 end
 
 e2function number operator==(angle lhs, angle rhs)

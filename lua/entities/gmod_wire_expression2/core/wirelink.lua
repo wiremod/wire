@@ -179,8 +179,6 @@ end
 /******************************************************************************/
 
 registerCallback("postinit", function()
-
-	local getf, setf
 	-- generate getters and setters for all types
 	for typename, v in pairs( wire_expression_types ) do
 		local id = v[1]
@@ -195,39 +193,18 @@ registerCallback("postinit", function()
 		-- for T:setNumber() etc
 		local setter = "set"..fname:sub(1,1):upper()..fname:sub(2):lower()
 
+		local getf, setf
 		if input_serializer then
-			if istable(zero) and not next(zero) then
-				-- table/array
-				function getf(self, args)
-					local this, portname = args[2], args[3]
-					this, portname = this[1](self, this), portname[1](self, portname)
+			-- all other types with input serializers
+			function getf(self, this, portname)
+				if not validWirelink(self, this) then return input_serializer(self, zero) end
 
-					if not validWirelink(self, this) then return {} end
+				portname = mapOutputAlias(this, portname)
+				if not this.Outputs then return input_serializer(self, zero) end
+				if not this.Outputs[portname] then return input_serializer(self, zero) end
+				if this.Outputs[portname].Type ~= typename then return input_serializer(self, zero) end
 
-					portname = mapOutputAlias(this, portname)
-
-					if not this.Outputs then return {} end
-					if not this.Outputs[portname] then return {} end
-					if this.Outputs[portname].Type ~= typename then return {} end
-
-					return input_serializer(self, this.Outputs[portname].Value)
-				end
-			else
-				-- all other types with input serializers
-				function getf(self, args)
-					local this, portname = args[2], args[3]
-					this, portname = this[1](self, this), portname[1](self, portname)
-
-					if not validWirelink(self, this) then return input_serializer(self, zero) end
-
-					portname = mapOutputAlias(this, portname)
-
-					if not this.Outputs then return input_serializer(self, zero) end
-					if not this.Outputs[portname] then return input_serializer(self, zero) end
-					if this.Outputs[portname].Type ~= typename then return input_serializer(self, zero) end
-
-					return input_serializer(self, this.Outputs[portname].Value)
-				end
+				return input_serializer(self, this.Outputs[portname].Value)
 			end
 		else
 			-- all types without an input serializer
@@ -267,10 +244,16 @@ registerCallback("postinit", function()
 			end
 		end
 
-		registerFunction(getter, "xwl:s", id, getf, 5)
 		registerOperator("indexget", "xwls" .. id, id, getf, 5)
-		registerFunction(setter, "xwl:s" .. id, id, setf, 5)
+		registerFunction(getter, "xwl:s", id, function(state, args)
+			return getf(state, args[1], args[2])
+		end, 15, nil, { deprecated = true, legacy = false })
+
 		registerOperator("indexset", "xwls" .. id, id, setf, 5)
+
+		registerFunction(setter, "xwl:s" .. id, id, function(state, args)
+			return setf(state, args[1], args[2], args[3])
+		end, 15, nil, { deprecated = true, legacy = false })
 	end
 end)
 

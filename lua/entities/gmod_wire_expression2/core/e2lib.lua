@@ -1187,23 +1187,6 @@ function RuntimeContext:LoadScopes(scopes)
 	self.Scopes, self.ScopeID, self.Scope = scopes[1], scopes[2], scopes[3]
 end
 
---- Mimics an E2 Context as if it were really on an entity.
---- This code can probably be deduplicated but that'd needlessly complicate things, and I've made this compact enough.
----@param owner userdata? # Owner, or assumes world
----@return RuntimeContext? # Context or nil if failed
-local function makeContext(owner)
-	local context = RuntimeContext.builder()
-		:build()
-
-	-- Construct the context to run code.
-	local ok, why = pcall(wire_expression2_CallHook, "construct", ctx)
-	if not ok then
-		pcall(wire_expression2_CallHook, "destruct", ctx)
-	end
-
-	return context
-end
-
 --- Compiles an E2 script without an entity owning it.
 --- This doesn't have 1:1 behavior with an actual E2 chip existing, but is useful for testing.
 ---@param code string E2 Code to compile.
@@ -1212,7 +1195,7 @@ end
 ---@return string|function compiled Compiled function, or error message if not success
 function E2Lib.compileScript(code, owner, run)
 	local status, directives, code = E2Lib.PreProcessor.Execute(code)
-	if not status then return false, directives end -- Preprocessor failed.
+	if not status then return false, directives end
 
 	local status, tokens = E2Lib.Tokenizer.Execute(code)
 	if not status then return false, tokens end
@@ -1223,7 +1206,10 @@ function E2Lib.compileScript(code, owner, run)
 	local status, script, inst = E2Lib.Compiler.Execute(tree, directives, dvars, {})
 	if not status then return false, script end
 
-	local ctx = makeContext(owner or game.GetWorld())
+	local ctx = RuntimeContext.builder()
+		:withOwner(owner or game.GetWorld())
+		:build()
+
 	if directives.strict then
 		local err = E2Lib.raiseException
 		function ctx:throw(msg)
@@ -1233,6 +1219,24 @@ function E2Lib.compileScript(code, owner, run)
 		function ctx:throw(_msg, variable)
 			return variable
 		end
+	end
+
+	-- Initialize global variables with default values.
+	for k, v in pairs(directives.inputs[3]) do
+		ctx.GlobalScope[k] = E2Lib.fixDefault(wire_expression_types2[v][2])
+	end
+
+	for k, v in pairs(directives.outputs[3]) do
+		ctx.GlobalScope[k] = E2Lib.fixDefault(wire_expression_types2[v][2])
+		ctx.GlobalScope.vclk[k] = true
+	end
+
+	for k, v in pairs(directives.persist[3]) do
+		ctx.GlobalScope[k] = E2Lib.fixDefault(wire_expression_types2[v][2])
+	end
+
+	for k in pairs(dvars) do
+		ctx.GlobalScope["$" .. k] = ctx.GlobalScope[k]
 	end
 
 	return true, function(ctx2)
@@ -1247,7 +1251,10 @@ function E2Lib.compileScript(code, owner, run)
 			ctx.entity.GlobalScope, ctx.entity._vars = ctx.GlobalScope, ctx.GlobalScope
 		end
 
-			local success, why = pcall( script, ctx )
+		local success, why = pcall(wire_expression2_CallHook, "construct", ctx)
+		if success then
+			success, why = pcall( script, ctx )
+		end
 
 		-- Cleanup so hooks like runOnTick won't run after this call
 		pcall(wire_expression2_CallHook, "destruct", ctx)
