@@ -51,41 +51,41 @@ e2function number operator==(angle lhs, angle rhs)
 		and 1 or 0
 end
 
-__e2setcost(2)
+__e2setcost(1)
 
-registerOperator("geq", "aa", "n", function(state, lhs, rhs)
+e2function number operator>=(angle lhs, angle rhs)
 	return (lhs[1] >= rhs[1]
 		and lhs[2] >= rhs[2]
 		and lhs[3] >= rhs[3])
 		and 1 or 0
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("leq", "aa", "n", function(state, lhs, rhs)
+e2function number operator<=(angle lhs, angle rhs)
 	return (lhs[1] <= rhs[1]
 		and lhs[2] <= rhs[2]
 		and lhs[3] <= rhs[3])
 		and 1 or 0
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("gth", "aa", "n", function(state, lhs, rhs)
+e2function number operator>(angle lhs, angle rhs)
 	return (lhs[1] > rhs[1]
 		and lhs[2] > rhs[2]
 		and lhs[3] > rhs[3])
 		and 1 or 0
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("lth", "aa", "n", function(state, lhs, rhs)
+e2function number operator<(angle lhs, angle rhs)
 	return (lhs[1] < rhs[1]
 		and lhs[2] < rhs[2]
 		and lhs[3] < rhs[3])
 		and 1 or 0
-end, 1, nil, { legacy = false })
+end
 
 __e2setcost(2)
 
-registerOperator("neg", "a", "a", function(state, a)
-	return -a
-end, 1, nil, { legacy = false })
+e2function angle operator_neg(angle rv1)
+	return -rv1
+end
 
 e2function angle operator+(rv1, angle rv2)
 	return Angle(rv1 + rv2[1], rv1 + rv2[2], rv1 + rv2[3])

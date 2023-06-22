@@ -585,7 +585,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	if not self.error then
 		for k, v in pairs(self.dupevars) do
 			-- Backwards compatibility to fix dupes with the old {n, n, n} angle and vector types
-			local vartype = self.globvars[k] and self.globvars[k].type
+			-- $ check is for delta variables stored in dupevars. ugly one liner.
+			local vartype = self.globvars[k] and self.globvars[k].type or (k:sub(1, 1) == "$" and (self.globvars[k:sub(2)] and self.globvars[k:sub(2)].type))
 			if vartype == "a" then
 				self.GlobalScope[k] = istable(v) and Angle(v[1], v[2], v[3]) or v
 			elseif vartype == "v" then

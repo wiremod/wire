@@ -81,60 +81,60 @@ end
 
 --------------------------------------------------------------------------------
 
-registerOperator("neg", "v", "v", function(state, v)
+__e2setcost(1)
+
+e2function vector operator_neg(vector v)
 	return -v
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("add", "nv", "v", function(state, lhs, rhs)
+e2function vector operator+(lhs, vector rhs)
 	return Vector(lhs + rhs[1], lhs + rhs[2], lhs + rhs[3])
-end, 1, nil, { legacy = false })
+end
 
-
-registerOperator("add", "vn", "v", function(state, lhs, rhs)
+e2function vector operator+(vector lhs, rhs)
 	return Vector(lhs[1] + rhs, lhs[2] + rhs, lhs[3] + rhs)
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("add", "vv", "v", function(state, lhs, rhs)
+e2function vector operator+(vector lhs, vector rhs)
 	return lhs + rhs
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("sub", "nv", "v", function(state, lhs, rhs)
+e2function vector operator-(lhs, vector rhs)
 	return Vector(lhs - rhs[1], lhs - rhs[2], lhs - rhs[3])
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("sub", "vn", "v", function(state, lhs, rhs)
+e2function vector operator-(vector lhs, rhs)
 	return Vector(lhs[1] - rhs, lhs[2] - rhs, lhs[3] - rhs)
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("sub", "vv", "v", function(state, lhs, rhs)
+e2function vector operator-(vector lhs, vector rhs)
 	return lhs - rhs
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("mul", "nv", "v", function(state, lhs, rhs)
+e2function vector operator*(lhs, vector rhs)
 	return lhs * rhs
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("mul", "vn", "v", function(state, lhs, rhs)
+e2function vector operator*(vector lhs, rhs)
 	return lhs * rhs
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("mul", "vv", "v", function(state, lhs, rhs)
+e2function vector operator*(vector lhs, vector rhs)
 	return Vector( lhs[1] * rhs[1], lhs[2] * rhs[2], lhs[3] * rhs[3] )
-end, 1, nil, { legacy = false })
+end
 
 -- Yes this needs to be in pure lua. Angle/Vector operations in reverse order act as Angle / Number rather than Number / Angle properly. Amazing.
-registerOperator("div", "nv", "v", function(state, lhs, rhs)
+e2function vector operator/(lhs, vector rhs)
 	return Vector( lhs / rhs[1], lhs / rhs[2], lhs / rhs[3] )
-end, 1, nil, { legacy = false })
+end
 
-
-registerOperator("div", "vn", "v", function(state, lhs, rhs)
+e2function vector operator/(vector lhs, rhs)
 	return lhs / rhs
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("div", "vv", "v", function(state, lhs, rhs)
+e2function vector operator/(vector lhs, vector rhs)
 	return Vector( lhs[1] / rhs[1], lhs[2] / rhs[2], lhs[3] / rhs[3] )
-end, 1, nil, { legacy = false })
+end
 
 registerOperator("indexget", "vn", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 3) + 0.5)]
@@ -202,45 +202,34 @@ end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(5)
+__e2setcost(2)
 
 e2function number vector:length()
-	return (this[1] * this[1] + this[2] * this[2] + this[3] * this[3]) ^ 0.5
+	return this:Length()
 end
 
 e2function number vector:length2()
-	return this[1] * this[1] + this[2] * this[2] + this[3] * this[3]
+	return this:LengthSqr()
 end
 
 e2function number vector:distance(vector other)
-	local dx, dy, dz = this[1] - other[1], this[2] - other[2], this[3] - other[3]
-	return (dx * dx + dy * dy + dz * dz) ^ 0.5
+	return this:Distance(other)
 end
 
 e2function number vector:distance2( vector other )
-	local dx, dy, dz = this[1] - other[1], this[2] - other[2], this[3] - other[3]
-	return dx * dx + dy * dy + dz * dz
+	return this:DistToSqr(other)
 end
 
 e2function vector vector:normalized()
-	local len = (this[1] * this[1] + this[2] * this[2] + this[3] * this[3]) ^ 0.5
-	if len > 0 then
-		return Vector(this[1] / len, this[2] / len, this[3] / len )
-	else
-		return Vector(0, 0, 0)
-	end
+	return this:GetNormalized()
 end
 
 e2function number vector:dot( vector other )
-	return this[1] * other[1] + this[2] * other[2] + this[3] * other[3]
+	return this:Dot(other)
 end
 
 e2function vector vector:cross( vector other )
-	return Vector(
-		this[2] * other[3] - this[3] * other[2],
-		this[3] * other[1] - this[1] * other[3],
-		this[1] * other[2] - this[2] * other[1]
-	)
+	return this:Cross(other)
 end
 
 __e2setcost(10)
