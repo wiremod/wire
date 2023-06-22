@@ -1408,6 +1408,7 @@ E2Helper.Descriptions["egpCanSendUmsg()"] = "Returns 1 if you can send an userme
 E2Helper.Descriptions["egpClear(xwl:)"] = "Clears the EGP screen"
 E2Helper.Descriptions["egpClearQueue()"] = "Clears your entire queue"
 E2Helper.Descriptions["egpCopy(xwl:nn)"] = "Copies the settings of the second object into the first. If the first object does not exist, it's created"
+E2Helper.Descriptions["egpConnectedUsers(xwl:)"] = "Returns an array of players connected to the EGP"
 E2Helper.Descriptions["egpCursor(xwl:e)"] = "Returns the specified player's aim position on the screen"
 E2Helper.Descriptions["egpDrawTopLeft(xwl:n)"] = "Set to 1 to make boxes, outline boxes, rounded boxes, and rounded outline boxes draw from the top left corner instead of from the center"
 E2Helper.Descriptions["egpGlobalPos(xwl:n)"] = "Returns the \"global\" (= it takes the parents' positions into consideration) position as a 3D vector. X and Y being the 2D X,Y coordinates, while Z is the angle"
@@ -1415,6 +1416,7 @@ E2Helper.Descriptions["egpGlobalVertices(xwl:n)"] = "Returns an array of 2D vect
 E2Helper.Descriptions["egpGlobalFiltering(xwl:n)"] = "Changes the texture filter used to draw all EGP Objects. Works only on EGP Screens. See _TEXFILTER constants (POINT=sharp, ANISOTROPIC=blurry/default)"
 E2Helper.Descriptions["egpHasObject(xwl:n)"] = "Returns 1 if the object with specified index exists on the screen, 0 if not"
 E2Helper.Descriptions["egpObjectContainsPoint(xwl:nxv2)"] = "Returns 1 if the object with specified index contains the specified point"
+E2Helper.Descriptions["egpHudEnable(xwl:n)"] = "Enables the HUD if the input is not 0"
 E2Helper.Descriptions["egpHudToggle(xwl:)"] = "Toggles the HUD on/off"
 E2Helper.Descriptions["egpLoadFrame(xwl:n)"] = "Loads the frame with specified index"
 E2Helper.Descriptions["egpLoadFrame(xwl:s)"] = "Loads the frame with specified name"
@@ -1586,6 +1588,6 @@ local from_easings = {"OutElastic","OutCirc","InOutQuint","InCubic","InOutCubic"
 
 for k, v in pairs(from_easings) do
 	local name = "ease" .. v
-	
+
 	E2Helper.Descriptions[name .. "(n)"] = "Performs " .. v .. " interpolation on the argument. You can see how all of these interpolation functions look here: https://imgur.com/XZPgymK"
 end
