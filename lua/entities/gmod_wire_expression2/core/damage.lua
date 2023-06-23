@@ -62,7 +62,7 @@ e2function number operator_is(damage dmg)
 end
 
 e2function number damage:isType(number type)
-	return this:IsDamageType(type)
+	return this:IsDamageType(type) and 1 or 0
 end
 
 e2function number damage:getAmount()
