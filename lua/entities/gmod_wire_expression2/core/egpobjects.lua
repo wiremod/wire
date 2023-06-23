@@ -7,7 +7,7 @@ local function Update(self, this)
 end
 
 local getCenter = EGP.ParentingFuncs.getCenter
-local getCenterFromPos = EGP.ParentingFuncs.getCenterFromPos
+local getCenterFrom = EGP.getCenterFrom
 local makeArray = EGP.ParentingFuncs.makeArray
 
 ---- Type defintion
@@ -355,7 +355,7 @@ e2function vector egpobject:egpGlobalPos()
 	if not this then return self:throw("Invalid EGP Object", vector_origin) end
 	local hasvertices, posang = EGP:GetGlobalPos(this.EGP, this)
 	if hasvertices then
-		local x, y = getCenterFromPos(posang)
+		local x, y = getCenterFrom(posang)
 		return Vector(x, y, 0)
 	end
 	return Vector(posang.x, posang.y, posang.angle)

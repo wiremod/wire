@@ -3,7 +3,6 @@ local function Update(self,this)
 end
 
 local getCenter = EGP.ParentingFuncs.getCenter
-local getCenterFromPos = EGP.ParentingFuncs.getCenterFromPos
 local makeArray = EGP.ParentingFuncs.makeArray
 
 --------------------------------------------------------
@@ -349,7 +348,7 @@ e2function egpobject wirelink:egpPolyOutline( number index, ...args )
 	end
 
 	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["PolyOutline"], { index = index, vertices = vertices }, self.player )
-	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) return egpobject end
+	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) return obj end
 end
 
 e2function egpobject wirelink:egpPolyOutline( number index, array args )

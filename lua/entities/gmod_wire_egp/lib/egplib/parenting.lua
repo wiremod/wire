@@ -77,7 +77,7 @@ end
 EGP.ParentingFuncs.getCenter = getCenter
 
 -- Uses the output of GetGlobalPos instead.
-local function getCenterFromPos(data)
+local function getCenterFrom(data)
 	local centerx, centery = 0, 0
 	local vertices = data.vertices
 	local n = #vertices
@@ -87,7 +87,7 @@ local function getCenterFromPos(data)
 	end
 	return centerx / n, centery / n
 end
-EGP.ParentingFuncs.getCenterFromPos = getCenterFromPos
+EGP.getCenterFrom = getCenterFrom
 
 -- (returns true if obj has vertices, false if not, followed by the new position data)
 function EGP:GetGlobalPos( Ent, index )

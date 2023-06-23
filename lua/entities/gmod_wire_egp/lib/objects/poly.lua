@@ -2,8 +2,6 @@
 local Obj = EGP:NewObject( "Poly" )
 Obj.w = nil
 Obj.h = nil
-Obj.x = 0
-Obj.y = 0
 Obj.angle = 0
 Obj.vertices = {}
 Obj.verticesindex = "vertices"
@@ -62,12 +60,12 @@ Obj.Receive = function( self )
 	return tbl
 end
 Obj.DataStreamInfo = function( self )
-	return { vertices = self.vertices, material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent }
+	return { vertices = self.vertices, material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent, angle = self.angle }
 end
 
 function Obj:Initialize(args)
 	self:EditObject(args)
-	self.x, self.y = EGP.ParentingFuncs.getCenterFromPos(self)
+	self.x, self.y = EGP.getCenterFrom(self)
 end
 
 function Obj:Contains(x, y)
@@ -96,12 +94,17 @@ end
 
 function Obj:EditObject(args)
 	local ret = false
+	if args.vertices then
+		self.vertices = args.vertices
+		self.x, self.y = EGP.getCenterFrom(self)
+		args.vertices = nil
+	end
 	if args.x or args.y or args.angle then
 		ret = self:SetPos(args.x or self.x, args.y or self.y, args.angle or self.angle)
 		args.x = nil
 		args.y = nil
 		args.angle = nil
-		if args._x then args._x = nil args._y = nil args._angle = nil end
+		if args._x then args._x, args._y, args._angle = nil, nil, nil end
 	end
 	for k, v in pairs(args) do
 		if self[k] ~= nil and self[k] ~= v then
@@ -117,7 +120,7 @@ function Obj:SetPos(x, y, angle)
 	if not angle then angle = sa end
 	if sx == x and sy == y and sa == angle then return false end
 	for i, v in ipairs(self.vertices) do
-		local vec = LocalToWorld(Vector(v.x - sx, v.y - sy, 0), Angle(0, sa, 0), Vector(x, y, 0), Angle(0, sa - angle, 0))
+		local vec = LocalToWorld(Vector(v.x - sx, v.y - sy, 0), angle_zero, Vector(x, y, 0), Angle(0, sa - angle, 0))
 		v.x = vec.x
 		v.y = vec.y
 	end
