@@ -2,10 +2,10 @@ AddCSLuaFile()
 
 ---@class EnvEvent
 ---@field name string
----@field args TypeSignature[]
----@field constructor function
----@field destructor function
----@field listening table<userdata, boolean>
+---@field args { placeholder: string, type: TypeSignature }[]
+---@field constructor fun(ctx: RuntimeContext)?
+---@field destructor fun(ctx: RuntimeContext)?
+---@field listening table<Entity, boolean>
 
 ---@class EnvType
 ---@field name string
@@ -32,7 +32,7 @@ AddCSLuaFile()
 
 E2Lib = {
 	Env = {
-		---@type { name: string, args: { placeholder: string, type: string }[], constructor: fun(t: table)?, destructor: fun(t: table)?, listening: table<userdata, boolean> }
+		---@type EnvEvent[]
 		Events = {}
 	}
 }
@@ -1150,6 +1150,41 @@ function RuntimeContextBuilder:withStrict(strict)
 	return self
 end
 
+---@param inputs table<string, TypeSignature>
+function RuntimeContextBuilder:withInputs(inputs)
+	for k, v in pairs(inputs) do
+		self.GlobalScope[k] = E2Lib.fixDefault(wire_expression_types2[v][2])
+	end
+	return self
+end
+
+---@param outputs table<string, TypeSignature>
+function RuntimeContextBuilder:withOutputs(outputs)
+	for k, v in pairs(outputs) do
+		self.GlobalScope[k] = E2Lib.fixDefault(wire_expression_types2[v][2])
+		self.GlobalScope.vclk[k] = true
+	end
+	return self
+end
+
+---@param persists table<string, TypeSignature>
+function RuntimeContextBuilder:withPersists(persists)
+	for k, v in pairs(persists) do
+		self.GlobalScope[k] = E2Lib.fixDefault(wire_expression_types2[v][2])
+	end
+	return self
+end
+
+--- Registers delta variables in the context.
+--- **MUST** register all persists/inputs/outputs BEFORE calling this.
+---@param vars table<string, boolean>
+function RuntimeContextBuilder:withDeltaVars(vars)
+	for k, _ in pairs(vars) do
+		self.GlobalScope["$" .. k] = self.GlobalScope[k]
+	end
+	return self
+end
+
 ---@return RuntimeContext
 function RuntimeContextBuilder:build()
 	if self.strict then
@@ -1208,36 +1243,12 @@ function E2Lib.compileScript(code, owner, run)
 
 	local ctx = RuntimeContext.builder()
 		:withOwner(owner or game.GetWorld())
+		:withStrict(directives.strict)
+		:withInputs(directives.inputs[3])
+		:withOutputs(directives.outputs[3])
+		:withPersists(directives.persist[3])
+		:withDeltaVars(dvars)
 		:build()
-
-	if directives.strict then
-		local err = E2Lib.raiseException
-		function ctx:throw(msg)
-			err(msg, 2, self.trace)
-		end
-	else
-		function ctx:throw(_msg, variable)
-			return variable
-		end
-	end
-
-	-- Initialize global variables with default values.
-	for k, v in pairs(directives.inputs[3]) do
-		ctx.GlobalScope[k] = E2Lib.fixDefault(wire_expression_types2[v][2])
-	end
-
-	for k, v in pairs(directives.outputs[3]) do
-		ctx.GlobalScope[k] = E2Lib.fixDefault(wire_expression_types2[v][2])
-		ctx.GlobalScope.vclk[k] = true
-	end
-
-	for k, v in pairs(directives.persist[3]) do
-		ctx.GlobalScope[k] = E2Lib.fixDefault(wire_expression_types2[v][2])
-	end
-
-	for k in pairs(dvars) do
-		ctx.GlobalScope["$" .. k] = ctx.GlobalScope[k]
-	end
 
 	return true, function(ctx2)
 		ctx = ctx2 or ctx
