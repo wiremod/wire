@@ -20,7 +20,7 @@ end
 local function runE2Test(path, name)
 	local source = file.Read(path, "GAME")
 
-	local ok, err_or_func = E2Lib.compileScript(source, nil, true)
+	local ok, err_or_func = E2Lib.compileScript(source)
 	local should, step = source:match("^## SHOULD_(%w+):(%w+)")
 
 	local function msgf(...)

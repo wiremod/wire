@@ -1228,7 +1228,7 @@ end
 ---@param owner userdata? 'Owner' entity, default world.
 ---@return boolean success If ran successfully
 ---@return string|function compiled Compiled function, or error message if not success
-function E2Lib.compileScript(code, owner, run)
+function E2Lib.compileScript(code, owner)
 	local status, directives, code = E2Lib.PreProcessor.Execute(code)
 	if not status then return false, directives end
 
