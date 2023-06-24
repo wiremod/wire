@@ -1461,7 +1461,8 @@ local CompileVisitors = {
 			args[i], arg_types[i] = self:CompileExpr(arg)
 		end
 
-		local arg_sig = "(" .. table.concat(arg_types) .. ")"
+		local type_sig = table.concat(arg_types)
+		local arg_sig = "(" .. type_sig .. ")"
 		local meta_arg_sig = #arg_types >= 1 and ("(" .. arg_types[1] .. ":" .. table.concat(arg_types, "", 2) .. ")") or "()"
 
 		local ret_type = data[3] and self:CheckType(data[3])
@@ -1477,23 +1478,51 @@ local CompileVisitors = {
 			local sig, meta_sig = fn_name .. arg_sig, fn_name .. meta_arg_sig
 
 			local fn = state.funcs[sig] or state.funcs[meta_sig]
-			if fn then
+			if fn then -- first check if user defined any functions that match signature
 				local r = state.funcs_ret[sig]
 				if r ~= ret_type then
-					error( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"), 0)
+					E2Lib.raiseException( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"), 0, state.trace)
 				end
 
-				return fn(state, rargs)
-			else
+				return fn(state, rargs, arg_types)
+			else -- no user defined functions, check builtins
 				fn = wire_expression2_funcs[sig] or wire_expression2_funcs[meta_sig]
 				if fn then
 					local r = fn[2]
 					if r ~= ret_type and not (ret_type == nil and r == "") then
-						error( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"), 0)
+						E2Lib.raiseException( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"), 0, state.trace)
 					end
 
-					return fn[3](state, rargs) -- todo: legacy support
-				else
+					if fn.attributes.legacy then
+						local largs = { [1] = {}, [nargs + 2] = arg_types }
+						for i = 1, nargs do
+							largs[i + 1] = { [1] = function() return rargs[i] end }
+						end
+						return fn[3](state, largs, arg_types)
+					else
+						return fn[3](state, rargs, arg_types)
+					end
+				else -- none found, check variadic builtins
+					for i = nargs, 0, -1 do
+						local varsig = fn_name .. "(" .. type_sig:sub(1, i) .. "...)"
+						local fn = wire_expression2_funcs[varsig]
+						if fn then
+							local r = fn[2]
+							if r ~= ret_type and not (ret_type == nil and r == "") then
+								E2Lib.raiseException( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"), 0, state.trace)
+							end
+
+							if fn.attributes.legacy then
+								local largs = { [1] = {}, [nargs + 2] = arg_types }
+								for i = 1, nargs do
+									largs[i + 1] = { [1] = function() return rargs[i] end }
+								end
+								return fn[3](state, largs, arg_types)
+							else
+								return fn[3](state, rargs, arg_types)
+							end
+						end
+					end
 					E2Lib.raiseException("No such function: " .. fn_name .. arg_sig, 0, state.trace)
 				end
 			end
