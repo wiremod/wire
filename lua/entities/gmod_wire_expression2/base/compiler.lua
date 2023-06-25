@@ -471,10 +471,10 @@ local CompileVisitors = {
 				local iter = into_iter(state, item(state))
 
 				state:PushScope() -- Only push scope once as an optimization, compiler should disallow using variable ahead of time anyway.
+				local scope = state.Scope
 				for _, v in iter() do
 					state.prf = state.prf + cost
-
-					state.Scope[value] = v
+					scope[value] = v
 					block(state)
 				end
 				state:PopScope()
@@ -484,10 +484,10 @@ local CompileVisitors = {
 				local iter = into_iter(state, item(state))
 
 				state:PushScope() -- Only push scope once as an optimization, compiler should disallow using variable ahead of time anyway.
+				local scope = state.Scope
 				for k, v in iter() do
 					state.prf = state.prf + cost
-
-					state.Scope[key], state.Scope[value] = k, v
+					scope[key], scope[value] = k, v
 					block(state)
 				end
 				state:PopScope()
@@ -566,7 +566,7 @@ local CompileVisitors = {
 			catch_block = self:CompileStmt(data[3])
 		end)
 
-		self.scope.data.ops = self.scope.data.ops + 1
+		self.scope.data.ops = self.scope.data.ops + 5
 
 		return function(state) ---@param state RuntimeContext
 			state:PushScope()
@@ -686,7 +686,7 @@ local CompileVisitors = {
 						scope[param_names[i]] = args[i]
 					end
 
-					local a, n = {}, 1 -- todo: use table.move if present
+					local a, n = {}, 1
 					for i = last, #args do
 						a[n] = args[i]
 						n = n + 1
@@ -885,7 +885,7 @@ local CompileVisitors = {
 		local value, value_ty = self:CompileExpr(data[3])
 
 		if data[1] then
-			-- Local declaration.
+			-- Local declaration. Fastest case.
 			local var_name = data[2][1][1].value
 			self:AssertW(not self.scope.vars[var_name], "Do not redeclare existing variable " .. var_name, trace)
 			self.scope:DeclVar(var_name, { initialized = true, trace_if_unused = data[2][1][1].trace, type = value_ty })
@@ -910,7 +910,7 @@ local CompileVisitors = {
 						return state.Scopes[id][var]
 					end
 
-					for j, index in ipairs(indices) do
+					for _, index in ipairs(indices) do
 						local key, key_ty = self:CompileExpr(index[1])
 
 						local op
@@ -1078,8 +1078,7 @@ local CompileVisitors = {
 	---@param data { [1]: string, [2]: string|number|table }
 	[NodeVariant.ExprLiteral] = function (self, trace, data)
 		local val = data[2]
-
-		self.scope.data.ops = self.scope.data.ops + 1 / 8
+		self.scope.data.ops = self.scope.data.ops + 0.125
 		return function()
 			return val
 		end, data[1]
@@ -1091,7 +1090,7 @@ local CompileVisitors = {
 		var.trace_if_unused = nil
 
 		self:AssertW(var.initialized, "Use of variable [" .. name .. "] before initialization", trace)
-		self.scope.data.ops = self.scope.data.ops + 1
+		self.scope.data.ops = self.scope.data.ops + 0.5
 
 		local id = var.scope:Depth()
 		return function(state) ---@param state RuntimeContext
@@ -1384,7 +1383,7 @@ local CompileVisitors = {
 			self:Warning("Use of deprecated function (" .. data[1].value .. ") " .. (type(value) == "string" and value or ""), trace)
 		end
 
-		self.scope.data.ops = self.scope.data.ops + ((fn_data.cost or 20) + (fn_data.attrs["legacy"] and 10 or 0))
+		self.scope.data.ops = self.scope.data.ops + ((fn_data.cost or 15) + (fn_data.attrs["legacy"] and 10 or 0))
 
 		if fn_data.attrs["noreturn"] then
 			self.scope.data.dead = true
@@ -1589,7 +1588,7 @@ local CompileVisitors = {
 			state.ScopeID = 1
 
 			for i, param in ipairs(params) do
-				state.Scope[param[1]] = args[i]
+				scope[param[1]] = args[i]
 			end
 
 			block(state)
@@ -1612,7 +1611,7 @@ local CompileVisitors = {
 function Compiler:GetOperator(variant, types, trace)
 	local fn = wire_expression2_funcs["op:" .. variant .. "(" .. table.concat(types) .. ")"]
 	if fn then
-		self.scope.data.ops = self.scope.data.ops + (fn[4] or 3)
+		self.scope.data.ops = self.scope.data.ops + (fn[4] or 2) + (fn.attributes.legacy and 1 or 0)
 		return fn[3], fn[2], fn.attributes.legacy
 	end
 

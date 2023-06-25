@@ -99,6 +99,6 @@ concommand.Add("e2test", function(ply)
 	if IsValid(ply) then
 		ply:PrintMessage(2, msg)
 	else
-		print(#passed .. "/" .. (#passed + #failed) .. " tests passed")
+		print(msg)
 	end
 end)
