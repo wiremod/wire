@@ -1,4 +1,4 @@
-# Wiremod [![License](https://img.shields.io/github/license/wiremod/wire?color=red)](LICENSE) [![Discord](https://img.shields.io/discord/231131817640460288?label=Discord&logo=discord&logoColor=ffffff&labelColor=7289DA&color=2c2f33)](https://discord.gg/H8UKY3Y) [![Workshop](https://img.shields.io/steam/subscriptions/160250458?color=yellow&logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=160250458)
+# Wiremod [![License](https://img.shields.io/github/license/wiremod/wire?color=red)](LICENSE) [![Discord](https://img.shields.io/discord/231131817640460288?label=Discord&logo=discord&logoColor=ffffff&labelColor=7289DA&color=2c2f33)](https://discord.gg/H8UKY3Y) [![Workshop](https://img.shields.io/steam/subscriptions/160250458?logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=160250458)
 
 
 > An addon for [Garry's Mod](https://garrysmod.com) which adds entities that communicate via wires. It can be used to create robots, vehicles, computers and much more!
