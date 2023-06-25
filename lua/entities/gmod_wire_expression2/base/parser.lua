@@ -245,7 +245,7 @@ function Parser:Stmt()
 
 	if self:Consume(TokenVariant.Keyword, Keyword.While) then
 		local trace = self:Prev().trace
-		return Node.new(NodeVariant.While, { self:Condition(), self:Block(), false }, trace:stitch(self:At().trace))
+		return Node.new(NodeVariant.While, { self:Condition(), self:Block(), false }, trace:stitch(self:Prev().trace))
 	end
 
 	if self:Consume(TokenVariant.Keyword, Keyword.For) then
