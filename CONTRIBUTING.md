@@ -1,6 +1,6 @@
 # Coding Guidelines
 
-Please see https://github.com/wiremod/wire/wiki/Coding-style for information on how code formatting is standardized in the Wiremod project.
+Please see https://github.com/wiremod/wire/wiki/Developer-Style-Guide for information on how code formatting is standardized in the Wiremod project.
 
 ---
 
