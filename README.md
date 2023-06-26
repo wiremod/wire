@@ -20,10 +20,10 @@ You can find documentation [on our wiki](https://github.com/wiremod/wire/wiki)!
 
 
 ## 🤝 Contributing
-By contributing to wiremod, you agree to the [code of conduct](CODE_OF_CONDUCT.md).
+>By contributing to wiremod, you agree to the [code of conduct](CODE_OF_CONDUCT.md).
 
 ### 💡 Suggestions
-If you want to submit a suggestion, [use the discussions page](https://github.com/wiremod/wire/discussions/new?category=suggestions).
+To submit a suggestion, [use the discussions page](https://github.com/wiremod/wire/discussions/new?category=suggestions).
 
 ### 🐛 Bug Reports
 To submit a bug report, [make an issue](https://github.com/wiremod/wire/issues/new/choose).
