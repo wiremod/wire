@@ -31,4 +31,4 @@ To submit a bug report, [make an issue](https://github.com/wiremod/wire/issues/n
 
 ### 🧑‍💻 Pull Requests
 
-Before making a PR, you must ensure your code follows the [developer style guide](https://github.com/wiremod/wire/wiki/Developer-Style-Guide).
+Before making a PR, ensure your code follows the [developer style guide](https://github.com/wiremod/wire/wiki/Developer-Style-Guide).
