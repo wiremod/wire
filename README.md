@@ -12,6 +12,7 @@
 |**AdvDupe2**| [![AdvDupe2](https://img.shields.io/steam/subscriptions/160250458?logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=773402917)| https://github.com/wiremod/advdupe2 |
 |**Wire Extras**| None yet | https://github.com/wiremod/wire-extras |
 
+To install using git, inside of `steamapps/common/Garrysmod/garrysmod/addons`, run ``git clone https://github.com/wiremod/wire``.
 
 ## 📖 Documentation
 
@@ -19,5 +20,14 @@ You can find documentation [on our wiki](https://github.com/wiremod/wire/wiki)!
 
 
 ## 🤝 Contributing
+By contributing to wiremod, you agree to the [code of conduct](CODE_OF_CONDUCT.md).
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines on contributing and participating in the wiremod project.
+### 💡 Suggestions
+If you want to submit a suggestion, [use the discussions page](https://github.com/wiremod/wire/discussions/new?category=suggestions).
+
+### 🐛 Bug Reports
+To submit a bug report, [make an issue](https://github.com/wiremod/wire/issues/new/choose).
+
+### 🧑‍💻 Pull Requests
+
+Before making a PR, you must ensure your code follows the [Developer Style Guide](https://github.com/wiremod/wire/wiki/Developer-Style-Guide).
