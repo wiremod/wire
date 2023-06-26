@@ -6,13 +6,13 @@
 
 ## ⬇️ Installation
 
-| Addon | Workshop | Github |
+| Addon | Workshop | GitHub |
 |  ---  |   ---    |   ---  |
 |**Wiremod**| [![Wiremod](https://img.shields.io/steam/subscriptions/160250458?logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=160250458) | https://github.com/wiremod/wire |
 |**AdvDupe2**| [![AdvDupe2](https://img.shields.io/steam/subscriptions/160250458?logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=773402917)| https://github.com/wiremod/advdupe2 |
 |**Wire Extras**| None yet | https://github.com/wiremod/wire-extras |
 
-To install using git, inside of `steamapps/common/Garrysmod/garrysmod/addons`, run ``git clone https://github.com/wiremod/wire``.
+For git, inside of `steamapps/common/Garrysmod/garrysmod/addons`, run: ``git clone https://github.com/wiremod/wire``.
 
 ## 📖 Documentation
 
