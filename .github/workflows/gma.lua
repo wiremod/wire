@@ -1,30 +1,6 @@
 -- GMA packer by Vurv
 assert(arg[1], "Missing argument #1 (output file)")
 
-local function u8(n --[[@param n number]])
-	return string.char(n)
-end
-
-local U8_MAX = 256
-local U16_MAX = 65536
-local U32_MAX = 4294967296
-
-local function u16(n --[[@param n number]])
-	return u8(n % U8_MAX) .. u8( math.floor(n / U8_MAX) )
-end
-
-local function u32(n --[[@param n number]])
-	return u16(n % U16_MAX) .. u16( math.floor(n / U16_MAX) )
-end
-
-local function u64(n --[[@param n number]])
-	return u32(n % U32_MAX) .. u32( math.floor(n / U32_MAX) )
-end
-
-local function cstr(s --[[@param s string]])
-	return s .. "\0"
-end
-
 ---@generic T, V
 ---@param t T[]
 ---@param f fun(v: T, k: integer): V
@@ -36,33 +12,23 @@ local function map(t, f)
 end
 
 ---@param name string
----@param description string
+---@param desc string
 ---@param author string
 ---@param files { path: string, content: string }[] # List of 'files'
+---@param steamid integer? # SteamID64 of person who packed the addon. Defaults 0
+---@param timestamp integer? # Timestamp of when addon was packed. Defaults to os.time()
 ---@return string gma # Packed gma file contents
-local function pack(name, description, author, files)
-	return table.concat {
-		"GMAD", -- identifier
-		u8(3), -- gma version
-		u64(0), -- steamid
-		u64( os.time() ), -- timestamp
-		u8(0),
-		cstr(name),
-		cstr(description),
-		cstr(author),
-		u32(1),
-		table.concat(map(files, function(v, k)
-			return u32(k)
-				.. cstr(v.path)
-				.. u64(#v.content)
-				.. u32(0)
-		end)),
-		u32(0),
-		table.concat(map(files, function(v, k)
+local function pack(name, desc, author, files, steamid, timestamp)
+	return "GMAD"
+		.. ("< I1 I8 I8 x z z z I4"):pack(3 --[[version]], steamid or 0, timestamp or os.time(), name, desc, author, 1)
+		.. table.concat(map(files, function(v, k)
+			return ("< I4 z I8 I4"):pack(k, v.path, #v.content, 0 --[[crc]])
+		end))
+		.. "\0\0\0\0"
+		.. table.concat(map(files, function(v)
 			return v.content
-		end)),
-		u32(0)
-	}
+		end))
+		.. "\0\0\0\0"
 end
 
 local path_sep = package.config:sub(1, 1)

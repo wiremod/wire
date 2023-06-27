@@ -10,15 +10,13 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - uses: leafo/gh-actions-lua@v10
-        with:
-          luaVersion: "luajit-2.1.0-beta3"
 
       - name: Run gma packer
         run: |
           lua .github/workflows/gma.lua wiremod.gma
 
       - name: Upload to workshop
-        uses: wiremod/workshop-upload@v1
+        uses: wiremod/workshop-upload@a02cec0c6bd79bd2a514787485d806ed44c295f1
         with:
           appId: 4000
           itemId: 160250458
