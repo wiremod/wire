@@ -1,0 +1,29 @@
+name: Deploy to Workshop
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "luajit-2.1.0-beta3"
+
+      - name: Run gma packer
+        run: |
+          lua .github/workflows/gma.lua wiremod.gma
+
+      - name: Upload to workshop
+        uses: wiremod/workshop-upload@v1
+        with:
+          appId: 4000
+          itemId: 160250458
+          contentPath: "wiremod.gma"
+          changelog: "Deployment via Github to latest changes"
+        env:
+          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+          STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
