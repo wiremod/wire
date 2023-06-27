@@ -1408,6 +1408,7 @@ E2Helper.Descriptions["egpCanSendUmsg()"] = "Returns 1 if you can send an userme
 E2Helper.Descriptions["egpClear(xwl:)"] = "Clears the EGP screen"
 E2Helper.Descriptions["egpClearQueue()"] = "Clears your entire queue"
 E2Helper.Descriptions["egpCopy(xwl:nn)"] = "Copies the settings of the second object into the first. If the first object does not exist, it's created"
+E2Helper.Descriptions["egpConnectedUsers(xwl:)"] = "Returns an array of players connected to the EGP"
 E2Helper.Descriptions["egpCursor(xwl:e)"] = "Returns the specified player's aim position on the screen"
 E2Helper.Descriptions["egpDrawTopLeft(xwl:n)"] = "Set to 1 to make boxes, outline boxes, rounded boxes, and rounded outline boxes draw from the top left corner instead of from the center"
 E2Helper.Descriptions["egpGlobalPos(xwl:n)"] = "Returns the \"global\" (= it takes the parents' positions into consideration) position as a 3D vector. X and Y being the 2D X,Y coordinates, while Z is the angle"
@@ -1415,6 +1416,7 @@ E2Helper.Descriptions["egpGlobalVertices(xwl:n)"] = "Returns an array of 2D vect
 E2Helper.Descriptions["egpGlobalFiltering(xwl:n)"] = "Changes the texture filter used to draw all EGP Objects. Works only on EGP Screens. See _TEXFILTER constants (POINT=sharp, ANISOTROPIC=blurry/default)"
 E2Helper.Descriptions["egpHasObject(xwl:n)"] = "Returns 1 if the object with specified index exists on the screen, 0 if not"
 E2Helper.Descriptions["egpObjectContainsPoint(xwl:nxv2)"] = "Returns 1 if the object with specified index contains the specified point"
+E2Helper.Descriptions["egpHudEnable(xwl:n)"] = "Enables the HUD if the input is not 0"
 E2Helper.Descriptions["egpHudToggle(xwl:)"] = "Toggles the HUD on/off"
 E2Helper.Descriptions["egpLoadFrame(xwl:n)"] = "Loads the frame with specified index"
 E2Helper.Descriptions["egpLoadFrame(xwl:s)"] = "Loads the frame with specified name"
@@ -1540,7 +1542,7 @@ E2Helper.Descriptions["toUnicodeChar(r)"] = "Returns the UTF-8 string from the g
 E2Helper.Descriptions["toUnicodeByte(s:nn)"] = "Returns the Unicode code-points from the given UTF-8 string"
 E2Helper.Descriptions["unicodeLength(s:nn)"] = "Returns the length of the given UTF-8 string"
 
--- Damage
+-- Deaths / Spawns
 E2Helper.Descriptions["runOnDeath(n)"] = "If set to 0, chip won't run on players dying"
 E2Helper.Descriptions["deathClk()"] = "Returns if the E2 was triggered by a death"
 E2Helper.Descriptions["lastDeathTime()"] = "Returns the last time a player died"
@@ -1580,12 +1582,18 @@ E2Helper.Descriptions["setSurfaceProp(xef:n)"] = "Sets the surface property inde
 E2Helper.Descriptions["effectCanPlay()"] = "Returns whether you can play an effect (or 0 if you've hit the burst limit)"
 E2Helper.Descriptions["effectCanPlay(s)"] = "Same as effectCanPlay(), but also checks if the specific effect is not allowed"
 
---Interpolations
+-- Interpolations
 
-local from_easings = {"OutElastic","OutCirc","InOutQuint","InCubic","InOutCubic","InOutBounce","InOutSine","OutQuad","InOutCirc","InElastic","OutBack","InQuint","InSine","InBounce","InQuart","OutSine","OutExpo","InOutExpo","InQuad","InOutElastic","InOutQuart","InExpo","OutCubic","OutQuint","OutBounce","InCirc","InBack","InOutQuad","OutQuart","InOutBack"}
-
-for k, v in pairs(from_easings) do
-	local name = "ease" .. v
-	
-	E2Helper.Descriptions[name .. "(n)"] = "Performs " .. v .. " interpolation on the argument. You can see how all of these interpolation functions look here: https://imgur.com/XZPgymK"
+for _, v in ipairs {"OutElastic","OutCirc","InOutQuint","InCubic","InOutCubic","InOutBounce","InOutSine","OutQuad","InOutCirc","InElastic","OutBack","InQuint","InSine","InBounce","InQuart","OutSine","OutExpo","InOutExpo","InQuad","InOutElastic","InOutQuart","InExpo","OutCubic","OutQuint","OutBounce","InCirc","InBack","InOutQuad","OutQuart","InOutBack"} do
+	E2Helper.Descriptions["ease" .. v .. "(n)"] = "Performs " .. v .. " interpolation on the argument. You can see how all of these interpolation functions look here: https://imgur.com/XZPgymK"
 end
+
+-- Damage
+
+E2Helper.Descriptions["isType(xdm:n)"] = "Returns whether the damage contains the type flag provided. For example isType(_DMG_BLAST) would return 1 if the damage contains blast damage."
+E2Helper.Descriptions["getAmount(xdm:)"] = "Returns the amount of damage dealt"
+E2Helper.Descriptions["getPosition(xdm:)"] = "Returns the position where the damage was dealt"
+E2Helper.Descriptions["getForce(xdm:)"] = "Returns the force of the damage dealt"
+E2Helper.Descriptions["getInflictor(xdm:)"] = "Returns the inflictor (weapon) which caused the damage to be dealt"
+E2Helper.Descriptions["getAttacker(xdm:)"] = "Returns the attacker which used the inflictor to deal the damage"
+E2Helper.Descriptions["getAmmoType(xdm:)"] = "Returns the ammo type id of the damage dealt"

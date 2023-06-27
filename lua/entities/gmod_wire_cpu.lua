@@ -71,7 +71,7 @@ function ENT:Initialize()
 			if MemBusSource then
 				if MemBusSource.ReadCell then
 					local result = MemBusSource:ReadCell(Address-self.VM.RAMSize)
-					if result then return result
+					if isnumber(result) then return result
 					else VM:Interrupt(7,Address) return
 					end
 				else VM:Interrupt(8,Address) return
@@ -83,7 +83,7 @@ function ENT:Initialize()
 			if IOBusSource then
 				if IOBusSource.ReadCell then
 					local result = IOBusSource:ReadCell(-Address-1)
-					if result then return result
+					if isnumber(result) then return result
 					else VM:Interrupt(10,-Address-1) return
 					end
 				else VM:Interrupt(8,Address+1) return

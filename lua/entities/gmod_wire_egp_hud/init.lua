@@ -8,12 +8,16 @@ DEFINE_BASECLASS("base_wire_entity")
 
 ENT.WireDebugName = "E2 Graphics Processor HUD"
 
+util.AddNetworkString("EGP_HUD_Use")
+
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 
 	self.RenderTable = {}
+	self.Users = {}
+	self.IsEGPHUD = true
 
 	self:SetUseType(SIMPLE_USE)
 	self:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
@@ -34,19 +38,19 @@ function ENT:TriggerInput( name, value )
 	end
 end
 
-function ENT:Use( ply )
-	umsg.Start( "EGP_HUD_Use", ply ) umsg.Entity( self ) umsg.End()
+function ENT:Use(ply)
+	EGP.EGPHudConnect(self, not self.Users[ply], ply)
 end
 
-function ENT:SetEGPOwner( ply )
+function ENT:SetEGPOwner(ply)
 	self.ply = ply
-	self.plyID = ply:UniqueID()
+	self.plyID = ply:AccountID()
 end
 
 function ENT:GetEGPOwner()
-	if (not self.ply or not self.ply:IsValid()) then
-		local ply = player.GetByUniqueID( self.plyID )
-		if (ply) then self.ply = ply end
+	if not self.ply or not self.ply:IsValid() then
+		local ply = player.GetByAccountID(self.plyID)
+		if ply then self.ply = ply end
 		return ply
 	else
 		return self.ply

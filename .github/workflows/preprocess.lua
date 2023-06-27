@@ -1,6 +1,16 @@
 -- Before linting E2 Files, need to preprocess that e2function syntax away.
 -- Hackily polyfill gmod-globals and run the preprocesor outside of gmod in the linter workflow.
 
+local filesToProcess = {}
+for _, v in ipairs(arg) do
+	if string.find(v, "lua/entities/gmod_wire_expression2/core", 1, true) then
+		filesToProcess[#filesToProcess+1] = v
+	end
+end
+if #filesToProcess==0 then
+	return
+end
+
 -- Polyfills
 AddCSLuaFile = function() end
 _G.E2Lib = {}
@@ -42,38 +52,21 @@ require("lua.entities.gmod_wire_expression2.core.extpp")
 
 E2Lib.ExtPP.Init()
 
-local path_sep = package.config:sub(1, 1)
-local traverse_cmd = path_sep == "\\" and "dir /b " or "ls "
-
 ---@param path string
----@param callback fun(filename: string, path: string)
-local function iterFiles(path, callback)
-	path = string.gsub(path, "/", path_sep)
+local function process(path)
+	local handle = io.open(path, "rb")
+	local content = handle:read("*a")
+	handle:close()
 
-	local dir = io.popen(traverse_cmd .. path)
-	for file in dir:lines() do
-		callback(file, path .. "/" .. file)
-	end
-	dir:close()
-end
-
----@param filename string
----@param path string
-local function handle(filename, path)
-	if filename:sub(1, 3) ~= "cl_" and filename:sub(-4) == ".lua" then
-		local handle = io.open(path, "rb")
-			local content = handle:read("*a")
+	E2Lib.ExtPP.Pass1(content)
+	local preprocessed = E2Lib.ExtPP.Pass2(content)
+	if preprocessed then
+		local handle = io.open(path, "wb")
+		handle:write(preprocessed)
 		handle:close()
-
-		E2Lib.ExtPP.Pass1(content)
-		local preprocessed = E2Lib.ExtPP.Pass2(content)
-		if preprocessed then
-			local handle = io.open(path, "wb")
-			handle:write(preprocessed)
-			handle:close()
-		end
 	end
 end
 
-iterFiles("lua/entities/gmod_wire_expression2/core", handle)
-iterFiles("lua/entities/gmod_wire_expression2/core/custom", handle)
+for _, v in ipairs(filesToProcess) do
+	process(v)
+end
