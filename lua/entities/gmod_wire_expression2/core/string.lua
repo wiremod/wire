@@ -260,7 +260,7 @@ end
 
 e2function number toByte(string c)
 	if c == "" then return -1 end
-	return string_byte(n)
+	return string_byte(c)
 end
 
 e2function number toByte(string str, number idx)
