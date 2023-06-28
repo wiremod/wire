@@ -249,78 +249,59 @@ end
 
 local string_char = string.char
 local string_byte = string.byte
-local string_len = string.len
 local utf8_char = utf8.char
 local utf8_byte = utf8.codepoint
 
-registerFunction("toChar", "n", "s", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 < 0 then return "" end
-	if rv1 > 255 then return "" end
-	return string_char(rv1)
-end)
+e2function string toChar(number n)
+	if n < 0 then return "" end
+	if n > 255 then return "" end
+	return string_char(n)
+end
 
-registerFunction("toByte", "s", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 == "" then return -1 end
-	return string_byte(rv1)
-end)
+e2function number toByte(string c)
+	if c == "" then return -1 end
+	return string_byte(n)
+end
 
-registerFunction("toByte", "sn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv2 < 1 or rv2 > string_len(rv1) then return -1 end
-	return string_byte(rv1, rv2)
-end)
+e2function number toByte(string str, number idx)
+	if idx < 1 or idx > #str then return -1 end
+	return string_byte(str, idx)
+end
 
 local math_floor = math.floor
 
-registerFunction("toUnicodeChar", "n", "s", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-
+e2function string toUnicodeChar(number byte)
 	-- upper limit used to be 2097152, new limit acquired using pcall and a for loop
 	-- above this limit, the function causes a lua error
-	if rv1 < 1 or rv1 > 1114112 then return "" end
+	if byte < 1 or byte > 1114112 then return "" end
+	return utf8_char(byte)
+end
 
-	return utf8_char(rv1)
-end)
-
-registerFunction("toUnicodeByte", "s", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 == "" then return -1 end
-
-	return utf8_byte(rv1)
-end)
+e2function number toUnicodeByte(string c)
+	-- upper limit used to be 2097152, new limit acquired using pcall and a for loop
+	-- above this limit, the function causes a lua error
+	if c == "" then return -1 end
+	return utf8_byte(c)
+end
 
 /******************************************************************************/
 
-registerFunction("index", "s:n", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return rv1:sub(rv2, rv2)
-end)
+[deprecated = "Use the indexing operator instead"]
+e2function string string:index(number idx)
+	return this:sub(idx, idx)
+end
 
-registerFunction("left", "s:n", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return rv1:Left(rv2)
-end)
+e2function string string:left(number idx)
+	return this:Left(idx)
+end
 
-registerFunction("right", "s:n", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return rv1:Right(rv2)
-end)
+e2function string string:right(number idx)
+	return this:Right(idx)
+end
 
-registerFunction("sub", "s:nn", "s", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	return rv1:sub(rv2, rv3)
-end)
+e2function string string:sub(number start, number finish)
+	return this:sub(start, finish)
+end
 
 e2function string string:sub(start)
 	return this:sub(start)
@@ -330,33 +311,25 @@ e2function string string:operator[](index)
 	return this:sub(index,index)
 end
 
-registerFunction("upper", "s:", "s", function(self, args)
-	local op1 = args[2], args[3]
-	local rv1 = op1[1](self, op1)
-	return rv1:upper()
-end)
+e2function string string:upper()
+	return this:upper()
+end
 
-registerFunction("lower", "s:", "s", function(self, args)
-	local op1 = args[2], args[3]
-	local rv1 = op1[1](self, op1)
-	return rv1:lower()
-end)
+e2function string string:lower()
+	return this:lower()
+end
 
-registerFunction("length", "s:", "n", function(self, args)
-	local op1 = args[2], args[3]
-	local rv1 = op1[1](self, op1)
-	return rv1:len()
-end)
+e2function string string:length()
+	return #this
+end
 
-registerFunction("unicodeLength", "s:", "n", function(self, args)
-	local op1 = args[2], args[3]
-	local rv1 = op1[1](self, op1)
+e2function string string:unicodeLength()
 	-- the string.gsub method is inconsistent with how writeUnicodeString and toUnicodeByte handles badly-formed sequences.
 	-- local _, length = string.gsub (rv1, "[^\128-\191]", "")
 	local length = 0
 	local i = 1
-	while i <= #rv1 do
-		local byte = string_byte (rv1, i)
+	while i <= #this do
+		local byte = string_byte (this, i)
 		if byte >= 240 then
 			i = i + 4
 		elseif byte >= 224 then
@@ -370,35 +343,31 @@ registerFunction("unicodeLength", "s:", "n", function(self, args)
 	end
 	self.prf = self.prf + length * 0.1
 	return length
-end)
+end
 
 /******************************************************************************/
 
-registerFunction("repeat", "s:n", "s", function(self,args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), math.abs(op2[1](self, op2))
-	self.prf = self.prf + #rv1 * rv2 * 0.01
+e2function string string:repeat(number times)
+	local len = #this * times
+	if len < 0 then return "" end
+
+	self.prf = self.prf + len * 0.01
 	if self.prf > e2_tickquota then error("perf", 0) end
-	return rv1:rep(rv2)
-end)
 
-registerFunction("trim", "s:", "s", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return string.Trim(rv1)
-end)
+	return this:rep(times)
+end
 
-registerFunction("trimLeft", "s:", "s", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1:match( "^ *(.-)$")
-end)
+e2function string string:trim()
+	return this:Trim()
+end
 
-registerFunction("trimRight", "s:", "s", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1:TrimRight()
-end)
+e2function string string:trimLeft()
+	return this:TrimLeft()
+end
+
+e2function string string:trimRight()
+	return this:TrimRight()
+end
 
 /******************************************************************************/
 
