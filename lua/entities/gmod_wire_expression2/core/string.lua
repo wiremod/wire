@@ -319,11 +319,11 @@ e2function string string:lower()
 	return this:lower()
 end
 
-e2function string string:length()
+e2function number string:length()
 	return #this
 end
 
-e2function string string:unicodeLength()
+e2function number string:unicodeLength()
 	-- the string.gsub method is inconsistent with how writeUnicodeString and toUnicodeByte handles badly-formed sequences.
 	-- local _, length = string.gsub (rv1, "[^\128-\191]", "")
 	local length = 0
@@ -349,7 +349,7 @@ end
 
 e2function string string:repeat(number times)
 	local len = #this * times
-	if len < 0 then return "" end
+	if len <= 0 then return "" end
 
 	self.prf = self.prf + len * 0.01
 	if self.prf > e2_tickquota then error("perf", 0) end
