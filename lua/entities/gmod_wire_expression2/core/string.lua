@@ -1,28 +1,28 @@
-/******************************************************************************\
-  String support
-\******************************************************************************/
+--[[******************************************************************************]]--
+--  String support
+--[[******************************************************************************]]--
 
-// TODO: is string.left() faster than s:left()?
-// TODO: is string.sub faster than both left and right?
-// TODO: these return bad results when used with negative numbers!
-// TODO: benchmarks!
+-- TODO: is string.left() faster than s:left()?
+-- TODO: is string.sub faster than both left and right?
+-- TODO: these return bad results when used with negative numbers!
+-- TODO: benchmarks!
 
 local string = string -- optimization
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 registerType("string", "s", "",
 	nil,
 	nil,
 	function(retval)
-		if !isstring(retval) then error("Return value is not a string, but a "..type(retval).."!",0) end
+		if not isstring(retval) then error("Return value is not a string, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return !isstring(v)
+		return not isstring(v)
 	end
 )
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 __e2setcost(3) -- temporary
 
@@ -34,7 +34,7 @@ registerOperator("ass", "s", "s", function(self, args)
 	return rv2
 end)
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 local string_sub = string.sub
 registerOperator("fea", "nss", "", function(self, args)
@@ -99,7 +99,7 @@ registerOperator("fea", "nns", "", function(self, args)
 	end
 end)
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 registerOperator("is", "s", "n", function(self, args)
 	local op1 = args[2]
@@ -158,7 +158,7 @@ registerOperator("lth", "ss", "n", function(self, args)
 	return rv1 < rv2 and 1 or 0
 end)
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 __e2setcost(10) -- temporary
 
@@ -171,7 +171,7 @@ registerOperator("add", "ss", "s", function(self, args)
 	return rv1 .. rv2
 end)
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 registerOperator("add", "sn", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
@@ -191,7 +191,7 @@ registerOperator("add", "ns", "s", function(self, args)
 	return tostring(rv1) .. rv2
 end)
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 registerOperator("add", "sv", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
@@ -211,7 +211,7 @@ registerOperator("add", "vs", "s", function(self, args)
 	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],rv2)
 end)
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 registerOperator("add", "sa", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
@@ -231,7 +231,7 @@ registerOperator("add", "as", "s", function(self, args)
 	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],rv2)
 end)
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 __e2setcost(20) -- temporary
 
@@ -284,7 +284,7 @@ e2function number toUnicodeByte(string c)
 	return utf8_byte(c)
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 [deprecated = "Use the indexing operator instead"]
 e2function string string:index(number idx)
@@ -319,11 +319,11 @@ e2function string string:lower()
 	return this:lower()
 end
 
-e2function string string:length()
+e2function number string:length()
 	return #this
 end
 
-e2function string string:unicodeLength()
+e2function number string:unicodeLength()
 	-- the string.gsub method is inconsistent with how writeUnicodeString and toUnicodeByte handles badly-formed sequences.
 	-- local _, length = string.gsub (rv1, "[^\128-\191]", "")
 	local length = 0
@@ -345,11 +345,11 @@ e2function string string:unicodeLength()
 	return length
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 e2function string string:repeat(number times)
 	local len = #this * times
-	if len < 0 then return "" end
+	if len <= 0 then return "" end
 
 	self.prf = self.prf + len * 0.01
 	if self.prf > e2_tickquota then error("perf", 0) end
@@ -369,9 +369,8 @@ e2function string string:trimRight()
 	return this:TrimRight()
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
-local sub = string.sub
 local gsub = string.gsub
 local find = string.find
 
@@ -455,10 +454,9 @@ e2function string string:reverse()
 	return this:reverse()
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 local string_format = string.format
 local gmatch = string.gmatch
-local Right = string.Right
 
 --- Formats a values exactly like Lua's [http://www.lua.org/manual/5.1/manual.html#pdf-string.format string.format]. Any number and type of parameter can be passed through the "...". Prints errors to the chat area.
 e2function string format(string fmt, ...)
@@ -471,7 +469,7 @@ e2function string format(string fmt, ...)
 	return ret
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 -- string.match wrappers by Jeremydeath, 2009-08-30
 local string_match = string.match
 local table_remove = table.remove
@@ -500,8 +498,6 @@ e2function array string:match(string pattern, position)
 	end
 end
 
-local table_Copy = table.Copy
-
 -- Helper function for gmatch (below)
 -- (By Divran)
 local newE2Table = E2Lib.newE2Table
@@ -513,7 +509,7 @@ local function gmatch( self, this, pattern )
 	local v
 	while true do
 		v = {iter()}
-		if (!v or #v==0) then break end
+		if not v or #v == 0 then break end
 		num = num + 1
 		ret.n[num] = v
 		ret.ntypes[num] = "r"
@@ -527,7 +523,7 @@ end
 -- (By Divran)
 e2function table string:gmatch(string pattern)
 	local OK, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
-	if (!OK) then
+	if not OK then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
 		return newE2Table()
 	else
@@ -540,7 +536,7 @@ end
 e2function table string:gmatch(string pattern, position)
 	this = this:Right( -position-1 )
 	local OK, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
-	if (!OK) then
+	if not OK then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
 		return newE2Table()
 	else
@@ -570,7 +566,7 @@ e2function string string:matchFirst(string pattern, position)
 	end
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 local unpack = unpack
 local isnumber = isnumber
 local utf8_len = utf8.len
