@@ -196,7 +196,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.lengthismul = lengthismul
 
 	-- Preventing client crashes
-	local BlockedChars = [=[["?]]=]
+	local BlockedChars = "[\"?]"
 	if ( string.find(soundname, BlockedChars) ) then
 		soundname = ""
 	end
