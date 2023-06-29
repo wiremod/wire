@@ -457,7 +457,7 @@ self:Unprompt()
 end)
 
 util.AddNetworkString("wire_interactiveprop_kick")
-function ENT:Unprompt( )
+function ENT:Unprompt()
 	
 	self.User = nil
 	self:UpdateOverlay()

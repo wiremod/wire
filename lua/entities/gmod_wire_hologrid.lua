@@ -6,7 +6,7 @@ ENT.WireDebugName = "Holo Grid"
 
 if CLIENT then return end -- No more client
 
-function ENT:Initialize( )
+function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS );
 	self:SetMoveType( MOVETYPE_VPHYSICS );
 	self:SetSolid( SOLID_VPHYSICS );

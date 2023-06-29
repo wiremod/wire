@@ -118,7 +118,7 @@ end
 //----------------------------------------------------------------------------------------------
 //	Purpose: gets the minimum width, clamp your stuff to this
 //----------------------------------------------------------------------------------------------
-function TextWrapIndex:GetOptimalWidth( )
+function TextWrapIndex:GetOptimalWidth()
 
 	return self.CharW + self.SpaceW;
 

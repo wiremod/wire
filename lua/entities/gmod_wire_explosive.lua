@@ -113,7 +113,7 @@ function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, no
 	table.Merge( self:GetTable(), ttable )
 end
 
-function ENT:ResetHealth( )
+function ENT:ResetHealth()
 	self:SetHealth( self:GetMaxHealth() )
 	Wire_TriggerOutput(self, "Health", self:GetMaxHealth())
 
@@ -210,7 +210,7 @@ function ENT:Think()
 	return true
 end
 
-function ENT:Explode( )
+function ENT:Explode()
 
 	if ( not self:IsValid() ) then return end
 
@@ -250,7 +250,7 @@ function ENT:Explode( )
 end
 
 -- don't foreget to call this when changes happen
-function ENT:ShowOutput( )
+function ENT:ShowOutput()
 	local txt = ""
 	if (self.reloading and self.Delayreloadtime > 0) then
 		txt = "Rearming... "..self.count

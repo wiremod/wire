@@ -91,7 +91,7 @@ function TOOL:DrawHUD()
 
 	local markerpos = marker:GetPos():ToScreen()
 	local markpos = mark:GetPos():ToScreen()
-	if ( markpos.x > 0 and markpos.y > 0 and markpos.x < ScrW() and markpos.y < ScrH( ) ) then
+	if ( markpos.x > 0 and markpos.y > 0 and markpos.x < ScrW() and markpos.y < ScrH() ) then
 		surface.SetDrawColor( 255, 255, 100, 255 )
 		surface.DrawLine(markerpos.x, markerpos.y, markpos.x, markpos.y)
 	end
