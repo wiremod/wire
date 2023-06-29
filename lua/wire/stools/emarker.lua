@@ -18,10 +18,6 @@ TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_siren.mdl",
 }
 
--- if SERVER then
---     Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
--- end
-
 function TOOL:LeftClick(trace)
 	if not trace.HitPos or trace.Entity:IsPlayer() then return false end
 	if ( CLIENT ) then return true end

@@ -82,7 +82,7 @@ end
 
 function ENT:Use(ply, caller)
 	if (not ply:IsPlayer()) then return end
-	if self.PrevUser and (self.PrevUser:IsValid()) then return end
+	if self.PrevUser and self.PrevUser:IsValid() then return end
 	if self.OutputEntID then
 		self.EntToOutput = ply
 	end
