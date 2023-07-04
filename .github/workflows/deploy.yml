@@ -9,18 +9,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
-      - uses: leafo/gh-actions-lua@v10
-
-      - name: Run gma packer
-        run: |
-          lua .github/workflows/gma.lua wiremod.gma
-
-      - name: Upload to workshop
-        uses: wiremod/workshop-upload@a02cec0c6bd79bd2a514787485d806ed44c295f1
+      - uses: wiremod/gmod-upload@4bc2dfb88010f343e5ee121b02110151343ec8dd
         with:
-          appId: 4000
-          itemId: 160250458
-          contentPath: "wiremod.gma"
+          id: 160250458
           changelog: "Deployment via Github to latest changes"
         env:
           STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
