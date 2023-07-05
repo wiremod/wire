@@ -64,7 +64,7 @@ end
 function ENT:BuildDupeInfo()
 	local info = BaseClass.BuildDupeInfo(self) or {}
 
-	if self.Vehicle and (self.Vehicle:IsValid()) then
+	if self.Vehicle and self.Vehicle:IsValid() then
 	    info.Vehicle = self.Vehicle:EntIndex()
 	end
 
