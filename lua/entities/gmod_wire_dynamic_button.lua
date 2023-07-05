@@ -49,7 +49,7 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "Set" then
-		if (self.toggle) then
+		if self.toggle then
 			self:Switch(value ~= 0)
 			self.PrevUser = nil
 			self.podpress = nil
@@ -58,13 +58,13 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Use(ply, caller)
-	if (not ply:IsPlayer()) then return end
-	if (self.PrevUser) and (self.PrevUser:IsValid()) then return end
+	if not ply:IsPlayer() then return end
+	if self.PrevUser and self.PrevUser:IsValid() then return end
 	if self.OutputEntID then
 		self.EntToOutput = ply
 	end
-	if (self:GetOn()) then
-		if (self.toggle) then self:Switch(false) end
+	if self:GetOn() then
+		if self.toggle then self:Switch(false) end
 
 		return
 	end
@@ -80,11 +80,11 @@ function ENT:Think()
 	BaseClass.Think(self)
 
 	if self:GetOn() then
-		if (not self.PrevUser)
-		or (not self.PrevUser:IsValid())
-		or (not self.podpress and not self.PrevUser:KeyDown(IN_USE))
-		or (self.podpress and not self.PrevUser:KeyDown( IN_ATTACK )) then
-		    if (not self.toggle) then
+		if not self.PrevUser
+		or not self.PrevUser:IsValid()
+		or not self.podpress and not self.PrevUser:KeyDown(IN_USE)
+		or self.podpress and not self.PrevUser:KeyDown( IN_ATTACK ) then
+		    if not self.toggle then
 				self:Switch(false)
 			end
 
@@ -120,10 +120,10 @@ function ENT:Setup(toggle, value_on, value_off, description, entityout, material
     self:SetColor(Color(self.off_r, self.off_g, self.off_b, 255))
 
 	if entityout then
-		WireLib.AdjustOutputs(self, { 
-			"Out (The button's main output) [NORMAL]", 
-			"EntID (The entity ID of the player who pressed the button) [NORMAL]" , 
-			"Entity (The player who pressed the button) [ENTITY]" 
+		WireLib.AdjustOutputs(self, {
+			"Out (The button's main output) [NORMAL]",
+			"EntID (The entity ID of the player who pressed the button) [NORMAL]" ,
+			"Entity (The player who pressed the button) [ENTITY]"
 		})
 		Wire_TriggerOutput(self, "EntID", 0)
 		Wire_TriggerOutput(self, "Entity", nil)
@@ -141,16 +141,15 @@ function ENT:Setup(toggle, value_on, value_off, description, entityout, material
 end
 
 function ENT:Switch(on)
-	if (not self:IsValid()) then return end
+	if not self:IsValid() then return end
 
 	self:SetOn( on )
 
-	if (on) then
+	if on then
 		self:ShowOutput(self.value_on)
 		self.Value = self.value_on
         if self.material_on ~= "" then self:SetMaterial(self.material_on) end
 		self:SetColor(Color(self.on_r, self.on_g, self.on_b, 255))
-
 	else
 		self:ShowOutput(self.value_off)
 		self.Value = self.value_off

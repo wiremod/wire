@@ -82,7 +82,7 @@ end
 
 function ENT:Use(ply, caller)
 	if (not ply:IsPlayer()) then return end
-	if (self.PrevUser) and (self.PrevUser:IsValid()) then return end
+	if self.PrevUser and self.PrevUser:IsValid() then return end
 	if self.OutputEntID then
 		self.EntToOutput = ply
 	end
@@ -127,9 +127,9 @@ function ENT:Setup(toggle, value_off, value_on, description, entityout)
 	self.entityout = entityout
 
 	if entityout then
-		WireLib.AdjustOutputs(self, { 
-			"Out (The button's main output) [NORMAL]", 
-			"EntID (The entity ID of the player who pressed the button) [NORMAL]" , 
+		WireLib.AdjustOutputs(self, {
+			"Out (The button's main output) [NORMAL]",
+			"EntID (The entity ID of the player who pressed the button) [NORMAL]" ,
 			"Entity (The player who pressed the button) [ENTITY]"
 		})
 		Wire_TriggerOutput(self, "EntID", 0)

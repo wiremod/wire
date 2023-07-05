@@ -29,7 +29,7 @@ local BalloonTypes =
 					Model("models/balloons/balloon_dog.mdl"),
 					Model("models/balloons/balloon_star.mdl")
 					}
-CreateConVar('sbox_maxwire_deployers', 2)
+CreateConVar( "sbox_maxwire_deployers", 2)
 
 local DmgFilter
 
