@@ -239,7 +239,7 @@ function ZVM:ReadCell(Address)
     local value
     -- Perform I/O operation
     if (Address >= 0) and (Address < self.RAMSize) then
-      value = self.Memory[Address] or 0
+      value = tonumber(self.Memory[Address]) or 0
     else
     -- Extra cycles for the external operation
       self.TMR = self.TMR + 15
@@ -250,7 +250,7 @@ function ZVM:ReadCell(Address)
     if Page.Override == 1 then
       if self.MEMRQ == 4 then -- Data available
         self.MEMRQ = 0
-        return self.LADD
+        return tonumber(self.LADD) or 0
       else -- No data: generate a request
         self.MEMRQ = 2
         self.MEMADDR = Address
@@ -264,7 +264,7 @@ function ZVM:ReadCell(Address)
 
   -- Perform I/O operation
   if (Address >= 0) and (Address < self.RAMSize) then
-    return self.Memory[Address] or 0
+    return tonumber(self.Memory[Address]) or 0
   else
     -- Extra cycles for the external operation
     self.TMR = self.TMR + 15
@@ -278,6 +278,7 @@ end
 --------------------------------------------------------------------------------
 -- Default WriteCell handler
 function ZVM:WriteCell(Address,Value)
+  if not isnumber(Value) then Value = 0 end
   -- Check bus lock flag
   if self.BusLock == 1 then return false end
 

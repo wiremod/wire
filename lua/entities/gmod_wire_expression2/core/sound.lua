@@ -8,6 +8,9 @@ local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 1
 local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_burst_max", 8, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1, {FCVAR_ARCHIVE} )
 
+-- _level_max: Sets the maximum soundLevel we can set on a sound. 140 is maximum to begin with, a more non-obnoxious level is maybe around 110.
+local wire_expression2_sound_level_max = CreateConVar( "wire_expression2_sound_level_max", 110, {FCVAR_ARCHIVE} )
+
 ---------------------------------------------------------------
 -- Helper functions
 ---------------------------------------------------------------
@@ -43,6 +46,7 @@ local function getSound( self, index )
 	if isnumber( index ) then index = math.floor( index ) end
 	return self.data.sound_data.sounds[index]
 end
+
 
 local function soundStop(self, index, fade)
 	local sound = getSound( self, index )
@@ -213,6 +217,118 @@ e2function number soundDuration(string sound)
 	return SoundDuration(sound) or 0
 end
 __e2setcost(nil)
+
+-- From https://steamcommunity.com/sharedfiles/filedetails/?id=2221932128, modified
+----------------------------------------------------
+-- soundLevel, soundDSP (Monkatraz)
+----------------------------------------------------
+
+__e2setcost(5)
+
+e2function void soundDSP( index, dsp )
+	local sound = getSound( self, index )
+	if not sound then return end
+	-- We need to apply the DSP while the sound is stopped
+	sound:Stop()
+	sound:SetDSP( math.Clamp( dsp, 0, 34 ) ) -- clamped up to 34 because anything past 34 produces the sound of the letter E
+	sound:Play()
+end
+e2function void soundDSP( string index, dsp ) = e2function void soundDSP( index, dsp )
+
+e2function void soundLevel( index, level )
+	local sound = getSound( self, index )
+	if not sound then return end
+	-- We need to set the level while the sound is stopped
+	sound:Stop()
+	sound:SetSoundLevel( math.Clamp( level, 0, wire_expression2_sound_level_max:GetInt() ) )
+	sound:Play()
+end
+e2function void soundLevel( string index, level ) = e2function void soundLevel( index, level )
+
+----------------------------------------------------
+-- Other stuff (Tim)
+----------------------------------------------------
+
+-- GETs for the above
+
+__e2setcost(2)
+
+e2function number soundDSP( index )
+	local sound = getSound( self, index )
+	if not sound then return 0 end
+	return sound:GetDSP() or 0
+end
+e2function number soundDSP( string index ) = e2function number soundDSP( index )
+
+e2function number soundLevel( index )
+	local sound = getSound( self, index )
+	if not sound then return 0 end
+	return sound:GetSoundLevel()
+end
+e2function number soundLevel( string index ) = e2function number soundLevel( index )
+
+-- Extras (GETs)
+
+e2function number soundPitch( index )
+	local sound = getSound( self, index )
+	if not sound then return 0 end
+	return sound:GetPitch()
+end
+e2function number soundPitch( string index ) = e2function number soundPitch( index )
+
+e2function number soundVolume( index )
+	local sound = getSound( self, index )
+	if not sound then return 0 end
+	return sound:GetVolume()
+end
+e2function number soundVolume( string index ) = e2function number soundVolume( index )
+
+e2function number soundPlaying( index )
+	local sound = getSound( self, index )
+	if not sound then return 0 end
+	return sound:IsPlaying() and 1 or 0
+end
+e2function number soundPlaying( string index ) = e2function number soundPlaying( index )
+
+-- EmitSound
+
+local function EmitSound(e2, ent, snd, level, pitch, volume)
+    if not isAllowed(e2) then return end
+
+    if not IsValid(ent) then return e2:throw("Invalid entity!", nil) end
+    if not isOwner(e2, ent) then return e2:throw("You do not own this entity!", nil) end
+
+    local maxlevel = wire_expression2_sound_level_max:GetInt()
+    if level ~= nil and level > maxlevel then
+        level = maxlevel
+    end
+
+    ent:EmitSound(snd, level, pitch, volume)
+end
+
+__e2setcost(20)
+e2function void entity:emitSound(string soundName, number soundLevel, number pitchPercent, number volume)
+    EmitSound(self, this, soundName, soundLevel, pitchPercent, volume)
+end
+
+e2function void entity:emitSound(string soundName, number soundLevel, number pitchPercent)
+    EmitSound(self, this, soundName, soundLevel, pitchPercent)
+end
+
+e2function void entity:emitSound(string soundName, number soundLevel)
+    EmitSound(self, this, soundName, soundLevel)
+end
+
+e2function void entity:emitSound(string soundName)
+    EmitSound(self, this, soundName)
+end
+
+e2function void entity:emitSoundStop(string soundName)
+    if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+    if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+
+    this:StopSound(soundName)
+end
 
 ---------------------------------------------------------------
 

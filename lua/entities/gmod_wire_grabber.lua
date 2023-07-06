@@ -81,7 +81,7 @@ function ENT:CanGrab(trace)
 	-- If there's no physics object then we can't constraint it!
 	if not util.IsValidPhysicsObject(trace.Entity, trace.PhysicsBone) then return false end
 
-	if not gamemode.Call( "CanTool", self:GetPlayer(), trace, "weld" ) then return false end
+	if not WireLib.CanTool(self:GetPlayer(), trace.Entity, "weld") then return false end
 
 	return true
 end

@@ -10,7 +10,7 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self, { "Hold" })
+	self.Inputs = Wire_CreateInputs(self, { "Hold", "Ignore [ARRAY]" })
 	self.Outputs = WireLib.CreateSpecialOutputs( self, { "Out" }, { "ENTITY" } )
 end
 
@@ -117,12 +117,19 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 		table.insert(AdjInputs, inputhold)
 	end
 	table.insert(AdjInputs, "Hold")
+	table.insert(AdjInputs, "Ignore [ARRAY]")
+
 	Wire_AdjustInputs(self, AdjInputs)
 
 	self:ShowOutput(false)
 end
 
 function ENT:TriggerInput(iname, value)
+	if iname == "Ignore" then
+		self.Ignored = value
+		return
+	end
+
 	if value > 0 and self.Selector.Next[iname] then
 		self:SelectorNext(self.Selector.Next[iname])
 		--[[elseif self.Selector.Prev[iname] then
@@ -265,9 +272,13 @@ function ENT:Think()
 		local bogeys, dists, ndists = {}, {}, 0
 		for _, contact in ipairs(ents.FindInSphere(mypos, self.MaxRange or 10)) do
 			local class = contact:GetClass()
-			if (not self.NoTargetOwnersStuff or (class == "player") or (WireLib.GetOwner(contact) ~= self:GetPlayer())) and
+			if
+				-- Ignore array of entities if provided
+				(not self.Ignored or not table.HasValue(self.Ignored, contact) ) and
+				-- Ignore owned stuff if checked
+				((not self.NoTargetOwnersStuff or (class == "player") or (WireLib.GetOwner(contact) ~= self:GetPlayer())) and
 				-- NPCs
-				(self.TargetNPC and (contact:IsNPC()) and (isOneOf(class, self.NPCName))) or
+				((self.TargetNPC and (contact:IsNPC()) and (isOneOf(class, self.NPCName))) or
 				--Players
 				(self.TargetPlayer and (class == "player") and CheckPlayers(self, contact) or
 				--Locators
@@ -283,7 +294,7 @@ function ENT:Think()
 				-- Vehicles
 				(self.TargetVehicles and contact:IsVehicle()) or
 				-- Entity classnames
-				(self.EntFil ~= "" and isOneOf(class, self.EntFil)))
+				(self.EntFil ~= "" and isOneOf(class, self.EntFil)))))
 			then
 				local dist = (contact:GetPos() - mypos):Length()
 				if (dist >= self.MinRange) then
@@ -394,7 +405,7 @@ end
 
 function ENT:TargetPainter( tt, targeted )
 	local ply = self:GetPlayer()
-	if tt and IsValid(tt) and tt:EntIndex() ~= 0 and ply:IsValid() and hook.Run( "CanTool", ply, WireLib.dummytrace(tt), "colour" ) then
+	if tt and IsValid(tt) and tt:EntIndex() ~= 0 and ply:IsValid() and WireLib.CanTool(ply, tt, "colour") then
 		if (targeted) then
 			self.OldColor = tt:GetColor()
 			tt:SetColor(Color(255, 0, 0, 255))

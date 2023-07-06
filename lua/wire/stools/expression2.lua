@@ -167,7 +167,7 @@ if SERVER then
 			if chip.player == player then -- Just download if the toolgun user owns this chip
 				self:Download(player, chip)
 				player:SetAnimation(PLAYER_ATTACK1)
-			elseif hook.Run("CanTool", player, WireLib.dummytrace(chip), "wire_expression2") then -- The player has prop protection perms on the chip
+			elseif WireLib.CanTool(player, chip, "wire_expression2") then -- The player has prop protection perms on the chip
 				self:Download(player, chip)
 				player:SetAnimation(PLAYER_ATTACK1)
 
@@ -179,11 +179,13 @@ if SERVER then
 					chip.player,
 					string.format("The %s '%s' just accessed your chip '%s' via prop protection", playerType, player:Nick(), chip.name)
 				)
-			elseif (chip.alwaysAllow and chip.alwaysAllow[player]) or not IsValid(chip.player) then -- The player doesnt have prop protection perms, however the owner always allows for this chip (or they're invalid)
+			elseif (chip.alwaysAllow and chip.alwaysAllow[player]) then -- The player doesnt have prop protection perms, however the owner always allows for this chip (or they're invalid)
 				self:Download(player, chip)
 				player:SetAnimation(PLAYER_ATTACK1)
 			else -- The player doesn't have prop protection perms on the chip, ask the owner to give contents
-				RequestView(chip, player)
+				if IsValid(chip.player) then
+					RequestView(chip, player)
+				end
 				player:SetAnimation(PLAYER_ATTACK1)
 			end
 		else
@@ -294,6 +296,18 @@ if SERVER then
 			net.WriteUInt(#datastr, 32)
 			net.WriteData(datastr, #datastr)
 			net.Send(ply)
+			targetEnt.DownloadAllowedPlayers = targetEnt.DownloadAllowedPlayers or {}
+			targetEnt.DownloadAllowedPlayers[ply] = true
+			timer.Simple(60, function() -- make permissions timeout after 60 seconds
+				if not IsValid(targetEnt) then return end
+				if not targetEnt.DownloadAllowedPlayers then return end
+				if not targetEnt.DownloadAllowedPlayers[ply] then return end
+				targetEnt.DownloadAllowedPlayers[ply] = nil
+				if table.IsEmpty(targetEnt.DownloadAllowedPlayers) then
+					targetEnt.DownloadAllowedPlayers = nil 
+				end
+			end)
+
 		else
 			local data = { {}, {} }
 			if wantedfiles.main then
@@ -333,6 +347,9 @@ if SERVER then
 	local wantedfiles = WireLib.RegisterPlayerTable()
 	net.Receive("wire_expression2_download_wantedfiles", function(len, ply)
 		local toent = net.ReadEntity()
+
+		if not toent.DownloadAllowedPlayers or not toent.DownloadAllowedPlayers[ply] then return end
+
 		local uploadandexit = net.ReadBit() ~= 0
 		local numpackets = net.ReadUInt(16)
 
@@ -374,7 +391,7 @@ if SERVER then
 			return
 		end
 
-		if not hook.Run( "CanTool", ply, WireLib.dummytrace( toent ), "wire_expression2" ) then
+		if not WireLib.CanTool(ply, toent, "wire_expression2") then
 			WireLib.AddNotify(ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
@@ -449,7 +466,7 @@ if SERVER then
 		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
 		if canhas(player) then return end
 		if E2.error then return end
-		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "halt execution" ) then
+		if WireLib.CanTool(player, E2, "wire_expression2") then
 			E2:Destruct()
 			E2:Error("Execution halted (Triggered by: " .. player:Nick() .. ")", "Execution halted")
 			if E2.player ~= player then
@@ -471,7 +488,7 @@ if SERVER then
 		-- Same check as tool code
 		if E2.player == player then
 			WireLib.Expression2Download(player, E2)
-		elseif hook.Run("CanTool", player, WireLib.dummytrace(E2), "wire_expression2") then
+		elseif WireLib.CanTool(player, E2, "wire_expression2") then
 			WireLib.Expression2Download(player, E2)
 
 			local playerType = "player"
@@ -482,10 +499,12 @@ if SERVER then
 				E2.player,
 				string.format("The %s '%s' just accessed your chip '%s' via prop protection", playerType, player:Nick(), E2.name)
 			)
-		elseif (E2.alwaysAllow and E2.alwaysAllow[player]) or not IsValid(E2.player) then
+		elseif (E2.alwaysAllow and E2.alwaysAllow[player]) then
 			WireLib.Expression2Download(player, E2)
 		else
-			RequestView(E2, player)
+			if IsValid(E2.player) then
+				RequestView(E2, player)
+			end
 		end
 	end)
 
@@ -495,7 +514,7 @@ if SERVER then
 		E2 = Entity(E2)
 		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
 		if canhas(player) then return end
-		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "reset" ) then
+		if WireLib.CanTool(player, E2, "wire_expression2") then
 			if E2.context.data.last or E2.first then return end
 
 			E2:Reset()

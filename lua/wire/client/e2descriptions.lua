@@ -1205,6 +1205,7 @@ E2Helper.Descriptions["holoClip(nvve)"] = "Defines a plane used to clip a hologr
 E2Helper.Descriptions["holoClipEnabled(nn)"] = "Enables / disables clipping for a hologram with specified index"
 E2Helper.Descriptions["holoClipEnabled(nnn)"] = "Enables / disables clipping for a hologram with specified index. Clip index is for use with multiple clipping planes"
 E2Helper.Descriptions["holoClipsAvailable()"] = "Returns the maximum number of clipping planes allowed per hologram"
+E2Helper.Descriptions["holoInvertModel(nn)"] = "If not 0, inverts the model of the hologram"
 E2Helper.Descriptions["holoRenderFX(nn)"] = "Changes the RenderFX for a hologram"
 E2Helper.Descriptions["holoSkin(nn)"] = "Changes the skin of a hologram"
 
@@ -1407,6 +1408,7 @@ E2Helper.Descriptions["egpCanSendUmsg()"] = "Returns 1 if you can send an userme
 E2Helper.Descriptions["egpClear(xwl:)"] = "Clears the EGP screen"
 E2Helper.Descriptions["egpClearQueue()"] = "Clears your entire queue"
 E2Helper.Descriptions["egpCopy(xwl:nn)"] = "Copies the settings of the second object into the first. If the first object does not exist, it's created"
+E2Helper.Descriptions["egpConnectedUsers(xwl:)"] = "Returns an array of players connected to the EGP"
 E2Helper.Descriptions["egpCursor(xwl:e)"] = "Returns the specified player's aim position on the screen"
 E2Helper.Descriptions["egpDrawTopLeft(xwl:n)"] = "Set to 1 to make boxes, outline boxes, rounded boxes, and rounded outline boxes draw from the top left corner instead of from the center"
 E2Helper.Descriptions["egpGlobalPos(xwl:n)"] = "Returns the \"global\" (= it takes the parents' positions into consideration) position as a 3D vector. X and Y being the 2D X,Y coordinates, while Z is the angle"
@@ -1414,6 +1416,7 @@ E2Helper.Descriptions["egpGlobalVertices(xwl:n)"] = "Returns an array of 2D vect
 E2Helper.Descriptions["egpGlobalFiltering(xwl:n)"] = "Changes the texture filter used to draw all EGP Objects. Works only on EGP Screens. See _TEXFILTER constants (POINT=sharp, ANISOTROPIC=blurry/default)"
 E2Helper.Descriptions["egpHasObject(xwl:n)"] = "Returns 1 if the object with specified index exists on the screen, 0 if not"
 E2Helper.Descriptions["egpObjectContainsPoint(xwl:nxv2)"] = "Returns 1 if the object with specified index contains the specified point"
+E2Helper.Descriptions["egpHudEnable(xwl:n)"] = "Enables the HUD if the input is not 0"
 E2Helper.Descriptions["egpHudToggle(xwl:)"] = "Toggles the HUD on/off"
 E2Helper.Descriptions["egpLoadFrame(xwl:n)"] = "Loads the frame with specified index"
 E2Helper.Descriptions["egpLoadFrame(xwl:s)"] = "Loads the frame with specified name"
@@ -1509,6 +1512,29 @@ E2Helper.Descriptions["soundVolume(snn)"] = "soundVolume(string Index, Volume, F
 E2Helper.Descriptions["soundVolume(sn)"] = "soundVolume(string Index, Volume), where Volume is a number between 0 and 1. Default Volume is 1"
 E2Helper.Descriptions["soundVolume(nn)"] = "soundVolume(integer Index, Volume), where Volume is a number between 0 and 1. Default Volume is 1"
 E2Helper.Descriptions["soundVolume(nnn)"] = "soundVolume(integer Index, Volume, FadeTime), where Volume is a number between 0 and 1. Default Volume is 1"
+E2Helper.Descriptions["soundDSP(nn)"] = "Sets the DSP effect for the sound at the index, then restarts the sound"
+E2Helper.Descriptions["soundDSP(sn)"] = "Sets the DSP effect for the sound at the index, then restarts the sound"
+E2Helper.Descriptions["soundLevel(nn)"] = "Sets the sound's level in dB, then restarts the sound. This affects how far away the sound can be heard."
+E2Helper.Descriptions["soundLevel(sn)"] = "Sets the sound's level in dB, then restarts the sound. This affects how far away the sound can be heard."
+E2Helper.Descriptions["soundDSP(n)"] = "Returns the DSP effect for the sound at the index (default 0)"
+E2Helper.Descriptions["soundDSP(s)"] = "Returns the DSP effect for the sound at the index (default 0)"
+E2Helper.Descriptions["soundLevel(n)"] = "Returns the sound level in dB for the sound at the index"
+E2Helper.Descriptions["soundLevel(s)"] = "Returns the sound level in dB for the sound at the index"
+E2Helper.Descriptions["soundPitch(n)"] = "Returns the pitch of the sound at the index"
+E2Helper.Descriptions["soundPitch(s)"] = "Returns the pitch of the sound at the index"
+E2Helper.Descriptions["soundVolume(n)"] = "Returns the volume of the sound at the index"
+E2Helper.Descriptions["soundVolume(s)"] = "Returns the volume of the sound at the index"
+E2Helper.Descriptions["soundPlaying(n)"] = "Returns 1 if the sound at the index is playing, 0 if not"
+E2Helper.Descriptions["soundPlaying(s)"] = "Returns 1 if the sound at the index is playing, 0 if not"
+
+do
+	local EmitSoundDoc = "Plays sound on entity. Note that one file can only be played once in a time."
+	E2Helper.Descriptions["emitSound(e:s)"] = EmitSoundDoc
+	E2Helper.Descriptions["emitSound(e:sn)"] = EmitSoundDoc
+	E2Helper.Descriptions["emitSound(e:snn)"] = EmitSoundDoc
+	E2Helper.Descriptions["emitSound(e:snnn)"] = EmitSoundDoc
+end
+E2Helper.Descriptions["emitSoundStop(e:s)"] = "Stops sound played with 'emitSound'"
 
 -- UTF-8
 E2Helper.Descriptions["toUnicodeChar(...)"] = "Returns the UTF-8 string from the given Unicode code-points"
@@ -1516,7 +1542,7 @@ E2Helper.Descriptions["toUnicodeChar(r)"] = "Returns the UTF-8 string from the g
 E2Helper.Descriptions["toUnicodeByte(s:nn)"] = "Returns the Unicode code-points from the given UTF-8 string"
 E2Helper.Descriptions["unicodeLength(s:nn)"] = "Returns the length of the given UTF-8 string"
 
--- Damage
+-- Deaths / Spawns
 E2Helper.Descriptions["runOnDeath(n)"] = "If set to 0, chip won't run on players dying"
 E2Helper.Descriptions["deathClk()"] = "Returns if the E2 was triggered by a death"
 E2Helper.Descriptions["lastDeathTime()"] = "Returns the last time a player died"
@@ -1556,12 +1582,18 @@ E2Helper.Descriptions["setSurfaceProp(xef:n)"] = "Sets the surface property inde
 E2Helper.Descriptions["effectCanPlay()"] = "Returns whether you can play an effect (or 0 if you've hit the burst limit)"
 E2Helper.Descriptions["effectCanPlay(s)"] = "Same as effectCanPlay(), but also checks if the specific effect is not allowed"
 
---Interpolations
+-- Interpolations
 
-local from_easings = {"OutElastic","OutCirc","InOutQuint","InCubic","InOutCubic","InOutBounce","InOutSine","OutQuad","InOutCirc","InElastic","OutBack","InQuint","InSine","InBounce","InQuart","OutSine","OutExpo","InOutExpo","InQuad","InOutElastic","InOutQuart","InExpo","OutCubic","OutQuint","OutBounce","InCirc","InBack","InOutQuad","OutQuart","InOutBack"}
-
-for k, v in pairs(from_easings) do
-	local name = "ease" .. v
-	
-	E2Helper.Descriptions[name .. "(n)"] = "Performs " .. v .. " interpolation on the argument. You can see how all of these interpolation functions look here: https://imgur.com/XZPgymK"
+for _, v in ipairs {"OutElastic","OutCirc","InOutQuint","InCubic","InOutCubic","InOutBounce","InOutSine","OutQuad","InOutCirc","InElastic","OutBack","InQuint","InSine","InBounce","InQuart","OutSine","OutExpo","InOutExpo","InQuad","InOutElastic","InOutQuart","InExpo","OutCubic","OutQuint","OutBounce","InCirc","InBack","InOutQuad","OutQuart","InOutBack"} do
+	E2Helper.Descriptions["ease" .. v .. "(n)"] = "Performs " .. v .. " interpolation on the argument. You can see how all of these interpolation functions look here: https://imgur.com/XZPgymK"
 end
+
+-- Damage
+
+E2Helper.Descriptions["isType(xdm:n)"] = "Returns whether the damage contains the type flag provided. For example isType(_DMG_BLAST) would return 1 if the damage contains blast damage."
+E2Helper.Descriptions["getAmount(xdm:)"] = "Returns the amount of damage dealt"
+E2Helper.Descriptions["getPosition(xdm:)"] = "Returns the position where the damage was dealt"
+E2Helper.Descriptions["getForce(xdm:)"] = "Returns the force of the damage dealt"
+E2Helper.Descriptions["getInflictor(xdm:)"] = "Returns the inflictor (weapon) which caused the damage to be dealt"
+E2Helper.Descriptions["getAttacker(xdm:)"] = "Returns the attacker which used the inflictor to deal the damage"
+E2Helper.Descriptions["getAmmoType(xdm:)"] = "Returns the ammo type id of the damage dealt"

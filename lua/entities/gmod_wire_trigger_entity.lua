@@ -3,6 +3,7 @@ AddCSLuaFile()
 ENT.Base = "base_anim"
 ENT.Name = "Wire Trigger Entity"
 ENT.Author = "mitterdoo"
+ENT.DoNotDuplicate = true
 
 function ENT:Initialize()
 

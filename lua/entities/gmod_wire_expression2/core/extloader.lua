@@ -20,7 +20,7 @@ if ENT then
 			if not game.SinglePlayer() then MsgN( str ) end
 		end
 
-		timer.Destroy( "E2_AutoReloadTimer" )
+		timer.Remove( "E2_AutoReloadTimer" )
 
 		_Msg( "Calling destructors for all Expression 2 chips." )
 		local chips = ents.FindByClass( "gmod_wire_expression2" )
@@ -69,8 +69,6 @@ end
 
 -- parses typename/typeid associations from a file and stores info about the file for later use by e2_include_finalize/e2_include_pass2
 local function e2_include(name)
-	local path, filename = string.match(name, "^(.-/?)([^/]*)$")
-
 	local luaname = "entities/gmod_wire_expression2/core/" .. name
 	local contents = file.Read(luaname, "LUA") or ""
 	E2Lib.ExtPP.Pass1(contents)
@@ -161,6 +159,7 @@ e2_include("functions.lua")
 e2_include("strfunc.lua")
 e2_include("steamidconv.lua")
 e2_include("easings.lua")
+e2_include("damage.lua")
 
 -- Load serverside files here, they need additional parsing
 do

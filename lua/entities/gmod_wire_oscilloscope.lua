@@ -50,19 +50,19 @@ if CLIENT then
 
 		self.GPU:RenderToGPU(function()
 			surface.SetDrawColor(10,20,5,255)
-			surface.DrawRect(0,0,512,512)
+			surface.DrawRect(0,0,1024,1024)
 
 			local nodes = self:GetNodeList()
 			for i=1,length do
 				local i_next = i+1
 				if not nodes[i_next] then continue end
 
-				local nx1 = nodes[i].X*256+256
-				local ny1 = -nodes[i].Y*256+256
-				local nx2 = nodes[i_next].X*256+256
-				local ny2 = -nodes[i_next].Y*256+256
+				local nx1 = nodes[i].X*512+512
+				local ny1 = -nodes[i].Y*512+512
+				local nx2 = nodes[i_next].X*512+512
+				local ny2 = -nodes[i_next].Y*512+512
 
-				if ((nx1-nx2)*(nx1-nx2) + (ny1-ny2)*(ny1-ny2) < 256*256) then
+				if ((nx1-nx2)*(nx1-nx2) + (ny1-ny2)*(ny1-ny2) < 512*512) then
 					local a = math.max(1, 3.75-(3*i)/length)^1.33
 					local a2 = math.max(1, a/2)
 
@@ -79,14 +79,14 @@ if CLIENT then
 			end
 
 			surface.SetDrawColor(30, 120, 10, 255)
-			surface.DrawLine(0, 128, 512, 128)
-			surface.DrawLine(0, 384, 512, 384)
-			surface.DrawLine(128, 0, 128, 512)
-			surface.DrawLine(384, 0, 384, 512)
+			surface.DrawLine(0, 256, 1024, 256)
+			surface.DrawLine(0, 768, 1024, 768)
+			surface.DrawLine(256, 0, 256, 1024)
+			surface.DrawLine(768, 0, 768, 1024)
 
 			surface.SetDrawColor(180, 200, 10, 255)
-			surface.DrawLine(0, 256, 512, 256)
-			surface.DrawLine(256, 0, 256, 512)
+			surface.DrawLine(0, 512, 1024, 512)
+			surface.DrawLine(512, 0, 512, 1024)
 		end)
 
 		self.GPU:Render()

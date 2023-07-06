@@ -52,11 +52,14 @@ Obj.DataStreamInfo = function( self )
 	table.Merge( tbl, { angle = self.angle, radius = self.radius, fidelity = self.fidelity } )
 	return tbl
 end
-function Obj:Contains(point)
-	point = EGP.ScreenSpaceToObjectSpace(self, point)
+function Obj:Contains(egp, x, y)
+	x, y = EGP.WorldToLocal(egp, self, x, y)
+	
 	local w, h = self.w / 2, self.h / 2
+	if egp.TopLeft then x, y = x - w, y - h end
+	
 	local r = math.min(math.min(w, h), self.radius)
-	local x, y = math.abs(point.x), math.abs(point.y)
+	x, y = math.abs(x), math.abs(y)
 	if x > w or y > h then return false end
 	x, y = x - w + r, y - h + r
 	if x < 0 or y < 0 then return true end

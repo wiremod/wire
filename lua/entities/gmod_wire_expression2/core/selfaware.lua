@@ -223,6 +223,7 @@ local comparable_types = {
 }
 
 registerCallback("postinit", function()
+	E2Lib.currentextension = "selfaware"
 	-- Angle is the same as vector
 	registerFunction("changed", "a", "n", registeredfunctions.e2_changed_v)
 

@@ -488,6 +488,7 @@ end
 __e2setcost(nil)
 
 registerCallback("postinit", function()
+	E2Lib.currentextension = "core"
 	-- Returns the Nth value given after the index, the type's zero element otherwise. If you mix types, all non-matching arguments will be regarded as the 2nd argument's type's zero element.
 	for name,id,zero in pairs_map(wire_expression_types, unpack) do
 		registerFunction("select", "n"..id.."...", id, function(self, args)

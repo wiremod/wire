@@ -61,7 +61,7 @@ function SWEP:On()
 	local ply = self:GetOwner()
 
 	if IsValid(self.Linked) and self.Linked.HasPly and self.Linked:HasPly() then
-		if hook.Run("CanTool", ply, WireLib.dummytrace(self.Linked), "remotecontroller") then
+		if WireLib.CanTool(ply, self.Linked, "remotecontroller") then
 			if self.Linked.RC then
 				self.Linked:RCEject(self.Linked:GetPly())
 			else

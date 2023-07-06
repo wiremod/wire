@@ -236,3 +236,16 @@ function WireLib.hud_debug(text, oneframe)
 		draw.DrawText(text,"Trebuchet24",10,200,Color(255,255,255,255),0)
 	end)
 end
+
+
+local old_renderhalos = WireLib.__old_renderhalos or hook.GetTable().PostDrawEffects.RenderHalos
+WireLib.__old_renderhalos = old_renderhalos
+if old_renderhalos ~= nil then
+	hook.Add("PostDrawEffects","RenderHalos", function()
+		if hook.Run("ShouldDrawHalos") == false then return end
+	
+		old_renderhalos()
+	end)
+else
+	ErrorNoHalt("Wiremod RenderHalos detour failed (RenderHalos hook not found)!")
+end

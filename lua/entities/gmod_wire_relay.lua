@@ -12,8 +12,8 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 
 
-	self.Value = {}		//stores current output value
-	self.Last = {}		//stores last input value for each input
+	self.Value = {}		-- stores current output value
+	self.Last = {}		-- stores last input value for each input
 
 	self.Inputs = Wire_CreateInputs(self, { "1A", "2A", "Switch" })
 	self.Outputs = Wire_CreateOutputs(self, { "A" })
@@ -21,15 +21,15 @@ end
 
 function ENT:Setup(keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygroupoff, toggle, normclose, poles, throws, nokey)
 
-	local outpoles = {"A", "B", "C", "D", "E", "F", "G", "H"} //output names
+	local outpoles = {"A", "B", "C", "D", "E", "F", "G", "H"} -- output names
 
-	// Clamp
+	-- Clamp
 	throws = throws > 10 and 10 or throws
 	poles = poles > #outpoles and #outpoles or poles
 
-	local inputs = {} 	//wont need this outside setup
+	local inputs = {} 	--wont need this outside setup
 
-	self.outputs = {} 	//need to rebuild output names
+	self.outputs = {} 	--need to rebuild output names
 
 	self.keygroup1		= keygroup1
 	self.keygroup2		= keygroup2
@@ -44,23 +44,23 @@ function ENT:Setup(keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygro
 	self.throws 		= throws
 	self.nokey			= nokey
 
-	//build inputs and putputs, init all nil values
+	--build inputs and putputs, init all nil values
 	for p=1, self.poles do
 		self.outputs[p] = outpoles[p]
 		self.Value[p] = self.Value[p] or 0
 		for t=1, self.throws do
-			//inputs[ p * self.poles + t ] = t .. outpoles[p]
-			table.insert(inputs, ( t .. outpoles[p] ))
+			--inputs[ p * self.poles + t ] = t .. outpoles[p]
+			table.insert(inputs, t .. outpoles[p] )
 			self.Last[ t .. outpoles[p] ] = self.Last[ t .. outpoles[p] ] or 0
 		end
 	end
-	//add switch input to end of input list
+	--add switch input to end of input list
 	table.insert(inputs, "Switch")
 
 	Wire_AdjustInputs(self, inputs)
 	Wire_AdjustOutputs(self, self.outputs)
 
-	//set the switch to its new normal state
+	--set the switch to its new normal state
 	self:Switch( normclose )
 
 	if not nokey then
@@ -134,7 +134,7 @@ end
 
 
 function ENT:InputActivate( mul )
-	if ( self.toggle and self.selinput == mul) then //only toggle for the same key
+	if ( self.toggle and self.selinput == mul) then --only toggle for the same key
 		return self:Switch( self.normclose )
 	else
 		return self:Switch( mul )

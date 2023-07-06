@@ -21,7 +21,7 @@ do
 				local categorytable = string.Explode(",", entry.categories or "none") or { "none" }
 				for _,cat in pairs(categorytable) do
 					list.Set( "Wire_"..cat.."_Models", entry.model, true )
-					converted[#converted+1] = string.format('list.Set("Wire_%s_Models", "%s", true)', cat, entry.model)
+					converted[#converted+1] = string.format('"%s"
 				end
 			end
 			converted[#converted+1] = ""
@@ -83,32 +83,89 @@ ModelPlug.ListAddModels("WireScreenModels", {
 	"models/blacknecro/tv_plasma_4_3.mdl",
 	"models/kobilica/wiremonitorbig.mdl",
 	"models/kobilica/wiremonitorsmall.mdl",
+	"models/cheeze/pcb/pcb0.mdl",
+	"models/cheeze/pcb/pcb1.mdl",
+	"models/cheeze/pcb/pcb2.mdl",
+	"models/cheeze/pcb/pcb3.mdl",
 	"models/cheeze/pcb/pcb4.mdl",
 	"models/cheeze/pcb/pcb6.mdl",
 	"models/cheeze/pcb/pcb5.mdl",
 	"models/cheeze/pcb/pcb7.mdl",
 	"models/cheeze/pcb/pcb8.mdl",
 	"models/cheeze/pcb2/pcb8.mdl",
+	"models/cheeze/pcb2/pcb1.mdl",
+	"models/cheeze/pcb2/pcb2.mdl",
+	"models/cheeze/pcb2/pcb3.mdl",
+	"models/cheeze/pcb2/pcb4.mdl",
+	"models/cheeze/pcb2/pcb5.mdl",
+	"models/cheeze/pcb2/pcb6.mdl",
+	"models/cheeze/pcb2/pcb7.mdl",
 	"models/props_lab/monitor01a.mdl",
 	"models/props_lab/monitor02.mdl",
 	"models/props_lab/workspace002.mdl",
 	"models/props_lab/reciever01b.mdl",
+	"models/props_c17/consolebox05a.mdl",
+	"models/props_lab/reciever01c.mdl",
+	"models/props_lab/reciever01d.mdl",
+	"models/props_c17/consolebox01a.mdl",
+	"models/props_combine/combine_interface001.mdl",
+	"models/props_c17/cashregister01a.mdl",
+	"models/props_combine/combine_monitorbay.mdl",
+	"models/props_lab/workspace001.mdl",
+	"models/props_lab/citizenradio.mdl",
+	"models/props_lab/securitybank.mdl",
+	"models/beer/wiremod/gate_e2.mdl",
+	"models/beer/wiremod/targetfinder.mdl",
+	"models/bull/gates/microcontroller1.mdl",
+	"models/bull/gates/microcontroller2.mdl",
+	"models/jaanus/wiretool/wiretool_gate.mdl",
+	"models/jaanus/wiretool/wiretool_controlchip.mdl",
+	"models/props_lab/keypad.mdl",
+	"models/weapons/w_c4_planted.mdl",
+	"models/weapons/w_toolgun.mdl",
+	"models/xqm/panel1x1.mdl",
+	"models/xqm/panel1x2.mdl",
+	"models/xqm/box5s.mdl",
+	"models/props_lab/miniteleport.mdl",
+	"models/props_lab/plotter.mdl",
+	"models/props_combine/combine_interface002.mdl",
+	"models/props_combine/combine_interface003.mdl",
+	"models/props_combine/combine_intmonitor003.mdl",
+	"models/props_combine/combine_intmonitor001.mdl",
+	"models/props_lab/workspace003.mdl",
+	"models/props_lab/workspace004.mdl",
+	"models/props_lab/servers.mdl",
+	"models/props_phx/rt_screen.mdl",
 	"models/props_wasteland/controlroom_monitor001b.mdl",
+	"models/hunter/plates/plate025.mdl",
+	"models/hunter/plates/plate025x025.mdl",
+	"models/hunter/plates/plate025x05.mdl",
+	"models/hunter/plates/plate05x075.mdl",
+	"models/hunter/plates/plate05x1.mdl",
 	"models/hunter/plates/plate1x1.mdl",
 	"models/hunter/plates/plate2x2.mdl",
 	"models/hunter/plates/plate4x4.mdl",
 	"models/hunter/plates/plate8x8.mdl",
 	"models/hunter/plates/plate05x05.mdl",
 	"models/hunter/blocks/cube1x1x1.mdl",
-	"models/props_phx/construct/windows/window1x1.mdl",
+	"models/props_lab/reciever01b.mdl",
+	"models/fasteroid/bull/lcd1.mdl",
+	"models/fasteroid/bull/lcd2.mdl",
+	"models/fasteroid/bull/lcd3.mdl",
+	"models/fasteroid/bull/lcd4.mdl",
+	"models/fasteroid/bull/lcd5.mdl",
+	"models/props_phx/construct/windows/window1x1.mdl"
 })
 
 --screens without a GPULib setup (for the tools wire_panel and wire_screen)
 ModelPlug.ListAddModels("WireNoGPULibScreenModels", {
 	"models/props_lab/monitor01b.mdl",
+	"models/props/cs_office/tv_plasma.mdl",
+	"models/props/cs_office/computer_monitor.mdl",
 	"models/kobilica/wiremonitorbig.mdl",
 	"models/kobilica/wiremonitorsmall.mdl"
 })
+
 
 --sounds
 ModelPlug.ListAddGenerics("WireSounds", {
@@ -605,6 +662,23 @@ ModelPlug.ListAddModels("Wire_speaker_Models",{
 ModelPlug.ListAddModels("Wire_weight_Models", {
 	"models/props_interiors/pot01a.mdl",
 	"models/props_lab/huladoll.mdl"
+})
+
+ModelPlug.ListAddModels("Wire_InteractiveProp_Models", {
+	"models/props_lab/reciever01a.mdl"
+	"models/props_lab/reciever01b.mdl",
+	"models/props_lab/keypad.mdl",
+	"models/beer/wiremod/numpad.mdl",
+	"models/props_interiors/bathtub01a.mdl",
+	"models/props_c17/furnituresink001a.mdl",
+	"models/props_interiors/sinkkitchen01a.mdl",
+	"models/props_wasteland/prison_sink001a.mdl",
+	"models/props_lab/citizenradio.mdl",
+	"models/props_c17/furniturewashingmachine001a.mdl",
+	"models/props_lab/plotter.mdl",
+	"models/props_interiors/vendingmachinesoda01a.mdl",
+	"models/props_lab/reciever01c.mdl",
+	"models/props_trainstation/payphone001a.mdl"
 })
 
 --Dynamic button materials

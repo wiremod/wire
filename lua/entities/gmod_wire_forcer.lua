@@ -81,7 +81,7 @@ function ENT:Think()
 		if not IsValid(self:GetPlayer()) or gamemode.Call( "GravGunPickupAllowed", self:GetPlayer(), ent )==false then return end
 	end
 
-	if hook.Run( "Wire_ForcerCanUse", self:GetPlayer(), ent ) == false then return end
+	if hook.Run( "Wire_ForcerCanUse", self:GetPlayer(), ent, self ) == false then return end
 	
 	if ent:GetMoveType() == MOVETYPE_VPHYSICS then
 		local phys = ent:GetPhysicsObject()

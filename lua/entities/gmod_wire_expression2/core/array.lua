@@ -101,6 +101,7 @@ end
 -- Looped functions and operators
 --------------------------------------------------------------------------------
 registerCallback( "postinit", function()
+	E2Lib.currentextension = "array"
 	local getf, setf
 	for k,v in pairs( wire_expression_types ) do
 		local name = k:lower()

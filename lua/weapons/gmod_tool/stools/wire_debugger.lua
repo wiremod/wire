@@ -59,7 +59,6 @@ properties.Add("wire_debugger_start", {
 	Filter = function(self,ent,ply)
 		if not IsValid(ent) then return false end
 		if not IsWire(ent) then return false end
-		if not hook.Run("CanTool", ply, WireLib.dummytrace(ent), "wire_debugger") then return false end
 		if Components[ply] then
 			for _, cmp in ipairs(Components[ply]) do
 				if (cmp == ent) then return false end

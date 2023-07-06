@@ -240,6 +240,7 @@ local non_allowed_types = { xgt = true } -- If anyone can think of any other typ
 local fixDefault = E2Lib.fixDefault
 
 registerCallback("postinit",function()
+	E2Lib.currentextension = "datasignal"
 	-- Add support for EVERY SINGLE type. Yeah!!
 	for k,v in pairs( wire_expression_types ) do
 		if not non_allowed_types[v[1]] then

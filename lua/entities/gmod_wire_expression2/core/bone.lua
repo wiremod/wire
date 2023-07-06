@@ -35,17 +35,27 @@ function getBone(entity, index)
 	local bone = entity2bone[entity][index]
 	if not bone then
 		bone = entity:GetPhysicsObjectNum(index)
+		if not bone then return nil end
 		entity2bone[entity][index] = bone
+		
+		bone2entity[bone] = entity
+		bone2index[bone] = index
 	end
-	if not bone then return nil end
-	if not bone:IsValid() then return nil end
 
-	bone2entity[bone] = entity
-	bone2index[bone] = index
-
-	return bone
+	return IsValid(bone) and bone or nil
 end
 E2Lib.getBone = getBone
+
+local function GetBones(entity)
+	if not entity2bone[entity] then
+		entity2bone[entity] = {}
+		for i = 0, entity:GetPhysicsObjectCount() - 1 do
+			getBone(entity, i)
+		end
+	end
+	return entity2bone[entity] or { }
+end
+E2Lib.GetBones = GetBones
 
 local function removeBone(bone)
 	bone2entity[bone] = nil
@@ -120,13 +130,8 @@ end
 
 --- Returns an array containing all of <this>'s bones. This array's first element has the index 0!
 e2function array entity:bones()
-	if not IsValid(this) then return {} end
-	local ret = {}
-	local maxn = this:GetPhysicsObjectCount()-1
-	for i = 0,maxn do
-		ret[i] = getBone(this, i)
-	end
-	return ret
+	if not IsValid(this) then return { } end
+	return GetBones(this)
 end
 
 --- Returns <this>'s number of bones.

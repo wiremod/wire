@@ -57,7 +57,7 @@ if CLIENT then
 		self.GPU.GetInfo = function()
 			local pos = self:LocalToWorld(self:GetDrawOffsetPos())
 			local ang = self:LocalToWorldAngles(self:GetDrawOffsetAng())
-			return {RS = self:GetDrawScale(), RatioX = 1, translucent = true}, pos, ang
+			return { RS = self:GetDrawScale() * 0.5, RatioX = 1, translucent = true }, pos, ang
 		end
 	end
 
