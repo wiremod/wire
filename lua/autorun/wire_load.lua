@@ -85,8 +85,8 @@ if SERVER then
 	if CreateConVar("wire_force_workshop", 1, {FCVAR_ARCHIVE}, "Should Wire force all clients to download the Workshop edition of Wire, for models? (requires restart to disable)"):GetBool() then
 		resource.AddWorkshop("160250458")
 	end
-  resource.AddFile("resource/fonts/alphalcd.ttf")
-  
+  	resource.AddFile("resource/fonts/alphalcd.ttf")
+
 end
 
 -- shared includes
@@ -133,8 +133,6 @@ if CLIENT then
 	include("wire/client/rendertarget_fix.lua")
 	include("wire/client/hlzasm/hc_compiler.lua")
 	include("wire/client/customspawnmenu.lua")
-  
-
 end
 
 -- Load UWSVN, done here so its definitely after Wire is loaded.

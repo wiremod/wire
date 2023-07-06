@@ -39,7 +39,7 @@ TOOL.ClientConVar["angleoffset"] = 0
 
 local SocketData = list.Get("Wire_Socket_Models")
 
-hook.Add("ModelPlugLuaRefresh","wire_plug_updatemodels",function() 
+hook.Add("ModelPlugLuaRefresh","wire_plug_updatemodels",function()
 	SocketData = list.Get("Wire_Socket_Models")
 end)
 

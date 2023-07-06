@@ -665,7 +665,7 @@ ModelPlug.ListAddModels("Wire_weight_Models", {
 })
 
 ModelPlug.ListAddModels("Wire_InteractiveProp_Models", {
-	"models/props_lab/reciever01a.mdl"
+	"models/props_lab/reciever01a.mdl",
 	"models/props_lab/reciever01b.mdl",
 	"models/props_lab/keypad.mdl",
 	"models/beer/wiremod/numpad.mdl",
@@ -736,4 +736,3 @@ for k,v in ipairs(CheezesSmallButtons) do
 	list.Set( "ButtonModels", v, {} )
 	list.Set( "Wire_button_small_Models", v, true )
 end
-//

@@ -19,8 +19,8 @@ end
 WireToolSetup.BaseLang()
 
 if (SERVER) then
-	CreateConVar('sbox_maxwire_dataplugs', 20)
-	CreateConVar('sbox_maxwire_datasockets', 20)
+	CreateConVar("sbox_maxwire_dataplugs", 20)
+	CreateConVar("sbox_maxwire_datasockets", 20)
 end
 
 TOOL.ClientConVar["model"] = "models/hammy/pci_slot.mdl"
