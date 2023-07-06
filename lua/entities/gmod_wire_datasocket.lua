@@ -25,7 +25,7 @@ if CLIENT then
 	end
 
 	function ENT:DrawEntityOutline() end -- never draw outline
-	
+
 	function ENT:Initialize()
 		self:CacheData()
 		table.insert(sockets, self)
@@ -36,7 +36,7 @@ if CLIENT then
 
 	function ENT:OnRemove()
 		table.RemoveByValue(sockets, self)
-		if #sockets == 0 then	
+		if #sockets == 0 then
 			hook.Remove("HUDPaint", "Wire_DataSocket_DrawLinkHelperLine")
 		end
 	end
