@@ -240,6 +240,7 @@ e2function number string:toNumber()
 end
 
 e2function number string:toNumber(number base)
+	if base < 2 or base > 36 then return self:throw("Base out of range", 0) end
 	return tonumber(this, base) or 0
 end
 
