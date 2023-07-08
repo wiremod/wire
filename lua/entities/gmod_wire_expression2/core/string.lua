@@ -233,18 +233,14 @@ end)
 
 --[[******************************************************************************]]--
 
-__e2setcost(20) -- temporary
+__e2setcost(2)
 
 e2function number string:toNumber()
-	local ret = tonumber(this)
-	if ret == nil then return 0 end
-	return ret
+	return tonumber(this) or 0
 end
 
 e2function number string:toNumber(number base)
-	local ret = tonumber(this, base)
-	if ret == nil then return 0 end
-	return ret
+	return tonumber(this, base) or 0
 end
 
 local string_char = string.char
@@ -252,21 +248,22 @@ local string_byte = string.byte
 local utf8_char = utf8.char
 local utf8_byte = utf8.codepoint
 
+__e2setcost(1)
+
 e2function string toChar(number n)
-	if n < 0 then return "" end
-	if n > 255 then return "" end
+	if n < 0 or n > 255 then return "" end
 	return string_char(n)
 end
 
 e2function number toByte(string c)
-	if c == "" then return -1 end
-	return string_byte(c)
+	return string_byte(c) or -1
 end
 
 e2function number toByte(string str, number idx)
-	if idx < 1 or idx > #str then return -1 end
-	return string_byte(str, idx)
+	return string_byte(str, idx) or -1
 end
+
+__e2setcost(5)
 
 local math_floor = math.floor
 
@@ -285,6 +282,8 @@ e2function number toUnicodeByte(string c)
 end
 
 --[[******************************************************************************]]--
+
+__e2setcost(2)
 
 [deprecated = "Use the indexing operator instead"]
 e2function string string:index(number idx)
@@ -323,6 +322,8 @@ e2function number string:length()
 	return #this
 end
 
+__e2setcost(10)
+
 e2function number string:unicodeLength()
 	-- the string.gsub method is inconsistent with how writeUnicodeString and toUnicodeByte handles badly-formed sequences.
 	-- local _, length = string.gsub (rv1, "[^\128-\191]", "")
@@ -347,6 +348,8 @@ end
 
 --[[******************************************************************************]]--
 
+__e2setcost(3)
+
 e2function string string:repeat(number times)
 	local len = #this * times
 	if len <= 0 then return "" end
@@ -356,6 +359,8 @@ e2function string string:repeat(number times)
 
 	return this:rep(times)
 end
+
+__e2setcost(2)
 
 e2function string string:trim()
 	return this:Trim()
@@ -370,6 +375,8 @@ e2function string string:trimRight()
 end
 
 --[[******************************************************************************]]--
+
+__e2setcost(10)
 
 local gsub = string.gsub
 local find = string.find
@@ -396,6 +403,8 @@ e2function number string:findRE(string pattern, start)
 	end
 end
 
+__e2setcost(6)
+
 --- Returns the 1st occurrence of the string <needle>, returns 0 if not found. Does not use LUA patterns.
 e2function number string:find(string needle)
 	return this:find( needle, 1, true) or 0
@@ -406,6 +415,8 @@ e2function number string:find(string needle, start)
 	return this:find( needle, start, true) or 0
 end
 
+__e2setcost(8)
+
 --- Finds and replaces every occurrence of <needle> with <new> without regular expressions
 e2function string string:replace(string needle, string new)
 	if needle == "" then return this end
@@ -413,6 +424,8 @@ e2function string string:replace(string needle, string new)
 	if self.prf > e2_tickquota then error("perf", 0) end
 	return this:Replace(needle, new)
 end
+
+__e2setcost(12)
 
 ---  Finds and replaces every occurrence of <pattern> with <new> using regular expressions. Prints malformed string errors to the chat area.
 e2function string string:replaceRE(string pattern, string new)
@@ -427,7 +440,7 @@ e2function string string:replaceRE(string pattern, string new)
 	end
 end
 
-__e2setcost(5)
+__e2setcost(2)
 
 --- Splits the string into an array, along the boundaries formed by the string <pattern>. See also [[string.Explode]]
 local string_Explode = string.Explode
@@ -436,6 +449,8 @@ e2function array string:explode(string delim)
 	self.prf = self.prf + #ret * 0.3 + #this * 0.1
 	return ret
 end
+
+__e2setcost(5)
 
 e2function array string:explodeRE( string delim )
 	local ok, ret = pcall(function() WireLib.CheckRegex(this, delim) return string_Explode( delim, this, true ) end)
@@ -447,7 +462,7 @@ e2function array string:explodeRE( string delim )
 	return ret
 end
 
-__e2setcost(10)
+__e2setcost(6)
 
 --- Returns a reversed version of <this>
 e2function string string:reverse()
@@ -458,8 +473,12 @@ end
 local string_format = string.format
 local gmatch = string.gmatch
 
+__e2setcost(3)
+
 --- Formats a values exactly like Lua's [http://www.lua.org/manual/5.1/manual.html#pdf-string.format string.format]. Any number and type of parameter can be passed through the "...". Prints errors to the chat area.
-e2function string format(string fmt, ...)
+e2function string format(string fmt, ...args)
+	self.prf = self.prf + select("#", ...) * 2
+
 	-- TODO: call toString for table-based types
 	local ok, ret = pcall(string_format, fmt, ...)
 	if not ok then
@@ -473,6 +492,8 @@ end
 -- string.match wrappers by Jeremydeath, 2009-08-30
 local string_match = string.match
 local table_remove = table.remove
+
+__e2setcost(10)
 
 --- runs [[string.match]](<this>, <pattern>) and returns the sub-captures as an array. Prints malformed pattern errors to the chat area.
 e2function array string:match(string pattern)
@@ -519,6 +540,8 @@ local function gmatch( self, this, pattern )
 	return ret
 end
 
+__e2setcost(12)
+
 --- runs [[string.gmatch]](<this>, <pattern>) and returns the captures in an array in a table. Prints malformed pattern errors to the chat area.
 -- (By Divran)
 e2function table string:gmatch(string pattern)
@@ -543,6 +566,8 @@ e2function table string:gmatch(string pattern, position)
 		return ret
 	end
 end
+
+__e2setcost(10)
 
 --- runs [[string.match]](<this>, <pattern>) and returns the first match or an empty string if the match failed. Prints malformed pattern errors to the chat area.
 e2function string string:matchFirst(string pattern)
@@ -588,7 +613,7 @@ local function ToUnicodeChar(self, args)
 	return utf8_char(unpack(codepoints))
 end
 
-__e2setcost(1)
+__e2setcost(3)
 
 --- Returns the UTF-8 string from the given Unicode code-points.
 e2function string toUnicodeChar(...args)
