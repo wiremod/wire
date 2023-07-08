@@ -387,7 +387,7 @@ e2function number string:findRE(string pattern)
 	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string.find(this, pattern) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
-		return 0
+		return self:throw(Ret, 0)
 	else
 		return Ret or 0
 	end
@@ -398,7 +398,7 @@ e2function number string:findRE(string pattern, start)
 	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return find(this, pattern, start) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
-		return 0
+		return self:throw(Ret, 0)
 	else
 		return Ret or 0
 	end
@@ -435,7 +435,7 @@ e2function string string:replaceRE(string pattern, string new)
 	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return gsub(this, pattern, new) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
-		return ""
+		return self:throw(Ret, "")
 	else
 		return Ret or ""
 	end
@@ -454,12 +454,13 @@ end
 __e2setcost(5)
 
 e2function array string:explodeRE( string delim )
+	self.prf = self.prf + #this * 0.1
 	local ok, ret = pcall(function() WireLib.CheckRegex(this, delim) return string_Explode( delim, this, true ) end)
 	if not ok then
-		self.player:ChatPrint(ret)
-		ret = {}
+		return self:throw(ret, {})
 	end
-	self.prf = self.prf + #ret * 0.3 + #this * 0.1
+
+	self.prf = self.prf + #ret * 0.3
 	return ret
 end
 
@@ -484,7 +485,7 @@ e2function string format(string fmt, ...args)
 	local ok, ret = pcall(string_format, fmt, ...)
 	if not ok then
 		self.player:ChatPrint(ret)
-		return ""
+		return self:throw(ret, "")
 	end
 	return ret
 end
@@ -501,9 +502,9 @@ e2function array string:match(string pattern)
 	local args = {pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern) end)}
 	if not args[1] then
 		self.player:ChatPrint(args[2] or "Unknown error in str:match")
-		return {}
+		return self:throw(args[2], {})
 	else
-		table_remove( args, 1 ) -- Remove "OK" boolean
+		table_remove( args, 1) -- Remove "OK" boolean
 		return args or {}
 	end
 end
@@ -513,7 +514,7 @@ e2function array string:match(string pattern, position)
 	local args = {pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern, position) end)}
 	if not args[1] then
 		self.player:ChatPrint(args[2] or "Unknown error in str:match")
-		return {}
+		return self:throw(args[2], {})
 	else
 		table_remove( args, 1 ) -- Remove "OK" boolean
 		return args or {}
@@ -548,8 +549,7 @@ __e2setcost(12)
 e2function table string:gmatch(string pattern)
 	local OK, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
 	if not OK then
-		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
-		return newE2Table()
+		return self:throw(ret, newE2Table())
 	else
 		return ret
 	end
@@ -562,7 +562,7 @@ e2function table string:gmatch(string pattern, position)
 	local OK, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
 	if not OK then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
-		return newE2Table()
+		return self:throw(ret, newE2Table())
 	else
 		return ret
 	end
@@ -575,7 +575,7 @@ e2function string string:matchFirst(string pattern)
 	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
-		return ""
+		return self:throw(Ret, "")
 	else
 		return Ret or ""
 	end
@@ -586,7 +586,7 @@ e2function string string:matchFirst(string pattern, position)
 	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern, position) end)
 	if not OK then
 		self.player:ChatPrint(Ret)
-		return ""
+		return self:throw(Ret, "")
 	else
 		return Ret or ""
 	end
