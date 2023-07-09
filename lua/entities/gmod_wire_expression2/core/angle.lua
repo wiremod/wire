@@ -174,6 +174,16 @@ e2function number angle:operator[](index, value)
 	return value
 end
 
+e2function string operator+(string lhs, angle rhs)
+	self.prf = self.prf + #lhs * 0.01
+	return lhs .. ("ang(%d,%d,%d)"):format(rhs[1], rhs[2], rhs[3])
+end
+
+e2function string operator+(angle lhs, string rhs)
+	self.prf = self.prf + #rhs * 0.01
+	return ("ang(%d,%d,%d)"):format(rhs[1], rhs[2], rhs[3]) .. rhs
+end
+
 /******************************************************************************/
 
 __e2setcost(5)

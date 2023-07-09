@@ -156,30 +156,6 @@ end
 
 --[[******************************************************************************]]--
 
-e2function string operator+(string lhs, vector rhs)
-	self.prf = self.prf + #lhs * 0.01
-	return lhs .. ("vec(%.2f,%.2f,%.2f)"):format(rhs[1], rhs[2], rhs[3])
-end
-
-e2function string operator+(vector lhs, string rhs)
-	self.prf = self.prf + #rhs * 0.01
-	return ("vec(%.2f,%.2f,%.2f)"):format(rhs[1], rhs[2], rhs[3]) .. rhs
-end
-
---[[******************************************************************************]]--
-
-e2function string operator+(string lhs, angle rhs)
-	self.prf = self.prf + #lhs * 0.01
-	return lhs .. ("ang(%d,%d,%d)"):format(rhs[1], rhs[2], rhs[3])
-end
-
-e2function string operator+(angle lhs, string rhs)
-	self.prf = self.prf + #rhs * 0.01
-	return ("ang(%d,%d,%d)"):format(rhs[1], rhs[2], rhs[3]) .. rhs
-end
-
---[[******************************************************************************]]--
-
 __e2setcost(2)
 
 e2function number string:toNumber()
