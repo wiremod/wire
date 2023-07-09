@@ -9,6 +9,12 @@
 
 local string = string -- optimization
 
+local string_sub, string_byte, string_char = string.sub, string.byte, string.char
+local string_gsub, string_find, string_match = string.gsub, string.find, string.match
+local string_gmatch, string_format = string.gmatch, string.format
+
+local string_Replace, string_Explode = string.Replace, string.Explode
+
 --[[******************************************************************************]]--
 
 registerType("string", "s", "",
@@ -36,7 +42,6 @@ end)
 
 --[[******************************************************************************]]--
 
-local string_sub = string.sub
 registerOperator("fea", "nss", "", function(self, args)
 	local keyname, valname = args[2], args[3]
 	local str = args[4]
@@ -67,7 +72,6 @@ registerOperator("fea", "nss", "", function(self, args)
 	end
 end)
 
-local string_byte = string.byte
 registerOperator("fea", "nns", "", function(self, args)
 	local keyname, valname = args[2], args[3]
 
@@ -167,8 +171,6 @@ e2function number string:toNumber(number base)
 	return tonumber(this, base) or 0
 end
 
-local string_char = string.char
-local string_byte = string.byte
 local utf8_char = utf8.char
 local utf8_byte = utf8.codepoint
 
@@ -207,31 +209,31 @@ end
 
 --[[******************************************************************************]]--
 
-__e2setcost(2)
+__e2setcost(1)
 
 [deprecated = "Use the indexing operator instead"]
 e2function string string:index(number idx)
-	return this:sub(idx, idx)
+	return string_sub(this, idx, idx)
 end
 
 e2function string string:left(number idx)
-	return this:Left(idx)
+	return string_sub(this, 1, idx)
 end
 
 e2function string string:right(number idx)
-	return this:Right(idx)
+	return string_sub(this, -idx)
 end
 
 e2function string string:sub(number start, number finish)
-	return this:sub(start, finish)
+	return string_sub(this, start, finish)
 end
 
 e2function string string:sub(start)
-	return this:sub(start)
+	return string_sub(this, start)
 end
 
 e2function string string:operator[](index)
-	return this:sub(index,index)
+	return string_sub(this, index, index)
 end
 
 e2function string string:upper()
@@ -302,12 +304,9 @@ end
 
 __e2setcost(10)
 
-local gsub = string.gsub
-local find = string.find
-
 --- Returns the 1st occurrence of the string <pattern>, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern)
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string.find(this, pattern) end)
+	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern) end)
 	if not OK then
 		return self:throw(Ret, 0)
 	else
@@ -317,7 +316,7 @@ end
 
 ---  Returns the 1st occurrence of the string <pattern> starting at <start> and going to the end of the string, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern, start)
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return find(this, pattern, start) end)
+	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern, start) end)
 	if not OK then
 		return self:throw(Ret, 0)
 	else
@@ -329,12 +328,12 @@ __e2setcost(6)
 
 --- Returns the 1st occurrence of the string <needle>, returns 0 if not found. Does not use LUA patterns.
 e2function number string:find(string needle)
-	return this:find( needle, 1, true) or 0
+	return string_find(this, needle, 1, true) or 0
 end
 
 ---  Returns the 1st occurrence of the string <needle> starting at <start> and going to the end of the string, returns 0 if not found. Does not use LUA patterns.
 e2function number string:find(string needle, start)
-	return this:find( needle, start, true) or 0
+	return string_find(this, needle, start, true) or 0
 end
 
 __e2setcost(8)
@@ -344,7 +343,7 @@ e2function string string:replace(string needle, string new)
 	if needle == "" then return this end
 	self.prf = self.prf + #this * 0.1 + #new * 0.1
 	if self.prf > e2_tickquota then error("perf", 0) end
-	return this:Replace(needle, new)
+	return string_Replace(this, needle, new)
 end
 
 __e2setcost(12)
@@ -353,7 +352,7 @@ __e2setcost(12)
 e2function string string:replaceRE(string pattern, string new)
 	self.prf = self.prf + #this * 0.1 + #new * 0.1
 	if self.prf > e2_tickquota then error("perf", 0) end
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return gsub(this, pattern, new) end)
+	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_gsub(this, pattern, new) end)
 	if not OK then
 		return self:throw(Ret, "")
 	else
@@ -364,7 +363,6 @@ end
 __e2setcost(2)
 
 --- Splits the string into an array, along the boundaries formed by the string <pattern>. See also [[string.Explode]]
-local string_Explode = string.Explode
 e2function array string:explode(string delim)
 	local ret = string_Explode( delim, this )
 	self.prf = self.prf + #ret * 0.3 + #this * 0.1
@@ -392,9 +390,6 @@ e2function string string:reverse()
 end
 
 --[[******************************************************************************]]--
-local string_format = string.format
-local gmatch = string.gmatch
-
 __e2setcost(3)
 
 --- Formats a values exactly like Lua's [http://www.lua.org/manual/5.1/manual.html#pdf-string.format string.format]. Any number and type of parameter can be passed through the "...". Prints errors to the chat area.
@@ -411,7 +406,6 @@ end
 
 --[[******************************************************************************]]--
 -- string.match wrappers by Jeremydeath, 2009-08-30
-local string_match = string.match
 local table_remove = table.remove
 
 __e2setcost(10)
@@ -445,7 +439,7 @@ local newE2Table = E2Lib.newE2Table
 local function gmatch( self, this, pattern )
 	local ret = newE2Table()
 	local num = 0
-	local iter = this:gmatch( pattern )
+	local iter = string_gmatch( this, pattern )
 	local v
 	while true do
 		v = {iter()}
