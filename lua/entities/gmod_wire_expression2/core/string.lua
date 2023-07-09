@@ -2,13 +2,6 @@
 --  String support
 --[[******************************************************************************]]--
 
--- TODO: is string.left() faster than s:left()?
--- TODO: is string.sub faster than both left and right?
--- TODO: these return bad results when used with negative numbers!
--- TODO: benchmarks!
-
-local string = string -- optimization
-
 local string_sub, string_byte, string_char = string.sub, string.byte, string.char
 local string_gsub, string_find, string_match = string.gsub, string.find, string.match
 local string_gmatch, string_format = string.gmatch, string.format
