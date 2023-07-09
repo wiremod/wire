@@ -179,7 +179,7 @@ end
 
 e2function string operator+(vector lhs, string rhs)
 	self.prf = self.prf + #rhs * 0.01
-	return ("vec(%.2f,%.2f,%.2f)"):format(rhs[1], rhs[2], rhs[3]) .. rhs
+	return ("vec(%.2f,%.2f,%.2f)"):format(lhs[1], lhs[2], lhs[3]) .. rhs
 end
 
 --------------------------------------------------------------------------------
