@@ -101,135 +101,82 @@ end)
 
 --[[******************************************************************************]]--
 
-registerOperator("is", "s", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number operator_is(string this)
+	return this ~= "" and 1 or 0
+end
 
-	return rv1 ~= "" and 1 or 0
-end)
+e2function number operator==(string lhs, string rhs)
+	return lhs == rhs and 1 or 0
+end
 
-registerOperator("eq", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator!=(string lhs, string rhs)
+	return lhs ~= rhs and 1 or 0
+end
 
-	return rv1 == rv2 and 1 or 0
-end)
+e2function number operator>=(string lhs, string rhs)
+	self.prf = self.prf + math.min(#lhs, #rhs) / 10
+	return lhs >= rhs and 1 or 0
+end
 
-registerOperator("neq", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator<=(string lhs, string rhs)
+	self.prf = self.prf + math.min(#lhs, #rhs) / 10
+	return lhs <= rhs and 1 or 0
+end
 
-	return rv1 ~= rv2 and 1 or 0
-end)
+e2function number operator>(string lhs, string rhs)
+	self.prf = self.prf + math.min(#lhs, #rhs) / 10
+	return lhs > rhs and 1 or 0
+end
 
-registerOperator("geq", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + math.min(#rv1, #rv2) / 10
-
-	return rv1 >= rv2 and 1 or 0
-end)
-
-registerOperator("leq", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + math.min(#rv1, #rv2) / 10
-
-	return rv1 <= rv2 and 1 or 0
-end)
-
-registerOperator("gth", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + math.min(#rv1, #rv2) / 10
-
-	return rv1 > rv2 and 1 or 0
-end)
-
-registerOperator("lth", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + math.min(#rv1, #rv2) / 10
-
-	return rv1 < rv2 and 1 or 0
-end)
+e2function number operator<(string lhs, string rhs)
+	self.prf = self.prf + math.min(#lhs, #rhs) / 10
+	return lhs < rhs and 1 or 0
+end
 
 --[[******************************************************************************]]--
 
-__e2setcost(10) -- temporary
+__e2setcost(1) -- temporary
 
-registerOperator("add", "ss", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv1*0.01 + #rv2*0.01
-
-	return rv1 .. rv2
-end)
+e2function string operator+(string lhs, string rhs)
+	self.prf = self.prf + #lhs * 0.01 + #rhs * 0.01
+	return lhs .. rhs
+end
 
 --[[******************************************************************************]]--
 
-registerOperator("add", "sn", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function string operator+(string lhs, number rhs)
+	self.prf = self.prf + #lhs * 0.01
+	return lhs .. rhs --[[ concatenating a number to a string is valid without tostring. ]]
+end
 
-	self.prf = self.prf + #rv1*0.01
-
-	return rv1 .. tostring(rv2)
-end)
-
-registerOperator("add", "ns", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv2*0.01
-
-	return tostring(rv1) .. rv2
-end)
+e2function string operator+(number lhs, string rhs)
+	self.prf = self.prf + #rhs * 0.01
+	return lhs .. rhs --[[ concatenating a strings to a number is valid without tostring. ]]
+end
 
 --[[******************************************************************************]]--
 
-registerOperator("add", "sv", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function string operator+(string lhs, vector rhs)
+	self.prf = self.prf + #lhs * 0.01
+	return lhs .. ("vec(%.2f,%.2f,%.2f)"):format(rhs[1], rhs[2], rhs[3])
+end
 
-	self.prf = self.prf + #rv1*0.01
-
-	return ("%s[%s,%s,%s]"):format( rv1, rv2[1], rv2[2], rv2[3] )
-end)
-
-registerOperator("add", "vs", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv2*0.01
-
-	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],rv2)
-end)
+e2function string operator+(vector lhs, string rhs)
+	self.prf = self.prf + #rhs * 0.01
+	return ("vec(%.2f,%.2f,%.2f)"):format(rhs[1], rhs[2], rhs[3]) .. rhs
+end
 
 --[[******************************************************************************]]--
 
-registerOperator("add", "sa", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function string operator+(string lhs, angle rhs)
+	self.prf = self.prf + #lhs * 0.01
+	return lhs .. ("ang(%d,%d,%d)"):format(rhs[1], rhs[2], rhs[3])
+end
 
-	self.prf = self.prf + #rv1*0.01
-
-	return ("%s[%s,%s,%s]"):format( rv1,rv2[1],rv2[2],rv2[3] )
-end)
-
-registerOperator("add", "as", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv2*0.01
-
-	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],rv2)
-end)
+e2function string operator+(angle lhs, string rhs)
+	self.prf = self.prf + #rhs * 0.01
+	return ("ang(%d,%d,%d)"):format(rhs[1], rhs[2], rhs[3]) .. rhs
+end
 
 --[[******************************************************************************]]--
 
