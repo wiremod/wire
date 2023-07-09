@@ -393,7 +393,7 @@ end
 __e2setcost(3)
 
 --- Formats a values exactly like Lua's [http://www.lua.org/manual/5.1/manual.html#pdf-string.format string.format]. Any number and type of parameter can be passed through the "...". Prints errors to the chat area.
-e2function string format(string fmt, ...args)
+e2function string format(string fmt, ...)
 	self.prf = self.prf + select("#", ...) * 2
 
 	-- TODO: call toString for table-based types
