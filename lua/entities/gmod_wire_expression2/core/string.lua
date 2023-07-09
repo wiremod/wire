@@ -306,21 +306,21 @@ __e2setcost(10)
 
 --- Returns the 1st occurrence of the string <pattern>, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern)
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern) end)
-	if not OK then
-		return self:throw(Ret, 0)
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern) end)
+	if not ok then
+		return self:throw(ret, 0)
 	else
-		return Ret or 0
+		return ret or 0
 	end
 end
 
 ---  Returns the 1st occurrence of the string <pattern> starting at <start> and going to the end of the string, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern, start)
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern, start) end)
-	if not OK then
-		return self:throw(Ret, 0)
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern, start) end)
+	if not ok then
+		return self:throw(ret, 0)
 	else
-		return Ret or 0
+		return ret or 0
 	end
 end
 
@@ -352,11 +352,11 @@ __e2setcost(12)
 e2function string string:replaceRE(string pattern, string new)
 	self.prf = self.prf + #this * 0.1 + #new * 0.1
 	if self.prf > e2_tickquota then error("perf", 0) end
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_gsub(this, pattern, new) end)
-	if not OK then
-		return self:throw(Ret, "")
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_gsub(this, pattern, new) end)
+	if not ok then
+		return self:throw(ret, "")
 	else
-		return Ret or ""
+		return ret or ""
 	end
 end
 
@@ -458,8 +458,8 @@ __e2setcost(12)
 --- runs [[string.gmatch]](<this>, <pattern>) and returns the captures in an array in a table. Prints malformed pattern errors to the chat area.
 -- (By Divran)
 e2function table string:gmatch(string pattern)
-	local OK, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
-	if not OK then
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
+	if not ok then
 		return self:throw(ret, newE2Table())
 	else
 		return ret
@@ -470,8 +470,8 @@ end
 -- (By Divran)
 e2function table string:gmatch(string pattern, position)
 	this = this:Right( -position-1 )
-	local OK, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
-	if not OK then
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
+	if not ok then
 		return self:throw(ret, newE2Table())
 	else
 		return ret
@@ -482,21 +482,21 @@ __e2setcost(10)
 
 --- runs [[string.match]](<this>, <pattern>) and returns the first match or an empty string if the match failed. Prints malformed pattern errors to the chat area.
 e2function string string:matchFirst(string pattern)
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern) end)
-	if not OK then
-		return self:throw(Ret, "")
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern) end)
+	if not ok then
+		return self:throw(ret, "")
 	else
-		return Ret or ""
+		return ret or ""
 	end
 end
 
 --- runs [[string.match]](<this>, <pattern>, <position>) and returns the first match or an empty string if the match failed. Prints malformed pattern errors to the chat area.
 e2function string string:matchFirst(string pattern, position)
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern, position) end)
-	if not OK then
-		return self:throw(Ret, "")
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern, position) end)
+	if not ok then
+		return self:throw(ret, "")
 	else
-		return Ret or ""
+		return ret or ""
 	end
 end
 
