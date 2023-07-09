@@ -508,6 +508,8 @@ local utf8_len = utf8.len
 local function ToUnicodeChar(self, args)
 	local count = #args
 	if count == 0 then return "" end
+	self.prf = self.prf + count * 4
+
 	local codepoints = {}
 	for i = 1, count do
 		local value = args[i]
@@ -518,7 +520,7 @@ local function ToUnicodeChar(self, args)
 			end
 		end
 	end
-	self.prf = self.prf + count * 0.001
+
 	return utf8_char(unpack(codepoints))
 end
 
@@ -540,18 +542,18 @@ e2function array string:toUnicodeByte(number startPos, number endPos)
 	local codepoints = { pcall(utf8_byte, this, startPos, endPos) }
 	local ok = table.remove(codepoints, 1)
 	if not ok then return {} end
-	self.prf = self.prf + #codepoints * 0.001
+	self.prf = self.prf + #codepoints * 3
 	return codepoints
 end
 
 --- Returns the length of the given UTF-8 string.
 e2function number string:unicodeLength(number startPos, number endPos)
 	if #this == 0 then return 0 end
+	self.prf = self.prf + #this
+
 	local ok, length = pcall(utf8_len, this, startPos, endPos)
 	if ok and isnumber(length) then
-		self.prf = self.prf + length * 0.001
 		return length
 	end
-	self.prf = self.prf + #this * 0.001
 	return -1
 end
