@@ -28,7 +28,7 @@ end
 /*---------------------------------------------------------
    THINK
 ---------------------------------------------------------*/
-function EFFECT:Think( )
+function EFFECT:Think()
 
 	local speed = FrameTime() * self.Speed
 
@@ -48,7 +48,7 @@ end
 /*---------------------------------------------------------
    Draw the effect
 ---------------------------------------------------------*/
-function EFFECT:Render( )
+function EFFECT:Render()
 
 	if (self.Alpha < 1 ) then return end
 

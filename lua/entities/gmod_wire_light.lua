@@ -36,7 +36,7 @@ if CLIENT then
 
 	function ENT:DrawTranslucent()
 		if not self:GetOn() then return end
-		
+
 		local LightPos = self:GetPos()
 		render.SetMaterial( matLight )
 
@@ -210,7 +210,7 @@ function ENT:UpdateLight()
 		-- Removes the directional entity, or does nothing if it doesn't exist
 		self:Directional(false)
 	end
-	
+
 	if self.radiant then
 		-- Does nothing if radiant already exists, otherwise turns it off
 		self:Radiant(onState)
@@ -275,7 +275,7 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b, sprite
 		table.insert(inputs, 5, "GlowBrightness")
 		table.insert(inputs, 6, "GlowSize")
 	end
-	
+
 	WireLib.AdjustInputs(self, inputs)
 
 	self:UpdateLight()

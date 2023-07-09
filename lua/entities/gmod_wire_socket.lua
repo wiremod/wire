@@ -49,7 +49,7 @@ end
 function ENT:GetClosestPlug()
 	local Pos, _ = self:GetLinkPos()
 
-	local plugs = ents.FindInSphere( Pos, (CLIENT and self:GetNWInt( "AttachRange", 5 ) or self.AttachRange) )
+	local plugs = ents.FindInSphere( Pos, CLIENT and self:GetNWInt( "AttachRange", 5 ) or self.AttachRange )
 
 	local ClosestDist
 	local Closest

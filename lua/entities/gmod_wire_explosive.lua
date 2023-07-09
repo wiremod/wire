@@ -113,7 +113,7 @@ function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, no
 	table.Merge( self:GetTable(), ttable )
 end
 
-function ENT:ResetHealth( )
+function ENT:ResetHealth()
 	self:SetHealth( self:GetMaxHealth() )
 	Wire_TriggerOutput(self, "Health", self:GetMaxHealth())
 
@@ -138,9 +138,9 @@ function ENT:OnTakeDamage( dmginfo )
 
 	if (dmginfo:IsBulletDamage() and self.BulletProof) or
 		(dmginfo:IsExplosionDamage() and self.ExplosionProof) or
-		(dmginfo:IsFallDamage() and self.FallProof) then return end //fix fall damage, it doesn't happen
+		(dmginfo:IsFallDamage() and self.FallProof) then return end --fix fall damage, it doesn't happen
 
-	if (self:Health() > 0) then //don't need to beat a dead horse
+	if (self:Health() > 0) then --don't need to beat a dead horse
 		local dammage = dmginfo:GetDamage()
 		local h = self:Health() - dammage
 		if (h < 0) then h = 0 end
@@ -162,10 +162,10 @@ end
 function ENT:Trigger()
 	if ( self.Delaytime > 0 ) then
 		self.ExplodeTime = CurTime() + self.Delaytime
-		if (self.FireEffect) then self:Ignite((self.Delaytime + 3),0) end
+		if (self.FireEffect) then self:Ignite( self.Delaytime + 3, 0 ) end
 	end
 	self.exploding = true
-	// Force reset of counter
+	-- Force reset of counter
 	self.CountTime = 0
 end
 
@@ -187,9 +187,9 @@ function ENT:Think()
 		end
 	end
 
-	// Do count check to ensure that
-	// ShowOutput() is called every second
-	// when exploding or reloading
+	-- Do count check to ensure that
+	-- ShowOutput() is called every second
+	-- when exploding or reloading
 	if ((self.CountTime or 0) < CurTime()) then
 		local temptime = 0
 		if (self.exploding) then
@@ -210,13 +210,13 @@ function ENT:Think()
 	return true
 end
 
-function ENT:Explode( )
+function ENT:Explode()
 
 	if ( not self:IsValid() ) then return end
 
 	self:Extinguish()
 
-	if (not self.exploding) then return end //why are we exploding if we shouldn't be
+	if (not self.exploding) then return end --why are we exploding if we shouldn't be
 
 	ply = self:GetPlayer() or self
 	if(not IsValid(ply)) then ply = self end;
@@ -244,13 +244,13 @@ function ENT:Explode( )
 
 	self.reloading = true
 	self.ReloadTime = CurTime() + math.max(wire_explosive_delay:GetFloat(), self.Delayreloadtime)
-	// Force reset of counter
+	-- Force reset of counter
 	self.CountTime = 0
 	self:ShowOutput()
 end
 
 -- don't foreget to call this when changes happen
-function ENT:ShowOutput( )
+function ENT:ShowOutput()
 	local txt = ""
 	if (self.reloading and self.Delayreloadtime > 0) then
 		txt = "Rearming... "..self.count

@@ -173,7 +173,7 @@ end
 
 local cvar = CreateConVar("wire_holoemitter_interval",0.3,{FCVAR_ARCHIVE,FCVAR_NOTIFY})
 
-function ENT:Initialize( )
+function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
@@ -188,19 +188,19 @@ function ENT:Initialize( )
 	self.bools.LineBeam = true
 	self.bools.GroundBeam = true
 
-	self.Inputs = WireLib.CreateInputs( self, { 
-		"Pos (The position of the point. Changing this value causes a new point to be added.) [VECTOR]", 
-		"X (The X position of the point. Changing this value causes a new point to be added.\nIt's recommended to use the vector input, since that allows you to change all three coordinate values at once without creating a new point.)" , 
-		"Y (The Y position of the point. Changing this value causes a new point to be added.\nIt's recommended to use the vector input, since that allows you to change all three coordinate values at once without creating a new point.)", 
-		"Z (The Z position of the point. Changing this value causes a new point to be added.\nIt's recommended to use the vector input, since that allows you to change all three coordinate values at once without creating a new point.)", 
-		"Local (If 1, position will be relative to the emitter.)", 
-		"Color [VECTOR]", 
-		"FadeTime (The time it takes for the point to fade away, in seconds.)", 
-		"LineBeam (If 1, draws a beam between the last point and the next.)", 
-		"GroundBeam (If 1, draws a beam between the emitter and the next point.)", 
-		"Size (The size of the point.)", 
-		"Clear (Removes all points.)", 
-		"Active" 
+	self.Inputs = WireLib.CreateInputs( self, {
+		"Pos (The position of the point. Changing this value causes a new point to be added.) [VECTOR]",
+		"X (The X position of the point. Changing this value causes a new point to be added.\nIt's recommended to use the vector input, since that allows you to change all three coordinate values at once without creating a new point.)" ,
+		"Y (The Y position of the point. Changing this value causes a new point to be added.\nIt's recommended to use the vector input, since that allows you to change all three coordinate values at once without creating a new point.)",
+		"Z (The Z position of the point. Changing this value causes a new point to be added.\nIt's recommended to use the vector input, since that allows you to change all three coordinate values at once without creating a new point.)",
+		"Local (If 1, position will be relative to the emitter.)",
+		"Color [VECTOR]",
+		"FadeTime (The time it takes for the point to fade away, in seconds.)",
+		"LineBeam (If 1, draws a beam between the last point and the next.)",
+		"GroundBeam (If 1, draws a beam between the emitter and the next point.)",
+		"Size (The size of the point.)",
+		"Clear (Removes all points.)",
+		"Active"
 	})
 	self.Outputs = WireLib.CreateOutputs( self, { "Memory (Allows zGPU/zCPU to communicate with this device. Serves no other purpose.)" } ) -- Compatibility for older hispeed devices (such as gpu/cpu)
 
@@ -290,7 +290,7 @@ function ENT:ReadCell( Address )
 	elseif (Address == 3) then
 		return self.Data.Pos.z
 	elseif (Address == 4) then
-		return (self.Data.Local and 1 or 0)
+		return self.Data.Local and 1 or 0
 	elseif (Address == 5) then
 		return self.Data.Color.x
 	elseif (Address == 6) then
@@ -300,15 +300,15 @@ function ENT:ReadCell( Address )
 	elseif (Address == 8) then
 		return self.Data.FadeTime
 	elseif (Address == 9) then
-		return (self.Data.LineBeam and 1 or 0)
+		return self.Data.LineBeam and 1 or 0
 	elseif (Address == 10) then
-		return (self.Data.GroundBeam and 1 or 0)
+		return self.Data.GroundBeam and 1 or 0
 	elseif (Address == 11) then
 		return self.Data.Size
 	elseif (Address == 12) then
-		return (self:GetNWBool("Clear",false) and 1 or 0)
+		return self:GetNWBool("Clear",false) and 1 or 0
 	elseif (Address == 13) then
-		return (self:GetNWBool("Active",true) and 1 or 0)
+		return self:GetNWBool("Active",true) and 1 or 0
 	end
 end
 

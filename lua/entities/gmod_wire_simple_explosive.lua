@@ -55,7 +55,7 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function ENT:Explode( )
+function ENT:Explode()
 
 	if ( not self:IsValid() ) then return end
 	if (self.Exploded) then return end
@@ -82,7 +82,7 @@ function ENT:Explode( )
 	end
 end
 
-function ENT:ShowOutput( )
+function ENT:ShowOutput()
 	if (self.Exploded) then
 		self:SetOverlayText("Exploded\n"..self.NormInfo)
 	else
