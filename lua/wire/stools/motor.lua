@@ -204,7 +204,8 @@ TOOL.ClientConVar = {
 function TOOL.BuildCPanel(panel)
 	local models = {
 		["models/jaanus/wiretool/wiretool_siren.mdl"] = true,
-		["models/jaanus/wiretool/wiretool_controlchip.mdl"] = true
+		["models/jaanus/wiretool/wiretool_controlchip.mdl"] = true,
+		["models/fasteroid/inductor.mdl"] = true
 	}
 
 	WireDermaExts.ModelSelect( panel, "wire_motor_model", models, 1 )

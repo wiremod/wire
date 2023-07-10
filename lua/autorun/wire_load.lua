@@ -36,6 +36,7 @@ if SERVER then
 	AddCSLuaFile("wire/default_data_decompressor.lua")
 	AddCSLuaFile("wire/flir.lua")
 	AddCSLuaFile("wire/von.lua")
+	AddCSLuaFile("wire/sh_modelplug.lua")
 
 	-- client includes
 	AddCSLuaFile("wire/client/cl_wirelib.lua")
@@ -84,11 +85,12 @@ if SERVER then
 	if CreateConVar("wire_force_workshop", 1, {FCVAR_ARCHIVE}, "Should Wire force all clients to download the Workshop edition of Wire, for models? (requires restart to disable)"):GetBool() then
 		resource.AddWorkshop("160250458")
 	end
-  resource.AddFile("resource/fonts/alphalcd.ttf")
-  
+  	resource.AddFile("resource/fonts/alphalcd.ttf")
+
 end
 
 -- shared includes
+include("wire/sh_modelplug.lua")
 include("wire/wireshared.lua")
 include("wire/wire_paths.lua")
 include("wire/wiregates.lua")
@@ -131,8 +133,6 @@ if CLIENT then
 	include("wire/client/rendertarget_fix.lua")
 	include("wire/client/hlzasm/hc_compiler.lua")
 	include("wire/client/customspawnmenu.lua")
-  
-
 end
 
 -- Load UWSVN, done here so its definitely after Wire is loaded.

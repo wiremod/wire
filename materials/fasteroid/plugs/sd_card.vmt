@@ -1,0 +1,10 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "fasteroid/plugs/sd_card"
+	"$bumpmap"     "fasteroid/plugs/sd_card_normals"
+	"$envmap"      "env_cubemap"
+	"$envmapcontrast" "-1.0"
+    "$envmaptint" "[1 0.7 0.3]"
+    "$envmapsaturation" "[1 1 1]"
+	"$normalmapalphaenvmapmask" 1
+}

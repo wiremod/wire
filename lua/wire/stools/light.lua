@@ -109,8 +109,7 @@ TOOL.ClientConVar = {
 }
 
 function TOOL.BuildCPanel(panel)
-	local Models = list.Get( "Wire_Misc_Tools_Models" ) -- default wire models
-	Models["models/MaxOfS2D/light_tubular.mdl"] = true -- GMod light
+	local Models = list.Get( "Wire_Light_Models" )
 
 	WireDermaExts.ModelSelect(panel, "wire_light_model", Models, 1)
 	panel:CheckBox("#WireLightTool_directional", "wire_light_directional")
