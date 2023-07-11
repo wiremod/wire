@@ -30,8 +30,6 @@ if SERVER then
 	AddCSLuaFile("wire/wireshared.lua")
 	AddCSLuaFile("wire/wiregates.lua")
 	AddCSLuaFile("wire/wiremonitors.lua")
-	AddCSLuaFile("wire/gpulib.lua")
-	AddCSLuaFile("wire/cpulib.lua")
 	AddCSLuaFile("wire/timedpairs.lua")
 	AddCSLuaFile("wire/default_data_decompressor.lua")
 	AddCSLuaFile("wire/flir.lua")
@@ -62,31 +60,15 @@ if SERVER then
 	AddCSLuaFile("wire/client/text_editor/issue_viewer.lua")
 	AddCSLuaFile("wire/client/text_editor/texteditor.lua")
 	AddCSLuaFile("wire/client/text_editor/wire_expression2_editor.lua")
-	AddCSLuaFile("wire/client/text_editor/modes/e2.lua")
-	AddCSLuaFile("wire/client/text_editor/modes/zcpu.lua")
 
-	-- HL-ZASM
-	AddCSLuaFile("wire/client/hlzasm/hc_compiler.lua")
-	AddCSLuaFile("wire/client/hlzasm/hc_opcodes.lua")
-	AddCSLuaFile("wire/client/hlzasm/hc_expression.lua")
-	AddCSLuaFile("wire/client/hlzasm/hc_preprocess.lua")
-	AddCSLuaFile("wire/client/hlzasm/hc_syntax.lua")
-	AddCSLuaFile("wire/client/hlzasm/hc_codetree.lua")
-	AddCSLuaFile("wire/client/hlzasm/hc_optimize.lua")
-	AddCSLuaFile("wire/client/hlzasm/hc_output.lua")
-	AddCSLuaFile("wire/client/hlzasm/hc_tokenizer.lua")
-
-	-- ZVM
-	AddCSLuaFile("wire/zvm/zvm_core.lua")
-	AddCSLuaFile("wire/zvm/zvm_features.lua")
-	AddCSLuaFile("wire/zvm/zvm_opcodes.lua")
-	AddCSLuaFile("wire/zvm/zvm_data.lua")
+	for _, filename in ipairs(file.Find("wire/client/text_editor/modes/*.lua","LUA")) do
+		AddCSLuaFile("wire/client/text_editor/modes/" .. filename)
+	end
 
 	if CreateConVar("wire_force_workshop", 1, {FCVAR_ARCHIVE}, "Should Wire force all clients to download the Workshop edition of Wire, for models? (requires restart to disable)"):GetBool() then
 		resource.AddWorkshop("160250458")
 	end
   	resource.AddFile("resource/fonts/alphalcd.ttf")
-
 end
 
 -- shared includes
@@ -95,8 +77,6 @@ include("wire/wireshared.lua")
 include("wire/wire_paths.lua")
 include("wire/wiregates.lua")
 include("wire/wiremonitors.lua")
-include("wire/gpulib.lua")
-include("wire/cpulib.lua")
 include("wire/timedpairs.lua")
 include("wire/default_data_decompressor.lua")
 include("wire/flir.lua")
@@ -131,7 +111,6 @@ if CLIENT then
 	include("wire/client/sound_browser.lua")
 	include("wire/client/thrusterlib.lua")
 	include("wire/client/rendertarget_fix.lua")
-	include("wire/client/hlzasm/hc_compiler.lua")
 	include("wire/client/customspawnmenu.lua")
 end
 

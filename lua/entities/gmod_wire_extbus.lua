@@ -79,9 +79,35 @@ function ENT:ReadCell(Address)
   return nil
 end
 
+local DeviceType = {
+  ["gmod_wire_extbus"]        = 2,
+  ["gmod_wire_addressbus"]    = 3,
+  ["gmod_wire_cpu"]           = 4,
+  ["gmod_wire_gpu"]           = 5,
+  ["gmod_wire_spu"]           = 6,
+  ["gmod_wire_hdd"]           = 7,
+  ["gmod_wire_dhdd"]          = 8,
+  ["gmod_wire_datarate"]      = 9,
+  ["gmod_wire_cd_ray"]        = 10,
+  ["gmod_wire_consolescreen"] = 11,
+  ["gmod_wire_digitalscreen"] = 12,
+  ["gmod_wire_dataplug"]      = 13,
+  ["gmod_wire_datasocket"]    = 14,
+  ["gmod_wire_keyboard"]      = 15,
+  ["gmod_wire_oscilloscope"]  = 16,
+  ["gmod_wire_soundemitter"]  = 17,
+  ["gmod_wire_value"]         = 18,
+  ["gmod_wire_dataport"]      = 19,
+  ["gmod_wire_gate"]          = 20,
+}
+
+local function getDeviceType(class)
+  return DeviceType[class] or 1
+end
+
 local recursiveCounter = 0
 function ENT:GetDeviceInfo(deviceEnt)
-  local deviceType = CPULib.GetDeviceType(deviceEnt:GetClass())
+  local deviceType = getDeviceType(deviceEnt:GetClass())
   if deviceEnt.Socket then
     if deviceEnt.Socket.Inputs.Memory.Src then
       self:GetDeviceInfo(deviceEnt.Socket.Inputs.Memory.Src)
