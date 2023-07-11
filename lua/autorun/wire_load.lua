@@ -48,10 +48,6 @@ if SERVER then
 	AddCSLuaFile("wire/client/wire_filebrowser.lua")
 	AddCSLuaFile("wire/client/wire_listeditor.lua")
 	AddCSLuaFile("wire/client/wire_soundpropertylist.lua")
-	AddCSLuaFile("wire/client/e2helper.lua")
-	AddCSLuaFile("wire/client/e2descriptions.lua")
-	AddCSLuaFile("wire/client/e2_extension_menu.lua")
-	AddCSLuaFile("wire/client/e2_viewrequest_menu.lua")
 	AddCSLuaFile("wire/client/gmod_tool_auto.lua")
 	AddCSLuaFile("wire/client/sound_browser.lua")
 	AddCSLuaFile("wire/client/thrusterlib.lua")
@@ -61,8 +57,6 @@ if SERVER then
 	-- text editor
 	AddCSLuaFile("wire/client/text_editor/issue_viewer.lua")
 	AddCSLuaFile("wire/client/text_editor/texteditor.lua")
-	AddCSLuaFile("wire/client/text_editor/wire_expression2_editor.lua")
-	AddCSLuaFile("wire/client/text_editor/modes/e2.lua")
 	AddCSLuaFile("wire/client/text_editor/modes/zcpu.lua")
 
 	-- HL-ZASM

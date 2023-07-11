@@ -144,7 +144,6 @@ function ENT:ReadCell( Address )
 	-- we can only retrieve numbers here, unfortunately.
 	-- This is because the ReadCell function assumes that things like vectors and strings store one of their values per cell,
 	-- which the constant value does not. While this could be worked around, it's just not worth the effort imo, and it'd just be confusing to use
-	-- If you need to get other types, you'll need to use E2's "Wlk[OutputName,OutputType]" index syntax instead
 	if tp == "NORMAL" then
 		return self.values[Address+1]
 	end
