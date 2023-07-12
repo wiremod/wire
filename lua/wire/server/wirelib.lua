@@ -254,13 +254,6 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 
 	local ent_ports = ent.Outputs or {}
 
-	if ent_ports.wirelink then
-		local n = #names+1
-
-		names[n] = "wirelink"
-		types[n] = "WIRELINK"
-	end
-
 	for n,v in ipairs(names) do
 		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
 
