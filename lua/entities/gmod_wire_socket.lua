@@ -5,44 +5,19 @@ ENT.Purpose         = "Links with a plug"
 ENT.Instructions    = "Move a plug close to a plug to link them, and data will be transferred through the link."
 ENT.WireDebugName	= "Socket"
 
-local PositionOffsets = {
-	["models/wingf0x/isasocket.mdl"] = Vector(0,0,0),
-	["models/wingf0x/altisasocket.mdl"] = Vector(0,0,2.6),
-	["models/wingf0x/ethernetsocket.mdl"] = Vector(0,0,0),
-	["models/wingf0x/hdmisocket.mdl"] = Vector(0,0,0),
-	["models/props_lab/tpplugholder_single.mdl"] = Vector(5, 13, 10),
-	["models/bull/various/usb_socket.mdl"] = Vector(8,0,0),
-	["models/hammy/pci_slot.mdl"] = Vector(0,0,0),
-	["models//hammy/pci_slot.mdl"] = Vector(0,0,0), -- For some reason, GetModel on this model has two / on the client... Bug?
-}
-local AngleOffsets = {
-	["models/wingf0x/isasocket.mdl"] = Angle(0,0,0),
-	["models/wingf0x/altisasocket.mdl"] = Angle(0,0,0),
-	["models/wingf0x/ethernetsocket.mdl"] = Angle(0,0,0),
-	["models/wingf0x/hdmisocket.mdl"] = Angle(0,0,0),
-	["models/props_lab/tpplugholder_single.mdl"] = Angle(0,0,0),
-	["models/bull/various/usb_socket.mdl"] = Angle(0,0,0),
-	["models/hammy/pci_slot.mdl"] = Angle(0,0,0),
-	["models//hammy/pci_slot.mdl"] = Angle(0,0,0), -- For some reason, GetModel on this model has two / on the client... Bug?
-}
-local SocketModels = {
-	["models/wingf0x/isasocket.mdl"] = "models/wingf0x/isaplug.mdl",
-	["models/wingf0x/altisasocket.mdl"] = "models/wingf0x/isaplug.mdl",
-	["models/wingf0x/ethernetsocket.mdl"] = "models/wingf0x/ethernetplug.mdl",
-	["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl",
-	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
-	["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
-	["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
-	["models//hammy/pci_slot.mdl"] = "models//hammy/pci_card.mdl", -- For some reason, GetModel on this model has two / on the client... Bug?
-}
+local SocketData = list.Get("Wire_Socket_Models")
+
+hook.Add("ModelPlugLuaRefresh","gmod_wire_socket_updatemodels",function()
+	SocketData = list.Get("Wire_Socket_Models")
+end)
 
 function ENT:GetLinkPos()
-	return self:LocalToWorld(PositionOffsets[self:GetModel()] or Vector(0,0,0)), self:LocalToWorldAngles(AngleOffsets[self:GetModel()] or Angle(0,0,0))
+	return self:LocalToWorld(self.SockData.pos or Vector(0,0,0)), self:GetAngles()
 end
 
 function ENT:CanLink( Target )
 	if (Target.Socket and Target.Socket:IsValid()) then return false end
-	if (SocketModels[self:GetModel()] ~= Target:GetModel()) then return false end
+	if (self.SockData.plug ~= Target:GetModel()) then return false end
 	return true
 end
 
@@ -63,7 +38,6 @@ function ENT:GetClosestPlug()
 			end
 		end
 	end
-
 	return Closest
 end
 
@@ -75,6 +49,9 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "Linked" )
 end
 
+function ENT:CacheData()
+	self.SockData = SocketData[ self:GetModel() ] or {}
+end
 
 if CLIENT then
 	local sockets = ents.FindByClass("gmod_wire_socket") or {}
@@ -100,6 +77,7 @@ if CLIENT then
 	end
 
 	function ENT:Initialize()
+		self:CacheData()
 		table.insert(sockets, self)
 		if #sockets == 1 then
 			hook.Add("HUDPaint", "Wire_Socket_DrawLinkHelperLine",DrawLinkHelperLinefunction)
@@ -125,6 +103,7 @@ for k,v in ipairs( LETTERS ) do
 end
 
 function ENT:Initialize()
+	self:CacheData()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
@@ -249,6 +228,7 @@ function ENT:ResendValues()
 end
 
 function ENT:AttachWeld(weld)
+	self:EmitSound("buttons/lightswitch2.wav", 60)
 	self.Weld = weld
 	local plug = self.Plug
 	weld:CallOnRemove("wire_socket_remove_on_weld",function()
@@ -299,10 +279,9 @@ function ENT:Think()
 		return true
 	end
 
-	if not IsValid(self.Plug) then -- currently not linked, check for nearby links
+	if not IsValid(self.Plug) then -- currently not linked, check for nearby links|
 		local Pos, Ang = self:GetLinkPos()
 		local Closest = self:GetClosestPlug()
-
 		if (Closest and Closest:IsValid() and self:CanLink( Closest ) and not Closest:IsPlayerHolding() and Closest:GetClosestSocket() == self) then
 			self.Plug = Closest
 			Closest.Socket = self

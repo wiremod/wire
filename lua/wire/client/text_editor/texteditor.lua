@@ -35,8 +35,11 @@ local draw_WordBox = draw.WordBox
 local draw_RoundedBox = draw.RoundedBox
 
 WireTextEditor = { Modes = {} }
-include("modes/e2.lua")
-include("modes/zcpu.lua")
+
+for _, filename in ipairs(file.Find("wire/client/text_editor/modes/*.lua","LUA")) do
+	include("wire/client/text_editor/modes/" .. filename)
+end
+
 WireTextEditor.Modes.Default = { SyntaxColorLine = function(self, row) return { { self.Rows[row], { Color(255, 255, 255, 255), false } } } end }
 
 local wire_expression2_autocomplete_controlstyle = CreateClientConVar( "wire_expression2_autocomplete_controlstyle", "0", true, false )

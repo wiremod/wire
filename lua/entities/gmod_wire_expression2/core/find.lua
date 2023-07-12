@@ -348,16 +348,19 @@ hook.Add("Think","Wire_Expression2_Find_AddCount",addcount)
 __e2setcost(2)
 
 --- Returns the minimum delay between entity find events on a chip
+[nodiscard]
 e2function number findUpdateRate()
 	return findrate()
 end
 
 -- Returns the maximum number of finds per E2
+[nodiscard]
 e2function number findMax()
 	return maxfinds()
 end
 
 -- Returns the remaining available find calls
+[nodiscard]
 e2function number findCount()
 	return self.data.findcount
 end
@@ -781,11 +784,13 @@ end
 --[[************************************************************************]]--
 
 --- Returns the indexed entity from the previous find event (valid parameters are 1 to the number of entities found)
+[nodiscard]
 e2function entity findResult(index)
 	return self.data.findlist[index]
 end
 
 --- Returns the closest entity to the given point from the previous find event
+[nodiscard]
 e2function entity findClosest(vector position)
 	local closest = nil
 	local dist = math.huge
@@ -805,6 +810,7 @@ e2function entity findClosest(vector position)
 end
 
 --- Formats the query as an array, R:entity(Index) to get a entity, R:string to get a description including the name and entity id.
+[nodiscard]
 e2function array findToArray()
 	local tmp = {}
 	for k,v in ipairs(self.data.findlist) do
@@ -815,6 +821,7 @@ e2function array findToArray()
 end
 
 --- Equivalent to findResult(1)
+[nodiscard]
 e2function entity find()
 	return self.data.findlist[1]
 end

@@ -1,0 +1,6 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "fasteroid/plugs/sd_socket_pins"
+	"$bumpmap"     "fasteroid/plugs/sd_socket_pins_normals"
+	$alphatest 1
+}

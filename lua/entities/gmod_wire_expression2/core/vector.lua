@@ -145,6 +145,16 @@ registerOperator("indexset", "vnn", "", function(state, this, index, value)
 	state.GlobalScope.vclk[this] = true
 end)
 
+e2function string operator+(string lhs, vector rhs)
+	self.prf = self.prf + #lhs * 0.01
+	return lhs .. ("vec(%.2f,%.2f,%.2f)"):format(rhs[1], rhs[2], rhs[3])
+end
+
+e2function string operator+(vector lhs, string rhs)
+	self.prf = self.prf + #rhs * 0.01
+	return ("vec(%.2f,%.2f,%.2f)"):format(lhs[1], lhs[2], lhs[3]) .. rhs
+end
+
 --------------------------------------------------------------------------------
 
 __e2setcost(10) -- temporary

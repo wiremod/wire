@@ -37,46 +37,26 @@ TOOL.ClientConVar["attachrange"] = 5
 TOOL.ClientConVar["drawoutline"] = 1
 TOOL.ClientConVar["angleoffset"] = 0
 
-local SocketModels = {
-	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
-	["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
-	["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
-	["models/wingf0x/isasocket.mdl"] = "models/wingf0x/isaplug.mdl",
-	["models/wingf0x/altisasocket.mdl"] = "models/wingf0x/isaplug.mdl",
-	["models/wingf0x/ethernetsocket.mdl"] = "models/wingf0x/ethernetplug.mdl",
-	["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl"
-}
+local SocketData = list.Get("Wire_Socket_Models")
 
-local AngleOffset = {
-	["models/props_lab/tpplugholder_single.mdl"] = Angle(0,0,0),
-	["models/props_lab/tpplug.mdl"] = Angle(0,0,0),
-	["models/bull/various/usb_socket.mdl"] = Angle(0,0,0),
-	["models/bull/various/usb_stick.mdl"] = Angle(0,0,0),
-	["models/hammy/pci_slot.mdl"] = Angle(90,0,0),
-	["models/hammy/pci_card.mdl"] = Angle(90,0,0),
-	["models/wingf0x/isasocket.mdl"] = Angle(90,0,0),
-	["models/wingf0x/isaplug.mdl"] = Angle(90,0,0),
-	["models/wingf0x/altisasocket.mdl"] = Angle(90,00,0),
-	["models/wingf0x/ethernetsocket.mdl"] = Angle(90,0,0),
-	["models/wingf0x/ethernetplug.mdl"] = Angle(90,0,0),
-	["models/wingf0x/hdmisocket.mdl"] = Angle(90,0,0),
-	["models/wingf0x/hdmiplug.mdl"] = Angle(90,0,0)
-}
+hook.Add("ModelPlugLuaRefresh","wire_plug_updatemodels",function()
+	SocketData = list.Get("Wire_Socket_Models")
+end)
 
 cleanup.Register( "wire_plugs" )
 
 function TOOL:GetModel()
 	local model = self:GetClientInfo( "model" )
-	if (not util.IsValidModel( model ) or not util.IsValidProp( model ) or not SocketModels[ model ]) then return "models/props_lab/tpplugholder_single.mdl" end
+	if (not util.IsValidModel( model ) or not util.IsValidProp( model ) or not SocketData[ model ]) then return "models/props_lab/tpplugholder_single.mdl" end
 	return model
 end
 
 function TOOL:GetAngle( trace )
 	local ang
 	if math.abs(trace.HitNormal.x) < 0.001 and math.abs(trace.HitNormal.y) < 0.001 then
-		ang = Vector(0,0,trace.HitNormal.z):Angle() + (AngleOffset[self:GetModel()] or Angle(0,0,0))
+		ang = Vector(0,0,trace.HitNormal.z):Angle() + (SocketData[self:GetModel()].ang or Angle(0,0,0))
 	else
-		ang = trace.HitNormal:Angle() + (AngleOffset[self:GetModel()] or Angle(0,0,0))
+		ang = trace.HitNormal:Angle() + (SocketData[self:GetModel()].ang or Angle(0,0,0))
 	end
 	ang:RotateAroundAxis( trace.HitNormal, self:GetClientNumber( "angleoffset" ) )
 	return ang
@@ -105,7 +85,7 @@ function TOOL:RightClick( trace )
 	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local ply = self:GetOwner()
-	local plugmodel = SocketModels[self:GetModel()]
+	local plugmodel = SocketData[ self:GetModel() ].plug
 
 	local plug = WireLib.MakeWireEnt(ply, {Class = "gmod_wire_plug", Pos=trace.HitPos, Angle=self:GetAngle(trace), Model=plugmodel}, self:GetClientNumber( "array" ) ~= 0)
 	if not IsValid(plug) then return false end
