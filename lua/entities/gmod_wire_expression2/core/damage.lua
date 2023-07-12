@@ -57,6 +57,8 @@ E2Lib.registerConstant("DMG_BUCKSHOT", DMG_BUCKSHOT)
 E2Lib.registerConstant("DMG_SNIPER", DMG_SNIPER)
 E2Lib.registerConstant("DMG_MISSILEDEFENSE", DMG_MISSILEDEFENSE)
 
+__e2setcost(1)
+
 e2function number operator_is(damage dmg)
 	return dmg and 1 or 0
 end
@@ -99,6 +101,8 @@ end
 local Enabled = CreateConVar("wire_expression2_damage_enabled", 0, FCVAR_ARCHIVE, "Whether to enable causing damage in the E2 'damage' extension.")
 local MaxRadius = CreateConVar("wire_expression2_damage_maxradius", 2000, FCVAR_ARCHIVE, "Maximum radius able to be applied with the blastDamage E2 function.")
 
+__e2setcost(20)
+
 e2function void entity:takeDamage(number amount)
 	if not Enabled:GetBool() then return self:throw("Dealing damage is disabled via wire_expression2_damage_enabled") end
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
@@ -128,6 +132,8 @@ e2function void entity:takeDamage(number amount, entity attacker, entity inflict
 
 	this:TakeDamage(amount, attacker, inflictor)
 end
+
+__e2setcost(10)
 
 e2function void blastDamage(vector origin, number radius, number damage)
 	if not Enabled:GetBool() then return self:throw("Dealing damage is disabled via wire_expression2_damage_enabled") end
