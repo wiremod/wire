@@ -1217,6 +1217,20 @@ else
 	end
 end
 
+if CPPI and FindMetaTable("Entity").CPPICanDamage then
+	---@param player Player
+	---@param target Player
+	function WireLib.CanDamage(player, target)
+		return target:CPPICanDamage(player)
+	end
+else
+	---@param player Player
+	---@param target Player
+	function WireLib.CanDamage(player, target)
+		return hook.Run("PlayerShouldTakeDamage", target, player)
+	end
+end
+
 function WireLib.SetColor(ent, color)
 	color.r = math_clamp(color.r, 0, 255)
 	color.g = math_clamp(color.g, 0, 255)
