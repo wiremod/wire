@@ -939,8 +939,8 @@ local CompileVisitors = {
 					end
 
 					local handle = stmts[i] -- need this, or stack overflow...
-					stmts[i] = function(state) ---@param state RuntimeContext
-						op(state, handle(state), key(state), value(state))
+					stmts[i] = function(state, val) ---@param state RuntimeContext
+						op(state, handle(state), key(state), val)
 					end
 				else
 					self:Assert(existing.type == value_ty, "Cannot assign type (" .. value_ty .. ") to variable of type (" .. existing.type .. ")", trace)
@@ -949,8 +949,7 @@ local CompileVisitors = {
 					local id = existing.scope:Depth()
 					if id == 0 then
 						if E2Lib.IOTableTypes[value_ty] then
-							stmts[i] = function(state) ---@param state RuntimeContext
-								local val = value(state)
+							stmts[i] = function(state, val) ---@param state RuntimeContext
 								state.GlobalScope[var], state.GlobalScope.vclk[var] = val, true
 
 								if state.GlobalScope.lookup[val] then
@@ -960,13 +959,13 @@ local CompileVisitors = {
 								end
 							end
 						else
-							stmts[i] = function(state) ---@param state RuntimeContext
-								state.GlobalScope[var], state.GlobalScope.vclk[var] = value(state), true
+							stmts[i] = function(state, val) ---@param state RuntimeContext
+								state.GlobalScope[var], state.GlobalScope.vclk[var] = val, true
 							end
 						end
 					else
-						stmts[i] = function(state) ---@param state RuntimeContext
-							state.Scopes[id][var] = value(state)
+						stmts[i] = function(state, val) ---@param state RuntimeContext
+							state.Scopes[id][var] = val
 						end
 					end
 				end
@@ -976,8 +975,7 @@ local CompileVisitors = {
 				self.global_scope:DeclVar(var, { type = value_ty, initialized = true, trace_if_unused = trace })
 
 				if E2Lib.IOTableTypes[value_ty] then
-					stmts[i] = function(state) ---@param state RuntimeContext
-						local val = value(state)
+					stmts[i] = function(state, val) ---@param state RuntimeContext
 						state.GlobalScope[var], state.GlobalScope.vclk[var] = val, true
 
 						if state.GlobalScope.lookup[val] then
@@ -987,17 +985,17 @@ local CompileVisitors = {
 						end
 					end
 				else
-					stmts[i] = function(state) ---@param state RuntimeContext
-						state.GlobalScope[var], state.GlobalScope.vclk[var] = value(state), true
+					stmts[i] = function(state, val) ---@param state RuntimeContext
+						state.GlobalScope[var], state.GlobalScope.vclk[var] = val, true
 					end
 				end
 			end
 		end
 
 		return function(state) ---@param state RuntimeContext
-			local expr = value(state)
+			local val = value(state)
 			for _, stmt in ipairs(stmts) do
-				stmt(state, expr)
+				stmt(state, val)
 			end
 		end
 	end,

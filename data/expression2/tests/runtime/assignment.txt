@@ -1,0 +1,19 @@
+## SHOULD_PASS:EXECUTE
+@persist Ran:number
+
+Ran = 0
+
+function number increment() {
+    if (Ran) {
+        error("Ran twice")
+    } else {
+        Ran = 1
+        return 1
+    }
+}
+
+X = increment()
+
+Ran = 0
+
+X = Y = increment()
