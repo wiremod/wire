@@ -1395,7 +1395,7 @@ local CompileVisitors = {
 			end
 			return function(state) ---@param state RuntimeContext
 				return fn(state, largs)
-			end, fn_data.returns and fn_data.returns[1]
+			end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
 		else
 			return function(state) ---@param state RuntimeContext
 				local rargs = {}
@@ -1404,7 +1404,7 @@ local CompileVisitors = {
 				end
 
 				return fn(state, rargs, types)
-			end, fn_data.returns and fn_data.returns[1]
+			end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
 		end
 	end,
 
