@@ -1231,7 +1231,7 @@ else
 	---@param target Entity
 	function WireLib.CanDamage(player, target) ---@return boolean
 		if target:IsPlayer() then
-			return hook.Run("PlayerShouldTakeDamage", target, player)
+			return hook.Run("PlayerShouldTakeDamage", target, player) ~= false
 		else
 			return WireLib.CanTool(player, target, "")
 		end
