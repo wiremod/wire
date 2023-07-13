@@ -1515,6 +1515,20 @@ local CompileVisitors = {
 									largs[i + 1] = { [1] = function() return rargs[i] end }
 								end
 								return fn[3](state, largs, arg_types)
+							elseif varsig == "array(...)" then -- Need this since can't enforce compile time argument type restrictions on string calls. Woop. Array creation should not be a function..
+								local i = 1
+								while i < #arg_types do
+									local ty = arg_types[i]
+									if BLOCKED_ARRAY_TYPES[ty] then
+										table.remove(rargs, i)
+										table.remove(arg_types, i)
+										state:throw("Cannot use type " .. ty .. " for argument #" .. i .. " in stringcall array creation")
+									else
+										i = i + 1
+									end
+								end
+
+								return fn[3](state, rargs, arg_types)
 							else
 								return fn[3](state, rargs, arg_types)
 							end
