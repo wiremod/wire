@@ -1,5 +1,3 @@
-AddCSLuaFile()
-
 local p_typename = "%l[%l%d]*"
 local p_typeid = "%l[%l%d]?[%l%d]?"
 local p_argname = "%a[%w_]*"
@@ -149,14 +147,12 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 	-- This flag helps determine whether the preprocessor changed, so we can tell the environment about it.
 	local changed = false
 	for a_begin, attributes, h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()(%[?[%w,_ =\"]*%]?)[\r\n\t ]*()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
-		local line = select(2, contents:sub(1, h_begin):gsub("\n", ""))
+		local _, line = contents:sub(1, h_begin):gsub("\n", "")
 		local trace = "(at line " .. line .. ")"
 		local trace_ext = trace .. (E2Lib.currentextension and (" @" .. filename) or "")
 
 		if contents:sub(h_begin - 1, h_begin - 1):match("%w") then
-			ErrorNoHalt("Warning: Malformed e2function must not have characters before 'e2function' " .. trace_ext .. "\n")
-		elseif RemovedOperators[name] then -- Old operator that no longer is needed.
-			ErrorNoHalt("Warning: Operator " .. name .. " is now redundant. Ignoring registration. " .. trace_ext .. "\n")
+			error("PP syntax error: Must not have characters before 'e2function' " .. trace_ext .. "\n")
 		elseif not name:find("^" .. p_funcname .. "$") and not Operators[name] then
 			error("PP syntax error: Invalid function name format " .. trace)
 		elseif thistype ~= "" and colon == "" then
@@ -171,6 +167,12 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 			error("PP syntax error: Malformed alias definition. " .. trace)
 		elseif ret ~= "void" and not getTypeId(ret) then
 			error("PP syntax error: Invalid return type: '" .. ret .. "' " .. trace)
+		elseif RemovedOperators[name] then -- Old operator that no longer is needed.
+			ErrorNoHalt("Warning: Operator " .. name .. " is now redundant. Ignoring registration. " .. trace_ext .. "\n")
+			local pivot = parseAttributes(attributes, trace) and a_begin - 1 or h_begin - 1
+			table.insert(output, contents:sub(lastpos, pivot)) -- Insert code from before header.
+			changed, lastpos = true, h_end -- Mark as changed and remove function header.
+			table.insert(output, "local _ = function() ") -- Insert dummy lambda function to substitute for function declaration.
 		else
 			changed = true -- Mark as changed
 
