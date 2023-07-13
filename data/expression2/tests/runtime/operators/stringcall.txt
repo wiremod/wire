@@ -34,3 +34,14 @@ function number returning() {
 }
 
 assert( "returning"()[number] == 5 )
+
+
+Called = 0
+
+function number:numMethod() {
+	Called = 1
+}
+
+"numMethod"(1)
+
+assert(Called)
