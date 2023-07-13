@@ -1597,3 +1597,9 @@ E2Helper.Descriptions["getForce(xdm:)"] = "Returns the force of the damage dealt
 E2Helper.Descriptions["getInflictor(xdm:)"] = "Returns the inflictor (weapon) which caused the damage to be dealt"
 E2Helper.Descriptions["getAttacker(xdm:)"] = "Returns the attacker which used the inflictor to deal the damage"
 E2Helper.Descriptions["getAmmoType(xdm:)"] = "Returns the ammo type id of the damage dealt"
+
+E2Helper.Descriptions["takeDamage(e:n)"] = "Applies an amount of damage to the player. Requires wire_expression2_damage_enabled to be set to 1."
+E2Helper.Descriptions["takeDamage(e:ne)"] = "Applies an amount of damage to the player with given attacker. Requires wire_expression2_damage_enabled to be set to 1."
+E2Helper.Descriptions["takeDamage(e:nee)"] = "Applies an amount of damage to the player with given attacker and inflictor. Requires wire_expression2_damage_enabled to be set to 1."
+
+E2Helper.Descriptions["blastDamage(vnn)"] = "Creates blast damage at the position provided with specified radius and damage amount. Requires wire_expression2_damage_enabled to be set to 1."
