@@ -38,7 +38,7 @@ end
 local function iterb(str, i)
 	i = i + 1
 	if i < #str then
-		return i, string_byte(string_sub(str, i, i))
+		return i, string_byte(str, i)
 	end
 end
 
@@ -64,10 +64,6 @@ end
 
 e2function number operator==(string lhs, string rhs)
 	return lhs == rhs and 1 or 0
-end
-
-e2function number operator!=(string lhs, string rhs)
-	return lhs ~= rhs and 1 or 0
 end
 
 e2function number operator>=(string lhs, string rhs)
@@ -346,11 +342,11 @@ end
 __e2setcost(3)
 
 --- Formats a values exactly like Lua's [http://www.lua.org/manual/5.1/manual.html#pdf-string.format string.format]. Any number and type of parameter can be passed through the "...". Prints errors to the chat area.
-e2function string format(string fmt, ...)
-	self.prf = self.prf + select("#", ...) * 2
+e2function string format(string fmt, ...args)
+	self.prf = self.prf + #args * 2
 
 	-- TODO: call toString for table-based types
-	local ok, ret = pcall(string_format, fmt, ...)
+	local ok, ret = pcall(string_format, fmt, unpack(args))
 	if not ok then
 		return self:throw(ret, "")
 	end
