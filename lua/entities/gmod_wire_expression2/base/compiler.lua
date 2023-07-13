@@ -1532,6 +1532,25 @@ local CompileVisitors = {
 							else
 								return fn[3](state, rargs, arg_types)
 							end
+						else
+							local varsig = fn_name .. "(" .. type_sig:sub(1, i) .. "..r)"
+							local fn = state.funcs[varsig]
+
+							if fn then
+								for _, ty in ipairs(arg_types) do -- Just block them entirely. Current method of finding variadics wouldn't allow a proper solution that works with x<yz> types. Would need to rewrite all of this which I don't think is worth it when already nobody is going to use this functionality.
+									if BLOCKED_ARRAY_TYPES[ty] then
+										E2Lib.raiseException("Cannot pass array into variadic array function", 0, state.trace)
+									end
+								end
+
+								return fn(state, rargs, arg_types)
+							else
+								local varsig = fn_name .. "(" .. type_sig:sub(1, i) .. "..t)"
+								local fn = state.funcs[varsig]
+								if fn then
+									return fn(state, rargs, arg_types)
+								end
+							end
 						end
 					end
 					E2Lib.raiseException("No such function: " .. fn_name .. arg_sig, 0, state.trace)
