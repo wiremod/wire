@@ -1217,6 +1217,27 @@ else
 	end
 end
 
+if CPPI and FindMetaTable("Entity").CPPICanDamage then
+	--- Returns if given player can damage the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanDamage(player, target) ---@return boolean
+		return target:CPPICanDamage(player)
+	end
+else
+	--- Returns if given player can damage the given entity.
+	--- Uses PlayerShouldTakeDamage for players, CanTool for entities.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanDamage(player, target) ---@return boolean
+		if target:IsPlayer() then
+			return hook.Run("PlayerShouldTakeDamage", target, player) ~= false
+		else
+			return WireLib.CanTool(player, target, "")
+		end
+	end
+end
+
 function WireLib.SetColor(ent, color)
 	color.r = math_clamp(color.r, 0, 255)
 	color.g = math_clamp(color.g, 0, 255)
