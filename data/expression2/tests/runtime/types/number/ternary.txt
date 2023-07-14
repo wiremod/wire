@@ -1,0 +1,8 @@
+## SHOULD_PASS:EXECUTE
+
+assert(1 ? 50  : 20 == 50)
+assert(0 ? 500 : 10 == 10)
+assert(-1 ? 100 : 1 == 100)
+
+assert(50 ?: 20 == 50)
+assert(0 ?: 100 == 100)

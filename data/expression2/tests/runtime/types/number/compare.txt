@@ -19,3 +19,16 @@ assert(2 >= 2)
 
 assert(2 >= 2)
 assert(2 >= 1)
+
+assert(-1 == -1)
+assert(1 == 1)
+assert(-1 < 0)
+
+assert(50 < 100)
+assert(50 <= 100)
+
+assert(100 > 50)
+assert(100 >= 50)
+
+assert(-1 <= -1)
+assert(-1 >= -1)

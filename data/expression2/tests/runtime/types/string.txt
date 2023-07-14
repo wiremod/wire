@@ -1,0 +1,20 @@
+## SHOULD_PASS:EXECUTE
+
+if ("") {
+	error("fail")
+}
+
+assert(!!"String")
+assert(!"")
+
+assert("Foo" + 5 == "Foo5")
+assert(5 + "Foo" == "5Foo")
+
+assert("A" < "B")
+assert("a" < "b")
+
+assert("A" <= "A")
+assert("A" >= "A")
+assert("A" == "A")
+
+assert("Foo" + "Bar" == "FooBar")

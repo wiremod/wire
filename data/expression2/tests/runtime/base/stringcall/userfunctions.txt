@@ -2,6 +2,8 @@
 
 @persist Called:number
 
+# Test user functions
+
 function test() {
 	Called = 1
 }

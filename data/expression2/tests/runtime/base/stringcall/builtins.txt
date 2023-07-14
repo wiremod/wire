@@ -1,7 +1,5 @@
 ## SHOULD_PASS:EXECUTE
 
-# Variadic string calls
-
 assert( "format"("%s", "test")[string] == "test" )
 assert( "format"("%q", "test")[string] == "\"test\"" )
 assert( "format"("%d %d %s", 52, 20, "test")[string] == "52 20 test" )
