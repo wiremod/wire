@@ -14,5 +14,5 @@ jobs:
           id: 160250458
           changelog: "Deployment via Github to latest changes"
         env:
-          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
-          STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+          STEAM_USERNAME: ${{ secrets.WIRETEAM_WORKSHOP_USERNAME }}
+          STEAM_PASSWORD: ${{ secrets.WIRETEAM_WORKSHOP_PASSWORD }}
