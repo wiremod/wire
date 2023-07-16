@@ -1,9 +1,10 @@
-/******************************************************************************\
+--[[----------------------------------------------------------------------------
   Player-weapon support
-\******************************************************************************/
+------------------------------------------------------------------------------]]
 
 __e2setcost(2) -- temporary
 
+[nodiscard]
 e2function entity entity:weapon()
 	if not IsValid(this) then return nil end
 	if not this:IsPlayer() and not this:IsNPC() then return nil end
@@ -11,7 +12,7 @@ e2function entity entity:weapon()
 	return this:GetActiveWeapon()
 end
 
-
+[nodiscard]
 e2function entity entity:weapon(string weaponclassname)
 	if not IsValid(this) then return nil end
 	if not this:IsPlayer() and not this:IsNPC() then return nil end
@@ -19,6 +20,15 @@ e2function entity entity:weapon(string weaponclassname)
 	return this:GetWeapon(weaponclassname)
 end
 
+[nodiscard]
+e2function number entity:hasWeapon(string classname)
+	if not IsValid(this) then return 0 end
+	if not this:IsPlayer() then return 0 end
+
+	return this:HasWeapon(classname) and 1 or 0
+end
+
+[nodiscard]
 e2function array entity:weapons()
 	if not IsValid(this) then return {} end
 	if not this:IsPlayer() then return {} end
@@ -29,6 +39,7 @@ e2function array entity:weapons()
 	return ret
 end
 
+[nodiscard]
 e2function string entity:primaryAmmoType()
 	if not IsValid(this) then return "" end
 	if not this:IsWeapon() then return "" end
@@ -38,6 +49,7 @@ e2function string entity:primaryAmmoType()
 	return game.GetAmmoName(ammoId) or ""
 end
 
+[nodiscard]
 e2function string entity:secondaryAmmoType()
 	if not IsValid(this) then return "" end
 	if not this:IsWeapon() then return "" end
@@ -47,6 +59,7 @@ e2function string entity:secondaryAmmoType()
 	return game.GetAmmoName(ammoId) or ""
 end
 
+[nodiscard]
 e2function number entity:ammoCount(string ammo_type)
 	if not IsValid(this) then return 0 end
 	if not this:IsPlayer() then return 0 end
@@ -54,6 +67,7 @@ e2function number entity:ammoCount(string ammo_type)
 	return this:GetAmmoCount(ammo_type)
 end
 
+[nodiscard]
 e2function number entity:clip1()
 	if not IsValid(this) then return 0 end
 	if not this:IsWeapon() then return 0 end
@@ -61,6 +75,22 @@ e2function number entity:clip1()
 	return this:Clip1()
 end
 
+[nodiscard]
+e2function number entity:clip1Size()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsWeapon() then return self:throw("Expected a Weapon but got Entity", 0) end
+
+	return this:GetMaxClip1()
+end
+
+e2function number entity:setClip1(amount)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsWeapon() then return self:throw("Expected a Weapon but got Entity", 0) end
+
+	return this:SetClip1(amount)
+end
+
+[nodiscard]
 e2function number entity:clip2()
 	if not IsValid(this) then return 0 end
 	if not this:IsWeapon() then return 0 end
@@ -68,6 +98,22 @@ e2function number entity:clip2()
 	return this:Clip2()
 end
 
+[nodiscard]
+e2function number entity:clip2Size()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsWeapon() then return self:throw("Expected a Weapon but got Entity", 0) end
+
+	return this:GetMaxClip2()
+end
+
+e2function number entity:setClip2(amount)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsWeapon() then return self:throw("Expected a Weapon but got Entity", 0) end
+
+	return this:SetClip2(amount)
+end
+
+[nodiscard]
 e2function string entity:tool()
 	if not IsValid(this) then return "" end
 	if not this:IsPlayer() then return "" end
@@ -78,3 +124,94 @@ e2function string entity:tool()
 
 	return weapon.Mode
 end
+
+e2function entity entity:giveWeapon(string classname)
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", NULL) end
+	if not list.HasEntry("Weapon", classname) then return self:throw("Expected a weapon class, but the weapon was not found", NULL) end
+
+	return this:Give(classname)
+end
+
+e2function entity entity:giveWeapon(string classname, noAmmo)
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", NULL) end
+	if not list.HasEntry("Weapon", classname) then return self:throw("Expected a weapon class, but the weapon was not found", NULL) end
+
+	return this:Give(classname, noAmmo ~= 0)
+end
+
+e2function void entity:selectWeapon(string classname)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", nil) end
+
+	this:SelectWeapon(classname)
+end
+
+e2function number entity:giveAmmo(amount, string type)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+
+	return this:GiveAmmo(amount, type)
+end
+
+e2function number entity:giveAmmo(amount, string type, hidePopUp)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+
+	return this:GiveAmmo(amount, type, hidePopUp ~= 0)
+end 
+
+e2function void entity:setAmmo(ammoCount, string type)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", nil) end
+
+	this:SetAmmo(ammoCount, type)
+end
+
+e2function void entity:removeAmmo(ammoCount, string type)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", nil) end
+
+	this:RemoveAmmo(ammoCount, type)
+end
+
+e2function void entity:removeAllAmmo()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", nil) end
+
+	this:RemoveAllAmmo()
+end
+
+e2function void entity:stripWeapon(string classname)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", nil) end
+
+	this:StripWeapon(classname)
+end
+
+e2function void entity:stripWeapons()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", nil) end
+
+	this:StripWeapons()
+end
+
+E2Lib.registerEvent("weaponEquipped", {
+	{ "Weapon", "e" },
+	{ "Owner", "e" }
+})
+
+hook.Add("WeaponEquip", "E2_weaponEquipped", function(weapon, owner)
+	E2Lib.triggerEvent("weaponEquipped", { weapon, owner })
+end)
+
+E2Lib.registerEvent("weaponSwitched", {
+	{ "Player", "e" },
+	{ "OldWeapon", "e" },
+	{ "NewWeapon", "e" }
+})
+
+hook.Add("PlayerSwitchWeapon", "E2_weaponSwitched", function(player, oldWeapon, newWeapon)
+	E2Lib.triggerEvent("weaponSwitched", { player, oldWeapon, newWeapon })
+end)
