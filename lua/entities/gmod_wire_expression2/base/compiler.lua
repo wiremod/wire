@@ -382,11 +382,11 @@ local CompileVisitors = {
 	[NodeVariant.For] = function (self, trace, data)
 		local var, start, stop, step = data[1], self:CompileExpr(data[2]), self:CompileExpr(data[3]), data[4] and self:CompileExpr(data[4]) or data[4]
 
-		local block, cost = self:Scope(function(scope)
+		local block = self:Scope(function(scope)
 			scope.data.loop = true
 			scope:DeclVar(var.value, { initialized = true, type = "n", trace_if_unused = var.trace })
 
-			return self:CompileStmt(data[5]), 1 / 20
+			return self:CompileStmt(data[5])
 		end)
 
 		local var = var.value
@@ -395,18 +395,21 @@ local CompileVisitors = {
 				state:PushScope() -- Push scope only first time, compiler should enforce not using variables ahead of time.
 				local step = step and step(state) or 1
 				for _ = start(state), stop(state), step do
-					state.prf = state.prf + cost
+					state.prf = state.prf + 1 / 20
 
 					if state.__continue__ then
 						if state.prf > TickQuota then error("perf", 0) end
 						state.__continue__ = false
 					else
 						block(state)
+
 						if state.__break__ then
 							state.__break__ = false
 							break
 						elseif state.__return__ then
 							break
+						elseif state.__continue__ then
+							state.__continue__ = false
 						end
 					end
 				end
@@ -417,7 +420,7 @@ local CompileVisitors = {
 				state:PushScope() -- Push scope only first time, compiler should enforce not using variables ahead of time.
 				local step, scope = step and step(state) or 1, state.Scope
 				for i = start(state), stop(state), step do
-					state.prf = state.prf + cost
+					state.prf = state.prf + 1 / 20
 					scope[var] = i
 
 					if state.__continue__ then
@@ -430,6 +433,8 @@ local CompileVisitors = {
 							break
 						elseif state.__return__ then
 							break
+						elseif state.__continue__ then
+							state.__continue__ = false
 						end
 					end
 				end
