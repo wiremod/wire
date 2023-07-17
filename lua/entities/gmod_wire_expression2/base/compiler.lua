@@ -397,20 +397,15 @@ local CompileVisitors = {
 				for _ = start(state), stop(state), step do
 					state.prf = state.prf + 1 / 20
 
-					if state.__continue__ then
-						if state.prf > TickQuota then error("perf", 0) end
-						state.__continue__ = false
-					else
-						block(state)
+					block(state)
 
-						if state.__break__ then
-							state.__break__ = false
-							break
-						elseif state.__return__ then
-							break
-						elseif state.__continue__ then
-							state.__continue__ = false
-						end
+					if state.__break__ then
+						state.__break__ = false
+						break
+					elseif state.__return__ then
+						break
+					elseif state.__continue__ then
+						state.__continue__ = false
 					end
 				end
 				state:PopScope()
@@ -423,19 +418,15 @@ local CompileVisitors = {
 					state.prf = state.prf + 1 / 20
 					scope[var] = i
 
-					if state.__continue__ then
-						if state.prf > TickQuota then error("perf", 0) end
+					block(state)
+
+					if state.__break__ then
+						state.__break__ = false
+						break
+					elseif state.__return__ then
+						break
+					elseif state.__continue__ then
 						state.__continue__ = false
-					else
-						block(state)
-						if state.__break__ then
-							state.__break__ = false
-							break
-						elseif state.__return__ then
-							break
-						elseif state.__continue__ then
-							state.__continue__ = false
-						end
 					end
 				end
 				state:PopScope()
@@ -480,7 +471,17 @@ local CompileVisitors = {
 				for _, v in iter() do
 					state.prf = state.prf + cost
 					scope[value] = v
+
 					block(state)
+
+					if state.__break__ then
+						state.__break__ = false
+						break
+					elseif state.__return__ then
+						break
+					elseif state.__continue__ then
+						state.__continue__ = false
+					end
 				end
 				state:PopScope()
 			end
@@ -493,7 +494,17 @@ local CompileVisitors = {
 				for k, v in iter() do
 					state.prf = state.prf + cost
 					scope[key], scope[value] = k, v
+
 					block(state)
+
+					if state.__break__ then
+						state.__break__ = false
+						break
+					elseif state.__return__ then
+						break
+					elseif state.__continue__ then
+						state.__continue__ = false
+					end
 				end
 				state:PopScope()
 			end
