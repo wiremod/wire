@@ -16,6 +16,19 @@ assert(X == 500)
 assert(Y == 1000)
 assert(Z == 5000)
 
+function number:method(X, Y, Z) {
+	assert(This == 500)
+	assert(X == 1)
+	assert(Y == 2)
+	assert(Z == 4)
+}
+
+500:method(1, 2, 4)
+
+assert(X == 500)
+assert(Y == 1000)
+assert(Z == 5000)
+
 function number returning() {
 	return 5
 }
@@ -98,3 +111,31 @@ function number number:bar(...A:array) {
 }
 
 assert( 5:bar("foo", 55) == 5 )
+
+CalledA = 0
+function a() {
+	CalledA = 1
+}
+
+if (0) {
+	function a() {
+		error("unreachable")
+	}
+}
+
+a()
+assert(CalledA == 1)
+
+CalledB = 0
+function number:b() {
+	CalledB = 1
+}
+
+if (0) {
+	function number:b() {
+		error("unreachable")
+	}
+}
+
+1:b()
+assert(CalledB == 1)

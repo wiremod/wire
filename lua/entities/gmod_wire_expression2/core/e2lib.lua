@@ -21,6 +21,7 @@ AddCSLuaFile()
 
 ---@class EnvFunction: EnvOperator
 ---@field attrs table<string, boolean|string>
+---@field const boolean? # Whether the function can be overridden at runtime. Optimzation. Only present in user functions.
 
 ---@class EnvMethod: EnvFunction
 ---@field meta TypeSignature

@@ -655,6 +655,9 @@ local CompileVisitors = {
 				else
 					self:Assert(fn_data.returns == nil, "Cannot override function returning void with differing return type", trace)
 				end
+
+				-- Tag function if it is ever re-declared. Used as an optimization
+				fn_data.const = fn_data.op == nil
 			end
 		end
 
@@ -791,8 +794,10 @@ local CompileVisitors = {
 		self:Assert((fn.returns and fn.returns[1]) == return_type, "Function " .. name.value .. " expects to return type (" .. (return_type or "void") .. ") but got type (" .. ((fn.returns and fn.returns[1]) or "void") .. ")", trace)
 
 		local sig = name.value .. "(" .. (meta_type and (meta_type .. ":") or "") .. sig .. ")"
+		local fn = fn.op
+
 		return function(state) ---@param state RuntimeContext
-			state.funcs[sig] = fn.op
+			state.funcs[sig] = fn
 			state.funcs_ret[sig] = return_type
 		end
 	end,
@@ -1380,20 +1385,20 @@ local CompileVisitors = {
 
 	---@param data { [1]: Token<string>, [2]: Node[] }
 	[NodeVariant.ExprCall] = function (self, trace, data, used_as_stmt)
-		local args, types = {}, {}
+		local name, args, types = data[1], {}, {}
 		for k, arg in ipairs(data[2]) do
 			args[k], types[k] = self:CompileExpr(arg)
 			self:Assert(types[k], "Cannot use void expression as call argument", arg.trace)
 		end
 
-		local fn_data = self:Assert(self:GetFunction(data[1].value, types), "No such function: " .. data[1].value .. "(" .. table.concat(types, ", ") .. ")", data[1].trace)
-		local fn = fn_data.op
+		local arg_sig = table.concat(types)
+		local fn_data = self:Assert(self:GetFunction(data[1].value, types), "No such function: " .. name.value .. "(" .. table.concat(types, ", ") .. ")", name.trace)
 
 		self:AssertW(not (used_as_stmt and fn_data.attrs.nodiscard), "The return value of this function cannot be discarded", trace)
 
 		if fn_data.attrs["deprecated"] then
 			local value = fn_data.attrs["deprecated"]
-			self:Warning("Use of deprecated function (" .. data[1].value .. ") " .. (type(value) == "string" and value or ""), trace)
+			self:Warning("Use of deprecated function (" .. name.value .. ") " .. (type(value) == "string" and value or ""), trace)
 		end
 
 		self.scope.data.ops = self.scope.data.ops + ((fn_data.cost or 15) + (fn_data.attrs["legacy"] and 10 or 0))
@@ -1403,8 +1408,30 @@ local CompileVisitors = {
 		end
 
 		local nargs = #args
-		if fn_data.attrs["legacy"] then
-			local largs = { [1] = {}, [#args + 2] = types }
+		local user_function = self.user_functions[name.value] and self.user_functions[name.value][arg_sig]
+		if user_function then
+			-- Calling a user function - chance of being overridden. Also not legacy.
+			if user_function.const then
+				local fn = user_function.op
+				return function(state)
+					local rargs = {}
+					for k = 1, nargs do
+						rargs[k] = args[k](state)
+					end
+					return fn(state, rargs, types)
+				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
+			else
+				local full_sig = name.value .. "(" .. arg_sig .. ")"
+				return function(state) ---@param state RuntimeContext
+					local rargs = {}
+					for k = 1, nargs do
+						rargs[k] = args[k](state)
+					end
+					return state.funcs[full_sig](state, rargs, types)
+				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
+			end
+		elseif fn_data.attrs["legacy"] then -- Not a user function. Can get function to call at compile time.
+			local fn, largs = fn_data.op, { [1] = {}, [nargs + 2] = types }
 			for i = 1, nargs do
 				largs[i + 1] = { [1] = args[i] }
 			end
@@ -1412,6 +1439,7 @@ local CompileVisitors = {
 				return fn(state, largs)
 			end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
 		else
+			local fn = fn_data.op
 			return function(state) ---@param state RuntimeContext
 				local rargs = {}
 				for k = 1, nargs do
@@ -1430,10 +1458,10 @@ local CompileVisitors = {
 			args[k], types[k] = self:CompileExpr(arg)
 		end
 
+		local arg_sig = table.concat(types)
 		local meta, meta_type = self:CompileExpr(data[1])
 
 		local fn_data = self:Assert(self:GetFunction(name.value, types, meta_type), "No such method: " .. (meta_type or "void") .. ":" .. name.value .. "(" .. table.concat(types, ", ") .. ")", name.trace)
-		local fn = fn_data.op
 
 		self:AssertW(not (used_as_stmt and fn_data.attrs.nodiscard), "The return value of this function cannot be discarded", trace)
 
@@ -1443,8 +1471,30 @@ local CompileVisitors = {
 		end
 
 		local nargs = #args
-		if fn_data.attrs["legacy"] then
-			local largs = { [nargs + 3] = types, [2] = { [1] = meta } }
+		local user_method = self.user_methods[meta_type] and self.user_methods[meta_type][name.value] and self.user_methods[meta_type][name.value][arg_sig]
+		if user_method then
+			-- Calling a user function - chance of being overridden. Also not legacy.
+			if user_method.const then
+				local fn = user_method.op
+				return function(state)
+					local rargs = { meta(state) }
+					for k = 1, nargs do
+						rargs[k + 1] = args[k](state)
+					end
+					return fn(state, rargs, types)
+				end
+			else
+				local full_sig = name.value .. "(" .. meta_type .. ":" .. arg_sig .. ")"
+				return function(state) ---@param state RuntimeContext
+					local rargs = { meta(state) }
+					for k = 1, nargs do
+						rargs[k + 1] = args[k](state)
+					end
+					return state.funcs[full_sig](state, rargs, types)
+				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
+			end
+		elseif fn_data.attrs["legacy"] then
+			local fn, largs = fn_data.op, { [nargs + 3] = types, [2] = { [1] = meta } }
 			for k = 1, nargs do
 				largs[k + 2] = { [1] = args[k] }
 			end
@@ -1453,6 +1503,7 @@ local CompileVisitors = {
 				return fn(state, largs)
 			end, fn_data.returns and fn_data.returns[1]
 		else
+			local fn = fn_data.op
 			return function(state) ---@param state RuntimeContext
 				local rargs = { meta(state) }
 				for k = 1, nargs do
