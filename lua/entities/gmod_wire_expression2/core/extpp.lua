@@ -21,7 +21,8 @@ local RemovedOperators = {
 	["operator&"] = true, ["operator&&"] = true, -- Despite && being binary AND in E2, the preprocessor used to handle this as logical AND.
 	["operator|"] = true, ["operator||"] = true, -- Despite || being binary OR in E2, the preprocessor used to handle this as logical OR.
 	["operator++"] = true, ["operator--"] = true, -- Now use + and - internally.
-	["operator[]"] = true, ["operator[T]"] = true -- indexget and indexset now.
+	["operator[]"] = true, ["operator[T]"] = true, -- indexget and indexset now.
+	["operator="] = true, -- Assignment "ass" operator.
 }
 
 local ValidAttributes = { -- Expose to E2Lib?
@@ -66,7 +67,7 @@ end
 ---@param raw string
 ---@param trace string
 ---@return { [1]: string, [2]: string }[] parameters, boolean variadic, string? variadic_tbl
-local function parseParameters(raw, trace, trace_ext)
+local function parseParameters(raw, trace)
 	if not raw:match("%S") then return {}, false end
 
 	local parsed, split = {}, raw:Split(",")
@@ -79,7 +80,7 @@ local function parseParameters(raw, trace, trace_ext)
 			return parsed, true, name
 		elseif raw_param:match("^%s*%.%.%.%s*$") then -- Variadic lua parameter
 			assert(k == len, "PP syntax error: Ellipses (...) must be the last argument.")
-			ErrorNoHalt("Warning: Use of variadic parameter with ExtPP is not recommended and deprecated. Instead use ...<name> (which passes a table) or the `args` variable " .. trace_ext .. "\n")
+			ErrorNoHalt("Warning: Use of variadic parameter with ExtPP is not recommended and deprecated. Instead use ...<name> (which passes a table) or the `args` variable " .. trace .. "\n")
 			return parsed, true
 		else
 			local typename, argname = string.match(raw_param, "^%s*(" .. p_typename .. ")%s+(" .. p_argname .. ")%s*$")
@@ -148,13 +149,13 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 	local changed = false
 	for a_begin, attributes, h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()(%[?[%w,_ =\"]*%]?)[\r\n\t ]*()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
 		local _, line = contents:sub(1, h_begin):gsub("\n", "")
-		local trace = "(at line " .. line .. ")"
-		local trace_ext = trace .. (E2Lib.currentextension and (" @" .. filename) or "")
+
+		local trace = "(at line " .. line .. ")" .. (E2Lib.currentextension and (" @" .. filename) or "")
 
 		if contents:sub(h_begin - 1, h_begin - 1):match("%w") then
-			error("PP syntax error: Must not have characters before 'e2function' " .. trace_ext .. "\n")
-		elseif not name:find("^" .. p_funcname .. "$") and not Operators[name] then
-			error("PP syntax error: Invalid function name format " .. trace)
+			error("PP syntax error: Must not have characters before 'e2function' " .. trace)
+		elseif not name:find("^" .. p_funcname .. "$") and not Operators[name] and not RemovedOperators[name] then
+			error("PP syntax error: Invalid function name format '" .. name .. "' " .. trace)
 		elseif thistype ~= "" and colon == "" then
 			error("PP syntax error: Function names may not start with a number. " .. trace)
 		elseif thistype == "" and colon ~= "" then
@@ -168,7 +169,7 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 		elseif ret ~= "void" and not getTypeId(ret) then
 			error("PP syntax error: Invalid return type: '" .. ret .. "' " .. trace)
 		elseif RemovedOperators[name] then -- Old operator that no longer is needed.
-			ErrorNoHalt("Warning: Operator " .. name .. " is now redundant. Ignoring registration. " .. trace_ext .. "\n")
+			ErrorNoHalt("Warning: Operator " .. name .. " is now redundant. Ignoring registration. " .. trace .. "\n")
 			local pivot = parseAttributes(attributes, trace) and a_begin - 1 or h_begin - 1
 			table.insert(output, contents:sub(lastpos, pivot)) -- Insert code from before header.
 			changed, lastpos = true, h_end -- Mark as changed and remove function header.
@@ -190,7 +191,7 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 				name, is_operator = Operators[name], true
 			end
 
-			local params, has_vararg, vartbl_name = parseParameters(args, trace, trace_ext)
+			local params, has_vararg, vartbl_name = parseParameters(args, trace, trace)
 
 			local attributes = parseAttributes(attributes, trace)
 
