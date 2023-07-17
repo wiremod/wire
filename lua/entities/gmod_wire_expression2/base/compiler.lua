@@ -634,7 +634,11 @@ local CompileVisitors = {
 					self:Error("Cannot overwrite existing function: " .. (meta_type and (meta_type .. ":") or "") .. name.value .. "(" .. table.concat(fn_data.args, ", ") .. ")", name.trace)
 				end
 			else
-				self:Assert(fn_data.returns[1] == return_type, "Cannot override with differing return type", trace)
+				if return_type then
+					self:Assert(fn_data.returns and fn_data.returns[1] == return_type, "Cannot override with differing return type", trace)
+				else
+					self:Assert(fn_data.returns == nil, "Cannot override function returning void with differing return type", trace)
+				end
 			end
 		end
 
@@ -767,11 +771,6 @@ local CompileVisitors = {
 
 			return self:CompileStmt(data[5])
 		end)
-
-		-- No `return` statement found. Returns void
-		if not fn.returns then
-			fn.returns = {}
-		end
 
 		self:Assert((fn.returns and fn.returns[1]) == return_type, "Function " .. name.value .. " expects to return type (" .. (return_type or "void") .. ") but got type (" .. ((fn.returns and fn.returns[1]) or "void") .. ")", trace)
 
