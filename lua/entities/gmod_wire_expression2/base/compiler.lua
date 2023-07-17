@@ -769,9 +769,9 @@ local CompileVisitors = {
 		end)
 
 		-- No `return` statement found. Returns void
-		--[[if not fn.returns then
+		if not fn.returns then
 			fn.returns = {}
-		end]]
+		end
 
 		self:Assert((fn.returns and fn.returns[1]) == return_type, "Function " .. name.value .. " expects to return type (" .. (return_type or "void") .. ") but got type (" .. ((fn.returns and fn.returns[1]) or "void") .. ")", trace)
 

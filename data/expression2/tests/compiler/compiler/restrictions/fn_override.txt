@@ -1,0 +1,11 @@
+## SHOULD_FAIL:COMPILE
+
+# Cannot override existing function with function that has different return type
+
+function test() {
+
+}
+
+function number test() {
+	return 5
+}
