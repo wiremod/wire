@@ -143,7 +143,7 @@ local function checkGive(self, target, classname)
 	if not target:IsPlayer() then return self:throw("Expected a Player but got Entity", false) end
 	if not isFriend(self.entity.player, this) or not CanTool(self.entity.player, target, "wire_expression2") then return self:throw("You cannot target this player", false) end
 	if not list.HasEntry("Weapon", classname) then return self:throw("Expected a weapon class, but the weapon was not found", false) end
-	if hook.Run('PlayerGiveSWEP', target, classname, list.Get('Weapon')[classname]) == false then
+	if hook.Run("PlayerGiveSWEP", target, classname, list.Get("Weapon")[classname]) == false then
 		return self:throw("The server blocked the weapon from being given", false)
 	end
 
@@ -186,7 +186,7 @@ e2function number entity:giveAmmo(amount, string type, hidePopUp)
 	if not isFriend(self.entity.player, this) or not CanTool(self.entity.player, this, "wire_expression2") then return self:throw("You cannot target this player", 0) end
 
 	return this:GiveAmmo(amount, type, hidePopUp ~= 0)
-end 
+end
 
 e2function void entity:setAmmo(ammoCount, string type)
 	if not setAmmoCVar:GetBool() then return self:throw("The server has disabled setting ammo", 0) end
