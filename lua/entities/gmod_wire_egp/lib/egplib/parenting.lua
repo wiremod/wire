@@ -231,7 +231,7 @@ end
 function EGP:SetParent( Ent, index, parentindex )
 	local bool, v
 	if isnumber(index) then
-		bool, _, v = self:HasObject(Ent, index) 
+		bool, _, v = self:HasObject(Ent, index)
 	else
 		bool, v = index ~= nil, index
 	end

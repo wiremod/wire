@@ -2,8 +2,6 @@ local function Update(self,this)
 	self.data.EGP.UpdatesNeeded[this] = true
 end
 
-local getCenterFrom = EGP.getCenterFrom
-
 --------------------------------------------------------
 -- Frames
 --------------------------------------------------------
@@ -816,7 +814,7 @@ end
 
 __e2setcost(20)
 e2function vector wirelink:egpGlobalPos( number index )
-	local hasvertices, posang = EGP:GetGlobalPos( this, index )
+	local _, posang = EGP:GetGlobalPos( this, index )
 	return Vector(posang.x, posang.y, posang.angle)
 end
 

@@ -91,7 +91,7 @@ if (SERVER) then
 			return
 		end
 
-		local bool, k, v = EGP:HasObject( Ent, index )
+		local bool, _, v = EGP:HasObject( Ent, index )
 		if (bool) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
@@ -123,7 +123,7 @@ if (SERVER) then
 			return
 		end
 
-		local bool, k, v = EGP:HasObject( Ent, index )
+		local bool, _, v = EGP:HasObject( Ent, index )
 		if (bool) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
@@ -149,13 +149,12 @@ if (SERVER) then
 	util.AddNetworkString( "AddText" )
 	local function AddText( Ent, ply, index, text )
 		if not IsValid(ply) or not ply:IsPlayer() then return end
-		if (EGP:CheckInterval( ply ) == false) then
+		if EGP:CheckInterval( ply ) == false then
 			EGP:InsertQueue( Ent, ply, AddText, "AddText", index, text )
 			return
 		end
 
-		local bool, k, v = EGP:HasObject( Ent, index )
-		if (bool) then
+		if EGP:HasObject(Ent, index) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "AddText" )
@@ -176,8 +175,7 @@ if (SERVER) then
 			return
 		end
 
-		local bool, k, v = EGP:HasObject( Ent, index )
-		if (bool) then
+		if EGP:HasObject(Ent, index) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "SetText" )
@@ -407,31 +405,29 @@ else -- SERVER/CLIENT
 		elseif (Action == "SetText") then
 			local index = net.ReadInt(16)
 			local text = net.ReadString()
-			local bool,k,v = EGP:HasObject( Ent, index )
+			local bool,_,v = EGP:HasObject( Ent, index )
 			if (bool) then
 				if (EGP:EditObject( v, { text = text } )) then Ent:EGP_Update() end
 			end
 		elseif (Action == "AddText") then
 			local index = net.ReadInt(16)
 			local text = net.ReadString()
-			local bool,k,v = EGP:HasObject( Ent, index )
+			local bool,_,v = EGP:HasObject( Ent, index )
 			if (bool) then
 				if (EGP:EditObject( v, { text = v.text .. text } )) then Ent:EGP_Update() end
 			end
 		elseif (Action == "SetVertex") then
 			local index = net.ReadInt(16)
-			local bool, k,v = EGP:HasObject( Ent, index )
+			local bool, _, v = EGP:HasObject( Ent, index )
 			if (bool) then
 				local vertices = {}
 
 				if (v.HasUV) then
-					local n = 0
 					for i=1,net.ReadUInt(8) do
 						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadFloat(), net.ReadFloat()
 						vertices[i] = { x=x, y=y, u=u, v=_v }
 					end
 				else
-					local n = 0
 					for i=1,net.ReadUInt(8) do
 						local x, y = net.ReadInt(16), net.ReadInt(16)
 						vertices[i] = { x=x, y=y }
@@ -442,18 +438,16 @@ else -- SERVER/CLIENT
 			end
 		elseif (Action == "AddVertex") then
 			local index = net.ReadInt(16)
-			local bool, k, v = EGP:HasObject( Ent, index )
+			local bool, _, v = EGP:HasObject( Ent, index )
 			if (bool) then
 				local vertices = table.Copy(v.vertices)
 
 				if (v.HasUV) then
-					local n = 0
 					for i=1,net.ReadUInt(8) do
 						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadFloat(), net.ReadFloat()
 						vertices[#vertices+1] = { x=x, y=y, u=u, v=_v }
 					end
 				else
-					local n = 0
 					for i=1,net.ReadUInt(8) do
 						local x, y = net.ReadInt(16), net.ReadInt(16)
 						vertices[#vertices+1] = { x=x, y=y }

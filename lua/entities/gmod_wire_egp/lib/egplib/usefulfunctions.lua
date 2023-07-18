@@ -222,7 +222,7 @@ end
 -- Other
 --------------------------------------------------------
 function EGP:ValidEGP( Ent )
-	return (IsValid( Ent ) and (Ent:GetClass() == "gmod_wire_egp" or Ent:GetClass() == "gmod_wire_egp_hud" or Ent:GetClass() == "gmod_wire_egp_emitter"))
+	return IsValid( Ent ) and (Ent:GetClass() == "gmod_wire_egp" or Ent:GetClass() == "gmod_wire_egp_hud" or Ent:GetClass() == "gmod_wire_egp_emitter")
 end
 
 
@@ -460,7 +460,7 @@ end
 function EGP.WorldToLocal(object, x, y)
 	local _, realpos = EGP:GetGlobalPos(object.EGP, object)
 	x, y = x - realpos.x, y - realpos.y
-	
+
 	local theta = math.rad(realpos.angle)
 	if theta ~= 0 then
 		local cos_theta, sin_theta = math.cos(theta), math.sin(theta)
@@ -468,6 +468,6 @@ function EGP.WorldToLocal(object, x, y)
 			x * cos_theta - y * sin_theta,
 			y * cos_theta + x * sin_theta
 	end
-	
+
 	return x, y
 end

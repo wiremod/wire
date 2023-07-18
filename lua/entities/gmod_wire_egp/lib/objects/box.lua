@@ -26,10 +26,10 @@ Obj.DataStreamInfo = function( self )
 end
 function Obj:Contains(x, y)
 	x, y = EGP.WorldToLocal(self, x, y)
-	
+
 	local w, h = self.w / 2, self.h / 2
 	if self.EGP.TopLeft then x, y = x - w, y - h end
-	
+
 	return -w <= x and x <= w and
 	       -h <= y and y <= h
 end
