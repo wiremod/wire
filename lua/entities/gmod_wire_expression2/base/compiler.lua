@@ -756,7 +756,8 @@ local CompileVisitors = {
 					end
 				end
 			end
-		else -- Todo: In the future with the optimizer, or here still, make this output a different function when it doesn't early return, and/or has no parameters as an optimization.
+		else -- Todo: Make this output a different function when it doesn't early return, and/or has no parameters as an optimization.
+			local nargs = #param_types
 			function fn.op(state, args) ---@param state RuntimeContext
 				local save = state:SaveScopes()
 
@@ -765,8 +766,8 @@ local CompileVisitors = {
 				state.Scope = scope
 				state.ScopeID = 1
 
-				for i, arg in ipairs(args) do
-					scope[param_names[i]] = arg
+				for i = 1, nargs do
+					scope[param_names[i]] = args[i]
 				end
 
 				block(state)

@@ -93,3 +93,10 @@ function recursevoid() {
 recursevoid()
 
 assert(Sentinel == 1)
+
+function number nilInput(X, Y:ranger, Z:vector) {
+	assert(Z == vec(1, 2, 3))
+	return 5
+}
+
+assert( nilInput(1, noranger(), vec(1, 2, 3)) == 5 )
