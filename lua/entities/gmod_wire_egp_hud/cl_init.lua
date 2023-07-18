@@ -75,21 +75,19 @@ function ENT:Initialize()
 	self.RenderTable = {}
 	self.Resolution = false -- False = Use screen res. True = 0-512 res.
 	self.OldResolution = false
-
-	EGP:AddHUDEGP( self )
 end
 
 function ENT:EGP_Update()
-	for k,v in pairs( self.RenderTable ) do
+	for _,v in ipairs( self.RenderTable ) do
 		if (v.res == nil) then v.res = false end
 		if (v.res ~= self.Resolution) then
 			self:ScaleObject( not v.res, v )
 		end
-		if (v.parent and v.parent ~= 0) then
+		if v.parent ~= 0 then
 			if (not v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
 			local _, data = EGP:GetGlobalPos( self, v.index )
 			EGP:EditObject( v, data )
-		elseif (not v.parent or v.parent == 0 and v.IsParented) then
+		elseif v.IsParented then
 			EGP:UnParent( self, v.index )
 		end
 	end

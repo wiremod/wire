@@ -4,8 +4,8 @@ ENT.PrintName       = "Wire Pixel"
 ENT.WireDebugName	= "Pixel"
 
 if CLIENT then
-	function ENT:Draw( )
-		self:DrawModel( )
+	function ENT:Draw()
+		self:DrawModel()
 	end
 
 	return  -- No more client

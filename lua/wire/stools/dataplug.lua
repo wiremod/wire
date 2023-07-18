@@ -19,8 +19,8 @@ end
 WireToolSetup.BaseLang()
 
 if (SERVER) then
-	CreateConVar('sbox_maxwire_dataplugs', 20)
-	CreateConVar('sbox_maxwire_datasockets', 20)
+	CreateConVar("sbox_maxwire_dataplugs", 20)
+	CreateConVar("sbox_maxwire_datasockets", 20)
 end
 
 TOOL.ClientConVar["model"] = "models/hammy/pci_slot.mdl"
@@ -31,38 +31,14 @@ function TOOL:GetConVars()
 	return self:GetClientNumber("weldforce"), math.Clamp(self:GetClientNumber("attachrange"), 1, 100)
 end
 
-local SocketModels = {
-	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
-	["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
-	["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
-	["models/wingf0x/isasocket.mdl"] = "models/wingf0x/isaplug.mdl",
-	["models/wingf0x/altisasocket.mdl"] = "models/wingf0x/isaplug.mdl",
-	["models/wingf0x/ethernetsocket.mdl"] = "models/wingf0x/ethernetplug.mdl",
-	["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl"
-}
-
-local AngleOffset = {
-	["models/props_lab/tpplugholder_single.mdl"] = Angle(0,0,0),
-	["models/props_lab/tpplug.mdl"] = Angle(0,0,0),
-	["models/bull/various/usb_socket.mdl"] = Angle(0,0,0),
-	["models/bull/various/usb_stick.mdl"] = Angle(0,0,0),
-	["models/hammy/pci_slot.mdl"] = Angle(90,0,0),
-	["models/hammy/pci_card.mdl"] = Angle(90,0,0),
-	["models/wingf0x/isasocket.mdl"] = Angle(90,0,0),
-	["models/wingf0x/isaplug.mdl"] = Angle(90,0,0),
-	["models/wingf0x/altisasocket.mdl"] = Angle(90,00,0),
-	["models/wingf0x/ethernetsocket.mdl"] = Angle(90,0,0),
-	["models/wingf0x/ethernetplug.mdl"] = Angle(90,0,0),
-	["models/wingf0x/hdmisocket.mdl"] = Angle(90,0,0),
-	["models/wingf0x/hdmiplug.mdl"] = Angle(90,0,0)
-}
+local SocketData = list.Get("Wire_Socket_Models")
 
 cleanup.Register( "wire_dataplugs" )
 
 function TOOL:GetModel()
 	local model = self:GetClientInfo( "model" )
-	if (not util.IsValidModel( model ) or not util.IsValidProp( model ) or not SocketModels[ model ]) then return "models/props_lab/tpplugholder_single.mdl", "models/props_lab/tpplug.mdl" end
-	return model, SocketModels[ model ]
+	if (not util.IsValidModel( model ) or not util.IsValidProp( model ) or not SocketData[ model ]) then return "models/props_lab/tpplugholder_single.mdl", "models/props_lab/tpplug.mdl" end
+	return model, SocketData[ model ].plug
 end
 
 -- Create socket
@@ -102,7 +78,7 @@ end
 
 function TOOL:GetGhostAngle(trace)
 	local socketmodel = self:GetModel()
-	return trace.HitNormal:Angle() + (AngleOffset[socketmodel] or Angle(0,0,0)) - Angle(90,0,0)
+	return trace.HitNormal:Angle() + (SocketData[socketmodel].ang or Angle(0,0,0)) - Angle(90,0,0)
 end
 
 function TOOL.BuildCPanel(panel)

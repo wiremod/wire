@@ -1185,6 +1185,59 @@ function WireLib.IsValidMaterial(material)
 	return material
 end
 
+if CPPI and FindMetaTable("Entity").CPPICanTool then
+	---@param player Player
+	---@param entity Entity
+	---@param toolname string
+	function WireLib.CanTool(player, entity, toolname)
+		return entity:CPPICanTool(player, toolname)
+	end
+else
+	local zero = Vector(0, 0, 0)
+	local norm = Vector(1, 0, 0)
+
+	local tr = { ---@type TraceResult
+		Hit = true, HitNonWorld = true, HitNoDraw = false, HitSky = false, AllSolid = true,
+		HitNormal = zero, Normal = norm,
+
+		Fraction = 1, FractionLeftSolid = 0,
+		HitBox = 0, HitGroup = 0, HitTexture = "**studio**",
+		MatType = 0, PhysicsBone = 0, SurfaceProps = 0, DispFlags = 0, Contents = 0,
+
+		Entity = NULL, HitPos = zero, StartPos = zero,
+	}
+
+	---@param player Player
+	---@param entity Entity
+	---@param toolname string
+	function WireLib.CanTool(player, entity, toolname)
+		local pos = entity:GetPos()
+		tr.Entity, tr.HitPos, tr.StartPos = entity, pos, pos
+		return hook.Run("CanTool", player, tr, toolname)
+	end
+end
+
+if CPPI and FindMetaTable("Entity").CPPICanDamage then
+	--- Returns if given player can damage the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanDamage(player, target) ---@return boolean
+		return target:CPPICanDamage(player)
+	end
+else
+	--- Returns if given player can damage the given entity.
+	--- Uses PlayerShouldTakeDamage for players, CanTool for entities.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanDamage(player, target) ---@return boolean
+		if target:IsPlayer() then
+			return hook.Run("PlayerShouldTakeDamage", target, player) ~= false
+		else
+			return WireLib.CanTool(player, target, "")
+		end
+	end
+end
+
 function WireLib.SetColor(ent, color)
 	color.r = math_clamp(color.r, 0, 255)
 	color.g = math_clamp(color.g, 0, 255)

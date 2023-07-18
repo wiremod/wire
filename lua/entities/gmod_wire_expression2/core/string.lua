@@ -1,28 +1,27 @@
-/******************************************************************************\
-  String support
-\******************************************************************************/
+--[[******************************************************************************]]--
+--  String support
+--[[******************************************************************************]]--
 
-// TODO: is string.left() faster than s:left()?
-// TODO: is string.sub faster than both left and right?
-// TODO: these return bad results when used with negative numbers!
-// TODO: benchmarks!
+local string_sub, string_byte, string_char = string.sub, string.byte, string.char
+local string_gsub, string_find, string_match = string.gsub, string.find, string.match
+local string_gmatch, string_format = string.gmatch, string.format
 
-local string = string -- optimization
+local string_Replace, string_Explode = string.Replace, string.Explode
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 registerType("string", "s", "",
 	nil,
 	nil,
 	function(retval)
-		if !isstring(retval) then error("Return value is not a string, but a "..type(retval).."!",0) end
+		if not isstring(retval) then error("Return value is not a string, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return !isstring(v)
+		return not isstring(v)
 	end
 )
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 __e2setcost(3) -- temporary
 
@@ -34,9 +33,8 @@ registerOperator("ass", "s", "s", function(self, args)
 	return rv2
 end)
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
-local string_sub = string.sub
 registerOperator("fea", "nss", "", function(self, args)
 	local keyname, valname = args[2], args[3]
 	local str = args[4]
@@ -67,7 +65,6 @@ registerOperator("fea", "nss", "", function(self, args)
 	end
 end)
 
-local string_byte = string.byte
 registerOperator("fea", "nns", "", function(self, args)
 	local keyname, valname = args[2], args[3]
 
@@ -99,264 +96,160 @@ registerOperator("fea", "nns", "", function(self, args)
 	end
 end)
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
-registerOperator("is", "s", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number operator_is(string this)
+	return this ~= "" and 1 or 0
+end
 
-	return rv1 ~= "" and 1 or 0
-end)
+e2function number operator==(string lhs, string rhs)
+	return lhs == rhs and 1 or 0
+end
 
-registerOperator("eq", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator!=(string lhs, string rhs)
+	return lhs ~= rhs and 1 or 0
+end
 
-	return rv1 == rv2 and 1 or 0
-end)
+e2function number operator>=(string lhs, string rhs)
+	self.prf = self.prf + math.min(#lhs, #rhs) / 10
+	return lhs >= rhs and 1 or 0
+end
 
-registerOperator("neq", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator<=(string lhs, string rhs)
+	self.prf = self.prf + math.min(#lhs, #rhs) / 10
+	return lhs <= rhs and 1 or 0
+end
 
-	return rv1 ~= rv2 and 1 or 0
-end)
+e2function number operator>(string lhs, string rhs)
+	self.prf = self.prf + math.min(#lhs, #rhs) / 10
+	return lhs > rhs and 1 or 0
+end
 
-registerOperator("geq", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator<(string lhs, string rhs)
+	self.prf = self.prf + math.min(#lhs, #rhs) / 10
+	return lhs < rhs and 1 or 0
+end
 
-	self.prf = self.prf + math.min(#rv1, #rv2) / 10
+--[[******************************************************************************]]--
 
-	return rv1 >= rv2 and 1 or 0
-end)
+__e2setcost(1) -- temporary
 
-registerOperator("leq", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function string operator+(string lhs, string rhs)
+	self.prf = self.prf + #lhs * 0.01 + #rhs * 0.01
+	return lhs .. rhs
+end
 
-	self.prf = self.prf + math.min(#rv1, #rv2) / 10
+--[[******************************************************************************]]--
 
-	return rv1 <= rv2 and 1 or 0
-end)
+e2function string operator+(string lhs, number rhs)
+	self.prf = self.prf + #lhs * 0.01
+	return lhs .. rhs --[[ concatenating a number to a string is valid without tostring. ]]
+end
 
-registerOperator("gth", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function string operator+(number lhs, string rhs)
+	self.prf = self.prf + #rhs * 0.01
+	return lhs .. rhs --[[ concatenating a strings to a number is valid without tostring. ]]
+end
 
-	self.prf = self.prf + math.min(#rv1, #rv2) / 10
+--[[******************************************************************************]]--
 
-	return rv1 > rv2 and 1 or 0
-end)
-
-registerOperator("lth", "ss", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + math.min(#rv1, #rv2) / 10
-
-	return rv1 < rv2 and 1 or 0
-end)
-
-/******************************************************************************/
-
-__e2setcost(10) -- temporary
-
-registerOperator("add", "ss", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv1*0.01 + #rv2*0.01
-
-	return rv1 .. rv2
-end)
-
-/******************************************************************************/
-
-registerOperator("add", "sn", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv1*0.01
-
-	return rv1 .. tostring(rv2)
-end)
-
-registerOperator("add", "ns", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv2*0.01
-
-	return tostring(rv1) .. rv2
-end)
-
-/******************************************************************************/
-
-registerOperator("add", "sv", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv1*0.01
-
-	return ("%s[%s,%s,%s]"):format( rv1, rv2[1], rv2[2], rv2[3] )
-end)
-
-registerOperator("add", "vs", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv2*0.01
-
-	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],rv2)
-end)
-
-/******************************************************************************/
-
-registerOperator("add", "sa", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv1*0.01
-
-	return ("%s[%s,%s,%s]"):format( rv1,rv2[1],rv2[2],rv2[3] )
-end)
-
-registerOperator("add", "as", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	self.prf = self.prf + #rv2*0.01
-
-	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],rv2)
-end)
-
-/******************************************************************************/
-
-__e2setcost(20) -- temporary
+__e2setcost(2)
 
 e2function number string:toNumber()
-	local ret = tonumber(this)
-	if ret == nil then return 0 end
-	return ret
+	return tonumber(this) or 0
 end
 
 e2function number string:toNumber(number base)
-	local ret = tonumber(this, base)
-	if ret == nil then return 0 end
-	return ret
+	if base < 2 or base > 36 then return self:throw("Base out of range", 0) end
+	return tonumber(this, base) or 0
 end
 
-local string_char = string.char
-local string_byte = string.byte
-local string_len = string.len
 local utf8_char = utf8.char
 local utf8_byte = utf8.codepoint
 
-registerFunction("toChar", "n", "s", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 < 0 then return "" end
-	if rv1 > 255 then return "" end
-	return string_char(rv1)
-end)
+__e2setcost(1)
 
-registerFunction("toByte", "s", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 == "" then return -1 end
-	return string_byte(rv1)
-end)
+e2function string toChar(number n)
+	if n < 0 or n > 255 then return self:throw("Invalid argument (" .. n .. ") (must be between 0 and 255)", "") end
+	return string_char(n)
+end
 
-registerFunction("toByte", "sn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv2 < 1 or rv2 > string_len(rv1) then return -1 end
-	return string_byte(rv1, rv2)
-end)
+e2function number toByte(string c)
+	return string_byte(c) or -1
+end
+
+e2function number toByte(string str, number idx)
+	return string_byte(str, idx) or -1
+end
+
+__e2setcost(5)
 
 local math_floor = math.floor
 
-registerFunction("toUnicodeChar", "n", "s", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-
+e2function string toUnicodeChar(number byte)
 	-- upper limit used to be 2097152, new limit acquired using pcall and a for loop
 	-- above this limit, the function causes a lua error
-	if rv1 < 1 or rv1 > 1114112 then return "" end
+	if byte < 1 or byte > 1114112 then return self:throw("Invalid argument (" .. byte .. ") (must be between 1 and 1,114,112)", "") end
+	return utf8_char(byte)
+end
 
-	return utf8_char(rv1)
-end)
+e2function number toUnicodeByte(string c)
+	-- upper limit used to be 2097152, new limit acquired using pcall and a for loop
+	-- above this limit, the function causes a lua error
+	if c == "" then return -1 end
+	return utf8_byte(c)
+end
 
-registerFunction("toUnicodeByte", "s", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 == "" then return -1 end
+--[[******************************************************************************]]--
 
-	return utf8_byte(rv1)
-end)
+__e2setcost(1)
 
-/******************************************************************************/
+[deprecated = "Use the indexing operator instead"]
+e2function string string:index(number idx)
+	return string_sub(this, idx, idx)
+end
 
-registerFunction("index", "s:n", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return rv1:sub(rv2, rv2)
-end)
+e2function string string:left(number idx)
+	return string_sub(this, 1, idx)
+end
 
-registerFunction("left", "s:n", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return rv1:Left(rv2)
-end)
+e2function string string:right(number idx)
+	return string_sub(this, -idx)
+end
 
-registerFunction("right", "s:n", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return rv1:Right(rv2)
-end)
-
-registerFunction("sub", "s:nn", "s", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	return rv1:sub(rv2, rv3)
-end)
+e2function string string:sub(number start, number finish)
+	return string_sub(this, start, finish)
+end
 
 e2function string string:sub(start)
-	return this:sub(start)
+	return string_sub(this, start)
 end
 
 e2function string string:operator[](index)
-	return this:sub(index,index)
+	return string_sub(this, index, index)
 end
 
-registerFunction("upper", "s:", "s", function(self, args)
-	local op1 = args[2], args[3]
-	local rv1 = op1[1](self, op1)
-	return rv1:upper()
-end)
+e2function string string:upper()
+	return this:upper()
+end
 
-registerFunction("lower", "s:", "s", function(self, args)
-	local op1 = args[2], args[3]
-	local rv1 = op1[1](self, op1)
-	return rv1:lower()
-end)
+e2function string string:lower()
+	return this:lower()
+end
 
-registerFunction("length", "s:", "n", function(self, args)
-	local op1 = args[2], args[3]
-	local rv1 = op1[1](self, op1)
-	return rv1:len()
-end)
+e2function number string:length()
+	return #this
+end
 
-registerFunction("unicodeLength", "s:", "n", function(self, args)
-	local op1 = args[2], args[3]
-	local rv1 = op1[1](self, op1)
+__e2setcost(10)
+
+e2function number string:unicodeLength()
 	-- the string.gsub method is inconsistent with how writeUnicodeString and toUnicodeByte handles badly-formed sequences.
 	-- local _, length = string.gsub (rv1, "[^\128-\191]", "")
 	local length = 0
 	local i = 1
-	while i <= #rv1 do
-		local byte = string_byte (rv1, i)
+	while i <= #this do
+		local byte = string_byte (this, i)
 		if byte >= 240 then
 			i = i + 4
 		elseif byte >= 224 then
@@ -370,151 +263,153 @@ registerFunction("unicodeLength", "s:", "n", function(self, args)
 	end
 	self.prf = self.prf + length * 0.1
 	return length
-end)
+end
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
-registerFunction("repeat", "s:n", "s", function(self,args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), math.abs(op2[1](self, op2))
-	self.prf = self.prf + #rv1 * rv2 * 0.01
+__e2setcost(3)
+
+e2function string string:repeat(number times)
+	local len = #this * times
+	if len <= 0 then return "" end
+
+	self.prf = self.prf + len * 0.01
 	if self.prf > e2_tickquota then error("perf", 0) end
-	return rv1:rep(rv2)
-end)
 
-registerFunction("trim", "s:", "s", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return string.Trim(rv1)
-end)
+	return this:rep(times)
+end
 
-registerFunction("trimLeft", "s:", "s", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1:match( "^ *(.-)$")
-end)
+__e2setcost(2)
 
-registerFunction("trimRight", "s:", "s", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1:TrimRight()
-end)
+e2function string string:trim()
+	return this:Trim()
+end
 
-/******************************************************************************/
+e2function string string:trimLeft()
+	return this:TrimLeft()
+end
 
-local sub = string.sub
-local gsub = string.gsub
-local find = string.find
+e2function string string:trimRight()
+	return this:TrimRight()
+end
+
+--[[******************************************************************************]]--
+
+__e2setcost(10)
 
 --- Returns the 1st occurrence of the string <pattern>, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern)
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string.find(this, pattern) end)
-	if not OK then
-		self.player:ChatPrint(Ret)
-		return 0
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern) end)
+	if not ok then
+		return self:throw(ret, 0)
 	else
-		return Ret or 0
+		return ret or 0
 	end
 end
 
 ---  Returns the 1st occurrence of the string <pattern> starting at <start> and going to the end of the string, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern, start)
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return find(this, pattern, start) end)
-	if not OK then
-		self.player:ChatPrint(Ret)
-		return 0
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern, start) end)
+	if not ok then
+		return self:throw(ret, 0)
 	else
-		return Ret or 0
+		return ret or 0
 	end
 end
 
+__e2setcost(6)
+
 --- Returns the 1st occurrence of the string <needle>, returns 0 if not found. Does not use LUA patterns.
 e2function number string:find(string needle)
-	return this:find( needle, 1, true) or 0
+	return string_find(this, needle, 1, true) or 0
 end
 
 ---  Returns the 1st occurrence of the string <needle> starting at <start> and going to the end of the string, returns 0 if not found. Does not use LUA patterns.
 e2function number string:find(string needle, start)
-	return this:find( needle, start, true) or 0
+	return string_find(this, needle, start, true) or 0
 end
+
+__e2setcost(8)
 
 --- Finds and replaces every occurrence of <needle> with <new> without regular expressions
 e2function string string:replace(string needle, string new)
 	if needle == "" then return this end
 	self.prf = self.prf + #this * 0.1 + #new * 0.1
 	if self.prf > e2_tickquota then error("perf", 0) end
-	return this:Replace(needle, new)
+	return string_Replace(this, needle, new)
 end
+
+__e2setcost(12)
 
 ---  Finds and replaces every occurrence of <pattern> with <new> using regular expressions. Prints malformed string errors to the chat area.
 e2function string string:replaceRE(string pattern, string new)
 	self.prf = self.prf + #this * 0.1 + #new * 0.1
 	if self.prf > e2_tickquota then error("perf", 0) end
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return gsub(this, pattern, new) end)
-	if not OK then
-		self.player:ChatPrint(Ret)
-		return ""
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_gsub(this, pattern, new) end)
+	if not ok then
+		return self:throw(ret, "")
 	else
-		return Ret or ""
+		return ret or ""
 	end
 end
 
-__e2setcost(5)
+__e2setcost(2)
 
 --- Splits the string into an array, along the boundaries formed by the string <pattern>. See also [[string.Explode]]
-local string_Explode = string.Explode
 e2function array string:explode(string delim)
 	local ret = string_Explode( delim, this )
 	self.prf = self.prf + #ret * 0.3 + #this * 0.1
 	return ret
 end
 
+__e2setcost(5)
+
 e2function array string:explodeRE( string delim )
+	self.prf = self.prf + #this * 0.1
 	local ok, ret = pcall(function() WireLib.CheckRegex(this, delim) return string_Explode( delim, this, true ) end)
 	if not ok then
-		self.player:ChatPrint(ret)
-		ret = {}
+		return self:throw(ret, {})
 	end
-	self.prf = self.prf + #ret * 0.3 + #this * 0.1
+
+	self.prf = self.prf + #ret * 0.3
 	return ret
 end
 
-__e2setcost(10)
+__e2setcost(6)
 
 --- Returns a reversed version of <this>
 e2function string string:reverse()
 	return this:reverse()
 end
 
-/******************************************************************************/
-local string_format = string.format
-local gmatch = string.gmatch
-local Right = string.Right
+--[[******************************************************************************]]--
+__e2setcost(3)
 
 --- Formats a values exactly like Lua's [http://www.lua.org/manual/5.1/manual.html#pdf-string.format string.format]. Any number and type of parameter can be passed through the "...". Prints errors to the chat area.
 e2function string format(string fmt, ...)
+	self.prf = self.prf + select("#", ...) * 2
+
 	-- TODO: call toString for table-based types
 	local ok, ret = pcall(string_format, fmt, ...)
 	if not ok then
-		self.player:ChatPrint(ret)
-		return ""
+		return self:throw(ret, "")
 	end
 	return ret
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 -- string.match wrappers by Jeremydeath, 2009-08-30
-local string_match = string.match
 local table_remove = table.remove
+
+__e2setcost(10)
 
 --- runs [[string.match]](<this>, <pattern>) and returns the sub-captures as an array. Prints malformed pattern errors to the chat area.
 e2function array string:match(string pattern)
 	local args = {pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern) end)}
 	if not args[1] then
-		self.player:ChatPrint(args[2] or "Unknown error in str:match")
-		return {}
+		return self:throw(args[2], {})
 	else
-		table_remove( args, 1 ) -- Remove "OK" boolean
+		table_remove( args, 1) -- Remove "OK" boolean
 		return args or {}
 	end
 end
@@ -523,15 +418,12 @@ end
 e2function array string:match(string pattern, position)
 	local args = {pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern, position) end)}
 	if not args[1] then
-		self.player:ChatPrint(args[2] or "Unknown error in str:match")
-		return {}
+		return self:throw(args[2], {})
 	else
 		table_remove( args, 1 ) -- Remove "OK" boolean
 		return args or {}
 	end
 end
-
-local table_Copy = table.Copy
 
 -- Helper function for gmatch (below)
 -- (By Divran)
@@ -540,11 +432,11 @@ local newE2Table = E2Lib.newE2Table
 local function gmatch( self, this, pattern )
 	local ret = newE2Table()
 	local num = 0
-	local iter = this:gmatch( pattern )
+	local iter = string_gmatch( this, pattern )
 	local v
 	while true do
 		v = {iter()}
-		if (!v or #v==0) then break end
+		if not v or #v == 0 then break end
 		num = num + 1
 		ret.n[num] = v
 		ret.ntypes[num] = "r"
@@ -554,13 +446,14 @@ local function gmatch( self, this, pattern )
 	return ret
 end
 
+__e2setcost(12)
+
 --- runs [[string.gmatch]](<this>, <pattern>) and returns the captures in an array in a table. Prints malformed pattern errors to the chat area.
 -- (By Divran)
 e2function table string:gmatch(string pattern)
-	local OK, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
-	if (!OK) then
-		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
-		return newE2Table()
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
+	if not ok then
+		return self:throw(ret, newE2Table())
 	else
 		return ret
 	end
@@ -570,38 +463,37 @@ end
 -- (By Divran)
 e2function table string:gmatch(string pattern, position)
 	this = this:Right( -position-1 )
-	local OK, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
-	if (!OK) then
-		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
-		return newE2Table()
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return gmatch(self, this, pattern) end)
+	if not ok then
+		return self:throw(ret, newE2Table())
 	else
 		return ret
 	end
 end
 
+__e2setcost(10)
+
 --- runs [[string.match]](<this>, <pattern>) and returns the first match or an empty string if the match failed. Prints malformed pattern errors to the chat area.
 e2function string string:matchFirst(string pattern)
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern) end)
-	if not OK then
-		self.player:ChatPrint(Ret)
-		return ""
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern) end)
+	if not ok then
+		return self:throw(ret, "")
 	else
-		return Ret or ""
+		return ret or ""
 	end
 end
 
 --- runs [[string.match]](<this>, <pattern>, <position>) and returns the first match or an empty string if the match failed. Prints malformed pattern errors to the chat area.
 e2function string string:matchFirst(string pattern, position)
-	local OK, Ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern, position) end)
-	if not OK then
-		self.player:ChatPrint(Ret)
-		return ""
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_match(this, pattern, position) end)
+	if not ok then
+		return self:throw(ret, "")
 	else
-		return Ret or ""
+		return ret or ""
 	end
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 local unpack = unpack
 local isnumber = isnumber
 local utf8_len = utf8.len
@@ -609,6 +501,8 @@ local utf8_len = utf8.len
 local function ToUnicodeChar(self, args)
 	local count = #args
 	if count == 0 then return "" end
+	self.prf = self.prf + count * 4
+
 	local codepoints = {}
 	for i = 1, count do
 		local value = args[i]
@@ -619,11 +513,11 @@ local function ToUnicodeChar(self, args)
 			end
 		end
 	end
-	self.prf = self.prf + count * 0.001
+
 	return utf8_char(unpack(codepoints))
 end
 
-__e2setcost(1)
+__e2setcost(3)
 
 --- Returns the UTF-8 string from the given Unicode code-points.
 e2function string toUnicodeChar(...args)
@@ -641,18 +535,18 @@ e2function array string:toUnicodeByte(number startPos, number endPos)
 	local codepoints = { pcall(utf8_byte, this, startPos, endPos) }
 	local ok = table.remove(codepoints, 1)
 	if not ok then return {} end
-	self.prf = self.prf + #codepoints * 0.001
+	self.prf = self.prf + #codepoints * 3
 	return codepoints
 end
 
 --- Returns the length of the given UTF-8 string.
 e2function number string:unicodeLength(number startPos, number endPos)
 	if #this == 0 then return 0 end
+	self.prf = self.prf + #this
+
 	local ok, length = pcall(utf8_len, this, startPos, endPos)
 	if ok and isnumber(length) then
-		self.prf = self.prf + length * 0.001
 		return length
 	end
-	self.prf = self.prf + #this * 0.001
 	return -1
 end

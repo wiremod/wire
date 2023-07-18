@@ -11,6 +11,7 @@ E2Helper.Descriptions["propSpawn(svan)"] = "Model path, Position, Rotation, Froz
 E2Helper.Descriptions["propSpawn(evan)"] = "Position, Rotation, Frozen Spawns a prop with the model of the template entity, at the position denoted by the vector, and rotated to the angle given. If frozen is 0, then it will spawn unfrozen."
 E2Helper.Descriptions["seatSpawn(sn)"] = "Model path, Frozen Spawns a prop with the model denoted by the string filepath. If frozen is 0, then it will spawn unfrozen."
 E2Helper.Descriptions["seatSpawn(svan)"] = E2Helper.Descriptions["seatSpawn(sn)"]
+E2Helper.Descriptions["seatSpawn(svans)"] = E2Helper.Descriptions["seatSpawn(sn)"] .. " String seatType, determines what animations the seat will have. For example phx_seat2 and phx_seat3 will have Jeep and Airboat animations."
 E2Helper.Descriptions["propSpawnEffect(n)"] = "Set to 1 to enable prop spawn effect, 0 to disable."
 E2Helper.Descriptions["propDelete(e:)"] = "Deletes the specified prop."
 E2Helper.Descriptions["propDelete(t:)"] = "Deletes all the props in the given table, returns the amount of props deleted."

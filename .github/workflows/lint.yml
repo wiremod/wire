@@ -1,0 +1,37 @@
+name: Lint
+
+on:
+  pull_request:
+    paths:
+      - "lua/**"
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "luajit-2.1.0-beta3"
+
+      - name: Get any changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v36
+        with:
+          files: |
+            **.lua
+
+      - name: Run E2 Extension Preprocessor
+        run: |
+          lua .github/workflows/preprocess.lua ${{ steps.changed-files.outputs.all_changed_files }}
+
+      - name: Download GluaFixer
+        run: |
+          curl -o glualint.zip -L https://github.com/FPtje/GLuaFixer/releases/download/1.24.6/glualint-1.24.6-x86_64-linux.zip
+          unzip glualint.zip
+
+      - name: Lint Code
+        run: |
+          ./glualint ${{ steps.changed-files.outputs.all_changed_files }}

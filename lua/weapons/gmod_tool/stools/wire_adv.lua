@@ -146,8 +146,8 @@ if SERVER then
 			local outputentity = wiring[5]
 
 			if IsValid( inputentity ) and IsValid( outputentity ) and
-				hook.Run( "CanTool", ply, WireLib.dummytrace( inputentity ), "wire_adv" ) and
-				hook.Run( "CanTool", ply, WireLib.dummytrace( outputentity ), "wire_adv" ) then
+				WireLib.CanTool(ply, inputentity, "wire_adv" ) and
+				WireLib.CanTool(ply, outputentity, "wire_adv" ) then
 
 				local inputname = wiring[1]
 				local inputpos = wiring[2]
@@ -182,7 +182,7 @@ if SERVER then
 		local ent = net.ReadEntity()
 		local tbl = net.ReadTable()
 
-		if hook.Run( "CanTool", ply, WireLib.dummytrace( ent ), "wire_adv" ) then
+		if WireLib.CanTool(ply, ent, "wire_adv" ) then
 			for i=1,#tbl do
 				WireLib.Link_Clear( ent, tbl[i] )
 			end

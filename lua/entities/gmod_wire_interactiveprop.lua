@@ -12,7 +12,7 @@ local function copyPropUI(prop, newName)
 end
 
 InteractiveModels = {
-	
+
 	["models/props_lab/reciever01a.mdl"] = {
 		width=220,
 		height=100,
@@ -71,7 +71,7 @@ InteractiveModels = {
 			{type="DButton", x=70, y=90, text="9", name="9"},
 		}
 	},
-	
+
 	["models/beer/wiremod/numpad.mdl"] = {
 		width=130,
 		height=180,
@@ -203,7 +203,7 @@ InteractiveModels["models/props_interiors/sinkkitchen01a.mdl"]	= copyPropUI( "mo
 InteractiveModels["models/props_wasteland/prison_sink001a.mdl"] = copyPropUI( "models/props_interiors/bathtub01a.mdl", "Prison Sink" )
 
 local WidgetBuilders = {
-	
+
 	DCheckBox = function(self, data, body, index)
 		local checkbox = vgui.Create("DCheckBox", body)
 			checkbox:SetPos(data.x, data.y)
@@ -214,7 +214,7 @@ local WidgetBuilders = {
 				self:SendData()
 			end
 	end,
-	
+
 	DNumberScratch = function(self, data, body, index)
 		local numberscratch = vgui.Create("DNumberScratch", body)
 			numberscratch.color = data.color or Color( 128, 128, 128 )
@@ -234,14 +234,14 @@ local WidgetBuilders = {
 				local value = self:GetFloatValue()
 				surface.SetDrawColor(255, 255, 255)
 				surface.DrawLine(
-					w/2, 
-					h/2, 
-					math.sin(value * math.pi*0.75)*w/2+w/2, 
+					w/2,
+					h/2,
+					math.sin(value * math.pi*0.75)*w/2+w/2,
 					-math.cos(value * math.pi*0.75)*h/2+h/2
 				)
 			end
 	end,
-	
+
 	DButton = function(self, data, body, index)
 		local button = vgui.Create("DButton", body)
 			button:SetPos(data.x, data.y)
@@ -249,7 +249,7 @@ local WidgetBuilders = {
 			button:SetSize(data.width or 20, data.height or 20)
 			self:AddButton(index,button)
 	end
-	
+
 }
 
 function ENT:GetPanel()
@@ -294,7 +294,7 @@ end
 if CLIENT then
 
 	local panel
-	
+
 	----------------------------------------------------
 	-- Show the prompt
 	----------------------------------------------------
@@ -327,7 +327,7 @@ if CLIENT then
 		local self = net.ReadEntity()
 		if not IsValid(self) then return end
 		panel = self:GetPanel()
-		panel.OnClose = function(panel) 
+		panel.OnClose = function(panel)
 			net.Start("wire_interactiveprop_close")
 			self.Buttons = {}
 			self.LastButtons = {}
@@ -382,18 +382,18 @@ end
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetUseType(SIMPLE_USE)
- 
+
 	self.InteractiveData = {}
-	
+
 	self:InitData()
-	
+
 
 	self.BlockInput=false
 	self.NextPrompt = 0
 
 	self:UpdateOverlay()
-	
-	
+
+
 end
 
 
@@ -416,7 +416,7 @@ util.AddNetworkString("wire_interactiveprop_action")
 net.Receive("wire_interactiveprop_action",function(len,ply)
 	self = net.ReadEntity()
 	if not IsValid( self ) or not IsValid( ply ) or ply ~= self.User then return end
- 
+
 	self:ReceiveData()
 
 
@@ -457,8 +457,8 @@ self:Unprompt()
 end)
 
 util.AddNetworkString("wire_interactiveprop_kick")
-function ENT:Unprompt( )
-	
+function ENT:Unprompt()
+
 	self.User = nil
 	self:UpdateOverlay()
 end

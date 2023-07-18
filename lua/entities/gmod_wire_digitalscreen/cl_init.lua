@@ -276,8 +276,12 @@ function ENT:RedrawRow(y)
 	end
 end
 
+local VECTOR_1_1_1 = Vector(1, 1, 1)
 function ENT:Draw()
 	self:DrawModel()
+	
+	local tone = render.GetToneMappingScaleLinear()
+	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
 
 	if self.NeedRefresh then
 		self.NeedRefresh = false
@@ -313,8 +317,9 @@ function ENT:Draw()
 			end
 		end)
 	end
-
+	
 	self.GPU:Render(0,0,1024,1024,nil,-(1024-self.ScreenWidth)/1024,-(1024-self.ScreenHeight)/1024)
+	render.SetToneMappingScaleLinear(tone)
 	Wire_Render(self)
 end
 

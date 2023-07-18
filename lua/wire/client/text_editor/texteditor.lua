@@ -35,8 +35,11 @@ local draw_WordBox = draw.WordBox
 local draw_RoundedBox = draw.RoundedBox
 
 WireTextEditor = { Modes = {} }
-include("modes/e2.lua")
-include("modes/zcpu.lua")
+
+for _, filename in ipairs(file.Find("wire/client/text_editor/modes/*.lua","LUA")) do
+	include("wire/client/text_editor/modes/" .. filename)
+end
+
 WireTextEditor.Modes.Default = { SyntaxColorLine = function(self, row) return { { self.Rows[row], { Color(255, 255, 255, 255), false } } } end }
 
 local wire_expression2_autocomplete_controlstyle = CreateClientConVar( "wire_expression2_autocomplete_controlstyle", "0", true, false )
@@ -326,7 +329,7 @@ function EDITOR:OnMouseReleased(code)
 end
 
 function EDITOR:SetText(text)
-	self.Rows = string_Explode("\n", text)
+	self.Rows = string_Explode("\r?\n", text, true)
 	if self.Rows[#self.Rows] ~= "" then
 		self.Rows[#self.Rows + 1] = ""
 	end
@@ -801,7 +804,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 	end
 
 	-- insert text
-	local rows = string_Explode("\n", text)
+	local rows = string_Explode("\r?\n", text, true)
 
 	local remainder = string_sub(self.Rows[start[1]], start[2])
 	self.Rows[start[1]] = string_sub(self.Rows[start[1]], 1, start[2] - 1) .. rows[1]
