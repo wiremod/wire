@@ -100,3 +100,14 @@ function number nilInput(X, Y:ranger, Z:vector) {
 }
 
 assert( nilInput(1, noranger(), vec(1, 2, 3)) == 5 )
+
+if (0) {
+	function undefined() {}
+}
+
+try {
+	undefined()
+	error("unreachable")
+} catch(Err) {
+	assert(Err == "No such function defined at runtime: undefined()")
+}

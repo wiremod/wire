@@ -104,3 +104,14 @@ function number number:nilInput(X, Y:ranger, Z:vector) {
 }
 
 assert( 1:nilInput(1, noranger(), vec(1, 2, 3)) == 5 )
+
+if (0) {
+	function number:undefined() {}
+}
+
+try {
+	1:undefined()
+	error("unreachable")
+} catch(Err) {
+	assert(Err == "No such method defined at runtime: undefined(n:)")
+}

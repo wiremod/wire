@@ -1428,7 +1428,13 @@ local CompileVisitors = {
 					for k = 1, nargs do
 						rargs[k] = args[k](state)
 					end
-					return state.funcs[full_sig](state, rargs, types)
+
+					local fn = state.funcs[full_sig]
+					if fn then
+						return state.funcs[full_sig](state, rargs, types)
+					else
+						E2Lib.raiseException("No such function defined at runtime: " .. full_sig, 0, state.trace)
+					end
 				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
 			end
 		elseif fn_data.attrs["legacy"] then -- Not a user function. Can get function to call at compile time.
@@ -1491,7 +1497,13 @@ local CompileVisitors = {
 					for k = 1, nargs do
 						rargs[k + 1] = args[k](state)
 					end
-					return state.funcs[full_sig](state, rargs, types)
+
+					local fn = state.funcs[full_sig]
+					if fn then
+						return state.funcs[full_sig](state, rargs, types)
+					else
+						E2Lib.raiseException("No such method defined at runtime: " .. full_sig, 0, state.trace)
+					end
 				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
 			end
 		elseif fn_data.attrs["legacy"] then
