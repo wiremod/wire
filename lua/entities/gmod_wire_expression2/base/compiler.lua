@@ -243,7 +243,7 @@ local CompileVisitors = {
 		local cost, nstmts = self.scope.data.ops, #stmts
 		self.scope.data.ops = 0
 
-		if self.scope:ResolveData("loop") then -- Inside loop, check if continued or broken
+		if self.scope:ResolveData("loop") or self.scope:ResolveData("switch_case") then -- Inside loop or switch case, check if continued or broken
 			return function(state) ---@param state RuntimeContext
 				state.prf = state.prf + cost
 				if state.prf > TickQuota then error("perf", 0) end

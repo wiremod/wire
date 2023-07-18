@@ -1,8 +1,22 @@
 ## SHOULD_PASS:EXECUTE
 
+# Ensure functions get called in the first place
+
+Called = 0
+function myfunction() {
+	Called = 1
+}
+
+myfunction()
+
+assert(Called)
+
+
 local X = 500
 local Y = 1000
 local Z = 5000
+
+# Ensure function scoping doesn't affect outer scope
 
 function test(X, Y, Z) {
 	assert(X == 1)
@@ -16,18 +30,7 @@ assert(X == 500)
 assert(Y == 1000)
 assert(Z == 5000)
 
-function number:method(X, Y, Z) {
-	assert(This == 500)
-	assert(X == 1)
-	assert(Y == 2)
-	assert(Z == 4)
-}
-
-500:method(1, 2, 4)
-
-assert(X == 500)
-assert(Y == 1000)
-assert(Z == 5000)
+# Ensure functions return properly
 
 function number returning() {
 	return 5
@@ -67,6 +70,8 @@ function returnvoid3() {
 
 returnvoid3()
 
+# Test recursion
+
 function number recurse(N:number) {
 	if (N == 1) {
 		return 5
@@ -88,54 +93,3 @@ function recursevoid() {
 recursevoid()
 
 assert(Sentinel == 1)
-
-# Now check variadic syntax sugar
-
-function number number:foo(...A:table) {
-	assert(A:typeids()[1, string] == "s")
-	assert(A:typeids()[2, string] == "n")
-
-	assert(A[1, string] == "foo")
-	assert(A[2, number] == 55)
-
-	return This
-}
-
-assert(5:foo("foo", 55) == 5)
-
-function number number:bar(...A:array) {
-	assert(A[1, string] == "foo")
-	assert(A[2, number] == 55)
-
-	return This
-}
-
-assert( 5:bar("foo", 55) == 5 )
-
-CalledA = 0
-function a() {
-	CalledA = 1
-}
-
-if (0) {
-	function a() {
-		error("unreachable")
-	}
-}
-
-a()
-assert(CalledA == 1)
-
-CalledB = 0
-function number:b() {
-	CalledB = 1
-}
-
-if (0) {
-	function number:b() {
-		error("unreachable")
-	}
-}
-
-1:b()
-assert(CalledB == 1)

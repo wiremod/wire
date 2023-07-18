@@ -1,0 +1,73 @@
+## SHOULD_PASS:EXECUTE
+
+# Ensure that functions aren't improperly overridden at compile time
+
+CalledA = 0
+function a() {
+	CalledA = 1
+}
+
+if (0) {
+	function a() {
+		error("Unreachable function called - Should never be emitted")
+	}
+}
+
+a()
+assert(CalledA == 1)
+
+# Ensure that methods aren't improperly overridden at compile time
+
+CalledB = 0
+function number:b() {
+	CalledB = 1
+}
+
+if (0) {
+	function number:b() {
+		error("Unreachable method called - Should never be emitted")
+	}
+}
+
+1:b()
+assert(CalledB == 1)
+
+# Ensure that functions can be overridden at compile time
+
+Value = 50
+
+function c() {
+	Value = 100
+}
+
+c()
+assert(Value == 100)
+
+if (1) {
+	function c() {
+		Value = 200
+	}
+}
+
+c()
+assert(Value == 200)
+
+# Ensure that methods can be overridden at compile time
+
+Value = 50
+
+function number:d() {
+	Value = 100
+}
+
+1:d()
+assert(Value == 100)
+
+if (1) {
+	function number:d() {
+		Value = 200
+	}
+}
+
+1:d()
+assert(Value == 200)

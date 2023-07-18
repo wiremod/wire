@@ -29,3 +29,16 @@ switch (vec()) {
 	default,
 		error("fail")
 }
+
+switch (1) {
+	case 1,
+		if (1) {
+			break
+		}
+
+		error("unreachable")
+	break
+
+	default,
+	break
+}

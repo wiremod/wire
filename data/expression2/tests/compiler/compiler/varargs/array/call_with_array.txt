@@ -1,0 +1,7 @@
+## SHOULD_FAIL:COMPILE
+
+# Cannot call array variadic function with array argument.
+
+function arrayVariadic(N:number, ...X:array) {}
+
+arrayVariadic(1, array())
