@@ -373,7 +373,7 @@ end
 function ZVM:Precompile_Fetch()
   local prevIF = self.IF
   self.IF = 0
-  local value = tonumber(self:ReadCell(self.PrecompileXEIP)) or 0
+  local value = self:ReadCell(self.PrecompileXEIP) or 0
   self.IF = prevIF
 
   self.PrecompileXEIP = self.PrecompileXEIP + 1
