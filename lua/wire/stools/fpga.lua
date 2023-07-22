@@ -94,7 +94,7 @@ if SERVER then
   function TOOL:Download(ent)
     local player = self:GetOwner()
 
-    if not WireLib.CanTool(ply, chip, "wire_fpga") then
+    if not WireLib.CanTool(player, ent, "wire_fpga") then
 			WireLib.AddNotify(player, "You're not allowed to download from this FPGA (ent index: " .. ent:EntIndex() .. ").", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
 			return
 		end
