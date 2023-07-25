@@ -259,9 +259,8 @@ function PANEL:Init()
 	end)
 	self:AddRightClick(self.filemenu, nil, "Delete", function()
 		local filePath = self.File:GetFileName()
-		local message = string.format("Delete this file?\n\n%s", fileName(filePath))
 
-		Derma_Query(message, "Delete",
+		Derma_Query("Delete this file?\n\n" .. fileName(filePath), "Delete",
 			"Delete", function()
 				if (file.Exists(filePath, "DATA")) then
 					file.Delete(filePath)
