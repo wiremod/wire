@@ -162,7 +162,6 @@ end
 
 e2function effect effect:setColor(number index)
 	if not this then return self:throw("Invalid effect!", nil) end
-
 	index = math.Clamp(index,0,255)
 	this:SetColor(index)
 	return this
