@@ -568,3 +568,14 @@ e2function array array:merge( array other )
 	self.prf = self.prf + #ret / 3
 	return ret
 end
+
+e2function string toString(array array)
+	local buf = {}
+	for i = 1, #array do
+		buf[i] = tostring(array[i])
+	end
+
+	return "array(" .. table.concat(buf, ", ") .. ")"
+end
+
+e2function string array:toString() = e2function string toString(array array)

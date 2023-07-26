@@ -23,6 +23,8 @@ end
 local defaultPrintDelay = 0.3
 -- the amount of "charges" a player has by default
 local defaultMaxPrints = 15
+-- default max print length
+local defaultMaxLength = 1000
 
 -- Contains the amount of "charges" a player has, i.e. the amount of print-statements can be executed before
 -- the messages being omitted. The defaultPrintDelay is the time required to add one additional charge to the
@@ -105,36 +107,15 @@ e2function number playerCanPrint()
 	return (canPrint(self.player) and 1 or 0)
 end
 
-local function SpecialCase( arg )
-	local t = type(arg)
-	if t == "table" then
-		if (arg.isfunction) then
-			return "function " .. arg[3] .. " = (" .. arg[2] .. ")"
-		elseif (seq(arg)) then -- A table with only numerical indexes
-			local str = "["
-			for k,v in ipairs( arg ) do
-				if istable(v) then
-					if (k ~= #arg) then
-						str = str .. SpecialCase( v ) .. ","
-					else
-						str = str .. SpecialCase( v ) .. "]"
-					end
-				else
-					if (k ~= #arg) then
-						str = str .. tostring(v) .. ","
-					else
-						str = str .. tostring(v) .. "]"
-					end
-				end
-			end
-			return str
-		else -- Else it's a table with string indexes (which this function can't handle)
-			return "[table]"
-		end
-	elseif t == "Vector" then
-		return string.format("vec(%.2f,%.2f,%.2f)", arg[1], arg[2], arg[3])
-	elseif t == "Angle" then
-		return string.format("ang(%d,%d,%d)", arg[1], arg[2], arg[3])
+local function repr(self, value, typeid)
+	local fn = wire_expression2_funcs["toString(" .. typeid ..")"] or wire_expression2_funcs["toString(" .. typeid .. ":)"]
+
+	if fn and fn[2] == "s" then -- I need the compiler rewrite merged for this to not be garbage
+		return fn[3](self, { [2] = { function() return value end } })
+	elseif typeid == "s" then -- special case for string
+		return string.format("%q", value)
+	else
+		return wire_expression_types2[typeid][1]
 	end
 end
 
@@ -145,14 +126,17 @@ e2function void print(...args)
 
 	local nargs = #args
 	if nargs > 0 then
-		for i=1, math.min(nargs, 256) do
-			local v = args[i]
-			args[i] = string.Left(SpecialCase( v ) or tostring(v), 249)
+		local max_len = self.player:GetInfoNum("wire_expression2_print_max_length", defaultMaxLength)
+		for i = 1, math.min(nargs, 256) do
+			local v, ty = args[i], typeids[i]
+			args[i] = E2Lib.limitString(repr(self, v, ty), max_len / nargs)
 		end
 
 		local text = table.concat(args, "\t")
 		if #text > 0 then
-			self.player:ChatPrint(string.Left(text,249)) -- Should we switch to net messages? We probably don't want to print more than 249 chars at once anyway
+			net.Start("wire_expression2_print")
+				net.WriteString(E2Lib.limitString(text, max_len))
+			net.Send(self.player)
 		end
 	end
 end
@@ -300,6 +284,7 @@ end
 __e2setcost(100)
 
 util.AddNetworkString("wire_expression2_printColor")
+util.AddNetworkString("wire_expression2_print")
 
 local printColor_typeids = {
 	n = tostring,
