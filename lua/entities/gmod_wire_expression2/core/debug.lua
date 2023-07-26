@@ -111,6 +111,7 @@ local function repr(self, value, typeid)
 	local fn = wire_expression2_funcs["toString(" .. typeid ..")"] or wire_expression2_funcs["toString(" .. typeid .. ":)"]
 
 	if fn and fn[2] == "s" then -- I need the compiler rewrite merged for this to not be garbage
+		self.prf = self.prf + (fn[4] or 20)
 		return fn[3](self, { [2] = { function() return value end } })
 	elseif typeid == "s" then -- special case for string
 		return string.format("%q", value)
@@ -122,22 +123,28 @@ end
 local maxLength = CreateConVar("wire_expression2_print_max_length", "10000", FCVAR_ARCHIVE, "Hard limit for how much E2 users can print with a single call. Here to avoid extensive net use.", 0, 65532)
 
 -- Prints <...> like lua's print(...), except to the chat area
+__e2setcost(40)
 e2function void print(...args)
 	if not checkOwner(self) then return end
 	if not checkDelay( self.player ) then return end
 
 	local nargs = #args
+	self.prf = self.prf + nargs
+
 	if nargs > 0 then
 		local max_len = math.min(maxLength:GetInt(), self.player:GetInfoNum("wire_expression2_print_max_length", defaultMaxLength))
-		for i = 1, math.min(nargs, 256) do
+		for i = 1, nargs do
 			local v, ty = args[i], typeids[i]
 			args[i] = E2Lib.limitString(repr(self, v, ty), max_len / nargs)
 		end
 
 		local text = table.concat(args, "\t")
 		if #text > 0 then
+			local limited = E2Lib.limitString(text, max_len)
+			self.prf = self.prf + #limited / 5
+
 			net.Start("wire_expression2_print")
-				net.WriteString(E2Lib.limitString(text, max_len))
+				net.WriteString(limited)
 			net.Send(self.player)
 		end
 	end
