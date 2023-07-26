@@ -119,6 +119,8 @@ local function repr(self, value, typeid)
 	end
 end
 
+local maxLength = CreateConVar("wire_expression2_print_max_length", "10000", FCVAR_ARCHIVE, "Hard limit for how much E2 users can print with a single call. Here to avoid extensive net use.", 0, 65532)
+
 -- Prints <...> like lua's print(...), except to the chat area
 e2function void print(...args)
 	if not checkOwner(self) then return end
@@ -126,7 +128,7 @@ e2function void print(...args)
 
 	local nargs = #args
 	if nargs > 0 then
-		local max_len = self.player:GetInfoNum("wire_expression2_print_max_length", defaultMaxLength)
+		local max_len = math.min(maxLength:GetInt(), self.player:GetInfoNum("wire_expression2_print_max_length", defaultMaxLength))
 		for i = 1, math.min(nargs, 256) do
 			local v, ty = args[i], typeids[i]
 			args[i] = E2Lib.limitString(repr(self, v, ty), max_len / nargs)
