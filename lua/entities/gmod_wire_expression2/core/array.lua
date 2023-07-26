@@ -569,9 +569,14 @@ e2function array array:merge( array other )
 	return ret
 end
 
+__e2setcost(2)
 e2function string toString(array array)
-	local buf = {}
-	for i = 1, #array do
+	local buf, len = {}, #array
+
+	self.prf = self.prf + len
+	if self.prf > e2_tickquota then error("perf", 0) end
+
+	for i = 1, len do
 		buf[i] = tostring(array[i])
 	end
 
