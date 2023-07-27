@@ -357,6 +357,10 @@ E2Helper.Descriptions["playerConnectClk()"] = "Returns 1 if the chip is being ex
 E2Helper.Descriptions["lastConnectedPlayer()"] = "Returns the last player to connect."
 E2Helper.Descriptions["runOnPlayerConnect(n)"] = "If set to 0, the chip will no longer run on player connect events, otherwise it makes this chip execute when someone connects. Only needs to be called once, not in every execution"
 E2Helper.Descriptions["inGodMode(e:)"] = "Returns whether the player has god mode or not"
+E2Helper.Descriptions["ignite(e:)"] = "Ignites an entity for 10 seconds. Requires wire_expression2_entity_ignite_enabled"
+E2Helper.Descriptions["ignite(e:n)"] = "Ignites an entity for the given length in seconds. Requires wire_expression2_entity_ignite_enabled"
+E2Helper.Descriptions["ignite(e:nn)"] = "Creates a fire at an entity with given radius and length in seconds. Requires wire_expression2_entity_ignite_enabled"
+E2Helper.Descriptions["extinguish(e:)"] = "Extinguishes an entity granted you have permission. Does not work inside of entityDamage event if the attacker is the fire itself"
 
 -- Attachment
 E2Helper.Descriptions["lookupAttachment(e:s)"] = "Returns Es attachment ID associated with attachmentName"

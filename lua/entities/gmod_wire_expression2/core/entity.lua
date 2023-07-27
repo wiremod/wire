@@ -919,7 +919,7 @@ e2function array entity:attachments()
 	return tmp
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(15)
 
@@ -928,7 +928,42 @@ e2function vector entity:nearestPoint( vector point )
 	return this:NearestPoint(point)
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
+
+local Enabled = CreateConVar("wire_expression2_entity_ignite_enabled", 1, FCVAR_ARCHIVE, "Whether E2s can ignite people, given they have 'ignite' permissions.")
+local MaxLength = CreateConVar("wire_expression2_entity_ignite_length_max", 30, FCVAR_ARCHIVE, "Max length an E2 can ignite someone for in seconds")
+local MaxRadius = CreateConVar("wire_expression2_entity_ignite_radius_max", 500, FCVAR_ARCHIVE, "Max radius of an E2 ignite entity")
+
+e2function void entity:ignite()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
+	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+
+	this:Ignite(5)
+end
+
+e2function void entity:ignite(number length)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
+	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+
+	this:Ignite( math.min(length, MaxLength:GetFloat()) )
+end
+
+e2function void entity:ignite(number length, number radius)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
+	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+
+	this:Ignite( math.min(length, MaxLength:GetFloat()), math.Clamp(radius, 0, MaxRadius:GetFloat()) )
+end
+
+e2function void entity:extinguish()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not WireLib.CanProperty(self.player, this, "extinguish") then return self:throw("You cannot extinguish this entity!", nil) end
+
+	this:Extinguish()
+end
 
 local function upperfirst( word )
 	return word:Left(1):upper() .. word:Right(-2):lower()

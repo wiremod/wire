@@ -1238,6 +1238,24 @@ else
 	end
 end
 
+if CPPI and FindMetaTable("Entity").CPPICanProperty then
+	--- Returns if the player can apply the given property to the target
+	---@param player Player
+	---@param target Entity
+	---@param property string
+	function WireLib.CanProperty(player, target, property) ---@return boolean
+		return target:CPPICanProperty(player, property)
+	end
+else
+	--- Returns if the player can apply the given property to the target
+	---@param player Player
+	---@param target Entity
+	---@param property string
+	function WireLib.CanProperty(player, target, property) ---@return boolean
+		return hook.Run("CanProperty", player, property, target) ~= false
+	end
+end
+
 function WireLib.SetColor(ent, color)
 	color.r = math_clamp(color.r, 0, 255)
 	color.g = math_clamp(color.g, 0, 255)
