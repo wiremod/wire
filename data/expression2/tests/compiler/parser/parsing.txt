@@ -92,7 +92,12 @@ Logical = 0 | 1 & 2 != 3 == 4
 
 array():count()
 array()[1, number]
-table(1 = 1, 2 = 2)
+
+N = 5
+table(N = 1, 2 = 2)
+
+K = ""
+table(K = 5, "" = 5)
 
 ~In
 $In

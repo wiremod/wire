@@ -633,10 +633,10 @@ function Parser:Parameters()
 	end
 end
 
-function Parser:Expr()
+function Parser:Expr(ignore_assign)
 	-- Error for compound operators in expression
 	if self:Consume(TokenVariant.Ident) then
-		if self:Consume(TokenVariant.Operator, Operator.Ass) then
+		if not ignore_assign and self:Consume(TokenVariant.Operator, Operator.Ass) then
 			self:Error("Assignment operator (=) must not be part of equation ( Did you mean == ? )")
 		end
 
@@ -796,7 +796,7 @@ function Parser:ArgumentsKV(start_bracket, end_bracket)
 		return {}
 	end
 
-	local first = self:Expr()
+	local first = self:Expr(true)
 
 	if not self:Consume(TokenVariant.Operator, Operator.Ass) then
 		self.index = before
