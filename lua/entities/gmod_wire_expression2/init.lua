@@ -424,14 +424,14 @@ function ENT:ResetContext()
 
 	for k, v in pairs(self.inports[3]) do
 		self._inputs[1][#self._inputs[1] + 1] = k
-		self._inputs[2][#self._inputs[2] + 1] = v
+		self._inputs[2][#self._inputs[2] + 1] = wire_expression_types2[v][1]
 		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 		self.globvars_mut[k] = nil
 	end
 
 	for k, v in pairs(self.outports[3]) do
 		self._outputs[1][#self._outputs[1] + 1] = k
-		self._outputs[2][#self._outputs[2] + 1] = v
+		self._outputs[2][#self._outputs[2] + 1] = wire_expression_types2[v][1]
 		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 		self.GlobalScope.vclk[k] = true
 		self.globvars_mut[k] = nil
