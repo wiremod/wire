@@ -371,7 +371,7 @@ function ENT:RCEject()
 end
 
 function ENT:TriggerInput( name, value )
-		if (name == "Lock") then
+	if (name == "Lock") then
 		if (self.RC) then return end
 		if not self:HasPod() then return end
 		self:SetLocked( value ~= 0 )
