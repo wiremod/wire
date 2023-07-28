@@ -120,7 +120,7 @@ function ENT:Initialize()
 	local outputs = {
 		-- Keys
 		"W", "A", "S", "D", "Mouse1", "Mouse2",
-		"R", "Space", "Shift", "Zoom", "Alt", 
+		"R", "Space", "Shift", "Zoom", "Alt", "Duck", "Noclip",
 		"TurnLeftKey (Not bound to a key by default. Bind a key to '+left' to use.\nOutside of a vehicle, makes the player's camera rotate left.)", 
 		"TurnRightKey (Not bound to a key by default. Bind a key to '+right' to use.\nOutside of a vehicle, makes the player's camera rotate right.)",
 
@@ -326,9 +326,11 @@ local bindingToOutput = {
 	["right"] = "TurnRightKey",
 
 	["jump"] = "Space",
+	["noclip"] = "Noclip",
 	["speed"] = "Shift",
 	["zoom"] = "Zoom",
 	["walk"] = "Alt",
+	["duck"] = "Duck",
 
 	["attack"] = "Mouse1",
 	["attack2"] = "Mouse2",
@@ -424,13 +426,10 @@ function ENT:TriggerInput( name, value )
 		end
 	elseif (name == "Damage Health") then
 		if not self:HasPly() or value <= 0 then return end
-		if (value > 100) then value = 100 end
-		self:GetPly():TakeDamage( value )
+		self:GetPly():TakeDamage( math.min(value, 100) )
 	elseif (name == "Damage Armor") then
 		if not self:HasPly() or value <= 0 then return end
-		if (value > 100) then value = 100 end
-		local dmg = self:GetPly():Armor() - value
-		if (dmg < 0) then dmg = 0 end
+		local dmg = math.max(self:GetPly():Armor() - value, 0)
 		self:GetPly():SetArmor( dmg )
 	elseif (name == "Allow Buttons") then
 		self.AllowButtons = value ~= 0
