@@ -115,7 +115,6 @@ function SWEP:Think()
 end
 
 hook.Add("PlayerNoClip", "wire_remotecontroller_antinoclip", function(ply, cmd)
-	if not ply.RCOverride then return end
-	return false
+	if ply.RCOverride then return false end
 end)
 
