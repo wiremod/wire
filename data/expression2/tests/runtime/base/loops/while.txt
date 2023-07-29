@@ -15,3 +15,21 @@ do {
 } while(Num < 1000)
 
 assert(Num == 1000)
+
+Calls = 1
+Inc = 1
+function number calls() {
+	assert(Calls == Inc, "Continue bled into another iteration")
+	Calls++
+	return Calls
+}
+
+while (calls() < 5) {
+	Inc++
+
+	if (1) {
+		continue
+	}
+
+	error("unreachable")
+}

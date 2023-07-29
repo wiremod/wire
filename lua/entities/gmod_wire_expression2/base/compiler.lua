@@ -330,8 +330,9 @@ local CompileVisitors = {
 
 	---@param data { [1]: Node, [2]: Node, [3]: boolean }
 	[NodeVariant.While] = function(self, trace, data)
-		local expr, block, cost = self:Scope(function(scope)
-			return self:CompileExpr(data[1]), self:CompileStmt(data[2]), 1 / 20
+		local expr, block = self:Scope(function(scope)
+			scope.data.loop = true
+			return self:CompileExpr(data[1]), self:CompileStmt(data[2])
 		end)
 
 		if data[3] then
@@ -339,18 +340,17 @@ local CompileVisitors = {
 			return function(state) ---@param state RuntimeContext
 				state:PushScope()
 				repeat
-					state.prf = state.prf + cost
-					if state.__continue__ then
-						if state.prf > TickQuota then error("perf", 0) end
+					state.prf = state.prf + 1 / 20
+
+					block(state)
+
+					if state.__break__ then
+						state.__break__ = false
+						break
+					elseif state.__return__ then
+						break
+					elseif state.__continue__ then
 						state.__continue__ = false
-					else
-						block(state)
-						if state.__break__ then
-							state.__break__ = false
-							break
-						elseif state.__return__ then
-							break
-						end
 					end
 				until expr(state) == 0
 				state:PopScope()
@@ -359,18 +359,17 @@ local CompileVisitors = {
 			return function(state) ---@param state RuntimeContext
 				state:PushScope()
 				while expr(state) ~= 0 do
-					state.prf = state.prf + cost
-					if state.__continue__ then
-						if state.prf > TickQuota then error("perf", 0) end
+					state.prf = state.prf + 1 / 20
+
+					block(state)
+
+					if state.__break__ then
+						state.__break__ = false
+						break
+					elseif state.__return__ then
+						break
+					elseif state.__continue__ then
 						state.__continue__ = false
-					else
-						block(state)
-						if state.__break__ then
-							state.__break__ = false
-							break
-						elseif state.__return__ then
-							break
-						end
 					end
 				end
 				state:PopScope()
