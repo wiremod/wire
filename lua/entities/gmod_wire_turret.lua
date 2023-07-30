@@ -5,6 +5,10 @@ ENT.WireDebugName = "Turret"
 
 if ( CLIENT ) then return end -- No more client
 
+local NumEnabled = CreateConVar("wire_turret_numbullets_enabled", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Enable or Disable the numbullets function of wire turrets")
+CreateConVar("wire_turret_tracer_enabled", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Enable or disable the tracer pe x bullet function of wire turrets")
+local MinTurretDelay = CreateConVar("wire_turret_delay_minimum", 0.01, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Set the minimum allowed value for wire turrets")
+
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -114,13 +118,11 @@ function ENT:SetSound( sound )
 end
 
 function ENT:SetDelay( delay )
-	local check = game.SinglePlayer() -- clamp delay if it's not single player
-	local limit = check and 0.01 or 0.05
-	self.delay = math.Clamp( delay, limit, 1 )
+	self.delay = math.Clamp( delay, MinTurretDelay, 1 )
 end
 
 function ENT:SetNumBullets( numbullets )
-	local check = game.SinglePlayer() -- clamp num bullets if it's not single player
+	local check = NumEnabled:GetBool()
 	local limit = math.floor( math.max( 1, numbullets ) )
 	self.numbullets = check and limit or math.Clamp( limit, 1, 10 )
 end
