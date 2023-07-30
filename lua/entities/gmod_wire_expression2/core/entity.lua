@@ -933,7 +933,7 @@ end
 hook.Add("OnEntityCreated", "E2_entityCreated", function(ent)
 	if not IsValid(ent) then return end -- Engine is precaching a model or bad addon
 
-	timer.Simple(0, function()
+	timer.Simple(0, function() -- Removing entities on the same execution they're created does bad things so add a delay to prevent malicious usage
 		E2Lib.triggerEvent("entityCreated", { ent })
 	end)
 end)
