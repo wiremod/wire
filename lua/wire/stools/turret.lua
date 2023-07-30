@@ -98,7 +98,7 @@ function TOOL.BuildCPanel( CPanel )
 		CPanel:NumSlider("#Tool_wire_turret_tracernum", "wire_turret_tracernum", 0, 15, 0)
 	end
 
-	CPanel:NumSlider("#Delay", "wire_turret_delay", GetConVar("wire_turret_delay_minimum"):GetBool(), 1.0, 2)
+	CPanel:NumSlider("#Delay", "wire_turret_delay", GetConVar("wire_turret_delay_minimum"):GetFloat(), 1.0, 2)
 
 
 
