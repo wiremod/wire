@@ -581,9 +581,9 @@ e2function string toString(array array)
 		local ty = type(val)
 
 		if ty == "Vector" then
-			buf[i] = ("vec(%.2f,%.2f,%.2f)"):format(val[1], val[2], val[3])
+			buf[i] = ("vec(%g,%g,%g)"):format(val[1], val[2], val[3])
 		elseif ty == "Angle" then
-			buf[i] = ("ang(%d,%d,%d)"):format(val[1], val[2], val[3])
+			buf[i] = ("ang(%g,%g,%g)"):format(val[1], val[2], val[3])
 		elseif ty == "string" then
 			buf[i] = ("%q"):format(val)
 		else

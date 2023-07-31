@@ -174,12 +174,12 @@ end
 
 e2function string operator+(string lhs, vector rhs)
 	self.prf = self.prf + #lhs * 0.01
-	return lhs .. ("vec(%.2f,%.2f,%.2f)"):format(rhs[1], rhs[2], rhs[3])
+	return lhs .. ("vec(%g,%g,%g)"):format(rhs[1], rhs[2], rhs[3])
 end
 
 e2function string operator+(vector lhs, string rhs)
 	self.prf = self.prf + #rhs * 0.01
-	return ("vec(%.2f,%.2f,%.2f)"):format(lhs[1], lhs[2], lhs[3]) .. rhs
+	return ("vec(%g,%g,%g)"):format(lhs[1], lhs[2], lhs[3]) .. rhs
 end
 
 --------------------------------------------------------------------------------
@@ -715,7 +715,7 @@ end
 __e2setcost( 5 )
 
 e2function string toString(vector v)
-	return ("vec(%.2f,%.2f,%.2f)"):format(v[1], v[2], v[3])
+	return ("vec(%g,%g,%g)"):format(v[1], v[2], v[3])
 end
 
 --- Gets the vector nicely formatted as a string "[X,Y,Z]"
