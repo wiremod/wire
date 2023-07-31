@@ -5,9 +5,9 @@ ENT.WireDebugName = "Turret"
 
 if ( CLIENT ) then return end -- No more client
 
-local NumEnabled = CreateConVar("wire_turret_numbullets_enabled", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Enable or Disable the numbullets function of wire turrets")
-CreateConVar("wire_turret_tracer_enabled", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Enable or disable the tracer pe x bullet function of wire turrets")
-local MinTurretDelay = CreateConVar("wire_turret_delay_minimum", 0.05, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Set the minimum allowed value for wire turrets")
+local NumEnabled = CreateConVar("wire_turret_numbullets_enabled", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Enable or Disable the numbullets function of wire turrets")
+local TracerEnabled = CreateConVar("wire_turret_tracer_enabled", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Enable or disable the tracer pe x bullet function of wire turrets")
+local MinTurretDelay = CreateConVar("wire_turret_delay_minimum", 0.05, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Set the minimum allowed value for wire turrets")
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -118,7 +118,7 @@ function ENT:SetSound( sound )
 end
 
 function ENT:SetDelay( delay )
-	self.delay = math.Clamp( delay, MinTurretDelay, 1 )
+	self.delay = math.Clamp( delay, MinTurretDelay:GetFloat(), 1 )
 end
 
 function ENT:SetNumBullets( numbullets )
@@ -128,8 +128,7 @@ function ENT:SetNumBullets( numbullets )
 end
 
 function ENT:SetTracer( tracer )
-	local tracer = string.Trim(tracer)
-	self.tracer = ValidTracers[tracer] and tracer or ""
+	self.tracer = TracerEnabled:GetBool() and ValidTracers[tracer] and string.Trim(tracer) or ""
 end
 
 function ENT:SetSpread( spread )
@@ -147,7 +146,7 @@ function ENT:SetForce( force )
 end
 
 function ENT:SetTraceNum( tracernum )
-	self.tracernum = math.floor( math.max( tracernum or 1 ) )
+	self.tracernum = TracerEnabled:GetBool() and math.floor( math.max( tracernum or 1 ) ) or 0
 end
 
 function ENT:TriggerInput( iname, value )
