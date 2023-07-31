@@ -926,7 +926,7 @@ end
 --[[******************************************************************************]]
 
 local Enabled = CreateConVar("wire_expression2_entity_ignite_enabled", 1, FCVAR_ARCHIVE, "Whether E2s can ignite people, given they have 'ignite' permissions.")
-local MaxLength = CreateConVar("wire_expression2_entity_ignite_length_max", math.huge, FCVAR_ARCHIVE, "Max length an E2 can ignite someone for in seconds")
+local MaxLength = CreateConVar("wire_expression2_entity_ignite_length_max", 60 * 60 * 100, FCVAR_ARCHIVE, "Max length an E2 can ignite someone for in seconds.", 0)
 local MaxRadius = CreateConVar("wire_expression2_entity_ignite_radius_max", 500, FCVAR_ARCHIVE, "Max radius of ignition an E2 can create")
 
 e2function void entity:ignite()
@@ -934,7 +934,7 @@ e2function void entity:ignite()
 	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
 	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
 
-	this:Ignite(math.huge)
+	this:Ignite(360)
 end
 
 e2function void entity:ignite(number length)
