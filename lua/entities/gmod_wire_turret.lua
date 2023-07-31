@@ -145,7 +145,7 @@ function ENT:SetForce( force )
 end
 
 function ENT:SetTraceNum( tracernum )
-	self.tracernum = TracerEnabled:GetBool() and math.floor( math.max( tracernum or 1 ) ) or 0
+	self.tracernum = TracerEnabled:GetBool() and math.Clamp( math.floor( tracernum ), 0, 15 ) or 0
 end
 
 function ENT:TriggerInput( iname, value )
