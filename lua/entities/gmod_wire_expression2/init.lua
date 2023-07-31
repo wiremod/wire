@@ -291,7 +291,6 @@ function ENT:Think()
 
 	self.context.prf = 0
 	self.context.time = 0
-	self.context.stackdepth = 1
 
 	if e2_timequota > 0 and self.context.timebench > e2_timequota then
 		self:Error("Expression 2 (" .. self.name .. "): time quota exceeded", "time quota exceeded")
@@ -456,7 +455,7 @@ function ENT:ResetContext()
 		prfbench = (self.context and (self.context.prfbench * resetPrfMult)) or 0,
 		time = (self.context and (self.context.time * resetPrfMult)) or 0,
 		timebench = (self.context and (self.context.timebench * resetPrfMult)) or 0,
-		stackdepth = 1,
+		stackdepth = 0,
 		includes = self.includes
 	}
 
