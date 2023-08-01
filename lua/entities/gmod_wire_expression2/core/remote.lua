@@ -22,7 +22,7 @@ end
 
 __e2setcost(200)
 e2function void broadcastRemoteEvent(table payload)
-	E2Lib.triggerEvent("remote", {
+	E2Lib.triggerEventOmit("remote", {
 		self.entity,
 		self.player,
 		payload
