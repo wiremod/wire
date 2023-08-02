@@ -258,10 +258,12 @@ function PANEL:Init()
 			end)
 	end)
 	self:AddRightClick(self.filemenu, nil, "Delete", function()
-		Derma_Query("Delete this file?", "Delete",
+		local filePath = self.File:GetFileName()
+
+		Derma_Query("Delete this file?\n\n" .. fileName(filePath), "Delete",
 			"Delete", function()
-				if (file.Exists(self.File:GetFileName(), "DATA")) then
-					file.Delete(self.File:GetFileName())
+				if (file.Exists(filePath, "DATA")) then
+					file.Delete(filePath)
 					self:UpdateFolders()
 				end
 			end,

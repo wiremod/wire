@@ -151,6 +151,11 @@ function ENT:Execute()
 	self:PCallHook('preexecute')
 
 	self.context:PushScope()
+	self.context.stackdepth = self.context.stackdepth + 1
+
+	if self.context.stackdepth >= 150 then
+		self:Error("Expression 2 (" .. self.name .. "): stack quota exceeded", "stack quota exceeded")
+	end
 
 	local bench = SysTime()
 
@@ -173,6 +178,7 @@ function ENT:Execute()
 
 	self.context.time = self.context.time + (SysTime() - bench)
 
+	self.context.stackdepth = self.context.stackdepth - 1
 	self.context:PopScope()
 
 	local forceTriggerOutputs = self.first or self.duped
@@ -221,26 +227,32 @@ function ENT:ExecuteEvent(evt, args)
 
 	for name, handler in pairs(handlers) do
 		self.context:PushScope()
+		self.context.stackdepth = self.context.stackdepth + 1
+
+		if self.context.stackdepth >= 150 then
+			self:Error("Expression 2 (" .. self.name .. "): stack quota exceeded", "stack quota exceeded")
+		end
 
 		local bench = SysTime()
 		local ok, msg = pcall(handler, self.context, args)
 
-	if not ok then
-		local _catchable, msg, trace = E2Lib.unpackException(msg)
+		if not ok then
+			local _catchable, msg, trace = E2Lib.unpackException(msg)
 
-		if msg == "exit" then
-			self:UpdatePerf()
-		elseif msg == "perf" then
-			self:UpdatePerf()
-			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
-		elseif trace then
-			self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
-		else
-			self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
+			if msg == "exit" then
+				self:UpdatePerf()
+			elseif msg == "perf" then
+				self:UpdatePerf()
+				self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
+			elseif trace then
+				self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
+			else
+				self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
+			end
 		end
-	end
 		self.context.time = self.context.time + (SysTime() - bench)
 
+		self.context.stackdepth = self.context.stackdepth - 1
 		self.context:PopScope()
 	end
 
@@ -267,10 +279,10 @@ end
 function ENT:Think()
 	BaseClass.Think(self)
 	self:NextThink(CurTime() + 0.030303)
-	
+
 	if not self.context then return true end
 	if self.error then return true end
-	
+
 	self:UpdatePerf()
 
 	if self.context.prfcount < 0 then self.context.prfcount = 0 end
@@ -443,6 +455,7 @@ function ENT:ResetContext()
 		prfbench = (self.context and (self.context.prfbench * resetPrfMult)) or 0,
 		time = (self.context and (self.context.time * resetPrfMult)) or 0,
 		timebench = (self.context and (self.context.timebench * resetPrfMult)) or 0,
+		stackdepth = 0,
 		includes = self.includes
 	}
 

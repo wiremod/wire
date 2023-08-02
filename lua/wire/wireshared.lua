@@ -1069,6 +1069,7 @@ do
 		"impulse 100",
 		"attack",
 		"jump",
+		"noclip",
 		"duck",
 		"forward",
 		"back",

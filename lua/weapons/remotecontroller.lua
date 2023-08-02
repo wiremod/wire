@@ -78,6 +78,7 @@ function SWEP:On()
 	self.InitialAngle = ply:EyeAngles()
 	ply:SetMoveType(MOVETYPE_NONE)
 	ply:DrawViewModel(false)
+	ply.using_wire_remote_control = true
 
 	if IsValid(self.Linked) and self.Linked.PlayerEntered then
 		self.Linked:PlayerEntered(ply, self)
@@ -94,6 +95,7 @@ function SWEP:Off()
 	self.Active = nil
 	self.OldMoveType = nil
 	ply:DrawViewModel(true)
+	ply.using_wire_remote_control = false
 
 	if IsValid(self.Linked) and self.Linked:GetPly() == ply then
 		self.Linked:PlayerExited()
@@ -111,3 +113,8 @@ function SWEP:Think()
 		end
 	end
 end
+
+hook.Add("PlayerNoClip", "wire_remotecontroller_antinoclip", function(ply, cmd)
+	if ply.using_wire_remote_control then return false end
+end)
+
