@@ -8,29 +8,29 @@ EGP.Objects.Names = {}
 EGP.Objects.Names_Inverted = {}
 
 -- This object is not used. It's only a base
-EGP.Objects.Base = {}
-EGP.Objects.Base.ID = 0
-EGP.Objects.Base.x = 0
-EGP.Objects.Base.y = 0
-EGP.Objects.Base.w = 0
-EGP.Objects.Base.h = 0
-EGP.Objects.Base.r = 255
-EGP.Objects.Base.g = 255
-EGP.Objects.Base.b = 255
-EGP.Objects.Base.a = 255
-EGP.Objects.Base.filtering = TEXFILTER.ANISOTROPIC
-EGP.Objects.Base.material = ""
-if CLIENT then EGP.Objects.Base.material = false end
-EGP.Objects.Base.parent = 0
-EGP.Objects.Base.EGP = NULL -- EGP entity parent
-EGP.Objects.Base.Transmit = function( self )
+local baseObj = {}
+baseObj.ID = 0
+baseObj.x = 0
+baseObj.y = 0
+baseObj.w = 0
+baseObj.h = 0
+baseObj.r = 255
+baseObj.g = 255
+baseObj.b = 255
+baseObj.a = 255
+baseObj.filtering = TEXFILTER.ANISOTROPIC
+baseObj.material = ""
+if CLIENT then baseObj.material = false end
+baseObj.parent = 0
+baseObj.EGP = NULL -- EGP entity parent
+function baseObj:Transmit()
 	EGP:SendPosSize( self )
 	EGP:SendColor( self )
 	EGP:SendMaterial( self )
 	net.WriteUInt(math.Clamp(self.filtering,0,3), 2)
 	net.WriteInt( self.parent, 16 )
 end
-EGP.Objects.Base.Receive = function( self )
+function baseObj:Receive()
 	local tbl = {}
 	EGP:ReceivePosSize( tbl )
 	EGP:ReceiveColor( tbl, self )
@@ -39,13 +39,13 @@ EGP.Objects.Base.Receive = function( self )
 	tbl.parent = net.ReadInt(16)
 	return tbl
 end
-EGP.Objects.Base.DataStreamInfo = function( self )
+function baseObj:DataStreamInfo()
 	return { x = self.x, y = self.y, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, filtering = self.filtering, parent = self.parent }
 end
-function EGP.Objects.Base:Contains(x, y)
+function baseObj:Contains(x, y)
 	return false
 end
-function EGP.Objects.Base:EditObject(args)
+function baseObj:EditObject(args)
 	local ret = false
 	for k, v in pairs(args) do
 		if self[k] ~= nil and self[k] ~= v then
@@ -55,14 +55,14 @@ function EGP.Objects.Base:EditObject(args)
 	end
 	return ret
 end
-EGP.Objects.Base.Initialize = EGP.Objects.Base.EditObject
-function EGP.Objects.Base:SetPos(x, y)
+baseObj.Initialize = baseObj.EditObject
+function baseObj:SetPos(x, y)
 	local ret = false
 	if self.x ~= x then self.x, ret = x, true end
 	if self.y ~= y then self.y, ret = y, true end
 	return ret
 end
-function EGP.Objects.Base:Set(member, value)
+function baseObj:Set(member, value)
 	if self[member] and self[member] ~= value then
 		self[member] = value
 		return true
@@ -70,6 +70,9 @@ function EGP.Objects.Base:Set(member, value)
 		return false
 	end
 end
+local M_EGPObject = {__tostring = function(self) return "[EGPObject] ".. self.Name or nil end}
+setmetatable(baseObj, M_EGPObject)
+EGP.Objects.Base = baseObj
 
 ----------------------------
 -- Get Object
@@ -93,7 +96,7 @@ function EGP:NewObject( Name )
 	self.Objects[Name] = {}
 	-- Set info
 	self.Objects[Name].Name = Name
-	table.Inherit( self.Objects[Name], self.Objects.Base )
+	table.Inherit(self.Objects[Name], self.Objects.Base)
 
 	-- Create lookup table
 	local ID = table.Count(self.Objects)
@@ -103,7 +106,7 @@ function EGP:NewObject( Name )
 	-- Inverted lookup table
 	self.Objects.Names_Inverted[ID] = Name
 
-	return self.Objects[Name]
+	return setmetatable(self.Objects[Name], M_EGPObject)
 end
 
 local folder = "entities/gmod_wire_egp/lib/objects/"
