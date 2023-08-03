@@ -23,7 +23,7 @@ local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmgin
 						detector.updated = true
 						detector:NextThink(CurTime()) -- Update link info once per tick per detector at most
 					end
-					if detector.key_ents[ent] then
+					if detector.key_ents and detector.key_ents[ent] then
 						detector:UpdateDamage( dmginfo, ent )
 					end
 				end
