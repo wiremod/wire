@@ -930,6 +930,18 @@ end
 
 /******************************************************************************/
 
+hook.Add("OnEntityCreated", "E2_entityCreated", function(ent)
+	if not IsValid(ent) then return end -- Engine is precaching a model or bad addon
+
+	timer.Simple(0, function() -- Removing entities on the same execution they're created does bad things so add a delay to prevent malicious usage
+		E2Lib.triggerEvent("entityCreated", { ent })
+	end)
+end)
+
+E2Lib.registerEvent("entityCreated", {
+	{ "Entity", "e" }
+})
+
 local function upperfirst( word )
 	return word:Left(1):upper() .. word:Right(-2):lower()
 end
