@@ -7,7 +7,7 @@ if ( CLIENT ) then return end -- No more client
 
 local NumEnabled = CreateConVar("wire_turret_numbullets_enabled", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Enable or Disable the numbullets function of wire turrets")
 local TracerEnabled = CreateConVar("wire_turret_tracer_enabled", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Enable or disable the tracer per x bullet function of wire turrets")
-local MinTurretDelay = CreateConVar("wire_turret_delay_minimum", 0.05, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Set the minimum allowed value for wire turrets")
+local MinTurretDelay = CreateConVar("wire_turret_delay_minimum", 0.01, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Set the minimum allowed value for wire turrets")
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
