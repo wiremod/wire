@@ -1286,6 +1286,10 @@ E2Helper.Descriptions["gResetGroup()"] = "Resets the group back to \"default\""
 E2Helper.Descriptions["gShare(n)"] = "Sets wether or not you want to share the variables. (1/0) Remember that there are two tables for each group: one which is shared and one which is not; values do not transition between the two"
 E2Helper.Descriptions["toTable(xgt:)"] = "Converts the GTable into a table"
 
+-- remote
+E2Helper.Descriptions["sendRemoteEvent(e:t)"] = "Sends a payload to an E2 chip via the 'remote' event. Note if you do this, they will have access to modify your table in any way they please."
+E2Helper.Descriptions["broadcastRemoteEvent(t)"] = "Sends a payload to all E2 chips via the 'remote' event. Note if you do this, they will have access to modify your table in any way they please."
+
 -- tables
 E2Helper.Descriptions["table"] = "Returns a table with the values specified in the array-part"
 E2Helper.Descriptions["clear(t:)"] = "Clears the table"
