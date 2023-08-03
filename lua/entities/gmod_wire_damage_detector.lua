@@ -35,8 +35,7 @@ local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmgin
 end
 hook.Add("EntityTakeDamage", "CheckWireDamageDetectors", function( ent, dmginfo )
 	if not next(Wire_Damage_Detectors) then return end
-	local r, e = xpcall( CheckWireDamageDetectors, debug.traceback, ent, dmginfo:GetInflictor(), dmginfo:GetAttacker(), dmginfo:GetDamage(), dmginfo )
-	if not r then print( "Wire damage detector error: " .. e ) end
+	CheckWireDamageDetectors( ent, dmginfo:GetInflictor(), dmginfo:GetAttacker(), dmginfo:GetDamage(), dmginfo )
 end)
 
 
