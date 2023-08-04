@@ -2,7 +2,8 @@
 --	File for EGP Object handling in E2.
 --
 
-local NULL_EGPOBJECT = setmetatable({}, {__tostring = function(self) return "[EGPObject] NULL" end})
+local M_NULL_EGPOBJECT = { __tostring = function(self) return "[EGPObject] NULL" end }
+local NULL_EGPOBJECT = setmetatable({}, M_NULL_EGPOBJECT)
 local M_EGPObject = getmetatable(EGP.Objects.Base)
 
 local function Update(self, this)
@@ -10,7 +11,7 @@ local function Update(self, this)
 end
 
 local function isValid(this)
-	if this and this ~= NULL_EGPOBJECT then return true else return false end
+	if this and getmetatable(this) ~= M_NULL_EGPOBJECT then return true else return false end
 end
 
 ---- Type defintion
@@ -332,8 +333,9 @@ e2function void wirelink:egpRemove(egpobject obj)
 	if not EGP:IsAllowed(self, this) then return end
 	if isValid(obj) then
 		EGP:DoAction(this, self, "RemoveObject", obj.index)
+		table.Empty(obj)
+		setmetatable(obj, M_NULL_EGPOBJECT)
 		Update(self, this)
-		obj = NULL_EGPOBJECT
 	end
 end
 
@@ -343,8 +345,9 @@ e2function void egpobject:egpRemove()
 	if not EGP:IsAllowed(self, egp) then return end
 	
 	EGP:DoAction(egp, self, "RemoveObject", this.index)
+	table.Empty(this)
+	setmetatable(this, M_NULL_EGPOBJECT)
 	Update(self, egp)
-	this = NULL_EGPOBJECT
 end
 
 --------------------------------------------------------
@@ -483,13 +486,13 @@ __e2setcost(5)
 e2function egpobject wirelink:egpobject(number index)
 	if not EGP:IsAllowed(self, this) then return end
 	local _, _, obj = EGP:HasObject(this, index)
-	return obj
+	return obj or NULL_EGPOBJECT
 end
 
 __e2setcost(2)
 
 e2function string egpobject:egpObjectType()
-	return isValid(this) and EGP.Objects.Names_Inverted[this.ID] or ""
+	return isValid(this) and EGP.Objects.Names_Inverted[this.ID] or "Unknown"
 end
 
 __e2setcost(1)
