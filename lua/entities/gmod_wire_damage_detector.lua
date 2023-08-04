@@ -35,8 +35,7 @@ local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmgin
 end
 hook.Add("EntityTakeDamage", "CheckWireDamageDetectors", function( ent, dmginfo )
 	if not next(Wire_Damage_Detectors) then return end
-	local r, e = xpcall( CheckWireDamageDetectors, debug.traceback, ent, dmginfo:GetInflictor(), dmginfo:GetAttacker(), dmginfo:GetDamage(), dmginfo )
-	if not r then print( "Wire damage detector error: " .. e ) end
+	CheckWireDamageDetectors( ent, dmginfo:GetInflictor(), dmginfo:GetAttacker(), dmginfo:GetDamage(), dmginfo )
 end)
 
 
@@ -46,10 +45,10 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 
 	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Clk", "Damage", "Attacker", "Victim", "Victims", "Position", "Force", "Type" } , { "NORMAL", "NORMAL", "ENTITY", "ENTITY", "TABLE", "VECTOR", "VECTOR", "STRING" } )
-	self.Inputs = WireLib.CreateInputs(self, { 
-		"On", 
+	self.Inputs = WireLib.CreateInputs(self, {
+		"On",
 		"Entity (This entity will be added whenever this input changes to a valid entity) [ENTITY]",
-		"Entities (These entities will be added whenever this input changes.\nCan be changed at most once per second.) [ARRAY]", 
+		"Entities (These entities will be added whenever this input changes.\nCan be changed at most once per second.) [ARRAY]",
 		"Reset"
 	})
 
@@ -65,6 +64,7 @@ function ENT:Initialize()
 	self:LinkEnt( self )
 
 	self.count = 0
+	self.key_ents = {}
 
 	-- Store output damage info
 	self.victims = table.Copy(DEFAULT)
@@ -106,7 +106,7 @@ function ENT:LinkEnt( ent, dontupdateoutput )
 	if not ent or not ent:IsValid() then return end
 
 	if self.linked_entities_lookup[ent] then return false end
-	
+
 	self.linked_entities_lookup[ent] = true
 	self.linked_entities[#self.linked_entities+1] = ent
 	ent:CallOnRemove( "DDetector.Unlink", function( ent )
@@ -266,8 +266,8 @@ function ENT:UpdateDamage( dmginfo, ent ) -- Update damage table
 
 		-- Damage type (handle almost all types)
 		self.dmgtype = damageTypes[dmginfo:GetDamageType()] or "Other"
-		
-		
+
+
 
 		self.victims = table.Copy(DEFAULT)
 		self.firsthit_dmginfo[5] = self.dmgtype

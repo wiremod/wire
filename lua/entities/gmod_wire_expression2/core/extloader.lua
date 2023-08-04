@@ -160,6 +160,7 @@ e2_include("strfunc.lua")
 e2_include("steamidconv.lua")
 e2_include("easings.lua")
 e2_include("damage.lua")
+e2_include("remote.lua")
 e2_include("egpobjects.lua")
 
 -- Load serverside files here, they need additional parsing
