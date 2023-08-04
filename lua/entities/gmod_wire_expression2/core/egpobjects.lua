@@ -2,7 +2,7 @@
 --	File for EGP Object handling in E2.
 --
 
-local NULL_EGPOBJECT = setmetatable({}, {__tostring = function(self) return "[EGPObject] NULL" end, __not = function(self) return false end})
+local NULL_EGPOBJECT = setmetatable({}, {__tostring = function(self) return "[EGPObject] NULL" end})
 local M_EGPObject = getmetatable(EGP.Objects.Base)
 
 local function Update(self, this)
@@ -330,9 +330,10 @@ end
 --------------------------------------------------------
 e2function void wirelink:egpRemove(egpobject obj)
 	if not EGP:IsAllowed(self, this) then return end
-	if obj then
+	if isValid(obj) then
 		EGP:DoAction(this, self, "RemoveObject", obj.index)
 		Update(self, this)
+		obj = NULL_EGPOBJECT
 	end
 end
 
@@ -343,6 +344,7 @@ e2function void egpobject:egpRemove()
 	
 	EGP:DoAction(egp, self, "RemoveObject", this.index)
 	Update(self, egp)
+	this = NULL_EGPOBJECT
 end
 
 --------------------------------------------------------

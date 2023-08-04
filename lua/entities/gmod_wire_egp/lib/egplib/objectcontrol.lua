@@ -70,7 +70,7 @@ function baseObj:Set(member, value)
 		return false
 	end
 end
-local M_EGPObject = {__tostring = function(self) return "[EGPObject] ".. self.Name or nil end}
+local M_EGPObject = {__tostring = function(self) return "[EGPObject] ".. self.Name end}
 setmetatable(baseObj, M_EGPObject)
 EGP.Objects.Base = baseObj
 
