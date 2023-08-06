@@ -1092,7 +1092,7 @@ function RuntimeContext.builder()
 		Scope = global,
 
 		prf = 0, prfcount = 0, prfbench = 0,
-		time = 0, timebench = 0,
+		time = 0, timebench = 0, stackdepth = 0,
 
 		entity = game.GetWorld(), player = game.GetWorld(), uid = "World",
 
