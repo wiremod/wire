@@ -116,6 +116,12 @@ function ENT:Execute()
 
 	self:PCallHook('preexecute')
 
+	self.context.stackdepth = self.context.stackdepth + 1
+
+	if self.context.stackdepth >= 150 then
+		self:Error("Expression 2 (" .. self.name .. "): stack quota exceeded", "stack quota exceeded")
+	end
+
 	local bench = SysTime()
 
 	local ok, msg = pcall(self.script, self.context)
@@ -138,6 +144,7 @@ function ENT:Execute()
 	end
 
 	self.context.time = self.context.time + (SysTime() - bench)
+	self.context.stackdepth = self.context.stackdepth - 1
 
 	local forceTriggerOutputs = self.first or self.duped
 	self.first = false -- if hooks call execute
@@ -185,6 +192,12 @@ function ENT:ExecuteEvent(evt, args)
 	self:PCallHook("preexecute")
 
 	for name, handler in pairs(handlers) do
+		self.context.stackdepth = self.context.stackdepth + 1
+
+		if self.context.stackdepth >= 150 then
+			self:Error("Expression 2 (" .. self.name .. "): stack quota exceeded", "stack quota exceeded")
+		end
+
 		local bench = SysTime()
 		local ok, msg = pcall(handler, self.context, args)
 
@@ -206,6 +219,7 @@ function ENT:ExecuteEvent(evt, args)
 		end
 
 		self.context.time = self.context.time + (SysTime() - bench)
+		self.context.stackdepth = self.context.stackdepth - 1
 	end
 
 
@@ -232,10 +246,10 @@ end
 function ENT:Think()
 	BaseClass.Think(self)
 	self:NextThink(CurTime() + 0.030303)
-	
+
 	if not self.context then return true end
 	if self.error then return true end
-	
+
 	self:UpdatePerf()
 
 	if self.context.prfcount < 0 then self.context.prfcount = 0 end

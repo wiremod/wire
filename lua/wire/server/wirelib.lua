@@ -19,7 +19,6 @@ local IsValid = IsValid
 local tostring = tostring
 local Vector = Vector
 local Color = Color
-local Material = Material
 
 local HasPorts = WireLib.HasPorts -- Very important for checks!
 
@@ -376,7 +375,7 @@ function WireLib.Restored(ent, force_outputs)
 			port.Color = port.Color or Color(255, 255, 255, 255)
 			port.Width = port.Width or 2
 			port.StartPos = port.StartPos or Vector(0, 0, 0)
-			if (port.Src) and (not port.Path) then
+			if port.Src and (not port.Path) then
 				port.Path = { { Entity = port.Src, Pos = Vector(0, 0, 0) } }
 			end
 
@@ -528,7 +527,7 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 	if (not ent.Outputs) then return end
 
 	local output = ent.Outputs[oname]
-	if (output) and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]])) then
+	if output and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]])) then
 		local timeOfFrame = CurTime()
 		if timeOfFrame ~= output.TriggerTime then
 			-- Reset the TriggerLimit every frame
@@ -757,7 +756,7 @@ function WireLib.Weld(ent, traceEntity, tracePhysicsBone, DOR, collision, AllowW
 	if (not ent or not traceEntity or traceEntity:IsNPC() or traceEntity:IsPlayer()) then return end
 	local phys = ent:GetPhysicsObject()
 	if ( traceEntity:IsValid() ) or ( traceEntity:IsWorld() and AllowWorldWeld ) then
-		local const = constraint.Weld( ent, traceEntity, 0, tracePhysicsBone, 0, (not collision), DOR )
+		local const = constraint.Weld( ent, traceEntity, 0, tracePhysicsBone, 0, not collision, DOR )
 		-- Don't disable collision if it's not attached to anything
 		if (not collision) then
 			if phys:IsValid() then phys:EnableCollisions( false ) end
@@ -1214,6 +1213,45 @@ else
 		local pos = entity:GetPos()
 		tr.Entity, tr.HitPos, tr.StartPos = entity, pos, pos
 		return hook.Run("CanTool", player, tr, toolname)
+	end
+end
+
+if CPPI and FindMetaTable("Entity").CPPICanDamage then
+	--- Returns if given player can damage the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanDamage(player, target) ---@return boolean
+		return target:CPPICanDamage(player)
+	end
+else
+	--- Returns if given player can damage the given entity.
+	--- Uses PlayerShouldTakeDamage for players, CanTool for entities.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanDamage(player, target) ---@return boolean
+		if target:IsPlayer() then
+			return hook.Run("PlayerShouldTakeDamage", target, player) ~= false
+		else
+			return WireLib.CanTool(player, target, "")
+		end
+	end
+end
+
+if CPPI and FindMetaTable("Entity").CPPICanProperty then
+	--- Returns if the player can apply the given property to the target
+	---@param player Player
+	---@param target Entity
+	---@param property string
+	function WireLib.CanProperty(player, target, property) ---@return boolean
+		return target:CPPICanProperty(player, property)
+	end
+else
+	--- Returns if the player can apply the given property to the target
+	---@param player Player
+	---@param target Entity
+	---@param property string
+	function WireLib.CanProperty(player, target, property) ---@return boolean
+		return hook.Run("CanProperty", player, property, target) ~= false
 	end
 end
 

@@ -9,10 +9,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
-      - uses: wiremod/gmod-upload@9c599e4171613de296d4df182478518fcccdb03e
+      - uses: wiremod/gmod-upload@master
         with:
           id: 160250458
           changelog: "Deployment via Github to latest changes"
         env:
-          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
-          STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+          STEAM_USERNAME: ${{ secrets.WIRETEAM_WORKSHOP_USERNAME }}
+          STEAM_PASSWORD: ${{ secrets.WIRETEAM_WORKSHOP_PASSWORD }}

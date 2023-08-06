@@ -928,6 +928,15 @@ E2Lib.registerEvent("playerUse", {
 	{ "Entity", "e" }
 })
 
+hook.Add("PlayerChangedTeam", "Exp2PlayerChangedTeam", function(ply, oldTeam, newTeam)
+	E2Lib.triggerEvent("playerChangedTeam", { ply, oldTeam, newTeam })
+end)
+
+E2Lib.registerEvent("playerChangedTeam", {
+	{ "Player", "e" },
+	{ "OldTeam", "n" },
+	{ "NewTeam", "n" }
+})
 
 --******************************************--
 

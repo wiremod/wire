@@ -86,19 +86,11 @@ function TOOL.BuildCPanel( CPanel )
 	CPanel:AddControl("ComboBox", TracerType )
 
 	-- Various controls that you should play with!
-	if game.SinglePlayer() then
-		CPanel:NumSlider("#Tool_wire_turret_numbullets", "wire_turret_numbullets", 1, 10, 0)
-	end
+	CPanel:NumSlider("#Tool_wire_turret_numbullets", "wire_turret_numbullets", 1, 10, 0)
 	CPanel:NumSlider("#Damage", "wire_turret_damage", 0, 100, 0)
 	CPanel:NumSlider("#Tool_wire_turret_spread", "wire_turret_spread", 0, 1.0, 2)
 	CPanel:NumSlider("#Tool_wire_turret_force", "wire_turret_force", 0, 500, 1)
-
-	-- The delay between shots.
-	if game.SinglePlayer() then
-		CPanel:NumSlider("#Delay", "wire_turret_delay", 0.01, 1.0, 2)
-		CPanel:NumSlider("#Tool_wire_turret_tracernum", "wire_turret_tracernum", 0, 15, 0)
-	else
-		CPanel:NumSlider("#Delay", "wire_turret_delay", 0.05, 1.0, 2)
-	end
+	CPanel:NumSlider("#Tool_wire_turret_tracernum", "wire_turret_tracernum", 0, 15, 0)
+	CPanel:NumSlider("#Delay", "wire_turret_delay", 0, 1.0, 2)
 
 end

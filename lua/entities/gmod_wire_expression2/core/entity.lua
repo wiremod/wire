@@ -1,7 +1,3 @@
-/******************************************************************************\
-  Entity support
-\******************************************************************************/
-
 registerType("entity", "e", nil,
 	nil,
 	function(self,output) return output or NULL end,
@@ -15,7 +11,7 @@ registerType("entity", "e", nil,
 	end
 )
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 -- import some e2lib functions
 local validPhysics = E2Lib.validPhysics
@@ -44,26 +40,24 @@ registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 end)
 
 -- faster access to some math library functions
-local abs = math.abs
 local atan2 = math.atan2
-local sqrt = math.sqrt
 local asin = math.asin
 local Clamp = math.Clamp
 
 local rad2deg = 180 / math.pi
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 local function checkOwner(self)
 	return IsValid(self.player)
 end
 
-/******************************************************************************/
-// Functions using operators
+--[[******************************************************************************]]
+-- Functions using operators
 
 __e2setcost(5) -- temporary
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 e2function number operator_is(entity this)
 	return IsValid(this) and 1 or 0
@@ -73,7 +67,7 @@ e2function number operator==(entity lhs, entity rhs)
 	return (lhs == rhs) and 1 or 0
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 e2function entity entity(id)
 	local ent = ents.GetByIndex(id)
@@ -95,8 +89,8 @@ e2function number entity:creationTime()
 	return this:GetCreationTime()
 end
 
-/******************************************************************************/
-// Functions getting string
+--[[******************************************************************************]]
+-- Functions getting string
 
 e2function entity noentity()
 	return NULL
@@ -144,8 +138,9 @@ end
 
 __e2setcost(5) -- temporary
 
-/******************************************************************************/
-// Functions getting vector
+--[[******************************************************************************]]
+-- Functions getting vector
+
 e2function vector entity:pos()
 	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:GetPos()
@@ -203,8 +198,8 @@ e2function vector sunDirection()
 	return sun:GetKeyValues().sun_dir
 end
 
-/******************************************************************************/
-// Functions  using vector getting vector
+--[[******************************************************************************]]
+-- Functions  using vector getting vector
 
 __e2setcost(15)
 
@@ -240,8 +235,8 @@ e2function angle entity:toLocal(angle worldAngle)
 	return this:WorldToLocalAngles(worldAngle)
 end
 
-/******************************************************************************/
-// Functions getting number
+--[[******************************************************************************]]
+-- Functions getting number
 
 __e2setcost(5)
 
@@ -260,7 +255,7 @@ e2function number entity:radius()
 	return this:BoundingRadius()
 end
 
-// original bearing & elevation thanks to Gwahir
+-- original bearing & elevation thanks to Gwahir
 --- Returns the bearing (yaw) from <this> to <pos>
 
 __e2setcost(15)
@@ -398,8 +393,8 @@ e2function table entity:frictionSnapshot()
 	return ret
 end
 
-/******************************************************************************/
-// Functions getting boolean/number
+--[[******************************************************************************]]
+-- Functions getting boolean/number
 e2function number entity:isPlayer()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if this:IsPlayer() then return 1 else return 0 end
@@ -439,8 +434,8 @@ e2function number entity:isValidPhysics()
 	if E2Lib.validPhysics(this) then return 1 else return 0 end
 end
 
-/******************************************************************************/
-// Functions getting angles
+--[[******************************************************************************]]
+-- Functions getting angles
 
 e2function angle entity:angles()
 	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
@@ -448,7 +443,7 @@ e2function angle entity:angles()
 	return Angle(ang.p, ang.y, ang.r)
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 e2function string entity:getMaterial()
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
@@ -526,7 +521,7 @@ e2function number entity:getBodygroups(bgrp_id)
 	return this:GetBodygroupCount(bgrp_id)
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 e2function number entity:isPlayerHolding()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
@@ -549,7 +544,7 @@ e2function number entity:isFrozen()
 	if phys:IsMoveable() then return 0 else return 1 end
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(30) -- temporary
 
@@ -632,7 +627,7 @@ e2function vector entity:inertia()
 end
 
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(10) -- temporary
 
@@ -670,7 +665,7 @@ e2function void entity:podStripWeapons()
 	end
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(10)
 
@@ -701,7 +696,7 @@ e2function vector entity:boxMin()
 end
 
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 -- Returns the entity's (min) axis-aligned bounding box
 e2function vector entity:aabbMin()
@@ -727,7 +722,7 @@ e2function vector entity:aabbSize()
 end
 
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 -- Returns the rotated entity's min world-axis-aligned bounding box corner
 e2function vector entity:aabbWorldMin()
@@ -751,7 +746,7 @@ e2function vector entity:aabbWorldSize()
 	ret2 = ret2 or Vector(0,0,0)
 	return ret2 - ret
 end
-/******************************************************************************/
+--[[******************************************************************************]]
 
 hook.Add("PlayerLeaveVehicle","Exp2RunOnLeaveVehicle",function(ply, vehicle)
 	E2Lib.triggerEvent("playerLeftVehicle", { ply, vehicle } )
@@ -790,7 +785,7 @@ E2Lib.registerEvent("playerEnteredVehicle", {
 	{ "Vehicle", "e" },
 })
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 local SetTrails = duplicator.EntityModifiers.trail
 
@@ -850,7 +845,7 @@ e2function void entity:setTrails(startSize, endSize, length, string material, ve
 	SetTrails(self.player, this, Data)
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost( 15 )
 
@@ -907,7 +902,7 @@ e2function array entity:attachments()
 	return tmp
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(15)
 
@@ -916,7 +911,54 @@ e2function vector entity:nearestPoint( vector point )
 	return this:NearestPoint(point)
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
+
+local Enabled = CreateConVar("wire_expression2_entity_ignite_enabled", 1, FCVAR_ARCHIVE, "Whether E2s can ignite people, given they have 'ignite' permissions.")
+local MaxLength = CreateConVar("wire_expression2_entity_ignite_length_max", 60 * 60 * 100, FCVAR_ARCHIVE, "Max length an E2 can ignite someone for in seconds.", 0)
+local MaxRadius = CreateConVar("wire_expression2_entity_ignite_radius_max", 500, FCVAR_ARCHIVE, "Max radius of ignition an E2 can create")
+
+e2function void entity:ignite()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
+	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+
+	this:Ignite(360)
+end
+
+e2function void entity:ignite(number length)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
+	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+
+	this:Ignite( math.min(length, MaxLength:GetFloat()) )
+end
+
+e2function void entity:ignite(number length, number radius)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
+	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+
+	this:Ignite( math.min(length, MaxLength:GetFloat()), math.Clamp(radius, 0, MaxRadius:GetFloat()) )
+end
+
+e2function void entity:extinguish()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not WireLib.CanProperty(self.player, this, "extinguish") then return self:throw("You cannot extinguish this entity!", nil) end
+
+	this:Extinguish()
+end
+
+hook.Add("OnEntityCreated", "E2_entityCreated", function(ent)
+	if not IsValid(ent) then return end -- Engine is precaching a model or bad addon
+
+	timer.Simple(0, function() -- Removing entities on the same execution they're created does bad things so add a delay to prevent malicious usage
+		E2Lib.triggerEvent("entityCreated", { ent })
+	end)
+end)
+
+E2Lib.registerEvent("entityCreated", {
+	{ "Entity", "e" }
+})
 
 local function upperfirst( word )
 	return word:Left(1):upper() .. word:Right(-2):lower()

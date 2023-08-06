@@ -171,7 +171,7 @@ e2function void effect:play(string name)
 	if effect_blacklist[name] then return self:throw("This effect is blacklisted!", nil) end
 	if hook.Run( "Expression2_CanEffect", name:lower(), self ) == false then return self:throw("A hook prevented this function from running", nil) end
 
-	util.Effect(name,this)
+	util.Effect(name, this, true, true)
 end
 
 e2function number effectCanPlay()
