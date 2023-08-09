@@ -28,7 +28,7 @@ registerType("vector", "v", Vector(0, 0, 0),
 	function(self, output) return Vector(output) end,
 	function(retval)
 		if isvector(retval) then return end
-		error("Return value is not a Vector, but a "..type(retval).."!",0)
+		error("Return value is not a Vector, but a " .. type(retval) .. "!", 0)
 	end,
 	function(v)
 		return not isvector(v)
@@ -78,8 +78,8 @@ registerOperator("ass", "v", "v", function(self, args)
 
 	local Scope = self.Scopes[scope]
 	local lookup = Scope.lookup
-	if !lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
+	if not lookup then lookup = {} Scope.lookup = lookup end
+	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = { [lhs] = true } end
 
 	Scope[lhs] = rhs
 	Scope.vclk[lhs] = true
@@ -190,7 +190,7 @@ __e2setcost(10) -- temporary
 
 --- Returns a uniformly distributed, random, normalized direction vector.
 e2function vector randvec()
-	local s,a, x,y
+	local s, a, x, y
 
 	--[[
 	  This is a variant of the algorithm for computing a random point
@@ -591,10 +591,9 @@ local cache_concatenated_parts = setmetatable({ [0] = "empty" }, cachemeta)
 
 local function generateContents( n )
 	local parts_array, lookup_table = {}, {}
-	local ret = {}
 
 	for i = 0,30 do
-		if bit.band(n, (2^i)) ~= 0 then
+		if bit.band(n, 2 ^ i) ~= 0 then
 			local name = contents[2^i]
 			lookup_table[name] = true
 			parts_array[#parts_array+1] = name
@@ -649,7 +648,7 @@ end
 
 --- Converts a local position/angle to a world position/angle and returns the angle
 e2function angle toWorldAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local pos, ang = LocalToWorld(localpos, localang, worldpos, worldang)
+	local _, ang = LocalToWorld(localpos, localang, worldpos, worldang)
 	return ang
 end
 
@@ -665,7 +664,7 @@ end
 
 --- Converts a world position/angle to a local position/angle and returns the angle
 e2function angle toLocalAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local vec, ang = WorldToLocal(localpos,localang,worldpos,worldang)
+	local _, ang = WorldToLocal(localpos, localang, worldpos, worldang)
 	return ang
 end
 

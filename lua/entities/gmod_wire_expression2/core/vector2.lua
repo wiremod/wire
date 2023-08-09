@@ -258,12 +258,12 @@ end)
 
 __e2setcost(2)
 
-// Convert the magnitude of the vector to radians
+-- Convert the magnitude of the vector to radians
 e2function vector2 toRad(vector2 xv2)
 	return {xv2[1] * pi / 180, xv2[2] * pi / 180}
 end
 
-// Convert the magnitude of the vector to degrees
+-- Convert the magnitude of the vector to degrees
 e2function vector2 toDeg(vector2 xv2)
 	return {xv2[1] * 180 / pi, xv2[2] * 180 / pi}
 end
@@ -304,8 +304,8 @@ registerFunction("y", "xv2:", "n", function(self, args)
 	return rv1[2]
 end)
 
-// SET methods that returns vectors - you shouldn't need these for 2D vectors, but I've added them anyway for consistency
-// NOTE: does not change the original vector!
+-- SET methods that returns vectors - you shouldn't need these for 2D vectors, but I've added them anyway for consistency
+-- NOTE: does not change the original vector!
 registerFunction("setX", "xv2:n", "xv2", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
@@ -367,7 +367,7 @@ e2function vector2 floor(vector2 rv1, decimals)
 	}
 end
 
-// min/max based on vector length - returns shortest/longest vector
+-- min/max based on vector length - returns shortest/longest vector
 registerFunction("min", "xv2xv2", "xv2", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
@@ -384,7 +384,7 @@ registerFunction("max", "xv2xv2", "xv2", function(self, args)
 	if length1 > length2 then return rv1 else return rv2 end
 end)
 
-// component-wise min/max
+-- component-wise min/max
 registerFunction("maxVec", "xv2xv2", "xv2", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
@@ -403,7 +403,7 @@ registerFunction("minVec", "xv2xv2", "xv2", function(self, args)
     return {x, y}
 end)
 
-// Performs modulo on x,y separately
+-- Performs modulo on x,y separately
 registerFunction("mod", "xv2n", "xv2", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
@@ -420,7 +420,7 @@ registerFunction("mod", "xv2n", "xv2", function(self, args)
 	return { x, y }
 end)
 
-// Modulo where divisors are defined as a vector
+-- Modulo where divisors are defined as a vector
 registerFunction("mod", "xv2xv2", "xv2", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
@@ -437,7 +437,7 @@ registerFunction("mod", "xv2xv2", "xv2", function(self, args)
 	return { x, y }
 end)
 
-// Clamp according to limits defined by two min/max vectors
+-- Clamp according to limits defined by two min/max vectors
 registerFunction("clamp", "xv2xv2xv2", "xv2", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
@@ -473,14 +473,14 @@ end
 
 __e2setcost(2)
 
-// swap x/y
+--- swap x/y
 registerFunction("shift", "xv2", "xv2", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	return { rv1[2], rv1[1] }
 end)
 
-// Returns 1 if the vector lies between (or is equal to) the min/max vectors
+--- Returns 1 if the vector lies between (or is equal to) the min/max vectors
 registerFunction("inrange", "xv2xv2xv2", "n", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
@@ -540,7 +540,7 @@ end
   4D Vector support
 \******************************************************************************/
 
-//NOTE: These are purely cartesian 4D vectors, so "w" denotes the 4th coordinate rather than a scaling factor as with an homogeneous coordinate system
+-- NOTE: These are purely cartesian 4D vectors, so "w" denotes the 4th coordinate rather than a scaling factor as with an homogeneous coordinate system
 
 /******************************************************************************/
 
@@ -848,8 +848,8 @@ end)
 
 __e2setcost(3)
 
-// SET methods that returns vectors
-// NOTE: does not change the original vector!
+-- SET methods that returns vectors
+-- NOTE: does not change the original vector!
 registerFunction("setX", "xv4:n", "xv4", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
@@ -937,7 +937,7 @@ end
 
 __e2setcost(13)
 
-// min/max based on vector length - returns shortest/longest vector
+-- min/max based on vector length - returns shortest/longest vector
 registerFunction("min", "xv4xv4", "xv4", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
@@ -954,7 +954,7 @@ registerFunction("max", "xv4xv4", "xv4", function(self, args)
 	if length1 > length2 then return rv1 else return rv2 end
 end)
 
-// component-wise min/max
+-- component-wise min/max
 registerFunction("maxVec", "xv4xv4", "xv4", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
@@ -977,7 +977,7 @@ registerFunction("minVec", "xv4xv4", "xv4", function(self, args)
     return {x, y, z, w}
 end)
 
-// Performs modulo on x,y,z separately
+-- Performs modulo on x, y, z separately
 registerFunction("mod", "xv4n", "xv4", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
@@ -997,7 +997,7 @@ registerFunction("mod", "xv4n", "xv4", function(self, args)
 	return {x, y, z, w}
 end)
 
-// Modulo where divisors are defined as a vector
+-- Modulo where divisors are defined as a vector
 registerFunction("mod", "xv4xv4", "xv4", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
@@ -1017,7 +1017,7 @@ registerFunction("mod", "xv4xv4", "xv4", function(self, args)
 	return {x, y, z, w}
 end)
 
-// Clamp according to limits defined by two min/max vectors
+-- Clamp according to limits defined by two min/max vectors
 registerFunction("clamp", "xv4xv4xv4", "xv4", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
@@ -1068,7 +1068,7 @@ end
 
 __e2setcost(4)
 
-// Circular shift function: shiftR( x,y,z,w ) = ( w,x,y,z )
+-- Circular shift function: shiftR( x,y,z,w ) = ( w,x,y,z )
 registerFunction("shiftR", "xv4", "xv4", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
@@ -1081,7 +1081,7 @@ registerFunction("shiftL", "xv4", "xv4", function(self, args)
 	return {rv1[2], rv1[3], rv1[4], rv1[1]}
 end)
 
-// Returns 1 if the vector lies between (or is equal to) the min/max vectors
+-- Returns 1 if the vector lies between (or is equal to) the min/max vectors
 registerFunction("inrange", "xv4xv4xv4", "n", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
@@ -1101,12 +1101,12 @@ end)
 
 __e2setcost(5)
 
-// Convert the magnitude of the vector to radians
+-- Convert the magnitude of the vector to radians
 e2function vector4 toRad(vector4 xv4)
 	return {xv4[1] * pi / 180, xv4[2] * pi / 180, xv4[3] * pi / 180, xv4[4] * pi / 180}
 end
 
-// Convert the magnitude of the vector to degrees
+-- Convert the magnitude of the vector to degrees
 e2function vector4 toDeg(vector4 xv4)
 	return {xv4[1] * 180 / pi, xv4[2] * 180 / pi, xv4[3] * 180 / pi, xv4[4] * 180 / pi}
 end
