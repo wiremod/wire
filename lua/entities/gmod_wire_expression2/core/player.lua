@@ -3,21 +3,21 @@
 ------------------------------------------------------------------------------]]
 
 local IsValid = IsValid
-local isOwner = E2Lib.isOwner
+-- local isOwner = E2Lib.isOwner
 
 
 local spawnAlert = {}
-local runBySpawn = 0
+-- local runBySpawn = 0
 local lastJoined = NULL
 
 local leaveAlert = {}
-local runByLeave = 0
+-- local runByLeave = 0
 local lastLeft = NULL
 
 registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
-	if funcname == "isOwner" then
+	--[[if funcname == "isOwner" then
 		isOwner = func
-	elseif funcname == "IsValid" then
+	else]]if funcname == "IsValid" then
 		IsValid = func
 	end
 end)
@@ -329,7 +329,7 @@ local function UpdateKeys(ply, bind, key, state)
 	end
 end
 
-local bindsPressed = {}
+-- local bindsPressed = {}
 local function triggerKey(ply,bind,key,state)
 	-- delay these 1 tick with timers, otherwise ply:keyPressed(str) doesn't work properly, in case old E2s uses that function
 	-- It is recommended to use keyClkPressed() instead to get which key was pressed.
@@ -418,7 +418,7 @@ e2function number keyClk(entity ply)
 	if not self.data.runOnKeys then return 0 end
 	if not IsValid(ply) then return 0 end
 	local runby = self.data.runOnKeys.runByKey
-	if not ply == runby then return 0 end
+	if ply ~= runby then return 0 end
 	return self.data.runOnKeys.KeyWasReleased and -1 or 1
 end
 
