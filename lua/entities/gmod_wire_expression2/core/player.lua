@@ -27,15 +27,15 @@ end)
 __e2setcost(5) -- temporary
 
 e2function number entity:isAdmin()
-	if not IsValid(this) then return 0 end
-	if not this:IsPlayer() then return 0 end
-	if this:IsAdmin() then return 1 else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", 0) end
+	return this:IsAdmin() and 1 or 0
 end
 
 e2function number entity:isSuperAdmin()
-	if not IsValid(this) then return 0 end
-	if not this:IsPlayer() then return 0 end
-	if this:IsSuperAdmin() then return 1 else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", 0) end
+	return this:IsSuperAdmin() and 1 or 0
 end
 
 --------------------------------------------------------------------------------
@@ -56,19 +56,14 @@ end
 --- Returns an angle describing player <this>'s view angles.
 e2function angle entity:eyeAngles()
 	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
-	local ang = this:EyeAngles()
-	return Angle(ang.p, ang.y, ang.r)
+	return this:EyeAngles()
 end
 
--- TODO: remove this check at some point in the future when LocalEyeAngles is available in the stable version of gmod
-if FindMetaTable("Player").LocalEyeAngles then
-	--- Gets a player's view direction, relative to any vehicle they sit in. This function is needed to reproduce the behavior of cam controller. This is different from Vehicle:toLocal(Ply:eyeAngles()).
-	e2function angle entity:eyeAnglesVehicle()
-		if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
-		if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", Angle(0, 0, 0)) end
-		local ang = this:LocalEyeAngles()
-		return Angle(ang.p, ang.y, ang.r)
-	end
+--- Gets a player's view direction, relative to any vehicle they sit in. This function is needed to reproduce the behavior of cam controller. This is different from Vehicle:toLocal(Ply:eyeAngles()).
+e2function angle entity:eyeAnglesVehicle()
+	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", Angle(0, 0, 0)) end
+	return this:LocalEyeAngles()
 end
 
 --------------------------------------------------------------------------------
@@ -85,7 +80,25 @@ e2function string entity:steamID64()
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", "") end
 
-	return this:SteamID64() or ""
+	return this:SteamID64()
+end
+
+e2function number entity:accountID()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", -1) end
+
+	return this:AccountID()
+end
+
+e2function number entity:userID()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", -1) end
+
+	return this:UserID()
+end
+
+e2function entity player(userID)
+	return Player(userID)
 end
 
 e2function number entity:armor()
@@ -139,24 +152,31 @@ e2function number entity:team()
 	return this:Team()
 end
 
-e2function string teamName(rv1)
-	return team.GetName(rv1) or ""
+e2function string teamName(teamNum)
+	return team.GetName(teamNum) or ""
 end
 
-e2function number teamScore(rv1)
-	return team.GetScore(rv1)
+e2function number teamScore(teamNum)
+	return team.GetScore(teamNum)
 end
 
-e2function number teamPlayers(rv1)
-	return team.NumPlayers(rv1)
+e2function array teamMembers(teamNum)
+	return team.GetPlayers(teamNum)
 end
 
-e2function number teamDeaths(rv1)
-	return team.TotalDeaths(rv1)
+e2function number teamMemberCount(teamNum)
+	return team.NumPlayers(teamNum)
 end
 
-e2function number teamFrags(rv1)
-	return team.TotalFrags(rv1)
+[deprecated]
+e2function number teamPlayers(teamNum) = e2function number teamMemberCount(teamNum)
+
+e2function number teamDeaths(teamNum)
+	return team.TotalDeaths(teamNum)
+end
+
+e2function number teamFrags(teamNum)
+	return team.TotalFrags(teamNum)
 end
 
 e2function vector teamColor(index)
@@ -333,7 +353,7 @@ local function toggleRunOnKeys(self,ply,on,filter)
 	if not IsValid(ply) or not ply:IsPlayer() then return self:throw("Invalid player for runOnKeys!", nil) end
 
 	local ent = self.entity
-	local uid = ply:UniqueID()
+	local uid = ply:SteamID()
 
 	if on ~= 0 then
 		if not KeyAlert[ent] then KeyAlert[ent] = {} end
