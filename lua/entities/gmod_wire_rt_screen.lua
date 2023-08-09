@@ -140,7 +140,7 @@ function ENT:TriggerInput( name, value )
         self:SetActive(value ~= 0)
     elseif name == "Camera" then
         if value ~= nil and not value:IsValid() then
-            return
+            value = nil
         end
         if value ~= nil and value:GetClass() ~= "gmod_wire_rt_camera" then
             value = nil
