@@ -14,6 +14,8 @@ local atan2 = math.atan2
 local asin = math.asin
 local rad2deg = 180 / pi
 local deg2rad = pi / 180
+local quadraticBezier = math.QuadraticBezier
+local cubicBezier = math.CubicBezier
 
 -- TODO: add reflect?
 -- TODO: add absdotproduct?
@@ -522,19 +524,15 @@ end
 
 --- Mix two vectors by a given proportion (between 0 and 1)
 e2function vector mix(vector vec1, vector vec2, ratio)
-	return Vector(
-		vec1[1] * ratio + vec2[1] * (1-ratio),
-		vec1[2] * ratio + vec2[2] * (1-ratio),
-		vec1[3] * ratio + vec2[3] * (1-ratio)
-	)
+	return vec1 * ratio + vec2 * (1 - ratio)
 end
 
-e2function vector bezier(vector startVec, vector control, vector endVec, ratio)
-	return Vector(
-		(1-ratio)^2 * startVec[1] + (2 * (1-ratio) * ratio * control[1]) + ratio^2 * endVec[1],
-		(1-ratio)^2 * startVec[2] + (2 * (1-ratio) * ratio * control[2]) + ratio^2 * endVec[2],
-		(1-ratio)^2 * startVec[3] + (2 * (1-ratio) * ratio * control[3]) + ratio^2 * endVec[3]
-	)
+e2function vector bezier(vector startVec, vector tangent, vector endVec, ratio)
+	return quadraticBezier(ratio, startVec, tangent, endVec)
+end
+
+e2function vector bezier(vector startVec, vector tangent1, vector tangent2, vector endVec, ratio)
+	return cubicBezier(ratio, startVec, tangent1, tangent2, endVec)
 end
 
 __e2setcost(2)

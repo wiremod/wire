@@ -454,20 +454,20 @@ registerFunction("clamp", "xv2xv2xv2", "xv2", function(self, args)
 	return { x, y }
 end)
 
-// Mix two vectors by a given proportion (between 0 and 1)
-registerFunction("mix", "xv2xv2n", "xv2", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-
-	local x = rv1[1] * rv3 + rv2[1] * (1-rv3)
-	local y = rv1[2] * rv3 + rv2[2] * (1-rv3)
-	return { x, y }
-end)
+--- Mix two vectors by a given proportion (between 0 and 1)
+e2function vector2 mix(vector2 vec1, vector2 vec2, ratio)
+	return { vec1[1] * ratio + vec2[1] * (1 - ratio),
+			 vec1[2] * ratio + vec2[2] * (1 - ratio) }
+end
 
 e2function vector2 bezier(vector2 startVec, vector2 control, vector2 endVec, ratio)
+	local dif = 1 - ratio
+	local dif2 = dif ^ 2
+	local ratio2 = ratio ^ 2
+
 	return {
-		(1-ratio)^2 * startVec[1] + (2 * (1-ratio) * ratio * control[1]) + ratio^2 * endVec[1],
-		(1-ratio)^2 * startVec[2] + (2 * (1-ratio) * ratio * control[2]) + ratio^2 * endVec[2]
+		dif2 * startVec[1] + (2 * dif * ratio * control[1]) + ratio2 * endVec[1],
+		dif2 * startVec[2] + (2 * dif * ratio * control[2]) + ratio2 * endVec[2]
 	}
 end
 
@@ -1058,17 +1058,13 @@ e2function vector4 clamp(vector4 Input, Min, Max)
 	return { x*length, y*length, z*length, w*length }
 end
 
-// Mix two vectors by a given proportion (between 0 and 1)
-registerFunction("mix", "xv4xv4n", "xv4", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-
-	local x = rv1[1] * rv3 + rv2[1] * (1-rv3)
-	local y = rv1[2] * rv3 + rv2[2] * (1-rv3)
-	local z = rv1[3] * rv3 + rv2[3] * (1-rv3)
-	local w = rv1[4] * rv3 + rv2[4] * (1-rv3)
-	return {x, y, z, w}
-end)
+--- Mix two vectors by a given proportion (between 0 and 1)
+e2function vector4 mix(vector4 vec1, vector4 vec2, ratio)
+	return { vec1[1] * ratio + vec2[1] * (1 - ratio),
+			 vec1[2] * ratio + vec2[2] * (1 - ratio),
+			 vec1[3] * ratio + vec2[3] * (1 - ratio),
+			 vec1[4] * ratio + vec2[4] * (1 - ratio) }
+end
 
 __e2setcost(4)
 
