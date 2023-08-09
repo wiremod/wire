@@ -504,8 +504,8 @@ if CPPI and debug.getregistry().Player.CPPIGetFriends then
 	end
 
 	e2function array entity:friends()
-		if not IsValid(this) then return {} end
-		if not this:IsPlayer() then return {} end
+		if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+		if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", {}) end
 		if not Trusts(this, self.player) then return {} end
 
 		local ret = this:CPPIGetFriends()
@@ -514,8 +514,8 @@ if CPPI and debug.getregistry().Player.CPPIGetFriends then
 	end
 
 	e2function number entity:trusts(entity whom)
-		if not IsValid(this) then return 0 end
-		if not this:IsPlayer() then return 0 end
+		if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+		if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
 		if not Trusts(this, self.player) then return 0 end
 
 		return Trusts(this, whom) and 1 or 0
@@ -564,8 +564,8 @@ __e2setcost(15)
 
 --- Returns an array containing <this>'s steam friends currently on the server
 e2function array entity:steamFriends()
-	if not IsValid(this) then return {} end
-	if not this:IsPlayer() then return {} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", {}) end
 	if this~=self.player then return {} end
 
 	-- make a copy
@@ -579,8 +579,8 @@ end
 
 --- Returns 1 if <this> and <friend> are steam friends, 0 otherwise.
 e2function number entity:isSteamFriend(entity friend)
-	if not IsValid(this) then return 0 end
-	if not this:IsPlayer() then return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
 	if this~=self.player then return 0 end
 
 	local friends = steamfriends[this]
@@ -611,7 +611,7 @@ end
 
 e2function number entity:inVehicle()
 	if not IsValid(this) then return 0 end
-	if(this:IsPlayer() and this:InVehicle()) then return 1 else return 0 end
+	return this:IsPlayer() and this:InVehicle() and 1 or 0
 end
 
 --- Returns 1 if the player <this> is in noclip mode, 0 if not.
