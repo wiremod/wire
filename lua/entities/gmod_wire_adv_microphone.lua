@@ -1,5 +1,9 @@
 AddCSLuaFile()
 
+local MIN_VOLUME = 0.001
+local SPEAKER_VOLUME_COEFF = 0.4 -- Additionally lower volume of sounds from wire speakers to prevent feedback loops
+local MAX_DIST_GAIN = 1000
+
 ENT.Type = "anim"
 ENT.Base = "base_wire_entity"
 ENT.Author = "stpM64"
@@ -57,7 +61,6 @@ end
 
 function ENT:OnActiveChanged(_,_,active)
     if table.IsEmpty(self._activeSpeakers) then return end
-
     self:SetLive(active)
 end
 
@@ -70,13 +73,99 @@ end
 function ENT:SpeakerActivated(speaker)
     if not IsValid(speaker) then return end
 
+    if self:GetActive() then
+        -- Must be updated before ._activeSpeakers are updated
+        self:SetLive(true)
+    end
     self._activeSpeakers[speaker] = true
 end
 
+local function table_IsEmptyOrSingle(tbl)
+    local k1 = next(tbl)
+    if k1 == nil then return true end
+
+    local k2 = next(tbl, k1)
+    return k2 == nil
+end
+
 function ENT:SpeakerDeactivated(speaker)
+    if self:GetActive() then
+        local live = true
+        do
+            local spk = self._activeSpeakers
+
+            local k1 = next(spk)
+            if k1 == nil then -- No active speakers
+                live = false
+            else
+                local k2 = next(spk)
+                if k2 == nil and k1 == speaker then -- The only active speaker is 'speaker'
+                    live = false
+                end
+            end
+        end
+
+        -- Must be updated before ._activeSpeakers are updated
+        self:SetLive(live)
+    end
     self._activeSpeakers[speaker] = nil
 end
 
+function ENT:OnRemove()
+    timer.Simple(0, function()
+        if IsValid(self) then return end
+
+        self:SetLive(false)
+    end)
+end
+
 hook.Add("EntityEmitSound", "Wire.AdvMicrophone", function(snd)
-    
+    for _, mic in ipairs(LiveMics) do
+        mic:HandleEngineSound(snd)
+    end
 end)
+
+local CVAR_snd_refdb = GetConVar("snd_refdb")
+local CVAR_snd_refdist = GetConVar("snd_refdist")
+
+local function CalculateDistanceGain(dist, sndlevel)
+    -- See SNDLVL_TO_DIST_MULT in engine/audio/private/snd_dma.cpp
+    -- See SND_GetGainFromMult in engine/sound_shared.cpp
+
+    local finalsndlevel = CVAR_snd_refdb:GetFloat() - sndlevel 
+    local distMul = math.pow(10, finalsndlevel / 20) / CVAR_snd_refdist:GetFloat()
+
+    local gain = 1/(distMul * dist)
+
+    return math.min(gain, MAX_DIST_GAIN) -- No infinities
+end
+
+function ENT:HandleEngineSound(snd)
+    local volume = snd.Volume
+
+    if IsValid(snd.Entity) 
+        and snd.Entity:GetType() == "gmod_wire_adv_speaker" 
+    then 
+        volume = volume * SPEAKER_VOLUME_COEFF
+    end
+
+    local sndlevel = snd.SoundLevel
+    if sndlevel ~= 0 then
+        -- Over-256 values are 'reserved for sounds using goldsrc compatibility attenuation'
+        -- I don't care about correct attenuation for HLSource entities,
+        -- but I don't want the system to break. 
+        if sndlevel >= 256 then sndlevel = sndlevel - 256 end
+        
+        volume = volume * CalculateDistanceGain(
+            self:GetPos():Distance(snd.Pos), sndlevel)
+    end
+    if volume < MIN_VOLUME then return end
+
+    self:ReproduceSound(snd.SoundName, volume, snd.Pitch, snd.DSP)
+end
+
+function ENT:ReproduceSound(snd, vol, pitch, dsp)
+    for _, speaker in ipairs(_activeSpeakers) do
+        speaker:ReproduceSound(snd, vol, pitch, dsp)
+    end
+end

@@ -8,6 +8,7 @@ ENT.Purpose = "Reproduces sounds, soundscapes and player voices listened by Adva
 ENT.WireDebugName = "Advanced Speaker"
 
 -- TODO: notify of microphone connection when loading from duplication
+-- TODO: stop currently played EmitSound sounds on deactivation 
 
 function ENT:SetupDataTables()
     self:NetworkVar("Bool", 0, "Active")
@@ -60,4 +61,12 @@ function ENT:OnRemove()
         if IsValid(self) or not IsValid(mic) then return end
         mic:SpeakerDisconSpeakerDeactivatednected(self)
     end)
+end
+
+function ENT:ReproduceSound(snd, vol, pitch, dsp)
+    if not self:GetActive() then return end
+
+    local soundlevel = 75
+
+    self:EmitSound(snd, soundlevel, pitch, vol, nil, nil, dsp)
 end
