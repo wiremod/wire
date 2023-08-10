@@ -47,7 +47,7 @@ function ENT:OnMicrophoneChanged(_, oldmic, newmic)
         if IsValid(oldmic) then
             oldmic:SpeakerDeactivated(self)
         end
-        
+
         if IsValid(newmic) then
             newmic:SpeakerActivated(self)
         end

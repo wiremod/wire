@@ -88,14 +88,6 @@ function ENT:SpeakerActivated(speaker)
     self._activeSpeakers[speaker] = true
 end
 
-local function table_IsEmptyOrSingle(tbl)
-    local k1 = next(tbl)
-    if k1 == nil then return true end
-
-    local k2 = next(tbl, k1)
-    return k2 == nil
-end
-
 function ENT:SpeakerDeactivated(speaker)
     if self:GetActive() then
         local live = true
@@ -134,7 +126,7 @@ local function CalculateDistanceGain(dist, sndlevel)
     -- See SNDLVL_TO_DIST_MULT in engine/audio/private/snd_dma.cpp
     -- See SND_GetGainFromMult in engine/sound_shared.cpp
 
-    local finalsndlevel = CVAR_snd_refdb:GetFloat() - sndlevel 
+    local finalsndlevel = CVAR_snd_refdb:GetFloat() - sndlevel
     local distMul = math.pow(10, finalsndlevel / 20) / CVAR_snd_refdist:GetFloat()
 
     local gain = 1/(distMul * dist)
@@ -154,9 +146,9 @@ end)
 function ENT:HandleEngineSound(snd)
     local volume = snd.Volume
 
-    if IsValid(snd.Entity) 
-        and snd.Entity:GetType() == "gmod_wire_adv_speaker" 
-    then 
+    if IsValid(snd.Entity)
+        and snd.Entity:GetType() == "gmod_wire_adv_speaker"
+    then
         volume = volume * SPEAKER_VOLUME_COEFF
     end
 
@@ -166,7 +158,7 @@ function ENT:HandleEngineSound(snd)
         -- I don't care about correct attenuation for HLSource entities,
         -- but I don't want the system to break. 
         if sndlevel >= 256 then sndlevel = sndlevel - 256 end
-        
+
         volume = volume * CalculateDistanceGain(
             self:GetPos():Distance(snd.Pos), sndlevel)
     end
@@ -185,7 +177,6 @@ hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", function(listener, t
     local talkerPos = talker:GetPos()
     local listenerPos = listener:GetPos()
 
-    local speakers = {}
     -- Note: any given speaker can only be connected to one microphone,
     -- so this loops can be considered O(nMic), not O(nMic*nSpeaker)
     for _, mic in ipairs(LiveMics) do
@@ -193,7 +184,7 @@ hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", function(listener, t
 
         for _, speaker in ipairs(mic._activeSpeakers) do
             if not IsValid(speaker) then continue end
-            
+
             if speaker:GetPos():DistToSqr(listenerPos) <= PLAYER_VOICE_MAXDIST_SQR then
                 return true, false -- Can hear, not in 3D
             end
