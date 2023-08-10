@@ -55,7 +55,9 @@ local function Mic_SetLive(self, isLive)
     end
 
     if isLive then
-        table.insert(LiveMics, self)
+        if not table.HasValue(LiveMics, self) then
+            table.insert(LiveMics, self)
+        end
     else
         table.RemoveByValue(LiveMics, self)
     end

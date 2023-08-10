@@ -80,9 +80,15 @@ end
 
 function ENT:ReproduceSound(snd, vol, pitch, dsp)
     if not self:GetActive() then return end
+    print(snd, vol, pitch, dsp)
+
+    if WireLib.Sound.IsLooped(WireLib.Sound.StripPrefix(snd)) then
+        print("--looped")
+        return
+    end
+
 
     local soundlevel = 75
-    print(snd, vol, pitch, dsp)
     self:EmitSound(snd, soundlevel, pitch, vol, nil, nil, dsp)
 end
 

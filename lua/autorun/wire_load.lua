@@ -36,6 +36,7 @@ if SERVER then
 	AddCSLuaFile("wire/flir.lua")
 	AddCSLuaFile("wire/von.lua")
 	AddCSLuaFile("wire/sh_modelplug.lua")
+	AddCSLuaFile("wire/soundlib.lua")
 
 	-- client includes
 	AddCSLuaFile("wire/client/cl_wirelib.lua")
@@ -83,6 +84,7 @@ include("wire/timedpairs.lua")
 include("wire/default_data_decompressor.lua")
 include("wire/flir.lua")
 include("wire/von.lua")
+include("wire/soundlib.lua")
 
 -- server includes
 if SERVER then
