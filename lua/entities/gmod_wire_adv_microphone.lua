@@ -1,7 +1,6 @@
 AddCSLuaFile()
 
-local MIN_VOLUME = 0.001
-local SPEAKER_VOLUME_COEFF = 0.4 -- Additionally lower volume of sounds from wire speakers to prevent feedback loops
+local MIN_VOLUME = 0.02
 local MAX_DIST_GAIN = 1000
 
 local PLAYER_VOICE_MAXDIST_SQR = 250*250
@@ -47,10 +46,13 @@ function ENT:Initialize()
     self:OnActiveChanged(nil, nil, self:GetActive())
 end
 
-function ENT:SetLive(isLive)
-    if self:GetLive() == isLive then return end
-
-    self:AddEFlags(EFL_FORCE_CHECK_TRANSMIT)
+local function Mic_SetLive(self, isLive)
+    if not IsValid(self) then
+        isLive = false
+    else    
+        if self:GetLive() == isLive then return end
+        self:AddEFlags(EFL_FORCE_CHECK_TRANSMIT)
+    end
 
     if isLive then
         table.insert(LiveMics, self)
@@ -58,6 +60,8 @@ function ENT:SetLive(isLive)
         table.RemoveByValue(LiveMics, self)
     end
 end
+
+ENT.SetLive = Mic_SetLive
 
 function ENT:UpdateTransmitState()
     return Either(self:GetLive(), TRANSMIT_ALWAYS, TRANSMIT_PVS)
@@ -115,7 +119,7 @@ function ENT:OnRemove()
     timer.Simple(0, function()
         if IsValid(self) then return end
 
-        self:SetLive(false)
+        Mic_SetLive(self, false)
     end)
 end
 
@@ -139,36 +143,39 @@ end
 
 hook.Add("EntityEmitSound", "Wire.AdvMicrophone", function(snd)
     for _, mic in ipairs(LiveMics) do
-        mic:HandleEngineSound(snd)
+        if IsValid(mic) then
+            mic:HandleEngineSound(snd)
+        end
     end
 end)
 
 function ENT:HandleEngineSound(snd)
     local volume = snd.Volume
+    local pitch = snd.Pitch
 
-    if IsValid(snd.Entity)
-        and snd.Entity:GetType() == "gmod_wire_adv_speaker"
-    then
-        volume = volume * SPEAKER_VOLUME_COEFF
-    end
+    -- Disable feedback loops
+    if IsValid(snd.Entity) and snd.Entity:GetClass() == "gmod_wire_adv_speaker" then return end
 
     local sndlevel = snd.SoundLevel
-    if sndlevel ~= 0 then
+    local pos = snd.Pos
+    if sndlevel ~= 0 and pos ~= nil then
         -- Over-256 values are 'reserved for sounds using goldsrc compatibility attenuation'
         -- I don't care about correct attenuation for HLSource entities,
         -- but I don't want the system to break. 
         if sndlevel >= 256 then sndlevel = sndlevel - 256 end
 
         volume = volume * CalculateDistanceGain(
-            self:GetPos():Distance(snd.Pos), sndlevel)
+            self:GetPos():Distance(pos), sndlevel)
     end
-    if volume < MIN_VOLUME then return end
 
-    self:ReproduceSound(snd.SoundName, volume, snd.Pitch, snd.DSP)
+    if volume < MIN_VOLUME then return end
+    if volume > 1 then volume = 1 end
+
+    self:ReproduceSound(snd.SoundName, volume, pitch, snd.DSP)
 end
 
 function ENT:ReproduceSound(snd, vol, pitch, dsp)
-    for _, speaker in ipairs(_activeSpeakers) do
+    for speaker in pairs(self._activeSpeakers) do
         speaker:ReproduceSound(snd, vol, pitch, dsp)
     end
 end

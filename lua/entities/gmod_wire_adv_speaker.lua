@@ -11,6 +11,7 @@ ENT.WireDebugName = "Advanced Speaker"
 
 function ENT:SetupDataTables()
     self:NetworkVar("Bool", 0, "Active")
+    self:NetworkVarNotify("Active", self.OnActiveChanged)
     self:NetworkVar("Entity", 0, "Microphone")
     self:NetworkVarNotify("Microphone",self.OnMicrophoneChanged)
 end
@@ -34,7 +35,7 @@ function ENT:TriggerInput( name, value )
     if name == "Active" then
         self:SetActive(value ~= 0)
     elseif name == "Microphone" then
-        if not (IsValid(value) and value:GetType() == "gmod_wire_adv_microphone") then
+        if not (IsValid(value) and value:GetClass() == "gmod_wire_adv_microphone") then
             value = nil
         end
 
@@ -42,8 +43,21 @@ function ENT:TriggerInput( name, value )
     end
 end
 
+function ENT:OnActiveChanged(_, oldactive, active)
+    if oldactive == active then return end
+
+    local mic = self:GetMicrophone()
+    if not IsValid(mic) then return end
+
+    if active then
+        mic:SpeakerActivated(self)
+    else
+        mic:SpeakerDeactivated(self)
+    end
+end
+
 function ENT:OnMicrophoneChanged(_, oldmic, newmic)
-    if oldmic ~= newmic then
+    if self:GetActive() and oldmic ~= newmic then
         if IsValid(oldmic) then
             oldmic:SpeakerDeactivated(self)
         end
@@ -60,7 +74,7 @@ function ENT:OnRemove()
 
     timer.Simple(0, function()
         if IsValid(self) or not IsValid(mic) then return end
-        mic:SpeakerDisconSpeakerDeactivatednected(self)
+        mic:SpeakerDeactivated(self)
     end)
 end
 
@@ -68,7 +82,7 @@ function ENT:ReproduceSound(snd, vol, pitch, dsp)
     if not self:GetActive() then return end
 
     local soundlevel = 75
-
+    print(snd, vol, pitch, dsp)
     self:EmitSound(snd, soundlevel, pitch, vol, nil, nil, dsp)
 end
 
