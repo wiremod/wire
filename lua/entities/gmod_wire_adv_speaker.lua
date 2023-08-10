@@ -71,3 +71,5 @@ function ENT:ReproduceSound(snd, vol, pitch, dsp)
 
     self:EmitSound(snd, soundlevel, pitch, vol, nil, nil, dsp)
 end
+
+duplicator.RegisterEntityClass("gmod_wire_adv_speaker", WireLib.MakeWireEnt, "Data")

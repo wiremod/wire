@@ -195,3 +195,5 @@ end)
 -- TODO: hook into sound.Play
 -- TODO: hook into sound.PlayFile
 -- TODO: hook into sound.PlayURL
+
+duplicator.RegisterEntityClass("gmod_wire_adv_microphone", WireLib.MakeWireEnt, "Data")
