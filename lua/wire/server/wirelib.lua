@@ -20,6 +20,8 @@ local tostring = tostring
 local Vector = Vector
 local Color = Color
 
+local isvector, isnumber, istable, isstring, isangle, IsEntity, IsColor = isvector, isnumber, istable, isstring, isangle, IsEntity, IsColor
+
 local HasPorts = WireLib.HasPorts -- Very important for checks!
 
 
@@ -55,6 +57,12 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	local input = ent.Inputs[name]
 	if not input then return end
 
+	local ty = WireLib.DT[input.Type]
+	if ty and not ty.Validator(value) then
+		-- Not copying here is fine since data types are immutable outside E2.
+		value = ty.Zero
+	end
+
 	input.Value = value
 	if (not ent.TriggerInput) then return end
 
@@ -81,41 +89,87 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	end
 end
 
--- an array of data types
+--- Array of data types for Wiremod.
+---@type table<string, { Zero: any, Validator: fun(val: any): boolean }>
 WireLib.DT = {
 	NORMAL = {
-		Zero = 0
+		Zero = 0,
+		Validator = isnumber
 	},	-- Numbers
 	VECTOR = {
-		Zero = Vector(0, 0, 0)
+		Zero = Vector(0, 0, 0),
+		Validator = isvector
+	},
+	VECTOR2 = {
+		Zero = { 0, 0 },
+		Validator = function(v2)
+			return istable(v2)
+				and isnumber(v2[1])
+				and isnumber(v2[2])
+		end
+	},
+	VECTOR4 = {
+		Zero = { 0, 0, 0, 0 },
+		Validator = function(v4)
+			return istable(v4)
+				and isnumber(v4[1])
+				and isnumber(v4[2])
+				and isnumber(v4[3])
+				and isnumber(v4[4])
+		end
 	},
 	ANGLE = {
-		Zero = Angle(0, 0, 0)
+		Zero = Angle(0, 0, 0),
+		Validator = isangle
 	},
 	COLOR = {
-		Zero = Color(0, 0, 0)
+		Zero = Color(0, 0, 0),
+		Validator = IsColor
 	},
 	ENTITY = {
-		Zero = NULL
+		Zero = NULL,
+		Validator = IsEntity
 	},
 	STRING = {
-		Zero = ""
+		Zero = "",
+		Validator = isstring
 	},
 	TABLE = {
-		Zero = {n={},ntypes={},s={},stypes={},size=0},
+		Zero = { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 },
+		Validator = function(t)
+			return istable(t)
+				and istable(t.n)
+				and istable(t.ntypes)
+				and istable(t.s)
+				and istable(t.stypes)
+				and isnumber(t.size)
+		end
 	},
 	BIDIRTABLE = {
-		Zero = {n={},ntypes={},s={},stypes={},size=0},
+		Zero = { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 },
+		Validator = function(t)
+			return istable(t)
+				and istable(t.n)
+				and istable(t.ntypes)
+				and istable(t.s)
+				and istable(t.stypes)
+				and isnumber(t.size)
+		end,
 		BiDir = true
 	},
 	ANY = {
-		Zero = 0
+		Zero = 0,
+		Validator = function()
+			return true
+		end
 	},
 	ARRAY = {
-		Zero = {}
+		Zero = {},
+		Validator = istable
 	},
 	BIDIRARRAY = {
 		Zero = {},
+		Validator = istable,
 		BiDir = true
 	},
 }
@@ -527,6 +581,13 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 	if (not ent.Outputs) then return end
 
 	local output = ent.Outputs[oname]
+
+	local ty = WireLib.DT[output.Type]
+	if ty and not ty.Validator(value) then
+		-- Not copying here is fine since data types are immutable outside E2.
+		value = ty.Zero
+	end
+
 	if output and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]])) then
 		local timeOfFrame = CurTime()
 		if timeOfFrame ~= output.TriggerTime then

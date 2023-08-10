@@ -97,8 +97,15 @@ local function isValidTypeId(id)
 	return #id == (string.sub(id, 1, 1) == "x" and 3 or 1)
 end
 
--- additional args: <input serializer>, <output serializer>, <type checker>
-function registerType(name, id, def, ...)
+---@generic T
+---@param name string
+---@param id string
+---@param def T | nil
+---@param input_serialize (fun(self, input: any): T)?
+---@param output_serialize (fun(self, output: any): T)?
+---@param type_check (fun(v: any))?
+---@param is_invalid (fun(v: any): boolean)?
+function registerType(name, id, def, input_serialize, output_serialize, type_check, is_invalid, ...)
 	if not isValidTypeId(id) then
 		-- this type ID format is relied on in various places including
 		-- E2Lib.splitType, and malformed type IDs cause confusing and subtle
@@ -107,10 +114,18 @@ function registerType(name, id, def, ...)
 		"character long, or three characters long starting with an x", id), 2)
 	end
 
-	wire_expression_types[string.upper(name)] = { id, def, ... }
-	wire_expression_types2[id] = { string.upper(name), def, ... }
+	wire_expression_types[string.upper(name)] = { id, def, input_serialize, output_serialize, type_check, is_invalid, ... }
+	wire_expression_types2[id] = { string.upper(name), def, input_serialize, output_serialize, type_check, is_invalid, ... }
+
 	if not WireLib.DT[string.upper(name)] then
-		WireLib.DT[string.upper(name)] = { Zero = def }
+		WireLib.DT[string.upper(name)] = {
+			Zero = def,
+			Validator = is_invalid and function(v)
+				return not is_invalid(v)
+			end or function()
+				return true
+			end
+		}
 	end
 end
 
