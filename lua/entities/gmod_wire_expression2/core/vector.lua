@@ -592,9 +592,10 @@ local cache_concatenated_parts = setmetatable({ [0] = "empty" }, cachemeta)
 local function generateContents( n )
 	local parts_array, lookup_table = {}, {}
 
-	for i = 0,30 do
-		if bit.band(n, 2 ^ i) ~= 0 then
-			local name = contents[2^i]
+	for i = 0, 30 do
+		local v = bit.lshift(1, i)
+		if bit.band(n, v) ~= 0 then
+			local name = contents[v]
 			lookup_table[name] = true
 			parts_array[#parts_array+1] = name
 		end
