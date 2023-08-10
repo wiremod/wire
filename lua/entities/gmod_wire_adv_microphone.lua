@@ -50,11 +50,17 @@ end
 function ENT:SetLive(isLive)
     if self:GetLive() == isLive then return end
 
+    self:AddEFlags(EFL_FORCE_CHECK_TRANSMIT)
+
     if isLive then
         table.insert(LiveMics, self)
     else
         table.RemoveByValue(LiveMics, self)
     end
+end
+
+function ENT:UpdateTransmitState()
+    return Either(self:GetLive(), TRANSMIT_ALWAYS, TRANSMIT_PVS)
 end
 
 function ENT:GetLive()
@@ -194,3 +200,7 @@ hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", function(listener, t
         end
     end
 end)
+
+-- TODO: hook into sound.Play
+-- TODO: hook into sound.PlayFile
+-- TODO: hook into sound.PlayURL

@@ -7,7 +7,6 @@ ENT.PrintName = "Wire Advanced Speaker"
 ENT.Purpose = "Reproduces sounds, soundscapes and player voices listened by Advanced Microphone"
 ENT.WireDebugName = "Advanced Speaker"
 
--- TODO: notify of microphone connection when loading from duplication
 -- TODO: stop currently played EmitSound sounds on deactivation 
 
 function ENT:SetupDataTables()
@@ -26,6 +25,8 @@ if SERVER then
             "Active",
             "Microphone (Must be Wire Advanced Microphone to work) [ENTITY]"
         })
+
+        self:OnMicrophoneChanged(nil, nil, self:GetMicrophone())
     end
 end
 
