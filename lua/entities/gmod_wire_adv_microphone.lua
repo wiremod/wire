@@ -4,6 +4,8 @@ local MIN_VOLUME = 0.001
 local SPEAKER_VOLUME_COEFF = 0.4 -- Additionally lower volume of sounds from wire speakers to prevent feedback loops
 local MAX_DIST_GAIN = 1000
 
+local PLAYER_VOICE_MAXDIST_SQR = 250*250
+
 ENT.Type = "anim"
 ENT.Base = "base_wire_entity"
 ENT.Author = "stpM64"
@@ -119,12 +121,6 @@ function ENT:OnRemove()
     end)
 end
 
-hook.Add("EntityEmitSound", "Wire.AdvMicrophone", function(snd)
-    for _, mic in ipairs(LiveMics) do
-        mic:HandleEngineSound(snd)
-    end
-end)
-
 local CVAR_snd_refdb = GetConVar("snd_refdb")
 local CVAR_snd_refdist = GetConVar("snd_refdist")
 
@@ -139,6 +135,15 @@ local function CalculateDistanceGain(dist, sndlevel)
 
     return math.min(gain, MAX_DIST_GAIN) -- No infinities
 end
+
+
+
+
+hook.Add("EntityEmitSound", "Wire.AdvMicrophone", function(snd)
+    for _, mic in ipairs(LiveMics) do
+        mic:HandleEngineSound(snd)
+    end
+end)
 
 function ENT:HandleEngineSound(snd)
     local volume = snd.Volume
@@ -169,3 +174,23 @@ function ENT:ReproduceSound(snd, vol, pitch, dsp)
         speaker:ReproduceSound(snd, vol, pitch, dsp)
     end
 end
+
+hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", function(listener, talker)
+    local talkerPos = talker:GetPos()
+    local listenerPos = listener:GetPos()
+
+    local speakers = {}
+    -- Note: any given speaker can only be connected to one microphone,
+    -- so this loops can be considered O(nMic), not O(nMic*nSpeaker)
+    for _, mic in ipairs(LiveMics) do
+        if mic:GetPos():DistToSqr(talkerPos) > PLAYER_VOICE_MAXDIST_SQR then continue end
+
+        for _, speaker in ipairs(mic._activeSpeakers) do
+            if not IsValid(speaker) then continue end
+            
+            if speaker:GetPos():DistToSqr(listenerPos) <= PLAYER_VOICE_MAXDIST_SQR then
+                return true, false -- Can hear, not in 3D
+            end
+        end
+    end
+end)
