@@ -6,11 +6,11 @@ local LoopedCache = {}
 local function Riff_ReadChunkHeader(fil)
     local id = fil:Read(4)
     local content_len = fil:ReadULong()
-    local next_chunk_offs = content_len
-    if next_chunk_offs % 2 == 1 then next_chunk_offs = next_chunk_offs + 1 end
-    print(id, content_len, next_chunk_offs)
+    content_len = content_len + bit.band(content_len, 1)
 
-    return id, content_len, next_chunk_offs
+    print("> header", id, content_len)
+
+    return id, content_len
 end
 
 local function WavIsLooped_Impl(path)
@@ -19,44 +19,52 @@ local function WavIsLooped_Impl(path)
         return false
     end
 
-    local id, len, nextoffs = Riff_ReadChunkHeader(fil)
+    local id, _ = Riff_ReadChunkHeader(fil)
     if id ~= "RIFF" then return false end -- Invalid header
-    local id, len, nextoffs = Riff_ReadChunkHeader(fil)
-    if id ~= "WAVE" then return false end -- Invalid second header
+    if fil:Read(4) ~= "WAVE" then return false end -- Invalid second header
+
+    local resultid
 
     while true do
-        local id, len, nextoffs = Riff_ReadChunkHeader(fil)
-        if id == "cue " then break end
+        local id, len = Riff_ReadChunkHeader(fil)
+        if id == "cue " or id == "smpl" then resultid = id break end
 
-        fil:Skip(nextoffs)
+        local p1 = fil:Tell()
+        local pnext = p1 + len
+
+        if pnext == fil:Size() then return false end -- End of file
+        fil:Seek(pnext)
     end
 
-    local cue_count = fil:ReadULong()
-    fil:Close()
+    if resultid == "cue " then
+        local cue_count = fil:ReadULong()
+        print("Cue count", cue_count)
+        fil:Close()
+    
+        return cue_count ~= 0
+    elseif resultid == "smpl" then
+        fil:Skip(7*4)
+        local sampler_count = fil:ReadULong()
+        print("Sampler count", sampler_count)
+        fil:Close()
+    
+        return sampler_count ~= 0
+    end
 
-    --[[
-    // assume that the cue chunk stored in the wave is the start of the loop
-	// assume only one cue chunk, UNDONE: Test this assumption here?
-	cueCount = walk.ChunkReadInt();
-	if ( cueCount > 0 )
-	{
-		walk.ChunkReadPartial( &cue_chunk, sizeof(cue_chunk) );
-		m_loopStart = LittleLong( cue_chunk.dwSampleOffset );
-	}
-    ]]
-
-    return cue_count ~= 0
+ 
 end
 
 local function WavIsLooped(path)
     if LoopedCache[path] ~= nil then return LoopedCache[path] end
 
     local looped = WavIsLooped_Impl(path)
+    print(path, looped)
     LoopedCache[path] = looped
     return looped
 end
 
 function lib.IsLooped(path)
+    path = "sound/"..path
     local ext = string.GetExtensionFromFilename(path)
     if ext == "wav" then
         return WavIsLooped(path)
