@@ -76,7 +76,7 @@ registerOperator("ass", "v", "v", function(self, args)
 
 	local Scope = self.Scopes[scope]
 	local lookup = Scope.lookup
-	if !lookup then lookup = {} Scope.lookup = lookup end
+	if not lookup then lookup = {} Scope.lookup = lookup end
 	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
 
 	Scope[lhs] = rhs
@@ -593,7 +593,6 @@ local cache_concatenated_parts = setmetatable({ [0] = "empty" }, cachemeta)
 
 local function generateContents( n )
 	local parts_array, lookup_table = {}, {}
-	local ret = {}
 
 	for i = 0,30 do
 		if bit.band(n, (2^i)) ~= 0 then
@@ -651,7 +650,7 @@ end
 
 --- Converts a local position/angle to a world position/angle and returns the angle
 e2function angle toWorldAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local pos, ang = LocalToWorld(localpos, localang, worldpos, worldang)
+	local _, ang = LocalToWorld(localpos, localang, worldpos, worldang)
 	return ang
 end
 
@@ -667,7 +666,7 @@ end
 
 --- Converts a world position/angle to a local position/angle and returns the angle
 e2function angle toLocalAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local vec, ang = WorldToLocal(localpos,localang,worldpos,worldang)
+	local _, ang = WorldToLocal(localpos,localang,worldpos,worldang)
 	return ang
 end
 

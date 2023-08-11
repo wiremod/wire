@@ -2,7 +2,6 @@
 local IsValid  = IsValid
 local isOwner      = E2Lib.isOwner
 local Clamp        = math.Clamp
-local seq = table.IsSequential
 
 /******************************************************************************/
 
@@ -104,7 +103,7 @@ hook.Add("PlayerDisconnected", "e2_print_delays_player_dc", function(ply) printD
 -- Returns whether or not the next print-message will be printed or omitted by antispam
 e2function number playerCanPrint()
 	if not checkOwner(self) then return end
-	return (canPrint(self.player) and 1 or 0)
+	return canPrint(self.player) and 1 or 0
 end
 
 local function repr(self, value, typeid)
@@ -252,7 +251,7 @@ do
 			local value = t[ key ]
 			Msg( string.rep( "\t", indent ) )
 
-			if  ( istable( value ) and !done[ value ] ) then
+			if  ( istable( value ) and not done[ value ] ) then
 
 				done[ value ] = true
 				Msg( tostring( key ) .. ":" .. "\n" )
@@ -332,8 +331,8 @@ local printColor_types = {
 	Vector = function(v) return Color(v[1],v[2],v[3]) end,
 	table = function(tbl)
 		for i,v in pairs(tbl) do
-			if !isnumber(i) then return "" end
-			if !isnumber(v) then return "" end
+			if not isnumber(i) then return "" end
+			if not isnumber(v) then return "" end
 			if i < 1 or i > 4 then return "" end
 		end
 		return Color(tbl[1] or 0, tbl[2] or 0,tbl[3] or 0,tbl[4])
