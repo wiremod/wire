@@ -66,7 +66,7 @@ end
 ENT.SetLive = Mic_SetLive
 
 function ENT:UpdateTransmitState()
-    return Either(self:GetLive(), TRANSMIT_ALWAYS, TRANSMIT_PVS)
+    return self:GetLive() and TRANSMIT_ALWAYS or TRANSMIT_PVS
 end
 
 function ENT:GetLive()
@@ -189,15 +189,16 @@ hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", function(listener, t
     -- Note: any given speaker can only be connected to one microphone,
     -- so this loops can be considered O(nMic), not O(nMic*nSpeaker)
     for _, mic in ipairs(LiveMics) do
-        if mic:GetPos():DistToSqr(talkerPos) > PLAYER_VOICE_MAXDIST_SQR then continue end
+        if mic:GetPos():DistToSqr(talkerPos) > PLAYER_VOICE_MAXDIST_SQR then goto mic_next end
 
         for _, speaker in ipairs(mic._activeSpeakers) do
-            if not IsValid(speaker) then continue end
-
-            if speaker:GetPos():DistToSqr(listenerPos) <= PLAYER_VOICE_MAXDIST_SQR then
+            if IsValid(speaker) and 
+                speaker:GetPos():DistToSqr(listenerPos) <= PLAYER_VOICE_MAXDIST_SQR 
+            then
                 return true, false -- Can hear, not in 3D
             end
         end
+        ::mic_next::
     end
 end)
 
