@@ -47,7 +47,7 @@ local function makecheck(signature)
 	if signature == "op:seq()" then return end
 	local name = signature:match("^([^(]*)")
 	local entry = wire_expression2_funcs[signature]
-	local oldfunc, signature, rets, func, cost = entry.oldfunc, unpack(entry)
+	local oldfunc, signature, rets, func = entry.oldfunc, unpack(entry)
 
 	if oldfunc then return end
 	oldfunc = namefunc(func, "e2_" .. name)
