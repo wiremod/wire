@@ -119,7 +119,14 @@ function registerType(name, id, def, input_serialize, output_serialize, type_che
 
 	if not WireLib.DT[string.upper(name)] then
 		WireLib.DT[string.upper(name)] = {
-			Zero = def,
+			Zero = istable(def) and function()
+				-- Don't need to handle Vector or Angle case since WireLib.DT already defines them.
+				return table.Copy(def)
+			end or function()
+				-- If not a table, don't need to run table.Copy.
+				return def
+			end,
+
 			Validator = is_invalid and function(v)
 				return not is_invalid(v)
 			end or function()

@@ -113,10 +113,10 @@ function ENT:CalcOutput(iter)
 			local result = { self.Action.output(self, unpack(self:GetActionInputs(), 1, #self.Action.inputs)) }
 
 			for k,v in ipairs(self.Action.outputs) do
-				Wire_TriggerOutput(self, v, result[k] or WireLib.DT[ self.Outputs[v].Type ].Zero, iter)
+				Wire_TriggerOutput(self, v, result[k] or WireLib.GetDefaultForType(self.Outputs[v].Type), iter)
 			end
 		else
-			local value = self.Action.output(self, unpack(self:GetActionInputs(), 1, #self.Action.inputs)) or WireLib.DT[ self.Outputs.Out.Type ].Zero
+			local value = self.Action.output(self, unpack(self:GetActionInputs(), 1, #self.Action.inputs)) or WireLib.GetDefaultForType(self.Outputs.Out.Type)
 
 			Wire_TriggerOutput(self, "Out", value, iter)
 		end
@@ -171,8 +171,7 @@ function ENT:GetActionInputs(as_names)
 			if (as_names) then
 				table.insert(Args, self.Action.inputs[#Args+1] or "*Not enough inputs*")
 			else
-				--table.insert( Args, WireLib.DT[ (self.Action.inputtypes[#Args+1] or "NORMAL") ].Zero )
-				table.insert( Args, WireLib.DT[ self.Inputs[ self.Action.inputs[#Args+1] ].Type ].Zero )
+				table.insert( Args, WireLib.GetDefaultForType(self.Inputs[ self.Action.inputs[#Args+1] ].Type) )
 			end
 		end
 	else
@@ -186,7 +185,7 @@ function ENT:GetActionInputs(as_names)
 			if (as_names) then
 				Args[k] = IsValid(input.Src) and (input.Src.WireName or input.Src.WireDebugName) or v
 			else
-				Args[k] = IsValid(input.Src) and input.Value or WireLib.DT[ self.Inputs[v].Type ].Zero
+				Args[k] = IsValid(input.Src) and input.Value or WireLib.GetDefaultForType(self.Inputs[v].Type)
 			end
 		end
 	end
@@ -198,13 +197,13 @@ function ENT:GetActionOutputs()
 	if (self.Action.outputs) then
 		local result = {}
 		for _,v in ipairs(self.Action.outputs) do
-		    result[v] = self.Outputs[v].Value or WireLib.DT[ self.Outputs[v].Type ].Zero
+			result[v] = self.Outputs[v].Value or WireLib.GetDefaultForType(self.Outputs[v].Type)
 		end
 
 		return result
 	end
 
-	return self.Outputs.Out.Value or WireLib.DT[ self.Outputs.Out.Type ].Zero
+	return self.Outputs.Out.Value or WireLib.GetDefaultForType(self.Outputs.Out.Type)
 end
 
 function WireLib.MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
