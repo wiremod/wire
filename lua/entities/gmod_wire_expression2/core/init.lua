@@ -14,7 +14,7 @@ local wire_expression2_debug = CreateConVar("wire_expression2_debug", 0, 0)
 
 if SERVER then
 	cvars.AddChangeCallback("wire_expression2_debug", function(CVar, PreviousValue, NewValue)
-		if (PreviousValue) == NewValue then return end
+		if PreviousValue == NewValue then return end
 		wire_expression2_reload()
 	end)
 end
