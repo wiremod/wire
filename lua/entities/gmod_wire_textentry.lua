@@ -196,7 +196,7 @@ function ENT:OnTextEntered(text)
 		end)
 	end
 
-	timer.Create(timernam.."_disable_entered", ENTERED_DISABLE_DELAY, 1, function()
+	timer.Create(timername.."_disable_entered", ENTERED_DISABLE_DELAY, 1, function()
 		WireLib.TriggerOutput( self, "Entered", 0 )
 	end)
 end
