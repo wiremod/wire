@@ -14,6 +14,8 @@ local atan2 = math.atan2
 local asin = math.asin
 local rad2deg = 180 / pi
 local deg2rad = pi / 180
+local quadraticBezier = math.QuadraticBezier
+local cubicBezier = math.CubicBezier
 
 -- TODO: add reflect?
 -- TODO: add absdotproduct?
@@ -26,7 +28,7 @@ registerType("vector", "v", Vector(0, 0, 0),
 	function(self, output) return Vector(output) end,
 	function(retval)
 		if isvector(retval) then return end
-		error("Return value is not a Vector, but a "..type(retval).."!",0)
+		error("Return value is not a Vector, but a " .. type(retval) .. "!", 0)
 	end,
 	function(v)
 		return not isvector(v)
@@ -77,7 +79,7 @@ registerOperator("ass", "v", "v", function(self, args)
 	local Scope = self.Scopes[scope]
 	local lookup = Scope.lookup
 	if not lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
+	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = { [lhs] = true } end
 
 	Scope[lhs] = rhs
 	Scope.vclk[lhs] = true
@@ -188,7 +190,7 @@ __e2setcost(10) -- temporary
 
 --- Returns a uniformly distributed, random, normalized direction vector.
 e2function vector randvec()
-	local s,a, x,y
+	local s, a, x, y
 
 	--[[
 	  This is a variant of the algorithm for computing a random point
@@ -522,19 +524,15 @@ end
 
 --- Mix two vectors by a given proportion (between 0 and 1)
 e2function vector mix(vector vec1, vector vec2, ratio)
-	return Vector(
-		vec1[1] * ratio + vec2[1] * (1-ratio),
-		vec1[2] * ratio + vec2[2] * (1-ratio),
-		vec1[3] * ratio + vec2[3] * (1-ratio)
-	)
+	return vec1 * ratio + vec2 * (1 - ratio)
 end
 
-e2function vector bezier(vector startVec, vector control, vector endVec, ratio)
-	return Vector(
-		(1-ratio)^2 * startVec[1] + (2 * (1-ratio) * ratio * control[1]) + ratio^2 * endVec[1],
-		(1-ratio)^2 * startVec[2] + (2 * (1-ratio) * ratio * control[2]) + ratio^2 * endVec[2],
-		(1-ratio)^2 * startVec[3] + (2 * (1-ratio) * ratio * control[3]) + ratio^2 * endVec[3]
-	)
+e2function vector bezier(vector startVec, vector tangent, vector endVec, ratio)
+	return quadraticBezier(ratio, startVec, tangent, endVec)
+end
+
+e2function vector bezier(vector startVec, vector tangent1, vector tangent2, vector endVec, ratio)
+	return cubicBezier(ratio, startVec, tangent1, tangent2, endVec)
 end
 
 __e2setcost(2)
@@ -594,9 +592,10 @@ local cache_concatenated_parts = setmetatable({ [0] = "empty" }, cachemeta)
 local function generateContents( n )
 	local parts_array, lookup_table = {}, {}
 
-	for i = 0,30 do
-		if bit.band(n, (2^i)) ~= 0 then
-			local name = contents[2^i]
+	for i = 0, 30 do
+		local v = bit.lshift(1, i)
+		if bit.band(n, v) ~= 0 then
+			local name = contents[v]
 			lookup_table[name] = true
 			parts_array[#parts_array+1] = name
 		end
@@ -666,7 +665,7 @@ end
 
 --- Converts a world position/angle to a local position/angle and returns the angle
 e2function angle toLocalAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local _, ang = WorldToLocal(localpos,localang,worldpos,worldang)
+	local _, ang = WorldToLocal(localpos, localang, worldpos, worldang)
 	return ang
 end
 

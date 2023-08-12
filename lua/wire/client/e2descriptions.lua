@@ -534,6 +534,7 @@ E2Helper.Descriptions["pointContentsArray(v)"] = "Returns an array with all the 
 E2Helper.Descriptions["pointHasContent(vs)"] = "'S' can be a string containing the last half of the CONTENTS_ enums (ie without the \"CONTENTS_\"). Multiple CONTENTS types can be seperated by a comma. Check: Enumeration_List:Contents for a full list. Examples: \"water,solid\" or \"empty,transparent\". The function returns 1 if any one of the types are found in the vector point"
 E2Helper.Descriptions["bezier(xv2xv2xv2n)"] = "Returns the 2D position on the bezier curve between the starting and ending 2D vector, given by the ratio (value between 0 and 1)"
 E2Helper.Descriptions["bezier(vvvn)"] = "Returns the 3D vector position on the bezier curve between the starting and ending 3D vector, given by the ratio (value between 0 and 1)"
+E2Helper.Descriptions["bezier(vvvvn)"] = "Returns the 3D vector position on the bezier curve between the starting and ending 3D vector, given by the ratio (value between 0 and 1)"
 
 -- Matrix
 E2Helper.Descriptions["identity2()"] = "Creates a 2x2 identity matrix"
