@@ -1362,6 +1362,9 @@ E2Helper.Descriptions["shift(r:)"] = "Removes the first element of the array; al
 E2Helper.Descriptions["remove(r:n)"] = "Removes the specified entry, moving subsequent entries down to compensate and returns 1 if removed"
 E2Helper.Descriptions["unset(r:n)"] = "Force removes the specified entry, without moving subsequent entries down and returns 1 if removed"
 
+E2Helper.Descriptions["toString(r)"] = "Returns a string representation of the array and its contents for debugging purposes. Return format may change in the future and should not be relied on."
+E2Helper.Descriptions["toString(r:)"] = "Returns a string representation of the array and its contents for debugging purposes. Return format may change in the future and should not be relied on."
+
 -- binary
 E2Helper.Descriptions["bOr(nn)"] = "Performs bitwise OR against the two numbers"
 E2Helper.Descriptions["bAnd(nn)"] = "Performs bitwise AND against the two numbers"

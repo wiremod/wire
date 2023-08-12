@@ -76,7 +76,7 @@ registerOperator("ass", "v", "v", function(self, args)
 
 	local Scope = self.Scopes[scope]
 	local lookup = Scope.lookup
-	if !lookup then lookup = {} Scope.lookup = lookup end
+	if not lookup then lookup = {} Scope.lookup = lookup end
 	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
 
 	Scope[lhs] = rhs
@@ -174,12 +174,12 @@ end
 
 e2function string operator+(string lhs, vector rhs)
 	self.prf = self.prf + #lhs * 0.01
-	return lhs .. ("vec(%.2f,%.2f,%.2f)"):format(rhs[1], rhs[2], rhs[3])
+	return lhs .. ("vec(%g,%g,%g)"):format(rhs[1], rhs[2], rhs[3])
 end
 
 e2function string operator+(vector lhs, string rhs)
 	self.prf = self.prf + #rhs * 0.01
-	return ("vec(%.2f,%.2f,%.2f)"):format(lhs[1], lhs[2], lhs[3]) .. rhs
+	return ("vec(%g,%g,%g)"):format(lhs[1], lhs[2], lhs[3]) .. rhs
 end
 
 --------------------------------------------------------------------------------
@@ -593,7 +593,6 @@ local cache_concatenated_parts = setmetatable({ [0] = "empty" }, cachemeta)
 
 local function generateContents( n )
 	local parts_array, lookup_table = {}, {}
-	local ret = {}
 
 	for i = 0,30 do
 		if bit.band(n, (2^i)) ~= 0 then
@@ -651,7 +650,7 @@ end
 
 --- Converts a local position/angle to a world position/angle and returns the angle
 e2function angle toWorldAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local pos, ang = LocalToWorld(localpos, localang, worldpos, worldang)
+	local _, ang = LocalToWorld(localpos, localang, worldpos, worldang)
 	return ang
 end
 
@@ -667,7 +666,7 @@ end
 
 --- Converts a world position/angle to a local position/angle and returns the angle
 e2function angle toLocalAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local vec, ang = WorldToLocal(localpos,localang,worldpos,worldang)
+	local _, ang = WorldToLocal(localpos,localang,worldpos,worldang)
 	return ang
 end
 
@@ -714,9 +713,8 @@ end
 
 __e2setcost( 5 )
 
---- Gets the vector nicely formatted as a string "[X,Y,Z]"
 e2function string toString(vector v)
-	return ("[%s,%s,%s]"):format(v[1],v[2],v[3])
+	return ("vec(%g,%g,%g)"):format(v[1], v[2], v[3])
 end
 
 --- Gets the vector nicely formatted as a string "[X,Y,Z]"

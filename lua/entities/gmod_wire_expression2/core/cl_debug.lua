@@ -1,4 +1,5 @@
 CreateClientConVar( "wire_expression2_print_max", 15, true, true )
+CreateClientConVar( "wire_expression2_print_max_length", 1000, true, true )
 CreateClientConVar( "wire_expression2_print_delay", 0.3, true, true )
 
 local chips = {}
@@ -22,4 +23,8 @@ net.Receive("wire_expression2_printColor", function( len, ply )
 	else
 		chat.AddText(unpack(net.ReadTable()))
 	end
+end)
+
+net.Receive("wire_expression2_print", function(len, ply)
+	chat.AddText(net.ReadString())
 end)
