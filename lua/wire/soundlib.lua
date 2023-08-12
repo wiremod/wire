@@ -8,8 +8,6 @@ local function Riff_ReadChunkHeader(fil)
     local content_len = fil:ReadULong()
     content_len = content_len + bit.band(content_len, 1)
 
-    print("> header", id, content_len)
-
     return id, content_len
 end
 
@@ -38,14 +36,12 @@ local function WavIsLooped_Impl(path)
 
     if resultid == "cue " then
         local cue_count = fil:ReadULong()
-        print("Cue count", cue_count)
         fil:Close()
     
         return cue_count ~= 0
     elseif resultid == "smpl" then
         fil:Skip(7*4)
         local sampler_count = fil:ReadULong()
-        print("Sampler count", sampler_count)
         fil:Close()
     
         return sampler_count ~= 0
