@@ -40,6 +40,7 @@ if CLIENT then
 			end,
 			"Enter","Cancel"
 		)
+		panel:SetBackgroundBlur(false)
 	end)
 
 	net.Receive( "wire_textentry_kick", function()
