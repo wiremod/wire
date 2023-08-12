@@ -77,10 +77,16 @@ function ENT:Initialize()
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetUseType(SIMPLE_USE)
 
-	self.Inputs=WireLib.CreateInputs(self,{"Block Input (When set to a non-zero value, blocks any further inputs.)","Prompt (When set to a non-zero value, opens the prompt popup for the driver of the linked vehicle.\nIf no vehicle is linked, opens the prompt for the owner of this entity instead.)"})
-	self.Outputs=WireLib.CreateOutputs(self,{"In Use","Text [STRING]","User [ENTITY]"})
+	self.Inputs=WireLib.CreateInputs(self,{
+		"Block Input (When set to a non-zero value, blocks any further inputs.)",
+		"Prompt (When set to a non-zero value, opens the prompt popup for the driver of the linked vehicle.\n"
+		.."If no vehicle is linked, opens the prompt for the owner of this entity instead.)"})
+	self.Outputs=WireLib.CreateOutputs(self,{
+		"In Use","Text [STRING]","User [ENTITY]",
+		"Entered (Set to 1 for a bit when text is successfully entered)"
+	})
 
-	self.BlockInput=false
+	self.BlockInput = false
 	self.NextPrompt = 0
 
 	self:UpdateOverlay()
@@ -164,22 +170,35 @@ net.Receive("wire_textentry_action",function(len,ply)
 	self:Unprompt() -- in all cases, make text entry available for use again
 
 	if ok and not self.BlockInput then
-		WireLib.TriggerOutput( self, "Text", text )
+		self:OnTextEntered(text)
 
-		local timername = "wire_textentry_" .. self:EntIndex()
-		timer.Remove( timername )
-		if math.max(self:GetHold(),0) > 0 then
-			timer.Create( timername, math.max(self:GetHold(),0), 1, function()
-				if IsValid( self ) then
-					WireLib.TriggerOutput( self, "User", nil )
-					WireLib.TriggerOutput( self, "Text", "" )
-				end
-			end)
-		end
+		
 	end
 
 	self:UpdateOverlay()
 end)
+
+local ENTERED_DISABLE_DELAY = 0.1
+
+function ENT:OnTextEntered(text)
+	WireLib.TriggerOutput( self, "Text", text )
+	WireLib.TriggerOutput( self, "Entered", 1 )
+
+	local timername = "wire_textentry_" .. self:EntIndex()
+	timer.Remove( timername )
+	if math.max(self:GetHold(),0) > 0 then
+		timer.Create( timername, math.max(self:GetHold(),0), 1, function()
+			if IsValid( self ) then
+				WireLib.TriggerOutput( self, "User", nil )
+				WireLib.TriggerOutput( self, "Text", "" )
+			end
+		end)
+	end
+
+	timer.Create(timernam.."_disable_entered", ENTERED_DISABLE_DELAY, 1, function()
+		WireLib.TriggerOutput( self, "Entered", 0 )
+	end)
+end
 
 ----------------------------------------------------
 -- Prompt
