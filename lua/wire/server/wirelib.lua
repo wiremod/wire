@@ -611,6 +611,7 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 	if (not ent.Outputs) then return end
 
 	local output = ent.Outputs[oname]
+	if not output then return end
 
 	local ty = WireLib.DT[output.Type]
 	if ty and not ty.Validator(value) then
@@ -618,7 +619,7 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 		value = ty.Zero()
 	end
 
-	if output and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]])) then
+	if value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]]) then
 		local timeOfFrame = CurTime()
 		if timeOfFrame ~= output.TriggerTime then
 			-- Reset the TriggerLimit every frame
