@@ -299,7 +299,7 @@ number_of_keys = number_of_keys + 7
 number_of_keys = number_of_keys + 3
 
 local function UpdateKeys(ply, bind, key, state)
-	local uid = ply:UniqueID()
+	local uid = ply:SteamID()
 
 	local keystate = {
 		runByKey = ply,
