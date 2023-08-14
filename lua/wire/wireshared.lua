@@ -936,22 +936,13 @@ function WireLib.setLocalPos(ent, pos)
 	return ent:SetLocalPos(WireLib.clampPos(pos))
 end
 
-local huge, abs = math.huge, math.abs
 function WireLib.setAng(ent, ang)
 	if isnan(ang.pitch) or isnan(ang.yaw) or isnan(ang.roll) then return end
-	if abs(ang.pitch) == huge or abs(ang.yaw) == huge or abs(ang.roll) == huge then return false end -- SetAngles'ing inf crashes the server
-
-	ang = Angle(ang)
-
 	return ent:SetAngles(ang)
 end
 
 function WireLib.setLocalAng(ent, ang)
 	if isnan(ang.pitch) or isnan(ang.yaw) or isnan(ang.roll) then return end
-	if abs(ang.pitch) == huge or abs(ang.yaw) == huge or abs(ang.roll) == huge then return false end -- SetAngles'ing inf crashes the server
-
-	ang = Angle(ang)
-
 	return ent:SetLocalAngles(ang)
 end
 

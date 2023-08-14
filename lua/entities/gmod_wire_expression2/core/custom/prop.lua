@@ -630,7 +630,7 @@ end
 
 e2function void entity:setLocalPos(vector pos)
 	if not ValidAction(self, this, "pos") then return end
-	WireLib.setLocalPos(this, Vector(pos[1], pos[2], pos[3]))
+	WireLib.setLocalPos(this, pos)
 end
 
 [deprecated]
@@ -643,7 +643,7 @@ end
 
 e2function void entity:setLocalAng(angle rot)
 	if not ValidAction(self, this, "ang") then return end
-	WireLib.setLocalAng(this, Angle(rot[1], rot[2], rot[3]))
+	WireLib.setLocalAng(this, rot)
 end
 
 [deprecated]
