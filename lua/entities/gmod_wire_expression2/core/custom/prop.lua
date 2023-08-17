@@ -628,12 +628,22 @@ e2function void entity:setPos(vector pos)
 	PhysManipulate(this, pos, nil, nil, nil, nil)
 end
 
+e2function void entity:setLocalPos(vector pos)
+	if not ValidAction(self, this, "pos") then return end
+	WireLib.setLocalPos(this, pos)
+end
+
 [deprecated]
 e2function void entity:reposition(vector pos) = e2function void entity:setPos(vector pos)
 
 e2function void entity:setAng(angle rot)
 	if not ValidAction(self, this, "ang") then return end
 	PhysManipulate(this, nil, rot, nil, nil, nil)
+end
+
+e2function void entity:setLocalAng(angle rot)
+	if not ValidAction(self, this, "ang") then return end
+	WireLib.setLocalAng(this, rot)
 end
 
 [deprecated]

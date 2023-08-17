@@ -931,14 +931,19 @@ function WireLib.setPos(ent, pos)
 	return ent:SetPos(WireLib.clampPos(pos))
 end
 
-local huge, abs = math.huge, math.abs
+function WireLib.setLocalPos(ent, pos)
+	if isnan(pos.x) or isnan(pos.y) or isnan(pos.z) then return end
+	return ent:SetLocalPos(WireLib.clampPos(pos))
+end
+
 function WireLib.setAng(ent, ang)
 	if isnan(ang.pitch) or isnan(ang.yaw) or isnan(ang.roll) then return end
-	if abs(ang.pitch) == huge or abs(ang.yaw) == huge or abs(ang.roll) == huge then return false end -- SetAngles'ing inf crashes the server
-
-	ang = Angle(ang)
-
 	return ent:SetAngles(ang)
+end
+
+function WireLib.setLocalAng(ent, ang)
+	if isnan(ang.pitch) or isnan(ang.yaw) or isnan(ang.roll) then return end
+	return ent:SetLocalAngles(ang)
 end
 
 -- Used by any applyForce function available to the user
