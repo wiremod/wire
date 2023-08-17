@@ -71,7 +71,6 @@ end
 
 e2function void wirelink:egpOrder( number index, number order )
 	if (!EGP:IsAllowed( self, this )) then return end
-	if (index == order) then return end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
 		local bool2 = EGP:SetOrder( this, k, order )
