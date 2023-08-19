@@ -100,7 +100,7 @@ if CLIENT then
 
 	function ENT:Draw()
 		self:DrawModel()
-		
+
 		self.GPU:RenderToWorld(nil, 188, function(x, y, w, h)
 			surface.SetDrawColor(background_color)
 			surface.DrawRect(x, y, w, h)

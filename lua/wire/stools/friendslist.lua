@@ -15,7 +15,7 @@ if CLIENT then
 	language.Add( "wire_friendslist_invalid_steamid", "Invalid SteamID" )
 	language.Add( "wire_friendslist_connected_players", "Currently connected players" )
 	language.Add( "wire_friendslist_not_connected", "Not Connected" )
-	
+
 	language.Add( "wire_friendslist_sync_with_steam", "Sync With Steam Friends" )
 	language.Add( "wire_friendslist_sync_with_cppi", "Sync With CPPI (Prop Protection)" )
 	language.Add( "wire_friendslist_sync_with_help", "Sync with Steam/CPPI. These synced settings ignore the 'save on entity' setting - friends on your steam/cppi lists will always be synced regardless." )
@@ -67,8 +67,8 @@ if SERVER then
 	end)
 
 	function TOOL:GetConVars()
-		return 
-			self:GetClientNumber( "save_on_entity" ) ~= 0, 
+		return
+			self:GetClientNumber( "save_on_entity" ) ~= 0,
 			friends[self:GetOwner()] or {},
 			self:GetClientNumber( "sync_with_steam" ) ~= 0,
 			self:GetClientNumber( "sync_with_cppi" ) ~= 0

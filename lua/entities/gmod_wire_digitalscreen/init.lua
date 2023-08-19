@@ -105,9 +105,9 @@ local function calcGlobalBW()
 	local n = 0
 
 	-- count the number of digi screens currently sending data
-	for digi in pairs(globalBandwidthLookup) do 
+	for digi in pairs(globalBandwidthLookup) do
 		if not IsValid(digi) then globalBandwidthLookup[digi] = nil end -- this most likely won't trigger due to OnRemove, but just in case
-		n = n + 1 
+		n = n + 1
 	end
 
 	-- player count also seems to affect lag somewhat
@@ -124,7 +124,7 @@ local function calcGlobalBW()
 
 	maxBandwidth = math.max(100,math.Round(math.min(defaultMaxBandwidth,maxBandwidth / n),2))
 end
-local function addGlobalBW(e) 
+local function addGlobalBW(e)
 	globalBandwidthLookup[e] = true
 	calcGlobalBW()
 end
@@ -193,14 +193,14 @@ function ENT:FlushCache(ply)
 	self.deltaStep = (self.deltaStep or 0) * 0.5 + self.ChangedStep * 0.5
 	self.deltaN = (self.deltaN or 0) * 0.5 + n * 0.5
 
-	if 
+	if
 		-- reset queue if we've reached the end
 		self.ChangedStep > n or
 
 		-- if the queue length keeps growing faster than we can process it, just clear it
 		-- this check is mostly to detect the worst possible case where the user spams single random pixels
 		(n > self.ScreenWidth * self.ScreenHeight and self.deltaStep * 4 < self.deltaN) then
-		
+
 		self.ChangedCellRanges = {}
 		self.ChangedStep = 1
 	end

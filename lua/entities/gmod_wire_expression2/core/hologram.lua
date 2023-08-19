@@ -904,7 +904,7 @@ e2function vector holoBonePos(index, boneindex)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return Vector(0, 0, 0) end
 	if not CheckBone(self, index, boneindex, Holo) then return Vector(0, 0, 0) end
-	
+
 	return Holo.ent:GetBoneMatrix(boneindex):GetTranslation()
 end
 
@@ -922,7 +922,7 @@ e2function angle holoBoneAng(index, boneindex)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return Angle(0, 0, 0) end
 	if not CheckBone(self, index, boneindex, Holo) then return Angle(0, 0, 0) end
-	
+
 	return Holo.ent:GetBoneMatrix(boneindex):GetAngles()
 end
 
@@ -1060,7 +1060,7 @@ end
 e2function void holoInvertModel( index, enable )
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	
+
 	Holo.ent:SetNWInt("invert_model", enable ~= 0 and 1 or 0)
 end
 

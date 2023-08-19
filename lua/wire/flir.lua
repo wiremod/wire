@@ -14,7 +14,7 @@
 	* Add entities to the list as they are parented. If something is parented while FLIR is enabled, it doesn't
 		add itself until it's switched off and back on.
 	* Sun pops in and out of full brightness when looking around it
-	
+
 --]]
 
 if not FLIR then FLIR = { enabled = false } end

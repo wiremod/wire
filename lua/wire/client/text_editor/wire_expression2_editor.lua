@@ -796,7 +796,7 @@ function Editor:InitComponents()
 	self.C.Control = self:addComponent(vgui.Create("Panel", self), -350, 52, 342, -32) -- Control Panel
 	self.C.Credit = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 150) -- Credit box
 	self.C.Credit:SetEditable(false)
-	
+
 	self:CreateTab("generic")
 
 	-- extra component options
@@ -1652,10 +1652,10 @@ end
 function Editor:Validate(gotoerror)
 	local header_color, header_text = nil, nil
 	local problems_errors, problems_warnings = {}, {}
-	
+
 	if self.EditorType == "E2" then
 		local errors, _, warnings = wire_expression2_validate(self:GetCode())
-		
+
 		if not errors then
 			if warnings then
 				header_color = Color(163, 130, 64, 255)
@@ -1681,14 +1681,14 @@ function Editor:Validate(gotoerror)
 			if not row then
 				row, col = errors:match("at line ([0-9]+)$"), 1
 			end
-			
+
 			problems_errors = {{message = string.Explode(" at line", errors)[1], line = row, char = col}}
 
 			if gotoerror then
 				if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
 			end
 		end
-		
+
 	elseif self.EditorType == "CPU" or self.EditorType == "GPU" or self.EditorType == "SPU" then
 		header_color = Color(64, 64, 64, 180)
 		header_text = "Recompiling..."
@@ -1833,7 +1833,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 		self:Close()
 		return
 	end
-	
+
 	if not Line or SaveAs or Line == self.Location .. "/" .. ".txt" then
 		local str
 		if self.C.Browser.File then
@@ -1863,7 +1863,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 				local save_location = self.Location .. "/" .. strTextOut .. ".txt"
 				if file.Exists(save_location, "DATA") then
-					Derma_QueryNoBlur("The file '" .. strTextOut .. "' already exists. Do you want to overwrite it?", "File already exists", 
+					Derma_QueryNoBlur("The file '" .. strTextOut .. "' already exists. Do you want to overwrite it?", "File already exists",
 					"Yes", function() self:SaveFile(save_location, close) end,
 					"No", function() end)
 				else

@@ -7,18 +7,18 @@ if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	BaseClass.Initialize(self)
-	WireLib.CreateInputs( self, { 
-		"Length (Sets the length of the hydraulic)", 
-		"In (Decreases the length of the hydraulic each tick.)", 
-		"Out (Increases the length of the hydraulic each tick.)", 
-		"Constant (Affects the strength of the hydraulic. Higher values means it's able to lift more weight, and more easily overcome the inertia of attached entities.\nSet to zero to reset this value to the default.)", 
+	WireLib.CreateInputs( self, {
+		"Length (Sets the length of the hydraulic)",
+		"In (Decreases the length of the hydraulic each tick.)",
+		"Out (Increases the length of the hydraulic each tick.)",
+		"Constant (Affects the strength of the hydraulic. Higher values means it's able to lift more weight, and more easily overcome the inertia of attached entities.\nSet to zero to reset this value to the default.)",
 		"Damping (Affects the springyness of the hydraulic.\nLower values means more bouncyness, higher values means more resistant to change.\nIf set too high, may cause severe shaking.\nSet to zero to reset this value to the default.)"
 	})
-	WireLib.CreateOutputs( self, { 
-		"Length", 
-		"Target Length", 
-		"Constant", 
-		"Damping" 
+	WireLib.CreateOutputs( self, {
+		"Length",
+		"Target Length",
+		"Constant",
+		"Damping"
 	})
 	self.TargetLength = 0
 	self.current_constant = 0

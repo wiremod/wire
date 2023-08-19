@@ -64,13 +64,13 @@ function ENT:Initialize()
 	self:SetUseType(ONOFF_USE)
 
 	self.Inputs = WireLib.CreateInputs(self, { "Kick (Kicks the player currently using the keyboard out)", "Reset Output String" })
-	self.Outputs = WireLib.CreateOutputs(self, { 
-		"Memory (Outputs the last pressed key's ascii value.\nNote that this may skip keypresses due to being unable to update fast enough.\nEither use the 'Output' string or 'ActiveKeys' array outputs, or use\nE2/zCPU with hi-speed/wirelink to be able to catch all keypresses.)", 
-		"Output [STRING]", 
-		"OutputChar (Outputs the last pressed key.\nNote that this may skip keypresses due to being unable to update fast enough.) [STRING]", 
-		"ActiveKeys (Outputs an array of currently held key ascii values.) [ARRAY]", 
-		"User [ENTITY]", 
-		"InUse" 
+	self.Outputs = WireLib.CreateOutputs(self, {
+		"Memory (Outputs the last pressed key's ascii value.\nNote that this may skip keypresses due to being unable to update fast enough.\nEither use the 'Output' string or 'ActiveKeys' array outputs, or use\nE2/zCPU with hi-speed/wirelink to be able to catch all keypresses.)",
+		"Output [STRING]",
+		"OutputChar (Outputs the last pressed key.\nNote that this may skip keypresses due to being unable to update fast enough.) [STRING]",
+		"ActiveKeys (Outputs an array of currently held key ascii values.) [ARRAY]",
+		"User [ENTITY]",
+		"InUse"
 	})
 
 	self.ActiveKeys = {} -- table containing all currently active keys, used to see when keys are pressed/released
