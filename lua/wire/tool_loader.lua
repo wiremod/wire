@@ -708,7 +708,7 @@ if SERVER then
 		if not controller.WireLinkedEnts then return end
 		if not controller.WireLinkedEnts.Marks then return end
 		if controller.WireLinkedEnts.LastUpdated < lastUpdated then return end
-			
+
 		net.Start("WireLinkedEnts")
 			net.WriteEntity(controller)
 			net.WriteFloat(controller.WireLinkedEnts.LastUpdated)

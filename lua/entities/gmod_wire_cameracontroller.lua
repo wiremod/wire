@@ -9,7 +9,7 @@ local function doRotate(curpos,curang,ply,parent,AutoMove,LocalMove,distance)
 		-- TODO: remove this check at some point in the future when LocalEyeAngles is available in the stable version of gmod
 		if ply.LocalEyeAngles then
 			curang =  ply:LocalEyeAngles()
-		else 
+		else
 			curang = ply:EyeAngles()
 			local veh = ply:GetVehicle()
 			if SERVER and IsValid( veh ) then curang = veh:WorldToLocalAngles( curang ) end
@@ -360,25 +360,25 @@ end
 
 function ENT:Initialize()
 	BaseClass.Initialize(self)
-	WireLib.CreateOutputs( self, { 	
-		"On", 
-		"HitPos (The hitpos of a trace emitted from the user) [VECTOR]", 
-		"CamPos (The position of the camera.\nTakes clientside rotation into account, but not clientside zooming.) [VECTOR]", 
+	WireLib.CreateOutputs( self, {
+		"On",
+		"HitPos (The hitpos of a trace emitted from the user) [VECTOR]",
+		"CamPos (The position of the camera.\nTakes clientside rotation into account, but not clientside zooming.) [VECTOR]",
 		"CamDir (The direction of the camera, in vector form.\nTakes clientside rotation into account.) [VECTOR]",
-		"CamAng (The direction of the camera, in angle form.\nTakes clientside rotation into account.) [ANGLE]", 
+		"CamAng (The direction of the camera, in angle form.\nTakes clientside rotation into account.) [ANGLE]",
 		"Trace (A trace emitted from the user) [RANGER]"
 	})
-	WireLib.CreateInputs( self, {	
-		"Activated", 
-		"Direction (Sets the direction of the camera, in vector form.\nIf clientside movement is enabled, this is ignored.) [VECTOR]", 
-		"Angle (Sets the direction of the camera, in angle form.\nIf clientside movement is enabled, this is ignored.) [ANGLE]", 
+	WireLib.CreateInputs( self, {
+		"Activated",
+		"Direction (Sets the direction of the camera, in vector form.\nIf clientside movement is enabled, this is ignored.) [VECTOR]",
+		"Angle (Sets the direction of the camera, in angle form.\nIf clientside movement is enabled, this is ignored.) [ANGLE]",
 		"Position (Sets the position of the camera.\nIf clientside movement is enabled, this specifies the center of the camera's orbit.) [VECTOR]",
-		"Distance (Sets the 'distance' of the camera.\nIn other words, the camera will be moved away from the specified position by this amount.\nIf clientside zooming is enabled, this is the farthest you can zoom in.)", 
-		"UnRoll (If free movement is enabled, this resets the roll back to zero.)", 
-		"Parent (Parents the camera to this entity.) [ENTITY]", 
-		"FilterEntities (In addition to ignoring the contraption of the 'Parent' entity, or the cam controller itself\nif parent isn't used, entities in this list will be ignored by the 'HitPos' and 'Trace' outputs) [ARRAY]", 
-		"FLIR", 
-		"FOV" 
+		"Distance (Sets the 'distance' of the camera.\nIn other words, the camera will be moved away from the specified position by this amount.\nIf clientside zooming is enabled, this is the farthest you can zoom in.)",
+		"UnRoll (If free movement is enabled, this resets the roll back to zero.)",
+		"Parent (Parents the camera to this entity.) [ENTITY]",
+		"FilterEntities (In addition to ignoring the contraption of the 'Parent' entity, or the cam controller itself\nif parent isn't used, entities in this list will be ignored by the 'HitPos' and 'Trace' outputs) [ARRAY]",
+		"FLIR",
+		"FOV"
 	})
 
 	self.Activated = false -- Whether or not to activate the cam controller for all players sitting in linked vehicles, or as soon as a player sits in a linked vehicle

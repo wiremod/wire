@@ -1143,7 +1143,7 @@ e2function void wirelink:egpHudToggle()
 	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", nil) end
 	if antispam[self.player] and antispam[self.player] > CurTime() then return end
 	antispam[self.player] = CurTime() + 0.1
-	
+
 	timer.Simple(0, function()
 		EGP.EGPHudConnect(this, not (this.Users ~= nil and this.Users[self.player] ~= nil), self.player)
 	end)
@@ -1153,7 +1153,7 @@ e2function void wirelink:egpHudEnable(enable)
 	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", nil) end
 	if antispam[self.player] and antispam[self.player] > CurTime() then return end
 	antispam[self.player] = CurTime() + 0.1
-	
+
 	timer.Simple(0, function()
 		EGP.EGPHudConnect(this, enable ~= 0, self.player)
 	end)
@@ -1162,7 +1162,7 @@ end
 e2function array wirelink:egpConnectedUsers()
 	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", nil) end
 	if not this.Users then return {} end
-	
+
 	local sanitised_array, i = {}, 0
 	for k, _ in pairs(this.Users) do
 		i = i + 1

@@ -88,18 +88,18 @@ end
 function ENT:DoSpawn( pl, down )
 
 	if self.DisabledByTimeUntil > CurTime() then return end
-	
+
 	if self.DisabledByTouch then --If we'll teleport spawned prop fast prop spawner will remain disabled forever (Fix by Supertos)
-		-- self.TouchDisabledProp is entity, not table here 'cause we can't spawn any more props while this one is stuck 
+		-- self.TouchDisabledProp is entity, not table here 'cause we can't spawn any more props while this one is stuck
 		if IsValid( self.TouchDisabledProp ) then	--If there's no prop why should we even care?
 			local mins, maxs = self:GetPhysicsObject():GetAABB()
 			local size = maxs-mins
 			local test_radius = math.max( size.X, size.Y, size.Z )
-			
+
 			if self.TouchDisabledProp:GetPos():Distance( self:GetPos() ) < test_radius*2 then return end --This prop is still inside prop spawner (Multiple by two because spawned prop has some volume too )
 		end
 	end
-	
+
 	local ent	= self
 	if (not ent:IsValid()) then return end
 
@@ -110,7 +110,7 @@ function ENT:DoSpawn( pl, down )
 	local Ang	= ent:GetAngles()
 	local model	= ent:GetModel()
 	local prop  = nil
-	
+
 	if self.spawn_effect ~= 0 then
 		prop = MakeProp( pl, Pos, Ang, model, {}, {} )
 	else

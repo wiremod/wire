@@ -57,7 +57,7 @@ end
 function Obj:Contains(egp, x, y)
 	x, y = EGP.WorldToLocal(egp, self, x, y)
 	x, y = x / self.w, y / self.h
-	
+
 	if x * x + y * y > 1 then return false end
 	theta = math.deg(math.atan2(y, x))
 	return theta <= -self.size or 0 <= theta

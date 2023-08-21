@@ -56,7 +56,7 @@ local MIN_TRIGGER_TIME = 0.01 -- Minimum triggering Time for in- and outputs.
 -- This checks if you can give an entity wiremod abilities
 function ENT:IsWireableEntity(Entity)
 	if (not IsValid(Entity)) then return false end -- No interface for invalid entities!
-	if (IsValid(Entity._WireMapInterfaceEnt) and (Entity._WireMapInterfaceEnt ~= self)) then return false end -- Only one interface per entity! 
+	if (IsValid(Entity._WireMapInterfaceEnt) and (Entity._WireMapInterfaceEnt ~= self)) then return false end -- Only one interface per entity!
 	if (not IsValid(Entity._WireMapInterfaceEnt) and (WireLib.HasPorts(Entity) or Entity.IsWire or Entity.Inputs or Entity.Outputs)) then return false end -- Don't destroy wiremod entites!
 
 	if (Entity:IsWorld()) then return false end -- No interface for the worldspawn!
