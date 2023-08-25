@@ -549,7 +549,7 @@ local CompileVisitors = {
 						state:PopScope()
 						return
 					else -- Fallthrough, run every case until break found.
-						for j = i, ncases do
+						for j = i + 1, ncases do
 							cases[j][2](state)
 							if state.__break__ then
 								state.__break__ = false

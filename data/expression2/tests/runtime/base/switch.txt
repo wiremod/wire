@@ -22,6 +22,14 @@ switch (5) { # Ensure fallthrough works
 
 assert(Num == 121)
 
+switch (1) {
+	case 1,
+		Num++
+	case 2,
+}
+
+assert(Num == 122, "fallthrough ran multiple times")
+
 switch (vec()) {
 	case vec(),
 	break
