@@ -188,7 +188,10 @@ E2Helper.Descriptions["keyvalues(e:)"] = "Returns the keyvalue table of an entit
 E2Helper.Descriptions["owner(e:)"] = "Gets the owner of an entity"
 E2Helper.Descriptions["name(e:)"] = "Gets the name of a player"
 E2Helper.Descriptions["steamID(e:)"] = "Gets the steam ID of the player"
-E2Helper.Descriptions["steamID64(e:)"] = "Gets the Steam Community ID (aka Steam64) of the given player"
+E2Helper.Descriptions["steamID64(e:)"] = "Gets the Steam Community ID (aka Steam64) of the player"
+E2Helper.Descriptions["accountID(e:)"] = "Gets the account ID of the player. This is the significant portion of the Steam3 ID. Note that this is not guaranteed to be unique."
+E2Helper.Descriptions["userID(e:)"] = "Gets the user ID/index of the player. This is used in player(userID)"
+E2Helper.Descriptions["player(n)"] = "Gets the player with the specified user ID. See entity:userID()"
 E2Helper.Descriptions["isSteamFriend(e:e)"] = "Returns if the given Entity is a steam friend of the first Entity"
 E2Helper.Descriptions["steamFriends(e:)"] = "Returns a Array with E's steam friends on the server E is playing on"
 E2Helper.Descriptions["pos(e:)"] = "Gets the position of the entity"
@@ -214,6 +217,8 @@ E2Helper.Descriptions["teamFrags(n)"] = "Returns the number of kills of the team
 E2Helper.Descriptions["teamFrags(n:)"] = "Returns the number of kills of the team associated with the team number"
 E2Helper.Descriptions["teamPlayers(n)"] = "Returns the number of players of the team associated with the team number"
 E2Helper.Descriptions["teamPlayers(n:)"] = "Returns the number of players of the team associated with the team number"
+E2Helper.Descriptions["teamMembers(n)"] = "Returns an array of players in the team associated with the team number"
+E2Helper.Descriptions["teamMemberCount(n)"] = "Returns the number of players of the team associated with the team number"
 E2Helper.Descriptions["teamScore(n)"] = "Returns the score of the team associated with the team number"
 E2Helper.Descriptions["teamScore(n:)"] = "Returns the score of the team associated with the team number"
 E2Helper.Descriptions["teams()"] = "Returns an array of all teams"
@@ -529,6 +534,7 @@ E2Helper.Descriptions["pointContentsArray(v)"] = "Returns an array with all the 
 E2Helper.Descriptions["pointHasContent(vs)"] = "'S' can be a string containing the last half of the CONTENTS_ enums (ie without the \"CONTENTS_\"). Multiple CONTENTS types can be seperated by a comma. Check: Enumeration_List:Contents for a full list. Examples: \"water,solid\" or \"empty,transparent\". The function returns 1 if any one of the types are found in the vector point"
 E2Helper.Descriptions["bezier(xv2xv2xv2n)"] = "Returns the 2D position on the bezier curve between the starting and ending 2D vector, given by the ratio (value between 0 and 1)"
 E2Helper.Descriptions["bezier(vvvn)"] = "Returns the 3D vector position on the bezier curve between the starting and ending 3D vector, given by the ratio (value between 0 and 1)"
+E2Helper.Descriptions["bezier(vvvvn)"] = "Returns the 3D vector position on the bezier curve between the starting and ending 3D vector, given by the ratio (value between 0 and 1)"
 
 -- Matrix
 E2Helper.Descriptions["identity2()"] = "Creates a 2x2 identity matrix"
@@ -1361,6 +1367,9 @@ E2Helper.Descriptions["pop(r:)"] = "Removes the last entry in the array and retu
 E2Helper.Descriptions["shift(r:)"] = "Removes the first element of the array; all other entries will move down one address and returns 1 if removed"
 E2Helper.Descriptions["remove(r:n)"] = "Removes the specified entry, moving subsequent entries down to compensate and returns 1 if removed"
 E2Helper.Descriptions["unset(r:n)"] = "Force removes the specified entry, without moving subsequent entries down and returns 1 if removed"
+
+E2Helper.Descriptions["toString(r)"] = "Returns a string representation of the array and its contents for debugging purposes. Return format may change in the future and should not be relied on."
+E2Helper.Descriptions["toString(r:)"] = "Returns a string representation of the array and its contents for debugging purposes. Return format may change in the future and should not be relied on."
 
 -- binary
 E2Helper.Descriptions["bOr(nn)"] = "Performs bitwise OR against the two numbers"

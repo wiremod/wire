@@ -13,10 +13,10 @@ WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetConVars()
-		return self:GetClientInfo("width"), self:GetClientInfo("height"), 
+		return self:GetClientInfo("width"), self:GetClientInfo("height"),
         math.Clamp(self:GetClientNumber("bgred"), 0, 255),
 				math.Clamp(self:GetClientNumber("bggreen"), 0, 255),
-				math.Clamp(self:GetClientNumber("bgblue"), 0, 255), 
+				math.Clamp(self:GetClientNumber("bgblue"), 0, 255),
         math.Clamp(self:GetClientNumber("fgred"), 0, 255),
 				math.Clamp(self:GetClientNumber("fggreen"), 0, 255),
 				math.Clamp(self:GetClientNumber("fgblue"), 0, 255)
@@ -34,7 +34,7 @@ TOOL.ClientConVar = {
   fgred      = 45,
   fggreen    = 91,
   fgblue     = 45,
-  
+
 }
 
 function TOOL.BuildCPanel(panel)
@@ -63,5 +63,5 @@ function TOOL.BuildCPanel(panel)
 	panel:NumSlider("Width", "wire_characterlcd_width", 1, 56, 0)
 	panel:NumSlider("Height", "wire_characterlcd_height", 1, 16, 0)
 	panel:CheckBox("#Create Flat to Surface", "wire_characterlcd_createflat")
-  
+
 end

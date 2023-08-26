@@ -20,6 +20,8 @@ local tostring = tostring
 local Vector = Vector
 local Color = Color
 
+local isvector, isnumber, istable, isstring, isangle, IsEntity, IsColor = isvector, isnumber, istable, isstring, isangle, IsEntity, IsColor
+
 local HasPorts = WireLib.HasPorts -- Very important for checks!
 
 
@@ -55,6 +57,12 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	local input = ent.Inputs[name]
 	if not input then return end
 
+	local ty = WireLib.DT[input.Type]
+	if ty and not ty.Validator(value) then
+		-- Not copying here is fine since data types are immutable outside E2.
+		value = ty.Zero()
+	end
+
 	input.Value = value
 	if (not ent.TriggerInput) then return end
 
@@ -81,44 +89,120 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	end
 end
 
--- an array of data types
+--- Array of data types for Wiremod.
+---@type table<string, { Zero: (fun(): any), Validator: (fun(val: any): boolean) }>
 WireLib.DT = {
 	NORMAL = {
-		Zero = 0
+		Zero = function()
+			return 0
+		end,
+		Validator = isnumber
 	},	-- Numbers
 	VECTOR = {
-		Zero = Vector(0, 0, 0)
+		Zero = Vector,
+		Validator = isvector
+	},
+	VECTOR2 = {
+		Zero = function()
+			return { 0, 0 }
+		end,
+		Validator = function(v2)
+			return istable(v2)
+				and isnumber(v2[1])
+				and isnumber(v2[2])
+		end
+	},
+	VECTOR4 = {
+		Zero = function()
+			return { 0, 0, 0, 0 }
+		end,
+		Validator = function(v4)
+			return istable(v4)
+				and isnumber(v4[1])
+				and isnumber(v4[2])
+				and isnumber(v4[3])
+				and isnumber(v4[4])
+		end
 	},
 	ANGLE = {
-		Zero = Angle(0, 0, 0)
+		Zero = Angle,
+		Validator = isangle
 	},
 	COLOR = {
-		Zero = Color(0, 0, 0)
+		Zero = function()
+			return Color(0, 0, 0)
+		end,
+		Validator = IsColor
 	},
 	ENTITY = {
-		Zero = NULL
+		Zero = function()
+			return NULL
+		end,
+		Validator = IsEntity
 	},
 	STRING = {
-		Zero = ""
+		Zero = function()
+			return ""
+		end,
+		Validator = isstring
 	},
 	TABLE = {
-		Zero = {n={},ntypes={},s={},stypes={},size=0},
+		Zero = function()
+			return { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 }
+		end,
+		Validator = function(t)
+			return istable(t)
+				and istable(t.n)
+				and istable(t.ntypes)
+				and istable(t.s)
+				and istable(t.stypes)
+				and isnumber(t.size)
+		end
 	},
 	BIDIRTABLE = {
-		Zero = {n={},ntypes={},s={},stypes={},size=0},
+		Zero = function()
+			return { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 }
+		end,
+		Validator = function(t)
+			return istable(t)
+				and istable(t.n)
+				and istable(t.ntypes)
+				and istable(t.s)
+				and istable(t.stypes)
+				and isnumber(t.size)
+		end,
 		BiDir = true
 	},
 	ANY = {
-		Zero = 0
+		Zero = function()
+			return 0
+		end,
+		Validator = function()
+			return true
+		end
 	},
 	ARRAY = {
-		Zero = {}
+		Zero = function()
+			return {}
+		end,
+		Validator = istable
 	},
 	BIDIRARRAY = {
-		Zero = {},
+		Zero = function()
+			return {}
+		end,
+		Validator = istable,
 		BiDir = true
 	},
 }
+
+--- Gets default value of a WireLib type.
+--- Assumes `type` is a valid string type in the WireLib.DT table.
+--- For example `VECTOR` / `NORMAL` / `ARRAY`
+---@param type string
+function WireLib.GetDefaultForType(type)
+	return WireLib.DT[type].Zero()
+end
 
 function WireLib.CreateSpecialInputs(ent, names, types, descs)
 	types = types or {}
@@ -133,7 +217,7 @@ function WireLib.CreateSpecialInputs(ent, names, types, descs)
 			Name = name,
 			Desc = desc,
 			Type = tp,
-			Value = WireLib.DT[ tp ].Zero,
+			Value = WireLib.GetDefaultForType(tp),
 			Material = "tripmine_laser",
 			Color = Color(255, 255, 255, 255),
 			Width = 1,
@@ -168,7 +252,7 @@ function WireLib.CreateSpecialOutputs(ent, names, types, descs)
 			Name = name,
 			Desc = desc,
 			Type = tp,
-			Value = WireLib.DT[ tp ].Zero,
+			Value = WireLib.GetDefaultForType(tp),
 			Connected = {},
 			TriggerLimit = 8,
 			Num = n,
@@ -200,7 +284,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 		if (ent_ports[name]) then
 			if tp ~= ent_ports[name].Type then
 				timer.Simple(0, function() WireLib.Link_Clear(ent, name) end)
-				ent_ports[name].Value = WireLib.DT[tp].Zero
+				ent_ports[name].Value = WireLib.GetDefaultForType(tp)
 				ent_ports[name].Type = tp
 			end
 			ent_ports[name].Keep = true
@@ -212,7 +296,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 				Name = name,
 				Desc = desc,
 				Type = tp,
-				Value = WireLib.DT[ tp ].Zero,
+				Value = WireLib.GetDefaultForType(tp),
 				Material = "tripmine_laser",
 				Color = Color(255, 255, 255, 255),
 				Width = 1,
@@ -277,7 +361,7 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 				Name = name,
 				Desc = desc,
 				Type = tp,
-				Value = WireLib.DT[ tp ].Zero,
+				Value = WireLib.GetDefaultForType(tp),
 				Connected = {},
 				TriggerLimit = 8,
 				Num = n,
@@ -329,7 +413,7 @@ function WireLib.RetypeInputs(ent, iname, itype, descs)
 		ent_ports[iname].Type = itype
 	end
 	ent_ports[iname].Desc = descs
-	ent_ports[iname].Value = WireLib.DT[itype].Zero
+	ent_ports[iname].Value = WireLib.GetDefaultForType(itype)
 
 	WireLib._SetInputs(ent)
 end
@@ -345,7 +429,7 @@ function WireLib.RetypeOutputs(ent, oname, otype, descs)
 		ent_ports[oname].Type = otype
 	end
 	ent_ports[oname].Desc = descs
-	ent_ports[oname].Value = WireLib.DT[otype].Zero
+	ent_ports[oname].Value = WireLib.GetDefaultForType(otype)
 
 	WireLib._SetOutputs(ent)
 end
@@ -527,7 +611,15 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 	if (not ent.Outputs) then return end
 
 	local output = ent.Outputs[oname]
-	if output and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]])) then
+	if not output then return end
+
+	local ty = WireLib.DT[output.Type]
+	if ty and not ty.Validator(value) then
+		-- Not copying here is fine since data types are immutable outside E2.
+		value = ty.Zero()
+	end
+
+	if value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]]) then
 		local timeOfFrame = CurTime()
 		if timeOfFrame ~= output.TriggerTime then
 			-- Reset the TriggerLimit every frame
@@ -594,7 +686,7 @@ local function Wire_Unlink(ent, iname, DontSendToCL, Removing)
 		input.Path = nil
 
 		if (Removing) then return end
-		WireLib.TriggerInput(ent, iname, WireLib.DT[input.Type].Zero, nil)
+		WireLib.TriggerInput(ent, iname, WireLib.GetDefaultForType(input.Type), nil)
 
 		if (DontSendToCL) then return end
 		WireLib._SetLink(input)

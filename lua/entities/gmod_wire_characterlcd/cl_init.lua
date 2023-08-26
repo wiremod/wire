@@ -6,7 +6,7 @@ function ENT:Initialize()
 	for i = 0, 1023 do
 		mem[i] = 0
 	end
-	
+
 	-- Screen control:
 	-- [1003] - Background red
 	-- [1004] - Background green
@@ -14,7 +14,7 @@ function ENT:Initialize()
 	-- [1006] - Text red
 	-- [1007] - Text green
 	-- [1008] - Text blue
-	-- [1009] - Width 
+	-- [1009] - Width
 	-- [1010] - Height
 
 	-- Character control:
@@ -199,11 +199,11 @@ local specialCharacters = {
 		{ x = 0.5, y = 1 },
 		{ x = 0, y = 1 },
 	},
-	
-	
-	
-	
-	
+
+
+
+
+
 	[136] = {
 		{ x = 0, y = 0 },
 		{ x = 0.5, y = 0 },
@@ -251,7 +251,7 @@ local specialCharacters = {
 		{ x = 0.5, y = 1 },
 	},
 	[142] = {
-		
+
 		{ x = 1, y = 0 },
 		{ x = 1, y = 1 },
 		{ x = 0.5, y = 1 },
@@ -259,7 +259,7 @@ local specialCharacters = {
 		{ x = 0, y = 0.5},
 		{ x = 0, y = 0 },
 	},
-	
+
 	[143] = {
 		{ x = 0, y = 0.5 },
 		{ x = 1, y = 0.5 },
@@ -418,7 +418,7 @@ end
 local VECTOR_1_1_1 = Vector(1, 1, 1)
 function ENT:Draw()
 	self:DrawModel()
-	
+
 	local tone = render.GetToneMappingScaleLinear()
 	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
 
@@ -428,7 +428,7 @@ function ENT:Draw()
 
 	if mem[1023] >= 1 then
 		mem[1023] = 0
- 
+
 		self.GPU:RenderToGPU(function()
 			-- Draw terminal here
 			-- W/H = 16
@@ -437,12 +437,12 @@ function ENT:Draw()
 			local br = (1-bc)*mem[1003]+bc*mem[1006]
 			local bg = (1-bc)*mem[1004]+bc*mem[1007]
 			local bb = (1-bc)*mem[1005]+bc*mem[1008]
-			
+
 			local sqc = math.min(1,math.max(0,mem[1016]-0.9))
 			local sqr = (1-sqc)*mem[1003]+sqc*mem[1006]
 			local sqg = (1-sqc)*mem[1004]+sqc*mem[1007]
 			local sqb = (1-sqc)*mem[1005]+sqc*mem[1008]
-			
+
 			local fc = math.min(1,math.max(sqc,mem[1016]))
 			local fr = (1-fc)*mem[1003]+fc*mem[1006]
 			local fg = (1-fc)*mem[1004]+fc*mem[1007]
@@ -468,7 +468,7 @@ function ENT:Draw()
 					surface.DrawRect((tx)*szx+1,(ty)*szy+1,szx-2,szy-2)
 					surface.SetDrawColor(sqr,sqg,sqb,127)
 					surface.DrawRect((tx)*szx+2,(ty)*szy+2,szx-2,szy-2)
-					
+
 					if (c1 ~= 0) then
 						-- Note: the source engine does not handle unicode characters above 65535 properly.
 						local utf8 = ""

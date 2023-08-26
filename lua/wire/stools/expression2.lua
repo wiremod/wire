@@ -130,7 +130,7 @@ if SERVER then
 			name = truncName,
 			expiry = CurTime() + 60 -- 1 minute for the request before it's invalidated (could make this a convar)
 		}
-		
+
 		-- Invalidate expired requests
 		hook.Add("Tick", "WireExpression2_InvalidateRequests", InvalidateRequests)
 
@@ -304,7 +304,7 @@ if SERVER then
 				if not targetEnt.DownloadAllowedPlayers[ply] then return end
 				targetEnt.DownloadAllowedPlayers[ply] = nil
 				if table.IsEmpty(targetEnt.DownloadAllowedPlayers) then
-					targetEnt.DownloadAllowedPlayers = nil 
+					targetEnt.DownloadAllowedPlayers = nil
 				end
 			end)
 

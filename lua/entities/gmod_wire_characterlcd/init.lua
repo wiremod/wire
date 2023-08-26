@@ -34,10 +34,10 @@ function ENT:Initialize()
 	self.Memory[1020] = 0.25
 	self.Memory[1021] = 0
 	self.Memory[1022] = 1
-	
+
 	self.ScreenWidth = 16
 	self.ScreenHeight = 2
-	
+
 	self.Cache = GPUCacheManager(self,true)
 end
 function ENT:Setup(ScreenWidth, ScreenHeight, bgred,bggreen,bgblue,fgred,fggreen,fgblue)
@@ -55,7 +55,7 @@ function ENT:SendPixel()
 		local pixelno = math.floor(self.CharAddress)
 
 		self:WriteCell(pixelno, self.Char)
-		
+
 	end
 end
 
@@ -145,7 +145,7 @@ function ENT:ClientWriteCell(Address, value)
 	if Address == 1009 and (value*self.Memory[1010] > 1003 or value*18 > 1024) then return false end
 	if Address == 1010 and (value*self.Memory[1009] > 1003 or value*24 > 1024) then return false end
 	if Address == 1011 then
-		
+
 		if self.Memory[1015] >= 1 then
 			if self.Memory[1014] >= 1 then
 				self:ShiftScreenRight()
@@ -161,7 +161,7 @@ function ENT:ClientWriteCell(Address, value)
 				self.Memory[1021] = math.min(1023,self.Memory[1021] + 1)
 			end
 		end
-		
+
 	end
 	if Address == 1017 then
 		for i = 0, self.ScreenWidth-1 do

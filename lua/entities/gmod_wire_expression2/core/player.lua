@@ -3,21 +3,16 @@
 ------------------------------------------------------------------------------]]
 
 local IsValid = IsValid
-local isOwner = E2Lib.isOwner
 
 
 local spawnAlert = {}
-local runBySpawn = 0
 local lastJoined = NULL
 
 local leaveAlert = {}
-local runByLeave = 0
 local lastLeft = NULL
 
 registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
-	if funcname == "isOwner" then
-		isOwner = func
-	elseif funcname == "IsValid" then
+	if funcname == "IsValid" then
 		IsValid = func
 	end
 end)
@@ -27,15 +22,15 @@ end)
 __e2setcost(5) -- temporary
 
 e2function number entity:isAdmin()
-	if not IsValid(this) then return 0 end
-	if not this:IsPlayer() then return 0 end
-	if this:IsAdmin() then return 1 else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", 0) end
+	return this:IsAdmin() and 1 or 0
 end
 
 e2function number entity:isSuperAdmin()
-	if not IsValid(this) then return 0 end
-	if not this:IsPlayer() then return 0 end
-	if this:IsSuperAdmin() then return 1 else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", 0) end
+	return this:IsSuperAdmin() and 1 or 0
 end
 
 --------------------------------------------------------------------------------
@@ -56,19 +51,14 @@ end
 --- Returns an angle describing player <this>'s view angles.
 e2function angle entity:eyeAngles()
 	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
-	local ang = this:EyeAngles()
-	return Angle(ang.p, ang.y, ang.r)
+	return this:EyeAngles()
 end
 
--- TODO: remove this check at some point in the future when LocalEyeAngles is available in the stable version of gmod
-if FindMetaTable("Player").LocalEyeAngles then
-	--- Gets a player's view direction, relative to any vehicle they sit in. This function is needed to reproduce the behavior of cam controller. This is different from Vehicle:toLocal(Ply:eyeAngles()).
-	e2function angle entity:eyeAnglesVehicle()
-		if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
-		if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", Angle(0, 0, 0)) end
-		local ang = this:LocalEyeAngles()
-		return Angle(ang.p, ang.y, ang.r)
-	end
+--- Gets a player's view direction, relative to any vehicle they sit in. This function is needed to reproduce the behavior of cam controller. This is different from Vehicle:toLocal(Ply:eyeAngles()).
+e2function angle entity:eyeAnglesVehicle()
+	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", Angle(0, 0, 0)) end
+	return this:LocalEyeAngles()
 end
 
 --------------------------------------------------------------------------------
@@ -85,7 +75,25 @@ e2function string entity:steamID64()
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", "") end
 
-	return this:SteamID64() or ""
+	return this:SteamID64()
+end
+
+e2function number entity:accountID()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", -1) end
+
+	return this:AccountID()
+end
+
+e2function number entity:userID()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", -1) end
+
+	return this:UserID()
+end
+
+e2function entity player(userID)
+	return Player(userID)
 end
 
 e2function number entity:armor()
@@ -139,24 +147,31 @@ e2function number entity:team()
 	return this:Team()
 end
 
-e2function string teamName(rv1)
-	return team.GetName(rv1) or ""
+e2function string teamName(teamNum)
+	return team.GetName(teamNum) or ""
 end
 
-e2function number teamScore(rv1)
-	return team.GetScore(rv1)
+e2function number teamScore(teamNum)
+	return team.GetScore(teamNum)
 end
 
-e2function number teamPlayers(rv1)
-	return team.NumPlayers(rv1)
+e2function array teamMembers(teamNum)
+	return team.GetPlayers(teamNum)
 end
 
-e2function number teamDeaths(rv1)
-	return team.TotalDeaths(rv1)
+e2function number teamMemberCount(teamNum)
+	return team.NumPlayers(teamNum)
 end
 
-e2function number teamFrags(rv1)
-	return team.TotalFrags(rv1)
+[deprecated]
+e2function number teamPlayers(teamNum) = e2function number teamMemberCount(teamNum)
+
+e2function number teamDeaths(teamNum)
+	return team.TotalDeaths(teamNum)
+end
+
+e2function number teamFrags(teamNum)
+	return team.TotalFrags(teamNum)
 end
 
 e2function vector teamColor(index)
@@ -284,7 +299,7 @@ number_of_keys = number_of_keys + 7
 number_of_keys = number_of_keys + 3
 
 local function UpdateKeys(ply, bind, key, state)
-	local uid = ply:UniqueID()
+	local uid = ply:SteamID()
 
 	local keystate = {
 		runByKey = ply,
@@ -309,7 +324,6 @@ local function UpdateKeys(ply, bind, key, state)
 	end
 end
 
-local bindsPressed = {}
 local function triggerKey(ply,bind,key,state)
 	-- delay these 1 tick with timers, otherwise ply:keyPressed(str) doesn't work properly, in case old E2s uses that function
 	-- It is recommended to use keyClkPressed() instead to get which key was pressed.
@@ -333,7 +347,7 @@ local function toggleRunOnKeys(self,ply,on,filter)
 	if not IsValid(ply) or not ply:IsPlayer() then return self:throw("Invalid player for runOnKeys!", nil) end
 
 	local ent = self.entity
-	local uid = ply:UniqueID()
+	local uid = ply:SteamID()
 
 	if on ~= 0 then
 		if not KeyAlert[ent] then KeyAlert[ent] = {} end
@@ -398,7 +412,7 @@ e2function number keyClk(entity ply)
 	if not self.data.runOnKeys then return 0 end
 	if not IsValid(ply) then return 0 end
 	local runby = self.data.runOnKeys.runByKey
-	if not ply == runby then return 0 end
+	if ply ~= runby then return 0 end
 	return self.data.runOnKeys.KeyWasReleased and -1 or 1
 end
 
@@ -484,8 +498,8 @@ if CPPI and debug.getregistry().Player.CPPIGetFriends then
 	end
 
 	e2function array entity:friends()
-		if not IsValid(this) then return {} end
-		if not this:IsPlayer() then return {} end
+		if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+		if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", {}) end
 		if not Trusts(this, self.player) then return {} end
 
 		local ret = this:CPPIGetFriends()
@@ -494,8 +508,8 @@ if CPPI and debug.getregistry().Player.CPPIGetFriends then
 	end
 
 	e2function number entity:trusts(entity whom)
-		if not IsValid(this) then return 0 end
-		if not this:IsPlayer() then return 0 end
+		if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+		if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
 		if not Trusts(this, self.player) then return 0 end
 
 		return Trusts(this, whom) and 1 or 0
@@ -544,8 +558,8 @@ __e2setcost(15)
 
 --- Returns an array containing <this>'s steam friends currently on the server
 e2function array entity:steamFriends()
-	if not IsValid(this) then return {} end
-	if not this:IsPlayer() then return {} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", {}) end
 	if this~=self.player then return {} end
 
 	-- make a copy
@@ -559,8 +573,8 @@ end
 
 --- Returns 1 if <this> and <friend> are steam friends, 0 otherwise.
 e2function number entity:isSteamFriend(entity friend)
-	if not IsValid(this) then return 0 end
-	if not this:IsPlayer() then return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
 	if this~=self.player then return 0 end
 
 	local friends = steamfriends[this]
@@ -591,7 +605,7 @@ end
 
 e2function number entity:inVehicle()
 	if not IsValid(this) then return 0 end
-	if(this:IsPlayer() and this:InVehicle()) then return 1 else return 0 end
+	return this:IsPlayer() and this:InVehicle() and 1 or 0
 end
 
 --- Returns 1 if the player <this> is in noclip mode, 0 if not.

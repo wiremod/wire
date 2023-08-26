@@ -2,7 +2,6 @@
 local IsValid  = IsValid
 local isOwner      = E2Lib.isOwner
 local Clamp        = math.Clamp
-local seq = table.IsSequential
 
 /******************************************************************************/
 
@@ -23,6 +22,8 @@ end
 local defaultPrintDelay = 0.3
 -- the amount of "charges" a player has by default
 local defaultMaxPrints = 15
+-- default max print length
+local defaultMaxLength = 1000
 
 -- Contains the amount of "charges" a player has, i.e. the amount of print-statements can be executed before
 -- the messages being omitted. The defaultPrintDelay is the time required to add one additional charge to the
@@ -102,57 +103,48 @@ hook.Add("PlayerDisconnected", "e2_print_delays_player_dc", function(ply) printD
 -- Returns whether or not the next print-message will be printed or omitted by antispam
 e2function number playerCanPrint()
 	if not checkOwner(self) then return end
-	return (canPrint(self.player) and 1 or 0)
+	return canPrint(self.player) and 1 or 0
 end
 
-local function SpecialCase( arg )
-	local t = type(arg)
-	if t == "table" then
-		if (arg.isfunction) then
-			return "function " .. arg[3] .. " = (" .. arg[2] .. ")"
-		elseif (seq(arg)) then -- A table with only numerical indexes
-			local str = "["
-			for k,v in ipairs( arg ) do
-				if istable(v) then
-					if (k ~= #arg) then
-						str = str .. SpecialCase( v ) .. ","
-					else
-						str = str .. SpecialCase( v ) .. "]"
-					end
-				else
-					if (k ~= #arg) then
-						str = str .. tostring(v) .. ","
-					else
-						str = str .. tostring(v) .. "]"
-					end
-				end
-			end
-			return str
-		else -- Else it's a table with string indexes (which this function can't handle)
-			return "[table]"
-		end
-	elseif t == "Vector" then
-		return string.format("vec(%.2f,%.2f,%.2f)", arg[1], arg[2], arg[3])
-	elseif t == "Angle" then
-		return string.format("ang(%d,%d,%d)", arg[1], arg[2], arg[3])
+local function repr(self, value, typeid)
+	local fn = wire_expression2_funcs["toString(" .. typeid ..")"] or wire_expression2_funcs["toString(" .. typeid .. ":)"]
+
+	if fn and fn[2] == "s" then -- I need the compiler rewrite merged for this to not be garbage
+		self.prf = self.prf + (fn[4] or 20)
+		return fn[3](self, { [2] = { function() return value end } })
+	elseif typeid == "s" then -- special case for string
+		return string.format("%q", value)
+	else
+		return wire_expression_types2[typeid][1]
 	end
 end
 
+local maxLength = CreateConVar("wire_expression2_print_max_length", "10000", FCVAR_ARCHIVE, "Hard limit for how much E2 users can print with a single call. Here to avoid extensive net use.", 0, 65532)
+
 -- Prints <...> like lua's print(...), except to the chat area
+__e2setcost(40)
 e2function void print(...args)
 	if not checkOwner(self) then return end
 	if not checkDelay( self.player ) then return end
 
 	local nargs = #args
+	self.prf = self.prf + nargs
+
 	if nargs > 0 then
-		for i=1, math.min(nargs, 256) do
-			local v = args[i]
-			args[i] = string.Left(SpecialCase( v ) or tostring(v), 249)
+		local max_len = math.min(maxLength:GetInt(), self.player:GetInfoNum("wire_expression2_print_max_length", defaultMaxLength))
+		for i = 1, nargs do
+			local v, ty = args[i], typeids[i]
+			args[i] = E2Lib.limitString(repr(self, v, ty), max_len / nargs)
 		end
 
 		local text = table.concat(args, "\t")
 		if #text > 0 then
-			self.player:ChatPrint(string.Left(text,249)) -- Should we switch to net messages? We probably don't want to print more than 249 chars at once anyway
+			local limited = E2Lib.limitString(text, max_len)
+			self.prf = self.prf + #limited / 5
+
+			net.Start("wire_expression2_print")
+				net.WriteString(limited)
+			net.Send(self.player)
 		end
 	end
 end
@@ -259,7 +251,7 @@ do
 			local value = t[ key ]
 			Msg( string.rep( "\t", indent ) )
 
-			if  ( istable( value ) and !done[ value ] ) then
+			if  ( istable( value ) and not done[ value ] ) then
 
 				done[ value ] = true
 				Msg( tostring( key ) .. ":" .. "\n" )
@@ -300,6 +292,7 @@ end
 __e2setcost(100)
 
 util.AddNetworkString("wire_expression2_printColor")
+util.AddNetworkString("wire_expression2_print")
 
 local printColor_typeids = {
 	n = tostring,
@@ -338,8 +331,8 @@ local printColor_types = {
 	Vector = function(v) return Color(v[1],v[2],v[3]) end,
 	table = function(tbl)
 		for i,v in pairs(tbl) do
-			if !isnumber(i) then return "" end
-			if !isnumber(v) then return "" end
+			if not isnumber(i) then return "" end
+			if not isnumber(v) then return "" end
 			if i < 1 or i > 4 then return "" end
 		end
 		return Color(tbl[1] or 0, tbl[2] or 0,tbl[3] or 0,tbl[4])

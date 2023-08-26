@@ -1012,7 +1012,7 @@ local function makeContext(owner)
 	ctx:InitScope()
 
 	-- Construct the context to run code.
-	-- If not done, 
+	-- If not done,
 	local ok, why = pcall(wire_expression2_CallHook, "construct", ctx)
 	if not ok then
 		pcall(wire_expression2_CallHook, "destruct", ctx)

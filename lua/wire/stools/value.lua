@@ -329,7 +329,7 @@ if CLIENT then
 
 		loadValues()
 	end)
-	
+
 	local function loadPreset(data)
 		local values = {}
 		-- Did you know Garry's Mod has a cool feature where this table's keys can be strings OR numbers?
@@ -359,13 +359,13 @@ if CLIENT then
 				table.insert(tbl, v.DataType)
 				table.insert(tbl, v.Value)
 			end
-			
+
 			presets.Add("wire_value", text, tbl)
 			ctrl:Update()
 		end
 		ctrl:SetPreset("wire_value")
 		panel:AddPanel(ctrl)
-		
+
 		WireToolHelpers.MakeModelSizer(panel, "wire_value_modelsize")
 		ModelPlug_AddToCPanel(panel, "Value", "wire_value", true)
 
