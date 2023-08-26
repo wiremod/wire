@@ -3,7 +3,7 @@
 --
 
 -- Dumb but simple workaround 
-local M_NULL_EGPOBJECT = { __tostring = function(self) return "[EGPObject] NULL" end }
+local M_NULL_EGPOBJECT = { __tostring = function(self) return "[EGPObject] NULL" end, __eq = function(a, b) return getmetatable(a) == getmetatable(b) end }
 local NULL_EGPOBJECT = setmetatable({}, M_NULL_EGPOBJECT)
 local M_EGPObject = getmetatable(EGP.Objects.Base)
 
@@ -382,6 +382,10 @@ e2function array egpobject:egpGlobalVertices()
 	else
 		return {}
 	end
+end
+
+e2function number wirelink:egpHasObject(egpobject object)
+	return this == object.EGP and 1 or 0
 end
 
 
