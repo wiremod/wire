@@ -8,29 +8,31 @@ local effect_blacklist = {
 	dof_node = true
 }
 
-local function isAllowed( self )
-	local data = self.data
+local function isAllowed(self)
+	return self.data.effect_burst >= 0
+end
 
-	if data.effect_burst == 0 then return false end
+local function fire(self, this, name)
+	local data = self.data
 
 	data.effect_burst = data.effect_burst - 1
 
 	local timerid = "E2_effect_burst_count_" .. self.entity:EntIndex()
-	if not timer.Exists( timerid ) then
-		timer.Create( timerid, wire_expression2_effect_burst_rate:GetFloat(), 0, function()
-			if not IsValid( self.entity ) then
-				timer.Remove( timerid )
+	if not timer.Exists(timerid) then
+		timer.Create(timerid, wire_expression2_effect_burst_rate:GetFloat(), 0, function()
+			if not IsValid(self.entity) then
+				timer.Remove(timerid)
 				return
 			end
 
 			data.effect_burst = data.effect_burst + 1
 			if data.effect_burst == wire_expression2_effect_burst_max:GetInt() then
-				timer.Remove( timerid )
+				timer.Remove(timerid)
 			end
 		end)
 	end
 
-	return true
+	util.Effect(name, this, true, true)
 end
 
 registerType("effect", "xef", nil,
@@ -180,7 +182,7 @@ e2function void effect:play(string name)
 	if effect_blacklist[name] then return self:throw("This effect is blacklisted!", nil) end
 	if hook.Run( "Expression2_CanEffect", name:lower(), self ) == false then return self:throw("A hook prevented this function from running", nil) end
 
-	util.Effect(name, this, true, true)
+	fire(self, this, name)
 end
 
 e2function number effectCanPlay()
