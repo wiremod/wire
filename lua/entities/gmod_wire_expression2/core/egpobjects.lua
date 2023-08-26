@@ -2,6 +2,7 @@
 --	File for EGP Object handling in E2.
 --
 
+-- Dumb but simple workaround 
 local M_NULL_EGPOBJECT = { __tostring = function(self) return "[EGPObject] NULL" end }
 local NULL_EGPOBJECT = setmetatable({}, M_NULL_EGPOBJECT)
 local M_EGPObject = getmetatable(EGP.Objects.Base)
@@ -346,7 +347,7 @@ e2function void egpobject:egpRemove()
 	
 	EGP:DoAction(egp, self, "RemoveObject", this.index)
 	table.Empty(this)
-	setmetatable(this, M_NULL_EGPOBJECT)
+	setmetatable(this, M_NULL_EGPOBJECT) -- In an ideal scenario we would probably want this = NULL_EGPOBJECT instead
 	Update(self, egp)
 end
 
@@ -506,3 +507,89 @@ e2function string toString(egpobject egpo)
 end
 
 e2function string egpobject:toString() = e2function string toString(egpobject egpo)
+
+--------------------------------------------------------
+-- Array Index Operators
+--------------------------------------------------------
+
+-- Table of allowed arguments and their types
+local EGP_ALLOWED_ARGS =
+	{
+		x = "n",
+		x2 = "n",
+		y = "n",
+		y2 = "n",
+		z = "n",
+		w = "n",
+		h = "n",
+		r = "n",
+		g = "n",
+		b = "n",
+		a = "n",
+		size = "n",
+		angle = "n",
+		fidelity = "n",
+		radius = "n",
+		valign = "n",
+		halign = "n",
+		text = "s",
+		font = "s",
+		material = "s",
+	}
+
+registerCallback("postinit", function()
+	local fixDefault = E2Lib.fixDefault
+	for _, v in pairs(wire_expression_types) do
+		local id = v[1]
+		local default = v[2]
+		local typecheck = v[6]
+
+		__e2setcost(5)
+
+		-- Getter
+		registerOperator("idx", id .. "=xeos", id, function(self, args)
+			local op1, op2 = args[2], args[3]
+			local this, index = op1[1](self, op1), op2[1](self, op2)
+			local indexType = EGP_ALLOWED_ARGS[index]
+
+			if not indexType then return fixDefault(default) end
+
+			local obj = this[index]
+
+			if not obj or id ~= indexType then return fixDefault(default) end
+			if typecheck and typecheck(obj) then return fixDefault(default) end -- Type check
+
+			return obj
+		end)
+
+		-- Setter
+		registerOperator("idx", id .. "=xeos" .. id, id, function(self, args)
+			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
+			local this, index, value = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+
+			if not EGP_ALLOWED_ARGS[index] then return fixDefault(default) end
+
+			if not isValid(this) then return self:throw("Tried to acces invalid EGP Object", nil) end
+			local egp = this.EGP
+			if not EGP:IsAllowed(self, egp) then return fixDefault(default) end
+			if this:Set(index, value) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) self.GlobalScope.vclk[this] = true end
+			return value
+		end)
+
+		-- Implicitly typed setter
+		registerOperator("idx", "xeos" .. id, id, function(self, args)
+			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
+			local this, index, value = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+			local indexType = EGP_ALLOWED_ARGS[index]
+
+			if not indexType then return end
+			if indexType ~= id then self:throw(string.format("EGP Object expected '%s' type but got '%s'!", indexType, id)) end
+			
+			if not isValid(this) then return self:throw("Tried to acces invalid EGP Object") end
+			local egp = this.EGP
+			if not EGP:IsAllowed(self, egp) then return end
+			if this:Set(index, value) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) self.GlobalScope.vclk[this] = true end
+			return
+		end)
+	end
+end)
