@@ -21,7 +21,7 @@ end)
 
 __e2setcost(5) -- temporary
 
-e2function steam entity:getUserGroup()
+e2function string entity:getUserGroup()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if not this:IsPlayer() then return self:throw("Expected a Player but got an Entity!", 0) end
 	return this:GetUserGroup()
