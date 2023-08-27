@@ -414,14 +414,14 @@ elseif CLIENT then
 	function TOOL:AutoWiringTypeLookup_Check( inputtype )
 		return self.AutoWiringTypeLookup_t[inputtype]
 	end
-	
+
 	-- Updates the trace hit position and normal to the surface of the parent, perpendicular to the originally hit entity.
 	-- As not all models have the same forward, up, etc. it checks all directions perpendicular to the hit entity, until it finds the parent.
 	-- If the parent is not found in any perpendicular direction, it traces the parent in the direction of the tool gun.
 	function TOOL:UpdateTraceForSurface(trace, parent)
 		if self:GetClientNumber("stick") == 0 then return end
 		if not WireLib.HasPorts(trace.Entity) then return end
-		
+
 		local hitParentPos
 		local hitParentNormal
 		local foundParent
@@ -1045,7 +1045,7 @@ elseif CLIENT then
 			-- special case for constant value to force render all descriptions at all times
 			-- and doesn't draw \n on separate lines,
 			-- and also doesn't automatically wrap too long lines
-			local isconstvalue = ent:GetClass() == "gmod_wire_value" 
+			local isconstvalue = ent:GetClass() == "gmod_wire_value"
 
 			-- draw description
 			if desc ~= "" and (self:GetStage() == 0 or self:GetStage() == 2 or isconstvalue) then

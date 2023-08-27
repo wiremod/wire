@@ -139,10 +139,7 @@ function ENT:TriggerInput( name, value )
     if name == "Active" then
         self:SetActive(value ~= 0)
     elseif name == "Camera" then
-        if value ~= nil and not value:IsValid() then
-            return
-        end
-        if value ~= nil and value:GetClass() ~= "gmod_wire_rt_camera" then
+        if not IsValid(value) or value:GetClass() ~= "gmod_wire_rt_camera" then
             value = nil
         end
 
@@ -220,7 +217,7 @@ if CLIENT then
 
             return
         end
-        
+
         self.ShouldRenderCamera = self:IsScreenInRange(LocalPlayer())
 
         if IsValid(camera) then
@@ -314,7 +311,7 @@ if CLIENT then
             return
         end
 
-        if self:GetActive() and self.ShouldRenderCamera and self.Material ~= nil 
+        if self:GetActive() and self.ShouldRenderCamera and self.Material ~= nil
             and IsValid(self:GetCamera()) and self:GetCamera():GetActive()
         then
             self:DrawScreen()

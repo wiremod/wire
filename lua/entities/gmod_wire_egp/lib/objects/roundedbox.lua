@@ -54,10 +54,10 @@ Obj.DataStreamInfo = function( self )
 end
 function Obj:Contains(egp, x, y)
 	x, y = EGP.WorldToLocal(egp, self, x, y)
-	
+
 	local w, h = self.w / 2, self.h / 2
 	if egp.TopLeft then x, y = x - w, y - h end
-	
+
 	local r = math.min(math.min(w, h), self.radius)
 	x, y = math.abs(x), math.abs(y)
 	if x > w or y > h then return false end

@@ -37,7 +37,7 @@ function getBone(entity, index)
 		bone = entity:GetPhysicsObjectNum(index)
 		if not bone then return nil end
 		entity2bone[entity][index] = bone
-		
+
 		bone2entity[bone] = entity
 		bone2index[bone] = index
 	end

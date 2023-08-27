@@ -625,7 +625,7 @@ function EDITOR:Paint()
 	if self.MouseDown then
 		self.Caret = self:CursorToCaret()
 	end
-	
+
 	local backgroundColor = self:GetSyntaxColor("background")
 
 	surface_SetDrawColor(backgroundColor.r - 28,backgroundColor.g - 28,backgroundColor.b - 28)

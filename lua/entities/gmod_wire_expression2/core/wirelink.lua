@@ -369,7 +369,7 @@ end
 e2function array wirelink:readArray(start, size)
 	if size < 0 then return {} end
 	if !validWirelink(self, this) or !this.ReadCell then return {} end
-	
+
 	self.prf = self.prf + size
 
 	local ret = {}

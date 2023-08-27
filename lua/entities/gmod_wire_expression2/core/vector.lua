@@ -13,6 +13,29 @@ local asin = math.asin
 local rad2deg = 180 / pi
 local deg2rad = pi / 180
 
+-- Remove this when a later, mandatory update is made.
+-- These were added in the August (08) 9 (09) 2023 (23) update
+if VERSION < 230809 then
+	function math.CubicBezier(frac, p0, p1, p2, p3)
+		local frac2 = frac * frac
+		local inv = 1 - frac
+		local inv2 = inv * inv
+
+		return inv2 * inv * p0 + 3 * inv2 * frac * p1 + 3 * inv * frac2 * p2 + frac2 * frac * p3
+	end
+
+	function math.QuadraticBezier(frac, p0, p1, p2)
+		local frac2 = frac * frac
+		local inv = 1 - frac
+		local inv2 = inv * inv
+
+		return inv2 * p0 + 2 * inv * frac * p1 + frac2 * p2
+	end
+end
+
+local quadraticBezier = math.QuadraticBezier
+local cubicBezier = math.CubicBezier
+
 -- TODO: add reflect?
 -- TODO: add absdotproduct?
 -- TODO: add helper for angle and dotproduct? (just strange?)
@@ -24,7 +47,7 @@ registerType("vector", "v", Vector(0, 0, 0),
 	function(self, output) return Vector(output) end,
 	function(retval)
 		if isvector(retval) then return end
-		error("Return value is not a Vector, but a "..type(retval).."!",0)
+		error("Return value is not a Vector, but a " .. type(retval) .. "!", 0)
 	end,
 	function(v)
 		return not isvector(v)
@@ -147,12 +170,12 @@ end)
 
 e2function string operator+(string lhs, vector rhs)
 	self.prf = self.prf + #lhs * 0.01
-	return lhs .. ("vec(%.2f,%.2f,%.2f)"):format(rhs[1], rhs[2], rhs[3])
+	return lhs .. ("vec(%g,%g,%g)"):format(rhs[1], rhs[2], rhs[3])
 end
 
 e2function string operator+(vector lhs, string rhs)
 	self.prf = self.prf + #rhs * 0.01
-	return ("vec(%.2f,%.2f,%.2f)"):format(lhs[1], lhs[2], lhs[3]) .. rhs
+	return ("vec(%g,%g,%g)"):format(lhs[1], lhs[2], lhs[3]) .. rhs
 end
 
 --------------------------------------------------------------------------------
@@ -161,7 +184,7 @@ __e2setcost(10) -- temporary
 
 --- Returns a uniformly distributed, random, normalized direction vector.
 e2function vector randvec()
-	local s,a, x,y
+	local s, a, x, y
 
 	--[[
 	  This is a variant of the algorithm for computing a random point
@@ -484,19 +507,15 @@ end
 
 --- Mix two vectors by a given proportion (between 0 and 1)
 e2function vector mix(vector vec1, vector vec2, ratio)
-	return Vector(
-		vec1[1] * ratio + vec2[1] * (1-ratio),
-		vec1[2] * ratio + vec2[2] * (1-ratio),
-		vec1[3] * ratio + vec2[3] * (1-ratio)
-	)
+	return vec1 * ratio + vec2 * (1 - ratio)
 end
 
-e2function vector bezier(vector startVec, vector control, vector endVec, ratio)
-	return Vector(
-		(1-ratio)^2 * startVec[1] + (2 * (1-ratio) * ratio * control[1]) + ratio^2 * endVec[1],
-		(1-ratio)^2 * startVec[2] + (2 * (1-ratio) * ratio * control[2]) + ratio^2 * endVec[2],
-		(1-ratio)^2 * startVec[3] + (2 * (1-ratio) * ratio * control[3]) + ratio^2 * endVec[3]
-	)
+e2function vector bezier(vector startVec, vector tangent, vector endVec, ratio)
+	return quadraticBezier(ratio, startVec, tangent, endVec)
+end
+
+e2function vector bezier(vector startVec, vector tangent1, vector tangent2, vector endVec, ratio)
+	return cubicBezier(ratio, startVec, tangent1, tangent2, endVec)
 end
 
 __e2setcost(2)
@@ -555,11 +574,11 @@ local cache_concatenated_parts = setmetatable({ [0] = "empty" }, cachemeta)
 
 local function generateContents( n )
 	local parts_array, lookup_table = {}, {}
-	local ret = {}
 
-	for i = 0,30 do
-		if bit.band(n, (2^i)) ~= 0 then
-			local name = contents[2^i]
+	for i = 0, 30 do
+		local v = bit.lshift(1, i)
+		if bit.band(n, v) ~= 0 then
+			local name = contents[v]
 			lookup_table[name] = true
 			parts_array[#parts_array+1] = name
 		end
@@ -613,7 +632,7 @@ end
 
 --- Converts a local position/angle to a world position/angle and returns the angle
 e2function angle toWorldAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local pos, ang = LocalToWorld(localpos, localang, worldpos, worldang)
+	local _, ang = LocalToWorld(localpos, localang, worldpos, worldang)
 	return ang
 end
 
@@ -629,7 +648,7 @@ end
 
 --- Converts a world position/angle to a local position/angle and returns the angle
 e2function angle toLocalAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local vec, ang = WorldToLocal(localpos,localang,worldpos,worldang)
+	local _, ang = WorldToLocal(localpos, localang, worldpos, worldang)
 	return ang
 end
 
@@ -676,9 +695,8 @@ end
 
 __e2setcost( 5 )
 
---- Gets the vector nicely formatted as a string "[X,Y,Z]"
 e2function string toString(vector v)
-	return ("[%s,%s,%s]"):format(v[1],v[2],v[3])
+	return ("vec(%g,%g,%g)"):format(v[1], v[2], v[3])
 end
 
 --- Gets the vector nicely formatted as a string "[X,Y,Z]"

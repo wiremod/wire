@@ -97,7 +97,7 @@ end
 function ENT:UpdatePerf()
 	if not self.context then return end
 	if self.error then return end
-	
+
 	self.context.prfbench = self.context.prfbench * 0.95 + self.context.prf * 0.05
 	self.context.prfcount = self.context.prfcount + self.context.prf - e2_softquota
 	self.context.timebench = self.context.timebench * 0.95 + self.context.time * 0.05 -- Average it over the last 20 ticks
@@ -390,9 +390,9 @@ end
 function ENT:ResetContext()
 	local resetPrfMult = 1
 	if self.lastResetOrError then
-		-- reduces all the opcounters based on the time passed since 
+		-- reduces all the opcounters based on the time passed since
 		-- the last time the chip was reset or errored
-		-- waiting up to 30s before resetting results in a 0.1 multiplier 
+		-- waiting up to 30s before resetting results in a 0.1 multiplier
 		local passed = CurTime() - self.lastResetOrError
 		resetPrfMult = math.max(0.1, (30 - passed) / 30)
 	end

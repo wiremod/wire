@@ -227,7 +227,7 @@ __e2setcost(3)
 
 e2function string string:repeat(number times)
 	local len = #this * times
-	if len <= 0 then return "" end
+	if len <= 0 or len ~= len then return "" end
 
 	self.prf = self.prf + len * 0.01
 	if self.prf > e2_tickquota then error("perf", 0) end

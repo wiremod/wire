@@ -28,14 +28,14 @@ function ENT:Setup( action, noclip )
 	self.WireDebugName = gate.name
 
 	WireLib.AdjustSpecialInputs(self, gate.inputs, gate.inputtypes )
-	if (gate.outputs) then
+	if gate.outputs then
 		WireLib.AdjustSpecialOutputs(self, gate.outputs, gate.outputtypes)
 	else
 		--Wire_AdjustOutputs(self, { "Out" })
 		WireLib.AdjustSpecialOutputs(self, { "Out" }, gate.outputtypes)
 	end
 
-	if (gate.reset) then
+	if gate.reset then
 		gate.reset(self)
 	end
 
@@ -57,7 +57,7 @@ function ENT:Setup( action, noclip )
 		self.WriteCell = nil
 	end
 
-	if (noclip) then
+	if noclip then
 		self:SetCollisionGroup( COLLISION_GROUP_WORLD )
 	end
 	self.noclip = noclip
@@ -75,20 +75,20 @@ end
 
 
 function ENT:OnInputWireLink(iname, itype, src, oname, otype)
-	if (self.Action) and (self.Action.OnInputWireLink) then
+	if self.Action and self.Action.OnInputWireLink then
 		self.Action.OnInputWireLink(self, iname, itype, src, oname, otype)
 	end
 end
 
 function ENT:OnOutputWireLink(oname, otype, dst, iname, itype)
-	if (self.Action) and (self.Action.OnOutputWireLink) then
+	if self.Action and self.Action.OnOutputWireLink then
 		self.Action.OnOutputWireLink(self, oname, otype, dst, iname, itype)
 	end
 end
 
 function ENT:TriggerInput(iname, value, iter)
 	if self.Updating then return end
-	if (self.Action) and (not self.Action.timed) then
+	if self.Action and not self.Action.timed then
 		self:CalcOutput(iter)
 		self:ShowOutput()
 	end
@@ -97,7 +97,7 @@ end
 function ENT:Think()
 	BaseClass.Think(self)
 
-	if (self.Action) and (self.Action.timed) then
+	if self.Action and self.Action.timed then
 		self:CalcOutput()
 		self:ShowOutput()
 
@@ -108,15 +108,15 @@ end
 
 
 function ENT:CalcOutput(iter)
-	if (self.Action) and (self.Action.output) then
-		if (self.Action.outputs) then
+	if self.Action and self.Action.output then
+		if self.Action.outputs then
 			local result = { self.Action.output(self, unpack(self:GetActionInputs(), 1, #self.Action.inputs)) }
 
 			for k,v in ipairs(self.Action.outputs) do
-				Wire_TriggerOutput(self, v, result[k] or WireLib.DT[ self.Outputs[v].Type ].Zero, iter)
+				Wire_TriggerOutput(self, v, result[k] or WireLib.GetDefaultForType(self.Outputs[v].Type), iter)
 			end
 		else
-			local value = self.Action.output(self, unpack(self:GetActionInputs(), 1, #self.Action.inputs)) or WireLib.DT[ self.Outputs.Out.Type ].Zero
+			local value = self.Action.output(self, unpack(self:GetActionInputs(), 1, #self.Action.inputs)) or WireLib.GetDefaultForType(self.Outputs.Out.Type)
 
 			Wire_TriggerOutput(self, "Out", value, iter)
 		end
@@ -126,9 +126,9 @@ end
 function ENT:ShowOutput()
 	local txt
 
-	if (self.Action) then
+	if self.Action then
 		txt = (self.Action.name or "No Name")
-		if (self.Action.label) then
+		if self.Action.label then
 			txt = txt.."\n"..self.Action.label(self:GetActionOutputs(), unpack(self:GetActionInputs(Wire_EnableGateInputValues:GetBool()), 1, #self.Action.inputs))
 		end
 	else
@@ -149,17 +149,17 @@ end
 function ENT:GetActionInputs(as_names)
 	local Args = {}
 
-	if (self.Action.compact_inputs) then
+	if self.Action.compact_inputs then
 		-- If a gate has compact inputs (like Arithmetic - Add), nil inputs are truncated so {0, nil, nil, 5, nil, 1} becomes {0, 5, 1}
 		for k,v in ipairs(self.Action.inputs) do
-		    local input = self.Inputs[v]
-			if (not input) then
+			local input = self.Inputs[v]
+			if not input then
 				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")\n")
 				return {}
 			end
 
 			if IsValid(input.Src) then
-				if (as_names) then
+				if as_names then
 					table.insert(Args, input.Src.WireName or input.Src.WireDebugName or v)
 				else
 					table.insert(Args, input.Value)
@@ -167,26 +167,25 @@ function ENT:GetActionInputs(as_names)
 			end
 		end
 
-		while (#Args < self.Action.compact_inputs) do
-			if (as_names) then
+		while #Args < self.Action.compact_inputs do
+			if as_names then
 				table.insert(Args, self.Action.inputs[#Args+1] or "*Not enough inputs*")
 			else
-				--table.insert( Args, WireLib.DT[ (self.Action.inputtypes[#Args+1] or "NORMAL") ].Zero )
-				table.insert( Args, WireLib.DT[ self.Inputs[ self.Action.inputs[#Args+1] ].Type ].Zero )
+				table.insert( Args, WireLib.GetDefaultForType(self.Inputs[ self.Action.inputs[#Args+1] ].Type) )
 			end
 		end
 	else
 		for k,v in ipairs(self.Action.inputs) do
-		    local input = self.Inputs[v]
-			if (not input) then
+			local input = self.Inputs[v]
+			if not input then
 				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")\n")
 				return {}
 			end
 
-			if (as_names) then
+			if as_names then
 				Args[k] = IsValid(input.Src) and (input.Src.WireName or input.Src.WireDebugName) or v
 			else
-				Args[k] = IsValid(input.Src) and input.Value or WireLib.DT[ self.Inputs[v].Type ].Zero
+				Args[k] = IsValid(input.Src) and input.Value or WireLib.GetDefaultForType(self.Inputs[v].Type)
 			end
 		end
 	end
@@ -195,16 +194,16 @@ function ENT:GetActionInputs(as_names)
 end
 
 function ENT:GetActionOutputs()
-	if (self.Action.outputs) then
+	if self.Action.outputs then
 		local result = {}
 		for _,v in ipairs(self.Action.outputs) do
-		    result[v] = self.Outputs[v].Value or WireLib.DT[ self.Outputs[v].Type ].Zero
+			result[v] = self.Outputs[v].Value or WireLib.GetDefaultForType(self.Outputs[v].Type)
 		end
 
 		return result
 	end
 
-	return self.Outputs.Out.Value or WireLib.DT[ self.Outputs.Out.Type ].Zero
+	return self.Outputs.Out.Value or WireLib.GetDefaultForType(self.Outputs.Out.Type)
 end
 
 function WireLib.MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)

@@ -796,7 +796,7 @@ function Editor:InitComponents()
 	self.C.Control = self:addComponent(vgui.Create("Panel", self), -350, 52, 342, -32) -- Control Panel
 	self.C.Credit = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 150) -- Credit box
 	self.C.Credit:SetEditable(false)
-	
+
 	self:CreateTab("generic")
 
 	-- extra component options
@@ -1837,7 +1837,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 		self:Close()
 		return
 	end
-	
+
 	if not Line or SaveAs or Line == self.Location .. "/" .. ".txt" then
 		local str
 		if self.C.Browser.File then
@@ -1867,7 +1867,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 				local save_location = self.Location .. "/" .. strTextOut .. ".txt"
 				if file.Exists(save_location, "DATA") then
-					Derma_QueryNoBlur("The file '" .. strTextOut .. "' already exists. Do you want to overwrite it?", "File already exists", 
+					Derma_QueryNoBlur("The file '" .. strTextOut .. "' already exists. Do you want to overwrite it?", "File already exists",
 					"Yes", function() self:SaveFile(save_location, close) end,
 					"No", function() end)
 				else

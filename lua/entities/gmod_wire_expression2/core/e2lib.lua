@@ -1006,9 +1006,9 @@ function E2Lib.isValidFileWritePath(path)
 end
 
 --- Different from `Context:throw`, which does not error the chip if @strict is not enabled,
---- and instead returns a default value.  
+--- and instead returns a default value.
 ---
---- This is what `Context:throw` calls internally if @strict  
+--- This is what `Context:throw` calls internally if @strict
 --- By default E2 can catch these errors.
 ---@param message string
 ---@param level integer

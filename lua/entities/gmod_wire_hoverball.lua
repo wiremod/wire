@@ -94,8 +94,8 @@ function ENT:Initialize()
 	self:SetAirResistance( 1 )
 	self:SetZTarget( self:GetPos().z ) -- reset target position
 
-	self.Inputs = WireLib.CreateInputs( self, { "On", 
-		"ZVelocity (If non-zero, causes the hoverball to attempt to fly up, or down if the value is negative.\nThe speed is based on the magnitude of the number multiplied by the speed configured in the context menu.)", 
+	self.Inputs = WireLib.CreateInputs( self, { "On",
+		"ZVelocity (If non-zero, causes the hoverball to attempt to fly up, or down if the value is negative.\nThe speed is based on the magnitude of the number multiplied by the speed configured in the context menu.)",
 		"ZTarget (Causes the hoverball to attempt to fly to the specified Z coordinate and stay there.)"
 	} )
 	self.Outputs = WireLib.CreateOutputs( self, { "Position [VECTOR]", "X", "Y", "Z", "Distance (How far away the hoverball's Z coordinate is from its target)" } )

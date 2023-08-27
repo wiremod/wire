@@ -536,3 +536,30 @@ e2function array array:merge( array other )
 	self.prf = self.prf + #ret / 3
 	return ret
 end
+
+__e2setcost(2)
+e2function string toString(array array)
+	local buf, len = {}, #array
+
+	self.prf = self.prf + len
+	if self.prf > e2_tickquota then error("perf", 0) end
+
+	for i = 1, len do
+		local val = array[i]
+		local ty = type(val)
+
+		if ty == "Vector" then
+			buf[i] = ("vec(%g,%g,%g)"):format(val[1], val[2], val[3])
+		elseif ty == "Angle" then
+			buf[i] = ("ang(%g,%g,%g)"):format(val[1], val[2], val[3])
+		elseif ty == "string" then
+			buf[i] = ("%q"):format(val)
+		else
+			buf[i] = tostring(val)
+		end
+	end
+
+	return "array(" .. table.concat(buf, ", ") .. ")"
+end
+
+e2function string array:toString() = e2function string toString(array array)

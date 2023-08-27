@@ -147,12 +147,12 @@ end)
 
 e2function string operator+(string lhs, angle rhs)
 	self.prf = self.prf + #lhs * 0.01
-	return lhs .. ("ang(%d,%d,%d)"):format(rhs[1], rhs[2], rhs[3])
+	return lhs .. ("ang(%g,%g,%g)"):format(rhs[1], rhs[2], rhs[3])
 end
 
 e2function string operator+(angle lhs, string rhs)
 	self.prf = self.prf + #rhs * 0.01
-	return ("ang(%d,%d,%d)"):format(lhs[1], lhs[2], lhs[3]) .. rhs
+	return ("ang(%g,%g,%g)"):format(lhs[1], lhs[2], lhs[3]) .. rhs
 end
 
 /******************************************************************************/
@@ -385,7 +385,7 @@ e2function vector angle:up()
 end
 
 e2function string toString(angle a)
-	return ("[%s,%s,%s]"):format(a[1],a[2],a[3])
+	return ("ang(%g,%g,%g)"):format(a[1], a[2], a[3])
 end
 
 e2function string angle:toString() = e2function string toString(angle a)

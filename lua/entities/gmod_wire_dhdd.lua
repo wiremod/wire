@@ -77,7 +77,6 @@ end
 function ENT:TriggerInput( name, value )
 	if (name == "Data") then
 		if not value then return end -- if the value is invalid, abort
-		if not IsValid(self.Inputs.Data.Src) then return end -- if the input is not wired to anything, abort
 		if not self.AllowWrite then return end -- if we don't allow writing, abort
 
 		self.Memory = value

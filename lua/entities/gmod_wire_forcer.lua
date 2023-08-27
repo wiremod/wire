@@ -71,9 +71,9 @@ function ENT:Think()
 	local ent = trace.Entity
 
 	if not IsValid(ent) then return end
-	
+
 	if ent:GetMoveType() == MOVETYPE_PUSH then return end
-	
+
 	local convar_value = wire_forcer_permissions:GetInt()
 	if convar_value==1 then
 		if not IsValid(self:GetPlayer()) or gamemode.Call( "GravGunPunt", self:GetPlayer(), ent )==false then return end
@@ -82,7 +82,7 @@ function ENT:Think()
 	end
 
 	if hook.Run( "Wire_ForcerCanUse", self:GetPlayer(), ent, self ) == false then return end
-	
+
 	if ent:GetMoveType() == MOVETYPE_VPHYSICS then
 		local phys = ent:GetPhysicsObject()
 		if not IsValid(phys) then return end
