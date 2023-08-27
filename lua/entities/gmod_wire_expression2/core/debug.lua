@@ -113,7 +113,7 @@ local function repr(self, value, typeid)
 		self.prf = self.prf + (fn[4] or 20)
 		return fn[3](self, { [2] = { function() return value end } })
 	elseif typeid == "s" then -- special case for string
-		return string.format("%q", value)
+		return value
 	else
 		return wire_expression_types2[typeid][1]
 	end
