@@ -148,6 +148,43 @@ e2function table entity:keyvalues()
 	return ret
 end
 
+e2function number entity:setEditProperty(string key, string value)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", 0) end
+	if not this.Editable then return self:throw("Tried to edit non-editable entity!", 0) end
+
+	return this:SetNetworkKeyValue(key, value) and 1 or 0
+end
+
+e2function string entity:getEditProperty(string key)
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
+	if not this.Editable then return self:throw("Tried to access non-editable entity!", "") end
+
+	return tostring(this:GetNetworkKeyValue(key) or "")
+end
+
+__e2setcost(30)
+
+e2function table entity:getEditData()
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+	if not this.Editable then return self:throw("Tried to access non-editable entity!", {}) end
+
+	local ret, i = E2Lib.newE2Table(), 1
+	for k, _ in pairs(this:GetEditingData()) do
+		ret.s[k] = 1
+		ret.stypes[k] = "n"
+	end
+	ret.size = table.Count(ret.s)
+
+	return ret
+end
+
+__e2setcost(1)
+
+e2function number entity:isEditable()
+	return this.Editable and 1 or 0
+end
+
 __e2setcost(5) -- temporary
 
 --[[******************************************************************************]]
