@@ -169,7 +169,7 @@ e2function table entity:getEditData()
 	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
 	if not this.Editable then return self:throw("Tried to access non-editable entity!", {}) end
 
-	local ret, i = E2Lib.newE2Table(), 1
+	local ret = E2Lib.newE2Table()
 	for k, _ in pairs(this:GetEditingData()) do
 		ret.s[k] = 1
 		ret.stypes[k] = "n"
