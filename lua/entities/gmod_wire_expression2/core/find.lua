@@ -447,18 +447,21 @@ local function findPlayer(name)
 end
 
 --- Returns the player with the given name, this is an exception to the rule
+[nodiscard]
 e2function entity findPlayerByName(string name)
 	if query_blocked(self, 1) then return nil end
 	return findPlayer(name)
 end
 
 --- Returns the player with the given SteamID
+[nodiscard]
 e2function entity findPlayerBySteamID(string id)
 	if query_blocked(self, 1) then return NULL end
 	return player.GetBySteamID(id) or NULL
 end
 
 --- Returns the player with the given SteamID64
+[nodiscard]
 e2function entity findPlayerBySteamID64(string id)
 	if query_blocked(self, 1) then return NULL end
 	return player.GetBySteamID64(id) or NULL
