@@ -252,15 +252,8 @@ function EGP:CreateObject( Ent, ObjID, Settings )
 	end
 end
 
-function EGP:EditObject( Obj, Settings )
-	local ret = false
-	for k,v in pairs( Settings ) do
-		if (Obj[k] ~= nil and Obj[k] ~= v) then
-			Obj[k] = v
-			ret = true
-		end
-	end
-	return ret
+function EGP:EditObject(obj, settings)
+	return obj:EditObject(settings)
 end
 
 
