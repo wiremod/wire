@@ -17,6 +17,7 @@ registerType("entity", "e", nil,
 local validPhysics = E2Lib.validPhysics
 local getOwner     = E2Lib.getOwner
 local isOwner      = E2Lib.isOwner
+local newE2Table   = E2Lib.newE2Table
 
 local sun = ents.FindByClass("env_sun")[1] -- used for sunDirection()
 
@@ -135,7 +136,7 @@ end
 __e2setcost(20)
 
 e2function table entity:keyvalues()
-	local ret = E2Lib.newE2Table() -- default table
+	local ret = newE2Table() -- default table
 	if not IsValid(this) then return self:throw("Invalid entity!", ret) end
 	local keyvalues = this:GetKeyValues()
 	local size = 0
@@ -166,15 +167,17 @@ end
 __e2setcost(30)
 
 e2function table entity:getEditData()
-	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
-	if not this.Editable then return self:throw("Tried to access non-editable entity!", {}) end
+	local ret = newE2Table()
+	if not IsValid(this) then return self:throw("Invalid entity!", ret) end
+	if not this.Editable then return self:throw("Tried to access non-editable entity!", ret) end
 
-	local ret = E2Lib.newE2Table()
-	for k, _ in pairs(this:GetEditingData()) do
+	local i = 0
+	for k in pairs(this:GetEditingData()) do
 		ret.s[k] = 1
 		ret.stypes[k] = "n"
+		i = i + 1
 	end
-	ret.size = table.Count(ret.s)
+	ret.size = i
 
 	return ret
 end
@@ -182,7 +185,7 @@ end
 __e2setcost(1)
 
 e2function number entity:isEditable()
-	return this.Editable and 1 or 0
+	return (IsValid(this) or self:throw("Invalid entity!")) and this.Editable and 1 or 0
 end
 
 __e2setcost(5) -- temporary
@@ -415,12 +418,12 @@ local ids = {
 }
 
 e2function table entity:frictionSnapshot()
-	local ret = E2Lib.newE2Table() -- default table
+	local ret = newE2Table() -- default table
 	if not validPhysics(this) then return self:throw("Invalid physics object!", ret) end
 
 	local events = this:GetPhysicsObject():GetFrictionSnapshot()
 	for i, event in ipairs(events) do
-		local data = E2Lib.newE2Table()
+		local data = newE2Table()
 		local size = 0
 
 		for k, v in pairs(event) do
