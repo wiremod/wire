@@ -172,9 +172,9 @@ e2function table entity:getEditData()
 	if not this.Editable then return self:throw("Tried to access non-editable entity!", ret) end
 
 	local i = 0
-	for k in pairs(this:GetEditingData()) do
-		ret.s[k] = 1
-		ret.stypes[k] = "n"
+	for k, v in pairs(this:GetEditingData()) do
+		ret.s[k] = v.type -- Note that this is the DProperty rowType and not a valid E2 type
+		ret.stypes[k] = "s"
 		i = i + 1
 	end
 	ret.size = i
