@@ -138,10 +138,12 @@ net.Receive( "wire_expression2_request_list", function( netlen )
 		net.WriteUInt(#files + #folders, 16)
 		for _,fop in pairs(files) do
 			if string.GetExtensionFromFilename( fop ) == "txt" then
+				net.WriteUInt(#fop, 16)
 				net.WriteData(fop)
 			end
 		end
 		for _,fop in pairs(folders) do
+			net.WriteUInt(#fop, 16)
 			net.WriteData(fop .. "/")
 		end
 	net.SendToServer()
