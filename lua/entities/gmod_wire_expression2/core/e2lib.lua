@@ -606,28 +606,6 @@ function E2Lib.limitString(text, length)
 	end
 end
 
-do
-	local enctbl = { ["'"] = true, ["\""] = true, ["\n"] = true, ["\\"] = true, ["%"] = true }
-	local dectbl = {}
-
-	-- generate encode/decode lookup tables
-	for k in pairs(enctbl) do
-		local hexed = bit.tohex(string.byte(k), 2)
-		dectbl[hexed] = k
-		enctbl[k] = "%" .. hexed
-	end
-
-	-- escapes special characters
-	function E2Lib.encode(str)
-		return str:gsub(".", enctbl)
-	end
-
-	-- decodes escaped characters
-	function E2Lib.decode(encoded)
-		return encoded:gsub("%%(..)", dectbl)
-	end
-end
-
 -- ------------------------------- extensions ----------------------------------
 
 do
