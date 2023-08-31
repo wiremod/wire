@@ -607,33 +607,14 @@ function E2Lib.limitString(text, length)
 end
 
 do
-	local enctbl = {}
+	local enctbl = { ["'"] = true, ["\""] = true, ["\n"] = true, ["\\"] = true, ["%"] = true }
 	local dectbl = {}
 
-	do
-		-- generate encode/decode lookup tables
-		-- local valid_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 +-*/#^!?~=@&|.,:(){}[]<>" -- list of "normal" chars that can be transferred without problems
-		local invalid_chars = "'\"\n\\%"
-		local hex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' }
-
-
-		for i = 1, #invalid_chars do
-			local char = invalid_chars:sub(i, i)
-			enctbl[char] = true
-		end
-		for byte = 1, 255 do
-			dectbl[hex[(byte - byte % 16) / 16 + 1] .. hex[byte % 16 + 1]] = string.char(byte)
-			if enctbl[string.char(byte)] then
-				enctbl[string.char(byte)] = "%" .. hex[(byte - byte % 16) / 16 + 1] .. hex[byte % 16 + 1]
-			else
-				enctbl[string.char(byte)] = string.char(byte)
-			end
-		end
-
-		--for i = 1, #valid_chars do
-		--	local char = valid_chars:sub(i, i)
-		--	enctbl[char] = char
-		--end
+	-- generate encode/decode lookup tables
+	for k in pairs(enctbl) do
+		local hexed = bit.tohex(string.byte(k), 2)
+		dectbl[hexed] = k
+		enctbl[k] = "%" .. hexed
 	end
 
 	-- escapes special characters
