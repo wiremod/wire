@@ -304,13 +304,14 @@ if (SERVER) then
 	function EGP:DoAction( Ent, E2, Action, ... )
 		if (Action == "SendObject") then
 			local Data = {...}
-			if not Data[1] then return end
+			local obj = Data[1]
+			if not obj or obj._notInitialized then return end
 
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 30
 			end
 
-			self:AddQueueObject( Ent, E2.player, SendObjects, Data[1] )
+			self:AddQueueObject( Ent, E2.player, SendObjects, obj)
 		elseif (Action == "RemoveObject") then
 			local Data = {...}
 			if not Data[1] then return end

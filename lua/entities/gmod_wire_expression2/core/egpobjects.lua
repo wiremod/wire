@@ -400,7 +400,7 @@ e2function void egpobject:egpSetVertices(...args)
 
 	if this:Set("vertices", vertices) then
 		local egp = this.EGP
-		EGP:InsertQueue(egp, self.player, EGP._SetVertex, "SetVertex", this.index, vertices, true) -- wtf?
+		EGP:InsertQueue(egp, self.player, EGP._SetVertex, "SetVertex", this.index, vertices, true)
 		Update(self, egp)
 	end
 end
