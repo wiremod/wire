@@ -314,7 +314,8 @@ if (SERVER) then
 			self:AddQueueObject( Ent, E2.player, SendObjects, obj)
 		elseif (Action == "RemoveObject") then
 			local Data = {...}
-			if not Data[1] then return end
+			local obj = Data[1]
+			if not obj or obj._notInitialized then return end
 
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 20
@@ -322,7 +323,7 @@ if (SERVER) then
 
 			for i=1,#Ent.RenderTable do
 				E2.prf = E2.prf + 0.3
-				if Ent.RenderTable[i].index == Data[1] then
+				if Ent.RenderTable[i].index == obj then
 					table.remove( Ent.RenderTable, i )
 					break
 				end
