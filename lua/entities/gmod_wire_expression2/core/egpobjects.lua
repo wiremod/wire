@@ -159,11 +159,65 @@ e2function egpobject egpobject:modify(table arguments)
 	if this:EditObject(converted) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) return this end
 end
 
-__e2setcost(7)
+--------------------------------------------------------
+-- Order
+--------------------------------------------------------
+
+__e2setcost(15)
+
+e2function void egpobject:egpOrder(order)
+	local egp = this.EGP
+	if not EGP:IsAllowed(self, egp) then return end
+	local bool, k = EGP:HasObject(egp, this.index)
+	if (bool) then
+		if EGP:SetOrder(egp, k, order) then
+			EGP:DoAction(egp, self, "SendObject", this)
+			Update(self, egp)
+		end
+	end
+end
+
+e2function number egpobject:egpOrder()
+	local egp = this.EGP
+	if not EGP:IsAllowed(self, egp) then return end
+	local bool, k = EGP:HasObject(egp, this.index)
+	return bool and k or -1
+end
+
+e2function void egpobject:egpOrderAbove(abovethis)
+	local egp = this.EGP
+	if not EGP:IsAllowed(self, egp) then return end
+	local bool, k = EGP:HasObject(egp, this.index)
+	if bool then
+		if EGP:HasObject(egp, abovethis) then
+			if EGP:SetOrder(egp, k, abovethis, 1) then
+				EGP:DoAction(egp, self, "SendObject", this)
+				Update(self, egp)
+			end
+		end
+	end
+end
+
+e2function void egpobject:egpOrderBelow(belowthis)
+	local egp = this.EGP
+	if not EGP:IsAllowed(self, egp) then return end
+	local bool, k = EGP:HasObject(egp, this.index)
+	if bool then
+		if EGP:HasObject(egp, belowthis) then
+			if EGP:SetOrder(egp, k, belowthis, -1) then
+				EGP:DoAction(egp, self, "SendObject", this)
+				Update(self, egp)
+			end
+		end
+	end
+end
 
 ----------------------------
 -- Set Text
 ----------------------------
+
+__e2setcost(7)
+
 e2function void egpobject:egpSetText(string text)
 	if not isValid(this) then return self:throw("Invalid EGP Object", nil) end
 	local egp = this.EGP
