@@ -12,6 +12,7 @@ local baseObj = {}
 baseObj.ID = 0
 baseObj.x = 0
 baseObj.y = 0
+baseObj.angle = 0
 baseObj.w = 0
 baseObj.h = 0
 baseObj.r = 255
@@ -56,10 +57,11 @@ function baseObj:EditObject(args)
 	return ret
 end
 baseObj.Initialize = baseObj.EditObject
-function baseObj:SetPos(x, y)
+function baseObj:SetPos(x, y, angle)
 	local ret = false
 	if self.x ~= x then self.x, ret = x, true end
 	if self.y ~= y then self.y, ret = y, true end
+	if angle and self.angle ~= angle then self.angle, ret = angle, true end
 	return ret
 end
 function baseObj:Set(member, value)
@@ -90,23 +92,24 @@ end
 ----------------------------
 
 function EGP:NewObject( Name )
-	if self.Objects[Name] then return self.Objects[Name] end
+	local lower = Name:lower() -- Makes my life easier
+	if self.Objects[lower] then return self.Objects[lower] end
 
 	-- Create table
-	self.Objects[Name] = {}
+	self.Objects[lower] = {}
 	-- Set info
-	self.Objects[Name].Name = Name
-	table.Inherit(self.Objects[Name], self.Objects.Base)
+	self.Objects[lower].Name = Name
+	table.Inherit(self.Objects[lower], self.Objects.Base)
 
 	-- Create lookup table
 	local ID = table.Count(self.Objects)
-	self.Objects[Name].ID = ID
+	self.Objects[lower].ID = ID
 	self.Objects.Names[Name] = ID
 
 	-- Inverted lookup table
-	self.Objects.Names_Inverted[ID] = Name
+	self.Objects.Names_Inverted[ID] = lower
 
-	return setmetatable(self.Objects[Name], M_EGPObject)
+	return setmetatable(self.Objects[lower], M_EGPObject)
 end
 
 local folder = "entities/gmod_wire_egp/lib/objects/"

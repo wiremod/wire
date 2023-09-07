@@ -7,6 +7,31 @@ local M_NULL_EGPOBJECT = { __tostring = function(self) return "[EGPObject] NULL"
 local NULL_EGPOBJECT = setmetatable({}, M_NULL_EGPOBJECT)
 local M_EGPObject = getmetatable(EGP.Objects.Base)
 
+-- Table of allowed arguments and their types
+local EGP_ALLOWED_ARGS =
+	{
+		x = "n",
+		x2 = "n",
+		y = "n",
+		y2 = "n",
+		z = "n",
+		w = "n",
+		h = "n",
+		r = "n",
+		g = "n",
+		b = "n",
+		a = "n",
+		size = "n",
+		angle = "n",
+		fidelity = "n",
+		radius = "n",
+		valign = "n",
+		halign = "n",
+		text = "s",
+		font = "s",
+		material = "s",
+	}
+
 local function Update(self, this)
 	self.data.EGP.UpdatesNeeded[this] = true
 end
@@ -55,6 +80,84 @@ e2function number operator!=(egpobject lhs, egpobject rhs)
 end
 
 ---- Functions
+
+----------------------------
+-- Creation/modification
+----------------------------
+
+__e2setcost(10)
+
+local maxobjects = EGP.ConVars.MaxObjects
+-- To be implemented when index LUT is implemented/EGP.HasValue is O(1). The following is therefore not conclusive.
+--[[
+e2function egpobject wirelink:egpCreate(string type)
+	local obj = EGP.Objects[type:lower()]
+	if not obj then return self:throw(string.format("Invalid object type '%d'!", type), NULL_EGPOBJECT) end
+	obj = table.Copy(obj)
+	obj.EGP = this
+	local index = EGP.NextFreeIndex(this)
+	if not index then return self:throw(string.format("EGP Object limit reached for EGP [%d].", this:EntIndex()), NULL_EGPOBJECT) end
+	obj._notInitialized = true
+	obj.index = index
+	return obj
+end
+]]
+[nodiscard]
+e2function egpobject wirelink:egpCreate(string type, index)
+	local obj = EGP.Objects[type:lower()]
+	if not obj then return self:throw(string.format("Invalid object type '%d'!", type), NULL_EGPOBJECT) end
+	obj = table.Copy(obj)
+	obj.EGP = this
+	obj._notInitialized = true
+	obj.index = math.Round(math.Clamp(index, 1, maxobjects:GetInt()))
+	return obj
+end
+
+e2function void egpobject:initialize(table arguments)
+	if not this._notInitialized then return end
+	local egp = this.EGP
+	local converted = {}
+
+	for k, v in pairs(arguments.s) do
+		if EGP_ALLOWED_ARGS[k] == arguments.stypes[k] or false then converted[k] = v end
+	end
+
+	this._notInitialized = nil
+	this:Initialize(converted)
+
+	local bool, k = EGP:HasObject(egp, this.index)
+	if bool then table.remove(egp.RenderTable, k) end
+
+	table.insert(egp.RenderTable, this)
+	EGP:DoAction(egp, self, "SendObject", this)
+	Update(self, egp)
+end
+
+e2function void egpobject:initialize()
+	if not this._notInitialized then return end
+	local egp = this.EGP
+
+	this._notInitialized = nil
+	this:Initialize({})
+
+	local bool, k = EGP:HasObject(egp, this.index)
+	if bool then table.remove(egp.RenderTable, k) end
+
+	table.insert(egp.RenderTable, this)
+	EGP:DoAction(egp, self, "SendObject", this)
+	Update(self, egp)
+end
+
+e2function egpobject egpobject:modify(table arguments)
+	local egp = this.EGP
+	local converted = {}
+
+	for k, v in pairs(arguments.s) do
+		if EGP_ALLOWED_ARGS[k] == arguments.stypes[k] or false then converted[k] = v end
+	end
+
+	if this:EditObject(converted) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) return this end
+end
 
 __e2setcost(7)
 
@@ -138,6 +241,22 @@ end
 --------------------------------------------------------
 
 __e2setcost(7)
+[nodiscard]
+e2function number egpobject:egpIndex(index)
+	if not isValid(this) then return self:throw("Invalid EGP Object", -1) end
+	if this.index == index then return -1 end
+	local egp = this.EGP
+	local ret = 0
+
+	local bool, k = EGP:HasObject(egp, index)
+	if bool then table.remove(egp.RenderTable, k) ret = 1 end
+
+	this.index = index
+
+	EGP:DoAction(egp, self, "SendObject", this)
+	Update(self, egp)
+	return ret
+end
 
 ----------------------------
 -- Size
@@ -147,6 +266,13 @@ e2function void egpobject:egpSize(vector2 size)
 	local egp = this.EGP
 	if not EGP:IsAllowed(self, egp) then return end
 	if this:EditObject({ w = size[1], h = size[2] }) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) end
+end
+
+e2function void egpobject:egpSize(width, height)
+	if not isValid(this) then return self:throw("Invalid EGP Object", nil) end
+	local egp = this.EGP
+	if not EGP:IsAllowed(self, egp) then return end
+	if this:EditObject({ w = width, h = height }) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) end
 end
 
 e2function void egpobject:egpSize(number size)
@@ -166,6 +292,20 @@ e2function void egpobject:egpPos(vector2 pos)
 	if this:SetPos(pos[1], pos[2]) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) end
 end
 
+e2function void egpobject:egpPos(x, y)
+	if not isValid(this) then return self:throw("Invalid EGP Object", nil) end
+	local egp = this.EGP
+	if not EGP:IsAllowed(self, egp) then return end
+	if this:SetPos(x, y) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) end
+end
+
+e2function void egpobject:egpPos(x, y, x2, y2)
+	if not isValid(this) then return self:throw("Invalid EGP Object", nil) end
+	local egp = this.EGP
+	if not EGP:IsAllowed(self, egp) then return end
+	if this:SetPos(x, y, nil, x2, y2) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) end
+end
+
 ----------------------------
 -- Angle
 ----------------------------
@@ -173,12 +313,19 @@ e2function void egpobject:egpAngle(number angle)
 	if not isValid(this) then return self:throw("Invalid EGP Object", nil) end
 	local egp = this.EGP
 	if not EGP:IsAllowed(self, egp) then return end
-	if this:EditObject({ angle = angle, _angle = angle }) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) end
+	if this:Set("angle", angle) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) end
 end
 
 -------------
 -- Position & Angle
 -------------
+e2function void egpobject:egpPos(x, y, angle)
+	if not isValid(this) then return self:throw("Invalid EGP Object", nil) end
+	local egp = this.EGP
+	if not EGP:IsAllowed(self, egp) then return end
+	if this:SetPos(x, y, angle) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) end
+end
+
 e2function void egpobject:egpAngle(vector2 worldpos, vector2 axispos, number angle)
 	if not isValid(this) then return self:throw("Invalid EGP Object", nil) end
 	local egp = this.EGP
@@ -197,6 +344,68 @@ e2function void egpobject:egpAngle(vector2 worldpos, vector2 axispos, number ang
 		if this:EditObject(t) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) end
 	end
 end
+
+----------------------------
+-- Polys
+----------------------------
+
+local maxVertices = EGP.ConVars.MaxVertices
+
+e2function void egpobject:egpSetVertices(array verts)
+	if not isValid(this) then return self:throw("Invalid EGP Object") end
+	if not this.vertices then return end
+	if #verts < 3 then return end
+	local max = maxVertices:GetInt()
+
+	local vertices = {}
+	for _, v in ipairs(verts) do
+		if istable(v) then
+			local n = #vertices
+			if n > max then
+				break
+			elseif #v == 2 then
+				vertices[n + 1] = { x = v[1], y = v[2] }
+			elseif #v == 4 then
+				vertices[n + 1]  = { x= v[1], y = v[2], u = v[3], v = v[4] }
+			end
+		end
+	end
+
+	if this:Set("vertices", vertices) then
+		local egp = this.EGP
+		EGP:InsertQueue(egp, self.player, EGP._SetVertex, "SetVertex", this.index, vertices, true) -- wtf?
+		Update(self, egp)
+	end
+end
+
+e2function void egpobject:egpSetVertices(...args)
+	if not isValid(this) then return self:throw("Invalid EGP Object") end
+	if not this.vertices then return end
+	if #args < 3 then return end
+	local max = maxVertices:GetInt()
+
+	local vertices = {}
+	for k, v in ipairs(args) do
+		if istable(v) then
+			local n = #vertices
+			if n > max then
+				break
+			elseif typeids[k] == "xv2" then
+				vertices[n + 1]  = { x= v[1], y = v[2] }
+			elseif typeids[k] == "xv4" then
+				vertices[n + 1]  = { x= v[1], y = v[2], u = v[3], v = v[4] }
+			end
+		end
+	end
+
+	if this:Set("vertices", vertices) then
+		local egp = this.EGP
+		EGP:InsertQueue(egp, self.player, EGP._SetVertex, "SetVertex", this.index, vertices, true) -- wtf?
+		Update(self, egp)
+	end
+end
+
+
 
 ----------------------------
 -- Color
@@ -259,6 +468,7 @@ e2function void egpobject:egpFidelity(number fidelity)
 	if this:EditObject({ fidelity = math.Clamp(fidelity, 3, 180) }) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) end
 end
 
+[nodiscard]
 e2function number egpobject:egpFidelity()
 	return this.fidelity or -1
 end
@@ -282,7 +492,7 @@ e2function void egpobject:egpParent(number parentindex)
 end
 
 e2function void wirelink:egpParent(egpobject child, egpobject parent)
-	if not isValid(child) or not isValid(parent) then return self:throw("Invalid EGP Object", nil) end	
+	if not (isValid(child) or  isValid(parent) or child.EGP == this or parent.EGP == this) then return self:throw("Invalid EGP Object", nil) end
 	if not EGP:IsAllowed(self, this) then return end
 	if EGP:SetParent(this, child, parent) then EGP:DoAction(this, self, "SendObject", child) Update(self, this) end
 end
@@ -303,6 +513,7 @@ e2function void egpobject:egpParent(entity parent)
 end
 
 -- Returns the entity a tracker is parented to
+[nodiscard]
 e2function entity egpobject:egpTrackerParent()
 	if not isValid(this) then return self:throw("Invalid EGP Object", nil) end
 	return IsValid(this.parententity) and this.parententity or NULL
@@ -322,6 +533,7 @@ e2function void egpobject:egpUnParent()
 	if EGP:UnParent(egp, this) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) end
 end
 
+[nodiscard]
 e2function number egpobject:egpParentIndex()
 	if not isValid(this) then return self:throw("Invalid EGP Object", nil) end
 	return this.parent or nil
@@ -351,17 +563,34 @@ e2function void egpobject:egpRemove()
 	Update(self, egp)
 end
 
+e2function void egpobject:unload()
+	if not isValid(this) then return end
+	local egp = this.EGP
+	if not EGP:IsAllowed(self, egp) then return end
+
+	EGP:DoAction(egp, self, "RemoveObject", this.index)
+	this._notInitialized = true
+	Update(self, egp)
+end
+
+[nodiscard]
+e2function number egpobject:isLoaded()
+	return isValid(this) and not this._notInitialized and 1 or 0
+end
+
 --------------------------------------------------------
 -- Get functions
 --------------------------------------------------------
 __e2setcost(20)
 
+[nodiscard]
 e2function vector egpobject:egpGlobalPos()
 	if not isValid(this) then return self:throw("Invalid EGP Object", vector_origin) end
 	local _, posang = EGP:GetGlobalPos(this.EGP, this)
 	return Vector(posang.x, posang.y, posang.angle)
 end
 
+[nodiscard]
 e2function array egpobject:egpGlobalVertices()
 	if not isValid(this) then return self:throw("Invalid EGP Object", {}) end
 	local hasvertices, data = EGP:GetGlobalPos(this.EGP, this)
@@ -384,6 +613,7 @@ e2function array egpobject:egpGlobalVertices()
 	end
 end
 
+[nodiscard]
 e2function number wirelink:egpHasObject(egpobject object)
 	return this == object.EGP and 1 or 0
 end
@@ -391,46 +621,62 @@ end
 
 __e2setcost(3)
 
+[nodiscard]
 e2function vector2 egpobject:egpPos()
 	if not isValid(this) then return self:throw("Invalid EGP Object", { -1, -1 }) end
 	return (this.x and this.y and { this.x, this.y }) or { -1, -1 }
 end
 
+
+[nodiscard]
+e2function vector egpobject:egpPosAng()
+	if not isValid(this) then return self:throw("Invalid EGP Object", Vector(-1, -1, -1)) end
+	return (this.x and this.y and this.angle and Vector(this.x, this.y, this.angle)) or Vector(-1, -1, -1)
+end
+
+[nodiscard]
 e2function vector2 egpobject:egpSize()
 	if not isValid(this) then return self:throw("Invalid EGP Object", { -1, -1 }) end
 	return (this.w and this.h and { this.w, this.h }) or { -1, -1 }
 end
 
+[nodiscard]
 e2function number egpobject:egpSizeNum()
 	if not isValid(this) then return self:throw("Invalid EGP Object", -1) end
 	return this.size or -1
 end
 
+[nodiscard]
 e2function vector4 egpobject:egpColor4()
 	if not isValid(this) then return self:throw("Invalid EGP Object", { -1, -1, -1, -1 }) end
 	return (this.r and this.g and this.b and this.a and { this.r, this.g, this.b, this.a }) or { -1, -1, -1, -1 }
 end
 
+[nodiscard]
 e2function vector egpobject:egpColor()
 	if not isValid(this) then return self:throw("Invalid EGP Object", -1) end
 	return (this.r and this.g and this.b and Vector(this.r, this.g, this.b)) or Vector(-1, -1, -1)
 end
 
+[nodiscard]
 e2function number egpobject:egpAlpha()
 	if not isValid(this) then return self:throw("Invalid EGP Object", -1) end
 	return this.a or -1
 end
 
+[nodiscard]
 e2function number egpobject:egpAngle()
 	if not isValid(this) then return self:throw("Invalid EGP Object", -1) end
 	return this.angle or -1
 end
 
+[nodiscard]
 e2function string egpobject:egpMaterial()
 	if not isValid(this) then return self:throw("Invalid EGP Object", "") end
 	return this.material or ""
 end
 
+[nodiscard]
 e2function number egpobject:egpRadius()
 	if not isValid(this) then return self:throw("Invalid EGP Object", -1) end
 	return this.radius or -1
@@ -438,6 +684,7 @@ end
 
 __e2setcost(10)
 
+[nodiscard]
 e2function array egpobject:egpVertices()
 	if this.vertices then
 		local ret = {}
@@ -459,8 +706,9 @@ end
 --------------------------------------------------------
 __e2setcost(4)
 
+[nodiscard]
 e2function string egpobject:egpObjectType()
-	return EGP.Objects.Names_Inverted[this.ID] or "Unknown"
+	return this.Name or "Unknown"
 end
 
 --------------------------------------------------------
@@ -469,6 +717,7 @@ end
 
 __e2setcost(15)
 
+[nodiscard]
 e2function egpobject wirelink:egpCopy(number index, egpobject from)
 	if not EGP:IsAllowed(self, this) then return end
 	if not isValid(from) then return self:throw("Invalid EGPObject", NULL_EGPOBJECT) end
@@ -480,14 +729,28 @@ e2function egpobject wirelink:egpCopy(number index, egpobject from)
 	end
 end
 
+e2function void egpobject:egpCopy(egpobject from)
+	if not EGP:IsAllowed(self, this) then return end
+	if not isValid(from) then return self:throw("Invalid EGPObject") end
+	if from then
+		local copy = table.Copy(from)
+		copy.index = this.index
+		copy.EGP = this.EGP
+		local bool, obj = EGP:CreateObject(copy.EGP, from.ID, copy, self.player)
+		if bool then EGP:DoAction(this, self, "SendObject", obj) Update(self, this) return end
+	end
+end
+
 __e2setcost(10)
 
+[nodiscard]
 e2function number egpobject:egpObjectContainsPoint(vector2 point)
 	return isValid(this) and this:Contains(point[1], point[2]) and 1 or 0
 end
 
 __e2setcost(5)
 
+[nodiscard]
 e2function egpobject wirelink:egpobject(number index)
 	if not EGP:IsAllowed(self, this) then return end
 	local _, _, obj = EGP:HasObject(this, index)
@@ -496,50 +759,29 @@ end
 
 __e2setcost(2)
 
+[nodiscard]
 e2function string egpobject:egpObjectType()
 	return isValid(this) and EGP.Objects.Names_Inverted[this.ID] or "Unknown"
 end
 
 __e2setcost(1)
 
+[nodiscard]
 e2function egpobject noegpobject()
 	return NULL_EGPOBJECT
 end
 
+[nodiscard]
 e2function string toString(egpobject egpo)
 	return tostring(egpo)
-end
+end	
 
+[nodiscard]
 e2function string egpobject:toString() = e2function string toString(egpobject egpo)
 
 --------------------------------------------------------
 -- Array Index Operators
 --------------------------------------------------------
-
--- Table of allowed arguments and their types
-local EGP_ALLOWED_ARGS =
-	{
-		x = "n",
-		x2 = "n",
-		y = "n",
-		y2 = "n",
-		z = "n",
-		w = "n",
-		h = "n",
-		r = "n",
-		g = "n",
-		b = "n",
-		a = "n",
-		size = "n",
-		angle = "n",
-		fidelity = "n",
-		radius = "n",
-		valign = "n",
-		halign = "n",
-		text = "s",
-		font = "s",
-		material = "s",
-	}
 
 registerCallback("postinit", function()
 	local fixDefault = E2Lib.fixDefault
