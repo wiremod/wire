@@ -305,7 +305,7 @@ if (SERVER) then
 		if (Action == "SendObject") then
 			local Data = {...}
 			local obj = Data[1]
-			if not obj or obj._notInitialized then return end
+			if not obj or obj._nodraw then return end
 
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 30
@@ -315,7 +315,6 @@ if (SERVER) then
 		elseif (Action == "RemoveObject") then
 			local Data = {...}
 			local obj = Data[1]
-			if not obj or obj._notInitialized then return end
 
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 20

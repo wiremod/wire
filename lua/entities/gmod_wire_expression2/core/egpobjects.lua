@@ -563,6 +563,7 @@ end
 e2function void egpobject:draw()
 	if not this._nodraw then return end
 	local egp = this.EGP
+	this._nodraw = nil
 	if not EGP:IsAllowed(self, egp) then return end
 
 	if EGP:CreateObject(egp, this.ID, this) then
@@ -572,7 +573,7 @@ e2function void egpobject:draw()
 end
 
 e2function void egpobject:hide()
-	if not isValid(this) then return end
+	if not isValid(this) or this._nodraw then return end
 	local egp = this.EGP
 	if not EGP:IsAllowed(self, egp) then return end
 
