@@ -76,6 +76,10 @@ local M_EGPObject = {__tostring = function(self) return "[EGPObject] ".. self.Na
 setmetatable(baseObj, M_EGPObject)
 EGP.Objects.Base = baseObj
 
+local M_NULL_EGPOBJECT = { __tostring = function(self) return "[EGPObject] NULL" end, __eq = function(a, b) return getmetatable(a) == getmetatable(b) end }
+local NULL_EGPOBJECT = setmetatable({}, M_NULL_EGPOBJECT)
+EGP.NULL_EGPOBJECT = NULL_EGPOBJECT
+
 ----------------------------
 -- Get Object
 ----------------------------
@@ -225,11 +229,11 @@ end
 ----------------------------
 
 function EGP:CreateObject( Ent, ObjID, Settings )
-	if not self:ValidEGP(Ent) then return false end
+	if not self:ValidEGP(Ent) then return false, NULL_EGPOBJECT end
 
 	if not self.Objects.Names_Inverted[ObjID] then
 		ErrorNoHalt("Trying to create nonexistant object! Please report this error to Divran at wiremod.com. ObjID: " .. ObjID .. "\n")
-		return false
+		return false, NULL_EGPOBJECT
 	end
 
 	if SERVER then Settings.index = math.Round(math.Clamp(Settings.index or 1, 1, self.ConVars.MaxObjects:GetInt())) end

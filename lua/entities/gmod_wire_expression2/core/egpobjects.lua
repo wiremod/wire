@@ -2,10 +2,12 @@
 --	File for EGP Object handling in E2.
 --
 
--- Dumb but simple workaround 
-local M_NULL_EGPOBJECT = { __tostring = function(self) return "[EGPObject] NULL" end, __eq = function(a, b) return getmetatable(a) == getmetatable(b) end }
-local NULL_EGPOBJECT = setmetatable({}, M_NULL_EGPOBJECT)
+-- Dumb but simple
+local NULL_EGPOBJECT = EGP.NULL_EGPOBJECT
+local M_NULL_EGPOBJECT = getmetatable(NULL_EGPOBJECT)
 local M_EGPObject = getmetatable(EGP.Objects.Base)
+
+local maxobjects = EGP.ConVars.MaxObjects
 
 -- Table of allowed arguments and their types
 local EGP_ALLOWED_ARGS =
@@ -82,71 +84,10 @@ end
 ---- Functions
 
 ----------------------------
--- Creation/modification
+-- Table modification
 ----------------------------
 
 __e2setcost(10)
-
-local maxobjects = EGP.ConVars.MaxObjects
--- To be implemented when index LUT is implemented/EGP.HasValue is O(1). The following is therefore not conclusive.
---[[
-e2function egpobject wirelink:egpCreate(string type)
-	local obj = EGP.Objects[type:lower()]
-	if not obj then return self:throw(string.format("Invalid object type '%d'!", type), NULL_EGPOBJECT) end
-	obj = table.Copy(obj)
-	obj.EGP = this
-	local index = EGP.NextFreeIndex(this)
-	if not index then return self:throw(string.format("EGP Object limit reached for EGP [%d].", this:EntIndex()), NULL_EGPOBJECT) end
-	obj._notInitialized = true
-	obj.index = index
-	return obj
-end
-]]
-[nodiscard]
-e2function egpobject wirelink:egpCreate(string type, index)
-	local obj = EGP.Objects[type:lower()]
-	if not obj then return self:throw(string.format("Invalid object type '%d'!", type), NULL_EGPOBJECT) end
-	obj = table.Copy(obj)
-	obj.EGP = this
-	obj._notInitialized = true
-	obj.index = math.Round(math.Clamp(index, 1, maxobjects:GetInt()))
-	return obj
-end
-
-e2function void egpobject:initialize(table arguments)
-	if not this._notInitialized then return end
-	local egp = this.EGP
-	local converted = {}
-
-	for k, v in pairs(arguments.s) do
-		if EGP_ALLOWED_ARGS[k] == arguments.stypes[k] or false then converted[k] = v end
-	end
-
-	this._notInitialized = nil
-	this:Initialize(converted)
-
-	local bool, k = EGP:HasObject(egp, this.index)
-	if bool then table.remove(egp.RenderTable, k) end
-
-	table.insert(egp.RenderTable, this)
-	EGP:DoAction(egp, self, "SendObject", this)
-	Update(self, egp)
-end
-
-e2function void egpobject:initialize()
-	if not this._notInitialized then return end
-	local egp = this.EGP
-
-	this._notInitialized = nil
-	this:Initialize({})
-
-	local bool, k = EGP:HasObject(egp, this.index)
-	if bool then table.remove(egp.RenderTable, k) end
-
-	table.insert(egp.RenderTable, this)
-	EGP:DoAction(egp, self, "SendObject", this)
-	Update(self, egp)
-end
 
 e2function egpobject egpobject:modify(table arguments)
 	local egp = this.EGP
@@ -184,13 +125,14 @@ e2function number egpobject:egpOrder()
 	return bool and k or -1
 end
 
-e2function void egpobject:egpOrderAbove(abovethis)
+e2function void egpobject:egpOrderAbove(egpobject abovethis)
 	local egp = this.EGP
 	if not EGP:IsAllowed(self, egp) then return end
+	if not (isValid(this) or isValid(abovethis)) then self:throw("Invalid EGP Object") end
 	local bool, k = EGP:HasObject(egp, this.index)
 	if bool then
-		if EGP:HasObject(egp, abovethis) then
-			if EGP:SetOrder(egp, k, abovethis, 1) then
+		if EGP:HasObject(egp, abovethis.index) then
+			if EGP:SetOrder(egp, k, abovethis.index, 1) then
 				EGP:DoAction(egp, self, "SendObject", this)
 				Update(self, egp)
 			end
@@ -198,13 +140,14 @@ e2function void egpobject:egpOrderAbove(abovethis)
 	end
 end
 
-e2function void egpobject:egpOrderBelow(belowthis)
+e2function void egpobject:egpOrderBelow(egpobject belowthis)
 	local egp = this.EGP
 	if not EGP:IsAllowed(self, egp) then return end
+	if not (isValid(this) or isValid(belowthis)) then self:throw("Invalid EGP Object") end
 	local bool, k = EGP:HasObject(egp, this.index)
 	if bool then
-		if EGP:HasObject(egp, belowthis) then
-			if EGP:SetOrder(egp, k, belowthis, -1) then
+		if EGP:HasObject(egp, belowthis.index) then
+			if EGP:SetOrder(egp, k, belowthis.index, -1) then
 				EGP:DoAction(egp, self, "SendObject", this)
 				Update(self, egp)
 			end
@@ -617,19 +560,30 @@ e2function void egpobject:egpRemove()
 	Update(self, egp)
 end
 
-e2function void egpobject:unload()
+e2function void egpobject:draw()
+	if not this._nodraw then return end
+	local egp = this.EGP
+	if not EGP:IsAllowed(self, egp) then return end
+
+	if EGP:CreateObject(egp, this.ID, this) then
+		EGP:DoAction(egp, self, "SendObject", this)
+		Update(self, egp)
+	end
+end
+
+e2function void egpobject:hide()
 	if not isValid(this) then return end
 	local egp = this.EGP
 	if not EGP:IsAllowed(self, egp) then return end
 
 	EGP:DoAction(egp, self, "RemoveObject", this.index)
-	this._notInitialized = true
+	this._nodraw = true
 	Update(self, egp)
 end
 
 [nodiscard]
-e2function number egpobject:isLoaded()
-	return isValid(this) and not this._notInitialized and 1 or 0
+e2function number egpobject:isVisible()
+	return isValid(this) and not this._nodraw and 1 or 0
 end
 
 --------------------------------------------------------
@@ -838,6 +792,7 @@ e2function string egpobject:toString() = e2function string toString(egpobject eg
 --------------------------------------------------------
 
 registerCallback("postinit", function()
+	E2Lib.currentextension = "egpobjects"
 	local fixDefault = E2Lib.fixDefault
 	for _, v in pairs(wire_expression_types) do
 		local id = v[1]
@@ -891,5 +846,53 @@ registerCallback("postinit", function()
 			if this:Set(index, value) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) self.GlobalScope.vclk[this] = true end
 			return
 		end)
+	end
+
+	local egpCreate = EGP.CreateObject
+	for name, id in pairs(EGP.Objects.Names) do
+		-- Indexed table "constructor"
+		registerFunction("egp" .. name, "xwl:nt", "xeo", function(self, args)
+			local op1, op2, op3 = args[2], args[3], args[4]
+			local this, index, args = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+			if not EGP:IsAllowed(self, this) then return NULL_EGPOBJECT end
+
+			local converted = {}
+
+			for k, v in pairs(args.s) do
+				if EGP_ALLOWED_ARGS[k] == args.stypes[k] or false then converted[k] = v end
+			end
+
+			converted.index = index
+
+			local bool, obj = egpCreate(EGP, this, id, converted)
+			if bool then
+				EGP:DoAction(this, self, "SendObject", obj)
+				Update(self, this)
+			end
+			return obj
+		end, 10, { "index", "args" })
+
+		--[[
+		-- Unindexed table constructor
+		registerFunction("egp" .. name, "xwl:t", "xeo", function(self, args)
+			local op1, op2 = args[2], args[3]
+			local this, args = op1[1](self, op1), op2[1](self, op2)
+
+			local converted = {}
+
+			for k, v in pairs(args.s) do
+				if EGP_ALLOWED_ARGS[k] == args.stypes[k] or false then converted[k] = v end
+			end
+
+			converted.index = EGP.GetNextIndex(this)
+
+			local bool, obj = egpCreate(this, id, converted)
+			if bool then
+				EGP:DoAction(this, self, "SendObject", obj)
+				Update(self, this)
+				return obj
+			end
+		end, 10, { "this", "args" }, { "nodiscard" })
+		]]
 	end
 end)
