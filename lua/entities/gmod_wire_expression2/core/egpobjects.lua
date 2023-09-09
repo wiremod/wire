@@ -752,7 +752,7 @@ end
 __e2setcost(10)
 
 [nodiscard]
-e2function number egpobject:egpObjectContainsPoint(vector2 point)
+e2function number egpobject:containsPoint(vector2 point)
 	return isValid(this) and this:Contains(point[1], point[2]) and 1 or 0
 end
 
