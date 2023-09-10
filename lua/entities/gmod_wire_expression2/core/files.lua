@@ -410,7 +410,7 @@ net.Receive("wire_expression2_file_finish", function(netlen, ply)
 	if !pfile or !pfile.buffer then return end
 
 	pfile.uploading = false
-	pfile.data = E2Lib.decode( pfile.buffer )
+	pfile.data = pfile.buffer
 	pfile.buffer = ""
 
 	if string.len( pfile.data ) ~= pfile.len then -- transfer error
@@ -459,7 +459,7 @@ net.Receive("wire_expression2_file_list", function(netlen, ply)
 	if timer.Exists( timername ) then timer.Remove( timername ) end
 
 	for i=1, net.ReadUInt(16) do
-		table.insert( plist.data, ( E2Lib.decode( net.ReadString() ) ) )
+		table.insert(plist.data, net.ReadData(net.ReadUInt(16)))
 	end
 
 	plist.uploaded = true
