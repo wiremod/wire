@@ -23,7 +23,7 @@ end, "compiler_quota_check")
 ---@field function { [1]: string, [2]: EnvFunction}?
 ---@field ops integer
 
----@alias VarData { type: string, trace_if_unused: Trace?, initialized: boolean, scope: Scope }
+---@alias VarData { type: string, trace_if_unused: Trace?, initialized: boolean, depth: integer }
 
 ---@class Scope
 ---@field parent Scope?
@@ -45,7 +45,7 @@ end
 ---@param data VarData
 function Scope:DeclVar(name, data)
 	if name ~= "_" then
-		data.scope = self
+		data.depth = self:Depth()
 		self.vars[name] = data
 	end
 end
@@ -925,7 +925,7 @@ local CompileVisitors = {
 
 				-- It can have indices, it already exists
 				if #indices > 0 then
-					local setter, id = table.remove(indices), existing.scope:Depth()
+					local setter, id = table.remove(indices), existing.depth
 					stmts[i] = function(state)
 						return state.Scopes[id][var]
 					end
@@ -966,7 +966,7 @@ local CompileVisitors = {
 					self:Assert(existing.type == value_ty, "Cannot assign type (" .. value_ty .. ") to variable of type (" .. existing.type .. ")", trace)
 					existing.initialized = true
 
-					local id = existing.scope:Depth()
+					local id = existing.depth
 					if id == 0 then
 						if E2Lib.IOTableTypes[value_ty] then
 							stmts[i] = function(state, val) ---@param state RuntimeContext
@@ -1028,7 +1028,7 @@ local CompileVisitors = {
 		self:AssertW(existing.initialized, "Use of variable [" .. data.value .. "] before initialization", trace)
 
 		local op = self:GetOperator("add", {existing.type, "n"}, trace)
-		local id = existing.scope:Depth()
+		local id = existing.depth
 		return function(state) ---@param state RuntimeContext
 			state.Scopes[id][var] = op(state, state.Scopes[id][var], 1)
 		end
@@ -1042,7 +1042,7 @@ local CompileVisitors = {
 		self:AssertW(existing.initialized, "Use of variable [" .. data.value .. "] before initialization", trace)
 
 		local op = self:GetOperator("sub", {existing.type, "n"}, trace)
-		local id = existing.scope:Depth()
+		local id = existing.depth
 		return function(state) ---@param state RuntimeContext
 			state.Scopes[id][var] = op(state, state.Scopes[id][var], 1)
 		end
@@ -1058,7 +1058,7 @@ local CompileVisitors = {
 		local op, op_ty = self:GetOperator(E2Lib.OperatorNames[data[2]]:lower():sub(2), { existing.type, expr_ty }, trace)
 		self:Assert(op_ty == existing.type, "Cannot use compound arithmetic on differing types", trace)
 
-		local name, id = data[1].value, existing.scope:Depth()
+		local name, id = data[1].value, existing.depth
 		return function(state)
 			state.Scopes[id][name] = op(state, state.Scopes[id][name], expr(state))
 		end
@@ -1110,7 +1110,7 @@ local CompileVisitors = {
 		self:AssertW(var.initialized, "Use of variable [" .. name .. "] before initialization", trace)
 		self.scope.data.ops = self.scope.data.ops + 0.5
 
-		local id = var.scope:Depth()
+		local id = var.depth
 		return function(state) ---@param state RuntimeContext
 			return state.Scopes[id][name]
 		end, var.type
@@ -1322,11 +1322,11 @@ local CompileVisitors = {
 		self:AssertW(var.initialized, "Use of variable [" .. var_name .. "] before initialization", trace)
 
 		if data[1] == Operator.Dlt then -- $
-			self:Assert(var.scope:IsGlobalScope(), "Delta operator ($) can not be used on temporary variables", trace)
+			self:Assert(var.depth == 0, "Delta operator ($) can not be used on temporary variables", trace)
 			self.delta_vars[var_name] = true
 
 			local sub_op, sub_ty = self:GetOperator("sub", { var.type, var.type }, trace)
-			local id = var.scope:Depth()
+			local id = var.depth
 
 			return function(state) ---@param state RuntimeContext
 				local current, past = state.Scopes[id][var_name], state.Scopes[id]["$" .. var_name]

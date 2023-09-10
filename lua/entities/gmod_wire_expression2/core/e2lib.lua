@@ -1044,7 +1044,7 @@ end
 ---@field Scope RuntimeScope
 ---@field Scopes RuntimeScope[]
 ---@field ScopeID integer
----@field GlobalScope RuntimeScope
+---@field GlobalScope RuntimeScope | { lookup: table }
 ---
 ---@field prf integer
 ---@field prfcount integer
