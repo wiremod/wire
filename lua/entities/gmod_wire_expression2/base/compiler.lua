@@ -1273,7 +1273,7 @@ local CompileVisitors = {
 					return op(state, lhs(state), rhs(state))
 				end, "n"
 			end
-		else -- Operator.Neq
+		elseif data[2] == Operator.Neq then
 			if legacy then
 				local largs = { [1] = {}, [2] = { lhs }, [3] = { rhs }, [4] = { lhs_ty, rhs_ty } }
 				return function(state)
@@ -1711,17 +1711,25 @@ local CompileVisitors = {
 
 ---@alias TypeSignature string
 
+local function DEFAULT_EQUALS(self, lhs, rhs)
+	return lhs == rhs and 1 or 0
+end
+
 ---@param variant string
 ---@param types TypeSignature[]
 ---@param trace Trace
 ---@return RuntimeOperator fn
 ---@return TypeSignature signature
 ---@return boolean legacy
+---@return boolean default
 function Compiler:GetOperator(variant, types, trace)
 	local fn = wire_expression2_funcs["op:" .. variant .. "(" .. table.concat(types) .. ")"]
 	if fn then
 		self.scope.data.ops = self.scope.data.ops + (fn[4] or 2) + (fn.attributes.legacy and 1 or 0)
-		return fn[3], fn[2], fn.attributes.legacy
+		return fn[3], fn[2], fn.attributes.legacy, false
+	elseif variant == "eq" and #types == 2 and types[1] == types[2] then
+		-- If no equals operator present, default to just basic lua equals.
+		return DEFAULT_EQUALS, "n", false, true
 	end
 
 	self:Error("No such operator: " .. variant .. " (" .. table.concat(types, ", ") .. ")", trace)

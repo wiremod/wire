@@ -63,10 +63,6 @@ e2function number operator_is(entity this)
 	return IsValid(this) and 1 or 0
 end
 
-e2function number operator==(entity lhs, entity rhs)
-	return (lhs == rhs) and 1 or 0
-end
-
 --[[******************************************************************************]]
 
 e2function entity entity(id)

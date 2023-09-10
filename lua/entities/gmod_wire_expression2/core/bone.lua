@@ -98,11 +98,6 @@ e2function number operator_is(bone this)
 	return isValidBone(this) and 1 or 0
 end
 
---- B == B
-e2function number operator==(bone lhs, bone rhs)
-	return (lhs == rhs) and 1 or 0
-end
-
 --[[************************************************************************]]--
 __e2setcost(3)
 

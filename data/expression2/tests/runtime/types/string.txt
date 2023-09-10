@@ -7,6 +7,9 @@ if ("") {
 assert(!!"String")
 assert(!"")
 
+assert("Foo" != "Bar")
+assert("Foo" == "Foo")
+
 assert("Foo" + 5 == "Foo5")
 assert(5 + "Foo" == "5Foo")
 

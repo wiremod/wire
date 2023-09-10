@@ -1,0 +1,23 @@
+## SHOULD_PASS:EXECUTE
+
+local Vec = vec4(1, 2, 3, 4)
+
+assert(Vec == vec4(1, 2, 3, 4))
+assert(Vec != vec4(2, 2, 1, 0))
+
+assert(Vec[1] == 1)
+assert(Vec[2] == 2)
+assert(vec4()[1] == 0)
+
+assert(vec4() == vec4(0, 0, 0, 0))
+assert(vec4(1, 2, 2, 1) != vec4(1, 2.3, 2, 1))
+assert(vec4(1, 2, 3, 5) == vec4(1, 2, 3, 5))
+
+assert(Vec:x() == Vec[1])
+assert(Vec:y() == Vec[2])
+assert(Vec:z() == Vec[3])
+assert(Vec:w() == Vec[4])
+
+assert(vec4(1, 2, 3, 4) + vec4(1, 2, 3, 4) == vec4(2, 4, 6, 8))
+
+assert(Vec:toString() == "[1,2,3,4]", Vec:toString())

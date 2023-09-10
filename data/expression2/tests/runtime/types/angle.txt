@@ -16,5 +16,7 @@ assert(Ang[3] == 3)
 assert(ang()[1] == 0)
 
 assert(ang() == ang(0, 0, 0))
+assert(ang(1, 2, 5) != ang(1, 2, 5.2))
+assert(ang(1, 2, 5) == ang(1, 2, 5))
 
 assert(ang() + ang(1, 2, 3) == ang(1, 2, 3))

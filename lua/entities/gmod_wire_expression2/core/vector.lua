@@ -95,13 +95,6 @@ e2function number operator_is(vector this)
 	return this:IsZero() and 0 or 1
 end
 
-e2function number vector:operator==( vector other )
-	return (this[1] == other[1]
-		and this[2] == other[2]
-		and this[3] == other[3])
-		and 1 or 0
-end
-
 --------------------------------------------------------------------------------
 
 __e2setcost(1)

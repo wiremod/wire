@@ -258,10 +258,6 @@ e2function number operator_is(table this)
 	return (this.size > 0) and 1 or 0
 end
 
-e2function number operator==( table rv1, table rv2 )
-	return (rv1 == rv2) and 1 or 0
-end
-
 --------------------------------------------------------------------------------
 -- Common functions
 --------------------------------------------------------------------------------

@@ -143,10 +143,6 @@ e2function number operator_is(wirelink this)
 	return validWirelink(self, this) and 1 or 0
 end
 
-e2function number operator==(wirelink lhs, wirelink rhs)
-	if lhs == rhs then return 1 else return 0 end
-end
-
 /******************************************************************************/
 
 e2function number wirelink:isHiSpeed()

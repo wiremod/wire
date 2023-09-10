@@ -52,10 +52,6 @@ __e2setcost(1.5)
 
 --[[************************************************************************]]--
 
-registerOperator("eq", "nn", "n", function(state, lhs, rhs)
-	return lhs == rhs and 1 or 0
-end, 1, nil, { legacy = false })
-
 registerOperator("geq", "nn", "n", function(state, lhs, rhs)
 	return lhs >= rhs and 1 or 0
 end, 1, nil, { legacy = false })
