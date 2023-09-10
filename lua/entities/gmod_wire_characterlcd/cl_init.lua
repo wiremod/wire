@@ -64,7 +64,8 @@ function ENT:Initialize()
 
 	self.IntTimer = 0
 	self.Flash = false
-
+	self.CursorChar = 0
+	
 	self.GPU = WireGPU(self)
 	mem[1009] = 16
 	mem[1010] = 2
@@ -428,11 +429,11 @@ function ENT:Draw()
 
 	if mem[1023] >= 1 then
 		mem[1023] = 0
-
+		
 		self.GPU:RenderToGPU(function()
 			-- Draw terminal here
 			-- W/H = 16
-
+			
 			local bc = math.min(1,math.max(0,mem[1016]-1.8))
 			local br = (1-bc)*mem[1003]+bc*mem[1006]
 			local bg = (1-bc)*mem[1004]+bc*mem[1007]
@@ -449,7 +450,7 @@ function ENT:Draw()
 			local fb = (1-fc)*mem[1005]+fc*mem[1008]
 			surface.SetDrawColor(br,bg,bb,255)
 			surface.DrawRect(0,0,1024,1024)
-
+			
 			for ty = 0, mem[1010]-1 do
 				for tx = 0, mem[1009]-1 do
 					local a = tx + ty*mem[1009]
@@ -463,7 +464,8 @@ function ENT:Draw()
 
 					if c1 >= 2097152 then c1 = 0 end
 					if c1 < 0 then c1 = 0 end
-
+					
+					
 					surface.SetDrawColor(sqr,sqg,sqb,255)
 					surface.DrawRect((tx)*szx+1,(ty)*szy+1,szx-2,szy-2)
 					surface.SetDrawColor(sqr,sqg,sqb,127)
@@ -506,7 +508,7 @@ function ENT:Draw()
 			end
 		 end)
 	end
-
+	
 	self.GPU:Render(0,0,1024,1024,nil,-(1024-mem[1009]*szx)/1024,-(1024-mem[1010]*szy)/1024)
 
 	if mem[1022] >= 1 then
@@ -514,10 +516,83 @@ function ENT:Draw()
 		if self.IntTimer >= mem[1019] then
 			if self.IntTimer >= mem[1019]*2 then
 				self.IntTimer = (self.IntTimer - mem[1019]*2) % math.max(mem[1019]*2,0.01)
-			else
-				self.GPU:RenderToWorld(mem[1009]*szx, mem[1010]*szy, function()
-					local a = math.floor(mem[1021])
+				self.GPU:RenderToGPU(function()
+					local bc = math.min(1,math.max(0,mem[1016]-1.8))
+					local br = (1-bc)*mem[1003]+bc*mem[1006]
+					local bg = (1-bc)*mem[1004]+bc*mem[1007]
+					local bb = (1-bc)*mem[1005]+bc*mem[1008]
 
+					local sqc = math.min(1,math.max(0,mem[1016]-0.9))
+					local sqr = (1-sqc)*mem[1003]+sqc*mem[1006]
+					local sqg = (1-sqc)*mem[1004]+sqc*mem[1007]
+					local sqb = (1-sqc)*mem[1005]+sqc*mem[1008]
+
+					local fc = math.min(1,math.max(sqc,mem[1016]))
+					local fr = (1-fc)*mem[1003]+fc*mem[1006]
+					local fg = (1-fc)*mem[1004]+fc*mem[1007]
+					local fb = (1-fc)*mem[1005]+fc*mem[1008]
+					
+					local a = math.floor(mem[1021])
+					local tx = a - math.floor(a / mem[1009])*mem[1009]
+					local ty = math.floor(a / mem[1009])
+
+					--if (self.Flash == true) then
+					--	fb,bb = bb,fb
+					--	fg,bg = bg,fg
+					--	fr,br = br,fr
+					--end
+					surface.SetDrawColor(br,bg,bb,255)
+					surface.DrawRect((tx)*szx,(ty)*szy,szx,szy)
+					local c1 = mem[a]
+
+					if c1 >= 2097152 then c1 = 0 end
+					if c1 < 0 then c1 = 0 end
+					
+					
+					surface.SetDrawColor(sqr,sqg,sqb,255)
+					surface.DrawRect((tx)*szx+1,(ty)*szy+1,szx-2,szy-2)
+					surface.SetDrawColor(sqr,sqg,sqb,127)
+					surface.DrawRect((tx)*szx+2,(ty)*szy+2,szx-2,szy-2)
+
+					if (c1 ~= 0) then
+						-- Note: the source engine does not handle unicode characters above 65535 properly.
+						local utf8 = ""
+						if c1 <= 127 then
+							utf8 = string.char (c1)
+						elseif c1 < 2048 then
+							utf8 = string.format("%c%c", 192 + math.floor (c1 / 64), 128 + (c1 % 64))
+						elseif c1 < 65536 then
+							utf8 = string.format("%c%c%c", 224 + math.floor (c1 / 4096), 128 + (math.floor (c1 / 64) % 64), 128 + (c1 % 64))
+						elseif c1 < 2097152 then
+							utf8 = string.format("%c%c%c%c", 240 + math.floor (c1 / 262144), 128 + (math.floor (c1 / 4096) % 64), 128 + (math.floor (c1 / 64) % 64), 128 + (c1 % 64))
+						end
+
+						if specialCharacters[c1] then
+							self:DrawSpecialCharacter(
+								c1, (tx)*szx+1, (ty)*szy+1, szx-1, szy-1,
+								fr,fg,fb
+							)
+						else
+							draw.DrawText(
+								utf8,
+								"LCDFontBlur",
+								tx * szx + 2, ty * szy,
+								Color(fr,fg,fb,255),0
+							)
+							draw.DrawText(
+								utf8,
+								"LCDFont",
+								tx * szx + 1, ty * szy -1 ,
+								Color(fr,fg,fb,255),0
+							)
+						end
+					end
+					
+				end, nil, true)
+			else
+				self.GPU:RenderToGPU(function()
+					local a = math.floor(mem[1021])
+					
 					local tx = a - math.floor(a / mem[1009])*mem[1009]
 					local ty = math.floor(a / mem[1009])
 
@@ -533,12 +608,14 @@ function ENT:Draw()
 						fb,
 						255
 					)
+					
 					surface.DrawRect(
 						(tx)*szx+1,
-						(ty)*szy+szy*(1-mem[1020]),
+						(ty*szy)+(szy*(1-mem[1020]))-1,
 						szx-2,
 						szy*mem[1020]
 					)
+
 				end, nil, true)
 			end
 		end
