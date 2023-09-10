@@ -128,3 +128,26 @@ function Obj:SetPos(x, y, angle)
 	if self._x then self._x, self._y, self._angle = x, y, angle end
 	return true
 end
+
+function Obj:Set(key, value)
+	if key == "vertices" then
+		self.vertices = value
+		self.x, self.y = EGP.getCenterFrom(self)
+		return true
+	elseif key == "x" then
+		ret = self:SetPos(value, self.y, self.angle)
+		return true
+	elseif key == "y" then
+		ret = self:SetPos(self.x, value, self.angle)
+		return true
+	elseif key == "angle" then
+		ret = self:SetPos(self.x, self.y, value)
+		return true
+	else
+		if self[key] ~= nil and self[key] ~= value then
+			self[key] = value
+			return true
+		end
+	end
+	return false
+end

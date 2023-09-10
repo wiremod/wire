@@ -850,7 +850,8 @@ registerCallback("postinit", function()
 	end
 
 	local egpCreate = EGP.CreateObject
-	for name, id in pairs(EGP.Objects.Names) do
+	local workingSet = table.Copy(EGP.Objects.Names)
+	for name, id in pairs(workingSet) do
 		-- Indexed table "constructor"
 		registerFunction("egp" .. name, "xwl:nt", "xeo", function(self, args)
 			local op1, op2, op3 = args[2], args[3], args[4]

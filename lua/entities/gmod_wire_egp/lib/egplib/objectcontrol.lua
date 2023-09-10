@@ -116,12 +116,22 @@ function EGP:NewObject( Name )
 	return setmetatable(self.Objects[lower], M_EGPObject)
 end
 
-local folder = "entities/gmod_wire_egp/lib/objects/"
-local files = file.Find(folder.."*.lua", "LUA")
-table.sort( files )
-for _,v in pairs( files ) do
-	include(folder..v)
-	if (SERVER) then AddCSLuaFile(folder..v) end
+do
+	local folder = "entities/gmod_wire_egp/lib/objects/"
+	local files = file.Find(folder.."*.lua", "LUA")
+	for _, v in ipairs(files) do
+		AddCSLuaFile(folder .. v)
+	end
+
+	local pending = {}
+	for _, v in ipairs(files) do
+		local path = folder .. v
+		local ok, thisOrParent = include(path)
+		if not ok then
+			if not pending[thisOrParent] then pending[thisOrParent] = {} end
+			pending[#thisOrParent + 1] = path
+		end
+	end
 end
 
 ----------------------------
