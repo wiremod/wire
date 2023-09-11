@@ -490,11 +490,16 @@ function Parser:Stmt()
 				self:Error("Variable expected after left parenthesis (() in catch statement")
 			end
 
+			local ty
+			if self:Consume(TokenVariant.Operator, Operator.Col) then
+				ty = self:Assert(self:Type(), "Expected type name after : for error value", trace)
+			end
+
 			if not self:Consume(TokenVariant.Grammar, Grammar.RParen) then
 				self:Error("Right parenthesis ()) missing, to close catch statement")
 			end
 
-			return Node.new(NodeVariant.Try, {stmt, err_ident, self:Block()}, trace:stitch(self:Prev().trace))
+			return Node.new(NodeVariant.Try, {stmt, err_ident, ty, self:Block()}, trace:stitch(self:Prev().trace))
 		else
 			self:Error("Try block must be followed by catch statement")
 		end
@@ -850,10 +855,7 @@ function Parser:Expr11()
 				local args, typ = self:Arguments()
 
 				if self:Consume(TokenVariant.Grammar, Grammar.LSquare) then
-					typ = self:Consume(TokenVariant.LowerIdent)
-					if not typ then
-						self:Error("Return type operator ([]) requires a lower case type [type]")
-					end
+					typ = self:Assert(self:Type(), "Return type operator ([]) requires a lower case type [type]")
 
 					if not self:Consume(TokenVariant.Grammar, Grammar.RSquare) then
 						self:Error("Right square bracket (]) missing, to close return type operator [type]")
@@ -1040,7 +1042,7 @@ function Parser:Expr12()
 	elseif self:Consume(TokenVariant.Keyword, Keyword.Else) then
 		self:Error("Else keyword (else) must be part of an if-statement")
 	else
-		self:Error("Unexpected token found (" .. self:At():display() .. ")")
+		self:Error("Unexpected token found (" .. self:At():display() .. ")", self:At().trace)
 	end
 
 	error("unreachable")

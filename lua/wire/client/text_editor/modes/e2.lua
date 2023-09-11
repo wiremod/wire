@@ -97,8 +97,16 @@ local function addToken(tokenname, tokendata)
 	end
 end
 
-local function AcceptIdent(self)
+local function acceptIdent(self)
 	return self:NextPattern("^[A-Z][a-zA-Z0-9_]*") or self:NextPattern("^_")
+end
+
+local function addOptional(self, pattern, tokendata)
+	local s = self:SkipPattern(pattern)
+	if s then
+		self.tokendata = ""
+		addToken(tokendata, s)
+	end
 end
 
 function EDITOR:CommentSelection(removecomment)
@@ -365,7 +373,7 @@ function EDITOR:SyntaxColorLine(row)
 					addToken( "operator", self.tokendata )
 					self.tokendata = ""
 
-					while AcceptIdent(self) do -- If we found a variable
+					while acceptIdent(self) do -- If we found a variable
 						addToken( "variable", self.tokendata )
 						self.tokendata = ""
 
@@ -377,7 +385,7 @@ function EDITOR:SyntaxColorLine(row)
 						addToken( "operator", "]" )
 						self.tokendata = ""
 					end
-				elseif AcceptIdent(self) then -- If we found a variable
+				elseif acceptIdent(self) then -- If we found a variable
 					-- Color the variable
 					addToken( "variable", self.tokendata )
 					self.tokendata = ""
@@ -447,7 +455,7 @@ function EDITOR:SyntaxColorLine(row)
 					addToken( "operator", self.tokendata )
 					self.tokendata = ""
 
-					while AcceptIdent(self) do -- If we found a variable
+					while acceptIdent(self) do -- If we found a variable
 						addToken( "variable", self.tokendata )
 						self.tokendata = ""
 
@@ -459,7 +467,7 @@ function EDITOR:SyntaxColorLine(row)
 						addToken( "operator", "]" )
 						self.tokendata = ""
 					end
-				elseif AcceptIdent(self) then -- If we found a variable
+				elseif acceptIdent(self) then -- If we found a variable
 					-- Color the variable
 					addToken( "variable", self.tokendata )
 					self.tokendata = ""
@@ -490,6 +498,42 @@ function EDITOR:SyntaxColorLine(row)
 		self.tokendata = ""
 		if self:NextPattern( "%) *{?" ) then -- check for ending bracket (and perhaps an ending {?)
 			addToken( "operator", self.tokendata )
+		end
+	end
+
+	local found = self:SkipPattern("(} *)")
+	if found then
+		addToken("operator", found)
+		self.tokendata = ""
+	end
+
+	local found = self:SkipPattern("( *catch)")
+	if found then
+		addToken("keyword", found)
+		self.tokendata = ""
+		addOptional(self, " *", "comment")
+
+		if self:NextPattern("%(") then
+			addToken("operator", self.tokendata)
+			self.tokendata = ""
+			addOptional(self, " *", "comment")
+
+			if acceptIdent(self) then
+				addToken("variable", self.tokendata)
+				self.tokendata = ""
+				addOptional(self, " *", "comment")
+
+				if self:NextPattern(":") then
+					addToken("operator", self.tokendata)
+					self.tokendata = ""
+					addOptional(self, " *", "comment")
+					self.tokendata = ""
+
+					if self:NextPattern("[a-z][a-zA-Z0-9_]*") then
+						addToken("typename", self.tokendata)
+					end
+				end
+			end
 		end
 	end
 
@@ -584,7 +628,7 @@ function EDITOR:SyntaxColorLine(row)
 				self.tokendata = spaces
 			end
 
-		elseif AcceptIdent(self) then
+		elseif acceptIdent(self) then
 			if self.tokendata == "This" then
 				tokenname = "typename"
 			else

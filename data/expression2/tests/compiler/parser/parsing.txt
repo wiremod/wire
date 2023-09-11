@@ -63,6 +63,7 @@ do { break } while (A)
 do { continue } while (A)
 
 try {} catch(Err) {}
+try {} catch(Err:string) {}
 
 event tick() {}
 event chat(_:entity, _:string, _) {}

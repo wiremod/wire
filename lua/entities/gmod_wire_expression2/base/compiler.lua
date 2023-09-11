@@ -569,16 +569,22 @@ local CompileVisitors = {
 		end
 	end,
 
-	---@param data { [1]: Node, [2]: Token<string>, [3]: Node }
+	---@param data { [1]: Node, [2]: Token<string>, [3]: Token<string>?, [4]: Node }
 	[NodeVariant.Try] = function (self, trace, data)
-		local try_block, catch_block, err_var = nil, nil, data[2]
+		local try_block, catch_block, err_var, err_ty = nil, nil, data[2], data[3]
 		self:Scope(function(scope)
 			try_block = self:CompileStmt(data[1])
 		end)
 
+		if err_ty then
+			self:Assert(err_ty.value == "string", "Error type can only be string, for now", err_ty.trace)
+		else
+			self:Warning("You should explicitly annotate the error type as :string", err_var.trace)
+		end
+
 		self:Scope(function (scope)
 			scope:DeclVar(err_var.value, { initialized = true, trace_if_unused = err_var.trace, type = "s" })
-			catch_block = self:CompileStmt(data[3])
+			catch_block = self:CompileStmt(data[4])
 		end)
 
 		self.scope.data.ops = self.scope.data.ops + 5
