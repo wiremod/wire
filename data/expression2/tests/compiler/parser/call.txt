@@ -1,0 +1,6 @@
+## SHOULD_PASS:COMPILE
+
+min(1, 2)
+print("foo", 2)
+
+array():count()

@@ -1,0 +1,10 @@
+## SHOULD_PASS:COMPILE
+
+#ifndef print(...)
+	#error Uhh
+#endif
+
+#ifndef print(...)
+	#error Uhh 2
+#else
+#endif

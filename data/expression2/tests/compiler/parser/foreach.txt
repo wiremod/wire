@@ -1,0 +1,11 @@
+## SHOULD_PASS:COMPILE
+
+foreach(K,V:number=array(1, 2, 3)) { break }
+foreach (K:number,V:number=array(1, 2, 3)) { continue }
+
+foreach (K: number, V: number = array(1, 2, 3)) {
+	continue
+}
+
+foreach (K:number, _:entity = table()) {}
+foreach (_, _:entity = table()) {}
