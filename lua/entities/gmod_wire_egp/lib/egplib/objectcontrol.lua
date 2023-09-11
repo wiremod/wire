@@ -3,9 +3,10 @@
 --------------------------------------------------------
 local EGP = EGP
 
-EGP.Objects = {}
-EGP.Objects.Names = {}
-EGP.Objects.Names_Inverted = {}
+local egpObjects = {}
+egpObjects.Names = {}
+egpObjects.Names_Inverted = {}
+EGP.Objects = egpObjects
 
 -- This object is not used. It's only a base
 local baseObj = {}
@@ -13,27 +14,28 @@ baseObj.ID = 0
 baseObj.x = 0
 baseObj.y = 0
 baseObj.angle = 0
-baseObj.w = 0
-baseObj.h = 0
 baseObj.r = 255
 baseObj.g = 255
 baseObj.b = 255
 baseObj.a = 255
 baseObj.filtering = TEXFILTER.ANISOTROPIC
-baseObj.material = ""
-if CLIENT then baseObj.material = false end
 baseObj.parent = 0
-baseObj.EGP = NULL -- EGP entity parent
+if SERVER then
+	baseObj.material = ""
+	baseObj.EGP = NULL -- EGP entity parent
+else
+	baseObj.material = false
+end
 function baseObj:Transmit()
-	EGP:SendPosSize( self )
+	EGP.SendPosAng(self)
 	EGP:SendColor( self )
-	EGP:SendMaterial( self )
+	EGP:SendMaterial(self)
 	net.WriteUInt(math.Clamp(self.filtering,0,3), 2)
 	net.WriteInt( self.parent, 16 )
 end
 function baseObj:Receive()
 	local tbl = {}
-	EGP:ReceivePosSize( tbl )
+	EGP.ReceivePosAng(tbl)
 	EGP:ReceiveColor( tbl, self )
 	EGP:ReceiveMaterial( tbl )
 	tbl.filtering = net.ReadUInt(2)
@@ -41,7 +43,7 @@ function baseObj:Receive()
 	return tbl
 end
 function baseObj:DataStreamInfo()
-	return { x = self.x, y = self.y, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, filtering = self.filtering, parent = self.parent }
+	return { x = self.x, y = self.y, angle = self.angle, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, filtering = self.filtering, parent = self.parent }
 end
 function baseObj:Contains(x, y)
 	return false
@@ -95,20 +97,21 @@ end
 -- Load all objects
 ----------------------------
 
-function EGP:NewObject( Name )
-	local lower = Name:lower() -- Makes my life easier
+function EGP:NewObject(name, super)
+	local lower = name:lower() -- Makes my life easier
+	if not super then super = baseObj end
 	if self.Objects[lower] then return self.Objects[lower] end
 
 	-- Create table
 	self.Objects[lower] = {}
 	-- Set info
-	self.Objects[lower].Name = Name
-	table.Inherit(self.Objects[lower], self.Objects.Base)
+	self.Objects[lower].Name = name
+	table.Inherit(self.Objects[lower], super)
 
 	-- Create lookup table
 	local ID = table.Count(self.Objects)
 	self.Objects[lower].ID = ID
-	self.Objects.Names[Name] = ID
+	self.Objects.Names[name] = ID
 
 	-- Inverted lookup table
 	self.Objects.Names_Inverted[ID] = lower
@@ -116,20 +119,30 @@ function EGP:NewObject( Name )
 	return setmetatable(self.Objects[lower], M_EGPObject)
 end
 
+local folder = "entities/gmod_wire_egp/lib/objects/"
+
+function EGP.ObjectInherit(to, from)
+	local super = egpObjects[from:lower()]
+	if super then
+		return EGP:NewObject(to, super)
+	else
+		local path = folder .. from .. ".lua"
+		if file.Exists(path, "LUA") then
+			super = include(path)
+			AddCSLuaFile(path)
+			return EGP:NewObject(to, super)
+		else
+			ErrorNoHalt(string.format("EGP couldn't find object '%s' to inherit from (to object '%s').\n", from, to))
+		end
+	end
+end
+
 do
-	local folder = "entities/gmod_wire_egp/lib/objects/"
 	local files = file.Find(folder.."*.lua", "LUA")
 	for _, v in ipairs(files) do
-		AddCSLuaFile(folder .. v)
-	end
-
-	local pending = {}
-	for _, v in ipairs(files) do
-		local path = folder .. v
-		local ok, thisOrParent = include(path)
-		if not ok then
-			if not pending[thisOrParent] then pending[thisOrParent] = {} end
-			pending[#thisOrParent + 1] = path
+		if not egpObjects[v:sub(1, #v - 4):lower()] then -- Remove the extension and check if the object already exists.
+			include(folder .. v)
+			AddCSLuaFile(folder .. v)
 		end
 	end
 end

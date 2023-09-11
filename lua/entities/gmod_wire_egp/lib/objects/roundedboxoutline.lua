@@ -1,10 +1,9 @@
 -- Author: sk8 (& Divran)
-local Obj = EGP:NewObject( "RoundedBoxOutline" )
-Obj.angle = 0
-Obj.radius = 16
+local Obj = EGP.ObjectInherit("RoundedBoxOutline", "RoundedBox")
 Obj.size = 1
-Obj.CanTopLeft = true
-Obj.fidelity = 36
+
+local base = Obj.BaseClass
+
 Obj.Draw = function( self )
     if EGP:CacheNeedsUpdate(self, {"x", "y", "w", "h", "angle", "fidelity", "radius"}) then
 	local xs,ys , sx,sy = self.x,self.y , self.w, self.h
@@ -29,24 +28,21 @@ Obj.Draw = function( self )
     EGP:DrawPath(self.vert_cache.verts, self.size, true)
 end
 Obj.Transmit = function( self )
-	net.WriteInt((self.angle%360)*20, 16)
-	net.WriteInt(self.radius, 16)
 	net.WriteInt(self.size, 16)
-	net.WriteUInt(self.fidelity, 8)
-	self.BaseClass.Transmit( self )
+	base.Transmit(self)
 end
 Obj.Receive = function( self )
 	local tbl = {}
-	tbl.angle = net.ReadInt(16)/20
-	tbl.radius = net.ReadInt(16)
 	tbl.size = net.ReadInt(16)
-	tbl.fidelity = net.ReadUInt(8)
-	table.Merge( tbl, self.BaseClass.Receive( self ) )
+	table.Merge(tbl, base.Receive(self))
 	return tbl
 end
 Obj.DataStreamInfo = function( self )
-	local tbl = {}
-	table.Merge( tbl, self.BaseClass.DataStreamInfo( self ) )
-	table.Merge( tbl, { angle = self.angle, radius = self.radius, fidelity = self.fidelity } )
+	local tbl = { size = self.size }
+	table.Merge(tbl, base.DataStreamInfo(self))
 	return tbl
 end
+
+Obj.Contains = nil
+
+return Obj

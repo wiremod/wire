@@ -1,11 +1,10 @@
 -- Author: Divran
-local Obj = EGP:NewObject( "Poly" )
-Obj.w = nil
-Obj.h = nil
-Obj.angle = 0
+local Obj = EGP:NewObject("Poly")
 Obj.vertices = {}
 Obj.verticesindex = "vertices"
 Obj.HasUV = true
+
+local base = Obj.BaseClass
 
 -- Returns whether c is to the left of the line from a to b.
 local function counterclockwise( a, b, c )
@@ -22,7 +21,7 @@ Obj.Draw = function( self )
 	end
 end
 Obj.Transmit = function( self, Ent, ply )
-	if (#self.vertices <= 28) then
+	if (#self.vertices <= 255) then
 		net.WriteUInt( #self.vertices, 8 )
 		for i=1,#self.vertices do
 			net.WriteInt( self.vertices[i].x, 16 )
@@ -34,14 +33,7 @@ Obj.Transmit = function( self, Ent, ply )
 		net.WriteUInt( 0, 8 )
 		EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", self.index, self.vertices )
 	end
-	net.WriteUInt(math.Clamp(self.filtering,0,3), 2)
-	net.WriteInt( self.parent, 16 )
-	net.WriteInt(self.angle % 360, 10)
-	net.WriteInt(self.x, 16)
-	net.WriteInt(self.y, 16)
-	EGP:SendMaterial( self )
-	EGP:SendColor( self )
-
+	base.Transmit(self)
 end
 
 Obj.Receive = function( self )
@@ -50,22 +42,11 @@ Obj.Receive = function( self )
 	for i = 1, net.ReadUInt(8) do
 		tbl.vertices[ i ] = { x = net.ReadInt(16), y = net.ReadInt(16), u = net.ReadFloat(), v = net.ReadFloat() }
 	end
-	tbl.filtering = net.ReadUInt(2)
-	tbl.parent = net.ReadInt(16)
-	tbl.angle = net.ReadInt(10)
-	tbl.x = net.ReadInt(16)
-	tbl.y = net.ReadInt(16)
-	EGP:ReceiveMaterial( tbl )
-	EGP:ReceiveColor( tbl, self )
+	table.Merge(tbl, base.Receive(self))
 	return tbl
 end
 Obj.DataStreamInfo = function( self )
-	return { vertices = self.vertices, material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent, angle = self.angle }
-end
-
-function Obj:Initialize(args)
-	self:EditObject(args)
-	self.x, self.y = EGP.getCenterFrom(self)
+	return { vertices = self.vertices, material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent, x = self.x, y = self.y, angle = self.angle }
 end
 
 function Obj:Contains(x, y)
@@ -98,13 +79,14 @@ function Obj:EditObject(args)
 		self.vertices = args.vertices
 		self.x, self.y = EGP.getCenterFrom(self)
 		args.vertices = nil
+		ret = true
 	end
 	if args.x or args.y or args.angle then
 		ret = self:SetPos(args.x or self.x, args.y or self.y, args.angle or self.angle)
 		args.x = nil
 		args.y = nil
 		args.angle = nil
-		if args._x then args._x, args._y, args._angle = nil, nil, nil end
+		if self._x then args._x, args._y, args._angle = nil, nil, nil end
 	end
 	for k, v in pairs(args) do
 		if self[k] ~= nil and self[k] ~= v then
@@ -115,6 +97,8 @@ function Obj:EditObject(args)
 	return ret
 end
 
+Obj.Initialize = Obj.EditObject
+
 function Obj:SetPos(x, y, angle)
 	local sx, sy, sa = self.x, self.y, self.angle
 	if not angle then angle = sa end
@@ -124,7 +108,7 @@ function Obj:SetPos(x, y, angle)
 		v.x = vec.x
 		v.y = vec.y
 	end
-	self.x, self.y, self.angle = x, y, angle
+	self.x, self.y, self.angle = x, y, angle % 360
 	if self._x then self._x, self._y, self._angle = x, y, angle end
 	return true
 end
@@ -133,6 +117,7 @@ function Obj:Set(key, value)
 	if key == "vertices" then
 		self.vertices = value
 		self.x, self.y = EGP.getCenterFrom(self)
+		self.angle = 0
 		return true
 	elseif key == "x" then
 		ret = self:SetPos(value, self.y, self.angle)
@@ -151,3 +136,5 @@ function Obj:Set(key, value)
 	end
 	return false
 end
+
+return Obj

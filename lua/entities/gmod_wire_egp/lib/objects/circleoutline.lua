@@ -1,8 +1,9 @@
 -- Author: Divran
-local Obj = EGP:NewObject( "CircleOutline" )
-Obj.angle = 0
+local Obj = EGP.ObjectInherit("CircleOutline", "Circle")
 Obj.size = 1
-Obj.fidelity = 180
+
+local base = Obj.BaseClass
+
 local cos, sin, rad = math.cos, math.sin, math.rad
 Obj.Draw = function( self )
 	if (self.a>0 and self.w > 0 and self.h > 0) then
@@ -28,23 +29,24 @@ Obj.Draw = function( self )
 		EGP:DrawPath(self.vert_cache.verts, self.size, true)
 	end
 end
+
 Obj.Transmit = function( self )
-	net.WriteInt( (self.angle%360)*20, 16 )
-	net.WriteInt( self.size, 16 )
-	net.WriteUInt(self.fidelity, 8)
-	self.BaseClass.Transmit( self )
+	net.WriteInt(self.size, 16)
+	base.Transmit(self)
 end
+
 Obj.Receive = function( self )
 	local tbl = {}
-	tbl.angle = net.ReadInt(16)/20
 	tbl.size = net.ReadInt(16)
-	tbl.fidelity = net.ReadUInt(8)
-	table.Merge( tbl, self.BaseClass.Receive( self ) )
+	table.Merge(tbl, base.Receive( self))
 	return tbl
 end
+
 Obj.DataStreamInfo = function( self )
 	local tbl = {}
-	table.Merge( tbl, self.BaseClass.DataStreamInfo( self ) )
-	table.Merge( tbl, { angle = self.angle, size = self.size, fidelity = self.fidelity } )
+	tbl.size = self.size
+	table.Merge(tbl, base.DataStreamInfo(self))
 	return tbl
 end
+
+return Obj

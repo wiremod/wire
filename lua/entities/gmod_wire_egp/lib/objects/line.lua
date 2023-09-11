@@ -1,12 +1,12 @@
 -- Author: Divran
 local Obj = EGP:NewObject( "Line" )
-Obj.w = nil
-Obj.h = nil
-Obj.angle = 0
 Obj.x2 = 0
 Obj.y2 = 0
 Obj.size = 1
 Obj.verticesindex = { { "x", "y" }, { "x2", "y2" } }
+
+local base = Obj.BaseClass
+
 Obj.Draw = function( self )
 	if (self.a>0) then
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
@@ -14,25 +14,21 @@ Obj.Draw = function( self )
 	end
 end
 Obj.Transmit = function( self )
-	net.WriteInt( self.x, 16 )
-	net.WriteInt( self.y, 16 )
+	EGP.SendPosAng(self)
 	net.WriteInt( self.x2, 16 )
 	net.WriteInt( self.y2, 16 )
 	net.WriteInt( self.size, 16 )
 	net.WriteInt( self.parent, 16 )
-	net.WriteInt(self.angle, 10)
 	EGP:SendMaterial( self )
 	EGP:SendColor( self )
 end
 Obj.Receive = function( self )
 	local tbl = {}
-	tbl.x = net.ReadInt(16)
-	tbl.y = net.ReadInt(16)
+	EGP.ReceivePosAng(tbl)
 	tbl.x2 = net.ReadInt(16)
 	tbl.y2 = net.ReadInt(16)
 	tbl.size = net.ReadInt(16)
 	tbl.parent = net.ReadInt(16)
-	tbl.angle = net.ReadInt(10)
 	EGP:ReceiveMaterial( tbl )
 	EGP:ReceiveColor( tbl, self )
 	return tbl
@@ -65,10 +61,20 @@ function Obj:SetPos(x, y, angle, x2, y2)
 	local sx, sx2, sy, sy2, sa = self.x, self.x2, self.y, self.y2, self.angle
 	if not angle then angle = sa end
 	if sx == x and sy == y and sa == angle and sx2 == x2 and sy2 == y2 then return false end
-	local vec = LocalToWorld(Vector(sx2 - sx, sy2 - sy, 0), angle_zero, Vector(x, y, 0), Angle(0, sa - angle, 0))
+	local vec
+	if not (x2 or y2) then
+		x2 = x2 or sx2
+		y2 = y2 or sy2
+		vec = LocalToWorld(Vector(sx2 - sx, sy2 - sy, 0), angle_zero, Vector(x, y, 0), Angle(0, sa - angle, 0))
+		self.x2, self.y2 = vec.x, vec.y
+	else
+		self.x2, self.y2 = x2, y2
+	end
 
 	self.x, self.y, self.angle = x, y, angle
-	self.x2, self.y2 = vec.x, vec.y
+
 	if self._x then self._x, self._y, self._angle, self._x2, self._y2 = x, y, angle, x2, y2 end
 	return true
 end
+
+return Obj

@@ -190,11 +190,15 @@ end
 -----------------------
 -- Other
 -----------------------
-function EGP:SendPosSize( obj )
-	net.WriteInt( obj.w, 16 )
-	net.WriteInt( obj.h, 16 )
+function EGP.SendPosAng(obj)
 	net.WriteInt( obj.x, 16 )
 	net.WriteInt( obj.y, 16 )
+	net.WriteInt(obj.angle * 64, 16)
+end
+
+function EGP.SendSize(obj)
+	net.WriteInt(obj.w, 16)
+	net.WriteInt(obj.h, 16)
 end
 
 function EGP:SendColor( obj )
@@ -204,11 +208,15 @@ function EGP:SendColor( obj )
 	if (obj.a) then net.WriteUInt( math.Clamp( obj.a, 0, 255 ) , 8) end
 end
 
-function EGP:ReceivePosSize( tbl ) -- Used with SendPosSize
-	tbl.w = net.ReadInt(16)
-	tbl.h = net.ReadInt(16)
+function EGP.ReceivePosAng(tbl)
 	tbl.x = net.ReadInt(16)
 	tbl.y = net.ReadInt(16)
+	tbl.angle = net.ReadInt(16) / 64
+end
+
+function EGP.ReceiveSize(tbl)
+	tbl.w = net.ReadInt(16)
+	tbl.h = net.ReadInt(16)
 end
 
 function EGP:ReceiveColor( tbl, obj ) -- Used with SendColor
