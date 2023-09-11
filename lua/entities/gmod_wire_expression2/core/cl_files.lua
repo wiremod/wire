@@ -3,7 +3,7 @@
 	By: Dan (McLovin)
 ]]--
 
-local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) //in kib
+local cv_max_transfer_size = CreateConVar("wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Maximum file size in kibibytes.")
 
 local upload_buffer = {}
 local download_buffer = {}
@@ -52,13 +52,13 @@ end
 local function upload_callback()
 	if not upload_buffer or not upload_buffer.data then return end
 
-	local chunk_size = math.Clamp( string.len( upload_buffer.data ), 0, upload_chunk_size )
+	local chunk_size = math.Clamp(#upload_buffer.data, 0, upload_chunk_size)
 
 	net.Start("wire_expression2_file_chunk")
 		net.WriteUInt(chunk_size, 32)
 		net.WriteData(upload_buffer.data, chunk_size)
 	net.SendToServer()
-	upload_buffer.data = string.sub( upload_buffer.data, chunk_size + 1, string.len( upload_buffer.data ) )
+	upload_buffer.data = string.sub(upload_buffer.data, chunk_size + 1)
 
 	if upload_buffer.chunk >= upload_buffer.chunks then
 		net.Start("wire_expression2_file_finish") net.SendToServer()
