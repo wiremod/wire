@@ -673,7 +673,7 @@ end
 [nodiscard]
 e2function string egpobject:getMaterial()
 	if not isValid(this) then return self:throw("Invalid EGP Object", "") end
-	return this.material or ""
+	return tostring(this.material) or ""
 end
 
 [nodiscard]
