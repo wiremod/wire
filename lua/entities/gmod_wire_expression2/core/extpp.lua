@@ -147,7 +147,7 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 
 	-- This flag helps determine whether the preprocessor changed, so we can tell the environment about it.
 	local changed = false
-	for a_begin, attributes, h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()(%[?[%w,_ =\"]*%]?)[\r\n\t ]*()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)()") do
+	for a_begin, attributes, h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()(%[?[%w,_ =\"]*%]?)[\r\n\t ]*()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)%s*()") do
 		local _, line = contents:sub(1, h_begin):gsub("\n", "")
 
 		local trace = "(at line " .. line .. ")" .. (E2Lib.currentextension and (" @" .. filename) or "")
@@ -206,7 +206,7 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 				attr_str = attr_str .. "}"
 
 				table.insert(output, contents:sub(lastpos, a_begin - 1))
-				table.insert(output, "-- attributes: " .. attr_str .. " \n") -- Add line for annotations
+				table.insert(output, "-- attributes: " .. attr_str .. "\n") -- Add line for annotations
 			else
 				attr_str = "{ legacy = false }"
 				table.insert(output, contents:sub(lastpos, h_begin - 1)) -- Append stuff in between functions
@@ -257,7 +257,9 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 				end
 			]]))
 
-			if not aliasflag then
+			if aliasflag then -- Add single newline, since aliasing only does anything in the footer.
+				table.insert(output, "\n")
+			else
 				table.insert(output, compact([[
 					tempcosts.]] .. mangled .. [[ = __e2getcost()
 				]]))
@@ -292,9 +294,9 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 							]] .. ((has_vararg and not vartbl_name) and ("if not ... then return registeredfunctions." .. mangled .. "(self, args, typeids, unpack(args, " .. pivot .. ")) end") or "") .. [[
 					]]))
 				end
-			end
 
-			table.insert(output, whitespace)
+				table.insert(output, whitespace)
+			end
 		end
 	end -- for contents:gmatch(e2function)
 
