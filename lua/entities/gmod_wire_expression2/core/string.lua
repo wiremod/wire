@@ -30,15 +30,15 @@ local string_sub, string_byte = string.sub, string.byte
 
 local function iterc(str, i)
 	i = i + 1
-	if i < #str then
+	if i <= #str then
 		return i, string_sub(str, i, i)
 	end
 end
 
 local function iterb(str, i)
 	i = i + 1
-	if i < #str then
-		return i, string_byte(str, i)
+	if i <= #str then
+		return i, string_byte(str, i, i)
 	end
 end
 
