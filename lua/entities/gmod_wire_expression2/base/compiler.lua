@@ -1302,8 +1302,7 @@ local CompileVisitors = {
 		local exp, ty = self:CompileExpr(data[2])
 
 		if data[1] == Operator.Not then -- Return opposite of operator_is result
-			local op, op_ret = self:GetOperator("is", { ty }, trace)
-			self:Assert(op_ret == "n", "Cannot perform not operation on type " .. ty, trace)
+			local op = self:GetOperator("is", { ty }, trace)
 			return function(state)
 				return op(state, exp(state)) == 0 and 1 or 0
 			end, "n"

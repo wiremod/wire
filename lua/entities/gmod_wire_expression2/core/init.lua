@@ -195,6 +195,10 @@ local function getArgumentTypeIds(args)
 	return thistype, out
 end
 
+local EnforcedTypings = {
+	["is"] = "n"
+}
+
 ---@param name string
 ---@param pars string
 ---@param rets string
@@ -208,6 +212,11 @@ function registerOperator(name, pars, rets, func, cost, argnames, attributes)
 		attributes.legacy = true
 	elseif not attributes then
 		attributes = { legacy = true }
+	end
+
+	local enforced = EnforcedTypings[name]
+	if enforced and rets ~= enforced then
+		error("Registering invalid operator '" .. name .. "' (must return type " .. enforced .. ")")
 	end
 
 	local signature = "op:" .. name .. "(" .. pars .. ")"
