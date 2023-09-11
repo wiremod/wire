@@ -17,3 +17,9 @@ X = increment()
 Ran = 0
 
 X = Y = increment()
+
+Z = 1
+
+Z /= 2
+
+assert(Z == 0.5, Z:toString())

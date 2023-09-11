@@ -6,7 +6,7 @@
 AddCSLuaFile()
 
 local Warning, Error = E2Lib.Debug.Warning, E2Lib.Debug.Error
-local NodeVariant = E2Lib.Parser.Variant
+local Node, NodeVariant = E2Lib.Parser.Node, E2Lib.Parser.Variant
 local Operator = E2Lib.Operator
 
 local TickQuota = GetConVar("wire_expression2_quotatick"):GetInt()
@@ -1022,46 +1022,56 @@ local CompileVisitors = {
 
 	---@param data Token<string>
 	[NodeVariant.Increment] = function (self, trace, data)
-		local var = data.value
-		local existing = self:Assert(self.scope:LookupVar(var), "Unknown variable to increment: " .. var, trace)
-		existing.trace_if_unused = nil
-		self:AssertW(existing.initialized, "Use of variable [" .. data.value .. "] before initialization", trace)
+		-- Transform V-- to V = V + 1
+		local one = Node.new(NodeVariant.ExprLiteral, { "n", 1 }, trace)
+		local var = Node.new(NodeVariant.ExprIdent, data, data.trace)
 
-		local op = self:GetOperator("add", {existing.type, "n"}, trace)
-		local id = existing.depth
-		return function(state) ---@param state RuntimeContext
-			state.Scopes[id][var] = op(state, state.Scopes[id][var], 1)
-		end
+		local result = Node.new(
+			NodeVariant.ExprArithmetic,
+			{ var, Operator.Add, one },
+			trace
+		)
+
+		return self:CompileStmt(Node.new(
+			NodeVariant.Assignment,
+			{ false, { { data, {}, trace } }, result },
+			trace
+		))
 	end,
 
 	---@param data Token<string>
 	[NodeVariant.Decrement] = function (self, trace, data)
-		local var = data.value
-		local existing = self:Assert(self.scope:LookupVar(var), "Unknown variable to decrement: " .. var, trace)
-		existing.trace_if_unused = nil
-		self:AssertW(existing.initialized, "Use of variable [" .. data.value .. "] before initialization", trace)
+		-- Transform V-- to V = V - 1
+		local one = Node.new(NodeVariant.ExprLiteral, { "n", 1 }, trace)
+		local var = Node.new(NodeVariant.ExprIdent, data, data.trace)
 
-		local op = self:GetOperator("sub", {existing.type, "n"}, trace)
-		local id = existing.depth
-		return function(state) ---@param state RuntimeContext
-			state.Scopes[id][var] = op(state, state.Scopes[id][var], 1)
-		end
+		local result = Node.new(
+			NodeVariant.ExprArithmetic,
+			{ var, Operator.Sub, one },
+			trace
+		)
+
+		return self:CompileStmt(Node.new(
+			NodeVariant.Assignment,
+			{ false, { { data, {}, trace } }, result },
+			trace
+		))
 	end,
 
 	---@param data { [1]: Token<string>, [2]: Operator, [3]: Node }
 	[NodeVariant.CompoundArithmetic] = function(self, trace, data)
-		local existing = self:Assert(self.scope:LookupVar(data[1].value), "Variable " .. data[1].value .. " does not exist.", trace)
-		existing.trace_if_unused = nil
-		self:AssertW(existing.initialized, "Use of variable [" .. data[1].value .. "] before initialization", trace)
-		local expr, expr_ty = self:CompileExpr(data[3])
+		-- Transform V <op>= E -> V = V <op> E
+		local result = Node.new(
+			NodeVariant.ExprArithmetic,
+			{ Node.new(NodeVariant.ExprIdent, data[1], data[1].trace), data[2], data[3] },
+			trace
+		)
 
-		local op, op_ty = self:GetOperator(E2Lib.OperatorNames[data[2]]:lower():sub(2), { existing.type, expr_ty }, trace)
-		self:Assert(op_ty == existing.type, "Cannot use compound arithmetic on differing types", trace)
-
-		local name, id = data[1].value, existing.depth
-		return function(state)
-			state.Scopes[id][name] = op(state, state.Scopes[id][name], expr(state))
-		end
+		return self:CompileStmt(Node.new(
+			NodeVariant.Assignment,
+			{ false, { { data[1], {}, trace } }, result },
+			trace
+		))
 	end,
 
 	---@param data { [1]: Node, [2]: Node }
@@ -1072,7 +1082,6 @@ local CompileVisitors = {
 		self:Assert(cond_ty == expr_ty, "Cannot use default (?:) operator with differing types", trace)
 
 		local op = self:GetOperator("is", { cond_ty }, trace)
-
 		return function(state) ---@param state RuntimeContext
 			local iff = cond(state)
 			return op(state, iff) ~= 0 and iff or expr(state)
@@ -1224,7 +1233,6 @@ local CompileVisitors = {
 	end,
 
 	[NodeVariant.ExprArithmetic] = handleInfixOperation,
-
 
 	---@param data { [1]: Node, [2]: Operator, [3]: self }
 	[NodeVariant.ExprLogicalOp] = function(self, trace, data)

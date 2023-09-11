@@ -335,13 +335,13 @@ function Parser:Stmt()
 
 		--- Compound Assignment
 		if self:Consume(TokenVariant.Operator, Operator.Aadd) then
-			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Aadd, self:Expr() }, var.trace:stitch(self:Prev().trace))
+			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Add, self:Expr() }, var.trace:stitch(self:Prev().trace))
 		elseif self:Consume(TokenVariant.Operator, Operator.Asub) then
-			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Asub, self:Expr() }, var.trace:stitch(self:Prev().trace))
+			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Sub, self:Expr() }, var.trace:stitch(self:Prev().trace))
 		elseif self:Consume(TokenVariant.Operator, Operator.Amul) then
-			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Amul, self:Expr() }, var.trace:stitch(self:Prev().trace))
+			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Mul, self:Expr() }, var.trace:stitch(self:Prev().trace))
 		elseif self:Consume(TokenVariant.Operator, Operator.Adiv) then
-			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Adiv, self:Expr() }, var.trace:stitch(self:Prev().trace))
+			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Div, self:Expr() }, var.trace:stitch(self:Prev().trace))
 		end
 
 		-- Didn't match anything. Might be something else.
