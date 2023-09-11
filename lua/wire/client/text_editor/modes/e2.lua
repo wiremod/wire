@@ -555,7 +555,7 @@ function EDITOR:SyntaxColorLine(row)
 				elseif wire_expression2_funclist[sstr] then
 					tokenname = "function"
 
-				elseif self.e2fs_functions[sstr] then
+				elseif self.e2fs_functions[sstr] or self.e2fs_methods[sstr] then
 					tokenname = "userfunction"
 
 				else

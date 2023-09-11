@@ -93,7 +93,7 @@ function E2Lib.Validate(buffer)
 		warnings[nwarnings + k] = warning
 	end
 
-	return nil, includes, #warnings ~= 0 and warnings
+	return nil, includes, #warnings ~= 0 and warnings, compiler
 end
 
 -- string.GetTextSize shits itself if the string is both wide and tall,

@@ -1649,14 +1649,43 @@ function Editor:OpenOldTabs()
 	end
 end
 
+-- On a successful validation run, will call this with the compiler object
+function Editor:SetValidateData(compiler)
+	-- Set methods and functions from all includes for syntax highlighting.
+	local editor = self:GetCurrentEditor()
+	editor.e2fs_functions = compiler.user_functions
+
+	local function_sigs = {}
+	for name, overloads in pairs(compiler.user_functions) do
+		for args in pairs(overloads) do
+			function_sigs[name .. "(" .. args .. ")"] = true
+		end
+	end
+
+	local allkeys = {}
+	for meta, names in pairs(compiler.user_methods) do
+		for name, overloads in pairs(names) do
+			allkeys[name] = true
+			for args in pairs(overloads) do
+				function_sigs[name .. "(" .. meta .. ":" .. args .. ")"] = true
+			end
+		end
+	end
+
+	editor.e2fs_methods = allkeys
+	editor.e2_functionsig_lookup = function_sigs
+end
+
 function Editor:Validate(gotoerror)
 	local header_color, header_text = nil, nil
 	local problems_errors, problems_warnings = {}, {}
 
 	if self.EditorType == "E2" then
-		local errors, _, warnings = E2Lib.Validate(self:GetCode())
+		local errors, _, warnings, compiler = E2Lib.Validate(self:GetCode())
 
-		if not errors then
+		if not errors then ---@cast compiler -?
+			self:SetValidateData(compiler)
+
 			if warnings then
 				header_color = Color(163, 130, 64, 255)
 
