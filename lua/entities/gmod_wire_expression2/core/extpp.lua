@@ -126,7 +126,7 @@ end
 
 --- Compact lua code to a single line to avoid changing lua's tracebacks.
 local function compact(lua)
-	return (lua:gsub("\n\t*", " "):Trim())
+	return (lua:Trim():gsub("\n\t*", " "))
 end
 
 ---@param contents string
@@ -191,7 +191,7 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 				name, is_operator = Operators[name], true
 			end
 
-			local params, has_vararg, vartbl_name = parseParameters(args, trace, trace)
+			local params, has_vararg, vartbl_name = parseParameters(args, trace)
 
 			local attributes = parseAttributes(attributes, trace)
 
