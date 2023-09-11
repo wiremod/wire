@@ -444,7 +444,7 @@ local CompileVisitors = {
 				self:Warning("This key will default to type (string). Annotate it with :string or :number", key.trace)
 				key_type = "s"
 			else
-				self:Warning("This key will default to type (number). Annotate it with :string or :number", key.trace)
+				self:Warning("This key will default to type (number). Annotate it with :number / :type", key.trace)
 				key_type = "n"
 			end
 		end
