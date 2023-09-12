@@ -8,27 +8,87 @@ if CLIENT then
 	--------------------------------------------------------
 	-- Paint
 	--------------------------------------------------------
-	local function hudPaint()
-		for Ent, _ in pairs(tbl) do
-			if not Ent or not Ent:IsValid() then
-				tbl[Ent] = nil
-				break
-			else
-				if Ent.RenderTable then
-					local mat = Ent:GetEGPMatrix()
+	local makeArray = EGP.ParentingFuncs.makeArray
+	local makeTable = EGP.ParentingFuncs.makeTable
 
-					for _, object in ipairs(Ent.RenderTable) do
-						if object.parent ~= 0 then
-							if not object.IsParented then EGP:SetParent(Ent, object.index, object.parent) end
-							local _, data = EGP:GetGlobalPos(Ent, object.index)
-							EGP:EditObject(object, data)
-						elseif object.IsParented then
-							EGP:UnParent(Ent, object)
+	local function scaleObject(bool, v)
+		local xMin, xMax, yMin, yMax, _xMul, _yMul
+		if (bool) then -- 512 -> screen
+			xMin = 0
+			xMax = 512
+			yMin = 0
+			yMax = 512
+			_xMul = ScrW()
+			_yMul = ScrH()
+		else -- screen -> 512
+			xMin = 0
+			xMax = ScrW()
+			yMin = 0
+			yMax = ScrH()
+			_xMul = 512
+			_yMul = 512
+		end
+	
+		local xMul = _xMul/(xMax-xMin)
+		local yMul = _yMul/(yMax-yMin)
+	
+		if v.verticesindex then
+			local r = makeArray(v, true)
+			for i=1,#r,2 do
+				r[i] = (r[i] - xMin) * xMul
+				r[i+1] = (r[i+1]- yMin) * yMul
+			end
+			local settings = {}
+			if isstring(v.verticesindex) then settings = { [v.verticesindex] = makeTable( v, r ) } else settings = makeTable( v, r ) end
+			EGP:EditObject(v, settings)
+		else
+			if v.x then
+				v.x = (v.x - xMin) * xMul
+			end
+			if v.y then
+				v.y = (v.y - yMin) * yMul
+			end
+			if v.w then
+				v.w = v.w * xMul
+			end
+			if v.h then
+				v.h = v.h * yMul
+			end
+		end
+		v.res = bool
+	end
+
+	local egpDraw = EGP.Draw
+
+	local function hudPaint()
+		for ent in pairs(tbl) do
+			if not ent or not ent:IsValid() then
+				tbl[ent] = nil
+			else
+				if ent.RenderTable then
+					if ent.gmod_wire_egp_hud then
+						local resolution = ent:GetNWBool("Resolution", false)
+						local rt = ent.RenderTable
+
+						for _, v in ipairs(rt) do
+							if (v.res or false) ~= resolution then
+								scaleObject(not v.res, v)
+							end
 						end
 
-						local oldtex = EGP:SetMaterial(object.material)
-						object:Draw(Ent, mat)
-						EGP:FixMaterial(oldtex)
+						egpDraw(ent)
+					else
+						if not ent.NeedsUpdate then
+							local mat = ent:GetEGPMatrix()
+							for _, obj in ipairs(ent.RenderTable) do
+								local oldtex = EGP:SetMaterial(obj.material)
+								obj:Draw(ent, mat)
+								EGP:FixMaterial(oldtex)
+							end
+						else
+							ent.NeedsUpdate = false
+							egpDraw(ent)
+						end
 					end
 				end
 			end
@@ -45,11 +105,13 @@ if CLIENT then
 
 		if net.ReadBool() then -- Enable
 			tbl[ent] = true
+			ent.Using = true
 
 			if ent.gmod_wire_egp_hud then ent:EGP_Update() end
 			hook.Add("HUDPaint", "EGP_HUDPaint", hudPaint)
 		else
 			tbl[ent] = nil
+			ent.Using = nil
 
 			if next(tbl) == nil then
 				hook.Remove("HUDPaint","EGP_HUDPaint")
@@ -77,6 +139,7 @@ if CLIENT then
 	concommand.Add("wire_egp_hud_unlink",function()
 		LocalPlayer():ChatPrint("[EGP] Disconnected from all EGP HUDs.")
 		tbl = {}
+		hook.Remove("HUDPaint","EGP_HUDPaint")
 		net.Start("EGP_HUD_Unlink")
 		net.SendToServer()
 	end)

@@ -19,6 +19,8 @@ function ENT:Initialize()
 	self.Users = {}
 	self.IsEGPHUD = true
 
+	self:SetNWBool("Resolution", false)
+
 	self:SetUseType(SIMPLE_USE)
 	self:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
 
