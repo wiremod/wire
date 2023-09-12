@@ -65,7 +65,7 @@ function ENT:Initialize()
 	self.IntTimer = 0
 	self.Flash = false
 	self.CursorChar = 0
-	
+
 	self.GPU = WireGPU(self)
 	mem[1009] = 16
 	mem[1010] = 2
@@ -429,11 +429,11 @@ function ENT:Draw()
 
 	if mem[1023] >= 1 then
 		mem[1023] = 0
-		
+
 		self.GPU:RenderToGPU(function()
 			-- Draw terminal here
 			-- W/H = 16
-			
+
 			local bc = math.min(1,math.max(0,mem[1016]-1.8))
 			local br = (1-bc)*mem[1003]+bc*mem[1006]
 			local bg = (1-bc)*mem[1004]+bc*mem[1007]
@@ -450,7 +450,7 @@ function ENT:Draw()
 			local fb = (1-fc)*mem[1005]+fc*mem[1008]
 			surface.SetDrawColor(br,bg,bb,255)
 			surface.DrawRect(0,0,1024,1024)
-			
+
 			for ty = 0, mem[1010]-1 do
 				for tx = 0, mem[1009]-1 do
 					local a = tx + ty*mem[1009]
@@ -464,8 +464,7 @@ function ENT:Draw()
 
 					if c1 >= 2097152 then c1 = 0 end
 					if c1 < 0 then c1 = 0 end
-					
-					
+
 					surface.SetDrawColor(sqr,sqg,sqb,255)
 					surface.DrawRect((tx)*szx+1,(ty)*szy+1,szx-2,szy-2)
 					surface.SetDrawColor(sqr,sqg,sqb,127)
@@ -508,7 +507,7 @@ function ENT:Draw()
 			end
 		 end)
 	end
-	
+
 	self.GPU:Render(0,0,1024,1024,nil,-(1024-mem[1009]*szx)/1024,-(1024-mem[1010]*szy)/1024)
 
 	if mem[1022] >= 1 then
@@ -531,7 +530,7 @@ function ENT:Draw()
 					local fr = (1-fc)*mem[1003]+fc*mem[1006]
 					local fg = (1-fc)*mem[1004]+fc*mem[1007]
 					local fb = (1-fc)*mem[1005]+fc*mem[1008]
-					
+
 					local a = math.floor(mem[1021])
 					local tx = a - math.floor(a / mem[1009])*mem[1009]
 					local ty = math.floor(a / mem[1009])
@@ -547,8 +546,7 @@ function ENT:Draw()
 
 					if c1 >= 2097152 then c1 = 0 end
 					if c1 < 0 then c1 = 0 end
-					
-					
+
 					surface.SetDrawColor(sqr,sqg,sqb,255)
 					surface.DrawRect((tx)*szx+1,(ty)*szy+1,szx-2,szy-2)
 					surface.SetDrawColor(sqr,sqg,sqb,127)
@@ -592,7 +590,7 @@ function ENT:Draw()
 			else
 				self.GPU:RenderToGPU(function()
 					local a = math.floor(mem[1021])
-					
+
 					local tx = a - math.floor(a / mem[1009])*mem[1009]
 					local ty = math.floor(a / mem[1009])
 
@@ -608,7 +606,7 @@ function ENT:Draw()
 						fb,
 						255
 					)
-					
+
 					surface.DrawRect(
 						(tx)*szx+1,
 						(ty*szy)+(szy*(1-mem[1020]))-1,
