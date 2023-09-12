@@ -113,7 +113,7 @@ if CLIENT then
 			self:EGP_Update()
 		end
 
-		if self.GPU ~= nil then -- if we're rendering on RT, use base EGP's draw function instead
+		if self.GPU then -- if we're rendering on RT, use base EGP's draw function instead
 			BaseClass.Draw(self)
 		else
 			self:DrawModel()

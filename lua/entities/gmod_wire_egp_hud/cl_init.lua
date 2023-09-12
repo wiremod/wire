@@ -10,7 +10,6 @@ end
 
 function ENT:Initialize()
 	self.RenderTable = {}
-	self.OldResolution = false
 end
 
 function ENT:GetEGPMatrix()
