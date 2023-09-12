@@ -159,7 +159,7 @@ hook.Add("Wire_SoundPlay", "Wire.AdvMicrophone", function(name, pos, level, pitc
     for _, mic in ipairs(LiveMics) do
         if IsValid(mic) then
             mic:HandleSound(
-                name, volume, pitch, level
+                name, volume, pitch, level,
                 nil --[[entity]], pos,
                 "sound.Play"
             )

@@ -37,17 +37,17 @@ local function WavIsLooped_Impl(path)
     if resultid == "cue " then
         local cue_count = fil:ReadULong()
         fil:Close()
-    
+
         return cue_count ~= 0
     elseif resultid == "smpl" then
         fil:Skip(7*4)
         local sampler_count = fil:ReadULong()
         fil:Close()
-    
+
         return sampler_count ~= 0
     end
 
- 
+
 end
 
 local function WavIsLooped(path)
