@@ -85,3 +85,10 @@ end
 function lib.StripPrefix(path)
     return string.gsub(path, PREFIX_REGEX, "")
 end
+
+sound.Play_NoWireHook = sound.Play_NoWireHook or sound.Play
+function sound.Play(...)
+    hook.Run("Wire_SoundPlay", ...)
+
+    sound.Play_NoWireHook(...)
+end

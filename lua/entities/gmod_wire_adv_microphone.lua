@@ -146,20 +146,31 @@ end
 hook.Add("EntityEmitSound", "Wire.AdvMicrophone", function(snd)
     for _, mic in ipairs(LiveMics) do
         if IsValid(mic) then
-            mic:HandleEngineSound(snd)
+            mic:HandleSound(
+                snd.SoundName, snd.Volume, snd.Pitch, snd.SoundLevel,
+                snd.Entity, snd.Pos,
+                "EmitSound"
+            )
         end
     end
 end)
 
-function ENT:HandleEngineSound(snd)
-    local volume = snd.Volume
-    local pitch = snd.Pitch
+hook.Add("Wire_SoundPlay", "Wire.AdvMicrophone", function(name, pos, level, pitch, volume)
+    for _, mic in ipairs(LiveMics) do
+        if IsValid(mic) then
+            mic:HandleSound(
+                name, volume, pitch, level
+                nil --[[entity]], pos,
+                "sound.Play"
+            )
+        end
+    end
+end)
 
+function ENT:HandleSound(sndname, volume, pitch, sndlevel, entity, pos, dsp, emittype)
     -- Disable feedback loops
-    if IsValid(snd.Entity) and snd.Entity:GetClass() == "gmod_wire_adv_speaker" then return end
+    if IsValid(entity) and entity:GetClass() == "gmod_wire_adv_speaker" then return end
 
-    local sndlevel = snd.SoundLevel
-    local pos = snd.Pos
     if sndlevel ~= 0 and pos ~= nil then
         -- Over-256 values are 'reserved for sounds using goldsrc compatibility attenuation'
         -- I don't care about correct attenuation for HLSource entities,
@@ -173,12 +184,12 @@ function ENT:HandleEngineSound(snd)
     if volume < MIN_VOLUME then return end
     if volume > 1 then volume = 1 end
 
-    self:ReproduceSound(snd.SoundName, volume, pitch, snd.DSP)
+    self:ReproduceSound(sndname, volume, pitch, snd.DSP, emittype)
 end
 
-function ENT:ReproduceSound(snd, vol, pitch, dsp)
+function ENT:ReproduceSound(snd, vol, pitch, dsp, emittype)
     for speaker in pairs(self._activeSpeakers) do
-        speaker:ReproduceSound(snd, vol, pitch, dsp)
+        speaker:ReproduceSound(snd, vol, pitch, dsp, emittype)
     end
 end
 
@@ -202,7 +213,6 @@ hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", function(listener, t
     end
 end)
 
--- TODO: hook into sound.Play
 -- TODO: hook into sound.PlayFile
 -- TODO: hook into sound.PlayURL
 

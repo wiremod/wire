@@ -78,9 +78,9 @@ function ENT:OnRemove()
     end)
 end
 
-function ENT:ReproduceSound(snd, vol, pitch, dsp)
+function ENT:ReproduceSound(snd, vol, pitch, dsp, emittype)
     if not self:GetActive() then return end
-    print(snd, vol, pitch, dsp)
+    print(snd, vol, pitch, dsp, emittype)
 
     if WireLib.Sound.IsLooped(WireLib.Sound.StripPrefix(snd)) then
         print("--looped")
@@ -89,7 +89,13 @@ function ENT:ReproduceSound(snd, vol, pitch, dsp)
 
 
     local soundlevel = 75
-    self:EmitSound(snd, soundlevel, pitch, vol, nil, nil, dsp)
+    if emittype == "EmitSound" then
+        self:EmitSound(snd, soundlevel, pitch, vol, nil, nil, dsp)
+    elseif emittype == "sound.Play" then
+        sound.Play_NoWireHook(snd, pos, soundlevel, pitch, vol)
+    else
+        ErrorNoHalt("Invalid emittype: ", emittype,"\n --sound ",snd)
+    end
 end
 
 duplicator.RegisterEntityClass("gmod_wire_adv_speaker", WireLib.MakeWireEnt, "Data")
