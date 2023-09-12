@@ -1455,7 +1455,7 @@ E2Helper.Descriptions["egpLoadFrame(xwl:n)"] = "Loads the frame with specified i
 E2Helper.Descriptions["egpLoadFrame(xwl:s)"] = "Loads the frame with specified name"
 E2Helper.Descriptions["egpSaveFrame(xwl:n)"] = "Saves the frame under specified index"
 E2Helper.Descriptions["egpSaveFrame(xwl:s)"] = "Saves the frame under specified name"
-E2Helper.Descriptions["egpFiltering(xwl:nn)"] = "Changes the texture filter used to draw the object. Works on objects that draw a material. See _TEXFILTER constants (POINT=sharp, ANISOTROPIC=blurry/default)"
+E2Helper.Descriptions["egpFiltering(xwl:nn)"] = "This function does nothing. See egpGlobalFiltering instead"
 E2Helper.Descriptions["egpMaxObjects()"] = "Returns the maximum amount of objects you can have"
 E2Helper.Descriptions["egpMaxUmsgPerSecond()"] = "Returns the maximum number of usermessages you can send per second"
 E2Helper.Descriptions["egpNumObjects(xwl:)"] = "Returns the number of objects on the screen"

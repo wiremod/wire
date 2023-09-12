@@ -216,17 +216,14 @@ end
 ----------------------------
 -- Filtering
 ----------------------------
+[deprecated]
 e2function void wirelink:egpFiltering( number index, number filtering )
-	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
-	if (bool) then
-		if (EGP:EditObject( v, { filtering = math.Clamp(filtering,0,3) } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
-	end
 end
 
 e2function void wirelink:egpGlobalFiltering( number filtering )
 	if (!EGP:IsAllowed( self, this )) then return end
-	if this:GetClass() == "gmod_wire_egp" then -- Only Screens use GPULib and can use global filtering
+	local class = this:GetClass()
+	if class == "gmod_wire_egp" or class == "gmod_wire_egp_emitter" then
 		EGP:DoAction( this, self, "EditFiltering", math.Clamp(filtering, 0, 3) )
 	end
 end

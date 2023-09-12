@@ -35,7 +35,6 @@ Obj.Transmit = function( self, Ent, ply )
 		net.WriteUInt( 0, 8 )
 		EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", self.index, self.vertices )
 	end
-	net.WriteUInt(math.Clamp(self.filtering,0,3), 2)
 	net.WriteInt( self.parent, 16 )
 	EGP:SendMaterial( self )
 	EGP:SendColor( self )
@@ -46,14 +45,13 @@ Obj.Receive = function( self )
 	for i = 1, net.ReadUInt(8) do
 		tbl.vertices[ i ] = { x = net.ReadInt(16), y = net.ReadInt(16), u = net.ReadFloat(), v = net.ReadFloat() }
 	end
-	tbl.filtering = net.ReadUInt(2)
 	tbl.parent = net.ReadInt(16)
 	EGP:ReceiveMaterial( tbl )
 	EGP:ReceiveColor( tbl, self )
 	return tbl
 end
 Obj.DataStreamInfo = function( self )
-	return { vertices = self.vertices, material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent }
+	return { vertices = self.vertices, material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, parent = self.parent }
 end
 
 function Obj:Contains(egp, x, y)

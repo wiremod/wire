@@ -502,16 +502,7 @@ function EGP.Draw(ent)
 		end
 
 		local oldtex = EGP:SetMaterial(obj.material)
-		local filter = obj.filtering
-		if filter then
-			render.PushFilterMag(filter)
-			render.PushFilterMin(filter)
-			obj:Draw(ent, mat)
-			render.PopFilterMin()
-			render.PopFilterMag()
-		else
-			obj:Draw(ent, mat)
-		end
+		obj:Draw(ent, mat)
 		EGP:FixMaterial(oldtex)
 	end
 end
