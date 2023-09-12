@@ -5,8 +5,10 @@ ENT.gmod_wire_egp = true
 function ENT:Initialize()
 	self.GPU = GPULib.WireGPU( self )
 	self.GPU.texture_filtering = TEXFILTER.ANISOTROPIC
+	self.GPU.translucent = self:GetTranslucent()
 
 	self.RenderTable = table.Copy(EGP.HomeScreen)
+	self.NeedsUpdate = true
 end
 
 function ENT:EGP_Update()
@@ -37,12 +39,6 @@ function ENT:Draw()
 	local tone = render.GetToneMappingScaleLinear()
 	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
 	if self.NeedsUpdate then
-		self:_EGP_Update()
-	end
-
-	-- check if translucent setting changed
-	if self.GPU.translucent ~= self:GetTranslucent() then
-		self.GPU.translucent = self:GetTranslucent()
 		self:_EGP_Update()
 	end
 
