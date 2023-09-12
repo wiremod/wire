@@ -105,13 +105,11 @@ if CLIENT then
 
 		if net.ReadBool() then -- Enable
 			tbl[ent] = true
-			ent.Using = true
 
 			if ent.gmod_wire_egp_hud then ent:EGP_Update() end
 			hook.Add("HUDPaint", "EGP_HUDPaint", hudPaint)
 		else
 			tbl[ent] = nil
-			ent.Using = nil
 
 			if next(tbl) == nil then
 				hook.Remove("HUDPaint","EGP_HUDPaint")
