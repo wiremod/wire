@@ -249,10 +249,9 @@ local CompileVisitors = {
 				if state.prf > TickQuota then error("perf", 0) end
 
 				for i = 1, nstmts do
-					if state.__break__ or state.__return__ or state.__continue__ then break end
-
 					state.trace = traces[i]
 					stmts[i](state)
+					if state.__break__ or state.__return__ or state.__continue__ then break end
 				end
 			end
 		elseif self.scope:ResolveData("function") then -- If inside a function, check if returned.
@@ -261,9 +260,9 @@ local CompileVisitors = {
 				if state.prf > TickQuota then error("perf", 0) end
 
 				for i = 1, nstmts do
-					if state.__return__ then break end
 					state.trace = traces[i]
 					stmts[i](state)
+					if state.__return__ then break end
 				end
 			end
 		else -- Most optimized case, not inside a function or loop.
@@ -727,7 +726,7 @@ local CompileVisitors = {
 						state.__return__ = false
 						return state.__returnval__
 					elseif return_type then
-						E2Lib.raiseException("Expected function return at runtime of type (" .. return_type .. ")", 0, state.trace)
+						state:forceThrow("Expected function return at runtime of type (" .. return_type .. ")")
 					end
 				end
 			else -- table
@@ -757,7 +756,7 @@ local CompileVisitors = {
 						state.__return__ = false
 						return state.__returnval__
 					elseif return_type then
-						E2Lib.raiseException("Expected function return at runtime of type (" .. return_type .. ")", 0, state.trace)
+						state:forceThrow("Expected function return at runtime of type (" .. return_type .. ")")
 					end
 				end
 			end
@@ -782,7 +781,7 @@ local CompileVisitors = {
 					state.__return__ = false
 					return state.__returnval__
 				elseif return_type then
-					E2Lib.raiseException("Expected function return at runtime of type (" .. return_type .. ")", 0, state.trace)
+					state:forceThrow("Expected function function at runtime of type (" .. return_type .. ")")
 				end
 			end
 		end
@@ -1445,7 +1444,7 @@ local CompileVisitors = {
 					if fn then
 						return state.funcs[full_sig](state, rargs, types)
 					else
-						E2Lib.raiseException("No such function defined at runtime: " .. full_sig, 0, state.trace)
+						state:forceThrow("No such function defined at runtime: " .. full_sig)
 					end
 				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
 			end
@@ -1514,7 +1513,7 @@ local CompileVisitors = {
 					if fn then
 						return state.funcs[full_sig](state, rargs, types)
 					else
-						E2Lib.raiseException("No such method defined at runtime: " .. full_sig, 0, state.trace)
+						state:forceThrow("No such method defined at runtime: " .. full_sig)
 					end
 				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
 			end
@@ -1569,7 +1568,7 @@ local CompileVisitors = {
 			if fn then -- first check if user defined any functions that match signature
 				local r = state.funcs_ret[sig]
 				if r ~= ret_type then
-					E2Lib.raiseException( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"), 0, state.trace)
+					state:forceThrow( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
 				end
 
 				return fn(state, rargs, arg_types)
@@ -1578,7 +1577,7 @@ local CompileVisitors = {
 				if fn then
 					local r = fn[2]
 					if r ~= ret_type and not (ret_type == nil and r == "") then
-						E2Lib.raiseException( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"), 0, state.trace)
+						state:forceThrow( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
 					end
 
 					if fn.attributes.legacy then
@@ -1597,7 +1596,7 @@ local CompileVisitors = {
 						if fn then
 							local r = fn[2]
 							if r ~= ret_type and not (ret_type == nil and r == "") then
-								E2Lib.raiseException( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"), 0, state.trace)
+								state:forceThrow("Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
 							end
 
 							if fn.attributes.legacy then
@@ -1608,21 +1607,19 @@ local CompileVisitors = {
 								return fn[3](state, largs, arg_types)
 							elseif varsig == "array(...)" then -- Need this since can't enforce compile time argument type restrictions on string calls. Woop. Array creation should not be a function..
 								local i = 1
-								while i < #arg_types do
+								while i <= #arg_types do
 									local ty = arg_types[i]
 									if BLOCKED_ARRAY_TYPES[ty] then
 										table.remove(rargs, i)
 										table.remove(arg_types, i)
-										state:throw("Cannot use type " .. ty .. " for argument #" .. i .. " in stringcall array creation")
+										state:forceThrow("Cannot use type " .. ty .. " for argument #" .. i .. " in stringcall array creation")
 									else
 										i = i + 1
 									end
 								end
-
-								return fn[3](state, rargs, arg_types)
-							else
-								return fn[3](state, rargs, arg_types)
 							end
+
+							return fn[3](state, rargs, arg_types)
 						else
 							local varsig = fn_name .. "(" .. type_sig:sub(1, i) .. "..r)"
 							local fn = state.funcs[varsig]
@@ -1630,7 +1627,7 @@ local CompileVisitors = {
 							if fn then
 								for _, ty in ipairs(arg_types) do -- Just block them entirely. Current method of finding variadics wouldn't allow a proper solution that works with x<yz> types. Would need to rewrite all of this which I don't think is worth it when already nobody is going to use this functionality.
 									if BLOCKED_ARRAY_TYPES[ty] then
-										E2Lib.raiseException("Cannot pass array into variadic array function", 0, state.trace)
+										state:forceThrow("Cannot pass array into variadic array function")
 									end
 								end
 
@@ -1644,7 +1641,8 @@ local CompileVisitors = {
 							end
 						end
 					end
-					E2Lib.raiseException("No such function: " .. fn_name .. arg_sig, 0, state.trace)
+
+					state:forceThrow("No such function: " .. fn_name .. arg_sig)
 				end
 			end
 		end, ret_type

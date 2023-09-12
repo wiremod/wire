@@ -1005,11 +1005,9 @@ function E2Lib.isValidFileWritePath(path)
 	if ext then return file_extensions[string.lower(ext)] end
 end
 
---- Different from `Context:throw`, which does not error the chip if @strict is not enabled,
---- and instead returns a default value.
----
---- This is what `Context:throw` calls internally if @strict
---- By default E2 can catch these errors.
+--- Deprecated.
+--- Superceded by RuntimeContext:forceThrow(msg) / RuntimeContext:throw(msg, default?)
+---@deprecated
 ---@param message string
 ---@param level integer
 ---@param trace Trace
@@ -1188,18 +1186,30 @@ end
 
 ---@return RuntimeContext
 function RuntimeContextBuilder:build()
-	if self.strict then
-		local err = E2Lib.raiseException
-		function self:throw(msg)
-			err(msg, 2, self.trace)
-		end
-	else
+	if not self.strict then
 		function self:throw(_msg, variable)
 			return variable
 		end
 	end
+
 	return setmetatable(self, RuntimeContext)
 end
+
+local DEF_USERDATA = { catchable = true }
+
+--- If @strict, raises an error with message.
+--- Otherwise, returns given value.
+---@generic T
+---@param message string
+---@param _default T?
+---@return T?
+function RuntimeContext:throw(message, _default)
+	local err = E2Lib.Debug.Error.new(message, self.trace, DEF_USERDATA)
+	error(err, 2)
+end
+
+--- Same as RuntimeContext:throw, except always throws the error regardless of @strict being disabled.
+RuntimeContext.forceThrow = RuntimeContext.throw
 
 function RuntimeContext:PushScope()
 	local scope = { vclk = {} }

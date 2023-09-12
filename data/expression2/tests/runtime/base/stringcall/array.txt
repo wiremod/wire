@@ -1,0 +1,17 @@
+## SHOULD_PASS:EXECUTE
+
+# Ensure that stringcalls don't bypass the array type blocklist
+
+try {
+	"array"(1, array())[array]
+	error("Fail")
+} catch (E) {
+	assert(E != "Fail")
+
+	try {
+		"array"(array())[array]
+		error("Fail")
+	} catch (E) {
+		assert(E != "Fail")
+	}
+}

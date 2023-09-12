@@ -106,19 +106,21 @@ e2function void exit()
 end
 
 do
-	local raise = E2Lib.raiseException
-
 	[noreturn]
 	e2function void error( string reason )
-		raise(reason, 2, self.trace)
+		self:forceThrow(reason)
 	end
 
 	e2function void assert(condition)
-		if condition == 0 then raise("assert failed", 2, self.trace) end
+		if condition == 0 then
+			self:forceThrow("assert failed")
+		end
 	end
 
 	e2function void assert(condition, string reason)
-		if condition == 0 then raise(reason, 2, self.trace) end
+		if condition == 0 then
+			self:forceThrow(reason)
+		end
 	end
 end
 

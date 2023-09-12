@@ -54,6 +54,7 @@ assert(returningref(A):id() == A:id())
 
 function returnvoid() {
 	if (1) { return }
+	error("unreachable")
 }
 
 returnvoid()
