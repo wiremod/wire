@@ -466,9 +466,9 @@ function ENT:Draw()
 					if c1 < 0 then c1 = 0 end
 
 					surface.SetDrawColor(sqr,sqg,sqb,255)
-					surface.DrawRect((tx)*szx+1,(ty)*szy+1,szx-2,szy-2)
+					surface.DrawRect(tx*szx+1,ty*szy+1,szx-2,szy-2)
 					surface.SetDrawColor(sqr,sqg,sqb,127)
-					surface.DrawRect((tx)*szx+2,(ty)*szy+2,szx-2,szy-2)
+					surface.DrawRect(tx*szx+2,ty*szy+2,szx-2,szy-2)
 
 					if (c1 ~= 0) then
 						-- Note: the source engine does not handle unicode characters above 65535 properly.
@@ -485,7 +485,7 @@ function ENT:Draw()
 
 						if specialCharacters[c1] then
 							self:DrawSpecialCharacter(
-								c1, (tx)*szx+1, (ty)*szy+1, szx-1, szy-1,
+								c1, tx*szx+1, ty*szy+1, szx-1, szy-1,
 								fr,fg,fb
 							)
 						else
@@ -541,16 +541,16 @@ function ENT:Draw()
 					--	fr,br = br,fr
 					--end
 					surface.SetDrawColor(br,bg,bb,255)
-					surface.DrawRect((tx)*szx,(ty)*szy,szx,szy)
+					surface.DrawRect(tx*szx,ty*szy,szx,szy)
 					local c1 = mem[a]
 
 					if c1 >= 2097152 then c1 = 0 end
 					if c1 < 0 then c1 = 0 end
 
 					surface.SetDrawColor(sqr,sqg,sqb,255)
-					surface.DrawRect((tx)*szx+1,(ty)*szy+1,szx-2,szy-2)
+					surface.DrawRect(tx*szx+1,ty*szy+1,szx-2,szy-2)
 					surface.SetDrawColor(sqr,sqg,sqb,127)
-					surface.DrawRect((tx)*szx+2,(ty)*szy+2,szx-2,szy-2)
+					surface.DrawRect(tx*szx+2,ty*szy+2,szx-2,szy-2)
 
 					if (c1 ~= 0) then
 						-- Note: the source engine does not handle unicode characters above 65535 properly.
@@ -567,7 +567,7 @@ function ENT:Draw()
 
 						if specialCharacters[c1] then
 							self:DrawSpecialCharacter(
-								c1, (tx)*szx+1, (ty)*szy+1, szx-1, szy-1,
+								c1, tx*szx+1, ty*szy+1, szx-1, szy-1,
 								fr,fg,fb
 							)
 						else
@@ -608,8 +608,8 @@ function ENT:Draw()
 					)
 
 					surface.DrawRect(
-						(tx)*szx+1,
-						(ty*szy)+(szy*(1-mem[1020]))-1,
+						tx*szx+1,
+						ty*szy+szy*(1-mem[1020])-1,
 						szx-2,
 						szy*mem[1020]
 					)
