@@ -585,7 +585,7 @@ function ENT:Draw()
 							)
 						end
 					end
-					
+
 				end, nil, true)
 			else
 				self.GPU:RenderToGPU(function()
