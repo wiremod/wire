@@ -28,10 +28,10 @@ if CLIENT then
 			_xMul = 512
 			_yMul = 512
 		end
-	
+
 		local xMul = _xMul/(xMax-xMin)
 		local yMul = _yMul/(yMax-yMin)
-	
+
 		if v.verticesindex then
 			local r = makeArray(v, true)
 			for i=1,#r,2 do

@@ -109,7 +109,6 @@ if CLIENT then
 
 	local wire_egp_emitter_drawdist = CreateClientConVar("wire_egp_emitter_drawdist","0",true,false)
 	local wire_egp_drawemitters = CreateClientConVar("wire_egp_drawemitters", "1")
-	local egpDraw = EGP.Draw
 
  	function ENT:DrawNoRT()
 		if wire_egp_drawemitters:GetBool() then
