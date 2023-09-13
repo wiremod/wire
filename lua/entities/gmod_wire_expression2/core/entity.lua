@@ -156,7 +156,9 @@ e2function number entity:setEditProperty(string key, string value)
 
 
 	if not gamemode.Call("CanProperty", self.player, "editentity", this) then return self:throw("Gamemode disallowed editing this entity!", 0) end
-	if not hook.Run("CanEditVariable", this, self.player, key, value, this:GetEditingData()[key]) then return self:throw("Server disallowed editing this property!", 0) end
+	local edit = this:GetEditingData()[key]
+	if not edit then return self:throw("Property '" .. key .. "' does not exist on entity!", 0) end
+	if not hook.Run("CanEditVariable", this, self.player, key, value, edit) then return self:throw("Server disallowed editing this property!", 0) end
 
 	return this:SetNetworkKeyValue(key, value) and 1 or 0
 end
