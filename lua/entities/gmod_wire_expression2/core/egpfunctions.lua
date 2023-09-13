@@ -909,13 +909,8 @@ e2function number wirelink:egpAngle( number index )
 end
 
 e2function string wirelink:egpMaterial( number index )
-	local bool, k, v = EGP:HasObject( this, index )
-	if (bool) then
-		if (v.material) then
-			return v.material
-		end
-	end
-	return ""
+	local bool, _, v = EGP:HasObject( this, index )
+	return bool and v.material and tostring(v.material) or ""
 end
 
 e2function number wirelink:egpRadius( number index )
