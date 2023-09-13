@@ -19,6 +19,19 @@ local getOwner     = E2Lib.getOwner
 local isOwner      = E2Lib.isOwner
 local newE2Table   = E2Lib.newE2Table
 
+local canProperty = WireLib.CanProperty
+local canEditVariable
+
+if CPPI and debug.getregistry().Entity.CPPICanEditVariable then
+	canEditVariable = function(self, ply, k, v, e)
+		return self:CPPICanEditVariable(ply, k, v, e)
+	end
+else
+	canEditVariable = function(self, ply, k , v, e)
+		return hook.Run("CanEditVariable", self, ply, k, v, e)
+	end
+end
+
 local sun = ents.FindByClass("env_sun")[1] -- used for sunDirection()
 
 hook.Add("InitPostEntity","sunent",function()
@@ -155,10 +168,10 @@ e2function number entity:setEditProperty(string key, string value)
 	if not this.Editable then return self:throw("Tried to edit non-editable entity!", 0) end
 
 
-	if not gamemode.Call("CanProperty", self.player, "editentity", this) then return self:throw("Gamemode disallowed editing this entity!", 0) end
+	if not canProperty(self.player, this, "editentity") then return self:throw("Gamemode disallowed editing this entity!", 0) end
 	local edit = this:GetEditingData()[key]
 	if not edit then return self:throw("Property '" .. key .. "' does not exist on entity!", 0) end
-	if not hook.Run("CanEditVariable", this, self.player, key, value, edit) then return self:throw("Server disallowed editing this property!", 0) end
+	if not canEditVariable(this, self.player, key, value, edit) then return self:throw("Server disallowed editing this property!", 0) end
 
 	return this:SetNetworkKeyValue(key, value) and 1 or 0
 end
@@ -549,7 +562,7 @@ e2function void entity:setSkin(skinIndex)
 	if
 		this:SkinCount() > 0
 		and skinIndex < this:SkinCount()
-		and gamemode.Call("CanProperty", self.player, "skin", this)
+		and canProperty(self.player, this, "skin")
 	then
 		this:SetSkin(skinIndex)
 	end
@@ -978,7 +991,7 @@ local MaxRadius = CreateConVar("wire_expression2_entity_ignite_radius_max", 500,
 e2function void entity:ignite()
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
-	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+	if not canProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
 
 	this:Ignite(360)
 end
@@ -986,7 +999,7 @@ end
 e2function void entity:ignite(number length)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
-	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+	if not canProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
 
 	this:Ignite( math.min(length, MaxLength:GetFloat()) )
 end
@@ -994,14 +1007,14 @@ end
 e2function void entity:ignite(number length, number radius)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
-	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+	if not canProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
 
 	this:Ignite( math.min(length, MaxLength:GetFloat()), math.Clamp(radius, 0, MaxRadius:GetFloat()) )
 end
 
 e2function void entity:extinguish()
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not WireLib.CanProperty(self.player, this, "extinguish") then return self:throw("You cannot extinguish this entity!", nil) end
+	if not canProperty(self.player, this, "extinguish") then return self:throw("You cannot extinguish this entity!", nil) end
 
 	this:Extinguish()
 end
