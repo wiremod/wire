@@ -86,7 +86,6 @@ if CLIENT then
 								EGP:FixMaterial(oldtex)
 							end
 						else
-							ent.NeedsUpdate = false
 							egpDraw(ent)
 						end
 					end

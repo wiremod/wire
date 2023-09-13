@@ -8,7 +8,8 @@ function ENT:Initialize()
 	self.GPU.translucent = self:GetTranslucent()
 
 	self.RenderTable = table.Copy(EGP.HomeScreen)
-	self.NeedsUpdate = true
+	self:_EGP_Update()
+	self.RenderTable = {}
 end
 
 function ENT:EGP_Update()
