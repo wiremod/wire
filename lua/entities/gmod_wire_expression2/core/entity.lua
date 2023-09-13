@@ -154,6 +154,10 @@ e2function number entity:setEditProperty(string key, string value)
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", 0) end
 	if not this.Editable then return self:throw("Tried to edit non-editable entity!", 0) end
 
+
+	if not gamemode.Call("CanProperty", self.player, "editentity", this) then return self:throw("Gamemode disallowed editing this entity!", 0) end
+	if not hook.Run("CanEditVariable", this, self.player, key, value, this:GetEditingData()[key]) then return self:throw("Server disallowed editing this property!", 0) end
+
 	return this:SetNetworkKeyValue(key, value) and 1 or 0
 end
 
