@@ -1338,12 +1338,11 @@ local CompileVisitors = {
 			self.delta_vars[var_name] = true
 
 			local sub_op, sub_ty = self:GetOperator("sub", { var.type, var.type }, trace)
-			local id = var.depth
 
 			return function(state) ---@param state RuntimeContext
-				local current, past = state.Scopes[id][var_name], state.Scopes[id]["$" .. var_name]
+				local current, past = state.GlobalScope[var_name], state.GlobalScope["$" .. var_name]
 				local diff = sub_op(state, current, past)
-				state.Scopes[id]["$" .. var_name] = current
+				state.GlobalScope["$" .. var_name] = current
 				return diff
 			end, sub_ty
 		elseif data[1] == Operator.Trg then -- ~
