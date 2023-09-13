@@ -1,7 +1,6 @@
 --[[
 	Expression 2 Pre-Processor
 	Andreas "Syranide" Svensson, me@syranide.com
-		Mostly rewritten by Vurv
 ]]
 
 AddCSLuaFile()
