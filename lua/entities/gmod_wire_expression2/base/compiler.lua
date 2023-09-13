@@ -702,7 +702,7 @@ local CompileVisitors = {
 			local last, non_variadic = #param_types, #param_types - 1
 			if variadic_ty == "r" then
 				function fn.op(state, args) ---@param state RuntimeContext
-					local save = state:SaveScopes()
+					local s_scopes, s_scopeid, s_scope = state.Scopes, state.ScopeID, state.Scope
 
 					local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
 					state.Scopes = { [0] = state.GlobalScope, [1] = scope }
@@ -721,7 +721,9 @@ local CompileVisitors = {
 
 					scope[param_names[last]] = a
 					block(state)
-					state:LoadScopes(save)
+
+					state.Scopes, state.ScopeID, state.Scope = s_scopes, s_scopeid, s_scope
+
 					if state.__return__ then
 						state.__return__ = false
 						return state.__returnval__
@@ -731,7 +733,7 @@ local CompileVisitors = {
 				end
 			else -- table
 				function fn.op(state, args, arg_types) ---@param state RuntimeContext
-					local save = state:SaveScopes()
+					local s_scopes, s_scopeid, s_scope = state.Scopes, state.ScopeID, state.Scope
 
 					local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
 					state.Scopes = { [0] = state.GlobalScope, [1] = scope }
@@ -750,7 +752,8 @@ local CompileVisitors = {
 					scope[param_names[last]] = { s = {}, stypes = {}, n = n, ntypes = ntypes, size = last }
 
 					block(state)
-					state:LoadScopes(save)
+
+					state.Scopes, state.ScopeID, state.Scope = s_scopes, s_scopeid, s_scope
 
 					if state.__return__ then
 						state.__return__ = false
@@ -763,7 +766,7 @@ local CompileVisitors = {
 		else -- Todo: Make this output a different function when it doesn't early return, and/or has no parameters as an optimization.
 			local nargs = #param_types
 			function fn.op(state, args) ---@param state RuntimeContext
-				local save = state:SaveScopes()
+				local s_scopes, s_scopeid, s_scope = state.Scopes, state.ScopeID, state.Scope
 
 				local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
 				state.Scopes = { [0] = state.GlobalScope, [1] = scope }
@@ -775,7 +778,8 @@ local CompileVisitors = {
 				end
 
 				block(state)
-				state:LoadScopes(save)
+
+				state.Scopes, state.ScopeID, state.Scope = s_scopes, s_scopeid, s_scope
 
 				if state.__return__ then
 					state.__return__ = false
@@ -847,7 +851,7 @@ local CompileVisitors = {
 		end
 
 		return function(state) ---@param state RuntimeContext
-			local save = state:SaveScopes()
+			local s_scopes, s_scopeid, s_scope = state.Scopes, state.ScopeID, state.Scope
 
 			local scope = { vclk = {} } -- Isolated scope, except global variables are shared.
 			state.Scope = scope
@@ -856,7 +860,7 @@ local CompileVisitors = {
 
 			include[2](state)
 
-			state:LoadScopes(save)
+			state.Scopes, state.ScopeID, state.Scope = s_scopes, s_scopeid, s_scope
 		end
 	end,
 
@@ -1122,7 +1126,7 @@ local CompileVisitors = {
 		var.trace_if_unused = nil
 
 		self:AssertW(var.initialized, "Use of variable [" .. name .. "] before initialization", trace)
-		self.scope.data.ops = self.scope.data.ops + 0.5
+		self.scope.data.ops = self.scope.data.ops + 0.25
 
 		local id = var.depth
 		return function(state) ---@param state RuntimeContext
@@ -1699,7 +1703,7 @@ local CompileVisitors = {
 		end)
 
 		self.registered_events[name][self.include or "__main__"] = function(state, args) ---@param state RuntimeContext
-			local save = state:SaveScopes()
+			local s_scopes, s_scopeid, s_scope = state.Scopes, state.ScopeID, state.Scope
 
 			local scope = { vclk = {} } -- Hack in the fact that functions don't have upvalues right now.
 			state.Scopes = { [0] = state.GlobalScope, [1] = scope }
@@ -1712,7 +1716,7 @@ local CompileVisitors = {
 
 			block(state)
 
-			state:LoadScopes(save)
+			state.Scopes, state.ScopeID, state.Scope = s_scopes, s_scopeid, s_scope
 		end
 
 		return nil

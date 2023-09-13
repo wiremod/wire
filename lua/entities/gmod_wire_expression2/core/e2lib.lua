@@ -1214,23 +1214,13 @@ RuntimeContext.forceThrow = RuntimeContext.throw
 function RuntimeContext:PushScope()
 	local scope = { vclk = {} }
 	self.Scope, self.ScopeID = scope, self.ScopeID + 1
-	self.Scopes[self.ScopeID] = self.Scope
+	self.Scopes[self.ScopeID] = scope
 end
 
 function RuntimeContext:PopScope()
 	self.Scopes[self.ScopeID] = nil
 	self.ScopeID = self.ScopeID - 1
 	self.Scope = self.Scopes[self.ScopeID]
-end
-
----@return { [1]: RuntimeScope[], [2]: integer, [3]: RuntimeScope }
-function RuntimeContext:SaveScopes()
-	return { self.Scopes, self.ScopeID, self.Scope }
-end
-
----@param scopes { [1]: RuntimeScope[], [2]: integer, [3]: RuntimeScope }
-function RuntimeContext:LoadScopes(scopes)
-	self.Scopes, self.ScopeID, self.Scope = scopes[1], scopes[2], scopes[3]
 end
 
 --- Compiles an E2 script without an entity owning it.
