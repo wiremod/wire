@@ -18,6 +18,7 @@ EGP.Objects.Base.r = 255
 EGP.Objects.Base.g = 255
 EGP.Objects.Base.b = 255
 EGP.Objects.Base.a = 255
+EGP.Objects.Base.filtering = TEXFILTER.ANISOTROPIC
 EGP.Objects.Base.material = ""
 if CLIENT then EGP.Objects.Base.material = false end
 EGP.Objects.Base.parent = 0
@@ -25,6 +26,7 @@ EGP.Objects.Base.Transmit = function( self )
 	EGP:SendPosSize( self )
 	EGP:SendColor( self )
 	EGP:SendMaterial( self )
+	net.WriteUInt(math.Clamp(self.filtering,0,3), 2)
 	net.WriteInt( self.parent, 16 )
 end
 EGP.Objects.Base.Receive = function( self )
@@ -32,11 +34,12 @@ EGP.Objects.Base.Receive = function( self )
 	EGP:ReceivePosSize( tbl )
 	EGP:ReceiveColor( tbl, self )
 	EGP:ReceiveMaterial( tbl )
+	tbl.filtering = net.ReadUInt(2)
 	tbl.parent = net.ReadInt(16)
 	return tbl
 end
 EGP.Objects.Base.DataStreamInfo = function( self )
-	return { x = self.x, y = self.y, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, parent = self.parent }
+	return { x = self.x, y = self.y, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, filtering = self.filtering, parent = self.parent }
 end
 function EGP.Objects.Base:Contains(point)
 	return false
