@@ -1365,7 +1365,7 @@ else
 	---@param val string
 	---@param editor table
 	function WireLib.CanEditVariable(self, ply, key, val, editor) ---@return boolean
-		return hook.Run("CanEditVariable", self, ply, key, val, editor)
+		return hook.Run("CanEditVariable", self, ply, key, val, editor) ~= false
 	end
 end
 
