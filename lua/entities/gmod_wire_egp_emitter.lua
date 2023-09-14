@@ -116,7 +116,16 @@ if CLIENT then
 				local mat = self:GetEGPMatrix()
 				for _, obj in ipairs(self.RenderTable) do
 					local oldtex = EGP:SetMaterial(obj.material)
-					obj:Draw(self, mat)
+					local filter = obj.filtering
+					if filter then
+						render.PushFilterMag(filter)
+						render.PushFilterMin(filter)
+						obj:Draw(ent, mat)
+						render.PopFilterMag()
+						render.PopFilterMin()
+					else
+						obj:Draw(ent, mat)
+					end
 					EGP:FixMaterial(oldtex)
 				end
 			cam.End3D2D()

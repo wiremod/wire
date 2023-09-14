@@ -1,6 +1,7 @@
 -- Author: Divran
 local Obj = EGP:NewObject( "3DTracker" )
 Obj.material = nil
+Obj.filtering = nil
 Obj.w = nil
 Obj.h = nil
 Obj.target_x = 0

@@ -491,6 +491,8 @@ end
 function EGP.Draw(ent)
 	local rt = ent.RenderTable
 	local mat = ent:GetEGPMatrix()
+	local globalfilter = ent.GPU and ent.GPU.texture_filtering
+
 	for _, obj in ipairs(rt) do
 		if obj.parent == -1 or obj.NeedsConstantUpdate then ent.NeedsUpdate = true end
 		if obj.parent ~= 0 then
@@ -503,12 +505,12 @@ function EGP.Draw(ent)
 
 		local oldtex = EGP:SetMaterial(obj.material)
 		local filter = obj.filtering
-		if filter then
+		if filter and filter ~= globalfilter then
 			render.PushFilterMag(filter)
 			render.PushFilterMin(filter)
 			obj:Draw(ent, mat)
-			render.PopFilterMin()
 			render.PopFilterMag()
+			render.PopFilterMin()
 		else
 			obj:Draw(ent, mat)
 		end

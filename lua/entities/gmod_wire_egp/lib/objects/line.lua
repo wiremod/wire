@@ -2,6 +2,7 @@
 local Obj = EGP:NewObject( "Line" )
 Obj.w = nil
 Obj.h = nil
+Obj.filtering = nil
 Obj.x2 = 0
 Obj.y2 = 0
 Obj.size = 1
