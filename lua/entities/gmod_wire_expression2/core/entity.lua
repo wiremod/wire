@@ -20,17 +20,7 @@ local isOwner      = E2Lib.isOwner
 local newE2Table   = E2Lib.newE2Table
 
 local canProperty = WireLib.CanProperty
-local canEditVariable
-
-if CPPI and debug.getregistry().Entity.CPPICanEditVariable then
-	canEditVariable = function(self, ply, k, v, e)
-		return self:CPPICanEditVariable(ply, k, v, e)
-	end
-else
-	canEditVariable = function(self, ply, k , v, e)
-		return hook.Run("CanEditVariable", self, ply, k, v, e)
-	end
-end
+local canEditVariable = WireLib.CanEditVariable
 
 local sun = ents.FindByClass("env_sun")[1] -- used for sunDirection()
 
