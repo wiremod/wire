@@ -374,12 +374,14 @@ function PreProcessor:ParsePorts(ports, startoffset)
 
 	-- Preprocess [Foo Bar]:entity into [Foo,Bar]:entity so we don't have to deal with split-up multi-variable definitions in the main loop
 	ports = ports:gsub("%[.-%]", function(s)
-		return s:gsub(" ", ",")
+		return string.Replace(s, " ", ",")
 	end)
 
-	for column, key in ports:gmatch("()([^ ]+)") do
+	for column, key in ports:gmatch("()(%S+)") do
+		---@cast column integer
+		---@cast key string
+
 		column = startoffset + column
-		key = key:Trim()
 
 		-------------------------------- variable names --------------------------------
 
@@ -405,10 +407,12 @@ function PreProcessor:ParsePorts(ports, startoffset)
 						-- error on malformed variable names
 						if not var:match("^[A-Z]") then
 							self:Error("Variable name (" .. E2Lib.limitString(var, 10) .. ") must start with an uppercase letter", column2)
+							goto cont
 						else
 							local errcol = var:find("[^A-Za-z0-9_]")
 							if errcol then
 								self:Error("Variable declaration (" .. E2Lib.limitString(var, 10) .. ") contains invalid characters", column2 + errcol - 1)
+								goto cont
 							else
 								-- and finally add the variable.
 								names[#names + 1] = var
@@ -429,6 +433,7 @@ function PreProcessor:ParsePorts(ports, startoffset)
 
 			if vtype ~= vtype:lower() then
 				self:Error("Variable type [" .. E2Lib.limitString(vtype, 10) .. "] must be lowercase", column + i + 1)
+				goto cont
 			elseif vtype == "number" then
 				vtype = "normal"
 			elseif vtype == "normal" then
@@ -440,6 +445,7 @@ function PreProcessor:ParsePorts(ports, startoffset)
 		else
 			-- invalid -> raise an error
 			self:Error("Variable declaration (" .. E2Lib.limitString(key, 10) .. ") contains invalid characters", column + i)
+			goto cont
 		end
 
 		-- fill in the missing types
