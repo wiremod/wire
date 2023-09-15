@@ -1031,6 +1031,7 @@ E2Lib.registerConstant("COLLISION_GROUP_NPC_ACTOR", COLLISION_GROUP_NPC_ACTOR)
 E2Lib.registerConstant("COLLISION_GROUP_NPC_SCRIPTED", COLLISION_GROUP_NPC_SCRIPTED)
 E2Lib.registerConstant("COLLISION_GROUP_WORLD", COLLISION_GROUP_WORLD)
 
+[nodiscard]
 e2function number entity:getCollisionGroup()
 	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
 	return this:GetCollisionGroup()
