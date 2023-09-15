@@ -36,6 +36,7 @@ function ENT:TriggerInput(iname, value)
 		if not IsValid(ply) then ply = self end
 
 		if not hook.Run( "PlayerUse", ply, trace.Entity ) then return false end
+        if not hook.Run( "Wire_UserCanUse", ply, trace.Entity, self ) then return false end
 
 		if trace.Entity.Use then
 			trace.Entity:Use(ply,ply,USE_ON,0)
