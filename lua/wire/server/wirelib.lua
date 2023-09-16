@@ -1276,7 +1276,8 @@ function WireLib.IsValidMaterial(material)
 	return material
 end
 
-local escapes = { n = "\n", r = "\r", t = "\t", ["\\"] = "\\", ["'"] = "'", ["\""] = "\"" }
+local escapes = { n = "\n", r = "\r", t = "\t", ["\\"] = "\\", ["'"] = "'", ["\""] = "\"", a = "\a",
+b = "\b", f = "\f", v = "\v" }
 --- Parses a user-generated string so escape characters become their intended targets. Note that this is not a complete implementation of escape characters.
 --- @param str string
 function WireLib.ParseString(str)
