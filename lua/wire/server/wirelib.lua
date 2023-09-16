@@ -1276,6 +1276,26 @@ function WireLib.IsValidMaterial(material)
 	return material
 end
 
+local escapes = { n = "\n", r = "\r", t = "\t", ["\\"] = "\\", ["'"] = "'", ["\""] = "\"" }
+--- Parses a user-generated string so escape characters become their intended targets. Note that this is not a complete implementation of escape characters.
+--- @param str string
+function WireLib.ParseString(str)
+	return (str:gsub("\\([%a\\]?)(%d?%d?%d?)", function(char, num)
+		if escapes[char] then
+			return escapes[char] .. (num or "")
+		elseif num then
+			num = tonumber(num)
+			if num and num < 256 then
+				return string.char(num)
+			else
+				return (char or "") .. num
+			end
+		else
+			return char .. (num or "")
+		end
+	end)) -- These parentheses force Lua to return only the string. Please ignore the linter.
+end
+
 local ENTITY = FindMetaTable("Entity")
 
 if CPPI and ENTITY.CPPICanTool then
