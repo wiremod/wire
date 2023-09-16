@@ -35,7 +35,8 @@ function ENT:TriggerInput(iname, value)
 		local ply = self:GetPlayer()
 		if not IsValid(ply) then ply = self end
 
-		if not hook.Run( "PlayerUse", ply, trace.Entity ) then return false end
+		if hook.Run( "PlayerUse", ply, trace.Entity ) == false then return false end
+		if hook.Run( "WireUse", ply, trace.Entity, self ) == false then return false end
 
 		if trace.Entity.Use then
 			trace.Entity:Use(ply,ply,USE_ON,0)
