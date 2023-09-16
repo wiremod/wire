@@ -1276,12 +1276,30 @@ function WireLib.IsValidMaterial(material)
 	return material
 end
 
+local hex2num = { ["0"] = 0, ["1"] = 1, ["2"] = 2, ["3"] = 3, ["4"] = 4, ["5"] = 5, ["6"] = 6, ["7"] = 7, ["8"] = 8,
+				  ["9"] = 9, a = 10, b = 11, c = 12, d = 13, e = 14, f = 15 }
+
+local function hexToNum(hex)
+	hex = hex:gsub("^0x", "", 1):lower() -- Remove 0x/x if it's there
+	local sum = 0
+	for i = 1, #hex do
+		sum = (sum * 16) + hex2num[hex:sub(i, i)]
+	end
+	return sum
+end
+--- Converts a hexadecimal number represented as a string to a number representation.
+--- @param hex string
+WireLib.HexToNum = hexToNum
+
 local escapes = { n = "\n", r = "\r", t = "\t", ["\\"] = "\\", ["'"] = "'", ["\""] = "\"", a = "\a",
 b = "\b", f = "\f", v = "\v" }
 --- Parses a user-generated string so escape characters become their intended targets. Note that this is not a complete implementation of escape characters.
 --- @param str string
 function WireLib.ParseString(str)
 	str = str:gsub("\\([%a\\'\"])", escapes)
+	str = str:gsub("\\x(%x%x)", function(hex)
+		return string.char(hexToNum(hex))
+	end)
 	str = str:gsub("\\(%d%d?%d?)", function(num)
 		local tonum = tonumber(num)
 		return tonum < 256 and string.char(tonum) or num
