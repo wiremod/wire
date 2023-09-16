@@ -1280,22 +1280,12 @@ local escapes = { n = "\n", r = "\r", t = "\t", ["\\"] = "\\", ["'"] = "'", ["\"
 --- Parses a user-generated string so escape characters become their intended targets. Note that this is not a complete implementation of escape characters.
 --- @param str string
 function WireLib.ParseString(str)
-	return (str:gsub("\\([%a\\]?)(%d?%d?%d?)", function(char, num)
-		if char ~= "" then
-			if escapes[char] then
-				return escapes[char] .. (num or "")
-			else
-				return char .. (num or "")
-			end
-		elseif num then
-			num = tonumber(num)
-			if num and num < 256 then
-				return string.char(num)
-			else
-				return num
-			end
-		end
-	end)) -- These parentheses force Lua to return only the string. Please ignore the linter.
+	str = str:gsub("\\([%a\\'\"])", escapes)
+	str = str:gsub("\\(%d%d?%d?)", function(num)
+		local tonum = tonumber(num)
+		return tonum < 256 and string.char(tonum) or num
+	end)
+	return str
 end
 
 local ENTITY = FindMetaTable("Entity")
