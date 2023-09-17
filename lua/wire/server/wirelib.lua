@@ -1283,9 +1283,9 @@ end
 
 local escapeChars = { n = "\n", r = "\r", t = "\t", ["\\"] = "\\", ["'"] = "'", ["\""] = "\"", a = "\a",
 b = "\b", f = "\f", v = "\v" }
---- Parses a user-generated string so escape characters become their intended targets. Note that this is not a complete implementation of escape characters.
+--- Replaces escape sequences with the appropriate character. Uses Lua escape sequences. Invalid sequences are skipped.
 --- @param str string
-function WireLib.ParseString(str)
+function WireLib.ParseEscapes(str)
 	str = string_gsub(str, "\\(.)([^\\]?[^\\]?)", function(i, arg)
 		if escapeChars[i] then
 			return escapeChars[i]

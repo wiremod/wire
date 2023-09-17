@@ -65,7 +65,7 @@ function parsers.ANGLE( val )
 		return Angle(tonumber(p),tonumber(y),tonumber(r))
 	end
 end
-parsers.STRING = WireLib.ParseString
+parsers.STRING = WireLib.ParseEscapes
 
 function ENT:ParseValue( value, tp )
 	if parsers[tp] then
