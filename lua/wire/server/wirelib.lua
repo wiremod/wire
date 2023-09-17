@@ -7,6 +7,11 @@ WireAddon = 1
 local ents = ents
 local timer = timer
 local string = string
+local string_gsub = string.gsub
+local string_char = string.char
+local string_find = string.find
+local string_sub = string.sub
+local utf8_char = utf8.char
 local math_clamp = math.Clamp
 local table = table
 local hook = hook
@@ -1276,73 +1281,31 @@ function WireLib.IsValidMaterial(material)
 	return material
 end
 
-local escapes = { n = "\n", r = "\r", t = "\t", ["\\"] = "\\", ["'"] = "'", ["\""] = "\"", a = "\a",
+local escapeChars = { n = "\n", r = "\r", t = "\t", ["\\"] = "\\", ["'"] = "'", ["\""] = "\"", a = "\a",
 b = "\b", f = "\f", v = "\v" }
 --- Parses a user-generated string so escape characters become their intended targets. Note that this is not a complete implementation of escape characters.
 --- @param str string
 function WireLib.ParseString(str)
-	local buf = {}
-	local last = 1
-	for i = 1, 8096 do
-		local pos = string_find(str, "\\", last, true)
-		if pos then
-			local prev = string_sub(str, last, pos - 1)
-			pos = pos + 1
-			local char = string_sub(str, pos, pos)
-			if escapes[char] then
-				buf[#buf + 1] = prev .. escapes[char]
-				last = pos + 1
-			elseif char == "x" then
-				local num = tonumber(string_sub(str, pos + 1, pos + 2), 16)
-				if num then
-					buf[#buf + 1] = prev .. string_char(num)
-					last = pos + 3
-				else
-					buf[#buf + 1] = prev
-					last = pos + 1
-				end
-			elseif char == "u" then
-				local num
-				last, num = select(2, string_find(str, "^u{(%x%x?%x?%x?%x?%x?)}", pos)) -- Search for 6 elements directly since Lua only accepts up to 6 elements.
-				if num then
-					local tonum = tonumber(num, 16)
-					if tonum and tonum <= 0x10ffff then
-						buf[#buf + 1] = prev .. utf8_char(tonum)
-						last = last + 1
-					else
-						buf[#buf + 1] = prev
-						last = pos + 1
-					end
-				else
-					buf[#buf + 1] = prev
-					last = pos
-				end
-			elseif char >= "0" and char <= "9" then
-				local num
-				last, num = select(2, string_find(str, "^(%d%d?%d?)", pos))
-				if num then
-					local tonum = tonumber(num)
-					if tonum and tonum < 256 then
-						buf[#buf + 1] = prev .. string_char(tonum)
-						last = last + 1
-					else
-						buf[#buf + 1] = prev
-						last = pos
-					end
-				else
-					buf[#buf + 1] = prev
-					last = pos
-				end
-			else
-				buf[#buf + 1] = prev
-				last = pos
-			end
+	str = string_gsub(str, "\\(.)([^\\]?[^\\]?)", function(i, arg)
+		if escapeChars[i] then
+			return escapeChars[i]
+		elseif i == "x" then
+			if #arg < 2 then return false end
+			local tonum = tonumber(arg, 16)
+			return tonum and string_char(tonum) or false
+		elseif i >= "0" and i <= "9" then
+			local _, finish, num = string_find(arg, "^(%d?%d?)")
+			local tonum = tonumber(i .. (num or ""))
+			return tonum and tonum < 256 and string_char(tonum) .. string_sub(arg, finish + 1) or false
 		else
-			buf[#buf + 1] = string_sub(str, last)
-			break
+			return false
 		end
-	end
-	return concat(buf)
+	end)
+
+	return select(-2, string_gsub(str, "\\u{(%x%x?%x?%x?%x?%x?)}", function(uni)
+		local tonum = tonumber(uni, 16)
+		return tonum and tonum <= 0x10ffff and utf8_char(tonum) or false
+	end))
 end
 
 local ENTITY = FindMetaTable("Entity")
