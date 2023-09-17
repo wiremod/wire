@@ -1281,30 +1281,68 @@ b = "\b", f = "\f", v = "\v" }
 --- Parses a user-generated string so escape characters become their intended targets. Note that this is not a complete implementation of escape characters.
 --- @param str string
 function WireLib.ParseString(str)
-	return select(-2, string_gsub(str, "\\([a-wyz\\'\"]?)(%d?%d?%d?)(x?%x?%x?)", function(char, num, hex)
-		if char ~= "" then
+	local buf = {}
+	local last = 1
+	for i = 1, 8096 do
+		local pos = string_find(str, "\\", last, true)
+		if pos then
+			local prev = string_sub(str, last, pos - 1)
+			pos = pos + 1
+			local char = string_sub(str, pos, pos)
 			if escapes[char] then
-				return escapes[char] .. (num or "") .. (hex or "")
+				buf[#buf + 1] = prev .. escapes[char]
+				last = pos + 1
+			elseif char == "x" then
+				local num = tonumber(string_sub(str, pos + 1, pos + 2), 16)
+				if num then
+					buf[#buf + 1] = prev .. string_char(num)
+					last = pos + 3
+				else
+					buf[#buf + 1] = prev
+					last = pos + 1
+				end
+			elseif char == "u" then
+				local num
+				last, num = select(2, string_find(str, "^u{(%x%x?%x?%x?%x?%x?)}", pos)) -- Search for 6 elements directly since Lua only accepts up to 6 elements.
+				if num then
+					local tonum = tonumber(num, 16)
+					if tonum and tonum <= 0x10ffff then
+						buf[#buf + 1] = prev .. utf8_char(tonum)
+						last = last + 1
+					else
+						buf[#buf + 1] = prev
+						last = pos + 1
+					end
+				else
+					buf[#buf + 1] = prev
+					last = pos
+				end
+			elseif char >= "0" and char <= "9" then
+				local num
+				last, num = select(2, string_find(str, "^(%d%d?%d?)", pos))
+				if num then
+					local tonum = tonumber(num)
+					if tonum and tonum < 256 then
+						buf[#buf + 1] = prev .. string_char(tonum)
+						last = last + 1
+					else
+						buf[#buf + 1] = prev
+						last = pos
+					end
+				else
+					buf[#buf + 1] = prev
+					last = pos
+				end
 			else
-				return char .. (num or "") .. (hex or "")
+				buf[#buf + 1] = prev
+				last = pos
 			end
-		elseif num and num ~= "" then
-			local tonum = tonumber(num)
-			if tonum and tonum < 256 then
-				return string_char(tonum) .. (hex or "")
-			else
-				return num .. (hex or "")
-			end
-		elseif hex then
-			hex = string_sub(hex, 2)
-			local tonum = tonumber(hex, 16)
-			if tonum and #hex == 2 then
-				return string_char(tonum)
-			else
-				return hex
-			end
+		else
+			buf[#buf + 1] = string_sub(str, last)
+			break
 		end
-	end))
+	end
+	return concat(buf)
 end
 
 local ENTITY = FindMetaTable("Entity")
