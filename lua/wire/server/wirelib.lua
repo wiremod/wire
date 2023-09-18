@@ -1287,22 +1287,23 @@ b = "\b", f = "\f", v = "\v" }
 --- Replaces escape sequences with the appropriate character. Uses Lua escape sequences. Invalid sequences are skipped.
 --- @param str string
 function WireLib.ParseEscapes(str)
-	-- Place in str because otherwise the linter will be upset.
-	str = string_gsub(str, "(\\(.?)([^\\]?[^\\]?[^\\]?[^\\]?[^\\]?[^\\]?[^\\]?}?))", function(str, i, arg)
+	str = string_gsub(str, "\\(.?)([^\\]?[^\\]?[^\\]?[^\\]?[^\\]?[^\\]?[^\\]?}?)", function(i, arg)
 		if escapeChars[i] then
 			return escapeChars[i] .. arg
 		elseif i == "x" then
-			local _, finish, num = string_find(arg, "^(%x%x)")
-			local tonum = tonumber(num or "", 16)
-			return tonum and string_char(tonum) .. string_sub(arg, finish + 1) or false
+			local num = string_match(arg, "^(%x?%x?)")
+			if not num then return false end
+			return string_char(tonumber(num, 16))..string_sub(arg, #num + 1)
 		elseif i >= "0" and i <= "9" then
-			local _, finish, num = string_find(arg, "^(%d?%d?)")
-			local tonum = tonumber(i .. (num or ""))
-			return tonum and tonum < 256 and string_char(tonum) .. string_sub(arg, finish + 1) or false
+			local num = string.match(arg, "^(%d?%d?)")
+			if not num then return false end
+			local tonum = tonumber(i..num)
+			return tonum < 256 and (string_char(tonum)..string_sub(arg, #num + 1))
 		elseif i == "u" then
-			local _, _, num = string_find(arg, "^{(%x%x?%x?%x?%x?%x?)}")
-			local tonum = tonumber(num or "", 16)
-			return tonum and tonum <= 0x10ffff and utf8_char(tonum) or false
+			local num = string_match(arg, "^{(%x%x?%x?%x?%x?%x?)}")
+			if not num then return false end
+			local tonum = tonumber(num, 16)
+			return tonum <= 0x10ffff and utf8_char(tonum)
 		else
 			return false
 		end
