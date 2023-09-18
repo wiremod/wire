@@ -805,7 +805,11 @@ function ENT:Run(changedNodes)
     if gate.isInput then
       value = {self.InputValues[nodeId]}
     elseif gate.isConstant then
-      value = {node.value}
+      if gate.outputtypes[1] == "STRING" then
+        value = { WireLib.ParseEscapes(node.value) }
+      else
+        value = {node.value}
+      end
     else
       if nodeId == loopDetectionNodeId and #nodeQueue == loopDetectionSize then
         --infinite loop...
