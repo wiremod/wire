@@ -1295,7 +1295,7 @@ function WireLib.ParseEscapes(str)
 			if not num then return false end
 			return string_char(tonumber(num, 16))..string_sub(arg, #num + 1)
 		elseif i >= "0" and i <= "9" then
-			local num = string.match(arg, "^(%d?%d?)")
+			local num = string_match(arg, "^(%d?%d?)")
 			if not num then return false end
 			local tonum = tonumber(i..num)
 			return tonum < 256 and (string_char(tonum)..string_sub(arg, #num + 1))
