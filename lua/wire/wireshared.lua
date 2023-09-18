@@ -973,7 +973,7 @@ function WireLib.ParseEscapes(str)
 			local num = string_match(arg, "^{(%x%x?%x?%x?%x?%x?)}")
 			if not num then return false end
 			local tonum = tonumber(num, 16)
-			return tonum <= 0x10ffff and utf8_char(tonum)
+			return tonum <= 0x10ffff and utf8_char(tonum) .. string_sub(arg, #num + 3)
 		else
 			return false
 		end
