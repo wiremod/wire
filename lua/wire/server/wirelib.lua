@@ -9,7 +9,7 @@ local timer = timer
 local string = string
 local string_gsub = string.gsub
 local string_char = string.char
-local string_find = string.find
+local string_match = string.match
 local string_sub = string.sub
 local utf8_char = utf8.char
 local math_clamp = math.Clamp
@@ -1291,14 +1291,14 @@ function WireLib.ParseEscapes(str)
 		if escapeChars[i] then
 			return escapeChars[i] .. arg
 		elseif i == "x" then
-			local num = string_match(arg, "^(%x?%x?)")
+			local num = string_match(arg, "^(%x%x)")
 			if not num then return false end
-			return string_char(tonumber(num, 16))..string_sub(arg, #num + 1)
+			return string_char(tonumber(num, 16)) .. string_sub(arg, #num + 1)
 		elseif i >= "0" and i <= "9" then
 			local num = string_match(arg, "^(%d?%d?)")
 			if not num then return false end
-			local tonum = tonumber(i..num)
-			return tonum < 256 and (string_char(tonum)..string_sub(arg, #num + 1))
+			local tonum = tonumber(i .. num)
+			return tonum < 256 and (string_char(tonum) .. string_sub(arg, #num + 1))
 		elseif i == "u" then
 			local num = string_match(arg, "^{(%x%x?%x?%x?%x?%x?)}")
 			if not num then return false end
