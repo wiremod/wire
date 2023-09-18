@@ -1284,35 +1284,30 @@ end
 local escapeChars = { n = "\n", r = "\r", t = "\t", ["\\"] = "\\", ["'"] = "'", ["\""] = "\"", a = "\a",
 b = "\b", f = "\f", v = "\v" }
 
-local function _escapeFuncNumber(arg, i)
-	local _, finish, num = string_find(arg, "^(%d?%d?)")
-	local tonum = tonumber(i .. (num or ""))
-	return tonum and tonum < 256 and string_char(tonum) .. string_sub(arg, finish + 1) or false
-end
-
-local escapeFuncs = {
-	x = function(arg)
-		if #arg < 2 then return false end
-		local tonum = tonumber(arg, 16)
-		return tonum and string_char(tonum) or false
-	end,
-	u = function(arg)
-		local _, _, num = string_find(arg, "{(%x%x?%x?%x?%x?%x?)}")
-		local tonum = tonumber(num or "", 16)
-		return tonum and tonum <= 0x10ffff and utf8_char(tonum) or false
-	end
-}
-
-for i = string.byte("0"), string.byte("9") do
-	escapeFuncs[string_char(i)] = _escapeFuncNumber
-end
-
 --- Replaces escape sequences with the appropriate character. Uses Lua escape sequences. Invalid sequences are skipped.
 --- @param str string
 function WireLib.ParseEscapes(str)
-	return string_gsub(str, "(\\(.?)([^\\]?[^\\]?[^\\]?[^\\]?[^\\]?[^\\]?[^\\]?}?))", function(str, i, arg)
-		return escapeChars[i] and escapeChars[i] .. arg or (escapeFuncs[i] and escapeFuncs[i](arg, i)) or false
+	-- Place in str because otherwise the linter will be upset.
+	str = string_gsub(str, "(\\(.?)([^\\]?[^\\]?[^\\]?[^\\]?[^\\]?[^\\]?[^\\]?}?))", function(str, i, arg)
+		if escapeChars[i] then
+			return escapeChars[i] .. arg
+		elseif i == "x" then
+			local _, finish, num = string_find(arg, "^(%x%x)")
+			local tonum = tonumber(num or "", 16)
+			return tonum and string_char(tonum) .. string_sub(arg, finish + 1) or false
+		elseif i >= "0" and i <= "9" then
+			local _, finish, num = string_find(arg, "^(%d?%d?)")
+			local tonum = tonumber(i .. (num or ""))
+			return tonum and tonum < 256 and string_char(tonum) .. string_sub(arg, finish + 1) or false
+		elseif i == "u" then
+			local _, _, num = string_find(arg, "^{(%x%x?%x?%x?%x?%x?)}")
+			local tonum = tonumber(num or "", 16)
+			return tonum and tonum <= 0x10ffff and utf8_char(tonum) or false
+		else
+			return false
+		end
 	end)
+	return str
 end
 
 local ENTITY = FindMetaTable("Entity")
