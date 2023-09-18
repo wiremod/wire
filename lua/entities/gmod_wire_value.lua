@@ -65,9 +65,7 @@ function parsers.ANGLE( val )
 		return Angle(tonumber(p),tonumber(y),tonumber(r))
 	end
 end
-function parsers.STRING( val )
-	return string.gsub( tostring( val ), "\\[n0\\]", {["\\\\"] = "\\", ["\\n"] = "\n", ["\\0"] = "\0"} )
-end
+parsers.STRING = WireLib.ParseEscapes
 
 function ENT:ParseValue( value, tp )
 	if parsers[tp] then
