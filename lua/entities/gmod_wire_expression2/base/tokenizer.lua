@@ -261,16 +261,11 @@ function Tokenizer:Next()
 				if m:sub( -1, -1) == "\"" then
 					break
 				else -- Escape
-					local c = self:At()
+					local c = WireLib.ParseEscapes("\\" .. self:ConsumePattern(".[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?}?", true))
 
-					if not Escapes[c] then
-						self:Warning("Invalid escape \\" .. c)
-						c = '\\' .. c
-					else
-						c = Escapes[c]
+					if c:sub(1, 1) == "\\" then
+						self:Warning("Invalid escape " .. c:gsub("%G", " "))
 					end
-
-					self:NextChar(true)
 
 					nbuffer = nbuffer + 1
 					buffer[nbuffer] = c
