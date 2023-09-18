@@ -7,11 +7,6 @@ WireAddon = 1
 local ents = ents
 local timer = timer
 local string = string
-local string_gsub = string.gsub
-local string_char = string.char
-local string_match = string.match
-local string_sub = string.sub
-local utf8_char = utf8.char
 local math_clamp = math.Clamp
 local table = table
 local hook = hook
@@ -1279,36 +1274,6 @@ function WireLib.IsValidMaterial(material)
 	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
 	if material_blacklist[path] then return "" end
 	return material
-end
-
-local escapeChars = { n = "\n", r = "\r", t = "\t", ["\\"] = "\\", ["'"] = "'", ["\""] = "\"", a = "\a",
-b = "\b", f = "\f", v = "\v" }
-
---- Replaces escape sequences with the appropriate character. Uses Lua escape sequences. Invalid sequences are skipped.
---- @param str string
-function WireLib.ParseEscapes(str)
-	str = string_gsub(str, "\\(.?)([^\\]?[^\\]?[^\\]?[^\\]?[^\\]?[^\\]?[^\\]?}?)", function(i, arg)
-		if escapeChars[i] then
-			return escapeChars[i] .. arg
-		elseif i == "x" then
-			local num = string_match(arg, "^(%x%x)")
-			if not num then return false end
-			return string_char(tonumber(num, 16)) .. string_sub(arg, #num + 1)
-		elseif i >= "0" and i <= "9" then
-			local num = string_match(arg, "^(%d?%d?)")
-			if not num then return false end
-			local tonum = tonumber(i .. num)
-			return tonum < 256 and (string_char(tonum) .. string_sub(arg, #num + 1))
-		elseif i == "u" then
-			local num = string_match(arg, "^{(%x%x?%x?%x?%x?%x?)}")
-			if not num then return false end
-			local tonum = tonumber(num, 16)
-			return tonum <= 0x10ffff and utf8_char(tonum)
-		else
-			return false
-		end
-	end)
-	return str
 end
 
 local ENTITY = FindMetaTable("Entity")
