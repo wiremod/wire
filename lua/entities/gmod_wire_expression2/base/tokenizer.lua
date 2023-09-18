@@ -137,20 +137,8 @@ end
 ---@param message string
 ---@param offset integer?
 function Tokenizer:Warning(message, offset)
-	self.warnings[#self.warnings + 1] = { message = message, line = self.line, char = (self.col + (offset or 0)) }
+	self.warnings[#self.warnings + 1] = { message = message, line = self.line, char = self.col + (offset or 0) }
 end
-
-local Escapes = {
-	['\\'] = '\\',
-	['"'] = '"',
-	['a'] = '\a',
-	['b'] = '\b',
-	['f'] = '\f',
-	['n'] = '\n',
-	['r'] = '\r',
-	['t'] = '\t',
-	['v'] = '\v'
-}
 
 ---@return Token?
 function Tokenizer:Next()
