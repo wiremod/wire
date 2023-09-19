@@ -249,14 +249,15 @@ function Tokenizer:Next()
 				if m:sub( -1, -1) == "\"" then
 					break
 				else -- Escape
-					local c = WireLib.ParseEscapes("\\" .. self:ConsumePattern(".[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?}?", true))
+					local seq = "\\" .. self:ConsumePattern(".[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?}?", true)
+					local esc = WireLib.ParseEscapes(seq)
 
-					if c:sub(1, 1) == "\\" then
-						self:Warning("Invalid escape " .. c:gsub("%G", " "))
+					if seq == esc then
+						self:Warning("Invalid escape " .. esc:gsub("%G", " "))
 					end
 
 					nbuffer = nbuffer + 1
-					buffer[nbuffer] = c
+					buffer[nbuffer] = esc
 				end
 			else
 				self:Error("Missing \" to end string")
