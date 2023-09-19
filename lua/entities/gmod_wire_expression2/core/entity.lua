@@ -1009,6 +1009,50 @@ e2function void entity:extinguish()
 	this:Extinguish()
 end
 
+E2Lib.registerConstant("COLLISION_GROUP_NONE", COLLISION_GROUP_NONE)
+E2Lib.registerConstant("COLLISION_GROUP_DEBRIS", COLLISION_GROUP_DEBRIS)
+E2Lib.registerConstant("COLLISION_GROUP_DEBRIS_TRIGGER", COLLISION_GROUP_DEBRIS_TRIGGER)
+E2Lib.registerConstant("COLLISION_GROUP_INTERACTIVE_DEBRIS", COLLISION_GROUP_INTERACTIVE_DEBRIS)
+E2Lib.registerConstant("COLLISION_GROUP_INTERACTIVE", COLLISION_GROUP_INTERACTIVE)
+E2Lib.registerConstant("COLLISION_GROUP_PLAYER", COLLISION_GROUP_PLAYER)
+E2Lib.registerConstant("COLLISION_GROUP_BREAKABLE_GLASS", COLLISION_GROUP_BREAKABLE_GLASS)
+E2Lib.registerConstant("COLLISION_GROUP_VEHICLE", COLLISION_GROUP_VEHICLE)
+E2Lib.registerConstant("COLLISION_GROUP_PLAYER_MOVEMENT", COLLISION_GROUP_PLAYER_MOVEMENT)
+E2Lib.registerConstant("COLLISION_GROUP_NPC", COLLISION_GROUP_NPC)
+E2Lib.registerConstant("COLLISION_GROUP_IN_VEHICLE", COLLISION_GROUP_IN_VEHICLE)
+E2Lib.registerConstant("COLLISION_GROUP_WEAPON", COLLISION_GROUP_WEAPON)
+E2Lib.registerConstant("COLLISION_GROUP_VEHICLE_CLIP", COLLISION_GROUP_VEHICLE_CLIP)
+E2Lib.registerConstant("COLLISION_GROUP_PROJECTILE", COLLISION_GROUP_PROJECTILE)
+E2Lib.registerConstant("COLLISION_GROUP_DOOR_BLOCKER", COLLISION_GROUP_DOOR_BLOCKER)
+E2Lib.registerConstant("COLLISION_GROUP_PASSABLE_DOOR", COLLISION_GROUP_PASSABLE_DOOR)
+E2Lib.registerConstant("COLLISION_GROUP_DISSOLVING", COLLISION_GROUP_DISSOLVING)
+E2Lib.registerConstant("COLLISION_GROUP_PUSHAWAY", COLLISION_GROUP_PUSHAWAY)
+E2Lib.registerConstant("COLLISION_GROUP_NPC_ACTOR", COLLISION_GROUP_NPC_ACTOR)
+E2Lib.registerConstant("COLLISION_GROUP_NPC_SCRIPTED", COLLISION_GROUP_NPC_SCRIPTED)
+E2Lib.registerConstant("COLLISION_GROUP_WORLD", COLLISION_GROUP_WORLD)
+
+[nodiscard]
+e2function number entity:getCollisionGroup()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetCollisionGroup()
+end
+
+e2function void entity:setCollisionGroup(number group)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if group < 0 or group > 20 then return self:throw("Invalid collision group", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	if this:IsPlayer() then return self:throw("You cannot set the collision group of a player!", nil) end
+
+	this:SetCollisionGroup(group)
+end
+
+e2function void entity:noCollideAll(number state)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this prop!", nil) end
+
+	this:SetCollisionGroup(state == 0 and COLLISION_GROUP_NONE or COLLISION_GROUP_WORLD)
+end
+
 hook.Add("OnEntityCreated", "E2_entityCreated", function(ent)
 	if not IsValid(ent) then return end -- Engine is precaching a model or bad addon
 
