@@ -373,6 +373,7 @@ E2Helper.Descriptions["ignite(e:nn)"] = "Creates a fire at an entity with given 
 E2Helper.Descriptions["extinguish(e:)"] = "Extinguishes an entity granted you have permission. Does not work inside of entityDamage event if the attacker is the fire itself"
 E2Helper.Descriptions["getCollisionGroup(e:)"] = "Returns the collision group of the entity"
 E2Helper.Descriptions["setCollisionGroup(e:n)"] = "Sets the collision group of the entity. Does not work on players. Use one of the _COLLISION_GROUP constants"
+E2Helper.Descriptions["noCollideAll"] = "Nocollides an entity to all entities/players, just like the tool's right-click"
 
 -- Attachment
 E2Helper.Descriptions["lookupAttachment(e:s)"] = "Returns Es attachment ID associated with attachmentName"
