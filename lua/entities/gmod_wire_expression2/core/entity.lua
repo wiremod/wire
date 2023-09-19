@@ -1046,6 +1046,13 @@ e2function void entity:setCollisionGroup(number group)
 	this:SetCollisionGroup(group)
 end
 
+e2function void entity:noCollideAll(number state)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this prop!", nil) end
+
+	this:SetCollisionGroup(state == 0 and COLLISION_GROUP_NONE or COLLISION_GROUP_WORLD)
+end
+
 hook.Add("OnEntityCreated", "E2_entityCreated", function(ent)
 	if not IsValid(ent) then return end -- Engine is precaching a model or bad addon
 

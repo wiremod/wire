@@ -659,13 +659,6 @@ e2function void noCollide(entity ent1, entity ent2)
 	noCollideCreate(self, ent1, ent2)
 end
 
-e2function void entity:noCollideAll(state)
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this prop!", nil) end
-
-	this:SetCollisionGroup(state == 0 and COLLISION_GROUP_NONE or COLLISION_GROUP_WORLD)
-end
-
 --- Nocollides <ent> to entities/players, just like Right Click of No-Collide Stool
 [deprecated]
 e2function void noCollideAll(entity ent, state)
