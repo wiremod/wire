@@ -6,6 +6,7 @@ GateActions("Time")
 
 GateActions["accumulator"] = {
 	name = "Accumulator",
+	description = "Counts time while A is set and Hold is not set.",
 	inputs = { "A", "Hold", "Reset" },
 	timed = true,
 	output = function(gate, A, Hold, Reset)
@@ -29,6 +30,7 @@ GateActions["accumulator"] = {
 
 GateActions["smoother"] = {
 	name = "Smoother",
+	description = "Smooths the change in a number.",
 	inputs = { "A", "Rate" },
 	timed = true,
 	output = function(gate, A, Rate)
@@ -53,6 +55,7 @@ GateActions["smoother"] = {
 
 GateActions["timer"] = {
 	name = "Timer",
+	description = "Counts time upward while Run is set.",
 	inputs = { "Run", "Reset" },
 	timed = true,
 	output = function(gate, Run, Reset)
@@ -76,6 +79,7 @@ GateActions["timer"] = {
 
 GateActions["ostime"] = {
 	name = "OS Time",
+	description = "Outputs the time of day on the server in seconds.",
 	inputs = { },
 	timed = true,
 	output = function(gate)
@@ -88,6 +92,7 @@ GateActions["ostime"] = {
 
 GateActions["osdate"] = {
 	name = "OS Date",
+	description = "Outputs the date on the server in days.",
 	inputs = { },
 	timed = true,
 	output = function(gate)
@@ -100,6 +105,7 @@ GateActions["osdate"] = {
 
 GateActions["pulser"] = {
 	name = "Pulser",
+	description = "Activates for one tick every TickTime while Run is set.",
 	inputs = { "Run", "Reset", "TickTime" },
 	timed = true,
 	output = function(gate, Run, Reset, TickTime)
@@ -127,6 +133,7 @@ GateActions["pulser"] = {
 
 GateActions["squarepulse"] = {
 	name = "Square Pulse",
+	description = "Outputs Max during the PulseTime, Min during the GapTime, while Run is set.",
 	inputs = { "Run", "Reset", "PulseTime", "GapTime", "Min", "Max" },
 	timed = true,
 	output = function(gate, Run, Reset, PulseTime, GapTime, Min, Max)
@@ -157,6 +164,7 @@ GateActions["squarepulse"] = {
 
 GateActions["sawpulse"] = {
 	name = "Saw Pulse",
+	description = "Outputs a value that linearly increases to Max and decreases to Min while Run is set.",
 	inputs = { "Run", "Reset", "SlopeRaiseTime", "PulseTime", "SlopeDescendTime", "GapTime", "Min", "Max" },
 	timed = true,
 	output = function(gate, Run, Reset, SlopeRaiseTime, PulseTime, SlopeDescendTime, GapTime, Min, Max)
@@ -199,6 +207,7 @@ GateActions["sawpulse"] = {
 
 GateActions["derive"] = {
 	name = "Derivative",
+	description = "Outputs the rate of change (derivative) of the number.",
 	inputs = {"A"},
 	timed = false,
 	output = function(gate, A)
@@ -224,6 +233,7 @@ GateActions["derive"] = {
 
 GateActions["delay"] = {
 	name = "Delay",
+	description = "Holds an output of 1 for Hold seconds after Delay seconds on Clk.",
 	inputs = { "Clk", "Delay", "Hold", "Reset" },
 	outputs = { "Out", "TimeElapsed", "Remaining" },
 	timed = true,
@@ -278,6 +288,7 @@ GateActions["delay"] = {
 
 GateActions["monostable"] = {
 	name = "Monostable Timer",
+	description = "Outputs 1 for Time duration and resets to 0 for a tick in between.",
 	inputs = { "Run", "Time", "Reset" },
 	timed = true,
 	output = function(gate, Run, Time, Reset)

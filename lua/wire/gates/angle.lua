@@ -78,6 +78,7 @@ GateActions["angle_mul"] = {
 -- Component Derivative
 GateActions["angle_derive"] = {
 	name = "Delta",
+	description = "Outputs the rate of change of the angle.",
 	inputs = { "A" },
 	inputtypes = { "ANGLE" },
 	outputtypes = { "ANGLE" },
@@ -118,6 +119,7 @@ GateActions["angle_divide"] = {
 -- Conversion To/From
 GateActions["angle_convto"] = {
 	name = "Compose",
+	description = "Combines three numbers into an angle.",
 	inputs = { "Pitch", "Yaw", "Roll" },
 	inputtypes = { "NORMAL", "NORMAL", "NORMAL" },
 	outputtypes = { "ANGLE" },
@@ -131,6 +133,7 @@ GateActions["angle_convto"] = {
 
 GateActions["angle_convfrom"] = {
 	name = "Decompose",
+	description = "Splits an angle into three numbers.",
 	inputs = { "A" },
 	inputtypes = { "ANGLE" },
 	outputs = { "Pitch", "Yaw", "Roll" },
@@ -207,6 +210,7 @@ GateActions["angle_fruvecs"] = {
 
 GateActions["angle_norm"] = {
 	name = "Normalize",
+	description = "Makes the angle fit within +/-180 degrees.",
 	inputs = { "A" },
 	inputtypes = { "ANGLE" },
 	outputtypes = { "ANGLE" },
