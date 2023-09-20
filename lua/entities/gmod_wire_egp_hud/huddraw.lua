@@ -67,7 +67,7 @@ if CLIENT then
 			else
 				if ent.RenderTable then
 					if ent.gmod_wire_egp_hud then
-						local resolution = ent:GetNWBool("Resolution", false)
+						local resolution = ent:GetResolution(false)
 						local rt = ent.RenderTable
 
 						for _, v in ipairs(rt) do

@@ -19,7 +19,7 @@ function ENT:Initialize()
 	self.Users = {}
 	self.IsEGPHUD = true
 
-	self:SetNWBool("Resolution", false)
+	self:SetResolution(false)
 
 	self:SetUseType(SIMPLE_USE)
 	self:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
@@ -36,7 +36,7 @@ end
 
 function ENT:TriggerInput( name, value )
 	if (name == "0 to 512") then
-		self:SetNWBool( "Resolution", value ~= 0 )
+		self:SetResolution(value ~= 0)
 	end
 end
 
