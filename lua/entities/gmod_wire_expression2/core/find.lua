@@ -381,7 +381,7 @@ end
 __e2setcost(30)
 
 --- Finds entities in a sphere around V with a radius of N, returns the number found after filtering
-[deprecated = "Use findQuery():inSphere(vn) instead"]
+[deprecated = "Use the findQuery extension instead"]
 e2function number findInSphere(vector center, radius)
 	if query_blocked(self, 1) then return 0 end
 	center = Vector(center[1], center[2], center[3])
@@ -390,7 +390,7 @@ e2function number findInSphere(vector center, radius)
 end
 
 --- Like findInSphere but with a [[http://mathworld.wolfram.com/SphericalCone.html Spherical cone]], arguments are for position, direction, length, and degrees (works now)
-[deprecated = "Use findQuery():inCone(vvnn) instead"]
+[deprecated = "Use the findQuery extension instead"]
 e2function number findInCone(vector position, vector direction, length, degrees)
 	if query_blocked(self, 4) then return 0 end
 
@@ -416,7 +416,7 @@ e2function number findInCone(vector position, vector direction, length, degrees)
 end
 
 --- Like findInSphere but with a globally aligned box, the arguments are the diagonal corners of the box
-[deprecated = "Use findQuery():inBox(vv) instead"]
+[deprecated = "Use the findQuery extension instead"]
 e2function number findInBox(vector min, vector max)
 	if query_blocked(self, 1) then return 0 end
 	min = Vector(min[1], min[2], min[3])
@@ -431,14 +431,14 @@ e2function number findByName(string name)
 end
 
 --- Find all entities with the given model
-[deprecated = "Use findQuery():withModel(s) instead"]
+[deprecated = "Use the findQuery extension instead"]
 e2function number findByModel(string model)
 	if query_blocked(self, 1) then return 0 end
 	return applyFindList(self, ents.FindByModel(model))
 end
 
 --- Find all entities with the given class
-[deprecated = "Use findQuery():withClass(s) instead"]
+[deprecated = "Use the findQuery extension instead"]
 e2function number findByClass(string class)
 	if query_blocked(self, 1) then return 0 end
 	return applyFindList(self, ents.FindByClass(class))
