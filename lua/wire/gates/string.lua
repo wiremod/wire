@@ -251,7 +251,7 @@ GateActions["string_tochar"] = {
 	inputtypes = { "NORMAL" },
 	outputtypes = { "STRING" },
 	output = function(gate, A)
-		if not A then A = 0 end
+		if not A or A < 0 or A > 255 then A = 0 end
 		return string.char(A)
 	end,
 	label = function(Out, A)
