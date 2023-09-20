@@ -1115,6 +1115,8 @@ E2Helper.Descriptions["withoutOwner(xfq:e)"] = "Only returns entities NOT with t
 E2Helper.Descriptions["query(xfq:)"] = "Returns all entities that abide by the query filters"
 E2Helper.Descriptions["query(xfq:r)"] = "Returns all entities in the list that abide by the query filters"
 
+E2Helper.Descriptions["cost(xfq:)"] = "Returns the cost to run all the findQuery filters on a single entity. Note it costs an additional 1 or 1.5 ops per entity with :query() or :query(r)."
+
 -- Ranger
 E2Helper.Descriptions["rangerFlags()"] = "Returns the ranger flags as a string"
 E2Helper.Descriptions["rangerFlags(s)"] = "Sets the ranger flags. S can be any combination of I=ignore world, W=hit water, E=hit entities and Z=default to zero"

@@ -233,7 +233,7 @@ e2function array findquery:query(array entities)
 	local out, nout, cost = {}, 0, this.cost
 
 	for _, ent in ipairs(entities) do
-		self.prf = self.prf + 0.75 + cost
+		self.prf = self.prf + 1.5 + cost
 		if self.prf > e2_tickquota then error("perf", 0) end
 
 		if not IsValid(ent) then
