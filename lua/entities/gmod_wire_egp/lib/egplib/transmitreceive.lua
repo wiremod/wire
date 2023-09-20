@@ -510,9 +510,6 @@ else -- SERVER/CLIENT
 							Ent.RenderTable[k] = Obj
 							if (Obj.OnCreate) then Obj:OnCreate() end
 
-							-- For EGP HUD
-							if (Obj.res) then Obj.res = nil end
-
 							current_obj = Obj
 						else -- Edit
 							self:EditObject( v, v:Receive() )
@@ -522,11 +519,10 @@ else -- SERVER/CLIENT
 								EGP:AddParentIndexes( v )
 							end
 
-							-- For EGP HUD
-							if (v.res) then v.res = nil end
-
 							current_obj = v
 						end
+						-- For EGP HUD
+						v.res = nil
 					else -- Object does not exist. Create new
 						local Obj = self:GetObjectByID( ID )
 						self:EditObject( Obj, Obj:Receive() )

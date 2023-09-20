@@ -487,3 +487,33 @@ function EGP.WorldToLocal(egp, object, x, y)
 
 	return x, y
 end
+
+function EGP.Draw(ent)
+	local rt = ent.RenderTable
+	local mat = ent:GetEGPMatrix()
+	local globalfilter = ent.GPU and ent.GPU.texture_filtering
+
+	for _, obj in ipairs(rt) do
+		if obj.parent == -1 or obj.NeedsConstantUpdate then ent.NeedsUpdate = true end
+		if obj.parent ~= 0 then
+			if not obj.IsParented then EGP:SetParent(ent, obj.index, obj.parent) end
+			local _, data = EGP:GetGlobalPos(ent, obj.index)
+			EGP:EditObject(obj, data)
+		elseif obj.IsParented then
+			EGP:UnParent(ent, obj)
+		end
+
+		local oldtex = EGP:SetMaterial(obj.material)
+		local filter = obj.filtering
+		if filter and filter ~= globalfilter then
+			render.PushFilterMag(filter)
+			render.PushFilterMin(filter)
+			obj:Draw(ent, mat)
+			render.PopFilterMag()
+			render.PopFilterMin()
+		else
+			obj:Draw(ent, mat)
+		end
+		EGP:FixMaterial(oldtex)
+	end
+end
