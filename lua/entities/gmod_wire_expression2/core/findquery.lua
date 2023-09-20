@@ -236,18 +236,16 @@ e2function array findquery:query(array entities)
 		self.prf = self.prf + 1.5 + cost
 		if self.prf > e2_tickquota then error("perf", 0) end
 
-		if not IsValid(ent) then
-			goto skip
-		end
-
-		for _, filter in ipairs(this.filters) do
-			if not filter(ent) then
-				goto skip
+		if IsValid(ent) then
+			for _, filter in ipairs(this.filters) do
+				if not filter(ent) then
+					goto skip
+				end
 			end
-		end
 
-		nout = nout + 1
-		out[nout] = ent
+			nout = nout + 1
+			out[nout] = ent
+		end
 
 		::skip::
 	end
