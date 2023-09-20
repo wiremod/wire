@@ -1095,6 +1095,26 @@ E2Helper.Descriptions["findIncludePlayer(e)"] = "Include specified player in fut
 E2Helper.Descriptions["findIncludePlayerProps(s)"] = "Include entities owned by player with specified name in future finds, and remove others not in the whitelist"
 E2Helper.Descriptions["findIncludePlayerProps(e)"] = "Include entities owned by specified player in future finds, and remove others not in the whitelist"
 
+-- Find2
+E2Helper.Descriptions["findQuery()"] = "Creates a FindQuery builder with filters to be added"
+
+E2Helper.Descriptions["inList(xfq:r)"] = "Only returns entities in a given list"
+E2Helper.Descriptions["notInList(xfq:r)"] = "Only returns entities NOT in a given list"
+E2Helper.Descriptions["inSphere(xfq:vn)"] = "Only returns entities within sphere (origin, radius)"
+E2Helper.Descriptions["notInSphere(xfq:vn)"] = "Only returns entities NOT within sphere (origin, radius)"
+E2Helper.Descriptions["inCone(xfq:vvnn)"] = "Only returns entities within cone (origin, axis, radians, length)."
+E2Helper.Descriptions["notInCone(xfq:vvnn)"] = "Only returns entities NOT in cone (origin, axis, radians, length). This corresponds to util.IsPointInCone"
+E2Helper.Descriptions["inBox(xfq:vv)"] = "Only returns entities in box (min, max)"
+E2Helper.Descriptions["notInBox(xfq:vv)"] = "Only returns entities NOT in box (min, max)"
+E2Helper.Descriptions["withClass(xfq:s)"] = "Only returns entities of the given class"
+E2Helper.Descriptions["withoutClass(xfq:s)"] = "Only returns entities NOT of the given class"
+E2Helper.Descriptions["withModel(xfq:s)"] = "Only returns entities with the given model"
+E2Helper.Descriptions["withoutModel(xfq:s)"] = "Only returns entities NOT with the given model"
+E2Helper.Descriptions["withOwner(xfq:e)"] = "Only returns entities with the given owner"
+E2Helper.Descriptions["withoutOwner(xfq:e)"] = "Only returns entities NOT with the given owner"
+E2Helper.Descriptions["query(xfq:)"] = "Returns all entities that abide by the query filters"
+E2Helper.Descriptions["query(xfq:r)"] = "Returns all entities in the list that abide by the query filters"
+
 -- Ranger
 E2Helper.Descriptions["rangerFlags()"] = "Returns the ranger flags as a string"
 E2Helper.Descriptions["rangerFlags(s)"] = "Sets the ranger flags. S can be any combination of I=ignore world, W=hit water, E=hit entities and Z=default to zero"

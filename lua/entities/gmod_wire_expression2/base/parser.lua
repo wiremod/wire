@@ -1281,7 +1281,7 @@ function Parser:Expr15()
 	local expr = self:Expr16()
 
 	while true do
-		if self:AcceptTailingToken(TokenVariant.Operator, Operator.Col) then
+		if self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
 			if not self:AcceptTailingToken(TokenVariant.LowerIdent) then
 				if self:AcceptRoamingToken(TokenVariant.LowerIdent) then
 					self:Error("Method operator (:) must not be preceded by whitespace")
@@ -1318,8 +1318,6 @@ function Parser:Expr15()
 
 				expr = self:Instruction(trace, "methodcall", fun, expr, exprs)
 			end
-			--elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
-			--	self:Error("Method operator (:) must not be preceded by whitespace")
 		elseif self:AcceptTailingToken(TokenVariant.Grammar, Grammar.LSquare) then
 			local trace = self:GetTokenTrace()
 
@@ -1673,7 +1671,7 @@ function Parser:ExprError()
 		elseif self:AcceptRoamingToken(TokenVariant.Grammar, Grammar.Comma) then
 			self:Error("Comma (,) not expected here, missing an argument?")
 		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Col) then
-			self:Error("Method operator (:) must not be preceded by whitespace")
+			self:Error("Method operator (:) must only be used in methodcall")
 		elseif self:AcceptRoamingToken(TokenVariant.Operator, Operator.Spread) then
 			self:Error("Spread operator (...) must only be used as a function parameter")
 
