@@ -3,7 +3,6 @@ E2Lib.RegisterExtension("findquery", true, "Allows an E2 to efficiently search f
 ---@class FindQuery
 ---@field cost number # OPS per entity to filter
 ---@field filters (fun(e: Entity): boolean)[] # Functions that return whether entity fits criteria
----@field null boolean
 local FindQuery = {}
 FindQuery.__index = FindQuery
 
