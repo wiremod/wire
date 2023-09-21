@@ -1276,7 +1276,9 @@ function WireLib.IsValidMaterial(material)
 	return material
 end
 
-if CPPI and FindMetaTable("Entity").CPPICanTool then
+local ENTITY = FindMetaTable("Entity")
+
+if CPPI and ENTITY.CPPICanTool then
 	---@param player Player
 	---@param entity Entity
 	---@param toolname string
@@ -1308,7 +1310,7 @@ else
 	end
 end
 
-if CPPI and FindMetaTable("Entity").CPPICanDamage then
+if CPPI and ENTITY.CPPICanDamage then
 	--- Returns if given player can damage the given entity.
 	---@param player Player
 	---@param target Entity
@@ -1329,7 +1331,7 @@ else
 	end
 end
 
-if CPPI and FindMetaTable("Entity").CPPICanProperty then
+if CPPI and ENTITY.CPPICanProperty then
 	--- Returns if the player can apply the given property to the target
 	---@param player Player
 	---@param target Entity
@@ -1344,6 +1346,26 @@ else
 	---@param property string
 	function WireLib.CanProperty(player, target, property) ---@return boolean
 		return hook.Run("CanProperty", player, property, target) ~= false
+	end
+end
+
+if CPPI and ENTITY.CPPICanEditVariable then
+	--- Returns if the player can modify the target's editable values.
+	---@param self Entity
+	---@param ply Player
+	---@param key string
+	---@param val string
+	---@param editor table
+	WireLib.CanEditVariable = ENTITY.CPPICanEditVariable ---@return boolean
+else
+	--- Returns if the player can modify the target's editable values.
+	---@param self Entity
+	---@param ply Player
+	---@param key string
+	---@param val string
+	---@param editor table
+	function WireLib.CanEditVariable(self, ply, key, val, editor) ---@return boolean
+		return hook.Run("CanEditVariable", self, ply, key, val, editor) ~= false
 	end
 end
 

@@ -17,6 +17,10 @@ registerType("entity", "e", nil,
 local validPhysics = E2Lib.validPhysics
 local getOwner     = E2Lib.getOwner
 local isOwner      = E2Lib.isOwner
+local newE2Table   = E2Lib.newE2Table
+
+local canProperty = WireLib.CanProperty
+local canEditVariable = WireLib.CanEditVariable
 
 local sun = ents.FindByClass("env_sun")[1] -- used for sunDirection()
 
@@ -135,7 +139,7 @@ end
 __e2setcost(20)
 
 e2function table entity:keyvalues()
-	local ret = E2Lib.newE2Table() -- default table
+	local ret = newE2Table() -- default table
 	if not IsValid(this) then return self:throw("Invalid entity!", ret) end
 	local keyvalues = this:GetKeyValues()
 	local size = 0
@@ -146,6 +150,51 @@ e2function table entity:keyvalues()
 	end
 	ret.size = size
 	return ret
+end
+
+e2function number entity:setEditProperty(string key, string value)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", 0) end
+	if not this.Editable then return self:throw("Tried to edit non-editable entity!", 0) end
+
+
+	if not canProperty(self.player, this, "editentity") then return self:throw("Gamemode disallowed editing this entity!", 0) end
+	local edit = this:GetEditingData()[key]
+	if not edit then return self:throw("Property '" .. key .. "' does not exist on entity!", 0) end
+	if not canEditVariable(this, self.player, key, value, edit) then return self:throw("Server disallowed editing this property!", 0) end
+
+	return this:SetNetworkKeyValue(key, value) and 1 or 0
+end
+
+e2function string entity:getEditProperty(string key)
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
+	if not this.Editable then return self:throw("Tried to access non-editable entity!", "") end
+
+	return tostring(this:GetNetworkKeyValue(key) or "")
+end
+
+__e2setcost(30)
+
+e2function table entity:getEditData()
+	local ret = newE2Table()
+	if not IsValid(this) then return self:throw("Invalid entity!", ret) end
+	if not this.Editable then return self:throw("Tried to access non-editable entity!", ret) end
+
+	local i = 0
+	for k, v in pairs(this:GetEditingData()) do
+		ret.s[k] = v.type -- Note that this is the DProperty rowType and not a valid E2 type
+		ret.stypes[k] = "s"
+		i = i + 1
+	end
+	ret.size = i
+
+	return ret
+end
+
+__e2setcost(1)
+
+e2function number entity:isEditable()
+	return (IsValid(this) or self:throw("Invalid entity!")) and this.Editable and 1 or 0
 end
 
 __e2setcost(5) -- temporary
@@ -378,12 +427,12 @@ local ids = {
 }
 
 e2function table entity:frictionSnapshot()
-	local ret = E2Lib.newE2Table() -- default table
+	local ret = newE2Table() -- default table
 	if not validPhysics(this) then return self:throw("Invalid physics object!", ret) end
 
 	local events = this:GetPhysicsObject():GetFrictionSnapshot()
 	for i, event in ipairs(events) do
-		local data = E2Lib.newE2Table()
+		local data = newE2Table()
 		local size = 0
 
 		for k, v in pairs(event) do
@@ -503,7 +552,7 @@ e2function void entity:setSkin(skinIndex)
 	if
 		this:SkinCount() > 0
 		and skinIndex < this:SkinCount()
-		and gamemode.Call("CanProperty", self.player, "skin", this)
+		and canProperty(self.player, this, "skin")
 	then
 		this:SetSkin(skinIndex)
 	end
@@ -932,7 +981,7 @@ local MaxRadius = CreateConVar("wire_expression2_entity_ignite_radius_max", 500,
 e2function void entity:ignite()
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
-	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+	if not canProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
 
 	this:Ignite(360)
 end
@@ -940,7 +989,7 @@ end
 e2function void entity:ignite(number length)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
-	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+	if not canProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
 
 	this:Ignite( math.min(length, MaxLength:GetFloat()) )
 end
@@ -948,16 +997,60 @@ end
 e2function void entity:ignite(number length, number radius)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
-	if not WireLib.CanProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+	if not canProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
 
 	this:Ignite( math.min(length, MaxLength:GetFloat()), math.Clamp(radius, 0, MaxRadius:GetFloat()) )
 end
 
 e2function void entity:extinguish()
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not WireLib.CanProperty(self.player, this, "extinguish") then return self:throw("You cannot extinguish this entity!", nil) end
+	if not canProperty(self.player, this, "extinguish") then return self:throw("You cannot extinguish this entity!", nil) end
 
 	this:Extinguish()
+end
+
+E2Lib.registerConstant("COLLISION_GROUP_NONE", COLLISION_GROUP_NONE)
+E2Lib.registerConstant("COLLISION_GROUP_DEBRIS", COLLISION_GROUP_DEBRIS)
+E2Lib.registerConstant("COLLISION_GROUP_DEBRIS_TRIGGER", COLLISION_GROUP_DEBRIS_TRIGGER)
+E2Lib.registerConstant("COLLISION_GROUP_INTERACTIVE_DEBRIS", COLLISION_GROUP_INTERACTIVE_DEBRIS)
+E2Lib.registerConstant("COLLISION_GROUP_INTERACTIVE", COLLISION_GROUP_INTERACTIVE)
+E2Lib.registerConstant("COLLISION_GROUP_PLAYER", COLLISION_GROUP_PLAYER)
+E2Lib.registerConstant("COLLISION_GROUP_BREAKABLE_GLASS", COLLISION_GROUP_BREAKABLE_GLASS)
+E2Lib.registerConstant("COLLISION_GROUP_VEHICLE", COLLISION_GROUP_VEHICLE)
+E2Lib.registerConstant("COLLISION_GROUP_PLAYER_MOVEMENT", COLLISION_GROUP_PLAYER_MOVEMENT)
+E2Lib.registerConstant("COLLISION_GROUP_NPC", COLLISION_GROUP_NPC)
+E2Lib.registerConstant("COLLISION_GROUP_IN_VEHICLE", COLLISION_GROUP_IN_VEHICLE)
+E2Lib.registerConstant("COLLISION_GROUP_WEAPON", COLLISION_GROUP_WEAPON)
+E2Lib.registerConstant("COLLISION_GROUP_VEHICLE_CLIP", COLLISION_GROUP_VEHICLE_CLIP)
+E2Lib.registerConstant("COLLISION_GROUP_PROJECTILE", COLLISION_GROUP_PROJECTILE)
+E2Lib.registerConstant("COLLISION_GROUP_DOOR_BLOCKER", COLLISION_GROUP_DOOR_BLOCKER)
+E2Lib.registerConstant("COLLISION_GROUP_PASSABLE_DOOR", COLLISION_GROUP_PASSABLE_DOOR)
+E2Lib.registerConstant("COLLISION_GROUP_DISSOLVING", COLLISION_GROUP_DISSOLVING)
+E2Lib.registerConstant("COLLISION_GROUP_PUSHAWAY", COLLISION_GROUP_PUSHAWAY)
+E2Lib.registerConstant("COLLISION_GROUP_NPC_ACTOR", COLLISION_GROUP_NPC_ACTOR)
+E2Lib.registerConstant("COLLISION_GROUP_NPC_SCRIPTED", COLLISION_GROUP_NPC_SCRIPTED)
+E2Lib.registerConstant("COLLISION_GROUP_WORLD", COLLISION_GROUP_WORLD)
+
+[nodiscard]
+e2function number entity:getCollisionGroup()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetCollisionGroup()
+end
+
+e2function void entity:setCollisionGroup(number group)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if group < 0 or group > 20 then return self:throw("Invalid collision group", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	if this:IsPlayer() then return self:throw("You cannot set the collision group of a player!", nil) end
+
+	this:SetCollisionGroup(group)
+end
+
+e2function void entity:noCollideAll(number state)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this prop!", nil) end
+
+	this:SetCollisionGroup(state == 0 and COLLISION_GROUP_NONE or COLLISION_GROUP_WORLD)
 end
 
 hook.Add("OnEntityCreated", "E2_entityCreated", function(ent)

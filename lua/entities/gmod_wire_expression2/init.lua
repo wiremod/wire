@@ -627,12 +627,13 @@ function ENT:TriggerInput(key, value)
 			self.GlobalScope[key] = value
 		end
 
-		self.context.triggerinput = key
-		if self.trigger[1] or self.trigger[2][key] then
+		self:ExecuteEvent("input", { key })
+
+		if self.trigger[1] or self.trigger[2][key] then -- if @trigger all or @trigger Key
+			self.context.triggerinput = key
 			self:Execute()
-			self:ExecuteEvent("input", { key })
+			self.context.triggerinput = nil
 		end
-		self.context.triggerinput = nil
 	end
 end
 
