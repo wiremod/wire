@@ -1,12 +1,11 @@
 -- Author: Divran
 local Obj = EGP:NewObject( "Line" )
+Obj.material = nil
 Obj.filtering = nil
 Obj.x2 = 0
 Obj.y2 = 0
 Obj.size = 1
 Obj.verticesindex = { { "x", "y" }, { "x2", "y2" } }
-
-local base = Obj.BaseClass
 
 Obj.Draw = function( self )
 	if (self.a>0) then
@@ -20,7 +19,6 @@ Obj.Transmit = function( self )
 	net.WriteInt( self.y2, 16 )
 	net.WriteInt( self.size, 16 )
 	net.WriteInt( self.parent, 16 )
-	EGP:SendMaterial( self )
 	EGP:SendColor( self )
 end
 Obj.Receive = function( self )
@@ -30,7 +28,6 @@ Obj.Receive = function( self )
 	tbl.y2 = net.ReadInt(16)
 	tbl.size = net.ReadInt(16)
 	tbl.parent = net.ReadInt(16)
-	EGP:ReceiveMaterial( tbl )
 	EGP:ReceiveColor( tbl, self )
 	return tbl
 end

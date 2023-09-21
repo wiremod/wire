@@ -30,7 +30,7 @@ function baseObj:Transmit()
 	EGP.SendPosAng(self)
 	EGP:SendColor( self )
 	EGP:SendMaterial(self)
-	net.WriteUInt(math.Clamp(self.filtering,0,3), 2)
+	if self.filtering then net.WriteUInt(math.Clamp(self.filtering,0,3), 2) end
 	net.WriteInt( self.parent, 16 )
 end
 function baseObj:Receive()
@@ -38,12 +38,12 @@ function baseObj:Receive()
 	EGP.ReceivePosAng(tbl)
 	EGP:ReceiveColor( tbl, self )
 	EGP:ReceiveMaterial( tbl )
-	tbl.filtering = net.ReadUInt(2)
+	if self.filtering then tbl.filtering = net.ReadUInt(2) end
 	tbl.parent = net.ReadInt(16)
 	return tbl
 end
 function baseObj:DataStreamInfo()
-	return { x = self.x, y = self.y, angle = self.angle, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, filtering = self.filtering, parent = self.parent }
+	return { x = self.x, y = self.y, angle = self.angle, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, parent = self.parent }
 end
 function baseObj:Contains(x, y)
 	return false

@@ -1,5 +1,6 @@
 -- Author: Divran
 local Obj = EGP:NewObject( "Text" )
+Obj.material = nil
 Obj.text = ""
 Obj.font = "WireGPU_ConsoleFont"
 Obj.size = 18

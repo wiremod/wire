@@ -1,6 +1,7 @@
 -- Author: sk8 (& Divran)
 local Obj = EGP.ObjectInherit("RoundedBoxOutline", "RoundedBox")
 Obj.size = 1
+Obj.filtering = nil
 
 local base = Obj.BaseClass
 
