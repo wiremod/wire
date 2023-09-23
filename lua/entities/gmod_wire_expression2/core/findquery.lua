@@ -142,11 +142,23 @@ e2function findquery findquery:notInBox(vector pos, vector dir, number length, n
 	return this
 end
 
+local string_match = string.match
+
 [nodiscard]
 e2function findquery findquery:withClass(string class)
-	this.cost = this.cost + 0.125
-	this.filters[#this.filters + 1] = function(e)
-		return e:GetClass() == class
+	if string.find(class, "*", 1, true) then
+		local fixed, replaced = string.PatternSafe(class):gsub("%%%*", ".*")
+		local pattern = "^" .. fixed .. "$"
+
+		this.cost = this.cost + 1.5 + (replaced - 1) ^ 2 * 5
+		this.filters[#this.filters + 1] = function(e)
+			return string_match(e:GetClass(), pattern)
+		end
+	else
+		this.cost = this.cost + 0.125
+		this.filters[#this.filters + 1] = function(e)
+			return e:GetClass() == class
+		end
 	end
 
 	return this
@@ -154,9 +166,19 @@ end
 
 [nodiscard]
 e2function findquery findquery:withoutClass(string class)
-	this.cost = this.cost + 0.125
-	this.filters[#this.filters + 1] = function(e)
-		return e:GetClass() ~= class
+	if string.find(class, "*", 1, true) then
+		local fixed, replaced = string.PatternSafe(class):gsub("%%%*", ".*")
+		local pattern = "^" .. fixed .. "$"
+
+		this.cost = this.cost + 1.5 + (replaced - 1) ^ 2 * 5
+		this.filters[#this.filters + 1] = function(e)
+			return string_match(e:GetClass(), pattern) == nil
+		end
+	else
+		this.cost = this.cost + 0.125
+		this.filters[#this.filters + 1] = function(e)
+			return e:GetClass() ~= class
+		end
 	end
 
 	return this
@@ -164,9 +186,20 @@ end
 
 [nodiscard]
 e2function findquery findquery:withModel(string model)
-	this.cost = this.cost + 0.125
-	this.filters[#this.filters + 1] = function(e)
-		return e:GetModel() == model
+	if string.find(model, "*", 1, true) then
+		local fixed, replaced = string.PatternSafe(model):gsub("%%%*", ".*")
+		local pattern = "^" .. fixed .. "$"
+
+		this.cost = this.cost + 1.75 + (replaced - 1) ^ 2 * 5
+		this.filters[#this.filters + 1] = function(e)
+			local m = e:GetModel()
+			return m and string_match(m, pattern)
+		end
+	else
+		this.cost = this.cost + 0.125
+		this.filters[#this.filters + 1] = function(e)
+			return e:GetModel() == model
+		end
 	end
 
 	return this
@@ -174,9 +207,20 @@ end
 
 [nodiscard]
 e2function findquery findquery:withoutModel(string model)
-	this.cost = this.cost + 0.125
-	this.filters[#this.filters + 1] = function(e)
-		return e:GetModel() ~= model
+	if string.find(model, "*", 1, true) then
+		local fixed, replaced = string.PatternSafe(model):gsub("%%%*", ".*")
+		local pattern = "^" .. fixed .. "$"
+
+		this.cost = this.cost + 2 + (replaced - 1) ^ 2 * 5
+		this.filters[#this.filters + 1] = function(e)
+			local m = e:GetModel()
+			return m == nil or string_match(m, pattern) == nil
+		end
+	else
+		this.cost = this.cost + 0.125
+		this.filters[#this.filters + 1] = function(e)
+			return e:GetModel() ~= model
+		end
 	end
 
 	return this
@@ -210,7 +254,7 @@ e2function array findquery:query()
 	local out, nout, cost = {}, 0, this.cost
 
 	for _, ent in ipairs(all) do
-		self.prf = self.prf + 1 + cost
+		self.prf = self.prf + 0.75 + cost
 		if self.prf > e2_tickquota then error("perf", 0) end
 
 		for _, filter in ipairs(this.filters) do
@@ -233,7 +277,7 @@ e2function array findquery:query(array entities)
 	local out, nout, cost = {}, 0, this.cost
 
 	for _, ent in ipairs(entities) do
-		self.prf = self.prf + 1.5 + cost
+		self.prf = self.prf + 1 + cost
 		if self.prf > e2_tickquota then error("perf", 0) end
 
 		if IsValid(ent) then
