@@ -3,7 +3,6 @@
 	By: Dan (McLovin)
 ]]--
 
-local cv_transfer_delay    = CreateConVar("wire_expression2_file_delay", "0.2", { FCVAR_ARCHIVE }, "Delays subsequent file transfers by this many seconds.")
 local cv_max_transfer_size = CreateConVar("wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Maximum file size in kibibytes.")
 local cv_transfer_max      = CreateConVar("wire_expression2_file_max_queue", "5", { FCVAR_ARCHIVE }, "Maximum number of files that can be queued at once.")
 
@@ -58,7 +57,7 @@ local function file_Upload(self, ply, entity, filename)
 		data = "",
 		ent = entity
 	}
-	
+
 	if #queue == 1 then
 		net.Start(ply:IsListenServerHost() and "wire_expression2_request_file_sp" or "wire_expression2_request_file")
 			net.WriteString(filename)
@@ -228,7 +227,7 @@ __e2setcost(5)
 e2function number fileLoadedList()
 	local plist = lists[self.player].last
 
-	return (!plist.uploading and plist.uploaded) and 1 or 0
+	return not plist.uploading and plist.uploaded and 1 or 0
 end
 
 [deprecated, nodiscard]
@@ -240,7 +239,7 @@ end
 e2function array fileReadList()
 	local plist = lists[self.player]
 
-	return (plist.uploaded and !plist.uploading and plist.data) and plist.data or {}
+	return (plist.uploaded and not plist.uploading and plist.data) and plist.data or {}
 end
 
 --- runOnFile event ---
@@ -296,7 +295,7 @@ registerCallback("destruct", function(self)
 	for k, v in ipairs(downloads[player]) do
 		if v.ent == entity then table.remove(downloads, k) end
 	end
-	
+
 	for k, v in ipairs(uploads[player]) do
 		if v.ent == entity then table.remove(uploads, k) end
 	end
@@ -392,7 +391,7 @@ local function file_execute( ent, filename, status )
 	run_on.file.name = ""
 	run_on.file.status = FILE_UNKNOWN
 
-	
+
 	table.remove(queue, 1)
 	if #queue ~= 0 then
 		net.Start(ply:IsListenServerHost() and "wire_expression2_request_file_sp" or "wire_expression2_request_file")
@@ -404,7 +403,7 @@ end
 util.AddNetworkString("wire_expression2_file_begin")
 net.Receive("wire_expression2_file_begin", function(netlen, ply)
 	local pfile = uploads[ply][1]
-	if !pfile then return end
+	if not pfile then return end
 
 	local len = net.ReadUInt(32)
 
@@ -421,7 +420,7 @@ net.Receive("wire_expression2_file_begin", function(netlen, ply)
 
 	timer.Create( "wire_expression2_file_check_timeout_" .. ply:EntIndex(), 5, 1, function()
 		local pfile = uploads[ply][1]
-		if !pfile then return end
+		if not pfile then return end
 		pfile.uploading = false
 		pfile.uploaded = false
 		file_execute( pfile.ent, pfile.name, FILE_TIMEOUT )
@@ -431,8 +430,8 @@ end )
 util.AddNetworkString("wire_expression2_file_chunk")
 net.Receive("wire_expression2_file_chunk", function(netlen, ply)
 	local pfile = uploads[ply][1]
-	if !pfile or !pfile.buffer then return end
-	if !pfile.uploading then
+	if not pfile or not pfile.buffer then return end
+	if not pfile.uploading then
 		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
 	end
 
@@ -443,7 +442,7 @@ net.Receive("wire_expression2_file_chunk", function(netlen, ply)
 	if timer.Exists( timername ) then
 		timer.Create( timername, 5, 1, function()
 			local pfile = uploads[ply][1]
-			if !pfile then return end
+			if not pfile then return end
 			pfile.uploading = false
 			pfile.uploaded = false
 			file_execute( pfile.ent, pfile.name, FILE_TIMEOUT )
@@ -459,10 +458,8 @@ net.Receive("wire_expression2_file_finish", function(netlen, ply)
 		timer.Remove( timername )
 	end
 
-	local queue = uploads[ply]
-
 	local pfile = uploads[ply][1]
-	if !pfile or !pfile.buffer then return end
+	if not pfile or not pfile.buffer then return end
 
 	pfile.uploading = false
 	pfile.data = pfile.buffer
