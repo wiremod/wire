@@ -1,6 +1,6 @@
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
-include('shared.lua')
+include("shared.lua")
 
 ENT.WireDebugName = "CharacterLcdScreen"
 
@@ -34,6 +34,7 @@ function ENT:Initialize()
 	self.Memory[1020] = 0.25
 	self.Memory[1021] = 0
 	self.Memory[1022] = 1
+	self.Memory[1023] = 1
 
 	self.ScreenWidth = 16
 	self.ScreenHeight = 2
@@ -49,6 +50,7 @@ function ENT:Setup(ScreenWidth, ScreenHeight, bgred,bggreen,bgblue,fgred,fggreen
 	self:WriteCell(1005, tonumber(bgblue) or 15)
 	self:WriteCell(1004, tonumber(bggreen) or 178)
 	self:WriteCell(1003, tonumber(bgred) or 148)
+	self:WriteCell(1023,1)
 end
 function ENT:SendPixel()
 	if (self.Memory[1023] ~= 0) and (self.CharAddress >= 0) and (self.CharAddress < self.ScreenWidth*self.ScreenHeight) then

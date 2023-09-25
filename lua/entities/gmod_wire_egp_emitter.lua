@@ -49,15 +49,59 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Vector", 0, "DrawOffsetPos" )
 	self:NetworkVar( "Angle", 0, "DrawOffsetAng" )
 	self:NetworkVar( "Bool", 0, "UseRT" )
+
+	if CLIENT then
+		self:NetworkVarNotify("UseRT", function(self, _, _, new)
+			local hasGPU = self.GPU ~= nil
+			if not new and hasGPU then
+				self.GPU:FreeRT() -- remove gpu RT
+				self.GPU = nil
+				self:EGP_Update()
+			elseif new and not hasGPU then
+				local t = self.RenderTable -- save reference
+				BaseClass.Initialize(self)
+				self.GPU.GetInfo = function()
+					local pos = self:LocalToWorld(self:GetDrawOffsetPos())
+					local ang = self:LocalToWorldAngles(self:GetDrawOffsetAng())
+					return { RS = self:GetDrawScale() * 0.5, RatioX = 1, translucent = true }, pos, ang
+				end
+				self.RenderTable = t -- restore render table
+				self:EGP_Update()
+			end
+		end)
+	end
 end
 
 if CLIENT then
 	function ENT:Initialize()
-		BaseClass.Initialize(self)
-		self.GPU.GetInfo = function()
-			local pos = self:LocalToWorld(self:GetDrawOffsetPos())
-			local ang = self:LocalToWorldAngles(self:GetDrawOffsetAng())
-			return { RS = self:GetDrawScale() * 0.5, RatioX = 1, translucent = true }, pos, ang
+		if self:GetUseRT() then
+			BaseClass.Initialize(self)
+			self.GPU.GetInfo = function()
+				local pos = self:LocalToWorld(self:GetDrawOffsetPos())
+				local ang = self:LocalToWorldAngles(self:GetDrawOffsetAng())
+				return { RS = self:GetDrawScale() * 0.5, RatioX = 1, translucent = true }, pos, ang
+			end
+		else
+			self.RenderTable = table.Copy(EGP.HomeScreen)
+		end
+	end
+
+	function ENT:EGP_Update()
+		if not self.GPU then
+			self.NeedsUpdate = false
+			local rt = self.RenderTable
+			for _, obj in ipairs(rt) do
+				if obj.parent == -1 or obj.NeedsConstantUpdate then self.NeedsUpdate = true end
+				if obj.parent ~= 0 then
+					if not obj.IsParented then EGP:SetParent(self, obj.index, obj.parent) end
+					local _, data = EGP:GetGlobalPos(self, obj.index)
+					EGP:EditObject(obj, data)
+				elseif obj.IsParented then
+					EGP:UnParent(self, obj)
+				end
+			end
+		else
+			self.NeedsUpdate = true
 		end
 	end
 
@@ -66,47 +110,23 @@ if CLIENT then
 	local wire_egp_emitter_drawdist = CreateClientConVar("wire_egp_emitter_drawdist","0",true,false)
 	local wire_egp_drawemitters = CreateClientConVar("wire_egp_drawemitters", "1")
 
-	function ENT:EGP_Update( Table )
-		self.NeedsUpdate = true
-		self.NextUpdate = Table
-
-		-- the parent checks need to be processed here if we aren't using a GPU
-		self.UpdateConstantly = nil
-		if self.GPU == nil then
-			for _,object in pairs(self.RenderTable) do
-				if object.parent == -1 or object.NeedsConstantUpdate then self.UpdateConstantly = true end -- Check if an object is parented to the cursor (or for 3DTrackers)
-	 			if object.parent and object.parent ~= 0 then
-					if not object.IsParented then EGP:SetParent(self, object.index, object.parent) end
-					local _, data = EGP:GetGlobalPos(self, object.index)
-					EGP:EditObject(object, data)
-				elseif not object.parent or object.parent == 0 and object.IsParented then
-					EGP:UnParent(self, object.index)
-				end
-			end
-		end
-	end
-
  	function ENT:DrawNoRT()
-		if (wire_egp_drawemitters:GetBool() == true and self.RenderTable and #self.RenderTable > 0) then
-			if (self.UpdateConstantly) then self:EGP_Update() end
- 			local pos = self:LocalToWorld(self:GetDrawOffsetPos() + DrawOffsetNoRT)
-			local ang = self:LocalToWorldAngles(self:GetDrawOffsetAng())
- 			local mat = self:GetEGPMatrix()
- 			cam.Start3D2D(pos, ang, self:GetDrawScale())
-				local globalfilter = TEXFILTER.ANISOTROPIC -- Emitter uses ANISOTRPOIC (unchangeable)
-				for i=1,#self.RenderTable do
-					local object = self.RenderTable[i]
-					local oldtex = EGP:SetMaterial( object.material )
- 					if object.filtering ~= globalfilter then
-						render.PushFilterMag(object.filtering)
-						render.PushFilterMin(object.filtering)
-						object:Draw(self, mat)
-						render.PopFilterMin()
+		if wire_egp_drawemitters:GetBool() then
+ 			cam.Start3D2D(self:LocalToWorld(self:GetDrawOffsetPos() + DrawOffsetNoRT), self:LocalToWorldAngles(self:GetDrawOffsetAng()), self:GetDrawScale())
+				local mat = self:GetEGPMatrix()
+				for _, obj in ipairs(self.RenderTable) do
+					local oldtex = EGP:SetMaterial(obj.material)
+					local filter = obj.filtering
+					if filter then
+						render.PushFilterMag(filter)
+						render.PushFilterMin(filter)
+						obj:Draw(ent, mat)
 						render.PopFilterMag()
+						render.PopFilterMin()
 					else
-						object:Draw(self, mat)
+						obj:Draw(ent, mat)
 					end
- 					EGP:FixMaterial( oldtex )
+					EGP:FixMaterial(oldtex)
 				end
 			cam.End3D2D()
 		end
@@ -132,22 +152,6 @@ if CLIENT then
 	end
 
 	function ENT:Draw()
-		-- check if the RT should be removed or recreated
-		local hasGPU = (self.GPU~=nil)
-		if self:GetUseRT() == false and hasGPU then
-			self.GPU:FreeRT() -- remove gpu RT
-			self.GPU = nil
-			if not self.RenderTable or #self.RenderTable == 0 then -- if the screen is empty
-				self.RenderTable = table.Copy(EGP.HomeScreen) -- copy home screen
-			end
-			self:EGP_Update()
-		elseif self:GetUseRT() == true and not hasGPU then
-			local t = self.RenderTable -- save reference
-			self:Initialize() -- recreate gpu RT
-			self.RenderTable = t -- restore render table
-			self:EGP_Update()
-		end
-
 		if self.GPU then -- if we're rendering on RT, use base EGP's draw function instead
 			BaseClass.Draw(self)
 		else

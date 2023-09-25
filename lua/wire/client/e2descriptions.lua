@@ -185,6 +185,10 @@ E2Helper.Descriptions["sunDirection()"] = "Returns the vector direction that poi
 E2Helper.Descriptions["type(e:)"] = "Gets the class of an entity"
 E2Helper.Descriptions["model(e:)"] = "Gets the model of an entity"
 E2Helper.Descriptions["keyvalues(e:)"] = "Returns the keyvalue table of an entity"
+E2Helper.Descriptions["getEditData(e:)"] = "Returns a look-up table of editable values on an editable entity"
+E2Helper.Descriptions["getEditProperty(e:s)"] = "Returns a string encoding of the editable property"
+E2Helper.Descriptions["setEditProperty(e:ss)"] = "Sets an editable property to the string-encoded value. Returns 1 if it succeeded"
+E2Helper.Descriptions["isEditable(e:)"] = "Returns 1 if the entity has editable properties"
 E2Helper.Descriptions["owner(e:)"] = "Gets the owner of an entity"
 E2Helper.Descriptions["name(e:)"] = "Gets the name of a player"
 E2Helper.Descriptions["steamID(e:)"] = "Gets the steam ID of the player"
@@ -367,6 +371,9 @@ E2Helper.Descriptions["ignite(e:)"] = "Ignites an entity for 360 seconds (same a
 E2Helper.Descriptions["ignite(e:n)"] = "Ignites an entity for the given length in seconds. Requires wire_expression2_entity_ignite_enabled"
 E2Helper.Descriptions["ignite(e:nn)"] = "Creates a fire at an entity with given radius and length in seconds. Requires wire_expression2_entity_ignite_enabled"
 E2Helper.Descriptions["extinguish(e:)"] = "Extinguishes an entity granted you have permission. Does not work inside of entityDamage event if the attacker is the fire itself"
+E2Helper.Descriptions["getCollisionGroup(e:)"] = "Returns the collision group of the entity"
+E2Helper.Descriptions["setCollisionGroup(e:n)"] = "Sets the collision group of the entity. Does not work on players. Use one of the _COLLISION_GROUP constants"
+E2Helper.Descriptions["noCollideAll"] = "Nocollides an entity to all entities/players, just like the tool's right-click"
 
 -- Attachment
 E2Helper.Descriptions["lookupAttachment(e:s)"] = "Returns Es attachment ID associated with attachmentName"
