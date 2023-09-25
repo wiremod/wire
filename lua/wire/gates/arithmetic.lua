@@ -148,8 +148,10 @@ GateActions["round"] = {
 	output = function(gate, A, B)
 		if B then
 			B=math.Clamp(B,-50,50)
+			return math.Round(A,B)
+		else
+			return math.Round(A)
 		end
-		return math.Round(A , B or 0)
 	end,
 	label = function(Out, A , B)
 		return "round("..A..","..B..") = "..Out
