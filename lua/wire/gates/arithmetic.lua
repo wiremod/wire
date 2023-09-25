@@ -144,12 +144,12 @@ GateActions["floor"] = {
 
 GateActions["round"] = {
 	name = "Round",
-	inputs = { "A" },
-	output = function(gate, A)
-		return math.Round(A)
+	inputs = { "A" , "B" },
+	output = function(gate, A, B)
+		return math.Round(A , B or 0)
 	end,
-	label = function(Out, A)
-		return "round("..A..") = "..Out
+	label = function(Out, A , B)
+		return "round("..A..","..B..") = "..Out
 	end
 }
 
