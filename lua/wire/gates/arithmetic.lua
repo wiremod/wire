@@ -146,7 +146,9 @@ GateActions["round"] = {
 	name = "Round",
 	inputs = { "A" , "B" },
 	output = function(gate, A, B)
-		local clampedB = math.clamp(B,0,50)
+		if B then
+			local clampedB=math.clamp(B,-50,50)
+		end
 		return math.Round(A , clampedB or 0)
 	end,
 	label = function(Out, A , B)
