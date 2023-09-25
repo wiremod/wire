@@ -147,9 +147,9 @@ GateActions["round"] = {
 	inputs = { "A" , "B" },
 	output = function(gate, A, B)
 		if B then
-			local clampedB=math.clamp(B,-50,50)
+			B=math.Clamp(B,-50,50)
 		end
-		return math.Round(A , clampedB or 0)
+		return math.Round(A , B or 0)
 	end,
 	label = function(Out, A , B)
 		return "round("..A..","..B..") = "..Out
