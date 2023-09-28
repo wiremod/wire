@@ -177,6 +177,7 @@ GateActions["vector_mag"] = {
 -- Conversion To/From
 GateActions["vector_convto"] = {
 	name = "Compose",
+	description = "Combines three numbers into a vector.",
 	inputs = { "X", "Y", "Z" },
 	inputtypes = { "NORMAL", "NORMAL", "NORMAL" },
 	outputtypes = { "VECTOR" },
@@ -191,6 +192,7 @@ GateActions["vector_convto"] = {
 GateActions["vector_convfrom"] = {
 	name = "Decompose",
 	inputs = { "A" },
+	description = "Splits an vector into three numbers.",
 	inputtypes = { "VECTOR" },
 	outputs = { "X", "Y", "Z" },
 	outputtypes = { "NORMAL", "NORMAL", "NORMAL" },
@@ -208,6 +210,7 @@ GateActions["vector_convfrom"] = {
 -- Normalise
 GateActions["vector_norm"] = {
 	name = "Normalise",
+	description = "Outputs the vector adjusted to have a magnitude of 1.",
 	inputs = { "A" },
 	inputtypes = { "VECTOR" },
 	outputtypes = { "VECTOR" },
@@ -256,6 +259,7 @@ GateActions["vector_rand"] = {
 -- Component Derivative
 GateActions["vector_derive"] = {
 	name = "Delta",
+	description = "Outputs the rate of change of the vector.",
 	inputs = { "A" },
 	inputtypes = { "VECTOR" },
 	outputtypes = { "VECTOR" },
@@ -282,6 +286,7 @@ GateActions["vector_derive"] = {
 -- Component Integral
 GateActions["vector_cint"] = {
 	name = "Component Integral",
+	description = "Integrates the vector.",
 	inputs = { "A" },
 	inputtypes = { "VECTOR" },
 	outputtypes = { "VECTOR" },
@@ -312,6 +317,7 @@ GateActions["vector_cint"] = {
 -- Multiplexer
 GateActions["vector_mux"] = {
 	name = "Multiplexer",
+	description = "Selects between 8 different vectors based on a number.",
 	inputs = { "Sel", "A", "B", "C", "D", "E", "F", "G", "H" },
 	inputtypes = { "NORMAL", "VECTOR", "VECTOR", "VECTOR", "VECTOR", "VECTOR", "VECTOR", "VECTOR", "VECTOR" },
 	compact_inputs = 3,
@@ -334,6 +340,7 @@ GateActions["vector_mux"] = {
 -- Demultiplexer
 GateActions["vector_dmx"] = {
 	name = "Demultiplexer",
+	description = "Outputs a vector to one of 8 outputs based on a number.",
 	inputs = { "Sel", "In" },
 	inputtypes = { "NORMAL", "VECTOR" },
 	outputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
@@ -358,6 +365,7 @@ GateActions["vector_dmx"] = {
 -- Latch
 GateActions["vector_latch"] = {
 	name = "Latch",
+	description = "Stores a vector when Clk is nonzero.",
 	inputs = { "In", "Clk" },
 	inputtypes = { "VECTOR", "NORMAL" },
 	outputtypes = { "VECTOR" },
@@ -385,6 +393,7 @@ GateActions["vector_latch"] = {
 -- D-latch
 GateActions["vector_dlatch"] = {
 	name = "D-Latch",
+	description = "Stores a vector when Clk changes and is nonzero.",
 	inputs = { "In", "Clk" },
 	inputtypes = { "VECTOR", "NORMAL" },
 	outputtypes = { "VECTOR" },
@@ -502,6 +511,7 @@ GateActions["vector_compgteq"] = {
 -- Returns a positive vector.
 GateActions["vector_positive"] = {
 	name = "Positive",
+	description = "Outputs a vector with its components converted to positive numbers.",
 	inputs = { "A" },
 	inputtypes = { "VECTOR"},
 	outputtypes = { "VECTOR" },
@@ -597,6 +607,7 @@ GateActions["vector_shiftr"] = {
 -- Returns 1 if a vector is on world.
 GateActions["vector_isinworld"] = {
 	name = "Is In World",
+	description = "Outputs 1 if a vector is within the world bounds.",
 	inputs = { "A" },
 	inputtypes = { "VECTOR" },
 	output = function(gate, A)
@@ -638,6 +649,7 @@ GateActions["vector_select"] = {
 
 GateActions["vector_rotate"] = {
 	name = "Rotate",
+	description = "Rotates a vector by the given angle.",
 	inputs = { "A", "B" },
 	inputtypes = { "VECTOR", "ANGLE" },
 	outputtypes = { "VECTOR" },
@@ -655,6 +667,7 @@ GateActions["vector_rotate"] = {
 
 GateActions["vector_mulcomp"] = {
 	name = "Multiplication (component)",
+	description = "Multiplies a vector by a number.",
 	inputs = { "A", "B" },
 	inputtypes = { "VECTOR", "NORMAL" },
 	outputtypes = { "VECTOR" },
@@ -670,6 +683,7 @@ GateActions["vector_mulcomp"] = {
 
 GateActions["vector_clampn"] = {
 	name = "Clamp (numbers)",
+	description = "Clamps the vector's components between numbers Min and Max.",
 	inputs = { "A", "Min", "Max" },
 	inputtypes = { "VECTOR", "NORMAL", "NORMAL" },
 	outputtypes = { "VECTOR" },
@@ -684,6 +698,7 @@ GateActions["vector_clampn"] = {
 
 GateActions["vector_clampv"] = {
 	name = "Clamp (vectors)",
+	description = "Clamps the vector between vectors Min and Max.",
 	inputs = { "A", "Min", "Max" },
 	inputtypes = { "VECTOR", "VECTOR", "VECTOR" },
 	outputtypes = { "VECTOR" },
