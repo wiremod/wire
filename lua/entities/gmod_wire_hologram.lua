@@ -103,7 +103,9 @@ if CLIENT then
 	function ENT:FinishClipping()
 		if next(self.clips) then
 			for _, clip in pairs(self.clips) do
-				render.PopCustomClipPlane()
+				if clip.enabled and clip.normal and clip.origin then -- same logic as in SetupClipping
+					render.PopCustomClipPlane()
+				end
 			end
 
 			render.EnableClipping(self.oldClipState)
@@ -177,21 +179,22 @@ if CLIENT then
 	end
 
 	net.Receive("wire_holograms_clip", function(netlen)
-		local entid = net.ReadUInt(16)
+		while true do
+			local entid = net.ReadUInt(16)
+			if entid == 0 then return end -- stupid hack to not include amount of entities in the message. feel free to rework this.
 
-		while entid ~= 0 do
 			local clipid = net.ReadUInt(4)
 
-			if net.ReadBit() ~= 0 then
-				SetClipEnabled(entid, clipid, net.ReadBit() ~= 0)
+			if net.ReadBool() then
+				SetClipEnabled(entid, clipid, net.ReadBool())
 			else
-				SetClip(entid, clipid, net.ReadVector(), Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()), net.ReadUInt(16))
+				SetClip(entid, clipid, net.ReadVector(), net.ReadVector(), net.ReadUInt(16))
 			end
+
 			local ent = Entity(entid)
 			if ent and ent.DoClip then
 				ent:DoClip()
 			end
-			entid = net.ReadUInt(16)
 		end
 	end)
 
