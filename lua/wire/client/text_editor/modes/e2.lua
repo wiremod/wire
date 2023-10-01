@@ -29,6 +29,7 @@ local keywords = {
 	["function"] = { [true] = true },
 	["return"] = { [true] = true },
 	["local"]  = { [true] = true },
+	["const"] = { [true] = true },
 	["try"]    = { [true] = true },
 	["do"] = { [true] = true },
 	["event"] = { [true] = true },
