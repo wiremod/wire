@@ -562,7 +562,7 @@ e2function number entity:getBodygroup(bgrp_id)
 end
 --- Gets <this>'s bodygroup count.
 e2function number entity:getBodygroups(bgrp_id)
-	if IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	return this:GetBodygroupCount(bgrp_id)
 end
 
