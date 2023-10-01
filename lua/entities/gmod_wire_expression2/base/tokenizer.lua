@@ -9,9 +9,12 @@
 		* boolean literals are reserved for later use.
 		* internal representations are stored as enums for faster computation (operators, keywords, grammar)
 		* emmylua annotations
+		* skips past errors
 ]]
 
 AddCSLuaFile()
+
+local Trace, Warning, Error = E2Lib.Debug.Trace, E2Lib.Debug.Warning, E2Lib.Debug.Error
 
 ---@class Tokenizer
 ---@field pos integer
@@ -22,30 +25,36 @@ AddCSLuaFile()
 local Tokenizer = {}
 Tokenizer.__index = Tokenizer
 
+function Tokenizer.new()
+	return setmetatable({}, Tokenizer)
+end
+
 E2Lib.Tokenizer = Tokenizer
 
 ---@enum TokenVariant
 local TokenVariant = {
-	Hexadecimal = 1,
-	Binary = 2,
-	Decimal = 3,
-	Quat = 4, -- quat number (4j, 4k)
-	Complex = 5, -- complex number literal (4i)
+	Whitespace = 1, -- Used internally, won't be given to the parser.
 
-	String = 6, -- "foo"
+	Hexadecimal = 2,
+	Binary = 3,
+	Decimal = 4,
+	Quat = 5, -- quat number (4j, 4k)
+	Complex = 6, -- complex number literal (4i)
 
-	Boolean = 7, -- true, false
+	String = 7, -- "foo"
 
-	Grammar = 8, -- [] () {} ,
-	Operator = 9, -- += + / *
+	Boolean = 8, -- true, false
 
-	Keyword = 10,
-	LowerIdent = 11, -- function_name
+	Grammar = 9, -- [] () {} ,
+	Operator = 10, -- += + / *
 
-	Ident = 12, -- VariableName
-	Discard = 13, -- _
+	Keyword = 11,
+	LowerIdent = 12, -- function_name
 
-	Constant = 14, -- _CONST
+	Ident = 13, -- VariableName
+	Discard = 14, -- _
+
+	Constant = 15, -- _CONST
 }
 
 Tokenizer.Variant = TokenVariant
@@ -58,14 +67,11 @@ end
 
 Tokenizer.VariantLookup = VariantLookup
 
----@class Token
+---@class Token<T>: { value: T, variant: TokenVariant, whitespaced: boolean, trace: Trace }
 ---@field variant TokenVariant
----@field value number|string|boolean
 ---@field whitespaced boolean
----@field start_line integer
----@field end_line integer
----@field start_col integer
----@field end_col integer
+---@field trace Trace
+---@field value any
 local Token = {}
 Token.__index = Token
 
@@ -73,9 +79,10 @@ Tokenizer.Token = Token
 
 --- Creates a new (partially filled) token
 --- Line, column and whitespaced need to be added manually.
+---@generic T
 ---@param variant TokenVariant
----@param value number|string|boolean
----@return Token
+---@param value T
+---@return Token<T>
 function Token.new(variant, value)
 	return setmetatable({ variant = variant, value = value }, Token)
 end
@@ -84,15 +91,16 @@ end
 ---@return string
 function Token:debug()
 	if self.variant == TokenVariant.Operator then
-		return "Token { variant = " .. (VariantLookup[self.variant] or "nil") .. ", value = " .. (E2Lib.OperatorNames[self.value] or "nil") .. "}"
+		return string.format("Token { variant = %s, value = %s, trace = %s }", VariantLookup[self.variant], E2Lib.OperatorNames[self.value], self.trace)
 	elseif self.variant == TokenVariant.Keyword then
-		return "Token { variant = " .. (VariantLookup[self.variant] or "nil") .. ", value = " .. (E2Lib.KeywordNames[self.value] or "nil") .. "}"
+		return string.format("Token { variant = %s, value = %s, trace = %s }", VariantLookup[self.variant], E2Lib.KeywordNames[self.value], self.trace)
 	elseif self.variant == TokenVariant.Grammar then
-		return "Token { variant = " .. (VariantLookup[self.variant] or "nil") .. ", value = " .. (E2Lib.GrammarNames[self.value] or "nil") .. "}"
+		return string.format("Token { variant = %s, value = %s, trace = %s }", VariantLookup[self.variant], E2Lib.GrammarNames[self.value], self.trace)
 	else
-		return "Token { variant = " .. (VariantLookup[self.variant] or "nil") .. ", value = " .. (self.value or "nil") .. "}"
+		return string.format("Token { variant = %s, value = %s, trace = %s }", VariantLookup[self.variant], self.value, self.trace)
 	end
 end
+Token.__tostring = Token.debug
 
 --- Returns the 'name' of a token for passing to a user.
 ---@return string
@@ -109,35 +117,28 @@ function Token:display()
 end
 
 ---@return boolean ok
----@return Token[]
+---@return Token[]|Error[] tokens_or_errors
 ---@return Tokenizer self
 function Tokenizer.Execute(code)
-	-- instantiate Tokenizer
-	local instance = setmetatable({}, Tokenizer)
+	local instance = Tokenizer.new()
+	local tokens = instance:Process(code)
 
-	-- and pcall the new instance's Process method.
-	local ok, tokens = xpcall(Tokenizer.Process, E2Lib.errorHandler, instance, code)
-	return ok, tokens, instance
-end
-
-function Tokenizer:Reset()
-	self.pos = 1
-	self.col = 1
-	self.line = 1
-	self.code = nil
-	self.warnings = {}
+	local ok = #instance.errors == 0
+	return ok, ok and tokens or instance.errors, instance
 end
 
 ---@param message string
----@param offset integer?
-function Tokenizer:Error(message, offset)
-	error(message .. " at line " .. self.line .. ", char " .. (self.col + (offset or 0)), 0)
+---@param trace Trace?
+---@return boolean false
+function Tokenizer:Error(message, trace)
+	self.errors[#self.errors + 1] = Error.new( message, trace or self:GetTrace() )
+	return false
 end
 
 ---@param message string
----@param offset integer?
-function Tokenizer:Warning(message, offset)
-	self.warnings[#self.warnings + 1] = { message = message, line = self.line, char = (self.col + (offset or 0)) }
+---@param trace Trace?
+function Tokenizer:Warning(message, trace)
+	self.warnings[#self.warnings + 1] = Warning.new( message, trace or self:GetTrace() )
 end
 
 local Escapes = {
@@ -152,44 +153,64 @@ local Escapes = {
 	['v'] = '\v'
 }
 
----@return Token?
+---@return Token|nil|boolean # Either a token, `nil` for unexpected character, or `false` for error.
 function Tokenizer:Next()
-	local match = self:ConsumePattern("^0x[0-9A-F]+")
-
+	local match = self:ConsumePattern("^%s+", true)
 	if match then
-		local val = tonumber(match) or self:Error("Invalid number format (" .. E2Lib.limitString(match, 10) .. ")")
-		return Token.new(TokenVariant.Hexadecimal, val)
+		return Token.new(TokenVariant.Whitespace, match)
 	end
 
-	match = self:ConsumePattern("^0b[0-1]+")
+	match = self:ConsumePattern("^0x")
 	if match then
-		local val = tonumber( match:sub(3), 2 ) or self:Error("Invalid number format (" .. E2Lib.limitString(match, 10) .. ")")
-		return Token.new(TokenVariant.Binary, val)
+		local nums = self:ConsumePattern("^%x+")
+		if nums then
+			local val = tonumber(nums, 16)
+			if val then
+				return Token.new(TokenVariant.Hexadecimal, val)
+			end
+		end
+
+		return self:Error("Malformed hexadecimal number")
+	end
+
+	match = self:ConsumePattern("^0b")
+	if match then
+		local nums = self:ConsumePattern("^[0-1]+")
+		if nums then
+			return Token.new(TokenVariant.Binary, tonumber(nums, 2))
+		elseif self:ConsumePattern("^%w+") then
+			return self:Error("Malformed binary number")
+		else
+			return self:Error("No valid digits found for number")
+		end
 	end
 
 	match = self:ConsumePattern("^[0-9]+%.?[0-9]*[eE][+-]?[0-9]+")
 	if match then
 		-- Decimal number with exponent part
-		local val = tonumber(match) or self:Error("Invalid number format (" .. E2Lib.limitString(match, 10) .. ")")
-		return Token.new(TokenVariant.Decimal, val)
+		local val = tonumber(match)
+		if val then
+			return Token.new(TokenVariant.Decimal, val)
+		end
+
+		return self:Error("Malformed decimal number")
 	end
 
 	match = self:ConsumePattern("^[0-9]+%.?[0-9]*[jk]")
 	if match then
 		-- Quaternion number
-		local badmatch = self:ConsumePattern("^[a-zA-Z_]")
-		if badmatch then
-			self:Error("Invalid number format (" .. E2Lib.limitString(match .. badmatch, 10) .. ")")
+		if self:ConsumePattern("^[a-zA-Z_]") then
+			self:Error("Malformed quaternion literal")
 		end
+
 		return Token.new(TokenVariant.Quat, match)
 	end
 
 	match = self:ConsumePattern("^[0-9]+%.?[0-9]*i")
 	if match then
 		-- Complex number
-		local badmatch = self:ConsumePattern("^[a-zA-Z_]")
-		if badmatch then
-			self:Error("Invalid number format (" .. E2Lib.limitString(match .. badmatch, 10) .. ")")
+		if self:ConsumePattern("^[a-zA-Z_]") then
+			self:Error("Malformed complex number literal")
 		end
 		return Token.new(TokenVariant.Complex, match)
 	end
@@ -197,8 +218,12 @@ function Tokenizer:Next()
 	match = self:ConsumePattern("^[0-9]+%.?[0-9]*")
 	if match then
 		-- Decimal number
-		local val = tonumber(match) or self:Error("Invalid number format (" .. E2Lib.limitString(match, 10) .. ")")
-		return Token.new(TokenVariant.Decimal, val)
+		local val = tonumber(match)
+		if val then
+			return Token.new(TokenVariant.Decimal, val)
+		end
+
+		self:Error("Malformed decimal number")
 	end
 
 	match = self:ConsumePattern("^[a-z#][a-zA-Z0-9_]*")
@@ -210,13 +235,7 @@ function Tokenizer:Next()
 			return Token.new(TokenVariant.Boolean, true)
 		elseif match == "false" then
 			return Token.new(TokenVariant.Boolean, false)
-		elseif match == "k" or match == "j" then
-			self:Warning("Avoid using quaternion literal '" .. match .. "' on its own. (Use 1" .. match .. " instead)")
-			return Token.new(TokenVariant.Quat, "1" .. match)
-		elseif match == "i" then
-			-- self:Warning("Avoid using complex literal 'i' on its own. (Use 1i instead)")
-			return Token.new(TokenVariant.Complex, "1i")
-		else
+		elseif match:sub(1, 1) ~= "#" then
 			return Token.new(TokenVariant.LowerIdent, match)
 		end
 	end
@@ -231,12 +250,12 @@ function Tokenizer:Next()
 		-- Constant value
 		local value = wire_expression2_constants[match]
 
-		if isnumber(value) then
+		if type(value) == "number" then
 			return Token.new(TokenVariant.Decimal, value)
-		elseif isstring(value) then
+		elseif type(value) == "string" then
 			return Token.new(TokenVariant.String, value)
 		else
-			self:Error("Constant (" .. match .. ") has invalid data type (" .. type(value) .. ")")
+			return self:Error("Constant (" .. match .. ") has invalid data type (" .. type(value) .. ")")
 		end
 	end
 
@@ -244,7 +263,7 @@ function Tokenizer:Next()
 		-- A discard is used to signal intent that something is intentionally not used.
 		-- This is mainly to avoid warnings for unused variables from events or functions.
 		-- You are not allowed to actually use the discard anywhere but in a signature, since you can have multiple in the signature.
-		return Token.new(TokenVariant.Discard, "_")
+		return Token.new(TokenVariant.Ident, "_")
 	end
 
 	if self:At() == "\"" then
@@ -276,7 +295,8 @@ function Tokenizer:Next()
 					buffer[nbuffer] = c
 				end
 			else
-				self:Error("Missing \" to end string")
+				self:ConsumePattern("^.*", true)
+				return self:Error("Missing \" to end string")
 			end
 		end
 
@@ -310,6 +330,11 @@ end
 ---@return string?
 function Tokenizer:At()
 	return self.code:sub(self.pos, self.pos)
+end
+
+---@return string?
+function Tokenizer:Prev()
+	return self.code:sub(self.pos - 1, self.pos - 1)
 end
 
 ---@return string?
@@ -369,34 +394,47 @@ end
 
 ---@return Token[]
 function Tokenizer:Process(code)
-	self:Reset()
+	self.pos, self.col, self.line, self.code, self.warnings, self.errors = 1, 1, 1, code, {}, {}
 
 	local length = #code
-	local tokens, ntok = {}, 0
-	self.code = code
+	local tokens, ntok, error, nerror = {}, 0, {}, 0
 
-	local line, col
+	local line, col, whitespaced = 1, 1, false
+
+	function self:GetTrace()
+		return Trace.new(line, col, self.line, self.col)
+	end
+
 	while self.pos <= length do
-		local whitespaced = self:ConsumePattern("^%s+", true) ~= nil
-		line, col = self.line, self.col
-
-		if self.pos > length then
-			break
-		end
-
 		local tok = self:Next()
-		if not tok then
-			self:Error("Failed to parse token")
+
+		if tok == nil then
+			nerror = nerror + 1
+			error[nerror] = self:Prev()
+		elseif tok ~= false then
+			if nerror ~= 0 then
+				self:Error("Unexpected symbol '" .. table.concat(error, '', 1, nerror) .. "'", Trace.new(line, col, line, col + nerror))
+				nerror = 0
+			end
+
+			if tok.variant == TokenVariant.Whitespace then
+				line, col, whitespaced = self.line, self.col, true
+			else
+				tok.trace = Trace.new(line, col, self.line, self.col)
+				tok.whitespaced = whitespaced
+
+				line, col = self.line, self.col
+
+				ntok = ntok + 1
+				tokens[ntok] = tok
+
+				whitespaced = false
+			end
 		end
+	end
 
-		tok.start_line, tok.start_col = line, col
-		tok.end_line, tok.end_col = self.line, self.col
-		tok.whitespaced = whitespaced
-
-		line, col = self.line, self.col
-
-		ntok = ntok + 1
-		tokens[ntok] = tok
+	if nerror ~= 0 then
+		self:Error("Unexpected symbol '" .. table.concat(error, '', 1, nerror) .. "'", Trace.new(line, col, line, col + nerror))
 	end
 
 	return tokens

@@ -1,0 +1,21 @@
+## SHOULD_PASS:EXECUTE
+
+local X = 0
+
+X -= 1
+assert(X == -1)
+
+X += 5
+assert(X == 4)
+
+X *= 2
+assert(X == 8)
+
+X /= 2
+assert(X == 4)
+
+X++
+assert(X == 5)
+
+X--
+assert(X == 4)

@@ -1,0 +1,20 @@
+## SHOULD_PASS:EXECUTE
+
+local Vec = vec(1, 2, 3)
+
+assert(Vec == vec(1, 2, 3))
+assert(Vec != vec(2, 2, 2))
+
+assert(Vec[1] == 1)
+assert(Vec[3] == 3)
+assert(vec()[1] == 0)
+
+assert(vec() == vec(0, 0, 0))
+assert(vec(1, 2, 5) != vec(1, 2, 5.2))
+assert(vec(1, 2, 5) == vec(1, 2, 5))
+
+assert(Vec:x() == Vec[1])
+assert(Vec:y() == Vec[2])
+assert(Vec:z() == Vec[3])
+
+assert(Vec:toString() == "vec(1,2,3)", Vec:toString())

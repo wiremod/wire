@@ -1,0 +1,23 @@
+## SHOULD_PASS:EXECUTE
+
+A = 1
+try {
+	A = 2
+	error("Foo")
+	A = 3
+} catch (E) {
+	assert(E == "Foo")
+}
+
+assert(A == 2)
+
+A = 1
+try {
+	A = 2
+	error("Bar")
+	A = 3
+} catch (E:string) {
+	assert(E == "Bar")
+}
+
+assert(A == 2)

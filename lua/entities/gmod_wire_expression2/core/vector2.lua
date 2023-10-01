@@ -2,8 +2,6 @@
   2D Vector support
 \******************************************************************************/
 
-local delta  = wire_expression2_delta
-
 local floor = math.floor
 local ceil = math.ceil
 local random = math.random
@@ -57,47 +55,15 @@ registerFunction("vec2", "xv4", "xv2", function(self, args)
 	return { rv1[1], rv1[2] }
 end)
 
-/******************************************************************************/
+registerOperator("is", "xv2", "n", function(self, this)
+	return (this[1] ~= 0 and this[2] ~= 0) and 1 or 0
+end, 2, nil, { legacy = false })
 
-registerOperator("ass", "xv2", "xv2", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	local lookup = Scope.lookup
-	if !lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
-
-/******************************************************************************/
-
-registerOperator("is", "xv2", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1[1] > delta or -rv1[1] > delta or
-	   rv1[2] > delta or -rv1[2] > delta
-	   then return 1 else return 0 end
-end)
-
-registerOperator("eq", "xv2xv2", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
-	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta
-	   then return 1 else return 0 end
-end)
-
-registerOperator("neq", "xv2xv2", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1[1] - rv2[1] > delta or rv2[1] - rv1[1] > delta or
-	   rv1[2] - rv2[2] > delta or rv2[2] - rv1[2] > delta
-	   then return 1 else return 0 end
-end)
+registerOperator("eq", "xv2xv2", "n", function(self, lhs, rhs)
+	return (lhs[1] == rhs[1]
+		and lhs[2] == rhs[2])
+		and 1 or 0
+end, 2, nil, { legacy = false })
 
 /******************************************************************************/
 
@@ -167,15 +133,14 @@ registerOperator("div", "xv2xv2", "xv2", function(self, args)
 	return { rv1[1] / rv2[1], rv1[2] / rv2[2] }
 end)
 
-e2function number vector2:operator[](index)
+registerOperator("indexget", "xv2n", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 2) + 0.5)]
-end
+end)
 
-e2function number vector2:operator[](index, value)
+registerOperator("indexset", "xv2nn", "", function(state, this, index, value)
 	this[floor(math.Clamp(index, 1, 2) + 0.5)] = value
-	self.GlobalScope.vclk[this] = true
-	return value
-end
+	state.GlobalScope.vclk[this] = true
+end)
 
 /******************************************************************************/
 
@@ -211,7 +176,7 @@ registerFunction("normalized", "xv2:", "xv2", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	local len = (rv1[1] * rv1[1] + rv1[2] * rv1[2] ) ^ 0.5
-	if len > delta then
+	if len > 0 then
 		return { rv1[1] / len, rv1[2] / len }
 	else
 		return { 0, 0 }
@@ -610,51 +575,17 @@ end)
 
 /******************************************************************************/
 
-registerOperator("ass", "xv4", "xv4", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
+registerOperator("is", "xv4", "n", function(self, this)
+	return (this[1] ~= 0 or this[2] ~= 0 or this[3] ~= 0 or this[4] ~= 0) and 1 or 0
+end, 2, nil, { legacy = false })
 
-	local Scope = self.Scopes[scope]
-	local lookup = Scope.lookup
-	if !lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
-
-/******************************************************************************/
-
-registerOperator("is", "xv4", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1[1] > delta or -rv1[1] > delta or
-	   rv1[2] > delta or -rv1[2] > delta or
-	   rv1[3] > delta or -rv1[3] > delta or
-	   rv1[4] > delta or -rv1[4] > delta
-	   then return 1 else return 0 end
-end)
-
-registerOperator("eq", "xv4xv4", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
-	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta and
-	   rv1[3] - rv2[3] <= delta and rv2[3] - rv1[3] <= delta and
-	   rv1[4] - rv2[4] <= delta and rv2[4] - rv1[4] <= delta
-	   then return 1 else return 0 end
-end)
-
-registerOperator("neq", "xv4xv4", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1[1] - rv2[1] > delta or rv2[1] - rv1[1] > delta or
-	   rv1[2] - rv2[2] > delta or rv2[2] - rv1[2] > delta or
-	   rv1[3] - rv2[3] > delta or rv2[3] - rv1[3] > delta or
-	   rv1[4] - rv2[4] > delta or rv2[4] - rv1[4] > delta
-	   then return 1 else return 0 end
-end)
+registerOperator("eq", "xv4xv4", "n", function(self, lhs, rhs)
+	return (lhs[1] == rhs[1]
+		and lhs[2] == rhs[2]
+		and lhs[3] == rhs[3]
+		and lhs[4] == rhs[4])
+		and 1 or 0
+end, 2, nil, { legacy = false })
 
 /******************************************************************************/
 
@@ -724,17 +655,14 @@ registerOperator("div", "xv4xv4", "xv4", function(self, args)
 	return { rv1[1] / rv2[1], rv1[2] / rv2[2], rv1[3] / rv2[3], rv1[4] / rv2[4] }
 end)
 
-e2function number vector4:operator[](index)
+registerOperator("indexget", "xv4n", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 4) + 0.5)]
-end
+end)
 
-e2function number vector4:operator[](index, value)
+registerOperator("indexset", "xv4nn", "", function(state, this, index, value)
 	this[floor(math.Clamp(index, 1, 4) + 0.5)] = value
 	self.GlobalScope.vclk[this] = true
-	return value
-end
-
-/******************************************************************************/
+end)
 
 __e2setcost(7)
 
@@ -788,7 +716,7 @@ registerFunction("normalized", "xv4:", "xv4", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	local len = (rv1[1] * rv1[1] + rv1[2] * rv1[2] + rv1[3] * rv1[3] + rv1[4] * rv1[4]) ^ 0.5
-	if len > delta then
+	if len > 0 then
 		return { rv1[1] / len, rv1[2] / len, rv1[3] / len, rv1[4] / len }
 	else
 		return { 0, 0, 0, 0 }

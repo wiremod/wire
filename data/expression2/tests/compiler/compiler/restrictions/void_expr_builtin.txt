@@ -1,0 +1,5 @@
+## SHOULD_FAIL:COMPILE
+
+# Cannot use void return as an expression
+
+local E = print()

@@ -98,7 +98,7 @@ local function qlog(q)
 	local u = { q[1]/l, q[2]/l, q[3]/l, q[4]/l }
 	local a = acos(u[1])
 	local m = sqrt(u[2]*u[2] + u[3]*u[3] + u[4]*u[4])
-	if abs(m) > delta then
+	if abs(m) > 0 then
 		return { log(l), a*u[2]/m, a*u[3]/m, a*u[4]/m }
 	else
 		return { log(l), 0, 0, 0 }  --when m is 0, u[2], u[3] and u[4] are 0 too
@@ -246,20 +246,6 @@ end
 /******************************************************************************/
 
 __e2setcost(2)
-
-registerOperator("ass", "q", "q", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	local lookup = Scope.lookup
-	if !lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
 
 /******************************************************************************/
 // TODO: define division as multiplication with (1/x), or is it not useful?
@@ -448,39 +434,23 @@ e2function quaternion operator^(quaternion lhs, number rhs)
 	return qexp({ l[1]*rhs, l[2]*rhs, l[3]*rhs, l[4]*rhs })
 end
 
+registerOperator("indexget", "qn", "n", function(state, this, index)
+	return this[math.Round(math.Clamp(index, 1, 4))]
+end)
 
-e2function number quaternion:operator[](index)
-	index = math.Round(math.Clamp(index,1,4))
-	return this[index]
-end
-
-e2function number quaternion:operator[](index, value)
-	index = math.Round(math.Clamp(index,1,4))
-	this[index] = value
+registerOperator("indexset", "qnn", "", function(state, this, index, value)
+	this[math.Round(math.Clamp(index, 1, 4))] = value
 	self.GlobalScope.vclk[this] = true
-	return value
-end
-
-/******************************************************************************/
+end)
 
 __e2setcost(6)
 
 e2function number operator==(quaternion lhs, quaternion rhs)
-	local rvd1, rvd2, rvd3, rvd4 = lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3], lhs[4] - rhs[4]
-	if rvd1 <= delta and rvd1 >= -delta and
-	   rvd2 <= delta and rvd2 >= -delta and
-	   rvd3 <= delta and rvd3 >= -delta and
-	   rvd4 <= delta and rvd4 >= -delta
-	   then return 1 else return 0 end
-end
-
-e2function number operator!=(quaternion lhs, quaternion rhs)
-	local rvd1, rvd2, rvd3, rvd4 = lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3], lhs[4] - rhs[4]
-	if rvd1 > delta or rvd1 < -delta or
-	   rvd2 > delta or rvd2 < -delta or
-	   rvd3 > delta or rvd3 < -delta or
-	   rvd4 > delta or rvd4 < -delta
-	   then return 1 else return 0 end
+	return (lhs[1] == rhs[1]
+		and lhs[2] == rhs[2]
+		and lhs[3] == rhs[3]
+		and lhs[4] == rhs[4])
+		and 1 or 0
 end
 
 /******************************************************************************/

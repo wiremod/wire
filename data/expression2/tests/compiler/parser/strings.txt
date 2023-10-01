@@ -1,0 +1,12 @@
+## SHOULD_PASS:COMPILE
+
+"foo bar"
+
+"foo\nbar"
+
+"\n\t\r\a\v\b\\"
+"\""
+
+"
+	Multiline
+"

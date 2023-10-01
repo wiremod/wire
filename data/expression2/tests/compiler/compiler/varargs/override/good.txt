@@ -1,0 +1,4 @@
+## SHOULD_PASS:COMPILE
+
+# You can however override if there is a parameter beforehand.
+function print(N:number, ...A:array) {}

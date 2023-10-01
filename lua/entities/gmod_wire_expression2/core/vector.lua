@@ -2,8 +2,6 @@
 --  Vector support                                                            --
 --------------------------------------------------------------------------------
 
-local delta  = wire_expression2_delta
-
 local random = math.random
 local Vector = Vector
 local sqrt = math.sqrt
@@ -93,44 +91,13 @@ end
 
 --------------------------------------------------------------------------------
 
-registerOperator("ass", "v", "v", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	local lookup = Scope.lookup
-	if not lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = { [lhs] = true } end
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
-
---------------------------------------------------------------------------------
-
-e2function number vector:operator_is()
-	if this[1] > delta or -this[1] > delta or
-	   this[2] > delta or -this[2] > delta or
-	   this[3] > delta or -this[3] > delta
-	   then return 1 else return 0 end
-end
-
-e2function number vector:operator==( vector other )
-	if this[1] - other[1] <= delta and other[1] - this[1] <= delta and
-	   this[2] - other[2] <= delta and other[2] - this[2] <= delta and
-	   this[3] - other[3] <= delta and other[3] - this[3] <= delta
-	   then return 1 else return 0 end
-end
-
-e2function number vector:operator!=( vector other )
-	if this[1] - other[1] > delta or other[1] - this[1] > delta or
-	   this[2] - other[2] > delta or other[2] - this[2] > delta or
-	   this[3] - other[3] > delta or other[3] - this[3] > delta
-	   then return 1 else return 0 end
+e2function number operator_is(vector this)
+	return this:IsZero() and 0 or 1
 end
 
 --------------------------------------------------------------------------------
+
+__e2setcost(1)
 
 e2function vector operator_neg(vector v)
 	return -v
@@ -185,15 +152,14 @@ e2function vector operator/(vector lhs, vector rhs)
 	return Vector( lhs[1] / rhs[1], lhs[2] / rhs[2], lhs[3] / rhs[3] )
 end
 
-e2function number vector:operator[](index)
+registerOperator("indexget", "vn", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 3) + 0.5)]
-end
+end)
 
-e2function number vector:operator[](index, value)
+registerOperator("indexset", "vnn", "", function(state, this, index, value)
 	this[floor(math.Clamp(index, 1, 3) + 0.5)] = value
-	self.GlobalScope.vclk[this] = true
-	return value
-end
+	state.GlobalScope.vclk[this] = true
+end)
 
 e2function string operator+(string lhs, vector rhs)
 	self.prf = self.prf + #lhs * 0.01
@@ -262,45 +228,34 @@ end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(5)
+__e2setcost(2)
 
 e2function number vector:length()
-	return (this[1] * this[1] + this[2] * this[2] + this[3] * this[3]) ^ 0.5
+	return this:Length()
 end
 
 e2function number vector:length2()
-	return this[1] * this[1] + this[2] * this[2] + this[3] * this[3]
+	return this:LengthSqr()
 end
 
 e2function number vector:distance(vector other)
-	local dx, dy, dz = this[1] - other[1], this[2] - other[2], this[3] - other[3]
-	return (dx * dx + dy * dy + dz * dz) ^ 0.5
+	return this:Distance(other)
 end
 
 e2function number vector:distance2( vector other )
-	local dx, dy, dz = this[1] - other[1], this[2] - other[2], this[3] - other[3]
-	return dx * dx + dy * dy + dz * dz
+	return this:DistToSqr(other)
 end
 
 e2function vector vector:normalized()
-	local len = (this[1] * this[1] + this[2] * this[2] + this[3] * this[3]) ^ 0.5
-	if len > delta then
-		return Vector(this[1] / len, this[2] / len, this[3] / len )
-	else
-		return Vector(0, 0, 0)
-	end
+	return this:GetNormalized()
 end
 
 e2function number vector:dot( vector other )
-	return this[1] * other[1] + this[2] * other[2] + this[3] * other[3]
+	return this:Dot(other)
 end
 
 e2function vector vector:cross( vector other )
-	return Vector(
-		this[2] * other[3] - this[3] * other[2],
-		this[3] * other[1] - this[1] * other[3],
-		this[1] * other[2] - this[2] * other[1]
-	)
+	return this:Cross(other)
 end
 
 __e2setcost(10)
@@ -708,7 +663,7 @@ end
 e2function number elevation(vector originpos, angle originangle, vector pos)
 	pos = WorldToLocal(pos, ANG_ZERO, originpos, originangle)
 	local len = pos:Length()
-	if (len < delta) then return 0 end
+	if len < 0 then return 0 end
 	return rad2deg * asin(pos.z / len)
 end
 
@@ -718,7 +673,7 @@ e2function angle heading(vector originpos,angle originangle, vector pos)
 	local bearing = rad2deg*-atan2(pos.y, pos.x)
 
 	local len = pos:Length()
-	if (len < delta) then return Angle(0, bearing, 0) end
+	if len < 0 then return Angle(0, bearing, 0) end
 	return Angle(rad2deg*asin(pos.z / len), bearing, 0)
 end
 

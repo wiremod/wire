@@ -94,27 +94,8 @@ registerType("bone", "b", nil,
 __e2setcost(1)
 
 --- if (B)
-e2function number operator_is(bone b)
-	if isValidBone(b) then return 1 else return 0 end
-end
-
---- B = B
-registerOperator("ass", "b", "b", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
-
---- B == B
-e2function number operator==(bone lhs, bone rhs)
-	if lhs == rhs then return 1 else return 0 end
-end
-
---- B != B
-e2function number operator!=(bone lhs, bone rhs)
-	if lhs ~= rhs then return 1 else return 0 end
+e2function number operator_is(bone this)
+	return isValidBone(this) and 1 or 0
 end
 
 --[[************************************************************************]]--
@@ -260,7 +241,7 @@ e2function number bone:elevation(vector pos)
 	pos = this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
 
 	local len = pos:Length()
-	if len < delta then return 0 end
+	if len < 0 then return 0 end
 	return rad2deg*asin(pos.z / len)
 end
 
@@ -275,7 +256,7 @@ e2function angle bone:heading(vector pos)
 
 	-- elevation
 	local len = pos:Length()--sqrt(x*x + y*y + z*z)
-	if len < delta then return Angle(0, bearing, 0) end
+	if len < 0 then return Angle(0, bearing, 0) end
 	local elevation = rad2deg*asin(pos.z / len)
 
 	return Angle(elevation, bearing, 0)

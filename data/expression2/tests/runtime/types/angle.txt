@@ -1,0 +1,22 @@
+## SHOULD_PASS:EXECUTE
+
+local Ang = ang(1, 2, 3)
+
+assert(Ang == ang(1, 2, 3))
+assert(Ang != ang(2, 2, 2))
+
+assert(Ang >= ang(0, 0, 0))
+assert(Ang <= ang(3, 3, 3))
+
+assert(Ang > ang(0, 0, 0))
+assert(Ang < ang(4, 4, 4))
+
+assert(Ang[1] == 1)
+assert(Ang[3] == 3)
+assert(ang()[1] == 0)
+
+assert(ang() == ang(0, 0, 0))
+assert(ang(1, 2, 5) != ang(1, 2, 5.2))
+assert(ang(1, 2, 5) == ang(1, 2, 5))
+
+assert(ang() + ang(1, 2, 3) == ang(1, 2, 3))

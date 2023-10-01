@@ -1,0 +1,21 @@
+## SHOULD_PASS:EXECUTE
+
+# Ensure correct precedence of operators
+# Very much incomplete, a complete set for this would be significantly larger.
+# So anyone messing with that area of the parser should be wary
+
+assert(1 + 2 * 0, "Should parse as 1 + (2 * 0) but parsed as (1 + 2) * 0")
+assert(1 - 2 * 0, "Should parse as 1 - (2 * 0) but parsed as (1 - 2) * 0")
+
+assert(2 * 4 - 1 == 7, "Should parse as (2 * 4) - 1 but parsed as 2 * (4 - 1)")
+assert(1 / 2 + 0.5 == 1, "Should parse as (1 / 2) + 0.5 but parsed as 1 / (2 + 0.5)")
+
+assert(2 ^ 4 * 3 == 48, "Should parse as (2 ^ 4) * 3")
+
+assert(1 | 1 & 0, "Should parse as 1 | (1 & 0) but parsed as (1 | 1) & 0")
+
+assert(1 || 1 && 0, "Should parse as 1 || (1 && 0) but parsed as (1 || 1) && 0")
+assert(1 ^^ 2 && 0 == ((1 ^^ 2) && 0), "Should parse as (1 ^^ 2) && 0 but parsed as 1 ^^ (2 && 0)")
+
+assert(2 >> 3 + 2 == (2 >> (3 + 2)))
+assert(2 << 3 + 2 == (2 << (3 + 2)))

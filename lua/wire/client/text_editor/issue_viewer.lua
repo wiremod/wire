@@ -251,6 +251,8 @@ function PANEL:SetBGColor(r, g, b, a)
     self:SetValidationColors(Color(r, g, b, a))
 end
 
+---@param errors Error[]
+---@param warnings Warning[],
 function PANEL:Update(errors, warnings, header_text, header_color)
     self.ValidationText = header_text or self.ValidationText
     if header_color ~= nil then self:SetValidationColors(header_color) end
@@ -266,10 +268,10 @@ function PANEL:Update(errors, warnings, header_text, header_color)
     if warnings ~= nil and not table.IsEmpty(warnings) then
         for k, v in ipairs(warnings) do
             if v.message ~= nil then
-                local node = tree:AddNode(v.message .. (v.line ~= nil and string.format(" [%d:%d]", v.line, v.char) or ""))
+                local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [line %u, char %u]", v.trace.start_line, v.trace.start_col) or ""))
                 node:SetIcon("icon16/error.png")
-                node.line = v.line
-                node.char = v.char
+                node.line = v.trace and v.trace.start_line
+                node.char = v.trace and v.trace.start_col
             end
         end
         failed = true
@@ -277,10 +279,10 @@ function PANEL:Update(errors, warnings, header_text, header_color)
 
     if errors ~= nil and not table.IsEmpty(errors) then
         for k, v in ipairs(errors) do
-            local node = tree:AddNode(v.message .. (v.line ~= nil and string.format(" [%d:%d]", v.line, v.char) or ""))
+            local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [line %u, char %u]", v.trace.start_line, v.trace.start_col) or ""))
             node:SetIcon("icon16/cancel.png")
-            node.line = v.line
-            node.char = v.char
+            node.line = v.trace and v.trace.start_line
+            node.char = v.trace and v.trace.start_col
         end
         failed = true
     end
