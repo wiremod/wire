@@ -148,7 +148,7 @@ hook.Add("EntityEmitSound", "Wire.AdvMicrophone", function(snd)
         if IsValid(mic) then
             mic:HandleSound(
                 snd.SoundName, snd.Volume, snd.Pitch, snd.SoundLevel,
-                snd.Entity, snd.Pos,
+                snd.Entity, snd.Pos, snd.DSP,
                 "EmitSound"
             )
         end
@@ -160,7 +160,7 @@ hook.Add("Wire_SoundPlay", "Wire.AdvMicrophone", function(name, pos, level, pitc
         if IsValid(mic) then
             mic:HandleSound(
                 name, volume, pitch, level,
-                nil --[[entity]], pos,
+                nil --[[entity]], pos, 0 --[[DSP]],
                 "sound.Play"
             )
         end
@@ -170,7 +170,7 @@ end)
 function ENT:HandleSound(sndname, volume, pitch, sndlevel, entity, pos, dsp, emittype)
     -- Disable feedback loops
     if IsValid(entity) and entity:GetClass() == "gmod_wire_adv_speaker" then return end
-
+    
     if sndlevel ~= 0 and pos ~= nil then
         -- Over-256 values are 'reserved for sounds using goldsrc compatibility attenuation'
         -- I don't care about correct attenuation for HLSource entities,
@@ -184,7 +184,7 @@ function ENT:HandleSound(sndname, volume, pitch, sndlevel, entity, pos, dsp, emi
     if volume < MIN_VOLUME then return end
     if volume > 1 then volume = 1 end
 
-    self:ReproduceSound(sndname, volume, pitch, snd.DSP, emittype)
+    self:ReproduceSound(sndname, volume, pitch, dsp, emittype)
 end
 
 function ENT:ReproduceSound(snd, vol, pitch, dsp, emittype)
@@ -215,5 +215,6 @@ end)
 
 -- TODO: hook into sound.PlayFile
 -- TODO: hook into sound.PlayURL
+
 
 duplicator.RegisterEntityClass("gmod_wire_adv_microphone", WireLib.MakeWireEnt, "Data")

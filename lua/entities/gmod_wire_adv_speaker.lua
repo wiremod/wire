@@ -80,10 +80,8 @@ end
 
 function ENT:ReproduceSound(snd, vol, pitch, dsp, emittype)
     if not self:GetActive() then return end
-    print(snd, vol, pitch, dsp, emittype)
 
     if WireLib.Sound.IsLooped(WireLib.Sound.StripPrefix(snd)) then
-        print("--looped")
         return
     end
 
