@@ -6,6 +6,7 @@ GateActions("Selection")
 
 GateActions["min"] = {
 	name = "Minimum (Smallest)",
+	description = "Outputs the least of 8 values.",
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
@@ -22,6 +23,7 @@ GateActions["min"] = {
 
 GateActions["max"] = {
 	name = "Maximum (Largest)",
+	description = "Outputs the greatest of 8 values.",
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
@@ -38,6 +40,7 @@ GateActions["max"] = {
 
 GateActions["minmax"] = {
 	name = "Value Range",
+	description = "Clamps the value to between Min and Max.",
 	inputs = { "Min", "Max", "Value" },
 	output = function(gate, Min, Max, Value)
 		local temp = Min
@@ -89,6 +92,7 @@ GateActions["select"] = {
 
 GateActions["router"] = {
 	name = "Router",
+	description = "Outputs the Data to the desired index (Path).",
 	inputs = { "Path", "Data" },
 	outputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	output = function(gate, Path, Data)
@@ -122,6 +126,7 @@ local SegmentInfo = {
 
 GateActions["7seg"] = {
 	name = "7 Segment Decoder",
+	description = "Converts a number to a 7-segment representation.",
 	inputs = { "A", "Clear" },
 	outputs = { "A", "B", "C", "D", "E", "F", "G" },
 	output = function(gate, A, Clear)
@@ -138,6 +143,7 @@ GateActions["7seg"] = {
 
 GateActions["timedec"] = {
 	name = "Time/Date decoder",
+	description = "Converts a Time in seconds and a Date in years a human-readable format.",
 	inputs = { "Time", "Date" },
 	outputs = { "Hours","Minutes","Seconds","Year","Day" },
 	output = function(gate, Time, Date)

@@ -18,18 +18,18 @@ local atan2 = math.atan2
 local function format(value)
 	local dbginfo
 
-	if abs(value[1]) < delta then
-		if abs(value[2]) < delta then
+	if abs(value[1]) < 0 then
+		if abs(value[2]) < 0 then
 			dbginfo = "0"
 		else
 			dbginfo = Round(value[2]*1000)/1000 .. "i"
 		end
 	else
-		if value[2] > delta then
+		if value[2] > 0 then
 			dbginfo = Round(value[1]*1000)/1000 .. "+" .. Round(value[2]*1000)/1000 .. "i"
-		elseif abs(value[2]) <= delta then
+		elseif abs(value[2]) <= 0 then
 			dbginfo = Round(value[1]*1000)/1000
-		elseif value[2] < -delta then
+		elseif value[2] < 0 then
 			dbginfo = Round(value[1]*1000)/1000 .. Round(value[2]*1000)/1000 .. "i"
 		end
 	end
@@ -66,7 +66,7 @@ local function clog(x,y)
 
         l = x*x+y*y
 
-        if l < delta then return {-1e+100, 0} end
+        if l < 0 then return {-1e+100, 0} end
 
         r = log(sqrt(l))
 
@@ -89,59 +89,26 @@ end
 
 __e2setcost(2)
 
-registerOperator("ass", "c", "c", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	self.Scopes[scope][lhs] = rhs
-	self.Scopes[scope].vclk[lhs] = true
-	return rhs
-end)
-
-e2function number operator_is(complex z)
-	if (z[1]==0) and (z[2]==0) then return 0 else return 1 end
+e2function number operator_is(complex this)
+	return (this[1] ~= 0 or this[2] ~= 0) and 1 or 0
 end
 
 e2function number operator==(complex lhs, complex rhs)
-	if abs(lhs[1]-rhs[1])<=delta and
-		abs(lhs[2]-rhs[2])<=delta then
-			return 1
-		else return 0 end
+	return (lhs[1] == rhs[1]
+		and lhs[2] == rhs[2])
+		and 1 or 0
 end
 
 e2function number operator==(complex lhs, number rhs)
-	if abs(lhs[1]-rhs)<=delta and
-		abs(lhs[2])<=delta then
-			return 1
-		else return 0 end
+	return (lhs[1] == rhs
+		and lhs[2] == 0)
+		and 1 or 0
 end
 
 e2function number operator==(number lhs, complex rhs)
-	if abs(lhs-rhs[1])<=delta and
-		abs(rhs[2])<=delta then
-			return 1
-		else return 0 end
-end
-
-e2function number operator!=(complex lhs, complex rhs)
-	if abs(lhs[1]-rhs[1])>delta or
-		abs(lhs[2]-rhs[2])>delta then
-			return 1
-		else return 0 end
-end
-
-e2function number operator!=(complex lhs, number rhs)
-	if abs(lhs[1]-rhs)>delta or
-		abs(lhs[2])>delta then
-			return 1
-		else return 0 end
-end
-
-e2function number operator!=(number lhs, complex rhs)
-	if abs(lhs-rhs[1])>delta or
-		abs(rhs[2])>delta then
-			return 1
-		else return 0 end
+	return (lhs == rhs[1]
+		and rhs[2] == 0)
+		and 1 or 0
 end
 
 /******************************************************************************/

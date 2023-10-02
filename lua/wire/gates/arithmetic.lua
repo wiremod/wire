@@ -6,6 +6,7 @@ GateActions("Arithmetic")
 
 GateActions["increment"] = {
 	name = "Increment",
+	dsecription = "Increases its value by a number on every clk.",
 	inputs = { "A", "Clk", "Reset" },
 	output = function(gate, A, Clk, Reset)
 		local clk = ( Clk > 0 )
@@ -144,12 +145,17 @@ GateActions["floor"] = {
 
 GateActions["round"] = {
 	name = "Round",
-	inputs = { "A" },
-	output = function(gate, A)
-		return math.Round(A)
+	inputs = { "A" , "B" },
+	output = function(gate, A, B)
+		if B then
+			B=math.Clamp(B,-50,50)
+			return math.Round(A,B)
+		else
+			return math.Round(A)
+		end
 	end,
-	label = function(Out, A)
-		return "round("..A..") = "..Out
+	label = function(Out, A , B)
+		return "round("..A..","..B..") = "..Out
 	end
 }
 
@@ -265,6 +271,7 @@ GateActions["PI"] = {
 
 GateActions["exp"] = {
 	name = "Exp",
+	description = "Outputs e to the power of A.",
 	inputs = { "A" },
 	output = function(gate, A)
 		return math.exp(A)
@@ -312,6 +319,7 @@ GateActions["Percent"] = {
 
 GateActions["Delta"] = {
 	name = "Delta",
+	description = "Gets the rate of change of the number.",
 	inputs = { "A" },
 	output = function(gate, A)
 		gate.PrevValue = gate.PrevValue or 0
@@ -373,6 +381,7 @@ GateActions["Average"] = {
 
 GateActions["increment/decrement"] = {
 	name = "Increment/Decrement",
+	description = "Increases and decreases its value by a number.",
 	inputs = { "A", "Increment", "Decrement", "Reset" },
 	output = function(gate, A, Increment, Decrement, Reset)
 		local increment = ( Increment > 0 )

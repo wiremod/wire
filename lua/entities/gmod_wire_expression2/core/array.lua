@@ -55,46 +55,12 @@ e2function array array(...args)
 	return args
 end
 
-registerOperator( "kvarray", "", "r", function( self, args )
-	local ret = {}
-	local values = args[2]
-
-	for k, v in pairs( values ) do
-		local key = k[1]( self, k )
-		local value = v[1]( self, v )
-
-		ret[key] = value
-
-		self.prf = self.prf + 1/3
-	end
-
-	return ret
-end)
-
---------------------------------------------------------------------------------
--- = operator
---------------------------------------------------------------------------------
-registerOperator("ass", "r", "r", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	local lookup = Scope.lookup
-	if !lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
-
-
-
 --------------------------------------------------------------------------------
 -- IS operator
 --------------------------------------------------------------------------------
-e2function number operator_is(array arr)
-	return istable(arr) and 1 or 0
+
+e2function number operator_is(array this)
+	return istable(this) and 1 or 0
 end
 
 --------------------------------------------------------------------------------
@@ -117,7 +83,7 @@ registerCallback( "postinit", function()
 			-- Get functions
 			-- value = R[N,type], and value = R:<type>(N)
 			--------------------------------------------------------------------------------
-			__e2setcost(5)
+			__e2setcost(1)
 
 			local function getter( self, array, index, doremove )
 				if (!array or !index) then return fixDefault( default ) end -- Make sure array and index are value
@@ -132,13 +98,24 @@ registerCallback( "postinit", function()
 				return ret
 			end
 
-			registerOperator("idx", id.."=rn", id, function(self,args)
-				local op1, op2 = args[2], args[3]
-				local array, index = op1[1](self,op1), op2[1](self,op2)
-				return getter( self, array, index )
-			end)
+			if typecheck then
+				registerOperator("indexget", "rn" .. id, id, function(self, array, index)
+					local ret = array[floor(index)]
+					if typecheck(ret) then
+						return fixDefault(default)
+					end
 
-			registerFunction( name, "r:n", id, function(self,args)
+					return ret
+				end)
+			else
+				registerOperator("indexget", "rn" .. id, id, function(self, array, index)
+					return array[floor(index)]
+				end)
+			end
+
+			__e2setcost(5)
+
+			registerFunction( name, "r:n", id, function(self, args)
 				local op1, op2 = args[2], args[3]
 				local array, index = op1[1](self,op1), op2[1](self,op2)
 				return getter( self, array, index )
@@ -162,11 +139,21 @@ registerCallback( "postinit", function()
 				return value
 			end
 
-			registerOperator("idx", id.."=rn"..id, id, function(self,args)
-				local op1, op2, op3 = args[2], args[3], args[4]
-				local array, index, value = op1[1](self,op1), op2[1](self,op2), op3[1](self,op3)
-				return setter( self, array, index, value )
-			end)
+			if typecheck then
+				registerOperator("indexset", "rn" .. id, id, function(self, array, index, value)
+					if typecheck(value) then
+						return fixDefault(default)
+					end
+
+					array[floor(index)] = value
+					self.GlobalScope.vclk[array] = true
+				end, 2)
+			else
+				registerOperator("indexset", "rn" .. id, id, function(self, array, index, value)
+					array[floor(index)] = value
+					self.GlobalScope.vclk[array] = true
+				end, 1)
+			end
 
 			registerFunction("set" .. nameupperfirst, "r:n"..id, id, function(self,args)
 				local op1, op2, op3 = args[2], args[3], args[4]
@@ -245,35 +232,16 @@ registerCallback( "postinit", function()
 			--------------------------------------------------------------------------------
 			__e2setcost(0)
 
-			registerOperator("fea", "n" .. id .. "r", "", function(self, args)
-				local keyname, valname = args[2], args[3]
+			local function iter(tbl, i)
+				local v = tbl[i + 1]
+				if not typecheck(v) then
+					return i + 1, v
+				end
+			end
 
-				local tbl = args[4]
-				tbl = tbl[1](self, tbl)
-
-				local statement = args[5]
-
-				for key, value in pairs(tbl) do
-					if not typecheck(value) then
-						self:PushScope()
-
-						self.prf = self.prf + 3
-
-						self.Scope.vclk[keyname] = true
-						self.Scope.vclk[valname] = true
-
-						self.Scope[keyname] = key
-						self.Scope[valname] = value
-
-						local ok, msg = pcall(statement[1], self, statement)
-
-						if not ok then
-							if msg == "break" then	self:PopScope() break
-							elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-						end
-
-						self:PopScope()
-					end
+			registerOperator("iter", "n" .. id .. "=r", "", function(state, array)
+				return function()
+					return iter, array, 0
 				end
 			end)
 

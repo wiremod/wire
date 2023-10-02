@@ -2,8 +2,6 @@
   Matrix support
 \******************************************************************************/
 
-local delta  = wire_expression2_delta
-
 local function clone(a)
 	local b = {}
 	for k,v in ipairs(a) do
@@ -86,41 +84,20 @@ e2function matrix2 identity2()
 			 0, 1 }
 end
 
-/******************************************************************************/
-
-registerOperator("ass", "xm2", "xm2", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
-
-/******************************************************************************/
-// Comparison
-
-e2function number operator_is(matrix2 rv1)
-	if rv1[1] > delta or -rv1[1] > delta or
-	   rv1[2] > delta or -rv1[2] > delta or
-	   rv1[3] > delta or -rv1[3] > delta or
-	   rv1[4] > delta or -rv1[4] > delta
-	   then return 1 else return 0 end
+e2function number operator_is(matrix2 this)
+	return (this[1] ~= 0
+		or this[2] ~= 0
+		or this[3] ~= 0)
+		and 1 or 0
 end
+
 
 e2function number operator==(matrix2 rv1, matrix2 rv2)
-	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
-	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta and
-	   rv1[3] - rv2[3] <= delta and rv2[3] - rv1[3] <= delta and
-	   rv1[4] - rv2[4] <= delta and rv2[4] - rv1[4] <= delta
-	   then return 1 else return 0 end
-end
-
-e2function number operator!=(matrix2 rv1, matrix2 rv2)
-	if rv1[1] - rv2[1] > delta and rv2[1] - rv1[1] > delta and
-	   rv1[2] - rv2[2] > delta and rv2[2] - rv1[2] > delta and
-	   rv1[3] - rv2[3] > delta and rv2[3] - rv1[3] > delta and
-	   rv1[4] - rv2[4] > delta and rv2[4] - rv1[4] > delta
-	   then return 1 else return 0 end
+	return (rv1[1] == rv2[1]
+		and rv1[2] == rv2[2]
+		and rv1[3] == rv2[3]
+		and rv1[4] == rv2[4])
+		and 1 or 0
 end
 
 /******************************************************************************/
@@ -473,56 +450,25 @@ e2function matrix identity()
 			 0, 0, 1 }
 end
 
-/******************************************************************************/
-
-registerOperator("ass", "m", "m", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
-
-/******************************************************************************/
-// Comparison
-
-e2function number operator_is(matrix rv1)
-	if rv1[1] > delta or -rv1[1] > delta or
-	   rv1[2] > delta or -rv1[2] > delta or
-	   rv1[3] > delta or -rv1[3] > delta or
-	   rv1[4] > delta or -rv1[4] > delta or
-	   rv1[5] > delta or -rv1[5] > delta or
-	   rv1[6] > delta or -rv1[6] > delta or
-	   rv1[7] > delta or -rv1[7] > delta or
-	   rv1[8] > delta or -rv1[8] > delta or
-	   rv1[9] > delta or -rv1[9] > delta
-	   then return 1 else return 0 end
+e2function number operator_is(matrix this)
+	return (
+		this[1] ~= 0 or this[2] ~= 0 or this[3] ~= 0
+		or this[4] ~= 0 or this[5] ~= 0 or this[6] ~= 0
+		or this[7] ~= 0 or this[8] ~= 0 or this[9] ~= 0
+	) and 1 or 0
 end
 
 e2function number operator==(matrix rv1, matrix rv2)
-	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
-	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta and
-	   rv1[3] - rv2[3] <= delta and rv2[3] - rv1[3] <= delta and
-	   rv1[4] - rv2[4] <= delta and rv2[4] - rv1[4] <= delta and
-	   rv1[5] - rv2[5] <= delta and rv2[5] - rv1[5] <= delta and
-	   rv1[6] - rv2[6] <= delta and rv2[6] - rv1[6] <= delta and
-	   rv1[7] - rv2[7] <= delta and rv2[7] - rv1[7] <= delta and
-	   rv1[8] - rv2[8] <= delta and rv2[8] - rv1[8] <= delta and
-	   rv1[9] - rv2[9] <= delta and rv2[9] - rv1[9] <= delta
-	   then return 1 else return 0 end
-end
-
-e2function number operator!=(matrix rv1, matrix rv2)
-	if rv1[1] - rv2[1] > delta and rv2[1] - rv1[1] > delta and
-	   rv1[2] - rv2[2] > delta and rv2[2] - rv1[2] > delta and
-	   rv1[3] - rv2[3] > delta and rv2[3] - rv1[3] > delta and
-	   rv1[4] - rv2[4] > delta and rv2[4] - rv1[4] > delta and
-	   rv1[5] - rv2[5] > delta and rv2[5] - rv1[5] > delta and
-	   rv1[6] - rv2[6] > delta and rv2[6] - rv1[6] > delta and
-	   rv1[7] - rv2[7] > delta and rv2[7] - rv1[7] > delta and
-	   rv1[8] - rv2[8] > delta and rv2[8] - rv1[8] > delta and
-	   rv1[9] - rv2[9] > delta and rv2[9] - rv1[9] > delta
-	   then return 1 else return 0 end
+	return (rv1[1] == rv2[1]
+		and rv1[2] == rv2[2]
+		and rv1[3] == rv2[3]
+		and rv1[4] == rv2[4]
+		and rv1[5] == rv2[5]
+		and rv1[6] == rv2[6]
+		and rv1[7] == rv2[7]
+		and rv1[8] == rv2[8]
+		and rv1[9] == rv2[9])
+		and 1 or 0
 end
 
 /******************************************************************************/
@@ -896,7 +842,7 @@ e2function matrix mRotation(vector rv1, rv2)
 	local vec
 	local len = rv1:Length()
 	if len == 1 then vec = rv1
-	elseif len > delta then vec = Vector(rv1[1] / len, rv1[2] / len, rv1[3] / len)
+	elseif len > 0 then vec = Vector(rv1[1] / len, rv1[2] / len, rv1[3] / len)
 	else return { 0, 0, 0,
 				  0, 0, 0,
 				  0, 0, 0 }
@@ -1003,77 +949,33 @@ e2function matrix4 identity4()
 			 0, 0, 0, 1 }
 end
 
-/******************************************************************************/
-
-registerOperator("ass", "xm4", "xm4", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
-
-/******************************************************************************/
-// Comparison
-
-e2function number operator_is(matrix4 rv1)
-	if rv1[1] > delta or -rv1[1] > delta or
-	   rv1[2] > delta or -rv1[2] > delta or
-	   rv1[3] > delta or -rv1[3] > delta or
-	   rv1[4] > delta or -rv1[4] > delta or
-	   rv1[5] > delta or -rv1[5] > delta or
-	   rv1[6] > delta or -rv1[6] > delta or
-	   rv1[7] > delta or -rv1[7] > delta or
-	   rv1[8] > delta or -rv1[8] > delta or
-	   rv1[9] > delta or -rv1[9] > delta or
-	   rv1[10] > delta or -rv1[10] > delta or
-	   rv1[11] > delta or -rv1[11] > delta or
-	   rv1[12] > delta or -rv1[12] > delta or
-	   rv1[13] > delta or -rv1[13] > delta or
-	   rv1[14] > delta or -rv1[14] > delta or
-	   rv1[15] > delta or -rv1[15] > delta or
-	   rv1[16] > delta or -rv1[16] > delta
-	   then return 1 else return 0 end
+e2function number operator_is(matrix4 this)
+	return (
+		this[1] ~= 0 or this[2] ~= 0 or this[3] ~= 0 or this[4] ~= 0
+		or this[5] ~= 0 or this[6] ~= 0 or this[7] ~= 0 or this[8] ~= 0
+		or this[9] ~= 0 or this[10] ~= 0 or this[11] ~= 0 or this[12] ~= 0
+		or this[13] ~= 0 or this[14] ~= 0 or this[15] ~= 0 or this[16] ~= 0
+	) and 1 or 0
 end
 
 e2function number operator==(matrix4 rv1, matrix4 rv2)
-	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
-	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta and
-	   rv1[3] - rv2[3] <= delta and rv2[3] - rv1[3] <= delta and
-	   rv1[4] - rv2[4] <= delta and rv2[4] - rv1[4] <= delta and
-	   rv1[5] - rv2[5] <= delta and rv2[5] - rv1[5] <= delta and
-	   rv1[6] - rv2[6] <= delta and rv2[6] - rv1[6] <= delta and
-	   rv1[7] - rv2[7] <= delta and rv2[7] - rv1[7] <= delta and
-	   rv1[8] - rv2[8] <= delta and rv2[8] - rv1[8] <= delta and
-	   rv1[9] - rv2[9] <= delta and rv2[9] - rv1[9] <= delta and
-	   rv1[10] - rv2[10] <= delta and rv2[10] - rv1[10] <= delta and
-	   rv1[11] - rv2[11] <= delta and rv2[11] - rv1[11] <= delta and
-	   rv1[12] - rv2[12] <= delta and rv2[12] - rv1[12] <= delta and
-	   rv1[13] - rv2[13] <= delta and rv2[13] - rv1[13] <= delta and
-	   rv1[14] - rv2[14] <= delta and rv2[14] - rv1[14] <= delta and
-	   rv1[15] - rv2[15] <= delta and rv2[15] - rv1[15] <= delta and
-	   rv1[16] - rv2[16] <= delta and rv2[16] - rv1[16] <= delta
-	   then return 1 else return 0 end
-end
-
-e2function number operator!=(matrix4 rv1, matrix4 rv2)
-	if rv1[1] - rv2[1] > delta and rv2[1] - rv1[1] > delta and
-	   rv1[2] - rv2[2] > delta and rv2[2] - rv1[2] > delta and
-	   rv1[3] - rv2[3] > delta and rv2[3] - rv1[3] > delta and
-	   rv1[4] - rv2[4] > delta and rv2[4] - rv1[4] > delta and
-	   rv1[5] - rv2[5] > delta and rv2[5] - rv1[5] > delta and
-	   rv1[6] - rv2[6] > delta and rv2[6] - rv1[6] > delta and
-	   rv1[7] - rv2[7] > delta and rv2[7] - rv1[7] > delta and
-	   rv1[8] - rv2[8] > delta and rv2[8] - rv1[8] > delta and
-	   rv1[9] - rv2[9] > delta and rv2[9] - rv1[9] > delta and
-	   rv1[10] - rv2[10] > delta and rv2[10] - rv1[10] > delta and
-	   rv1[11] - rv2[11] > delta and rv2[11] - rv1[11] > delta and
-	   rv1[12] - rv2[12] > delta and rv2[12] - rv1[12] > delta and
-	   rv1[13] - rv2[13] > delta and rv2[13] - rv1[13] > delta and
-	   rv1[14] - rv2[14] > delta and rv2[14] - rv1[14] > delta and
-	   rv1[15] - rv2[15] > delta and rv2[15] - rv1[15] > delta and
-	   rv1[16] - rv2[16] > delta and rv2[16] - rv1[16] > delta
-	   then return 1 else return 0 end
+	return (rv1[1] == rv2[1]
+		and rv1[2] == rv2[2]
+		and rv1[3] == rv2[3]
+		and rv1[4] == rv2[4]
+		and rv1[5] == rv2[5]
+		and rv1[6] == rv2[6]
+		and rv1[7] == rv2[7]
+		and rv1[8] == rv2[8]
+		and rv1[9] == rv2[9]
+		and rv1[10] == rv2[10]
+		and rv1[11] == rv2[11]
+		and rv1[12] == rv2[12]
+		and rv1[13] == rv2[13]
+		and rv1[14] == rv2[14]
+		and rv1[15] == rv2[15]
+		and rv1[16] == rv2[16])
+		and 1 or 0
 end
 
 /******************************************************************************/

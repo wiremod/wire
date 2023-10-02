@@ -1,0 +1,27 @@
+## SHOULD_PASS:EXECUTE
+
+local T = table()
+
+T:pushNumber(55)
+assert(T[1, number] == 55)
+assert(T:count() == 1)
+assert(T:typeids()[1, string] == "n")
+
+assert(T:popNumber() == 55)
+assert(T:count() == 0)
+assert(T:typeids()[1, string] == "")
+
+local KV = table(
+	"Foo" = 1,
+	"Bar" = 2,
+	"Baz" = 3,
+	"Qux" = 4
+)
+
+local Looped = 0
+foreach(K, V:number = KV) { # K should default to "string" on tables. (Dumb behavior I know.)
+	Looped++
+	assert(KV[K, number] == V)
+}
+
+assert(Looped == 4, Looped:toString())

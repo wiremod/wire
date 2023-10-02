@@ -84,7 +84,7 @@ if CLIENT then
 				local name = gate.name
 				local lowname = string_lower(name)
 				if string_find( lowname, text, 1, true ) then -- If it has ANY match at all
-					results[#results+1] = { name = gate.name, group = gate.group, action = action, dist = WireLib.levenshtein( text, lowname ) }
+					results[#results+1] = { name = gate.name, group = gate.group, action = action, dist = WireLib.levenshtein( text, lowname ), description = gate.description }
 				end
 			end
 
@@ -118,6 +118,10 @@ if CLIENT then
 						line:SetSelected( true )
 					end
 					line.action = result.action
+					if result.description then
+						line.description = result.description
+						line:SetTooltip(result.description)
+					end
 				end
 			else
 				if searching then
@@ -145,6 +149,7 @@ if CLIENT then
 			end
 
 			line:SetSelected(true) -- Select new
+			panel.GateDescription:SetText(line.description or "")
 			RunConsoleCommand( "wire_gates_action", line.action )
 		end
 
@@ -177,9 +182,14 @@ if CLIENT then
 				local action, gate = subtree[index].action, subtree[index].gate
 				local node2 = node:AddNode( gate.name or "No name found :(" )
 				node2.name = gate.name
+				if gate.description then
+					node2.description = gate.description
+					node2:SetTooltip(gate.description)
+				end
 				node2.action = action
 				function node2:DoClick()
 					RunConsoleCommand( "wire_gates_Action", self.action )
+					panel.GateDescription:SetText(self.description or "")
 				end
 				node2.Icon:SetImage( "icon16/newspaper.png" )
 			end
@@ -219,6 +229,7 @@ if CLIENT then
 		-- add it all to the main panel
 		panel:AddItem( holder )
 
+		panel.GateDescription = panel:Help("")
 
 		-- MISCELLANEOUS PLACEMENT OPTIONS, AND MODEL
 

@@ -713,9 +713,9 @@ elseif CLIENT then
 		local err, includes, warnings
 
 		if e2_function_data_received then
-			err, includes, warnings = wire_expression2_validate(code)
-			if err then
-				WireLib.AddNotify(err, NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+			err, includes, warnings = E2Lib.Validate(code)
+			if err and err[1] then
+				WireLib.AddNotify(err[1].message, NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
 				return
 			end
 		else

@@ -32,6 +32,7 @@ GateActions["string_cineq"] = {
 
 GateActions["string_index"] = {
 	name = "Index",
+	description = "Gets the character at the index.",
 	inputs = { "A" , "Index" },
 	inputtypes = { "STRING" , "NORMAL" },
 	outputtypes = { "STRING" },
@@ -88,6 +89,7 @@ GateActions["string_lower"] = {
 
 GateActions["string_sub"] = {
 	name = "Substring",
+	description = "Gets a part of the string between the start and end indices (inclusive).",
 	inputs = { "A" , "Start" , "End" },
 	inputtypes = { "STRING" , "NORMAL" , "NORMAL" },
 	outputtypes = { "STRING" },
@@ -104,6 +106,7 @@ GateActions["string_sub"] = {
 
 GateActions["string_explode"] = {
 	name = "Explode",
+	description = "Splits a string into an array by the separator pattern.",
 	inputs = { "A" , "Separator" },
 	inputtypes = { "STRING" , "STRING" },
 	outputtypes = { "ARRAY" },
@@ -119,6 +122,7 @@ GateActions["string_explode"] = {
 
 GateActions["string_find"] = {
 	name = "Find",
+	description = "Finds a substring within the string and outputs the position it begins.",
 	inputs = { "A", "B", "StartIndex" },
 	inputtypes = { "STRING", "STRING" },
 	outputtypes = { "NORMAL" },
@@ -135,6 +139,7 @@ GateActions["string_find"] = {
 
 GateActions["string_concat"] = {
 	name = "Concatenate",
+	description = "Combines multiple strings together into one string.",
 	inputs = { "A" , "B" , "C" , "D" , "E" , "F" , "G" , "H" },
 	inputtypes = { "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" },
 	outputtypes = { "STRING" },
@@ -160,6 +165,7 @@ GateActions["string_concat"] = {
 
 GateActions["string_trim"] = {
 	name = "Trim",
+	description = "Removes trailing and leading whitespace from the string.",
 	inputs = { "A" },
 	inputtypes = { "STRING" },
 	outputtypes = { "STRING" },
@@ -174,6 +180,7 @@ GateActions["string_trim"] = {
 
 GateActions["string_replace"] = {
 	name = "Replace",
+	description = "Replaces each occurance of the ToBeReplaced pattern with the Replacer pattern.",
 	inputs = { "String" , "ToBeReplaced" , "Replacer" },
 	inputtypes = { "STRING" , "STRING" , "STRING" },
 	outputtypes = { "STRING" },
@@ -205,6 +212,7 @@ GateActions["string_reverse"] = {
 
 GateActions["string_tonum"] = {
 	name = "To Number",
+	description = "Tries to convert the string to a number.",
 	inputs = { "A" },
 	inputtypes = { "STRING" },
 	outputtypes = { "NORMAL" },
@@ -219,6 +227,7 @@ GateActions["string_tonum"] = {
 
 GateActions["string_tostr"] = {
 	name = "Number to String",
+	description = "Converts the number to a string.",
 	inputs = { "A" },
 	inputtypes = { "NORMAL" },
 	outputtypes = { "STRING" },
@@ -233,6 +242,7 @@ GateActions["string_tostr"] = {
 
 GateActions["string_tobyte"] = {
 	name = "To Byte",
+	description = "Converts a character to a number representation.",
 	inputs = { "A" },
 	inputtypes = { "STRING" },
 	outputtypes = { "NORMAL" },
@@ -247,11 +257,12 @@ GateActions["string_tobyte"] = {
 
 GateActions["string_tochar"] = {
 	name = "To Character",
+	description = "Tries to convert a number to a character.",
 	inputs = { "A" },
 	inputtypes = { "NORMAL" },
 	outputtypes = { "STRING" },
 	output = function(gate, A)
-		if not A then A = 0 end
+		if not A or A < 0 or A > 255 then A = 0 end
 		return string.char(A)
 	end,
 	label = function(Out, A)
@@ -261,6 +272,7 @@ GateActions["string_tochar"] = {
 
 GateActions["string_repeat"] = {
 	name = "Repeat",
+	description = "Repeats a string by Num times.",
 	inputs = { "A" , "Num"},
 	inputtypes = { "STRING" , "NORMAL" },
 	outputtypes = { "STRING" },

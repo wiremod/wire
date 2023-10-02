@@ -1,0 +1,32 @@
+## SHOULD_PASS:EXECUTE
+
+local Num = 0
+for(I = 1, 1000) {
+	Num++
+	if(I == 500) {
+		break
+	}
+}
+
+assert(Num == 500)
+
+for(_ = 1, 500) {
+	Num++
+}
+
+print(Num)
+
+assert(Num == 1000, Num:toString())
+
+# Ensure continue does not bleed into next iteration
+local Inc = 1
+for (I = 1, 10, 1) {
+	assert(I == Inc, "Continue bled into another iteration")
+	Inc++
+
+	if (1) {
+		continue
+	}
+
+	error("unreachable")
+}

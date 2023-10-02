@@ -1,0 +1,4 @@
+## SHOULD_PASS:COMPILE
+
+_PI
+_E

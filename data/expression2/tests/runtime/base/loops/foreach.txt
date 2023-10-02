@@ -1,0 +1,50 @@
+## SHOULD_PASS:EXECUTE
+
+local I = 0
+foreach(K, V:number = array(1, 2, 3, 4, 5)) {
+	assert(array(1, 2, 3, 4, 5)[K, number] == V)
+	I++
+}
+
+assert(I == 5)
+
+foreach(_, V:number = array(1, 2, 3, 4, 5)) {
+	I++
+}
+
+assert(I == 10)
+
+# Ensure break works
+
+foreach(K: number, V:number = array(1, 2, 3, 4)) {
+	assert(K == 1, "Should never iterate past break")
+
+	if (1) {
+		break
+	}
+
+	error("unreachable")
+}
+
+# Ensure continue works
+
+foreach(K: number, V:number = array(1, 2, 3, 4)) {
+	if (1) {
+		continue
+	}
+
+	error("unreachable")
+}
+
+# Ensure continue does not bleed into next iteration
+local Inc = 1
+foreach (K:number, V:number = array(1, 2, 3, 4)) {
+	assert(K == Inc, "Continue bled into another iteration")
+	Inc++
+
+	if (1) {
+		continue
+	}
+
+	error("unreachable")
+}

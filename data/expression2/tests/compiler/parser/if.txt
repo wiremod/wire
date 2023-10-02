@@ -1,0 +1,7 @@
+## SHOULD_PASS:COMPILE
+
+if (1) {}
+
+if (1) {} elseif (2) {}
+
+if (1) {} elseif (2) {} else {}

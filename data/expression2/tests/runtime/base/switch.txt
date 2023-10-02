@@ -1,0 +1,52 @@
+## SHOULD_PASS:EXECUTE
+
+local Num = 2
+switch (1) {
+	case 1,
+		Num = 5
+		break
+
+	default,
+		error("fail")
+}
+
+assert(Num == 5)
+
+switch (5) { # Ensure fallthrough works
+	case 5,
+	case 2,
+		Num = 120
+	default,
+		Num++
+}
+
+assert(Num == 121)
+
+switch (1) {
+	case 1,
+		Num++
+	case 2,
+}
+
+assert(Num == 122, "fallthrough ran multiple times")
+
+switch (vec()) {
+	case vec(),
+	break
+
+	default,
+		error("fail")
+}
+
+switch (1) {
+	case 1,
+		if (1) {
+			break
+		}
+
+		error("unreachable")
+	break
+
+	default,
+	break
+}

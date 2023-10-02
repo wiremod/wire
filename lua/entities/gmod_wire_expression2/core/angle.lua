@@ -40,74 +40,39 @@ e2function angle ang(vector rv1)
 	return Angle(rv1[1], rv1[2], rv1[3])
 end
 
-/******************************************************************************/
-
-registerOperator("ass", "a", "a", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	local lookup = Scope.lookup
-	if !lookup then lookup = {} Scope.lookup = lookup end
-	if lookup[rhs] then lookup[rhs][lhs] = true else lookup[rhs] = {[lhs] = true} end
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
-
-/******************************************************************************/
-
-e2function number operator_is(angle rv1)
-	if rv1[1] ~= 0 or rv1[2] ~= 0 or rv1[3] ~= 0
-	   then return 1 else return 0 end
+e2function number operator_is(angle this)
+	return this:IsZero() and 0 or 1
 end
 
-__e2setcost(3)
+__e2setcost(1)
 
-e2function number operator==(angle rv1, angle rv2)
-	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
-	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta and
-	   rv1[3] - rv2[3] <= delta and rv2[3] - rv1[3] <= delta
-	   then return 1 else return 0 end
+e2function number operator>=(angle lhs, angle rhs)
+	return (lhs[1] >= rhs[1]
+		and lhs[2] >= rhs[2]
+		and lhs[3] >= rhs[3])
+		and 1 or 0
 end
 
-e2function number operator!=(angle rv1, angle rv2)
-	if rv1[1] - rv2[1] > delta or rv2[1] - rv1[1] > delta or
-	   rv1[2] - rv2[2] > delta or rv2[2] - rv1[2] > delta or
-	   rv1[3] - rv2[3] > delta or rv2[3] - rv1[3] > delta
-	   then return 1 else return 0 end
+e2function number operator<=(angle lhs, angle rhs)
+	return (lhs[1] <= rhs[1]
+		and lhs[2] <= rhs[2]
+		and lhs[3] <= rhs[3])
+		and 1 or 0
 end
 
-e2function number operator>=(angle rv1, angle rv2)
-	if rv2[1] - rv1[1] <= delta and
-	   rv2[2] - rv1[2] <= delta and
-	   rv2[3] - rv1[3] <= delta
-	   then return 1 else return 0 end
+e2function number operator>(angle lhs, angle rhs)
+	return (lhs[1] > rhs[1]
+		and lhs[2] > rhs[2]
+		and lhs[3] > rhs[3])
+		and 1 or 0
 end
 
-e2function number operator<=(angle rv1, angle rv2)
-	if rv1[1] - rv2[1] <= delta and
-	   rv1[2] - rv2[2] <= delta and
-	   rv1[3] - rv2[3] <= delta
-	   then return 1 else return 0 end
+e2function number operator<(angle lhs, angle rhs)
+	return (lhs[1] < rhs[1]
+		and lhs[2] < rhs[2]
+		and lhs[3] < rhs[3])
+		and 1 or 0
 end
-
-e2function number operator>(angle rv1, angle rv2)
-	if rv1[1] - rv2[1] > delta and
-	   rv1[2] - rv2[2] > delta and
-	   rv1[3] - rv2[3] > delta
-	   then return 1 else return 0 end
-end
-
-e2function number operator<(angle rv1, angle rv2)
-	if rv2[1] - rv1[1] > delta and
-	   rv2[2] - rv1[2] > delta and
-	   rv2[3] - rv1[3] > delta
-	   then return 1 else return 0 end
-end
-
-/******************************************************************************/
 
 __e2setcost(2)
 
@@ -164,15 +129,14 @@ e2function angle operator/(angle rv1, angle rv2)
 	return Angle( rv1[1] / rv2[1], rv1[2] / rv2[2], rv1[3] / rv2[3] )
 end
 
-e2function number angle:operator[](index)
+registerOperator("indexget", "an", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 3) + 0.5)]
-end
+end)
 
-e2function number angle:operator[](index, value)
+registerOperator("indexset", "ann", "", function(state, this, index, value)
 	this[floor(math.Clamp(index, 1, 3) + 0.5)] = value
-	self.GlobalScope.vclk[this] = true
-	return value
-end
+	state.GlobalScope.vclk[this] = true
+end)
 
 e2function string operator+(string lhs, angle rhs)
 	self.prf = self.prf + #lhs * 0.01

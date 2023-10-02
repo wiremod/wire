@@ -4,6 +4,7 @@ Obj.w = nil
 Obj.h = nil
 Obj.x = nil
 Obj.y = nil
+Obj.filtering = nil
 Obj.vertices = {}
 Obj.verticesindex = "vertices"
 Obj.size = 1
