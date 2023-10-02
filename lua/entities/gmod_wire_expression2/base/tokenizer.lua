@@ -290,7 +290,7 @@ function Tokenizer:Next()
 						esc = escapes[char]
 					elseif char == "u" then
 						self:NextChar()
-						esc = self:ConsumePattern("^{%g?%g?%g?%g?%g?%g?}") or ""
+						esc = self:ConsumePattern("^{[^%G}\\]?[^%G}\\]?[^%G}\\]?[^%G}\\]?[^%G}\\]?[^%G}\\]?}") or ""
 						local num = tonumber(esc:sub(2, -2), 16)
 						if not num or num >= 0x10ffff then
 							esc = "\\" .. char .. esc
