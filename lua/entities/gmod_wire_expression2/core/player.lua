@@ -948,23 +948,23 @@ E2Lib.registerEvent("playerUse", {
 	{ "Entity", "e" }
 })
 
-hook.Add("SetupMove", "Exp2MouseInput", function( ply, mv, cmd )
+hook.Add("SetupMove", "Exp2MouseInput", function(ply, mv, cmd)
 	local deltaX = cmd:GetMouseX()
 	local deltaY = cmd:GetMouseY()
 	local scroll = cmd:GetMouseWheel()
-	E2Lib.triggerEvent("mouseWheeled", {ply, scroll})
-	E2Lib.triggerEvent("mouseMoved", {ply, deltaX, deltaY})
+	E2Lib.triggerEvent("mouseWheeled", { ply, scroll })
+	E2Lib.triggerEvent("mouseMoved", { ply, deltaX, deltaY })
 end)
 
 E2Lib.registerEvent("mouseWheeled", {
-	{"Ply","e"},
-	{"Scroll", "n"}
+	{ "Player","e" },
+	{ "Scroll", "n" }
 })
 
 E2Lib.registerEvent("mouseMoved", {
-	{"Ply","e"},
-	{"DeltaX", "n"},
-	{"DeltaY", "n"}
+	{ "Player","e" },
+	{ "DeltaX", "n" },
+	{ "DeltaY", "n" }
 })
 
 hook.Add("PlayerChangedTeam", "Exp2PlayerChangedTeam", function(ply, oldTeam, newTeam)
