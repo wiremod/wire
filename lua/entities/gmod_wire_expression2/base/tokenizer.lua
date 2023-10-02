@@ -272,6 +272,7 @@ function Tokenizer:Next()
 		local buffer, nbuffer = {}, 0
 		while true do
 			local m = self:ConsumePattern("^[^\"\\]*[\"\\]", true)
+			local line, col = self.line, self.col
 
 			if m then
 				nbuffer = nbuffer + 1
@@ -282,7 +283,7 @@ function Tokenizer:Next()
 					break
 				else -- Escape
 					local char = self:At()
-					local esc
+					local esc, err = ""
 
 					-- Using %g here just to be a bit more informative on warnings
 					if escapes[char] then
@@ -290,29 +291,46 @@ function Tokenizer:Next()
 						esc = escapes[char]
 					elseif char == "u" then
 						self:NextChar()
-						esc = self:ConsumePattern("^{[^%G}\\]?[^%G}\\]?[^%G}\\]?[^%G}\\]?[^%G}\\]?[^%G}\\]?}") or ""
-						local num = tonumber(esc:sub(2, -2), 16)
-						if not num or num >= 0x10ffff then
-							esc = "\\" .. char .. esc
-							self:Warning("Invalid unicode escape " .. esc)
+
+						if self:At() ~= "{" then err = "Unicode escape must begin with {" goto _err end
+
+						esc = self:ConsumePattern("^%b{}", true)
+
+						print(line, col, self.line, self.col)
+						print(esc)
+
+						if not esc then err = "Unicode escape must end with }"
+						elseif #esc == 2 then err = "Unicode escape cannot be empty"
+						elseif #esc > 8 then err = "Unicode escape can only contain up to 6 characters"
 						else
-							esc = utf8.char(num)
+							local num = tonumber(esc:sub(2, -2), 16)
+							if not num then
+								err = "Unicode escape must contain hexadecimal digits"
+							elseif num >= 0x10ffff then
+								err = "Unicode escape cannot be greater than 10ffff"
+							else
+								esc = utf8.char(num)
+							end
 						end
 					elseif char == "x" then
 						self:NextChar()
-						esc = self:ConsumePattern("^%g%g") or ""
-						local num = tonumber(esc, 16)
-						if not num then
-							esc = "\\" .. char.. esc
-							self:Warning("Invalid hexadecimal escape " .. esc)
+						esc = self:ConsumePattern("^[^\\\"][^\\\"]")
+						if not esc then
+							err = "Hexadecimal escape expects 2 hex digits"
 						else
-							esc = string.char(tonumber(esc, 16))
+							esc = string.char(tonumber(esc, 16) or 0)
 						end
 					else
 						esc = "\\"
-						self:Warning("Invalid escape " .. "\\" .. char:gsub("%G", " "))
+						self:Warning("Invalid escape " .. "\\" .. char:gsub("%G", " "), Trace.new(line, col, self.line, self.col))
 					end
 
+					::_err::
+					if err then
+						local tr = Trace.new(line, col, self.line, self.col)
+						self:ConsumePattern("^.*", true)
+						return self:Error(err, tr)
+					end
 					nbuffer = nbuffer + 1
 					buffer[nbuffer] = esc
 				end
