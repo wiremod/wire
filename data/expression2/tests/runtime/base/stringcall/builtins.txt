@@ -1,0 +1,20 @@
+## SHOULD_PASS:EXECUTE
+
+assert( "format"("%s", "test")[string] == "test" )
+assert( "format"("%q", "test")[string] == "\"test\"" )
+assert( "format"("%d %d %s", 52, 20, "test")[string] == "52 20 test" )
+
+"print"(1, 2, "test")
+
+# Type enforcing
+
+try {
+	local X = "format"("%s", "test")[number] # Should error at runtime, format does not return number.
+	error("Failed")
+} catch(Err) {
+	assert(Err != "Failed")
+}
+
+assert( "select"(1, "test", "foo", "bar")[string] == "test" )
+assert( "min"(1, 2)[number] == 1 )
+assert( "max"(1, 2)[number] == 2 )

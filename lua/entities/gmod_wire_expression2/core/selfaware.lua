@@ -53,26 +53,7 @@ e2function entity ioInputEntity( string input )
 	if (self.entity.Inputs[input] and self.entity.Inputs[input].Src and IsValid(self.entity.Inputs[input].Src)) then return self.entity.Inputs[input].Src end
 end
 
-local function setOutput( self, args, Type )
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self,op1), op2[1](self,op2)
-	if (self.entity.Outputs[rv1] and self.entity.Outputs[rv1].Type == Type) then
-		self.GlobalScope[rv1] = rv2
-		self.GlobalScope.vclk[rv1] = true
-	end
-end
-
 local fixDefault = E2Lib.fixDefault
-
-local function getInput( self, args, default, Type )
-	local op1 = args[2]
-	local rv1 = op1[1](self,op1)
-	default = fixDefault(default)
-	if (self.entity.Inputs[rv1] and self.entity.Inputs[rv1].Type == Type) then
-		return self.GlobalScope[rv1] or default
-	end
-	return default
-end
 
 local excluded_types = {
 	xgt = true,
@@ -88,8 +69,21 @@ registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
 		local short = v[1]
 		if (!excluded_types[short]) then
-			registerFunction("ioSetOutput","s"..short,""..short,function(self,args) return setOutput(self,args,k) end)
-			registerFunction("ioGetInput"..upperfirst(k == "NORMAL" and "NUMBER" or k),"s",short,function(self,args) return getInput(self,args,v[2],k) end)
+			registerFunction("ioSetOutput","s"..short,""..short,function(self, args)
+				local rv1, rv2 = args[1], args[2]
+				if self.entity.Outputs[rv1] and self.entity.Outputs[rv1].Type == k then
+					self.GlobalScope[rv1] = rv2
+					self.GlobalScope.vclk[rv1] = true
+				end
+			end, 3, nil, { legacy = false })
+
+			registerFunction("ioGetInput"..upperfirst(k == "NORMAL" and "NUMBER" or k),"s",short,function(self, args)
+				local rv1, default = args[1], fixDefault(v[2])
+				if self.entity.Inputs[rv1] and self.entity.Inputs[rv1].Type == k then
+					return self.GlobalScope[rv1] or default
+				end
+				return default
+			end, 3, nil, { legacy = false })
 		end
 	end
 end)
@@ -154,16 +148,16 @@ registerCallback("construct", function(self)
 	self.data.changed = {}
 end)
 
-__e2setcost(1)
+__e2setcost(5)
 
 -- This is the prototype for everything that can be compared using the == operator
 [nodiscard]
 e2function number changed(value)
 	local chg = self.data.changed
 
-	if value == chg[args] then return 0 end
+	if value == chg[typeids] then return 0 end
 
-	chg[args] = value
+	chg[typeids] = value
 	return 1
 end
 
@@ -171,18 +165,11 @@ end
 e2function number changed(vector value)
 	local chg = self.data.changed
 
-	local this_chg = chg[args]
-	if not this_chg then
-		chg[args] = value
-		return 1
+	if chg[typeids] == value then
+		return 0
 	end
-	if this_chg
-	and value[1] == this_chg[1]
-	and value[2] == this_chg[2]
-	and value[3] == this_chg[3]
-	then return 0 end
 
-	chg[args] = value
+	chg[typeids] = value
 	return 1
 end
 
@@ -191,19 +178,21 @@ end
 e2function number changed(vector4 value)
 	local chg = self.data.changed
 
-	local this_chg = chg[args]
+	local this_chg = chg[typeids]
 	if not this_chg then
-		chg[args] = value
+		chg[typeids] = value
 		return 1
 	end
 	for i,v in pairs(value) do
 		if v ~= this_chg[i] then
-			chg[args] = value
+			chg[typeids] = value
 			return 1
 		end
 	end
 	return 0
 end
+
+__e2setcost(1)
 
 local excluded_types = {
 	n = true,
@@ -231,9 +220,9 @@ registerCallback("postinit", function()
 	for typeid,_ in pairs(wire_expression_types2) do
 		if not excluded_types[typeid] then
 			if comparable_types[typeid] then
-				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_n)
+				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_n, 5, nil, { legacy = false })
 			else
-				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_xv4)
+				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_xv4, 5, nil, { legacy = false })
 			end
 		end
 	end

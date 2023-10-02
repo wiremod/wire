@@ -1,6 +1,4 @@
 -- these upvalues (locals in an enclosing scope) are faster to access than globals.
-local delta  = wire_expression2_delta
-
 local math   = math
 local random = math.random
 local pi     = math.pi
@@ -50,119 +48,59 @@ E2Lib.registerConstant("PHI", (1+sqrt(5))/2)
 
 --[[************************************************************************]]--
 
-__e2setcost(2)
-
-registerOperator("ass", "n", "n", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
-
 __e2setcost(1.5)
-
-registerOperator("inc", "n", "", function(self, args)
-	local op1, scope = args[2], args[3]
-	self.Scopes[scope][op1] = self.Scopes[scope][op1] + 1
-	self.Scopes[scope].vclk[op1] = true
-end)
-
-registerOperator("dec", "n", "", function(self, args)
-	local op1, scope = args[2], args[3]
-	self.Scopes[scope][op1] = self.Scopes[scope][op1] - 1
-	self.Scopes[scope].vclk[op1] = true
-end)
 
 --[[************************************************************************]]--
 
-__e2setcost(1.5)
+registerOperator("geq", "nn", "n", function(state, lhs, rhs)
+	return lhs >= rhs and 1 or 0
+end, 1, nil, { legacy = false })
 
-registerOperator("eq", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if rvd <= delta and -rvd <= delta
-	   then return 1 else return 0 end
-end)
+registerOperator("leq", "nn", "n", function(state, lhs, rhs)
+	return lhs <= rhs and 1 or 0
+end, 1, nil, { legacy = false })
 
-registerOperator("neq", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if rvd > delta or -rvd > delta
-	   then return 1 else return 0 end
-end)
+registerOperator("gth", "nn", "n", function(state, lhs, rhs)
+	return lhs > rhs and 1 or 0
+end, 1, nil, { legacy = false })
 
-__e2setcost(1.25)
-
-registerOperator("geq", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if -rvd <= delta
-	   then return 1 else return 0 end
-end)
-
-registerOperator("leq", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if rvd <= delta
-	   then return 1 else return 0 end
-end)
-
-registerOperator("gth", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if rvd > delta
-	   then return 1 else return 0 end
-end)
-
-registerOperator("lth", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if -rvd > delta
-	   then return 1 else return 0 end
-end)
+registerOperator("lth", "nn", "n", function(state, lhs, rhs)
+	return lhs < rhs and 1 or 0
+end, 1, nil, { legacy = false })
 
 --[[************************************************************************]]--
 
 __e2setcost(0.5) -- approximation
 
-registerOperator("neg", "n", "n", function(self, args)
-	local op1 = args[2]
-	return -op1[1](self, op1)
-end)
+registerOperator("neg", "n", "n", function(state, num)
+	return -num
+end, 1, nil, { legacy = false })
 
 __e2setcost(1)
 
-registerOperator("add", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) + op2[1](self, op2)
-end)
+registerOperator("add", "nn", "n", function(state, lhs, rhs)
+	return lhs + rhs
+end, 1, nil, { legacy = false })
 
-registerOperator("sub", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) - op2[1](self, op2)
-end)
+registerOperator("sub", "nn", "n", function(state, lhs, rhs)
+	return lhs - rhs
+end, 1, nil, { legacy = false })
 
-registerOperator("mul", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) * op2[1](self, op2)
-end)
+registerOperator("mul", "nn", "n", function(state, lhs, rhs)
+	return lhs * rhs
+end, 1, nil, { legacy = false })
 
-registerOperator("div", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) / op2[1](self, op2)
-end)
+registerOperator("div", "nn", "n", function(state, lhs, rhs)
+	return lhs / rhs
+end, 1, nil, { legacy = false })
 
-registerOperator("exp", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) ^ op2[1](self, op2)
-end)
+registerOperator("exp", "nn", "n", function(state, lhs, rhs)
+	return lhs ^ rhs
+end, 1, nil, { legacy = false })
 
-registerOperator("mod", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	return op1[1](self, op1) % op2[1](self, op2)
-end)
+registerOperator("mod", "nn", "n", function(state, lhs, rhs)
+	return lhs % rhs
+end, 1, nil, { legacy = false })
 
 --[[************************************************************************]]--
 -- TODO: select, average
@@ -327,12 +265,10 @@ e2function number lerp(number from, number to, number fraction)
 end
 
 registerFunction("sign", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 > delta then return 1
-	elseif rv1 < -delta then return -1
+	if args[1] > 0 then return 1
+	elseif args[1] < 0 then return -1
 	else return 0 end
-end)
+end, 2, nil, { legacy = false })
 
 --[[************************************************************************]]--
 

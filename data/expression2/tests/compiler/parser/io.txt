@@ -1,0 +1,9 @@
+## SHOULD_PASS:COMPILE
+
+@inputs In
+@outputs Out
+
+~In
+$In
+->In
+->Out

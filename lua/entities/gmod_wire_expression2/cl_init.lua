@@ -1,79 +1,91 @@
 include('shared.lua')
 
+local Trace, Error = E2Lib.Debug.Trace, E2Lib.Debug.Error
+
+---@param e2 string
+---@param directives PPDirectives
+---@param includes table<string, string>
+---@param scripts table<string, Node>
+---@return Error[]?
 local function Include(e2, directives, includes, scripts)
 	if scripts[e2] then
 		return
 	end
 
+	local errors = {}
 	local code = file.Read("expression2/" .. e2 .. ".txt")
-	-- removed CLIENT as this is client file
-	-- local code
-	-- if CLIENT the code = file.Read("expression2/" .. e2 .. ".txt")
 
 	if not code then
-		return false, "Could not find include '" .. e2 .. ".txt'"
+		return { Error.new("Could not find include '" .. e2 .. ".txt'") }
 	end
 
 	local status, err, buffer = E2Lib.PreProcessor.Execute(code, directives)
 	if not status then
-		return "include '" .. e2 .. "' -> " .. err
+		table.Add(errors, err)
 	end
 
 	local status, tokens = E2Lib.Tokenizer.Execute(buffer)
 	if not status then
-		return "include '" .. e2 .. "' -> " .. tokens
+		table.Add(errors, tokens)
 	end
 
 	local status, tree, dvars, files = E2Lib.Parser.Execute(tokens)
 	if not status then
-		return "include '" .. e2 .. "' -> " .. tree
+		table.insert(errors, tree)
+		return errors
 	end
 
 	includes[e2] = code
 
 	scripts[e2] = { tree }
 
-	for i = 1, #files do
-		local error = Include(files[i], directives, includes, scripts)
-		if error then return error end
+	for i, file in ipairs(files) do
+		local ierrors = Include(file, directives, includes, scripts)
+		if ierrors then table.Add(errors, ierrors) end
 	end
+
+	if #errors ~= 0 then return errors end
 end
 
-function wire_expression2_validate(buffer)
-	if not e2_function_data_received then return "Loading extensions. Please try again in a few seconds..." end
+---@param buffer string
+---@return Error[]?, table[]?, Warning[]?
+function E2Lib.Validate(buffer)
+	if not e2_function_data_received then return { Error.new("Loading extensions. Please try again in a few seconds...") } end
 
-	---@type Warning[]
-	local warnings = {}
+	---@type Warning[], Error[]
+	local warnings, errors = {}, {}
 
 	-- invoke preprocessor
 	local status, directives, buffer, preprocessor = E2Lib.PreProcessor.Execute(buffer)
-	if not status then return directives end
+	if not status then table.Add(errors, directives) end
+	---@cast directives PPDirectives
 	table.Add(warnings, preprocessor.warnings)
 
 	-- decompose directives
-	local inports, outports, persists = directives.inputs, directives.outputs, directives.persist
 	RunConsoleCommand("wire_expression2_scriptmodel", directives.model or "")
 
 	-- invoke tokenizer (=lexer)
 	local status, tokens, tokenizer = E2Lib.Tokenizer.Execute(buffer)
-	if not status then return tokens end
+	if not status then table.Add(errors, tokenizer.errors) return errors end
 	table.Add(warnings, tokenizer.warnings)
 
 	-- invoke parser
 	local status, tree, dvars, files, parser = E2Lib.Parser.Execute(tokens)
-	if not status then return tree end
+	if not status then table.insert(errors, tree) return errors end
 	table.Add(warnings, parser.warnings)
 
 	-- prepare includes
-	local includes, scripts = {}, {}
-	for i = 1, #files do
-		local error = Include(files[i], directives, includes, scripts)
-		if error then return error end
+	local includes, scripts = {}, {} ---@type table<string, string>, Node[]
+	for i, file in ipairs(files) do
+		local ierrors = Include(file, directives, includes, scripts)
+		if ierrors then table.Add(errors, ierrors) end
 	end
 
+	if not table.IsEmpty(errors) then return errors end
+
 	-- invoke compiler
-	local status, script, compiler = E2Lib.Compiler.Execute(tree, inports, outports, persists, dvars, scripts)
-	if not status then return script end
+	local status, script, compiler = E2Lib.Compiler.Execute(tree, directives, dvars, scripts)
+	if not status then table.insert(errors, script) return errors end
 
 	-- Need to do this manually since table.Add loses its mind with non-numeric keys (and compiler can emit warnings per include file) (should be refactored out at some point to just having warnings separated per include)
 	local nwarnings = #warnings
@@ -81,7 +93,7 @@ function wire_expression2_validate(buffer)
 		warnings[nwarnings + k] = warning
 	end
 
-	return nil, includes, #warnings ~= 0 and warnings
+	return nil, includes, #warnings ~= 0 and warnings, compiler
 end
 
 -- string.GetTextSize shits itself if the string is both wide and tall,

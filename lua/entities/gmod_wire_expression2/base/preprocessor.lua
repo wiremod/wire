@@ -1,41 +1,43 @@
 --[[
-  Expression 2 Pre-Processor for Garry's Mod
-  Andreas "Syranide" Svensson, me@syranide.com
+	Expression 2 Pre-Processor
+	Andreas "Syranide" Svensson, me@syranide.com
 ]]
 
 AddCSLuaFile()
+
+local Warning, Error, Trace = E2Lib.Debug.Warning, E2Lib.Debug.Error, E2Lib.Debug.Trace
 
 ---@class PreProcessor
 ---@field blockcomment boolean # Whether preprocessor is inside a block comment
 ---@field multilinestring boolean # Whether preprocessor is inside a multiline string
 ---@field readline integer
 ---@field warnings Warning[]
+---@field errors Error[]
 local PreProcessor = {}
 PreProcessor.__index = PreProcessor
 
 E2Lib.PreProcessor = PreProcessor
 
----@return boolean ok
----@return table? directives
----@return string? newcode
----@return PreProcessor self
-function PreProcessor.Execute(...)
+---@overload fun(buffer: string, directives: PPDirectives, ent: userdata?): nil, Error[]
+---@overload fun(buffer: string, directives: PPDirectives, ent: userdata?): boolean, PPDirectives, string, PreProcessor
+function PreProcessor.Execute(buffer, directives, ent)
 	-- instantiate PreProcessor
 	local instance = setmetatable({}, PreProcessor)
 
 	-- and pcall the new instance's Process method.
-	local ok, directives, newcode = xpcall(instance.Process, E2Lib.errorHandler, instance, ...)
-	return ok, directives, newcode, instance
+	local directives, newcode = instance:Process(buffer, directives, ent)
+	local ok = #instance.errors == 0
+	return ok, ok and directives or instance.errors, newcode, instance
 end
 
 function PreProcessor:Error(message, column)
-	error(message .. " at line " .. self.readline .. ", char " .. (column or 1), 0)
+	self.errors[#self.errors + 1] = Error.new(message, Trace.new(self.readline, column or 1, self.readline, column or 1))
 end
 
 ---@param message string
 ---@param column integer?
 function PreProcessor:Warning(message, column)
-	self.warnings[#self.warnings + 1] = { message = message, line = self.readline, char = column or 1 }
+	self.warnings[#self.warnings + 1] = Warning.new(message, Trace.new(self.readline, self.readline, column or 1, column or 1))
 end
 
 local type_map = {
@@ -204,7 +206,7 @@ local function handleIO(name)
 				ports[1][index] = key -- Index: Name
 				ports[2][index] = retval[2][i] -- Index: Type
 				ports[3][key] = retval[2][i] -- Name: Type
-				ports[5][key] = { lines[i], columns[i] } -- Name: { Line, Column }
+				ports[5][key] = Trace.new(lines[i], columns[i], lines[i], columns[i]) -- Name: Trace
 			end
 		end
 	end
@@ -317,11 +319,19 @@ function PreProcessor:ParseDirectives(line)
 	return ""
 end
 
+
+---@alias IODirective { [1]: string[], [2]: TypeSignature[], [3]: table<string, TypeSignature>, [4]: table<string, string>, [5]: table<string, Trace>  }
+---@alias PPDirectives { inputs: IODirective, outputs: IODirective, persist: IODirective, name: string?, model: string?, trigger: { [1]: boolean?, [2]: table<string, boolean> }, strict: boolean? }
+
+---@param buffer string
+---@param directives PPDirectives
+---@param ent userdata?
+---@return PPDirectives directives, string buf
 function PreProcessor:Process(buffer, directives, ent)
 	-- entity is needed for autoupdate
 	self.ent = ent
 	self.ifdefStack = {}
-	self.warnings = {}
+	self.warnings, self.errors = {}, {}
 
 	local lines = string.Explode("\n", buffer)
 
@@ -332,7 +342,6 @@ function PreProcessor:Process(buffer, directives, ent)
 			inputs = { {}, {}, {}, {}, {} }, -- 1: names, 2: types, 3: names=types lookup, 4: descriptions, 5: names={line, column} lookup
 			outputs = { {}, {}, {}, {}, {} }, -- 1: names, 2: types, 3: names=types lookup, 4: descriptions, 5: names={line, column} lookup
 			persist = { {}, {}, {}, nil, {} },
-			delta = { {}, {}, {} },
 			trigger = { nil, {} },
 		}
 	else
@@ -357,7 +366,7 @@ function PreProcessor:Process(buffer, directives, ent)
 	if self.directives.trigger[1] == nil then self.directives.trigger[1] = true end
 	if not self.directives.name then self.directives.name = "" end
 
-	return self.directives, string.Implode("\n", lines)
+	return self.directives, table.concat(lines, "\n")
 end
 
 function PreProcessor:ParsePorts(ports, startoffset)
@@ -365,12 +374,14 @@ function PreProcessor:ParsePorts(ports, startoffset)
 
 	-- Preprocess [Foo Bar]:entity into [Foo,Bar]:entity so we don't have to deal with split-up multi-variable definitions in the main loop
 	ports = ports:gsub("%[.-%]", function(s)
-		return s:gsub(" ", ",")
+		return string.Replace(s, " ", ",")
 	end)
 
-	for column, key in ports:gmatch("()([^ ]+)") do
+	for column, key in ports:gmatch("()(%S+)") do
+		---@cast column integer
+		---@cast key string
+
 		column = startoffset + column
-		key = key:Trim()
 
 		-------------------------------- variable names --------------------------------
 
@@ -385,19 +396,29 @@ function PreProcessor:ParsePorts(ports, startoffset)
 			if not i then
 				-- no -> malformed variable name
 				self:Error("Variable name (" .. E2Lib.limitString(key, 10) .. ") must start with an uppercase letter", column)
-			end
-			-- yes -> add all variables.
-			for column2, var in namestring:gmatch("()([^,]+)") do
-				column2 = column + column2
-				var = string.Trim(var)
-				-- skip empty entries
-				if var ~= "" then
-					-- error on malformed variable names
-					if not var:match("^[A-Z]") then self:Error("Variable name (" .. E2Lib.limitString(var, 10) .. ") must start with an uppercase letter", column2) end
-					local errcol = var:find("[^A-Za-z0-9_]")
-					if errcol then self:Error("Variable declaration (" .. E2Lib.limitString(var, 10) .. ") contains invalid characters", column2 + errcol - 1) end
-					-- and finally add the variable.
-					names[#names + 1] = var
+				goto cont
+			else
+				-- yes -> add all variables.
+				for column2, var in namestring:gmatch("()([^,]+)") do
+					column2 = column + column2
+					var = string.Trim(var)
+					-- skip empty entries
+					if var ~= "" then
+						-- error on malformed variable names
+						if not var:match("^[A-Z]") then
+							self:Error("Variable name (" .. E2Lib.limitString(var, 10) .. ") must start with an uppercase letter", column2)
+							goto cont
+						else
+							local errcol = var:find("[^A-Za-z0-9_]")
+							if errcol then
+								self:Error("Variable declaration (" .. E2Lib.limitString(var, 10) .. ") contains invalid characters", column2 + errcol - 1)
+								goto cont
+							else
+								-- and finally add the variable.
+								names[#names + 1] = var
+							end
+						end
+					end
 				end
 			end
 		end
@@ -412,31 +433,34 @@ function PreProcessor:ParsePorts(ports, startoffset)
 
 			if vtype ~= vtype:lower() then
 				self:Error("Variable type [" .. E2Lib.limitString(vtype, 10) .. "] must be lowercase", column + i + 1)
-			end
-
-			if vtype == "normal" then
+				goto cont
+			elseif vtype == "number" then
+				vtype = "normal"
+			elseif vtype == "normal" then
 				self:Warning("Variable type [normal] is deprecated (use number instead)", column + i + 1)
-			else
-				if vtype == "number" then vtype = "normal" end
-
-				if not wire_expression_types[vtype:upper()] then
-					self:Error("Unknown variable type [" .. E2Lib.limitString(vtype, 10) .. "] specified for variable(s) (" .. E2Lib.limitString(namestring, 10) .. ")", column + i + 1)
-				end
 			end
 		elseif character == "" then
-			-- type is not specified -> default to NORMAL
-			vtype = "NORMAL"
+			-- type is not specified -> default to number
+			vtype = "normal"
 		else
 			-- invalid -> raise an error
 			self:Error("Variable declaration (" .. E2Lib.limitString(key, 10) .. ") contains invalid characters", column + i)
+			goto cont
 		end
 
 		-- fill in the missing types
 		for i = #types + 1, #names do
-			types[i] = vtype:upper()
-			columns[i] = column
-			lines[i] = self.readline
+			local ty = wire_expression_types[vtype:upper()]
+			if ty then
+				types[i] = ty[1]
+				columns[i] = column
+				lines[i] = self.readline
+			else
+				self:Error("Unknown variable type [" .. E2Lib.limitString(vtype, 10) .. "]", column + i + 1)
+			end
 		end
+
+		::cont::
 	end
 
 	return { names, types }, columns, lines

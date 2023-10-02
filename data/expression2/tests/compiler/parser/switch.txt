@@ -1,0 +1,13 @@
+## SHOULD_PASS:COMPILE
+
+switch (2) {
+	case 1,
+	case Var,
+	default,
+}
+
+switch (3) {
+	case 1, break,
+	case 2,
+	default, break
+}

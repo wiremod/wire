@@ -87,6 +87,9 @@ function EDITOR:Init()
 	self.LastClick = 0
 
 	self.e2fs_functions = {}
+	self.e2fs_methods = {}
+
+	self.e2_functionsig_lookup = {}
 
 	self.Colors = {
 		dblclickhighlight = Color(0, 100, 0),
@@ -2183,7 +2186,7 @@ end
 -- Adds all matching functions to the suggestions table
 --------------------
 
-local function GetTableForFunction()
+local function GetTableForFunction(udf)
 	return {
 		nice_str = function( t ) return t.data[2] end,
 			str = function( t ) return t.data[1] end,
@@ -2196,7 +2199,9 @@ local function GetTableForFunction()
 				return ret..(has_bracket and "" or "()"), #ret+1
 			end,
 			others = function( t ) return t.data[3] end,
-			description = function( t )
+			description = udf and function(t)
+				return "A userfunction\n"
+			end or function( t )
 				if t.data[4] and E2Helper.Descriptions[t.data[4]] then
 					return E2Helper.Descriptions[t.data[4]]
 				end
@@ -2206,8 +2211,8 @@ local function GetTableForFunction()
 			end,
 			data = {},
 
-			selected_color = AC_COLOR_FUNCTION_SELECTED,
-			color = AC_COLOR_FUNCTION
+			selected_color = udf and AC_COLOR_USERFUNCTION_SELECTED or AC_COLOR_FUNCTION_SELECTED,
+			color = udf and AC_COLOR_USERFUNCTION or AC_COLOR_FUNCTION
 		}
 end
 
@@ -2221,9 +2226,9 @@ local function FindFunctions( self, has_colon, word )
 	local suggested = {}
 	local suggestions = {}
 
-	for func_id,_ in pairs( wire_expression2_funcs ) do
-		if wordl == func_id:lower():sub(1,len) then -- Check if the beginning of the word matches
-			local name, types = func_id:match( "(.+)(%b())" ) -- Get the function name and types
+	local function handle(id, udf)
+		if wordl == id:lower():sub(1, len) then -- Check if the beginning of the word matches
+			local name, types = id:match( "(.+)(%b())" ) -- Get the function name and types
 			local first_type, colon, other_types = types:match( "%((%w*)(:?)(.*)%)" ) -- Sort the function types
 			if (colon == ":") == has_colon then -- If they both have colons (or not)
 				first_type = first_type:upper()
@@ -2234,12 +2239,12 @@ local function FindFunctions( self, has_colon, word )
 
 					-- Add to suggestions
 					if colon == ":" then
-						local t = GetTableForFunction()
-						t.data = { name, first_type .. ":" .. name .. "(" .. other_types .. ")", {}, func_id }
+						local t = GetTableForFunction(udf)
+						t.data = { name, first_type .. ":" .. name .. "(" .. other_types .. ")", {}, id }
 						suggestions[count] = t
 					else
-						local t = GetTableForFunction()
-						t.data = { name, name .. "(" .. first_type .. ")", {}, func_id }
+						local t = GetTableForFunction(udf)
+						t.data = { name, name .. "(" .. first_type .. ")", {}, id }
 						suggestions[count] = t
 					end
 				else -- If it has already been suggested
@@ -2249,18 +2254,27 @@ local function FindFunctions( self, has_colon, word )
 
 					-- Add it to the end of the list
 					if colon == ":" then
-						local t = GetTableForFunction()
-						t.data = { name, first_type .. ":" .. name .. "(" .. other_types .. ")", nil, func_id }
+						local t = GetTableForFunction(udf)
+						t.data = { name, first_type .. ":" .. name .. "(" .. other_types .. ")", nil, id }
 						others[i] = t
 					else
-						local t = GetTableForFunction()
-						t.data = { name, name .. "(" .. first_type .. ")", nil, func_id }
+						local t = GetTableForFunction(udf)
+						t.data = { name, name .. "(" .. first_type .. ")", nil, id }
 						others[i] = t
 					end
 				end
 			end
 		end
 	end
+
+	for id in pairs( wire_expression2_funcs ) do
+		handle(id)
+	end
+
+	for id in pairs( self.e2_functionsig_lookup ) do
+		handle(id, true)
+	end
+
 	return suggestions
 end
 

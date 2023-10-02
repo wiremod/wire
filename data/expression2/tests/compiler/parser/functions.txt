@@ -1,0 +1,18 @@
+## SHOULD_PASS:COMPILE
+
+function unimplemented(_) {}
+unimplemented(5)
+
+function f() {}
+function r() { return }
+
+function number test() { return 55 }
+function entity:test() { return void }
+function number test(X, Y: vector) { return X }
+function number test([X Y]) { return X + Y }
+function number test([X Y]: number) { return X + Y }
+
+function number entity:test(...Variadic:array) {
+	Expression = ( test() + 2 )
+	return Expression
+}

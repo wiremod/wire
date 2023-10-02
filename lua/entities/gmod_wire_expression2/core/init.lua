@@ -5,9 +5,6 @@ AddCSLuaFile()
   Andreas "Syranide" Svensson, me@syranide.com
 ]]
 
-wire_expression2_delta = 0.0000001000000
-delta = wire_expression2_delta
-
 -- functions to type-check function return values.
 
 local wire_expression2_debug = CreateConVar("wire_expression2_debug", 0, 0)
@@ -172,14 +169,70 @@ function __e2getcost()
 	return tempcost
 end
 
-function registerOperator(name, pars, rets, func, cost, argnames)
+---@param args string
+---@return string?, table
+local function getArgumentTypeIds(args)
+	local thistype, nargs = args:match("^([^:]+):(.*)$")
+	if nargs then args = nargs end
+
+	local out, ptr = {}, 1
+	while ptr <= #args do
+		local c = args:sub(ptr, ptr)
+		if c == "x" then
+			out[#out + 1] = args:sub(ptr, ptr + 2)
+			ptr = ptr + 3
+		elseif args:sub(ptr) == "..." then
+			out[#out + 1] = "..."
+			ptr = ptr + 3
+		elseif c:match("^%w") then
+			out[#out + 1] = c
+			ptr = ptr + 1
+		else
+			error("Invalid signature: " .. args)
+		end
+	end
+
+	return thistype, out
+end
+
+local EnforcedTypings = {
+	["is"] = "n"
+}
+
+---@param name string
+---@param pars string
+---@param rets string
+---@param func fun(state: RuntimeContext, ...): any
+---@param cost integer?
+---@param argnames string[]?
+---@param attributes table<string, string|boolean>?
+function registerOperator(name, pars, rets, func, cost, argnames, attributes)
+	if attributes and attributes.legacy == nil then
+		-- can explicitly mark "false" (used by extpp)
+		attributes.legacy = true
+	elseif not attributes then
+		attributes = { legacy = true }
+	end
+
+	local enforced = EnforcedTypings[name]
+	if enforced and rets ~= enforced then
+		error("Registering invalid operator '" .. name .. "' (must return type " .. enforced .. ")")
+	end
+
 	local signature = "op:" .. name .. "(" .. pars .. ")"
 
-	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames }
+	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, attributes = attributes }
 	if wire_expression2_debug:GetBool() then makecheck(signature) end
 end
 
 function registerFunction(name, pars, rets, func, cost, argnames, attributes)
+	if attributes and attributes.legacy == nil then
+		-- can explicitly mark "false" (used by extpp)
+		attributes.legacy = true
+	elseif not attributes then
+		attributes = { legacy = true }
+	end
+
 	local signature = name .. "(" .. pars .. ")"
 
 	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, extension = E2Lib.currentextension, attributes = attributes }
@@ -188,10 +241,8 @@ function registerFunction(name, pars, rets, func, cost, argnames, attributes)
 	if wire_expression2_debug:GetBool() then makecheck(signature) end
 end
 
-function E2Lib.registerConstant(name, value, literal)
+function E2Lib.registerConstant(name, value)
 	if name:sub(1, 1) ~= "_" then name = "_" .. name end
-	if not value and not literal then value = _G[name] end
-
 	wire_expression2_constants[name] = value
 end
 
@@ -312,12 +363,13 @@ if SERVER then
 				}
 			end
 
-			miscdata = { {}, wire_expression2_constants, events_sanitized }
-
-			functiondata = {}
+			local types = {}
 			for typename, v in pairs(wire_expression_types) do
-				miscdata[1][typename] = v[1] -- typeid (s)
+				types[typename] = v[1] -- typeid (s)
 			end
+
+			miscdata = { types, wire_expression2_constants, events_sanitized }
+			functiondata = {}
 
 			for signature, v in pairs(wire_expression2_funcs) do
 				functiondata[signature] = { v[2], v[4], v.argnames, v.extension, v.attributes } -- ret (s), cost (n), argnames (t), extension (s), attributes (t)
@@ -418,7 +470,7 @@ elseif CLIENT then
 		end
 	end
 
-	---@param events table<string, {name: string, args: { [1]: string, [2]: string }[]}>
+	---@param events table<string, {name: string, args: { placeholder: string, type: string }[]}>
 	local function insertMiscData(types, constants, events)
 		wire_expression2_reset_extensions()
 

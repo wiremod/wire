@@ -31,7 +31,18 @@ if ENT then
 			chip.script = nil
 		end
 
+
+		_Msg("Reloading Expression 2 internals.")
+		include("entities/gmod_wire_expression2/core/e2lib.lua")
+		include("entities/gmod_wire_expression2/base/debug.lua")
+		include("entities/gmod_wire_expression2/base/preprocessor.lua")
+		include("entities/gmod_wire_expression2/base/tokenizer.lua")
+		include("entities/gmod_wire_expression2/base/parser.lua")
+		include("entities/gmod_wire_expression2/base/compiler.lua")
+
 		_Msg( "Reloading Expression 2 extensions." )
+		include("entities/gmod_wire_expression2/core/init.lua")
+
 		ENT = wire_expression2_ENT
 		wire_expression2_is_reload = true
 		include( "entities/gmod_wire_expression2/core/extloader.lua" )
@@ -77,10 +88,8 @@ end
 
 -- parses and executes an extension
 local function e2_include_pass2(name, luaname, contents)
-	local preprocessedSource = E2Lib.ExtPP.Pass2(contents)
-
+	local preprocessedSource = E2Lib.ExtPP.Pass2(contents, luaname)
 	E2Lib.currentextension = string.StripExtension( string.GetFileFromFilename(name) )
-
 	if not preprocessedSource then return include(name) end
 
 	local func = CompileString(preprocessedSource, luaname)
@@ -156,7 +165,6 @@ e2_include("custom.lua")
 e2_include("datasignal.lua")
 e2_include("egpfunctions.lua")
 e2_include("functions.lua")
-e2_include("strfunc.lua")
 e2_include("steamidconv.lua")
 e2_include("easings.lua")
 e2_include("damage.lua")

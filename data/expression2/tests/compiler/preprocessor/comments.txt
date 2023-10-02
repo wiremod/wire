@@ -1,0 +1,13 @@
+## SHOULD_PASS:COMPILE
+
+#[
+	Hello, world!
+]#
+
+#[]#
+#[ content ]#
+
+   #
+#
+
+#

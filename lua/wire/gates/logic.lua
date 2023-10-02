@@ -6,6 +6,7 @@ GateActions("Logic")
 
 GateActions["not"] = {
 	name = "Not (Invert)",
+	description = "Outputs 0 for inputs greater than 0, otherwise outputs 1.",
 	inputs = { "A" },
 	output = function(gate, A)
 		if (A > 0) then return 0 end
@@ -18,6 +19,7 @@ GateActions["not"] = {
 
 GateActions["and"] = {
 	name = "And (All)",
+	description = "Outputs 1 if all inputs are greater than 0.",
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
@@ -56,6 +58,7 @@ GateActions["or"] = {
 
 GateActions["xor"] = {
 	name = "Exclusive Or (Odd)",
+	description = "Outputs 1 if there is an odd amount of nonzero inputs.",
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
@@ -76,6 +79,7 @@ GateActions["xor"] = {
 
 GateActions["nand"] = {
 	name = "Not And (Not All)",
+	description = "Outputs 1 if there is 1 or 0 nonzero inputs.",
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
@@ -95,6 +99,7 @@ GateActions["nand"] = {
 
 GateActions["nor"] = {
 	name = "Not Or (None)",
+	description = "Outputs 1 if there are no inputs greater than 0.",
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
@@ -114,6 +119,7 @@ GateActions["nor"] = {
 
 GateActions["xnor"] = {
 	name = "Exclusive Not Or (Even)",
+	description = "Outputs 1 if there are an even amount of nonzero inputs.",
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)

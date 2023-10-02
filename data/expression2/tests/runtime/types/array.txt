@@ -1,0 +1,32 @@
+## SHOULD_PASS:EXECUTE
+
+local A = array()
+
+A:pushNumber(55)
+
+assert(A[1, number] == 55)
+assert(A:count() == 1)
+
+assert(A:popNumber() == 55)
+assert(A:count() == 0)
+
+local KV = array(
+	1 = 20,
+	50 = 200,
+	100 = 2000
+)
+
+assert(KV[1, number] == 20)
+assert(KV[50, number] == 200)
+assert(KV[100, number] == 2000)
+
+local Rec = 0
+foreach(I, V:number = KV) {
+	Rec++
+	assert(KV[I, number] == V)
+}
+
+assert(Rec == 1) # Only 1 because this breaks the internal ipairs impl (Shouldn't use an array like this anyway.)
+
+A[1, vector] = vec()
+assert(A[1, vector] == vec())
