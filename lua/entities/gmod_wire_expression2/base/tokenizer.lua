@@ -140,6 +140,19 @@ function Tokenizer:Warning(message, offset)
 	self.warnings[#self.warnings + 1] = { message = message, line = self.line, char = self.col + (offset or 0) }
 end
 
+local escapes = {
+	["\\"] = "\\",
+	["\""] = "\"",
+	["a"] = "\a",
+	["b"] = "\b",
+	["f"] = "\f",
+	["n"] = "\n",
+	["r"] = "\r",
+	["t"] = "\t",
+	["v"] = "\v",
+	["0"] = "\0"
+}
+
 ---@return Token?
 function Tokenizer:Next()
 	local match = self:ConsumePattern("^0x[0-9A-F]+")
@@ -249,11 +262,36 @@ function Tokenizer:Next()
 				if m:sub( -1, -1) == "\"" then
 					break
 				else -- Escape
-					local seq = "\\" .. self:ConsumePattern(".[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?[^\\\"]?}?", true)
-					local esc = WireLib.ParseEscapes(seq)
+					local char = self:At()
+					local esc
 
-					if seq == esc then
-						self:Warning("Invalid escape " .. esc:gsub("%G", " "))
+					-- Using %g here just to be a bit more informative on warnings
+					if escapes[char] then
+						self:NextChar()
+						esc = escapes[char]
+					elseif char == "u" then
+						self:NextChar()
+						esc = self:ConsumePattern("^{%g?%g?%g?%g?%g?%g?}") or ""
+						local num = tonumber(esc:sub(2, -2), 16)
+						if not num or num >= 0x10ffff then
+							esc = "\\" .. char .. esc
+							self:Warning("Invalid unicode escape " .. esc)
+						else
+							esc = utf8.char(num)
+						end
+					elseif char == "x" then
+						self:NextChar()
+						esc = self:ConsumePattern("^%g%g") or ""
+						local num = tonumber(esc, 16)
+						if not num then
+							esc = "\\" .. char.. esc
+							self:Warning("Invalid hexadecimal escape " .. esc)
+						else
+							esc = string.char(tonumber(esc, 16))
+						end
+					else
+						esc = "\\"
+						self:Warning("Invalid escape " .. "\\" .. char:gsub("%G", " "))
 					end
 
 					nbuffer = nbuffer + 1
@@ -264,7 +302,7 @@ function Tokenizer:Next()
 			end
 		end
 
-		return Token.new(TokenVariant.String, table.concat(buffer, '', 1, nbuffer))
+		return Token.new(TokenVariant.String, table.concat(buffer, "", 1, nbuffer))
 	end
 
 	if E2Lib.GrammarLookup[self:At()] then
