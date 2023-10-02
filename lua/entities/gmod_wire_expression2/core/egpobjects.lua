@@ -77,10 +77,6 @@ e2function number operator==(egpobject lhs, egpobject rhs)
 	return (lhs == rhs) and 1 or 0
 end
 
-e2function number operator!=(egpobject lhs, egpobject rhs)
-	return (lhs ~= rhs) and 1 or 0
-end
-
 ---- Functions
 
 ----------------------------
@@ -789,7 +785,7 @@ registerCallback("postinit", function()
 		__e2setcost(5)
 
 		-- Getter
-		registerOperator("idx", id .. "=xeos", id, function(self, args)
+		registerOperator("indexget", "xeos" .. id, id, function(self, args)
 			local op1, op2 = args[2], args[3]
 			local this, index = op1[1](self, op1), op2[1](self, op2)
 			local indexType = EGP_ALLOWED_ARGS[index]
@@ -805,10 +801,7 @@ registerCallback("postinit", function()
 		end)
 
 		-- Setter
-		registerOperator("idx", id .. "=xeos" .. id, id, function(self, args)
-			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
-			local this, index, value = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-
+		registerOperator("indexset", "xeos" .. id, id, function(self, this, index, value)
 			if not EGP_ALLOWED_ARGS[index] then return fixDefault(default) end
 
 			if not isValid(this) then return self:throw("Tried to acces invalid EGP Object", nil) end
@@ -819,9 +812,7 @@ registerCallback("postinit", function()
 		end)
 
 		-- Implicitly typed setter
-		registerOperator("idx", "xeos" .. id, id, function(self, args)
-			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
-			local this, index, value = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+		registerOperator("indexset", "xeos", id, function(self, this, index, value)
 			local indexType = EGP_ALLOWED_ARGS[index]
 
 			if not indexType then return end
@@ -840,8 +831,7 @@ registerCallback("postinit", function()
 	for name, id in pairs(workingSet) do
 		-- Indexed table "constructor"
 		registerFunction("egp" .. name, "xwl:nt", "xeo", function(self, args)
-			local op1, op2, op3 = args[2], args[3], args[4]
-			local this, index, args = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+			local this, index, args = args[1], args[2], args[3]
 			if not EGP:IsAllowed(self, this) then return NULL_EGPOBJECT end
 
 			local converted = {}
@@ -858,13 +848,12 @@ registerCallback("postinit", function()
 				Update(self, this)
 			end
 			return obj
-		end, 10, { "index", "args" })
+		end, 10, { "index", "args" }, { legacy = false })
 
 		--[[
 		-- Unindexed table constructor
 		registerFunction("egp" .. name, "xwl:t", "xeo", function(self, args)
-			local op1, op2 = args[2], args[3]
-			local this, args = op1[1](self, op1), op2[1](self, op2)
+			local this, index, args = args[1], args[2], args[3]
 
 			local converted = {}
 
@@ -880,7 +869,7 @@ registerCallback("postinit", function()
 				Update(self, this)
 				return obj
 			end
-		end, 10, { "this", "args" }, { "nodiscard" })
+		end, 10, { "this", "args" }, { nodiscard = true, legacy = false })
 		]]
 	end
 end)
