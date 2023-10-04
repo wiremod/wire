@@ -23,7 +23,7 @@ end, "compiler_quota_check")
 ---@field function { [1]: string, [2]: EnvFunction}?
 ---@field ops integer
 
----@alias VarData { type: string, trace_if_unused: Trace?, initialized: boolean, depth: integer }
+---@alias VarData { type: string, trace_if_unused: Trace?, const: boolean, initialized: boolean, depth: integer }
 
 ---@class Scope
 ---@field parent Scope?
@@ -917,6 +917,8 @@ local CompileVisitors = {
 			-- Local declaration. Fastest case.
 			local var_name = data[2][1][1].value
 			self:AssertW(not self.scope.vars[var_name], "Do not redeclare existing variable " .. var_name, trace)
+			self:Assert(not self.scope.vars[var_name] or not self.scope.vars[var_name].const, "Cannot redeclare constant variable", trace)
+
 			self.scope:DeclVar(var_name, { initialized = true, trace_if_unused = data[2][1][1].trace, type = value_ty })
 			return function(state) ---@param state RuntimeContext
 				state.Scope[var_name] = value(state)
@@ -973,6 +975,7 @@ local CompileVisitors = {
 					end
 				else
 					self:Assert(existing.type == value_ty, "Cannot assign type (" .. value_ty .. ") to variable of type (" .. existing.type .. ")", trace)
+					self:Assert(not existing.const, "Cannot assign to constant variable " .. var, trace)
 					existing.initialized = true
 
 					local id = existing.depth
@@ -1026,6 +1029,17 @@ local CompileVisitors = {
 			for _, stmt in ipairs(stmts) do
 				stmt(state, val)
 			end
+		end
+	end,
+
+	---@param data { [1]: Token<string>, [2]: Node }
+	[NodeVariant.Const] = function (self, trace, data)
+		local name, expr, expr_ty = data[1].value, self:CompileExpr(data[2])
+		self:Assert(not self.scope.vars[name], "Cannot redeclare existing variable " .. name, trace)
+		self.scope:DeclVar(name, { type = expr_ty, initialized = true, const = true, trace_if_unused = data[1].trace })
+
+		return function(state)
+			state.Scope[name] = expr(state)
 		end
 	end,
 

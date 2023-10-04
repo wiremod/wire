@@ -1,0 +1,4 @@
+## SHOULD_FAIL:COMPILE
+
+const X = 5
+local X = 2
