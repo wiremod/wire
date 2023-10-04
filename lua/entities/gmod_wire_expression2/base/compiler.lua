@@ -1583,7 +1583,7 @@ local CompileVisitors = {
 
 			local fn = state.funcs[sig] or state.funcs[meta_sig]
 			if fn then -- first check if user defined any functions that match signature
-				local r = state.funcs_ret[sig]
+				local r = state.funcs_ret[sig] or state.funcs_ret[meta_sig]
 				if r ~= ret_type then
 					state:forceThrow( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
 				end

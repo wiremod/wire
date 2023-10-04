@@ -47,3 +47,9 @@ function number:numMethod() {
 "numMethod"(1)
 
 assert(Called)
+
+function number number:returningmeta() {
+	return 6
+}
+
+assert( "returningmeta"(5)[number] == 6 )
