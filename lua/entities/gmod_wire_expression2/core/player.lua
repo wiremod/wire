@@ -985,6 +985,10 @@ E2Lib.registerEvent("playerChangedTeam", {
 	{ "NewTeam", "n" }
 })
 
+--[[--------------------------------------------------------------------------------------------]]--
+
+__e2setcost(1)
+
 e2function number usercmd:getMouseDeltaX()
 	return this:GetMouseX()
 end
