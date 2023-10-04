@@ -154,7 +154,8 @@ end
 
 function E2Lib.registerCallback(event, callback)
 	if not wire_expression_callbacks[event] then wire_expression_callbacks[event] = {} end
-	table.insert(wire_expression_callbacks[event], callback)
+	local currExt = E2Lib.currentextension
+	table.insert(wire_expression_callbacks[event], function(a, b, c, d, e, f) E2Lib.currentextension = currExt return callback(a, b, c, d, e, f) end)
 end
 
 registerCallback = E2Lib.registerCallback
