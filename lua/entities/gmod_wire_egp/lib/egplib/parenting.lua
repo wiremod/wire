@@ -153,7 +153,7 @@ function EGP:GetGlobalPos( Ent, index )
 				return true, ret
 			end
 			local ret = {}
-			if isstring(v.verticesindex) then ret = { [v.verticesindex] = makeTable( v, makeArray( v ) ) }	else ret = makeTable( v, makeArray( v ) ) end
+			if isstring(v.verticesindex) then ret = { [v.verticesindex] = makeTable( v, makeArray(v, true) ) }	else ret = makeTable( v, makeArray(v, true) ) end
 			return true, ret
 		else -- Object does not have vertices, parent does not
 			if (v.parent and v.parent ~= 0) then -- Object is parented
