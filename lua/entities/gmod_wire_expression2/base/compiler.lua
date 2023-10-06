@@ -536,8 +536,8 @@ local CompileVisitors = {
 
 		return function(state) ---@param state RuntimeContext
 			local expr = expr(state)
-
 			state:PushScope()
+
 			for i = 1, ncases do
 				local case = cases[i]
 				if case[1](state, expr) ~= 0 then
@@ -545,15 +545,17 @@ local CompileVisitors = {
 
 					if state.__break__ then
 						state.__break__ = false
-						state:PopScope()
-						return
+						goto exit
+					elseif state.__return__ then -- Yes this should only be checked if the switch is inside a function, but I don't care enough about the performance of switch case to add another duplicated 30 lines to the file
+						goto exit
 					else -- Fallthrough, run every case until break found.
 						for j = i + 1, ncases do
 							cases[j][2](state)
 							if state.__break__ then
 								state.__break__ = false
-								state:PopScope()
-								return
+								goto exit
+							elseif state.__return__ then
+								goto exit
 							end
 						end
 					end
@@ -564,6 +566,7 @@ local CompileVisitors = {
 				default(state)
 			end
 
+			::exit::
 			state:PopScope()
 		end
 	end,
