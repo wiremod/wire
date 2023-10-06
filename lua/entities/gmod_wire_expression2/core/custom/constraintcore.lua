@@ -91,11 +91,17 @@ local countLookup = {
 
 
 local function checkEnts(self, ent1, ent2)
-	if not IsValid(ent1) and not ent1:IsWorld() then return self:throw("Invalid entity!", false) end
-	if not IsValid(ent2) and not ent2:IsWorld() then return self:throw("Invalid target entity!", false) end
+	if not ent1 or not ent2 then return self:throw("Invalid entity!", false) end
 
-	if not isOwner(self, ent1) then return self:throw("You are not the owner of the entity!", false) end
-	if not isOwner(self, ent2) then return self:throw("You are not the owner of the target entity!", false) end
+	if not ent1:IsWorld() then
+		if not ent1:IsValid() then return self:throw("Invalid entity!", false) end
+		if not isOwner(self, ent1) then return self:throw("You are not the owner of the entity!", false) end
+	end
+
+	if not ent2:IsWorld() then
+		if not ent2:IsValid() then return self:throw("Invalid target entity!", false) end
+		if not isOwner(self, ent2) then return self:throw("You are not the owner of the target entity!", false) end
+	end
 
 	if ent1:IsPlayer() or ent2:IsPlayer() then return self:throw("Cannot constrain players!", false) end
 	return true
