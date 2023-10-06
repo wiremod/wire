@@ -54,6 +54,14 @@ function ENT:GetHoldClamped()
 	return math.max(self:GetHold(), 0)
 end
 
+function ENT:GetHoldTimerName()
+	return "wire_textentry_" .. self:EntIndex()
+end
+
+function ENT:RemoveHoldTimer()
+	timer.Remove(self:GetHoldTimerName())
+end
+
 ----------------------------------------------------
 -- UpdateOverlay
 ----------------------------------------------------
@@ -156,6 +164,8 @@ function ENT:OnRemove()
 		self.Vehicle.WireTextEntry = nil
 	end
 
+	self:RemoveHoldTimer()
+
 	self:Unprompt( true )
 end
 
@@ -187,7 +197,7 @@ function ENT:OnTextEntered(text)
 	WireLib.TriggerOutput( self, "Entered", 1 )
 	WireLib.TriggerOutput( self, "Entered", 0 )
 
-	local timername = "wire_textentry_" .. self:EntIndex()
+	local timername = self:GetHoldTimerName()
 	timer.Remove( timername )
 	if self:GetHoldClamped() > 0 then
 		timer.Create( timername, self:GetHoldClamped(), 1, function()
@@ -219,8 +229,7 @@ function ENT:Prompt( ply )
 		WireLib.TriggerOutput( self, "User", ply )
 		WireLib.TriggerOutput( self, "In Use", 1 )
 
-		local timername = "wire_textentry_" .. self:EntIndex()
-		timer.Remove( timername )
+		self:RemoveHoldTimer()
 
 		net.Start( "wire_textentry_show" )
 			net.WriteEntity( self )
@@ -244,8 +253,7 @@ function ENT:Unprompt( kickuser )
 		net.Start( "wire_textentry_kick" ) net.Send( self.User )
 	end
 
-	local timername = "wire_textentry_" .. self:EntIndex()
-	timer.Remove( timername )
+	self:RemoveHoldTimer()
 
 	self.User = nil
 	WireLib.TriggerOutput( self, "In Use", 0 )
