@@ -91,16 +91,15 @@ local countLookup = {
 
 
 local function checkEnts(self, ent1, ent2)
-
-	if not (ent1 and ent2) then return self:throw("Invalid entity (nil)!", false) end
+	if not ent1 or not ent2 then return self:throw("Invalid entity!", false) end
 
 	if not ent1:IsWorld() then
-		if not IsValid(ent1) then return self:throw("Invalid entity!", false) end
+		if not ent1:IsValid() then return self:throw("Invalid entity!", false) end
 		if not isOwner(self, ent1) then return self:throw("You are not the owner of the entity!", false) end
 	end
 
 	if not ent2:IsWorld() then
-		if not IsValid(ent2) then return self:throw("Invalid target entity!", false) end
+		if not ent2:IsValid() then return self:throw("Invalid target entity!", false) end
 		if not isOwner(self, ent2) then return self:throw("You are not the owner of the target entity!", false) end
 	end
 
