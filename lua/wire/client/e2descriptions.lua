@@ -376,16 +376,16 @@ E2Helper.Descriptions["setCollisionGroup(e:n)"] = "Sets the collision group of t
 E2Helper.Descriptions["noCollideAll"] = "Nocollides an entity to all entities/players, just like the tool's right-click"
 
 -- Movedata/Usercmd
-E2Helper.Descriptions["getMouseDeltaX()"] = "Returns the mouse delta of this command on the x-axis"
-E2Helper.Descriptions["getMouseDeltaY()"] = "Returns the mouse delta of this command on the y-axis"
-E2Helper.Descriptions["getForwardMove()"] = "Returns the forward/back movement of this command"
-E2Helper.Descriptions["getSideMove()"] = "Returns the strafe movement of this command"
-E2Helper.Descriptions["getUpMove()"] = "Returns the up/down movement of this command"
-E2Helper.Descriptions["getForwardSpeed()"] = "Returns the forward/back speed of the movedata"
-E2Helper.Descriptions["getSideSpeed()"] = "Returns the strafe speed of the movedata"
-E2Helper.Descriptions["getUpSpeed()"] = "Returns the up/down speed of the movedata"
-E2Helper.Descriptions["getMaxSpeed()"] = "Returns the movedata's maximum movement speed"
-E2Helper.Descriptions["getMoveAngles()"] = "Returns movedata's angles"
+E2Helper.Descriptions["getMouseDeltaX(xuc:)"] = "Returns the mouse delta of this command on the x-axis"
+E2Helper.Descriptions["getMouseDeltaY(xuc:)"] = "Returns the mouse delta of this command on the y-axis"
+E2Helper.Descriptions["getForwardMove(xuc:)"] = "Returns the forward/back movement of this command"
+E2Helper.Descriptions["getSideMove(xuc:)"] = "Returns the strafe movement of this command"
+E2Helper.Descriptions["getUpMove(xuc:)"] = "Returns the up/down movement of this command"
+E2Helper.Descriptions["getForwardSpeed(xmv:)"] = "Returns the forward/back speed of the movedata"
+E2Helper.Descriptions["getSideSpeed(xmv:)"] = "Returns the strafe speed of the movedata"
+E2Helper.Descriptions["getUpSpeed(xmv:)"] = "Returns the up/down speed of the movedata"
+E2Helper.Descriptions["getMaxSpeed(xmv:)"] = "Returns the movedata's maximum movement speed"
+E2Helper.Descriptions["getMoveAngles(xmv:)"] = "Returns movedata's angles"
 
 -- Attachment
 E2Helper.Descriptions["lookupAttachment(e:s)"] = "Returns Es attachment ID associated with attachmentName"
