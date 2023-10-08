@@ -994,46 +994,37 @@ e2function number usercmd:getMouseDeltaX()
 	return this:GetMouseX()
 end
 
-
 e2function number usercmd:getMouseDeltaY()
 	return this:GetMouseY()
 end
-
 
 e2function number usercmd:getForwardMove()
 	return this:GetForwardMove()
 end
 
-
 e2function number usercmd:getSideMove()
 	return this:GetSideMove()
 end
-
 
 e2function number usercmd:getUpMove()
 	return this:GetUpMove()
 end
 
-
 e2function number movedata:getForwardSpeed()
 	return this:GetForwardSpeed()
 end
-
 
 e2function number movedata:getSideSpeed()
 	return this:GetSideSpeed()
 end
 
-
 e2function number movedata:getUpSpeed()
 	return this:GetUpSpeed()
 end
 
-
 e2function number movedata:getMaxSpeed()
 	return this:GetMaxSpeed()
 end
-
 
 e2function angle movedata:getMoveAngles()
 	return this:GetMoveAngles()
