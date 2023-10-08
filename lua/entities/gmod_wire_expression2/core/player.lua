@@ -989,52 +989,52 @@ E2Lib.registerEvent("playerChangedTeam", {
 
 __e2setcost(1)
 
---- Returns <this>'s mouse delta on the x-axis.
+
 e2function number usercmd:getMouseDeltaX()
 	return this:GetMouseX()
 end
 
---- Returns <this>'s mouse delta on the y-axis.
+
 e2function number usercmd:getMouseDeltaY()
 	return this:GetMouseY()
 end
 
---- Returns <this>'s forward movement.
+
 e2function number usercmd:getForwardMove()
 	return this:GetForwardMove()
 end
 
---- Returns <this>'s strafe movement.
+
 e2function number usercmd:getSideMove()
 	return this:GetSideMove()
 end
 
---- Returns <this>'s upward movement.
+
 e2function number usercmd:getUpMove()
 	return this:GetUpMove()
 end
 
---- Returns <this>'s forward speed.
+
 e2function number movedata:getForwardSpeed()
 	return this:GetForwardSpeed()
 end
 
---- Returns <this>'s strafe speed.
+
 e2function number movedata:getSideSpeed()
 	return this:GetSideSpeed()
 end
 
---- Returns <this>'s upward speed.
+
 e2function number movedata:getUpSpeed()
 	return this:GetUpSpeed()
 end
 
---- Returns <this>'s max speed.
+
 e2function number movedata:getMaxSpeed()
 	return this:GetMaxSpeed()
 end
 
---- Returns <this>'s move angles.
+
 e2function angle movedata:getMoveAngles()
 	return this:GetMoveAngles()
 end
