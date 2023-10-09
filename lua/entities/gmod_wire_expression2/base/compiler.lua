@@ -23,7 +23,7 @@ end, "compiler_quota_check")
 ---@field function { [1]: string, [2]: EnvFunction}?
 ---@field ops integer
 
----@alias VarData { type: string, trace_if_unused: Trace?, initialized: boolean, depth: integer }
+---@alias VarData { type: string, trace_if_unused: Trace?, const: boolean, initialized: boolean, depth: integer }
 
 ---@class Scope
 ---@field parent Scope?
@@ -536,8 +536,8 @@ local CompileVisitors = {
 
 		return function(state) ---@param state RuntimeContext
 			local expr = expr(state)
-
 			state:PushScope()
+
 			for i = 1, ncases do
 				local case = cases[i]
 				if case[1](state, expr) ~= 0 then
@@ -545,15 +545,17 @@ local CompileVisitors = {
 
 					if state.__break__ then
 						state.__break__ = false
-						state:PopScope()
-						return
+						goto exit
+					elseif state.__return__ then -- Yes this should only be checked if the switch is inside a function, but I don't care enough about the performance of switch case to add another duplicated 30 lines to the file
+						goto exit
 					else -- Fallthrough, run every case until break found.
 						for j = i + 1, ncases do
 							cases[j][2](state)
 							if state.__break__ then
 								state.__break__ = false
-								state:PopScope()
-								return
+								goto exit
+							elseif state.__return__ then
+								goto exit
 							end
 						end
 					end
@@ -564,6 +566,7 @@ local CompileVisitors = {
 				default(state)
 			end
 
+			::exit::
 			state:PopScope()
 		end
 	end,
@@ -917,6 +920,8 @@ local CompileVisitors = {
 			-- Local declaration. Fastest case.
 			local var_name = data[2][1][1].value
 			self:AssertW(not self.scope.vars[var_name], "Do not redeclare existing variable " .. var_name, trace)
+			self:Assert(not self.scope.vars[var_name] or not self.scope.vars[var_name].const, "Cannot redeclare constant variable", trace)
+
 			self.scope:DeclVar(var_name, { initialized = true, trace_if_unused = data[2][1][1].trace, type = value_ty })
 			return function(state) ---@param state RuntimeContext
 				state.Scope[var_name] = value(state)
@@ -973,6 +978,7 @@ local CompileVisitors = {
 					end
 				else
 					self:Assert(existing.type == value_ty, "Cannot assign type (" .. value_ty .. ") to variable of type (" .. existing.type .. ")", trace)
+					self:Assert(not existing.const, "Cannot assign to constant variable " .. var, trace)
 					existing.initialized = true
 
 					local id = existing.depth
@@ -1026,6 +1032,17 @@ local CompileVisitors = {
 			for _, stmt in ipairs(stmts) do
 				stmt(state, val)
 			end
+		end
+	end,
+
+	---@param data { [1]: Token<string>, [2]: Node }
+	[NodeVariant.Const] = function (self, trace, data)
+		local name, expr, expr_ty = data[1].value, self:CompileExpr(data[2])
+		self:Assert(not self.scope.vars[name], "Cannot redeclare existing variable " .. name, trace)
+		self.scope:DeclVar(name, { type = expr_ty, initialized = true, const = true, trace_if_unused = data[1].trace })
+
+		return function(state)
+			state.Scope[name] = expr(state)
 		end
 	end,
 
@@ -1569,7 +1586,7 @@ local CompileVisitors = {
 
 			local fn = state.funcs[sig] or state.funcs[meta_sig]
 			if fn then -- first check if user defined any functions that match signature
-				local r = state.funcs_ret[sig]
+				local r = state.funcs_ret[sig] or state.funcs_ret[meta_sig]
 				if r ~= ret_type then
 					state:forceThrow( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
 				end

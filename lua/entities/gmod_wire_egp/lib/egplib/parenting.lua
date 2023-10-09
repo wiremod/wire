@@ -150,8 +150,8 @@ function EGP:GetGlobalPos( Ent, index )
 				ret.x, ret.y, ret.angle = vec.x, vec.y, -ang.y
 				return true, ret
 			end
-			local ret
-			if isstring(obj.verticesindex) then ret = { [obj.verticesindex] = makeTable( obj, makeArray( obj ) ) }	else ret = makeTable( obj, makeArray( obj ) ) end
+			local ret = {}
+			if isstring(obj.verticesindex) then ret = { [obj.verticesindex] = makeTable(obj, makeArray(obj, true)) }	else ret = makeTable(obj, makeArray(obj, true)) end
 			ret.x, ret.y, ret.angle = obj.x, obj.y, obj.angle
 			return true, ret
 		else -- Object does not have vertices
