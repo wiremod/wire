@@ -375,6 +375,18 @@ E2Helper.Descriptions["getCollisionGroup(e:)"] = "Returns the collision group of
 E2Helper.Descriptions["setCollisionGroup(e:n)"] = "Sets the collision group of the entity. Does not work on players. Use one of the _COLLISION_GROUP constants"
 E2Helper.Descriptions["noCollideAll"] = "Nocollides an entity to all entities/players, just like the tool's right-click"
 
+-- Movedata/Usercmd
+E2Helper.Descriptions["getMouseDeltaX(xuc:)"] = "Returns the mouse delta of this command on the x-axis"
+E2Helper.Descriptions["getMouseDeltaY(xuc:)"] = "Returns the mouse delta of this command on the y-axis"
+E2Helper.Descriptions["getForwardMove(xuc:)"] = "Returns the forward/back movement of this command"
+E2Helper.Descriptions["getSideMove(xuc:)"] = "Returns the strafe movement of this command"
+E2Helper.Descriptions["getUpMove(xuc:)"] = "Returns the up/down movement of this command"
+E2Helper.Descriptions["getForwardSpeed(xmv:)"] = "Returns the forward/back speed of the movedata"
+E2Helper.Descriptions["getSideSpeed(xmv:)"] = "Returns the strafe speed of the movedata"
+E2Helper.Descriptions["getUpSpeed(xmv:)"] = "Returns the up/down speed of the movedata"
+E2Helper.Descriptions["getMaxSpeed(xmv:)"] = "Returns the movedata's maximum movement speed"
+E2Helper.Descriptions["getMoveAngles(xmv:)"] = "Returns movedata's angles"
+
 -- Attachment
 E2Helper.Descriptions["lookupAttachment(e:s)"] = "Returns Es attachment ID associated with attachmentName"
 E2Helper.Descriptions["attachmentPos(e:n)"] = "Returns Es attachment position associated with attachmentID"
