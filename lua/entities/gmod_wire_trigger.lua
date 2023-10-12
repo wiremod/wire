@@ -93,6 +93,7 @@ function ENT:Setup( model, filter, owneronly, sizex, sizey, sizez, offsetx, offs
 		self:SetTriggerEntity( trig )
 		trig:SetTriggerEntity( self )
 		self:DeleteOnRemove( trig )
+		trig.DoNotDuplicate = true
 	end
 end
 
