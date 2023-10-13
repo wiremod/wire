@@ -697,7 +697,7 @@ local CompileVisitors = {
 			end
 		end
 
-		local fn = { args = param_types, returns = return_type and { return_type }, meta = meta_type, cost = variadic_ty and 25 or 10, attrs = {} }
+		local fn = { args = param_types, returns = return_type and { return_type }, meta = meta_type, cost = variadic_ty and 10 or 5 + (self.strict and 0 or 3), attrs = {} }
 		local sig = table.concat(param_types, "", 1, #param_types - 1) .. ((variadic_ty and ".." or "") .. (param_types[#param_types] or ""))
 
 		if meta_type then
