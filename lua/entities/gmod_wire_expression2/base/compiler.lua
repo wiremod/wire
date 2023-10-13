@@ -17,7 +17,6 @@ cvars.AddChangeCallback("wire_expression2_quotatick", function(_, old, new)
 end, "compiler_quota_check")
 
 ---@class ScopeData
----@field returned boolean?
 ---@field dead boolean?
 ---@field loop boolean?
 ---@field switch_case boolean?
@@ -313,8 +312,7 @@ local CompileVisitors = {
 			end)
 		end
 
-		if els and dead then
-			-- if (0) { return } else { return } mark any code after as dead
+		if els and dead then -- if (0) { return } else { return } mark any code after as dead
 			self.scope.data.dead = true
 		end
 
@@ -802,8 +800,8 @@ local CompileVisitors = {
 
 			block = self:CompileStmt(data[5])
 
-			if return_type then
-				self:Assert(scope.data.returned or scope.data.dead, "This function marked to return '" .. data[1].value .. "' must return a value", data[1].trace)
+			if return_type then -- Ensure function either returns or errors
+				self:Assert(scope.data.dead, "This function marked to return '" .. data[1].value .. "' must return a value", data[1].trace)
 			end
 		end)
 
@@ -892,7 +890,7 @@ local CompileVisitors = {
 		local fn = self.scope:ResolveData("function")
 		self:Assert(fn, "Cannot use `return` outside of a function", trace)
 
-		self.scope.data.dead, self.scope.data.returned = true, true
+		self.scope.data.dead = true
 
 		local retval, ret_ty
 		if data then
