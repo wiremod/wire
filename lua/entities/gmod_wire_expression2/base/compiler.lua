@@ -17,6 +17,7 @@ cvars.AddChangeCallback("wire_expression2_quotatick", function(_, old, new)
 end, "compiler_quota_check")
 
 ---@class ScopeData
+---@field returned boolean?
 ---@field dead boolean?
 ---@field loop boolean?
 ---@field switch_case boolean?
@@ -281,8 +282,10 @@ local CompileVisitors = {
 	---@param data { [1]: Node?, [2]: Node }[]
 	[NodeVariant.If] = function (self, trace, data)
 		local chain = {} ---@type { [1]: RuntimeOperator?, [2]: RuntimeOperator }[]
+		local dead, els = true, false
+
 		for i, ifeif in ipairs(data) do
-			self:Scope(function()
+			self:Scope(function(scope)
 				if ifeif[1] then -- if or elseif
 					local expr, expr_ty = self:CompileExpr(ifeif[1])
 
@@ -301,11 +304,20 @@ local CompileVisitors = {
 							self:CompileStmt(ifeif[2])
 						}
 					end
+
+					dead = dead and scope.data.dead
 				else -- else block
 					chain[i] = { nil, self:CompileStmt(ifeif[2]) }
+					dead, els = dead and scope.data.dead, true
 				end
 			end)
 		end
+
+		if els and dead then
+			-- if (0) { return } else { return } mark any code after as dead
+			self.scope.data.dead = true
+		end
+
 		return function(state) ---@param state RuntimeContext
 			for _, data in ipairs(chain) do
 				local cond, block = data[1], data[2]
@@ -668,7 +680,7 @@ local CompileVisitors = {
 			end
 		end
 
-		local fn = { args = param_types, returns = return_type and { return_type }, meta = meta_type, cost = 20, attrs = {} }
+		local fn = { args = param_types, returns = return_type and { return_type }, meta = meta_type, cost = variadic_ty and 25 or 10, attrs = {} }
 		local sig = table.concat(param_types, "", 1, #param_types - 1) .. ((variadic_ty and ".." or "") .. (param_types[#param_types] or ""))
 
 		if meta_type then
@@ -727,12 +739,8 @@ local CompileVisitors = {
 
 					state.Scopes, state.ScopeID, state.Scope = s_scopes, s_scopeid, s_scope
 
-					if state.__return__ then
-						state.__return__ = false
-						return state.__returnval__
-					elseif return_type then
-						state:forceThrow("Expected function return at runtime of type (" .. return_type .. ")")
-					end
+					state.__return__ = false
+					return state.__returnval__
 				end
 			else -- table
 				function fn.op(state, args, arg_types) ---@param state RuntimeContext
@@ -758,12 +766,8 @@ local CompileVisitors = {
 
 					state.Scopes, state.ScopeID, state.Scope = s_scopes, s_scopeid, s_scope
 
-					if state.__return__ then
-						state.__return__ = false
-						return state.__returnval__
-					elseif return_type then
-						state:forceThrow("Expected function return at runtime of type (" .. return_type .. ")")
-					end
+					state.__return__ = false
+					return state.__returnval__
 				end
 			end
 		else -- Todo: Make this output a different function when it doesn't early return, and/or has no parameters as an optimization.
@@ -784,23 +788,23 @@ local CompileVisitors = {
 
 				state.Scopes, state.ScopeID, state.Scope = s_scopes, s_scopeid, s_scope
 
-				if state.__return__ then
-					state.__return__ = false
-					return state.__returnval__
-				elseif return_type then
-					state:forceThrow("Expected function function at runtime of type (" .. return_type .. ")")
-				end
+				state.__return__ = false
+				return state.__returnval__
 			end
 		end
 
-		block = self:IsolatedScope(function (scope)
+		self:IsolatedScope(function (scope)
 			for i, type in ipairs(param_types) do
 				scope:DeclVar(param_names[i], { type = type, trace_if_unused = data[4][i] and data[4][i].name.trace or trace, initialized = true })
 			end
 
 			scope.data["function"] = { name.value, fn }
 
-			return self:CompileStmt(data[5])
+			block = self:CompileStmt(data[5])
+
+			if return_type then
+				self:Assert(scope.data.returned or scope.data.dead, "This function marked to return '" .. data[1].value .. "' must return a value", data[1].trace)
+			end
 		end)
 
 		self:Assert((fn.returns and fn.returns[1]) == return_type, "Function " .. name.value .. " expects to return type (" .. (return_type or "void") .. ") but got type (" .. ((fn.returns and fn.returns[1]) or "void") .. ")", trace)
@@ -887,6 +891,8 @@ local CompileVisitors = {
 	[NodeVariant.Return] = function (self, trace, data)
 		local fn = self.scope:ResolveData("function")
 		self:Assert(fn, "Cannot use `return` outside of a function", trace)
+
+		self.scope.data.dead, self.scope.data.returned = true, true
 
 		local retval, ret_ty
 		if data then
