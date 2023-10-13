@@ -1,0 +1,12 @@
+## SHOULD_FAIL:COMPILE
+
+function string failure() {
+	switch (5) {
+		case 2,
+			break
+		default,
+			break
+
+		# 'break' does not return a value or cause a runtime error, just early returns switch.
+	}
+}
