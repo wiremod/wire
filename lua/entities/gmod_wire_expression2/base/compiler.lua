@@ -1538,8 +1538,7 @@ local CompileVisitors = {
 		local nargs = #args
 		local user_method = self.user_methods[meta_type] and self.user_methods[meta_type][name.value] and self.user_methods[meta_type][name.value][arg_sig]
 		if user_method then
-			-- Calling a user function - chance of being overridden. Also not legacy.
-			if user_method.const then
+			if self.strict then -- If @strict, functions are compile time constructs (like events).
 				local fn = user_method.op
 				return function(state)
 					local rargs = { meta(state) }
@@ -1547,7 +1546,7 @@ local CompileVisitors = {
 						rargs[k + 1] = args[k](state)
 					end
 					return fn(state, rargs, types)
-				end
+				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
 			else
 				local full_sig = name.value .. "(" .. meta_type .. ":" .. arg_sig .. ")"
 				return function(state) ---@param state RuntimeContext
