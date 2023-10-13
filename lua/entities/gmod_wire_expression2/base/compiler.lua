@@ -81,6 +81,7 @@ end
 ---@field persist IODirective
 ---@field inputs IODirective
 ---@field outputs IODirective
+---@field strict boolean
 local Compiler = {}
 Compiler.__index = Compiler
 
@@ -100,7 +101,7 @@ end
 function Compiler.from(directives, dvars, includes)
 	local global_scope = Scope.new()
 	return setmetatable({
-		persist = directives.persist, inputs = directives.inputs, outputs = directives.outputs,
+		persist = directives.persist, inputs = directives.inputs, outputs = directives.outputs, strict = directives.strict,
 		global_scope = global_scope, scope = global_scope, warnings = {}, registered_events = {}, user_functions = {}, user_methods = {},
 		delta_vars = dvars or {}, includes = includes or {}
 	}, Compiler)
@@ -684,8 +685,11 @@ local CompileVisitors = {
 					self:Assert(fn_data.returns == nil, "Cannot override function returning void with differing return type", trace)
 				end
 
-				-- Tag function if it is ever re-declared. Used as an optimization
-				fn_data.const = fn_data.op == nil
+				if not self.strict then
+					self:Warning("Do not override functions. This is a hard error with @strict.", trace)
+				else
+					self:Error("Cannot override existing function '" .. name.value .. "'", trace)
+				end
 			end
 		end
 
@@ -821,9 +825,11 @@ local CompileVisitors = {
 		local sig = name.value .. "(" .. (meta_type and (meta_type .. ":") or "") .. sig .. ")"
 		local fn = fn.op
 
-		return function(state) ---@param state RuntimeContext
-			state.funcs[sig] = fn
-			state.funcs_ret[sig] = return_type
+		if not self.strict then
+			return function(state) ---@param state RuntimeContext
+				state.funcs[sig] = fn
+				state.funcs_ret[sig] = return_type
+			end
 		end
 	end,
 
@@ -1448,7 +1454,6 @@ local CompileVisitors = {
 			self:Warning("Use of deprecated function (" .. name.value .. ") " .. (type(value) == "string" and value or ""), trace)
 		end
 
-		self.scope.data.ops = self.scope.data.ops + ((fn_data.cost or 15) + (fn_data.attrs["legacy"] and 10 or 0))
 
 		if fn_data.attrs["noreturn"] then
 			self.scope.data.dead = true
@@ -1457,8 +1462,9 @@ local CompileVisitors = {
 		local nargs = #args
 		local user_function = self.user_functions[name.value] and self.user_functions[name.value][arg_sig]
 		if user_function then
-			-- Calling a user function - chance of being overridden. Also not legacy.
-			if user_function.const then
+			if self.strict then -- If @strict, functions are compile time constructs (like events).
+				self.scope.data.ops = self.scope.data.ops + fn_data.cost
+
 				local fn = user_function.op
 				return function(state)
 					local rargs = {}
@@ -1468,6 +1474,8 @@ local CompileVisitors = {
 					return fn(state, rargs, types)
 				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
 			else
+				self.scope.data.ops = self.scope.data.ops + 4 + ((fn_data.cost or 15) + (fn_data.attrs["legacy"] and 10 or 0))
+
 				local full_sig = name.value .. "(" .. arg_sig .. ")"
 				return function(state) ---@param state RuntimeContext
 					local rargs = {}
