@@ -672,6 +672,10 @@ local CompileVisitors = {
 			end
 		end
 
+		if self.strict and not self.scope:IsGlobalScope() then
+			self:Warning("Functions should be in the top scope, nesting them does nothing", trace)
+		end
+
 		local fn_data, lookup_variadic, userfunction = self:GetFunction(name.value, param_types, meta_type)
 		if fn_data then
 			if not userfunction then
