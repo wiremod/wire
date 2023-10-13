@@ -1459,8 +1459,6 @@ local CompileVisitors = {
 					return fn(state, rargs, types)
 				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
 			else
-				self.scope.data.ops = self.scope.data.ops + 3
-
 				local full_sig = name.value .. "(" .. arg_sig .. ")"
 				return function(state) ---@param state RuntimeContext
 					local rargs = {}
