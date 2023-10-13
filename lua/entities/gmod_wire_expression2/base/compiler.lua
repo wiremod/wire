@@ -1478,7 +1478,7 @@ local CompileVisitors = {
 					return fn(state, rargs, types)
 				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
 			else
-				self.scope.data.ops = self.scope.data.ops + 4 + ((fn_data.cost or 15) + (fn_data.attrs["legacy"] and 10 or 0))
+				self.scope.data.ops = self.scope.data.ops + (fn_data.cost or 15) + (fn_data.attrs["legacy"] and 10 or 0)
 
 				local full_sig = name.value .. "(" .. arg_sig .. ")"
 				return function(state) ---@param state RuntimeContext
