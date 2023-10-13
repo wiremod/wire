@@ -1,0 +1,9 @@
+## SHOULD_FAIL:COMPILE
+
+function string failure() {
+	switch (5) {
+		case 2,
+			return "boowomp"
+		# no default case, compiler can't guarantee that this always runs, fails to compile.
+	}
+}

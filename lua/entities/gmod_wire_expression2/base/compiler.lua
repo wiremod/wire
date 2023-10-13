@@ -17,7 +17,7 @@ cvars.AddChangeCallback("wire_expression2_quotatick", function(_, old, new)
 end, "compiler_quota_check")
 
 ---@class ScopeData
----@field dead boolean?
+---@field dead "ret"|true?
 ---@field loop boolean?
 ---@field switch_case boolean?
 ---@field function { [1]: string, [2]: EnvFunction}?
@@ -313,7 +313,7 @@ local CompileVisitors = {
 		end
 
 		if els and dead then -- if (0) { return } else { return } mark any code after as dead
-			self.scope.data.dead = true
+			self.scope.data.dead = "ret"
 		end
 
 		return function(state) ---@param state RuntimeContext
@@ -522,14 +522,16 @@ local CompileVisitors = {
 	---@param data { [1]: Node, [2]: {[1]: Node, [2]: Node}[], [3]: Node? }
 	[NodeVariant.Switch] = function (self, trace, data)
 		local expr, expr_ty = self:CompileExpr(data[1])
+		local dead = true
 
 		local cases = {} ---@type { [1]: RuntimeOperator, [2]: RuntimeOperator }[]
 		for i, case in ipairs(data[2]) do
 			local cond, cond_ty = self:CompileExpr(case[1])
-			local block
-			self:Scope(function(scope)
+			local block = self:Scope(function(scope)
 				scope.data.switch_case = true
-				block = self:CompileStmt(case[2])
+				local b = self:CompileStmt(case[2])
+				dead = dead and scope.data.dead == "ret"
+				return b
 			end)
 
 			local eq =  self:GetOperator("eq", { expr_ty, cond_ty }, case[1].trace)
@@ -541,7 +543,16 @@ local CompileVisitors = {
 			}
 		end
 
-		local default = data[3] and self:Scope(function() return self:CompileStmt(data[3]) end)
+		local default = data[3] and self:Scope(function(scope)
+			local b = self:CompileStmt(data[3])
+			dead = dead and scope.data.dead == "ret"
+			return b
+		end)
+
+		if dead and default then -- if all cases dead and has default case, mark scope as dead.
+			self.scope.data.dead = true
+		end
+
 		local ncases = #cases
 
 		return function(state) ---@param state RuntimeContext
@@ -890,7 +901,7 @@ local CompileVisitors = {
 		local fn = self.scope:ResolveData("function")
 		self:Assert(fn, "Cannot use `return` outside of a function", trace)
 
-		self.scope.data.dead = true
+		self.scope.data.dead = "ret"
 
 		local retval, ret_ty
 		if data then

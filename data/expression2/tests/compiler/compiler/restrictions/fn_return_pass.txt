@@ -11,3 +11,12 @@ function number deadcase() {
 		return 2321515
 	}
 }
+
+function number switchcase() {
+	switch (5) {
+		case 5,
+			return 2
+		default,
+			return 5
+	}
+}
