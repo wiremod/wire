@@ -520,7 +520,7 @@ function Parser:Stmt()
 	if self:Consume(TokenVariant.Keyword, Keyword.Do) then
 		local trace, block = self:Prev().trace, self:Block()
 		self:Assert( self:Consume(TokenVariant.Keyword, Keyword.While), "while expected after do and code block (do {...} )")
-		return Node.new(NodeVariant.While, { self:Condition(), block }, trace:stitch(self:Prev().trace))
+		return Node.new(NodeVariant.While, { self:Condition(), block, true }, trace:stitch(self:Prev().trace))
 	end
 
 	-- Event
