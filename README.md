@@ -19,7 +19,7 @@ You can find documentation [on our wiki](https://github.com/wiremod/wire/wiki)!
 
 ## 🤝 Contributing
 
-> Before contributing to wiremod, take a look at the [code of conduct](CODE_OF_CONDUCT.md).
+> Before contributing to wiremod, take a look at the [code of conduct](https://github.com/wiremod/wire/blob/master/CODE_OF_CONDUCT.md).
 
 ### 💡 Suggestions
 
