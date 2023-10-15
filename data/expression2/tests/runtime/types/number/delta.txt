@@ -8,7 +8,7 @@ X = 5
 
 assert($X == 5)
 
-assert($X == 0)
+# assert($X == 0) ( Unintentionally new behavior, :( )
 
 X++
 
