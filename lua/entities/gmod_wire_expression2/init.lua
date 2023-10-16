@@ -308,7 +308,8 @@ function ENT:CompileCode(buffer, files, filepath)
 	end
 
 	local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer,nil,self)
-	if not status then self:Error(directives) return end
+	if not status then return self:Error(directives[1].message) end
+
 	self.buffer = buffer
 	self.error = false
 
@@ -328,15 +329,15 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.trigger = directives.trigger
 
 	local status, tokens = E2Lib.Tokenizer.Execute(self.buffer)
-	if not status then self:Error(tokens) return end
+	if not status then self:Error(tokens[1].message) return end
 
 	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
-	if not status then self:Error(tree) return end
+	if not status then self:Error(tree.message) return end
 
 	if not self:PrepareIncludes(files) then return end
 
 	local status, script, inst = E2Lib.Compiler.Execute(tree, directives, dvars, self.includes)
-	if not status then self:Error(script) return end
+	if not status then self:Error(script.message) return end
 
 	self.script = script
 	self.registered_events = inst.registered_events
