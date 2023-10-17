@@ -4,11 +4,7 @@ local M_CTakeDamageInfo = FindMetaTable("CTakeDamageInfo")
 
 registerType("damage", "xdm", nil,
 	nil, nil,
-	function(retval)
-		if retval == nil then return end
-		if not istable(retval) then error("Return value is neither nil nor a table, but a " .. type(retval) .. "!",0) end
-		if getmetatable(retval) ~= M_CTakeDamageInfo then error("Return value is not a CTakeDamageInfo!", 0) end
-	end,
+	nil,
 	function(v)
 		return not istable(v) or getmetatable(v) ~= M_CTakeDamageInfo
 	end

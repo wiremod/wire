@@ -1,11 +1,7 @@
 registerType("entity", "e", nil,
 	nil,
 	function(self,output) return output or NULL end,
-	function(retval)
-		if IsValid(retval) then return end
-		if retval == nil then return end
-		if not retval.EntIndex then error("Return value is neither nil nor an Entity, but a "..type(retval).."!",0) end
-	end,
+	nil,
 	function(v)
 		return not isentity(v)
 	end

@@ -5,10 +5,7 @@ Angle support
 registerType("angle", "a", Angle(0, 0, 0),
 	nil,
 	function(self, output) return Angle(output) end,
-	function(retval)
-		if isangle(retval) then return end
-		error("Return value is not an Angle, but a "..type(retval).."!", 0)
-	end,
+	nil,
 	function(v)
 		return not isangle(v)
 	end

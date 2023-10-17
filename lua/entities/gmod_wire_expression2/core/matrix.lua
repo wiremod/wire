@@ -23,10 +23,7 @@ registerType("matrix2", "xm2", { 0, 0,
 		return ret
 	end,
 	nil,
-	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
-		if #retval ~= 4 then error("Return value does not have exactly 4 entries!",0) end
-	end,
+	nil,
 	function(v)
 		return !istable(v) or #v ~= 4
 	end
@@ -353,10 +350,7 @@ registerType("matrix", "m", { 0, 0, 0,
 		return ret
 	end,
 	nil,
-	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
-		if #retval ~= 9 then error("Return value does not have exactly 9 entries!",0) end
-	end,
+	nil,
 	function(v)
 		return !istable(v) or #v ~= 9
 	end
@@ -878,10 +872,7 @@ registerType("matrix4", "xm4", { 0, 0, 0, 0,
 		return ret
 	end,
 	nil,
-	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
-		if #retval ~= 16 then error("Return value does not have exactly 16 entries!",0) end
-	end,
+	nil,
 	function(v)
 		return !istable(v) or #v ~= 16
 	end

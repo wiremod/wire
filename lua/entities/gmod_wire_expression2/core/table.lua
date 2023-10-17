@@ -43,9 +43,7 @@ registerType("table", "t", newE2Table(),
 		return input
 	end,
 	nil,
-	function(retval)
-		if not istable(retval) then error("Return value is not a table, but a "..type(retval).."!", 0) end
-	end,
+	nil,
 	function(v)
 		return not istable(v)
 	end

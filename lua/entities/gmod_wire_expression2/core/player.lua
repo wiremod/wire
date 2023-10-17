@@ -22,23 +22,16 @@ local M_CMoveData = FindMetaTable("CMoveData")
 
 registerType("usercmd", "xuc", nil,
 	nil, nil,
-	function(retval)
-		if retval == nil then return end
-		if not istable(retval) then error("Return value is neither nil nor a table, but a " .. type(retval) .. "!",0) end
-		if getmetatable(retval) ~= M_CUserCmd then error("Return value is not a CUserCmd!", 0) end
-	end,
+	nil,
 	function(v)
 		return not istable(v) or getmetatable(v) ~= M_CUserCmd
 	end
 )
 
 registerType("movedata", "xmv", nil,
-	nil, nil,
-	function(retval)
-		if retval == nil then return end
-		if not istable(retval) then error("Return value is neither nil nor a table, but a " .. type(retval) .. "!",0) end
-		if getmetatable(retval) ~= M_CMoveData then error("Return value is not a CMoveData!", 0) end
-	end,
+	nil,
+	nil,
+	nil,
 	function(v)
 		return not istable(v) or getmetatable(v) ~= M_CMoveData
 	end
