@@ -170,8 +170,10 @@ end
 e2function void effect:play(string name)
 	if not this then return self:throw("Invalid effect!", nil) end
 	if not isAllowed(self) then return self:throw("Effect play() burst limit reached!", nil) end
+
+	name = name:lower()
 	if effect_blacklist[name] then return self:throw("This effect is blacklisted!", nil) end
-	if hook.Run( "Expression2_CanEffect", name:lower(), self ) == false then return self:throw("A hook prevented this function from running", nil) end
+	if hook.Run( "Expression2_CanEffect", name, self ) == false then return self:throw("A hook prevented this function from running", nil) end
 
 	fire(self, this, name)
 end
