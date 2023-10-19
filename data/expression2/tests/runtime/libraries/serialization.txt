@@ -1,0 +1,30 @@
+## SHOULD_PASS:EXECUTE
+
+assert( jsonEncode( table(1 = 1, 2 = 2) ) == "[1.0,2.0]" )
+
+assert( jsonEncode( table("foo", "bar", 1, "baz", array(1, 2, 3)) ) == "[\"foo\",\"bar\",1.0,\"baz\",[1.0,2.0,3.0]]" )
+
+const T0 = jsonDecode("[\"foo\",\"bar\",1.0,\"baz\",[1.0,2.0,3.0]]")
+assert(T0[1, string] == "foo")
+assert(T0[2, string] == "bar")
+assert(T0[3, number] == 1)
+assert(T0[4, string] == "baz")
+assert(T0[5, table][1, number] == 1) # Deserializes any table as table
+assert(T0[5, table][2, number] == 2)
+assert(T0[5, table][3, number] == 3)
+
+assert( vonEncode(array(1, 2, noentity())) == "n1;2;e0;" )
+
+assert( vonEncode(array("foo", 2, "qux")) == "'foo\"n2;'qux\"" )
+
+const T1 = vonDecode("'foo\"n2;'qux\"")
+assert(T1[1, string] == "foo")
+assert(T1[2, number] == 2)
+assert(T1[3, string] == "qux")
+
+assert( vonEncode(table(1, 2, array(noentity(), 2, 3))) == "~'ntypes\":{'n\"'n\"'r\"}'s\":{}'n\":{n1;2;{e0;n2;3}}'size\":n3;'stypes\":{}" )
+
+const T2 = vonDecodeTable("~'ntypes\":{'n\"'n\"'r\"}'s\":{}'n\":{n1;2;{e0;n2;3}}'size\":n3;'stypes\":{}")
+
+assert(T2[2, number] == 2)
+assert(T2[3, array][3, number] == 3)

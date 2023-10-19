@@ -6,10 +6,7 @@
 registerType("ranger", "xrd", nil,
 	nil,
 	nil,
-	function(retval)
-		if retval == nil then return end
-		if !istable(retval) then error("Return value is neither nil nor a table, but a "..type(retval).."!",0) end
-	end,
+	nil,
 	function(v)
 		return !istable(v) or not v.HitPos
 	end

@@ -5,71 +5,6 @@ AddCSLuaFile()
   Andreas "Syranide" Svensson, me@syranide.com
 ]]
 
--- functions to type-check function return values.
-
-local wire_expression2_debug = CreateConVar("wire_expression2_debug", 0, 0)
-
-if SERVER then
-	cvars.AddChangeCallback("wire_expression2_debug", function(CVar, PreviousValue, NewValue)
-		if PreviousValue == NewValue then return end
-		wire_expression2_reload()
-	end)
-end
-
---- This function ensures that the given function shows up by the given name in stack traces.
---- It does so by eval'ing a generated block of code which invokes the actual function.
---- Tail recursion optimization is specifically avoided by introducing a local variable in the generated code block.
-local function namefunc(func, name)
-	-- Filter the name
-	name = name:gsub("[^A-Za-z_0-9]", "_")
-
-	-- RunString doesn't have a return value, so we need to go via a global variable
-	wire_expression2_namefunc = func
-	RunString(([[
-		local %s = wire_expression2_namefunc
-		function wire_expression2_namefunc(...)
-			local ret = %s(...)
-			return ret
-		end
-	]]):format(name, name))
-	local ret = wire_expression2_namefunc
-	wire_expression2_namefunc = nil
-
-	-- Now ret contains the wrapped function and we can just return it.
-	return ret
-end
-
--- Installs a typecheck in a function identified by the given signature.
-local function makecheck(signature)
-	if signature == "op:seq()" then return end
-	local name = signature:match("^([^(]*)")
-	local entry = wire_expression2_funcs[signature]
-	local oldfunc, signature, rets, func = entry.oldfunc, unpack(entry)
-
-	if oldfunc then return end
-	oldfunc = namefunc(func, "e2_" .. name)
-
-	function func(...)
-		local retval = oldfunc(...)
-
-		local checker = wire_expression_types2[rets][5]
-		if not checker then return retval end
-
-		local ok, msg = pcall(checker, retval)
-		if ok then return retval end
-		debug.Trace()
-		local full_signature = E2Lib.generate_signature(signature, rets)
-		error(string.format("Type check for function %q failed: %s\n", full_signature, msg), 0)
-
-		return retval
-	end
-
-	entry[3] = func
-	entry.oldfunc = oldfunc
-end
-
--- ----------------------------------------------------------------------
-
 function wire_expression2_reset_extensions()
 	wire_expression_callbacks = {
 		construct = {},
@@ -79,13 +14,10 @@ function wire_expression2_reset_extensions()
 	}
 
 	wire_expression_types = {}
-	wire_expression_types2 = {
-		[""] = {
-			[5] = function(retval) if retval ~= nil then error("Return value of void function is not nil.", 0) end end
-		}
-	}
+	wire_expression_types2 = { [""] = {} } -- TODO: do we really need ""? :\
 	wire_expression2_funcs = {}
 	wire_expression2_funclist = {}
+
 	if CLIENT then wire_expression2_funclist_lowercase = {} end
 	wire_expression2_constants = {}
 end
@@ -100,7 +32,7 @@ end
 ---@param def T | nil
 ---@param input_serialize (fun(self, input: any): T)?
 ---@param output_serialize (fun(self, output: any): T)?
----@param type_check (fun(v: any))?
+---@param type_check (fun(v: any))? # DEPRECATED, NO LONGER USED. Can pass nil here safely.
 ---@param is_invalid (fun(v: any): boolean)?
 function registerType(name, id, def, input_serialize, output_serialize, type_check, is_invalid, ...)
 	if not isValidTypeId(id) then
@@ -223,7 +155,6 @@ function registerOperator(name, pars, rets, func, cost, argnames, attributes)
 	local signature = "op:" .. name .. "(" .. pars .. ")"
 
 	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, attributes = attributes }
-	if wire_expression2_debug:GetBool() then makecheck(signature) end
 end
 
 function registerFunction(name, pars, rets, func, cost, argnames, attributes)
@@ -239,11 +170,14 @@ function registerFunction(name, pars, rets, func, cost, argnames, attributes)
 	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, extension = E2Lib.currentextension, attributes = attributes }
 
 	wire_expression2_funclist[name] = true
-	if wire_expression2_debug:GetBool() then makecheck(signature) end
 end
 
 function E2Lib.registerConstant(name, value)
 	if name:sub(1, 1) ~= "_" then name = "_" .. name end
+
+	local ty = type(value)
+	assert(ty == "number" or ty == "string", "Invalid value passed to registerConstant (must be number or string)")
+
 	wire_expression2_constants[name] = value
 end
 

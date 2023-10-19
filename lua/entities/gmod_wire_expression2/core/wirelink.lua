@@ -123,11 +123,7 @@ end
 registerType("wirelink", "xwl", nil,
 	nil,
 	nil,
-	function(retval)
-		if IsValid(retval) then return end
-		if retval == nil then return end
-		if not retval.EntIndex then error("Return value is neither nil nor an Entity (and thus not a wirelink), but a "..type(retval).."!",0) end
-	end,
+	nil,
 	function(v)
 		return not IsValid(v)
 	end

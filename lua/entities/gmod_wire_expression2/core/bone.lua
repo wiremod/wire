@@ -79,11 +79,7 @@ E2Lib.isValidBone = isValidBone
 registerType("bone", "b", nil,
 	nil,
 	nil,
-	function(retval)
-		if retval == nil then return end
-		if type(retval) ~= "PhysObj" then error("Return value is neither nil nor a PhysObj, but a "..type(retval).."!",0) end
-		if not bone2entity[retval] then error("Return value is not a registered bone!",0) end
-	end,
+	nil,
 	function(b)
 		return not isValidBone(b)
 	end

@@ -22,9 +22,7 @@ end)
 registerType( "gtable", "xgt", {},
 	function(self) self.entity:Error("You may not input a gtable.") end,
 	function(self) self.entity:Error("You may not output a gtable.") end,
-	function(retval)
-		if !istable(retval) then error("Return value is not a gtable, but a "..type(retval).."!",0) end
-	end,
+	nil,
 	function(v)
 		return !istable(v)
 	end

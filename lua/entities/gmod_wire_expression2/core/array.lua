@@ -34,9 +34,7 @@ registerType("array", "r", {},
 		return ret
 	end,
 	nil,
-	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
-	end,
+	nil,
 	function(v)
 		return !istable(v)
 	end

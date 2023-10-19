@@ -34,11 +34,9 @@ local tanh   = math.tanh
 registerType("normal", "n", 0,
 	nil,
 	nil,
-	function(retval)
-		if !isnumber(retval) then error("Return value is not a number, but a "..type(retval).."!",0) end
-	end,
+	nil,
 	function(v)
-		return !isnumber(v)
+		return not isnumber(v)
 	end
 )
 

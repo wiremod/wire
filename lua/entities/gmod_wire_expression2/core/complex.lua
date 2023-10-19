@@ -44,10 +44,7 @@ __e2setcost(2)
 registerType("complex", "c", { 0, 0 },
 	function(self, input) return { input[1], input[2] } end,
 	nil,
-	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
-		if #retval ~= 2 then error("Return value does not have exactly 2 entries!",0) end
-	end,
+	nil,
 	function(v)
 		return !istable(v) or #v ~= 2
 	end

@@ -252,52 +252,6 @@ function E2Lib.canModifyPlayer(self, ply)
 	return isOwner(self, vehicle)
 end
 
--- ------------------------ type guessing ------------------------------------------
-
-local type_lookup = {
-	number = "n",
-	string = "s",
-	Vector = "v",
-	PhysObj = "b",
-}
-local table_length_lookup = {
-	[2] = "xv2",
-	[3] = "v",
-	[4] = "xv4",
-	[9] = "m",
-	[16] = "xm4",
-}
-
-function E2Lib.guess_type(value)
-	local vtype = type(value)
-	if type_lookup[vtype] then return type_lookup[vtype] end
-	if IsValid(value) then return "e" end
-	if value.EntIndex then return "e" end
-	if vtype == "table" then
-		if table_length_lookup[#value] then return table_length_lookup[#value] end
-		if value.HitPos then return "xrd" end
-	end
-
-	for typeid, v in pairs(wire_expression_types2) do
-		if v[5] then
-			local ok = pcall(v[5], value)
-			if ok then return typeid end
-		end
-	end
-
-	-- TODO: more type guessing here
-
-	return "" -- empty string = unknown type, for now.
-end
-
--- Types that cannot possibly be guessed correctly:
--- angle (will be reported as vector)
--- matrix2 (will be reported as vector4)
--- wirelink (will be reported as entity)
--- complex (will be reported as vector2)
--- quaternion (will be reported as vector4)
--- all kinds of nil stuff
-
 -- ------------------------ list filtering -------------------------------------------------
 
 function E2Lib.filterList(list, criterion)

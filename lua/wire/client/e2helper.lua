@@ -314,8 +314,7 @@ function E2Helper.Update()
 	E2Helper.constants = {}
 	if E2Helper.CurrentMode == true then
 		for k, v in pairs(wire_expression2_constants) do
-			-- set the type according to the functions
-			local strType = E2Lib.guess_type(v)
+			local strType = isstring(v) and "s" or "n"
 
 			-- constants have no arguments and no cost
 			local name, args, rets, cost = k, nil, strType, 0
