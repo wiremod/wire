@@ -48,9 +48,108 @@ local forbiddenTypes = {
 	["xwl"] = true
 }
 
-local typeSanitizers
+local sanitizeOutput
 
-local function sanitizeOutput ( self, glonOutputObject, objectType, safeGlonObjectMap )
+local typeSanitizers = {
+
+	-- Two sanitizers to help out with making older serialized data from before #2399 usable
+	["v"] = function ( self, glonOutputObject, safeGlonObjectMap )
+		if type(glonOutputObject) ~= "Vector" then
+			return Vector( glonOutputObject[1], glonOutputObject[2], glonOutputObject[3] )
+		end
+		return glonOutputObject
+	end,
+	["a"] = function ( self, glonOutputObject, safeGlonObjectMap )
+		if type(glonOutputObject) ~= "Angle" then
+			return Angle( glonOutputObject[1], glonOutputObject[2], glonOutputObject[3] )
+		end
+		return glonOutputObject
+	end,
+
+	["r"] = function ( self, glonOutputObject, safeGlonObjectMap )
+				if safeGlonObjectMap["r"][glonOutputObject] then
+					return safeGlonObjectMap["r"][glonOutputObject]
+				end
+
+				local safeArray = {}
+				if not glonOutputObject then return safeArray end
+				safeGlonObjectMap["r"][glonOutputObject] = safeArray
+
+				if !istable(glonOutputObject) then return safeArray end
+
+				for k, v in pairs(glonOutputObject) do
+					if type (k) == "number" then
+						safeArray[k] = v
+					end
+				end
+
+				return safeArray
+			end,
+	["t"] = function ( self, glonOutputObject, safeGlonObjectMap )
+				if safeGlonObjectMap["t"][glonOutputObject] then
+					return safeGlonObjectMap["t"][glonOutputObject]
+				end
+
+				local safeTable = newE2Table()
+				if not glonOutputObject then return safeTable end
+				safeGlonObjectMap["t"][glonOutputObject] = safeTable
+
+				if !istable(glonOutputObject) then return safeTable end
+
+				if istable(glonOutputObject.s) and istable(glonOutputObject.stypes) then
+					for k, v in pairs(glonOutputObject.s) do
+						local objectType = glonOutputObject.stypes[k]
+						local safeObject = sanitizeOutput( self, v, objectType, safeGlonObjectMap )
+						if safeObject then
+							safeTable.s[tostring(k)] = safeObject
+							safeTable.stypes[tostring(k)] = objectType
+							safeTable.size = safeTable.size + 1
+						end
+					end
+				end
+
+				if istable(glonOutputObject.n) and istable(glonOutputObject.ntypes) then
+					for k, v in pairs(glonOutputObject.n) do
+						if isnumber(k) then
+							local objectType = glonOutputObject.ntypes[k]
+							local safeObject = sanitizeOutput( self, v, objectType, safeGlonObjectMap )
+							if safeObject then
+								safeTable.n[k] = safeObject
+								safeTable.ntypes[k] = objectType
+								safeTable.size = safeTable.size + 1
+							end
+						end
+					end
+				end
+
+				return safeTable
+			end,
+	["external_t"] = function ( self, glonOutputObject, safeGlonObjectMap )
+				if safeGlonObjectMap["t"][glonOutputObject] then
+					return safeGlonObjectMap["t"][glonOutputObject]
+				end
+
+				local safeTable = {}
+				if not glonOutputObject then return safeTable end
+				safeGlonObjectMap["t"][glonOutputObject] = safeTable
+
+				if !istable(glonOutputObject) then return safeTable end
+
+				for k, v in pairs(glonOutputObject) do
+					local objectType, v = luaTypeToWireTypeid( v )
+					if objectType == "t" then objectType = "external_t" end
+
+					local safeObject = sanitizeOutput( self, v, objectType, safeGlonObjectMap )
+					if safeObject then
+						safeTable[k] = safeObject
+					end
+				end
+
+				return safeTable
+			end,
+}
+
+function sanitizeOutput ( self, glonOutputObject, objectType, safeGlonObjectMap )
 	self.prf = self.prf + 1
 
 	if not objectType then return end
