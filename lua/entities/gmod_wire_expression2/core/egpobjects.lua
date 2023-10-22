@@ -44,14 +44,10 @@ end
 
 ---- Type defintion
 
-registerType("egpobject", "xeo", nil,
+registerType("egpobject", "xeo", NULL_EGPOBJECT,
 	nil,
 	nil,
-	function(retval)
-		if retval == nil then return end
-		if not istable(retval) then error("Return value is neither nil nor a table, but a " .. type(retval) .. "!", 0) end
-		if not getmetatable(retval) == M_EGPObject then error("Return value is not an egpobject!", 0) end
-	end,
+	nil,
 	function(v)
 		return not istable(v) or getmetatable(v) ~= M_EGPObject
 	end
