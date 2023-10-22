@@ -1,0 +1,9 @@
+## SHOULD_PASS:EXECUTE
+
+local Ran = 0
+
+foreach(_:number, _:string = table( 123 = "foo" )) {
+	Ran = 1
+}
+
+assert(Ran)
