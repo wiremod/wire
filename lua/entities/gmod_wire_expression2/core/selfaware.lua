@@ -95,12 +95,13 @@ end)
 local function doSetName(self, this, name)
 	local data_SetName = self.data.SetName
 	if not data_SetName then
-		data_SetName = {}
+		data_SetName = { _n = 0 }
 		self.data.SetName = data_SetName
 	end
-	local hasSetName = data_SetName[this]
-	if hasSetName then return self:throw("You are using setName too fast!") end
+	if data_SetName._n >= 10 then return self:throw("You are calling setName too many times!") end
+	if data_SetName[this] then return self:throw("You are using setName too fast!") end
 	data_SetName[this] = true
+	data_SetName._n = data_SetName._n + 1
 
 	timer.Create("wire_doSetName_Cleanup", 1, 1, function()
 		self.data.SetName = nil
@@ -142,6 +143,8 @@ e2function void entity:setName( string name )
 	if E2Lib.getOwner(self, this) ~= self.player then return self:throw("You do not own this entity!", nil) end
 	doSetName(self,this,name)
 end
+
+__e2setcost(5)
 
 -- Get the name of another E2 or compatible entity or component name of wiremod components
 [nodiscard]
