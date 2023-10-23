@@ -92,9 +92,19 @@ end)
 -- Name functions
 
 
-local function doSetName(self,this,name)
-	if self.data.setNameNext and self.data.setNameNext > CurTime() then return end
-	self.data.setNameNext = CurTime() + 1
+local function doSetName(self, this, name)
+	local data_SetName = self.data.SetName
+	if not data_SetName then
+		data_SetName = {}
+		self.data.SetName = data_SetName
+	end
+	local hasSetName = data_SetName[this]
+	if hasSetName then return self:throw("You are using setName too fast!") end
+	data_SetName[this] = true
+
+	timer.Create("wire_doSetName_Cleanup", 1, 1, function()
+		self.data.SetName = nil
+	end)
 
 	if #name > 12000 then
 		name = string.sub( name, 1, 12000 )
@@ -112,8 +122,8 @@ local function doSetName(self,this,name)
 		this:SetNWString( "name", this.name )
 		this:SetOverlayText(name)
 	else
-		if this.wireName == name or string.find(name, "[\n\r\"]") ~= nil then return end
-		this.wireName = name
+		if string.find(name, "[\n\r\"]") then return self:throw("setName name contains illegal characters!") end
+		if this:GetNWString("WireName", "") == name then return end
 		this:SetNWString("WireName", name)
 		duplicator.StoreEntityModifier(this, "WireName", { name = name })
 	end
