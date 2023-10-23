@@ -106,8 +106,8 @@ local function doSetName(self, this, name)
 		self.data.SetName = nil
 	end)
 
-	if #name > 12000 then
-		name = string.sub( name, 1, 12000 )
+	if #name > 128 then
+		name = string.sub(name, 1, 128)
 	end
 
 	if this:GetClass() == "gmod_wire_expression2" then
@@ -128,6 +128,8 @@ local function doSetName(self, this, name)
 		duplicator.StoreEntityModifier(this, "WireName", { name = name })
 	end
 end
+
+__e2setcost(10)
 
 -- Set the name of the E2 itself
 e2function void setName( string name )
