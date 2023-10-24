@@ -98,18 +98,13 @@ local function doSetName(self, this, name)
 		data_SetName = { _n = 0 }
 		self.data.SetName = data_SetName
 	end
-	if data_SetName._n >= 10 then return self:throw("You are calling setName too many times!") end
+	if data_SetName._n >= 5 then return self:throw("You are calling setName too many times!") end
 	if data_SetName[this] then return self:throw("You are using setName too fast!") end
 	data_SetName[this] = true
-	data_SetName._n = data_SetName._n + 1
 
 	timer.Create("wire_doSetName_Cleanup", 1, 1, function()
 		self.data.SetName = nil
 	end)
-
-	if #name > 128 then
-		name = string.sub(name, 1, 128)
-	end
 
 	if this:GetClass() == "gmod_wire_expression2" then
 		if this.name == name then return end
@@ -120,17 +115,25 @@ local function doSetName(self, this, name)
 			this.WireDebugName = "E2 - " .. name
 		end
 		this.name = name
-		this:SetNWString( "name", this.name )
+
+		this:SetNWString("name", name)
 		this:SetOverlayText(name)
 	else
+		if #name > 200 then name = string.sub(name, 1, 200) end
 		if string.find(name, "[\n\r\"]") then return self:throw("setName name contains illegal characters!") end
 		if this:GetNWString("WireName", "") == name then return end
 		this:SetNWString("WireName", name)
 		duplicator.StoreEntityModifier(this, "WireName", { name = name })
+
 	end
+
+	local totalRuns = data_SetName._n
+	data_SetName._n = totalRuns + 1
+
+	self.prf = self.prf + math.max(totalRuns - 1, 0) * math.min(#name, 2048) -- It's very unlikely someone will set the name of 5 unique E2s to 2048+ character names.
 end
 
-__e2setcost(10)
+__e2setcost(50)
 
 -- Set the name of the E2 itself
 e2function void setName( string name )
@@ -143,6 +146,7 @@ e2function void entity:setName( string name )
 	if E2Lib.getOwner(self, this) ~= self.player then return self:throw("You do not own this entity!", nil) end
 	doSetName(self,this,name)
 end
+
 
 __e2setcost(5)
 
