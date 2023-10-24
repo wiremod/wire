@@ -314,7 +314,7 @@ function Tokenizer:Next()
 						end
 					elseif char == "x" then
 						self:NextChar()
-						esc = self:ConsumePattern("^[^\\\"][^\\\"]")
+						esc = self:ConsumePattern("^%x%x")
 						if not esc then
 							err = "Hexadecimal escape expects 2 hex digits"
 						else
