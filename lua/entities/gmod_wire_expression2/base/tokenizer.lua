@@ -296,9 +296,6 @@ function Tokenizer:Next()
 
 						esc = self:ConsumePattern("^%b{}", true)
 
-						print(line, col, self.line, self.col)
-						print(esc)
-
 						if not esc then err = "Unicode escape must end with }"
 						elseif #esc == 2 then err = "Unicode escape cannot be empty"
 						elseif #esc > 8 then err = "Unicode escape can only contain up to 6 characters"
