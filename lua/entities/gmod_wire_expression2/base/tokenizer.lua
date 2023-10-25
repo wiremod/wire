@@ -154,6 +154,34 @@ local escapes = {
 	["0"] = "\0"
 }
 
+local bit_band = bit.band
+local bit_bor = bit.bor
+local bit_rshift = bit.rshift
+local string_char = string.char
+local function toUnicodeChar(v)
+	if v < 0x80 then -- Single-byte sequence
+		return string_char(v)
+	elseif v < 0x800 then -- Two-byte sequence
+		return string_char(
+			bit_bor(0xC0, bit_band(bit_rshift(v, 6), 0x3F)),
+			bit_bor(0x80, bit_band(v, 0x3F))
+		 )
+	elseif v < 0x10000 then -- Three-byte sequence
+		 return string_char(
+			bit_bor(0xE0, bit_band(bit_rshift(v, 12), 0x3F)),
+			bit_bor(0x80, bit_band(bit_rshift(v, 6), 0x3F)),
+			bit_bor(0x80, bit_band(v, 0x3F))
+		 )
+	else -- Four-byte sequence
+		return string_char(
+			bit_bor(0xF0, bit_band(bit_rshift(v, 18), 0x07)),
+			bit_bor(0x80, bit_band(bit_rshift(v, 12), 0x3F)),
+			bit_bor(0x80, bit_band(bit_rshift(v, 6), 0x3F)),
+			bit_bor(0x80, bit_band(v, 0x3F))
+		 )
+	end
+end
+
 ---@return Token|nil|boolean # Either a token, `nil` for unexpected character, or `false` for error.
 function Tokenizer:Next()
 	local match = self:ConsumePattern("^%s+", true)
@@ -300,13 +328,22 @@ function Tokenizer:Next()
 						elseif #esc == 2 then err = "Unicode escape cannot be empty"
 						elseif #esc > 8 then err = "Unicode escape can only contain up to 6 characters"
 						else
-							local num = tonumber(esc:sub(2, -2), 16)
-							if not num then
+							esc = esc:sub(2, -2)
+							local illegal = esc:find("%X") -- Scan for bad characters
+							if illegal then
 								err = "Unicode escape must contain hexadecimal digits"
+								col = col + illegal + 1
+								goto _err
+							end
+							local num = tonumber(esc, 16)
+							if not num then
+								err = "Unicode escape is invalid"
+							elseif num < 0 then
+								err = "Unicode escape cannot be negative"
 							elseif num >= 0x10ffff then
 								err = "Unicode escape cannot be greater than 10ffff"
 							else
-								esc = utf8.char(num)
+								esc = toUnicodeChar(num)
 							end
 						end
 					elseif char == "x" then
