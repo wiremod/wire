@@ -414,13 +414,11 @@ end
 ----------------------------------------------------
 util.AddNetworkString("wire_interactiveprop_action")
 net.Receive("wire_interactiveprop_action",function(len,ply)
-	self = net.ReadEntity()
-	if not IsValid( self ) or not IsValid( ply ) or ply ~= self.User then return end
+	local ent = net.ReadEntity()
+	if not IsValid( ent ) or ent:GetClass() ~= "gmod_wire_interactiveprop" or ply ~= ent.User then return end
 
-	self:ReceiveData()
-
-
-	self:UpdateOverlay()
+	ent:ReceiveData()
+	ent:UpdateOverlay()
 end)
 
 ----------------------------------------------------
