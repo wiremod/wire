@@ -860,6 +860,11 @@ e2function void entity:setEyeTarget(vector pos)
 	this:SetEyeTarget(pos)
 end
 
+e2function void entity:setFlexWeight(number flex, number weight)
+	if not ValidAction(self, this, "flexweight" .. flex) then return end
+	this:SetFlexWeight(flex, weight)
+end
+
 __e2setcost(30)
 
 e2function void entity:setEyeTargetLocal(vector pos)
@@ -882,11 +887,6 @@ e2function void entity:setEyeTargetWorld(vector pos)
 		end
 	end
 	this:SetEyeTarget(pos)
-end
-
-e2function void entity:setFlexWeight(number flex, number weight)
-	if not ValidAction(self, this, "flexweight" .. flex) then return end
-	this:SetFlexWeight(flex, weight)
 end
 
 __e2setcost(20)
