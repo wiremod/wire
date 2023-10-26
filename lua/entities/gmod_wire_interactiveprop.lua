@@ -415,7 +415,7 @@ end
 util.AddNetworkString("wire_interactiveprop_action")
 net.Receive("wire_interactiveprop_action",function(len,ply)
 	local ent = net.ReadEntity()
-	if not IsValid( ent ) or ent:GetClass() ~= "gmod_wire_interactiveprop" or ply ~= ent.User then return end
+	if not ent:IsValid() or ent:GetClass() ~= "gmod_wire_interactiveprop" or ply ~= ent.User then return end
 
 	ent:ReceiveData()
 	ent:UpdateOverlay()
@@ -451,7 +451,7 @@ end
 util.AddNetworkString("wire_interactiveprop_close")
 net.Receive("wire_interactiveprop_close",function(len,ply)
     local ent = net.ReadEntity()
-    if not IsValid( ent ) or ent:GetClass() ~= "gmod_wire_interactiveprop" then return end
+    if not ent:IsValid() or ent:GetClass() ~= "gmod_wire_interactiveprop" then return end
     ent:Unprompt()
 end)
 
