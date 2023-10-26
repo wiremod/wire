@@ -7,8 +7,6 @@ local NULL_EGPOBJECT = EGP.NULL_EGPOBJECT
 local M_NULL_EGPOBJECT = getmetatable(NULL_EGPOBJECT)
 local M_EGPObject = getmetatable(EGP.Objects.Base)
 
-local maxobjects = EGP.ConVars.MaxObjects
-
 -- Table of allowed arguments and their types
 local EGP_ALLOWED_ARGS =
 	{
