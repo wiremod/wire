@@ -345,7 +345,6 @@ if CLIENT then
 	end)
 
 	return
-
 end
 
 function ENT:InitData()
@@ -451,13 +450,12 @@ end
 util.AddNetworkString("wire_interactiveprop_close")
 net.Receive("wire_interactiveprop_close",function(len,ply)
     local ent = net.ReadEntity()
-    if not ent:IsValid() or ent:GetClass() ~= "gmod_wire_interactiveprop" then return end
+    if not ent:IsValid() or ent:GetClass() ~= "gmod_wire_interactiveprop" or ply ~= ent.User then return end
     ent:Unprompt()
 end)
 
 util.AddNetworkString("wire_interactiveprop_kick")
 function ENT:Unprompt()
-
 	self.User = nil
 	self:UpdateOverlay()
 end
