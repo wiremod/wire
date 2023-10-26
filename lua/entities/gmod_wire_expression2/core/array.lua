@@ -237,8 +237,14 @@ registerCallback( "postinit", function()
 			end
 
 			registerOperator("iter", "n" .. id .. "=r", "", function(state, array)
-				return function()
-					return iter, array, 0
+				if array[0] then
+					return function()
+						return iter, array, -1
+					end
+				else
+					return function()
+						return iter, array, 0
+					end
 				end
 			end)
 
