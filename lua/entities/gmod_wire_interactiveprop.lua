@@ -452,8 +452,9 @@ end
 
 util.AddNetworkString("wire_interactiveprop_close")
 net.Receive("wire_interactiveprop_close",function(len,ply)
-local self = net.ReadEntity()
-self:Unprompt()
+    local ent = net.ReadEntity()
+    if not IsValid( ent ) or ent:GetClass() ~= "gmod_wire_interactiveprop" then return end
+    ent:Unprompt()
 end)
 
 util.AddNetworkString("wire_interactiveprop_kick")
