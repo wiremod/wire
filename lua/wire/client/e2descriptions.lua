@@ -395,6 +395,16 @@ E2Helper.Descriptions["attachmentPos(e:s)"] = "Same as E:attachmentPos(E:lookupA
 E2Helper.Descriptions["attachmentAng(e:s)"] = "Same as E:attachmentAng(E:lookupAttachment(attachmentName))"
 E2Helper.Descriptions["attachments(e:)"] = "Returns array of attachment names of the entity"
 
+-- Flexes
+E2Helper.Descriptions["getFlexBounds"] = "Gets the upper and lower bounds of the flex if it exists"
+E2Helper.Descriptions["getFlexCount"] = "Gets the number of flexes on the entity"
+E2Helper.Descriptions["getFlexID"] = "Gets the flex ID of the given name or -1 if it doesn't exist"
+E2Helper.Descriptions["getFlexName"] = "Gets the name of the flex"
+E2Helper.Descriptions["getFlexScale"] = "Gets the flex scale of the entity"
+E2Helper.Descriptions["getFlexWeight"] = "Gets the weight of the flex"
+E2Helper.Descriptions["getFlexes"] = "Gets a 0-indexed array of all flexes and their names"
+E2Helper.Descriptions["hasFlexes"] = "Returns 1 if the entity has flexes"
+
 -- Vector
 E2Helper.Descriptions["vec2(n)"] = "Makes a 2D vector"
 E2Helper.Descriptions["vec2(nn)"] = "Makes a 2D vector"
@@ -702,6 +712,8 @@ E2Helper.Descriptions["boneCount(e:)"] = "Returns Es number of bones"
 E2Helper.Descriptions["nobone()"] = "Returns an invalid bone"
 E2Helper.Descriptions["aimBone(e:)"] = "Returns the bone the player is currently aiming at"
 E2Helper.Descriptions["entity(b:)"] = "Returns the entity B belongs to"
+E2Helper.Descriptions["getJiggle(b:)"] = "Returns the jiggle amount of the bone"
+E2Helper.Descriptions["getScale(b:)"] = "Returns the visual scale of the bone"
 E2Helper.Descriptions["index(b:)"] = "Returns Bs index in the entity it belongs to. Returns -1 if the bone is invalid or an error occured"
 E2Helper.Descriptions["pos(b:)"] = "Returns Bs position"
 E2Helper.Descriptions["forward(b:)"] = "Returns a vector describing Bs forward direction"

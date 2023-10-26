@@ -1087,7 +1087,7 @@ e2function number entity:getFlexWeight(string flex)
 	return flex and this:GetFlexWeight(flex) or 0
 end
 
-__e2setcost(500)
+__e2setcost(50)
 
 e2function array entity:getFlexes()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
@@ -1095,6 +1095,7 @@ e2function array entity:getFlexes()
 	for i = 0, this:GetFlexNum() - 1 do
 		ret[i] = this:GetFlexName(i)
 	end
+	self.prf = self.prf + (#ret + 1) * 5
 	return ret
 end
 
