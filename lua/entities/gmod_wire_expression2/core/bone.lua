@@ -108,7 +108,7 @@ end
 --- Returns an array containing all of <this>'s bones. This array's first element has the index 0!
 e2function array entity:bones()
 	if not IsValid(this) then return { } end
-	return GetBones(this)
+	return table.Copy(GetBones(this))
 end
 
 --- Returns <this>'s number of bones.
@@ -291,6 +291,20 @@ e2function vector bone:inertia()
 	return this:GetInertia()
 end
 
+__e2setcost(5)
+
+e2function number bone:getJiggle()
+	local ent, index = isValidBone(this)
+	if not ent then return self:throw("Invalid bone!", 0) end
+	return ent:GetManipulateBoneJiggle(index) or 0
+end
+
+e2function vector bone:getScale()
+	local ent, index = isValidBone(this)
+	if not ent then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
+	return ent:GetManipulateBoneScale(index)
+end
+
 --[[************************************************************************]]--
 __e2setcost(30)
 
@@ -418,7 +432,3 @@ e2function string toString(bone b)
 end
 
 WireLib.registerDebuggerFormat("BONE", e2_tostring_bone)
-
---[[************************************************************************]]--
-
--- TODO: constraints
