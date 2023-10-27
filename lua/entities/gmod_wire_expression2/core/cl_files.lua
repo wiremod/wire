@@ -54,14 +54,15 @@ local function upload_callback()
 
 	local chunk_size = math.Clamp(#upload_buffer.data, 0, upload_chunk_size)
 
-	net.Start("wire_expression2_file_chunk")
+	net.Start("wire_expression2_file_upload")
+		net.WriteUInt(2, 2)
 		net.WriteUInt(chunk_size, 32)
 		net.WriteData(upload_buffer.data, chunk_size)
 	net.SendToServer()
 	upload_buffer.data = string.sub(upload_buffer.data, chunk_size + 1)
 
 	if upload_buffer.chunk >= upload_buffer.chunks then
-		net.Start("wire_expression2_file_finish") net.SendToServer()
+		net.Start("wire_expression2_file_upload") net.WriteUInt(3, 2) net.SendToServer()
 		timer.Remove( "wire_expression2_file_upload" )
 		return
 	end
@@ -69,62 +70,64 @@ local function upload_callback()
 	upload_buffer.chunk = upload_buffer.chunk + 1
 end
 
-net.Receive("wire_expression2_request_file_sp", function(netlen)
-	local fpath,fname = process_filepath(net.ReadString())
-	RunConsoleCommand("wire_expression2_file_singleplayer", fpath .. fname)
-end)
-
 net.Receive("wire_expression2_request_file", function(netlen)
 	local fpath,fname = process_filepath(net.ReadString())
-	local fullpath = fpath .. fname
-
-	if file.Exists( fullpath,"DATA" ) and file.Size( fullpath, "DATA" ) <= (cv_max_transfer_size:GetInt() * 1024) then
-		local filedata = file.Read( fullpath,"DATA" ) or ""
-
-		local len = #filedata
-
-		upload_buffer = {
-			chunk = 1,
-			chunks = math.ceil(len / upload_chunk_size),
-			data = filedata
-		}
-
-		net.Start("wire_expression2_file_begin")
-			net.WriteUInt(len, 32)
-		net.SendToServer()
-
-		timer.Create( "wire_expression2_file_upload", 1/60, upload_buffer.chunks, upload_callback )
+	if net.ReadBool() then
+		RunConsoleCommand("wire_expression2_file_singleplayer", fpath .. fname)
 	else
-		net.Start("wire_expression2_file_begin")
-			net.WriteUInt(0, 32) -- 404 file not found, send len of 0
-		net.SendToServer()
+		local fullpath = fpath .. fname
+
+		if file.Exists( fullpath,"DATA" ) and file.Size( fullpath, "DATA" ) <= (cv_max_transfer_size:GetInt() * 1024) then
+			local filedata = file.Read( fullpath,"DATA" ) or ""
+
+			local len = #filedata
+
+			upload_buffer = {
+				chunk = 1,
+				chunks = math.ceil(len / upload_chunk_size),
+				data = filedata
+			}
+
+			net.Start("wire_expression2_file_upload")
+				net.WriteUInt(1, 2)
+				net.WriteUInt(len, 32)
+			net.SendToServer()
+
+			timer.Create( "wire_expression2_file_upload", 1/60, upload_buffer.chunks, upload_callback )
+		else
+			net.Start("wire_expression2_file_upload")
+				net.WriteUInt(1, 2)
+				net.WriteUInt(0, 32) -- 404 file not found, send len of 0
+			net.SendToServer()
+		end
 	end
 end )
 
 --- File Write ---
-net.Receive("wire_expression2_file_download_begin", function( netlen )
-	local fpath,fname = process_filepath( net.ReadString() )
-	if not E2Lib.isValidFileWritePath(fname) then return end
-	if not file.Exists(fpath, "DATA") then file.CreateDir(fpath) end
-	download_buffer = {
-		name = fpath .. fname,
-		data = ""
-	}
-end )
+net.Receive("wire_expresison2_file_download", function()
+	local flag = net.ReadUInt(2)
+	if flag == 2 then -- Chunk
+		if not download_buffer.name then return end
+		local len = net.ReadUInt(32)
+		download_buffer.data = (download_buffer.data or "") .. net.ReadData(len)
+	elseif flag == 1 then -- Begin
+		local fpath,fname = process_filepath( net.ReadString() )
+		if not E2Lib.isValidFileWritePath(fname) then return end
+		if not file.Exists(fpath, "DATA") then file.CreateDir(fpath) end
+		download_buffer = {
+			name = fpath .. fname,
+			data = ""
+		}
+	elseif flag == 3 then -- End
+		if not download_buffer.name then return end
 
-net.Receive("wire_expression2_file_download_chunk", function( netlen )
-	if not download_buffer.name then return end
-	local len = net.ReadUInt(32)
-	download_buffer.data = (download_buffer.data or "") .. net.ReadData(len)
-end )
-
-net.Receive("wire_expresison2_file_download_finish", function( netlen )
-	if not download_buffer.name then return end
-
-	if net.ReadBit() ~= 0 then
-		file.Append( download_buffer.name, download_buffer.data )
-	else
-		file.Write( download_buffer.name, download_buffer.data )
+		if net.ReadBool() then
+			file.Append( download_buffer.name, download_buffer.data )
+		else
+			file.Write( download_buffer.name, download_buffer.data )
+		end
+	else -- Abort
+		download_buffer = {}
 	end
 end )
 
@@ -148,3 +151,8 @@ net.Receive( "wire_expression2_request_list", function( netlen )
 		end
 	net.SendToServer()
 end )
+
+net.Receive("wire_expression2_file_abort", function()
+	timer.Remove("wire_expression2_file_upload")
+	print("Aborted")
+end)
