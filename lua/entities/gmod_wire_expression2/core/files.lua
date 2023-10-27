@@ -317,7 +317,7 @@ end)
 util.AddNetworkString("wire_expression2_file_download")
 
 -- File transfer flags:
--- 0 - Abort (Do not call this for server->client upload, clients may be backing up data on removed)
+-- 0 - Abort
 -- 1 - Begin
 -- 2 - Upload
 -- 3 - End
