@@ -87,7 +87,7 @@ e2function egpobject egpobject:modify(table arguments)
 		if EGP_ALLOWED_ARGS[k] == arguments.stypes[k] or false then converted[k] = v end
 	end
 
-	if this:EditObject(converted) then EGP:DoAction(egp, self, "SendObject", this) Update(self, egp) end
+	if this:EditObject(converted) then EGP:DoAction(egp, self, "Update", this) Update(self, egp) end
 	return this
 end
 
@@ -583,8 +583,8 @@ end
 [nodiscard]
 e2function array egpobject:globalVertices()
 	if not isValid(this) then return self:throw("Invalid EGP Object", {}) end
-	local hasvertices, data = EGP:GetGlobalPos(this.EGP, this)
-	if hasvertices then
+	if this.verticesindex then
+		local data = EGP:GetGlobalVertices(this.EGP, this)
 		if data.vertices then
 			local ret = {}
 			for i = 1, #data.vertices do
@@ -598,9 +598,8 @@ e2function array egpobject:globalVertices()
 		elseif data.x and data.y and data.x2 and data.y2 then
 			return { {data.x, data.y}, {data.x2, data.y2} }
 		end
-	else
-		return {}
 	end
+	return {}
 end
 
 [nodiscard]
@@ -779,9 +778,7 @@ registerCallback("postinit", function()
 		__e2setcost(5)
 
 		-- Getter
-		registerOperator("indexget", "xeos" .. id, id, function(self, args)
-			local op1, op2 = args[2], args[3]
-			local this, index = op1[1](self, op1), op2[1](self, op2)
+		registerOperator("indexget", "xeos" .. id, id, function(self, this, index)
 			local indexType = EGP_ALLOWED_ARGS[index]
 
 			if not indexType then return fixDefault(default) end

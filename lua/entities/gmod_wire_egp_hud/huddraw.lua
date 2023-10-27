@@ -39,8 +39,8 @@ if CLIENT then
 				r[i+1] = (r[i+1]- yMin) * yMul
 			end
 			local settings = {}
-			if isstring(v.verticesindex) then settings = { [v.verticesindex] = makeTable( v, r ) } else settings = makeTable( v, r ) end
-			EGP:EditObject(v, settings)
+			if isstring(v.verticesindex) then settings = { [v.verticesindex] = makeTable( v, r ) } else v.vertices = makeTable(v, r) end
+			v:EditObject(settings)
 		else
 			if v.x then
 				v.x = (v.x - xMin) * xMul

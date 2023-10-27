@@ -22,13 +22,13 @@ function EGP:AddQueueObject( Ent, ply, Function, Object )
 						found = true
 						if (v.OnRemove) then v:OnRemove() end
 						local Obj = self:GetObjectByID( Object.ID )
-						self:EditObject( Obj, Object:DataStreamInfo() )
+						Obj:EditObject(Object:DataStreamInfo())
 						Obj.index = v.index
 						if (Obj.OnCreate) then Obj:OnCreate() end
 						LastItem.Args[1][k] = Obj
 					else -- Edit
 						found = true
-						self:EditObject( v, Object:DataStreamInfo() )
+						v:EditObject(Object:DataStreamInfo())
 					end
 
 					break

@@ -842,9 +842,10 @@ e2function vector wirelink:egpGlobalPos( number index )
 end
 
 e2function array wirelink:egpGlobalVertices( number index )
-	local hasvertices, data = EGP:GetGlobalPos( this, index )
-	if (hasvertices) then
-		if (data.vertices) then
+	local hasobject, _, object = EGP:HasObject(this, index)
+	if hasobject and object.verticesindex then
+		local data = EGP:GetGlobalVertices(object)
+		if data.vertices then
 			local ret = {}
 			for i=1,#data.vertices do
 				local v = data.vertices[i]

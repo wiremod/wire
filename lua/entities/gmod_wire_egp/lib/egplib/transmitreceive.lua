@@ -262,8 +262,12 @@ if (SERVER) then
 				else
 					net.WriteUInt(v.ID, 8) -- Else send the ID of the object
 
+					local original = v
+
 					if (Ent.Scaling or Ent.TopLeft) then
 						v = table.Copy(v) -- Make a copy of the table so it doesn't overwrite the serverside object
+						-- Todo: Make transmit only used for server join/leave/"newframes"/etc, not every time it updates
+						if original.VerticesUpdate then original.VerticesUpdate = false end
 					end
 
 					-- Scale the positions and size
@@ -273,7 +277,7 @@ if (SERVER) then
 
 					-- Move the object to draw from the top left
 					if (Ent.TopLeft) then
-						EGP:MoveTopLeft( Ent, v )
+						EGP.MoveTopLeft( Ent, v )
 					end
 
 					if v.ChangeOrder then -- We want to change the order of this object, send the index to where we wish to move it
@@ -620,7 +624,7 @@ if (SERVER) then
 
 					-- Move the object to draw from the top left
 					if (v.TopLeft) then
-						EGP:MoveTopLeft( v, obj )
+						EGP.MoveTopLeft( v, obj )
 					end
 
 					DataToSend[#DataToSend+1] = { ID = obj.ID, index = obj.index, Settings = obj:DataStreamInfo() }

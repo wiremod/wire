@@ -59,8 +59,7 @@ function EGP:ScaleObject( ent, v )
 		end
 		local settings = makeTable(v, r)
 		addUV(v, settings)
-		if isstring(v.verticesindex) then settings = { [v.verticesindex] = settings } end
-		self:EditObject( v, settings )
+		if isstring(v.verticesindex) then v.vertices = settings else v:EditObject(settings) end
 	else
 		if (v.x) then
 			v.x = (v.x - xMin) * xMul
@@ -81,8 +80,8 @@ end
 -- Draw from top left
 --------------------------------------------------------
 
-function EGP:MoveTopLeft(ent, obj)
-	if not self:ValidEGP(ent) then return end
+function EGP.MoveTopLeft(ent, obj)
+	if not EGP:ValidEGP(ent) then return end
 
 	local t = nil
 	if obj.CanTopLeft and obj.x and obj.y and obj.w and obj.h then
@@ -91,14 +90,14 @@ function EGP:MoveTopLeft(ent, obj)
 		if obj.angle then t.angle = -ang.yaw end
 	end
 	if obj.IsParented then
-		local bool, _, parent = self:HasObject(ent, obj.parent)
+		local bool, _, parent = EGP:HasObject(ent, obj.parent)
 		if bool and parent.CanTopLeft and parent.w and parent.h then
 			if not t then t = { x = obj.x, y = obj.y, angle = obj.angle } end
 			t.x = t.x - parent.w / 2
 			t.y = t.y - parent.h / 2
+
+			if t.angle then t.angle = t.angle end
 		end
-		if not t then t = { angle = obj.angle } end
-		if t.angle then t.angle = -t.angle end
 	end
 
 	if t then
@@ -488,9 +487,9 @@ function EGP.Draw(ent)
 	for _, obj in ipairs(rt) do
 		if obj.parent == -1 or obj.NeedsConstantUpdate then ent.NeedsUpdate = true end
 		if obj.parent ~= 0 then
-			if not obj.IsParented then EGP:SetParent(ent, obj.index, obj.parent) end
-			local _, data = EGP:GetGlobalPos(ent, obj.index)
-			EGP:EditObject(obj, data)
+			if not obj.IsParented then EGP:SetParent(ent, obj, obj.parent) end
+			local _, data = EGP.GetGlobalPos(ent, obj)
+			obj:SetPos(data.x, data.y, data.angle)
 		elseif obj.IsParented then
 			EGP:UnParent(ent, obj)
 		end
