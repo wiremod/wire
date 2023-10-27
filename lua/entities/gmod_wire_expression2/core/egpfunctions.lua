@@ -638,7 +638,7 @@ e2function void wirelink:egpAngle( number index, number angle )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
-		if v:EditObject( { angle = angle, _angle = angle }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:SetPos(nil, nil, angle) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 

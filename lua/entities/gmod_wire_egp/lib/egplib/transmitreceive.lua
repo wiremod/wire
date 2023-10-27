@@ -262,9 +262,8 @@ if (SERVER) then
 				else
 					net.WriteUInt(v.ID, 8) -- Else send the ID of the object
 
-					local original = v
-
 					if (Ent.Scaling or Ent.TopLeft) then
+						local original = v
 						v = table.Copy(v) -- Make a copy of the table so it doesn't overwrite the serverside object
 						-- Todo: Make transmit only used for server join/leave/"newframes"/etc, not every time it updates
 						if original.VerticesUpdate then original.VerticesUpdate = false end

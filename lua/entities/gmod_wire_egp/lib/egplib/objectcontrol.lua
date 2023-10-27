@@ -51,7 +51,7 @@ end
 function baseObj:EditObject(args)
 	local ret = false
 	if args.x or args.y or args.angle then
-		self:SetPos(args.x or self.x, args.y or self.y, args.angle or self.angle)
+		ret = self:SetPos(args.x or self.x, args.y or self.y, args.angle or self.angle)
 		args.x, args.y, args.angle = nil, nil, nil
 	end
 	for k, v in pairs(args) do
@@ -65,8 +65,8 @@ end
 baseObj.Initialize = baseObj.EditObject
 function baseObj:SetPos(x, y, angle)
 	local ret = false
-	if self.x ~= x then self.x, ret = x, true end
-	if self.y ~= y then self.y, ret = y, true end
+	if x and self.x ~= x then self.x, ret = x, true end
+	if y and self.y ~= y then self.y, ret = y, true end
 	if angle then
 		angle = angle % 360
 		if self.angle ~= angle then self.angle, ret = angle, true end
