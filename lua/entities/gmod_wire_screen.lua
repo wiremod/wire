@@ -22,6 +22,8 @@ function ENT:SetupDataTables()
 		Edit = { type = "Generic", title = "#Tool_wire_screen_texta", order = 7 } })
 	self:NetworkVar("String", 1, "TextB", { KeyName = "TextB",
 		Edit = { type = "Generic", title = "#Tool_wire_screen_textb", order = 8 } })
+	self:NetworkVar("String", 2, "DisplayA")
+	self:NetworkVar("String", 3, "DisplayB")
 
 	if SERVER then
 		self:NetworkVarNotify("SingleValue", function(ent, key, old, single)
@@ -29,11 +31,6 @@ function ENT:SetupDataTables()
 		end)
 	end
 end
-
-function ENT:SetDisplayA(float)	self:SetNWFloat("DisplayA", float) end
-function ENT:SetDisplayB(float)	self:SetNWFloat("DisplayB", float) end
-function ENT:GetDisplayA() return self:GetNWFloat("DisplayA") end
-function ENT:GetDisplayB() return self:GetNWFloat("DisplayB") end
 
 if CLIENT then
 	function ENT:Initialize()
@@ -56,7 +53,7 @@ if CLIENT then
 	local small_height = 20
 	local large_height = 40
 
-	function ENT:DrawNumber( header, value, x,y,w,h )
+	local function drawNumber(self, header, value, x, y, w, h)
 		local header_height = small_height
 		local header_font = small_font
 		local value_font = value_small_font
@@ -77,18 +74,15 @@ if CLIENT then
 		surface.DrawText( header, header_font )
 
 		if self:GetFormatTime() then -- format as time, aka duration - override formatnumber and floor settings
-			value = WireLib.nicenumber.nicetime( value )
+			value = WireLib.nicenumber.nicetime(tonumber(value))
 		elseif self:GetFormatNumber() then
 			if self:GetFloor() then
-				value = WireLib.nicenumber.format( math.floor( value ), 1 )
+				value = WireLib.nicenumber.format( math.floor(tonumber(value)), 1 )
 			else
-				value = WireLib.nicenumber.formatDecimal( value )
+				value = WireLib.nicenumber.formatDecimal(tonumber(value))
 			end
 		elseif self:GetFloor() then
-			value = "" .. math.floor( value )
-		else
-			-- note: loses precision after ~7 decimals, so don't bother displaying more
-			value = "" .. math.floor( value * 10000000 ) / 10000000
+			value = tostring(math.floor(tonumber(value)))
 		end
 
 		local align = self:GetLeftAlign() and 0 or 1
@@ -106,11 +100,11 @@ if CLIENT then
 			surface.DrawRect(x, y, w, h)
 
 			if self:GetSingleValue() then
-				self:DrawNumber( self:GetTextA(), self:GetDisplayA(), x,y,w,h )
+				drawNumber(self, self:GetTextA(), self:GetDisplayA(), x,y,w,h )
 			else
 				local h = h/2
-				self:DrawNumber( self:GetTextA(), self:GetDisplayA(), x,y,w,h )
-				self:DrawNumber( self:GetTextB(), self:GetDisplayB(), x,y+h,w,h )
+				drawNumber(self, self:GetTextA(), self:GetDisplayA(), x,y,w,h )
+				drawNumber(self, self:GetTextB(), self:GetDisplayB(), x,y+h,w,h )
 			end
 		end)
 
@@ -145,30 +139,15 @@ function ENT:Initialize()
 
 	self.Inputs = WireLib.CreateInputs(self, { "A", "B" })
 
-	self.ValueA = 0
-	self.ValueB = 0
-end
-
-function ENT:Think()
-	if self.ValueA then
-		self:SetDisplayA( self.ValueA )
-		self.ValueA = nil
-	end
-
-	if self.ValueB then
-		self:SetDisplayB( self.ValueB )
-		self.ValueB = nil
-	end
-
-	self:NextThink(CurTime() + 0.05)
-	return true
+	self:SetDisplayA(0)
+	self:SetDisplayB(0)
 end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "A") then
-		self.ValueA = value
+		self:SetDisplayA(tostring(value))
 	elseif (iname == "B") then
-		self.ValueB = value
+		self:SetDisplayB(tostring(value))
 	end
 end
 
