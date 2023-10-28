@@ -89,7 +89,8 @@ local function file_Download(self, ply, filename, data, append)
 		started = false,
 		downloading = true,
 		downloaded = false,
-		append = append
+		append = append,
+		ent = self.entity
 	}
 
 	flushFileBuffer()
@@ -315,6 +316,7 @@ registerCallback("destruct", function(self)
 end)
 
 --- Downloading ---
+-- Server -> Client
 util.AddNetworkString("wire_expression2_file_download")
 
 -- File transfer flags:
@@ -340,14 +342,15 @@ local function flushFileBufferInner()
 				end
 
 				local index = fdata.index
+				local data = fdata.data
 
-				local strlen = math.min(#fdata.data - index, download_chunk_size)
+				local strlen = math.min(#data - index, download_chunk_size)
 
 				if strlen > 0 then
 					net.Start("wire_expression2_file_download")
 					net.WriteUInt(2, 2)
 					net.WriteUInt(strlen, 32)
-					net.WriteData(fdata.data:sub(index + 1), strlen)
+					net.WriteData(data:sub(index + 1), strlen)
 					net.Send(ply)
 
 					fdata.index = strlen
@@ -364,7 +367,10 @@ local function flushFileBufferInner()
 
 					queue.last = fdata
 
-					ent:ExecuteEvent("fileWritten", { fdata.name, fdata.data })
+					local ent, name = fdata.ent, fdata.name -- Store as an upvalue in case fdata gets removed
+					timer.Simple(0, function() -- Trigger one tick ahead so the client has time to write the file
+						if ent and ent.ExecuteEvent then ent:ExecuteEvent("fileWritten", { name, data }) end
+					end)
 
 					table.remove(queue, 1)
 
@@ -385,6 +391,7 @@ flushFileBuffer = function()
 end
 
 --- Uploading ---
+-- Client -> Server
 
 local function file_execute(ply, file, status)
 	

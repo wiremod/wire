@@ -104,12 +104,13 @@ net.Receive("wire_expression2_request_file", function(netlen)
 end )
 
 --- File Write ---
-net.Receive("wire_expresison2_file_download", function()
+net.Receive("wire_expression2_file_download", function()
 	local flag = net.ReadUInt(2)
 	if flag == 2 then -- Chunk
 		if not download_buffer.name then return end
 		local len = net.ReadUInt(32)
 		download_buffer.data = (download_buffer.data or "") .. net.ReadData(len)
+
 	elseif flag == 1 then -- Begin
 		local fpath,fname = process_filepath( net.ReadString() )
 		if not E2Lib.isValidFileWritePath(fname) then return end
