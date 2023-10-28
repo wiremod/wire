@@ -578,25 +578,6 @@ e2function void bone:setAngVelocityInstant(vector velocity)
 	ent:PhysWake()
 end
 
---[[
-__e2setcost(5000)
--- Apparently these functions are expensive
-
-e2function void bone:setJiggle(weight)
-	local ent, index = boneVerify(self, this)
-	if not ValidAction(self, ent, "heavybone") then return end
-	weight = math.Clamp(weight, 0, 255)
-	ent:ManipulateBoneJiggle(index, weight)
-end
-
-e2function void bone:setScale(vector scale)
-	local ent, index = boneVerify(self, this)
-	if ent:GetPhysicsObjectCount() <= 1 then return self:throw("Entity is not a ragdoll!") end
-	if not ValidAction(self, ent, "heavybone") then return end
-	ent:ManipulateBoneScale(index, scale)
-end
-]]
-
 __e2setcost(5000)
 
 -- This code was leveraged from Garry's Mod. Perhaps it would be a bit cleaner with a slight rewrite.

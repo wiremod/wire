@@ -291,20 +291,6 @@ e2function vector bone:inertia()
 	return this:GetInertia()
 end
 
-__e2setcost(5)
-
-e2function number bone:getJiggle()
-	local ent, index = isValidBone(this)
-	if not ent then return self:throw("Invalid bone!", 0) end
-	return ent:GetManipulateBoneJiggle(index) or 0
-end
-
-e2function vector bone:getScale()
-	local ent, index = isValidBone(this)
-	if not ent then return self:throw("Invalid bone!", Vector(0, 0, 0)) end
-	return ent:GetManipulateBoneScale(index)
-end
-
 --[[************************************************************************]]--
 __e2setcost(30)
 
