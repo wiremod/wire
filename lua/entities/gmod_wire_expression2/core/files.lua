@@ -85,6 +85,7 @@ local function file_Download(self, ply, filename, data, append)
 	queue[#queue + 1] = {
 		name = filename,
 		data = data,
+		index = 0,
 		started = false,
 		downloading = true,
 		downloaded = false,
@@ -338,19 +339,21 @@ local function flushFileBufferInner()
 					die = false
 				end
 
-				local strlen = math.Clamp(#fdata.data, 0, download_chunk_size)
+				local index = fdata.index
+
+				local strlen = math.min(#fdata.data - index, download_chunk_size)
 
 				if strlen > 0 then
 					net.Start("wire_expression2_file_download")
 					net.WriteUInt(2, 2)
 					net.WriteUInt(strlen, 32)
-					net.WriteData(fdata.data, strlen)
+					net.WriteData(fdata.data:sub(index + 1), strlen)
 					net.Send(ply)
 
-					fdata.data = string.sub( fdata.data, strlen + 1 )
+					fdata.index = strlen
 
 					die = false
-				elseif strlen == 0 then
+				elseif strlen <= 0 then
 					net.Start("wire_expression2_file_download")
 						net.WriteUInt(3, 2)
 						net.WriteBool(fdata.append or false)
@@ -360,6 +363,9 @@ local function flushFileBufferInner()
 					fdata.downloading = false
 
 					queue.last = fdata
+
+					ent:ExecuteEvent("fileWritten", { fdata.name, fdata.data })
+
 					table.remove(queue, 1)
 
 					if #queue ~= 0 then
@@ -558,6 +564,10 @@ E2Lib.registerEvent("fileErrored", {
 	{ "Status", "n" }
 })
 E2Lib.registerEvent("fileLoaded", {
+	{ "FilePath", "s" },
+	{ "Data", "s" }
+})
+E2Lib.registerEvent("fileWritten", {
 	{ "FilePath", "s" },
 	{ "Data", "s" }
 })
