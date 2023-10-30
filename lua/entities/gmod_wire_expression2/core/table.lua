@@ -1162,17 +1162,19 @@ registerCallback( "postinit", function()
 
 		local next = next
 		local function itern(tbl, i)
-			local key, value = next(tbl.n, i)
-			if tbl.ntypes[key] == id then
-				return key, value
-			end
+			local value
+			repeat
+				i, value = next(tbl.n, i)
+			until tbl.ntypes[i] == id or value == nil
+			return i, value
 		end
 
 		local function iters(tbl, i)
-			local key, value = next(tbl.s, i)
-			if tbl.stypes[key] == id then
-				return key, value
-			end
+			local value
+			repeat
+				i, value = next(tbl.s, i)
+			until tbl.stypes[i] == id or value == nil
+			return i, value
 		end
 
 		registerOperator("iter", "s" .. id .. "=t", "", function(state, table)
