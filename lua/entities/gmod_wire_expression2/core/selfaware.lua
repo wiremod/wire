@@ -1,6 +1,8 @@
-/******************************************************************************\
-  Selfaware support
-\******************************************************************************/
+--[[******************************************************************************]]
+--	Selfaware support
+--[[******************************************************************************]]
+
+local isOwner = E2Lib.isOwner
 
 __e2setcost(1) -- temporary
 
@@ -26,11 +28,11 @@ e2function void selfDestructAll()
 			v:Remove()
 		end
 	end
-	//constraint.RemoveAll(self.entity)
+	--constraint.RemoveAll(self.entity)
 	self.entity:Remove()
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 -- i/o functions
 
 __e2setcost(10)
@@ -68,7 +70,7 @@ __e2setcost(5)
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
 		local short = v[1]
-		if (!excluded_types[short]) then
+		if not excluded_types[short] then
 			registerFunction("ioSetOutput","s"..short,""..short,function(self, args)
 				local rv1, rv2 = args[1], args[2]
 				if self.entity.Outputs[rv1] and self.entity.Outputs[rv1].Type == k then
@@ -88,17 +90,28 @@ registerCallback("postinit",function()
 	end
 end)
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 -- Name functions
 
 
-local function doSetName(self,this,name)
-	if self.data.setNameNext and self.data.setNameNext > CurTime() then return end
-	self.data.setNameNext = CurTime() + 1
-
-	if #name > 12000 then
-		name = string.sub( name, 1, 12000 )
+local function doSetName(self, this, name)
+	local data_SetName = self.data.SetName
+	if not data_SetName then
+		data_SetName = { _n = 0, _chars = 0 }
+		self.data.SetName = data_SetName
 	end
+	local totalRuns, totalChars = data_SetName._n, data_SetName._chars
+	if totalRuns >= 5 then return self:throw("You are calling setName too many times!") end
+	if data_SetName[this] then return self:throw("You are using setName too fast!") end
+	data_SetName[this] = true
+
+	totalChars = totalChars + math.min(#name, 200)
+	if totalChars >= 512 then return self:throw("You are sending too much data with setName!") end
+	data_SetName._chars = totalChars
+
+	timer.Create("wire_doSetName_Cleanup", 1, 1, function()
+		self.data.SetName = nil
+	end)
 
 	if this:GetClass() == "gmod_wire_expression2" then
 		if this.name == name then return end
@@ -109,15 +122,24 @@ local function doSetName(self,this,name)
 			this.WireDebugName = "E2 - " .. name
 		end
 		this.name = name
-		this:SetNWString( "name", this.name )
+
+		this:SetNWString("name", name)
 		this:SetOverlayText(name)
 	else
-		if this.wireName == name or string.find(name, "[\n\r\"]") ~= nil then return end
-		this.wireName = name
+		if #name > 200 then name = string.sub(name, 1, 200) end
+		if string.find(name, "[\n\r\"]") then return self:throw("setName name contains illegal characters!") end
+		if this:GetNWString("WireName") == name then return end
 		this:SetNWString("WireName", name)
 		duplicator.StoreEntityModifier(this, "WireName", { name = name })
+
 	end
+
+	data_SetName._n = totalRuns + 1
+
+	self.prf = self.prf + (totalRuns - 1) ^ 2 * totalChars -- Disincentivize repeated use
 end
+
+__e2setcost(100)
 
 -- Set the name of the E2 itself
 e2function void setName( string name )
@@ -127,9 +149,24 @@ end
 -- Set the name of an entity (component name if not E2)
 e2function void entity:setName( string name )
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if E2Lib.getOwner(self, this) ~= self.player then return self:throw("You do not own this entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 	doSetName(self,this,name)
 end
+
+__e2setcost(25)
+
+e2function void setOverlayText(string text)
+	local this = self.entity
+	if this.name == text then return end
+	if text == "" then
+		text = "generic"
+	end
+	this.name = text
+	this:SetOverlayText(text)
+end
+
+
+__e2setcost(5)
 
 -- Get the name of another E2 or compatible entity or component name of wiremod components
 [nodiscard]
@@ -141,8 +178,33 @@ e2function string entity:getName()
 	return this:GetNWString("WireName", this.PrintName) or ""
 end
 
+local function canSetName(self, this, str)
+	local data_SetName = self.data.SetName
+	return not (data_SetName and (data_SetName[this] or data_SetName._n >= 5 or data_SetName._chars + #str >= 512))
+end
 
-/******************************************************************************/
+[nodiscard]
+e2function number canSetName()
+	return canSetName(self, self.entity) and 1 or 0
+end
+
+[nodiscard]
+e2function number entity:canSetName()
+	return IsValid(this) and isOwner(self, this) and canSetName(self, this, "") and 1 or 0
+end
+
+[nodiscard]
+e2function number canSetName(string name)
+	return IsValid(this) and isOwner(self, this) and canSetName(self, self.entity, name) and 1 or 0
+end
+
+[nodiscard]
+e2function number entity:canSetName(string name)
+	return IsValid(this) and isOwner(self, this) and canSetName(self, this, name) and 1 or 0
+end
+
+
+--[[******************************************************************************]]--
 
 registerCallback("construct", function(self)
 	self.data.changed = {}
@@ -227,7 +289,7 @@ registerCallback("postinit", function()
 	end
 end)
 
-/******************************************************************************/
+--[[******************************************************************************]]--
 
 __e2setcost( 5 )
 
