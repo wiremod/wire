@@ -205,10 +205,12 @@ end
 -- Write data to RAM and then flash ROM if required
 function ENT:FlashData(data)
 	self.VM:Reset()
-	for k,v in pairs(data) do
-		self.VM:WriteCell(k,tonumber(v) or 0)
-		if (k >= 0) and (k < self.VM.ROMSize) then
-			self.VM.ROM[k] = tonumber(v) or 0
+	for addr, v in pairs(data) do
+		addr = math.floor(addr)
+
+		self.VM:WriteCell(addr,tonumber(v) or 0)
+		if (addr >= 0) and (addr < self.VM.ROMSize) then
+			self.VM.ROM[addr] = tonumber(v) or 0
 		end
 	end
 end
