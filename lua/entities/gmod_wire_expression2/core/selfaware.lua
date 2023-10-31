@@ -109,8 +109,8 @@ local function doSetName(self, this, name)
 	if totalChars >= 512 then return self:throw("You are sending too much data with setName!") end
 	data_SetName._chars = totalChars
 
-	timer.Create("wire_doSetName_Cleanup", 1, 1, function()
-		self.data.SetName = nil
+	timer.Create("wire_doSetName_Cleanup" .. self.entity:EntIndex(), 1, 1, function()
+		if self and self.data then self.data.SetName = nil end
 	end)
 
 	if this:GetClass() == "gmod_wire_expression2" then
