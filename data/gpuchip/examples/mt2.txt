@@ -1,0 +1,46 @@
+dcvxpipe 3;
+mov #regHWClear,0; //Stop hardware clearing
+dsetwidth 0.05;
+
+timer EAX;
+mov EDX,EAX; sub EDX,#PrevTime; //EDX = Delta time
+mov #PrevTime,EAX;
+
+mov EBP,0.4; //Speed of rotation
+
+mov ECX,8;
+DrawLoop:
+  mov EAX,#Angle; mul EAX,1;
+  fsin #EndPoint.X,EAX; mul EAX,2;
+  fcos #EndPoint.Y,EAX;
+
+  //HSL coloring
+  fsin #HSL.R,EAX; mul #HSL.R,127; add #HSL.R,128; add EAX,1.57;// mul EAX,2;
+  fsin #HSL.G,EAX; mul #HSL.G,127; add #HSL.G,128; add EAX,1.57;// mul EAX,2;
+  fsin #HSL.B,EAX; mul #HSL.B,127; add #HSL.B,128;
+
+  dcolor HSL;
+
+  //Looks very nice
+  dline StartPoint1,EndPoint;
+  dline StartPoint2,EndPoint;
+  dline StartPoint3,EndPoint;
+  dline StartPoint4,EndPoint;
+
+  mul EDX,EBP;
+  add #Angle,EDX;
+loop DrawLoop;
+
+dexit;
+
+alloc Angle;
+alloc PrevTime;
+
+color HSL;
+
+vector2f EndPoint,0,0;
+vector2f StartPoint0,0,0;
+vector2f StartPoint1,1,1;
+vector2f StartPoint2,1,-1;
+vector2f StartPoint3,-1,-1;
+vector2f StartPoint4,-1,1;
