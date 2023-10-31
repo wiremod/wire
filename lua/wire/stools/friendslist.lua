@@ -40,10 +40,16 @@ local function netWriteValues( values )
 	end
 end
 local function netReadValues()
-	local t = {}
-	local amount = net.ReadUInt(11)
-	for i=1,amount do
-		t[i] = net.ReadString()
+	local t, bytes = {}, 0
+	for i = 1, net.ReadUInt(11) do
+		local str = net.ReadString() -- todo: delete and redo practically this entire file cause this is horrible. we should just be sending steamid64s as numbers. theres writeuint64 and readuint64 now which would be perfect for this.
+		bytes = bytes + #str
+
+		t[i] = string.sub(str, 1, 32)
+
+		if bytes > 32 * 2 ^ 11 --[[ someone is writing more than they are supposed to be. ]] then
+			return t
+		end
 	end
 	return t
 end
