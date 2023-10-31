@@ -120,7 +120,7 @@ if CLIENT then
 
         local line, char = 0, 0
 
-        if errorPos then 
+        if errorPos then
           line = errorPos.Line
           char = errorPos.Col
 
@@ -734,7 +734,7 @@ local sessionBase, sessionDate
 function CPULib.GenerateSN(entityType)
   local currentDate = os.date("*t")
 
-  local SNDate = (currentDate.year-2007)*500+(currentDate.yday)
+  local SNDate = (currentDate.year-2007)*500+currentDate.yday
   if (not sessionBase) or (SNDate ~= sessionDate) then
     sessionBase = math.floor(math.random()*99999)
     sessionDate = SNDate

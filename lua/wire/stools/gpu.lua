@@ -38,7 +38,6 @@ if SERVER then
   function TOOL:Reload(trace)
     if trace.Entity:IsPlayer() then return false end
 
-    local player = self:GetOwner()
     if (trace.Entity:IsValid()) and
        (trace.Entity:GetClass() == "gmod_wire_gpu") then
       trace.Entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
@@ -117,7 +116,7 @@ if CLIENT then
 
 
     ----------------------------------------------------------------------------
-    local currentDirectory
+
     local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
     panel:AddPanel(FileBrowser)
     FileBrowser:Setup("GPUChip")
