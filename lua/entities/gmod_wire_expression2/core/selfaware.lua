@@ -203,6 +203,34 @@ e2function number entity:canSetName(string name)
 	return IsValid(this) and isOwner(self, this) and canSetName(self, this, name) and 1 or 0
 end
 
+--[[******************************************************************************]]--
+-- Extensions
+
+[nodiscard]
+e2function array getExtensions()
+	return table.Copy(E2Lib.GetExtensions())
+end
+
+local getExtensionStatus = E2Lib.GetExtensionStatus
+[nodiscard]
+e2function table getExtensionStatus()
+	local ret = E2Lib.newE2Table()
+	local s, stypes, size = ret.s, ret.stypes, ret.size
+	for _, ext in ipairs(E2Lib.GetExtensions()) do
+		s[ext] = getExtensionStatus(ext) and 1 or 0
+		stypes[ext] = "n"
+		size = size + 1
+	end
+	ret.s, ret.stypes, ret.size = s, stypes, size -- Do this just because I'm paranoid
+
+	return ret
+end
+
+[nodiscard]
+e2function number getExtensionStatus(string extension)
+	return getExtensionStatus(extension) and 1 or 0
+end
+
 
 --[[******************************************************************************]]--
 
