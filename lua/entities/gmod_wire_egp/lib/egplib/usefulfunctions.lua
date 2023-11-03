@@ -59,8 +59,7 @@ function EGP:ScaleObject( ent, v )
 		end
 		local settings = makeTable(v, r)
 		addUV(v, settings)
-		if isstring(v.verticesindex) then settings = { [v.verticesindex] = settings } end
-		self:EditObject( v, settings )
+		if isstring(v.verticesindex) then v.vertices = settings else v:EditObject(settings) end
 	else
 		if (v.x) then
 			v.x = (v.x - xMin) * xMul
@@ -81,8 +80,8 @@ end
 -- Draw from top left
 --------------------------------------------------------
 
-function EGP:MoveTopLeft(ent, obj)
-	if not self:ValidEGP(ent) then return end
+function EGP.MoveTopLeft(ent, obj)
+	if not EGP:ValidEGP(ent) then return end
 
 	local t = nil
 	if obj.CanTopLeft and obj.x and obj.y and obj.w and obj.h then
@@ -91,34 +90,18 @@ function EGP:MoveTopLeft(ent, obj)
 		if obj.angle then t.angle = -ang.yaw end
 	end
 	if obj.IsParented then
-		local bool, _, parent = self:HasObject(ent, obj.parent)
+		local bool, _, parent = EGP:HasObject(ent, obj.parent)
 		if bool and parent.CanTopLeft and parent.w and parent.h then
-			if isstring(obj.verticesindex) then
-				local vertices = {}
-				local w, h = parent.w / 2, parent.h / 2
-				for i, v in ipairs(obj[obj.verticesindex]) do
-					vertices[i] = { x = v.x - w, y = v.y - h }
-				end
-				t = { vertices = vertices }
-			elseif obj.verticesindex ~= nil then
-				t = {}
-				local w, h = parent.w / 2, parent.h / 2
-				for i, v in ipairs(obj.verticesindex) do
-					t[v[1]] = obj[v[1]] - w
-					t[v[2]] = obj[v[2]] - h
-				end
-			else
-				if not t then t = { x = obj.x, y = obj.y, angle = obj.angle } end
-				t.x = t.x - parent.w / 2
-				t.y = t.y - parent.h / 2
-			end
+			if not t then t = { x = obj.x, y = obj.y, angle = obj.angle } end
+			t.x = t.x - parent.w / 2
+			t.y = t.y - parent.h / 2
+
+			if t.angle then t.angle = t.angle end
 		end
-		if not t then t = { angle = obj.angle } end
-		if t.angle then t.angle = -t.angle end
 	end
 
 	if t then
-		self:EditObject(obj, t)
+		obj:EditObject(t)
 	end
 end
 
@@ -206,11 +189,15 @@ end
 -----------------------
 -- Other
 -----------------------
-function EGP:SendPosSize( obj )
-	net.WriteInt( obj.w, 16 )
-	net.WriteInt( obj.h, 16 )
+function EGP.SendPosAng(obj)
 	net.WriteInt( obj.x, 16 )
 	net.WriteInt( obj.y, 16 )
+	net.WriteInt(obj.angle * 64, 16)
+end
+
+function EGP.SendSize(obj)
+	net.WriteInt(obj.w, 16)
+	net.WriteInt(obj.h, 16)
 end
 
 function EGP:SendColor( obj )
@@ -220,11 +207,15 @@ function EGP:SendColor( obj )
 	if (obj.a) then net.WriteUInt( math.Clamp( obj.a, 0, 255 ) , 8) end
 end
 
-function EGP:ReceivePosSize( tbl ) -- Used with SendPosSize
-	tbl.w = net.ReadInt(16)
-	tbl.h = net.ReadInt(16)
+function EGP.ReceivePosAng(tbl)
 	tbl.x = net.ReadInt(16)
 	tbl.y = net.ReadInt(16)
+	tbl.angle = net.ReadInt(16) / 64
+end
+
+function EGP.ReceiveSize(tbl)
+	tbl.w = net.ReadInt(16)
+	tbl.h = net.ReadInt(16)
 end
 
 function EGP:ReceiveColor( tbl, obj ) -- Used with SendColor
@@ -238,7 +229,7 @@ end
 -- Other
 --------------------------------------------------------
 function EGP:ValidEGP( Ent )
-	return (IsValid( Ent ) and (Ent:GetClass() == "gmod_wire_egp" or Ent:GetClass() == "gmod_wire_egp_hud" or Ent:GetClass() == "gmod_wire_egp_emitter"))
+	return IsValid( Ent ) and (Ent:GetClass() == "gmod_wire_egp" or Ent:GetClass() == "gmod_wire_egp_hud" or Ent:GetClass() == "gmod_wire_egp_emitter")
 end
 
 
@@ -473,8 +464,8 @@ function EGP:EGPCursor( this, ply )
 	return ReturnFailure( this )
 end
 
-function EGP.WorldToLocal(egp, object, x, y)
-	local _, realpos = EGP:GetGlobalPos(egp, object.index)
+function EGP.WorldToLocal(object, x, y)
+	local _, realpos = EGP:GetGlobalPos(object.EGP, object)
 	x, y = x - realpos.x, y - realpos.y
 
 	local theta = math.rad(realpos.angle)
@@ -496,9 +487,9 @@ function EGP.Draw(ent)
 	for _, obj in ipairs(rt) do
 		if obj.parent == -1 or obj.NeedsConstantUpdate then ent.NeedsUpdate = true end
 		if obj.parent ~= 0 then
-			if not obj.IsParented then EGP:SetParent(ent, obj.index, obj.parent) end
-			local _, data = EGP:GetGlobalPos(ent, obj.index)
-			EGP:EditObject(obj, data)
+			if not obj.IsParented then EGP:SetParent(ent, obj, obj.parent) end
+			local _, data = EGP.GetGlobalPos(ent, obj)
+			obj:SetPos(data.x, data.y, data.angle)
 		elseif obj.IsParented then
 			EGP:UnParent(ent, obj)
 		end

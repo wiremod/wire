@@ -91,7 +91,7 @@ if (SERVER) then
 			return
 		end
 
-		local bool, k, v = EGP:HasObject( Ent, index )
+		local bool, _, v = EGP:HasObject( Ent, index )
 		if (bool) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
@@ -123,7 +123,7 @@ if (SERVER) then
 			return
 		end
 
-		local bool, k, v = EGP:HasObject( Ent, index )
+		local bool, _, v = EGP:HasObject( Ent, index )
 		if (bool) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
@@ -149,13 +149,12 @@ if (SERVER) then
 	util.AddNetworkString( "AddText" )
 	local function AddText( Ent, ply, index, text )
 		if not IsValid(ply) or not ply:IsPlayer() then return end
-		if (EGP:CheckInterval( ply ) == false) then
+		if EGP:CheckInterval( ply ) == false then
 			EGP:InsertQueue( Ent, ply, AddText, "AddText", index, text )
 			return
 		end
 
-		local bool, k, v = EGP:HasObject( Ent, index )
-		if (bool) then
+		if EGP:HasObject(Ent, index) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "AddText" )
@@ -176,8 +175,7 @@ if (SERVER) then
 			return
 		end
 
-		local bool, k, v = EGP:HasObject( Ent, index )
-		if (bool) then
+		if EGP:HasObject(Ent, index) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "SetText" )
@@ -265,7 +263,10 @@ if (SERVER) then
 					net.WriteUInt(v.ID, 8) -- Else send the ID of the object
 
 					if (Ent.Scaling or Ent.TopLeft) then
+						local original = v
 						v = table.Copy(v) -- Make a copy of the table so it doesn't overwrite the serverside object
+						-- Todo: Make transmit only used for server join/leave/"newframes"/etc, not every time it updates
+						if original.VerticesUpdate then original.VerticesUpdate = false end
 					end
 
 					-- Scale the positions and size
@@ -275,7 +276,7 @@ if (SERVER) then
 
 					-- Move the object to draw from the top left
 					if (Ent.TopLeft) then
-						EGP:MoveTopLeft( Ent, v )
+						EGP.MoveTopLeft( Ent, v )
 					end
 
 					if v.ChangeOrder then -- We want to change the order of this object, send the index to where we wish to move it
@@ -306,16 +307,17 @@ if (SERVER) then
 	function EGP:DoAction( Ent, E2, Action, ... )
 		if (Action == "SendObject") then
 			local Data = {...}
-			if not Data[1] then return end
+			local obj = Data[1]
+			if not obj or obj._nodraw then return end
 
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 30
 			end
 
-			self:AddQueueObject( Ent, E2.player, SendObjects, Data[1] )
+			self:AddQueueObject( Ent, E2.player, SendObjects, obj)
 		elseif (Action == "RemoveObject") then
 			local Data = {...}
-			if not Data[1] then return end
+			local obj = Data[1]
 
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 20
@@ -323,7 +325,7 @@ if (SERVER) then
 
 			for i=1,#Ent.RenderTable do
 				E2.prf = E2.prf + 0.3
-				if Ent.RenderTable[i].index == Data[1] then
+				if Ent.RenderTable[i].index == obj then
 					table.remove( Ent.RenderTable, i )
 					break
 				end
@@ -407,53 +409,49 @@ else -- SERVER/CLIENT
 		elseif (Action == "SetText") then
 			local index = net.ReadInt(16)
 			local text = net.ReadString()
-			local bool,k,v = EGP:HasObject( Ent, index )
+			local bool,_,v = EGP:HasObject( Ent, index )
 			if (bool) then
 				if (EGP:EditObject( v, { text = text } )) then Ent:EGP_Update() end
 			end
 		elseif (Action == "AddText") then
 			local index = net.ReadInt(16)
 			local text = net.ReadString()
-			local bool,k,v = EGP:HasObject( Ent, index )
+			local bool,_,v = EGP:HasObject( Ent, index )
 			if (bool) then
 				if (EGP:EditObject( v, { text = v.text .. text } )) then Ent:EGP_Update() end
 			end
 		elseif (Action == "SetVertex") then
 			local index = net.ReadInt(16)
-			local bool, k,v = EGP:HasObject( Ent, index )
+			local bool, _, v = EGP:HasObject( Ent, index )
 			if (bool) then
 				local vertices = {}
 
 				if (v.HasUV) then
-					local n = 0
 					for i=1,net.ReadUInt(8) do
 						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadFloat(), net.ReadFloat()
 						vertices[i] = { x=x, y=y, u=u, v=_v }
 					end
 				else
-					local n = 0
 					for i=1,net.ReadUInt(8) do
 						local x, y = net.ReadInt(16), net.ReadInt(16)
 						vertices[i] = { x=x, y=y }
 					end
 				end
 
-				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
+				if v:EditObject({ vertices = vertices }) then Ent:EGP_Update() end
 			end
 		elseif (Action == "AddVertex") then
 			local index = net.ReadInt(16)
-			local bool, k, v = EGP:HasObject( Ent, index )
+			local bool, _, v = EGP:HasObject( Ent, index )
 			if (bool) then
 				local vertices = table.Copy(v.vertices)
 
 				if (v.HasUV) then
-					local n = 0
 					for i=1,net.ReadUInt(8) do
 						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadFloat(), net.ReadFloat()
 						vertices[#vertices+1] = { x=x, y=y, u=u, v=_v }
 					end
 				else
-					local n = 0
 					for i=1,net.ReadUInt(8) do
 						local x, y = net.ReadInt(16), net.ReadInt(16)
 						vertices[#vertices+1] = { x=x, y=y }
@@ -505,14 +503,14 @@ else -- SERVER/CLIENT
 							if (v.OnRemove) then v:OnRemove() end
 							local Obj = self:GetObjectByID( ID )
 							local data = Obj:Receive()
-							self:EditObject( Obj, data )
+							Obj:Initialize(data)
 							Obj.index = index
 							Ent.RenderTable[k] = Obj
 							if (Obj.OnCreate) then Obj:OnCreate() end
 
 							current_obj = Obj
 						else -- Edit
-							self:EditObject( v, v:Receive() )
+							v:EditObject(v:Receive())
 
 							-- If parented, reset the parent indexes
 							if (v.parent and v.parent ~= 0) then
@@ -525,7 +523,7 @@ else -- SERVER/CLIENT
 						v.res = nil
 					else -- Object does not exist. Create new
 						local Obj = self:GetObjectByID( ID )
-						self:EditObject( Obj, Obj:Receive() )
+						Obj:Initialize(Obj:Receive())
 						Obj.index = index
 						if (Obj.OnCreate) then Obj:OnCreate() end
 						Ent.RenderTable[#Ent.RenderTable+1] = Obj--table.insert( Ent.RenderTable, Obj )
@@ -625,7 +623,7 @@ if (SERVER) then
 
 					-- Move the object to draw from the top left
 					if (v.TopLeft) then
-						EGP:MoveTopLeft( v, obj )
+						EGP.MoveTopLeft( v, obj )
 					end
 
 					DataToSend[#DataToSend+1] = { ID = obj.ID, index = obj.index, Settings = obj:DataStreamInfo() }
@@ -676,7 +674,7 @@ else
 			end
 			for _,v in pairs( Objects ) do
 				local Obj = self:GetObjectByID(v.ID)
-				self:EditObject( Obj, v.Settings )
+				Obj:Initialize(v.Settings)
 				-- If parented, reset the parent indexes
 				if (Obj.parent and Obj.parent ~= 0) then
 					self:AddParentIndexes( Obj )

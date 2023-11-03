@@ -3,47 +3,91 @@
 --------------------------------------------------------
 local EGP = EGP
 
-EGP.Objects = {}
-EGP.Objects.Names = {}
-EGP.Objects.Names_Inverted = {}
+local egpObjects = {}
+egpObjects.Names = {}
+egpObjects.Names_Inverted = {}
+EGP.Objects = egpObjects
 
 -- This object is not used. It's only a base
-EGP.Objects.Base = {}
-EGP.Objects.Base.ID = 0
-EGP.Objects.Base.x = 0
-EGP.Objects.Base.y = 0
-EGP.Objects.Base.w = 0
-EGP.Objects.Base.h = 0
-EGP.Objects.Base.r = 255
-EGP.Objects.Base.g = 255
-EGP.Objects.Base.b = 255
-EGP.Objects.Base.a = 255
-EGP.Objects.Base.filtering = TEXFILTER.ANISOTROPIC
-EGP.Objects.Base.material = ""
-if CLIENT then EGP.Objects.Base.material = false end
-EGP.Objects.Base.parent = 0
-EGP.Objects.Base.Transmit = function( self )
-	EGP:SendPosSize( self )
+local baseObj = {}
+baseObj.ID = 0
+baseObj.x = 0
+baseObj.y = 0
+baseObj.angle = 0
+baseObj.r = 255
+baseObj.g = 255
+baseObj.b = 255
+baseObj.a = 255
+baseObj.filtering = TEXFILTER.ANISOTROPIC
+baseObj.parent = 0
+if SERVER then
+	baseObj.material = ""
+	baseObj.EGP = NULL -- EGP entity parent
+else
+	baseObj.material = false
+end
+function baseObj:Transmit()
+	EGP.SendPosAng(self)
 	EGP:SendColor( self )
-	EGP:SendMaterial( self )
-	net.WriteUInt(math.Clamp(self.filtering,0,3), 2)
+	EGP:SendMaterial(self)
+	if self.filtering then net.WriteUInt(math.Clamp(self.filtering,0,3), 2) end
 	net.WriteInt( self.parent, 16 )
 end
-EGP.Objects.Base.Receive = function( self )
+function baseObj:Receive()
 	local tbl = {}
-	EGP:ReceivePosSize( tbl )
+	EGP.ReceivePosAng(tbl)
 	EGP:ReceiveColor( tbl, self )
 	EGP:ReceiveMaterial( tbl )
-	tbl.filtering = net.ReadUInt(2)
+	if self.filtering then tbl.filtering = net.ReadUInt(2) end
 	tbl.parent = net.ReadInt(16)
 	return tbl
 end
-EGP.Objects.Base.DataStreamInfo = function( self )
-	return { x = self.x, y = self.y, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, filtering = self.filtering, parent = self.parent }
+function baseObj:DataStreamInfo()
+	return { x = self.x, y = self.y, angle = self.angle, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, parent = self.parent }
 end
-function EGP.Objects.Base:Contains(point)
+function baseObj:Contains(x, y)
 	return false
 end
+function baseObj:EditObject(args)
+	local ret = false
+	if args.x or args.y or args.angle then
+		ret = self:SetPos(args.x or self.x, args.y or self.y, args.angle or self.angle)
+		args.x, args.y, args.angle = nil, nil, nil
+	end
+	for k, v in pairs(args) do
+		if self[k] ~= nil and self[k] ~= v then
+			self[k] = v
+			ret = true
+		end
+	end
+	return ret
+end
+baseObj.Initialize = baseObj.EditObject
+function baseObj:SetPos(x, y, angle)
+	local ret = false
+	if x and self.x ~= x then self.x, ret = x, true end
+	if y and self.y ~= y then self.y, ret = y, true end
+	if angle then
+		angle = angle % 360
+		if self.angle ~= angle then self.angle, ret = angle, true end
+	end
+	return ret
+end
+function baseObj:Set(member, value)
+	if self[member] and self[member] ~= value then
+		self[member] = value
+		return true
+	else
+		return false
+	end
+end
+local M_EGPObject = {__tostring = function(self) return "[EGPObject] ".. self.Name end}
+setmetatable(baseObj, M_EGPObject)
+EGP.Objects.Base = baseObj
+
+local M_NULL_EGPOBJECT = { __tostring = function(self) return "[EGPObject] NULL" end, __eq = function(a, b) return getmetatable(a) == getmetatable(b) end }
+local NULL_EGPOBJECT = setmetatable({}, M_NULL_EGPOBJECT)
+EGP.NULL_EGPOBJECT = NULL_EGPOBJECT
 
 ----------------------------
 -- Get Object
@@ -60,32 +104,54 @@ end
 -- Load all objects
 ----------------------------
 
-function EGP:NewObject( Name )
-	if self.Objects[Name] then return self.Objects[Name] end
+function EGP:NewObject(name, super)
+	local lower = name:lower() -- Makes my life easier
+	if not super then super = baseObj end
+	if self.Objects[lower] then return self.Objects[lower] end
 
 	-- Create table
-	self.Objects[Name] = {}
+	self.Objects[lower] = {}
 	-- Set info
-	self.Objects[Name].Name = Name
-	table.Inherit( self.Objects[Name], self.Objects.Base )
+	self.Objects[lower].Name = name
+	table.Inherit(self.Objects[lower], super)
 
 	-- Create lookup table
 	local ID = table.Count(self.Objects)
-	self.Objects[Name].ID = ID
-	self.Objects.Names[Name] = ID
+	self.Objects[lower].ID = ID
+	self.Objects.Names[name] = ID
 
 	-- Inverted lookup table
-	self.Objects.Names_Inverted[ID] = Name
+	self.Objects.Names_Inverted[ID] = lower
 
-	return self.Objects[Name]
+	return setmetatable(self.Objects[lower], M_EGPObject)
 end
 
 local folder = "entities/gmod_wire_egp/lib/objects/"
-local files = file.Find(folder.."*.lua", "LUA")
-table.sort( files )
-for _,v in pairs( files ) do
-	include(folder..v)
-	if (SERVER) then AddCSLuaFile(folder..v) end
+
+function EGP.ObjectInherit(to, from)
+	local super = egpObjects[from:lower()]
+	if super then
+		return EGP:NewObject(to, super)
+	else
+		local path = folder .. from .. ".lua"
+		if file.Exists(path, "LUA") then
+			super = include(path)
+			AddCSLuaFile(path)
+			return EGP:NewObject(to, super)
+		else
+			ErrorNoHalt(string.format("EGP couldn't find object '%s' to inherit from (to object '%s').\n", from, to))
+		end
+	end
+end
+
+do
+	local files = file.Find(folder.."*.lua", "LUA")
+	for _, v in ipairs(files) do
+		if not egpObjects[v:sub(1, #v - 4):lower()] then -- Remove the extension and check if the object already exists.
+			include(folder .. v)
+			AddCSLuaFile(folder .. v)
+		end
+	end
 end
 
 ----------------------------
@@ -193,44 +259,38 @@ end
 ----------------------------
 
 function EGP:CreateObject( Ent, ObjID, Settings )
-	if not self:ValidEGP(Ent) then return false end
+	if not self:ValidEGP(Ent) then return false, NULL_EGPOBJECT end
 
 	if not self.Objects.Names_Inverted[ObjID] then
 		ErrorNoHalt("Trying to create nonexistant object! Please report this error to Divran at wiremod.com. ObjID: " .. ObjID .. "\n")
-		return false
+		return false, NULL_EGPOBJECT
 	end
 
 	if SERVER then Settings.index = math.Round(math.Clamp(Settings.index or 1, 1, self.ConVars.MaxObjects:GetInt())) end
+	Settings.EGP = Ent
 
 	local bool, k, v = self:HasObject( Ent, Settings.index )
 	if (bool) then -- Already exists. Change settings:
 		if v.ID ~= ObjID then -- Not the same kind of object, create new
 			local Obj = self:GetObjectByID( ObjID )
-			self:EditObject( Obj, Settings )
+			Obj:Initialize(Settings)
 			Obj.index = Settings.index
 			Ent.RenderTable[k] = Obj
 			return true, Obj
 		else
-			return self:EditObject( v, Settings ), v
+			return v:EditObject(Settings), v
 		end
 	else -- Did not exist. Create:
 		local Obj = self:GetObjectByID( ObjID )
-		self:EditObject( Obj, Settings )
+		Obj:Initialize(Settings)
 		Obj.index = Settings.index
 		table.insert( Ent.RenderTable, Obj )
 		return true, Obj
 	end
 end
 
-function EGP:EditObject( Obj, Settings )
-	local ret = false
-	for k,v in pairs( Settings ) do
-		if (Obj[k] ~= nil and Obj[k] ~= v) then
-			Obj[k] = v
-			ret = true
-		end
-	end
-	return ret
+function EGP:EditObject(obj, settings)
+	return obj:EditObject(settings)
 end
 
 

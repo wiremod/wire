@@ -93,9 +93,9 @@ if CLIENT then
 			for _, obj in ipairs(rt) do
 				if obj.parent == -1 or obj.NeedsConstantUpdate then self.NeedsUpdate = true end
 				if obj.parent ~= 0 then
-					if not obj.IsParented then EGP:SetParent(self, obj.index, obj.parent) end
-					local _, data = EGP:GetGlobalPos(self, obj.index)
-					EGP:EditObject(obj, data)
+					if not obj.IsParented then EGP:SetParent(self, obj, obj.parent) end
+					local _, data = EGP.GetGlobalPos(self, obj)
+					obj:SetPos(data.x, data.y, data.angle)
 				elseif obj.IsParented then
 					EGP:UnParent(self, obj)
 				end
