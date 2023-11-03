@@ -108,7 +108,7 @@ end
 --- Returns an array containing all of <this>'s bones. This array's first element has the index 0!
 e2function array entity:bones()
 	if not IsValid(this) then return { } end
-	return GetBones(this)
+	return table.Copy(GetBones(this))
 end
 
 --- Returns <this>'s number of bones.
@@ -418,7 +418,3 @@ e2function string toString(bone b)
 end
 
 WireLib.registerDebuggerFormat("BONE", e2_tostring_bone)
-
---[[************************************************************************]]--
-
--- TODO: constraints

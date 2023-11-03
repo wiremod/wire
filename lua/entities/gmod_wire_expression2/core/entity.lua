@@ -1033,6 +1033,75 @@ e2function void entity:noCollideAll(number state)
 	this:SetCollisionGroup(state == 0 and COLLISION_GROUP_NONE or COLLISION_GROUP_WORLD)
 end
 
+--[[******************************************************************************]]
+-- Flexes
+
+__e2setcost(5)
+
+e2function array entity:getFlexBounds(number flex)
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+	return { this:GetFlexBounds(flex) }
+end
+
+e2function number entity:getFlexCount()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetFlexNum()
+end
+
+e2function number entity:getFlexID(string flex)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetFlexIDByName(flex) or -1
+end
+
+e2function number entity:getFlexScale()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetFlexScale()
+end
+
+e2function string entity:getFlexName(number id)
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
+	return this:GetFlexName(id) or ""
+end
+
+e2function number entity:getFlexWeight(number flex)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetFlexWeight(flex)
+end
+
+e2function number entity:hasFlexes()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:HasFlexManipulator() and 1 or 0
+end
+
+__e2setcost(15)
+
+e2function array entity:getFlexBounds(string flex)
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+	flex = this:GetFlexIDByName(flex)
+	return flex and { this:GetFlexBounds(flex) } or {}
+end
+
+e2function number entity:getFlexWeight(string flex)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	flex = this:GetFlexIDByName(flex)
+	return flex and this:GetFlexWeight(flex) or 0
+end
+
+__e2setcost(50)
+
+e2function array entity:getFlexes()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	local ret = {}
+	for i = 0, this:GetFlexNum() - 1 do
+		ret[i] = this:GetFlexName(i)
+	end
+	self.prf = self.prf + (#ret + 1) * 5
+	return ret
+end
+
+--[[******************************************************************************]]
+-- End e2functions
+
 hook.Add("OnEntityCreated", "E2_entityCreated", function(ent)
 	if not IsValid(ent) then return end -- Engine is precaching a model or bad addon
 

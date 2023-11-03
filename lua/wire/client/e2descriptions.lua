@@ -395,6 +395,16 @@ E2Helper.Descriptions["attachmentPos(e:s)"] = "Same as E:attachmentPos(E:lookupA
 E2Helper.Descriptions["attachmentAng(e:s)"] = "Same as E:attachmentAng(E:lookupAttachment(attachmentName))"
 E2Helper.Descriptions["attachments(e:)"] = "Returns array of attachment names of the entity"
 
+-- Flexes
+E2Helper.Descriptions["getFlexBounds"] = "Gets the upper and lower bounds of the flex if it exists"
+E2Helper.Descriptions["getFlexCount(e:)"] = "Gets the number of flexes on the entity"
+E2Helper.Descriptions["getFlexID(e:s)"] = "Gets the flex ID of the given name or -1 if it doesn't exist"
+E2Helper.Descriptions["getFlexName(e:n)"] = "Gets the name of the flex"
+E2Helper.Descriptions["getFlexScale(e:)"] = "Gets the flex scale of the entity"
+E2Helper.Descriptions["getFlexWeight"] = "Gets the weight of the flex"
+E2Helper.Descriptions["getFlexes(e:)"] = "Gets a 0-indexed array of all flexes and their names"
+E2Helper.Descriptions["hasFlexes(e:)"] = "Returns 1 if the entity has flexes"
+
 -- Vector
 E2Helper.Descriptions["vec2(n)"] = "Makes a 2D vector"
 E2Helper.Descriptions["vec2(nn)"] = "Makes a 2D vector"
