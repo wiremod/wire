@@ -113,7 +113,7 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
       end
     end
       if StartInd ~= -1 and EndInd ~= -1 then
-        table.insert(self.Settings.AutoPreserveRegisterRanges,{StartInd,EndInd})
+        table.insert(self.Settings.AutoBusyRegisterRanges,{true,StartInd,EndInd})
       else
         self:Error(StartRegister .. " to " .. EndRegister .. " is an invalid range!",
         macroPosition.Line,macroPosition.Col,macroPosition.File)
