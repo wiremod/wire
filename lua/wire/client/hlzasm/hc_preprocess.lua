@@ -74,10 +74,11 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
     if not self.Settings.AutoBusyRegisters then
       self.Settings.AutoBusyRegisters = true
     end
-    local Arguments = string.gmatch(macroParameters,'[^, ]+') -- comma separate the two registers
-    Arguments() -- drop first space
-    local StartRegister = trimString(Arguments())
-    local EndRegister = trimString(Arguments())
+    local StartRegister, EndRegister = string.match(macroParameters, "([^,%s]+)%s*,%s*([^,%s]+)")
+    if StartRegister == nil then
+      self:Error("Missing register range argument",
+      macroPosition.Line,macroPosition.Col,macroPosition.File)
+    end
     local StartInd,EndInd = -1,-1
     for ind,reg in ipairs(self.RegisterName) do
       if reg == StartRegister then
@@ -98,10 +99,11 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
     if not self.Settings.AutoBusyRegisters then
       self.Settings.AutoBusyRegisters = true
     end
-    local Arguments = string.gmatch(macroParameters,'[^, ]+') -- comma separate the two registers
-    Arguments() -- drop first space
-    local StartRegister = trimString(Arguments())
-    local EndRegister = trimString(Arguments())
+    local StartRegister, EndRegister = string.match(macroParameters, "([^,%s]+)%s*,%s*([^,%s]+)")
+    if StartRegister == nil then
+      self:Error("Missing register range argument",
+      macroPosition.Line,macroPosition.Col,macroPosition.File)
+    end
     local StartInd,EndInd = -1,-1
     for ind,reg in ipairs(self.RegisterName) do
       if reg == StartRegister then
