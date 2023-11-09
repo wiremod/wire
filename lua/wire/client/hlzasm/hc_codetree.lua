@@ -190,7 +190,7 @@ end
 function HCOMP:ReadOperandFromMemory(operands,index)
   if operands[index].MemoryPointer.Opcode then -- Parse complex expression
     local addrReg,isTemp = self:GenerateLeaf(operands[index].MemoryPointer,true)
-    operands[index] = { MemoryRegister = addrReg, Temporary = isTemp }
+    operands[index] = { MemoryRegister = addrReg, Segment = operands[index].Segment, Temporary = isTemp }
     self.RegisterBusy[addrReg] = isTemp
     return addrReg
   else -- Parse an operand
@@ -202,8 +202,7 @@ function HCOMP:ReadOperandFromMemory(operands,index)
       rstackLeaf.Operands[1] = { Register = freeReg }
       rstackLeaf.Operands[2] = { Constant = operands[index].MemoryPointer.Stack, Segment = 16 }
       self:GenerateLeaf(rstackLeaf)
-
-      operands[index] = { MemoryRegister = freeReg, Temporary = true }
+      operands[index] = { MemoryRegister = freeReg, Segment = operands[index].Segment, Temporary = true }
       self.RegisterBusy[freeReg] = true
       return addrReg
     else -- Generate more than just a stack read
