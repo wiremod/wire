@@ -487,7 +487,7 @@ end
 
 function PreProcessor:GetFunction(args, type)
 	local thistype, colon, name, argtypes = args:match("([^:]-)(:?)([^:(]+)%(([^)]*)%)")
-	if not thistype or (thistype ~= "") ~= (colon ~= "") then self:Error("Malformed " .. type .. " argument " .. args) end
+	if not thistype or (thistype ~= "") ~= (colon ~= "") then self:Error("Malformed " .. type .. " argument " .. args) return end
 
 	thistype = self:GetType(thistype)
 
