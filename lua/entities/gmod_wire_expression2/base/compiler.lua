@@ -1282,12 +1282,19 @@ local CompileVisitors = {
 			scope.data["function"] = { "<anonymous>", fn }
 
 			for i, param in ipairs(data[1]) do
+				self:Assert(param.type, "Cannot omit parameter type for lambda, annotate with :<type>", param.name.trace)
 				param_names[i], param_types[i] = param.name.value, self:Assert(self:CheckType(param.type), "Cannot use void as parameter", param.name.trace)
 				self:Assert(not param.variadic, "Variadic lambdas are not supported, use an array instead", param.name.trace)
 				scope:DeclVar(param.name.value, { type = param_types[i], initialized = true, trace_if_unused = param.name.trace })
 			end
 
-			return self:CompileStmt(data[2])
+			local block = self:CompileStmt(data[2])
+
+			if fn.ret then -- Ensure function either returns or errors
+				self:Assert(scope.data.dead, "Not all codepaths return a value of type '" .. fn.ret .. "'", trace)
+			end
+
+			return block
 		end)
 
 		local ret = fn.ret

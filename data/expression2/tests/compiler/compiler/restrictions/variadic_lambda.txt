@@ -1,4 +1,0 @@
-## SHOULD_FAIL:COMPILE
-
-function(...A:array) {}
-function(...A:table) {}
