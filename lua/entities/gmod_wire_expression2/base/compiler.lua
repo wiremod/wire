@@ -1293,6 +1293,8 @@ local CompileVisitors = {
 		local ret = fn.ret
 		local expected_sig = table.concat(param_types)
 
+		self.scope.data.ops = self.scope.data.ops + 25
+
 		return function(state)
 			local inherited_scopes, after, before = {}, state.ScopeID + 1, state.ScopeID
 			for i = 0, state.ScopeID do
