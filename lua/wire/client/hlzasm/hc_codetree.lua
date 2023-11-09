@@ -90,7 +90,11 @@ end
 -- Returns free (non-busy) register. Does not check EBP and ESP
 function HCOMP:FreeRegister()
   -- Try to find a free register
-  for i=1,6 do
+  for i=1,#self.RegisterBusy do
+    if not self.RegisterBusy[i] then return i end
+  end
+
+    for i=1,6 do
     if not self.RegisterBusy[i] then return i end
   end
 

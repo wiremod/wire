@@ -228,6 +228,19 @@ function HCOMP:BlockStart(blockType)
 
     -- Create busy registers list
     self.BusyRegisters = { false,false,false,false,false,false,true,true }
+    self.RegisterIdentities = {} -- holds register vars with the identity as key and value as index in busyregisters
+    for i=#self.BusyRegisters,128 do -- Allows R0-R31 and segment registers to be used, but only if ZAPPED beforehand
+      self.BusyRegisters[i] = true
+    end
+    if self.Settings.AutoBusyRegisters then
+      for _,range in ipairs(self.Settings.AutoBusyRegisterRanges) do
+        for i=range[2],range[3] do
+          if self.RegisterName[i] ~= 'N/A' then 
+            self.BusyRegisters[i] = range[1]
+          end
+        end
+      end
+    end
   end
 
   -- Create a leaf that corresponds to label for BREAK
@@ -428,7 +441,7 @@ end
 --------------------------------------------------------------------------------
 function HCOMP:DeclareRegisterVariable()
   if self.BlockDepth > 0 then
-    for reg=1,6 do
+    for reg=1,#self.BusyRegisters do
       if not self.BusyRegisters[reg] then
         self.BusyRegisters[reg] = true
         return reg
@@ -614,6 +627,7 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
           if isRegisterDecl then
             label.Type = "Register"
             label.Value = self:DeclareRegisterVariable()
+            self.RegisterIdentities[varName] = label.Value
             if isStruct then self:Error("Cannot hold structure variables in registers - yet") end
           else
             label.Type = "Stack"
@@ -675,6 +689,7 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
           if isRegisterDecl then
             label.Type = "Register"
             label.Value = self:DeclareRegisterVariable()
+            self.RegisterIdentities[varName] = label.Value
           else
             label.Type = "Variable"
             if isStruct and (pointerLevel > 0) then label.PointerToStruct = true end
@@ -810,8 +825,48 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
   if self:MatchToken(TOKEN.PRESERVE) or self:MatchToken(TOKEN.ZAP) then
     local tokenType = self.TokenType
     if self.BlockDepth > 0 then
-      while self:MatchToken(TOKEN.REGISTER) do
+      while self:MatchToken(TOKEN.REGISTER) or self:MatchToken(TOKEN.IDENT) do
+        if self.TokenType == TOKEN.IDENT then
+          if self.RegisterIdentities[self.TokenData] then
+            if tokenType == TOKEN.PRESERVE then
+              self:Error("Trying to preserve a register variable")
+            end
+            if self.RegisterIdentities[self.TokenData] == -1 then
+              self:Error("Trying to zap variable twice")
+            end
+            self.BusyRegisters[self.RegisterIdentities[self.TokenData]] = tokenType == TOKEN.PRESERVE
+            self.RegisterIdentities[self.TokenData] = -1 -- so we can error on attempted use after zap
+            if self:MatchToken(TOKEN.MINUS) then
+              self:Error("Cannot zap ranges using register variables")
+            end
+          else
+            if tokenType == TOKEN.PRESERVE then
+              self:Error("Trying to preserve a variable")
+            end
+            self:Error("Trying to zap a non register variable")
+          end
+        end
+        if self.TokenType == TOKEN.REGISTER then
+        local prevTokenData = self.TokenData
         self.BusyRegisters[self.TokenData] = tokenType == TOKEN.PRESERVE
+        if self:MatchToken(TOKEN.MINUS) then -- match range of registers
+            if self:MatchToken(TOKEN.REGISTER) or self:MatchToken(TOKEN.IDENT) then
+              if self.TokenType == TOKEN.IDENT then
+                self:Error("Cannot zap ranges using register variables")
+              end
+              if prevTokenData > self.TokenData then
+                self:Error("Start of register range is greater than end of register range")
+              end
+              for i=prevTokenData,self.TokenData do
+                if self.RegisterName[i] ~= "N/A" then
+                self.BusyRegisters[i] = tokenType == TOKEN.PRESERVE
+                end
+              end
+            else
+              self:Error("Invalid register range")
+            end
+        end
+      end
         self:MatchToken(TOKEN.COMMA)
       end
       self:MatchToken(TOKEN.COLON)

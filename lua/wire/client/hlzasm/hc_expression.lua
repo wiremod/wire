@@ -45,6 +45,11 @@ function HCOMP:Expression_ExplictIncDec(opcode,label,returnAfter)
     elseif label.Type == "Stack" then
       operationLeaf.Operands[1] = { Stack = label.StackOffset }
     elseif label.Type == "Register" then
+      if self.RegisterIdentities[label.Name] ~= nil then 
+        if self.RegisterIdentities[label.Name] == -1 then
+          self:Error("Attempting to use register variable after zapping it")
+        end
+      end
       operationLeaf.Operands[1] = { Register = label.Value }
     end
   end
@@ -193,6 +198,11 @@ function HCOMP:Expression_ArrayAccess(label) local TOKEN = self.TOKEN
       addressLeaf.Operands[2] = { Constant = {{ Type = TOKEN.IDENT, Data = label.Name, Position = self:CurrentSourcePosition() }} }
       operationLeaf = { MemoryPointer = addressLeaf }
     elseif label.Type == "Register" then
+      if self.RegisterIdentities[label.Name] ~= nil then 
+        if self.RegisterIdentities[label.Name] == -1 then
+          self:Error("Attempting to use register variable after zapping it")
+        end
+      end
       addressLeaf.Opcode = "add"
       addressLeaf.Operands[1] = arrayOffsetLeaf
       addressLeaf.Operands[2] = { Register = label.Value }
@@ -389,6 +399,11 @@ function HCOMP:Expression_Level3() local TOKEN = self.TOKEN
         end
       elseif label.Type == "Register" then
         -- Register variable
+        if self.RegisterIdentities[label.Name] ~= nil then 
+          if self.RegisterIdentities[label.Name] == -1 then
+            self:Error("Attempting to use register variable after zapping it")
+          end
+        end
         operationLeaf = { Register = label.Value }
       end
     end
@@ -655,6 +670,11 @@ function HCOMP:ConstantExpression_Level3()
         -- Pointer to stack value is not a constant
         return false
       elseif label.Type == "Register" then
+        if self.RegisterIdentities[label.Name] ~= nil then 
+          if self.RegisterIdentities[label.Name] == -1 then
+            self:Error("Attempting to use register variable after zapping it")
+          end
+        end
         -- Register variable is not a constant
         return false
       elseif label.Type == "Unknown" then
@@ -736,6 +756,11 @@ function HCOMP:ConstantExpression_Level3()
       -- Stack variables are not constant
       return false
     elseif label.Type == "Register" then
+      if self.RegisterIdentities[label.Name] ~= nil then 
+        if self.RegisterIdentities[label.Name] == -1 then
+          self:Error("Attempting to use register variable after zapping it")
+        end
+      end
       -- Register variable is not a constant
       return false
     elseif label.Type == "Unknown" then

@@ -70,6 +70,54 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
       CPULib.CPUName = pragmaCommand
     elseif pragmaName == "searchpath" then
       table.insert(self.SearchPaths,pragmaCommand)
+    elseif pragmaName == "allow" or pragmaName == "zap" then
+    if not self.Settings.AutoBusyRegisters then
+      self.Settings.AutoBusyRegisters = true
+    end
+    local Arguments = string.gmatch(macroParameters,'[^, ]+') -- comma separate the two registers
+    Arguments() -- drop first space
+    local StartRegister = trimString(Arguments())
+    local EndRegister = trimString(Arguments())
+    local StartInd,EndInd = -1,-1
+    for ind,reg in ipairs(self.RegisterName) do
+      if reg == StartRegister then
+        StartInd = ind
+      end
+      if reg == EndRegister then
+        EndInd = ind
+        break
+      end
+    end
+    if StartInd ~= -1 and EndInd ~= -1 then
+      table.insert(self.Settings.AutoBusyRegisterRanges,{false,StartInd,EndInd})
+    else
+      self:Error(StartRegister .. " to " .. EndRegister .. " is an invalid range!",
+      macroPosition.Line,macroPosition.Col,macroPosition.File)
+    end
+    elseif pragmaName == "disallow" or pragmaName == "preserve" then
+    if not self.Settings.AutoBusyRegisters then
+      self.Settings.AutoBusyRegisters = true
+    end
+    local Arguments = string.gmatch(macroParameters,'[^, ]+') -- comma separate the two registers
+    Arguments() -- drop first space
+    local StartRegister = trimString(Arguments())
+    local EndRegister = trimString(Arguments())
+    local StartInd,EndInd = -1,-1
+    for ind,reg in ipairs(self.RegisterName) do
+      if reg == StartRegister then
+        StartInd = ind
+      end
+      if reg == EndRegister then
+        EndInd = ind
+        break
+      end
+    end
+      if StartInd ~= -1 and EndInd ~= -1 then
+        table.insert(self.Settings.AutoPreserveRegisterRanges,{StartInd,EndInd})
+      else
+        self:Error(StartRegister .. " to " .. EndRegister .. " is an invalid range!",
+        macroPosition.Line,macroPosition.Col,macroPosition.File)
+      end
     end
   elseif macroName == "define" then -- #define
     local defineName = trimString(string.sub(macroParameters,1,(string.find(macroParameters," ") or 0)-1))

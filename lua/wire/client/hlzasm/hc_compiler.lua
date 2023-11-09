@@ -206,6 +206,8 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   self.Settings.GenerateComments = true -- Generates comments in output listing
 
   -- Code generation settings
+  self.Settings.AutoBusyRegisters = false -- Automatically preserves or zaps a range of registers for all code leaves that are generated while this is enabled.
+  self.Settings.AutoBusyRegisterRanges = {}
   self.Settings.FixedSizeOutput = false -- Output fixed-size instructions
   self.Settings.SeparateDataSegment = false -- Puts all variables into separate data segment
   self.Settings.GenerateLibrary = false -- Generate precompiled library

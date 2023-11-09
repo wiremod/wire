@@ -296,7 +296,7 @@ RegisterName[22] = "KS"
 RegisterName[23] = "LS"
 for port=0,1023 do RegisterName[1024+port] = "port"..port end
 for reg=0,31 do RegisterName[96+reg] = "R"..reg end
-
+HCOMP.RegisterName = RegisterName
 
 local SegmentRegisterName = {}
 SegmentRegisterName[01] = "CS"
@@ -316,7 +316,7 @@ SegmentRegisterName[14] = "EDI"
 SegmentRegisterName[15] = "ESP"
 SegmentRegisterName[16] = "EBP"
 for reg=0,31 do SegmentRegisterName[17+reg] = "R"..reg end
-
+HCOMP.SegmentRegisterName = RegisterName
 
 
 
