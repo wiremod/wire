@@ -15,7 +15,7 @@ AddCSLuaFile()
 
 ---@class EnvOperator
 ---@field args TypeSignature[]
----@field returns TypeSignature[]
+---@field ret TypeSignature?
 ---@field op RuntimeOperator
 ---@field cost integer
 

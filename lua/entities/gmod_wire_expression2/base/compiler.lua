@@ -224,7 +224,7 @@ local CompileVisitors = {
 					local i = #stmts + 1
 					stmts[i], traces[i] = stmt, trace
 
-					if node:isExpr() and node.variant ~= NodeVariant.ExprStringCall and node.variant ~= NodeVariant.ExprCall and node.variant ~= NodeVariant.ExprMethodCall then
+					if node:isExpr() and node.variant ~= NodeVariant.ExprDynCall and node.variant ~= NodeVariant.ExprCall and node.variant ~= NodeVariant.ExprMethodCall then
 						self:Warning("This expression has no effect", node.trace)
 					end
 				end
@@ -649,7 +649,7 @@ local CompileVisitors = {
 			local existing = {}
 			for i, param in ipairs(data[4]) do
 				if param.type then
-					local t = self:CheckType(param.type)
+					local t = self:Assert(self:CheckType(param.type), "Cannot use void as parameter type", param.name.trace)
 					if param.variadic then
 						self:Assert(t == "r" or t == "t", "Variadic parameter must be of type array or table", param.type.trace)
 						variadic_ind, variadic_ty = i, t
@@ -679,9 +679,9 @@ local CompileVisitors = {
 				end
 			else
 				if return_type then
-					self:Assert(fn_data.returns and fn_data.returns[1] == return_type, "Cannot override with differing return type", trace)
+					self:Assert(fn_data.ret == return_type, "Cannot override with differing return type", trace)
 				else
-					self:Assert(fn_data.returns == nil, "Cannot override function returning void with differing return type", trace)
+					self:Assert(fn_data.ret == nil, "Cannot override function returning void with differing return type", trace)
 				end
 
 				-- Tag function if it is ever re-declared. Used as an optimization
@@ -689,7 +689,7 @@ local CompileVisitors = {
 			end
 		end
 
-		local fn = { args = param_types, returns = return_type and { return_type }, meta = meta_type, cost = variadic_ty and 25 or 10, attrs = {} }
+		local fn = { args = param_types, ret = return_type, meta = meta_type, cost = variadic_ty and 25 or 10, attrs = {} }
 		local sig = table.concat(param_types, "", 1, #param_types - 1) .. ((variadic_ty and ".." or "") .. (param_types[#param_types] or ""))
 
 		if meta_type then
@@ -816,7 +816,7 @@ local CompileVisitors = {
 			end
 		end)
 
-		self:Assert((fn.returns and fn.returns[1]) == return_type, "Function " .. name.value .. " expects to return type (" .. (return_type or "void") .. ") but got type (" .. ((fn.returns and fn.returns[1]) or "void") .. ")", trace)
+		self:Assert(fn.ret == return_type, "Function " .. name.value .. " expects to return type (" .. (return_type or "void") .. ") but got type (" .. (fn.ret or "void") .. ")", trace)
 
 		local sig = name.value .. "(" .. (meta_type and (meta_type .. ":") or "") .. sig .. ")"
 		local fn = fn.op
@@ -910,10 +910,10 @@ local CompileVisitors = {
 
 		local name, fn = fn[1], fn[2]
 
-		if fn.returns then
-			self:Assert(fn.returns[1] == ret_ty, "Function " .. name .. " expects return type (" .. (fn.returns[1] or "void") .. ") but was given (" .. (ret_ty or "void") .. ")", trace)
+		if fn.ret then
+			self:Assert(fn.ret == ret_ty, "Function " .. name .. " expects return type (" .. (fn.ret or "void") .. ") but was given (" .. (ret_ty or "void") .. ")", trace)
 		else
-			fn.returns = { ret_ty }
+			fn.ret = ret_ty
 		end
 
 		if ret_ty then
@@ -1273,6 +1273,88 @@ local CompileVisitors = {
 		end
 	end,
 
+	---@param data { [1]: Parameter[], [2]: Node }
+	[NodeVariant.ExprFunction] = function(self, trace, data)
+		---@type EnvFunction
+		local fn, param_names, param_types, nargs = { attrs = {} }, {}, {}, #data[1]
+
+		local block = self:Scope(function(scope)
+			scope.data["function"] = { "<anonymous>", fn }
+
+			for i, param in ipairs(data[1]) do
+				param_names[i], param_types[i] = param.name.value, self:Assert(self:CheckType(param.type), "Cannot use void as parameter", param.name.trace)
+				self:Assert(not param.variadic, "Variadic lambdas are not supported, use an array instead", param.name.trace)
+				scope:DeclVar(param.name.value, { type = param_types[i], initialized = true, trace_if_unused = param.name.trace })
+			end
+
+			return self:CompileStmt(data[2])
+		end)
+
+		local ret = fn.ret
+		local expected_sig = table.concat(param_types)
+
+		return function(state)
+			local inherited_scopes, after, before = {}, state.ScopeID + 1, state.ScopeID
+			for i = 0, state.ScopeID do
+				inherited_scopes[i] = state.Scopes[i]
+			end
+
+			if ret then
+				return function(args, given_sig)
+					if given_sig ~= expected_sig then
+						state:forceThrow("Incorrect arguments passed to lambda, expected (" .. expected_sig .. "), got (" .. given_sig .. ")")
+					end
+
+					local s_scopes, s_scope, s_scopeid = state.Scopes, state.Scope, state.ScopeID
+
+					local scope = { vclk = {} }
+					state.Scopes = inherited_scopes
+					state.ScopeID = after -- state.ScopeID + 1
+					state.Scopes[after] = scope
+					state.Scope = scope
+
+					for i = 1, nargs do
+						local arg = args[i]
+						if arg then
+							scope[param_names[i]] = arg
+						else
+							state:forceThrow("Missing argument [" .. param_names[i] .. "] to be passed into lambda")
+						end
+					end
+
+					block(state)
+
+					state.ScopeID, state.Scope, state.Scopes = s_scopeid, s_scope, s_scopes
+
+					state.__return__ = false
+					return ret, state.__returnval__
+				end
+			else -- function without return value, don't handle case.
+				return function(args, given_sig)
+					if given_sig ~= expected_sig then
+						state:forceThrow("Incorrect arguments passed to lambda, expected (" .. expected_sig .. "), got (" .. given_sig .. ")")
+					end
+
+					local s_scopes, s_scopeid, s_scope = state.Scopes, state.ScopeID, state.Scope
+
+					local scope = { vclk = {} }
+					state.Scopes = inherited_scopes
+					state.ScopeID = after -- state.ScopeID + 1
+					state.Scopes[after] = scope
+					state.Scope = scope
+
+					for i = 1, nargs do
+						scope[param_names[i]] = args[i]
+					end
+
+					block(state)
+
+					state.Scopes[before], state.ScopeID, state.Scope, state.Scopes = nil, s_scopeid, s_scope, s_scopes
+				end
+			end
+		end, "f"
+	end,
+
 	[NodeVariant.ExprArithmetic] = handleInfixOperation,
 
 	---@param data { [1]: Node, [2]: Operator, [3]: self }
@@ -1466,7 +1548,7 @@ local CompileVisitors = {
 						rargs[k] = args[k](state)
 					end
 					return fn(state, rargs, types)
-				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
+				end, fn_data.ret and (fn_data.ret ~= "" and fn_data.ret or nil)
 			else
 				local full_sig = name.value .. "(" .. arg_sig .. ")"
 				return function(state) ---@param state RuntimeContext
@@ -1481,7 +1563,7 @@ local CompileVisitors = {
 					else
 						state:forceThrow("No such function defined at runtime: " .. full_sig)
 					end
-				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
+				end, fn_data.ret and (fn_data.ret ~= "" and fn_data.ret or nil)
 			end
 		elseif fn_data.attrs["legacy"] then -- Not a user function. Can get function to call at compile time.
 			local fn, largs = fn_data.op, { [1] = {}, [nargs + 2] = types }
@@ -1490,7 +1572,7 @@ local CompileVisitors = {
 			end
 			return function(state) ---@param state RuntimeContext
 				return fn(state, largs)
-			end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
+			end, fn_data.ret and (fn_data.ret ~= "" and fn_data.ret or nil)
 		else
 			local fn = fn_data.op
 			return function(state) ---@param state RuntimeContext
@@ -1500,7 +1582,7 @@ local CompileVisitors = {
 				end
 
 				return fn(state, rargs, types)
-			end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
+			end, fn_data.ret and (fn_data.ret ~= "" and fn_data.ret or nil)
 		end
 	end,
 
@@ -1550,7 +1632,7 @@ local CompileVisitors = {
 					else
 						state:forceThrow("No such method defined at runtime: " .. full_sig)
 					end
-				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
+				end, fn_data.ret and (fn_data.ret ~= "" and fn_data.ret or nil)
 			end
 		elseif fn_data.attrs["legacy"] then
 			local fn, largs = fn_data.op, { [nargs + 3] = types, [2] = { [1] = meta } }
@@ -1560,7 +1642,7 @@ local CompileVisitors = {
 
 			return function(state) ---@param state RuntimeContext
 				return fn(state, largs)
-			end, fn_data.returns and fn_data.returns[1]
+			end, fn_data.ret
 		else
 			local fn = fn_data.op
 			return function(state) ---@param state RuntimeContext
@@ -1570,117 +1652,143 @@ local CompileVisitors = {
 				end
 
 				return fn(state, rargs, types)
-			end, fn_data.returns and fn_data.returns[1]
+			end, fn_data.ret
 		end
 	end,
 
 	---@param data { [1]: Node, [2]: Node[], [3]: Token<string>? }
-	[NodeVariant.ExprStringCall] = function (self, trace, data)
-		local expr = self:CompileExpr(data[1])
+	[NodeVariant.ExprDynCall] = function (self, trace, data)
+		local expr, expr_ty = self:CompileExpr(data[1])
 
 		local args, arg_types = {}, {}
 		for i, arg in ipairs(data[2]) do
 			args[i], arg_types[i] = self:CompileExpr(arg)
 		end
 
-		local type_sig = table.concat(arg_types)
-		local arg_sig = "(" .. type_sig .. ")"
-		local meta_arg_sig = #arg_types >= 1 and ("(" .. arg_types[1] .. ":" .. table.concat(arg_types, "", 2) .. ")") or "()"
-
 		local ret_type = data[3] and self:CheckType(data[3])
 
-		local nargs = #args
-		return function(state) ---@param state RuntimeContext
-			local rargs = {}
-			for k = 1, nargs do
-				rargs[k] = args[k](state)
-			end
+		if expr_ty == "s" then
+			self:Warning("String calls are deprecated. Use lambdas instead. This will be an error on @strict in the future.", trace)
+			self.scope.data.ops = self.scope.data.ops + 25
 
-			local fn_name = expr(state)
-			local sig, meta_sig = fn_name .. arg_sig, fn_name .. meta_arg_sig
+			local type_sig = table.concat(arg_types)
+			local arg_sig = "(" .. type_sig .. ")"
+			local meta_arg_sig = #arg_types >= 1 and ("(" .. arg_types[1] .. ":" .. table.concat(arg_types, "", 2) .. ")") or "()"
 
-			local fn = state.funcs[sig] or state.funcs[meta_sig]
-			if fn then -- first check if user defined any functions that match signature
-				local r = state.funcs_ret[sig] or state.funcs_ret[meta_sig]
-				if r ~= ret_type then
-					state:forceThrow( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
+			local nargs = #args
+			return function(state) ---@param state RuntimeContext
+				local rargs = {}
+				for k = 1, nargs do
+					rargs[k] = args[k](state)
 				end
 
-				return fn(state, rargs, arg_types)
-			else -- no user defined functions, check builtins
-				fn = wire_expression2_funcs[sig] or wire_expression2_funcs[meta_sig]
-				if fn then
-					local r = fn[2]
-					if r ~= ret_type and not (ret_type == nil and r == "") then
+				local fn_name = expr(state)
+				local sig, meta_sig = fn_name .. arg_sig, fn_name .. meta_arg_sig
+
+				local fn = state.funcs[sig] or state.funcs[meta_sig]
+				if fn then -- first check if user defined any functions that match signature
+					local r = state.funcs_ret[sig] or state.funcs_ret[meta_sig]
+					if r ~= ret_type then
 						state:forceThrow( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
 					end
 
-					if fn.attributes.legacy then
-						local largs = { [1] = {}, [nargs + 2] = arg_types }
-						for i = 1, nargs do
-							largs[i + 1] = { [1] = function() return rargs[i] end }
+					return fn(state, rargs, arg_types)
+				else -- no user defined functions, check builtins
+					fn = wire_expression2_funcs[sig] or wire_expression2_funcs[meta_sig]
+					if fn then
+						local r = fn[2]
+						if r ~= ret_type and not (ret_type == nil and r == "") then
+							state:forceThrow( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
 						end
-						return fn[3](state, largs, arg_types)
-					else
-						return fn[3](state, rargs, arg_types)
-					end
-				else -- none found, check variadic builtins
-					for i = nargs, 0, -1 do
-						local varsig = fn_name .. "(" .. type_sig:sub(1, i) .. "...)"
-						local fn = wire_expression2_funcs[varsig]
-						if fn then
-							local r = fn[2]
-							if r ~= ret_type and not (ret_type == nil and r == "") then
-								state:forceThrow("Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
-							end
 
-							if fn.attributes.legacy then
-								local largs = { [1] = {}, [nargs + 2] = arg_types }
-								for i = 1, nargs do
-									largs[i + 1] = { [1] = function() return rargs[i] end }
-								end
-								return fn[3](state, largs, arg_types)
-							elseif varsig == "array(...)" then -- Need this since can't enforce compile time argument type restrictions on string calls. Woop. Array creation should not be a function..
-								local i = 1
-								while i <= #arg_types do
-									local ty = arg_types[i]
-									if BLOCKED_ARRAY_TYPES[ty] then
-										table.remove(rargs, i)
-										table.remove(arg_types, i)
-										state:forceThrow("Cannot use type " .. ty .. " for argument #" .. i .. " in stringcall array creation")
-									else
-										i = i + 1
-									end
-								end
+						if fn.attributes.legacy then
+							local largs = { [1] = {}, [nargs + 2] = arg_types }
+							for i = 1, nargs do
+								largs[i + 1] = { [1] = function() return rargs[i] end }
 							end
-
-							return fn[3](state, rargs, arg_types)
+							return fn[3](state, largs, arg_types)
 						else
-							local varsig = fn_name .. "(" .. type_sig:sub(1, i) .. "..r)"
-							local fn = state.funcs[varsig]
-
+							return fn[3](state, rargs, arg_types)
+						end
+					else -- none found, check variadic builtins
+						for i = nargs, 0, -1 do
+							local varsig = fn_name .. "(" .. type_sig:sub(1, i) .. "...)"
+							local fn = wire_expression2_funcs[varsig]
 							if fn then
-								for _, ty in ipairs(arg_types) do -- Just block them entirely. Current method of finding variadics wouldn't allow a proper solution that works with x<yz> types. Would need to rewrite all of this which I don't think is worth it when already nobody is going to use this functionality.
-									if BLOCKED_ARRAY_TYPES[ty] then
-										state:forceThrow("Cannot pass array into variadic array function")
+								local r = fn[2]
+								if r ~= ret_type and not (ret_type == nil and r == "") then
+									state:forceThrow("Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
+								end
+
+								if fn.attributes.legacy then
+									local largs = { [1] = {}, [nargs + 2] = arg_types }
+									for i = 1, nargs do
+										largs[i + 1] = { [1] = function() return rargs[i] end }
+									end
+									return fn[3](state, largs, arg_types)
+								elseif varsig == "array(...)" then -- Need this since can't enforce compile time argument type restrictions on string calls. Woop. Array creation should not be a function..
+									local i = 1
+									while i <= #arg_types do
+										local ty = arg_types[i]
+										if BLOCKED_ARRAY_TYPES[ty] then
+											table.remove(rargs, i)
+											table.remove(arg_types, i)
+											state:forceThrow("Cannot use type " .. ty .. " for argument #" .. i .. " in stringcall array creation")
+										else
+											i = i + 1
+										end
 									end
 								end
 
-								return fn(state, rargs, arg_types)
+								return fn[3](state, rargs, arg_types)
 							else
-								local varsig = fn_name .. "(" .. type_sig:sub(1, i) .. "..t)"
+								local varsig = fn_name .. "(" .. type_sig:sub(1, i) .. "..r)"
 								local fn = state.funcs[varsig]
+
 								if fn then
+									for _, ty in ipairs(arg_types) do -- Just block them entirely. Current method of finding variadics wouldn't allow a proper solution that works with x<yz> types. Would need to rewrite all of this which I don't think is worth it when already nobody is going to use this functionality.
+										if BLOCKED_ARRAY_TYPES[ty] then
+											state:forceThrow("Cannot pass array into variadic array function")
+										end
+									end
+
 									return fn(state, rargs, arg_types)
+								else
+									local varsig = fn_name .. "(" .. type_sig:sub(1, i) .. "..t)"
+									local fn = state.funcs[varsig]
+									if fn then
+										return fn(state, rargs, arg_types)
+									end
 								end
 							end
 						end
-					end
 
-					state:forceThrow("No such function: " .. fn_name .. arg_sig)
+						state:forceThrow("No such function: " .. fn_name .. arg_sig)
+					end
 				end
-			end
-		end, ret_type
+			end, ret_type
+		elseif expr_ty == "f" then
+			self.scope.data.ops = self.scope.data.ops + 15 -- Since functions are 10 ops, this is pretty lenient. I will decrease this slightly when functions are made static and cheaper.
+
+			local nargs = #args
+			local sig = table.concat(arg_types)
+
+			return function(state)
+				local f, rargs = expr(state), {}
+				for k = 1, nargs do
+					rargs[k] = args[k](state)
+				end
+
+				local ty, r = f(rargs, sig)
+				if ty ~= ret_type then -- if void, don't care if it returns something.
+					state:forceThrow("Expected type " .. (ret_type or "void") .. " from lambda, got " .. (ty or "void"))
+				end
+
+				return r
+			end, ret_type
+		else
+			self:Error("Cannot call type of " .. expr_ty, trace)
+		end
 	end,
 
 	---@param data { [1]: Token<string>, [2]: Parameter[], [3]: Node }
@@ -1829,14 +1937,14 @@ function Compiler:GetFunction(name, types, method)
 	local sig, method_prefix = table.concat(types), method and (method .. ":") or ""
 
 	local fn = wire_expression2_funcs[name .. "(" .. method_prefix .. sig .. ")"]
-	if fn then return { op = fn[3], returns = { fn[2] }, args = types, cost = fn[4], attrs = fn.attributes }, false, false end
+	if fn then return { op = fn[3], ret = fn[2], args = types, cost = fn[4], attrs = fn.attributes }, false, false end
 
 	local fn, variadic = self:GetUserFunction(name, types, method)
 	if fn then return fn, variadic, true end
 
 	for i = #sig, 0, -1 do
 		fn = wire_expression2_funcs[name .. "(" .. method_prefix .. sig:sub(1, i) .. "...)"]
-		if fn then return { op = fn[3], returns = { fn[2] }, args = types, cost = fn[4], attrs = fn.attributes }, true, false end
+		if fn then return { op = fn[3], ret = fn[2], args = types, cost = fn[4], attrs = fn.attributes }, true, false end
 	end
 end
 

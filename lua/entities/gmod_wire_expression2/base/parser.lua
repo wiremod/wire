@@ -94,12 +94,13 @@ local NodeVariant = {
 	ExprIndex = 29,	-- `<EXPR>[<EXPR>, <type>?]`
 	ExprGrouped = 30, -- (<EXPR>)
 	ExprCall = 31, -- `call()`
-	ExprStringCall = 32, -- `""()` (Temporary until lambdas are made)
+	ExprDynCall = 32, -- `Var()`
 	ExprUnaryWire = 33, -- `~Var` `$Var` `->Var`
 	ExprArray = 34, -- `array(1, 2, 3)` or `array(1 = 2, 2 = 3)`
 	ExprTable = 35, -- `table(1, 2, 3)` or `table(1 = 2, "test" = 3)`
-	ExprLiteral = 36, -- `"test"` `5e2` `4.023` `4j`
-	ExprIdent = 37 -- `Variable`
+	ExprFunction = 36, -- `function() {}`
+	ExprLiteral = 37, -- `"test"` `5e2` `4.023` `4j`
+	ExprIdent = 38 -- `Variable`
 }
 
 Parser.Variant = NodeVariant
@@ -533,8 +534,16 @@ end
 ---@return Token<string>?
 function Parser:Type()
 	local type = self:Consume(TokenVariant.LowerIdent)
-	if type and type.value == "normal" then
-		type.value = "number"
+	if type then
+		if type.value == "normal" then
+			type.value = "number"
+		end
+	else -- workaround to allow "function" as type while also being a keyword
+		local fn = self:Consume(TokenVariant.Keyword, Keyword.Function)
+		if fn then
+			fn.value, fn.variant = "function", TokenVariant.LowerIdent
+			return fn
+		end
 	end
 	return type
 end
@@ -885,7 +894,7 @@ function Parser:Expr14()
 					end
 				end
 
-				return Node.new(NodeVariant.ExprStringCall, { expr, args, typ }, expr.trace:stitch(self:Prev().trace))
+				return Node.new(NodeVariant.ExprDynCall, { expr, args, typ }, expr.trace:stitch(self:Prev().trace))
 			else
 				break
 			end
@@ -913,6 +922,11 @@ function Parser:Expr15()
 		end
 
 		return Node.new(NodeVariant.ExprCall, { fn, self:Arguments() }, fn.trace:stitch(self:Prev().trace))
+	end
+
+	local fn = self:Consume(TokenVariant.Keyword, Keyword.Function)
+	if fn then
+		return Node.new(NodeVariant.ExprFunction, { self:Parameters(), self:Assert(self:Block(), "Expected block to follow function") }, fn.trace:stitch(self:Prev().trace))
 	end
 
 	-- Decimal / Hexadecimal / Binary numbers
