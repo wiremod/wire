@@ -1296,7 +1296,7 @@ local CompileVisitors = {
 		self.scope.data.ops = self.scope.data.ops + 25
 
 		return function(state)
-			local inherited_scopes, after, before = {}, state.ScopeID + 1, state.ScopeID
+			local inherited_scopes, after = {}, state.ScopeID + 1
 			for i = 0, state.ScopeID do
 				inherited_scopes[i] = state.Scopes[i]
 			end
@@ -1345,7 +1345,7 @@ local CompileVisitors = {
 
 						block(state)
 
-						state.Scopes[before], state.ScopeID, state.Scope, state.Scopes = nil, s_scopeid, s_scope, s_scopes
+						state.ScopeID, state.Scope, state.Scopes = s_scopeid, s_scope, s_scopes
 					end
 				)
 			end
