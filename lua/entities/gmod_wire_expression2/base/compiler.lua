@@ -1302,57 +1302,52 @@ local CompileVisitors = {
 			end
 
 			if ret then
-				return function(args, given_sig)
-					if given_sig ~= expected_sig then
-						state:forceThrow("Incorrect arguments passed to lambda, expected (" .. expected_sig .. "), got (" .. given_sig .. ")")
-					end
+				return E2Lib.Lambda.new(
+					expected_sig,
+					ret,
+					function(args)
+						local s_scopes, s_scope, s_scopeid = state.Scopes, state.Scope, state.ScopeID
 
-					local s_scopes, s_scope, s_scopeid = state.Scopes, state.Scope, state.ScopeID
+						local scope = { vclk = {} }
+						state.Scopes = inherited_scopes
+						state.ScopeID = after
+						state.Scopes[after] = scope
+						state.Scope = scope
 
-					local scope = { vclk = {} }
-					state.Scopes = inherited_scopes
-					state.ScopeID = after -- state.ScopeID + 1
-					state.Scopes[after] = scope
-					state.Scope = scope
-
-					for i = 1, nargs do
-						local arg = args[i]
-						if arg then
-							scope[param_names[i]] = arg
-						else
-							state:forceThrow("Missing argument [" .. param_names[i] .. "] to be passed into lambda")
+						for i = 1, nargs do
+							scope[param_names[i]] = args[i]
 						end
+
+						block(state)
+
+						state.ScopeID, state.Scope, state.Scopes = s_scopeid, s_scope, s_scopes
+
+						state.__return__ = false
+						return state.__returnval__
 					end
-
-					block(state)
-
-					state.ScopeID, state.Scope, state.Scopes = s_scopeid, s_scope, s_scopes
-
-					state.__return__ = false
-					return ret, state.__returnval__
-				end
+				)
 			else -- function without return value, don't handle case.
-				return function(args, given_sig)
-					if given_sig ~= expected_sig then
-						state:forceThrow("Incorrect arguments passed to lambda, expected (" .. expected_sig .. "), got (" .. given_sig .. ")")
+				return E2Lib.Lambda.new(
+					expected_sig,
+					ret,
+					function(args)
+						local s_scopes, s_scopeid, s_scope = state.Scopes, state.ScopeID, state.Scope
+
+						local scope = { vclk = {} }
+						state.Scopes = inherited_scopes
+						state.ScopeID = after
+						state.Scopes[after] = scope
+						state.Scope = scope
+
+						for i = 1, nargs do
+							scope[param_names[i]] = args[i]
+						end
+
+						block(state)
+
+						state.Scopes[before], state.ScopeID, state.Scope, state.Scopes = nil, s_scopeid, s_scope, s_scopes
 					end
-
-					local s_scopes, s_scopeid, s_scope = state.Scopes, state.ScopeID, state.Scope
-
-					local scope = { vclk = {} }
-					state.Scopes = inherited_scopes
-					state.ScopeID = after -- state.ScopeID + 1
-					state.Scopes[after] = scope
-					state.Scope = scope
-
-					for i = 1, nargs do
-						scope[param_names[i]] = args[i]
-					end
-
-					block(state)
-
-					state.Scopes[before], state.ScopeID, state.Scope, state.Scopes = nil, s_scopeid, s_scope, s_scopes
-				end
+				)
 			end
 		end, "f"
 	end,
@@ -1776,17 +1771,20 @@ local CompileVisitors = {
 			local sig = table.concat(arg_types)
 
 			return function(state)
-				local f, rargs = expr(state), {}
-				for k = 1, nargs do
-					rargs[k] = args[k](state)
-				end
+				---@type E2Lambda
+				local f = expr(state)
 
-				local ty, r = f(rargs, sig)
-				if ty ~= ret_type then -- if void, don't care if it returns something.
-					state:forceThrow("Expected type " .. (ret_type or "void") .. " from lambda, got " .. (ty or "void"))
+				if f.arg_sig ~= sig then
+					state:forceThrow("Incorrect arguments passed to lambda, expected (" .. f.arg_sig .. ") got (" .. sig .. ")")
+				elseif f.ret ~= ret_type then
+					state:forceThrow("Expected type " .. (ret_type or "void") .. " from lambda, got " .. (f.ret or "void"))
+				else
+					local rargs = {}
+					for k = 1, nargs do
+						rargs[k] = args[k](state)
+					end
+					return f.fn(rargs)
 				end
-
-				return r
 			end, ret_type
 		else
 			self:Error("Cannot call type of " .. expr_ty, trace)
@@ -1970,15 +1968,15 @@ end
 ---@return RuntimeOperator
 function Compiler:Process(ast)
 	for var, type in pairs(self.persist[3]) do
-		self.scope:DeclVar(var, { initialized = false, trace_if_unused = self.persist[5][var], type = type })
+		self.global_scope:DeclVar(var, { initialized = false, trace_if_unused = self.persist[5][var], type = type })
 	end
 
 	for var, type in pairs(self.inputs[3]) do
-		self.scope:DeclVar(var, { initialized = true, trace_if_unused = self.inputs[5][var], type = type })
+		self.global_scope:DeclVar(var, { initialized = true, trace_if_unused = self.inputs[5][var], type = type })
 	end
 
 	for var, type in pairs(self.outputs[3]) do
-		self.scope:DeclVar(var, { initialized = false, type = type })
+		self.global_scope:DeclVar(var, { initialized = false, type = type })
 	end
 
 	return self:CompileStmt(ast)

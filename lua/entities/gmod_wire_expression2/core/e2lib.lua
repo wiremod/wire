@@ -70,6 +70,53 @@ function E2Lib.newE2Table()
 	return { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 }
 end
 
+---@class E2Lambda
+---@field fn fun(args: any[]): any
+---@field arg_sig string
+---@field ret string
+local Function = {}
+Function.__index = Function
+
+function Function.new(args, ret, fn)
+	return setmetatable({ arg_sig = args, ret = ret, fn = fn }, Function)
+end
+
+E2Lib.Lambda = Function
+
+--- Call the function without doing any type checking.
+--- Only use this when you check self:Args() yourself to ensure you have the correct signature function.
+function Function:UnsafeCall(args)
+	return self.fn(args)
+end
+
+function Function:Call(args, types)
+	if self.arg_sig == types then
+		return self.fn(args)
+	else
+		error("Incorrect arguments passed to lambda")
+	end
+end
+
+function Function:Args()
+	return self.arg_sig
+end
+
+function Function:Ret()
+	return self.ret
+end
+
+--- If given the correct arguments, returns the inner untyped function you can call.
+--- Otherwise, throws an error to the given E2 Context.
+---@param arg_sig string
+---@param ctx RuntimeContext
+function Function:Unwrap(arg_sig, ctx)
+	if self.arg_sig == arg_sig then
+		return self.fn
+	else
+		ctx:forceThrow("Incorrect function signature passed, expected (" .. arg_sig .. ") got (" .. self.arg_sig .. ")")
+	end
+end
+
 -- Returns a cloned table of the variable given if it is a table.
 -- TODO: Ditch this system for instead having users provide a function that returns the default value.
 -- Would be much more efficient and avoid type checks.
