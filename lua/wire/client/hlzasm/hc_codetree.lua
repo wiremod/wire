@@ -94,10 +94,6 @@ function HCOMP:FreeRegister()
     if not self.RegisterBusy[i] then return i end
   end
 
-    for i=1,6 do
-    if not self.RegisterBusy[i] then return i end
-  end
-
   -- Try to find a register that wasnt pushed to stack yet
 --  for i=1,6 do
 --    if not self.RegisterStackOffset[i] then
