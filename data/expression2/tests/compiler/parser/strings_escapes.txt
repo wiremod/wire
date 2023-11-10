@@ -1,0 +1,6 @@
+## SHOULD_FAIL:COMPILE
+
+"\xff \xfa \x1a \xna4a \xgaf \x11f \x\x4f
+\u{-2615} \u{0x2615} \u{ff} \u\xff \u{fnaf} \u{ff\u{ff}} \u{ff}aa} \u{\u{49}} \uu{ffa} \u{ff} \u\u{3f} \u{}
+\0 null"
+

@@ -998,7 +998,25 @@ local CompileVisitors = {
 
 					local id = existing.depth
 					if id == 0 then
-						if E2Lib.IOTableTypes[value_ty] then
+						if self.delta_vars[var] then
+							if E2Lib.IOTableTypes[value_ty] then
+								stmts[i] = function(state, val) ---@param state RuntimeContext
+									state.GlobalScope["$" .. var] = state.GlobalScope[var]
+									state.GlobalScope[var], state.GlobalScope.vclk[var] = val, true
+
+									if state.GlobalScope.lookup[val] then
+										state.GlobalScope.lookup[val][var] = true
+									else
+										state.GlobalScope.lookup[val] = { [var] = true }
+									end
+								end
+							else
+								stmts[i] = function(state, val) ---@param state RuntimeContext
+									state.GlobalScope["$" .. var] = state.GlobalScope[var]
+									state.GlobalScope[var], state.GlobalScope.vclk[var] = val, true
+								end
+							end
+						elseif E2Lib.IOTableTypes[value_ty] then
 							stmts[i] = function(state, val) ---@param state RuntimeContext
 								state.GlobalScope[var], state.GlobalScope.vclk[var] = val, true
 
@@ -1024,7 +1042,25 @@ local CompileVisitors = {
 				self:Assert(#indices == 0, "Variable (" .. var .. ") does not exist", trace)
 				self.global_scope:DeclVar(var, { type = value_ty, initialized = true, trace_if_unused = trace })
 
-				if E2Lib.IOTableTypes[value_ty] then
+				if self.delta_vars[var] then
+					if E2Lib.IOTableTypes[value_ty] then
+						stmts[i] = function(state, val) ---@param state RuntimeContext
+							state.GlobalScope["$" .. var] = state.GlobalScope[var] -- Set $Var to old value to be used in $ operator.
+							state.GlobalScope[var], state.GlobalScope.vclk[var] = val, true
+
+							if state.GlobalScope.lookup[val] then
+								state.GlobalScope.lookup[val][var] = true
+							else
+								state.GlobalScope.lookup[val] = { [var] = true }
+							end
+						end
+					else
+						stmts[i] = function(state, val) ---@param state RuntimeContext
+							state.GlobalScope["$" .. var] = state.GlobalScope[var] -- Set $Var to old value to be used in $ operator.
+							state.GlobalScope[var], state.GlobalScope.vclk[var] = val, true
+						end
+					end
+				elseif E2Lib.IOTableTypes[value_ty] then
 					stmts[i] = function(state, val) ---@param state RuntimeContext
 						state.GlobalScope[var], state.GlobalScope.vclk[var] = val, true
 
@@ -1456,16 +1492,13 @@ local CompileVisitors = {
 		self:AssertW(var.initialized, "Use of variable [" .. var_name .. "] before initialization", trace)
 
 		if data[1] == Operator.Dlt then -- $
+			self:Warning("Delta operator ($) is deprecated. Recommended to handle variable differences yourself.", trace)
 			self:Assert(var.depth == 0, "Delta operator ($) can not be used on temporary variables", trace)
 			self.delta_vars[var_name] = true
 
 			local sub_op, sub_ty = self:GetOperator("sub", { var.type, var.type }, trace)
-
 			return function(state) ---@param state RuntimeContext
-				local current, past = state.GlobalScope[var_name], state.GlobalScope["$" .. var_name]
-				local diff = sub_op(state, current, past)
-				state.GlobalScope["$" .. var_name] = current
-				return diff
+				return sub_op(state, state.GlobalScope[var_name], state.GlobalScope["$" .. var_name])
 			end, sub_ty
 		elseif data[1] == Operator.Trg then -- ~
 			return function(state) ---@param state RuntimeContext

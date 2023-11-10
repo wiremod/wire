@@ -360,7 +360,7 @@ function Parser:Stmt()
 		return Node.new(NodeVariant.Const, { name, value }, trace:stitch(self:Prev().trace))
 	end
 
-	local is_local, var = self:Consume(TokenVariant.Keyword, Keyword.Local), self:Consume(TokenVariant.Ident)
+	local is_local, var = self:Consume(TokenVariant.Keyword, Keyword.Local) or self:Consume(TokenVariant.Keyword, Keyword.Let), self:Consume(TokenVariant.Ident)
 	if not var then
 		self:Assert(not is_local, "Invalid operator (local) must be used for variable declaration.")
 	else

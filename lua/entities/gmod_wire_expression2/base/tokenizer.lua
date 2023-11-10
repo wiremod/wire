@@ -141,17 +141,46 @@ function Tokenizer:Warning(message, trace)
 	self.warnings[#self.warnings + 1] = Warning.new( message, trace or self:GetTrace() )
 end
 
-local Escapes = {
-	['\\'] = '\\',
-	['"'] = '"',
-	['a'] = '\a',
-	['b'] = '\b',
-	['f'] = '\f',
-	['n'] = '\n',
-	['r'] = '\r',
-	['t'] = '\t',
-	['v'] = '\v'
+local escapes = {
+	["\\"] = "\\",
+	["\""] = "\"",
+	["a"] = "\a",
+	["b"] = "\b",
+	["f"] = "\f",
+	["n"] = "\n",
+	["r"] = "\r",
+	["t"] = "\t",
+	["v"] = "\v",
+	["0"] = "\0"
 }
+
+local bit_band = bit.band
+local bit_bor = bit.bor
+local bit_rshift = bit.rshift
+local string_char = string.char
+local function toUnicodeChar(v)
+	if v < 0x80 then -- Single-byte sequence
+		return string_char(v)
+	elseif v < 0x800 then -- Two-byte sequence
+		return string_char(
+			bit_bor(0xC0, bit_band(bit_rshift(v, 6), 0x3F)),
+			bit_bor(0x80, bit_band(v, 0x3F))
+		 )
+	elseif v < 0x10000 then -- Three-byte sequence
+		 return string_char(
+			bit_bor(0xE0, bit_band(bit_rshift(v, 12), 0x3F)),
+			bit_bor(0x80, bit_band(bit_rshift(v, 6), 0x3F)),
+			bit_bor(0x80, bit_band(v, 0x3F))
+		 )
+	else -- Four-byte sequence
+		return string_char(
+			bit_bor(0xF0, bit_band(bit_rshift(v, 18), 0x07)),
+			bit_bor(0x80, bit_band(bit_rshift(v, 12), 0x3F)),
+			bit_bor(0x80, bit_band(bit_rshift(v, 6), 0x3F)),
+			bit_bor(0x80, bit_band(v, 0x3F))
+		 )
+	end
+end
 
 ---@return Token|nil|boolean # Either a token, `nil` for unexpected character, or `false` for error.
 function Tokenizer:Next()
@@ -271,6 +300,7 @@ function Tokenizer:Next()
 		local buffer, nbuffer = {}, 0
 		while true do
 			local m = self:ConsumePattern("^[^\"\\]*[\"\\]", true)
+			local line, col = self.line, self.col
 
 			if m then
 				nbuffer = nbuffer + 1
@@ -280,19 +310,63 @@ function Tokenizer:Next()
 				if m:sub( -1, -1) == "\"" then
 					break
 				else -- Escape
-					local c = self:At()
+					local char = self:At()
+					local esc, err = ""
 
-					if not Escapes[c] then
-						self:Warning("Invalid escape \\" .. c)
-						c = '\\' .. c
+					-- Using %g here just to be a bit more informative on warnings
+					if escapes[char] then
+						self:NextChar()
+						esc = escapes[char]
+					elseif char == "u" then
+						self:NextChar()
+
+						if self:At() ~= "{" then err = "Unicode escape must begin with {" goto _err end
+
+						esc = self:ConsumePattern("^%b{}", true)
+
+						if not esc then err = "Unicode escape must end with }"
+						elseif #esc == 2 then err = "Unicode escape cannot be empty"
+						elseif #esc > 8 then err = "Unicode escape can only contain up to 6 characters"
+						else
+							esc = esc:sub(2, -2)
+							local illegal = esc:find("%X") -- Scan for bad characters
+							if illegal then
+								err = "Unicode escape must contain hexadecimal digits"
+								col = col + illegal + 1
+								goto _err
+							end
+							local num = tonumber(esc, 16)
+							if not num then
+								err = "Unicode escape is invalid"
+							elseif num < 0 then
+								err = "Unicode escape cannot be negative"
+							elseif num >= 0x10ffff then
+								err = "Unicode escape cannot be greater than 10ffff"
+							else
+								esc = toUnicodeChar(num)
+							end
+						end
+					elseif char == "x" then
+						self:NextChar()
+						esc = self:ConsumePattern("^%x%x")
+						if not esc then
+							err = "Hexadecimal escape expects 2 hex digits"
+						else
+							esc = string.char(tonumber(esc, 16) or 0)
+						end
 					else
-						c = Escapes[c]
+						esc = "\\"
+						self:Warning("Invalid escape " .. "\\" .. char:gsub("%G", " "), Trace.new(line, col, self.line, self.col))
 					end
 
-					self:NextChar(true)
-
+					::_err::
+					if err then
+						local tr = Trace.new(line, col, self.line, self.col)
+						self:ConsumePattern("^.*", true)
+						return self:Error(err, tr)
+					end
 					nbuffer = nbuffer + 1
-					buffer[nbuffer] = c
+					buffer[nbuffer] = esc
 				end
 			else
 				self:ConsumePattern("^.*", true)
@@ -300,7 +374,7 @@ function Tokenizer:Next()
 			end
 		end
 
-		return Token.new(TokenVariant.String, table.concat(buffer, '', 1, nbuffer))
+		return Token.new(TokenVariant.String, table.concat(buffer, "", 1, nbuffer))
 	end
 
 	if E2Lib.GrammarLookup[self:At()] then

@@ -1,0 +1,11 @@
+## SHOULD_PASS:EXECUTE
+@persist Var:number # Need this since test runner does not initialize global variables (TODO)
+
+Var = 5
+
+assert($Var == 5) # 5 - 0 = 5
+
+Var = 2
+
+assert($Var == -3) # 2 - 5 = -3
+assert($Var == -3) # Actual regression part, delta should not change if variable is not assigned.

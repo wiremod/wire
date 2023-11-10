@@ -85,6 +85,8 @@ function wire_expression2_CallHook(hookname, ...)
 end
 
 function E2Lib.registerCallback(event, callback)
+	assert(isfunction(callback), "registerCallback must be given a proper callback function!")
+
 	if not wire_expression_callbacks[event] then wire_expression_callbacks[event] = {} end
 	local currExt = E2Lib.currentextension
 	table.insert(wire_expression_callbacks[event], function(a, b, c, d, e, f) E2Lib.currentextension = currExt return callback(a, b, c, d, e, f) end)
