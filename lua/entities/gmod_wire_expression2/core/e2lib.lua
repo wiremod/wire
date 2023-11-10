@@ -374,38 +374,40 @@ local Keyword = {
 	Else = 3,
 	-- ``local``
 	Local = 4,
+	-- ``let``
+	Let = 5,
 	-- ``const``
-	Const = 5,
+	Const = 6,
 	-- ``while``
-	While = 6,
+	While = 7,
 	-- ``for``
-	For = 7,
+	For = 8,
 	-- ``break``
-	Break = 8,
+	Break = 9,
 	-- ``continue``
-	Continue = 9,
+	Continue = 10,
 	-- ``switch``
-	Switch = 10,
+	Switch = 11,
 	-- ``case``
-	Case = 11,
+	Case = 12,
 	-- ``default``
-	Default = 12,
+	Default = 13,
 	-- ``foreach``
-	Foreach = 13,
+	Foreach = 14,
 	-- ``function``
-	Function = 14,
+	Function = 15,
 	-- ``return``
-	Return = 15,
+	Return = 16,
 	-- ``#include``
-	["#Include"] = 16,
+	["#Include"] = 17,
 	-- ``try``
-	Try = 17,
+	Try = 18,
 	-- ``catch``
-	Catch = 18,
+	Catch = 19,
 	-- ``do``
-	Do = 19,
+	Do = 20,
 	-- ``event``
-	Event = 20
+	Event = 21
 }
 
 E2Lib.Keyword = Keyword
