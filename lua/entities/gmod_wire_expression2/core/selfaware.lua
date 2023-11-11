@@ -206,25 +206,28 @@ end
 --[[******************************************************************************]]--
 -- Extensions
 
+local getExtensionStatus = E2Lib.GetExtensionStatus
+local e2Extensions
+local e2ExtensionsTable
+-- See postinit for these getting initialized
+
 [nodiscard]
 e2function array getExtensions()
-	return table.Copy(E2Lib.GetExtensions())
-end
-
-local getExtensionStatus = E2Lib.GetExtensionStatus
-[nodiscard]
-e2function table getExtensionStatus()
-	local ret = E2Lib.newE2Table()
-	local s, stypes, size = ret.s, ret.stypes, ret.size
-	for _, ext in ipairs(E2Lib.GetExtensions()) do
-		s[ext] = getExtensionStatus(ext) and 1 or 0
-		stypes[ext] = "n"
-		size = size + 1
+	local ret = {}
+	for k, v in ipairs(e2Extensions) do -- Optimized shallow copy
+		ret[k] = v
 	end
-	ret.s, ret.stypes, ret.size = s, stypes, size -- Do this just because I'm paranoid
-
 	return ret
 end
+
+__e2setcost(10)
+
+[nodiscard]
+e2function table getExtensionStatus()
+	return table.Copy(e2ExtensionsTable)
+end
+
+__e2setcost(5)
 
 [nodiscard]
 e2function number getExtensionStatus(string extension)
@@ -314,6 +317,18 @@ registerCallback("postinit", function()
 				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_xv4, 5, nil, { legacy = false })
 			end
 		end
+	end
+
+	e2Extensions = E2Lib.GetExtensions()
+	e2ExtensionsTable = E2Lib.newE2Table()
+	do
+		local s, stypes, size = e2ExtensionsTable.s, e2ExtensionsTable.stypes, 0
+		for _, ext in ipairs(e2Extensions) do
+			s[ext] = getExtensionStatus(ext) and 1 or 0
+			stypes[ext] = "n"
+			size = size + 1
+		end
+		e2ExtensionsTable.size = size
 	end
 end)
 
