@@ -112,7 +112,7 @@ local function GetGlobalPos(self, Ent, index)
 				return obj.verticesindex ~= nil, { x = vec.x, y = vec.y, angle = -ang.y }
 			else
 				local _, data = GetGlobalPos(Ent, select(3, EGP:HasObject(Ent, obj.parent)))
-				local vec, ang = LocalToWorld(Vector(obj._x, obj._y, 0), Angle(0, -obj._angle or 0, 0), Vector(data.x, data.y, 0), Angle(0, -data.angle or 0, 0))
+				local vec, ang = LocalToWorld(Vector(obj._x, obj._y, 0), Angle(0, -(obj._angle or 0), 0), Vector(data.x, data.y, 0), Angle(0, -(data.angle or 0), 0))
 				return obj.verticesindex ~= nil, { x = vec.x, y = vec.y, angle = -ang.y }
 			end
 		end
