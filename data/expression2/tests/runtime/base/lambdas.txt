@@ -71,3 +71,17 @@ assert( SayMessage()[string] == "There's a snake in my boot!" )
 SetMessage("Reach for the sky!")
 
 assert( SayMessage()[string] == "Reach for the sky!" )
+
+const EarlyReturn = function() {
+	return
+}
+
+Ran = 0
+
+function wrapper() {
+	EarlyReturn()
+	Ran = 1
+}
+
+wrapper()
+assert(Ran)

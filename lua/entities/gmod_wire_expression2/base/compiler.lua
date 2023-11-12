@@ -1344,54 +1344,30 @@ local CompileVisitors = {
 				inherited_scopes[i] = state.Scopes[i]
 			end
 
-			if ret then
-				return E2Lib.Lambda.new(
-					expected_sig,
-					ret,
-					function(args)
-						local s_scopes, s_scope, s_scopeid = state.Scopes, state.Scope, state.ScopeID
+			return E2Lib.Lambda.new(
+				expected_sig,
+				ret,
+				function(args)
+					local s_scopes, s_scope, s_scopeid = state.Scopes, state.Scope, state.ScopeID
 
-						local scope = { vclk = {} }
-						state.Scopes = inherited_scopes
-						state.ScopeID = after
-						state.Scopes[after] = scope
-						state.Scope = scope
+					local scope = { vclk = {} }
+					state.Scopes = inherited_scopes
+					state.ScopeID = after
+					state.Scopes[after] = scope
+					state.Scope = scope
 
-						for i = 1, nargs do
-							scope[param_names[i]] = args[i]
-						end
-
-						block(state)
-
-						state.ScopeID, state.Scope, state.Scopes = s_scopeid, s_scope, s_scopes
-
-						state.__return__ = false
-						return state.__returnval__
+					for i = 1, nargs do
+						scope[param_names[i]] = args[i]
 					end
-				)
-			else -- function without return value, don't handle case.
-				return E2Lib.Lambda.new(
-					expected_sig,
-					ret,
-					function(args)
-						local s_scopes, s_scopeid, s_scope = state.Scopes, state.ScopeID, state.Scope
 
-						local scope = { vclk = {} }
-						state.Scopes = inherited_scopes
-						state.ScopeID = after
-						state.Scopes[after] = scope
-						state.Scope = scope
+					block(state)
 
-						for i = 1, nargs do
-							scope[param_names[i]] = args[i]
-						end
+					state.ScopeID, state.Scope, state.Scopes = s_scopeid, s_scope, s_scopes
 
-						block(state)
-
-						state.ScopeID, state.Scope, state.Scopes = s_scopeid, s_scope, s_scopes
-					end
-				)
-			end
+					state.__return__ = false
+					return state.__returnval__
+				end
+			)
 		end, "f"
 	end,
 
