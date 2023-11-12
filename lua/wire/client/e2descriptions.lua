@@ -908,6 +908,9 @@ E2Helper.Descriptions["ioOutputEntities(s)"] = "Returns an array of all entities
 E2Helper.Descriptions["runOnLast(n)"] = "If set to 1, the chip will run once when it is removed, setting the last() flag when it does"
 E2Helper.Descriptions["selfDestruct()"] = "Removes the expression"
 E2Helper.Descriptions["selfDestructAll()"] = "Removes the expression and all constrained props"
+E2Helper.Descriptions["getExtensions()"] = "Returns an array of all the extensions that the server has. This includes disabled extensions!"
+E2Helper.Descriptions["getExtensionStatus()"] = "Returns a table of extension names with their statuses"
+E2Helper.Descriptions["getExtensionStatus(s)"] = "Returns 1 if the extension is enabled, otherwise 0"
 
 -- Debug
 E2Helper.Descriptions["playerCanPrint()"] = "Returns whether or not the next print-message will be printed or omitted by antispam"
