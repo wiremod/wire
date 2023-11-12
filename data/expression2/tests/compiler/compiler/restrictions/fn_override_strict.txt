@@ -1,0 +1,7 @@
+## SHOULD_FAIL:COMPILE
+
+@strict
+
+function test() {}
+
+function test() {} # ERROR!
