@@ -211,20 +211,31 @@ local e2Extensions
 local e2ExtensionsTable
 -- See postinit for these getting initialized
 
+__e2setcost(30)
+
 [nodiscard]
 e2function array getExtensions()
 	local ret = {}
-	for k, v in ipairs(e2Extensions) do -- Optimized shallow copy
+	for k, v in ipairs(e2Extensions) do -- Optimized copy
 		ret[k] = v
 	end
 	return ret
 end
 
-__e2setcost(10)
+__e2setcost(60)
 
 [nodiscard]
 e2function table getExtensionStatus()
-	return table.Copy(e2ExtensionsTable)
+	local ret = E2Lib.newE2Table()
+	local s, stypes = ret.s, ret.stypes
+	ret.size = e2ExtensionsTable.size
+
+	for k, v in pairs(e2ExtensionsTable.s) do
+		s[k] = v
+		stypes[k] = "n"
+	end
+
+	return ret
 end
 
 __e2setcost(5)
