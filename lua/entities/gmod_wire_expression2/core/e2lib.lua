@@ -83,18 +83,11 @@ end
 
 E2Lib.Lambda = Function
 
---- Call the function without doing any type checking.
---- Only use this when you check self:Args() yourself to ensure you have the correct signature function.
+--- Call the function without doing any type checking, and outside of the proper entity context.
+--- **ONLY USE THIS IF YOU KNOW WHAT YOU'RE DOING.** This could hit perf without actually erroring the chip.
+--- Also make sure to check self:Args() yourself to ensure you have the correct signature function.
 function Function:UnsafeCall(args)
 	return self.fn(args)
-end
-
-function Function:Call(args, types)
-	if self.arg_sig == types then
-		return self.fn(args)
-	else
-		error("Incorrect arguments passed to lambda")
-	end
 end
 
 function Function:Args()
@@ -105,7 +98,7 @@ function Function:Ret()
 	return self.ret
 end
 
---- If given the correct arguments, returns the inner untyped function you can call.
+--- If given the correct arguments, returns the inner untyped function you can then call with ENT:Execute(f).
 --- Otherwise, throws an error to the given E2 Context.
 ---@param arg_sig string
 ---@param ctx RuntimeContext
