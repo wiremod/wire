@@ -2,6 +2,7 @@
 local Obj = EGP.ObjectInherit("Circle", "Box")
 Obj.angle = 0
 Obj.fidelity = 180
+Obj.CanTopLeft = nil
 
 local base = Obj.BaseClass
 
