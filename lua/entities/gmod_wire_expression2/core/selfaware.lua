@@ -203,6 +203,48 @@ e2function number entity:canSetName(string name)
 	return IsValid(this) and isOwner(self, this) and canSetName(self, this, name) and 1 or 0
 end
 
+--[[******************************************************************************]]--
+-- Extensions
+
+local getExtensionStatus = E2Lib.GetExtensionStatus
+local e2Extensions
+local e2ExtensionsTable
+-- See postinit for these getting initialized
+
+__e2setcost(30)
+
+[nodiscard]
+e2function array getExtensions()
+	local ret = {}
+	for k, v in ipairs(e2Extensions) do -- Optimized copy
+		ret[k] = v
+	end
+	return ret
+end
+
+__e2setcost(60)
+
+[nodiscard]
+e2function table getExtensionStatus()
+	local ret = E2Lib.newE2Table()
+	local s, stypes = ret.s, ret.stypes
+	ret.size = e2ExtensionsTable.size
+
+	for k, v in pairs(e2ExtensionsTable.s) do
+		s[k] = v
+		stypes[k] = "n"
+	end
+
+	return ret
+end
+
+__e2setcost(5)
+
+[nodiscard]
+e2function number getExtensionStatus(string extension)
+	return getExtensionStatus(extension) and 1 or 0
+end
+
 
 --[[******************************************************************************]]--
 
@@ -286,6 +328,18 @@ registerCallback("postinit", function()
 				registerFunction("changed", typeid, "n", registeredfunctions.e2_changed_xv4, 5, nil, { legacy = false })
 			end
 		end
+	end
+
+	e2Extensions = E2Lib.GetExtensions()
+	e2ExtensionsTable = E2Lib.newE2Table()
+	do
+		local s, stypes, size = e2ExtensionsTable.s, e2ExtensionsTable.stypes, 0
+		for _, ext in ipairs(e2Extensions) do
+			s[ext] = getExtensionStatus(ext) and 1 or 0
+			stypes[ext] = "n"
+			size = size + 1
+		end
+		e2ExtensionsTable.size = size
 	end
 end)
 

@@ -119,13 +119,12 @@ function Obj:SetPos(x, y, angle)
 	if not angle then angle = sa else angle = angle % 360 end
 	if sx == x and sy == y and sa == angle then return false end
 
-	for i, v in ipairs(self.vertices) do
+	for _, v in ipairs(self.vertices) do
 		local vec = LocalToWorld(Vector(v.x - sx, v.y - sy, 0), angle_zero, Vector(x, y, 0), Angle(0, sa - angle, 0))
 		v.x = vec.x
 		v.y = vec.y
 	end
 	self.x, self.y, self.angle = x, y, angle
-	if self._x then self._x, self._y, self._angle = x, y, angle end
 	return true
 end
 

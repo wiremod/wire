@@ -21,12 +21,12 @@ local keywords = {
 	["case"]     = { [true] = true, [false] = true },
 	["default"]  = { [true] = true, [false] = true },
 	["catch"]    = { [true] = true, [false] = true },
+	["function"] = { [true] = true, [false] = true },
 
 	-- keywords that cannot be followed by a "(":
 	["else"]     = { [true] = true },
 	["break"]    = { [true] = true },
 	["continue"] = { [true] = true },
-	["function"] = { [true] = true },
 	["return"] = { [true] = true },
 	["local"]  = { [true] = true },
 	["let"] = { [true] = true },
@@ -590,7 +590,7 @@ function EDITOR:SyntaxColorLine(row)
 					tokenname = istype(sstr) and "typename" or "notfound"
 				elseif keywords[sstr][keyword] then
 					tokenname = "keyword"
-					if sstr == "foreach" then
+					if sstr == "foreach" or sstr == "function" then
 						highlightmode = 3
 					elseif sstr == "return" and self:NextPattern( "void" ) then
 						addToken( "keyword", "return" )
