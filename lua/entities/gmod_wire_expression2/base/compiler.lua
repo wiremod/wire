@@ -1641,7 +1641,7 @@ local CompileVisitors = {
 						rargs[k + 1] = args[k](state)
 					end
 					return fn(state, rargs, types)
-				end, fn_data.returns and (fn_data.returns[1] ~= "" and fn_data.returns[1] or nil)
+				end, fn_data.ret and (fn_data.ret ~= "" and fn_data.ret or nil)
 			else
 				local full_sig = name.value .. "(" .. meta_type .. ":" .. arg_sig .. ")"
 				return function(state) ---@param state RuntimeContext
