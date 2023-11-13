@@ -2,6 +2,7 @@
 local Obj = EGP.ObjectInherit("TextLayout", "Text")
 Obj.h = 512
 Obj.w = 512
+Obj.CanTopLeft = true
 
 local base = Obj.BaseClass
 
