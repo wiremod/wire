@@ -1,121 +1,131 @@
-/******************************************************************************\
-  Timer support
-\******************************************************************************/
+--[[
+	Timers
+]]
 
-local timerid = 0
+---@type table<Entity, table<string, true>>
+local Timers = {}
 
-local function Execute(self, name)
-	self.data.timer.runner = name
-
-	self.data['timer'].timers[name] = nil
-
-	if(self.entity and self.entity.Execute) then
-		self.entity:Execute()
-	end
-
-	if !self.data['timer'].timers[name] then
-		timer.Remove("e2_" .. self.data['timer'].timerid .. "_" .. name)
-	end
-
-	self.data.timer.runner = nil
+local function addTimer(self, name, delay, reps, callback)
+	Timers[self][name] = true
+	timer.Create(("e2timer_%p_%s"):format(self, name), math.max(delay, 1e-2), reps, callback)
 end
 
-local function AddTimer(self, name, delay)
-	if delay < 10 then delay = 10 end
-
-	local timerName = "e2_" .. self.data.timer.timerid .. "_" .. name
-
-	if self.data.timer.runner == name and timer.Exists(timerName) then
-		timer.Adjust(timerName, delay / 1000, 2, function()
-			Execute(self, name)
-		end)
-		timer.Start(timerName)
-	elseif !self.data['timer'].timers[name] then
-		timer.Create(timerName, delay / 1000, 2, function()
-			Execute(self, name)
-		end)
-	end
-
-	self.data['timer'].timers[name] = true
+local function removeTimer(self, name)
+	Timers[self][name] = nil
+	timer.Remove(("e2timer_%p_%s"):format(self, name))
 end
-
-local function RemoveTimer(self, name)
-	if self.data['timer'].timers[name] then
-		timer.Remove("e2_" .. self.data['timer'].timerid .. "_" .. name)
-		self.data['timer'].timers[name] = nil
-	end
-end
-
-/******************************************************************************/
 
 registerCallback("construct", function(self)
-	self.data['timer'] = {}
-	self.data['timer'].timerid = timerid
-	self.data['timer'].timers = {}
-
-	timerid = timerid + 1
+	Timers[self] = {}
 end)
 
 registerCallback("destruct", function(self)
-	for name,_ in pairs(self.data['timer'].timers) do
-		RemoveTimer(self, name)
+	for name in pairs(Timers[self]) do
+		removeTimer(self, name)
 	end
-end)
 
-/******************************************************************************/
+	Timers[self] = nil
+end)
 
 __e2setcost(20)
 
-e2function void interval(rv1)
-	AddTimer(self, "interval", rv1)
+---@param self RuntimeContext
+local function MAKE_TRIGGER(id, self)
+	return function()
+		self.data.timer = id
+		removeTimer(self, id)
+
+		if self.entity and self.entity.Execute then
+			self.entity:Execute()
+		end
+
+		self.data.timer = nil
+	end
 end
 
+[deprecated = "Use the timer function with callbacks instead"]
+e2function void interval(rv1)
+	addTimer(self, "interval", rv1 / 1000, 1, MAKE_TRIGGER("interval", self))
+end
+
+[deprecated = "Use the timer function with callbacks instead"]
 e2function void timer(string rv1, rv2)
-	AddTimer(self, rv1, rv2)
+	addTimer(self, rv1, rv2 / 1000, 1, MAKE_TRIGGER(rv1, self))
 end
 
 __e2setcost(5)
 
 e2function void stoptimer(string rv1)
-	RemoveTimer(self, rv1)
+	removeTimer(self, rv1)
 end
 
 __e2setcost(1)
 
-[nodiscard]
+[nodiscard, deprecated = "Use the timer function with callbacks instead"]
 e2function number clk()
-	return self.data.timer.runner == "interval" and 1 or 0
+	return self.data.timer == "interval" and 1 or 0
 end
 
-[nodiscard]
+[nodiscard, deprecated = "Use the timer function with callbacks instead"]
 e2function number clk(string rv1)
-	return self.data.timer.runner == rv1 and 1 or 0
+	return self.data.timer == rv1 and 1 or 0
 end
 
-[nodiscard]
+[nodiscard, deprecated = "Use the timer function with callbacks instead"]
 e2function string clkName()
-	return self.data.timer.runner or ""
+	return self.data.timer or ""
 end
 
+__e2setcost(5)
+
+[deprecated = "Use the timer function with callbacks instead"]
 e2function array getTimers()
-	local ret = {}
+	local ret, timers = {}, Timers[self]
+	if not timers then return ret end
+
+	self.prf = self.prf + #timers * 2
+
 	local i = 0
-	for name in pairs( self.data.timer.timers ) do
+	for name in pairs(timers) do
 		i = i + 1
 		ret[i] = name
 	end
-	self.prf = self.prf + i * 5
+
 	return ret
 end
 
 e2function void stopAllTimers()
-	for name in pairs(self.data.timer.timers) do
-		self.prf = self.prf + 5
-		RemoveTimer(self,name)
+	local timers = Timers[self]
+	if not timers then return end
+
+	self.prf = self.prf + #timers * 2
+
+	for name in pairs(timers) do
+		removeTimer(self, name)
 	end
 end
 
-/******************************************************************************/
+--[[
+	Timers 2.0
+]]
+
+__e2setcost(10)
+
+e2function void timer(string name, number delay, number reps, function callback)
+	local fn = callback:Unwrap("", self)
+	addTimer(self, name, delay, reps, fn)
+end
+
+-- Create "anonymous" timer using address of arguments, which should be different for each function call.
+-- Definitely hacky, but should work properly. I think this is better than just incrementing a number infinitely.
+e2function void timer(number delay, function callback)
+	local fn = callback:Unwrap("", self)
+	addTimer(self,("%p"):format(args), delay, 1, fn)
+end
+
+--[[
+	Time Monitoring
+]]
 
 [nodiscard]
 e2function number curtime()
@@ -132,7 +142,9 @@ e2function number systime()
 	return SysTime()
 end
 
------------------------------------------------------------------------------------
+--[[
+	Datetime
+]]
 
 local function luaDateToE2Table( time, utc )
 	local ret = E2Lib.newE2Table()
@@ -170,13 +182,14 @@ e2function table dateUTC()
 	return luaDateToE2Table(nil,true)
 end
 
--- Returns the specified time formatted neatly in a table using UTC
+[nodiscard]
 e2function table dateUTC( time )
 	return luaDateToE2Table(time,true)
 end
 
 -- This function has a strange and slightly misleading name, but changing it might break older E2s, so I'm leaving it
 -- It's essentially the same as the date function above
+[nodiscard]
 e2function number time(string component)
 	local ostime = os.date("!*t")
 	local ret = ostime[component]
@@ -188,7 +201,7 @@ end
 -----------------------------------------------------------------------------------
 
 __e2setcost(2)
--- Returns the time in seconds
+
 [nodiscard]
 e2function number time()
 	return os.time()

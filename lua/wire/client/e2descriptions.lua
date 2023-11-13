@@ -942,8 +942,14 @@ E2Helper.Descriptions["getTimers()"] = "Returns an array of all timers used in t
 E2Helper.Descriptions["interval(n)"] = "Sets a one-time timer with name \"interval\" and delay in milliseconds (minimum delay for timers is 10ms)"
 E2Helper.Descriptions["runOnTick(n)"] = "If set to 1, the expression will execute once every game tick"
 E2Helper.Descriptions["timer(sn)"] = "Sets a one-time timer with entered name and delay in milliseconds"
+
 E2Helper.Descriptions["stoptimer(s)"] = "Stops a timer, can stop interval with stoptimer(\"interval\")"
 E2Helper.Descriptions["stopAllTimers()"] = "Stops all timers"
+
+-- Timers 2.0
+E2Helper.Descriptions["timer(nf)"] = "Sets a callback to run after n seconds"
+E2Helper.Descriptions["timer(snf)"] = "Sets a named timer to run a callback after n seconds"
+E2Helper.Descriptions["timer(snnf)"] = "Sets a named timer to run a callback after n seconds, repeating n2 times"
 
 -- Unit conversion
 E2Helper.Descriptions["toUnit(sn)"] = "Converts default garrysmod units to specified units"
