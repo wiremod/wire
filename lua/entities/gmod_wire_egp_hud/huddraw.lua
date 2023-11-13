@@ -177,7 +177,9 @@ else -- SERVER
 		end
 	end
 
-	net.Receive("EGP_HUD_Unlink", function(len, ply)
+	util.AddNetworkString("EGP_HUD_Unlink")
+
+	net.Receive("EGP_HUD_Unlink", function(_, ply)
 		unlinkUser(ply)
 	end)
 
