@@ -276,16 +276,7 @@ function Tokenizer:Next()
 
 	match = self:ConsumePattern("^_[A-Z0-9_]+")
 	if match then
-		-- Constant value
-		local value = wire_expression2_constants[match]
-
-		if type(value) == "number" then
-			return Token.new(TokenVariant.Decimal, value)
-		elseif type(value) == "string" then
-			return Token.new(TokenVariant.String, value)
-		else
-			return self:Error("Constant (" .. match .. ") has invalid data type (" .. type(value) .. ")")
-		end
+		return Token.new(TokenVariant.Constant, match)
 	end
 
 	if self:ConsumePattern("^_") then

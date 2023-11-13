@@ -6,6 +6,7 @@
 AddCSLuaFile()
 
 local Warning, Error = E2Lib.Debug.Warning, E2Lib.Debug.Error
+local Token, TokenVariant = E2Lib.Tokenizer.Token, E2Lib.Tokenizer.Variant
 local Node, NodeVariant = E2Lib.Parser.Node, E2Lib.Parser.Variant
 local Operator = E2Lib.Operator
 
@@ -1209,6 +1210,70 @@ local CompileVisitors = {
 		return function(state) ---@param state RuntimeContext
 			return state.Scopes[id][name]
 		end, var.type
+	end,
+
+	---@param data Token<string>
+	[NodeVariant.ExprConstant] = function (self, trace, data, used_as_stmt)
+		local value = self:Assert( wire_expression2_constants[data.value], "Invalid constant: " .. data.value, trace ).value
+
+		local ty = type(value)
+		if ty == "number" then
+			return self:CompileExpr( Node.new(NodeVariant.ExprLiteral, { "n", value }, trace) )
+		elseif ty == "string" then
+			return self:CompileExpr( Node.new(NodeVariant.ExprLiteral, { "s", value }, trace) )
+		elseif ty == "Vector" and wire_expression2_funcs["vec(nnn)"] then
+			return self:CompileExpr(Node.new(NodeVariant.ExprCall, {
+				Token.new(TokenVariant.String, "vec"),
+				{
+					Node.new(NodeVariant.ExprLiteral, { "n", value[1] }, trace),
+					Node.new(NodeVariant.ExprLiteral, { "n", value[2] }, trace),
+					Node.new(NodeVariant.ExprLiteral, { "n", value[3] }, trace)
+				}
+			}, trace))
+		elseif ty == "Angle" and wire_expression2_funcs["ang(nnn)"] then
+			return self:CompileExpr(Node.new(NodeVariant.ExprCall, {
+				Token.new(TokenVariant.String, "ang"),
+				{
+					Node.new(NodeVariant.ExprLiteral, { "n", value[1] }, trace),
+					Node.new(NodeVariant.ExprLiteral, { "n", value[2] }, trace),
+					Node.new(NodeVariant.ExprLiteral, { "n", value[3] }, trace)
+				}
+			}, trace))
+		elseif ty == "table" then -- Know it's an array already from registerConstant
+			local out = {}
+			for i, val in ipairs(value) do
+				local ty = type(val)
+				if ty == "number" then
+					out[i] = Node.new(NodeVariant.ExprLiteral, { "n", val }, trace)
+				elseif ty == "string" then
+					out[i] = Node.new(NodeVariant.ExprLiteral, { "s", val }, trace)
+				elseif ty == "Vector" then
+					out[i] = Node.new(NodeVariant.ExprCall, {
+						Token.new(TokenVariant.String, "vec"),
+						{
+							Node.new(NodeVariant.ExprLiteral, { "n", val[1] }, trace),
+							Node.new(NodeVariant.ExprLiteral, { "n", val[2] }, trace),
+							Node.new(NodeVariant.ExprLiteral, { "n", val[3] }, trace)
+						}
+					}, trace)
+				elseif ty == "Angle" then
+					out[i] = Node.new(NodeVariant.ExprCall, {
+						Token.new(TokenVariant.String, "ang"),
+						{
+							Node.new(NodeVariant.ExprLiteral, { "n", val[1] }, trace),
+							Node.new(NodeVariant.ExprLiteral, { "n", val[2] }, trace),
+							Node.new(NodeVariant.ExprLiteral, { "n", val[3] }, trace)
+						}
+					}, trace)
+				else
+					self:Error("Constant " .. data.value .. " has invalid data type", trace)
+				end
+			end
+
+			return self:CompileExpr( Node.new(NodeVariant.ExprArray, out, trace) )
+		else
+			self:Error("Constant " .. data.value .. " has invalid data type", trace)
+		end
 	end,
 
 	---@param data Node[]|{ [1]: Node, [2]:Node }[]

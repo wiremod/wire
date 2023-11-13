@@ -100,7 +100,8 @@ local NodeVariant = {
 	ExprTable = 35, -- `table(1, 2, 3)` or `table(1 = 2, "test" = 3)`
 	ExprFunction = 36, -- `function() {}`
 	ExprLiteral = 37, -- `"test"` `5e2` `4.023` `4j`
-	ExprIdent = 38 -- `Variable`
+	ExprIdent = 38, -- `Variable`
+	ExprConstant = 39, -- `_FOO`
 }
 
 Parser.Variant = NodeVariant
@@ -1000,6 +1001,11 @@ function Parser:Expr15()
 	local ident =  self:Consume(TokenVariant.Ident)
 	if ident then
 		return Node.new(NodeVariant.ExprIdent, ident, ident.trace)
+	end
+
+	local constant = self:Consume(TokenVariant.Constant)
+	if constant then
+		return Node.new(NodeVariant.ExprConstant, constant, constant.trace)
 	end
 
 	-- Error Messages
