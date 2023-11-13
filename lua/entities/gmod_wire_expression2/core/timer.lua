@@ -111,18 +111,25 @@ end
 
 __e2setcost(10)
 
-e2function void timer(string name, number delay, number reps, function callback)
-	local fn, ent = callback:Unwrap("", self), self.entity
-	addTimer(self, name, delay, reps, function()
-		ent:Execute(fn)
-	end)
-end
-
 -- Create "anonymous" timer using address of arguments, which should be different for each function call.
 -- Definitely hacky, but should work properly. I think this is better than just incrementing a number infinitely.
 e2function void timer(number delay, function callback)
 	local fn, ent = callback:Unwrap("", self), self.entity
 	addTimer(self,("%p"):format(args), delay, 1, function()
+		ent:Execute(fn)
+	end)
+end
+
+e2function void timer(string name, number delay, function callback)
+	local fn, ent = callback:Unwrap("", self), self.entity
+	addTimer(self, name, delay, 1, function()
+		ent:Execute(fn)
+	end)
+end
+
+e2function void timer(string name, number delay, number reps, function callback)
+	local fn, ent = callback:Unwrap("", self), self.entity
+	addTimer(self, name, delay, reps, function()
 		ent:Execute(fn)
 	end)
 end
