@@ -18,11 +18,17 @@ TOOL.ClientConVar[ "addrspace1st" ] = 0
 TOOL.ClientConVar[ "addrspace2st" ] = 0
 TOOL.ClientConVar[ "addrspace3st" ] = 0
 TOOL.ClientConVar[ "addrspace4st" ] = 0
+TOOL.ClientConVar[ "addrspace1rw" ] = 0
+TOOL.ClientConVar[ "addrspace2rw" ] = 0
+TOOL.ClientConVar[ "addrspace3rw" ] = 0
+TOOL.ClientConVar[ "addrspace4rw" ] = 0
 
 if SERVER then
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "addrspace1st" ), self:GetClientNumber( "addrspace2st" ), self:GetClientNumber( "addrspace3st" ), self:GetClientNumber( "addrspace4st" ),
-			   self:GetClientNumber( "addrspace1sz" ), self:GetClientNumber( "addrspace2sz" ), self:GetClientNumber( "addrspace3sz" ), self:GetClientNumber( "addrspace4sz" )
+			   self:GetClientNumber( "addrspace1sz" ), self:GetClientNumber( "addrspace2sz" ), self:GetClientNumber( "addrspace3sz" ), self:GetClientNumber( "addrspace4sz" ),
+				self:GetClientNumber( "addrspace1rw" ), self:GetClientNumber( "addrspace2rw" ), self:GetClientNumber( "addrspace3rw" ), self:GetClientNumber( "addrspace4rw" )
+
 	end
 
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
@@ -53,10 +59,14 @@ function TOOL.BuildCPanel(panel)
 
 	panel:NumSlider("1 offset", "wire_addressbus_addrspace1st", 0, 16777216, 0)
 	panel:NumSlider("1 size", 	"wire_addressbus_addrspace1sz", 0, 16777216, 0)
+	panel:NumSlider("1 read/write offset",  	"wire_addressbus_addrspace1rw", 0, 16777216, 0)
 	panel:NumSlider("2 offset", "wire_addressbus_addrspace2st", 0, 16777216, 0)
 	panel:NumSlider("2 size", 	"wire_addressbus_addrspace2sz", 0, 16777216, 0)
+	panel:NumSlider("2 read/write offset",  	"wire_addressbus_addrspace2rw", 0, 16777216, 0)
 	panel:NumSlider("3 offset", "wire_addressbus_addrspace3st", 0, 16777216, 0)
 	panel:NumSlider("3 size", 	"wire_addressbus_addrspace3sz", 0, 16777216, 0)
+	panel:NumSlider("3 read/write offset",  	"wire_addressbus_addrspace3rw", 0, 16777216, 0)
 	panel:NumSlider("4 offset", "wire_addressbus_addrspace4st", 0, 16777216, 0)
 	panel:NumSlider("4 size", 	"wire_addressbus_addrspace4sz", 0, 16777216, 0)
+	panel:NumSlider("4 read/write offset",  	"wire_addressbus_addrspace4rw", 0, 16777216, 0)
 end
