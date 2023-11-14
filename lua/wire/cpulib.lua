@@ -1000,6 +1000,8 @@ CPU(137, "EXTRETP",       1,  10.00,    R0,        "PTBL",  "",      "Set PTBL, 
 CPU(140, "EXTRETA",       0,  11.00,    R0,        "",      "",      "Return from an external interrupt and restore R0-R31 registers")
 CPU(141, "EXTRETPA",      1,  11.00,    R0,        "PTBL",  "",      "Set PTBL, then return from an external interrupt with restoring R0-R31 registers")
 ---- Dec 15 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
+CPU(150, "STERR",         2,   3.00,    R0,        "X",  "Y",        "Output an external error where X is error number and Y is error parameter")
+CPU(151, "CLERR",         0,   1.00,    R0,        "",    "",        "Clear the external error output")
 ---- Dec 16 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
 ---- Dec 17 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
 ---- Dec 18 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------

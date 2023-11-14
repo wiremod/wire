@@ -1221,6 +1221,14 @@ ZVM.OpcodeTable[141] = function(self) --EXTRETPA
 end
 
 
+ZVM.OpcodeTable[150] = function(self) -- STERR
+    self:Dyn_Emit("VM:SignalError(VM:MakeErrorCode($1,$2))")
+end
+
+ZVM.OpcodeTable[151] = function(self) -- CLERR
+    self:Dyn_Emit("VM:SignalError(0)")
+end
+
 --------------------------------------------------------------------------------
 ZVM.OpcodeTable[250] = function(self)  --VADD
   self:Dyn_Emit("if VM.VMODE == 2 then")
