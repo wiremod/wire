@@ -2,7 +2,6 @@
 local Obj = EGP.ObjectInherit("WedgeOutline", "Wedge")
 local rad, cos, sin = math.rad, math.cos, math.sin
 
-local base = Obj.BaseClass
 Obj.Draw = function( self )
 	if (self.a>0 and self.w > 0 and self.h > 0 and self.size ~= 360) then
 		if EGP:CacheNeedsUpdate(self, {"x", "y", "w", "h", "angle", "fidelity", "size"}) then
