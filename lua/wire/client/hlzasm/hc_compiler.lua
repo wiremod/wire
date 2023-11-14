@@ -215,6 +215,8 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   self.Settings.NoUnreferencedLeaves = false -- Dont generate functions, variables that are not referenced
   self.Settings.DataSegmentOffset = 0 -- Data segment offset for separate data segment
 
+  self.Settings.NewIfDefs = true -- Changes ifdef handling to skip all tokens inside until endif
+
   -- Search paths
   self.SearchPaths = {
     "lib",
@@ -249,6 +251,8 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   self.Defines["__LINE__"] = 0
   self.Defines["__FILE__"] = ""
   self.IFDEFLevel = {}
+  self.SkipToEndIf = false
+  self.EndIfsToSkip = 0
 
   -- Output text
   self.OutputText = {}

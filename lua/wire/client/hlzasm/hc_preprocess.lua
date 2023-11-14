@@ -36,6 +36,46 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
   local macroName = trimString(string.sub(macroLine,2,macroNameEnd-1))
   local macroParameters = trimString(string.sub(macroLine,macroNameEnd+1))
 
+  -- Stop parsing macros inside of a failed ifdef/ifndef
+  if self.SkipToEndIf then
+    if macroName == "endif" or macroName == "else" then
+      if self.EndIfsToSkip > 0 then 
+        self.EndIfsToSkip = self.EndIfsToSkip - 1
+      else
+        self.SkipToEndIf = false
+        return self:ParsePreprocessMacro(lineText,macroPosition) -- Rerun function to parse endif/else correctly
+      end
+    end
+    if macroName == "ifdef" or macroName == "ifndef" then
+      self.EndIfsToSkip = self.EndIfsToSkip + 1
+    end
+    self:Warning("skipping to next macro after checking "..macroName)
+    local InComment = false
+    -- If this while loop hits end of file before #endif it won't produce an error, seems like the original behavior for ifdefs
+    while self:getChar() ~= "" do
+      if self:getChar() == '/' and not InComment then
+        self:nextChar()
+        if self:getChar() == '*' then
+          self:nextChar()
+          InComment = true
+        end
+      if self:getChar() == '*' then
+        self:nextChar()
+        if self:getChar() == '/' then
+          self:nextChar()
+          InComment = false
+        end
+      end
+      end
+      if (self.Code[1].Col == 1) and (self:getChar() == "#") and not InComment then
+        self.Code[1].NextCharPos = self.Code[1].NextCharPos - 1 -- Exit to let tokenizer handle from here
+        break
+      end
+      self:nextChar()
+    end
+    return
+  end
+
   if macroName == "pragma" then
     local pragmaName = string.lower(trimString(string.sub(macroParameters,1,(string.find(macroParameters," ") or 0)-1)))
     local pragmaCommand = trimString(string.sub(macroParameters,(string.find(macroParameters," ") or 0)+1))
@@ -141,6 +181,10 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
     if self.Defines[defineName] then
       self.IFDEFLevel[#self.IFDEFLevel+1] = false
     else
+      if self.Settings.NewIfDefs then
+        self.SkipToEndIf = true
+        self.EndIfsToSkip = 0
+      end
       self.IFDEFLevel[#self.IFDEFLevel+1] = true
     end
   elseif macroName == "ifndef" then -- #ifndef
@@ -148,6 +192,10 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
     if not self.Defines[defineName] then
       self.IFDEFLevel[#self.IFDEFLevel+1] = false
     else
+      if self.Settings.NewIfDefs then
+        self.SkipToEndIf = true
+        self.EndIfsToSkip = 0
+      end
       self.IFDEFLevel[#self.IFDEFLevel+1] = true
     end
   elseif macroName == "else" then -- #else
