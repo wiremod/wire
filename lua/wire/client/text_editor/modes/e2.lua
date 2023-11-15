@@ -551,7 +551,7 @@ function EDITOR:SyntaxColorLine(row)
 		-- eat next token
 		if self:NextPattern("^_[A-Z][A-Z_0-9]*") then
 			local word = self.tokendata
-			for k,_ in pairs( wire_expression2_constants ) do
+			for k in pairs( wire_expression2_constants ) do
 				if k == word then
 					tokenname = "constant"
 				end

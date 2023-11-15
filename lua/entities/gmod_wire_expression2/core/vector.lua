@@ -51,6 +51,9 @@ registerType("vector", "v", Vector(0, 0, 0),
 	end
 )
 
+E2Lib.registerConstant("VECTOR_ORIGIN", Vector(0, 0, 0), "Origin of the map. This is vec(0, 0, 0)")
+E2Lib.registerConstant("VECTOR_UP", Vector(0, 0, 1), "Upward direction. This is vec(0, 0, 1)")
+
 --------------------------------------------------------------------------------
 
 __e2setcost(1) -- approximated
