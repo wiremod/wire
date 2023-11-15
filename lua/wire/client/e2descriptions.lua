@@ -1211,6 +1211,7 @@ E2Helper.Descriptions["signalClearOnRemove()"] = "Clears the signal that the chi
 -- Holograms
 E2Helper.Descriptions["holoAlpha(nn)"] = "Sets the transparency (0-255) of the hologram"
 E2Helper.Descriptions["holoAng(na)"] = "Sets the angle of the hologram"
+E2Helper.Descriptions["holoAng(n)"] = "Gets the angle of the hologram"
 E2Helper.Descriptions["holoBodygroup(nnn)"] = "Index, Group ID, Group SubID\nSets the bodygroups of the given hologram"
 E2Helper.Descriptions["holoBodygroups(nn)"] = "Index, Group ID\nReturns the number of bodygroups in the Group ID of the given hologram"
 E2Helper.Descriptions["holoCanCreate()"] = "Returns 1 when holoCreate() will successfully create a new hologram until the Max limit is reached\nReplaces holoRemainingSpawns()"
@@ -1241,6 +1242,7 @@ E2Helper.Descriptions["holoParent(nn)"] = "Parents the hologram to another holog
 E2Helper.Descriptions["holoParentAttachment(nes)"] = "Parents the hologram to an entity's bone by its attachment name"
 E2Helper.Descriptions["holoUnparent(n)"] = "Un-parents the hologram"
 E2Helper.Descriptions["holoPos(nv)"] = "Sets the position of the hologram"
+E2Helper.Descriptions["holoPos(n)"] = "Gets the position of the hologram"
 E2Helper.Descriptions["holoRemainingSpawns()"] = "Returns how many holograms can be created this execution"
 E2Helper.Descriptions["holoReset(nsvvs)"] = "Similar to holoCreate, but reusing the old entity"
 E2Helper.Descriptions["holoScale(n)"] = "Returns the scale of the given hologram"
