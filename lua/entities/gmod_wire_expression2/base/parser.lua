@@ -973,8 +973,9 @@ function Parser:Expr15()
 				else
 					self:Error("Operator (" .. v[1] .. ") must be followed by variable")
 				end
-			end ---@cast ident Token # Know it isn't nil from above check
-
+			else ---@cast ident Token # Know it isn't nil from above check
+				if v[1] == "$" then self.delta_vars[ident.value] = true end
+			end
 			return Node.new(NodeVariant.ExprUnaryWire, { v[2], ident }, op.trace:stitch(ident.trace))
 		end
 	end
