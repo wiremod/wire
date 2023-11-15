@@ -12,22 +12,24 @@ end
 
 __e2setcost(1) -- approximation
 
-[nodiscard]
+---@nodiscard
 e2function number first()
 	return self.entity.first and 1 or 0
 end
 
-[nodiscard]
+---@nodiscard
 e2function number duped()
 	return self.entity.duped and 1 or 0
 end
 
-[nodiscard, deprecated = "Use the input event instead"]
+---@nodiscard
+---@deprecated Use the input event instead
 e2function number inputClk()
 	return self.triggerinput and 1 or 0
 end
 
-[nodiscard, deprecated = "Use the input event instead"]
+---@nodiscard
+---@deprecated Use the input event instead
 e2function string inputClkName()
 	return self.triggerinput or ""
 end
@@ -78,19 +80,21 @@ local function dupefinished( TimedPasteData, TimedPasteDataCurrent )
 end
 hook.Add("AdvDupe_FinishPasting", "E2_dupefinished", dupefinished )
 
-[nodiscard]
+---@nodiscard
 e2function number dupefinished()
 	return self.entity.dupefinished and 1 or 0
 end
 
 --- Returns 1 if this is the last() execution and caused by the entity being removed.
-[nodiscard, deprecated = "Use the removed event instead"]
+---@nodiscard
+---@deprecated Use the removed event instead
 e2function number removing()
 	return self.entity.removing and 1 or 0
 end
 
 --- If <activate> != 0, the chip will run once when it is removed, setting the last() flag when it does.
-[nodiscard, deprecated = "Use the removed event instead"]
+---@nodiscard
+---@deprecated Use the removed event instead
 e2function void runOnLast(activate)
 	if self.data.last then return end
 	self.data.runOnLast = activate ~= 0
@@ -106,7 +110,7 @@ e2function void exit()
 end
 
 do
-	[noreturn]
+	---@noreturn
 	e2function void error( string reason )
 		self:forceThrow(reason)
 	end
@@ -128,7 +132,7 @@ end
 
 __e2setcost(100) -- approximation
 
-[noreturn]
+---@noreturn
 e2function void reset()
 	self.Scope, self.ScopeID, self.Scopes = self.GlobalScope, 0, { [0] = self.GlobalScope }
 
@@ -166,35 +170,35 @@ local round  = math.Round
 
 __e2setcost(1) -- approximation
 
-[nodiscard]
+---@nodiscard
 e2function number ops()
 	return round(self.prfbench)
 end
 
-[nodiscard]
+---@nodiscard
 e2function number entity:ops()
 	if not IsValid(this) or this:GetClass() ~= "gmod_wire_expression2" or not this.context then return 0 end
 	return round(this.context.prfbench)
 end
 
-[nodiscard]
+---@nodiscard
 e2function number opcounter()
 	return ceil(self.prf + self.prfcount)
 end
 
-[nodiscard]
+---@nodiscard
 e2function number cpuUsage()
 	return self.timebench
 end
 
-[nodiscard]
+---@nodiscard
 e2function number entity:cpuUsage()
 	if not IsValid(this) or this:GetClass() ~= "gmod_wire_expression2" or not this.context then return 0 end
 	return this.context.timebench
 end
 
 --- If used as a while loop condition, stabilizes the expression around <maxexceed> hardquota used.
-[nodiscard]
+---@nodiscard
 e2function number perf()
 	if self.prf >= e2_tickquota*0.95-200 then return 0 end
 	if self.prf + self.prfcount >= e2_hardquota then return 0 end
@@ -202,7 +206,7 @@ e2function number perf()
 	return 1
 end
 
-[nodiscard]
+---@nodiscard
 e2function number perf(number n)
 	n = math.Clamp(n, 0, 100)
 	if self.prf >= e2_tickquota*n*0.01 then return 0 end
@@ -215,7 +219,7 @@ e2function number perf(number n)
 	return 1
 end
 
-[nodiscard]
+---@nodiscard
 e2function number minquota()
 	if self.prf < e2_softquota then
 		return floor(e2_softquota - self.prf)
@@ -224,7 +228,7 @@ e2function number minquota()
 	end
 end
 
-[nodiscard]
+---@nodiscard
 e2function number maxquota()
 	if self.prf < e2_tickquota then
 		local tickquota = e2_tickquota - self.prf
@@ -240,17 +244,17 @@ e2function number maxquota()
 	end
 end
 
-[nodiscard]
+---@nodiscard
 e2function number softQuota()
 	return e2_softquota
 end
 
-[nodiscard]
+---@nodiscard
 e2function number hardQuota()
 	return e2_hardquota
 end
 
-[nodiscard]
+---@nodiscard
 e2function number timeQuota()
 	return e2_timequota
 end

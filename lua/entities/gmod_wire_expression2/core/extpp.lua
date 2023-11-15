@@ -124,6 +124,103 @@ local function parseAttributes(attributes, trace)
 	end
 end
 
+local annotationHandlers = {}
+
+local function checkAttributes(annotations)
+	local attributes = annotations.Attributes
+	if not attributes then
+		attributes = { legacy = "false" }
+		annotations.Attributes = attributes
+	end
+	return attributes
+end
+
+annotationHandlers.deprecated = function(annotations, msg)
+	local attrs = checkAttributes(annotations)
+	msg = msg:Trim()
+	if msg ~= "" then
+		attrs.deprecated = string.format("%q", msg)
+	else
+		attrs.deprecated = "true"
+	end
+end
+
+annotationHandlers.nodiscard = function(annotations)
+	checkAttributes(annotations).nodiscard = "true"
+end
+
+annotationHandlers.noreturn = function(annotations)
+	checkAttributes(annotations).noreturn = "true"
+end
+
+annotationHandlers.cost = function(annotations, cost)
+	annotations.Cost = tonumber(cost:Trim()) -- Will be nil if invalid number, won't be processed
+end
+
+---@param contents string
+---@param endPos number
+---@return table
+local function parseFunctionAnnotations(contents, endPos, trace)
+	local output = {}
+	local annotationLines = {}
+	-- Funky reverse find
+	do
+		local lineEnd = endPos - 1
+		local checkedAttributes = false
+		local pastFirstLine = false -- This is here because I don't want to assumed every e2function follows a newline, yet most do
+		for i = lineEnd, 1, -1 do
+			if contents:sub(i, i) == "\n" then
+				local line = contents:sub(i + 1, lineEnd)
+				if line:sub(1, 3) == "---" then
+					table.insert(annotationLines, 1, line:sub(4))
+					lineEnd = i - 1
+				elseif not checkedAttributes then
+					local oldAttributes = line:match("%b[]")
+					if oldAttributes then
+						output.AttributesBegin = i + 1
+						output.Attributes = parseAttributes(oldAttributes, trace)
+					elseif pastFirstLine then
+						break
+					end
+					checkedAttributes = pastFirstLine
+				else
+					if pastFirstLine then break end
+				end
+				pastFirstLine = true
+			end
+		end
+	end
+	if #annotationLines ~= 0 then
+		for _, v in ipairs(annotationLines) do
+			if v:sub(1, 1) == "@" then
+				local param = v:match("^%S*", 2)
+				if param and annotationHandlers[param] then
+					annotationHandlers[param](output, v:sub(#param + 2))
+				end
+			--[[ -- Just kidding, let's not try to completely change how E2 descriptions are handled... yet
+			else -- Annotation comment
+				
+				local comments = output.Comment ---@diagnostic disable-line: param-type-mismatch
+				if not comments then
+					comments = {}
+					output.Comment = comments
+				end
+				v = v:gsub("<br/?>", "\n"):gsub("\\n", "\n") -- Normalize newline escapes
+				comments[#comments + 1] = ((v:match("^[ \t]*(.-)[ \t\n\r]*$") or v) .. (v:sub(-1, -1) == "\n" and "" or " ")):gsub("\n", "\\n"):Trim()
+			]]
+			end
+		end
+
+		--[[
+		if output.Comment then
+			output.Comment = table.concat(output.Comment) ---@diagnostic disable-line: param-type-mismatch
+		end
+		]]
+	end
+	output.LineCount = #annotationLines
+	return output
+end
+
 --- Compact lua code to a single line to avoid changing lua's tracebacks.
 local function compact(lua)
 	return (lua:Trim():gsub("\n\t*", " "))
@@ -147,7 +244,7 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 
 	-- This flag helps determine whether the preprocessor changed, so we can tell the environment about it.
 	local changed = false
-	for a_begin, attributes, h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()(%[?[%w,_ =\"]*%]?)[\r\n\t ]*()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)%s*()") do
+	for h_begin, ret, thistype, colon, name, args, whitespace, equals, h_end in contents:gmatch("()e2function%s+(" .. p_typename .. ")%s+([a-z0-9]-)%s*(:?)%s*(" .. p_func_operator .. ")%(([^)]*)%)(%s*)(=?)%s*()") do
 		local _, line = contents:sub(1, h_begin):gsub("\n", "")
 
 		local trace = "(at line " .. line .. ")" .. (E2Lib.currentextension and (" @" .. filename) or "")
@@ -170,7 +267,8 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 			error("PP syntax error: Invalid return type: '" .. ret .. "' " .. trace)
 		elseif RemovedOperators[name] then -- Old operator that no longer is needed.
 			ErrorNoHalt("Warning: Operator " .. name .. " is now redundant. Ignoring registration. " .. trace .. "\n")
-			local pivot = parseAttributes(attributes, trace) and a_begin - 1 or h_begin - 1
+			local annotations = parseAnnotations(contents, h_begin, trace)
+			local pivot = annotations.AttributesBegin and annotations.AttributesBegin - 1 or h_begin - 1
 			table.insert(output, contents:sub(lastpos, pivot)) -- Insert code from before header.
 			changed, lastpos = true, h_end -- Mark as changed and remove function header.
 			table.insert(output, "local _ = function() ") -- Insert dummy lambda function to substitute for function declaration.
@@ -193,7 +291,10 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 
 			local params, has_vararg, vartbl_name = parseParameters(args, trace)
 
-			local attributes = parseAttributes(attributes, trace)
+			local annotations = parseFunctionAnnotations(contents, h_begin, trace)
+
+			local attributes = annotations.Attributes
+			local a_begin = annotations.AttributesBegin or h_begin
 
 			local attr_str
 			if attributes then
@@ -250,7 +351,7 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 						"]] .. param_sig .. (has_vararg and "..." or "") .. [[",
 						"]] .. ret_typeid .. [[",
 						registeredfunctions.]] .. mangled .. [[,
-						tempcosts.]] .. mangled .. [[,
+						]] .. (annotations.Cost and tostring(annotations.Cost) or ([[tempcosts.]] .. mangled))  .. [[,
 						]] .. "{" .. table.concat(param_names_quot, ",", thistype ~= "" and 2 or 1) .. "}" .. [[,
 						]] .. attr_str .. [[
 					)
