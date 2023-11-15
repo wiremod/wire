@@ -98,7 +98,7 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
       local crtFilename = "lib\\"..string.lower(pragmaCommand).."\\init.txt"
       local fileText = self:LoadFile(crtFilename)
       if fileText then
-        table.insert(self.Code, 1, { Text = fileText, Line = 1, Col = 1, File = crtFilename, NextCharPos = 1 })
+        table.insert(self.Code, 1, { Text = fileText, Line = 1, Col = 1, File = crtFilename, ParentFile = macroPosition.File, NextCharPos = 1 })
       else
         self:Error("Unable to include CRT library "..pragmaCommand,
           macroPosition.Line,macroPosition.Col,macroPosition.File)
@@ -110,6 +110,12 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
       CPULib.CPUName = pragmaCommand
     elseif pragmaName == "searchpath" then
       table.insert(self.SearchPaths,pragmaCommand)
+    elseif pragmaName == "silence" or pragmaName == "mute" then
+        if pragmaCommand == "self" then
+          self.SilencedFiles[macroPosition.File] = { Silenced = true, FromParent = false }
+        elseif pragmaCommand == "includes" or pragmaCommand == "other" then
+          self.SilencedParents[macroPosition.File] = true
+        end
     elseif pragmaName == "allow" or pragmaName == "zap" then
     if not self.Settings.AutoBusyRegisters then
       self.Settings.AutoBusyRegisters = true
@@ -250,7 +256,7 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
 
     -- Push this file on top of the stack
     if fileText then
-      table.insert(self.Code, 1, { Text = fileText, Line = 1, Col = 1, File = fileName, NextCharPos = 1 })
+      table.insert(self.Code, 1, { Text = fileText, Line = 1, Col = 1, File = fileName, ParentFile = macroPosition.File, NextCharPos = 1 })
     else
       self:Error("Cannot open file: "..fileName,
         macroPosition.Line,macroPosition.Col,macroPosition.File)

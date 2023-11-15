@@ -93,7 +93,23 @@ end
 --
 -- Same rules for calling as for Error()
 function HCOMP:Warning(msg,param1,param2,param3)
-  print(self:formatPrefix(param1,param2,param3)..": Warning: "..msg)
+  local prefixstr,file,line,col = self:formatPrefix(param1,param2,param3)
+  local parent = self:CurrentSourcePosition().ParentFile
+  print(prefixstr..": Warning: "..msg) -- This is the original console print, we should only mute the editor warnings
+  if self.SilencedFiles[file] then
+    if self.SilencedFiles[file].Silenced or self.SilencedParents[parent] then
+      return
+    end
+  elseif self.SilencedParents[parent] then
+    return
+  end
+  local warning = {}
+  warning.trace = {start_line = line, start_col = col}
+  warning.message = msg
+  if file ~= self.FileName then -- self.FileName is the file that's open in the editor at the start of compile
+    warning.message = "(in file: '"..file.."') " .. warning.message
+  end
+  self.Warnings[#self.Warnings+1] = warning
 end
 
 
@@ -237,7 +253,9 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   self.DebugInfo.Labels = {}
   self.DebugInfo.PositionByPointer = {}
   self.DebugInfo.PointersByLine = {}
-
+  self.Warnings = {} -- Warnings to pass to the editor
+  self.SilencedFiles = {} -- Will not push warnings from silenced files
+  self.SilencedParents = {} -- Includes from these files will get silenced
   -- Exported function list (library generation)
   self.ExportedSymbols = {}
   self.LabelLookup = {}
@@ -256,6 +274,7 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
 
   -- Output text
   self.OutputText = {}
+  return self.Warnings
 end
 
 
