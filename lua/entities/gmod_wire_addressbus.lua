@@ -64,7 +64,7 @@ function ENT:ReadCell(Address)
 			if self.Memory[i] then
 				if self.Memory[i].ReadCell then
 					self.DataBytes = self.DataBytes + 1
-					local val = self.Memory[i]:ReadCell((Address+self.MemOffsets[i]) - self.MemStart[i])
+					local val = self.Memory[i]:ReadCell(Address + self.MemOffsets[i] - self.MemStart[i])
 					return val or 0
 				end
 			else
@@ -82,7 +82,7 @@ function ENT:WriteCell(Address, value)
 		if (Address >= self.MemStart[i]) and (Address <= self.MemEnd[i]) then
 			if self.Memory[i] then
 				if self.Memory[i].WriteCell then
-					self.Memory[i]:WriteCell((Address+self.MemOffsets[i]) - self.MemStart[i], value)
+					self.Memory[i]:WriteCell(Address + self.MemOffsets[i] - self.MemStart[i], value)
 				end
 			end
 			self.DataBytes = self.DataBytes + 1
