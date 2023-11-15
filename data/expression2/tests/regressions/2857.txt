@@ -1,0 +1,15 @@
+## SHOULD_PASS:EXECUTE
+Var = 5
+Vec = vec(5)
+
+assert($Var == 5) # 5 - 0 = 5
+assert($Vec == vec(5))
+
+Var = 2
+Vec = vec(2)
+
+assert($Var == -3) # 2 - 5 = -3
+assert($Var == -3) # Actual regression part, delta should not change if variable is not assigned.
+
+assert($Vec == vec(-3))
+assert($Vec == vec(-3))
