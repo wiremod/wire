@@ -1801,11 +1801,13 @@ function EDITOR:_OnKeyCodeTyped(code)
 		elseif code == KEY_K then
 			self:CommentSelection(shift)
 		elseif code == KEY_L then
-			self.Start = { self.Start[1], 1 }
-			self.Caret = { self.Start[1] + 1, 1 }
+			if self.Rows[self.Caret[1]] ~= "" then
+				self.Start = { self.Start[1], 1 }
+				self.Caret = { self.Start[1] + 1, 1 }
 
-			if not shift then self:Copy() end
-			self:SetSelection("")
+				if not shift then self:Copy() end
+				self:SetSelection("")
+			end
 		elseif code == KEY_Q then
 			self:GetParent():Close()
 		elseif code == KEY_T then
@@ -1838,6 +1840,11 @@ function EDITOR:_OnKeyCodeTyped(code)
 			self:SetCaret({ #self.Rows, 1 })
 		elseif code == KEY_D then
 			self:DuplicateLine()
+		elseif code == KEY_BACKSPACE then
+			local pos = self:wordLeft(self.Caret)
+			if self.Rows[self.Caret[1]] ~= "" then
+				self:SetSelection(self:GetArea({pos, self.Caret}))
+			end
 		else
 			handled = false
 		end
