@@ -1223,12 +1223,10 @@ function WireLib.GetVersion()
 		end
 	end
 
-	-- Check if we're Workshop version first
-	for k, addon in pairs(engine.GetAddons()) do
-		if addon.wsid == "160250458" then
-			cachedversion = "Workshop"
-			return cachedversion
-		end
+	local ws_version = file.Read("wire/version.lua", "LUA")
+	if ws_version then
+		cachedversion = "Workshop " .. ws_version
+		return cachedversion
 	end
 
 	if not cachedversion then cachedversion = "Unknown" end
