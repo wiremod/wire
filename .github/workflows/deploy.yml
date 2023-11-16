@@ -9,10 +9,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
+
+      - name: Embed version
+        run: |
+          echo -e "\ncachedversion = \"Workshop ${GITHUB_SHA:0:7}\"" >> lua/wire/server/wirelib.lua
+
       - uses: wiremod/gmod-upload@master
         with:
           id: 160250458
-          changelog: "Deployment via Github to latest changes"
+          changelog: "Deployment via Github to commit ${GITHUB_SHA:0:7}"
         env:
           STEAM_USERNAME: ${{ secrets.WIRETEAM_WORKSHOP_USERNAME }}
           STEAM_PASSWORD: ${{ secrets.WIRETEAM_WORKSHOP_PASSWORD }}
