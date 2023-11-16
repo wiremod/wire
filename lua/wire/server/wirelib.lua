@@ -1223,12 +1223,6 @@ function WireLib.GetVersion()
 		end
 	end
 
-	local ws_version = file.Read("wire/version.lua", "LUA")
-	if ws_version then
-		cachedversion = "Workshop " .. ws_version
-		return cachedversion
-	end
-
 	if not cachedversion then cachedversion = "Unknown" end
 
 	return cachedversion

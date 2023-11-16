@@ -14,7 +14,7 @@ jobs:
 
       - name: Embed version
         run: |
-          echo ${GITHUB_SHA:0:7} > lua/wire/version.lua
+          echo " cachedversion = \"Canary ${GITHUB_SHA:0:7}\"" >> lua/wire/server/wirelib.lua
 
       - uses: wiremod/gmod-upload@master
         with:
