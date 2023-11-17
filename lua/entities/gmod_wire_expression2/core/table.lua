@@ -173,6 +173,7 @@ local tostring_typeid = {
 	xm2 = 	tostrings.table,
 	a = 	tostrings.Vector,
 	xv4 = 	tostrings.Vector4,
+	f =		tostring
 }
 
 local function checkAbort( ret, cost, abortafter )
