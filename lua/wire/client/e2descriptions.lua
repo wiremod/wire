@@ -1762,3 +1762,8 @@ E2Helper.Descriptions["takeDamage(e:ne)"] = "Applies an amount of damage to the 
 E2Helper.Descriptions["takeDamage(e:nee)"] = "Applies an amount of damage to the player with given attacker and inflictor. Requires wire_expression2_damage_enabled to be set to 1."
 
 E2Helper.Descriptions["blastDamage(vnn)"] = "Creates blast damage at the position provided with specified radius and damage amount. Requires wire_expression2_damage_enabled to be set to 1."
+
+-- Functions
+
+E2Helper.Descriptions["getParameterTypes(f:)"] = "Returns an array of the parameter typeids of the function"
+E2Helper.Descriptions["getReturnType(f:)"] = "Returns the return typeid of the function"
