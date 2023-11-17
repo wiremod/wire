@@ -459,7 +459,7 @@ function Parser:Stmt()
 
 	-- Function definition
 	if self:Consume(TokenVariant.Keyword, Keyword.Function) then
-		local trace, type_or_name = self:Prev().trace, self:Assert( self:Consume(TokenVariant.LowerIdent), "Expected function return type or name after function keyword")
+		local trace, type_or_name = self:Prev().trace, self:Assert( self:Type(), "Expected function return type or name after function keyword")
 
 		if self:Consume(TokenVariant.Operator, Operator.Col) then
 			-- function entity:xyz()
