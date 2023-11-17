@@ -161,12 +161,21 @@ function PANEL:Init()
     function self.IssuesView:DoRightClick(node)
         local menu = DermaMenu()
 
-        local copy = menu:AddOption(
+        menu:AddOption(
             "Copy to clipboard",
             function()
                 SetClipboardText(node.Label:GetText())
             end
         )
+
+        if node.quick_fix then
+            menu:AddOption(
+                "Quick fix",
+                function()
+                    base:OnQuickFix(node)
+                end
+            )
+        end
 
         menu:Open()
     end
@@ -269,9 +278,9 @@ function PANEL:Update(errors, warnings, header_text, header_color)
         for k, v in ipairs(warnings) do
             if v.message ~= nil then
                 local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [line %u, char %u]", v.trace.start_line, v.trace.start_col) or ""))
-                node:SetIcon("icon16/error.png")
-                node.line = v.trace and v.trace.start_line
-                node.char = v.trace and v.trace.start_col
+                node:SetIcon(v.quick_fix and "icon16/error_go.png" or "icon16/error.png")
+                node.trace = v.trace
+                node.quick_fix = v.quick_fix
             end
         end
         failed = true
@@ -281,8 +290,7 @@ function PANEL:Update(errors, warnings, header_text, header_color)
         for k, v in ipairs(errors) do
             local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [line %u, char %u]", v.trace.start_line, v.trace.start_col) or ""))
             node:SetIcon("icon16/cancel.png")
-            node.line = v.trace and v.trace.start_line
-            node.char = v.trace and v.trace.start_col
+            node.trace = v.trace
         end
         failed = true
     end

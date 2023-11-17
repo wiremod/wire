@@ -38,14 +38,15 @@ end
 ---@class Warning
 ---@field message string
 ---@field trace Trace
+---@field quick_fix string? # String to replace the string slice at the trace with.
 local Warning = {}
 Warning.__index = Warning
 
 ---@param message string
 ---@param trace Trace
----@return Warning
-function Warning.new(message, trace)
-	return setmetatable({ message = message, trace = trace }, Warning)
+---@param quick_fix string?
+function Warning.new(message, trace, quick_fix)
+	return setmetatable({ message = message, trace = trace, quick_fix = quick_fix }, Warning)
 end
 
 function Warning:debug()
