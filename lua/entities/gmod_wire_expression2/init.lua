@@ -384,7 +384,7 @@ function ENT:PrepareIncludes(files)
 			return
 		end
 
-		self.includes[file] = { tree }
+		self.includes[file] = { tree, nil, dvars }
 	end
 
 	return true

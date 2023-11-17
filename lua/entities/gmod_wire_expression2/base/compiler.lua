@@ -846,6 +846,10 @@ local CompileVisitors = {
 		if not include[2] then
 			include[2] = true -- Prevent self-compiling infinite loop
 
+			for var in pairs(include[3]) do -- add dvars from include
+				self.delta_vars[var] = true
+			end
+
 			local last_file = self.include
 			self.include = data
 			self.warnings[data] = self.warnings[data] or {}
@@ -1544,7 +1548,6 @@ local CompileVisitors = {
 		if data[1] == Operator.Dlt then -- $
 			self:Warning("Delta operator ($) is deprecated. Recommended to handle variable differences yourself.", trace)
 			self:Assert(var.depth == 0, "Delta operator ($) can not be used on temporary variables", trace)
-			self.delta_vars[var_name] = true
 
 			local sub_op, sub_ty = self:GetOperator("sub", { var.type, var.type }, trace)
 			return function(state) ---@param state RuntimeContext
