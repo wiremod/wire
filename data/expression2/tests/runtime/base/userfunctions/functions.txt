@@ -112,3 +112,17 @@ try {
 } catch(Err) {
 	assert(Err == "No such function defined at runtime: undefined()")
 }
+
+function implicit() {
+	return 55
+}
+
+assert( implicit() == 55 )
+
+function implicit_lambda() {
+	return function() {
+		return 5
+	}
+}
+
+assert( implicit_lambda()()[number] == 5 )

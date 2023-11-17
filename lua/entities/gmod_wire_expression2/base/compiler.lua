@@ -825,7 +825,11 @@ local CompileVisitors = {
 			end
 		end)
 
-		self:Assert(fn.ret == return_type, "Function " .. name.value .. " expects to return type (" .. (return_type or "void") .. ") but got type (" .. (fn.ret or "void") .. ")", trace)
+		if return_type then
+			self:Assert(fn.ret == return_type, "Function " .. name.value .. " expects to return type (" .. return_type .. ") but got type (" .. (fn.ret or "void") .. ")", trace)
+		else
+			return_type = fn.ret
+		end
 
 		local sig = name.value .. "(" .. (meta_type and (meta_type .. ":") or "") .. sig .. ")"
 		local fn = fn.op
