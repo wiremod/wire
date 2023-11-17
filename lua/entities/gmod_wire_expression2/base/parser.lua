@@ -475,8 +475,8 @@ function Parser:Stmt()
 				-- function void test()
 				return Node.new(NodeVariant.Function, { type_or_name, nil, meta_or_name, self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
 			end
-		else
-			-- function test()
+		else -- function test()
+			self:Assert( type_or_name.value ~= "function", "Identifier expected. \"function\" is a reserved keyword that cannot be used here", trace )
 			return Node.new(NodeVariant.Function, { nil, nil, type_or_name, self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
 		end
 	end
