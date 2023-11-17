@@ -76,7 +76,8 @@ end
 ---@field ret string
 local Function = {}
 Function.__index = Function
-Function.__tostring = function(self)
+
+function Function:__tostring()
 	return "function(" .. self.arg_sig .. ")" .. (self.ret and ": " .. self.ret or "")
 end
 
