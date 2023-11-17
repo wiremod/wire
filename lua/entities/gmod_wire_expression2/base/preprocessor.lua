@@ -200,7 +200,7 @@ local function handleIO(name)
 
 		for i, key in ipairs(retval[1]) do
 			if ports[3][key] then
-				self:Error("Directive (@" .. name .. ") contains multiple definitions of the same variable", columns[i])
+				self:Warning("Directive (@" .. name .. ") contains multiple definitions of the same variable", columns[i])
 			else
 				local index = #ports[1] + 1
 				ports[1][index] = key -- Index: Name
