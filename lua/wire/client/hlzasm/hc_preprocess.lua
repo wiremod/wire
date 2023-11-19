@@ -49,7 +49,6 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
     if macroName == "ifdef" or macroName == "ifndef" then
       self.EndIfsToSkip = self.EndIfsToSkip + 1
     end
-    self:Warning("skipping to next macro after checking "..macroName)
     local InComment = false
     -- If this while loop hits end of file before #endif it won't produce an error, seems like the original behavior for ifdefs
     while self:getChar() ~= "" do
