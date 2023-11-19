@@ -231,8 +231,10 @@ function ENT:ExecuteEvent(evt, args)
 	self:TriggerOutputs()
 
 	self.GlobalScope.vclk = {}
-	for k, var in pairs(self.globvars_mut) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
+	if not self.directives.strict then
+		for k, var in pairs(self.globvars_mut) do
+			self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
+		end
 	end
 
 	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
