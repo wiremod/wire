@@ -546,6 +546,7 @@ local CompileVisitors = {
 		end
 
 		local default = data[3] and self:Scope(function(scope)
+			scope.data.switch_case = true
 			local b = self:CompileStmt(data[3])
 			dead = dead and scope.data.dead == "ret"
 			return b
@@ -587,6 +588,7 @@ local CompileVisitors = {
 
 			if default then
 				default(state)
+				state.__break__ = false
 			end
 
 			::exit::
