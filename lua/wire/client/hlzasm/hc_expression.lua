@@ -84,10 +84,38 @@ function HCOMP:Expression_FunctionCall(label) local TOKEN = self.TOKEN
 
   -- Push arguments to stack in reverse order
   for argNo = #argumentExpression,1,-1 do
-    local pushLeaf = self:NewLeaf()
-    pushLeaf.Opcode = "push"
-    pushLeaf.Operands[1] = argumentExpression[argNo]
-    table.insert(genLeaves,pushLeaf)
+    local pushLeaf
+    if argumentExpression[argNo].Memory then
+      if argumentExpression[argNo].Memory.CopySize then
+        for i=argumentExpression[argNo].Memory.CopySize-1,0,-1 do
+        pushLeaf = self:NewLeaf()
+        pushLeaf.Comment = " passing large variable, byte "..i
+        pushLeaf.Opcode = "push"
+        local a = argumentExpression[argNo]
+        local copiedArg = {
+          CurrentPosition = argumentExpression[argNo].CurrentPosition,
+          Memory = a.Memory,
+          MemAddrOffset = i
+        }
+        -- Memory will update globally when it receives the final value
+        -- so we wrap it into a new copy of the table with a constant num
+        -- because setting the const in memory would update the same table multiple times
+        pushLeaf.Operands[1] = copiedArg
+        table.insert(genLeaves,pushLeaf)
+      end
+      argumentCount = argumentCount + argumentExpression[argNo].Memory.CopySize-1
+    else
+      pushLeaf = self:NewLeaf()
+      pushLeaf.Opcode = "push"
+      pushLeaf.Operands[1] = argumentExpression[argNo]  
+      table.insert(genLeaves,pushLeaf)
+    end
+    else
+      pushLeaf = self:NewLeaf()
+      pushLeaf.Opcode = "push"
+      pushLeaf.Operands[1] = argumentExpression[argNo]  
+      table.insert(genLeaves,pushLeaf)
+    end
 
     if functionEntry then
       if functionEntry.Parameters[argNo] then
@@ -148,6 +176,18 @@ function HCOMP:Expression_FunctionCall(label) local TOKEN = self.TOKEN
   end
 
   -- Return EAX as the return value
+  if self.Functions[label] then
+    if self.StructSize[self.Functions[label].ReturnType] then
+      -- Return as memory register that requests copy of x size
+      return { MemoryRegister = 1, ForceTemporary = true, CopySize = self.StructSize[self.Functions[label].ReturnType], PreviousLeaf = genLeaves[#genLeaves]}
+    end
+  elseif self.CurFunction then
+    if self.CurFunction.ReturnType then
+      if self.StructSize[self.CurFunction.ReturnType] then
+        return { MemoryRegister = 1, ForceTemporary = true, CopySize = self.StructSize[self.CurFunction.ReturnType], PreviousLeaf = genLeaves[#genLeaves]}
+      end
+    end
+  end
   return { Register = 1, ForceTemporary = true, PreviousLeaf = genLeaves[#genLeaves] }
 end
 
@@ -338,7 +378,7 @@ function HCOMP:Expression_Level3() local TOKEN = self.TOKEN
             addressLeaf.Operands[2] = { Constant = structData[memberName].Offset }
             operationLeaf = { MemoryPointer = addressLeaf }
           else
-            operationLeaf = { Stack = structLabel.StackOffset+structData[memberName].Offset }
+            operationLeaf = { Stack = structLabel.StackOffset+structData[memberName].Offset-1 }
           end
         elseif structLabel.Type == "Variable" then
           if structLabel.PointerToStruct then
@@ -379,7 +419,12 @@ function HCOMP:Expression_Level3() local TOKEN = self.TOKEN
     else -- Parse variable access
       if label.Type == "Variable" then -- Read from a variable
         -- Array variables are resolved as pointers at constant expression stage
-        operationLeaf = { Memory = label, ForceType = forceType }
+        if label.Struct then
+          operationLeaf = { Memory = label, ForceType = forceType }
+          operationLeaf.Memory.CopySize = self.StructSize[label.Struct]
+        else
+          operationLeaf = { Memory = label, ForceType = forceType }
+        end
       elseif label.Type == "Unknown" then -- Read from an unknown variable
         operationLeaf = { UnknownOperationByLabel = label, ForceType = forceType }
       elseif label.Type == "Stack" then -- Read from stack
@@ -494,7 +539,68 @@ function HCOMP:Expression_Level0()
 
   if self:MatchToken(self.TOKEN.EQUAL) then -- =
     local rightLeaf = self:Expression_LevelLeaf(0)
-
+    if leftLeaf.Memory then
+      if rightLeaf.Memory then
+        if leftLeaf.Memory.CopySize and rightLeaf.Memory.CopySize then
+          local topLeaf = self:NewOpcode("mov",leftLeaf,rightLeaf)
+          local curLeaf = topLeaf
+          local tempLeftLeaf,tempRightLeaf
+          for i=1,math.min(leftLeaf.Memory.CopySize,rightLeaf.Memory.CopySize)-1 do
+            tempLeftLeaf = {
+              CurrentPosition = leftLeaf.CurrentPosition,
+              Memory = leftLeaf.Memory,
+              MemAddrOffset = i
+            }
+            tempRightLeaf = {
+              CurrentPosition = rightLeaf.CurrentPosition,
+              Memory = rightLeaf.Memory,
+              MemAddrOffset = i
+            }
+            curLeaf.PreviousLeaf = self:NewOpcode("mov",tempLeftLeaf,tempRightLeaf)
+            curLeaf = curLeaf.PreviousLeaf
+          end
+          -- example of generated output (because previousleaf is parsed before the leaf containing previousleaf)
+          -- MOV #0+2,#3+2
+          -- MOV #0+1,#3+1
+          -- MOV #0,#3
+          -- * Mark these both with an offset so they won't warn
+          leftLeaf.MemAddrOffset = 0
+          rightLeaf.MemAddrOffset = 0
+          curLeaf.Comment = topLeaf.Comment
+          topLeaf.Comment = nil
+          return topLeaf
+        end
+        elseif rightLeaf.MemoryRegister then
+          if leftLeaf.Memory.CopySize and rightLeaf.CopySize then
+            local topLeaf = self:NewOpcode("mov",leftLeaf,rightLeaf)
+            local curLeaf = topLeaf
+            local tempLeftLeaf
+            for i=1,math.min(leftLeaf.Memory.CopySize,rightLeaf.CopySize)-1 do
+              tempLeftLeaf = {
+                CurrentPosition = leftLeaf.CurrentPosition,
+                Memory = leftLeaf.Memory,
+                MemAddrOffset = i
+              }
+              curLeaf.PreviousLeaf = self:NewOpcode("inc",{Register = rightLeaf.MemoryRegister})
+              curLeaf = curLeaf.PreviousLeaf
+              curLeaf.PreviousLeaf = self:NewOpcode("mov",tempLeftLeaf,rightLeaf)
+              curLeaf = curLeaf.PreviousLeaf
+          end
+          -- example of generated output (because previousleaf is parsed before the leaf containing previousleaf)
+          -- MOV #0+2,#R0
+          -- INC R0
+          -- MOV #0+1,#R0
+          -- INC R0
+          -- MOV #0,#R0
+          -- * Mark these both with an offset so they won't warn
+          leftLeaf.MemAddrOffset = 0
+          rightLeaf.MemAddrOffset = 0
+          curLeaf.Comment = topLeaf.Comment
+          topLeaf.Comment = nil
+          return topLeaf
+        end
+      end
+    end
     -- Mark this leaf as an explict assign operation
     local operationLeaf = self:NewOpcode("mov",leftLeaf,rightLeaf)
     operationLeaf.ExplictAssign = true

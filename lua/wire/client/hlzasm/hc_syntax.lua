@@ -526,7 +526,17 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
         -- Create function entrypoint
         local label
         label = self:DefineLabel(varName)
-
+        self:PreviousToken() -- LPAREN
+        self:PreviousToken() -- Func Name
+        self:PreviousToken() -- Type Name
+        if not self:MatchToken(TOKEN.IDENT) then
+          self:MatchToken(TOKEN.TYPE) -- If it's not an IDENT (struct/user defined) it should be a generic type
+        end
+        local returnType = self.TokenData
+        self:MatchToken(TOKEN.IDENT)
+        local funcName = self.TokenData
+        self.CurFunction = {Name = funcName, ReturnType = returnType}
+        self:NextToken()
         label.Type = "Pointer"
         label.Defined = true
 
@@ -1189,12 +1199,37 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
   if self:MatchToken(TOKEN.RETURN) and self.HeadLeaf then
     if not self:MatchToken(TOKEN.COLON) then
       local returnExpression = self:Expression()
+      local copyLargeVariable = false
+      if self.StructSize[self.CurFunction.ReturnType] then
+        copyLargeVariable = true -- Converts this to automatically return ptr to large variable
+      end
       local returnLeaf = self:NewLeaf()
-      returnLeaf.Opcode = "mov"
-      returnLeaf.Operands[1] = { Register = 1 }
-      returnLeaf.Operands[2] = returnExpression
-      returnLeaf.ExplictAssign = true
+      local preReturnLeaf,postReturnLeaf
+      if copyLargeVariable then
+        local finalReturnExpression = returnExpression
+        returnLeaf.Opcode = "mov"
+        returnLeaf.Operands[1] = { Register = 1 }
+        if returnExpression.Stack then
+          finalReturnExpression = { Register = 8 } -- EBP, the stack frame register, where the stack ptr is local to
+          postReturnLeaf = self:NewOpcode("add",returnLeaf.Operands[1],{Constant = returnExpression.Stack})
+          -- MOV EAX,EBP
+          -- ADD EAX,(stack-pos)
+        end
+        returnLeaf.Operands[2] = finalReturnExpression
+        returnLeaf.ExplictAssign = true
+      else
+        returnLeaf.Opcode = "mov"
+        returnLeaf.Operands[1] = { Register = 1 }
+        returnLeaf.Operands[2] = returnExpression
+        returnLeaf.ExplictAssign = true
+      end
+      if preReturnLeaf then
+      self:AddLeafToTail(preReturnLeaf)
+      end
       self:AddLeafToTail(returnLeaf)
+      if postReturnLeaf then
+      self:AddLeafToTail(postReturnLeaf)
+      end
     end
     self:MatchToken(TOKEN.COLON)
 

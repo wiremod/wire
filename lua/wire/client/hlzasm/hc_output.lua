@@ -363,9 +363,28 @@ function HCOMP:PrintBlock(block,file,isLibrary)
           printText = printText .. "#" .. block.Operands[i].MemoryPointer
         end
       elseif block.Operands[i].Memory then
+        if not block.Operands[i].MemAddrOffset then
+        if block.Operands[i].Memory.CopySize then
+          if block.Operands[1].Memory and i ~= 1 then
+            if block.Operands[i].Memory.CopySize then
+            self:Warning("Operation will only use first byte of large variables on left and right, use &varname to get a pointer instead")
+            end
+          else
+            if not block.Operands[i].MemAddrOffset then
+              PrintTable(block.Operands[i])
+              self:Warning("Operation will only use first byte of large variable on right, use &varname to get a pointer instead")
+            end
+          end
+        end
+      end
         if istable(block.Operands[i].Memory) then
           if block.Operands[i].Memory.Value
-          then printText = printText .. "#" .. block.Operands[i].Memory.Value
+          then
+            if block.Operands[i].MemAddrOffset then
+              printText = printText .. "#" .. block.Operands[i].Memory.Value + block.Operands[i].MemAddrOffset
+            else
+              printText = printText .. "#" .. block.Operands[i].Memory.Value
+            end
           else printText = printText .. "#" .. block.Operands[i].Memory.Name
           end
         else
@@ -530,7 +549,11 @@ function HCOMP:OperandRM(operand,block)
     end
   elseif operand.Memory then
     if istable(operand.Memory) then -- label
-      operand.Value = operand.Memory.Value
+      if operand.MemAddrOffset then
+        operand.Value = operand.Memory.Value + operand.MemAddrOffset
+      else
+        operand.Value = operand.Memory.Value
+      end
     else -- constant
       operand.Value = operand.Memory
     end

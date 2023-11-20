@@ -403,7 +403,12 @@ function HCOMP:GenerateLeaf(leaf,needResult)
 
       -- Make register operand temporary if requested
       if genOperands[i].ForceTemporary then
-        local initReg = genOperands[i].Register
+        local initReg
+        if genOperands[i].Register then
+          initReg = genOperands[i].Register
+        elseif genOperands[i].MemoryRegister then
+          initReg = genOperands[i].MemoryRegister
+        end
         genOperands[i].ForceTemporary = false
 
         if self.RegisterBusy[initReg] then

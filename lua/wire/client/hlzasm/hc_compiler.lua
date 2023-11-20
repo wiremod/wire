@@ -263,7 +263,8 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
 
   -- All functions defined so far
   self.Functions = {}
-
+  -- Details about the current function that we're building
+  self.CurFunction = {}
   -- All macros defined so far
   self.Defines = {}
   self.Defines["__LINE__"] = 0
