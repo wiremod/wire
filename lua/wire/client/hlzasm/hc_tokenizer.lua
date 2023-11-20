@@ -114,6 +114,7 @@ end
 --------------------------------------------------------------------------------
 -- Generate table of all possible tokens
 HCOMP.TOKEN = {}
+HCOMP.TOKENSET = {} -- Manuallly defined sets of tokens
 HCOMP.TOKEN_NAME = {}
 HCOMP.TOKEN_NAME2 = {}
 local IDX = 1
@@ -127,6 +128,49 @@ for tokenName,tokenData in pairs(HCOMP.TOKEN_TEXT) do
   end
   IDX = IDX + 1
 end
+
+HCOMP.TOKENSET.OPERATORS = {
+  HCOMP.TOKEN.LPAREN,
+  HCOMP.TOKEN.RPAREN,
+  HCOMP.TOKEN.LSUBSCR,
+  HCOMP.TOKEN.RSUBSCR,
+  HCOMP.TOKEN.TIMES,
+  HCOMP.TOKEN.SLASH,
+  HCOMP.TOKEN.MODULUS,
+  HCOMP.TOKEN.PLUS,
+  HCOMP.TOKEN.MINUS,
+  HCOMP.TOKEN.AND,
+  HCOMP.TOKEN.OR,
+  HCOMP.TOKEN.XOR,
+  HCOMP.TOKEN.POWER,
+  HCOMP.TOKEN.INC,
+  HCOMP.TOKEN.DEC,
+  HCOMP.TOKEN.SHL,
+  HCOMP.TOKEN.SHR,
+  HCOMP.TOKEN.EQL,
+  HCOMP.TOKEN.NEQ,
+  HCOMP.TOKEN.LEQ,
+  HCOMP.TOKEN.LSS,
+  HCOMP.TOKEN.GEQ,
+  HCOMP.TOKEN.GTR,
+  HCOMP.TOKEN.NOT,
+  HCOMP.TOKEN.EQUAL,
+  HCOMP.TOKEN.LAND,
+  HCOMP.TOKEN.LOR,
+  HCOMP.TOKEN.EQLADD,
+  HCOMP.TOKEN.EQLSUB,
+  HCOMP.TOKEN.EQLMUL,
+  HCOMP.TOKEN.EQLDIV,
+  HCOMP.TOKEN.DOT
+}
+
+HCOMP.TOKENSET.ASSIGNMENT = {
+  HCOMP.TOKEN.EQUAL,
+  HCOMP.TOKEN.EQLADD,
+  HCOMP.TOKEN.EQLSUB,
+  HCOMP.TOKEN.EQLMUL,
+  HCOMP.TOKEN.EQLDIV
+}
 
 -- Create lookup tables for faster parsing
 HCOMP.PARSER_LOOKUP = {}
@@ -495,6 +539,14 @@ end
 
 -- Returns true and skips a token if it matches this one
 function HCOMP:MatchToken(tok)
+  if istable(tok) then -- Match against a table of tokens
+    for _,token in pairs(tok) do
+      if self:MatchToken(token) then
+        return true
+      end
+    end
+    return false
+  end
   if not self.Tokens[self.CurrentToken] then
     return tok == self.TOKEN.EOF
   end
