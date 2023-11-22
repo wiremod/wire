@@ -59,13 +59,14 @@ if SERVER then
 	-- Duplicator modifiers
 	-----------------------------------------------------------------
 	function WireLib.CreateWirelinkOutput( ply, ent, data )
+		duplicator.StoreEntityModifier(ent, "CreateWirelinkOutput", data)
 		if data[1] == true then
 			if ent.Outputs then
 				local names = {}
 				local types = {}
 				local descs = {}
 				local x = 0
-				for k,v in pairs( ent.Outputs ) do
+				for _,v in pairs( ent.Outputs ) do
 					x = x + 1
 					local num = v.Num
 					names[num] = v.Name
@@ -74,11 +75,7 @@ if SERVER then
 					descs[num] = v.Desc
 				end
 
-				names[x+1] = "wirelink"
-				types[x+1] = "WIRELINK"
-				descs[x+1] = ""
-
-				WireLib.AdjustSpecialOutputs( ent, names, types, descs )
+				WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 			else
 				WireLib.CreateSpecialOutputs( ent, { "wirelink" }, { "WIRELINK" } )
 			end
@@ -86,18 +83,18 @@ if SERVER then
 			ent.extended = true
 			WireLib.TriggerOutput( ent, "wirelink", ent )
 		end
-		duplicator.StoreEntityModifier( ent, "CreateWirelinkOutput", data )
 	end
 	duplicator.RegisterEntityModifier( "CreateWirelinkOutput", WireLib.CreateWirelinkOutput )
 
 	function WireLib.CreateEntityOutput( ply, ent, data )
+		duplicator.StoreEntityModifier(ent, "CreateEntityOutput", data)
 		if data[1] == true then
 			if ent.Outputs then
 				local names = {}
 				local types = {}
 				local descs = {}
 				local x = 0
-				for k,v in pairs( ent.Outputs ) do
+				for _,v in pairs( ent.Outputs ) do
 					x = x + 1
 					local num = v.Num
 					names[num] = v.Name
@@ -106,10 +103,6 @@ if SERVER then
 					descs[num] = v.Desc
 				end
 
-				names[x+1] = "entity"
-				types[x+1] = "ENTITY"
-				descs[x+1] = ""
-
 				WireLib.AdjustSpecialOutputs( ent, names, types, descs )
 			else
 				WireLib.CreateSpecialOutputs( ent, { "entity" }, { "ENTITY" } )
@@ -117,7 +110,6 @@ if SERVER then
 
 			WireLib.TriggerOutput( ent, "entity", ent )
 		end
-		duplicator.StoreEntityModifier( ent, "CreateEntityOutput", data )
 	end
 	duplicator.RegisterEntityModifier( "CreateEntityOutput", WireLib.CreateEntityOutput )
 
@@ -249,7 +241,7 @@ elseif CLIENT then
 			if outputs then
 				local found = false
 				for i=1,#outputs do
-					if outputs[i][2] == "WIRELINK" then found = true break end
+					if outputs[i] and outputs[i][2] == "WIRELINK" then found = true break end
 				end
 				if not found then
 					outputs = table.Copy(outputs) -- we don't want to modify the original table
