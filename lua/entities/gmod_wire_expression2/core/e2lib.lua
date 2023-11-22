@@ -77,6 +77,10 @@ end
 local Function = {}
 Function.__index = Function
 
+function Function:__tostring()
+	return "function(" .. self.arg_sig .. ")" .. ((self.ret and (": " .. self.ret)) or "")
+end
+
 function Function.new(args, ret, fn)
 	return setmetatable({ arg_sig = args, ret = ret, fn = fn }, Function)
 end
