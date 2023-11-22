@@ -133,7 +133,7 @@ end
 ---@param trace Trace
 ---@return T
 function Compiler:Assert(v, message, trace)
-	if not v then error(Error.new(message, trace), 0) end
+	if not v then self:Error(message, trace) end
 	return v
 end
 
@@ -1613,7 +1613,6 @@ local CompileVisitors = {
 		local name, args, types = data[1], {}, {}
 		for k, arg in ipairs(data[2]) do
 			args[k], types[k] = self:CompileExpr(arg)
-			self:Assert(types[k], "Cannot use void expression as call argument", arg.trace)
 		end
 
 		local arg_sig = table.concat(types)
@@ -2054,7 +2053,13 @@ end
 function Compiler:CompileExpr(node)
 	assert(node.trace, "Incomplete node: " .. tostring(node))
 	local op, ty = assert(CompileVisitors[node.variant], "Unimplemented Compile Step: " .. node:instr())(self, node.trace, node.data, false)
-	self:Assert(ty, "Cannot use void in expression position", node.trace)
+
+	if node.variant == NodeVariant.ExprDynCall then
+		self:Assert(ty, "Cannot use void in expression position ( Did you mean Call()[type] ? )", node.trace)
+	else
+		self:Assert(ty, "Cannot use void in expression position", node.trace)
+	end
+
 	return op, ty
 end
 
