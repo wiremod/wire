@@ -681,6 +681,7 @@ e2function entity entity:aimEntity()
 	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", nil) end
 
 	local ent = this:GetEyeTraceNoCursor().Entity
+	if ent:IsWorld() then return game.GetWorld() end
 	if not ent:IsValid() then return nil end
 	return ent
 end
