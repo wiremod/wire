@@ -419,7 +419,7 @@ e2function vector min(vector vec1, vector vec2)
 end
 
 e2function vector max(vector vec1, vector vec2)
-return vec1:LengthSqr() > vec2:LengthSqr() and vec1 or vec2
+	return vec1:LengthSqr() > vec2:LengthSqr() and vec1 or vec2
 end
 
 --- component-wise min/max
