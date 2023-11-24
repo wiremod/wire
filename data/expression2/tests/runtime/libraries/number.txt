@@ -1,0 +1,5 @@
+## SHOULD_PASS:EXECUTE
+
+assert( _INF:toString(2) == "inf" )
+assert( (2^2000):toString(2) == "inf" )
+assert( 0b11110101:toString(2) == "11110101" )
