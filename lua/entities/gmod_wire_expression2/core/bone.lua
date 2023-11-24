@@ -48,7 +48,7 @@ E2Lib.getBone = getBone
 
 local function GetBones(entity)
 	local bone_count = entity:GetPhysicsObjectCount()
-	if table.Count(entity2bone[entity]) ~= bone_count then
+	if table.Count(entity2bone[entity] or {}) ~= bone_count then
 		for i = 0, bone_count - 1 do
 			getBone(entity, i)
 		end

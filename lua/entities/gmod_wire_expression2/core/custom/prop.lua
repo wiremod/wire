@@ -741,6 +741,8 @@ e2function void entity:ragdollSetPose(table pose, rotate)
 		originAng = stype and stype == "a" and pose.s._origina or angle_zero
 	end
 
+	self.prf = self.prf + pose.size * 2
+
 	for k, v in pairs(pose.n) do
 		local pos, ang = LocalToWorld(v.n[1], v.n[2], originPos, originAng)
 		setAng(bones[k], ang)
@@ -756,6 +758,8 @@ e2function void entity:ragdollSetPose(table pose)
 	if pose.size == 0 then return end
 	local bones = GetBones(this)
 	local originPos, originAng = bones[0]:GetPos(), bones[0]:GetAngles() -- Rotate by default.
+
+	self.prf = self.prf + pose.size * 2
 
 	for k, v in pairs(pose.n) do
 		local pos, ang = LocalToWorld(v.n[1], v.n[2], originPos, originAng)
