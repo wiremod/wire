@@ -143,13 +143,13 @@ __e2setcost(2) -- approximation
 
 --- Returns true (1) if given value is a finite number; otherwise false (0).
 [nodiscard]
-e2function number isfinite(value)
+e2function number isfinite(number value)
 	return (value > -inf and value < inf) and 1 or 0
 end
 
 --- Returns 1 if given value is a positive infinity or -1 if given value is a negative infinity; otherwise 0.
 [nodiscard]
-e2function number isinf(value)
+e2function number isinf(number value)
 	if value == inf then return 1 end
 	if value == -inf then return -1 end
 	return 0
@@ -157,7 +157,7 @@ end
 
 --- Returns true (1) if given value is not a number (NaN); otherwise false (0).
 [nodiscard]
-e2function number isnan(value)
+e2function number isnan(number value)
 	return (value ~= value) and 1 or 0
 end
 
@@ -166,74 +166,74 @@ end
 __e2setcost(2)
 
 [nodiscard]
-e2function number remap(value, in_min, in_max, out_min, out_max)
+e2function number remap(number value, number in_min, number in_max, number out_min, number out_max)
 	return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 end
 
 __e2setcost(2) -- approximation
 
 [nodiscard]
-e2function number abs(value)
-	return abs(value)
+e2function number abs(number n)
+	return abs(n)
 end
 
 --- rounds towards +inf
 [nodiscard]
-e2function number ceil(rv1)
-	return ceil(rv1)
+e2function number ceil(number n)
+	return ceil(n)
 end
 
 [nodiscard]
-e2function number ceil(value, decimals)
+e2function number ceil(number value, number decimals)
 	local shf = 10 ^ floor(decimals + 0.5)
 	return ceil(value * shf) / shf
 end
 
 --- rounds towards -inf
 [nodiscard]
-e2function number floor(rv1)
-	return floor(rv1)
+e2function number floor(number n)
+	return floor(n)
 end
 
 [nodiscard]
-e2function number floor(value, decimals)
+e2function number floor(number value, number decimals)
 	local shf = 10 ^ floor(decimals + 0.5)
 	return floor(value * shf) / shf
 end
 
 --- rounds to the nearest integer
 [nodiscard]
-e2function number round(rv1)
-	return floor(rv1 + 0.5)
+e2function number round(number n)
+	return floor(n + 0.5)
 end
 
 [nodiscard]
-e2function number round(value, decimals)
+e2function number round(number value, number decimals)
 	local shf = 10 ^ floor(decimals + 0.5)
 	return floor(value * shf + 0.5) / shf
 end
 
 --- rounds towards zero
 [nodiscard]
-e2function number int(rv1)
-	return rv1 >= 0
-		and floor(rv1)
-		or ceil(rv1)
+e2function number int(number n)
+	return n >= 0
+		and floor(n)
+		or ceil(n)
 end
 
 --- returns the fractional part. (frac(-1.5) == 0.5 & frac(3.2) == 0.2)
 [nodiscard]
-e2function number frac(rv1)
-	return rv1 >= 0
-		and rv1 % 1
-		or rv1 % -1
+e2function number frac(number n)
+	return n >= 0
+		and n % 1
+		or n % -1
 end
 
 [nodiscard]
-e2function number mod(number a, number b)
-	return rv1 >= 0
-		and rv1 % rv2
-		or rv1 % -rv2
+e2function number mod(number lhs, number rhs)
+	return lhs >= 0
+		and lhs % rhs
+		or lhs % -rhs
 end
 
 -- TODO: change to a more suitable name? (cyclic modulo?)
@@ -242,8 +242,8 @@ end
 --       should be added...
 
 [nodiscard]
-e2function number wrap(number a, number b)
-	return (rv1 + rv2) % (rv2 * 2) - rv2
+e2function number wrap(number lhs, number rhs)
+	return (lhs + rhs) % (rhs * 2) - rhs
 end
 
 [nodiscard]
@@ -252,7 +252,7 @@ e2function number clamp(number n, number low, number high)
 end
 
 [nodiscard]
-e2function number inrange(value, min, max)
+e2function number inrange(number value, number min, number max)
 	return (min <= value and value <= max) and 1 or 0
 end
 
