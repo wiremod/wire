@@ -440,6 +440,7 @@ local function GPU_DrawHUD()
       local screenWidth = ScrW()
       local screenHeight = ScrH()
 
+      videoGPU:Draw()
       videoGPU:RenderVertex(screenWidth,screenHeight)
     end
   end
