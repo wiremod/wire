@@ -1358,8 +1358,19 @@ end
 ZVM.OpcodeTable[259] = function(self)  --LOOPXY
   self:Dyn_EmitForceRegisterLocal("ECX")
   self:Dyn_EmitForceRegisterLocal("EDX")
-
---  self:Dyn_Emit("
+  self:Dyn_Emit("EDX = EDX - 1")
+  self:Dyn_Emit("if EDX ~= -1 then")
+    self:Dyn_Emit("VM:Jump($2)")
+    self:Dyn_EmitState()
+    self:Dyn_EmitBreak()
+  self:Dyn_Emit("else")
+    self:Dyn_Emit("ECX = ECX - 1")
+    self:Dyn_Emit("if ECX ~= -1 then")
+      self:Dyn_Emit("VM:Jump($1)")
+      self:Dyn_EmitState()
+      self:Dyn_EmitBreak()
+    self:Dyn_Emit("end")
+  self:Dyn_Emit("end")
 end
 --------------------------------------------------------------------------------
 ZVM.OpcodeTable[260] = function(self)  --MADD
