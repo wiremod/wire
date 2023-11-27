@@ -1,0 +1,91 @@
+/*
+This example assumes you are already familiar with ZASM
+as this will be going over semi-advanced features.
+
+Segment registers allow you to add an offset to memory access
+By default, they are all set to 0 on first startup of CPU
+and reset to 0 when the CPU is reset.
+
+The available segment registers are
+CS - Code Segment, used to read instructions from RAM.
+     It can only be changed with far jump instructions, trying to
+     set it using other instructions results in an error of #13[1]
+
+     Setting this allows compiled programs using branches to run
+     without having to be compiled knowing where they will sit in
+     memory
+
+SS - Stack Segment, this is where the stack starts from, stack access
+     via PUSH, POP, RSTACK, SSTACK is relative to this segment
+
+DS - Data Segment, default for all memory access instructions
+     unless another segment is specified.
+
+User Segments, none of these are used internally, so they can be used
+without fear of altering behavior outside of user programs which use
+these segments
+ES - Extra Segment
+GS - "G Segment"
+FS - "F Segment"
+KS - Key Segment
+LS - Library Segment
+*/
+
+// Segment registers can be read and written to like any other register
+start:
+MOV DS,data_pos
+MOV R0,3
+MOV R1,[R0] // 3+data_pos, aka the fourth value, 720. Doesn't change R0
+            // or DS in order to access and store the value in R1
+MOV R2,[0]  // 0+data_pos, aka the first value, 640.
+JMP end_data_pos
+data_pos:
+DB 640,480
+DB 1280,720
+DB 0
+end_data_pos:
+
+MOV R3,[CS:0]  // Segment for access can be specified with SEG:Value
+MOV R4,[EAX:0] // and any register can be used as a segment
+MOV R5,R0:0    // This does nothing
+
+/*
+LEA is one of the few instructions that use a user defined segment
+outside of memory access, and it writes the value of the address used
+by a memory access to the left hand side, it is effectively the same as
+
+MOV EAX,R0 //(EAX is just a standin for an unused register)
+ADD EAX,DS //(or the segment explicitly defined instead of DS)
+MOV R7,EAX
+
+^
+this code uses 6 bytes, where LEA uses:
+2 bytes(no segment supplied, register to register transfer I.E LEA R7,R0)
+3 bytes(segment supplied by user, register to register transfer I.E LEA R7,SS:R0)
+
+*/ 
+
+LEA R6,[R0]    // This will put DS+R0 into R6 (data_pos+3)
+LEA R7,[SS:R0] // This will put SS+R0 into R7(SS+3)
+
+/*
+Wire your CPU to a memory device
+and upload your own program to the device
+by clicking on it as if it were a CPU
+ 
+If this example is uploaded to your CPU
+it will begin running the code on the
+memory device as if it were running on
+the original CPU, to debug the program
+press compile with your code open in the
+editor, afterward "Step Forward" will begin
+showing the proper lines.
+*/
+
+CPUGET DS,43 // Get RAM size of CPU, aka the first byte of external memory.
+JMPF 0,DS   // JMP to 0 + DS, setting CS to DS
+
+/*
+Your program will now run from here until
+it errors or you reset it.
+*/

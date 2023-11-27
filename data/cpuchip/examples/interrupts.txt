@@ -1,0 +1,109 @@
+/*
+This example assumes you are already familiar with ZASM
+as this will be going over advanced features.
+
+For setup of this example:
+
+1. Wire a button outputting value 32 to the Interrupt input on the CPU
+2. Connect CPU membus input to a console screen
+*/
+
+DATA
+
+/*
+Each external interrupt is 4 bytes
+formatted like so:
+Instruction Pointer, Code Segment, PTB, Flags
+Available flags are
+Bit 3(8)  : Interrupt will set CMPR to 1, unavailable for external interrupts(they restore CMPR on EXTRET)
+Bit 4(16) : Interrupt will not set CS
+Bit 5(32) : Interrupt is enabled
+Bit 6(64) : Interrupt is external
+Bit 7(128): Interrupt will replace page table with PTB, which isn't restored on IRET/EXTRET
+Bit 8(256): Interrupt will replace number of page table entries with PTB, which isn't restored on IRET/EXTRET
+Bit 9(512): Interrupt will also push R0-R31 to stack, use EXTRETA instead of EXTRET to pop them
+
+Flags can be combined, do this by adding the numbers together
+For example:
+8+32 = Interrupt is active, and on interrupt it will set CMPR to 1
+*/
+my_interrupt_table:
+ALLOC 32*4 // The interrupt table is 0 indexed
+DB my_external_interrupt,0,0,96 // so this is index 32
+DB my_internal_interrupt,0,0,32 // and this is index 33
+DB my_timer_interrupt,0,0,96 // Timer interrupts need to be external
+ALLOC 24*4 // Fill rest of space to 58 usable interrupts
+
+external_int_str:
+DB "Hello from External Interrupt!",0
+
+internal_int_str:
+DB "Hello from Internal Interrupt!",0
+
+timer_int_str:
+DB "Hello from the Timer Interrupt",0
+
+my_external_interrupt:
+    CLI // Turn off the ability for another interrupt to happen
+    CPUGET EDI,43 // get external memory and put it in EDI
+    ADD EDI,60    // shift mem offset to start on line 2 of console screen
+    MOV ESI,external_int_str
+    external_int_strcpy: // Copy null terminated string
+        MOV [EDI],[ESI]
+        MCOPY 1
+        MOV [EDI],999 // See helloworld.txt for more information about console colors
+        INC EDI
+        CMP [ESI],0
+    JNE external_int_strcpy
+    CLERR // Clear error code on CPU
+    STI // Re-enable interrupts before returning from interrupt
+EXTRET // You need to use the EXTRET instruction for external interrupts, since IRET only pops IP and CS
+// EXTRET pops all 20 bytes from stack that are generated upon an external interrupt
+
+my_internal_interrupt:
+    // If CLI at start is not present, this interrupt can be interrupted
+    // by another interrupt happening during execution.
+    CPUGET EDI,43 // get external memory and put it in EDI
+    MOV ESI,internal_int_str
+    internal_int_strcpy: // Copy null terminated string
+        MOV [EDI],[ESI]
+        MCOPY 1
+        MOV [EDI],999 // See helloworld.txt for more information about console colors
+        INC EDI
+        CMP [ESI],0
+    JNE internal_int_strcpy
+    CLERR // Clear error code on CPU
+IRET // Registers are not preserved in an internal interrupt, IRET only pops CS and IP to return to
+
+my_timer_interrupt:
+    CLI
+    CPUGET EDI,43 // get external memory and put it in EDI
+    ADD EDI,120   // shift mem offset to start on line 3 of console screen
+    MOV ESI,timer_int_str
+    timer_int_strcpy: // Copy null terminated string
+        MOV [EDI],[ESI]
+        MCOPY 1
+        MOV [EDI],999 // See helloworld.txt for more information about console colors
+        INC EDI
+        CMP [ESI],0
+    JNE timer_int_strcpy
+    CLERR // Clear error code on CPU
+    STI // re-enable interrupts
+EXTRET // Registers are not preserved in an internal interrupt, IRET only pops CS and IP to return to
+
+
+CODE
+STEF // Set the EXTENDED FLAG on, this allows you to call interrupts without halting CPU
+LIDTR my_interrupt_table // Load the interrupt table we have in memory
+CPUSET 52,59 // Set number of interrupts in table (defaults to 256)
+INT 33 // Call interrupt 33 to print to console screen.
+// Note that you can also call external interrupts internally using EXTINT (number)
+CPUSET 67,34 // Set timer interrupt(external interrupt #) to our timer interrupt
+CPUSET 65,4  // Set delay on timer to 4 seconds.
+CPUSET 64,1  // Set timer mode to seconds (it will read the 4 as 4 seconds, set to 2 to read as every 4 instructions)
+// Timer will now be running from here on.
+
+wait_forever:
+INC R0
+JMP wait_forever
+// Use CLEF to disable the extended flag if you want to halt on error instead of handle
