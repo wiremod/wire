@@ -1,5 +1,6 @@
 -- these upvalues (locals in an enclosing scope) are faster to access than globals.
 local math   = math
+local abs    = math.abs
 local random = math.random
 local pi     = math.pi
 local inf    = math.huge
@@ -12,7 +13,6 @@ local sqrt   = math.sqrt
 
 local floor  = math.floor
 local ceil   = math.ceil
-local Round  = math.Round
 
 local sin    = math.sin
 local cos    = math.cos
@@ -41,6 +41,7 @@ registerType("normal", "n", 0,
 )
 
 E2Lib.registerConstant("PI", pi)
+E2Lib.registerConstant("INF", inf)
 E2Lib.registerConstant("E", exp(1))
 E2Lib.registerConstant("PHI", (1+sqrt(5))/2)
 
@@ -50,126 +51,113 @@ __e2setcost(1.5)
 
 --[[************************************************************************]]--
 
-registerOperator("geq", "nn", "n", function(state, lhs, rhs)
+e2function number operator>=(number lhs, number rhs)
 	return lhs >= rhs and 1 or 0
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("leq", "nn", "n", function(state, lhs, rhs)
+e2function number operator<=(number lhs, number rhs)
 	return lhs <= rhs and 1 or 0
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("gth", "nn", "n", function(state, lhs, rhs)
+e2function number operator>(number lhs, number rhs)
 	return lhs > rhs and 1 or 0
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("lth", "nn", "n", function(state, lhs, rhs)
+e2function number operator<(number lhs, number rhs)
 	return lhs < rhs and 1 or 0
-end, 1, nil, { legacy = false })
+end
 
 --[[************************************************************************]]--
 
 __e2setcost(0.5) -- approximation
 
-registerOperator("neg", "n", "n", function(state, num)
-	return -num
-end, 1, nil, { legacy = false })
+e2function number operator_neg(number n)
+	return -n
+end
 
 __e2setcost(1)
 
-registerOperator("add", "nn", "n", function(state, lhs, rhs)
+e2function number operator+(number lhs, number rhs)
 	return lhs + rhs
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("sub", "nn", "n", function(state, lhs, rhs)
+e2function number operator-(number lhs, number rhs)
 	return lhs - rhs
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("mul", "nn", "n", function(state, lhs, rhs)
+e2function number operator*(number lhs, number rhs)
 	return lhs * rhs
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("div", "nn", "n", function(state, lhs, rhs)
+e2function number operator/(number lhs, number rhs)
 	return lhs / rhs
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("exp", "nn", "n", function(state, lhs, rhs)
+e2function number operator^(number lhs, number rhs)
 	return lhs ^ rhs
-end, 1, nil, { legacy = false })
+end
 
-registerOperator("mod", "nn", "n", function(state, lhs, rhs)
+e2function number operator%(number lhs, number rhs)
 	return lhs % rhs
-end, 1, nil, { legacy = false })
+end
 
 --[[************************************************************************]]--
--- TODO: select, average
--- TODO: is the shifting correct for rounding arbitrary decimals?
 
 __e2setcost(1)
 
-registerFunction("min", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1 < rv2 then return rv1 else return rv2 end
-end)
+local min, max = math.min, math.max
 
-registerFunction("min", "nnn", "n", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	local val
-	if rv1 < rv2 then val = rv1 else val = rv2 end
-	if rv3 < val then return rv3 else return val end
-end)
+[nodiscard]
+e2function number min(number a, number b)
+	return min(a, b)
+end
 
-registerFunction("min", "nnnn", "n", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
-	local val
-	if rv1 < rv2 then val = rv1 else val = rv2 end
-	if rv3 < val then val = rv3 end
-	if rv4 < val then return rv4 else return val end
-end)
+[nodiscard]
+e2function number min(number a, number b, number c)
+	return min(a, b, c)
+end
 
-registerFunction("max", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1 > rv2 then return rv1 else return rv2 end
-end)
+[nodiscard]
+e2function number min(number a, number b, number c, number d)
+	return min(a, b, c, d)
+end
 
-registerFunction("max", "nnn", "n", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	local val
-	if rv1 > rv2 then val = rv1 else val = rv2 end
-	if rv3 > val then return rv3 else return val end
-end)
+[nodiscard]
+e2function number max(number a, number b)
+	return max(a, b)
+end
 
-registerFunction("max", "nnnn", "n", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
-	local val
-	if rv1 > rv2 then val = rv1 else val = rv2 end
-	if rv3 > val then val = rv3 end
-	if rv4 > val then return rv4 else return val end
-end)
+[nodiscard]
+e2function number max(number a, number b, number c)
+	return max(a, b, c)
+end
+
+[nodiscard]
+e2function number max(number a, number b, number c, number d)
+	return max(a, b, c, d)
+end
 
 --[[************************************************************************]]--
 
 __e2setcost(2) -- approximation
 
 --- Returns true (1) if given value is a finite number; otherwise false (0).
-e2function number isfinite(value)
+[nodiscard]
+e2function number isfinite(number value)
 	return (value > -inf and value < inf) and 1 or 0
 end
 
 --- Returns 1 if given value is a positive infinity or -1 if given value is a negative infinity; otherwise 0.
-e2function number isinf(value)
+[nodiscard]
+e2function number isinf(number value)
 	if value == inf then return 1 end
 	if value == -inf then return -1 end
 	return 0
 end
 
 --- Returns true (1) if given value is not a number (NaN); otherwise false (0).
-e2function number isnan(value)
+[nodiscard]
+e2function number isnan(number value)
 	return (value ~= value) and 1 or 0
 end
 
@@ -177,447 +165,430 @@ end
 
 __e2setcost(2)
 
-e2function number remap(value, in_min, in_max, out_min, out_max)
+[nodiscard]
+e2function number remap(number value, number in_min, number in_max, number out_min, number out_max)
 	return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 end
 
 __e2setcost(2) -- approximation
 
-e2function number abs(value)
-	if value >= 0 then return value else return -value end
+[nodiscard]
+e2function number abs(number n)
+	return abs(n)
 end
 
 --- rounds towards +inf
-e2function number ceil(rv1)
-	return ceil(rv1)
+[nodiscard]
+e2function number ceil(number n)
+	return ceil(n)
 end
 
-e2function number ceil(value, decimals)
+[nodiscard]
+e2function number ceil(number value, number decimals)
 	local shf = 10 ^ floor(decimals + 0.5)
 	return ceil(value * shf) / shf
 end
 
 --- rounds towards -inf
-e2function number floor(rv1)
-	return floor(rv1)
+[nodiscard]
+e2function number floor(number n)
+	return floor(n)
 end
 
-e2function number floor(value, decimals)
+[nodiscard]
+e2function number floor(number value, number decimals)
 	local shf = 10 ^ floor(decimals + 0.5)
 	return floor(value * shf) / shf
 end
 
 --- rounds to the nearest integer
-e2function number round(rv1)
-	return floor(rv1 + 0.5)
+[nodiscard]
+e2function number round(number n)
+	return floor(n + 0.5)
 end
 
-e2function number round(value, decimals)
+[nodiscard]
+e2function number round(number value, number decimals)
 	local shf = 10 ^ floor(decimals + 0.5)
 	return floor(value * shf + 0.5) / shf
 end
 
 --- rounds towards zero
-e2function number int(rv1)
-	if rv1 >= 0 then return floor(rv1) else return ceil(rv1) end
+[nodiscard]
+e2function number int(number n)
+	return n >= 0
+		and floor(n)
+		or ceil(n)
 end
 
 --- returns the fractional part. (frac(-1.5) == 0.5 & frac(3.2) == 0.2)
-e2function number frac(rv1)
-	if rv1 >= 0 then return rv1 % 1 else return rv1 % -1 end
+[nodiscard]
+e2function number frac(number n)
+	return n >= 0
+		and n % 1
+		or n % -1
 end
 
--- TODO: what happens with negative modulo?
-registerFunction("mod", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1 >= 0 then return rv1 % rv2 else return rv1 % -rv2 end
-end)
+[nodiscard]
+e2function number mod(number lhs, number rhs)
+	return lhs >= 0
+		and lhs % rhs
+		or lhs % -rhs
+end
 
 -- TODO: change to a more suitable name? (cyclic modulo?)
 --       add helpers for wrap90 wrap180, wrap90r wrap180r? or pointless?
 --       wrap90(Pitch), wrap(Pitch, 90)
 --       should be added...
 
-registerFunction("wrap", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return (rv1 + rv2) % (rv2 * 2) - rv2
-end)
-
-registerFunction("clamp", "nnn", "n", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if rv1 < rv2 then return rv2 elseif rv1 > rv3 then return rv3 else return rv1 end
-end)
-
---- Returns 1 if <value> is in the interval [<min>; <max>], 0 otherwise.
-e2function number inrange(value, min, max)
-	if value < min then return 0 end
-	if value > max then return 0 end
-	return 1
+[nodiscard]
+e2function number wrap(number lhs, number rhs)
+	return (lhs + rhs) % (rhs * 2) - rhs
 end
 
+[nodiscard]
+e2function number clamp(number n, number low, number high)
+	return min( max(n, low), high )
+end
+
+[nodiscard]
+e2function number inrange(number value, number min, number max)
+	return (min <= value and value <= max) and 1 or 0
+end
+
+[nodiscard]
 e2function number lerp(number from, number to, number fraction)
 	return Lerp(fraction, from, to)
 end
 
-registerFunction("sign", "n", "n", function(self, args)
-	if args[1] > 0 then return 1
-	elseif args[1] < 0 then return -1
-	else return 0 end
-end, 2, nil, { legacy = false })
-
---[[************************************************************************]]--
-
-__e2setcost(2) -- approximation
-
-registerFunction("random", "", "n", function(self, args)
-	return random()
-end)
-
-registerFunction("random", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return random() * rv1
-end)
-
-registerFunction("random", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return rv1 + random() * (rv2 - rv1)
-end)
-
-registerFunction("randint", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return random(rv1)
-end)
-
-registerFunction("randint", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local temp = rv1
-	if (rv1 > rv2) then rv1 = rv2 rv2 = temp end
-	return random(rv1, rv2)
-end)
-
---[[************************************************************************]]--
-
-__e2setcost(2) -- approximation
-
-registerFunction("sqrt", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1 ^ (1 / 2)
-end)
-
-registerFunction("cbrt", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1 ^ (1 / 3)
-end)
-
-registerFunction("root", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return rv1 ^ (1 / rv2)
-end)
-
-local const_e = exp(1)
-registerFunction("e", "", "n", function(self, args)
-	return const_e
-end)
-
-registerFunction("exp", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return exp(rv1)
-end)
-
-e2function vector2 frexp(x)
-	local mantissa, exponent = frexp(x)
-	return { mantissa, exponent }
+[nodiscard]
+e2function number sign(number n)
+	return n > 0 and 1 or (n < 0 and -1 or 0)
 end
 
-registerFunction("ln", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return log(rv1)
-end)
+--[[************************************************************************]]--
 
-local const_log2 = log(2)
-registerFunction("log2", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return log(rv1) / const_log2
-end)
+__e2setcost(2) -- approximation
 
-registerFunction("log10", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return log10(rv1)
-end)
+[nodiscard]
+e2function number random()
+	return random()
+end
 
-registerFunction("log", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return log(rv1) / log(rv2)
-end)
+[nodiscard]
+e2function number random(number n)
+	return random() * n
+end
+
+[nodiscard]
+e2function number random(number low, number high)
+	return low + random() * (high - low)
+end
+
+[nodiscard]
+e2function number randint(number n)
+	return random(n)
+end
+
+-- WTF. Who implemented it like this? Why. Shame on you.
+[nodiscard]
+e2function number randint(number a, number b)
+	if a > b then
+		return random(b, a)
+	else
+		return random(a, b)
+	end
+end
 
 --[[************************************************************************]]--
 
 __e2setcost(2) -- approximation
 
-local deg2rad = pi / 180
-local rad2deg = 180 / pi
+[nodiscard]
+e2function number sqrt(number n)
+	return sqrt(n)
+end
 
-registerFunction("inf", "", "n", function(self, args)
-	return inf
-end)
+[nodiscard]
+e2function number cbrt(number n)
+	return n ^ (1 / 3)
+end
 
-registerFunction("pi", "", "n", function(self, args)
-	return pi
-end)
+[nodiscard]
+e2function number root(number n, number pow)
+	return n ^ (1 / pow)
+end
 
-registerFunction("toRad", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1 * deg2rad
-end)
+local const_e = exp(1)
+[nodiscard, deprecated = "Use the constant E instead"]
+e2function number e()
+	return const_e
+end
 
-registerFunction("toDeg", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1 * rad2deg
-end)
+[nodiscard]
+e2function number exp(number n)
+	return exp(n)
+end
 
-registerFunction("acos", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return acos(rv1) * rad2deg
-end)
+[nodiscard]
+e2function vector2 frexp(number n)
+	return { frexp(n) }
+end
 
-registerFunction("asin", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return asin(rv1) * rad2deg
-end)
+[nodiscard]
+e2function number ln(number n)
+	return log(n)
+end
 
-registerFunction("atan", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return atan(rv1) * rad2deg
-end)
+local const_log2 = log(2)
 
-registerFunction("atan", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return atan2(rv1, rv2) * rad2deg
-end)
+[nodiscard]
+e2function number log2(number n)
+	return log2(n) / const_log2
+end
 
-registerFunction("cos", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return cos(rv1 * deg2rad)
-end)
+[nodiscard]
+e2function number log10(number n)
+	return log10(n)
+end
 
-registerFunction("sec", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return 1/cos(rv1 * deg2rad)
-end)
-
-registerFunction("sin", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return sin(rv1 * deg2rad)
-end)
-
-registerFunction("csc", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return 1/sin(rv1 * deg2rad)
-end)
-
-registerFunction("tan", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return tan(rv1 * deg2rad)
-end)
-
-registerFunction("cot", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return 1/tan(rv1 * deg2rad)
-end)
-
-registerFunction("cosh", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return cosh(rv1)
-end)
-
-registerFunction("sech", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return 1/cosh(rv1)
-end)
-
-registerFunction("sinh", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return sinh(rv1)
-end)
-
-registerFunction("csch", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return 1/sinh(rv1)
-end)
-
-registerFunction("tanh", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return tanh(rv1)
-end)
-
-registerFunction("coth", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return 1/tanh(rv1)
-end)
-
-registerFunction("acosr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return acos(rv1)
-end)
-
-registerFunction("asinr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return asin(rv1)
-end)
-
-registerFunction("atanr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return atan(rv1)
-end)
-
-registerFunction("atanr", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return atan2(rv1, rv2)
-end)
-
-registerFunction("cosr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return cos(rv1)
-end)
-
-registerFunction("secr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return 1/cos(rv1)
-end)
-
-registerFunction("sinr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return sin(rv1)
-end)
-
-registerFunction("cscr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return 1/sin(rv1)
-end)
-
-registerFunction("tanr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return tan(rv1)
-end)
-
-registerFunction("cotr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return 1/tan(rv1)
-end)
-
-registerFunction("coshr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return cosh(rv1)
-end)
-
-registerFunction("sechr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return 1/cosh(rv1)
-end)
-
-registerFunction("sinhr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return sinh(rv1)
-end)
-
-registerFunction("cschr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return 1/sinh(rv1)
-end)
-
-registerFunction("tanhr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return tanh(rv1)
-end)
-
-registerFunction("cothr", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return 1/tanh(rv1)
-end)
+[nodiscard]
+e2function number log(number a, number b)
+	return log(a) / log(b)
+end
 
 --[[************************************************************************]]--
 
-__e2setcost(15) -- approximation
+__e2setcost(1) -- approximation
 
+local deg = math.deg
+local rad = math.rad
+
+[nodiscard, deprecated = "Use the constant INF instead"]
+e2function number inf()
+	return inf
+end
+
+[nodiscard, deprecated = "Use the constant PI instead"]
+e2function number pi()
+	return pi
+end
+
+[nodiscard]
+e2function number toRad(number n)
+	return rad(n)
+end
+
+[nodiscard]
+e2function number toDeg(number n)
+	return deg(n)
+end
+
+__e2setcost(2)
+
+[nodiscard]
+e2function number acos(number n)
+	return deg(acos(n))
+end
+
+[nodiscard]
+e2function number asin(number n)
+	return deg(asin(n))
+end
+
+[nodiscard]
+e2function number atan(number n)
+	return deg(atan(n))
+end
+
+[nodiscard, deprecated = "Use atan2 instead which returns radians"]
+e2function number atan(number x, number y)
+	return deg(atan2(x, y))
+end
+
+[nodiscard]
+e2function number atan2(number x, number y)
+	return atan2(x, y)
+end
+
+[nodiscard]
+e2function number cos(number n)
+	return cos(rad(n))
+end
+
+[nodiscard]
+e2function number sec(number n)
+	return 1 / cos(rad(n))
+end
+
+[nodiscard]
+e2function number sin(number n)
+	return sin(rad(n))
+end
+
+[nodiscard]
+e2function number csc(number n)
+	return 1 / sin(rad(n))
+end
+
+[nodiscard]
+e2function number tan(number n)
+	return tan(rad(n))
+end
+
+[nodiscard]
+e2function number cot(number n)
+	return 1 / tan(rad(n))
+end
+
+__e2setcost(1.5) -- These don't convert degrees to radians, so cheaper.
+
+[nodiscard]
+e2function number cosh(number n)
+	return cosh(n)
+end
+
+[nodiscard]
+e2function number sech(number n)
+	return 1/cosh(n)
+end
+
+[nodiscard]
+e2function number sinh(number n)
+	return sinh(n)
+end
+
+[nodiscard]
+e2function number csch(number n)
+	return 1/sinh(n)
+end
+
+[nodiscard]
+e2function number tanh(number n)
+	return tanh(n)
+end
+
+[nodiscard]
+e2function number coth(number n)
+	return 1/tanh(n)
+end
+
+[nodiscard]
+e2function number acosr(number n)
+	return acos(n)
+end
+
+[nodiscard]
+e2function number asinr(number n)
+	return asin(n)
+end
+
+[nodiscard]
+e2function number atanr(number n)
+	return atan(n)
+end
+
+[nodiscard]
+e2function number cosr(number n)
+	return cos(n)
+end
+
+[nodiscard]
+e2function number secr(number n)
+	return 1/cos(n)
+end
+
+[nodiscard]
+e2function number sinr(number n)
+	return sin(n)
+end
+
+[nodiscard]
+e2function number cscr(number n)
+	return 1/sin(n)
+end
+
+[nodiscard]
+e2function number tanr(number n)
+	return tan(n)
+end
+
+[nodiscard]
+e2function number cotr(number n)
+	return 1/tan(n)
+end
+
+[nodiscard]
+e2function number coshr(number n)
+	return cosh(n)
+end
+
+[nodiscard]
+e2function number sechr(number n)
+	return 1/cosh(n)
+end
+
+[nodiscard]
+e2function number sinhr(number n)
+	return sinh(n)
+end
+
+[nodiscard]
+e2function number cschr(number n)
+	return 1/sinh(n)
+end
+
+[nodiscard]
+e2function number tanhr(number n)
+	return tanh(n)
+end
+
+[nodiscard]
+e2function number cothr(number n)
+	return 1/tanh(n)
+end
+
+--[[************************************************************************]]--
+
+__e2setcost(5)
+
+[nodiscard]
 e2function string toString(number number)
 	return tostring(number)
 end
 
+[nodiscard]
 e2function string number:toString()
 	return tostring(this)
 end
 
-__e2setcost(25) -- approximation
+__e2setcost(10)
+
+local CHARS = string.Split("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", "")
 
 local function tobase(number, base, self)
-	local ret = ""
 	if base < 2 or base > 36 or number == 0 then return "0" end
 	if base == 10 then return tostring(number) end
-	local chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	local loops = 0
-	while number > 0 do
-		loops = loops + 1
-		number, d = math.floor(number/base),(number%base)+1
-		ret = string.sub(chars,d,d)..ret
-		if (loops > 32000) then break end
+
+	local out, loops, d = {}, ceil(log(number) / log(base)), 0
+	if loops == inf then return "inf" end
+
+	for i = loops, 1, -1 do
+		number, d = math.floor(number / base), number % base + 1
+		out[i] = CHARS[d]
 	end
-	self.prf = self.prf + loops
-	return ret
+
+	self.prf = self.prf + loops * 4
+
+	return table.concat(out, "", 1, loops)
 end
 
+[nodiscard]
 e2function string toString(number number, number base)
-    return tobase(number, base, self)
+	return tobase(number, base, self)
 end
 
+[nodiscard]
 e2function string number:toString(number base)
-    return tobase(this, base, self)
+	return tobase(this, base, self)
 end
