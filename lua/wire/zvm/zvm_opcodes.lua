@@ -255,7 +255,7 @@ ZVM.OpcodeTable[30] = function(self)  --POP
 end
 ZVM.OpcodeTable[31] = function(self)  --CALL
   self:Dyn_EmitForceRegisterGlobal("ESP")
-  self:Dyn_Emit("if VM:Push("..self.PrecompileIP..") then")
+  self:Dyn_Emit("if VM:Push(%d) then",self.PrecompileIP)
     self:Dyn_Emit("VM:Jump($1)")
     self:Dyn_EmitState()
     self:Dyn_EmitBreak()
@@ -337,6 +337,7 @@ ZVM.OpcodeTable[45] = function(self)  --CLP
   self:Dyn_Emit("VM.PF = 0")
 end
 ZVM.OpcodeTable[46] = function(self)  --STD
+    -- TODO: Remove microcode debugging, it's not possible to access normally.
   if self.MicrocodeDebug then
     self:Dyn_Emit("VM.Debug = true")
   end
@@ -457,8 +458,8 @@ end
 --------------------------------------------------------------------------------
 ZVM.OpcodeTable[70] = function(self)  --EXTINT
   self:Dyn_EmitState()
-  self:Emit("VM.IP = "..(self.PrecompileIP or 0))
-  self:Emit("VM.XEIP = "..(self.PrecompileTrueXEIP or 0))
+  self:Emit("VM.IP = %d",(self.PrecompileIP or 0))
+  self:Emit("VM.XEIP = %d",(self.PrecompileTrueXEIP or 0))
   self:Dyn_Emit("VM:ExternalInterrupt(math.floor($1))")
   self:Dyn_EmitBreak()
   self.PrecompileBreak = true
@@ -466,7 +467,7 @@ end
 ZVM.OpcodeTable[71] = function(self)  --CNE
   self:Dyn_EmitForceRegisterGlobal("ESP")
   self:Dyn_Emit("if VM.CMPR ~= 0 then")
-    self:Dyn_Emit("if VM:Push("..self.PrecompileIP..") then")
+    self:Dyn_Emit("if VM:Push(%d) then",self.PrecompileIP)
       self:Dyn_Emit("VM:Jump($1)")
       self:Dyn_EmitState()
       self:Dyn_EmitBreak()
@@ -476,7 +477,7 @@ ZVM.OpcodeTable[71] = function(self)  --CNE
 end
 ZVM.OpcodeTable[72] = function(self)  --CJMP
   self:Dyn_EmitForceRegisterGlobal("ESP")
-  self:Dyn_Emit("if VM:Push("..self.PrecompileIP..") then")
+  self:Dyn_Emit("if VM:Push(%d) then",self.PrecompileIP)
     self:Dyn_Emit("VM:Jump($1)")
     self:Dyn_EmitState()
     self:Dyn_EmitBreak()
@@ -486,7 +487,7 @@ end
 ZVM.OpcodeTable[73] = function(self)  --CG
   self:Dyn_EmitForceRegisterGlobal("ESP")
   self:Dyn_Emit("if VM.CMPR > 0 then")
-    self:Dyn_Emit("if VM:Push("..self.PrecompileIP..") then")
+    self:Dyn_Emit("if VM:Push(%d) then",self.PrecompileIP)
       self:Dyn_Emit("VM:Jump($1)")
       self:Dyn_EmitState()
       self:Dyn_EmitBreak()
@@ -497,7 +498,7 @@ end
 ZVM.OpcodeTable[74] = function(self)  --CGE
   self:Dyn_EmitForceRegisterGlobal("ESP")
   self:Dyn_Emit("if VM.CMPR >= 0 then")
-    self:Dyn_Emit("if VM:Push("..self.PrecompileIP..") then")
+    self:Dyn_Emit("if VM:Push(%d) then",self.PrecompileIP)
       self:Dyn_Emit("VM:Jump($1)")
       self:Dyn_EmitState()
       self:Dyn_EmitBreak()
@@ -508,7 +509,7 @@ end
 ZVM.OpcodeTable[75] = function(self)  --CL
   self:Dyn_EmitForceRegisterGlobal("ESP")
   self:Dyn_Emit("if VM.CMPR < 0 then")
-    self:Dyn_Emit("if VM:Push("..self.PrecompileIP..") then")
+    self:Dyn_Emit("if VM:Push(%d) then",self.PrecompileIP)
       self:Dyn_Emit("VM:Jump($1)")
       self:Dyn_EmitState()
       self:Dyn_EmitBreak()
@@ -519,7 +520,7 @@ end
 ZVM.OpcodeTable[76] = function(self)  --CLE
   self:Dyn_EmitForceRegisterGlobal("ESP")
   self:Dyn_Emit("if VM.CMPR <= 0 then")
-    self:Dyn_Emit("if VM:Push("..self.PrecompileIP..") then")
+    self:Dyn_Emit("if VM:Push(%d) then",self.PrecompileIP)
       self:Dyn_Emit("VM:Jump($1)")
       self:Dyn_EmitState()
       self:Dyn_EmitBreak()
@@ -530,7 +531,7 @@ end
 ZVM.OpcodeTable[77] = function(self)  --CE
   self:Dyn_EmitForceRegisterGlobal("ESP")
   self:Dyn_Emit("if VM.CMPR == 0 then")
-    self:Dyn_Emit("if VM:Push("..self.PrecompileIP..") then")
+    self:Dyn_Emit("if VM:Push(%d) then",self.PrecompileIP)
       self:Dyn_Emit("VM:Jump($1)")
       self:Dyn_EmitState()
       self:Dyn_EmitBreak()
@@ -610,7 +611,7 @@ end
 ZVM.OpcodeTable[89] = function(self)  --CALLF
   self:Dyn_EmitForceRegisterGlobal("CS")
   self:Dyn_EmitForceRegisterGlobal("ESP")
-  self:Dyn_Emit("if VM:Push(VM.CS) and VM:Push("..self.PrecompileIP..") then")
+  self:Dyn_Emit("if VM:Push(VM.CS) and VM:Push(%d) then",self.PrecompileIP)
     self:Dyn_Emit("VM:Jump($1,$2)")
     self:Dyn_EmitState()
     self:Dyn_EmitBreak()
@@ -686,7 +687,7 @@ ZVM.OpcodeTable[97] = function(self) --RDPG
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[98] = function(self)  --TIMER
-  self:Dyn_EmitOperand("(VM.TIMER+"..(self.PrecompileInstruction or 0).."*VM.TimerDT)")
+  self:Dyn_EmitOperand("(VM.TIMER+%d*VM.TimerDT)",(self.PrecompileInstruction or 0))
 end
 ZVM.OpcodeTable[99] = function(self)  --LIDTR
   self:Dyn_Emit("VM.IDTR = $1")
@@ -694,7 +695,7 @@ end
 --------------------------------------------------------------------------------
 ZVM.OpcodeTable[100] = function(self)  --STATESTORE
   self:Dyn_EmitState()
-  self:Dyn_Emit("VM:WriteCell($1 + 00,"..self.PrecompileIP..")")
+  self:Dyn_Emit("VM:WriteCell($1 + 00,%d)",self.PrecompileIP)
 
   self:Dyn_Emit("VM:WriteCell($1 + 01,VM.EAX)")
   self:Dyn_Emit("VM:WriteCell($1 + 02,VM.EBX)")
@@ -717,13 +718,13 @@ ZVM.OpcodeTable[100] = function(self)  --STATESTORE
 end
 ZVM.OpcodeTable[101] = function(self)  --JNER
   self:Dyn_Emit("if VM.CMPR ~= 0 then")
-    self:Dyn_Emit("VM:Jump("..self.PrecompileIP.." + $1)")
+    self:Dyn_Emit("VM:Jump(%d + $1)",self.PrecompileIP)
     self:Dyn_EmitState()
     self:Dyn_EmitBreak()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[102] = function(self)  --JMPR
-  self:Dyn_Emit("VM:Jump("..self.PrecompileIP.." + $1)")
+  self:Dyn_Emit("VM:Jump(%d + $1)",self.PrecompileIP)
   self:Dyn_EmitState()
   self:Dyn_EmitBreak()
 
@@ -731,35 +732,35 @@ ZVM.OpcodeTable[102] = function(self)  --JMPR
 end
 ZVM.OpcodeTable[103] = function(self)  --JGR
   self:Dyn_Emit("if VM.CMPR > 0 then")
-    self:Dyn_Emit("VM:Jump("..self.PrecompileIP.." + $1)")
+    self:Dyn_Emit("VM:Jump(%d + $1)",self.PrecompileIP)
     self:Dyn_EmitState()
     self:Dyn_EmitBreak()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[104] = function(self)  --JGER
   self:Dyn_Emit("if VM.CMPR >= 0 then")
-    self:Dyn_Emit("VM:Jump("..self.PrecompileIP.." + $1)")
+    self:Dyn_Emit("VM:Jump(%d + $1)",self.PrecompileIP)
     self:Dyn_EmitState()
     self:Dyn_EmitBreak()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[105] = function(self)  --JLR
   self:Dyn_Emit("if VM.CMPR < 0 then")
-    self:Dyn_Emit("VM:Jump("..self.PrecompileIP.." + $1)")
+    self:Dyn_Emit("VM:Jump(%d + $1)",self.PrecompileIP)
     self:Dyn_EmitState()
     self:Dyn_EmitBreak()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[106] = function(self)  --JLER
   self:Dyn_Emit("if VM.CMPR <= 0 then")
-    self:Dyn_Emit("VM:Jump("..self.PrecompileIP.." + $1)")
+    self:Dyn_Emit("VM:Jump(%d + $1)",self.PrecompileIP)
     self:Dyn_EmitState()
     self:Dyn_EmitBreak()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[107] = function(self)  --JER
   self:Dyn_Emit("if VM.CMPR == 0 then")
-    self:Dyn_Emit("VM:Jump("..self.PrecompileIP.." + $1)")
+    self:Dyn_Emit("VM:Jump(%d + $1)",self.PrecompileIP)
     self:Dyn_EmitState()
     self:Dyn_EmitBreak()
   self:Dyn_Emit("end")
@@ -927,7 +928,7 @@ ZVM.OpcodeTable[121] = function(self)  --CPUSET
     self:Dyn_Emit("$L limit = VM.InternalLimits[REG]")
     self:Dyn_Emit("VM[VM.InternalRegister[REG]] = limit and math.Clamp(OP, limit[1], limit[2]) or OP")
     self:Dyn_Emit("if (REG == 0) or (REG == 16) then")
-      self:Dyn_Emit("VM:Jump("..self.PrecompileIP..",VM.CS)")
+      self:Dyn_Emit("VM:Jump(%d,VM.CS)",self.PrecompileIP)
       self:Dyn_EmitState()
       self:Dyn_EmitBreak()
     self:Dyn_Emit("else")
@@ -1045,7 +1046,7 @@ end
 ZVM.OpcodeTable[126] = function(self)  --LEA
   local emitText = self.OperandEffectiveAddress[self.EmitOperandRM[2]] or "0"
   emitText = string.gsub(emitText,"$BYTE",self.EmitOperandByte[2] or "0")
-  emitText = string.gsub(emitText,"$SEG","VM."..(self.EmitOperandSegment[2] or "DS"))
+  emitText = string.format(string.gsub(emitText,"$SEG","VM[%q]",(self.EmitOperandSegment[2] or "DS")))
   self:Dyn_EmitOperand(emitText)
 end
 ZVM.OpcodeTable[127] = function(self)  --BLOCK
@@ -1170,6 +1171,7 @@ ZVM.OpcodeTable[137] = function(self)  --EXTRETP
   self.OpcodeTable[110](self) -- as EXTRET
 end
 ZVM.OpcodeTable[139] = function(self)  --CLD
+    -- TODO: Remove microcode debugging, it's not possible to access normally.
   if self.MicrocodeDebug then
     self:Dyn_Emit("VM.Debug = false")
   end
@@ -1187,7 +1189,7 @@ ZVM.OpcodeTable[140] = function(self) --EXTRETA
   self:Dyn_EmitInterruptCheck()
 
   for i=0,31 do
-    self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("VM.R"..i.." = V")
+    self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("VM.R%d = V")
   end
 
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("$L IP = V")
@@ -1231,128 +1233,143 @@ end
 
 --------------------------------------------------------------------------------
 ZVM.OpcodeTable[250] = function(self)  --VADD
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
   self:Dyn_Emit("if VM.VMODE == 2 then")
-    self:Dyn_Emit("$L V1 = VM:ReadVector2f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
-    self:Dyn_Emit("$L V2 = VM:ReadVector2f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V1 = VM:ReadVector2f($1 + %s)",seg1code)
+    self:Dyn_Emit("$L V2 = VM:ReadVector2f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
-    self:Dyn_Emit("VM:WriteVector2f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",")
+    self:Dyn_Emit("VM:WriteVector2f($1 + %s,",seg1code)
       self:Dyn_Emit("{x = V1.x+V2.x, y=V1.y+V2.y, z=0})")
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("elseif VM.VMODE == 3 then")
-    self:Dyn_Emit("$L V1 = VM:ReadVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
-    self:Dyn_Emit("$L V2 = VM:ReadVector3f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V1 = VM:ReadVector3f($1 + %s)",seg1code)
+    self:Dyn_Emit("$L V2 = VM:ReadVector3f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
-    self:Dyn_Emit("VM:WriteVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",")
+    self:Dyn_Emit("VM:WriteVector3f($1 + %s,",seg1code)
       self:Dyn_Emit("{x = V1.x+V2.x, y=V1.y+V2.y, z=V1.z+V2.z})")
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[251] = function(self)  --VSUB
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
   self:Dyn_Emit("if VM.VMODE == 2 then")
-    self:Dyn_Emit("$L V1 = VM:ReadVector2f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
-    self:Dyn_Emit("$L V2 = VM:ReadVector2f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V1 = VM:ReadVector2f($1 + %s)",seg1code)
+    self:Dyn_Emit("$L V2 = VM:ReadVector2f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
-    self:Dyn_Emit("VM:WriteVector2f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",")
+    self:Dyn_Emit("VM:WriteVector2f($1 + %s,",seg1code)
       self:Dyn_Emit("{x = V1.x-V2.x, y=V1.y-V2.y, z=0})")
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("elseif VM.VMODE == 3 then")
-    self:Dyn_Emit("$L V1 = VM:ReadVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
-    self:Dyn_Emit("$L V2 = VM:ReadVector3f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V1 = VM:ReadVector3f($1 + %s)",seg1code)
+    self:Dyn_Emit("$L V2 = VM:ReadVector3f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
-    self:Dyn_Emit("VM:WriteVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",")
+    self:Dyn_Emit("VM:WriteVector3f($1 + %s,",seg1code)
       self:Dyn_Emit("{x = V1.x-V2.x, y=V1.y-V2.y, z=V1.z-V2.z})")
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[252] = function(self)  --VMUL
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
   self:Dyn_Emit("if VM.VMODE == 2 then")
-    self:Dyn_Emit("$L V1 = VM:ReadVector2f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
+    self:Dyn_Emit("$L V1 = VM:ReadVector2f($1 + %s)",seg1code)
     self:Dyn_Emit("$L V2 = $2")
     self:Dyn_EmitInterruptCheck()
-    self:Dyn_Emit("VM:WriteVector2f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",")
+    self:Dyn_Emit("VM:WriteVector2f($1 + %s,",seg1code)
       self:Dyn_Emit("{x = V1.x*V2, y=V1.y*V2, z=0})")
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("elseif VM.VMODE == 3 then")
-    self:Dyn_Emit("$L V1 = VM:ReadVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
+    self:Dyn_Emit("$L V1 = VM:ReadVector3f($1 + %s)",seg1code)
     self:Dyn_Emit("$L V2 = $2")
     self:Dyn_EmitInterruptCheck()
-    self:Dyn_Emit("VM:WriteVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",")
+    self:Dyn_Emit("VM:WriteVector3f($1 + %s,",seg1code)
       self:Dyn_Emit("{x = V1.x*V2, y=V1.y*V2, z=V1.z*V2})")
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[253] = function(self)  --VDOT
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
   self:Dyn_Emit("if VM.VMODE == 2 then")
-    self:Dyn_Emit("$L V1 = VM:ReadVector2f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
-    self:Dyn_Emit("$L V2 = VM:ReadVector2f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V1 = VM:ReadVector2f($1 + %s)",seg1code)
+    self:Dyn_Emit("$L V2 = VM:ReadVector2f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
-    self:Dyn_Emit("VM:WriteCell($1 + VM."..self.EmitOperandSegment[1]..",")
+    self:Dyn_Emit("VM:WriteCell($1 + %s,",seg1code)
       self:Dyn_Emit("V1.x*V2.x+V1.y*V2.y)")
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("elseif VM.VMODE == 3 then")
-    self:Dyn_Emit("$L V1 = VM:ReadVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
-    self:Dyn_Emit("$L V2 = VM:ReadVector3f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V1 = VM:ReadVector3f($1 + %s)",seg1code)
+    self:Dyn_Emit("$L V2 = VM:ReadVector3f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
-    self:Dyn_Emit("VM:WriteCell($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",")
+    self:Dyn_Emit("VM:WriteCell($1 + %s,",seg1code)
       self:Dyn_Emit("V1.x*V2.x+V1.y*V2.y+V1.z*V2.z)")
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[254] = function(self)  --VCROSS
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
   self:Dyn_Emit("if VM.VMODE == 2 then")
-    self:Dyn_Emit("$L V1 = VM:ReadVector2f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
-    self:Dyn_Emit("$L V2 = VM:ReadVector2f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V1 = VM:ReadVector2f($1 + %s)",seg1code)
+    self:Dyn_Emit("$L V2 = VM:ReadVector2f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
-    self:Dyn_Emit("VM:WriteCell($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",")
+    self:Dyn_Emit("VM:WriteCell($1 + %s,",seg1code)
       self:Dyn_Emit("V1.x*V2.y-V1.y*V2.x)")
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("elseif VM.VMODE == 3 then")
-    self:Dyn_Emit("$L V1 = VM:ReadVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
-    self:Dyn_Emit("$L V2 = VM:ReadVector3f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V1 = VM:ReadVector3f($1 + %s)",seg1code)
+    self:Dyn_Emit("$L V2 = VM:ReadVector3f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
-    self:Dyn_Emit("VM:WriteVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",")
+    self:Dyn_Emit("VM:WriteVector3f($1 + %s,",seg1code)
       self:Dyn_Emit("{x = V1.y*V2.z-V1.z*V2.y, y=V1.z*V2.x-V1.x*V2.z, z=V1.x*V2.y-V1.y*V2.x})")
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[255] = function(self)  --VMOV
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
   self:Dyn_Emit("if VM.VMODE == 2 then")
-    self:Dyn_Emit("$L V = VM:ReadVector2f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V = VM:ReadVector2f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
-    self:Dyn_Emit("VM:WriteVector2f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",V)")
+    self:Dyn_Emit("VM:WriteVector2f($1 + %s,V)",seg1code)
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("elseif VM.VMODE == 3 then")
-    self:Dyn_Emit("$L V = VM:ReadVector3f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V = VM:ReadVector3f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
-    self:Dyn_Emit("VM:WriteVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",V)")
+    self:Dyn_Emit("VM:WriteVector3f($1 + %s,V)",seg1code)
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[256] = function(self)  --VNORM
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
   self:Dyn_Emit("if VM.VMODE == 2 then")
-    self:Dyn_Emit("$L V = VM:ReadVector2f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V = VM:ReadVector2f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
     self:Dyn_Emit("$L D = (V.x^2+V.y^2)^(1/2)+1e-8")
-    self:Dyn_Emit("VM:WriteVector2f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",")
+    self:Dyn_Emit("VM:WriteVector2f($1 + %s,",seg1code)
       self:Dyn_Emit("{x = V.x/D, y = V.y/D, z = 0})")
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("elseif VM.VMODE == 3 then")
-    self:Dyn_Emit("$L V = VM:ReadVector3f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V = VM:ReadVector3f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
     self:Dyn_Emit("$L D = (V.x^2+V.y^2+V.z^2)^(1/2)+1e-8")
-    self:Dyn_Emit("VM:WriteVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",")
+    self:Dyn_Emit("VM:WriteVector3f($1 + %s,",seg1code)
       self:Dyn_Emit("{x = V.x/D, y = V.y/D, z = V.z/D})")
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[257] = function(self)  --VCOLORNORM
-  self:Dyn_Emit("$L V = VM:ReadVector4f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
+  self:Dyn_Emit("$L V = VM:ReadVector4f($2 + %s)",seg2code)
   self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("V.x = math.min(255,math.max(0,V.x))")
   self:Dyn_Emit("V.y = math.min(255,math.max(0,V.y))")
   self:Dyn_Emit("V.z = math.min(255,math.max(0,V.z))")
   self:Dyn_Emit("V.w = math.min(255,math.max(0,V.w))")
-  self:Dyn_Emit("VM:WriteVector4f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",V)")
+  self:Dyn_Emit("VM:WriteVector4f($1 + %s,V)",seg1code)
   self:Dyn_EmitInterruptCheck()
 end
 ZVM.OpcodeTable[259] = function(self)  --LOOPXY
@@ -1374,30 +1391,36 @@ ZVM.OpcodeTable[259] = function(self)  --LOOPXY
 end
 --------------------------------------------------------------------------------
 ZVM.OpcodeTable[260] = function(self)  --MADD
-  self:Dyn_Emit("$L M1 = VM:ReadMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
-  self:Dyn_Emit("$L M2 = VM:ReadMatrix($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
+  self:Dyn_Emit("$L M1 = VM:ReadMatrix($1 + %s)",seg1code)
+  self:Dyn_Emit("$L M2 = VM:ReadMatrix($2 + %s)",seg2code)
   self:Dyn_EmitInterruptCheck()
 
   self:Dyn_Emit("$L RM = {}")
   self:Dyn_Emit("for i=0,15 do RM[i] = M1[i]+M2[i] end")
 
-  self:Dyn_Emit("VM:WriteMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",RM)")
+  self:Dyn_Emit("VM:WriteMatrix($1 + %s,RM)",seg1code)
   self:Dyn_EmitInterruptCheck()
 end
 ZVM.OpcodeTable[261] = function(self)   --MSUB
-  self:Dyn_Emit("$L M1 = VM:ReadMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
-  self:Dyn_Emit("$L M2 = VM:ReadMatrix($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
+  self:Dyn_Emit("$L M1 = VM:ReadMatrix($1 + %s)",seg1code)
+  self:Dyn_Emit("$L M2 = VM:ReadMatrix($2 + %s)",seg2code)
   self:Dyn_EmitInterruptCheck()
 
   self:Dyn_Emit("$L RM = {}")
   self:Dyn_Emit("for i=0,15 do RM[i] = M1[i]-M2[i] end")
 
-  self:Dyn_Emit("VM:WriteMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",RM)")
+  self:Dyn_Emit("VM:WriteMatrix($1 + %s,RM)",seg1code)
   self:Dyn_EmitInterruptCheck()
 end
 ZVM.OpcodeTable[262] = function(self)   --MMUL
-  self:Dyn_Emit("$L M1 = VM:ReadMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
-  self:Dyn_Emit("$L M2 = VM:ReadMatrix($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
+  self:Dyn_Emit("$L M1 = VM:ReadMatrix($1 + %s)",seg1code)
+  self:Dyn_Emit("$L M2 = VM:ReadMatrix($2 + %s)",seg2code)
   self:Dyn_EmitInterruptCheck()
 
   self:Dyn_Emit("$L RM = {}")
@@ -1410,11 +1433,13 @@ ZVM.OpcodeTable[262] = function(self)   --MMUL
     self:Dyn_Emit("end")
   self:Dyn_Emit("end")
 
-  self:Dyn_Emit("VM:WriteMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",RM)")
+  self:Dyn_Emit("VM:WriteMatrix($1 + %s,RM)",seg1code)
   self:Dyn_EmitInterruptCheck()
 end
 ZVM.OpcodeTable[263] = function(self)   --MROTATE
-  self:Dyn_Emit("$L VEC = VM:ReadVector4f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
+  self:Dyn_Emit("$L VEC = VM:ReadVector4f($2 + %s)",seg2code)
   self:Dyn_EmitInterruptCheck()
 
   self:Dyn_Emit("$L MAG = math.sqrt(VEC.x^2+VEC.y^2+VEC.z^2)+1e-7")
@@ -1450,11 +1475,13 @@ ZVM.OpcodeTable[263] = function(self)   --MROTATE
   self:Dyn_Emit("RM[14] = 0")
   self:Dyn_Emit("RM[15] = 1")
 
-  self:Dyn_Emit("VM:WriteMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",RM)")
+  self:Dyn_Emit("VM:WriteMatrix($1 + %s,RM)",seg1code)
   self:Dyn_EmitInterruptCheck()
 end
 ZVM.OpcodeTable[264] = function(self)   --MSCALE
-  self:Dyn_Emit("$L VEC = VM:ReadVector3f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
+  self:Dyn_Emit("$L VEC = VM:ReadVector3f($2 + %s)",seg2code)
   self:Dyn_EmitInterruptCheck()
 
   self:Dyn_Emit("$L RM  = {}")
@@ -1478,11 +1505,13 @@ ZVM.OpcodeTable[264] = function(self)   --MSCALE
   self:Dyn_Emit("RM[14] = 0")
   self:Dyn_Emit("RM[15] = 1")
 
-  self:Dyn_Emit("VM:WriteMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",RM)")
+  self:Dyn_Emit("VM:WriteMatrix($1 + %s,RM)",seg1code)
   self:Dyn_EmitInterruptCheck()
 end
 ZVM.OpcodeTable[265] = function(self)   --MPERSPECTIVE
-  self:Dyn_Emit("$L VEC = VM:ReadVector4f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
+  self:Dyn_Emit("$L VEC = VM:ReadVector4f($2 + %s)",seg2code)
   self:Dyn_EmitInterruptCheck()
 
   self:Dyn_Emit("$L DZ = VEC.w - VEC.z")
@@ -1511,11 +1540,13 @@ ZVM.OpcodeTable[265] = function(self)   --MPERSPECTIVE
   self:Dyn_Emit("RM[11] = -1")
   self:Dyn_Emit("RM[15] = 0")
 
-  self:Dyn_Emit("VM:WriteMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",RM)")
+  self:Dyn_Emit("VM:WriteMatrix($1 + %s,RM)",seg1code)
   self:Dyn_EmitInterruptCheck()
 end
 ZVM.OpcodeTable[266] = function(self)   --MTRANSLATE
-  self:Dyn_Emit("$L VEC = VM:ReadVector3f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
+  self:Dyn_Emit("$L VEC = VM:ReadVector3f($2 + %s)",seg2code)
   self:Dyn_EmitInterruptCheck()
 
   self:Dyn_Emit("$L RM  = {}")
@@ -1539,13 +1570,15 @@ ZVM.OpcodeTable[266] = function(self)   --MTRANSLATE
   self:Dyn_Emit("RM[14] = 0")
   self:Dyn_Emit("RM[15] = 1")
 
-  self:Dyn_Emit("VM:WriteMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",RM)")
+  self:Dyn_Emit("VM:WriteMatrix($1 + %s,RM)",seg1code)
   self:Dyn_EmitInterruptCheck()
 end
 ZVM.OpcodeTable[267] = function(self)   --MLOOKAT
-  self:Dyn_Emit("$L EYE    = VM:ReadVector3f($2 + VM."..(self.EmitOperandSegment[2] or "DS").."+0)")
-  self:Dyn_Emit("$L CENTER = VM:ReadVector3f($2 + VM."..(self.EmitOperandSegment[2] or "DS").."+3)")
-  self:Dyn_Emit("$L UP     = VM:ReadVector3f($2 + VM."..(self.EmitOperandSegment[2] or "DS").."+6)")
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
+  self:Dyn_Emit("$L EYE    = VM:ReadVector3f($2 + %s+0",seg2code)
+  self:Dyn_Emit("$L CENTER = VM:ReadVector3f($2 + %s+3",seg2code)
+  self:Dyn_Emit("$L UP     = VM:ReadVector3f($2 + %s+6",seg2code)
   self:Dyn_EmitInterruptCheck()
 
   self:Dyn_Emit("$L X = { 0, 0, 0 }")
@@ -1596,34 +1629,42 @@ ZVM.OpcodeTable[267] = function(self)   --MLOOKAT
   self:Dyn_Emit("RM[14] = 0")
   self:Dyn_Emit("RM[15] = 1")
 
-  self:Dyn_Emit("VM:WriteMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",RM)")
+  self:Dyn_Emit("VM:WriteMatrix($1 + %s,RM)",seg1code)
   self:Dyn_EmitInterruptCheck()
 end
 ZVM.OpcodeTable[268] = function(self)   --MMOV
-  self:Dyn_Emit("$L M = VM:ReadMatrix($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
+  self:Dyn_Emit("$L M = VM:ReadMatrix($2 + %s)",seg2code)
   self:Dyn_EmitInterruptCheck()
-  self:Dyn_Emit("VM:WriteMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",M)")
+  self:Dyn_Emit("VM:WriteMatrix($1 + %s,M)",seg1code)
   self:Dyn_EmitInterruptCheck()
 end
 ZVM.OpcodeTable[269] = function(self)   --VLEN
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
   self:Dyn_Emit("if VM.VMODE == 2 then")
-    self:Dyn_Emit("$L V = VM:ReadVector2f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V = VM:ReadVector2f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
     self:Dyn_EmitOperand(1,"(V.x^2+V.y^2)^0.5",true)
   self:Dyn_Emit("elseif VM.VMODE == 3 then")
-    self:Dyn_Emit("$L V = VM:ReadVector3f($2 + VM."..(self.EmitOperandSegment[2] or "DS")..")")
+    self:Dyn_Emit("$L V = VM:ReadVector3f($2 + %s)",seg2code)
     self:Dyn_EmitInterruptCheck()
     self:Dyn_EmitOperand(1,"(V.x^2+V.y^2+V.z^2)^0.5",true)
   self:Dyn_Emit("end")
 end
 --------------------------------------------------------------------------------
 ZVM.OpcodeTable[270] = function(self)   --MIDENT
+  local seg1code
+  if not self.EmitOperandSegment[1] then
+    seg1code = "VM.DS"
+  end
   self:Dyn_Emit("$L M = {}")
   self:Dyn_Emit("M[ 0]=1  M[ 1]=0  M[ 2]=0  M[ 3]=0")
   self:Dyn_Emit("M[ 4]=0  M[ 5]=1  M[ 6]=0  M[ 7]=0")
   self:Dyn_Emit("M[ 8]=0  M[ 9]=0  M[10]=1  M[11]=0")
   self:Dyn_Emit("M[12]=0  M[13]=0  M[14]=0  M[15]=1")
-  self:Dyn_Emit("VM:WriteMatrix($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",M)")
+  self:Dyn_Emit("VM:WriteMatrix($1 + %s,M)",seg1code)
   self:Dyn_EmitInterruptCheck()
 end
 ZVM.OpcodeTable[273] = function(self)   --VMODE
@@ -1631,27 +1672,30 @@ ZVM.OpcodeTable[273] = function(self)   --VMODE
 end
 --------------------------------------------------------------------------------
 ZVM.OpcodeTable[295] = function(self)  --VDIV
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
   self:Dyn_Emit("$L SCALAR = $2")
   self:Dyn_Emit("if VM.VMODE == 2 then")
-    self:Dyn_Emit("$L V = VM:ReadVector2f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
+    self:Dyn_Emit("$L V = VM:ReadVector2f($1 + %s)",seg1code)
     self:Dyn_EmitInterruptCheck()
     self:Dyn_Emit("V.x = V.x / SCALAR")
     self:Dyn_Emit("V.y = V.y / SCALAR")
-    self:Dyn_Emit("VM:WriteVector2f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",V)")
+    self:Dyn_Emit("VM:WriteVector2f($1 + %s,V)",seg1code)
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("elseif VM.VMODE == 3 then")
-    self:Dyn_Emit("$L V = VM:ReadVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..")")
+    self:Dyn_Emit("$L V = VM:ReadVector3f($1 + %s)",seg1code)
     self:Dyn_EmitInterruptCheck()
     self:Dyn_Emit("V.x = V.x / SCALAR")
     self:Dyn_Emit("V.y = V.y / SCALAR")
     self:Dyn_Emit("V.z = V.z / SCALAR")
-    self:Dyn_Emit("VM:WriteVector3f($1 + VM."..(self.EmitOperandSegment[1] or "DS")..",V)")
+    self:Dyn_Emit("VM:WriteVector3f($1 + %s,V)",seg1code)
     self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[296] = function(self)  --VTRANSFORM
-  self:Dyn_Emit("local address_1 = $1 + VM."..(self.EmitOperandSegment[1] or "DS"))
-  self:Dyn_Emit("local address_2 = $2 + VM."..(self.EmitOperandSegment[2] or "DS"))
+  local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
+  local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
+  self:Dyn_Emit("local address_1 = $1 + $s",seg1code)
+  self:Dyn_Emit("local address_2 = $2 + %s",seg2code)
   self:Dyn_Emit [[
     local V = {0, 0, 0, 1}
     if address_1~=0 then

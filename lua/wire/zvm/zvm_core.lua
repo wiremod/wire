@@ -4,6 +4,7 @@
 -- Virtual machine implementation core
 --------------------------------------------------------------------------------
 ZVM = {}
+-- TODO: Remove microcode debugging, it's not possible to access normally.
 if not SERVER and not CLIENT then
   ZVM.MicrocodeDebug = true
 end
@@ -26,6 +27,7 @@ include("wire/zvm/zvm_data.lua")
 if ZVM.MicrocodeDebug then -- Debug microcode generator
   local pad = 0
   function ZVM:Emit(text)
+    -- TODO: Remove microcode debugging, it's not possible to access normally.
     if string.find(text,"end") and (not string.find(text,"if"))
     then pad = pad - 1 end
 
@@ -40,8 +42,8 @@ if ZVM.MicrocodeDebug then -- Debug microcode generator
     then pad = pad + 1 end
   end
 else
-  function ZVM:Emit(text)
-    self.EmitBlock = self.EmitBlock..text.."\n"
+  function ZVM:Emit(...)
+    self.EmitBlock = self.EmitBlock..string.format(...).."\n"
   end
 end
 
@@ -155,8 +157,8 @@ end
 
 --------------------------------------------------------------------------------
 -- Emit preprocessed text
-function ZVM:Dyn_Emit(text)
-  self:Emit(self:Dyn_PreprocessEmit(text))
+function ZVM:Dyn_Emit(...)
+  self:Emit(self:Dyn_PreprocessEmit(string.format(...)))
 end
 
 
@@ -196,11 +198,11 @@ end
 --------------------------------------------------------------------------------
 -- Emit forced block return
 function ZVM:Dyn_EmitBreak(emitIP)
-  self:Emit("VM.TMR = VM.TMR + "..self.PrecompileInstruction)
-  self:Emit("VM.CODEBYTES = VM.CODEBYTES + "..self.PrecompileBytes)
+  self:Emit("VM.TMR = VM.TMR + %d",self.PrecompileInstruction)
+  self:Emit("VM.CODEBYTES = VM.CODEBYTES + %d",self.PrecompileBytes)
   if emitIP then
-    self:Emit("VM.IP = "..(self.PrecompileIP or 0))
-    self:Emit("VM.XEIP = "..(self.PrecompileTrueXEIP or 0))
+    self:Emit("VM.IP = %d",(self.PrecompileIP or 0))
+    self:Emit("VM.XEIP = %d",(self.PrecompileTrueXEIP or 0))
   end
   if self.ExtraEmitFunction then self.ExtraEmitFunction(self) end
   self:Emit("if true then return end")
@@ -265,9 +267,9 @@ end
 -- Emit interrupt call
 function ZVM:Dyn_EmitInterrupt(intNo,intParam)
   self:Dyn_EmitState()
-  self:Emit("VM.IP = "..(self.PrecompileIP or 0))
-  self:Emit("VM.XEIP = "..(self.PrecompileTrueXEIP or 0))
-  self:Dyn_Emit("VM:Interrupt("..intNo..","..intParam..")")
+  self:Emit("VM.IP = %d",(self.PrecompileIP or 0))
+  self:Emit("VM.XEIP = %d",(self.PrecompileTrueXEIP or 0))
+  self:Dyn_Emit("VM:Interrupt(%d,%d)",intNo,intParam)
   self:Dyn_EmitBreak()
 end
 
@@ -280,23 +282,23 @@ function ZVM:Dyn_EmitInterruptCheck()
   if self.RQCAP == 1 then
     self:Emit("if VM.MEMRQ > 0 then") -- Extended memory request
       self:Emit("if VM.MEMRQ == 1 then") -- Delayed request
-        self:Emit("VM.IP = "..self.PrecompileStartIP)
-        self:Emit("VM.XEIP = "..(self.PrecompileTrueXEIP or 0))
+        self:Emit("VM.IP = %d",self.PrecompileStartIP)
+        self:Emit("VM.XEIP = %d",(self.PrecompileTrueXEIP or 0))
         self:Emit("VM.IDLE = 1")
         self:Dyn_EmitState(true)
         self:Dyn_EmitBreak()
       self:Emit("elseif VM.MEMRQ == 2 then") -- Reading
         self:Dyn_EmitState(true)
         self:Emit("VM.MEMRQ = 4")
-        self:Emit("VM.IP = "..self.PrecompileStartIP)
-        self:Emit("VM.XEIP = "..(self.PrecompileTrueXEIP or 0))
+        self:Emit("VM.IP = %d",self.PrecompileStartIP)
+        self:Emit("VM.XEIP = %d",(self.PrecompileTrueXEIP or 0))
         self:Emit("VM:Interrupt(28,VM.LADD)")
         self:Dyn_EmitBreak()
       self:Emit("elseif VM.MEMRQ == 3 then") -- Writing
         self:Dyn_EmitState(true)
         self:Emit("VM.MEMRQ = 5")
-        self:Emit("VM.IP = "..self.PrecompileStartIP)
-        self:Emit("VM.XEIP = "..(self.PrecompileTrueXEIP or 0))
+        self:Emit("VM.IP = %d",self.PrecompileStartIP)
+        self:Emit("VM.XEIP = %d",(self.PrecompileTrueXEIP or 0))
         self:Emit("VM:Interrupt(29,VM.LADD)")
         self:Dyn_EmitBreak()
       self:Emit("end")
@@ -317,7 +319,7 @@ function ZVM:Dyn_EndBlock()
     self:Dyn_EmitState()
     self:Dyn_EmitBreak(true)
   end
-
+  -- TODO: Remove microcode debugging, it's not possible to access normally.
   if self.MicrocodeDebug then
     if Msg then
       local str = self.EmitBlock
@@ -406,12 +408,12 @@ function ZVM:Precompile_Step()
 
   -- Check if we crossed the page boundary, if so - repeat the check
   if math.floor(self.PrecompileXEIP / 128) ~= self.PrecompilePreviousPage then
-    self:Emit("VM:SetCurrentPage("..math.floor(self.PrecompileXEIP/128)..")")
+    self:Emit("VM:SetCurrentPage(%d)",math.floor(self.PrecompileXEIP/128))
     self:Emit("if (VM.PCAP == 1) and (VM.CurrentPage.Execute == 0) and")
     self:Emit("   (VM.PreviousPage.RunLevel ~= 0) then")
       self:Dyn_EmitInterrupt("14",self.PrecompileIP)
     self:Emit("end")
-    self:Emit("VM:SetPreviousPage("..math.floor(self.PrecompileXEIP/128)..")")
+    self:Emit("VM:SetPreviousPage(%d)",math.floor(self.PrecompileXEIP/128))
 
     self.PrecompilePreviousPage = math.floor(self.PrecompileXEIP / 128)
   end
@@ -442,7 +444,7 @@ function ZVM:Precompile_Step()
 
   -- Check opcode runlevel
   if self.OpcodeRunLevel[Opcode] then
-    self:Emit("if (VM.PCAP == 1) and (VM.CurrentPage.RunLevel > "..self.OpcodeRunLevel[Opcode]..") then")
+    self:Emit("if (VM.PCAP == 1) and (VM.CurrentPage.RunLevel > %d) then",self.OpcodeRunLevel[Opcode])
       self:Dyn_EmitInterrupt("13",Opcode)
     self:Emit("end")
   end
@@ -536,8 +538,8 @@ function ZVM:Precompile_Step()
 
     -- Emit interrupt check prefix
     if self.EmitNeedInterruptCheck then
-      self:Emit("VM.IP = "..(self.PrecompileIP or 0))
-      self:Emit("VM.XEIP = "..(self.PrecompileTrueXEIP or 0))
+      self:Emit("VM.IP = %d",(self.PrecompileIP or 0))
+      self:Emit("VM.XEIP = %d",(self.PrecompileTrueXEIP or 0))
     end
 
     -- Emit opcode
@@ -600,8 +602,8 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
       local instruction = 1
       while (instruction <= overrideSteps) and self:Precompile_Step() do
         if self.ExtraEmitFunction then
-          self:Emit("VM.IP = "..(self.PrecompileIP or 0))
-          self:Emit("VM.XEIP = "..(self.PrecompileTrueXEIP or 0))
+          self:Emit("VM.IP = %d",(self.PrecompileIP or 0))
+          self:Emit("VM.XEIP = %d",(self.PrecompileTrueXEIP or 0))
           self.ExtraEmitFunction(self)
         end
         instruction = instruction + 1
