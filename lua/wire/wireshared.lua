@@ -1201,3 +1201,83 @@ hook.Add("PlayerDisconnected", "WireLib_PlayerDisconnect", function(ply)
     tbl[ply] = nil
   end
 end)
+
+-- File-size reduction (#2918)
+-- Part of https://github.com/wiremod/wire/discussions/2916 
+
+-- table structure is oldModel = {newModel, new submat}
+local oldButtonToNewButton = {}
+
+-- This was done this way to catch any future buttons potentially added, but the ideal solution would be to move to an entirely 
+-- customizable button (similar to text screens). The old buttons have their models removed and set to a blank model.
+
+-- The original cheeze buttons
+local cheeze_buttons = file.Find("materials/models/cheeze/buttons/*.vtf", "GAME")
+for _, v in ipairs(cheeze_buttons) do 
+	local old_model_name = string.Replace(v, ".vtf", "")
+	local new_model_mame = "arm"
+	
+	if old_model_name ~= "chz_button00" and old_model_name ~= "chz_button_arm" then -- The models left untouched
+		local k = string.match(v, "^chz_button_([a-z0-9]*)") -- Default search (chz_button_(word))
+		if k == nil then 
+			k = string.match(v, "^chz_button([a-z0-9]*)") -- Second search (chz_button(number)) (small models)
+
+			if k == nil then -- Muffin (this is the only texture that doesn't follow that pattern and is simply the file name)
+				k = old_model_name
+			else             -- The only original cheeze small buttons are numbers, so this sets the new model to be small
+				k = "" .. k[2]
+				new_model_mame = "0"
+			end
+		end
+
+		oldButtonToNewButton["models/cheeze/buttons/button_" .. k .. ".mdl"] = {
+			"models/cheeze/buttons/button_" .. new_model_mame .. ".mdl", 
+			"models/cheeze/buttons/" .. old_model_name
+		}
+	end
+end
+
+-- The second cheeze buttons folder
+local cheeze_button2s = file.Find("models/cheeze/buttons2/**.mdl", "GAME")
+for k, v in ipairs(cheeze_button2s) do 
+	local old_model_name = string.Replace(v, ".mdl", "")
+
+	if old_model_name ~= "0" and old_model_name ~= "0_small" then -- The models left untouched
+		local mat_name = string.Replace(old_model_name, "_small", "")
+		local new_model_mame = mat_name ~= old_model_name and "0_small" or "0"
+
+		oldButtonToNewButton["models/cheeze/buttons2/" .. old_model_name .. ".mdl"] = {
+			"models/cheeze/buttons2/" .. new_model_mame .. ".mdl", 
+			"models/cheeze/buttons2/" .. mat_name
+		}
+	end
+end
+
+local entityModifier_Submaterial = "Wire.Button.SubMaterial"
+
+if SERVER then
+	duplicator.RegisterEntityModifier(entityModifier_Submaterial, function(ply, ent, data)
+		ent:SetSubMaterial(1, data[1])
+	end)
+end
+
+local function ButtonCheck(entity)
+	timer.Simple(0, function()
+		if not IsValid(entity) then return end
+
+		local buttonReplacementInfo = oldButtonToNewButton[entity:GetModel()]
+		if buttonReplacementInfo == nil then return end
+		
+		local model, submat = buttonReplacementInfo[1], buttonReplacementInfo[2]
+
+		entity:SetModel(model)
+		entity:SetSubMaterial(1, submat)
+
+		if SERVER then
+			duplicator.StoreEntityModifier(entity, "Model", {model})
+			duplicator.StoreEntityModifier(entity, entityModifier_Submaterial, {submat})
+		end
+	end)
+end
+
+hook.Add("OnEntityCreated", "Wire.OnEntityCreated.ButtonChanger", ButtonCheck)
