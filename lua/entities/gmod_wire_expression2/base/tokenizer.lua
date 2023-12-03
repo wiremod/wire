@@ -16,6 +16,9 @@ AddCSLuaFile()
 
 local Trace, Warning, Error = E2Lib.Debug.Trace, E2Lib.Debug.Warning, E2Lib.Debug.Error
 
+local tonumber = tonumber
+local string_find, string_gsub, string_sub = string.find, string.gsub, string.sub
+
 ---@class Tokenizer
 ---@field pos integer
 ---@field col integer
@@ -184,7 +187,7 @@ end
 
 ---@return Token|nil|boolean # Either a token, `nil` for unexpected character, or `false` for error.
 function Tokenizer:Next()
-	local match = self:ConsumePattern("^%s+", true)
+	local match = self:ConsumePatternMulti("^%s+")
 	if match then
 		return Token.new(TokenVariant.Whitespace, match)
 	end
@@ -264,7 +267,7 @@ function Tokenizer:Next()
 			return Token.new(TokenVariant.Boolean, true)
 		elseif match == "false" then
 			return Token.new(TokenVariant.Boolean, false)
-		elseif match:sub(1, 1) ~= "#" then
+		elseif string_sub(match, 1, 1) ~= "#" then
 			return Token.new(TokenVariant.LowerIdent, match)
 		end
 	end
@@ -279,26 +282,27 @@ function Tokenizer:Next()
 		return Token.new(TokenVariant.Constant, match)
 	end
 
-	if self:ConsumePattern("^_") then
+	if self:At() == "_" then
 		-- A discard is used to signal intent that something is intentionally not used.
 		-- This is mainly to avoid warnings for unused variables from events or functions.
 		-- You are not allowed to actually use the discard anywhere but in a signature, since you can have multiple in the signature.
+		self:SkipChar()
 		return Token.new(TokenVariant.Ident, "_")
 	end
 
 	if self:At() == "\"" then
-		self:NextChar()
+		self:SkipChar()
 		local buffer, nbuffer = {}, 0
 		while true do
-			local m = self:ConsumePattern("^[^\"\\]*[\"\\]", true)
+			local m = self:ConsumePatternMulti("^[^\"\\]*[\"\\]")
 			local line, col = self.line, self.col
 
 			if m then
 				nbuffer = nbuffer + 1
-				buffer[nbuffer] = m:sub(1, -2)
+				buffer[nbuffer] = string_sub(m, 1, -2)
 
 				-- See if the last char in the match was a quote or an escape char
-				if m:sub( -1, -1) == "\"" then
+				if string_sub(m, -1, -1) == "\"" then
 					break
 				else -- Escape
 					local char = self:At()
@@ -306,21 +310,20 @@ function Tokenizer:Next()
 
 					-- Using %g here just to be a bit more informative on warnings
 					if escapes[char] then
-						self:NextChar()
+						self:SkipChar() -- its crucial that this is only done without supporting newlines as long as `escapes` doesn't support doing \<newline>
 						esc = escapes[char]
 					elseif char == "u" then
-						self:NextChar()
-
+						self:SkipChar()
 						if self:At() ~= "{" then err = "Unicode escape must begin with {" goto _err end
 
-						esc = self:ConsumePattern("^%b{}", true)
+						esc = self:ConsumePatternMulti("^%b{}")
 
 						if not esc then err = "Unicode escape must end with }"
 						elseif #esc == 2 then err = "Unicode escape cannot be empty"
 						elseif #esc > 8 then err = "Unicode escape can only contain up to 6 characters"
 						else
-							esc = esc:sub(2, -2)
-							local illegal = esc:find("%X") -- Scan for bad characters
+							esc = string_sub(esc, 2, -2)
+							local illegal = string_find(esc, "%X") -- Scan for bad characters
 							if illegal then
 								err = "Unicode escape must contain hexadecimal digits"
 								col = col + illegal + 1
@@ -338,7 +341,7 @@ function Tokenizer:Next()
 							end
 						end
 					elseif char == "x" then
-						self:NextChar()
+						self:SkipChar()
 						esc = self:ConsumePattern("^%x%x")
 						if not esc then
 							err = "Hexadecimal escape expects 2 hex digits"
@@ -347,20 +350,20 @@ function Tokenizer:Next()
 						end
 					else
 						esc = "\\"
-						self:Warning("Invalid escape " .. "\\" .. char:gsub("%G", " "), Trace.new(line, col, self.line, self.col))
+						self:Warning("Invalid escape " .. "\\" .. string_gsub(char, "%G", " "), Trace.new(line, col, self.line, self.col))
 					end
 
 					::_err::
 					if err then
 						local tr = Trace.new(line, col, self.line, self.col)
-						self:ConsumePattern("^.*", true)
+						self:ConsumePatternMulti("^.*")
 						return self:Error(err, tr)
 					end
 					nbuffer = nbuffer + 1
 					buffer[nbuffer] = esc
 				end
 			else
-				self:ConsumePattern("^.*", true)
+				self:ConsumePatternMulti("^.*")
 				return self:Error("Missing \" to end string")
 			end
 		end
@@ -370,7 +373,7 @@ function Tokenizer:Next()
 
 	if E2Lib.GrammarLookup[self:At()] then
 		local c = self:At()
-		self:NextChar()
+		self:SkipChar()
 		return Token.new(TokenVariant.Grammar, E2Lib.GrammarLookup[c])
 	end
 
@@ -385,7 +388,7 @@ function Tokenizer:Next()
 		end
 	end
 
-	self:NextChar()
+	self:SkipChar()
 
 	if op then
 		return Token.new(TokenVariant.Operator, E2Lib.OperatorLookup[E2Lib.optable_inv[op[1]]])
@@ -394,59 +397,49 @@ end
 
 ---@return string?
 function Tokenizer:At()
-	return self.code:sub(self.pos, self.pos)
+	return string_sub(self.code, self.pos, self.pos)
 end
 
 ---@return string?
 function Tokenizer:Prev()
-	return self.code:sub(self.pos - 1, self.pos - 1)
+	return string_sub(self.code, self.pos - 1, self.pos - 1)
 end
 
 ---@return string?
 function Tokenizer:PeekChar()
-	return self.code:sub(self.pos + 1, self.pos + 1)
+	return string_sub(self.code, self.pos + 1, self.pos + 1)
 end
 
 --- Doesn't take into account newlines.
----@param ws boolean?
----@return string?
-function Tokenizer:NextChar(ws)
+function Tokenizer:SkipChar()
 	self.pos = self.pos + 1
-	local c = self.code:sub(self.pos, self.pos)
-
-	if ws and c == '\n' then
-		self.line = self.line + 1
-		self.col = 1
-	else
-		self.col = self.col + 1
-	end
-
-	return c
+	self.col = self.col + 1
 end
 
----@param pattern string
----@param ws boolean? Whether the pattern may contain newlines. Default false
----@return string?
-function Tokenizer:ConsumePattern(pattern, ws)
-	local start, ed = self.code:find(pattern, self.pos)
+--- Doesn't take into account newlines.
+function Tokenizer:NextChar()
+	self.pos = self.pos + 1
+	self.col = self.col + 1
+
+	return string_sub(self.code, self.pos, self.pos)
+end
+
+function Tokenizer:ConsumePatternMulti(pattern --[[@param pattern string]])
+	local start, ed = string_find(self.code, pattern, self.pos)
 	if not start then return end
 
-	local match = self.code:sub(start, ed)
+	local match = string_sub(self.code, start, ed)
+	local _, newlines = string_gsub(match, "\n", "")
 
-	if ws then
-		-- Newlines could possibly be matched.
-		local _, newlines = match:gsub("\n", "")
+	if newlines ~= 0 then
+		local final_nl, final_char = string_find(match, "\n[^\n]*$")
 
-		if newlines ~= 0 then
-			local final_nl, final_char = match:find("\n[^\n]*$")
+		self.pos = ed + 1
+		self.col = final_char - final_nl + 1
 
-			self.pos = ed + 1
-			self.col = final_char - final_nl + 1
+		self.line = self.line + newlines
 
-			self.line = self.line + newlines
-
-			return match
-		end
+		return match
 	end
 
 	-- Assume no newlines were matched past here.
@@ -455,6 +448,16 @@ function Tokenizer:ConsumePattern(pattern, ws)
 	self.col = self.col + (ed - start + 1)
 
 	return match
+end
+
+function Tokenizer:ConsumePattern(pattern --[[@param pattern string]])
+	local start, ed = string_find(self.code, pattern, self.pos)
+	if not start then return end
+
+	self.pos = ed + 1
+	self.col = self.col + (ed - start + 1)
+
+	return string_sub(self.code, start, ed)
 end
 
 ---@return Token[]
