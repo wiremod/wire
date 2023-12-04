@@ -28,3 +28,7 @@ end)
 net.Receive("wire_expression2_print", function(len, ply)
 	chat.AddText(net.ReadString())
 end)
+
+net.Receive("wire_expression2_set_clipboard_text", function(len, ply)
+	SetClipboardText(net.ReadString())
+end)
