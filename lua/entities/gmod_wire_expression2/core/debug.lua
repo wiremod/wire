@@ -418,14 +418,11 @@ e2function void entity:printColorDriver(array arr)
 end
 
 util.AddNetworkString( "wire_expression2_set_clipboard_text" )
+local clipboard_character_limit = CreateConVar("wire_expression2_clipboard_character_limit", 512, FCVAR_ARCHIVE, "Maximum character that can be copied into a players clipboard", 0, 65532)
 
 __e2setcost(100)
 e2function void setClipboardText(string text)
-	-- The maximum allowed length of a single written string is 65532 characters while using net.WriteString
-	-- See https://wiki.facepunch.com/gmod/net.WriteString
-
-	-- This is probably more than sufficient for most people
-	if string.len(text) > 65532 then return self:throw("Exceeded maximum string length for clipboard text", 0) end
+	if #text > clipboard_character_limit:GetInt() then return nil end
 
 	net.Start("wire_expression2_set_clipboard_text")
 		net.WriteString(text)
