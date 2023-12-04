@@ -30,6 +30,7 @@ if CLIENT then
 		{ name = "left_2", stage = 2, text = "Select output (Alt: Auto-connect matching input/outputs)" },
 		{ name = "right_2", stage = 2, text = "Next" },
 		{ name = "mwheel_2", stage = 2, text = "Mouse wheel: Next" },
+		{ name = "shift_reload", stage = 0, text = "Shift + Reload: Remove wirelink and entity outputs" }
 	}
 	for _, info in pairs(TOOL.Information) do
 		language.Add("Tool.wire_adv." .. info.name, info.text)
@@ -113,15 +114,31 @@ if SERVER then
 	end
 	duplicator.RegisterEntityModifier( "CreateEntityOutput", WireLib.CreateEntityOutput )
 
+	local function removeWirelinkOutput(ent)
+		if ent.EntityMods and ent.EntityMods.CreateWirelinkOutput and ent.Outputs and ent.Outputs.wirelink then
+			WireLib.DisconnectOutput(ent, "wirelink")
+			ent.Outputs.wirelink = nil
+			WireLib.RemoveOutPort(ent, "wirelink")
+			duplicator.ClearEntityModifier(ent, "CreateWirelinkOutput")
+			WireLib._SetOutputs(ent)
+		end
+	end
+
+	local function removeEntityOutput(ent)
+		if ent.EntityMods and ent.EntityMods.CreateEntityOutput and ent.Outputs and ent.Outputs.entity then
+			WireLib.DisconnectOutput(ent, "entity")
+			ent.Outputs.entity = nil
+			WireLib.RemoveOutPort(ent, "entity")
+			duplicator.ClearEntityModifier(ent, "CreateEntityOutput")
+			WireLib._SetOutputs(ent)
+		end
+	end
 
 	-----------------------------------------------------------------
 	-- Receving data from client
 	-----------------------------------------------------------------
 
-	util.AddNetworkString( "wire_adv_upload" )
-	net.Receive( "wire_adv_upload", function( len, ply )
-		local wirings = net.ReadTable()
-
+	local function wireAdvUpload(ply, wirings)
 		local tool = WireToolHelpers.GetActiveTOOL("wire_adv",ply)
 		if not tool then return end
 
@@ -167,18 +184,46 @@ if SERVER then
 				end
 			end
 		end
-	end)
+	end
 
-	util.AddNetworkString( "wire_adv_unwire" )
-	net.Receive( "wire_adv_unwire", function( len, ply )
-		local ent = net.ReadEntity()
-		local tbl = net.ReadTable()
-
-		if WireLib.CanTool(ply, ent, "wire_adv" ) then
+	local function wireAdvUnwire(ply, ent, tbl)
+		if WireLib.CanTool(ply, ent, "wire_adv") then
 			for i=1,#tbl do
 				WireLib.Link_Clear( ent, tbl[i] )
 			end
 		end
+	end
+
+	local function wireAdvRemoveUGLinks(ply, ent)
+		if WireLib.CanTool(ply, ent, "wire_adv") then
+			if ent:IsValid() then
+				removeEntityOutput(ent)
+				removeWirelinkOutput(ent)
+			end
+		end
+	end
+
+	util.AddNetworkString("wire_adv_upload")
+	local function wireAdvReceiver(_, ply)
+		local flag = net.ReadUInt(8)
+
+		if flag == 1 then
+			wireAdvUpload(ply, net.ReadTable())
+		elseif flag == 2 then
+			wireAdvUnwire(ply, net.ReadEntity(), net.ReadTable())
+		elseif flag == 3 then
+			wireAdvRemoveUGLinks(ply, net.ReadEntity())
+		else
+			ErrorNoHalt("Tried to call wire_adv_upload without a proper message flag")
+		end
+	end
+	net.Receive("wire_adv_upload", wireAdvReceiver)
+
+	util.AddNetworkString("wire_adv_unwire")
+	net.Receive( "wire_adv_unwire", function(ply)
+		ErrorNoHalt("wire_adv_unwire is deprecated, use wire_adv_upload with an unsigned byte 2 at the start")
+		
+		wireAdvUnwire(ply, net.ReadEntity(), net.ReadTable())
 	end)
 
 	WireToolHelpers.SetupSingleplayerClickHacks(TOOL)
@@ -212,14 +257,16 @@ elseif CLIENT then
 	function TOOL:Upload()
 		self:SanitizeUpload() -- Remove all invalid wirings before sending
 
-		net.Start( "wire_adv_upload" )
+		net.Start("wire_adv_upload")
+			net.WriteUInt(1, 8)
 			net.WriteTable( self.Wiring )
 		net.SendToServer()
 
 		self:Holster()
 	end
 	function TOOL:Unwire( ent, names )
-		net.Start( "wire_adv_unwire" )
+		net.Start("wire_adv_upload")
+			net.WriteUInt(2, 8)
 			net.WriteEntity( ent )
 			net.WriteTable( names )
 		net.SendToServer()
@@ -650,17 +697,26 @@ elseif CLIENT then
 	function TOOL:Reload(trace)
 		if not game.SinglePlayer() and not IsFirstTimePredicted() then return end
 
-		if self:GetStage() == 0 and IsValid( trace.Entity ) and WireLib.HasPorts( trace.Entity ) then
-			local inputs, outputs = self:GetPorts( trace.Entity )
-			if not isTableEmpty(inputs) then return end
-			if self:GetOwner():KeyDown( IN_WALK ) then
-				local t = {}
-				for i=1,#inputs do
-					t[i] = inputs[i][1]
-				end
-				self:Unwire( trace.Entity, t )
+		local ent = trace.Entity
+
+		if self:GetStage() == 0 and ent:IsValid() and WireLib.HasPorts(ent) then
+			if self:GetOwner():KeyDown(IN_SPEED) then
+				net.Start("wire_adv_upload")
+					net.WriteUInt(3, 8)
+					net.WriteEntity(ent)
+				net.SendToServer()
 			else
-				self:Unwire( trace.Entity, { inputs[self.CurrentWireIndex][1] } )
+				local inputs, outputs = self:GetPorts(ent)
+				if not isTableEmpty(inputs) then return end
+				if self:GetOwner():KeyDown( IN_WALK ) then
+					local t = {}
+					for i=1,#inputs do
+						t[i] = inputs[i][1]
+					end
+					self:Unwire(ent, t)
+				else
+					self:Unwire(ent, { inputs[self.CurrentWireIndex][1] })
+				end
 			end
 		else
 			self:Holster()
