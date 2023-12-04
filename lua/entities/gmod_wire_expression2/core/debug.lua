@@ -426,12 +426,12 @@ e2function void setClipboardText(string text)
 	print(self.entity:EntIndex())
 	local timerid = "wire_expression2_clipboard_cooldown_" .. self.entity:EntIndex()
 	if not timer.Exists(timerid) then
-		if #text > clipboard_character_limit:GetInt() then 
-			return self:throw("setClipboardText exceeding string limit of " .. clipboard_character_limit:GetInt() .. " characters", nil) 
+		if #text > clipboard_character_limit:GetInt() then
+			return self:throw("setClipboardText exceeding string limit of " .. clipboard_character_limit:GetInt() .. " characters", nil)
 		end
 
 		timer.Create( timerid, clipboard_cooldown:GetInt(), 1, function() timer.Remove(timerid) end)
-	
+
 		net.Start("wire_expression2_set_clipboard_text")
 			net.WriteString(text)
 		net.Send(self.player)
