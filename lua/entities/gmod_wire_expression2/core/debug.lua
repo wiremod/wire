@@ -419,12 +419,23 @@ end
 
 util.AddNetworkString( "wire_expression2_set_clipboard_text" )
 local clipboard_character_limit = CreateConVar("wire_expression2_clipboard_character_limit", 512, FCVAR_ARCHIVE, "Maximum character that can be copied into a players clipboard", 0, 65532)
+local clipboard_cooldown = CreateConVar("wire_expression2_clipboard_cooldown", 1, FCVAR_ARCHIVE, "Cooldown for setClipboardText in seconds", 0, nil)
 
 __e2setcost(100)
 e2function void setClipboardText(string text)
-	if #text > clipboard_character_limit:GetInt() then return nil end
+	print(self.entity:EntIndex())
+	local timerid = "wire_expression2_clipboard_cooldown_" .. self.entity:EntIndex()
+	if not timer.Exists(timerid) then
+		if #text > clipboard_character_limit:GetInt() then 
+			return self:throw("setClipboardText exceeding string limit of " .. clipboard_character_limit:GetInt() .. " characters", nil) 
+		end
 
-	net.Start("wire_expression2_set_clipboard_text")
-		net.WriteString(text)
-	net.Send(self.player)
+		timer.Create( timerid, clipboard_cooldown:GetInt(), 1, function() timer.Remove(timerid) end)
+	
+		net.Start("wire_expression2_set_clipboard_text")
+			net.WriteString(text)
+		net.Send(self.player)
+	else
+		return self:throw("setClipboardText cooldown!", nil)
+	end
 end
