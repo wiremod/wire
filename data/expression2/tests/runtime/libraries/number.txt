@@ -28,3 +28,7 @@ assert( ceil(0.1) == 1 )
 
 assert( round(0.1) == 0 )
 assert( round(0.6) == 1 )
+
+assert( log2(2) == 1 )
+assert( log2(5) == (ln(5) / ln(2)) )
+assert( log(5, 2) == (ln(5) / ln(2)) )

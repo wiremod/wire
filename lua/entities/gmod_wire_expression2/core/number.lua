@@ -344,7 +344,7 @@ local const_log2 = log(2)
 
 [nodiscard]
 e2function number log2(number n)
-	return log2(n) / const_log2
+	return log(n) / const_log2
 end
 
 [nodiscard]
