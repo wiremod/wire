@@ -974,6 +974,8 @@ local CompileVisitors = {
 
 				-- It can have indices, it already exists
 				if #indices > 0 then
+					existing.trace_if_unused = nil
+
 					local setter, id = table.remove(indices), existing.depth
 					stmts[i] = function(state)
 						return state.Scopes[id][var]
