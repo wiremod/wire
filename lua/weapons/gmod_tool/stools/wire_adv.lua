@@ -222,7 +222,7 @@ if SERVER then
 	util.AddNetworkString("wire_adv_unwire")
 	net.Receive( "wire_adv_unwire", function(ply)
 		ErrorNoHalt("wire_adv_unwire is deprecated, use wire_adv_upload with an unsigned byte 2 at the start")
-		
+
 		wireAdvUnwire(ply, net.ReadEntity(), net.ReadTable())
 	end)
 
@@ -706,7 +706,7 @@ elseif CLIENT then
 					net.WriteEntity(ent)
 				net.SendToServer()
 			else
-				local inputs, outputs = self:GetPorts(ent)
+				local inputs = self:GetPorts(ent)
 				if not isTableEmpty(inputs) then return end
 				if self:GetOwner():KeyDown( IN_WALK ) then
 					local t = {}
@@ -734,7 +734,6 @@ elseif CLIENT then
 			local check = self:GetStage() == 0 and inputs or outputs
 			if #check == 0 then return end
 
-			local b = false
 			local oldport = self.CurrentWireIndex
 
 			if self:GetStage() == 2 then
@@ -932,7 +931,7 @@ elseif CLIENT then
 				return self.CurrentWireIndex == idx -- Highlight selected output
 			end
 		elseif name == "Selected" and self:GetStage() == 2 and alt then -- highlight all selected inputs that will be wired
-			local inputs, outputs = self:GetPorts( ent )
+			local _, outputs = self:GetPorts( ent )
 
 			local inputname = tbl[idx][1]
 			local inputtype = tbl[idx][2]
@@ -1294,7 +1293,7 @@ elseif CLIENT then
 			return (outputname == inputname and outputtype == inputtype) or (inputtype == "WIRELINK" and (outputname == "wirelink" or outputname == "Create Wirelink") and outputtype == "WIRELINK") or
 																			(inputtype == "ENTITY" and (outputname == "entity" or outputname == "Create Entity") and outputtype == "ENTITY")
 		else
-			return (outputname == inputname and outputtype == inputtype)
+			return outputname == inputname and outputtype == inputtype
 		end
 	end
 
