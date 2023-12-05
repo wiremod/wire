@@ -424,7 +424,7 @@ local clipboard_allow_toggle = CreateConVar("wire_expression2_clipboard_allow", 
 
 __e2setcost(100)
 e2function void setClipboardText(string text)
-	if clipboard_allow_toggle:GetInt() == 0 then return self:throw("setClipboardText is disabled by this server", nil) end
+	if clipboard_allow_toggle:GetBool() then return self:throw("setClipboardText is disabled by this server", nil) end
 
 	local timerid = "wire_expression2_clipboard_cooldown_" .. self.entity:EntIndex()
 	if not timer.Exists(timerid) then
