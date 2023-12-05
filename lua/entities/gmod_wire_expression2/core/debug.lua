@@ -420,11 +420,14 @@ end
 util.AddNetworkString( "wire_expression2_set_clipboard_text" )
 local clipboard_character_limit = CreateConVar("wire_expression2_clipboard_character_limit", 512, FCVAR_ARCHIVE, "Maximum character that can be copied into a players clipboard", 0, 65532)
 local clipboard_cooldown = CreateConVar("wire_expression2_clipboard_cooldown", 1, FCVAR_ARCHIVE, "Cooldown for setClipboardText in seconds", 0, nil)
-local clipboard_allow_toggle = CreateConVar("wire_expression2_clipboard_allow", 0, FCVAR_ARCHIVE, "Cooldown for setClipboardText in seconds", 0, 1)
 
 __e2setcost(100)
 e2function void setClipboardText(string text)
-	if clipboard_allow_toggle:GetBool() then return self:throw("setClipboardText is disabled by this server", nil) end
+
+	local clipboard_allow = self.player:GetInfoNum("wire_expression2_clipboard_allow", 0)
+	if clipboard_allow == 0 then
+		return self:throw("setClipboardText is not enabled. You need to change the convar \"wire_expression2_clipboard_allow\" to enable it", nil)
+	end
 
 	local timerid = "wire_expression2_clipboard_cooldown_" .. self.entity:EntIndex()
 	if not timer.Exists(timerid) then

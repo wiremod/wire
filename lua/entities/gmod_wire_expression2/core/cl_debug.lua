@@ -29,6 +29,8 @@ net.Receive("wire_expression2_print", function(len, ply)
 	chat.AddText(net.ReadString())
 end)
 
+CreateClientConVar("wire_expression2_clipboard_allow", 0, true, true, "Allow E2 to set your clipboard text", 0, 1)
+
 net.Receive("wire_expression2_set_clipboard_text", function(len, ply)
 	SetClipboardText(net.ReadString())
 end)
