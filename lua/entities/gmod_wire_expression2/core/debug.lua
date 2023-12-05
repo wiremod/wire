@@ -423,7 +423,6 @@ local clipboard_cooldown = CreateConVar("wire_expression2_clipboard_cooldown", 1
 
 __e2setcost(100)
 e2function void setClipboardText(string text)
-	print(self.entity:EntIndex())
 	local timerid = "wire_expression2_clipboard_cooldown_" .. self.entity:EntIndex()
 	if not timer.Exists(timerid) then
 		if #text > clipboard_character_limit:GetInt() then
