@@ -275,10 +275,10 @@ function PANEL:Update(errors, warnings, header_text, header_color)
     local failed = false
 
     if warnings ~= nil and not table.IsEmpty(warnings) then
-        for k, v in ipairs(warnings) do
+        for _, v in ipairs(warnings) do
             if v.message ~= nil then
-                local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [line %u, char %u]", v.trace.start_line, v.trace.start_col) or ""))
-                node:SetIcon(v.quick_fix and "icon16/error_go.png" or "icon16/error.png")
+                local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [line %u, char %u]", v.trace.start_line, v.trace.start_col) or "") .. (v.quick_fix and " (Quick fix available)" or ""))
+                node:SetIcon("icon16/error.png")
                 node.trace = v.trace
                 node.quick_fix = v.quick_fix
             end
@@ -287,10 +287,11 @@ function PANEL:Update(errors, warnings, header_text, header_color)
     end
 
     if errors ~= nil and not table.IsEmpty(errors) then
-        for k, v in ipairs(errors) do
-            local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [line %u, char %u]", v.trace.start_line, v.trace.start_col) or ""))
+        for _, v in ipairs(errors) do
+            local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [line %u, char %u]", v.trace.start_line, v.trace.start_col) or "") .. (v.quick_fix and " (Quick fix available)" or ""))
             node:SetIcon("icon16/cancel.png")
             node.trace = v.trace
+            node.quick_fix = v.quick_fix
         end
         failed = true
     end

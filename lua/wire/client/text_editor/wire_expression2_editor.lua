@@ -909,10 +909,20 @@ function Editor:InitComponents()
 	end
 
 	self.C.Val.OnQuickFix = function(panel, issue)
-		local trace = issue.trace
-		if trace ~= nil then
-			self:GetCurrentEditor():SetArea({ { trace.start_line, trace.start_col }, { trace.end_line, trace.end_col } }, issue.quick_fix)
+		local editor = self:GetCurrentEditor()
+
+		for _, fix in ipairs(issue.quick_fix) do
+			local trace = fix.at
+			editor:SetArea(
+				{
+					{ trace.start_line, trace.start_col },
+					{ trace.end_line, trace.end_col }
+				},
+				fix.replace
+			)
 		end
+
+		self:Validate()
 	end
 
 	self.C.Btoggle:SetImage("icon16/application_side_contract.png")
