@@ -218,7 +218,11 @@ local function handleIO(name)
 			local tr = Trace.new(lines[i], columns[i], lines[i], columns[i])
 
 			if ports[3][key] then
-				self:Error("Directive (@" .. name .. ") contains multiple definitions of the same variable", tr)
+				if ports[3][key] ~= retval[2][i] then
+					self:Error("Directive (@" .. name .. ") contains multiple definitions of the same variable with differing types", tr)
+				else
+					self:Warning("Directive (@" .. name .. ") contains multiple definitions of the same variable", tr)
+				end
 			else
 				local index = #ports[1] + 1
 				ports[1][index] = key -- Index: Name

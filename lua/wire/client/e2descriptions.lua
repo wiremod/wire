@@ -512,6 +512,7 @@ E2Helper.Descriptions["length(xv4:)"] = "Gets the length of the vector"
 E2Helper.Descriptions["length2(xv2:)"] = "Gets the squared length of the vector"
 E2Helper.Descriptions["length2(v:)"] = "Gets the squared length of the vector"
 E2Helper.Descriptions["length2(xv4:)"] = "Gets the squared length of the vector"
+E2Helper.Descriptions["lerp(vvn)"] = "Performs linear interpolation. Returns a new value between 'from' and 'to', based on a 0-1 percentage ('fraction')"
 E2Helper.Descriptions["distance(xv2:xv2)"] = "Gets the distance between 2D vectors"
 E2Helper.Descriptions["distance(v:v)"] = "Gets the distance between vectors"
 E2Helper.Descriptions["distance(xv4:xv4)"] = "Gets the distance between 4D vectors"
@@ -1762,3 +1763,8 @@ E2Helper.Descriptions["takeDamage(e:ne)"] = "Applies an amount of damage to the 
 E2Helper.Descriptions["takeDamage(e:nee)"] = "Applies an amount of damage to the player with given attacker and inflictor. Requires wire_expression2_damage_enabled to be set to 1."
 
 E2Helper.Descriptions["blastDamage(vnn)"] = "Creates blast damage at the position provided with specified radius and damage amount. Requires wire_expression2_damage_enabled to be set to 1."
+
+-- Functions
+
+E2Helper.Descriptions["getParameterTypes(f:)"] = "Returns an array of the parameter typeids of the function"
+E2Helper.Descriptions["getReturnType(f:)"] = "Returns the return typeid of the function"

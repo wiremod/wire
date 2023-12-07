@@ -681,10 +681,10 @@ e2function array egpobject:getVertices()
 			ret[k] = { v.x, v.y }
 		end
 		return ret
-	elseif v.x and v.y and v.x2 and v.y2 and v.x3 and v.y3 then
-		return { {v.x, v.y}, {v.x2, v.y2 }, { v.x3, v.y3 } }
-	elseif v.x and v.y and v.x2 and v.y2 then
-		return { {v.x, v.y}, { v.x2, v.y2 } }
+	elseif this.x and this.y and this.x2 and this.y2 and this.x3 and this.y3 then
+		return { {this.x, this.y}, {this.x2, this.y2 }, { this.x3, this.y3 } }
+	elseif this.x and this.y and this.x2 and this.y2 then
+		return { {this.x, this.y}, { this.x2, this.y2 } }
 	else
 		return {}
 	end

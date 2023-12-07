@@ -7,6 +7,8 @@ GateActions("Entity")
 local clamp = WireLib.clampForce
 
 local function isAllowed( gate, ent )
+	if not IsValid( ent ) then return false end
+	if ent:IsPlayer() then return false end
 	if not IsValid(gate:GetPlayer()) then return false end
 	return hook.Run( "PhysgunPickup", gate:GetPlayer(), ent ) ~= false
 end
@@ -17,10 +19,9 @@ GateActions["entity_applyf"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
 	output = function(gate, ent, vec )
-		if not IsValid( ent ) then return end
+		if not isAllowed( gate, ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
-		if not isAllowed( gate, ent ) then return end
 		if not isvector(vec) then vec = Vector (0, 0, 0) end
 		vec = clamp(vec)
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
@@ -38,10 +39,9 @@ GateActions["entity_applyof"] = {
 	inputtypes = { "ENTITY" , "VECTOR" , "VECTOR" },
 	timed = true,
 	output = function(gate, ent, vec, offset )
-		if not IsValid( ent ) then return end
+		if not isAllowed( gate, ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
-		if not isAllowed( gate, ent ) then return end
 		if not isvector(vec) then vec = Vector (0, 0, 0) end
 		if not isvector(offset) then offset = Vector (0, 0, 0) end
 		vec = clamp(vec)
@@ -63,10 +63,9 @@ GateActions["entity_applyaf"] = {
 	inputtypes = { "ENTITY" , "ANGLE" },
 	timed = true,
 	output = function(gate, ent, angForce )
-		if not IsValid( ent ) then return end
+		if not isAllowed( gate, ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
-		if not isAllowed( gate, ent ) then return end
 		local clampedForce = clamp(angForce)
 		if clampedForce.x == 0 and clampedForce.y == 0 and clampedForce.z == 0 then return end
 
@@ -110,10 +109,9 @@ GateActions["entity_applytorq"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
 	output = function(gate, ent, vec )
-		if not IsValid( ent ) then return end
+		if not isAllowed( gate, ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
-		if not isAllowed( gate, ent ) then return end
 		if not isvector(vec) then vec = Vector (0, 0, 0) end
 		if not isvector(offset) then offset = Vector (0, 0, 0) end
 		vec 	= clamp(vec)

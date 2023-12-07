@@ -13,6 +13,8 @@ local asin = math.asin
 local rad2deg = 180 / pi
 local deg2rad = pi / 180
 
+local LerpVector = LerpVector
+
 -- Remove this when a later, mandatory update is made.
 -- These were added in the August (08) 9 (09) 2023 (23) update
 if VERSION < 230809 then
@@ -215,9 +217,10 @@ end
 __e2setcost(5)
 
 --- Returns a random vector with its components between <min> and <max>
-e2function vector randvec( normal min, normal max)
-	local range = max-min
-	return Vector(min+random()*range, min+random()*range, min+random()*range)
+e2function vector randvec(number min, number max)
+	local v = Vector()
+	v:Random(min, max)
+	return v
 end
 
 --- Returns a random vector between <min> and <max>
@@ -432,16 +435,12 @@ end
 __e2setcost(10)
 
 --- min/max based on vector length - returns shortest/longest vector
-e2function vector min(vector rv1, vector rv2)
-	local length1 = ( rv1[1] * rv1[1] + rv1[2] * rv1[2] + rv1[3] * rv1[3] ) ^ 0.5
-	local length2 = ( rv2[1] * rv2[1] + rv2[2] * rv2[2] + rv2[3] * rv2[3] ) ^ 0.5
-	if length1 < length2 then return rv1 else return rv2 end
+e2function vector min(vector vec1, vector vec2)
+	return vec1:LengthSqr() < vec2:LengthSqr() and vec1 or vec2
 end
 
-e2function vector max(vector rv1, vector rv2)
-	local length1 = ( rv1[1] * rv1[1] + rv1[2] * rv1[2] + rv1[3] * rv1[3] ) ^ 0.5
-	local length2 = ( rv2[1] * rv2[1] + rv2[2] * rv2[2] + rv2[3] * rv2[3] ) ^ 0.5
-	if length1 > length2 then return rv1 else return rv2 end
+e2function vector max(vector vec1, vector vec2)
+	return vec1:LengthSqr() > vec2:LengthSqr() and vec1 or vec2
 end
 
 --- component-wise min/max
@@ -498,9 +497,13 @@ e2function vector clamp(vector value, vector min, vector max)
 	return Vector(x, y, z)
 end
 
---- Mix two vectors by a given proportion (between 0 and 1)
-e2function vector mix(vector vec1, vector vec2, ratio)
-	return vec1 * ratio + vec2 * (1 - ratio)
+e2function vector lerp(vector from, vector to, fraction)
+	return LerpVector(fraction, from, to)
+end
+
+[deprecated = "Use lerp instead"]
+e2function vector mix(vector to, vector from, fraction)
+	return LerpVector(fraction, from, to)
 end
 
 e2function vector bezier(vector startVec, vector tangent, vector endVec, ratio)
@@ -543,11 +546,11 @@ end
 __e2setcost(3)
 
 e2function angle vector:toAngle()
-	return Vector(this[1], this[2], this[3]):Angle()
+	return this:Angle()
 end
 
 e2function angle vector:toAngle(vector up)
-	return Vector(this[1], this[2], this[3]):AngleEx(up)
+	return this:AngleEx(up)
 end
 
 --------------------------------------------------------------------------------
@@ -654,7 +657,7 @@ end
 --------------------------------------------------------------------------------
 -- Credits to Wizard of Ass for bearing(v,a,v) and elevation(v,a,v)
 
-local ANG_ZERO = Angle(0, 0, 0)
+local ANG_ZERO = angle_zero
 e2function number bearing(vector originpos, angle originangle, vector pos)
 	pos = WorldToLocal(pos, ANG_ZERO, originpos, originangle)
 	return rad2deg * -atan2(pos.y, pos.x)

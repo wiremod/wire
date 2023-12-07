@@ -920,7 +920,7 @@ end
 
 [deprecated = "Use the playerSpawn event instead"]
 e2function void runOnSpawn(number activate) -- If 1, make the chip run on a player respawning. Not joining.
-	RespawnAlert[self.entity] = active~=0 and true or nil
+	RespawnAlert[self.entity] = activate~=0 and true or nil
 end
 
 [nodiscard, deprecated = "Use the playerSpawn event instead"]

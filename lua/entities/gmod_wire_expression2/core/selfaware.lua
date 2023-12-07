@@ -316,7 +316,7 @@ local comparable_types = {
 
 registerCallback("postinit", function()
 	-- Angle is the same as vector
-	registerFunction("changed", "a", "n", registeredfunctions.e2_changed_v)
+	registerFunction("changed", "a", "n", registeredfunctions.e2_changed_v, 5, nil, { legacy = false })
 
 	-- generate this function for all types
 	for typeid,_ in pairs(wire_expression_types2) do

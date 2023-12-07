@@ -10,6 +10,8 @@ local Token, TokenVariant = E2Lib.Tokenizer.Token, E2Lib.Tokenizer.Variant
 local Node, NodeVariant = E2Lib.Parser.Node, E2Lib.Parser.Variant
 local Operator = E2Lib.Operator
 
+local pairs, ipairs = pairs, ipairs
+
 local TickQuota = GetConVar("wire_expression2_quotatick"):GetInt()
 
 cvars.RemoveChangeCallback("wire_expression2_quotatick", "compiler_quota_check")
@@ -134,7 +136,7 @@ end
 ---@param trace Trace
 ---@return T
 function Compiler:Assert(v, message, trace)
-	if not v then error(Error.new(message, trace), 0) end
+	if not v then self:Error(message, trace) end
 	return v
 end
 
@@ -548,6 +550,7 @@ local CompileVisitors = {
 		end
 
 		local default = data[3] and self:Scope(function(scope)
+			scope.data.switch_case = true
 			local b = self:CompileStmt(data[3])
 			dead = dead and scope.data.dead == "ret"
 			return b
@@ -589,6 +592,7 @@ local CompileVisitors = {
 
 			if default then
 				default(state)
+				state.__break__ = false
 			end
 
 			::exit::
@@ -827,7 +831,11 @@ local CompileVisitors = {
 			end
 		end)
 
-		self:Assert(fn.ret == return_type, "Function " .. name.value .. " expects to return type (" .. (return_type or "void") .. ") but got type (" .. (fn.ret or "void") .. ")", trace)
+		if return_type then
+			self:Assert(fn.ret == return_type, "Function " .. name.value .. " expects to return type (" .. return_type .. ") but got type (" .. (fn.ret or "void") .. ")", trace)
+		else
+			return_type = fn.ret
+		end
 
 		local sig = name.value .. "(" .. (meta_type and (meta_type .. ":") or "") .. sig .. ")"
 		local fn = fn.op
@@ -970,6 +978,8 @@ local CompileVisitors = {
 
 				-- It can have indices, it already exists
 				if #indices > 0 then
+					existing.trace_if_unused = nil
+
 					local setter, id = table.remove(indices), existing.depth
 					stmts[i] = function(state)
 						return state.Scopes[id][var]
@@ -1614,7 +1624,6 @@ local CompileVisitors = {
 
 		for k, arg in ipairs(data[2]) do
 			args[k], types[k] = self:CompileExpr(arg)
-			self:Assert(types[k], "Cannot use void expression as call argument", arg.trace)
 		end
 
 		local arg_sig = table.concat(types)
@@ -2049,20 +2058,22 @@ function Compiler:GetFunction(name, types, method)
 	end
 end
 
----@param node Node
----@return RuntimeOperator
----@return string expr_type
-function Compiler:CompileExpr(node)
-	assert(node.trace, "Incomplete node: " .. tostring(node))
-	local op, ty = assert(CompileVisitors[node.variant], "Unimplemented Compile Step: " .. node:instr())(self, node.trace, node.data, false)
-	self:Assert(ty, "Cannot use void in expression position", node.trace)
+function Compiler:CompileExpr(node --[[@param node Node]]) ---@return RuntimeOperator, string
+	local op, ty = CompileVisitors[node.variant](self, node.trace, node.data, false) ---@cast op -nil # Expressions should never return nil function
+
+	if ty == nil then
+		if node.variant == NodeVariant.ExprDynCall then
+			self:Error("Cannot use void in expression position ( Did you mean Call()[type] ? )", node.trace)
+		else
+			self:Error("Cannot use void in expression position", node.trace)
+		end
+	end ---@cast ty -nil # LuaLS can't figure this out yet.
+
 	return op, ty
 end
 
----@return RuntimeOperator
-function Compiler:CompileStmt(node)
-	assert(node.trace, "Incomplete node: " .. tostring(node))
-	return assert(CompileVisitors[node.variant], "Unimplemented Compile Step: " .. node:instr())(self, node.trace, node.data, true)
+function Compiler:CompileStmt(node --[[@param node Node]])
+	return CompileVisitors[node.variant](self, node.trace, node.data, true)
 end
 
 ---@param ast Node
