@@ -153,14 +153,16 @@ end
 
 ---@param message string
 ---@param trace Trace?
-function Parser:Error(message, trace)
-	error( Error.new( message, trace or self:Prev().trace ), 2 )
+---@param quick_fix { replace: string, at: Trace }[]?
+function Parser:Error(message, trace, quick_fix)
+	error( Error.new( message, trace or self:Prev().trace, nil, quick_fix ), 2 )
 end
 
 ---@param message string
 ---@param trace Trace?
-function Parser:Warning(message, trace)
-	self.warnings[#self.warnings + 1] = Warning.new( message, trace or self:Prev().trace )
+---@param quick_fix { replace: string, at: Trace }[]?
+function Parser:Warning(message, trace, quick_fix)
+	self.warnings[#self.warnings + 1] = Warning.new( message, trace or self:Prev().trace, quick_fix )
 end
 
 ---@generic T
@@ -537,6 +539,7 @@ function Parser:Type()
 	local type = self:Consume(TokenVariant.LowerIdent)
 	if type then
 		if type.value == "normal" then
+			self:Warning("Use of deprecated type [normal]", type.trace, { { at = type.trace, replace = "number" } })
 			type.value = "number"
 		end
 	else -- workaround to allow "function" as type while also being a keyword
