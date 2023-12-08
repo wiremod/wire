@@ -1201,3 +1201,13 @@ hook.Add("PlayerDisconnected", "WireLib_PlayerDisconnect", function(ply)
     tbl[ply] = nil
   end
 end)
+
+-- Notify --
+
+---@enum WireLib.NotifySeverity
+WireLib.NotifySeverity = {
+	None = 0,
+	Info = 1,
+	Warning = 2,
+	Error = 3
+}

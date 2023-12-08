@@ -1403,3 +1403,50 @@ if not WireLib.PatchedDuplicator then
 		return unpack(result)
 	end
 end
+
+-- Notify --
+
+local net_start = WireLib.Net.Start
+local severity2color = {
+	[0] = color_white,
+	[1] = color_white,
+	[2] = Color(255, 88, 1),
+	[3] = Color(255, 32, 0)
+}
+
+--- Sends a colored message to the player's chat.
+---@param ply Player
+---@param msg string
+---@param severity WireLib.NotifySeverity?
+---@param color Color?
+function WireLib.Notify(ply, msg, severity, color)
+	if not severity then severity = 1 end
+
+	net_start("notify")
+		net.WriteUInt(severity, 4)
+		net.WriteBool(color ~= nil)
+		if color ~= nil then net.WriteColor(color, false) end
+		local data = util.Compress(msg)
+		local datal = math.min(#data, 2048)
+		net.WriteUInt(datal, 11)
+		net.WriteData(data, datal)
+	net.Send(ply)
+end
+
+--- Sends a colored message to all players' chats.
+---@param msg string
+---@param severity WireLib.NotifySeverity? A value from WireLib.NotifySeverity
+---@param color Color?
+function WireLib.NotifyAll(msg, severity, color)
+	if not severity then severity = 1 end
+
+	net_start("notify")
+		net.WriteUInt(severity, 4)
+		net.WriteBool(color ~= nil)
+		if color ~= nil then net.WriteColor(color, false) end
+		local data = util.Compress(msg)
+		local datal = math.min(#data, 2048)
+		net.WriteUInt(datal, 11)
+		net.WriteData(data, datal)
+	net.Broadcast()
+end
