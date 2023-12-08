@@ -123,13 +123,9 @@ if SERVER then
 		name = name:lower()
 		local idx = registered_handlers[name]
 		if not idx then
-			if SERVER then
-				update_handlers(name, nohandler)
-				queue_handler_flush() -- Force flush in case the client doesn't have this particular name
-				idx = registered_handlers[name]
-			else
-				error("WireLib.Net trying to send message on client that isn't registered.")
-			end
+			update_handlers(name, nohandler)
+			queue_handler_flush() -- Force flush in case the client doesn't have this particular name
+			idx = registered_handlers[name]
 		end
 		net.Start("wirelib_net_message", unreliable)
 		net.WriteUInt(idx, SIZE)
