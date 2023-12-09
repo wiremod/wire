@@ -452,6 +452,17 @@ if SERVER then
 		return ents_with_inputs[eid], ents_with_outputs[eid]
 	end
 
+	function WireLib.RemoveOutPort(ent, name)
+		local outputs = ents_with_outputs[ent:EntIndex()]
+		if outputs then
+			for k, v in ipairs(outputs) do
+				if v[1] == name then
+					table.remove(outputs, k)
+				end
+			end
+		end
+	end
+
 	function WireLib._RemoveWire(eid, DontSend) -- To remove the inputs without to remove the entity. Very important for IsWire checks!
 		local hasinputs, hasoutputs = ents_with_inputs[eid], ents_with_outputs[eid]
 		if hasinputs or hasoutputs then

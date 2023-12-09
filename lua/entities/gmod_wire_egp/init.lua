@@ -13,8 +13,7 @@ function ENT:Initialize()
 
 	self.RenderTable = {}
 
-	WireLib.CreateOutputs( self, { "User (Outputs the player who used the screen for a single tick) [ENTITY]" } )
-	WireLib.CreateWirelinkOutput( nil, self, {true} )
+	WireLib.CreateOutputs( self, { "User (Outputs the player who used the screen for a single tick) [ENTITY]", "wirelink [WIRELINK]" } )
 
 	self.xScale = { 0, 512 }
 	self.yScale = { 0, 512 }

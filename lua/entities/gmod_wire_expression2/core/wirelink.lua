@@ -276,9 +276,6 @@ __e2setcost(5) -- temporary
 
 --- Return E2 wirelink -- and create it if none created yet
 e2function wirelink wirelink()
-	if not self.entity.extended then
-		WireLib.CreateWirelinkOutput( self.player, self.entity, {true} )
-	end
 	return self.entity
 end
 
