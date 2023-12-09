@@ -35,7 +35,7 @@ function EGP.umsg.Start( name, sender )
 	end
 	CurSender = sender
 
-	net.Start( name )
+	net.Start(name)
 	return true
 end
 
@@ -48,7 +48,10 @@ function EGP.umsg.End()
 		else
 			ErrorNoHalt("Tried to end EGP net message outside of net context?")
 		end
+		net.Broadcast()
+
+	else
+		net.Send(NULL)
 	end
-	net.Broadcast()
 	CurSender = NULL
 end
