@@ -420,17 +420,17 @@ end
 util.AddNetworkString( "wire_expression2_set_clipboard_text" )
 local clipboard_character_limit = CreateConVar("wire_expression2_clipboard_character_limit", 512, FCVAR_ARCHIVE, "Maximum character that can be copied into a players clipboard", 0, 65532)
 local clipboard_cooldown = CreateConVar("wire_expression2_clipboard_cooldown", 1, FCVAR_ARCHIVE, "Cooldown for setClipboardText in seconds", 0, nil)
-Expression2ClipboardLastCalled = {}
 
+
+-- TODO: Make an E2Lib.RegisterChipTable function that is essentially WireLib.RegisterPlayerTable, but handles chips.
+local ClipboardCooldown = {}
 registerCallback("destruct",function(self)
-	Expression2ClipboardLastCalled[self.entity:EntIndex()] = nil
+	ClipboardCooldown[self.entity] = nil
 end)
 
 __e2setcost(100)
 e2function void setClipboardText(string text)
-
-	local clipboard_allow = self.player:GetInfoNum("wire_expression2_clipboard_allow", 0)
-	if clipboard_allow == 0 then
+	if self.player:GetInfoNum("wire_expression2_clipboard_allow", 0) == 0 then
 		return self:throw("setClipboardText is not enabled. You need to change the convar \"wire_expression2_clipboard_allow\" to enable it", nil)
 	end
 
@@ -438,14 +438,14 @@ e2function void setClipboardText(string text)
 		return self:throw("setClipboardText exceeding string limit of " .. clipboard_character_limit:GetInt() .. " characters", nil)
 	end
 
-	local lastCooldown = type(Expression2ClipboardLastCalled[self.entity:EntIndex()]) == "number" and math.floor(Expression2ClipboardLastCalled[self.entity:EntIndex()]) or 0
-
-	if math.floor(CurTime()) < lastCooldown + clipboard_cooldown:GetInt() then
-		return self:throw("setClipboardText exceeded " .. clipboard_cooldown:GetInt() .. " second cooldown", nil)
-	else
-		Expression2ClipboardLastCalled[self.entity:EntIndex()] = math.floor(CurTime())
-		net.Start("wire_expression2_set_clipboard_text")
-			net.WriteString(text)
-		net.Send(self.player)
+	local cooldown, now = ClipboardCooldown[self.entity], CurTime()
+	if cooldown and now < cooldown then
+		return self:throw("You must wait " .. clipboard_cooldown:GetInt() .. " second(s) before calling setClipboardText again.", nil)
 	end
+
+	ClipboardCooldown[self.entity] = now + clipboard_cooldown:GetInt()
+
+	net.Start("wire_expression2_set_clipboard_text")
+		net.WriteString(text)
+	net.Send(self.player)
 end
