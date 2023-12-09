@@ -420,6 +420,11 @@ end
 util.AddNetworkString( "wire_expression2_set_clipboard_text" )
 local clipboard_character_limit = CreateConVar("wire_expression2_clipboard_character_limit", 512, FCVAR_ARCHIVE, "Maximum character that can be copied into a players clipboard", 0, 65532)
 local clipboard_cooldown = CreateConVar("wire_expression2_clipboard_cooldown", 1, FCVAR_ARCHIVE, "Cooldown for setClipboardText in seconds", 0, nil)
+Expression2ClipboardLastCalled = {}
+
+registerCallback("destruct",function(self)
+	Expression2ClipboardLastCalled[self.entity:EntIndex()] = nil
+end)
 
 __e2setcost(100)
 e2function void setClipboardText(string text)
@@ -429,18 +434,18 @@ e2function void setClipboardText(string text)
 		return self:throw("setClipboardText is not enabled. You need to change the convar \"wire_expression2_clipboard_allow\" to enable it", nil)
 	end
 
-	local timerid = "wire_expression2_clipboard_cooldown_" .. self.entity:EntIndex()
-	if not timer.Exists(timerid) then
-		if #text > clipboard_character_limit:GetInt() then
-			return self:throw("setClipboardText exceeding string limit of " .. clipboard_character_limit:GetInt() .. " characters", nil)
-		end
+	if #text > clipboard_character_limit:GetInt() then
+		return self:throw("setClipboardText exceeding string limit of " .. clipboard_character_limit:GetInt() .. " characters", nil)
+	end
 
-		timer.Create( timerid, clipboard_cooldown:GetInt(), 1, function() timer.Remove(timerid) end)
+	local lastCooldown = type(Expression2ClipboardLastCalled[self.entity:EntIndex()]) == "number" and math.floor(Expression2ClipboardLastCalled[self.entity:EntIndex()]) or 0
 
+	if math.floor(CurTime()) < lastCooldown + clipboard_cooldown:GetInt() then
+		return self:throw("setClipboardText exceeded " .. clipboard_cooldown:GetInt() .. " second cooldown", nil)
+	else
+		Expression2ClipboardLastCalled[self.entity:EntIndex()] = math.floor(CurTime())
 		net.Start("wire_expression2_set_clipboard_text")
 			net.WriteString(text)
 		net.Send(self.player)
-	else
-		return self:throw("setClipboardText cooldown!", nil)
 	end
 end
