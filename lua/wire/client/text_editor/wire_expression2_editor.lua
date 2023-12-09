@@ -903,10 +903,28 @@ function Editor:InitComponents()
 		end
 	end
 	self.C.Val.OnIssueClicked = function(panel, issue)
-		if issue.line ~= nil and issue.char ~= nil then
-			self:GetCurrentEditor():SetCaret({issue.line, issue.char})
+		if issue.trace ~= nil then
+			self:GetCurrentEditor():SetCaret({issue.trace.start_line, issue.trace.start_col})
 		end
 	end
+
+	self.C.Val.OnQuickFix = function(panel, issue)
+		local editor = self:GetCurrentEditor()
+
+		for _, fix in ipairs(issue.quick_fix) do
+			local trace = fix.at
+			editor:SetArea(
+				{
+					{ trace.start_line, trace.start_col },
+					{ trace.end_line, trace.end_col }
+				},
+				fix.replace
+			)
+		end
+
+		self:Validate()
+	end
+
 	self.C.Btoggle:SetImage("icon16/application_side_contract.png")
 	function self.C.Btoggle.DoClick(button)
 		if button.hide then

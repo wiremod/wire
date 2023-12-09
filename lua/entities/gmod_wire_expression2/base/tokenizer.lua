@@ -132,16 +132,17 @@ end
 
 ---@param message string
 ---@param trace Trace?
----@return boolean false
-function Tokenizer:Error(message, trace)
-	self.errors[#self.errors + 1] = Error.new( message, trace or self:GetTrace() )
+---@param quick_fix { replace: string, at: Trace }[]?
+function Tokenizer:Error(message, trace, quick_fix)
+	self.errors[#self.errors + 1] = Error.new( message, trace or self:GetTrace(), nil, quick_fix )
 	return false
 end
 
 ---@param message string
 ---@param trace Trace?
-function Tokenizer:Warning(message, trace)
-	self.warnings[#self.warnings + 1] = Warning.new( message, trace or self:GetTrace() )
+---@param quick_fix { replace: string, at: Trace }[]?
+function Tokenizer:Warning(message, trace, quick_fix)
+	self.warnings[#self.warnings + 1] = Warning.new( message, trace or self:GetTrace(), quick_fix )
 end
 
 local escapes = {
@@ -346,11 +347,11 @@ function Tokenizer:Next()
 						if not esc then
 							err = "Hexadecimal escape expects 2 hex digits"
 						else
-							esc = string.char(tonumber(esc, 16) or 0)
+							esc = string_char(tonumber(esc, 16) or 0)
 						end
 					else
 						esc = "\\"
-						self:Warning("Invalid escape " .. "\\" .. string_gsub(char, "%G", " "), Trace.new(line, col, self.line, self.col))
+						self:Warning("Invalid escape " .. "\\" .. string_gsub(char, "%G", " "), Trace.new(line, col, self.line, self.col), { { at = Trace.new(self.line, self.col - 1, self.line, self.col), replace = "" } })
 					end
 
 					::_err::

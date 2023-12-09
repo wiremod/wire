@@ -125,8 +125,9 @@ end
 
 ---@param message string
 ---@param trace Trace
-function Compiler:Error(message, trace)
-	error( Error.new(message, trace), 0)
+---@param quick_fix { replace: string, at: Trace }[]?
+function Compiler:Error(message, trace, quick_fix)
+	error( Error.new(message, trace, nil, quick_fix), 0)
 end
 
 ---@generic T
@@ -152,12 +153,13 @@ end
 
 ---@param message string
 ---@param trace Trace
-function Compiler:Warning(message, trace)
+---@param quick_fix { replace: string, at: Trace }[]?
+function Compiler:Warning(message, trace, quick_fix)
 	if self.include then
 		local tbl = self.warnings[self.include]
-		tbl[#tbl + 1] = Warning.new(message, trace)
+		tbl[#tbl + 1] = Warning.new(message, trace, quick_fix)
 	else
-		self.warnings[#self.warnings + 1] = Warning.new(message, trace)
+		self.warnings[#self.warnings + 1] = Warning.new(message, trace, quick_fix)
 	end
 end
 
@@ -229,11 +231,11 @@ local CompileVisitors = {
 					stmts[i], traces[i] = stmt, trace
 
 					if node:isExpr() and node.variant ~= NodeVariant.ExprDynCall and node.variant ~= NodeVariant.ExprCall and node.variant ~= NodeVariant.ExprMethodCall then
-						self:Warning("This expression has no effect", node.trace)
+						self:Warning("This expression has no effect", node.trace, { { replace = "", at = node.trace } })
 					end
 				end
 			else
-				self:Warning("Unreachable code detected", node.trace)
+				self:Warning("Unreachable code detected", node.trace, { { replace = "", at = node.trace } })
 				break
 			end
 		end
@@ -608,7 +610,7 @@ local CompileVisitors = {
 		if err_ty then
 			self:Assert(err_ty.value == "string", "Error type can only be string, for now", err_ty.trace)
 		else
-			self:Warning("You should explicitly annotate the error type as :string", err_var.trace)
+			self:Warning("You should explicitly annotate the error type as :string", err_var.trace, { { replace = err_var.value .. ":string", at = err_var.trace } })
 		end
 
 		self:Scope(function (scope)
@@ -665,7 +667,7 @@ local CompileVisitors = {
 					self:Error("Variadic parameter requires explicit type", param.name.trace)
 				else
 					param_types[i] = "n"
-					self:Warning("Use of implicit parameter type is deprecated (add :number)", param.name.trace)
+					self:Warning("Use of implicit parameter type is deprecated (add :number)", param.name.trace, { { replace = param.name.value .. ":number", at = param.name.trace } })
 				end
 
 				if param.name.value ~= "_" and existing[param.name.value] then
@@ -1615,6 +1617,11 @@ local CompileVisitors = {
 	---@param data { [1]: Token<string>, [2]: Node[] }
 	[NodeVariant.ExprCall] = function (self, trace, data, used_as_stmt)
 		local name, args, types = data[1], {}, {}
+
+		if name.value == "changed" and data[2][1].variant == NodeVariant.ExprIdent and self.inputs[3][data[2][1].data.value] then
+			self:Warning("Use ~ instead of changed() for inputs", trace, { { replace = "~" .. data[2][1].data.value, at = trace } })
+		end
+
 		for k, arg in ipairs(data[2]) do
 			args[k], types[k] = self:CompileExpr(arg)
 		end
@@ -1903,7 +1910,7 @@ local CompileVisitors = {
 		for i, param in ipairs(data[2]) do
 			local type = param.type and self:CheckType(param.type)
 			if not type then
-				self:Warning("Use of implicit parameter type is deprecated (add :number)", param.name.trace)
+				self:Warning("Use of implicit parameter type is deprecated", param.name.trace, { { replace = param.name.value .. ":number", at = param.name.trace } })
 				type = "n"
 			end
 			params[i] = { param.name.value, type }
