@@ -23,7 +23,7 @@ local defaultPrintDelay = 0.3
 -- the amount of "charges" a player has by default
 local defaultMaxPrints = 15
 -- default max print length
-local defaultMaxLength = 1000
+local defaultMaxLength = game.SinglePlayer() and 10000 or 1000
 
 -- Contains the amount of "charges" a player has, i.e. the amount of print-statements can be executed before
 -- the messages being omitted. The defaultPrintDelay is the time required to add one additional charge to the
@@ -303,94 +303,160 @@ __e2setcost(150)
 util.AddNetworkString("wire_expression2_printColor")
 util.AddNetworkString("wire_expression2_print")
 
-local printColor_typeids = {
-	n = tostring,
-	s = function(text) return string.Left(text,249) end,
-	v = function(v) return Color(v[1],v[2],v[3]) end,
-	xv4 = function(v) return Color(v[1],v[2],v[3],v[4]) end,
-	e = function(e) return IsValid(e) and e:IsPlayer() and e or "" end,
-}
+local bytes = 0
+local max_len = 0
 
-local function printColorVarArg(chip, ply, console, typeids, vararg)
-	if not IsValid(ply) then return end
-	if not checkDelay(ply) then return end
-
-	local i = 1
-	for i,tp in ipairs(typeids) do
-		if printColor_typeids[tp] then
-			vararg[i] = printColor_typeids[tp](vararg[i])
-		else
-			vararg[i] = ""
-		end
-		if i == 256 then break end
-		i = i + 1
-	end
-
-	net.Start("wire_expression2_printColor")
-		net.WriteEntity(chip)
-		net.WriteBool(console)
-		net.WriteTable(vararg)
-	net.Send(ply)
+-- Proprietary type IDs just for placebo network saving:
+-- 0 - EOF
+-- 1 - number
+-- 2 - string
+-- 3 - color
+-- 4 - entity
+local function pc_number_writer(n)
+	bytes = bytes + 8
+	net.WriteUInt(1, 4)
+	net.WriteDouble(n)
 end
 
-local printColor_types = {
-	number = tostring,
-	string = function(text) return string.Left(text,249) end,
-	Vector = function(v) return Color(v[1],v[2],v[3]) end,
-	table = function(tbl)
-		for i,v in pairs(tbl) do
-			if not isnumber(i) then return "" end
-			if not isnumber(v) then return "" end
-			if i < 1 or i > 4 then return "" end
+local function pc_string_writer(text)
+	local len = bytes + #text
+	net.WriteUInt(2, 4)
+	if len >= max_len then
+		net.WriteString(string.sub(text, 1, max_len - bytes))
+	else
+		net.WriteString(text)
+	end
+	bytes = len + 1
+end
+
+local function pc_entity_writer(e)
+	bytes = bytes + 2 -- edict is 13 bits oh well
+	net.WriteUInt(4, 4)
+	net.WriteEntity(e)
+end
+
+local function pc_vector_writer(v)
+	bytes = bytes + 24
+	net.WriteUInt(3, 4)
+	net.WriteUInt(v[1], 8)
+	net.WriteUInt(v[2], 8)
+	net.WriteUInt(v[3], 8)
+end
+
+local printcolor_writers = {
+	[TYPE_NUMBER] = pc_number_writer,
+	[TYPE_STRING] = pc_string_writer,
+	[TYPE_VECTOR] = pc_vector_writer,
+	[TYPE_TABLE] = function(t)
+		if IsColor(t) then
+			bytes = bytes + 24
+			net.WriteUInt(3, 4)
+			net.WriteColor(t, false)
+		else
+			for i, v in pairs(t) do
+				if not isnumber(i) then return end
+				if not isnumber(v) then return end
+				if i < 1 or i > 4 then return end
+			end
+			bytes = bytes + 24
+			net.WriteUInt(3, 4)
+			net.WriteUInt(t[1], 8)
+			net.WriteUInt(t[2], 8)
+			net.WriteUInt(t[3], 8)
 		end
-		return Color(tbl[1] or 0, tbl[2] or 0,tbl[3] or 0,tbl[4])
 	end,
-	Player = function(e) return IsValid(e) and e:IsPlayer() and e or "" end,
+	[TYPE_ENTITY] = pc_entity_writer,
+
+	n = pc_number_writer,
+	s = pc_string_writer,
+	v = pc_vector_writer,
+	e = pc_entity_writer,
+	xv4 = function(t)
+		bytes = bytes + 24
+		net.WriteUInt(3, 4)
+		net.WriteUInt(t[1], 8)
+		net.WriteUInt(t[2], 8)
+		net.WriteUInt(t[3], 8)
+	end,
 }
 
-local function printColorArray(chip, ply, console, arr)
+local function printColorVarArg(self, ply, console, typeids, vararg)
 	if not IsValid(ply) then return end
-	if not checkDelay( ply ) then return end
+	if not checkDelay(ply) then return end
+	bytes = 0
 
-	local send_array = {}
-
-	local i = 1
-	for i,tp in ipairs_map(arr,type) do
-		if printColor_types[tp] then
-			send_array[i] = printColor_types[tp](arr[i])
-		else
-			send_array[i] = ""
-		end
-		if i == 256 then break end
-		i = i + 1
-	end
+	max_len = math.min(maxLength:GetInt(), self.player:GetInfoNum("wire_expression2_print_max_length", defaultMaxLength))
+	max_len = math.min(max_len + math.floor(max_len / 3), 65532) -- Add a third just to be nice
 
 	net.Start("wire_expression2_printColor")
-		net.WriteEntity(chip)
+		net.WriteEntity(self.entity:GetPlayer()) -- CHANGE THIS TO WritePlayer LATER!!!
 		net.WriteBool(console)
-		net.WriteTable(send_array)
+
+		for i, tp in ipairs(typeids) do
+			local fn = printcolor_writers[tp]
+			if fn then
+				fn(vararg[i])
+			else
+				pc_string_writer(repr(self, vararg[i], tp))
+			end
+			if bytes >= max_len then break end
+		end
+
+		net.WriteUInt(0, 4)
+
 	net.Send(ply)
+
+	self.prf = self.prf + bytes / 8
+end
+
+local function printColorArray(self, ply, console, arr)
+	if not IsValid(ply) then return end
+	if not checkDelay(ply) then return end
+	bytes = 0
+
+	max_len = math.min(maxLength:GetInt(), self.player:GetInfoNum("wire_expression2_print_max_length", defaultMaxLength))
+	max_len = math.min(max_len + math.floor(max_len / 3), 65532)
+
+	net.Start("wire_expression2_printColor")
+		net.WriteEntity(self.entity:GetPlayer())
+		net.WriteBool(console)
+
+		for _, v in ipairs(arr) do
+			local fn = printcolor_writers[TypeID(v)]
+			if fn then
+				fn(v)
+			else
+				pc_string_writer(tostring(v))
+			end
+			if bytes >= max_len then break end
+		end
+
+		net.WriteUInt(0, 4)
+
+	net.Send(ply)
+
+	self.prf = self.prf + bytes / 8
 end
 
 
 --- Works like [[chat.AddText]](...). Parameters can be any amount and combination of numbers, strings, player entities, color vectors (both 3D and 4D).
 e2function void printColor(...args)
-	printColorVarArg(nil, self.player, false, typeids, args)
+	printColorVarArg(self, self.player, false, typeids, args)
 end
 
 --- Like printColor(...), except taking an array containing all the parameters.
 e2function void printColor(array arr)
-	printColorArray(nil, self.player, false, arr)
+	printColorArray(self, self.player, false, arr)
 end
 
 --- Works like MsgC(...). Parameters can be any amount and combination of numbers, strings, player entities, color vectors (both 3D and 4D).
 e2function void printColorC(...args)
-	printColorVarArg(nil, self.player, true, typeids, args)
+	printColorVarArg(self, self.player, true, typeids, args)
 end
 
 --- Like printColorC(...), except taking an array containing all the parameters.
 e2function void printColorC(array arr)
-	printColorArray(nil, self.player, true, arr)
+	printColorArray(self, self.player, true, arr)
 end
 
 --- Like printColor(...), except printing in <this>'s driver's chat area instead of yours.
@@ -402,7 +468,7 @@ e2function void entity:printColorDriver(...args)
 
 	if not checkDelay( driver ) then return end
 
-	printColorVarArg(self.entity, driver, false, typeids, args)
+	printColorVarArg(self, driver, false, typeids, args)
 end
 
 --- Like printColor(R), except printing in <this>'s driver's chat area instead of yours.
@@ -414,5 +480,5 @@ e2function void entity:printColorDriver(array arr)
 
 	if not checkDelay( driver ) then return end
 
-	printColorArray(self.entity, driver, false, arr)
+	printColorArray(self, driver, false, arr)
 end
