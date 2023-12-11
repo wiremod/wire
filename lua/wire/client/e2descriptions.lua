@@ -929,6 +929,7 @@ E2Helper.Descriptions["printColorDriver(e:...)"] = "Like printColor but prints t
 E2Helper.Descriptions["printColorDriver(e:r)"] = "Like printColorDriver but takes an array containing all the parameters"
 E2Helper.Descriptions["printTable(t)"] = "Prints a table like the lua function PrintTable does, except to the chat area"
 E2Helper.Descriptions["printTable(r)"] = "Prints an array like the lua function PrintTable does, except to the chat area"
+E2Helper.Descriptions["setClipboardText(s)"] = "Adds the given string to the chip owners clipboard"
 
 -- Time
 E2Helper.Descriptions["tickClk()"] = "Returns 1 if the current execution was caused by \"runOnTick\""
