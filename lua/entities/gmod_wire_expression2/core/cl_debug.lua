@@ -3,7 +3,7 @@ CreateClientConVar( "wire_expression2_print_max_length", 1000, true, true )
 CreateClientConVar( "wire_expression2_print_delay", 0.3, true, true )
 local cvar_warn = CreateClientConVar("wire_expression2_printcolor_warn", 1, true, true, "Shows a warning when someone uses printColorDriver on you")
 
-local not_warned = true
+local not_warned = not game.SinglePlayer()
 
 local RED = Color(255, 0, 0)
 
@@ -34,7 +34,7 @@ net.Receive("wire_expression2_printColor", function()
 	else
 		if not_warned and ply ~= LocalPlayer() then
 			not_warned = false
-			if cvar_warn:GetBool() and not game.SinglePlayer() then
+			if cvar_warn:GetBool() then
 				chat.AddText(RED, "While in somone's seat/car/whatever, printColorDriver can be used to 100% realistically fake people talking, including admins.\
 Don't trust a word you hear while in a seat after seeing this message!")
 			end
