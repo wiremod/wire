@@ -27,44 +27,55 @@ net.Receive("wirelib_net_message", msg_handler)
 if SERVER then
 	util.AddNetworkString("wirelib_net_message")
 
+	local MAXLEN = 4096
+
+	local handler_names = {}
 	local handler_queue = {}
 	local queue_handler_firstidx, queue_handler_lastidx
+	local function queue_handler_flush(ply, tbl, first, last)
+		local restart = false
+		tbl = tbl or handler_queue
+		first = first or queue_handler_firstidx
+		last = last or queue_handler_lastidx
 
-	local function queue_handler_flush(ply)
-		local restart, lastidx = false, queue_handler_lastidx
-		if queue_handler_firstidx then
-			net.Start("wirelib_net_message")
+		if first then
+			local name = "wirelib_net_flush" .. (ply and ply:UserID() or "")
 
-				local data, len = "", 0
-				for i, v in ipairs(handler_queue) do
-					len = len + #v + 1
-					data = data .. v .. "\0"
-					if len > 2048 then
-						lastidx = i
-						restart = true
-						break
+			local function flush()
+				net.Start("wirelib_net_message")
+					local data, len, j = "", 0, last
+					for i, v in ipairs(tbl) do
+						len = len + #v + 1
+						data = data .. v .. "\0"
+						if len > MAXLEN then
+							j = i
+							restart = true
+							break
+						end
 					end
+
+					net.WriteUInt(0, SIZE)
+					net.WriteUInt(first, SIZE)
+					net.WriteUInt(j, SIZE)
+
+					data = util.Compress(data)
+					local datalen = #data
+					net.WriteUInt(datalen, 16)
+					net.WriteData(data, datalen)
+				if ply then net.Send(ply) else net.Broadcast() end
+
+				if restart and first < last then
+					first = j + 1
+					timer.Create(name, 0, 2, flush)
+					return true
+				else
+					timer.Remove(name)
 				end
+			end
 
-				net.WriteUInt(0, SIZE)
-				net.WriteUInt(queue_handler_firstidx, SIZE)
-				net.WriteUInt(lastidx, SIZE)
+			flush()
 
-				data = util.Compress(data)
-				local datalen = #data
-				net.WriteUInt(datalen, 16)
-				net.WriteData(data, datalen)
-
-			if ply then net.Send(ply) else net.Broadcast() end
-		end
-
-		if restart and queue_handler_firstidx < queue_handler_lastidx then
-			queue_handler_firstidx = lastidx + 1
-			timer.Create("wirelib_net_flush", 0, 2, queue_handler_flush)
-		else
-			handler_queue = {}
-			queue_handler_firstidx, queue_handler_lastidx = nil, nil
-			timer.Remove("wirelib_net_flush")
+			if tbl == handler_queue then queue_handler_firstidx, queue_handler_lastidx, handler_queue = nil, nil, {} end
 		end
 	end
 	local function queue_handler_update(idx, name)
@@ -78,14 +89,14 @@ if SERVER then
 				queue_handler_firstidx, queue_handler_lastidx = idx, idx
 				handler_queue[1] = name
 
-				timer.Adjust("wirelib_net_flush", 1, 2)
+				timer.Adjust("wirelib_net_flush", 0, 2)
 			end
 
 		else
 			queue_handler_firstidx, queue_handler_lastidx = idx, idx
 			handler_queue[1] = name
 
-			timer.Create("wirelib_net_flush", 1, 2, queue_handler_flush)
+			queue_handler_flush()
 		end
 	end
 
@@ -93,6 +104,7 @@ if SERVER then
 		error("WireLib.Net trying to call unimplemented handler on server")
 	end
 
+	---@param name string
 	update_handlers = function(name, callback)
 		local handler_idx = registered_handlers[name]
 		if not handler_idx then
@@ -110,6 +122,7 @@ if SERVER then
 		else
 			registered_handlers[handler_idx] = callback
 		end
+		handler_names[handler_idx] = name
 	end
 	registered_handlers[0] = function(_, ply)
 		error(string.format("WireLib.Net received invalid message from %s (Player %d, Entity %d)", ply:SteamID(), ply:UserID(), ply:EntIndex()))
@@ -139,6 +152,11 @@ if SERVER then
 		update_handlers(name:lower(), callback)
 	end
 
+	gameevent.Listen("player_activate")
+
+	hook.Add("player_activate", "wirenet_ff_player", function(d)
+		queue_handler_flush(Player(d.userid), handler_names, 1, #handler_names)
+	end)
 else
 	update_handlers = function(name, callback)
 		local handler_idx = registered_handlers[name]
@@ -189,6 +207,4 @@ function Net.Receive(name, callback)
 	update_handlers(name:lower(), callback)
 end
 
-function Net.Receivers()
-	return registered_handlers
-end
+Net.Receivers = registered_handlers

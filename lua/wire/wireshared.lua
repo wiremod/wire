@@ -1204,10 +1204,8 @@ end)
 
 -- Notify --
 
----@enum WireLib.NotifySeverity
-WireLib.NotifySeverity = {
-	None = 0,
-	Info = 1,
-	Warning = 2,
-	Error = 3
-}
+---@alias WireLib.NotifySeverity
+---| 0 # None
+---| 1 # Info
+---| 2 # Warning
+---| 3 # Error

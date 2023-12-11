@@ -1426,8 +1426,8 @@ function WireLib.Notify(ply, msg, severity, color)
 		net.WriteUInt(severity, 4)
 		net.WriteBool(color ~= nil)
 		if color ~= nil then net.WriteColor(color, false) end
-		local data = util.Compress(msg)
-		local datal = math.min(#data, 2048)
+		local data = util.Compress(string.sub(msg, 1, 2048))
+		local datal = #data
 		net.WriteUInt(datal, 11)
 		net.WriteData(data, datal)
 	net.Send(ply)
