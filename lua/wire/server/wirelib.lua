@@ -1420,7 +1420,7 @@ local function notify(ply, msg, severity, chatprint, color)
 	if not severity then severity = 1 end
 	if chatprint == nil then chatprint = severity < 2 end
 
-	if severity > 1 then
+	if not ply or severity > 2 then
 		if game.SinglePlayer() then
 			ply = Entity(1)
 		else
