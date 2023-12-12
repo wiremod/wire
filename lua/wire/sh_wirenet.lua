@@ -19,7 +19,7 @@ local function msg_handler(len, ply)
 	if handler then
 		handler(len, ply)
 	else
-		error("WireLib.Net tried to receive message that is not registered.")
+		error("WireLib.Net.Trivial tried to receive message that is not registered.")
 	end
 end
 
@@ -28,53 +28,32 @@ net.Receive("wirelib_net_message", msg_handler)
 if SERVER then
 	util.AddNetworkString("wirelib_net_message")
 
-	local MAXLEN = 4096
-
 	local handler_names = {}
 	local handler_queue = {}
 	local queue_handler_firstidx, queue_handler_lastidx
 	local function queue_handler_flush(ply, tbl, first, last)
-		local restart = false
 		tbl = tbl or handler_queue
 		first = first or queue_handler_firstidx
 		last = last or queue_handler_lastidx
 
-		if first then
-			local name = "wirelib_net_flush" .. (ply and ply:UserID() or "")
+		if first and first <= last then
+			net.Start("wirelib_net_message")
+				local data = table.concat(tbl, "\0") .. "\0"
 
-			local function flush()
-				net.Start("wirelib_net_message")
-					local data, len, j = "", 0, last
-					for i, v in ipairs(tbl) do
-						len = len + #v + 1
-						data = data .. v .. "\0"
-						if len > MAXLEN then
-							j = i
-							restart = true
-							break
-						end
-					end
+				net.WriteUInt(0, SIZE)
+				net.WriteUInt(first, SIZE)
+				net.WriteUInt(last, SIZE)
 
-					net.WriteUInt(0, SIZE)
-					net.WriteUInt(first, SIZE)
-					net.WriteUInt(j, SIZE)
-
+				if #data < 4096 then
 					data = util.Compress(data)
-					local datalen = #data
-					net.WriteUInt(datalen, 16)
-					net.WriteData(data, datalen)
-				if ply then net.Send(ply) else net.Broadcast() end
-
-				if restart and first < last then
-					first = j + 1
-					timer.Create(name, 0, 2, flush)
-					return true
+					net.WriteBool(false)
+					net.WriteUInt(#data, 12)
+					net.WriteData(data)
 				else
-					timer.Remove(name)
+					net.WriteBool(true)
+					net.WriteStream(data, nil, false)
 				end
-			end
-
-			flush()
+			if ply then net.Send(ply) else net.Broadcast() end
 
 			if tbl == handler_queue then queue_handler_firstidx, queue_handler_lastidx, handler_queue = nil, nil, {} end
 		end
@@ -90,19 +69,19 @@ if SERVER then
 				queue_handler_firstidx, queue_handler_lastidx = idx, idx
 				handler_queue[1] = name
 
-				timer.Adjust("wirelib_net_flush", 0, 2)
+				timer.Create("wirelib_net_flush", 0, 1, queue_handler_flush)
 			end
 
 		else
 			queue_handler_firstidx, queue_handler_lastidx = idx, idx
 			handler_queue[1] = name
 
-			queue_handler_flush()
+			timer.Create("wirelib_net_flush", 0, 1, queue_handler_flush)
 		end
 	end
 
 	local function nohandler()
-		error("WireLib.Net trying to call unimplemented handler on server")
+		error("WireLib.Net.Trivial trying to call unimplemented handler on server")
 	end
 
 	---@param name string
@@ -126,7 +105,7 @@ if SERVER then
 		handler_names[handler_idx] = name
 	end
 	registered_handlers[0] = function(_, ply)
-		error(string.format("WireLib.Net received invalid message from %s (Player %d, Entity %d)", ply:SteamID(), ply:UserID(), ply:EntIndex()))
+		error(string.format("WireLib.Net.Trivial received invalid message from %s (Player %d, Entity %d)", ply:SteamID(), ply:UserID(), ply:EntIndex()))
 	end
 
 	--- Starts a trivial net message within a normal Gmod net context.
@@ -158,7 +137,7 @@ if SERVER then
 	hook.Add("player_activate", "wirenet_ff_player", function(d)
 		queue_handler_flush(Player(d.userid), handler_names, 1, #handler_names)
 	end)
-else
+else -- CLIENT
 	update_handlers = function(name, callback)
 		local handler_idx = registered_handlers[name]
 		if not handler_idx then
@@ -168,18 +147,26 @@ else
 		end
 	end
 
+	local function stripstrings(begin, last, str)
+		local charstart, charend = 1, 0
+				for i = begin, last do
+					charend = string.find(str, "\0", charstart, true)
+					local name = string.sub(str, charstart, charend - 1)
+					registered_handlers[i] = registered_handlers[name] -- This is hacky but it works
+					registered_handlers[name] = i
+					charstart = charend + 1
+				end
+	end
+
 	local function internal_update()
 		local begin = net.ReadUInt(SIZE)
 		local last = net.ReadUInt(SIZE)
-		local data = util.Decompress(net.ReadData(net.ReadUInt(16)))
-
-		local charstart, charend = 1, 0
-		for i = begin, last do
-			charend = string.find(data, "\0", charstart, true)
-			local name = string.sub(data, charstart, charend - 1)
-			registered_handlers[i] = registered_handlers[name] -- This is hacky but it works
-			registered_handlers[name] = i
-			charstart = charend + 1
+		if net.ReadBool() then
+			net.ReadStream(nil, function(data)
+				stripstrings(begin, last, data)
+			end)
+		else
+			stripstrings(begin, last, util.Decompress(net.ReadData(net.ReadUInt(12))))
 		end
 	end
 
@@ -193,7 +180,7 @@ else
 		name = name:lower()
 		local idx = registered_handlers[name]
 		if not idx then
-			error("WireLib.Net trying to send message on client that isn't registered.")
+			error("WireLib.Net.Trivial trying to send message on client that isn't registered.")
 		end
 		net.Start("wirelib_net_message", unreliable)
 		net.WriteUInt(idx, SIZE)

@@ -1226,7 +1226,7 @@ local severity2title = {
 	[3] = { WIREMOD_COLOR, "[Wiremod ", severity2color[3], "ERROR", WIREMOD_COLOR, "]: " },
 }
 
---- Internal. Creates a table for MsgC/chat.AddText
+--- Internal. Creates a table for MsgC/chat.AddText.
 function WireLib.NotifyBuilder(msg, severity, color)
 	local ret = {}
 	for k, v in ipairs(severity2title[severity]) do
