@@ -1420,14 +1420,19 @@ local function notify(ply, msg, severity, chatprint, color)
 	if not severity then severity = 1 end
 	if chatprint == nil then chatprint = severity < 2 end
 
-	if severity > 1 and not game.SinglePlayer() then
-		local arg = WireLib.NotifyBuilder(msg, severity, color)
-		if ply then
-			table.insert(arg, 2, ": ")
-			table.insert(arg, 2, ply)
+	if severity > 1 then
+		if game.SinglePlayer() then
+			ply = Entity(1)
+		else
+			local arg = WireLib.NotifyBuilder(msg, severity, color)
+			if ply then
+				table.insert(arg, 2, ": ")
+				table.insert(arg, 2, ply)
+			end
+			MsgC(unpack(arg))
 		end
-		MsgC(unpack(arg))
-	else
+	end
+	if ply then
 		triv_start("notify")
 			net.WriteUInt(severity, 4)
 			net.WriteBool(color ~= nil)
