@@ -1406,23 +1406,19 @@ end
 
 -- Notify --
 
-local net_start = WireLib.Net.Start
-local severity2color = {
-	[0] = color_white,
-	[1] = color_white,
-	[2] = Color(255, 88, 1),
-	[3] = Color(255, 32, 0)
-}
+local triv_start = WireLib.Net.Trivial.Start
 
 --- Sends a colored message to the player's chat.
----@param ply Player
+---@param ply Player | Player[]
 ---@param msg string
 ---@param severity WireLib.NotifySeverity?
+---@param chatprint boolean?
 ---@param color Color?
-function WireLib.Notify(ply, msg, severity, color)
+function WireLib.Notify(ply, msg, severity, chatprint, color)
 	if not severity then severity = 1 end
+	if chatprint == nil then chatprint = severity <= 1 end
 
-	net_start("notify")
+	triv_start("notify")
 		net.WriteUInt(severity, 4)
 		net.WriteBool(color ~= nil)
 		if color ~= nil then net.WriteColor(color, false) end
@@ -1430,17 +1426,29 @@ function WireLib.Notify(ply, msg, severity, color)
 		local datal = #data
 		net.WriteUInt(datal, 11)
 		net.WriteData(data, datal)
+		net.WriteBool(chatprint)
 	net.Send(ply)
 end
 
---- Sends a colored message to all players' chats.
+--- Sends a colored message to all players in a usergroup.
+---@param group string | string[]
 ---@param msg string
 ---@param severity WireLib.NotifySeverity? A value from WireLib.NotifySeverity
+---@param chatprint boolean?
 ---@param color Color?
-function WireLib.NotifyAll(msg, severity, color)
+function WireLib.NotifyGroup(group, msg, severity, chatprint, color)
 	if not severity then severity = 1 end
+	if chatprint == nil then chatprint = severity <= 1 end
 
-	net_start("notify")
+	local plys = {}
+
+	for _, p in ipairs(player.GetAll()) do
+		if p:GetUserGroup() == group then
+			plys[#plys + 1] = p
+		end
+	end
+
+	triv_start("notify")
 		net.WriteUInt(severity, 4)
 		net.WriteBool(color ~= nil)
 		if color ~= nil then net.WriteColor(color, false) end
@@ -1448,5 +1456,27 @@ function WireLib.NotifyAll(msg, severity, color)
 		local datal = math.min(#data, 2048)
 		net.WriteUInt(datal, 11)
 		net.WriteData(data, datal)
+		net.WriteBool(chatprint)
+	net.Send(plys)
+end
+
+--- Sends a colored message to all players' chats.
+---@param msg string
+---@param severity WireLib.NotifySeverity? A value from WireLib.NotifySeverity
+---@param chatprint boolean?
+---@param color Color?
+function WireLib.NotifyAll(msg, severity, chatprint, color)
+	if not severity then severity = 1 end
+	if chatprint == nil then chatprint = severity <= 1 end
+
+	triv_start("notify")
+		net.WriteUInt(severity, 4)
+		net.WriteBool(color ~= nil)
+		if color ~= nil then net.WriteColor(color, false) end
+		local data = util.Compress(msg)
+		local datal = math.min(#data, 2048)
+		net.WriteUInt(datal, 11)
+		net.WriteData(data, datal)
+		net.WriteBool(chatprint)
 	net.Broadcast()
 end

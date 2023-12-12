@@ -7,6 +7,7 @@ local Net = WireLib.Net or {}
 WireLib.Net = Net
 
 -- Trivial Networking
+Net.Trivial = {}
 local SIZE = 10 -- 1023 names
 
 local registered_handlers = {}
@@ -132,7 +133,7 @@ if SERVER then
 	--- Use net functions normally after this.
 	---@param name string
 	---@param unreliable boolean?
-	function Net.Start(name, unreliable)
+	function Net.Trivial.Start(name, unreliable)
 		name = name:lower()
 		local idx = registered_handlers[name]
 		if not idx then
@@ -148,7 +149,7 @@ if SERVER then
 	--- Use net functions normally in the callback.
 	---@param name string
 	---@param callback fun(len:string, ply:Player)
-	function Net.Receive(name, callback)
+	function Net.Trivial.Receive(name, callback)
 		update_handlers(name:lower(), callback)
 	end
 
@@ -188,7 +189,7 @@ else
 	--- Use net functions normally after this.
 	---@param name string
 	---@param unreliable boolean?
-	function Net.Start(name, unreliable)
+	function Net.Trivial.Start(name, unreliable)
 		name = name:lower()
 		local idx = registered_handlers[name]
 		if not idx then
@@ -203,7 +204,7 @@ end
 --- Use net functions normally in the callback.
 ---@param name string
 ---@param callback fun(len:string, ply:Player)
-function Net.Receive(name, callback)
+function Net.Trivial.Receive(name, callback)
 	update_handlers(name:lower(), callback)
 end
 

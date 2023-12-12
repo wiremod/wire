@@ -268,7 +268,12 @@ local severity2title = {
 	[3] = { WIREMOD_COLOR, "[Wiremod ", severity2color[3], "ERROR", WIREMOD_COLOR, "]: " },
 }
 
-WireLib.Net.Receive("notify", function()
+local severity2word = {
+	[2] = "warning",
+	[3] = "error"
+}
+
+WireLib.Net.Trivial.Receive("notify", function()
 	local args = {}
 	local severity = net.ReadUInt(4)
 	for k, v in ipairs(severity2title[severity]) do
@@ -277,6 +282,14 @@ WireLib.Net.Receive("notify", function()
 	local n = #args
 	args[n + 1] = net.ReadBool() and net.ReadColor(false) or severity2color[severity]
 	args[n + 2] = util.Decompress(net.ReadData(net.ReadUInt(11)))
-	chat.AddText(unpack(args))
-	chat.PlaySound()
+	if net.ReadBool() then
+		chat.AddText(unpack(args))
+		chat.PlaySound()
+	else
+		MsgC(unpack(args))
+		if severity > 1 then
+			notification.AddLegacy(string.format("Wiremod %s! Check your console for details", severity2word[severity]), NOTIFY_ERROR, 5)
+			surface.PlaySound(severity == 3 and "vo/k_lab/kl_fiddlesticks.wav" or "buttons/button22.wav")
+		end
+	end
 end)
