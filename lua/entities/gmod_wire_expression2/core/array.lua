@@ -36,7 +36,7 @@ registerType("array", "r", {},
 	nil,
 	nil,
 	function(v)
-		return !istable(v)
+		return not istable(v)
 	end
 )
 
@@ -83,7 +83,7 @@ registerCallback( "postinit", function()
 			__e2setcost(1)
 
 			local function getter( self, array, index, doremove )
-				if (!array or !index) then return fixDefault( default ) end -- Make sure array and index are value
+				if not array or not index then return fixDefault( default ) end -- Make sure array and index are value
 				local ret
 				if (doremove) then
 					ret = table_remove( array, index )
@@ -123,7 +123,7 @@ registerCallback( "postinit", function()
 			--------------------------------------------------------------------------------
 
 			local function setter( self, array, index, value, doinsert )
-				if (!array or !index) then return fixDefault( default ) end -- Make sure array and index are valid
+				if not array or not index then return fixDefault( default ) end -- Make sure array and index are valid
 				if (typecheck and typecheck( value )) then return fixDefault( default ) end -- If typecheck returns true, the type is wrong.
 				if (doinsert) then
 					if index > 2^31 or index < 0 then return fixDefault( default ) end -- too large, possibility of crashing gmod
@@ -513,7 +513,7 @@ end
 --------------------------------------------------------------------------------
 __e2setcost(1)
 e2function array array:add( array other )
-	if (!next(this) and !next(other)) then return {} end -- Both of them are empty
+	if not next(this) and not next(other) then return {} end -- Both of them are empty
 	local ret = {}
 	for i=1,#this do
 		ret[i] = this[i]
@@ -531,7 +531,7 @@ end
 --------------------------------------------------------------------------------
 __e2setcost(1)
 e2function array array:merge( array other )
-	if (!next(this) and !next(other)) then return {} end -- Both of them are empty
+	if not next(this) and not next(other) then return {} end -- Both of them are empty
 	local ret = {}
 	for i=1,math.max(#this,#other) do
 		ret[i] = other[i] or this[i]
