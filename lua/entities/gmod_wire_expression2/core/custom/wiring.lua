@@ -108,7 +108,17 @@ __e2setcost(5)
 e2function wirelink entity:wirelink()
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
-	
+
+	return this
+end
+
+e2function wirelink entity:createWirelink()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+
+	if not this.extended then
+		WireLib.CreateWirelinkOutput(self.player, this, { true })
+	end
 	return this
 end
 

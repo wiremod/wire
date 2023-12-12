@@ -9,9 +9,11 @@ registerCallback("construct", function(self)
 	self.triggercache = {}
 end)
 
+local FLAG_WL = { wirelink = true }
+
 registerCallback("postexecute", function(self)
 	for _,ent,portname,value in pairs_map(self.triggercache, unpack) do
-		WireLib.TriggerInput(ent, portname, value)
+		WireLib.TriggerInput(ent, portname, value, FLAG_WL)
 	end
 
 	self.triggercache = {}
@@ -28,7 +30,6 @@ end
 
 local function validWirelink(self, ent)
 	if not IsValid(ent) then return false end
-	if not ent.extended then return false end
 	if not isOwner(self, ent) then return false end
 	return true
 end
