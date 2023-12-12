@@ -252,44 +252,40 @@ end
 
 -- Notify --
 
-local severity2color = {
-	[0] = color_white,
-	[1] = color_white,
-	[2] = Color(255, 88, 1),
-	[3] = Color(255, 32, 0)
-}
-
-local WIREMOD_COLOR = Color(1, 168, 255)
-
-local severity2title = {
-	[0] = { "" },
-	[1] = { WIREMOD_COLOR, "[Wiremod]: " },
-	[2] = { WIREMOD_COLOR, "[Wiremod ", severity2color[2], "WARNING", WIREMOD_COLOR, "]: " },
-	[3] = { WIREMOD_COLOR, "[Wiremod ", severity2color[3], "ERROR", WIREMOD_COLOR, "]: " },
-}
-
 local severity2word = {
 	[2] = "warning",
 	[3] = "error"
 }
 
-WireLib.Net.Trivial.Receive("notify", function()
-	local args = {}
-	local severity = net.ReadUInt(4)
-	for k, v in ipairs(severity2title[severity]) do
-		args[k] = v
-	end
-	local n = #args
-	args[n + 1] = net.ReadBool() and net.ReadColor(false) or severity2color[severity]
-	args[n + 2] = util.Decompress(net.ReadData(net.ReadUInt(11)))
-	if net.ReadBool() then
-		chat.AddText(unpack(args))
+--- Sends a colored message to the player's chat.
+--- When used serverside, setting the player as nil will only inform the server.
+--- When used clientside, the first argument is ignored and only the local player is informed.
+---@param ply Player | Player[]?
+---@param msg string
+---@param severity WireLib.NotifySeverity?
+---@param chatprint boolean?
+---@param color Color?
+local function notify(ply, msg, severity, chatprint, color)
+	if not severity then severity = 1 end
+	if chatprint == nil then chatprint = severity < 2 end
+
+	if chatprint then
+		chat.AddText(unpack(WireLib.NotifyBuilder(msg, severity, color)))
 		chat.PlaySound()
 	else
-		MsgC(unpack(args))
+		MsgC(unpack(WireLib.NotifyBuilder(msg, severity, color)))
 		if severity > 1 then
 			notification.AddLegacy(string.format("Wiremod %s! Check your console for details", severity2word[severity]), NOTIFY_ERROR, 5)
 			surface.PlaySound(severity == 3 and "vo/k_lab/kl_fiddlesticks.wav" or "buttons/button22.wav")
 		end
 	end
+end
+WireLib.Notify = notify
+
+
+WireLib.Net.Trivial.Receive("notify", function()
+	local severity = net.ReadUInt(4)
+	local color = net.ReadBool() and net.ReadColor(false) or nil
+	local msg = util.Decompress(net.ReadData(net.ReadUInt(11)))
+	notify(nil, msg, severity, net.ReadBool(), color)
 end)
