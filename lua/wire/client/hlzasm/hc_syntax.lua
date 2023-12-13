@@ -529,13 +529,24 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
         self:PreviousToken() -- LPAREN
         self:PreviousToken() -- Func Name
         self:PreviousToken() -- Type Name
+        local ptrlevel = 0
+        if self:MatchToken(TOKEN.TIMES) then
+          -- skip back until we're done with the ptr
+          self:PreviousToken()
+          while self:MatchToken(TOKEN.TIMES) do
+            ptrlevel = ptrlevel + 1;
+            self:PreviousToken()
+            self:PreviousToken()
+          end
+        end
         if not self:MatchToken(TOKEN.IDENT) then
           self:MatchToken(TOKEN.TYPE) -- If it's not an IDENT (struct/user defined) it should be a generic type
         end
         local returnType = self.TokenData
+        self.CurrentToken = self.CurrentToken + ptrlevel -- return to present.
         self:MatchToken(TOKEN.IDENT)
         local funcName = self.TokenData
-        self.CurFunction = {Name = funcName, ReturnType = returnType}
+        self.CurFunction = {Name = funcName, ReturnType = returnType, ReturnPtrLevel = ptrlevel}
         self:NextToken()
         label.Type = "Pointer"
         label.Defined = true
