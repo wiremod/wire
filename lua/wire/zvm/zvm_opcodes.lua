@@ -1576,9 +1576,9 @@ end
 ZVM.OpcodeTable[267] = function(self)   --MLOOKAT
   local seg1code = self.EmitOperandSegment[1] and "0" or "VM.DS"
   local seg2code = self.EmitOperandSegment[2] and "0" or "VM.DS"
-  self:Dyn_Emit("$L EYE    = VM:ReadVector3f($2 + %s+0",seg2code)
-  self:Dyn_Emit("$L CENTER = VM:ReadVector3f($2 + %s+3",seg2code)
-  self:Dyn_Emit("$L UP     = VM:ReadVector3f($2 + %s+6",seg2code)
+  self:Dyn_Emit("$L EYE = VM:ReadVector3f($2 + %s+0)",seg2code)
+  self:Dyn_Emit("$L CENTER = VM:ReadVector3f($2 + %s+3)",seg2code)
+  self:Dyn_Emit("$L UP = VM:ReadVector3f($2 + %s+6)",seg2code)
   self:Dyn_EmitInterruptCheck()
 
   self:Dyn_Emit("$L X = { 0, 0, 0 }")
