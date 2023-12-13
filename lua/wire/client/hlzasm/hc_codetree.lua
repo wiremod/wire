@@ -210,11 +210,13 @@ function HCOMP:ReadOperandFromMemory(operands,index)
         operands[index] = { MemoryRegister = operands[index].MemoryPointer.Register, Temporary = operands[index].MemoryPointer.Temporary }
         return operands[index].Register
       elseif operands[index].MemoryPointer.Constant then
+        if istable(operands[index].MemoryPointer.Constant) then
         -- Don't decay a label constant expression into an unusable memory address if possible
         for _,item in pairs(operands[index].MemoryPointer.Constant) do
-          if item.Type == self.TOKEN.IDENT then
-            operands[index] = { MemoryPointer = operands[index].MemoryPointer.Constant }
-            return nil
+            if item.Type == self.TOKEN.IDENT then
+              operands[index] = { MemoryPointer = operands[index].MemoryPointer.Constant }
+              return nil
+            end
           end
         end
         operands[index] = { Memory = operands[index].MemoryPointer.Constant }
