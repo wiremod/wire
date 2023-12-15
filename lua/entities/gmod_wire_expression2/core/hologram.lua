@@ -1227,6 +1227,10 @@ e2function void holoParent(index, entity ent)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
+	if not E2Lib.isOwner(self, ent) then
+		return self:throw("You do not have permission to parent to this entity", nil)
+	end
+
 	if not Check_Parents(Holo.ent, ent) then return end
 
 	Parent_Hologram(Holo, ent, nil)
@@ -1236,6 +1240,10 @@ e2function void holoParentAttachment(index, entity ent, string attachmentName)
 	if not IsValid(ent) then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
+
+	if not E2Lib.isOwner(self, ent) then
+		return self:throw("You do not have permission to parent to this entity", nil)
+	end
 
 	Parent_Hologram(Holo, ent, attachmentName)
 end
