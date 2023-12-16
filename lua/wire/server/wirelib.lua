@@ -1425,7 +1425,7 @@ local function notify(ply, msg, severity, chatprint, color)
 			ply = Entity(1)
 		else
 			local arg = WireLib.NotifyBuilder(msg, severity, color)
-			if ply then
+			if isentity(ply) then
 				table.insert(arg, 2, ": ")
 				table.insert(arg, 2, ply)
 			end
