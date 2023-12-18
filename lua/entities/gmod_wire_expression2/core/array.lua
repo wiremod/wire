@@ -220,13 +220,14 @@ registerCallback( "postinit", function()
 
 			registerFunction("indexOf", "r:" .. id, "n", function(self, args)
 				local arr, val = args[1], args[2]
-				for i, j in ipairs(arr) do
-					if j == val then
+				local l = #arr
+				for i = 1, l do
+					if arr[i] == val then
 						self.prf = self.prf + i
 						return i
 					end
 				end
-				self.prf = self.prf + #arr
+				self.prf = self.prf + l
 				return 0
 			end, nil, { "value" }, NO_LEGACY)
 
