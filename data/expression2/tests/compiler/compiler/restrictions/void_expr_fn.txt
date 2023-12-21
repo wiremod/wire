@@ -1,0 +1,7 @@
+## SHOULD_FAIL:COMPILE
+
+# Cannot use void return as an expression
+
+function void test() {}
+
+local E = test()

@@ -18,7 +18,7 @@ function ENT:LinkEnt( pod )
 	pod = WireLib.GetClosestRealVehicle(pod,self:GetPos(),self:GetPlayer())
 
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
-	if hook.Run( "CanTool", self:GetPlayer(), WireLib.dummytrace(pod), "wire_vehicle" ) == false then return false, "You do not have permission to access this vehicle" end
+	if not WireLib.CanTool(self:GetPlayer(), pod, "wire_vehicle") then return false, "You do not have permission to access this vehicle" end
 
 	self.Vehicle = pod
 	WireLib.SendMarks(self, {pod})
@@ -64,7 +64,7 @@ end
 function ENT:BuildDupeInfo()
 	local info = BaseClass.BuildDupeInfo(self) or {}
 
-	if (self.Vehicle) and (self.Vehicle:IsValid()) then
+	if self.Vehicle and self.Vehicle:IsValid() then
 	    info.Vehicle = self.Vehicle:EntIndex()
 	end
 

@@ -20,7 +20,7 @@ end
 local function runE2Test(path, name)
 	local source = file.Read(path, "GAME")
 
-	local ok, err_or_func = E2Lib.compileScript(source, nil, true)
+	local ok, err_or_func = E2Lib.compileScript(source)
 	local should, step = source:match("^## SHOULD_(%w+):(%w+)")
 
 	local function msgf(...)
@@ -69,11 +69,24 @@ local function runE2Tests(path, failures, passes)
 	failures, passes = failures or {}, passes or {}
 
 	for _, name in ipairs(files) do
-		if string.match(name, "%.txt$") then
-			local ok = runE2Test(AddonRoot .. '/' .. path .. '/' .. name, name)
+		local ext = string.match(name, "%.([^.]+)$")
+		local full_path = AddonRoot .. '/' .. path .. '/' .. name
+
+		if ext == "txt" then
+			local ok = runE2Test(full_path, name)
 			if ok then
 				passes[#passes + 1] = name
 			else
+				failures[#failures + 1] = name
+			end
+		elseif ext == "lua" then
+			local fn = CompileString(file.Read(full_path, "GAME"))
+
+			local ok, msg = pcall(fn)
+			if ok then
+				passes[#passes + 1] = name
+			else
+				Msg("FAILED LUA TEST (" .. name .. "): " .. msg .. "\n")
 				failures[#failures + 1] = name
 			end
 		end
@@ -99,6 +112,6 @@ concommand.Add("e2test", function(ply)
 	if IsValid(ply) then
 		ply:PrintMessage(2, msg)
 	else
-		print(#passed .. "/" .. (#passed + #failed) .. " tests passed")
+		print(msg)
 	end
 end)

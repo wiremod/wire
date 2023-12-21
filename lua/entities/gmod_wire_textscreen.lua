@@ -142,8 +142,8 @@ if CLIENT then
 		if self.NeedRefresh then
 			self.NeedRefresh = nil
 			self.GPU:RenderToGPU(function()
-				local w = 512
-				local h = 512
+				local w = 1024
+				local h = 1024
 
 				surface.SetDrawColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b, 255)
 				surface.DrawRect(0, 0, w, h)
@@ -197,7 +197,7 @@ if CLIENT then
 
 		local fontData = {
 			font = font,
-			size = 380 / chrPerLine,
+			size = 760 / chrPerLine,
 			weight = 400,
 			antialias = true,
 			additive = false

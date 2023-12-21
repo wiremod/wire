@@ -45,7 +45,7 @@ function ENT:TriggerInput(name, value)
 		for _, ent in pairs(self.Marks) do
 			if ent:IsValid() then
 				local phys = ent:GetPhysicsObject()
-				if phys:IsValid() and gamemode.Call("CanTool", ply, WireLib.dummytrace(ent), "nocollide") then
+				if phys:IsValid() and WireLib.CanTool(ply, ent, "nocollide") then
 					if self.CollisionState == 0 then
 						ent:SetCollisionGroup( COLLISION_GROUP_NONE )
 						phys:EnableCollisions(true)

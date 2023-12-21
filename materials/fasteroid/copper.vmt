@@ -1,0 +1,8 @@
+"VertexLitGeneric"
+{
+    "$baseTexture" "fasteroid/copper"
+    "$envmap" "env_cubemap"
+	"$envmapcontrast" "-1.2"
+    "$envmaptint" "[1 0.4 0.3]"
+    "$envmapsaturation" "[1 1 1]"
+}

@@ -9,6 +9,11 @@ local LocalPlayer = LocalPlayer
 local Entity = Entity
 
 local string = string
+local string_gsub = string.gsub
+local string_char = string.char
+local string_match = string.match
+local string_sub = string.sub
+local utf8_char = utf8.char
 local hook = hook
 
 -- extra table functions
@@ -35,18 +40,6 @@ function table.Compact(tbl, cb, n) -- luacheck: ignore
 		cpos = cpos + 1
 	end
 end
-
--- I don't even know if I need this one.
--- HUD indicator needs this one
-function table.MakeSortedKeys(tbl) -- luacheck: ignore
-	local result = {}
-
-	for k,_ in pairs(tbl) do table.insert(result, k) end
-	table.sort(result)
-
-	return result
-end
-
 
 function string.GetNormalizedFilepath( path ) -- luacheck: ignore
 	local null = string.find(path, "\x00", 1, true)
@@ -142,26 +135,6 @@ function pairs_map(tbl, mapfunction)
 end
 
 -- end extra table functions
-
-function WireLib.dummytrace(ent)
-	local pos = ent:GetPos()
-	return {
-		FractionLeftSolid = 0,
-		HitNonWorld       = true,
-		Fraction          = 0,
-		Entity            = ent,
-		HitPos            = pos,
-		HitNormal         = Vector(0,0,0),
-		HitBox            = 0,
-		Normal            = Vector(1,0,0),
-		Hit               = true,
-		HitGroup          = 0,
-		MatType           = 0,
-		StartPos          = pos,
-		PhysicsBone       = 0,
-		WorldToLocal      = Vector(0,0,0),
-	}
-end
 
 local table = table
 local pairs_sortvalues = pairs_sortvalues
@@ -477,6 +450,17 @@ if SERVER then
 	function WireLib.GetPorts(ent)
 		local eid = ent:EntIndex()
 		return ents_with_inputs[eid], ents_with_outputs[eid]
+	end
+
+	function WireLib.RemoveOutPort(ent, name)
+		local outputs = ents_with_outputs[ent:EntIndex()]
+		if outputs then
+			for k, v in ipairs(outputs) do
+				if v[1] == name then
+					table.remove(outputs, k)
+				end
+			end
+		end
 	end
 
 	function WireLib._RemoveWire(eid, DontSend) -- To remove the inputs without to remove the entity. Very important for IsWire checks!
@@ -963,14 +947,49 @@ function WireLib.setPos(ent, pos)
 	return ent:SetPos(WireLib.clampPos(pos))
 end
 
-local huge, abs = math.huge, math.abs
+function WireLib.setLocalPos(ent, pos)
+	if isnan(pos.x) or isnan(pos.y) or isnan(pos.z) then return end
+	return ent:SetLocalPos(WireLib.clampPos(pos))
+end
+
 function WireLib.setAng(ent, ang)
 	if isnan(ang.pitch) or isnan(ang.yaw) or isnan(ang.roll) then return end
-	if abs(ang.pitch) == huge or abs(ang.yaw) == huge or abs(ang.roll) == huge then return false end -- SetAngles'ing inf crashes the server
-
-	ang = Angle(ang)
-
 	return ent:SetAngles(ang)
+end
+
+function WireLib.setLocalAng(ent, ang)
+	if isnan(ang.pitch) or isnan(ang.yaw) or isnan(ang.roll) then return end
+	return ent:SetLocalAngles(ang)
+end
+
+local escapeChars = { n = "\n", r = "\r", t = "\t", ["\\"] = "\\", ["'"] = "'", ["\""] = "\"", a = "\a",
+b = "\b", f = "\f", v = "\v" }
+
+--- Replaces escape sequences with the appropriate character. Uses Lua escape sequences. Invalid sequences are skipped.
+--- @param str string
+function WireLib.ParseEscapes(str)
+	str = string_gsub(str, "\\(.?)([^\\]?[^\\]?[^\\]?[^\\]?[^\\]?[^\\]?[^\\]?}?)", function(i, arg)
+		if escapeChars[i] then
+			return escapeChars[i] .. arg
+		elseif i == "x" then
+			local num = string_match(arg, "^(%x%x)")
+			if not num then return false end
+			return string_char(tonumber(num, 16)) .. string_sub(arg, #num + 1)
+		elseif i >= "0" and i <= "9" then
+			local num = string_match(arg, "^(%d?%d?)")
+			if not num then return false end
+			local tonum = tonumber(i .. num)
+			return tonum < 256 and (string_char(tonum) .. string_sub(arg, #num + 1))
+		elseif i == "u" then
+			local num = string_match(arg, "^{(%x%x?%x?%x?%x?%x?)}")
+			if not num then return false end
+			local tonum = tonumber(num, 16)
+			return tonum <= 0x10ffff and utf8_char(tonum) .. string_sub(arg, #num + 3)
+		else
+			return false
+		end
+	end)
+	return str
 end
 
 -- Used by any applyForce function available to the user
@@ -1101,6 +1120,7 @@ do
 		"impulse 100",
 		"attack",
 		"jump",
+		"noclip",
 		"duck",
 		"forward",
 		"back",

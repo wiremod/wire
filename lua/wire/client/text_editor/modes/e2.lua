@@ -21,14 +21,16 @@ local keywords = {
 	["case"]     = { [true] = true, [false] = true },
 	["default"]  = { [true] = true, [false] = true },
 	["catch"]    = { [true] = true, [false] = true },
+	["function"] = { [true] = true, [false] = true },
 
 	-- keywords that cannot be followed by a "(":
 	["else"]     = { [true] = true },
 	["break"]    = { [true] = true },
 	["continue"] = { [true] = true },
-	["function"] = { [true] = true },
 	["return"] = { [true] = true },
 	["local"]  = { [true] = true },
+	["let"] = { [true] = true },
+	["const"] = { [true] = true },
 	["try"]    = { [true] = true },
 	["do"] = { [true] = true },
 	["event"] = { [true] = true },
@@ -97,8 +99,16 @@ local function addToken(tokenname, tokendata)
 	end
 end
 
-local function AcceptIdent(self)
+local function acceptIdent(self)
 	return self:NextPattern("^[A-Z][a-zA-Z0-9_]*") or self:NextPattern("^_")
+end
+
+local function addOptional(self, pattern, tokendata)
+	local s = self:SkipPattern(pattern)
+	if s then
+		self.tokendata = ""
+		addToken(tokendata, s)
+	end
 end
 
 function EDITOR:CommentSelection(removecomment)
@@ -365,7 +375,7 @@ function EDITOR:SyntaxColorLine(row)
 					addToken( "operator", self.tokendata )
 					self.tokendata = ""
 
-					while AcceptIdent(self) do -- If we found a variable
+					while acceptIdent(self) do -- If we found a variable
 						addToken( "variable", self.tokendata )
 						self.tokendata = ""
 
@@ -377,7 +387,7 @@ function EDITOR:SyntaxColorLine(row)
 						addToken( "operator", "]" )
 						self.tokendata = ""
 					end
-				elseif AcceptIdent(self) then -- If we found a variable
+				elseif acceptIdent(self) then -- If we found a variable
 					-- Color the variable
 					addToken( "variable", self.tokendata )
 					self.tokendata = ""
@@ -447,7 +457,7 @@ function EDITOR:SyntaxColorLine(row)
 					addToken( "operator", self.tokendata )
 					self.tokendata = ""
 
-					while AcceptIdent(self) do -- If we found a variable
+					while acceptIdent(self) do -- If we found a variable
 						addToken( "variable", self.tokendata )
 						self.tokendata = ""
 
@@ -459,7 +469,7 @@ function EDITOR:SyntaxColorLine(row)
 						addToken( "operator", "]" )
 						self.tokendata = ""
 					end
-				elseif AcceptIdent(self) then -- If we found a variable
+				elseif acceptIdent(self) then -- If we found a variable
 					-- Color the variable
 					addToken( "variable", self.tokendata )
 					self.tokendata = ""
@@ -493,6 +503,42 @@ function EDITOR:SyntaxColorLine(row)
 		end
 	end
 
+	local found = self:SkipPattern("(} *)")
+	if found then
+		addToken("operator", found)
+		self.tokendata = ""
+	end
+
+	local found = self:SkipPattern("( *catch)")
+	if found then
+		addToken("keyword", found)
+		self.tokendata = ""
+		addOptional(self, " *", "comment")
+
+		if self:NextPattern("%(") then
+			addToken("operator", self.tokendata)
+			self.tokendata = ""
+			addOptional(self, " *", "comment")
+
+			if acceptIdent(self) then
+				addToken("variable", self.tokendata)
+				self.tokendata = ""
+				addOptional(self, " *", "comment")
+
+				if self:NextPattern(":") then
+					addToken("operator", self.tokendata)
+					self.tokendata = ""
+					addOptional(self, " *", "comment")
+					self.tokendata = ""
+
+					if self:NextPattern("[a-z][a-zA-Z0-9_]*") then
+						addToken("typename", self.tokendata)
+					end
+				end
+			end
+		end
+	end
+
 	while self.character do
 		local tokenname = ""
 		self.tokendata = ""
@@ -505,7 +551,7 @@ function EDITOR:SyntaxColorLine(row)
 		-- eat next token
 		if self:NextPattern("^_[A-Z][A-Z_0-9]*") then
 			local word = self.tokendata
-			for k,_ in pairs( wire_expression2_constants ) do
+			for k in pairs( wire_expression2_constants ) do
 				if k == word then
 					tokenname = "constant"
 				end
@@ -544,7 +590,7 @@ function EDITOR:SyntaxColorLine(row)
 					tokenname = istype(sstr) and "typename" or "notfound"
 				elseif keywords[sstr][keyword] then
 					tokenname = "keyword"
-					if sstr == "foreach" then
+					if sstr == "foreach" or sstr == "function" then
 						highlightmode = 3
 					elseif sstr == "return" and self:NextPattern( "void" ) then
 						addToken( "keyword", "return" )
@@ -555,7 +601,7 @@ function EDITOR:SyntaxColorLine(row)
 				elseif wire_expression2_funclist[sstr] then
 					tokenname = "function"
 
-				elseif self.e2fs_functions[sstr] then
+				elseif self.e2fs_functions[sstr] or self.e2fs_methods[sstr] then
 					tokenname = "userfunction"
 
 				else
@@ -584,7 +630,7 @@ function EDITOR:SyntaxColorLine(row)
 				self.tokendata = spaces
 			end
 
-		elseif AcceptIdent(self) then
+		elseif acceptIdent(self) then
 			if self.tokendata == "This" then
 				tokenname = "typename"
 			else

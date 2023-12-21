@@ -1,0 +1,25 @@
+name: Deploy Canary to Workshop
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Embed version
+        run: |
+          echo -e "\ncachedversion = \"Canary ${GITHUB_SHA:0:7}\"" >> lua/wire/server/wirelib.lua
+
+      - uses: wiremod/gmod-upload@master
+        with:
+          id: 3066780663
+          changelog: ${{ github.event.head_commit.message }}
+        env:
+          STEAM_USERNAME: ${{ secrets.WIRETEAM_WORKSHOP_USERNAME }}
+          STEAM_PASSWORD: ${{ secrets.WIRETEAM_WORKSHOP_PASSWORD }}

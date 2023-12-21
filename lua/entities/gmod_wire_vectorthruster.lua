@@ -196,7 +196,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.lengthismul = lengthismul
 
 	-- Preventing client crashes
-	local BlockedChars = '["?]'
+	local BlockedChars = "[\"?]"
 	if ( string.find(soundname, BlockedChars) ) then
 		soundname = ""
 	end
@@ -251,7 +251,7 @@ function ENT:TriggerInput(iname, value)
 	if self.lengthismul then
 		self:SetOn(true)
 	else
-		self:SetOn(self.mul ~= 0 and ( (self.bidir) and (math.abs(self.mul) > 0.01) and (math.abs(self.mul) > self.force_min) ) or ( (self.mul > 0.01) and (self.mul > self.force_min) ))
+		self:SetOn(self.mul ~= 0 and ( self.bidir and (math.abs(self.mul) > 0.01) and (math.abs(self.mul) > self.force_min) ) or ( (self.mul > 0.01) and (self.mul > self.force_min) ))
 	end
 		self:ShowOutput()
 end

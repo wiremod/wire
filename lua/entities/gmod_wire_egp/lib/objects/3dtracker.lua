@@ -1,8 +1,7 @@
 -- Author: Divran
 local Obj = EGP:NewObject( "3DTracker" )
 Obj.material = nil
-Obj.w = nil
-Obj.h = nil
+Obj.filtering = nil
 Obj.target_x = 0
 Obj.target_y = 0
 Obj.target_z = 0
@@ -12,7 +11,6 @@ Obj.b = nil
 Obj.a = nil
 Obj.parententity = NULL
 Obj.NeedsConstantUpdate = true
-Obj.angle = 0
 Obj.directionality = 0
 
 function Obj:Draw(egp)
@@ -90,7 +88,7 @@ function Obj:Transmit()
 	net.WriteFloat( self.target_y )
 	net.WriteFloat( self.target_z )
 	net.WriteEntity( self.parententity )
-	net.WriteInt((self.angle%360)*64, 16)
+	net.WriteInt(self.angle * 64, 16)
 	net.WriteInt( self.directionality, 2 )
 end
 
@@ -109,3 +107,5 @@ end
 function Obj:DataStreamInfo()
 	return { target_x = self.target_x, target_y = self.target_y, target_z = self.target_z, parententity = self.parententity, directionality = self.directionality }
 end
+
+return Obj

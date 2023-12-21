@@ -1,37 +1,7 @@
 E2Lib.RegisterExtension("serialization", true, "Adds functions to serialize data structures into a string and back again.")
 
--- GLON output validation
+-- vON / JSON (De)Serialization
 local newE2Table = E2Lib.newE2Table
-
---[[
-wire_expression2_glon = {}
-wire_expression2_glon.history = {}
-wire_expression2_glon.players = WireLib.RegisterPlayerTable()
-
-local function logGlonCall( self, glonString, ret, safeGlonObject )
-	local logEntry =
-		{
-			Expression2 =
-				{
-					Name = self.entity.name,
-					Owner = self.entity.player,
-					OwnerID = self.entity.player:IsValid() and self.entity.player:SteamID() or "[Unknown]",
-					OwnerName = self.entity.player:IsValid() and self.entity.player:Name() or "[Unknown]",
-				},
-			GLON = glonString,
-			GLONOutput = ret,
-			SafeOutput = safeGlonObject,
-			Timestamp = os.date("%c")
-		}
-
-	wire_expression2_glon.history[#wire_expression2_glon.history + 1] = logEntry
-
-	if self.entity.player:IsValid() then
-		wire_expression2_glon.players[self.entity.player] = wire_expression2_glon.players[self.entity.player] or {}
-		wire_expression2_glon.players[self.entity.player][#wire_expression2_glon.players[self.entity.player] + 1] = logEntry
-	end
-end
-]]
 
 local antispam_lookup = {}
 local function antispam( self )
@@ -78,29 +48,9 @@ local forbiddenTypes = {
 	["xwl"] = true
 }
 
-local typeSanitizers
+local sanitizeOutput
 
-local function sanitizeGlonOutput ( self, glonOutputObject, objectType, safeGlonObjectMap )
-	self.prf = self.prf + 1
-
-	if not objectType then return nil end
-	if forbiddenTypes[objectType] then return nil end
-	if not wire_expression_types2[objectType] and not objecType == "external_t" then return nil end
-
-	safeGlonObjectMap = safeGlonObjectMap or {
-		r = {},
-		t = {}
-	}
-
-	if not typeSanitizers[objectType] then
-		if wire_expression_types2[objectType][6](glonOutputObject) then return nil end -- failed type validity check
-		return glonOutputObject
-	end
-
-	return typeSanitizers[objectType] ( self, glonOutputObject, safeGlonObjectMap )
-end
-
-typeSanitizers = {
+local typeSanitizers = {
 
 	-- Two sanitizers to help out with making older serialized data from before #2399 usable
 	["v"] = function ( self, glonOutputObject, safeGlonObjectMap )
@@ -149,7 +99,7 @@ typeSanitizers = {
 				if istable(glonOutputObject.s) and istable(glonOutputObject.stypes) then
 					for k, v in pairs(glonOutputObject.s) do
 						local objectType = glonOutputObject.stypes[k]
-						local safeObject = sanitizeGlonOutput( self, v, objectType, safeGlonObjectMap )
+						local safeObject = sanitizeOutput( self, v, objectType, safeGlonObjectMap )
 						if safeObject then
 							safeTable.s[tostring(k)] = safeObject
 							safeTable.stypes[tostring(k)] = objectType
@@ -162,7 +112,7 @@ typeSanitizers = {
 					for k, v in pairs(glonOutputObject.n) do
 						if isnumber(k) then
 							local objectType = glonOutputObject.ntypes[k]
-							local safeObject = sanitizeGlonOutput( self, v, objectType, safeGlonObjectMap )
+							local safeObject = sanitizeOutput( self, v, objectType, safeGlonObjectMap )
 							if safeObject then
 								safeTable.n[k] = safeObject
 								safeTable.ntypes[k] = objectType
@@ -189,7 +139,7 @@ typeSanitizers = {
 					local objectType, v = luaTypeToWireTypeid( v )
 					if objectType == "t" then objectType = "external_t" end
 
-					local safeObject = sanitizeGlonOutput( self, v, objectType, safeGlonObjectMap )
+					local safeObject = sanitizeOutput( self, v, objectType, safeGlonObjectMap )
 					if safeObject then
 						safeTable[k] = safeObject
 					end
@@ -198,6 +148,27 @@ typeSanitizers = {
 				return safeTable
 			end,
 }
+
+function sanitizeOutput ( self, glonOutputObject, objectType, safeGlonObjectMap )
+	self.prf = self.prf + 1
+
+	if not objectType then return end
+	if forbiddenTypes[objectType] then return end
+	if not wire_expression_types2[objectType] and not objectType == "external_t" then return end
+
+	safeGlonObjectMap = safeGlonObjectMap or {
+		r = {},
+		t = {}
+	}
+
+	if not typeSanitizers[objectType] then
+		if wire_expression_types2[objectType][6](glonOutputObject) then return nil end -- failed type validity check
+		return glonOutputObject
+	end
+
+	return typeSanitizers[objectType] ( self, glonOutputObject, safeGlonObjectMap )
+end
+
 
 -- Default sanitizer for types that are arrays of numbers
 local numericArrayDataTypes =
@@ -221,98 +192,6 @@ for objectType, arrayLength in pairs(numericArrayDataTypes) do
 		end
 
 		return safeValue
-	end
-end
-
--- Attempt to load glon
-if not glon and file.Exists( 'includes/modules/glon.lua', 'LUA' ) then
-	pcall(require,"glon")
-end
-
--- If glon STILL doesn't exist, don't load any of these functions
-if glon then
-	local last_glon_error = ""
-
-	__e2setcost(10)
-
-	--- Encodes <data> into a string, using [[GLON]].
-	e2function string glonEncode(array data)
-		local ok, ret = pcall(glon.encode, data)
-		if not ok then
-			last_glon_error = ret
-			ErrorNoHalt("glon.encode error: "..ret)
-			return ""
-		end
-
-		if ret then
-			self.prf = self.prf + #ret / 2
-		end
-
-		return ret or ""
-	end
-
-	--- Decodes <data> into an array, using [[GLON]].
-	e2function array glonDecode(string data)
-		if not data or data == "" then return {} end
-
-		self.prf = self.prf + #data / 2
-
-		local ok, ret = pcall(glon.decode, data)
-
-		if not ok then
-			last_glon_error = ret
-			ErrorNoHalt("glon.decode error: "..ret)
-			return {}
-		end
-
-		local safeArray = sanitizeGlonOutput( self, ret, "r" )
-		-- logGlonCall( self, data, ret, safeArray )
-		return safeArray or {}
-	end
-
-	e2function string glonError()
-		return last_glon_error or ""
-	end
-
-	hook.Add("InitPostEntity", "wire_expression2_glonfix", function()
-		-- Fixing other people's bugs...
-		for i = 1,20 do
-			local name, encode_types = debug.getupvalue(glon.Write, i)
-			if name == "encode_types" then
-				for _,tp in ipairs({"NPC","Vehicle","Weapon"}) do
-					if not encode_types[tp] then encode_types[tp] = encode_types.Entity end
-				end
-				break
-			end
-		end
-	end)
-
-	---------------------------------------------------------------------------
-	-- table glon
-	---------------------------------------------------------------------------
-
-	__e2setcost(15)
-
-	--- Encodes <data> into a string, using [[GLON]].
-	e2function string glonEncode(table data) = e2function string glonEncode(array data)
-
-	__e2setcost(25)
-
-	-- decodes a glon string and returns an table
-	e2function table glonDecodeTable(string data)
-		if not data or data == "" then return newE2Table() end
-
-		self.prf = self.prf + #data / 2
-
-		local ok, ret = pcall(glon.decode, data)
-		if not ok then
-			last_glon_error = ret
-			ErrorNoHalt("glon.decode error: "..ret)
-			return newE2Table()
-		end
-
-		local safeTable = sanitizeGlonOutput( self, ret, "t" )
-		return safeTable or newE2Table()
 	end
 end
 
@@ -355,8 +234,7 @@ e2function array vonDecode(string data)
 		return {}
 	end
 
-	local safeArray = sanitizeGlonOutput( self, ret, "r" )
-	return safeArray or {}
+	return sanitizeOutput( self, ret, "r" ) or {}
 end
 
 __e2setcost(1)
@@ -385,8 +263,7 @@ e2function table vonDecodeTable(string data)
 		return newE2Table()
 	end
 
-	local safeTable = sanitizeGlonOutput( self, ret, "t" )
-	return safeTable or newE2Table()
+	return sanitizeOutput( self, ret, "t" ) or newE2Table()
 end
 
 ---------------------------------------------------------------------------
@@ -427,8 +304,7 @@ local function jsonDecode( self, data, tp )
 		return {}
 	end
 
-	local safeArray = sanitizeGlonOutput( self, ret, tp )
-	return safeArray or {}
+	return sanitizeOutput( self, ret, tp ) or {}
 end
 
 __e2setcost(1)

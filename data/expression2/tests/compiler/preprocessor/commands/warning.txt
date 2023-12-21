@@ -1,0 +1,3 @@
+## SHOULD_PASS:COMPILE
+
+#warning XYZ

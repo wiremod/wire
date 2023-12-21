@@ -5,12 +5,13 @@ if CLIENT then
 	language.Add( "tool.wire_holoemitter.name", "Holographic Emitter Tool (Wire)" )
 	language.Add( "tool.wire_holoemitter.desc", "The emitter required for holographic projections" )
 	language.Add( "Tool.wire_holoemitter.fadetime", "Max fade time" )
-	language.Add( "Tool.wire_holoemitter.fadetime.description", "Client side max fade time. Set to 0 to never fade (WARNING: May cause FPS issues if set to 0 or too high).")
+	language.Add( "Tool.wire_holoemitter.fadetime.description", "Client side max fade time. Set to 0 to never fade (WARNING: May cause FPS issues if set to 0 or too high)." )
 	language.Add( "Tool.wire_holoemitter.keeplatestdot", "Keep latest dot indefinitely (prevent fading)." )
 	TOOL.Information = {
 		{ name = "left_0", stage = 0, text = "Create emitter" },
 		{ name = "right_0", stage = 0, text = "Link emitter to any entity (makes it draw local to that entity instead)" },
 		{ name = "right_1", stage = 1, text = "Link to entity (click the same holoemitter again to unlink it)" },
+		{ name = "reload", stage = 1, text = "Cancel linking" },
 	}
 end
 WireToolSetup.BaseLang()
@@ -47,13 +48,11 @@ function TOOL:RightClick( trace )
 	return true
 end
 
-function TOOL.Reload(trace)
-	self.Linked = nil
-	self:SetStage(0)
-
-	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_holoemitter" then
-		ent:LinkToGrid( nil )
-		return true
+function TOOL:Reload()
+	if self:GetStage() == 1 then
+		self:SetStage(0)
+		self.Linked = nil
+		return false
 	end
 end
 

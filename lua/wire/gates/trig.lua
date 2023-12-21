@@ -6,6 +6,7 @@ GateActions("Trig")
 
 GateActions["quadratic"] = {
 	name = "Quadratic Formula",
+	description = "Solves for X in the quadratic equation.",
 	inputs = { "A", "B", "C" },
 	outputs = { "Pos", "Neg" },
 	output = function(gate, A, B, C)

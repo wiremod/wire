@@ -9,9 +9,11 @@ registerCallback("construct", function(self)
 	self.triggercache = {}
 end)
 
+local FLAG_WL = { wirelink = true }
+
 registerCallback("postexecute", function(self)
 	for _,ent,portname,value in pairs_map(self.triggercache, unpack) do
-		WireLib.TriggerInput(ent, portname, value)
+		WireLib.TriggerInput(ent, portname, value, FLAG_WL)
 	end
 
 	self.triggercache = {}
@@ -28,7 +30,6 @@ end
 
 local function validWirelink(self, ent)
 	if not IsValid(ent) then return false end
-	if not ent.extended then return false end
 	if not isOwner(self, ent) then return false end
 	return true
 end
@@ -123,11 +124,7 @@ end
 registerType("wirelink", "xwl", nil,
 	nil,
 	nil,
-	function(retval)
-		if IsValid(retval) then return end
-		if retval == nil then return end
-		if not retval.EntIndex then error("Return value is neither nil nor an Entity (and thus not a wirelink), but a "..type(retval).."!",0) end
-	end,
+	nil,
 	function(v)
 		return not IsValid(v)
 	end
@@ -137,27 +134,10 @@ registerType("wirelink", "xwl", nil,
 
 __e2setcost(2) -- temporary
 
-registerOperator("ass", "xwl", "xwl", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-	self.Scopes[scope][lhs] = rhs
-	self.Scopes[scope].vclk[lhs] = true
-	return rhs
-end)
-
 /******************************************************************************/
 
-e2function number operator_is(wirelink value)
-	if not validWirelink(self, value) then return 0 end
-	return 1
-end
-
-e2function number operator==(wirelink lhs, wirelink rhs)
-	if lhs == rhs then return 1 else return 0 end
-end
-
-e2function number operator!=(wirelink lhs, wirelink rhs)
-	if lhs ~= rhs then return 1 else return 0 end
+e2function number operator_is(wirelink this)
+	return validWirelink(self, this) and 1 or 0
 end
 
 /******************************************************************************/
@@ -192,8 +172,6 @@ end
 /******************************************************************************/
 
 registerCallback("postinit", function()
-
-	local getf, setf
 	-- generate getters and setters for all types
 	for typename, v in pairs( wire_expression_types ) do
 		local id = v[1]
@@ -208,47 +186,23 @@ registerCallback("postinit", function()
 		-- for T:setNumber() etc
 		local setter = "set"..fname:sub(1,1):upper()..fname:sub(2):lower()
 
+		local getf, setf
 		if input_serializer then
-			if istable(zero) and not next(zero) then
-				-- table/array
-				function getf(self, args)
-					local this, portname = args[2], args[3]
-					this, portname = this[1](self, this), portname[1](self, portname)
+			-- all other types with input serializers
+			function getf(self, this, portname)
+				if not validWirelink(self, this) then return input_serializer(self, zero) end
 
-					if not validWirelink(self, this) then return {} end
+				portname = mapOutputAlias(this, portname)
+				if not this.Outputs then return input_serializer(self, zero) end
+				if not this.Outputs[portname] then return input_serializer(self, zero) end
+				if this.Outputs[portname].Type ~= typename then return input_serializer(self, zero) end
 
-					portname = mapOutputAlias(this, portname)
-
-					if not this.Outputs then return {} end
-					if not this.Outputs[portname] then return {} end
-					if this.Outputs[portname].Type ~= typename then return {} end
-
-					return input_serializer(self, this.Outputs[portname].Value)
-				end
-			else
-				-- all other types with input serializers
-				function getf(self, args)
-					local this, portname = args[2], args[3]
-					this, portname = this[1](self, this), portname[1](self, portname)
-
-					if not validWirelink(self, this) then return input_serializer(self, zero) end
-
-					portname = mapOutputAlias(this, portname)
-
-					if not this.Outputs then return input_serializer(self, zero) end
-					if not this.Outputs[portname] then return input_serializer(self, zero) end
-					if this.Outputs[portname].Type ~= typename then return input_serializer(self, zero) end
-
-					return input_serializer(self, this.Outputs[portname].Value)
-				end
+				return input_serializer(self, this.Outputs[portname].Value)
 			end
 		else
 			-- all types without an input serializer
 			-- a check for {} is not needed here, since array and table both have input serializers and are thus handled in the above branch.
-			function getf(self, args)
-				local this, portname = args[2], args[3]
-				this, portname = this[1](self, this), portname[1](self, portname)
-
+			function getf(self, this, portname)
 				if not validWirelink(self, this) then return zero end
 
 				portname = mapOutputAlias(this, portname)
@@ -262,10 +216,7 @@ registerCallback("postinit", function()
 		end
 
 		if output_serializer then
-			function setf(self, args)
-				local this, portname, value = args[2], args[3], args[4]
-				this, portname, value = this[1](self, this), portname[1](self, portname), value[1](self, value)
-
+			function setf(self, this, portname, value)
 				if not validWirelink(self, this) then return value end
 				if not this.Inputs then return value end
 
@@ -275,10 +226,7 @@ registerCallback("postinit", function()
 				return value
 			end
 		else
-			function setf(self, args)
-				local this, portname, value = args[2], args[3], args[4]
-				this, portname, value = this[1](self, this), portname[1](self, portname), value[1](self, value)
-
+			function setf(self, this, portname, value)
 				if not validWirelink(self, this) then return value end
 				if not this.Inputs then return value end
 
@@ -289,10 +237,16 @@ registerCallback("postinit", function()
 			end
 		end
 
-		registerFunction(getter, "xwl:s", id, getf, 5)
-		registerOperator("idx", id.."=xwls", id, getf, 5)
-		registerFunction(setter, "xwl:s"..id, id, setf, 5)
-		registerOperator("idx", id.."=xwls"..id, id, setf, 5)
+		registerOperator("indexget", "xwls" .. id, id, getf, 5)
+		registerFunction(getter, "xwl:s", id, function(state, args)
+			return getf(state, args[1], args[2])
+		end, 15, nil, { deprecated = true, legacy = false })
+
+		registerOperator("indexset", "xwls" .. id, id, setf, 5)
+
+		registerFunction(setter, "xwl:s" .. id, id, function(state, args)
+			return setf(state, args[1], args[2], args[3])
+		end, 15, nil, { deprecated = true, legacy = false })
 	end
 end)
 
@@ -323,9 +277,6 @@ __e2setcost(5) -- temporary
 
 --- Return E2 wirelink -- and create it if none created yet
 e2function wirelink wirelink()
-	if not self.entity.extended then
-		WireLib.CreateWirelinkOutput( self.player, self.entity, {true} )
-	end
 	return self.entity
 end
 
@@ -408,7 +359,7 @@ end
 e2function array wirelink:readArray(start, size)
 	if size < 0 then return {} end
 	if !validWirelink(self, this) or !this.ReadCell then return {} end
-	
+
 	self.prf = self.prf + size
 
 	local ret = {}
@@ -420,52 +371,59 @@ e2function array wirelink:readArray(start, size)
 	return ret
 end
 
-e2function number wirelink:operator[](address, value)
-	if not validWirelink(self, this) then return value end
+registerOperator("indexset", "xwlnn", "", function(state, this, address, value)
+	if not validWirelink(state, this) then return end
 
-	if not this.WriteCell then return value end
-	this:WriteCell(address, value)
-	return value
-end
-e2function number wirelink:operator[](address) = e2function number wirelink:readCell(address)
+	if this.WriteCell then
+		this:WriteCell(address, value)
+	end
+end, 3)
+
+registerOperator("indexget", "xwln", "n", function(state, this, address)
+	if not validWirelink(state, this) then return 0 end
+
+	if not this.ReadCell then return 0 end
+	return this:ReadCell(address) or 0
+end, 3)
 
 /******************************************************************************/
 
 __e2setcost(20) -- temporary
 
-e2function vector wirelink:operator[T](address, vector value)
-	if not validWirelink(self, this) then return value end
+registerOperator("indexset", "xwlnv", "", function(state, this, address, value)
+	if not validWirelink(state, this) then return end
 
-	if not this.WriteCell then return value end
-	this:WriteCell(address, value[1])
-	this:WriteCell(address+1, value[2])
-	this:WriteCell(address+2, value[3])
-	return value
-end
+	if this.WriteCell then
+		this:WriteCell(address, value[1])
+		this:WriteCell(address + 1, value[2])
+		this:WriteCell(address + 2, value[3])
+	end
+end, 20)
 
-e2function vector wirelink:operator[T](address)
-	if not validWirelink(self, this) then return Vector(0, 0, 0) end
+registerOperator("indexget", "xwlnv", "v", function(state, this, address, value)
+	if not validWirelink(state, this) then return end
 
-	if not this.ReadCell then return 0 end
-	return Vector(
-		this:ReadCell(address) or 0,
-		this:ReadCell(address+1) or 0,
-		this:ReadCell(address+2) or 0
-	)
-end
+	if this.ReadCell then
+		return Vector(
+			this:ReadCell(address) or 0,
+			this:ReadCell(address+1) or 0,
+			this:ReadCell(address+2) or 0
+		)
+	else
+		return Vector(0, 0, 0)
+	end
+end, 20)
 
-e2function string wirelink:operator[T](address, string value)
-	if not validWirelink(self, this) or not this.WriteCell then return "" end
+registerOperator("indexset", "xwlns", "", function(state, this, address, value)
+	if not validWirelink(state, this) or not this.WriteCell then return "" end
 	WriteStringZero(this, address, value)
-	return value
-end
+end, 20)
 
-e2function string wirelink:operator[T](address)
-	if not validWirelink(self, this) or not this.ReadCell then return "" end
+registerOperator("indexget", "xwlns", "s", function(state, this, address)
+	if not validWirelink(state, this) or not this.ReadCell then return "" end
 	return ReadStringZero(this, address)
-end
+end, 20)
 
-/******************************************************************************/
 
 __e2setcost(20) -- temporary
 

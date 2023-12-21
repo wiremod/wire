@@ -11,16 +11,16 @@ function ENT:Initialize()
 	BaseClass.Initialize( self )
 
 	WireLib.CreateInputs( self, {
-		"CheckEntity (Check if this player is in this friends list.\nIf they are, the 'Checked' output becomes 1 for a short time.) [ENTITY]", 
-		"CheckSteamID (Check if this SteamID is in this friends list.) [STRING]", 
+		"CheckEntity (Check if this player is in this friends list.\nIf they are, the 'Checked' output becomes 1 for a short time.) [ENTITY]",
+		"CheckSteamID (Check if this SteamID is in this friends list.) [STRING]",
 		"CheckEntityID (Check if this player is in this friends list.)",
 		"Any (Check if any of the players in this array are in this friends list.) [ARRAY]",
 		"All (Check if all of the players in this array are in this friends list.) [ARRAY]"
 	} )
 	WireLib.CreateOutputs( self, {
-		"Checked (Outputs 1 for a short time if a check was passed.)", 
-		"Friends (Outputs all currently connected players who would pass checks in this friends list.) [ARRAY]", 
-		"AmountConnected (Outputs the size of the 'Friends' array)", 
+		"Checked (Outputs 1 for a short time if a check was passed.)",
+		"Friends (Outputs all currently connected players who would pass checks in this friends list.) [ARRAY]",
+		"AmountConnected (Outputs the size of the 'Friends' array)",
 		"AmountTotal (Outputs the size of the list as provided by the friendslist user interface. Does not take Steam or CPPI sync into account.)"
 	} )
 
@@ -106,8 +106,8 @@ local function isInArray(r, ply)
 end
 
 local function checkSingle(self, ply)
-	if self.friends_lookup[ply] then 
-		return true 
+	if self.friends_lookup[ply] then
+		return true
 	end
 
 	if self.sync_with_steam then
@@ -173,7 +173,7 @@ end
 
 function ENT:TriggerInput( name, value )
 	-- the check function should return true if matched, false if not matched, and nil if no check was performed (not a valid player, etc)
-	local check = checkActions[name]( self, value ) 
+	local check = checkActions[name]( self, value )
 
 	if check == true then
 		WireLib.TriggerOutput( self, "Checked", 1 )

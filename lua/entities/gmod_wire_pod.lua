@@ -120,12 +120,12 @@ function ENT:Initialize()
 	local outputs = {
 		-- Keys
 		"W", "A", "S", "D", "Mouse1", "Mouse2",
-		"R", "Space", "Shift", "Zoom", "Alt", 
-		"TurnLeftKey (Not bound to a key by default. Bind a key to '+left' to use.\nOutside of a vehicle, makes the player's camera rotate left.)", 
+		"R", "Space", "Shift", "Zoom", "Alt", "Duck", "Noclip",
+		"TurnLeftKey (Not bound to a key by default. Bind a key to '+left' to use.\nOutside of a vehicle, makes the player's camera rotate left.)",
 		"TurnRightKey (Not bound to a key by default. Bind a key to '+right' to use.\nOutside of a vehicle, makes the player's camera rotate right.)",
 
 		-- Clientside keys
-		"PrevWeapon (Usually bound to the mouse scroller, so will only be active for a single tick.)", 
+		"PrevWeapon (Usually bound to the mouse scroller, so will only be active for a single tick.)",
 		"NextWeapon (Usually bound to the mouse scroller, so will only be active for a single tick.)",
 		"Light",
 
@@ -149,7 +149,7 @@ function ENT:Initialize()
 	local inputs = {
 		"Lock", "Terminate", "Strip weapons", "Eject",
 		"Disable", "Crosshairs", "Brake", "Allow Buttons",
-		"Relative (If this is non-zero, the 'Bearing' and 'Elevation' outputs will be relative to the vehicle.)", 
+		"Relative (If this is non-zero, the 'Bearing' and 'Elevation' outputs will be relative to the vehicle.)",
 		"Damage Health (Damages the driver's health.)", "Damage Armor (Damages the driver's armor.)", "Hide Player", "Hide HUD", "Show Cursor",
 		"Vehicle [ENTITY]"
 	}
@@ -222,7 +222,7 @@ function ENT:LinkEnt( pod )
 
 	-- if pod is still not a vehicle even after all of the above, then error out
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
-	if hook.Run( "CanTool", self:GetPlayer(), WireLib.dummytrace(pod), "wire_pod" ) == false then return false, "You do not have permission to access this vehicle" end
+	if not WireLib.CanTool(self:GetPlayer(), pod, "wire_pod" ) then return false, "You do not have permission to access this vehicle" end
 
 	self:SetPod( pod )
 	WireLib.SendMarks(self, {pod})
@@ -326,9 +326,11 @@ local bindingToOutput = {
 	["right"] = "TurnRightKey",
 
 	["jump"] = "Space",
+	["noclip"] = "Noclip",
 	["speed"] = "Shift",
 	["zoom"] = "Zoom",
 	["walk"] = "Alt",
+	["duck"] = "Duck",
 
 	["attack"] = "Mouse1",
 	["attack2"] = "Mouse2",
@@ -424,13 +426,10 @@ function ENT:TriggerInput( name, value )
 		end
 	elseif (name == "Damage Health") then
 		if not self:HasPly() or value <= 0 then return end
-		if (value > 100) then value = 100 end
-		self:GetPly():TakeDamage( value )
+		self:GetPly():TakeDamage( math.min(value, 100) )
 	elseif (name == "Damage Armor") then
 		if not self:HasPly() or value <= 0 then return end
-		if (value > 100) then value = 100 end
-		local dmg = self:GetPly():Armor() - value
-		if (dmg < 0) then dmg = 0 end
+		local dmg = math.max(self:GetPly():Armor() - value, 0)
 		self:GetPly():SetArmor( dmg )
 	elseif (name == "Allow Buttons") then
 		self.AllowButtons = value ~= 0

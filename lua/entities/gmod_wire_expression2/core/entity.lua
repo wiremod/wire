@@ -1,26 +1,22 @@
-/******************************************************************************\
-  Entity support
-\******************************************************************************/
-
 registerType("entity", "e", nil,
 	nil,
 	function(self,output) return output or NULL end,
-	function(retval)
-		if IsValid(retval) then return end
-		if retval == nil then return end
-		if not retval.EntIndex then error("Return value is neither nil nor an Entity, but a "..type(retval).."!",0) end
-	end,
+	nil,
 	function(v)
 		return not isentity(v)
 	end
 )
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 -- import some e2lib functions
 local validPhysics = E2Lib.validPhysics
 local getOwner     = E2Lib.getOwner
 local isOwner      = E2Lib.isOwner
+local newE2Table   = E2Lib.newE2Table
+
+local canProperty = WireLib.CanProperty
+local canEditVariable = WireLib.CanEditVariable
 
 local sun = ents.FindByClass("env_sun")[1] -- used for sunDirection()
 
@@ -44,48 +40,30 @@ registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 end)
 
 -- faster access to some math library functions
-local abs = math.abs
 local atan2 = math.atan2
-local sqrt = math.sqrt
 local asin = math.asin
 local Clamp = math.Clamp
 
 local rad2deg = 180 / math.pi
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 local function checkOwner(self)
 	return IsValid(self.player)
 end
 
-/******************************************************************************/
-// Functions using operators
+--[[******************************************************************************]]
+-- Functions using operators
 
 __e2setcost(5) -- temporary
 
-registerOperator("ass", "e", "e", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
+--[[******************************************************************************]]
 
-/******************************************************************************/
-
-e2function number operator_is(entity ent)
-	if IsValid(ent) then return 1 else return 0 end
+e2function number operator_is(entity this)
+	return IsValid(this) and 1 or 0
 end
 
-e2function number operator==(entity lhs, entity rhs)
-	if lhs == rhs then return 1 else return 0 end
-end
-
-e2function number operator!=(entity lhs, entity rhs)
-	if lhs ~= rhs then return 1 else return 0 end
-end
-
-/******************************************************************************/
+--[[******************************************************************************]]
 
 e2function entity entity(id)
 	local ent = ents.GetByIndex(id)
@@ -107,8 +85,8 @@ e2function number entity:creationTime()
 	return this:GetCreationTime()
 end
 
-/******************************************************************************/
-// Functions getting string
+--[[******************************************************************************]]
+-- Functions getting string
 
 e2function entity noentity()
 	return NULL
@@ -141,7 +119,7 @@ end
 __e2setcost(20)
 
 e2function table entity:keyvalues()
-	local ret = E2Lib.newE2Table() -- default table
+	local ret = newE2Table() -- default table
 	if not IsValid(this) then return self:throw("Invalid entity!", ret) end
 	local keyvalues = this:GetKeyValues()
 	local size = 0
@@ -154,10 +132,56 @@ e2function table entity:keyvalues()
 	return ret
 end
 
+e2function number entity:setEditProperty(string key, string value)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", 0) end
+	if not this.Editable then return self:throw("Tried to edit non-editable entity!", 0) end
+
+
+	if not canProperty(self.player, this, "editentity") then return self:throw("Gamemode disallowed editing this entity!", 0) end
+	local edit = this:GetEditingData()[key]
+	if not edit then return self:throw("Property '" .. key .. "' does not exist on entity!", 0) end
+	if not canEditVariable(this, self.player, key, value, edit) then return self:throw("Server disallowed editing this property!", 0) end
+
+	return this:SetNetworkKeyValue(key, value) and 1 or 0
+end
+
+e2function string entity:getEditProperty(string key)
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
+	if not this.Editable then return self:throw("Tried to access non-editable entity!", "") end
+
+	return tostring(this:GetNetworkKeyValue(key) or "")
+end
+
+__e2setcost(30)
+
+e2function table entity:getEditData()
+	local ret = newE2Table()
+	if not IsValid(this) then return self:throw("Invalid entity!", ret) end
+	if not this.Editable then return self:throw("Tried to access non-editable entity!", ret) end
+
+	local i = 0
+	for k, v in pairs(this:GetEditingData()) do
+		ret.s[k] = v.type -- Note that this is the DProperty rowType and not a valid E2 type
+		ret.stypes[k] = "s"
+		i = i + 1
+	end
+	ret.size = i
+
+	return ret
+end
+
+__e2setcost(1)
+
+e2function number entity:isEditable()
+	return (IsValid(this) or self:throw("Invalid entity!")) and this.Editable and 1 or 0
+end
+
 __e2setcost(5) -- temporary
 
-/******************************************************************************/
-// Functions getting vector
+--[[******************************************************************************]]
+-- Functions getting vector
+
 e2function vector entity:pos()
 	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:GetPos()
@@ -215,8 +239,8 @@ e2function vector sunDirection()
 	return sun:GetKeyValues().sun_dir
 end
 
-/******************************************************************************/
-// Functions  using vector getting vector
+--[[******************************************************************************]]
+-- Functions  using vector getting vector
 
 __e2setcost(15)
 
@@ -252,8 +276,8 @@ e2function angle entity:toLocal(angle worldAngle)
 	return this:WorldToLocalAngles(worldAngle)
 end
 
-/******************************************************************************/
-// Functions getting number
+--[[******************************************************************************]]
+-- Functions getting number
 
 __e2setcost(5)
 
@@ -272,7 +296,7 @@ e2function number entity:radius()
 	return this:BoundingRadius()
 end
 
-// original bearing & elevation thanks to Gwahir
+-- original bearing & elevation thanks to Gwahir
 --- Returns the bearing (yaw) from <this> to <pos>
 
 __e2setcost(15)
@@ -292,7 +316,7 @@ e2function number entity:elevation(vector pos)
 	pos = this:WorldToLocal(pos)
 
 	local len = pos:Length()
-	if len < delta then return 0 end
+	if len < 0 then return 0 end
 	return rad2deg*asin(pos.z / len)
 end
 
@@ -307,7 +331,7 @@ e2function angle entity:heading(vector pos)
 
 	-- elevation
 	local len = pos:Length()--sqrt(x*x + y*y + z*z)
-	if len < delta then return Angle(0, bearing, 0) end
+	if len < 0 then return Angle(0, bearing, 0) end
 	local elevation = rad2deg * asin(pos.z / len)
 
 	return Angle(elevation, bearing, 0)
@@ -383,12 +407,12 @@ local ids = {
 }
 
 e2function table entity:frictionSnapshot()
-	local ret = E2Lib.newE2Table() -- default table
+	local ret = newE2Table() -- default table
 	if not validPhysics(this) then return self:throw("Invalid physics object!", ret) end
 
 	local events = this:GetPhysicsObject():GetFrictionSnapshot()
 	for i, event in ipairs(events) do
-		local data = E2Lib.newE2Table()
+		local data = newE2Table()
 		local size = 0
 
 		for k, v in pairs(event) do
@@ -410,8 +434,8 @@ e2function table entity:frictionSnapshot()
 	return ret
 end
 
-/******************************************************************************/
-// Functions getting boolean/number
+--[[******************************************************************************]]
+-- Functions getting boolean/number
 e2function number entity:isPlayer()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if this:IsPlayer() then return 1 else return 0 end
@@ -451,8 +475,8 @@ e2function number entity:isValidPhysics()
 	if E2Lib.validPhysics(this) then return 1 else return 0 end
 end
 
-/******************************************************************************/
-// Functions getting angles
+--[[******************************************************************************]]
+-- Functions getting angles
 
 e2function angle entity:angles()
 	if not IsValid(this) then return self:throw("Invalid entity!", Angle(0, 0, 0)) end
@@ -460,7 +484,7 @@ e2function angle entity:angles()
 	return Angle(ang.p, ang.y, ang.r)
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 e2function string entity:getMaterial()
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
@@ -508,7 +532,7 @@ e2function void entity:setSkin(skinIndex)
 	if
 		this:SkinCount() > 0
 		and skinIndex < this:SkinCount()
-		and gamemode.Call("CanProperty", self.player, "skin", this)
+		and canProperty(self.player, this, "skin")
 	then
 		this:SetSkin(skinIndex)
 	end
@@ -534,11 +558,11 @@ e2function number entity:getBodygroup(bgrp_id)
 end
 --- Gets <this>'s bodygroup count.
 e2function number entity:getBodygroups(bgrp_id)
-	if IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	return this:GetBodygroupCount(bgrp_id)
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 e2function number entity:isPlayerHolding()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
@@ -561,7 +585,7 @@ e2function number entity:isFrozen()
 	if phys:IsMoveable() then return 0 else return 1 end
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(30) -- temporary
 
@@ -644,7 +668,7 @@ e2function vector entity:inertia()
 end
 
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(10) -- temporary
 
@@ -682,7 +706,7 @@ e2function void entity:podStripWeapons()
 	end
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(10)
 
@@ -713,7 +737,7 @@ e2function vector entity:boxMin()
 end
 
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 -- Returns the entity's (min) axis-aligned bounding box
 e2function vector entity:aabbMin()
@@ -739,7 +763,7 @@ e2function vector entity:aabbSize()
 end
 
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 -- Returns the rotated entity's min world-axis-aligned bounding box corner
 e2function vector entity:aabbWorldMin()
@@ -763,7 +787,7 @@ e2function vector entity:aabbWorldSize()
 	ret2 = ret2 or Vector(0,0,0)
 	return ret2 - ret
 end
-/******************************************************************************/
+--[[******************************************************************************]]
 
 hook.Add("PlayerLeaveVehicle","Exp2RunOnLeaveVehicle",function(ply, vehicle)
 	E2Lib.triggerEvent("playerLeftVehicle", { ply, vehicle } )
@@ -802,7 +826,7 @@ E2Lib.registerEvent("playerEnteredVehicle", {
 	{ "Vehicle", "e" },
 })
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 local SetTrails = duplicator.EntityModifiers.trail
 
@@ -862,7 +886,7 @@ e2function void entity:setTrails(startSize, endSize, length, string material, ve
 	SetTrails(self.player, this, Data)
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost( 15 )
 
@@ -919,7 +943,7 @@ e2function array entity:attachments()
 	return tmp
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(15)
 
@@ -928,7 +952,167 @@ e2function vector entity:nearestPoint( vector point )
 	return this:NearestPoint(point)
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
+
+local Enabled = CreateConVar("wire_expression2_entity_ignite_enabled", 1, FCVAR_ARCHIVE, "Whether E2s can ignite people, given they have 'ignite' permissions.")
+local MaxLength = CreateConVar("wire_expression2_entity_ignite_length_max", 60 * 60 * 100, FCVAR_ARCHIVE, "Max length an E2 can ignite someone for in seconds.", 0)
+local MaxRadius = CreateConVar("wire_expression2_entity_ignite_radius_max", 500, FCVAR_ARCHIVE, "Max radius of ignition an E2 can create")
+
+e2function void entity:ignite()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
+	if not canProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+
+	this:Ignite(360)
+end
+
+e2function void entity:ignite(number length)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
+	if not canProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+
+	this:Ignite( math.min(length, MaxLength:GetFloat()) )
+end
+
+e2function void entity:ignite(number length, number radius)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not Enabled:GetBool() then return self:throw("Igniting entities is disabled via wire_expression2_entity_ignite_enabled", nil) end
+	if not canProperty(self.player, this, "ignite") then return self:throw("You cannot ignite this entity!", nil) end
+
+	this:Ignite( math.min(length, MaxLength:GetFloat()), math.Clamp(radius, 0, MaxRadius:GetFloat()) )
+end
+
+e2function void entity:extinguish()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not canProperty(self.player, this, "extinguish") then return self:throw("You cannot extinguish this entity!", nil) end
+
+	this:Extinguish()
+end
+
+E2Lib.registerConstant("COLLISION_GROUP_NONE", COLLISION_GROUP_NONE)
+E2Lib.registerConstant("COLLISION_GROUP_DEBRIS", COLLISION_GROUP_DEBRIS)
+E2Lib.registerConstant("COLLISION_GROUP_DEBRIS_TRIGGER", COLLISION_GROUP_DEBRIS_TRIGGER)
+E2Lib.registerConstant("COLLISION_GROUP_INTERACTIVE_DEBRIS", COLLISION_GROUP_INTERACTIVE_DEBRIS)
+E2Lib.registerConstant("COLLISION_GROUP_INTERACTIVE", COLLISION_GROUP_INTERACTIVE)
+E2Lib.registerConstant("COLLISION_GROUP_PLAYER", COLLISION_GROUP_PLAYER)
+E2Lib.registerConstant("COLLISION_GROUP_BREAKABLE_GLASS", COLLISION_GROUP_BREAKABLE_GLASS)
+E2Lib.registerConstant("COLLISION_GROUP_VEHICLE", COLLISION_GROUP_VEHICLE)
+E2Lib.registerConstant("COLLISION_GROUP_PLAYER_MOVEMENT", COLLISION_GROUP_PLAYER_MOVEMENT)
+E2Lib.registerConstant("COLLISION_GROUP_NPC", COLLISION_GROUP_NPC)
+E2Lib.registerConstant("COLLISION_GROUP_IN_VEHICLE", COLLISION_GROUP_IN_VEHICLE)
+E2Lib.registerConstant("COLLISION_GROUP_WEAPON", COLLISION_GROUP_WEAPON)
+E2Lib.registerConstant("COLLISION_GROUP_VEHICLE_CLIP", COLLISION_GROUP_VEHICLE_CLIP)
+E2Lib.registerConstant("COLLISION_GROUP_PROJECTILE", COLLISION_GROUP_PROJECTILE)
+E2Lib.registerConstant("COLLISION_GROUP_DOOR_BLOCKER", COLLISION_GROUP_DOOR_BLOCKER)
+E2Lib.registerConstant("COLLISION_GROUP_PASSABLE_DOOR", COLLISION_GROUP_PASSABLE_DOOR)
+E2Lib.registerConstant("COLLISION_GROUP_DISSOLVING", COLLISION_GROUP_DISSOLVING)
+E2Lib.registerConstant("COLLISION_GROUP_PUSHAWAY", COLLISION_GROUP_PUSHAWAY)
+E2Lib.registerConstant("COLLISION_GROUP_NPC_ACTOR", COLLISION_GROUP_NPC_ACTOR)
+E2Lib.registerConstant("COLLISION_GROUP_NPC_SCRIPTED", COLLISION_GROUP_NPC_SCRIPTED)
+E2Lib.registerConstant("COLLISION_GROUP_WORLD", COLLISION_GROUP_WORLD)
+
+[nodiscard]
+e2function number entity:getCollisionGroup()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetCollisionGroup()
+end
+
+e2function void entity:setCollisionGroup(number group)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if group < 0 or group > 20 then return self:throw("Invalid collision group", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	if this:IsPlayer() then return self:throw("You cannot set the collision group of a player!", nil) end
+
+	this:SetCollisionGroup(group)
+end
+
+e2function void entity:noCollideAll(number state)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this prop!", nil) end
+
+	this:SetCollisionGroup(state == 0 and COLLISION_GROUP_NONE or COLLISION_GROUP_WORLD)
+end
+
+--[[******************************************************************************]]
+-- Flexes
+
+__e2setcost(5)
+
+e2function array entity:getFlexBounds(number flex)
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+	return { this:GetFlexBounds(flex) }
+end
+
+e2function number entity:getFlexCount()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetFlexNum()
+end
+
+e2function number entity:getFlexID(string flex)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetFlexIDByName(flex) or -1
+end
+
+e2function number entity:getFlexScale()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetFlexScale()
+end
+
+e2function string entity:getFlexName(number id)
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
+	return this:GetFlexName(id) or ""
+end
+
+e2function number entity:getFlexWeight(number flex)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetFlexWeight(flex)
+end
+
+e2function number entity:hasFlexes()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:HasFlexManipulator() and 1 or 0
+end
+
+__e2setcost(15)
+
+e2function array entity:getFlexBounds(string flex)
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+	flex = this:GetFlexIDByName(flex)
+	return flex and { this:GetFlexBounds(flex) } or {}
+end
+
+e2function number entity:getFlexWeight(string flex)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	flex = this:GetFlexIDByName(flex)
+	return flex and this:GetFlexWeight(flex) or 0
+end
+
+__e2setcost(50)
+
+e2function array entity:getFlexes()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	local ret = {}
+	for i = 0, this:GetFlexNum() - 1 do
+		ret[i] = this:GetFlexName(i)
+	end
+	self.prf = self.prf + (#ret + 1) * 5
+	return ret
+end
+
+--[[******************************************************************************]]
+-- End e2functions
+
+hook.Add("OnEntityCreated", "E2_entityCreated", function(ent)
+	if not IsValid(ent) then return end -- Engine is precaching a model or bad addon
+
+	timer.Simple(0, function() -- Removing entities on the same execution they're created does bad things so add a delay to prevent malicious usage
+		E2Lib.triggerEvent("entityCreated", { ent })
+	end)
+end)
+
+E2Lib.registerEvent("entityCreated", {
+	{ "Entity", "e" }
+})
 
 local function upperfirst( word )
 	return word:Left(1):upper() .. word:Right(-2):lower()
@@ -956,31 +1140,30 @@ local function cleanEntsTbls(ent)
 end
 
 registerCallback("postinit",function()
-	for k,v in pairs( wire_expression_types ) do
+	for k, v in pairs( wire_expression_types ) do
 		if not non_allowed_types[v[1]] then
 			if k == "NORMAL" then k = "NUMBER" end
 			k = upperfirst(k)
 
 			__e2setcost(5)
 
-			local function getf( self, args )
-				local op1, op2 = args[2], args[3]
-				local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-				if not IsValid(rv1) or not rv2 or not rawget(enttbls, self.uid) or not rawget(enttbls[self.uid], rv1) then return fixDefault( v[2] ) end
-				return enttbls[self.uid][rv1][rv2] or fixDefault( v[2] )
+			local function getf(self, ent, key)
+				if IsValid(ent) and key and rawget(enttbls, self.uid) and rawget(enttbls[self.uid], ent) then
+					return enttbls[self.uid][ent][key] or fixDefault( v[2] )
+				end
+
+				return fixDefault( v[2] )
 			end
 
-			local function setf( self, args )
-				local op1, op2, op3 = args[2], args[3], args[4]
-				local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-				if not IsValid(rv1) or not rv2 or not rv3 then return end
-				rv1:CallOnRemove("E2_ClearEntTbls", cleanEntsTbls)
-				enttbls[self.uid][rv1][rv2] = rv3
-				return rv3
+			local function setf(self, ent, key, value)
+				if IsValid(ent) and key and value ~= nil then
+					ent:CallOnRemove("E2_ClearEntTbls", cleanEntsTbls)
+					enttbls[self.uid][ent][key] = value
+				end
 			end
 
-			registerOperator("idx", v[1].."=es", v[1], getf)
-			registerOperator("idx", v[1].."=es"..v[1], v[1], setf)
+			registerOperator("indexget", "es" .. v[1], v[1], getf)
+			registerOperator("indexset", "es" .. v[1], v[1], setf)
 		end -- allowed check
 	end -- loop
 end) -- postinit

@@ -1,0 +1,30 @@
+## SHOULD_PASS:COMPILE
+
+# Hexadecimal
+0x2042
+0xDEADBEEF
+0xdeadbeef
+
+# Binary
+0b00111001
+0b0011111
+
+# Decimal
+2432.2352
+2193.23e2
+-2139.123e63
+
+# Integer
+1
+-512
+
+# Quaternion literals
+2j
+4.4k
+1k
+1j
+
+# Complex literals
+3i
+2.7i
+1i

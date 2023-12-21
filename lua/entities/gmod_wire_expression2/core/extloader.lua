@@ -20,7 +20,7 @@ if ENT then
 			if not game.SinglePlayer() then MsgN( str ) end
 		end
 
-		timer.Destroy( "E2_AutoReloadTimer" )
+		timer.Remove( "E2_AutoReloadTimer" )
 
 		_Msg( "Calling destructors for all Expression 2 chips." )
 		local chips = ents.FindByClass( "gmod_wire_expression2" )
@@ -31,7 +31,18 @@ if ENT then
 			chip.script = nil
 		end
 
+
+		_Msg("Reloading Expression 2 internals.")
+		include("entities/gmod_wire_expression2/core/e2lib.lua")
+		include("entities/gmod_wire_expression2/base/debug.lua")
+		include("entities/gmod_wire_expression2/base/preprocessor.lua")
+		include("entities/gmod_wire_expression2/base/tokenizer.lua")
+		include("entities/gmod_wire_expression2/base/parser.lua")
+		include("entities/gmod_wire_expression2/base/compiler.lua")
+
 		_Msg( "Reloading Expression 2 extensions." )
+		include("entities/gmod_wire_expression2/core/init.lua")
+
 		ENT = wire_expression2_ENT
 		wire_expression2_is_reload = true
 		include( "entities/gmod_wire_expression2/core/extloader.lua" )
@@ -69,8 +80,6 @@ end
 
 -- parses typename/typeid associations from a file and stores info about the file for later use by e2_include_finalize/e2_include_pass2
 local function e2_include(name)
-	local path, filename = string.match(name, "^(.-/?)([^/]*)$")
-
 	local luaname = "entities/gmod_wire_expression2/core/" .. name
 	local contents = file.Read(luaname, "LUA") or ""
 	E2Lib.ExtPP.Pass1(contents)
@@ -79,10 +88,8 @@ end
 
 -- parses and executes an extension
 local function e2_include_pass2(name, luaname, contents)
-	local preprocessedSource = E2Lib.ExtPP.Pass2(contents)
-
+	local preprocessedSource = E2Lib.ExtPP.Pass2(contents, luaname)
 	E2Lib.currentextension = string.StripExtension( string.GetFileFromFilename(name) )
-
 	if not preprocessedSource then return include(name) end
 
 	local func = CompileString(preprocessedSource, luaname)
@@ -130,7 +137,6 @@ e2_include("wirelink.lua")
 e2_include("console.lua")
 e2_include("find.lua")
 e2_include("files.lua")
-e2_include("cl_files.lua")
 e2_include("globalvars.lua")
 e2_include("ranger.lua")
 e2_include("sound.lua")
@@ -158,9 +164,11 @@ e2_include("custom.lua")
 e2_include("datasignal.lua")
 e2_include("egpfunctions.lua")
 e2_include("functions.lua")
-e2_include("strfunc.lua")
 e2_include("steamidconv.lua")
 e2_include("easings.lua")
+e2_include("damage.lua")
+e2_include("remote.lua")
+e2_include("egpobjects.lua")
 
 -- Load serverside files here, they need additional parsing
 do

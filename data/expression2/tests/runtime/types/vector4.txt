@@ -1,0 +1,54 @@
+## SHOULD_PASS:EXECUTE
+
+local Vec = vec4(1, 2, 3, 4)
+
+assert(Vec == vec4(1, 2, 3, 4))
+assert(Vec != vec4(2, 2, 1, 0))
+
+assert(Vec[1] == 1)
+assert(Vec[2] == 2)
+
+assert(Vec:x() == Vec[1])
+assert(Vec:y() == Vec[2])
+assert(Vec:z() == Vec[3])
+assert(Vec:w() == Vec[4])
+
+assert(Vec:toString() == "[1,2,3,4]", Vec:toString())
+
+Vec[1] = 78
+Vec[2] = 33
+Vec[3] = 21
+
+assert(Vec[1] == 78)
+assert(Vec[2] == 33)
+assert(Vec[3] == 21)
+assert(Vec[4] == 4)
+
+assert(vec4()[1] == 0)
+assert(vec4() == vec4(0, 0, 0, 0))
+
+assert(vec4(1, 2, 2, 1) != vec4(1, 2.3, 2, 1))
+assert(vec4(1, 2, 3, 5) == vec4(1, 2, 3, 5))
+
+assert(vec4(1, 2, 3, 4) + 1 == vec4(2, 3, 4, 5))
+assert(vec4(1, 2, 3, 4) - 1 == vec4(0, 1, 2, 3))
+assert(vec4(1, 2, 3, 4) * 2 == vec4(2, 4, 6, 8))
+assert(vec4(1, 2, 3, 4) / 2 == vec4(0.5, 1, 1.5, 2))
+
+assert(vec4(1, 2, 3, 4) + vec4(1, 1, 1, 1) == vec4(2, 3, 4, 5))
+assert(vec4(1, 2, 3, 4) - vec4(1, 1, 1, 1) == vec4(0, 1, 2, 3))
+assert(vec4(1, 2, 3, 4) * vec4(2, 2, 2, 2) == vec4(2, 4, 6, 8))
+assert(vec4(1, 2, 3, 4) / vec4(2, 2, 2, 2) == vec4(0.5, 1, 1.5, 2))
+
+assert(vec4(1, 2, 3, 4) + vec4(1, 2, 3, 4) == vec4(2, 4, 6, 8))
+
+# Ensure syntax sugar works with old operators
+
+local W = vec4(1)
+
+W += 1
+W -= 1
+W /= 1
+W *= 1
+W++
+W--

@@ -19,7 +19,8 @@ local IsValid = IsValid
 local tostring = tostring
 local Vector = Vector
 local Color = Color
-local Material = Material
+
+local isvector, isnumber, istable, isstring, isangle, IsEntity, IsColor = isvector, isnumber, istable, isstring, isangle, IsEntity, IsColor
 
 local HasPorts = WireLib.HasPorts -- Very important for checks!
 
@@ -56,6 +57,12 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	local input = ent.Inputs[name]
 	if not input then return end
 
+	local ty = WireLib.DT[input.Type]
+	if ty and not ty.Validator(value) then
+		-- Not copying here is fine since data types are immutable outside E2.
+		value = ty.Zero()
+	end
+
 	input.Value = value
 	if (not ent.TriggerInput) then return end
 
@@ -82,44 +89,120 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	end
 end
 
--- an array of data types
+--- Array of data types for Wiremod.
+---@type table<string, { Zero: (fun(): any), Validator: (fun(val: any): boolean) }>
 WireLib.DT = {
 	NORMAL = {
-		Zero = 0
+		Zero = function()
+			return 0
+		end,
+		Validator = isnumber
 	},	-- Numbers
 	VECTOR = {
-		Zero = Vector(0, 0, 0)
+		Zero = Vector,
+		Validator = isvector
+	},
+	VECTOR2 = {
+		Zero = function()
+			return { 0, 0 }
+		end,
+		Validator = function(v2)
+			return istable(v2)
+				and isnumber(v2[1])
+				and isnumber(v2[2])
+		end
+	},
+	VECTOR4 = {
+		Zero = function()
+			return { 0, 0, 0, 0 }
+		end,
+		Validator = function(v4)
+			return istable(v4)
+				and isnumber(v4[1])
+				and isnumber(v4[2])
+				and isnumber(v4[3])
+				and isnumber(v4[4])
+		end
 	},
 	ANGLE = {
-		Zero = Angle(0, 0, 0)
+		Zero = Angle,
+		Validator = isangle
 	},
 	COLOR = {
-		Zero = Color(0, 0, 0)
+		Zero = function()
+			return Color(0, 0, 0)
+		end,
+		Validator = IsColor
 	},
 	ENTITY = {
-		Zero = NULL
+		Zero = function()
+			return NULL
+		end,
+		Validator = IsEntity
 	},
 	STRING = {
-		Zero = ""
+		Zero = function()
+			return ""
+		end,
+		Validator = isstring
 	},
 	TABLE = {
-		Zero = {n={},ntypes={},s={},stypes={},size=0},
+		Zero = function()
+			return { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 }
+		end,
+		Validator = function(t)
+			return istable(t)
+				and istable(t.n)
+				and istable(t.ntypes)
+				and istable(t.s)
+				and istable(t.stypes)
+				and isnumber(t.size)
+		end
 	},
 	BIDIRTABLE = {
-		Zero = {n={},ntypes={},s={},stypes={},size=0},
+		Zero = function()
+			return { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 }
+		end,
+		Validator = function(t)
+			return istable(t)
+				and istable(t.n)
+				and istable(t.ntypes)
+				and istable(t.s)
+				and istable(t.stypes)
+				and isnumber(t.size)
+		end,
 		BiDir = true
 	},
 	ANY = {
-		Zero = 0
+		Zero = function()
+			return 0
+		end,
+		Validator = function()
+			return true
+		end
 	},
 	ARRAY = {
-		Zero = {}
+		Zero = function()
+			return {}
+		end,
+		Validator = istable
 	},
 	BIDIRARRAY = {
-		Zero = {},
+		Zero = function()
+			return {}
+		end,
+		Validator = istable,
 		BiDir = true
 	},
 }
+
+--- Gets default value of a WireLib type.
+--- Assumes `type` is a valid string type in the WireLib.DT table.
+--- For example `VECTOR` / `NORMAL` / `ARRAY`
+---@param type string
+function WireLib.GetDefaultForType(type)
+	return WireLib.DT[type].Zero()
+end
 
 function WireLib.CreateSpecialInputs(ent, names, types, descs)
 	types = types or {}
@@ -134,7 +217,7 @@ function WireLib.CreateSpecialInputs(ent, names, types, descs)
 			Name = name,
 			Desc = desc,
 			Type = tp,
-			Value = WireLib.DT[ tp ].Zero,
+			Value = WireLib.GetDefaultForType(tp),
 			Material = "tripmine_laser",
 			Color = Color(255, 255, 255, 255),
 			Width = 1,
@@ -169,7 +252,7 @@ function WireLib.CreateSpecialOutputs(ent, names, types, descs)
 			Name = name,
 			Desc = desc,
 			Type = tp,
-			Value = WireLib.DT[ tp ].Zero,
+			Value = WireLib.GetDefaultForType(tp),
 			Connected = {},
 			TriggerLimit = 8,
 			Num = n,
@@ -201,7 +284,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 		if (ent_ports[name]) then
 			if tp ~= ent_ports[name].Type then
 				timer.Simple(0, function() WireLib.Link_Clear(ent, name) end)
-				ent_ports[name].Value = WireLib.DT[tp].Zero
+				ent_ports[name].Value = WireLib.GetDefaultForType(tp)
 				ent_ports[name].Type = tp
 			end
 			ent_ports[name].Keep = true
@@ -213,7 +296,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 				Name = name,
 				Desc = desc,
 				Type = tp,
-				Value = WireLib.DT[ tp ].Zero,
+				Value = WireLib.GetDefaultForType(tp),
 				Material = "tripmine_laser",
 				Color = Color(255, 255, 255, 255),
 				Width = 1,
@@ -254,13 +337,25 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 
 	local ent_ports = ent.Outputs or {}
 
-	if ent_ports.wirelink then
-		local n = #names+1
+	local ent_mods = ent.EntityMods
+	if ent_mods then
+		local n = #names
+		if ent_mods.CreateEntityOutput then
+			n = n + 1
 
-		names[n] = "wirelink"
-		types[n] = "WIRELINK"
+			names[n] = "entity"
+			types[n] = "ENTITY"
+		end
+		if ent_mods.CreateWirelinkOutput then
+			n = n + 1
+
+			names[n] = "wirelink"
+			types[n] = "WIRELINK"
+		end
 	end
 
+
+	local i = 0
 	for n,v in ipairs(names) do
 		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
 
@@ -269,19 +364,20 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 				WireLib.DisconnectOutput(ent, name)
 				ent_ports[name].Type = tp
 			end
+			WireLib.RemoveOutPort(ent, name)
 			ent_ports[name].Keep = true
-			ent_ports[name].Num = n
 			ent_ports[name].Desc = desc
 		else
+			i = i + 1
 			local port = {
 				Keep = true,
 				Name = name,
 				Desc = desc,
 				Type = tp,
-				Value = WireLib.DT[ tp ].Zero,
+				Value = WireLib.GetDefaultForType(tp),
 				Connected = {},
 				TriggerLimit = 8,
-				Num = n,
+				Num = i,
 			}
 
 			local idx = 1
@@ -300,6 +396,7 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 			port.Keep = nil
 		else
 			WireLib.DisconnectOutput(ent, portname)
+			WireLib.RemoveOutPort(ent, portname)
 			ent_ports[portname] = nil
 		end
 	end
@@ -330,7 +427,7 @@ function WireLib.RetypeInputs(ent, iname, itype, descs)
 		ent_ports[iname].Type = itype
 	end
 	ent_ports[iname].Desc = descs
-	ent_ports[iname].Value = WireLib.DT[itype].Zero
+	ent_ports[iname].Value = WireLib.GetDefaultForType(itype)
 
 	WireLib._SetInputs(ent)
 end
@@ -346,7 +443,7 @@ function WireLib.RetypeOutputs(ent, oname, otype, descs)
 		ent_ports[oname].Type = otype
 	end
 	ent_ports[oname].Desc = descs
-	ent_ports[oname].Value = WireLib.DT[otype].Zero
+	ent_ports[oname].Value = WireLib.GetDefaultForType(otype)
 
 	WireLib._SetOutputs(ent)
 end
@@ -376,7 +473,7 @@ function WireLib.Restored(ent, force_outputs)
 			port.Color = port.Color or Color(255, 255, 255, 255)
 			port.Width = port.Width or 2
 			port.StartPos = port.StartPos or Vector(0, 0, 0)
-			if (port.Src) and (not port.Path) then
+			if port.Src and (not port.Path) then
 				port.Path = { { Entity = port.Src, Pos = Vector(0, 0, 0) } }
 			end
 
@@ -528,7 +625,15 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 	if (not ent.Outputs) then return end
 
 	local output = ent.Outputs[oname]
-	if (output) and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]])) then
+	if not output then return end
+
+	local ty = WireLib.DT[output.Type]
+	if ty and not ty.Validator(value) then
+		-- Not copying here is fine since data types are immutable outside E2.
+		value = ty.Zero()
+	end
+
+	if value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]]) then
 		local timeOfFrame = CurTime()
 		if timeOfFrame ~= output.TriggerTime then
 			-- Reset the TriggerLimit every frame
@@ -595,7 +700,7 @@ local function Wire_Unlink(ent, iname, DontSendToCL, Removing)
 		input.Path = nil
 
 		if (Removing) then return end
-		WireLib.TriggerInput(ent, iname, WireLib.DT[input.Type].Zero, nil)
+		WireLib.TriggerInput(ent, iname, WireLib.GetDefaultForType(input.Type), nil)
 
 		if (DontSendToCL) then return end
 		WireLib._SetLink(input)
@@ -757,7 +862,7 @@ function WireLib.Weld(ent, traceEntity, tracePhysicsBone, DOR, collision, AllowW
 	if (not ent or not traceEntity or traceEntity:IsNPC() or traceEntity:IsPlayer()) then return end
 	local phys = ent:GetPhysicsObject()
 	if ( traceEntity:IsValid() ) or ( traceEntity:IsWorld() and AllowWorldWeld ) then
-		local const = constraint.Weld( ent, traceEntity, 0, tracePhysicsBone, 0, (not collision), DOR )
+		local const = constraint.Weld( ent, traceEntity, 0, tracePhysicsBone, 0, not collision, DOR )
 		-- Don't disable collision if it's not attached to anything
 		if (not collision) then
 			if phys:IsValid() then phys:EnableCollisions( false ) end
@@ -1132,14 +1237,6 @@ function WireLib.GetVersion()
 		end
 	end
 
-	-- Check if we're Workshop version first
-	for k, addon in pairs(engine.GetAddons()) do
-		if addon.wsid == "160250458" then
-			cachedversion = "Workshop"
-			return cachedversion
-		end
-	end
-
 	if not cachedversion then cachedversion = "Unknown" end
 
 	return cachedversion
@@ -1175,7 +1272,7 @@ end
 
 local material_blacklist = {
 	["engine/writez"] = true,
-	["pp/copy"] = true,
+	["debug/debugluxels"] = true, -- Crashes linux client
 	["effects/ar2_altfire1"] = true
 }
 function WireLib.IsValidMaterial(material)
@@ -1183,6 +1280,99 @@ function WireLib.IsValidMaterial(material)
 	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
 	if material_blacklist[path] then return "" end
 	return material
+end
+
+local ENTITY = FindMetaTable("Entity")
+
+if CPPI and ENTITY.CPPICanTool then
+	---@param player Player
+	---@param entity Entity
+	---@param toolname string
+	function WireLib.CanTool(player, entity, toolname)
+		return entity:CPPICanTool(player, toolname)
+	end
+else
+	local zero = Vector(0, 0, 0)
+	local norm = Vector(1, 0, 0)
+
+	local tr = { ---@type TraceResult
+		Hit = true, HitNonWorld = true, HitNoDraw = false, HitSky = false, AllSolid = true,
+		HitNormal = zero, Normal = norm,
+
+		Fraction = 1, FractionLeftSolid = 0,
+		HitBox = 0, HitGroup = 0, HitTexture = "**studio**",
+		MatType = 0, PhysicsBone = 0, SurfaceProps = 0, DispFlags = 0, Contents = 0,
+
+		Entity = NULL, HitPos = zero, StartPos = zero,
+	}
+
+	---@param player Player
+	---@param entity Entity
+	---@param toolname string
+	function WireLib.CanTool(player, entity, toolname)
+		local pos = entity:GetPos()
+		tr.Entity, tr.HitPos, tr.StartPos = entity, pos, pos
+		return hook.Run("CanTool", player, tr, toolname)
+	end
+end
+
+if CPPI and ENTITY.CPPICanDamage then
+	--- Returns if given player can damage the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanDamage(player, target) ---@return boolean
+		return target:CPPICanDamage(player)
+	end
+else
+	--- Returns if given player can damage the given entity.
+	--- Uses PlayerShouldTakeDamage for players, CanTool for entities.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanDamage(player, target) ---@return boolean
+		if target:IsPlayer() then
+			return hook.Run("PlayerShouldTakeDamage", target, player) ~= false
+		else
+			return WireLib.CanTool(player, target, "")
+		end
+	end
+end
+
+if CPPI and ENTITY.CPPICanProperty then
+	--- Returns if the player can apply the given property to the target
+	---@param player Player
+	---@param target Entity
+	---@param property string
+	function WireLib.CanProperty(player, target, property) ---@return boolean
+		return target:CPPICanProperty(player, property)
+	end
+else
+	--- Returns if the player can apply the given property to the target
+	---@param player Player
+	---@param target Entity
+	---@param property string
+	function WireLib.CanProperty(player, target, property) ---@return boolean
+		return hook.Run("CanProperty", player, property, target) ~= false
+	end
+end
+
+if CPPI and ENTITY.CPPICanEditVariable then
+	--- Returns if the player can modify the target's editable values.
+	---@param self Entity
+	---@param ply Player
+	---@param key string
+	---@param val string
+	---@param editor table
+	WireLib.CanEditVariable = ENTITY.CPPICanEditVariable ---@return boolean
+else
+	--- Returns if the player can modify the target's editable values.
+	---@param self Entity
+	---@param ply Player
+	---@param key string
+	---@param val string
+	---@param editor table
+	function WireLib.CanEditVariable(self, ply, key, val, editor) ---@return boolean
+		return hook.Run("CanEditVariable", self, ply, key, val, editor) ~= false
+	end
 end
 
 function WireLib.SetColor(ent, color)

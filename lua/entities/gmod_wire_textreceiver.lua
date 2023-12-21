@@ -86,7 +86,7 @@ function ENT:PcallFind( text, match )
 			return false
 		end
 	end
-	
+
 	local ok, ret = pcall( string_find, text, match, 1, not self.UseLuaPatterns )
 
 	if ok == true then

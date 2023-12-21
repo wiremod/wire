@@ -1,5 +1,6 @@
 E2Helper.Descriptions["createWire(e:essnvs)"] = "Creates a wire from specified input of first entity to the output of second entity, with specified wire width, color and material"
 E2Helper.Descriptions["createWire(e:ess)"] = "Creates a wire from specified input of first entity to the output of second entity"
+E2Helper.Descriptions["createWirelink(e:)"] = "Creates a wirelink output on the entity"
 E2Helper.Descriptions["deleteWire(e:s)"] = "Unwires the specified input of the entity"
 E2Helper.Descriptions["getWireInputs(e:)"] = "Returns array of all inputs of the entity"
 E2Helper.Descriptions["getWireOutputs(e:)"] = "Returns array of all outputs of the entity"

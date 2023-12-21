@@ -1,0 +1,47 @@
+## SHOULD_PASS:EXECUTE
+
+# Test variadic syntax sugar: Functions
+
+function number foo(...A:table) {
+	assert(A:typeids()[1, string] == "s")
+	assert(A:typeids()[2, string] == "n")
+
+	assert(A[1, string] == "foo")
+	assert(A[2, number] == 55)
+
+	return 5
+}
+
+assert(foo("foo", 55) == 5)
+
+function number bar(...A:array) {
+	assert(A[1, string] == "foo")
+	assert(A[2, number] == 55)
+
+	return 5
+}
+
+assert( bar("foo", 55) == 5 )
+
+# Test variadic syntax sugar: Methods
+
+function number number:foo(...A:table) {
+	assert(A:typeids()[1, string] == "s")
+	assert(A:typeids()[2, string] == "n")
+
+	assert(A[1, string] == "foo")
+	assert(A[2, number] == 55)
+
+	return This
+}
+
+assert(5:foo("foo", 55) == 5)
+
+function number number:bar(...A:array) {
+	assert(A[1, string] == "foo")
+	assert(A[2, number] == 55)
+
+	return This
+}
+
+assert( 5:bar("foo", 55) == 5 )

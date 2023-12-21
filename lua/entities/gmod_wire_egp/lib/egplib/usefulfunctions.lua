@@ -59,8 +59,7 @@ function EGP:ScaleObject( ent, v )
 		end
 		local settings = makeTable(v, r)
 		addUV(v, settings)
-		if isstring(v.verticesindex) then settings = { [v.verticesindex] = settings } end
-		self:EditObject( v, settings )
+		if isstring(v.verticesindex) then v.vertices = settings else v:EditObject(settings) end
 	else
 		if (v.x) then
 			v.x = (v.x - xMin) * xMul
@@ -81,14 +80,28 @@ end
 -- Draw from top left
 --------------------------------------------------------
 
-function EGP:MoveTopLeft( ent, v )
-	if not self:ValidEGP(ent) then return end
+function EGP.MoveTopLeft(ent, obj)
+	if not EGP:ValidEGP(ent) then return end
 
-	if (v.CanTopLeft and v.x and v.y and v.w and v.h) then
-		local vec, ang = LocalToWorld( Vector( v.w/2, v.h/2, 0 ), Angle(0,0,0), Vector( v.x, v.y, 0 ), Angle( 0, -v.angle or 0, 0 ) )
-		local t = { x = vec.x, y = vec.y }
-		if (v.angle) then t.angle = -ang.yaw end
-		self:EditObject( v, t )
+	local t = nil
+	if obj.CanTopLeft and obj.x and obj.y and obj.w and obj.h then
+		local vec, ang = LocalToWorld( Vector( obj.w / 2, obj.h / 2, 0 ), angle_zero, Vector( obj.x, obj.y, 0 ), Angle( 0, -obj.angle or 0, 0 ) )
+		t = { x = vec.x, y = vec.y }
+		if obj.angle then t.angle = -ang.yaw end
+	end
+	if obj.IsParented then
+		local bool, _, parent = EGP:HasObject(ent, obj.parent)
+		if bool and parent.CanTopLeft and parent.w and parent.h then
+			if not t then t = { x = obj.x, y = obj.y, angle = obj.angle } end
+			t.x = t.x - parent.w / 2
+			t.y = t.y - parent.h / 2
+
+			if t.angle then t.angle = t.angle end
+		end
+	end
+
+	if t then
+		obj:EditObject(t)
 	end
 end
 
@@ -176,11 +189,15 @@ end
 -----------------------
 -- Other
 -----------------------
-function EGP:SendPosSize( obj )
-	net.WriteInt( obj.w, 16 )
-	net.WriteInt( obj.h, 16 )
+function EGP.SendPosAng(obj)
 	net.WriteInt( obj.x, 16 )
 	net.WriteInt( obj.y, 16 )
+	net.WriteInt(obj.angle * 64, 16)
+end
+
+function EGP.SendSize(obj)
+	net.WriteInt(obj.w, 16)
+	net.WriteInt(obj.h, 16)
 end
 
 function EGP:SendColor( obj )
@@ -190,11 +207,15 @@ function EGP:SendColor( obj )
 	if (obj.a) then net.WriteUInt( math.Clamp( obj.a, 0, 255 ) , 8) end
 end
 
-function EGP:ReceivePosSize( tbl ) -- Used with SendPosSize
-	tbl.w = net.ReadInt(16)
-	tbl.h = net.ReadInt(16)
+function EGP.ReceivePosAng(tbl)
 	tbl.x = net.ReadInt(16)
 	tbl.y = net.ReadInt(16)
+	tbl.angle = net.ReadInt(16) / 64
+end
+
+function EGP.ReceiveSize(tbl)
+	tbl.w = net.ReadInt(16)
+	tbl.h = net.ReadInt(16)
 end
 
 function EGP:ReceiveColor( tbl, obj ) -- Used with SendColor
@@ -208,7 +229,7 @@ end
 -- Other
 --------------------------------------------------------
 function EGP:ValidEGP( Ent )
-	return (IsValid( Ent ) and (Ent:GetClass() == "gmod_wire_egp" or Ent:GetClass() == "gmod_wire_egp_hud" or Ent:GetClass() == "gmod_wire_egp_emitter"))
+	return IsValid( Ent ) and (Ent:GetClass() == "gmod_wire_egp" or Ent:GetClass() == "gmod_wire_egp_hud" or Ent:GetClass() == "gmod_wire_egp_emitter")
 end
 
 
@@ -432,8 +453,8 @@ function EGP:EGPCursor( this, ply )
 			return {x,y}
 		else
 			local HitPos = WorldToLocal( Start + Dir * B, Angle(), Pos, Ang )
-			local x = (0.5+HitPos.x/(monitor.RS*512/monitor.RatioX)) * 512
-			local y = (0.5-HitPos.y/(monitor.RS*512)) * 512
+			local x = (0.5+HitPos.x/(monitor.RS*1024/monitor.RatioX)) * 512
+			local y = (0.5-HitPos.y/(monitor.RS*1024)) * 512
 			if (x < 0 or x > 512 or y < 0 or y > 512) then return ReturnFailure( this ) end -- Aiming off the screen
 			x, y = ScaleCursor( this, x, y )
 			return {x,y}
@@ -443,16 +464,47 @@ function EGP:EGPCursor( this, ply )
 	return ReturnFailure( this )
 end
 
-function EGP.ScreenSpaceToObjectSpace(object, point)
-	point = { x = point.x - object.x, y = point.y - object.y }
+function EGP.WorldToLocal(object, x, y)
+	local _, realpos = EGP:GetGlobalPos(object.EGP, object)
+	x, y = x - realpos.x, y - realpos.y
 
-	if object.angle and object.angle ~= 0 then
-		local theta = math.rad(object.angle)
+	local theta = math.rad(realpos.angle)
+	if theta ~= 0 then
 		local cos_theta, sin_theta = math.cos(theta), math.sin(theta)
-		point.x, point.y =
-			point.x * cos_theta - point.y * sin_theta,
-			point.y * cos_theta + point.x * sin_theta
+		x, y =
+			x * cos_theta - y * sin_theta,
+			y * cos_theta + x * sin_theta
 	end
 
-	return point
+	return x, y
+end
+
+function EGP.Draw(ent)
+	local rt = ent.RenderTable
+	local mat = ent:GetEGPMatrix()
+	local globalfilter = ent.GPU and ent.GPU.texture_filtering
+
+	for _, obj in ipairs(rt) do
+		if obj.parent == -1 or obj.NeedsConstantUpdate then ent.NeedsUpdate = true end
+		if obj.parent ~= 0 then
+			if not obj.IsParented then EGP:SetParent(ent, obj, obj.parent) end
+			local _, data = EGP.GetGlobalPos(ent, obj)
+			obj:SetPos(data.x, data.y, data.angle)
+		elseif obj.IsParented then
+			EGP:UnParent(ent, obj)
+		end
+
+		local oldtex = EGP:SetMaterial(obj.material)
+		local filter = obj.filtering
+		if filter and filter ~= globalfilter then
+			render.PushFilterMag(filter)
+			render.PushFilterMin(filter)
+			obj:Draw(ent, mat)
+			render.PopFilterMag()
+			render.PopFilterMin()
+		else
+			obj:Draw(ent, mat)
+		end
+		EGP:FixMaterial(oldtex)
+	end
 end

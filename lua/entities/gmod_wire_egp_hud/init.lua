@@ -8,18 +8,29 @@ DEFINE_BASECLASS("base_wire_entity")
 
 ENT.WireDebugName = "E2 Graphics Processor HUD"
 
+util.AddNetworkString("EGP_HUD_Use")
+
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 
 	self.RenderTable = {}
+	self.Users = {}
+	self.IsEGPHUD = true
+
+	self:SetResolution(false)
 
 	self:SetUseType(SIMPLE_USE)
 	self:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
 
-	self.Inputs = WireLib.CreateInputs( self, { "0 to 512 (If enabled, changes the resolution of the egp hud to be between 0 and 512 instead of the user's monitor's resolution.\nWill cause objects to look stretched out on most screens, so your UI will need to be designed with this in mind.\nIt's recommended to use the egpScrW, egpScrH, and egpScrSize functions instead.)" } )
-	WireLib.CreateWirelinkOutput( nil, self, {true} )
+	WireLib.CreateInputs(self, {
+		"0 to 512 (If enabled, changes the resolution of the egp hud to be between 0 and 512 instead of the user's monitor's resolution.\nWill cause objects to look stretched out on most screens, so your UI will need to be designed with this in mind.\nIt's recommended to use the egpScrW, egpScrH, and egpScrSize functions instead.)"
+	})
+
+	WireLib.CreateOutputs(self, { "wirelink [WIRELINK]" })
+
+	WireLib.TriggerOutput(self, "wirelink", self)
 
 	self.xScale = { 0, 512 }
 	self.yScale = { 0, 512 }
@@ -30,23 +41,23 @@ end
 
 function ENT:TriggerInput( name, value )
 	if (name == "0 to 512") then
-		self:SetNWBool( "Resolution", value ~= 0 )
+		self:SetResolution(value ~= 0)
 	end
 end
 
-function ENT:Use( ply )
-	umsg.Start( "EGP_HUD_Use", ply ) umsg.Entity( self ) umsg.End()
+function ENT:Use(ply)
+	EGP.EGPHudConnect(self, not self.Users[ply], ply)
 end
 
-function ENT:SetEGPOwner( ply )
+function ENT:SetEGPOwner(ply)
 	self.ply = ply
-	self.plyID = ply:UniqueID()
+	self.plyID = ply:AccountID()
 end
 
 function ENT:GetEGPOwner()
-	if (not self.ply or not self.ply:IsValid()) then
-		local ply = player.GetByUniqueID( self.plyID )
-		if (ply) then self.ply = ply end
+	if not self.ply or not self.ply:IsValid() then
+		local ply = player.GetByAccountID(self.plyID)
+		if ply then self.ply = ply end
 		return ply
 	else
 		return self.ply

@@ -1,0 +1,55 @@
+## SHOULD_PASS:EXECUTE
+
+@persist Called:number
+
+# Test user functions
+
+function test() {
+	Called = 1
+}
+
+"test"()
+
+assert(Called)
+
+function argument(A:string) {
+	assert(A == "Hello")
+}
+
+"argument"("Hello")
+
+function variadic(...A:array) {
+	assert(A[1, number] == 120)
+}
+
+"variadic"( 120 )
+
+function variadictbl(...T:table) {
+	assert(T:typeids()[1, string] == "n")
+	assert(T:typeids()[2, string] == "t")
+}
+
+"variadictbl"( 1, table() )
+
+function number returning() {
+	return 5
+}
+
+assert( "returning"()[number] == 5 )
+
+
+Called = 0
+
+function number:numMethod() {
+	Called = 1
+}
+
+"numMethod"(1)
+
+assert(Called)
+
+function number number:returningmeta() {
+	return 6
+}
+
+assert( "returningmeta"(5)[number] == 6 )

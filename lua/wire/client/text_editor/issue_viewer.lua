@@ -11,7 +11,7 @@ local gui_MouseY = gui.MouseY
 
 function PANEL:Init()
     local base = self
-    
+
     self.Files = {}
 
     self:Dock(BOTTOM)
@@ -42,7 +42,7 @@ function PANEL:Init()
     end
 
     function self.Dragger:Think()
-        if not self.Held then 
+        if not self.Held then
             if self.UnheldDueToCollapse then
                 self.UnheldDueToCollapse = false
                 self.Hovered = false
@@ -76,7 +76,7 @@ function PANEL:Init()
 
     function self.Dragger:OnMouseReleased(btn)
         if btn ~= MOUSE_LEFT then return end
-        
+
         self:MouseCapture(false)
         self.Held = false
     end
@@ -90,7 +90,7 @@ function PANEL:Init()
     self.IssuesView = self:Add("DTree")
     self.IssuesView:Dock(FILL)
     self.IssuesView:DockMargin(2, 0, 2, 3)
-    
+
     self.IssuesView:Hide()
     self.IssuesView.OldAddNode = self.IssuesView.AddNode
     function self.IssuesView:AddNode(text)
@@ -111,18 +111,18 @@ function PANEL:Init()
         n.Label.Paint = function(_, _, _) end
         return n
     end
-    
+
     local IssuesView_BackgroundColor = Color(32, 32, 32)
     function self.IssuesView:Paint(w, h)
         surface_SetDrawColor(IssuesView_BackgroundColor)
         surface_DrawRect(0, 0, w, h)
     end
-    
+
     self.ValidationText = "Code Validator"
     self:SetValidationColors(Color(180, 180, 180))
-    
+
     self.OnMousePressed = nil
-    
+
     self.ShowWhatPopupDoes = 0
 
     function self.ValidationButton:Paint(w, h)
@@ -139,13 +139,13 @@ function PANEL:Init()
 
         surface_SetDrawColor(base.ValidationColorOutline)
         surface_DrawOutlinedRect(0, 0, w, h, 2)
-        
+
         draw_SimpleText(base.ValidationText, "DermaDefault", w / 2, h / 2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
         if base.ShowWhatPopupDoes > 0 then
             draw_SimpleText((base.IsCollapsed and "Show" or "Hide") .. " Code Problems", "DermaDefault", 36, h / 2, Color(255, 255, 255, base.ShowWhatPopupDoes * 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
         end
     end
-    
+
     function self.ValidationButton:OnMousePressed(btn)
         if base.OnMousePressed ~= nil then
             base:OnMousePressed(btn)
@@ -161,32 +161,41 @@ function PANEL:Init()
     function self.IssuesView:DoRightClick(node)
         local menu = DermaMenu()
 
-        local copy = menu:AddOption(
-            "Copy to clipboard", 
-            function() 
-                SetClipboardText(node.Label:GetText()) 
+        menu:AddOption(
+            "Copy to clipboard",
+            function()
+                SetClipboardText(node.Label:GetText())
             end
         )
 
+        if node.quick_fix then
+            menu:AddOption(
+                "Quick fix",
+                function()
+                    base:OnQuickFix(node)
+                end
+            )
+        end
+
         menu:Open()
     end
-    
+
     self.TogglePopupButton = self.ValidationButton:Add("DButton")
     self.TogglePopupButton:Dock(LEFT)
     self.TogglePopupButton:SetSize(36, 0)
     self.TogglePopupButton:SetText("")
     self.IsCollapsed = true
-    
+
     function self.TogglePopupButton:Paint(w, h)
 
         surface_SetDrawColor(color_white)
         local centerX, centerY = w / 2, h / 2
         local arrowWidth, arrowHeight = 6, 3 * (base.IsCollapsed and -1 or 1)
-        
+
         surface_DrawLine(centerX - arrowWidth, centerY - arrowHeight, centerX, centerY + arrowHeight)
         surface_DrawLine(centerX + arrowWidth, centerY - arrowHeight, centerX, centerY + arrowHeight)
     end
-    
+
     function self.TogglePopupButton:DoClick()
         base:Toggle()
     end
@@ -196,7 +205,7 @@ function PANEL:Init()
     end
 end
 
-function PANEL:Paint(w, h) 
+function PANEL:Paint(w, h)
 
 end
 function PANEL:GetValue()
@@ -206,7 +215,7 @@ end
 function PANEL:Collapse(triggered_by_drag)
     if self.IsCollapsed then return end
 
-    if triggered_by_drag then 
+    if triggered_by_drag then
         self.Dragger.Held = false
         self.Dragger:MouseCapture(false)
         self.Dragger.UnheldDueToCollapse = true
@@ -236,7 +245,7 @@ end
 function PANEL:SetValidationColors(color)
     self.ValidationColorBackground = color
     local h, s, v = ColorToHSV(color)
-    
+
     self.ValidationColorOutline = HSVToColor(h, s, v / 1.2)
     self.ValidationColorHovered = HSVToColor(h, s, v + 0.073)
     self.ValidationColorDepressed = HSVToColor(h, s, v - 0.073)
@@ -251,36 +260,38 @@ function PANEL:SetBGColor(r, g, b, a)
     self:SetValidationColors(Color(r, g, b, a))
 end
 
+---@param errors Error[]
+---@param warnings Warning[],
 function PANEL:Update(errors, warnings, header_text, header_color)
     self.ValidationText = header_text or self.ValidationText
     if header_color ~= nil then self:SetValidationColors(header_color) end
-    
+
     self.Errors = errors
     self.Warnings = warnings
-    
+
     local tree = self.IssuesView
     tree:Clear()
 
     local failed = false
 
     if warnings ~= nil and not table.IsEmpty(warnings) then
-        for k, v in ipairs(warnings) do
+        for _, v in ipairs(warnings) do
             if v.message ~= nil then
-                local node = tree:AddNode(v.message .. (v.line ~= nil and string.format(" [%d:%d]", v.line, v.char) or ""))
+                local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [line %u, char %u]", v.trace.start_line, v.trace.start_col) or "") .. (v.quick_fix and " (Quick fix available)" or ""))
                 node:SetIcon("icon16/error.png")
-                node.line = v.line
-                node.char = v.char
+                node.trace = v.trace
+                node.quick_fix = v.quick_fix
             end
         end
         failed = true
     end
 
     if errors ~= nil and not table.IsEmpty(errors) then
-        for k, v in ipairs(errors) do
-            local node = tree:AddNode(v.message .. (v.line ~= nil and string.format(" [%d:%d]", v.line, v.char) or ""))
+        for _, v in ipairs(errors) do
+            local node = tree:AddNode(v.message .. (v.trace ~= nil and string.format(" [line %u, char %u]", v.trace.start_line, v.trace.start_col) or "") .. (v.quick_fix and " (Quick fix available)" or ""))
             node:SetIcon("icon16/cancel.png")
-            node.line = v.line
-            node.char = v.char
+            node.trace = v.trace
+            node.quick_fix = v.quick_fix
         end
         failed = true
     end

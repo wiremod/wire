@@ -102,7 +102,6 @@ end
 
 RTFix:Add("gmod_wire_consolescreen","Console Screen", function( ent ) def( ent, "NeedRefresh" ) end)
 RTFix:Add("gmod_wire_digitalscreen","Digital Screen", function( ent ) def( ent, "NeedRefresh" ) end)
-RTFix:Add("gmod_wire_gpu","GPU", def)
 --RTFix:Add("gmod_wire_graphics_tablet","Graphics Tablet", function( ent ) def( ent, nil, true ) end) No fix is needed for this
 RTFix:Add("gmod_wire_oscilloscope","Oscilloscope", def)
 --RTFix:Add("gmod_wire_panel","Control Panel", function( ent ) def( ent, nil, true ) end) No fix is needed for this

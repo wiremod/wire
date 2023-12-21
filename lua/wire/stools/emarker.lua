@@ -18,10 +18,6 @@ TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_siren.mdl",
 }
 
-if SERVER then
-	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
-end
-
 function TOOL:LeftClick(trace)
 	if not trace.HitPos or trace.Entity:IsPlayer() then return false end
 	if ( CLIENT ) then return true end
@@ -78,8 +74,8 @@ function TOOL:Reload(trace)
 	if (marker:GetClass() == "gmod_wire_emarker") then
 		marker:UnLinkEMarker()
 		self:GetOwner():PrintMessage( HUD_PRINTTALK,"Entity Marker unlinked" )
-		self:GetWeapon():SetNWEntity( "WireEntityMark", self.marker ) // Substitute for null, which won't set
-		self:GetWeapon():SetNWEntity( "WireEntityMarker", self.marker ) // Set same point so line won't draw
+		self:GetWeapon():SetNWEntity( "WireEntityMark", self.marker ) -- Substitute for null, which won't set
+		self:GetWeapon():SetNWEntity( "WireEntityMarker", self.marker ) -- Set same point so line won't draw
 		return true
 	end
 end
@@ -91,7 +87,7 @@ function TOOL:DrawHUD()
 
 	local markerpos = marker:GetPos():ToScreen()
 	local markpos = mark:GetPos():ToScreen()
-	if ( markpos.x > 0 and markpos.y > 0 and markpos.x < ScrW() and markpos.y < ScrH( ) ) then
+	if ( markpos.x > 0 and markpos.y > 0 and markpos.x < ScrW() and markpos.y < ScrH() ) then
 		surface.SetDrawColor( 255, 255, 100, 255 )
 		surface.DrawLine(markerpos.x, markerpos.y, markpos.x, markpos.y)
 	end
