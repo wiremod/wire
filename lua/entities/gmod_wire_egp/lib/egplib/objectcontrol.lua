@@ -71,6 +71,11 @@ function baseObj:SetPos(x, y, angle)
 		angle = angle % 360
 		if self.angle ~= angle then self.angle, ret = angle, true end
 	end
+	if SERVER and self._x then
+		if x then self._x = x end
+		if y then self._y = y end
+		if angle then self._angle = angle end
+	end
 	return ret
 end
 function baseObj:Set(member, value)
