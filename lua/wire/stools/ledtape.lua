@@ -24,7 +24,7 @@ function TOOL:GetConVars()
 end
 
 local function isLookingAtController(trace)
-	return trace.Entity and trace.Entity:GetClass() == "gmod_wire_ledtape" 
+	return trace.Entity and trace.Entity:GetClass() == "gmod_wire_ledtape"
 end
 
 if CLIENT then
@@ -52,14 +52,14 @@ if CLIENT then
 	end
 
 	function TOOL:Preview()
-	
+
 		if #self.ToolPath < 1 then hook.Remove("PostDrawOpaqueRenderables","LEDTape_Preview") return end -- something happened, bail
 
 		render.SetMaterial(self.CurMater)
 
 		local pt2 = Wire_LEDTape.DrawFullbright(self.CurWidth, self.ScrollMul / 3, WHITE, self.CurMater, self.ToolPath)
-		
-		if pt2 and (#self.ToolPath+1 < Wire_LEDTape.MaxPoints) then
+
+		if pt2 and (#self.ToolPath + 1 < Wire_LEDTape.MaxPoints) then
 			local eyetrace = LocalPlayer():GetEyeTrace()
 			local pt3 = eyetrace.HitPos + eyetrace.HitNormal * self.CurWidth * 0.5
 			render.DrawLine( pt2, pt3, YELLOW )
@@ -115,7 +115,7 @@ function TOOL:RightClick( trace )
 
 	local nextPos = trace.Entity:WorldToLocal(trace.HitPos + trace.HitNormal * self.CurWidth * 0.5)
 
-	if #self.ToolPath > 0 then 
+	if #self.ToolPath > 0 then
 		local prevPoint = self.ToolPath[ #self.ToolPath ]
 		if prevPoint[1] == trace.Entity and prevPoint[2]:IsEqualTol( nextPos, 0.1 ) then -- disallow placing the same point
 			return false
@@ -123,15 +123,15 @@ function TOOL:RightClick( trace )
 	end
 
 	table.insert(self.ToolPath, {trace.Entity, nextPos})
-	
+
 	if #self.ToolPath == 1 then
 		self:SetStage(2)
 	elseif #self.ToolPath == Wire_LEDTape.MaxPoints then
 		self:SetStage(3)
 	end
-	
+
 	return true
-	
+
 end
 
 function TOOL:LeftClick( trace )
@@ -174,7 +174,7 @@ function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakeModelSizer(panel, "wire_ledtape_modelsize")
 	WireDermaExts.ModelSelect(panel, "wire_ledtape_model", list.Get( "Wire_Hydraulic_Models" ), 1, true)
 
-	local slider = panel:NumSlider("#Tool.wire_ledtape.width","wire_ledtape_width",0,4,2)
+	panel:NumSlider("#Tool.wire_ledtape.width","wire_ledtape_width",0,4,2)
 	local ropeMaterials = panel:AddControl( "RopeMaterial", { Label = "#Tool.wire_ledtape.material", convar = "wire_ledtape_material" } )
 
 	emptyRopeMaterialPanel(ropeMaterials) -- remove garry's materials

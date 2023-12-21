@@ -29,12 +29,12 @@ if CLIENT then
 		["fasteroid/ledtape01"] = {
 			name   = "5050 Sparse",
 			sprite = "fasteroid/ledtape01_sprite",
-			scale  = 512/904
+			scale  = 512 / 904
 		},
 		["fasteroid/ledtape02"] = {
 			name   = "5050 Dense",
 			sprite = "fasteroid/ledtape02_sprite",
-			scale  = 512/434
+			scale  = 512 / 434
 		},
 		["cable/white"] = {
 			name = "White Cable"
@@ -45,7 +45,7 @@ if CLIENT then
 		["fasteroid/elwire"] = {
 			name   = "Electroluminescent Wire",
 			sprite = "fasteroid/elwire_sprite",
-			scale  = 256/2048,
+			scale  = 256 / 2048,
 			backlit = true
 		},
 	}
@@ -70,7 +70,7 @@ if CLIENT then
 			for _, dir in ipairs(LIGHT_DIRECTIONS) do
 				lightsum:Add( render.ComputeLighting(pos, dir) )
 			end
-			lightsum:Mul( 1/#LIGHT_DIRECTIONS )
+			lightsum:Mul( 1 / #LIGHT_DIRECTIONS )
 			node.lighting = lightsum:ToColor()
 			node.nextlight = CurTime() + LIGHT_UPDATE_INTERVAL:GetFloat()
 		end
@@ -86,8 +86,8 @@ if CLIENT then
 		ent.LEDTapeVecs = ent.LEDTapeVecs or {}
 		local LEDTapeVecs = ent.LEDTapeVecs
 
-		if ent.LEDTapeLastPos == ent:GetPos() and ent.LEDTapeLastAng==ent:GetAngles() then
-			if LEDTapeVecs[pos] then return LEDTapeVecs[pos] end
+		if ent.LEDTapeLastPos == ent:GetPos() and ent.LEDTapeLastAng == ent:GetAngles() and LEDTapeVecs[pos] then
+			return LEDTapeVecs[pos]
 		end
 
 		LEDTapeVecs[pos] = ent:LocalToWorld(pos)
@@ -110,7 +110,7 @@ if CLIENT then
 	local function DrawBeams(width, scrollmul, mater, path, getColor, extravertex)
 
 		if not IsValid(path[1][1]) then return end
-	
+
 		local scroll = 0
 		local beam   = render.AddBeam
 
@@ -128,7 +128,7 @@ if CLIENT then
 
 			beam(pt1, width, scroll, getColor(node1))
 
-			for i=2, #path do
+			for i = 2, #path do
 				local node2 = path[i]
 				local nodeEnt = node2[1]
 				if not IsValid(nodeEnt) then continue end
@@ -136,7 +136,7 @@ if CLIENT then
 
 				local pt2 = LocalToWorld_NoGarbage(nodeEnt, nodeOffset)
 				local distance = pt2:Distance(pt1) * scrollmul * 0.5
-				
+
 				beam( pt1, width, scroll, getColor(node1))
 				scroll = scroll + distance
 				beam( pt2, width, scroll, getColor(node2))
@@ -177,12 +177,12 @@ if CLIENT then
 
 				if #self.Path < 2 then return end
 
-				if self.SpriteMaterial then		
+				if self.SpriteMaterial then
 
-					if self.Backlit then 
-						DrawFullbright(self.Width, self.ScrollMul / 3, self.Color, self.BaseMaterial, self.Path, false) 
-					else 
-						DrawShaded(self.Width, self.ScrollMul / 3, self.BaseMaterial, self.Path) 
+					if self.Backlit then
+						DrawFullbright(self.Width, self.ScrollMul / 3, self.Color, self.BaseMaterial, self.Path, false)
+					else
+						DrawShaded(self.Width, self.ScrollMul / 3, self.BaseMaterial, self.Path)
 					end
 
 					DrawFullbright(self.Width * 3, self.ScrollMul, self.Color, self.SpriteMaterial, self.Path, not self.Connect)
@@ -204,7 +204,7 @@ if CLIENT then
 		self.Color.b = self:GetNW2Int("LedTape_B")
 	end
 
-	net.Receive("LEDTapeData", function() 
+	net.Receive("LEDTapeData", function()
 
 		local controller = net.ReadEntity()
 		if not IsValid(controller) then return end
@@ -217,7 +217,7 @@ if CLIENT then
 		controller.BaseMaterial = Material( mater )
 
 		local metadata = Wire_LEDTape.materialData[mater]
-		
+
 		if metadata then
 			controller.SpriteMaterial = metadata.sprite and Material( metadata.sprite )
 			controller.ScrollMul = metadata.scale or DEFAULT_SCALE
@@ -228,21 +228,21 @@ if CLIENT then
 		if not full then return end
 
 		local pathLength = net.ReadUInt(Wire_LEDTape.NumBits) + 1
-		for i=1, pathLength do
+		for i = 1, pathLength do
 			table.insert(controller.Path,{net.ReadEntity(), net.ReadVector()})
 		end
 
-		controller:SetOverlayText("LED Tape Controller\n("..(pathLength-1).." Segments)")
+		controller:SetOverlayText("LED Tape Controller\n(" .. (pathLength-1) .. " Segments)")
 
 	end )
 
-end 
+end
 
 
 if SERVER then
 
 	util.AddNetworkString("LEDTapeData")
-	net.Receive("LEDTapeData", function(len, ply) 
+	net.Receive("LEDTapeData", function(len, ply)
 		local controller = net.ReadEntity()
 		local full       = net.ReadBool()
 		if not IsValid(controller) then return end
@@ -251,7 +251,7 @@ if SERVER then
 
 	function ENT:Initialize()
 		BaseClass.Initialize(self)
-		WireLib.CreateInputs(self, { 
+		WireLib.CreateInputs(self, {
 			"Color [VECTOR]"
 		})
 		self:SharedInit()
@@ -290,7 +290,7 @@ if SERVER then
 		end
 
 		BaseClass.Think( self )
-		self:NextThink(CurTime()+0.05)
+		self:NextThink(CurTime() + 0.05)
 		return true
 	end
 
@@ -326,9 +326,9 @@ if SERVER then
 	end
 
 	function MakeWireLEDTapeController( pl, Pos, Ang, model, path, width, material )
-		local controller = WireLib.MakeWireEnt(pl, {Class = "gmod_wire_ledtape", Pos=Pos, Angle=Ang, Model=model})
+		local controller = WireLib.MakeWireEnt(pl, {Class = "gmod_wire_ledtape", Pos = Pos, Angle = Ang, Model = model})
 		if not IsValid(controller) then return end
-		
+
 		controller.Path = path
 		controller.Width = math.Clamp(width,0.1,4)
 		controller.BaseMaterial = material
