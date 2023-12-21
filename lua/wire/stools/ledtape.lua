@@ -35,7 +35,7 @@ if CLIENT then
 	language.Add( "Tool.wire_ledtape.material", "Material:" )
 	TOOL.Information = {
 		{ name = "right_0", stage = 0, text = "Start LED Tape" },
-		{ name = "left_0", stage = 2, text = "Update material of existing controller" },
+		{ name = "left_0", stage = 0, text = "Update material of existing controller" },
 		{ name = "right_1", stage = 1, text = "Place another point" },
 		{ name = "left_2", stage = 2, text = "Finish tape and place controller" },
 		{ name = "right_2", stage = 2, text = "Place more points" },
