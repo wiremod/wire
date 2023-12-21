@@ -3,6 +3,8 @@ gvars v2
 Made by Divran
 ]]
 
+E2Lib.RegisterExtension( "gtable", true, "Allows users to create gTables to transmit data between E2 chips.", "!!! Very easy to exploit to use a ton of server memory. Superceded by event remote." )
+
 local gvars = {}
 gvars.shared = {}
 gvars.safe = {} -- Safe from hacking using gTableSafe
