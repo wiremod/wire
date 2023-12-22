@@ -308,8 +308,9 @@ local function EmitSound(e2, ent, snd, level, pitch, volume)
     ent:SetVar("E2_emitting_sounds", emitting_sounds)
 
     ent:CallOnRemove("E2_EmitSound_stop_all", function()
-        local emitting_sounds = ent:GetVar("E2_emitting_sounds", {})
-        for _, snd in pairs(emitting_sounds) do
+        local emitting_sounds = ent:GetVar("E2_emitting_sounds")
+        if not emitting_sounds then return end
+        for _, snd in ipairs(emitting_sounds) do
             ent:StopSound(snd)
         end
     end)
