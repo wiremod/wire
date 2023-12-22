@@ -303,6 +303,17 @@ local function EmitSound(e2, ent, snd, level, pitch, volume)
         level = maxlevel
     end
 
+    local emitting_sounds = ent:GetVar("E2_emitting_sounds", {})
+    table.insert(emitting_sounds, snd)
+    ent:SetVar("E2_emitting_sounds", emitting_sounds)
+
+    ent:CallOnRemove("E2_EmitSound_stop_all", function()
+        local emitting_sounds = ent:GetVar("E2_emitting_sounds", {})
+        for _, snd in pairs(emitting_sounds) do
+            ent:StopSound(snd)
+        end
+    end)
+
     ent:EmitSound(snd, level, pitch, volume)
 end
 
