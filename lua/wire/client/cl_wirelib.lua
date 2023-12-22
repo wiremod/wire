@@ -7,19 +7,6 @@ local WIRE_SCROLL_SPEED = 	0.5
 local WIRE_BLINKS_PER_SECOND = 	2
 local Wire_DisableWireRender = 	0
 
-list.Add( "WireMaterials", "cable/rope_icon" )
-list.Add( "WireMaterials", "cable/cable2" )
-list.Add( "WireMaterials", "cable/xbeam" )
-list.Add( "WireMaterials", "cable/redlaser" )
-list.Add( "WireMaterials", "cable/blue_elec" )
-list.Add( "WireMaterials", "cable/physbeam" )
-list.Add( "WireMaterials", "cable/hydra" )
-list.Add( "WireMaterials", "arrowire/arrowire" )
-list.Add( "WireMaterials", "arrowire/arrowire2" )
-
-list.Add( "WireMaterials", "tripmine_laser" )
-list.Add( "WireMaterials", "Models/effects/comball_tape" )
-
 WireLib.Wire_GrayOutWires = false
 WIRE_CLIENT_INSTALLED = 1
 
