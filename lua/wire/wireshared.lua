@@ -1240,7 +1240,7 @@ do
 		local pos = ent:GetPos()
 		local ang = ent:GetAngles()
 
-		if orientation[1] ~= pos or orientation[2] ~= ang then
+		if not rawequal(orientation[1], pos) or not rawequal(orientation[2], ang) then
 			orientation[1]             = pos
 			orientation[2]             = ang
 			cur_cached_positions       = {}
