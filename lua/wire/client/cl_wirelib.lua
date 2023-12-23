@@ -9,21 +9,28 @@ local Wire_DisableWireRender = 	0
 
 WIRE_CLIENT_INSTALLED = 1
 
-mats_cache = {
-	["tripmine_laser"] = Material("tripmine_laser"),
-	["Models/effects/comball_tape"] = Material("Models/effects/comball_tape")
-}
+
 
 BeamMat = Material("tripmine_laser")
 BeamMatHR = Material("Models/effects/comball_tape")
-local lastrender, scroll, shouldblink = 0, 0, false
+
+local scroll, shouldblink = 0, false
+
+timer.Create("Wire.WireBlink", 1 / WIRE_BLINKS_PER_SECOND, 0, function() -- there's no reason this needs to be in the render hook, no?
+	shouldblink = not shouldblink
+end)
 
 --Precache everything we're going to use
-local CurTime = CurTime 			--Yes, in lua we can do this
+local CurTime            = CurTime
+local render_SetMaterial = render.SetMaterial
+local render_StartBeam   = render.StartBeam
+local render_AddBeam     = render.AddBeam
+local render_EndBeam     = render.EndBeam
 
+local mats_cache = {} -- nothing else uses this, it doesn't need to be global
 local function getmat( mat )
 	if not mats_cache[ mat ] then mats_cache[ mat ] = Material(mat) end --Just not to create a material every frame
-	return mats_cache[mat]
+	return mats_cache[ mat ]
 end
 
 function Wire_Render(ent)
@@ -40,29 +47,23 @@ function Wire_Render(ent)
 
 	if not next(wires) then return end
 
-	local t = CurTime()
-	if lastrender ~= t then
-		local w, f = math.modf(t*WIRE_BLINKS_PER_SECOND)
-		shouldblink = f < 0.5
-		scroll = t*WIRE_SCROLL_SPEED
-		lastrender = t
-	end
-
 	local blink = shouldblink and ent:GetNWString("BlinkWire")
 	--CREATING (Not assigning a value) local variables OUTSIDE of cycle a bit faster
 	local start, color, nodes, len, endpos, node, node_ent
 	for net_name, wiretbl in pairs(wires) do
 
 		width = wiretbl.Width
+
 		if width > 0 and blink ~= net_name then
 			start = IsValid(ent) and ent:LocalToWorld(wiretbl.StartPos) or wiretbl.StartPos
 			color = wiretbl.Color
 			nodes = wiretbl.Path
+			scroll = 0
 			len = #nodes
 			if len>0 then
-				render.SetMaterial( getmat(wiretbl.Material) )	--Maybe every wire addon should precache it's materials on setup?
-				render.StartBeam(len * 2 + 1)
-				render.AddBeam(start, width, scroll, color)
+				render_SetMaterial( getmat(wiretbl.Material) )	--Maybe every wire addon should precache it's materials on setup?
+				render_StartBeam(len * 2 + 1)
+				render_AddBeam(start, width, scroll, color)
 
 				for j=1, len do
 					node = nodes[j]
@@ -70,13 +71,13 @@ function Wire_Render(ent)
 					if IsValid( node_ent ) then
 						endpos = node_ent:LocalToWorld(node.Pos)
 						scroll = scroll+(endpos-start):Length()/10
-						render.AddBeam(endpos, width, scroll, color)
-						render.AddBeam(endpos, width, scroll, color) -- A second beam in the same position ensures the line stays consistent and doesn't change width/become distorted.
+						render_AddBeam(endpos, width, scroll, color)
+						render_AddBeam(endpos, width, scroll, color) -- A second beam in the same position ensures the line stays consistent and doesn't change width/become distorted.
 						start = endpos
 					end
 				end
 
-				render.EndBeam()
+				render_EndBeam()
 			end
 		end
 	end
