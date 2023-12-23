@@ -7,7 +7,6 @@ local WIRE_SCROLL_SPEED = 	0.5
 local WIRE_BLINKS_PER_SECOND = 	2
 local Wire_DisableWireRender = 	0
 
-WireLib.Wire_GrayOutWires = false
 WIRE_CLIENT_INSTALLED = 1
 
 mats_cache = {
@@ -51,21 +50,13 @@ function Wire_Render(ent)
 
 	local blink = shouldblink and ent:GetNWString("BlinkWire")
 	--CREATING (Not assigning a value) local variables OUTSIDE of cycle a bit faster
-	local start, color, nodes, len, h, s, v, tmpColor, endpos, node, node_ent
+	local start, color, nodes, len, endpos, node, node_ent
 	for net_name, wiretbl in pairs(wires) do
 
 		width = wiretbl.Width
 		if width > 0 and blink ~= net_name then
 			start = IsValid(ent) and ent:LocalToWorld(wiretbl.StartPos) or wiretbl.StartPos
 			color = wiretbl.Color
-
-			if WireLib.Wire_GrayOutWires then
-				h, s, v = ColorToHSV(color)
-				v = 0.175
-				tmpColor = HSVToColor(h, s, v)
-				color = Color(tmpColor.r, tmpColor.g, tmpColor.b, tmpColor.a) -- HSVToColor does not return a proper Color structure.
-			end
-
 			nodes = wiretbl.Path
 			len = #nodes
 			if len>0 then
