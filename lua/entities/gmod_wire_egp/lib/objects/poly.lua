@@ -125,6 +125,7 @@ function Obj:SetPos(x, y, angle)
 		v.y = vec.y
 	end
 	self.x, self.y, self.angle = x, y, angle
+	if SERVER and self._x then self._x, self._y, self._angle = x, y, angle end
 	return true
 end
 

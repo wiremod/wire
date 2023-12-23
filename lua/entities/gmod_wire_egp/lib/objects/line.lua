@@ -71,7 +71,7 @@ function Obj:SetPos(x, y, angle, x2, y2)
 
 	self.x, self.y, self.angle = x, y, angle
 
-	if self._x then self._x, self._y, self._angle, self._x2, self._y2 = x, y, angle, x2, y2 end
+	if SERVER and self._x then self._x, self._y, self._angle, self._x2, self._y2 = x, y, angle, x2, y2 end
 	return true
 end
 
