@@ -1212,3 +1212,56 @@ hook.Add("PlayerDisconnected", "WireLib_PlayerDisconnect", function(ply)
     tbl[ply] = nil
   end
 end)
+
+
+-- LocalToWorld, but for use in hot loops to produce as little garbage as possible
+-- by Fasteroid
+do
+	local ents_orientations      = {}
+	local ents_cached_positions = {}
+
+	local LocalToWorld = FindMetaTable("Entity").LocalToWorld
+	local orientation, cur_cached_positions, cur_ent
+
+	function WireLib.LocalToWorld_UseEnt(ent)
+		if cur_ent == ent then return end -- call this as much as you want
+
+		orientation          = ents_orientations[ent]
+		cur_cached_positions = ents_cached_positions[ent]
+		cur_ent              = ent
+
+		if not orientation or not cur_cached_positions then
+			ents_orientations[ent]     = { ent:GetPos(), ent:GetAngles() }
+			cur_cached_positions       = {}
+			ents_cached_positions[ent] = cur_cached_positions
+			return
+		end
+
+		local pos = ent:GetPos()
+		local ang = ent:GetAngles()
+
+		if orientation[1] ~= pos or orientation[2] ~= ang then
+			orientation[1]             = pos
+			orientation[2]             = ang
+			cur_cached_positions       = {}
+			ents_cached_positions[ent] = cur_cached_positions
+			return
+		end
+
+		op = retrieve
+	end
+
+	function WireLib.LocalToWorld_Find(pos)
+		local fetch = cur_cached_positions[pos]
+		if fetch then return fetch
+		else
+			cur_cached_positions[pos] = LocalToWorld(cur_ent, pos)
+			return cur_cached_positions[pos]
+		end
+	end
+
+	hook.Add("EntityRemoved", "WireLib_LocalToWorld_Clear", function(ent)
+		ents_cached_positions[ent] = nil
+		ents_orientations[ent]     = nil
+	end)
+end

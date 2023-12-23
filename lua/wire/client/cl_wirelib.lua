@@ -14,18 +14,24 @@ WIRE_CLIENT_INSTALLED = 1
 BeamMat = Material("tripmine_laser")
 BeamMatHR = Material("Models/effects/comball_tape")
 
-local scroll, shouldblink = 0, false
+local scroll, scroll_offset, shouldblink = 0, 0, false
+
+--Precache everything we're going to use
+local CurTime             = CurTime
+local render_SetMaterial  = render.SetMaterial
+local render_StartBeam    = render.StartBeam
+local render_AddBeam      = render.AddBeam
+local render_EndBeam      = render.EndBeam
+local LocalToWorld_UseEnt = WireLib.LocalToWorld_UseEnt
+local LocalToWorld_Find   = WireLib.LocalToWorld_Find
+
+hook.Add("Think", "Wire.WireScroll", function()
+	scroll_offset = CurTime() * WIRE_SCROLL_SPEED
+end )
 
 timer.Create("Wire.WireBlink", 1 / WIRE_BLINKS_PER_SECOND, 0, function() -- there's no reason this needs to be in the render hook, no?
 	shouldblink = not shouldblink
 end)
-
---Precache everything we're going to use
-local CurTime            = CurTime
-local render_SetMaterial = render.SetMaterial
-local render_StartBeam   = render.StartBeam
-local render_AddBeam     = render.AddBeam
-local render_EndBeam     = render.EndBeam
 
 local mats_cache = {} -- nothing else uses this, it doesn't need to be global
 local function getmat( mat )
@@ -59,9 +65,9 @@ function Wire_Render(ent)
 			start = ent:LocalToWorld(wiretbl.StartPos)
 			color = wiretbl.Color
 			nodes = wiretbl.Path
-			scroll = 0
+			scroll = scroll_offset
 			len = #nodes
-			if len>0 then
+			if len > 0 then
 				render_SetMaterial( getmat(wiretbl.Material) )	--Maybe every wire addon should precache it's materials on setup?
 				render_StartBeam(len * 2 + 1)
 				render_AddBeam(start, width, scroll, color)
@@ -70,8 +76,9 @@ function Wire_Render(ent)
 					node = nodes[j]
 					node_ent = node.Entity
 					if IsValid( node_ent ) then
-						endpos = node_ent:LocalToWorld(node.Pos)
-						scroll = scroll+(endpos-start):Length()/10
+						LocalToWorld_UseEnt(node_ent)
+						endpos = LocalToWorld_Find(node.Pos)
+						scroll = scroll + endpos:Distance(start) / 10
 						render_AddBeam(endpos, width, scroll, color)
 						render_AddBeam(endpos, width, scroll, color) -- A second beam in the same position ensures the line stays consistent and doesn't change width/become distorted.
 						start = endpos
