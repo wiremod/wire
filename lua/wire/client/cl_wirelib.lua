@@ -35,6 +35,7 @@ end
 
 function Wire_Render(ent)
 	if Wire_DisableWireRender ~= 0 then return end	--We shouldn't render anything
+	if not IsValid(ent) then return end
 
 	local wires = ent.WirePaths
 	if not wires then
@@ -55,7 +56,7 @@ function Wire_Render(ent)
 		width = wiretbl.Width
 
 		if width > 0 and blink ~= net_name then
-			start = IsValid(ent) and ent:LocalToWorld(wiretbl.StartPos) or wiretbl.StartPos
+			start = ent:LocalToWorld(wiretbl.StartPos)
 			color = wiretbl.Color
 			nodes = wiretbl.Path
 			scroll = 0
