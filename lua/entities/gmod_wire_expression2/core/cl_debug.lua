@@ -24,9 +24,9 @@ net.Receive("wire_expression2_printColor", function()
 	local msg = {}
 
 	for i = 1, 1024 do
-		local head = net.ReadUInt(4)
-		if head == 0 then break end
-		msg[i] = printcolor_readers[head]()
+		local reader = printcolor_readers[net.ReadUInt(4)]
+		if not reader then break end
+		msg[i] = reader()
 	end
 
 	if console then
