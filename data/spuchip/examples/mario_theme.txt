@@ -25,10 +25,12 @@ tracklen = strlen(trackA);
 void main()
 {
     // Tempo
-    if ((i > 120) && (i <= 230))
+    if ((i > 120) && (i <= 230)) {
         tempo( 1000 );
-    else
+    }
+    else {
         tempo( 864 );
+    }
 
     // Track A
     note = 2;
