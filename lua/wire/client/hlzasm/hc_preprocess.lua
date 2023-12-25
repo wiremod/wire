@@ -38,12 +38,18 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
 
   -- Stop parsing macros inside of a failed ifdef/ifndef
   if self.SkipToEndIf then
-    if macroName == "endif" or macroName == "else" then
+    if macroName == "else" then
+      if self.EndIfsToSkip == 0 then
+        self.SkipToEndIf = false
+        return self:ParsePreprocessMacro(lineText,macroPosition) -- Rerun function to parse else correctly
+      end
+    end
+    if macroName == "endif" then
       if self.EndIfsToSkip > 0 then 
         self.EndIfsToSkip = self.EndIfsToSkip - 1
       else
         self.SkipToEndIf = false
-        return self:ParsePreprocessMacro(lineText,macroPosition) -- Rerun function to parse endif/else correctly
+        return self:ParsePreprocessMacro(lineText,macroPosition) -- Rerun function to parse endif correctly
       end
     end
     if macroName == "ifdef" or macroName == "ifndef" then
