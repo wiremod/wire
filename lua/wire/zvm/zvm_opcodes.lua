@@ -687,7 +687,7 @@ ZVM.OpcodeTable[97] = function(self) --RDPG
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[98] = function(self)  --TIMER
-  self:Dyn_EmitOperand("(VM.TIMER+%d*VM.TimerDT)",(self.PrecompileInstruction or 0))
+  self:Dyn_EmitOperand(string.format("(VM.TIMER+%d*VM.TimerDT)",(self.PrecompileInstruction or 0)))
 end
 ZVM.OpcodeTable[99] = function(self)  --LIDTR
   self:Dyn_Emit("VM.IDTR = $1")
