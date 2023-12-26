@@ -139,14 +139,11 @@ function Obj:Set(key, value)
 		if SERVER then self.VerticesUpdate = true end
 		return true
 	elseif key == "x" then
-		ret = self:SetPos(value, self.y, self.angle)
-		return true
+		return self:SetPos(value, self.y, self.angle)
 	elseif key == "y" then
-		ret = self:SetPos(self.x, value, self.angle)
-		return true
+		return self:SetPos(self.x, value, self.angle)
 	elseif key == "angle" then
-		ret = self:SetPos(self.x, self.y, value)
-		return true
+		return self:SetPos(self.x, self.y, value)
 	else
 		if self[key] ~= nil and self[key] ~= value then
 			self[key] = value
