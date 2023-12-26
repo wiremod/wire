@@ -84,10 +84,9 @@ function Obj:EditObject(args)
 	local ret = false
 	if args.vertices then
 		self.vertices = args.vertices
+		self.x, self.y = EGP.getCenterFrom(self)
 		if self.IsParented then
-			self._x, self._y = EGP.getCenterFrom(self)
-		else
-			self.x, self.y = EGP.getCenterFrom(self)
+			self._x, self._y = self.x, self.y
 		end
 		args.vertices = nil
 		self.angle = 0
@@ -133,6 +132,9 @@ function Obj:Set(key, value)
 	if key == "vertices" then
 		self.vertices = value
 		self.x, self.y = EGP.getCenterFrom(self)
+		if self.IsParented then
+			self._x, self._y = self.x, self.y
+		end
 		self.angle = 0
 		if SERVER then self.VerticesUpdate = true end
 		return true
