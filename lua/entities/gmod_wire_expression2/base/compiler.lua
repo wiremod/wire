@@ -1628,6 +1628,7 @@ local CompileVisitors = {
 
 		local arg_sig = table.concat(types)
 		local fn_data = self:Assert(self:GetFunction(data[1].value, types), "No such function: " .. name.value .. "(" .. table.concat(types, ", ") .. ")", name.trace)
+		self.scope.data.ops = self.scope.data.ops + fn_data.cost
 
 		self:AssertW(not (used_as_stmt and fn_data.attrs.nodiscard), "The return value of this function cannot be discarded", trace)
 
@@ -1635,7 +1636,6 @@ local CompileVisitors = {
 			local value = fn_data.attrs["deprecated"]
 			self:Warning("Use of deprecated function (" .. name.value .. ") " .. (type(value) == "string" and value or ""), trace)
 		end
-
 
 		if fn_data.attrs["noreturn"] then
 			self.scope.data.dead = true
@@ -1645,8 +1645,6 @@ local CompileVisitors = {
 		local user_function = self.user_functions[name.value] and self.user_functions[name.value][arg_sig]
 		if user_function then
 			if self.strict then -- If @strict, functions are compile time constructs (like events).
-				self.scope.data.ops = self.scope.data.ops + fn_data.cost
-
 				local fn = user_function.op
 				return function(state)
 					local rargs = {}
@@ -1656,8 +1654,6 @@ local CompileVisitors = {
 					return fn(state, rargs, types)
 				end, fn_data.ret and (fn_data.ret ~= "" and fn_data.ret or nil)
 			else
-				self.scope.data.ops = self.scope.data.ops + (fn_data.cost or 15) + (fn_data.attrs["legacy"] and 10 or 0)
-
 				local full_sig = name.value .. "(" .. arg_sig .. ")"
 				return function(state) ---@param state RuntimeContext
 					local rargs = {}
@@ -1705,6 +1701,7 @@ local CompileVisitors = {
 		local meta, meta_type = self:CompileExpr(data[1])
 
 		local fn_data = self:Assert(self:GetFunction(name.value, types, meta_type), "No such method: " .. (meta_type or "void") .. ":" .. name.value .. "(" .. table.concat(types, ", ") .. ")", name.trace)
+		self.scope.data.ops = self.scope.data.ops + fn_data.cost
 
 		self:AssertW(not (used_as_stmt and fn_data.attrs.nodiscard), "The return value of this function cannot be discarded", trace)
 
@@ -1993,6 +1990,7 @@ function Compiler:GetOperator(variant, types, trace)
 		return fn[3], fn[2], fn.attributes.legacy, false
 	elseif variant == "eq" and #types == 2 and types[1] == types[2] then
 		-- If no equals operator present, default to just basic lua equals.
+		self.scope.data.ops = self.scope.data.ops + 1
 		return DEFAULT_EQUALS, "n", false, true
 	end
 
