@@ -169,7 +169,7 @@ function registerFunction(name, pars, rets, func, cost, argnames, attributes)
 
 	local signature = name .. "(" .. pars .. ")"
 
-	wire_expression2_funcs[signature] = { signature, rets, func, cost or tempcost, argnames = argnames, extension = E2Lib.currentextension, attributes = attributes }
+	wire_expression2_funcs[signature] = { signature, rets, func, (cost or tempcost or 15) + (attributes.legacy and 10 or 0), argnames = argnames, extension = E2Lib.currentextension, attributes = attributes }
 
 	wire_expression2_funclist[name] = true
 end
