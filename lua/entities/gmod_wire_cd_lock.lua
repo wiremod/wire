@@ -97,7 +97,9 @@ function ENT:AttachDisk(disk)
 
 	self.Const:CallOnRemove("wire_cd_remove_on_weld",function()
 		self.Const = nil
-		self.Disk.Lock = nil
+		if(IsValid(self.Disk)) then
+			self.Disk.Lock = nil
+		end
 		self.Disk = nil
 		self.NoCollideConst = nil
 
