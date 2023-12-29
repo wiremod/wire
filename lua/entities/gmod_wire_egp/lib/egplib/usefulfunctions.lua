@@ -229,7 +229,9 @@ end
 -- Other
 --------------------------------------------------------
 function EGP:ValidEGP( Ent )
-	return IsValid( Ent ) and (Ent:GetClass() == "gmod_wire_egp" or Ent:GetClass() == "gmod_wire_egp_hud" or Ent:GetClass() == "gmod_wire_egp_emitter")
+	if not IsValid( Ent ) then return false end
+	local class = Ent:GetClass()
+	return class == "gmod_wire_egp" or class == "gmod_wire_egp_hud" or class == "gmod_wire_egp_emitter"
 end
 
 
