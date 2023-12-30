@@ -304,7 +304,7 @@ local function EmitSound(e2, ent, snd, level, pitch, volume)
     end
 
     local emitting_sounds = ent:GetVar("E2_emitting_sounds", {})
-    emitting_sounds[snd] = (emitting_sounds[snd] or 0) + 1
+    emitting_sounds[snd] = math.min((emitting_sounds[snd] or 0) + 1, 32)
     ent:SetVar("E2_emitting_sounds", emitting_sounds)
 
     ent:CallOnRemove("E2_EmitSound_stop_all", function()
