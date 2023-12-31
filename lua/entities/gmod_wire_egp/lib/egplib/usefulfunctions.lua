@@ -228,10 +228,13 @@ end
 --------------------------------------------------------
 -- Other
 --------------------------------------------------------
-function EGP:ValidEGP( Ent )
-	if not IsValid( Ent ) then return false end
-	local class = Ent:GetClass()
-	return class == "gmod_wire_egp" or class == "gmod_wire_egp_hud" or class == "gmod_wire_egp_emitter"
+do
+	local GetVar = FindMetaTable( "Entity" ).GetVar
+
+	function EGP:ValidEGP( Ent )
+		if not IsValid( Ent ) then return false end
+		return GetVar( Ent, "IsEGP", false )
+	end
 end
 
 
