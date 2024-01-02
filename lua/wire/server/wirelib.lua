@@ -337,13 +337,25 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 
 	local ent_ports = ent.Outputs or {}
 
-	if ent_ports.wirelink then
-		local n = #names+1
+	local ent_mods = ent.EntityMods
+	if ent_mods then
+		local n = #names
+		if ent_mods.CreateEntityOutput then
+			n = n + 1
 
-		names[n] = "wirelink"
-		types[n] = "WIRELINK"
+			names[n] = "entity"
+			types[n] = "ENTITY"
+		end
+		if ent_mods.CreateWirelinkOutput then
+			n = n + 1
+
+			names[n] = "wirelink"
+			types[n] = "WIRELINK"
+		end
 	end
 
+
+	local i = 0
 	for n,v in ipairs(names) do
 		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
 
@@ -352,10 +364,11 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 				WireLib.DisconnectOutput(ent, name)
 				ent_ports[name].Type = tp
 			end
+			WireLib.RemoveOutPort(ent, name)
 			ent_ports[name].Keep = true
-			ent_ports[name].Num = n
 			ent_ports[name].Desc = desc
 		else
+			i = i + 1
 			local port = {
 				Keep = true,
 				Name = name,
@@ -364,7 +377,7 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 				Value = WireLib.GetDefaultForType(tp),
 				Connected = {},
 				TriggerLimit = 8,
-				Num = n,
+				Num = i,
 			}
 
 			local idx = 1
@@ -383,6 +396,7 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 			port.Keep = nil
 		else
 			WireLib.DisconnectOutput(ent, portname)
+			WireLib.RemoveOutPort(ent, portname)
 			ent_ports[portname] = nil
 		end
 	end
@@ -1223,14 +1237,6 @@ function WireLib.GetVersion()
 		end
 	end
 
-	-- Check if we're Workshop version first
-	for k, addon in pairs(engine.GetAddons()) do
-		if addon.wsid == "160250458" then
-			cachedversion = "Workshop"
-			return cachedversion
-		end
-	end
-
 	if not cachedversion then cachedversion = "Unknown" end
 
 	return cachedversion
@@ -1265,8 +1271,9 @@ function WireLib.CheckRegex(data, pattern)
 end
 
 local material_blacklist = {
-	["engine/writez"] = true,
 	["pp/copy"] = true,
+	["engine/writez"] = true,
+	["debug/debugluxels"] = true, -- Crashes linux client
 	["effects/ar2_altfire1"] = true
 }
 function WireLib.IsValidMaterial(material)

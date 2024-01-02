@@ -1,7 +1,7 @@
 "UnlitGeneric"
 {
         $basetexture "thrusteraddon/goo2"
-		"$additive" 0
+		"$additive" 1
 		"$vertexcolor" 1
 		"$vertexalpha" 1
 }

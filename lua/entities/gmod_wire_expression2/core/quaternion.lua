@@ -437,7 +437,7 @@ end)
 
 registerOperator("indexset", "qnn", "", function(state, this, index, value)
 	this[math.Round(math.Clamp(index, 1, 4))] = value
-	self.GlobalScope.vclk[this] = true
+	state.GlobalScope.vclk[this] = true
 end)
 
 __e2setcost(6)

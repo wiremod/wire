@@ -93,7 +93,6 @@ end)
 --[[******************************************************************************]]--
 -- Name functions
 
-
 local function doSetName(self, this, name)
 	local data_SetName = self.data.SetName
 	if not data_SetName then
@@ -109,7 +108,7 @@ local function doSetName(self, this, name)
 	if totalChars >= 512 then return self:throw("You are sending too much data with setName!") end
 	data_SetName._chars = totalChars
 
-	timer.Create("wire_doSetName_Cleanup" .. self.entity:EntIndex(), 1, 1, function()
+	timer.Create("wire_doSetName_Cleanup" .. self.entity:EntIndex(), 1 - engine.TickInterval(), 1, function()
 		if self and self.data then self.data.SetName = nil end
 	end)
 
@@ -317,7 +316,7 @@ local comparable_types = {
 
 registerCallback("postinit", function()
 	-- Angle is the same as vector
-	registerFunction("changed", "a", "n", registeredfunctions.e2_changed_v)
+	registerFunction("changed", "a", "n", registeredfunctions.e2_changed_v, 5, nil, { legacy = false })
 
 	-- generate this function for all types
 	for typeid,_ in pairs(wire_expression_types2) do

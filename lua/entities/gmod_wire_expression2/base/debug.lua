@@ -38,14 +38,15 @@ end
 ---@class Warning
 ---@field message string
 ---@field trace Trace
+---@field quick_fix { replace: string, at: Trace }[]? # Replacements to be made for quick fix
 local Warning = {}
 Warning.__index = Warning
 
 ---@param message string
 ---@param trace Trace
----@return Warning
-function Warning.new(message, trace)
-	return setmetatable({ message = message, trace = trace }, Warning)
+---@param quick_fix { replace: string, at: Trace }[]? # Replacements for quick fix
+function Warning.new(message, trace, quick_fix)
+	return setmetatable({ message = message, trace = trace, quick_fix = quick_fix }, Warning)
 end
 
 function Warning:debug()
@@ -64,15 +65,16 @@ Warning.__tostring = Warning.debug
 ---@field message string
 ---@field trace Trace
 ---@field userdata ErrorUserdata
+---@field quick_fix { replace: string, at: Trace }[]? # Replacements to be made for quick fix
 local Error = {}
 Error.__index = Error
 
 ---@param message string
 ---@param trace Trace?
 ---@param userdata ErrorUserdata?
----@return Error
-function Error.new(message, trace, userdata)
-	return setmetatable({ message = message, trace = trace, userdata = userdata }, Error)
+---@param quick_fix { replace: string, at: Trace }[]? # Replacements to be made for quick fix
+function Error.new(message, trace, userdata, quick_fix)
+	return setmetatable({ message = message, trace = trace, userdata = userdata, quick_fix = quick_fix }, Error)
 end
 
 function Error:debug()

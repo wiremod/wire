@@ -45,3 +45,9 @@ __e2setcost(1)
 e2function string function:getReturnType()
 	return this.ret or ""
 end
+
+e2function string toString(function func)
+	return tostring(func)
+end
+
+e2function string function:toString() = e2function string toString(function func)

@@ -18,25 +18,30 @@ function ENT:Initialize()
 	self.Memory = {}
 	self.MemStart = {}
 	self.MemEnd = {}
+	self.MemOffsets = {}
 	for i = 1,4 do
 		self.Memory[i] = nil
 		self.MemStart[i] = 0
 		self.MemEnd[i] = 0
+		self.MemOffsets[i] = 0
 	end
 	self:SetOverlayText("Data rate: 0 bps")
 end
 
-function ENT:Setup(Mem1st, Mem2st, Mem3st, Mem4st, Mem1sz, Mem2sz, Mem3sz, Mem4sz)
+function ENT:Setup(Mem1st, Mem2st, Mem3st, Mem4st, Mem1sz, Mem2sz, Mem3sz, Mem4sz, Mem1rw, Mem2rw, Mem3rw, Mem4rw)
 	local starts = {Mem1st,Mem2st,Mem3st,Mem4st}
 	local sizes =  {Mem1sz,Mem2sz,Mem3sz,Mem4sz}
+	local offsets = {Mem1rw,Mem2rw,Mem3rw,Mem4rw}
 	for i = 1,4 do
 		starts[i] = tonumber(starts[i]) or 0
 		sizes[i] = tonumber(sizes[i]) or 0
 
 		self.MemStart[i] = starts[i]
 		self.MemEnd[i] = starts[i] + sizes[i] - 1
+		self.MemOffsets[i] = offsets[i] or 0
 		self["Mem"..i.."st"] = starts[i]
 		self["Mem"..i.."sz"] = sizes[i]
+		self["Mem"..i.."rw"] = offsets[i]
 	end
 end
 
@@ -59,7 +64,7 @@ function ENT:ReadCell(Address)
 			if self.Memory[i] then
 				if self.Memory[i].ReadCell then
 					self.DataBytes = self.DataBytes + 1
-					local val = self.Memory[i]:ReadCell(Address - self.MemStart[i])
+					local val = self.Memory[i]:ReadCell(Address + self.MemOffsets[i] - self.MemStart[i])
 					return val or 0
 				end
 			else
@@ -77,7 +82,7 @@ function ENT:WriteCell(Address, value)
 		if (Address >= self.MemStart[i]) and (Address <= self.MemEnd[i]) then
 			if self.Memory[i] then
 				if self.Memory[i].WriteCell then
-					self.Memory[i]:WriteCell(Address - self.MemStart[i], value)
+					self.Memory[i]:WriteCell(Address + self.MemOffsets[i] - self.MemStart[i], value)
 				end
 			end
 			self.DataBytes = self.DataBytes + 1
@@ -95,4 +100,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_addressbus", WireLib.MakeWireEnt, "Data", "Mem1st", "Mem2st", "Mem3st", "Mem4st", "Mem1sz", "Mem2sz", "Mem3sz", "Mem4sz")
+duplicator.RegisterEntityClass("gmod_wire_addressbus", WireLib.MakeWireEnt, "Data", "Mem1st", "Mem2st", "Mem3st", "Mem4st", "Mem1sz", "Mem2sz", "Mem3sz", "Mem4sz", "Mem1rw", "Mem2rw", "Mem3rw", "Mem4rw")

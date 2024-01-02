@@ -2,6 +2,7 @@
 local Obj = EGP.ObjectInherit("TextLayout", "Text")
 Obj.h = 512
 Obj.w = 512
+Obj.CanTopLeft = true
 
 local base = Obj.BaseClass
 
@@ -44,18 +45,21 @@ function Obj:Draw(ent, drawMat)
 
 		if (not self.layouter) then self.layouter = MakeTextScreenLayouter() end
 
+		local w, h = self.w, self.h
+		local x, y = self.x - w / 2, self.y - h / 2
+
 		if self.angle == 0 then
-			self.layouter:DrawText(self.text, self.x, self.y, self.w, self.h, self.halign, self.valign)
+			self.layouter:DrawText(self.text, x, y, w, h, self.halign, self.valign)
 		else
 			mat:Set(drawMat)
 
-			mat:Translate(Vector(self.x, self.y, 0))
+			mat:Translate(Vector(x, y, 0))
 
 			matAng.y = -self.angle
 			mat:Rotate(matAng)
 
 			cam_PushModelMatrix(mat, true)
-				self.layouter:DrawText(self.text, 0, 0, self.w, self.h, self.halign, self.valign)
+				self.layouter:DrawText(self.text, 0, 0, w, h, self.halign, self.valign)
 			cam_PopModelMatrix()
 		end
 

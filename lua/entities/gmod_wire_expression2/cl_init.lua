@@ -5,7 +5,7 @@ local Trace, Error = E2Lib.Debug.Trace, E2Lib.Debug.Error
 ---@param e2 string
 ---@param directives PPDirectives
 ---@param includes table<string, string>
----@param scripts table<string, Node>
+---@param scripts table<string, { [1]: Node, [2]: boolean?, [3]: table<string, boolean> }>
 ---@return Error[]?
 local function Include(e2, directives, includes, scripts)
 	if scripts[e2] then
@@ -37,7 +37,7 @@ local function Include(e2, directives, includes, scripts)
 
 	includes[e2] = code
 
-	scripts[e2] = { tree }
+	scripts[e2] = { tree, nil, dvars }
 
 	for i, file in ipairs(files) do
 		local ierrors = Include(file, directives, includes, scripts)

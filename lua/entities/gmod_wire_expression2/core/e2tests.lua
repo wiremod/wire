@@ -69,11 +69,24 @@ local function runE2Tests(path, failures, passes)
 	failures, passes = failures or {}, passes or {}
 
 	for _, name in ipairs(files) do
-		if string.match(name, "%.txt$") then
-			local ok = runE2Test(AddonRoot .. '/' .. path .. '/' .. name, name)
+		local ext = string.match(name, "%.([^.]+)$")
+		local full_path = AddonRoot .. '/' .. path .. '/' .. name
+
+		if ext == "txt" then
+			local ok = runE2Test(full_path, name)
 			if ok then
 				passes[#passes + 1] = name
 			else
+				failures[#failures + 1] = name
+			end
+		elseif ext == "lua" then
+			local fn = CompileString(file.Read(full_path, "GAME"))
+
+			local ok, msg = pcall(fn)
+			if ok then
+				passes[#passes + 1] = name
+			else
+				Msg("FAILED LUA TEST (" .. name .. "): " .. msg .. "\n")
 				failures[#failures + 1] = name
 			end
 		end

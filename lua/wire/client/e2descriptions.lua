@@ -512,6 +512,7 @@ E2Helper.Descriptions["length(xv4:)"] = "Gets the length of the vector"
 E2Helper.Descriptions["length2(xv2:)"] = "Gets the squared length of the vector"
 E2Helper.Descriptions["length2(v:)"] = "Gets the squared length of the vector"
 E2Helper.Descriptions["length2(xv4:)"] = "Gets the squared length of the vector"
+E2Helper.Descriptions["lerp(vvn)"] = "Performs linear interpolation. Returns a new value between 'from' and 'to', based on a 0-1 percentage ('fraction')"
 E2Helper.Descriptions["distance(xv2:xv2)"] = "Gets the distance between 2D vectors"
 E2Helper.Descriptions["distance(v:v)"] = "Gets the distance between vectors"
 E2Helper.Descriptions["distance(xv4:xv4)"] = "Gets the distance between 4D vectors"
@@ -928,6 +929,7 @@ E2Helper.Descriptions["printColorDriver(e:...)"] = "Like printColor but prints t
 E2Helper.Descriptions["printColorDriver(e:r)"] = "Like printColorDriver but takes an array containing all the parameters"
 E2Helper.Descriptions["printTable(t)"] = "Prints a table like the lua function PrintTable does, except to the chat area"
 E2Helper.Descriptions["printTable(r)"] = "Prints an array like the lua function PrintTable does, except to the chat area"
+E2Helper.Descriptions["setClipboardText(s)"] = "Adds the given string to the chip owners clipboard"
 
 -- Time
 E2Helper.Descriptions["tickClk()"] = "Returns 1 if the current execution was caused by \"runOnTick\""
@@ -1217,6 +1219,7 @@ E2Helper.Descriptions["signalClearOnRemove()"] = "Clears the signal that the chi
 -- Holograms
 E2Helper.Descriptions["holoAlpha(nn)"] = "Sets the transparency (0-255) of the hologram"
 E2Helper.Descriptions["holoAng(na)"] = "Sets the angle of the hologram"
+E2Helper.Descriptions["holoAng(n)"] = "Gets the angle of the hologram"
 E2Helper.Descriptions["holoBodygroup(nnn)"] = "Index, Group ID, Group SubID\nSets the bodygroups of the given hologram"
 E2Helper.Descriptions["holoBodygroups(nn)"] = "Index, Group ID\nReturns the number of bodygroups in the Group ID of the given hologram"
 E2Helper.Descriptions["holoCanCreate()"] = "Returns 1 when holoCreate() will successfully create a new hologram until the Max limit is reached\nReplaces holoRemainingSpawns()"
@@ -1247,6 +1250,7 @@ E2Helper.Descriptions["holoParent(nn)"] = "Parents the hologram to another holog
 E2Helper.Descriptions["holoParentAttachment(nes)"] = "Parents the hologram to an entity's bone by its attachment name"
 E2Helper.Descriptions["holoUnparent(n)"] = "Un-parents the hologram"
 E2Helper.Descriptions["holoPos(nv)"] = "Sets the position of the hologram"
+E2Helper.Descriptions["holoPos(n)"] = "Gets the position of the hologram"
 E2Helper.Descriptions["holoRemainingSpawns()"] = "Returns how many holograms can be created this execution"
 E2Helper.Descriptions["holoReset(nsvvs)"] = "Similar to holoCreate, but reusing the old entity"
 E2Helper.Descriptions["holoScale(n)"] = "Returns the scale of the given hologram"
@@ -1766,3 +1770,8 @@ E2Helper.Descriptions["takeDamage(e:ne)"] = "Applies an amount of damage to the 
 E2Helper.Descriptions["takeDamage(e:nee)"] = "Applies an amount of damage to the player with given attacker and inflictor. Requires wire_expression2_damage_enabled to be set to 1."
 
 E2Helper.Descriptions["blastDamage(vnn)"] = "Creates blast damage at the position provided with specified radius and damage amount. Requires wire_expression2_damage_enabled to be set to 1."
+
+-- Functions
+
+E2Helper.Descriptions["getParameterTypes(f:)"] = "Returns an array of the parameter typeids of the function"
+E2Helper.Descriptions["getReturnType(f:)"] = "Returns the return typeid of the function"

@@ -655,7 +655,7 @@ end)
 
 registerOperator("indexset", "xv4nn", "", function(state, this, index, value)
 	this[floor(math.Clamp(index, 1, 4) + 0.5)] = value
-	self.GlobalScope.vclk[this] = true
+	state.GlobalScope.vclk[this] = true
 end)
 
 __e2setcost(7)

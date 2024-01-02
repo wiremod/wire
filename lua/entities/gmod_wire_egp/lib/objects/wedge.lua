@@ -1,9 +1,9 @@
 -- Author: Divran
-local Obj = EGP:NewObject( "Wedge" )
-Obj.angle = 0
+local Obj = EGP.ObjectInherit("Wedge", "Circle")
 Obj.size = 45
-Obj.fidelity = 180
 local rad, cos, sin = math.rad, math.cos, math.sin
+
+local base = Obj.BaseClass
 Obj.Draw = function( self )
 	if self.a>0 and self.w > 0 and self.h > 0 and self.size ~= 360 then
 		if EGP:CacheNeedsUpdate(self, {"x", "y", "w", "h", "angle", "fidelity", "size"}) then
@@ -35,23 +35,19 @@ Obj.Draw = function( self )
 	end
 end
 Obj.Transmit = function( self )
-	net.WriteInt( (self.angle%360)*20, 16 )
 	net.WriteInt( (self.size%360)*20, 16 )
-	net.WriteUInt(self.fidelity, 8)
-	self.BaseClass.Transmit( self )
+	base.Transmit( self )
 end
 Obj.Receive = function( self )
 	local tbl = {}
-	tbl.angle = net.ReadInt(16)/20
 	tbl.size = net.ReadInt(16)/20
-	tbl.fidelity = net.ReadUInt(8)
-	table.Merge( tbl, self.BaseClass.Receive( self ) )
+	table.Merge( tbl, base.Receive( self ) )
 	return tbl
 end
 Obj.DataStreamInfo = function( self )
 	local tbl = {}
-	table.Merge( tbl, self.BaseClass.DataStreamInfo( self ) )
-	table.Merge( tbl, { angle = self.angle, size = self.size, fidelity = self.fidelity } )
+	table.Merge( tbl, base.DataStreamInfo( self ) )
+	table.Merge( tbl, { size = self.size } )
 	return tbl
 end
 function Obj:Contains(x, y)

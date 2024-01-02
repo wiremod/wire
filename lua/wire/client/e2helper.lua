@@ -152,12 +152,17 @@ function E2Helper.Create(reset)
 		self:ClearSelection()
 		self:SelectItem(line)
 
-		-- don't try describing the function when it is actually a constant
-		if E2Helper.constants[line] then
-			E2Helper.FuncEntry:SetText("Constant value")
+		local const = E2Helper.constants[line]
+		if const then
+			E2Helper.FuncEntry:SetText(line:GetValue(1) .. " (" .. const.type .. ")")
 
-			E2Helper.DescriptionEntry:SetText("Constants do not support descriptions (yet)")
-			E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))
+			if const.description then
+				E2Helper.DescriptionEntry:SetText(const.description)
+				E2Helper.DescriptionEntry:SetTextColor(Color(0, 0, 0))
+			else
+				E2Helper.DescriptionEntry:SetText("No description found :(")
+				E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))
+			end
 		else
 			E2Helper.FuncEntry:SetText(E2Helper.GetFunctionSyntax(line:GetValue(1), line:GetValue(3), line:GetValue(4)))
 			local desc = getdesc(line:GetValue(1), line:GetValue(3))
@@ -314,13 +319,11 @@ function E2Helper.Update()
 	E2Helper.constants = {}
 	if E2Helper.CurrentMode == true then
 		for k, v in pairs(wire_expression2_constants) do
-			local strType = isstring(v) and "s" or "n"
-
 			-- constants have no arguments and no cost
-			local name, args, rets, cost = k, nil, strType, 0
+			local name, args, rets, cost = k, nil, v.type, 0
 			if name:lower():find(search_name, 1, true) and search_args == "" and rets:lower():find(search_rets, 1, true) and string.find("constants",search_from, 1, true) then
-				local line = E2Helper.ResultFrame:AddLine(name, "constants", args, rets, cost)
-				E2Helper.constants[line] = true
+				local line = E2Helper.ResultFrame:AddLine(name, v.extension, args, rets, cost)
+				E2Helper.constants[line] = v
 				count = count + 1
 				if count >= maxcount then break end
 			end

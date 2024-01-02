@@ -11,6 +11,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
+
+      - name: Embed version
+        run: |
+          echo -e "\ncachedversion = \"Canary ${GITHUB_SHA:0:7}\"" >> lua/wire/server/wirelib.lua
+
       - uses: wiremod/gmod-upload@master
         with:
           id: 3066780663

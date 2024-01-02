@@ -84,10 +84,9 @@ function Obj:EditObject(args)
 	local ret = false
 	if args.vertices then
 		self.vertices = args.vertices
+		self.x, self.y = EGP.getCenterFrom(self)
 		if self.IsParented then
-			self._x, self._y = EGP.getCenterFrom(self)
-		else
-			self.x, self.y = EGP.getCenterFrom(self)
+			self._x, self._y = self.x, self.y
 		end
 		args.vertices = nil
 		self.angle = 0
@@ -125,6 +124,7 @@ function Obj:SetPos(x, y, angle)
 		v.y = vec.y
 	end
 	self.x, self.y, self.angle = x, y, angle
+	if SERVER and self._x then self._x, self._y, self._angle = x, y, angle end
 	return true
 end
 
@@ -132,18 +132,18 @@ function Obj:Set(key, value)
 	if key == "vertices" then
 		self.vertices = value
 		self.x, self.y = EGP.getCenterFrom(self)
+		if self.IsParented then
+			self._x, self._y = self.x, self.y
+		end
 		self.angle = 0
 		if SERVER then self.VerticesUpdate = true end
 		return true
 	elseif key == "x" then
-		ret = self:SetPos(value, self.y, self.angle)
-		return true
+		return self:SetPos(value, self.y, self.angle)
 	elseif key == "y" then
-		ret = self:SetPos(self.x, value, self.angle)
-		return true
+		return self:SetPos(self.x, value, self.angle)
 	elseif key == "angle" then
-		ret = self:SetPos(self.x, self.y, value)
-		return true
+		return self:SetPos(self.x, self.y, value)
 	else
 		if self[key] ~= nil and self[key] ~= value then
 			self[key] = value

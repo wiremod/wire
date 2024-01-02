@@ -10,6 +10,8 @@ send the data at the same time.
 Have fun!
 ]]
 
+E2Lib.RegisterExtension( "datasignal", true, "Allows users to trigger remote actions on other E2s to transmit data and actions.", "Superceded by event remote" )
+
 local groups = {}
 local queue = {}
 

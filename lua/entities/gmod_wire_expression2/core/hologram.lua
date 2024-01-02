@@ -1000,14 +1000,30 @@ e2function void holoPos(index, vector position)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	WireLib.setPos(Holo.ent, Vector(position[1],position[2],position[3]))
+	WireLib.setPos(Holo.ent, position)
+end
+
+[nodiscard]
+e2function vector holoPos(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return Vector(0, 0, 0) end
+
+	return Holo.ent:GetPos()
 end
 
 e2function void holoAng(index, angle ang)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	WireLib.setAng(Holo.ent, Angle(ang[1],ang[2],ang[3]))
+	WireLib.setAng(Holo.ent, ang)
+end
+
+[nodiscard]
+e2function angle holoAng(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return Angle(0, 0, 0) end
+
+	return Holo.ent:GetAngles()
 end
 
 -- -----------------------------------------------------------------------------
