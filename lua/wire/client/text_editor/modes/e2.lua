@@ -34,7 +34,8 @@ local keywords = {
 	["try"]    = { [true] = true },
 	["do"] = { [true] = true },
 	["event"] = { [true] = true },
-	["#include"] = { [true] = true }
+	["#include"] = { [true] = true },
+	["declare"] = { [true] = true }
 }
 
 EDITOR.Keywords = keywords

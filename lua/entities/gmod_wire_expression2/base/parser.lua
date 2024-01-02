@@ -74,34 +74,35 @@ local NodeVariant = {
 
 	Switch = 14, -- `switch (<EXPR>) { case <EXPR>, <STMT>* default, <STMT*> }
 	Function = 15, -- `function test() {}`
-	Include = 16, -- #include "file"
-	Try = 17, -- try {} catch (Err) {}
+	DeclareFunction = 16, -- `declare function test()`
+	Include = 17, -- #include "file"
+	Try = 18, -- try {} catch (Err) {}
 
 	--- Compile time constructs
-	Event = 18, -- event tick() {}
+	Event = 19, -- event tick() {}
 
 	--- Expressions
-	ExprTernary = 19, -- `X ? Y : Z`
-	ExprDefault = 20, -- `X ?: Y`
-	ExprLogicalOp = 21, -- `|` `&` (Yes they are flipped.)
-	ExprBinaryOp = 22, -- `||` `&&` `^^`
-	ExprComparison = 23, -- `>` `<` `>=` `<=`
-	ExprEquals = 24, -- `==` `!=`
-	ExprBitShift = 25, -- `>>` `<<`
-	ExprArithmetic = 26, -- `+` `-` `*` `/` `^` `%`
-	ExprUnaryOp = 27, -- `-` `+` `!`
-	ExprMethodCall = 28, -- `<EXPR>:call()`
-	ExprIndex = 29,	-- `<EXPR>[<EXPR>, <type>?]`
-	ExprGrouped = 30, -- (<EXPR>)
-	ExprCall = 31, -- `call()`
-	ExprDynCall = 32, -- `Var()`
-	ExprUnaryWire = 33, -- `~Var` `$Var` `->Var`
-	ExprArray = 34, -- `array(1, 2, 3)` or `array(1 = 2, 2 = 3)`
-	ExprTable = 35, -- `table(1, 2, 3)` or `table(1 = 2, "test" = 3)`
-	ExprFunction = 36, -- `function() {}`
-	ExprLiteral = 37, -- `"test"` `5e2` `4.023` `4j`
-	ExprIdent = 38, -- `Variable`
-	ExprConstant = 39, -- `_FOO`
+	ExprTernary = 20, -- `X ? Y : Z`
+	ExprDefault = 21, -- `X ?: Y`
+	ExprLogicalOp = 22, -- `|` `&` (Yes they are flipped.)
+	ExprBinaryOp = 23, -- `||` `&&` `^^`
+	ExprComparison = 24, -- `>` `<` `>=` `<=`
+	ExprEquals = 25, -- `==` `!=`
+	ExprBitShift = 26, -- `>>` `<<`
+	ExprArithmetic = 27, -- `+` `-` `*` `/` `^` `%`
+	ExprUnaryOp = 28, -- `-` `+` `!`
+	ExprMethodCall = 29, -- `<EXPR>:call()`
+	ExprIndex = 30,	-- `<EXPR>[<EXPR>, <type>?]`
+	ExprGrouped = 31, -- (<EXPR>)
+	ExprCall = 32, -- `call()`
+	ExprDynCall = 33, -- `Var()`
+	ExprUnaryWire = 34, -- `~Var` `$Var` `->Var`
+	ExprArray = 35, -- `array(1, 2, 3)` or `array(1 = 2, 2 = 3)`
+	ExprTable = 36, -- `table(1, 2, 3)` or `table(1 = 2, "test" = 3)`
+	ExprFunction = 37, -- `function() {}`
+	ExprLiteral = 38, -- `"test"` `5e2` `4.023` `4j`
+	ExprIdent = 39, -- `Variable`
+	ExprConstant = 40, -- `_FOO`
 }
 
 Parser.Variant = NodeVariant
@@ -232,6 +233,39 @@ function Parser:Condition()
 		local expr = self:Expr()
 	self:Assert( self:ConsumeValue(TokenVariant.Grammar, Grammar.RParen), "Right parenthesis ()) missing, to close condition")
 	return expr
+end
+
+---@return Node
+function Parser:ConsumeFunctionSignature(make_node)
+	local trace, type_or_name = self:Prev().trace, self:Assert( self:Type(), "Expected function return type or name after function keyword")
+
+	if self:ConsumeValue(TokenVariant.Operator, Operator.Col) then
+		
+		local name = self:Assert(self:Consume(TokenVariant.LowerIdent), "Expected function name after colon (:)")
+		
+		-- entity:xyz()
+		return make_node(nil, type_or_name, name, self:Parameters(), trace)
+		--return Node.new(NodeVariant.Function, { nil, type_or_name, name, self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
+	end
+
+	local meta_or_name = self:Consume(TokenVariant.LowerIdent)
+	if meta_or_name then
+		if self:ConsumeValue(TokenVariant.Operator, Operator.Col) then
+			local name = self:Assert(self:Consume(TokenVariant.LowerIdent), "Expected function name after colon (:)")
+
+			-- void entity:xyz()
+			return make_node(type_or_name, meta_or_name, name, self:Parameters(), trace)
+			--return Node.new(NodeVariant.Function, { type_or_name, meta_or_name, name, self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
+		else
+			-- void test()
+			return make_node(type_or_name, nil, meta_or_name, self:Parameters(), trace)
+			-- return Node.new(NodeVariant.Function, { type_or_name, nil, meta_or_name, self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
+		end
+	else -- test()
+		self:Assert( type_or_name.value ~= "function", "Identifier expected. \"function\" is a reserved keyword that cannot be used here", trace )
+		return make_node(nil, nil, type_or_name, self:Parameters(), trace)
+		--return Node.new(NodeVariant.Function, { nil, nil, type_or_name, self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
+	end
 end
 
 ---@return Node?
@@ -464,28 +498,22 @@ function Parser:Stmt()
 		return Node.new(NodeVariant.Switch, { expr, cases, default }, trace:stitch(self:Prev().trace))
 	end
 
+	-- Function declaration
+	if self:ConsumeValue(TokenVariant.Keyword, Keyword.Declare) then
+		if self:ConsumeValue(TokenVariant.Keyword, Keyword.Function) then
+			return self:ConsumeFunctionSignature(function(rettype, meta, name, params, trace)
+				return Node.new(NodeVariant.DeclareFunction, { rettype, meta, name, params }, trace:stitch(self:Prev().trace))
+			end)
+		else
+			self:Error("\"declare\" can only be used as part of \"declare function\" pair")
+		end
+	end
+
 	-- Function definition
 	if self:ConsumeValue(TokenVariant.Keyword, Keyword.Function) then
-		local trace, type_or_name = self:Prev().trace, self:Assert( self:Type(), "Expected function return type or name after function keyword")
-
-		if self:ConsumeValue(TokenVariant.Operator, Operator.Col) then
-			-- function entity:xyz()
-			return Node.new(NodeVariant.Function, { nil, type_or_name, self:Assert(self:Consume(TokenVariant.LowerIdent), "Expected function name after colon (:)"), self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
-		end
-
-		local meta_or_name = self:Consume(TokenVariant.LowerIdent)
-		if meta_or_name then
-			if self:ConsumeValue(TokenVariant.Operator, Operator.Col) then
-				-- function void entity:xyz()
-				return Node.new(NodeVariant.Function, { type_or_name, meta_or_name, self:Assert(self:Consume(TokenVariant.LowerIdent), "Expected function name after colon (:)"), self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
-			else
-				-- function void test()
-				return Node.new(NodeVariant.Function, { type_or_name, nil, meta_or_name, self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
-			end
-		else -- function test()
-			self:Assert( type_or_name.value ~= "function", "Identifier expected. \"function\" is a reserved keyword that cannot be used here", trace )
-			return Node.new(NodeVariant.Function, { nil, nil, type_or_name, self:Parameters(), self:Block() }, trace:stitch(self:Prev().trace))
-		end
+		return self:ConsumeFunctionSignature(function(rettype, meta, name, params, trace)
+			return Node.new(NodeVariant.Function, { rettype, meta, name, params, self:Block()}, trace:stitch(self:Prev().trace))
+		end)
 	end
 
 	-- #include

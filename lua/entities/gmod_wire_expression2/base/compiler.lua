@@ -218,6 +218,61 @@ local function handleInfixOperation(self, trace, data)
 	end
 end
 
+local function handleFunctionSignature(self, trace, data)
+	local name = data[3]
+
+	local return_type
+	if data[1] then
+		return_type = self:CheckType(data[1])
+	end
+
+	local meta_type
+	if data[2] then
+		meta_type = self:Assert(self:CheckType(data[2]), "Cannot use void as meta type", trace)
+	end
+
+	local param_types, param_names, variadic_ind, variadic_ty = {}, {}, nil, nil
+	if data[4] then -- Has parameters
+		local existing = {}
+		for i, param in ipairs(data[4]) do
+			if param.type then
+				local t = self:Assert(self:CheckType(param.type), "Cannot use void as parameter type", param.name.trace)
+				if param.variadic then
+					self:Assert(t == "r" or t == "t", "Variadic parameter must be of type array or table", param.type.trace)
+					variadic_ind, variadic_ty = i, t
+				end
+				param_types[i] = t
+			elseif param.variadic then
+				self:Error("Variadic parameter requires explicit type", param.name.trace)
+			else
+				param_types[i] = "n"
+				self:Warning("Use of implicit parameter type is deprecated (add :number)", param.name.trace, { { replace = param.name.value .. ":number", at = param.name.trace } })
+			end
+
+			if param.name.value ~= "_" and existing[param.name.value] then
+				self:Error("Variable '" .. param.name.value .. "' is already used as a parameter", param.name.trace)
+			else
+				param_names[i] = param.name.value
+				existing[param.name.value] = true
+			end
+		end
+	end
+
+	if self.strict and not self.scope:IsGlobalScope() then
+		self:Warning("Functions should be in the top scope, nesting them does nothing", trace)
+	end
+
+	return {
+		return_type = return_type,
+		meta_type = meta_type,
+		name = name,
+		param_types = param_types,
+		param_names = param_names,
+		variadic_ind = variadic_ind,
+		variadic_ty = variadic_ty
+	}
+end
+
 ---@type table<NodeVariant, fun(self: Compiler, trace: Trace, data: table, used_as_stmt: boolean): RuntimeOperator|nil, string?>
 local CompileVisitors = {
 	---@param data Node[]
@@ -638,50 +693,34 @@ local CompileVisitors = {
 		end
 	end,
 
+	---@param data { [1]: Token<string>?, [2]: Token<string>?, [3]: Token<string>, [4]: Parameter[] }
+	[NodeVariant.DeclareFunction] = function(self, trace, data)
+		local sig = handleFunctionSignature(self, trace, data)
+
+		local name = sig.name
+		local return_type = sig.return_type
+		local meta_type = sig.meta_type
+
+		local param_types = sig.param_types
+		local param_names = sig.param_names
+		local variadic_ind = sig.variadic_ind
+		local variadic_ty = sig.variadic_ty
+
+		self:Error("unimplemented", trace)
+	end,
+
 	---@param data { [1]: Token<string>, [2]: Token<string>?, [3]: Token<string>, [4]: Parameter[], [5]: Node }
 	[NodeVariant.Function] = function (self, trace, data)
-		local name = data[3]
+		local sig = handleFunctionSignature(self, trace, data)
 
-		local return_type
-		if data[1] then
-			return_type = self:CheckType(data[1])
-		end
+		local name = sig.name
+		local return_type = sig.return_type
+		local meta_type = sig.meta_type
 
-		local meta_type
-		if data[2] then
-			meta_type = self:Assert(self:CheckType(data[2]), "Cannot use void as meta type", trace)
-		end
-
-		local param_types, param_names, variadic_ind, variadic_ty = {}, {}, nil, nil
-		if data[4] then -- Has parameters
-			local existing = {}
-			for i, param in ipairs(data[4]) do
-				if param.type then
-					local t = self:Assert(self:CheckType(param.type), "Cannot use void as parameter type", param.name.trace)
-					if param.variadic then
-						self:Assert(t == "r" or t == "t", "Variadic parameter must be of type array or table", param.type.trace)
-						variadic_ind, variadic_ty = i, t
-					end
-					param_types[i] = t
-				elseif param.variadic then
-					self:Error("Variadic parameter requires explicit type", param.name.trace)
-				else
-					param_types[i] = "n"
-					self:Warning("Use of implicit parameter type is deprecated (add :number)", param.name.trace, { { replace = param.name.value .. ":number", at = param.name.trace } })
-				end
-
-				if param.name.value ~= "_" and existing[param.name.value] then
-					self:Error("Variable '" .. param.name.value .. "' is already used as a parameter", param.name.trace)
-				else
-					param_names[i] = param.name.value
-					existing[param.name.value] = true
-				end
-			end
-		end
-
-		if self.strict and not self.scope:IsGlobalScope() then
-			self:Warning("Functions should be in the top scope, nesting them does nothing", trace)
-		end
+		local param_types = sig.param_types
+		local param_names = sig.param_names
+		local variadic_ind = sig.variadic_ind
+		local variadic_ty = sig.variadic_ty
 
 		local fn_data, lookup_variadic, userfunction = self:GetFunction(name.value, param_types, meta_type)
 		if fn_data then
