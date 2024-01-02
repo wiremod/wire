@@ -73,14 +73,14 @@ if SERVER then
 				queue_handler_firstidx, queue_handler_lastidx = idx, idx
 				handler_queue[1] = name
 
-				timer.Create("wirelib_net_flush", 0, 0, queue_handler_flush)
+				timer.Create("wirelib_net_flush", 0, 1, queue_handler_flush)
 			end
 
 		else
 			queue_handler_firstidx, queue_handler_lastidx = idx, idx
 			handler_queue[1] = name
 
-			timer.Create("wirelib_net_flush", 0, 0, queue_handler_flush)
+			timer.Create("wirelib_net_flush", 0, 1, queue_handler_flush)
 		end
 	end
 
