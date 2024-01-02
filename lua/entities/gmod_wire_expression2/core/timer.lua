@@ -2,41 +2,66 @@
 	Timers
 ]]
 
----@type table<Entity, table<string, true>>
+---@type table<Entity, { lookup: table<string, true>, count: integer }>
 local Timers = {}
 
+--- Max timers that can exist at one time per chip.
+local MAX_TIMERS = CreateConVar("wire_expression2_timer_max", 100)
+
 local function addTimer(self, name, delay, reps, callback)
-	Timers[self][name] = true
+	local timers = Timers[self]
+	if not timers.lookup[name] then
+		timers.lookup[name] = true
+		timers.count = timers.count + 1
+
+		if timers.count > MAX_TIMERS:GetInt() then
+			return self:throw("Hit per-chip timer limit of " .. MAX_TIMERS:GetInt() .. "!", nil)
+		end
+	end
+
 	timer.Create(("e2timer_%p_%s"):format(self, name), math.max(delay, 1e-2), reps, callback)
 end
 
 local function removeTimer(self, name)
-	Timers[self][name] = nil
-	timer.Remove(("e2timer_%p_%s"):format(self, name))
+	local timers = Timers[self]
+	if timers.lookup[name] then
+		timers.lookup[name] = nil
+		timers.count = timers.count - 1
+
+		timer.Remove(("e2timer_%p_%s"):format(self, name))
+	end
 end
 
 registerCallback("construct", function(self)
-	Timers[self] = {}
+	Timers[self] = { lookup = {}, count = 0 }
 end)
 
 registerCallback("destruct", function(self)
-	for name in pairs(Timers[self]) do
+	for name in pairs(Timers[self].lookup) do
 		removeTimer(self, name)
 	end
 
 	Timers[self] = nil
 end)
 
-__e2setcost(20)
+__e2setcost(25)
 
 ---@param self RuntimeContext
 local function MAKE_TRIGGER(id, self)
 	return function()
 		self.data.timer = id
-		removeTimer(self, id)
+
+		Timers[self].lookup[id] = nil
 
 		if self.entity and self.entity.Execute then
 			self.entity:Execute()
+		end
+
+		if
+			Timers[self] -- This case is needed if chip tick quotas, which would call destruct hook on :Execute().
+			and not Timers[self].lookup[id]
+		then
+			removeTimer(self, id) -- only remove if not immediately re-created
 		end
 
 		self.data.timer = nil
@@ -78,15 +103,13 @@ end
 
 __e2setcost(5)
 
-[deprecated = "Use the timer function with callbacks instead"]
+[nodiscard, deprecated = "You should keep track of timers with callbacks instead"]
 e2function array getTimers()
 	local ret, timers = {}, Timers[self]
-	if not timers then return ret end
-
-	self.prf = self.prf + #timers * 2
+	self.prf = self.prf + timers.count * 2
 
 	local i = 0
-	for name in pairs(timers) do
+	for name in pairs(timers.lookup) do
 		i = i + 1
 		ret[i] = name
 	end
@@ -96,11 +119,9 @@ end
 
 e2function void stopAllTimers()
 	local timers = Timers[self]
-	if not timers then return end
+	self.prf = self.prf + timers.count * 2
 
-	self.prf = self.prf + #timers * 2
-
-	for name in pairs(timers) do
+	for name in pairs(timers.lookup) do
 		removeTimer(self, name)
 	end
 end
@@ -109,13 +130,20 @@ end
 	Timers 2.0
 ]]
 
-__e2setcost(10)
+__e2setcost(15)
+
+local simpletimer = 1
 
 -- Create "anonymous" timer using address of arguments, which should be different for each function call.
 -- Definitely hacky, but should work properly. I think this is better than just incrementing a number infinitely.
 e2function void timer(number delay, function callback)
 	local fn, ent = callback:Unwrap("", self), self.entity
-	addTimer(self,("%p"):format(args), delay, 1, function()
+
+	simpletimer = (simpletimer + 1) % (MAX_TIMERS:GetInt() * 100000000) -- if this ends up overwriting other timers you have a much bigger problem. wrap to avoid inf.
+	local name = tostring(simpletimer)
+
+	addTimer(self, name, delay, 1, function()
+		removeTimer(self, name)
 		ent:Execute(fn)
 	end)
 end
@@ -123,13 +151,19 @@ end
 e2function void timer(string name, number delay, function callback)
 	local fn, ent = callback:Unwrap("", self), self.entity
 	addTimer(self, name, delay, 1, function()
+		removeTimer(self, name)
 		ent:Execute(fn)
 	end)
 end
 
 e2function void timer(string name, number delay, number reps, function callback)
-	local fn, ent = callback:Unwrap("", self), self.entity
+	local fn, ent, rep = callback:Unwrap("", self), self.entity, 0
 	addTimer(self, name, delay, reps, function()
+		rep = rep + 1
+		if rep == reps then
+			removeTimer(self, name)
+		end
+
 		ent:Execute(fn)
 	end)
 end
