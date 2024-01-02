@@ -25,7 +25,7 @@ local LiveMics = _WireLiveMicrophones
 
 function ENT:SetupDataTables()
     self:NetworkVar("Bool", 0, "Active")
-    self:NetworkVarNotify("Active",self.OnActiveChanged)
+    self:NetworkVarNotify("Active", self.OnActiveChanged)
 end
 
 function ENT:Initialize()
@@ -74,6 +74,7 @@ function ENT:GetLive()
 end
 
 function ENT:OnActiveChanged(_,_,active)
+    if self._activeSpeakers == nil then return end -- This happens on duplication restoration
     if table.IsEmpty(self._activeSpeakers) then return end
     self:SetLive(active)
 end

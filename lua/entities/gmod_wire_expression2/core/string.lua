@@ -13,9 +13,7 @@ local string_Replace, string_Explode = string.Replace, string.Explode
 registerType("string", "s", "",
 	nil,
 	nil,
-	function(retval)
-		if not isstring(retval) then error("Return value is not a string, but a "..type(retval).."!",0) end
-	end,
+	nil,
 	function(v)
 		return not isstring(v)
 	end
@@ -25,74 +23,34 @@ registerType("string", "s", "",
 
 __e2setcost(3) -- temporary
 
-registerOperator("ass", "s", "s", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
 
---[[******************************************************************************]]--
+local string_sub, string_byte = string.sub, string.byte
 
-registerOperator("fea", "nss", "", function(self, args)
-	local keyname, valname = args[2], args[3]
-	local str = args[4]
-	str = str[1](self, str)
+local function iterc(str, i)
+	i = i + 1
+	if i <= #str then
+		return i, string_sub(str, i, i)
+	end
+end
 
-	local statement = args[5]
+local function iterb(str, i)
+	i = i + 1
+	if i <= #str then
+		return i, string_byte(str, i, i)
+	end
+end
 
-	for key=1, #str do
-		local value = string_sub(str, key, key)
-		self:PushScope()
-
-		self.prf = self.prf + 1
-
-		self.Scope.vclk[keyname] = true
-		self.Scope.vclk[valname] = true
-
-		self.Scope[keyname] = key
-		self.Scope[valname] = value
-
-		local ok, msg = pcall(statement[1], self, statement)
-
-		if not ok then
-			if msg == "break" then	self:PopScope() break
-			elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-		end
-
-		self:PopScope()
+registerOperator("iter", "ns=s", "", function(state, str)
+	state.prf = state.prf + #str
+	return function()
+		return iterc, str, 0
 	end
 end)
 
-registerOperator("fea", "nns", "", function(self, args)
-	local keyname, valname = args[2], args[3]
-
-	local str = args[4]
-	str = str[1](self, str)
-
-	local statement = args[5]
-
-	for key=1, #str do
-		local value = string_byte(str,key,key)
-		self:PushScope()
-
-		self.prf = self.prf + 1
-
-		self.Scope.vclk[keyname] = true
-		self.Scope.vclk[valname] = true
-
-		self.Scope[keyname] = key
-		self.Scope[valname] = value
-
-		local ok, msg = pcall(statement[1], self, statement)
-
-		if not ok then
-			if msg == "break" then	self:PopScope() break
-			elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-		end
-
-		self:PopScope()
+registerOperator("iter", "nn=s", "", function(state, str)
+	state.prf = state.prf + #str
+	return function()
+		return iterb, str, 0
 	end
 end)
 
@@ -100,14 +58,6 @@ end)
 
 e2function number operator_is(string this)
 	return this ~= "" and 1 or 0
-end
-
-e2function number operator==(string lhs, string rhs)
-	return lhs == rhs and 1 or 0
-end
-
-e2function number operator!=(string lhs, string rhs)
-	return lhs ~= rhs and 1 or 0
 end
 
 e2function number operator>=(string lhs, string rhs)
@@ -225,9 +175,9 @@ e2function string string:sub(start)
 	return string_sub(this, start)
 end
 
-e2function string string:operator[](index)
+registerOperator("indexget", "sn", "s", function(state, this, index)
 	return string_sub(this, index, index)
-end
+end)
 
 e2function string string:upper()
 	return this:upper()
@@ -271,7 +221,7 @@ __e2setcost(3)
 
 e2function string string:repeat(number times)
 	local len = #this * times
-	if len <= 0 then return "" end
+	if len <= 0 or len ~= len then return "" end
 
 	self.prf = self.prf + len * 0.01
 	if self.prf > e2_tickquota then error("perf", 0) end
@@ -386,11 +336,11 @@ end
 __e2setcost(3)
 
 --- Formats a values exactly like Lua's [http://www.lua.org/manual/5.1/manual.html#pdf-string.format string.format]. Any number and type of parameter can be passed through the "...". Prints errors to the chat area.
-e2function string format(string fmt, ...)
-	self.prf = self.prf + select("#", ...) * 2
+e2function string format(string fmt, ...args)
+	self.prf = self.prf + #args * 2
 
 	-- TODO: call toString for table-based types
-	local ok, ret = pcall(string_format, fmt, ...)
+	local ok, ret = pcall(string_format, fmt, unpack(args))
 	if not ok then
 		return self:throw(ret, "")
 	end

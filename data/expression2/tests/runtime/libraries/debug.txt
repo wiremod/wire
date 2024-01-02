@@ -1,0 +1,7 @@
+## SHOULD_PASS:EXECUTE
+
+# Ensure variadic extpp functions are working correctly
+
+printColor(vec(), "foo")
+
+print("foo bar", 2, vec(), array())

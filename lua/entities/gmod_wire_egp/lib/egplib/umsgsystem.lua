@@ -3,7 +3,7 @@
 --------------------------------------------------------
 local EGP = EGP
 
-local CurSender
+local CurSender = NULL
 local LastErrorTime = 0
 --[[ Transmit Sizes:
 	Angle = 12
@@ -21,7 +21,7 @@ local LastErrorTime = 0
 EGP.umsg = {}
 
 function EGP.umsg.Start( name, sender )
-	if CurSender then
+	if CurSender:IsValid() then
 		if (LastErrorTime + 1 < CurTime()) then
 			ErrorNoHalt("[EGP] Umsg error. It seems another umsg is already sending, but it occured over 1 second ago. Ending umsg.")
 			EGP.umsg.End()
@@ -35,15 +35,23 @@ function EGP.umsg.Start( name, sender )
 	end
 	CurSender = sender
 
-	net.Start( name )
+	net.Start(name)
 	return true
 end
 
 function EGP.umsg.End()
-	if CurSender then
+	if CurSender:IsValid() then
 		if not EGP.IntervalCheck[CurSender] then EGP.IntervalCheck[CurSender] = { bytes = 0, time = 0 } end
-		EGP.IntervalCheck[CurSender].bytes = EGP.IntervalCheck[CurSender].bytes + net.BytesWritten()
+		local bytes = net.BytesWritten()
+		if bytes then
+			EGP.IntervalCheck[CurSender].bytes = EGP.IntervalCheck[CurSender].bytes + bytes
+		else
+			ErrorNoHalt("Tried to end EGP net message outside of net context?")
+		end
+		net.Broadcast()
+
+	else
+		net.Send(NULL)
 	end
-	net.Broadcast()
-	CurSender = nil
+	CurSender = NULL
 end

@@ -1,0 +1,28 @@
+## SHOULD_PASS:EXECUTE
+
+local Vec = vec2(1, 2)
+
+assert(Vec == vec2(1, 2))
+assert(Vec != vec2(2, 2))
+
+assert(Vec[1] == 1)
+assert(Vec[2] == 2)
+
+assert(Vec:x() == Vec[1])
+assert(Vec:y() == Vec[2])
+
+assert(Vec:toString() == "[1,2]", Vec:toString())
+
+Vec[1] = 7
+Vec[2] = 8
+
+assert(Vec[1] == 7)
+assert(Vec[2] == 8)
+
+assert(vec2()[1] == 0)
+assert(vec2() == vec2(0, 0))
+
+assert(vec2(1, 2) != vec2(1, 2.3))
+assert(vec2(1, 2) == vec2(1, 2))
+
+assert(vec2(1, 2) + vec2(1, 2) == vec2(2, 4))

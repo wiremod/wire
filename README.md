@@ -6,7 +6,8 @@
 
 | Addon | Workshop | GitHub |
 |  ---  |   ---    |   ---  |
-|**Wiremod**| [![Wiremod](https://img.shields.io/steam/subscriptions/160250458?logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=160250458) | https://github.com/wiremod/wire |
+|**Wiremod** (Stable) | [![Wiremod](https://img.shields.io/steam/subscriptions/160250458?logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=160250458) | https://github.com/wiremod/wire |
+|**Wiremod** (Canary) | [![Wiremod Canary](https://img.shields.io/steam/subscriptions/3066780663?logo=steam&color=orange)](https://steamcommunity.com/sharedfiles/filedetails/?id=3066780663) | https://github.com/wiremod/wire |
 |**AdvDupe2**| [![AdvDupe2](https://img.shields.io/steam/subscriptions/773402917?logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=773402917)| https://github.com/wiremod/advdupe2 |
 |**Wire Extras**| [None yet](https://github.com/wiremod/wire-extras/issues/113) | https://github.com/wiremod/wire-extras |
 
@@ -19,7 +20,7 @@ You can find documentation [on our wiki](https://github.com/wiremod/wire/wiki)!
 
 ## 🤝 Contributing
 
-> Before contributing to wiremod, take a look at the [code of conduct](CODE_OF_CONDUCT.md).
+> Before contributing to wiremod, take a look at the [code of conduct](https://github.com/wiremod/wire/blob/master/CODE_OF_CONDUCT.md).
 
 ### 💡 Suggestions
 

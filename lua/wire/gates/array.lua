@@ -38,6 +38,7 @@ for type_name, default in pairs( types_defaults ) do
 
 	GateActions["array_read_" .. type_name] = {
 		name = "Array Read (" .. type_name .. ")",
+		description = "Attempts to get a " .. type_name:lower() .. " from the array at the index.",
 		inputs = { "R", "Index" },
 		inputtypes = { "ARRAY", "NORMAL" },
 		outputtypes = { type_name2 },
@@ -60,6 +61,7 @@ for type_name, default in pairs( types_defaults ) do
 
 	GateActions["array_find_" .. type_name] = {
 		name = "Array Find (" .. type_name .. ")",
+		description = "Outputs the index of the specified " .. type_name:lower() .. " if it exists in the array.",
 		inputs = { "R", "Value" },
 		inputtypes = { "ARRAY", type_name2 },
 		outputtypes = { "NORMAL" },
@@ -118,6 +120,7 @@ GateActions["array_create"] = {
 
 GateActions["array_gettype"] = {
 	name = "Array Get Type",
+	description = "Gets the type of the element at the index as a string.",
 	inputs = { "R", "Index" },
 	inputtypes = { "ARRAY", "NORMAL" },
 	outputtypes = { "STRING" },

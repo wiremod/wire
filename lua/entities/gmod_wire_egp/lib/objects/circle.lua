@@ -1,7 +1,11 @@
 -- Author: Divran
-local Obj = EGP:NewObject( "Circle" )
+local Obj = EGP.ObjectInherit("Circle", "Box")
 Obj.angle = 0
 Obj.fidelity = 180
+Obj.CanTopLeft = nil
+
+local base = Obj.BaseClass
+
 local cos, sin, rad, floor = math.cos, math.sin, math.rad, math.floor
 Obj.Draw = function( self )
 	if (self.a>0 and self.w > 0 and self.h > 0) then
@@ -30,27 +34,31 @@ Obj.Draw = function( self )
 		surface.DrawPoly( self.vert_cache.verts )
 	end
 end
-Obj.Transmit = function( self )
-	net.WriteInt( (self.angle%360)*20, 16 )
-	net.WriteUInt( self.fidelity, 8 )
-	self.BaseClass.Transmit( self )
+
+Obj.Transmit = function(self)
+	if not self then self = this end
+	net.WriteUInt(self.fidelity, 8)
+	base.Transmit(self)
 end
+
 Obj.Receive = function( self )
 	local tbl = {}
-	tbl.angle = net.ReadInt(16)/20
 	tbl.fidelity = net.ReadUInt(8)
-	table.Merge( tbl, self.BaseClass.Receive( self ) )
+	table.Merge(tbl, base.Receive(self))
 	return tbl
 end
+
 Obj.DataStreamInfo = function( self )
-	local tbl = {}
-	table.Merge( tbl, self.BaseClass.DataStreamInfo( self ) )
-	table.Merge( tbl, { angle = self.angle, fidelity = self.fidelity } )
+	local tbl = { fidelity = self.fidelity }
+	table.Merge(tbl, base.DataStreamInfo(self))
 	return tbl
 end
-function Obj:Contains(egp, x, y)
+
+function Obj:Contains(x, y)
 	-- Just do this directly since angle doesn't affect circles
-	local _, realpos = EGP:GetGlobalPos(egp, self.index)
+	local _, realpos = EGP:GetGlobalPos(self.EGP, self)
 	x, y = (x - realpos.x) / self.w, (y - realpos.y) / self.h
 	return x * x + y * y <= 1
 end
+
+return Obj

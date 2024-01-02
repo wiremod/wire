@@ -1,0 +1,76 @@
+## SHOULD_PASS:EXECUTE
+
+local Number = 55
+
+if (1) {
+	local Number = 60
+	assert(Number == 60)
+}
+
+assert(Number == 55)
+
+while (1) {
+	local Number = 70
+	assert(Number == 70)
+	break
+}
+
+assert(Number == 55)
+
+for (I = 1, 2) {
+	switch (I) {
+		case 1,
+			local Number = 200
+			assert(Number == 200)
+
+		default,
+			local Number = 120
+			assert(Number == 120)
+	}
+}
+
+assert(Number == 55)
+
+foreach(_, V:number = array(1, 2, 3)) {
+	local Number = V
+	assert(Number == V)
+}
+
+assert(Number == 55)
+
+do {
+	local Number = 1230
+	assert(Number == 1230)
+} while(0)
+
+assert(Number == 55)
+
+function test() {
+	local Number = 210
+	assert(Number == 210)
+}
+
+assert(Number == 55)
+test()
+assert(Number == 55)
+
+try {
+	local Number = 777
+	assert(Number == 777)
+} catch(_) {
+	error("assertion failed")
+}
+
+assert(Number == 55)
+
+try {
+	local Number = 777
+	error("e")
+} catch(_) {
+	assert(Number == 55)
+
+	local Number = 123
+	assert(Number == 123)
+}
+
+assert(Number == 55)

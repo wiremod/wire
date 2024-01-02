@@ -1,0 +1,17 @@
+## SHOULD_PASS:EXECUTE
+
+local Quat = quat()
+
+Quat[1] = 77
+
+assert(Quat[1] == 77)
+assert(Quat:real() == 77)
+
+assert(Quat[2] == 0)
+assert(Quat:i() == 0)
+
+assert(Quat[3] == 0)
+assert(Quat:j() == 0)
+
+assert(Quat[4] == 0)
+assert(Quat:k() == 0)

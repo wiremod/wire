@@ -65,12 +65,12 @@ function PropCore.ValidAction(self, entity, cmd, bone)
 	if not IsValid(entity) then return self:throw("Invalid entity!", false) end
 	if not isOwner(self, entity) then return self:throw("You do not own this entity!", false) end
 	if entity:IsPlayer() then return self:throw("You cannot modify players", false) end
-	
+
 	-- For cases when we'd only want to check an entity
 	if cmd then
 		if not canHaveInvalidPhysics[cmd] and not validPhysics(entity) then return self:throw("Invalid physics object!", false) end
 		if bone then
-			if not entity["bone" .. bone] then 
+			if not entity["bone" .. bone] then
 				entity["bone" .. bone] = {}
 			end
 			entity = entity["bone" .. bone]
@@ -284,7 +284,9 @@ e2function void entity:use()
 	local ply = self.player
 	if not IsValid(ply) then return end -- if the owner isn't connected to the server, do nothing
 
-	if not hook.Run( "PlayerUse", ply, this ) then return end
+	if hook.Run( "PlayerUse", ply, this ) == false then return end
+	if hook.Run( "WireUse", ply, this, self ) == false then return end
+
 	if this.Use then
 		this:Use(ply,ply,USE_ON,0)
 	else
@@ -495,19 +497,20 @@ e2function void entity:propStatic( number static )
 	end
 end
 
+-- Bones --
 --------------------------------------------------------------------------------
 
 e2function void bone:boneManipulate(vector pos, angle rot, isFrozen, gravity, collision)
 	local ent, index = boneVerify(self, this)
 	if not ValidAction(self, ent, "manipulate", index) then return end
-	
+
 	setPos(this, pos)
 	setAng(this, rot)
-	
+
 	this:EnableMotion(isFrozen == 0)
 	this:EnableGravity(gravity ~= 0)
 	this:EnableCollisions(collision ~= 0)
-	
+
 	ent:PhysWake()
 end
 
@@ -585,11 +588,11 @@ e2function void entity:makeStatue(enable)
 
 	local bones = this:GetPhysicsObjectCount()
 	if bones < 2 then return self:throw("You can only makeStatue on ragdolls!", nil) end
-	
+
 	if enable ~= 0 then
 		if this.StatueInfo then return end
 		local ply = self.player
-		
+
 		this.StatueInfo = {}
 
 		for bone = 1, bones - 1 do
@@ -602,7 +605,7 @@ e2function void entity:makeStatue(enable)
 		end
 
 		this:SetNWBool("IsStatue", true)
-		
+
 	else
 		if not this.StatueInfo then return end
 
@@ -628,12 +631,22 @@ e2function void entity:setPos(vector pos)
 	PhysManipulate(this, pos, nil, nil, nil, nil)
 end
 
+e2function void entity:setLocalPos(vector pos)
+	if not ValidAction(self, this, "pos") then return end
+	WireLib.setLocalPos(this, pos)
+end
+
 [deprecated]
 e2function void entity:reposition(vector pos) = e2function void entity:setPos(vector pos)
 
 e2function void entity:setAng(angle rot)
 	if not ValidAction(self, this, "ang") then return end
 	PhysManipulate(this, nil, rot, nil, nil, nil)
+end
+
+e2function void entity:setLocalAng(angle rot)
+	if not ValidAction(self, this, "ang") then return end
+	WireLib.setLocalAng(this, rot)
 end
 
 [deprecated]
@@ -645,7 +658,7 @@ e2function void bone:setPos(vector pos)
 	setPos(this, pos)
 	ent:PhysWake()
 end
-	
+
 e2function void bone:setAng(angle rot)
 	local ent, index = boneVerify(self, this)
 	if not ValidAction(self, ent, "ang", index) then return end
@@ -657,34 +670,34 @@ __e2setcost(60)
 
 e2function void entity:ragdollFreeze(isFrozen)
 	if not ValidAction(self, this, "freeze") then return end
-	
+
 	for _, bone in pairs(GetBones(this)) do
 		bone:EnableMotion(isFrozen == 0)
 		bone:Wake()
 	end
-	
-	
+
+
 end
 
 __e2setcost(150)
 
 e2function void entity:ragdollSetPos(vector pos)
 	if not ValidAction(self, this, "pos") then return end
-	
+
 	for _, bone in pairs(GetBones(this)) do
 		setPos(bone, this:WorldToLocal(bone:GetPos()) + pos)
 	end
-	
+
 	this:PhysWake()
 end
 
 e2function void entity:ragdollSetAng(angle rot)
 	if not ValidAction(self, this, "rot") then return end
-	
+
 	for _, bone in pairs(GetBones(this)) do
 		setAng(bone, bone:AlignAngles(this:GetForward():Angle(), rot))
 	end
-	
+
 	this:PhysWake()
 end
 
@@ -693,22 +706,22 @@ e2function table entity:ragdollGetPose()
 	local pose = E2Lib.newE2Table()
 	local bones = GetBones(this)
 	local originPos, originAng = bones[0]:GetPos(), bones[0]:GetAngles()
-	
+
 	-- We want to skip bone 0 as that will be the reference point
 	for k, bone in pairs(bones) do
 		local value = E2Lib.newE2Table()
 		local pos, ang = WorldToLocal(bone:GetPos(), bone:GetAngles(), originPos, originAng)
-		
+
 		value.n[1] = pos
 		value.n[2] = ang
 		value.ntypes[1] = "v"
 		value.ntypes[2] = "a"
 		value.size = 2
-		
+
 		pose.n[k] = value
 		pose.ntypes[k] = "t"
 	end
-	
+
 	pose.size = #pose.n
 	return pose
 end
@@ -718,20 +731,20 @@ e2function void entity:ragdollSetPose(table pose, rotate)
 	if pose.size == 0 then return end
 	local bones = GetBones(this)
 	local originPos, originAng = bones[0]:GetPos()
-	if rotate ~= 0 then 
+	if rotate ~= 0 then
 		originAng = bones[0]:GetAngles()
 	else
 		originAng = this:GetForward():Angle()
 	end
-	
+
 	for k, v in pairs(pose.n) do
 		local pos, ang = LocalToWorld(v.n[1], v.n[2], originPos, originAng)
 		setAng(bones[k], ang)
 		setPos(bones[k], pos)
 	end
-	
+
 	this:PhysWake()
-	
+
 end
 
 e2function void entity:ragdollSetPose(table pose)
@@ -739,15 +752,15 @@ e2function void entity:ragdollSetPose(table pose)
 	if pose.size == 0 then return end
 	local bones = GetBones(this)
 	local originPos, originAng = bones[0]:GetPos(), bones[0]:GetAngles() -- Rotate by default.
-	
+
 	for k, v in pairs(pose.n) do
 		local pos, ang = LocalToWorld(v.n[1], v.n[2], originPos, originAng)
 		setAng(bones[k], ang)
 		setPos(bones[k], pos)
 	end
-	
+
 	this:PhysWake()
-	
+
 end
 
 
@@ -814,6 +827,62 @@ end
 e2function number propCanCreate()
 	if WithinPropcoreLimits() then return 1 end
 	return 0
+end
+
+-- Flexes --
+--------------------------------------------------------------------------------
+
+-- Setters
+
+__e2setcost(10)
+
+e2function void entity:setEyeTarget(vector pos)
+	if not ValidAction(self, this, "eyetarget") then return end
+	this:SetEyeTarget(pos)
+end
+
+e2function void entity:setFlexWeight(number flex, number weight)
+	if not ValidAction(self, this, "flexweight" .. flex) then return end
+	this:SetFlexWeight(flex, weight)
+end
+
+__e2setcost(30)
+
+e2function void entity:setEyeTargetLocal(vector pos)
+	if not ValidAction(self, this, "eyetarget") then return end
+	if not this:IsRagdoll() then
+		local attachment = this:GetAttachment(this:LookupAttachment("eyes"))
+		if attachment then
+			pos = LocalToWorld(pos, angle_zero, attachment.Pos, attachment.Ang)
+		end
+	end
+	this:SetEyeTarget(pos)
+end
+
+e2function void entity:setEyeTargetWorld(vector pos)
+	if not ValidAction(self, this, "eyetarget") then return end
+	if this:IsRagdoll() then
+		local attachment = this:GetAttachment(this:LookupAttachment("eyes"))
+		if attachment then
+			pos = WorldToLocal(pos, angle_zero, attachment.Pos, attachment.Ang)
+		end
+	end
+	this:SetEyeTarget(pos)
+end
+
+__e2setcost(20)
+
+e2function void entity:setFlexWeight(string flex, number weight)
+	flex = this:GetFlexIDByName(flex)
+	if flex then
+		if not ValidAction(self, this, "flexweight" .. flex) then return end
+		this:SetFlexWeight(flex, weight)
+	end
+end
+
+e2function void entity:setFlexScale(number scale)
+	if not ValidAction(self, this, "flexscale") then return end
+	this:SetFlexScale(scale)
 end
 
 registerCallback("construct",

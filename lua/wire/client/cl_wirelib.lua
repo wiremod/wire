@@ -26,7 +26,7 @@ WIRE_CLIENT_INSTALLED = 1
 mats_cache = {
 	["tripmine_laser"] = Material("tripmine_laser"),
 	["Models/effects/comball_tape"] = Material("Models/effects/comball_tape")
-}	 
+}
 
 BeamMat = Material("tripmine_laser")
 BeamMatHR = Material("Models/effects/comball_tape")
@@ -42,7 +42,7 @@ end
 
 function Wire_Render(ent)
 	if Wire_DisableWireRender ~= 0 then return end	--We shouldn't render anything
-	
+
 	local wires = ent.WirePaths
 	if not wires then
 		ent.WirePaths = {}
@@ -51,9 +51,9 @@ function Wire_Render(ent)
 		net.SendToServer()
 		return
 	end
-	
+
 	if not next(wires) then return end
-	
+
 	local t = CurTime()
 	if lastrender ~= t then
 		local w, f = math.modf(t*WIRE_BLINKS_PER_SECOND)
@@ -66,12 +66,12 @@ function Wire_Render(ent)
 	--CREATING (Not assigning a value) local variables OUTSIDE of cycle a bit faster
 	local start, color, nodes, len, h, s, v, tmpColor, endpos, node, node_ent
 	for net_name, wiretbl in pairs(wires) do
-	
+
 		width = wiretbl.Width
 		if width > 0 and blink ~= net_name then
 			start = IsValid(ent) and ent:LocalToWorld(wiretbl.StartPos) or wiretbl.StartPos
 			color = wiretbl.Color
-			
+
 			if WireLib.Wire_GrayOutWires then
 				h, s, v = ColorToHSV(color)
 				v = 0.175
@@ -85,7 +85,7 @@ function Wire_Render(ent)
 				render.SetMaterial( getmat(wiretbl.Material) )	--Maybe every wire addon should precache it's materials on setup?
 				render.StartBeam(len * 2 + 1)
 				render.AddBeam(start, width, scroll, color)
-				
+
 				for j=1, len do
 					node = nodes[j]
 					node_ent = node.Entity
@@ -97,7 +97,7 @@ function Wire_Render(ent)
 						start = endpos
 					end
 				end
-				
+
 				render.EndBeam()
 			end
 		end
@@ -167,7 +167,7 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 	if beam_length == 0 then return end
 	local pos = ent:GetPos()
 	local trace = {}
-	
+
 	if ent.GetTarget and ( ent:GetTarget().X ~= 0 or ent:GetTarget().Y ~= 0 or ent:GetTarget().Z ~= 0 ) then
 		trace.endpos = pos + ( ent:GetTarget() - pos ):GetNormalized()*beam_length
 		if trace.endpos[1] ~= trace.endpos[1] then trace.endpos = pos+Vector(ent:GetBeamLength(), 0, 0) end
@@ -186,7 +186,7 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 	else
 		trace.endpos = pos + ent:GetUp()*beam_length
 	end
-	
+
 	trace.start = pos
 	trace.filter = { ent }
 	if ent:GetNWBool("TraceWater") then trace.mask = MASK_ALL end
@@ -194,7 +194,7 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 	--Update render bounds
 	ent.ExtraRBoxPoints = ent.ExtraRBoxPoints or {}
 	ent.ExtraRBoxPoints[beam_num] = ent:WorldToLocal(trace.HitPos)
-	
+
 	render.SetMaterial(BeamMat)
 	render.DrawBeam(pos, trace.HitPos, 6, 0, 10, ent:GetColor())
 	if hilight then	--This is intended behaivour
@@ -243,7 +243,7 @@ WireLib.__old_renderhalos = old_renderhalos
 if old_renderhalos ~= nil then
 	hook.Add("PostDrawEffects","RenderHalos", function()
 		if hook.Run("ShouldDrawHalos") == false then return end
-	
+
 		old_renderhalos()
 	end)
 else

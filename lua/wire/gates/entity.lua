@@ -7,6 +7,8 @@ GateActions("Entity")
 local clamp = WireLib.clampForce
 
 local function isAllowed( gate, ent )
+	if not IsValid( ent ) then return false end
+	if ent:IsPlayer() then return false end
 	if not IsValid(gate:GetPlayer()) then return false end
 	return hook.Run( "PhysgunPickup", gate:GetPlayer(), ent ) ~= false
 end
@@ -17,10 +19,9 @@ GateActions["entity_applyf"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
 	output = function(gate, ent, vec )
-		if not IsValid( ent ) then return end
+		if not isAllowed( gate, ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
-		if not isAllowed( gate, ent ) then return end
 		if not isvector(vec) then vec = Vector (0, 0, 0) end
 		vec = clamp(vec)
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
@@ -38,10 +39,9 @@ GateActions["entity_applyof"] = {
 	inputtypes = { "ENTITY" , "VECTOR" , "VECTOR" },
 	timed = true,
 	output = function(gate, ent, vec, offset )
-		if not IsValid( ent ) then return end
+		if not isAllowed( gate, ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
-		if not isAllowed( gate, ent ) then return end
 		if not isvector(vec) then vec = Vector (0, 0, 0) end
 		if not isvector(offset) then offset = Vector (0, 0, 0) end
 		vec = clamp(vec)
@@ -63,10 +63,9 @@ GateActions["entity_applyaf"] = {
 	inputtypes = { "ENTITY" , "ANGLE" },
 	timed = true,
 	output = function(gate, ent, angForce )
-		if not IsValid( ent ) then return end
+		if not isAllowed( gate, ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
-		if not isAllowed( gate, ent ) then return end
 		local clampedForce = clamp(angForce)
 		if clampedForce.x == 0 and clampedForce.y == 0 and clampedForce.z == 0 then return end
 
@@ -110,10 +109,9 @@ GateActions["entity_applytorq"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
 	output = function(gate, ent, vec )
-		if not IsValid( ent ) then return end
+		if not isAllowed( gate, ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
-		if not isAllowed( gate, ent ) then return end
 		if not isvector(vec) then vec = Vector (0, 0, 0) end
 		if not isvector(offset) then offset = Vector (0, 0, 0) end
 		vec 	= clamp(vec)
@@ -408,6 +406,7 @@ GateActions["entity_health"] = {
 
 GateActions["entity_radius"] = {
 	name = "Radius",
+	description = "Gets the widest radius of the entity's bounding box.",
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "NORMAL" },
@@ -436,6 +435,7 @@ GateActions["entity_mass"] = {
 
 GateActions["entity_masscenter"] = {
 	name = "Mass Center",
+	description = "Gets the entity's center of mass.",
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "VECTOR" },
@@ -450,6 +450,7 @@ GateActions["entity_masscenter"] = {
 
 GateActions["entity_masscenterlocal"] = {
 	name = "Mass Center (local)",
+	description = "Gets the entity's center of mass relative to itself.",
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "VECTOR" },
@@ -597,6 +598,7 @@ GateActions["entity_owner"] = {
 
 GateActions["entity_isheld"] = {
 	name = "Is Player Holding",
+	description = "Outputs 1 if a player is holding the object with the physgun, gravgun, or use key.",
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "NORMAL" },
@@ -657,6 +659,7 @@ GateActions["player_invehicle"] = {
 
 GateActions["player_connected"] = {
 	name = "Time Connected",
+	description = "Outputs the duration the player has been in the server in seconds.",
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "NORMAL" },
@@ -671,6 +674,7 @@ GateActions["player_connected"] = {
 }
 GateActions["entity_aimentity"] = {
 	name = "AimEntity",
+	description = "Gets the entity that the player is looking at.",
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "ENTITY" },
@@ -686,6 +690,7 @@ GateActions["entity_aimentity"] = {
 
 GateActions["entity_aimenormal"] = {
 	name = "AimNormal",
+	description = "Gets the aim direction of an entity.",
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "VECTOR" },
@@ -705,6 +710,7 @@ GateActions["entity_aimenormal"] = {
 
 GateActions["entity_aimedirection"] = {
 	name = "AimDirection",
+	description = "Gets the aim direction of a player.",
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "VECTOR" },
@@ -828,6 +834,7 @@ GateActions["entity_clr"] = {
 
 GateActions["entity_name"] = {
 	name = "Name",
+	description = "Gets the name of a player.",
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "STRING" },
@@ -842,6 +849,7 @@ GateActions["entity_name"] = {
 
 GateActions["entity_aimpos"] = {
 	name = "AimPosition",
+	description = "Gets the position that the player is looking at.",
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "VECTOR" },
@@ -873,8 +881,9 @@ GateActions["entity_select"] = {
 
 GateActions["entity_bearing"] = {
 	name = "Bearing",
+	description = "Gets the angle along the X, Y plane from the entity to the position.",
 	inputs = { "Entity", "Position" },
-	inputtypes = { "ENTITY", "VECTOR", "NORMAL" },
+	inputtypes = { "ENTITY", "VECTOR" },
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function( gate, Entity, Position )
@@ -889,8 +898,9 @@ GateActions["entity_bearing"] = {
 
 GateActions["entity_elevation"] = {
 	name = "Elevation",
+	description = "Gets the difference in elevation from the entity to the position.",
 	inputs = { "Entity", "Position" },
-	inputtypes = { "ENTITY", "VECTOR", "NORMAL" },
+	inputtypes = { "ENTITY", "VECTOR" },
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function( gate, Entity, Position )
@@ -906,8 +916,9 @@ GateActions["entity_elevation"] = {
 
 GateActions["entity_heading"] = {
 	name = "Heading",
+	description = "Gets the elevation and bearing from the entity to the position.",
 	inputs = { "Entity", "Position" },
-	inputtypes = { "ENTITY", "VECTOR", "NORMAL" },
+	inputtypes = { "ENTITY", "VECTOR" },
 	outputs = { "Bearing", "Elevation", "Heading" },
 	outputtypes = { "NORMAL", "NORMAL", "ANGLE" },
 	timed = true,

@@ -3,59 +3,48 @@ E2Lib.RegisterExtension("effects", false, "Allows E2s to play arbitrary effects.
 local wire_expression2_effect_burst_max = CreateConVar( "wire_expression2_effect_burst_max", 4, {FCVAR_ARCHIVE} )
 local wire_expression2_effect_burst_rate = CreateConVar( "wire_expression2_effect_burst_rate", 0.1, {FCVAR_ARCHIVE} )
 
--- Use hook E2CanEffect to blacklist/whitelist effects
+-- Use hook Expression2_CanEffect to blacklist/whitelist effects
 local effect_blacklist = {
 	dof_node = true
 }
 
-local function isAllowed( self )
-	local data = self.data
+local function isAllowed(self)
+	return self.data.effect_burst >= 0
+end
 
-	if data.effect_burst == 0 then return false end
+local function fire(self, this, name)
+	local data = self.data
 
 	data.effect_burst = data.effect_burst - 1
 
 	local timerid = "E2_effect_burst_count_" .. self.entity:EntIndex()
-	if not timer.Exists( timerid ) then
-		timer.Create( timerid, wire_expression2_effect_burst_rate:GetFloat(), 0, function()
-			if not IsValid( self.entity ) then
-				timer.Remove( timerid )
+	if not timer.Exists(timerid) then
+		timer.Create(timerid, wire_expression2_effect_burst_rate:GetFloat(), 0, function()
+			if not IsValid(self.entity) then
+				timer.Remove(timerid)
 				return
 			end
 
 			data.effect_burst = data.effect_burst + 1
 			if data.effect_burst == wire_expression2_effect_burst_max:GetInt() then
-				timer.Remove( timerid )
+				timer.Remove(timerid)
 			end
 		end)
 	end
 
-	return true
+	util.Effect(name, this, true, true)
 end
 
 registerType("effect", "xef", nil,
 	nil,
 	nil,
-	function(retval)
-		if retval == nil then return end
-		local _type = type(retval)
-		if _type~="CEffectData" then error("Return value is neither nil nor a CEffectData, but a "..type(retval).."!",0) end
-	end,
+	nil,
 	function(v)
 		return type(v)~="CEffectData"
 	end
 )
 
 __e2setcost(1)
-
-registerOperator("ass", "xef", "xef", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local rhs = op2[1](self, op2)
-
-	self.Scopes[scope][lhs] = rhs
-	self.Scopes[scope].vclk[lhs] = true
-	return rhs
-end)
 
 e2function effect effect()
 	return EffectData()
@@ -177,10 +166,12 @@ end
 e2function void effect:play(string name)
 	if not this then return self:throw("Invalid effect!", nil) end
 	if not isAllowed(self) then return self:throw("Effect play() burst limit reached!", nil) end
-	if effect_blacklist[name] then return self:throw("This effect is blacklisted!", nil) end
-	if hook.Run( "Expression2_CanEffect", name:lower(), self ) == false then return self:throw("A hook prevented this function from running", nil) end
 
-	util.Effect(name, this, true, true)
+	name = name:lower()
+	if effect_blacklist[name] then return self:throw("This effect is blacklisted!", nil) end
+	if hook.Run( "Expression2_CanEffect", name, self ) == false then return self:throw("A hook prevented this function from running", nil) end
+
+	fire(self, this, name)
 end
 
 e2function number effectCanPlay()

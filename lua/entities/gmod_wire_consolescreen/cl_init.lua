@@ -315,11 +315,11 @@ local specialCharacters = {
 		{ x = 0.5, y = 1 },
 		{ x = 0, y = 1 },
 	},
-	
-	
-	
-	
-	
+
+
+
+
+
 	[136] = {
 		{ x = 0, y = 0 },
 		{ x = 0.5, y = 0 },
@@ -367,7 +367,7 @@ local specialCharacters = {
 		{ x = 0.5, y = 1 },
 	},
 	[142] = {
-		
+
 		{ x = 1, y = 0 },
 		{ x = 1, y = 1 },
 		{ x = 0.5, y = 1 },
@@ -375,7 +375,7 @@ local specialCharacters = {
 		{ x = 0, y = 0.5},
 		{ x = 0, y = 0 },
 	},
-	
+
 	[143] = {
 		{ x = 0, y = 0.5 },
 		{ x = 1, y = 0.5 },
@@ -534,7 +534,7 @@ end
 local VECTOR_1_1_1 = Vector(1, 1, 1)
 function ENT:Draw()
 	self:DrawModel()
-	
+
 	local tone = render.GetToneMappingScaleLinear()
 	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
 	local curtime = CurTime()

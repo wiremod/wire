@@ -1,0 +1,14 @@
+## SHOULD_PASS:EXECUTE
+
+Ran = 0
+
+for(I = 1, 1) {
+    switch (0xDEADBEEF) {
+        default,
+            break # Shouldn't break out of loop
+    }
+
+    Ran = 1
+}
+
+assert(Ran)

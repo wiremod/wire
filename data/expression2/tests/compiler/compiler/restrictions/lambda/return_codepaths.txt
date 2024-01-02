@@ -1,0 +1,6 @@
+## SHOULD_FAIL:COMPILE
+
+const X = function() {
+	if (1) { return "str" }
+	# doesn't return string
+}

@@ -1,0 +1,10 @@
+## SHOULD_PASS:COMPILE
+
+# Can override existing function with function that has different return type
+
+function test() {
+}
+
+function test() {
+	print("zoo wee mama")
+}

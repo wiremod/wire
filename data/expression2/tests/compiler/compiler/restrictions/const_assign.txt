@@ -1,0 +1,5 @@
+## SHOULD_FAIL:COMPILE
+
+const X = 5
+
+X = 2

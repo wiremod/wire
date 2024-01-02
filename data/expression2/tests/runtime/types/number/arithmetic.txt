@@ -1,0 +1,32 @@
+## SHOULD_PASS:EXECUTE
+
+assert( (1 + 2 + 3) == 6 )
+assert( (2 * 3 + 1) == 7 )
+assert( (4 / 2 + 1) == 3 )
+
+assert( (5 % 4) == 1 )
+
+# Addition
+assert(1 + 2 == 3)
+assert(1e20 + 1e21 == 1.1e21)
+
+# Subtraction
+assert(1 - 2 == -1)
+assert(1e20 - 1e21 == -0.9e21)
+
+# Multiplication
+assert(1 * 2 == 2)
+assert(1e20 * 2 == 2e20)
+
+# Div
+assert(1 / 2 == 0.5)
+assert(isnan(0 / 0))
+assert(isinf(1 / 0))
+
+# Modulus
+assert(10 % 2 == 0)
+assert(10.5 % 1 == 0.5)
+
+# Exponentation
+assert(2 ^ 2 == 4)
+assert(2 ^ 4 == 16)

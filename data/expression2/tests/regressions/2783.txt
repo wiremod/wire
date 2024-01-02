@@ -1,0 +1,20 @@
+## SHOULD_PASS:EXECUTE
+
+function number test(N:number) {
+    switch (N) {
+        case 1,
+            return 5
+        case 3,
+            error("unreachable")
+        case 2,
+            return 2
+        case 5,
+            error("unreachable")
+    }
+
+    return 1
+}
+
+assert( test(1) == 5 )
+assert( test(2) == 2 )
+assert( test(4) == 1 )

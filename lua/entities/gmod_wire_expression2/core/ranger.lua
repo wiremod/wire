@@ -6,10 +6,7 @@
 registerType("ranger", "xrd", nil,
 	nil,
 	nil,
-	function(retval)
-		if retval == nil then return end
-		if !istable(retval) then error("Return value is neither nil nor a table, but a "..type(retval).."!",0) end
-	end,
+	nil,
 	function(v)
 		return !istable(v) or not v.HitPos
 	end
@@ -17,21 +14,9 @@ registerType("ranger", "xrd", nil,
 
 __e2setcost(1) -- temporary
 
---- RD = RD
-registerOperator("ass", "xrd", "xrd", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	self.Scopes[scope][lhs] = rhs
-	self.Scopes[scope].vclk[lhs] = true
-	return rhs
-end)
-
-e2function number operator_is(ranger walker)
-	if walker then return 1 else return 0 end
+e2function number operator_is(ranger this)
+	return this and 1 or 0
 end
-
-/******************************************************************************/
 
 E2Lib.RegisterExtension("ranger", true, "Lets E2 chips trace rays and check for collisions.")
 

@@ -1,0 +1,4 @@
+## SHOULD_FAIL:COMPILE
+
+const X = function(...A:array) {}
+const Y = function(...A:table) {}

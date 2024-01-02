@@ -1,0 +1,46 @@
+## SHOULD_PASS:EXECUTE
+
+local Num = 0
+if (1) {
+	Num = 1
+}
+
+assert(Num == 1)
+
+if (0) {
+	error("fail")
+} elseif (1) {
+	Num = 2
+}
+
+assert(Num == 2)
+
+if (0) {
+	error("fail")
+} else {
+	Num = 3
+}
+
+assert(Num == 3)
+
+if (1) {
+	# pass
+} elseif (0) {
+	error("fail")
+} else {
+	error("fail")
+}
+
+if (vec(0, 0, 0)) { # Ensure if statements are using operator_is
+	error("fail")
+}
+
+if (ang(0, 0, 0)) { # ensure it wasn't a fluke
+	error("fail")
+}
+
+if ("") { # falsy string
+	error("fail")
+}
+
+assert(!"") # I don't think this was a thing before, using not on string, but since ! just checks the inverse of operator_is now, it works.

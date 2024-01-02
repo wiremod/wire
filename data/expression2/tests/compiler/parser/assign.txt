@@ -1,0 +1,14 @@
+## SHOULD_PASS:COMPILE
+
+Var = 5
+
+local OtherVar = 2
+
+A=B=C=5
+
+A++
+A--
+A += 1
+A -= 1
+A *= 1
+A /= 1
