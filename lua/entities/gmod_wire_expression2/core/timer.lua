@@ -134,8 +134,6 @@ __e2setcost(15)
 
 local simpletimer = 1
 
--- Create "anonymous" timer using address of arguments, which should be different for each function call.
--- Definitely hacky, but should work properly. I think this is better than just incrementing a number infinitely.
 e2function void timer(number delay, function callback)
 	local fn, ent = callback:Unwrap("", self), self.entity
 
