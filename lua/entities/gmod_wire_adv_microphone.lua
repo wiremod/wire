@@ -202,7 +202,7 @@ hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", function(listener, t
     for _, mic in ipairs(LiveMics) do
         if mic:GetPos():DistToSqr(talkerPos) > PLAYER_VOICE_MAXDIST_SQR then goto mic_next end
 
-        for _, speaker in ipairs(mic._activeSpeakers) do
+        for speaker in pairs(mic._activeSpeakers) do
             if IsValid(speaker) and 
                 speaker:GetPos():DistToSqr(listenerPos) <= PLAYER_VOICE_MAXDIST_SQR 
             then
