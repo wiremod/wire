@@ -1440,7 +1440,9 @@ local CompileVisitors = {
 				function(args)
 					local s_scopes, s_scope, s_scopeid = state.Scopes, state.Scope, state.ScopeID
 
-					state.prf = state.prf + 15
+					-- Not using `self.scope.data.ops` in order to add prf when builtin functions call lambdas.
+					-- This behavior may change.
+					state.prf = state.prf + 10
 
 					local scope = { vclk = {} }
 					state.Scopes = inherited_scopes
