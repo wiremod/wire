@@ -38,11 +38,15 @@ if SERVER then
 
 		if first and first <= last then
 			net.Start("wirelib_net_message")
-				local data = table.concat(tbl, "\0") .. "\0"
-
 				net.WriteUInt(0, SIZE)
 				net.WriteUInt(first, SIZE)
 				net.WriteUInt(last, SIZE)
+
+				for _, v in ipairs(tbl) do
+					net.WriteUInt(#v, 8)
+				end
+
+				local data = table.concat(tbl)
 
 				if #data < 4096 then
 					data = util.Compress(data)
@@ -69,14 +73,14 @@ if SERVER then
 				queue_handler_firstidx, queue_handler_lastidx = idx, idx
 				handler_queue[1] = name
 
-				timer.Create("wirelib_net_flush", 0, 1, queue_handler_flush)
+				timer.Create("wirelib_net_flush", 0, 0, queue_handler_flush)
 			end
 
 		else
 			queue_handler_firstidx, queue_handler_lastidx = idx, idx
 			handler_queue[1] = name
 
-			timer.Create("wirelib_net_flush", 0, 1, queue_handler_flush)
+			timer.Create("wirelib_net_flush", 0, 0, queue_handler_flush)
 		end
 	end
 
@@ -147,26 +151,34 @@ else -- CLIENT
 		end
 	end
 
-	local function stripstrings(begin, last, str)
-		local charstart, charend = 1, 0
-				for i = begin, last do
-					charend = string.find(str, "\0", charstart, true)
-					local name = string.sub(str, charstart, charend - 1)
-					registered_handlers[i] = registered_handlers[name] -- This is hacky but it works
-					registered_handlers[name] = i
-					charstart = charend + 1
-				end
+	local function stripstrings(begin, last, lens, str)
+		local lenIndex, lastIndex = 1, 1
+		for i = begin, last do
+			local len = lens[lenIndex]
+			local name = string.sub(str, lastIndex, lastIndex + len - 1)
+			registered_handlers[i] = registered_handlers[name] -- This is hacky but it works
+			registered_handlers[name] = i
+			lenIndex = lenIndex + 1
+			lastIndex = lastIndex + len
+		end
 	end
 
 	local function internal_update()
 		local begin = net.ReadUInt(SIZE)
 		local last = net.ReadUInt(SIZE)
+
+		local lens = {}
+
+		for i = 1, last - begin + 1 do
+			lens[i] = net.ReadUInt(8)
+		end
+
 		if net.ReadBool() then
 			net.ReadStream(nil, function(data)
-				stripstrings(begin, last, data)
+				stripstrings(begin, last, lens, data)
 			end)
 		else
-			stripstrings(begin, last, util.Decompress(net.ReadData(net.ReadUInt(12))))
+			stripstrings(begin, last, lens, util.Decompress(net.ReadData(net.ReadUInt(12))))
 		end
 	end
 
