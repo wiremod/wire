@@ -1,0 +1,44 @@
+## SHOULD_PASS:EXECUTE
+
+if ("") {
+	error("fail")
+}
+
+assert(!!"String")
+assert(!"")
+
+assert("Foo" != "Bar")
+assert("Foo" == "Foo")
+
+assert("Foo" + 5 == "Foo5")
+assert(5 + "Foo" == "5Foo")
+
+assert("A" < "B")
+assert("a" < "b")
+
+assert("A" <= "A")
+assert("A" >= "A")
+assert("A" == "A")
+
+assert("Foo" + "Bar" == "FooBar")
+
+# Ensure foreach string works
+
+local Chars = array("F", "o", "o")
+local Bytes = array(70, 111, 111)
+
+I = 0
+foreach(K, Char:string = "Foo") {
+	assert(Chars[K, string] == Char)
+	I++
+}
+
+assert(I == 3)
+
+I = 0
+foreach(K, Byte:number = "Foo") {
+	assert(Bytes[K, number] == Byte)
+	I++
+}
+
+assert(I == 3)

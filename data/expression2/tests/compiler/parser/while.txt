@@ -1,0 +1,10 @@
+## SHOULD_PASS:COMPILE
+
+while (1) { A = 0 }
+
+while (1) { break }
+while (1) { continue }
+
+do { A = 0 } while (1)
+do { break } while (2)
+do { continue } while (3)

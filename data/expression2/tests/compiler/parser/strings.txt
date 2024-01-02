@@ -1,0 +1,16 @@
+## SHOULD_PASS:COMPILE
+
+"foo bar"
+
+"foo\nbar"
+
+"\n\t\r\a\v\b\\"
+"\""
+
+"
+	Multiline
+"
+
+"\xff \xfa \x1a \x2a4a \x6af \x11f \\x\x4f
+\u{2615} \u{02615} \u{ff} \u{ff} \\u\xff \u{f1af} \\u{ff\u{ff}} \u{ff}aa} \\u{\u{49}} \\uu{ffa} \\u{ff} \\u\u{3f} \\u{} 
+\0 null"

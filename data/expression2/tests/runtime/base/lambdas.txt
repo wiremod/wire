@@ -1,0 +1,87 @@
+## SHOULD_PASS:EXECUTE
+
+# Returns
+
+assert( (function() { return 55 })()[number] == 55 )
+assert( (function() { return "str" })()[string] == "str" )
+
+# Upvalues
+
+const Wrapper = function(V:number) {
+	return function() {
+		return V
+	}
+}
+
+const F1 = Wrapper(55)[function]
+
+if (1) {
+	if (2) {
+		local V = 22
+		assert(F1()[number] == 55)
+	}
+}
+
+assert(F1()[number] == 55)
+assert(F1()[number] == 55)
+
+const F2 = Wrapper(1238)[function]
+
+assert(F2()[number] == 1238)
+#local V = 21
+assert(F2()[number] == 1238)
+
+const IsEven = function(N:number) {
+	return N % 2 == 0
+}
+
+const Not = function(N:number) {
+	return !N
+}
+
+const IsOdd = function(N:number) {
+	return Not(IsEven(N)[number])[number]
+}
+
+assert(IsOdd(1)[number] == 1)
+assert(IsOdd(2)[number] == 0)
+
+assert( ((function() { return function() { return 55 } })()[function])()[number] == 55 )
+
+const Identity = function(N:number) {
+	return N
+}
+
+assert(Identity(2)[number] == 2)
+assert(Identity(2193921)[number] == 2193921)
+
+local SayMessage = function() {}
+
+const SetMessage = function(Message:string) {
+	SayMessage = function() {
+		return Message
+	}
+}
+
+SetMessage("There's a snake in my boot!")
+
+assert( SayMessage()[string] == "There's a snake in my boot!" )
+assert( SayMessage()[string] == "There's a snake in my boot!" )
+
+SetMessage("Reach for the sky!")
+
+assert( SayMessage()[string] == "Reach for the sky!" )
+
+const EarlyReturn = function() {
+	return
+}
+
+Ran = 0
+
+function wrapper() {
+	EarlyReturn()
+	Ran = 1
+}
+
+wrapper()
+assert(Ran)

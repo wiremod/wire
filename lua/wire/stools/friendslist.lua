@@ -15,7 +15,7 @@ if CLIENT then
 	language.Add( "wire_friendslist_invalid_steamid", "Invalid SteamID" )
 	language.Add( "wire_friendslist_connected_players", "Currently connected players" )
 	language.Add( "wire_friendslist_not_connected", "Not Connected" )
-	
+
 	language.Add( "wire_friendslist_sync_with_steam", "Sync With Steam Friends" )
 	language.Add( "wire_friendslist_sync_with_cppi", "Sync With CPPI (Prop Protection)" )
 	language.Add( "wire_friendslist_sync_with_help", "Sync with Steam/CPPI. These synced settings ignore the 'save on entity' setting - friends on your steam/cppi lists will always be synced regardless." )
@@ -40,10 +40,16 @@ local function netWriteValues( values )
 	end
 end
 local function netReadValues()
-	local t = {}
-	local amount = net.ReadUInt(11)
-	for i=1,amount do
-		t[i] = net.ReadString()
+	local t, bytes = {}, 0
+	for i = 1, net.ReadUInt(11) do
+		local str = net.ReadString() -- todo: delete and redo practically this entire file cause this is horrible. we should just be sending steamid64s as numbers. theres writeuint64 and readuint64 now which would be perfect for this.
+		bytes = bytes + #str
+
+		t[i] = string.sub(str, 1, 32)
+
+		if bytes > 32 * 2 ^ 11 --[[ someone is writing more than they are supposed to be. ]] then
+			return t
+		end
 	end
 	return t
 end
@@ -67,8 +73,8 @@ if SERVER then
 	end)
 
 	function TOOL:GetConVars()
-		return 
-			self:GetClientNumber( "save_on_entity" ) ~= 0, 
+		return
+			self:GetClientNumber( "save_on_entity" ) ~= 0,
 			friends[self:GetOwner()] or {},
 			self:GetClientNumber( "sync_with_steam" ) ~= 0,
 			self:GetClientNumber( "sync_with_cppi" ) ~= 0

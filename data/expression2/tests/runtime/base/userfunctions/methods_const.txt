@@ -1,0 +1,120 @@
+## SHOULD_PASS:EXECUTE
+
+@strict
+
+# Ensure methods get called in the first place
+
+Called = 0
+function number:mymethod() {
+	Called = 1
+}
+
+1:mymethod()
+
+assert(Called)
+
+local This = 10
+local X = 500
+local Y = 1000
+local Z = 5000
+
+# Ensure function scoping doesn't affect outer scope
+
+function number number:method(X, Y, Z) {
+	assert(This == 500)
+	assert(X == 1)
+	assert(Y == 2)
+	assert(Z == 4)
+
+	return 5
+}
+
+assert( 500:method(1, 2, 4) == 5 )
+
+assert(This == 10)
+assert(X == 500)
+assert(Y == 1000)
+assert(Z == 5000)
+
+# Ensure functions return properly
+
+function number number:returning() {
+	return 5
+}
+
+assert(1:returning() == 5)
+
+function number number:returning2(X:array) {
+	return X[1, number] + 5
+}
+
+assert(1:returning2(array(5)) == 10)
+assert(1:returning2(array()) == 5)
+
+function array number:returningref(X:array) {
+	return X
+}
+
+local A = array()
+assert(1:returningref(A):id() == A:id())
+
+function number:returnvoid() {
+	if (1) { return }
+}
+
+1:returnvoid()
+
+function void number:returnvoid2() {
+	return
+}
+
+1:returnvoid2()
+
+function number:returnvoid3() {
+	return void
+}
+
+1:returnvoid3()
+
+# Test recursion
+
+function number number:recurse(N:number) {
+	if (N == 1) {
+		return 5
+	} else {
+		return This:recurse(N - 1) + 1
+	}
+}
+
+assert(1:recurse(10) == 14, 1:recurse(10):toString())
+
+Sentinel = -1
+function number:recursevoid() {
+	Sentinel++
+	if (Sentinel == 0) {
+		This:recursevoid()
+	}
+}
+
+1:recursevoid()
+
+assert(Sentinel == 1)
+
+function number number:nilInput(X, Y:ranger, Z:vector) {
+	assert(Z == vec(1, 2, 3))
+	return 5
+}
+
+assert( 1:nilInput(1, noranger(), vec(1, 2, 3)) == 5 )
+
+Ran = 0
+
+if (0) {
+	function number:constant() {
+		Ran = 1
+	}
+}
+
+1:constant()
+
+assert(Ran)

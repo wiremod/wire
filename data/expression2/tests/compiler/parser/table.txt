@@ -1,0 +1,9 @@
+## SHOULD_PASS:COMPILE
+
+table(1, 2, 3)
+
+N = 5
+table(N = 1, 2 = 2)
+
+K = ""
+table(K = 5, "" = 5)

@@ -1,0 +1,10 @@
+## SHOULD_PASS:COMPILE
+
+@name Test
+@persist [X Y]:number Z:number W
+@inputs [J K]:number L:number M
+@outputs [A B]:number C:number D
+@trigger X Y
+@autoupdate
+@model f
+@strict

@@ -1,0 +1,128 @@
+## SHOULD_PASS:EXECUTE
+
+# Ensure functions get called in the first place
+
+Called = 0
+function myfunction() {
+	Called = 1
+}
+
+myfunction()
+
+assert(Called)
+
+
+local X = 500
+local Y = 1000
+local Z = 5000
+
+# Ensure function scoping doesn't affect outer scope
+
+function test(X, Y, Z) {
+	assert(X == 1)
+	assert(Y == 2)
+	assert(Z == 3)
+}
+
+test(1, 2, 3)
+
+assert(X == 500)
+assert(Y == 1000)
+assert(Z == 5000)
+
+# Ensure functions return properly
+
+function number returning() {
+	return 5
+}
+
+assert(returning() == 5)
+
+function number returning2(X:array) {
+	return X[1, number] + 5
+}
+
+assert(returning2(array(5)) == 10)
+assert(returning2(array()) == 5)
+
+function array returningref(X:array) {
+	return X
+}
+
+local A = array()
+assert(returningref(A):id() == A:id())
+
+function returnvoid() {
+	if (1) { return }
+	error("unreachable")
+}
+
+returnvoid()
+
+function void returnvoid2() {
+	return
+}
+
+returnvoid2()
+
+function returnvoid3() {
+	return void
+}
+
+returnvoid3()
+
+# Test recursion
+
+function number recurse(N:number) {
+	if (N == 1) {
+		return 5
+	} else {
+		return recurse(N - 1) + 1
+	}
+}
+
+assert(recurse(10) == 14, recurse(10):toString())
+
+Sentinel = -1
+function recursevoid() {
+	Sentinel++
+	if (Sentinel == 0) {
+		recursevoid()
+	}
+}
+
+recursevoid()
+
+assert(Sentinel == 1)
+
+function number nilInput(X, Y:ranger, Z:vector) {
+	assert(Z == vec(1, 2, 3))
+	return 5
+}
+
+assert( nilInput(1, noranger(), vec(1, 2, 3)) == 5 )
+
+if (0) {
+	function undefined() {}
+}
+
+try {
+	undefined()
+	error("unreachable")
+} catch(Err) {
+	assert(Err == "No such function defined at runtime: undefined()")
+}
+
+function implicit() {
+	return 55
+}
+
+assert( implicit() == 55 )
+
+function implicit_lambda() {
+	return function() {
+		return 5
+	}
+}
+
+assert( implicit_lambda()()[number] == 5 )

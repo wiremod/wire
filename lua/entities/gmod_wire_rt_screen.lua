@@ -217,7 +217,7 @@ if CLIENT then
 
             return
         end
-        
+
         self.ShouldRenderCamera = self:IsScreenInRange(LocalPlayer())
 
         if IsValid(camera) then
@@ -311,7 +311,7 @@ if CLIENT then
             return
         end
 
-        if self:GetActive() and self.ShouldRenderCamera and self.Material ~= nil 
+        if self:GetActive() and self.ShouldRenderCamera and self.Material ~= nil
             and IsValid(self:GetCamera()) and self:GetCamera():GetActive()
         then
             self:DrawScreen()

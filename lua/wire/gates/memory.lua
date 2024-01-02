@@ -6,6 +6,7 @@ GateActions("Memory")
 
 GateActions["latch"] = {
 	name = "Latch (Edge triggered)",
+	description = "Updates its value to Data when Clk changes and is greater than 0.",
 	inputs = { "Data", "Clk" },
 	output = function(gate, Data, Clk)
 		local clk = (Clk > 0)
@@ -28,6 +29,7 @@ GateActions["latch"] = {
 
 GateActions["dlatch"] = {
 	name = "D-Latch",
+	description = "Updates its value to Data when Clk is greater than 0.",
 	inputs = { "Data", "Clk" },
 	output = function(gate, Data, Clk)
 		if (Clk > 0) then
@@ -45,6 +47,7 @@ GateActions["dlatch"] = {
 
 GateActions["srlatch"] = {
 	name = "SR-Latch",
+	description = "Outputs 1 when set (S) until it gets reset (R).",
 	inputs = { "S", "R" },
 	output = function(gate, S, R)
 		if (S > 0) and (R <= 0) then
@@ -64,6 +67,7 @@ GateActions["srlatch"] = {
 
 GateActions["rslatch"] = {
 	name = "RS-Latch",
+	description = "Outputs 1 when set (S) and not reset (R).",
 	inputs = { "S", "R" },
 	output = function(gate, S, R)
 		if (S > 0) and (R < 1) then
@@ -83,6 +87,7 @@ GateActions["rslatch"] = {
 
 GateActions["toggle"] = {
 	name = "Toggle (Edge triggered)",
+	description = "Toggles its output between two values when Clk changes.",
 	inputs = { "Clk", "OnValue", "OffValue" },
 	output = function(gate, Clk, OnValue, OffValue)
 		local clk = (Clk > 0)
@@ -387,6 +392,7 @@ GateActions["ram64x64"] = {
 
 GateActions["udcounter"] = {
 	name = "Up/Down Counter",
+	description = "Increases or decreases on Clk.",
 	inputs = { "Increment", "Decrement", "Clk", "Reset"},
 	output = function(gate, Inc, Dec, Clk, Reset)
 		local lInc = (Inc > 0)
@@ -415,6 +421,7 @@ GateActions["udcounter"] = {
 
 GateActions["togglewhile"] = {
 	name = "Toggle While(Edge triggered)",
+	description = "Toggles its output between two values when Clk changes and While is nonzero.",
 	inputs = { "Clk", "OnValue", "OffValue", "While" },
 	output = function(gate, Clk, OnValue, OffValue, While)
 		local clk = (Clk > 0)

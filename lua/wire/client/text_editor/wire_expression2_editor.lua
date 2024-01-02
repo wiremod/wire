@@ -796,7 +796,7 @@ function Editor:InitComponents()
 	self.C.Control = self:addComponent(vgui.Create("Panel", self), -350, 52, 342, -32) -- Control Panel
 	self.C.Credit = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 150) -- Credit box
 	self.C.Credit:SetEditable(false)
-	
+
 	self:CreateTab("generic")
 
 	-- extra component options
@@ -903,10 +903,28 @@ function Editor:InitComponents()
 		end
 	end
 	self.C.Val.OnIssueClicked = function(panel, issue)
-		if issue.line ~= nil and issue.char ~= nil then
-			self:GetCurrentEditor():SetCaret({issue.line, issue.char})
+		if issue.trace ~= nil then
+			self:GetCurrentEditor():SetCaret({issue.trace.start_line, issue.trace.start_col})
 		end
 	end
+
+	self.C.Val.OnQuickFix = function(panel, issue)
+		local editor = self:GetCurrentEditor()
+
+		for _, fix in ipairs(issue.quick_fix) do
+			local trace = fix.at
+			editor:SetArea(
+				{
+					{ trace.start_line, trace.start_col },
+					{ trace.end_line, trace.end_col }
+				},
+				fix.replace
+			)
+		end
+
+		self:Validate()
+	end
+
 	self.C.Btoggle:SetImage("icon16/application_side_contract.png")
 	function self.C.Btoggle.DoClick(button)
 		if button.hide then
@@ -1649,14 +1667,43 @@ function Editor:OpenOldTabs()
 	end
 end
 
+-- On a successful validation run, will call this with the compiler object
+function Editor:SetValidateData(compiler)
+	-- Set methods and functions from all includes for syntax highlighting.
+	local editor = self:GetCurrentEditor()
+	editor.e2fs_functions = compiler.user_functions
+
+	local function_sigs = {}
+	for name, overloads in pairs(compiler.user_functions) do
+		for args in pairs(overloads) do
+			function_sigs[name .. "(" .. args .. ")"] = true
+		end
+	end
+
+	local allkeys = {}
+	for meta, names in pairs(compiler.user_methods) do
+		for name, overloads in pairs(names) do
+			allkeys[name] = true
+			for args in pairs(overloads) do
+				function_sigs[name .. "(" .. meta .. ":" .. args .. ")"] = true
+			end
+		end
+	end
+
+	editor.e2fs_methods = allkeys
+	editor.e2_functionsig_lookup = function_sigs
+end
+
 function Editor:Validate(gotoerror)
 	local header_color, header_text = nil, nil
 	local problems_errors, problems_warnings = {}, {}
-	
+
 	if self.EditorType == "E2" then
-		local errors, _, warnings = wire_expression2_validate(self:GetCode())
-		
-		if not errors then
+		local errors, _, warnings, compiler = E2Lib.Validate(self:GetCode())
+
+		if not errors then ---@cast compiler -?
+			self:SetValidateData(compiler)
+
 			if warnings then
 				header_color = Color(163, 130, 64, 255)
 
@@ -1665,7 +1712,8 @@ function Editor:Validate(gotoerror)
 
 				if gotoerror and self.ScrollToWarning:GetBool() then
 					header_text = "Warning (1/" .. nwarnings .. "): " .. warning.message
-					self:GetCurrentEditor():SetCaret { warning.line, warning.char  }
+
+					self:GetCurrentEditor():SetCaret { warning.trace.start_line, warning.trace.start_col  }
 				else
 					header_text = "Validated with " .. nwarnings .. " warning(s)."
 				end
@@ -1676,19 +1724,22 @@ function Editor:Validate(gotoerror)
 			end
 		else
 			header_color = Color(110, 0, 20, 255)
-			header_text = ("" .. errors)
-			local row, col = errors:match("at line ([0-9]+), char ([0-9]+)$")
-			if not row then
-				row, col = errors:match("at line ([0-9]+)$"), 1
-			end
-			
-			problems_errors = {{message = string.Explode(" at line", errors)[1], line = row, char = col}}
+
+			local nerrors, error = #errors, errors[1]
 
 			if gotoerror then
-				if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
+				header_text = "Error (1/" .. nerrors .. "): " .. error.message
+
+				if error.trace then
+					self:GetCurrentEditor():SetCaret { error.trace.start_line, error.trace.start_col  }
+				end
+			else
+				header_text = "Failed to compile with " .. nerrors .. " errors(s)."
 			end
+
+			problems_errors = errors
 		end
-		
+
 	elseif self.EditorType == "CPU" or self.EditorType == "GPU" or self.EditorType == "SPU" then
 		header_color = Color(64, 64, 64, 180)
 		header_text = "Recompiling..."
@@ -1833,7 +1884,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 		self:Close()
 		return
 	end
-	
+
 	if not Line or SaveAs or Line == self.Location .. "/" .. ".txt" then
 		local str
 		if self.C.Browser.File then
@@ -1863,7 +1914,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 				local save_location = self.Location .. "/" .. strTextOut .. ".txt"
 				if file.Exists(save_location, "DATA") then
-					Derma_QueryNoBlur("The file '" .. strTextOut .. "' already exists. Do you want to overwrite it?", "File already exists", 
+					Derma_QueryNoBlur("The file '" .. strTextOut .. "' already exists. Do you want to overwrite it?", "File already exists",
 					"Yes", function() self:SaveFile(save_location, close) end,
 					"No", function() end)
 				else

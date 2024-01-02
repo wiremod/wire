@@ -1,13 +1,11 @@
 -- Author: Divran
 local Obj = EGP:NewObject( "Text" )
-Obj.h = nil
-Obj.w = nil
+Obj.material = nil
 Obj.text = ""
 Obj.font = "WireGPU_ConsoleFont"
 Obj.size = 18
 Obj.valign = 0
 Obj.halign = 0
-Obj.angle = 0
 
 local surface_SetTextPos
 local surface_DrawText
@@ -98,30 +96,36 @@ function Obj:Draw(ent, drawMat)
 	end
 end
 Obj.Transmit = function( self, Ent, ply )
-	net.WriteInt( self.x, 16 )
-	net.WriteInt( self.y, 16 )
-	EGP:InsertQueue( Ent, ply, EGP._SetText, "SetText", self.index, self.text )
+	EGP.SendPosAng(self)
+	local len = #self.text
+	if len <= 1024 then
+		net.WriteUInt(len, 11)
+		net.WriteData(self.text, len)
+	else
+		net.WriteUInt(0, 11)
+		EGP:InsertQueue(Ent, ply, EGP._SetText, "SetText", self.index, self.text)
+	end
 	net.WriteString(self.font)
-	net.WriteUInt(math.Clamp(self.size,0,256), 8)
+	net.WriteUInt(math.Clamp(self.size, 0, 255), 8)
 	net.WriteUInt(math.Clamp(self.valign,0,2), 2)
 	net.WriteUInt(math.Clamp(self.halign,0,2), 2)
-	net.WriteInt( self.parent, 16 )
-	EGP:SendColor( self )
-	net.WriteInt((self.angle%360)*20, 16)
+	net.WriteInt(self.parent, 16)
+	EGP:SendColor(self)
 end
 Obj.Receive = function( self )
 	local tbl = {}
-	tbl.x = net.ReadInt(16)
-	tbl.y = net.ReadInt(16)
+	EGP.ReceivePosAng(tbl)
+	local len = net.ReadUInt(11)
+	local text = net.ReadData(len)
+	tbl.text = #text > 0 and text or nil
 	tbl.font = net.ReadString()
 	tbl.size = net.ReadUInt(8)
 	tbl.valign = net.ReadUInt(2)
 	tbl.halign = net.ReadUInt(2)
 	tbl.parent = net.ReadInt(16)
 	EGP:ReceiveColor( tbl, self )
-	tbl.angle = net.ReadInt(16)/20
 	return tbl
 end
 Obj.DataStreamInfo = function( self )
-	return { x = self.x, y = self.y, valign = self.valign, halign = self.halign, size = self.size, r = self.r, g = self.g, b = self.b, a = self.a, text = self.text, font = self.font, parent = self.parent, angle = self.angle }
+	return { x = self.x, y = self.y, angle = self.angle, valign = self.valign, halign = self.halign, size = self.size, r = self.r, g = self.g, b = self.b, a = self.a, text = self.text, font = self.font, parent = self.parent }
 end

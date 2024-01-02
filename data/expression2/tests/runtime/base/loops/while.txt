@@ -1,0 +1,42 @@
+## SHOULD_PASS:EXECUTE
+
+local Num = 0
+while(Num < 1000) {
+	Num++
+	if(Num == 500) {
+		break
+	}
+}
+
+assert(Num == 500)
+
+do {
+	Num++
+} while(Num < 1000)
+
+assert(Num == 1000)
+
+local Ran = 0
+do {
+	Ran = 1
+} while (0)
+
+assert(Ran)
+
+Calls = 1
+Inc = 1
+function number calls() {
+	assert(Calls == Inc, "Continue bled into another iteration")
+	Calls++
+	return Calls
+}
+
+while (calls() < 5) {
+	Inc++
+
+	if (1) {
+		continue
+	}
+
+	error("unreachable")
+}

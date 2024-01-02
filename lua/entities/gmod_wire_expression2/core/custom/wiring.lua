@@ -109,8 +109,15 @@ e2function wirelink entity:wirelink()
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
+	return this
+end
+
+e2function wirelink entity:createWirelink()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+
 	if not this.extended then
-		WireLib.CreateWirelinkOutput( self.player, this, {true} )
+		WireLib.CreateWirelinkOutput(self.player, this, { true })
 	end
 	return this
 end
@@ -121,7 +128,7 @@ __e2setcost(10)
 e2function number entity:linkTo(entity ent2)
 	if not IsValid(this) or not IsValid(ent2) then return self:throw("Invalid Entity!", 0) end
 	if not isOwner(self, this) or not isOwner(self, ent2) then return self:throw("You do not own this entity", 0) end
-	
+
 	if not this.LinkEnt then return self:throw("Entity can't be linked", 0) end
 	return this:LinkEnt(ent2) and 1 or 0
 end
@@ -135,7 +142,7 @@ e2function number entity:unlinkFrom(entity ent2)
 	return this:UnlinkEnt(ent2) and 1 or 0
 end
 
---- Clears <this>'s links if applicable 
+--- Clears <this>'s links if applicable
 e2function void entity:clearLinks()
 	if not IsValid(this) then return self:throw("Invalid Entity!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
@@ -144,7 +151,7 @@ e2function void entity:clearLinks()
 		this:ClearEntities()
 	elseif this.UnlinkEnt then
 		this:UnlinkEnt()
-	else 
+	else
 		self:throw("Entity links cannot be cleared!")
 	end
 end

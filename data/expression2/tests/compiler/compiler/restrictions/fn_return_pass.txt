@@ -1,0 +1,22 @@
+## SHOULD_PASS:COMPILE
+
+function string nothing() {
+	return "something"
+}
+
+function number deadcase() {
+	if (1) {
+		return 2158129
+	} else {
+		return 2321515
+	}
+}
+
+function number switchcase() {
+	switch (5) {
+		case 5,
+			return 2
+		default,
+			return 5
+	}
+}

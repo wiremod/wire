@@ -4,24 +4,11 @@ local M_CTakeDamageInfo = FindMetaTable("CTakeDamageInfo")
 
 registerType("damage", "xdm", nil,
 	nil, nil,
-	function(retval)
-		if retval == nil then return end
-		if not istable(retval) then error("Return value is neither nil nor a table, but a " .. type(retval) .. "!",0) end
-		if getmetatable(retval) ~= M_CTakeDamageInfo then error("Return value is not a CTakeDamageInfo!", 0) end
-	end,
+	nil,
 	function(v)
 		return not istable(v) or getmetatable(v) ~= M_CTakeDamageInfo
 	end
 )
-
-registerOperator("ass", "xdm", "xdm", function(self, args) -- todo: remove with new compiler
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local rhs = op2[1](self, op2)
-
-	self.Scopes[scope][lhs] = rhs
-	self.Scopes[scope].vclk[lhs] = true
-	return rhs
-end)
 
 E2Lib.registerConstant("DMG_GENERIC", DMG_GENERIC)
 E2Lib.registerConstant("DMG_CRUSH", DMG_CRUSH)

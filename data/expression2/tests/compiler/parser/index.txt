@@ -1,0 +1,6 @@
+## SHOULD_PASS:COMPILE
+
+array()[1, number]
+
+A = array()
+A[1, number] = 5

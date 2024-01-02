@@ -2,247 +2,11 @@
 --  Core language support
 --------------------------------------------------------------------------------
 
-local delta = wire_expression2_delta
-
-__e2setcost(1) -- approximation
-
-local fix_default = E2Lib.fixDefault
-registerOperator("dat", "", "", function(self, args)
-	return fix_default(args[2])
-end)
-
-__e2setcost(2) -- approximation
-
-registerOperator("var", "", "", function(self, args)
-	local op1, scope = args[2], args[3]
-	return self.Scopes[scope][op1]
-end)
-
---------------------------------------------------------------------------------
-
-__e2setcost(0)
-
-registerOperator("seq", "", "", function(self, args)
-	self.prf = self.prf + args[2]
-
-	if self.prf > e2_tickquota then error("perf", 0) end
-
-	local n = #args
-	if n == 2 then return end
-
-	for i = 3, n-1 do
-		local op = args[i]
-		self.trace = op.Trace
-		op[1](self, op)
-	end
-
-	local op = args[n]
-	self.trace = op.Trace
-	return op[1](self, op)
-end)
-
---------------------------------------------------------------------------------
-
-__e2setcost(0) -- approximation
-
-registerOperator("whl", "", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local skipCond = args[5] -- skipCondFirstTime
-
-	self.prf = self.prf + args[4] + 3
-	while skipCond or (op1[1](self, op1) ~= 0) do
-		self:PushScope()
-		skipCond = false
-
-		local ok, msg = pcall(op2[1], self, op2)
-		if not ok then
-			if msg == "break" then self:PopScope() break
-			elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-		end
-
-		self.prf = self.prf + args[4] + 3
-		self:PopScope()
-	end
-end)
-
-registerOperator("for", "", "", function(self, args)
-	local var, op1, op2, op3, op4 = args[2], args[3], args[4], args[5], args[6]
-
-	local rstart, rend, rstep
-	rstart = op1[1](self, op1)
-	rend = op2[1](self, op2)
-	local rdiff = rend - rstart
-	local rdelta = delta
-
-	if op3 then
-		rstep = op3[1](self, op3)
-
-		if rdiff > -delta then
-			if rstep < delta and rstep > -delta then return end
-		elseif rdiff < delta then
-			if rstep > -delta then return end
-		else
-			return
-		end
-
-		if rstep < 0 then
-			rdelta = -delta
-		end
-	else
-		if rdiff > -delta then
-			rstep = 1
-		else
-			return
-		end
-	end
-
-	self.prf = self.prf + 3
-	for I=rstart,rend+rdelta,rstep do
-		self:PushScope()
-		self.Scope[var] = I
-		self.Scope.vclk[var] = true
-
-		local ok, msg = pcall(op4[1], self, op4)
-		if not ok then
-			if msg == "break" then self:PopScope() break
-			elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-		end
-
-		self.prf = self.prf + 3
-		self:PopScope()
-	end
-
-end)
-
-__e2setcost(2) -- approximation
-
-registerOperator("brk", "", "", function(self, args)
-	error("break", 0)
-end)
-
-registerOperator("cnt", "", "", function(self, args)
-	error("continue", 0)
-end)
-
---------------------------------------------------------------------------------
-
-__e2setcost(3) -- approximation
-
-registerOperator("if", "n", "", function(self, args)
-	local op1 = args[3]
-	self.prf = self.prf + args[2]
-
-	local ok, result
-
-	if op1[1](self, op1) ~= 0 then
-		self:PushScope()
-		local op2 = args[4]
-		ok, result = pcall(op2[1],self, op2)
-	else
-		self:PushScope() -- for else statments, elseif staments will run the if opp again
-		local op3 = args[5]
-		ok, result = pcall(op3[1],self, op3)
-	end
-
-	self:PopScope()
-	if not ok then
-		error(result,0)
-	end
-end)
-
-registerOperator("def", "n", "", function(self, args)
-	local op1 = args[2]
-	local op2 = args[3]
-	local rv2 = op2[1](self, op2)
-
-	-- sets the argument for the DAT-operator
-	op1[2][2] = rv2
-	local rv1 = op1[1](self, op1)
-
-	if rv1 ~= 0 then
-		return rv2
-	else
-		self.prf = self.prf + args[5]
-		local op3 = args[4]
-		return op3[1](self, op3)
-	end
-end)
-
-registerOperator("cnd", "n", "", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 ~= 0 then
-		self.prf = self.prf + args[5]
-		local op2 = args[3]
-		return op2[1](self, op2)
-	else
-		self.prf = self.prf + args[6]
-		local op3 = args[4]
-		return op3[1](self, op3)
-	end
-end)
-
-------------------------------------------------------------------------
-
-__e2setcost(1) -- approximation
-
-registerOperator("trg", "", "n", function(self, args)
-	local op1 = args[2]
-	return self.triggerinput == op1 and 1 or 0
-end)
-
-
-registerOperator("iwc", "", "n", function(self, args)
-	local op1 = args[2]
-	return IsValid(self.entity.Inputs[op1].Src) and 1 or 0
-end)
-
-registerOperator("owc","","n",function(self,args)
-	local op1 = args[2]
-	local tbl = self.entity.Outputs[op1].Connected
-	local ret = #tbl
-	for i=1,ret do if (not IsValid(tbl[i].Entity)) then ret = ret - 1 end end
-	return ret
-end)
-
-
---------------------------------------------------------------------------------
-
 __e2setcost(0) -- cascaded
 
-registerOperator("is", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1 ~= 0 and 1 or 0
-end)
-
-__e2setcost(1) -- approximation
-
-registerOperator("not", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1 == 0 and 1 or 0
-end)
-
-registerOperator("and", "nn", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 == 0 then return 0 end
-
-	local op2 = args[3]
-	local rv2 = op2[1](self, op2)
-	return rv2 ~= 0 and 1 or 0
-end)
-
-registerOperator("or", "nn", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 ~= 0 then return 1 end
-
-	local op2 = args[3]
-	local rv2 = op2[1](self, op2)
-	return rv2 ~= 0 and 1 or 0
-end)
+e2function number operator_is(number this)
+	return (this ~= 0) and 1 or 0
+end
 
 --------------------------------------------------------------------------------
 
@@ -337,23 +101,26 @@ end
 __e2setcost(2) -- approximation
 
 e2function void exit()
+	self.Scope, self.ScopeID, self.Scopes = self.GlobalScope, 0, { [0] = self.GlobalScope }
 	error("exit", 0)
 end
 
 do
-	local raise = E2Lib.raiseException
-
 	[noreturn]
 	e2function void error( string reason )
-		raise(reason, 2, self.trace)
+		self:forceThrow(reason)
 	end
 
 	e2function void assert(condition)
-		if condition == 0 then raise("assert failed", 2, self.trace) end
+		if condition == 0 then
+			self:forceThrow("assert failed")
+		end
 	end
 
 	e2function void assert(condition, string reason)
-		if condition == 0 then raise(reason, 2, self.trace) end
+		if condition == 0 then
+			self:forceThrow(reason)
+		end
 	end
 end
 
@@ -363,6 +130,8 @@ __e2setcost(100) -- approximation
 
 [noreturn]
 e2function void reset()
+	self.Scope, self.ScopeID, self.Scopes = self.GlobalScope, 0, { [0] = self.GlobalScope }
+
 	if self.data.last or self.entity.first then error("exit", 0) end
 
 	if self.entity.last_reset and self.entity.last_reset == CurTime() then
@@ -371,6 +140,7 @@ e2function void reset()
 	self.entity.last_reset = CurTime()
 
 	self.data.reset = true
+
 	error("exit", 0)
 end
 
@@ -488,7 +258,6 @@ end
 __e2setcost(nil)
 
 registerCallback("postinit", function()
-	E2Lib.currentextension = "core"
 	-- Returns the Nth value given after the index, the type's zero element otherwise. If you mix types, all non-matching arguments will be regarded as the 2nd argument's type's zero element.
 	for name,id,zero in pairs_map(wire_expression_types, unpack) do
 		registerFunction("select", "n"..id.."...", id, function(self, args)
@@ -502,95 +271,5 @@ registerCallback("postinit", function()
 			value = value[1](self, value)
 			return value
 		end, 5, { "index", "argument1" })
-	end
-end)
-
---------------------------------------------------------------------------------
-
-__e2setcost(3) -- approximation
-
-registerOperator("switch", "", "", function(self, args)
-	local cases, startcase = args[3], args[4]
-
-
-	for i=1, #cases do -- We figure out what we can run.
-		local case = cases[i]
-		local op1 = case[1]
-
-		self.prf = self.prf + case[3]
-		if self.prf > e2_tickquota then error("perf", 0) end
-
-		if (op1 and op1[1](self, op1) == 1) then -- Equals operator
-			startcase = i
-			break
-		end
-	end
-
-	if startcase then
-		for i=startcase, #cases do
-			local stmts = cases[i][2]
-			self:PushScope()
-				local ok, msg = pcall(stmts[1], self, stmts)
-				if not ok then
-					if msg == "break" then
-						self:PopScope()
-						break
-					elseif msg ~= "continue" then
-						self:PopScope()
-						error(msg, 0)
-					end
-				end
-			self:PopScope()
-		end
-	end
-end)
-
-registerOperator("include", "", "", function(self, args)
-	local Include = self.includes[ args[2] ]
-
-	if Include and Include[2] then
-		local Script = Include[2]
-
-		local OldScopes = self:SaveScopes()
-		self:InitScope() -- Create a new Scope Enviroment
-		self:PushScope()
-
-		local ok, msg = pcall(Script[1], self, Script)
-
-		self:PopScope()
-		self:LoadScopes(OldScopes)
-
-		if not ok then
-			error(msg, 0)
-		end
-	end
-end)
-
-local unpackException = E2Lib.unpackException
-registerOperator("try", "", "", function(self, args)
-	local prf, stmt, var_name, stmt2 = args[2], args[3], args[4], args[5]
-	self.prf = self.prf + prf
-	if self.prf > e2_tickquota then error("perf", 0) end
-
-	self:PushScope()
-		local ok, msg = pcall(stmt[1], self, stmt)
-	self:PopScope()
-
-	if not ok then
-		local catchable, msg = unpackException(msg)
-		if not catchable then
-			-- Anything other than context:throw / e2's error is not catchable.
-			error(msg, 0)
-		end
-		self:PushScope()
-			self.Scope[var_name] = isstring(msg) and msg or "" -- isstring check if we want to be paranoid about the sandbox.
-			self.Scope.vclk[var_name] = true
-
-			local ok, msg = pcall(stmt2[1], self, stmt2)
-		self:PopScope()
-
-		if not ok then
-			error(msg, 0)
-		end
 	end
 end)

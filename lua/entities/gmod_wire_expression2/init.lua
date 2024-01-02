@@ -39,42 +39,6 @@ end
 
 local fixDefault = E2Lib.fixDefault
 
-
-local ScopeManager = {}
-ScopeManager.__index = ScopeManager
-E2Lib.ScopeManager = ScopeManager
-
-function ScopeManager:InitScope()
-	self.Scopes = {}
-	self.ScopeID = 0
-	self.Scopes[0] = self.GlobalScope or { vclk = {} } -- for creating new enviroments
-	self.Scope = self.Scopes[0]
-	self.GlobalScope = self.Scope
-end
-
-function ScopeManager:PushScope()
-	self.Scope = { vclk = {} }
-	self.ScopeID = self.ScopeID + 1
-	self.Scopes[self.ScopeID] = self.Scope
-end
-
-function ScopeManager:PopScope()
-	self.ScopeID = self.ScopeID - 1
-	self.Scope = self.Scopes[self.ScopeID]
-	self.Scopes[self.ScopeID] = self.Scope
-	return table.remove(self.Scopes, self.ScopeID + 1)
-end
-
-function ScopeManager:SaveScopes()
-	return { self.Scopes, self.ScopeID, self.Scope }
-end
-
-function ScopeManager:LoadScopes(Scopes)
-	self.Scopes = Scopes[1]
-	self.ScopeID = Scopes[2]
-	self.Scope = Scopes[3]
-end
-
 function ENT:UpdateOverlay(clear)
 	if clear then
 		self:SetOverlayData( {
@@ -118,20 +82,22 @@ local SysTime = SysTime
 function ENT:Destruct()
 	self:PCallHook("destruct")
 
-	for evt in pairs(self.registered_events) do
-		if E2Lib.Env.Events[evt].destructor then
-			-- If the event has a destructor to run when the E2 is removed and listening to the event.
-			E2Lib.Env.Events[evt].destructor(self.context)
-		end
+	if self.registered_events then
+		for evt in pairs(self.registered_events) do
+			if E2Lib.Env.Events[evt].destructor then
+				-- If the event has a destructor to run when the E2 is removed and listening to the event.
+				E2Lib.Env.Events[evt].destructor(self.context)
+			end
 
-		E2Lib.Env.Events[evt].listening[self] = nil
+			E2Lib.Env.Events[evt].listening[self] = nil
+		end
 	end
 end
 
 function ENT:UpdatePerf()
 	if not self.context then return end
 	if self.error then return end
-	
+
 	self.context.prfbench = self.context.prfbench * 0.95 + self.context.prf * 0.05
 	self.context.prfcount = self.context.prfcount + self.context.prf - e2_softquota
 	self.context.timebench = self.context.timebench * 0.95 + self.context.time * 0.05 -- Average it over the last 20 ticks
@@ -150,7 +116,6 @@ function ENT:Execute()
 
 	self:PCallHook('preexecute')
 
-	self.context:PushScope()
 	self.context.stackdepth = self.context.stackdepth + 1
 
 	if self.context.stackdepth >= 150 then
@@ -159,7 +124,7 @@ function ENT:Execute()
 
 	local bench = SysTime()
 
-	local ok, msg = pcall(self.script[1], self.context, self.script)
+	local ok, msg = pcall(self.script, self.context)
 
 	if not ok then
 		local _catchable, msg, trace = E2Lib.unpackException(msg)
@@ -167,19 +132,19 @@ function ENT:Execute()
 		if msg == "exit" then
 			self:UpdatePerf()
 		elseif msg == "perf" then
+			local trace = self.context.trace
 			self:UpdatePerf()
-			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
+			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
 		elseif trace then
-			self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
+			self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 		else
-			self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
+			local trace = self.context.trace
+			self:Error("Expression 2 (" .. self.name .. "): Internal error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 		end
 	end
 
 	self.context.time = self.context.time + (SysTime() - bench)
-
 	self.context.stackdepth = self.context.stackdepth - 1
-	self.context:PopScope()
 
 	local forceTriggerOutputs = self.first or self.duped
 	self.first = false -- if hooks call execute
@@ -201,12 +166,15 @@ function ENT:Execute()
 	end
 
 	self.GlobalScope.vclk = {}
-	for k, var in pairs(self.globvars_mut) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
+	if not self.directives.strict then
+		for k, var in pairs(self.globvars_mut) do
+			self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
+		end
 	end
 
 	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
-		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "hard quota exceeded")
+		local trace = self.context.trace
+		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "hard quota exceeded")
 	end
 
 	if self.error then
@@ -226,7 +194,6 @@ function ENT:ExecuteEvent(evt, args)
 	self:PCallHook("preexecute")
 
 	for name, handler in pairs(handlers) do
-		self.context:PushScope()
 		self.context.stackdepth = self.context.stackdepth + 1
 
 		if self.context.stackdepth >= 150 then
@@ -242,18 +209,19 @@ function ENT:ExecuteEvent(evt, args)
 			if msg == "exit" then
 				self:UpdatePerf()
 			elseif msg == "perf" then
+				local trace = self.context.trace
 				self:UpdatePerf()
-				self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
+				self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
 			elseif trace then
-				self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace[1] .. ", char " .. trace[2], "script error")
+				self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 			else
-				self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
+				local trace = self.context.trace
+				self:Error("Expression 2 (" .. self.name .. "): Internal error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 			end
 		end
-		self.context.time = self.context.time + (SysTime() - bench)
 
+		self.context.time = self.context.time + (SysTime() - bench)
 		self.context.stackdepth = self.context.stackdepth - 1
-		self.context:PopScope()
 	end
 
 
@@ -263,12 +231,15 @@ function ENT:ExecuteEvent(evt, args)
 	self:TriggerOutputs()
 
 	self.GlobalScope.vclk = {}
-	for k, var in pairs(self.globvars_mut) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
+	if not self.directives.strict then
+		for k, var in pairs(self.globvars_mut) do
+			self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
+		end
 	end
 
 	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
-		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "hard quota exceeded")
+		local trace = self.context.trace
+		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "hard quota exceeded")
 	end
 
 	if self.error then
@@ -341,7 +312,8 @@ function ENT:CompileCode(buffer, files, filepath)
 	end
 
 	local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer,nil,self)
-	if not status then self:Error(directives) return end
+	if not status then return self:Error(directives[1].message) end
+
 	self.buffer = buffer
 	self.error = false
 
@@ -361,27 +333,23 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.trigger = directives.trigger
 
 	local status, tokens = E2Lib.Tokenizer.Execute(self.buffer)
-	if not status then self:Error(tokens) return end
+	if not status then self:Error(tokens[1].message) return end
 
 	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
-	if not status then self:Error(tree) return end
+	if not status then self:Error(tree.message) return end
 
 	if not self:PrepareIncludes(files) then return end
 
-	status,tree = E2Lib.Optimizer.Execute(tree)
-	if not status then self:Error(tree) return end
-
-	local status, script, inst = E2Lib.Compiler.Execute(tree, self.inports, self.outports, self.persists, dvars, self.includes)
-	if not status then self:Error(script) return end
+	local status, script, inst = E2Lib.Compiler.Execute(tree, directives, dvars, self.includes)
+	if not status then self:Error(script.message) return end
 
 	self.script = script
 	self.registered_events = inst.registered_events
 
-	self.dvars = inst.dvars
-	self.funcs = inst.funcs
-	self.funcs_ret = inst.funcs_ret
-	self.globvars_mut = table.Copy(inst.GlobalScope) -- table.Copy because we will mutate this
-	self.globvars = inst.GlobalScope
+	self.dvars = dvars
+	self.funcs = inst.user_functions
+	self.globvars_mut = table.Copy(inst.global_scope.vars) ---@type table<string, VarData> # table.Copy because we will mutate this
+	self.globvars = inst.global_scope.vars
 
 	self:ResetContext()
 end
@@ -394,38 +362,31 @@ function ENT:GetCode()
 	return self.original, self.inc_files
 end
 
+---@param files table<string, string>
 function ENT:PrepareIncludes(files)
-
 	self.inc_files = files
-
 	self.includes = {}
 
 	for file, buffer in pairs(files) do
 		local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer, self.directives)
-		if not status then
-			self:Error("(" .. file .. ")" .. directives)
+		if not status then ---@cast directives Error[]
+			self:Error("(" .. file .. ") " .. directives[1].message)
 			return
 		end
 
 		local status, tokens = E2Lib.Tokenizer.Execute(buffer)
-		if not status then
-			self:Error("(" .. file .. ")" .. tokens)
+		if not status then ---@cast tokens Error[]
+			self:Error("(" .. file .. ") " .. tokens[1].message)
 			return
 		end
 
 		local status, tree, dvars = E2Lib.Parser.Execute(tokens)
-		if not status then
-			self:Error("(" .. file .. ")" .. tree)
+		if not status then ---@cast tree Error
+			self:Error("(" .. file .. ") " .. tree.message)
 			return
 		end
 
-		status, tree = E2Lib.Optimizer.Execute(tree)
-		if not status then
-			self:Error("(" .. file .. ")" .. tree)
-			return
-		end
-
-		self.includes[file] = { tree }
+		self.includes[file] = { tree, nil, dvars }
 	end
 
 	return true
@@ -434,53 +395,41 @@ end
 function ENT:ResetContext()
 	local resetPrfMult = 1
 	if self.lastResetOrError then
-		-- reduces all the opcounters based on the time passed since 
+		-- reduces all the opcounters based on the time passed since
 		-- the last time the chip was reset or errored
-		-- waiting up to 30s before resetting results in a 0.1 multiplier 
+		-- waiting up to 30s before resetting results in a 0.1 multiplier
 		local passed = CurTime() - self.lastResetOrError
 		resetPrfMult = math.max(0.1, (30 - passed) / 30)
 	end
 	self.lastResetOrError = CurTime()
 
-	local context = {
-		data = {},
-		vclk = {},
-		funcs = self.funcs,
-		funcs_ret = self.funcs_ret,
-		entity = self,
-		player = self.player,
-		uid = self.uid,
-		prf = (self.context and (self.context.prf * resetPrfMult)) or 0,
-		prfcount = (self.context and (self.context.prfcount * resetPrfMult)) or 0,
-		prfbench = (self.context and (self.context.prfbench * resetPrfMult)) or 0,
-		time = (self.context and (self.context.time * resetPrfMult)) or 0,
-		timebench = (self.context and (self.context.timebench * resetPrfMult)) or 0,
-		stackdepth = 0,
-		includes = self.includes
-	}
+	local context = E2Lib.RuntimeContext.builder()
+		:withChip(self)
+		:withOwner(self.player)
+		:withStrict(self.directives.strict)
+		:withUserFunctions(self.funcs)
+		:withIncludes(self.includes)
 
-	-- '@strict' try/catch Error handling.
-	if self.directives.strict then
-		local err = E2Lib.raiseException
-		function context:throw(msg)
-			err(msg, 2, self.trace)
-		end
-	else
-		-- '@strict' is not enabled, pass the default variable.
-		function context:throw(_msg, variable)
-			return variable
-		end
+	if self.context then
+		context = context
+			:withPrf(self.context.prf * resetPrfMult, self.context.prfcount * resetPrfMult, self.context.prfbench * resetPrfMult)
+			:withTime(self.context.time * resetPrfMult, self.context.timebench * resetPrfMult)
 	end
 
-	setmetatable(context, ScopeManager)
-	context:InitScope()
-
-	self.context = context
+	self.context = context:build()
 	self.GlobalScope = context.GlobalScope
 	self._vars = self.GlobalScope -- Dupevars
 
-	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2], self.inports[4])
-	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2], self.outports[4])
+	local conv_inputs, conv_outputs = {}, {}
+	for i, input in ipairs(self.inports[2]) do
+		conv_inputs[i] = wire_expression_types2[input][1]
+	end
+	for i, input in ipairs(self.outports[2]) do
+		conv_outputs[i] = wire_expression_types2[input][1]
+	end
+
+	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], conv_inputs, self.inports[4])
+	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], conv_outputs, self.outports[4])
 
 	if self.extended then -- It was extended before the adjustment, recreate the wirelink
 		WireLib.CreateWirelinkOutput( self.player, self, {true} )
@@ -494,26 +443,28 @@ function ENT:ResetContext()
 
 	for k, v in pairs(self.inports[3]) do
 		self._inputs[1][#self._inputs[1] + 1] = k
-		self._inputs[2][#self._inputs[2] + 1] = v
-		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
+		self._inputs[2][#self._inputs[2] + 1] = wire_expression_types2[v][1]
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 		self.globvars_mut[k] = nil
 	end
 
 	for k, v in pairs(self.outports[3]) do
 		self._outputs[1][#self._outputs[1] + 1] = k
-		self._outputs[2][#self._outputs[2] + 1] = v
-		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
+		self._outputs[2][#self._outputs[2] + 1] = wire_expression_types2[v][1]
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 		self.GlobalScope.vclk[k] = true
 		self.globvars_mut[k] = nil
 	end
 
 	for k, v in pairs(self.persists[3]) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types[v][2])
+		self.GlobalScope[k] = fixDefault(wire_expression_types2[v][2])
 		self.globvars_mut[k] = nil
 	end
 
-	for k, var in pairs(self.globvars_mut) do
-		self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
+	if not self.directives.strict then -- Need to disable this so local variables at top scope don't get reset
+		for k, var in pairs(self.globvars_mut) do
+			self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
+		end
 	end
 
 	for k, v in pairs(self.Inputs) do
@@ -621,26 +572,28 @@ function ENT:TriggerInput(key, value)
 		local t = self.inports[3][key]
 
 		self.GlobalScope["$" .. key] = self.GlobalScope[key]
-		if wire_expression_types[t][3] then
-			self.GlobalScope[key] = wire_expression_types[t][3](self.context, value)
+		local iowrap = wire_expression_types2[t][3]
+		if iowrap then
+			self.GlobalScope[key] = iowrap(self.context, value)
 		else
 			self.GlobalScope[key] = value
 		end
 
-		self.context.triggerinput = key
-		if self.trigger[1] or self.trigger[2][key] then
+		self:ExecuteEvent("input", { key })
+
+		if self.trigger[1] or self.trigger[2][key] then -- if @trigger all or @trigger Key
+			self.context.triggerinput = key
 			self:Execute()
-			self:ExecuteEvent("input", { key })
+			self.context.triggerinput = nil
 		end
-		self.context.triggerinput = nil
 	end
 end
 
 function ENT:TriggerOutputs(force)
 	for key, t in pairs(self.outports[3]) do
 		if self.GlobalScope.vclk[key] or force then
-			if wire_expression_types[t][4] then
-				WireLib.TriggerOutput(self, key, wire_expression_types[t][4](self.context, self.GlobalScope[key]))
+			if wire_expression_types2[t][4] then
+				WireLib.TriggerOutput(self, key, wire_expression_types2[t][4](self.context, self.GlobalScope[key]))
 			else
 				WireLib.TriggerOutput(self, key, self.GlobalScope[key])
 			end
@@ -654,7 +607,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	if not self.error then
 		for k, v in pairs(self.dupevars) do
 			-- Backwards compatibility to fix dupes with the old {n, n, n} angle and vector types
-			local vartype = self.globvars[k] and self.globvars[k].type
+			-- $ check is for delta variables stored in dupevars. ugly one liner.
+			local vartype = self.globvars[k] and self.globvars[k].type or (k:sub(1, 1) == "$" and (self.globvars[k:sub(2)] and self.globvars[k:sub(2)].type))
 			if vartype == "a" then
 				self.GlobalScope[k] = istable(v) and Angle(v[1], v[2], v[3]) or v
 			elseif vartype == "v" then

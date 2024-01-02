@@ -1,0 +1,34 @@
+## SHOULD_PASS:EXECUTE
+
+assert( isinf(_INF) )
+assert( !isfinite(_INF) )
+
+assert( isnan(0/0) )
+
+assert( _E == e() )
+assert( _INF == inf() )
+assert( _PI == pi() )
+
+assert( _INF:toString(2) == "inf" )
+assert( (2^2000):toString(2) == "inf" )
+assert( 0b11110101:toString(2) == "11110101" )
+
+assert( mod(1, 2) == 1 % 2 )
+assert( mod(-5, 2) != -5 % 2 )
+
+assert( round(1.235, 2) == 1.24 )
+
+assert( round(frac(5.3), 1) == 0.3 )
+assert( round(frac(-5.3), 1) == -0.3 )
+
+assert( abs(-5) == 5 )
+
+assert( floor(0.6) == 0 )
+assert( ceil(0.1) == 1 )
+
+assert( round(0.1) == 0 )
+assert( round(0.6) == 1 )
+
+assert( log2(2) == 1 )
+assert( log2(5) == (ln(5) / ln(2)) )
+assert( log(5, 2) == (ln(5) / ln(2)) )

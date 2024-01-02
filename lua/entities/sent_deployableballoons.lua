@@ -105,7 +105,8 @@ end
 function ENT:TriggerInput(key,value)
 	if (key == "Deploy") then
 		if value ~= 0 then
-			if self.Deployed == 0 then
+			if self.Deployed == 0 and ( self.nextDeploy or 0 ) < CurTime() then
+                self.nextDeploy = CurTime() + 0.5
 				self:DeployBalloons()
 				self.Deployed = 1
 			end
@@ -156,8 +157,7 @@ function ENT:UpdatePopable()
 end
 
 function ENT:DeployBalloons()
-	local balloon
-	balloon = ents.Create("gmod_balloon") --normal balloon
+	local balloon = ents.Create("gmod_balloon") --normal balloon
 
 	local model = BalloonTypes[self.balloonType]
 	if(model==nil) then

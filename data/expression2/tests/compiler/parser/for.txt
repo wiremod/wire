@@ -1,0 +1,9 @@
+## SHOULD_PASS:COMPILE
+
+for (B = 1, 2) {
+	break
+}
+
+for (B = 1, 2, 3) { continue }
+
+for (_ = 1, 5) {}

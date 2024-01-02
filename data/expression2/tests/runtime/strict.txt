@@ -1,0 +1,32 @@
+## SHOULD_PASS:EXECUTE
+
+@strict
+
+try {
+    # chatClk should throw an error for a NULL player parameter.
+    chatClk( noentity() )
+} catch(Err) {
+    assert(Err == "Invalid player!", "L9")
+
+    try {
+        # Nonexistent function stringcalls should be catchable
+        "notreal"()
+    } catch(Err) {
+        assert(Err == "No such function: notreal()")
+
+        try {
+            error("exit")
+            # Chip should NOT exit here. error() will throw separate table errors that are catchable and don't care about the name.
+        } catch(Err) {
+            assert(Err == "exit")
+
+            try {
+                exit()
+            } catch(Err) {
+                error("exit() threw an error, when it should have exited the chip")
+            }
+        }
+    }
+}
+
+error("@strict did not throw an error in chatClk test")

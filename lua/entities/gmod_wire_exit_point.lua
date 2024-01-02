@@ -8,11 +8,11 @@ function ENT:Initialize()
 	BaseClass.Initialize(self)
 
 	self.Inputs = WireLib.CreateInputs(self, {
-		"Entity (Links the exit point controller to a single specified vehicle and unlinks all others.) [ENTITY]", 
-		"Entities (Links the exit point controller to the specified array of vehicles.\nEntities will be linked one by one and this value can't be changed during this time.) [ARRAY]", 
-		"Position (Whenever a player exits a linked vehicle, they will be teleported to this position.\nOnly either this or 'Local Position' can be used at a time. The last changed input is used.) [VECTOR]", 
-		"Local Position (Whenever a player exits a linked vehicle, they will be teleported to this position, relative to the vehicle they just exited.\nOnly either this or 'Position' can be used at a time. The last changed input is used.) [VECTOR]", 
-		"Angle (Whenever a player exits a linked vehicle, they will be rotated to face this angle.\nOnly either this or 'Local Angle' can be used at a time. The last changed input is used.) [ANGLE]", 
+		"Entity (Links the exit point controller to a single specified vehicle and unlinks all others.) [ENTITY]",
+		"Entities (Links the exit point controller to the specified array of vehicles.\nEntities will be linked one by one and this value can't be changed during this time.) [ARRAY]",
+		"Position (Whenever a player exits a linked vehicle, they will be teleported to this position.\nOnly either this or 'Local Position' can be used at a time. The last changed input is used.) [VECTOR]",
+		"Local Position (Whenever a player exits a linked vehicle, they will be teleported to this position, relative to the vehicle they just exited.\nOnly either this or 'Position' can be used at a time. The last changed input is used.) [VECTOR]",
+		"Angle (Whenever a player exits a linked vehicle, they will be rotated to face this angle.\nOnly either this or 'Local Angle' can be used at a time. The last changed input is used.) [ANGLE]",
 		"Local Angle (Whenever a player exits a linked vehicle, they will rotated to face this angle, relative to the vehicle they just exited.\nOnly either this or 'Angle' can be used at a time. The last changed input is used.) [ANGLE]"
 	})
 
@@ -58,9 +58,9 @@ end
 
 function ENT:ShowOutput()
 	self:SetOverlayText(string.format(
-		"Entities linked: %i\n%sPosition: (%.2f, %.2f, %.2f)%s", 
-		table.Count(self.Entities), 
-		self.Global and "" or "Local ", 
+		"Entities linked: %i\n%sPosition: (%.2f, %.2f, %.2f)%s",
+		table.Count(self.Entities),
+		self.Global and "" or "Local ",
 		self.Position.x, self.Position.y, self.Position.z,
 		(self.ToLink and self.ToLinkCounter) and "\nLinking " .. (#self.ToLink-self.ToLinkCounter) .. " entities..." or ""
 	))

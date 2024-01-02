@@ -1,8 +1,9 @@
 -- Author: Divran
-local Obj = EGP:NewObject( "BoxOutline" )
+local Obj = EGP.ObjectInherit("BoxOutline", "Box")
 Obj.size = 1
-Obj.angle = 0
-Obj.CanTopLeft = true
+
+local base = Obj.BaseClass
+
 local function rotate( x, y, a )
 	local a = a * math.pi / 180
 	local _x = math.cos(a) * x - math.sin(a) * y
@@ -49,20 +50,19 @@ end
 
 Obj.Transmit = function( self )
 	net.WriteInt( self.size, 16 )
-	net.WriteInt( (self.angle%360)*20, 16 )
-	self.BaseClass.Transmit( self )
+	base.Transmit(self)
 end
+
 Obj.Receive = function( self )
-	local tbl = {}
-	tbl.size = net.ReadInt(16)
-	tbl.angle = net.ReadInt(16)/20
-	table.Merge( tbl, self.BaseClass.Receive( self ) )
+	local tbl = { size = net.ReadInt(16) }
+	table.Merge(tbl, base.Receive(self))
 	return tbl
 end
+
 Obj.DataStreamInfo = function( self )
-	local tbl = {}
-	tbl.size = self.size
-	tbl.angle = self.angle
-	table.Merge( tbl, self.BaseClass.DataStreamInfo( self ) )
+	local tbl = { size = self.size }
+	table.Merge(tbl, base.DataStreamInfo(self))
 	return tbl
 end
+
+return Obj

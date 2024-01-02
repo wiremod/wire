@@ -1,0 +1,15 @@
+## SHOULD_PASS:EXECUTE
+
+@persist X:number
+
+assert($X == 0)
+
+X = 5
+
+assert($X == 5)
+
+# assert($X == 0) ( Unintentionally new behavior, :( )
+
+X++
+
+assert($X == 1)
