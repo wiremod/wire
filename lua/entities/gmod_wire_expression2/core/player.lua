@@ -511,7 +511,7 @@ end
 
 __e2setcost(2)
 
-if CPPI and debug.getregistry().Player.CPPIGetFriends then
+if CPPI and FindMetaTable("Player").CPPIGetFriends then
 
 	local function Trusts(ply, whom)
 		if ply == whom then return true end
