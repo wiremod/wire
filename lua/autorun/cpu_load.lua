@@ -26,8 +26,6 @@ include("wire/gpulib.lua")
 AddCSLuaFile("wire/cpu_default_data_decompressor.lua")
 include("wire/cpu_default_data_decompressor.lua")
 
-AddCSLuaFile("wire/cpu_default_data_files.lua")
-
 if CLIENT then
 	include("wire/client/hlzasm/hc_compiler.lua")
 end
