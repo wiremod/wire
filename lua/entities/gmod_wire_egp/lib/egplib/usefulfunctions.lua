@@ -229,7 +229,9 @@ end
 -- Other
 --------------------------------------------------------
 do
-	local GetTable = FindMetaTable( "Entity" ).GetTable
+	local EntMeta = FindMetaTable( "Entity" )
+	local IsValid = EntMeta.IsValid
+	local GetTable = EntMeta.GetTable
 
 	function EGP:ValidEGP( Ent )
 		if not IsValid( Ent ) then return false end
