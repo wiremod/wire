@@ -199,7 +199,7 @@ function ZVM:ReadCell(Address)
   if self.BusLock == 1 then return end
 
   -- Cycles required to perform memory read
-  self.TMR = self.TMR + 5
+  self.TMR = self.TMR + (self.MemoryReadCycles or 5)
 
   -- Check if address is valid
   if not IsValidAddress(Address) then
@@ -242,7 +242,7 @@ function ZVM:ReadCell(Address)
       value = tonumber(self.Memory[Address]) or 0
     else
     -- Extra cycles for the external operation
-      self.TMR = self.TMR + 15
+      self.TMR = self.TMR + (self.ExternalReadCycles or 15)
       value = self:ExternalRead(Address)
     end
 
@@ -267,7 +267,7 @@ function ZVM:ReadCell(Address)
     return tonumber(self.Memory[Address]) or 0
   else
     -- Extra cycles for the external operation
-    self.TMR = self.TMR + 15
+    self.TMR = self.TMR + (self.ExternalReadCycles or 15)
     return self:ExternalRead(Address)
   end
 end
@@ -283,7 +283,7 @@ function ZVM:WriteCell(Address,Value)
   if self.BusLock == 1 then return false end
 
   -- Cycles required to perform memory write
-  self.TMR = self.TMR + 5
+  self.TMR = self.TMR + (self.MemoryWriteCycles or 5)
 
   -- Check if address is valid
   if not IsValidAddress(Address) then
@@ -356,7 +356,7 @@ function ZVM:WriteCell(Address,Value)
     self.Memory[Address] = Value
   else
     -- Extra cycles for the external operation
-    self.TMR = self.TMR + 15
+    self.TMR = self.TMR + (self.ExternalWriteCycles or 15)
     return self:ExternalWrite(Address,Value)
   end
 end

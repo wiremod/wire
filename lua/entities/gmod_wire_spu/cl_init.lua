@@ -151,7 +151,14 @@ function ENT:Run()
   -- Run until interrupt, or if async thread then until async thread stops existing
   while (Cycles > 0) and (self.VM.INTR == 0) do
     local previousTMR = self.VM.TMR
-    self.VM:Step()
+    self.VM.QuotaSupported = 1
+    self.VM.Quota = self.VM.TMR+Cycles
+    if self.VM.QuotaOverrunFunc then
+      self.VM:QuotaOverrunFunc()
+    else
+      self.VM:Step()
+    end
+    self.QuotaSupported = 0
     Cycles = Cycles - (self.VM.TMR - previousTMR)
   end
 

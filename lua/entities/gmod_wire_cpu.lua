@@ -28,6 +28,12 @@ function ENT:Initialize()
 	-- Create virtual machine
 	self.VM = CPULib.VirtualMachine()
 	self.VM.SerialNo = CPULib.GenerateSN("CPU")
+	-- Since the device supports (quota)interruptible instructions
+	-- Memory access can be a lot cheaper.
+	self.VM.MemoryReadCycles = 2
+	self.VM.MemoryWriteCycles = 2
+	self.VM.ExternalReadCycles = 8
+	self.VM.ExternalWriteCycles = 8
 	self.VM:Reset()
 
 	self:SetCPUName()
@@ -182,8 +188,18 @@ function ENT:Run()
 
 		while (Cycles > 0) and (self.Clk) and (not self.VMStopped) and (self.VM.Idle == 0) do
 			-- Run VM step
+			self.VM.QuotaSupported = true
 			local previousTMR = self.VM.TMR
-			self.VM:Step()
+			self.VM.Quota = self.VM.TMR + Cycles
+			if self.VM.QuotaOverrunFunc then
+				self.VM:QuotaOverrunFunc()
+			else
+				self.VM:Step()
+			end
+			if self.VM.EndedOnQuota then
+				self.VM.EndedOnQuota = false
+			end
+			self.VM.QuotaSupported = false
 			Cycles = Cycles - math.max(1, self.VM.TMR - previousTMR)
 		end
 	end
@@ -269,7 +285,9 @@ function ENT:TriggerInput(iname, value)
 			self:NextThink(CurTime())
 		end
 	elseif iname == "Frequency" then
-		if value > 0 then self.Frequency = math.floor(value) end
+		if value > 0 then
+			self.Frequency = math.floor(value)
+		end
 	elseif iname == "Reset" then   --VM may be nil
 		if self.VM.HWDEBUG ~= 0 then
 			self.VM.DBGSTATE = math.floor(value)

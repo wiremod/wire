@@ -87,6 +87,7 @@ function ENT:Initialize()
   self.VM.VertexMode = 0
   self.VM.MemBusBuffer = {}
   self.VM.MemBusCount = 0
+  self.VM.LateFrames = 0
 
   -- Create GPU
   self.GPU = WireGPU(self)
@@ -136,30 +137,63 @@ function ENT:Run(isAsync)
     Cycles = math.max(1,math.floor(self.VM.Memory[65527]*self.DeltaTime*0.5))
     self.VM.TimerDT = self.DeltaTime/Cycles
     self.VM.TIMER = self.CurrentTime
+    self.VM.QuotaOverrunFunc = self.VM.AsyncQuotaOverrun
     self.VM.ASYNC = 1
   else
     Cycles = 50000
     self.VM:Reset()
     self.VM.TimerDT = self.DeltaTime
     self.VM.TIMER = self.CurrentTime
-
     if self.VM.INIT == 0 then
       self.VM.IP = self.VM.EntryPoint1
       self.VM.INIT = 1
     else
-      self.VM.IP = self.VM.EntryPoint0
+      if self.VM.SyncQuotaIP then
+        self.VM.IP = self.VM.SyncQuotaIP
+      else
+        self.VM.IP = self.VM.EntryPoint0
+      end
     end
-
+    self.VM.QuotaOverrunFunc = self.VM.SyncQuotaOverrun
     self.VM.ASYNC = 0
   end
-
+  local function getCode(self)
+    local mem = {}
+    for i=0,16 do
+      mem[i] = self.VM:ReadCell(i)
+    end
+    return mem
+  end
   -- Run until interrupt, or if async thread then until async thread stops existing
   while (Cycles > 0) and (self.VM.INTR == 0) do -- and (not (isAsync and (self.VM.Entrypoint4 == 0)))
+    self.VM.QuotaSupported = 1
+    self.VM.Quota = self.VM.TMR + Cycles
     local previousTMR = self.VM.TMR
-    self.VM:Step()
+    if self.VM.QuotaOverrunFunc then
+      self.VM:QuotaOverrunFunc()
+    else
+      self.VM:Step()
+    end
     Cycles = Cycles - (self.VM.TMR - previousTMR)
 
-    if (self.VM.ASYNC == 0) and (Cycles < 0) then self.VM:Interrupt(17,0) end
+    if (self.VM.ASYNC == 0) and (Cycles < 0) and not self.VM.QuotaOverrunFunc then self.VM:Interrupt(17,0) end
+    if (self.VM.ASYNC == 0) and (self.VM.LateFrames > 1) then self.VM:Interrupt(18,0) end
+    self.VM.QuotaSupported = 0
+  end
+
+-- Will also handle cleanup of quota overrun, since VM.QuotaOverrun sets itself to nil if the func is done
+  if isAsync then
+    self.VM.AsyncQuotaOverrun = self.VM.QuotaOverrunFunc
+  else
+    self.VM.SyncQuotaOverrun = self.VM.QuotaOverrunFunc
+    if self.VM.SyncQuotaOverrun then
+      print(self.VM.LateFrames)
+      self.VM.SyncQuotaIP = self.VM.IP
+      self.VM.LateFrames = self.VM.LateFrames + 1
+    else
+      self.VM.SyncQuotaIP = nil
+      self.VM.LateFrames = 0
+    end
   end
 
   -- Reset INTR register for async thread

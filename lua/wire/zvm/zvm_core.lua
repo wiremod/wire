@@ -338,8 +338,47 @@ function ZVM:Dyn_EndBlock()
   return self.EmitBlock
 end
 
+--------------------------------------------------------------------------------
+-- Begins a block of code that will only run if we're in a quota supporting environment
+-- and about to exit due to quota.
+function ZVM:Dyn_BeginQuotaOnlyCode()
+  self:Dyn_Emit("if VM.QuotaSupported then")
+    self:Dyn_Emit("if VM.TMR > VM.Quota then")
+end
 
+--------------------------------------------------------------------------------
+-- Ends a block of "Quota only" code.
+function ZVM:Dyn_EndQuotaOnlyCode()
+    self:Dyn_Emit("end")
+  self:Dyn_Emit("end")
+end
 
+--------------------------------------------------------------------------------
+-- Check if over quota on processors that support it, code between here and EndQuotaInterrupt
+-- will be run on next available tick to wrap up what was started by this instruction
+--
+-- Note that to take arguments, you will have to store your values somewhere in VM and
+-- clear them at the end of your function
+function ZVM:Dyn_StartQuotaInterrupt()
+  self:Dyn_Emit("if VM.QuotaSupported then")
+    self:Dyn_Emit("if VM.TMR > VM.Quota then")
+      self:Dyn_EmitState()
+      self:Dyn_Emit("VM.LASTQUO = VM.TIMER+%d*VM.TimerDT",(self.PrecompileInstruction or 0))
+      self:Dyn_Emit("VM.QUOFLAG = 1")
+      self:Dyn_Emit("VM.IP = %d",self.PrecompileIP)
+      self:Dyn_Emit("VM.XEIP = %d",self.PrecompileXEIP)
+      self:Dyn_Emit("$L function quotafunc(VM)")
+end
+
+function ZVM:Dyn_EndQuotaInterrupt()
+  self:Dyn_EmitState()
+  self:Dyn_Emit("end")
+  self:Dyn_Emit("VM.QuotaOverrunFunc = quotafunc")
+  self:Dyn_Emit("VM.EndedOnQuota = true")
+  self:Dyn_EmitBreak()
+  self:Dyn_Emit("end")
+  self:Dyn_Emit("end")
+end
 
 --------------------------------------------------------------------------------
 function ZVM:Precompile_Initialize()
@@ -349,6 +388,7 @@ function ZVM:Precompile_Initialize()
   self.PrecompileBreak = false
   self.PrecompileInstruction = 0
   self.PrecompileBytes = 0
+  self.PrecompileCurInstructionSize = 0
 
   self.PrecompilePreviousPage = math.floor(self.XEIP / 128)
   self:Dyn_StartBlock()
@@ -379,7 +419,7 @@ function ZVM:Precompile_Fetch()
   self.IF = 0
   local value = self:ReadCell(self.PrecompileXEIP) or 0
   self.IF = prevIF
-
+  self.PrecompileCurInstructionSize = self.PrecompileCurInstructionSize + 1
   self.PrecompileXEIP = self.PrecompileXEIP + 1
   self.PrecompileIP = self.PrecompileIP + 1
   self.PrecompileBytes = self.PrecompileBytes + 1
@@ -407,6 +447,9 @@ function ZVM:Precompile_Step()
 
   -- Reset interrupts trigger if precompiling
   self.INTR = 0
+
+  -- Allows an opcode to know how big the instruction is.
+  self.PrecompileCurInstructionSize = 0
 
   -- Check if we crossed the page boundary, if so - repeat the check
   if math.floor(self.PrecompileXEIP / 128) ~= self.PrecompilePreviousPage then

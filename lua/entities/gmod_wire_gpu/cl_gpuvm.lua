@@ -37,6 +37,7 @@ function ENT:OverrideVM()
   self.VM.ErrorText[15] = "Address space violation"
   self.VM.ErrorText[16] = "Pants integrity violation"
   self.VM.ErrorText[17] = "Frame instruction limit"
+  self.VM.ErrorText[18] = "Frame delayed by quota overrun"
   self.VM.ErrorText[23] = "Error reading string data"
 
   self.VM.Interrupt = function(self,interruptNo,interruptParameter,isExternal,cascadeInterrupt)

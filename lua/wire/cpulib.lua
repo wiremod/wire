@@ -1007,6 +1007,8 @@ CPU(141, "EXTRETPA",      1,  11.00,    R0,        "PTBL",  "",      "Set PTBL, 
 CPU(150, "STERR",         2,   3.00,    R0,        "X",  "Y",        "Output an external error where X is error number and Y is error parameter")
 CPU(151, "CLERR",         0,   1.00,    R0,        "",    "",        "Clear the external error output")
 ---- Dec 16 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
+CPU(152, "QUOCMP",        0,   1.00,    0,         "",    "",        "Will set CMPR to 1 if Quota has occurred, or 0 if it hasn't, and reset quota reached flag.")
+CPU(153, "QUOTIMER",      1,   1.00,    W1,        "X",    "",       "Get the time since a quota-aware instruction was interrupted.")
 ---- Dec 17 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
 ---- Dec 18 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
 ---- Dec 19 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
