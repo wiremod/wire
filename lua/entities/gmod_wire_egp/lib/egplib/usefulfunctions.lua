@@ -234,8 +234,7 @@ do
 	local GetTable = EntMeta.GetTable
 
 	function EGP:ValidEGP( Ent )
-		if not IsValid( Ent ) then return false end
-		return GetTable( Ent ).IsEGP == true
+		return IsValid( Ent ) and GetTable( Ent ).IsEGP == true
 	end
 end
 
