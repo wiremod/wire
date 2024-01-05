@@ -340,6 +340,10 @@ local function declareFunction(self, sig) -- Modifies sigdesc.param_names
 			end
 		end
 
+		local oldfn = self.user_methods[meta_type][name.value][sigtxt]
+		-- Don't replace function description table
+		if oldfn ~= nil then return oldfn, sigtxt end
+
 		self.user_methods[meta_type][name.value][sigtxt] = fn
 
 		-- Insert "This" variable
@@ -353,6 +357,11 @@ local function declareFunction(self, sig) -- Modifies sigdesc.param_names
 				self:Error("Cannot override variadic " .. opposite .. " function with variadic " .. variadic_ty .. " function to avoid ambiguity.", trace)
 			end
 		end
+		
+		local oldfn = self.user_functions[name.value][sigtxt]
+		-- Don't replace function description table
+		if oldfn ~= nil then return oldfn, sigtxt end
+
 		self.user_functions[name.value][sigtxt] = fn
 	end
 
@@ -1732,6 +1741,7 @@ local CompileVisitors = {
 			if self.strict then -- If @strict, functions are compile time constructs (like events).
 				return function(state)
 					local fn = user_function.op
+
 					local rargs = {}
 					for k = 1, nargs do
 						rargs[k] = args[k](state)
