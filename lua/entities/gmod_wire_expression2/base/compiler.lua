@@ -299,7 +299,7 @@ local function validateFunctionDeclaration(self, sig, is_definition)
 		self:Assert(fn_data.ret == nil, "Cannot override function returning void with differing return type", trace)
 	end
 
-	if is_definition then
+	if fn_data.op ~= nil and is_definition then
 		if not self.strict then
 			self:Warning("Do not override functions. This is a hard error with @strict.", trace)
 		else
@@ -362,6 +362,7 @@ end
 local function declareFunctionPost(self, fn_body, sig, sigtxt)
 	local meta_type = sig.meta_type
 	local return_type = sig.return_type
+	local name = sig.name
 
 	local sigtxt = name.value .. "(" .. (meta_type and (meta_type .. ":") or "") .. sigtxt .. ")"
 
@@ -808,7 +809,7 @@ local CompileVisitors = {
 
 		validateFunctionDeclaration(self, sig, false --[[is_definition]])
 
-		local fn_tbl, sigtext = declareFunction(self, sig)
+		local fn_tbl, sigtxt = declareFunction(self, sig)
 		return declareFunctionPost(self, nil --[[fn_body]], sig, sigtxt)
 	end,
 
@@ -2172,7 +2173,7 @@ function Compiler:EnsureFunctionsAreDefined()
 		end
 	end
 
-	for meta_ty, fns in pairs(self.user_methods)
+	for meta_ty, fns in pairs(self.user_methods) do
 		for name, overrides in pairs(fns) do
 			for sigtxt, desc in pairs(overrides) do
 				if desc.op ~= nil then goto next_mthd end
