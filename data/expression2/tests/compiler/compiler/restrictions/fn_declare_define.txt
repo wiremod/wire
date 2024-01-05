@@ -1,0 +1,15 @@
+## SHOULD_PASS:COMPILE
+@strict
+
+declare function test()
+
+function use_test() {
+    test() # Using declared-but-not-yet-defined function
+}
+
+
+declare function test() # Double-declaration is allowed
+
+function test() { 
+    print("Do something")
+}

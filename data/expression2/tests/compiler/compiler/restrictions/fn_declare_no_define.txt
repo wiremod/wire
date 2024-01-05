@@ -1,0 +1,6 @@
+## SHOULD_FAIL:COMPILE
+@strict
+
+declare function test() # No definition
+
+# Lack of users not matters
