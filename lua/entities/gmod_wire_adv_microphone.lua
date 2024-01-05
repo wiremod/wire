@@ -49,7 +49,7 @@ end
 local function Mic_SetLive(self, isLive)
     if not IsValid(self) then
         isLive = false
-    else    
+    else
         if self:GetLive() == isLive then return end
         self:AddEFlags(EFL_FORCE_CHECK_TRANSMIT)
     end
@@ -169,9 +169,9 @@ hook.Add("Wire_SoundPlay", "Wire.AdvMicrophone", function(name, pos, level, pitc
 end)
 
 function ENT:HandleSound(sndname, volume, pitch, sndlevel, entity, pos, dsp, emittype)
-    -- Disable feedback loops
+    -- Prevent feedback loops
     if IsValid(entity) and entity:GetClass() == "gmod_wire_adv_speaker" then return end
-    
+
     if sndlevel ~= 0 and pos ~= nil then
         -- Over-256 values are 'reserved for sounds using goldsrc compatibility attenuation'
         -- I don't care about correct attenuation for HLSource entities,
@@ -204,8 +204,8 @@ hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", function(listener, t
         if mic:GetPos():DistToSqr(talkerPos) > PLAYER_VOICE_MAXDIST_SQR then goto mic_next end
 
         for speaker in pairs(mic._activeSpeakers) do
-            if IsValid(speaker) and 
-                speaker:GetPos():DistToSqr(listenerPos) <= PLAYER_VOICE_MAXDIST_SQR 
+            if IsValid(speaker) and
+                speaker:GetPos():DistToSqr(listenerPos) <= PLAYER_VOICE_MAXDIST_SQR
             then
                 return true, false -- Can hear, not in 3D
             end

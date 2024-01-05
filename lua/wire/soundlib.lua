@@ -13,7 +13,7 @@ end
 
 local function WavIsLooped_Impl(path)
     local fil = file.Open(path, "r", "GAME")
-    if fil == nil then 
+    if fil == nil then
         return false
     end
 
@@ -54,7 +54,6 @@ local function WavIsLooped(path)
     if LoopedCache[path] ~= nil then return LoopedCache[path] end
 
     local looped = WavIsLooped_Impl(path)
-    print(path, looped)
     LoopedCache[path] = looped
     return looped
 end
