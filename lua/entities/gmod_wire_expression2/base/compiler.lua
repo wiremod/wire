@@ -273,6 +273,106 @@ local function handleFunctionSignature(self, trace, data)
 	}
 end
 
+local function validateFunctionDeclaration(self, sig, is_definition)
+	local name = sig.name
+	local return_type = sig.return_type
+	local meta_type = sig.meta_type
+
+	local param_types = sig.param_types
+	local param_names = sig.param_names
+	local variadic_ind = sig.variadic_ind
+	local variadic_ty = sig.variadic_ty
+
+	local fn_data, lookup_variadic, userfunction = self:GetFunction(name.value, param_types, meta_type)
+	if fn_data == nil then return end
+
+	if not userfunction then
+		if not lookup_variadic or variadic_ind == 1 then -- Allow overrides like print(nnn) and print(n..r) to override print(...), but not print(...r)
+			self:Error("Cannot overwrite existing function: " .. (meta_type and (meta_type .. ":") or "") .. name.value .. "(" .. table.concat(fn_data.args, ", ") .. ")", name.trace)
+		end
+		return
+	end
+
+	if return_type then
+		self:Assert(fn_data.ret == return_type, "Cannot override with differing return type", trace)
+	else
+		self:Assert(fn_data.ret == nil, "Cannot override function returning void with differing return type", trace)
+	end
+
+	if is_definition then
+		if not self.strict then
+			self:Warning("Do not override functions. This is a hard error with @strict.", trace)
+		else
+			self:Error("Cannot override existing function '" .. name.value .. "'", trace)
+		end
+	end
+end
+
+local function declareFunction(self, sig) -- Modifies sigdesc.param_names
+	local name = sig.name
+	local return_type = sig.return_type
+	local meta_type = sig.meta_type
+
+	local param_types = sig.param_types
+	local param_names = sig.param_names
+	local variadic_ind = sig.variadic_ind
+	local variadic_ty = sig.variadic_ty
+
+	local fn = { 
+		args = param_types, 
+		ret = return_type, 
+		meta = meta_type, 
+		cost = variadic_ty and 10 or 5 + (self.strict and 0 or 3), 
+		attrs = {} 
+	}
+	local sigtxt = table.concat(param_types, "", 1, #param_types - 1) .. 
+				((variadic_ty and ".." or "") .. (param_types[#param_types] or ""))
+
+	if meta_type then
+		self.user_methods[meta_type] = self.user_methods[meta_type] or {}
+
+		self.user_methods[meta_type][name.value] = self.user_methods[meta_type][name.value] or {}
+
+		if variadic_ty then
+			local opposite = variadic_ty == "r" and "t" or "r"
+			if self.user_methods[meta_type][name.value][sigtxt:gsub(".." .. variadic_ty, ".." .. opposite)] then
+				self:Error("Cannot override variadic " .. opposite .. " function with variadic " .. variadic_ty .. " function to avoid ambiguity.", trace)
+			end
+		end
+
+		self.user_methods[meta_type][name.value][sigtxt] = fn
+
+		-- Insert "This" variable
+		table.insert(param_names, 1, "This")
+		table.insert(param_types, 1, meta_type)
+	else
+		self.user_functions[name.value] = self.user_functions[name.value] or {}
+		if variadic_ty then
+			local opposite = variadic_ty == "r" and "t" or "r"
+			if self.user_functions[name.value][sigtxt:gsub(".." .. variadic_ty, ".." .. opposite)] then
+				self:Error("Cannot override variadic " .. opposite .. " function with variadic " .. variadic_ty .. " function to avoid ambiguity.", trace)
+			end
+		end
+		self.user_functions[name.value][sigtxt] = fn
+	end
+
+	return fn, sigtxt
+end
+
+local function declareFunctionPost(self, fn_body, sig, sigtxt)
+	local meta_type = sig.meta_type
+	local return_type = sig.return_type
+
+	local sigtxt = name.value .. "(" .. (meta_type and (meta_type .. ":") or "") .. sigtxt .. ")"
+
+	if not self.strict then
+		return function(state) ---@param state RuntimeContext
+			state.funcs[sigtxt] = fn_body
+			state.funcs_ret[sigtxt] = return_type
+		end
+	end
+end
+
 ---@type table<NodeVariant, fun(self: Compiler, trace: Trace, data: table, used_as_stmt: boolean): RuntimeOperator|nil, string?>
 local CompileVisitors = {
 	---@param data Node[]
@@ -706,7 +806,10 @@ local CompileVisitors = {
 		local variadic_ind = sig.variadic_ind
 		local variadic_ty = sig.variadic_ty
 
-		self:Error("unimplemented", trace)
+		validateFunctionDeclaration(self, sig, false --[[is_definition]])
+
+		local fn_tbl, sigtext = declareFunction(self, sig)
+		return declareFunctionPost(self, nil --[[fn_body]], sig, sigtxt)
 	end,
 
 	---@param data { [1]: Token<string>, [2]: Token<string>?, [3]: Token<string>, [4]: Parameter[], [5]: Node }
@@ -722,58 +825,8 @@ local CompileVisitors = {
 		local variadic_ind = sig.variadic_ind
 		local variadic_ty = sig.variadic_ty
 
-		local fn_data, lookup_variadic, userfunction = self:GetFunction(name.value, param_types, meta_type)
-		if fn_data then
-			if not userfunction then
-				if not lookup_variadic or variadic_ind == 1 then -- Allow overrides like print(nnn) and print(n..r) to override print(...), but not print(...r)
-					self:Error("Cannot overwrite existing function: " .. (meta_type and (meta_type .. ":") or "") .. name.value .. "(" .. table.concat(fn_data.args, ", ") .. ")", name.trace)
-				end
-			else
-				if return_type then
-					self:Assert(fn_data.ret == return_type, "Cannot override with differing return type", trace)
-				else
-					self:Assert(fn_data.ret == nil, "Cannot override function returning void with differing return type", trace)
-				end
-
-				if not self.strict then
-					self:Warning("Do not override functions. This is a hard error with @strict.", trace)
-				else
-					self:Error("Cannot override existing function '" .. name.value .. "'", trace)
-				end
-			end
-		end
-
-		local fn = { args = param_types, ret = return_type, meta = meta_type, cost = variadic_ty and 10 or 5 + (self.strict and 0 or 3), attrs = {} }
-		local sig = table.concat(param_types, "", 1, #param_types - 1) .. ((variadic_ty and ".." or "") .. (param_types[#param_types] or ""))
-
-		if meta_type then
-			self.user_methods[meta_type] = self.user_methods[meta_type] or {}
-
-			self.user_methods[meta_type][name.value] = self.user_methods[meta_type][name.value] or {}
-
-			if variadic_ty then
-				local opposite = variadic_ty == "r" and "t" or "r"
-				if self.user_methods[meta_type][name.value][sig:gsub(".." .. variadic_ty, ".." .. opposite)] then
-					self:Error("Cannot override variadic " .. opposite .. " function with variadic " .. variadic_ty .. " function to avoid ambiguity.", trace)
-				end
-			end
-
-			self.user_methods[meta_type][name.value][sig] = fn
-
-			-- Insert "This" variable
-			table.insert(param_names, 1, "This")
-			table.insert(param_types, 1, meta_type)
-		else
-			self.user_functions[name.value] = self.user_functions[name.value] or {}
-			if variadic_ty then
-				local opposite = variadic_ty == "r" and "t" or "r"
-				if self.user_functions[name.value][sig:gsub(".." .. variadic_ty, ".." .. opposite)] then
-					self:Error("Cannot override variadic " .. opposite .. " function with variadic " .. variadic_ty .. " function to avoid ambiguity.", trace)
-				end
-			end
-			self.user_functions[name.value][sig] = fn
-		end
-
+		validateFunctionDeclaration(self, sig, true --[[is_definition]])
+		local fn, sigtxt = declareFunction(self, sig)
 
 		local block
 		if variadic_ty then
@@ -876,15 +929,7 @@ local CompileVisitors = {
 			return_type = fn.ret
 		end
 
-		local sig = name.value .. "(" .. (meta_type and (meta_type .. ":") or "") .. sig .. ")"
-		local fn = fn.op
-
-		if not self.strict then
-			return function(state) ---@param state RuntimeContext
-				state.funcs[sig] = fn
-				state.funcs_ret[sig] = return_type
-			end
-		end
+		return declareFunctionPost(self, fn.op, sig, sigtxt)
 	end,
 
 	---@param data string
@@ -1684,8 +1729,8 @@ local CompileVisitors = {
 		local user_function = self.user_functions[name.value] and self.user_functions[name.value][arg_sig]
 		if user_function then
 			if self.strict then -- If @strict, functions are compile time constructs (like events).
-				local fn = user_function.op
 				return function(state)
+					local fn = user_function.op
 					local rargs = {}
 					for k = 1, nargs do
 						rargs[k] = args[k](state)
@@ -1753,8 +1798,8 @@ local CompileVisitors = {
 		local user_method = self.user_methods[meta_type] and self.user_methods[meta_type][name.value] and self.user_methods[meta_type][name.value][arg_sig]
 		if user_method then
 			if self.strict then -- If @strict, functions are compile time constructs (like events).
-				local fn = user_method.op
 				return function(state)
+					local fn = user_method.op
 					local rargs = { meta(state) }
 					for k = 1, nargs do
 						rargs[k + 1] = args[k](state)
@@ -2113,6 +2158,34 @@ function Compiler:CompileStmt(node --[[@param node Node]])
 	return CompileVisitors[node.variant](self, node.trace, node.data, true)
 end
 
+function Compiler:EnsureFunctionsAreDefined()
+	if not self.strict then return end
+
+	for name, overrides in pairs(self.user_functions) do
+		for sigtxt, desc in pairs(overrides) do
+			if desc.op ~= nil then goto next_fn end
+
+			local sig_full = name.."("..sigtxt..")"
+			self:Error("Function "..sig_full.." is declared but not defined")
+
+			::next_fn::
+		end
+	end
+
+	for meta_ty, fns in pairs(self.user_methods)
+		for name, overrides in pairs(fns) do
+			for sigtxt, desc in pairs(overrides) do
+				if desc.op ~= nil then goto next_mthd end
+
+				local sig_full = meta_ty..":"..name.."("..sigtxt")"
+				self:Error("Method "..sig_full.." is declared but not defiend")
+
+				::next_mthd::
+			end
+		end
+	end
+end
+
 ---@param ast Node
 ---@return RuntimeOperator
 function Compiler:Process(ast)
@@ -2128,5 +2201,8 @@ function Compiler:Process(ast)
 		self.global_scope:DeclVar(var, { initialized = false, type = type })
 	end
 
-	return self:CompileStmt(ast)
+	local fn = self:CompileStmt(ast)
+	self:EnsureFunctionsAreDefined()
+
+	return fn
 end
