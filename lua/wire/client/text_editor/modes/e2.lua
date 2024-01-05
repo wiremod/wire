@@ -280,9 +280,16 @@ function EDITOR:SyntaxColorLine(row)
 		cols = {{ self.tokendata, colors.directive }}
 	end
 
-	local found = self:SkipPattern( "( *function)" )
-	if found then
-		addToken( "keyword", found ) -- Add "function"
+	local found_declare  = self:SkipPattern("( *declare)")
+	local found_function = self:SkipPattern("( *function)")
+	if found_declare and not found_function then
+		addToken("notfound", found_declare)
+	elseif found_function then
+		if found_declare ~= nil then
+			addToken("keyword", found_declare)
+		end
+
+		addToken( "keyword", found_function ) -- Add "function"
 		self.tokendata = "" -- Reset tokendata
 
 		local spaces = self:SkipPattern( " *" )
