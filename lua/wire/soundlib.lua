@@ -92,8 +92,8 @@ function lib.StripPrefix(path)
 end
 
 sound.Play_NoWireHook = sound.Play_NoWireHook or sound.Play
-function sound.Play(...)
-    hook.Run("Wire_SoundPlay", ...)
+function sound.Play(snd, pos, level, pitch, volume, ...)
+    hook.Run("Wire_SoundPlay", snd, pos, level or 75, pitch or 100, volume or 1, ...)
 
-    sound.Play_NoWireHook(...)
+    sound.Play_NoWireHook(snd, pos, level, pitch, volume, ...)
 end
