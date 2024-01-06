@@ -176,8 +176,8 @@ hook.Add("EntityEmitSound", "Wire.AdvMicrophone", function(snd)
     for _, mic in ipairs(LiveMics) do
         if IsValid(mic) then
             mic:HandleSound(
-                snd.SoundName, snd.Volume, snd.Pitch, snd.SoundLevel,
-                snd.Entity, snd.Pos, snd.DSP,
+                snd.SoundName, snd.Volume or 1, snd.Pitch or 100, snd.SoundLevel or 75,
+                snd.Entity, snd.Pos, snd.DSP or 0,
                 "EmitSound"
             )
         end
