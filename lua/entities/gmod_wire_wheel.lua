@@ -138,9 +138,6 @@ end
    Creates the direction arrows on the wheel
 ---------------------------------------------------------]]
 function ENT:DoDirectionEffect()
-	local Motor = self:GetMotor()
-	if not Motor then return end
-
 	local effectdata = EffectData()
 		effectdata:SetOrigin( self.Axis )
 		effectdata:SetEntity( self )
