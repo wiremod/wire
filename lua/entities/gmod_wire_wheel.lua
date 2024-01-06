@@ -27,8 +27,8 @@ function ENT:Setup(fwd, bck, stop, torque, direction, axis)
 	self.fwd = fwd
 	self.bck = bck
 	self.stop = stop
-	if torque then self:SetTorque(math.max(1, torque)) end
 	if direction then self:SetDirection( direction ) end
+	if torque then self:SetTorque(math.max(1, torque)) end
 	if axis then self.Axis = axis end
 
 	self:UpdateOverlayText()
