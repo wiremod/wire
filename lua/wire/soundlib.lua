@@ -6,6 +6,8 @@ local LoopedCache = {}
 local function Riff_ReadChunkHeader(fil)
     local id = fil:Read(4)
     local content_len = fil:ReadULong()
+    if content_len == nil then return nil, nil end
+
     content_len = content_len + bit.band(content_len, 1)
 
     return id, content_len
@@ -26,6 +28,10 @@ local function WavIsLooped_Impl(path)
     while true do
         local id, len = Riff_ReadChunkHeader(fil)
         if id == "cue " or id == "smpl" then resultid = id break end
+        if id == nil then
+            ErrorNoHaltWithStack("WavIsLooped_Impl: Can't analyze file ", path) 
+            return false 
+        end -- Some error
 
         local p1 = fil:Tell()
         local pnext = p1 + len
