@@ -75,7 +75,7 @@ local function Mic_SetLive(self, isLive)
     end
 
     if isLive then
-        if LiveMics[1] == nil then
+        if LiveMics[1] == nil then -- Adding first microphone to live list
             hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", PlayerCanHearPlayersVoice_Hook)
         end 
 
@@ -83,7 +83,7 @@ local function Mic_SetLive(self, isLive)
             table.insert(LiveMics, self)
         end
     else
-        if LiveMics[1] ~= nil and LiveMics[2] == nil then
+        if LiveMics[1] ~= nil and LiveMics[2] == nil then -- Removing last microphone from live list
             hook.Remove("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone")
         end
 
