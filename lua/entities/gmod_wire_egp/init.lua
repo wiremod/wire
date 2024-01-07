@@ -2,7 +2,6 @@ AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include('shared.lua')
 
-ENT.IsEGP = true
 ENT.WireDebugName = "E2 Graphics Processor"
 
 function ENT:Initialize()

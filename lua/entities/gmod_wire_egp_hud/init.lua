@@ -6,7 +6,6 @@ include("huddraw.lua")
 
 DEFINE_BASECLASS("base_wire_entity")
 
-ENT.IsEGP = true
 ENT.WireDebugName = "E2 Graphics Processor HUD"
 
 util.AddNetworkString("EGP_HUD_Use")
