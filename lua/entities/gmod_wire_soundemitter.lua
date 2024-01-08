@@ -156,14 +156,12 @@ function ENT:UpdateSound()
 	self.SoundObj:SetSoundLevel(self.Level)
 end
 
-local string_len, string_sub = string.len, string.sub
+local string_sub = string.sub
 function ENT:SetSound(soundName)
 	self:StopSounds()
 
 	if soundName:match('["?]') then return end
-	parsedsound = soundName:Trim()
-
-	if string_len( parsedsound ) > 500 then parsedsound = string_sub( parsedsound, 1, 500 ) end
+	parsedsound = string_sub(soundName:Trim(), 1, 500)
 	util.PrecacheSound(parsedsound)
 
 	self.sound = parsedsound
