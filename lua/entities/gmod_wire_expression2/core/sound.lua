@@ -70,6 +70,7 @@ local function soundStop(self, index, fade)
 	timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index )
 end
 
+local string_len, string_sub = string.len, string.sub
 local function soundCreate(self, entity, index, time, path, fade)
 	if path:match('["?]') then return end
 	local data = self.data.sound_data
@@ -77,6 +78,7 @@ local function soundCreate(self, entity, index, time, path, fade)
 
 	path = path:Trim()
 	path = path:gsub( "\\", "/" )
+	if string_len( path ) > 500 then path = string_sub( path, 1, 500 ) end
 	if isnumber( index ) then index = math.floor( index ) end
 
 	local timerid = "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index
