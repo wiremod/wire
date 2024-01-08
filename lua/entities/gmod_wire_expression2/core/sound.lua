@@ -302,7 +302,9 @@ local function EmitSound(e2, ent, snd, level, pitch, volume)
         level = maxlevel
     end
 
-    ent:EmitSound(string.sub(snd, 1, 260), level, pitch, volume)
+	snd = string.sub(snd, 1, 260)
+	if snd:match('["?]') then return end
+	ent:EmitSound(snd, level, pitch, volume)
 end
 
 __e2setcost(20)
