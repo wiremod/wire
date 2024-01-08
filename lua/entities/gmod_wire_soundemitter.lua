@@ -156,15 +156,14 @@ function ENT:UpdateSound()
 	self.SoundObj:SetSoundLevel(self.Level)
 end
 
-local string_sub = string.sub
 function ENT:SetSound(soundName)
 	self:StopSounds()
 
+	soundName = string.Trim(string.sub(soundName, 1, 260))
 	if soundName:match('["?]') then return end
-	parsedsound = string_sub(soundName:Trim(), 1, 500)
-	util.PrecacheSound(parsedsound)
+	util.PrecacheSound(soundName)
 
-	self.sound = parsedsound
+	self.sound = soundName
 
 	self.SoundProperties = sound.GetProperties(self.sound)
 	if self.SoundProperties then
@@ -176,7 +175,7 @@ function ENT:SetSound(soundName)
 		WireLib.TriggerOutput(self, "Properties", {})
 	end
 
-	self:SetOverlayText( parsedsound:gsub("[/\\]+","/") )
+	self:SetOverlayText( soundName:gsub("[/\\]+","/") )
 end
 
 function ENT:StartSounds()
