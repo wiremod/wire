@@ -1418,3 +1418,81 @@ if not WireLib.PatchedDuplicator then
 		return unpack(result)
 	end
 end
+
+-- Notify --
+
+local triv_start = WireLib.Net.Trivial.Start
+
+--- Sends a colored message to the player's chat.
+--- When used serverside, setting the player as nil will only inform the server.
+--- When used clientside, the first argument is ignored and only the local player is informed.
+---@param ply Player | Player[]?
+---@param msg string
+---@param severity WireLib.NotifySeverity?
+---@param chatprint boolean?
+---@param color Color?
+local function notify(ply, msg, severity, chatprint, color)
+	if not severity then severity = 1 end
+	if chatprint == nil then chatprint = severity < 2 end
+
+	if not ply or severity > 2 then
+		if game.SinglePlayer() then
+			ply = Entity(1)
+		else
+			local arg = WireLib.NotifyBuilder(msg, severity, color)
+			if isentity(ply) then
+				table.insert(arg, 2, ": ")
+				table.insert(arg, 2, ply)
+			end
+			MsgC(unpack(arg))
+		end
+	end
+	if ply then
+		triv_start("notify")
+			net.WriteUInt(severity, 4)
+			net.WriteBool(color ~= nil)
+			if color ~= nil then net.WriteColor(color, false) end
+			local data = util.Compress(string.sub(msg, 1, 2048))
+			local datal = #data
+			net.WriteUInt(datal, 11)
+			net.WriteData(data, datal)
+			net.WriteBool(chatprint)
+		net.Send(ply)
+	end
+end
+WireLib.Notify = notify
+
+--- Sends a colored message to all players in a usergroup.
+---@param group string | string[]
+---@param msg string
+---@param severity WireLib.NotifySeverity? A value from WireLib.NotifySeverity
+---@param chatprint boolean?
+---@param color Color?
+function WireLib.NotifyGroup(group, msg, severity, chatprint, color)
+	local plys = {}
+
+	if isstring(group) then
+		for _, p in ipairs(player.GetAll()) do
+			if p:GetUserGroup() == group then
+				plys[#plys + 1] = p
+			end
+		end
+	else
+		for _, p in ipairs(player.GetAll()) do
+			if table.HasValue(group, p:GetUserGroup()) then
+				plys[#plys + 1] = p
+			end
+		end
+	end
+
+	notify(plys, msg, severity, chatprint, color)
+end
+
+--- Sends a colored message to all players' chats. Equivalent to the first argument of WireLib.Notify being nil
+---@param msg string
+---@param severity WireLib.NotifySeverity? A value from WireLib.NotifySeverity
+---@param chatprint boolean?
+---@param color Color?
+function WireLib.NotifyAll(msg, severity, chatprint, color)
+	notify(player.GetAll(), msg, severity, chatprint, color)
+end

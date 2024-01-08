@@ -80,7 +80,7 @@ local function parseParameters(raw, trace)
 			return parsed, true, name
 		elseif raw_param:match("^%s*%.%.%.%s*$") then -- Variadic lua parameter
 			assert(k == len, "PP syntax error: Ellipses (...) must be the last argument.")
-			ErrorNoHalt("Warning: Use of variadic parameter with ExtPP is not recommended and deprecated. Instead use ...<name> (which passes a table) or the `args` variable " .. trace .. "\n")
+			WireLib.Notify(nil, "Use of variadic parameter with ExtPP is not recommended and deprecated. Instead use ...<name> (which passes a table) or the `args` variable " .. trace .. "\n", 2)
 			return parsed, true
 		else
 			local typename, argname = string.match(raw_param, "^%s*(" .. p_typename .. ")%s+(" .. p_argname .. ")%s*$")
@@ -169,7 +169,7 @@ function E2Lib.ExtPP.Pass2(contents, filename)
 		elseif ret ~= "void" and not getTypeId(ret) then
 			error("PP syntax error: Invalid return type: '" .. ret .. "' " .. trace)
 		elseif RemovedOperators[name] then -- Old operator that no longer is needed.
-			ErrorNoHalt("Warning: Operator " .. name .. " is now redundant. Ignoring registration. " .. trace .. "\n")
+			WireLib.Notify(nil, "Operator " .. name .. " is now redundant. Ignoring registration. " .. trace .. "\n", 2, nil)
 			local pivot = parseAttributes(attributes, trace) and a_begin - 1 or h_begin - 1
 			table.insert(output, contents:sub(lastpos, pivot)) -- Insert code from before header.
 			changed, lastpos = true, h_end -- Mark as changed and remove function header.
