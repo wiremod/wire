@@ -90,7 +90,7 @@ function ENT:ReproduceSound(snd, vol, pitch, dsp, emittype)
     if emittype == "EmitSound" then
         self:EmitSound(snd, soundlevel, pitch, vol, nil, nil, dsp)
     elseif emittype == "sound.Play" then
-        sound.Play_NoWireHook(snd, pos, soundlevel, pitch, vol)
+        sound.Play_NoWireHook(snd, self:GetPos(), soundlevel, pitch, vol)
     else
         ErrorNoHalt("Invalid emittype: ", emittype,"\n --sound ",snd)
     end
