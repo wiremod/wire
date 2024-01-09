@@ -218,7 +218,9 @@ end
 
 function ENT:ReproduceSound(snd, vol, pitch, dsp, emittype)
     for speaker in pairs(self._activeSpeakers) do
-        speaker:ReproduceSound(snd, vol, pitch, dsp, emittype)
+        if IsValid(speaker) then
+            speaker:ReproduceSound(snd, vol, pitch, dsp, emittype)
+        end
     end
 end
 
