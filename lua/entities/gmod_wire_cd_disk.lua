@@ -33,11 +33,7 @@ function ENT:BuildDupeInfo()
 		info["DiskMemory"][k] = dataptr
 		info["DiskData"..dataptr] = {}
 		for k2,v2 in pairs(self.DiskMemory[k]) do
-			if isnumber(v2) then
-				info["DiskData"..dataptr][k2] = v2
-			else
-				info["DiskData"..dataptr][k2] = 0
-			end
+			info["DiskData"..dataptr][k2] = isnumber(v2) and v2 or 0
 		end
 		dataptr = dataptr + 1
 	end
@@ -58,11 +54,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		local dataptr = info["DiskMemory"][k]
 			self.DiskMemory[k] = {}
 		for k2,v2 in pairs(info["DiskData"..dataptr]) do
-			if isnumber(v2) then
-				self.DiskMemory[k][k2] = v2
-			else
-				self.DiskMemory[k][k2] = 0
-			end
+				self.DiskMemory[k][k2] = isnumber(v2) and v2 or 0
 		end
 	end
 
