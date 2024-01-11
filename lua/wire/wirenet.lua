@@ -236,8 +236,10 @@ end
 
 local WireMemSyncer = {
 	__index = {
-		sync = function(self, ent, addr)
-			self.entitymem[ent]:sync(addr)
+		register = function(self, ent)
+			self.entitymem[ent] = true
+		end,
+		sync = function(self)
 			self:triggersync()
 		end,
 		triggersync = function(self)
@@ -256,7 +258,6 @@ local WireMemSyncer = {
 				for ent, mem in pairs(self.entitymem) do
 					if ent:IsValid() then
 						if ent.MemoryDirty then
-							local curpos = ss.index
 							ss:writeInt16(ent:EntIndex())
 
 							local sizepos = ss.index
@@ -394,7 +395,7 @@ local WireMemSyncer = {
 	},
 	__call = function(meta)
 		return setmetatable({
-			entitymem = setmetatable({},{__index=function(t,k) local r=WireMemBlocks(k) t[k]=r return r end}),
+			entitymem = {},
 			syncing = false,
 			sending = false,
 			syncid = 0,
