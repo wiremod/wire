@@ -208,3 +208,214 @@ function Net.Trivial.Receive(name, callback)
 end
 
 Net.Receivers = registered_handlers
+
+
+
+local function rewindStream(ss, cur)
+	ss.index = cur
+	for i=cur, #ss do
+		ss[i] = nil
+	end
+end
+
+local function writeUnboundedArray(ss, cb)
+	local num = 0
+	local i = ss.index
+	ss:writeInt32(num)
+	num = cb()
+	local i2 = ss.index
+	if num>0 then
+		ss.index = i
+		ss:writeInt32(num)
+		ss.index = i2
+		ss.subindex = 1
+	else
+		rewindStream(ss, i)
+	end
+end
+
+local WireMemSyncer = {
+	__index = {
+		sync = function(self, ent, addr)
+			self.entitymem[ent]:sync(addr)
+			self:triggersync()
+		end,
+		triggersync = function(self)
+			if not self.syncing then
+				self.syncing = true
+				timer.Simple(0.5, function() self.syncing = false self:dosync() end)
+			end
+		end,
+		dosync = function(self)
+			if self.sending then self:triggersync() return end
+			local ss = StringStream()
+			local sizeleft = net.Stream.SendSize*net.Stream.MaxServerChunks*0.5
+			local numEntries = 0
+
+			writeUnboundedArray(ss, function()
+				for ent, mem in pairs(self.entitymem) do
+					if ent:IsValid() then
+						if ent.MemoryDirty then
+							local curpos = ss.index
+							ss:writeInt16(ent:EntIndex())
+
+							local sizepos = ss.index
+							ss:writeInt32(0)
+							local written = ent:SerializeMemory(ss, sizeleft)
+							ss.index = sizepos
+							ss:writeInt32(written)
+							ss.index = #ss+1
+							sizeleft = sizeleft - written
+
+							numEntries = numEntries + 1
+							if sizeleft <= 0 then self:triggersync() break end
+						end
+					else
+						self.entitymem[ent] = nil
+					end
+				end
+				return numEntries
+			end)
+
+			if numEntries > 0 then
+				self:send(ss:getString())
+			end
+		end,
+		fullsnapshot = function(self, ply)
+			local snapshots = {}
+			local curent = nil
+
+			while true do
+				local shouldBreak = true
+				local ss = StringStream()
+				local sizeleft = net.Stream.SendSize*net.Stream.MaxServerChunks*0.5
+				local numEntries = 0
+				writeUnboundedArray(ss, function()
+					for ent, mem in next, self.entitymem, curent do
+						if ent:IsValid() then
+							ss:writeInt16(ent:EntIndex())
+
+							local sizepos = ss.index
+							ss:writeInt32(0)
+							local written = ent:SerializeFullMemory(ss, sizeleft)
+							ss.index = sizepos
+							ss:writeInt32(written)
+							ss.index = #ss+1
+
+							numEntries = numEntries + 1
+							if sizeleft <= 0 then
+								shouldBreak = false
+								curent = ent
+								break
+							end
+						else
+							self.entitymem[ent] = nil
+						end
+					end
+					return numEntries
+				end)
+				if numEntries>0 then
+					snapshots[#snapshots + 1] = ss:getString()
+				end
+				if shouldBreak then break end
+			end
+
+			for _, v in ipairs(snapshots) do
+				self:send(v, ply, #snapshots)
+			end
+		end,
+		send = function(self, data, ply, snapshots)
+			net.Start("WirelibSyncEntities")
+			net.WriteUInt(self.syncid, 16)
+			if ply then
+				net.WriteBool(true)
+				net.WriteUInt(snapshots, 32)
+				net.WriteStream(data)
+				net.Send(ply)
+			else
+				net.WriteBool(false)
+				local newid = (self.syncid + 1) % 65536
+				self.syncid = newid
+				net.WriteStream(data, function() if newid==self.syncid then self.sending = false end end)
+				net.Broadcast()
+				self.sending = true
+			end
+		end,
+		receive = function(self)
+			local snapshots
+			local id = net.ReadUInt(16)
+			if net.ReadBool() then
+				snapshots = net.ReadUInt(32)
+			end
+			net.ReadStream(function(data)
+				self:applyReceivedData(id, data, snapshots)
+			end)
+		end,
+		applyReceivedData = function(self, id, data, snapshots)
+			if id==self.syncid or snapshots then
+				if snapshots then
+					self.snapshotsreceived = self.snapshotsreceived + 1
+					if self.snapshotsreceived == snapshots then
+						self.syncid = id
+					end
+				else
+					self.syncid = (self.syncid + 1) % 65536
+				end
+				if data then
+					local ss = StringStream(data)
+					for i=1, ss:readUInt32() do
+						local ent = Entity(ss:readInt16())
+						local size = ss:readInt32()
+						if ent:IsValid() and ent.DeserializeMemory then
+							ent:DeserializeMemory(ss)
+						else
+							ss:skip(size)
+						end
+					end
+				end
+			else
+				self.syncwaitlist[#self.syncwaitlist + 1] = {id, data}
+				-- Must have missed one somehow, just take the lowest one and continue
+				if #self.syncwaitlist > 64 and self.syncid~=-1 then
+					local min = math.huge
+					for i, v in ipairs(self.syncwaitlist) do
+						if v[1] < min then min = v[1] end
+					end
+					self.syncid = min
+				end
+			end
+			for i, v in ipairs(self.syncwaitlist) do
+				if v[1] == self.syncid then
+					self:applyReceivedData(unpack(table.remove(self.syncwaitlist, i)))
+					break
+				end
+			end
+		end
+	},
+	__call = function(meta)
+		return setmetatable({
+			entitymem = setmetatable({},{__index=function(t,k) local r=WireMemBlocks(k) t[k]=r return r end}),
+			syncing = false,
+			sending = false,
+			syncid = 0,
+			syncwaitlist = {},
+			snapshotsreceived = 0
+		}, meta)
+	end
+}
+setmetatable(WireMemSyncer, WireMemSyncer)
+
+WireLib.WireMemSyncer = WireMemSyncer()
+
+if SERVER then
+	util.AddNetworkString("WirelibSyncEntities")
+	hook.Add("PlayerInitialSpawn", "WirelibSyncFullSnapshot",function(ply)
+		WireLib.WireMemSyncer:fullsnapshot(ply)
+	end)
+else
+	WireLib.WireMemSyncer.syncid = -1 -- Wait for full snapshot
+	net.Receive("WirelibSyncEntities", function()
+		WireLib.WireMemSyncer:receive()
+	end)
+end
+
