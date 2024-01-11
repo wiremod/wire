@@ -240,16 +240,13 @@ local WireMemSyncer = {
 			self.entitymem[ent] = true
 		end,
 		sync = function(self)
-			self:triggersync()
-		end,
-		triggersync = function(self)
 			if not self.syncing then
 				self.syncing = true
 				timer.Simple(0.5, function() self.syncing = false self:dosync() end)
 			end
 		end,
 		dosync = function(self)
-			if self.sending then self:triggersync() return end
+			if self.sending then self:sync() return end
 			local ss = StringStream()
 			local sizeleft = net.Stream.SendSize*net.Stream.MaxServerChunks*0.5
 			local numEntries = 0
@@ -269,7 +266,7 @@ local WireMemSyncer = {
 							sizeleft = sizeleft - written
 
 							numEntries = numEntries + 1
-							if sizeleft <= 0 then self:triggersync() break end
+							if sizeleft <= 0 then self:sync() break end
 						end
 					else
 						self.entitymem[ent] = nil
