@@ -362,8 +362,8 @@ local WireMemSyncer = {
 				if data then
 					local ss = StringStream(data)
 					for i=1, ss:readUInt32() do
-						local ent = Entity(ss:readInt16())
-						local size = ss:readInt32()
+						local ent = Entity(ss:readUInt16())
+						local size = ss:readUInt32()
 						if ent:IsValid() and ent.DeserializeMemory then
 							ent:DeserializeMemory(ss)
 						else
