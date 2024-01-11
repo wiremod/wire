@@ -237,7 +237,7 @@ end
 local WireMemSyncer = {
 	__index = {
 		register = function(self, ent)
-			self.entitymem[ent] = true
+			self.entities[ent] = true
 		end,
 		sync = function(self)
 			if not self.syncing then
@@ -252,7 +252,7 @@ local WireMemSyncer = {
 			local numEntries = 0
 
 			writeUnboundedArray(ss, function()
-				for ent, mem in pairs(self.entitymem) do
+				for ent, mem in pairs(self.entities) do
 					if ent:IsValid() then
 						if ent.MemoryDirty then
 							ss:writeInt16(ent:EntIndex())
@@ -269,7 +269,7 @@ local WireMemSyncer = {
 							if sizeleft <= 0 then self:sync() break end
 						end
 					else
-						self.entitymem[ent] = nil
+						self.entities[ent] = nil
 					end
 				end
 				return numEntries
@@ -289,7 +289,7 @@ local WireMemSyncer = {
 				local sizeleft = net.Stream.SendSize*net.Stream.MaxServerChunks*0.5
 				local numEntries = 0
 				writeUnboundedArray(ss, function()
-					for ent, mem in next, self.entitymem, curent do
+					for ent, mem in next, self.entities, curent do
 						if ent:IsValid() then
 							ss:writeInt16(ent:EntIndex())
 
@@ -307,7 +307,7 @@ local WireMemSyncer = {
 								break
 							end
 						else
-							self.entitymem[ent] = nil
+							self.entities[ent] = nil
 						end
 					end
 					return numEntries
@@ -392,7 +392,7 @@ local WireMemSyncer = {
 	},
 	__call = function(meta)
 		return setmetatable({
-			entitymem = {},
+			entities = {},
 			syncing = false,
 			sending = false,
 			syncid = 0,
