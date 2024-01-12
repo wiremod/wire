@@ -210,28 +210,29 @@ end
 Net.Receivers = registered_handlers
 
 
-
-local function rewindStream(ss, cur)
-	ss.index = cur
-	for i=cur, #ss do
-		ss[i] = nil
-	end
-end
-
 local function writeUnboundedArray(ss, cb)
-	local num = 0
-	local i = ss.index
-	ss:writeInt32(num)
-	num = cb()
-	local i2 = ss.index
-	if num>0 then
-		ss.index = i
-		ss:writeInt32(num)
-		ss.index = i2
+	local sizepos = ss.index
+	ss:writeInt32(0)
+	local written = cb()
+	if written>0 then
+		ss.index = sizepos
+		ss:writeInt32(written)
+		ss.index = #ss+1
 		ss.subindex = 1
 	else
-		rewindStream(ss, i)
+		ss.index = sizepos
+		for i=sizepos, #ss do
+			ss[i] = nil
+		end
 	end
+	return written
+end
+local function calcWritten(ss, startpos)
+	local size = 0
+	for i=startpos, ss.index-1 do
+		size = size + #ss[i]
+	end
+	return size
 end
 
 local WireMemSyncer = {
@@ -249,23 +250,29 @@ local WireMemSyncer = {
 			if self.sending then self:sync() return end
 			local ss = StringStream()
 			local sizeleft = net.Stream.SendSize*net.Stream.MaxServerChunks*0.5
-			local numEntries = 0
 
-			writeUnboundedArray(ss, function()
-				for ent, mem in pairs(self.entities) do
+			if writeUnboundedArray(ss, function()
+				local numEntries = 0
+				for ent in pairs(self.entities) do
 					if ent:IsValid() then
 						if ent.MemoryDirty then
+
 							ss:writeInt16(ent:EntIndex())
+							local written = writeUnboundedArray(ss, function()
+								local startpos = ss.index
+								ent:SerializeMemory(ss, sizeleft)
+								return calcWritten(ss, startpos)
+							end)
 
-							local sizepos = ss.index
-							ss:writeInt32(0)
-							local written = ent:SerializeMemory(ss, sizeleft)
-							ss.index = sizepos
-							ss:writeInt32(written)
-							ss.index = #ss+1
-							sizeleft = sizeleft - written
+							if written>0 then
+								sizeleft = sizeleft - written - 6
+								numEntries = numEntries + 1
+							else
+								-- Delete the entIndex
+								ss.index = ss.index - 1
+								ss[ss.index] = nil
+							end
 
-							numEntries = numEntries + 1
 							if sizeleft <= 0 then self:sync() break end
 						end
 					else
@@ -273,11 +280,10 @@ local WireMemSyncer = {
 					end
 				end
 				return numEntries
-			end)
-
-			if numEntries > 0 then
+			end) > 0 then
 				self:send(ss:getString())
 			end
+
 		end,
 		fullsnapshot = function(self, ply)
 			local snapshots = {}
@@ -291,21 +297,28 @@ local WireMemSyncer = {
 				writeUnboundedArray(ss, function()
 					for ent, mem in next, self.entities, curent do
 						if ent:IsValid() then
+
 							ss:writeInt16(ent:EntIndex())
+							local written = writeUnboundedArray(ss, function()
+								local startpos = ss.index
+								ent:SerializeFullMemory(ss, sizeleft)
+								return calcWritten(ss, startpos)
+							end)
 
-							local sizepos = ss.index
-							ss:writeInt32(0)
-							local written = ent:SerializeFullMemory(ss, sizeleft)
-							ss.index = sizepos
-							ss:writeInt32(written)
-							ss.index = #ss+1
-
-							numEntries = numEntries + 1
-							if sizeleft <= 0 then
-								shouldBreak = false
-								curent = ent
-								break
+							if written>0 then
+								sizeleft = sizeleft - written - 6
+								numEntries = numEntries + 1
+								if sizeleft <= 0 then
+									shouldBreak = false
+									curent = ent
+									break
+								end
+							else
+								-- Delete the entIndex
+								ss.index = ss.index - 1
+								ss[ss.index] = nil
 							end
+
 						else
 							self.entities[ent] = nil
 						end
