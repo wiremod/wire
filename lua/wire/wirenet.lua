@@ -293,8 +293,9 @@ local WireMemSyncer = {
 				local shouldBreak = true
 				local ss = StringStream()
 				local sizeleft = net.Stream.SendSize*net.Stream.MaxServerChunks*0.5
-				local numEntries = 0
-				writeUnboundedArray(ss, function()
+
+				if writeUnboundedArray(ss, function()
+					local numEntries = 0
 					for ent, mem in next, self.entities, curent do
 						if ent:IsValid() then
 
@@ -324,8 +325,7 @@ local WireMemSyncer = {
 						end
 					end
 					return numEntries
-				end)
-				if numEntries>0 then
+				end) > 0 then
 					snapshots[#snapshots + 1] = ss:getString()
 				end
 				if shouldBreak then break end
