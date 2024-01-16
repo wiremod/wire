@@ -1400,6 +1400,7 @@ E2Helper.Descriptions["concat(r:snn)"] = "Concatenates all values in the array, 
 E2Helper.Descriptions["count(r:)"] = "Returns the number of entries in the array"
 E2Helper.Descriptions["exists(r:n)"] = "Returns 1 if the array contains any value at specified index"
 E2Helper.Descriptions["id(r:)"] = "Returns the unique ID of the array"
+E2Helper.Descriptions["indexOf"] = "Returns the index of the element in the array or 0 if it's not found. This function is very inefficient for large arrays. You should use look-up tables if you intend on using this frequently."
 E2Helper.Descriptions["invert(r)"] = "Inverts the array, creating a lookup table"
 E2Helper.Descriptions["min(r:)"] = "Returns the smallest number in array"
 E2Helper.Descriptions["max(r:)"] = "Returns the largest number in array"

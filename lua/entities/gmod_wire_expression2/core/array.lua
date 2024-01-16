@@ -36,7 +36,7 @@ registerType("array", "r", {},
 	nil,
 	nil,
 	function(v)
-		return !istable(v)
+		return not istable(v)
 	end
 )
 
@@ -65,16 +65,16 @@ end
 -- Looped functions and operators
 --------------------------------------------------------------------------------
 registerCallback( "postinit", function()
-	local getf, setf
+	local NO_LEGACY = { legacy = false }
 	for k,v in pairs( wire_expression_types ) do
 		local name = k:lower()
-		if (name == "normal") then name = "number" end
+		if name == "normal" then name = "number" end
 		local nameupperfirst = upperfirst( name )
 		local id = v[1]
 		local default = v[2]
 		local typecheck = v[6]
 
-		if (!blocked_types[id]) then -- blocked check start
+		if not blocked_types[id] then -- blocked check start
 
 			--------------------------------------------------------------------------------
 			-- Get functions
@@ -83,7 +83,7 @@ registerCallback( "postinit", function()
 			__e2setcost(1)
 
 			local function getter( self, array, index, doremove )
-				if (!array or !index) then return fixDefault( default ) end -- Make sure array and index are value
+				if not array or not index then return fixDefault( default ) end -- Make sure array and index are value
 				local ret
 				if (doremove) then
 					ret = table_remove( array, index )
@@ -113,10 +113,9 @@ registerCallback( "postinit", function()
 			__e2setcost(5)
 
 			registerFunction( name, "r:n", id, function(self, args)
-				local op1, op2 = args[2], args[3]
-				local array, index = op1[1](self,op1), op2[1](self,op2)
+				local array, index = args[2], args[3]
 				return getter( self, array, index )
-			end, nil, nil, { deprecated = true })
+			end, nil, nil, { legacy = false, deprecated = true })
 
 			--------------------------------------------------------------------------------
 			-- Set functions
@@ -124,7 +123,7 @@ registerCallback( "postinit", function()
 			--------------------------------------------------------------------------------
 
 			local function setter( self, array, index, value, doinsert )
-				if (!array or !index) then return fixDefault( default ) end -- Make sure array and index are valid
+				if not array or not index then return fixDefault( default ) end -- Make sure array and index are valid
 				if (typecheck and typecheck( value )) then return fixDefault( default ) end -- If typecheck returns true, the type is wrong.
 				if (doinsert) then
 					if index > 2^31 or index < 0 then return fixDefault( default ) end -- too large, possibility of crashing gmod
@@ -153,10 +152,9 @@ registerCallback( "postinit", function()
 			end
 
 			registerFunction("set" .. nameupperfirst, "r:n"..id, id, function(self,args)
-				local op1, op2, op3 = args[2], args[3], args[4]
-				local array, index, value = op1[1](self,op1), op2[1](self,op2), op3[1](self,op3)
+				local array, index, value = args[1], args[2], args[3]
 				return setter( self, array, index, value )
-			end, nil, nil, { deprecated = true })
+			end, nil, nil, { legacy = false, deprecated = true })
 
 
 			--------------------------------------------------------------------------------
@@ -166,63 +164,72 @@ registerCallback( "postinit", function()
 			__e2setcost(7)
 
 			registerFunction( "push" .. nameupperfirst, "r:" .. id, id, function(self,args)
-				local op1, op2 = args[2], args[3]
-				local array, value = op1[1](self,op1), op2[1](self,op2)
+				local array, value = args[1], args[2]
 				return setter( self, array, #array + 1, value )
-			end)
+			end, nil, nil, NO_LEGACY)
 
 			--------------------------------------------------------------------------------
 			-- Insert functions
 			-- Inserts the value at the specified index. Subsequent values are moved up to compensate.
 			--------------------------------------------------------------------------------
 			registerFunction( "insert" .. nameupperfirst, "r:n" .. id, id, function( self, args )
-				local op1, op2, op3 = args[2], args[3], args[4]
-				local array, index, value = op1[1](self,op1), op2[1](self,op2), op3[1](self,op3)
+				local array, index, value = args[1], args[2], args[3]
 				return setter( self, array, index, value, true )
-			end)
+			end, nil, nil, NO_LEGACY)
 
 			--------------------------------------------------------------------------------
 			-- Pop functions
 			-- Removes and returns the last value in the array.
 			--------------------------------------------------------------------------------
 			registerFunction( "pop" .. nameupperfirst, "r:", id, function(self,args)
-				local op1 = args[2]
-				local array = op1[1](self,op1)
-				if (!array) then return fixDefault( default ) end
+				local array = args[1]
+				if not array then return fixDefault(default) end
 				return getter( self, array, #array, true )
-			end)
+			end, nil, nil, NO_LEGACY)
 
 			--------------------------------------------------------------------------------
 			-- Unshift functions
 			-- Inserts the value at the beginning of the array. Subsequent values are moved up to compensate.
 			--------------------------------------------------------------------------------
 			registerFunction( "unshift" .. nameupperfirst, "r:" .. id, id, function(self,args)
-				local op1, op2 = args[2], args[3]
-				local array, value = op1[1](self,op1), op2[1](self,op2)
+				local array, value = args[1], args[2]
 				return setter( self, array, 1, value, true )
-			end)
+			end, nil, nil, NO_LEGACY)
 
 			--------------------------------------------------------------------------------
 			-- Shift functions
 			-- Removes and returns the first value of the array. Subsequent values are moved down to compensate.
 			--------------------------------------------------------------------------------
 			registerFunction( "shift" .. nameupperfirst, "r:", id, function(self,args)
-				local op1 = args[2]
-				local array = op1[1](self,op1)
-				if (!array) then return fixDefault( default ) end
+				local array = args[1]
+				if not array then return fixDefault(default) end
 				return getter( self, array, 1, true )
-			end)
+			end, nil, nil, NO_LEGACY)
 
 			--------------------------------------------------------------------------------
 			-- Remove functions
 			-- Removes and returns the specified value of the array. Subsequent values are moved down to compensate.
 			--------------------------------------------------------------------------------
 			registerFunction( "remove" .. nameupperfirst, "r:n", id, function(self,args)
-				local op1, op2 = args[2], args[3]
-				local array, index = op1[1](self,op1), op2[1](self,op2)
-				if (!array or !index) then return fixDefault( default ) end
+				local array, index = args[1], args[2]
+				if not array or not index then return fixDefault(default) end
 				return getter( self, array, index, true )
-			end)
+			end, nil, nil, NO_LEGACY)
+
+			-- indexOf
+
+			registerFunction("indexOf", "r:" .. id, "n", function(self, args)
+				local arr, val = args[1], args[2]
+				local l = #arr
+				for i = 1, l do
+					if arr[i] == val then
+						self.prf = self.prf + i
+						return i
+					end
+				end
+				self.prf = self.prf + l
+				return 0
+			end, nil, { "value" }, NO_LEGACY)
 
 			--------------------------------------------------------------------------------
 			-- Foreach operators
@@ -507,7 +514,7 @@ end
 --------------------------------------------------------------------------------
 __e2setcost(1)
 e2function array array:add( array other )
-	if (!next(this) and !next(other)) then return {} end -- Both of them are empty
+	if not next(this) and not next(other) then return {} end -- Both of them are empty
 	local ret = {}
 	for i=1,#this do
 		ret[i] = this[i]
@@ -525,7 +532,7 @@ end
 --------------------------------------------------------------------------------
 __e2setcost(1)
 e2function array array:merge( array other )
-	if (!next(this) and !next(other)) then return {} end -- Both of them are empty
+	if not next(this) and not next(other) then return {} end -- Both of them are empty
 	local ret = {}
 	for i=1,math.max(#this,#other) do
 		ret[i] = other[i] or this[i]
