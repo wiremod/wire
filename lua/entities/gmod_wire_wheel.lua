@@ -37,7 +37,7 @@ end
 function ENT:UpdateOverlayText(speed)
 	local motor = self:GetMotor()
 	local friction = 0
-	if IsValid(motor) then friction = motor.friction end
+	if motor then friction = motor.friction end
 	self:SetOverlayText(
 		"Torque: " .. math.floor( self.BaseTorque ) ..
 		"\nFriction: " .. friction ..
@@ -62,13 +62,13 @@ function ENT:SetMotor( Motor )
 end
 
 function ENT:GetMotor()
-	if not self.Motor then
-		self.Motor = constraint.FindConstraintEntity( self, "Motor" )
-		if not IsValid(self.Motor) then
-			self.Motor = nil
-		end
+	if IsValid(self.Motor) then return self.Motor end
+	local motor = constraint.FindConstraintEntity( self, "Motor" )
+	if IsValid(motor) then
+		self.Motor = motor
+		return motor
 	end
-	return self.Motor
+	return nil
 end
 
 function ENT:SetDirection( dir )
@@ -76,19 +76,18 @@ function ENT:SetDirection( dir )
 	self.direction = dir
 end
 
-function ENT:Forward( mul )
+function ENT:UpdateMotor()
 	if not self:IsValid() then return false end
 	local Motor = self:GetMotor()
-	if not IsValid(Motor) then return false end
+	if not Motor then return false end
 
-	mul = mul or 1
-	local mdir = Motor.direction
+	local mul = self.Go
+	local mdir = self.direction
 	local Speed = mdir * mul * (self.BaseTorque / WHEEL_BASE_TORQUE) * (1 + self.SpeedMod)
 
 	self:UpdateOverlayText(mul ~= 0 and (mdir * mul * (1 + self.SpeedMod)) or 0)
 
 	Motor:Fire( "Scale", Speed, 0 )
-	Motor:GetTable().forcescale = Speed
 	Motor:Fire( "Activate", "" , 0 )
 
 	return true
@@ -98,13 +97,13 @@ function ENT:TriggerInput(iname, value)
 	if (iname == "A: Go") then
 		if ( value == self.fwd ) then self.Go = 1
 		elseif ( value == self.bck ) then self.Go = -1
-		elseif ( value == self.stop ) then self.Go =0 end
+		elseif ( value == self.stop ) then self.Go = 0 end
 	elseif (iname == "B: Break") then
 		self.Breaking = value
 	elseif (iname == "C: SpeedMod") then
 		self.SpeedMod = (value / 100)
 	end
-	self:Forward( self.Go )
+	self:UpdateMotor()
 end
 
 
@@ -132,11 +131,6 @@ end
 
 function ENT:SetTorque( torque )
 	self.BaseTorque = torque
-
-	local Motor = self:GetMotor()
-	if not IsValid(Motor) then return end
-	Motor:Fire( "Scale", Motor:GetTable().direction * Motor:GetTable().forcescale * (torque / WHEEL_BASE_TORQUE), 0 )
-
 	self:UpdateOverlayText()
 end
 
@@ -144,13 +138,10 @@ end
    Creates the direction arrows on the wheel
 ---------------------------------------------------------]]
 function ENT:DoDirectionEffect()
-	local Motor = self:GetMotor()
-	if not IsValid(Motor) then return end
-
 	local effectdata = EffectData()
 		effectdata:SetOrigin( self.Axis )
 		effectdata:SetEntity( self )
-		effectdata:SetScale( Motor.direction )
+		effectdata:SetScale( self.direction )
 	util.Effect( "wheel_indicator", effectdata, true, true )
 end
 
@@ -162,14 +153,13 @@ function ENT:Use( activator, caller, type, value )
 	local Owner = self:GetPlayer()
 
 	if (Motor and (Owner == nil or Owner == activator)) then
-		if (Motor:GetTable().direction == 1) then
-			Motor:GetTable().direction = -1
+		if (self.direction == 1) then
+			self.direction = -1
 		else
-			Motor:GetTable().direction = 1
+			self.direction = 1
 		end
-
-		Motor:Fire( "Scale", Motor:GetTable().direction * Motor:GetTable().forcescale * (self.BaseTorque / WHEEL_BASE_TORQUE), 0 )
-		self:SetDirection( Motor:GetTable().direction )
+		self:SetDirection( self.direction )
+		self:UpdateMotor()
 
 		self:DoDirectionEffect()
 	end
