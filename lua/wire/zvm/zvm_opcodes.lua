@@ -265,7 +265,11 @@ ZVM.OpcodeTable[31] = function(self)  --CALL
   self.PrecompileBreak = true
 end
 ZVM.OpcodeTable[32] = function(self)  --BNOT
-  self:Dyn_EmitOperand("VM:BinaryNot($1)")
+  self:Dyn_Emit("if VM.IPREC > 32 then")
+    self:Dyn_EmitOperand("VM:BinaryNot($1)")
+  self:Dyn_Emit("else")
+    self:Dyn_EmitOperand("VM:ClampBinaryToIPREC(bit.bnot($1))")
+  self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[33] = function(self)  --FINT
   self:Dyn_EmitOperand("math.floor($1)")
@@ -407,47 +411,87 @@ ZVM.OpcodeTable[59] = function(self)  --MOD
 end
 --------------------------------------------------------------------------------
 ZVM.OpcodeTable[60] = function(self)  --BIT
-  self:Dyn_Emit("$L BITS = VM:IntegerToBinary($1)")
-  self:Dyn_Emit("VM.CMPR = BITS[math.floor($2)] or 0")
-  self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("if VM.IPREC > 32 then")
+    self:Dyn_Emit("$L BITS = VM:IntegerToBinary($1)")
+    self:Dyn_Emit("VM.CMPR = BITS[math.floor($2)] or 0")
+    self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("else")
+    self:Dyn_Emit("if bit.band($1,VM:GetBit($2)) ~= 0 then")
+      self:Dyn_Emit("VM.CMPR = 1")
+    self:Dyn_Emit("else")
+      self:Dyn_Emit("VM.CMPR = 0")
+    self:Dyn_Emit("end")
+  self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[61] = function(self)  --SBIT
-  self:Dyn_Emit("$L BITS = VM:IntegerToBinary($1)")
-  self:Dyn_Emit("BITS[math.floor($2)] = 1")
-  self:Dyn_EmitOperand("VM:BinaryToInteger(BITS)")
-  self:Dyn_Emit("VM.TMR = VM.TMR + 20")
+  self:Dyn_Emit("if VM.IPREC > 32 then")
+    self:Dyn_Emit("$L BITS = VM:IntegerToBinary($1)")
+    self:Dyn_Emit("BITS[math.floor($2)] = 1")
+    self:Dyn_EmitOperand("VM:BinaryToInteger(BITS)")
+    self:Dyn_Emit("VM.TMR = VM.TMR + 20")
+  self:Dyn_Emit("else")
+    self:Dyn_EmitOperand("VM:ClampBinaryToIPREC(bit.bor($1,VM:GetBit($2)))")
+  self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[62] = function(self)  --CBIT
-  self:Dyn_Emit("$L BITS = VM:IntegerToBinary($1)")
-  self:Dyn_Emit("BITS[math.floor($2)] = 0")
-  self:Dyn_EmitOperand("VM:BinaryToInteger(BITS)")
-  self:Dyn_Emit("VM.TMR = VM.TMR + 20")
+  self:Dyn_Emit("if VM.IPREC > 32 then")
+    self:Dyn_Emit("$L BITS = VM:IntegerToBinary($1)")
+    self:Dyn_Emit("BITS[math.floor($2)] = 0")
+    self:Dyn_EmitOperand("VM:BinaryToInteger(BITS)")
+    self:Dyn_Emit("VM.TMR = VM.TMR + 20")
+  self:Dyn_Emit("else")
+    self:Dyn_EmitOperand("VM:ClampBinaryToIPREC(bit.band($1,VM:GetBit($2)))")
+  self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[63] = function(self)  --TBIT
-  self:Dyn_Emit("$L BITS = VM:IntegerToBinary($1)")
-  self:Dyn_Emit("BITS[math.floor($2)] = 1 - (BITS[math.floor($2)] or 0)")
-  self:Dyn_EmitOperand("VM:BinaryToInteger(BITS)")
-  self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("if VM.IPREC > 32 then")
+    self:Dyn_Emit("$L BITS = VM:IntegerToBinary($1)")
+    self:Dyn_Emit("BITS[math.floor($2)] = 1 - (BITS[math.floor($2)] or 0)")
+    self:Dyn_EmitOperand("VM:BinaryToInteger(BITS)")
+    self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("else")
+    self:Dyn_EmitOperand("VM:ClampBinaryToIPREC(bit.bxor($1,VM:GetBit($2)))")
+  self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[64] = function(self)   --BAND
-  self:Dyn_EmitOperand("VM:BinaryAnd($1,$2)")
-  self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("if VM.IPREC > 32 then")
+    self:Dyn_EmitOperand("VM:BinaryAnd($1,$2)")
+    self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("else")
+    self:Dyn_EmitOperand("VM:ClampBinaryToIPREC(bit.band($1,$2)")
+  self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[65] = function(self)  --BOR
-  self:Dyn_EmitOperand("VM:BinaryOr($1,$2)")
-  self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("if VM.IPREC > 32 then")
+    self:Dyn_EmitOperand("VM:BinaryOr($1,$2)")
+    self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("else")
+    self:Dyn_EmitOperand("VM:ClampBinaryToIPREC(bit.bor($1,$2))")
+  self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[66] = function(self)   --BXOR
-  self:Dyn_EmitOperand("VM:BinaryXor($1,$2)")
-  self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("if VM.IPREC > 32 then")
+    self:Dyn_EmitOperand("VM:BinaryXor($1,$2)")
+    self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("else")
+    self:Dyn_EmitOperand("VM:ClampBinaryToIPREC(bit.bxor($1,$2))")
+  self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[67] = function(self)  --BSHL
-  self:Dyn_EmitOperand("VM:BinarySHL($1,$2)")
-  self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("if VM.IPREC > 32 then")
+    self:Dyn_EmitOperand("VM:BinarySHL($1,$2)")
+    self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("else")
+    self:Dyn_EmitOperand("VM:ClampBinaryToIPREC(bit.lshift($1,$2))")
+  self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[68] = function(self)  --BSHR
-  self:Dyn_EmitOperand("VM:BinarySHR($1,$2)")
-  self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("if VM.IPREC > 32 then")
+    self:Dyn_EmitOperand("VM:BinarySHR($1,$2)")
+    self:Dyn_Emit("VM.TMR = VM.TMR + 30")
+  self:Dyn_Emit("else")
+    self:Dyn_EmitOperand("VM:ClampBinaryToIPREC(bit.rshift($1,$2))")
+  self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[69] = function(self)  --JMPF
   self:Dyn_Emit("VM:Jump($1,$2)")
@@ -954,7 +998,11 @@ ZVM.OpcodeTable[121] = function(self)  --CPUSET
   self:Dyn_Emit("if VM.InternalRegister[REG] and (not VM.ReadOnlyRegister[REG]) then")
     self:Dyn_Emit("$L OP = $2")
     self:Dyn_Emit("$L limit = VM.InternalLimits[REG]")
-    self:Dyn_Emit("VM[VM.InternalRegister[REG]] = limit and math.Clamp(OP, limit[1], limit[2]) or OP")
+    self:Dyn_Emit("if VM.IntegerOnlyRegister[REG] then")
+      self:Dyn_Emit("VM[VM.InternalRegister[REG]] = math.floor(limit and math.Clamp(OP, limit[1], limit[2]) or OP)")
+    self:Dyn_Emit("else")
+      self:Dyn_Emit("VM[VM.InternalRegister[REG]] = limit and math.Clamp(OP, limit[1], limit[2]) or OP")
+    self:Dyn_Emit("end")
     self:Dyn_Emit("if (REG == 0) or (REG == 16) then")
       self:Dyn_Emit("VM:Jump(%d,VM.CS)",self.PrecompileIP)
       self:Dyn_EmitState()

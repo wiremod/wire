@@ -12,6 +12,7 @@
 ZVM.InternalRegister = {}
 ZVM.InternalLimits = {IPREC = {1, 128}}
 ZVM.ReadOnlyRegister = {}
+ZVM.IntegerOnlyRegister = {}
 
 ZVM.InternalRegister[00] = "IP"
 ZVM.InternalRegister[01] = "EAX"
@@ -63,7 +64,7 @@ ZVM.InternalRegister[47] = "INTR"
 ZVM.InternalRegister[48] = "SerialNo"            ZVM.ReadOnlyRegister[48] = true
 ZVM.InternalRegister[49] = "CODEBYTES"           ZVM.ReadOnlyRegister[49] = true
 ZVM.InternalRegister[50] = "BPREC"
-ZVM.InternalRegister[51] = "IPREC"
+ZVM.InternalRegister[51] = "IPREC"               ZVM.IntegerOnlyRegister[51] = true
 ZVM.InternalRegister[52] = "NIDT"
 ZVM.InternalRegister[53] = "BlockStart"
 ZVM.InternalRegister[54] = "BlockSize"
