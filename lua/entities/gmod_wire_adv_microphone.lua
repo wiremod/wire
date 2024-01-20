@@ -199,6 +199,7 @@ end)
 function ENT:HandleSound(sndname, volume, pitch, sndlevel, entity, pos, dsp, emittype)
     -- Prevent feedback loops
     if IsValid(entity) and entity:GetClass() == "gmod_wire_adv_speaker" then return end
+    if pos == nil and IsValid(entity) then pos = entity:GetPos() end
 
     if sndlevel ~= 0 and pos ~= nil then
         -- Over-256 values are 'reserved for sounds using goldsrc compatibility attenuation'
