@@ -218,8 +218,8 @@ function ENT:Explode()
 
 	if (not self.exploding) then return end --why are we exploding if we shouldn't be
 
-	ply = self:GetPlayer() or self
-	if(not IsValid(ply)) then ply = self end;
+	local ply = self:GetPlayer()
+	if not IsValid(ply) then ply = self end
 
 	if (self.InvisibleAtZero) then
 		self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
