@@ -24,6 +24,9 @@ end
 AddCSLuaFile("wire/cpulib.lua")
 include("wire/cpulib.lua")
 
+-- AddCSLuaFile("wire/cpulib_example_extension.lua")
+-- include("wire/cpulib_example_extension.lua")
+
 AddCSLuaFile("wire/gpulib.lua")
 include("wire/gpulib.lua")
 

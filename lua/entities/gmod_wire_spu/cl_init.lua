@@ -90,6 +90,19 @@ local function SPU_MemoryModel(um)
 end
 usermessage.Hook("wire_spu_memorymodel", SPU_MemoryModel)
 
+local function SPU_SetExtensions(um)
+  local SPU = ents.GetByIndex(um:ReadLong())
+  if not SPU then return end
+  if not SPU:IsValid() then return end
+  local extstr = um:ReadString()
+  local extensions = CPULib:FromExtensionString(extstr,"SPU")
+  if SPU.VM then
+    SPU.VM.Extensions = extensions
+    CPULib:LoadExtensions(SPU.VM,"SPU")
+  end
+  SPU.ZVMExtensions = extstr
+end
+usermessage.Hook("wire_spu_extensions", SPU_SetExtensions)
 
 
 
@@ -105,6 +118,7 @@ function ENT:Initialize()
   self.VM.CPUVER  = 1.0 -- Beta SPU by default
   self.VM.CPUTYPE = 2 -- ZSPU
   self.ChipType   = 0
+  self.VM.Extensions = CPULib:FromExtensionString(self.ZVMExtensions,"SPU")
 
   -- Create fake sound sources
   self.SoundSources = {}

@@ -75,6 +75,18 @@ function ENT:SetMemoryModel(model,initial)
   end
 end
 
+function ENT:SetExtensionLoadOrder(extstr)
+  self.ZVMExtensions = extstr
+  timer.Simple(0.1+math.random()*0.3,
+  function()
+    if not self:IsValid() then return end
+
+    umsg.Start("wire_gpu_extensions")
+      umsg.Long(self:EntIndex())
+      umsg.String(self.ZVMExtensions)
+    umsg.End()
+  end)
+end
 
 --------------------------------------------------------------------------------
 -- Resend all GPU cache to newly spawned player
@@ -180,6 +192,7 @@ function ENT:BuildDupeInfo()
   info.RAMSize = self.RAMSize
   info.ChipType = self.ChipType
   info.Memory = {}
+  info.ZVMExtensions = self.ZVMExtensions
 
   for address = 0,self.RAMSize-1 do
     if self.Memory[address] and (self.Memory[address] ~= 0) then info.Memory[address] = self.Memory[address] end
@@ -199,6 +212,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
   self.RAMSize  = math.Clamp(info.RAMSize or 65536, 0, 2097152)
   self.ChipType = info.ChipType or 0
   self.Memory = {}
+  self:SetExtensionLoadOrder(info.ZVMExtensions)
 
   for address = 0,self.RAMSize-1 do
     if info.Memory[address] then self.Memory[address] = tonumber(info.Memory[address]) or 0 end

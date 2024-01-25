@@ -212,16 +212,29 @@ for symID,symList in pairs(HCOMP.TOKEN_TEXT) do
 end
 
 
--- Add opcodes to the lookup table
-for _,languageName in pairs(HCOMP.TOKEN_TEXT["OPCODE"][1]) do
-  HCOMP.PARSER_LOOKUP[languageName] = HCOMP.PARSER_LOOKUP[languageName] or {}
-  for opcodeName,opcodeNo in pairs(HCOMP.OpcodeNumber) do
-    HCOMP.PARSER_LOOKUP[languageName][string.upper(opcodeName)] = { opcodeName, HCOMP.TOKEN.OPCODE }
+
+
+function HCOMP:RemoveTokenizerOpcodes(indexes)
+  -- Remove opcodes from the lookup table
+  for _,languageName in pairs(self.TOKEN_TEXT["OPCODE"][1]) do
+    self.PARSER_LOOKUP[languageName] = self.PARSER_LOOKUP[languageName] or {}
+    for _,index in ipairs(indexes) do
+      self.PARSER_LOOKUP[languageName][string.upper(CPULib.InstructionTable[index].Mnemonic)] = nil
+    end
   end
 end
 
+function HCOMP:RegenerateTokenizerOpcodes()
+-- Add opcodes to the lookup table
+for _,languageName in pairs(HCOMP.TOKEN_TEXT["OPCODE"][1]) do
+    HCOMP.PARSER_LOOKUP[languageName] = HCOMP.PARSER_LOOKUP[languageName] or {}
+    for opcodeName,opcodeNo in pairs(HCOMP.OpcodeNumber) do
+      HCOMP.PARSER_LOOKUP[languageName][string.upper(opcodeName)] = { opcodeName, HCOMP.TOKEN.OPCODE }
+    end
+  end
+end
 
-
+HCOMP:RegenerateTokenizerOpcodes()
 
 --------------------------------------------------------------------------------
 -- Skip a single file in input

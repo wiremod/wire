@@ -34,6 +34,10 @@ function ENT:Initialize()
 	self.VM.MemoryWriteCycles = 2
 	self.VM.ExternalReadCycles = 8
 	self.VM.ExternalWriteCycles = 8
+	if self.ZVMExtensions then
+		self.VM.Extensions = CPULib:FromExtensionString(self.ZVMExtensions,"CPU")
+		CPULib:LoadExtensions(self.VM,"CPU")
+	end
 	self.VM:Reset()
 
 	self:SetCPUName()
@@ -138,6 +142,14 @@ local memoryModels = {
 function ENT:SetMemoryModel(model)
 	self.VM.RAMSize = memoryModels[model][1] or 65536
 	self.VM.ROMSize = memoryModels[model][2] or 65536
+end
+
+function ENT:SetExtensionLoadOrder(extstr)
+	self.ZVMExtensions = extstr
+	if self.VM then
+		self.VM.Extensions = CPULib:FromExtensionString(self.ZVMExtensions,"CPU")
+		CPULib:LoadExtensions(self.VM,"CPU")
+	end
 end
 
 -- Execute ZCPU virtual machine
@@ -248,6 +260,7 @@ function ENT:BuildDupeInfo()
 	info.InternalRAMSize = self.VM.RAMSize
 	info.InternalROMSize = self.VM.ROMSize
 	info.CPUName         = self.CPUName
+	info.ZVMExtensions   = self.ZVMExtensions
 
 	if self.VM.ROMSize > 0 then
 		info.Memory = {}
@@ -264,6 +277,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.VM.RAMSize  = info.InternalRAMSize or 65536
 	self.VM.ROMSize  = info.InternalROMSize or 65536
 	self:SetCPUName(info.CPUName)
+	self:SetExtensionLoadOrder(info.ZVMExtensions)
+
 
 	if info.Memory then--and
 		 --(((info.UseROM) and (info.UseROM == true)) or

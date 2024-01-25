@@ -185,6 +185,11 @@ function ENT:OverrideVM()
   self.VM.OperandCount[131] = nil --SMAP
   self.VM.OperandCount[132] = nil --GMAP
 
+  if self.ZVMExtensions then
+    self.VM.Extensions = CPULib:FromExtensionString(self.ZVMExtensions,"GPU")
+    CPULib:LoadExtensions(self.VM,"GPU")
+  end
+
   -- Add some extra lookups
   self.VM.FontName = {}
   self.VM.FontName[0] = "Lucida Console"

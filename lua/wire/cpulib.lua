@@ -821,6 +821,212 @@ local function GPU(...) Entry("GPU",...) end
 local function VEX(...) Entry("VEX",...) end
 local function SPU(...) Entry("SPU",...) end
 
+CPULib.Extensions = CPULib.Extensions or {}
+
+-- These are the indexes that we should remove from the instruction table
+-- when recalculating which instructions should be available to the compiler
+CPULib.ExtendedInstructions = CPULib.ExtendedInstructions or {}
+
+-- Holds the load order for extensions by platform
+CPULib.ExtensionOrder = CPULib.ExtensionOrder or {}
+
+-- When the extension list is regenerated it will run these funcs to tell
+-- CPULib instruction dependant sources to alter their lookup tables to reflect
+-- the current set of instructions
+
+-- Instruction indexes that should be removed from lookup tables
+CPULib.RemoveInstructionHooks = CPULib.RemoveInstructionHooks or {}
+
+-- Instruction indexes that should be added to the lookup tables
+CPULib.CreateInstructionHooks = CPULib.CreateInstructionHooks or {}
+
+CPULib.FlagLookup = {
+  ["W1"] = W1,
+  ["R0"] = R0,
+  ["OB"] = OB,
+  ["UB"] = UB,
+  ["CB"] = CB,
+  ["TR"] = TR,
+  ["OL"] = OL,
+  ["BL"] = BL
+}
+
+-- Parses an array of flags into a single number from a lookup table by name
+function CPULib:ParseFlagArray(flags)
+  if not flags then return 0 end
+  local n = 0
+
+  for _,v in ipairs(flags) do
+    if self.FlagLookup[v] then
+      n = n + self.FlagLookup[v]
+    end
+  end
+  return n
+end
+
+function CPULib:CreateExtension(name, platform)
+  local extension = {Platform = string.upper(platform)}
+  return self:RegisterExtension(name, extension)
+end
+
+function CPULib:RegisterExtension(name, extension)
+  if not self.Extensions[extension.Platform] then
+    self.Extensions[extension.Platform] = {}
+  end
+  if self.Extensions[extension.Platform][name] then
+    return false
+  end
+  self.Extensions[extension.Platform][name] = extension
+
+  -- Create an instruction with the raw API using arguments
+  function extension:RegisterInstruction(name, opcount, opfunc, flags, docs)
+    local instruction = {
+      Name = name,
+      Operands = opcount,
+      OpFunc = opfunc,
+      Flags = flags,
+      Op1Name = "",
+      Op2Name = ""
+    }
+    if not docs then
+      instruction.Description = "Instruction "..name.." created by extension "..self.Name
+      instruction.Version = 1
+      if opcount > 0 then
+        instruction.Op1Name = "X"
+      end
+      if opcount > 1 then
+        instruction.Op2Name = "Y"
+      end
+    end
+    table.insert(self.Instructions, instruction)
+    return instruction
+  end
+
+  -- Takes a lua function expecting args (VM, operands) where operands is a number-indexed table containing the values
+  -- of the operands used by the function, setting them inside this table will change their values on
+  -- completion of the function (when possible).
+  --
+  -- Return one or two numbers to generate an interrupt.
+  function extension:InstructionFromLuaFunc(name, opcount, luafunc, flags, docs)
+    -- This will need to be compiled at extension load time with $interOpIndex replaced
+    -- by the actual index into the interop function table
+    local opfunc =  [[
+        local args = { ... }
+        local self = args[1]
+        self:Dyn_Emit("$L interOp = {$1 or 0, $2 or 0}")
+        self:Dyn_Emit("$L interOpRet1, interOpRet2 = VM.InterOpFuncs[$interOpIndex](VM,interOp)")
+        self:Dyn_EmitInterruptCheck()
+        self:Dyn_Emit("if interOpRet1 then")
+          self:Dyn_EmitState()
+          self:Emit("VM.IP = %d",(self.PrecompileIP or 0))
+          self:Emit("VM.XEIP = %d",(self.PrecompileTrueXEIP or 0))
+          self:Dyn_Emit("VM:Interrupt(interOpRet1 or 5, interOpRet2 or 0)")
+          self:Dyn_EmitBreak()
+        self:Dyn_Emit("end")
+        self:Dyn_Emit("if $1 ~= interOp[1] then")
+          self:Dyn_EmitOperand(1,"interOp[1]")
+        self:Dyn_Emit("end")
+        self:Dyn_Emit("if $2 ~= interOp[2] then")
+          self:Dyn_EmitOperand(2,"interOp[2]")
+        self:Dyn_Emit("end")
+      ]]
+    local instruction = self:RegisterInstruction(name, opcount, opfunc, flags, docs)
+    instruction.InterOpFunc = luafunc
+  end
+  if not extension.Instructions then
+    extension.Instructions = {}
+  end
+  return extension
+end
+
+-- Rebuilds the instruction table according to the load order
+function CPULib:RebuildExtendedInstructions()
+  for _,hook in ipairs(self.RemoveInstructionHooks) do
+    hook(self.ExtendedInstructions)
+  end
+  for _,v in ipairs(self.ExtendedInstructions) do
+    self.InstructionTable[v] = nil
+  end
+  self.ExtendedInstructions = {}
+
+  -- rebuild by extension name
+  for platname,platform in pairs(self.ExtensionOrder) do
+    local curOpcode = -1
+    for _,extension in ipairs(platform) do
+      for _,i in ipairs(self.Extensions[platname][extension].Instructions) do
+        Entry(platname,curOpcode,i.Name,i.Operands,i.Version,self:ParseFlagArray(i.Flags),i.Op1Name,i.Op2Name,i.Description)
+        table.insert(self.ExtendedInstructions,#CPULib.InstructionTable)
+        curOpcode = curOpcode - 1
+      end
+    end
+  end
+  for _,hook in ipairs(self.CreateInstructionHooks) do
+    hook(self.ExtendedInstructions)
+  end
+end
+
+function CPULib:ToExtensionString(exttable)
+  local ext_str = ""
+  for _,ext in ipairs(exttable) do
+    ext_str = ext_str .. ext .. ';'
+  end
+  return ext_str
+end
+
+function CPULib:FromExtensionString(extstr,platform)
+  local extensions = {}
+  -- only available extensions are loaded
+  if not extstr then return {} end
+  for ext in string.gmatch(extstr or "","([^;]*);") do
+    if CPULib.Extensions[platform] and CPULib.Extensions[platform][ext] then
+      table.insert(extensions,ext)
+    end
+  end
+  return extensions
+end
+
+function CPULib:LoadExtensionOrder(extensions, platform)
+  self.ExtensionOrder[platform] = extensions
+  self:RebuildExtendedInstructions()
+end
+
+function CPULib:LoadExtensions(VM, platform)
+  -- Uses negative indexes to avoid collision with non-extension instructions
+  -- since there's currently a cap on only being able to have 1000(0 to 999) instructions
+  -- using negative indices would expand that to allow for 999(-1 to -999) more instructions
+  if not VM.Extensions then
+    return false
+  end
+  local curInstruction = -1
+  local curInterop = 1
+  for _, name in pairs(VM.Extensions) do
+    if self.Extensions[platform][name] then
+      -- The actual load order is the order that it's in for the VM.
+      for _,instr in ipairs(self.Extensions[platform][name].Instructions) do
+        VM.ExtOperandCount[curInstruction*-1] = instr.Operands
+        if instr.Privileged then
+          VM.ExtOperandRunLevel[curInstruction*-1] = 0
+        end
+        if instr.InterOpFunc then
+          if not VM.InterOpFuncs then
+            VM.InterOpFuncs = {}
+          end
+          VM.InterOpFuncs[curInterop] = instr.InterOpFunc
+          local finalOpFunc = string.gsub(instr.OpFunc, "$interOpIndex", curInterop)
+          VM.OpcodeTable[curInstruction] = CompileString(finalOpFunc)
+          curInterop = curInterop + 1
+        else
+          VM.OpcodeTable[curInstruction] = instr.OpFunc
+        end
+        curInstruction = curInstruction - 1
+      end
+    else
+      -- return name of missing extension on error
+      return name
+    end
+  end
+end
+
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 -- Zyelios CPU/GPU/SPU instruction set reference table

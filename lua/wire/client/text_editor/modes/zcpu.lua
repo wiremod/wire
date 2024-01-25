@@ -60,6 +60,24 @@ for k,v in pairs(CPULib.InstructionTable) do
   end
 end
 
+local function RemoveInstructions(indexes)
+  for _,v in ipairs(indexes) do
+    opcodeTable[CPULib.InstructionTable[v].Mnemonic] = nil
+  end
+end
+
+local function CreateInstructions(indexes)
+  for _,v in ipairs(indexes) do
+    local inst = CPULib.InstructionTable[v]
+    if inst.Mnemonic ~= "RESERVED" then
+      opcodeTable[inst.Mnemonic] = true
+    end
+  end
+end
+
+table.insert(CPULib.RemoveInstructionHooks,RemoveInstructions)
+table.insert(CPULib.CreateInstructionHooks,CreateInstructions)
+
 -- Build lookup table for keywords
 local keywordsList = {
   "GOTO","FOR","IF","ELSE","WHILE","DO","SWITCH","CASE","CONST","RETURN","BREAK",

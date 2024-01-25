@@ -15,7 +15,6 @@ end
 
 
 
-
 -- Initialize runlevel lookup table
 ZVM.OpcodeRunLevel = {}
 for _,instruction in pairs(CPULib.InstructionTable) do
@@ -24,7 +23,10 @@ for _,instruction in pairs(CPULib.InstructionTable) do
   end
 end
 
-
+-- If an opcode is negative(like for extensions), the opcode will be absoluted
+-- and use these lookup tables instead of the primary ones.
+ZVM.ExtOperandCount = {}
+ZVM.ExtOpcodeRunLevel = {}
 
 
 --------------------------------------------------------------------------------

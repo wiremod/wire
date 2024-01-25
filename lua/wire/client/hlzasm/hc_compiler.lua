@@ -145,7 +145,12 @@ end
 
 --------------------------------------------------------------------------------
 -- Emit a code byte to the output stream
-function HCOMP:WriteByte(byte,block)
+function HCOMP:WriteByte(byte,block,negate)
+  -- hack to allow normal opcode calcs to work on negative opcodes
+  if negate then
+    byte = byte * -1
+  end
+
   if self.WriteByteCallback then
     self.WriteByteCallback(self.WriteByteCaller,self.WritePointer,byte)
   end

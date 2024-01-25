@@ -16,6 +16,7 @@ WireToolSetup.SetupMax( 7 )
 TOOL.ClientConVar = {
   model             = "models/cheeze/wires/cpu.mdl",
   filename          = "",
+  extensions        = ""
 }
 
 if CLIENT then
@@ -56,6 +57,7 @@ if SERVER then
   function TOOL:MakeEnt(ply, model, Ang, trace)
     local ent = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model})
     ent:SetMemoryModel(self:GetClientInfo("memorymodel"))
+    ent:SetExtensionLoadOrder(self:GetClientInfo("extensions"))
     self:LeftClick_Update(trace)
     return ent
   end
@@ -157,6 +159,60 @@ if CLIENT then
     ----------------------------------------------------------------------------
     WireDermaExts.ModelSelect(panel, "wire_spu_model", list.Get("Wire_gate_Models"), 2)
     panel:AddControl("Label", {Text = ""})
+
+    local enabledExtensionOrder = {}
+    local enabledExtensionLookup = {}
+    local extensionConvar = GetConVar("wire_spu_extensions")
+    for ext in string.gmatch(extensionConvar:GetString() or "","([^;]*);") do
+      if CPULib.Extensions["SPU"] and CPULib.Extensions["SPU"][ext] then
+        enabledExtensionLookup[ext] = true
+        table.insert(enabledExtensionOrder,ext)
+      end
+    end
+
+    local ExtensionPanel = vgui.Create("DListView")
+    local DisabledExtensionPanel = vgui.Create("DListView")
+    ExtensionPanel:AddColumn("Enabled Extensions")
+    DisabledExtensionPanel:AddColumn("Disabled Extensions")
+    ExtensionPanel:SetSize(235,200)
+    DisabledExtensionPanel:SetSize(235,200)
+    if CPULib.Extensions["SPU"] then
+      for k,_ in pairs(CPULib.Extensions["SPU"]) do
+        if enabledExtensionLookup[k] then
+          ExtensionPanel:AddLine(k)
+        else
+          DisabledExtensionPanel:AddLine(k)
+        end
+      end
+    end
+
+    local function ReloadExtensions()
+      local extensions = {}
+      for _,line in pairs(ExtensionPanel:GetLines()) do
+        table.insert(extensions,line:GetValue(1))
+      end
+      extensionConvar:SetString(CPULib:ToExtensionString(extensions))
+      CPULib:LoadExtensionOrder(extensions,"SPU")
+    end
+
+    function ExtensionPanel:OnRowSelected(rIndex,row)
+      DisabledExtensionPanel:AddLine(row:GetValue(1))
+      self:RemoveLine(rIndex)
+      ReloadExtensions()
+    end
+
+    function DisabledExtensionPanel:OnRowSelected(rIndex,row)
+      ExtensionPanel:AddLine(row:GetValue(1))
+      self:RemoveLine(rIndex)
+      ReloadExtensions()
+    end
+
+    panel:AddItem(ExtensionPanel)
+    panel:AddItem(DisabledExtensionPanel)
+    -- Reload the extensions at least once to make sure users don't have to touch the list
+    -- in order to use extensions on first opening of the tool menu
+    ReloadExtensions()
+
   end
 
   ------------------------------------------------------------------------------

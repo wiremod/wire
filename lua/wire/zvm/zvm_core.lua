@@ -466,7 +466,12 @@ function ZVM:Precompile_Step()
   -- Fetch instruction and RM byte
   local Opcode,RM = self:Precompile_Fetch(),0
   local isFixedSize = false
-
+  local OpCount,OpRunLevel = self.OperandCount,self.OpcodeRunLevel
+  local negativeOp = Opcode and Opcode < 0
+  if negativeOp then
+    OpCount,OpRunLevel = self.ExtOperandCount,self.ExtOpcodeRunLevel
+    Opcode = Opcode * - 1
+  end
   -- Check if it is a fixed-size instruction
   if ((Opcode >= 2000) and (Opcode < 4000)) or
      ((Opcode >= 12000) and (Opcode < 14000)) then
@@ -475,8 +480,9 @@ function ZVM:Precompile_Step()
   end
 
   -- Fetch RM if required
-  if (self.OperandCount[Opcode % 1000] and (self.OperandCount[Opcode % 1000] > 0)) or
-     (self:Precompile_Peek() == 0) or isFixedSize then
+
+  if (OpCount[Opcode % 1000] and (OpCount[Opcode % 1000] > 0))
+    or (self:Precompile_Peek() == 0) or isFixedSize then
     RM = self:Precompile_Fetch()
   end
 
@@ -540,7 +546,7 @@ function ZVM:Precompile_Step()
   end
 
   -- Check if opcode is invalid
-  if not self.OperandCount[Opcode] then
+  if not OpCount[Opcode] then
     self:Dyn_EmitInterrupt("4",Opcode)
     self.PrecompileBreak = true
   else
@@ -555,14 +561,14 @@ function ZVM:Precompile_Step()
       self.EmitOperandByte[2] = self:Precompile_Fetch() or 0
       if not self.EmitOperandByte[2] then self:Interrupt(5,32) return end
 
-      if self.OperandCount[Opcode] > 0 then
+      if OpCount[Opcode] > 0 then
         self:Dyn_LoadOperand(1,dRM1)
-        if self.OperandCount[Opcode] > 1 then
+        if OpCount[Opcode] > 1 then
           self:Dyn_LoadOperand(2,dRM2)
         end
       end
     else
-      if self.OperandCount[Opcode] > 0 then
+      if OpCount[Opcode] > 0 then
         if self.NeedFetchByteLookup[dRM1] then
           self.EmitOperandByte[1] = self:Precompile_Fetch() or 0
           -- If failed to read the byte, report an error
@@ -570,7 +576,7 @@ function ZVM:Precompile_Step()
         end
         self:Dyn_LoadOperand(1,dRM1)
 
-        if self.OperandCount[Opcode] > 1 then
+        if OpCount[Opcode] > 1 then
           if self.NeedFetchByteLookup[dRM2] then
             self.EmitOperandByte[2] = self:Precompile_Fetch() or 0
             -- If failed to read the byte, report an error
@@ -588,12 +594,16 @@ function ZVM:Precompile_Step()
     end
 
     -- Emit opcode
-    self:Dyn_EmitOpcode(Opcode)
+    if negativeOp then
+      self:Dyn_EmitOpcode(Opcode*-1)
+    else
+      self:Dyn_EmitOpcode(Opcode)
+    end
 
     -- Write back the values
-    if self.OperandCount[Opcode] and (self.OperandCount[Opcode] > 0) then
+    if OpCount[Opcode] and (OpCount[Opcode] > 0) then
       self:Dyn_WriteOperand(1,dRM1)
-      if self.OperandCount[Opcode] > 1 then
+      if OpCount[Opcode] > 1 then
         self:Dyn_WriteOperand(2,dRM2)
       end
     end

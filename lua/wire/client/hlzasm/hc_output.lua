@@ -604,7 +604,10 @@ function HCOMP:WriteBlock(block)
       return
     end
     local Opcode,RM = self.OpcodeNumber[block.Opcode],nil
-
+    local negativeOp = Opcode and Opcode < 0
+    if negativeOp then
+      Opcode = Opcode*-1
+    end
     -- Generate RM if more than 1 operand
     if #block.Operands > 0 then
       RM = self:OperandRM(block.Operands[1],block)
@@ -617,7 +620,7 @@ function HCOMP:WriteBlock(block)
 
     if not self.Settings.FixedSizeOutput then -- Variable-size instructions
       -- Write opcode
-      self:WriteByte(Opcode,block)
+      self:WriteByte(Opcode,block,negativeOp)
       -- Write RM
       if RM then self:WriteByte(RM,block) end
 
@@ -630,7 +633,7 @@ function HCOMP:WriteBlock(block)
       if (#block.Operands > 1) and (block.Operands[2].Value) then self:WriteByte(block.Operands[2].Value,block) end
     else -- Fixed-size instructions
       -- Write opcode
-      self:WriteByte(Opcode + 2000,block)
+      self:WriteByte(Opcode + 2000,block,negativeOp)
 
       -- Write RM
       self:WriteByte(RM or 0,block)
