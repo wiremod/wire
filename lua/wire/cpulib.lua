@@ -4,7 +4,7 @@
 local INVALID_BREAKPOINT_IP = 2e7
 
 CPULib = CPULib or {}
-if CLIENT then
+if CLIENT or TESTING then
   -- Sourcecode available as compiled binary
   CPULib.Source = ""
   -- Compiled binary
