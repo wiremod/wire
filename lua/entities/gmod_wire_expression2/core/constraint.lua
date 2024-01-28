@@ -291,6 +291,8 @@ e2function entity entity:parent()
 	return this:GetParent()
 end
 
+local getBone = E2Lib.getBone
+
 --- Returns the '''bone''' <this> is parented to.
 e2function bone entity:parentBone()
 	if not IsValid(this) then return nil end

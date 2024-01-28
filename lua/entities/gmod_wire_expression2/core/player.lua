@@ -699,6 +699,8 @@ e2function vector entity:aimNormal()
 	return this:GetEyeTraceNoCursor().HitNormal
 end
 
+local getBone = E2Lib.getBone
+
 --- Returns the bone the player is currently aiming at.
 e2function bone entity:aimBone()
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
