@@ -408,6 +408,7 @@ function ZVM:Precompile_Finalize()
       end
       table.insert(self.IsAddressPrecompiled[address],self.PrecompileStartXEIP)
     end
+    setfenv(result,self.Env)
     self.PrecompiledData[self.PrecompileStartXEIP] = result
   end
 
@@ -671,8 +672,6 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
     end
 
     -- Execute precompiled instruction
-    local previousVM = VM
-    VM = self
     if CLIENT then -- FIXME: hack around crash on PCALL
       self.PrecompiledData[self.XEIP]()
     else
@@ -682,7 +681,6 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
         self:Interrupt(5,1)
       end
     end
-    VM = previousVM
   else
     -- Precompile several next instructions
     self:Precompile_Initialize()
@@ -704,7 +702,31 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
   return
 end
 
-
+-- Any library that's needed by the entirety of the ZVM instruction set should go here
+-- Platform dependant libraries(GPU or SPU for example) should be added to the env by the platform
+ZVM.Env = {
+  math={
+    Clamp = math.Clamp,
+    floor = math.floor,
+    min = math.min,
+    max = math.max,
+    sqrt = math.sqrt,
+    sin = math.sin,
+    cos = math.cos,
+    pi = math.pi,
+    abs = math.abs,
+    random = math.random
+  },
+  bit={
+    bnot = bit.bnot,
+    band = bit.band,
+    bor = bit.bor,
+    bxor = bit.bxor,
+    lshift = bit.lshift,
+    rshift = bit.rshift
+  },
+  VM = ZVM
+}
 
 
 --------------------------------------------------------------------------------

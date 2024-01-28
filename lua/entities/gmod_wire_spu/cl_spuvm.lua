@@ -18,6 +18,11 @@ function ENT:OverrideVM()
     end
   end
 
+  self.VM.Env["WireSPU_GetSound"] = WireSPU_GetSound
+  self.VM.Env["WireSPU_SoundCache"] = WireSPU_SoundCache
+  self.VM.Env["WireSPU_MaxChannels"] = WireSPU_MaxChannels
+  self.VM.Env["CreateSound"] = CreateSound
+
   self.VM.Entity = self
 
   self.VM.Interrupt = function(self,interruptNo,interruptParameter,isExternal,cascadeInterrupt)
