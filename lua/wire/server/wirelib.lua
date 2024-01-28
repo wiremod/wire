@@ -1286,10 +1286,11 @@ end
 local ENTITY = FindMetaTable("Entity")
 
 if CPPI and ENTITY.CPPICanTool then
+	--- Returns if given player can tool the given entity.
 	---@param player Player
 	---@param entity Entity
 	---@param toolname string
-	function WireLib.CanTool(player, entity, toolname)
+	function WireLib.CanTool(player, entity, toolname) ---@return boolean
 		return entity:CPPICanTool(player, toolname)
 	end
 else
@@ -1307,13 +1308,78 @@ else
 		Entity = NULL, HitPos = zero, StartPos = zero,
 	}
 
+	--- Returns if given player can tool the given entity.
 	---@param player Player
 	---@param entity Entity
 	---@param toolname string
-	function WireLib.CanTool(player, entity, toolname)
+	function WireLib.CanTool(player, entity, toolname) ---@return boolean
 		local pos = entity:GetPos()
 		tr.Entity, tr.HitPos, tr.StartPos = entity, pos, pos
-		return hook.Run("CanTool", player, tr, toolname)
+		return hook.Run("CanTool", player, tr, toolname) ~= false
+	end
+end
+
+if CPPI and ENTITY.CPPICanPhysgun then
+	--- Returns if given player can physgun the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanPhysgun(player, target) ---@return boolean
+		return target:CPPICanPhysgun(player)
+	end
+else
+	--- Returns if given player can physgun the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanPhysgun(player, target) ---@return boolean
+		return hook.Run("PhysgunPickup", player, target) ~= false
+	end
+end
+
+if CPPI and ENTITY.CPPICanPickup then
+	--- Returns if given player can pickup the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanPickup(player, target) ---@return boolean
+		return target:CPPICanPickup(player)
+	end
+else
+	--- Returns if given player can pickup the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanPickup(player, target) ---@return boolean
+		return hook.Run("GravGunPickupAllowed", player, target) ~= false
+	end
+end
+
+if CPPI and ENTITY.CPPICanPunt then
+	--- Returns if given player can punt the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanPunt(player, target) ---@return boolean
+		return target:CPPICanPunt(player)
+	end
+else
+	--- Returns if given player can punt the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanPunt(player, target) ---@return boolean
+		return hook.Run("GravGunPunt", player, target) ~= false
+	end
+end
+
+if CPPI and ENTITY.CPPICanUse then
+	--- Returns if given player can use the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanUse(player, target) ---@return boolean
+		return target:CPPICanUse(player)
+	end
+else
+	--- Returns if given player can use the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanUse(player, target) ---@return boolean
+		return hook.Run("PlayerUse", player, target) ~= false
 	end
 end
 
@@ -1338,8 +1404,24 @@ else
 	end
 end
 
+if CPPI and ENTITY.CPPIDrive then -- why is this not CPPICanDrive?
+	--- Returns if given player can prop drive the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanDrive(player, target) ---@return boolean
+		return target:CPPIDrive(player)
+	end
+else
+	--- Returns if given player can prop drive the given entity.
+	---@param player Player
+	---@param target Entity
+	function WireLib.CanDrive(player, target) ---@return boolean
+		return hook.Run("CanDrive", player, target) ~= false
+	end
+end
+
 if CPPI and ENTITY.CPPICanProperty then
-	--- Returns if the player can apply the given property to the target
+	--- Returns if the player can apply the given property to the target.
 	---@param player Player
 	---@param target Entity
 	---@param property string
@@ -1347,7 +1429,7 @@ if CPPI and ENTITY.CPPICanProperty then
 		return target:CPPICanProperty(player, property)
 	end
 else
-	--- Returns if the player can apply the given property to the target
+	--- Returns if the player can apply the given property to the target.
 	---@param player Player
 	---@param target Entity
 	---@param property string
