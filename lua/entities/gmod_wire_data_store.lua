@@ -9,7 +9,15 @@ function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-	self.Values = {A=0, B=0, C=0, D=0, E=0, F=0, G=0, H=0}
+	self.Values = {};
+	self.Values["A"] = 0
+	self.Values["B"] = 0
+	self.Values["C"] = 0
+	self.Values["D"] = 0
+	self.Values["E"] = 0
+	self.Values["F"] = 0
+	self.Values["G"] = 0
+	self.Values["H"] = 0
 end
 
 duplicator.RegisterEntityClass("gmod_wire_data_store", WireLib.MakeWireEnt, "Data")
