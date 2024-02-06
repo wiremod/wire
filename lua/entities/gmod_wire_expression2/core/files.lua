@@ -365,7 +365,7 @@ end
 -- Client -> Server
 
 local function file_execute(ply, file, status)
-	
+
 	local queue = uploads[ply]
 	local ent = file.ent
 
