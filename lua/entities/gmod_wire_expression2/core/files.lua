@@ -300,7 +300,7 @@ registerCallback("destruct", function(self)
 	local iterable = { uploads[player], lists[player] } -- Ignore downloads in case the user is backing up data on removed
 
 	if iterable[1][1] and iterable[1][1].ent == entity then
-		iterable[1][1].stream:Remove() -- Special case for uploading files and only uploading files
+		iterable[1][1].Stream:Remove() -- Special case for uploading files and only uploading files
 	end
 	for _, tab in ipairs(iterable) do
 		local k = 2
