@@ -46,26 +46,22 @@ end
 
 net.Receive("wire_expression2_request_file", function()
 	local fpath,fname = process_filepath(net.ReadString())
-	if net.ReadBool() then
-		RunConsoleCommand("wire_expression2_file_singleplayer", fpath .. fname)
+	local fullpath = fpath .. fname
+
+	if file.Exists( fullpath,"DATA" ) and file.Size( fullpath, "DATA" ) <= (cv_max_transfer_size:GetInt() * 1024) then
+		local data = file.Read(fullpath, "DATA") or ""
+		net.Start("wire_expression2_file_upload")
+			net.WriteBool(true)
+			net.WriteUInt(#data, 32)
+			net.WriteStream(data)
+		net.SendToServer()
+
 	else
-		local fullpath = fpath .. fname
-
-		if file.Exists( fullpath,"DATA" ) and file.Size( fullpath, "DATA" ) <= (cv_max_transfer_size:GetInt() * 1024) then
-			local data = file.Read(fullpath, "DATA") or ""
-			net.Start("wire_expression2_file_upload")
-				net.WriteBool(true)
-				net.WriteUInt(#data, 32)
-				net.WriteStream(data)
-			net.SendToServer()
-
-		else
-			net.Start("wire_expression2_file_upload")
-				net.WriteBool(false)
-			net.SendToServer()
-		end
+		net.Start("wire_expression2_file_upload")
+			net.WriteBool(false)
+		net.SendToServer()
 	end
-end )
+end)
 
 --- File Write ---
 net.Receive("wire_expression2_file_download", function()

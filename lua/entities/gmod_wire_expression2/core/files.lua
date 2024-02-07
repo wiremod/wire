@@ -64,7 +64,6 @@ local function file_Upload(self, ply, entity, filename)
 	if #queue == 1 then
 		net.Start("wire_expression2_request_file")
 			net.WriteString(filename)
-			net.WriteBool(ply:IsListenServerHost())
 		net.Send(ply)
 	end
 
@@ -424,25 +423,6 @@ net.Receive("wire_expression2_file_upload", function(_, ply)
 			file_execute(ply, pfile, FILE_404)
 		end
 	end
-end)
-
-concommand.Add("wire_expression2_file_singleplayer", function(ply, _, args)
-	if not ply:IsListenServerHost() then return end
-	local pfile = uploads[ply][1]
-	if not pfile then return end
-
-	local path = args[1]
-	if not file.Exists(path, "DATA") then
-		file_execute(ply, pfile, FILE_404)
-		return
-	end
-
-	pfile.uploading = false
-	pfile.data = file.Read(path)
-	pfile.buffer = ""
-	pfile.uploaded = true
-
-	file_execute(ply, pfile, FILE_OK)
 end)
 
 --- Listing ---
