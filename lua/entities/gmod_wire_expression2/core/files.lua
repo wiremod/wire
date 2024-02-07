@@ -3,7 +3,7 @@
 	By: Dan (McLovin)
 ]]--
 
-local cv_max_transfer_size = CreateConVar("wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Maximum file size in kibibytes.")
+local cv_max_transfer_size = CreateConVar("wire_expression2_file_max_size", "1024", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Maximum file size in kibibytes.")
 local cv_transfer_max      = CreateConVar("wire_expression2_file_max_queue", "5", { FCVAR_ARCHIVE }, "Maximum number of files that can be queued at once.")
 
 E2Lib.RegisterExtension( "file", true, "Allows reading and writing of files in the player's local data directory." )
