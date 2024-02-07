@@ -56,7 +56,6 @@ net.Receive("wire_expression2_request_file", function()
 			net.Start("wire_expression2_file_upload")
 				net.WriteBool(true)
 				net.WriteUInt(#data, 32)
-				net.WriteUInt(tonumber(util.CRC(data)), 32)
 				net.WriteStream(data)
 			net.SendToServer()
 

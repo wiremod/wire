@@ -396,7 +396,6 @@ local function file_execute(ply, file, status)
 	if #queue ~= 0 then
 		net.Start("wire_expression2_request_file")
 			net.WriteString(queue[1].name)
-			net.WriteBool(ply:IsListenServerHost())
 		net.Send(ply)
 	end
 end
@@ -407,7 +406,6 @@ net.Receive("wire_expression2_file_upload", function(_, ply)
 	if pfile then
 		if net.ReadBool() and not pfile.uploading and not pfile.uploaded then
 			local len = net.ReadUInt(32)
-			local CRC = net.ReadUInt(32)
 			if len / 1024 > cv_max_transfer_size:GetInt() then
 				pfile.uploading = false
 				pfile.uploaded = false
@@ -419,11 +417,7 @@ net.Receive("wire_expression2_file_upload", function(_, ply)
 					pfile.uploading = false
 					pfile.uploaded = true
 
-					if tonumber(util.CRC(data)) ~= CRC then -- This isn't really possible but I guess it's nice to have
-						file_execute(ply, pfile, FILE_TRANSFER_ERROR)
-					else
-						file_execute(ply, pfile, FILE_OK)
-					end
+					file_execute(ply, pfile, FILE_OK)
 				end)
 			end
 		else
