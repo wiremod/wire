@@ -348,14 +348,14 @@ local function flushFileBufferInner()
 
 				if strlen > 0 then
 					net.Start("wire_expression2_file_download")
-					net.WriteUInt(2, 2)
-					net.WriteUInt(strlen, 32)
-					net.WriteData(data:sub(index + 1), strlen)
+						net.WriteUInt(2, 2)
+						net.WriteUInt(strlen, 32)
+						net.WriteData(data:sub(index + 1, index + 1 + strlen), strlen)
 					net.Send(ply)
 
-					fdata.index = strlen
-
+					fdata.index = index + strlen
 					die = false
+					
 				elseif strlen <= 0 then
 					net.Start("wire_expression2_file_download")
 						net.WriteUInt(3, 2)
