@@ -298,7 +298,7 @@ registerCallback("destruct", function(self)
 
 	local iterable = { uploads[player], lists[player] } -- Ignore downloads in case the user is backing up data on removed
 
-	if iterable[1][1] and iterable[1][1].ent == entity then
+	if iterable[1][1] and iterable[1][1].ent == entity and iterable[1][1].Stream then
 		iterable[1][1].Stream:Remove() -- Special case for uploading files and only uploading files
 	end
 	for _, tab in ipairs(iterable) do
@@ -411,7 +411,7 @@ net.Receive("wire_expression2_file_upload", function(_, ply)
 				file_execute(ply, pfile, FILE_TRANSFER_ERROR)
 			else
 				pfile.uploading = true
-				pfile.Stream = net.ReadStream(nil, function(data)
+				pfile.Stream = net.ReadStream(ply, function(data)
 					pfile.data = data
 					pfile.uploading = false
 					pfile.uploaded = true
