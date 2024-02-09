@@ -1246,9 +1246,9 @@ do
 		local pos = GetPos(ent)
 		local ang = GetAngles(ent)
 
-		if not rawequal(orientation[1], pos) or not rawequal(orientation[2], ang) then -- position or angle changed, must recompute
-			orientation[1]             = pos
-			orientation[2]             = ang
+		if not rawequal(cur_orientation[1], pos) or not rawequal(cur_orientation[2], ang) then -- position or angle changed, must recompute
+			cur_orientation[1]         = pos
+			cur_orientation[2]         = ang
 			cur_cached_positions       = { }
 			ents_cached_positions[ent] = cur_cached_positions
 			return
@@ -1260,7 +1260,7 @@ do
 
 		local fetch = cur_cached_positions[pos]
 
-		if fetch then 
+		if fetch then
 			return fetch
 		else
 			cur_cached_positions[pos] = LocalToWorld(cur_ent, pos)

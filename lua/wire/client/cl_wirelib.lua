@@ -75,7 +75,7 @@ function Wire_Render(ent)
 					node = nodes[j]
 					node_ent = node.Entity
 					if IsValid( node_ent ) then
-						endpos = WireLib_LocalToWorld(node.Pos)
+						endpos = WireLib_LocalToWorld(node_ent, node.Pos)
 						scroll = scroll + endpos:Distance(start) / 10
 						render_AddBeam(endpos, width, scroll, color)
 						render_AddBeam(endpos, width, scroll, color) -- A second beam in the same position ensures the line stays consistent and doesn't change width/become distorted.
