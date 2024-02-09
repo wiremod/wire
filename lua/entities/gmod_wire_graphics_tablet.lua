@@ -109,7 +109,7 @@ function ENT:Think()
 	local monitor = WireGPU_Monitors[model]
 	local ang = GPUEntity:LocalToWorldAngles(monitor.rot)
 	local pos = GPUEntity:LocalToWorld(monitor.offset)
-	local h = 512
+	local h = 1024
 	local w = h/monitor.RatioX
 	local x = -w/2
 	local y = -h/2

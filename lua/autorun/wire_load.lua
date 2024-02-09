@@ -28,6 +28,7 @@ if SERVER then
 	-- shared includes
 	AddCSLuaFile("wire/wire_paths.lua")
 	AddCSLuaFile("wire/wireshared.lua")
+	AddCSLuaFile("wire/wirenet.lua")
 	AddCSLuaFile("wire/wiregates.lua")
 	AddCSLuaFile("wire/wiremonitors.lua")
 	AddCSLuaFile("wire/gpulib.lua")
@@ -75,6 +76,7 @@ end
 -- shared includes
 include("wire/sh_modelplug.lua")
 include("wire/wireshared.lua")
+include("wire/wirenet.lua")
 include("wire/wire_paths.lua")
 include("wire/wiregates.lua")
 include("wire/wiremonitors.lua")

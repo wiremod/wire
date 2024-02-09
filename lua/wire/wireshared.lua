@@ -1273,3 +1273,39 @@ do
 		ents_orientations[ent]     = nil
 	end)
 end
+
+-- Notify --
+
+---@alias WireLib.NotifySeverity
+---| 0 # None
+---| 1 # Info
+---| 2 # Warning
+---| 3 # Error
+
+local severity2color = {
+	[0] = color_white,
+	[1] = color_white,
+	[2] = Color(255, 88, 1),
+	[3] = Color(255, 32, 0)
+}
+
+local WIREMOD_COLOR = Color(1, 168, 255)
+
+local severity2title = {
+	[0] = { "" },
+	[1] = { WIREMOD_COLOR, "[Wiremod]: " },
+	[2] = { WIREMOD_COLOR, "[Wiremod ", severity2color[2], "WARNING", WIREMOD_COLOR, "]: " },
+	[3] = { WIREMOD_COLOR, "[Wiremod ", severity2color[3], "ERROR", WIREMOD_COLOR, "]: " },
+}
+
+--- Internal. Creates a table for MsgC/chat.AddText.
+function WireLib.NotifyBuilder(msg, severity, color)
+	local ret = {}
+	for k, v in ipairs(severity2title[severity]) do
+		ret[k] = v
+	end
+	local n = #ret
+	ret[n + 1] = color or severity2color[severity]
+	ret[n + 2] = msg
+	return ret
+end

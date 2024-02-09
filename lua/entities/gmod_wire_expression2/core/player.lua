@@ -511,7 +511,7 @@ end
 
 __e2setcost(2)
 
-if CPPI and debug.getregistry().Player.CPPIGetFriends then
+if CPPI and FindMetaTable("Player").CPPIGetFriends then
 
 	local function Trusts(ply, whom)
 		if ply == whom then return true end
@@ -698,6 +698,8 @@ e2function vector entity:aimNormal()
 
 	return this:GetEyeTraceNoCursor().HitNormal
 end
+
+local getBone = E2Lib.getBone
 
 --- Returns the bone the player is currently aiming at.
 e2function bone entity:aimBone()
