@@ -1217,43 +1217,51 @@ end)
 -- LocalToWorld, but for use in hot loops to produce as little garbage as possible
 -- by Fasteroid
 do
-	local ents_orientations      = {}
+
+	local EntityMeta   = FindMetaTable("Entity") -- direct references are faster
+	local LocalToWorld = EntityMeta.LocalToWorld
+	local GetPos       = EntityMeta.GetPos
+	local GetAngles    = EntityMeta.GetAngles
+	local rawequal     = rawequal
+
+	local ents_orientations     = {}
 	local ents_cached_positions = {}
 
-	local LocalToWorld = FindMetaTable("Entity").LocalToWorld
-	local orientation, cur_cached_positions, cur_ent
+	local cur_cached_positions, cur_orientation, cur_ent
 
-	function WireLib.LocalToWorld_UseEnt(ent)
-		if cur_ent == ent then return end -- call this as much as you want
+	local function UseEnt(ent)
+		if cur_ent == ent then return end -- nothing to do
 
-		orientation          = ents_orientations[ent]
+		cur_orientation      = ents_orientations[ent]
 		cur_cached_positions = ents_cached_positions[ent]
 		cur_ent              = ent
 
-		if not orientation or not cur_cached_positions then
-			ents_orientations[ent]     = { ent:GetPos(), ent:GetAngles() }
-			cur_cached_positions       = {}
+		if not cur_orientation or not cur_cached_positions then -- first time, we have to recompute
+			ents_orientations[ent]     = { GetPos(ent), GetAngles(ent) }
+			cur_cached_positions       = { }
 			ents_cached_positions[ent] = cur_cached_positions
 			return
 		end
 
-		local pos = ent:GetPos()
-		local ang = ent:GetAngles()
+		local pos = GetPos(ent)
+		local ang = GetAngles(ent)
 
-		if not rawequal(orientation[1], pos) or not rawequal(orientation[2], ang) then
+		if not rawequal(orientation[1], pos) or not rawequal(orientation[2], ang) then -- position or angle changed, must recompute
 			orientation[1]             = pos
 			orientation[2]             = ang
-			cur_cached_positions       = {}
+			cur_cached_positions       = { }
 			ents_cached_positions[ent] = cur_cached_positions
 			return
 		end
-
-		op = retrieve
 	end
 
-	function WireLib.LocalToWorld_Find(pos)
+	function WireLib.LocalToWorld(ent, pos)
+		UseEnt(ent)
+
 		local fetch = cur_cached_positions[pos]
-		if fetch then return fetch
+
+		if fetch then 
+			return fetch
 		else
 			cur_cached_positions[pos] = LocalToWorld(cur_ent, pos)
 			return cur_cached_positions[pos]

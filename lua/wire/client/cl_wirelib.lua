@@ -17,13 +17,12 @@ BeamMatHR = Material("Models/effects/comball_tape")
 local scroll, scroll_offset, shouldblink = 0, 0, false
 
 --Precache everything we're going to use
-local CurTime             = CurTime
-local render_SetMaterial  = render.SetMaterial
-local render_StartBeam    = render.StartBeam
-local render_AddBeam      = render.AddBeam
-local render_EndBeam      = render.EndBeam
-local LocalToWorld_UseEnt = WireLib.LocalToWorld_UseEnt
-local LocalToWorld_Find   = WireLib.LocalToWorld_Find
+local CurTime              = CurTime
+local render_SetMaterial   = render.SetMaterial
+local render_StartBeam     = render.StartBeam
+local render_AddBeam       = render.AddBeam
+local render_EndBeam       = render.EndBeam
+local WireLib_LocalToWorld = WireLib.LocalToWorld
 
 hook.Add("Think", "Wire.WireScroll", function()
 	scroll_offset = CurTime() * WIRE_SCROLL_SPEED
@@ -76,8 +75,7 @@ function Wire_Render(ent)
 					node = nodes[j]
 					node_ent = node.Entity
 					if IsValid( node_ent ) then
-						LocalToWorld_UseEnt(node_ent)
-						endpos = LocalToWorld_Find(node.Pos)
+						endpos = WireLib_LocalToWorld(node.Pos)
 						scroll = scroll + endpos:Distance(start) / 10
 						render_AddBeam(endpos, width, scroll, color)
 						render_AddBeam(endpos, width, scroll, color) -- A second beam in the same position ensures the line stays consistent and doesn't change width/become distorted.
