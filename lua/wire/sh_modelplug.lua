@@ -3,7 +3,7 @@ ModelPlug = ModelPlug or {}
 local list_set = list.Set
 
 function ModelPlug.ListAddModels( listName, models, value )
-	value = value or true
+	value = value or {}
 	for k, v in ipairs(models) do
 		list_set(listName, v, value)
 	end
