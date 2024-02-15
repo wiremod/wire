@@ -1229,7 +1229,7 @@ function WireLib.GetComputeIfEntityTransformDirty(compute)
 			data[2] = ang
 			data[3] = compute(ent)
 		end
-		return data.computed
+		return data[3]
 	end
 end
 
