@@ -1214,64 +1214,23 @@ hook.Add("PlayerDisconnected", "WireLib_PlayerDisconnect", function(ply)
 end)
 
 
--- LocalToWorld, but for use in hot loops to produce as little garbage as possible
--- by Fasteroid
-do
+local EntityMeta   = FindMetaTable("Entity") -- direct references are faster
+local GetPos       = EntityMeta.GetPos
+local GetAngles    = EntityMeta.GetAngles
 
-	local EntityMeta   = FindMetaTable("Entity") -- direct references are faster
-	local LocalToWorld = EntityMeta.LocalToWorld
-	local GetPos       = EntityMeta.GetPos
-	local GetAngles    = EntityMeta.GetAngles
-	local rawequal     = rawequal
+function WireLib.GetComputeIfEntityTransformDirty(compute)
+	local ent_data = setmetatable({}, {__index=function(t,k) local r={Vector(math.huge), Angle()} t[k]=r return r end})
+	return ent_data, function(ent)
+		local data = ent_data[ent]
 
-	local ents_orientations     = {}
-	local ents_cached_positions = {}
-
-	local cur_cached_positions, cur_orientation, cur_ent
-
-	local function UseEnt(ent)
-		if cur_ent == ent then return end -- nothing to do
-
-		cur_orientation      = ents_orientations[ent]
-		cur_cached_positions = ents_cached_positions[ent]
-		cur_ent              = ent
-
-		if not cur_orientation or not cur_cached_positions then -- first time, we have to recompute
-			ents_orientations[ent]     = { GetPos(ent), GetAngles(ent) }
-			cur_cached_positions       = { }
-			ents_cached_positions[ent] = cur_cached_positions
-			return
+		local pos, ang = GetPos(ent), GetAngles(ent)
+		if orientation[1]~=data[1] or orientation[2]~=data[2] then
+			data[1] = pos
+			data[2] = ang
+			data[3] = compute(ent)
 		end
-
-		local pos = GetPos(ent)
-		local ang = GetAngles(ent)
-
-		if cur_orientation[1] ~= pos or not cur_orientation[2] ~= ang then -- position or angle changed, must recompute
-			cur_orientation[1]         = pos
-			cur_orientation[2]         = ang
-			cur_cached_positions       = { }
-			ents_cached_positions[ent] = cur_cached_positions
-			return
-		end
+		return data.computed
 	end
-
-	function WireLib.LocalToWorld(ent, pos)
-		UseEnt(ent)
-
-		local fetch = cur_cached_positions[pos]
-
-		if fetch then
-			return fetch
-		else
-			cur_cached_positions[pos] = LocalToWorld(cur_ent, pos)
-			return cur_cached_positions[pos]
-		end
-	end
-
-	hook.Add("EntityRemoved", "WireLib_LocalToWorld_Clear", function(ent)
-		ents_cached_positions[ent] = nil
-		ents_orientations[ent]     = nil
-	end)
 end
 
 -- Notify --

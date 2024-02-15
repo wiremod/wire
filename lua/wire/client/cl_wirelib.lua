@@ -22,7 +22,9 @@ local render_SetMaterial   = render.SetMaterial
 local render_StartBeam     = render.StartBeam
 local render_AddBeam       = render.AddBeam
 local render_EndBeam       = render.EndBeam
-local WireLib_LocalToWorld = WireLib.LocalToWorld
+local EntityMeta           = FindMetaTable("Entity")
+local IsValid              = EntityMeta.IsValid
+local ent_LocalToWorld     = EntityMeta.LocalToWorld
 
 hook.Add("Think", "Wire.WireScroll", function()
 	scroll_offset = CurTime() * WIRE_SCROLL_SPEED
@@ -30,6 +32,18 @@ end )
 
 timer.Create("Wire.WireBlink", 1 / WIRE_BLINKS_PER_SECOND, 0, function() -- there's no reason this needs to be in the render hook, no?
 	shouldblink = not shouldblink
+end)
+
+local nodeEntData, nodeTransformer = WireLib.GetComputeIfEntityTransformDirty(function(ent)
+    return setmetatable({}, {__index = function(t, k)
+		local transformed = ent_LocalToWorld(ent, k)
+		t[k] = transformed
+		return transformed
+	end})
+end)
+
+hook.Add("EntityRemoved", "WireLib_Node_Cache_Cleanup", function(ent)
+	nodeEntData[ent] = nil
 end)
 
 local mats_cache = {} -- nothing else uses this, it doesn't need to be global
@@ -55,13 +69,15 @@ function Wire_Render(ent)
 
 	local blink = shouldblink and ent:GetNWString("BlinkWire")
 	--CREATING (Not assigning a value) local variables OUTSIDE of cycle a bit faster
-	local start, color, nodes, len, endpos, node, node_ent
+	local start, color, nodes, len, endpos, node, node_ent, last_node_ent, vector_cache
 	for net_name, wiretbl in pairs(wires) do
 
 		width = wiretbl.Width
 
 		if width > 0 and blink ~= net_name then
-			start = ent:LocalToWorld(wiretbl.StartPos)
+			last_node_ent = ent
+			vector_cache = nodeTransformer(ent)
+			start = vector_cache[wiretbl.StartPos]
 			color = wiretbl.Color
 			nodes = wiretbl.Path
 			scroll = scroll_offset
@@ -75,7 +91,11 @@ function Wire_Render(ent)
 					node = nodes[j]
 					node_ent = node.Entity
 					if IsValid( node_ent ) then
-						endpos = WireLib_LocalToWorld(node_ent, node.Pos)
+						if node_ent ~= last_node_ent then
+							last_node_ent = node_ent
+							vector_cache = nodeTransformer(node_ent)
+						end
+						endpos = vector_cache[node.Pos]
 						scroll = scroll + endpos:Distance(start) / 10
 						render_AddBeam(endpos, width, scroll, color)
 						render_AddBeam(endpos, width, scroll, color) -- A second beam in the same position ensures the line stays consistent and doesn't change width/become distorted.
