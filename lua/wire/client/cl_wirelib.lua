@@ -35,7 +35,7 @@ timer.Create("Wire.WireBlink", 1 / WIRE_BLINKS_PER_SECOND, 0, function() -- ther
 end)
 
 local nodeEntData, nodeTransformer = WireLib.GetComputeIfEntityTransformDirty(function(ent)
-    return setmetatable({}, {__index = function(t, k)
+	return setmetatable({}, {__index = function(t, k)
 		local transformed = ent_LocalToWorld(ent, k)
 		t[k] = transformed
 		return transformed
