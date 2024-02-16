@@ -460,7 +460,7 @@ ZVM.OpcodeTable[64] = function(self)   --BAND
     self:Dyn_EmitOperand("VM:BinaryAnd($1,$2)")
     self:Dyn_Emit("VM.TMR = VM.TMR + 30")
   self:Dyn_Emit("else")
-    self:Dyn_EmitOperand("VM:ClampBinaryToIPREC(bit.band($1,$2)")
+    self:Dyn_EmitOperand("VM:ClampBinaryToIPREC(bit.band($1,$2))")
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[65] = function(self)  --BOR
