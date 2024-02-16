@@ -34,7 +34,7 @@ timer.Create("Wire.WireBlink", 1 / WIRE_BLINKS_PER_SECOND, 0, function() -- ther
 	shouldblink = not shouldblink
 end)
 
-local nodeEntData, nodeTransformer = WireLib.GetComputeIfEntityTransformDirty(function(ent)
+local nodeTransformer = WireLib.GetComputeIfEntityTransformDirty(function(ent)
 	return setmetatable({}, {__index = function(t, k)
 		local transformed = ent_LocalToWorld(ent, k)
 		t[k] = transformed
@@ -43,7 +43,7 @@ local nodeEntData, nodeTransformer = WireLib.GetComputeIfEntityTransformDirty(fu
 end)
 
 hook.Add("EntityRemoved", "WireLib_Node_Cache_Cleanup", function(ent)
-	nodeEntData[ent] = nil
+	nodeTransformer[ent] = nil
 end)
 
 local mats_cache = {} -- nothing else uses this, it doesn't need to be global

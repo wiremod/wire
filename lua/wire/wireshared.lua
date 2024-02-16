@@ -1219,18 +1219,19 @@ local GetPos       = EntityMeta.GetPos
 local GetAngles    = EntityMeta.GetAngles
 
 function WireLib.GetComputeIfEntityTransformDirty(compute)
-	local ent_data = setmetatable({}, {__index=function(t,k) local r={Vector(math.huge), Angle()} t[k]=r return r end})
-	return ent_data, function(ent)
-		local data = ent_data[ent]
-
-		local pos, ang = GetPos(ent), GetAngles(ent)
-		if orientation[1]~=data[1] or orientation[2]~=data[2] then
-			data[1] = pos
-			data[2] = ang
-			data[3] = compute(ent)
+	return setmetatable({}, {
+		__index=function(t,ent) local r={Vector(math.huge), Angle()} t[ent]=r return r end,
+		__call=function(t,ent)
+			local data = t[ent]
+			local pos, ang = GetPos(ent), GetAngles(ent)
+			if pos~=data[1] or ang~=data[2] then
+				data[1] = pos
+				data[2] = ang
+				data[3] = compute(ent)
+			end
+			return data[3]
 		end
-		return data[3]
-	end
+	})
 end
 
 -- Notify --
