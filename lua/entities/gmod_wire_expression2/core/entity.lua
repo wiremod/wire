@@ -527,11 +527,6 @@ end
 e2function void entity:setSkin(skinIndex)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
-
-	if this:SkinCount() < 1 then return end
-	if skinIndex >= this:SkinCount() then return end
-
-	-- This should probably return a number for if it successfully set the skin.
 	this:SetSkin(skinIndex)
 end
 
