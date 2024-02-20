@@ -97,3 +97,64 @@ function sound.Play(snd, pos, level, pitch, volume, ...)
 
     sound.Play_NoWireHook(snd, pos, level, pitch, volume, ...)
 end
+
+
+local CVAR_snd_refdb = GetConVar("snd_refdb")
+local CVAR_snd_refdist = GetConVar("snd_refdist")
+local MAX_DIST_GAIN = 1000
+
+function lib.CalculateDistanceGain(dist, sndlevel)
+    -- See SNDLVL_TO_DIST_MULT in engine/audio/private/snd_dma.cpp
+    -- See SND_GetGainFromMult in engine/sound_shared.cpp
+
+    local finalsndlevel = CVAR_snd_refdb:GetFloat() - sndlevel
+    local distMul = math.pow(10, finalsndlevel / 20) / CVAR_snd_refdist:GetFloat()
+
+    local gain = 1/(distMul * dist)
+
+    return math.min(gain, MAX_DIST_GAIN) -- No infinities
+end
+
+-- Maximum distance from player to adv_microphone and from adv_speaker to player, in which voice can be heard
+lib.VOICE_MAXDIST_SQR = 250 * 250
+
+lib._DCACHE = lib._DCACHE or {}
+local DCACHE = lib._DCACHE
+DCACHE.__index = DCACHE
+
+--[[
+    struct PlayerDistanceCache {
+        fn :Think()
+
+        readonly .PlayersInRange: table(Player, true)
+    }
+
+    fn WireLib.Sound.NewPlayerDistanceCache(ent: Entity, max_dist_sqr: number) -> PlayerDistanceCache
+]]
+
+function lib.NewPlayerDistanceCache(ent, max_dist_sqr)
+    local obj = setmetatable({
+        _ent = ent,
+        _maxDistSqr = max_dist_sqr,
+        PlayersInRange = {}
+    }, DCACHE)
+
+    return obj
+end
+
+function DCACHE:Think()
+    local ent = self._ent
+    if not IsValid(ent) then return end
+    
+    local plys = {}
+    self.PlayersInRange = plys
+
+    local entPos = ent:GetPos()
+    local maxDistSqr = self._maxDistSqr
+
+    for _, ply in ipairs(player.GetHumans()) do
+        if ply:GetPos():DistToSqr(entPos) < maxDistSqr then
+            plys[ply] = true
+        end
+    end
+end

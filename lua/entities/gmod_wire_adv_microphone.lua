@@ -1,9 +1,6 @@
 AddCSLuaFile()
 
 local MIN_VOLUME = 0.02
-local MAX_DIST_GAIN = 1000
-
-local PLAYER_VOICE_MAXDIST_SQR = 250*250
 
 ENT.Type = "anim"
 ENT.Base = "base_wire_entity"
@@ -37,6 +34,8 @@ function ENT:Initialize()
         self.Inputs = WireLib.CreateInputs(self, {
             "Active"
         })
+
+        self._plyCache = WireLib.Sound.NewPlayerDistanceCache(self, WireLib.Sound.VOICE_MAXDIST_SQR)
     end
 
     -- table(Entity(gmod_wire_adv_speaker), true)
@@ -46,19 +45,22 @@ function ENT:Initialize()
     self:OnActiveChanged(nil, nil, self:GetActive())
 end
 
-local function PlayerCanHearPlayersVoice_Hook(listener, talker)
-    local talkerPos = talker:GetPos()
-    local listenerPos = listener:GetPos()
+if SERVER then
+    function ENT:Think()
+        if not self:GetLive() then return end
 
+        self._plyCache:Think()
+    end
+end
+
+local function PlayerCanHearPlayersVoice_Hook(listener, talker)
     -- Note: any given speaker can only be connected to one microphone,
     -- so this loops can be considered O(nMic), not O(nMic*nSpeaker)
     for _, mic in ipairs(LiveMics) do
-        if mic:GetPos():DistToSqr(talkerPos) > PLAYER_VOICE_MAXDIST_SQR then goto mic_next end
+        if not mic._plyCache.PlayersInRange[talker] then goto mic_next end
 
         for speaker in pairs(mic._activeSpeakers) do
-            if IsValid(speaker) and
-                speaker:GetPos():DistToSqr(listenerPos) <= PLAYER_VOICE_MAXDIST_SQR
-            then
+            if IsValid(speaker) and speaker._plyCache.PlayersInRange[listener] then
                 return true, false -- Can hear, not in 3D
             end
         end
@@ -74,7 +76,7 @@ local function Mic_SetLive(self, isLive)
         self:AddEFlags(EFL_FORCE_CHECK_TRANSMIT)
     end
 
-    if isLive then
+    if isLive then  
         if LiveMics[1] == nil then -- Adding first microphone to live list
             hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", PlayerCanHearPlayersVoice_Hook)
         end 
@@ -154,23 +156,7 @@ function ENT:OnRemove()
     end)
 end
 
-local CVAR_snd_refdb = GetConVar("snd_refdb")
-local CVAR_snd_refdist = GetConVar("snd_refdist")
-
-local function CalculateDistanceGain(dist, sndlevel)
-    -- See SNDLVL_TO_DIST_MULT in engine/audio/private/snd_dma.cpp
-    -- See SND_GetGainFromMult in engine/sound_shared.cpp
-
-    local finalsndlevel = CVAR_snd_refdb:GetFloat() - sndlevel
-    local distMul = math.pow(10, finalsndlevel / 20) / CVAR_snd_refdist:GetFloat()
-
-    local gain = 1/(distMul * dist)
-
-    return math.min(gain, MAX_DIST_GAIN) -- No infinities
-end
-
-
-
+local CalculateDistanceGain = WireLib.Sound.CalculateDistanceGain
 
 hook.Add("EntityEmitSound", "Wire.AdvMicrophone", function(snd)
     for _, mic in ipairs(LiveMics) do

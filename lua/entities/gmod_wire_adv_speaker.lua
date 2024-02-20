@@ -28,6 +28,17 @@ if SERVER then
         })
 
         self:OnMicrophoneChanged(nil, nil, self:GetMicrophone())
+
+        self._plyCache = WireLib.Sound.NewPlayerDistanceCache(self, WireLib.Sound.VOICE_MAXDIST_SQR)
+    end
+
+    function ENT:Think()
+        if not self:GetActive() then return end
+        
+        local mic = self:GetMicrophone()
+        if not IsValid(mic) or not mic:GetActive() then return end
+
+        self._plyCache:Think()
     end
 end
 
