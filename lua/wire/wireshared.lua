@@ -1213,6 +1213,27 @@ hook.Add("PlayerDisconnected", "WireLib_PlayerDisconnect", function(ply)
   end
 end)
 
+
+local EntityMeta   = FindMetaTable("Entity") -- direct references are faster
+local GetPos       = EntityMeta.GetPos
+local GetAngles    = EntityMeta.GetAngles
+
+function WireLib.GetComputeIfEntityTransformDirty(compute)
+	return setmetatable({}, {
+		__index=function(t,ent) local r={Vector(math.huge), Angle()} t[ent]=r return r end,
+		__call=function(t,ent)
+			local data = t[ent]
+			local pos, ang = GetPos(ent), GetAngles(ent)
+			if pos~=data[1] or ang~=data[2] then
+				data[1] = pos
+				data[2] = ang
+				data[3] = compute(ent)
+			end
+			return data[3]
+		end
+	})
+end
+
 -- Notify --
 
 ---@alias WireLib.NotifySeverity
