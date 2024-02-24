@@ -111,8 +111,11 @@ function ENT:UpdatePerf()
 
 end
 
-function ENT:Execute()
+function ENT:Execute(script, args)
 	if self.error or not self.context or self.context.resetting then return end
+
+	script = script or self.script
+	args = args or self.context
 
 	self:PCallHook('preexecute')
 
@@ -124,7 +127,7 @@ function ENT:Execute()
 
 	local bench = SysTime()
 
-	local ok, msg = pcall(self.script, self.context)
+	local ok, msg = pcall(script, args)
 
 	if not ok then
 		local _catchable, msg, trace = E2Lib.unpackException(msg)
@@ -180,6 +183,8 @@ function ENT:Execute()
 	if self.error then
 		self:Destruct()
 	end
+
+	return msg
 end
 
 ---@param evt string
