@@ -6,7 +6,7 @@ language.Add("wire_model", "Model:")
 function ModelPlug_AddToCPanel(panel, category, toolname, textbox_label, height)
 	local list = list.Get("Wire_"..category.."_Models")
 	if table.Count(list) > 1 then
-		local ModelSelect = vgui.Create("DWireModelSelect", self)
+		local ModelSelect = vgui.Create("DWireModelSelect", panel)
 		ModelSelect:SetModelList(list, toolname .. "_model")
 		ModelSelect:SetHeight(height)
 		panel:AddPanel(ModelSelect)
