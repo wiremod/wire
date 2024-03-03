@@ -1096,8 +1096,11 @@ CPU(048, "STEF",          0,   4.00,    R0,        "",      "",      "Enable ext
 CPU(049, "CLEF",          0,   4.00,    R0,        "",      "",      "Disable extended mode")
 ---- Dec 5 --------------------------------------------------------------------------------------------------------------------------------------
 CPU(050, "AND",           2,   1.00,    0,         "X",     "Y",     "Logical AND between X and Y")
+CPU(050, "LAND",          2,   1.00,    0,         "X",     "Y",     "Logical AND between X and Y")
 CPU(051, "OR",            2,   1.00,    0,         "X",     "Y",     "Logical OR between X and Y")
+CPU(051, "LOR",           2,   1.00,    0,         "X",     "Y",     "Logical OR between X and Y")
 CPU(052, "XOR",           2,   1.00,    0,         "X",     "Y",     "Logical XOR between X and Y")
+CPU(052, "LXOR",          2,   1.00,    0,         "X",     "Y",     "Logical XOR between X and Y")
 CPU(053, "FSIN",          2,   1.00,    TR,        "X",     "Y",     "Write sine of X to Y")
 CPU(054, "FCOS",          2,   1.00,    TR,        "X",     "Y",     "Write cosine of X to Y")
 CPU(055, "FTAN",          2,   1.00,    TR,        "X",     "Y",     "Write tangent of X to Y")
@@ -1173,6 +1176,7 @@ CPU(106, "JNGR",          1,   3.00,    CB,        "INT",   "",      "Relative j
 CPU(107, "JER",           1,   3.00,    CB,        "INT",   "",      "Relative jump INT bytes forward if result is equal")
 CPU(107, "JZR",           1,   3.00,    CB,        "INT",   "",      "Relative jump INT bytes forward if result is zero")
 CPU(108, "LNEG",          1,   3.00,    W1,        "X",     "",      "Logically negate X")
+CPU(108, "LNOT",          1,   3.00,    W1,        "X",     "",      "Logically negate X")
 CPU(109, "RESERVED",      1,   0.00,    R0,        "",      "",      "")
 ---- Dec 11 -------------------------------------------------------------------------------------------------------------------------------------
 CPU(110, "NMIRET",        0,   2.00,    R0+OL,     "",      "",      "EXTRET")
