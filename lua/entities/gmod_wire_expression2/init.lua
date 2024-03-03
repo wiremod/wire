@@ -123,11 +123,10 @@ function ENT:Execute()
 
 	self:PCallHook("preexecute")
 
-	local name = selfTbl.name
 	context.stackdepth = context.stackdepth + 1
 
 	if context.stackdepth >= 150 then
-		self:Error("Expression 2 (" .. name .. "): stack quota exceeded", "stack quota exceeded")
+		self:Error("Expression 2 (" .. selfTbl.name .. "): stack quota exceeded", "stack quota exceeded")
 	end
 
 	local bench = SysTime()
@@ -142,12 +141,12 @@ function ENT:Execute()
 		elseif msg == "perf" then
 			local trace = context.trace
 			self:UpdatePerf(selfTbl)
-			self:Error("Expression 2 (" .. name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
+			self:Error("Expression 2 (" .. selfTbl.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
 		elseif trace then
-			self:Error("Expression 2 (" .. name .. "): Runtime error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
+			self:Error("Expression 2 (" .. selfTbl.name .. "): Runtime error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 		else
 			local trace = context.trace
-			self:Error("Expression 2 (" .. name .. "): Internal error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
+			self:Error("Expression 2 (" .. selfTbl.name .. "): Internal error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 		end
 	end
 
@@ -185,7 +184,7 @@ function ENT:Execute()
 
 	if context.prfcount + context.prf - e2_softquota > e2_hardquota then
 		local trace = context.trace
-		self:Error("Expression 2 (" .. name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "hard quota exceeded")
+		self:Error("Expression 2 (" .. selfTbl.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "hard quota exceeded")
 	end
 
 	if self.error then
