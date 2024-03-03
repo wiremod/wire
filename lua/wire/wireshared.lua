@@ -420,13 +420,14 @@ end
 -- Works for every entity that has wire in-/output.
 -- Very important and useful for checks!
 function WireLib.HasPorts(ent)
-	if (ent.IsWire) then return true end
-	if (ent.Base == "base_wire_entity") then return true end
+	local entTbl = ent:GetTable()
+	if entTbl.IsWire then return true end
+	if entTbl.Base == "base_wire_entity" then return true end
 
 	-- Checks if the entity is in the list, it checks if the entity has self.in-/outputs too.
 	local In, Out = WireLib.GetPorts(ent)
-	if (In and (ent.Inputs or CLIENT)) then return true end
-	if (Out and (ent.Outputs or CLIENT)) then return true end
+	if In and (entTbl.Inputs or CLIENT) then return true end
+	if Out and (entTbl.Outputs or CLIENT) then return true end
 
 	return false
 end

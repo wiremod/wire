@@ -324,15 +324,17 @@ end
 -- It also allows us to only update overlays when someone is looking at the entity.
 
 function ENT:SetOverlayText( txt )
-	if not self.OverlayData then
-		self.OverlayData = {}
+	local overlayData = self.OverlayData
+	if not overlayData then
+		overlayData = {}
+		self.OverlayData = overlayData
 	end
 	if txt and #txt > 12000 then
 		txt = string.sub(txt,1,12000) -- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
 	end
-	if txt == self.OverlayData.txt then return end
-	self.OverlayData.txt = txt
-	self.OverlayData.__time = CurTime()
+	if txt == overlayData.txt then return end
+	overlayData.txt = txt
+	overlayData.__time = CurTime()
 end
 
 function ENT:SetOverlayData( data )
