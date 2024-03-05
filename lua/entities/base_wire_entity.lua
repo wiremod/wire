@@ -151,7 +151,6 @@ if CLIENT then
 
 		surface.SetFont( "GModWorldtip" )
 
-		-- local txt = data.txt
 		local class = getWireName( self ) .. " [" .. self:EntIndex() .. "]"
 
 		local name

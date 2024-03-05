@@ -631,20 +631,18 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 	if not HasPorts(ent) then return end
 
 	local entTbl = ent:GetTable()
-	local outputs = entTbl.Outputs
-	if not outputs then return end
+	if not entTbl.Outputs then return end
 
-	local output = outputs[oname]
+	local output = entTbl.Outputs[oname]
 	if not output then return end
 
-	local outputType = output.Type
-	local ty = WireLib.DT[outputType]
+	local ty = WireLib.DT[output.Type]
 	if ty and not ty.Validator(value) then
 		-- Not copying here is fine since data types are immutable outside E2.
 		value = ty.Zero()
 	end
 
-	if value ~= output.Value or outputType == "ARRAY" or outputType == "TABLE" or (outputType == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]]) then
+	if value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]]) then
 		local timeOfFrame = CurTime()
 		if timeOfFrame ~= output.TriggerTime then
 			-- Reset the TriggerLimit every frame
@@ -660,9 +658,9 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 
 		if iter then
 			for _, dst in ipairs(outputConnected) do
-				local ent = dst.Entity
-				if IsValid(ent) then
-					iter:Add(ent, dst.Name, value)
+				local dstEnt = dst.Entity
+				if IsValid(dstEnt) then
+					iter:Add(dstEnt, dst.Name, value)
 				end
 			end
 			return
@@ -671,9 +669,9 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 		iter = WireLib.CreateOutputIterator()
 
 		for _, dst in ipairs(outputConnected) do
-			local ent = dst.Entity
-			if IsValid(ent) then
-				WireLib.TriggerInput(ent, dst.Name, value, iter)
+			local dstEnt = dst.Entity
+			if IsValid(dstEnt) then
+				WireLib.TriggerInput(dstEnt, dst.Name, value, iter)
 			end
 		end
 
