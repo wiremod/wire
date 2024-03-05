@@ -43,21 +43,25 @@ if CLIENT then
 			hook.Add("DrawDeathNotice", "wire_pod_drawdeathnotice", function() return false end)
 			hook.Add("HUDDrawTargetID", "wire_pod_huddrawtargetid", function() return false end)
 			hook.Add("HUDShouldDraw", "wire_pod_hudshoulddraw", function(name)
+				local ply = LocalPlayer()
+
 				if hideHUD > 0 then
 					if ply:InVehicle() then
-						--Allow crosshair (it can be hidden using the other input) and CHudGMod (for the EGP HUDPaint to pass through). Hide the chat if the input is higher than 1
+						-- Allow crosshair (it can be hidden using the other input) and CHudGMod (for the EGP HUDPaint to pass through). Hide the chat if the input is higher than 1
 						if name ~= "CHudCrosshair" and name ~= "CHudGMod" and (hideHUD > 1 and name == "CHudChat" or name ~= "CHudChat")  then return false end
 					else
 						hideHUD = 0
 					end
 				else
-					--Restore toolgun HUD
+					-- Restore toolgun HUD
 					local toolgun = ply:GetWeapon("gmod_tool")
+
 					if IsValid(toolgun) and toolgun.DrawHUD == blank and toolgunHUDFunc ~= nil then
 						toolgun.DrawHUD = toolgunHUDFunc
 					end
 					toolgunHUDFunc = nil
-					--Restore HUDPaints and other HUD elements
+
+					-- Restore HUDPaints and other HUD elements
 					local hooks = hook.GetTable()["HUDPaint"]
 					for k,v in pairs(hooks) do
 						if v == blank and savedHooks ~= nil and savedHooks[k] ~= nil then
@@ -155,7 +159,7 @@ function ENT:Initialize()
 	}
 
 	local inputs = {
-		"Lock", "Terminate", "Strip weapons", "Eject",
+		"Lock", "Terminate", "Strip Weapons", "Eject",
 		"Disable", "Crosshairs", "Brake", "Allow Buttons",
 		"Relative (If this is non-zero, the 'Bearing' and 'Elevation' outputs will be relative to the vehicle.)",
 		"Damage Health (Damages the driver's health.)", "Damage Armor (Damages the driver's armor.)", "Hide Player", "Hide HUD", "Show Cursor",
@@ -274,7 +278,6 @@ function ENT:OnRemove()
 	end
 end
 
--- function ENT:HasPod() return (self.Pod and self.Pod:IsValid()) end
 function ENT:GetPod()
 	local pod = self.Pod
 	if not IsValid(pod) then return end
@@ -305,7 +308,6 @@ function ENT:SetPod(pod)
 	return true
 end
 
--- function ENT:HasPly() return self.Ply and self.Ply:IsValid() end
 function ENT:GetPly()
 	local ply = self.Ply
 	if not IsValid(ply) then return end
@@ -411,7 +413,7 @@ function ENT:TriggerInput(name, value)
 		if value == 0 or not ply then return end
 		if self.RC then self:RCEject(ply) end
 		ply:Kill()
-	elseif name == "Strip weapons" then
+	elseif name == "Strip Weapons" then
 		local ply = self:GetPly()
 		if value == 0 or not ply then return end
 		if self.RC then
