@@ -144,7 +144,7 @@ e2function number vector2:dot(vector2 other)
 end
 
 e2function number vector2:cross(vector2 other)
-	return this[1] * other[2] - this[2] * other[1] 
+	return this[1] * other[2] - this[2] * other[1]
 end
 
 -- returns the outer product (tensor product) of two vectors
