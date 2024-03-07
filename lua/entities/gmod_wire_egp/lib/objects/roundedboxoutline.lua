@@ -27,6 +27,4 @@ Obj.DataStreamInfo = function( self )
 	return tbl
 end
 
-Obj.Contains = nil
-
 return Obj

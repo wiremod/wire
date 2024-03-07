@@ -228,8 +228,14 @@ end
 --------------------------------------------------------
 -- Other
 --------------------------------------------------------
-function EGP:ValidEGP( Ent )
-	return IsValid( Ent ) and (Ent:GetClass() == "gmod_wire_egp" or Ent:GetClass() == "gmod_wire_egp_hud" or Ent:GetClass() == "gmod_wire_egp_emitter")
+do
+	local EntMeta = FindMetaTable( "Entity" )
+	local IsValid = EntMeta.IsValid
+	local GetTable = EntMeta.GetTable
+
+	function EGP:ValidEGP( Ent )
+		return IsValid( Ent ) and GetTable( Ent ).IsEGP == true
+	end
 end
 
 

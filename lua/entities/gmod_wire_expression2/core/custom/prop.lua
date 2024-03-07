@@ -706,8 +706,8 @@ e2function table entity:ragdollGetPose()
 	local pose = E2Lib.newE2Table()
 	local bones = GetBones(this)
 	local originPos, originAng = bones[0]:GetPos(), bones[0]:GetAngles()
+	local size = 0
 
-	-- We want to skip bone 0 as that will be the reference point
 	for k, bone in pairs(bones) do
 		local value = E2Lib.newE2Table()
 		local pos, ang = WorldToLocal(bone:GetPos(), bone:GetAngles(), originPos, originAng)
@@ -720,9 +720,12 @@ e2function table entity:ragdollGetPose()
 
 		pose.n[k] = value
 		pose.ntypes[k] = "t"
+		size = size + 1
 	end
 
-	pose.size = #pose.n
+	pose.stypes._origina = "a"
+	pose.s._origina = bones[0]:GetAngles()
+	pose.size = size + 1
 	return pose
 end
 
@@ -734,8 +737,11 @@ e2function void entity:ragdollSetPose(table pose, rotate)
 	if rotate ~= 0 then
 		originAng = bones[0]:GetAngles()
 	else
-		originAng = this:GetForward():Angle()
+		local stype = pose.stypes._origina
+		originAng = stype and stype == "a" and pose.s._origina or angle_zero
 	end
+
+	self.prf = self.prf + pose.size * 2
 
 	for k, v in pairs(pose.n) do
 		local pos, ang = LocalToWorld(v.n[1], v.n[2], originPos, originAng)
@@ -752,6 +758,8 @@ e2function void entity:ragdollSetPose(table pose)
 	if pose.size == 0 then return end
 	local bones = GetBones(this)
 	local originPos, originAng = bones[0]:GetPos(), bones[0]:GetAngles() -- Rotate by default.
+
+	self.prf = self.prf + pose.size * 2
 
 	for k, v in pairs(pose.n) do
 		local pos, ang = LocalToWorld(v.n[1], v.n[2], originPos, originAng)

@@ -511,13 +511,13 @@ end
 
 __e2setcost(2)
 
-if CPPI and debug.getregistry().Player.CPPIGetFriends then
+if CPPI and FindMetaTable("Player").CPPIGetFriends then
 
 	local function Trusts(ply, whom)
 		if ply == whom then return true end
 		local friends = ply:CPPIGetFriends()
 		if not istable(friends) then return false end
-		for _,friend in pairs(friends) do
+		for _, friend in pairs(friends) do
 			if whom == friend then return true end
 		end
 		return false
@@ -553,6 +553,81 @@ else
 
 end
 
+e2function number entity:canTool(entity target, string toolname)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	if not IsValid(target) and target ~= game.GetWorld() then return self:throw("Invalid target entity!", 0) end
+
+	return WireLib.CanTool(this, target, toolname) and 1 or 0
+end
+
+e2function number entity:canPhysgun(entity target)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	if not IsValid(target) and target ~= game.GetWorld() then return self:throw("Invalid target entity!", 0) end
+
+	return WireLib.CanPhysgun(this, target) and 1 or 0
+end
+
+e2function number entity:canPickup(entity target)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	if not IsValid(target) and target ~= game.GetWorld() then return self:throw("Invalid target entity!", 0) end
+
+	return WireLib.CanPickup(this, target) and 1 or 0
+end
+
+e2function number entity:canPunt(entity target)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	if not IsValid(target) and target ~= game.GetWorld() then return self:throw("Invalid target entity!", 0) end
+
+	return WireLib.CanPunt(this, target) and 1 or 0
+end
+
+e2function number entity:canUse(entity target)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	if not IsValid(target) and target ~= game.GetWorld() then return self:throw("Invalid target entity!", 0) end
+
+	return WireLib.CanUse(this, target) and 1 or 0
+end
+
+e2function number entity:canDamage(entity target)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	if not IsValid(target) and target ~= game.GetWorld() then return self:throw("Invalid target entity!", 0) end
+
+	return WireLib.CanDamage(this, target) and 1 or 0
+end
+
+e2function number entity:canDrive(entity target)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	if not IsValid(target) and target ~= game.GetWorld() then return self:throw("Invalid target entity!", 0) end
+
+	return WireLib.CanDrive(this, target) and 1 or 0
+end
+
+e2function number entity:canProperty(entity target, string property)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	if not IsValid(target) and target ~= game.GetWorld() then return self:throw("Invalid target entity!", 0) end
+
+	return WireLib.CanProperty(this, target, property) and 1 or 0
+end
+
+e2function number entity:canEditVariable(entity target, string key, string val)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	if not IsValid(target) and target ~= game.GetWorld() then return self:throw("Invalid target entity!", 0) end
+
+	key = key:lower()
+	local edit = target:GetEditingData()[key]
+	if not edit then return self:throw("Property '" .. key .. "' does not exist on entity!", 0) end
+
+	return WireLib.CanEditVariable(target, this, key, val, edit) and 1 or 0
+end
 
 local steamfriends = {}
 
@@ -698,6 +773,8 @@ e2function vector entity:aimNormal()
 
 	return this:GetEyeTraceNoCursor().HitNormal
 end
+
+local getBone = E2Lib.getBone
 
 --- Returns the bone the player is currently aiming at.
 e2function bone entity:aimBone()

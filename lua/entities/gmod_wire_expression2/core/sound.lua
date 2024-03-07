@@ -71,12 +71,11 @@ local function soundStop(self, index, fade)
 end
 
 local function soundCreate(self, entity, index, time, path, fade)
+	path = string.Trim(string.sub(path, 1, 260))
 	if path:match('["?]') then return end
 	local data = self.data.sound_data
 	if not isAllowed( self ) then return end
 
-	path = path:Trim()
-	path = path:gsub( "\\", "/" )
 	if isnumber( index ) then index = math.floor( index ) end
 
 	local timerid = "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index
@@ -303,7 +302,9 @@ local function EmitSound(e2, ent, snd, level, pitch, volume)
         level = maxlevel
     end
 
-    ent:EmitSound(snd, level, pitch, volume)
+	snd = string.sub(snd, 1, 260)
+	if snd:match('["?]') then return end
+	ent:EmitSound(snd, level, pitch, volume)
 end
 
 __e2setcost(20)

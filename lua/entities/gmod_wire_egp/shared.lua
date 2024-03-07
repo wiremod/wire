@@ -10,6 +10,7 @@ ENT.Instructions   = "Wirelink To E2"
 ENT.Spawnable      = false
 
 ENT.RenderGroup     = RENDERGROUP_BOTH
+ENT.IsEGP = true
 
 include("lib/init.lua")
 if (SERVER) then AddCSLuaFile("lib/init.lua") end

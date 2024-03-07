@@ -6,6 +6,9 @@ local floor = math.floor
 local ceil = math.ceil
 local random = math.random
 local pi = math.pi
+local sin = math.sin
+local cos = math.cos
+local atan2 = math.atan2
 
 /******************************************************************************/
 
@@ -22,113 +25,79 @@ registerType("vector2", "xv2", { 0, 0 },
 
 __e2setcost(1) -- approximated
 
-registerFunction("vec2", "", "xv2", function(self, args)
+e2function vector2 vec2()
 	return { 0, 0 }
-end)
+end
 
 __e2setcost(2)
 
-registerFunction("vec2", "nn", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1, rv2 }
-end)
+e2function vector2 vec2(number x,  number y)
+	return { x, y }
+end
 
-registerFunction("vec2", "n", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return { rv1, rv1 }
-end)
+e2function vector2 vec2(number xy)
+	return { xy, xy }
+end
 
-registerFunction("vec2", "v", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return { rv1[1], rv1[2] }
-end)
+e2function vector2 vec2(vector v)
+	return { v[1], v[2] }
+end
 
-registerFunction("vec2", "xv4", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return { rv1[1], rv1[2] }
-end)
+e2function vector2 vec2(vector4 v4)
+	return { v4[1], v4[2] }
+end
 
-registerOperator("is", "xv2", "n", function(self, this)
+e2function number operator_is(vector2 this)
 	return (this[1] ~= 0 and this[2] ~= 0) and 1 or 0
-end, 2, nil, { legacy = false })
+end
 
-registerOperator("eq", "xv2xv2", "n", function(self, lhs, rhs)
-	return (lhs[1] == rhs[1]
-		and lhs[2] == rhs[2])
-		and 1 or 0
-end, 2, nil, { legacy = false })
+e2function number operator==(vector2 lhs, vector2 rhs)
+	return (lhs[1] == rhs[1] and lhs[2] == rhs[2]) and 1 or 0
+end
 
-/******************************************************************************/
+e2function vector2 operator_neg(vector2 v2)
+	return { -v2[1], -v2[2] }
+end
 
-registerOperator("neg", "xv2", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return { -rv1[1], -rv1[2] }
-end)
+e2function vector2 operator+(vector2 lhs, vector2 rhs)
+	return { lhs[1] + rhs[1], lhs[2] + rhs[2] }
+end
 
-registerOperator("add", "xv2xv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1[1] + rv2[1], rv1[2] + rv2[2] }
-end)
+e2function vector2 operator-(vector2 lhs, vector2 rhs)
+	return { lhs[1] - rhs[1], lhs[2] - rhs[2] }
+end
 
-registerOperator("sub", "xv2xv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1[1] - rv2[1], rv1[2] - rv2[2] }
-end)
+e2function vector2 operator+(vector2 lhs, number rhs)
+	return { lhs[1] + rhs, lhs[2] + rhs }
+end
 
-registerOperator("add", "xv2n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1[1] + rv2, rv1[2] + rv2 }
-end)
+e2function vector2 operator-(vector2 lhs, number rhs)
+	return { lhs[1] - rhs, lhs[2] - rhs }
+end
 
-registerOperator("sub", "xv2n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1[1] - rv2, rv1[2] - rv2 }
-end)
+e2function vector2 operator*(number lhs, vector2 rhs)
+	return { lhs * rhs[1], lhs * rhs[2] }
+end
 
-registerOperator("mul", "nxv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1 * rv2[1], rv1 * rv2[2] }
-end)
+e2function vector2 operator*(vector2 lhs, number rhs)
+	return { lhs[1] * rhs, lhs[2] * rhs }
+end
 
-registerOperator("mul", "xv2n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1[1] * rv2, rv1[2] * rv2 }
-end)
+e2function vector2 operator*(vector2 lhs, vector2 rhs)
+	return { lhs[1] * rhs[1], lhs[2] * rhs[2] }
+end
 
-registerOperator("mul", "xv2xv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1[1] * rv2[1], rv1[2] * rv2[2] }
-end)
+e2function vector2 operator/(number lhs, vector2 rhs)
+	return { lhs / rhs[1], lhs / rhs[2] }
+end
 
-registerOperator("div", "nxv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1 / rv2[1], rv1 / rv2[2] }
-end)
+e2function vector2 operator/(vector2 lhs, number rhs)
+	return { lhs[1] / rhs, lhs[2] / rhs }
+end
 
-registerOperator("div", "xv2n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1[1] / rv2, rv1[2] / rv2 }
-end)
-
-registerOperator("div", "xv2xv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1[1] / rv2[1], rv1[2] / rv2[2] }
-end)
+e2function vector2 operator/(vector2 lhs, vector2 rhs)
+	return { lhs[1] / rhs[1], lhs[2] / rhs[2] }
+end
 
 registerOperator("indexget", "xv2n", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 2) + 0.5)]
@@ -143,80 +112,61 @@ end)
 
 __e2setcost(3)
 
-registerFunction("length", "xv2:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return (rv1[1] * rv1[1] + rv1[2] * rv1[2] ) ^ 0.5
-end)
+e2function number vector2:length()
+	return (this[1] * this[1] + this[2] * this[2]) ^ 0.5
+end
 
-registerFunction("length2", "xv2:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1[1] * rv1[1] + rv1[2] * rv1[2]
-end)
+e2function number vector2:length2()
+	return this[1] * this[1] + this[2] * this[2]
+end
 
-registerFunction("distance", "xv2:xv2", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local rvd1, rvd2 = rv1[1] - rv2[1], rv1[2] - rv2[2]
-	return (rvd1 * rvd1 + rvd2 * rvd2 ) ^ 0.5
-end)
+e2function number vector2:distance(vector2 other)
+	local diff1, diff2 = this[1] - other[1], this[2] - other[2]
+	return (diff1 * diff1 + diff2 * diff2) ^ 0.5
+end
 
-registerFunction("distance2", "xv2:xv2", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local rvd1, rvd2 = rv1[1] - rv2[1], rv1[2] - rv2[2]
-	return rvd1 * rvd1 + rvd2 * rvd2
-end)
+e2function number vector2:distance2(vector2 other)
+	local diff1, diff2 = this[1] - other[1], this[2] - other[2]
+	return diff1 * diff1 + diff2 * diff2
+end
 
-registerFunction("normalized", "xv2:", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local len = (rv1[1] * rv1[1] + rv1[2] * rv1[2] ) ^ 0.5
+e2function vector2 vector2:normalized()
+	local len = (this[1] * this[1] + this[2] * this[2]) ^ 0.5
 	if len > 0 then
-		return { rv1[1] / len, rv1[2] / len }
+		return { this[1] / len, this[2] / len }
 	else
 		return { 0, 0 }
 	end
-end)
+end
 
-registerFunction("dot", "xv2:xv2", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return rv1[1] * rv2[1] + rv1[2] * rv2[2]
-end)
+e2function number vector2:dot(vector2 other)
+	return this[1] * other[1] + this[2] * other[2]
+end
 
-registerFunction("cross", "xv2:xv2", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return rv1[1] * rv2[2] - rv1[2] * rv2[1]
-end)
+e2function number vector2:cross(vector2 other)
+	return this[1] * other[2] - this[2] * other[1]
+end
 
 -- returns the outer product (tensor product) of two vectors
-registerFunction("outerProduct", "xv2:xv2", "xm2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1[1] * rv1[1], rv1[1] * rv2[2],
-			 rv1[2] * rv1[1], rv1[2] * rv2[2] }
-end)
+e2function matrix vector2:outerProduct(vector2 other)
+	return { this[1] * this[1], this[1] * other[2],
+			 this[2] * this[1], this[2] * other[2] }
+end
 
-registerFunction("rotate", "xv2:n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local a = rv2 * pi / 180
-	local x = math.cos(a) * rv1[1] - math.sin(a) * rv1[2]
-	local y = math.sin(a) * rv1[1] + math.cos(a) * rv1[2]
+e2function vector2 vector2:rotate(number rot)
+	local a = rot * pi / 180
+	local x = cos(a) * this[1] - sin(a) * this[2]
+	local y = sin(a) * this[1] + cos(a) * this[2]
+
 	return { x, y }
-end)
+end
 
-registerFunction("positive", "xv2", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function vector2 positive(vector2 rv1)
 	local x, y
 	if rv1[1] >= 0 then x = rv1[1] else x = -rv1[1] end
 	if rv1[2] >= 0 then y = rv1[2] else y = -rv1[2] end
 	return { x, y }
-end)
+end
 
 __e2setcost(2)
 
@@ -254,31 +204,23 @@ end
 
 __e2setcost(1)
 
-registerFunction("x", "xv2:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1[1]
-end)
+e2function number vector2:x()
+	return this[1]
+end
 
-registerFunction("y", "xv2:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1[2]
-end)
+e2function number vector2:y()
+	return this[2]
+end
 
 -- SET methods that returns vectors - you shouldn't need these for 2D vectors, but I've added them anyway for consistency
 -- NOTE: does not change the original vector!
-registerFunction("setX", "xv2:n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv2, rv1[2] }
-end)
+e2function vector2 vector2:setX(number x)
+	return { x, this[2] }
+end
 
-registerFunction("setY", "xv2:n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1[1], rv2 }
-end)
+e2function vector2 vector2:setY(number y)
+	return { this[1], y }
+end
 
 /******************************************************************************/
 
@@ -330,45 +272,35 @@ e2function vector2 floor(vector2 rv1, decimals)
 end
 
 -- min/max based on vector length - returns shortest/longest vector
-registerFunction("min", "xv2xv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector2 min(vector2 rv1, vector2 rv2)
 	local length1 = ( rv1[1] * rv1[1] + rv1[2] * rv1[2] ) ^ 0.5
 	local length2 = ( rv2[1] * rv2[1] + rv2[2] * rv2[2] ) ^ 0.5
 	if length1 < length2 then return rv1 else return rv2 end
-end)
+end
 
-registerFunction("max", "xv2xv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector2 max(vector2 rv1, vector2 rv2)
 	local length1 = ( rv1[1] * rv1[1] + rv1[2] * rv1[2] ) ^ 0.5
 	local length2 = ( rv2[1] * rv2[1] + rv2[2] * rv2[2] ) ^ 0.5
 	if length1 > length2 then return rv1 else return rv2 end
-end)
+end
 
 -- component-wise min/max
-registerFunction("maxVec", "xv2xv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-    local x, y
+e2function vector2 maxVec(vector2 rv1, vector2 rv2)
+	local x, y
 	if rv1[1] > rv2[1] then x = rv1[1] else x = rv2[1] end
-    if rv1[2] > rv2[2] then y = rv1[2] else y = rv2[2] end
-    return {x, y}
-end)
+	if rv1[2] > rv2[2] then y = rv1[2] else y = rv2[2] end
+	return { x, y }
+end
 
-registerFunction("minVec", "xv2xv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-    local x, y
+e2function vector2 minVec(vector2 rv1, vector2 rv2)
+	local x, y
 	if rv1[1] < rv2[1] then x = rv1[1] else x = rv2[1] end
-    if rv1[2] < rv2[2] then y = rv1[2] else y = rv2[2] end
-    return {x, y}
-end)
+	if rv1[2] < rv2[2] then y = rv1[2] else y = rv2[2] end
+	return { x, y }
+end
 
 -- Performs modulo on x,y separately
-registerFunction("mod", "xv2n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector2 mod(vector2 rv1, number rv2)
 	local x, y
 
 	if rv1[1] >= 0 then
@@ -380,12 +312,10 @@ registerFunction("mod", "xv2n", "xv2", function(self, args)
 	else y = rv1[2] % -rv2 end
 
 	return { x, y }
-end)
+end
 
 -- Modulo where divisors are defined as a vector
-registerFunction("mod", "xv2xv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector2 mod(vector2 rv1, vector2 rv2)
 	local x, y
 
 	if rv1[1] >= 0 then
@@ -397,12 +327,10 @@ registerFunction("mod", "xv2xv2", "xv2", function(self, args)
 	else y = rv1[2] % -rv2[2] end
 
 	return { x, y }
-end)
+end
 
 -- Clamp according to limits defined by two min/max vectors
-registerFunction("clamp", "xv2xv2xv2", "xv2", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function vector2 clamp(vector2 rv1, vector2 rv2, vector2 rv3)
 	local x, y
 
 	if rv1[1] < rv2[1] then x = rv2[1]
@@ -414,7 +342,7 @@ registerFunction("clamp", "xv2xv2xv2", "xv2", function(self, args)
 	else y = rv1[2] end
 
 	return { x, y }
-end)
+end
 
 --- Mix two vectors by a given proportion (between 0 and 1)
 e2function vector2 mix(vector2 vec1, vector2 vec2, ratio)
@@ -436,34 +364,25 @@ end
 __e2setcost(2)
 
 --- swap x/y
-registerFunction("shift", "xv2", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function vector2 shift(vector2 rv1)
 	return { rv1[2], rv1[1] }
-end)
+end
 
 --- Returns 1 if the vector lies between (or is equal to) the min/max vectors
-registerFunction("inrange", "xv2xv2xv2", "n", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-
+e2function number inrange(vector2 rv1, vector2 rv2, vector2 rv3)
 	if rv1[1] < rv2[1] then return 0 end
 	if rv1[2] < rv2[2] then return 0 end
 	if rv1[1] > rv3[1] then return 0 end
 	if rv1[2] > rv3[2] then return 0 end
 
 	return 1
-end)
+end
 
 /******************************************************************************/
 
-registerFunction("toAngle", "xv2:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local angle = math.atan2( rv1[2], rv1[1] ) * 180 / pi
-	--if (angle < 0) then angle = angle + 180 end
-	return angle
-end)
+e2function number toAngle(vector2 rv1)
+	return atan2(rv1[2], rv1[1]) * 180 / pi
+end
 
 __e2setcost(5)
 

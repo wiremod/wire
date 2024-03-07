@@ -21,7 +21,7 @@ assert(KV[50, number] == 200)
 assert(KV[100, number] == 2000)
 
 local Rec = 0
-foreach(I, V:number = KV) {
+foreach(I:number, V:number = KV) {
 	Rec++
 	assert(KV[I, number] == V)
 }
@@ -30,3 +30,8 @@ assert(Rec == 1) # Only 1 because this breaks the internal ipairs impl (Shouldn'
 
 A[1, vector] = vec()
 assert(A[1, vector] == vec())
+
+A[2, entity] = entity()
+
+assert(A:indexOf(entity()) == 2)
+assert(A:indexOf(noentity()) == 0)

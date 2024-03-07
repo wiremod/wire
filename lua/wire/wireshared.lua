@@ -1212,3 +1212,60 @@ hook.Add("PlayerDisconnected", "WireLib_PlayerDisconnect", function(ply)
     tbl[ply] = nil
   end
 end)
+
+
+local EntityMeta   = FindMetaTable("Entity") -- direct references are faster
+local GetPos       = EntityMeta.GetPos
+local GetAngles    = EntityMeta.GetAngles
+
+function WireLib.GetComputeIfEntityTransformDirty(compute)
+	return setmetatable({}, {
+		__index=function(t,ent) local r={Vector(math.huge), Angle()} t[ent]=r return r end,
+		__call=function(t,ent)
+			local data = t[ent]
+			local pos, ang = GetPos(ent), GetAngles(ent)
+			if pos~=data[1] or ang~=data[2] then
+				data[1] = pos
+				data[2] = ang
+				data[3] = compute(ent)
+			end
+			return data[3]
+		end
+	})
+end
+
+-- Notify --
+
+---@alias WireLib.NotifySeverity
+---| 0 # None
+---| 1 # Info
+---| 2 # Warning
+---| 3 # Error
+
+local severity2color = {
+	[0] = color_white,
+	[1] = color_white,
+	[2] = Color(255, 88, 1),
+	[3] = Color(255, 32, 0)
+}
+
+local WIREMOD_COLOR = Color(1, 168, 255)
+
+local severity2title = {
+	[0] = { "" },
+	[1] = { WIREMOD_COLOR, "[Wiremod]: " },
+	[2] = { WIREMOD_COLOR, "[Wiremod ", severity2color[2], "WARNING", WIREMOD_COLOR, "]: " },
+	[3] = { WIREMOD_COLOR, "[Wiremod ", severity2color[3], "ERROR", WIREMOD_COLOR, "]: " },
+}
+
+--- Internal. Creates a table for MsgC/chat.AddText.
+function WireLib.NotifyBuilder(msg, severity, color)
+	local ret = {}
+	for k, v in ipairs(severity2title[severity]) do
+		ret[k] = v
+	end
+	local n = #ret
+	ret[n + 1] = color or severity2color[severity]
+	ret[n + 2] = msg
+	return ret
+end
