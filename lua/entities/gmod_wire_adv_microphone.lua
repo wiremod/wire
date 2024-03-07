@@ -76,10 +76,10 @@ local function Mic_SetLive(self, isLive)
         self:AddEFlags(EFL_FORCE_CHECK_TRANSMIT)
     end
 
-    if isLive then  
+    if isLive then
         if LiveMics[1] == nil then -- Adding first microphone to live list
             hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", PlayerCanHearPlayersVoice_Hook)
-        end 
+        end
 
         if not table.HasValue(LiveMics, self) then
             table.insert(LiveMics, self)

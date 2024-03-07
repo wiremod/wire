@@ -34,7 +34,7 @@ if SERVER then
 
     function ENT:Think()
         if not self:GetActive() then return end
-        
+
         local mic = self:GetMicrophone()
         if not IsValid(mic) or not mic:GetActive() then return end
 

@@ -29,8 +29,8 @@ local function WavIsLooped_Impl(path)
         local id, len = Riff_ReadChunkHeader(fil)
         if id == "cue " or id == "smpl" then resultid = id break end
         if id == nil then
-            ErrorNoHaltWithStack("WavIsLooped_Impl: Can't analyze file ", path) 
-            return false 
+            ErrorNoHaltWithStack("WavIsLooped_Impl: Can't analyze file ", path)
+            return false
         end -- Some error
 
         local p1 = fil:Tell()
@@ -145,7 +145,7 @@ end
 function DCACHE:Think()
     local ent = self._ent
     if not IsValid(ent) then return end
-    
+
     local plys = {}
     self.PlayersInRange = plys
 
