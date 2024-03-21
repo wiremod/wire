@@ -50,13 +50,16 @@ function ENT:TriggerInput( name, value )
 end
 
 if CLIENT then
-    local wire_rt_camera_resolution_h = CreateClientConVar("wire_rt_camera_resolution_h", "512", true, nil, nil, 128)
-    local wire_rt_camera_resolution_w = CreateClientConVar("wire_rt_camera_resolution_w", "512", true, nil, nil, 128)
-    local wire_rt_camera_filtering = CreateClientConVar("wire_rt_camera_filtering", "2", true, nil, nil, 0, 2)
-    local wire_rt_camera_hdr = CreateClientConVar("wire_rt_camera_hdr", "1", true, nil, nil, 0, 1)
+    local cvar_resolution_h = CreateClientConVar("wire_rt_camera_resolution_h", "512", true, nil, nil, 128)
+    local cvar_resolution_w = CreateClientConVar("wire_rt_camera_resolution_w", "512", true, nil, nil, 128)
+    local cvar_filtering = CreateClientConVar("wire_rt_camera_filtering", "2", true, nil, nil, 0, 2)
+    local cvar_hdr = CreateClientConVar("wire_rt_camera_hdr", "1", true, nil, nil, 0, 1)
 
-    local ActiveCameras = {}
-    local ObservedCameras = {}
+
+    WireLib.__RTCameras_Active = WireLib.__RTCameras_Active or {} 
+    local ActiveCameras = WireLib.__RTCameras_Active
+    WireLib.__RTCameras_Observed = WireLib.__RTCameras_Observed or {} 
+    local ObservedCameras = WireLib.__RTCameras_Observed
 
     concommand.Add("wire_rt_camera_recreate", function()
         for _, cam in ipairs(ObservedCameras) do
@@ -110,9 +113,9 @@ if CLIENT then
     end
 
     local function CreateRTName(index)
-        return "improvedrtcamera_rt_"..tostring(index).."_"..wire_rt_camera_filtering:GetString().."_"
-            ..wire_rt_camera_resolution_h:GetString().."x"..wire_rt_camera_resolution_w:GetString()..
-            (wire_rt_camera_hdr:GetInt() and "_hdr" or "_ldr")
+        return "improvedrtcamera_rt_"..tostring(index).."_"..cvar_filtering:GetString().."_"
+            ..cvar_resolution_h:GetString().."x"..cvar_resolution_w:GetString()..
+            (cvar_hdr:GetInt() and "_hdr" or "_ldr")
     end
 
     function ENT:InitRTTexture()
@@ -120,17 +123,17 @@ if CLIENT then
 
         local filteringFlag = 1 -- pointsample
 
-        if wire_rt_camera_filtering:GetInt() == 1 then
+        if cvar_filtering:GetInt() == 1 then
             filteringFlag = 2 -- trilinear
-        elseif wire_rt_camera_filtering:GetInt() == 2 then
+        elseif cvar_filtering:GetInt() == 2 then
             filteringFlag = 16 -- anisotropic
         end
 
-        local isHDR = wire_rt_camera_hdr:GetInt() ~= 0
+        local isHDR = cvar_hdr:GetInt() ~= 0
 
         local rt = GetRenderTargetEx(CreateRTName(index),
-            wire_rt_camera_resolution_w:GetInt(),
-            wire_rt_camera_resolution_h:GetInt(),
+            cvar_resolution_w:GetInt(),
+            cvar_resolution_h:GetInt(),
             RT_SIZE_LITERAL,
             MATERIAL_RT_DEPTH_SEPARATE,
             filteringFlag + 256 + 32768,
@@ -155,34 +158,53 @@ if CLIENT then
         if CameraIsDrawn then return false end
     end)
 
-    hook.Add("PreRender", "ImprovedRTCamera", function()
-        local isHDR = wire_rt_camera_hdr:GetInt() ~= 0
-        local renderH = wire_rt_camera_resolution_h:GetInt()
-        local renderW = wire_rt_camera_resolution_w:GetInt()
+    local cvar_quota_max_active = CreateClientConVar("wire_rt_camera_quota_max_active", 0.005, true, nil, nil, 0)
+    local cvar_quota_reduction = CreateClientConVar("wire_rt_camera_quota_reduction", 0.001, true, nil, nil, 0)
+    local RenderDuration = 0
+
+    local function RenderCamerasImpl()
+        local isHDR = cvar_hdr:GetInt() ~= 0
+        local renderH = cvar_resolution_h:GetInt()
+        local renderW = cvar_resolution_w:GetInt()
 
         for ent, _ in pairs(ActiveCameras) do
-            if IsValid(ent) and ent.IsObserved then
-                render.PushRenderTarget(ent.RenderTarget)
-                    local oldNoDraw = ent:GetNoDraw()
-                    ent:SetNoDraw(true)
-                        CameraIsDrawn = true
-                        cam.Start2D()
-                            render.OverrideAlphaWriteEnable(true, true)
-                            render.RenderView({
-                                origin = ent:GetPos(),
-                                angles = ent:GetAngles(),
-                                x = 0, y = 0, h = renderH, w = renderW,
-                                drawmonitors = true,
-                                drawviewmodel = false,
-                                fov = ent:GetCamFOV(),
-                                bloomtone = isHDR
-                            })
+            if not IsValid(ent) or not ent.IsObserved then goto next_camera end
 
-                        cam.End2D()
-                        CameraIsDrawn = false
-                    ent:SetNoDraw(oldNoDraw)
-                render.PopRenderTarget()
-            end
+            render.PushRenderTarget(ent.RenderTarget)
+                local oldNoDraw = ent:GetNoDraw()
+                ent:SetNoDraw(true)
+                    CameraIsDrawn = true
+                    cam.Start2D()
+                        render.OverrideAlphaWriteEnable(true, true)
+                        render.RenderView({
+                            origin = ent:GetPos(),
+                            angles = ent:GetAngles(),
+                            x = 0, y = 0, h = renderH, w = renderW,
+                            drawmonitors = true,
+                            drawviewmodel = false,
+                            fov = ent:GetCamFOV(),
+                            bloomtone = isHDR
+                        })
+
+                    cam.End2D()
+                    CameraIsDrawn = false
+                ent:SetNoDraw(oldNoDraw)
+            render.PopRenderTarget()
+            
+            ::next_camera::
+        end
+    end
+
+    hook.Add("PreRender", "ImprovedRTCamera", function()
+        local renderStart = SysTime()
+
+        if RenderDuration < cvar_quota_max_active:GetFloat() then
+            RenderCamerasImpl()
+            RenderDuration = SysTime() - renderStart
+            --print("Rendered!", RenderDuration)
+        else
+            RenderDuration = RenderDuration - cvar_quota_reduction:GetFloat()
+            print("Not rendered...", RenderDuration * 1000)
         end
     end)
 
