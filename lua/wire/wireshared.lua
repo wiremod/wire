@@ -60,6 +60,19 @@ function table.SeqCount(tbl)
     return i - 1
 end
 
+-- Removes `value` from `tbl` by shifting last element of `tbl` to its place.
+-- Returns index of `value` if it was removed, nil otherwise.
+function table.RemoveFastByValue(tbl, value)
+    for i, v in ipairs(tbl) do
+        if v == value then
+            tbl[i] = tbl[#tbl]
+            tbl[#tbl] = nil
+
+            return i
+        end
+    end
+end
+
 function string.GetNormalizedFilepath( path ) -- luacheck: ignore
 	local null = string.find(path, "\x00", 1, true)
 	if null then path = string.sub(path, 1, null-1) end
