@@ -20,6 +20,11 @@ if CLIENT then
     language.Add("tool.wire_rt_camera.settings.cl_filtering_1", "Trilinear")
     language.Add("tool.wire_rt_camera.settings.cl_filtering_2", "Anisotropic")
     language.Add("tool.wire_rt_camera.settings.cl_apply", "Apply player-specific changes")
+    language.Add("tool.wire_rt_camera.settings.cl_skipframe", "Rendering slowdown")
+    language.Add("tool.wire_rt_camera.settings.cl_skipframe_hint",
+        "The greater this value, the greater your FPS is and the lesser FPS of the cameras is.\n"..
+        "Technically, it is amount of camera renders to skip per one rendered camera.\n"..
+        "Fractional values work too. Set to 0 to disable.")
 
     WireToolSetup.setToolMenuIcon( "icon16/camera.png" )
 end
@@ -69,4 +74,6 @@ function TOOL.BuildCPanel(panel)
     end
 
     panel:Button("#tool.wire_rt_camera.settings.cl_apply", "wire_rt_camera_recreate")
+    panel:NumSlider("#tool.wire_rt_camera.settings.cl_skipframe", "wire_rt_camera_skip_frame_per_camera", 0, 3, 2)
+    panel:Help("#tool.wire_rt_camera.settings.cl_skipframe_hint")
 end

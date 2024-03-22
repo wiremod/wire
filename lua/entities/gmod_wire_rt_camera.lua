@@ -163,8 +163,11 @@ if CLIENT then
         local renderH = cvar_resolution_h:GetInt()
         local renderW = cvar_resolution_w:GetInt()
 
+        local renderedCameras = 0
+        
         for ent, _ in pairs(ActiveCameras) do
             if not IsValid(ent) or not ent.IsObserved then goto next_camera end
+            renderedCameras = renderedCameras + 1
 
             render.PushRenderTarget(ent.RenderTarget)
                 local oldNoDraw = ent:GetNoDraw()
@@ -189,40 +192,21 @@ if CLIENT then
             
             ::next_camera::
         end
+
+        return renderedCameras
     end
 
-    local cvar_dur_active_max = CreateClientConVar("wire_rt_camera_duration_active_max", 0.005, true, nil, nil, 0)
-    local cvar_dur_cooldown_scale = CreateClientConVar("wire_rt_camera_duration_cooldown_scale", 2.2, true, nil, nil, 0)
-    local COOLDOWN_MAX = 5
 
-    local LastRender = 0
-    local CooldownNextRender
+    local cvar_skip_frame_per_cam = CreateClientConVar("wire_rt_camera_skip_frame_per_camera", 0.8, true, nil, nil, 0)
+
+    local SkippedFrames = 0
     hook.Add("PreRender", "ImprovedRTCamera", function()
-        local renderStart = SysTime()
-        local delta = renderStart - LastRender
-        print("Delta", delta)
+        SkippedFrames = SkippedFrames - 1
     
-        local doRender = true
-        
-        if CooldownNextRender ~= nil then
-            local cooldownDelta = CooldownNextRender - renderStart
-            if not (cooldownDelta < 0 or cooldownDelta > COOLDOWN_MAX) then 
-                print("> norender cooldown", cooldownDelta)
-                doRender = false
-            end
-        elseif delta >= cvar_dur_active_max:GetFloat() then
-            CooldownNextRender = renderStart + delta * cvar_dur_cooldown_scale:GetFloat()
-            print("> norender activemax")
-            doRender = false
+        if SkippedFrames <= 0 then
+            local rendered_cams = RenderCamerasImpl()
+            SkippedFrames = math.ceil(rendered_cams * cvar_skip_frame_per_cam:GetFloat())
         end
-
-        if doRender then
-            print("> yesrender")
-            RenderCamerasImpl()
-            CooldownNextRender = nil
-        end
-        
-        LastRender = SysTime()
     end)
 
 end
