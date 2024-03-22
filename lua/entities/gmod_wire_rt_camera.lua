@@ -55,9 +55,10 @@ if CLIENT then
     local cvar_filtering = CreateClientConVar("wire_rt_camera_filtering", "2", true, nil, nil, 0, 2)
     local cvar_hdr = CreateClientConVar("wire_rt_camera_hdr", "1", true, nil, nil, 0, 1)
 
-
+    -- array(Entity)
     WireLib.__RTCameras_Active = WireLib.__RTCameras_Active or {} 
     local ActiveCameras = WireLib.__RTCameras_Active
+    -- table(Entity, true)
     WireLib.__RTCameras_Observed = WireLib.__RTCameras_Observed or {} 
     local ObservedCameras = WireLib.__RTCameras_Observed
 
@@ -69,12 +70,14 @@ if CLIENT then
 
     local function SetCameraActive(camera, isActive)
         if isActive then
-            ActiveCameras[camera] = true
+            if not table.HasValue(ActiveCameras, camera) then
+                table.insert(ActiveCameras, camera)
+            end
         else
-            if camera.SetIsObserved then -- undefi
+            if camera.SetIsObserved then -- May be undefined (?)
                 camera:SetIsObserved(false)
             end
-            ActiveCameras[camera] = nil
+            table.RemoveByValue(ActiveCameras, camera)
         end
     end
 
@@ -165,7 +168,7 @@ if CLIENT then
 
         local renderedCameras = 0
         
-        for ent, _ in pairs(ActiveCameras) do
+        for _, ent in ipairs(ActiveCameras) do
             if not IsValid(ent) or not ent.IsObserved then goto next_camera end
             renderedCameras = renderedCameras + 1
 
