@@ -63,9 +63,7 @@ if CLIENT then
     local ObservedCameras = WireLib.__RTCameras_Observed
 
     concommand.Add("wire_rt_camera_recreate", function()
-        print(table.Count(ObservedCameras))
         for _, cam in ipairs(ObservedCameras) do
-            print(cam)
             cam:InitRTTexture()
         end
     end)
