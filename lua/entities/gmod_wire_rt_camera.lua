@@ -158,10 +158,6 @@ if CLIENT then
         if CameraIsDrawn then return false end
     end)
 
-    local cvar_quota_max_active = CreateClientConVar("wire_rt_camera_quota_max_active", 0.005, true, nil, nil, 0)
-    local cvar_quota_reduction = CreateClientConVar("wire_rt_camera_quota_reduction", 0.001, true, nil, nil, 0)
-    local RenderDuration = 0
-
     local function RenderCamerasImpl()
         local isHDR = cvar_hdr:GetInt() ~= 0
         local renderH = cvar_resolution_h:GetInt()
@@ -195,17 +191,38 @@ if CLIENT then
         end
     end
 
+    local cvar_dur_active_max = CreateClientConVar("wire_rt_camera_duration_active_max", 0.005, true, nil, nil, 0)
+    local cvar_dur_cooldown_scale = CreateClientConVar("wire_rt_camera_duration_cooldown_scale", 2.2, true, nil, nil, 0)
+    local COOLDOWN_MAX = 5
+
+    local LastRender = 0
+    local CooldownNextRender
     hook.Add("PreRender", "ImprovedRTCamera", function()
         local renderStart = SysTime()
-
-        if RenderDuration < cvar_quota_max_active:GetFloat() then
-            RenderCamerasImpl()
-            RenderDuration = SysTime() - renderStart
-            --print("Rendered!", RenderDuration)
-        else
-            RenderDuration = RenderDuration - cvar_quota_reduction:GetFloat()
-            print("Not rendered...", RenderDuration * 1000)
+        local delta = renderStart - LastRender
+        print("Delta", delta)
+    
+        local doRender = true
+        
+        if CooldownNextRender ~= nil then
+            local cooldownDelta = CooldownNextRender - renderStart
+            if not (cooldownDelta < 0 or cooldownDelta > COOLDOWN_MAX) then 
+                print("> norender cooldown", cooldownDelta)
+                doRender = false
+            end
+        elseif delta >= cvar_dur_active_max:GetFloat() then
+            CooldownNextRender = renderStart + delta * cvar_dur_cooldown_scale:GetFloat()
+            print("> norender activemax")
+            doRender = false
         end
+
+        if doRender then
+            print("> yesrender")
+            RenderCamerasImpl()
+            CooldownNextRender = nil
+        end
+        
+        LastRender = SysTime()
     end)
 
 end
