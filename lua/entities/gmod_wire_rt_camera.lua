@@ -56,10 +56,10 @@ if CLIENT then
     local cvar_hdr = CreateClientConVar("wire_rt_camera_hdr", "1", true, nil, nil, 0, 1)
 
     -- array(Entity)
-    WireLib.__RTCameras_Active = WireLib.__RTCameras_Active or {} 
+    WireLib.__RTCameras_Active = WireLib.__RTCameras_Active or {}
     local ActiveCameras = WireLib.__RTCameras_Active
     -- table(Entity, true)
-    WireLib.__RTCameras_Observed = WireLib.__RTCameras_Observed or {} 
+    WireLib.__RTCameras_Observed = WireLib.__RTCameras_Observed or {}
     local ObservedCameras = WireLib.__RTCameras_Observed
 
     concommand.Add("wire_rt_camera_recreate", function()
@@ -168,7 +168,7 @@ if CLIENT then
         local renderW = cvar_resolution_w:GetInt()
 
         local renderedCameras = 0
-        
+
         for _, ent in ipairs(ActiveCameras) do
             if not IsValid(ent) or not ent.IsObserved then goto next_camera end
             renderedCameras = renderedCameras + 1
@@ -193,7 +193,7 @@ if CLIENT then
                     CameraIsDrawn = false
                 ent:SetNoDraw(oldNoDraw)
             render.PopRenderTarget()
-            
+
             ::next_camera::
         end
 
@@ -206,7 +206,7 @@ if CLIENT then
     local SkippedFrames = 0
     hook.Add("PreRender", "ImprovedRTCamera", function()
         SkippedFrames = SkippedFrames - 1
-    
+
         if SkippedFrames <= 0 then
             local rendered_cams = RenderCamerasImpl()
             SkippedFrames = math.ceil(rendered_cams * cvar_skip_frame_per_cam:GetFloat())
