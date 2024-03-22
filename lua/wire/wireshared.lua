@@ -41,6 +41,25 @@ function table.Compact(tbl, cb, n) -- luacheck: ignore
 	end
 end
 
+-- Works like #tbl, but works when item is removed from middle of the table without shifting.
+--[[
+	local t = {1,2,3,4,5}
+	t[3] = nil
+
+	print(#t) -- May return 5, as it is undefined behaviour
+	print(table.SeqCount(t)) -- Will return 2
+
+]]
+function table.SeqCount(tbl)
+    local i = 0
+
+    repeat
+        i = i + 1
+    until tbl[i] == nil
+
+    return i - 1
+end
+
 function string.GetNormalizedFilepath( path ) -- luacheck: ignore
 	local null = string.find(path, "\x00", 1, true)
 	if null then path = string.sub(path, 1, null-1) end

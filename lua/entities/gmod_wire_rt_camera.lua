@@ -103,7 +103,8 @@ if CLIENT then
         self.IsObserved = isObserved
 
         if isObserved then
-            local index = #ObservedCameras + 1
+            local index = table.SeqCount(ObservedCameras) + 1
+            print(self, index)
             ObservedCameras[index] = self
             self.ObservedCamerasIndex = index
 
