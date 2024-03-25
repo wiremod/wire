@@ -514,5 +514,5 @@ end
 
 e2function string decompress(string compressed)
 	self.prf = self.prf + #compressed * 0.5
-	return decompress(compressed) or ""
+	return decompress(compressed) or self:throw("Invalid input for decompression!", "")
 end
