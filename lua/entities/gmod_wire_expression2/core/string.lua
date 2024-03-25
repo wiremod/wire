@@ -500,3 +500,19 @@ e2function number string:unicodeLength(number startPos, number endPos)
 	end
 	return -1
 end
+
+--[[******************************************************************************]]--
+__e2setcost(10)
+
+local compress = util.Compress
+local decompress = util.Decompress
+
+e2function string compress(string plaintext)
+	self.prf = self.prf + #plaintext * 0.1
+	return compress(plaintext)
+end
+
+e2function string decompress(string compressed)
+	self.prf = self.prf + #compressed * 0.5
+	return decompress(compressed) or ""
+end
