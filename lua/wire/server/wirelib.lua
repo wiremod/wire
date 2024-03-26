@@ -52,9 +52,14 @@ local CurTime = CurTime
 
 -- helper function that pcalls an input
 function WireLib.TriggerInput(ent, name, value, ...)
-	if (not IsValid(ent) or not HasPorts(ent) or not ent.Inputs) then return end
+	if not IsValid(ent) or not HasPorts(ent) then return end
 
-	local input = ent.Inputs[name]
+	local entTbl = ent:GetTable()
+	local inputs = entTbl.Inputs
+
+	if not inputs then return end
+
+	local input = inputs[name]
 	if not input then return end
 
 	local ty = WireLib.DT[input.Type]
@@ -64,7 +69,8 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	end
 
 	input.Value = value
-	if (not ent.TriggerInput) then return end
+	local triggerInput = entTbl.TriggerInput
+	if not triggerInput then return end
 
 	-- Limit inputs the same way outputs are limited.
 	-- This is in case a wire input would somehow trigger itself and stack overflow.
@@ -79,13 +85,14 @@ function WireLib.TriggerInput(ent, name, value, ...)
 		input.TriggerLimit = input.TriggerLimit - 1
 	end
 
-	local ok, ret = xpcall(ent.TriggerInput, debug.traceback, ent, name, value, ...)
+	local ok, ret = xpcall(triggerInput, debug.traceback, ent, name, value, ...)
 	if not ok then
 		local ply = WireLib.GetOwner(ent)
-		local owner_msg = IsValid(ply) and (" by %s"):format(tostring(ply)) or ""
-		local message = ("Wire error (%s%s):\n%s\n"):format(tostring(ent),owner_msg, ret)
+		local validPly = IsValid(ply)
+		local owner_msg = validPly and (" by %s"):format(tostring(ply)) or ""
+		local message = ("Wire error (%s%s):\n%s\n"):format(tostring(ent), owner_msg, ret)
 		WireLib.ErrorNoHalt(message)
-		if IsValid(ply) then WireLib.ClientError(message, ply) end
+		if validPly then WireLib.ClientError(message, ply) end
 	end
 end
 
@@ -622,9 +629,11 @@ end
 function WireLib.TriggerOutput(ent, oname, value, iter)
 	if not IsValid(ent) then return end
 	if not HasPorts(ent) then return end
-	if (not ent.Outputs) then return end
 
-	local output = ent.Outputs[oname]
+	local entTbl = ent:GetTable()
+	if not entTbl.Outputs then return end
+
+	local output = entTbl.Outputs[oname]
 	if not output then return end
 
 	local ty = WireLib.DT[output.Type]
@@ -645,11 +654,13 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 		output.TriggerLimit = output.TriggerLimit - 1
 
 		output.Value = value
+		local outputConnected = output.Connected
 
-		if (iter) then
-			for _,dst in ipairs(output.Connected) do
-				if (IsValid(dst.Entity)) then
-					iter:Add(dst.Entity, dst.Name, value)
+		if iter then
+			for _, dst in ipairs(outputConnected) do
+				local dstEnt = dst.Entity
+				if IsValid(dstEnt) then
+					iter:Add(dstEnt, dst.Name, value)
 				end
 			end
 			return
@@ -657,14 +668,14 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 
 		iter = WireLib.CreateOutputIterator()
 
-		for _,dst in ipairs(output.Connected) do
-			if (IsValid(dst.Entity)) then
-				WireLib.TriggerInput(dst.Entity, dst.Name, value, iter)
+		for _, dst in ipairs(outputConnected) do
+			local dstEnt = dst.Entity
+			if IsValid(dstEnt) then
+				WireLib.TriggerInput(dstEnt, dst.Name, value, iter)
 			end
 		end
 
 		iter:Process()
-
 	end
 end
 

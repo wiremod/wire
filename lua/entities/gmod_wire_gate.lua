@@ -97,26 +97,33 @@ end
 function ENT:Think()
 	BaseClass.Think(self)
 
-	if self.Action and self.Action.timed then
+	local selfTbl = self:GetTable()
+	local action = selfTbl.Action
+
+	if action and action.timed then
 		self:CalcOutput()
 		self:ShowOutput()
 
-		self:NextThink(CurTime()+0.02)
+		self:NextThink(CurTime() + 0.02)
 		return true
 	end
 end
 
 
 function ENT:CalcOutput(iter)
-	if self.Action and self.Action.output then
-		if self.Action.outputs then
-			local result = { self.Action.output(self, unpack(self:GetActionInputs(), 1, #self.Action.inputs)) }
+	local selfTbl = self:GetTable()
+	local action = selfTbl.Action
+	local entOutputs = selfTbl.Outputs
 
-			for k,v in ipairs(self.Action.outputs) do
-				Wire_TriggerOutput(self, v, result[k] or WireLib.GetDefaultForType(self.Outputs[v].Type), iter)
+	if action and action.output then
+		if action.outputs then
+			local result = { action.output(self, unpack(self:GetActionInputs(), 1, #action.inputs)) }
+
+			for k, v in ipairs(action.outputs) do
+				Wire_TriggerOutput(self, v, result[k] or WireLib.GetDefaultForType(entOutputs[v].Type), iter)
 			end
 		else
-			local value = self.Action.output(self, unpack(self:GetActionInputs(), 1, #self.Action.inputs)) or WireLib.GetDefaultForType(self.Outputs.Out.Type)
+			local value = action.output(self, unpack(self:GetActionInputs(), 1, #action.inputs)) or WireLib.GetDefaultForType(entOutputs.Out.Type)
 
 			Wire_TriggerOutput(self, "Out", value, iter)
 		end
@@ -125,11 +132,12 @@ end
 
 function ENT:ShowOutput()
 	local txt
+	local action = self.Action
 
-	if self.Action then
-		txt = (self.Action.name or "No Name")
-		if self.Action.label then
-			txt = txt.."\n"..self.Action.label(self:GetActionOutputs(), unpack(self:GetActionInputs(Wire_EnableGateInputValues:GetBool()), 1, #self.Action.inputs))
+	if action then
+		txt = (action.name or "No Name")
+		if action.label then
+			txt = txt .. "\n" .. action.label(self:GetActionOutputs(), unpack(self:GetActionInputs(Wire_EnableGateInputValues:GetBool()), 1, #action.inputs))
 		end
 	else
 		txt = "Invalid gate!"
@@ -148,13 +156,16 @@ end
 
 function ENT:GetActionInputs(as_names)
 	local Args = {}
+	local selfTbl = self:GetTable()
+	local action = selfTbl.Action
+	local entInputs = selfTbl.Inputs
 
-	if self.Action.compact_inputs then
+	if action.compact_inputs then
 		-- If a gate has compact inputs (like Arithmetic - Add), nil inputs are truncated so {0, nil, nil, 5, nil, 1} becomes {0, 5, 1}
-		for k,v in ipairs(self.Action.inputs) do
-			local input = self.Inputs[v]
+		for k,v in ipairs(action.inputs) do
+			local input = entInputs[v]
 			if not input then
-				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")\n")
+				ErrorNoHalt("Wire Gate (" .. selfTbl.action .. ") error: Missing input! (" .. k .. "," .. v .. ")\n")
 				return {}
 			end
 
@@ -167,25 +178,25 @@ function ENT:GetActionInputs(as_names)
 			end
 		end
 
-		while #Args < self.Action.compact_inputs do
+		while #Args < action.compact_inputs do
 			if as_names then
-				table.insert(Args, self.Action.inputs[#Args+1] or "*Not enough inputs*")
+				table.insert(Args, action.inputs[#Args + 1] or "*Not enough inputs*")
 			else
-				table.insert( Args, WireLib.GetDefaultForType(self.Inputs[ self.Action.inputs[#Args+1] ].Type) )
+				table.insert(Args, WireLib.GetDefaultForType(entInputs[action.inputs[#Args + 1]].Type))
 			end
 		end
 	else
-		for k,v in ipairs(self.Action.inputs) do
-			local input = self.Inputs[v]
+		for k,v in ipairs(action.inputs) do
+			local input = entInputs[v]
 			if not input then
-				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")\n")
+				ErrorNoHalt("Wire Gate (" .. selfTbl.action .. ") error: Missing input! (" .. k .. "," .. v .. ")\n")
 				return {}
 			end
 
 			if as_names then
 				Args[k] = IsValid(input.Src) and (input.Src.WireName or input.Src.WireDebugName) or v
 			else
-				Args[k] = IsValid(input.Src) and input.Value or WireLib.GetDefaultForType(self.Inputs[v].Type)
+				Args[k] = IsValid(input.Src) and input.Value or WireLib.GetDefaultForType(entInputs[v].Type)
 			end
 		end
 	end
