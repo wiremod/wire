@@ -6,6 +6,7 @@ Obj.HasUV = true
 if SERVER then Obj.VerticesUpdate = true end
 
 local base = Obj.BaseClass
+local clamp = math.Clamp
 
 -- Returns whether c is to the left of the line from a to b.
 local function counterclockwise( a, b, c )
@@ -118,10 +119,12 @@ function Obj:SetPos(x, y, angle)
 	if not angle then angle = sa else angle = angle % 360 end
 	if sx == x and sy == y and sa == angle then return false end
 
+	x = clamp(x, -32768, 32767) -- Simple clamp to avoid moving to huge numbers and invoking NaN. Transmit size is u16
+	y = clamp(y, -32768, 32767)
+
 	for _, v in ipairs(self.vertices) do
 		local vec = LocalToWorld(Vector(v.x - sx, v.y - sy, 0), angle_zero, Vector(x, y, 0), Angle(0, sa - angle, 0))
-		v.x = vec.x
-		v.y = vec.y
+		v.x, v.y = vec[1], vec[2]
 	end
 	self.x, self.y, self.angle = x, y, angle
 	if SERVER and self._x then self._x, self._y, self._angle = x, y, angle end

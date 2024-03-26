@@ -7,6 +7,8 @@ Obj.y2 = 0
 Obj.size = 1
 Obj.verticesindex = { { "x", "y" }, { "x2", "y2" } }
 
+local clamp = math.Clamp
+
 Obj.Draw = function( self )
 	if (self.a>0) then
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
@@ -57,8 +59,14 @@ end
 
 function Obj:SetPos(x, y, angle, x2, y2)
 	local sx, sx2, sy, sy2, sa = self.x, self.x2, self.y, self.y2, self.angle
-	if not angle then angle = sa end
+	if not x then x = sx end
+	if not y then y = sy end
+	if not angle then angle = sa else angle = angle % 360 end
 	if sx == x and sy == y and sa == angle and sx2 == x2 and sy2 == y2 then return false end
+
+	x = clamp(x, -32768, 32767)
+	y = clamp(y, -32768, 32767)
+
 	local vec
 	if not (x2 or y2) then
 		x2 = x2 or sx2
