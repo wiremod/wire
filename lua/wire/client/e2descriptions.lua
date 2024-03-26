@@ -174,6 +174,8 @@ E2Helper.Descriptions["matchFirst(s:s)"] = "runs string.match(S, S2) and returns
 E2Helper.Descriptions["matchFirst(s:sn)"] = "runs string.match(S, S2, N) and returns the first match or an empty string if the match failed"
 E2Helper.Descriptions["gmatch(s:s)"] = "runs string.gmatch(S, S2) and returns the captures in arrays in a table"
 E2Helper.Descriptions["gmatch(s:sn)"] = "runs string.gmatch(S, S2, N) and returns the captures in arrays in a table"
+E2Helper.Descriptions["compress(s)"] = "Compresses the input string using LZMA compression. See decompress(string)"
+E2Helper.Descriptions["decompress(s)"] = "Decompresses an LZMA-compressed string. See compress(string)"
 
 -- Entity/Player
 E2Helper.Descriptions["entity(n)"] = "Gets the entity associated with the id"
