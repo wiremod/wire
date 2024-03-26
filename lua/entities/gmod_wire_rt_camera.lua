@@ -50,13 +50,17 @@ function ENT:TriggerInput( name, value )
 end
 
 if CLIENT then
-    local wire_rt_camera_resolution_h = CreateClientConVar("wire_rt_camera_resolution_h", "512", true, nil, nil, 128)
-    local wire_rt_camera_resolution_w = CreateClientConVar("wire_rt_camera_resolution_w", "512", true, nil, nil, 128)
-    local wire_rt_camera_filtering = CreateClientConVar("wire_rt_camera_filtering", "2", true, nil, nil, 0, 2)
-    local wire_rt_camera_hdr = CreateClientConVar("wire_rt_camera_hdr", "1", true, nil, nil, 0, 1)
+    local cvar_resolution_h = CreateClientConVar("wire_rt_camera_resolution_h", "512", true, nil, nil, 128)
+    local cvar_resolution_w = CreateClientConVar("wire_rt_camera_resolution_w", "512", true, nil, nil, 128)
+    local cvar_filtering = CreateClientConVar("wire_rt_camera_filtering", "2", true, nil, nil, 0, 2)
+    local cvar_hdr = CreateClientConVar("wire_rt_camera_hdr", "1", true, nil, nil, 0, 1)
 
-    local ActiveCameras = {}
-    local ObservedCameras = {}
+    -- array(Entity)
+    WireLib.__RTCameras_Active = WireLib.__RTCameras_Active or {}
+    local ActiveCameras = WireLib.__RTCameras_Active
+    -- table(Entity, true)
+    WireLib.__RTCameras_Observed = WireLib.__RTCameras_Observed or {}
+    local ObservedCameras = WireLib.__RTCameras_Observed
 
     concommand.Add("wire_rt_camera_recreate", function()
         for _, cam in ipairs(ObservedCameras) do
@@ -66,12 +70,14 @@ if CLIENT then
 
     local function SetCameraActive(camera, isActive)
         if isActive then
-            ActiveCameras[camera] = true
+            if not table.HasValue(ActiveCameras, camera) then
+                table.insert(ActiveCameras, camera)
+            end
         else
-            if camera.SetIsObserved then -- undefi
+            if camera.SetIsObserved then -- May be undefined (?)
                 camera:SetIsObserved(false)
             end
-            ActiveCameras[camera] = nil
+            table.RemoveByValue(ActiveCameras, camera)
         end
     end
 
@@ -97,22 +103,27 @@ if CLIENT then
         self.IsObserved = isObserved
 
         if isObserved then
-            local index = #ObservedCameras + 1
-            ObservedCameras[index] = self
-            self.ObservedCamerasIndex = index
+            self.ObservedCamerasIndex = table.insert(ObservedCameras, self)
 
             self:InitRTTexture()
         else
-            ObservedCameras[self.ObservedCamerasIndex] = nil
-            self.ObservedCamerasIndex = nil
             self.RenderTarget = nil
+
+            local oldi = table.RemoveFastByValue(ObservedCameras, self)
+            if oldi == nil then return end
+            self.ObservedCamerasIndex = nil
+            
+            local shifted_cam = ObservedCameras[oldi]
+            if IsValid(shifted_cam) then
+                shifted_cam.ObservedCamerasIndex = oldi
+            end
         end
     end
 
     local function CreateRTName(index)
-        return "improvedrtcamera_rt_"..tostring(index).."_"..wire_rt_camera_filtering:GetString().."_"
-            ..wire_rt_camera_resolution_h:GetString().."x"..wire_rt_camera_resolution_w:GetString()..
-            (wire_rt_camera_hdr:GetInt() and "_hdr" or "_ldr")
+        return "improvedrtcamera_rt_"..tostring(index).."_"..cvar_filtering:GetString().."_"
+            ..cvar_resolution_h:GetString().."x"..cvar_resolution_w:GetString()..
+            (cvar_hdr:GetInt() and "_hdr" or "_ldr")
     end
 
     function ENT:InitRTTexture()
@@ -120,17 +131,17 @@ if CLIENT then
 
         local filteringFlag = 1 -- pointsample
 
-        if wire_rt_camera_filtering:GetInt() == 1 then
+        if cvar_filtering:GetInt() == 1 then
             filteringFlag = 2 -- trilinear
-        elseif wire_rt_camera_filtering:GetInt() == 2 then
+        elseif cvar_filtering:GetInt() == 2 then
             filteringFlag = 16 -- anisotropic
         end
 
-        local isHDR = wire_rt_camera_hdr:GetInt() ~= 0
+        local isHDR = cvar_hdr:GetInt() ~= 0
 
         local rt = GetRenderTargetEx(CreateRTName(index),
-            wire_rt_camera_resolution_w:GetInt(),
-            wire_rt_camera_resolution_h:GetInt(),
+            cvar_resolution_w:GetInt(),
+            cvar_resolution_h:GetInt(),
             RT_SIZE_LITERAL,
             MATERIAL_RT_DEPTH_SEPARATE,
             filteringFlag + 256 + 32768,
@@ -155,34 +166,54 @@ if CLIENT then
         if CameraIsDrawn then return false end
     end)
 
+    local function RenderCamerasImpl()
+        local isHDR = cvar_hdr:GetInt() ~= 0
+        local renderH = cvar_resolution_h:GetInt()
+        local renderW = cvar_resolution_w:GetInt()
+
+        local renderedCameras = 0
+
+        for _, ent in ipairs(ActiveCameras) do
+            if not IsValid(ent) or not ent.IsObserved then goto next_camera end
+            renderedCameras = renderedCameras + 1
+
+            render.PushRenderTarget(ent.RenderTarget)
+                local oldNoDraw = ent:GetNoDraw()
+                ent:SetNoDraw(true)
+                    CameraIsDrawn = true
+                    cam.Start2D()
+                        render.OverrideAlphaWriteEnable(true, true)
+                        render.RenderView({
+                            origin = ent:GetPos(),
+                            angles = ent:GetAngles(),
+                            x = 0, y = 0, h = renderH, w = renderW,
+                            drawmonitors = true,
+                            drawviewmodel = false,
+                            fov = ent:GetCamFOV(),
+                            bloomtone = isHDR
+                        })
+
+                    cam.End2D()
+                    CameraIsDrawn = false
+                ent:SetNoDraw(oldNoDraw)
+            render.PopRenderTarget()
+
+            ::next_camera::
+        end
+
+        return renderedCameras
+    end
+
+
+    local cvar_skip_frame_per_cam = CreateClientConVar("wire_rt_camera_skip_frame_per_camera", 0.8, true, nil, nil, 0)
+
+    local SkippedFrames = 0
     hook.Add("PreRender", "ImprovedRTCamera", function()
-        local isHDR = wire_rt_camera_hdr:GetInt() ~= 0
-        local renderH = wire_rt_camera_resolution_h:GetInt()
-        local renderW = wire_rt_camera_resolution_w:GetInt()
+        SkippedFrames = SkippedFrames - 1
 
-        for ent, _ in pairs(ActiveCameras) do
-            if IsValid(ent) and ent.IsObserved then
-                render.PushRenderTarget(ent.RenderTarget)
-                    local oldNoDraw = ent:GetNoDraw()
-                    ent:SetNoDraw(true)
-                        CameraIsDrawn = true
-                        cam.Start2D()
-                            render.OverrideAlphaWriteEnable(true, true)
-                            render.RenderView({
-                                origin = ent:GetPos(),
-                                angles = ent:GetAngles(),
-                                x = 0, y = 0, h = renderH, w = renderW,
-                                drawmonitors = true,
-                                drawviewmodel = false,
-                                fov = ent:GetCamFOV(),
-                                bloomtone = isHDR
-                            })
-
-                        cam.End2D()
-                        CameraIsDrawn = false
-                    ent:SetNoDraw(oldNoDraw)
-                render.PopRenderTarget()
-            end
+        if SkippedFrames <= 0 then
+            local rendered_cams = RenderCamerasImpl()
+            SkippedFrames = math.ceil(rendered_cams * cvar_skip_frame_per_cam:GetFloat())
         end
     end)
 
