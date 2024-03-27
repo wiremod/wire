@@ -128,16 +128,15 @@ local function getGlobalVertices(ent, obj)
 	if obj.verticesindex then
 		local _, globalpos = GetGlobalPos(ent, obj)
 		local gx, gy, gang = globalpos.x, globalpos.y, globalpos.angle
+		local ox, oy = obj.x, obj.y
+		local delta_ang = Angle(0, obj.angle - gang, 0)
 
-		local r = makeArray(obj, obj.parent ~= NULL_EGPOBJECT)
-		local globalvec, globalang = Vector(gx, gy, 0), Angle(0, -gang, 0)
-		local objang = obj._angle or obj.angle or 0
+		local r = makeArray(obj, obj.parent ~= 0)
+		local globalvec = Vector(gx, gy, 0)
 		for i = 1, #r, 2 do
-			local x_ = r[i]
-			local y_ = r[i + 1]
-			local vec = LocalToWorld(Vector(x_, y_, 0), Angle(0, objang, 0), globalvec, globalang)
-			r[i] = vec.x
-			r[i + 1] = vec.y
+			local vec = LocalToWorld(Vector(r[i] - ox, r[i + 1] - oy, 0), angle_zero, globalvec, delta_ang)
+			r[i] = vec[1]
+			r[i + 1] = vec[2]
 		end
 
 		local ret

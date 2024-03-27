@@ -1000,11 +1000,6 @@ e2function string wirelink:egpObjectType(number index)
 	return ""
 end
 
-e2function egpobject wirelink:egpObject(number index)
-	local bool, _, obj = EGP:HasObject(this, index)
-	return bool and obj or nil
-end
-
 --------------------------------------------------------
 -- Additional Functions
 --------------------------------------------------------
