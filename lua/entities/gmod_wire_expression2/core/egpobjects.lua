@@ -547,7 +547,9 @@ e2function void egpobject:draw()
 	this._nodraw = nil
 	if not EGP:IsAllowed(self, egp) then return end
 
-	if EGP:CreateObject(egp, this.ID, this) then
+	local args = { unpack(this) }
+
+	if EGP:CreateObject(egp, this.ID, args) then
 		EGP:DoAction(egp, self, "SendObject", this)
 		Update(self, egp)
 	end
@@ -560,6 +562,7 @@ e2function void egpobject:hide()
 
 	EGP:DoAction(egp, self, "RemoveObject", this.index)
 	this._nodraw = true
+	print(this.x, this.y, "not nil?")
 	Update(self, egp)
 end
 
