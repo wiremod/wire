@@ -562,7 +562,6 @@ e2function void egpobject:hide()
 
 	EGP:DoAction(egp, self, "RemoveObject", this.index)
 	this._nodraw = true
-	print(this.x, this.y, "not nil?")
 	Update(self, egp)
 end
 
