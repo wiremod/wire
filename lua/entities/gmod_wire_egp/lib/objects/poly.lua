@@ -95,7 +95,7 @@ function Obj:EditObject(args)
 		ret = true
 	end
 	if args.x or args.y or args.angle then
-		ret = self:SetPos(args.x or self.x, args.y or self.y, args.angle or self.angle)
+		ret = ret or self:SetPos(args.x or self.x, args.y or self.y, args.angle or self.angle)
 		args.x = nil
 		args.y = nil
 		args.angle = nil
