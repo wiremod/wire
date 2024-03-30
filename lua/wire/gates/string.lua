@@ -189,6 +189,7 @@ GateActions["string_replace"] = {
 		if not B then B = "" end
 		if not C then C = "" end
 		if #A + #B + #C > MAX_LEN then return false end
+		if not pcall(WireLib.CheckRegex, A, B) then return false end
 		return string.gsub(A,B,C)
 	end,
 	label = function(Out, A, B, C)
