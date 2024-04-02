@@ -85,12 +85,10 @@ if CLIENT then
         SetCameraActive(self, isActive)
     end
 
-    function ENT:OnRemove()
-        timer.Simple( 0, function()
-            if not IsValid(self) then
-                SetCameraActive(self, false)
-            end
-        end)
+    function ENT:OnRemove(fullUpdate)
+        if not fullUpdate then
+            SetCameraActive(self, false)
+        end
     end
 
     function ENT:SetIsObserved(isObserved)
@@ -112,7 +110,7 @@ if CLIENT then
             local oldi = table.RemoveFastByValue(ObservedCameras, self)
             if oldi == nil then return end
             self.ObservedCamerasIndex = nil
-            
+
             local shifted_cam = ObservedCameras[oldi]
             if IsValid(shifted_cam) then
                 shifted_cam.ObservedCamerasIndex = oldi
