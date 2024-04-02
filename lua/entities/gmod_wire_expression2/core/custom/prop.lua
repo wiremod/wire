@@ -641,7 +641,7 @@ e2function void entity:reposition(vector pos) = e2function void entity:setPos(ve
 
 e2function void entity:setAng(angle rot)
 	if not ValidAction(self, this, "ang") then return end
-	WireLib.setAng(this, nil, rot, nil, nil, nil)
+	WireLib.setAng(this, rot)
 end
 
 e2function void entity:setLocalAng(angle rot)
