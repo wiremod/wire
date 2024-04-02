@@ -628,7 +628,7 @@ end
 __e2setcost(20)
 e2function void entity:setPos(vector pos)
 	if not ValidAction(self, this, "pos") then return end
-	WireLib.setPos(this, pos)
+	setPos(this, pos)
 end
 
 e2function void entity:setLocalPos(vector pos)
@@ -641,7 +641,7 @@ e2function void entity:reposition(vector pos) = e2function void entity:setPos(ve
 
 e2function void entity:setAng(angle rot)
 	if not ValidAction(self, this, "ang") then return end
-	WireLib.setAng(this, rot)
+	setAng(this, rot)
 end
 
 e2function void entity:setLocalAng(angle rot)
