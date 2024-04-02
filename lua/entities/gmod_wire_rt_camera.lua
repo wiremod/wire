@@ -85,12 +85,10 @@ if CLIENT then
         SetCameraActive(self, isActive)
     end
 
-    function ENT:OnRemove()
-        timer.Simple( 0, function()
-            if not IsValid(self) then
-                SetCameraActive(self, false)
-            end
-        end)
+    function ENT:OnRemove(fullUpdate)
+        if not fullUpdate then
+            SetCameraActive(self, false)
+        end
     end
 
     function ENT:SetIsObserved(isObserved)
