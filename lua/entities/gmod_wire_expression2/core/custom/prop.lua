@@ -298,7 +298,7 @@ __e2setcost(30)
 local function removeAllIn( self, tbl )
 	local count = 0
 	for k,v in pairs( tbl ) do
-		if (IsValid(v) and isOwner(self,v) and !v:IsPlayer()) then
+		if (IsValid(v) and isOwner(self,v) and not v:IsPlayer()) then
 			count = count + 1
 			v:Remove()
 		end
@@ -425,9 +425,10 @@ e2function number entity:propGetElasticity()
 	return this:GetElasticity()
 end
 
+local persistCvar = GetConVar("sbox_persist")
 e2function void entity:propMakePersistent(number persistent)
 	if not ValidAction(self, this, "persist") then return end
-	if GetConVarString("sbox_persist") == "0" then return end
+	if not persistCvar:GetBool() then return end
 	if not gamemode.Call("CanProperty", self.player, "persist", this) then return end
 	this:SetPersistent(persistent ~= 0)
 end
