@@ -527,16 +527,8 @@ end
 --- Sets <this>'s skin number.
 e2function void entity:setSkin(skinIndex)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if this:IsPlayer() then return self:throw("You cannot set the skin of a player!", nil) end
-
-	-- This should probably return a number for if it successfully set the skin.
-	if
-		this:SkinCount() > 0
-		and skinIndex < this:SkinCount()
-		and canProperty(self.player, this, "skin")
-	then
-		this:SetSkin(skinIndex)
-	end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	this:SetSkin(skinIndex)
 end
 
 --- Gets <this>'s number of skins.
