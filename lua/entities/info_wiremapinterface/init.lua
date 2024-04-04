@@ -18,13 +18,12 @@ Keep in mind that you have to know what you do
 and that you have to activate spawnflag 8 to make it work.
 Spawnflag 8 is better known as "Run given Lua codes (For advanced users!)" in the Hammer Editor.
 
-Please don't change thinks unless you know what you do. You may break maps if do something wrong.
+Please don't change things unless you know what you do. You may break maps if do something wrong.
 ]]
 
 include("convert.lua")
 include("entitycontrol.lua")
 include("entityoverride.lua")
-include("output.lua")
 
 local ALLOW_INTERFACE = CreateConVar("sv_wire_mapinterface", "1", {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_GAMEDLL}, "Aktivate or deaktivate the wire map interface. Default: 1")
 
