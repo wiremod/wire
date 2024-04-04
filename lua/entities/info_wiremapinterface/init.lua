@@ -220,7 +220,7 @@ function ENT:AcceptInput(name, activator, caller, data)
 		local pattern = "(%d+)"
 		local I = tonumber(string.match(name, "triggerwireoutput"..pattern)) or 0
 
-		if ((I > 0) and (I <= MAX_PORTS) and (self.OutsExist[I])) then
+		if I > 0 and I <= MAX_PORTS and self.OutsExist[I] then
 			self.Timer = self.Timer or {}
 			self.Timer.Out = self.Timer.Out or {}
 
@@ -328,9 +328,8 @@ function ENT:KeyValue(key, value)
 
 	local I, name = string.match(key, "output"..pattern)
 	local I, name = tonumber(I) or 0, tostring(name or "")
-	if ((I > 0) and (I <= MAX_PORTS) and (name ~= "")) then
+	if I > 0 and I <= MAX_PORTS and name ~= "" then
 		self.Outs = self.Outs or {}
-		--self.OutsIDs = self.OutsIDs or {}
 		self.OutsExist = self.OutsExist or {}
 
 		self.Outs[I] = self.Outs[I] or {}
@@ -339,7 +338,6 @@ function ENT:KeyValue(key, value)
 		elseif (name == "desc") then
 			self.Outs[I][name] = value
 		elseif (name == "name") then
-			--self.OutsIDs[value] = I
 			self.OutsExist[I] = true
 			self.Outs[I][name] = value
 		end

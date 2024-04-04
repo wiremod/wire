@@ -10,7 +10,7 @@ function WIREENT:TriggerInput(name, value, ...)
 	if (not Entity.TriggerWireInput) then return end
 
 	local Input = self.Inputs[name] or {}
-	Entity:TriggerWireInput(name, value, (IsValid(Input.Src) == true), self, ...)
+	Entity:TriggerWireInput(name, value, IsValid(Input.Src) == true, self, ...)
 end
 
 -- Remove its overrides
@@ -33,11 +33,6 @@ function WIREENT:_RemoveOverrides()
 		end
 	end
 	self._Settings_WireMapInterfaceEnt = nil
-
-	-- if (self.Outputs) then
-	-- 	table.Merge(self.Outputs, self._OutputsToMap)
-	-- end
-	-- self._OutputsToMap = nil
 
 	self._WireMapInterfaceEnt = nil
 	self._RemoveOverride = nil
