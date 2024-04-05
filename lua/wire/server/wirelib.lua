@@ -23,7 +23,8 @@ local Color = Color
 local isvector, isnumber, istable, isstring, isangle, IsEntity, IsColor = isvector, isnumber, istable, isstring, isangle, IsEntity, IsColor
 
 local HasPorts = WireLib.HasPorts -- Very important for checks!
-
+local entIsValid = FindMetaTable("Entity").IsValid
+local entGetTable = FindMetaTable("Entity").GetTable
 
 function WireLib.PortComparator(a,b)
 	return a.Num < b.Num
@@ -52,9 +53,9 @@ local CurTime = CurTime
 
 -- helper function that pcalls an input
 function WireLib.TriggerInput(ent, name, value, ...)
-	if not IsValid(ent) or not HasPorts(ent) then return end
+	if not entIsValid(ent) or not HasPorts(ent) then return end
 
-	local entTbl = ent:GetTable()
+	local entTbl = entGetTable(ent)
 	local inputs = entTbl.Inputs
 
 	if not inputs then return end
@@ -627,10 +628,10 @@ local function Wire_Link(dst, dstid, src, srcid, path)
 end
 
 function WireLib.TriggerOutput(ent, oname, value, iter)
-	if not IsValid(ent) then return end
+	if not entIsValid(ent) then return end
 	if not HasPorts(ent) then return end
 
-	local entTbl = ent:GetTable()
+	local entTbl = entGetTable(ent)
 	if not entTbl.Outputs then return end
 
 	local output = entTbl.Outputs[oname]
@@ -659,7 +660,7 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 		if iter then
 			for _, dst in ipairs(outputConnected) do
 				local dstEnt = dst.Entity
-				if IsValid(dstEnt) then
+				if entIsValid(dstEnt) then
 					iter:Add(dstEnt, dst.Name, value)
 				end
 			end
@@ -670,7 +671,7 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 
 		for _, dst in ipairs(outputConnected) do
 			local dstEnt = dst.Entity
-			if IsValid(dstEnt) then
+			if entIsValid(dstEnt) then
 				WireLib.TriggerInput(dstEnt, dst.Name, value, iter)
 			end
 		end
