@@ -180,18 +180,6 @@ function ENT:Initialize()
 	self.Relative = false
 	self.MouseDown = false
 
-	self.LastX = 0
-	self.LastY = 0
-	self.LastZ = 0
-	self.LastTeam = 0
-	self.LastHealth = 0
-	self.LastArmor = 0
-	self.LastAimPos = 0
-	self.LastDistance = 0
-	self.LastBearing = 0
-	self.LastElevation = 0
-	self.LastThirdPerson = 0
-
 	self:SetActivated(false)
 
 	self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
@@ -492,18 +480,20 @@ local function fixupangle(angle)
 	return angle
 end
 
+-- Caching the value to be changed in order to avoid attempting another output trigger (which is more expensive)
 local function recacheOutput(entity, selfTbl, oname, value)
-	if selfTbl["Last" .. oname] == value then return end
-	selfTbl["Last" .. oname] = value
+	if selfTbl.Outputs[oname].Value == value then return end
 	WireLib.TriggerOutput(entity, oname, value)
 end
 
+local ent_GetTable = FindMetaTable("Entity").GetTable
+
 function ENT:Think()
-	local selfTbl = self:GetTable()
-	local ply = self:GetPly()
+	local selfTbl = ent_GetTable(self)
+	local ply = selfTbl.Ply
 
 	if ply and selfTbl.Activated then
-		local pod = self:GetPod()
+		local pod = selfTbl.Pod
 
 		-- Tracing
 		local shootPos = ply:GetShootPos()
@@ -529,7 +519,7 @@ function ENT:Think()
 				local originalangle
 				if selfTbl.RC then
 					originalangle = selfTbl.RC.InitialAngle
-				else
+				elseif pod then
 					local attachment = pod:LookupAttachment("vehicle_driver_eyes")
 					if attachment > 0 then
 						originalangle = pod:GetAttachment(attachment).Ang
@@ -569,7 +559,6 @@ function ENT:Think()
 		end
 
 		-- Other info
-		recacheOutput(self, selfTbl, "Team", ply:Team())
 		recacheOutput(self, selfTbl, "Health", ply:Health())
 		recacheOutput(self, selfTbl, "Armor", ply:Armor())
 		if pod then recacheOutput(self, selfTbl, "ThirdPerson", pod:GetThirdPersonMode() and 1 or 0) end
@@ -608,6 +597,8 @@ function ENT:PlayerEntered(ply, RC)
 	if self.HidePlayerVal then
 		self:HidePlayer(true)
 	end
+
+	WireLib.TriggerOutput(self, "Team", ply:Team())
 
 	self:SetActivated(true)
 end
