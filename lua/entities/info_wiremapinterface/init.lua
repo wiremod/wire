@@ -18,13 +18,12 @@ Keep in mind that you have to know what you do
 and that you have to activate spawnflag 8 to make it work.
 Spawnflag 8 is better known as "Run given Lua codes (For advanced users!)" in the Hammer Editor.
 
-Please don't change thinks unless you know what you do. You may break maps if do something wrong.
+Please don't change things unless you know what you do. You may break maps if do something wrong.
 ]]
 
 include("convert.lua")
 include("entitycontrol.lua")
 include("entityoverride.lua")
-include("output.lua")
 
 local ALLOW_INTERFACE = CreateConVar("sv_wire_mapinterface", "1", {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_GAMEDLL}, "Aktivate or deaktivate the wire map interface. Default: 1")
 
@@ -221,7 +220,7 @@ function ENT:AcceptInput(name, activator, caller, data)
 		local pattern = "(%d+)"
 		local I = tonumber(string.match(name, "triggerwireoutput"..pattern)) or 0
 
-		if ((I > 0) and (I <= MAX_PORTS) and (self.OutsExist[I])) then
+		if I > 0 and I <= MAX_PORTS and self.OutsExist[I] then
 			self.Timer = self.Timer or {}
 			self.Timer.Out = self.Timer.Out or {}
 
@@ -329,9 +328,8 @@ function ENT:KeyValue(key, value)
 
 	local I, name = string.match(key, "output"..pattern)
 	local I, name = tonumber(I) or 0, tostring(name or "")
-	if ((I > 0) and (I <= MAX_PORTS) and (name ~= "")) then
+	if I > 0 and I <= MAX_PORTS and name ~= "" then
 		self.Outs = self.Outs or {}
-		--self.OutsIDs = self.OutsIDs or {}
 		self.OutsExist = self.OutsExist or {}
 
 		self.Outs[I] = self.Outs[I] or {}
@@ -340,7 +338,6 @@ function ENT:KeyValue(key, value)
 		elseif (name == "desc") then
 			self.Outs[I][name] = value
 		elseif (name == "name") then
-			--self.OutsIDs[value] = I
 			self.OutsExist[I] = true
 			self.Outs[I][name] = value
 		end

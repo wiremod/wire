@@ -10,82 +10,8 @@ function WIREENT:TriggerInput(name, value, ...)
 	if (not Entity.TriggerWireInput) then return end
 
 	local Input = self.Inputs[name] or {}
-	Entity:TriggerWireInput(name, value, (IsValid(Input.Src) == true), self, ...)
+	Entity:TriggerWireInput(name, value, IsValid(Input.Src) == true, self, ...)
 end
-
--- Copied from the gmod base entity, it's changed to work with wire ports.
--- It's only changed for this entity.
--- This function is used to store an output.
-function WIREENT:StoreOutput(name, info)
-	local rawData = string.Explode(",", info)
-
-	local Output = {}
-	Output.entities = rawData[1] or ""
-	Output.input = rawData[2] or ""
-	Output.param = rawData[3] or ""
-	Output.delay = tonumber(rawData[4]) or 0
-	Output.times = tonumber(rawData[5]) or -1
-
-	self._OutputsToMap = self._OutputsToMap or {}
-	-- This table (self._OutputsToMap) got renamed,
-	-- because it was called self.Outputs,
-	-- that caused conflicts with wiremod!
-
-	self._OutputsToMap[name] = self._OutputsToMap[name] or {}
-	table.insert(self._OutputsToMap[name], Output)
-end
-
--- Nice helper function, this does all the work.
--- Returns false if the output should be removed from the list.
-local function FireSingleOutput(output, this, activator)
-	if (output.times == 0) then return false end
-	local delay = output.delay
-	local entitiesToFire = {}
-
-	if (output.entities == "!activator") then
-		entitiesToFire = {activator}
-	elseif (output.entities == "!self") then
-		entitiesToFire = {this}
-	elseif (output.entities == "!player") then
-		entitiesToFire = player.GetAll()
-	else
-		entitiesToFire = ents.FindByName(output.entities)
-	end
-
-	for _,ent in pairs(entitiesToFire) do
-		if (IsValid(ent)) then
-			if (delay == 0) then
-				ent:Input(output.input, activator, this, output.param)
-			else
-				timer.Simple(delay, function()
-					if (IsValid(ent)) then
-						ent:Input(output.input, activator, this, output.param)
-					end
-				 end)
-			end
-		end
-	end
-
-	if (output.times ~= -1) then
-		output.times = output.times - 1
-	end
-
-	return ((output.times > 0) or (output.times == -1))
-end
-
--- This function is used to store an output.
-function WIREENT:TriggerOutput(name, activator)
-	if (not self._OutputsToMap) then return end
-	local OutputsToMap = self._OutputsToMap[name]
-	if (not OutputsToMap) then return end
-
-	for idx,op in pairs(OutputsToMap) do
-		if (not FireSingleOutput(op, self, activator)) then
-			self._OutputsToMap[name][idx] = nil
-		end
-	end
-end
-
 
 -- Remove its overrides
 function WIREENT:_RemoveOverrides()
@@ -108,15 +34,9 @@ function WIREENT:_RemoveOverrides()
 	end
 	self._Settings_WireMapInterfaceEnt = nil
 
-	if (self.Outputs) then
-		table.Merge(self.Outputs, self._OutputsToMap)
-	end
-	self._OutputsToMap = nil
-
 	self._WireMapInterfaceEnt = nil
 	self._RemoveOverride = nil
 end
-
 
 -- Adds its overrides
 function ENT:OverrideEnt(Entity)
