@@ -500,3 +500,23 @@ e2function number string:unicodeLength(number startPos, number endPos)
 	end
 	return -1
 end
+
+--[[******************************************************************************]]--
+__e2setcost(10)
+
+local compress = util.Compress
+local decompress = util.Decompress
+
+e2function string compress(string plaintext)
+	local len = #plaintext
+	if len > 32768 then return self:throw("Input string is too long!", "") end
+	self.prf = self.prf + len * 0.1
+	return compress(plaintext)
+end
+
+e2function string decompress(string compressed)
+	local len = #compressed
+	if len > 32768 then return self:throw("Input string is too long!", "") end
+	self.prf = self.prf + len * 0.5
+	return decompress(compressed) or self:throw("Invalid input for decompression!", "")
+end
