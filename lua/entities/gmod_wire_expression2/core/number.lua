@@ -44,6 +44,7 @@ E2Lib.registerConstant("PI", pi)
 E2Lib.registerConstant("INF", inf)
 E2Lib.registerConstant("E", exp(1))
 E2Lib.registerConstant("PHI", (1+sqrt(5))/2)
+E2Lib.registerConstant("TAU", math.tau)
 
 --[[************************************************************************]]--
 
