@@ -547,7 +547,12 @@ e2function void egpobject:draw()
 	this._nodraw = nil
 	if not EGP:IsAllowed(self, egp) then return end
 
-	if EGP:CreateObject(egp, this.ID, this) then
+	local args = {}
+	for k, v in pairs(this) do
+		args[k] = v
+	end
+
+	if EGP:CreateObject(egp, this.ID, args) then
 		EGP:DoAction(egp, self, "SendObject", this)
 		Update(self, egp)
 	end
