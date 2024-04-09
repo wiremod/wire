@@ -59,8 +59,15 @@ function ENT:UpdateFriendslist( friends_steamids )
 	end
 
 	local plys = player.GetHumans()
-	for i=1,#plys do
-		self:Connected( plys[i] )
+	for i = 1, #plys do
+		local ply = plys[i]
+		local steamid = ply:SteamID()
+
+		if self.friends_lookup[ply] then return end
+
+		if self.steamids_lookup[steamid] then
+			self.friends_lookup[ply] = true
+		end
 	end
 
 	self:UpdateOutputs()
