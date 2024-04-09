@@ -61,12 +61,12 @@ function ENT:UpdateFriendslist( friends_steamids )
 	local plys = player.GetHumans()
 	for i = 1, #plys do
 		local ply = plys[i]
-		local steamid = ply:SteamID()
 
-		if self.friends_lookup[ply] then return end
-
-		if self.steamids_lookup[steamid] then
-			self.friends_lookup[ply] = true
+		if not self.friends_lookup[ply] then
+			local steamid = ply:SteamID()
+			if self.steamids_lookup[steamid] then
+				self.friends_lookup[ply] = true
+			end
 		end
 	end
 
