@@ -79,7 +79,7 @@ local function temp( ret, tbl, k, v, orientvertical, isnum )
 			end
 		end
 	else
-		ret = ret .. formatPort[longtype]( v, orientvertical )
+			ret = ret .. formatPort[longtype](v, orientvertical)
 	end
 
 	if (orientvertical) then
@@ -105,8 +105,7 @@ WireLib.registerDebuggerFormat( "table", function( value, orientvertical )
 		if (n > 7) then break end
 		ret = temp( ret, value, k3, v3, orientvertical, false )
 	end
-	ret = ret:Left(-3)
-	return "{" .. ret .. "}"
+	return "{" .. ret:sub(1, orientvertical and -2 or -3) .. "}"
 end)
 
 --------------------------------------------------------------------------------
