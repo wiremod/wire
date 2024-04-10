@@ -1,4 +1,8 @@
-local formatPort = {}
+local formatPort = setmetatable({}, { __index = function(_, k)
+	return function() return k end
+end
+})
+
 WireLib.Debugger = { formatPort = formatPort } -- Make it global
 function formatPort.NORMAL(value)
 	return string.format("%.3f",value)
@@ -42,8 +46,6 @@ function formatPort.MATRIX4(value)
 		  RetText = RetText..",41="..value[13]..",42="..value[14]..",43="..value[15]..",44="..value[16].."]"
 	return RetText
 end
-
-function formatPort.RANGER(value) return "ranger" end
 
 function formatPort.ARRAY(value, OrientVertical)
 	local RetText = ""
@@ -153,7 +155,6 @@ function formatPort.TABLE(value, OrientVertical)
 	RetText = string.sub(RetText,1,-3)
 	return "{"..RetText.."}"
 end
-
 
 function WireLib.registerDebuggerFormat(typename, func)
 	formatPort[typename:upper()] = func
