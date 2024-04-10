@@ -1,5 +1,5 @@
-local formatPort = setmetatable({}, { __index = function(t, k)
-	return rawget(t, k) or function() return k end
+local formatPort = setmetatable({}, { __index = function(_, k)
+	return function() return k end
 end
 })
 
