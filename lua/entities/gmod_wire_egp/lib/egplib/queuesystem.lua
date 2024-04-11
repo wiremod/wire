@@ -26,7 +26,6 @@ function EGP:AddQueueObject( Ent, ply, Function, Object )
 					end
 					return
 				end
-				::_continue::
 			end
 			-- Not found, add it to queue
 			LastItem.Args[1][#LastItem.Args[1]+1] = Object
