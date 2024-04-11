@@ -219,8 +219,10 @@ do
 			if ok then
 				AddCSLuaFile(p)
 				return
-			else
+			elseif istable(super) then
 				return super[1]
+			else
+				ErrorNoHalt(super .. "\n") -- Rethrow the error
 			end
 		end
 		local ret = wrap()
