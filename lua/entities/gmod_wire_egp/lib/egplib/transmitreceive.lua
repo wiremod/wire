@@ -248,20 +248,8 @@ if (SERVER) then
 
 				if (v.remove == true) then
 					net.WriteUInt(0, 8) -- Object is to be removed, send a 0
-					local bool, k, v = EGP:HasObject( Ent, v.index )
-					if (bool) then
-						-- Unparent all objects parented to this object
-						for k2,v2 in pairs( Ent.RenderTable ) do
-							if (v2.parent and v.index and v2.parent == v.index) then
-								EGP:UnParent( Ent, v2 )
-							end
-						end
-
-						table.remove( Ent.RenderTable, k )
-					end
 				else
 					net.WriteUInt(v.ID, 8) -- Else send the ID of the object
-
 					if (Ent.Scaling or Ent.TopLeft) then
 						local original = v
 						v = table.Copy(v) -- Make a copy of the table so it doesn't overwrite the serverside object
@@ -319,16 +307,18 @@ if (SERVER) then
 			local Data = {...}
 			local obj = Data[1]
 
-			if (E2 and E2.entity and E2.entity:IsValid()) then
-				E2.prf = E2.prf + 20
+			local remove_index
+			for i, v in ipairs(Ent.RenderTable) do
+				E2.prf = E2.prf + 0.3
+				if v.index == obj then
+					remove_index = i
+				elseif v.parent and v.parent == obj then
+					EGP:UnParent(Ent, v)
+				end
 			end
 
-			for i=1,#Ent.RenderTable do
-				E2.prf = E2.prf + 0.3
-				if Ent.RenderTable[i].index == obj then
-					table.remove( Ent.RenderTable, i )
-					break
-				end
+			if remove_index then
+				table.remove(Ent.RenderTable, remove_index)
 			end
 
 			self:AddQueueObject( Ent, E2.player, SendObjects, { index = Data[1], remove = true } )
