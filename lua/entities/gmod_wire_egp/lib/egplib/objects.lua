@@ -139,10 +139,10 @@ function EGPObject:__tostring()
 	return "[EGPObject] ".. (self.Name or "NULL")
 end
 function EGPObject:__eq(a, b)
-	return a.ID == b.ID
+	return  a and b and a.ID == b.ID
 end
 function EGPObject:IsValid()
-	return self.ID ~= nil
+	return self and self.ID ~= nil
 end
 
 -- The EGPObject metatable
