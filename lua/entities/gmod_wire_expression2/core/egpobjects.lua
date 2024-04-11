@@ -548,7 +548,7 @@ e2function void egpobject:draw()
 		args[k] = v
 	end
 
-	if egp_create(egp, this.ID, args) then
+	if egp_create(this.ID, args, egp) then
 		EGP:DoAction(egp, self, "SendObject", this)
 		Update(self, egp)
 	end
