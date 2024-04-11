@@ -8,6 +8,7 @@ local NULL_EGPOBJECT = EGP.Objects.NULL_EGPOBJECT
 local isValid = EGP.EGPObject.IsValid
 local hasObject = EGP.HasObject
 local egp_create = EGP.Create
+local isAllowed = EGP.IsAllowed
 
 -- Table of allowed arguments and their types
 local EGP_ALLOWED_ARGS =
