@@ -4,6 +4,9 @@
 local EGP = E2Lib.EGP
 
 local hasObject
+EGP.HookPostInit(function()
+	hasObject = EGP.HasObject
+end)
 
 if (SERVER) then
 	util.AddNetworkString( "EGP_Transmit_Data" )
@@ -689,8 +692,4 @@ else
 	net.Receive("EGP_Request_Transmit", function(len,ply)
 		EGP:ReceiveDataStream(net.ReadTable())
 	end)
-end
-
-return function()
-	hasObject = E2Lib.EGP.HasObject
 end

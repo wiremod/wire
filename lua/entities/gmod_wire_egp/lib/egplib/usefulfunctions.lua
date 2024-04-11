@@ -4,6 +4,9 @@
 local EGP = E2Lib.EGP
 
 local hasObject
+EGP.HookPostInit(function()
+	hasObject = EGP.HasObject
+end)
 
 ----------------------------
 -- Table IsEmpty
@@ -515,8 +518,4 @@ function EGP.Draw(ent)
 		end
 		EGP:FixMaterial(oldtex)
 	end
-end
-
-return function()
-	hasObject = E2Lib.EGP.HasObject
 end

@@ -5,6 +5,9 @@ local EGP = E2Lib.EGP
 EGP.ParentingFuncs = {}
 
 local hasObject
+EGP.HookPostInit(function()
+	hasObject = EGP.HasObject
+end)
 
 local function addUV( v, t ) -- Polygon u v fix
 	if (v.verticesindex) then
@@ -275,8 +278,4 @@ function EGP:UnParent( Ent, index )
 
 		if v:EditObject(data) then return true, v end
 	end
-end
-
-return function()
-	hasObject = E2Lib.EGP.HasObject
 end

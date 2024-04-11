@@ -19,7 +19,16 @@ EGP.ConVars = {
 
 -- Include all other files
 local postinit = {}
-local j = 0
+--- Calls argument after EGP library finishes initializing. If initialization already finished, calls callback immediately.
+---@param callback function
+function EGP.HookPostInit(callback)
+	if postinit then
+		table.insert(postinit, callback)
+	else
+		callback()
+	end
+end
+
 local FOLDER = "entities/gmod_wire_egp/lib/egplib/"
 local entries = file.Find(FOLDER .. "*.lua", "LUA")
 
@@ -28,13 +37,11 @@ for _, entry in ipairs(entries) do
 	if SERVER then
 		AddCSLuaFile(p)
 	end
-	local r = include(p)
-	if r then
-		j = table.insert(postinit, r)
-	end
+	include(p)
 end
 
 -- Run PostInit callbacks
-for i = 1, j do
-	postinit[i]()
+for _, v in ipairs(postinit) do
+	v()
 end
+postinit = nil

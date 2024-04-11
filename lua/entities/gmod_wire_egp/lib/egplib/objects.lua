@@ -6,6 +6,10 @@ EGP.Objects = objects
 
 local validEGP
 local maxObjects
+EGP.HookPostInit(function()
+	validEGP = EGP.ValidEGP
+	maxObjects = EGP.ConVars.MaxObjects
+end)
 
 ---@class EGPObject
 ---@field ID integer? nil when NULL
@@ -457,9 +461,4 @@ for k, v in ipairs(tbl) do
 		if obj[k2] ~= nil then obj[k2] = v2 end
 	end
 	table.insert(EGP.HomeScreen, obj)
-end
-
-return function()
-	validEGP = EGP.ValidEGP
-	maxObjects = EGP.ConVars.MaxObjects
 end
