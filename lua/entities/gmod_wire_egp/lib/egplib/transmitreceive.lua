@@ -1,7 +1,9 @@
 --------------------------------------------------------
 -- Queue Functions
 --------------------------------------------------------
-local EGP = EGP
+local EGP = E2Lib.EGP
+
+local hasObject
 
 if (SERVER) then
 	util.AddNetworkString( "EGP_Transmit_Data" )
@@ -91,7 +93,7 @@ if (SERVER) then
 			return
 		end
 
-		local bool, _, v = EGP:HasObject( Ent, index )
+		local bool, _, v = hasObject(Ent, index)
 		if (bool) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
@@ -123,7 +125,7 @@ if (SERVER) then
 			return
 		end
 
-		local bool, _, v = EGP:HasObject( Ent, index )
+		local bool, _, v = hasObject(Ent, index)
 		if (bool) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
@@ -154,7 +156,7 @@ if (SERVER) then
 			return
 		end
 
-		if EGP:HasObject(Ent, index) then
+		if hasObject(Ent, index) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "AddText" )
@@ -175,7 +177,7 @@ if (SERVER) then
 			return
 		end
 
-		if EGP:HasObject(Ent, index) then
+		if hasObject(Ent, index) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "SetText" )
@@ -239,16 +241,11 @@ if (SERVER) then
 			net.WriteUInt( #DataToSend, 16 ) -- Send estimated number of objects to be sent
 			for k,v in ipairs( DataToSend ) do
 
-				-- Check if the object doesn't exist serverside anymore (It may have been removed by a command in the queue before this, like egpClear or egpRemove)
-				--if not EGP:HasObject( Ent, v.index ) then
-				--	EGP:CreateObject( Ent, v.ID, v )
-				--end
-
 				net.WriteInt( v.index, 16 ) -- Send index of object
 
 				if (v.remove == true) then
 					net.WriteUInt(0, 8) -- Object is to be removed, send a 0
-					local bool, k, v = EGP:HasObject( Ent, v.index )
+					local bool, k, v = hasObject(Ent, v.index)
 					if (bool) then
 						-- Unparent all objects parented to this object
 						for k2,v2 in pairs( Ent.RenderTable ) do
@@ -294,7 +291,7 @@ if (SERVER) then
 
 		-- Change order now
 		if order_was_changed then
-			EGP:PerformReorder( Ent )
+			EGP.PerformReorder(Ent)
 		end
 
 		EGP:SendQueueItem( ply )
@@ -409,20 +406,20 @@ else -- SERVER/CLIENT
 		elseif (Action == "SetText") then
 			local index = net.ReadInt(16)
 			local text = net.ReadString()
-			local bool,_,v = EGP:HasObject( Ent, index )
+			local bool,_,v = hasObject(Ent, index)
 			if (bool) then
 				if (EGP:EditObject( v, { text = text } )) then Ent:EGP_Update() end
 			end
 		elseif (Action == "AddText") then
 			local index = net.ReadInt(16)
 			local text = net.ReadString()
-			local bool,_,v = EGP:HasObject( Ent, index )
+			local bool,_,v = hasObject(Ent, index)
 			if (bool) then
 				if (EGP:EditObject( v, { text = v.text .. text } )) then Ent:EGP_Update() end
 			end
 		elseif (Action == "SetVertex") then
 			local index = net.ReadInt(16)
-			local bool, _, v = EGP:HasObject( Ent, index )
+			local bool, _, v = hasObject(Ent, index)
 			if (bool) then
 				local vertices = {}
 
@@ -442,7 +439,7 @@ else -- SERVER/CLIENT
 			end
 		elseif (Action == "AddVertex") then
 			local index = net.ReadInt(16)
-			local bool, _, v = EGP:HasObject( Ent, index )
+			local bool, _, v = hasObject(Ent, index)
 			if (bool) then
 				local vertices = table.Copy(v.vertices)
 
@@ -474,7 +471,7 @@ else -- SERVER/CLIENT
 				local ID = net.ReadUInt(8)
 
 				if (ID == 0) then -- Remove object
-					local bool, k, v = EGP:HasObject( Ent, index )
+					local bool, k, v = hasObject(Ent, index)
 					if (bool) then
 						if (v.OnRemove) then v:OnRemove() end
 
@@ -497,11 +494,11 @@ else -- SERVER/CLIENT
 					end
 
 					local current_obj
-					local bool, k, v = self:HasObject( Ent, index )
+					local bool, k, v = hasObject(Ent, index)
 					if (bool) then -- Object already exists
 						if (v.ID ~= ID) then -- Not the same kind of object, create new
 							if (v.OnRemove) then v:OnRemove() end
-							local Obj = self:GetObjectByID( ID )
+							local Obj = table.Copy(EGP.Objects[ID])
 							local data = Obj:Receive()
 							Obj:Initialize(data)
 							Obj.index = index
@@ -522,7 +519,7 @@ else -- SERVER/CLIENT
 						-- For EGP HUD
 						v.res = nil
 					else -- Object does not exist. Create new
-						local Obj = self:GetObjectByID( ID )
+						local Obj = table.Copy(EGP.Objects[ID])
 						Obj:Initialize(Obj:Receive())
 						Obj.index = index
 						if (Obj.OnCreate) then Obj:OnCreate() end
@@ -542,7 +539,7 @@ else -- SERVER/CLIENT
 
 			-- Change order now
 			if order_was_changed then
-				self:PerformReorder( Ent )
+				EGP.PerformReorder(Ent)
 			end
 
 			Ent:EGP_Update()
@@ -673,7 +670,7 @@ else
 				Ent.GPU.texture_filtering = decoded.Filtering or TEXFILTER.ANISOTROPIC
 			end
 			for _,v in pairs( Objects ) do
-				local Obj = self:GetObjectByID(v.ID)
+				local Obj = table.Copy(EGP.Objects[v.ID])
 				Obj:Initialize(v.Settings)
 				-- If parented, reset the parent indexes
 				if (Obj.parent and Obj.parent ~= 0) then
@@ -692,4 +689,8 @@ else
 	net.Receive("EGP_Request_Transmit", function(len,ply)
 		EGP:ReceiveDataStream(net.ReadTable())
 	end)
+end
+
+return function()
+	hasObject = E2Lib.EGP.HasObject
 end

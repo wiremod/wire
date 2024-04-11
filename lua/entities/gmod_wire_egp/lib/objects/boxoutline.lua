@@ -1,5 +1,5 @@
 -- Author: Divran
-local Obj = EGP.ObjectInherit("BoxOutline", "Box")
+local Obj = E2Lib.EGP.ObjectInherit("BoxOutline", "Box")
 Obj.size = 1
 
 local base = Obj.BaseClass

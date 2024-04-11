@@ -1,5 +1,5 @@
 -- Author: Divran
-local Obj = EGP:NewObject( "Text" )
+local Obj = E2Lib.EGP.NewObject("Text")
 Obj.material = nil
 Obj.text = ""
 Obj.font = "WireGPU_ConsoleFont"

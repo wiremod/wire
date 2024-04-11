@@ -1,7 +1,7 @@
 --------------------------------------------------------
 -- EGP Queue System
 --------------------------------------------------------
-local EGP = EGP
+local EGP = E2Lib.EGP
 
 EGP.Queue = WireLib.RegisterPlayerTable()
 
@@ -18,7 +18,7 @@ function EGP:AddQueueObject( Ent, ply, Function, Object )
 						table.remove( LastItem.Args[1], k )
 					elseif (v.ID ~= Object.ID) then -- Not the same kind of object, create new
 						if (v.OnRemove) then v:OnRemove() end
-						local Obj = self:GetObjectByID( Object.ID )
+						local Obj = table.Copy(EGP.Objects[Object.ID])
 						Obj:EditObject(Object:DataStreamInfo())
 						Obj.index = v.index
 						if (Obj.OnCreate) then Obj:OnCreate() end

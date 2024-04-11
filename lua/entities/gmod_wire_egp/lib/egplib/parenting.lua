@@ -1,8 +1,10 @@
 --------------------------------------------------------
 -- Parenting functions
 --------------------------------------------------------
-local EGP = EGP
+local EGP = E2Lib.EGP
 EGP.ParentingFuncs = {}
+
+local hasObject
 
 local function addUV( v, t ) -- Polygon u v fix
 	if (v.verticesindex) then
@@ -97,7 +99,7 @@ local function GetGlobalPos(self, Ent, index)
 		obj = index
 		bool = true
 	else
-		bool, _, obj = self:HasObject(Ent, index)
+		bool, _, obj = hasObject(Ent, index)
 	end
 	if bool then
 		if obj.parent and obj.parent ~= 0 then -- Object is parented
@@ -111,7 +113,7 @@ local function GetGlobalPos(self, Ent, index)
 				local vec, ang = LocalToWorld(Vector(obj._x, obj._y, 0), Angle(0, obj._angle or 0, 0), Vector(x, y, 0), angle_zero)
 				return obj.verticesindex ~= nil, { x = vec.x, y = vec.y, angle = -ang.y }
 			else
-				local _, data = GetGlobalPos(Ent, select(3, EGP:HasObject(Ent, obj.parent)))
+				local _, data = GetGlobalPos(Ent, select(3, hasObject(Ent, obj.parent)))
 				local vec, ang = LocalToWorld(Vector(obj._x, obj._y, 0), Angle(0, -(obj._angle or 0), 0), Vector(data.x, data.y, 0), Angle(0, -(data.angle or 0), 0))
 				return obj.verticesindex ~= nil, { x = vec.x, y = vec.y, angle = -ang.y }
 			end
@@ -205,7 +207,7 @@ end
 function EGP:SetParent( Ent, index, parentindex )
 	local bool, v
 	if isnumber(index) then
-		bool, _, v = self:HasObject(Ent, index)
+		bool, _, v = hasObject(Ent, index)
 	else
 		bool, v = index ~= nil, index
 	end
@@ -214,7 +216,7 @@ function EGP:SetParent( Ent, index, parentindex )
 			if (self:EditObject( v, { parent = parentindex } )) then return true, v end
 		else
 			if isnumber(parentindex) then
-				bool = self:HasObject(Ent, parentindex)
+				bool = hasObject(Ent, parentindex)
 			else
 				bool, parentindex = parentindex ~= nil, parentindex.index
 			end
@@ -257,7 +259,7 @@ end
 function EGP:UnParent( Ent, index )
 	local bool, v = false
 	if isnumber(index) then
-		bool, _, v = self:HasObject( Ent, index )
+		bool, _, v = hasObject(Ent, index)
 	else
 		bool = istable(index)
 		v = index
@@ -273,4 +275,8 @@ function EGP:UnParent( Ent, index )
 
 		if v:EditObject(data) then return true, v end
 	end
+end
+
+return function()
+	hasObject = E2Lib.EGP.HasObject
 end
