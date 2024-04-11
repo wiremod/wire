@@ -19,7 +19,7 @@ Obj.Transmit = function( self )
 end
 
 Obj.Receive = function( self )
-	tbl = {}
+	local tbl = {}
 	EGP.ReceiveSize(tbl)
 	table.Merge(tbl, base.Receive(self))
 	return tbl
