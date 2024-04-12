@@ -113,10 +113,10 @@ if CLIENT then
 	end
 
 	function ENT:Draw()
-        local selfTbl = self:GetTable()
+		local selfTbl = self:GetTable()
 		if selfTbl.blocked or selfTbl.notvisible then return end
 
-        local _, _, _, alpha = self:GetColor4Part()
+		local _, _, _, alpha = self:GetColor4Part()
 		if alpha ~= 255 then
 			selfTbl.RenderGroup = RENDERGROUP_BOTH
 		else
