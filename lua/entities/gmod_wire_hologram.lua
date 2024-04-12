@@ -77,7 +77,7 @@ if CLIENT then
 		hook.Remove("PlayerBindPress", "wire_hologram_scale_setup")
 	end)
 
-	function ENT:SetupClipping(selfTbl)
+	local function SetupClipping(selfTbl)
 		if next(selfTbl.clips) then
 			selfTbl.oldClipState = render.EnableClipping(true)
 
@@ -100,7 +100,7 @@ if CLIENT then
 		end
 	end
 
-	function ENT:FinishClipping(selfTbl)
+	local function FinishClipping(selfTbl)
 		if next(selfTbl.clips) then
 			for _, clip in pairs(selfTbl.clips) do
 				if clip.enabled and clip.normal and clip.origin then -- same logic as in SetupClipping
@@ -123,7 +123,7 @@ if CLIENT then
 			selfTbl.RenderGroup = RENDERGROUP_OPAQUE
 		end
 
-		self:SetupClipping(selfTbl)
+		SetupClipping(selfTbl)
 
 		local invert_model = self:GetNWInt("invert_model")
 		render.CullMode(invert_model)
@@ -140,7 +140,7 @@ if CLIENT then
 			render.CullMode(0)
 		end
 
-		self:FinishClipping(selfTbl)
+		FinishClipping(selfTbl)
 	end
 
 	-- -----------------------------------------------------------------------------
