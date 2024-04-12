@@ -260,7 +260,7 @@ if CLIENT then
 
 			for i = count, 0, -1 do
 				local bone_scale = self.bone_scale[i] or Vector(1,1,1)
-				self:ManipulateBoneScale(i, bone_scale) // Note: Using ManipulateBoneScale currently causes RenderBounds to be reset every frame!
+				self:ManipulateBoneScale(i, bone_scale) -- Note: Using ManipulateBoneScale currently causes RenderBounds to be reset every frame!
 			end
 		end
 
