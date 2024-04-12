@@ -116,7 +116,7 @@ if CLIENT then
         local selfTbl = self:GetTable()
 		if selfTbl.blocked or selfTbl.notvisible then return end
 
-        local _, _, _, alpha = self:GetColor()
+        local _, _, _, alpha = self:GetColor4Part()
 		if alpha ~= 255 then
 			selfTbl.RenderGroup = RENDERGROUP_BOTH
 		else
