@@ -4,6 +4,12 @@
 
 local isOwner = E2Lib.isOwner
 
+do
+	local v1, v2 = WireLib.GetVersion()
+	E2Lib.registerConstant("WIREVERSION", v1)
+	E2Lib.registerConstant("WIREVERSION_STR", v2)
+end
+
 __e2setcost(1) -- temporary
 
 [nodiscard]
@@ -243,7 +249,6 @@ __e2setcost(5)
 e2function number getExtensionStatus(string extension)
 	return getExtensionStatus(extension) and 1 or 0
 end
-
 
 --[[******************************************************************************]]--
 
