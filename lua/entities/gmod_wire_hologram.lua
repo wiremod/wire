@@ -77,11 +77,11 @@ if CLIENT then
 		hook.Remove("PlayerBindPress", "wire_hologram_scale_setup")
 	end)
 
-	function ENT:SetupClipping()
-		if next(self.clips) then
-			self.oldClipState = render.EnableClipping(true)
+	local function SetupClipping(selfTbl)
+		if next(selfTbl.clips) then
+			selfTbl.oldClipState = render.EnableClipping(true)
 
-			for _, clip in pairs(self.clips) do
+			for _, clip in pairs(selfTbl.clips) do
 				if clip.enabled and clip.normal and clip.origin then
 					local norm = clip.normal
 					local origin = clip.origin
@@ -100,28 +100,30 @@ if CLIENT then
 		end
 	end
 
-	function ENT:FinishClipping()
-		if next(self.clips) then
-			for _, clip in pairs(self.clips) do
+	local function FinishClipping(selfTbl)
+		if next(selfTbl.clips) then
+			for _, clip in pairs(selfTbl.clips) do
 				if clip.enabled and clip.normal and clip.origin then -- same logic as in SetupClipping
 					render.PopCustomClipPlane()
 				end
 			end
 
-			render.EnableClipping(self.oldClipState)
+			render.EnableClipping(selfTbl.oldClipState)
 		end
 	end
 
 	function ENT:Draw()
-		if self.blocked or self.notvisible then return end
+		local selfTbl = self:GetTable()
+		if selfTbl.blocked or selfTbl.notvisible then return end
 
-		if self:GetColor().a ~= 255 then
-			self.RenderGroup = RENDERGROUP_BOTH
+		local _, _, _, alpha = self:GetColor4Part()
+		if alpha ~= 255 then
+			selfTbl.RenderGroup = RENDERGROUP_BOTH
 		else
-			self.RenderGroup = RENDERGROUP_OPAQUE
+			selfTbl.RenderGroup = RENDERGROUP_OPAQUE
 		end
 
-		self:SetupClipping()
+		SetupClipping(selfTbl)
 
 		local invert_model = self:GetNWInt("invert_model")
 		render.CullMode(invert_model)
@@ -138,7 +140,7 @@ if CLIENT then
 			render.CullMode(0)
 		end
 
-		self:FinishClipping()
+		FinishClipping(selfTbl)
 	end
 
 	-- -----------------------------------------------------------------------------
@@ -258,7 +260,7 @@ if CLIENT then
 
 			for i = count, 0, -1 do
 				local bone_scale = self.bone_scale[i] or Vector(1,1,1)
-				self:ManipulateBoneScale(i, bone_scale) // Note: Using ManipulateBoneScale currently causes RenderBounds to be reset every frame!
+				self:ManipulateBoneScale(i, bone_scale) -- Note: Using ManipulateBoneScale currently causes RenderBounds to be reset every frame!
 			end
 		end
 
