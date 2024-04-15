@@ -11,10 +11,11 @@ ENT.IsWire = true
 
 if CLIENT then
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
+	local beingLookedAtByLocalPlayer
 
 	function ENT:Initialize()
 		self.NextRBUpdate = CurTime() + 0.25
-		self.playerWasLookingAtMe = false
+		beingLookedAtByLocalPlayer = BaseClass.BeingLookedAtByLocalPlayer
 	end
 
 	function ENT:Draw()
@@ -36,18 +37,19 @@ if CLIENT then
 
 	 -- makes sure the overlay doesn't go out of the screen & provides several useful sizes and positions for the DrawBody function
 	function ENT:GetWorldTipPositions( w, h, w_body, h_body, w_footer, h_footer )
-		local pos = LocalPlayer():GetEyeTrace().HitPos
-		local spos = LocalPlayer():GetShootPos()
+		local localPly = LocalPlayer()
+		local pos = localPly:GetEyeTrace().HitPos
+		local spos = localPly:GetShootPos()
 		if pos == spos then -- if the position is right in your face, get a better position
-			pos = spos + LocalPlayer():GetAimVector() * 5
+			pos = spos + localPly:GetAimVector() * 5
 		end
 		pos = pos:ToScreen()
 
 		pos.x = math.Round(pos.x)
 		pos.y = math.Round(pos.y)
 
-		w = math.min( w, ScrW() - 64 )
-		h = math.min( h, ScrH() - 64 )
+		w = math.min(w, ScrW() - 64)
+		h = math.min(h, ScrH() - 64)
 
 		local maxx = pos.x - 32
 		local maxy = pos.y - 32
@@ -57,18 +59,18 @@ if CLIENT then
 			local avoidMinX = WireLib.WiringToolRenderAvoid[1]
 			local avoidMinY = WireLib.WiringToolRenderAvoid[2]
 			local avoidMaxX = WireLib.WiringToolRenderAvoid[3]
-			local avoidMaxY = WireLib.WiringToolRenderAvoid[4]-8
+			local avoidMaxY = WireLib.WiringToolRenderAvoid[4] - 8
 
-   			if maxx - w < avoidMaxX and
-   				maxx > avoidMinX and
-   				maxy - h < avoidMaxY and
-   				maxy > avoidMinY then
+			if maxx - w < avoidMaxX and
+				maxx > avoidMinX and
+				maxy - h < avoidMaxY and
+				maxy > avoidMinY then
 
 				-- place it to the left of the wire tool menu
 				maxx = avoidMinX - 8
-				maxy = avoidMaxY - (avoidMaxY-avoidMinY)/2 + h/2
+				maxy = avoidMaxY - (avoidMaxY - avoidMinY) / 2 + h / 2
 
-				if w > ScrW()*0.4 then
+				if w > ScrW() * 0.4 then
 					-- if it's very wide, try to place it above the wire tool menu instead
 					maxy = avoidMinY - 8
 				end
@@ -88,8 +90,8 @@ if CLIENT then
 			miny = 32
 		end
 
-		local centerx = (maxx+minx)/2
-		local centery = (maxy+miny)/2
+		local centerx = (maxx + minx) / 2
+		local centery = (maxy + miny) / 2
 
 		return {	min = {x = minx,y = miny},
 					max = {x = maxx,y = maxy},
@@ -151,7 +153,6 @@ if CLIENT then
 
 		surface.SetFont( "GModWorldtip" )
 
-		local txt = data.txt
 		local class = getWireName( self ) .. " [" .. self:EntIndex() .. "]"
 
 		local name
@@ -225,21 +226,23 @@ if CLIENT then
 		ent:DrawWorldTip()
 	end)
 
+	local playerWasLookingAtMe = false
+
 	-- Custom better version of this base_gmodentity function
 	function ENT:BeingLookedAtByLocalPlayer()
-		local trbool = BaseClass.BeingLookedAtByLocalPlayer(self)
+		local trbool = beingLookedAtByLocalPlayer(self)
 
-		if self.playerWasLookingAtMe ~= trbool then
-			net.Start( "wire_overlay_request" )
+		if playerWasLookingAtMe ~= trbool then
+			net.Start("wire_overlay_request")
 				if trbool then
 					net.WriteBool(true)
 					net.WriteEntity(self)
-					net.WriteFloat( self.OverlayData and self.OverlayData.__time or 0 )
+					net.WriteFloat(self.OverlayData and self.OverlayData.__time or 0)
 				else
 					net.WriteBool(false)
 				end
 			net.SendToServer()
-			self.playerWasLookingAtMe = trbool
+			playerWasLookingAtMe = trbool
 		end
 
 		return trbool
@@ -274,7 +277,7 @@ if CLIENT then
 
 	function ENT:DrawEntityOutline()
 		if halos_inv[self] then return end
-		halos[#halos+1] = self
+		halos[#halos + 1] = self
 		halos_inv[self] = true
 	end
 
@@ -324,15 +327,21 @@ end
 -- It also allows us to only update overlays when someone is looking at the entity.
 
 function ENT:SetOverlayText( txt )
-	if not self.OverlayData then
-		self.OverlayData = {}
+	local overlayData = self.OverlayData
+
+	if not overlayData then
+		overlayData = {}
+		self.OverlayData = overlayData
 	end
+
 	if txt and #txt > 12000 then
 		txt = string.sub(txt,1,12000) -- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
 	end
-	if txt == self.OverlayData.txt then return end
-	self.OverlayData.txt = txt
-	self.OverlayData.__time = CurTime()
+
+	if txt == overlayData.txt then return end
+
+	overlayData.txt = txt
+	overlayData.__time = CurTime()
 end
 
 function ENT:SetOverlayData( data )
