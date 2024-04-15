@@ -338,38 +338,38 @@ local WireMemSyncer = {
 		sendUpdate = function(self, data)
 			net.Start("WirelibSyncEntities")
 			net.WriteUInt(self.syncid, 16)
-            net.WriteBool(false)
-            local newid = (self.syncid + 1) % 65536
-            self.syncid = newid
-            net.WriteStream(data, function() if newid==self.syncid then self.sending = false end end)
-            net.Broadcast()
-            self.sending = true
+			net.WriteBool(false)
+			local newid = (self.syncid + 1) % 65536
+			self.syncid = newid
+			net.WriteStream(data, function() if newid==self.syncid then self.sending = false end end)
+			net.Broadcast()
+			self.sending = true
 		end,
-        sendSnapshot(self, data, ply, snapshots)
-            net.Start("WirelibSyncEntities")
+		sendSnapshot(self, data, ply, snapshots)
+			net.Start("WirelibSyncEntities")
 			net.WriteUInt(self.syncid, 16)
-            net.WriteBool(true)
-            net.WriteUInt(snapshots, 32)
-            net.WriteStream(data)
-            net.Send(ply)
-        end,
+			net.WriteBool(true)
+			net.WriteUInt(snapshots, 32)
+			net.WriteStream(data)
+			net.Send(ply)
+		end,
 		receive = function(self)
 			local snapshots
 			local id = net.ReadUInt(16)
 			if net.ReadBool() then
 				snapshots = net.ReadUInt(32)
-                net.ReadStream(function(data)
-                    self:receiveSnapshot(id, data, snapshots)
-                end)
-            else
-                net.ReadStream(function(data)
-                    self:receiveUpdate(id, data)
-                end)
+				net.ReadStream(function(data)
+					self:receiveSnapshot(id, data, snapshots)
+				end)
+			else
+				net.ReadStream(function(data)
+					self:receiveUpdate(id, data)
+				end)
 			end
 		end,
 		receiveUpdate = function(self, id, data)
 			if id==self.syncid then
-                self.syncid = (self.syncid + 1) % 65536
+				self.syncid = (self.syncid + 1) % 65536
 				if data then self:applyUpdate(data) end
 			else
 				self.syncwaitlist[#self.syncwaitlist + 1] = {id, data}
@@ -382,38 +382,38 @@ local WireMemSyncer = {
 					self.syncid = min
 				end
 			end
-            self:processWaitlist()
+			self:processWaitlist()
 		end,
-        receiveSnapshot = function(self, id, data, snapshots)
-            if data then self:applyUpdate(data) end
-            self.snapshotsreceived = self.snapshotsreceived + 1
-            if self.snapshotsreceived == snapshots then
-                self.syncid = id
-                self:processWaitlist()
-            end
-        end,
-        processWaitlist = function(self)
+		receiveSnapshot = function(self, id, data, snapshots)
+			if data then self:applyUpdate(data) end
+			self.snapshotsreceived = self.snapshotsreceived + 1
+			if self.snapshotsreceived == snapshots then
+				self.syncid = id
+				self:processWaitlist()
+			end
+		end,
+		processWaitlist = function(self)
 			for i, v in ipairs(self.syncwaitlist) do
 				if v[1] == self.syncid then
 					self:receiveUpdate(unpack(table.remove(self.syncwaitlist, i)))
 					break
 				end
 			end
-        end,
-        applyUpdate = function(self, data)
-            local ss = StringStream(data)
-            for i=1, ss:readUInt32() do
-                local ent = Entity(ss:readUInt16())
-                local size = ss:readUInt32()
-                local pos = ss:tell()
-                if ent:IsValid() and ent.DeserializeMemory then
-                    ent:DeserializeMemory(ss)
-                    ss:seek(pos+size)
-                else
-                    ss:skip(size)
-                end
-            end
-        end,
+		end,
+		applyUpdate = function(self, data)
+			local ss = StringStream(data)
+			for i=1, ss:readUInt32() do
+				local ent = Entity(ss:readUInt16())
+				local size = ss:readUInt32()
+				local pos = ss:tell()
+				if ent:IsValid() and ent.DeserializeMemory then
+					ent:DeserializeMemory(ss)
+					ss:seek(pos+size)
+				else
+					ss:skip(size)
+				end
+			end
+		end,
 	},
 	__call = function(meta)
 		return setmetatable({
