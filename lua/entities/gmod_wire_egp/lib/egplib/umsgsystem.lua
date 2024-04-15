@@ -1,7 +1,7 @@
 --------------------------------------------------------
 -- Custom umsg System
 --------------------------------------------------------
-local EGP = EGP
+local EGP = E2Lib.EGP
 
 local CurSender = NULL
 local LastErrorTime = 0

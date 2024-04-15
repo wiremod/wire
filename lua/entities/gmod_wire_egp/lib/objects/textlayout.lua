@@ -1,5 +1,5 @@
 -- Author: Divran
-local Obj = EGP.ObjectInherit("TextLayout", "Text")
+local Obj = E2Lib.EGP.ObjectInherit("TextLayout", "Text")
 Obj.h = 512
 Obj.w = 512
 Obj.CanTopLeft = true

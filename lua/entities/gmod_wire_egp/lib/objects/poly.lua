@@ -1,5 +1,5 @@
 -- Author: Divran
-local Obj = EGP:NewObject("Poly")
+local Obj = E2Lib.EGP.NewObject("Poly")
 Obj.vertices = {}
 Obj.verticesindex = "vertices"
 Obj.HasUV = true

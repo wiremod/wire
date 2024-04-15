@@ -1,5 +1,8 @@
-
-local NULL_EGPOBJECT = EGP.NULL_EGPOBJECT
+local EGP = E2Lib.EGP
+local NULL_EGPOBJECT = EGP.Objects.NULL_EGPOBJECT
+local hasObject = EGP.HasObject
+local isAllowed = EGP.IsAllowed
+local egp_create = EGP.Create
 
 local function Update(self,this)
 	self.data.EGP.UpdatesNeeded[this] = true
@@ -70,51 +73,46 @@ end
 -- Order
 --------------------------------------------------------
 
-e2function void wirelink:egpOrder( number index, number order )
-	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
-	if (bool) then
-		local bool2 = EGP:SetOrder( this, k, order )
-		if (bool2) then
-			EGP:DoAction( this, self, "SendObject", v )
+e2function void wirelink:egpOrder(number index, number order)
+	if not isAllowed(nil, self, this) then return end
+	local bool, k, v = hasObject(this, index)
+	if bool then
+		if EGP.SetOrder(this, k, order) then
+			EGP:DoAction(this, self, "SendObject", v)
 			Update(self,this)
 		end
 	end
 end
 
 e2function number wirelink:egpOrder( number index )
-	if (!EGP:IsAllowed( self, this )) then return -1 end
-	local bool, k, v = EGP:HasObject( this, index )
-	if (bool) then
+	if not isAllowed(nil, self, this) then return -1 end
+	local bool, k = hasObject(this, index)
+	if bool then
 		return k
 	end
 	return -1
 end
 
-e2function void wirelink:egpOrderAbove( number index, number abovethis )
-	if not EGP:IsAllowed( self, this ) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+e2function void wirelink:egpOrderAbove(number index, number abovethis)
+	if not isAllowed(nil, self, this) then return end
+	local bool, k, v = hasObject(this, index)
 	if bool then
-		local bool2, k2, v2 = EGP:HasObject( this, abovethis )
-		if bool2 then
-			local bool3 = EGP:SetOrder( this, k, abovethis, 1 )
-			if bool3 then
-				EGP:DoAction( this, self, "SendObject", v )
-				Update(self,this)
+		if hasObject(this, abovethis) then
+			if EGP.SetOrder(this, k, abovethis, 1) then
+				EGP:DoAction(this, self, "SendObject", v)
+				Update(self, this)
 			end
 		end
 	end
 end
 
 e2function void wirelink:egpOrderBelow( number index, number belowthis )
-	if not EGP:IsAllowed( self, this ) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	if not isAllowed(nil, self, this) then return end
+	local bool, k, v = hasObject(this, index)
 	if bool then
-		local bool2, k2, v2 = EGP:HasObject( this, belowthis )
-		if bool2 then
-			local bool3 = EGP:SetOrder( this, k, belowthis, -1 )
-			if bool3 then
-				EGP:DoAction( this, self, "SendObject", v )
+		if hasObject(this, belowthis) then
+			if EGP.SetOrder(this, k, belowthis, -1) then
+				EGP:DoAction(this, self, "SendObject", v)
 				Update(self,this)
 			end
 		end
@@ -128,7 +126,7 @@ __e2setcost(15)
 --------------------------------------------------------
 e2function egpobject wirelink:egpBox( number index, vector2 pos, vector2 size )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["Box"], { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, self.player )
+	local bool, obj = egp_create("Box", { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj 
 end
@@ -138,7 +136,7 @@ end
 --------------------------------------------------------
 e2function egpobject wirelink:egpBoxOutline( number index, vector2 pos, vector2 size )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["BoxOutline"], { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, self.player )
+	local bool, obj = egp_create("BoxOutline", { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -148,16 +146,16 @@ end
 --------------------------------------------------------
 e2function egpobject wirelink:egpRoundedBox( number index, vector2 pos, vector2 size )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["RoundedBox"], { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, self.player )
+	local bool, obj = egp_create("RoundedBox", { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
 
 e2function void wirelink:egpRadius( number index, number radius )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { radius = radius } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ radius = radius }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -166,7 +164,7 @@ end
 --------------------------------------------------------
 e2function egpobject wirelink:egpRoundedBoxOutline( number index, vector2 pos, vector2 size )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["RoundedBoxOutline"], { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, self.player )
+	local bool, obj = egp_create("RoundedBoxOutline", { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -176,14 +174,14 @@ end
 --------------------------------------------------------
 e2function egpobject wirelink:egpText( number index, string text, vector2 pos )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["Text"], { index = index, text = text, x = pos[1], y = pos[2] }, self.player )
+	local bool, obj = egp_create("Text", { index = index, text = text, x = pos[1], y = pos[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
 
 e2function egpobject wirelink:egpTextLayout( number index, string text, vector2 pos, vector2 size )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["TextLayout"], { index = index, text = text, x = pos[1], y = pos[2], w = size[1], h = size[2] }, self.player )
+	local bool, obj = egp_create("TextLayout", { index = index, text = text, x = pos[1], y = pos[2], w = size[1], h = size[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -195,9 +193,9 @@ __e2setcost(10)
 ----------------------------
 e2function void wirelink:egpSetText( number index, string text )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { text = text } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ text = text }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -206,17 +204,17 @@ end
 ----------------------------
 e2function void wirelink:egpAlign( number index, number halign )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { halign = math.Clamp(halign,0,2) } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ halign = math.Clamp(halign,0,2) }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
 e2function void wirelink:egpAlign( number index, number halign, number valign )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { valign = math.Clamp(valign,0,2), halign = math.Clamp(halign,0,2) } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ valign = math.Clamp(valign,0,2), halign = math.Clamp(halign,0,2) }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -225,9 +223,9 @@ end
 ----------------------------
 e2function void wirelink:egpFiltering( number index, number filtering )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { filtering = math.Clamp(filtering,0,3) } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ filtering = math.Clamp(filtering,0,3) }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -254,18 +252,18 @@ end
 e2function void wirelink:egpFont( number index, string font )
 	if (!EGP:IsAllowed( self, this )) then return end
 	if #font > 30 then return self:throw("Font string is too long!", nil) end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { font = font } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ font = font }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
 e2function void wirelink:egpFont( number index, string font, number size )
 	if (!EGP:IsAllowed( self, this )) then return end
 	if #font > 30 then return self:throw("Font string is too long!", nil) end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { font = font, size = size } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ font = font, size = size }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -298,7 +296,7 @@ e2function egpobject wirelink:egpPoly( number index, ...args )
 		end
 	end
 
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["Poly"], { index = index, vertices = vertices }, self.player )
+	local bool, obj = egp_create("Poly", { index = index, vertices = vertices }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -324,7 +322,7 @@ e2function egpobject wirelink:egpPoly( number index, array args )
 		end
 	end
 
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["Poly"], { index = index, vertices = vertices }, self.player )
+	local bool, obj = egp_create("Poly", { index = index, vertices = vertices }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -354,7 +352,7 @@ e2function egpobject wirelink:egpPolyOutline( number index, ...args )
 		end
 	end
 
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["PolyOutline"], { index = index, vertices = vertices }, self.player )
+	local bool, obj = egp_create("PolyOutline", { index = index, vertices = vertices }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -380,7 +378,7 @@ e2function egpobject wirelink:egpPolyOutline( number index, array args )
 		end
 	end
 
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["PolyOutline"], { index = index, vertices = vertices }, self.player )
+	local bool, obj = egp_create("PolyOutline", { index = index, vertices = vertices }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -390,7 +388,7 @@ e2function void wirelink:egpAddVertices( number index, array args )
 	if (!EGP:ValidEGP( this )) then return self:throw("Invalid wirelink!", nil) end
 	if (#args<3) then return end -- No less than 3
 
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 
 		local max = maxvertices()
@@ -441,7 +439,7 @@ e2function egpobject wirelink:egpLineStrip( number index, ...args )
 		end
 	end
 
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["LineStrip"], { index = index, vertices = vertices }, self.player )
+	local bool, obj = egp_create("LineStrip", { index = index, vertices = vertices }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -467,7 +465,7 @@ e2function egpobject wirelink:egpLineStrip( number index, array args )
 		end
 	end
 
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["LineStrip"], { index = index, vertices = vertices }, self.player )
+	local bool, obj = egp_create("LineStrip", { index = index, vertices = vertices }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -479,7 +477,7 @@ __e2setcost(15)
 --------------------------------------------------------
 e2function egpobject wirelink:egpLine( number index, vector2 pos1, vector2 pos2 )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["Line"], { index = index, x = pos1[1], y = pos1[2], x2 = pos2[1], y2 = pos2[2] }, self.player )
+	local bool, obj = egp_create("Line", { index = index, x = pos1[1], y = pos1[2], x2 = pos2[1], y2 = pos2[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -489,7 +487,7 @@ end
 --------------------------------------------------------
 e2function egpobject wirelink:egpCircle( number index, vector2 pos, vector2 size )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["Circle"], { index = index, x = pos[1], y = pos[2], w = size[1], h = size[2] }, self.player )
+	local bool, obj = egp_create("Circle", { index = index, x = pos[1], y = pos[2], w = size[1], h = size[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -499,7 +497,7 @@ end
 --------------------------------------------------------
 e2function egpobject wirelink:egpCircleOutline( number index, vector2 pos, vector2 size )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["CircleOutline"], { index = index, x = pos[1], y = pos[2], w = size[1], h = size[2] }, self.player )
+	local bool, obj = egp_create("CircleOutline", { index = index, x = pos[1], y = pos[2], w = size[1], h = size[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -510,7 +508,7 @@ end
 e2function egpobject wirelink:egpTriangle( number index, vector2 v1, vector2 v2, vector2 v3 )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
 	local vertices = { { x = v1[1], y = v1[2] }, { x = v2[1], y = v2[2] }, { x = v3[1], y = v3[2] } }
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["Poly"], { index = index, vertices = vertices }, self.player )
+	local bool, obj = egp_create("Poly", { index = index, vertices = vertices }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -521,7 +519,7 @@ end
 e2function egpobject wirelink:egpTriangleOutline( number index, vector2 v1, vector2 v2, vector2 v3 )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
 	local vertices = { { x = v1[1], y = v1[2] }, { x = v2[1], y = v2[2] }, { x = v3[1], y = v3[2] } }
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["PolyOutline"], { index = index, vertices = vertices }, self.player )
+	local bool, obj = egp_create("PolyOutline", { index = index, vertices = vertices }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -531,43 +529,28 @@ end
 --------------------------------------------------------
 e2function egpobject wirelink:egpWedge( number index, vector2 pos, vector2 size )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["Wedge"], { index = index, x = pos[1], y = pos[2], w = size[1], h = size[2] }, self.player )
+	local bool, obj = egp_create("Wedge", { index = index, x = pos[1], y = pos[2], w = size[1], h = size[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
-
---[[ I'm sticking to my policy of not spamming pointless functions.
-e2function void wirelink:egpWedge( number index, vector2 pos, vector2 size, number angle, number mouthsize )
-	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["Wedge"], { index = index, x = pos[1], y = pos[2], w = size[1], h = size[2], size = mouthsize, angle = angle }, self.player )
-	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
-end
-]]
 
 --------------------------------------------------------
 -- Wedge Outline
 --------------------------------------------------------
 e2function egpobject wirelink:egpWedgeOutline( number index, vector2 pos, vector2 size )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["WedgeOutline"], { index = index, x = pos[1], y = pos[2], w = size[1], h = size[2] }, self.player )
+	local bool, obj = egp_create("WedgeOutline", { index = index, x = pos[1], y = pos[2], w = size[1], h = size[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
 
---[[ I'm sticking to my policy of not spamming pointless functions.
-e2function void wirelink:egpWedgeOutline( number index, vector2 pos, vector2 size, number angle, number mouthsize )
-	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["WedgeOutline"], { index = index, x = pos[1], y = pos[2], w = size[1], h = size[2], size = mouthsize, angle = angle }, self.player )
-	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
-end
-]]
 
 --------------------------------------------------------
 -- 3DTracker
 --------------------------------------------------------
 e2function egpobject wirelink:egp3DTracker( number index, vector pos )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["3DTracker"], { index = index, target_x = pos[1], target_y = pos[2], target_z = pos[3], directionality = 0 }, self.player )
+	local bool, obj = egp_create("3DTracker", { index = index, target_x = pos[1], target_y = pos[2], target_z = pos[3], directionality = 0 }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -581,7 +564,7 @@ e2function egpobject wirelink:egp3DTracker( number index, vector pos, number dir
 		directionality = -1
 	end
 
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["3DTracker"], { index = index, target_x = pos[1], target_y = pos[2], target_z = pos[3], directionality = directionality }, self.player )
+	local bool, obj = egp_create("3DTracker", { index = index, target_x = pos[1], target_y = pos[2], target_z = pos[3], directionality = directionality }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
 end
@@ -590,7 +573,7 @@ __e2setcost(10)
 
 e2function void wirelink:egpPos( number index, vector pos )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v:EditObject({ target_x = pos[1], target_y = pos[2], target_z = pos[3] })) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
@@ -607,7 +590,7 @@ __e2setcost(10)
 ----------------------------
 e2function void wirelink:egpSize( number index, vector2 size )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if v:EditObject({ w = size[1], h = size[2] }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
@@ -615,9 +598,9 @@ end
 
 e2function void wirelink:egpSize( number index, number size )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { size = size } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ size = size }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -626,7 +609,7 @@ end
 ----------------------------
 e2function void wirelink:egpPos( number index, vector2 pos )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, _, v = EGP:HasObject(this, index)
+	local bool, _, v = hasObject(this, index)
 	if bool and v:SetPos(pos[1], pos[2]) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 end
 
@@ -636,7 +619,7 @@ end
 
 e2function void wirelink:egpAngle( number index, number angle )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if v:SetPos(nil, nil, angle) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
@@ -648,7 +631,7 @@ end
 
 e2function void wirelink:egpAngle( number index, vector2 worldpos, vector2 axispos, number angle )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v.x and v.y) then
 
@@ -672,33 +655,33 @@ end
 ----------------------------
 e2function void wirelink:egpColor( number index, vector4 color )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { r = color[1], g = color[2], b = color[3], a = color[4] } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ r = color[1], g = color[2], b = color[3], a = color[4] }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
 e2function void wirelink:egpColor( number index, vector color )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { r = color[1], g = color[2], b = color[3] } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ r = color[1], g = color[2], b = color[3] }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
 e2function void wirelink:egpColor( number index, r,g,b,a )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, _, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { r = r, g = g, b = b, a = a } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ r = r, g = g, b = b, a = a }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
 e2function void wirelink:egpAlpha( number index, number a )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { a = a } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ a = a }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -709,17 +692,17 @@ end
 e2function void wirelink:egpMaterial( number index, string material )
 	if (!EGP:IsAllowed( self, this )) then return end
 	material = WireLib.IsValidMaterial(material)
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { material = material } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ material = material }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
 e2function void wirelink:egpMaterialFromScreen( number index, entity gpu )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool and gpu and gpu:IsValid()) then
-		if (EGP:EditObject( v, { material = gpu } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ material = gpu }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
@@ -728,15 +711,15 @@ end
 ----------------------------
 e2function void wirelink:egpFidelity( number index, number fidelity )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
-		if (EGP:EditObject( v, { fidelity = math.Clamp(fidelity,3,180) } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if v:EditObject({ fidelity = math.Clamp(fidelity,3,180) }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
 e2function number wirelink:egpFidelity( number index )
 	if (!EGP:IsAllowed( self, this )) then return -1 end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v.fidelity) then
 			return v.fidelity
@@ -759,7 +742,7 @@ e2function void wirelink:egpParent( number index, entity parent )
 	if not parent or not parent:IsValid() then return end
 	if (!EGP:IsAllowed( self, this )) then return end
 
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if bool and v.NeedsConstantUpdate then
 		if v.parententity == parent then return end -- Already parented to that
 		v.parententity = parent
@@ -771,7 +754,7 @@ end
 
 -- Returns the entity a tracker is parented to
 e2function entity wirelink:egpTrackerParent( number index )
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if bool and v.NeedsConstantUpdate then
 		return (v.parententity and v.parententity:IsValid()) and v.parententity or nil
 	end
@@ -790,7 +773,7 @@ e2function void wirelink:egpUnParent( number index )
 end
 
 e2function number wirelink:egpParent( number index )
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v.parent) then
 			return v.parent
@@ -812,7 +795,7 @@ end
 
 e2function void wirelink:egpRemove( number index )
 	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		EGP:DoAction( this, self, "RemoveObject", index )
 		Update(self,this)
@@ -826,7 +809,7 @@ end
 __e2setcost(5)
 
 e2function vector2 wirelink:egpPos( number index )
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v.x and v.y) then
 			return {v.x, v.y}
@@ -842,7 +825,7 @@ e2function vector wirelink:egpGlobalPos( number index )
 end
 
 e2function array wirelink:egpGlobalVertices( number index )
-	local hasobject, _, object = EGP:HasObject(this, index)
+	local hasobject, _, object = hasObject(this, index)
 	if hasobject and object.verticesindex then
 		local data = EGP:GetGlobalVertices(object)
 		if data.vertices then
@@ -865,7 +848,7 @@ end
 __e2setcost(5)
 
 e2function vector2 wirelink:egpSize( number index )
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v.w and v.h) then
 			return {v.w, v.h}
@@ -875,7 +858,7 @@ e2function vector2 wirelink:egpSize( number index )
 end
 
 e2function number wirelink:egpSizeNum( number index )
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v.size) then
 			return v.size
@@ -885,7 +868,7 @@ e2function number wirelink:egpSizeNum( number index )
 end
 
 e2function vector4 wirelink:egpColor4( number index )
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v.r and v.g and v.b and v.a) then
 			return {v.r,v.g,v.b,v.a}
@@ -895,7 +878,7 @@ e2function vector4 wirelink:egpColor4( number index )
 end
 
 e2function vector wirelink:egpColor( number index )
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v.r and v.g and v.b) then
 			return Vector(v.r, v.g, v.b)
@@ -905,7 +888,7 @@ e2function vector wirelink:egpColor( number index )
 end
 
 e2function number wirelink:egpAlpha( number index )
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v.a) then
 			return v.a
@@ -915,7 +898,7 @@ e2function number wirelink:egpAlpha( number index )
 end
 
 e2function number wirelink:egpAngle( number index )
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v.angle) then
 			return v.angle
@@ -925,12 +908,12 @@ e2function number wirelink:egpAngle( number index )
 end
 
 e2function string wirelink:egpMaterial( number index )
-	local bool, _, v = EGP:HasObject( this, index )
+	local bool, _, v = hasObject(this, index)
 	return bool and v.material and tostring(v.material) or ""
 end
 
 e2function number wirelink:egpRadius( number index )
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v.radius) then
 			return v.radius
@@ -942,7 +925,7 @@ end
 __e2setcost(10)
 
 e2function array wirelink:egpVertices( number index )
-	local bool, k, v = EGP:HasObject( this, index )
+	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if (v.vertices) then
 			local ret = {}
@@ -993,9 +976,9 @@ end
 __e2setcost(10)
 
 e2function string wirelink:egpObjectType(number index)
-	local bool, _, v = EGP:HasObject(this, index)
+	local bool, _, v = hasObject(this, index)
 	if bool then
-		return EGP.Objects.Names_Inverted[v.ID] or ""
+		return EGP.Objects[v.ID].Name or ""
 	end
 	return ""
 end
@@ -1008,11 +991,11 @@ __e2setcost(15)
 
 e2function egpobject wirelink:egpCopy( index, fromindex )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	local bool, k, v = EGP:HasObject( this, fromindex )
+	local bool, k, v = hasObject(this, fromindex)
 	if (bool) then
 		local copy = table.Copy( v )
 		copy.index = index
-		local bool2, obj = EGP:CreateObject( this, v.ID, copy, self.player )
+		local bool2, obj = egp_create(v.ID, copy, this)
 		if (bool2) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 		return obj
 	end
@@ -1045,7 +1028,7 @@ end
 __e2setcost(15)
 
 e2function number wirelink:egpHasObject( index )
-	local bool, _, _ = EGP:HasObject( this, index )
+	local bool, _, _ = hasObject(this, index)
 	return bool and 1 or 0
 end
 
@@ -1053,7 +1036,7 @@ __e2setcost(20)
 
 --- Returns 1 if the object with specified index contains the specified point.
 e2function number wirelink:egpObjectContainsPoint(number index, vector2 point)
-	local _, _, object = EGP:HasObject(this, index)
+	local _, _, object = hasObject(this, index)
 	return object and object:Contains(point[1], point[2]) and 1 or 0
 end
 

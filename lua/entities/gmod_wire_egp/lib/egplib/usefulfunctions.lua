@@ -1,7 +1,12 @@
 --------------------------------------------------------
 -- e2function Helper functions
 --------------------------------------------------------
-local EGP = EGP
+local EGP = E2Lib.EGP
+
+local hasObject
+EGP.HookPostInit(function()
+	hasObject = EGP.HasObject
+end)
 
 ----------------------------
 -- Table IsEmpty
@@ -90,7 +95,7 @@ function EGP.MoveTopLeft(ent, obj)
 		if obj.angle then t.angle = -ang.yaw end
 	end
 	if obj.IsParented then
-		local bool, _, parent = EGP:HasObject(ent, obj.parent)
+		local bool, _, parent = hasObject(ent, obj.parent)
 		if bool and parent.CanTopLeft and parent.w and parent.h then
 			if not t then t = { x = obj.x, y = obj.y, angle = obj.angle } end
 			t.x = t.x - parent.w / 2

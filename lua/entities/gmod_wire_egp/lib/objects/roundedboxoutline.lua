@@ -1,5 +1,5 @@
 -- Author: sk8 (& Divran)
-local Obj = EGP.ObjectInherit("RoundedBoxOutline", "RoundedBox")
+local Obj = E2Lib.EGP.ObjectInherit("RoundedBoxOutline", "RoundedBox")
 Obj.size = 1
 Obj.filtering = nil
 

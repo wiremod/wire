@@ -31,12 +31,12 @@ AddCSLuaFile()
 ---@field Functions table<string, EnvFunction[]>
 ---@field Methods table<TypeSignature, table<string, EnvMethod[]>>
 
-E2Lib = {
+E2Lib = table.Merge(E2Lib or {}, {
 	Env = {
 		---@type EnvEvent[]
 		Events = {}
 	}
-}
+})
 
 local type = type
 local function checkargtype(argn, value, argtype)
