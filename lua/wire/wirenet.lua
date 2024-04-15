@@ -281,7 +281,7 @@ local WireMemSyncer = {
 				end
 				return numEntries
 			end) > 0 then
-				self:send(ss:getString())
+				self:sendUpdate(ss:getString())
 			end
 
 		end,
@@ -302,7 +302,7 @@ local WireMemSyncer = {
 							ss:writeInt16(ent:EntIndex())
 							local written = writeUnboundedArray(ss, function()
 								local startpos = ss.index
-								ent:SerializeFullMemory(ss, sizeleft)
+								ent:SerializeFullMemory(ss)
 								return calcWritten(ss, startpos)
 							end)
 
@@ -332,58 +332,45 @@ local WireMemSyncer = {
 			end
 
 			for _, v in ipairs(snapshots) do
-				self:send(v, ply, #snapshots)
+				self:sendSnapshot(v, ply, #snapshots)
 			end
 		end,
-		send = function(self, data, ply, snapshots)
+		sendUpdate = function(self, data)
 			net.Start("WirelibSyncEntities")
 			net.WriteUInt(self.syncid, 16)
-			if ply then
-				net.WriteBool(true)
-				net.WriteUInt(snapshots, 32)
-				net.WriteStream(data)
-				net.Send(ply)
-			else
-				net.WriteBool(false)
-				local newid = (self.syncid + 1) % 65536
-				self.syncid = newid
-				net.WriteStream(data, function() if newid==self.syncid then self.sending = false end end)
-				net.Broadcast()
-				self.sending = true
-			end
+            net.WriteBool(false)
+            local newid = (self.syncid + 1) % 65536
+            self.syncid = newid
+            net.WriteStream(data, function() if newid==self.syncid then self.sending = false end end)
+            net.Broadcast()
+            self.sending = true
 		end,
+        sendSnapshot(self, data, ply, snapshots)
+            net.Start("WirelibSyncEntities")
+			net.WriteUInt(self.syncid, 16)
+            net.WriteBool(true)
+            net.WriteUInt(snapshots, 32)
+            net.WriteStream(data)
+            net.Send(ply)
+        end,
 		receive = function(self)
 			local snapshots
 			local id = net.ReadUInt(16)
 			if net.ReadBool() then
 				snapshots = net.ReadUInt(32)
+                net.ReadStream(function(data)
+                    self:receiveSnapshot(id, data, snapshots)
+                end)
+            else
+                net.ReadStream(function(data)
+                    self:receiveUpdate(id, data)
+                end)
 			end
-			net.ReadStream(function(data)
-				self:applyReceivedData(id, data, snapshots)
-			end)
 		end,
-		applyReceivedData = function(self, id, data, snapshots)
-			if id==self.syncid or snapshots then
-				if snapshots then
-					self.snapshotsreceived = self.snapshotsreceived + 1
-					if self.snapshotsreceived == snapshots then
-						self.syncid = id
-					end
-				else
-					self.syncid = (self.syncid + 1) % 65536
-				end
-				if data then
-					local ss = StringStream(data)
-					for i=1, ss:readUInt32() do
-						local ent = Entity(ss:readUInt16())
-						local size = ss:readUInt32()
-						if ent:IsValid() and ent.DeserializeMemory then
-							ent:DeserializeMemory(ss)
-						else
-							ss:skip(size)
-						end
-					end
-				end
+		receiveUpdate = function(self, id, data)
+			if id==self.syncid then
+                self.syncid = (self.syncid + 1) % 65536
+				if data then self:applyUpdate(data) end
 			else
 				self.syncwaitlist[#self.syncwaitlist + 1] = {id, data}
 				-- Must have missed one somehow, just take the lowest one and continue
@@ -395,13 +382,38 @@ local WireMemSyncer = {
 					self.syncid = min
 				end
 			end
+            self:processWaitlist()
+		end,
+        receiveSnapshot = function(self, id, data, snapshots)
+            if data then self:applyUpdate(data) end
+            self.snapshotsreceived = self.snapshotsreceived + 1
+            if self.snapshotsreceived == snapshots then
+                self.syncid = id
+                self:processWaitlist()
+            end
+        end,
+        processWaitlist = function(self)
 			for i, v in ipairs(self.syncwaitlist) do
 				if v[1] == self.syncid then
-					self:applyReceivedData(unpack(table.remove(self.syncwaitlist, i)))
+					self:receiveUpdate(unpack(table.remove(self.syncwaitlist, i)))
 					break
 				end
 			end
-		end
+        end,
+        applyUpdate = function(self, data)
+            local ss = StringStream(data)
+            for i=1, ss:readUInt32() do
+                local ent = Entity(ss:readUInt16())
+                local size = ss:readUInt32()
+                local pos = ss:tell()
+                if ent:IsValid() and ent.DeserializeMemory then
+                    ent:DeserializeMemory(ss)
+                    ss:seek(pos+size)
+                else
+                    ss:skip(size)
+                end
+            end
+        end,
 	},
 	__call = function(meta)
 		return setmetatable({
