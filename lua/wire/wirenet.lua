@@ -405,8 +405,8 @@ local WireMemSyncer = {
 			for i=1, ss:readUInt32() do
 				local ent = Entity(ss:readUInt16())
 				local size = ss:readUInt32()
-				local pos = ss:tell()
 				if ent:IsValid() and ent.DeserializeMemory then
+					local pos = ss:tell()
 					ent:DeserializeMemory(ss)
 					ss:seek(pos+size)
 				else
