@@ -11,11 +11,14 @@ ENT.IsWire = true
 
 if CLIENT then
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
-	local beingLookedAtByLocalPlayer
+	-- Funny reverse-detour because this function is sometimes nil and sometimes not, but is never nil when drawing for the first time.
+	local function beingLookedAtByLocalPlayer(self)
+		beingLookedAtByLocalPlayer = BaseClass.BeingLookedAtByLocalPlayer
+		return beingLookedAtByLocalPlayer(self)
+	end
 
 	function ENT:Initialize()
 		self.NextRBUpdate = CurTime() + 0.25
-		beingLookedAtByLocalPlayer = BaseClass.BeingLookedAtByLocalPlayer
 	end
 
 	function ENT:Draw()
@@ -416,12 +419,14 @@ net.Receive( "wire_overlay_request", function( len, ply )
 	end
 end)
 
-function ENT:Initialize()
-	BaseClass.Initialize(self)
-	self:PhysicsInit(SOLID_VPHYSICS)
-	self:SetMoveType(MOVETYPE_VPHYSICS)
-	self:SetSolid(SOLID_VPHYSICS)
-	self.WireDebugName = self.WireDebugName or (self.PrintName and self.PrintName:sub(6)) or self:GetClass():gsub("gmod_wire", "")
+if SERVER then
+	function ENT:Initialize()
+		BaseClass.Initialize(self)
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+		self.WireDebugName = self.WireDebugName or (self.PrintName and self.PrintName:sub(6)) or self:GetClass():gsub("gmod_wire", "")
+	end
 end
 
 function ENT:OnRemove()
