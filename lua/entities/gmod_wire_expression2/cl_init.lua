@@ -57,7 +57,7 @@ function E2Lib.Validate(buffer)
 
 	-- invoke preprocessor
 	local status, directives, buffer, preprocessor = E2Lib.PreProcessor.Execute(buffer)
-	if not status then table.Add(errors, directives) end
+	if not status then table.Add(errors, directives) return errors end
 	---@cast directives PPDirectives
 	table.Add(warnings, preprocessor.warnings)
 
