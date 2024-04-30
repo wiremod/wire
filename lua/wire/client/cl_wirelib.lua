@@ -281,9 +281,9 @@ local function notify(ply, msg, severity, chatprint, color)
 		chat.PlaySound()
 	else
 		MsgC(unpack(WireLib.NotifyBuilder(msg, severity, color)))
-		local time = CurTime() + 1
+		local time = CurTime()
 		if severity > 1 and notify_antispam < time then
-			notify_antispam = time
+			notify_antispam = time + 1
 			notification.AddLegacy(string.format("Wiremod %s! Check your console for details", severity2word[severity]), NOTIFY_ERROR, 5)
 			surface.PlaySound(severity == 3 and "vo/k_lab/kl_fiddlesticks.wav" or "buttons/button22.wav")
 		end
