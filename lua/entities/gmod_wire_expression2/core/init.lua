@@ -212,7 +212,10 @@ function E2Lib.registerConstant(name, value, description)
 			extension = E2Lib.currentextension
 		}
 	else
-		error("Invalid value passed to registerConstant. Only numbers, strings, vectors, angles and arrays can be constant values.")
+		local db = debug.getinfo(2, "l")
+		WireLib.Notify(nil,
+			string.format("[%s]:%d: Invalid value passed to registerConstant for \"%s\". Only numbers, strings, vectors, angles and arrays can be constant values.\n", E2Lib.currentextension, db.currentline, name),
+		3)
 	end
 end
 
