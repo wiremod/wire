@@ -67,9 +67,6 @@ if SERVER then
 		AddCSLuaFile("wire/client/text_editor/modes/" .. filename)
 	end
 
-	if CreateConVar("wire_force_workshop", 1, {FCVAR_ARCHIVE}, "Should Wire force all clients to download the Workshop edition of Wire, for models? (requires restart to disable)"):GetBool() then
-		resource.AddWorkshop("160250458")
-	end
   	resource.AddFile("resource/fonts/alphalcd.ttf")
 end
 
@@ -91,6 +88,14 @@ if SERVER then
 	include("wire/server/wirelib.lua")
 	include("wire/server/modelplug.lua")
 	include("wire/server/debuggerlib.lua")
+
+	if CreateConVar("wire_force_workshop", "1", FCVAR_ARCHIVE, "Should Wire force all clients to download the Workshop edition of Wire, for models? (requires restart to disable)"):GetBool() then
+		if select(2, WireLib.GetVersion()):find("Workshop", 1, true) then
+			resource.AddWorkshop("160250458")
+		else
+			resource.AddWorkshop("3066780663")
+		end
+	end
 end
 
 -- client includes
@@ -118,10 +123,4 @@ if CLIENT then
 	include("wire/client/customspawnmenu.lua")
 end
 
--- Load UWSVN, done here so its definitely after Wire is loaded.
-if file.Find("wire/uwsvn_load.lua","LUA")[1] then
-	if SERVER then AddCSLuaFile( "wire/uwsvn_load.lua" ) end
-	include("wire/uwsvn_load.lua")
-end
-
-if SERVER then print("Wiremod Version '"..WireLib.GetVersion().."' loaded") end
+if SERVER then print("Wiremod " .. select(2, WireLib.GetVersion()) .. " loaded") end
