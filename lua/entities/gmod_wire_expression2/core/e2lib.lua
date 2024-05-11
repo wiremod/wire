@@ -246,6 +246,9 @@ function E2Lib.validPhysics(entity)
 end
 
 -- This function gets wrapped when CPPI is detected, see very end of this file
+local getOwnerEnabled = CreateConVar("wire_expression2_getowner", "1", FCVAR_ARCHIVE, "Whether or not to use :GetOwner() get the owner of an entity."):GetBool()
+cvars.AddChangeCallback( "wire_expression2_getowner", function(_, _, new) getOwnerEnabled = tobool(new) end)
+
 function E2Lib.getOwner(self, entity)
 	if entity == nil then return end
 	if entity == self.entity or entity == self.player then return self.player end
@@ -268,7 +271,7 @@ function E2Lib.getOwner(self, entity)
 		end
 	end
 
-	if entity.GetOwner then
+	if getOwnerEnabled and entity.GetOwner then
 		local ply = entity:GetOwner()
 		if IsValid(ply) then return ply end
 	end
@@ -943,6 +946,7 @@ hook.Add("InitPostEntity", "e2lib", function()
 				local owner = entity:CPPIGetOwner()
 				if IsValid(owner) then return owner end
 
+                if not getOwnerEnabled then return end
 				return _getOwner(self, entity)
 			end)
 		end
