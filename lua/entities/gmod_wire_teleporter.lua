@@ -6,7 +6,7 @@ ENT.Author			= "Divran"
 
 if CLIENT then return end -- No more client
 
-CreateConVar("wire_teleporter_cooldown","1",{FCVAR_ARCHIVE,FCVAR_NOTIFY})
+local cooldownCvar = CreateConVar("wire_teleporter_cooldown","1",{FCVAR_ARCHIVE,FCVAR_NOTIFY})
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -309,7 +309,7 @@ function ENT:Jump_Part2( withangles )
 	-- Cooldown - prevent teleporting for a time
 	timer.Create(
 		"teleporter_"..self:EntIndex(), -- name
-		GetConVarNumber( "wire_teleporter_cooldown" ), -- delay
+		cooldownCvar:GetFloat(), -- delay
 		1, -- nr of runs
 		function() -- function
 			if self:IsValid() then
