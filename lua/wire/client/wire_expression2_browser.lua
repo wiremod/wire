@@ -130,7 +130,7 @@ function PANEL:StartSearch( str )
 end
 
 function PANEL:Init()
-	self:SetDrawBackground(false)
+	self:SetPaintBackground(false)
 
 	self.SearchBox = vgui.Create( "DTextEntry", self )
 	self.SearchBox:Dock( TOP )
