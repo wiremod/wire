@@ -14,23 +14,6 @@ local invalid_filename_chars = {
 	[" "] = "_",
 }
 
-local function GetFileName(name)
-	local name = string.Replace(name, ".txt", "")
-	return string.Replace(name, "/", "")
-end
-
-local function InternalDoClick(self)
-	self:GetRoot():SetSelectedItem(self)
-	if (self:DoClick()) then return end
-	if (self:GetRoot():DoClick(self)) then return end
-end
-
-local function InternalDoRightClick(self)
-	self:GetRoot():SetSelectedItem(self)
-	if (self:DoRightClick()) then return end
-	if (self:GetRoot():DoRightClick(self)) then return end
-end
-
 local function fileName(filepath)
 	return string.match(filepath, "[/\\]?([^/\\]*)$")
 end
