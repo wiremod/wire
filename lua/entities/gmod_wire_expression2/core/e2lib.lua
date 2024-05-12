@@ -946,7 +946,7 @@ hook.Add("InitPostEntity", "e2lib", function()
 				local owner = entity:CPPIGetOwner()
 				if IsValid(owner) then return owner end
 
-                if not getOwnerEnabled then return end
+				if not getOwnerEnabled then return end
 				return _getOwner(self, entity)
 			end)
 		end
