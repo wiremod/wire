@@ -116,7 +116,7 @@ function ENT:Jump( withangles )
 			return
 		elseif ent ~= self then -- if the entity is not equal to self
 			if self:CheckAllowed( ent ) then -- If the entity can be teleported
-				self.Entities[#self.Entities+1] = ent
+                table.insert(self.Entities, ent)
 			else -- If the entity can't be teleported
 				self.OtherEntities[#self.OtherEntities+1] = ent
 			end
@@ -169,7 +169,12 @@ function ENT:Jump_Part2( withangles )
 	self.LocalPos = {}
 	self.LocalAng = {}
 	self.LocalVel = {}
-	for _, ent in pairs( self.Entities ) do
+	for k, ent in ipairs( self.Entities ) do
+        if not IsValid(ent) then
+            table.RemoveByValue(self.Entities, ent)
+            continue
+        end
+
 		if (ent:GetPhysicsObjectCount() > 1) then -- Check for bones
 			local tbl = { Main = self:WorldToLocal( ent:GetPos() ) }
 			local tbl2 = { Main = self:WorldToLocal( ent:GetVelocity() + ent:GetPos() ) }
@@ -231,10 +236,13 @@ function ENT:Jump_Part2( withangles )
 	-- Other entities
 	--------------------------------------------------------------------
 
-	for _, ent in pairs( self.Entities ) do
+	for k, ent in ipairs( self.Entities ) do
+        if not IsValid(ent) then
+            table.RemoveByValue(self.Entities, ent)
+            continue
+        end
 
 		local oldPos = ent:GetPos() -- Remember old position
-
 		if withangles then ent:SetAngles( self:LocalToWorldAngles( self.LocalAng[ent] ) ) end -- Angles
 
 		if (ent:GetPhysicsObjectCount() > 1) then -- Check for bones
