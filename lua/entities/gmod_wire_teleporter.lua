@@ -169,9 +169,9 @@ function ENT:Jump_Part2( withangles )
 	self.LocalPos = {}
 	self.LocalAng = {}
 	self.LocalVel = {}
-	for k, ent in ipairs( self.Entities ) do
+	for k, ent in pairs( self.Entities ) do
         if not IsValid(ent) then
-            table.RemoveByValue(self.Entities, ent)
+            self.Entities[k] = nil
             continue
         end
 
@@ -236,9 +236,9 @@ function ENT:Jump_Part2( withangles )
 	-- Other entities
 	--------------------------------------------------------------------
 
-	for k, ent in ipairs( self.Entities ) do
+	for k, ent in pairs( self.Entities ) do
         if not IsValid(ent) then
-            table.RemoveByValue(self.Entities, ent)
+            self.Entities[k] = nil
             continue
         end
 
