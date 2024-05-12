@@ -152,7 +152,7 @@ function PANEL:Init()
 	self.SearchBox = vgui.Create( "DTextEntry", self )
 	self.SearchBox:Dock( TOP )
 	self.SearchBox:DockMargin( 0,0,0,0 )
-	self.SearchBox:SetValue( "Search..." )
+	self.SearchBox:SetPlaceholderText( "Search..." )
 
 	local clearsearch = vgui.Create( "DImageButton", self.SearchBox )
 	clearsearch:SetMaterial( "icon16/cross.png" )
@@ -160,30 +160,11 @@ function PANEL:Init()
 	function clearsearch:DoClick()
 		src:SetValue( "" )
 		src:OnEnter()
-		src:SetValue( "Search..." )
 	end
 	clearsearch:DockMargin( 2,2,4,2 )
 	clearsearch:Dock( RIGHT )
 	clearsearch:SetSize( 14, 10 )
 	clearsearch:SetVisible( false )
-
-
-	local old = self.SearchBox.OnGetFocus
-	function self.SearchBox:OnGetFocus()
-		if self:GetValue() == "Search..." then -- If "Search...", erase it
-			self:SetValue( "" )
-		end
-		old( self )
-	end
-
-	-- On lose focus
-	local old = self.SearchBox.OnLoseFocus
-	function self.SearchBox:OnLoseFocus()
-		if self:GetValue() == "" then -- if empty, reset "Search..." text
-			timer.Simple( 0, function() self:SetValue( "Search..." ) end )
-		end
-		old( self )
-	end
 
 	function self.SearchBox.OnEnter()
 		local str = self.SearchBox:GetValue()
