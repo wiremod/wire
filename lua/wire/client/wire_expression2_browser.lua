@@ -135,7 +135,7 @@ function PANEL:Init()
 	self.SearchBox = vgui.Create( "DTextEntry", self )
 	self.SearchBox:Dock( TOP )
 	self.SearchBox:DockMargin( 0,0,0,0 )
-	self.SearchBox:SetPlaceholderText( "Search..." )
+	self.SearchBox:SetPlaceholderText("Search...")
 
 	local clearsearch = vgui.Create( "DImageButton", self.SearchBox )
 	clearsearch:SetMaterial( "icon16/cross.png" )
