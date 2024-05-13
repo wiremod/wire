@@ -14,23 +14,6 @@ local invalid_filename_chars = {
 	[" "] = "_",
 }
 
-local function GetFileName(name)
-	local name = string.Replace(name, ".txt", "")
-	return string.Replace(name, "/", "")
-end
-
-local function InternalDoClick(self)
-	self:GetRoot():SetSelectedItem(self)
-	if (self:DoClick()) then return end
-	if (self:GetRoot():DoClick(self)) then return end
-end
-
-local function InternalDoRightClick(self)
-	self:GetRoot():SetSelectedItem(self)
-	if (self:DoRightClick()) then return end
-	if (self:GetRoot():DoRightClick(self)) then return end
-end
-
 local function fileName(filepath)
 	return string.match(filepath, "[/\\]?([^/\\]*)$")
 end
@@ -147,12 +130,12 @@ function PANEL:StartSearch( str )
 end
 
 function PANEL:Init()
-	self:SetDrawBackground(false)
+	self:SetPaintBackground(false)
 
 	self.SearchBox = vgui.Create( "DTextEntry", self )
 	self.SearchBox:Dock( TOP )
 	self.SearchBox:DockMargin( 0,0,0,0 )
-	self.SearchBox:SetValue( "Search..." )
+	self.SearchBox:SetPlaceholderText("Search...")
 
 	local clearsearch = vgui.Create( "DImageButton", self.SearchBox )
 	clearsearch:SetMaterial( "icon16/cross.png" )
@@ -160,30 +143,11 @@ function PANEL:Init()
 	function clearsearch:DoClick()
 		src:SetValue( "" )
 		src:OnEnter()
-		src:SetValue( "Search..." )
 	end
 	clearsearch:DockMargin( 2,2,4,2 )
 	clearsearch:Dock( RIGHT )
 	clearsearch:SetSize( 14, 10 )
 	clearsearch:SetVisible( false )
-
-
-	local old = self.SearchBox.OnGetFocus
-	function self.SearchBox:OnGetFocus()
-		if self:GetValue() == "Search..." then -- If "Search...", erase it
-			self:SetValue( "" )
-		end
-		old( self )
-	end
-
-	-- On lose focus
-	local old = self.SearchBox.OnLoseFocus
-	function self.SearchBox:OnLoseFocus()
-		if self:GetValue() == "" then -- if empty, reset "Search..." text
-			timer.Simple( 0, function() self:SetValue( "Search..." ) end )
-		end
-		old( self )
-	end
 
 	function self.SearchBox.OnEnter()
 		local str = self.SearchBox:GetValue()
