@@ -1072,7 +1072,7 @@ end
 ---@param ply userdata
 function RuntimeContextBuilder:withOwner(ply)
 	self.player = assert(ply)
-	self.uid = (self.player.UniqueID and self.player:UniqueID()) or "World"
+	self.uid = (ply:IsValid() and ply.UniqueID and ply:UniqueID()) or "World"
 	return self
 end
 
