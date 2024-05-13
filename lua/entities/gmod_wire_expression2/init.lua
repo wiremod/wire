@@ -560,12 +560,14 @@ function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 	end
 
 	-- Register events only after E2 has executed once
-	for evt, _ in pairs(self.registered_events) do
-		if E2Lib.Env.Events[evt].constructor then
-			-- If the event has a constructor to run when the E2 is made and listening to the event.
-			E2Lib.Env.Events[evt].constructor(self.context)
+	if self.registered_events then
+		for evt, _ in pairs(self.registered_events) do
+			if E2Lib.Env.Events[evt].constructor then
+				-- If the event has a constructor to run when the E2 is made and listening to the event.
+				E2Lib.Env.Events[evt].constructor(self.context)
+			end
+			E2Lib.Env.Events[evt].listening[self] = true
 		end
-		E2Lib.Env.Events[evt].listening[self] = true
 	end
 
 	self:NextThink(CurTime())
