@@ -169,7 +169,7 @@ function ENT:Jump_Part2( withangles )
 	self.LocalPos = {}
 	self.LocalAng = {}
 	self.LocalVel = {}
-	for k, ent in pairs( self.Entities ) do
+	for k, ent in pairs(self.Entities) do
 		if not IsValid(ent) then
 			self.Entities[k] = nil
 			continue
