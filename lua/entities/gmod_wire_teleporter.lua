@@ -6,7 +6,7 @@ ENT.Author			= "Divran"
 
 if CLIENT then return end -- No more client
 
-CreateConVar("wire_teleporter_cooldown","1",{FCVAR_ARCHIVE,FCVAR_NOTIFY})
+local cooldownCvar = CreateConVar("wire_teleporter_cooldown","1",{FCVAR_ARCHIVE,FCVAR_NOTIFY})
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -116,7 +116,7 @@ function ENT:Jump( withangles )
 			return
 		elseif ent ~= self then -- if the entity is not equal to self
 			if self:CheckAllowed( ent ) then -- If the entity can be teleported
-				self.Entities[#self.Entities+1] = ent
+				table.insert(self.Entities, ent)
 			else -- If the entity can't be teleported
 				self.OtherEntities[#self.OtherEntities+1] = ent
 			end
@@ -169,36 +169,40 @@ function ENT:Jump_Part2( withangles )
 	self.LocalPos = {}
 	self.LocalAng = {}
 	self.LocalVel = {}
-	for _, ent in pairs( self.Entities ) do
-		if (ent:GetPhysicsObjectCount() > 1) then -- Check for bones
-			local tbl = { Main = self:WorldToLocal( ent:GetPos() ) }
-			local tbl2 = { Main = self:WorldToLocal( ent:GetVelocity() + ent:GetPos() ) }
+	for k, ent in pairs(self.Entities) do
+		if IsValid(ent) then
+			if (ent:GetPhysicsObjectCount() > 1) then -- Check for bones
+				local tbl = { Main = self:WorldToLocal( ent:GetPos() ) }
+				local tbl2 = { Main = self:WorldToLocal( ent:GetVelocity() + ent:GetPos() ) }
 
-			for i=0, ent:GetPhysicsObjectCount()-1 do
-				local b = ent:GetPhysicsObjectNum( i )
-				tbl[i] = ent:WorldToLocal( b:GetPos() )
+				for i=0, ent:GetPhysicsObjectCount()-1 do
+					local b = ent:GetPhysicsObjectNum( i )
+					tbl[i] = ent:WorldToLocal( b:GetPos() )
 
-				tbl2[i] = ent:WorldToLocal( ent:GetPos() + b:GetVelocity() )
-				b:SetVelocity( b:GetVelocity() * -1 )
+					tbl2[i] = ent:WorldToLocal( ent:GetPos() + b:GetVelocity() )
+					b:SetVelocity( b:GetVelocity() * -1 )
+				end
+
+				-- Save the localized position table
+				self.LocalPos[ent] = tbl
+
+				-- Save the localized velocity table
+				self.LocalVel[ent] = tbl2
+			else
+				-- Save the localized position
+				self.LocalPos[ent] = self:WorldToLocal( ent:GetPos() )
+
+				-- Save the localized velocity
+				self.LocalVel[ent] = self:WorldToLocal( ent:GetVelocity() + ent:GetPos() )
 			end
 
-			-- Save the localized position table
-			self.LocalPos[ent] = tbl
+			ent:SetVelocity( ent:GetVelocity() * -1 )
 
-			-- Save the localized velocity table
-			self.LocalVel[ent] = tbl2
+			if withangles then
+				self.LocalAng[ent] = self:WorldToLocalAngles( ent:GetAngles() )
+			end
 		else
-			-- Save the localized position
-			self.LocalPos[ent] = self:WorldToLocal( ent:GetPos() )
-
-			-- Save the localized velocity
-			self.LocalVel[ent] = self:WorldToLocal( ent:GetVelocity() + ent:GetPos() )
-		end
-
-		ent:SetVelocity( ent:GetVelocity() * -1 )
-
-		if withangles then
-			self.LocalAng[ent] = self:WorldToLocalAngles( ent:GetAngles() )
+			self.Entities[k] = nil
 		end
 	end
 
@@ -231,57 +235,59 @@ function ENT:Jump_Part2( withangles )
 	-- Other entities
 	--------------------------------------------------------------------
 
-	for _, ent in pairs( self.Entities ) do
+	for k, ent in pairs(self.Entities) do
+		if IsValid(ent) then
+			local oldPos = ent:GetPos() -- Remember old position
+			if withangles then ent:SetAngles( self:LocalToWorldAngles( self.LocalAng[ent] ) ) end -- Angles
 
-		local oldPos = ent:GetPos() -- Remember old position
+			if (ent:GetPhysicsObjectCount() > 1) then -- Check for bones
+				ent:SetPos( self:LocalToWorld( self.LocalPos[ent].Main ) ) -- Position
 
-		if withangles then ent:SetAngles( self:LocalToWorldAngles( self.LocalAng[ent] ) ) end -- Angles
+				-- Set new velocity
+				local phys = ent:GetPhysicsObject()
+				if phys:IsValid() then
+					phys:SetVelocity( self:LocalToWorld( self.LocalVel[ent].Main ) - ent:GetPos() )
+				else
+					ent:SetVelocity( self:LocalToWorld( self.LocalVel[ent].Main ) )
+				end
 
-		if (ent:GetPhysicsObjectCount() > 1) then -- Check for bones
-			ent:SetPos( self:LocalToWorld( self.LocalPos[ent].Main ) ) -- Position
+				for i=0, ent:GetPhysicsObjectCount()-1 do -- For each bone...
+					local b = ent:GetPhysicsObjectNum( i )
 
-			-- Set new velocity
-			local phys = ent:GetPhysicsObject()
-			if phys:IsValid() then
-				phys:SetVelocity( self:LocalToWorld( self.LocalVel[ent].Main ) - ent:GetPos() )
-			else
-				ent:SetVelocity( self:LocalToWorld( self.LocalVel[ent].Main ) )
+					b:SetPos( ent:LocalToWorld(self.LocalPos[ent][i]) ) -- Position
+					b:SetVelocity( ent:LocalToWorld( self.LocalVel[ent][i] ) - ent:GetPos() ) -- Set new velocity
+				end
+
+				ent:GetPhysicsObject():Wake()
+			else -- If it doesn't have bones
+				ent:SetPos( self:LocalToWorld(self.LocalPos[ent]) ) -- Position
+
+				-- Set new velocity
+				local phys = ent:GetPhysicsObject()
+				if phys:IsValid() then
+					phys:SetVelocity( self:LocalToWorld( self.LocalVel[ent] ) - ent:GetPos() )
+				else
+					ent:SetVelocity( self:LocalToWorld( self.LocalVel[ent] ) )
+				end
+
+				ent:GetPhysicsObject():Wake()
 			end
 
-			for i=0, ent:GetPhysicsObjectCount()-1 do -- For each bone...
-				local b = ent:GetPhysicsObjectNum( i )
-
-				b:SetPos( ent:LocalToWorld(self.LocalPos[ent][i]) ) -- Position
-				b:SetVelocity( ent:LocalToWorld( self.LocalVel[ent][i] ) - ent:GetPos() ) -- Set new velocity
+			if self.UseEffects then
+				-- Effect in
+				effectdata = EffectData()
+				effectdata:SetEntity( ent )
+				effectdata:SetOrigin( self:GetPos() + Dir * math.Clamp( ent:BoundingRadius() * 5, 180, 4092 ) )
+				util.Effect( "jump_in", effectdata, true, true )
+				DoPropSpawnedEffect( ent )
 			end
 
-			ent:GetPhysicsObject():Wake()
-		else -- If it doesn't have bones
-			ent:SetPos( self:LocalToWorld(self.LocalPos[ent]) ) -- Position
 
-			-- Set new velocity
-			local phys = ent:GetPhysicsObject()
-			if phys:IsValid() then
-				phys:SetVelocity( self:LocalToWorld( self.LocalVel[ent] ) - ent:GetPos() )
-			else
-				ent:SetVelocity( self:LocalToWorld( self.LocalVel[ent] ) )
+			if self.ClassSpecificActions[ent:GetClass()] then -- Call function specific for this entity class
+				self.ClassSpecificActions[ent:GetClass()]( ent, oldPos, ent:GetPos() )
 			end
-
-			ent:GetPhysicsObject():Wake()
-		end
-
-		if self.UseEffects then
-			-- Effect in
-			effectdata = EffectData()
-			effectdata:SetEntity( ent )
-			effectdata:SetOrigin( self:GetPos() + Dir * math.Clamp( ent:BoundingRadius() * 5, 180, 4092 ) )
-			util.Effect( "jump_in", effectdata, true, true )
-			DoPropSpawnedEffect( ent )
-		end
-
-
-		if self.ClassSpecificActions[ent:GetClass()] then -- Call function specific for this entity class
-			self.ClassSpecificActions[ent:GetClass()]( ent, oldPos, ent:GetPos() )
+		else
+			self.Entities[k] = nil
 		end
 	end
 
@@ -301,7 +307,7 @@ function ENT:Jump_Part2( withangles )
 	-- Cooldown - prevent teleporting for a time
 	timer.Create(
 		"teleporter_"..self:EntIndex(), -- name
-		GetConVarNumber( "wire_teleporter_cooldown" ), -- delay
+		cooldownCvar:GetFloat(), -- delay
 		1, -- nr of runs
 		function() -- function
 			if self:IsValid() then
