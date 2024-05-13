@@ -171,39 +171,39 @@ function ENT:Jump_Part2( withangles )
 	self.LocalVel = {}
 	for k, ent in pairs(self.Entities) do
 		if IsValid(ent) then
-            if (ent:GetPhysicsObjectCount() > 1) then -- Check for bones
-                local tbl = { Main = self:WorldToLocal( ent:GetPos() ) }
-                local tbl2 = { Main = self:WorldToLocal( ent:GetVelocity() + ent:GetPos() ) }
+			if (ent:GetPhysicsObjectCount() > 1) then -- Check for bones
+				local tbl = { Main = self:WorldToLocal( ent:GetPos() ) }
+				local tbl2 = { Main = self:WorldToLocal( ent:GetVelocity() + ent:GetPos() ) }
 
-                for i=0, ent:GetPhysicsObjectCount()-1 do
-                    local b = ent:GetPhysicsObjectNum( i )
-                    tbl[i] = ent:WorldToLocal( b:GetPos() )
+				for i=0, ent:GetPhysicsObjectCount()-1 do
+					local b = ent:GetPhysicsObjectNum( i )
+					tbl[i] = ent:WorldToLocal( b:GetPos() )
 
-                    tbl2[i] = ent:WorldToLocal( ent:GetPos() + b:GetVelocity() )
-                    b:SetVelocity( b:GetVelocity() * -1 )
-                end
+					tbl2[i] = ent:WorldToLocal( ent:GetPos() + b:GetVelocity() )
+					b:SetVelocity( b:GetVelocity() * -1 )
+				end
 
-                -- Save the localized position table
-                self.LocalPos[ent] = tbl
+				-- Save the localized position table
+				self.LocalPos[ent] = tbl
 
-                -- Save the localized velocity table
-                self.LocalVel[ent] = tbl2
-            else
-                -- Save the localized position
-                self.LocalPos[ent] = self:WorldToLocal( ent:GetPos() )
+				-- Save the localized velocity table
+				self.LocalVel[ent] = tbl2
+			else
+				-- Save the localized position
+				self.LocalPos[ent] = self:WorldToLocal( ent:GetPos() )
 
-                -- Save the localized velocity
-                self.LocalVel[ent] = self:WorldToLocal( ent:GetVelocity() + ent:GetPos() )
-            end
+				-- Save the localized velocity
+				self.LocalVel[ent] = self:WorldToLocal( ent:GetVelocity() + ent:GetPos() )
+			end
 
-            ent:SetVelocity( ent:GetVelocity() * -1 )
+			ent:SetVelocity( ent:GetVelocity() * -1 )
 
-            if withangles then
-                self.LocalAng[ent] = self:WorldToLocalAngles( ent:GetAngles() )
-            end
-        else
-            self.Entities[k] = nil
-        end
+			if withangles then
+				self.LocalAng[ent] = self:WorldToLocalAngles( ent:GetAngles() )
+			end
+		else
+			self.Entities[k] = nil
+		end
 	end
 
 	--------------------------------------------------------------------
@@ -237,58 +237,58 @@ function ENT:Jump_Part2( withangles )
 
 	for k, ent in pairs(self.Entities) do
 		if IsValid(ent) then
-            local oldPos = ent:GetPos() -- Remember old position
-            if withangles then ent:SetAngles( self:LocalToWorldAngles( self.LocalAng[ent] ) ) end -- Angles
+			local oldPos = ent:GetPos() -- Remember old position
+			if withangles then ent:SetAngles( self:LocalToWorldAngles( self.LocalAng[ent] ) ) end -- Angles
 
-            if (ent:GetPhysicsObjectCount() > 1) then -- Check for bones
-                ent:SetPos( self:LocalToWorld( self.LocalPos[ent].Main ) ) -- Position
+			if (ent:GetPhysicsObjectCount() > 1) then -- Check for bones
+				ent:SetPos( self:LocalToWorld( self.LocalPos[ent].Main ) ) -- Position
 
-                -- Set new velocity
-                local phys = ent:GetPhysicsObject()
-                if phys:IsValid() then
-                    phys:SetVelocity( self:LocalToWorld( self.LocalVel[ent].Main ) - ent:GetPos() )
-                else
-                    ent:SetVelocity( self:LocalToWorld( self.LocalVel[ent].Main ) )
-                end
+				-- Set new velocity
+				local phys = ent:GetPhysicsObject()
+				if phys:IsValid() then
+					phys:SetVelocity( self:LocalToWorld( self.LocalVel[ent].Main ) - ent:GetPos() )
+				else
+					ent:SetVelocity( self:LocalToWorld( self.LocalVel[ent].Main ) )
+				end
 
-                for i=0, ent:GetPhysicsObjectCount()-1 do -- For each bone...
-                    local b = ent:GetPhysicsObjectNum( i )
+				for i=0, ent:GetPhysicsObjectCount()-1 do -- For each bone...
+					local b = ent:GetPhysicsObjectNum( i )
 
-                    b:SetPos( ent:LocalToWorld(self.LocalPos[ent][i]) ) -- Position
-                    b:SetVelocity( ent:LocalToWorld( self.LocalVel[ent][i] ) - ent:GetPos() ) -- Set new velocity
-                end
+					b:SetPos( ent:LocalToWorld(self.LocalPos[ent][i]) ) -- Position
+					b:SetVelocity( ent:LocalToWorld( self.LocalVel[ent][i] ) - ent:GetPos() ) -- Set new velocity
+				end
 
-                ent:GetPhysicsObject():Wake()
-            else -- If it doesn't have bones
-                ent:SetPos( self:LocalToWorld(self.LocalPos[ent]) ) -- Position
+				ent:GetPhysicsObject():Wake()
+			else -- If it doesn't have bones
+				ent:SetPos( self:LocalToWorld(self.LocalPos[ent]) ) -- Position
 
-                -- Set new velocity
-                local phys = ent:GetPhysicsObject()
-                if phys:IsValid() then
-                    phys:SetVelocity( self:LocalToWorld( self.LocalVel[ent] ) - ent:GetPos() )
-                else
-                    ent:SetVelocity( self:LocalToWorld( self.LocalVel[ent] ) )
-                end
+				-- Set new velocity
+				local phys = ent:GetPhysicsObject()
+				if phys:IsValid() then
+					phys:SetVelocity( self:LocalToWorld( self.LocalVel[ent] ) - ent:GetPos() )
+				else
+					ent:SetVelocity( self:LocalToWorld( self.LocalVel[ent] ) )
+				end
 
-                ent:GetPhysicsObject():Wake()
-            end
+				ent:GetPhysicsObject():Wake()
+			end
 
-            if self.UseEffects then
-                -- Effect in
-                effectdata = EffectData()
-                effectdata:SetEntity( ent )
-                effectdata:SetOrigin( self:GetPos() + Dir * math.Clamp( ent:BoundingRadius() * 5, 180, 4092 ) )
-                util.Effect( "jump_in", effectdata, true, true )
-                DoPropSpawnedEffect( ent )
-            end
+			if self.UseEffects then
+				-- Effect in
+				effectdata = EffectData()
+				effectdata:SetEntity( ent )
+				effectdata:SetOrigin( self:GetPos() + Dir * math.Clamp( ent:BoundingRadius() * 5, 180, 4092 ) )
+				util.Effect( "jump_in", effectdata, true, true )
+				DoPropSpawnedEffect( ent )
+			end
 
 
-            if self.ClassSpecificActions[ent:GetClass()] then -- Call function specific for this entity class
-                self.ClassSpecificActions[ent:GetClass()]( ent, oldPos, ent:GetPos() )
-            end
-        else
-            self.Entities[k] = nil
-        end
+			if self.ClassSpecificActions[ent:GetClass()] then -- Call function specific for this entity class
+				self.ClassSpecificActions[ent:GetClass()]( ent, oldPos, ent:GetPos() )
+			end
+		else
+			self.Entities[k] = nil
+		end
 	end
 
 	if self.UseEffects then
