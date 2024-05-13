@@ -236,7 +236,7 @@ function ENT:Jump_Part2( withangles )
 	-- Other entities
 	--------------------------------------------------------------------
 
-	for k, ent in pairs( self.Entities ) do
+	for k, ent in pairs(self.Entities) do
 		if not IsValid(ent) then
 			self.Entities[k] = nil
 			continue
