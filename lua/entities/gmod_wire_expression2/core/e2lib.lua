@@ -905,7 +905,7 @@ for funcname, _ in pairs(makeglobal) do
 	_G[funcname] = E2Lib[funcname]
 end
 
-hook.Add("InitPostEntity", "e2lib", function()
+local function e2libDelayedSetup()
 -- If changed, put them into the global scope again.
 	registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 		if makeglobal[funcname] then
@@ -950,7 +950,10 @@ hook.Add("InitPostEntity", "e2lib", function()
 			end)
 		end
 	end
-end)
+end
+
+hook.Add("Expression2Reloaded", "wire_expression2_e2lib", e2libDelayedSetup)
+hook.Add("InitPostEntity", "wire_expression2_e2lib", e2libDelayedSetup)
 
 --- Valid file extensions kept to avoid trying to make files with extensions gmod doesn't allow.
 -- https://wiki.facepunch.com/gmod/file.Write

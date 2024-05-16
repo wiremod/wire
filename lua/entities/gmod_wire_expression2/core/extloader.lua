@@ -61,6 +61,8 @@ if ENT then
 		end
 
 		_Msg( "Done reloading Expression 2 extensions." )
+
+		hook.Run("Expression2Reloaded")
 	end
 
 	concommand.Add( "wire_expression2_reload", wire_expression2_reload )
