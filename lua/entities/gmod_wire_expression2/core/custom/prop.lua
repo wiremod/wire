@@ -288,7 +288,7 @@ e2function void entity:use()
 	if hook.Run( "WireUse", ply, this, self ) == false then return end
 
 	if this.Use then
-		this:Use(ply,ply,USE_ON,0)
+		this:Use(ply,self,USE_ON,0)
 	else
 		this:Fire("use","1",0)
 	end
