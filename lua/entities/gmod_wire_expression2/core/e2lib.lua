@@ -220,7 +220,7 @@ function E2Lib.generate_signature(signature, rets, argnames)
 	local new_signature = string.format("%s(%s)", funcname, table.concat(args, ","))
 	if thistype then new_signature = thistype .. ":" .. new_signature end
 
-	return (not rets or rets == "") and (new_signature) or (E2Lib.typeName(rets) .. "=" .. new_signature)
+	return (not rets or rets == "") and new_signature or (E2Lib.typeName(rets) .. "=" .. new_signature)
 end
 
 -- ------------------------ various entity checkers ----------------------------
@@ -246,6 +246,9 @@ function E2Lib.validPhysics(entity)
 end
 
 -- This function gets wrapped when CPPI is detected, see very end of this file
+local getOwnerEnabled = CreateConVar("wire_expression2_getowner", "1", FCVAR_ARCHIVE, "Whether or not to use :GetOwner() get the owner of an entity."):GetBool()
+cvars.AddChangeCallback( "wire_expression2_getowner", function(_, _, new) getOwnerEnabled = tobool(new) end)
+
 function E2Lib.getOwner(self, entity)
 	if entity == nil then return end
 	if entity == self.entity or entity == self.player then return self.player end
@@ -268,7 +271,7 @@ function E2Lib.getOwner(self, entity)
 		end
 	end
 
-	if entity.GetOwner then
+	if getOwnerEnabled and entity.GetOwner then
 		local ply = entity:GetOwner()
 		if IsValid(ply) then return ply end
 	end
@@ -1207,7 +1210,7 @@ function E2Lib.compileScript(code, owner)
 	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
 	if not status then return false, tree end
 
-	local status, script, inst = E2Lib.Compiler.Execute(tree, directives, dvars, {})
+	local status, script = E2Lib.Compiler.Execute(tree, directives, dvars, {})
 	if not status then return false, script end
 
 	local ctx = RuntimeContext.builder()
