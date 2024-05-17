@@ -28,6 +28,7 @@ function ENT:Initialize()
 	-- Create virtual machine
 	self.VM = CPULib.VirtualMachine()
 	self.VM.SerialNo = CPULib.GenerateSN("CPU")
+	self.VM.Entity = self
 	-- Since the device supports (quota)interruptible instructions
 	-- Memory access can be a lot cheaper.
 	self.VM.MemoryReadCycles = 2
