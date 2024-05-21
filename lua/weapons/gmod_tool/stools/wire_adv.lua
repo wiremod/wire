@@ -971,7 +971,7 @@ elseif CLIENT then
 			end
 			return true
 		elseif name == "Selected" and self:GetStage() == 2 then
-			local inputs, outputs = self:GetPorts( ent )
+			local _, outputs = self:GetPorts( ent )
 			if not isTableEmpty(outputs) then return false end
 			if self:GetOwner():KeyDown( IN_WALK ) then -- Gray out the ones that won't be able to be wired to any input
 				for i=1,#outputs do
