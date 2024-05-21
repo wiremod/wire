@@ -620,10 +620,10 @@ elseif CLIENT then
 		end
 
 		if self:GetStage() == 2 then
-            if not IsValid( self.CurrentEntity ) then
-                self:SetStage(0)
-                return
-            end
+			if not IsValid( self.CurrentEntity ) then
+				self:SetStage(0)
+				return
+			end
 
 			local _, outputs = self:GetPorts( self.CurrentEntity )
 
