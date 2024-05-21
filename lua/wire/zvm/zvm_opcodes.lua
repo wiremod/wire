@@ -409,7 +409,11 @@ ZVM.OpcodeTable[58] = function(self)  --FATAN
   self:Dyn_EmitOperand("math.atan($2)")
 end
 ZVM.OpcodeTable[59] = function(self)  --MOD
-  self:Dyn_EmitOperand("math.fmod($1,$2)")
+  self:Dyn_Emit("$L OP = $2")
+  self:Dyn_EmitOperand("math.fmod($1,OP)")
+  self:Dyn_Emit("if math.abs(OP) < 1e-12 then")
+    self:Dyn_EmitInterrupt("3","0")
+  self:Dyn_Emit("end")
 end
 --------------------------------------------------------------------------------
 ZVM.OpcodeTable[60] = function(self)  --BIT
