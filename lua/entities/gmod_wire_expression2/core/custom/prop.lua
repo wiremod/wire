@@ -285,10 +285,10 @@ e2function void entity:use()
 	if not IsValid(ply) then return end -- if the owner isn't connected to the server, do nothing
 
 	if hook.Run( "PlayerUse", ply, this ) == false then return end
-	if hook.Run( "WireUse", ply, this, self ) == false then return end
+	if hook.Run( "WireUse", ply, this, self.entity ) == false then return end
 
 	if this.Use then
-		this:Use(ply,self,USE_ON,0)
+		this:Use(ply,self.entity,USE_ON,0)
 	else
 		this:Fire("use","1",0)
 	end
