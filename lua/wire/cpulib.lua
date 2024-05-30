@@ -930,6 +930,18 @@ function CPULib:RegisterExtension(name, extension)
           self:Dyn_EmitOperand(2,"interOp[2]")
         self:Dyn_Emit("end")
       ]]
+      local precompileBreakApplied = false
+      for _,i in ipairs(flags) do
+        -- force a break if this is a branching function
+        if (i == "CB" or i == "UB") and not precompileBreakApplied then
+          -- Without this, a CB(conditional branch) or UB(unconditional branch) flagged function will not have VM:Jump take effect.
+          opfunc = opfunc .. [[
+            self:Dyn_EmitBreak()
+            self.PrecompileBreak = true
+          ]]
+          precompileBreakApplied = true
+        end
+      end
     local instruction = self:RegisterInstruction(name, opcount, opfunc, flags, docs)
     instruction.InterOpFunc = luafunc
   end
