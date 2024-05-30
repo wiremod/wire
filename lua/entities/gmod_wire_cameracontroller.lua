@@ -397,7 +397,7 @@ function ENT:Initialize()
 	self.NextGetContraption = 0
 	self.NextUpdateOutputs = 0
 
-	self:GetContraption()
+	self:GetCameraFilterEntities()
 
 	self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
 end
@@ -503,7 +503,7 @@ end
 -- GetContraption
 -- Used in UpdateOutputs to make the traces ignore the contraption
 --------------------------------------------------
-function ENT:GetContraption()
+function ENT:GetCameraFilterEntities()
 	if CurTime() < self.NextGetContraption then return end
 	self.NextGetContraption = CurTime() + 5
 
@@ -626,7 +626,7 @@ function ENT:Think()
 		self:SyncPositions()
 	end
 
-	self:GetContraption()
+	self:GetCameraFilterEntities()
 	self:UpdateOutputs()
 
 	self:NextThink(CurTime())
