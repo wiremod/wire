@@ -1,6 +1,4 @@
-@include "garrysmod.fgd"
-
-@PointClass color(0 120 0) base(Targetname) size(-4 -4 -4, 4 4 4) = info_wiremapinterface
+@PointClass base(Targetname) size(-4 -4 -4, 4 4 4) color(0 120 0) = info_wiremapinterface
 	: "Creates an interface between the map and Wiremod."
 [
 	wire_entity_name(target_destination) : "Wire Entity" : "" : "The name of an entity or of the entities that will get wire ports."
