@@ -1272,7 +1272,7 @@ elseif CLIENT then
 
 					traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
 					local traceResult = util.TraceLine(traceData)
-					if WireLib.HasPorts(traceResult.Entity) then
+					if IsValid(traceResult.Entity) and WireLib.HasPorts(traceResult.Entity) then
 						self:UpdateTraceForSurface(traceResult, traceResult.Entity:GetParent())
 					end
 					render.AddBeam(traceResult.HitPos, width, scroll+(traceResult.HitPos-start):Length()/10, Color(100,100,100,255))
