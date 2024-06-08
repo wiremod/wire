@@ -28,9 +28,11 @@ local WriteStreamQueue = {
 			end
 			self.curidentifier = identifier % net.Stream.MaxWriteStreams + 1
 
+			if next(self.queue)==nil then
+				timer.Create("netstream_queueclean", 5, 0, function() self:Clean() end)
+			end
 			self.queue[identifier] = stream
 			stream.identifier = identifier
-			timer.Create("netstream_queueclean", 5, 0, function() self:Clean() end)
 			return stream
 		end,
 
