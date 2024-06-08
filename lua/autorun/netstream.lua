@@ -4,9 +4,9 @@ AddCSLuaFile()
 
 net.Stream = {}
 net.Stream.SendSize = 20000 --This is the size of each packet to send
-net.Stream.Timeout = 20 --How long to wait for client response before marking them invalid
-net.Stream.MaxWriteStreams = 1024 --The maximum number of queued write data items to send
-net.Stream.MaxReadStreams = 128 --The maximum number of keep-alives to have queued. This should prevent naughty players from flooding the network with keep-alive messages.
+net.Stream.Timeout = 10 --How long to wait for client response before cleaning up
+net.Stream.MaxWriteStreams = 1024 --The maximum number of write data items to store
+net.Stream.MaxReadStreams = 128 --The maximum number of queued read data items to store
 net.Stream.MaxChunks = 3200 --Maximum number of pieces the stream can send to the server. 64 MB
 net.Stream.MaxSize = net.Stream.SendSize*net.Stream.MaxChunks
 net.Stream.MaxTries = 3 --Maximum times the client may retry downloading the whole data
@@ -14,8 +14,6 @@ net.Stream.MaxTries = 3 --Maximum times the client may retry downloading the who
 local WriteStreamQueue = {
 	__index = {
 		Add = function(self, stream)
-			self.activitytimeout = CurTime()+net.Stream.Timeout
-
 			local identifier = self.curidentifier
 			local startid = identifier
 			while self.queue[identifier] do
@@ -29,6 +27,7 @@ local WriteStreamQueue = {
 			self.curidentifier = identifier % net.Stream.MaxWriteStreams + 1
 
 			if next(self.queue)==nil then
+				self.activitytimeout = CurTime()+net.Stream.Timeout
 				timer.Create("netstream_queueclean", 5, 0, function() self:Clean() end)
 			end
 			self.queue[identifier] = stream
