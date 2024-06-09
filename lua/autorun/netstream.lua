@@ -36,14 +36,13 @@ local WriteStreamQueue = {
 		end,
 
 		Write = function(self, ply)
-			self.activitytimeout = CurTime()+net.Stream.Timeout
-
 			local identifier = net.ReadUInt(32)
 			local chunkidx = net.ReadUInt(32)
 			local stream = self.queue[identifier]
 			--print("Got request", identifier, chunkidx, stream)
 			if stream then
 				if stream:Write(ply, chunkidx) then
+					self.activitytimeout = CurTime()+net.Stream.Timeout
 					stream.timeout = CurTime()+net.Stream.Timeout
 				end
 			else
