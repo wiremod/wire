@@ -356,13 +356,15 @@ function net.ReadStream(ply, callback)
 		if not ok then ErrorNoHalt(err) end
 		return
 	end
+
+	local identifier = net.ReadUInt(32)
+	local compressed = net.ReadBool()
+
 	if numchunks > net.Stream.MaxChunks then
 		ErrorNoHalt("ReadStream requests from ", ply, " is too large! ", numchunks * net.Stream.SendSize / 1048576, "MiB")
 		return
 	end
 
-	local identifier = net.ReadUInt(32)
-	local compressed = net.ReadBool()
 	--print("ReadStream", numchunks, identifier, compressed)
 
 	return net.Stream.ReadStreams:Add(ReadingDataItem(ply, callback, numchunks, identifier, compressed))
