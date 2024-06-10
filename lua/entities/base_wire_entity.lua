@@ -11,11 +11,6 @@ ENT.IsWire = true
 
 if CLIENT then
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
-	-- Funny reverse-detour because this function is sometimes nil and sometimes not, but is never nil when drawing for the first time.
-	local function beingLookedAtByLocalPlayer(self)
-		beingLookedAtByLocalPlayer = BaseClass.BeingLookedAtByLocalPlayer
-		return beingLookedAtByLocalPlayer(self)
-	end
 
 	function ENT:Initialize()
 		self.NextRBUpdate = CurTime() + 0.25
@@ -231,8 +226,8 @@ if CLIENT then
 	end)
 
 	-- Custom better version of this base_gmodentity function
-	function ENT:BeingLookedAtByLocalPlayer()
-		local trbool = beingLookedAtByLocalPlayer(self)
+	function ENT:WireBeingLookedAtByLocalPlayer()
+		local trbool = BaseClass.BeingLookedAtByLocalPlayer(self)
 		local self_table = self:GetTable()
 
 		if self_table.PlayerWasLookingAtMe ~= trbool then
@@ -251,9 +246,28 @@ if CLIENT then
 		return trbool
 	end
 
+	local looked_at
+
+	-- Shared by all derivative entities to determine if the overlay should be visible
+	hook.Add("Think", "wire_base_lookedatbylocalplayer", function()
+		local ply = LocalPlayer()
+		if not IsValid(ply) then
+			looked_at = nil
+			return
+		end
+
+		local cur_ent = ply:GetEyeTrace().Entity
+		local player_view_func = cur_ent.WireBeingLookedAtByLocalPlayer
+
+		if player_view_func and player_view_func(cur_ent) then
+			looked_at = cur_ent
+		else
+			looked_at = nil
+		end
+	end)
+
 	function ENT:DoNormalDraw(nohalo, notip)
-		local looked_at = self:BeingLookedAtByLocalPlayer()
-		if not nohalo and wire_drawoutline:GetBool() and looked_at then
+		if not nohalo and wire_drawoutline:GetBool() and looked_at == self then
 			self:DrawEntityOutline()
 			self:DrawModel()
 		else
