@@ -962,19 +962,13 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@strict\n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[#[
-    Latest update:
-    - _TAU bug fixed
-    - Compiler rewritten by Vurv
-
     Documentation, instructions and examples are available at:
     https://github.com/wiremod/wire/wiki/Expression-2
     ^ There you can read about: ^
 
-    - Why you should use @strict
-    - Other directives (like @model)
-    - What are events and their benefits
-    - What are lambda functions and their benefits
-    - Basic and advanced syntax rules
+    - What is @strict and other directives (https://github.com/wiremod/wire/wiki/Expression-2-Directives)
+    - What are events (https://github.com/wiremod/wire/wiki/Expression-2-Events)
+    - What are lambdas (https://github.com/wiremod/wire/wiki/E2-Guide:-Lambdas)
 
     You can find our Discord here: https://discord.gg/H8UKY3Y
     You can find our Reddit here:  https://www.reddit.com/r/wiremod
