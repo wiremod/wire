@@ -973,7 +973,7 @@ local code2 = [[#[
     - Why you should use @strict
     - Other directives (like @model)
     - What are events and their benefits
-    - What is lambda functions, and their benefits
+    - What are lambda functions and their benefits
     - Basic and advanced syntax rules
 
     You can find our Discord here: https://discord.gg/H8UKY3Y
