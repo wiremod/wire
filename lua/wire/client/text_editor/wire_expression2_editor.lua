@@ -959,16 +959,26 @@ function Editor:InitComponents()
 end
 
 -- code1 contains the code that is not to be marked
-local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n@strict\n\n"
+local code1 = "@name \n@inputs \n@outputs \n@persist \n@strict\n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[#[
-    Documentation and examples are available at:
-    https://github.com/wiremod/wire/wiki/Expression-2
-    ^ Read what @strict and other directives do here ^
+    Latest update:
+    - _TAU bug fixed
+    - Compiler rewritten by Vurv
 
-    Discord is available at https://discord.gg/H8UKY3Y
-    Reddit is available at https://www.reddit.com/r/wiremod
-    Report any bugs you find here https://github.com/wiremod/wire/issues
+    Documentation, instructions and examples are available at:
+    https://github.com/wiremod/wire/wiki/Expression-2
+    ^ There you can read about: ^
+
+    - Why you should use @strict
+    - Other directives(like @model)
+    - What is events, and their benefits
+    - What is lambda functions, and their benefits
+    - Basic and advanced syntax rules
+
+    You can find our Discord here: https://discord.gg/H8UKY3Y
+    You can find our Reddit here:  https://www.reddit.com/r/wiremod
+    Please report any bugs here:   https://github.com/wiremod/wire/issues
 ]#]]
 local defaultcode = code1 .. code2 .. "\n"
 
