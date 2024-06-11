@@ -258,13 +258,13 @@ if CLIENT then
 
 		local cur_ent = ply:GetEyeTrace().Entity
 
+		if cur_ent ~= looked_at and IsValid(looked_at) and looked_at.IsWire then
+			looked_at:BeingLookedAtByLocalPlayer()
+		end
+
 		if cur_ent.IsWire and cur_ent:BeingLookedAtByLocalPlayer() then
 			looked_at = cur_ent
 		else
-			if IsValid(looked_at) then
-				looked_at:BeingLookedAtByLocalPlayer()
-			end
-
 			looked_at = nil
 		end
 	end)
