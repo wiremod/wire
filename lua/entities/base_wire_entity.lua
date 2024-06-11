@@ -226,7 +226,7 @@ if CLIENT then
 	end)
 
 	-- Custom better version of this base_gmodentity function
-	function ENT:WireBeingLookedAtByLocalPlayer()
+	function ENT:BeingLookedAtByLocalPlayer()
 		local trbool = BaseClass.BeingLookedAtByLocalPlayer(self)
 		local self_table = self:GetTable()
 
@@ -257,11 +257,14 @@ if CLIENT then
 		end
 
 		local cur_ent = ply:GetEyeTrace().Entity
-		local player_view_func = cur_ent.WireBeingLookedAtByLocalPlayer
 
-		if player_view_func and player_view_func(cur_ent) then
+		if cur_ent.IsWire and cur_ent:BeingLookedAtByLocalPlayer() then
 			looked_at = cur_ent
 		else
+			if IsValid(looked_at) then
+				looked_at:BeingLookedAtByLocalPlayer()
+			end
+
 			looked_at = nil
 		end
 	end)
@@ -273,7 +276,7 @@ if CLIENT then
 		else
 			self:DrawModel()
 		end
-		if not notip and looked_at then
+		if not notip and looked_at == self then
 			self:AddWorldTip()
 		end
 	end
