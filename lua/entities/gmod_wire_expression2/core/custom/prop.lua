@@ -196,53 +196,53 @@ end
 
 -- Silly function to make printout on errors more userfriendly.
 local luaTypeIDToString = {
-	["-1"] = "none",
-	["0"] = "nil",
-	["1"] = "boolean",
-	["2"] = "lightuserdata",
-	["3"] = "number",
-	["4"] = "string",
-	["5"] = "table",
-	["6"] = "function",
-	["7"] = "userdata",
-	["8"] = "thread",
-	["9"] = "entity",
-	["10"] = "vector",
-	["11"] = "angle",
-	["12"] = "physobj",
-	["13"] = "save",
-	["14"] = "restore",
-	["15"] = "damageinfo",
-	["16"] = "effectdata",
-	["17"] = "movedata",
-	["18"] = "recipientfilter",
-	["19"] = "usercmd",
-	["20"] = "scriptedvehicle",
-	["21"] = "material",
-	["22"] = "panel",
-	["23"] = "particle",
-	["24"] = "particleemitter",
-	["25"] = "texture",
-	["26"] = "usermsg",
-	["27"] = "convar",
-	["28"] = "imesh",
-	["29"] = "matrix",
-	["30"] = "sound",
-	["31"] = "pixelvishandle",
-	["32"] = "dlight",
-	["33"] = "video",
-	["34"] = "file",
-	["35"] = "locomotion",
-	["36"] = "path",
-	["37"] = "navarea",
-	["38"] = "soundhandle",
-	["39"] = "navladder",
-	["40"] = "particlesystem",
-	["41"] = "projectedtexture",
-	["42"] = "physcollide",
-	["43"] = "surfaceinfo",
-	["44"] = "count",
-	["255"] = "color",
+	[-1] = "none",
+	[0] = "nil",
+	[1] = "boolean",
+	[2] = "lightuserdata",
+	[3] = "number",
+	[4] = "string",
+	[5] = "table",
+	[6] = "function",
+	[7] = "userdata",
+	[8] = "thread",
+	[9] = "entity",
+	[10] = "vector",
+	[11] = "angle",
+	[12] = "physobj",
+	[13] = "save",
+	[14] = "restore",
+	[15] = "damageinfo",
+	[16] = "effectdata",
+	[17] = "movedata",
+	[18] = "recipientfilter",
+	[19] = "usercmd",
+	[20] = "scriptedvehicle",
+	[21] = "material",
+	[22] = "panel",
+	[23] = "particle",
+	[24] = "particleemitter",
+	[25] = "texture",
+	[26] = "usermsg",
+	[27] = "convar",
+	[28] = "imesh",
+	[29] = "matrix",
+	[30] = "sound",
+	[31] = "pixelvishandle",
+	[32] = "dlight",
+	[33] = "video",
+	[34] = "file",
+	[35] = "locomotion",
+	[36] = "path",
+	[37] = "navarea",
+	[38] = "soundhandle",
+	[39] = "navladder",
+	[40] = "particlesystem",
+	[41] = "projectedtexture",
+	[42] = "physcollide",
+	[43] = "surfaceinfo",
+	[44] = "count",
+	[255] = "color",
 }
 	
 -- Only data types that can be directly casted, or already are in the same category. All other
@@ -272,7 +272,6 @@ end
 local castE2ValueToLuaValueTable = {}
 
 local function castE2ValueToLuaValue(targetTypeID, e2Value)
-	local targetTypeID = tostring(targetTypeID)
 	if castE2ValueToLuaValueTable[targetTypeID] then
 		return castE2ValueToLuaValueTable[targetTypeID](e2Value)
 	end
@@ -282,10 +281,10 @@ end
 
 -- Well, most of it is a nobrainer, but still helpful when you're just iterating and casting everything.
 castE2ValueToLuaValueTable = {
-	["0"] = function(e2Value) -- TYPE_NIL from whatever :)
+	[0] = function(e2Value) -- TYPE_NIL from whatever :)
 		return nil
 	end,
-	["1"] = function(e2Value) -- TYPE_BOOL from 'number'
+	[1] = function(e2Value) -- TYPE_BOOL from 'number'
 		if TypeID(e2Value)==TYPE_NUMBER then
 			if e2Value > 0 then return true end
 			return false
@@ -293,21 +292,21 @@ castE2ValueToLuaValueTable = {
 
 		return nil
 	end,
-	["3"] = function(e2Value) -- TYPE_NUMBER from 'number' or 'string'
+	[3] = function(e2Value) -- TYPE_NUMBER from 'number' or 'string'
 		local e2TypeID = TypeID(e2Value)
 		if e2TypeID == TYPE_NUMBER then return e2Value end
 		if e2TypeID == TYPE_STRING then return tonumber(e2Value) end
 
 		return nil
 	end,
-	["4"] = function(e2Value) -- TYPE_STRING from 'string' or 'number'
+	[4] = function(e2Value) -- TYPE_STRING from 'string' or 'number'
 		local e2TypeID = TypeID(e2Value)
 		if e2TypeID == TYPE_STRING then return e2Value end
 		if e2TypeID == TYPE_NUMBER then return tostring(e2Value) end
 
 		return nil
 	end,
-	["5"] = function(e2Value) -- TYPE_TABLE from 'table, array, ranger, quaternions, and a most other types that aren't present in other casts'
+	[5] = function(e2Value) -- TYPE_TABLE from 'table, array, ranger, quaternions, and a most other types that aren't present in other casts'
 		local e2TypeID = TypeID(e2Value)
 		if e2TypeID == TYPE_TABLE then
 			if e2Value.ntypes or e2Value.stypes then -- Is it an E2 table? Unpack it correctly then.
@@ -333,32 +332,32 @@ castE2ValueToLuaValueTable = {
 	
 		return nil
 	end,
-	["9"] = function(e2Value) -- TYPE_ENTITY from 'entity'
+	[9] = function(e2Value) -- TYPE_ENTITY from 'entity'
 		if TypeID(e2Value) == TYPE_ENTITY then return e2Value end
 
 		return nil
 	end,
-	["10"] = function(e2Value) -- TYPE_VECTOR from 'vector' or 'itable'
+	[10] = function(e2Value) -- TYPE_VECTOR from 'vector' or 'itable'
 		local e2TypeID = TypeID(e2Value)
 		if e2TypeID == TYPE_VECTOR then return e2Value end
 		if e2TypeID == TYPE_TABLE and isnumber(e2Value[1]) and isnumber(e2Value[2]) and isnumber(e2Value[3]) then return Vector(e2Value[1], e2Value[2], e2Value[3]) end
 
 		return nil
 	end,
-	["11"] = function(e2Value) -- TYPE_ANGLE from 'angle' or 'itable'
+	[11] = function(e2Value) -- TYPE_ANGLE from 'angle' or 'itable'
 		local e2TypeID = TypeID(e2Value)
 		if e2TypeID == TYPE_ANGLE then return e2Value
 		elseif e2TypeID == TYPE_TABLE and isnumber(e2Value[1]) and isnumber(e2Value[2]) and isnumber(e2Value[3]) then return Angle(e2Value[1], e2Value[2], e2Value[3]) end
 
 		return nil
 	end,
-	["15"] = function(e2Value) -- TYPE_DAMAGEINFO from 'damageinfo'
+	[15] = function(e2Value) -- TYPE_DAMAGEINFO from 'damageinfo'
 		if TypeID(e2Value) == TYPE_DAMAGEINFO then return e2Value end
 	end,
-	["16"] = function(e2Value) -- TYPE_EFFECTDATA from 'effectdata'
+	[16] = function(e2Value) -- TYPE_EFFECTDATA from 'effectdata'
 		if TypeID(e2Value) == TYPE_EFFECTDATA then return e2Value end
 	end,
-	["21"] = function(e2Value) -- TYPE_MATERIAL from 'string' or 'itable'
+	[21] = function(e2Value) -- TYPE_MATERIAL from 'string' or 'itable'
 		local e2TypeID = TypeID(e2Value)
 		if e2TypeID == TYPE_STRING then return Material(e2Value) end
 		if e2TypeID == TYPE_TABLE then -- Png parameters support
@@ -372,7 +371,7 @@ castE2ValueToLuaValueTable = {
 
 		return nil
 	end,
-	["29"] = function(e2Value) -- TYPE_MATRIX from 'matrix4'
+	[29] = function(e2Value) -- TYPE_MATRIX from 'matrix4'
 		if TypeID(e2Value) ~= TYPE_TABLE then return nil end
 
 		if #e2Value == 16 then
@@ -385,7 +384,7 @@ castE2ValueToLuaValueTable = {
 
 		return nil
 	end,
-	["255"] = function(e2Value) -- TYPE_COLOR from 'vector' or 'vector4' or 'itable' or 'table'
+	[255] = function(e2Value) -- TYPE_COLOR from 'vector' or 'vector4' or 'itable' or 'table'
 		local e2TypeID = TypeID(e2Value)
 		if e2TypeID == TYPE_VECTOR then
 			return Color(e2Value[1], e2Value[2], e2Value[3])
@@ -462,7 +461,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 
 			if value~=nil then -- Attempting to set provided value (need to cast from E2 to Lua type).
 				local res = castE2ValueToLuaValue(org[1], value)
-				if res==nil then return self:throw("Incorrect parameter '".. param .. "' type during spawning '" .. class .. "'. Expected '" .. luaTypeIDToString[tostring(org[1])] .. "'. Received '" .. string.lower(type(value)) .. "'", NULL) end
+				if res==nil then return self:throw("Incorrect parameter '".. param .. "' type during spawning '" .. class .. "'. Expected '" .. luaTypeIDToString[org[1]] .. "'. Received '" .. string.lower(type(value)) .. "'", NULL) end
 
 				entityData[param] = res
 			elseif org[2]~=nil then -- Attempting to set default value if none provided.
@@ -479,12 +478,6 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 		enttbl.Class = class
 		enttbl.Pos = pos
 		enttbl.Angle = angles
-
-		local SocketPlugPairs = {}
-		for socket, tbl in pairs(list.Get("Wire_Socket_Models")) do
-			SocketPlugPairs[socket] = tbl.plug
-		end
-		local PlugSocketPairs = table.Flip(SocketPlugPairs)
 
 		-- Better be safe, pcall this to ensure we continue running our code, in case these external functions cause an error...
 		local factoryErrMessage
@@ -714,7 +707,7 @@ e2function table getSentData(string class)
 	for key, tbl in pairs( sent ) do
 		res.s[key] = E2Lib.newE2Table()
 		res.s[key].size = 2
-		res.s[key].n[1] = luaTypeIDToString[tostring(tbl[1])]
+		res.s[key].n[1] = luaTypeIDToString[tbl[1]]
 		res.s[key].n[2] = TypeID(tbl[2])==TYPE_BOOL and (tbl[2]==true and "1" or "0") or tostring(tbl[2])
 		res.s[key].ntypes[1] = "s"
 		res.s[key].ntypes[2] = "s"
@@ -741,7 +734,7 @@ e2function table getSentDataTypes(string class)
 	for key, tbl in pairs( sent ) do
 		res.s[key] = E2Lib.newE2Table()
 		res.s[key].size = 1
-		res.s[key].n[1] = luaTypeIDToString[tostring(tbl[1])]
+		res.s[key].n[1] = luaTypeIDToString[tbl[1]]
 		res.s[key].ntypes[1] = "s"
 		res.stypes[key] = "t"
 
