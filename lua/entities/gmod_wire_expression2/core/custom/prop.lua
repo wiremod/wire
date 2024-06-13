@@ -419,15 +419,14 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 	pos = WireLib.clampPos( pos )
 
 	local entity
-	local undoName = "E2 Sent"
 
 	local whitelist_sent, sent = list.Get("wire_spawnable_ents_whitelist")[class], list.Get("SpawnableEntities")[class]
 	
 	local isWhitelist = wire_expression2_propcore_sents_whitelist:GetInt() > 0
 	if isWhitelist and not whitelist_sent and sent then
-		return self:throw("Spawning entity '"..class.."' is not allowed! wire_expression2_propcore_sents_whitelist is enabled", NULL)
+		return self:throw("Spawning entity '" .. class .. "' is not allowed! wire_expression2_propcore_sents_whitelist is enabled", NULL)
 	elseif not whitelist_sent and not sent then
-		return self:throw("Sent class '"..class.."' is not registered nor in entity tab!", NULL)
+		return self:throw("Sent class '" .. class .. "' is not registered nor in entity tab!", NULL)
 	--elseif isWhitelist and sent then
 		--whitelist_sent = sent
 	end
@@ -439,8 +438,8 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 		if data.Model and isstring(data.Model) then
 			if #data.Model == 0 and sentParams.Model[2] and isstring(sentParams.Model[2]) then data.Model = sentParams.Model[2] end -- Let's try being forgiving (defaulting the model, if provided empty model path).
 
-			if not util.IsValidProp( data.Model ) then return self:throw("'"..data.Model.."' is not a valid model!", NULL) end
-			if not WireLib.CanModel( self.player, data.Model ) then return self:throw("You are not allowed to spawn model '"..data.Model.."'", NULL) end
+			if not util.IsValidProp( data.Model ) then return self:throw("'" .. data.Model .. "' is not a valid model!", NULL) end
+			if not WireLib.CanModel( self.player, data.Model ) then return self:throw("You are not allowed to spawn model '" .. data.Model .. "'", NULL) end
 		end
 
 		-- Not sure if we should check for invalid parameters, as it's not really a problem if the user provides more parameters than needed (they will be ignored), but the check
@@ -463,13 +462,13 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 
 			if value~=nil then -- Attempting to set provided value (need to cast from E2 to Lua type).
 				local res = castE2ValueToLuaValue(org[1], value)
-				if res==nil then return self:throw("Incorrect parameter '"..param.."' type during spawning '"..class.."'. Expected '"..luaTypeIDToString[tostring(org[1])].."'. Received '"..string.lower(type(value)).."'", NULL) end
+				if res==nil then return self:throw("Incorrect parameter '".. param .. "' type during spawning '" .. class .. "'. Expected '" .. luaTypeIDToString[tostring(org[1])] .. "'. Received '" .. string.lower(type(value)) .. "'", NULL) end
 
 				entityData[param] = res
 			elseif org[2]~=nil then -- Attempting to set default value if none provided.
 				entityData[param] = org[2]
 			else
-				self:throw("Missing parameter '"..param.."' and no default value is registered.", NULL)
+				self:throw("Missing parameter '" .. param .. "' and no default value is registered.", NULL)
 			end
 		end
 
@@ -521,13 +520,13 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 		if not isOk then
 			if IsValid(entity) then entity:Remove() end
 			if factoryErrMessage then
-				return self:throw("Failed to spawn '"..class.."'. "..tostring(factoryErrMessage).." (Is your data valid?)", NULL)
+				return self:throw("Failed to spawn '" .. class .. "'. " .. tostring(factoryErrMessage) .. " (Is your data valid?)", NULL)
 			end
 
-			return self:throw("Failed to spawn '"..class.."'. (Internal error). Traceback: "..tostring(errMessage), NULL) -- Not sure, if we should provide tracebacks to scare people.
+			return self:throw("Failed to spawn '" .. class .. "'. (Internal error). Traceback: " .. tostring(errMessage), NULL) -- Not sure, if we should provide tracebacks to scare people.
 		end
 	elseif sent then -- Spawning an entity from entity tab.
-		if sent.AdminOnly and not self.player:IsAdmin() then return self:throw("You do not have permission to spawn '"..class.."' (admin-only)!", NULL) end
+		if sent.AdminOnly and not self.player:IsAdmin() then return self:throw("You do not have permission to spawn '" .. class .. "' (admin-only)!", NULL) end
 
 		local mockTrace = {
 			FractionLeftSolid = 0,
@@ -577,7 +576,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 		undo.Create( "e2_spawned_sent" )
 			undo.AddEntity( entity )
 			undo.SetPlayer( self.player )
-		undo.Finish( undoName .. " (" .. class .. ")" )
+		undo.Finish( "E2 Sent" .. " (" .. class .. ")" )
 	end
 
 	entity:CallOnRemove( "wire_expression2_propcore_remove",
