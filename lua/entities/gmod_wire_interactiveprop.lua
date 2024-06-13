@@ -198,6 +198,11 @@ InteractiveModels = {
 
 }
 
+-- To let other parts of code get the valid model, and to prevent write to the table.
+function WireLib.IsValidInteractiveModel( model )
+	return InteractiveModels[model] ~= nil
+end
+
 InteractiveModels["models/props_c17/furnituresink001a.mdl"]		 = copyPropUI( "models/props_interiors/bathtub01a.mdl", "Furniture Sink" )
 InteractiveModels["models/props_interiors/sinkkitchen01a.mdl"]	= copyPropUI( "models/props_interiors/bathtub01a.mdl", "Kitchen Sink" )
 InteractiveModels["models/props_wasteland/prison_sink001a.mdl"] = copyPropUI( "models/props_interiors/bathtub01a.mdl", "Prison Sink" )
