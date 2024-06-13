@@ -124,8 +124,6 @@ register("gmod_wire_rt_camera", {
 
 register("gmod_wire_rt_screen", {
 	_preFactory = function(ply, self)
-		print("Passed material: "..self.ScreenMaterial)
-		PrintTable(ValidScreenEffects)
 		self.ScreenMaterial = string.lower(self.ScreenMaterial)
 		if not ValidScreenEffects[self.ScreenMaterial] then return "Invalid screen material! (Use only those that are shown on toolgun menu)" end
 	end,
@@ -1015,7 +1013,6 @@ register("gmod_wire_value", {
 				local wireValueType = string.upper(tostring(val[1]))
 				local CastFunc = castE2TypeToWireValueType[wireValueType]
 				if not CastFunc then
-					print("No cast func. ", additionalDataNames[wireValueType], wireValueType, val[1], string.upper(tostring(val[1])))
 					if not additionalDataNames[wireValueType] then return "Incorrect value[" .. i .. "] value! Expected 'NORMAL/VECTOR/VECTOR2/VECTOR4/ANGLE/STRING'. Got '"..wireValueType.."'" end
 					wireValueType = additionalDataNames[wireValueType]
 					CastFunc = castE2TypeToWireValueType[wireValueType]
@@ -1042,8 +1039,6 @@ register("gmod_wire_value", {
 				DataType = val[1],
 				Value = val[2]
 			}
-
-			PrintTable(value[i])
 		end
 		self.value = value
 	end,
