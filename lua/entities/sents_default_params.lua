@@ -73,7 +73,7 @@ for socket, tbl in pairs(list.Get("Wire_Socket_Models")) do
 	SocketPlugPairs[socket] = tbl.plug
 end
 local PlugSocketPairs = table.Flip(SocketPlugPairs)
-local ValidScreenEffects = {
+local gmod_wire_rt_screen_validScreenEffects = {
 	normal = true,
 	ep1_projector = true,
 	ep1_projector_noisy = true,
@@ -87,7 +87,97 @@ local ValidScreenEffects = {
 	scanlines = true
 }
 
--- Sent registering --	
+-- Sent registering --
+
+----------------------------------------
+
+-- Basic Gmod sents
+
+register("gmod_balloon", {
+	["Model"] = {TYPE_STRING, "models/maxofs2d/balloon_classic.mdl"},
+	["force"] = {TYPE_NUMBER, -50},
+	["r"] = {TYPE_NUMBER, 255},
+	["g"] = {TYPE_NUMBER, 255},
+	["b"] = {TYPE_NUMBER, 255},
+})
+
+register("gmod_button", {
+	["Model"] = {TYPE_STRING, "models/maxofs2d/button_05.mdl"},
+	["description"] = {TYPE_STRING, ""},
+	["key"] = {TYPE_NUMBER, KEY_NONE},
+	["toggle"] = {TYPE_BOOL, true},
+})
+
+-- register("gmod_cameraprop", {
+-- 	["Model"] = {TYPE_STRING, "models/dav0r/camera.mdl"},
+-- 	["controlkey"] = {TYPE_NUMBER, KEY_NONE},
+-- 	["locked"] = {TYPE_BOOL, false},
+-- 	["toggle"] = {TYPE_BOOL, true},
+-- })
+
+register("gmod_dynamite", {
+	["Model"] = {TYPE_STRING, "models/dav0r/tnt/tnt.mdl"},
+	["key"] = {TYPE_NUMBER, KEY_NONE},
+	["Damage"] = {TYPE_NUMBER, 200},
+	["delay"] = {TYPE_NUMBER, 0},
+	["remove"] = {TYPE_BOOL, false},
+})
+
+-- register("gmod_emitter", {
+-- 	["Model"] = {TYPE_STRING, "models/props_lab/tpplug.mdl"},
+-- 	["effect"] = {TYPE_STRING, "ManhackSparks"},
+-- 	["key"] = {TYPE_NUMBER, KEY_NONE},
+-- 	["delay"] = {TYPE_NUMBER, 1},
+-- 	["scale"] = {TYPE_NUMBER, 1},
+-- 	["toggle"] = {TYPE_BOOL, true},
+-- 	["starton"] = {TYPE_BOOL, false},
+-- })
+
+register("gmod_hoverball", {
+	["Model"] = {TYPE_STRING, "models/dav0r/hoverball.mdl"},
+	["key_u"] = {TYPE_NUMBER, KEY_NONE},
+	["key_d"] = {TYPE_NUMBER, KEY_NONE},
+	["speed"] = {TYPE_NUMBER, 1},
+	["resistance"] = {TYPE_NUMBER, 0},
+	["strength"] = {TYPE_NUMBER, 1},
+})
+
+register("gmod_lamp", {
+	["Model"] = {TYPE_STRING, "models/lamps/torch.mdl"},
+	["Texture"] = {TYPE_STRING, "effects/flashlight001"},
+	["KeyDown"] = {TYPE_NUMBER, KEY_NONE},
+	["fov"] = {TYPE_NUMBER, 90},
+	["distance"] = {TYPE_NUMBER, 1024},
+	["brightness"] = {TYPE_NUMBER, 4},
+	["toggle"] = {TYPE_BOOL, true},
+	["on"] = {TYPE_BOOL, false},
+	["r"] = {TYPE_NUMBER, 255},
+	["g"] = {TYPE_NUMBER, 255},
+	["b"] = {TYPE_NUMBER, 255},
+})
+
+register("gmod_light", {
+	["Model"] = {TYPE_STRING, "models/maxofs2d/light_tubular.mdl"},
+	["KeyDown"] = {TYPE_NUMBER, KEY_NONE},
+	["Size"] = {TYPE_NUMBER, 256},
+	["Brightness"] = {TYPE_NUMBER, 2},
+	["toggle"] = {TYPE_BOOL, true},
+	["on"] = {TYPE_BOOL, false},
+	["lightr"] = {TYPE_NUMBER, 255},
+	["lightg"] = {TYPE_NUMBER, 255},
+	["lightb"] = {TYPE_NUMBER, 255},
+})
+
+register("gmod_thruster", {
+	["Model"] = {TYPE_STRING, "models/props_phx2/garbage_metalcan001a.mdl"},
+	["effect"] = {TYPE_STRING, "fire"},
+	["soundname"] = {TYPE_STRING, "PhysicsCannister.ThrusterLoop"},
+	["key"] = {TYPE_NUMBER, KEY_NONE},
+	["key_bck"] = {TYPE_NUMBER, -1},
+	["force"] = {TYPE_NUMBER, 1500},
+	["toggle"] = {TYPE_BOOL, false},
+	["damageable"] = {TYPE_BOOL, false},
+})
 
 ----------------------------------------
 
@@ -125,7 +215,7 @@ register("gmod_wire_rt_camera", {
 register("gmod_wire_rt_screen", {
 	_preFactory = function(ply, self)
 		self.ScreenMaterial = string.lower(self.ScreenMaterial)
-		if not ValidScreenEffects[self.ScreenMaterial] then return "Invalid screen material! (Use only those that are shown on toolgun menu)" end
+		if not gmod_wire_rt_screen_validScreenEffects[self.ScreenMaterial] then return "Invalid screen material! (Use only those that are shown on toolgun menu)" end
 	end,
 
 	["Model"] = {TYPE_STRING, "models/kobilica/wiremonitorbig.mdl"},
@@ -1104,99 +1194,4 @@ register("gmod_wire_gate", {
 
 register("gmod_wire_freezer", {
 	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
-})
-
-----------------------------------------
-
--- Basic Gmod sents
-
--- I didn't include these because:
--- 1) Do we really need them? (They can't be controlled by wiremod anyway)
--- 2) I had skillissue. Some error out, and I just can't get them working.
--- 
-
-register("gmod_balloon", {
-	["Model"] = {TYPE_STRING, "models/maxofs2d/balloon_classic.mdl"},
-	["force"] = {TYPE_NUMBER, -50},
-	["r"] = {TYPE_NUMBER, 255},
-	["g"] = {TYPE_NUMBER, 255},
-	["b"] = {TYPE_NUMBER, 255},
-})
-
-register("gmod_button", {
-	["Model"] = {TYPE_STRING, "models/maxofs2d/button_05.mdl"},
-	["description"] = {TYPE_STRING, ""},
-	["key"] = {TYPE_NUMBER, KEY_NONE},
-	["toggle"] = {TYPE_BOOL, true},
-})
-
-register("gmod_cameraprop", {
-	["Model"] = {TYPE_STRING, "models/dav0r/camera.mdl"},
-	["controlkey"] = {TYPE_NUMBER, KEY_NONE},
-	["locked"] = {TYPE_BOOL, false},
-	["toggle"] = {TYPE_BOOL, true},
-})
-
-register("gmod_dynamite", {
-	["Model"] = {TYPE_STRING, "models/dav0r/tnt/tnt.mdl"},
-	["key"] = {TYPE_NUMBER, KEY_NONE},
-	["Damage"] = {TYPE_NUMBER, 200},
-	["delay"] = {TYPE_NUMBER, 0},
-	["remove"] = {TYPE_BOOL, false},
-})
-
-register("gmod_emitter", {
-	["Model"] = {TYPE_STRING, "models/props_lab/tpplug.mdl"},
-	["effect"] = {TYPE_STRING, "ManhackSparks"},
-	["key"] = {TYPE_NUMBER},
-	["delay"] = {TYPE_NUMBER, 0},
-	["scale"] = {TYPE_NUMBER, 1},
-	["toggle"] = {TYPE_BOOL, true},
-	["starton"] = {TYPE_BOOL, false},
-})
-
-register("gmod_hoverball", {
-	["Model"] = {TYPE_STRING, "models/dav0r/hoverball.mdl"},
-	["key_u"] = {TYPE_NUMBER, KEY_NONE},
-	["key_d"] = {TYPE_NUMBER, KEY_NONE},
-	["speed"] = {TYPE_NUMBER, 1},
-	["resistance"] = {TYPE_NUMBER, 0},
-	["strength"] = {TYPE_NUMBER, 1},
-})
-
-register("gmod_lamp", {
-	["Model"] = {TYPE_STRING, "models/lamps/torch.mdl"},
-	["Texture"] = {TYPE_STRING, "effects/flashlight001"},
-	["KeyDown"] = {TYPE_NUMBER, KEY_NONE},
-	["fov"] = {TYPE_NUMBER, 90},
-	["distance"] = {TYPE_NUMBER, 1024},
-	["brightness"] = {TYPE_NUMBER, 4},
-	["toggle"] = {TYPE_BOOL, true},
-	["on"] = {TYPE_BOOL, false},
-	["r"] = {TYPE_NUMBER, 255},
-	["g"] = {TYPE_NUMBER, 255},
-	["b"] = {TYPE_NUMBER, 255},
-})
-
-register("gmod_light", {
-	["Model"] = {TYPE_STRING, "models/maxofs2d/light_tubular.mdl"},
-	["KeyDown"] = {TYPE_NUMBER, KEY_NONE},
-	["Size"] = {TYPE_NUMBER, 256},
-	["Brightness"] = {TYPE_NUMBER, 2},
-	["toggle"] = {TYPE_BOOL, true},
-	["on"] = {TYPE_BOOL, false},
-	["lightr"] = {TYPE_NUMBER, 255},
-	["lightg"] = {TYPE_NUMBER, 255},
-	["lightb"] = {TYPE_NUMBER, 255},
-})
-
-register("gmod_thruster", {
-	["Model"] = {TYPE_STRING, "models/props_phx2/garbage_metalcan001a.mdl"},
-	["effect"] = {TYPE_STRING, "fire"},
-	["soundname"] = {TYPE_STRING, "PhysicsCannister.ThrusterLoop"},
-	["key"] = {TYPE_NUMBER, KEY_NONE},
-	["key_bck"] = {TYPE_NUMBER, -1},
-	["force"] = {TYPE_NUMBER, 1500},
-	["toggle"] = {TYPE_BOOL, false},
-	["damageable"] = {TYPE_BOOL, false},
 })
