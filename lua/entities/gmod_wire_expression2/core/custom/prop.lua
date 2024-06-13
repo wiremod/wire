@@ -9,8 +9,8 @@ local sbox_E2_maxProps = CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
 local sbox_E2_maxPropsPerSecond = CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
 local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) -- 2: Players can affect their own props, 1: Only admins, 0: Disabled
 local sbox_E2_canMakeStatue = CreateConVar("sbox_E2_canMakeStatue", "1", FCVAR_ARCHIVE)
-local wire_expression2_propcore_sents_whitelist = CreateConVar("wire_expression2_propcore_sents_whitelist", "1", FCVAR_ARCHIVE) -- 1: Players can spawn sents only that are added to the default sent list, 0: Players can spawn any sent (no way to make players not spawn errors then though!)
-
+local wire_expression2_propcore_sents_whitelist = CreateConVar("wire_expression2_propcore_sents_whitelist", "1", FCVAR_ARCHIVE, "If 1 - players can spawn sents only that are added to the default sent list, if 0 - players can spawn sents both from registered list AND from entity tab.")
+local wire_expression2_propcore_sents_enabled = CreateConVar("wire_expression2_propcore_sents_enabled", "1", FCVAR_ARCHIVE, "If 0 - prevents sentSpawn to be uset at all. If 1 - allows to spawn sents. (Doesn't affect sentSpawn whitelist)")
 local isOwner = E2Lib.isOwner
 local GetBones = E2Lib.GetBones
 local isValidBone = E2Lib.isValidBone
@@ -403,6 +403,7 @@ castE2ValueToLuaValueTable = {
 
 -- Separate from PropCore.CreateProp, to add some additional checks, and don't make PropCore.ValidAction check sent cases each time anything else is attempted to be spawned (microopt).
 function PropCore.CreateSent(self, class, pos, angles, freeze, data)
+	if wire_expression2_propcore_sents_enabled:GetInt() <= 0 then return self:throw("Sent spawning is disabled by server! (wire_expression2_propcore_sents_enabled)", NULL) end
 	if hook.Run( "Expression2_CanSpawnSent", class, self ) == false then return self:throw("A hook prevented this sent to be spawned!", nil) end
 	if not WithinPropcoreLimits() then return self:throw("Prop limit reached! (cooldown or max)", NULL) end
 	-- Same logic as in PropCore.ValidSpawn
@@ -447,6 +448,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 		--for k, v in pairs(data) do
 			--if not sentParams[k] then return self:throw("Invalid parameter name '" .. tostring(k).."'", NULL) end
 		--end
+
 		-- And comment that instead to save cpu time.
 		if data._preFactory then return self:throw("Invalid parameter name '_preFactory'", NULL) end
 		if data._postFactory then return self:throw("Invalid parameter name '_postFactory'", NULL) end
@@ -681,7 +683,7 @@ end
 
 __e2setcost(25)
 [nodiscard]
-e2function array getWhitelistedSents()
+e2function array sentGetWhitelisted()
 	local res = {}
 
 	local sents = list.Get("wire_spawnable_ents_whitelist")
@@ -697,7 +699,7 @@ end
 
 __e2setcost(30)
 [nodiscard]
-e2function table getSentData(string class)
+e2function table sentGetData(string class)
 	local res = E2Lib.newE2Table()
 
 	local sent = list.Get("wire_spawnable_ents_whitelist")[class]
@@ -724,7 +726,7 @@ end
 
 __e2setcost(20)
 [nodiscard]
-e2function table getSentDataTypes(string class)
+e2function table sentGetDataTypes(string class)
 	local res = E2Lib.newE2Table()
 
 	local sent = list.Get("wire_spawnable_ents_whitelist")[class]
@@ -749,7 +751,7 @@ end
 
 __e2setcost(20)
 [nodiscard]
-e2function table getSentDataDefaultValues(string class)
+e2function table sentGetDataDefaultValues(string class)
 	local res = E2Lib.newE2Table()
 
 	local sent = list.Get("wire_spawnable_ents_whitelist")[class]
@@ -796,6 +798,14 @@ __e2setcost(1)
 [nodiscard]
 e2function number sentIsWhitelist()
 	if wire_expression2_propcore_sents_whitelist:GetInt() > 0 then return 1 else return 0 end
+end
+
+--------------------------------------------------------------------------------
+
+__e2setcost(1)
+[nodiscard]
+e2function number sentIsEnabled()
+	if wire_expression2_propcore_sents_enabled:GetInt() <= 0 then return 0 else return 1 end
 end
 
 --------------------------------------------------------------------------------
