@@ -244,7 +244,7 @@ local luaTypeIDToString = {
 	[TYPE_COUNT] = "count",
 	[TYPE_COLOR] = "color",
 }
-	
+
 -- Only data types that can be directly casted, or already are in the same category. All other
 -- E2 types are either need to be transformed, or can't be casted at anything except for table.
 local e2TypeNameToLuaTypeIDTable = {
@@ -310,17 +310,17 @@ castE2ValueToLuaValueTable = {
 		if e2TypeID == TYPE_TABLE then
 			if e2Value.ntypes or e2Value.stypes then -- Is it an E2 table? Unpack it correctly then.
 				local res = {}
-				
+
 				-- Handle 'n' field
 				for i, value in pairs(e2Value["n"]) do
 					res[i] = castE2ValueToLuaValue(e2TypeNameToLuaTypeID(e2Value["ntypes"][i]), value) -- recursively unpacks any tables, or just returns the value.
 				end
-			
+
 				-- Handle 's' field
 				for key, value in pairs(e2Value["s"]) do
 					res[key] = castE2ValueToLuaValue(e2TypeNameToLuaTypeID(e2Value["stypes"][key]), value) -- recursively unpacks any tables, or just returns the value.
 				end
-			
+
 				return res
 			end
 
@@ -328,7 +328,7 @@ castE2ValueToLuaValueTable = {
 		end
 
 		if e2TypeID == TYPE_ANGLE or e2TypeID == TYPE_COLOR or e2TypeID == TYPE_VECTOR or e2TypeID == TYPE_MATRIX then return e2Value:ToTable() end
-	
+
 		return nil
 	end,
 	[TYPE_ENTITY] = function(e2Value) -- TYPE_ENTITY from 'entity'
@@ -360,10 +360,10 @@ castE2ValueToLuaValueTable = {
 		local e2TypeID = TypeID(e2Value)
 		if e2TypeID == TYPE_STRING then return Material(e2Value) end
 		if e2TypeID == TYPE_TABLE then -- Png parameters support
-			if #e2Value != 2 then return nil end
-			
-			if TypeID(e2Value[1]) != TYPE_STRING then return nil end
-			if TypeID(e2Value[2]) != TYPE_STRING then return nil end
+			if #e2Value ~= 2 then return nil end
+
+			if TypeID(e2Value[1]) ~= TYPE_STRING then return nil end
+			if TypeID(e2Value[2]) ~= TYPE_STRING then return nil end
 
 			return Material(e2Value[1], e2Value[2])
 		end
@@ -420,7 +420,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 	local entity
 
 	local whitelist_sent, sent = list.Get("wire_spawnable_ents_whitelist")[class], list.Get("SpawnableEntities")[class]
-	
+
 	local isWhitelist = wire_expression2_propcore_sents_whitelist:GetBool()
 	if isWhitelist and not whitelist_sent and sent then
 		return self:throw("Spawning entity '" .. class .. "' is not allowed! wire_expression2_propcore_sents_whitelist is enabled", NULL)
@@ -565,7 +565,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 	end
 
 	self.player:AddCleanup( "e2_spawned_sents", entity )
-	
+
 	if self.data.propSpawnUndo then
 		undo.Create( "e2_spawned_sent" )
 			undo.AddEntity( entity )
@@ -686,7 +686,7 @@ e2function array sentGetWhitelisted()
 	local res = {}
 
 	local sents = list.Get("wire_spawnable_ents_whitelist")
-	
+
 	for classname, tbl in pairs( sents ) do
 		res[#res+1] = classname
 	end
@@ -703,7 +703,7 @@ e2function table sentGetData(string class)
 
 	local sent = list.Get("wire_spawnable_ents_whitelist")[class]
 	if not sent then return res end
-	
+
 	local size = 0
 	for key, tbl in pairs( sent ) do
 		res.s[key] = E2Lib.newE2Table()
@@ -730,7 +730,7 @@ e2function table sentGetDataTypes(string class)
 
 	local sent = list.Get("wire_spawnable_ents_whitelist")[class]
 	if not sent then return res end
-	
+
 	local size = 0
 	for key, tbl in pairs( sent ) do
 		res.s[key] = E2Lib.newE2Table()
@@ -755,7 +755,7 @@ e2function table sentGetDataDefaultValues(string class)
 
 	local sent = list.Get("wire_spawnable_ents_whitelist")[class]
 	if not sent then return res end
-	
+
 	local size = 0
 	for key, tbl in pairs( sent ) do
 		res.s[key] = E2Lib.newE2Table()
