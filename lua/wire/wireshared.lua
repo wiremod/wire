@@ -1283,3 +1283,58 @@ function WireLib.NotifyBuilder(msg, severity, color)
 	ret[n + 2] = msg
 	return ret
 end
+
+local typeIDToStringTable = {
+	[TYPE_NONE] = "none",
+	[TYPE_NIL] = "nil",
+	[TYPE_BOOL] = "boolean",
+	[TYPE_LIGHTUSERDATA] = "lightuserdata",
+	[TYPE_NUMBER] = "number",
+	[TYPE_STRING] = "string",
+	[TYPE_TABLE] = "table",
+	[TYPE_FUNCTION] = "function",
+	[TYPE_USERDATA] = "userdata",
+	[TYPE_THREAD] = "thread",
+	[TYPE_ENTITY] = "entity",
+	[TYPE_VECTOR] = "vector",
+	[TYPE_ANGLE] = "angle",
+	[TYPE_PHYSOBJ] = "physobj",
+	[TYPE_SAVE] = "save",
+	[TYPE_RESTORE] = "restore",
+	[TYPE_DAMAGEINFO] = "damageinfo",
+	[TYPE_EFFECTDATA] = "effectdata",
+	[TYPE_MOVEDATA] = "movedata",
+	[TYPE_RECIPIENTFILTER] = "recipientfilter",
+	[TYPE_USERCMD] = "usercmd",
+	[TYPE_SCRIPTEDVEHICLE] = "scriptedvehicle",
+	[TYPE_MATERIAL] = "material",
+	[TYPE_PANEL] = "panel",
+	[TYPE_PARTICLE] = "particle",
+	[TYPE_PARTICLEEMITTER] = "particleemitter",
+	[TYPE_TEXTURE] = "texture",
+	[TYPE_USERMSG] = "usermsg",
+	[TYPE_CONVAR] = "convar",
+	[TYPE_IMESH] = "imesh",
+	[TYPE_MATERIAL] = "matrix",
+	[TYPE_SOUND] = "sound",
+	[TYPE_PIXELVISHANDLE] = "pixelvishandle",
+	[TYPE_DLIGHT] = "dlight",
+	[TYPE_VIDEO] = "video",
+	[TYPE_FILE] = "file",
+	[TYPE_LOCOMOTION] = "locomotion",
+	[TYPE_PATH] = "path",
+	[TYPE_NAVAREA] = "navarea",
+	[TYPE_SOUNDHANDLE] = "soundhandle",
+	[TYPE_NAVLADDER] = "navladder",
+	[TYPE_PARTICLESYSTEM] = "particlesystem",
+	[TYPE_PROJECTEDTEXTURE] = "projectedtexture",
+	[TYPE_PHYSCOLLIDE] = "physcollide",
+	[TYPE_SURFACEINFO] = "surfaceinfo",
+	[TYPE_COUNT] = "count",
+	[TYPE_COLOR] = "color",
+}
+
+-- Silly function to make printouts more userfriendly.
+function WireLib.typeIDToString(typeID)
+	return typeIDToStringTable[typeID] or "unregistered type"
+end

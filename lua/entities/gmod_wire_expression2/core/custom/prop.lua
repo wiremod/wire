@@ -16,6 +16,8 @@ local GetBones = E2Lib.GetBones
 local isValidBone = E2Lib.isValidBone
 local setPos = WireLib.setPos
 local setAng = WireLib.setAng
+local typeIDToString = WireLib.typeIDToString
+local castE2ValueToLuaValue = E2Lib.castE2ValueToLuaValue
 
 local E2totalspawnedprops = 0
 local E2tempSpawnedProps = 0
@@ -194,212 +196,6 @@ local function boneVerify(self, bone)
 	return ent, index
 end
 
--- Silly function to make printout on errors more userfriendly.
-local luaTypeIDToString = {
-	[TYPE_NONE] = "none",
-	[TYPE_NIL] = "nil",
-	[TYPE_BOOL] = "boolean",
-	[TYPE_LIGHTUSERDATA] = "lightuserdata",
-	[TYPE_NUMBER] = "number",
-	[TYPE_STRING] = "string",
-	[TYPE_TABLE] = "table",
-	[TYPE_FUNCTION] = "function",
-	[TYPE_USERDATA] = "userdata",
-	[TYPE_THREAD] = "thread",
-	[TYPE_ENTITY] = "entity",
-	[TYPE_VECTOR] = "vector",
-	[TYPE_ANGLE] = "angle",
-	[TYPE_PHYSOBJ] = "physobj",
-	[TYPE_SAVE] = "save",
-	[TYPE_RESTORE] = "restore",
-	[TYPE_DAMAGEINFO] = "damageinfo",
-	[TYPE_EFFECTDATA] = "effectdata",
-	[TYPE_MOVEDATA] = "movedata",
-	[TYPE_RECIPIENTFILTER] = "recipientfilter",
-	[TYPE_USERCMD] = "usercmd",
-	[TYPE_SCRIPTEDVEHICLE] = "scriptedvehicle",
-	[TYPE_MATERIAL] = "material",
-	[TYPE_PANEL] = "panel",
-	[TYPE_PARTICLE] = "particle",
-	[TYPE_PARTICLEEMITTER] = "particleemitter",
-	[TYPE_TEXTURE] = "texture",
-	[TYPE_USERMSG] = "usermsg",
-	[TYPE_CONVAR] = "convar",
-	[TYPE_IMESH] = "imesh",
-	[TYPE_MATERIAL] = "matrix",
-	[TYPE_SOUND] = "sound",
-	[TYPE_PIXELVISHANDLE] = "pixelvishandle",
-	[TYPE_DLIGHT] = "dlight",
-	[TYPE_VIDEO] = "video",
-	[TYPE_FILE] = "file",
-	[TYPE_LOCOMOTION] = "locomotion",
-	[TYPE_PATH] = "path",
-	[TYPE_NAVAREA] = "navarea",
-	[TYPE_SOUNDHANDLE] = "soundhandle",
-	[TYPE_NAVLADDER] = "navladder",
-	[TYPE_PARTICLESYSTEM] = "particlesystem",
-	[TYPE_PROJECTEDTEXTURE] = "projectedtexture",
-	[TYPE_PHYSCOLLIDE] = "physcollide",
-	[TYPE_SURFACEINFO] = "surfaceinfo",
-	[TYPE_COUNT] = "count",
-	[TYPE_COLOR] = "color",
-}
-
--- Only data types that can be directly casted, or already are in the same category. All other
--- E2 types are either need to be transformed, or can't be casted at anything except for table.
-local e2TypeNameToLuaTypeIDTable = {
-	["none"] = TYPE_NONE,
-	["void"] = TYPE_NONE,
-	[""] = TYPE_NONE,
-	["number"] = TYPE_NUMBER,
-	["n"] = TYPE_NUMBER,
-	["string"] = TYPE_STRING,
-	["s"] = TYPE_STRING,
-	["entity"] = TYPE_ENTITY,
-	["e"] = TYPE_ENTITY,
-	["vector"] = TYPE_VECTOR,
-	["v"] = TYPE_VECTOR,
-	["angle"] = TYPE_ANGLE,
-	["a"] = TYPE_ANGLE,
-}
-
-local function e2TypeNameToLuaTypeID(TypeName)
-	return e2TypeNameToLuaTypeIDTable[string.lower(TypeName)] or TYPE_TABLE
-end
-
--- Lua type -> E2 to lua casting function. No way to implement default behaviour, so use castE2ValueToLuaValue function instead of table.
--- (It's forward declaration(to make recursive table unpacking possible). Real table is beneath castE2ValueToLuaValue)
-local castE2ValueToLuaValueTable = {}
-
-local function castE2ValueToLuaValue(targetTypeID, e2Value)
-	if castE2ValueToLuaValueTable[targetTypeID] then
-		return castE2ValueToLuaValueTable[targetTypeID](e2Value)
-	end
-
-	return nil
-end
-
--- Well, most of it is a nobrainer, but still helpful when you're just iterating and casting everything.
-castE2ValueToLuaValueTable = {
-	[TYPE_NIL] = function(e2Value) -- TYPE_NIL from whatever :)
-		return nil
-	end,
-	[TYPE_BOOL] = function(e2Value) -- TYPE_BOOL from 'number'
-		if TypeID(e2Value)==TYPE_NUMBER then
-			return e2Value > 0
-		end
-
-		return nil
-	end,
-	[TYPE_NUMBER] = function(e2Value) -- TYPE_NUMBER from 'number' or 'string'
-		local e2TypeID = TypeID(e2Value)
-		if e2TypeID == TYPE_NUMBER then return e2Value end
-		if e2TypeID == TYPE_STRING then return tonumber(e2Value) end
-
-		return nil
-	end,
-	[TYPE_STRING] = function(e2Value) -- TYPE_STRING from 'string' or 'number'
-		local e2TypeID = TypeID(e2Value)
-		if e2TypeID == TYPE_STRING then return e2Value end
-		if e2TypeID == TYPE_NUMBER then return tostring(e2Value) end
-
-		return nil
-	end,
-	[TYPE_TABLE] = function(e2Value) -- TYPE_TABLE from 'table, array, ranger, quaternions, and a most other types that aren't present in other casts'
-		local e2TypeID = TypeID(e2Value)
-		if e2TypeID == TYPE_TABLE then
-			if e2Value.ntypes or e2Value.stypes then -- Is it an E2 table? Unpack it correctly then.
-				local res = {}
-
-				-- Handle 'n' field
-				for i, value in pairs(e2Value["n"]) do
-					res[i] = castE2ValueToLuaValue(e2TypeNameToLuaTypeID(e2Value["ntypes"][i]), value) -- recursively unpacks any tables, or just returns the value.
-				end
-
-				-- Handle 's' field
-				for key, value in pairs(e2Value["s"]) do
-					res[key] = castE2ValueToLuaValue(e2TypeNameToLuaTypeID(e2Value["stypes"][key]), value) -- recursively unpacks any tables, or just returns the value.
-				end
-
-				return res
-			end
-
-			return e2Value -- It's not? Just return it then.
-		end
-
-		if e2TypeID == TYPE_ANGLE or e2TypeID == TYPE_COLOR or e2TypeID == TYPE_VECTOR or e2TypeID == TYPE_MATRIX then return e2Value:ToTable() end
-
-		return nil
-	end,
-	[TYPE_ENTITY] = function(e2Value) -- TYPE_ENTITY from 'entity'
-		if TypeID(e2Value) == TYPE_ENTITY then return e2Value end
-
-		return nil
-	end,
-	[TYPE_VECTOR] = function(e2Value) -- TYPE_VECTOR from 'vector' or 'itable'
-		local e2TypeID = TypeID(e2Value)
-		if e2TypeID == TYPE_VECTOR then return e2Value end
-		if e2TypeID == TYPE_TABLE and isnumber(e2Value[1]) and isnumber(e2Value[2]) and isnumber(e2Value[3]) then return Vector(e2Value[1], e2Value[2], e2Value[3]) end
-
-		return nil
-	end,
-	[TYPE_ANGLE] = function(e2Value) -- TYPE_ANGLE from 'angle' or 'itable'
-		local e2TypeID = TypeID(e2Value)
-		if e2TypeID == TYPE_ANGLE then return e2Value
-		elseif e2TypeID == TYPE_TABLE and isnumber(e2Value[1]) and isnumber(e2Value[2]) and isnumber(e2Value[3]) then return Angle(e2Value[1], e2Value[2], e2Value[3]) end
-
-		return nil
-	end,
-	[TYPE_DAMAGEINFO] = function(e2Value) -- TYPE_DAMAGEINFO from 'damageinfo'
-		if TypeID(e2Value) == TYPE_DAMAGEINFO then return e2Value end
-	end,
-	[TYPE_EFFECTDATA] = function(e2Value) -- TYPE_EFFECTDATA from 'effectdata'
-		if TypeID(e2Value) == TYPE_EFFECTDATA then return e2Value end
-	end,
-	[TYPE_MATERIAL] = function(e2Value) -- TYPE_MATERIAL from 'string' or 'itable'
-		local e2TypeID = TypeID(e2Value)
-		if e2TypeID == TYPE_STRING then return Material(e2Value) end
-		if e2TypeID == TYPE_TABLE then -- Png parameters support
-			if #e2Value ~= 2 then return nil end
-
-			if TypeID(e2Value[1]) ~= TYPE_STRING then return nil end
-			if TypeID(e2Value[2]) ~= TYPE_STRING then return nil end
-
-			return Material(e2Value[1], e2Value[2])
-		end
-
-		return nil
-	end,
-	[TYPE_MATRIX] = function(e2Value) -- TYPE_MATRIX from 'matrix4'
-		if TypeID(e2Value) ~= TYPE_TABLE then return nil end
-
-		if #e2Value == 16 then
-			for i = 1, 16 do
-				if not isnumber(e2Value[i]) then return nil end
-			end
-
-			return Matrix({e2Value[1], e2Value[2], e2Value[3], e2Value[4]}, {e2Value[5], e2Value[6], e2Value[7], e2Value[8]}, {e2Value[9], e2Value[10], e2Value[11], e2Value[12]}, {e2Value[13], e2Value[14], e2Value[15], e2Value[16]})
-		end
-
-		return nil
-	end,
-	[TYPE_COLOR] = function(e2Value) -- TYPE_COLOR from 'vector' or 'vector4' or 'itable' or 'table'
-		local e2TypeID = TypeID(e2Value)
-		if e2TypeID == TYPE_VECTOR then
-			return Color(e2Value[1], e2Value[2], e2Value[3])
-		elseif e2TypeID == TYPE_TABLE then -- vector4 support + direct table support
-			if isnumber(e2Value[1]) and isnumber(e2Value[2]) and isnumber(e2Value[3]) and isnumber(e2Value[4]) then
-				return Color(e2Value[1], e2Value[2], e2Value[3], e2Value[4])
-			elseif e2Value.r and e2Value.g and e2Value.b then
-				if e2Value.a then return Color(e2Value.r, e2Value.g, e2Value.b, e2Value.a) end
-				return Color(e2Value.r, e2Value.g, e2Value.b)
-			end
-		end
-
-		return nil
-	end,
-}
-
 -- Separate from PropCore.CreateProp, to add some additional checks, and don't make PropCore.ValidAction check sent cases each time anything else is attempted to be spawned (microopt).
 function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 	if not wire_expression2_propcore_sents_enabled:GetBool() then return self:throw("Sent spawning is disabled by server! (wire_expression2_propcore_sents_enabled)", NULL) end
@@ -462,7 +258,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 
 			if value~=nil then -- Attempting to set provided value (need to cast from E2 to Lua type).
 				local res = castE2ValueToLuaValue(org[1], value)
-				if res==nil then return self:throw("Incorrect parameter '".. param .. "' type during spawning '" .. class .. "'. Expected '" .. luaTypeIDToString[org[1]] .. "'. Received '" .. string.lower(type(value)) .. "'", NULL) end
+				if res==nil then return self:throw("Incorrect parameter '".. param .. "' type during spawning '" .. class .. "'. Expected '" .. typeIDToString[org[1]] .. "'. Received '" .. string.lower(type(value)) .. "'", NULL) end
 
 				entityData[param] = res
 			elseif org[2]~=nil then -- Attempting to set default value if none provided.
@@ -708,7 +504,7 @@ e2function table sentGetData(string class)
 	for key, tbl in pairs( sent ) do
 		res.s[key] = E2Lib.newE2Table()
 		res.s[key].size = 2
-		res.s[key].n[1] = luaTypeIDToString[tbl[1]]
+		res.s[key].n[1] = typeIDToString[tbl[1]]
 		res.s[key].n[2] = TypeID(tbl[2])==TYPE_BOOL and (tbl[2]==true and "1" or "0") or tostring(tbl[2])
 		res.s[key].ntypes[1] = "s"
 		res.s[key].ntypes[2] = "s"
@@ -735,7 +531,7 @@ e2function table sentGetDataTypes(string class)
 	for key, tbl in pairs( sent ) do
 		res.s[key] = E2Lib.newE2Table()
 		res.s[key].size = 1
-		res.s[key].n[1] = luaTypeIDToString[tbl[1]]
+		res.s[key].n[1] = typeIDToString[tbl[1]]
 		res.s[key].ntypes[1] = "s"
 		res.stypes[key] = "t"
 

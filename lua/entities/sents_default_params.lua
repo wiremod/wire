@@ -1,5 +1,5 @@
 -- Structure to register components for propcore's sentSpawn function.
--- Most of the code is 'stolen' from Sevii77/starfall (https://github.com/Sevii77 / https://github.com/thegrb93/StarfallEx/blob/master/lua/starfall/libs_sv/prop_sent.lua).
+-- Most of the code is by Sevii77 from starfall (https://github.com/Sevii77 / https://github.com/thegrb93/StarfallEx/blob/master/lua/starfall/libs_sv/prop_sent.lua).
 -- Thanks for not making my life easier :)
 
 -- To register - just use register(string classname, table data) in this file, or E2Lib.SentSpawn.WhitelistAdd(classname, data) global function.
@@ -18,6 +18,8 @@
 -- You can later on organize it however you want either in _preFactory or _postFactory.
 -- (Although it's possible to implement, I see no need in that, and that would introduce additional unneeded complexity and computation time)
 
+-- WARNING: sentSpawn DO NOT MAKE ANY PROP PROTECTION CHECKS! Check if the entity is not a player/belongs to player yourself!
+
 -- WARNING: You have to validate table structures by yourself!
 -- (Either you expect numerical table, ranger data, or any other kind of table.)
 
@@ -27,17 +29,18 @@
 -- TIP: You can use "_preFactory" and "_postFactory" keys to register a callbacks, that will be called before, and after the entity was spawned.
 -- 		Parameters are: _preFactory(playerThatTriesToSpawn, entityTable) and _postFactory(playerThatSpawned, spawnedEntity, DataTable)
 
--- TIP: Most of basic casting is being handles by propcore's sentSpawn function, so you don't have to worry about that.
--- 		(E2 Vectors/Vectors4 to Color, E2 Strings to Material, etc.)
+-- TIP: Most of basic castings is being handled by propcore's sentSpawn function, so you don't have to worry about that.
+-- 		(E.g. E2 Vectors/Vectors4 to Color, E2 Strings to Material, etc.)
 
--- Supported types (in which can propcore's sentSpawn cast E2 types): 
+-- TIP: To return a strict-only error in _preFactory, or _postFactory, just return a string, which contains the error message.
+
+-- Supported types (to which can E2Lib.castE2ValueToLuaValue cast E2 values): 
 -- TYPE_STRING, TYPE_NUMBER, TYPE_BOOL, TYPE_ENTITY, TYPE_VECTOR,
 -- TYPE_COLOR, TYPE_TABLE, TYPE_USERDATA, TYPE_ANGLE, TYPE_DAMAGEINFO,
--- TYPE_MATERIAL, TYPE_EFFECTDATA, TYPE_MATRIX, TYPE_NIL( :) )
+-- TYPE_MATERIAL, TYPE_EFFECTDATA, TYPE_MATRIX
 
--- Even tho you can manually append ents here, you may as well just delete them from below ;/
-
-local SentSpawn = E2Lib.SENTSPAWN
+local GetOwner = WireLib.GetOwner
+local SentSpawn = E2Lib.SentSpawn
 if not SentSpawn then
 	SentSpawn = {}
 	E2Lib.SentSpawn = SentSpawn
@@ -686,11 +689,22 @@ register("gmod_wire_output", {
 
 register("gmod_wire_motor", {
 	_preFactory = function(ply, self)
-		if not IsValid(self.Ent1) then return "Ent1 is invalid entity!" end
-		if not IsValid(self.Ent2) then return "Ent2 is invalid entity!" end
+		if not IsValid(self.Ent1) then return "'Ent1' is invalid entity!" end
+		if not IsValid(self.Ent2) then return "'Ent2' is invalid entity!" end
+
+		if self.Ent1 == self.Ent2 then return "'Ent1' and 'Ent2' must be different entities!" end
+		
+		if self.Ent1:IsPlayer() then return "'Ent1' cannot be a player!" end
+		if self.Ent2:IsPlayer() then return "'Ent2' cannot be a player!" end
+		
+		if self.Ent1:IsNPC() then return "'Ent1' cannot be an NPC!" end
+		if self.Ent2:IsNPC() then return "'Ent2' cannot be an NPC!" end
+
+		if GetOwner(self.Ent1) ~= ply then return "You do not own 'Ent1'!" end
+		if GetOwner(self.Ent2) ~= ply then return "You do not own 'Ent2'!" end
 
 		self.model = self.Model
-		self.MyId = "starfall_createsent"
+		self.MyId = "e2_spawned_sent"
 	end,
 
 	_postFactory = function(ply, self, enttbl)
@@ -819,11 +833,22 @@ register("gmod_wire_igniter", {
 
 register("gmod_wire_hydraulic", {
 	_preFactory = function(ply, self)
-		if not IsValid(self.Ent1) then return "Ent1 is invalid entity!" end
-		if not IsValid(self.Ent2) then return "Ent2 is invalid entity!" end
+		if not IsValid(self.Ent1) then return "'Ent1' is invalid entity!" end
+		if not IsValid(self.Ent2) then return "'Ent2' is invalid entity!" end
+
+		if self.Ent1 == self.Ent2 then return "'Ent1' and 'Ent2' must be different entities!" end
+		
+		if self.Ent1:IsPlayer() then return "'Ent1' cannot be a player!" end
+		if self.Ent2:IsPlayer() then return "'Ent2' cannot be a player!" end
+		
+		if self.Ent1:IsNPC() then return "'Ent1' cannot be an NPC!" end
+		if self.Ent2:IsNPC() then return "'Ent2' cannot be an NPC!" end
+		
+		if GetOwner(self.Ent1) ~= ply then return "You do not own 'Ent1'!" end
+		if GetOwner(self.Ent2) ~= ply then return "You do not own 'Ent2'!" end
 
 		self.model = self.Model
-		self.MyId = "starfall_createsent"
+		self.MyId = "e2_spawned_sent"
 	end,
 
 	_postFactory = function(ply, self, enttbl)
@@ -1144,6 +1169,10 @@ register("gmod_wire_adv_emarker", {
 register("gmod_wire_wheel", {
 	_preFactory = function(ply, self)
 		if not IsValid(self.Base) then return "'Base' value is not valid entity!" end
+
+		if self.Base:IsPlayer() then return "'Base' cannot be a player!" end
+		if self.Base:IsNPC() then return "'Base' cannot be an NPC!" end
+		if GetOwner(self.Base) ~= ply then return "You do not own 'Base' entity!" end
 	end,
 
 	_postFactory = function(ply, self, enttbl)
