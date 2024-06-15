@@ -693,10 +693,10 @@ register("gmod_wire_motor", {
 		if not IsValid(self.Ent2) then return "'Ent2' is invalid entity!" end
 
 		if self.Ent1 == self.Ent2 then return "'Ent1' and 'Ent2' must be different entities!" end
-		
+
 		if self.Ent1:IsPlayer() then return "'Ent1' cannot be a player!" end
 		if self.Ent2:IsPlayer() then return "'Ent2' cannot be a player!" end
-		
+
 		if self.Ent1:IsNPC() then return "'Ent1' cannot be an NPC!" end
 		if self.Ent2:IsNPC() then return "'Ent2' cannot be an NPC!" end
 
@@ -837,13 +837,13 @@ register("gmod_wire_hydraulic", {
 		if not IsValid(self.Ent2) then return "'Ent2' is invalid entity!" end
 
 		if self.Ent1 == self.Ent2 then return "'Ent1' and 'Ent2' must be different entities!" end
-		
+
 		if self.Ent1:IsPlayer() then return "'Ent1' cannot be a player!" end
 		if self.Ent2:IsPlayer() then return "'Ent2' cannot be a player!" end
-		
+
 		if self.Ent1:IsNPC() then return "'Ent1' cannot be an NPC!" end
 		if self.Ent2:IsNPC() then return "'Ent2' cannot be an NPC!" end
-		
+
 		if GetOwner(self.Ent1) ~= ply then return "You do not own 'Ent1'!" end
 		if GetOwner(self.Ent2) ~= ply then return "You do not own 'Ent2'!" end
 
