@@ -1063,8 +1063,7 @@ register("gmod_wire_value", {
 		local castE2TypeToWireValueType = {
 			NORMAL = function(val, e2TypeID)
 					if e2TypeID == TYPE_NUMBER then return tostring(val) end
-
-					if TypeIDe2TypeID == TYPE_STRING then return val end
+					if e2TypeID == TYPE_STRING then return val end
 
 					return nil
 				end,
@@ -1073,9 +1072,7 @@ register("gmod_wire_value", {
 						local x,y,z = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" )
 						if x and y and z then return x..", "..y..", "..z end
 					end
-
 					if e2TypeID == TYPE_VECTOR then return val[1]..", "..val[2]..", "..val[3] end
-
 					if e2TypeID == TYPE_TABLE then
 						if #val >= 3 and isnumber(val[1]) and isnumber(val[2]) and isnumber(val[3]) then
 							return val[1]..", "..val[2]..", "..val[3]
@@ -1086,7 +1083,6 @@ register("gmod_wire_value", {
 				end,
 			VECTOR2 = function(val, e2TypeID)
 					if e2TypeID == TYPE_TABLE and #val >= 2 and isnumber(val[1]) and isnumber(val[2]) then return val[1]..", "..val[2] end
-
 					if e2TypeID == TYPE_STRING then
 						local x,y,z = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *$" )
 						if x and y and z then return x..", "..y..", "..z end
@@ -1098,7 +1094,6 @@ register("gmod_wire_value", {
 					if e2TypeID == TYPE_TABLE and #val >= 4 and isnumber(val[1]) and isnumber(val[2]) and isnumber(val[3]) and isnumber(val[4]) then
 						return val[1]..", "..val[2]..", "..val[3]..", "..val[4]
 					end
-
 					if e2TypeID == TYPE_STRING then
 						local x,y,z,a = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" )
 						if x and y and z and a then return x..", "..y..", "..z..", "..a end
@@ -1111,11 +1106,12 @@ register("gmod_wire_value", {
 				end,
 			ANGLE = function(val, e2TypeID)
 					if e2TypeID == TYPE_ANGLE then return val[1]..", "..val[2]..", "..val[3] end
-
 					if e2TypeID == TYPE_STRING then
 						local p,y,r = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" )
 						if p and y and r then return p..", "..y..", "..r end
 					end
+
+					return nil
 				end
 		}
 
@@ -1141,7 +1137,7 @@ register("gmod_wire_value", {
 				elseif e2TypeID == TYPE_STRING then val = {"STRING", castE2TypeToWireValueType["STRING"](val, e2TypeID)}
 				else return "Incorrect 'value' parameter #"..i.." type! Expected table (Ex. table(\"normal\", 0)). Got: "..type( steamid ) end
 			elseif not isnumber(val[1]) then -- Plain table
-				if TypeID(val[1])~=TYPE_STRING then return "Incorrect 'value' parameter #"..i.."[1] type! Expected string ('NORMAL/VECTOR/VECTOR2/VECTOR4/ANGLE/STRING'). Got: "..type( val ) end
+				if TypeID(val[1]) ~= TYPE_STRING then return "Incorrect 'value' parameter #"..i.."[1] type! Expected string ('NORMAL/VECTOR/VECTOR2/VECTOR4/ANGLE/STRING'). Got: "..type( val ) end
 
 				local wireValueType = string.upper(tostring(val[1]))
 				local CastFunc = castE2TypeToWireValueType[wireValueType]
@@ -1153,16 +1149,17 @@ register("gmod_wire_value", {
 				val = {wireValueType, CastFunc(val[2], TypeID(val[2]))}
 			elseif #val == 2 then -- vector2
 				local tempVal = castE2TypeToWireValueType["VECTOR2"](val[2], typeID(val[2]))
-				if tempVal ~= nil then
-					val = {"VECTOR2", tempVal}
-				else
+				if not tempVal then
 					return "Incorrect 'value' parameter #"..i.." value! Expected 'VECTOR2'. Got: "..tostring(val[2])
 				end
+
+				val = {"VECTOR2", tempVal}
 			elseif #val==4 then -- vector4
-				local tempVal = castE2TypeToWireValueType["VECTOR2"](val[2], typeID(val[2]))
-				if tempVal == nil then return "Incorrect 'value' parameter #"..i.." value! Expected 'VECTOR2'. Got: "..tostring(val[2]) end
+				local tempVal = castE2TypeToWireValueType["VECTOR4"](val[2], typeID(val[2]))
+				if not tempVal then return "Incorrect 'value' parameter #"..i.." value! Expected 'VECTOR2'. Got: "..tostring(val[2]) end
+				
 				val = {"VECTOR4", tempVal}
-			else -- table("normal", 0) support
+			else
 				return "Corrupted 'value' parameter data."
 			end
 
