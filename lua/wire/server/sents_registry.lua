@@ -1157,7 +1157,7 @@ register("gmod_wire_value", {
 			elseif #val==4 then -- vector4
 				local tempVal = castE2TypeToWireValueType["VECTOR4"](val[2], typeID(val[2]))
 				if not tempVal then return "Incorrect 'value' parameter #"..i.." value! Expected 'VECTOR2'. Got: "..tostring(val[2]) end
-				
+
 				val = {"VECTOR4", tempVal}
 			else
 				return "Corrupted 'value' parameter data."
