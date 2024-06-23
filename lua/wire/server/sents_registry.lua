@@ -1,9 +1,13 @@
--- Structure to register components for propcore's sentSpawn function.
--- Most of the code is by Sevii77 from starfall (https://github.com/Sevii77 / https://github.com/thegrb93/StarfallEx/blob/master/lua/starfall/libs_sv/prop_sent.lua).
+-- Structure to register components for propcore's sentSpawn function and for thirdparty addons.
+-- Most of entity code is by Sevii77 from starfall (https://github.com/Sevii77 / https://github.com/thegrb93/StarfallEx/blob/master/lua/starfall/libs_sv/prop_sent.lua).
 -- Thanks for not making my life easier :)
 
--- To register - just use register(string classname, table data) in this file, or E2Lib.SentSpawn.WhitelistAdd(classname, data) global function.
+-- To register - just use register(string classname, table data) in this file, or WireLib.SentSpawn.Register(classname, data) global function.
 -- Data is a table with keys as parameter names (case sensitive) and table, where [1] is lua type, and [2] is default value (can be nil, or not declared, if you don't want no default values).
+
+
+
+-- ----- Regarding E2's propcore's sentSpawn ----- --
 
 -- WARNING: All your data that you want to get from user HAVE TO BE AT THE TOP SCOPE of the data table (second parameter to register function).
 -- E.g. You CAN NOT have something like that:
@@ -18,13 +22,14 @@
 -- You can later on organize it however you want either in _preFactory or _postFactory.
 -- (Although it's possible to implement, I see no need in that, and that would introduce additional unneeded complexity and computation time)
 
--- WARNING: sentSpawn DO NOT MAKE ANY PROP PROTECTION CHECKS! Check if the entity is not a player/belongs to player yourself!
+-- WARNING: e2's propcore's sentspawn DO NOT MAKE ANY PROP PROTECTION CHECKS! Check if the entity is not a player/belongs to player yourself!
 
 -- WARNING: You have to validate table structures by yourself!
 -- (Either you expect numerical table, ranger data, or any other kind of table.)
 
--- TIP: If you want to blacklist an entity, you can either use E2Lib.SentSpawn.WhitelistRemove(classname), or just comment it out here, or
--- 		return false on Expression2_CanSpawnSent hook. (First argument - classname. Second argument - E2's runtime context.)
+-- TIP: If you want to stop an entity from being able to be spawned, either return false on Expression2_CanSpawnSent hook, or statically append a classname + true at
+-- 		lua/entities/gmod_wire_expression2/core/custom/prop.lua:201 (local blacklistedSents table).
+-- 		(Or comment out a register function call in this file, or use WireLib.Unregister, but that possibly can break thirdparty addon support. Use only if you know what you're doing.)
 
 -- TIP: You can use "_preFactory" and "_postFactory" keys to register a callbacks, that will be called before, and after the entity was spawned.
 -- 		Parameters are: _preFactory(playerThatTriesToSpawn, entityTable) and _postFactory(playerThatSpawned, spawnedEntity, DataTable)
@@ -33,43 +38,56 @@
 -- 		(E.g. E2 Vectors/Vectors4 to Color, E2 Strings to Material, etc.)
 
 -- TIP: To return a strict-only error in _preFactory, or _postFactory, just return a string, which contains the error message.
+-- 		(If you return a string to non-strict E2, obv it will also stop spawning the entity)
 
--- Supported types (to which can E2Lib.castE2ValueToLuaValue cast E2 values): 
+-- Supported types (to which can WireLib.castE2ValueToLuaValue cast E2 values): 
 -- TYPE_STRING, TYPE_NUMBER, TYPE_BOOL, TYPE_ENTITY, TYPE_VECTOR,
 -- TYPE_COLOR, TYPE_TABLE, TYPE_USERDATA, TYPE_ANGLE, TYPE_DAMAGEINFO,
 -- TYPE_MATERIAL, TYPE_EFFECTDATA, TYPE_MATRIX
 
+
+
+-- ----- Regarding thirdparty addon support ----- --
+
+-- Tbh you can use this as you want, but make sure not to override existing entries, to not break propSpawn (or do it, if you know what you're doing).
+
+-- WARNING: Obviously, you shouldn't add any sents by WireLib.SentSpawn.Register, if you don't want them to be spawned by propcore's sentSpawn function.
+--		(Or blacklist them beforehand)
+
 local GetOwner = WireLib.GetOwner
-local SentSpawn = E2Lib.SentSpawn
+local SentSpawn = WireLib.SentSpawn
 if not SentSpawn then
 	SentSpawn = {}
-	E2Lib.SentSpawn = SentSpawn
+	WireLib.SentSpawn = SentSpawn
 end
 
--- Registers new class to be able to be spawned using sentSpawn, and appends it to 'wire_spawnable_ents_whitelist' list.
--- Even tho it can be used outside of this file, I would recommend appending your entities here. (To keep everything tidy.)
--- This is made mainly to support thirdparty addons.
+-- Registers new class to be able to be spawned using sentSpawn, and appends it to 'wire_spawnable_ents_registry' list.
+-- Even tho it's global function, I would recommend appending your entities here in this file. (To keep everything tidy and organized).
+-- It've been made global to support thirdparty addons.
 ---@param class string
 ---@param data table
-function SentSpawn.WhitelistAdd(class, data)
+function SentSpawn.Register(class, data)
 	if TypeID(class) ~= TYPE_STRING then ErrorNoHaltWithStack("Class type must be TYPE_STRING!") return end
 	if TypeID(data) ~= TYPE_TABLE then ErrorNoHaltWithStack("Data type must be TYPE_TABLE") return end
 
-	list.Set("wire_spawnable_ents_whitelist", class, data)
+	list.Set("wire_spawnable_ents_registry", class, data)
 end
 
--- Deletes registered sent class and it's data from 'wire_spawnable_ents_whitelist' list. (So it can no longer be spawned with sentSpawn.)
--- Even tho it can be used outside of this file, I would recommend removing your entities here. (To keep everything tidy.)
--- This is made mainly to support thirdparty addons.
+-- Deletes registered sent class and it's data from 'wire_spawnable_ents_registry' list.
+-- Even tho it can be used as a way to blacklist an entity from being spawned by propcore's sentSpawn function, better use use Expression2_CanSpawnSent hook, or statically
+-- blacklist an entity in lua/entities/gmod_wire_expression2/core/custom/prop.lua:201 (local blacklistedSents table).
+-- It've been made global to support thirdparty addons.
 ---@param class string
-function SentSpawn.WhitelistRemove(class)
-	if not list.HasEntry("wire_spawnable_ents_whitelist", class) then ErrorNoHaltWithStack("Trying to remove entity that is not registered!") return end
+function SentSpawn.Unregister(class)
+	if not list.HasEntry("wire_spawnable_ents_registry", class) then ErrorNoHaltWithStack("Trying to remove entity that is not registered!") return end
 
-	local whitelist = list.GetForEdit("wire_spawnable_ents_whitelist")
+	local whitelist = list.GetForEdit("wire_spawnable_ents_registry")
 	table.remove(whitelist, class)
 end
 
-local register = SentSpawn.WhitelistAdd
+
+
+local register = SentSpawn.Register
 
 local SocketPlugPairs = {}
 for socket, tbl in pairs(list.Get("Wire_Socket_Models")) do

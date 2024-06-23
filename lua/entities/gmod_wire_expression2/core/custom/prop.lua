@@ -197,9 +197,15 @@ local function boneVerify(self, bone)
 	return ent, index
 end
 
+-- A way to statically blacklist a registered sent 
+local blacklistedSents = {
+	--gmod_wire_foo = true,
+}
+
 -- Separate from PropCore.CreateProp, to add some additional checks, and don't make PropCore.ValidAction check sent cases each time anything else is attempted to be spawned (microopt).
 function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 	if not wire_expression2_propcore_sents_enabled:GetBool() then return self:throw("Sent spawning is disabled by server! (wire_expression2_propcore_sents_enabled)", NULL) end
+	if blacklistedSents[class] then return self:throw("Sent class '" .. class .. "' is blacklisted!", NULL) end
 	if hook.Run( "Expression2_CanSpawnSent", class, self ) == false then return self:throw("A hook prevented this sent to be spawned!", nil) end
 	if not WithinPropcoreLimits() then return self:throw("Prop limit reached! (cooldown or max)", NULL) end
 	-- Same logic as in PropCore.ValidSpawn
@@ -216,20 +222,20 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 
 	local entity
 
-	local whitelist_sent, sent = list.Get("wire_spawnable_ents_whitelist")[class], list.Get("SpawnableEntities")[class]
+	local registered_sent, sent = list.Get("wire_spawnable_ents_registry")[class], list.Get("SpawnableEntities")[class]
 
 	local isWhitelist = wire_expression2_propcore_sents_whitelist:GetBool()
-	if isWhitelist and not whitelist_sent and sent then
+	if isWhitelist and not registered_sent and sent then
 		return self:throw("Spawning entity '" .. class .. "' is not allowed! wire_expression2_propcore_sents_whitelist is enabled", NULL)
-	elseif not whitelist_sent and not sent then
+	elseif not registered_sent and not sent then
 		return self:throw("Sent class '" .. class .. "' is not registered nor in entity tab!", NULL)
 	--elseif isWhitelist and sent then
-		--whitelist_sent = sent
+		--registered_sent = sent
 	end
 
 	data = castE2ValueToLuaValue(TYPE_TABLE, data)
-	if whitelist_sent then
-		local sentParams = whitelist_sent or {}
+	if registered_sent then
+		local sentParams = registered_sent or {}
 
 		if data.Model and isstring(data.Model) then
 			if #data.Model == 0 and sentParams.Model[2] and isstring(sentParams.Model[2]) then data.Model = sentParams.Model[2] end -- Let's try being forgiving (defaulting the model, if provided empty model path).
@@ -280,8 +286,8 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 		-- Better be safe, pcall this to ensure we continue running our code, in case these external functions cause an error...
 		local factoryErrMessage
 		local isOk, errMessage = pcall(function()
-			if whitelist_sent._preFactory then
-				factoryErrMessage = whitelist_sent._preFactory(self.player, enttbl)
+			if registered_sent._preFactory then
+				factoryErrMessage = registered_sent._preFactory(self.player, enttbl)
 				if factoryErrMessage then error() end
 			end
 
@@ -292,8 +298,8 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 				error("")
 			end
 
-			if whitelist_sent._postFactory then
-				factoryErrMessage = whitelist_sent._postFactory(self.player, entity, enttbl)
+			if registered_sent._postFactory then
+				factoryErrMessage = registered_sent._postFactory(self.player, entity, enttbl)
 				if factoryErrMessage then error() end
 			end
 
@@ -482,7 +488,7 @@ __e2setcost(25)
 e2function array sentGetWhitelisted()
 	local res = {}
 
-	local sents = list.Get("wire_spawnable_ents_whitelist")
+	local sents = list.Get("wire_spawnable_ents_registry")
 
 	for classname, tbl in pairs( sents ) do
 		res[#res+1] = classname
@@ -498,7 +504,7 @@ __e2setcost(30)
 e2function table sentGetData(string class)
 	local res = E2Lib.newE2Table()
 
-	local sent = list.Get("wire_spawnable_ents_whitelist")[class]
+	local sent = list.Get("wire_spawnable_ents_registry")[class]
 	if not sent then return res end
 
 	local size = 0
@@ -525,7 +531,7 @@ __e2setcost(20)
 e2function table sentGetDataTypes(string class)
 	local res = E2Lib.newE2Table()
 
-	local sent = list.Get("wire_spawnable_ents_whitelist")[class]
+	local sent = list.Get("wire_spawnable_ents_registry")[class]
 	if not sent then return res end
 
 	local size = 0
@@ -550,7 +556,7 @@ __e2setcost(20)
 e2function table sentGetDataDefaultValues(string class)
 	local res = E2Lib.newE2Table()
 
-	local sent = list.Get("wire_spawnable_ents_whitelist")[class]
+	local sent = list.Get("wire_spawnable_ents_registry")[class]
 	if not sent then return res end
 
 	local size = 0
@@ -580,8 +586,8 @@ end
 e2function number sentCanCreate(string class)
 	if not WithinPropcoreLimits() then return 0 end
 
-	local whitelist_sent, sent = list.GetForEdit("wire_spawnable_ents_whitelist")[class], list.Get("SpawnableEntities")[class]
-	if whitelist_sent then return 1
+	local registered_sent, sent = list.GetForEdit("wire_spawnable_ents_registry")[class], list.Get("SpawnableEntities")[class]
+	if registered_sent then return 1
 	elseif sent and not wire_expression2_propcore_sents_whitelist:GetBool() then return 1 end
 
 	return 0
