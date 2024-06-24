@@ -229,8 +229,6 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 		return self:throw("Spawning entity '" .. class .. "' is not allowed! wire_expression2_propcore_sents_whitelist is enabled", NULL)
 	elseif not registered_sent and not sent then
 		return self:throw("Sent class '" .. class .. "' is not registered nor in entity tab!", NULL)
-	--elseif isWhitelist and sent then
-		--registered_sent = sent
 	end
 
 	data = castE2ValueToLuaValue(TYPE_TABLE, data)

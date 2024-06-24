@@ -51,7 +51,7 @@
 
 -- Tbh you can use this as you want, but make sure not to override existing entries, to not break propSpawn (or do it, if you know what you're doing).
 
--- WARNING: Obviously, you shouldn't add any sents by WireLib.SentSpawn.Register, if you don't want them to be spawned by propcore's sentSpawn function.
+-- WARNING: Obviously, you shouldn't add any sents by WireLib.SentSpawn.Register, or directly to 'wire_spawnable_ents_registry' list, if you don't want them to be spawned by propcore's sentSpawn function.
 --		(Or blacklist them beforehand)
 
 local GetOwner = WireLib.GetOwner
@@ -81,8 +81,7 @@ end
 function SentSpawn.Unregister(class)
 	if not list.HasEntry("wire_spawnable_ents_registry", class) then ErrorNoHaltWithStack("Trying to remove entity that is not registered!") return end
 
-	local whitelist = list.GetForEdit("wire_spawnable_ents_registry")
-	table.remove(whitelist, class)
+	list.GetForEdit("wire_spawnable_ents_registry")[class] = nil
 end
 
 
