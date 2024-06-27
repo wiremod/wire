@@ -9,12 +9,16 @@ local sbox_E2_maxProps = CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
 local sbox_E2_maxPropsPerSecond = CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
 local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) -- 2: Players can affect their own props, 1: Only admins, 0: Disabled
 local sbox_E2_canMakeStatue = CreateConVar("sbox_E2_canMakeStatue", "1", FCVAR_ARCHIVE)
+local wire_expression2_propcore_sents_whitelist = CreateConVar("wire_expression2_propcore_sents_whitelist", 1, FCVAR_ARCHIVE, "If 1 - players can spawn sents only from the default sent list. If 0 - players can spawn sents from both the registered list and the entity tab.", 0, 1)
+local wire_expression2_propcore_sents_enabled = CreateConVar("wire_expression2_propcore_sents_enabled", 1, FCVAR_ARCHIVE, "If 1 - this allows sents to be spawned. (Doesn't affect the sentSpawn whitelist). If 0 - prevents sentSpawn from being used at all.", 0, 1)
 
 local isOwner = E2Lib.isOwner
 local GetBones = E2Lib.GetBones
 local isValidBone = E2Lib.isValidBone
 local setPos = WireLib.setPos
 local setAng = WireLib.setAng
+local typeIDToString = WireLib.typeIDToString
+local castE2ValueToLuaValue = E2Lib.castE2ValueToLuaValue
 
 local E2totalspawnedprops = 0
 local E2tempSpawnedProps = 0
@@ -110,7 +114,6 @@ function PropCore.CreateProp(self, model, pos, angles, freeze, vehicleType)
 	local cleanupCategory = "props"
 	local undoCategory = "e2_spawned_prop"
 	local undoName = "E2 Prop"
-
 	if vehicleType then
 		local entry = list.Get("Vehicles")[vehicleType]
 		if not entry or entry.Class ~= "prop_vehicle_prisoner_pod" then
@@ -194,8 +197,200 @@ local function boneVerify(self, bone)
 	return ent, index
 end
 
---------------------------------------------------------------------------------
+-- A way to statically blacklist a registered sent 
+local blacklistedSents = {
+	--gmod_wire_foo = true,
+}
 
+-- Separate from PropCore.CreateProp, to add some additional checks, and don't make PropCore.ValidAction check sent cases each time anything else is attempted to be spawned (microopt).
+function PropCore.CreateSent(self, class, pos, angles, freeze, data)
+	if not wire_expression2_propcore_sents_enabled:GetBool() then return self:throw("Sent spawning is disabled by server! (wire_expression2_propcore_sents_enabled)", NULL) end
+	if blacklistedSents[class] then return self:throw("Sent class '" .. class .. "' is blacklisted!", NULL) end
+	if hook.Run( "Expression2_CanSpawnSent", class, self ) == false then return self:throw("A hook prevented this sent to be spawned!", nil) end
+	if not WithinPropcoreLimits() then return self:throw("Prop limit reached! (cooldown or max)", NULL) end
+	-- Same logic as in PropCore.ValidSpawn
+	-- Decided not to put it in a function, as it's only used twice, and abstraction may lead to problems for future devs.
+	local limithit = playerMeta.LimitHit
+	playerMeta.LimitHit = function() end
+	if gamemode.Call( "PlayerSpawnSENT", self.player, class ) == false then
+		playerMeta.LimitHit = limithit
+		return NULL
+	end
+	playerMeta.LimitHit = limithit
+
+	pos = WireLib.clampPos( pos )
+
+	local entity
+
+	local registered_sent, sent = list.Get("wire_spawnable_ents_registry")[class], list.Get("SpawnableEntities")[class]
+
+	local isWhitelist = wire_expression2_propcore_sents_whitelist:GetBool()
+	if isWhitelist and not registered_sent and sent then
+		return self:throw("Spawning entity '" .. class .. "' is not allowed! wire_expression2_propcore_sents_whitelist is enabled", NULL)
+	elseif not registered_sent and not sent then
+		return self:throw("Sent class '" .. class .. "' is not registered nor in entity tab!", NULL)
+	end
+
+	data = castE2ValueToLuaValue(TYPE_TABLE, data)
+	if registered_sent then
+		local sentParams = registered_sent or {}
+
+		if data.Model and isstring(data.Model) then
+			if #data.Model == 0 and sentParams.Model[2] and isstring(sentParams.Model[2]) then data.Model = sentParams.Model[2] end -- Let's try being forgiving (defaulting the model, if provided empty model path).
+
+			if not util.IsValidProp( data.Model ) then return self:throw("'" .. data.Model .. "' is not a valid model!", NULL) end
+			if not WireLib.CanModel( self.player, data.Model ) then return self:throw("You are not allowed to spawn model '" .. data.Model .. "'", NULL) end
+		end
+
+		-- Not sure if we should check for invalid parameters, as it's not really a problem if the user provides more parameters than needed (they will be ignored), but the check
+		-- against pre/post factories injections is still required. If you want to validate that all parameters are valid, uncomment the following code instead.
+		-- ( Although I'm not sure that compiler would allow injection(I couldn't make it), some smart lads could still find a workaround, so it's better to be safe than sorry :) )
+		--for k, v in pairs(data) do
+			--if not sentParams[k] then return self:throw("Invalid parameter name '" .. tostring(k).."'", NULL) end
+		--end
+
+		-- And comment that instead to save cpu time.
+		if data._preFactory then return self:throw("Invalid parameter name '_preFactory'", NULL) end
+		if data._postFactory then return self:throw("Invalid parameter name '_postFactory'", NULL) end
+
+		local entityData = {}
+
+		-- Apply data and cast types.
+		for param, org in pairs( sentParams ) do
+			if TypeID(org)==TYPE_FUNCTION then continue end -- Skipping pre/post factories.
+
+			local value = data[param]
+
+			if value~=nil then -- Attempting to set provided value (need to cast from E2 to Lua type).
+				local res = castE2ValueToLuaValue(org[1], value)
+				if res==nil then return self:throw("Incorrect parameter '".. param .. "' type during spawning '" .. class .. "'. Expected '" .. typeIDToString[org[1]] .. "'. Received '" .. string.lower(type(value)) .. "'", NULL) end
+
+				entityData[param] = res
+			elseif org[2]~=nil then -- Attempting to set default value if none provided.
+				entityData[param] = org[2]
+			else
+				self:throw("Missing parameter '" .. param .. "' and no default value is registered.", NULL)
+			end
+		end
+
+		-- Constructing an entity table
+		local enttbl = entityData
+		enttbl.Name = ""
+		enttbl.Data = entityData
+		enttbl.Class = class
+		enttbl.Pos = pos
+		enttbl.Angle = angles
+
+		-- Better be safe, pcall this to ensure we continue running our code, in case these external functions cause an error...
+		local factoryErrMessage
+		local isOk, errMessage = pcall(function()
+			if registered_sent._preFactory then
+				factoryErrMessage = registered_sent._preFactory(self.player, enttbl)
+				if factoryErrMessage then error() end
+			end
+
+			entity = duplicator.CreateEntityFromTable(self.player, enttbl)
+
+			if not isentity(entity) then
+				factoryErrMessage = "(Either corrupted data, or internal error)"
+				error("")
+			end
+
+			if registered_sent._postFactory then
+				factoryErrMessage = registered_sent._postFactory(self.player, entity, enttbl)
+				if factoryErrMessage then error() end
+			end
+
+			if entity.PreEntityCopy then
+				entity:PreEntityCopy() -- To build dupe modifiers
+			end
+			if entity.PostEntityCopy then
+				entity:PostEntityCopy()
+			end
+			if entity.PostEntityPaste then
+				entity:PostEntityPaste(self.player, entity, {[entity:EntIndex()] = entity})
+			end
+		end)
+
+		if not isOk then
+			if IsValid(entity) then entity:Remove() end
+			if factoryErrMessage then
+				return self:throw("Failed to spawn '" .. class .. "'. " .. tostring(factoryErrMessage) .. " (Is your data valid?)", NULL)
+			end
+
+			return self:throw("Failed to spawn '" .. class .. "'. (Internal error). Traceback: " .. tostring(errMessage), NULL) -- Not sure, if we should provide tracebacks to scare people.
+		end
+	elseif sent then -- Spawning an entity from entity tab.
+		if sent.AdminOnly and not self.player:IsAdmin() then return self:throw("You do not have permission to spawn '" .. class .. "' (admin-only)!", NULL) end
+
+		local mockTrace = {
+			FractionLeftSolid = 0,
+			HitNonWorld       = true,
+			Fraction          = 0,
+			Entity            = NULL,
+			HitPos            = Vector(pos),
+			HitNormal         = Vector(0, 0, 0),
+			HitBox            = 0,
+			Normal            = Vector(1, 0, 0),
+			Hit               = true,
+			HitGroup          = 0,
+			MatType           = 0,
+			StartPos          = Vector(0, 0, 0),
+			PhysicsBone       = 0,
+			WorldToLocal      = Vector(0, 0, 0),
+		}
+		if sent.t and sent.t.SpawnFunction then
+			entity = sent.t.SpawnFunction( sent.t, ply, mockTrace, class )
+		else
+			entity = ents.Create( class )
+			if IsValid(entity) then
+				entity:SetPos(pos)
+				entity:SetAngles(angles)
+				entity:Spawn()
+				entity:Activate()
+			end
+		end
+
+		gamemode.Call("PlayerSpawnedSENT", self.player, entity)
+	end
+
+	if not IsValid( entity ) then return NULL end
+
+	entity:Activate()
+
+	local phys = entity:GetPhysicsObject()
+	if IsValid( phys ) then
+		if angles ~= nil then setAng( phys, angles ) end
+		phys:Wake()
+		if freeze > 0 then phys:EnableMotion( false ) end
+	end
+
+	self.player:AddCleanup( "e2_spawned_sents", entity )
+
+	if self.data.propSpawnUndo then
+		undo.Create( "e2_spawned_sent" )
+			undo.AddEntity( entity )
+			undo.SetPlayer( self.player )
+		undo.Finish( "E2 Sent" .. " (" .. class .. ")" )
+	end
+
+	entity:CallOnRemove( "wire_expression2_propcore_remove",
+		function( entity )
+			self.data.spawnedProps[ entity ] = nil
+			E2totalspawnedprops = E2totalspawnedprops - 1
+		end
+	)
+
+	self.data.spawnedProps[ entity ] = self.data.propSpawnUndo
+	E2totalspawnedprops = E2totalspawnedprops + 1
+	E2tempSpawnedProps = E2tempSpawnedProps + 1
+
+	return entity
+end
+
+local CreateSent = PropCore.CreateSent
+
+--------------------------------------------------------------------------------
 __e2setcost(40)
 e2function entity propSpawn(string model, number frozen)
 	if not ValidAction(self, nil, "spawn") then return NULL end
@@ -239,6 +434,177 @@ e2function entity propSpawn(entity template, vector pos, angle rot, number froze
 	if not ValidAction(self, nil, "spawn") then return NULL end
 	if not IsValid(template) then return NULL end
 	return CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen)
+end
+
+--------------------------------------------------------------------------------
+
+__e2setcost(150)
+e2function entity sentSpawn(string class)
+	if not ValidAction(self, nil, "spawn") then return NULL end
+	return CreateSent(self, class, self.entity:GetPos()+self.entity:GetUp()*25, self.entity:GetAngles(), 1, {})
+end
+
+e2function entity sentSpawn(string class, vector pos)
+	if not ValidAction(self, nil, "spawn") then return NULL end
+	return CreateSent(self, class, Vector(pos[1],pos[2],pos[3]), self.entity:GetAngles(), 1, {})
+end
+
+e2function entity sentSpawn(string class, table data)
+	if not ValidAction(self, nil, "spawn") then return NULL end
+	return CreateSent(self, class, self.entity:GetPos()+self.entity:GetUp()*25, self.entity:GetAngles(), 1, data)
+end
+
+e2function entity sentSpawn(string class, vector pos, table data)
+	if not ValidAction(self, nil, "spawn") then return NULL end
+	return CreateSent(self, class, Vector(pos[1],pos[2],pos[3]), self.entity:GetAngles(), 1, data)
+end
+
+e2function entity sentSpawn(string class, vector pos, angle rot)
+	if not ValidAction(self, nil, "spawn") then return NULL end
+	return CreateSent(self, class, Vector(pos[1],pos[2],pos[3]), Angle(rot[1],rot[2],rot[3]), 1, {})
+end
+
+e2function entity sentSpawn(string class, vector pos, angle rot, table data)
+	if not ValidAction(self, nil, "spawn") then return NULL end
+	return CreateSent(self, class, Vector(pos[1],pos[2],pos[3]), Angle(rot[1],rot[2],rot[3]), 1, data)
+end
+
+e2function entity sentSpawn(string class, vector pos, angle rot, number frozen)
+	if not ValidAction(self, nil, "spawn") then return NULL end
+	return CreateSent(self, class, Vector(pos[1],pos[2],pos[3]), Angle(rot[1],rot[2],rot[3]), frozen, {})
+end
+
+e2function entity sentSpawn(string class, vector pos, angle rot, number frozen, table data)
+	if not ValidAction(self, nil, "spawn") then return NULL end
+	return CreateSent(self, class, Vector(pos[1],pos[2],pos[3]), Angle(rot[1],rot[2],rot[3]), frozen, data)
+end
+
+--------------------------------------------------------------------------------
+
+__e2setcost(25)
+[nodiscard]
+e2function array sentGetWhitelisted()
+	local res = {}
+
+	local sents = list.Get("wire_spawnable_ents_registry")
+
+	for classname, tbl in pairs( sents ) do
+		res[#res+1] = classname
+	end
+
+	return res
+end
+
+--------------------------------------------------------------------------------
+
+__e2setcost(30)
+[nodiscard]
+e2function table sentGetData(string class)
+	local res = E2Lib.newE2Table()
+
+	local sent = list.Get("wire_spawnable_ents_registry")[class]
+	if not sent then return res end
+
+	local size = 0
+	for key, tbl in pairs( sent ) do
+		res.s[key] = E2Lib.newE2Table()
+		res.s[key].size = 2
+		res.s[key].n[1] = typeIDToString[tbl[1]]
+		res.s[key].n[2] = TypeID(tbl[2])==TYPE_BOOL and (tbl[2]==true and "1" or "0") or tostring(tbl[2])
+		res.s[key].ntypes[1] = "s"
+		res.s[key].ntypes[2] = "s"
+		res.stypes[key] = "t"
+
+		size = size + 1
+	end
+	res.size = size
+
+	return res
+end
+
+--------------------------------------------------------------------------------
+
+__e2setcost(20)
+[nodiscard]
+e2function table sentGetDataTypes(string class)
+	local res = E2Lib.newE2Table()
+
+	local sent = list.Get("wire_spawnable_ents_registry")[class]
+	if not sent then return res end
+
+	local size = 0
+	for key, tbl in pairs( sent ) do
+		res.s[key] = E2Lib.newE2Table()
+		res.s[key].size = 1
+		res.s[key].n[1] = typeIDToString[tbl[1]]
+		res.s[key].ntypes[1] = "s"
+		res.stypes[key] = "t"
+
+		size = size + 1
+	end
+	res.size = size
+
+	return res
+end
+
+--------------------------------------------------------------------------------
+
+__e2setcost(20)
+[nodiscard]
+e2function table sentGetDataDefaultValues(string class)
+	local res = E2Lib.newE2Table()
+
+	local sent = list.Get("wire_spawnable_ents_registry")[class]
+	if not sent then return res end
+
+	local size = 0
+	for key, tbl in pairs( sent ) do
+		res.s[key] = E2Lib.newE2Table()
+		res.s[key].size = 1
+		res.s[key].n[2] = TypeID(tbl[2])==TYPE_BOOL and (tbl[2]==true and "1" or "0") or tostring(tbl[2])
+		res.s[key].ntypes[2] = "s"
+		res.stypes[key] = "t"
+
+		size = size + 1
+	end
+	res.size = size
+
+	return res
+end
+
+--------------------------------------------------------------------------------
+
+__e2setcost(5)
+[nodiscard]
+e2function number sentCanCreate()
+	return WithinPropcoreLimits() and 1 or 0
+end
+
+[nodiscard]
+e2function number sentCanCreate(string class)
+	if not WithinPropcoreLimits() then return 0 end
+
+	local registered_sent, sent = list.GetForEdit("wire_spawnable_ents_registry")[class], list.Get("SpawnableEntities")[class]
+	if registered_sent then return 1
+	elseif sent and not wire_expression2_propcore_sents_whitelist:GetBool() then return 1 end
+
+	return 0
+end
+
+--------------------------------------------------------------------------------
+
+__e2setcost(1)
+[nodiscard]
+e2function number sentIsWhitelist()
+	return wire_expression2_propcore_sents_whitelist:GetBool() and 1 or 0
+end
+
+--------------------------------------------------------------------------------
+
+__e2setcost(1)
+[nodiscard]
+e2function number sentIsEnabled()
+	return wire_expression2_propcore_sents_enabled:GetBool() and 1 or 0
 end
 
 --------------------------------------------------------------------------------

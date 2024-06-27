@@ -44,6 +44,162 @@ local function checkargtype(argn, value, argtype)
 end
 
 -- -------------------------- Helper functions -----------------------------
+
+-- Only data types that can be directly casted, or already are in the same category. All other
+-- E2 types are either need to be transformed, or can't be casted to anything except for table.
+local e2TypeNameToLuaTypeIDTable = {
+	["none"] = TYPE_NONE,
+	["void"] = TYPE_NONE,
+	[""] = TYPE_NONE,
+	["number"] = TYPE_NUMBER,
+	["n"] = TYPE_NUMBER,
+	["string"] = TYPE_STRING,
+	["s"] = TYPE_STRING,
+	["entity"] = TYPE_ENTITY,
+	["e"] = TYPE_ENTITY,
+	["vector"] = TYPE_VECTOR,
+	["v"] = TYPE_VECTOR,
+	["angle"] = TYPE_ANGLE,
+	["a"] = TYPE_ANGLE,
+	["effect"] = TYPE_EFFECTDATA,
+	["xef"] = TYPE_EFFECTDATA,
+}
+
+--- Helper function to get the Lua type ID from an E2 type name. (E2Lib.CastE2ValueToLuaValue is not limited to this!)
+local function e2TypeNameToLuaTypeID(TypeName)
+	return e2TypeNameToLuaTypeIDTable[string.lower(TypeName)] or TYPE_TABLE
+end
+
+-- Lua type -> E2 to lua casting function. No way to implement default behaviour, so use castE2ValueToLuaValue function instead of table.
+-- (It's forward declaration(to make recursive table unpacking possible). Real table is beneath castE2ValueToLuaValue)
+local castE2ValueToLuaValueTable = {}
+
+function E2Lib.castE2ValueToLuaValue(targetTypeID, e2Value)
+	if castE2ValueToLuaValueTable[targetTypeID] then
+		return castE2ValueToLuaValueTable[targetTypeID](e2Value)
+	end
+
+	return nil
+end
+
+-- Well, most of it is a nobrainer, but still helpful when you're just iterating and casting everything.
+castE2ValueToLuaValueTable = {
+	[TYPE_BOOL] = function(e2Value) -- from 'number'
+		if TypeID(e2Value)==TYPE_NUMBER then
+			return e2Value > 0
+		end
+
+		return nil
+	end,
+	[TYPE_NUMBER] = function(e2Value) -- from 'number' or 'string'
+		local e2TypeID = TypeID(e2Value)
+		if e2TypeID == TYPE_NUMBER then return e2Value end
+		if e2TypeID == TYPE_STRING then return tonumber(e2Value) end
+
+		return nil
+	end,
+	[TYPE_STRING] = function(e2Value) -- from 'string' or 'number'
+		local e2TypeID = TypeID(e2Value)
+		if e2TypeID == TYPE_STRING then return e2Value end
+		if e2TypeID == TYPE_NUMBER then return tostring(e2Value) end
+
+		return nil
+	end,
+	[TYPE_TABLE] = function(e2Value) -- from 'table, array, ranger, quaternions, and a most other types that aren't present in other casts'
+		local e2TypeID = TypeID(e2Value)
+		if e2TypeID == TYPE_TABLE then
+			if e2Value.ntypes or e2Value.stypes then -- Is it an E2 table? Unpack it correctly then.
+				local res = {}
+
+				-- Handle 'n' field
+				for i, value in pairs(e2Value["n"]) do
+					res[i] = E2Lib.castE2ValueToLuaValue(e2TypeNameToLuaTypeID(e2Value["ntypes"][i]), value) -- recursively unpacks any tables, or just returns the value.
+				end
+
+				-- Handle 's' field
+				for key, value in pairs(e2Value["s"]) do
+					res[key] = E2Lib.castE2ValueToLuaValue(e2TypeNameToLuaTypeID(e2Value["stypes"][key]), value) -- recursively unpacks any tables, or just returns the value.
+				end
+
+				return res
+			end
+
+			return e2Value -- It's not? Just return it then.
+		end
+
+		if e2TypeID == TYPE_ANGLE or e2TypeID == TYPE_COLOR or e2TypeID == TYPE_VECTOR or e2TypeID == TYPE_MATRIX then return e2Value:ToTable() end
+
+		return nil
+	end,
+	[TYPE_ENTITY] = function(e2Value) -- from 'entity'
+		if TypeID(e2Value) == TYPE_ENTITY then return e2Value end
+
+		return nil
+	end,
+	[TYPE_VECTOR] = function(e2Value) -- from 'vector' or 'itable'
+		local e2TypeID = TypeID(e2Value)
+		if e2TypeID == TYPE_VECTOR then return e2Value end
+		if e2TypeID == TYPE_TABLE and isnumber(e2Value[1]) and isnumber(e2Value[2]) and isnumber(e2Value[3]) then return Vector(e2Value[1], e2Value[2], e2Value[3]) end
+
+		return nil
+	end,
+	[TYPE_ANGLE] = function(e2Value) -- from 'angle' or 'itable'
+		local e2TypeID = TypeID(e2Value)
+		if e2TypeID == TYPE_ANGLE then return e2Value
+		elseif e2TypeID == TYPE_TABLE and isnumber(e2Value[1]) and isnumber(e2Value[2]) and isnumber(e2Value[3]) then return Angle(e2Value[1], e2Value[2], e2Value[3]) end
+
+		return nil
+	end,
+	[TYPE_DAMAGEINFO] = function(e2Value) -- from 'damageinfo'
+		if TypeID(e2Value) == TYPE_DAMAGEINFO then return e2Value end
+	end,
+	[TYPE_EFFECTDATA] = function(e2Value) -- from 'effectdata'
+		if TypeID(e2Value) == TYPE_EFFECTDATA then return e2Value end
+	end,
+	[TYPE_MATERIAL] = function(e2Value) -- from 'string' or 'itable'
+		local e2TypeID = TypeID(e2Value)
+		if e2TypeID == TYPE_STRING then return Material(e2Value) end
+		if e2TypeID == TYPE_TABLE then -- Png parameters support
+			if #e2Value ~= 2 then return nil end
+
+			if TypeID(e2Value[1]) ~= TYPE_STRING then return nil end
+			if TypeID(e2Value[2]) ~= TYPE_STRING then return nil end
+
+			return Material(e2Value[1], e2Value[2])
+		end
+
+		return nil
+	end,
+	[TYPE_MATRIX] = function(e2Value) -- from 'matrix4'
+		if TypeID(e2Value) ~= TYPE_TABLE then return nil end
+
+		if #e2Value == 16 then
+			for i = 1, 16 do
+				if not isnumber(e2Value[i]) then return nil end
+			end
+
+			return Matrix({e2Value[1], e2Value[2], e2Value[3], e2Value[4]}, {e2Value[5], e2Value[6], e2Value[7], e2Value[8]}, {e2Value[9], e2Value[10], e2Value[11], e2Value[12]}, {e2Value[13], e2Value[14], e2Value[15], e2Value[16]})
+		end
+
+		return nil
+	end,
+	[TYPE_COLOR] = function(e2Value) -- +from 'vector' or 'vector4' or 'itable' or 'table'
+		local e2TypeID = TypeID(e2Value)
+		if e2TypeID == TYPE_VECTOR then
+			return Color(e2Value[1], e2Value[2], e2Value[3])
+		elseif e2TypeID == TYPE_TABLE then -- vector4 support + direct table support
+			if isnumber(e2Value[1]) and isnumber(e2Value[2]) and isnumber(e2Value[3]) and isnumber(e2Value[4]) then
+				return Color(e2Value[1], e2Value[2], e2Value[3], e2Value[4])
+			elseif e2Value.r and e2Value.g and e2Value.b then
+				if e2Value.a then return Color(e2Value.r, e2Value.g, e2Value.b, e2Value.a) end
+				return Color(e2Value.r, e2Value.g, e2Value.b)
+			end
+		end
+
+		return nil
+	end,
+}
+
 local IsValid = IsValid
 
 -- Backwards compatibility
