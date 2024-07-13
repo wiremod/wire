@@ -75,7 +75,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	local entities      = data.rangerentities
 	local whitelist     = data.rangerwhitelistmode
 
-	addDefaultEntityToFilter(self, traceEntity)
+	addDefaultEntityToFilter(self, traceEntity or chip)
 
 	local filter = data.rangerfilter
 
