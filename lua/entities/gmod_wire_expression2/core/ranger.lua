@@ -8,7 +8,7 @@ registerType("ranger", "xrd", nil,
 	nil,
 	nil,
 	function(v)
-		return !istable(v) or not v.HitPos
+		return not istable(v) or not v.HitPos
 	end
 )
 
@@ -48,9 +48,9 @@ end
 local function addDefaultEntityToFilter(self, ent)
 	local data         = self.data
 	local rangerfilter = data.rangerfilter
-	if (#rangerfilter < 1) and (not data.rangerwhitelistmode) and (not data.rangerfilter_lookup[basefilterent]) then
-		rangerfilter[#rangerfilter+1] = basefilterent
-		rangerfilter_lookup[basefilterent] = true
+	if (#rangerfilter < 1) and (not data.rangerwhitelistmode) and (not data.rangerfilter_lookup[ent]) then
+		rangerfilter[#rangerfilter+1] = ent
+		data.rangerfilter_lookup[ent] = true
 	end
 end
 
@@ -82,7 +82,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	if not data.rangerpersist then ResetRanger(self) end
 
 	-- begin building tracedata structure
-	local tracedata = { 
+	local tracedata = {
 		filter    = filter,
 		whitelist = whitelist
 	}
