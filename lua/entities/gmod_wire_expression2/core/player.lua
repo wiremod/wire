@@ -124,7 +124,7 @@ end
 
 e2function number entity:armor()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if not this:IsPlayer() and not this:IsNPC() then return self:throw("Expected a Player or NPC but got an entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an entity!", 0) end
 	return this:Armor()
 end
 
