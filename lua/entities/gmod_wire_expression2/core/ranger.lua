@@ -8,7 +8,7 @@ registerType("ranger", "xrd", nil,
 	nil,
 	nil,
 	function(v)
-		return !istable(v) or not v.HitPos
+		return not istable(v) or not v.HitPos
 	end
 )
 
@@ -34,8 +34,8 @@ local function ResetRanger(self)
 	data.rangerwater = false
 	data.rangerentities = true
 	data.rangerwhitelistmode = false
-	data.rangerfilter = { self.entity }
-	data.rangerfilter_lookup = table.MakeNonIterable{ [self.entity] = true }
+	data.rangerfilter = { }
+	data.rangerfilter_lookup = table.MakeNonIterable({ })
 end
 
 local function IsErrorVector(pos)
@@ -43,6 +43,15 @@ local function IsErrorVector(pos)
 	if pos.y ~= pos.y or pos.y == math.huge or pos.y == -math.huge then return true end
 	if pos.z ~= pos.z or pos.z == math.huge or pos.z == -math.huge then return true end
 	return false
+end
+
+local function addDefaultEntityToFilter(self, ent)
+	local data         = self.data
+	local rangerfilter = data.rangerfilter
+	if (#rangerfilter < 1) and (not data.rangerwhitelistmode) and (not data.rangerfilter_lookup[ent]) then
+		rangerfilter[#rangerfilter+1] = ent
+		data.rangerfilter_lookup[ent] = true
+	end
 end
 
 local function entitiesAndWaterTrace( tracedata, tracefunc )
@@ -56,47 +65,28 @@ local function entitiesAndWaterTrace( tracedata, tracefunc )
 	return trace1.fraction < trace2.fraction and trace1 or trace2
 end
 
-local function getFilter(invert,inputfilter,tracedat,self) -- activate if whitelistmode is on, used later
-
-	if invert then
-		tracedat.filter = {self.entity}
-		local foundEnts = ents.FindAlongRay( tracedat.start , tracedat.endpos, tracedat.mins, tracedat.maxs )
-		-- set real filter to everything we MIGHT hit for now
-
-		for _,found in ipairs(foundEnts) do
-			for _,ent in ipairs(inputfilter) do
-				if ent==found then
-					goto nextEnt
-				end
-			end
-			tracedat.filter[#tracedat.filter + 1] = found
-			::nextEnt::
-		end
-
-		self.prf = self.prf + #tracedat.filter*2 -- add 2 ops for every potential entity hit, tells how expensive the find was
-	else
-		tracedat.filter = inputfilter
-	end
-
-end
-
-local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, traceEntity )
+local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, traceEntity)
 	local data = self.data
 	local chip = self.entity
 
-	local whitelistmode = data.rangerwhitelistmode
-	local defaultzero = data.rangerdefaultzero
-	local ignoreworld = data.rangerignoreworld
-	local water = data.rangerwater
-	local entities = data.rangerentities
+	local defaultzero   = data.rangerdefaultzero
+	local ignoreworld   = data.rangerignoreworld
+	local water         = data.rangerwater
+	local entities      = data.rangerentities
+	local whitelist     = data.rangerwhitelistmode
+
+	addDefaultEntityToFilter(self, traceEntity or chip)
 
 	local filter = data.rangerfilter
-	local finalfilter = nil
 
 	if not data.rangerpersist then ResetRanger(self) end
 
 	-- begin building tracedata structure
-	local tracedata = {}
+	local tracedata = {
+		filter    = filter,
+		whitelist = whitelist
+	}
+
 	if entities then
 		if ignoreworld then
 			if water then
@@ -155,18 +145,10 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 
 	if IsErrorVector(tracedata.start) or IsErrorVector(tracedata.endpos) then return end
 
-	-- EDIT: give rangerFilter() different behaviors with rangerwhitelistmode()
-
-
-
 	---------------------------------------------------------------------------------------
 	local trace
 	if IsValid(traceEntity) then
-
-		getFilter(whitelistmode,filter,tracedata,self) -- condensed all the rangerWhitelist stuff down into one function, should be more "readable" now
-
 		if tracedata.entitiesandwater then
-
 			trace = entitiesAndWaterTrace( tracedata, function()
 				return util.TraceEntity( tracedata, traceEntity )
 			end )
@@ -196,12 +178,6 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		-- If max is less than min it'll cause a hang
 		OrderVectors(tracedata.mins, tracedata.maxs)
 
-		getFilter(whitelistmode,filter,tracedata,self)
-
-		if whitelistmode then
-			tracedata.filter[#tracedata.filter] = chip
-		end
-
 		if tracedata.entitiesandwater then
 			trace = entitiesAndWaterTrace( tracedata, function()
 				return util.TraceHull( tracedata )
@@ -210,9 +186,6 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			trace = util.TraceHull( tracedata )
 		end
 	else
-
-	getFilter(whitelistmode,filter,tracedata,self)
-
 		if tracedata.entitiesandwater then
 			trace = entitiesAndWaterTrace( tracedata, function()
 				return util.TraceLine( tracedata )
@@ -361,11 +334,8 @@ end
 
 -- Same as ranger(distance) but for another entity
 e2function ranger ranger(entity ent, distance)
-	if not IsValid( ent ) then return nil end
-	if not self.data.rangerfilter_lookup[ent] then
-		self.data.rangerfilter[#self.data.rangerfilter+1] = ent
-		self.data.rangerfilter_lookup[ent] = true
-	end
+	if not IsValid(ent) or ent:IsWorld() then return nil end
+	addDefaultEntityToFilter(self, ent)
 	return ranger(self,3,distance,ent:GetPos(),ent:GetUp())
 end
 
