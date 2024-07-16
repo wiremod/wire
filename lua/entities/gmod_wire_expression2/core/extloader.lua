@@ -171,6 +171,7 @@ e2_include("easings.lua")
 e2_include("damage.lua")
 e2_include("remote.lua")
 e2_include("egpobjects.lua")
+e2_include("collision.lua")
 
 -- Load serverside files here, they need additional parsing
 do
