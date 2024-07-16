@@ -158,7 +158,7 @@ e2function number isTrackingCollision( entity ent )
 end
 
 e2function void stopTrackingCollision( entity ent )
-	if IsValid(ent) then 
+	if IsValid(ent) then
 	local entIndex = ent:EntIndex()
 		if self.E2TrackedCollisions[entIndex] then
 			local callbackID = self.E2TrackedCollisions[entIndex]
