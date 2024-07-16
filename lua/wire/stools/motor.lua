@@ -188,9 +188,7 @@ function TOOL:Reload( trace )
 	if self:GetStage() > 0 then
 		self:ClearObjects()
 		self:SetStage(0)
-		if CLIENT then
-			self:ReleaseGhostEntity()
-		end
+		self:ReleaseGhostEntity()
 	else
 		if not IsValid( trace.Entity ) or trace.Entity:IsPlayer() then return false end
 		if CLIENT then return true end
