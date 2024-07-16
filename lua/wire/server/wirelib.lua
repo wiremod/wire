@@ -79,7 +79,7 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	local now = CurTime()
 	if input.TriggerTime ~= now then
 		input.TriggerTime = now
-		input.TriggerLimit = 4
+		input.TriggerLimit = 8
 	elseif input.TriggerLimit <= 0 then
 		return
 	else
@@ -647,7 +647,7 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 		local timeOfFrame = CurTime()
 		if timeOfFrame ~= output.TriggerTime then
 			-- Reset the TriggerLimit every frame
-			output.TriggerLimit = 4
+			output.TriggerLimit = 8
 			output.TriggerTime = timeOfFrame
 		elseif output.TriggerLimit <= 0 then
 			return
