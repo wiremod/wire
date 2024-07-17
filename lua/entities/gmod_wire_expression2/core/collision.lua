@@ -60,7 +60,17 @@ e2function vector collision:ouroldvelocity()
 	return this.OurOldVelocity
 end
 
+e2function vector collision:entityoldvelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return this.OurOldVelocity
+end
+
 e2function vector collision:theiroldvelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return this.TheirOldVelocity
+end
+
+e2function vector collision:hitentityoldvelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
 	return this.TheirOldVelocity
 end
@@ -80,7 +90,17 @@ e2function vector collision:ournewvelocity()
 	return this.OurNewVelocity
 end
 
+e2function vector collision:entitynewvelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return this.OurNewVelocity
+end
+
 e2function vector collision:theirnewvelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return this.TheirNewVelocity
+end
+
+e2function vector collision:hitentitynewvelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
 	return this.TheirNewVelocity
 end
@@ -90,7 +110,17 @@ e2function vector collision:ouroldangularvelocity()
 	return this.OurOldAngularVelocity
 end
 
+e2function vector collision:entityoldangularvelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return this.OurOldAngularVelocity
+end
+
 e2function vector collision:theiroldangularvelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return this.TheirOldAngularVelocity
+end
+
+e2function vector collision:hitentityoldangularvelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
 	return this.TheirOldAngularVelocity
 end
@@ -107,7 +137,17 @@ e2function number collision:oursurfaceprops()
 	return this.OurSurfaceProps
 end
 
+e2function number collision:entitysurfaceprops()
+	if not this then return self:throw("Invalid collision data!",0) end
+	return this.OurSurfaceProps
+end
+
 e2function number collision:theirsurfaceprops()
+	if not this then return self:throw("Invalid collision data!",0) end
+	return this.TheirSurfaceProps
+end
+
+e2function number collision:hitentitysurfaceprops()
 	if not this then return self:throw("Invalid collision data!",0) end
 	return this.TheirSurfaceProps
 end
