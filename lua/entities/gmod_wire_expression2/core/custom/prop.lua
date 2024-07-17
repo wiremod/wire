@@ -1304,7 +1304,12 @@ e2function table collision:toTable()
 	for k,v in pairs(this) do
 		local type = typefilter[string.lower(type(v))]
 		if type then
-			E2CD.s[k] = v
+			if type == "v" then
+				-- These need to be given copies, otherwise E2s modifications will propagate.
+				E2CD.s[k] = Vector(v)
+			else
+				E2CD.s[k] = v
+			end
 			E2CD.stypes[k] = type
 		end
 	end
@@ -1314,13 +1319,13 @@ end
 -- Getter functions below, sorted by return type
 
 local function GetHitPos(self,collision)
-	if not this then return self:throw("Invalid collision data!") end
-	return collision.HitPos
+	if not collision then return self:throw("Invalid collision data!") end
+	return Vector(collision.HitPos)
 end
 
 -- * Vectors
 
-e2function vector collision:hitpos()
+e2function vector collision:hitPos()
 	return GetHitPos(self,this)
 end
 
@@ -1332,74 +1337,74 @@ e2function vector collision:position()
 	return GetHitPos(self,this)
 end
 
-e2function vector collision:ouroldvelocity()
+e2function vector collision:ourOldVelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.OurOldVelocity
+	return Vector(this.OurOldVelocity)
 end
 
-e2function vector collision:entityoldvelocity()
+e2function vector collision:entityOldVelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.OurOldVelocity
+	return Vector(this.OurOldVelocity)
 end
 
-e2function vector collision:theiroldvelocity()
+e2function vector collision:theirOldVelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.TheirOldVelocity
+	return Vector(this.TheirOldVelocity)
 end
 
-e2function vector collision:hitentityoldvelocity()
+e2function vector collision:hitEntityOldVelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.TheirOldVelocity
+	return Vector(this.TheirOldVelocity)
 end
 
-e2function vector collision:hitnormal()
+e2function vector collision:hitNormal()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.HitNormal
+	return Vector(this.HitNormal)
 end
 
-e2function vector collision:hitspeed()
+e2function vector collision:hitSpeed()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.HitSpeed
+	return Vector(this.HitSpeed)
 end
 
-e2function vector collision:ournewvelocity()
+e2function vector collision:ourNewVelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.OurNewVelocity
+	return Vector(this.OurNewVelocity)
 end
 
-e2function vector collision:entitynewvelocity()
+e2function vector collision:entityNewVelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.OurNewVelocity
+	return Vector(this.OurNewVelocity)
 end
 
-e2function vector collision:theirnewvelocity()
+e2function vector collision:theirNewVelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.TheirNewVelocity
+	return Vector(this.TheirNewVelocity)
 end
 
-e2function vector collision:hitentitynewvelocity()
+e2function vector collision:hitEntityNewVelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.TheirNewVelocity
+	return Vector(this.TheirNewVelocity)
 end
 
-e2function vector collision:ouroldangularvelocity()
+e2function vector collision:ourOldAngularVelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.OurOldAngularVelocity
+	return Vector(this.OurOldAngularVelocity)
 end
 
-e2function vector collision:entityoldangularvelocity()
+e2function vector collision:entityOldAngularVelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.OurOldAngularVelocity
+	return Vector(this.OurOldAngularVelocity)
 end
 
-e2function vector collision:theiroldangularvelocity()
+e2function vector collision:theirOldAngularVelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.TheirOldAngularVelocity
+	return Vector(this.TheirOldAngularVelocity)
 end
 
-e2function vector collision:hitentityoldangularvelocity()
+e2function vector collision:hitEntityOldAngularVelocity()
 	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
-	return this.TheirOldAngularVelocity
+	return Vector(this.TheirOldAngularVelocity)
 end
 
 -- * Numbers
@@ -1409,34 +1414,34 @@ e2function number collision:speed()
 	return this.Speed
 end
 
-e2function number collision:oursurfaceprops()
+e2function number collision:ourSurfaceProps()
 	if not this then return self:throw("Invalid collision data!",0) end
 	return this.OurSurfaceProps
 end
 
-e2function number collision:entitysurfaceprops()
+e2function number collision:entitySurfaceProps()
 	if not this then return self:throw("Invalid collision data!",0) end
 	return this.OurSurfaceProps
 end
 
-e2function number collision:theirsurfaceprops()
+e2function number collision:theirSurfaceProps()
 	if not this then return self:throw("Invalid collision data!",0) end
 	return this.TheirSurfaceProps
 end
 
-e2function number collision:hitentitysurfaceprops()
+e2function number collision:hitEntitySurfaceProps()
 	if not this then return self:throw("Invalid collision data!",0) end
 	return this.TheirSurfaceProps
 end
 
-e2function number collision:deltatime()
+e2function number collision:deltaTime()
 	if not this then return self:throw("Invalid collision data!",0) end
 	return this.DeltaTime
 end
 
 -- * Entities
 
-e2function entity collision:hitentity()
+e2function entity collision:hitEntity()
 	if not this then return self:throw("Invalid collision data!",Entity(0)) end
 	return this.HitEntity
 end
