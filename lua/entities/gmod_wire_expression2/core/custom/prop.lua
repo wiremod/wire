@@ -1299,6 +1299,8 @@ local typefilter = {
 
 local newE2Table = E2Lib.newE2Table
 
+__e2setcost(20)
+
 e2function table collision:toTable()
 	local E2CD = newE2Table()
 	for k,v in pairs(this) do
@@ -1317,6 +1319,8 @@ e2function table collision:toTable()
 end
 
 -- Getter functions below, sorted by return type
+
+__e2setcost(5)
 
 local function GetHitPos(self,collision)
 	if not collision then return self:throw("Invalid collision data!") end
@@ -1408,6 +1412,7 @@ e2function vector collision:hitEntityOldAngularVelocity()
 end
 
 -- * Numbers
+__e2setcost(2)
 
 e2function number collision:speed()
 	if not this then return self:throw("Invalid collision data!",0) end
