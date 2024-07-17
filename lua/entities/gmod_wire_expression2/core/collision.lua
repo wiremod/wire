@@ -56,71 +56,71 @@ e2function vector collision:position()
 end
 
 e2function vector collision:ouroldvelocity()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
 	return this.OurOldVelocity
 end
 
 e2function vector collision:theiroldvelocity()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
 	return this.TheirOldVelocity
 end
 
 e2function vector collision:hitnormal()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
 	return this.HitNormal
 end
 
 e2function vector collision:hitspeed()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
 	return this.HitSpeed
 end
 
 e2function vector collision:ournewvelocity()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
 	return this.OurNewVelocity
 end
 
 e2function vector collision:theirnewvelocity()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
 	return this.TheirNewVelocity
 end
 
 e2function vector collision:ouroldangularvelocity()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
 	return this.OurOldAngularVelocity
 end
 
 e2function vector collision:theiroldangularvelocity()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
 	return this.TheirOldAngularVelocity
 end
 
 -- * Numbers
 
 e2function number collision:speed()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",0) end
 	return this.Speed
 end
 
 e2function number collision:oursurfaceprops()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",0) end
 	return this.OurSurfaceProps
 end
 
 e2function number collision:theirsurfaceprops()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",0) end
 	return this.TheirSurfaceProps
 end
 
 e2function number collision:deltatime()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",0) end
 	return this.DeltaTime
 end
 
 -- * Entities
 
 e2function entity collision:hitentity()
-	if not this then return self:throw("Invalid collision data!") end
+	if not this then return self:throw("Invalid collision data!",Entity(0)) end
 	return this.HitEntity
 end
 
@@ -131,7 +131,7 @@ e2function number trackCollision( entity ent )
 	if IsValid(ent) then
 		local entIndex = ent:EntIndex()
 		if self.E2TrackedCollisions[entIndex] then
-			return 0 -- Already being tracked.
+			return self:throw("Attempting to track collisions for an already tracked entity",0) -- Already being tracked.
 		end
 		local chip = self.entity
 		local callbackID = ent:AddCallback("PhysicsCollide",
@@ -144,13 +144,16 @@ e2function number trackCollision( entity ent )
 		end)
 		return 1
 	end
-	return 0
+	return self:throw("Attempting to track collisions for an invalid entity",0)
 end
 
 __e2setcost( 5 )
 
 e2function number isTrackingCollision( entity ent )
-	if IsValid(ent) and self.E2TrackedCollisions[ent:EntIndex()] then
+	if not IsValid(ent) then
+		return self:throw("Attempting to check tracking of collisions for an invalid entity",0)
+	end
+	if self.E2TrackedCollisions[ent:EntIndex()] then
 		return 1
 	else
 		return 0
@@ -159,13 +162,17 @@ end
 
 e2function void stopTrackingCollision( entity ent )
 	if IsValid(ent) then
-	local entIndex = ent:EntIndex()
+		local entIndex = ent:EntIndex()
 		if self.E2TrackedCollisions[entIndex] then
 			local callbackID = self.E2TrackedCollisions[entIndex]
 			ent:RemoveCallOnRemove("E2Chip_CCB" .. callbackID)
 			ent:RemoveCallback("PhysicsCollide", callbackID)
 			self.E2TrackedCollisions[entIndex] = nil
+		else
+			return self:throw("Attempting to stop tracking collisions for an untracked entity",nil)
 		end
+	else
+		return self:throw("Attempting to stop tracking collisions for an invalid entity",nil)
 	end
 end
 
