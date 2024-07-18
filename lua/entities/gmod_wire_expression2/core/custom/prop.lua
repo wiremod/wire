@@ -1460,10 +1460,10 @@ e2function number trackCollision( entity ent )
 		if self.data.E2TrackedCollisions[entIndex] then
 			return self:throw("Attempting to track collisions for an already tracked entity",0) -- Already being tracked.
 		end
-		local chip = self.entity
+		local ctx = self
 		local callbackID = ent:AddCallback("PhysicsCollide",
 		function( us, cd )
-			chip:ExecuteEvent("entityCollision",{us,cd.HitEntity,cd})
+			table.insert(ctx.data.E2QueuedCollisions,{us=us,xcd=cd})
 		end)
 		self.data.E2TrackedCollisions[entIndex] = callbackID -- This ID is needed to remove the physcollide callback
 		ent:CallOnRemove("E2Chip_CCB" .. callbackID, function()
@@ -1503,8 +1503,11 @@ e2function void stopTrackingCollision( entity ent )
 	end
 end
 
+local registered_chips = {}
+
 registerCallback("construct", function( self )
 	self.data.E2TrackedCollisions = {}
+	self.data.E2QueuedCollisions = {}
 end)
 
 registerCallback("destruct", function( self )
@@ -1517,8 +1520,37 @@ registerCallback("destruct", function( self )
 	end
 end)
 
+
+
 E2Lib.registerEvent("entityCollision", {
 	{"Entity", "e"},
 	{"HitEntity", "e"},
 	{"CollisionData", "xcd"},
-})
+},
+	function(ctx) -- Event constructor
+		registered_chips[ctx.entity] = ctx
+	end,
+	function(ctx) -- Event destructor
+		registered_chips[ctx.entity] = nil
+	end
+)
+
+local function E2CollisionEventHandler()
+	for chip,ctx in pairs(registered_chips) do
+		if IsValid(chip) then
+			if not chip.error then
+				for _,i in ipairs(ctx.data.E2QueuedCollisions) do
+					chip:ExecuteEvent("entityCollision",{i.us,i.xcd.HitEntity,i.xcd})
+					if chip.error then break end
+				end
+			end
+			-- Wipe queued collisions regardless of error
+			ctx.data.E2QueuedCollisions = {}
+		end
+	end
+end
+
+hook.Add("Think", "Expression2CollisionClock", E2CollisionEventHandler)
+timer.Create("Expression2CollisionClock", 5, 0, function()
+	hook.Add("Think", "Expression2CollisionClock", E2CollisionEventHandler)
+end)
