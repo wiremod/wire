@@ -1454,6 +1454,25 @@ end
 
 __e2setcost( 20 )
 
+local processNextTick = false
+local registered_chips = {}
+
+local function E2CollisionEventHandler()
+	for chip,ctx in pairs(registered_chips) do
+		if IsValid(chip) then
+			if not chip.error then
+				for _,i in ipairs(ctx.data.E2QueuedCollisions) do
+					chip:ExecuteEvent("entityCollision",{i.us,i.xcd.HitEntity,i.xcd})
+					if chip.error then break end
+				end
+			end
+			-- Wipe queued collisions regardless of error
+			ctx.data.E2QueuedCollisions = {}
+		end
+	end
+	processNextTick = false
+end
+
 e2function number trackCollision( entity ent )
 	if IsValid(ent) then
 		local entIndex = ent:EntIndex()
@@ -1464,6 +1483,10 @@ e2function number trackCollision( entity ent )
 		local callbackID = ent:AddCallback("PhysicsCollide",
 		function( us, cd )
 			table.insert(ctx.data.E2QueuedCollisions,{us=us,xcd=cd})
+			if not processNextTick then
+				processNextTick = true
+				timer.Simple(0,E2CollisionEventHandler) -- A timer set to 0 runs next GM:Tick() hook
+			end
 		end)
 		self.data.E2TrackedCollisions[entIndex] = callbackID -- This ID is needed to remove the physcollide callback
 		ent:CallOnRemove("E2Chip_CCB" .. callbackID, function()
@@ -1503,8 +1526,6 @@ e2function void stopTrackingCollision( entity ent )
 	end
 end
 
-local registered_chips = {}
-
 registerCallback("construct", function( self )
 	self.data.E2TrackedCollisions = {}
 	self.data.E2QueuedCollisions = {}
@@ -1534,23 +1555,3 @@ E2Lib.registerEvent("entityCollision", {
 		registered_chips[ctx.entity] = nil
 	end
 )
-
-local function E2CollisionEventHandler()
-	for chip,ctx in pairs(registered_chips) do
-		if IsValid(chip) then
-			if not chip.error then
-				for _,i in ipairs(ctx.data.E2QueuedCollisions) do
-					chip:ExecuteEvent("entityCollision",{i.us,i.xcd.HitEntity,i.xcd})
-					if chip.error then break end
-				end
-			end
-			-- Wipe queued collisions regardless of error
-			ctx.data.E2QueuedCollisions = {}
-		end
-	end
-end
-
-hook.Add("Think", "Expression2CollisionClock", E2CollisionEventHandler)
-timer.Create("Expression2CollisionClock", 5, 0, function()
-	hook.Add("Think", "Expression2CollisionClock", E2CollisionEventHandler)
-end)
