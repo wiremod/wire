@@ -140,7 +140,12 @@ local memoryModels = {
 	["flat"]    = {      0, 0      },
 }
 
-function ENT:SetMemoryModel(model)
+function ENT:SetMemoryModel(model,cram,crom)
+	if model == "custom" then
+		self.VM.RAMSize = math.floor(math.Clamp((tonumber(cram) or 512),0,1024))*128 -- 65536
+		self.VM.ROMSize = math.floor(math.Clamp((tonumber(crom) or 512),0,1024))*128 -- 65536
+		return
+	end
 	self.VM.RAMSize = memoryModels[model][1] or 65536
 	self.VM.ROMSize = memoryModels[model][2] or 65536
 end

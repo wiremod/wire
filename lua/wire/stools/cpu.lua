@@ -19,7 +19,9 @@ TOOL.ClientConVar = {
   model             = "models/cheeze/wires/cpu.mdl",
   filename          = "",
   memorymodel       = "64krom",
-  extensions        = ""
+  extensions        = "",
+  customram         = 0,
+  customrom         = 0
 }
 
 if CLIENT then
@@ -46,7 +48,7 @@ if SERVER then
     if player:KeyDown(IN_SPEED) then
       if (trace.Entity:IsValid()) and
          (trace.Entity:GetClass() == "gmod_wire_cpu") then
-        trace.Entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
+        trace.Entity:SetMemoryModel(self:GetClientInfo("memorymodel"),self:GetClientInfo("customram"),self:GetClientInfo("customrom"))
         trace.Entity:FlashData({})
         net.Start("CPULib.InvalidateDebugger") net.WriteUInt(0,2) net.Send(player)
       end
@@ -76,7 +78,7 @@ if SERVER then
   end
   function TOOL:MakeEnt(ply, model, Ang, trace)
     local ent = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model})
-    ent:SetMemoryModel(self:GetClientInfo("memorymodel"))
+    ent:SetMemoryModel(self:GetClientInfo("memorymodel"),self:GetClientInfo("customram"),self:GetClientInfo("customrom"))
     ent:SetExtensionLoadOrder(self:GetClientInfo("extensions"))
     self:LeftClick_Update(trace)
     return ent
@@ -181,7 +183,7 @@ if CLIENT then
 
 
     ----------------------------------------------------------------------------
-    panel:AddControl("ComboBox", {
+    local memPanel = panel:AddControl("ComboBox", {
       Label = "Memory model",
       Options = {
         ["128 bytes ROM only"]  = {wire_cpu_memorymodel = "128rom"},
@@ -194,10 +196,47 @@ if CLIENT then
         ["8KB RAM only"]        = {wire_cpu_memorymodel = "8k"},
         ["128KB RAM/ROM"]       = {wire_cpu_memorymodel = "128krom"},
         ["No internal RAM/ROM"] = {wire_cpu_memorymodel = "flat"},
+        ["Custom RAM/ROM"]      = {wire_cpu_memorymodel = "custom"},
       }
     })
     panel:AddControl("Label", {Text = "Sets the processor memory model (determines interaction with the external devices)"})
+    local customMemPanel = {
+      panel:AddControl("Label", {Text = "Custom memory size for RAM and ROM is in pages(128 bytes)"}),
+      panel:AddControl("Slider", {Label = "RAM size", Command = "wire_cpu_customram", Min = 0, Max = 1024}),
+      panel:AddControl("Slider", {Label = "ROM size", Command = "wire_cpu_customrom", Min = 0, Max = 1024}),
+    }
+    local function formatPageSizeString(pages)
+      if pages >= 8 then
+        return string.format("KB %g",pages/8) -- padding with spaces won't help because the font isn't monospaced
+      else
+        return string.format(" B  %g",pages*128)
+      end
+    end
+    customMemPanel[2].OnValueChanged = function(self,pages)
+      self:SetText("RAM size "..formatPageSizeString(pages))
+    end
+    customMemPanel[3].OnValueChanged = function(self,pages)
+      self:SetText("ROM size "..formatPageSizeString(pages))
+    end
 
+    local memoryModel = GetConVar("wire_cpu_memorymodel")
+    function memPanel:OnSelect(index, value, data)
+      if data.wire_cpu_memorymodel == "custom" then
+        for _,i in ipairs(customMemPanel) do
+          i:Show()
+        end
+      else
+        for _,i in ipairs(customMemPanel) do
+          i:Hide()
+        end
+      end
+      -- Overriding this turns off the automatic convar write, so we have to do it ourselves.
+        memoryModel:SetString(data.wire_cpu_memorymodel)
+      -- Rebuild the layout to prevent an unsightly gap
+        panel:InvalidateLayout()
+        panel:InvalidateChildren(true)
+    end
+    memPanel:OnSelect(0,0,{wire_cpu_memorymodel = memoryModel:GetString()}) -- Simulate one on-select to correct the show/hide status
     local enabledExtensionOrder = {}
     local enabledExtensionLookup = {}
     local extensionConvar = GetConVar("wire_cpu_extensions")
