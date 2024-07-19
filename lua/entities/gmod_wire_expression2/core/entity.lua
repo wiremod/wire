@@ -1,3 +1,5 @@
+local wire_expression2_entity_trails = CreateConVar("wire_expression2_entity_trails", 50, FCVAR_ARCHIVE, "Amount of trails one E2 can make. (0 - to disable trails)", 0)
+
 registerType("entity", "e", nil,
 	nil,
 	function(self,output) return output or NULL end,
@@ -19,6 +21,7 @@ local canProperty = WireLib.CanProperty
 local canEditVariable = WireLib.CanEditVariable
 
 local sun = ents.FindByClass("env_sun")[1] -- used for sunDirection()
+local trailedEnts = {};
 
 hook.Add("InitPostEntity","sunent",function()
 	sun = ents.FindByClass("env_sun")[1]
@@ -821,17 +824,6 @@ E2Lib.registerEvent("playerEnteredVehicle", {
 
 --[[******************************************************************************]]
 
-local SetTrails = duplicator.EntityModifiers.trail
-
---- Removes the trail from <this>.
-e2function void entity:removeTrails()
-	if not checkOwner(self) then return end
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
-
-	SetTrails(self.player, this, nil)
-end
-
 local function composedata(startSize, endSize, length, material, color, alpha)
 	if string.find(material, '"', 1, true) then return nil end
 
@@ -847,28 +839,68 @@ local function composedata(startSize, endSize, length, material, color, alpha)
 	}
 end
 
-__e2setcost(500)
+local function validateCanTrail(self, ent)
+	if not checkOwner(self) then return end
+	if not IsValid(ent) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, ent) then return self:throw("You do not own this entity!", nil) end
+end
+
+local function setTrail(self, ent, Data)
+	if wire_expression2_entity_trails:GetInt() < table.Count(trailedEnts)+1 and not trailedEnts[ent] then return self:throw("Trails limit reached!", nil) end
+
+	duplicator.EntityModifiers.trail(self.player, ent, Data)
+	if Data==nil then
+		trailedEnts[ent] = nil
+	else
+		trailedEnts[ent] = true
+		ent:CallOnRemove("wire_expression2_trail_remove", function(ent)
+			trailedEnts[ent] = nil
+		end)
+	end
+end
+
+__e2setcost(25)
+
+--- Removes the trail from <this>.
+e2function void entity:removeTrails()
+	validateCanTrail(self, this)
+	setTrail(self, this, nil)
+end
+
+__e2setcost(75)
 
 --- StartSize, EndSize, Length, Material, Color (RGB), Alpha
 --- Adds a trail to <this> with the specified attributes.
 e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha)
-	if not checkOwner(self) then return end
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	validateCanTrail(self, this)
 
 	local Data = composedata(startSize, endSize, length, material, color, alpha)
 	if not Data then return end
 
-	SetTrails(self.player, this, Data)
+	setTrail(self, this, Data)
 end
 
+e2function void entity:setTrails(startSize, endSize, length, string material, vector4 color)
+	validateCanTrail(self, this)
 
---- StartSize, EndSize, Length, Material, Color (RGB), Alpha, AttachmentID, Additive
---- Adds a trail to <this> with the specified attributes.
+	local Data = composedata(startSize, endSize, length, material, { color[1], color[2], color[3] }, color[4])
+	if not Data then return end
+
+	setTrail(self, this, Data)
+end
+
+e2function void entity:setTrails(startSize, endSize, length, string material)
+	validateCanTrail(self, this)
+
+	local Data = composedata(startSize, endSize, length, material, { 255, 255, 255 }, 255)
+	if not Data then return end
+
+	setTrail(self, this, Data)
+end
+
+-- + Attachments
 e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha, attachmentID, additive)
-	if not checkOwner(self) then return end
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	validateCanTrail(self, this)
 
 	local Data = composedata(startSize, endSize, length, material, color, alpha)
 	if not Data then return end
@@ -876,7 +908,24 @@ e2function void entity:setTrails(startSize, endSize, length, string material, ve
 	Data.AttachmentID = attachmentID
 	Data.Additive = additive ~= 0
 
-	SetTrails(self.player, this, Data)
+	setTrail(self, this, Data)
+end
+
+__e2setcost(2)
+
+[nodiscard]
+e2function number trailsLeft()
+	return wire_expression2_entity_trails:GetInt() - table.Count(trailedEnts)
+end
+
+[nodiscard]
+e2function number trailsCount()
+	return table.Count(trailedEnts)
+end
+
+[nodiscard]
+e2function number trailsMax()
+	return wire_expression2_entity_trails:GetInt()
 end
 
 --[[******************************************************************************]]
