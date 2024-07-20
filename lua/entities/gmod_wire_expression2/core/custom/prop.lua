@@ -1590,7 +1590,6 @@ E2Lib.registerEvent("entityCollision", {
 	{"CollisionData", "xcd"},
 },
 	function(ctx) -- Event constructor
-		print("event constructor")
 		registered_chips[ctx.entity] = ctx
 	end
 )
