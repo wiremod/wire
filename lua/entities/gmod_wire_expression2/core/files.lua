@@ -145,19 +145,19 @@ end
 
 __e2setcost(5)
 
-[deprecated]
+[deprecated = "Use the file events instead"]
 e2function number fileLoaded()
 	local pfile = uploads[self.player].last
 
 	return not pfile.uploading and pfile.uploaded and 1 or 0
 end
 
-[deprecated]
+[deprecated = "Use the file events instead"]
 e2function number fileLoading()
 	return uploads[self.player].last.uploading and 1 or 0
 end
 
-[deprecated]
+[deprecated = "Use the file events instead"]
 e2function number fileStatus()
 	return run_on.file.status or FILE_UNKNOWN
 end
@@ -173,7 +173,7 @@ end
 
 __e2setcost( 10 )
 
-[deprecated, nodiscard]
+[deprecated = "Use the file events instead", nodiscard]
 e2function string fileRead()
 	local pfile = uploads[self.player].last
 
@@ -227,19 +227,19 @@ end
 
 __e2setcost(5)
 
-[deprecated, nodiscard]
+[deprecated = "Use the file events instead", nodiscard]
 e2function number fileLoadedList()
 	local plist = lists[self.player].last
 
 	return not plist.uploading and plist.uploaded and 1 or 0
 end
 
-[deprecated, nodiscard]
+[deprecated = "Use the file events instead", nodiscard]
 e2function number fileLoadingList()
 	return lists[self.player].last.uploading and 1 or 0
 end
 
-[deprecated, nodiscard]
+[deprecated = "Use the file events instead", nodiscard]
 e2function array fileReadList()
 	local plist = lists[self.player]
 
@@ -250,17 +250,17 @@ end
 
 __e2setcost( 5 )
 
-[deprecated]
+[deprecated = "Use the file events instead"]
 e2function void runOnFile( active )
 	run_on.file.ents[self.entity] = (active ~= 0)
 end
 
-[deprecated]
+[deprecated = "Use the file events instead"]
 e2function number fileClk()
 	return self.data.runOnFile and 1 or 0
 end
 
-[deprecated]
+[deprecated = "Use the file events instead"]
 e2function number fileClk( string filename )
 	return (self.data.runOnFile and run_on.file.name == filename) and 1 or 0
 end
@@ -269,17 +269,17 @@ end
 
 __e2setcost( 5 )
 
-[deprecated]
+[deprecated = "Use the file events instead"]
 e2function void runOnList(active)
 	run_on.list.ents[self.entity] = active ~= 0
 end
 
-[deprecated]
+[deprecated = "Use the file events instead"]
 e2function number fileListClk()
 	return self.data.runOnFileList and 1 or 0
 end
 
-[deprecated]
+[deprecated = "Use the file events instead"]
 e2function number fileListClk( string dir )
 	return (self.data.runOnFileList and run_on.list.dir == dir) and 1 or 0
 end
