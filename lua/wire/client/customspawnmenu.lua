@@ -3,7 +3,7 @@ local PANEL = {}
 
 AccessorFunc( PANEL, "m_TabID", 			"TabID" )
 
-local expand_all = CreateConVar( "wire_tool_menu_expand_all", 0, {FCVAR_ARCHIVE} )
+CreateConVar( "wire_tool_menu_expand_all", 0, {FCVAR_ARCHIVE} )
 local separate_wire_extras = CreateConVar( "wire_tool_menu_separate_wire_extras", 1, {FCVAR_ARCHIVE} )
 local hide_duplicates = CreateConVar( "wire_tool_menu_hide_duplicates", 0, {FCVAR_ARCHIVE} )
 local custom_for_all_tabs = CreateConVar( "wire_tool_menu_custom_menu_for_all_tabs", 0, {FCVAR_ARCHIVE} )

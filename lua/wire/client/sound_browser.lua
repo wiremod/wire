@@ -816,19 +816,19 @@ local function CreateSoundBrowser(path, se)
 	ControlPanel:DockMargin(0, 5, 0, 0)
 	ControlPanel:Dock(BOTTOM)
 	ControlPanel:SetTall(60)
-	ControlPanel:SetDrawBackground(false)
+	ControlPanel:SetPaintBackground(false)
 
 	local ButtonsPanel = ControlPanel:Add("DPanel") -- The buttons.
 	ButtonsPanel:DockMargin(4, 0, 0, 0)
 	ButtonsPanel:Dock(RIGHT)
 	ButtonsPanel:SetWide(250)
-	ButtonsPanel:SetDrawBackground(false)
+	ButtonsPanel:SetPaintBackground(false)
 
 	local TunePanel = ControlPanel:Add("DPanel") -- The effect Sliders.
 	TunePanel:DockMargin(0, 4, 0, 0)
 	TunePanel:Dock(LEFT)
 	TunePanel:SetWide(350)
-	TunePanel:SetDrawBackground(false)
+	TunePanel:SetPaintBackground(false)
 
 	local TuneVolumeSlider = TunePanel:Add("DNumSlider") -- The volume slider.
 	TuneVolumeSlider:DockMargin(2, 0, 0, 0)
@@ -859,7 +859,7 @@ local function CreateSoundBrowser(path, se)
 	local PlayStopPanel = ButtonsPanel:Add("DPanel") -- Play and stop.
 	PlayStopPanel:DockMargin(0, 0, 0, 2)
 	PlayStopPanel:Dock(TOP)
-	PlayStopPanel:SetDrawBackground(false)
+	PlayStopPanel:SetPaintBackground(false)
 
 	local PlayButton = PlayStopPanel:Add("DButton") -- The play button.
 	PlayButton:SetText("Play")

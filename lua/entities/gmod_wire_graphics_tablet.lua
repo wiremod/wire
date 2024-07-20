@@ -35,7 +35,7 @@ if CLIENT then
 	function ENT:Draw()
 		self:DrawModel()
 
-		local draw_background = self:GetDrawBackground()
+		local draw_background = self:GetPaintBackground()
 		self.GPU:RenderToWorld(nil, 512, function(x, y, w, h, monitor, pos, ang, res)
 			if draw_background then
 				surface.SetDrawColor(0, 0, 0, 255)
@@ -173,7 +173,7 @@ end
 -- only needed for legacy dupes
 function ENT:Setup(gmode, draw_background)
 	if gmode ~= nil then self:SetCursorMode(gmode) end
-	if draw_background ~= nil then self:SetDrawBackground(draw_background) end
+	if draw_background ~= nil then self:SetPaintBackground(draw_background) end
 end
 
 duplicator.RegisterEntityClass("gmod_wire_graphics_tablet", WireLib.MakeWireEnt, "Data", "gmode", "draw_background")
