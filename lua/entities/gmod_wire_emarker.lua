@@ -34,7 +34,7 @@ duplicator.RegisterEntityClass( "gmod_wire_emarker", WireLib.MakeWireEnt, "Data"
 
 function ENT:BuildDupeInfo()
 	local info = BaseClass.BuildDupeInfo(self) or {}
-	if ( self.mark ) and ( self.mark:IsValid() ) then
+	if self.mark and ( self.mark:IsValid() ) then
 	    info.mark = self.mark:EntIndex()
 	end
 	return info

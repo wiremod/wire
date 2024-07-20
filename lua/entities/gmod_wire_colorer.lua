@@ -65,7 +65,7 @@ if CLIENT then
 
 		-- "Target color" text
 		local color_text = string.format("Target color:\n%d,%d,%d,%d",targetColor.r,targetColor.g,targetColor.b,targetColor.a)
-		local w2,h2 = surface.GetTextSize( color_text )
+		local _, h2 = surface.GetTextSize( color_text )
 		draw.DrawText( color_text, "GModWorldtip", pos.max.x - w/2 - pos.edgesize, pos.min.y + pos.edgesize, white, TEXT_ALIGN_CENTER )
 
 		local h = math.max(h,h2)

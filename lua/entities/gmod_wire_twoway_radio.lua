@@ -56,13 +56,13 @@ function IsRadio(entity)
 	return false
 end
 function ENT:ReceiveRadio(iname, value)
-	if (iname == "A") and (self.Other) and (self.Other:IsValid()) then
+	if (iname == "A") and self.Other and (self.Other:IsValid()) then
 		Wire_TriggerOutput(self, "A", value)
-	elseif (iname == "B") and (self.Other) and (self.Other:IsValid()) then
+	elseif (iname == "B") and self.Other and (self.Other:IsValid()) then
 		Wire_TriggerOutput(self, "B", value)
-	elseif (iname == "C") and (self.Other) and (self.Other:IsValid()) then
+	elseif (iname == "C") and self.Other and (self.Other:IsValid()) then
 		Wire_TriggerOutput(self, "C", value)
-	elseif (iname == "D") and (self.Other) and (self.Other:IsValid()) then
+	elseif (iname == "D") and self.Other and (self.Other:IsValid()) then
 		Wire_TriggerOutput(self, "D", value)
 	end
 	self:ShowOutput(iname, value)
@@ -87,7 +87,7 @@ function ENT:LinkEnt( other )
 	if self.Other then
 		-- to the same one, return
 		if self.Other == other then return false end
-		--to a different one, then tell it to unlink
+		-- to a different one, then tell it to unlink
 		self.Other.UnlinkEnt()
 	end
 
@@ -150,11 +150,11 @@ function ENT:OnRestore()
 	Wire_AdjustOutputs(self, { "A", "B", "C", "D" })
 end
 
-// Dupe info functions added by TheApathetic
+-- Dupe info functions added by TheApathetic
 function ENT:BuildDupeInfo()
 	local info = BaseClass.BuildDupeInfo(self) or {}
 
-	if (self.Other) and (self.Other:IsValid()) then
+	if self.Other and (self.Other:IsValid()) then
 		info.Other = self.Other:EntIndex()
 	end
 

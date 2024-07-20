@@ -45,16 +45,12 @@ if CLIENT then
 	local enabled = false
 	local self
 
-	local clientprop
-
 	-- Position
 	local pos = Vector(0,0,0)
 	local smoothpos = Vector(0,0,0)
 
 	-- Distance & zooming
 	local distance = 0
-	local curdistance = 0
-	local oldcurdistance = 0
 	local smoothdistance = 0
 
 	local zoomdistance = 0
@@ -64,11 +60,9 @@ if CLIENT then
 	local ang = Angle(0,0,0)
 	local smoothang = Angle(0,0,0)
 
-	local oldeyeang = Angle(0,0,0)
 	local unroll = false
 
 	-- Options
-	local ParentLocal = false
 	local AutoMove = false
 	local FreeMove = false
 	local LocalMove = false
@@ -114,7 +108,7 @@ if CLIENT then
 		local tr = {
 			start = start,
 			endpos = endpos,
-			mask = (AutoUnclip_IgnoreWater and CONTENTS_SOLID or bit.bor(MASK_WATER, CONTENTS_SOLID)),
+			mask = AutoUnclip_IgnoreWater and CONTENTS_SOLID or bit.bor(MASK_WATER, CONTENTS_SOLID),
 			mins = Vector(-8,-8,-8),
 			maxs = Vector(8,8,8)
 		}
@@ -150,8 +144,6 @@ if CLIENT then
 			smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
 
 			local pos_speed = pos_speed_convar:GetFloat()
-			local ang_speed = pos_speed - 2
-
 			if AllowZoom then
 				if zoombind ~= 0 then
 					zoomdistance = math.Clamp(zoomdistance + zoombind * FrameTime() * 100 * max((abs(curdistance) + abs(zoomdistance))/10,10),0,16000-curdistance)
@@ -569,7 +561,7 @@ function ENT:UpdateOutputs()
 			local tr = {
 				start = start,
 				endpos = endpos,
-				mask = (self.AutoUnclip_IgnoreWater and CONTENTS_SOLID or bit.bor(MASK_WATER, CONTENTS_SOLID)),
+				mask = self.AutoUnclip_IgnoreWater and CONTENTS_SOLID or bit.bor(MASK_WATER, CONTENTS_SOLID),
 				mins = Vector(-8,-8,-8),
 				maxs = Vector(8,8,8)
 			}

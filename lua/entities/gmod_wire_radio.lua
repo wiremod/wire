@@ -5,8 +5,6 @@ ENT.WireDebugName = "Radio"
 
 if CLIENT then return end -- No more client
 
-local MODEL = Model( "models/props_lab/binderblue.mdl" )
-
 local Channel = {
 	__index = {
 		register = function(self, ent, channel)
@@ -181,11 +179,11 @@ end
 function ENT:ShowOutput()
 	local overlay = {"(Channel " .. self.Channel .. ")\nTransmit"}
 	for i=1,self.values do
-		overlay[#overlay + 1] = " " .. i .. ":" .. math.Round((self.Inputs[self.inames[i]].Value)*1000)/1000
+		overlay[#overlay + 1] = " " .. i .. ":" .. math.Round(self.Inputs[self.inames[i]].Value*1000)/1000
 	end
 	overlay[#overlay + 1] = "\nReceive"
 	for i=1,self.values do
-		overlay[#overlay + 1] = " " .. i .. ":" .. math.Round((self.Outputs[self.onames[i]].Value)*1000)/1000
+		overlay[#overlay + 1] = " " .. i .. ":" .. math.Round(self.Outputs[self.onames[i]].Value*1000)/1000
 	end
 	if (self.Secure == true) then overlay[#overlay + 1] = "\nSecured" end
 	self:SetOverlayText(table.concat(overlay))

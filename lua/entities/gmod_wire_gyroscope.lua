@@ -17,7 +17,7 @@ if CLIENT then
 			local lineOfNodes = self:WorldToLocal( ( Vector(0,0,1):Cross( self:GetUp() ) ):GetNormal() + self:GetPos() )
 
 			self:SetPoseParameter( "rot_yaw"  ,  math.deg( math.atan2( lineOfNodes[2] , lineOfNodes[1] ) ) )
-			self:SetPoseParameter( "rot_roll" , -math.deg( math.acos( self:GetUp():DotProduct( Vector(0,0,1) ) )  or 0 ) )
+			self:SetPoseParameter( "rot_roll" , -math.deg( math.acos( self:GetUp():Dot( Vector(0,0,1) ) )  or 0 ) )
 		end
 
 		local ang = self:GetAngles()

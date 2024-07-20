@@ -5,8 +5,6 @@ ENT.WireDebugName 	= "Weight"
 
 if CLIENT then return end -- No more client
 
-local MODEL = Model("models/props_interiors/pot01a.mdl")
-
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )

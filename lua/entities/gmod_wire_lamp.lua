@@ -10,7 +10,6 @@ end
 
 if CLIENT then
 	local matLight 		= Material( "sprites/light_ignorez" )
-	local matBeam		= Material( "effects/lamp_beam" )
 
 	function ENT:Initialize()
 		self.PixVis = util.GetPixelVisibleHandle()
@@ -121,8 +120,6 @@ function ENT:Switch( on )
 	end
 
 	self:SetOn( true )
-
-	local angForward = self:GetAngles()
 
 	self.flashlight = ents.Create( "env_projectedtexture" )
 

@@ -7,7 +7,6 @@ ENT.Editable = true
 
 ENT.workingDistance = 64
 
-local SCREEN_CURSOR = false -- (0, 0) is top left, (1, 1) is bottom right
 local GRAPH_CURSOR = true -- (0, 0) is center, (1, 1) is top right
 
 function ENT:SetupDataTables()
@@ -111,8 +110,6 @@ function ENT:Think()
 	local pos = GPUEntity:LocalToWorld(monitor.offset)
 	local h = 1024
 	local w = h/monitor.RatioX
-	local x = -w/2
-	local y = -h/2
 
 	for _,ply in pairs(player.GetAll()) do
 		local trace = ply:GetEyeTraceNoCursor()

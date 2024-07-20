@@ -26,7 +26,6 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Switch( on, ply )
-	local plyindex 	= self:GetPlayerIndex()
 	local key 		= self:GetKey()
 	if (not key) then return end
 

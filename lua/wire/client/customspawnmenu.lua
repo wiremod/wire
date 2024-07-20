@@ -125,7 +125,7 @@ function PANEL:Init()
 	self.List:Dock( FILL )
 
 	self.SearchList = vgui.Create( "DListView", LeftPanel )
-	local x,y = self.List:GetPos()
+	local x = self.List:GetPos()
 	local w,h = self.List:GetSize()
 	self.SearchList:SetPos( x + w, 160 )
 	self.SearchList:SetSize( w, h )
@@ -640,11 +640,11 @@ end
 
 local function CreateCPanel( panel )
 	local checkbox = panel:CheckBox( "Use wire's custom tool menu for all tabs", "wire_tool_menu_custom_menu_for_all_tabs" )
-	checkbox:SetToolTip( "Requires rejoin to take effect" )
+	checkbox:SetTooltip( "Requires rejoin to take effect" )
 
 	if WireLib.WireExtrasInstalled then
 		local SeparateWireExtras = panel:CheckBox( "Separate Wire Extras", "wire_tool_menu_separate_wire_extras" )
-		SeparateWireExtras:SetToolTip( "Whether or not to separate wire extras tools into its own category." )
+		SeparateWireExtras:SetTooltip( "Whether or not to separate wire extras tools into its own category." )
 
 		setUpTabReloadOnChange( SeparateWireExtras )
 	end
@@ -655,10 +655,10 @@ local function CreateCPanel( panel )
 
 	local UseIcons = panel:CheckBox( "Use custom icons", "wire_tool_menu_custom_icons" )
 	setUpTabReloadOnChange( UseIcons )
-	UseIcons:SetToolTip( "If disabled, all tools will use the 'wrench' icon." )
+	UseIcons:SetTooltip( "If disabled, all tools will use the 'wrench' icon." )
 
 	local AutoCollapse = panel:CheckBox( "Autocollapse", "wire_tool_menu_autocollapse" )
-	AutoCollapse:SetToolTip( "If enabled, opening a category will collapse other categories." )
+	AutoCollapse:SetTooltip( "If enabled, opening a category will collapse other categories." )
 
 	local TabWidth = panel:NumSlider( "Tab width", "wire_tool_menu_tab_width", 300, 3000, 0 )
 	panel:Help( [[Set the width of all tabs.

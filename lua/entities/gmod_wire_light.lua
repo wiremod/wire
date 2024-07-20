@@ -17,7 +17,6 @@ end
 
 if CLIENT then
 	local matLight 		= Material( "sprites/light_ignorez" )
-	local matBeam		= Material( "effects/lamp_beam" )
 
 	function ENT:Initialize()
 		self.PixVis = util.GetPixelVisibleHandle()
@@ -41,7 +40,6 @@ if CLIENT then
 		render.SetMaterial( matLight )
 
 		local ViewNormal = self:GetPos() - EyePos()
-		local Distance = ViewNormal:Length()
 		ViewNormal:Normalize()
 
 		local Visible = util.PixelVisible( LightPos, 4, self.PixVis )
@@ -118,7 +116,7 @@ if CLIENT then
 		-- text
 		local color_text = string.format("Color:\n%d,%d,%d",color.r,color.g,color.b)
 
-		local w,h = surface.GetTextSize( color_text )
+		local _, h = surface.GetTextSize( color_text )
 		draw.DrawText( color_text, "GModWorldtip", pos.center.x, pos.min.y + pos.edgesize, white, TEXT_ALIGN_CENTER )
 
 		-- color box

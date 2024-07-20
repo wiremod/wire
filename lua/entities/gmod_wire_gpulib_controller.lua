@@ -38,7 +38,7 @@ function ENT:UpdateTarget()
 		self.target = target
 		if IsValid(target) then
 			WireLib.TriggerOutput(self, "Target", target)
-			local monitor, pos, ang = GPULib.GPU.GetInfo({ Entity = target }) -- TODO: think of a cleaner way
+			local monitor = GPULib.GPU.GetInfo({ Entity = target }) -- TODO: think of a cleaner way
 			WireLib.TriggerOutput(self, "LocalPosition", monitor.offset)
 			WireLib.TriggerOutput(self, "LocalAngle", monitor.rot)
 			WireLib.TriggerOutput(self, "Resolution", monitor.RS)

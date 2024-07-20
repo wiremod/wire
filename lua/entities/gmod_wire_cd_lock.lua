@@ -28,7 +28,7 @@ end
 function ENT:TriggerInput(iname, value)
 	if (iname == "Disable") then
 		self.DisableLinking = value
-		if (value >= 1) and (self.Const) then
+		if (value >= 1) and self.Const then
 			self.Const:Remove()
 			--self.NoCollideConst:Remove()
 

@@ -102,7 +102,7 @@ local function FormatLength(nduration)
 	local nm = math.floor(nduration / 60)
 	local ns = math.floor(nduration % 60)
 	local nms = (nduration % 1) * 1000
-	return nduration, (string.format("%01d", nm)..":"..string.format("%02d", ns).."."..string.format("%03d", nms))
+	return nduration, string.format("%01d", nm)..":"..string.format("%02d", ns).."."..string.format("%03d", nms)
 end
 
 local function GetInfoTable(strfile)
@@ -469,7 +469,7 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) -- Op
 					MenuItem:SetTextColor(Disabled_Gray) -- custom disabling
 					MenuItem.DoClick = function() end
 
-					MenuItem:SetToolTip("The favourites list is Full! It can't hold more than "..max_item_count.." items!")
+					MenuItem:SetTooltip("The favourites list is Full! It can't hold more than "..max_item_count.." items!")
 				end
 
 		end
@@ -499,7 +499,7 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) -- Op
 			MenuItem:SetTextColor(Disabled_Gray) -- custom disabling
 			MenuItem.DoClick = function() end
 
-			MenuItem:SetToolTip("The filepath ("..len.." chars) is too long to print in chat. It should be shorter than "..max_char_chat_count.." chars!")
+			MenuItem:SetTooltip("The filepath ("..len.." chars) is too long to print in chat. It should be shorter than "..max_char_chat_count.." chars!")
 		end
 
 	Menu:AddSpacer()
@@ -563,7 +563,7 @@ local function Infomenu(parent, node, SoundEmitter, nSoundVolume, nSoundPitch)
 			MenuItem:SetTextColor(Disabled_Gray) -- custom disabling
 			MenuItem.DoClick = function() end
 
-			MenuItem:SetToolTip("The filepath ("..len.." chars) is too long to print in chat. It should be shorter than "..max_char_chat_count.." chars!")
+			MenuItem:SetTooltip("The filepath ("..len.." chars) is too long to print in chat. It should be shorter than "..max_char_chat_count.." chars!")
 		end
 
 	Menu:Open()
@@ -580,7 +580,6 @@ end
 
 -- Open the Sound Browser.
 local function CreateSoundBrowser(path, se)
-	local soundemitter = false
 	if isstring(path) and path ~= "" then
 		soundemitter = true
 
@@ -723,8 +722,8 @@ local function CreateSoundBrowser(path, se)
 		local nsize, strformat, nduration = GetFileInfos(strfile)
 		if not nsize then return end
 
-		local nsizeB, strsize = FormatSize(nsize, nduration)
-		local nduration, strduration = FormatLength(nduration, nsize)
+		local _, strsize = FormatSize(nsize, nduration)
+		local nduration = FormatLength(nduration, nsize)
 
 		--return {strformat, strsize or "n/a", strduration or "n/a"} --getting the duration is very slow.
 		return {strformat, strsize or "n/a"}
@@ -898,7 +897,7 @@ local function CreateSoundBrowser(path, se)
 		SetupClipboard(strSound)
 	end
 
-	local oldw, oldh = SoundBrowserPanel:GetSize()
+	local oldw = SoundBrowserPanel:GetSize()
 	SoundBrowserPanel.PerformLayout = function(self, ...)
 		SoundemitterButton:SetVisible(self.Soundemitter)
 		ClipboardButton:SetVisible(not self.Soundemitter)

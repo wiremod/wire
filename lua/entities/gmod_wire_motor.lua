@@ -79,9 +79,6 @@ function MakeWireMotor( pl, Ent1, Ent2, Bone1, Bone2, LPos1, LPos2, friction, to
 
 	local Phys1 = Ent1:GetPhysicsObjectNum( Bone1 )
 	local Phys2 = Ent2:GetPhysicsObjectNum( Bone2 )
-	local WPos1 = Phys1:LocalToWorld( LPos1 )
-	local WPos2 = Phys2:LocalToWorld( LPos2 )
-
 	if Phys1 == Phys2 then return false end
 
 	local const, axis = constraint.Motor( Ent1, Ent2, Bone1, Bone2, LPos1, LPos2, friction, torque, 0, nocollide, 0, pl, forcelimit )

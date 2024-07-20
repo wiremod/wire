@@ -19,7 +19,6 @@ function ENT:GetColorFromValue( value )
 end
 
 if CLIENT then
-	local color_box_size = 64
 	function ENT:GetWorldTipBodySize()
 		return 400,80
 	end
@@ -44,7 +43,6 @@ if CLIENT then
 		end
 
 		local diff = self.b - self.a
-		local len = math.abs(self.b) - math.abs(self.a)
 		local step = diff / 50
 
 		local find_selected = nil
@@ -102,7 +100,7 @@ if CLIENT then
 		-- Percent
 		local factor = math.Clamp((self.value-self.a)/(self.b-self.a), 0, 1)
 		local color_text = string.format("%s (%d%%)",math.Round(self.value,2),factor*100)
-		local w,h = surface.GetTextSize(color_text)
+		local _, h = surface.GetTextSize(color_text)
 		draw.DrawText( color_text, "GModWorldtip", pos.center.x + 40, pos.min.y + pos.edgesize + h, white, TEXT_ALIGN_RIGHT )
 
 		-- Slider

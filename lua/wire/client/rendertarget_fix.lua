@@ -64,13 +64,13 @@ as pressing the "All" button.]] )
 	function btn:DoClick()
 		RTFix:ReloadAll()
 	end
-	btn:SetToolTip( "Fix all RTs on the map." )
+	btn:SetTooltip( "Fix all RTs on the map." )
 	Panel:AddItem( btn )
 
 	for k,v in pairs( RTFix.List ) do
 		local btn = vgui.Create("DButton")
 		btn:SetText( v[1] )
-		btn:SetToolTip( "Fix all " .. v[1] .. "s on the map\n("..k..")" )
+		btn:SetTooltip( "Fix all " .. v[1] .. "s on the map\n("..k..")" )
 		function btn:DoClick()
 			RTFix:Reload( k )
 		end

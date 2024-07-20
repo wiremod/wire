@@ -28,10 +28,10 @@ end
 function ENT:Think()
 	BaseClass.Think(self)
 
-	self.WDataRate = (self.WDataRate*(2-self.Smooth) + self.WDataBytes * (1/self.Interval) * (self.Smooth)) / 2
+	self.WDataRate = (self.WDataRate*(2-self.Smooth) + self.WDataBytes * (1/self.Interval) * self.Smooth) / 2
 	self.WDataBytes = 0
 
-	self.HDataRate = (self.HDataRate*(2-self.Smooth) + self.HDataBytes * (1/self.Interval) * (self.Smooth)) / 2
+	self.HDataRate = (self.HDataRate*(2-self.Smooth) + self.HDataBytes * (1/self.Interval) * self.Smooth) / 2
 	self.HDataBytes = 0
 
 	Wire_TriggerOutput(self, "HiSpeed_DataRate", self.HDataRate)
