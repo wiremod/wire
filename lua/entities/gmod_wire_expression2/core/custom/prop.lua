@@ -1003,7 +1003,7 @@ e2function void entity:setLocalPos(vector pos)
 	WireLib.setLocalPos(this, pos)
 end
 
-[deprecated]
+[deprecated = "Use setPos instead"]
 e2function void entity:reposition(vector pos) = e2function void entity:setPos(vector pos)
 
 e2function void entity:setAng(angle rot)
@@ -1016,7 +1016,7 @@ e2function void entity:setLocalAng(angle rot)
 	WireLib.setLocalAng(this, rot)
 end
 
-[deprecated]
+[deprecated = "Use setAng instead"]
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
 
 e2function void bone:setPos(vector pos)
