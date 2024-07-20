@@ -1462,6 +1462,12 @@ local function E2CollisionEventHandler()
 		if IsValid(chip) then
 			if not chip.error then
 				for _,i in ipairs(ctx.data.E2QueuedCollisions) do
+					if i.cb then 
+						-- Arguments for this were checked when we set it up, no need to typecheck
+						i.cb:UnsafeCall({i.us,i.xcd.HitEntity,i.xcd})
+						if chip.error then break end
+					end
+					-- It's okay to ExecuteEvent regardless, it'll just return when it fails to find the registered event
 					chip:ExecuteEvent("entityCollision",{i.us,i.xcd.HitEntity,i.xcd})
 					if chip.error then break end
 				end
@@ -1473,25 +1479,57 @@ local function E2CollisionEventHandler()
 	processNextTick = false
 end
 
+local function startCollisionTracking(self,ent,entIndex,lambda)
+	local ctx = self
+	local callbackID = ent:AddCallback("PhysicsCollide",
+	function( us, cd )
+		table.insert(ctx.data.E2QueuedCollisions,{us=us,xcd=cd,cb=lambda})
+		if not processNextTick then
+			processNextTick = true
+			timer.Simple(0,E2CollisionEventHandler) -- A timer set to 0 runs next GM:Tick() hook
+		end
+	end)
+	self.data.E2TrackedCollisions[entIndex] = callbackID -- This ID is needed to remove the physcollide callback
+	ent:CallOnRemove("E2Chip_CCB" .. callbackID, function()
+		self.data.E2TrackedCollisions[entIndex] = nil
+	end)
+end
+
 e2function number trackCollision( entity ent )
+	-- If it's not registered, collisions will just stack up infinitely and not be flushed.
+	if not registered_chips[self.entity] then
+		self:forceThrow("event entityCollision(eexcd) is needed to use trackCollision(e)!")
+	end
 	if IsValid(ent) then
 		local entIndex = ent:EntIndex()
 		if self.data.E2TrackedCollisions[entIndex] then
-			return self:throw("Attempting to track collisions for an already tracked entity",0) -- Already being tracked.
+			return self:throw("Attempting to track collisions for an already tracked entity",0)
 		end
-		local ctx = self
-		local callbackID = ent:AddCallback("PhysicsCollide",
-		function( us, cd )
-			table.insert(ctx.data.E2QueuedCollisions,{us=us,xcd=cd})
-			if not processNextTick then
-				processNextTick = true
-				timer.Simple(0,E2CollisionEventHandler) -- A timer set to 0 runs next GM:Tick() hook
-			end
-		end)
-		self.data.E2TrackedCollisions[entIndex] = callbackID -- This ID is needed to remove the physcollide callback
-		ent:CallOnRemove("E2Chip_CCB" .. callbackID, function()
-			self.data.E2TrackedCollisions[entIndex] = nil
-		end)
+		startCollisionTracking(self,ent,entIndex)
+		return 1
+	end
+	return self:throw("Attempting to track collisions for an invalid entity",0)
+end
+
+e2function number trackCollision( entity ent, function cb )
+	-- However, since this one IS providing a callback, we can just register it and run the CB
+	if not registered_chips[self.entity] then
+		registered_chips[self.entity] = self
+	end
+	if IsValid(ent) then
+		local entIndex = ent:EntIndex()
+		if self.data.E2TrackedCollisions[entIndex] then
+			return self:throw("Attempting to track collisions for an already tracked entity",0)
+		end
+		-- First, double check the arg sig lines up
+		if cb.arg_sig ~= "eexcd" then
+			local arg_sig = "(void)"
+			if #cb.arg_sig > 0 then
+				arg_sig = "("..cb.arg_sig..")"
+			end	
+			self:forceThrow("Collision callback expecting arguments (eexcd), got "..arg_sig)
+		end
+		startCollisionTracking(self,ent,entIndex,cb)
 		return 1
 	end
 	return self:throw("Attempting to track collisions for an invalid entity",0)
@@ -1539,6 +1577,9 @@ registerCallback("destruct", function( self )
 			ent:RemoveCallback("PhysicsCollide", v)
 		end
 	end
+	-- Moved from event destructor to general destructor
+	-- Cause now it can be dynamically registered for callback functions
+	registered_chips[self.entity] = nil
 end)
 
 
@@ -1549,9 +1590,7 @@ E2Lib.registerEvent("entityCollision", {
 	{"CollisionData", "xcd"},
 },
 	function(ctx) -- Event constructor
+		print("event constructor")
 		registered_chips[ctx.entity] = ctx
-	end,
-	function(ctx) -- Event destructor
-		registered_chips[ctx.entity] = nil
 	end
 )
