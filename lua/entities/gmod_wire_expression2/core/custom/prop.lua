@@ -263,7 +263,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 
 			if value~=nil then -- Attempting to set provided value (need to cast from E2 to Lua type).
 				local res = castE2ValueToLuaValue(org[1], value)
-				if res==nil then return self:throw("Incorrect parameter '".. param .. "' type during spawning '" .. class .. "'. Expected '" .. typeIDToString[org[1]] .. "'. Received '" .. string.lower(type(value)) .. "'", NULL) end
+				if res==nil then return self:throw("Incorrect parameter '".. param .. "' type during spawning '" .. class .. "'. Expected '" .. typeIDToString(org[1]) .. "'. Received '" .. string.lower(type(value)) .. "'", NULL) end
 
 				entityData[param] = res
 			elseif org[2]~=nil then -- Attempting to set default value if none provided.
@@ -388,6 +388,11 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 	return entity
 end
 
+local function sentDataFormatDefaultVal( val )
+	if val == nil then return "<no default value>" end
+	return TypeID(val)==TYPE_BOOL and (val==true and "true (1)" or "false (0)") or tostring(val)
+end
+
 local CreateSent = PropCore.CreateSent
 
 --------------------------------------------------------------------------------
@@ -503,16 +508,17 @@ e2function table sentGetData(string class)
 	local res = E2Lib.newE2Table()
 
 	local sent = list.Get("wire_spawnable_ents_registry")[class]
-	if not sent then return res end
+	if not sent then self:throw("No class '"..class.."' found in sent registry", res) end
 
 	local size = 0
 	for key, tbl in pairs( sent ) do
+		if key=="_preFactory" or key=="_postFactory" then continue end
+
 		res.s[key] = E2Lib.newE2Table()
 		res.s[key].size = 2
-		res.s[key].n[1] = typeIDToString[tbl[1]]
-		res.s[key].n[2] = TypeID(tbl[2])==TYPE_BOOL and (tbl[2]==true and "1" or "0") or tostring(tbl[2])
-		res.s[key].ntypes[1] = "s"
-		res.s[key].ntypes[2] = "s"
+		res.s[key].s["type"] = typeIDToString(tbl[1])
+		res.s[key].s["default_value"] = sentDataFormatDefaultVal(tbl[2])
+		res.s[key].s["description"] = tbl[3] or "<no description>"
 		res.stypes[key] = "t"
 
 		size = size + 1
@@ -522,24 +528,38 @@ e2function table sentGetData(string class)
 	return res
 end
 
+__e2setcost(10)
+[nodiscard]
+e2function table sentGetData(string class, string key)
+	local sent = list.Get("wire_spawnable_ents_registry")[class]
+	if not sent then self:throw("No class '"..class.."' found in sent registry", "") end
+	if not sent[key] then self:throw("Class '"..class.."' does not have any value at key '"..key.."'", "") end
+	if key=="_preFactory" or key=="_postFactory" then self:throw("Prohibited key '"..key.."'", "") end
+
+	local res = E2Lib.newE2Table()
+	res.s["type"] = typeIDToString(sent[key][1])
+	res.s["default_value"] = sentDataFormatDefaultVal(sent[key][2])
+	res.s["description"] = sent[key][3] or "<no description>"
+	res.size = 3
+
+	return res
+end
+
 --------------------------------------------------------------------------------
 
-__e2setcost(20)
+__e2setcost(25)
 [nodiscard]
 e2function table sentGetDataTypes(string class)
 	local res = E2Lib.newE2Table()
 
 	local sent = list.Get("wire_spawnable_ents_registry")[class]
-	if not sent then return res end
+	if not sent then self:throw("No class '"..class.."' found in sent registry", res) end
 
 	local size = 0
 	for key, tbl in pairs( sent ) do
-		res.s[key] = E2Lib.newE2Table()
-		res.s[key].size = 1
-		res.s[key].n[1] = typeIDToString[tbl[1]]
-		res.s[key].ntypes[1] = "s"
-		res.stypes[key] = "t"
+		if key=="_preFactory" or key=="_postFactory" then continue end
 
+		res.s[key] = typeIDToString(tbl[1])
 		size = size + 1
 	end
 	res.size = size
@@ -547,29 +567,81 @@ e2function table sentGetDataTypes(string class)
 	return res
 end
 
+__e2setcost(5)
+[nodiscard]
+e2function string sentGetDataType(string class, string key)
+	local sent = list.Get("wire_spawnable_ents_registry")[class]
+	if not sent then self:throw("No class '"..class.."' found in sent registry", "") end
+	if not sent[key] then self:throw("Class '"..class.."' does not have any value at key '"..key.."'", "") end
+	if key=="_preFactory" or key=="_postFactory" then self:throw("Prohibited key '"..key.."'", "") end
+
+	return typeIDToString(sent[key][1])
+end
+
 --------------------------------------------------------------------------------
 
-__e2setcost(20)
+__e2setcost(25)
 [nodiscard]
 e2function table sentGetDataDefaultValues(string class)
 	local res = E2Lib.newE2Table()
 
 	local sent = list.Get("wire_spawnable_ents_registry")[class]
-	if not sent then return res end
+	if not sent then self:throw("No class '"..class.."' found in sent registry", res) end
 
 	local size = 0
 	for key, tbl in pairs( sent ) do
-		res.s[key] = E2Lib.newE2Table()
-		res.s[key].size = 1
-		res.s[key].n[2] = TypeID(tbl[2])==TYPE_BOOL and (tbl[2]==true and "1" or "0") or tostring(tbl[2])
-		res.s[key].ntypes[2] = "s"
-		res.stypes[key] = "t"
+		if key=="_preFactory" or key=="_postFactory" then continue end
 
+		res.s[key] = sentDataFormatDefaultVal(tbl[2])
 		size = size + 1
 	end
 	res.size = size
 
 	return res
+end
+
+__e2setcost(5)
+[nodiscard]
+e2function string sentGetDataDefaultValue(string class, string key)
+	local sent = list.Get("wire_spawnable_ents_registry")[class]
+	if not sent then self:throw("No class '"..class.."' found in sent registry", "") end
+	if not sent[key] then self:throw("Class '"..class.."' does not have any value at key '"..key.."'", "") end
+	if key=="_preFactory" or key=="_postFactory" then self:throw("Prohibited key '"..key.."'", "") end
+
+	return sentDataFormatDefaultVal(sent[key][2])
+end
+
+--------------------------------------------------------------------------------
+
+__e2setcost(25)
+[nodiscard]
+e2function table sentGetDataDescriptions(string class)
+	local res = E2Lib.newE2Table()
+
+	local sent = list.Get("wire_spawnable_ents_registry")[class]
+	if not sent then self:throw("No class '"..class.."' found in sent registry", res) end
+
+	local size = 0
+	for key, tbl in pairs( sent ) do
+		if key=="_preFactory" or key=="_postFactory" then continue end
+
+		res.s[key] = tbl[3] or "<no description>"
+		size = size + 1
+	end
+	res.size = size
+
+	return res
+end
+
+__e2setcost(5)
+[nodiscard]
+e2function string sentGetDataDescription(string class, string key)
+	local sent = list.Get("wire_spawnable_ents_registry")[class]
+	if not sent then self:throw("No class '"..class.."' found in sent registry", "") end
+	if not sent[key] then self:throw("Class '"..class.."' does not have any value at key '"..key.."'", "") end
+	if key=="_preFactory" or key=="_postFactory" then self:throw("Prohibited key '"..key.."'", "") end
+
+	return sent[key][3] or "<no description>"
 end
 
 --------------------------------------------------------------------------------

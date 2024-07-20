@@ -1,5 +1,6 @@
 language.Add("Undone_e2_spawned_prop", "Undone E2 Spawned Prop")
 language.Add("Undone_e2_spawned_seat", "Undone E2 Spawned Seat")
+language.Add("Undone_e2_spawned_sent", "Undone E2 Spawned SENT")
 E2Helper.Descriptions["propManipulate(e:vannn)"] = "Allows to do any single prop core function in one term (position, rotation, freeze, gravity, notsolid)"
 E2Helper.Descriptions["propSpawn(sn)"] = "Use the model string or a template entity to spawn a prop. You can set the position and/or the rotation as well. The last number indicates frozen/unfrozen."
 E2Helper.Descriptions["propSpawn(en)"] = "Entity template, Frozen Spawns a prop with the model of the template entity. If frozen is 0, then it will spawn unfrozen."
@@ -17,9 +18,14 @@ E2Helper.Descriptions["sentSpawn(svat)"] = "Sent class, Position, Rotation, Sent
 E2Helper.Descriptions["sentSpawn(svan)"] = "Sent class, Position, Rotation, Frozen - Spawns a SENT with no parameters. (Attempts to default the required values). (Requires wire_expression2_propcore_sents_whitelist 0 to spawn sents from entity tab!)"
 E2Helper.Descriptions["sentSpawn(svant)"] = "Sent class, Position, Rotation, Frozen, Sent data - Spawns a SENT with provided data as parameters. (Requires wire_expression2_propcore_sents_whitelist 0 to spawn sents from entity tab!)"
 E2Helper.Descriptions["sentGetWhitelisted()"] = "Returns an array of classes, which is registered to the whitelist (can be spawned regardless of wire_expression2_propcore_sents_whitelist). (Can be used to make a lookup table)"
-E2Helper.Descriptions["sentGetData(s)"] = "Returns a table, where keys are parameter names (key sensitive!) and values as a table, where first value is the (lua-)type and second value is the default value. (When spawning a sent values is being turned from E2 to Lua types. For example - vec(255,0,0) or vec4(255,0,0,255) is being turned to type Color (red))"
-E2Helper.Descriptions["sentGetDataTypes(s)"] = "Returns a table, where keys are parameter names (key sensitive!) and values as (lua-)types. (When spawning a sent values is being turned from E2 to Lua types. For example - vec(255,0,0) or vec4(255,0,0,255) is being turned to type Color (red))"
-E2Helper.Descriptions["sentGetDataDefaultValues(s)"] = "Returns a table, where keys are parameter names (key sensitive!) and values as default values, which will be applied if none would be provided."
+E2Helper.Descriptions["sentGetData(s)"] = "Returns a table, where keys are parameter names (key sensitive!) and values as a table, where 'type' is a value type, 'default_value' is the default value that will be used, if none provided, and 'description' is a description of the parameter."
+E2Helper.Descriptions["sentGetData(ss)"] = "Returns a table, where 'type' is a value type, 'default_value' is the default value that will be used, if none provided, and 'description' is a description of the parameter."
+E2Helper.Descriptions["sentGetDataTypes(s)"] = "Returns a table, where keys are parameter names (key sensitive!) and values is (lua-)types."
+E2Helper.Descriptions["sentGetDataType(ss)"] = "Returns parameters's (lua-)type of the parameter."
+E2Helper.Descriptions["sentGetDataDefaultValues(s)"] = "Returns a table, where keys are parameter names (key sensitive!) and values is default values, which will be applied if none would be provided."
+E2Helper.Descriptions["sentGetDataDefaultValues(ss)"] = "Returns parameters's default parameter (that will be used, if none provided)."
+E2Helper.Descriptions["sentGetDataDescriptions(s)"] = "Returns a table, where keys are parameter names (key sensitive!) and values is descriptions of the parameter."
+E2Helper.Descriptions["sentGetDataDescriptions(ss)"] = "Returns parameters's description."
 E2Helper.Descriptions["sentCanCreate()"] = "Returns 1 if you can spawn a SENT, 0 otherwise. (Complete alias of propCanCreate())"
 E2Helper.Descriptions["sentCanCreate(s)"] = "Returns 1 if you can spawn a provided class(type) SENT, 0 otherwise. (Accounts both for antispam and whitelist)"
 E2Helper.Descriptions["sentIsWhitelist()"] = "Returns 1 if the whitelist is enabled, 0 otherwise."
