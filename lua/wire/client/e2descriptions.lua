@@ -370,7 +370,11 @@ E2Helper.Descriptions["useClk()"] = "DEPRECATED. Use 'event playerUse(Player:ent
 E2Helper.Descriptions["setTrails(e:nnnsvn)"] = "StartSize, EndSize, Length, Material, Color (RGB), Alpha. Adds a trail to E with the specified attributes"
 E2Helper.Descriptions["setTrails(e:nnnsvnnn)"] = "StartSize, EndSize, Length, Material, Color (RGB), Alpha, AttachmentID, Additive. Adds a trail to E with the specified attributes"
 E2Helper.Descriptions["removeTrails(e:)"] = "Removes the trail from E"
+E2Helper.Descriptions["runOnKeys(rn)"] = "DEPRECATED. Use 'event keyPressed(Player:entity, Key:string, Down:number, KeyBind:string)' instead!"
+E2Helper.Descriptions["runOnKeys(enr)"] = "DEPRECATED. Use 'event keyPressed(Player:entity, Key:string, Down:number, KeyBind:string)' instead!"
+E2Helper.Descriptions["runOnKeys(rnr)"] = "DEPRECATED. Use 'event keyPressed(Player:entity, Key:string, Down:number, KeyBind:string)' instead!"
 E2Helper.Descriptions["runOnKeys(en)"] = "DEPRECATED. Use 'event keyPressed(Player:entity, Key:string, Down:number, KeyBind:string)' instead! If set to 1, E2 will run when specified player presses/releases their key"
+
 E2Helper.Descriptions["playerDisconnectClk()"] = "DEPRECATED. Use 'event playerDisconnected(Player:entity)' instead! Returns 1 if the chip is being executed because of a player disconnect event. Returns 0 otherwise"
 E2Helper.Descriptions["lastDisconnectedPlayer()"] = "DEPRECATED. Use 'event playerDisconnected(Player:entity)' instead! Returns the last player to disconnect. Must be done while in a disconnectClk() as anytime after the player object is gone."
 E2Helper.Descriptions["runOnPlayerDisconnect(n)"] = "DEPRECATED. Use 'event playerDisconnected(Player:entity)' instead! If set to 0, the chip will no longer run on player disconnect events, otherwise it makes this chip execute when someone disconnects. Only needs to be called once, not in every execution"
