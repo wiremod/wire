@@ -245,23 +245,19 @@ end
 
 
 -- Saving Screen width and height
-if (CLIENT) then
-	usermessage.Hook("EGP_ScrWH_Request",function(um)
-		RunConsoleCommand("EGP_ScrWH",ScrW(),ScrH())
-	end)
-else
-	hook.Add("PlayerInitialSpawn","EGP_ScrHW_Request",function(ply)
-		timer.Simple(1,function()
-			if (ply and ply:IsValid() and ply:IsPlayer()) then
-				umsg.Start("EGP_ScrWH_Request",ply) umsg.End()
-			end
-		end)
-	end)
+if CLIENT then
+    hook.Add( "InitPostEntity", "EGP_ScrWH_Init", function()
+        RunConsoleCommand("EGP_ScrWH", ScrW(), ScrH())
+    end )
 
+    hook.Add( "OnScreenSizeChanged", "EGP_ScrWH_Update", function( _, _, newW, newH )
+        RunConsoleCommand("EGP_ScrWH", newW, newH)
+    end )
+else
 	EGP.ScrHW = WireLib.RegisterPlayerTable()
 
-	concommand.Add("EGP_ScrWH",function(ply,cmd,args)
-		if (args and tonumber(args[1]) and tonumber(args[2])) then
+	concommand.Add("EGP_ScrWH", function(ply, cmd, args)
+		if args and tonumber(args[1]) and tonumber(args[2]) then
 			EGP.ScrHW[ply] = { tonumber(args[1]), tonumber(args[2]) }
 		end
 	end)
