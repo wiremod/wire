@@ -641,7 +641,7 @@ end
 -- Events can't have return values, lambdas can't have multiple return types
 -- Don't want to risk a magic number as error causing a collision, so I figure
 -- functions for returning hispeed error & value are the best compromise.
-e2function void returnReadValue(number value)
+e2function void returnHiSpeedValue(number value)
 	self.data.hispeedIOError = false
 	self.data.readCellValue = value
 end
