@@ -1,4 +1,4 @@
-local wire_expression2_entity_trails = CreateConVar("wire_expression2_entity_trails", 50, FCVAR_ARCHIVE, "Amount of trails one E2 can make. (0 - to disable trails)", 0)
+local wire_expression2_entity_trails_max = CreateConVar("wire_expression2_entity_trails_max", 30, FCVAR_ARCHIVE, "Max amount of trails all E2 can make. 0 - to disable trails. (Limit is shared between E2s)", 0)
 
 registerType("entity", "e", nil,
 	nil,
@@ -846,7 +846,7 @@ local function validateCanTrail(self, ent)
 end
 
 local function setTrail(self, ent, Data)
-	if wire_expression2_entity_trails:GetInt() < table.Count(trailedEnts)+1 and not trailedEnts[ent] then return self:throw("Trails limit reached!", nil) end
+	if wire_expression2_entity_trails_max:GetInt() < table.Count(trailedEnts)+1 and not trailedEnts[ent] then return self:throw("Trails limit reached!", nil) end
 
 	duplicator.EntityModifiers.trail(self.player, ent, Data)
 	if Data==nil then
@@ -915,7 +915,7 @@ __e2setcost(2)
 
 [nodiscard]
 e2function number trailsLeft()
-	return wire_expression2_entity_trails:GetInt() - table.Count(trailedEnts)
+	return wire_expression2_entity_trails_max:GetInt() - table.Count(trailedEnts)
 end
 
 [nodiscard]
@@ -925,7 +925,7 @@ end
 
 [nodiscard]
 e2function number trailsMax()
-	return wire_expression2_entity_trails:GetInt()
+	return wire_expression2_entity_trails_max:GetInt()
 end
 
 --[[******************************************************************************]]
