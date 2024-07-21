@@ -797,6 +797,7 @@ E2Helper.Descriptions["inputType(xwl:s)"] = "Returns the type of input that S is
 E2Helper.Descriptions["outputType(xwl:s)"] = "Returns the type of output that S is in lowercase. ( \"NORMAL\" is changed to \"number\" )"
 E2Helper.Descriptions["setXyz(xwl:v)"] = "Sets the X/Y/Z to the corresponding values in the vector"
 E2Helper.Descriptions["returnHiSpeedError()"] = "If used from inside of event readCell or event writeCell, indicates that the read/write request couldn't be fulfilled.\nDoesn't error your chip."
+E2Helper.Descriptions["setHiSpeedError(n)"] = "If argument is zero, clears error flag for readcell/writecell event, if non-zero, sets the error flag.\nSee returnHiSpeedError() for more info"
 E2Helper.Descriptions["returnHiSpeedValue(n)"] = "If used from inside of event readCell, satisfies the incoming read request with the provided number. Clears returnHiSpeedError if previously called."
 
 
