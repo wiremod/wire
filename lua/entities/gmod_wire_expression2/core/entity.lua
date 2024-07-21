@@ -849,13 +849,14 @@ local function setTrail(self, ent, Data)
 	local PlayerSteamID = self.player:SteamID()
 	if not trailedEntsAmount[PlayerSteamID] then trailedEntsAmount[PlayerSteamID] = {} end
 
-	// Removing a trail
+	-- Removing a trail
 	if Data == nil then
 		trailedEntsAmount[PlayerSteamID][ent] = nil
 		return
 	end
 
-	if wire_expression2_entity_trails_max:GetInt() < table.Count(trailedEntsAmount[PlayerSteamID])+1 and Data!=nil then return self:throw("Trails limit reached!", nil) end
+	-- Setting a trail
+	if wire_expression2_entity_trails_max:GetInt() < table.Count(trailedEntsAmount[PlayerSteamID])+1 then return self:throw("Trails limit reached!", nil) end
 	trailedEntsAmount[PlayerSteamID][ent] = true
 	ent:CallOnRemove("wire_expression2_trail_remove", function(ent)
 		trailedEntsAmount[PlayerSteamID][ent] = nil
