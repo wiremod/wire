@@ -1,4 +1,4 @@
-local wire_expression2_entity_trails_max = CreateConVar("wire_expression2_entity_trails_max", 30, FCVAR_ARCHIVE, "Max amount of trails all E2 can make. 0 - to disable trails. (Limit is shared between E2s)", 0)
+local wire_expression2_entity_trails_max = CreateConVar("wire_expression2_entity_trails_max", 30, FCVAR_ARCHIVE, "Max amount of trails a player can make. 0 - to disable trails. (Limit is shared between E2s of a player)", 0)
 
 registerType("entity", "e", nil,
 	nil,
@@ -21,14 +21,14 @@ local canProperty = WireLib.CanProperty
 local canEditVariable = WireLib.CanEditVariable
 
 local sun = ents.FindByClass("env_sun")[1] -- used for sunDirection()
-local trailedEnts = {};
+local trailedEntsAmount = {};
 
 hook.Add("InitPostEntity","sunent",function()
 	sun = ents.FindByClass("env_sun")[1]
 	timer.Simple(0,function() -- make sure we have a sun first
 		hook.Remove("InitPostEntity","sunent")
 	end ) -- then remove this. we don't need it anymore.
-end )
+end)
 
 registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	if funcname == "isOwner" then
@@ -846,20 +846,25 @@ local function validateCanTrail(self, ent)
 end
 
 local function setTrail(self, ent, Data)
-	if wire_expression2_entity_trails_max:GetInt() < table.Count(trailedEnts)+1 and not trailedEnts[ent] then return self:throw("Trails limit reached!", nil) end
+	local PlayerSteamID = self.player:SteamID()
+	if not trailedEntsAmount[PlayerSteamID] then trailedEntsAmount[PlayerSteamID] = {} end
+
+	// Removing a trail
+	if Data == nil then
+		trailedEntsAmount[PlayerSteamID][ent] = nil
+		return
+	end
+
+	if wire_expression2_entity_trails_max:GetInt() < table.Count(trailedEntsAmount[PlayerSteamID])+1 and Data!=nil then return self:throw("Trails limit reached!", nil) end
+	trailedEntsAmount[PlayerSteamID][ent] = true
+	ent:CallOnRemove("wire_expression2_trail_remove", function(ent)
+		trailedEntsAmount[PlayerSteamID][ent] = nil
+	end)
 
 	duplicator.EntityModifiers.trail(self.player, ent, Data)
-	if Data==nil then
-		trailedEnts[ent] = nil
-	else
-		trailedEnts[ent] = true
-		ent:CallOnRemove("wire_expression2_trail_remove", function(ent)
-			trailedEnts[ent] = nil
-		end)
-	end
 end
 
-__e2setcost(25)
+__e2setcost(50)
 
 --- Removes the trail from <this>.
 e2function void entity:removeTrails()
@@ -911,16 +916,16 @@ e2function void entity:setTrails(startSize, endSize, length, string material, ve
 	setTrail(self, this, Data)
 end
 
-__e2setcost(2)
+__e2setcost(5)
 
 [nodiscard]
 e2function number trailsLeft()
-	return wire_expression2_entity_trails_max:GetInt() - table.Count(trailedEnts)
+	return wire_expression2_entity_trails_max:GetInt() - table.Count(trailedEntsAmount[self.player:SteamID()])
 end
 
 [nodiscard]
 e2function number trailsCount()
-	return table.Count(trailedEnts)
+	return table.Count(trailedEntsAmount[self.player:SteamID()])
 end
 
 [nodiscard]
