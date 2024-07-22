@@ -1277,3 +1277,319 @@ registerCallback("destruct",
 		end
 	end
 )
+
+-- * Collision tracking
+
+registerType("collision", "xcd", nil,
+	nil,
+	nil,
+	nil,
+	function(v)
+		return not istable(v) or not v.HitPos
+	end
+)
+
+-- These are just the types we care about
+-- Helps filter out physobjs cause that's not an e2 type
+local typefilter = {
+	entity = "e",
+	vector = "v",
+	number = "n",
+}
+
+local newE2Table = E2Lib.newE2Table
+
+__e2setcost(20)
+
+e2function table collision:toTable()
+	local E2CD = newE2Table()
+	for k,v in pairs(this) do
+		local type = typefilter[string.lower(type(v))]
+		if type then
+			if type == "v" then
+				-- These need to be given copies, otherwise E2s modifications will propagate.
+				E2CD.s[k] = Vector(v)
+			else
+				E2CD.s[k] = v
+			end
+			E2CD.stypes[k] = type
+		end
+	end
+	return E2CD
+end
+
+-- Getter functions below, sorted by return type
+
+__e2setcost(5)
+
+local function GetHitPos(self,collision)
+	if not collision then return self:throw("Invalid collision data!") end
+	return Vector(collision.HitPos)
+end
+
+-- * Vectors
+
+e2function vector collision:hitPos()
+	return GetHitPos(self,this)
+end
+
+e2function vector collision:pos()
+	return GetHitPos(self,this)
+end
+
+e2function vector collision:position()
+	return GetHitPos(self,this)
+end
+
+e2function vector collision:ourOldVelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.OurOldVelocity)
+end
+
+e2function vector collision:entityOldVelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.OurOldVelocity)
+end
+
+e2function vector collision:theirOldVelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.TheirOldVelocity)
+end
+
+e2function vector collision:hitEntityOldVelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.TheirOldVelocity)
+end
+
+e2function vector collision:hitNormal()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.HitNormal)
+end
+
+e2function vector collision:hitSpeed()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.HitSpeed)
+end
+
+e2function vector collision:ourNewVelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.OurNewVelocity)
+end
+
+e2function vector collision:entityNewVelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.OurNewVelocity)
+end
+
+e2function vector collision:theirNewVelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.TheirNewVelocity)
+end
+
+e2function vector collision:hitEntityNewVelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.TheirNewVelocity)
+end
+
+e2function vector collision:ourOldAngularVelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.OurOldAngularVelocity)
+end
+
+e2function vector collision:entityOldAngularVelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.OurOldAngularVelocity)
+end
+
+e2function vector collision:theirOldAngularVelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.TheirOldAngularVelocity)
+end
+
+e2function vector collision:hitEntityOldAngularVelocity()
+	if not this then return self:throw("Invalid collision data!",Vector(0,0,0)) end
+	return Vector(this.TheirOldAngularVelocity)
+end
+
+-- * Numbers
+__e2setcost(2)
+
+e2function number collision:speed()
+	if not this then return self:throw("Invalid collision data!",0) end
+	return this.Speed
+end
+
+e2function number collision:ourSurfaceProps()
+	if not this then return self:throw("Invalid collision data!",0) end
+	return this.OurSurfaceProps
+end
+
+e2function number collision:entitySurfaceProps()
+	if not this then return self:throw("Invalid collision data!",0) end
+	return this.OurSurfaceProps
+end
+
+e2function number collision:theirSurfaceProps()
+	if not this then return self:throw("Invalid collision data!",0) end
+	return this.TheirSurfaceProps
+end
+
+e2function number collision:hitEntitySurfaceProps()
+	if not this then return self:throw("Invalid collision data!",0) end
+	return this.TheirSurfaceProps
+end
+
+e2function number collision:deltaTime()
+	if not this then return self:throw("Invalid collision data!",0) end
+	return this.DeltaTime
+end
+
+-- * Entities
+
+e2function entity collision:hitEntity()
+	if not this then return self:throw("Invalid collision data!",Entity(0)) end
+	return this.HitEntity
+end
+
+
+__e2setcost( 20 )
+
+local processNextTick = false
+local registered_chips = {}
+
+local function E2CollisionEventHandler()
+	for chip,ctx in pairs(registered_chips) do
+		if IsValid(chip) then
+			if not chip.error then
+				for _,i in ipairs(ctx.data.E2QueuedCollisions) do
+					if i.cb then 
+						-- Arguments for this were checked when we set it up, no need to typecheck
+						i.cb:UnsafeCall({i.us,i.xcd.HitEntity,i.xcd})
+						if chip.error then break end
+					end
+					-- It's okay to ExecuteEvent regardless, it'll just return when it fails to find the registered event
+					chip:ExecuteEvent("entityCollision",{i.us,i.xcd.HitEntity,i.xcd})
+					if chip.error then break end
+				end
+			end
+			-- Wipe queued collisions regardless of error
+			ctx.data.E2QueuedCollisions = {}
+		end
+	end
+	processNextTick = false
+end
+
+local function startCollisionTracking(self,ent,entIndex,lambda)
+	local ctx = self
+	local callbackID = ent:AddCallback("PhysicsCollide",
+	function( us, cd )
+		table.insert(ctx.data.E2QueuedCollisions,{us=us,xcd=cd,cb=lambda})
+		if not processNextTick then
+			processNextTick = true
+			timer.Simple(0,E2CollisionEventHandler) -- A timer set to 0 runs next GM:Tick() hook
+		end
+	end)
+	self.data.E2TrackedCollisions[entIndex] = callbackID -- This ID is needed to remove the physcollide callback
+	ent:CallOnRemove("E2Chip_CCB" .. callbackID, function()
+		self.data.E2TrackedCollisions[entIndex] = nil
+	end)
+end
+
+e2function number trackCollision( entity ent )
+	-- If it's not registered, collisions will just stack up infinitely and not be flushed.
+	if not registered_chips[self.entity] then
+		self:forceThrow("event entityCollision(eexcd) is needed to use trackCollision(e)!")
+	end
+	if IsValid(ent) then
+		local entIndex = ent:EntIndex()
+		if self.data.E2TrackedCollisions[entIndex] then
+			return self:throw("Attempting to track collisions for an already tracked entity",0)
+		end
+		startCollisionTracking(self,ent,entIndex)
+		return 1
+	end
+	return self:throw("Attempting to track collisions for an invalid entity",0)
+end
+
+e2function number trackCollision( entity ent, function cb )
+	-- However, since this one IS providing a callback, we can just register it and run the CB
+	if not registered_chips[self.entity] then
+		registered_chips[self.entity] = self
+	end
+	if IsValid(ent) then
+		local entIndex = ent:EntIndex()
+		if self.data.E2TrackedCollisions[entIndex] then
+			return self:throw("Attempting to track collisions for an already tracked entity",0)
+		end
+		-- First, double check the arg sig lines up
+		if cb.arg_sig ~= "eexcd" then
+			local arg_sig = "(void)"
+			if #cb.arg_sig > 0 then
+				arg_sig = "("..cb.arg_sig..")"
+			end	
+			self:forceThrow("Collision callback expecting arguments (eexcd), got "..arg_sig)
+		end
+		startCollisionTracking(self,ent,entIndex,cb)
+		return 1
+	end
+	return self:throw("Attempting to track collisions for an invalid entity",0)
+end
+
+__e2setcost( 5 )
+
+e2function number isTrackingCollision( entity ent )
+	if not IsValid(ent) then
+		return self:throw("Attempting to check tracking of collisions for an invalid entity",0)
+	end
+	if self.data.E2TrackedCollisions[ent:EntIndex()] then
+		return 1
+	else
+		return 0
+	end
+end
+
+e2function void stopTrackingCollision( entity ent )
+	if IsValid(ent) then
+		local entIndex = ent:EntIndex()
+		if self.data.E2TrackedCollisions[entIndex] then
+			local callbackID = self.data.E2TrackedCollisions[entIndex]
+			ent:RemoveCallOnRemove("E2Chip_CCB" .. callbackID)
+			ent:RemoveCallback("PhysicsCollide", callbackID)
+			self.data.E2TrackedCollisions[entIndex] = nil
+		else
+			return self:throw("Attempting to stop tracking collisions for an untracked entity",nil)
+		end
+	else
+		return self:throw("Attempting to stop tracking collisions for an invalid entity",nil)
+	end
+end
+
+registerCallback("construct", function( self )
+	self.data.E2TrackedCollisions = {}
+	self.data.E2QueuedCollisions = {}
+end)
+
+registerCallback("destruct", function( self )
+	for k,v in pairs(self.data.E2TrackedCollisions) do
+		local ent = Entity(tonumber(k))
+		if IsValid(ent) then
+			ent:RemoveCallOnRemove("E2Chip_CCB" .. v)
+			ent:RemoveCallback("PhysicsCollide", v)
+		end
+	end
+	-- Moved from event destructor to general destructor
+	-- Cause now it can be dynamically registered for callback functions
+	registered_chips[self.entity] = nil
+end)
+
+
+
+E2Lib.registerEvent("entityCollision", {
+	{"Entity", "e"},
+	{"HitEntity", "e"},
+	{"CollisionData", "xcd"},
+},
+	function(ctx) -- Event constructor
+		registered_chips[ctx.entity] = ctx
+	end
+)
