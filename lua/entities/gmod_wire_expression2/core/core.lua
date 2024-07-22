@@ -122,6 +122,23 @@ do
 			self:forceThrow(reason)
 		end
 	end
+
+	e2function void assertSoft(condition)
+		if condition == 0 then
+			self:throw("assert failed")
+		end
+	end
+
+	e2function void assertSoft(condition, string reason)
+		if condition == 0 then
+			self:throw(reason)
+		end
+	end
+
+	[nodiscard]
+	e2function number isStrict()
+		return self.strict and 1 or 0
+	end
 end
 
 --------------------------------------------------------------------------------
