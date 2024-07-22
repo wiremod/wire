@@ -643,17 +643,13 @@ end
 -- functions for returning hispeed error & value are the best compromise.
 
 __e2setcost(2)
-e2function void returnHiSpeedValue(number value)
+e2function void hispeedReturnValue(number value)
 	self.data.hispeedIOError = false
 	self.data.readCellValue = value
 end
 
-e2function void setHiSpeedError(number value)
+e2function void hispeedSetError(number value)
 	self.data.hispeedIOError = value ~= 0
-end
-
-e2function void returnHiSpeedError()
-	self.data.hispeedIOError = true
 end
 
 E2Lib.registerEvent("readCell",
