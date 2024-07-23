@@ -655,40 +655,7 @@ end
 E2Lib.registerEvent("readCell",
 	{
 		{"Address","n"}
-	},
-	function(ctx) -- Constructor
-		local function readCellEvent(self,addr)
-			if self.error then return nil end
-			ctx.data.hispeedIOError = false
-			ctx.data.readCellValue = 0
-			self:ExecuteEvent("readCell",{addr})
-			if ctx.data.hispeedIOError or self.error then return nil end
-			return ctx.data.readCellValue
-		end
-		local ent = ctx.entity
-		if ent.ReadCell == ent.E2ReadCellEvent or not ent.ReadCell then
-			ent.ReadCell = readCellEvent
-			ent.E2ReadCellEvent = readCellEvent
-		else
-			ctx:throw("E2's entity has a different ReadCell function present already! Disable strict to overwrite.")
-			-- Good idea to save so we can restore it after, best not to brick our entity's I/O
-			ent.E2OldReadCell = ent.ReadCell
-			ent.ReadCell = readCellEvent
-		end
-	end,
-	function(ctx)
-		local ent = ctx.entity
-		-- If it's not ours, then whatever context gave us the function can handle its removal.
-		if ent.ReadCell == ent.E2ReadCellEvent then
-			if ent.OldE2ReadCell then
-				ent.ReadCell = ent.OldE2ReadCell
-			else
-				ent.ReadCell = nil
-			end
-		end
-		ent.E2ReadCellEvent = nil
-		ent.OldE2ReadCell = nil
-	end
+	}
 )
 
 
@@ -696,35 +663,5 @@ E2Lib.registerEvent("writeCell",
 	{
 		{"Address","n"},
 		{"Value","n"}
-	},
-	function(ctx) -- Constructor
-		local function writeCellEvent(self,addr,value)
-			if self.error then return nil end
-			ctx.data.hispeedIOError = false
-			self:ExecuteEvent("writeCell",{addr,value})
-			if ctx.data.hispeedIOError or self.error then return nil end
-			return true
-		end
-		local ent = ctx.entity
-		if ent.WriteCell == ent.E2WriteCellEvent or not ent.WriteCell then
-			ent.WriteCell = writeCellEvent
-			ent.E2WriteCellEvent = writeCellEvent
-		else
-			ctx:throw("E2's entity has a different WriteCell function present already! Remove @strict to overwrite.")
-			ent.OldE2WriteCell = ent.WriteCell
-			ent.WriteCell = writeCellEvent
-		end
-	end,
-	function(ctx)
-		local ent = ctx.entity
-		if ent.WriteCell == ent.E2WriteCellEvent then
-			if ent.OldE2WriteCell then
-				ent.WriteCell = ent.OldE2WriteCell
-			else
-				ent.WriteCell = nil
-			end
-		end
-		ent.E2WriteCellEvent = nil
-		ent.OldE2WriteCell = nil
-	end
+	}
 )
