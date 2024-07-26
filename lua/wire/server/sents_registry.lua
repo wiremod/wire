@@ -114,29 +114,29 @@ local gmod_wire_rt_screen_validScreenEffects = {
 -- Basic Gmod sents
 
 register("gmod_balloon", {
-	["Model"] = {TYPE_STRING, "models/maxofs2d/balloon_classic.mdl"},
-	["force"] = {TYPE_NUMBER, -50},
-	["r"] = {TYPE_NUMBER, 255},
-	["g"] = {TYPE_NUMBER, 255},
-	["b"] = {TYPE_NUMBER, 255},
+	["Model"] = {TYPE_STRING, "models/maxofs2d/balloon_classic.mdl", "Path to model"},
+	["force"] = {TYPE_NUMBER, -50, "With how much force should the balloon go up? Make it negative to go down"},
+	["r"] = {TYPE_NUMBER, 255, "Color's red component"},
+	["g"] = {TYPE_NUMBER, 255, "Color's green component"},
+	["b"] = {TYPE_NUMBER, 255, "Color's blue component"},
 })
 
 register("gmod_button", {
-	["Model"] = {TYPE_STRING, "models/maxofs2d/button_05.mdl"},
-	["description"] = {TYPE_STRING, ""},
-	["key"] = {TYPE_NUMBER, KEY_NONE},
-	["toggle"] = {TYPE_BOOL, true},
+	["Model"] = {TYPE_STRING, "models/maxofs2d/button_05.mdl", "Path to model"},
+	["description"] = {TYPE_STRING, "", "Description of the button"},
+	["key"] = {TYPE_NUMBER, KEY_NONE, "What key press will this buttom simulate?"},
+	["toggle"] = {TYPE_BOOL, true, "Toggleable?"},
 })
 
 -- register("gmod_cameraprop", {
--- 	["Model"] = {TYPE_STRING, "models/dav0r/camera.mdl"},
+-- 	["Model"] = {TYPE_STRING, "models/dav0r/camera.mdl", "Path to model"},
 -- 	["controlkey"] = {TYPE_NUMBER, KEY_NONE},
 -- 	["locked"] = {TYPE_BOOL, false},
--- 	["toggle"] = {TYPE_BOOL, true},
+-- 	["toggle"] = {TYPE_BOOL, true, "Toggleable?"},
 -- })
 
 register("gmod_dynamite", {
-	["Model"] = {TYPE_STRING, "models/dav0r/tnt/tnt.mdl"},
+	["Model"] = {TYPE_STRING, "models/dav0r/tnt/tnt.mdl", "Path to model"},
 	["key"] = {TYPE_NUMBER, KEY_NONE},
 	["Damage"] = {TYPE_NUMBER, 200},
 	["delay"] = {TYPE_NUMBER, 0},
@@ -144,32 +144,32 @@ register("gmod_dynamite", {
 })
 
 -- register("gmod_emitter", {
--- 	["Model"] = {TYPE_STRING, "models/props_lab/tpplug.mdl"},
+-- 	["Model"] = {TYPE_STRING, "models/props_lab/tpplug.mdl", "Path to model"},
 -- 	["effect"] = {TYPE_STRING, "ManhackSparks"},
 -- 	["key"] = {TYPE_NUMBER, KEY_NONE},
 -- 	["delay"] = {TYPE_NUMBER, 1},
 -- 	["scale"] = {TYPE_NUMBER, 1},
--- 	["toggle"] = {TYPE_BOOL, true},
+-- 	["toggle"] = {TYPE_BOOL, true, "Toggleable?"},
 -- 	["starton"] = {TYPE_BOOL, false},
 -- })
 
 register("gmod_hoverball", {
-	["Model"] = {TYPE_STRING, "models/dav0r/hoverball.mdl"},
-	["key_u"] = {TYPE_NUMBER, KEY_NONE},
-	["key_d"] = {TYPE_NUMBER, KEY_NONE},
-	["speed"] = {TYPE_NUMBER, 1},
+	["Model"] = {TYPE_STRING, "models/dav0r/hoverball.mdl", "Path to model"},
+	["key_u"] = {TYPE_NUMBER, KEY_NONE, "Key to go up"},
+	["key_d"] = {TYPE_NUMBER, KEY_NONE, "Key to go down"},
+	["speed"] = {TYPE_NUMBER, 1, "Speed (multiplier)"},
 	["resistance"] = {TYPE_NUMBER, 0},
 	["strength"] = {TYPE_NUMBER, 1},
 })
 
 register("gmod_lamp", {
-	["Model"] = {TYPE_STRING, "models/lamps/torch.mdl"},
+	["Model"] = {TYPE_STRING, "models/lamps/torch.mdl", "Path to model"},
 	["Texture"] = {TYPE_STRING, "effects/flashlight001"},
 	["KeyDown"] = {TYPE_NUMBER, KEY_NONE},
 	["fov"] = {TYPE_NUMBER, 90},
 	["distance"] = {TYPE_NUMBER, 1024},
 	["brightness"] = {TYPE_NUMBER, 4},
-	["toggle"] = {TYPE_BOOL, true},
+	["toggle"] = {TYPE_BOOL, true, "Toggleable?"},
 	["on"] = {TYPE_BOOL, false},
 	["r"] = {TYPE_NUMBER, 255},
 	["g"] = {TYPE_NUMBER, 255},
@@ -177,11 +177,11 @@ register("gmod_lamp", {
 })
 
 register("gmod_light", {
-	["Model"] = {TYPE_STRING, "models/maxofs2d/light_tubular.mdl"},
+	["Model"] = {TYPE_STRING, "models/maxofs2d/light_tubular.mdl", "Path to model"},
 	["KeyDown"] = {TYPE_NUMBER, KEY_NONE},
 	["Size"] = {TYPE_NUMBER, 256},
 	["Brightness"] = {TYPE_NUMBER, 2},
-	["toggle"] = {TYPE_BOOL, true},
+	["toggle"] = {TYPE_BOOL, true, "Toggleable?"},
 	["on"] = {TYPE_BOOL, false},
 	["lightr"] = {TYPE_NUMBER, 255},
 	["lightg"] = {TYPE_NUMBER, 255},
@@ -189,13 +189,13 @@ register("gmod_light", {
 })
 
 register("gmod_thruster", {
-	["Model"] = {TYPE_STRING, "models/props_phx2/garbage_metalcan001a.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_phx2/garbage_metalcan001a.mdl", "Path to model"},
 	["effect"] = {TYPE_STRING, "fire"},
 	["soundname"] = {TYPE_STRING, "PhysicsCannister.ThrusterLoop"},
 	["key"] = {TYPE_NUMBER, KEY_NONE},
 	["key_bck"] = {TYPE_NUMBER, -1},
 	["force"] = {TYPE_NUMBER, 1500},
-	["toggle"] = {TYPE_BOOL, false},
+	["toggle"] = {TYPE_BOOL, false, "Toggleable?"},
 	["damageable"] = {TYPE_BOOL, false},
 })
 
@@ -208,8 +208,8 @@ register("gmod_wire_plug", {
 		if not PlugSocketPairs[self.Model] then return "Invalid plug model! (Use only those that are shown on toolgun menu)" end
 	end,
 
-	["Model"] = {TYPE_STRING, "models/props_lab/tpplug.mdl"},
-	["ArrayInput"] = {TYPE_BOOL, false}
+	["Model"] = {TYPE_STRING, "models/props_lab/tpplug.mdl", "Plug model"},
+	["ArrayInput"] = {TYPE_BOOL, false, "Should there be an array input"}
 })
 
 register("gmod_wire_socket", {
@@ -217,7 +217,7 @@ register("gmod_wire_socket", {
 		if not SocketPlugPairs[self.Model] then return "Invalid socket model! (Use only those that are shown on toolgun menu)" end
 	end,
 
-	["Model"] = {TYPE_STRING, "models/props_lab/tpplugholder_single.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_lab/tpplugholder_single.mdl", "Path to model"},
 	["ArrayInput"] = {TYPE_BOOL, false},
 	["WeldForce"] = {TYPE_NUMBER, 5000},
 	["AttachRange"] = {TYPE_NUMBER, 5}
@@ -228,7 +228,7 @@ register("gmod_wire_rt_camera", {
 		self.CamFOV = math.Clamp(self.CamFOV, 10, 120)
 	end,
 
-	["Model"] = {TYPE_STRING, "models/maxofs2d/camera.mdl"},
+	["Model"] = {TYPE_STRING, "models/maxofs2d/camera.mdl", "Path to model"},
 	["CamFOV"] = {TYPE_NUMBER, 90}
 })
 
@@ -238,7 +238,7 @@ register("gmod_wire_rt_screen", {
 		if not gmod_wire_rt_screen_validScreenEffects[self.ScreenMaterial] then return "Invalid screen material! (Use only those that are shown on toolgun menu)" end
 	end,
 
-	["Model"] = {TYPE_STRING, "models/kobilica/wiremonitorbig.mdl"},
+	["Model"] = {TYPE_STRING, "models/kobilica/wiremonitorbig.mdl", "Path to model"},
 	["ScreenMaterial"] = {TYPE_STRING, "normal"},
 })
 
@@ -247,7 +247,7 @@ register("gmod_wire_interactiveprop", {
 		if not WireLib.IsValidInteractiveModel(self.Model) then return "Invalid interactive prop model! (Use only those that are shown on toolgun menu)" end
 	end,
 
-	["Model"] = {TYPE_STRING, "models/props_lab/reciever01a.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_lab/reciever01a.mdl", "Path to model"},
 })
 
 register("gmod_wire_dataplug", {
@@ -255,7 +255,7 @@ register("gmod_wire_dataplug", {
 		if not PlugSocketPairs[self.Model] then return "Invalid plug model! (Use only those that are shown on toolgun menu)" end
 	end,
 
-	["Model"] = {TYPE_STRING, "models/hammy/pci_card.mdl"}
+	["Model"] = {TYPE_STRING, "models/hammy/pci_card.mdl", "Path to model"}
 })
 
 register("gmod_wire_datasocket", {
@@ -263,7 +263,7 @@ register("gmod_wire_datasocket", {
 		if not SocketPlugPairs[self.Model] then return "Invalid socket model! (Use only those that are shown on toolgun menu)" end
 	end,
 
-	["Model"] = {TYPE_STRING, "models/hammy/pci_slot.mdl"},
+	["Model"] = {TYPE_STRING, "models/hammy/pci_slot.mdl", "Path to model"},
 	["WeldForce"] = {TYPE_NUMBER, 5000},
 	["AttachRange"] = {TYPE_NUMBER, 5}
 
@@ -283,11 +283,11 @@ register("gmod_wire_spawner", {
 })
 
 register("gmod_wire_emarker", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 })
 
 register("gmod_wire_forcer", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["Force"] = {TYPE_NUMBER, 1},
 	["Length"] = {TYPE_NUMBER, 100},
 	["ShowBeam"] = {TYPE_BOOL, true},
@@ -295,10 +295,10 @@ register("gmod_wire_forcer", {
 })
 
 register("gmod_wire_adv_input", {
-	["Model"] = {TYPE_STRING, "models/beer/wiremod/numpad.mdl"},
+	["Model"] = {TYPE_STRING, "models/beer/wiremod/numpad.mdl", "Path to model"},
 	["keymore"] = {TYPE_NUMBER, 3},
 	["keyless"] = {TYPE_NUMBER, 1},
-	["toggle"] = {TYPE_BOOL, false},
+	["toggle"] = {TYPE_BOOL, false, "Toggleable?"},
 	["value_min"] = {TYPE_NUMBER, 0},
 	["value_max"] = {TYPE_NUMBER, 10},
 	["value_start"] = {TYPE_NUMBER, 5},
@@ -306,11 +306,11 @@ register("gmod_wire_adv_input", {
 })
 
 register("gmod_wire_oscilloscope", {
-	["Model"] = {TYPE_STRING, "models/props_lab/monitor01b.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_lab/monitor01b.mdl", "Path to model"},
 })
 
 register("gmod_wire_dhdd", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl", "Path to model"},
 })
 
 register("gmod_wire_friendslist", {
@@ -320,48 +320,48 @@ register("gmod_wire_friendslist", {
 		end
 	end,
 
-	["Model"] = {TYPE_STRING, "models/kobilica/value.mdl"},
+	["Model"] = {TYPE_STRING, "models/kobilica/value.mdl", "Path to model"},
 	["save_on_entity"] = {TYPE_BOOL, false},
 	["steamids"] = {TYPE_TABLE, {}}
 })
 
 register("gmod_wire_nailer", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["Flim"] = {TYPE_NUMBER, 0},
 	["Range"] = {TYPE_NUMBER, 100},
 	["ShowBeam"] = {TYPE_BOOL, true},
 })
 
 register("gmod_wire_grabber", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl", "Path to model"},
 	["Range"] = {TYPE_NUMBER, 100},
 	["Gravity"] = {TYPE_BOOL, true},
 })
 
 register("gmod_wire_weight", {
-	["Model"] = {TYPE_STRING, "models/props_interiors/pot01a.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_interiors/pot01a.mdl", "Path to model"},
 })
 
 register("gmod_wire_exit_point", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl", "Path to model"},
 })
 
 register("gmod_wire_latch", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 })
 
 register("gmod_wire_dataport", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl", "Path to model"},
 })
 
 register("gmod_wire_colorer", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["outColor"] = {TYPE_BOOL, false},
 	["Range"] = {TYPE_NUMBER, 2000},
 })
 
 register("gmod_wire_addressbus", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl", "Path to model"},
 	["Mem1st"] = {TYPE_NUMBER, 0},
 	["Mem2st"] = {TYPE_NUMBER, 0},
 	["Mem3st"] = {TYPE_NUMBER, 0},
@@ -373,14 +373,14 @@ register("gmod_wire_addressbus", {
 })
 
 register("gmod_wire_cd_disk", {
-	["Model"] = {TYPE_STRING, "models/venompapa/wirecd_medium.mdl"},
+	["Model"] = {TYPE_STRING, "models/venompapa/wirecd_medium.mdl", "Path to model"},
 	["Precision"] = {TYPE_NUMBER, 4},
 	["IRadius"] = {TYPE_NUMBER, 10},
 	["Skin"] = {TYPE_NUMBER, 0},
 })
 
 register("gmod_wire_las_receiver", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl", "Path to model"},
 })
 
 register("gmod_wire_lever", {
@@ -393,16 +393,16 @@ register("gmod_wire_lever", {
 })
 
 register("gmod_wire_waypoint", {
-	["Model"] = {TYPE_STRING, "models/props_lab/powerbox02d.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_lab/powerbox02d.mdl", "Path to model"},
 	["range"] = {TYPE_NUMBER, 150},
 })
 
 register("gmod_wire_vehicle", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 })
 
 register("gmod_wire_vectorthruster", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_speed.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_speed.mdl", "Path to model"},
 	["force"] = {TYPE_NUMBER, 1500},
 	["force_min"] = {TYPE_NUMBER, 0},
 	["force_max"] = {TYPE_NUMBER, 10000},
@@ -418,23 +418,23 @@ register("gmod_wire_vectorthruster", {
 })
 
 register("gmod_wire_user", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["Range"] = {TYPE_NUMBER, 200},
 })
 
 register("gmod_wire_twoway_radio", {
-	["Model"] = {TYPE_STRING, "models/props_lab/binderblue.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_lab/binderblue.mdl", "Path to model"},
 })
 
 register("gmod_wire_numpad", {
-	["Model"] = {TYPE_STRING, "models/beer/wiremod/numpad.mdl"},
-	["toggle"] = {TYPE_BOOL, false},
-	["value_off"] = {TYPE_NUMBER, 0},
-	["value_on"] = {TYPE_NUMBER, 0},
+	["Model"] = {TYPE_STRING, "models/beer/wiremod/numpad.mdl", "Path to model"},
+	["toggle"] = {TYPE_BOOL, false, "Toggleable?"},
+	["value_off"] = {TYPE_NUMBER, 0, "Value to output when disabled"},
+	["value_on"] = {TYPE_NUMBER, 0, "Value to output when enabled"},
 })
 
 register("gmod_wire_turret", {
-	["Model"] = {TYPE_STRING, "models/weapons/w_smg1.mdl"},
+	["Model"] = {TYPE_STRING, "models/weapons/w_smg1.mdl", "Path to model"},
 	["delay"] = {TYPE_NUMBER, 0.05},
 	["damage"] = {TYPE_NUMBER, 10},
 	["force"] = {TYPE_NUMBER, 1},
@@ -446,12 +446,12 @@ register("gmod_wire_turret", {
 })
 
 register("gmod_wire_soundemitter", {
-	["Model"] = {TYPE_STRING, "models/cheeze/wires/speaker.mdl"},
+	["Model"] = {TYPE_STRING, "models/cheeze/wires/speaker.mdl", "Path to model"},
 	["sound"] = {TYPE_STRING, "synth/square.wav"},
 })
 
 register("gmod_wire_textscreen", {
-	["Model"] = {TYPE_STRING, "models/kobilica/wiremonitorbig.mdl"},
+	["Model"] = {TYPE_STRING, "models/kobilica/wiremonitorbig.mdl", "Path to model"},
 	["text"] = {TYPE_STRING, ""},
 	["chrPerLine"] = {TYPE_NUMBER, 6},
 	["textJust"] = {TYPE_NUMBER, 1},
@@ -462,7 +462,7 @@ register("gmod_wire_textscreen", {
 })
 
 register("gmod_wire_holoemitter", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl", "Path to model"},
 })
 
 register("gmod_wire_textreceiver", {
@@ -472,24 +472,24 @@ register("gmod_wire_textreceiver", {
 		end
 	end,
 
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl", "Path to model"},
 	["UseLuaPatterns"] = {TYPE_BOOL, false},
 	["Matches"] = {TYPE_TABLE, {"Hello World"}},
 	["CaseInsensitive"] = {TYPE_BOOL, true},
 })
 
 register("gmod_wire_textentry", {
-	["Model"] = {TYPE_STRING, "models/beer/wiremod/keyboard.mdl"},
+	["Model"] = {TYPE_STRING, "models/beer/wiremod/keyboard.mdl", "Path to model"},
 })
 
 register("gmod_wire_teleporter", {
-	["Model"] = {TYPE_STRING, "models/props_c17/utilityconducter001.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_c17/utilityconducter001.mdl", "Path to model"},
 	["UseSounds"] = {TYPE_BOOL, true},
 	["UseEffects"] = {TYPE_BOOL, true},
 })
 
 register("gmod_wire_target_finder", {
-	["Model"] = {TYPE_STRING, "models/beer/wiremod/targetfinder.mdl"},
+	["Model"] = {TYPE_STRING, "models/beer/wiremod/targetfinder.mdl", "Path to model"},
 	["range"] = {TYPE_NUMBER, 1000},
 	["players"] = {TYPE_BOOL, false},
 	["npcs"] = {TYPE_BOOL, true},
@@ -522,7 +522,7 @@ register("gmod_wire_target_finder", {
 })
 
 register("gmod_wire_digitalscreen", {
-	["Model"] = {TYPE_STRING, "models/props_lab/monitor01b.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_lab/monitor01b.mdl", "Path to model"},
 	["ScreenWidth"] = {TYPE_NUMBER, 32},
 	["ScreenHeight"] = {TYPE_NUMBER, 32},
 })
@@ -538,7 +538,7 @@ register("gmod_wire_trail", {
 		}
 	end,
 
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl", "Path to model"},
 	["Color"] = {TYPE_COLOR, Color(255, 255, 255)},
 	["Length"] = {TYPE_NUMBER, 5},
 	["StartSize"] = {TYPE_NUMBER, 32},
@@ -551,19 +551,19 @@ register("gmod_wire_egp", {
 		self.model = self.Model
 	end,
 
-	["Model"] = {TYPE_STRING, "models/kobilica/wiremonitorbig.mdl"},
+	["Model"] = {TYPE_STRING, "models/kobilica/wiremonitorbig.mdl", "Path to model"},
 })
 
 register("gmod_wire_egp_hud", {
-	["Model"] = {TYPE_STRING, "models/bull/dynamicbutton.mdl"},
+	["Model"] = {TYPE_STRING, "models/bull/dynamicbutton.mdl", "Path to model"},
 })
 
 register("gmod_wire_egp_emitter", {
-	["Model"] = {TYPE_STRING, "models/bull/dynamicbutton.mdl"},
+	["Model"] = {TYPE_STRING, "models/bull/dynamicbutton.mdl", "Path to model"},
 })
 
 register("gmod_wire_speedometer", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_speed.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_speed.mdl", "Path to model"},
 	["z_only"] = {TYPE_BOOL, false},
 	["AngVel"] = {TYPE_BOOL, false},
 })
@@ -573,7 +573,7 @@ register("gmod_wire_trigger", {
 		self.model = self.Model
 	end,
 
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["filter"] = {TYPE_NUMBER, 0},
 	["owneronly"] = {TYPE_BOOL, false},
 	["sizex"] = {TYPE_NUMBER, 64},
@@ -585,14 +585,14 @@ register("gmod_wire_trigger", {
 })
 
 register("gmod_wire_socket", {
-	["Model"] = {TYPE_STRING, "models/props_lab/tpplugholder_single.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_lab/tpplugholder_single.mdl", "Path to model"},
 	["ArrayInput"] = {TYPE_BOOL, false},
 	["WeldForce"] = {TYPE_NUMBER, 5000},
 	["AttachRange"] = {TYPE_NUMBER, 5},
 })
 
 register("gmod_wire_simple_explosive", {
-	["Model"] = {TYPE_STRING, "models/props_c17/oildrum001_explosive.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_c17/oildrum001_explosive.mdl", "Path to model"},
 	["key"] = {TYPE_NUMBER, 1},
 	["damage"] = {TYPE_NUMBER, 200},
 	["removeafter"] = {TYPE_BOOL, false},
@@ -600,7 +600,7 @@ register("gmod_wire_simple_explosive", {
 })
 
 register("gmod_wire_sensor", {
-	["Model"] = {TYPE_STRING, "models/props_lab/huladoll.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_lab/huladoll.mdl", "Path to model"},
 	["xyz_mode"] = {TYPE_BOOL, false},
 	["outdist"] = {TYPE_BOOL, true},
 	["outbrng"] = {TYPE_BOOL, false},
@@ -612,7 +612,7 @@ register("gmod_wire_sensor", {
 })
 
 register("gmod_wire_screen", {
-	["Model"] = {TYPE_STRING, "models/props_lab/monitor01b.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_lab/monitor01b.mdl", "Path to model"},
 	["SingleValue"] = {TYPE_BOOL, false},
 	["SingleBigFont"] = {TYPE_BOOL, true},
 	["TextA"] = {TYPE_STRING, "Value A"},
@@ -624,19 +624,19 @@ register("gmod_wire_screen", {
 })
 
 register("gmod_wire_detonator", {
-	["Model"] = {TYPE_STRING, "models/props_combine/breenclock.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_combine/breenclock.mdl", "Path to model"},
 	["damage"] = {TYPE_NUMBER, 1},
 })
 
 register("gmod_wire_relay", {
-	["Model"] = {TYPE_STRING, "models/kobilica/relay.mdl"},
+	["Model"] = {TYPE_STRING, "models/kobilica/relay.mdl", "Path to model"},
 	["keygroup1"] = {TYPE_NUMBER, 1},
 	["keygroup2"] = {TYPE_NUMBER, 2},
 	["keygroup3"] = {TYPE_NUMBER, 3},
 	["keygroup4"] = {TYPE_NUMBER, 4},
 	["keygroup5"] = {TYPE_NUMBER, 5},
 	["keygroupoff"] = {TYPE_NUMBER, 0},
-	["toggle"] = {TYPE_BOOL, true},
+	["toggle"] = {TYPE_BOOL, true, "Toggleable?"},
 	["normclose"] = {TYPE_NUMBER, 0},
 	["poles"] = {TYPE_NUMBER, 1},
 	["throws"] = {TYPE_NUMBER, 2},
@@ -644,7 +644,7 @@ register("gmod_wire_relay", {
 })
 
 register("gmod_wire_ranger", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl", "Path to model"},
 	["range"] = {TYPE_NUMBER, 1500},
 	["default_zero"] = {TYPE_BOOL, true},
 	["show_beam"] = {TYPE_BOOL, true},
@@ -664,14 +664,14 @@ register("gmod_wire_ranger", {
 })
 
 register("gmod_wire_radio", {
-	["Model"] = {TYPE_STRING, "models/props_lab/binderblue.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_lab/binderblue.mdl", "Path to model"},
 	["Channel"] = {TYPE_STRING, "1"},
 	["values"] = {TYPE_NUMBER, 4},
 	["Secure"] = {TYPE_BOOL, false},
 })
 
 register("gmod_wire_thruster", {
-	["Model"] = {TYPE_STRING, "models/props_c17/lampShade001a.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_c17/lampShade001a.mdl", "Path to model"},
 	["force"] = {TYPE_NUMBER, 1500},
 	["force_min"] = {TYPE_NUMBER, 0},
 	["force_max"] = {TYPE_NUMBER, 10000},
@@ -684,23 +684,23 @@ register("gmod_wire_thruster", {
 })
 
 register("gmod_wire_pod", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 })
 
 register("gmod_wire_data_satellitedish", {
-	["Model"] = {TYPE_STRING, "models/props_wasteland/prison_lamp001c.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_wasteland/prison_lamp001c.mdl", "Path to model"},
 })
 
 register("gmod_wire_consolescreen", {
-	["Model"] = {TYPE_STRING, "models/props_lab/monitor01b.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_lab/monitor01b.mdl", "Path to model"},
 })
 
 register("gmod_wire_pixel", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 })
 
 register("gmod_wire_output", {
-	["Model"] = {TYPE_STRING, "models/beer/wiremod/numpad.mdl"},
+	["Model"] = {TYPE_STRING, "models/beer/wiremod/numpad.mdl", "Path to model"},
 	["key"] = {TYPE_NUMBER, 1},
 })
 
@@ -741,7 +741,7 @@ register("gmod_wire_motor", {
 		)
 	end,
 
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["Ent1"] = {TYPE_ENTITY, nil},
 	["Ent2"] = {TYPE_ENTITY, nil},
 	["Bone1"] = {TYPE_NUMBER, 0},
@@ -754,7 +754,7 @@ register("gmod_wire_motor", {
 })
 
 register("gmod_wire_explosive", {
-	["Model"] = {TYPE_STRING, "models/props_c17/oildrum001_explosive.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_c17/oildrum001_explosive.mdl", "Path to model"},
 	["key"] = {TYPE_NUMBER, 1},
 	["damage"] = {TYPE_NUMBER, 200},
 	["delaytime"] = {TYPE_NUMBER, 0},
@@ -775,7 +775,7 @@ register("gmod_wire_explosive", {
 })
 
 register("gmod_wire_light", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["directional"] = {TYPE_BOOL, false},
 	["radiant"] = {TYPE_BOOL, false},
 	["glow"] = {TYPE_BOOL, false},
@@ -787,7 +787,7 @@ register("gmod_wire_light", {
 })
 
 register("gmod_wire_lamp", {
-	["Model"] = {TYPE_STRING, "models/lamps/torch.mdl"},
+	["Model"] = {TYPE_STRING, "models/lamps/torch.mdl", "Path to model"},
 	["Texture"] = {TYPE_STRING, "effects/flashlight001"},
 	["FOV"] = {TYPE_NUMBER, 90},
 	["Dist"] = {TYPE_NUMBER, 1024},
@@ -803,33 +803,33 @@ register("gmod_wire_keypad", {
 		self.Password = util.CRC(self.Password)
 	end,
 
-	["Model"] = {TYPE_STRING, "models/props_lab/keypad.mdl"},
-	["Password"] = {TYPE_STRING},
-	["Secure"] = {TYPE_BOOL, true},
+	["Model"] = {TYPE_STRING, "models/props_lab/keypad.mdl", "Path to model"},
+	["Password"] = {TYPE_STRING, nil, "Valid password"},
+	["Secure"] = {TYPE_BOOL, true, "Should display asterixes instead of plain numbers?"},
 })
 
 register("gmod_wire_data_store", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_range.mdl", "Path to model"},
 })
 
 register("gmod_wire_gpulib_controller", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 })
 
 register("gmod_wire_clutch", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 })
 
 register("gmod_wire_input", {
-	["Model"] = {TYPE_STRING, "models/beer/wiremod/numpad.mdl"},
+	["Model"] = {TYPE_STRING, "models/beer/wiremod/numpad.mdl", "Path to model"},
 	["keygroup"] = {TYPE_NUMBER, 7},
-	["toggle"] = {TYPE_BOOL, false},
-	["value_off"] = {TYPE_NUMBER, 0},
-	["value_on"] = {TYPE_NUMBER, 1},
+	["toggle"] = {TYPE_BOOL, false, "Toggleable?"},
+	["value_off"] = {TYPE_NUMBER, 0, "Value to output when disabled"},
+	["value_on"] = {TYPE_NUMBER, 1, "Value to output when enabled"},
 })
 
 register("gmod_wire_indicator", {
-	["Model"] = {TYPE_STRING, "models/segment.mdl"},
+	["Model"] = {TYPE_STRING, "models/segment.mdl", "Path to model"},
 	["a"] = {TYPE_NUMBER, 0},
 	["b"] = {TYPE_NUMBER, 1},
 	["ar"] = {TYPE_NUMBER, 255},
@@ -843,7 +843,7 @@ register("gmod_wire_indicator", {
 })
 
 register("gmod_wire_igniter", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["TargetPlayers"] = {TYPE_BOOL, false},
 	["Range"] = {TYPE_NUMBER, 2048},
 })
@@ -886,7 +886,7 @@ register("gmod_wire_hydraulic", {
 		)
 	end,
 
-	["Model"] = {TYPE_STRING, "models/beer/wiremod/hydraulic.mdl"},
+	["Model"] = {TYPE_STRING, "models/beer/wiremod/hydraulic.mdl", "Path to model"},
 	["Ent1"] = {TYPE_ENTITY, nil},
 	["Ent2"] = {TYPE_ENTITY, nil},
 	["Bone1"] = {TYPE_NUMBER, 0},
@@ -901,7 +901,7 @@ register("gmod_wire_hydraulic", {
 })
 
 register("gmod_wire_hudindicator", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["a"] = {TYPE_NUMBER, 0},
 	["b"] = {TYPE_NUMBER, 1},
 	["material"] = {TYPE_STRING, "models/debug/debugwhite"},
@@ -923,7 +923,7 @@ register("gmod_wire_hudindicator", {
 })
 
 register("gmod_wire_hoverball", {
-	["Model"] = {TYPE_STRING, "models/dav0r/hoverball.mdl"},
+	["Model"] = {TYPE_STRING, "models/dav0r/hoverball.mdl", "Path to model"},
 	["speed"] = {TYPE_NUMBER, 1},
 	["resistance"] = {TYPE_NUMBER, 0},
 	["strength"] = {TYPE_NUMBER, 1},
@@ -936,56 +936,56 @@ register("gmod_wire_fx_emitter", {
 		self.effect = ComboBox_Wire_FX_Emitter_Options[self.effect]
 	end,
 
-	["Model"] = {TYPE_STRING, "models/props_lab/tpplug.mdl"},
-	["delay"] = {TYPE_NUMBER, 0.07},
-	["effect"] = {TYPE_STRING, "sparks"},
+	["Model"] = {TYPE_STRING, "models/props_lab/tpplug.mdl", "Path to model"},
+	["delay"] = {TYPE_NUMBER, 0.07, "Delay between effect plays"},
+	["effect"] = {TYPE_STRING, "sparks", "Name of effect"},
 })
 
 register("gmod_wire_hologrid", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["usegps"] = {TYPE_BOOL, false},
 })
 
 register("gmod_wire_data_transferer", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["Range"] = {TYPE_NUMBER, 25000},
 	["DefaultZero"] = {TYPE_BOOL, false},
 	["IgnoreZero"] = {TYPE_BOOL, false},
 })
 
 register("gmod_wire_graphics_tablet", {
-	["Model"] = {TYPE_STRING, "models/kobilica/wiremonitorbig.mdl"},
+	["Model"] = {TYPE_STRING, "models/kobilica/wiremonitorbig.mdl", "Path to model"},
 	["gmode"] = {TYPE_BOOL, false},
 	["draw_background"] = {TYPE_BOOL, true},
 })
 
 register("gmod_wire_gps", {
-	["Model"] = {TYPE_STRING, "models/beer/wiremod/gps.mdl"},
+	["Model"] = {TYPE_STRING, "models/beer/wiremod/gps.mdl", "Path to model"},
 })
 
 register("gmod_wire_gimbal", {
-	["Model"] = {TYPE_STRING, "models/props_c17/canister01a.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_c17/canister01a.mdl", "Path to model"},
 })
 
 register("gmod_wire_button", {
-	["Model"] = {TYPE_STRING, "models/props_c17/clock01.mdl"},
-	["toggle"] = {TYPE_BOOL, false},
-	["value_off"] = {TYPE_NUMBER, 0},
-	["value_on"] = {TYPE_NUMBER, 1},
-	["description"] = {TYPE_STRING, ""},
+	["Model"] = {TYPE_STRING, "models/props_c17/clock01.mdl", "Path to model"},
+	["toggle"] = {TYPE_BOOL, false, "Toggleable?"},
+	["value_off"] = {TYPE_NUMBER, 0, "Value to output when disabled"},
+	["value_on"] = {TYPE_NUMBER, 1, "Value to output when enabled"},
+	["description"] = {TYPE_STRING, "", "Description"},
 	["entityout"] = {TYPE_BOOL, false},
 })
 
 register("gmod_wire_extbus", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl", "Path to model"},
 })
 
 register("gmod_wire_locator", {
-	["Model"] = {TYPE_STRING, "models/props_lab/powerbox02d.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_lab/powerbox02d.mdl", "Path to model"},
 })
 
 register("gmod_wire_cameracontroller", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["ParentLocal"] = {TYPE_BOOL, false},
 	["AutoMove"] = {TYPE_BOOL, false},
 	["FreeMove"] = {TYPE_BOOL, false},
@@ -998,27 +998,27 @@ register("gmod_wire_cameracontroller", {
 })
 
 register("gmod_wire_dual_input", {
-	["Model"] = {TYPE_STRING, "models/beer/wiremod/numpad.mdl"},
+	["Model"] = {TYPE_STRING, "models/beer/wiremod/numpad.mdl", "Path to model"},
 	["keygroup"] = {TYPE_NUMBER, 7},
 	["keygroup2"] = {TYPE_NUMBER, 4},
-	["toggle"] = {TYPE_BOOL, false},
-	["value_off"] = {TYPE_NUMBER, 0},
-	["value_on"] = {TYPE_NUMBER, 1},
+	["toggle"] = {TYPE_BOOL, false, "Toggleable?"},
+	["value_off"] = {TYPE_NUMBER, 0, "Value to output when disabled"},
+	["value_on"] = {TYPE_NUMBER, 1, "Value to output when enabled"},
 	["value_on2"] = {TYPE_NUMBER, -1},
 })
 
 register("gmod_wire_cd_ray", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_beamcaster.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_beamcaster.mdl", "Path to model"},
 	["Range"] = {TYPE_NUMBER, 64},
 	["DefaultZero"] = {TYPE_BOOL, false},
 })
 
 register("gmod_wire_datarate", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl", "Path to model"},
 })
 
 register("gmod_wire_keyboard", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_input.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_input.mdl", "Path to model"},
 	["AutoBuffer"] = {TYPE_BOOL, true},
 	["Synchronous"] = {TYPE_BOOL, true},
 	["EnterKeyAscii"] = {TYPE_BOOL, true},
@@ -1026,11 +1026,11 @@ register("gmod_wire_keyboard", {
 
 -- No idea why it's broken. Starfall can't spawn it either. (duplicator.CreateEntityFromTable(self.player, enttbl) returns invalid entity)
 -- register("gmod_wire_dynamic_button", {
--- 	["Model"] = {TYPE_STRING, "models/bull/ranger.mdl"},
--- 	["toggle"] = {TYPE_BOOL, false},
--- 	["value_on"] = {TYPE_NUMBER, 1},
--- 	["value_off"] = {TYPE_NUMBER, 0},
--- 	["description"] = {TYPE_STRING, ""},
+-- 	["Model"] = {TYPE_STRING, "models/bull/ranger.mdl", "Path to model"},
+-- 	["toggle"] = {TYPE_BOOL, false, "Toggleable?"},
+-- 	["value_on"] = {TYPE_NUMBER, 1, "Value to output when enabled"},
+-- 	["value_off"] = {TYPE_NUMBER, 0, "Value to output when disabled"},
+-- 	["description"] = {TYPE_STRING, "", "Description"},
 -- 	["entityout"] = {TYPE_BOOL, false},
 -- 	["material_on"] = {TYPE_STRING, "bull/dynamic_button_1"},
 -- 	["material_off"] = {TYPE_STRING, "bull/dynamic_button_0"},
@@ -1043,18 +1043,18 @@ register("gmod_wire_keyboard", {
 -- })
 
 register("gmod_wire_damage_detector", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["includeconstrained"] = {TYPE_BOOL, false},
 })
 
 register("gmod_wire_hdd", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl", "Path to model"},
 	["DriveID"] = {TYPE_NUMBER, 0},
 	["DriveCap"] = {TYPE_NUMBER, 128},
 })
 
 register("gmod_wire_watersensor", {
-	["Model"] = {TYPE_STRING, "models/beer/wiremod/watersensor.mdl"},
+	["Model"] = {TYPE_STRING, "models/beer/wiremod/watersensor.mdl", "Path to model"},
 })
 
 register("gmod_wire_value", {
@@ -1122,10 +1122,23 @@ register("gmod_wire_value", {
 			S = "STRING",
 			N = "NORMAL",
 			NUMBER = "NORMAL",
+			v = "VECTOR",
+			xv2 = "VECTOR2",
+			xv4 = "VECTOR4",
+			a = "ANGLE",
+			s = "STRING",
+			n = "NORMAL",
+			number = "NORMAL",
+			vec = "VECTOR",
+			vec2 = "VECTOR2",
+			vec4 = "VECTOR4",
+			angle = "ANGLE",
+			string = "STRING"
 		}
 
 		local value = {}
 		if #self.value == 0 then self.value = {{"NORMAL", 0}} end
+
 		for i, val in ipairs(self.value) do
 			local e2TypeID = TypeID(val)
 
@@ -1172,12 +1185,12 @@ register("gmod_wire_value", {
 		self.value = value
 	end,
 
-	["Model"] = {TYPE_STRING, "models/kobilica/value.mdl"},
-	["value"] = {TYPE_TABLE, {}},
+	["Model"] = {TYPE_STRING, "models/kobilica/value.mdl", "Path to model"},
+	["value"] = {TYPE_TABLE, {}, "Values to be stored. Can either be direct value (type will be auto found), array of direct values (types will be auto found), or sequential table of arrays with arr[1]==type, arr[2]==value. (Ex. - \"value\" = table(\n    array(\"VECTOR\", vec(25)), array(\"string\", \"foo\")))"},
 })
 
 register("gmod_wire_adv_emarker", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 })
 
 register("gmod_wire_wheel", {
@@ -1200,7 +1213,7 @@ register("gmod_wire_wheel", {
 		self:DoDirectionEffect()
 	end,
 
-	["Model"] = {TYPE_STRING, "models/props_vehicles/carparts_wheel01a.mdl"},
+	["Model"] = {TYPE_STRING, "models/props_vehicles/carparts_wheel01a.mdl", "Path to model"},
 	["Base"] = {TYPE_ENTITY, nil},
 	["Bone"] = {TYPE_NUMBER, 0},
 	["LPos"] = {TYPE_VECTOR, Vector()},
@@ -1214,13 +1227,13 @@ register("gmod_wire_wheel", {
 })
 
 register("gmod_wire_gyroscope", {
-	["Model"] = {TYPE_STRING, "models/bull/various/gyroscope.mdl"},
+	["Model"] = {TYPE_STRING, "models/bull/various/gyroscope.mdl", "Path to model"},
 	["out180"] = {TYPE_BOOL, false},
 })
 
 register("gmod_wire_eyepod", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
-	["DefaultToZero"] = {TYPE_NUMBER, 1},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
+	["DefaultToZero"] = {TYPE_NUMBER, 1, "Default outputs to zero when inactive?"},
 	["ShowRateOfChange"] = {TYPE_NUMBER, 1},
 	["ClampXMin"] = {TYPE_NUMBER, 0},
 	["ClampXMax"] = {TYPE_NUMBER, 0},
@@ -1231,10 +1244,14 @@ register("gmod_wire_eyepod", {
 })
 
 register("gmod_wire_gate", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl"},
-	["action"] = {TYPE_STRING, "+"},
+	_preFactory = function(ply, self)
+		if not GateActions[self.action] then return "Invalid action name!" end
+	end,
+
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_gate.mdl", "Path to model"},
+	["action"] = {TYPE_STRING, "+", "Action name. All action names you can look up at https://github.com/wiremod/wire/tree/master/lua/wire/gates source code. (GateActions global table)"},
 })
 
 register("gmod_wire_freezer", {
-	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl"},
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 })
