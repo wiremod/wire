@@ -189,7 +189,7 @@ e2function number teamMemberCount(teamNum)
 	return team.NumPlayers(teamNum)
 end
 
-[deprecated]
+[deprecated = "Use function teamMemberCount instead"]
 e2function number teamPlayers(teamNum) = e2function number teamMemberCount(teamNum)
 
 e2function number teamDeaths(teamNum)
