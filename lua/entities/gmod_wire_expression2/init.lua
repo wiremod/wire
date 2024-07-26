@@ -585,6 +585,27 @@ function ENT:Reset()
 	end)
 end
 
+function ENT:ReadCell(Address)
+	local selfTbl = self:GetTable()
+	if selfTbl.error or not selfTbl.registered_events["readCell"] then return nil end
+	local ctx = selfTbl.context
+	ctx.data.hispeedIOError = false
+	ctx.data.readCellValue = 0
+	self:ExecuteEvent("readCell",{Address})
+	if ctx.data.hispeedIOError or self.error then return nil end
+	return ctx.data.readCellValue
+end
+
+function ENT:WriteCell(addr,value)
+	local selfTbl = self:GetTable()
+	if selfTbl.error or not selfTbl.registered_events["writeCell"] then return nil end
+	local ctx = selfTbl.context
+	ctx.data.hispeedIOError = false
+	self:ExecuteEvent("writeCell",{addr,value})
+	if ctx.data.hispeedIOError or self.error then return nil end
+	return true
+end
+
 function ENT:TriggerInput(key, value)
 	if self.error then return end
 	if key and self.inports and self.inports[3][key] then

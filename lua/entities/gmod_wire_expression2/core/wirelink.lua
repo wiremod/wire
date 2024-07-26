@@ -635,3 +635,33 @@ e2function number wirelink:writeTableSimple(address, table data)
 	if not validWirelink(self, this) or not this.WriteCell then return 0 end
 	return writeArraySimple(this, address, data.n)
 end
+
+-- Events for when THIS e2 is read or written to via wirelink, hispeed, whatever uses read & write cell.
+
+-- Events can't have return values, lambdas can't have multiple return types
+-- Don't want to risk a magic number as error causing a collision, so I figure
+-- functions for returning hispeed error & value are the best compromise.
+
+__e2setcost(2)
+e2function void hispeedReturnValue(number value)
+	self.data.hispeedIOError = false
+	self.data.readCellValue = value
+end
+
+e2function void hispeedSetError(number value)
+	self.data.hispeedIOError = value ~= 0
+end
+
+E2Lib.registerEvent("readCell",
+	{
+		{"Address","n"}
+	}
+)
+
+
+E2Lib.registerEvent("writeCell",
+	{
+		{"Address","n"},
+		{"Value","n"}
+	}
+)
