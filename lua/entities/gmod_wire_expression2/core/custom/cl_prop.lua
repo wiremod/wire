@@ -51,6 +51,7 @@ E2Helper.Descriptions["setLocalAng(e:a)"] = "Set the rotation of an entity local
 E2Helper.Descriptions["rerotate(e:a)"] = "Deprecated. Kept for backwards-compatibility."
 E2Helper.Descriptions["parentTo(e:e)"] = "Parents one entity to another."
 E2Helper.Descriptions["parentTo(e:)"] = E2Helper.Descriptions["parentTo(e:e)"]
+E2Helper.Descriptions["parentToAttachment(e:es)"] = "Parents one entity to anothers attachment."
 E2Helper.Descriptions["deparent(e:)"] = "Unparents an entity, so it moves freely again."
 E2Helper.Descriptions["propBreak(e:)"] = "Breaks/Explodes breakable/explodable props (Useful for Mines)."
 E2Helper.Descriptions["propCanCreate()"] = "Returns 1 when propSpawn() will successfully spawn a prop until the limit is reached."

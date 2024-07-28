@@ -197,7 +197,7 @@ local function boneVerify(self, bone)
 	return ent, index
 end
 
--- A way to statically blacklist a registered sent 
+-- A way to statically blacklist a registered sent
 local blacklistedSents = {
 	--gmod_wire_foo = true,
 }
@@ -1254,6 +1254,19 @@ e2function void entity:parentTo(entity target)
 	this:SetParent(target)
 end
 
+e2function void entity:parentToAttachment(entity target, string attachmentName)
+	if not ValidAction(self, this, "parent") then return self:throw("You do not have permission to parent to this prop!", nil) end
+	if not IsValid(target) then return self:throw("Target prop is invalid.", nil) end
+	if not isOwner(self, target) then return self:throw("You do not own the target prop!", nil) end
+	if not parent_antispam( this ) then return self:throw("You are parenting too fast!", nil) end
+	if this == target then return self:throw("You cannot parent a prop to itself") end
+	if not parent_check( self, this, target ) then return self:throw("Parenting chain of entities can't exceed 16 or crash may occur", nil) end
+	if attachmentName == nil then return self:throw("You cannot parent to nil attachment!", nil) end
+
+	this:SetParent(target)
+	this:Fire("SetParentAttachmentMaintainOffset", attachmentName)
+end
+
 __e2setcost(5)
 e2function void entity:deparent()
 	if not ValidAction(self, this, "deparent") then return end
@@ -1534,7 +1547,7 @@ local function E2CollisionEventHandler()
 		if IsValid(chip) then
 			if not chip.error then
 				for _,i in ipairs(ctx.data.E2QueuedCollisions) do
-					if i.cb then 
+					if i.cb then
 						-- Arguments for this were checked when we set it up, no need to typecheck
 						i.cb:UnsafeCall({i.us,i.xcd.HitEntity,i.xcd})
 						if chip.error then break end
@@ -1598,7 +1611,7 @@ e2function number trackCollision( entity ent, function cb )
 			local arg_sig = "(void)"
 			if #cb.arg_sig > 0 then
 				arg_sig = "("..cb.arg_sig..")"
-			end	
+			end
 			self:forceThrow("Collision callback expecting arguments (eexcd), got "..arg_sig)
 		end
 		startCollisionTracking(self,ent,entIndex,cb)
