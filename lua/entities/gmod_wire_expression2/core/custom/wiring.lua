@@ -4,6 +4,8 @@ E2Lib.RegisterExtension("wiring", false, "Allows the creation and deletion of wi
 __e2setcost(30)
 
 --- Creates an invisible wire between the input <inputname> of <this> and the output <outputname> of <ent2>
+local vector_creatwire = Vector(255, 255, 255)
+
 e2function number entity:createWire(entity ent2, string inputname, string outputname)
 	if not IsValid(this) or not IsValid(ent2) then return 0 end
 	if not isOwner(self, this) or not isOwner(self, ent2) then return 0 end
@@ -18,7 +20,7 @@ e2function number entity:createWire(entity ent2, string inputname, string output
 
 	local trigger = self.entity.trigger
 	self.entity.trigger = { false, {} } -- So the wire creation doesn't execute the E2 immediately because an input changed
-	WireLib.Link_Start(self.player:UniqueID(), this, this:WorldToLocal(this:GetPos()), inputname, "cable/rope", Vector(255,255,255), 0)
+	WireLib.Link_Start(self.player:UniqueID(), this, this:WorldToLocal(this:GetPos()), inputname, "cable/rope", vector_creatwire, 0)
 	WireLib.Link_End(self.player:UniqueID(), ent2, ent2:WorldToLocal(ent2:GetPos()), outputname, self.player)
 	self.entity.trigger = trigger
 
