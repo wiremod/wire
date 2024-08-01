@@ -1,6 +1,5 @@
 E2Lib.RegisterExtension("constraintcore", false, "Allows the creation and manipulation of constraints between entities.")
 
-local Vector = Vector
 local IsValid = IsValid
 local isValidBone = E2Lib.isValidBone
 local getBone = E2Lib.getBone
