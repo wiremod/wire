@@ -1312,19 +1312,17 @@ end
 e2function void holoAnim(index, string animation, frame)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	local anim = Holo.ent:LookupSequence(animation)
-	if anim == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+	if Holo.ent:LookupSequence(animation) == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
 
-	SetHoloAnim(Holo, Holo.ent:LookupSequence(animation), frame, 1)
+	SetHoloAnim(Holo, animation, frame, 1)
 end
 
 e2function void holoAnim(index, string animation, frame, rate)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	local anim = Holo.ent:LookupSequence(animation)
-	if anim == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+	if Holo.ent:LookupSequence(animation) == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
 
-	SetHoloAnim(Holo, Holo.ent:LookupSequence(animation), frame, rate)
+	SetHoloAnim(Holo, animation, frame, rate)
 end
 
 e2function void holoAnim(index, animation)
