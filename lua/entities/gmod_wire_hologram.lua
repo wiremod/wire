@@ -65,6 +65,12 @@ if CLIENT then
 		self:DoPlayerColor()
 	end
 
+	function ENT:Think()
+		if self.Animated then
+			self:NextThink(CurTime())
+			return true
+		end
+	end
 	hook.Add("PlayerBindPress", "wire_hologram_scale_setup", function() -- For initial spawn
 		for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
 			if ent:IsValid() and ent.DoScale then

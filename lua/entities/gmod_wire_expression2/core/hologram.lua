@@ -1284,13 +1284,6 @@ local function SetHoloAnim(Holo, Animation, Frame, Rate)
 			-- This must be run once on entities that will be animated
 			Holo.ent.Animated = true
 			Holo.ent.AutomaticFrameAdvance = true
-
-			local OldThink = Holo.ent.Think
-			function Holo.ent:Think()
-				OldThink(self)
-				self:NextThink(CurTime())
-				return true
-			end
 		end
 		Holo.ent:ResetSequence(Animation)
 		Holo.ent:SetCycle(math.Clamp(Frame, 0, 1))
@@ -1381,6 +1374,20 @@ e2function number holoGetAnimGroundSpeed(index, string animation)
 	if anim == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
 
 	return Holo.ent:GetSequenceGroundSpeed(anim)
+end
+
+e2function void holoSetAnimFrame(index, frame)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Holo.ent:SetCycle(math.Clamp(frame, 0, 1))
+end
+
+e2function void holoSetAnimSpeed(index, rate)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Holo.ent:SetPlaybackRate(math.Clamp(rate, -12, 12))
 end
 
 e2function number holoGetAnimGroundSpeed(index, animation)
