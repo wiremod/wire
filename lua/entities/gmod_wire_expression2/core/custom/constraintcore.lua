@@ -1,6 +1,5 @@
 E2Lib.RegisterExtension("constraintcore", false, "Allows the creation and manipulation of constraints between entities.")
 
-local Vector = Vector
 local IsValid = IsValid
 local isValidBone = E2Lib.isValidBone
 local getBone = E2Lib.getBone
@@ -75,8 +74,6 @@ e2function void enableConstraintUndo(state)
 	self.data.constraintUndos = state ~= 0
 end
 
-
-local emptyVector = Vector()
 local countLookup = {
 	Weld = maxWeld,
 	Rope = maxRope,
@@ -299,7 +296,7 @@ e2function void ballsocket(entity ent1, vector v, entity ent2, friction)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
 
-	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, emptyVector, 0, 0, -180, -180, -180, 180, 180, 180, friction, friction, friction, 0, 0)
+	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, vector_origin, 0, 0, -180, -180, -180, 180, 180, 180, friction, friction, friction, 0, 0)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
@@ -310,7 +307,7 @@ e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vect
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
 
-	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, emptyVector, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], 0, 0)
+	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, vector_origin, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], 0, 0)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
@@ -321,7 +318,7 @@ e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vect
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
 
-	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, emptyVector, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], rotateonly, 0)
+	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, vector_origin, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], rotateonly, 0)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
@@ -332,7 +329,7 @@ e2function void weldAng(entity ent1, vector v, entity ent2)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
 
-	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, emptyVector, 0, 0, 0, -0, 0, 0, 0, 0, 0, 0, 0, 1, 0)
+	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, vector_origin, 0, 0, 0, -0, 0, 0, 0, 0, 0, 0, 0, 1, 0)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
