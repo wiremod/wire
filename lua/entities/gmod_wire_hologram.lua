@@ -426,6 +426,13 @@ function ENT:OnRemove()
 	net.Broadcast()
 end
 
+function ENT:Think()
+	if self.Animated then
+		self:NextThink(CurTime())
+		return true
+	end
+end
+
 function ENT:Initialize()
 	self.steamid = ""
 	self:SetSolid(SOLID_NONE)

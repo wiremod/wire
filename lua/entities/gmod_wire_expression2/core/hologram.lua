@@ -328,10 +328,12 @@ local function flush_player_color_queue()
 	net.Broadcast()
 end
 
+
 registerCallback("postexecute", function(self)
 	if timer.Exists("wire_hologram_postexecute_"..self.uid) then return end
 	timer.Create("wire_hologram_postexecute_"..self.uid,0.1,1,function()
 		if not IsValid(self.entity) then return end
+
 		flush_scale_queue()
 		flush_bone_scale_queue()
 		flush_clip_queue()
@@ -1272,6 +1274,170 @@ e2function number holoIndex(entity ent)
 		if isnumber(k) and ent == Holo.ent then return -k end
 	end
 	return 0
+end
+
+-- -----------------------------------------------------------------------------
+
+local function SetHoloAnim(Holo, Animation, Frame, Rate)
+	if (Holo and Animation and Frame and Rate) then
+		if not Holo.ent.Animated then
+			-- This must be run once on entities that will be animated
+			Holo.ent.Animated = true
+			Holo.ent.AutomaticFrameAdvance = true
+		end
+		Holo.ent:ResetSequence(Animation)
+		Holo.ent:SetCycle(math.Clamp(Frame, 0, 1))
+		--Something mustve changed between the time holoAnim core was made and now, negative values no longer affect the "Frame" value
+		Holo.ent:SetPlaybackRate(math.Clamp(Rate, -12, 12))
+	end
+end
+
+__e2setcost(15)
+e2function void holoAnim(index, string animation)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	local anim = Holo.ent:LookupSequence(animation)
+	if anim == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+
+	SetHoloAnim(Holo, anim, 0, 1)
+end
+
+e2function void holoAnim(index, string animation, frame)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if Holo.ent:LookupSequence(animation) == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+
+	SetHoloAnim(Holo, animation, frame, 1)
+end
+
+e2function void holoAnim(index, string animation, frame, rate)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if Holo.ent:LookupSequence(animation) == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+
+	SetHoloAnim(Holo, animation, frame, rate)
+end
+
+e2function void holoAnim(index, animation)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	SetHoloAnim(Holo, animation, 0, 1)
+end
+
+e2function void holoAnim(index, animation, frame)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	SetHoloAnim(Holo, animation, frame, 1)
+end
+
+e2function number holoGetAnimFrame(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	return Holo.ent:GetCycle()
+end
+
+e2function void holoAnim(index, animation, frame, rate)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	SetHoloAnim(Holo, animation, frame, rate)
+end
+
+e2function array holoGetAnims(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	return Holo.ent:GetSequenceList()
+end
+
+e2function number holoAnimLength(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	return Holo.ent:SequenceDuration()
+end
+
+e2function number holoAnimNum(index, string animation)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	return Holo.ent:LookupSequence(animation) or 0
+end
+
+e2function number holoGetAnimGroundSpeed(index, string animation)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	local anim = Holo.ent:LookupSequence(animation)
+	if anim == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+
+	return Holo.ent:GetSequenceGroundSpeed(anim)
+end
+
+e2function void holoSetAnimFrame(index, frame)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Holo.ent:SetCycle(math.Clamp(frame, 0, 1))
+end
+
+e2function void holoSetAnimSpeed(index, rate)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Holo.ent:SetPlaybackRate(math.Clamp(rate, -12, 12))
+end
+
+e2function number holoGetAnimGroundSpeed(index, animation)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	return Holo.ent:GetSequenceGroundSpeed(animation)
+end
+
+e2function void holoSetPose(index, string pose, value)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Holo.ent:SetPoseParameter(pose, value)
+end
+
+e2function number holoGetPose(index, string pose)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local pose_param = Holo.ent:LookupPoseParameter(pose)
+	if pose_param == -1 then self:throw("'" .. pose .. "' pose parameter does not exist on this model!", 0) end
+	return Holo.ent:GetPoseParameter(pose_param)
+end
+
+e2function array holoGetPoses(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local tbl = {}
+	for i = 0, Holo.ent:GetNumPoseParameters() - 1 do
+		table.insert(tbl, Holo.ent:GetPoseParameterName(i))
+	end
+	return tbl
+end
+
+e2function vector2 holoGetPoseRange(index, string pose)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local pose_param = Holo.ent:LookupPoseParameter(pose)
+	if pose_param == -1 then self:throw("'" .. pose .. "' pose parameter doesn't exist on this model!", 0) end
+	return { Holo.ent:GetPoseParameterRange(pose_param) }
+end
+
+e2function void holoClearPoses(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Holo.ent:ClearPoseParameters()
 end
 
 -- -----------------------------------------------------------------------------
