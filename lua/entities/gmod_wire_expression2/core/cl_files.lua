@@ -67,7 +67,14 @@ end)
 net.Receive("wire_expression2_file_download", function()
 	local path, name = process_filepath(net.ReadString())
 	local append = net.ReadBool()
-	if not E2Lib.isValidFileWritePath(name) then net.ReadStream(nil, function() end):Remove() return end
+	if not E2Lib.isValidFileWritePath(name) then
+		local stream = net.ReadStream(nil, function() end)
+		if stream then
+			stream:Remove()
+		end
+
+		return
+	end
 	if not file.Exists(path, "DATA") then file.CreateDir(path) end
 	net.ReadStream(nil, function(data)
 		if append then
