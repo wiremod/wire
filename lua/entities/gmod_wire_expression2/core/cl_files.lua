@@ -71,6 +71,8 @@ net.Receive("wire_expression2_file_download", function()
 		local stream = net.ReadStream(nil, function() end)
 		if stream then
 			stream:Remove()
+		else
+			ErrorNoHaltWithStack("Warning! Looks like the server uses an outdated version of Expression2's file module! Please update to the latest Wiremod version.")
 		end
 
 		return
