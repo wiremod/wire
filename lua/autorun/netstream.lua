@@ -4,7 +4,7 @@ AddCSLuaFile()
 
 net.Stream = {}
 net.Stream.SendSize = 20000 --This is the size of each packet to send
-net.Stream.Timeout = 10 --How long to wait for client response before cleaning up
+net.Stream.Timeout = 30 --How long to wait for client response before cleaning up
 net.Stream.MaxWriteStreams = 1024 --The maximum number of write data items to store
 net.Stream.MaxReadStreams = 128 --The maximum number of queued read data items to store
 net.Stream.MaxChunks = 3200 --Maximum number of pieces the stream can send to the server. 64 MB
