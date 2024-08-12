@@ -679,7 +679,7 @@ local CompileVisitors = {
 			end
 		end
 
-		if self.strict and not self.scope:IsGlobalScope() then
+		if self.strict and not (self.scope:IsGlobalScope() or (self.include and self.scope:Depth() == 1)) then
 			self:Warning("Functions should be in the top scope, nesting them does nothing", trace)
 		end
 
