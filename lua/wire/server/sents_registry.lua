@@ -985,16 +985,28 @@ register("gmod_wire_locator", {
 })
 
 register("gmod_wire_cameracontroller", {
+	_preFactory = function(ply, self)
+		-- Verifies that all entities are valid, all entities are vehicles, and that passed table is an array
+		local i = 0
+		for _ in pairs(self.Vehicles) do
+			i = i + 1
+			if self.Vehicles[i] == nil then return "Vehicles parameter must be of type array!" end
+			if TypeID(self.Vehicles[i]) ~= TYPE_ENTITY then return "Vehicles parameter must consist only of entities" end
+			if not self.Vehicles[i]:IsVehicle() then return "Vehicles parameter must consist only of vehicles" end
+		end
+	end,
+
 	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
-	["ParentLocal"] = {TYPE_BOOL, false},
-	["AutoMove"] = {TYPE_BOOL, false},
-	["FreeMove"] = {TYPE_BOOL, false},
-	["LocalMove"] = {TYPE_BOOL, false},
-	["AllowZoom"] = {TYPE_BOOL, false},
-	["AutoUnclip"] = {TYPE_BOOL, false},
-	["DrawPlayer"] = {TYPE_BOOL, true},
-	["AutoUnclip_IgnoreWater"] = {TYPE_BOOL, false},
-	["DrawParent"] = {TYPE_BOOL, true},
+	["ParentLocal"] = {TYPE_BOOL, false, "Should the coordinates be local to the parent?"},
+	["AutoMove"] = {TYPE_BOOL, false, "Allow the player to rotate camera using their mouse? (Coordinaets becomes center of orbit)"},
+	["FreeMove"] = {TYPE_BOOL, false, "Allow 360 rotation? The 'UnRoll' input can be toggled to match the parent entity's roll. (NOTE: Only used if 'AutoMove' is enabled)"},
+	["LocalMove"] = {TYPE_BOOL, false, "Is client movement local to parent? (NOTE: Only used if 'AutoMove' is enabled)"},
+	["AllowZoom"] = {TYPE_BOOL, false, "Allow user to move camera in and out using mouse scroller? (NOTE: Only used if 'AutoMove' is enabled. NOTE: Some outputs may become wrong)"},
+	["AutoUnclip"] = {TYPE_BOOL, false, "Prevent the camera from clipping into world? (By moving it closer)"},
+	["DrawPlayer"] = {TYPE_BOOL, true, "Should user be able to see himself?"},
+	["AutoUnclip_IgnoreWater"] = {TYPE_BOOL, false, "Should camera clip into water? (NOTE: Only used if 'AutoUnclip' is enabled)"},
+	["DrawParent"] = {TYPE_BOOL, true, "Should the parent of camera be rendered?"},
+	["Vehicles"] = {TYPE_TABLE, {}, "Autolink cameras to array of vehicles/seats"}
 })
 
 register("gmod_wire_dual_input", {
