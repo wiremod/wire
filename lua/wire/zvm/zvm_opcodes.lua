@@ -206,7 +206,7 @@ end
 ZVM.OpcodeTable[26] = function(self)  --LOOPB
   self:Dyn_EmitForceRegisterLocal("EBX")
   self:Dyn_Emit("EBX = EBX - 1")
-  self:Dyn_Emit("if VM.EBX ~= 0 then")
+  self:Dyn_Emit("if EBX ~= 0 then")
     self:Dyn_Emit("VM:Jump($1)")
     self:Dyn_EmitState()
     self:Dyn_EmitBreak()
