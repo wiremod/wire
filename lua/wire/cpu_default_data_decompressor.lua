@@ -17,10 +17,10 @@ local checked_dirs = {
 local function ReadDir(root)
 	if ignored_dirs[root] then return nil end
 	local tab = {}
-	local files,dirs = file.Find("addons/wire-cpu/data_static/"..root.."*","GAME")
+	local files,dirs = file.Find("data_static/"..root.."*","GAME")
 	for _, f in pairs(files) do
 		f = root..f
-		tab[f] = file.Read("addons/wire-cpu/data_static/"..f, "GAME")
+		tab[f] = file.Read("data_static/"..f, "GAME")
 	end
 	for _, f in pairs(dirs) do
 		f = root..f.."/"
