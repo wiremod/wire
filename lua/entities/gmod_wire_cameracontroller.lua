@@ -378,7 +378,8 @@ function ENT:Initialize()
 		"Parent (Parents the camera to this entity.) [ENTITY]",
 		"FilterEntities (In addition to ignoring the contraption of the 'Parent' entity, or the cam controller itself\nif parent isn't used, entities in this list will be ignored by the 'HitPos' and 'Trace' outputs) [ARRAY]",
 		"FLIR",
-		"FOV"
+		"FOV",
+		"Vehicles (Links all vehicles of passed array to this cam controller) [ARRAY]",
 	})
 
 	self.Activated = false -- Whether or not to activate the cam controller for all players sitting in linked vehicles, or as soon as a player sits in a linked vehicle
@@ -429,7 +430,7 @@ end
 -- Setup
 --------------------------------------------------
 
-function ENT:Setup(ParentLocal,AutoMove,FreeMove,LocalMove,AllowZoom,AutoUnclip,DrawPlayer,AutoUnclip_IgnoreWater,DrawParent)
+function ENT:Setup(ParentLocal,AutoMove,FreeMove,LocalMove,AllowZoom,AutoUnclip,DrawPlayer,AutoUnclip_IgnoreWater,DrawParent,Vehicles)
 	self.ParentLocal = tobool(ParentLocal)
 	self.AutoMove = tobool(AutoMove)
 	self.FreeMove = tobool(FreeMove)
@@ -439,6 +440,14 @@ function ENT:Setup(ParentLocal,AutoMove,FreeMove,LocalMove,AllowZoom,AutoUnclip,
 	self.AutoUnclip_IgnoreWater = tobool(AutoUnclip_IgnoreWater)
 	self.DrawPlayer = tobool(DrawPlayer)
 	self.DrawParent = tobool(DrawParent)
+
+	if Vehicles then
+		for k,v in ipairs( Vehicles ) do
+			if( TypeID(v) ~= TYPE_ENTITY ) then continue end
+			if( not IsValid(v) ) then continue end
+			self:LinkEnt( v )
+		end
+	end
 
 	self:UpdateOverlay()
 end
@@ -838,6 +847,13 @@ function ENT:TriggerInput( name, value )
 		self.FLIR = value ~= 0
 		if not self.Activated then return end
 		self:SetFLIR()
+	elseif name == "Vehicles" then
+		self:ClearEntities()
+		for k, v in ipairs( value ) do
+			if( TypeID(v) ~= TYPE_ENTITY ) then continue end
+			if( not IsValid(v) ) then continue end
+			self:LinkEnt( v )
+		end
 	else
 		self:LocalizePositions(false)
 
@@ -1096,4 +1112,4 @@ end
 WireLib.AddInputAlias( "Zoom", "FOV" )
 WireLib.AddOutputAlias( "XYZ", "HitPos" )
 
-duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "ParentLocal","AutoMove","FreeMove","LocalMove","AllowZoom","AutoUnclip","DrawPlayer","AutoUnclip_IgnoreWater","DrawParent")
+duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "ParentLocal","AutoMove","FreeMove","LocalMove","AllowZoom","AutoUnclip","DrawPlayer","AutoUnclip_IgnoreWater","DrawParent","Vehicles")
