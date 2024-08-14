@@ -133,9 +133,17 @@ end
 
 function ENT:UpdateSound()
 	if self.NeedsRefresh or self.sound ~= self.ActiveSample then
+		if not file.Exists("sound/" .. self.sound, "GAME") then return end
+
 		self.NeedsRefresh = nil
 		local filter = RecipientFilter()
 		filter:AddAllPlayers()
+
+		if self.SoundObj then
+			self.SoundObj:Stop()
+			self.SoundObj = nil
+		end
+
 		self.SoundObj = CreateSound(self, self.sound, filter)
 		self.ActiveSample = self.sound
 

@@ -73,6 +73,8 @@ end
 local function soundCreate(self, entity, index, time, path, fade)
 	path = string.Trim(string.sub(path, 1, 260))
 	if path:match('["?]') then return end
+
+	if not file.Exists("sound/" .. path, "GAME") then return end
 	local data = self.data.sound_data
 	if not isAllowed( self ) then return end
 
@@ -292,15 +294,15 @@ e2function number soundPlaying( string index ) = e2function number soundPlaying(
 -- EmitSound
 
 local function EmitSound(e2, ent, snd, level, pitch, volume)
-    if not isAllowed(e2) then return end
+	if not isAllowed(e2) then return end
 
-    if not IsValid(ent) then return e2:throw("Invalid entity!", nil) end
-    if not isOwner(e2, ent) then return e2:throw("You do not own this entity!", nil) end
+	if not IsValid(ent) then return e2:throw("Invalid entity!", nil) end
+	if not isOwner(e2, ent) then return e2:throw("You do not own this entity!", nil) end
 
-    local maxlevel = wire_expression2_sound_level_max:GetInt()
-    if level ~= nil and level > maxlevel then
-        level = maxlevel
-    end
+	local maxlevel = wire_expression2_sound_level_max:GetInt()
+	if level ~= nil and level > maxlevel then
+		level = maxlevel
+	end
 
 	snd = string.sub(snd, 1, 260)
 	if snd:match('["?]') then return end
@@ -309,26 +311,26 @@ end
 
 __e2setcost(20)
 e2function void entity:emitSound(string soundName, number soundLevel, number pitchPercent, number volume)
-    EmitSound(self, this, soundName, soundLevel, pitchPercent, volume)
+	EmitSound(self, this, soundName, soundLevel, pitchPercent, volume)
 end
 
 e2function void entity:emitSound(string soundName, number soundLevel, number pitchPercent)
-    EmitSound(self, this, soundName, soundLevel, pitchPercent)
+	EmitSound(self, this, soundName, soundLevel, pitchPercent)
 end
 
 e2function void entity:emitSound(string soundName, number soundLevel)
-    EmitSound(self, this, soundName, soundLevel)
+	EmitSound(self, this, soundName, soundLevel)
 end
 
 e2function void entity:emitSound(string soundName)
-    EmitSound(self, this, soundName)
+	EmitSound(self, this, soundName)
 end
 
 e2function void entity:emitSoundStop(string soundName)
-    if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-    if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
-    this:StopSound(soundName)
+	this:StopSound(soundName)
 end
 
 ---------------------------------------------------------------
