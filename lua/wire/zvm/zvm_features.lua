@@ -291,14 +291,6 @@ function ZVM:WriteCell(Address,Value)
     return false
   end
 
-  -- Invalidate precompiled data
-  if self.IsAddressPrecompiled[Address] then
-    for k,v in ipairs(self.IsAddressPrecompiled[Address]) do
-      self.PrecompiledData[v] = nil
-      self.IsAddressPrecompiled[Address][k] = nil
-    end
-  end
-
   -- Do we need to perform page checking
   if self.PCAP == 1 and self.MF == 1 then
     -- Fetch page
@@ -351,7 +343,9 @@ function ZVM:WriteCell(Address,Value)
     end
   end
 
-  -- Perform I/O operation
+  -- Invalidate precompiled data (Moved so the address will be changed to physical if necessary)
+    self:InvalidatePrecompileAddress(Address)
+    -- Perform I/O operation
   if (Address >= 0) and (Address < self.RAMSize) then
     self.Memory[Address] = Value
   else

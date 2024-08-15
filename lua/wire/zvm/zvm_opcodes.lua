@@ -1206,12 +1206,7 @@ ZVM.OpcodeTable[131] = function(self)  --SMAP
       self:Dyn_EmitInterruptCheck()
 
       self:Dyn_Emit("for address=IDX*128,IDX*128+127 do")
-        self:Dyn_Emit("if VM.IsAddressPrecompiled[address] then")
-          self:Dyn_Emit("for k,v in ipairs(VM.IsAddressPrecompiled[address]) do")
-            self:Dyn_Emit("VM.PrecompiledData[v] = nil")
-            self:Dyn_Emit("VM.IsAddressPrecompiled[address][k] = nil")
-          self:Dyn_Emit("end")
-        self:Dyn_Emit("end")
+        self:Dyn_Emit("VM:InvalidateVirtualPrecompileAddress(address)")
       self:Dyn_Emit("end")
     self:Dyn_Emit("else")
       self:Dyn_EmitInterrupt("11","IDX")

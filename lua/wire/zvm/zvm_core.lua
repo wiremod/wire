@@ -402,14 +402,22 @@ function ZVM:Precompile_Finalize()
   if not result then
     print("[ZVM ERROR]: "..(message or "unknown error"))
   else
-    for address = self.PrecompileStartXEIP, self.PrecompileXEIP-1 do
+    -- This should guarantee the physical addresses for things.
+    local page = self:GetPageByIndex(math.floor(self.PrecompileStartXEIP/128))
+    local precompileStartPEIP = self.PrecompileStartXEIP
+    local precompilePEIP = self.PrecompileXEIP
+    if page.Remapped == 1 then
+      precompileStartPEIP = page.MappedIndex*128+self.PrecompileStartXEIP%128
+      precompilePEIP = precompileStartPEIP+(self.PrecompileXEIP-self.PrecompileStartXEIP)
+    end
+    for address = precompileStartPEIP, precompilePEIP-1 do
       if not self.IsAddressPrecompiled[address] then
         self.IsAddressPrecompiled[address] = { }
       end
-      table.insert(self.IsAddressPrecompiled[address],self.PrecompileStartXEIP)
+      table.insert(self.IsAddressPrecompiled[address],precompileStartPEIP)
     end
     setfenv(result,self.Env)
-    self.PrecompiledData[self.PrecompileStartXEIP] = result
+    self.PrecompiledData[precompileStartPEIP] = result
   end
 
   return result
@@ -455,9 +463,20 @@ function ZVM:Precompile_Step()
   -- Check if we crossed the page boundary, if so - repeat the check
   if math.floor(self.PrecompileXEIP / 128) ~= self.PrecompilePreviousPage then
     self:Emit("VM:SetCurrentPage(%d)",math.floor(self.PrecompileXEIP/128))
-    self:Emit("if (VM.PCAP == 1) and (VM.CurrentPage.Execute == 0) and")
-    self:Emit("   (VM.PreviousPage.RunLevel ~= 0) then")
-      self:Dyn_EmitInterrupt("14",self.PrecompileIP)
+    self:Emit("if (VM.PCAP == 1) then")
+    self:Emit("if (VM.CurrentPage.Execute == 0) and (VM.PreviousPage.RunLevel ~= 0) then")
+        self:Dyn_EmitInterrupt("14",self.PrecompileIP)
+      self:Emit("end")
+    local expectedPage = self:GetPageByIndex(math.floor(self.PrecompileXEIP/128))
+    if expectedPage.MappedIndex ~= math.floor(expectedPage.MappedIndex) then
+      -- Bad address because MappedIndex is a float, send out an invalid address interrupt if this gets executed(it probably will in a sec)
+      self:Dyn_EmitInterrupt(15,expectedPage.MappedIndex*128)
+    end
+    self:Emit("end")
+    self:Emit("if (VM.CurrentPage.MappedIndex ~= %d) then",expectedPage.MappedIndex)
+      -- This page wasn't the expected continuation, we should invalidate this address. (force recompile at this point)
+      self:Emit("VM:InvalidateVirtualPrecompileAddress(VM.XEIP)")
+      self:Dyn_EmitBreak(true)
     self:Emit("end")
     self:Emit("VM:SetPreviousPage(%d)",math.floor(self.PrecompileXEIP/128))
 
@@ -619,8 +638,26 @@ function ZVM:Precompile_Step()
   return not self.PrecompileBreak
 end
 
+-- Helper that will convert virtual => physical for you if necessary and then invalidate them.
+function ZVM:InvalidateVirtualPrecompileAddress(Address)
+  local Page = self:GetPageByIndex(math.floor(Address/128))
+  local newAddress = Address
+  if Page.Remapped == 1 then
+    Address = (Page.MappedIndex*128)+(Address%128)
+  end
+  self:InvalidatePrecompileAddress(Address)
+end
 
-
+-- These should be physical addresses.
+function ZVM:InvalidatePrecompileAddress(Address)
+      -- Invalidate precompiled data (Moved so the address will be changed to physical if necessary)
+    if self.IsAddressPrecompiled[Address] then
+      for k,v in ipairs(self.IsAddressPrecompiled[Address]) do
+        self.PrecompiledData[v] = nil
+        self.IsAddressPrecompiled[Address][k] = nil
+      end
+    end
+end
 
 --------------------------------------------------------------------------------
 -- VM step forward
@@ -648,9 +685,14 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
     self.NIF = nil
   end
 
+  local address = self.XEIP
+  if self.CurrentPage.Remapped == 1 then
+    address = (self.CurrentPage.MappedIndex*128)+(self.XEIP%128)
+  end
+
   -- Check if current instruction is precompiled
-  local instructionXEIP = self.XEIP
-  if self.PrecompiledData[instructionXEIP] or overrideSteps then
+  local instructionPEIP = address
+  if self.PrecompiledData[instructionPEIP] or overrideSteps then
     -- Precompile next instruction
     if overrideSteps then
       self:Precompile_Initialize()
@@ -670,12 +712,11 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
       -- Step clock forward (account for precompiling)
       self.TMR = self.TMR + 24*8000 -- + overrideSteps*9000
     end
-
     -- Execute precompiled instruction
     if CLIENT then -- FIXME: hack around crash on PCALL
-      self.PrecompiledData[self.XEIP]()
+      self.PrecompiledData[address]()
     else
-      local status,message = pcall(self.PrecompiledData[self.XEIP])
+      local status,message = pcall(self.PrecompiledData[address])
       if not status then
         print("[ZVM ERROR]: "..message)
         self:Interrupt(5,1)
