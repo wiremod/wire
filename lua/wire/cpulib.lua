@@ -434,8 +434,12 @@ if CLIENT or TESTING then
   ------------------------------------------------------------------------------
   -- Show ZCPU/ZGPU documentation
   CPULib.HandbookWindow = nil
-
-  function CPULib.ShowDocumentation(platform)
+  -- Platform bookmarks, it'll automatically jump to this section when opening.
+  local bookmarks = {
+    ZGPU="#zgpu",
+    ZSPU="#zspu"
+  }
+  function CPULib.ShowDocumentation(bookmark)
     local w = ScrW() * 2/3
     local h = ScrH() * 2/3
     local browserWindow = vgui.Create("DFrame")
@@ -448,7 +452,7 @@ if CLIENT or TESTING then
     browser:SetPos(10, 25)
     browser:SetSize(w - 20, h - 35)
 
-    browser:OpenURL("http://wiki.wiremod.com/wiki/Category:ZCPU_Handbook")
+    browser:OpenURL("https://wiremod.github.io/Miscellaneous/zcpudoc.html"..bookmarks[bookmark] or "")
   end
 end
 
