@@ -315,6 +315,27 @@ function EDITOR:PopulateMenu(menu)
       CPULib.SetDebugBreakpoint( self.chosenfile, caretPos )
     end)
   end
+  menu:AddOption("Display line using IP", function()
+    CPULib.Debugger.PreferredTracker = "IP"
+    CPULib.Debugger.PreferredTrackerFriendlyName = "IP"
+  end)
+  menu:AddOption("Display line using CS:IP", function()
+    CPULib.Debugger.PreferredTracker = "CSIP"
+    CPULib.Debugger.PreferredTrackerFriendlyName = "CS:IP"
+  end)
+  menu:AddOption("Display line using PHYS IP", function()
+    CPULib.Debugger.PreferredTracker = "PHYSIP"
+    CPULib.Debugger.PreferredTrackerFriendlyName = "PHYS IP"
+  end)
+  if CPULib.Debugger.FollowTracker then
+    menu:AddOption("Don't follow the displayed line", function()
+      CPULib.Debugger.FollowTracker = false
+    end)
+  else
+    menu:AddOption("Follow the displayed line", function()
+      CPULib.Debugger.FollowTracker = true
+    end)
+  end
 end
 
 function EDITOR:Paint()
