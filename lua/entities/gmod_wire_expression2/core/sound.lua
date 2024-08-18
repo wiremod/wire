@@ -76,7 +76,6 @@ local function soundExists(path)
 end
 
 local function soundCreate(self, entity, index, time, path, fade)
-	path = string.Trim(string.sub(path, 1, 260))
 	if path:match('["?]') then return end
 
 	if not soundExists(path) then return end
