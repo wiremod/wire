@@ -133,7 +133,7 @@ end
 
 function ENT:UpdateSound()
 	if self.NeedsRefresh or self.sound ~= self.ActiveSample then
-		if not file.Exists("sound/" .. self.sound, "GAME") then return end
+		if not WireLib.SoundExists(self.sound) then return end
 
 		self.NeedsRefresh = nil
 		local filter = RecipientFilter()

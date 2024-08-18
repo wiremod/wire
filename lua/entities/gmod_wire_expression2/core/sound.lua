@@ -70,15 +70,11 @@ local function soundStop(self, index, fade)
 	timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index )
 end
 
-local function soundExists(path)
-	if istable(sound.GetProperties(path)) then return true end
-	if file.Exists("sound/" .. string.gsub(path, "^%W", ""), "GAME") then return true end
-end
 
 local function soundCreate(self, entity, index, time, path, fade)
 	if path:match('["?]') then return end
 
-	if not soundExists(path) then return end
+	if not WireLib.SoundExists(path) then return end
 	local data = self.data.sound_data
 	if not isAllowed( self ) then return end
 
