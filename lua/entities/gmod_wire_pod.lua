@@ -190,7 +190,7 @@ end
 -- Accessor funcs for certain functions
 function ENT:SetLocked(b)
 	local pod = self:GetPod()
-	if not pod or self.Locked == b then return end
+	if not IsValid(pod) or self.Locked == b then return end
 
 	self.Locked = b
 	pod:Fire(b and "Lock" or "Unlock", "1", 0)
@@ -207,7 +207,7 @@ end
 
 function ENT:HidePlayer(b)
 	local ply = self:GetPly()
-	if not ply then return end
+	if not IsValid(ply) then return end
 
 	local c = ply:GetColor()
 	if b then
@@ -272,7 +272,7 @@ function ENT:GetPod()
 	return pod
 end
 function ENT:SetPod(pod)
-	if pod and pod:IsValid() and not pod:IsVehicle() then return false end
+	if IsValid(pod) and pod:IsValid() and not pod:IsVehicle() then return false end
 
 	if self:GetPly() then
 		self:PlayerExited()
@@ -286,7 +286,7 @@ function ENT:SetPod(pod)
 	if not IsValid(pod) then return true end
 
 	pod:CallOnRemove("wire_pod_remove", function()
-		if self:IsValid() then self:UnlinkEnt(pod) end
+		if IsValid(self) then self:UnlinkEnt(pod) end
 	end)
 
 	if IsValid(pod:GetDriver()) then
@@ -312,7 +312,7 @@ function ENT:SetHideHUD(val)
 	local ply = self:GetPly()
 	self.HideHUD = val
 
-	if ply and self:GetPod() then -- If we have a player, we SHOULD always have a pod as well, but just in case.
+	if IsValid(ply) and self:GetPod() then -- If we have a player, we SHOULD always have a pod as well, but just in case.
 		net.Start("wire_pod_hud")
 			net.WriteUInt(self.HideHUD, 2)
 		net.Send(ply)
@@ -322,7 +322,7 @@ function ENT:GetHideHUD() return self.HideHUD end
 
 function ENT:NetShowCursor(val, ply)
 	ply = ply or self:GetPly()
-	if not ply then return end
+	if not IsValid(ply) then return end
 
 	net.Start("wire_pod_cursor")
 		net.WriteBool(val or self.ShowCursor)
@@ -332,7 +332,7 @@ function ENT:SetShowCursor(val)
 	local ply = self:GetPly()
 	self.ShowCursor = val
 
-	if ply and self:GetPod() then
+	if IsValid(ply) and self:GetPod() then
 		self:NetShowCursor(val, ply)
 	end
 end
@@ -492,7 +492,7 @@ function ENT:Think()
 	local selfTbl = ent_GetTable(self)
 	local ply = selfTbl.Ply
 
-	if ply and selfTbl.Activated then
+	if IsValid(ply) and selfTbl.Activated then
 		local pod = selfTbl.Pod
 
 		-- Tracing
@@ -501,7 +501,7 @@ function ENT:Think()
 		local trace = util.TraceLine({ start = shootPos, endpos = shootPos + aimVector * 9999999999, filter = { ply, pod } })
 		local distance
 		local hitPos = trace.HitPos
-		if pod then distance = hitPos:Distance(pod:GetPos()) else distance = hitPos:Distance(shootPos) end
+		if IsValid(pod) then distance = hitPos:Distance(pod:GetPos()) else distance = hitPos:Distance(shootPos) end
 
 		if trace.Hit then
 			-- Position
@@ -561,7 +561,7 @@ function ENT:Think()
 		-- Other info
 		recacheOutput(self, selfTbl, "Health", ply:Health())
 		recacheOutput(self, selfTbl, "Armor", ply:Armor())
-		if pod then recacheOutput(self, selfTbl, "ThirdPerson", pod:GetThirdPersonMode() and 1 or 0) end
+		if IsValid(pod) then recacheOutput(self, selfTbl, "ThirdPerson", pod:GetThirdPersonMode() and 1 or 0) end
 	end
 
 	self:NextThink(CurTime())
@@ -606,7 +606,7 @@ end
 function ENT:PlayerExited()
 	local ply = self:GetPly()
 
-	if not ply then return end
+	if not IsValid(ply) then return end
 
 	self:HidePlayer(false)
 
@@ -640,7 +640,7 @@ end
 function Wire_Pod_EnterVehicle(ply, vehicle)
 	for _, v in ipairs(pods) do
 		local pod = v:GetPod()
-		if pod and pod == vehicle then
+		if IsValid(pod) and pod == vehicle then
 			v:PlayerEntered(ply)
 		end
 	end
@@ -649,7 +649,7 @@ end
 function Wire_Pod_ExitVehicle(ply, vehicle)
 	for _, v in ipairs(pods) do
 		local pod = v:GetPod()
-		if pod and pod == vehicle then
+		if IsValid(pod) and pod == vehicle then
 			v:PlayerExited()
 		end
 	end
@@ -660,7 +660,7 @@ function Wire_Pod_CanExitVehicle(vehicle, ply)
 
 	for _, v in ipairs(pods) do
 		local pod = v:GetPod()
-		if pod and pod == vehicle and v.Locked and allowLock then
+		if IsValid(pod) and pod == vehicle and v.Locked and allowLock then
 			return false
 		end
 	end
@@ -678,7 +678,7 @@ end
 function ENT:BuildDupeInfo()
 	local info = BaseClass.BuildDupeInfo(self) or {}
 	local pod = self:GetPod()
-	if pod and not self.RC then
+	if IsValid(pod) and not self.RC then
 		info.pod = pod:EntIndex()
 	end
 	return info
