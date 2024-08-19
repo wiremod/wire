@@ -190,7 +190,7 @@ end
 -- Accessor funcs for certain functions
 function ENT:SetLocked(b)
 	local pod = self:GetPod()
-	if not IsValid(pod) or self.Locked == b then return end
+	if not pod or self.Locked == b then return end
 
 	self.Locked = b
 	pod:Fire(b and "Lock" or "Unlock", "1", 0)
@@ -207,7 +207,7 @@ end
 
 function ENT:HidePlayer(b)
 	local ply = self:GetPly()
-	if not IsValid(ply) then return end
+	if not ply then return end
 
 	local c = ply:GetColor()
 	if b then
@@ -272,7 +272,7 @@ function ENT:GetPod()
 	return pod
 end
 function ENT:SetPod(pod)
-	if IsValid(pod) and pod:IsValid() and not pod:IsVehicle() then return false end
+	if pod and pod:IsValid() and not pod:IsVehicle() then return false end
 
 	if self:GetPly() then
 		self:PlayerExited()
@@ -286,7 +286,7 @@ function ENT:SetPod(pod)
 	if not IsValid(pod) then return true end
 
 	pod:CallOnRemove("wire_pod_remove", function()
-		if IsValid(self) then self:UnlinkEnt(pod) end
+		if self:IsValid() then self:UnlinkEnt(pod) end
 	end)
 
 	if IsValid(pod:GetDriver()) then
@@ -312,7 +312,7 @@ function ENT:SetHideHUD(val)
 	local ply = self:GetPly()
 	self.HideHUD = val
 
-	if IsValid(ply) and self:GetPod() then -- If we have a player, we SHOULD always have a pod as well, but just in case.
+	if ply and self:GetPod() then -- If we have a player, we SHOULD always have a pod as well, but just in case.
 		net.Start("wire_pod_hud")
 			net.WriteUInt(self.HideHUD, 2)
 		net.Send(ply)
@@ -322,7 +322,7 @@ function ENT:GetHideHUD() return self.HideHUD end
 
 function ENT:NetShowCursor(val, ply)
 	ply = ply or self:GetPly()
-	if not IsValid(ply) then return end
+	if not ply then return end
 
 	net.Start("wire_pod_cursor")
 		net.WriteBool(val or self.ShowCursor)
@@ -332,7 +332,7 @@ function ENT:SetShowCursor(val)
 	local ply = self:GetPly()
 	self.ShowCursor = val
 
-	if IsValid(ply) and self:GetPod() then
+	if ply and self:GetPod() then
 		self:NetShowCursor(val, ply)
 	end
 end
@@ -519,7 +519,7 @@ function ENT:Think()
 				local originalangle
 				if selfTbl.RC then
 					originalangle = selfTbl.RC.InitialAngle
-				elseif pod then
+				elseif IsValid(pod) then
 					local attachment = pod:LookupAttachment("vehicle_driver_eyes")
 					if attachment > 0 then
 						originalangle = pod:GetAttachment(attachment).Ang
@@ -606,7 +606,7 @@ end
 function ENT:PlayerExited()
 	local ply = self:GetPly()
 
-	if not IsValid(ply) then return end
+	if not ply then return end
 
 	self:HidePlayer(false)
 
@@ -640,7 +640,7 @@ end
 function Wire_Pod_EnterVehicle(ply, vehicle)
 	for _, v in ipairs(pods) do
 		local pod = v:GetPod()
-		if IsValid(pod) and pod == vehicle then
+		if pod and pod == vehicle then
 			v:PlayerEntered(ply)
 		end
 	end
@@ -649,7 +649,7 @@ end
 function Wire_Pod_ExitVehicle(ply, vehicle)
 	for _, v in ipairs(pods) do
 		local pod = v:GetPod()
-		if IsValid(pod) and pod == vehicle then
+		if pod and pod == vehicle then
 			v:PlayerExited()
 		end
 	end
@@ -660,7 +660,7 @@ function Wire_Pod_CanExitVehicle(vehicle, ply)
 
 	for _, v in ipairs(pods) do
 		local pod = v:GetPod()
-		if IsValid(pod) and pod == vehicle and v.Locked and allowLock then
+		if pod and pod == vehicle and v.Locked and allowLock then
 			return false
 		end
 	end
@@ -678,7 +678,7 @@ end
 function ENT:BuildDupeInfo()
 	local info = BaseClass.BuildDupeInfo(self) or {}
 	local pod = self:GetPod()
-	if IsValid(pod) and not self.RC then
+	if pod and not self.RC then
 		info.pod = pod:EntIndex()
 	end
 	return info
