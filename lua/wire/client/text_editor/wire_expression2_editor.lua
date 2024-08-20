@@ -2027,7 +2027,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	self:SetEditorMode(nEditorType or "Default")
 	local editorMode = WireTextEditor.Modes[self:GetEditorMode() or "Default"]
 
-	local helpMode = E2Helper.Modes[nEditorType or ""] or E2Helper.Modes[editorMode.E2HelperCategory or ""]
+	local helpMode = E2Helper.Modes[nEditorType or ""] or E2Helper.Modes[(editorMode and editorMode.E2HelperCategory) or ""]
 	if helpMode then -- Add "E2Helper" button
 		local E2Help = vgui.Create("Button", self.C.Menu)
 		E2Help:SetSize(58, 20)
@@ -2035,7 +2035,11 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		E2Help:SetText("E2Helper")
 		E2Help.DoClick = function()
 			E2Helper.Show()
-			E2Helper:SetMode(editorMode.E2HelperCategory or nEditorType)
+			if editorMode and editorMode.E2HelperCategory then
+				E2Helper:SetMode(editorMode.E2HelperCategory)
+			else
+				E2Helper:SetMode(nEditorType)
+			end
 		end
 		self.C.E2Help = E2Help
 	end
