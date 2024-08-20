@@ -2035,11 +2035,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		E2Help:SetText("E2Helper")
 		E2Help.DoClick = function()
 			E2Helper.Show()
-			if editorMode.E2HelperCategory then
-				E2Helper:SetMode(editorMode.E2HelperCategory)
-			else
-				E2Helper:SetMode(nEditorType)
-			end
+			E2Helper:SetMode(editorMode.E2HelperCategory or nEditorType)
 		end
 		self.C.E2Help = E2Help
 	end

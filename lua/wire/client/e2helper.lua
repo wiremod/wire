@@ -271,9 +271,6 @@ function E2Helper.Create(reset)
 
 	E2Helper.ModeSelect = vgui.Create("DComboBox", E2Helper.Frame)
 	E2Helper.ModeSelect:SetPos(90, 384)
-	-- E2Helper.ModeSelect:SetText("E2")
-	-- E2Helper.ModeSelect:SetValue(true)
-	-- E2Helper.ModeSelect:SizeToContents()
 	local modecount = 0
 	for k,_ in pairs(E2Helper.Modes) do
 		modecount = modecount + 1
@@ -288,19 +285,6 @@ function E2Helper.Create(reset)
 	function E2Helper.ModeSelect:OnSelect(ind,value,data)
 		E2Helper:SetMode(value)
 	end
-	-- E2Helper.CPUMode = vgui.Create("DCheckBoxLabel", E2Helper.Frame)
-	-- E2Helper.CPUMode:SetPos(90, 404)
-	-- E2Helper.CPUMode:SetText("CPU/GPU")
-	-- E2Helper.CPUMode:SetValue(false)
-	-- E2Helper.CPUMode:SizeToContents()
-	-- function E2Helper.CPUMode.Button:Toggle()
-	-- 	self:SetValue(true)
-	-- 	E2Helper.CurrentMode = false
-	-- 	E2Helper.E2Mode:SetValue(false)
-	-- 	E2Helper.CostColumn:SetName("Opcode")
-	-- 	E2Helper.ReturnsColumn:SetName("Platform")
-	-- 	E2Helper.Update()
-	-- end
 
 	E2Helper.NameEntry.OnTextChanged = delayed(0.1, E2Helper.Update)
 	E2Helper.FromEntry.OnTextChanged = delayed(0.1, E2Helper.Update)
@@ -416,23 +400,6 @@ function E2Helper.Show(searchtext)
 	end
 end
 
--- function E2Helper.UseE2(nEditorType)
--- 	E2Helper.CurrentMode = false
--- 	E2Helper.E2Mode:Toggle()
--- 	local val = E2Helper.ReturnEntry:GetValue()
--- 	if val and (val == "CPU" or val == "GPU") then E2Helper.ReturnEntry:SetText("") end
--- 	E2Helper.CostColumn:SetName("Cost")
--- 	E2Helper.ReturnsColumn:SetName("Returns")
--- end
-
--- function E2Helper.UseCPU(nEditorType)
--- 	E2Helper.CurrentMode = true
--- 	E2Helper.CPUMode:Toggle()
--- 	E2Helper.CostColumn:SetName("Type")
--- 	E2Helper.ReturnsColumn:SetName("For What")
--- 	E2Helper.ReturnEntry:SetText(nEditorType)
--- end
-
 local delayed_cookie_update = delayed(1, cookie_update)
 
 local lastw, lasth
@@ -454,8 +421,6 @@ function E2Helper.Resize()
 	E2Helper.DescriptionEntry:SetPos(orig.DescriptionEntry[1], orig.DescriptionEntry[2] + changeh)
 	E2Helper.DescriptionEntry:SetSize(orig.DescriptionEntry[3] + changew, orig.DescriptionEntry[4])
 	E2Helper.ResultFrame:SetSize(orig.ResultFrame[3] + changew, orig.ResultFrame[4] + changeh)
-	-- E2Helper.E2Mode:SetPos(orig.E2Mode[1], orig.E2Mode[2] + changeh)
-	-- E2Helper.CPUMode:SetPos(orig.CPUMode[1], orig.CPUMode[2] + changeh)
 	E2Helper.ModeSelect:SetPos(orig.ModeSelect[1] + changew, orig.ModeSelect[2] + changeh)
 
 	E2Helper.NameEntry:SetSize(orig.NameEntry[3] + changew * 0.25, orig.NameEntry[4])
