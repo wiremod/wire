@@ -27,6 +27,8 @@ function E2Helper:RegisterMode(name)
 			Descriptions = {}, -- Item descriptions
 			Items = {}, -- Items
 			-- There should be a ModeSetup function here taking the E2Helper table as an argument.
+			-- Optionally, as well, a ModeSwitch function, taking the E2Helper as an argument.
+			-- Will be called on switch, before the new mode's ModeSetup, used for teardown if necessary.
 		}
 		self.Modes[name] = ModeTable
 		return ModeTable
@@ -44,9 +46,15 @@ end
 
 function E2Helper:SetMode(key)
 	local mode = self.Modes[key or false]
+	local curMode = self.Modes[self.CurrentMode]
 	if mode then
+		if curMode.ModeSwitch then
+			curMode.ModeSwitch(self) -- For teardown of previous setup if needed.
+		end
 		self.CurrentMode = key
-		mode.ModeSetup(self)
+		if mode.ModeSetup then
+			mode.ModeSetup(self)
+		end
 		self.Update()
 		return true
 	end
