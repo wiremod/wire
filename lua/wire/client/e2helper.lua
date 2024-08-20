@@ -43,11 +43,11 @@ local function CurrentTable()
 end
 
 function E2Helper:SetMode(key)
-	local mode = E2Helper.Modes[key or false]
+	local mode = self.Modes[key or false]
 	if mode then
-		E2Helper.CurrentMode = key
-		mode.ModeSetup(E2Helper)
-		E2Helper.Update()
+		self.CurrentMode = key
+		mode.ModeSetup(self)
+		self.Update()
 		return true
 	end
 	return false -- No mode.
