@@ -492,7 +492,7 @@ function ENT:Think()
 	local selfTbl = ent_GetTable(self)
 	local ply = selfTbl.Ply
 
-	if ply and selfTbl.Activated then
+	if IsValid(ply) and selfTbl.Activated then
 		local pod = selfTbl.Pod
 
 		-- Tracing
@@ -501,7 +501,7 @@ function ENT:Think()
 		local trace = util.TraceLine({ start = shootPos, endpos = shootPos + aimVector * 9999999999, filter = { ply, pod } })
 		local distance
 		local hitPos = trace.HitPos
-		if pod then distance = hitPos:Distance(pod:GetPos()) else distance = hitPos:Distance(shootPos) end
+		if IsValid(pod) then distance = hitPos:Distance(pod:GetPos()) else distance = hitPos:Distance(shootPos) end
 
 		if trace.Hit then
 			-- Position
@@ -519,7 +519,7 @@ function ENT:Think()
 				local originalangle
 				if selfTbl.RC then
 					originalangle = selfTbl.RC.InitialAngle
-				elseif pod then
+				elseif IsValid(pod) then
 					local attachment = pod:LookupAttachment("vehicle_driver_eyes")
 					if attachment > 0 then
 						originalangle = pod:GetAttachment(attachment).Ang
@@ -561,7 +561,7 @@ function ENT:Think()
 		-- Other info
 		recacheOutput(self, selfTbl, "Health", ply:Health())
 		recacheOutput(self, selfTbl, "Armor", ply:Armor())
-		if pod then recacheOutput(self, selfTbl, "ThirdPerson", pod:GetThirdPersonMode() and 1 or 0) end
+		if IsValid(pod) then recacheOutput(self, selfTbl, "ThirdPerson", pod:GetThirdPersonMode() and 1 or 0) end
 	end
 
 	self:NextThink(CurTime())
