@@ -243,15 +243,13 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 		end
 
 		-- Not sure if we should check for invalid parameters, as it's not really a problem if the user provides more parameters than needed (they will be ignored), but the check
-		-- against pre/post factories injections is still required. If you want to validate that all parameters are valid, uncomment the following code instead.
+		-- against pre/post factories injections is still required.
 		-- ( Although I'm not sure that compiler would allow injection(I couldn't make it), some smart lads could still find a workaround, so it's better to be safe than sorry :) )
-		--for k, v in pairs(data) do
-			--if not sentParams[k] then return self:throw("Invalid parameter name '" .. tostring(k).."'", NULL) end
-		--end
-
-		-- And comment that instead to save cpu time.
-		if data._preFactory then return self:throw("Invalid parameter name '_preFactory'", NULL) end
-		if data._postFactory then return self:throw("Invalid parameter name '_postFactory'", NULL) end
+		-- ( On a second thought, having this check is a good thing, as misspelled parameters will be caught, and nerves will be saved :D )
+		for k, v in pairs(data) do
+			if not sentParams[k] then return self:throw("Invalid parameter name '" .. tostring(k).."'", NULL) end
+			if k=="_preFactory" or k=="_postFactory" then return self:throw("'"..k.."' is reserved parameter name. You can't assign value to it!", NULL) end
+		end
 
 		local entityData = {}
 

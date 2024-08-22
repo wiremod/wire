@@ -27,6 +27,8 @@
 -- WARNING: You have to validate table structures by yourself!
 -- (Either you expect numerical table, ranger data, or any other kind of table.)
 
+-- WARNING: sentSpawn will stop any sent from being spawned, if user passed parameter that isn't registered (or if _pre/postFactory is attempted to be set)!
+
 -- TIP: If you want to stop an entity from being able to be spawned, either return false on Expression2_CanSpawnSent hook, or statically append a classname + true at
 -- 		lua/entities/gmod_wire_expression2/core/custom/prop.lua:201 (local blacklistedSents table).
 -- 		(Or comment out a register function call in this file, or use WireLib.Unregister, but that possibly can break thirdparty addon support. Use only if you know what you're doing.)
