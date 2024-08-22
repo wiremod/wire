@@ -226,7 +226,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 
 	local isWhitelist = wire_expression2_propcore_sents_whitelist:GetBool()
 	if isWhitelist and not registered_sent and sent then
-		return self:throw("Spawning entity '" .. class .. "' is not allowed! wire_expression2_propcore_sents_whitelist is enabled", NULL)
+		return self:throw("Spawning entity '" .. class .. "' is not allowed! wire_expression2_propcore_sents_whitelist is enabled.", NULL)
 	elseif not registered_sent and not sent then
 		return self:throw("Sent class '" .. class .. "' is not registered nor in entity tab!", NULL)
 	end
@@ -247,7 +247,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 		-- ( Although I'm not sure that compiler would allow injection(I couldn't make it), some smart lads could still find a workaround, so it's better to be safe than sorry :) )
 		-- ( On a second thought, having this check is a good thing, as misspelled parameters will be caught, and nerves will be saved :D )
 		for k, v in pairs(data) do
-			if not sentParams[k] then return self:throw("Invalid parameter name '" .. tostring(k).."'", NULL) end
+			if not sentParams[k] then return self:throw("Invalid parameter name '" .. tostring(k).."'. You can use sentGetData(\""..class.."\") to get list of valid parameters.", NULL) end
 			if k=="_preFactory" or k=="_postFactory" then return self:throw("'"..k.."' is reserved parameter name. You can't assign value to it!", NULL) end
 		end
 
