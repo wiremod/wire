@@ -108,40 +108,36 @@ local function getdesc(name, args)
 	return CurrentDescs()[string.format("%s(%s)", name, args)] or CurrentDescs()[name]
 end
 
--- Register the E2 mode after it has at least been created.
-
-delayed(1,function()
-	local E2Mode = E2Helper:RegisterMode("E2")
-	if E2Mode then
-		local E2ModeMetatable = {
-			__index = function(self,key)
-				if key == "Items" then return wire_expression2_funcs end
-				if key == "Descriptions" then return E2Helper.Descriptions end
-				return nil
-			end
-		}
-		E2Mode.Items = nil
-		E2Mode.Descriptions = nil
-		-- The metatable is needed because storing a ref to wire_expression2_funcs
-		-- and then causing e2 to reload (like changing extensions) doesn't update the ref
-		-- or something like that, it causes e2helper to access nil values.
-		setmetatable(E2Mode,E2ModeMetatable)
-		E2Mode.ModeSetup = function(E2HelperPanel)
-			E2HelperPanel.FunctionColumn:SetName("Function")
-			E2HelperPanel.FunctionColumn:SetWidth(126)
-			E2HelperPanel.FromColumn:SetName("From")
-			E2HelperPanel.FromColumn:SetWidth(80)
-			E2HelperPanel.TakesColumn:SetName("Takes")
-			E2HelperPanel.TakesColumn:SetWidth(60)
-			E2HelperPanel.ReturnsColumn:SetName("Returns")
-			E2HelperPanel.ReturnsColumn:SetWidth(60)
-			E2HelperPanel.CostColumn:SetName("Cost")
-			E2HelperPanel.CostColumn:SetWidth(40)
+-- Register the E2 mode, this shouldn't need be done twice because it indexes global for its info
+local E2Mode = E2Helper:RegisterMode("E2")
+if E2Mode then
+	local E2ModeMetatable = {
+		__index = function(self,key)
+			if key == "Items" then return wire_expression2_funcs end
+			if key == "Descriptions" then return E2Helper.Descriptions end
+			return nil
 		end
-
+	}
+	E2Mode.Items = nil
+	E2Mode.Descriptions = nil
+	-- The metatable is needed because storing a ref to wire_expression2_funcs
+	-- and then causing e2 to reload (like changing extensions) doesn't update the ref
+	-- or something like that, it causes e2helper to access nil values.
+	setmetatable(E2Mode,E2ModeMetatable)
+	E2Mode.ModeSetup = function(E2HelperPanel)
+		E2HelperPanel.FunctionColumn:SetName("Function")
+		E2HelperPanel.FunctionColumn:SetWidth(126)
+		E2HelperPanel.FromColumn:SetName("From")
+		E2HelperPanel.FromColumn:SetWidth(80)
+		E2HelperPanel.TakesColumn:SetName("Takes")
+		E2HelperPanel.TakesColumn:SetWidth(60)
+		E2HelperPanel.ReturnsColumn:SetName("Returns")
+		E2HelperPanel.ReturnsColumn:SetWidth(60)
+		E2HelperPanel.CostColumn:SetName("Cost")
+		E2HelperPanel.CostColumn:SetWidth(40)
 	end
+
 end
-)()
 
 function E2Helper.Create(reset)
 
