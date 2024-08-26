@@ -444,8 +444,10 @@ ZVM.NeedInterruptCheck[38] = true
 ZVM.NeedInterruptCheck[39] = true
 ZVM.NeedInterruptCheck[40] = true
 ZVM.NeedInterruptCheck[41] = true
+-- Ports section
 for i=1000,2023 do ZVM.NeedInterruptCheck[i] = true end
-for i=2048,2207 do ZVM.NeedInterruptCheck[i] = true end
+-- Starts just after R31, so these ones past that are going to be the memory access modifiers.
+for i=2048+32,2207 do ZVM.NeedInterruptCheck[i] = true end
 
 -- Register lookup table   FIXME: add segments
 ZVM.NeedRegisterLookup = {}
