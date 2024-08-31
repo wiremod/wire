@@ -1537,8 +1537,10 @@ if not WireLib.PatchedDuplicator then
 end
 
 function WireLib.SoundExists(path)
-	if istable(sound.GetProperties(path)) then return true end
-	if file.Exists("sound/" .. string.gsub(path, "^%W*", ""), "GAME") then return true end
+	path = string.GetNormalizedFilepath(string.gsub(string.sub(path, 1, 260), '["?]', ''))
+	if istable(sound.GetProperties(path)) or file.Exists("sound/" .. path, "GAME") then
+		return path
+	end
 end
 
 -- Notify --

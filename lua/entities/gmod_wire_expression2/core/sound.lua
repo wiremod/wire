@@ -72,9 +72,8 @@ end
 
 
 local function soundCreate(self, entity, index, time, path, fade)
-	if path:match('["?]') then return end
-
-	if not WireLib.SoundExists(path) then return end
+	path = WireLib.SoundExists(path)
+	if not path then return end
 	local data = self.data.sound_data
 	if not isAllowed( self ) then return end
 
