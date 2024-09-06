@@ -510,6 +510,19 @@ end)
 
 -- -----------------------------------------------------------------------------
 
+local MAX_INDEX = 2 ^ 31
+local function makeAppropriateIndex(index)
+	if not isnumber(index) then
+		return 0
+	end
+
+	if index ~= index then
+		return 0
+	end
+
+	return math.Clamp(math.floor(index), -MAX_INDEX, MAX_INDEX)
+end
+
 local function MakeHolo(Player, Pos, Ang, model)
 	local prop = ents.Create( "gmod_wire_hologram" )
 	WireLib.setPos(prop, Pos)
@@ -522,15 +535,17 @@ end
 -- Returns the hologram with the given index or nil if it doesn't exist.
 -- if shouldbenil is nil or false, assert that the hologram exists on @strict with an error. Otherwise, don't check (for holo creation, etc)
 local function CheckIndex(self, index, shouldbenil)
-	index = math.Clamp(math.floor(index), -2^31, 2^31)
+	index = makeAppropriateIndex(index)
+
 	local Holo
-	if index<0 then
+	if index < 0 then
 		Holo = E2HoloRepo[self.uid][-index]
 	else
 		Holo = self.data.holos[index]
 	end
 	if (not Holo or not IsValid(Holo.ent)) and not shouldbenil then return self:throw("Holo at index " .. index .. " does not exist!", nil) end
-	return Holo
+
+	return Holo, index
 end
 
 -- checks if a bone id is valid for a holo, throws an error for @strict if not.
@@ -561,7 +576,8 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 
 	model = GetModel(self, model or "cube") or "models/holograms/cube.mdl"
 
-	local Holo = CheckIndex(self, index, true)
+	local Holo, index = CheckIndex(self, index, true)
+
 	if not Holo then
 		Holo = {}
 		SetIndex(self, index, Holo)
@@ -585,7 +601,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 		Holo.e2owner = self
 
 		prop:CallOnRemove( "holo_cleanup", function( ent, self, index ) --Give the player more holograms if we get removed
-			local Holo = CheckIndex( self, index )
+			local Holo, index = CheckIndex( self, index )
 			if not Holo then return end
 
 			PlayerAmount[self.uid] = PlayerAmount[self.uid] - 1
@@ -676,7 +692,7 @@ __e2setcost(30) -- temporary
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector color, string model)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
-	local Holo = CheckIndex(self, index, true)
+	local Holo, index = CheckIndex(self, index, true)
 	if not Holo and checkHoloCount(self) then return end
 
 	position = Vector(position[1], position[2], position[3])
@@ -688,7 +704,7 @@ end
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector4 color, string model)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
-	local Holo = CheckIndex(self, index, true)
+	local Holo, index = CheckIndex(self, index, true)
 	if not Holo and checkHoloCount(self) then return end
 
 	position = Vector(position[1], position[2], position[3])
@@ -700,7 +716,7 @@ end
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector color)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
-	local Holo = CheckIndex(self, index, true)
+	local Holo, index = CheckIndex(self, index, true)
 	if not Holo and checkHoloCount(self) then return end
 
 	position = Vector(position[1], position[2], position[3])
@@ -712,7 +728,7 @@ end
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector4 color)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
-	local Holo = CheckIndex(self, index, true)
+	local Holo, index = CheckIndex(self, index, true)
 	if not Holo and checkHoloCount(self) then return end
 
 	position = Vector(position[1], position[2], position[3])
@@ -724,7 +740,7 @@ end
 e2function entity holoCreate(index, vector position, vector scale, angle ang)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
-	local Holo = CheckIndex(self, index, true)
+	local Holo, index = CheckIndex(self, index, true)
 	if not Holo and checkHoloCount(self) then return end
 
 	position = Vector(position[1], position[2], position[3])
@@ -736,7 +752,7 @@ end
 e2function entity holoCreate(index, vector position, vector scale)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
-	local Holo = CheckIndex(self, index, true)
+	local Holo, index = CheckIndex(self, index, true)
 	if not Holo and checkHoloCount(self) then return end
 
 	position = Vector(position[1],position[2],position[3])
@@ -747,7 +763,7 @@ end
 e2function entity holoCreate(index, vector position)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
-	local Holo = CheckIndex(self, index, true)
+	local Holo, index = CheckIndex(self, index, true)
 	if not Holo and checkHoloCount(self) then return end
 
 	position = Vector(position[1],position[2],position[3])
@@ -758,7 +774,7 @@ end
 e2function entity holoCreate(index)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
-	local Holo = CheckIndex(self, index, true)
+	local Holo, index = CheckIndex(self, index, true)
 	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
 
 	local ret = CreateHolo(self, index)
@@ -767,7 +783,7 @@ end
 
 __e2setcost(20)
 e2function void holoDelete(index)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return end
 
 	remove_holo(Holo)
@@ -788,7 +804,7 @@ end
 e2function void holoReset(index, string model, vector scale, vector color, string material)
 	model = GetModel(self, model)
 	if not model then return end
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return end
 
 	Holo.ent:SetModel(model)
@@ -829,21 +845,21 @@ end
 __e2setcost(30) -- temporary
 
 e2function void holoScale(index, vector scale)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return end
 
 	rescale(Holo, scale)
 end
 
 e2function vector holoScale(index)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return end
 
 	return Holo.scale or Vector(0, 0, 0) -- TODO: maybe 1,1,1?
 end
 
 e2function void holoScaleUnits(index, vector size)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return end
 
 	local propsize = Holo.ent:OBBMaxs()-Holo.ent:OBBMins()
@@ -856,7 +872,7 @@ e2function void holoScaleUnits(index, vector size)
 end
 
 e2function vector holoScaleUnits(index)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", Vector(0, 0, 0)) end
 
 	local scale = Holo.scale or Vector(0, 0, 0) -- TODO: maybe 1,1,1?
@@ -869,7 +885,7 @@ end
 -- -----------------------------------------------------------------------------
 
 e2function void holoBoneScale(index, boneindex, vector scale)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return end
 	if not CheckBone(self, index, boneindex, Holo) then return end
 
@@ -877,7 +893,7 @@ e2function void holoBoneScale(index, boneindex, vector scale)
 end
 
 e2function void holoBoneScale(index, string bone, vector scale)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return end
 	local boneindex = Holo.ent:LookupBone(bone)
 	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", nil) end
@@ -886,7 +902,7 @@ e2function void holoBoneScale(index, string bone, vector scale)
 end
 
 e2function vector holoBoneScale(index, boneindex)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return Vector(0, 0, 0) end
 	if not CheckBone(self, index, boneindex, Holo) then return Vector(0, 0, 0) end
 
@@ -894,7 +910,7 @@ e2function vector holoBoneScale(index, boneindex)
 end
 
 e2function vector holoBoneScale(index, string bone)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return Vector(0, 0, 0) end
 	local boneindex = Holo.ent:LookupBone(bone)
 
@@ -903,7 +919,7 @@ e2function vector holoBoneScale(index, string bone)
 end
 
 e2function vector holoBonePos(index, boneindex)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return Vector(0, 0, 0) end
 	if not CheckBone(self, index, boneindex, Holo) then return Vector(0, 0, 0) end
 
@@ -912,7 +928,7 @@ end
 
 
 e2function vector holoBonePos(index, string bone)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", Vector(0, 0, 0)) end
 
 	local boneindex = Holo.ent:LookupBone(bone)
@@ -921,7 +937,7 @@ e2function vector holoBonePos(index, string bone)
 end
 
 e2function angle holoBoneAng(index, boneindex)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return Angle(0, 0, 0) end
 	if not CheckBone(self, index, boneindex, Holo) then return Angle(0, 0, 0) end
 
@@ -930,7 +946,7 @@ end
 
 
 e2function angle holoBoneAng(index, string bone)
-	local Holo = CheckIndex(self, index)
+	local Holo, index = CheckIndex(self, index)
 	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", Angle(0, 0, 0)) end
 
 	local boneindex = Holo.ent:LookupBone(bone)
