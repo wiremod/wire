@@ -55,7 +55,7 @@ if CLIENT then
 			local nodes = self:GetNodeList()
 			for i=1,length do
 				local i_next = i+1
-				if not nodes[i_next] then continue end
+				if not nodes[i_next] then goto next_node end
 
 				local nx1 = nodes[i].X*512+512
 				local ny1 = -nodes[i].Y*512+512
@@ -76,6 +76,8 @@ if CLIENT then
 					surface.SetDrawColor(r/a2, g/a2, b/a2, 255)
 					surface.DrawLine(nx1, ny1, nx2, ny2)
 				end
+				
+				::next_node::
 			end
 
 			surface.SetDrawColor(30, 120, 10, 255)
