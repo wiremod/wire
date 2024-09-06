@@ -338,8 +338,6 @@ local function PlaySound(file, volume, pitch)
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return end
 
-	util.PrecacheSound(file)
-
 	SoundObj = CreateSound(ply, file)
 	if SoundObj then
 		SoundObj:PlayEx(tonumber(volume) or 1, tonumber(pitch) or 100)
@@ -357,8 +355,6 @@ local function PlaySoundNoEffect(file)
 
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return end
-
-	util.PrecacheSound(file)
 
 	SoundObjNoEffect = CreateSound(ply, file)
 	if SoundObjNoEffect then
