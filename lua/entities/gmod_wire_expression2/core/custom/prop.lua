@@ -255,7 +255,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 
 		-- Apply data and cast types.
 		for param, org in pairs( sentParams ) do
-			if TypeID(org)==TYPE_FUNCTION then continue end -- Skipping pre/post factories.
+			if TypeID(org)==TYPE_FUNCTION then goto next_param end -- Skipping pre/post factories.
 
 			local value = data[param]
 
@@ -269,6 +269,8 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 			else
 				self:throw("Missing parameter '" .. param .. "' and no default value is registered.", NULL)
 			end
+			
+			::next_param::
 		end
 
 		-- Constructing an entity table
@@ -510,7 +512,7 @@ e2function table sentGetData(string class)
 
 	local size = 0
 	for key, tbl in pairs( sent ) do
-		if key=="_preFactory" or key=="_postFactory" then continue end
+		if key=="_preFactory" or key=="_postFactory" then goto next_sent end
 
 		res.s[key] = E2Lib.newE2Table()
 		res.s[key].size = 2
@@ -520,6 +522,8 @@ e2function table sentGetData(string class)
 		res.stypes[key] = "t"
 
 		size = size + 1
+		
+		::next_sent::
 	end
 	res.size = size
 
@@ -555,10 +559,12 @@ e2function table sentGetDataTypes(string class)
 
 	local size = 0
 	for key, tbl in pairs( sent ) do
-		if key=="_preFactory" or key=="_postFactory" then continue end
+		if key=="_preFactory" or key=="_postFactory" then goto next_key end
 
 		res.s[key] = typeIDToString(tbl[1])
 		size = size + 1
+		
+		::next_key::
 	end
 	res.size = size
 
@@ -588,10 +594,12 @@ e2function table sentGetDataDefaultValues(string class)
 
 	local size = 0
 	for key, tbl in pairs( sent ) do
-		if key=="_preFactory" or key=="_postFactory" then continue end
+		if key=="_preFactory" or key=="_postFactory" then goto next_key end
 
 		res.s[key] = sentDataFormatDefaultVal(tbl[2])
 		size = size + 1
+		
+		::next_key::
 	end
 	res.size = size
 
@@ -621,10 +629,12 @@ e2function table sentGetDataDescriptions(string class)
 
 	local size = 0
 	for key, tbl in pairs( sent ) do
-		if key=="_preFactory" or key=="_postFactory" then continue end
+		if key=="_preFactory" or key=="_postFactory" then goto next_key end
 
 		res.s[key] = tbl[3] or "<no description>"
 		size = size + 1
+		
+		::next_key::
 	end
 	res.size = size
 

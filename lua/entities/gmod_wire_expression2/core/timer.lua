@@ -203,13 +203,15 @@ e2function number time(table data)
 	local args = {}
 
 	for k,v in pairs( data.s ) do
-		if data.stypes[k] ~= "n" or not validkeys[k] then continue end
+		if data.stypes[k] ~= "n" or not validkeys[k] then goto next_key end
 
 		if k == "isdst" then
 			args.isdst = (v == 1)
 		else
 			args[k] = v
 		end
+		
+		::next_key::
 	end
 
 	return os.time( args )

@@ -86,12 +86,14 @@ local function processQueue()
 	for i=1,#temp do
 		local currentsignal = temp[i]
 
-		if not currentsignal.from or not currentsignal.from:IsValid() then continue end
-		if not currentsignal.to or not currentsignal.to:IsValid() then continue end
+		if not currentsignal.from or not currentsignal.from:IsValid() then goto next_signal end
+		if not currentsignal.to or not currentsignal.to:IsValid() then goto next_signal end
 
 		currentsignal.to.context.data.currentsignal = currentsignal
 		currentsignal.to:Execute()
 		currentsignal.to.context.data.currentsignal = nil
+		
+		::next_signal::
 	end
 
 	if next(queue) ~= nil then

@@ -92,13 +92,13 @@ if SERVER then
 				local cost = funcdata[4] or 0
 				local argnames = funcdata.argnames or {}
 
-				if string.sub(signature,1,3) == "op:" then continue end
+				if string.sub(signature,1,3) == "op:" then goto next_signature end
 
 				-- get file path
 				local info = debug.getinfo( func )
 				local filepath = string.match(info.short_src,"/gmod_wire_expression2/core/(.+)")
 				filepath = string.gsub(filepath,".lua","")
-				if exclude[filepath] then continue end
+				if exclude[filepath] then goto next_signature end
 
 				if not files[filepath] then files[filepath] = {} end
 
@@ -164,6 +164,8 @@ if SERVER then
 					str = str,
 					sortparam = info.linedefined
 				}
+				
+				::next_signature::
 			end
 
 			-- build navigation

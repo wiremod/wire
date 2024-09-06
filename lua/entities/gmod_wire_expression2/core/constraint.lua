@@ -98,10 +98,12 @@ local function constraint_GetTable(ent,filter_lookup)
 
 	for _, con in pairs( ent.Constraints ) do
 		if IsValid(con) then
-			if filter_lookup and not checkFilter(con.Type,filter_lookup) then continue end
+			if filter_lookup and not checkFilter(con.Type,filter_lookup) then goto next_constraint end
 
 			result[#result+1] = con
 		end
+		
+		::next_constraint::
 	end
 
 	return result
@@ -116,10 +118,12 @@ local function constraint_FindConstraint(ent,filter_lookup)
 
 	for _, con in pairs( ent.Constraints ) do
 		if IsValid(con) then
-			if filter_lookup and not checkFilter(con.Type,filter_lookup) then continue end
+			if filter_lookup and not checkFilter(con.Type,filter_lookup) then goto next_constraint end
 
 			return con
 		end
+		
+		::next_constraint::
 	end
 end
 
@@ -164,13 +168,15 @@ getConnectedEntities = function(ent, filter_lookup, result, already_added)
 	for _, con in pairs( ent.Constraints or {} ) do -- add constrained entities
 		if IsValid(con) then
 			if filter_lookup and not checkFilter(con.Type,filter_lookup) then -- skip if it doesn't match the filter
-				continue
+				goto next_constraint
 			end
 
 			for i=1, 6 do
 				getConnectedEx( con["Ent"..i], filter_lookup, result, already_added )
 			end
 		end
+		
+		::next_constraint::
 	end
 
 	return result
