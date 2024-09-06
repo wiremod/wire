@@ -136,22 +136,22 @@ local function NavigateToFolder(self, path)
 			nodename = string.lower(v)
 		else
 			nodename = nodename .. "/" .. string.lower(v)
-			if not IsValid(lastnode) then continue end
-			if not IsValid(lastnode.ChildNodes) then continue end
+			if not IsValid(lastnode) then goto next_node end
+			if not IsValid(lastnode.ChildNodes) then goto next_node end
 
 			nodes = lastnode.ChildNodes:GetChildren()
 		end
 
 		local found = false
 		for _, node in pairs(nodes) do
-			if not IsValid(node) then continue end
+			if not IsValid(node) then goto next_node end
 
 			local path = string.lower(node.m_strFolder)
 			if nodename == "" then break end
 
 			if path ~= nodename or found then
 				node:SetExpanded(false)
-				continue
+				goto next_node
 			end
 
 			if k == #dirs then -- just select the last one
@@ -162,6 +162,8 @@ local function NavigateToFolder(self, path)
 			lastnode = node
 			found = true
 		end
+		
+		::next_node::
 	end
 
 	self.NotUserPressed = false
@@ -458,7 +460,7 @@ function PANEL:LayoutPages(forcelayout)
 	local VisibleButtons = 0
 	for i=1, self.m_nPageCount do
 		local button = self.PageChooseNumbers.Buttons[i]
-		if not IsValid(button) then continue end
+		if not IsValid(button) then goto next_button end
 
 		if pagepos < i+ButtonCount and pagepos >= i-ButtonCount+1 then
 			button:SetVisible(true)
@@ -470,6 +472,8 @@ function PANEL:LayoutPages(forcelayout)
 		end
 
 		button.Depressed = false
+		
+		::next_button::
 	end
 
 	local SelectButton = self.PageChooseNumbers.Buttons[self.m_nPage]

@@ -943,7 +943,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 					k = ent.InputAliases[k]
 				else
 					Msg("ApplyDupeInfo: Error, Could not find input '" .. k .. "' on entity type: '" .. ent:GetClass() .. "'\n")
-					continue
+					goto next_input
 				end
 			end
 
@@ -968,7 +968,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 						input.SrcId = ent2.OutputAliases[input.SrcId]
 					else
 						Msg("ApplyDupeInfo: Error, Could not find output '" .. input.SrcId .. "' on entity type: '" .. ent2:GetClass() .. "'\n")
-						continue
+						goto next_input
 					end
 				end
 			end
@@ -991,6 +991,8 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 			else
 				Msg("ApplyDupeInfo: Error, Could not find the output entity\n")
 			end
+			
+			::next_input::
 		end
 	end
 end

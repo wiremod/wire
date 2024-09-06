@@ -194,10 +194,12 @@ function PANEL:AddItem(...)
 	local i = 0
 
 	for k, v in ipairs(itemtable) do
-		if (k == 2) then continue end
+		if (k == 2) then goto next_item end
 
 		i = i + 1
 		itemargs[i] = v
+		
+		::next_item::
 	end
 
 	local line = self.SoundProperties:AddLine(self.TabfileCount + 1, ...)

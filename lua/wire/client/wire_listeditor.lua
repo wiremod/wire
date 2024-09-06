@@ -81,10 +81,12 @@ local function ReadLine(filedata)
 		end
 		line = string.Trim(line)
 
-		if (not fileend and line == "") then continue end
+		if (not fileend and line == "") then goto next_line end
 		fileline = line
 
 		break
+		
+		::next_line::
 	end
 
 	local linetable = string.Explode("|", fileline) or {}
@@ -423,10 +425,12 @@ function PANEL:AddItem(...)
 	local i = 0
 
 	for k, v in ipairs(itemtable) do
-		if (k == 1) then continue end
+		if (k == 1) then goto next_item end
 
 		i = i + 1
 		itemargs[i] = v
+		
+		::next_item::
 	end
 	self.Tabfile[item] = itemargs
 
