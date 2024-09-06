@@ -1,7 +1,7 @@
 local Test = {}
 
 function Test.Run(CPU,TestSuite)
-	TestSuite.Compile("MOV R0,6 ADD R0,R0 MUL R0,2", "internal", nil, Test.CompileError)
+	TestSuite.Compile("MOV R0,6 ADD R0,R0 MUL R0,2 DB 0", "internal", nil, Test.CompileError)
 	-- end result of the above code should be R0 = 24
 	local buff = TestSuite.GetCompileBuffer()
 	local IOBus = TestSuite.CreateVirtualIOBus(#buff + 1) -- create an IOBus large enough to hold this code

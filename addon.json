@@ -16,5 +16,6 @@
 		"gitrid.sh",
 		"LICENSE",
 		"wiremod.*"
+		"benchmark_*"
 	]
 }
