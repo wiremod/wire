@@ -77,7 +77,7 @@ if CLIENT then
 		for k=#self.Points,1,-1 do
 			local v = self.Points[k]
 
-			if k == #self.Points and keeplatest:GetBool() then continue end -- Check keep latest convar
+			if k == #self.Points and keeplatest:GetBool() then goto next_point end -- Check keep latest convar
 
 			if v.DieTime then
 				v.Color.a = 255-(CurTime()-v.SpawnTime)/(v.DieTime-v.SpawnTime)*255 -- Set alpha
@@ -94,6 +94,8 @@ if CLIENT then
 
 				if self.Points[k-1] then self.Points[k-1].LineBeam = false end -- Don't draw a line to this point anymore
 			end
+			
+			::next_point::
 		end
 
 		return true

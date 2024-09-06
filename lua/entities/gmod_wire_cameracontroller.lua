@@ -443,9 +443,11 @@ function ENT:Setup(ParentLocal,AutoMove,FreeMove,LocalMove,AllowZoom,AutoUnclip,
 
 	if Vehicles then
 		for k,v in ipairs( Vehicles ) do
-			if( TypeID(v) ~= TYPE_ENTITY ) then continue end
-			if( not IsValid(v) ) then continue end
+			if( TypeID(v) ~= TYPE_ENTITY ) then goto next_vehicle end
+			if( not IsValid(v) ) then goto next_vehicle end
 			self:LinkEnt( v )
+			
+			::next_vehicle::
 		end
 	end
 
@@ -850,9 +852,11 @@ function ENT:TriggerInput( name, value )
 	elseif name == "Vehicles" then
 		self:ClearEntities()
 		for k, v in ipairs( value ) do
-			if( TypeID(v) ~= TYPE_ENTITY ) then continue end
-			if( not IsValid(v) ) then continue end
+			if( TypeID(v) ~= TYPE_ENTITY ) then goto next_value end
+			if( not IsValid(v) ) then goto next_value end
 			self:LinkEnt( v )
+			
+			::next_value::
 		end
 	else
 		self:LocalizePositions(false)
