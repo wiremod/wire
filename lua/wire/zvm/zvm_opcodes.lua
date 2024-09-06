@@ -156,9 +156,23 @@ end
 ZVM.OpcodeTable[16] = function(self)  --RD
   self:Dyn_Emit("$L OP,ANS = $2,0")
   self:Dyn_EmitOperand("ANS")
-  self:Dyn_Emit("if VM.Memory[OP] then")
-    self:Dyn_Emit("ANS = VM.Memory[OP]")
-  self:Dyn_Emit("end")
+  self:Dyn_BeginUnprivilegedCode(0)
+    self:Dyn_Emit("if VM.PreqHandled == 1 then")
+      self:Dyn_Emit("ANS = VM.PreqReturn or 0")
+      self:Dyn_Emit("VM.PreqReturn = 0")
+      self:Dyn_Emit("VM.PreqHandled = 0")
+    self:Dyn_Emit("elseif VM.PreqHandled == 0 then")
+      -- 16 is the opcode to send to LADD for int 13
+      self:Dyn_EmitUnprivilegedRequestInterrupt(16)
+    self:Dyn_Emit("else")
+      self:Dyn_Emit("VM.PreqHandled = 0")
+    self:Dyn_Emit("end")
+  self:Dyn_Emit("else")
+    -- In this case we're privileged, so just handle it as usual
+    self:Dyn_Emit("if VM.Memory[OP] then")
+      self:Dyn_Emit("ANS = VM.Memory[OP]")
+    self:Dyn_Emit("end")
+  self:Dyn_EndUnprivilegedCode()
 end
 ZVM.OpcodeTable[17] = function(self)  --WD
   self:Dyn_Emit("$L ADDR = math.floor($1)")
@@ -995,9 +1009,23 @@ ZVM.OpcodeTable[120] = function(self)  --CPUGET
   self:Dyn_Emit("$L OP = 0")
   self:Dyn_EmitState()
   self:Dyn_EmitOperand("OP")
-  self:Dyn_Emit("if VM.InternalRegister[REG] then")
-    self:Dyn_Emit("OP = VM[VM.InternalRegister[REG]]")
-  self:Dyn_Emit("end")
+  self:Dyn_BeginUnprivilegedCode(0)
+    self:Dyn_Emit("if VM.PreqHandled == 1 then")
+      self:Dyn_Emit("OP = VM.PreqReturn or 0")
+      self:Dyn_Emit("VM.PreqReturn = 0")
+      self:Dyn_Emit("VM.PreqHandled = 0")
+    self:Dyn_Emit("elseif VM.PreqHandled == 0 then")
+      -- 120 is the opcode to send to LADD for int 13
+      self:Dyn_EmitUnprivilegedRequestInterrupt(120)
+    self:Dyn_Emit("else")
+      self:Dyn_Emit("VM.PreqHandled = 0")
+    self:Dyn_Emit("end")
+  self:Dyn_Emit("else")
+    -- In this case we're privileged, so just handle it as usual
+    self:Dyn_Emit("if VM.InternalRegister[REG] then")
+      self:Dyn_Emit("OP = VM[VM.InternalRegister[REG]]")
+    self:Dyn_Emit("end")
+  self:Dyn_EndUnprivilegedCode()
 end
 ZVM.OpcodeTable[121] = function(self)  --CPUSET
   self:Dyn_Emit("$L REG = $1")
@@ -1215,10 +1243,25 @@ ZVM.OpcodeTable[131] = function(self)  --SMAP
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[132] = function(self)  --GMAP
-  self:Dyn_Emit("$L IDX = math.floor(ADDR / 128)")
-  self:Dyn_Emit("$L PAGE = VM:GetPageByIndex(IDX)")
-  self:Dyn_EmitInterruptCheck()
-  self:Dyn_EmitOperand("PAGE.MappedIndex")
+  self:Dyn_EmitOperand("OP")
+  self:Dyn_BeginUnprivilegedCode(0)
+    self:Dyn_Emit("if VM.PreqHandled == 1 then")
+      self:Dyn_Emit("OP = VM.PreqReturn or 0")
+      self:Dyn_Emit("VM.PreqReturn = 0")
+      self:Dyn_Emit("VM.PreqHandled = 0")
+    self:Dyn_Emit("elseif VM.PreqHandled == 0 then")
+      -- 132 is the opcode to send to LADD for int 13
+      self:Dyn_EmitUnprivilegedRequestInterrupt(132)
+    self:Dyn_Emit("else")
+      self:Dyn_Emit("VM.PreqHandled = 0")
+    self:Dyn_Emit("end")
+  self:Dyn_Emit("else")
+    -- In this case we're privileged, so just handle it as usual
+    self:Dyn_Emit("$L IDX = math.floor($2 / 128)")
+    self:Dyn_Emit("$L PAGE = VM:GetPageByIndex(IDX)")
+    self:Dyn_EmitInterruptCheck()
+    self:Dyn_Emit("OP = (PAGE and PAGE.MappedIndex) or 0")
+  self:Dyn_EndUnprivilegedCode()
 end
 ZVM.OpcodeTable[133] = function(self)  --RSTACK
   self:Dyn_EmitForceRegisterGlobal("ESP")

@@ -380,6 +380,31 @@ function ZVM:Dyn_EndQuotaInterrupt()
   self:Dyn_Emit("end")
 end
 
+-- Allows you to set up code that runs if greater than this runlevel
+function ZVM:Dyn_BeginUnprivilegedCode(Runlevel)
+  self:Emit("if (VM.PCAP == 1) and (VM.CurrentPage.RunLevel > %d) then",Runlevel)
+end
+
+-- For readability to signify the end of an unprivileged block.
+function ZVM:Dyn_EndUnprivilegedCode()
+  self:Emit("end")
+end
+
+-- Set PreqOperands and an interrupt to return to just before this instruction, so it can be handled like a MEMRQ
+function ZVM:Dyn_EmitUnprivilegedRequestInterrupt(Opcode)
+  self:Dyn_Emit("VM.PreqOperand1 = $1 or 0")
+  self:Dyn_Emit("VM.PreqOperand2 = $2 or 0")
+  self:Dyn_Emit("VM.PreqReturn = 0")
+  -- Default PreqHandled to -1 (meaning unhandled, don't take return value, just skip the instruction)
+  self:Dyn_Emit("VM.PreqHandled = -1")
+  -- Return to just before instruction, to allow the instruction to get the return value if handled
+  self:Dyn_EmitState()
+  self:Dyn_Emit("VM.IP = %d",self.PrecompileIP-self.PrecompileCurInstructionSize)
+  self:Dyn_Emit("VM.XEIP = %d",self.PrecompileXEIP-self.PrecompileCurInstructionSize)
+  self:Dyn_Emit("VM:Interrupt(13,%d)",Opcode)
+  self:Dyn_EmitBreak()
+end
+
 --------------------------------------------------------------------------------
 function ZVM:Precompile_Initialize()
   self.PrecompileXEIP = self.XEIP
@@ -515,9 +540,14 @@ function ZVM:Precompile_Step()
 
   -- Check opcode runlevel
   if self.OpcodeRunLevel[Opcode] then
-    self:Emit("if (VM.PCAP == 1) and (VM.CurrentPage.RunLevel > %d) then",self.OpcodeRunLevel[Opcode])
-      self:Dyn_EmitInterrupt("13",Opcode)
-    self:Emit("end")
+    self:Dyn_BeginUnprivilegedCode(self.OpcodeRunLevel[Opcode])
+      self:Dyn_Emit("if VM.PreqHandled == 0 then")
+        self:Dyn_EmitUnprivilegedRequestInterrupt(Opcode)
+      self:Dyn_Emit("end")
+      -- Skip running the privileged code if this was deemed "handled"
+      self:Dyn_Emit("VM.PreqHandled = 0")
+    self:Dyn_Emit("else")
+      -- Privileged code will get wrapped in this block
   end
 
   -- Calculate operand RM bytes
@@ -631,6 +661,10 @@ function ZVM:Precompile_Step()
     -- Emit interrupt check
     if self.EmitNeedInterruptCheck then
       self:Dyn_EmitInterruptCheck()
+    end
+    if self.OpcodeRunLevel[Opcode] then
+      -- Wrap the privileged block up here.
+      self:Dyn_EndUnprivilegedCode()
     end
   end
 

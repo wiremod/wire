@@ -292,6 +292,12 @@ function VM:Reset()
   self.INTR = 0       -- Handling an interrupt
   self.BlockStart = 0 -- Start of the block
   self.BlockSize = 0  -- Size of the block
+  self.QUOTIMER = 0
+  self.QUOCMP = 0
+  self.PreqOperand1 = 0
+  self.PreqOperand2 = 0
+  self.PreqHandled = 0
+  self.PreqReturn = 0
 
   -- Reset internal GPU registers
   --  [131072]..[2097151] - Extended GPU memory (2MB GPU)

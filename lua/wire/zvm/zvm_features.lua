@@ -111,6 +111,12 @@ function ZVM:Reset()
   self.BlockSize = 0       -- Size of the block
   self.HaltPort = 0        -- Unused/obsolete
   self.TimerDT = 0         -- Timer deltastep within cached instructions block
+  self.QUOTIMER = 0
+  self.QUOCMP = 0
+  self.PreqOperand1 = 0    -- Privileged Request Operands (used in interrupt 13 for opcodes requiring runlevel 0)
+  self.PreqOperand2 = 0 
+  self.PreqHandled = 0
+  self.PreqReturn = 0
 
   -- Runlevel registers
   self.CRL  = 0            -- Current runlevel

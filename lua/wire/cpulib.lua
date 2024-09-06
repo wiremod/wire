@@ -804,6 +804,7 @@ end
 --    TR: trigonometric syntax operand
 --    OL: old mnemonic for the instruction
 --    BL: instruction supports block prefix
+--    PR: privileged opcode but with custom handler(for example, if it needs to get a value to write to an operand)
 --  Op1 - operand 1 name
 --  Op2 - operand 2 name
 
@@ -824,7 +825,7 @@ end
 -- INT: 48-bit signed integer
 
 CPULib.InstructionTable = {}
-local W1,R0,OB,UB,CB,TR,OL,BL = 1,2,4,8,16,32,64,128
+local W1,R0,OB,UB,CB,TR,OL,BL,PR = 1,2,4,8,16,32,64,128,256
 
 local function Bit(x,n) return (math.floor(x / n) % 2) == 1 end
 local function Entry(Set,Opc,Mnemonic,Ops,Version,Flags,Op1,Op2,Reference)
@@ -846,6 +847,7 @@ local function Entry(Set,Opc,Mnemonic,Ops,Version,Flags,Op1,Op2,Reference)
       Trigonometric = Bit(Flags,TR),
       Old = Bit(Flags,OL),
       BlockPrefix = Bit(Flags,BL),
+      PrivilegedRequester = Bit(Flags,PR)
     })
 end
 local function CPU(...) Entry("CPU",...) end
@@ -880,7 +882,8 @@ CPULib.FlagLookup = {
   ["CB"] = CB,
   ["TR"] = TR,
   ["OL"] = OL,
-  ["BL"] = BL
+  ["BL"] = BL,
+  ["PR"] = PR
 }
 
 -- Parses an array of flags into a single number from a lookup table by name
@@ -1099,7 +1102,7 @@ CPU(012, "MUL",           2,   1.00,    0,         "X",     "Y",     "X = X * Y"
 CPU(013, "DIV",           2,   1.00,    0,         "X",     "Y",     "X = X / Y")
 CPU(014, "MOV",           2,   1.00,    0,         "X",     "Y",     "X = Y")
 CPU(015, "CMP",           2,   1.00,    0,         "X",     "Y",     "Compare X and Y. Use with conditional branching instructions")
-CPU(016, "RD",            2,   1.00,    R0+OB,     "X",     "PTR",   "Read value from memory by pointer PTR")
+CPU(016, "RD",            2,   1.00,    PR+OB,     "X",     "PTR",   "Read value from memory by pointer PTR")
 CPU(017, "WD",            2,   1.00,    R0+OB,     "PTR",   "Y",     "Write value to memory by pointer PTR")
 CPU(018, "MIN",           2,   1.00,    0,         "X",     "Y",     "Set X to smaller value out of X and Y")
 CPU(019, "MAX",           2,   1.00,    0,         "X",     "Y",     "Set X to bigger value out of X and Y")
@@ -1235,7 +1238,7 @@ CPU(117, "LEAVE",         0,  10.00,    0,         "",      "",      "Leave subr
 CPU(118, "STM",           0,  10.00,    R0,        "",      "",      "Enable extended memory mode")
 CPU(119, "CLM",           0,  10.00,    R0,        "",      "",      "Disable extended memory mode")
 ---- Dec 12 -------------------------------------------------------------------------------------------------------------------------------------
-CPU(120, "CPUGET",        2,   5.00,    R0,        "X",     "IDX",   "Read internal processor register IDX")
+CPU(120, "CPUGET",        2,   5.00,    PR,         "X",     "IDX",   "Read internal processor register IDX")
 CPU(121, "CPUSET",        2,   5.00,    R0,        "IDX",   "Y",     "Write internal processor register IDX")
 CPU(122, "SPP",           2,   5.00,    R0+BL,     "PAGE",  "IDX",   "Set page flag IDX")
 CPU(123, "CPP",           2,   5.00,    R0+BL,     "PAGE",  "IDX",   "Clear page flag IDX")
@@ -1248,7 +1251,7 @@ CPU(129, "CMPOR",         2,   6.00,    0,         "X",     "Y",     "Compare X 
 ---- Dec 13 -------------------------------------------------------------------------------------------------------------------------------------
 CPU(130, "MSHIFT",        2,   7.00,    0,         "COUNT", "OFFSET","Shift (and rotate) data pointed by ESI by OFFSET bytes")
 CPU(131, "SMAP",          2,   8.00,    R0+BL,     "PAGE1", "PAGE2", "Remap PAGE1 to physical page PAGE2")
-CPU(132, "GMAP",          2,   8.00,    R0,        "X",     "PAGE",  "Read what physical page PAGE is mapped to")
+CPU(132, "GMAP",          2,   8.00,    PR,        "X",     "PAGE",  "Read what physical page PAGE is mapped to")
 CPU(133, "RSTACK",        2,   9.00,    0,         "X",     "IDX",   "Read value from stack at offset IDX (from address SS+IDX)")
 CPU(134, "SSTACK",        2,   9.00,    0,         "IDX",   "Y",     "Write value to stack at offset IDX (to address SS+IDX)")
 CPU(135, "ENTER",         1,  10.00,    0,         "SIZE",  "",      "Enter stack frame and allocate SIZE bytes on stack for local variables")

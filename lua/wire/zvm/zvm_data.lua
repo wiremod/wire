@@ -83,8 +83,13 @@ ZVM.InternalRegister[65] = "TimerRate"
 ZVM.InternalRegister[66] = "TimerPrevTime"
 ZVM.InternalRegister[67] = "TimerAddress"
 ZVM.InternalRegister[68] = "TimerPrevMode"
+----------------------------------
 ZVM.InternalRegister[69] = "LASTQUO"
 ZVM.InternalRegister[70] = "QUOFLAG"
+ZVM.InternalRegister[71] = "PreqOperand1"
+ZVM.InternalRegister[72] = "PreqOperand2"
+ZVM.InternalRegister[73] = "PreqReturn"
+ZVM.InternalRegister[74] = "PreqHandled"
 ----------------------------------
 for reg=0,31 do ZVM.InternalRegister[96+reg] = "R"..reg end
 
