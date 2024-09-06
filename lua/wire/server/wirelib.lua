@@ -1536,6 +1536,13 @@ if not WireLib.PatchedDuplicator then
 	end
 end
 
+function WireLib.SoundExists(path)
+	path = string.GetNormalizedFilepath(string.gsub(string.sub(path, 1, 260), '["?]', ''))
+	if istable(sound.GetProperties(path)) or file.Exists("sound/" .. path, "GAME") then
+		return path
+	end
+end
+
 -- Notify --
 
 local triv_start = WireLib.Net.Trivial.Start

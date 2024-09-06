@@ -133,7 +133,6 @@ end
 
 function ENT:UpdateSound()
 	if self.NeedsRefresh or self.sound ~= self.ActiveSample then
-		if not file.Exists("sound/" .. self.sound, "GAME") then return end
 
 		self.NeedsRefresh = nil
 		local filter = RecipientFilter()
@@ -167,15 +166,15 @@ end
 function ENT:SetSound(soundName)
 	self:StopSounds()
 
-	soundName = string.Trim(string.sub(soundName, 1, 260))
-	if soundName:match('["?]') then return end
-	util.PrecacheSound(soundName)
+	soundName = WireLib.SoundExists(soundName)
+	if not soundName then return end
 
+	util.PrecacheSound(soundName)
 	self.sound = soundName
 
-	self.SoundProperties = sound.GetProperties(self.sound)
+	self.SoundProperties = sound.GetProperties(soundName)
 	if self.SoundProperties then
-		WireLib.TriggerOutput(self, "Duration", SoundDuration(self.sound))
+		WireLib.TriggerOutput(self, "Duration", SoundDuration(soundName))
 		WireLib.TriggerOutput(self, "Property Sound", 1)
 		WireLib.TriggerOutput(self, "Properties", self.SoundProperties)
 	else
@@ -183,7 +182,7 @@ function ENT:SetSound(soundName)
 		WireLib.TriggerOutput(self, "Properties", {})
 	end
 
-	self:SetOverlayText( soundName:gsub("[/\\]+","/") )
+	self:SetOverlayText(soundName)
 end
 
 function ENT:StartSounds()
