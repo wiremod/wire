@@ -1537,9 +1537,20 @@ if not WireLib.PatchedDuplicator then
 end
 
 function WireLib.SoundExists(path)
-	path = string.GetNormalizedFilepath(string.gsub(string.sub(path, 1, 260), '["?]', ''))
+	-- Limit length and remove invalid chars
+	if #path>260 then path = string.sub(path, 1, 260) end
+	path = string.gsub(path, "[\"?']", "")
+
+	-- Extract sound flags. Only allowed flags are '<', '>', '^', ')'
+	local flags
+	flags, path = string.match(path, "^([<>%^%)]*)(.*)")
+	if #flags==0 or #flags>2 then
+		flags = nil
+	end
+
+	path = string.GetNormalizedFilepath(path)
 	if istable(sound.GetProperties(path)) or file.Exists("sound/" .. path, "GAME") then
-		return path
+		return flags and (flags..path) or path
 	end
 end
 
