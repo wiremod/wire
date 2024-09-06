@@ -318,9 +318,14 @@ function ZVM:WriteCell(Address,Value)
     --        2 - read interrupt requested
     --        3 - write interrupt requested
     --        4 - read interrupt handled
-    --        5 - write interrupt handled
+    --        5 - write address / value changed, write request is allowed
+    --        6 - write request handled by interrupt, skip performing the write ourselves
     -- Check if page is overriden
     if Page.Override == 1 then
+      if self.MEMRQ == 6 then -- Skip performing the write ourselves, the interrupt did it for us.
+        self.MEMRQ = 0
+        return true
+      end
       if self.MEMRQ == 5 then -- write IRQ handled, new address/value available
         self.MEMRQ = 0
         Address = self.MEMADDR
