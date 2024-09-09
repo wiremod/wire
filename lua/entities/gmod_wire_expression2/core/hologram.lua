@@ -524,7 +524,7 @@ end
 local MAX_INDEX = 2 ^ 31
 local function CheckIndex(self, index, shouldbenil)
 	if index ~= index then return self:throw("holo index is NaN!", nil) end
-	index = math.Clamp(math.floor(index), -MAX_INDEX, MAX_INDEX)
+	index = math.Clamp(math.floor(index), -2^31, 2^31)
 	local Holo
 	if index<0 then
 		Holo = E2HoloRepo[self.uid][-index]
