@@ -1580,7 +1580,7 @@ end
 
 e2function number trackCollision( entity ent )
 	-- If it's not registered, collisions will just stack up infinitely and not be flushed.
-	if not registered_chips[self.entity] then
+	if not self.entity.registered_events["entityCollision"] then
 		self:forceThrow("event entityCollision(eexcd) is needed to use trackCollision(e)!")
 	end
 	if IsValid(ent) then
