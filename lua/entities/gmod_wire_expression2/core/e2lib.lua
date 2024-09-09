@@ -243,7 +243,7 @@ end
 
 E2Lib.Lambda = Function
 
---- Call the function without doing any type checking.
+--- Call the function without doing any type checking or pcall.
 --- Only use this when you check self:Args() yourself to ensure you have the correct signature function.
 function Function:UnsafeCall(args)
 	return self.fn(args)
@@ -256,6 +256,32 @@ function Function:Call(args, types)
 		error("Incorrect arguments passed to lambda")
 	end
 end
+
+-- Use these if you're calling lambdas externally, the context(ctx) is used for passing errors to the chip.
+function Function:UnsafeExtCall(args, ctx)
+	local success,ret = pcall(self.fn,args)
+	if success then
+		return ret
+	else
+		local _,msg,trace = E2Lib.unpackException(ret)
+		ctx.entity:Error("Expression 2 (" .. ctx.entity.name .. "): Runtime Lambda error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "error in script")
+	end
+end
+
+function Function:ExtCall(args, types, ctx)
+	if self.arg_sig == types then
+		local success,ret = pcall(self.fn,args)
+		if success then 
+			return ret
+		else
+			local _,msg,trace = E2Lib.unpackException(ret)
+			ctx.entity:Error("Expression 2 (" .. ctx.entity.name .. "): Runtime Lambda error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "error in script")
+		end
+	else
+		ctx.entity:Error("Expression 2 (" .. ctx.entity.name .. "): Internal Lambda error, incorrect arguments passed.")
+	end
+end
+
 
 function Function:Args()
 	return self.arg_sig
