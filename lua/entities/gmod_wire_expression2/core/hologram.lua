@@ -523,7 +523,7 @@ end
 -- if shouldbenil is nil or false, assert that the hologram exists on @strict with an error. Otherwise, don't check (for holo creation, etc)
 local MAX_INDEX = 2 ^ 31
 local function CheckIndex(self, index, shouldbenil)
-	if index ~= index then return self:throw("holo index is NaN!", 0) end
+	if index ~= index then return self:throw("holo index is NaN!", nil) end
 	index = math.Clamp(math.floor(index), -MAX_INDEX, MAX_INDEX)
 	local Holo
 	if index<0 then
