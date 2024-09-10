@@ -3,7 +3,11 @@ local string_gmatch = string.gmatch
 local string_gsub = string.gsub
 local draw_WordBox = draw.WordBox
 
-local EDITOR = {}
+local EDITOR = {
+  UseValidator = true,
+  Validator = CPULib.Validate,
+  E2HelperCategory = "ZASM", -- As an override, makes GPU and SPU use the ZCPU helper too
+}
 
 -- CPU hint box
 local oldpos, haschecked = {0,0}, false
@@ -151,7 +155,11 @@ end
 
 function EDITOR:ShowContextHelp(word)
   E2Helper.Show()
-  E2Helper.UseCPU(self:GetParent().EditorType)
+  if E2Helper.Modes then
+    E2Helper:SetMode("ZASM")
+  else
+    E2Helper.UseCPU(self:GetParent().EditorType)
+  end
   E2Helper.Show(word)
 end
 
@@ -362,3 +370,16 @@ function EDITOR:Paint()
 end
 
 WireTextEditor.Modes.ZCPU = EDITOR
+WireTextEditor.Modes.ZGPU = EDITOR
+local ZSPU = {
+  UseSoundBrowser = true
+}
+
+-- Proxy everything else from the ZCPU editor.
+local ZSPU_Meta = {
+  __index = function(self,key) return EDITOR[key] end
+}
+
+setmetatable(ZSPU,ZSPU_Meta)
+
+WireTextEditor.Modes.ZSPU = ZSPU

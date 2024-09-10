@@ -89,7 +89,7 @@ if CLIENT then
   function ZSPU_RequestCode()
     if ZSPU_Editor then
       CPULib.Debugger.SourceTab = ZSPU_Editor:GetActiveTab()
-      CPULib.Compile(ZSPU_Editor:GetCode(),ZSPU_Editor:GetChosenFile(),compile_success,compile_error)
+      CPULib.Compile(ZSPU_Editor:GetCode(),ZSPU_Editor:GetChosenFile(),compile_success,compile_error,"SPU",ZSPU_Editor.Location)
     end
   end
   net.Receive("ZSPU_RequestCode", ZSPU_RequestCode)
@@ -100,7 +100,7 @@ if CLIENT then
   function ZSPU_OpenEditor()
     if not ZSPU_Editor then
       ZSPU_Editor = vgui.Create("Expression2EditorFrame")
-      ZSPU_Editor:Setup("ZSPU Editor", "spuchip", "SPU")
+      CPULib.SetupEditor(ZSPU_Editor,"ZSPU Editor", "spuchip", "SPU")
     end
     ZSPU_Editor:Open()
   end
@@ -132,7 +132,7 @@ if CLIENT then
 	function FileBrowser:OnFileOpen(filepath, newtab)
 	  if not ZSPU_Editor then
         ZSPU_Editor = vgui.Create("Expression2EditorFrame")
-        ZSPU_Editor:Setup("ZSPU Editor", "spuchip", "SPU")
+        CPULib.SetupEditor(ZSPU_Editor,"ZSPU Editor", "spuchip", "SPU")
       end
       ZSPU_Editor:Open(filepath, nil, newtab)
     end

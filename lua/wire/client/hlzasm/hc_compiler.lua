@@ -670,7 +670,7 @@ function HCOMP:SetSpecialLabels()
   self:SetLabel("__DATE_MINUTE__",tonumber(os.date("%M")))
   self:SetLabel("__DATE_SECOND__",tonumber(os.date("%S")))
 
-  if self.Settings.CurrentPlatform == "GPU" then
+  if string.match(self.Settings.CurrentPlatform, "GPU$") then
     self:SetLabel("regClk",           65535)
     self:SetLabel("regReset",         65534)
     self:SetLabel("regHWClear",       65533)

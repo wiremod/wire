@@ -45,7 +45,7 @@ if CLIENT or TESTING then
 
   ------------------------------------------------------------------------------
   -- Request compiling specific sourcecode
-  function CPULib.Compile(source,fileName,successCallback,errorCallback,targetPlatform)
+  function CPULib.Compile(source,fileName,successCallback,errorCallback,targetPlatform,sourceDirectory)
     -- Stop any compile/upload process that is running right now
     timer.Remove("cpulib_compile")
     timer.Remove("cpulib_upload")
@@ -72,6 +72,7 @@ if CLIENT or TESTING then
 
     -- Start compiling the sourcecode
     HCOMP.Settings.CurrentPlatform = targetPlatform or "CPU"
+    HCOMP.Location = sourceDirectory or HCOMP.Settings.CurrentPlatform .. "chip"
     print("=== HL-ZASM High Level Assembly Compiler Output ==")
 
     -- Initialize callbacks
@@ -88,10 +89,11 @@ if CLIENT or TESTING then
   function CPULib.SelectTab(editor,fileName,dontForceChange)
     if not editor then return end
     local editorType = string.lower(editor.EditorType)
-    local fullFileName = editorType.."chip\\"..fileName
-
-    if string.sub(fileName,1,7) == editorType.."chip" then
+    local fullFileName
+    if string.match(fileName,"^"..editor.Location) then
       fullFileName = fileName
+    else
+      fullFileName = editor.Location.."/"..fileName
     end
 
     local currentTab = editor:GetActiveTabIndex()
@@ -143,7 +145,7 @@ if CLIENT or TESTING then
         end
 
         editor.C.Val:Update({{message = issue, line = line, char = char}}, nil, issue, Color(128, 20, 50))
-      end,editor.EditorType)
+      end,editor.EditorType,editor.Location)
   end
 
   ------------------------------------------------------------------------------
@@ -372,8 +374,12 @@ if CLIENT or TESTING then
     if ZCPU_Editor then
       -- Highlight current position
       local currentPosition = CPULib.Debugger.PositionByPointer[CPULib.Debugger.Variables[CPULib.Debugger.PreferredTracker or "IP"]]
-
       if currentPosition then
+        -- Check if currentposition is even in the correct editor first, when switching editors CPULib's debugging info switches
+        -- to the file in the new editor.
+        if not currentPosition.File:sub(1,9):match("cpuchip/") then
+          return
+        end
         -- Clear all highlighted lines
         for tab=1,ZCPU_Editor:GetNumTabs() do
           ZCPU_Editor:GetEditor(tab):ClearHighlightedLines()
@@ -824,6 +830,128 @@ end
 --
 -- INT: 48-bit signed integer
 
+if CLIENT then
+  timer.Simple(1,function()
+    if E2Helper.Modes then
+      -- If the version of wiremod is too old for E2Helper modules we should be fine since it's probably
+      -- the one with the hardcoded ZCPU support, we just miss out on seeing extension stuff.
+      E2Helper.Modes.ZASM = nil -- Erase existing mode
+      CPULib.E2HelperMode = E2Helper:RegisterMode("ZASM")
+      local helperModule = CPULib.E2HelperMode
+
+      local helperDesc = helperModule.Descriptions
+      local helperInst = helperModule.Items
+      helperModule.ModeSetup = function(panel)
+        panel.FunctionColumn:SetName("Instruction")
+        panel.FunctionColumn:SetWidth(126)
+        panel.FromColumn:SetName("From") -- This can be the extension name now
+        panel.FromColumn:SetWidth(80)
+        panel.TakesColumn:SetName("Takes")
+        panel.TakesColumn:SetWidth(60)
+        panel.ReturnsColumn:SetName("Platform")
+        panel.ReturnsColumn:SetWidth(60)
+        panel.CostColumn:SetName("Opcode")
+        panel.CostColumn:SetWidth(40)
+      end
+      -- Divran's instruction generator from the original e2helper implementation.
+      local function AddCPUDesc(FuncName, Args, Desc, Platform, Type)
+        table.insert(helperInst, { [1] = FuncName, [2] = "ZASM", [3] = Args, [4] = Platform, [5] = Type })
+        helperDesc[FuncName] = Desc
+      end
+      
+      -- Add help on all opcodes
+      for _, instruction in ipairs(CPULib.InstructionTable) do
+        if (instruction.Mnemonic ~= "RESERVED") and
+          (not instruction.Obsolete) then
+          local instructionArgs = instruction.Operand1
+          if instruction.Operand2 ~= "" then
+            instructionArgs = instructionArgs .. ", " .. instruction.Operand2
+          end
+    
+          AddCPUDesc(instruction.Mnemonic,
+            instructionArgs,
+            instruction.Reference,
+            instruction.Set,
+            instruction.Opcode)
+        end
+      end
+    -- Create and destroy hooks for extended instruction support.
+    local function helperCreateInstructionHook(indexes)
+      for _,k in ipairs(indexes) do
+        local instr = CPULib.InstructionTable[k]
+        local instructionArgs = instr.Operand1
+        if instr.Operand2 ~= "" then
+          instructionArgs = instructionArgs .. ", " .. instr.Operand2
+        end
+        table.insert(helperInst,{
+          [1] = instr.Mnemonic,
+          [2] = instr.Extension,
+          [3] = instructionArgs,
+          [4] = instr.Set,
+          [5] = instr.Opcode
+        })
+        helperDesc[instr.Mnemonic] = instr.Reference
+      end
+    end
+    local function helperDestroyInstructionHook(indexes)
+      for _,k in ipairs(indexes) do
+        helperDesc[helperInst[k][1]] = nil
+        helperInst[k] = nil
+      end
+    end
+    table.insert(CPULib.CreateInstructionHooks,helperCreateInstructionHook)
+    table.insert(CPULib.RemoveInstructionHooks,helperDestroyInstructionHook)
+    end
+  end)
+end
+
+function CPULib.SetupEditor(editor,title,location,name)
+  -- Modes support removes the original handling for the debug buttons, which are added back here.
+  -- These were also moved a bit to make them not overlap the sound browser on the spu
+    if E2Helper.Modes then
+      -- Add "step forward" button
+      local DebugForward = editor:addComponent(vgui.Create("Button", editor), -366, 31, -286, 20)
+      DebugForward:SetText("Step Forward")
+      DebugForward.Font = "E2SmallFont"
+      DebugForward.DoClick = function()
+        local currentPosition = CPULib.Debugger.PositionByPointer[CPULib.Debugger.Variables.IP]
+        if currentPosition then
+          local linePointers = CPULib.Debugger.PointersByLine[currentPosition.Line .. ":" .. currentPosition.File]
+          if linePointers then -- Run till end of line
+            RunConsoleCommand("wire_cpulib_debugstep", linePointers[2])
+          else -- Run just once
+            RunConsoleCommand("wire_cpulib_debugstep")
+          end
+        else -- Run just once
+          RunConsoleCommand("wire_cpulib_debugstep")
+        end
+        -- Reset interrupt text
+        CPULib.InterruptText = nil
+      end
+      editor.C.DebugForward = DebugForward
+
+      -- Add "reset" button
+      local DebugReset = editor:addComponent(vgui.Create("Button", editor), -406, 31, -366, 20)
+      DebugReset:SetText("Reset")
+      DebugReset.DoClick = function()
+        RunConsoleCommand("wire_cpulib_debugreset")
+        -- Reset interrupt text
+        CPULib.InterruptText = nil
+      end
+      editor.C.DebugReset = DebugReset
+
+      -- Add "run" button
+      local DebugRun = editor:addComponent(vgui.Create("Button", editor), -441, 31, -406, 20)
+      DebugRun:SetText("Run")
+      DebugRun.DoClick = function() RunConsoleCommand("wire_cpulib_debugrun") end
+      editor.C.DebugRun = DebugRun
+      editor:Setup(title,location,"Z"..name)
+    else
+      editor:Setup(title,location,name)
+      -- ZCPU will be fine without the new version, because the old version is hardcoded to support us.
+    end
+end
+
 CPULib.InstructionTable = {}
 local W1,R0,OB,UB,CB,TR,OL,BL,PR = 1,2,4,8,16,32,64,128,256
 
@@ -849,6 +977,7 @@ local function Entry(Set,Opc,Mnemonic,Ops,Version,Flags,Op1,Op2,Reference)
       BlockPrefix = Bit(Flags,BL),
       PrivilegedRequester = Bit(Flags,PR)
     })
+
 end
 local function CPU(...) Entry("CPU",...) end
 local function GPU(...) Entry("GPU",...) end
@@ -921,7 +1050,8 @@ function CPULib:RegisterExtension(name, extension)
       OpFunc = opfunc,
       Flags = flags,
       Op1Name = "",
-      Op2Name = ""
+      Op2Name = "",
+      Description = docs.Description
     }
     if not docs then
       instruction.Description = "Instruction "..name.." created by extension "..self.Name
@@ -1002,7 +1132,10 @@ function CPULib:RebuildExtendedInstructions()
     for _,extension in ipairs(platform) do
       for _,i in ipairs(self.Extensions[platname][extension].Instructions) do
         Entry(platname,curOpcode,i.Name,i.Operands,i.Version,self:ParseFlagArray(i.Flags),i.Op1Name,i.Op2Name,i.Description)
-        table.insert(self.ExtendedInstructions,#CPULib.InstructionTable)
+        -- Store extension name on the instruction
+        local lastIndex = #CPULib.InstructionTable
+        CPULib.InstructionTable[lastIndex].Extension = extension
+        table.insert(self.ExtendedInstructions,lastIndex)
         curOpcode = curOpcode - 1
       end
     end

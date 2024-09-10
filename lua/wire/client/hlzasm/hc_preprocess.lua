@@ -9,12 +9,12 @@
 --------------------------------------------------------------------------------
 -- Load file
 function HCOMP:LoadFile(filename)
-  return file.Read("data/"..self.Settings.CurrentPlatform.."Chip/"..filename, "GAME") -- So we also get /addons/wire/data/
+  return file.Read("data/"..self.Location.."/"..filename, "GAME") -- So we also get /addons/wire/data/
 end
 
 -- Save file
 function HCOMP:SaveFile(filename,text)
-  file.Write(self.Settings.CurrentPlatform.."Chip/"..filename,text)
+  file.Write(self.Location.."/"..filename,text)
 end
 
 -- Trim spaces at string sides

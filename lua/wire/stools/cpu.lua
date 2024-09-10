@@ -112,7 +112,7 @@ if CLIENT then
   ------------------------------------------------------------------------------
   function ZCPU_RequestCode()
     if ZCPU_Editor then
-      CPULib.Compile(ZCPU_Editor:GetCode(),ZCPU_Editor:GetChosenFile(),compile_success,compile_error)
+      CPULib.Compile(ZCPU_Editor:GetCode(),ZCPU_Editor:GetChosenFile(),compile_success,compile_error,"CPU",ZCPU_Editor.Location)
     end
   end
   net.Receive("ZCPU_RequestCode", ZCPU_RequestCode)
@@ -123,7 +123,7 @@ if CLIENT then
   function ZCPU_OpenEditor()
     if not ZCPU_Editor then
       ZCPU_Editor = vgui.Create("Expression2EditorFrame")
-      ZCPU_Editor:Setup("ZCPU Editor", "cpuchip", "CPU")
+      CPULib.SetupEditor(ZCPU_Editor,"ZCPU Editor", "cpuchip", "CPU")
     end
     ZCPU_Editor:Open()
   end
@@ -148,7 +148,7 @@ if CLIENT then
     function FileBrowser:OnFileOpen(filepath, newtab)
       if not ZCPU_Editor then
         ZCPU_Editor = vgui.Create("Expression2EditorFrame")
-        ZCPU_Editor:Setup("ZCPU Editor", "cpuchip", "CPU")
+        CPULib.SetupEditor(ZCPU_Editor,"ZCPU Editor", "cpuchip", "CPU")
       end
       ZCPU_Editor:Open(filepath, nil, newtab)
     end
