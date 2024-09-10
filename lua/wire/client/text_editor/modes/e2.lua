@@ -3,7 +3,13 @@ local string_sub = string.sub
 local string_gmatch = string.gmatch
 local string_gsub = string.gsub
 
-local EDITOR = {}
+local EDITOR = {
+	UseValidator = true,
+	Validator = function(editor,source,file)
+		return E2Lib.Validate(source)
+	end,
+	UseSoundBrowser = true,
+}
 
 local function istype(tp)
 	return wire_expression_types[tp:upper()] or tp == "number"
