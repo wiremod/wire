@@ -59,6 +59,7 @@ function ENT:OverrideVM()
   self.VM.ErrorText[17] = "Frame instruction limit"
   self.VM.ErrorText[18] = "Frame delayed by quota overrun"
   self.VM.ErrorText[23] = "Error reading string data"
+  self.VM.ErrorText[24] = "Nonexistent color mode"
 
   self.VM.Interrupt = function(self,interruptNo,interruptParameter,isExternal,cascadeInterrupt)
     if self.ASYNC == 1 then
@@ -139,6 +140,80 @@ function ENT:OverrideVM()
     VM:Interrupt(7, Address)
     return false
   end
+
+  local RGBXXXCache = {}
+  local function RGBXXXSingleCellColor(VM,Address)
+    local c = VM:ReadCell(Address)
+    local cached = RGBXXXCache[c]
+    VM.TMR = VM.TMR + 1
+    if cached then return cached,1 end
+    VM.TMR = VM.TMR + 7
+    local crgb = math.floor(c / 1000)
+    local cgray = c - math.floor(c / 1000)*1000
+
+    local cb = cgray+28*math.fmod(crgb, 10)
+    local cg = cgray+28*math.fmod(math.floor(crgb / 10), 10)
+    local cr = cgray+28*math.fmod(math.floor(crgb / 100), 10)
+    local color = {x=cr,y=cg,z=cb,w=255}
+    RGBXXXCache[c] = color
+    return color,1
+  end
+
+  local B24Cache = {}
+  local function B24SingleCellColor(VM,Address)
+    local c = VM:ReadCell(Address)
+    local cached = B24Cache[c]
+    VM.TMR = VM.TMR + 1
+    if cached then return cached,1 end
+    VM.TMR = VM.TMR + 9
+    local R = bit.band(bit.rshift(c,16),255)
+    local G = bit.band(bit.rshift(c,8),255)
+    local B = bit.band(c,255)
+    local color = {x=R,y=G,z=B,w=255}
+    B24Cache[c] = color
+    return color,1
+  end
+
+  local ArithmeticRGBCache = {}
+  local function ArithmeticRGBSingleCellColor(VM,Address)
+    local c = VM:ReadCell(Address)
+    local cached = ArithmeticRGBCache[c]
+    VM.TMR = VM.TMR + 1
+    if cached then return cached,1 end
+    VM.TMR = VM.TMR + 14
+    local cb = math.fmod(c, 1000)
+    local cg = math.fmod(math.floor(c / 1e3), 1000)
+    local cr = math.fmod(math.floor(c / 1e6), 1000)
+    local color = {x=cr,y=cg,z=cb,w=255}
+    ArithmeticRGBCache[c] = color
+    return color,1
+  end
+
+  local function MonoSingleCellColor(VM,Address)
+    local c = VM:ReadCell(Address)
+    return {x=c,y=c,z=c,w=255},1
+  end
+
+  local function RGBThreeCellColor(VM,Address)
+    local v3f = VM:ReadVector3f(Address)
+    v3f.w = 255
+    return v3f,3
+  end
+
+  self.VM.ColorConversionModes = {
+    [0]={Converter = RGBXXXSingleCellColor, PixelSize = 1},
+    [1]={Converter = RGBThreeCellColor, PixelSize = 3},
+    [2]={Converter = B24SingleCellColor, PixelSize = 1},
+    [3]={Converter = ArithmeticRGBSingleCellColor, PixelSize = 1},
+    [4]={Converter = MonoSingleCellColor, PixelSize = 1},
+  }
+
+  function self.VM:ResetColorCaches()
+    RGBXXXCache = {}
+    B24Cache = {}
+    ArithmeticRGBCache = {}
+  end
+
 
   -- Add internal registers
   self.VM.InternalRegister[128] = "EntryPoint0"
@@ -622,7 +697,7 @@ function VM:HardReset()
   self.EntryPoint5 = 0
   self.EntryPoint6 = 0
   self.EntryPoint7 = 0
-
+  self:ResetColorCaches()
   -- Is running asynchronous thread
   self.ASYNC = 0
 
@@ -1985,7 +2060,72 @@ VM.OpcodeTable[235] = function(self)  --DCULLMODE
   self:Dyn_Emit("VM:WriteCell(65468,$2)")
 end
 VM.OpcodeTable[236] = function(self)  --DARRAY
-
+  self:Dyn_Emit("$L RX = math.floor(VM:ReadCell($2))")
+  self:Dyn_Emit("$L RY = math.floor(VM:ReadCell(($2)+1))")
+  self:Dyn_Emit("$L PX = VM:ReadCell(($2)+2)")
+  self:Dyn_Emit("$L PY = VM:ReadCell(($2)+3)")
+  self:Dyn_Emit("$L CM = math.floor(VM:ReadCell(($2)+4))")
+  self:Dyn_Emit("$L PPTR = VM:ReadCell(($2)+5)")
+  self:Dyn_Emit("if not VM.ColorConversionModes[CM] then")
+    self:Dyn_Emit("VM:Interrupt(24,CM)")
+    self:Dyn_EmitInterruptCheck()
+  self:Dyn_Emit("end")
+  self:Dyn_Emit("$L PAMT = (RX*RY)*VM.ColorConversionModes[CM].PixelSize")
+  self:Dyn_Emit("$L PCVT = VM.ColorConversionModes[CM].Converter")
+  self:Dyn_Emit("$L StartX, StartY, DPTR = VM:ReadCell($1),VM:ReadCell(($1)+1),0")
+  self:Dyn_Emit("$L CurX, CurY = StartX,StartY")
+  self:Dyn_Emit("$L VD = {}")
+  self:Dyn_Emit("while(DPTR < PAMT) do")
+    self:Dyn_Emit("CurX = StartX")
+    self:Dyn_Emit("for x = 0, RX-1,1 do")
+      self:Dyn_Emit("$L ccolor,size = PCVT(VM,PPTR+DPTR)")
+      self:Dyn_EmitInterruptCheck()
+      self:Dyn_Emit("DPTR = DPTR + size")
+      self:Dyn_Emit("VD[1] = {x = CurX, y = CurY}")
+      self:Dyn_Emit("VD[2] = {x = CurX + PX, y = CurY}")
+      self:Dyn_Emit("VD[3] = {x = CurX + PX, y = CurY + PY}")
+      self:Dyn_Emit("VD[4] = {x = CurX, y = CurY + PY}")
+      self:Dyn_Emit("VM:SetColor(ccolor)")
+      self:Dyn_Emit("VM:DrawToBuffer(VD)")
+      self:Dyn_Emit("CurX = CurX + PX")
+      self:Dyn_BeginQuotaOnlyCode()
+        self:Dyn_Emit("VM.DARRAYCarriedX = x+1")
+        self:Dyn_Emit("VM.DARRAYInterruptedLoop = true")
+      self:Dyn_EndQuotaOnlyCode()
+      -- Copy of above for loop for quota override
+      self:Dyn_StartQuotaInterrupt()
+        self:Dyn_Emit("while(DPTR < PAMT) do")
+          self:Dyn_Emit("if not VM.DARRAYInterruptedLoop then")
+            self:Dyn_Emit("CurX = StartX")
+          self:Dyn_Emit("end")
+          self:Dyn_Emit("for x = VM.DARRAYCarriedX or 0, RX-1,1 do")
+            self:Dyn_Emit("$L ccolor,size = PCVT(VM,PPTR+DPTR)")
+            self:Dyn_EmitInterruptCheck()
+            self:Dyn_Emit("DPTR = DPTR + size")
+            self:Dyn_Emit("VD[1] = {x = CurX, y = CurY}")
+            self:Dyn_Emit("VD[2] = {x = CurX + PX, y = CurY}")
+            self:Dyn_Emit("VD[3] = {x = CurX + PX, y = CurY + PY}")
+            self:Dyn_Emit("VD[4] = {x = CurX, y = CurY + PY}")
+            self:Dyn_Emit("VM:SetColor(ccolor)")
+            self:Dyn_Emit("VM:DrawToBuffer(VD)")
+            self:Dyn_Emit("CurX = CurX + PX")
+            self:Dyn_BeginQuotaOnlyCode()
+              self:Dyn_Emit("VM.DARRAYCarriedX = x+1")
+              self:Dyn_Emit("VM.DARRAYInterruptedLoop = true")
+              self:Dyn_Emit("return")
+            self:Dyn_EndQuotaOnlyCode()
+            self:Dyn_Emit("end")
+            self:Dyn_Emit("VM.DARRAYCarriedX = nil")
+            self:Dyn_Emit("VM.DARRAYInterruptedLoop = nil")
+            self:Dyn_Emit("CurY = CurY + PY")
+          self:Dyn_Emit("end")
+          self:Dyn_Emit("VM.DARRAYCarriedX = nil")
+          self:Dyn_Emit("VM.DARRAYInterruptedLoop = nil")
+          self:Dyn_Emit("VM.QuotaOverrunFunc = nil")
+      self:Dyn_EndQuotaInterrupt()
+    self:Dyn_Emit("end")
+  self:Dyn_Emit("CurY = CurY + PY")
+  self:Dyn_Emit("end")
 end
 VM.OpcodeTable[237] = function(self)  --DDTERMINAL
 

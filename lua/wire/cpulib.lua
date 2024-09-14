@@ -1449,7 +1449,7 @@ GPU(232, "DSCRSIZE",      2,    0.5,    0,         "X",     "Y",     "Set screen
 GPU(233, "DROTATESCALE",  2,    0.5,    0,         "X",     "Y",     "Rotate by X, scale by Y")
 GPU(234, "DORECTWH",      2,    0.5,    0,         "VEC2F", "VEC2F", "Draw an outlined rectangle by width/height")
 GPU(235, "DCULLMODE",     2,    0.7,    0,         "IDX",   "IDX",   "Set cullmode and lighting mode")
---GPU(236, "DARRAY",        2,    1.0,    0,         "VEC2F", "STRUCT","Draw an array of pixels")
+GPU(236, "DARRAY",        2,    1.0,    0,         "VEC2F", "STRUCT","Draw an array of width/height rectangles.\nStruct layout:\nResolution X, Resolution Y, Pixel Width, Pixel Height, Color Mode(like digital screen), Pointer to color buffer")
 --GPU(237, "DDTERMINAL",    2,    1.0,    0,         "VEC2F", "STRUCT","Draw a console screen/terminal window")
 GPU(238, "DPIXEL",        2,    1.0,    0,         "VEC2F", "COLOR", "Draw a pixel to screen")
 GPU(239, "RESERVED",      2,    0.0,    0,         "",      "",      "")
