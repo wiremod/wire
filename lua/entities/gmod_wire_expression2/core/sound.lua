@@ -72,7 +72,7 @@ end
 
 
 local function soundCreate(self, entity, index, time, path, fade)
-	path = WireLib.SoundExists(path)
+	path = WireLib.SoundExists(path, self.player)
 	if not path then return end
 	local data = self.data.sound_data
 	if not isAllowed( self ) then return end

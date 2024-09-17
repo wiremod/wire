@@ -1536,22 +1536,31 @@ if not WireLib.PatchedDuplicator then
 	end
 end
 
-function WireLib.SoundExists(path)
+local uniqueSoundsTbl = setmetatable({}, {__index=function(t,k) local r={} t[k]=r return r end})
+local maxUniqueSounds = CreateConVar("wire_sounds_unique_max", "200", FCVAR_ARCHIVE, "The maximum number of sound paths a player is allowed to cache")
+
+function WireLib.SoundExists(path, ply)
 	-- Limit length and remove invalid chars
-	if #path>260 then path = string.sub(path, 1, 260) end
-	path = string.gsub(path, "[\"?']", "")
+	path = string.GetNormalizedFilepath(string.gsub(string.sub(path, 1, 260), "[\"?']", ""))
 
 	-- Extract sound flags. Only allowed flags are '<', '>', '^', ')'
-	local flags
-	flags, path = string.match(path, "^([<>%^%)]*)(.*)")
-	if #flags==0 or #flags>2 then
-		flags = nil
+	local flags, checkpath = string.match(path, "^([^%w_/%.]*)(.*)")
+	if #flags>2 or string.match(flags, "[^<>%^%)]") then
+		path = checkpath
 	end
 
-	path = string.GetNormalizedFilepath(path)
-	if istable(sound.GetProperties(path)) or file.Exists("sound/" .. path, "GAME") then
-		return flags and (flags..path) or path
+	if ply then
+		-- A player can only use a certain number of unique sound paths
+		local playerSounds = uniqueSoundsTbl[ply:SteamID()]
+		if not playerSounds[checkpath] then
+			if table.Count(playerSounds) >= maxUniqueSounds:GetInt() then return end
+			playerSounds[checkpath] = true
+		end
+	elseif not (istable(sound.GetProperties(checkpath)) or file.Exists("sound/" .. checkpath, "GAME")) then
+		return
 	end
+
+	return path
 end
 
 -- Notify --
