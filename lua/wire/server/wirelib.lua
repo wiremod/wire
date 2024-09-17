@@ -1536,7 +1536,7 @@ if not WireLib.PatchedDuplicator then
 	end
 end
 
-local uniqueSoundsTbl = setmetatable({}, {__index=function(t,k) local r={} t[k]=r return r end})
+local uniqueSoundsTbl = setmetatable({}, {__index=function(t,k) local r={[1]=0} t[k]=r return r end})
 local maxUniqueSounds = CreateConVar("wire_sounds_unique_max", "200", FCVAR_ARCHIVE, "The maximum number of sound paths a player is allowed to cache")
 
 function WireLib.SoundExists(path, ply)
@@ -1553,8 +1553,9 @@ function WireLib.SoundExists(path, ply)
 		-- A player can only use a certain number of unique sound paths
 		local playerSounds = uniqueSoundsTbl[ply:SteamID()]
 		if not playerSounds[checkpath] then
-			if table.Count(playerSounds) >= maxUniqueSounds:GetInt() then return end
+			if playerSounds[1] >= maxUniqueSounds:GetInt() then return end
 			playerSounds[checkpath] = true
+			playerSounds[1] = playerSounds[1] + 1
 		end
 	elseif not (istable(sound.GetProperties(checkpath)) or file.Exists("sound/" .. checkpath, "GAME")) then
 		return
