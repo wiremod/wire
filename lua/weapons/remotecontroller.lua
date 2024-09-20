@@ -87,15 +87,18 @@ end
 
 function SWEP:Off()
 	local ply = self:GetOwner()
+	local validPly = IsValid(ply)
 
-	if self.Active then
+	if validPly and self.Active then
 		ply:SetMoveType(self.OldMoveType or MOVETYPE_WALK)
 	end
 
 	self.Active = nil
 	self.OldMoveType = nil
-	ply:DrawViewModel(true)
-	ply.using_wire_remote_control = false
+	if validPly then
+		ply:DrawViewModel(true)
+		ply.using_wire_remote_control = false
+	end
 
 	if IsValid(self.Linked) and self.Linked:GetPly() == ply then
 		self.Linked:PlayerExited()
