@@ -145,6 +145,7 @@ else -- SERVER
 
 	local function EGPHudConnect(ent, state, ply)
 		if state then
+			EGP:SendDataStream(ply, ent:EntIndex(), true)
 			if not ent.Users then ent.Users = {} end
 
 			if not ent.Users[ply] then
