@@ -57,9 +57,7 @@ function SWEP:OnDrop()
 	self.Linked = nil
 end
 
-function SWEP:On()
-	local ply = self:GetOwner()
-
+function SWEP:On(ply)
 	if IsValid(self.Linked) and self.Linked.HasPly and self.Linked:HasPly() then
 		if WireLib.CanTool(ply, self.Linked, "remotecontroller") then
 			if self.Linked.RC then
@@ -85,20 +83,16 @@ function SWEP:On()
 	end
 end
 
-function SWEP:Off()
-	local ply = self:GetOwner()
-	local validPly = IsValid(ply)
-
-	if validPly and self.Active then
+function SWEP:Off(ply)
+	if self.Active then
 		ply:SetMoveType(self.OldMoveType or MOVETYPE_WALK)
 	end
 
 	self.Active = nil
 	self.OldMoveType = nil
-	if validPly then
-		ply:DrawViewModel(true)
-		ply.using_wire_remote_control = false
-	end
+
+	ply:DrawViewModel(true)
+	ply.using_wire_remote_control = false
 
 	if IsValid(self.Linked) and self.Linked:GetPly() == ply then
 		self.Linked:PlayerExited()
@@ -107,12 +101,14 @@ end
 
 function SWEP:Think()
 	if not self.Linked then return end
+	local ply = self:GetOwner()
+	if not IsValid(ply) then return end
 
-	if self:GetOwner():KeyPressed(IN_USE) then
+	if ply:KeyPressed(IN_USE) then
 		if not self.Active then
-			self:On()
+			self:On(ply)
 		else
-			self:Off()
+			self:Off(ply)
 		end
 	end
 end
