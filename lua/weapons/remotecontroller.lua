@@ -39,21 +39,18 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:Holster()
-	if self.Linked then
-		self:Off()
+	local ply = self:GetOwner()
+	if IsValid(ply) and self.Linked then
+		self:Off(ply)
 	end
-
-	return true
-end
-
-function SWEP:Deploy()
 	return true
 end
 
 function SWEP:OnDrop()
-	if not self.Linked then return end
-
-	self:Off()
+	local ply = self:GetOwner()
+	if IsValid(ply) and self.Linked then
+		self:Off(ply)
+	end
 	self.Linked = nil
 end
 
