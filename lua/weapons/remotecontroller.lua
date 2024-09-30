@@ -39,27 +39,22 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:Holster()
-	if self.Linked then
-		self:Off()
+	local ply = self:GetOwner()
+	if IsValid(ply) and self.Linked then
+		self:Off(ply)
 	end
-
-	return true
-end
-
-function SWEP:Deploy()
 	return true
 end
 
 function SWEP:OnDrop()
-	if not self.Linked then return end
-
-	self:Off()
+	local ply = self:GetOwner()
+	if IsValid(ply) and self.Linked then
+		self:Off(ply)
+	end
 	self.Linked = nil
 end
 
-function SWEP:On()
-	local ply = self:GetOwner()
-
+function SWEP:On(ply)
 	if IsValid(self.Linked) and self.Linked.HasPly and self.Linked:HasPly() then
 		if WireLib.CanTool(ply, self.Linked, "remotecontroller") then
 			if self.Linked.RC then
@@ -85,15 +80,14 @@ function SWEP:On()
 	end
 end
 
-function SWEP:Off()
-	local ply = self:GetOwner()
-
+function SWEP:Off(ply)
 	if self.Active then
 		ply:SetMoveType(self.OldMoveType or MOVETYPE_WALK)
 	end
 
 	self.Active = nil
 	self.OldMoveType = nil
+
 	ply:DrawViewModel(true)
 	ply.using_wire_remote_control = false
 
@@ -104,12 +98,14 @@ end
 
 function SWEP:Think()
 	if not self.Linked then return end
+	local ply = self:GetOwner()
+	if not IsValid(ply) then return end
 
-	if self:GetOwner():KeyPressed(IN_USE) then
+	if ply:KeyPressed(IN_USE) then
 		if not self.Active then
-			self:On()
+			self:On(ply)
 		else
-			self:Off()
+			self:Off(ply)
 		end
 	end
 end
