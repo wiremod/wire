@@ -42,7 +42,7 @@ if (SERVER) then
 		if not EGP.umsg.Start( "EGP_Transmit_Data", ply ) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "ClearScreen" )
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		EGP:SendQueueItem( ply )
 	end
@@ -61,7 +61,7 @@ if (SERVER) then
 			net.WriteString( "SaveFrame" )
 			net.WriteEntity( ply )
 			net.WriteString( FrameName )
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		EGP:SendQueueItem( ply )
 	end
@@ -82,7 +82,7 @@ if (SERVER) then
 			net.WriteString( "LoadFrame" )
 			net.WriteEntity( ply )
 			net.WriteString( FrameName )
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		EGP:SendQueueItem( ply )
 	end
@@ -112,7 +112,7 @@ if (SERVER) then
 						net.WriteFloat( vert.v or 0 )
 					end
 				end
-			EGP.umsg.End()
+			EGP.umsg.End( Ent )
 		end
 
 		EGP:SendQueueItem( ply )
@@ -144,7 +144,7 @@ if (SERVER) then
 						net.WriteFloat( vert.v or 0 )
 					end
 				end
-			EGP.umsg.End()
+			EGP.umsg.End( Ent )
 		end
 
 		EGP:SendQueueItem( ply )
@@ -165,7 +165,7 @@ if (SERVER) then
 				net.WriteString( "AddText" )
 				net.WriteInt( index, 16 )
 				net.WriteString( text )
-			EGP.umsg.End()
+			EGP.umsg.End( Ent )
 		end
 
 		EGP:SendQueueItem( ply )
@@ -186,7 +186,7 @@ if (SERVER) then
 				net.WriteString( "SetText" )
 				net.WriteInt( index, 16 )
 				net.WriteString( text )
-			EGP.umsg.End()
+			EGP.umsg.End( Ent )
 		end
 
 		EGP:SendQueueItem( ply )
@@ -213,7 +213,7 @@ if (SERVER) then
 			net.WriteEntity( Ent )
 			net.WriteString( "EditFiltering" )
 			net.WriteUInt( filtering, 2 )
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		EGP:SendQueueItem( ply )
 	end
@@ -278,7 +278,7 @@ if (SERVER) then
 					v:Transmit( Ent, ply )
 				end
 			end
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		-- Change order now
 		if order_was_changed then
@@ -574,7 +574,7 @@ if (SERVER) then
 		end
 	end)
 
-	function EGP:SendDataStream( ply, entid )
+	function EGP:SendDataStream( ply, entid, silent )
 		if not ply or not ply:IsValid() then return false, "ERROR: Invalid ply." end
 		local targets
 		if (entid) then
@@ -620,12 +620,17 @@ if (SERVER) then
 				end
 
 				timer.Simple( k, function() -- send 1 second apart
+					local isLastScreen = ((k == #targets) and #targets or nil)
+					if silent then
+						isLastScreen = nil
+					end
+
 					net.Start("EGP_Request_Transmit")
 						net.WriteTable({
 							Ent = v,
 							Objects = DataToSend,
 							Filtering = v.GPU_texture_filtering,
-							IsLastScreen = (k == #targets) and #targets or nil -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
+							IsLastScreen = isLastScreen -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
 						})
 					net.Send(ply)
 				end)
