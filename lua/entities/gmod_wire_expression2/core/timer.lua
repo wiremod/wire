@@ -217,6 +217,18 @@ e2function number gtimerSetReps(string name, number repetitions)
 	timer.Adjust(name, gtimers[self.entity:EntIndex()][name].delay, repetitions)
 end
 
+__e2setcost(5)
+e2function void gtimerAdjust(string name, number delay, number repetitions)
+	if not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	end
+
+	local name = gtimerGetPrefix(name)
+	gtimers[self.entity:EntIndex()][name].delay = delay
+	gtimers[self.entity:EntIndex()][name].repetitions = repetitions
+	timer.Adjust(name, delay, repetitions)
+end
+
 __e2setcost(20)
 e2function void gtimerSetCallback(string name, function callback)
 	if not gtimerExists(self, name) then
@@ -229,6 +241,34 @@ e2function void gtimerSetCallback(string name, function callback)
 
 	gtimer['callback'] = callback
 	createGTimer(self, name, gtimer.delay, gtimer.repetitions, callback)
+end
+
+__e2setcost(1)
+[nodiscard]
+e2function number gtimerGetDelay(string name)
+	if not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+
+	return gtimers[self.entity:EntIndex()][gtimerGetPrefix(name)].delay
+end
+
+[nodiscard]
+e2function number gtimerGetReps(string name)
+	if not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+
+	return gtimers[self.entity:EntIndex()][gtimerGetPrefix(name)].repetitions
+end
+
+[nodiscard]
+e2function string gtimerGetCallback(string name)
+	if not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", "")
+	end
+
+	return gtimers[self.entity:EntIndex()][gtimerGetPrefix(name)].callback
 end
 
 __e2setcost(10)
