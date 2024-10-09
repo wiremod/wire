@@ -625,13 +625,18 @@ if (SERVER) then
 						isLastScreen = nil
 					end
 
+					local data = {
+						Ent = v,
+						Objects = DataToSend,
+						Filtering = v.GPU_texture_filtering,
+						IsLastScreen = isLastScreen -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
+					}
+
+					local json = util.TableToJSON(data)
+					local compressed = util.Compress(json)
 					net.Start("EGP_Request_Transmit")
-						net.WriteTable({
-							Ent = v,
-							Objects = DataToSend,
-							Filtering = v.GPU_texture_filtering,
-							IsLastScreen = isLastScreen -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
-						})
+					net.WriteUInt( #compressed, 16 )
+					net.WriteData( compressed, #compressed )
 					net.Send(ply)
 				end)
 				sent = true
@@ -643,21 +648,7 @@ if (SERVER) then
 			return true, #targets
 		end
 	end
-
-	local function initspawn(ply)
-		timer.Simple(10,function()
-			if (ply and ply:IsValid()) then
-				local bool, msg = EGP:SendDataStream( ply )
-				if (bool == true) then
-					ply:ChatPrint("[EGP] " .. tostring(msg) .. " EGP Screens found on the server. Sending objects now...")
-				end
-			end
-		end)
-	end
-
-	hook.Add("PlayerInitialSpawn","EGP_SpawnFunc",initspawn)
 else
-
 	function EGP:ReceiveDataStream( decoded )
 		local Ent = decoded.Ent
 		local Objects = decoded.Objects
@@ -684,7 +675,11 @@ else
 			LocalPlayer():ChatPrint("[EGP] Received EGP object reload. " .. decoded.IsLastScreen .. " screens' objects were reloaded.")
 		end
 	end
+
 	net.Receive("EGP_Request_Transmit", function(len,ply)
-		EGP:ReceiveDataStream(net.ReadTable())
+		local amount = net.ReadUInt(16)
+		local data = net.ReadData(amount)
+		local tbl = util.JSONToTable(util.Decompress(data))
+		EGP:ReceiveDataStream(tbl)
 	end)
 end
