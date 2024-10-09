@@ -116,7 +116,228 @@ e2function void stopAllTimers()
 end
 
 /******************************************************************************/
+-- Lambda timers
+local gtimers = {
+	/*EXAMPLE:
+	'[342]e2entity' = {
+		[342]e2entity_gmod_wire_expression2_gtimer_examplename = {
+			context = {...} (e2 context),
+			callback = {...} (e2 callback),
+			delay = 1,
+			repetitions = 1
+		}
+	} 
+	*/
+}
 
+local gtimersIncrementalKeys = {}
+
+local function gtimerGetNextIncrementalKey(self)
+	local key = (gtimersIncrementalKeys[self.entity:EntIndex()] or 0)+1
+	gtimersIncrementalKeys[self.entity:EntIndex()] = key
+	return key
+end
+
+local function gtimerGetPrefix(name)
+	return '_gmod_wire_expression2_gtimer_' .. name
+end
+
+local function gtimerExists(self, name)
+	return gtimers[self.entity:EntIndex()] and gtimers[self.entity:EntIndex()][gtimerGetPrefix(name)] and true or false
+end
+
+local function createGTimer(self, name, delay, repetitions, callback)
+	ogname = name
+	name = gtimerGetPrefix(name)
+	if not gtimers[self.entity:EntIndex()] then
+		gtimers[self.entity:EntIndex()] = {}
+	elseif gtimerExists(self, ogname) then
+		return self:throw("Timer with name " .. name .. " already exists", nil)
+	end
+
+	gtimers[self.entity:EntIndex()][name] = {
+		name = ogname,
+		context = self,
+		callback = callback,
+		delay = delay,
+		repetitions = repetitions
+	}
+
+	timer.Create(name, delay, repetitions, function()
+		if timer.RepsLeft(name) == 0 then
+			gtimers[name] = nil
+		end
+
+		callback:UnsafeExtCall({}, self)
+	end)
+end
+
+local function destroyGTimer(self, name)
+	
+	if not gtimers[self.entity:EntIndex()] then
+		gtimers[self.entity:EntIndex()] = {}
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	elseif not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	end
+	
+	name = gtimerGetPrefix(name)
+	timer.Remove(name)
+	gtimers[self.entity:EntIndex()][name] = nil
+end
+
+registerCallback("destruct", function( self )
+	for k, _ in pairs(gtimers[self.entity:EntIndex()] or {}) do
+		timer.Remove(k)
+	end
+
+	gtimers[self.entity:EntIndex()] = nil
+end)
+
+
+
+__e2setcost(2)
+e2function void gtimerSetDelay(string name, number delay)
+	if not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	end
+
+	local name = gtimerGetPrefix(name)
+	gtimers[self.entity:EntIndex()][name].delay = delay
+	timer.Adjust(name, delay, 0)
+end
+
+e2function number gtimerSetReps(string name, number repetitions)
+	if not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	end
+
+	local name = gtimerGetPrefix(name)
+	gtimers[self.entity:EntIndex()][name].repetitions = repetitions
+	timer.Adjust(name, gtimers[self.entity:EntIndex()][name].delay, repetitions)
+end
+
+__e2setcost(20)
+e2function void gtimerSetCallback(string name, function callback)
+	if not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	end
+
+	local int_name = gtimerGetPrefix(name)
+	local gtimer = table.Copy(gtimers[self.entity:EntIndex()][int_name])
+	destroyGTimer(self, name)
+
+	gtimer['callback'] = callback
+	createGTimer(self, name, gtimer.delay, gtimer.repetitions, callback)
+end
+
+__e2setcost(10)
+e2function void gtimerCreate(string name, number delay, number repetitions, function callback)
+	createGTimer(self, name, delay, repetitions, callback)
+end
+
+e2function string gtimerCreate(number delay, number repetitions, function callback)
+	local name = "simpletimer_"..gtimerGetNextIncrementalKey(self)
+	createGTimer(self, name, delay, repetitions, callback)
+	return name
+end
+
+e2function string gtimerCreate(number delay, function callback)
+	local name = "simpletimer_"..gtimerGetNextIncrementalKey(self)
+	createGTimer(self, "simpletimer_"..gtimerGetNextIncrementalKey(self), delay, 1, callback)
+	return name
+end
+
+e2function void gtimerCreate(string name, number delay, function callback)
+	createGTimer(self, name, delay, 1, callback)
+end
+
+-- Complete alias of gtimerCreate, but a lot of newbies will look for delay
+e2function string delay(number delay, function callback)
+	local name = "simpletimer_"..gtimerGetNextIncrementalKey(self)
+	createGTimer(self, name, delay, 1, callback)
+	return name
+end
+
+e2function void gtimerRestart(string name)
+	if not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	end
+
+	local name = gtimerGetPrefix(name)
+	timer.Stop(name)
+	timer.Start(name)
+end
+
+__e2setcost(1)
+[nodiscard]
+e2function number gtimerExists(string name)
+	return gtimerExists(self, name) and 1 or 0
+end
+
+e2function void gtimerPause(string name)
+	if not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+
+	--return timer.Pause(gtimerGetPrefix(name)) and 1 or 0
+	timer.Pause(gtimerGetPrefix(name))
+end
+
+e2function void gtimerResume(string name)
+	if not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+
+	-- return timer.UnPause(gtimerGetPrefix(name)) and 1 or 0
+	timer.UnPause(gtimerGetPrefix(name))
+end
+-- This and that^ is commented due to timer.Pause being broken for some reason. It just does not return anything.
+-- e2function number gtimerToggle(string name)
+-- 	if not gtimerExists(self, name) then
+-- 		return self:throw("Timer with name " .. name .. " does not exist", 0)
+-- 	end
+-- 	return timer.Toggle(gtimerGetPrefix(name)) and 1 or 0
+-- end
+
+__e2setcost(5)
+e2function void gtimerRemove(string name)
+	destroyGTimer(self, name)
+end
+
+__e2setcost(10)
+e2function void gtimerPurge()
+	for _, tbl in pairs(gtimers[self.entity:EntIndex()]) do
+		destroyGTimer(self, tbl.name)
+	end
+end
+
+__e2setcost(5)
+[nodiscard]
+e2function number gtimerRepsLeft(string name)
+	if not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+	return timer.RepsLeft(gtimerGetPrefix(name))
+end
+
+[nodiscard]
+e2function number gtimerTimeLeft(string name)
+	if not gtimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+	return timer.TimeLeft(gtimerGetPrefix(name))
+end
+
+[nodiscard]
+e2function array gtimerList()
+	for _, timerTbl in pairs(gtimers[self.entity:EntIndex()]) do
+		ret[#ret+1] = timerTbl.name
+	end
+end
+
+/******************************************************************************/
+__e2setcost(1)
 [nodiscard]
 e2function number curtime()
 	return CurTime()
