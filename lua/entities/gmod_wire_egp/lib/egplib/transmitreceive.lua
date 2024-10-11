@@ -632,7 +632,7 @@ if (SERVER) then
 						IsLastScreen = isLastScreen -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
 					}
 
-					local json = util.TableToJSON(data)
+					local json = WireLib.von.serialize(data)
 					local compressed = util.Compress(json)
 					net.Start("EGP_Request_Transmit")
 					net.WriteUInt( #compressed, 16 )
@@ -679,7 +679,7 @@ else
 	net.Receive("EGP_Request_Transmit", function(len,ply)
 		local amount = net.ReadUInt(16)
 		local data = net.ReadData(amount)
-		local tbl = util.JSONToTable(util.Decompress(data))
+		local tbl = WireLib.von.deserialize(util.Decompress(data))
 		EGP:ReceiveDataStream(tbl)
 	end)
 end
