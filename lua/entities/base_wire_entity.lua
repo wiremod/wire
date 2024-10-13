@@ -262,7 +262,7 @@ if CLIENT then
 			looked_at:BeingLookedAtByLocalPlayer()
 		end
 
-		if cur_ent.IsWire and cur_ent:BeingLookedAtByLocalPlayer() then
+		if IsValid(cur_ent) and cur_ent.IsWire and cur_ent:BeingLookedAtByLocalPlayer() then
 			looked_at = cur_ent
 		else
 			looked_at = nil
