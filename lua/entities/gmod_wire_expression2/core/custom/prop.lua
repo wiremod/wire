@@ -61,7 +61,7 @@ local ValidSpawn = PropCore.ValidSpawn
 local canHaveInvalidPhysics = {
 	delete=true, parent=true, deparent=true, solid=true,
 	shadow=true, draw=true, use=true, pos=true, ang=true,
-	manipulate=true
+	manipulate=true, noDupe=true
 }
 
 function PropCore.ValidAction(self, entity, cmd, bone)
@@ -772,10 +772,15 @@ e2function void propDeleteAll()
 	self.data.spawnedProps = {}
 end
 
+--------------------------------------------------------------------------------
+
+__e2setcost(1)
+e2function void entity:propNoDupe(number noDupe)
+	if not ValidAction(self, this, "noDupe") then return end
+	this.DoNotDuplicate = noDupe ~= 0
+end
 
 __e2setcost(10)
-
---------------------------------------------------------------------------------
 e2function void entity:propManipulate(vector pos, angle rot, number freeze, number gravity, number notsolid)
 	if not ValidAction(self, this, "manipulate") then return end
 	PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
