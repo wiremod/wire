@@ -53,7 +53,7 @@ Obj.Receive = function( self )
 	return tbl
 end
 Obj.DataStreamInfo = function( self )
-	return { material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent, x = self.x, y = self.y, angle = self.angle }
+	return { material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent, x = self.x, y = self.y, angle = self.angle, vertices = self.vertices }
 end
 
 function Obj:Contains(x, y)
