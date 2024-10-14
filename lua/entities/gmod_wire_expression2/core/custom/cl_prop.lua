@@ -2,6 +2,8 @@ language.Add("Undone_e2_spawned_prop", "Undone E2 Spawned Prop")
 language.Add("Undone_e2_spawned_seat", "Undone E2 Spawned Seat")
 language.Add("Undone_e2_spawned_sent", "Undone E2 Spawned SENT")
 E2Helper.Descriptions["propManipulate(e:vannn)"] = "Allows to do any single prop core function in one term (position, rotation, freeze, gravity, notsolid)"
+E2Helper.Descriptions["e:propIsDupeable()"] = "Returns 1, if the prop can be duplicated with the duplicator/advdupe2 tool, 0 otherwise."
+E2Helper.Descriptions["e:propCanSetNoDupe()"] = "Returns 1, if you can make passed entity non-dupeable, 0 otherwise."
 E2Helper.Descriptions["e:propNoDupe(n)"] = "Set to 1 to prevent the prop from being duplicated with the duplicator/advdupe2 tool. Set to 0 to allow duplication. (Default: 0)"
 E2Helper.Descriptions["propSpawn(sn)"] = "Use the model string or a template entity to spawn a prop. You can set the position and/or the rotation as well. The last number indicates frozen/unfrozen."
 E2Helper.Descriptions["propSpawn(en)"] = "Entity template, Frozen Spawns a prop with the model of the template entity. If frozen is 0, then it will spawn unfrozen."

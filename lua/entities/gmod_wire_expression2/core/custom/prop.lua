@@ -775,9 +775,33 @@ end
 --------------------------------------------------------------------------------
 
 __e2setcost(1)
+e2function number entity:propIsDupeable()
+	return (this.DoNotDuplicate==nil and not duplicator.IsAllowed(this:GetClass()) or this.DoNotDuplicate) and 0 or 1
+end
+
+local entMarkedNoDupeByPlayer = {}
+e2function number entity:propCanSetNoDupe()
+	local isOk, Val = pcall(ValidAction, self, this, "noDupe")
+	if not isOk then return 0 end
+
+	return entMarkedNoDupeByPlayer[cacheKey]!=true and (this.DoNotDuplicate==nil and not duplicator.IsAllowed(this:GetClass()) or this.DoNotDuplicate) and 0 or 1
+end
+
+__e2setcost(2)
 e2function void entity:propNoDupe(number noDupe)
+	noDupe = noDupe ~= 0
+	if this.DoNotDuplicate == noDupe then return self:throw("Can't change dupe flag for this entity. It's already undupeable!", nil) end
+	
 	if not ValidAction(self, this, "noDupe") then return end
-	this.DoNotDuplicate = noDupe ~= 0
+	local cacheKey = self.player:SteamID()..'-'..this:EntIndex()
+
+	-- Additional check for cases, where player attempt to make something dupeable, which wasn't made undupeable by him. (Prevents abuse)
+	if entMarkedNoDupeByPlayer[cacheKey]!=true and (this.DoNotDuplicate==nil and not duplicator.IsAllowed(this:GetClass()) or this.DoNotDuplicate) then
+		return self:throw("Can't change dupe flag for this entity. It was made undupeable by someone/something else!", nil)
+	end
+	
+	entMarkedNoDupeByPlayer[cacheKey] = true
+	this.DoNotDuplicate = noDupe
 end
 
 __e2setcost(10)
