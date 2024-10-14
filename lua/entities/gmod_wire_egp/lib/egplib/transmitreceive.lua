@@ -632,8 +632,8 @@ if (SERVER) then
 						IsLastScreen = isLastScreen -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
 					}
 
-					local json = WireLib.von.serialize(data)
-					local compressed = util.Compress(json)
+					local von = WireLib.von.serialize(data)
+					local compressed = util.Compress(von)
 					net.Start("EGP_Request_Transmit")
 					net.WriteUInt( #compressed, 16 )
 					net.WriteData( compressed, #compressed )
