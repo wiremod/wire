@@ -619,7 +619,7 @@ if (SERVER) then
 					DataToSend[#DataToSend+1] = { ID = obj.ID, index = obj.index, Settings = obj:DataStreamInfo() }
 				end
 
-				timer.Simple( k, function() -- send 1 second apart
+				timer.Simple( k - 1, function() -- send 1 second apart, send the first one instantly
 					local isLastScreen = ((k == #targets) and #targets or nil)
 					if silent then
 						isLastScreen = nil
