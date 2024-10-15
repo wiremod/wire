@@ -85,7 +85,11 @@ function baseObj:EditObject(args)
 	end
 	for k, v in pairs(args) do
 		if self[k] ~= nil and self[k] ~= v then
-			self[k] = v
+			if CLIENT and k == "material" and isstring(v) then
+				self[k] = Material(v)
+			else
+				self[k] = v
+			end
 			ret = true
 		end
 	end
