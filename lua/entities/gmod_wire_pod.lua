@@ -582,9 +582,11 @@ function ENT:PlayerEntered(ply, RC)
 
 	if self.HideHUD > 0 and pod then
 		timer.Simple(0.1, function()
-			net.Start("wire_pod_hud")
-				net.WriteUInt(self.HideHUD, 2)
-			net.Send(ply)
+			if IsValid(self) and self.HideHUD then
+				net.Start("wire_pod_hud")
+					net.WriteUInt(self.HideHUD, 2)
+				net.Send(ply)
+			end
 		end)
 	end
 
