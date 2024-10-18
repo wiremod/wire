@@ -581,17 +581,13 @@ function ENT:PlayerEntered(ply, RC)
 	local pod = self:GetPod()
 
 	if self.HideHUD > 0 and pod then
-		timer.Simple(0.1, function()
-			net.Start("wire_pod_hud")
-				net.WriteUInt(self.HideHUD, 2)
-			net.Send(ply)
-		end)
+		net.Start("wire_pod_hud")
+			net.WriteUInt(self.HideHUD, 2)
+		net.Send(ply)
 	end
 
 	if self.ShowCursor > 0 and pod then
-		timer.Simple(0.1, function()
-			self:NetShowCursor(self.ShowCursor, ply)
-		end)
+		self:NetShowCursor(self.ShowCursor, ply)
 	end
 
 	if self.HidePlayerVal then
