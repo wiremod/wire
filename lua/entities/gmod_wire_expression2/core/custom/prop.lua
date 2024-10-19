@@ -774,17 +774,19 @@ end
 
 --------------------------------------------------------------------------------
 local function canMarkDupeable(ent, ply)
-	if( not duplicator.IsAllowed(ent:GetClass()) ){ return false } -- Entity is not dupeable by default.
-	if( ent.markedNoDupeBy == ply:SteamID() ){ return true } -- Player already changed status. Thus can do this again.
-	return ent.DoNotDuplicate != true -- If false or nil -> can mark as dupeable.
+	if not duplicator.IsAllowed(ent:GetClass()) then return false end -- Entity is not dupeable by default.
+	if ent.markedNoDupeBy == ply:SteamID() then return true end -- Player already changed status. Thus can do this again.
+	return ent.DoNotDuplicate ~= true -- If false or nil -> can mark as dupeable.
 end
 
 __e2setcost(1)
+[nodiscard]
 e2function number entity:propIsDupeable()
 	return (this.DoNotDuplicate == true or not duplicator.IsAllowed(this:GetClass())) and 0 or 1
 end
 
-e2function number entity:propCanSetDupe()
+[nodiscard]
+e2function number entity:propCanSetDupeable()
 	local isOk, Val = pcall(ValidAction, self, this, "noDupe")
 	if not isOk then return 0 end
 
@@ -796,19 +798,10 @@ e2function void entity:propNoDupe(number noDupe)
 	if not ValidAction(self, this, "noDupe") then return end
 	noDupe = noDupe ~= 0
 
-	if this.DoNotDuplicate == nil then
-		if noDupe == false and not duplicator.IsAllowed(this:GetClass()) then return end
-	else
-		if this.DoNotDuplicate == noDupe then return end
-	end
+	if not canMarkDupeable(this, self.player) then return self:throw("Can't mark this entity as "..(noDupe and "un" or "").."dupeable!", nil) end
 
-	if noDupe == false then // Player trying to make prop dupable
-		if not canMarkDupeable(this, self.player) then return self:throw("Can't mark this entity as undupeable!", nil) end
-		this.DoNotDuplicate = true
-	else // Player trying to make prop non-dupable (safe to not do any checks here, as if prop is already undupeable -> it would get skipped on the start of this function)
-		this.markedNoDupeBy = self.player:SteamID()
-		this.DoNotDuplicate = nil
-	end
+	this.markedNoDupeBy = self.player:SteamID()
+	this.DoNotDuplicate = noDupe
 end
 
 __e2setcost(10)
