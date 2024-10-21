@@ -216,7 +216,7 @@ function EGP:SetParent( Ent, index, parentindex )
 	end
 	if (bool) then
 		if (parentindex == -1) then -- Parent to cursor?
-			if (self:EditObject( v, { parent = parentindex } )) then return true, v end
+			if (v:Set("parent", parentindex)) then return true, v end
 		else
 			if isnumber(parentindex) then
 				bool = hasObject(Ent, parentindex)
@@ -226,7 +226,7 @@ function EGP:SetParent( Ent, index, parentindex )
 			if (bool) then
 				EGP:AddParentIndexes( v )
 
-				if (SERVER) then parentindex = math.Clamp(parentindex,1,self.ConVars.MaxObjects:GetInt()) end
+				if (SERVER) then parentindex = math.Clamp(parentindex,1,EGP.ConVars.MaxObjects:GetInt()) end
 
 				-- If it's already parented to that object
 				if (v.parent and v.parent == parentindex) then return false end
