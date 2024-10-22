@@ -86,16 +86,18 @@ local function luaTimerCreate(self, name, delay, repetitions, callback)
 		return self:throw("Timer with name " .. name .. " already exists", nil)
 	end
 
-	luaTimers[self.entity:EntIndex()][name] = {
+	local callback, ent = callback:Unwrap("", self), self.entity
+
+	luaTimers[ent:EntIndex()][name] = {
 		name = originalName,
-		context = self,
+		ent = ent,
 		callback = callback,
 		delay = delay,
 		repetitions = repetitions
 	}
 
 	timer.Create(name, delay, repetitions, function()
-		callback:UnsafeExtCall({}, self)
+		ent:Execute(callback)
 
 		if timer.RepsLeft(name) == 0 then
 			luaTimers[name] = nil
