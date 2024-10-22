@@ -271,7 +271,7 @@ end
 function Function:ExtCall(args, types, ctx)
 	if self.arg_sig == types then
 		local success,ret = pcall(self.fn,args)
-		if success then 
+		if success then
 			return ret
 		else
 			local _,msg,trace = E2Lib.unpackException(ret)
