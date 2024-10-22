@@ -176,13 +176,16 @@ end
 
 e2function array getTimers()
 	local ret = {}
+	local i = 0
 	for name in pairs( self.data.timer.timers ) do
+		i = i + 1
 		ret[i] = name
 	end
 	for name in pairs( luaTimers[self.entity:EntIndex()] or {} ) do
+		i = i + 1
 		ret[i] = name
 	end
-	self.prf = self.prf + #ret * 5
+	self.prf = self.prf + i * 5
 	return ret
 end
 
