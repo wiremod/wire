@@ -116,80 +116,80 @@ function ENT:UpdatePerf(selfTbl)
 	context.time = 0
 end
 
-function ENT:Execute()
-	local selfTbl = self:GetTable()
-	local context = selfTbl.context
-	if not context or selfTbl.error or context.resetting then return end
+function ENT:Execute(script, args)
+	if self.error or not self.context or self.context.resetting then return end
+
+	script = script or self.script
+	args = args or self.context
 
 	self:PCallHook("preexecute")
 
-	context.stackdepth = context.stackdepth + 1
+	self.context.stackdepth = self.context.stackdepth + 1
 
-	if context.stackdepth >= 150 then
-		self:Error("Expression 2 (" .. selfTbl.name .. "): stack quota exceeded", "stack quota exceeded")
+	if self.context.stackdepth >= 150 then
+		self:Error("Expression 2 (" .. self.name .. "): stack quota exceeded", "stack quota exceeded")
 	end
 
 	local bench = SysTime()
 
-	local ok, msg = pcall(selfTbl.script, context)
+	local ok, msg = pcall(script, args)
 
 	if not ok then
 		local _catchable, msg, trace = E2Lib.unpackException(msg)
 
 		if msg == "exit" then
-			self:UpdatePerf(selfTbl)
+			self:UpdatePerf()
 		elseif msg == "perf" then
-			local trace = context.trace
-			self:UpdatePerf(selfTbl)
-			self:Error("Expression 2 (" .. selfTbl.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
+			local trace = self.context.trace
+			self:UpdatePerf()
+			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
 		elseif trace then
-			self:Error("Expression 2 (" .. selfTbl.name .. "): Runtime error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
+			self:Error("Expression 2 (" .. self.name .. "): Runtime error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 		else
-			local trace = context.trace
-			self:Error("Expression 2 (" .. selfTbl.name .. "): Internal error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
+			local trace = self.context.trace
+			self:Error("Expression 2 (" .. self.name .. "): Internal error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 		end
 	end
 
-	context.time = context.time + (SysTime() - bench)
-	context.stackdepth = context.stackdepth - 1
+	self.context.time = self.context.time + (SysTime() - bench)
+	self.context.stackdepth = self.context.stackdepth - 1
 
-	local forceTriggerOutputs = selfTbl.first or selfTbl.duped
-	selfTbl.first = false -- if hooks call execute
-	selfTbl.duped = false -- if hooks call execute
-	context.triggerinput = nil -- if hooks call execute
+	local forceTriggerOutputs = self.first or self.duped
+	self.first = false -- if hooks call execute
+	self.duped = false -- if hooks call execute
+	self.context.triggerinput = nil -- if hooks call execute
 
 	self:PCallHook("postexecute")
 
 	self:TriggerOutputs(forceTriggerOutputs)
 
-	local globalScope = selfTbl.GlobalScope
-	local inputs = selfTbl.Inputs
-
-	for k, v in pairs(selfTbl.inports[3]) do
-		if globalScope[k] then
-			if wire_expression_types[inputs[k].Type][3] then
-				globalScope[k] = wire_expression_types[inputs[k].Type][3](context, inputs[k].Value)
+	for k, v in pairs(self.inports[3]) do
+		if self.GlobalScope[k] then
+			if wire_expression_types[self.Inputs[k].Type][3] then
+				self.GlobalScope[k] = wire_expression_types[self.Inputs[k].Type][3](self.context, self.Inputs[k].Value)
 			else
-				globalScope[k] = inputs[k].Value
+				self.GlobalScope[k] = self.Inputs[k].Value
 			end
 		end
 	end
 
-	globalScope.vclk = {}
-	if not selfTbl.directives.strict then
-		for k, var in pairs(selfTbl.globvars_mut) do
-			globalScope[k] = fixDefault(wire_expression_types2[var.type][2])
+	self.GlobalScope.vclk = {}
+	if not self.directives.strict then
+		for k, var in pairs(self.globvars_mut) do
+			self.GlobalScope[k] = fixDefault(wire_expression_types2[var.type][2])
 		end
 	end
 
-	if context.prfcount + context.prf - e2_softquota > e2_hardquota then
-		local trace = context.trace
-		self:Error("Expression 2 (" .. selfTbl.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "hard quota exceeded")
+	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
+		local trace = self.context.trace
+		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "hard quota exceeded")
 	end
 
 	if self.error then
 		self:Destruct()
 	end
+
+	return msg
 end
 
 ---@param evt string

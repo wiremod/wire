@@ -291,7 +291,7 @@ function Function:Ret()
 	return self.ret
 end
 
---- If given the correct arguments, returns the inner untyped function you can call.
+--- If given the correct arguments, returns the inner untyped function you can then call with ENT:Execute(f).
 --- Otherwise, throws an error to the given E2 Context.
 ---@param arg_sig string
 ---@param ctx RuntimeContext
