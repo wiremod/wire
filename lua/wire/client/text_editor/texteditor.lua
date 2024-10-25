@@ -2941,9 +2941,7 @@ function EDITOR:AC_FillList()
 			end
 
 			surface_DrawRect(0, 0, w, h)
-			
-			local color = backgroundColor
-			surface_SetDrawColor(color.r, color.g, color.b, color.a)
+			surface_SetDrawColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a)
 			surface_DrawRect(0, 0, 4, h)
 
 			surface.SetFont(self.CurrentFont)
