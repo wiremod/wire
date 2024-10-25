@@ -24,11 +24,8 @@ if CLIENT then
 		return 400,80
 	end
 
-	local white = Color(255,255,255,255)
-	local black = Color(0,0,0,255)
-
 	local function drawSquare( x,y,w,h )
-		surface.SetDrawColor( black )
+		surface.SetDrawColor(0, 0, 0)
 		surface.DrawLine( x, 	 y, 	x + w, 	y )
 		surface.DrawLine( x + w, y, 	x + w, 	y + h )
 		surface.DrawLine( x + w, y + h, x, 		y + h )
@@ -38,7 +35,7 @@ if CLIENT then
 	local function drawColorSlider( x, y, w, h, self )
 		if self.a == self.b then -- no infinite loops!
 			draw.DrawText( "Can't draw color bar because A == B",
-							"GModWorldtip", x + w / 2, y + h / 2, white, TEXT_ALIGN_CENTER )
+							"GModWorldtip", x + w / 2, y + h / 2, color_white, TEXT_ALIGN_CENTER )
 
 			return
 		end
@@ -63,7 +60,7 @@ if CLIENT then
 				end
 			end
 
-			surface.SetDrawColor( color )
+			surface.SetDrawColor(color.r, color.g, color.b, color.a)
 			surface.DrawRect( pos_x, y, math.ceil(w/50), h )
 		end
 
@@ -93,17 +90,17 @@ if CLIENT then
 
 		-- A
 		local color_text = string.format("A color: %d,%d,%d,%d\nA value: %d",self.ar,self.ag,self.ab,self.aa,self.a)
-		draw.DrawText( color_text, "GModWorldtip", pos.min.x + pos.edgesize, pos.min.y + pos.edgesize, white, TEXT_ALIGN_LEFT )
+		draw.DrawText( color_text, "GModWorldtip", pos.min.x + pos.edgesize, pos.min.y + pos.edgesize, color_white, TEXT_ALIGN_LEFT )
 
 		-- B
 		local color_text = string.format("B color: %d,%d,%d,%d\nB value: %d",self.br,self.bg,self.bb,self.ba,self.b)
-		draw.DrawText( color_text, "GModWorldtip", pos.max.x - pos.edgesize, pos.min.y + pos.edgesize, white, TEXT_ALIGN_RIGHT )
+		draw.DrawText( color_text, "GModWorldtip", pos.max.x - pos.edgesize, pos.min.y + pos.edgesize, color_white, TEXT_ALIGN_RIGHT )
 
 		-- Percent
 		local factor = math.Clamp((self.value-self.a)/(self.b-self.a), 0, 1)
 		local color_text = string.format("%s (%d%%)",math.Round(self.value,2),factor*100)
 		local w,h = surface.GetTextSize(color_text)
-		draw.DrawText( color_text, "GModWorldtip", pos.center.x + 40, pos.min.y + pos.edgesize + h, white, TEXT_ALIGN_RIGHT )
+		draw.DrawText( color_text, "GModWorldtip", pos.center.x + 40, pos.min.y + pos.edgesize + h, color_white, TEXT_ALIGN_RIGHT )
 
 		-- Slider
 		drawColorSlider( pos.min.x + pos.edgesize, pos.min.y + pos.edgesize + 46, 401, 16, self )

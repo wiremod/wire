@@ -105,7 +105,7 @@ if CLIENT then
 	-- This is overridable by other wire entities which want to customize the overlay, but generally you shouldn't override it
 	function ENT:DrawWorldTipOutline( pos )
 		draw.NoTexture()
-		surface.SetDrawColor(Color(25,25,25,200))
+		surface.SetDrawColor(25, 25, 25, 200)
 
 		local poly = {
 						{x = pos.min.x + edgesize, 			y = pos.min.y,					u = 0, v = 0 },
@@ -119,7 +119,7 @@ if CLIENT then
 		render.CullMode(MATERIAL_CULLMODE_CCW)
 		surface.DrawPoly( poly )
 
-		surface.SetDrawColor(Color(0,0,0,255))
+		surface.SetDrawColor(0, 0, 0, 255)
 
 		for i=1,#poly-1 do
 			surface.DrawLine( poly[i].x, poly[i].y, poly[i+1].x, poly[i+1].y )
@@ -201,7 +201,7 @@ if CLIENT then
 			self:DrawWorldTipBody( pos )
 			offset = offset + h_body + edgesize
 
-			surface.SetDrawColor( Color(0,0,0,255) )
+			surface.SetDrawColor(0, 0, 0, 255)
 			surface.DrawLine( pos.min.x, offset, pos.max.x, offset )
 		end
 
