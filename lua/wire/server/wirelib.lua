@@ -1543,9 +1543,9 @@ function WireLib.SoundExists(path, ply)
 	-- Limit length and remove invalid chars
 	path = string.GetNormalizedFilepath(string.gsub(string.sub(path, 1, 260), "[\"?']", ""))
 
-	-- Extract sound flags. Only allowed flags are '<', '>', '^', ')'
+	-- Extract sound flags. See https://developer.valvesoftware.com/wiki/Soundscripts#Sound_characters
 	local flags, checkpath = string.match(path, "^([^%w_/%.]*)(.*)")
-	if #flags>2 or string.match(flags, "[#@^<>%^%)}]") then
+	if #flags > 2 or string.match(flags, "[^#@<>%^%)}]") then
 		path = checkpath
 	end
 
