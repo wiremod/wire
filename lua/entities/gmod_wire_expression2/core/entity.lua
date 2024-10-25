@@ -926,19 +926,19 @@ e2function void entity:setTrails(startSize, endSize, length, string material, ve
 	setTrail(self, this, Data)
 end
 
-__e2setcost(10)
+__e2setcost(2)
 
 [nodiscard]
 e2function number trailsLeft()
-	return wire_expression2_entity_trails_max:GetInt() - table.Count(trailedEntsAmount[self.player:SteamID()])
+	return wire_expression2_entity_trails_max:GetInt() - table.Count(trailedEntsAmount[self.player:SteamID()] or {})
 end
 
 [nodiscard]
 e2function number trailsCount()
-	return table.Count(trailedEntsAmount[self.player:SteamID()])
+	return table.Count(trailedEntsAmount[self.player:SteamID()] or {})
 end
 
-__e2setcost(5)
+__e2setcost(1)
 
 [nodiscard]
 e2function number trailsMax()
