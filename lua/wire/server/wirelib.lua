@@ -1545,7 +1545,7 @@ function WireLib.SoundExists(path, ply)
 
 	-- Extract sound flags. See https://developer.valvesoftware.com/wiki/Soundscripts#Sound_characters
 	local flags, checkpath = string.match(path, "^([^%w_/%.]*)(.*)")
-	if #flags > 2 or string.find(flags, "[^#@<>%^%)}]") then
+	if #flags > 2 or string.match(flags, "[^#@<>%^%)}]") then
 		path = checkpath
 	end
 
