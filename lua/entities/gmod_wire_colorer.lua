@@ -33,12 +33,12 @@ if CLIENT then
 	local black = Color(0,0,0,255)
 
 	local function drawColorBox( color, x, y )
-		surface.SetDrawColor( color )
+		surface.SetDrawColor(color.r, color.g, color.b, color.a)
 		surface.DrawRect( x, y, color_box_size, color_box_size )
 
 		local size = color_box_size
 
-		surface.SetDrawColor( black )
+		surface.SetDrawColor(0, 0, 0)
 		surface.DrawLine( x, 		y, 			x + size, 	y )
 		surface.DrawLine( x + size, y, 			x + size, 	y + size )
 		surface.DrawLine( x + size, y + size, 	x, 			y + size )

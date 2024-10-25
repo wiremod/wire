@@ -1054,10 +1054,10 @@ elseif CLIENT then
 		y = y + 2
 
 		local temp,_ = surface.GetTextSize( name .. ":" )
-		surface.SetTextColor( Color(255,255,255,255) )
+		surface.SetTextColor( 255, 255, 255 )
 		surface.SetTextPos( x-temp/2+w/2, y )
 		surface.DrawText( name .. ":" )
-		surface.SetDrawColor( Color(255,255,255,255) )
+		surface.SetDrawColor( 255, 255, 255 )
 		surface.DrawLine( x, y + fonth+2, x+w, y + fonth+2 )
 
 		y = y + 6
@@ -1075,11 +1075,11 @@ elseif CLIENT then
 			end
 
 			if tbl[i][4] == true then
-				surface.SetTextColor( Color(255,0,0,255) )
+				surface.SetTextColor(255, 0, 0, 255)
 			elseif self:IsBlocked( name, tbl, ent, i ) then
-				surface.SetTextColor( Color(255,255,255,32) )
+				surface.SetTextColor(255, 255, 255, 32)
 			else
-				surface.SetTextColor( Color(255,255,255,255) )
+				surface.SetTextColor(255, 255, 255)
 			end
 
 			if tbl[i][9] and tbl[i][9] > 1 then

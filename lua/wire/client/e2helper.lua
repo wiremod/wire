@@ -203,7 +203,7 @@ function E2Helper.Create(reset)
 
 			if const.description then
 				E2Helper.DescriptionEntry:SetText(const.description)
-				E2Helper.DescriptionEntry:SetTextColor(Color(0, 0, 0))
+				E2Helper.DescriptionEntry:SetTextColor(color_black)
 			else
 				E2Helper.DescriptionEntry:SetText("No description found :(")
 				E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))

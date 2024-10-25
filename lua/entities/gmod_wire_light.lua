@@ -94,17 +94,14 @@ if CLIENT then
 
 		return w_total, h_total
 	end
-
-	local white = Color(255,255,255,255)
-	local black = Color(0,0,0,255)
-
+	
 	local function drawColorBox( color, x, y )
 		surface.SetDrawColor( color )
 		surface.DrawRect( x, y, color_box_size, color_box_size )
 
 		local size = color_box_size
 
-		surface.SetDrawColor( black )
+		surface.SetDrawColor(0, 0, 0)
 		surface.DrawLine( x, 		y, 			x + size, 	y )
 		surface.DrawLine( x + size, y, 			x + size, 	y + size )
 		surface.DrawLine( x + size, y + size, 	x, 			y + size )
@@ -119,7 +116,7 @@ if CLIENT then
 		local color_text = string.format("Color:\n%d,%d,%d",color.r,color.g,color.b)
 
 		local w,h = surface.GetTextSize( color_text )
-		draw.DrawText( color_text, "GModWorldtip", pos.center.x, pos.min.y + pos.edgesize, white, TEXT_ALIGN_CENTER )
+		draw.DrawText( color_text, "GModWorldtip", pos.center.x, pos.min.y + pos.edgesize, color_white, TEXT_ALIGN_CENTER )
 
 		-- color box
 		drawColorBox( color, pos.center.x - color_box_size / 2, pos.min.y + pos.edgesize * 1.5 + h )
