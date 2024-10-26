@@ -633,15 +633,22 @@ if (SERVER) then
 					}
 
 					local von = WireLib.von.serialize(data)
+					local vonLen = #von
+					if vonLen > 60000 then
+						ply:ChatPrint("[EGP] Error: Data too large to send to client. (" .. math.Round( vonLen / 1024, 2 ) .. " kb)")
+						return
+					end
+
 					local compressed = util.Compress(von)
 					local compressedLength = #compressed
 
 					if compressedLength > 60000 then
-						ply:ChatPrint("[EGP] Error: Data too large to send to client. (" .. math.Round( compressedLength / 1024, 2 ) .. " kb)")
+						ply:ChatPrint("[EGP] Error: Compressed data too large to send to client. (" .. math.Round( compressedLength / 1024, 2 ) .. " kb)")
 						return
 					end
 
 					net.Start("EGP_Request_Transmit")
+					net.WriteUInt( vonLen, 16 )
 					net.WriteUInt( compressedLength, 16 )
 					net.WriteData( compressed, compressedLength )
 					net.Send(ply)
@@ -684,9 +691,10 @@ else
 	end
 
 	net.Receive("EGP_Request_Transmit", function(len,ply)
+		local vonLen = net.ReadUInt(16)
 		local amount = net.ReadUInt(16)
 		local data = net.ReadData(amount)
-		local tbl = WireLib.von.deserialize(util.Decompress(data))
+		local tbl = WireLib.von.deserialize(util.Decompress(data, vonLen))
 		EGP:ReceiveDataStream(tbl)
 	end)
 end
