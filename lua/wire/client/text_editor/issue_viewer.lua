@@ -138,7 +138,7 @@ function PANEL:Init()
         surface_DrawRect(0, 0, w, h)
 	
 		local color = base.ValidationColorOutline
-        surface_SetDrawColor(color.r, color.g, _color.b, color.a)
+        surface_SetDrawColor(color.r, color.g, color.b, color.a)
         surface_DrawOutlinedRect(0, 0, w, h, 2)
 
         draw_SimpleText(base.ValidationText, "DermaDefault", w / 2, h / 2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
