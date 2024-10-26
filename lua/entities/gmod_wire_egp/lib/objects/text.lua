@@ -99,7 +99,7 @@ Obj.Transmit = function( self, Ent, ply )
 	EGP.SendPosAng(self)
 	local len = #self.text
 	if len <= 1024 then
-		net.WriteUInt(len, 11)
+		net.WriteUInt(len + 1, 11)
 		net.WriteData(self.text, len)
 	else
 		net.WriteUInt(0, 11)
@@ -116,8 +116,9 @@ Obj.Receive = function( self )
 	local tbl = {}
 	EGP.ReceivePosAng(tbl)
 	local len = net.ReadUInt(11)
-	local text = net.ReadData(len)
-	tbl.text = #text > 0 and text or nil
+	if len > 0 then
+		tbl.text = net.ReadData(len - 1)
+	end
 	tbl.font = net.ReadString()
 	tbl.size = net.ReadUInt(8)
 	tbl.valign = net.ReadUInt(2)
