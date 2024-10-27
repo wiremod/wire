@@ -61,7 +61,7 @@ local ValidSpawn = PropCore.ValidSpawn
 local canHaveInvalidPhysics = {
 	delete=true, parent=true, deparent=true, solid=true,
 	shadow=true, draw=true, use=true, pos=true, ang=true,
-	manipulate=true
+	manipulate=true, noDupe=true
 }
 
 function PropCore.ValidAction(self, entity, cmd, bone)
@@ -772,10 +772,39 @@ e2function void propDeleteAll()
 	self.data.spawnedProps = {}
 end
 
+--------------------------------------------------------------------------------
+local function canMarkDupeable(ent, ply)
+	if not duplicator.IsAllowed(ent:GetClass()) then return false end -- Entity is not dupeable by default.
+	if ent.markedNoDupeBy == ply:SteamID() then return true end -- Player already changed status. Thus can do this again.
+	return ent.DoNotDuplicate ~= true -- If false or nil -> can mark as dupeable.
+end
+
+__e2setcost(1)
+[nodiscard]
+e2function number entity:propIsDupeable()
+	return (this.DoNotDuplicate == true or not duplicator.IsAllowed(this:GetClass())) and 0 or 1
+end
+
+[nodiscard]
+e2function number entity:propCanSetDupeable()
+	local isOk, Val = pcall(ValidAction, self, this, "noDupe")
+	if not isOk then return 0 end
+
+	return canMarkDupeable(this, self.player) and 1 or 0
+end
+
+__e2setcost(2)
+e2function void entity:propNoDupe(number noDupe)
+	if not ValidAction(self, this, "noDupe") then return end
+	noDupe = noDupe ~= 0
+
+	if not canMarkDupeable(this, self.player) then return self:throw("Can't mark this entity as "..(noDupe and "un" or "").."dupeable!", nil) end
+
+	this.markedNoDupeBy = self.player:SteamID()
+	this.DoNotDuplicate = noDupe
+end
 
 __e2setcost(10)
-
---------------------------------------------------------------------------------
 e2function void entity:propManipulate(vector pos, angle rot, number freeze, number gravity, number notsolid)
 	if not ValidAction(self, this, "manipulate") then return end
 	PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
