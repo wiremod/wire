@@ -215,8 +215,8 @@ function Editor:LoadEditorSettings()
 	end
 
 	if x < 0 or y < 0 or x + w > ScrW() or y + h > ScrH() then -- If the editor is outside the screen, reset it
-		local width, height = math.min(surface.ScreenWidth() - 200, 800), math.min(surface.ScreenHeight() - 200, 620)
-		self:SetPos((surface.ScreenWidth() - width) / 2, (surface.ScreenHeight() - height) / 2)
+		local width, height = math.min(ScrW() - 200, 800), math.min(ScrH() - 200, 620)
+		self:SetPos((ScrW() - width) / 2, (ScrH() - height) / 2)
 		self:SetSize(width, height)
 
 		self:SaveEditorSettings()
@@ -306,15 +306,15 @@ function Editor:Think()
 			local y = self.p_y + movedY
 			if (x < 10 and x > -10) then x = 0 end
 			if (y < 10 and y > -10) then y = 0 end
-			if (x + self.p_w < surface.ScreenWidth() + 10 and x + self.p_w > surface.ScreenWidth() - 10) then x = surface.ScreenWidth() - self.p_w end
-			if (y + self.p_h < surface.ScreenHeight() + 10 and y + self.p_h > surface.ScreenHeight() - 10) then y = surface.ScreenHeight() - self.p_h end
+			if (x + self.p_w < ScrW() + 10 and x + self.p_w > ScrW() - 10) then x = ScrW() - self.p_w end
+			if (y + self.p_h < ScrH() + 10 and y + self.p_h > ScrH() - 10) then y = ScrH() - self.p_h end
 			self:SetPos(x, y)
 		end
 		if self.p_mode == "sizeBR" then
 			local w = self.p_w + movedX
 			local h = self.p_h + movedY
-			if (self.p_x + w < surface.ScreenWidth() + 10 and self.p_x + w > surface.ScreenWidth() - 10) then w = surface.ScreenWidth() - self.p_x end
-			if (self.p_y + h < surface.ScreenHeight() + 10 and self.p_y + h > surface.ScreenHeight() - 10) then h = surface.ScreenHeight() - self.p_y end
+			if (self.p_x + w < ScrW() + 10 and self.p_x + w > ScrW() - 10) then w = ScrW() - self.p_x end
+			if (self.p_y + h < ScrH() + 10 and self.p_y + h > ScrH() - 10) then h = ScrH() - self.p_y end
 			if (w < 300) then w = 300 end
 			if (h < 200) then h = 200 end
 			self:SetSize(w, h)
@@ -350,12 +350,12 @@ function Editor:Think()
 	if h < 200 then h = 200 end
 	if x < 0 then x = 0 end
 	if y < 0 then y = 0 end
-	if x + w > surface.ScreenWidth() then x = surface.ScreenWidth() - w end
-	if y + h > surface.ScreenHeight() then y = surface.ScreenHeight() - h end
+	if x + w > ScrW() then x = ScrW() - w end
+	if y + h > ScrH() then y = ScrH() - h end
 	if y < 0 then y = 0 end
 	if x < 0 then x = 0 end
-	if w > surface.ScreenWidth() then w = surface.ScreenWidth() end
-	if h > surface.ScreenHeight() then h = surface.ScreenHeight() end
+	if w > ScrW() then w = ScrW() end
+	if h > ScrH() then h = ScrH() end
 
 	self:SetPos(x, y)
 	self:SetSize(w, h)
@@ -372,7 +372,7 @@ function Editor:fullscreen()
 		self.preX, self.preY = self:GetPos()
 		self.preW, self.preH = self:GetSize()
 		self:SetPos(0, 0)
-		self:SetSize(surface.ScreenWidth(), surface.ScreenHeight())
+		self:SetSize(ScrW(), ScrH())
 		self.fs = true
 	end
 end
