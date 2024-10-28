@@ -263,19 +263,6 @@ e2function void timerAdjust(string name, number delay, number repetitions)
 	timer.Adjust(luaTimerGetInternalName(entIndex, name), delay, repetitions)
 end
 
--- __e2setcost(20)
--- e2function void timerSetCallback(string name, function callback)
--- 	if not luaTimerExists(self, name) then
--- 		return self:throw("Timer with name " .. name .. " does not exist", nil)
--- 	end
-
--- 	local int_name = luaTimerGetInternalName(self.entity:EntIndex(), name)
--- 	local luaTimer = table.Copy(luaTimers[self.entity:EntIndex()][int_name])
--- 	luaTimerRemove(self, name)
-
--- 	luaTimer['callback'] = callback
--- 	luaTimerCreate(self, name, luaTimer.delay, luaTimer.repetitions, callback)
--- end
 
 __e2setcost(1)
 [nodiscard]
@@ -313,9 +300,8 @@ e2function void timerRestart(string name)
 
 	local entIndex = self.entity:EntIndex()
 	local internalName = luaTimerGetInternalName(entIndex, name)
-	timer.Stop(internalName)
-	timer.Adjust(name, luaTimers[entIndex][name].delay, luaTimers[entIndex][name].repetitions)
-	timer.Start(internalName)
+
+	timer.Adjust(internalName, luaTimers[entIndex][name].delay, luaTimers[entIndex][name].repetitions)
 end
 
 __e2setcost(1)
