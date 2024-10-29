@@ -137,10 +137,10 @@ function ENT:Execute(script, args)
 		local _catchable, msg, trace = E2Lib.unpackException(msg)
 
 		if msg == "exit" then
-			self:UpdatePerf()
+			self:UpdatePerf(selfTbl)
 		elseif msg == "perf" then
 			local trace = context.trace
-			self:UpdatePerf()
+			self:UpdatePerf(selfTbl)
 			self:Error("Expression 2 (" .. selfTbl.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
 		elseif trace then
 			self:Error("Expression 2 (" .. selfTbl.name .. "): Runtime error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
