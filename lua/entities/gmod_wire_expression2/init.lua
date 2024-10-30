@@ -118,7 +118,7 @@ end
 
 function ENT:Execute(script, args)
 	local selfTbl = self:GetTable()
-	local context = selfTbl.context
+	local context = args or selfTbl.context
 	if not context or selfTbl.error or context.resetting then return end
 
 	self:PCallHook("preexecute")
@@ -131,7 +131,7 @@ function ENT:Execute(script, args)
 
 	local bench = SysTime()
 
-	local ok, msg = pcall(script or selfTbl.script, args or context)
+	local ok, msg = pcall(script or selfTbl.script, context)
 
 	if not ok then
 		local _catchable, msg, trace = E2Lib.unpackException(msg)
