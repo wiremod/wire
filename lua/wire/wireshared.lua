@@ -566,7 +566,7 @@ if SERVER then
 			eid = msg[1]
 			writeCurrentStrings() -- We're switching to talking about a different entity, lets send port information
 			net.WriteInt(-3,8)
-			net.WriteUInt(eid,13) -- Entity ID
+			net.WriteUInt(eid,13)
 		end
 
 		local msgtype = msg[2]
@@ -642,7 +642,7 @@ elseif CLIENT then
 			elseif cmd == -2 then
 				ents_with_outputs[eid] = nil
 			elseif cmd == -3 then
-				eid = net.ReadUInt(13) -- Entity ID
+				eid = net.ReadUInt(13)
 			elseif cmd == -4 then
 				connections[#connections+1] = {eid, net.ReadUInt(8), net.ReadBit() ~= 0} -- Delay this process till after the loop
 			elseif cmd > 0 then
