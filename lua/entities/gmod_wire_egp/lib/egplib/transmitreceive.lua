@@ -587,7 +587,6 @@ if (SERVER) then
 		end
 		if not targets then
 			targets = ents.FindByClass("gmod_wire_egp")
-			table.Add( targets, ents.FindByClass("gmod_wire_egp_hud") )
 			table.Add( targets, ents.FindByClass("gmod_wire_egp_emitter") )
 
 			if (#targets == 0) then return false, "There are no EGP screens on the map." end
@@ -660,6 +659,19 @@ if (SERVER) then
 			return true, #targets
 		end
 	end
+
+	local function initspawn(ply)
+		timer.Simple(10,function()
+			if (ply and ply:IsValid()) then
+				local bool, msg = EGP:SendDataStream( ply )
+				if (bool == true) then
+					ply:ChatPrint("[EGP] " .. tostring(msg) .. " EGP Screens found on the server. Sending objects now...")
+				end
+			end
+		end)
+	end
+
+	hook.Add("PlayerInitialSpawn","EGP_SpawnFunc",initspawn)
 else
 	function EGP:ReceiveDataStream( decoded )
 		local Ent = decoded.Ent
