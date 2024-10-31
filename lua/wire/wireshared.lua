@@ -485,7 +485,7 @@ if SERVER then
 			if not DontSend then
 				net.Start("wire_ports")
 					net.WriteInt(-3, 8) -- set eid
-					net.WriteUInt(eid, 16) -- entity id
+					net.WriteUInt(eid, 13) -- entity id
 					if hasinputs then net.WriteInt(-1, 8) end -- delete inputs
 					if hasoutputs then net.WriteInt(-2, 8) end -- delete outputs
 					net.WriteInt(0, 8) -- break
@@ -566,7 +566,7 @@ if SERVER then
 			eid = msg[1]
 			writeCurrentStrings() -- We're switching to talking about a different entity, lets send port information
 			net.WriteInt(-3,8)
-			net.WriteUInt(eid,16)
+			net.WriteUInt(eid,13) -- Entity ID
 		end
 
 		local msgtype = msg[2]
@@ -642,7 +642,7 @@ elseif CLIENT then
 			elseif cmd == -2 then
 				ents_with_outputs[eid] = nil
 			elseif cmd == -3 then
-				eid = net.ReadUInt(16)
+				eid = net.ReadUInt(13) -- Entity ID
 			elseif cmd == -4 then
 				connections[#connections+1] = {eid, net.ReadUInt(8), net.ReadBit() ~= 0} -- Delay this process till after the loop
 			elseif cmd > 0 then
