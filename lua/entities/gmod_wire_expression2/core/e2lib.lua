@@ -271,7 +271,7 @@ end
 function Function:ExtCall(args, types, ctx)
 	if self.arg_sig == types then
 		local success,ret = pcall(self.fn,args)
-		if success then 
+		if success then
 			return ret
 		else
 			local _,msg,trace = E2Lib.unpackException(ret)
@@ -291,7 +291,7 @@ function Function:Ret()
 	return self.ret
 end
 
---- If given the correct arguments, returns the inner untyped function you can call.
+--- If given the correct arguments, returns the inner untyped function you can then call with ENT:Execute(f).
 --- Otherwise, throws an error to the given E2 Context.
 ---@param arg_sig string
 ---@param ctx RuntimeContext

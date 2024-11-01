@@ -1440,6 +1440,8 @@ local CompileVisitors = {
 				function(args)
 					local s_scopes, s_scope, s_scopeid = state.Scopes, state.Scope, state.ScopeID
 
+					state.prf = state.prf + 10
+
 					local scope = { vclk = {} }
 					state.Scopes = inherited_scopes
 					state.ScopeID = after
@@ -1872,8 +1874,6 @@ local CompileVisitors = {
 				end
 			end, ret_type
 		elseif expr_ty == "f" then
-			self.scope.data.ops = self.scope.data.ops + 15 -- Since functions are 10 ops, this is pretty lenient. I will decrease this slightly when functions are made static and cheaper.
-
 			local nargs = #args
 			local sig = table.concat(arg_types)
 

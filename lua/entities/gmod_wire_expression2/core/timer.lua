@@ -46,6 +46,79 @@ local function RemoveTimer(self, name)
 	end
 end
 
+-- Lambda timers
+
+local luaTimers = {
+	/*EXAMPLE:
+	'[342]e2entity' = {
+		[342]e2entity_gmod_wire_expression2_luatimer_examplename = {
+			context = {...} (e2 context),
+			callback = {...} (e2 callback),
+			delay = 1,
+			repetitions = 1
+		}
+	} 
+	*/
+}
+
+local luaTimerIncrementalKeys = {}
+
+local function luaTimerGetNextIncrementalKey(self)
+	local key = (luaTimerIncrementalKeys[self.entity:EntIndex()] or 0)+1
+	luaTimerIncrementalKeys[self.entity:EntIndex()] = key
+	return key
+end
+
+local function luaTimerGetInternalName(entIndex, name)
+	return entIndex .. '_gmod_wire_expression2_luatimer_' .. name
+end
+
+local function luaTimerExists(self, name)
+	local tbl = luaTimers[self.entity:EntIndex()]
+	return tbl and tbl[name] and true or false
+end
+
+local function luaTimerCreate(self, name, delay, repetitions, callback)
+	local entIndex = self.entity:EntIndex()
+
+	if not luaTimers[entIndex] then
+		luaTimers[entIndex] = {}
+	elseif luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " already exists", nil)
+	end
+
+	local internalName = luaTimerGetInternalName(self.entity:EntIndex(), name)
+	local callback, ent = callback:Unwrap("", self), self.entity
+
+	luaTimers[entIndex][name] = {
+		ent = ent,
+		callback = callback,
+		delay = delay,
+		repetitions = repetitions
+	}
+
+	timer.Create(internalName, delay, repetitions, function()
+		ent:Execute(callback)
+
+		if timer.RepsLeft(internalName) == 0 then
+			luaTimers[name] = nil
+		end
+	end)
+end
+
+local function luaTimerRemove(self, name)
+	local entIndex = self.entity:EntIndex()
+	if not luaTimers[entIndex] then
+		luaTimers[entIndex] = {}
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	elseif not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	end
+
+	timer.Remove(luaTimerGetInternalName(self.entity:EntIndex(), name))
+	luaTimers[entIndex][name] = nil
+end
+
 /******************************************************************************/
 
 registerCallback("construct", function(self)
@@ -60,39 +133,47 @@ registerCallback("destruct", function(self)
 	for name,_ in pairs(self.data['timer'].timers) do
 		RemoveTimer(self, name)
 	end
+
+	local entIndex = self.entity:EntIndex()
+	for k, _ in pairs(luaTimers[entIndex] or {}) do
+		timer.Remove(luaTimerGetInternalName(entIndex, k))
+	end
+
+	luaTimers[entIndex] = nil
 end)
 
 /******************************************************************************/
 
 __e2setcost(20)
-
+[deprecated = "Use lambda timers instead"]
 e2function void interval(rv1)
 	AddTimer(self, "interval", rv1)
 end
 
+[deprecated = "Use lambda timers instead"]
 e2function void timer(string rv1, rv2)
 	AddTimer(self, rv1, rv2)
 end
 
 __e2setcost(5)
-
 e2function void stoptimer(string rv1)
 	RemoveTimer(self, rv1)
+	pcall(luaTimerRemove, self, rv1)
 end
 
 __e2setcost(1)
 
-[nodiscard]
+[nodiscard, deprecated = "Use lambda timers instead"]
 e2function number clk()
 	return self.data.timer.runner == "interval" and 1 or 0
 end
 
-[nodiscard]
+[nodiscard, deprecated = "Use lambda timers instead"]
 e2function number clk(string rv1)
 	return self.data.timer.runner == rv1 and 1 or 0
 end
 
-[nodiscard]
+[nodiscard, deprecated = "Use lambda timers instead"]
 e2function string clkName()
 	return self.data.timer.runner or ""
 end
@@ -104,6 +185,12 @@ e2function array getTimers()
 		i = i + 1
 		ret[i] = name
 	end
+
+	for k, _ in pairs( luaTimers[self.entity:EntIndex()] or {} ) do
+		i = i + 1
+		ret[i] = k
+	end
+
 	self.prf = self.prf + i * 5
 	return ret
 end
@@ -113,10 +200,164 @@ e2function void stopAllTimers()
 		self.prf = self.prf + 5
 		RemoveTimer(self,name)
 	end
+
+	for k, _ in pairs(luaTimers[self.entity:EntIndex()] or {}) do
+		self.prf = self.prf + 5
+		luaTimerRemove(self, k)
+	end
 end
 
 /******************************************************************************/
+-- Lambda timers
 
+__e2setcost(10)
+e2function void timer(string name, number delay, number repetitions, function callback)
+	luaTimerCreate(self, name, delay, repetitions, callback)
+end
+
+e2function string timer(number delay, number repetitions, function callback)
+	local name = "simpletimer_"..luaTimerGetNextIncrementalKey(self)
+	luaTimerCreate(self, name, delay, repetitions, callback)
+	return name
+end
+
+e2function string timer(number delay, function callback)
+	local name = "simpletimer_"..luaTimerGetNextIncrementalKey(self)
+	luaTimerCreate(self, name, delay, 1, callback)
+	return name
+end
+
+e2function void timer(string name, number delay, function callback)
+	luaTimerCreate(self, name, delay, 1, callback)
+end
+
+__e2setcost(5)
+e2function void timerSetDelay(string name, number delay)
+	if not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	end
+
+	local entIndex = self.entity:EntIndex()
+	luaTimers[entIndex][name].delay = delay
+	timer.Adjust(luaTimerGetInternalName(entIndex, name), delay, 0)
+end
+
+e2function number timerSetReps(string name, number repetitions)
+	if not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	end
+
+	local entIndex = self.entity:EntIndex()
+	luaTimers[entIndex][name].repetitions = repetitions
+	timer.Adjust(luaTimerGetInternalName(entIndex, name), luaTimers[entIndex][name].delay, repetitions)
+end
+
+e2function void timerAdjust(string name, number delay, number repetitions)
+	if not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	end
+
+	local entIndex = self.entity:EntIndex()
+	luaTimers[entIndex][name].delay = delay
+	luaTimers[entIndex][name].repetitions = repetitions
+	timer.Adjust(luaTimerGetInternalName(entIndex, name), delay, repetitions)
+end
+
+
+__e2setcost(1)
+[nodiscard]
+e2function number timerGetDelay(string name)
+	if not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+
+	return luaTimers[self.entity:EntIndex()][name].delay
+end
+
+[nodiscard]
+e2function number timerGetReps(string name)
+	if not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+
+	return luaTimers[self.entity:EntIndex()][name].repetitions
+end
+
+[nodiscard]
+e2function function timerGetCallback(string name)
+	if not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", "")
+	end
+
+	return luaTimers[self.entity:EntIndex()][name].callback
+end
+
+__e2setcost(5)
+e2function void timerRestart(string name)
+	if not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", nil)
+	end
+
+	local entIndex = self.entity:EntIndex()
+	local internalName = luaTimerGetInternalName(entIndex, name)
+
+	timer.Adjust(internalName, luaTimers[entIndex][name].delay, luaTimers[entIndex][name].repetitions)
+end
+
+__e2setcost(1)
+[nodiscard]
+e2function number timerExists(string name)
+	return luaTimerExists(self, name) and 1 or 0
+end
+
+e2function void timerPause(string name)
+	if not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+
+	--return timer.Pause(luaTimerGetInternalName(self.entity:EntIndex(), name)) and 1 or 0 -- This is commented due to timer.Pause being broken for some reason. It just does not return anything.
+	timer.Pause(luaTimerGetInternalName(self.entity:EntIndex(), name))
+end
+
+e2function void timerResume(string name)
+	if not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+
+	-- return timer.UnPause(luaTimerGetInternalName(self.entity:EntIndex(), name)) and 1 or 0 -- This is commented due to timer.Pause being broken for some reason. It just does not return anything.
+	timer.UnPause(luaTimerGetInternalName(self.entity:EntIndex(), name))
+end
+
+e2function number timerToggle(string name)
+	if not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+
+	--return timer.Toggle(luaTimerGetInternalName(self.entity:EntIndex(), name)) and 1 or 0 -- This is commented due to timer.Pause being broken for some reason. It just does not return anything.
+	timer.Toggle(luaTimerGetInternalName(self.entity:EntIndex(), name))
+end
+
+__e2setcost(5)
+[nodiscard]
+e2function number timerRepsLeft(string name)
+	if not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+
+	return timer.RepsLeft(luaTimerGetInternalName(self.entity:EntIndex(), name))
+end
+
+[nodiscard]
+e2function number timerTimeLeft(string name)
+	if not luaTimerExists(self, name) then
+		return self:throw("Timer with name " .. name .. " does not exist", 0)
+	end
+
+	return timer.TimeLeft(luaTimerGetInternalName(self.entity:EntIndex(), name))
+end
+
+/******************************************************************************/
+__e2setcost(1)
 [nodiscard]
 e2function number curtime()
 	return CurTime()

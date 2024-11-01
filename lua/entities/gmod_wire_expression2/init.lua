@@ -116,9 +116,10 @@ function ENT:UpdatePerf(selfTbl)
 	context.time = 0
 end
 
-function ENT:Execute()
+function ENT:Execute(script, context)
 	local selfTbl = self:GetTable()
-	local context = selfTbl.context
+	context = context or selfTbl.context
+	script = script or selfTbl.script
 	if not context or selfTbl.error or context.resetting then return end
 
 	self:PCallHook("preexecute")
@@ -131,7 +132,7 @@ function ENT:Execute()
 
 	local bench = SysTime()
 
-	local ok, msg = pcall(selfTbl.script, context)
+	local ok, msg = pcall(script, context)
 
 	if not ok then
 		local _catchable, msg, trace = E2Lib.unpackException(msg)
