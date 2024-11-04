@@ -1,9 +1,12 @@
 -- Structure to register components for propcore's sentSpawn function and for thirdparty addons.
 -- Most of entity code is by Sevii77 from starfall (https://github.com/Sevii77 / https://github.com/thegrb93/StarfallEx/blob/master/lua/starfall/libs_sv/prop_sent.lua).
--- Thanks for not making my life easier :)
+-- Thanks for making my life easier :)
 
 -- To register - just use register(string classname, table data) in this file, or WireLib.SentSpawn.Register(classname, data) global function.
--- Data is a table with keys as parameter names (case sensitive) and table, where [1] is lua type, and [2] is default value (can be nil, or not declared, if you don't want no default values).
+-- Data is a table with keys as parameter names (case sensitive) and table, where:
+--	[1] is lua type,
+--	[2] is default value (can be nil, or not declared, if you don't want no default values)
+--	[3] is description (can be nil, or not declared, if you don't want descriptions).
 
 
 
@@ -20,7 +23,6 @@
 --  })
 --
 -- You can later on organize it however you want either in _preFactory or _postFactory.
--- (Although it's possible to implement, I see no need in that, and that would introduce additional unneeded complexity and computation time)
 
 -- WARNING: e2's propcore's sentspawn DO NOT MAKE ANY PROP PROTECTION CHECKS! Check if the entity is not a player/belongs to player yourself!
 
