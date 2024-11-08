@@ -357,11 +357,12 @@ _deserialize = {
 			a = a - 1
 			local c = sub(s, i, a)
 
-			if c == "inf" then return math.huge, a
-			elseif c == "-inf" then return -math.huge, a
-			elseif c == "nan" then return 0/0, a end
-
-			return tonumber(c) or error("vON: Number definition does not contain a valid number!"), a
+			return tonumber(c) or
+				(c == "inf" and  math.huge) or
+				(c == "-inf" and -math.huge) or
+				(c == "nan" or c == "an" and 0/0) or
+				error("vON: Number definition does not contain a valid number!"),
+				a
 		end
 
 		--	Using %D breaks identification of negative numbers. :(
