@@ -515,3 +515,43 @@ e2function void setClipboardText(string text)
 		net.WriteString(text)
 	net.Send(self.player)
 end
+
+
+-- Closed Captions
+
+util.AddNetworkString("wire_expression2_caption")
+
+-- Maximum seconds a caption can be displayed for
+local MAX_CAPTION_DURATION = 7
+
+local function send_caption(self, text, duration, fromPlayer)
+	if duration < 0 then return end -- <0 duration doesn't display normally
+	local ply = self.player
+	if not checkDelay(ply) then return end
+
+	local max_len = math.min(maxLength:GetInt(), ply:GetInfoNum("wire_expression2_print_max_length", defaultMaxLength))
+
+	text = string.sub(text, 1, max_len)
+	duration = math.min(duration, MAX_CAPTION_DURATION)
+
+	local len = #text
+
+	self.prf = self.prf + len
+
+	net.Start("wire_expression2_caption")
+		net.WriteUInt(len, 16)
+		net.WriteData(text)
+		net.WriteDouble(duration)
+		net.WriteBool(fromPlayer)
+	net.Send(ply)
+end
+
+__e2setcost(100)
+
+e2function void addCaption(string text, number duration, number fromPlayer)
+	send_caption(self, text, duration, fromPlayer)
+end
+
+e2function void addCaption(string text, number duration)
+	send_caption(self, text, duration, false)
+end
