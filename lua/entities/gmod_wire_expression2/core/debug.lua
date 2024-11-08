@@ -3,7 +3,7 @@ local IsValid  = IsValid
 local isOwner      = E2Lib.isOwner
 local Clamp        = math.Clamp
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 local function checkOwner(self)
 	return IsValid(self.player);
@@ -16,7 +16,7 @@ local function checkVehicle(self, this)
 	return true
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 -- default delay for printing messages, adds one "charge" after this delay
 local defaultPrintDelay = 0.3
@@ -98,7 +98,7 @@ end
 
 hook.Add("PlayerDisconnected", "e2_print_delays_player_dc", function(ply) printDelays[ply] = nil end)
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(2)
 
@@ -171,7 +171,7 @@ e2function number entity:printDriver(string text)
 	return 1
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(30)
 
@@ -195,7 +195,7 @@ e2function number entity:hintDriver(string text, duration)
 	return 1
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 local valid_print_types = {
 	HUD_PRINTNOTIFY = HUD_PRINTNOTIFY,
@@ -233,7 +233,7 @@ e2function number entity:printDriver(print_type, string text)
 	return 1
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 -- helper stuff for printTable
 local PrintTableToString
@@ -299,7 +299,7 @@ end
 
 -- The printTable(T) function is in table.lua because it uses a local function
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(150)
 
