@@ -392,7 +392,7 @@ local function printColorVarArg(self, ply, console, typeids, vararg)
 	max_len = math.min(max_len + math.floor(max_len / 3), 65532) -- Add a third just to be nice
 
 	net.Start("wire_expression2_printColor")
-		net.WriteEntity(self.entity:GetPlayer()) -- CHANGE THIS TO WritePlayer LATER!!!
+		net.WritePlayer(self.entity:GetPlayer())
 		net.WriteBool(console)
 
 		for i, tp in ipairs(typeids) do
@@ -421,7 +421,7 @@ local function printColorArray(self, ply, console, arr)
 	max_len = math.min(max_len + math.floor(max_len / 3), 65532)
 
 	net.Start("wire_expression2_printColor")
-		net.WriteEntity(self.entity:GetPlayer())
+		net.WritePlayer(self.entity:GetPlayer())
 		net.WriteBool(console)
 
 		for _, v in ipairs(arr) do

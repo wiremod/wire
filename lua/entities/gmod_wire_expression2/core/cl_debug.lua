@@ -18,7 +18,7 @@ local printcolor_readers = {
 }
 
 net.Receive("wire_expression2_printColor", function()
-	local ply = net.ReadEntity()
+	local ply = net.ReadPlayer()
 	local console = net.ReadBool()
 
 	local msg = {}
