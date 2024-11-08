@@ -360,7 +360,7 @@ _deserialize = {
 			return tonumber(c) or
 				(c == "inf" and  math.huge) or
 				(c == "-inf" and -math.huge) or
-				(c == "nan" or c == "an" and 0/0) or
+				((c == "nan" or c == "an") and 0/0) or
 				error("vON: Number definition does not contain a valid number!"),
 				a
 		end
