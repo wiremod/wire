@@ -552,7 +552,9 @@ function ENT:Think()
 			if IsValid(button) and (inAttack and not mouseDown) and not button:IsVehicle() and button.Use then
 				-- Generic support (Buttons, Dynamic Buttons, Levers, EGP screens, etc)
 				selfTbl.MouseDown = true
-				button:Use(ply, self, USE_ON, 0)
+				if hook.Run("PlayerUse", ply, button) ~= false then
+					button:Use(ply, self, USE_ON, 0)
+				end
 			elseif not inAttack and mouseDown then
 				selfTbl.MouseDown = false
 			end
