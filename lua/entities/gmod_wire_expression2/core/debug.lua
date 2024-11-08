@@ -197,11 +197,14 @@ end
 
 /******************************************************************************/
 
-local valid_print_types = {}
-for _,cname in ipairs({ "HUD_PRINTCENTER", "HUD_PRINTCONSOLE", "HUD_PRINTNOTIFY", "HUD_PRINTTALK" }) do
-	local value = _G[cname]
-	valid_print_types[value] = true
-	E2Lib.registerConstant(cname, value)
+local valid_print_types = {
+	HUD_PRINTNOTIFY = HUD_PRINTNOTIFY,
+	HUD_PRINTCONSOLE = HUD_PRINTCONSOLE,
+	HUD_PRINTTALK = HUD_PRINTTALK,
+	HUD_PRINTCENTER = HUD_PRINTCENTER
+}
+for name, value in pairs(valid_print_types) do
+	E2Lib.registerConstant(name, value)
 end
 
 __e2setcost(30)
