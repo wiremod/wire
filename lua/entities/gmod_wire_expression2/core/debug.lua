@@ -536,7 +536,7 @@ local function send_caption(self, text, duration, fromPlayer)
 
 	local len = #text
 
-	self.prf = self.prf + len
+	self.prf = self.prf + len / 8
 
 	net.Start("wire_expression2_caption")
 		net.WriteUInt(len, 16)
