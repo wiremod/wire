@@ -3,7 +3,7 @@ local IsValid  = IsValid
 local isOwner      = E2Lib.isOwner
 local Clamp        = math.Clamp
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 local function checkOwner(self)
 	return IsValid(self.player);
@@ -16,7 +16,7 @@ local function checkVehicle(self, this)
 	return true
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 -- default delay for printing messages, adds one "charge" after this delay
 local defaultPrintDelay = 0.3
@@ -98,7 +98,7 @@ end
 
 hook.Add("PlayerDisconnected", "e2_print_delays_player_dc", function(ply) printDelays[ply] = nil end)
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(2)
 
@@ -171,7 +171,7 @@ e2function number entity:printDriver(string text)
 	return 1
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(30)
 
@@ -195,13 +195,16 @@ e2function number entity:hintDriver(string text, duration)
 	return 1
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
-local valid_print_types = {}
-for _,cname in ipairs({ "HUD_PRINTCENTER", "HUD_PRINTCONSOLE", "HUD_PRINTNOTIFY", "HUD_PRINTTALK" }) do
-	local value = _G[cname]
-	valid_print_types[value] = true
-	E2Lib.registerConstant(cname, value)
+local valid_print_types = {
+	HUD_PRINTNOTIFY = HUD_PRINTNOTIFY,
+	HUD_PRINTCONSOLE = HUD_PRINTCONSOLE,
+	HUD_PRINTTALK = HUD_PRINTTALK,
+	HUD_PRINTCENTER = HUD_PRINTCENTER
+}
+for name, value in pairs(valid_print_types) do
+	E2Lib.registerConstant(name, value)
 end
 
 __e2setcost(30)
@@ -230,7 +233,7 @@ e2function number entity:printDriver(print_type, string text)
 	return 1
 end
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 -- helper stuff for printTable
 local PrintTableToString
@@ -296,7 +299,7 @@ end
 
 -- The printTable(T) function is in table.lua because it uses a local function
 
-/******************************************************************************/
+--[[******************************************************************************]]
 
 __e2setcost(150)
 
@@ -389,7 +392,7 @@ local function printColorVarArg(self, ply, console, typeids, vararg)
 	max_len = math.min(max_len + math.floor(max_len / 3), 65532) -- Add a third just to be nice
 
 	net.Start("wire_expression2_printColor")
-		net.WriteEntity(self.entity:GetPlayer()) -- CHANGE THIS TO WritePlayer LATER!!!
+		net.WritePlayer(self.entity:GetPlayer())
 		net.WriteBool(console)
 
 		for i, tp in ipairs(typeids) do
@@ -418,7 +421,7 @@ local function printColorArray(self, ply, console, arr)
 	max_len = math.min(max_len + math.floor(max_len / 3), 65532)
 
 	net.Start("wire_expression2_printColor")
-		net.WriteEntity(self.entity:GetPlayer())
+		net.WritePlayer(self.entity:GetPlayer())
 		net.WriteBool(console)
 
 		for _, v in ipairs(arr) do
