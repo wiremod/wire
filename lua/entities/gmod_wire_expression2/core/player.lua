@@ -1025,14 +1025,8 @@ E2Lib.registerEvent("playerDeath", {
 	{ "Attacker", "e" }
 })
 
-local manual_using = WireLib.RegisterPlayerTable()
-
-hook.Add("FinishMove", "Exp2PlayerManualUse", function(ply, mv)
-	manual_using[ply] = mv:KeyDown(IN_USE)
-end)
-
 hook.Add("PlayerUse", "Exp2PlayerUse", function(ply, ent)
-	if not manual_using[ply] then
+	if not ply:KeyDownLast(IN_USE) then
 		E2Lib.triggerEvent("playerUse", { ply, ent })
 	end
 end)
