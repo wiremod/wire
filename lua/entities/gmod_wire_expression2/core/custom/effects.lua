@@ -1,7 +1,7 @@
 E2Lib.RegisterExtension("effects", false, "Allows E2s to play arbitrary effects.")
 
-local wire_expression2_effect_burst_max = CreateConVar( "wire_expression2_effect_burst_max", 4, {FCVAR_ARCHIVE} )
-local wire_expression2_effect_burst_rate = CreateConVar( "wire_expression2_effect_burst_rate", 0.1, {FCVAR_ARCHIVE} )
+local wire_expression2_effect_burst_max = CreateConVar("wire_expression2_effect_burst_max", 4, FCVAR_ARCHIVE)
+local wire_expression2_effect_burst_rate = CreateConVar("wire_expression2_effect_burst_rate", 0.1, FCVAR_ARCHIVE)
 
 -- Use hook Expression2_CanEffect to blacklist/whitelist effects
 local effect_blacklist = {
@@ -53,14 +53,14 @@ end
 e2function effect effect:setOrigin(vector pos)
 	if not this then return self:throw("Invalid effect!", nil) end
 
-	this:SetOrigin(Vector( pos[1], pos[2], pos[3] ))
+	this:SetOrigin(pos)
 	return this
 end
 
 e2function effect effect:setStart(vector pos)
 	if not this then return self:throw("Invalid effect!", nil) end
 
-	this:SetStart(Vector( pos[1], pos[2], pos[3] ))
+	this:SetStart(pos)
 	return this
 end
 
@@ -74,7 +74,7 @@ end
 e2function effect effect:setAngles(angle ang)
 	if not this then return self:throw("Invalid effect!", nil) end
 
-	this:SetAngles( Angle( ang[1] ,ang[2] ,ang[3] ))
+	this:SetAngles(ang)
 	return this
 end
 
@@ -96,7 +96,7 @@ end
 e2function effect effect:setNormal(vector norm)
 	if not this then return self:throw("Invalid effect!", nil) end
 
-	this:SetNormal(Vector( norm[1], norm[2], norm[3] ))
+	this:SetNormal(norm)
 	return this
 end
 
@@ -151,8 +151,8 @@ end
 
 e2function effect effect:setColor(number index)
 	if not this then return self:throw("Invalid effect!", nil) end
-	index = math.Clamp(index,0,255)
-	this:SetColor(index)
+
+	this:SetColor(math.Clamp(index, 0, 255))
 	return this
 end
 
@@ -169,7 +169,7 @@ e2function void effect:play(string name)
 
 	name = name:lower()
 	if effect_blacklist[name] then return self:throw("This effect is blacklisted!", nil) end
-	if hook.Run( "Expression2_CanEffect", name, self ) == false then return self:throw("A hook prevented this function from running", nil) end
+	if hook.Run("Expression2_CanEffect", name, self) == false then return self:throw("A hook prevented this function from running", nil) end
 
 	fire(self, this, name)
 end
@@ -181,11 +181,10 @@ end
 e2function number effectCanPlay(string name)
 	if not isAllowed(self) then return 0 end
 	if effect_blacklist[name] then return 0 end
-	if hook.Run( "Expression2_CanEffect", name:lower(), self ) == false then return 0 end
+	if hook.Run("Expression2_CanEffect", name:lower(), self) == false then return 0 end
 
 	return 1
 end
-
 
 registerCallback("construct", function(self)
 	self.data.effect_burst = wire_expression2_effect_burst_max:GetInt()
