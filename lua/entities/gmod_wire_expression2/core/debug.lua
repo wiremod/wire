@@ -548,10 +548,10 @@ end
 
 __e2setcost(100)
 
-e2function void addCaption(string text, number duration, number fromPlayer)
+e2function void printCaption(string text, number duration, number fromPlayer)
 	send_caption(self, text, duration, fromPlayer)
 end
 
-e2function void addCaption(string text, number duration)
+e2function void printCaption(string text, number duration)
 	send_caption(self, text, duration, false)
 end
