@@ -637,8 +637,7 @@ end
 
 function Wire_Pod_EnterVehicle(ply, vehicle)
 	for _, v in ipairs(pods) do
-		local pod = v:GetPod()
-		if pod and pod == vehicle then
+		if v:GetPod() == vehicle and ply:InVehicle() then
 			v:PlayerEntered(ply)
 		end
 	end
