@@ -960,6 +960,8 @@ E2Helper.Descriptions["printColorDriver(e:r)"] = "Like printColorDriver but take
 E2Helper.Descriptions["printTable(t)"] = "Prints a table like the lua function PrintTable does, except to the chat area"
 E2Helper.Descriptions["printTable(r)"] = "Prints an array like the lua function PrintTable does, except to the chat area"
 E2Helper.Descriptions["setClipboardText(s)"] = "Adds the given string to the chip owners clipboard"
+E2Helper.Descriptions["printCaption(snn)"] = "Emits a closed caption with the provided text and duration in seconds. The last argument is used to control the playerclr code"
+E2Helper.Descriptions["printCaption(sn)"] = "Emits a closed caption with the provided text and duration in seconds"
 
 -- Time
 E2Helper.Descriptions["tickClk()"] = "DEPRECATED. Use 'event tick()' instead! Returns 1 if the current execution was caused by \"runOnTick\""
