@@ -52,3 +52,7 @@ CreateClientConVar("wire_expression2_clipboard_allow", 0, true, true, "Allow E2 
 net.Receive("wire_expression2_set_clipboard_text", function(len, ply)
 	SetClipboardText(net.ReadString())
 end)
+
+net.Receive("wire_expression2_caption", function()
+	gui.AddCaption(net.ReadData(net.ReadUInt(16)), net.ReadDouble(), net.ReadBool())
+end)
