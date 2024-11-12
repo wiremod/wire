@@ -198,12 +198,12 @@ end
 --[[******************************************************************************]]
 
 local valid_print_types = {
-	HUD_PRINTNOTIFY = HUD_PRINTNOTIFY,
-	HUD_PRINTCONSOLE = HUD_PRINTCONSOLE,
-	HUD_PRINTTALK = HUD_PRINTTALK,
-	HUD_PRINTCENTER = HUD_PRINTCENTER
+	[HUD_PRINTNOTIFY] = "HUD_PRINTNOTIFY",
+	[HUD_PRINTCONSOLE] = "HUD_PRINTCONSOLE",
+	[HUD_PRINTTALK] = "HUD_PRINTTALK",
+	[HUD_PRINTCENTER] = "HUD_PRINTCENTER"
 }
-for name, value in pairs(valid_print_types) do
+for value, name in pairs(valid_print_types) do
 	E2Lib.registerConstant(name, value)
 end
 
