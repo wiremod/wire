@@ -8,14 +8,12 @@ registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	end
 end)
 
-local bone2entity = {}
 local bone2index = {}
 local entity2bone = {}
 
 hook.Add("EntityRemoved", "wire_expression2_bone", function(ent)
 	if not entity2bone[ent] then return end
 	for index,bone in pairs(entity2bone[ent]) do
-		bone2entity[bone] = nil
 		bone2index[bone] = nil
 	end
 	entity2bone[ent] = nil
@@ -38,7 +36,6 @@ local function getBone(entity, index)
 		if not bone then return nil end
 		entity2bone[entity][index] = bone
 
-		bone2entity[bone] = entity
 		bone2index[bone] = index
 	end
 
@@ -56,15 +53,14 @@ end
 E2Lib.GetBones = GetBones
 
 local function removeBone(bone)
-	bone2entity[bone] = nil
 	bone2index[bone] = nil
 end
 
 -- checks whether the bone is valid. if yes, returns the bone's entity and bone index; otherwise, returns nil.
 local function isValidBone(b)
 	if type(b) ~= "PhysObj" or not IsValid(b) then return nil, 0 end
-	local ent = bone2entity[b]
-	if not IsValid(ent) then
+	local ent = b:GetEntity()
+	if not ent:IsValid() then
 		removeBone(b)
 		return nil, 0
 	end
