@@ -52,7 +52,7 @@ local function isValidBone(b)
 	if type(b) ~= "PhysObj" or not IsValid(b) then return nil, 0 end
 	local ent = b:GetEntity()
 	if not ent:IsValid() then
-		return nil, 0
+		return nil
 	end
 	return ent
 end
