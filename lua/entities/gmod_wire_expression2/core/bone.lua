@@ -8,17 +8,12 @@ registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	end
 end)
 
-local bone2entity = {}
-local bone2index = {}
 local entity2bone = {}
 
 hook.Add("EntityRemoved", "wire_expression2_bone", function(ent)
-	if not entity2bone[ent] then return end
-	for index,bone in pairs(entity2bone[ent]) do
-		bone2entity[bone] = nil
-		bone2index[bone] = nil
+	if entity2bone[ent] then
+		entity2bone[ent] = nil
 	end
-	entity2bone[ent] = nil
 end)
 
 -- faster access to some math library functions
@@ -37,9 +32,6 @@ local function getBone(entity, index)
 		bone = entity:GetPhysicsObjectNum(index)
 		if not bone then return nil end
 		entity2bone[entity][index] = bone
-
-		bone2entity[bone] = entity
-		bone2index[bone] = index
 	end
 
 	return IsValid(bone) and bone or nil
@@ -55,20 +47,14 @@ local function GetBones(entity)
 end
 E2Lib.GetBones = GetBones
 
-local function removeBone(bone)
-	bone2entity[bone] = nil
-	bone2index[bone] = nil
-end
-
--- checks whether the bone is valid. if yes, returns the bone's entity and bone index; otherwise, returns nil.
+-- checks whether the bone is valid. if yes, returns the bone's entity; otherwise, returns nil.
 local function isValidBone(b)
 	if type(b) ~= "PhysObj" or not IsValid(b) then return nil, 0 end
-	local ent = bone2entity[b]
-	if not IsValid(ent) then
-		removeBone(b)
-		return nil, 0
+	local ent = b:GetEntity()
+	if not ent:IsValid() then
+		return nil
 	end
-	return ent, bone2index[b]
+	return ent
 end
 E2Lib.isValidBone = isValidBone
 
@@ -129,15 +115,13 @@ end
 
 --- Returns <this>'s index in the entity it belongs to. Returns -1 if the bone is invalid or an error occured.
 e2function number bone:index()
-	if not isValidBone(this) then return -1 end
-	--[[local ent = this:GetEntity()
-	if not IsValid(ent) then return -1 end
-	local maxn = ent:GetPhysicsObjectCount()-1
-	for i = 0,maxn do
+	local ent = isValidBone(this)
+	if not ent then return -1 end
+	local n = ent:GetPhysicsObjectCount() - 1
+	for i = 0, n do
 		if this == ent:GetPhysicsObjectNum(i) then return i end
 	end
-	return -1]]
-	return bone2index[this] or -1
+	return -1
 end
 
 --[[************************************************************************]]--
@@ -404,15 +388,13 @@ end
 -- helper function for invert(T) in table.lua
 function e2_tostring_bone(b)
 	local ent = isValidBone(b)
-	if not ent then return "(null)" end
-	return string.format("%s:bone(%d)", tostring(ent), bone2index[b])
+	if not ent then return "(null bone)" end
+	return string.format("bone [%s][Entity %d]", b:GetName(), ent:EntIndex())
 end
+local e2_tostring_bone = e2_tostring_bone
 
---- Returns <b> formatted as a string. Returns "<code>(null)</code>" for invalid bones.
 e2function string toString(bone b)
-	local ent = isValidBone(b)
-	if not ent then return "(null)" end
-	return string.format("%s:bone(%d)", tostring(ent), bone2index[b])
+	return e2_tostring_bone(b)
 end
 
 WireLib.registerDebuggerFormat("BONE", e2_tostring_bone)
