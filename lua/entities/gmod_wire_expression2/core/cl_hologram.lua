@@ -41,11 +41,12 @@ local function WireHologramsShowOwners()
 		return name
 	end})
 
+	surface.SetFont("DermaDefaultBold")
+
 	for _, ent in ipairs(entList) do
 		local vec = ent:GetPos():ToScreen()
 
 		if vec.visible then
-			surface.SetFont("DermaDefaultBold")
 			local text = names[ent:GetPlayer()]
 			local w, h = surface.GetTextSize(text)
 			--Draw nick shadow
