@@ -45,9 +45,30 @@ local function WireHologramsShowOwners()
 		local vec = ent:GetPos():ToScreen()
 
 		if vec.visible then
-			local text = names[ent:GetPlayer()] .. "\n" .. ent.steamid
-			draw.DrawText(text, "DermaDefaultBold", vec.x + 1, vec.y + 1, color_black, TEXT_ALIGN_CENTER)
-			draw.DrawText(text, "DermaDefaultBold", vec.x, vec.y, color_white, TEXT_ALIGN_CENTER)
+			surface.SetFont("DermaDefaultBold")
+			local text = names[ent:GetPlayer()]
+			local w, h = surface.GetTextSize(text)
+			--Draw nick shadow
+			surface.SetTextColor(0, 0, 0)
+			surface.SetTextPos(vec.x - w / 2 + 1, vec.y - h / 2 + 1)
+			surface.DrawText(text)
+
+			--Draw nick
+			surface.SetTextColor(255, 255, 255)
+			surface.SetTextPos(vec.x - w / 2, vec.y - h / 2)
+			surface.DrawText(text)
+
+			local text2 = ent.steamid
+			local w2, h2 = surface.GetTextSize(text2)
+			--Draw steamid shadow
+			surface.SetTextColor(0, 0, 0)
+			surface.SetTextPos(vec.x - w2 / 2 + 1, vec.y + h / 2 + 1)
+			surface.DrawText(text2)
+			
+			--Draw steamid
+			surface.SetTextColor(255, 255, 255)
+			surface.SetTextPos(vec.x - w2 / 2, vec.y + h / 2)
+			surface.DrawText(text2)
 		end
 	end
 end
