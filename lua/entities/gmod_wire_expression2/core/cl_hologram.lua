@@ -41,7 +41,7 @@ local function WireHologramsShowOwners()
 		return name
 	end})
 
-	surface.SetFont("DermaDefaultBold")
+	surface.SetFont("DebugOverlay")
 
 	for _, ent in ipairs(entList) do
 		local vec = ent:GetPos():ToScreen()
@@ -49,11 +49,6 @@ local function WireHologramsShowOwners()
 		if vec.visible then
 			local text = names[ent:GetPlayer()]
 			local w, h = surface.GetTextSize(text)
-			--Draw nick shadow
-			surface.SetTextColor(0, 0, 0)
-			surface.SetTextPos(vec.x - w / 2 + 1, vec.y - h / 2 + 1)
-			surface.DrawText(text)
-
 			--Draw nick
 			surface.SetTextColor(255, 255, 255)
 			surface.SetTextPos(vec.x - w / 2, vec.y - h / 2)
@@ -61,11 +56,6 @@ local function WireHologramsShowOwners()
 
 			local text2 = ent.steamid
 			local w2, h2 = surface.GetTextSize(text2)
-			--Draw steamid shadow
-			surface.SetTextColor(0, 0, 0)
-			surface.SetTextPos(vec.x - w2 / 2 + 1, vec.y + h / 2 + 1)
-			surface.DrawText(text2)
-			
 			--Draw steamid
 			surface.SetTextColor(255, 255, 255)
 			surface.SetTextPos(vec.x - w2 / 2, vec.y + h / 2)
