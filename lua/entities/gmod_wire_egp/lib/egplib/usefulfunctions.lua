@@ -378,7 +378,6 @@ function EGP:DrawPath( vertices, size, closed )
 								end
 							end
 						end
-					end
 						lastdir = dir
 					end
 				end
