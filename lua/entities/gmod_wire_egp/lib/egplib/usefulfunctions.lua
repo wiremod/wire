@@ -348,31 +348,33 @@ function EGP:DrawPath( vertices, size, closed )
 							corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size} }
 						else
 							local dot = dir.x*lastdir.x + dir.y*lastdir.y
-							local scaling = size*math.tan(math.acos(dot)/2) -- complicated math, could be also be `size*sqrt(1-dot)/sqrt(dot+1)` (no idea what is faster)
-							if dot > 0.999 then -- also account for rounding errors, somehow the dot product can be >1, which makes scaling nan
+							if dot >= 1 then -- also account for rounding errors, somehow the dot product can be >1, which makes scaling nan
 								-- direction stays the same, no need for a corner, just skip this point, unless it is the last segment of a closed path (last segment of a open path is handled explicitly above)
 								if i == num+1 then
 									corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size} }
 								end
-							elseif dot < -0.999 then -- new direction is inverse, just add perpendicular nodes
+							elseif dot <= -1 then -- new direction is inverse, just add perpendicular nodes
 								corners[#corners+1] = { r={x=x1-dir.y*size, y=y1+dir.x*size}, l={x=x1+dir.y*size, y=y1-dir.x*size} }
-							elseif dir.x*-lastdir.y + dir.y*lastdir.x > 0 then -- right bend, checked by getting the dot product between dir and lastDir:rotate(90)
-								local offsetx = -lastdir.y*size-lastdir.x*scaling
-								local offsety = lastdir.x*size-lastdir.y*scaling
-								if dot < 0 then -- sharp corner, add two points to the outer edge to not have insanely long spikes
-									corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1+(lastdir.x+lastdir.y)*size, y=y1+(lastdir.y-lastdir.x)*size} }
-									corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-(dir.x-dir.y)*size, y=y1-(dir.y+dir.x)*size} }
-								else
-									corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-offsetx, y=y1-offsety} }
-								end
-							else -- left bend
-								local offsetx = lastdir.y*size-lastdir.x*scaling
-								local offsety = -lastdir.x*size-lastdir.y*scaling
-								if dot < 0 then
-									corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1+(lastdir.x-lastdir.y)*size, y=y1+(lastdir.y+lastdir.x)*size} }
-									corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-(dir.x+dir.y)*size, y=y1-(dir.y-dir.x)*size} }
-								else
-									corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-offsetx, y=y1-offsety} }
+							else
+								local scaling = size*math.tan(math.acos(dot)/2)
+								if dir.x*-lastdir.y + dir.y*lastdir.x > 0 then -- right bend, checked by getting the dot product between dir and lastDir:rotate(90)
+									local offsetx = -lastdir.y*size-lastdir.x*scaling
+									local offsety = lastdir.x*size-lastdir.y*scaling
+									if dot < 0 then -- sharp corner, add two points to the outer edge to not have insanely long spikes
+										corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1+(lastdir.x+lastdir.y)*size, y=y1+(lastdir.y-lastdir.x)*size} }
+										corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-(dir.x-dir.y)*size, y=y1-(dir.y+dir.x)*size} }
+									else
+										corners[#corners+1] = { r={x=x1+offsetx, y=y1+offsety}, l={x=x1-offsetx, y=y1-offsety} }
+									end
+								else -- left bend
+									local offsetx = lastdir.y*size-lastdir.x*scaling
+									local offsety = -lastdir.x*size-lastdir.y*scaling
+									if dot < 0 then
+										corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1+(lastdir.x-lastdir.y)*size, y=y1+(lastdir.y+lastdir.x)*size} }
+										corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-(dir.x+dir.y)*size, y=y1-(dir.y-dir.x)*size} }
+									else
+										corners[#corners+1] = { l={x=x1+offsetx, y=y1+offsety}, r={x=x1-offsetx, y=y1-offsety} }
+									end
 								end
 							end
 						end
