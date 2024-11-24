@@ -243,7 +243,7 @@ do
 			[NOTIFYSOUND_DRIP2   ] = "ambient/water/drip2.wav",
 			[NOTIFYSOUND_DRIP3   ] = "ambient/water/drip3.wav",
 			[NOTIFYSOUND_DRIP4   ] = "ambient/water/drip4.wav",
-			[NOTIFYSOUND_DRIP5   ] = "ambient/water/drip5.wav",
+			[NOTIFYSOUND_DRIP5   ] = "ambient/water/drip4.wav", -- Non-existent sound, left for compatibility
 			[NOTIFYSOUND_ERROR1  ] = "buttons/button10.wav",
 			[NOTIFYSOUND_CONFIRM1] = "buttons/button3.wav",
 			[NOTIFYSOUND_CONFIRM2] = "buttons/button14.wav",
