@@ -835,7 +835,7 @@ end
 e2function void entity:propSleep(number sleep)
 	if not ValidAction(self, this, "sleep") then return end
 	local phys = this:GetPhysicsObject()
-	if IsValid(phys) then
+	if phys:IsValid() then
 		if sleep ~= 0 then
 			phys:Sleep()
 		else
