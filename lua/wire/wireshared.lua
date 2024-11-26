@@ -238,13 +238,12 @@ do
 	NOTIFYSOUND_CONFIRM4 = 10
 
 	if CLIENT then
-
 		local sounds = {
 			[NOTIFYSOUND_DRIP1   ] = "ambient/water/drip1.wav",
 			[NOTIFYSOUND_DRIP2   ] = "ambient/water/drip2.wav",
 			[NOTIFYSOUND_DRIP3   ] = "ambient/water/drip3.wav",
 			[NOTIFYSOUND_DRIP4   ] = "ambient/water/drip4.wav",
-			[NOTIFYSOUND_DRIP5   ] = "ambient/water/drip5.wav",
+			[NOTIFYSOUND_DRIP5   ] = "ambient/water/drip4.wav", -- Non-existent sound, left for compatibility
 			[NOTIFYSOUND_ERROR1  ] = "buttons/button10.wav",
 			[NOTIFYSOUND_CONFIRM1] = "buttons/button3.wav",
 			[NOTIFYSOUND_CONFIRM2] = "buttons/button14.wav",
@@ -258,39 +257,33 @@ do
 			elseif ply ~= LocalPlayer() then
 				return
 			end
+
 			GAMEMODE:AddNotify(Message, Type, Duration)
 			if Sound and sounds[Sound] then surface.PlaySound(sounds[Sound]) end
 		end
 
 		net.Receive("wire_addnotify", function(netlen)
 			local Message = net.ReadString()
-			local Type = net.ReadUInt(8)
+			local Type = net.ReadUInt(3)
 			local Duration = net.ReadFloat()
-			local Sound = net.ReadUInt(8)
+			local Sound = net.ReadUInt(4)
 
 			WireLib.AddNotify(LocalPlayer(), Message, Type, Duration, Sound)
 		end)
-
-	elseif SERVER then
-
-		NOTIFY_GENERIC = 0
-		NOTIFY_ERROR = 1
-		NOTIFY_UNDO = 2
-		NOTIFY_HINT = 3
-		NOTIFY_CLEANUP = 4
-
+	else
 		util.AddNetworkString("wire_addnotify")
+
 		function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
 			if isstring(ply) then ply, Message, Type, Duration, Sound = nil, ply, Message, Type, Duration end
 			if ply and not ply:IsValid() then return end
+
 			net.Start("wire_addnotify")
 				net.WriteString(Message)
-				net.WriteUInt(Type or 0,8)
+				net.WriteUInt(Type or 0, 3)
 				net.WriteFloat(Duration)
-				net.WriteUInt(Sound or 0,8)
+				net.WriteUInt(Sound or 0, 4)
 			if ply then net.Send(ply) else net.Broadcast() end
 		end
-
 	end
 end -- wire_addnotify
 

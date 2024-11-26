@@ -237,11 +237,10 @@ end
 
 function WireLib.hud_debug(text, oneframe)
 	hook.Add("HUDPaint","wire_hud_debug",function()
-		if oneframe then hook.Remove("HUDPaint","wire_hud_debug") end
-		draw.DrawText(text,"Trebuchet24",10,200,Color(255,255,255,255),0)
+		if oneframe then hook.Remove("HUDPaint", "wire_hud_debug") end
+		draw.DrawText(text, "Trebuchet24", 10, ScrH() / 5, color_white, 0)
 	end)
 end
-
 
 local old_renderhalos = WireLib.__old_renderhalos or hook.GetTable().PostDrawEffects.RenderHalos
 WireLib.__old_renderhalos = old_renderhalos
