@@ -63,6 +63,7 @@ E2Helper.Descriptions["propInertia(e:n)"] = "Sets the directional inertia"
 E2Helper.Descriptions["propInertia(e:v)"] = E2Helper.Descriptions["propInertia(e:n)"]
 E2Helper.Descriptions["propDraw(e:n)"] = "Passing 0 disables rendering for the entity (makes it really invisible)"
 E2Helper.Descriptions["propShadow(e:n)"] = "Passing 0 disables rendering for the entity's shadow"
+E2Helper.Descriptions["propSleep(e:n)"] = "Puts an entity to 'sleep', causing it to stop moving until any physical interaction occurs."
 E2Helper.Descriptions["propSetBuoyancy(e:n)"] = "Sets the prop's buoyancy ratio from 0 to 1"
 E2Helper.Descriptions["propSetFriction(e:n)"] = "Sets prop's friction coefficient (default is 1)"
 E2Helper.Descriptions["propGetFriction(e:)"] = "Gets prop's friction coefficient"

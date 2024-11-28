@@ -832,6 +832,18 @@ e2function void entity:propShadow(number shadowEnable)
 	this:DrawShadow( shadowEnable ~= 0 )
 end
 
+e2function void entity:propSleep(number sleep)
+	if not ValidAction(self, this, "sleep") then return end
+	local phys = this:GetPhysicsObject()
+	if phys:IsValid() then
+		if sleep ~= 0 then
+			phys:Sleep()
+		else
+			phys:Wake()
+		end
+	end
+end
+
 e2function void entity:propGravity(number gravity)
 	if not ValidAction(self, this, "gravity") then return end
 	local physCount = this:GetPhysicsObjectCount()
