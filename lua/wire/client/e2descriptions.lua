@@ -1299,6 +1299,7 @@ E2Helper.Descriptions["holoRemainingSpawns()"] = "Returns how many holograms can
 E2Helper.Descriptions["holoReset(nsvvs)"] = "Similar to holoCreate, but reusing the old entity"
 E2Helper.Descriptions["holoScale(n)"] = "Returns the scale of the given hologram"
 E2Helper.Descriptions["holoScale(nv)"] = "Sets the scale of the given hologram, as a multiplier"
+E2Helper.Descriptions["holoBoneMerge(nn)"] = "Enables bonemerge behavior on the hologram when the second argument is not 0"
 E2Helper.Descriptions["holoBoneScale(nn)"] = "Returns the scale of the given hologram bone"
 E2Helper.Descriptions["holoBoneScale(nnv)"] = "Sets the scale of the given hologram bone, as a multiplier"
 E2Helper.Descriptions["holoBoneScale(ns)"] = "Returns the scale of the given hologram named bone"

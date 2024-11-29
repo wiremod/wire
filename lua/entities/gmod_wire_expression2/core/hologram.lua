@@ -1243,12 +1243,29 @@ e2function void holoParentAttachment(index, entity ent, string attachmentName)
 	Parent_Hologram(Holo, ent, attachmentName)
 end
 
+-- Combination of EF_BONEMERGE and EF_BONEMERGE_FASTCULL, to avoid performance complaints.
+local BONEMERGE_FLAGS = bit.bor(EF_BONEMERGE, EF_BONEMERGE_FASTCULL)
+
 e2function void holoUnparent(index)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
+	Holo.ent:RemoveEffects(BONEMERGE_FLAGS)
 	Holo.ent:SetParent(nil)
 	Holo.ent:SetParentPhysNum(0)
+end
+
+__e2setcost(10)
+
+e2function void holoBonemerge(index, state)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	if state ~= 0 then
+		Holo.ent:AddEffects(BONEMERGE_FLAGS)
+	else
+		Holo.ent:RemoveEffects(BONEMERGE_FLAGS)
+	end
 end
 
 -- -----------------------------------------------------------------------------
