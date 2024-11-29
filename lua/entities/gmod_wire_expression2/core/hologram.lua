@@ -1190,8 +1190,16 @@ e2function void holoVisible(index, array players, visible)
 end
 
 -- -----------------------------------------------------------------------------
-local function Parent_Hologram(holo, ent, attachment)
+---@param bone integer?
+local function Parent_Hologram(holo, ent, attachment, bone)
 	if ent:GetParent() and ent:GetParent():IsValid() and ent:GetParent() == holo.ent then return end
+
+	if bone then
+		if bone >= 0 and bone < ent:GetBoneCount() then
+			holo.ent:FollowBone(ent, bone)
+			return
+		end
+	end
 
 	holo.ent:SetParent(ent)
 
@@ -1243,6 +1251,38 @@ e2function void holoParentAttachment(index, entity ent, string attachmentName)
 	Parent_Hologram(Holo, ent, attachmentName)
 end
 
+e2function void holoParentAttachment(index, otherindex, string attachmentName)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local Holo2 = CheckIndex(self, otherindex)
+	if not Holo2 then return end
+
+	if not Check_Parents(Holo.ent, Holo2.ent) then return end
+
+	Parent_Hologram(Holo, Holo2.ent, attachmentName)
+end
+
+e2function void holoParentBone(index, entity ent, bone)
+	if not IsValid(ent) then return end
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Parent_Hologram(Holo, ent, nil, bone)
+end
+
+e2function void holoParentBone(index, otherindex, bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local Holo2 = CheckIndex(self, otherindex)
+	if not Holo2 then return end
+
+	if not Check_Parents(Holo.ent, Holo2.ent) then return end
+
+	Parent_Hologram(Holo, Holo2.ent, nil, bone)
+end
+
 -- Combination of EF_BONEMERGE and EF_BONEMERGE_FASTCULL, to avoid performance complaints.
 local BONEMERGE_FLAGS = bit.bor(EF_BONEMERGE, EF_BONEMERGE_FASTCULL)
 
@@ -1251,7 +1291,7 @@ e2function void holoUnparent(index)
 	if not Holo then return end
 
 	Holo.ent:RemoveEffects(BONEMERGE_FLAGS)
-	Holo.ent:SetParent(nil)
+	Holo.ent:FollowBone(nil, 0)
 	Holo.ent:SetParentPhysNum(0)
 end
 
@@ -1259,7 +1299,7 @@ __e2setcost(10)
 
 e2function void holoBonemerge(index, state)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo or not Holo.ent:GetParent():IsValid() then return end
 
 	if state ~= 0 then
 		Holo.ent:AddEffects(BONEMERGE_FLAGS)
