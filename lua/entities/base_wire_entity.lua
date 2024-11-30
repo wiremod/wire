@@ -40,8 +40,11 @@ if CLIENT then
 		local pos = localPly:GetEyeTrace().HitPos
 		local spos = localPly:GetShootPos()
 		if pos == spos then -- if the position is right in your face, get a better position
-			pos = spos + localPly:GetAimVector() * 5
+			pos = localPly:GetAimVector()
+			pos:Mul(5)
+			pos:Add(spos)
 		end
+
 		pos = pos:ToScreen()
 
 		pos.x = math.Round(pos.x)
