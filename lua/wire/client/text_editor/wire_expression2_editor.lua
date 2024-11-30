@@ -2006,14 +2006,28 @@ end
 
 function Editor:Close()
 	timer.Stop("e2autosave")
-	self:AutoSave()
+	local ok, err = pcall(self.AutoSave, self)
+	if not ok then
+		WireLib.Notify(nil, "Failed to autosave file while closing E2 editor.\n" .. err, 3)
+	end
 
-	self:Validate()
-	self:ExtractName()
+	ok = pcall(self.Validate, self)
+	if not ok then
+		WireLib.Notify(nil, "Failed to validate file while closing E2 editor.\n", 2)
+	end
+
+	ok, err = pcall(self.ExtractName, self)
+	if not ok then
+		WireLib.Notify(nil, "Failed to extract name while closing E2 editor.\n" .. err, 3)
+	end
+
 	self:SetV(false)
 	self.chip = false
 
-	self:SaveEditorSettings()
+	ok, err = pcall(self.SaveEditorSettings, self)
+	if not ok then
+		WireLib.Notify(nil, "Failed to save editor settings while closing E2 editor.\n" .. err, 3)
+	end
 
 	hook.Run("WireEditorClose", self)
 end
