@@ -294,24 +294,28 @@ local directive_handlers = {
 		end
 	end,
 
-	["autoupdate"] = function(self, value, trace)
+	["autoupdate"] = function(self, arg, trace)
 		if not self.directives.autoupdate then
 			self.directives.autoupdate = true
 		else
-			if CLIENT then -- Only warn on client
-				trace.end_line = trace.start_line + 1 -- Modify this trace to avoid creating new ones. Hacky but resourceful(?)
-				trace.end_col = 1
-				self:Warning("Directive (@autoupdate) is already defined", trace, { { at = trace, replace = "" } })
+			if not self.ignorestuff then -- Assume includes are in good faith and ignore them
+				local quickfix
+				if CLIENT then -- Only do quickfix on the client for optimization
+					trace.end_line = trace.start_line + 1 -- Modify this trace to avoid creating new ones. Hacky but resourceful(?)
+					trace.end_col = 1
+					quickfix = { { at = trace, replace = "" } }
+				end
+				self:Error("Directive (@autoupdate) cannot be defined twice", trace, quickfix)
 			end
 			return ""
 		end
 
 		if CLIENT then
-			if #string.Trim(value) > 0 then
+			if #string.Trim(arg) > 0 then
 				trace.start_col = trace.end_col + 1
 				trace.end_line = trace.start_line + 1
 				trace.end_col = 1
-				self:Warning("Directive (@autoupdate) takes no parameters", trace, { { at = trace, replace = "\n" } })
+				self:Warning("Directive (@autoupdate) takes no arguments", trace, { { at = trace, replace = "\n" } })
 			end
 			return ""
 		end
