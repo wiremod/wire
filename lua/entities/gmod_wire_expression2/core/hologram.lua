@@ -1248,7 +1248,6 @@ e2function void holoUnparent(index)
 	if not Holo then return end
 
 	Holo.ent:SetParent(nil)
-	Holo.ent:SetParentPhysNum(0)
 end
 
 -- -----------------------------------------------------------------------------
