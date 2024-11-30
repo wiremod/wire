@@ -1292,7 +1292,6 @@ e2function void holoUnparent(index)
 
 	Holo.ent:RemoveEffects(BONEMERGE_FLAGS)
 	Holo.ent:FollowBone(nil, 0)
-	Holo.ent:SetParentPhysNum(0)
 end
 
 __e2setcost(10)
