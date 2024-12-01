@@ -428,6 +428,12 @@ E2Helper.Descriptions["getFlexWeight"] = "Gets the weight of the flex"
 E2Helper.Descriptions["getFlexes(e:)"] = "Gets a 0-indexed array of all flexes and their names"
 E2Helper.Descriptions["hasFlexes(e:)"] = "Returns 1 if the entity has flexes"
 
+-- Model bones
+E2Helper.Descriptions["getModelBoneCount(e:)"] = "Gets the number of bones on the entity's model. Note these are different from E2 bones"
+E2Helper.Descriptions["getModelBoneIndex(e:s)"] = "Gets the bone index of the given name or -1 if it doesn't exist"
+E2Helper.Descriptions["getModelBoneName(e:n)"] = "Gets the name of the bone"
+E2Helper.Descriptions["getModelBones(e:)"] = "Gets a 0-indexed array of all bones and their names. Note these are different from E2 bones"
+
 -- Vector
 E2Helper.Descriptions["vec2(n)"] = "Makes a 2D vector"
 E2Helper.Descriptions["vec2(nn)"] = "Makes a 2D vector"
@@ -1292,6 +1298,9 @@ E2Helper.Descriptions["holoModelList()"] = "Returns the list of valid models\nSe
 E2Helper.Descriptions["holoParent(ne)"] = "Parents the hologram to an entity"
 E2Helper.Descriptions["holoParent(nn)"] = "Parents the hologram to another hologram"
 E2Helper.Descriptions["holoParentAttachment(nes)"] = "Parents the hologram to an entity's bone by its attachment name"
+E2Helper.Descriptions["holoParentAttachment(nns)"] = "Parents the hologram to another hologram's attachment by its attachment name"
+E2Helper.Descriptions["holoParentBone(nen)"] = "Parents the hologram to an entity's bone by its bone index. Note this is completely different from E2 (physics) bones"
+E2Helper.Descriptions["holoParentBone(nnn)"] = "Parents the hologram to another hologram's bone by its bone index. Note this is completely different from E2 (physics) bones"
 E2Helper.Descriptions["holoUnparent(n)"] = "Un-parents the hologram"
 E2Helper.Descriptions["holoPos(nv)"] = "Sets the position of the hologram"
 E2Helper.Descriptions["holoPos(n)"] = "Gets the position of the hologram"
@@ -1299,6 +1308,7 @@ E2Helper.Descriptions["holoRemainingSpawns()"] = "Returns how many holograms can
 E2Helper.Descriptions["holoReset(nsvvs)"] = "Similar to holoCreate, but reusing the old entity"
 E2Helper.Descriptions["holoScale(n)"] = "Returns the scale of the given hologram"
 E2Helper.Descriptions["holoScale(nv)"] = "Sets the scale of the given hologram, as a multiplier"
+E2Helper.Descriptions["holoBonemerge(nn)"] = "Enables bonemerge behavior on the hologram when the second argument is not 0"
 E2Helper.Descriptions["holoBoneScale(nn)"] = "Returns the scale of the given hologram bone"
 E2Helper.Descriptions["holoBoneScale(nnv)"] = "Sets the scale of the given hologram bone, as a multiplier"
 E2Helper.Descriptions["holoBoneScale(ns)"] = "Returns the scale of the given hologram named bone"
