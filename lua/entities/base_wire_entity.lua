@@ -309,7 +309,7 @@ if CLIENT then
 	local color_halo = Color(100, 100, 255)
 
 	hook.Add("PreDrawHalos", "Wiremod_overlay_halos", function()
-		if table.IsEmpty(halos) then return end
+		if halos[1]==nil then return end
 		halo.Add(halos, color_halo, 3, 3, 1, true, true)
 		halos = {}
 		halos_inv = {}
