@@ -299,7 +299,7 @@ local function deepCopy(self, tbl, lookup)
 			self.prf = self.prf + TABLE_INIT_COST + opcost * len -- Can't use prf here because self.prf can be modified by tables and arrays :(
 
 			if prf > e2_tickquota then -- Have to do this awkwardly here
-				return self:forceThrow("perf")
+				self:forceThrow("perf")
 			end
 
 			for i = v[0] ~= nil and 0 or 1, len do -- Just copy array elements by reference since we cannot typecheck
