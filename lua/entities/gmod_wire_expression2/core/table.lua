@@ -509,9 +509,6 @@ e2function table table:typeids()
 	::loop::
 	for k, v in pairs(from) do
 		to[k] = v
-	end
-
-	for k in pairs(to) do
 		types[k] = "s"
 	end
 
