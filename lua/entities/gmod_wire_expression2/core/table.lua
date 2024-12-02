@@ -507,7 +507,9 @@ e2function table table:typeids()
 	local to, from, types = ret.n, this.ntypes, ret.ntypes
 
 	::loop::
-	arrayCopy(to, from)
+	for k, v in pairs(from) do
+		to[k] = v
+	end
 
 	for k in pairs(to) do
 		types[k] = "s"
@@ -880,7 +882,16 @@ end
 -- Returns the types of the variables in the array-part
 e2function array table:typeidsArray()
 	if IsEmpty(this.n) then return {} end
-	return arrayCopy(self, this.ntypes)
+
+	table_perf_check(self, this)
+
+	local ret = {}
+
+	for i, v in ipairs(this.ntypes) do
+		ret[i] = v
+	end
+
+	return ret
 end
 
 -- Converts the table into an array
