@@ -40,9 +40,7 @@ if CLIENT then
 		local pos = localPly:GetEyeTrace().HitPos
 		local spos = localPly:GetShootPos()
 		if pos == spos then -- if the position is right in your face, get a better position
-			pos = localPly:GetAimVector()
-			pos:Mul(5)
-			pos:Add(spos)
+			pos = spos + localPly:GetAimVector() * 5
 		end
 
 		pos = pos:ToScreen()
@@ -132,7 +130,7 @@ if CLIENT then
 
 	local function getWireName( ent )
 		local name = ent:GetNWString("WireName")
-		if not name or name == "" then return ent:GetTable().PrintName else return name end
+		if not name or name == "" then return ent.PrintName else return name end
 	end
 
 	-- This is overridable by other wire entities which want to customize the overlay
@@ -261,11 +259,11 @@ if CLIENT then
 
 		local cur_ent = ply:GetEyeTrace().Entity
 
-		if cur_ent ~= looked_at and IsValid(looked_at) and looked_at:GetTable().IsWire then
+		if cur_ent ~= looked_at and IsValid(looked_at) and looked_at.IsWire then
 			looked_at:BeingLookedAtByLocalPlayer()
 		end
 
-		if IsValid(cur_ent) and cur_ent:GetTable().IsWire and cur_ent:BeingLookedAtByLocalPlayer() then
+		if IsValid(cur_ent) and cur_ent.IsWire and cur_ent:BeingLookedAtByLocalPlayer() then
 			looked_at = cur_ent
 		else
 			looked_at = nil
@@ -322,7 +320,7 @@ if CLIENT then
 	-- Basic legacy GetOverlayText, is no longer used here but we leave it here in case other addons rely on it.
 	function ENT:GetOverlayText()
 		local name = self:GetNWString("WireName")
-		if name == "" then name = self:GetTable().PrintName end
+		if name == "" then name = self.PrintName end
 		local header = "- " .. name .. " -"
 
 		local data = self:GetOverlayData()
@@ -380,8 +378,7 @@ function ENT:SetOverlayData( data )
 end
 
 function ENT:GetOverlayData()
-	local tab = self:GetTable()
-	return tab and tab.OverlayData or nil
+	return self.OverlayData
 end
 
 if CLIENT then return end -- no more client
