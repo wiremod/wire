@@ -362,7 +362,7 @@ e2function number hashNoComments()
 	return getHash( self, self.entity.buffer )
 end
 
-[nodiscard]
+[nodiscard, deprecated = "Use hashMD5 or hashSHA256"]
 e2function number hash( string str )
 	return getHash( self, str )
 end
