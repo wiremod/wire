@@ -526,7 +526,7 @@ end
 
 local function hash_generic(self, text, func)
 	local len = #text
-	if len > 65536 then return self:throw("Input string is too long!", "") end
+	if len > 131072 then return self:throw("Input string is too long!", "") end
 	self.prf = self.prf + len * 0.01
 	return func(text)
 end
@@ -534,8 +534,18 @@ end
 __e2setcost(5)
 
 [nodiscard]
+e2function string hashCRC(string text)
+	return hash_generic(self, text, util.CRC)
+end
+
+[nodiscard]
 e2function string hashMD5(string text)
 	return hash_generic(self, text, util.MD5)
+end
+
+[nodiscard]
+e2function string hashSHA1(string text)
+	return hash_generic(self, text, util.SHA1)
 end
 
 [nodiscard]

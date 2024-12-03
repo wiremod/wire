@@ -176,7 +176,9 @@ E2Helper.Descriptions["gmatch(s:s)"] = "runs string.gmatch(S, S2) and returns th
 E2Helper.Descriptions["gmatch(s:sn)"] = "runs string.gmatch(S, S2, N) and returns the captures in arrays in a table"
 E2Helper.Descriptions["compress(s)"] = "Compresses the input string using LZMA compression. See decompress(string)"
 E2Helper.Descriptions["decompress(s)"] = "Decompresses an LZMA-compressed string. See compress(string)"
+E2Helper.Descriptions["hashCRC(s)"] = "Returns a the CRC checksum of the input string. This is not a secure hash function"
 E2Helper.Descriptions["hashMD5(s)"] = "Returns the MD5 hash of the input string. This is not a secure hash function; see hashSHA256"
+E2Helper.Descriptions["hashSHA1(s)"] = "Returns the SHA1 hash of the input string. This is not a secure hash function; see hashSHA256"
 E2Helper.Descriptions["hashSHA256(s)"] = "Returns the SHA256 hash of the input string"
 
 -- Entity/Player
