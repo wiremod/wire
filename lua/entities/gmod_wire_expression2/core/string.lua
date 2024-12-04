@@ -526,7 +526,7 @@ end
 
 local function hash_generic(self, text, func)
 	local len = #text
-	if len > 131072 then return self:forceThrow("Input string is too long!") end
+	if len > 131072 then self:forceThrow("Input string is too long!") end
 	self.prf = self.prf + len * 0.01
 	return func(text)
 end
