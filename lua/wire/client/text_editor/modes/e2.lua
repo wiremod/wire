@@ -60,7 +60,7 @@ local directives = {
 	["@outputs"]    = VARS,
 	["@persist"]    = VARS,
 	["@trigger"]    = PARTIAL,
-	["@autoupdate"] = FULL,
+	["@autoupdate"] = PARTIAL,
 	["@strict"]     = PARTIAL
 }
 
