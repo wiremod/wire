@@ -176,6 +176,10 @@ E2Helper.Descriptions["gmatch(s:s)"] = "runs string.gmatch(S, S2) and returns th
 E2Helper.Descriptions["gmatch(s:sn)"] = "runs string.gmatch(S, S2, N) and returns the captures in arrays in a table"
 E2Helper.Descriptions["compress(s)"] = "Compresses the input string using LZMA compression. See decompress(string)"
 E2Helper.Descriptions["decompress(s)"] = "Decompresses an LZMA-compressed string. See compress(string)"
+E2Helper.Descriptions["hashCRC(s)"] = "Returns a the CRC checksum of the input string. This is not a secure hash function"
+E2Helper.Descriptions["hashMD5(s)"] = "Returns the MD5 hash of the input string. This is not a secure hash function; see hashSHA256"
+E2Helper.Descriptions["hashSHA1(s)"] = "Returns the SHA1 hash of the input string. This is not a secure hash function; see hashSHA256"
+E2Helper.Descriptions["hashSHA256(s)"] = "Returns the SHA256 hash of the input string"
 
 -- Entity/Player
 E2Helper.Descriptions["entity(n)"] = "Gets the entity associated with the id"
@@ -937,7 +941,7 @@ E2Helper.Descriptions["remoteSetCode(e:st)"] = "Sets the E2's code with main fil
 E2Helper.Descriptions["remoteUpload(e:s)"] = "Uploads the code from your computer to the server"
 E2Helper.Descriptions["getCodeIncludes()"] = "Returns a table where indices (keys) are names of included files and entries are their codes"
 E2Helper.Descriptions["hash()"] = "Returns a numerical hash using the code of the E2 itself (Including comments)"
-E2Helper.Descriptions["hash(s)"] = "Returns a numerical hash using the string specified"
+E2Helper.Descriptions["hash(s)"] = "Returns the CRC-32 of the string specified. This should not be used as a legitimate hash function"
 E2Helper.Descriptions["hashNoComments()"] = "Returns a numerical hash using the code of the E2 itself (Excluding comments)"
 E2Helper.Descriptions["concmd(s)"] = "Takes a string and executes it in console. Returns 1 if it succeeded and 0 if it failed.The client must enable this in the console with \"wire_expression2_concmd 1\". \"wire_expression2_concmd_whitelist\" allows you to choose which commands can be used.[http://www.wiremod.com/forum/151800-post12.html]"
 E2Helper.Descriptions["ioInputEntity(s)"] = "Returns the entity the input S is wired to"

@@ -520,3 +520,35 @@ e2function string decompress(string compressed)
 	self.prf = self.prf + len * 0.5
 	return decompress(compressed) or self:throw("Invalid input for decompression!", "")
 end
+
+--[[******************************************************************************]]--
+-- Hash functions
+
+local function hash_generic(self, text, func)
+	local len = #text
+	if len > 131072 then self:forceThrow("Input string is too long!") end
+	self.prf = self.prf + len * 0.01
+	return func(text)
+end
+
+__e2setcost(5)
+
+[nodiscard]
+e2function string hashCRC(string text)
+	return hash_generic(self, text, util.CRC)
+end
+
+[nodiscard]
+e2function string hashMD5(string text)
+	return hash_generic(self, text, util.MD5)
+end
+
+[nodiscard]
+e2function string hashSHA1(string text)
+	return hash_generic(self, text, util.SHA1)
+end
+
+[nodiscard]
+e2function string hashSHA256(string text)
+	return hash_generic(self, text, util.SHA256)
+end
