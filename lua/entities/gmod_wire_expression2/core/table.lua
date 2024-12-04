@@ -246,6 +246,139 @@ table_tostring = function( tbl, indenting, printed, abortafter, cost )
 	return table.concat(ret), cost
 end
 
+local TABLE_INIT_COST = opcost * 3
+--- Creates a deep copy of an E2Table. This only deep copies tables and shallow copies arrays. Any other types are ignored.
+--- @param self RuntimeContext
+--- @param tbl E2Table
+--- @return E2Table
+local function deepCopy(self, tbl, lookup)
+	local size = tbl.size
+	local prf = self.prf + size * opcost
+
+	local before
+	if not lookup then
+		lookup = {}
+		before = collectgarbage("count") -- Init this only on the first run
+	else -- Use the fact that lookup is only empty on first run to embed this extra cost
+		prf = prf + TABLE_INIT_COST
+	end
+
+	if prf > e2_tickquota then
+		self:forceThrow("perf")
+	end
+
+	self.prf = prf
+
+	-- Now the table copying starts
+	local ret = newE2Table()
+	ret.size = size
+
+	lookup[tbl] = ret
+
+	local n = true
+
+	local t_x, t_xtypes, r_x, r_xtypes = tbl.n, tbl.ntypes, ret.n, ret.ntypes
+	::loop:: -- Don't be scared. This deduplicates code while being extremely lightweight for a single repetition
+	for k, v in pairs(t_xtypes) do
+		r_xtypes[k] = v
+		if v == "t" then
+			local tbl2 = t_x[k]
+			local looked_up = lookup[tbl2]
+			if looked_up then
+				r_x[k] = looked_up
+			else
+				r_x[k] = deepCopy(self, tbl2, lookup)
+			end
+		elseif v == "r" then
+			local arr2 = t_x[k]
+			local arr = {}
+			r_x[k] = arr
+
+			local len = #arr2
+
+			self.prf = self.prf + TABLE_INIT_COST + opcost * len -- Can't use prf here because self.prf can be modified by tables and arrays :(
+
+			if prf > e2_tickquota then -- Have to do this awkwardly here
+				self:forceThrow("perf")
+			end
+
+			for i = v[0] ~= nil and 0 or 1, len do -- Just copy array elements by reference since we cannot typecheck
+				arr[i] = arr2[i]
+			end
+		else
+			r_x[k] = t_x[k]
+		end
+	end
+
+	if n then
+		t_x, t_xtypes, r_x, r_xtypes = tbl.s, tbl.stypes, ret.s, ret.stypes
+		n = false
+		goto loop -- Blazingly fast pseudo-optimization
+	end
+
+	if before then -- `before` is only init on first run
+		local mem = (collectgarbage("count") - before)
+		if mem > 0 then
+			self.prf = self.prf + mem * 20
+		end
+	end
+
+	return ret
+end
+
+--- Increases and checks the perf of the chip based on the given size. Throws perf exception to `self` is this operation would hit the tick quota. Auxiliary of table_perf_check.
+--- @param self RuntimeContext
+--- @param size integer The number of elements to check
+--- @return number perf # The adjusted op count after increasing
+local function num_perf_check(self, size)
+	local prf = self.prf + size * opcost
+
+	if prf > e2_tickquota then
+		self:forceThrow("perf")
+	end
+	self.prf = prf
+
+	return prf
+end
+
+--- Increases and checks the perf of the chip. Throws perf exception to `self` if this operation would hit the tick quota.
+--- @param self RuntimeContext
+--- @param tbl E2Table
+--- @return number size # The size of the table
+--- @return number perf # The adjusted op count after increasing
+local function table_perf_check(self, tbl)
+	local size = tbl.size
+	return size, num_perf_check(self, size)
+end
+
+--- Creates a shallow copy of an E2Table.
+--- @param self RuntimeContext
+--- @param tbl E2Table
+--- @return E2Table
+local function shallowCopy(self, tbl)
+	local size = table_perf_check(self, tbl)
+
+	local ret = newE2Table()
+	ret.size = size
+
+	local n = true
+
+	local t_x, t_xtypes, r_x, r_xtypes = tbl.n, tbl.ntypes, ret.n, ret.ntypes
+	::loop::
+	for k, v in pairs(t_xtypes) do
+		r_xtypes[k] = v
+		r_x[k] = t_x[k]
+	end
+
+	if n then
+		t_x, t_xtypes, r_x, r_xtypes = tbl.s, tbl.stypes, ret.s, ret.stypes
+		n = false
+		goto loop
+	end
+
+	return ret
+end
+
 --------------------------------------------------------------------------------
 -- Operators
 --------------------------------------------------------------------------------
@@ -264,6 +397,8 @@ __e2setcost(1)
 
 -- Creates a table
 e2function table table(...tbl)
+	table_check_perf(self, tbl)
+
 	local ret = newE2Table()
 	if #tbl == 0 then return ret end -- Don't construct table
 
@@ -281,56 +416,16 @@ e2function table table(...tbl)
 	end
 
 	ret.size = size
-	self.prf = self.prf + size * opcost
 	return ret
 end
 
--- Clones a table while adding prf for the size of the clone.
-local function prf_clone(self, tbl, lookup)
-	local copy, before = {}, collectgarbage("count")
-
-	lookup = lookup or {}
-	lookup[tbl] = copy
-
-	if self.prf > e2_tickquota then
-		error("perf", 0)
-	end
-
-	local prf = 0
-
-	for k, v in pairs(tbl) do
-		if istable(v) then
-			if lookup[v] then
-				prf = prf + opcost -- simple assign operation
-				copy[k] = lookup[v]
-			else
-				self.prf = self.prf + prf + opcost * 3 -- creating new table
-				prf = 0
-				copy[k] = prf_clone(self, v, lookup)
-			end
-		else
-			prf = prf + opcost -- simple assign operation
-			copy[k] = v
-		end
-	end
-
-	local mem = (collectgarbage("count") - before)
-	if mem > 0 then
-		self.prf = self.prf + mem * 20
-	end
-
-	self.prf = self.prf + prf
-	return copy
-end
-
-__e2setcost(1)
+__e2setcost(3)
 
 -- Erases everything in the table
 e2function void table:clear()
-	self.prf = self.prf + this.size * opcost
-	table.Empty( this.n )
+	this.n = {}
 	this.ntypes = {}
-	table.Empty( this.s )
+	this.s = {}
 	this.stypes = {}
 	this.size = 0
 	return this
@@ -402,20 +497,27 @@ end
 
 -- Returns an table with the typesids of both the array- and table-parts
 e2function table table:typeids()
+	local size = table_perf_check(self, this)
+
+	local n = true
+
 	local ret = newE2Table()
-	ret.n = prf_clone(self, this.ntypes)
+	ret.size = size
 
-	for k,v in pairs( ret.n ) do
-		ret.ntypes[k] = "s"
+	local to, from, types = ret.n, this.ntypes, ret.ntypes
+
+	::loop::
+	for k, v in pairs(from) do
+		to[k] = v
+		types[k] = "s"
 	end
 
-	ret.s = prf_clone(self, this.stypes )
-	for k,v in pairs( ret.s ) do
-		ret.stypes[k] = "s"
+	if n then
+		to, from, types = ret.s, this.stypes, ret.stypes
+		n = false
+		goto loop
 	end
 
-	ret.size = this.size
-	self.prf = self.prf + this.size * opcost
 	return ret
 end
 
@@ -465,6 +567,8 @@ e2function number table:unset( string index ) = e2function number table:remove( 
 
 -- Removes all variables not of the type
 e2function table table:clipToTypeid( string typeid )
+	table_perf_check(self, this)
+
 	local ret, ret_size = newE2Table(), 0
 
 	local this_ntypes, this_stypes = this.ntypes, this.stypes
@@ -474,11 +578,7 @@ e2function table table:clipToTypeid( string typeid )
 	for k, v in pairs( this.n ) do
 		if this_ntypes[k] == typeid then
 			local n = ret_size + 1
-			if istable(v) then
-				ret_n[n] = prf_clone(self, v)
-			else
-				ret_n[n] = v
-			end
+			ret_n[n] = v
 			ret_ntypes[n] = this_ntypes[k]
 			ret_size = ret_size + 1
 		end
@@ -486,23 +586,20 @@ e2function table table:clipToTypeid( string typeid )
 
 	for k, v in pairs( this.s ) do
 		if this_stypes[k] == typeid then
-			if istable(v) then
-				ret_s[k] = prf_clone(self, v)
-			else
-				ret_s[k] = v
-			end
+			ret_s[k] = v
 			ret_stypes[k] = this_stypes[k]
 			ret_size = ret_size + 1
 		end
 	end
 
 	ret.size = ret_size
-	self.prf = self.prf + this.size * opcost
 	return ret
 end
 
 -- Removes all variables of the type
 e2function table table:clipFromTypeid( string typeid )
+	table_perf_check(self, this)
+
 	local ret = newE2Table()
 
 	for k,v in pairs( this.n ) do
@@ -529,15 +626,17 @@ e2function table table:clipFromTypeid( string typeid )
 		end
 	end
 
-	self.prf = self.prf + this.size * opcost
 	return ret
 end
 
 __e2setcost(10)
 
 e2function table table:clone()
-	self.prf = self.prf + this.size * 2
-	return prf_clone(self, this)
+	return deepCopy(self, this)
+end
+
+e2function table table:copy()
+	return shallowCopy(self, this)
 end
 
 __e2setcost(1)
@@ -553,15 +652,16 @@ e2function string table:toString()
 	local printed = { [this] = true }
 	local ret, cost = table_tostring( this, 0, printed, 4000 )
 	self.prf = self.prf + cost * opcost
-	if self.prf > e2_tickquota then error("perf", 0) end
+	if self.prf > e2_tickquota then self:forceThrow("perf") end
 	return ret
 end
 
 -- Adds rv2 to the end of 'this' (adds numerical indexes to the end of the array-part, and only inserts string indexes that don't exist on rv1)
 e2function table table:add( table rv2 )
-	local ret = prf_clone(self, this)
-	local cost = this.size
-	local size = this.size
+	table_perf_check(self, rv2)
+	local ret = shallowCopy(self, this)
+
+	local size = ret.size
 
 	local ret_n, ret_ntypes = ret.n, ret.ntypes
 	local ret_s, ret_stypes = ret.s, ret.stypes
@@ -571,7 +671,6 @@ e2function table table:add( table rv2 )
 
 	local count = #ret.n
 	for k, v in pairs( rv2_n ) do
-		cost = cost + 1
 		local id = rv2_ntypes[k]
 		if not blocked_types[id] then
 			count = count + 1
@@ -583,7 +682,6 @@ e2function table table:add( table rv2 )
 	end
 
 	for k, v in pairs( rv2_s ) do
-		cost = cost + 1
 		if not ret_s[k] then
 			local id = rv2_stypes[k]
 			if not blocked_types[id] then
@@ -595,19 +693,18 @@ e2function table table:add( table rv2 )
 		end
 	end
 
-	self.prf = self.prf + cost * opcost
 	ret.size = size
 	return ret
 end
 
 -- Merges rv2 with 'this' (both numerical and string indexes are overwritten)
 e2function table table:merge( table rv2 )
-	local ret = prf_clone(self, this)
-	local cost = this.size
-	local size = this.size
+	table_perf_check(self, rv2)
+	local ret = shallowCopy(self, this)
+
+	local size = ret.size
 
 	for k,v in pairs( rv2.n ) do
-		cost = cost + 1
 		local id = rv2.ntypes[k]
 		if not blocked_types[id] then
 			if not ret.n[k] then size = size + 1 end
@@ -617,7 +714,6 @@ e2function table table:merge( table rv2 )
 	end
 
 	for k,v in pairs( rv2.s ) do
-		cost = cost + 1
 		local id = rv2.stypes[k]
 		if not blocked_types[id] then
 			if not ret.s[k] then size = size + 1 end
@@ -626,19 +722,17 @@ e2function table table:merge( table rv2 )
 		end
 	end
 
-	self.prf = self.prf + cost * opcost
 	ret.size = size
 	return ret
 end
 
 -- Removes all variables from 'this' which have keys which exist in rv2
 e2function table table:difference( table rv2 )
+	table_perf_check(self, this)
 	local ret = newE2Table()
-	local cost = 0
 	local size = 0
 
 	for k,v in pairs( this.n ) do
-		cost = cost + 1
 		if not rv2.n[k] then
 			size = size + 1
 			ret.n[size] = v
@@ -647,21 +741,20 @@ e2function table table:difference( table rv2 )
 	end
 
 	for k,v in pairs( this.s ) do
-		cost = cost + 1
 		if not rv2.s[k] then
 			size = size + 1
 			ret.s[k] = v
 			ret.stypes[k] = this.stypes[k]
 		end
 	end
-	self.prf = self.prf + cost * opcost
-	ret.size = size
 
+	ret.size = size
 	return ret
 end
 
 -- Removes all variables from 'this' which don't have keys which exist in rv2
 e2function table table:intersect( table rv2 )
+	table_perf_check(self, this)
 	local ret = newE2Table()
 	local cost = 0
 	local size = 0
@@ -720,43 +813,39 @@ __e2setcost(5)
 -- Returns the smallest number in the array-part
 e2function number table:min()
 	if (IsEmpty(this.n)) then return 0 end
+	table_perf_check(self, this)
 	local smallest = nil
-	local cost = 0
 	for k,v in pairs( this.n ) do
-		cost = cost + 1
 		if (this.ntypes[k] == "n") then
 			if (smallest == nil or v < smallest) then
 				smallest = v
 			end
 		end
 	end
-	self.prf = self.prf + cost * opcost
 	return smallest or 0
 end
 
 -- Returns the largest number in the array-part
 e2function number table:max()
 	if (IsEmpty(this.n)) then return 0 end
+	table_perf_check(self, this)
 	local largest = nil
-	local cost = 0
 	for k,v in pairs( this.n ) do
-		cost = cost + 1
 		if (this.ntypes[k] == "n") then
 			if (largest == nil or v > largest) then
 				largest = v
 			end
 		end
 	end
-	self.prf = self.prf + cost * opcost
 	return largest or 0
 end
 
 -- Returns the index of the largest number in the array-part
 e2function number table:maxIndex()
 	if (IsEmpty(this.n)) then return 0 end
+	table_perf_check(self, this)
 	local largest = nil
 	local index = 0
-	local cost = 0
 	for k,v in pairs( this.n ) do
 		cost = cost + 1
 		if (this.ntypes[k] == "n") then
@@ -766,16 +855,15 @@ e2function number table:maxIndex()
 			end
 		end
 	end
-	self.prf = self.prf + cost * opcost
 	return index
 end
 
 -- Returns the index of the smallest number in the array-part
 e2function number table:minIndex()
 	if (IsEmpty(this.n)) then return 0 end
+	table_perf_check(self, this)
 	local smallest = nil
 	local index = 0
-	local cost = 0
 	for k,v in pairs( this.n ) do
 		cost = cost + 1
 		if (this.ntypes[k] == "n") then
@@ -785,30 +873,35 @@ e2function number table:minIndex()
 			end
 		end
 	end
-	self.prf = self.prf + cost * opcost
 	return index
 end
 
 -- Returns the types of the variables in the array-part
 e2function array table:typeidsArray()
 	if IsEmpty(this.n) then return {} end
-	self.prf = self.prf + table.Count(this.ntypes) * opcost
-	return prf_clone(self, this.ntypes)
+
+	table_perf_check(self, this)
+
+	local ret = {}
+
+	for i, v in ipairs(this.ntypes) do
+		ret[i] = v
+	end
+
+	return ret
 end
 
 -- Converts the table into an array
 e2function array table:toArray()
 	if IsEmpty(this.n) then return {} end
+	table_perf_check(self, this)
 	local ret = {}
-	local cost = 0
 	for k,v in pairs( this.n ) do
-		cost = cost + 1
 		local id = this.ntypes[k]
 		if (tbls[id] ~= true) then
 			ret[k] = v
 		end
 	end
-	self.prf = self.prf + cost * opcost
 	return ret
 end
 
@@ -828,14 +921,17 @@ end
 __e2setcost(1)
 local luaconcat = table.concat
 local clamp = math.Clamp
-local function concat( tab, delimeter, startindex, endindex )
-	local ret = {}
+local function concat(self, tab, delimeter, startindex, endindex)
 	local len = #tab
 
 	startindex = startindex or 1
 	if startindex > len then return "" end
 
 	endindex = clamp(endindex or len, startindex, len)
+
+	num_perf_check(self, endindex - startindex)
+
+	local ret = {}
 
 	for i=startindex, endindex do
 		ret[#ret+1] = tostring(tab[i])
@@ -844,33 +940,27 @@ local function concat( tab, delimeter, startindex, endindex )
 end
 
 e2function string table:concat()
-	self.prf = self.prf + #this * opcost
-	return concat(this.n)
+	return concat(self, this.n)
 end
 
 e2function string table:concat(string delimiter)
-	self.prf = self.prf + #this * opcost
-	return concat(this.n,delimiter)
+	return concat(self, this.n,delimiter)
 end
 
 e2function string table:concat(string delimiter, startindex)
-	self.prf = self.prf + #this * opcost
-	return concat(this.n,delimiter,startindex)
+	return concat(self, this.n,delimiter,startindex)
 end
 
 e2function string table:concat(string delimiter, startindex, endindex)
-	self.prf = self.prf + #this * opcost
-	return concat(this.n,delimiter,startindex,endindex)
+	return concat(self, this.n,delimiter,startindex,endindex)
 end
 
 e2function string table:concat(startindex)
-	self.prf = self.prf + #this * opcost
-	return concat(this.n,"",startindex,endindex)
+	return concat(self, this.n,"",startindex)
 end
 
 e2function string table:concat(startindex,endindex)
-	self.prf = self.prf + #this * opcost
-	return concat(this.n,"",startindex,endindex)
+	return concat(self, this.n,"",startindex,endindex)
 end
 
 --------------------------------------------------------------------------------
@@ -886,11 +976,11 @@ __e2setcost(5)
 --- Returns a lookup table for <arr>. Usage: Index = T:number(toString(Value)).
 --- Don't overuse this function, as it can become expensive for arrays with > 10 entries!
 e2function table invert(array arr)
+	num_perf_check(self, #arr)
+
 	local ret = newE2Table()
-	local c = 0
 	local size = 0
 	for i,v in ipairs(arr) do
-		c = c + 1
 		local tostring_this = tostrings[type(v)]
 		if tostring_this then
 			ret.s[tostring_this(v)] = i
@@ -901,18 +991,16 @@ e2function table invert(array arr)
 		end
 	end
 	ret.size = size
-	self.prf = self.prf + c * opcost
 	return ret
 end
 
 --- Returns a lookup table for <tbl>. Usage: Key = T:string(toString(Value)).
 --- Don't overuse this function, as it can become expensive for tables with > 10 entries!
 e2function table invert(table tbl)
+	table_perf_check(self, tbl)
 	local ret = newE2Table()
-	local c = 0
 	local size = 0
 	for i,v in pairs(tbl.n) do
-		c = c + 1
 		local typeid = tbl.ntypes[i]
 		local tostring_this = tostring_typeid[typeid]
 		if tostring_this then
@@ -924,7 +1012,6 @@ e2function table invert(table tbl)
 		end
 	end
 	for i,v in pairs(tbl.s) do
-		c = c + 1
 		local typeid = tbl.stypes[i]
 		local tostring_this = tostring_typeid[typeid]
 		if tostring_this then
@@ -935,42 +1022,35 @@ e2function table invert(table tbl)
 			self.player:ChatPrint("E2: invert(T): Invalid type ("..typeid..") in table. Ignored.")
 		end
 	end
-	self.prf = self.prf + c * opcost
 	ret.size = size
 	return ret
 end
 
 e2function array table:keys()
+	table_perf_check(self, this)
 	local ret = {}
-	local c = 0
-	for index,value in pairs(this.n) do
-		c = c + 1
+	for index in pairs(this.n) do
 		ret[#ret+1] = index
 	end
-	for index,value in pairs(this.s) do
-		c = c + 1
+	for index in pairs(this.s) do
 		ret[#ret+1] = index
 	end
-	self.prf = self.prf + c * opcost
 	return ret
 end
 
 e2function array table:values()
+	table_perf_check(self, this)
 	local ret = {}
-	local c = 0
 	for index,value in pairs(this.n) do
-		c = c + 1
 		if (not tbls[this.ntypes[index]]) then
 			ret[#ret+1] = value
 		end
 	end
 	for index,value in pairs(this.s) do
-		c = c + 1
 		if (not tbls[this.stypes[index]]) then
 			ret[#ret+1] = value
 		end
 	end
-	self.prf = self.prf + c * opcost
 	return ret
 end
 
