@@ -36,7 +36,10 @@ e2function void entity:setColor(r,g,b)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
-	WireLib.SetColor(this, Color(r, g, b, this:GetColor().a))
+	local color = this:GetColor()
+	color.r, color.g, color.b = RGBClamp(r, g, b)
+
+	WireLib.SetColor(this, color)
 end
 
 e2function void entity:setColor(r,g,b,a)
@@ -50,7 +53,10 @@ e2function void entity:setColor(vector c)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 
-	WireLib.SetColor(this, Color(c[1], c[2], c[3], this:GetColor().a))
+	local color = this:GetColor()
+	color.r, color.g, color.b = RGBClamp(c[1], c[2], c[3])
+
+	WireLib.SetColor(this, color)
 end
 
 e2function void entity:setColor(vector c, a)
@@ -70,11 +76,12 @@ end
 e2function void entity:setAlpha(a)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
-
 	if this:IsPlayer() then return self:throw("You cannot set the alpha of a player!", nil) end
 
-	local c = this:GetColor()
-	WireLib.SetColor(this, Color(c.r, c.g, c.b, a))
+	local color = this:GetColor()
+	color.a = Clamp(a, 0, 255)
+
+	WireLib.SetColor(this, color)
 end
 
 e2function void entity:setRenderMode(mode)
