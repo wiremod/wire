@@ -1345,19 +1345,19 @@ end
 __e2setcost(10)
 
 e2function void entity:setEyeTarget(vector pos)
-	if not ValidAction(self, this, "eyetarget") then return end
+	if not ValidAction(self, this) then return end
 	this:SetEyeTarget(pos)
 end
 
 e2function void entity:setFlexWeight(number flex, number weight)
-	if not ValidAction(self, this, "flexweight" .. flex) then return end
+	if not ValidAction(self, this) then return end
 	this:SetFlexWeight(flex, weight)
 end
 
 __e2setcost(30)
 
 e2function void entity:setEyeTargetLocal(vector pos)
-	if not ValidAction(self, this, "eyetarget") then return end
+	if not ValidAction(self, this) then return end
 	if not this:IsRagdoll() then
 		local attachment = this:GetAttachment(this:LookupAttachment("eyes"))
 		if attachment then
@@ -1368,7 +1368,7 @@ e2function void entity:setEyeTargetLocal(vector pos)
 end
 
 e2function void entity:setEyeTargetWorld(vector pos)
-	if not ValidAction(self, this, "eyetarget") then return end
+	if not ValidAction(self, this) then return end
 	if this:IsRagdoll() then
 		local attachment = this:GetAttachment(this:LookupAttachment("eyes"))
 		if attachment then
@@ -1383,13 +1383,13 @@ __e2setcost(20)
 e2function void entity:setFlexWeight(string flex, number weight)
 	flex = this:GetFlexIDByName(flex)
 	if flex then
-		if not ValidAction(self, this, "flexweight" .. flex) then return end
+		if not ValidAction(self, this) then return end
 		this:SetFlexWeight(flex, weight)
 	end
 end
 
 e2function void entity:setFlexScale(number scale)
-	if not ValidAction(self, this, "flexscale") then return end
+	if not ValidAction(self, this) then return end
 	this:SetFlexScale(scale)
 end
 
