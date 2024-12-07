@@ -181,7 +181,6 @@ if CLIENT then
 	end
 
 	net.Receive("wire_holograms_clip", function(netlen)
-		print("wire_holograms_clip", netlen)
 		while true do
 			local entid = net.ReadUInt(WireLib.MAX_EDICT_BITS)
 			if entid == 0 then return end -- stupid hack to not include amount of entities in the message. feel free to rework this.
@@ -334,8 +333,6 @@ if CLIENT then
 			SetPlayerColor(eidx, player_color_buffer[eidx])
 			player_color_buffer[eidx] = nil
 		end
-
-
 	end
 
 	net.Receive("wire_holograms_set_player_color", function(netlen)
