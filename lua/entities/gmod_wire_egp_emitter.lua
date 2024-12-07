@@ -121,11 +121,11 @@ if CLIENT then
 					if filter then
 						render.PushFilterMag(filter)
 						render.PushFilterMin(filter)
-						obj:Draw(ent, mat)
+						obj:Draw(self, mat)
 						render.PopFilterMag()
 						render.PopFilterMin()
 					else
-						obj:Draw(ent, mat)
+						obj:Draw(self, mat)
 					end
 					EGP:FixMaterial(oldtex)
 				end
