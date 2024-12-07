@@ -280,12 +280,12 @@ if CLIENT then
 
 	net.Receive("wire_holograms_set_bone_scale", function(netlen)
 		local index = net.ReadUInt(WireLib.MAX_EDICT_BITS)
-		local bindex = net.ReadUInt(16) - 1 -- using -1 to get negative -1 for reset
+		local bindex = net.ReadUInt(9) - 1 -- using -1 to get negative -1 for reset
 
 		while index ~= 0 do
 			SetBoneScale(index, bindex, Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()))
 			index = net.ReadUInt(WireLib.MAX_EDICT_BITS)
-			bindex = net.ReadUInt(16) - 1
+			bindex = net.ReadUInt(9) - 1
 		end
 	end)
 

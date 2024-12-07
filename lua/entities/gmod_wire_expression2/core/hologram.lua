@@ -258,7 +258,7 @@ local function flush_bone_scale_queue(queue, recipient)
 		for Holo, holoqueue in pairs(plyqueue) do
 			for bone, scale in pairs(holoqueue) do
 				net.WriteUInt(Holo.ent:EntIndex(), WireLib.MAX_EDICT_BITS)
-				net.WriteUInt(bone + 1, 16) -- using +1 to be able reset holo bones scale with -1 and not use signed int
+				net.WriteUInt(bone + 1, 9) -- using +1 to be able reset holo bones scale with -1 and not use signed int
 				net.WriteFloat(scale.x)
 				net.WriteFloat(scale.y)
 				net.WriteFloat(scale.z)
