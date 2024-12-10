@@ -31,6 +31,8 @@ end)
 list.Set("DesktopWindows", "WireExpression2_ViewRequestMenu", {
 	title = "View Requests",
 	icon = "beer/wiremod/gate_e2", -- Use whatever icon you want here, I just picked my favourite out of the available E2 ones
+	onewindow = true,
+
 	init = function(icon, window)
 		window:SetTitle("Expression 2 View Requests")
 
@@ -40,7 +42,6 @@ list.Set("DesktopWindows", "WireExpression2_ViewRequestMenu", {
 		window:SetMinHeight(ScrH() * 0.2)
 
 		window:Center()
-		window:MakePopup()
 
 		local reqList = vgui.Create("DListView", window)
 		reqList:Dock(FILL)
