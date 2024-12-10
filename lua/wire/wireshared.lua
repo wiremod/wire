@@ -16,6 +16,8 @@ local string_sub = string.sub
 local utf8_char = utf8.char
 local hook = hook
 
+WireLib.MAX_EDICT_BITS = net.MAX_EDICT_BITS or 13
+
 -- extra table functions
 
 -- Returns a noniterable version of tbl. So indexing still works, but pairs(tbl) won't find anything
