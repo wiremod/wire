@@ -182,7 +182,7 @@ if CLIENT then
 
 	net.Receive("wire_holograms_clip", function(netlen)
 		while true do
-			local entid = net.ReadUInt(WireLib.MAX_EDICT_BITS)
+			local entid = net.ReadUInt(MAX_EDICT_BITS)
 			if entid == 0 then return end -- stupid hack to not include amount of entities in the message. feel free to rework this.
 
 			local clipid = net.ReadUInt(4)
@@ -190,7 +190,7 @@ if CLIENT then
 			if net.ReadBool() then
 				SetClipEnabled(entid, clipid, net.ReadBool())
 			else
-				SetClip(entid, clipid, net.ReadVector(), net.ReadVector(), net.ReadUInt(WireLib.MAX_EDICT_BITS))
+				SetClip(entid, clipid, net.ReadVector(), net.ReadVector(), net.ReadUInt(MAX_EDICT_BITS))
 			end
 
 			local ent = Entity(entid)
@@ -270,21 +270,21 @@ if CLIENT then
 	end
 
 	net.Receive("wire_holograms_set_scale", function(netlen)
-		local index = net.ReadUInt(WireLib.MAX_EDICT_BITS)
+		local index = net.ReadUInt(MAX_EDICT_BITS)
 
 		while index ~= 0 do
 			SetScale(index, Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()))
-			index = net.ReadUInt(WireLib.MAX_EDICT_BITS)
+			index = net.ReadUInt(MAX_EDICT_BITS)
 		end
 	end)
 
 	net.Receive("wire_holograms_set_bone_scale", function(netlen)
-		local index = net.ReadUInt(WireLib.MAX_EDICT_BITS)
+		local index = net.ReadUInt(MAX_EDICT_BITS)
 		local bindex = net.ReadUInt(9) - 1 -- using -1 to get negative -1 for reset
 
 		while index ~= 0 do
 			SetBoneScale(index, bindex, Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()))
-			index = net.ReadUInt(WireLib.MAX_EDICT_BITS)
+			index = net.ReadUInt(MAX_EDICT_BITS)
 			bindex = net.ReadUInt(9) - 1
 		end
 	end)
@@ -301,7 +301,7 @@ if CLIENT then
 	end
 
 	net.Receive("wire_holograms_set_visible", function(netlen)
-		local index = net.ReadUInt(WireLib.MAX_EDICT_BITS)
+		local index = net.ReadUInt(MAX_EDICT_BITS)
 
 		while index ~= 0 do
 
@@ -312,7 +312,7 @@ if CLIENT then
 				vis_buffer[index] = net.ReadBit() == 0
 			end
 
-			index = net.ReadUInt(WireLib.MAX_EDICT_BITS)
+			index = net.ReadUInt(MAX_EDICT_BITS)
 		end
 	end)
 
@@ -336,7 +336,7 @@ if CLIENT then
 	end
 
 	net.Receive("wire_holograms_set_player_color", function(netlen)
-		local index = net.ReadUInt(WireLib.MAX_EDICT_BITS)
+		local index = net.ReadUInt(MAX_EDICT_BITS)
 
 		while index ~= 0 do
 			local ent = Entity(index)
@@ -346,7 +346,7 @@ if CLIENT then
 				player_color_buffer[index] = net.ReadVector()
 			end
 
-			index = net.ReadUInt(WireLib.MAX_EDICT_BITS)
+			index = net.ReadUInt(MAX_EDICT_BITS)
 		end
 	end)
 

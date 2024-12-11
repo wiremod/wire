@@ -16,7 +16,7 @@ local string_sub = string.sub
 local utf8_char = utf8.char
 local hook = hook
 
-WireLib.MAX_EDICT_BITS = MAX_EDICT_BITS or 13
+MAX_EDICT_BITS = MAX_EDICT_BITS or 13 -- Delete once MAX_EDICT_BITS is fully out in base GMod
 
 -- extra table functions
 
