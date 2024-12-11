@@ -150,7 +150,10 @@ end
 __e2setcost(5)
 
 e2function angle angnorm(angle rv1)
-	return Angle((rv1[1] + 180) % 360 - 180, (rv1[2] + 180) % 360 - 180, (rv1[3] + 180) % 360 - 180)
+	local ang = Angle(rv1)
+	ang:Normalize()
+
+	return ang
 end
 
 e2function number angnorm(rv1)
@@ -175,15 +178,24 @@ __e2setcost(2)
 
 // SET methods that returns angles
 e2function angle angle:setPitch(rv2)
-	return Angle(rv2, this[2], this[3])
+	local ang = Angle(this)
+	ang.pitch = rv2
+
+	return ang
 end
 
 e2function angle angle:setYaw(rv2)
-	return Angle(this[1], rv2, this[3])
+	local ang = Angle(this)
+	ang.yaw = rv2
+
+	return ang
 end
 
 e2function angle angle:setRoll(rv2)
-	return Angle(this[1], this[2], rv2)
+	local ang = Angle(this)
+	ang.roll = rv2
+
+	return ang
 end
 
 /******************************************************************************/
@@ -351,27 +363,30 @@ e2function angle angle:rotateAroundAxis(vector axis, degrees)
 end
 
 // Convert the magnitude of the angle to radians
+local deg2rad = math.pi / 180
+local rad2deg = 180 / math.pi
+
 e2function angle toRad(angle rv1)
-	return Angle(rv1[1] * pi / 180, rv1[2] * pi / 180, rv1[3] * pi / 180)
+	return rv1 * deg2rad
 end
 
 // Convert the magnitude of the angle to degrees
 e2function angle toDeg(angle rv1)
-	return Angle(rv1[1] * 180 / pi, rv1[2] * 180 / pi, rv1[3] * 180 / pi)
+	return rv1 * rad2deg
 end
 
 /******************************************************************************/
 
 e2function vector angle:forward()
-	return Angle(this[1], this[2], this[3]):Forward()
+	return this:Forward()
 end
 
 e2function vector angle:right()
-	return Angle(this[1], this[2], this[3]):Right()
+	return this:Right()
 end
 
 e2function vector angle:up()
-	return Angle(this[1], this[2], this[3]):Up()
+	return this:Up()
 end
 
 e2function string toString(angle a)
