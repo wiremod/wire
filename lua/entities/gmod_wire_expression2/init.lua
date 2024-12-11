@@ -552,8 +552,6 @@ function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 		return
 	end
 
-	self.duped = false
-
 	if not restore then
 		self.first = true
 		self:Execute()
@@ -646,6 +644,28 @@ function ENT:TriggerOutputs(force)
 	end
 end
 
+--- Helper function that operates slightly differently if AdvDupe2 exists or not
+local apply_duped
+do
+	local function runDuped(e2)
+		e2.duped = true
+		e2:Execute()
+		e2:Think()
+		e2.duped = nil
+	end
+
+	---@diagnostic disable-next-line:undefined-global 
+	if AdvDupe2 then -- Prevent duped() if dupeFinished() can be called instead
+		apply_duped = function(e2)
+			if not e2.directives.strict then
+				runDuped(e2)
+			end
+		end
+	else -- Always run duped() without AdvDupe(2)
+		apply_duped = runDuped
+	end
+end
+
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	self:Setup(self.buffer, self.inc_files, true)
 
@@ -664,10 +684,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 		end
 		self.dupevars = nil
 
-		self.duped = true
-		self:Execute()
-		self:Think()
-		self.duped = false
+		apply_duped(self)
 	end
 
 	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID, GetConstByID)

@@ -73,6 +73,7 @@ local function dupefinished( TimedPasteData, TimedPasteDataCurrent )
 			v.dupefinished = true
 			v:Execute()
 			v.dupefinished = nil
+			v.duped = nil
 		end
 	end
 end
