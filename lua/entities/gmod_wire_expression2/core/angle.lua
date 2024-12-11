@@ -11,7 +11,6 @@ registerType("angle", "a", Angle(0, 0, 0),
 	end
 )
 
-local pi = math.pi
 local floor, ceil = math.floor, math.ceil
 
 /******************************************************************************/
@@ -32,7 +31,7 @@ e2function angle ang(rv1, rv2, rv3)
 	return Angle(rv1, rv2, rv3)
 end
 
-// Convert Vector -> Angle
+-- Convert Vector -> Angle
 e2function angle ang(vector rv1)
 	return Angle(rv1[1], rv1[2], rv1[3])
 end
@@ -176,7 +175,7 @@ end
 
 __e2setcost(2)
 
-// SET methods that returns angles
+-- SET methods that returns angles
 e2function angle angle:setPitch(rv2)
 	local ang = Angle(this)
 	ang.pitch = rv2
