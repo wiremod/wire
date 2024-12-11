@@ -16,7 +16,7 @@ local string_sub = string.sub
 local utf8_char = utf8.char
 local hook = hook
 
-WireLib.MAX_EDICT_BITS = net.MAX_EDICT_BITS or 13
+WireLib.MAX_EDICT_BITS = MAX_EDICT_BITS or 13
 
 -- extra table functions
 
