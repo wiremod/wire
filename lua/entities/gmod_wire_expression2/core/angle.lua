@@ -252,7 +252,7 @@ e2function angle floor(angle rv1, decimals)
 	)
 end
 
-// Performs modulo on p,y,r separately
+-- Performs modulo on p,y,r separately
 e2function angle mod(angle rv1, rv2)
 	local p,y,r
 	if rv1[1] >= 0 then
@@ -267,7 +267,7 @@ e2function angle mod(angle rv1, rv2)
 	return Angle(p, y, r)
 end
 
-// Modulo where divisors are defined as an angle
+-- Modulo where divisors are defined as an angle
 e2function angle mod(angle rv1, angle rv2)
 	local p,y,r
 	if rv1[1] >= 0 then
@@ -282,7 +282,7 @@ e2function angle mod(angle rv1, angle rv2)
 	return Angle(p, y, r)
 end
 
-// Clamp each p,y,r separately
+-- Clamp each p,y,r separately
 e2function angle clamp(angle rv1, rv2, rv3)
 	local p,y,r
 
@@ -301,7 +301,7 @@ e2function angle clamp(angle rv1, rv2, rv3)
 	return Angle(p, y, r)
 end
 
-// Clamp according to limits defined by two min/max angles
+-- Clamp according to limits defined by two min/max angles
 e2function angle clamp(angle rv1, angle rv2, angle rv3)
 	local p,y,r
 
@@ -320,7 +320,7 @@ e2function angle clamp(angle rv1, angle rv2, angle rv3)
 	return Angle(p, y, r)
 end
 
-// Mix two angles by a given proportion (between 0 and 1)
+-- Mix two angles by a given proportion (between 0 and 1)
 e2function angle mix(angle rv1, angle rv2, rv3)
 	local p = rv1[1] * rv3 + rv2[1] * (1-rv3)
 	local y = rv1[2] * rv3 + rv2[2] * (1-rv3)
@@ -330,7 +330,7 @@ end
 
 __e2setcost(2)
 
-// Circular shift function: shiftr(  p,y,r ) = ( r,p,y )
+-- Circular shift function: shiftr(  p,y,r ) = ( r,p,y )
 e2function angle shiftR(angle rv1)
 	return Angle(rv1[3], rv1[1], rv1[2])
 end
@@ -341,7 +341,7 @@ end
 
 __e2setcost(5)
 
-// Returns 1 if the angle lies between (or is equal to) the min/max angles
+-- Returns 1 if the angle lies between (or is equal to) the min/max angles
 e2function normal inrange(angle rv1, angle rv2, angle rv3)
 	if rv1[1] < rv2[1] then return 0 end
 	if rv1[2] < rv2[2] then return 0 end
@@ -354,14 +354,14 @@ e2function normal inrange(angle rv1, angle rv2, angle rv3)
 	return 1
 end
 
-// Rotate an angle around a vector by the given number of degrees
+-- Rotate an angle around a vector by the given number of degrees
 e2function angle angle:rotateAroundAxis(vector axis, degrees)
 	local ang = Angle(this)
 	ang:RotateAroundAxis( axis:GetNormalized(), degrees )
 	return ang
 end
 
-// Convert the magnitude of the angle to radians
+-- Convert the magnitude of the angle to radians
 local deg2rad = math.pi / 180
 local rad2deg = 180 / math.pi
 
@@ -369,7 +369,7 @@ e2function angle toRad(angle rv1)
 	return rv1 * deg2rad
 end
 
-// Convert the magnitude of the angle to degrees
+-- Convert the magnitude of the angle to degrees
 e2function angle toDeg(angle rv1)
 	return rv1 * rad2deg
 end
