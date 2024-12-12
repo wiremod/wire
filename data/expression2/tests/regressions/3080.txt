@@ -1,0 +1,40 @@
+## SHOULD_PASS:EXECUTE
+@strict
+
+try {
+    error("A")
+} catch(A:string) {
+    assert(A == "A")
+}
+
+try {
+    if(1) {
+        error("B")
+    }
+} catch(B:string) {
+    assert(B == "B")
+}
+
+if(1) {
+    try {
+        error("C")
+    } catch(C:string) {
+        assert(C == "C")
+    }
+    
+    try {
+        if(1) {
+            error("D")
+        }
+    } catch(D:string) {
+        assert(D == "D")
+    }
+    
+    let Fn = function() { error("F") }
+    
+    try {
+        Fn()
+    } catch(F:string) {
+        assert(F == "F")
+    }
+}
