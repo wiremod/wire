@@ -976,6 +976,7 @@ E2Helper.Descriptions["printCaption(sn)"] = "Emits a closed caption with the pro
 -- Time
 E2Helper.Descriptions["tickClk()"] = "DEPRECATED. Use 'event tick()' instead! Returns 1 if the current execution was caused by \"runOnTick\""
 E2Helper.Descriptions["tickInterval()"] = "Returns the time (in seconds) between each server tick"
+E2Helper.Descriptions["tickRate()"] = "Returns the current server tickrate. Allows detecting lags"
 E2Helper.Descriptions["curtime()"] = "Returns the current game time since server-start in seconds"
 E2Helper.Descriptions["realtime()"] = "Returns the current real time since server-start in seconds"
 E2Helper.Descriptions["systime()"] = "Returns a highly accurate time (also in seconds) since the server was started. Ideal for benchmarking"
