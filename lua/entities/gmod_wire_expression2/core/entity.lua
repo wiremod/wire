@@ -581,6 +581,12 @@ e2function number entity:isFrozen()
 	if phys:IsMoveable() then return 0 else return 1 end
 end
 
+e2function number entity:isAsleep()
+	if not validPhysics(this) then return self:throw("Invalid entity!", 0) end
+	local phys = this:GetPhysicsObject()
+	if phys:IsAsleep() then return 1 else return 0 end
+end
+
 --[[******************************************************************************]]
 
 __e2setcost(30) -- temporary
