@@ -80,5 +80,5 @@ e2function number tickInterval()
 end
 
 e2function number tickRealInterval()
-	return 1 / engine.AbsoluteFrameTime()
+	return engine.AbsoluteFrameTime()
 end
