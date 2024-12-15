@@ -461,6 +461,7 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
     varType = self.TokenData
     varSize = 0 -- Depends on pointer level
     isStruct = true
+    WireTextEditor.Modes.ZCPU.keywordsTable[string.upper(varType)] = true -- Add the new struct to the keywords table.
   else -- Define variable
     self:ExpectToken(TOKEN.TYPE)
     varType = self.TokenData

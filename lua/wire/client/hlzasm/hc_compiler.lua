@@ -196,6 +196,16 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   self.WriteByteCallback = writeByteCallback
   self.WriteByteCaller = writeByteCaller
 
+  -- Refresh the keywords table.
+  local keywordsTable =  WireTextEditor.Modes.ZCPU.keywordsTable
+  local keywordsTableOriginal = WireTextEditor.Modes.ZCPU.keywordsTableOriginal
+
+  for k,v in pairs(keywordsTable) do
+      if keywordsTableOriginal[k] == nil then
+          keywordsTable[k] = nil
+      end
+  end
+
   -- Set the working directory
   self.FileName = string.sub(fileName,string.find(fileName,"\\$") or 1)
   if string.GetPathFromFilename then

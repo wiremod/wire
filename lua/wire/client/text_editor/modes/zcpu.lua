@@ -91,10 +91,15 @@ local keywordsList = {
   "INT","FLOAT","CHAR","VOID","PRESERVE","ZAP","STRUCT","VECTOR"
 }
 
-local keywordsTable = {}
+EDITOR.keywordsTable = {}
+local keywordsTable = EDITOR.keywordsTable
+
 for k,v in pairs(keywordsList) do
   keywordsTable[v] = true
 end
+
+-- For checking the keywords to remove structs in the editor.
+EDITOR.keywordsTableOriginal = table.Copy(keywordsTable)
 
 -- Build lookup table for registers
 local registersTable = {
@@ -202,6 +207,9 @@ function EDITOR:SyntaxColorLine(row)
 
   local isGpu = self:GetParent().EditorType == "GPU"
 
+  -- Remember the last token to prevent structs from being highlighted.
+  local previousToken = ""
+
   while self.character do
     local tokenname = ""
     self.tokendata = ""
@@ -217,13 +225,15 @@ function EDITOR:SyntaxColorLine(row)
         tokenname = "opcode"
       elseif registersTable[sstr] then
         tokenname = "register"
-      elseif keywordsTable[sstr] then
+      elseif keywordsTable[sstr] and (previousToken ~= "STRUCT") then -- Default to number/normal if it's declaring a struct.
         tokenname = "keyword"
       elseif tonumber(self.tokendata) then
         tokenname = "number"
       else
         tokenname = "normal"
       end
+
+      previousToken = sstr
     elseif (self.character == "'") or (self.character == "\"")  then
       tokenname = "string"
       local delimiter = self.character
