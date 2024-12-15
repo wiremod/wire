@@ -942,11 +942,7 @@ local minx, miny, minz = -16384, -16384, -16384
 local maxx, maxy, maxz = 16384, 16384, 16384
 local clamp = math.Clamp
 function WireLib.clampPos(pos)
-	pos = Vector(pos)
-	pos.x = clamp(pos.x, minx, maxx)
-	pos.y = clamp(pos.y, miny, maxy)
-	pos.z = clamp(pos.z, minz, maxz)
-	return pos
+	return Vector(clamp(pos.x, minx, maxx), clamp(pos.y, miny, maxy), clamp(pos.z, minz, maxz))
 end
 
 function WireLib.setPos(ent, pos)
@@ -1014,10 +1010,12 @@ end)
 
 -- Nan never equals itself, so if the value doesn't equal itself replace it with 0.
 function WireLib.clampForce( v )
+	local x, y, z = v:Unpack()
+
 	return Vector(
-		v[1] == v[1] and math.Clamp( v[1], min_force, max_force ) or 0,
-		v[2] == v[2] and math.Clamp( v[2], min_force, max_force ) or 0,
-		v[3] == v[3] and math.Clamp( v[3], min_force, max_force ) or 0
+		x == x and clamp( x, min_force, max_force ) or 0,
+		y == y and clamp( y, min_force, max_force ) or 0,
+		z == z and clamp( z, min_force, max_force ) or 0
 	)
 end
 
