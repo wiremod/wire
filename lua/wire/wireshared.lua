@@ -1013,9 +1013,9 @@ function WireLib.clampForce( v )
 	local x, y, z = v:Unpack()
 
 	return Vector(
-		clamp( x, min_force, max_force ) or 0,
-		clamp( y, min_force, max_force ) or 0,
-		clamp( z, min_force, max_force ) or 0
+		clamp( x, min_force, max_force ),
+		clamp( y, min_force, max_force ),
+		clamp( z, min_force, max_force )
 	)
 end
 
