@@ -621,10 +621,13 @@ local CompileVisitors = {
 		self.scope.data.ops = self.scope.data.ops + 5
 
 		return function(state) ---@param state RuntimeContext
+			local scope, scope_id = state.Scope, state.ScopeID
 			state:PushScope()
 				local ok, err = pcall(try_block, state)
-			state:PopScope()
-			if not ok then
+			if ok then
+				state:PopScope()
+			else
+				state.Scope, state.ScopeID = scope, scope_id -- Skip back any scopes that may have been created in try_block
 				local catchable, msg = E2Lib.unpackException(err)
 				if catchable then
 					state:PushScope()
