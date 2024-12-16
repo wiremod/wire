@@ -151,6 +151,18 @@ e2function number entity:isFlashlightOn()
 	return this:FlashlightIsOn() and 1 or 0
 end
 
+e2function number entity:isSpeaking()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:IsSpeaking() and 1 or 0
+end
+
+e2function number entity:isBot()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:IsBot() and 1 or 0
+end
+
 --------------------------------------------------------------------------------
 
 e2function number entity:frags()
