@@ -942,7 +942,7 @@ local minx, miny, minz = -16384, -16384, -16384
 local maxx, maxy, maxz = 16384, 16384, 16384
 local clamp = math.Clamp
 function WireLib.clampPos(pos)
-    local x, y, z = pos:Unpack()
+	local x, y, z = pos:Unpack()
 
 	return Vector(clamp(x, minx, maxx), clamp(y, miny, maxy), clamp(z, minz, maxz))
 end
