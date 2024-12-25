@@ -244,18 +244,9 @@ e2function void timerSetDelay(string name, number delay)
 	end
 
 	local entIndex = self.entity:EntIndex()
-	local internalName = luaTimerGetInternalName(entIndex, name)
 	luaTimers[entIndex][name].delay = delay
 
-	if luaTimers[entIndex][name].repetitions > 0 then
-		local repsLeft = timer.RepsLeft(internalName)
-		if repsLeft == 0 then return end
-
-		luaTimers[entIndex][name].repetitions = repsLeft
-		timer.Adjust(internalName, delay, repsLeft)
-		return
-	end
-	timer.Adjust(internalName, delay, 0)
+	timer.Adjust(luaTimerGetInternalName(entIndex, name), delay)
 end
 
 e2function number timerSetReps(string name, number repetitions)
