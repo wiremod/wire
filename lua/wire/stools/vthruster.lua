@@ -175,6 +175,7 @@ function TOOL.BuildCPanel(panel)
 			--["#Debugger 60 Seconds"] = "debug_60",
 			["#Fire and Smoke"] = "fire_smoke",
 			["#Fire and Smoke Huge"] = "fire_smoke_big",
+			["#Flamethrower"] = "flamethrower",
 			["#5 Growing Rings"] = "rings_grow_rings",
 			["#Color and Magic"] = "color_magic",
 		}
