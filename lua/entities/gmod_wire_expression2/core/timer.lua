@@ -58,7 +58,7 @@ local luaTimers = {
 			delay = 1,
 			repetitions = 1
 		}
-	} 
+	}
 	*/
 }
 
@@ -245,7 +245,8 @@ e2function void timerSetDelay(string name, number delay)
 
 	local entIndex = self.entity:EntIndex()
 	luaTimers[entIndex][name].delay = delay
-	timer.Adjust(luaTimerGetInternalName(entIndex, name), delay, 0)
+
+	timer.Adjust(luaTimerGetInternalName(entIndex, name), delay)
 end
 
 e2function number timerSetReps(string name, number repetitions)
