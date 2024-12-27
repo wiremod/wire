@@ -852,6 +852,63 @@ E2Lib.registerEvent("playerEnteredVehicle", {
 
 --[[******************************************************************************]]
 
+hook.Add("PhysgunPickup", "Exp2RunOnPhysgunPickup", function(ply, entity)
+	E2Lib.triggerEvent("playerPhysgunPickup", { ply, entity })
+end)
+
+hook.Add("PhysgunDrop", "Exp2RunOnPhysgunDrop", function(ply, entity)
+	E2Lib.triggerEvent("playerPhysgunDrop", { ply, entity })
+end)
+
+E2Lib.registerEvent("playerPhysgunPickup", {
+	{ "Player", "e" },
+	{ "Entity", "e" },
+})
+
+E2Lib.registerEvent("playerPhysgunDrop", {
+	{ "Player", "e" },
+	{ "Entity", "e" },
+})
+
+hook.Add("GravGunOnPickedUp", "Exp2RunOnGravGunPickup", function(ply, entity)
+	E2Lib.triggerEvent("playerGravGunPickup", { ply, entity })
+end)
+
+hook.Add("GravGunOnDropped", "Exp2RunOnGravGunDrop", function(ply, entity)
+	E2Lib.triggerEvent("playerGravGunDrop", { ply, entity })
+end)
+
+E2Lib.registerEvent("playerGravGunPickup", {
+	{ "Player", "e" },
+	{ "Entity", "e" },
+})
+
+E2Lib.registerEvent("playerGravGunDrop", {
+	{ "Player", "e" },
+	{ "Entity", "e" },
+})
+
+hook.Add("OnPlayerPhysicsPickup", "Exp2RunOnPhysicsPickup", function(ply, entity)
+	E2Lib.triggerEvent("playerPhysicsPickup", { ply, entity })
+end)
+
+hook.Add("OnPlayerPhysicsDrop", "Exp2RunPhysicsDrop", function(ply, entity, thrown)
+	E2Lib.triggerEvent("playerPhysicsDrop", { ply, entity, thrown == true and 1 or 0 })
+end)
+
+E2Lib.registerEvent("playerPhysicsPickup", {
+	{ "Player", "e" },
+	{ "Entity", "e" },
+})
+
+E2Lib.registerEvent("playerPhysicsDrop", {
+	{ "Player", "e" },
+	{ "Entity", "e" },
+	{ "Thrown", "n" }
+})
+
+--[[******************************************************************************]]
+
 local function composedata(startSize, endSize, length, material, color, alpha)
 	if string.find(material, '"', 1, true) then return nil end
 
