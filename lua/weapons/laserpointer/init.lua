@@ -26,9 +26,9 @@ function SWEP:PrimaryAttack()
 	self:SetLaserEnabled(self.Pointing)
 
 	if self.Pointing and IsValid(self.Receiver) then
-		Wire_TriggerOutput(self.Receiver,"Active",1)
+		Wire_TriggerOutput(self.Receiver,"Active", 1)
 	else
-		Wire_TriggerOutput(self.Receiver,"Active",0)
+		Wire_TriggerOutput(self.Receiver,"Active", 0)
 	end
 end
 
@@ -60,7 +60,7 @@ function SWEP:Think()
 			trace = util.TraceLine({ start = att.Pos, endpos = att.Pos + att.Ang:Forward() * 16384, filter = self })
 		end
 
-		local point = COLOSSAL_SANDBOX and trace.HitPos * 6.25 or trace.HitPos
+		local point = trace.HitPos
 
 		Wire_TriggerOutput(self.Receiver, "X", point.x)
 		Wire_TriggerOutput(self.Receiver, "Y", point.y)
