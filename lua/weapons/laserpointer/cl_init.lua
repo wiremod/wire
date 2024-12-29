@@ -44,7 +44,7 @@ end
 function SWEP:DrawWorldModel()
 	self:DrawModel()
 
-	if self:GetLaserEnabled() then
+	if self:GetLaserEnabled() and self.WAttach then
 		local att = self:GetAttachment(self.WAttach)
 		if not att then return end
 
