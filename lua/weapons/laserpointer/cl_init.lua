@@ -22,8 +22,6 @@ function SWEP:Setup(ply)
 			self.Attach = attachmentIndex
 		end
 	end
-
-	self.WAttach = self:LookupAttachment("muzzle")
 end
 
 function SWEP:Initialize()
@@ -45,7 +43,7 @@ function SWEP:DrawWorldModel()
 	self:DrawModel()
 
 	if self:GetLaserEnabled() then
-		local att = self:GetAttachment(self.WAttach)
+		local att = self:GetAttachment(self:LookupAttachment("muzzle") or 0)
 		if not att then return end
 
 		local owner = self:GetOwner()
