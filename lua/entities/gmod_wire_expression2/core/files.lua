@@ -352,11 +352,7 @@ flushFileBuffer = function()
 						table.remove(queue, 1)
 
 						if #queue ~= 0 then -- Queue the next file
-							if timer.Exists("wire_expression2_flush_file_buffer") then
-								timer.Adjust("wire_expression2_flush_file_buffer", 0.2, 2)
-							else
-								timer.Create("wire_expression2_flush_file_buffer", 0.2, 2, flushFileBuffer)
-							end
+							timer.Create("wire_expression2_flush_file_buffer", 0.2, 2, flushFileBuffer)
 						end
 					end)
 				net.Send(ply)
