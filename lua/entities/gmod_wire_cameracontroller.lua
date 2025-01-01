@@ -271,6 +271,10 @@ if CLIENT then
 		distance = math.Clamp(net.ReadFloat(),-16000,16000)
 		maxdistance = net.ReadFloat()
 
+		if AutoMove and AllowZoom then
+			zoombind = 1
+		end
+
 		-- Parent
 		WaitingForID = net.ReadInt(32)
 
