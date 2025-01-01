@@ -474,7 +474,7 @@ else
 	function E2Lib.isOwner(self, entity)
 		local owner = E2Lib.getOwner(self, entity)
 		if not IsValid(owner) then return false end
-	
+
 		return E2Lib.isFriend(owner, self.player)
 	end
 end
