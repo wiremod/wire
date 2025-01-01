@@ -676,9 +676,7 @@ E2Lib.ReservedWord = {
 	["in"] = true,
 	instanceof = true,
 	interface = true,
-	match = true,
 	macro = true,
-	mod = true,
 	module = true,
 	mut = true,
 	namespace = true,
@@ -701,7 +699,6 @@ E2Lib.ReservedWord = {
 	typeof = true,
 	undefined = true,
 	union = true,
-	use = true,
 	yield = true,
 	var = true,
 }
