@@ -61,7 +61,7 @@ local ValidSpawn = PropCore.ValidSpawn
 local canHaveInvalidPhysics = {
 	delete=true, parent=true, deparent=true, solid=true,
 	shadow=true, draw=true, use=true, pos=true, ang=true,
-	manipulate=true, noDupe=true
+	manipulate=true, noDupe=true, keepFrozen=true
 }
 
 function PropCore.ValidAction(self, entity, cmd, bone)
@@ -814,6 +814,15 @@ e2function void entity:propFreeze(number freeze)
 	if not ValidAction(self, this, "freeze") then return end
 	PhysManipulate(this, nil, nil, freeze, nil, nil)
 end
+
+e2function void entity:propKeepFrozen(number keepFrozen)
+	if not ValidAction(self, this, "keepFrozen") then return end
+	this.PropcoreKeepFrozen = keepFrozen ~= 0 or nil
+end
+
+hook.Add("CanPlayerUnfreeze", "E2_PropcoreKeepFrozen", function(_, Ent)
+	if Ent.PropcoreKeepFrozen then return false end
+end)
 
 e2function void entity:propNotSolid(number notsolid)
 	if not ValidAction(self, this, "solid") then return end

@@ -40,6 +40,7 @@ E2Helper.Descriptions["propSpawnEffect(n)"] = "Set to 1 to enable prop spawn eff
 E2Helper.Descriptions["propDelete(e:)"] = "Deletes the specified prop."
 E2Helper.Descriptions["propDelete(t:)"] = "Deletes all the props in the given table, returns the amount of props deleted."
 E2Helper.Descriptions["propDelete(r:)"] = "Deletes all the props in the given array, returns the amount of props deleted."
+E2Helper.Descriptions["propKeepFrozen(e:n)"] = "if set to non-zero, prevents the entity from being unfrozen by physgun reload, can be unfrozen otherwise."
 E2Helper.Descriptions["propFreeze(e:n)"] = "Passing 0 unfreezes the entity, everything else freezes it."
 E2Helper.Descriptions["propNotSolid(e:n)"] = "Passing 0 makes the entity solid, everything else makes it non-solid."
 E2Helper.Descriptions["propGravity(e:n)"] = "Passing 0 makes the entity weightless, everything else makes it weighty."
