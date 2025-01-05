@@ -510,7 +510,7 @@ end
 util.AddNetworkString( "wire_camera_controller_sync" )
 function ENT:SyncPositions( ply )
 	if not IsValid(ply) then ply = self.Players end
-	net.Start( "wire_camera_controller_sync" )
+	net.Start( "wire_camera_controller_sync", true )
 		net.WriteEntity( self )
 		SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll, self.MaxDistance )
 	net.Send( ply )
