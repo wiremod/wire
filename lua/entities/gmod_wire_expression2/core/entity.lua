@@ -104,10 +104,14 @@ e2function string entity:name()
 	return this:GetName() or ""
 end
 
-e2function string entity:type()
+[nodiscard]
+e2function string entity:getClass()
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	return this:GetClass()
 end
+
+[deprecated = "Use getClass"]
+e2function string entity:type() = e2function string entity:getClass()
 
 e2function string entity:model()
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
