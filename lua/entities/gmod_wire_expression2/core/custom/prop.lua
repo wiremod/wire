@@ -61,7 +61,7 @@ local ValidSpawn = PropCore.ValidSpawn
 local canHaveInvalidPhysics = {
 	delete=true, parent=true, deparent=true, solid=true,
 	shadow=true, draw=true, use=true, pos=true, ang=true,
-	manipulate=true, noDupe=true
+	manipulate=true, noDupe=true, dissolve=true
 }
 
 function PropCore.ValidAction(self, entity, cmd, bone)
@@ -712,6 +712,26 @@ end
 e2function void entity:propBreak()
 	if not ValidAction(self, this, "break") then return end
 	this:Fire("break",1,0)
+end
+
+E2Lib.registerConstant("ENTITY_DISSOLVE_NORMAL", 0)
+E2Lib.registerConstant("ENTITY_DISSOLVE_ELECTRICAL", 1)
+E2Lib.registerConstant("ENTITY_DISSOLVE_ELECTRICAL_LIGHT", 2)
+E2Lib.registerConstant("ENTITY_DISSOLVE_CORE", 3)
+
+e2function void entity:propDissolve()
+	if not ValidAction(self, this, "dissolve") then return end
+	this:Dissolve()
+end
+
+e2function void entity:propDissolve(number dissolvetype)
+	if not ValidAction(self, this, "dissolve") then return end
+	this:Dissolve(dissolvetype)
+end
+
+e2function void entity:propDissolve(number dissolvetype, number magnitude)
+	if not ValidAction(self, this, "dissolve") then return end
+	this:Dissolve(dissolvetype, magnitude)
 end
 
 e2function void entity:use()
