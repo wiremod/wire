@@ -865,7 +865,6 @@ e2function number table:minIndex()
 	local smallest = nil
 	local index = 0
 	for k,v in pairs( this.n ) do
-		cost = cost + 1
 		if (this.ntypes[k] == "n") then
 			if (smallest == nil or v < smallest) then
 				smallest = v
