@@ -598,8 +598,7 @@ if SERVER then
 		end
 	end
 
-	function WireLib._SetInputs(ent, lqueue)
-		local queue = lqueue or WirePortQueue
+	function WireLib._SetInputs(ent)
 		local eid = ent:EntIndex()
 
 		local ent_input_array = {}
@@ -608,12 +607,10 @@ if SERVER then
 		for Name, CurPort in pairs_sortvalues(ent.Inputs, WireLib.PortComparator) do
 			ent_input_array[#ent_input_array+1] = { Name, CurPort.Type, CurPort.Desc or "", CurPort.Num }
 		end
-
-		SendPortInfo(queue, eid, PORT_TYPE_INPUT, ent.Inputs)
+		SendPortInfo(WirePortQueue, eid, PORT_TYPE_INPUT, ent.Inputs)
 	end
 
-	function WireLib._SetOutputs(ent, lqueue)
-		local queue = lqueue or WirePortQueue
+	function WireLib._SetOutputs(ent)
 		local eid = ent:EntIndex()
 
 		local ent_output_array = {}
@@ -622,27 +619,20 @@ if SERVER then
 		for Name, CurPort in pairs_sortvalues(ent.Outputs, WireLib.PortComparator) do
 			ent_output_array[#ent_output_array+1] = { Name, CurPort.Type, CurPort.Desc or "", CurPort.Num }
 		end
-		SendPortInfo(queue, eid, PORT_TYPE_OUTPUT, ent.Outputs)
+		SendPortInfo(WirePortQueue, eid, PORT_TYPE_OUTPUT, ent.Outputs)
 	end
 
-	function WireLib._SetLink(input, lqueue)
-		local ent = input.Entity
-		local num = input.Num
-		local state = input.SrcId and true or false
-
-		local queue = lqueue or WirePortQueue
-		local eid = ent:EntIndex()
-
-		SendLinkInfo(queue, eid, num, state)
+	function WireLib._SetLink(input)
+		SendLinkInfo(WirePortQueue, input.Entity:EntIndex(), input.Num, input.SrcId and true or false)
 	end
 
 	hook.Add("PlayerInitialSpawn", "wire_ports", function(ply)
 		local queue = WirePortQueue.plyqueues[ply]
 		for eid, _ in pairs(ents_with_inputs) do
-			WireLib._SetInputs(Entity(eid), queue)
+			SendPortInfo(queue, eid, PORT_TYPE_INPUT, Entity(eid).Inputs)
 		end
 		for eid, _ in pairs(ents_with_outputs) do
-			WireLib._SetOutputs(Entity(eid), queue)
+			SendPortInfo(queue, eid, PORT_TYPE_OUTPUT, Entity(eid).Outputs)
 		end
 		WirePortQueue:flushQueue(ply, queue)
 	end)
