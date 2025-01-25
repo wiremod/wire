@@ -31,8 +31,9 @@ if CLIENT then
 		antialias 	= true,
 		additive 	= false
 	}
-	fontdata.size = 34 surface.CreateFont( "Trebuchet34", fontdata )
-	fontdata.size = 24 surface.CreateFont( "Trebuchet24", fontdata )
+
+	fontdata.size = 34 surface.CreateFont( "Trebuchet34_Wire", fontdata )
+	fontdata.size = 24 surface.CreateFont( "Trebuchet24_Wire", fontdata )
 
 	local highlight_key, highlight_until
 	function ENT:Draw()
@@ -105,13 +106,13 @@ if CLIENT then
 
 			local Display = self:GetNWString("keypad_display", "")
 			if Display == "y" then
-				draw.DrawText("ACCESS", "Trebuchet24", X+17, Y+7, Color(0, 255, 0, 255))
-				draw.DrawText("GRANTED","Trebuchet24", X+7, Y+27, Color(0, 255, 0, 255))
+				draw.DrawText("ACCESS", "Trebuchet24_Wire", X+17, Y+7, Color(0, 255, 0, 255))
+				draw.DrawText("GRANTED","Trebuchet24_Wire", X+7, Y+27, Color(0, 255, 0, 255))
 			elseif Display == "n" then
-				draw.DrawText("ACCESS", "Trebuchet24", X+17, Y+7, Color(255, 0, 0, 255))
-				draw.DrawText("DENIED", "Trebuchet24", X+19, Y+27, Color(255, 0, 0, 255))
+				draw.DrawText("ACCESS", "Trebuchet24_Wire", X+17, Y+7, Color(255, 0, 0, 255))
+				draw.DrawText("DENIED", "Trebuchet24_Wire", X+19, Y+27, Color(255, 0, 0, 255))
 			else
-				draw.DrawText(Display,  "Trebuchet34", X+17, Y+10, Color(255, 255, 255, 255))
+				draw.DrawText(Display,  "Trebuchet34_Wire", X+17, Y+10, Color(255, 255, 255, 255))
 			end
 		cam.End3D2D()
 	end
