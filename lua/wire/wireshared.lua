@@ -327,7 +327,7 @@ WireLib.NetQueue = {
 	__index = {
 		add = SERVER and function(self, item, ply)
 			if ply==nil then
-				for _, ply in players.iterator() do self.plyqueues[ply]:add(item) end
+				for _, ply in player.Iterator() do self.plyqueues[ply]:add(item) end
 			else
 				self.plyqueues[ply]:add(item)
 			end
@@ -353,7 +353,7 @@ WireLib.NetQueue = {
 			queue.__flushing = true
 			net.Start(self.name)
 				local written = 0
-				while net.BytesWritten() < 32768 do
+				while net.BytesWritten() < 32768 and written<#queue do
 					net.WriteUInt(1, 8)
 					written = written + 1
 					queue[written]()
@@ -368,7 +368,7 @@ WireLib.NetQueue = {
 				plyqueue.__flushing = false
 				self:flushQueue(ply, plyqueue)
 			else
-				while net.BytesRead() < 32768 do
+				while net.BytesLeft() < 32768 do
 					if self.receivecb then self.receivecb() end
 					if net.ReadUInt(8)==0 then break end
 				end
@@ -556,7 +556,7 @@ if SERVER then
 			net.WriteUInt(CMD_DELETE, 2)
 			net.WriteUInt(eid, MAX_EDICT_BITS)
 			net.WriteUInt(porttype, 1)
-		end
+		end)
 	end
 
 	local function SendPortInfo(queue, eid, porttype, ports)
@@ -622,7 +622,7 @@ if SERVER then
 		for Name, CurPort in pairs_sortvalues(ent.Outputs, WireLib.PortComparator) do
 			ent_output_array[#ent_output_array+1] = { Name, CurPort.Type, CurPort.Desc or "", CurPort.Num }
 		end
-		SendPortInfo(queue, eid, OUTPUT, ent_output_array)
+		SendPortInfo(queue, eid, PORT_TYPE_OUTPUT, ent.Outputs)
 	end
 
 	function WireLib._SetLink(input, lqueue)
@@ -660,7 +660,7 @@ elseif CLIENT then
 	local ents_with_outputs = {}
 
 	function WirePortQueue.receivecb()
-		local cmd, eid = net.ReadInt(2), net.WriteUInt(eid,MAX_EDICT_BITS)
+		local cmd, eid = net.ReadUInt(2), net.ReadUInt(MAX_EDICT_BITS)
 		if cmd == CMD_DELETE then
 			if net.ReadUInt(1)==PORT_TYPE_INPUT then
 				ents_with_inputs[eid] = nil
