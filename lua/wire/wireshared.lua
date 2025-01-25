@@ -353,7 +353,7 @@ WireLib.NetQueue = {
 			queue.__flushing = true
 			net.Start(self.name)
 				local written = 0
-				while net.BytesWritten() < 32768 and written<#queue do
+				while written < #queue and net.BytesWritten() < 32768 do
 					net.WriteUInt(1, 8)
 					written = written + 1
 					queue[written]()
@@ -368,7 +368,7 @@ WireLib.NetQueue = {
 				plyqueue.__flushing = false
 				self:flushQueue(ply, plyqueue)
 			else
-				while net.BytesLeft() < 32768 do
+				while net.BytesLeft()>0 do
 					if self.receivecb then self.receivecb() end
 					if net.ReadUInt(8)==0 then break end
 				end
