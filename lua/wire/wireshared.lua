@@ -354,25 +354,25 @@ WireLib.NetQueue = {
 			net.Start(self.name)
 				local written = 0
 				while written < #queue and net.BytesWritten() < 32768 do
-					net.WriteUInt(1, 8)
+					net.WriteUInt(1, 1)
 					written = written + 1
 					queue[written]()
 				end
-				net.WriteUInt(0, 8)
+				net.WriteUInt(0, 1)
 			net_Send(ply)
 			for i=1,#queue do queue[i]=queue[i+written] end
 		end,
 		receive = function(self, ply)
-			if net.ReadUInt(8)==0 then -- An empty message indicates a receive Ack
+			if net.ReadUInt(1)==0 then -- An empty message indicates a receive Ack
 				local plyqueue = self.plyqueues[ply]
 				plyqueue.__flushing = false
 				self:flushQueue(ply, plyqueue)
 			else
 				while net.BytesLeft()>0 do
 					if self.receivecb then self.receivecb() end
-					if net.ReadUInt(8)==0 then break end
+					if net.ReadUInt(1)==0 then break end
 				end
-				net.Start(self.name) net.WriteUInt(0, 8) net_Send(ply) -- Send an empty message to Ack
+				net.Start(self.name) net.WriteUInt(0, 1) net_Send(ply) -- Send an empty message to Ack
 			end
 		end,
 	},
