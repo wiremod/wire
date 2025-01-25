@@ -57,6 +57,7 @@ if CLIENT then
 	local oldcurdistance = 0
 	local smoothdistance = 0
 	local maxdistance = 16000
+	local adjustmaxdistance = false
 
 	local zoomdistance = 0
 	local zoombind = 0
@@ -154,9 +155,10 @@ if CLIENT then
 			local ang_speed = pos_speed - 2
 
 			if AllowZoom then
-				if zoombind ~= 0 then
+				if zoombind ~= 0 or adjustmaxdistance then
 					zoomdistance = math.Clamp(zoomdistance + zoombind * FrameTime() * 100 * max((abs(curdistance) + abs(zoomdistance))/10,10),0,math.min(16000-curdistance, maxdistance))
 					zoombind = 0
+					adjustmaxdistance = false
 				end
 				curdistance = curdistance + zoomdistance
 			end
@@ -270,9 +272,8 @@ if CLIENT then
 		-- distance
 		distance = math.Clamp(net.ReadFloat(),-16000,16000)
 		maxdistance = net.ReadFloat()
-
-		if AutoMove and AllowZoom then
-			zoombind = 1
+		if AllowZoom and AutoMove then
+			adjustmaxdistance = true
 		end
 
 		-- Parent
