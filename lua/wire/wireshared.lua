@@ -322,6 +322,7 @@ local function PlyQueue()
 	}
 end
 
+local max_items_per_flush = 1024
 local net_Send = SERVER and net.Send or net.SendToServer
 WireLib.NetQueue = {
 	__index = {
@@ -353,7 +354,7 @@ WireLib.NetQueue = {
 			queue.__flushing = true
 			net.Start(self.name)
 				local written = 0
-				while written < #queue and net.BytesWritten() < 32768 do
+				while written < #queue and written < max_items_per_flush and net.BytesWritten() < 32768 do
 					net.WriteUInt(1, 1)
 					written = written + 1
 					queue[written]()
@@ -368,9 +369,12 @@ WireLib.NetQueue = {
 				plyqueue.__flushing = false
 				self:flushQueue(ply, plyqueue)
 			else
-				while net.BytesLeft()>0 do
-					if self.receivecb then self.receivecb() end
-					if net.ReadUInt(1)==0 then break end
+				if self.receivecb then
+					for i=1, max_items_per_flush do
+						if net.BytesLeft()<=0 then break end
+						self.receivecb()
+						if net.ReadUInt(1)==0 then break end
+					end
 				end
 				net.Start(self.name) net.WriteUInt(0, 1) net_Send(ply) -- Send an empty message to Ack
 			end
