@@ -3,7 +3,7 @@ DEFINE_BASECLASS("base_wire_entity")
 ENT.PrintName = "Wire Keypad"
 
 function ENT:SetupDataTables()
-	self:NetworkVar("String", 0, "CurrentPassword")
+	self:NetworkVar("String", 0, "DisplayText")
 end
 
 if CLIENT then
@@ -117,7 +117,7 @@ if CLIENT then
 				draw.DrawText(text, "Trebuchet18", textx, texty, color_black)
 			end
 
-			local Display = self:GetCurrentPassword()
+			local Display = self:GetDisplayText()
 
 			if Display == "y" then
 				draw.DrawText("ACCESS", "WireKeypad", X + 17, Y + 7, color_green)
@@ -195,7 +195,7 @@ net.Receive("wire_keypad", function(len, ply)
 	local key = net.ReadUInt(4)
 
 	if key == 10 then
-		ent:SetCurrentPassword("")
+		ent:SetDisplayText("")
 		ent:EmitSound("buttons/button14.wav")
 
 		ent.CurrentNum = 0
@@ -204,11 +204,11 @@ net.Receive("wire_keypad", function(len, ply)
 
 		if access then
 			Wire_TriggerOutput(ent, "Valid", 1)
-			ent:SetCurrentPassword("y")
+			ent:SetDisplayText("y")
 			ent:EmitSound("buttons/button9.wav")
 		else
 			Wire_TriggerOutput(ent, "Invalid", 1)
-			ent:SetCurrentPassword("n")
+			ent:SetDisplayText("n")
 			ent:EmitSound("buttons/button8.wav")
 		end
 
@@ -216,7 +216,7 @@ net.Receive("wire_keypad", function(len, ply)
 
 		timer.Simple(2, function()
 			if IsValid(ent) then
-				ent:SetCurrentPassword("")
+				ent:SetDisplayText("")
 				ent.CurrentNum = 0
 
 				if access then
@@ -230,9 +230,9 @@ net.Receive("wire_keypad", function(len, ply)
 		ent.CurrentNum = ent.CurrentNum * 10 + key
 
 		if ent.Secure then
-			ent:SetCurrentPassword(string.rep("*", string.len(ent.CurrentNum)))
+			ent:SetDisplayText(string.rep("*", string.len(ent.CurrentNum)))
 		else
-			ent:SetCurrentPassword(tostring(ent.CurrentNum))
+			ent:SetDisplayText(tostring(ent.CurrentNum))
 		end
 
 		ent:EmitSound("buttons/button15.wav")
