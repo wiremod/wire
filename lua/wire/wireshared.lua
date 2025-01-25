@@ -521,8 +521,8 @@ function WireLib.HasPorts(ent)
 end
 
 local WirePortQueue = WireLib.NetQueue("wire_ports")
-local CMD_DELETE,CMD_PORT,CMD_LINK = 1,2,3
-local PORT_TYPE_INPUT,PORT_TYPE_OUTPUT = 1,2
+local CMD_DELETE,CMD_PORT,CMD_LINK = 0,1,2
+local PORT_TYPE_INPUT,PORT_TYPE_OUTPUT = 0,1
 if SERVER then
 
 	local ents_with_inputs = {}
@@ -553,17 +553,17 @@ if SERVER then
 
 	local function SendDeletePort(queue, eid, porttype)
 		queue:add(function()
-			net.WriteUInt(CMD_DELETE, 8)
+			net.WriteUInt(CMD_DELETE, 2)
 			net.WriteUInt(eid, MAX_EDICT_BITS)
-			net.WriteBool(porttype==PORT_TYPE_INPUT)
+			net.WriteUInt(porttype, 1)
 		end
 	end
 
 	local function SendPortInfo(queue, eid, porttype, ports)
 		queue:add(function()
-			net.WriteUInt(CMD_PORT, 8)
+			net.WriteUInt(CMD_PORT, 2)
 			net.WriteUInt(eid, MAX_EDICT_BITS)
-			net.WriteBool(porttype==PORT_TYPE_INPUT)
+			net.WriteUInt(porttype, 1)
 
 			net.WriteUInt(table.Count(ports), 8)
 			for Name, CurPort in pairs_sortvalues(ports, WireLib.PortComparator) do
@@ -579,7 +579,7 @@ if SERVER then
 
 	local function SendLinkInfo(queue, eid, num, state)
 		queue:add(function()
-			net.WriteUInt(CMD_LINK, 8)
+			net.WriteUInt(CMD_LINK, 2)
 			net.WriteUInt(eid, MAX_EDICT_BITS)
 			net.WriteUInt(1, 8)
 			net.WriteUInt(num, 8)
@@ -660,21 +660,21 @@ elseif CLIENT then
 	local ents_with_outputs = {}
 
 	function WirePortQueue.receivecb()
-		local cmd, eid = net.ReadInt(8), net.WriteUInt(eid,MAX_EDICT_BITS)
+		local cmd, eid = net.ReadInt(2), net.WriteUInt(eid,MAX_EDICT_BITS)
 		if cmd == CMD_DELETE then
-			if net.ReadBool() then -- Input
+			if net.ReadUInt(1)==PORT_TYPE_INPUT then
 				ents_with_inputs[eid] = nil
-			else -- Output
+			else
 				ents_with_outputs[eid] = nil
 			end
 		elseif cmd == CMD_PORT then
-			if net.ReadBool() then -- Input
+			if net.ReadUInt(1)==PORT_TYPE_INPUT then
 				local entry = {}
 				for i=1, net.ReadUInt(8) do
 					entry[i] = {net.ReadString(), net.ReadString(), net.ReadString(), net.ReadBool()}
 				end
 				ents_with_inputs[eid]=entry
-			else -- Output
+			else
 				local entry = {}
 				for i=1, net.ReadUInt(8) do
 					entry[i] = {net.ReadString(), net.ReadString(), net.ReadString()}
