@@ -190,7 +190,7 @@ net.Receive("wire_keypad", function(len, ply)
 	if not IsValid(ent) or not ent.Password then return end
 
 	if ent.CurrentNum == -1 then return end -- Display still shows ACCESS from a past success
-	if ply:GetPos():Distance(ent:GetPos()) > 64 then return end
+	if ply:GetShootPos():Distance(ent:GetPos()) > 64 then return end
 
 	local key = net.ReadUInt(4)
 
