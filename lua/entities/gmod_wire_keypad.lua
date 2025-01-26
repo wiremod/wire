@@ -51,7 +51,7 @@ if CLIENT then
 
 		local ply = LocalPlayer()
 		local entpos = self:GetPos()
-		if entpos:Distance(ply:GetPos()) > 512 then return end
+		if entpos:Distance(ply:GetShootPos()) > 512 then return end
 
 		local ang = self:GetAngles()
 		entpos = entpos + self:GetForward() * 1.05
