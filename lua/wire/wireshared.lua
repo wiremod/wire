@@ -657,8 +657,10 @@ elseif CLIENT then
 		local cmd, eid = net.ReadUInt(2), net.ReadUInt(MAX_EDICT_BITS)
 		if cmd == CMD_DELETE then
 			if net.ReadUInt(1)==PORT_TYPE_INPUT then
+				-- print("Delete",eid,"input")
 				ents_with_inputs[eid] = nil
 			else
+				-- print("Delete",eid,"output")
 				ents_with_outputs[eid] = nil
 			end
 		elseif cmd == CMD_PORT then
@@ -666,18 +668,21 @@ elseif CLIENT then
 				local entry = {}
 				for i=1, net.ReadUInt(8) do
 					entry[i] = {net.ReadString(), net.ReadString(), net.ReadString(), net.ReadBool()}
+					-- print("Port",eid,entry[i][1],entry[i][2],entry[i][3],entry[i][4])
 				end
 				ents_with_inputs[eid]=entry
 			else
 				local entry = {}
 				for i=1, net.ReadUInt(8) do
 					entry[i] = {net.ReadString(), net.ReadString(), net.ReadString()}
+					-- print("Port",eid,entry[i][1],entry[i][2],entry[i][3])
 				end
 				ents_with_outputs[eid]=entry
 			end
 		elseif cmd == CMD_LINK then
 			for i=1, net.ReadUInt(8) do
 				local num, state = net.ReadUInt(8), net.ReadBool()
+				-- print("Link",eid,num, state)
 				local entry = ents_with_inputs[eid]
 				if entry and entry[num] then
 					entry[num][4] = state
