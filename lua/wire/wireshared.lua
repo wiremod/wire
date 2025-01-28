@@ -315,14 +315,22 @@ elseif SERVER then
 end
 
 do
+local max_items_per_flush = 1024
+local queue_limit = 65536
+local ack_timeout = 30
+
 local function PlyQueue()
 	return {
 		__flushing = false,
-		add = function(self, item) self[#self+1]=item end
+		__ack_timeout = 0,
+		add = function(self, item)
+			local n=#self+1
+			if n>queue_limit then return end
+			self[n]=item
+		end
 	}
 end
 
-local max_items_per_flush = 1024
 local net_Send = SERVER and net.Send or net.SendToServer
 WireLib.NetQueue = {
 	__index = {
@@ -350,8 +358,12 @@ WireLib.NetQueue = {
 			self.flushing = false
 		end,
 		flushQueue = function(self, ply, queue)
-			if queue[1]==nil or queue.__flushing then return end
+			if queue[1]==nil then return end
+			local t = CurTime()
+			if queue.__flushing and t<queue.__ack_timeout then return end
 			queue.__flushing = true
+			queue.__ack_timeout = t+ack_timeout
+
 			net.Start(self.name)
 				local written = 0
 				while written < #queue and written < max_items_per_flush and net.BytesWritten() < 32768 do
