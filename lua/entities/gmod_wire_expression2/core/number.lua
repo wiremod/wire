@@ -303,6 +303,20 @@ end
 
 --[[************************************************************************]]--
 
+__e2setcost(10)
+
+[nodiscard]
+e2function number factorial(number n)
+	local res = 1
+
+	--At this point Lua starts counting this number as inf and further counting will be useless.
+	for i = 2, math.min(n, 171) do
+		res = res * i
+	endz
+
+	return res
+end
+
 __e2setcost(2) -- approximation
 
 [nodiscard]
