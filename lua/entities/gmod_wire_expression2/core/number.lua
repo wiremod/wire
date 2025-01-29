@@ -307,6 +307,10 @@ __e2setcost(10)
 
 [nodiscard]
 e2function number factorial(number n)
+	if n < 0 then
+		return 0 / 0
+	end
+
 	local res = 1
 
 	--At this point Lua starts counting this number as inf and further counting will be useless.
