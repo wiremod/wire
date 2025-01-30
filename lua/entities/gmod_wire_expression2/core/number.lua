@@ -303,6 +303,18 @@ end
 
 --[[************************************************************************]]--
 
+__e2setcost(10)
+
+[nodiscard]
+e2function number factorial(number n)
+	if n < 0 then return 0 / 0 end
+	if n > 170 then return math.huge end
+
+	local res = 1
+	for i = 2, n do res = res * i end
+	return res
+end
+
 __e2setcost(2) -- approximation
 
 [nodiscard]
