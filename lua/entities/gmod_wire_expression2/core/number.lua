@@ -307,17 +307,11 @@ __e2setcost(10)
 
 [nodiscard]
 e2function number factorial(number n)
-	if n < 0 then
-		return 0 / 0
-	end
+	if n < 0 then return 0 / 0 end
+	if n > 170 then return math.huge end
 
 	local res = 1
-
-	--At this point Lua starts counting this number as inf and further counting will be useless.
-	for i = 2, min(n, 171) do
-		res = res * i
-	end
-
+	for i = 2, n do res = res * i end
 	return res
 end
 
