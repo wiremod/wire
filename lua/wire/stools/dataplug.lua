@@ -10,6 +10,7 @@ if ( CLIENT ) then
 	language.Add( "undone_wiredatasocket", "Undone Wire Data Socket" )
 	language.Add( "Tool_wire_dataplug_weldforce", "Plug weld force:" )
 	language.Add( "Tool_wire_dataplug_attachrange", "Plug attachment detection range:" )
+	language.Add( "max_wire_dataplugs", "Max Wire Dataplugs:" )
 	TOOL.Information = {
 		{ name = "left", text = "Create/Update " .. TOOL.Name },
 		{ name = "right", text = "Create/Update Plug" },
