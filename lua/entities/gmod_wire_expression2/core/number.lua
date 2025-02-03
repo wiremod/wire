@@ -4,6 +4,7 @@ local abs    = math.abs
 local random = math.random
 local pi     = math.pi
 local inf    = math.huge
+local nan	 = 0 / 0
 
 local exp    = math.exp
 local frexp  = math.frexp
@@ -307,8 +308,8 @@ __e2setcost(10)
 
 [nodiscard]
 e2function number factorial(number n)
-	if n < 0 then return 0 / 0 end
-	if n > 170 then return math.huge end
+	if n < 0 then return nan end
+	if n > 170 then return inf end
 
 	local res = 1
 	for i = 2, n do res = res * i end
