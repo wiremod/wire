@@ -4,7 +4,7 @@ local abs    = math.abs
 local random = math.random
 local pi     = math.pi
 local inf    = math.huge
-local nan	 = 0 / 0
+local nan    = 0 / 0
 
 local exp    = math.exp
 local frexp  = math.frexp
