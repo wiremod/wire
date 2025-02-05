@@ -19,6 +19,8 @@ registerCallback("destruct",function(self)
 end)
 
 hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, teamchat)
+	chipHideChat, chipChatReplacement = nil, nil
+	
 	local entry = { text, CurTime(), ply, teamchat }
 	TextList[ply:EntIndex()] = entry
 	TextList.last = entry
