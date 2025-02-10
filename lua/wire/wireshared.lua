@@ -617,29 +617,31 @@ if SERVER then
 	function WireLib._SetInputs(ent)
 		local eid = ent:EntIndex()
 		local inputs = ent.Inputs
-		if not inputs then return end
 
 		local ent_input_array = {}
 		ents_with_inputs[eid] = ent_input_array
 
-		for Name, CurPort in pairs_sortvalues(inputs, WireLib.PortComparator) do
-			ent_input_array[#ent_input_array+1] = { Name, CurPort.Type, CurPort.Desc or "", CurPort.Num }
+		if inputs then
+			for Name, CurPort in pairs_sortvalues(inputs, WireLib.PortComparator) do
+				ent_input_array[#ent_input_array+1] = { Name, CurPort.Type, CurPort.Desc or "", CurPort.Num }
+			end
+			SendPortInfo(WirePortQueue, eid, PORT_TYPE_INPUT, inputs)
 		end
-		SendPortInfo(WirePortQueue, eid, PORT_TYPE_INPUT, inputs)
 	end
 
 	function WireLib._SetOutputs(ent)
 		local eid = ent:EntIndex()
 		local outputs = ent.Outputs
-		if not outputs then return end
 
 		local ent_output_array = {}
 		ents_with_outputs[eid] = ent_output_array
 
-		for Name, CurPort in pairs_sortvalues(outputs, WireLib.PortComparator) do
-			ent_output_array[#ent_output_array+1] = { Name, CurPort.Type, CurPort.Desc or "", CurPort.Num }
+		if outputs then
+			for Name, CurPort in pairs_sortvalues(outputs, WireLib.PortComparator) do
+				ent_output_array[#ent_output_array+1] = { Name, CurPort.Type, CurPort.Desc or "", CurPort.Num }
+			end
+			SendPortInfo(WirePortQueue, eid, PORT_TYPE_OUTPUT, outputs)
 		end
-		SendPortInfo(WirePortQueue, eid, PORT_TYPE_OUTPUT, outputs)
 	end
 
 	function WireLib._SetLink(input)
