@@ -984,6 +984,7 @@ e2function void holoClip(index, clipidx, vector origin, vector normal, isglobal)
 end
 
 e2function void holoClip(index, vector origin, vector normal, entity localent) -- Clip at first index
+	if not IsValid(localent) then return self:throw("Invalid entity!", nil) end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
@@ -991,6 +992,7 @@ e2function void holoClip(index, vector origin, vector normal, entity localent) -
 end
 
 e2function void holoClip(index, clipidx, vector origin, vector normal, entity localent)
+	if not IsValid(localent) then return self:throw("Invalid entity!", nil) end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
