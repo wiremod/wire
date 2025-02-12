@@ -388,7 +388,6 @@ function ENT:Initialize()
 		"FLIR",
 		"FOV",
 		"Vehicles (Links all vehicles of passed array to this cam controller) [ARRAY]",
-		"Vehicle [ENTITY]"
 	})
 
 	self.Activated = false -- Whether or not to activate the cam controller for all players sitting in linked vehicles, or as soon as a player sits in a linked vehicle
@@ -865,12 +864,6 @@ function ENT:TriggerInput( name, value )
 			if( not IsValid(v) ) then continue end
 			self:LinkEnt( v )
 		end
-	elseif name == "Vehicle" then
-		if not IsValid(value) then return end -- Only link if the input is valid. That way, it won't be unlinked if the wire is disconnected
-		if value:IsPlayer() then return end
-		if value:IsNPC() then return end
-
-		self:LinkEnt(value)
 	else
 		self:LocalizePositions(false)
 
