@@ -25,7 +25,8 @@ function ENT:Initialize()
 	self:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
 
 	WireLib.CreateInputs(self, {
-		"0 to 512 (If enabled, changes the resolution of the egp hud to be between 0 and 512 instead of the user's monitor's resolution.\nWill cause objects to look stretched out on most screens, so your UI will need to be designed with this in mind.\nIt's recommended to use the egpScrW, egpScrH, and egpScrSize functions instead.)"
+		"0 to 512 (If enabled, changes the resolution of the egp hud to be between 0 and 512 instead of the user's monitor's resolution.\nWill cause objects to look stretched out on most screens, so your UI will need to be designed with this in mind.\nIt's recommended to use the egpScrW, egpScrH, and egpScrSize functions instead.)",
+		"Vehicles (Links all vehicles of passed array to this egp HUD) [ARRAY]",
 	})
 
 	WireLib.CreateOutputs(self, { "wirelink [WIRELINK]" })
@@ -42,6 +43,12 @@ end
 function ENT:TriggerInput( name, value )
 	if (name == "0 to 512") then
 		self:SetResolution(value ~= 0)
+	elseif name == "Vehicles" then
+		for k, v in ipairs( value ) do
+			if( TypeID(v) ~= TYPE_ENTITY ) then continue end
+			if( not IsValid(v) ) then continue end
+			self:LinkEnt( v )
+		end
 	end
 end
 
