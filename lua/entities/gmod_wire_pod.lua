@@ -467,7 +467,6 @@ function ENT:TriggerInput(name, value)
 	elseif name == "Show Cursor" then
 		self:SetShowCursor(value)
 	elseif name == "Vehicle" then
-		if not IsValid(value) then return end -- Only link if the input is valid. That way, it won't be unlinked if the wire is disconnected
 		if( TypeID(value) ~= TYPE_ENTITY ) then return end
 		if( not IsValid(value) ) then return end
 
