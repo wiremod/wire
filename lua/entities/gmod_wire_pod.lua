@@ -163,7 +163,8 @@ function ENT:Initialize()
 		"Disable", "Crosshairs", "Brake", "Allow Buttons",
 		"Relative (If this is non-zero, the 'Bearing' and 'Elevation' outputs will be relative to the vehicle.)",
 		"Damage Health (Damages the driver's health.)", "Damage Armor (Damages the driver's armor.)", "Hide Player", "Hide HUD", "Show Cursor",
-		"Vehicle [ENTITY]"
+		"Vehicle [ENTITY]",
+		"Vehicles (Links all vehicles of passed array to this pod controller) [ARRAY]",
 	}
 
 	self.Inputs = WireLib.CreateInputs(self, inputs)
@@ -466,11 +467,16 @@ function ENT:TriggerInput(name, value)
 	elseif name == "Show Cursor" then
 		self:SetShowCursor(value)
 	elseif name == "Vehicle" then
-		if not IsValid(value) then return end -- Only link if the input is valid. That way, it won't be unlinked if the wire is disconnected
-		if value:IsPlayer() then return end
-		if value:IsNPC() then return end
+		if( TypeID(value) ~= TYPE_ENTITY ) then return end
+		if( not IsValid(value) ) then return end
 
 		self:LinkEnt(value)
+	elseif name == "Vehicles" then
+		for k, v in ipairs( value ) do
+			if( TypeID(v) ~= TYPE_ENTITY ) then continue end
+			if( not IsValid(v) ) then continue end
+			self:LinkEnt( v )
+		end
 	end
 end
 
