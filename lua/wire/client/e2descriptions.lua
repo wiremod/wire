@@ -184,6 +184,7 @@ E2Helper.Descriptions["hashSHA256(s)"] = "Returns the SHA256 hash of the input s
 
 -- Entity/Player
 E2Helper.Descriptions["entity(n)"] = "Gets the entity associated with the id"
+E2Helper.Descriptions["entities()"] = "Returns an array containing all entities on the map"
 E2Helper.Descriptions["owner()"] = "Gets the owner of the expression ( same as entity():owner() )"
 E2Helper.Descriptions["id(e:)"] = "Gets the numeric id of an entity"
 E2Helper.Descriptions["noentity()"] = "Returns an invalid entity"
