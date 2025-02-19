@@ -5,7 +5,6 @@ ENT.WireDebugName = "Speedo"
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool", 0, "XYZMode")
-	self:NetworkVar("Bool", 1, "XYZMode")
 end
 
 function ENT:SetModes(XYZMode)
@@ -43,7 +42,7 @@ function ENT:Initialize()
 	self.Outputs = Wire_CreateOutputs(self, { "Out", "MPH", "KPH" })
 end
 
-function ENT:Setup( xyz_mode, AngVel )
+function ENT:Setup(xyz_mode, AngVel)
 	self.z_only = xyz_mode --was renamed but kept for dupesaves
 	self.XYZMode = xyz_mode
 	self.AngVel = AngVel
