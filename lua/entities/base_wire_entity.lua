@@ -10,6 +10,8 @@ ENT.AdminOnly = false
 ENT.IsWire = true
 
 if CLIENT then
+	local EntityMeta           = FindMetaTable("Entity")
+
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
 
 	function ENT:Initialize()
@@ -18,11 +20,12 @@ if CLIENT then
 	end
 
 	function ENT:Draw()
-		self:DoNormalDraw()
+		local entsTbl = EntityMeta.GetTable( self )
+		entsTbl.DoNormalDraw( self )
 		Wire_Render(self)
-		if self.GetBeamLength and (not self.GetShowBeam or self:GetShowBeam()) then
+		if entsTbl.GetBeamLength and (not entsTbl.GetShowBeam or entsTbl.GetShowBeam( self )) then
 			-- Every SENT that has GetBeamLength should draw a tracer. Some of them have the GetShowBeam boolean
-			Wire_DrawTracerBeam( self, 1, self.GetBeamHighlight and self:GetBeamHighlight() or false )
+			Wire_DrawTracerBeam( self, 1, entsTbl.GetBeamHighlight and entsTbl.GetBeamHighlight( self ) or false )
 		end
 	end
 

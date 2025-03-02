@@ -22,9 +22,11 @@ local render_SetMaterial   = render.SetMaterial
 local render_StartBeam     = render.StartBeam
 local render_AddBeam       = render.AddBeam
 local render_EndBeam       = render.EndBeam
+local render_DrawBeam      = render.DrawBeam
 local EntityMeta           = FindMetaTable("Entity")
 local IsValid              = EntityMeta.IsValid
 local ent_LocalToWorld     = EntityMeta.LocalToWorld
+local Vector               = Vector
 
 hook.Add("Think", "Wire.WireScroll", function()
 	scroll_offset = CurTime() * WIRE_SCROLL_SPEED
@@ -168,28 +170,30 @@ concommand.Add( "cl_Wire_SetWireRenderMode", WireDisableRender )
 
 
 function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
-	local beam_length = beam_length or ent:GetBeamLength(beam_num)
+	local entsTbl = EntityMeta.GetTable( ent )
+	local beam_length = beam_length or entsTbl.GetBeamLength(ent, beam_num)
 	if beam_length == 0 then return end
-	local pos = ent:GetPos()
+	local pos = EntityMeta.GetPos(ent)
 	local trace = {}
+	local target = entsTbl.GetTarget and entsTbl.GetTarget(ent) or nil
 
-	if ent.GetTarget and ( ent:GetTarget().X ~= 0 or ent:GetTarget().Y ~= 0 or ent:GetTarget().Z ~= 0 ) then
-		trace.endpos = pos + ( ent:GetTarget() - pos ):GetNormalized()*beam_length
-		if trace.endpos[1] ~= trace.endpos[1] then trace.endpos = pos+Vector(ent:GetBeamLength(), 0, 0) end
-	elseif (ent.GetSkewX and ent.GetSkewY) then
-		local x, y = ent:GetSkewX(beam_num), ent:GetSkewY(beam_num)
+	if target and ( target.X ~= 0 or target.Y ~= 0 or target.Z ~= 0 ) then
+		trace.endpos = pos + ( target - pos ):GetNormalized()*beam_length
+		if trace.endpos[1] ~= trace.endpos[1] then trace.endpos = pos+Vector(entsTbl.GetBeamLength(ent), 0, 0) end
+	elseif (entsTbl.GetSkewX and entsTbl.GetSkewY) then
+		local x, y = entsTbl.GetSkewX(ent, beam_num), entsTbl.GetSkewY(ent, beam_num)
 		if x ~= 0 or y ~= 0 then
 			local skew = Vector(x, y, 1)
 			skew = skew*(beam_length/skew:Length())
-			local beam_x = ent:GetRight()*skew.x
-			local beam_y = ent:GetForward()*skew.y
-			local beam_z = ent:GetUp()*skew.z
+			local beam_x = EntityMeta.GetRight(ent)*skew.x
+			local beam_y = EntityMeta.GetForward(ent)*skew.y
+			local beam_z = EntityMeta.GetUp(ent)*skew.z
 			trace.endpos = pos + beam_x + beam_y + beam_z
 		else
-			trace.endpos = pos + ent:GetUp()*beam_length
+			trace.endpos = pos + EntityMeta.GetUp(ent)*beam_length
 		end
 	else
-		trace.endpos = pos + ent:GetUp()*beam_length
+		trace.endpos = pos + EntityMeta.GetUp(ent)*beam_length
 	end
 
 	trace.start = pos
@@ -198,13 +202,13 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 	trace = util.TraceLine(trace)
 	--Update render bounds
 	ent.ExtraRBoxPoints = ent.ExtraRBoxPoints or {}
-	ent.ExtraRBoxPoints[beam_num] = ent:WorldToLocal(trace.HitPos)
+	ent.ExtraRBoxPoints[beam_num] = EntityMeta.WorldToLocal(ent, trace.HitPos)
 
-	render.SetMaterial(BeamMat)
-	render.DrawBeam(pos, trace.HitPos, 6, 0, 10, ent:GetColor())
+	render_SetMaterial(BeamMat)
+	render_DrawBeam(pos, trace.HitPos, 6, 0, 10, EntityMeta.GetColor(ent))
 	if hilight then	--This is intended behaivour
-		render.SetMaterial(BeamMatHR)
-		render.DrawBeam(pos, trace.HitPos, 6, 0, 10, Color(255,255,255,255))
+		render_SetMaterial(BeamMatHR)
+		render_DrawBeam(pos, trace.HitPos, 6, 0, 10, Color(255,255,255,255))
 	end
 end
 
