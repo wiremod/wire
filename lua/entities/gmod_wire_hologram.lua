@@ -124,7 +124,7 @@ if CLIENT then
 		end
 
 		local hasclips = next(selfTbl.clips)
-		
+
 		if hasclips then
 			SetupClipping(selfTbl)
 		end
