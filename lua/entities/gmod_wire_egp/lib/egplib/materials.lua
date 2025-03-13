@@ -3,9 +3,32 @@
 --------------------------------------------------------
 local EGP = EGP
 
--- Valid fonts table
-EGP.ValidFonts_Lookup = {}
-if (CLIENT) then
+if CLIENT then
+	-- Valid fonts table
+	local MAX_EGP_FONTS = 150
+	EGP.ValidFonts_Lookup = EGP.ValidFonts_Lookup or {}
+	EGP.ValidFonts_Count = EGP.ValidFonts_Count or 0
+
+	function EGP.CreateFont( font, size )
+		local fontName = "WireEGP_" .. size .. "_" .. font
+		if not EGP.ValidFonts_Lookup[fontName] and EGP.ValidFonts_Count < MAX_EGP_FONTS then
+			local fontTable =
+			{
+				font=font,
+				size = size,
+				weight = 800,
+				antialias = true,
+				additive = false
+			}
+			surface.CreateFont( fontName, fontTable )
+			EGP.ValidFonts_Lookup[fontName] = true
+			EGP.ValidFonts_Count = EGP.ValidFonts_Count + 1
+		else
+			fontName = "WireEGP_18_WireGPU_ConsoleFont"
+		end
+
+		return fontName
+	end
 
 	local type = type
 	local SetMaterial = surface.SetMaterial

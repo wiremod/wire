@@ -23,19 +23,7 @@ function Obj:Draw(ent, drawMat)
 	if (self.text and #self.text>0) then
 		surface.SetTextColor( self.r, self.g, self.b, self.a )
 
-		local font = "WireEGP_" .. self.size .. "_" .. self.font
-		if (not EGP.ValidFonts_Lookup[font]) then
-			local fontTable =
-			{
-				font=self.font,
-				size = self.size,
-				weight = 800,
-				antialias = true,
-				additive = false
-			}
-			surface.CreateFont( font, fontTable )
-			EGP.ValidFonts_Lookup[font] = true
-		end
+		local font = EGP.CreateFont( self.font, self.size )
 		surface.SetFont( font )
 
 		--if (not self.layouter) then self.layouter = EGP:MakeTextLayouter() end -- Trying to make my own layouter...
