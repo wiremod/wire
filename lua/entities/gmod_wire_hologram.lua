@@ -77,70 +77,76 @@ if CLIENT then
 		hook.Remove("PlayerBindPress", "wire_hologram_scale_setup")
 	end)
 
+	local EntityMeta = FindMetaTable("Entity")
+
 	local function SetupClipping(selfTbl)
-		if next(selfTbl.clips) then
-			selfTbl.oldClipState = render.EnableClipping(true)
+		selfTbl.oldClipState = render.EnableClipping(true)
 
-			for _, clip in pairs(selfTbl.clips) do
-				if clip.enabled and clip.normal and clip.origin then
-					local norm = clip.normal
-					local origin = clip.origin
+		for _, clip in pairs(selfTbl.clips) do
+			if clip.enabled and clip.normal and clip.origin then
+				local norm = clip.normal
+				local origin = clip.origin
+				local id = clip.localentid
 
-					if clip.localentid then
-						local localent = Entity(clip.localentid)
-						if localent:IsValid() then
-							norm = localent:LocalToWorld(norm) - localent:GetPos()
-							origin = localent:LocalToWorld(origin)
-						end
+				if id then
+					local localent = Entity(id)
+
+					if EntityMeta.IsValid(localent) then
+						norm = EntityMeta.LocalToWorld(localent, norm) - EntityMeta.GetPos(localent)
+						origin = EntityMeta.LocalToWorld(localent, origin)
 					end
-
-					render.PushCustomClipPlane(norm, norm:Dot(origin))
 				end
+
+				render.PushCustomClipPlane(norm, norm:Dot(origin))
 			end
 		end
 	end
 
 	local function FinishClipping(selfTbl)
-		if next(selfTbl.clips) then
-			for _, clip in pairs(selfTbl.clips) do
-				if clip.enabled and clip.normal and clip.origin then -- same logic as in SetupClipping
-					render.PopCustomClipPlane()
-				end
+		for _, clip in pairs(selfTbl.clips) do
+			if clip.enabled and clip.normal and clip.origin then -- same logic as in SetupClipping
+				render.PopCustomClipPlane()
 			end
-
-			render.EnableClipping(selfTbl.oldClipState)
 		end
+
+		render.EnableClipping(selfTbl.oldClipState)
 	end
 
 	function ENT:Draw()
-		local selfTbl = self:GetTable()
+		local selfTbl = EntityMeta.GetTable(self)
 		if selfTbl.blocked or selfTbl.notvisible then return end
 
-		local _, _, _, alpha = self:GetColor4Part()
+		local _, _, _, alpha = EntityMeta.GetColor4Part(self)
 		if alpha ~= 255 then
 			selfTbl.RenderGroup = RENDERGROUP_BOTH
 		else
 			selfTbl.RenderGroup = RENDERGROUP_OPAQUE
 		end
 
-		SetupClipping(selfTbl)
+		local hasclips = next(selfTbl.clips)
 
-		local invert_model = self:GetNWInt("invert_model")
+		if hasclips then
+			SetupClipping(selfTbl)
+		end
+
+		local invert_model = EntityMeta.GetNWInt(self, "invert_model")
 		render.CullMode(invert_model)
 
-		if self:GetNWBool("disable_shading") then
+		if EntityMeta.GetNWBool(self, "disable_shading") then
 			render.SuppressEngineLighting(true)
-			self:DrawModel()
+			EntityMeta.DrawModel(self)
 			render.SuppressEngineLighting(false)
 		else
-			self:DrawModel()
+			EntityMeta.DrawModel(self)
 		end
 
 		if invert_model ~= 0 then
 			render.CullMode(0)
 		end
 
-		FinishClipping(selfTbl)
+		if hasclips then
+			FinishClipping(selfTbl)
+		end
 	end
 
 	-- -----------------------------------------------------------------------------
