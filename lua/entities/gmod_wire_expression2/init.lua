@@ -329,7 +329,7 @@ function ENT:CompileCode(buffer, files, filepath)
 		self.filepath = filepath
 	end
 
-	local status, errormsg, overlaymsg = hook.Run("Expression2_CanCompile", self.player, self, code, filepath, files)
+	local status, errormsg, overlaymsg = hook.Run("Expression2_CanCompile", self.player, self, buffer, filepath, files)
 	if status == false then return self:Error(errormsg or "A hook prevented this E2 from compiling", overlaymsg or "terminated") end
 
 	local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer,nil,self)
