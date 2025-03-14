@@ -3,15 +3,17 @@
 --------------------------------------------------------
 local EGP = EGP
 
+if SERVER then
+	EGP.PlayerFontCount = EGP.PlayerFontCount or {}
+end
+
 if CLIENT then
 	-- Valid fonts table
-	local MAX_EGP_FONTS = 150
 	EGP.ValidFonts_Lookup = EGP.ValidFonts_Lookup or {}
-	EGP.ValidFonts_Count = EGP.ValidFonts_Count or 0
 
 	function EGP.CreateFont( font, size )
 		local fontName = "WireEGP_" .. size .. "_" .. font
-		if not EGP.ValidFonts_Lookup[fontName] and EGP.ValidFonts_Count < MAX_EGP_FONTS then
+		if not EGP.ValidFonts_Lookup[fontName] then
 			local fontTable =
 			{
 				font=font,
@@ -22,9 +24,6 @@ if CLIENT then
 			}
 			surface.CreateFont( fontName, fontTable )
 			EGP.ValidFonts_Lookup[fontName] = true
-			EGP.ValidFonts_Count = EGP.ValidFonts_Count + 1
-		else
-			fontName = "WireEGP_18_WireGPU_ConsoleFont"
 		end
 
 		return fontName
