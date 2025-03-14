@@ -3,9 +3,31 @@
 --------------------------------------------------------
 local EGP = EGP
 
--- Valid fonts table
-EGP.ValidFonts_Lookup = {}
-if (CLIENT) then
+if SERVER then
+	EGP.PlayerFontCount = EGP.PlayerFontCount or {}
+end
+
+if CLIENT then
+	-- Valid fonts table
+	EGP.ValidFonts_Lookup = EGP.ValidFonts_Lookup or {}
+
+	function EGP.CreateFont( font, size )
+		local fontName = "WireEGP_" .. size .. "_" .. font
+		if not EGP.ValidFonts_Lookup[fontName] then
+			local fontTable =
+			{
+				font=font,
+				size = size,
+				weight = 800,
+				antialias = true,
+				additive = false
+			}
+			surface.CreateFont( fontName, fontTable )
+			EGP.ValidFonts_Lookup[fontName] = true
+		end
+
+		return fontName
+	end
 
 	local type = type
 	local SetMaterial = surface.SetMaterial

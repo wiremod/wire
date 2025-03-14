@@ -10,7 +10,6 @@ Obj.halign = 0
 local surface_SetTextPos
 local surface_DrawText
 local surface_SetTextColor
-local surface_CreateFont
 local surface_SetFont
 local surface_GetTextSize
 local cam_PushModelMatrix
@@ -38,19 +37,7 @@ function Obj:Draw(ent, drawMat)
 	if (self.text and #self.text>0) then
 		surface_SetTextColor( self.r, self.g, self.b, self.a )
 
-		local font = "WireEGP_" .. self.size .. "_" .. self.font
-		if (not EGP.ValidFonts_Lookup[font]) then
-			local fontTable =
-			{
-				font=self.font,
-				size = self.size,
-				weight = 800,
-				antialias = true,
-				additive = false
-			}
-			surface_CreateFont( font, fontTable )
-			EGP.ValidFonts_Lookup[font] = true
-		end
+		local font = EGP.CreateFont( self.font, self.size )
 		surface_SetFont( font )
 
 		if self.angle == 0 then
