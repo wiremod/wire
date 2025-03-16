@@ -86,7 +86,7 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Next") then
 		if (value ~= 0) then
 			if # self.storedpositions > 0 then
-				if self.arrayindex > #self.storedpositions then
+				if self.arrayindex < #self.storedpositions then
 					self.arrayindex = self.arrayindex+1;
 				else
 					self.arrayindex = 1; --loop back
