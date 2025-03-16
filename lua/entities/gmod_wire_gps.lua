@@ -37,7 +37,7 @@ function ENT:Setup()
 	self.Value = 0
 	self.PrevOutput = nil
 
-	//self:ShowOutput(0, 0, 0)
+	--self:ShowOutput(0, 0, 0)
 	Wire_TriggerOutput(self, "X", 0)
 	Wire_TriggerOutput(self, "Y", 0)
 	Wire_TriggerOutput(self, "Z", 0)
@@ -59,7 +59,7 @@ function ENT:Think()
 	Wire_TriggerOutput(self, "Z", pos.z)
 	Wire_TriggerOutput(self, "Vector", pos)
 	Wire_TriggerOutput(self, "Current Memory", self.arrayindex)
-	
+
 	if self.arrayindex > 0 then
 		Wire_TriggerOutput(self, "Recall X", self.storedpositions[self.arrayindex].x)
 		Wire_TriggerOutput(self, "Recall Y", self.storedpositions[self.arrayindex].y)
@@ -86,7 +86,7 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Next") then
 		if (value ~= 0) then
 			if # self.storedpositions > 0 then
-				if not (self.arrayindex >= # self.storedpositions) then
+				if self.arrayindex > #self.storedpositions then
 					self.arrayindex = self.arrayindex+1;
 				else
 					self.arrayindex = 1; --loop back
