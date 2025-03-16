@@ -8,7 +8,6 @@ if CLIENT then
 		BaseClass.Think(self)
 
 		local pos = self:GetPos()
-		if (COLOSSAL_SANDBOX) then pos = pos * 6.25 end
 		local txt = string.format( "Position = %0.3f, %0.3f, %0.3f", math.Round(pos.x,3),math.Round(pos.y,3),math.Round(pos.z,3) )
 
 		self:SetOverlayText( txt )
@@ -54,13 +53,13 @@ function ENT:Think()
 	BaseClass.Think(self)
 
 	local pos = self:GetPos()
-	if (COLOSSAL_SANDBOX) then pos = pos * 6.25 end
 
 	Wire_TriggerOutput(self, "X", pos.x)
 	Wire_TriggerOutput(self, "Y", pos.y)
 	Wire_TriggerOutput(self, "Z", pos.z)
 	Wire_TriggerOutput(self, "Vector", pos)
 	Wire_TriggerOutput(self, "Current Memory", self.arrayindex)
+	
 	if self.arrayindex > 0 then
 		Wire_TriggerOutput(self, "Recall X", self.storedpositions[self.arrayindex].x)
 		Wire_TriggerOutput(self, "Recall Y", self.storedpositions[self.arrayindex].y)
