@@ -206,12 +206,6 @@ function ENT:Think()
 		end
 	end
 
-	if (COLOSSAL_SANDBOX) then
-		vel = vel * 6.25
-		pos = pos * 6.25
-		dist = dist * 6.25
-	end
-
 	self:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace)
 	self:ShowOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace)
 
