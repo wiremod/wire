@@ -974,25 +974,27 @@ e2function void entity:propSetAngVelocityInstant(vector velocity)
 	end
 end
 
-hook.Add( "CanDrive", "checkPropStaticE2", function( ply, ent ) if ent.propStaticE2 ~= nil then return false end end )
-e2function void entity:propStatic( number static )
-	if not ValidAction( self, this, "static" ) then return end
-	if static ~= 0 then
-		if this.propStaticE2 == nil then
-			local phys = this:GetPhysicsObject()
-			this.propStaticE2 = phys:IsMotionEnabled()
-			this.PhysgunDisabled = true
-			this:SetUnFreezable( true )
-			phys:EnableMotion( false )
-		end
-	elseif this.propStaticE2 ~= nil then
+hook.Add("CanDrive", "checkPropStaticE2", function(ply, ent) if ent.propStaticE2 ~= nil then return false end end)
+
+e2function void entity:propStatic(number static)
+	if not ValidAction(self, this, "static") then return end
+
+	if static ~= 0 and this.propStaticE2 == nil then
+		local phys = this:GetPhysicsObject()
+		this.propStaticE2 = phys:IsMotionEnabled()
+		this.PhysgunDisabled = true
+		this:SetUnFreezable(true)
+		phys:EnableMotion(false)
+	elseif static == 0 and this.propStaticE2 ~= nil then
 		this.PhysgunDisabled = false
-		this:SetUnFreezable( false )
+		this:SetUnFreezable(false)
+
 		if this.propStaticE2 == true then
 			local phys = this:GetPhysicsObject()
 			phys:Wake()
-			phys:EnableMotion( true )
+			phys:EnableMotion(true)
 		end
+
 		this.propStaticE2 = nil
 	end
 end
