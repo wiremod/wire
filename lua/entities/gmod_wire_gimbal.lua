@@ -13,13 +13,10 @@ local function DrawOutlinedBeam(startPos, endPos, size, color)
 	render.DrawBeam(startPos, endPos, size, 0, 1, color)
 end
 
-function ENT:Draw()
-	BaseClass.Draw(self)
-	if not self:BeingLookedAtByLocalPlayer() then return end
-	
-	local weapon = LocalPlayer():GetActiveWeapon():GetClass()
-	if weapon ~= "weapon_physgun" and weapon ~= "gmod_tool" then return end
-	
+function ENT:DrawWorldTip()
+	BaseClass.DrawWorldTip(self)
+
+	cam.Start3D()
 	local origin      = self:GetPos()
 	local mi, ma      = self:GetRenderBounds()
 	local forwardSize = math.max(math.abs(mi[1]), ma[1])
@@ -38,6 +35,7 @@ function ENT:Draw()
 	
 	render.DrawSphere(origin, 0.35, 8, 8, color_black)
 	render.DrawSphere(origin, 0.2, 8, 8, ORIGIN_COLOR)
+	cam.End3D()
 end
 
 if CLIENT then return end -- No more client
