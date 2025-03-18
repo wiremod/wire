@@ -18,7 +18,7 @@ function ENT:DrawWorldTip()
 
 	cam.Start3D()
 	local origin      = self:GetPos()
-	local mi, ma      = self:GetRenderBounds()
+	local mi, ma      = self:GetModelRenderBounds()
 	local forwardSize = math.max(math.abs(mi[1]), ma[1])
 	local rightSize   = math.max(math.abs(mi[2]), ma[2])
 	local upSize      = math.max(math.abs(mi[3]), ma[3])
