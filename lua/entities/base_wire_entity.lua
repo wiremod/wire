@@ -149,7 +149,9 @@ if CLIENT then
 	function ENT:DrawWorldTipBody( pos )
 		local data = self:GetOverlayData()
 		if data==nil then return end
-		draw.DrawText( data.txt, "GModWorldtip", pos.center.x, pos.min.y + edgesize/2, color_white, TEXT_ALIGN_CENTER )
+		local txt = data.txt
+		if txt == nil or txt == "" then return end
+		draw.DrawText( txt, "GModWorldtip", pos.center.x, pos.min.y + edgesize/2, color_white, TEXT_ALIGN_CENTER )
 	end
 
 	-- This is overridable by other wire entities which want to customize the overlay
