@@ -138,7 +138,9 @@ if CLIENT then
 
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:GetWorldTipBodySize()
-		local txt = self:GetOverlayData().txt
+		local data = self:GetOverlayData()
+		if data==nil then return 0,0 end
+		local txt = data.txt
 		if txt == nil or txt == "" then return 0,0 end
 		return surface.GetTextSize( txt )
 	end
@@ -146,14 +148,12 @@ if CLIENT then
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:DrawWorldTipBody( pos )
 		local data = self:GetOverlayData()
+		if data==nil then return end
 		draw.DrawText( data.txt, "GModWorldtip", pos.center.x, pos.min.y + edgesize/2, color_white, TEXT_ALIGN_CENTER )
 	end
 
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:DrawWorldTip()
-		local data = self:GetOverlayData()
-		if not data then return end
-
 		surface.SetFont( "GModWorldtip" )
 
 		local class = getWireName( self ) .. " [" .. self:EntIndex() .. "]"
