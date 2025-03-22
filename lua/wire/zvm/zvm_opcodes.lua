@@ -1156,7 +1156,7 @@ end
 ZVM.OpcodeTable[126] = function(self)  --LEA
   local emitText = self.OperandEffectiveAddress[self.EmitOperandRM[2]] or "0"
   emitText = string.gsub(emitText,"$BYTE",self.EmitOperandByte[2] or "0")
-  emitText = string.format(string.gsub(emitText,"$SEG","VM[%q]",(self.EmitOperandSegment[2] or "DS")))
+  emitText = string.format(string.gsub(emitText,"$SEG","VM[%q]"), self.EmitOperandSegment[2] or "DS")
   self:Dyn_EmitOperand(emitText)
 end
 ZVM.OpcodeTable[127] = function(self)  --BLOCK
