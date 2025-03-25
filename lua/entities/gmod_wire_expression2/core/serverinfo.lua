@@ -2,19 +2,27 @@
   Server Information
 \******************************************************************************/
 
-E2Lib.registerConstant("DEDICATED", game.IsDedicated() and 1 or 0)
-E2Lib.registerConstant("GAMEMODE", gmod.GetGamemode().Name)
-E2Lib.registerConstant("MAP", game.GetMap())
-E2Lib.registerConstant("MAXPLAYERS", game.MaxPlayers())
-E2Lib.registerConstant("SERVERUUID", WireLib.GetServerUUID())
-E2Lib.registerConstant("SINGLEPLAYER", game.SinglePlayer() and 1 or 0)
-E2Lib.registerConstant("TICKINTERVAL", engine.TickInterval())
+local dedicated = game.IsDedicated() and 1 or 0
+local gamemode_name = gmod.GetGamemode().Name
+local map = game.GetMap()
+local maxplayers = game.MaxPlayers()
+local serveruuid = WireLib.GetServerUUID()
+local singleplayer = game.SinglePlayer() and 1 or 0
+local tickinterval = engine.TickInterval()
+
+E2Lib.registerConstant("DEDICATED", dedicated)
+E2Lib.registerConstant("GAMEMODE", gamemode_name)
+E2Lib.registerConstant("MAP", map)
+E2Lib.registerConstant("MAXPLAYERS", maxplayers)
+E2Lib.registerConstant("SERVERUUID", serveruuid)
+E2Lib.registerConstant("SINGLEPLAYER", singleplayer)
+E2Lib.registerConstant("TICKINTERVAL", tickinterval)
 
 __e2setcost(1)
 
 [deprecated = "Use the constant MAP instead"]
 e2function string map()
-	return game.GetMap()
+	return map
 end
 
 e2function string hostname()
@@ -32,22 +40,22 @@ end
 
 [deprecated = "Use the constant GAMEMODE instead"]
 e2function string gamemode()
-	return gmod.GetGamemode().Name
+	return gamemode_name
 end
 
 [deprecated = "Use the constant SERVERUUID instead"]
 e2function string serverUUID()
-	return WireLib.GetServerUUID()
+	return serveruuid
 end
 
 [deprecated = "Use the constant SINGLEPLAYER instead"]
 e2function number isSinglePlayer()
-	return game.SinglePlayer() and 1 or 0
+	return singleplayer
 end
 
 [deprecated = "Use the constant DEDICATED instead"]
 e2function number isDedicated()
-	return game.IsDedicated() and 1 or 0
+	return dedicated
 end
 
 e2function number numPlayers()
@@ -56,7 +64,7 @@ end
 
 [deprecated = "Use the constant MAXPLAYERS instead"]
 e2function number maxPlayers()
-	return game.MaxPlayers()
+	return maxplayers
 end
 
 local sv_gravity = GetConVar("sv_gravity")
