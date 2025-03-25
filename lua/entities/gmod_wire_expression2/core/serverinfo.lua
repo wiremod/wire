@@ -99,7 +99,7 @@ end
 
 [deprecated = "Use the constant TICKINTERVAL instead"]
 e2function number tickInterval()
-	return engine.TickInterval()
+	return tickinterval
 end
 
 e2function number tickRealInterval()
