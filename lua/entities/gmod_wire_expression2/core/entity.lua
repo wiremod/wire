@@ -1306,6 +1306,14 @@ E2Lib.registerEvent("entityCreated", {
 	{ "Entity", "e" }
 })
 
+hook.Add("EntityRemoved", "E2_entityRemoved", function(ent)
+	E2Lib.triggerEvent("entityRemoved", { ent })
+end)
+
+E2Lib.registerEvent("entityRemoved", {
+	{ "Entity", "e" }
+})
+
 local function upperfirst( word )
 	return word:Left(1):upper() .. word:Right(-2):lower()
 end
