@@ -2,15 +2,31 @@
   Server Information
 \******************************************************************************/
 
+local dedicated = game.IsDedicated() and 1 or 0
+local gamemode_name = gmod.GetGamemode().Name
+local map = game.GetMap()
+local maxplayers = game.MaxPlayers()
+local serveruuid = WireLib.GetServerUUID()
+local singleplayer = game.SinglePlayer() and 1 or 0
+local tickinterval = engine.TickInterval()
+
+E2Lib.registerConstant("DEDICATED", dedicated)
+E2Lib.registerConstant("GAMEMODE", gamemode_name)
+E2Lib.registerConstant("MAP", map)
+E2Lib.registerConstant("MAXPLAYERS", maxplayers)
+E2Lib.registerConstant("SERVERUUID", serveruuid)
+E2Lib.registerConstant("SINGLEPLAYER", singleplayer)
+E2Lib.registerConstant("TICKINTERVAL", tickinterval)
+
 __e2setcost(1)
 
+[deprecated = "Use the constant MAP instead"]
 e2function string map()
-	return game.GetMap()
+	return map
 end
 
-local hostname = GetConVar("hostname")
 e2function string hostname()
-	return hostname:GetString()
+	return GetHostName()
 end
 
 e2function string hostip()
@@ -22,31 +38,37 @@ e2function number isLan()
 	return sv_lan:GetBool() and 1 or 0
 end
 
+[deprecated = "Use the constant GAMEMODE instead"]
 e2function string gamemode()
-	return gmod.GetGamemode().Name
+	return gamemode_name
 end
 
+[deprecated = "Use the constant SERVERUUID instead"]
 e2function string serverUUID()
-	return WireLib.GetServerUUID()
+	return serveruuid
 end
 
+[deprecated = "Use the constant SINGLEPLAYER instead"]
 e2function number isSinglePlayer()
-	return game.SinglePlayer() and 1 or 0
+	return singleplayer
 end
 
+[deprecated = "Use the constant DEDICATED instead"]
 e2function number isDedicated()
-	return game.IsDedicated() and 1 or 0
+	return dedicated
 end
 
 e2function number numPlayers()
 	return player.GetCount()
 end
 
+[deprecated = "Use the constant MAXPLAYERS instead"]
 e2function number maxPlayers()
-	return game.MaxPlayers()
+	return maxplayers
 end
 
 local sv_gravity = GetConVar("sv_gravity")
+
 e2function number gravity()
 	return sv_gravity:GetFloat()
 end
@@ -75,8 +97,9 @@ e2function number angSpeedLimit()
 	return physenv.GetPerformanceSettings()["MaxAngularVelocity"]
 end
 
+[deprecated = "Use the constant TICKINTERVAL instead"]
 e2function number tickInterval()
-	return engine.TickInterval()
+	return tickinterval
 end
 
 e2function number tickRealInterval()
