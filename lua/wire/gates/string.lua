@@ -113,6 +113,11 @@ GateActions["string_explode"] = {
 	output = function(gate, A, B)
 		if not A then A = "" end
 		if not B then B = "" end
+		if  (A and #A or 0)
+		  + (B and #B or 0)  > MAX_LEN
+		then
+			return false
+		end
 		return string.Explode(B,A)
 	end,
 	label = function(Out, A, B)
