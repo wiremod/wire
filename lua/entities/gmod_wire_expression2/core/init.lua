@@ -312,104 +312,90 @@ do
 	loadFiles("",file.Find("entities/gmod_wire_expression2/core/cl_*.lua", "LUA"))
 end
 
+local E2FunctionQueue = WireLib.NetQueue("e2_functiondata")
+local E2FUNC_SENDMISC, E2FUNC_SENDFUNC, E2FUNC_DONE = 0, 1, 2
 if SERVER then
-	util.AddNetworkString("e2_functiondata_start")
-	util.AddNetworkString("e2_functiondata_chunk")
-
 	-- Serverside files are loaded in extloader
 	include("extloader.lua")
 
 	-- -- Transfer E2 function info to the client for validation and syntax highlighting purposes -- --
 
-	do
-		local miscdata = {} -- Will contain {E2 types info, constants}, this whole table is under 1kb
-		local functiondata = {} -- Will contain {functionname = {returntype, cost, argnames, extension}, this will be between 50-100kb
+	local miscdata = {} -- Will contain {E2 types info, constants}, this whole table is under 1kb
+	local functiondata = {} -- Will contain {functionname = {returntype, cost, argnames, extension}, this will be between 50-100kb
 
-		-- Fills out the above two tables
-		function wire_expression2_prepare_functiondata()
-			-- Sanitize events so 'listening' e2's aren't networked
-			local events_sanitized = {}
-			for evt, data in pairs(E2Lib.Env.Events) do
-				events_sanitized[evt] = {
-					name = data.name,
-					args = data.args
-				}
-			end
-
-			local types = {}
-			for typename, v in pairs(wire_expression_types) do
-				types[typename] = v[1] -- typeid (s)
-			end
-
-			miscdata = { types, wire_expression2_constants, events_sanitized }
-			functiondata = {}
-
-			for signature, v in pairs(wire_expression2_funcs) do
-				functiondata[signature] = { v[2], v[4], v.argnames, v.extension, v.attributes } -- ret (s), cost (n), argnames (t), extension (s), attributes (t)
-			end
+	-- Fills out the above two tables
+	function wire_expression2_prepare_functiondata()
+		-- Sanitize events so 'listening' e2's aren't networked
+		local events_sanitized = {}
+		for evt, data in pairs(E2Lib.Env.Events) do
+			events_sanitized[evt] = {
+				name = data.name,
+				args = data.args
+			}
 		end
 
-		wire_expression2_prepare_functiondata()
-
-		-- Send everything
-		local targets = WireLib.RegisterPlayerTable()
-		local function sendData(target)
-			if IsValid(target) and target:IsPlayer() and targets[target] == nil then
-				targets[target] = "start"
-				net.Start("e2_functiondata_start")
-				net.WriteTable(miscdata[1])
-				net.WriteTable(miscdata[2])
-				net.WriteTable(miscdata[3])
-				net.Send(target)
-			end
+		local types = {}
+		for typename, v in pairs(wire_expression_types) do
+			types[typename] = v[1] -- typeid (s)
 		end
 
-		hook.Add("Think", "wire_expression2_sendfunctions_think", function()
-			for k, signature in pairs(targets) do
-				if not k:IsValid() or not k:IsPlayer() then
-					targets[k] = nil
-				else
-					net.Start("e2_functiondata_chunk")
-					if signature == "start" then signature = nil end -- We want to start with next(functiondata, nil) but can't store nil in a table
-					local tab
-					while net.BytesWritten() < 64000 do
-						signature, tab = next(functiondata, signature)
-						if not signature then break end
-						net.WriteString(signature) -- The function signature ["holoAlpha(nn)"]
-						net.WriteString(tab[1]) -- The function's return type ["s"]
-						net.WriteUInt(tab[2] or 0, 16) -- The function's cost [5]
-						net.WriteTable(tab[3] or {}) -- The function's argnames table (if a table isn't set, it'll just send a 1 byte blank table)
-						net.WriteString(tab[4] or "unknown")
-						net.WriteTable(tab[5] or {}) -- Attributes
-					end
-					net.WriteString("") -- Needed to break out of the receiving for loop without affecting the final completion bit boolean
-					net.WriteBit(signature == nil) -- If we're at the end of the table, next will return nil, thus sending a true here
-					targets[k] = signature -- If nil, this'll remove the entry. Otherwise, this'll set a new next(t,k) starting point
-					net.Send(k)
-				end
-			end
+		miscdata = { types, wire_expression2_constants, events_sanitized }
+		functiondata = {}
+
+		for signature, v in pairs(wire_expression2_funcs) do
+			functiondata[signature] = { v[2], v[4], v.argnames, v.extension, v.attributes } -- ret (s), cost (n), argnames (t), extension (s), attributes (t)
+		end
+	end
+
+	wire_expression2_prepare_functiondata()
+
+	-- Send everything
+	local function sendData(ply)
+		if not (IsValid(ply) and ply:IsPlayer()) then return end
+
+		local queue = E2FunctionQueue.plyqueues[ply]
+		queue:add(function()
+			net.WriteUInt(E2FUNC_SENDMISC, 8)
+			net.WriteTable(miscdata[1])
+			net.WriteTable(miscdata[2])
+			net.WriteTable(miscdata[3])
 		end)
+		for signature, tab in pairs(functiondata) do
+			queue:add(function()
+				net.WriteUInt(E2FUNC_SENDFUNC, 8)
+				net.WriteString(signature) -- The function signature ["holoAlpha(nn)"]
+				net.WriteString(tab[1]) -- The function's return type ["s"]
+				net.WriteUInt(tab[2] or 0, 16) -- The function's cost [5]
+				net.WriteTable(tab[3] or {}) -- The function's argnames table (if a table isn't set, it'll just send a 1 byte blank table)
+				net.WriteString(tab[4] or "unknown")
+				net.WriteTable(tab[5] or {}) -- Attributes
+			end)
+		end
+		queue:add(function()
+			net.WriteUInt(E2FUNC_DONE, 8)
+		end)
+		E2FunctionQueue:flushQueue(ply, queue)
+	end
 
-		local antispam = WireLib.RegisterPlayerTable()
-		function wire_expression2_sendfunctions(ply, isconcmd)
-			if isconcmd and not game.SinglePlayer() then
-				if not antispam[ply] then antispam[ply] = 0 end
-				if antispam[ply] > CurTime() then
-					ply:PrintMessage(HUD_PRINTCONSOLE, "This command has a 60 second anti spam protection. Try again in " .. math.Round(antispam[ply] - CurTime()) .. " seconds.")
-					return
-				end
-				antispam[ply] = CurTime() + 60
+	local antispam = WireLib.RegisterPlayerTable()
+	function wire_expression2_sendfunctions(ply, isconcmd)
+		if isconcmd and not game.SinglePlayer() then
+			if not antispam[ply] then antispam[ply] = 0 end
+			if antispam[ply] > CurTime() then
+				ply:PrintMessage(HUD_PRINTCONSOLE, "This command has a 60 second anti spam protection. Try again in " .. math.Round(antispam[ply] - CurTime()) .. " seconds.")
+				return
 			end
-			sendData(ply)
+			antispam[ply] = CurTime() + 60
 		end
+		sendData(ply)
+	end
 
-		-- add a console command the user can use to re-request the function info, in case of errors or updates
-		concommand.Add("wire_expression2_sendfunctions", wire_expression2_sendfunctions)
+	-- add a console command the user can use to re-request the function info, in case of errors or updates
+	concommand.Add("wire_expression2_sendfunctions", wire_expression2_sendfunctions)
 
-		if game.SinglePlayer() then
-			-- If single player, send everything immediately
-			hook.Add("PlayerInitialSpawn", "wire_expression2_sendfunctions", sendData)
-		end
+	if game.SinglePlayer() then
+		-- If single player, send everything immediately
+		hook.Add("PlayerInitialSpawn", "wire_expression2_sendfunctions", sendData)
 	end
 
 elseif CLIENT then
@@ -419,18 +405,17 @@ elseif CLIENT then
 
 	wire_expression2_reset_extensions()
 
-	local function insertData(functiondata)
-		-- functions
-		for signature, tab in pairs(functiondata) do
-			local fname = signature:match("^([^(:]+)%(")
-			if fname then
-				wire_expression2_funclist[fname] = true
-				wire_expression2_funclist_lowercase[fname:lower()] = fname
-			end
-			if not next(tab[3]) then tab[3] = nil end -- If the function has no argnames table, the server will just send a blank table
-			wire_expression2_funcs[signature] = { signature, tab[1], false, tab[2], argnames = tab[3], extension = tab[4], attributes = tab[5] }
+	local function insertData(signature, ret, cost, argnames, extension, attributes)
+		local fname = signature:match("^([^(:]+)%(")
+		if fname then
+			wire_expression2_funclist[fname] = true
+			wire_expression2_funclist_lowercase[fname:lower()] = fname
 		end
+		if table.IsEmpty(argnames) then argnames = nil end -- If the function has no argnames table, the server will just send a blank table
+		wire_expression2_funcs[signature] = { signature, ret, false, cost, argnames = argnames, extension = extension, attributes = attributes }
+	end
 
+	local function doneInsertingData()
 		e2_function_data_received = true
 
 		if wire_expression2_editor then
@@ -458,23 +443,16 @@ elseif CLIENT then
 		E2Lib.Env.Events = events
 	end
 
-	local buffer = {}
-	net.Receive("e2_functiondata_start", function(len)
-		buffer = {}
-		insertMiscData(net.ReadTable(), net.ReadTable(), net.ReadTable())
-	end)
-
-	net.Receive("e2_functiondata_chunk", function(len)
-		while true do
-			local signature = net.ReadString()
-			if signature == "" then break end -- We've reached the end of the packet
-			buffer[signature] = { net.ReadString(), net.ReadUInt(16), net.ReadTable(), net.ReadString(), net.ReadTable() } -- ret, cost, argnames, extension, attributes
+	function E2FunctionQueue.receivecb()
+		local state = net.ReadUInt(8)
+		if state==E2FUNC_SENDFUNC then
+			insertData(net.ReadString(), net.ReadString(), net.ReadUInt(16), net.ReadTable(), net.ReadString(), net.ReadTable())
+		elseif state==E2FUNC_SENDMISC then
+			insertMiscData(net.ReadTable(), net.ReadTable(), net.ReadTable())
+		elseif state==E2FUNC_DONE then
+			doneInsertingData()
 		end
-
-		if net.ReadBit() == 1 then
-			insertData(buffer) -- We've received the last packet!
-		end
-	end)
+	end
 end
 
 -- this file just generates the docs so it doesn't need to run every time.
