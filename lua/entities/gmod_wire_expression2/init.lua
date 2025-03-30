@@ -140,14 +140,14 @@ function ENT:Execute(script, context)
 		if msg == "exit" then
 			self:UpdatePerf(selfTbl)
 		elseif msg == "perf" then
-			local trace = context.trace
+			local trace = context.trace or trace
 
 			self:UpdatePerf(selfTbl)
 			self:Error("Expression 2 (" .. selfTbl.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
 		elseif trace then
 			self:Error("Expression 2 (" .. selfTbl.name .. "): Runtime error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 		else
-			local trace = context.trace
+			local trace = context.trace or trace
 
 			self:Error("Expression 2 (" .. selfTbl.name .. "): Internal error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "script error")
 		end
