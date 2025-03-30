@@ -1238,7 +1238,7 @@ end
 ---@return Trace? trace
 function E2Lib.unpackException(struct)
 	if type(struct) == "string" then
-		return false, struct, nil
+		return false, struct, { start_line = -1, start_col = -1 }
 	end
 	return struct.userdata and struct.userdata.catchable or false, struct.message, struct.trace
 end
