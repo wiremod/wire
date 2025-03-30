@@ -159,7 +159,7 @@ if CLIENT then
 		local name
 		if CPPI then
 			local owner = self:CPPIGetOwner()
-			name = string.format("(%s)", (owner and owner:IsPlayer()) and owner:GetName() or "World")
+			name = string.format("(%s)", (isentity(owner) and owner:IsPlayer()) and owner:GetName() or "World")
 		else
 			name = "(" .. self:GetPlayerName() .. ")"
 		end
