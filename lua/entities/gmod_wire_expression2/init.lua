@@ -711,7 +711,7 @@ end)
 
 hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
-		if (ent.uid == uid) then
+		if ent.uid == uid and ent.context then
 			ent.context.player = ply
 			ent.player = ply
 			ent:SetNWEntity("player", ply)
