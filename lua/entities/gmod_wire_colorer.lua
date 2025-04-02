@@ -49,7 +49,6 @@ if CLIENT then
 		-- get colors
 		local data = self:GetOverlayData()
 		local inColor = data and Color(data.r or 255,data.g or 255,data.b or 255,data.a or 255) or Color(255, 255, 255)
-		local inColor = data and Color(data.r or 255,data.g or 255,data.b or 255,data.a or 255) or Color(255, 255, 255)
 
 		local trace = util.TraceLine( { start = self:GetPos(), endpos = self:GetPos() + self:GetUp() * self:GetBeamLength(), filter = {self} } )
 
