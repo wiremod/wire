@@ -84,9 +84,11 @@ if CLIENT then
 		-- Get colors
 		local data = self:GetOverlayData()
 
-		-- Merge the data onto the entity itself.
-		-- This allows us to use the same references as serverside
-		for k,v in pairs( data ) do self[k] = v end
+		if data then
+			-- Merge the data onto the entity itself.
+			-- This allows us to use the same references as serverside
+			for k, v in pairs(data) do self[k] = v end
+		end
 
 		-- A
 		local color_text = string.format("A color: %d,%d,%d,%d\nA value: %d",self.ar,self.ag,self.ab,self.aa,self.a)
