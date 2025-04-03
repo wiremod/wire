@@ -1619,14 +1619,16 @@ local function E2CollisionEventHandler()
 		if IsValid(chip) then
 			if not chip.error then
 				for _,i in ipairs(ctx.data.E2QueuedCollisions) do
-					if i.cb then
-						-- Arguments for this were checked when we set it up, no need to typecheck
-						i.cb:UnsafeExtCall({i.us,i.xcd.HitEntity,i.xcd},ctx)
+					if ctx.data.E2TrackedCollisions[i.us:EntIndex()] then
+						if i.cb then
+							-- Arguments for this were checked when we set it up, no need to typecheck
+							i.cb:UnsafeExtCall({i.us,i.xcd.HitEntity,i.xcd},ctx)
+							if chip.error then break end
+						end
+						-- It's okay to ExecuteEvent regardless, it'll just return when it fails to find the registered event
+						chip:ExecuteEvent("entityCollision",{i.us,i.xcd.HitEntity,i.xcd})
 						if chip.error then break end
 					end
-					-- It's okay to ExecuteEvent regardless, it'll just return when it fails to find the registered event
-					chip:ExecuteEvent("entityCollision",{i.us,i.xcd.HitEntity,i.xcd})
-					if chip.error then break end
 				end
 			end
 			-- Wipe queued collisions regardless of error
