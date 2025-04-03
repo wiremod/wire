@@ -84,7 +84,7 @@ if CLIENT then
 		-- Get colors
 		local data = self:GetOverlayData()
 
-		if data then
+		if istable(data) then
 			-- Merge the data onto the entity itself.
 			-- This allows us to use the same references as serverside
 			for k, v in pairs(data) do self[k] = v end
