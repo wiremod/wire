@@ -88,6 +88,19 @@ if CLIENT then
 			-- Merge the data onto the entity itself.
 			-- This allows us to use the same references as serverside
 			for k, v in pairs(data) do self[k] = v end
+		else
+			-- Set the data to default to draw the body anyway
+			self.a = 0
+			self.ar = 0
+			self.ag = 0
+			self.ab = 0
+			self.aa = 0
+			self.b = 0
+			self.br = 0
+			self.bg = 0
+			self.bb = 0
+			self.ba = 0
+			self.value = 0
 		end
 
 		-- A
