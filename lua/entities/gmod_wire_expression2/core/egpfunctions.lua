@@ -172,9 +172,11 @@ end
 --------------------------------------------------------
 -- Text
 --------------------------------------------------------
+local EGP_TEXT_LIMIT = 512
+
 e2function egpobject wirelink:egpText( number index, string text, vector2 pos )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	if #text>256 then text = string.sub(text, 1, 256) end
+	if #text>EGP_TEXT_LIMIT then text = string.sub(text, 1, EGP_TEXT_LIMIT) end
 	local bool, obj = egp_create("Text", { index = index, text = text, x = pos[1], y = pos[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
@@ -182,7 +184,7 @@ end
 
 e2function egpobject wirelink:egpTextLayout( number index, string text, vector2 pos, vector2 size )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
-	if #text>256 then text = string.sub(text, 1, 256) end
+	if #text>EGP_TEXT_LIMIT then text = string.sub(text, 1, EGP_TEXT_LIMIT) end
 	local bool, obj = egp_create("TextLayout", { index = index, text = text, x = pos[1], y = pos[2], w = size[1], h = size[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 	return obj
@@ -195,7 +197,7 @@ __e2setcost(10)
 ----------------------------
 e2function void wirelink:egpSetText( number index, string text )
 	if (!EGP:IsAllowed( self, this )) then return end
-	if #text>256 then text = string.sub(text, 1, 256) end
+	if #text>EGP_TEXT_LIMIT then text = string.sub(text, 1, EGP_TEXT_LIMIT) end
 	local bool, k, v = hasObject(this, index)
 	if (bool) then
 		if v:EditObject({ text = text }) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
