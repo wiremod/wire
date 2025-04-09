@@ -714,6 +714,27 @@ e2function void entity:propBreak()
 	this:Fire("break",1,0)
 end
 
+local unbreakableEntities = {}
+
+hook.Add("EntityTakeDamage", "~~~wire.prop.unbreakable_think", function(ent, dmginfo)
+	if unbreakableEntities[target:EntIndex()] then dmginfo:ScaleDamage(0) end
+end)
+
+hook.Add("EntityRemoved", "~~~wire.prop.clean_unbreakable_table", function(ent)
+	unbreakableEntities[ent:EntIndex()] = nil
+end)
+
+e2function void entity:propMakeBreakable( number breakable )
+	if not ValidAction(self, this, "break") then return end
+	unbreakableEntities[this:EntIndex()] = this:Health() > 0 and breakable == 0 and true or nil
+end
+
+[nodiscard]
+e2function number entity:propIsBreakable()
+	if not IsValid(this) then return self:throw("Invalid entity!", false) end
+	return this:Health() > 0 and not unbreakableEntities[this:EntIndex()] and 1 or 0
+end
+
 E2Lib.registerConstant("ENTITY_DISSOLVE_NORMAL", 0)
 E2Lib.registerConstant("ENTITY_DISSOLVE_ELECTRICAL", 1)
 E2Lib.registerConstant("ENTITY_DISSOLVE_ELECTRICAL_LIGHT", 2)
