@@ -523,6 +523,16 @@ e2function string entity:getSubMaterial(index)
 	return this:GetSubMaterial(index-1) or ""
 end
 
+e2function number entity:getModelRadius()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetModelRadius() or 0
+end
+
+e2function number entity:getModelScale()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetModelScale()
+end
+
 __e2setcost(20)
 
 e2function array entity:getMaterials()
