@@ -11,6 +11,7 @@ local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) 
 local sbox_E2_canMakeStatue = CreateConVar("sbox_E2_canMakeStatue", "1", FCVAR_ARCHIVE)
 local wire_expression2_propcore_sents_whitelist = CreateConVar("wire_expression2_propcore_sents_whitelist", 1, FCVAR_ARCHIVE, "If 1 - players can spawn sents only from the default sent list. If 0 - players can spawn sents from both the registered list and the entity tab.", 0, 1)
 local wire_expression2_propcore_sents_enabled = CreateConVar("wire_expression2_propcore_sents_enabled", 1, FCVAR_ARCHIVE, "If 1 - this allows sents to be spawned. (Doesn't affect the sentSpawn whitelist). If 0 - prevents sentSpawn from being used at all.", 0, 1)
+local wire_expression2_propcore_canMakeUnbreakable = CreateConVar("wire_expression2_propcore_canMakeUnbreakable", 1, FCVAR_ARCHIVE, "If 1 - this allows props to be made unbreakable. If 0 - prevents propMakeUnbreakable from being used at all.", 0, 1)
 
 local isOwner = E2Lib.isOwner
 local GetBones = E2Lib.GetBones
@@ -715,14 +716,22 @@ e2function void entity:propBreak()
 end
 
 hook.Add("EntityTakeDamage", "WireUnbreakable", function(ent, dmginfo)
-    if ent.WireUnbreakable then
-        dmginfo:ScaleDamage(0)
-    end
+    if ent.wire_unbreakable then dmginfo:ScaleDamage(0) end
 end)
 
+[nodiscard]
+e2function number entity:canMakeUnbreakable()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not wire_expression2_propcore_canMakeUnbreakable:GetBool() then return 0 end
+	return this:GetClass() == "prop_physics" and 1 or 0
+end
+
 e2function void entity:propMakeBreakable(number breakable)
+	if not wire_expression2_propcore_canMakeUnbreakable:GetBool() then return self:throw("Making unbreakable is disabled by server! (wire_expression2_propcore_canMakeUnbreakable)", nil) end
 	if not ValidAction(self, this, "break") then return end
-	ent.WireUnbreakable = this:Health() > 0 and breakable == 0 and true or nil
+	if this:GetClass() ~= "prop_physics" then return self:throw("This entity can not be made unbreakable!", nil) end
+
+	this.wire_unbreakable = this:Health() > 0 and breakable == 0 and 1 or 0
 end
 
 [nodiscard]
