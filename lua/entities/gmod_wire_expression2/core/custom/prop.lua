@@ -739,6 +739,7 @@ e2function void entity:use()
 
 	local ply = self.player
 	if not IsValid(ply) then return end -- if the owner isn't connected to the server, do nothing
+	if ply:InVehicle() and this:IsVehicle() then return end -- don't use a vehicle if you're in one
 
 	if hook.Run( "PlayerUse", ply, this ) == false then return end
 	if hook.Run( "WireUse", ply, this, self.entity ) == false then return end
