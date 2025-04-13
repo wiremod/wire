@@ -1240,7 +1240,14 @@ elseif CLIENT then
 				local mat = Material(matName)
 				local theEnt = wiring[3]
 				if not theEnt:IsValid() then
+					self:StopRenderingCurrentWire()
 					break
+				end
+				-- Prune invalid nodes
+				for j=#nodes, 1, -1 do
+					if not nodes[j][1]:IsValid() then
+						table.remove(nodes, j)
+					end
 				end
 
 				local start = theEnt:LocalToWorld(wiring[2])
