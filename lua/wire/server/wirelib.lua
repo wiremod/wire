@@ -46,8 +46,6 @@ local function ParsePortName(namedesctype, fbtype, fbdesc)
 	return name, desc, tp
 end
 
-local Inputs = {}
-local Outputs = {}
 local CurLink = {}
 local CurTime = CurTime
 
@@ -232,14 +230,7 @@ function WireLib.CreateSpecialInputs(ent, names, types, descs)
 			Num = n,
 		}
 
-		local idx = 1
-		while (Inputs[idx]) do
-			idx = idx+1
-		end
-		port.Idx = idx
-
 		ent_ports[name] = port
-		Inputs[idx] = port
 	end
 
 	WireLib._SetInputs(ent)
@@ -266,15 +257,7 @@ function WireLib.CreateSpecialOutputs(ent, names, types, descs)
 			Num = n,
 		}
 
-		local idx = 1
-		while (Outputs[idx]) do
-			idx = idx+1
-		end
-		port.Idx = idx
-
-
 		ent_ports[name] = port
-		Outputs[idx] = port
 	end
 
 	WireLib._SetOutputs(ent)
@@ -312,14 +295,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 				Num = n,
 			}
 
-			local idx = 1
-			while (Inputs[idx]) do
-				idx = idx+1
-			end
-			port.Idx = idx
-
 			ent_ports[name] = port
-			Inputs[idx] = port
 		end
 	end
 
@@ -363,21 +339,20 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 	end
 
 
-	local i = 0
-	for n,v in ipairs(names) do
+	for n, v in ipairs(names) do
 		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
 
-		if (ent_ports[name]) then
-			if tp ~= ent_ports[name].Type then
+		local port = ent_ports[name]
+		if port then
+			if tp ~= port.Type then
 				WireLib.DisconnectOutput(ent, name)
-				ent_ports[name].Type = tp
+				port.Type = tp
 			end
-			WireLib.RemoveOutPort(ent, name)
-			ent_ports[name].Keep = true
-			ent_ports[name].Desc = desc
+			port.Keep = true
+			port.Num = n
+			port.Desc = desc
 		else
-			i = i + 1
-			local port = {
+			port = {
 				Keep = true,
 				Name = name,
 				Desc = desc,
@@ -385,17 +360,10 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 				Value = WireLib.GetDefaultForType(tp),
 				Connected = {},
 				TriggerLimit = 8,
-				Num = i,
+				Num = n,
 			}
 
-			local idx = 1
-			while (Outputs[idx]) do
-				idx = idx+1
-			end
-			port.Idx = idx
-
 			ent_ports[name] = port
-			Outputs[idx] = port
 		end
 	end
 
@@ -484,14 +452,6 @@ function WireLib.Restored(ent, force_outputs)
 			if port.Src and (not port.Path) then
 				port.Path = { { Entity = port.Src, Pos = Vector(0, 0, 0) } }
 			end
-
-			local idx = 1
-			while (Inputs[idx]) do
-				idx = idx+1
-			end
-			port.Idx = idx
-
-			Inputs[idx] = port
 		end
 	end
 
@@ -500,14 +460,6 @@ function WireLib.Restored(ent, force_outputs)
 		for _,port in pairs(ent_ports) do
 			port.Entity = ent
 			port.Type = port.Type or "NORMAL"
-
-			local idx = 1
-			while (Outputs[idx]) do
-				idx = idx+1
-			end
-			port.Idx = idx
-
-			Outputs[idx] = port
 		end
 	elseif (force_outputs) then
 		ent.Outputs = WireLib.CreateOutputs(ent, force_outputs)
@@ -557,7 +509,6 @@ function WireLib.Remove(ent, DontUnList)
 					end
 				end
 			end
-			Inputs[inport.Idx] = nil
 		end
 	end
 
@@ -566,7 +517,6 @@ function WireLib.Remove(ent, DontUnList)
 	if (ent_ports) then
 		for _,outport in pairs(ent_ports) do
 			ClearPorts(outport.Connected)
-			Outputs[outport.Idx] = nil
 		end
 	end
 
