@@ -132,7 +132,8 @@ end
 
 function ENT:OnTakeDamage( dmginfo )
 
-	if ( dmginfo:GetInflictor():GetClass() == "gmod_wire_explosive"  and not self.Affectother ) then return end
+	local inflictor = dmginfo:GetInflictor()
+	if inflictor:IsValid() and inflictor:GetClass() == "gmod_wire_explosive" and not self.Affectother then return end
 
 	if ( not self.Notaffected ) then self:TakePhysicsDamage( dmginfo ) end
 
