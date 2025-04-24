@@ -1089,7 +1089,7 @@ E2Helper.Descriptions["runOnChat(n)"] = "DEPRECATED. Use 'event chat(Player:enti
 -- Color
 E2Helper.Descriptions["setBodygroup(e:nn)"] = "Group ID, Group SubID\nSets the bodygroups of the given entity"
 E2Helper.Descriptions["getBodygroups(e:n)"] = "Group ID\nReturns the number of bodygroups in the Group ID of the given entity"
-E2Helper.Descriptions["setBloodColor(e:n)"] = "Sets the blood color of an entity via a number (_BLOOD)"
+E2Helper.Descriptions["setBloodColor(e:n)"] = "Sets the blood color of an entity via a number (_BLOOD)."
 E2Helper.Descriptions["getBloodColor(e:)"] = "Returns the blood color of an entity as a number (_BLOOD)."
 E2Helper.Descriptions["setColor(nnn)"] = "Sets the color of the E2 chip"
 E2Helper.Descriptions["setColor(e:vn)"] = "Sets the color (as vector) and alpha (as number) of the entity"
