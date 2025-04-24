@@ -601,7 +601,7 @@ E2Lib.registerConstant("BLOOD_COLOR_ZOMBIE", BLOOD_COLOR_ZOMBIE)
 E2Lib.registerConstant("BLOOD_COLOR_ANTLION_WORKER", BLOOD_COLOR_ANTLION_WORKER)
 
 e2function void entity:setBloodColor(number bloodcolor)
-	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	this:SetBloodColor(math.Clamp(bloodcolor, -1, 6))
 end
 
