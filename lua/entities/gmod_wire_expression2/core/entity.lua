@@ -602,6 +602,7 @@ E2Lib.registerConstant("BLOOD_COLOR_ANTLION_WORKER", BLOOD_COLOR_ANTLION_WORKER)
 
 e2function void entity:setBloodColor(number bloodcolor)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 	this:SetBloodColor(math.Clamp(bloodcolor, -1, 6))
 end
 
