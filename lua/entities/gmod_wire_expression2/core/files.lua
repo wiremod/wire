@@ -338,7 +338,8 @@ flushFileBuffer = function()
 				net.Start("wire_expression2_file_download")
 					net.WriteString(name or "")
 					net.WriteBool(fdata.append)
-					net.WriteStream(data, function()
+
+					local finished_cb = function()
 						fdata.downloaded = true
 						fdata.downloading = false
 
@@ -354,7 +355,14 @@ flushFileBuffer = function()
 						if #queue ~= 0 then -- Queue the next file
 							timer.Create("wire_expression2_flush_file_buffer", 0.2, 2, flushFileBuffer)
 						end
-					end)
+					end
+
+					if #data == 0 then
+						net.WriteUInt(0, 32)
+						finished_cb()
+					else
+						net.WriteStream(data, finished_cb)
+					end
 				net.Send(ply)
 			end
 		end
