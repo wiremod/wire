@@ -11,7 +11,7 @@ local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) 
 local sbox_E2_canMakeStatue = CreateConVar("sbox_E2_canMakeStatue", "1", FCVAR_ARCHIVE)
 local wire_expression2_propcore_sents_whitelist = CreateConVar("wire_expression2_propcore_sents_whitelist", 1, FCVAR_ARCHIVE, "If 1 - players can spawn sents only from the default sent list. If 0 - players can spawn sents from both the registered list and the entity tab.", 0, 1)
 local wire_expression2_propcore_sents_enabled = CreateConVar("wire_expression2_propcore_sents_enabled", 1, FCVAR_ARCHIVE, "If 1 - this allows sents to be spawned. (Doesn't affect the sentSpawn whitelist). If 0 - prevents sentSpawn from being used at all.", 0, 1)
-local wire_expression2_propcore_canMakeUnbreakable = CreateConVar("wire_expression2_propcore_canMakeUnbreakable", 1, FCVAR_ARCHIVE, "If 1 - this allows props to be made unbreakable. If 0 - prevents propMakeUnbreakable from being used at all.", 0, 1)
+local wire_expression2_propcore_canMakeUnbreakable = CreateConVar("wire_expression2_propcore_canMakeUnbreakable", 1, FCVAR_ARCHIVE, "If 1 - this allows props to be made unbreakable. If 0 - prevents propMakeBreakable from being used at all.", 0, 1)
 
 local isOwner = E2Lib.isOwner
 local GetBones = E2Lib.GetBones
@@ -728,10 +728,22 @@ end
 
 e2function void entity:propMakeBreakable(number breakable)
 	if not wire_expression2_propcore_canMakeUnbreakable:GetBool() then return self:throw("Making unbreakable is disabled by server! (wire_expression2_propcore_canMakeUnbreakable)", nil) end
-	if not ValidAction(self, this, "break") then return end
+	if not ValidAction(self, this, "makeUnbreakable") then return end
 	if this:GetClass() ~= "prop_physics" then return self:throw("This entity can not be made unbreakable!", nil) end
 
-	this.wire_unbreakable = this:Health() > 0 and breakable == 0 and true or nil
+	local unbreakable = this:Health() > 0 and breakable == 0 and true or nil
+	if this.wire_unbreakable == unbreakable then return end
+	this.wire_unbreakable = unbreakable
+
+	if unbreakable then
+		self.entity:CallOnRemove("wire_expression2_propcore_propMakeBreakable-" .. this:EntIndex(),
+			function( e )
+				this.wire_unbreakable = nil
+			end
+		)
+	else
+		self.entity:RemoveCallOnRemove("wire_expression2_propcore_propMakeBreakable-" .. this:EntIndex())
+	end
 end
 
 [nodiscard]
