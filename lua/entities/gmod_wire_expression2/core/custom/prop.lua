@@ -731,7 +731,7 @@ e2function void entity:propMakeBreakable(number breakable)
 	if not ValidAction(self, this, "break") then return end
 	if this:GetClass() ~= "prop_physics" then return self:throw("This entity can not be made unbreakable!", nil) end
 
-	this.wire_unbreakable = this:Health() > 0 and breakable == 0 and 1 or 0
+	this.wire_unbreakable = this:Health() > 0 and breakable == 0 and true or nil
 end
 
 [nodiscard]
