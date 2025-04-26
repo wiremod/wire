@@ -716,7 +716,7 @@ e2function void entity:propBreak()
 end
 
 hook.Add("EntityTakeDamage", "WireUnbreakable", function(ent, dmginfo)
-    if ent.wire_unbreakable then dmginfo:ScaleDamage(0) end
+    if ent.wire_unbreakable then return true end
 end)
 
 [nodiscard]
