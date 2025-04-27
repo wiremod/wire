@@ -372,6 +372,11 @@ if CLIENT or TESTING then
   -- Update highlighted lines
   function CPULib.DebugUpdateHighlights(dontForcePosition)
     if ZCPU_Editor then
+      -- Clear all highlighted lines
+      for tab=1,ZCPU_Editor:GetNumTabs() do
+        ZCPU_Editor:GetEditor(tab):ClearHighlightedLines()
+      end
+
       -- Highlight current position
       local currentPosition = CPULib.Debugger.PositionByPointer[CPULib.Debugger.Variables[CPULib.Debugger.PreferredTracker or "IP"]]
       if currentPosition then
@@ -379,10 +384,6 @@ if CLIENT or TESTING then
         -- to the file in the new editor.
         if not currentPosition.File:sub(1,9):match("cpuchip/") then
           return
-        end
-        -- Clear all highlighted lines
-        for tab=1,ZCPU_Editor:GetNumTabs() do
-          ZCPU_Editor:GetEditor(tab):ClearHighlightedLines()
         end
         
         local textEditor = CPULib.SelectTab(ZCPU_Editor,currentPosition.File,not CPULib.Debugger.FollowTracker)
@@ -464,6 +465,7 @@ if CLIENT or TESTING then
   CPULib.HandbookWindow = nil
   -- Platform bookmarks, it'll automatically jump to this section when opening.
   local bookmarks = {
+    ZCPU="",
     ZGPU="#zgpu",
     ZSPU="#zspu"
   }
@@ -480,7 +482,7 @@ if CLIENT or TESTING then
     browser:SetPos(10, 25)
     browser:SetSize(w - 20, h - 35)
 
-    browser:OpenURL("https://wiremod.github.io/Miscellaneous/zcpudoc.html"..bookmarks[bookmark] or "")
+    browser:OpenURL("https://wiremod.github.io/Miscellaneous/zcpudoc.html"..(bookmarks[bookmark] or ""))
   end
 end
 
