@@ -51,7 +51,7 @@ if CLIENT then
 			local groundbeam = net.ReadBit() ~= 0
 			local size = net.ReadUInt(16)/100
 			timer.Simple(i/count*syncinterval,function()
-				if IsValid(ent) then
+				if IsValid(ent) and ent.AddPoint then
 					ent:AddPoint(pos, lcl, color, dietime, linebeam, groundbeam, size)
 				end
 			end)
