@@ -923,6 +923,13 @@ function Parser:Expr15()
 
 	local fn = self:Consume(TokenVariant.LowerIdent)
 	if fn then
+		-- Transform key value
+		if fn.value == "array" then
+			return Node.new(NodeVariant.ExprArray, self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments(), fn.trace:stitch(self:Prev().trace))
+		elseif fn.value == "table" then
+			return Node.new(NodeVariant.ExprTable, self:ArgumentsKV(Grammar.LParen, Grammar.RParen) or self:Arguments(), fn.trace:stitch(self:Prev().trace))
+		end
+
 		return Node.new(NodeVariant.ExprCall, { fn, self:Arguments() }, fn.trace:stitch(self:Prev().trace))
 	end
 
