@@ -397,8 +397,6 @@ __e2setcost(1)
 
 -- Creates a table
 e2function table table(...tbl)
-	table_check_perf(self, tbl)
-
 	local ret = newE2Table()
 	if #tbl == 0 then return ret end -- Don't construct table
 
@@ -414,8 +412,10 @@ e2function table table(...tbl)
 			ret.ntypes[k] = tid
 		end
 	end
-
 	ret.size = size
+
+	table_perf_check(self, ret)
+
 	return ret
 end
 
