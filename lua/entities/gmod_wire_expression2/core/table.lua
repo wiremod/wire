@@ -397,7 +397,7 @@ __e2setcost(1)
 
 -- Creates a table
 e2function table table(...tbl)
-	num_perf_check(self, 100) -- Table construction is expensive
+	num_perf_check(self, #tbl)
 
 	local ret = newE2Table()
 	if #tbl == 0 then return ret end -- Don't construct table
@@ -415,7 +415,6 @@ e2function table table(...tbl)
 		end
 	end
 	ret.size = size
-	table_perf_check(self, ret)
 
 	return ret
 end
