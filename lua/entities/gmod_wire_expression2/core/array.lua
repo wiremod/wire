@@ -48,7 +48,7 @@ __e2setcost(1)
 e2function array array(...args)
 	-- Assume the arguments passed to the array do not contain illegal array types,
 	-- from the compile time checks.
-	self.prf = self.prf + #args * (1 / 4)
+	self.prf = self.prf + #args * (1 / 4) + 50
 
 	return args
 end
