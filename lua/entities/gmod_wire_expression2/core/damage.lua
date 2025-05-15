@@ -132,6 +132,6 @@ E2Lib.registerEvent("entityDamage", {
 	{ "Damage", "xdm" }
 })
 
-hook.Add("PostEntityTakeDamage", "E2_entityDamage", function(victim, dmg, took)
+hook.Add("PostEntityTakeDamage", "E2_entityDamage", function(victim, dmg)
 	E2Lib.triggerEvent("entityDamage", { victim, dmg })
 end)
