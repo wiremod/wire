@@ -39,7 +39,7 @@ if CLIENT then
 
 	net.Receive("WireHoloEmitterData", function(netlen)
 		local ent = net.ReadEntity()
-		if not IsValid(ent) then return end
+		if not IsValid(ent) or not ent.AddPoint then return end
 		local syncinterval = net.ReadFloat()
 		local count = net.ReadUInt(16)
 		for i=1, count do
@@ -51,7 +51,7 @@ if CLIENT then
 			local groundbeam = net.ReadBit() ~= 0
 			local size = net.ReadUInt(16)/100
 			timer.Simple(i/count*syncinterval,function()
-				if IsValid(ent) and ent.AddPoint then
+				if IsValid(ent) then
 					ent:AddPoint(pos, lcl, color, dietime, linebeam, groundbeam, size)
 				end
 			end)
