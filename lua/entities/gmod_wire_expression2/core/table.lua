@@ -346,8 +346,8 @@ end
 --- @param tbl E2Table
 --- @return number size # The size of the table
 --- @return number perf # The adjusted op count after increasing
-local function table_perf_check(self, tbl)
-	local size = tbl.size
+local function table_perf_check(self, tbl, size)
+	size = size or tbl.size
 	return size, num_perf_check(self, size)
 end
 
@@ -397,6 +397,8 @@ __e2setcost(1)
 
 -- Creates a table
 e2function table table(...tbl)
+	table_perf_check(self, v, 100) -- Table construction is expensive
+
 	local ret = newE2Table()
 	if #tbl == 0 then return ret end -- Don't construct table
 
@@ -413,7 +415,6 @@ e2function table table(...tbl)
 		end
 	end
 	ret.size = size
-
 	table_perf_check(self, ret)
 
 	return ret
