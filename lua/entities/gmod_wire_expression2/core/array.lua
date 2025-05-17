@@ -66,6 +66,21 @@ end
 --------------------------------------------------------------------------------
 registerCallback( "postinit", function()
 	local NO_LEGACY = { legacy = false }
+
+	-- Generic indexof function, created here to avoid recreating in the loop
+	local function default_indexof(self, args)
+		local arr, val = args[1], args[2]
+		local l = #arr
+		for i = 1, l do
+			if arr[i] == val then
+				self.prf = self.prf + i
+				return i
+			end
+		end
+		self.prf = self.prf + l
+		return 0
+	end
+
 	for k,v in pairs( wire_expression_types ) do
 		local name = k:lower()
 		if name == "normal" then name = "number" end
@@ -217,19 +232,31 @@ registerCallback( "postinit", function()
 			end, nil, nil, NO_LEGACY)
 
 			-- indexOf
-
-			registerFunction("indexOf", "r:" .. id, "n", function(self, args)
-				local arr, val = args[1], args[2]
-				local l = #arr
-				for i = 1, l do
-					if arr[i] == val then
-						self.prf = self.prf + i
-						return i
+			do
+				-- Check if there's an equals function
+				local eq_fn = wire_expression2_funcs["op:eq(" .. id .. id .. ")"]
+				-- Use a predefined default that uses == if not
+				local fn_to_reg = default_indexof
+				-- If there is, create a function that uses that
+				if eq_fn then
+					local eq = eq_fn[3]
+					fn_to_reg = function(self, args)
+						local arr, val = args[1], args[2]
+						local l = #arr
+						for i = 1, l do
+							local v = arr[i]
+							if not (typecheck(v) or typecheck(val)) and eq(self, arr[i], val) ~= 0 then
+								self.prf = self.prf + i
+								return i
+							end
+						end
+						self.prf = self.prf + l
+						return 0
 					end
 				end
-				self.prf = self.prf + l
-				return 0
-			end, nil, { "value" }, NO_LEGACY)
+
+				registerFunction("indexOf", "r:" .. id, "n", fn_to_reg, nil, { "value" }, NO_LEGACY)
+			end
 
 			--------------------------------------------------------------------------------
 			-- Foreach operators
