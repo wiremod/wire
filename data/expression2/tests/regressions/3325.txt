@@ -1,0 +1,65 @@
+## SHOULD_PASS:EXECUTE
+
+# Tables
+
+let A = table(1, 2, 3, "four", vec(5))
+
+let B = table(1 = 1, 2 = 2, 3 = 3, 4 = "four", 5 = vec(5))
+
+let Count = 0
+
+function err(K:number, X:string, V:string) {
+    return format("Failed at key %d with values [%s, %s]", K, X, V)
+}
+
+foreach(K:number, V:number = B) {
+    Count += K
+    let X = A[K, number]
+    assert(X == V, err(K, toString(X), toString(V)))
+}
+
+assert(Count == 6)
+
+foreach(K:number, V:string = B) {
+    Count += K
+    let X = A[K, string]
+    assert(X == V, err(K, X, V))
+}
+
+assert(Count == 10)
+
+foreach(K:number, V:vector = B) {
+    Count += K
+    let X = A[K, vector]
+    assert(X == V, err(K, toString(X), toString(V)))
+}
+
+assert(Count == 15)
+
+# Arrays
+
+let C = array(1, 2, 3, "four", vec(5))
+
+let D = array(1 = 1, 2 = 2, 3 = 3, 4 = "four", 5 = vec(5))
+
+Count = 0
+
+foreach(K:number, V:number = D) {
+    Count += K
+    let X = C[K, number]
+    assert(X == V, err(K, toString(X), toString(V)))
+}
+
+assert(Count == 6)
+
+if(1) {
+    let X = C[4, string]
+    let V = D[4, string]
+    assert(X == V, err(4, X, V))
+}
+
+if(1) {
+    let X = C[5, vector]
+    let V = D[5, vector]
+    assert(X == V, err(5, toString(X), toString(V)))
+}
