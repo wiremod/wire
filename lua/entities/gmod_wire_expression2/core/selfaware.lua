@@ -130,19 +130,21 @@ local function doSetName(self, this, name)
 
 		this:SetNWString("name", name)
 		this:SetOverlayText(name)
+	elseif this:IsVehicle() and this.VehicleTable and this.VehicleTable.Name then
+		this.VehicleTable.Name = name
 	else
 		if #name > 200 then name = string.sub(name, 1, 200) end
 		if string.find(name, "[\n\r\"]") then return self:throw("setName name contains illegal characters!") end
 		if this:GetNWString("WireName") == name then return end
 		this:SetNWString("WireName", name)
 		duplicator.StoreEntityModifier(this, "WireName", { name = name })
-
 	end
 
 	data_SetName._n = totalRuns + 1
-
 	self.prf = self.prf + (totalRuns - 1) ^ 2 * totalChars -- Disincentivize repeated use
+
 end
+
 
 __e2setcost(100)
 
