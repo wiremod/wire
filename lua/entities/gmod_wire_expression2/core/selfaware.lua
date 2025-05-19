@@ -131,6 +131,9 @@ local function doSetName(self, this, name)
 		this:SetNWString("name", name)
 		this:SetOverlayText(name)
 	elseif this:IsVehicle() and this.VehicleTable and this.VehicleTable.Name then
+		if #name > 200 then
+			name = name:sub(1,200)
+		end
 		this.VehicleTable.Name = name
 	else
 		if #name > 200 then name = string.sub(name, 1, 200) end
