@@ -9,6 +9,7 @@ local Warning, Error = E2Lib.Debug.Warning, E2Lib.Debug.Error
 local Token, TokenVariant = E2Lib.Tokenizer.Token, E2Lib.Tokenizer.Variant
 local Node, NodeVariant = E2Lib.Parser.Node, E2Lib.Parser.Variant
 local Operator = E2Lib.Operator
+local newE2Table = E2Lib.newE2Table
 
 local pairs, ipairs = pairs, ipairs
 
@@ -216,6 +217,18 @@ local function handleInfixOperation(self, trace, data)
 			return op(state, lhs(state), rhs(state))
 		end, op_ret
 	end
+end
+
+local function table_perf_inc(state)
+	local prf = state.prf + 1
+	if prf > e2_tickquota then
+		state:forceThrow("perf")
+	end
+	state.prf = prf
+end
+
+local function empty_array()
+	return {}
 end
 
 ---@type table<NodeVariant, fun(self: Compiler, trace: Trace, data: table, used_as_stmt: boolean): RuntimeOperator|nil, string?>
@@ -1298,9 +1311,7 @@ local CompileVisitors = {
 	---@param data Node[]|{ [1]: Node, [2]:Node }[]
 	[NodeVariant.ExprArray] = function (self, trace, data)
 		if #data == 0 then
-			return function()
-				return {}
-			end, "r"
+			return empty_array, "r"
 		elseif data[1][2] then -- key value array
 			---@cast data { [1]: Node, [2]: Node }[] # Key value pair arguments
 
@@ -1321,6 +1332,8 @@ local CompileVisitors = {
 				local array = {}
 
 				for key, value in pairs(numbers) do
+					table_perf_inc(state)
+
 					array[key(state)] = value(state)
 				end
 
@@ -1337,6 +1350,8 @@ local CompileVisitors = {
 			return function(state) ---@param state RuntimeContext
 				local array = {}
 				for i, val in ipairs(args) do
+					table_perf_inc(state)
+
 					array[i] = val(state)
 				end
 				return array
@@ -1346,9 +1361,7 @@ local CompileVisitors = {
 
 	[NodeVariant.ExprTable] = function (self, trace, data)
 		if #data == 0 then
-			return function()
-				return { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 }
-			end, "t"
+			return newE2Table, "t"
 		elseif data[1][2] then
 			---@cast data { [1]: Node, [2]: Node }[] # Key value pair arguments
 
@@ -1372,18 +1385,28 @@ local CompileVisitors = {
 				local s, stypes, n, ntypes = {}, {}, {}, {}
 
 				for i = 1, nstrings do
+					table_perf_inc(state)
+
 					local data = strings[i]
 					local key, value, valuetype = data[1](state), data[2], data[3]
 					s[key], stypes[key] = value(state), valuetype
 				end
 
 				for i = 1, nnumbers do
+					table_perf_inc(state)
+
 					local data = numbers[i]
 					local key, value, valuetype = data[1](state), data[2], data[3]
 					n[key], ntypes[key] = value(state), valuetype
 				end
 
-				return { s = s, stypes = stypes, n = n, ntypes = ntypes, size = size }
+				local ret = newE2Table()
+				ret.s = s
+				ret.stypes = stypes
+				ret.n = n
+				ret.ntypes = ntypes
+				ret.size = size
+				return ret
 			end, "t"
 		else
 			---@cast data Node[]
@@ -1394,10 +1417,18 @@ local CompileVisitors = {
 
 			return function(state) ---@param state RuntimeContext
 				local array = {}
+
 				for i = 1, len do
+					table_perf_inc(state)
+
 					array[i] = args[i](state)
 				end
-				return { n = array, ntypes = argtypes, s = {}, stypes = {}, size = len }
+
+				local ret = newE2Table()
+				ret.n = array
+				ret.ntypes = argtypes
+				ret.size = len
+				return ret
 			end, "t"
 		end
 	end,
