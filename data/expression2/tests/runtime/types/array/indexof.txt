@@ -1,0 +1,25 @@
+## SHOULD_PASS:EXECUTE
+
+A = array(1, vec2(2), vec(3), vec4(4), "five", ang(6), quat(7), quat(8),
+        matrix(ang(9)), matrix(ang(10)), entity(), noentity(), vec2(13), vec4(14), ang(15),
+        matrix2(16, 16, 16, 16), matrix4(ang(17)), matrix2(18, 18, 18, 18), matrix4(ang(19)))
+
+assert(A:indexOf(1) == 1)
+assert(A:indexOf(vec2(2)) == 2)
+assert(A:indexOf(vec(3)) == 3)
+assert(A:indexOf(vec4(4)) == 4)
+assert(A:indexOf("five") == 5)
+assert(A:indexOf(ang(6)) == 6)
+assert(A:indexOf(quat(7)) == 7)
+assert(A:indexOf(quat(8)) == 8)
+assert(A:indexOf(matrix(ang(9))) == 9)
+assert(A:indexOf(matrix(ang(10))) == 10)
+assert(A:indexOf(entity()) == 11)
+assert(A:indexOf(noentity()) == 12)
+assert(A:indexOf(vec2(13)) == 13)
+assert(A:indexOf(vec4(14)) == 14)
+assert(A:indexOf(ang(15)) == 15)
+assert(A:indexOf(matrix2(16, 16, 16, 16)) == 16)
+assert(A:indexOf(matrix4(ang(17))) == 17)
+assert(A:indexOf(matrix2(18, 18, 18, 18)) == 18)
+assert(A:indexOf(matrix4(ang(19))) == 19)
