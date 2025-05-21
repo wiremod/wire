@@ -1494,7 +1494,11 @@ function E2Lib.compileScript(code, owner)
 		else
 			local _, why, trace = E2Lib.unpackException(why)
 
-			if trace then
+			if why == "exit" then
+				return true
+			elseif why == "perf" then
+				return false,  "tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")"
+			elseif trace then
 				return false, "Runtime error: '" .. why .. "' at line " .. trace.start_line .. ", col " .. trace.start_col
 			else
 				return false, why
