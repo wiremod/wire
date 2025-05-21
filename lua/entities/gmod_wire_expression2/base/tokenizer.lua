@@ -15,7 +15,6 @@
 AddCSLuaFile()
 
 local Trace, Warning, Error = E2Lib.Debug.Trace, E2Lib.Debug.Warning, E2Lib.Debug.Error
-local ReservedWord = E2Lib.ReservedWord
 
 local tonumber = tonumber
 local string_find, string_gsub, string_sub = string.find, string.gsub, string.sub
@@ -270,7 +269,6 @@ function Tokenizer:Next()
 		elseif match == "false" then
 			return Token.new(TokenVariant.Boolean, false)
 		elseif string_sub(match, 1, 1) ~= "#" then
-			if ReservedWord[match] then self:Warning("'".. match .. "' is a reserved identifier and may break your code in the future") end
 			return Token.new(TokenVariant.LowerIdent, match)
 		end
 	end
