@@ -1854,11 +1854,14 @@ end
 -- Damage
 
 E2Helper.Descriptions["isType(xdm:n)"] = "Returns whether the damage contains the type flag provided. For example isType(_DMG_BLAST) would return 1 if the damage contains blast damage."
+E2Helper.Descriptions["getDamageType(xdm:n)"] = "Returns the damage type (_DMG)"
 E2Helper.Descriptions["getAmount(xdm:)"] = "Returns the amount of damage dealt"
+E2Helper.Descriptions["getMaxAmount(xdm:)"] = "Returns the maximum amount of damage dealt"
 E2Helper.Descriptions["getPosition(xdm:)"] = "Returns the position where the damage was dealt"
 E2Helper.Descriptions["getForce(xdm:)"] = "Returns the force of the damage dealt"
 E2Helper.Descriptions["getInflictor(xdm:)"] = "Returns the inflictor (weapon) which caused the damage to be dealt"
 E2Helper.Descriptions["getAttacker(xdm:)"] = "Returns the attacker which used the inflictor to deal the damage"
+E2Helper.Descriptions["getWeapon(xdm:)"] = "Returns the weapon, not necessarily that it is an inflictor or weapon"
 E2Helper.Descriptions["getAmmoType(xdm:)"] = "Returns the ammo type id of the damage dealt"
 
 E2Helper.Descriptions["takeDamage(e:n)"] = "Applies an amount of damage to the player. Requires wire_expression2_damage_enabled to be set to 1."
