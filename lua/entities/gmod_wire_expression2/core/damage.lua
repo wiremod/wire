@@ -51,7 +51,7 @@ e2function number operator_is(damage dmg)
 end
 
 [nodiscard]
-e2function number damage:getDamageType(number type)
+e2function number damage:getDamageType()
 	return this:GetDamageType()
 end
 

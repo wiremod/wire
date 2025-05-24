@@ -1854,7 +1854,7 @@ end
 -- Damage
 
 E2Helper.Descriptions["isType(xdm:n)"] = "Returns whether the damage contains the type flag provided. For example isType(_DMG_BLAST) would return 1 if the damage contains blast damage."
-E2Helper.Descriptions["getDamageType(xdm:n)"] = "Returns the damage type (_DMG)"
+E2Helper.Descriptions["getDamageType(xdm:)"] = "Returns the damage type (_DMG)"
 E2Helper.Descriptions["getAmount(xdm:)"] = "Returns the amount of damage dealt"
 E2Helper.Descriptions["getMaxAmount(xdm:)"] = "Returns the maximum amount of damage dealt"
 E2Helper.Descriptions["getPosition(xdm:)"] = "Returns the position where the damage was dealt"
