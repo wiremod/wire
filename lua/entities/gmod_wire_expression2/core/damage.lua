@@ -51,6 +51,11 @@ e2function number operator_is(damage dmg)
 end
 
 [nodiscard]
+e2function number damage:getDamageType()
+	return this:GetDamageType()
+end
+
+[nodiscard]
 e2function number damage:isType(number type)
 	return this:IsDamageType(type) and 1 or 0
 end
@@ -58,6 +63,11 @@ end
 [nodiscard]
 e2function number damage:getAmount()
 	return this:GetDamage()
+end
+
+[nodiscard]
+e2function number damage:getMaxAmount()
+	return this:GetMaxDamage()
 end
 
 [nodiscard]
@@ -78,6 +88,11 @@ end
 [nodiscard]
 e2function entity damage:getAttacker()
 	return this:GetAttacker()
+end
+
+[nodiscard]
+e2function entity damage:getWeapon()
+	return this:GetWeapon()
 end
 
 [nodiscard]
@@ -132,6 +147,6 @@ E2Lib.registerEvent("entityDamage", {
 	{ "Damage", "xdm" }
 })
 
-hook.Add("EntityTakeDamage", "E2_entityDamage", function(victim, dmg)
+hook.Add("PostEntityTakeDamage", "E2_entityDamage", function(victim, dmg)
 	E2Lib.triggerEvent("entityDamage", { victim, dmg })
 end)
