@@ -1,0 +1,123 @@
+## SHOULD_PASS:EXECUTE
+@strict
+
+let Dummy = function() {}
+
+# Clone equality
+let OT = table(1 = 10, 2 = 20, 3 = "a", 4 = "b", 5 = Dummy,
+                "a" = "A", "b" = "B", "c" = array(1, 2, 3), "d" = table("a" = 1, "b" = 2, "c" = 3), "e" = Dummy)
+                
+let T = OT
+let T2 = T:clone()
+
+assert(T:count() == T2:count())
+
+foreach(I:number, V:number = T) {
+    assert(T2[I, number] == V)
+}
+
+foreach(I:number, V:string = T) {
+    assert(T2[I, string] == V)
+}
+
+foreach(K:string, V:string = T) {
+    assert(T2[K, string] == V)
+}
+
+# Compare array by value
+
+let A1 = T["c", array]
+let A2 = T2["c", array]
+
+assert(A1 != A2)
+
+assert(A1:count() == A2:count())
+
+foreach(I:number, V:number = A1) {
+    assert(A2[I, number] == V)
+}
+
+# Compare subtable by value
+
+let S1 = T["d", table]
+let S2 = T2["d", table]
+
+assert(S1 != S2)
+
+assert(S1:count() == S2:count())
+
+foreach(K:string, V:number = S1) {
+    assert(S2[K, number] == V)
+}
+
+# Compare functions
+
+assert(!!T2[5, function])
+assert(!!T2["e", function])
+
+assert(T[5, function] == T2[5, function])
+assert(T["e", function] == T2["e", function])
+
+# Object-like tables
+
+T = table(table(noegpobject(), Dummy))
+T2 = T:clone()
+
+S1 = T[1, table]
+S2 = T2[1, table]
+
+assert(S1 != S2)
+assert(S1[1, egpobject] == S2[1, egpobject])
+assert(S1[1, egpobject]:toString() == S2[1, egpobject]:toString())
+assert(S1[2, function] == S2[2, function])
+
+# Shallow copying
+
+function number compT(T1:table, T2:table) {
+    foreach(I:number, V:table = T2) {
+        if(T1[I, table] != V) { return 0 }
+    }
+    
+    return 1
+}
+
+T = table(table(), table())
+T2 = T:copy()
+
+assert(compT(T, T2))
+
+# Merge
+
+T2 = table(3 = table(), 4 = table())
+
+let T3 = T:merge(T2)
+
+assert(compT(T3, T))
+assert(compT(T3, T2))
+
+# Add
+
+T3 = T:add(T)
+
+for(I = 1, 2) {
+    assert(T3[I, table] == T[I, table])
+}
+for(I = 3, 4) {
+    assert(T3[I, table] == T[I - 2, table])
+}
+
+# Typeids
+
+T = OT:typeids()
+T2 = table(1 = "n", 2 = "n", 3 = "s", 4 = "s", 5 = "f",
+                "a" = "s", "b" = "s", "c" = "r", "d" = "t", "e" = "f")
+
+assert(T:count() == T2:count())
+
+foreach(I:number, V:string = T) {
+    assert(T2[I, string] == V)
+}
+
+foreach(K:string, V:string = T) {
+    assert(T2[K, string] == V)
+}

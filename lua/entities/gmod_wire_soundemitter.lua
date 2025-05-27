@@ -16,7 +16,6 @@ local DefaultSamples = {
 	"synth/tri.wav",
 	"synth/sine.wav"
 }
-for _, str in pairs(DefaultSamples) do util.PrecacheSound(str) end
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -169,7 +168,6 @@ function ENT:SetSound(soundName)
 	soundName = WireLib.SoundExists(soundName)
 	if not soundName then return end
 
-	util.PrecacheSound(soundName)
 	self.sound = soundName
 
 	self.SoundProperties = sound.GetProperties(soundName)

@@ -56,6 +56,8 @@ if CLIENT then
 	local curdistance = 0
 	local oldcurdistance = 0
 	local smoothdistance = 0
+	local maxdistance = 16000
+	local adjustmaxdistance = false
 
 	local zoomdistance = 0
 	local zoombind = 0
@@ -153,9 +155,10 @@ if CLIENT then
 			local ang_speed = pos_speed - 2
 
 			if AllowZoom then
-				if zoombind ~= 0 then
-					zoomdistance = math.Clamp(zoomdistance + zoombind * FrameTime() * 100 * max((abs(curdistance) + abs(zoomdistance))/10,10),0,16000-curdistance)
+				if zoombind ~= 0 or adjustmaxdistance then
+					zoomdistance = math.Clamp(zoomdistance + zoombind * FrameTime() * 100 * max((abs(curdistance) + abs(zoomdistance))/10,10),0,math.min(16000-curdistance, maxdistance))
 					zoombind = 0
+					adjustmaxdistance = false
 				end
 				curdistance = curdistance + zoomdistance
 			end
@@ -268,6 +271,10 @@ if CLIENT then
 
 		-- distance
 		distance = math.Clamp(net.ReadFloat(),-16000,16000)
+		maxdistance = net.ReadFloat()
+		if AllowZoom and AutoMove then
+			adjustmaxdistance = true
+		end
 
 		-- Parent
 		WaitingForID = net.ReadInt(32)
@@ -374,6 +381,7 @@ function ENT:Initialize()
 		"Angle (Sets the direction of the camera, in angle form.\nIf clientside movement is enabled, this is ignored.) [ANGLE]",
 		"Position (Sets the position of the camera.\nIf clientside movement is enabled, this specifies the center of the camera's orbit.) [VECTOR]",
 		"Distance (Sets the 'distance' of the camera.\nIn other words, the camera will be moved away from the specified position by this amount.\nIf clientside zooming is enabled, this is the farthest you can zoom in.)",
+		"MaxDistance (Sets the max distance the camera can zoom out to.\n Needs clientside movement and clientside zooming to be enabled.)",
 		"UnRoll (If free movement is enabled, this resets the roll back to zero.)",
 		"Parent (Parents the camera to this entity.) [ENTITY]",
 		"FilterEntities (In addition to ignoring the contraption of the 'Parent' entity, or the cam controller itself\nif parent isn't used, entities in this list will be ignored by the 'HitPos' and 'Trace' outputs) [ARRAY]",
@@ -390,6 +398,7 @@ function ENT:Initialize()
 	self.Position = Vector(0,0,0)
 	self.Angle = Angle(0,0,0)
 	self.Distance = 0
+	self.MaxDistance = 16000
 	self.UnRoll = false
 
 	self.Players = {}
@@ -456,7 +465,7 @@ end
 -- Data sending
 --------------------------------------------------
 
-local function SendPositions( pos, ang, dist, parent, unroll )
+local function SendPositions( pos, ang, dist, parent, unroll, maxdist )
 	-- pos/ang
 	net.WriteFloat( pos.x )
 	net.WriteFloat( pos.y )
@@ -469,6 +478,7 @@ local function SendPositions( pos, ang, dist, parent, unroll )
 
 	-- distance
 	net.WriteFloat( dist )
+	net.WriteFloat( maxdist )
 
 	-- parent
 	local id = IsValid( parent ) and parent:EntIndex() or -1
@@ -492,7 +502,7 @@ function ENT:SyncSettings( ply, active )
 			net.WriteBit( self.AutoUnclip_IgnoreWater )
 			net.WriteBit( self.DrawPlayer )
 			net.WriteBit( self.DrawParent )
-			SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll )
+			SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll, self.MaxDistance )
 		end
 	net.Send( ply )
 end
@@ -501,9 +511,9 @@ end
 util.AddNetworkString( "wire_camera_controller_sync" )
 function ENT:SyncPositions( ply )
 	if not IsValid(ply) then ply = self.Players end
-	net.Start( "wire_camera_controller_sync" )
+	net.Start( "wire_camera_controller_sync", true )
 		net.WriteEntity( self )
-		SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll )
+		SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll, self.MaxDistance )
 	net.Send( ply )
 end
 
@@ -863,6 +873,8 @@ function ENT:TriggerInput( name, value )
 			self.Position = value
 		elseif name == "Distance" then
 			self.Distance = value
+		elseif name == "MaxDistance" then
+			self.MaxDistance = value
 		elseif name == "UnRoll" then
 			self.UnRoll = tobool(value)
 		elseif name == "Direction" then

@@ -239,13 +239,13 @@ local function flush_scale_queue(queue, recipient)
 	net.Start("wire_holograms_set_scale")
 		for _, plyqueue in pairs(queue) do
 			for Holo, scale in pairs(plyqueue) do
-				net.WriteUInt(Holo.ent:EntIndex(), 16)
+				net.WriteUInt(Holo.ent:EntIndex(), MAX_EDICT_BITS)
 				net.WriteFloat(scale.x)
 				net.WriteFloat(scale.y)
 				net.WriteFloat(scale.z)
 			end
 		end
-		net.WriteUInt(0, 16)
+		net.WriteUInt(0, MAX_EDICT_BITS)
 	if recipient then net.Send(recipient) else net.Broadcast() end
 end
 
@@ -257,15 +257,15 @@ local function flush_bone_scale_queue(queue, recipient)
 	for _, plyqueue in pairs(queue) do
 		for Holo, holoqueue in pairs(plyqueue) do
 			for bone, scale in pairs(holoqueue) do
-				net.WriteUInt(Holo.ent:EntIndex(), 16)
-				net.WriteUInt(bone + 1, 16) -- using +1 to be able reset holo bones scale with -1 and not use signed int
+				net.WriteUInt(Holo.ent:EntIndex(), MAX_EDICT_BITS)
+				net.WriteUInt(bone + 1, 9) -- using +1 to be able reset holo bones scale with -1 and not use signed int
 				net.WriteFloat(scale.x)
 				net.WriteFloat(scale.y)
 				net.WriteFloat(scale.z)
 			end
 		end
 	end
-	net.WriteUInt(0, 16)
+	net.WriteUInt(0, MAX_EDICT_BITS)
 	net.WriteUInt(0, 16)
 	if recipient then net.Send(recipient) else net.Broadcast() end
 end
@@ -279,7 +279,7 @@ local function flush_clip_queue(queue, recipient)
 			for Holo,holoqueue in pairs(plyqueue) do
 				for _, clip in pairs(holoqueue) do
 					if clip and clip.index then
-						net.WriteUInt(Holo.ent:EntIndex(), 16)
+						net.WriteUInt(Holo.ent:EntIndex(), MAX_EDICT_BITS)
 						net.WriteUInt(clip.index, 4) -- 4: absolute highest wire_holograms_max_clips is thus 16
 						if clip.enabled ~= nil then
 							net.WriteBool(true)
@@ -288,13 +288,13 @@ local function flush_clip_queue(queue, recipient)
 							net.WriteBool(false)
 							net.WriteVector(clip.origin)
 							net.WriteVector(clip.normal)
-							net.WriteUInt(clip.localentid, 16)
+							net.WriteUInt(clip.localentid, MAX_EDICT_BITS)
 						end
 					end
 				end
 			end
 		end
-		net.WriteUInt(0, 16)
+		net.WriteUInt(0, MAX_EDICT_BITS)
 	if recipient then net.Send(recipient) else net.Broadcast() end
 end
 
@@ -305,10 +305,10 @@ local function flush_vis_queue()
 		if IsValid( ply ) and next(plyqueue) ~= nil then
 			net.Start("wire_holograms_set_visible")
 				for Holo,visible in pairs(plyqueue) do
-					net.WriteUInt(Holo.ent:EntIndex(), 16)
+					net.WriteUInt(Holo.ent:EntIndex(), MAX_EDICT_BITS)
 					net.WriteBit(visible)
 				end
-				net.WriteUInt(0, 16)
+				net.WriteUInt(0, MAX_EDICT_BITS)
 			net.Send(ply)
 		end
 	end
@@ -320,11 +320,11 @@ local function flush_player_color_queue()
 	net.Start("wire_holograms_set_player_color")
 		for _, plyqueue in pairs(player_color_queue) do
 			for Holo,color in pairs(plyqueue) do
-				net.WriteUInt(Holo.ent:EntIndex(), 16)
+				net.WriteUInt(Holo.ent:EntIndex(), MAX_EDICT_BITS)
 				net.WriteVector(color)
 			end
 		end
-		net.WriteUInt(0, 16)
+		net.WriteUInt(0, MAX_EDICT_BITS)
 	net.Broadcast()
 end
 
@@ -984,6 +984,7 @@ e2function void holoClip(index, clipidx, vector origin, vector normal, isglobal)
 end
 
 e2function void holoClip(index, vector origin, vector normal, entity localent) -- Clip at first index
+	if not IsValid(localent) then return self:throw("Invalid entity!", nil) end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
@@ -991,6 +992,7 @@ e2function void holoClip(index, vector origin, vector normal, entity localent) -
 end
 
 e2function void holoClip(index, clipidx, vector origin, vector normal, entity localent)
+	if not IsValid(localent) then return self:throw("Invalid entity!", nil) end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
@@ -1006,6 +1008,13 @@ e2function void holoPos(index, vector position)
 	WireLib.setPos(Holo.ent, position)
 end
 
+e2function void holoLocalPos(index, vector position)
+	local holo = CheckIndex(self, index)
+	if not holo then return end
+
+	WireLib.setLocalPos(holo.ent, position)
+end
+
 [nodiscard]
 e2function vector holoPos(index)
 	local Holo = CheckIndex(self, index)
@@ -1019,6 +1028,13 @@ e2function void holoAng(index, angle ang)
 	if not Holo then return end
 
 	WireLib.setAng(Holo.ent, ang)
+end
+
+e2function void holoLocalAng(index, angle ang)
+	local holo = CheckIndex(self, index)
+	if not holo then return end
+
+	WireLib.setLocalAng(holo.ent, ang)
 end
 
 [nodiscard]
@@ -1190,8 +1206,16 @@ e2function void holoVisible(index, array players, visible)
 end
 
 -- -----------------------------------------------------------------------------
-local function Parent_Hologram(holo, ent, attachment)
+---@param bone integer?
+local function Parent_Hologram(holo, ent, attachment, bone)
 	if ent:GetParent() and ent:GetParent():IsValid() and ent:GetParent() == holo.ent then return end
+
+	if bone then
+		if bone >= 0 and bone < ent:GetBoneCount() then
+			holo.ent:FollowBone(ent, bone)
+			return
+		end
+	end
 
 	holo.ent:SetParent(ent)
 
@@ -1243,12 +1267,60 @@ e2function void holoParentAttachment(index, entity ent, string attachmentName)
 	Parent_Hologram(Holo, ent, attachmentName)
 end
 
+e2function void holoParentAttachment(index, otherindex, string attachmentName)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local Holo2 = CheckIndex(self, otherindex)
+	if not Holo2 then return end
+
+	if not Check_Parents(Holo.ent, Holo2.ent) then return end
+
+	Parent_Hologram(Holo, Holo2.ent, attachmentName)
+end
+
+e2function void holoParentBone(index, entity ent, bone)
+	if not IsValid(ent) then return end
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Parent_Hologram(Holo, ent, nil, bone)
+end
+
+e2function void holoParentBone(index, otherindex, bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local Holo2 = CheckIndex(self, otherindex)
+	if not Holo2 then return end
+
+	if not Check_Parents(Holo.ent, Holo2.ent) then return end
+
+	Parent_Hologram(Holo, Holo2.ent, nil, bone)
+end
+
+-- Combination of EF_BONEMERGE and EF_BONEMERGE_FASTCULL, to avoid performance complaints.
+local BONEMERGE_FLAGS = bit.bor(EF_BONEMERGE, EF_BONEMERGE_FASTCULL)
+
 e2function void holoUnparent(index)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetParent(nil)
-	Holo.ent:SetParentPhysNum(0)
+	Holo.ent:RemoveEffects(BONEMERGE_FLAGS)
+	Holo.ent:FollowBone(nil, 0)
+end
+
+__e2setcost(10)
+
+e2function void holoBonemerge(index, state)
+	local Holo = CheckIndex(self, index)
+	if not Holo or not Holo.ent:GetParent():IsValid() then return end
+
+	if state ~= 0 then
+		Holo.ent:AddEffects(BONEMERGE_FLAGS)
+	else
+		Holo.ent:RemoveEffects(BONEMERGE_FLAGS)
+	end
 end
 
 -- -----------------------------------------------------------------------------

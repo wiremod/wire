@@ -120,7 +120,7 @@ local utf8_byte = utf8.codepoint
 __e2setcost(1)
 
 e2function string toChar(number n)
-	if n < 0 or n > 255 then return self:throw("Invalid argument (" .. n .. ") (must be between 0 and 255)", "") end
+	if n ~= n or n < 0 or n > 255 then return self:throw("Invalid argument (" .. n .. ") (must not be NaN and be between 0 and 255)", "") end
 	return string_char(n)
 end
 
@@ -139,7 +139,7 @@ local math_floor = math.floor
 e2function string toUnicodeChar(number byte)
 	-- upper limit used to be 2097152, new limit acquired using pcall and a for loop
 	-- above this limit, the function causes a lua error
-	if byte < 1 or byte > 1114112 then return self:throw("Invalid argument (" .. byte .. ") (must be between 1 and 1,114,112)", "") end
+	if byte ~= byte or byte < 1 or byte > 1114112 then return self:throw("Invalid argument (" .. byte .. ") (must not be NaN and be between 1 and 1,114,112)", "") end
 	return utf8_char(byte)
 end
 
@@ -519,4 +519,36 @@ e2function string decompress(string compressed)
 	if len > 32768 then return self:throw("Input string is too long!", "") end
 	self.prf = self.prf + len * 0.5
 	return decompress(compressed) or self:throw("Invalid input for decompression!", "")
+end
+
+--[[******************************************************************************]]--
+-- Hash functions
+
+local function hash_generic(self, text, func)
+	local len = #text
+	if len > 131072 then self:forceThrow("Input string is too long!") end
+	self.prf = self.prf + len * 0.01
+	return func(text)
+end
+
+__e2setcost(5)
+
+[nodiscard]
+e2function string hashCRC(string text)
+	return hash_generic(self, text, util.CRC)
+end
+
+[nodiscard]
+e2function string hashMD5(string text)
+	return hash_generic(self, text, util.MD5)
+end
+
+[nodiscard]
+e2function string hashSHA1(string text)
+	return hash_generic(self, text, util.SHA1)
+end
+
+[nodiscard]
+e2function string hashSHA256(string text)
+	return hash_generic(self, text, util.SHA256)
 end

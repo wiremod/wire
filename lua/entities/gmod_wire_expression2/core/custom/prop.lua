@@ -11,6 +11,7 @@ local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) 
 local sbox_E2_canMakeStatue = CreateConVar("sbox_E2_canMakeStatue", "1", FCVAR_ARCHIVE)
 local wire_expression2_propcore_sents_whitelist = CreateConVar("wire_expression2_propcore_sents_whitelist", 1, FCVAR_ARCHIVE, "If 1 - players can spawn sents only from the default sent list. If 0 - players can spawn sents from both the registered list and the entity tab.", 0, 1)
 local wire_expression2_propcore_sents_enabled = CreateConVar("wire_expression2_propcore_sents_enabled", 1, FCVAR_ARCHIVE, "If 1 - this allows sents to be spawned. (Doesn't affect the sentSpawn whitelist). If 0 - prevents sentSpawn from being used at all.", 0, 1)
+local wire_expression2_propcore_canMakeUnbreakable = CreateConVar("wire_expression2_propcore_canMakeUnbreakable", 1, FCVAR_ARCHIVE, "If 1 - this allows props to be made unbreakable. If 0 - prevents propMakeBreakable from being used at all.", 0, 1)
 
 local isOwner = E2Lib.isOwner
 local GetBones = E2Lib.GetBones
@@ -61,7 +62,7 @@ local ValidSpawn = PropCore.ValidSpawn
 local canHaveInvalidPhysics = {
 	delete=true, parent=true, deparent=true, solid=true,
 	shadow=true, draw=true, use=true, pos=true, ang=true,
-	manipulate=true
+	manipulate=true, noDupe=true, dissolve=true
 }
 
 function PropCore.ValidAction(self, entity, cmd, bone)
@@ -714,11 +715,69 @@ e2function void entity:propBreak()
 	this:Fire("break",1,0)
 end
 
+hook.Add("EntityTakeDamage", "WireUnbreakable", function(ent, dmginfo)
+    if ent.wire_unbreakable then return true end
+end)
+
+[nodiscard]
+e2function number entity:canMakeUnbreakable()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not wire_expression2_propcore_canMakeUnbreakable:GetBool() then return 0 end
+	return this:GetClass() == "prop_physics" and 1 or 0
+end
+
+e2function void entity:propMakeBreakable(number breakable)
+	if not wire_expression2_propcore_canMakeUnbreakable:GetBool() then return self:throw("Making unbreakable is disabled by server! (wire_expression2_propcore_canMakeUnbreakable)", nil) end
+	if not ValidAction(self, this, "makeUnbreakable") then return end
+	if this:GetClass() ~= "prop_physics" then return self:throw("This entity can not be made unbreakable!", nil) end
+
+	local unbreakable = this:Health() > 0 and breakable == 0 and true or nil
+	if this.wire_unbreakable == unbreakable then return end
+	this.wire_unbreakable = unbreakable
+
+	if unbreakable then
+		self.entity:CallOnRemove("wire_expression2_propcore_propMakeBreakable-" .. this:EntIndex(),
+			function( e )
+				this.wire_unbreakable = nil
+			end
+		)
+	else
+		self.entity:RemoveCallOnRemove("wire_expression2_propcore_propMakeBreakable-" .. this:EntIndex())
+	end
+end
+
+[nodiscard]
+e2function number entity:propIsBreakable()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:Health() > 0 and not this.WireUnbreakable and 1 or 0
+end
+
+E2Lib.registerConstant("ENTITY_DISSOLVE_NORMAL", 0)
+E2Lib.registerConstant("ENTITY_DISSOLVE_ELECTRICAL", 1)
+E2Lib.registerConstant("ENTITY_DISSOLVE_ELECTRICAL_LIGHT", 2)
+E2Lib.registerConstant("ENTITY_DISSOLVE_CORE", 3)
+
+e2function void entity:propDissolve()
+	if not ValidAction(self, this, "dissolve") then return end
+	this:Dissolve()
+end
+
+e2function void entity:propDissolve(number dissolvetype)
+	if not ValidAction(self, this, "dissolve") then return end
+	this:Dissolve(dissolvetype)
+end
+
+e2function void entity:propDissolve(number dissolvetype, number magnitude)
+	if not ValidAction(self, this, "dissolve") then return end
+	this:Dissolve(dissolvetype, magnitude)
+end
+
 e2function void entity:use()
 	if not ValidAction(self, this, "use") then return end
 
 	local ply = self.player
 	if not IsValid(ply) then return end -- if the owner isn't connected to the server, do nothing
+	if ply:InVehicle() and this:IsVehicle() then return end -- don't use a vehicle if you're in one
 
 	if hook.Run( "PlayerUse", ply, this ) == false then return end
 	if hook.Run( "WireUse", ply, this, self.entity ) == false then return end
@@ -772,10 +831,39 @@ e2function void propDeleteAll()
 	self.data.spawnedProps = {}
 end
 
+--------------------------------------------------------------------------------
+local function canMarkDupeable(ent, ply)
+	if not duplicator.IsAllowed(ent:GetClass()) then return false end -- Entity is not dupeable by default.
+	if ent.markedNoDupeBy == ply:SteamID() then return true end -- Player already changed status. Thus can do this again.
+	return ent.DoNotDuplicate ~= true -- If false or nil -> can mark as dupeable.
+end
+
+__e2setcost(1)
+[nodiscard]
+e2function number entity:propIsDupeable()
+	return (this.DoNotDuplicate == true or not duplicator.IsAllowed(this:GetClass())) and 0 or 1
+end
+
+[nodiscard]
+e2function number entity:propCanSetDupeable()
+	local isOk, Val = pcall(ValidAction, self, this, "noDupe")
+	if not isOk then return 0 end
+
+	return canMarkDupeable(this, self.player) and 1 or 0
+end
+
+__e2setcost(2)
+e2function void entity:propNoDupe(number noDupe)
+	if not ValidAction(self, this, "noDupe") then return end
+	noDupe = noDupe ~= 0
+
+	if not canMarkDupeable(this, self.player) then return self:throw("Can't mark this entity as "..(noDupe and "un" or "").."dupeable!", nil) end
+
+	this.markedNoDupeBy = self.player:SteamID()
+	this.DoNotDuplicate = noDupe
+end
 
 __e2setcost(10)
-
---------------------------------------------------------------------------------
 e2function void entity:propManipulate(vector pos, angle rot, number freeze, number gravity, number notsolid)
 	if not ValidAction(self, this, "manipulate") then return end
 	PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
@@ -801,6 +889,18 @@ end
 e2function void entity:propShadow(number shadowEnable)
 	if not ValidAction(self, this, "shadow") then return end
 	this:DrawShadow( shadowEnable ~= 0 )
+end
+
+e2function void entity:propSleep(number sleep)
+	if not ValidAction(self, this, "sleep") then return end
+	local phys = this:GetPhysicsObject()
+	if phys:IsValid() then
+		if sleep ~= 0 then
+			phys:Sleep()
+		else
+			phys:Wake()
+		end
+	end
 end
 
 e2function void entity:propGravity(number gravity)
@@ -913,23 +1013,27 @@ e2function void entity:propSetAngVelocityInstant(vector velocity)
 	end
 end
 
-hook.Add( "CanDrive", "checkPropStaticE2", function( ply, ent ) if ent.propStaticE2 ~= nil then return false end end )
-e2function void entity:propStatic( number static )
-	if not ValidAction( self, this, "static" ) then return end
+hook.Add("CanDrive", "checkPropStaticE2", function(ply, ent) if ent.propStaticE2 ~= nil then return false end end)
+
+e2function void entity:propStatic(number static)
+	if not ValidAction(self, this, "static") then return end
+
 	if static ~= 0 and this.propStaticE2 == nil then
 		local phys = this:GetPhysicsObject()
 		this.propStaticE2 = phys:IsMotionEnabled()
 		this.PhysgunDisabled = true
-		this:SetUnFreezable( true )
-		phys:EnableMotion( false )
-	elseif this.propStaticE2 ~= nil then
+		this:SetUnFreezable(true)
+		phys:EnableMotion(false)
+	elseif static == 0 and this.propStaticE2 ~= nil then
 		this.PhysgunDisabled = false
-		this:SetUnFreezable( false )
+		this:SetUnFreezable(false)
+
 		if this.propStaticE2 == true then
 			local phys = this:GetPhysicsObject()
 			phys:Wake()
-			phys:EnableMotion( true )
+			phys:EnableMotion(true)
 		end
+
 		this.propStaticE2 = nil
 	end
 end
@@ -1116,8 +1220,16 @@ e2function void entity:ragdollFreeze(isFrozen)
 
 end
 
-__e2setcost(150)
+__e2setcost(5)
+e2function angle entity:ragdollGetAng()
+	if not ValidAction(self, this) then return end
 
+	local phys = this:GetPhysicsObject()
+
+	return phys:IsValid() and phys:GetAngles() or self:throw("Tried to use entity without physics", Angle())
+end
+
+__e2setcost(150)
 e2function void entity:ragdollSetPos(vector pos)
 	if not ValidAction(self, this, "pos") then return end
 
@@ -1131,8 +1243,9 @@ end
 e2function void entity:ragdollSetAng(angle rot)
 	if not ValidAction(self, this, "rot") then return end
 
+	local o = this:GetPhysicsObject():GetAngles()
 	for _, bone in pairs(GetBones(this)) do
-		setAng(bone, bone:AlignAngles(this:GetForward():Angle(), rot))
+		setAng(bone, bone:AlignAngles(o, rot))
 	end
 
 	this:PhysWake()
@@ -1295,19 +1408,19 @@ end
 __e2setcost(10)
 
 e2function void entity:setEyeTarget(vector pos)
-	if not ValidAction(self, this, "eyetarget") then return end
+	if not ValidAction(self, this) then return end
 	this:SetEyeTarget(pos)
 end
 
 e2function void entity:setFlexWeight(number flex, number weight)
-	if not ValidAction(self, this, "flexweight" .. flex) then return end
+	if not ValidAction(self, this) then return end
 	this:SetFlexWeight(flex, weight)
 end
 
 __e2setcost(30)
 
 e2function void entity:setEyeTargetLocal(vector pos)
-	if not ValidAction(self, this, "eyetarget") then return end
+	if not ValidAction(self, this) then return end
 	if not this:IsRagdoll() then
 		local attachment = this:GetAttachment(this:LookupAttachment("eyes"))
 		if attachment then
@@ -1318,7 +1431,7 @@ e2function void entity:setEyeTargetLocal(vector pos)
 end
 
 e2function void entity:setEyeTargetWorld(vector pos)
-	if not ValidAction(self, this, "eyetarget") then return end
+	if not ValidAction(self, this) then return end
 	if this:IsRagdoll() then
 		local attachment = this:GetAttachment(this:LookupAttachment("eyes"))
 		if attachment then
@@ -1333,13 +1446,13 @@ __e2setcost(20)
 e2function void entity:setFlexWeight(string flex, number weight)
 	flex = this:GetFlexIDByName(flex)
 	if flex then
-		if not ValidAction(self, this, "flexweight" .. flex) then return end
+		if not ValidAction(self, this) then return end
 		this:SetFlexWeight(flex, weight)
 	end
 end
 
 e2function void entity:setFlexScale(number scale)
-	if not ValidAction(self, this, "flexscale") then return end
+	if not ValidAction(self, this) then return end
 	this:SetFlexScale(scale)
 end
 
@@ -1545,14 +1658,16 @@ local function E2CollisionEventHandler()
 		if IsValid(chip) then
 			if not chip.error then
 				for _,i in ipairs(ctx.data.E2QueuedCollisions) do
-					if i.cb then
-						-- Arguments for this were checked when we set it up, no need to typecheck
-						i.cb:UnsafeCall({i.us,i.xcd.HitEntity,i.xcd})
+					if ctx.data.E2TrackedCollisions[i.us:EntIndex()] then
+						if i.cb then
+							-- Arguments for this were checked when we set it up, no need to typecheck
+							i.cb:UnsafeExtCall({i.us,i.xcd.HitEntity,i.xcd},ctx)
+							if chip.error then break end
+						end
+						-- It's okay to ExecuteEvent regardless, it'll just return when it fails to find the registered event
+						chip:ExecuteEvent("entityCollision",{i.us,i.xcd.HitEntity,i.xcd})
 						if chip.error then break end
 					end
-					-- It's okay to ExecuteEvent regardless, it'll just return when it fails to find the registered event
-					chip:ExecuteEvent("entityCollision",{i.us,i.xcd.HitEntity,i.xcd})
-					if chip.error then break end
 				end
 			end
 			-- Wipe queued collisions regardless of error
@@ -1580,7 +1695,7 @@ end
 
 e2function number trackCollision( entity ent )
 	-- If it's not registered, collisions will just stack up infinitely and not be flushed.
-	if not registered_chips[self.entity] then
+	if not self.entity.registered_events["entityCollision"] then
 		self:forceThrow("event entityCollision(eexcd) is needed to use trackCollision(e)!")
 	end
 	if IsValid(ent) then

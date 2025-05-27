@@ -18,7 +18,7 @@ local printcolor_readers = {
 }
 
 net.Receive("wire_expression2_printColor", function()
-	local ply = net.ReadEntity()
+	local ply = net.ReadPlayer()
 	local console = net.ReadBool()
 
 	local msg = {}
@@ -51,4 +51,8 @@ CreateClientConVar("wire_expression2_clipboard_allow", 0, true, true, "Allow E2 
 
 net.Receive("wire_expression2_set_clipboard_text", function(len, ply)
 	SetClipboardText(net.ReadString())
+end)
+
+net.Receive("wire_expression2_caption", function()
+	gui.AddCaption(net.ReadData(net.ReadUInt(16)), net.ReadDouble(), net.ReadBool())
 end)

@@ -325,6 +325,7 @@ util.AddNetworkString("wire_expression2_file_download")
 -- 2 - Upload
 -- 3 - End
 
+timer.Remove("wire_expression2_flush_file_buffer") -- Remove this timer in case it exists from reloading
 flushFileBuffer = function()
 	for ply, queue in pairs(downloads) do
 		if ent_IsValid(ply) then
@@ -337,7 +338,8 @@ flushFileBuffer = function()
 				net.Start("wire_expression2_file_download")
 					net.WriteString(name or "")
 					net.WriteBool(fdata.append)
-					net.WriteStream(data, function()
+
+					local finished_cb = function()
 						fdata.downloaded = true
 						fdata.downloading = false
 
@@ -350,10 +352,17 @@ flushFileBuffer = function()
 
 						table.remove(queue, 1)
 
-						if #queue ~= 0 and not timer.Exists("wire_expression2_flush_file_buffer") then -- Queue the next file
-							timer.Create("wire_expression2_flush_file_buffer", 0.2, 0, flushFileBuffer)
+						if #queue ~= 0 then -- Queue the next file
+							timer.Create("wire_expression2_flush_file_buffer", 0.2, 2, flushFileBuffer)
 						end
-					end)
+					end
+
+					if #data == 0 then
+						net.WriteUInt(0, 32)
+						finished_cb()
+					else
+						net.WriteStream(data, finished_cb)
+					end
 				net.Send(ply)
 			end
 		end

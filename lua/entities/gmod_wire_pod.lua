@@ -163,7 +163,8 @@ function ENT:Initialize()
 		"Disable", "Crosshairs", "Brake", "Allow Buttons",
 		"Relative (If this is non-zero, the 'Bearing' and 'Elevation' outputs will be relative to the vehicle.)",
 		"Damage Health (Damages the driver's health.)", "Damage Armor (Damages the driver's armor.)", "Hide Player", "Hide HUD", "Show Cursor",
-		"Vehicle [ENTITY]"
+		"Vehicle [ENTITY]",
+		"Vehicles (Links all vehicles of passed array to this pod controller) [ARRAY]",
 	}
 
 	self.Inputs = WireLib.CreateInputs(self, inputs)
@@ -466,11 +467,16 @@ function ENT:TriggerInput(name, value)
 	elseif name == "Show Cursor" then
 		self:SetShowCursor(value)
 	elseif name == "Vehicle" then
-		if not IsValid(value) then return end -- Only link if the input is valid. That way, it won't be unlinked if the wire is disconnected
-		if value:IsPlayer() then return end
-		if value:IsNPC() then return end
+		if( TypeID(value) ~= TYPE_ENTITY ) then return end
+		if( not IsValid(value) ) then return end
 
 		self:LinkEnt(value)
+	elseif name == "Vehicles" then
+		for k, v in ipairs( value ) do
+			if( TypeID(v) ~= TYPE_ENTITY ) then continue end
+			if( not IsValid(v) ) then continue end
+			self:LinkEnt( v )
+		end
 	end
 end
 
@@ -552,7 +558,9 @@ function ENT:Think()
 			if IsValid(button) and (inAttack and not mouseDown) and not button:IsVehicle() and button.Use then
 				-- Generic support (Buttons, Dynamic Buttons, Levers, EGP screens, etc)
 				selfTbl.MouseDown = true
-				button:Use(ply, self, USE_ON, 0)
+				if hook.Run("PlayerUse", ply, button) ~= false then
+					button:Use(ply, self, USE_ON, 0)
+				end
 			elseif not inAttack and mouseDown then
 				selfTbl.MouseDown = false
 			end
@@ -581,17 +589,13 @@ function ENT:PlayerEntered(ply, RC)
 	local pod = self:GetPod()
 
 	if self.HideHUD > 0 and pod then
-		timer.Simple(0.1, function()
-			net.Start("wire_pod_hud")
-				net.WriteUInt(self.HideHUD, 2)
-			net.Send(ply)
-		end)
+		net.Start("wire_pod_hud")
+			net.WriteUInt(self.HideHUD, 2)
+		net.Send(ply)
 	end
 
 	if self.ShowCursor > 0 and pod then
-		timer.Simple(0.1, function()
-			self:NetShowCursor(self.ShowCursor, ply)
-		end)
+		self:NetShowCursor(self.ShowCursor, ply)
 	end
 
 	if self.HidePlayerVal then
@@ -640,7 +644,7 @@ end
 function Wire_Pod_EnterVehicle(ply, vehicle)
 	for _, v in ipairs(pods) do
 		local pod = v:GetPod()
-		if pod and pod == vehicle then
+		if pod == vehicle and ply:GetVehicle() == pod then
 			v:PlayerEntered(ply)
 		end
 	end

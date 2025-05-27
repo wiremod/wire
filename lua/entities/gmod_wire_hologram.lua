@@ -77,70 +77,76 @@ if CLIENT then
 		hook.Remove("PlayerBindPress", "wire_hologram_scale_setup")
 	end)
 
+	local EntityMeta = FindMetaTable("Entity")
+
 	local function SetupClipping(selfTbl)
-		if next(selfTbl.clips) then
-			selfTbl.oldClipState = render.EnableClipping(true)
+		selfTbl.oldClipState = render.EnableClipping(true)
 
-			for _, clip in pairs(selfTbl.clips) do
-				if clip.enabled and clip.normal and clip.origin then
-					local norm = clip.normal
-					local origin = clip.origin
+		for _, clip in pairs(selfTbl.clips) do
+			if clip.enabled and clip.normal and clip.origin then
+				local norm = clip.normal
+				local origin = clip.origin
+				local id = clip.localentid
 
-					if clip.localentid then
-						local localent = Entity(clip.localentid)
-						if localent:IsValid() then
-							norm = localent:LocalToWorld(norm) - localent:GetPos()
-							origin = localent:LocalToWorld(origin)
-						end
+				if id then
+					local localent = Entity(id)
+
+					if EntityMeta.IsValid(localent) then
+						norm = EntityMeta.LocalToWorld(localent, norm) - EntityMeta.GetPos(localent)
+						origin = EntityMeta.LocalToWorld(localent, origin)
 					end
-
-					render.PushCustomClipPlane(norm, norm:Dot(origin))
 				end
+
+				render.PushCustomClipPlane(norm, norm:Dot(origin))
 			end
 		end
 	end
 
 	local function FinishClipping(selfTbl)
-		if next(selfTbl.clips) then
-			for _, clip in pairs(selfTbl.clips) do
-				if clip.enabled and clip.normal and clip.origin then -- same logic as in SetupClipping
-					render.PopCustomClipPlane()
-				end
+		for _, clip in pairs(selfTbl.clips) do
+			if clip.enabled and clip.normal and clip.origin then -- same logic as in SetupClipping
+				render.PopCustomClipPlane()
 			end
-
-			render.EnableClipping(selfTbl.oldClipState)
 		end
+
+		render.EnableClipping(selfTbl.oldClipState)
 	end
 
 	function ENT:Draw()
-		local selfTbl = self:GetTable()
+		local selfTbl = EntityMeta.GetTable(self)
 		if selfTbl.blocked or selfTbl.notvisible then return end
 
-		local _, _, _, alpha = self:GetColor4Part()
+		local _, _, _, alpha = EntityMeta.GetColor4Part(self)
 		if alpha ~= 255 then
 			selfTbl.RenderGroup = RENDERGROUP_BOTH
 		else
 			selfTbl.RenderGroup = RENDERGROUP_OPAQUE
 		end
 
-		SetupClipping(selfTbl)
+		local hasclips = next(selfTbl.clips)
 
-		local invert_model = self:GetNWInt("invert_model")
+		if hasclips then
+			SetupClipping(selfTbl)
+		end
+
+		local invert_model = EntityMeta.GetNWInt(self, "invert_model")
 		render.CullMode(invert_model)
 
-		if self:GetNWBool("disable_shading") then
+		if EntityMeta.GetNWBool(self, "disable_shading") then
 			render.SuppressEngineLighting(true)
-			self:DrawModel()
+			EntityMeta.DrawModel(self)
 			render.SuppressEngineLighting(false)
 		else
-			self:DrawModel()
+			EntityMeta.DrawModel(self)
 		end
 
 		if invert_model ~= 0 then
 			render.CullMode(0)
 		end
 
-		FinishClipping(selfTbl)
+		if hasclips then
+			FinishClipping(selfTbl)
+		end
 	end
 
 	-- -----------------------------------------------------------------------------
@@ -182,7 +188,7 @@ if CLIENT then
 
 	net.Receive("wire_holograms_clip", function(netlen)
 		while true do
-			local entid = net.ReadUInt(16)
+			local entid = net.ReadUInt(MAX_EDICT_BITS)
 			if entid == 0 then return end -- stupid hack to not include amount of entities in the message. feel free to rework this.
 
 			local clipid = net.ReadUInt(4)
@@ -190,7 +196,7 @@ if CLIENT then
 			if net.ReadBool() then
 				SetClipEnabled(entid, clipid, net.ReadBool())
 			else
-				SetClip(entid, clipid, net.ReadVector(), net.ReadVector(), net.ReadUInt(16))
+				SetClip(entid, clipid, net.ReadVector(), net.ReadVector(), net.ReadUInt(MAX_EDICT_BITS))
 			end
 
 			local ent = Entity(entid)
@@ -270,22 +276,22 @@ if CLIENT then
 	end
 
 	net.Receive("wire_holograms_set_scale", function(netlen)
-		local index = net.ReadUInt(16)
+		local index = net.ReadUInt(MAX_EDICT_BITS)
 
 		while index ~= 0 do
 			SetScale(index, Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()))
-			index = net.ReadUInt(16)
+			index = net.ReadUInt(MAX_EDICT_BITS)
 		end
 	end)
 
 	net.Receive("wire_holograms_set_bone_scale", function(netlen)
-		local index = net.ReadUInt(16)
-		local bindex = net.ReadUInt(16) - 1 -- using -1 to get negative -1 for reset
+		local index = net.ReadUInt(MAX_EDICT_BITS)
+		local bindex = net.ReadUInt(9) - 1 -- using -1 to get negative -1 for reset
 
 		while index ~= 0 do
 			SetBoneScale(index, bindex, Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()))
-			index = net.ReadUInt(16)
-			bindex = net.ReadUInt(16) - 1
+			index = net.ReadUInt(MAX_EDICT_BITS)
+			bindex = net.ReadUInt(9) - 1
 		end
 	end)
 
@@ -301,7 +307,7 @@ if CLIENT then
 	end
 
 	net.Receive("wire_holograms_set_visible", function(netlen)
-		local index = net.ReadUInt(16)
+		local index = net.ReadUInt(MAX_EDICT_BITS)
 
 		while index ~= 0 do
 
@@ -312,7 +318,7 @@ if CLIENT then
 				vis_buffer[index] = net.ReadBit() == 0
 			end
 
-			index = net.ReadUInt(16)
+			index = net.ReadUInt(MAX_EDICT_BITS)
 		end
 	end)
 
@@ -333,12 +339,10 @@ if CLIENT then
 			SetPlayerColor(eidx, player_color_buffer[eidx])
 			player_color_buffer[eidx] = nil
 		end
-
-
 	end
 
 	net.Receive("wire_holograms_set_player_color", function(netlen)
-		local index = net.ReadUInt(16)
+		local index = net.ReadUInt(MAX_EDICT_BITS)
 
 		while index ~= 0 do
 			local ent = Entity(index)
@@ -348,7 +352,7 @@ if CLIENT then
 				player_color_buffer[index] = net.ReadVector()
 			end
 
-			index = net.ReadUInt(16)
+			index = net.ReadUInt(MAX_EDICT_BITS)
 		end
 	end)
 

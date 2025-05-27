@@ -318,6 +318,68 @@ WireLib.ThrusterEffectThink.smoke_firecolors = smoke(function() return math.rand
 WireLib.ThrusterEffectThink.smoke_random = smoke(function() return math.random(100, 255), math.random(100, 255), math.random(100, 255) end)
 WireLib.ThrusterEffectThink.smoke_diy = smoke(function(self) local c = self:GetColor() return c.r, c.g, c.b end)
 
+local function exhaust(color)
+	return function(self)
+
+		self.SmokeTimer = self.SmokeTimer or 0
+		if ( self.SmokeTimer > CurTime() ) then return end
+
+		self.SmokeTimer = CurTime() + 0.015
+
+		local vOffset = self:LocalToWorld(self:GetOffset() + VectorRand(-1.5, 1.5) )
+		local vNormal = self:CalcNormal()
+
+		local particle = emitter:Add( "particles/smokey", vOffset )
+		particle:SetVelocity( vNormal * math.Rand( 40, 60 ) )
+		particle:SetGravity(Vector(0, 0, 25))
+		particle:SetAirResistance(20)
+		particle:SetDieTime( 2.0 )
+		particle:SetStartAlpha( math.Rand( 32, 64 ) )
+		particle:SetStartSize( math.Rand( 3, 5 ) )
+		particle:SetEndSize( math.Rand( 20, 26 ) )
+		particle:SetRoll( math.Rand( -20, 20 ) )
+		particle:SetRollDelta( math.Rand( -2.5, 2.5 ))
+		particle:SetColor(color(self))
+	end
+end
+WireLib.ThrusterEffectThink.exhaust = exhaust(function() return 200, 200, 210 end)
+WireLib.ThrusterEffectThink.exhaust_diy = exhaust(function(self) local c = self:GetColor() return c.r, c.g, c.b end)
+
+WireLib.ThrusterEffectThink.flamethrower = function(self)
+
+	self.FlamethrowerTimer = self.FlamethrowerTimer or 0
+	if ( self.FlamethrowerTimer > CurTime() ) then return end
+
+	self.SmokeTimer = CurTime() + 0.003
+
+	local vOffset = self:LocalToWorld(self:GetOffset() + VectorRand(-3, 3))
+	local vNormal = self:CalcNormal()
+
+	local particle = emitter:Add( "sprites/physg_glow2", vOffset )
+	particle:SetVelocity( vNormal * math.Rand( 500, 520 ) )
+	particle:SetDieTime(0.4)
+	particle:SetCollide( true )
+	particle:SetStartSize( math.Rand( 20, 30 ) )
+	particle:SetEndSize( math.Rand( 100, 120 ) )
+	particle:SetRoll( math.Rand( -180, 180 ) )
+	particle:SetRollDelta( math.Rand( -20, 20 ))
+	particle:SetStartAlpha( math.Rand( 60, 130 ) )
+	particle:SetAirResistance(100)
+	particle:SetColor(250, 100, 0)
+
+	local particle2 = emitter:Add( "effects/fire_cloud2", vOffset )
+	particle2:SetVelocity( vNormal * math.Rand( 500, 520 ) )
+	particle2:SetDieTime(0.3)
+	particle2:SetCollide( true )
+	particle2:SetStartSize( math.Rand( 3, 4 ) )
+	particle2:SetEndSize( math.Rand( 10, 40 ) )
+	particle2:SetRoll( math.Rand( -180, 180 ) )
+	particle2:SetRollDelta( math.Rand( -20, 20 ))
+	particle2:SetStartAlpha( math.Rand( 30, 150 ) )
+	particle2:SetAirResistance(100)
+	particle2:SetColor(255, 255, 255)
+end
+
 WireLib.ThrusterEffectDraw.color_magic = function(self)
 
 	local vOffset = self:LocalToWorld(self:GetOffset())

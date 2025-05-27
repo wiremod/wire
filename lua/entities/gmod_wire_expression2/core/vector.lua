@@ -14,27 +14,6 @@ local rad2deg = 180 / pi
 local deg2rad = pi / 180
 
 local LerpVector = LerpVector
-
--- Remove this when a later, mandatory update is made.
--- These were added in the August (08) 9 (09) 2023 (23) update
-if VERSION < 230809 then
-	function math.CubicBezier(frac, p0, p1, p2, p3)
-		local frac2 = frac * frac
-		local inv = 1 - frac
-		local inv2 = inv * inv
-
-		return inv2 * inv * p0 + 3 * inv2 * frac * p1 + 3 * inv * frac2 * p2 + frac2 * frac * p3
-	end
-
-	function math.QuadraticBezier(frac, p0, p1, p2)
-		local frac2 = frac * frac
-		local inv = 1 - frac
-		local inv2 = inv * inv
-
-		return inv2 * p0 + 2 * inv * frac * p1 + frac2 * p2
-	end
-end
-
 local quadraticBezier = math.QuadraticBezier
 local cubicBezier = math.CubicBezier
 

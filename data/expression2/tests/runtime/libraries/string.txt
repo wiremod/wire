@@ -26,3 +26,8 @@ assert(Threw)
 
 assert(format("%s %d", "foo", 232) == "foo 232")
 assert(format("%u", 232) == "232")
+
+assert(hashCRC(Str) == "3957769958")
+assert(hashMD5(Str) == "6cd3556deb0da54bca060b4c39479839")
+assert(hashSHA1(Str) == "943a702d06f34599aee1f8da8ef9f7296031d699")
+assert(hashSHA256(Str) == "315f5bdb76d078c43b8ac0064e4a0164612b1fce77c869345bfc94c75894edd3")

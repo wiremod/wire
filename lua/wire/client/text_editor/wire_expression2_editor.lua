@@ -215,8 +215,8 @@ function Editor:LoadEditorSettings()
 	end
 
 	if x < 0 or y < 0 or x + w > ScrW() or y + h > ScrH() then -- If the editor is outside the screen, reset it
-		local width, height = math.min(surface.ScreenWidth() - 200, 800), math.min(surface.ScreenHeight() - 200, 620)
-		self:SetPos((surface.ScreenWidth() - width) / 2, (surface.ScreenHeight() - height) / 2)
+		local width, height = math.min(ScrW() - 200, 800), math.min(ScrH() - 200, 620)
+		self:SetPos((ScrW() - width) / 2, (ScrH() - height) / 2)
 		self:SetSize(width, height)
 
 		self:SaveEditorSettings()
@@ -306,15 +306,15 @@ function Editor:Think()
 			local y = self.p_y + movedY
 			if (x < 10 and x > -10) then x = 0 end
 			if (y < 10 and y > -10) then y = 0 end
-			if (x + self.p_w < surface.ScreenWidth() + 10 and x + self.p_w > surface.ScreenWidth() - 10) then x = surface.ScreenWidth() - self.p_w end
-			if (y + self.p_h < surface.ScreenHeight() + 10 and y + self.p_h > surface.ScreenHeight() - 10) then y = surface.ScreenHeight() - self.p_h end
+			if (x + self.p_w < ScrW() + 10 and x + self.p_w > ScrW() - 10) then x = ScrW() - self.p_w end
+			if (y + self.p_h < ScrH() + 10 and y + self.p_h > ScrH() - 10) then y = ScrH() - self.p_h end
 			self:SetPos(x, y)
 		end
 		if self.p_mode == "sizeBR" then
 			local w = self.p_w + movedX
 			local h = self.p_h + movedY
-			if (self.p_x + w < surface.ScreenWidth() + 10 and self.p_x + w > surface.ScreenWidth() - 10) then w = surface.ScreenWidth() - self.p_x end
-			if (self.p_y + h < surface.ScreenHeight() + 10 and self.p_y + h > surface.ScreenHeight() - 10) then h = surface.ScreenHeight() - self.p_y end
+			if (self.p_x + w < ScrW() + 10 and self.p_x + w > ScrW() - 10) then w = ScrW() - self.p_x end
+			if (self.p_y + h < ScrH() + 10 and self.p_y + h > ScrH() - 10) then h = ScrH() - self.p_y end
 			if (w < 300) then w = 300 end
 			if (h < 200) then h = 200 end
 			self:SetSize(w, h)
@@ -350,12 +350,12 @@ function Editor:Think()
 	if h < 200 then h = 200 end
 	if x < 0 then x = 0 end
 	if y < 0 then y = 0 end
-	if x + w > surface.ScreenWidth() then x = surface.ScreenWidth() - w end
-	if y + h > surface.ScreenHeight() then y = surface.ScreenHeight() - h end
+	if x + w > ScrW() then x = ScrW() - w end
+	if y + h > ScrH() then y = ScrH() - h end
 	if y < 0 then y = 0 end
 	if x < 0 then x = 0 end
-	if w > surface.ScreenWidth() then w = surface.ScreenWidth() end
-	if h > surface.ScreenHeight() then h = surface.ScreenHeight() end
+	if w > ScrW() then w = ScrW() end
+	if h > ScrH() then h = ScrH() end
 
 	self:SetPos(x, y)
 	self:SetSize(w, h)
@@ -372,7 +372,7 @@ function Editor:fullscreen()
 		self.preX, self.preY = self:GetPos()
 		self.preW, self.preH = self:GetSize()
 		self:SetPos(0, 0)
-		self:SetSize(surface.ScreenWidth(), surface.ScreenHeight())
+		self:SetSize(ScrW(), ScrH())
 		self.fs = true
 	end
 end
@@ -1703,7 +1703,7 @@ function Editor:Validate(gotoerror)
 	local problems_errors, problems_warnings = {}, {}
 
 	if self.EditorType == "E2" then
-		local errors, _, warnings, compiler = E2Lib.Validate(self:GetCode())
+		local errors, _, warnings, compiler = self:Validator(self:GetCode(), self:GetChosenFile())
 
 		if not errors then ---@cast compiler -?
 			self:SetValidateData(compiler)
@@ -1744,10 +1744,10 @@ function Editor:Validate(gotoerror)
 			problems_errors = errors
 		end
 
-	elseif self.EditorType == "CPU" or self.EditorType == "GPU" or self.EditorType == "SPU" then
+	elseif self.Validator then
 		header_color = Color(64, 64, 64, 180)
 		header_text = "Recompiling..."
-		CPULib.Validate(self, self:GetCode(), self:GetChosenFile())
+		self:Validator(self:GetCode(), self:GetChosenFile())
 	end
 
 	self.C.Val:Update(problems_errors, problems_warnings, header_text, header_color)
@@ -2006,14 +2006,28 @@ end
 
 function Editor:Close()
 	timer.Stop("e2autosave")
-	self:AutoSave()
+	local ok, err = pcall(self.AutoSave, self)
+	if not ok then
+		WireLib.Notify(nil, "Failed to autosave file while closing E2 editor.\n" .. err, 3)
+	end
 
-	self:Validate()
-	self:ExtractName()
+	ok = pcall(self.Validate, self)
+	if not ok then
+		WireLib.Notify(nil, "Failed to validate file while closing E2 editor.\n", 2)
+	end
+
+	ok, err = pcall(self.ExtractName, self)
+	if not ok then
+		WireLib.Notify(nil, "Failed to extract name while closing E2 editor.\n" .. err, 3)
+	end
+
 	self:SetV(false)
 	self.chip = false
 
-	self:SaveEditorSettings()
+	ok, err = pcall(self.SaveEditorSettings, self)
+	if not ok then
+		WireLib.Notify(nil, "Failed to save editor settings while closing E2 editor.\n" .. err, 3)
+	end
 
 	hook.Run("WireEditorClose", self)
 end
@@ -2024,25 +2038,10 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	self.EditorType = nEditorType
 	self.C.Browser:Setup(nLocation)
 
-	local textEditorModes = {
-		CPU = "ZCPU",
-		GPU = "ZCPU",
-		SPU = "ZCPU",
-		E2 = "E2",
-		[""] = "Default"
-	}
+	self:SetEditorMode(nEditorType or "Default")
+	local editorMode = WireTextEditor.Modes[self:GetEditorMode() or "Default"]
 
-	local helpModes = {
-		CPU = E2Helper.UseCPU,
-		GPU = E2Helper.UseCPU,
-		SPU = E2Helper.UseCPU,
-		E2 = E2Helper.UseE2
-	}
-
-	self:SetEditorMode(textEditorModes[nEditorType or ""])
-
-
-	local helpMode = helpModes[nEditorType or ""]
+	local helpMode = E2Helper.Modes[nEditorType or ""] or E2Helper.Modes[(editorMode and editorMode.E2HelperCategory) or ""]
 	if helpMode then -- Add "E2Helper" button
 		local E2Help = vgui.Create("Button", self.C.Menu)
 		E2Help:SetSize(58, 20)
@@ -2050,15 +2049,23 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		E2Help:SetText("E2Helper")
 		E2Help.DoClick = function()
 			E2Helper.Show()
-			helpMode(nEditorType)
-			E2Helper.Update()
+			if editorMode and editorMode.E2HelperCategory then
+				E2Helper:SetMode(editorMode.E2HelperCategory)
+			else
+				E2Helper:SetMode(nEditorType)
+			end
 		end
 		self.C.E2Help = E2Help
 	end
-
-	local useValidator = nEditorType ~= nil
-	local useSoundBrowser = nEditorType == "SPU" or nEditorType == "E2"
-	local useDebugger = nEditorType == "CPU"
+	local useValidator = false
+	local useSoundBrowser = false
+	if editorMode then
+		useValidator = editorMode.UseValidator
+		useSoundBrowser = editorMode.UseSoundBrowser
+		if useValidator and editorMode.Validator then
+			self.Validator = editorMode.Validator -- Takes self, self:GetCode(), self:GetChosenFile()
+		end
+	end
 
 	if not useValidator then
 		self.C.Val:SetVisible(false)
@@ -2071,45 +2078,6 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		SoundBrw:SetText("Sound Browser")
 		SoundBrw.DoClick = function() RunConsoleCommand("wire_sound_browser_open") end
 		self.C.SoundBrw = SoundBrw
-	end
-
-	if useDebugger then
-		-- Add "step forward" button
-		local DebugForward = self:addComponent(vgui.Create("Button", self), -306, 31, -226, 20)
-		DebugForward:SetText("Step Forward")
-		DebugForward.Font = "E2SmallFont"
-		DebugForward.DoClick = function()
-			local currentPosition = CPULib.Debugger.PositionByPointer[CPULib.Debugger.Variables.IP]
-			if currentPosition then
-				local linePointers = CPULib.Debugger.PointersByLine[currentPosition.Line .. ":" .. currentPosition.File]
-				if linePointers then -- Run till end of line
-					RunConsoleCommand("wire_cpulib_debugstep", linePointers[2])
-				else -- Run just once
-					RunConsoleCommand("wire_cpulib_debugstep")
-				end
-			else -- Run just once
-				RunConsoleCommand("wire_cpulib_debugstep")
-			end
-			-- Reset interrupt text
-			CPULib.InterruptText = nil
-		end
-		self.C.DebugForward = DebugForward
-
-		-- Add "reset" button
-		local DebugReset = self:addComponent(vgui.Create("Button", self), -346, 31, -306, 20)
-		DebugReset:SetText("Reset")
-		DebugReset.DoClick = function()
-			RunConsoleCommand("wire_cpulib_debugreset")
-			-- Reset interrupt text
-			CPULib.InterruptText = nil
-		end
-		self.C.DebugReset = DebugReset
-
-		-- Add "run" button
-		local DebugRun = self:addComponent(vgui.Create("Button", self), -381, 31, -346, 20)
-		DebugRun:SetText("Run")
-		DebugRun.DoClick = function() RunConsoleCommand("wire_cpulib_debugrun") end
-		self.C.DebugRun = DebugRun
 	end
 
 	if nEditorType == "E2" then

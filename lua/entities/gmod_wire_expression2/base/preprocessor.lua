@@ -234,6 +234,7 @@ local function handleIO(name)
 	end
 end
 
+---@type fun(PreProcessor, string, Trace):string?[]
 local directive_handlers = {
 	["name"] = function(self, value)
 		if not self.ignorestuff then
@@ -293,8 +294,32 @@ local directive_handlers = {
 		end
 	end,
 
-	["autoupdate"] = function(self)
-		if CLIENT then return "" end
+	["autoupdate"] = function(self, arg, trace)
+		if not self.directives.autoupdate then
+			self.directives.autoupdate = true
+		else
+			if not self.ignorestuff then -- Assume includes are in good faith and ignore them
+				local quickfix
+				if CLIENT then -- Only do quickfix on the client for optimization
+					trace.end_line = trace.start_line + 1 -- Modify this trace to avoid creating new ones. Hacky but resourceful(?)
+					trace.end_col = 1
+					quickfix = { { at = trace, replace = "" } }
+				end
+				self:Error("Directive (@autoupdate) cannot be defined twice", trace, quickfix)
+			end
+			return ""
+		end
+
+		if CLIENT then
+			if #string.Trim(arg) > 0 then
+				trace.start_col = trace.end_col + 1
+				trace.end_line = trace.start_line + 1
+				trace.end_col = 1
+				self:Warning("Directive (@autoupdate) takes no arguments", trace, { { at = trace, replace = "\n" } })
+			end
+			return ""
+		end
+
 		if not IsValid( self.ent ) or not self.ent.duped or not self.ent.filepath or self.ent.filepath == "" then return "" end
 		WireLib.Expression2Upload( self.ent:GetPlayer(), self.ent, self.ent.filepath )
 	end,
@@ -350,7 +375,7 @@ end
 
 
 ---@alias IODirective { [1]: string[], [2]: TypeSignature[], [3]: table<string, TypeSignature>, [4]: table<string, string>, [5]: table<string, Trace>  }
----@alias PPDirectives { inputs: IODirective, outputs: IODirective, persist: IODirective, name: string?, model: string?, trigger: { [1]: boolean?, [2]: table<string, boolean> }, strict: boolean? }
+---@alias PPDirectives { inputs: IODirective, outputs: IODirective, persist: IODirective, name: string?, model: string?, trigger: { [1]: boolean?, [2]: table<string, boolean> }, strict: boolean?, autoupdate: true? }
 
 ---@param buffer string
 ---@param directives PPDirectives

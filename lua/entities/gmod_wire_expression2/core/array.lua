@@ -113,7 +113,7 @@ registerCallback( "postinit", function()
 			__e2setcost(5)
 
 			registerFunction( name, "r:n", id, function(self, args)
-				local array, index = args[2], args[3]
+				local array, index = args[1], args[2]
 				return getter( self, array, index )
 			end, nil, nil, { legacy = false, deprecated = true })
 

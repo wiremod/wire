@@ -31,19 +31,19 @@ end)
 list.Set("DesktopWindows", "WireExpression2_ViewRequestMenu", {
 	title = "View Requests",
 	icon = "beer/wiremod/gate_e2", -- Use whatever icon you want here, I just picked my favourite out of the available E2 ones
+	onewindow = true,
+
 	init = function(icon, window)
-		local container = vgui.Create("DFrame")
-		container:SetTitle("Expression 2 View Requests")
+		window:SetTitle("Expression 2 View Requests")
 
-		container:SetSize(ScrW() * 0.3, ScrH() * 0.6)
-		container:SetSizable(true)
-		container:SetMinWidth(ScrW() * 0.1)
-		container:SetMinHeight(ScrH() * 0.2)
+		window:SetSize(ScrW() * 0.3, ScrH() * 0.6)
+		window:SetSizable(true)
+		window:SetMinWidth(ScrW() * 0.1)
+		window:SetMinHeight(ScrH() * 0.2)
 
-		container:Center()
-		container:MakePopup()
+		window:Center()
 
-		local reqList = vgui.Create("DListView", container)
+		local reqList = vgui.Create("DListView", window)
 		reqList:Dock(FILL)
 		reqList:SetMultiSelect(false)
 
@@ -99,7 +99,7 @@ list.Set("DesktopWindows", "WireExpression2_ViewRequestMenu", {
 			end
 
 			mnu:AddOption("Accept Once", function()
-				local confirm = Derma_Query(
+				Derma_Query(
 					"Are you SURE you want "..line.initiator:Nick().." to have complete access to the code in your chip '"..viewRequests[line.initiator][line.chip].name.."'?\nThis means they are able to steal and redistribute it, so you should only do this if you are certain you can trust them",
 					"Confirm",
 					"Yes", function()
@@ -113,7 +113,7 @@ list.Set("DesktopWindows", "WireExpression2_ViewRequestMenu", {
 				)
 			end)
 			mnu:AddOption("Accept Always", function()
-				local confirm = Derma_Query(
+				Derma_Query(
 					"Are you SURE you want "..line.initiator:Nick().." to have complete access to the code in your chip '"..viewRequests[line.initiator][line.chip].name.."' for the duration the chip entity exists?\nThis means they are able to steal and redistribute it, as well as view any modifications you make to the chip, so you should only do this if you are certain you can trust them",
 					"Confirm",
 					"Yes", function()

@@ -88,7 +88,7 @@ GateActions["angle_derive"] = {
 		if !A then A = Angle (0, 0, 0) end
 		local dT, dA = t - gate.LastT, A - gate.LastA
 		gate.LastT, gate.LastA = t, A
-		if (dT) then
+		if dT ~= 0 then
 			return Angle (dA.p/dT, dA.y/dT, dA.r/dT)
 		else
 			return Angle (0, 0, 0)

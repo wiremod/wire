@@ -42,7 +42,7 @@ if (SERVER) then
 		if not EGP.umsg.Start( "EGP_Transmit_Data", ply ) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "ClearScreen" )
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		EGP:SendQueueItem( ply )
 	end
@@ -61,7 +61,7 @@ if (SERVER) then
 			net.WriteString( "SaveFrame" )
 			net.WriteEntity( ply )
 			net.WriteString( FrameName )
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		EGP:SendQueueItem( ply )
 	end
@@ -82,7 +82,7 @@ if (SERVER) then
 			net.WriteString( "LoadFrame" )
 			net.WriteEntity( ply )
 			net.WriteString( FrameName )
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		EGP:SendQueueItem( ply )
 	end
@@ -112,7 +112,7 @@ if (SERVER) then
 						net.WriteFloat( vert.v or 0 )
 					end
 				end
-			EGP.umsg.End()
+			EGP.umsg.End( Ent )
 		end
 
 		EGP:SendQueueItem( ply )
@@ -144,7 +144,7 @@ if (SERVER) then
 						net.WriteFloat( vert.v or 0 )
 					end
 				end
-			EGP.umsg.End()
+			EGP.umsg.End( Ent )
 		end
 
 		EGP:SendQueueItem( ply )
@@ -165,7 +165,7 @@ if (SERVER) then
 				net.WriteString( "AddText" )
 				net.WriteInt( index, 16 )
 				net.WriteString( text )
-			EGP.umsg.End()
+			EGP.umsg.End( Ent )
 		end
 
 		EGP:SendQueueItem( ply )
@@ -186,7 +186,7 @@ if (SERVER) then
 				net.WriteString( "SetText" )
 				net.WriteInt( index, 16 )
 				net.WriteString( text )
-			EGP.umsg.End()
+			EGP.umsg.End( Ent )
 		end
 
 		EGP:SendQueueItem( ply )
@@ -213,7 +213,7 @@ if (SERVER) then
 			net.WriteEntity( Ent )
 			net.WriteString( "EditFiltering" )
 			net.WriteUInt( filtering, 2 )
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		EGP:SendQueueItem( ply )
 	end
@@ -278,7 +278,7 @@ if (SERVER) then
 					v:Transmit( Ent, ply )
 				end
 			end
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		-- Change order now
 		if order_was_changed then
@@ -574,7 +574,7 @@ if (SERVER) then
 		end
 	end)
 
-	function EGP:SendDataStream( ply, entid )
+	function EGP:SendDataStream( ply, entid, silent )
 		if not ply or not ply:IsValid() then return false, "ERROR: Invalid ply." end
 		local targets
 		if (entid) then
@@ -587,7 +587,6 @@ if (SERVER) then
 		end
 		if not targets then
 			targets = ents.FindByClass("gmod_wire_egp")
-			table.Add( targets, ents.FindByClass("gmod_wire_egp_hud") )
 			table.Add( targets, ents.FindByClass("gmod_wire_egp_emitter") )
 
 			if (#targets == 0) then return false, "There are no EGP screens on the map." end
@@ -619,14 +618,36 @@ if (SERVER) then
 					DataToSend[#DataToSend+1] = { ID = obj.ID, index = obj.index, Settings = obj:DataStreamInfo() }
 				end
 
-				timer.Simple( k, function() -- send 1 second apart
+				timer.Simple( k - 1, function() -- send 1 second apart, send the first one instantly
+					local isLastScreen = ((k == #targets) and #targets or nil)
+					if silent then
+						isLastScreen = nil
+					end
+
+					local data = {
+						Ent = v,
+						Objects = DataToSend,
+						Filtering = v.GPU_texture_filtering,
+						IsLastScreen = isLastScreen -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
+					}
+
+					local von = WireLib.von.serialize(data)
+					if #von > 60000 then
+						ply:ChatPrint("[EGP] Error: Data too large to send to client. (" .. math.Round( #von / 1024, 2 ) .. " kb)")
+						return
+					end
+
+					local compressed = util.Compress(von)
+					local compressedLength = #compressed
+
+					if compressedLength > 60000 then
+						ply:ChatPrint("[EGP] Error: Compressed data too large to send to client. (" .. math.Round( compressedLength / 1024, 2 ) .. " kb)")
+						return
+					end
+
 					net.Start("EGP_Request_Transmit")
-						net.WriteTable({
-							Ent = v,
-							Objects = DataToSend,
-							Filtering = v.GPU_texture_filtering,
-							IsLastScreen = (k == #targets) and #targets or nil -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
-						})
+					net.WriteUInt( compressedLength, 16 )
+					net.WriteData( compressed, compressedLength )
 					net.Send(ply)
 				end)
 				sent = true
@@ -652,7 +673,6 @@ if (SERVER) then
 
 	hook.Add("PlayerInitialSpawn","EGP_SpawnFunc",initspawn)
 else
-
 	function EGP:ReceiveDataStream( decoded )
 		local Ent = decoded.Ent
 		local Objects = decoded.Objects
@@ -679,7 +699,11 @@ else
 			LocalPlayer():ChatPrint("[EGP] Received EGP object reload. " .. decoded.IsLastScreen .. " screens' objects were reloaded.")
 		end
 	end
+
 	net.Receive("EGP_Request_Transmit", function(len,ply)
-		EGP:ReceiveDataStream(net.ReadTable())
+		local amount = net.ReadUInt(16)
+		local data = net.ReadData(amount)
+		local tbl = WireLib.von.deserialize(util.Decompress(data, 60000))
+		EGP:ReceiveDataStream(tbl)
 	end)
 end

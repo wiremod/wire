@@ -243,7 +243,7 @@ end
 
 E2Lib.Lambda = Function
 
---- Call the function without doing any type checking.
+--- Call the function without doing any type checking or pcall.
 --- Only use this when you check self:Args() yourself to ensure you have the correct signature function.
 function Function:UnsafeCall(args)
 	return self.fn(args)
@@ -257,6 +257,32 @@ function Function:Call(args, types)
 	end
 end
 
+-- Use these if you're calling lambdas externally, the context(ctx) is used for passing errors to the chip.
+function Function:UnsafeExtCall(args, ctx)
+	local success,ret = pcall(self.fn,args)
+	if success then
+		return ret
+	else
+		local _,msg,trace = E2Lib.unpackException(ret)
+		ctx.entity:Error("Expression 2 (" .. ctx.entity.name .. "): Runtime Lambda error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "error in script")
+	end
+end
+
+function Function:ExtCall(args, types, ctx)
+	if self.arg_sig == types then
+		local success,ret = pcall(self.fn,args)
+		if success then
+			return ret
+		else
+			local _,msg,trace = E2Lib.unpackException(ret)
+			ctx.entity:Error("Expression 2 (" .. ctx.entity.name .. "): Runtime Lambda error '" .. msg .. "' at line " .. trace.start_line .. ", char " .. trace.start_col, "error in script")
+		end
+	else
+		ctx.entity:Error("Expression 2 (" .. ctx.entity.name .. "): Internal Lambda error, incorrect arguments passed.")
+	end
+end
+
+
 function Function:Args()
 	return self.arg_sig
 end
@@ -265,7 +291,7 @@ function Function:Ret()
 	return self.ret
 end
 
---- If given the correct arguments, returns the inner untyped function you can call.
+--- If given the correct arguments, returns the inner untyped function you can then call with ENT:Execute(f).
 --- Otherwise, throws an error to the given E2 Context.
 ---@param arg_sig string
 ---@param ctx RuntimeContext
@@ -440,12 +466,17 @@ function E2Lib.isFriend(owner, player)
 	return owner == player
 end
 
-function E2Lib.isOwner(self, entity)
-	if game.SinglePlayer() then return true end
-	local owner = E2Lib.getOwner(self, entity)
-	if not IsValid(owner) then return false end
+if game.SinglePlayer() then
+	function E2Lib.isOwner(self, entity)
+		return true
+	end
+else
+	function E2Lib.isOwner(self, entity)
+		local owner = E2Lib.getOwner(self, entity)
+		if not IsValid(owner) then return false end
 
-	return E2Lib.isFriend(owner, self.player)
+		return E2Lib.isFriend(owner, self.player)
+	end
 end
 
 local isOwner = E2Lib.isOwner
@@ -621,6 +652,56 @@ local Keyword = {
 }
 
 E2Lib.Keyword = Keyword
+
+--- A list of every word that we might use in the future
+E2Lib.ReservedWord = {
+	abstract = true,
+	as = true,
+	await = true,
+	async = true,
+	class = true,
+	constructor = true,
+	debugger = true,
+	declare = true,
+	default = true,
+	delete = true,
+	enum = true,
+	export = true,
+	extends = true,
+	["false"] = true,
+	finally = true,
+	from = true,
+	implements = true,
+	import = true,
+	["in"] = true,
+	instanceof = true,
+	interface = true,
+	macro = true,
+	module = true,
+	mut = true,
+	namespace = true,
+	new = true,
+	null = true,
+	of = true,
+	package = true,
+	private = true,
+	protected =true,
+	public = true,
+	require = true,
+	static = true,
+	struct = true,
+	super = true,
+	this = true,
+	throw = true,
+	throws = true,
+	["true"] = true,
+	type = true,
+	typeof = true,
+	undefined = true,
+	union = true,
+	yield = true,
+	var = true,
+}
 
 ---@type table<string, Keyword>
 E2Lib.KeywordLookup = {}
@@ -1157,7 +1238,7 @@ end
 ---@return Trace? trace
 function E2Lib.unpackException(struct)
 	if type(struct) == "string" then
-		return false, struct, nil
+		return false, struct, { start_line = -1, start_col = -1 }
 	end
 	return struct.userdata and struct.userdata.catchable or false, struct.message, struct.trace
 end

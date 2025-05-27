@@ -621,10 +621,13 @@ local CompileVisitors = {
 		self.scope.data.ops = self.scope.data.ops + 5
 
 		return function(state) ---@param state RuntimeContext
+			local scope, scope_id = state.Scope, state.ScopeID
 			state:PushScope()
 				local ok, err = pcall(try_block, state)
-			state:PopScope()
-			if not ok then
+			if ok then
+				state:PopScope()
+			else
+				state.Scope, state.ScopeID = scope, scope_id -- Skip back any scopes that may have been created in try_block
 				local catchable, msg = E2Lib.unpackException(err)
 				if catchable then
 					state:PushScope()
@@ -1440,6 +1443,8 @@ local CompileVisitors = {
 				function(args)
 					local s_scopes, s_scope, s_scopeid = state.Scopes, state.Scope, state.ScopeID
 
+					state.prf = state.prf + 10
+
 					local scope = { vclk = {} }
 					state.Scopes = inherited_scopes
 					state.ScopeID = after
@@ -1872,8 +1877,6 @@ local CompileVisitors = {
 				end
 			end, ret_type
 		elseif expr_ty == "f" then
-			self.scope.data.ops = self.scope.data.ops + 15 -- Since functions are 10 ops, this is pretty lenient. I will decrease this slightly when functions are made static and cheaper.
-
 			local nargs = #args
 			local sig = table.concat(arg_types)
 

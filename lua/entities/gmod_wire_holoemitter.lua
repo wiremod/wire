@@ -39,7 +39,7 @@ if CLIENT then
 
 	net.Receive("WireHoloEmitterData", function(netlen)
 		local ent = net.ReadEntity()
-		if not IsValid(ent) then return end
+		if not IsValid(ent) or not ent.AddPoint then return end
 		local syncinterval = net.ReadFloat()
 		local count = net.ReadUInt(16)
 		for i=1, count do

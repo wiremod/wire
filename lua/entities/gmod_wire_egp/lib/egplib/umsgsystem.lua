@@ -39,7 +39,7 @@ function EGP.umsg.Start( name, sender )
 	return true
 end
 
-function EGP.umsg.End()
+function EGP.umsg.End( ent )
 	if CurSender:IsValid() then
 		if not EGP.IntervalCheck[CurSender] then EGP.IntervalCheck[CurSender] = { bytes = 0, time = 0 } end
 		local bytes = net.BytesWritten()
@@ -48,8 +48,19 @@ function EGP.umsg.End()
 		else
 			ErrorNoHalt("Tried to end EGP net message outside of net context?")
 		end
-		net.Broadcast()
 
+		if ent.Users then
+			local sendTbl = {}
+			for ply, _ in pairs(ent.Users) do
+				if ply:IsValid() then
+					table.insert(sendTbl, ply)
+				end
+			end
+
+			net.Send(sendTbl)
+		else
+			net.Broadcast()
+		end
 	else
 		net.Send(NULL)
 	end

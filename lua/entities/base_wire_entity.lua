@@ -10,6 +10,8 @@ ENT.AdminOnly = false
 ENT.IsWire = true
 
 if CLIENT then
+	local EntityMeta           = FindMetaTable("Entity")
+
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
 
 	function ENT:Initialize()
@@ -18,11 +20,12 @@ if CLIENT then
 	end
 
 	function ENT:Draw()
-		self:DoNormalDraw()
+		local entsTbl = EntityMeta.GetTable( self )
+		entsTbl.DoNormalDraw( self )
 		Wire_Render(self)
-		if self.GetBeamLength and (not self.GetShowBeam or self:GetShowBeam()) then
+		if entsTbl.GetBeamLength and (not entsTbl.GetShowBeam or entsTbl.GetShowBeam( self )) then
 			-- Every SENT that has GetBeamLength should draw a tracer. Some of them have the GetShowBeam boolean
-			Wire_DrawTracerBeam( self, 1, self.GetBeamHighlight and self:GetBeamHighlight() or false )
+			Wire_DrawTracerBeam( self, 1, entsTbl.GetBeamHighlight and entsTbl.GetBeamHighlight( self ) or false )
 		end
 	end
 
@@ -42,6 +45,7 @@ if CLIENT then
 		if pos == spos then -- if the position is right in your face, get a better position
 			pos = spos + localPly:GetAimVector() * 5
 		end
+
 		pos = pos:ToScreen()
 
 		pos.x = math.Round(pos.x)
@@ -105,7 +109,7 @@ if CLIENT then
 	-- This is overridable by other wire entities which want to customize the overlay, but generally you shouldn't override it
 	function ENT:DrawWorldTipOutline( pos )
 		draw.NoTexture()
-		surface.SetDrawColor(Color(25,25,25,200))
+		surface.SetDrawColor(25, 25, 25, 200)
 
 		local poly = {
 						{x = pos.min.x + edgesize, 			y = pos.min.y,					u = 0, v = 0 },
@@ -117,14 +121,14 @@ if CLIENT then
 					}
 
 		render.CullMode(MATERIAL_CULLMODE_CCW)
-		surface.DrawPoly( poly )
+		surface.DrawPoly(poly)
 
-		surface.SetDrawColor(Color(0,0,0,255))
+		surface.SetDrawColor(0, 0, 0, 255)
 
-		for i=1,#poly-1 do
+		for i = 1, 5 do
 			surface.DrawLine( poly[i].x, poly[i].y, poly[i+1].x, poly[i+1].y )
 		end
-		surface.DrawLine( poly[#poly].x, poly[#poly].y, poly[1].x, poly[1].y )
+		surface.DrawLine( poly[6].x, poly[6].y, poly[1].x, poly[1].y )
 	end
 
 	local function getWireName( ent )
@@ -134,22 +138,20 @@ if CLIENT then
 
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:GetWorldTipBodySize()
-		local txt = self:GetOverlayData().txt
-		if txt == nil or txt == "" then return 0,0 end
-		return surface.GetTextSize( txt )
+		local data = self:GetOverlayData()
+		if not (istable(data) and isstring(data.txt)) then return 0,0 end
+		return surface.GetTextSize( data.txt )
 	end
 
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:DrawWorldTipBody( pos )
 		local data = self:GetOverlayData()
-		draw.DrawText( data.txt, "GModWorldtip", pos.center.x, pos.min.y + edgesize/2, Color(255,255,255,255), TEXT_ALIGN_CENTER )
+		if not (istable(data) and isstring(data.txt) and data.txt ~= "") then return end
+		draw.DrawText( data.txt, "GModWorldtip", pos.center.x, pos.min.y + edgesize/2, color_white, TEXT_ALIGN_CENTER )
 	end
 
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:DrawWorldTip()
-		local data = self:GetOverlayData()
-		if not data then return end
-
 		surface.SetFont( "GModWorldtip" )
 
 		local class = getWireName( self ) .. " [" .. self:EntIndex() .. "]"
@@ -157,7 +159,7 @@ if CLIENT then
 		local name
 		if CPPI then
 			local owner = self:CPPIGetOwner()
-			name = string.format("(%s)", (owner and owner:IsPlayer()) and owner:GetName() or "World")
+			name = string.format("(%s)", (isentity(owner) and owner:IsPlayer()) and owner:GetName() or "World")
 		else
 			name = "(" .. self:GetPlayerName() .. ")"
 		end
@@ -201,16 +203,16 @@ if CLIENT then
 			self:DrawWorldTipBody( pos )
 			offset = offset + h_body + edgesize
 
-			surface.SetDrawColor( Color(0,0,0,255) )
+			surface.SetDrawColor(0, 0, 0, 255)
 			surface.DrawLine( pos.min.x, offset, pos.max.x, offset )
 		end
 
 		if info_requires_multiline then
-			draw.DrawText( class, "GModWorldtip", pos.center.x, offset + 8, Color(255,255,255,255), TEXT_ALIGN_CENTER )
-			draw.DrawText( name, "GModWorldtip", pos.center.x, offset + h_class + 16, Color(255,255,255,255), TEXT_ALIGN_CENTER )
+			draw.DrawText( class, "GModWorldtip", pos.center.x, offset + 8, color_white, TEXT_ALIGN_CENTER )
+			draw.DrawText( name, "GModWorldtip", pos.center.x, offset + h_class + 16, color_white, TEXT_ALIGN_CENTER )
 		else
-			draw.DrawText( class, "GModWorldtip", pos.min.x + edgesize, offset + 16, Color(255,255,255,255) )
-			draw.DrawText( name, "GModWorldtip", pos.min.x + pos.size.w - w_name - edgesize, offset + 16, Color(255,255,255,255) )
+			draw.DrawText( class, "GModWorldtip", pos.min.x + edgesize, offset + 16, color_white )
+			draw.DrawText( name, "GModWorldtip", pos.min.x + pos.size.w - w_name - edgesize, offset + 16, color_white )
 		end
 	end
 
@@ -262,7 +264,7 @@ if CLIENT then
 			looked_at:BeingLookedAtByLocalPlayer()
 		end
 
-		if cur_ent.IsWire and cur_ent:BeingLookedAtByLocalPlayer() then
+		if IsValid(cur_ent) and cur_ent.IsWire and cur_ent:BeingLookedAtByLocalPlayer() then
 			looked_at = cur_ent
 		else
 			looked_at = nil
@@ -282,12 +284,14 @@ if CLIENT then
 	end
 
 	function ENT:Think()
-		if (CurTime() >= (self.NextRBUpdate or 0)) then
+		local tab = self:GetTable()
+
+		if (CurTime() >= (tab.NextRBUpdate or 0)) then
 			-- We periodically update the render bounds every 10 seconds - the
 			-- reasons why are mostly anecdotal, but in some circumstances
 			-- entities might 'forget' their renderbounds. Nobody really knows
 			-- if this is still needed or not.
-			self.NextRBUpdate = CurTime() + 10
+			tab.NextRBUpdate = CurTime() + 10
 			Wire_UpdateRenderBounds(self)
 		end
 	end
@@ -301,9 +305,11 @@ if CLIENT then
 		halos_inv[self] = true
 	end
 
+	local color_halo = Color(100, 100, 255)
+
 	hook.Add("PreDrawHalos", "Wiremod_overlay_halos", function()
-		if #halos == 0 then return end
-		halo.Add(halos, Color(100,100,255), 3, 3, 1, true, true)
+		if halos[1]==nil then return end
+		halo.Add(halos, color_halo, 3, 3, 1, true, true)
 		halos = {}
 		halos_inv = {}
 	end)
@@ -510,15 +516,18 @@ ENT.LINK_STATUS_DEACTIVATED = 2 -- alias
 ENT.LINK_STATUS_ACTIVE = 3
 ENT.LINK_STATUS_ACTIVATED = 3 -- alias
 function ENT:ColorByLinkStatus(status)
-	local a = self:GetColor().a
+	local tab = self:GetTable()
+	local color = self:GetColor()
 
-	if status == self.LINK_STATUS_UNLINKED then
-		self:SetColor(Color(255,0,0,a))
-	elseif status == self.LINK_STATUS_LINKED then
-		self:SetColor(Color(255,165,0,a))
-	elseif status == self.LINK_STATUS_ACTIVE then
-		self:SetColor(Color(0,255,0,a))
+	if status == tab.LINK_STATUS_UNLINKED then
+		color.r, color.g, color.b = 255, 0, 0
+	elseif status == tab.LINK_STATUS_LINKED then
+		color.r, color.g, color.b = 255, 165, 0
+	elseif status == tab.LINK_STATUS_ACTIVE then
+		color.r, color.g, color.b = 0, 255, 0
 	else
-		self:SetColor(Color(255,255,255,a))
+		color.r, color.g, color.b = 255, 255, 255
 	end
+
+	self:SetColor(color)
 end

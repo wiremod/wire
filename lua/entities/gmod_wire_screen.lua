@@ -41,10 +41,6 @@ if CLIENT then
 		self.GPU:Finalize()
 	end
 
-	local header_color = Color(100,100,150,255)
-	local text_color = Color(255,255,255,255)
-	local background_color = Color(0,0,0,255)
-
 	local large_font = "Trebuchet36"
 	local small_font = "Trebuchet18"
 	local value_large_font = "screen_font_single"
@@ -64,11 +60,11 @@ if CLIENT then
 			value_font = value_large_font
 		end
 
-		surface.SetDrawColor( header_color )
+		surface.SetDrawColor(100, 100, 150, 255)
 		surface.DrawRect( x, y, w, header_height )
 
 		surface.SetFont( header_font )
-		surface.SetTextColor( text_color )
+		surface.SetTextColor( 255, 255, 255 )
 		local _w,_h = surface.GetTextSize( header )
 		surface.SetTextPos( x + w / 2 - _w / 2, y + 2 )
 		surface.DrawText( header, header_font )
@@ -96,7 +92,7 @@ if CLIENT then
 		self:DrawModel()
 
 		self.GPU:RenderToWorld(nil, 188, function(x, y, w, h)
-			surface.SetDrawColor(background_color)
+			surface.SetDrawColor(0, 0, 0, 255)
 			surface.DrawRect(x, y, w, h)
 
 			if self:GetSingleValue() then
