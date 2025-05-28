@@ -1916,7 +1916,7 @@ local CompileVisitors = {
 				local f = expr(state)
 
 				if f == nil then
-                    state:forceThrow("An uninitialized lambda «" .. (data[1].data.value or "unknown") .. "» was called")
+                    state:forceThrow("An uninitialized lambda (" .. (data[1].data.value or "unknown") .. ") was called")
                 end
 
 				if f.arg_sig ~= sig then
