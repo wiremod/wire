@@ -101,43 +101,45 @@ function ENT:Think()
 	local action = selfTbl.Action
 
 	if action and action.timed then
-		self:CalcOutput()
-		self:ShowOutput()
-
+		selfTbl.CalcOutput(self, selfTbl)
+		selfTbl.ShowOutput(self, selfTbl)
 		self:NextThink(CurTime() + 0.02)
+
 		return true
 	end
 end
 
-
-function ENT:CalcOutput(iter)
-	local selfTbl = self:GetTable()
+function ENT:CalcOutput(iter, selfTbl)
+	selfTbl = selfTbl or self:GetTable()
 	local action = selfTbl.Action
-	local entOutputs = selfTbl.Outputs
 
 	if action and action.output then
+		local entOutputs = selfTbl.Outputs
+
 		if action.outputs then
-			local result = { action.output(self, unpack(self:GetActionInputs(), 1, #action.inputs)) }
+			local result = { action.output(self, unpack(selfTbl.GetActionInputs(self, nil, selfTbl), 1, #action.inputs)) }
 
 			for k, v in ipairs(action.outputs) do
 				Wire_TriggerOutput(self, v, result[k] or WireLib.GetDefaultForType(entOutputs[v].Type), iter)
 			end
 		else
-			local value = action.output(self, unpack(self:GetActionInputs(), 1, #action.inputs)) or WireLib.GetDefaultForType(entOutputs.Out.Type)
+			local value = action.output(self, unpack(selfTbl.GetActionInputs(self, nil, selfTbl), 1, #action.inputs)) or WireLib.GetDefaultForType(entOutputs.Out.Type)
 
 			Wire_TriggerOutput(self, "Out", value, iter)
 		end
 	end
 end
 
-function ENT:ShowOutput()
+function ENT:ShowOutput(selfTbl)
+	selfTbl = selfTbl or self:GetTable()
+	local action = selfTbl.Action
 	local txt
-	local action = self.Action
 
 	if action then
 		txt = (action.name or "No Name")
+
 		if action.label then
-			txt = txt .. "\n" .. action.label(self:GetActionOutputs(), unpack(self:GetActionInputs(Wire_EnableGateInputValues:GetBool()), 1, #action.inputs))
+			txt = txt .. "\n" .. action.label(selfTbl.GetActionOutputs(self, selfTbl), unpack(selfTbl.GetActionInputs(self, Wire_EnableGateInputValues:GetBool(), selfTbl), 1, #action.inputs))
 		end
 	else
 		txt = "Invalid gate!"
@@ -154,42 +156,47 @@ function ENT:OnRestore()
 end
 
 
-function ENT:GetActionInputs(as_names)
-	local Args = {}
-	local selfTbl = self:GetTable()
+function ENT:GetActionInputs(as_names, selfTbl)
+	selfTbl = selfTbl or self:GetTable()
+
+	local args = {}
 	local action = selfTbl.Action
 	local entInputs = selfTbl.Inputs
 
 	if action.compact_inputs then
+		local action_inputs = action.inputs
+
 		-- If a gate has compact inputs (like Arithmetic - Add), nil inputs are truncated so {0, nil, nil, 5, nil, 1} becomes {0, 5, 1}
-		for k,v in ipairs(action.inputs) do
+		for k, v in ipairs(action_inputs) do
 			local input = entInputs[v]
+
 			if not input then
-				ErrorNoHalt("Wire Gate (" .. selfTbl.action .. ") error: Missing input! (" .. k .. "," .. v .. ")\n")
+				ErrorNoHalt("Wire Gate (" .. action .. ") error: Missing input! (" .. k .. "," .. v .. ")\n")
 				return {}
 			end
 
 			if IsValid(input.Src) then
 				if as_names then
-					table.insert(Args, input.Src.WireName or input.Src.WireDebugName or v)
+					table.insert(args, input.Src.WireName or input.Src.WireDebugName or v)
 				else
-					table.insert(Args, input.Value)
+					table.insert(args, input.Value)
 				end
 			end
 		end
 
-		while #Args < action.compact_inputs do
+		for i = #args + 1, action.compact_inputs do
 			if as_names then
-				table.insert(Args, action.inputs[#Args + 1] or "*Not enough inputs*")
+				args[i] = action_inputs[i] or "*Not enough inputs*"
 			else
-				table.insert(Args, WireLib.GetDefaultForType(entInputs[action.inputs[#Args + 1]].Type))
+				args[i] = WireLib.GetDefaultForType(entInputs[action_inputs[i]].Type)
 			end
 		end
 	else
-		for k,v in ipairs(action.inputs) do
+		for k, v in ipairs(action.inputs) do
 			local input = entInputs[v]
+
 			if not input then
-				ErrorNoHalt("Wire Gate (" .. selfTbl.action .. ") error: Missing input! (" .. k .. "," .. v .. ")\n")
+				ErrorNoHalt("Wire Gate (" .. action .. ") error: Missing input! (" .. k .. "," .. v .. ")\n")
 				return {}
 			end
 
@@ -204,23 +211,29 @@ function ENT:GetActionInputs(as_names)
 	return Args
 end
 
-function ENT:GetActionOutputs()
-	if self.Action.outputs then
+function ENT:GetActionOutputs(selfTbl)
+	selfTbl = selfTbl or self:GetTable()
+	local outputs = selfTbl.Outputs
+	local action_outputs = selfTbl.Action.outputs
+
+	if action_outputs then
 		local result = {}
-		for _,v in ipairs(self.Action.outputs) do
-			result[v] = self.Outputs[v].Value or WireLib.GetDefaultForType(self.Outputs[v].Type)
+
+		for _, v in ipairs(action_outputs) do
+			result[v] = outputs[v].Value or WireLib.GetDefaultForType(outputs[v].Type)
 		end
 
 		return result
 	end
 
-	return self.Outputs.Out.Value or WireLib.GetDefaultForType(self.Outputs.Out.Type)
+	return outputs.Out.Value or WireLib.GetDefaultForType(outputs.Out.Type)
 end
 
-function WireLib.MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
+function WireLib.MakeWireGate(ply, pos, ang, model, action, noclip, frozen, nocollide)
 	if not GateActions[action] then return end
 	if GateActions[action].is_banned then return end
 
-	return WireLib.MakeWireEnt(pl, { Class = "gmod_wire_gate", Pos=Pos, Angle=Ang, Model=model }, action, noclip)
+	return WireLib.MakeWireEnt(ply, { Class = "gmod_wire_gate", Pos = pos, Angle = ang, Model = model }, action, noclip)
 end
+
 duplicator.RegisterEntityClass("gmod_wire_gate", WireLib.MakeWireGate, "Pos", "Ang", "Model", "action", "noclip")
