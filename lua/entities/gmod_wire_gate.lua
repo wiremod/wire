@@ -201,14 +201,14 @@ function ENT:GetActionInputs(as_names, selfTbl)
 			end
 
 			if as_names then
-				Args[k] = IsValid(input.Src) and (input.Src.WireName or input.Src.WireDebugName) or v
+				args[k] = IsValid(input.Src) and (input.Src.WireName or input.Src.WireDebugName) or v
 			else
-				Args[k] = IsValid(input.Src) and input.Value or WireLib.GetDefaultForType(entInputs[v].Type)
+				args[k] = IsValid(input.Src) and input.Value or WireLib.GetDefaultForType(entInputs[v].Type)
 			end
 		end
 	end
 
-	return Args
+	return args
 end
 
 function ENT:GetActionOutputs(selfTbl)
