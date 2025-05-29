@@ -95,7 +95,7 @@ function ENT:TriggerInput(iname, value, iter)
 	if selfTbl.Updating then return end
 
 	local action = selfTbl.Action
-	if action and action.timed then return end
+	if not action or action.timed then return end
 
 	self:CalcOutput(iter)
 	self:ShowOutput()
