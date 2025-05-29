@@ -75,23 +75,30 @@ end
 
 
 function ENT:OnInputWireLink(iname, itype, src, oname, otype)
-	if self.Action and self.Action.OnInputWireLink then
-		self.Action.OnInputWireLink(self, iname, itype, src, oname, otype)
+	local action = self:GetTable().Action
+
+	if action and action.OnInputWireLink then
+		action.OnInputWireLink(self, iname, itype, src, oname, otype)
 	end
 end
 
 function ENT:OnOutputWireLink(oname, otype, dst, iname, itype)
-	if self.Action and self.Action.OnOutputWireLink then
-		self.Action.OnOutputWireLink(self, oname, otype, dst, iname, itype)
+	local action = self:GetTable().Action
+
+	if action and action.OnOutputWireLink then
+		action.OnOutputWireLink(self, oname, otype, dst, iname, itype)
 	end
 end
 
 function ENT:TriggerInput(iname, value, iter)
-	if self.Updating then return end
-	if self.Action and not self.Action.timed then
-		self:CalcOutput(iter)
-		self:ShowOutput()
-	end
+	local selfTbl = self:GetTable()
+	if selfTbl.Updating then return end
+
+	local action = selfTbl.Action
+	if action and action.timed then return end
+
+	self:CalcOutput(iter)
+	self:ShowOutput()
 end
 
 function ENT:Think()
