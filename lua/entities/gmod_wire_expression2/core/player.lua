@@ -137,13 +137,6 @@ e2function number entity:isCrouch()
 	return this:IsPlayer() and this:Crouching() and 1 or 0
 end
 
-e2function number entity:isAlive()
-	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if this:IsPlayer() and this:Alive() then return 1 end
-	if this:IsNPC() and this:Health() > 0 then return 1 end
-	return 0
-end
-
 -- returns 1 if players has flashlight on or 0 if not
 e2function number entity:isFlashlightOn()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
