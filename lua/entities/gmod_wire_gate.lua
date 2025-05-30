@@ -1,6 +1,6 @@
 AddCSLuaFile()
-DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Gate"
+DEFINE_BASECLASS("base_wire_entity")
+ENT.PrintName = "Wire Gate"
 ENT.WireDebugName = "Gate"
 
 if CLIENT then return end -- No more client
@@ -8,26 +8,21 @@ if CLIENT then return end -- No more client
 local Wire_EnableGateInputValues = CreateConVar("Wire_EnableGateInputValues", 1, FCVAR_ARCHIVE)
 
 function ENT:Initialize()
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
-
+	self:PhysicsInit(SOLID_VPHYSICS)
 	self.Inputs = {}
 	self.Outputs = {}
 end
 
-function ENT:Setup( action, noclip )
+function ENT:Setup(action, noclip)
 	local gate = GateActions[action]
-	if not gate then return end
-	if GateActions[action].is_banned then return end
+	if not gate or gate.is_banned then return end
 
 	self.Updating = true
-
 	self.action = action
-
 	self.WireDebugName = gate.name
 
-	WireLib.AdjustSpecialInputs(self, gate.inputs, gate.inputtypes )
+	WireLib.AdjustSpecialInputs(self, gate.inputs, gate.inputtypes)
+
 	if gate.outputs then
 		WireLib.AdjustSpecialOutputs(self, gate.outputs, gate.outputtypes)
 	else
@@ -40,34 +35,34 @@ function ENT:Setup( action, noclip )
 	end
 
 	local ReadCell = gate.ReadCell
+
 	if ReadCell then
-		function self:ReadCell(Address)
-			return ReadCell(gate,self,Address)
+		function self:ReadCell(address)
+			return ReadCell(gate, self, address)
 		end
 	else
 		self.ReadCell = nil
 	end
 
 	local WriteCell = gate.WriteCell
+
 	if WriteCell then
-		function self:WriteCell(Address,value)
-			return WriteCell(gate,self,Address,value)
+		function self:WriteCell(address,value)
+			return WriteCell(gate, self, address, value)
 		end
 	else
 		self.WriteCell = nil
 	end
 
 	if noclip then
-		self:SetCollisionGroup( COLLISION_GROUP_WORLD )
+		self:SetCollisionGroup(COLLISION_GROUP_WORLD)
 	end
-	self.noclip = noclip
 
+	self.noclip = noclip
 	self.Action = gate
 	self.PrevValue = nil
-
-	--self.Action.inputtypes = self.Action.inputtypes or {}
-
 	self.Updating = nil
+	--self.Action.inputtypes = self.Action.inputtypes or {}
 
 	self:CalcOutput()
 	self:ShowOutput()
