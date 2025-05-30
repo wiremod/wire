@@ -97,8 +97,8 @@ function ENT:TriggerInput(iname, value, iter)
 	local action = selfTbl.Action
 	if not action or action.timed then return end
 
-	self:CalcOutput(iter)
-	self:ShowOutput()
+	selfTbl.CalcOutput(self, iter)
+	selfTbl.ShowOutput(self)
 end
 
 function ENT:Think()
