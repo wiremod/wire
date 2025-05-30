@@ -678,6 +678,35 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID, GetConstByID)
 end
 
+-- Clean up some extra data that bloats the E2
+function ENT:OnEntityCopyTableFinish(t)
+	t.Author = nil
+	t.Inputs = nil
+	t.Outputs = nil
+	t.OverlayData = nil
+	t.PrintName = nil
+	t.WireDebugName = nil
+	t.buffer = nil
+	t.context = nil
+	t.directives = nil
+	t.duped = nil
+	t.error = nil
+	t.first = nil
+	t.funcs = nil
+	t.globalvars = nil
+	t.globalvars_mut = nil
+	t.includes = nil
+	t.inports = nil
+	t.lastResetOrError = nil
+	t.name = nil
+	t.original = nil
+	t.outports = nil
+	t.persists = nil
+	t.player = nil
+	t.trigger = nil
+	t.uid = nil
+end
+
 -- -------------------------------- Transfer ----------------------------------
 
 --[[
