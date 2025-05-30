@@ -1915,6 +1915,10 @@ local CompileVisitors = {
 				---@type E2Lambda
 				local f = expr(state)
 
+				if f == nil then
+                    state:forceThrow("An uninitialized lambda (" .. (data[1].data.value or "unknown") .. ") was called")
+                end
+
 				if f.arg_sig ~= sig then
 					state:forceThrow("Incorrect arguments passed to lambda, expected (" .. f.arg_sig .. ") got (" .. sig .. ")")
 				elseif f.ret ~= ret_type then
