@@ -75,7 +75,7 @@ end
 
 
 function ENT:OnInputWireLink(iname, itype, src, oname, otype)
-	local action = self:GetTable().Action
+	local action = self.Action
 
 	if action and action.OnInputWireLink then
 		action.OnInputWireLink(self, iname, itype, src, oname, otype)
@@ -83,7 +83,7 @@ function ENT:OnInputWireLink(iname, itype, src, oname, otype)
 end
 
 function ENT:OnOutputWireLink(oname, otype, dst, iname, itype)
-	local action = self:GetTable().Action
+	local action = self.Action
 
 	if action and action.OnOutputWireLink then
 		action.OnOutputWireLink(self, oname, otype, dst, iname, itype)
