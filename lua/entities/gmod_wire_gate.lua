@@ -46,7 +46,7 @@ function ENT:Setup(action, noclip)
 	local WriteCell = gate.WriteCell
 
 	if WriteCell then
-		function self:WriteCell(address,value)
+		function self:WriteCell(address, value)
 			return WriteCell(gate, self, address, value)
 		end
 	else
