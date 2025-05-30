@@ -26,7 +26,6 @@ function ENT:Setup(action, noclip)
 	if gate.outputs then
 		WireLib.AdjustSpecialOutputs(self, gate.outputs, gate.outputtypes)
 	else
-		--Wire_AdjustOutputs(self, { "Out" })
 		WireLib.AdjustSpecialOutputs(self, { "Out" }, gate.outputtypes)
 	end
 
@@ -62,7 +61,6 @@ function ENT:Setup(action, noclip)
 	self.Action = gate
 	self.PrevValue = nil
 	self.Updating = nil
-	--self.Action.inputtypes = self.Action.inputtypes or {}
 
 	self:CalcOutput()
 	self:ShowOutput()
@@ -122,12 +120,12 @@ function ENT:CalcOutput(iter, selfTbl)
 			local result = { action.output(self, unpack(selfTbl.GetActionInputs(self, nil, selfTbl), 1, #action.inputs)) }
 
 			for k, v in ipairs(action.outputs) do
-				Wire_TriggerOutput(self, v, result[k] or WireLib.GetDefaultForType(entOutputs[v].Type), iter)
+				WireLib.TriggerOutput(self, v, result[k] or WireLib.GetDefaultForType(entOutputs[v].Type), iter)
 			end
 		else
 			local value = action.output(self, unpack(selfTbl.GetActionInputs(self, nil, selfTbl), 1, #action.inputs)) or WireLib.GetDefaultForType(entOutputs.Out.Type)
 
-			Wire_TriggerOutput(self, "Out", value, iter)
+			WireLib.TriggerOutput(self, "Out", value, iter)
 		end
 	end
 end
@@ -231,9 +229,9 @@ function ENT:GetActionOutputs(selfTbl)
 	return outputs.Out.Value or WireLib.GetDefaultForType(outputs.Out.Type)
 end
 
-function WireLib.MakeWireGate(ply, pos, ang, model, action, noclip, frozen, nocollide)
-	if not GateActions[action] then return end
-	if GateActions[action].is_banned then return end
+function WireLib.MakeWireGate(ply, pos, ang, model, action, noclip)
+	local gate = GateActions[action]
+	if not gate or gate.is_banned then return end
 
 	return WireLib.MakeWireEnt(ply, { Class = "gmod_wire_gate", Pos = pos, Angle = ang, Model = model }, action, noclip)
 end
