@@ -130,7 +130,7 @@ e2function string entity:tool()
 	if not IsValid(weapon) then return "" end
 	if weapon:GetClass() ~= "gmod_tool" then return "" end
 
-	return weapon.Mode
+	return weapon.Mode or ""
 end
 
 local function checkGive(self, target, classname)
