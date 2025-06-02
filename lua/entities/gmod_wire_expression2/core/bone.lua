@@ -383,8 +383,19 @@ end
 
 e2function string bone:getBoneName()
 	local ent = isValidBone(this)
-	if not ent then return self:throw("Invalid bone!", 0) end
+	if not ent then return self:throw("Invalid bone!", "") end
 	return ent:GetBoneName(ent:TranslatePhysBoneToBone(this:GetIndex()))
+end
+
+e2function number bone:toModelBone()
+	local ent = isValidBone(this)
+	if not ent then return self:throw("Invalid bone!", -1) end
+	return ent:TranslatePhysBoneToBone(this:GetIndex())
+end
+
+e2function bone entity:fromModelBone(index)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	return getBone(this, this:TranslateBoneToPhysBone(index))
 end
 
 -- helper function for invert(T) in table.lua
