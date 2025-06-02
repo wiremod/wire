@@ -493,6 +493,11 @@ e2function number entity:isUnderWater()
 	if this:WaterLevel() > 0 then return 1 else return 0 end
 end
 
+e2function number entity:isAlive()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:Alive() and 1 or 0
+end
+
 e2function number entity:isValid()
 	if IsValid(this) then return 1 else return 0 end
 end
