@@ -101,7 +101,7 @@ function ENT:Think()
 	local action = selfTbl.Action
 
 	if action and action.timed then
-		selfTbl.CalcOutput(self, selfTbl)
+		selfTbl.CalcOutput(self, nil, selfTbl)
 		selfTbl.ShowOutput(self, selfTbl)
 		self:NextThink(CurTime() + 0.02)
 
