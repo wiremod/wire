@@ -95,6 +95,10 @@ local function e2_include_pass2(name, luaname, contents)
 	if not preprocessedSource then return include(name) end
 
 	local func = CompileString(preprocessedSource, luaname)
+	if func == nil then
+		error("File not compiled, see previous error", 0)
+	end
+
 
 	local ok, err = pcall(func)
 	if not ok then -- an error occured while executing
