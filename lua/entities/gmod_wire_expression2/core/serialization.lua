@@ -195,6 +195,17 @@ for objectType, arrayLength in pairs(numericArrayDataTypes) do
 	end
 end
 
+local function CheckCyclic(tbl, parents) -- json https://github.com/Facepunch/garrysmod-issues/issues/6259, von also can't handle cyclic references
+    parents[tbl] = true
+    for _, v in pairs(tbl) do
+        if type(v) == "table" then
+            if parents[v] then error("Cannot encode a table with cyclic references") end
+            CheckCyclic(v, parents)
+        end
+    end
+    parents[tbl] = nil
+end
+
 ---------------------------------------------------------------------------
 -- von
 ---------------------------------------------------------------------------
@@ -204,11 +215,19 @@ __e2setcost(10)
 
 --- Encodes <data> into a string, using [[von]].
 e2function string vonEncode(array data)
+	local ok, ret = pcall(CheckCyclic, data, {})
+	if not ok then
+		last_von_error = ret
+		if not antispam(self) then return "" end
+		WireLib.ClientError("vonEncode error: "..ret, self.player)
+		return ""
+	end
+
 	local ok, ret = pcall(WireLib.von.serialize, data)
 	if not ok then
 		last_von_error = ret
 		if not antispam(self) then return "" end
-		WireLib.ClientError("von.encode error: "..ret, self.player)
+		WireLib.ClientError("vonEncode error: "..ret, self.player)
 		return ""
 	end
 
@@ -230,7 +249,7 @@ e2function array vonDecode(string data)
 	if not ok then
 		last_von_error = ret
 		if not antispam(self) then return {} end
-		WireLib.ClientError("von.decode error: "..ret, self.player)
+		WireLib.ClientError("vonDecode error: "..ret, self.player)
 		return {}
 	end
 
@@ -269,17 +288,6 @@ end
 ---------------------------------------------------------------------------
 -- json
 ---------------------------------------------------------------------------
-
-local function CheckCyclic(tbl, parents) -- https://github.com/Facepunch/garrysmod-issues/issues/6259
-    parents[tbl] = true
-    for _, v in pairs(tbl) do
-        if type(v) == "table" then
-            if parents[v] then error("Cannot encode a table with cyclic references") end
-            CheckCyclic(v, parents)
-        end
-    end
-    parents[tbl] = nil
-end
 
 local last_json_error
 
