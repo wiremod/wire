@@ -219,7 +219,7 @@ e2function string vonEncode(array data)
 	if not ok then
 		last_von_error = ret
 		if not antispam(self) then return "" end
-		WireLib.ClientError("von.encode error: "..ret, self.player)
+		WireLib.ClientError("vonEncode error: "..ret, self.player)
 		return ""
 	end
 
@@ -227,7 +227,7 @@ e2function string vonEncode(array data)
 	if not ok then
 		last_von_error = ret
 		if not antispam(self) then return "" end
-		WireLib.ClientError("von.encode error: "..ret, self.player)
+		WireLib.ClientError("vonEncode error: "..ret, self.player)
 		return ""
 	end
 
@@ -249,7 +249,7 @@ e2function array vonDecode(string data)
 	if not ok then
 		last_von_error = ret
 		if not antispam(self) then return {} end
-		WireLib.ClientError("von.decode error: "..ret, self.player)
+		WireLib.ClientError("vonDecode error: "..ret, self.player)
 		return {}
 	end
 
