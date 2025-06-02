@@ -787,6 +787,9 @@ e2function vector entity:aimNormal()
 end
 
 local getBone = E2Lib.getBone
+hook.Add("Expression2_PostLoadExtensions", "e2_player_extension_getbone", function()
+	getBone = E2Lib.getBone
+end)
 
 --- Returns the bone the player is currently aiming at.
 e2function bone entity:aimBone()
