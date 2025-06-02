@@ -195,7 +195,7 @@ for objectType, arrayLength in pairs(numericArrayDataTypes) do
 	end
 end
 
-local function CheckCyclic(tbl, parents) -- https://github.com/Facepunch/garrysmod-issues/issues/6259
+local function CheckCyclic(tbl, parents) -- json https://github.com/Facepunch/garrysmod-issues/issues/6259, von also can't handle cyclic references
     parents[tbl] = true
     for _, v in pairs(tbl) do
         if type(v) == "table" then
