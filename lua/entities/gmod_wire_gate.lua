@@ -90,8 +90,8 @@ function ENT:TriggerInput(iname, value, iter)
 	local action = selfTbl.Action
 	if not action or action.timed then return end
 
-	selfTbl.CalcOutput(self, iter)
-	selfTbl.ShowOutput(self)
+	selfTbl.CalcOutput(self, iter, selfTbl)
+	selfTbl.ShowOutput(self, selfTbl)
 end
 
 function ENT:Think()
@@ -148,13 +148,10 @@ function ENT:ShowOutput(selfTbl)
 	self:SetOverlayText(txt)
 end
 
-
 function ENT:OnRestore()
 	self.Action = GateActions[self.action]
-
 	BaseClass.OnRestore(self)
 end
-
 
 function ENT:GetActionInputs(as_names, selfTbl)
 	selfTbl = selfTbl or self:GetTable()
