@@ -4,14 +4,11 @@ WireToolSetup.open("rt_camera", "RT Camera", "gmod_wire_rt_camera", nil, "RT Cam
 if CLIENT then
     language.Add("tool.wire_rt_camera.name", "Render-Target Camera")
     language.Add("tool.wire_rt_camera.desc", "Places Render Target cameras")
-    language.Add("tool.wire_rt_camera.0", "Create or update RT Camera")
+    TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 
-    language.Add("tool.wire_rt_camera.settings.hint_serverside",
-        "Following settings are server-side, they are stored during duplication and changes to them are visible to all clients")
+    language.Add("tool.wire_rt_camera.settings.hint_serverside", "Following settings are server-side, they are stored during duplication and changes to them are visible to all clients")
     language.Add("tool.wire_rt_camera.settings.default_fov", "Initial Field-Of-View")
-
-    language.Add("tool.wire_rt_camera.settings.hint_clientside",
-        "Following settings are client-side, they are player-specific, not stored via duplication and not visible by other players")
+    language.Add("tool.wire_rt_camera.settings.hint_clientside", "Following settings are client-side, they are player-specific, not stored via duplication and not visible by other players")
     language.Add("tool.wire_rt_camera.settings.cl_resolution_h", "Camera resolution: height")
     language.Add("tool.wire_rt_camera.settings.cl_resolution_w", "Camera resolution: width")
     language.Add("tool.wire_rt_camera.settings.cl_hdr", "Enable HDR (overbright effects)")
