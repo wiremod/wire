@@ -91,7 +91,7 @@ end
 
 --- Returns an array containing all of <this>'s bones. This array's first element has the index 0!
 e2function array entity:bones()
-	if not IsValid(this) then return {} end
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
 	local bones = GetBones(this)
 	return table.move(bones, 0, #bones, 0, {})
 end
