@@ -21,7 +21,7 @@ Obj.Draw = function( self )
 		render.CullMode(MATERIAL_CULLMODE_CCW)
 	end
 end
-Obj.Transmit = function( self, Ent, ply )
+Obj.Transmit = function(self, ent, ply)
 	net.WriteBool(self.VerticesUpdate)
 	if self.VerticesUpdate then
 		if (#self.vertices <= 255) then
@@ -38,7 +38,7 @@ Obj.Transmit = function( self, Ent, ply )
 			EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", self.index, self.vertices )
 		end
 	end
-	base.Transmit(self)
+	base.Transmit(self, ent, ply)
 end
 
 Obj.Receive = function( self )

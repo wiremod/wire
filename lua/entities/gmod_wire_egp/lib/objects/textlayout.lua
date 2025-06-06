@@ -80,9 +80,9 @@ function Obj:Draw(ent, drawMat)
 		]]
 	end
 end
-Obj.Transmit = function( self, Ent, ply )
+Obj.Transmit = function(self, ent, ply)
 	EGP.SendSize(self)
-	base.Transmit(self)
+	base.Transmit(self, ent, ply)
 end
 Obj.Receive = function( self )
 	local tbl = {}

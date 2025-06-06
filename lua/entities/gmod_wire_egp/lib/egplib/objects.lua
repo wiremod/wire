@@ -34,8 +34,10 @@ else
 end
 
 --- Used in a net writing context to transmit the object's entire data.
+---@param _ent Entity The EGP entity
+---@param _ply Player The sending player
 ---@see EGPObject.Receive
-function baseObj:Transmit()
+function baseObj:Transmit(_ent, _ply)
 	EGP.SendPosAng(self)
 	EGP.SendColor(nil, self)
 	EGP.SendMaterial(nil, self)
