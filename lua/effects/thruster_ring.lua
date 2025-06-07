@@ -1,48 +1,36 @@
-EFFECT.Mat = Material( "effects/select_ring" )
+function EFFECT:Init(data)
+	self:SetCollisionBounds(Vector(-16, -16, -16), Vector(16, 16, 16))
 
-function EFFECT:Init( data )
+	local origin, normal = data:GetOrigin(), data:GetNormal()
+	self:SetPos(origin + normal * 2)
+	self:SetAngles(normal:Angle())
 
-	local size = 16
-	self:SetCollisionBounds( Vector( -size,-size,-size ), Vector( size,size,size ) )
-
-	local Pos = data:GetOrigin() + data:GetNormal() * 2
-
-	self:SetPos( Pos )
-	self:SetAngles( data:GetNormal():Angle() + Angle( 0.01, 0.01, 0.01 ) )
-
-	self.Pos = data:GetOrigin()
-	self.Normal = data:GetNormal()
-
-	self.Speed = 2
+	self.Pos = origin
+	self.Normal = normal
 	self.Size = 16
 	self.Alpha = 255
 	self.GrowthRate = data:GetMagnitude()
 end
 
 function EFFECT:Think()
+	local speed = FrameTime() * 2
 
-	local speed = FrameTime() * self.Speed
+	local alpha = self.Alpha - 250 * speed
+	if alpha <= 0 then return false end
 
-	self.Alpha = self.Alpha - 250.0 * speed
-	self.Size = self.Size + (255 - self.Alpha) * self.GrowthRate
-	self:SetPos( self:GetPos() + self.Normal * speed * 128 )
+	local size = self.Size + (255 - alpha) * self.GrowthRate
+	if size <= 0 then return false end
 
-	if (self.Alpha < 0 ) then return false end
-	if (self.Size < 0) then return false end
+	self.Alpha = alpha
+	self.Size = size
+	self:SetPos(self:GetPos() + self.Normal * (speed * 128))
+
 	return true
-
 end
 
+local ring = Material("effects/select_ring")
+
 function EFFECT:Render()
-
-	if (self.Alpha < 1 ) then return end
-
-	render.SetMaterial( self.Mat )
-
-	render.DrawQuadEasy( self:GetPos(),
-		self:GetAngles():Forward(),
-		self.Size, self.Size,
-		Color( math.Rand( 10, 100), math.Rand( 100, 220), math.Rand( 240, 255), self.Alpha )
-	)
-
+	render.SetMaterial(ring)
+	render.DrawQuadEasy(self:GetPos(), self:GetAngles():Forward(), self.Size, self.Size, Color(math.random(10, 100), math.random(100, 220), math.random(240, 255), self.Alpha))
 end
