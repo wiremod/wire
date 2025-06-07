@@ -2,7 +2,7 @@
 	: "Creates an interface between the map and Wiremod."
 [
 	wire_entity_name(target_destination) : "Wire Entity" : "" : "The name of an entity or of the entities that will get wire ports."
-	min_trigger_time(float) : "Minimum Trigger Time" : "0.01" : "Set the minimum time in seconds between two in-/output triggers. It's usefull to prevent lags."
+	min_trigger_time(float) : "Minimum Trigger Time" : "0.01" : "Set the minimum time in seconds between two Wiremod input triggers. It's usefull to prevent lags."
 
 	// Wire Inputs
 	input1_name(string) : "Wire Input 1 Name" : "" : "Sets the name of Wire Input 1."
@@ -19,9 +19,6 @@
 		8 : "Array"
 	]
 	input1_desc(string) : "Wire Input 1 Description" : "" : "Sets the description of Wire Input 1."
-	input1_lua(string) : "Wire Input 1 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
-	: "For advanced users! Sets the Lua code that gets called when Wire Input 1 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
-
 
 	input2_name(string) : "Wire Input 2 Name" : "" : "Sets the name of Wire Input 2."
 	input2_type(choices) : "Wire Input 2 Type" : 0 : "Sets the type of Wire Input 2." =
@@ -37,9 +34,6 @@
 		8 : "Array"
 	]
 	input2_desc(string) : "Wire Input 2 Description" : "" : "Sets the description of Wire Input 2."
-	input2_lua(string) : "Wire Input 2 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
-	: "For advanced users! Sets the Lua code that gets called when Wire Input 2 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
-
 
 	input3_name(string) : "Wire Input 3 Name" : "" : "Sets the name of Wire Input 3."
 	input3_type(choices) : "Wire Input 3 Type" : 0 : "Sets the type of Wire Input 3." =
@@ -55,9 +49,6 @@
 		8 : "Array"
 	]
 	input3_desc(string) : "Wire Input 3 Description" : "" : "Sets the description of Wire Input 3."
-	input3_lua(string) : "Wire Input 3 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
-	: "For advanced users! Sets the Lua code that gets called when Wire Input 3 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
-
 
 	input4_name(string) : "Wire Input 4 Name" : "" : "Sets the name of Wire Input 4."
 	input4_type(choices) : "Wire Input 4 Type" : 0 : "Sets the type of Wire Input 4." =
@@ -73,9 +64,6 @@
 		8 : "Array"
 	]
 	input4_desc(string) : "Wire Input 4 Description" : "" : "Sets the description of Wire Input 4."
-	input4_lua(string) : "Wire Input 4 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
-	: "For advanced users! Sets the Lua code that gets called when Wire Input 4 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
-
 
 	input5_name(string) : "Wire Input 5 Name" : "" : "Sets the name of Wire Input 5."
 	input5_type(choices) : "Wire Input 5 Type" : 0 : "Sets the type of Wire Input 5." =
@@ -91,9 +79,6 @@
 		8 : "Array"
 	]
 	input5_desc(string) : "Wire Input 5 Description" : "" : "Sets the description of Wire Input 5."
-	input5_lua(string) : "Wire Input 5 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
-	: "For advanced users! Sets the Lua code that gets called when Wire Input 5 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
-
 
 	input6_name(string) : "Wire Input 6 Name" : "" : "Sets the name of Wire Input 6."
 	input6_type(choices) : "Wire Input 6 Type" : 0 : "Sets the type of Wire Input 6." =
@@ -109,9 +94,6 @@
 		8 : "Array"
 	]
 	input6_desc(string) : "Wire Input 6 Description" : "" : "Sets the description of Wire Input 6."
-	input6_lua(string) : "Wire Input 6 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
-	: "For advanced users! Sets the Lua code that gets called when Wire Input 6 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
-
 
 	input7_name(string) : "Wire Input 7 Name" : "" : "Sets the name of Wire Input 7."
 	input7_type(choices) : "Wire Input 7 Type" : 0 : "Sets the type of Wire Input 7." =
@@ -127,9 +109,6 @@
 		8 : "Array"
 	]
 	input7_desc(string) : "Wire Input 7 Description" : "" : "Sets the description of Wire Input 7."
-	input7_lua(string) : "Wire Input 7 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
-	: "For advanced users! Sets the Lua code that gets called when Wire Input 7 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
-
 
 	input8_name(string) : "Wire Input 8 Name" : "" : "Sets the name of Wire Input 8."
 	input8_type(choices) : "Wire Input 8 Type" : 0 : "Sets the type of Wire Input 8." =
@@ -145,9 +124,6 @@
 		8 : "Array"
 	]
 	input8_desc(string) : "Wire Input 8 Description" : "" : "Sets the description of Wire Input 8."
-	input8_lua(string) : "Wire Input 8 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
-	: "For advanced users! Sets the Lua code that gets called when Wire Input 8 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
-
 
 
 	// Wire Outputs
@@ -299,11 +275,11 @@
 	output OnResetWireInput7(void) : "Fires when Wire Input 7 gets reset."
 	output OnResetWireInput8(void) : "Fires when Wire Input 8 gets reset."
 
-	output OnWireEntsCreated(void) : "Fires when Wire In-/Outputs entities have been created. The entity is ready to use."
-	output OnWireEntsRemoved(void) : "Fires when Wire In-/Outputs entities have been removed. The entity is ready to use."
-	output OnWireEntsReady(void) : "Fires when Wire In-/Outputs entities have been created or removed. The entity is ready to use."
+	output OnWireEntsCreated(void) : "Fires when Wire In-/Outputs entities have been created."
+	output OnWireEntsRemoved(void) : "Fires when Wire In-/Outputs entities have been removed."
+	output OnWireEntsReady(void) : "Fires when Wire In-/Outputs entities have been created or removed."
 
-	output OnWireEntsStartChanging(void) : "Fires when the wire map interface entity is adding or removing Wire In-/Outputs entities. The entity can't be used yet."
+	output OnWireEntsStartChanging(void) : "Fires when the wire map interface entity starts adding or removing Wire In-/Outputs entities."
 
 
 	// Entity Inputs
@@ -331,10 +307,9 @@
 	// Spawnflags
 	spawnflags(flags) =
 	[
-		1 : "Protect in-/output entities from non-wire tools (Useful to allow wire tools on already protected stuff)" : 0
+		1 : "Protect in-/output entities from non-wire and duplicator tools" : 0
 		2 : "Protect in-/output entities from the physgun" : 0
 		4 : "Remove in-/output entities on remove" : 1
-		8 : "Run given Lua codes (For advanced users!)" : 0
 		16 : "Start Active" : 1
 		32 : "Render Wires" : 1
 	]
