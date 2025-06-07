@@ -1002,46 +1002,6 @@ Wire_CreateOutputIterator		= WireLib.CreateOutputIterator
 Wire_BuildDupeInfo				= WireLib.BuildDupeInfo
 Wire_ApplyDupeInfo				= WireLib.ApplyDupeInfo
 
--- prevent applyForce+Anti-noclip-based killing contraptions
-hook.Add("InitPostEntity", "antiantinoclip", function()
-	local ENT = scripted_ents.GetList().rt_antinoclip_handler
-	if not ENT then return end
-	ENT = ENT.t
-
-	local rt_antinoclip_handler_StartTouch = ENT.StartTouch
-	function ENT:StartTouch(...)
-		if self.speed >= 20 then return end
-
-		local phys = self.Ent:GetPhysicsObject()
-		if phys:IsValid() and phys:GetAngleVelocity():Length() > 20 then return end
-
-		rt_antinoclip_handler_StartTouch(self, ...)
-	end
-
-	--local rt_antinoclip_handler_Think = ENT.Think
-	function ENT:Think()
-
-		local t = CurTime()
-		local dt = t-self.lastt
-		self.lastt = t
-
-		local phys = self.Ent:GetPhysicsObject()
-		local pos
-		if phys:IsValid() then
-			pos = phys:LocalToWorld(phys:GetMassCenter())
-		else
-			pos = self.Ent:GetPos()
-		end
-		self.speed = pos:Distance(self.oldpos)/dt
-		self.oldpos = pos
-		--rt_antinoclip_handler_Think(self, ...)
-	end
-
-	ENT.speed = 20
-	ENT.lastt = 0
-	ENT.oldpos = Vector(0,0,0)
-end)
-
 function WireLib.GetOwner(ent)
 	return E2Lib.getOwner({}, ent)
 end
