@@ -776,9 +776,7 @@ e2function entity entity:aimEntity()
 	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
 	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", NULL) end
 
-	local ent = this:GetEyeTraceNoCursor().Entity
-	if not ent:IsValid() then return NULL end
-	return ent
+	return this:GetEyeTraceNoCursor().Entity
 end
 
 e2function vector entity:aimPos()
