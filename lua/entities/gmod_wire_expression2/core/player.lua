@@ -3,7 +3,7 @@
 ------------------------------------------------------------------------------]]
 
 local IsValid = IsValid
-
+local isFriend = E2Lib.isFriend
 
 local spawnAlert = {}
 local lastJoined = NULL
@@ -694,39 +694,51 @@ end
 __e2setcost(5)
 
 e2function number entity:ping()
-	if not IsValid(this) then return 0 end
-	if(this:IsPlayer()) then return this:Ping() else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", 0) end
+	return this:Ping()
 end
 
 e2function number entity:timeConnected()
-	if not IsValid(this) then return 0 end
-	if(this:IsPlayer()) then return this:TimeConnected() else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", 0) end
+	return this:TimeConnected()
 end
 
 e2function entity entity:vehicle()
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", NULL) end
 	return this:GetVehicle()
 end
 
 e2function number entity:inVehicle()
-	if not IsValid(this) then return 0 end
-	return this:IsPlayer() and this:InVehicle() and 1 or 0
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", 0) end
+	return this:InVehicle() and 1 or 0
 end
 
 --- Returns 1 if the player <this> is in noclip mode, 0 if not.
 e2function number entity:inNoclip()
-	if not IsValid(this) or this:GetMoveType() ~= MOVETYPE_NOCLIP then return 0 end
-	return 1
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetMoveType() == MOVETYPE_NOCLIP and 1 or 0
+end
+
+e2function void entity:noclip(number status)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", nil) end
+	if not isFriend(self.player, this) then return self:throw("You cannot target this player", nil) end
+	if hook.Run("PlayerNoClip", this, status == 1 and true or false) == false then self:throw("The server blocked player from noclipping", nil) end
+
+	this:SetMoveType(status == 1 and MOVETYPE_NOCLIP or MOVETYPE_WALK)
 end
 
 e2function number entity:inGodMode()
-	return IsValid(this) and this:IsPlayer() and this:HasGodMode() and 1 or 0
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", 0) end
+	return this:HasGodMode() and 1 or 0
 end
 
 --------------------------------------------------------------------------------
-
-local player = player
 
 __e2setcost(10)
 
@@ -735,33 +747,37 @@ e2function array players()
 end
 
 e2function array playersAdmins()
-	local Admins = {}
-	for _,ply in ipairs(player.GetAll()) do
-		if (ply:IsAdmin()) then
-			table.insert(Admins,ply)
+	local admins = {}
+
+	for _, ply in ipairs(player.GetAll()) do
+		if ply:IsAdmin() then
+			table.insert(admins, ply)
 		end
 	end
-	return Admins
+
+	return admins
 end
 
 e2function array playersSuperAdmins()
-	local Admins = {}
-	for _,ply in ipairs(player.GetAll()) do
-		if (ply:IsSuperAdmin()) then
-			table.insert(Admins,ply)
+	local superadmins = {}
+
+	for _, ply in ipairs(player.GetAll()) do
+		if ply:IsSuperAdmin() then
+			table.insert(superadmins, ply)
 		end
 	end
-	return Admins
+
+	return superadmins
 end
 
 --------------------------------------------------------------------------------
 
 e2function entity entity:aimEntity()
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", nil) end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", NULL) end
 
 	local ent = this:GetEyeTraceNoCursor().Entity
-	if not ent:IsValid() then return nil end
+	if not ent:IsValid() then return NULL end
 	return ent
 end
 
