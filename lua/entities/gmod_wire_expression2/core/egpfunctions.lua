@@ -853,7 +853,7 @@ end
 e2function array wirelink:egpGlobalVertices( number index )
 	local hasobject, _, object = hasObject(this, index)
 	if hasobject and object.verticesindex then
-		local data = EGP:GetGlobalVertices(object)
+		local data = EGP.GetGlobalVertices(this, object)
 		if data.vertices then
 			local ret = {}
 			for i=1,#data.vertices do
