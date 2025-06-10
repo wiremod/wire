@@ -47,6 +47,8 @@ function EGP.umsg.End( ent )
 			EGP.IntervalCheck[CurSender].bytes = EGP.IntervalCheck[CurSender].bytes + bytes
 		else
 			ErrorNoHalt("Tried to end EGP net message outside of net context?")
+			CurSender = NULL
+			return
 		end
 
 		if ent.Users then
