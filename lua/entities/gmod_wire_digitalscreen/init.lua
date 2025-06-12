@@ -243,25 +243,19 @@ end
 function ENT:ClearPixel(i)
 	if self.Memory[1048569] == 1 then
 		-- R G B mode
-		i = i * 3
-		self.Memory[i] = 0
-		self.Memory[i+1] = 0
-		self.Memory[i+2] = 0
-		self:MarkCellChanged(i)
-		self:MarkCellChanged(i+1)
-		self:MarkCellChanged(i+2)
+		self.Memory[i*3] = 0
+		self.Memory[i*3+1] = 0
+		self.Memory[i*3+2] = 0
 		return
 	end
 
 	-- other modes
 	self.Memory[i] = 0
-	self:MarkCellChanged(i)
 end
 
 function ENT:ClearCellRange(start, length)
 	for i = start, start + length - 1 do
 		self.Memory[i] = 0
-		self:MarkCellChanged(i)
 	end
 end
 

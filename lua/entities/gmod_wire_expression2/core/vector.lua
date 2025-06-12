@@ -134,10 +134,12 @@ e2function vector operator/(vector lhs, vector rhs)
 end
 
 registerOperator("indexget", "vn", "n", function(state, this, index)
+	if( not this ) then return 0 end
 	return this[floor(math.Clamp(index, 1, 3) + 0.5)]
 end)
 
 registerOperator("indexset", "vnn", "", function(state, this, index, value)
+	if( not this ) then return end
 	this[floor(math.Clamp(index, 1, 3) + 0.5)] = value
 	state.GlobalScope.vclk[this] = true
 end)
