@@ -377,7 +377,10 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 	entity:CallOnRemove( "wire_expression2_propcore_remove",
 		function( entity )
 			self.data.spawnedProps[ entity ] = nil
-			self.player.E2totalspawnedprops = E2totalspawnedprops - 1
+
+			if IsValid(self.player) then
+				self.player.E2totalspawnedprops = E2totalspawnedprops - 1
+			end
 		end
 	)
 
