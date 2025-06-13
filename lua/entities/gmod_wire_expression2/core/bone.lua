@@ -91,8 +91,9 @@ end
 
 --- Returns an array containing all of <this>'s bones. This array's first element has the index 0!
 e2function array entity:bones()
-	if not IsValid(this) then return { } end
-	return table.Copy(GetBones(this))
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+	local bones = GetBones(this)
+	return table.move(bones, 0, #bones, 0, {})
 end
 
 --- Returns <this>'s number of bones.
@@ -110,18 +111,13 @@ end
 
 --- Returns the entity <this> belongs to
 e2function entity bone:entity()
-	return isValidBone(this)
+	return isValidBone(this) or NULL
 end
 
 --- Returns <this>'s index in the entity it belongs to. Returns -1 if the bone is invalid or an error occured.
 e2function number bone:index()
 	local ent = isValidBone(this)
-	if not ent then return -1 end
-	local n = ent:GetPhysicsObjectCount() - 1
-	for i = 0, n do
-		if this == ent:GetPhysicsObjectNum(i) then return i end
-	end
-	return -1
+	return ent and this:GetIndex() or -1
 end
 
 --[[************************************************************************]]--
@@ -385,11 +381,29 @@ e2function void bone:boneGravity(gravity)
 	this:EnableGravity( gravity ~= 0 )
 end
 
+e2function string bone:getBoneName()
+	local ent = isValidBone(this)
+	if not ent then return self:throw("Invalid bone!", "") end
+	return ent:GetBoneName(ent:TranslatePhysBoneToBone(this:GetIndex()))
+end
+
+e2function number bone:toModelBone()
+	local ent = isValidBone(this)
+	if not ent then return self:throw("Invalid bone!", -1) end
+	return ent:TranslatePhysBoneToBone(this:GetIndex())
+end
+
+e2function bone entity:fromModelBone(index)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	return getBone(this, this:TranslateBoneToPhysBone(index))
+end
+
 -- helper function for invert(T) in table.lua
 function e2_tostring_bone(b)
 	local ent = isValidBone(b)
 	if not ent then return "(null bone)" end
-	return string.format("bone [%s][Entity %d]", b:GetName(), ent:EntIndex())
+	local idx = b:GetIndex()
+	return string.format("bone %d [%s][Entity %d]", idx, ent:GetBoneName(ent:TranslatePhysBoneToBone(idx)), ent:EntIndex())
 end
 local e2_tostring_bone = e2_tostring_bone
 
