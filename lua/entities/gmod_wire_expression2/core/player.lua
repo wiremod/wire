@@ -723,15 +723,6 @@ e2function number entity:inNoclip()
 	return this:GetMoveType() == MOVETYPE_NOCLIP and 1 or 0
 end
 
-e2function void entity:noclip(number status)
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", nil) end
-	if not isFriend(self.player, this) then return self:throw("You cannot target this player", nil) end
-	if hook.Run("PlayerNoClip", this, status == 1 and true or false) == false then self:throw("The server blocked player from noclipping", nil) end
-
-	this:SetMoveType(status == 1 and MOVETYPE_NOCLIP or MOVETYPE_WALK)
-end
-
 e2function number entity:inGodMode()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", 0) end
