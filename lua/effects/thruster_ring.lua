@@ -3,10 +3,8 @@ function EFFECT:Init(data)
 
 	local origin, normal = data:GetOrigin(), data:GetNormal()
 	self:SetPos(origin + normal * 2)
-	self:SetAngles(normal:Angle())
+	self:SetNormal(normal)
 
-	self.Pos = origin
-	self.Normal = normal
 	self.Size = 16
 	self.Alpha = 255
 	self.GrowthRate = data:GetMagnitude()
@@ -23,7 +21,7 @@ function EFFECT:Think()
 
 	self.Alpha = alpha
 	self.Size = size
-	self:SetPos(self:GetPos() + self.Normal * (speed * 128))
+	self:SetPos(self:GetPos() + self:GetNormal() * (speed * 128))
 
 	return true
 end
