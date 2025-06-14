@@ -11,17 +11,12 @@ function EFFECT:Init(data)
 end
 
 function EFFECT:Think()
-	local speed = FrameTime() * 2
-
-	local alpha = self.Alpha - 250 * speed
+	local alpha = self.Alpha - 2.5
 	if alpha <= 0 then return false end
 
-	local size = self.Size + (255 - alpha) * self.GrowthRate
-	if size <= 0 then return false end
-
 	self.Alpha = alpha
-	self.Size = size
-	self:SetPos(self:GetPos() + self.Normal * (speed * 128))
+	self.Size = self.Size + (255 - alpha) * self.GrowthRate
+	self:SetPos(self:GetPos() + self.Normal * 1.28)
 
 	return true
 end
