@@ -3,7 +3,6 @@ function EFFECT:Init(data)
 
 	local origin, normal = data:GetOrigin(), data:GetNormal()
 	self:SetPos(origin + normal * 2)
-	self:SetAngles(normal:Angle())
 
 	self.Pos = origin
 	self.Normal = normal
