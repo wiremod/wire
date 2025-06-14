@@ -3,8 +3,9 @@
 WireToolSetup.setCategory("Input, Output")
 WireToolSetup.open("interactiveprop","Interactive Prop","gmod_wire_interactiveprop",nil,"Interactive Props")
 if CLIENT then
-	language.Add( "Tool.wire_interactiveprop.name", "Wire Interactive Prop" )
-	language.Add( "Tool.wire_interactiveprop.desc", "Opens a UI panel which controls outputs for use with wire system." )
+	language.Add("tool.wire_interactiveprop.name", "Wire Interactive Prop")
+	language.Add("tool.wire_interactiveprop.desc", "Opens a UI panel which controls outputs for use with wire system.")
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 
 
