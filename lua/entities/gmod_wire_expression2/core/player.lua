@@ -3,7 +3,6 @@
 ------------------------------------------------------------------------------]]
 
 local IsValid = IsValid
-local isFriend = E2Lib.isFriend
 
 local spawnAlert = {}
 local lastJoined = NULL
