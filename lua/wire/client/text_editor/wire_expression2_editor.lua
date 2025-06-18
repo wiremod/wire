@@ -1970,7 +1970,7 @@ function Editor:LoadFile(Line, forcenewtab)
 
 	local f = file.Open(Line, "r", "DATA")
 	if not f then
-		ErrorNoHalt("Erroring opening file: " .. Line)
+		notification.AddLegacy("Erroring opening file: " .. Line, NOTIFY_ERROR, 5)
 	else
 		local str = f:Read(f:Size()) or ""
 		f:Close()
