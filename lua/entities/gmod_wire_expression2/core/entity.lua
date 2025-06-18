@@ -593,7 +593,7 @@ end
 
 --- Gets <this>'s bodygroup name.
 e2function string entity:getBodygroupName(bgrp_id)
-    if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+    if not IsValid(this) then return self:throw("Invalid entity!", "") end
     return this:GetBodygroupName(bgrp_id)
 end
 
