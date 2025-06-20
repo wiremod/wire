@@ -414,7 +414,7 @@ __e2setcost(5)
 [deprecated = "Use getDriver instead"]
 e2function entity entity:driver() = e2function entity entity:getDriver()
 
-[deprecated = "Use getPassenger instead"]
+[deprecated = "Use getPassenger(0) instead"]
 e2function entity entity:passenger()
 	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", NULL) end
