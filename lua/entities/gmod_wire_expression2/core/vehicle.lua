@@ -214,7 +214,7 @@ __e2setcost(15)
 e2function void entity:enableEngine(number enable)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", nil) end
-    if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
 
 	this:EnableEngine(enable == 1)
 end
