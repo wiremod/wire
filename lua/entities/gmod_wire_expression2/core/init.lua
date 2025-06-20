@@ -270,11 +270,15 @@ end
 function E2Lib.triggerEvent(name, args)
 	assert(E2Lib.Env.Events[name], "E2Lib.triggerEvent on nonexisting event: '" .. name .. "'")
 
-	for ent in pairs(E2Lib.Env.Events[name].listening) do
+	local event_listeners = E2Lib.Env.Events[name].listening
+
+	for i = #event_listeners, 1, -1 do
+		local ent = event_listeners[i]
+
 		if ent.ExecuteEvent then
 			ent:ExecuteEvent(name, args)
-		else -- Destructor somehow wasn't run?
-			E2Lib.Env.Events[name].listening[ent] = nil
+		else
+			table.remove(event_listeners, i)
 		end
 	end
 end
@@ -285,12 +289,16 @@ end
 function E2Lib.triggerEventOmit(name, args, ignore)
 	assert(E2Lib.Env.Events[name], "E2Lib.triggerEventOmit on nonexisting event: '" .. name .. "'")
 
-	for ent in pairs(E2Lib.Env.Events[name].listening) do
+	local event_listeners = E2Lib.Env.Events[name].listening
+
+	for i = #listeners, 1, -1 do
+		local ent = event_listeners[i]
+
 		if not ignore[ent] then -- Don't trigger ignored chips
 			if ent.ExecuteEvent then
 				ent:ExecuteEvent(name, args)
 			else -- Destructor somehow wasn't run?
-				E2Lib.Env.Events[name].listening[ent] = nil
+				table.remove(event_listeners, i)
 			end
 		end
 	end
