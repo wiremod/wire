@@ -23,8 +23,7 @@ EGP.ParentingFuncs.addUV = addUV
 local function makeArray( v, fakepos )
 	local ret = {}
 	if isstring(v.verticesindex) then
-		if not fakepos then
-			if (not v["_"..v.verticesindex]) then EGP:AddParentIndexes( v ) end
+		if not fakepos and v["_"..v.verticesindex] then
 			for k,v in ipairs( v["_"..v.verticesindex] ) do
 				ret[#ret+1] = v.x
 				ret[#ret+1] = v.y
