@@ -13,11 +13,11 @@ __e2setcost(1)
 --- If <activate> != 0 the expression will execute once every game tick
 [deprecated = "Use the tick event instead"]
 e2function void runOnTick(activate)
-    if activate ~= 0 then
+	if activate ~= 0 then
 		registered_chips[self.entity] = true
-    else
+	else
 		registered_chips[self.entity] = nil
-    end
+	end
 end
 
 --- Returns 1 if the current execution was caused by "runOnTick"
