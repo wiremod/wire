@@ -400,7 +400,7 @@ end
 e2function void entity:podSetName(string name)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", nil) end
-	if not this.VehicleTable or not this.VehicleTable.Name then return self:throw("Invliad vehicle table!", nil) end
+	if not this.VehicleTable or not this.VehicleTable.Name then return self:throw("Invalid vehicle table!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
 
 	name = string.sub(name, 1, 200)
