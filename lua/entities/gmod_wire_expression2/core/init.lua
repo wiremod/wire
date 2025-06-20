@@ -291,7 +291,7 @@ function E2Lib.triggerEventOmit(name, args, ignore)
 
 	local event_listeners = E2Lib.Env.Events[name].listening
 
-	for i = #listeners, 1, -1 do
+	for i = #event_listeners, 1, -1 do
 		local ent = event_listeners[i]
 
 		if not ignore[ent] then -- Don't trigger ignored chips
