@@ -739,53 +739,6 @@ e2function vector entity:inertia()
 	return this:GetPhysicsObject():GetInertia()
 end
 
-
---[[******************************************************************************]]
-
-__e2setcost(10) -- temporary
-
-e2function void entity:lockPod(lock)
-	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
-	if lock ~= 0 then
-		this:Fire("Lock", "", 0)
-	else
-		this:Fire("Unlock", "", 0)
-	end
-end
-
-e2function void entity:killPod()
-	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
-	local ply = this:GetDriver()
-	if IsValid(ply) and ply:IsPlayer() and ply:Alive() then ply:Kill() end
-end
-
-e2function void entity:ejectPod()
-	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
-	local ply = this:GetDriver()
-	if IsValid(ply) then ply:ExitVehicle() end
-end
-
-e2function void entity:podStripWeapons()
-	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
-	local ply = this:GetDriver()
-	if IsValid(ply) and next(ply:GetWeapons()) ~= nil then
-		ply:StripWeapons()
-		ply:ChatPrint("Your weapons have been stripped!")
-	end
-end
-
-e2function void entity:podSetName(string name)
-	if not IsValid(this) or not this:IsVehicle() or not this.VehicleTable or not this.VehicleTable.Name then return self:throw("Invalid vehicle!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
-	if hook.Run("Wire_CanName") == false then return self:throw("A hook prevented this function from running") end
-	name = name:sub(1,200)
-	this.VehicleTable.Name = name
-end
-
 --[[******************************************************************************]]
 
 __e2setcost(10)
@@ -878,16 +831,6 @@ hook.Add("PlayerEnteredVehicle","Exp2RunOnEnteredVehicle", function(ply, vehicle
 end)
 
 __e2setcost(5)
-
-e2function entity entity:driver()
-	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
-	return this:GetDriver()
-end
-
-e2function entity entity:passenger()
-	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
-	return this:GetPassenger(0)
-end
 
 --- Returns <ent> formatted as a string. Returns "<code>(null)</code>" for invalid entities.
 e2function string toString(entity ent)

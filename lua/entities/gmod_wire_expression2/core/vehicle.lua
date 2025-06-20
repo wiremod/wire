@@ -346,3 +346,78 @@ e2function void entity:startEngine(number start)
 
 	this:StartEngine(start == 1)
 end
+
+__e2setcost(10)
+
+e2function void entity:lockPod(number lock)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
+
+	if lock ~= 0 then
+		this:Fire("Lock")
+	else
+		this:Fire("Unlock")
+	end
+end
+
+e2function void entity:killPod()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
+
+	local ply = this:GetDriver()
+
+	if ply:IsValid() and ply:Alive() then
+		ply:Kill()
+	end
+end
+
+e2function void entity:ejectPod()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
+
+	local ply = this:GetDriver()
+
+	if ply:IsValid() then
+		ply:ExitVehicle()
+	end
+end
+
+e2function void entity:podStripWeapons()
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
+
+	local ply = this:GetDriver()
+
+	if ply:IsValid() then
+		ply:StripWeapons()
+	end
+end
+
+e2function void entity:podSetName(string name)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", nil) end
+	if not this.VehicleTable or not this.VehicleTable.Name then return self:throw("Invliad vehicle table!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
+
+	name = string.sub(name, 1, 200)
+	if hook.Run("Wire_CanName", name) == false then return self:throw("A hook prevented this function from running") end
+
+	this.VehicleTable.Name = name
+end
+
+__e2setcost(5)
+
+[deprecated = "Use getDriver instead"]
+e2function entity entity:driver() = e2function entity entity:getDriver()
+
+[deprecated = "Use getPassenger instead"]
+e2function entity entity:passenger()
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", NULL) end
+
+	return this:GetPassenger(0)
+end
