@@ -38,7 +38,7 @@ e2function number entity:getVehicleSpeed()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", 0) end
 
-	return this:getVehicleSpeed()
+	return this:GetHLSpeed()
 end
 
 e2function number entity:getMaxSpeed()
