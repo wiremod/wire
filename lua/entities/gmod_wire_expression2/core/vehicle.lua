@@ -195,20 +195,6 @@ e2function number entity:isEngineStarted()
 	return this:IsEngineStarted() and 1 or 0
 end
 
-e2function number entity:isValidVehicle()
-	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", 0) end
-
-	return this:IsValidVehicle() and 1 or 0
-end
-
-e2function number entity:isVehicleBodyInWater()
-	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", 0) end
-
-	return this:IsVehicleBodyInWater() and 1 or 0
-end
-
 __e2setcost(15)
 
 e2function void entity:enableEngine(number enable)
@@ -313,22 +299,6 @@ e2function void entity:setThrottle(number throttle)
 	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
 
 	this:SetThrottle(throttle)
-end
-
-e2function void entity:setVehicleEntryAnim(number bon)
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
-
-	this:SetVehicleEntryAnim(bon == 1)
-end
-
-e2function void entity:setVehicleParams(table params)
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
-
-	this:SetVehicleParams(params)
 end
 
 e2function void entity:setWheelFriction(number wheel, number friction)
