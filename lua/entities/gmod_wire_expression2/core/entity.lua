@@ -91,6 +91,9 @@ end
 --[[******************************************************************************]]
 -- Functions getting string
 
+E2Lib.registerConstant("NULL", NULL)
+
+[deprecated = "Use the constant NULL instead"]
 e2function entity noentity()
 	return NULL
 end
