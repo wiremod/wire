@@ -62,7 +62,7 @@ e2function entity entity:getPassenger(number index)
 	return this:GetPassenger(index)
 end
 
-e2function table entity:getPassengerSeatInfo(number role)
+e2function array entity:getSeatInfo(number role)
 	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", {}) end
 
@@ -125,7 +125,7 @@ e2function table entity:getVehicleParams()
 	return this:GetVehicleParams()
 end
 
-e2function table entity:getVehicleViewTable(number role)
+e2function array entity:getVehicleViewInfo(number role)
 	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", {}) end
 
@@ -139,7 +139,7 @@ e2function number entity:getWheelBaseHeight(number wheel)
 	return this:GetWheelBaseHeight(wheel)
 end
 
-e2function table entity:getWheelContactInfo(number wheel)
+e2function array entity:getWheelContactInfo(number wheel)
 	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", {}) end
 
