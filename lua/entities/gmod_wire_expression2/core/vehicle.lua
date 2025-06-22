@@ -48,13 +48,6 @@ e2function number entity:getMaxSpeed()
 	return this:GetMaxSpeed()
 end
 
-e2function table entity:getOperatingParams()
-	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
-	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", {}) end
-
-	return this:GetOperatingParams()
-end
-
 e2function entity entity:getPassenger(number index)
 	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", NULL) end

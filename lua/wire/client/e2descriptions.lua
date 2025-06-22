@@ -1885,7 +1885,6 @@ E2Helper.Descriptions["getDriver(e:)"] = "Gets the driver of the vehicle, return
 E2Helper.Descriptions["getExitPoint(e:nn)"] = "Tries to find an exit point for leaving vehicle, returns vec(0, 0, 0) on failure"
 E2Helper.Descriptions["getMaxSpeed(e:)"] = "Returns the max speed of the vehicle in MPH."
 E2Helper.Descriptions["getMPH(e:)"] = "Returns the current speed of the vehicle in MPH."
-E2Helper.Descriptions["getOperatingParams(e:)"] = "Returns some info about the vehicle."
 E2Helper.Descriptions["getPassenger(e:n)"] = "Gets the passenger of the vehicle, returns NULL if no drivers is present."
 E2Helper.Descriptions["getRPM(e:)"] = "Returns the current RPM of the vehicle.\nThis value is fake and doesn't actually affect the vehicle movement."
 E2Helper.Descriptions["getSeatInfo(e:n)"] = "Returns the table with position and angle of a given passenger seat."
