@@ -62,11 +62,11 @@ e2function entity entity:getPassenger(number index)
 	return this:GetPassenger(index)
 end
 
-e2function array entity:getSeatInfo(number role)
+e2function array entity:getSeatInfo(number seat)
 	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", {}) end
 
-	return {this:GetPassengerSeatPoint(role)}
+	return {this:GetPassengerSeatPoint(seat)}
 end
 
 e2function number entity:getRPM()
@@ -76,7 +76,7 @@ e2function number entity:getRPM()
 	return this:GetRPM()
 end
 
-e2function number entity:getSpeed()
+e2function number entity:getMPH()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", 0) end
 
@@ -125,18 +125,11 @@ e2function table entity:getVehicleParams()
 	return this:GetVehicleParams()
 end
 
-e2function array entity:getVehicleViewInfo(number role)
+e2function array entity:getSeatViewInfo(number seat)
 	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", {}) end
 
-	return {this:GetVehicleViewPosition(role)}
-end
-
-e2function number entity:getWheelBaseHeight(number wheel)
-	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", 0) end
-
-	return this:GetWheelBaseHeight(wheel)
+	return {this:GetVehicleViewPosition(seat)}
 end
 
 e2function array entity:getWheelContactInfo(number wheel)
@@ -153,7 +146,7 @@ e2function number entity:getWheelCount()
 	return this:GetWheelCount()
 end
 
-e2function number entity:getWheelTotalHeight(number wheel)
+e2function number entity:getWheelHeight(number wheel)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", 0) end
 
