@@ -194,7 +194,7 @@ e2function void entity:setSteering(number front, number rear)
 	if not ValidVehicle(self, this) then return nil end
 	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
 
-	this:SetSteering(math.Clamp(front, -1, 1), math.Clamp(rear, -1, 1))
+	this:SetSteering(front, rear)
 end
 
 e2function void entity:setSteeringDegrees(number steeringdegress)
@@ -209,13 +209,6 @@ e2function void entity:setThirdPersonMode(number enable)
 	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
 
 	this:SetThirdPersonMode(enable == 1)
-end
-
-e2function void entity:setThrottle(number throttle)
-	if not ValidVehicle(self, this) then return nil end
-	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
-
-	this:SetThrottle(throttle)
 end
 
 e2function void entity:startEngine(number start)

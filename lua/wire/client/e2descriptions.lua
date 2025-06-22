@@ -1913,5 +1913,4 @@ E2Helper.Descriptions["setSpringLength(e:nn)"] = "Sets spring length of given wh
 E2Helper.Descriptions["setSteering(e:nn)"] = "Sets the steering of the vehicle."
 E2Helper.Descriptions["setSteeringDegrees(e:n)"] = "Sets the maximum steering degrees of the vehicle."
 E2Helper.Descriptions["setThirdPersonMode(e:n)"] = "Sets the third person mode state."
-E2Helper.Descriptions["setThrottle(e:n)"] = "Sets the throttle of the vehicle."
 E2Helper.Descriptions["startEngine(e:n)"] = "Starts or stops the engine (will not work if the engine is disabled)."
