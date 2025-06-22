@@ -49,18 +49,18 @@ if CLIENT then
 	function ENT:Draw()
 		self:DrawModel()
 
-		local ply = LocalPlayer()
 		local entpos = self:GetPos()
-		if entpos:Distance(ply:GetShootPos()) > 512 then return end
+		if entpos:Distance(EyePos()) > 512 then return end
 
 		local ang = self:GetAngles()
-		entpos = entpos + self:GetForward() * 1.05
+		entpos:Add(self:GetForward() * 1.05)
 
 		ang:RotateAroundAxis(ang:Right(), -90)
 		ang:RotateAroundAxis(ang:Up(), 90)
 		ang:RotateAroundAxis(ang:Forward(), 0)
 
 		cam.Start3D2D(entpos, ang, 0.05)
+			local ply = LocalPlayer()
 			local trace = ply:GetEyeTrace()
 			local pos = self:WorldToLocal(trace.HitPos)
 
