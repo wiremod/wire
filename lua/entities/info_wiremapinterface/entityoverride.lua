@@ -829,30 +829,40 @@ function ENT:OverrideEntFromDupe(wireEnt, wireMapInterfaceEntDupeInfo)
 	OverrideEntFromDupe(wireEnt, wireMapInterfaceEntDupeInfo, self)
 end
 
-duplicator.RegisterEntityModifier("WireMapInterfaceEntDupeInfo", function(ply, wireEnt, wireMapInterfaceEntDupeInfo)
-	-- Make sure the Wire Map Interface sub entity when duped, so it can be found and linked too.
-	OverrideEntFromDupe(wireEnt, wireMapInterfaceEntDupeInfo)
-end)
+local g_dupeHooksAdded = false
 
-hook.Add("Wire_ApplyDupeInfo", "Wire_InitFromWireMapInterfaceEntDupeInfo", function(ply, inputEnt, outputEnt, inputData)
-	-- Make sure we initialize the Wire Map Interface sub entity before connecting our inputs to it. It will not initialize twice.
-
-	local entityMods = inputEnt.EntityMods
-	if entityMods then
-		local wireMapInterfaceEntDupeInfo = entityMods.WireMapInterfaceEntDupeInfo
-
-		if wireMapInterfaceEntDupeInfo then
-			OverrideEntFromDupe(inputEnt, wireMapInterfaceEntDupeInfo)
-		end
+function ENT:AddDupeHooks()
+	if g_dupeHooksAdded then
+		return
 	end
 
-	local entityMods = outputEnt.EntityMods
-	if entityMods then
-		local wireMapInterfaceEntDupeInfo = entityMods.WireMapInterfaceEntDupeInfo
+	duplicator.RegisterEntityModifier("WireMapInterfaceEntDupeInfo", function(ply, wireEnt, wireMapInterfaceEntDupeInfo)
+		-- Make sure to prepair the Wire Map Interface sub entity when duped, so it can be found and linked too.
+		OverrideEntFromDupe(wireEnt, wireMapInterfaceEntDupeInfo)
+	end)
 
-		if wireMapInterfaceEntDupeInfo then
-			OverrideEntFromDupe(outputEnt, wireMapInterfaceEntDupeInfo)
+	hook.Add("Wire_ApplyDupeInfo", "Wire_InitFromWireMapInterfaceEntDupeInfo", function(ply, inputEnt, outputEnt, inputData)
+		-- Make sure we initialize the Wire Map Interface sub entity before connecting our inputs to it. It will not initialize twice.
+
+		local entityMods = inputEnt.EntityMods
+		if entityMods then
+			local wireMapInterfaceEntDupeInfo = entityMods.WireMapInterfaceEntDupeInfo
+
+			if wireMapInterfaceEntDupeInfo then
+				OverrideEntFromDupe(inputEnt, wireMapInterfaceEntDupeInfo)
+			end
 		end
-	end
-end)
+
+		local entityMods = outputEnt.EntityMods
+		if entityMods then
+			local wireMapInterfaceEntDupeInfo = entityMods.WireMapInterfaceEntDupeInfo
+
+			if wireMapInterfaceEntDupeInfo then
+				OverrideEntFromDupe(outputEnt, wireMapInterfaceEntDupeInfo)
+			end
+		end
+	end)
+
+	g_dupeHooksAdded = true
+end
 

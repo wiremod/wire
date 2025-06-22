@@ -18,6 +18,7 @@ local g_wireTools = {
 local g_wiredEntities = {}
 local g_wiredEntitiesRemove = {}
 local g_nextThink = 0
+local g_hooksAdded = false
 
 -- Remove wire stuff and other changes that were done.
 local function RemoveWire(item)
@@ -123,6 +124,81 @@ local function AddWire(item)
 	end
 end
 
+local function pollWireItems()
+	for _, wmiWiredEntitiesRemove in pairs(g_wiredEntitiesRemove) do
+		for _, item in pairs(wmiWiredEntitiesRemove) do
+			RemoveWire(item)
+		end
+	end
+
+	for wmiId, wmiWiredEntities in pairs(g_wiredEntities) do
+		for entId, item in pairs(wmiWiredEntities) do
+			if not IsValid(item.ent) then
+				if item.init then
+					-- Entity disappeared unexpectedly, so unregister it.
+					local wmiWiredEntitiesRemove = g_wiredEntitiesRemove[wmiId] or {}
+					g_wiredEntitiesRemove[wmiId] = wmiWiredEntitiesRemove
+
+					wmiWiredEntitiesRemove[entId] = item
+				else
+					AddWire(item)
+				end
+			end
+		end
+	end
+end
+
+local function AddHooks()
+	hook.Add("PostCleanupMap", "WireMapInterface_PostCleanupMap_CL", function()
+		table.Empty(g_wiredEntities)
+		table.Empty(g_wiredEntitiesRemove)
+		g_nextThink = 0
+	end)
+
+	hook.Add("Think", "WireMapInterface_Think", function()
+		local now = CurTime()
+
+		if now < g_nextThink then
+			return
+		end
+
+		g_nextThink = now + 1
+
+		pollWireItems()
+
+		-- Render bounds updating
+		for _, wmiWiredEntities in pairs(g_wiredEntities) do
+			for _, item in pairs(wmiWiredEntities) do
+				if item.init and item.renderWires and now >= item.nextRenderBoundsUpdate then
+					local ent = item.ent
+
+					if IsValid(ent) and not ent:IsDormant() then
+						Wire_UpdateRenderBounds(ent)
+						item.nextRenderBoundsUpdate = now + math.random(30, 100) / 10
+					end
+				end
+			end
+		end
+	end)
+
+	-- Rendering
+	hook.Add("PostDrawOpaqueRenderables", "WireMapInterface_Draw", function()
+		for _, wmiWiredEntities in pairs(g_wiredEntities) do
+			for _, item in pairs(wmiWiredEntities) do
+				if item.init and item.renderWires then
+					local ent = item.ent
+
+					if IsValid(ent) and not ent:IsDormant() then
+						Wire_Render(ent)
+					end
+				end
+			end
+		end
+	end)
+
+	g_hooksAdded = true
+end
+
 net.Receive("WireMapInterfaceEntities", function()
 	local wmiId = net.ReadUInt(MAX_EDICT_BITS)
 	local protectFromTools = net.ReadBool()
@@ -157,75 +233,9 @@ net.Receive("WireMapInterfaceEntities", function()
 		item.protectFromPhysgun = protectFromPhysgun
 		item.renderWires = renderWires
 	end
-end)
 
-local function pollWireItems()
-	for _, wmiWiredEntitiesRemove in pairs(g_wiredEntitiesRemove) do
-		for _, item in pairs(wmiWiredEntitiesRemove) do
-			RemoveWire(item)
-		end
-	end
-
-	for wmiId, wmiWiredEntities in pairs(g_wiredEntities) do
-		for entId, item in pairs(wmiWiredEntities) do
-			if not IsValid(item.ent) then
-				if item.init then
-					-- Entity disappeared unexpectedly, so unregister it.
-					local wmiWiredEntitiesRemove = g_wiredEntitiesRemove[wmiId] or {}
-					g_wiredEntitiesRemove[wmiId] = wmiWiredEntitiesRemove
-
-					wmiWiredEntitiesRemove[entId] = item
-				else
-					AddWire(item)
-				end
-			end
-		end
-	end
-end
-
-hook.Add("PostCleanupMap", "WireMapInterface_PostCleanupMap_CL", function()
-	table.Empty(g_wiredEntities)
-	table.Empty(g_wiredEntitiesRemove)
-	g_nextThink = 0
-end)
-
-hook.Add("Think", "WireMapInterface_Think", function()
-	local now = CurTime()
-
-	if now < g_nextThink then
-		return
-	end
-
-	g_nextThink = now + 1
-
-	pollWireItems()
-
-	-- Render bounds updating
-	for _, wmiWiredEntities in pairs(g_wiredEntities) do
-		for _, item in pairs(wmiWiredEntities) do
-			if item.init and item.renderWires and now >= item.nextRenderBoundsUpdate then
-				local ent = item.ent
-
-				if IsValid(ent) and not ent:IsDormant() then
-					Wire_UpdateRenderBounds(ent)
-					item.nextRenderBoundsUpdate = now + math.random(30, 100) / 10
-				end
-			end
-		end
+	if not g_hooksAdded and not table.IsEmpty(wmiWiredEntities) then
+		AddHooks()
 	end
 end)
 
--- Rendering
-hook.Add("PostDrawOpaqueRenderables", "WireMapInterface_Draw", function()
-	for _, wmiWiredEntities in pairs(g_wiredEntities) do
-		for _, item in pairs(wmiWiredEntities) do
-			if item.init and item.renderWires then
-				local ent = item.ent
-
-				if IsValid(ent) and not ent:IsDormant() then
-					Wire_Render(ent)
-				end
-			end
-		end
-	end
-end)

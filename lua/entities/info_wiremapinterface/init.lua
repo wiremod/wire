@@ -255,6 +255,8 @@ function ENT:Initialize()
 	self.PortsUpdated = true
 
 	self.NextNetworkTime = CurTime() + (1 + math.random() * 2) * (self.MIN_THINK_TIME * 4)
+
+	self:AddDupeHooks()
 	self:AttachToSaveStateEntity()
 end
 
