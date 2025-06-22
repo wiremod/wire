@@ -87,11 +87,6 @@ e2function string entity:getVehicleClass()
 	return this:GetVehicleClass()
 end
 
-e2function table entity:getVehicleParams()
-	if not ValidVehicle(self, this) then return {} end
-	return this:GetVehicleParams()
-end
-
 e2function array entity:getSeatViewInfo(number seat)
 	if not ValidVehicle(self, this) then return {} end
 	return {this:GetVehicleViewPosition(seat)}

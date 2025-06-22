@@ -1894,7 +1894,6 @@ E2Helper.Descriptions["getSteeringDegrees(e:)"] = "Returns the maximum steering 
 E2Helper.Descriptions["getThirdPersonMode(e:)"] = "Returns if vehicle has thirdperson mode enabled or not."
 E2Helper.Descriptions["getThrottle(e:)"] = "Returns the current throttle of the vehicle."
 E2Helper.Descriptions["getVehicleClass(e:)"] = "Returns the vehicle class name."
-E2Helper.Descriptions["getVehicleParams(e:)"] = "Returns the vehicle parameters of given vehicle."
 E2Helper.Descriptions["getVehicleSpeed(e:)"] = "Returns the current speed of the vehicle in Half-Life Hammer Units (in/s)."
 E2Helper.Descriptions["getWheelContactInfo(e:n)"] = "Returns the tab with wheel contact point info."
 E2Helper.Descriptions["getWheelCount(e:)"] = "Returns the wheel count of the vehicle."
