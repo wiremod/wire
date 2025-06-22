@@ -301,14 +301,6 @@ e2function void entity:setThrottle(number throttle)
 	this:SetThrottle(throttle)
 end
 
-e2function void entity:setWheelFriction(number wheel, number friction)
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this vehicle!", nil) end
-
-	this:SetWheelFriction(wheel, friction)
-end
-
 e2function void entity:startEngine(number start)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", nil) end
