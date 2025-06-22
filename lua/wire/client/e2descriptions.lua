@@ -1879,11 +1879,11 @@ E2Helper.Descriptions["getReturnType(f:)"] = "Returns the return typeid of the f
 -- Vehicle
 
 E2Helper.Descriptions["boostTimeLeft(e:)"] = "Returns the remaining boosting time left."
-E2Helper.Descriptions["checkExitPoint(e:nn)"] = "Tries to find an Exit Point for leaving vehicle, if one is unobstructed in the direction given."
+E2Helper.Descriptions["getExitPoint(e:nn)"] = "Tries to find an exit point for leaving vehicle, if one is unobstructed in the direction given."
 E2Helper.Descriptions["enableEngine(e:n)"] = "Sets whether the engine is enabled or disabled, i.e. can be started or not."
 E2Helper.Descriptions["getCameraDistance(e:)"] = "Returns third person camera distance."
 E2Helper.Descriptions["getDriver(e:)"] = "Gets the driver of the vehicle, returns NULL if no driver is present."
-E2Helper.Descriptions["getHLSpeed(e:)"] = "Returns the current speed of the vehicle in Half-Life Hammer Units (in/s)."
+E2Helper.Descriptions["getVehicleSpeed(e:)"] = "Returns the current speed of the vehicle in Half-Life Hammer Units (in/s)."
 E2Helper.Descriptions["getMaxSpeed(e:)"] = "Returns the max speed of the vehicle in MPH."
 E2Helper.Descriptions["getOperatingParams(e:)"] = "Returns some info about the vehicle."
 E2Helper.Descriptions["getPassenger(e:n)"] = "Gets the passenger of the vehicle, returns NULL if no drivers is present."

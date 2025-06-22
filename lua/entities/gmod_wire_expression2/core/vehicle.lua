@@ -13,11 +13,11 @@ e2function number entity:boostTimeLeft()
 	return this:BoostTimeLeft()
 end
 
-e2function vector entity:checkExitPoint(number yaw, number distance)
+e2function vector entity:getExitPoint(number yaw, number distance)
 	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", Vector(0, 0, 0)) end
 
-	return this:CheckExitPoint(yaw, distance) or Vector(0, 0, 0)
+	return this:getExitPoint(yaw, distance) or Vector(0, 0, 0)
 end
 
 e2function number entity:getCameraDistance()
@@ -34,11 +34,11 @@ e2function entity entity:getDriver()
 	return this:GetDriver()
 end
 
-e2function number entity:getHLSpeed()
+e2function number entity:getVehicleSpeed()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if not this:IsVehicle() then return self:throw("Expected a Vehicle but got an Entity!", 0) end
 
-	return this:GetHLSpeed()
+	return this:getVehicleSpeed()
 end
 
 e2function number entity:getMaxSpeed()
