@@ -1905,7 +1905,6 @@ E2Helper.Descriptions["hasBrakePedal(e:)"] = "Returns whether this vehicle has a
 E2Helper.Descriptions["isBoosting(e:)"] = "Returns whether this vehicle is currently boosting or not."
 E2Helper.Descriptions["isEngineEnabled(e:)"] = "Returns whether the engine is enabled or not, i.e. whether it can be started."
 E2Helper.Descriptions["isEngineStarted(e:)"] = "Returns whether the engine is started or not."
-E2Helper.Descriptions["releaseHandbrake(e:)"] = "Releases the vehicle's handbrake"
 E2Helper.Descriptions["setBoost(e:n)"] = "Sets the boost."
 E2Helper.Descriptions["setCameraDistance(e:n)"] = "Sets the third person camera distance of the vehicle."
 E2Helper.Descriptions["setHandbrake(e:n)"] = "Turns on or off the Jeep handbrake so it can roll without a driver inside."
