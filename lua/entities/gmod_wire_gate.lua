@@ -9,8 +9,8 @@ local Wire_EnableGateInputValues = CreateConVar("Wire_EnableGateInputValues", 1,
 
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
-	self.Inputs = {}
-	self.Outputs = {}
+	self.Inputs = WireLib.CreateInputs(self, {})
+	self.Outputs = WireLib.CreateOutputs(self, {})
 end
 
 function ENT:Setup(action, noclip)
@@ -21,12 +21,12 @@ function ENT:Setup(action, noclip)
 	self.action = action
 	self.WireDebugName = gate.name
 
-	WireLib.AdjustSpecialInputs(self, gate.inputs, gate.inputtypes)
+	self.Inputs = WireLib.AdjustSpecialInputs(self, gate.inputs, gate.inputtypes)
 
 	if gate.outputs then
-		WireLib.AdjustSpecialOutputs(self, gate.outputs, gate.outputtypes)
+		self.Outputs = WireLib.AdjustSpecialOutputs(self, gate.outputs, gate.outputtypes)
 	else
-		WireLib.AdjustSpecialOutputs(self, { "Out" }, gate.outputtypes)
+		self.Outputs = WireLib.AdjustSpecialOutputs(self, { "Out" }, gate.outputtypes)
 	end
 
 	if gate.reset then
