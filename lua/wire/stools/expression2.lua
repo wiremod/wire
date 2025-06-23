@@ -221,7 +221,7 @@ if SERVER then
 	function WireLib.Expression2Upload( ply, target, filepath )
 		if not IsValid( target ) then error( "Invalid entity specified" ) end
 		net.Start("wire_expression2_tool_upload")
-			net.WriteUInt( target:EntIndex(), 16 )
+			net.WriteUInt(target:EntIndex(), 16)
 			filepath = filepath or ""
 			net.WriteUInt(#filepath, 32)
 			if #filepath>0 then net.WriteData(filepath, #filepath) end
