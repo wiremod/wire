@@ -27,7 +27,7 @@ e2function number entity:getCameraDistance()
 	return this:GetCameraDistance()
 end
 
-e2function entity entity:getDriver()
+e2function entity entity:driver()
 	if not ValidVehicle(self, this) then return NULL end
 	return this:GetDriver()
 end
@@ -276,9 +276,6 @@ e2function void entity:podSetName(string name)
 end
 
 __e2setcost(5)
-
-[deprecated = "Use getDriver instead"]
-e2function entity entity:driver() = e2function entity entity:getDriver()
 
 [deprecated = "Use getPassenger with 0 instead"]
 e2function entity entity:passenger()
