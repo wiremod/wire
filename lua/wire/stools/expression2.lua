@@ -215,6 +215,7 @@ if SERVER then
 	end)
 
 	function TOOL:Upload(ent)
+		ent.AwaitingUpload = true
 		WireLib.Expression2Upload( self:GetOwner(), ent )
 	end
 
@@ -360,6 +361,12 @@ if SERVER then
 			WireLib.AddNotify(ply, "Invalid Expression chip specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
+
+		if not toent.AwaitingUpload then
+			WireLib.AddNotify(ply, "This Expression chip is not awaiting an upload. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+			return
+		end
+		toent.AwaitingUpload = nil
 
 		if not WireLib.CanTool(ply, toent, "wire_expression2") then
 			WireLib.AddNotify(ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
