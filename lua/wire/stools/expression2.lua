@@ -581,6 +581,24 @@ if CLIENT then
 
 	-- Clientside Send
 	local uploadQueue = {}
+	local uploading = false
+	local function uploadNext()
+		if uploading then return end
+
+		local targetEntID, datastr = next(uploadQueue)
+		if not targetEntID then return end
+
+		uploading = true
+		net.Start( "wire_expression2_upload" )
+			net.WriteUInt( targetEntID, 16 )
+			net.WriteStream( datastr, function()
+				uploadQueue[targetEntID] = nil
+				uploading = false
+				uploadNext()
+			end )
+		net.SendToServer()
+	end
+
 	function WireLib.Expression2Upload(targetEntID, code, filepath)
 		if not targetEntID then
 			local aimEnt = LocalPlayer():GetEyeTrace().Entity
@@ -627,12 +645,8 @@ if CLIENT then
 			datastr = WireLib.von.serialize({ code, {}, filepath })
 		end
 
-		net.Start( "wire_expression2_upload" )
-			net.WriteUInt( targetEntID, 16 )
-			net.WriteStream( datastr, function()
-				uploadQueue[targetEntID] = nil
-			end )
-		net.SendToServer()
+		uploadQueue[targetEntID] = datastr
+		uploadNext()
 	end
 
 	net.Receive("wire_expression2_tool_upload", function(len, ply)
