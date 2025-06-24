@@ -215,12 +215,12 @@ if SERVER then
 	end)
 
 	function TOOL:Upload(ent)
-		ent.AwaitingUpload = true
 		WireLib.Expression2Upload( self:GetOwner(), ent )
 	end
 
 	function WireLib.Expression2Upload( ply, target, filepath )
 		if not IsValid( target ) then error( "Invalid entity specified" ) end
+		target.AwaitingUpload = true
 		net.Start("wire_expression2_tool_upload")
 			net.WriteUInt(target:EntIndex(), 16)
 			filepath = filepath or ""
