@@ -19,6 +19,7 @@ include("base/debug.lua")
 include("base/preprocessor.lua")
 include("base/tokenizer.lua")
 include("base/parser.lua")
+include("base/minify.lua")
 
 include("base/compiler.lua")
 include("core/init.lua")
