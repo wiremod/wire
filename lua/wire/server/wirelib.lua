@@ -322,7 +322,7 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 	types = types or {}
 	descs = descs or {}
 
-	local ent_ports = ent.Outputs or {}
+	local ent_ports = ent.Outputs
 	if not ent_ports then ent_ports = {} ent.Outputs = ent_ports end
 
 	local ent_mods = ent.EntityMods
