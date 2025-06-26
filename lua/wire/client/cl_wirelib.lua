@@ -115,7 +115,8 @@ end
 local function Wire_GetWireRenderBounds(ent)
 	local tab = ent:GetTable()
 	local bbmin, bbmax = ent:OBBMins(), ent:OBBMaxs()
-	local minx, miny, minz, maxx, maxy, maxz = bbmin:Unpack(), bbmax:Unpack()
+	local minx, miny, minz = bbmin:Unpack()
+	local maxx, maxy, maxz = bbmax:Unpack()
 
 	local WirePaths = tab.WirePaths
 
