@@ -21,12 +21,12 @@ function ENT:Setup(action, noclip)
 	self.action = action
 	self.WireDebugName = gate.name
 
-	self.Inputs = WireLib.AdjustSpecialInputs(self, gate.inputs, gate.inputtypes)
+	WireLib.AdjustSpecialInputs(self, gate.inputs, gate.inputtypes)
 
 	if gate.outputs then
-		self.Outputs = WireLib.AdjustSpecialOutputs(self, gate.outputs, gate.outputtypes)
+		WireLib.AdjustSpecialOutputs(self, gate.outputs, gate.outputtypes)
 	else
-		self.Outputs = WireLib.AdjustSpecialOutputs(self, { "Out" }, gate.outputtypes)
+		WireLib.AdjustSpecialOutputs(self, { "Out" }, gate.outputtypes)
 	end
 
 	if gate.reset then
