@@ -153,7 +153,7 @@ end
 local TypeMap = {
 	["number"] = "n", ["string"] = "s",
 	["Vector"] = "v", ["Angle"] = "a",
-	["table"] = "r"
+	["table"] = "r", ["Entity"] = "e"
 }
 
 local ValidArrayTypes = {
@@ -174,7 +174,7 @@ function E2Lib.registerConstant(name, value, description)
 			local i = 1
 			for _, val in pairs(value) do
 				assert(value[i] ~= nil, "Invalid array passed to registerConstant (must be sequential)")
-				assert(ValidArrayTypes[type(val)], "Invalid array passed to registerConstant (must only contain numbers, strings, vector or angles)")
+				assert(ValidArrayTypes[type(val)], "Invalid array passed to registerConstant (must only contain numbers, strings, vector, entities or angles)")
 				i = i + 1
 			end
 		end
@@ -188,7 +188,7 @@ function E2Lib.registerConstant(name, value, description)
 	else
 		local db = debug.getinfo(2, "l")
 		WireLib.Notify(nil,
-			string.format("[%s]:%d: Invalid value passed to registerConstant for \"%s\". Only numbers, strings, vectors, angles and arrays can be constant values.\n", E2Lib.currentextension, db.currentline, name),
+			string.format("[%s]:%d: Invalid value passed to registerConstant for \"%s\". Only numbers, strings, vectors, angles, entities and arrays can be constant values.\n", E2Lib.currentextension, db.currentline, name),
 		3)
 	end
 end
