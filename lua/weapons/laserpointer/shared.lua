@@ -54,9 +54,9 @@ function SWEP:PrimaryAttack()
 	end
 
 	if self.Pointing and IsValid(self.Receiver) then
-		Wire_TriggerOutput(self.Receiver, "Active", 1)
+		WireLib.TriggerOutput(self.Receiver, "Active", 1)
 	else
-		Wire_TriggerOutput(self.Receiver, "Active", 0)
+		WireLib.TriggerOutput(self.Receiver, "Active", 0)
 	end
 end
 
