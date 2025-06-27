@@ -91,7 +91,7 @@ end
 --[[******************************************************************************]]
 -- Functions getting string
 
-E2Lib.registerConstant("NO_ENTITY", NULL, "An invalid entity)
+E2Lib.registerConstant("NO_ENTITY", NULL, "An invalid entity")
 
 [deprecated = "Use the constant NO_ENTITY instead"]
 e2function entity noentity()
