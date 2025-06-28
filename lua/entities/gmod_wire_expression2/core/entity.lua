@@ -1326,7 +1326,7 @@ e2function number entity:getModelBoneIndex(string bone_name)
 	return this:LookupBone(bone_name) or -1
 end
 
-e2function number entity:getModelBoneName(bone_index)
+e2function string entity:getModelBoneName(bone_index)
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 
 	return this:GetBoneName(bone_index) or ""
