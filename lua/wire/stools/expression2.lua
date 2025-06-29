@@ -219,17 +219,31 @@ if SERVER then
 	end
 
 	function WireLib.Expression2Upload( ply, target, filepath )
-		if not IsValid( target ) then error( "Invalid entity specified" ) end
+		if not IsValid( target ) then
+			error( "Invalid entity specified" )
+		end
+
 		if target.AwaitingUpload or target.Uploading then return end
 		target.AwaitingUpload = true
+
+		filepath = filepath or ""
 		net.Start("wire_expression2_tool_upload")
 			net.WriteUInt(target:EntIndex(), 16)
-			filepath = filepath or ""
 			net.WriteUInt(#filepath, 32)
 			if #filepath>0 then net.WriteData(filepath, #filepath) end
-			net.WriteInt( target.buffer and tonumber(util.CRC( target.buffer )) or -1, 32 ) -- send the hash so we know if there's any difference
+			net.WriteString( target.buffer and util.CRC( target.buffer ) or -1 ) -- send the hash so we know if there's any difference
 		net.Send(ply)
 	end
+
+	net.Receive( "wire_expression2_tool_upload", function( _, ply )
+		local ent = Entity( net.ReadUInt( 16 ) )
+		if not IsValid( ent ) then return end
+
+		if ent:GetClass() ~= "gmod_wire_expression2" then return end
+		if not WireLib.CanTool(ply, ent, "wire_expression2") then return end
+
+		ent.AwaitingUpload = nil
+	end )
 
 	function TOOL:Download(ply, ent)
 		WireLib.Expression2Download(ply, ent, nil, true)
@@ -655,13 +669,18 @@ if CLIENT then
 		local entIndex = net.ReadUInt(16)
 		local filepathlen = net.ReadUInt(32)
 		local filepath = filepathlen>0 and net.ReadData(filepathlen) or ""
-		local hash = net.ReadInt(32)
+		local hash = net.ReadString()
 		if filepath ~= "" then
 			if filepath and file.Exists(filepath, "DATA") then
 				local str = file.Read(filepath)
-				local strhash = tonumber(util.CRC(str))
+				local strhash = util.CRC(str)
+
 				if hash ~= strhash then -- Only upload if we need to
 					WireLib.Expression2Upload(entIndex,str,filepath)
+				else
+					net.Start("wire_expression2_tool_upload")
+						net.WriteUInt(entIndex, 16)
+					net.SendToServer()
 				end
 			end
 		else
