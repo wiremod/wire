@@ -220,7 +220,7 @@ if SERVER then
 
 	function WireLib.Expression2Upload( ply, target, filepath )
 		if not IsValid( target ) then error( "Invalid entity specified" ) end
-		if target.AwaitingUpload then return end
+		if target.AwaitingUpload or target.Uploading then return end
 		target.AwaitingUpload = true
 		net.Start("wire_expression2_tool_upload")
 			net.WriteUInt(target:EntIndex(), 16)
@@ -377,6 +377,7 @@ if SERVER then
 
 		net.ReadStream(ply, function(data)
 			if not IsValid(toent) then return end
+			toent.Uploading = nil
 
 			local ok, ret = pcall(WireLib.von.deserialize, data)
 			if not ok then
