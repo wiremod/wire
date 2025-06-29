@@ -268,7 +268,10 @@ end
 function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 	types = types or {}
 	descs = descs or {}
-	local ent_ports = ent.Inputs or {}
+
+	local ent_ports = ent.Inputs
+	if not ent_ports then ent_ports = {} ent.Inputs = ent_ports end
+
 	for n,v in ipairs(names) do
 		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
 
@@ -319,7 +322,8 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 	types = types or {}
 	descs = descs or {}
 
-	local ent_ports = ent.Outputs or {}
+	local ent_ports = ent.Outputs
+	if not ent_ports then ent_ports = {} ent.Outputs = ent_ports end
 
 	local ent_mods = ent.EntityMods
 	if ent_mods then

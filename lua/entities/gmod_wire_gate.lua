@@ -9,8 +9,8 @@ local Wire_EnableGateInputValues = CreateConVar("Wire_EnableGateInputValues", 1,
 
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
-	self.Inputs = {}
-	self.Outputs = {}
+	WireLib.CreateInputs(self, {})
+	WireLib.CreateOutputs(self, {})
 end
 
 function ENT:Setup(action, noclip)
