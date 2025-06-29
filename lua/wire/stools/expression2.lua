@@ -220,6 +220,7 @@ if SERVER then
 
 	function WireLib.Expression2Upload( ply, target, filepath )
 		if not IsValid( target ) then error( "Invalid entity specified" ) end
+		if target.AwaitingUpload then return end
 		target.AwaitingUpload = true
 		net.Start("wire_expression2_tool_upload")
 			net.WriteUInt(target:EntIndex(), 16)
@@ -367,6 +368,7 @@ if SERVER then
 			return
 		end
 		toent.AwaitingUpload = nil
+		toent.Uploading = true
 
 		if not WireLib.CanTool(ply, toent, "wire_expression2") then
 			WireLib.AddNotify(ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
@@ -375,7 +377,6 @@ if SERVER then
 
 		net.ReadStream(ply, function(data)
 			if not IsValid(toent) then return end
-			toent.Uploading = true
 
 			local ok, ret = pcall(WireLib.von.deserialize, data)
 			if not ok then
@@ -828,7 +829,7 @@ if CLIENT then
 
 	--------------------------------------------------------------
 	function TOOL.BuildCPanel(panel)
-		local w = panel:GetSize()
+		local w, _h = panel:GetSize()
 
 		WireToolHelpers.MakeModelSizer(panel, "wire_expression2_modelsize")
 		--[[
