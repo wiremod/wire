@@ -91,6 +91,9 @@ end
 --[[******************************************************************************]]
 -- Functions getting string
 
+E2Lib.registerConstant("NULL", NULL)
+
+[deprecated = "Use the constant NULL instead"]
 e2function entity noentity()
 	return NULL
 end
@@ -590,6 +593,13 @@ e2function number entity:getBodygroup(bgrp_id)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	return this:GetBodygroup(bgrp_id)
 end
+
+--- Gets <this>'s bodygroup name.
+e2function string entity:getBodygroupName(bgrp_id)
+    if not IsValid(this) then return self:throw("Invalid entity!", "") end
+    return this:GetBodygroupName(bgrp_id)
+end
+
 --- Gets <this>'s bodygroup count.
 e2function number entity:getBodygroups(bgrp_id)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
@@ -1316,7 +1326,7 @@ e2function number entity:getModelBoneIndex(string bone_name)
 	return this:LookupBone(bone_name) or -1
 end
 
-e2function number entity:getModelBoneName(bone_index)
+e2function string entity:getModelBoneName(bone_index)
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 
 	return this:GetBoneName(bone_index) or ""

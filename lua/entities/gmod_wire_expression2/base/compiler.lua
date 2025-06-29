@@ -1271,6 +1271,8 @@ local CompileVisitors = {
 					Node.new(NodeVariant.ExprLiteral, { "n", value[3] }, trace)
 				}
 			}, trace))
+		elseif ty == "Entity" then
+			return self:CompileExpr( Node.new(NodeVariant.ExprLiteral, { "e", value }, trace) )
 		elseif ty == "table" then -- Know it's an array already from registerConstant
 			local out = {}
 			for i, val in ipairs(value) do
@@ -1297,6 +1299,8 @@ local CompileVisitors = {
 							Node.new(NodeVariant.ExprLiteral, { "n", val[3] }, trace)
 						}
 					}, trace)
+				elseif ty == "Entity" then
+					out[i] = Node.new(NodeVariant.ExprLiteral, { "e", val }, trace)
 				else
 					self:Error("Constant " .. data.value .. " has invalid data type", trace)
 				end

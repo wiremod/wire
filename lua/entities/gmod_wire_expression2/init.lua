@@ -93,7 +93,12 @@ function ENT:Destruct()
 				E2Lib.Env.Events[evt].destructor(self.context)
 			end
 
-			E2Lib.Env.Events[evt].listening[self] = nil
+			for k, ent in pairs(E2Lib.Env.Events[evt].listening) do
+				if ent == self then
+					table.remove(E2Lib.Env.Events[evt].listening, k)
+					break
+				end
+			end
 		end
 	end
 end
@@ -572,7 +577,8 @@ function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 				-- If the event has a constructor to run when the E2 is made and listening to the event.
 				E2Lib.Env.Events[evt].constructor(self.context)
 			end
-			E2Lib.Env.Events[evt].listening[self] = true
+
+			table.insert(E2Lib.Env.Events[evt].listening, self)
 		end
 	end
 

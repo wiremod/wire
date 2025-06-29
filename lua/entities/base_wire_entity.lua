@@ -396,12 +396,15 @@ util.AddNetworkString( "wire_overlay_request" )
 --------------------------------------------------------------------------------
 
 local function syncWireOverlay(ply, ent, row)
+	if ent.PrepareOverlayData then ent:PrepareOverlayData() end
 	local overlayData = ent.OverlayData
+
 	if overlayData and overlayData.__time and overlayData.__time > row[1] then
-		net.Start( "wire_overlay_data" )
-			net.WriteEntity( ent )
-			net.WriteTable( overlayData )
+		net.Start("wire_overlay_data")
+		net.WriteEntity(ent)
+		net.WriteTable(overlayData)
 		net.Send(ply)
+
 		row[1] = overlayData.__time
 	end
 end
@@ -427,7 +430,8 @@ end
 net.Receive( "wire_overlay_request", function( len, ply )
 	if net.ReadBool() then
 		local ent = net.ReadEntity()
-		if not (ent and ent:IsValid()) then return end
+		if not IsValid(ent) then return end
+
 		local lastUpdate = net.ReadFloat()
 
 		local row = {lastUpdate, ent}

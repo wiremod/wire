@@ -220,7 +220,7 @@ if SERVER then
 	net.Receive("wire_adv_upload", wireAdvReceiver)
 
 	util.AddNetworkString("wire_adv_unwire")
-	net.Receive( "wire_adv_unwire", function(ply)
+	net.Receive( "wire_adv_unwire", function(len, ply)
 		ErrorNoHalt("wire_adv_unwire is deprecated, use wire_adv_upload with an unsigned byte 2 at the start")
 
 		wireAdvUnwire(ply, net.ReadEntity(), net.ReadTable())

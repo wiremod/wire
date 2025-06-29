@@ -268,7 +268,10 @@ end
 function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 	types = types or {}
 	descs = descs or {}
-	local ent_ports = ent.Inputs or {}
+
+	local ent_ports = ent.Inputs
+	if not ent_ports then ent_ports = {} ent.Inputs = ent_ports end
+
 	for n,v in ipairs(names) do
 		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
 
@@ -319,7 +322,8 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 	types = types or {}
 	descs = descs or {}
 
-	local ent_ports = ent.Outputs or {}
+	local ent_ports = ent.Outputs
+	if not ent_ports then ent_ports = {} ent.Outputs = ent_ports end
 
 	local ent_mods = ent.EntityMods
 	if ent_mods then
@@ -1057,46 +1061,6 @@ Wire_Link_Clear					= WireLib.Link_Clear
 Wire_CreateOutputIterator		= WireLib.CreateOutputIterator
 Wire_BuildDupeInfo				= WireLib.BuildDupeInfo
 Wire_ApplyDupeInfo				= WireLib.ApplyDupeInfo
-
--- prevent applyForce+Anti-noclip-based killing contraptions
-hook.Add("InitPostEntity", "antiantinoclip", function()
-	local ENT = scripted_ents.GetList().rt_antinoclip_handler
-	if not ENT then return end
-	ENT = ENT.t
-
-	local rt_antinoclip_handler_StartTouch = ENT.StartTouch
-	function ENT:StartTouch(...)
-		if self.speed >= 20 then return end
-
-		local phys = self.Ent:GetPhysicsObject()
-		if phys:IsValid() and phys:GetAngleVelocity():Length() > 20 then return end
-
-		rt_antinoclip_handler_StartTouch(self, ...)
-	end
-
-	--local rt_antinoclip_handler_Think = ENT.Think
-	function ENT:Think()
-
-		local t = CurTime()
-		local dt = t-self.lastt
-		self.lastt = t
-
-		local phys = self.Ent:GetPhysicsObject()
-		local pos
-		if phys:IsValid() then
-			pos = phys:LocalToWorld(phys:GetMassCenter())
-		else
-			pos = self.Ent:GetPos()
-		end
-		self.speed = pos:Distance(self.oldpos)/dt
-		self.oldpos = pos
-		--rt_antinoclip_handler_Think(self, ...)
-	end
-
-	ENT.speed = 20
-	ENT.lastt = 0
-	ENT.oldpos = Vector(0,0,0)
-end)
 
 function WireLib.GetOwner(ent)
 	return E2Lib.getOwner({}, ent)
