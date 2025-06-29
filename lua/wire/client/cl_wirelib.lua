@@ -25,6 +25,7 @@ local render_EndBeam       = render.EndBeam
 local render_DrawBeam      = render.DrawBeam
 local EntityMeta           = FindMetaTable("Entity")
 local IsValid              = EntityMeta.IsValid
+local ent_WorldToLocal     = EntityMeta.WorldToLocal
 local ent_LocalToWorld     = EntityMeta.LocalToWorld
 local Vector               = Vector
 
@@ -111,51 +112,54 @@ function Wire_Render(ent)
 	end
 end
 
-
 local function Wire_GetWireRenderBounds(ent)
-	if not IsValid(ent) then return end
-
+	local tab = ent:GetTable()
 	local bbmin, bbmax = ent:OBBMins(), ent:OBBMaxs()
+	local minx, miny, minz = bbmin:Unpack()
+	local maxx, maxy, maxz = bbmax:Unpack()
 
-	if ent.WirePaths then
-		local nodes, len, node_ent, nodepos
-		for net_name, wiretbl in pairs(ent.WirePaths) do
-			nodes = wiretbl.Path
-			len = #nodes
-			for j=1, len do
-				node_ent = nodes[j].Entity
-				nodepos = nodes[j].Pos
-				if (node_ent:IsValid()) then
-					nodepos = ent:WorldToLocal(node_ent:LocalToWorld(nodepos))
+	local WirePaths = tab.WirePaths
 
-					if nodepos.x < bbmin.x then bbmin.x = nodepos.x end
-					if nodepos.y < bbmin.y then bbmin.y = nodepos.y end
-					if nodepos.z < bbmin.z then bbmin.z = nodepos.z end
-					if nodepos.x > bbmax.x then bbmax.x = nodepos.x end
-					if nodepos.y > bbmax.y then bbmax.y = nodepos.y end
-					if nodepos.z > bbmax.z then bbmax.z = nodepos.z end
+	if WirePaths then
+		for net_name, wiretbl in pairs(WirePaths) do
+			for _, v in ipairs(wiretbl.Path) do
+				local node_ent = v.Entity
+
+				if IsValid(node_ent) then
+					local x, y, z = ent_WorldToLocal(ent, ent_LocalToWorld(node_ent, v.Pos)):Unpack()
+					if x < minx then minx = x end
+					if y < miny then miny = y end
+					if z < minz then minz = z end
+					if x > maxx then maxx = x end
+					if y > maxy then maxy = y end
+					if z > maxz then maxz = z end
 				end
 			end
 		end
 	end
 
-	if ent.ExtraRBoxPoints then
-		for _,point in pairs( ent.ExtraRBoxPoints ) do
-			if point.x < bbmin.x then bbmin.x = point.x end
-			if point.y < bbmin.y then bbmin.y = point.y end
-			if point.z < bbmin.z then bbmin.z = point.z end
-			if point.x > bbmax.x then bbmax.x = point.x end
-			if point.y > bbmax.y then bbmax.y = point.y end
-			if point.z > bbmax.z then bbmax.z = point.z end
+	local ExtraRBoxPoints = tab.ExtraRBoxPoints
+
+	if ExtraRBoxPoints then
+		for _, point in pairs(ExtraRBoxPoints) do
+			local x, y, z = point:Unpack()
+			if x < minx then minx = x end
+			if y < miny then miny = y end
+			if z < minz then minz = z end
+			if x > maxx then maxx = x end
+			if y > maxy then maxy = y end
+			if z > maxz then maxz = z end
 		end
 	end
+
+	bbmin:SetUnpacked(minx, miny, minz)
+	bbmax:SetUnpacked(maxx, maxy, maxz)
+
 	return bbmin, bbmax
 end
 
-
 function Wire_UpdateRenderBounds(ent)
-	local bbmin, bbmax = Wire_GetWireRenderBounds(ent)
-	ent:SetRenderBounds(bbmin, bbmax)
+	ent:SetRenderBounds(Wire_GetWireRenderBounds(ent))
 end
 
 local function WireDisableRender(pl, cmd, args)
