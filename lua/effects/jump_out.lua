@@ -8,7 +8,7 @@ function EFFECT:Init(data)
 	local emitter = ParticleEmitter(entity:GetPos())
 
 	for i = 0, math.Clamp(entity:BoundingRadius() * 2, 10, 500) do
-		local postion = Vector(math.Rand(low.x, high.x), math.Rand(low.y, high.y), math.Rand(low.z, high.z))
+		local position = Vector(math.Rand(low.x, high.x), math.Rand(low.y, high.y), math.Rand(low.z, high.z))
 		local particle = emitter:Add("effects/spark", postion)
 
 		if particle then
