@@ -30,20 +30,19 @@ SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/c_pistol.mdl"
 SWEP.WorldModel = "models/weapons/w_pistol.mdl"
 
-local singleplayer = game.SinglePlayer()
-
 function SWEP:PrimaryAttack()
 	local ply = self:GetOwner()
 	local trace = ply:GetEyeTrace()
+	local ent = trace.Entity
 
-	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_pod" then
-		if SERVER and gamemode.Call("PlayerUse", ply, trace.Entity) then
-			self.Linked = trace.Entity
+	if IsValid(ent) and ent:GetClass() == "gmod_wire_pod" then
+		if SERVER and gamemode.Call("PlayerUse", ply, ent) then
+			self.Linked = ent
 			ply:ChatPrint("Remote Controller linked.")
-		elseif (CLIENT or singleplayer) and IsFirstTimePredicted() then
+		elseif (CLIENT or game.SinglePlayer()) and IsFirstTimePredicted() then
 			self:EmitSound("buttons/bell1.wav")
 		end
-	elseif (CLIENT or singleplayer) and IsFirstTimePredicted() then
+	elseif (CLIENT or game.SinglePlayer()) and IsFirstTimePredicted() then
 		self:EmitSound("buttons/button16.wav", 100, 50)
 	end
 end

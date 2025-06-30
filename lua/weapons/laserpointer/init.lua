@@ -11,9 +11,7 @@ function SWEP:Equip(newOwner)
 end
 
 function SWEP:Think()
-	local receiver = self.Receiver
-
-	if self.Pointing and IsValid(receiver) then
+	if self.Pointing and IsValid(self.Receiver) then
 		local owner = self:GetOwner()
 		if not IsValid(owner) then return end
 
@@ -27,6 +25,7 @@ function SWEP:Think()
 		end
 
 		local point = trace.HitPos
+		local receiver = self.Receiver
 
 		WireLib.TriggerOutput(receiver, "X", point.x)
 		WireLib.TriggerOutput(receiver, "Y", point.y)
