@@ -127,8 +127,8 @@ function ENT:CalcOutput(iter, selfTbl)
 	end
 end
 
-function ENT:ShowOutput(selfTbl)
-	selfTbl = selfTbl or self:GetTable()
+function ENT:PrepareOverlayData()
+	local selfTbl = self:GetTable()
 	local action = selfTbl.Action
 	local txt
 
@@ -143,10 +143,6 @@ function ENT:ShowOutput(selfTbl)
 	end
 
 	self:SetOverlayText(txt)
-end
-
-function ENT:PrepareOverlayData()
-	self:ShowOutput()
 end
 
 function ENT:OnRestore()
