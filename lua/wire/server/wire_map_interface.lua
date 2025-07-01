@@ -141,26 +141,7 @@ function WireLib.GetWireMapInterfaceSubEntityByMapId(wireEntMapId, alsoFindViaEn
 end
 
 function WireLib.WireMapInterfaceValidateId(id)
-	if not id then
-		return false
-	end
-
-	id = tonumber(id or 0) or 0
-
-	if id ~= id then
-		-- Is it NaN?
-		return false
-	end
-
-	if id < -1 then
-		-- Ids of -1 are valid, lower than that is not.
-		return false
-	end
-
-	if id > 0xFFFF then
-		-- Legit ids > 65k are extremly unlikely or even impossible to happen.
-		return false
-	end
-
-	return true
+	id = tonumber(id)
+	if not id then return false end
+	return id==id and id >= -1 and id <= 0xFFFF
 end
