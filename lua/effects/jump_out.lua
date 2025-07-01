@@ -9,12 +9,12 @@ function EFFECT:Init(data)
 
 	for i = 0, math.Clamp(entity:BoundingRadius() * 2, 10, 500) do
 		local position = Vector(math.Rand(low.x, high.x), math.Rand(low.y, high.y), math.Rand(low.z, high.z))
-		local particle = emitter:Add("effects/spark", postion)
+		local particle = emitter:Add("effects/spark", position)
 
 		if particle then
 			position:Negate()
-			postion:Add(origin)
-			postion:Mul(6)
+			position:Add(origin)
+			position:Mul(6)
 
 			particle:SetVelocity(position)
 			particle:SetLifeTime(0)
