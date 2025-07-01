@@ -92,7 +92,7 @@ function WireLib.GetWireMapInterfaceSubEntityBySpawnId(wireEntSpawnId)
 	end
 
 	local wireEnt = g_spawnIdRegisterBySpawnId[wireEntSpawnId]
-	if not IsValid(wireEnt) then
+	if wireEnt and not wireEnt:IsValid() then
 		g_spawnIdRegisterBySpawnId[wireEntSpawnId] = nil
 		CleanupRegister()
 
