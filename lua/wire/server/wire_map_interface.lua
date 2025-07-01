@@ -1,5 +1,4 @@
 -- Serverside functionalities of Wire Map Interface
-
 WireLib._WireMapInterfaceSpawnIdRegister = WireLib._WireMapInterfaceSpawnIdRegister or {}
 
 local g_spawnIdRegisterBySpawnId = WireLib._WireMapInterfaceSpawnIdRegister.bySpawnId or {}
@@ -143,5 +142,5 @@ end
 function WireLib.WireMapInterfaceValidateId(id)
 	id = tonumber(id)
 	if not id then return false end
-	return id==id and id >= -1 and id <= 0xFFFF
+	return id == id and id >= -1 and id <= 0xFFFF
 end
