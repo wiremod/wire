@@ -1,6 +1,7 @@
 -- Stuff that the entity gets for its wire stuff.
 
 local WireLib = WireLib
+local WireMapInterfaceLookup = WireLib.WireMapInterfaceLookup
 
 local WIREENT = {}
 
@@ -552,7 +553,7 @@ function WIREENT:_WMI_RemoveOverrides(interfaceEnt)
 	local spawnIdDuped = WIREENT._WMI_GetSpawnIdDuped(self, interfaceEnt)
 	local mapId = WIREENT._WMI_MapCreationIdDuped(self)
 
-	WireLib.UnregisterWireMapInterfaceSpawnId(spawnId, spawnIdDuped, mapId, self)
+	WireMapInterfaceLookup:remove(spawnId, spawnIdDuped, mapId, self)
 	WireLib.Remove(self)
 
 	if IsValid(interfaceEnt) then
@@ -616,8 +617,7 @@ function WIREENT:_WMI_OverrideEnt(interfaceEnt)
 	local mapId = WIREENT._WMI_MapCreationIdDuped(self)
 
 	self._WireMapInterfaceEnt_MapId = mapId
-
-	WireLib.RegisterWireMapInterfaceSpawnId(spawnId, spawnIdDuped, mapId, self)
+	WireMapInterfaceLookup:add(spawnId, spawnIdDuped, mapId, self)
 
 	local oldMembers = wmidata.oldMembers or {}
 	wmidata.oldMembers = oldMembers

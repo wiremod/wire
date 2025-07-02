@@ -853,13 +853,17 @@ local function LookupEntityByIdOrWmiId(entIdx, spawnId, GetEntByID)
 	-- because the linked entity might be not duplicatable, but still belongs to the contraption.
 	-- In this case lookup the entity in an additional list aswell. This fixes wire entities not connecting to Wire Map Interface entities on paste/startup.
 
-	ent = WireLib.GetWireMapInterfaceSubEntityBySpawnIdDuped(spawnId)
+	if not spawnId then
+		return nil
+	end
+
+	ent = WireLib.WireMapInterfaceLookup:getBySpawnIDDuped(spawnId)
 	if ent then
 		-- The spawnId is a custom id similar to ent:MapCreationID(), but it mostly survives duping.
 		return ent
 	end
 
-	ent = WireLib.GetWireMapInterfaceSubEntityBySpawnId(spawnId)
+	ent = WireLib.WireMapInterfaceLookup:getBySpawnID(spawnId)
 	if ent then
 		return ent
 	end

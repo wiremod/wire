@@ -1,6 +1,7 @@
 -- Dupe and save support and validation
 
 local WireLib = WireLib
+local WireMapInterfaceLookup = WireLib.WireMapInterfaceLookup
 
 local g_saveStateEntity = nil
 local g_mapName = nil
@@ -67,16 +68,20 @@ function ENT:GetSubEntityByIdCombo(entIdx, mapId, spawnId, createdEntities)
 	end
 
 	if not createdEntities or not IsValid(wireEnt) then
-		wireEnt = WireLib.GetWireMapInterfaceSubEntityBySpawnIdDuped(spawnId)
+		wireEnt = WireMapInterfaceLookup:getBySpawnIDDuped(spawnId)
 
 		if not IsValid(wireEnt) then
-			wireEnt = WireLib.GetWireMapInterfaceSubEntityByMapId(mapId, true)
+			wireEnt = WireMapInterfaceLookup:getByMapID(mapId)
 
 			if not IsValid(wireEnt) then
-				wireEnt = WireLib.GetWireMapInterfaceSubEntityBySpawnId(spawnId)
+				wireEnt = ents.GetMapCreatedEntity(mapId)
 
 				if not IsValid(wireEnt) then
-					return nil
+					wireEnt = WireMapInterfaceLookup:getBySpawnID(spawnId)
+
+					if not IsValid(wireEnt) then
+						return nil
+					end
 				end
 			end
 		end
