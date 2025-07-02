@@ -2,8 +2,7 @@
 
 local function validateId(id)
 	id = tonumber(id)
-	if not id then return false end
-	return id == id and id >= -1 and id <= 0xFFFF
+	return id ~= nil and id >= -1 and id <= 0xFFFF
 end
 
 WireLib.WireMapInterfaceValidateId = validateId
