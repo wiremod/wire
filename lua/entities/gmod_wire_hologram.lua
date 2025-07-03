@@ -22,6 +22,7 @@ end
 
 function ENT:SetPlayer(ply)
 	self:SetPlayerEnt(ply)
+	self:SetCreator(ply)
 	self.steamid = ply:SteamID()
 end
 
