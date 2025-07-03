@@ -909,7 +909,7 @@ function WireLib.BuildDupeInfo( Ent )
 
 						table.insert(info.Wires[portname].Path, {
 							Entity = vEntity:EntIndex(),
-							EntityWmiSpawnId = vEntityWmiSpawnId,
+							EntityWmiSpawnId = vEntity._IsWireMapInterfaceSubEntity and vEntity:_WMI_GetSpawnId() or nil,
 							Pos = v.Pos
 						})
 					end
