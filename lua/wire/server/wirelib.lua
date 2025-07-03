@@ -890,7 +890,7 @@ function WireLib.BuildDupeInfo( Ent )
 				Color = input.Color,
 				Width = input.Width,
 				Src = SrcEntity:EntIndex(),
-				SrcWmiSpawnId = wmiSpawnId,
+				SrcWmiSpawnId = SrcEntity._IsWireMapInterfaceSubEntity and SrcEntity:_WMI_GetSpawnId() or nil,
 				SrcId = input.SrcId,
 				SrcPos = Vector(0, 0, 0),
 			}
