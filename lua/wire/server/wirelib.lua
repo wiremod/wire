@@ -948,7 +948,7 @@ function WireLib.ApplyDupeInfo( ply, inputEnt, info, GetEntByID )
 		WireLib.CreateWirelinkOutput( ply, inputEnt, {true} ) -- old dupe compatibility; use the new function
 	end
 
-	if not info.Wires then
+	if not istable(info.Wires) then
 		return
 	end
 
