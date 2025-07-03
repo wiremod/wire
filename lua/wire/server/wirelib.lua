@@ -878,12 +878,7 @@ function WireLib.BuildDupeInfo( Ent )
 	for portname,input in pairs(Ent.Inputs) do
 		local SrcEntity = input.Src
 
-		if (IsValid(SrcEntity)) then
-			local wmiSpawnId = nil
-			if SrcEntity._IsWireMapInterfaceSubEntity then
-				wmiSpawnId = SrcEntity:_WMI_GetSpawnId()
-			end
-
+		if IsValid(SrcEntity) then
 			info.Wires[portname] = {
 				StartPos = input.StartPos,
 				Material = input.Material,
@@ -895,18 +890,13 @@ function WireLib.BuildDupeInfo( Ent )
 				SrcPos = Vector(0, 0, 0),
 			}
 
-			if (input.Path) then
+			if input.Path then
 				info.Wires[portname].Path = {}
 
 				for _,v in ipairs(input.Path) do
 					local vEntity = v.Entity
 
-					if (IsValid(vEntity)) then
-						local vEntityWmiSpawnId = nil
-						if vEntity._IsWireMapInterfaceSubEntity then
-							vEntityWmiSpawnId = vEntity:_WMI_GetSpawnId()
-						end
-
+					if IsValid(vEntity) then
 						table.insert(info.Wires[portname].Path, {
 							Entity = vEntity:EntIndex(),
 							EntityWmiSpawnId = vEntity._IsWireMapInterfaceSubEntity and vEntity:_WMI_GetSpawnId() or nil,
