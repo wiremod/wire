@@ -87,6 +87,7 @@ if SERVER then
 	include("wire/server/modelplug.lua")
 	include("wire/server/debuggerlib.lua")
 	include("wire/server/sents_registry.lua")
+	include("wire/server/wire_map_interface.lua")
 
 	if CreateConVar("wire_force_workshop", "1", FCVAR_ARCHIVE, "Should Wire force all clients to download the Workshop edition of Wire, for models? (requires restart to disable)"):GetBool() then
 		if select(2, WireLib.GetVersion()):find("Workshop", 1, true) then
