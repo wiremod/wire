@@ -262,7 +262,7 @@ end
 
 function ENT:OnReloaded()
 	-- Easier for debugging.
-	self:InitNetworking()
+	self.ShouldNetworkEntities = true
 	self:AttachToSaveStateEntity()
 end
 
