@@ -91,13 +91,6 @@ function ENT:NetworkWireEntities()
 
 	net.Send(recipientFilter)
 
-	PrintTable({
-		networkWireEntities = "networkWireEntities",
-		self = self,
-		recipientFilter = recipientFilter,
-		players = recipientFilter:GetPlayers() or "nil",
-	})
-
 	recipientFilter:RemoveAllPlayers()
 end
 
