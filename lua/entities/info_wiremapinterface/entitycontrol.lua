@@ -115,7 +115,7 @@ function ENT:AddSingleEntity(wireEnt)
 		self.WireEntsUpdated = true
 		self.WireEntsAdded = true
 
-		self.ShouldNetworkEntities = true
+		self:RequestNetworkEntities()
 		self.WireEntsSorted = nil
 		self.WireEntsCount = nil
 	end
@@ -213,7 +213,7 @@ function ENT:UnregisterWireEntityInternal(wireEnt)
 	self.WireEntsUpdated = true
 	self.WireEntsRemoved = true
 
-	self.ShouldNetworkEntities = true
+	self:RequestNetworkEntities()
 	self.WireEntsSorted = nil
 	self.WireEntsCount = nil
 

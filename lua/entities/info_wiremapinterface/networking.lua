@@ -2,19 +2,30 @@
 
 util.AddNetworkString("WireMapInterfaceEntities")
 
-local function resetNetworking()
+local function resetNetworking(ply)
 	local wireMapInterfaceEntities = ents.FindByClass("info_wiremapinterface")
 	for i, ent in ipairs(wireMapInterfaceEntities) do
 		local delay = 1 + i / 2
 
 		-- Trigger a networking call in a staggered + debounced matter.
-		ent.ShouldNetworkEntities = true
-		ent.NextNetworkTime = CurTime() + 1 + delay
+ 		local nextNetworkTime = math.max(ent.NextNetworkTime, CurTime() + delay)
+		ent:RequestNetworkEntities(ply, nextNetworkTime)
 	end
 end
 
-hook.Add("PlayerInitialSpawn", "WireMapInterface_PlayerInitialSpawn", resetNetworking)
-hook.Add("PostCleanupMap", "WireMapInterface_PostCleanupMap_SV", resetNetworking)
+gameevent.Listen("player_activate")
+hook.Add("player_activate", "WireMapInterface_PlayerActivate", function(data)
+	-- Make sure the newly spawned player is ready for networking.
+	-- Networking in PlayerInitialSpawn is said to be unreliable.
+
+	local ply = Player(data.userid)
+	resetNetworking(ply)
+end)
+
+hook.Add("PostCleanupMap", "WireMapInterface_PostCleanupMap_SV", function()
+	-- Reset networking on map clear. It repairs it in case it got desynced.
+	resetNetworking()
+end)
 
 function ENT:HandleShouldNetworkEntities()
 	if not self.ShouldNetworkEntities then
@@ -37,9 +48,32 @@ function ENT:HandleShouldNetworkEntities()
 	self.NextNetworkTime = now + self.MIN_THINK_TIME * 4
 end
 
+function ENT:RequestNetworkEntities(ply, networkAtTime)
+	self.ShouldNetworkEntities = true
+
+	if networkAtTime then
+		self.NextNetworkTime = networkAtTime
+	end
+
+	local recipientFilter = self.NetworkRecipientFilter
+
+	if not IsValid(ply) then
+		recipientFilter:AddAllPlayers()
+		return
+	end
+
+	recipientFilter:AddPlayer(ply)
+end
+
 function ENT:NetworkWireEntities()
 	-- Network the list and properties of the wire entities.
 	-- We need we know about them on the client. For cable rendering, tools etc.
+
+	local recipientFilter = self.NetworkRecipientFilter
+
+ 	if recipientFilter:GetCount() <= 0 then
+		return
+	end
 
 	net.Start("WireMapInterfaceEntities")
 
@@ -55,6 +89,15 @@ function ENT:NetworkWireEntities()
 		net.WriteUInt(wireEnt:EntIndex(), MAX_EDICT_BITS)
 	end
 
-	net.Broadcast()
+	net.Send(recipientFilter)
+
+	PrintTable({
+		networkWireEntities = "networkWireEntities",
+		self = self,
+		recipientFilter = recipientFilter,
+		players = recipientFilter:GetPlayers() or "nil",
+	})
+
+	recipientFilter:RemoveAllPlayers()
 end
 

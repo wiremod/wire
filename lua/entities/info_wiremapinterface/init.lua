@@ -254,6 +254,11 @@ function ENT:Initialize()
 
 	self.PortsUpdated = true
 
+	local recipientFilter = RecipientFilter()
+	recipientFilter:RemoveAllPlayers()
+
+	self.NetworkRecipientFilter = recipientFilter
+
 	self.NextNetworkTime = CurTime() + (1 + math.random() * 2) * (self.MIN_THINK_TIME * 4)
 
 	self:AddDupeHooks()
@@ -262,7 +267,7 @@ end
 
 function ENT:OnReloaded()
 	-- Easier for debugging.
-	self.ShouldNetworkEntities = true
+	self:RequestNetworkEntities()
 	self:AttachToSaveStateEntity()
 end
 
