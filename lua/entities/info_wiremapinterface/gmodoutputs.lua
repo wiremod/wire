@@ -39,7 +39,7 @@ function ENT:FireSingleOutput(outputName, output, activator, data)
 		end
 	end
 
-	if output.times ~= -1 then
+	if output.times > 0 then
 		output.times = output.times - 1
 	end
 
@@ -47,7 +47,8 @@ function ENT:FireSingleOutput(outputName, output, activator, data)
 		return false
 	end
 
-	return (output.times > 0) or (output.times == -1)
+	-- Less then 0 are valid to, e.g. unlimited times.
+	return output.times ~= 0
 end
 
 -- This function is used to trigger an output.
