@@ -34,14 +34,6 @@ function SWEP:SetupDataTables()
 	self:NetworkVar("Bool", 0, "LaserEnabled")
 end
 
-function SWEP:Initialize()
-	self.Pointing = false
-
-	if CLIENT then
-		self:Setup(self:GetOwner())
-	end
-end
-
 function SWEP:PrimaryAttack()
 	self.Pointing = not self.Pointing
 	self:SetLaserEnabled(self.Pointing)
