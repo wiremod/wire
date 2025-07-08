@@ -53,7 +53,7 @@ local function newPortRegister()
 		byName[name] = port
 		byUid[uid] = port
 
-		table.insert(sequence, port)
+		sequence[#sequence + 1] = port
 
 		local wire = this.wire
 		local names = wire.names
@@ -159,12 +159,12 @@ function ENT:GetPortUid(port)
 
 	table.Empty(g_hashTmp)
 
-	table.insert(g_hashTmp, "WMI_")
-	table.insert(g_hashTmp, self:GetCreationID())
-	table.insert(g_hashTmp, self:GetCreationTime())
-	table.insert(g_hashTmp, name)
-	table.insert(g_hashTmp, portId)
-	table.insert(g_hashTmp, portType)
+	g_hashTmp[1] = "WMI_"
+	g_hashTmp[2] = self:GetCreationID()
+	g_hashTmp[3] = self:GetCreationTime()
+	g_hashTmp[4] = name
+	g_hashTmp[5] = portId
+	g_hashTmp[6] = portType
 
 	return util.SHA1(table.concat(g_hashTmp, "_"))
 end
