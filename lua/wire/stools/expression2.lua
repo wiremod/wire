@@ -51,11 +51,11 @@ if SERVER then
 	end
 
 	function TOOL:PostMake(ent)
-		self:Upload(ent)
+		WireLib.Expression2Upload( self:GetOwner(), ent )
 	end
 
 	function TOOL:LeftClick_Update( trace )
-		self:Upload(trace.Entity)
+		WireLib.Expression2Upload( self:GetOwner(), trace.Entity )
 	end
 
 	function TOOL:Reload(trace)
@@ -214,36 +214,19 @@ if SERVER then
 		end
 	end)
 
-	function TOOL:Upload(ent)
-		WireLib.Expression2Upload( self:GetOwner(), ent )
-	end
-
 	function WireLib.Expression2Upload( ply, target, filepath )
 		if not IsValid( target ) then
 			error( "Invalid entity specified" )
 		end
 
 		if target.AwaitingUpload or target.Uploading then return end
-		target.AwaitingUpload = true
+		target.AwaitingUpload = ply
 
-		filepath = filepath or ""
 		net.Start("wire_expression2_tool_upload")
 			net.WriteUInt(target:EntIndex(), 16)
-			net.WriteUInt(#filepath, 32)
-			if #filepath>0 then net.WriteData(filepath, #filepath) end
-			net.WriteString( target.buffer and util.CRC( target.buffer ) or -1 ) -- send the hash so we know if there's any difference
+			net.WriteString( filepath or "" )
 		net.Send(ply)
 	end
-
-	net.Receive( "wire_expression2_tool_upload", function( _, ply )
-		local ent = Entity( net.ReadUInt( 16 ) )
-		if not IsValid( ent ) then return end
-
-		if ent:GetClass() ~= "gmod_wire_expression2" then return end
-		if not WireLib.CanTool(ply, ent, "wire_expression2") then return end
-
-		ent.AwaitingUpload = nil
-	end )
 
 	function TOOL:Download(ply, ent)
 		WireLib.Expression2Download(ply, ent, nil, true)
@@ -304,15 +287,7 @@ if SERVER then
 			net.Send(ply)
 
 			targetEnt.DownloadAllowedPlayers = targetEnt.DownloadAllowedPlayers or {}
-			targetEnt.DownloadAllowedPlayers[ply] = true
-			timer.Simple(60, function()
-				if IsValid(targetEnt) and targetEnt.DownloadAllowedPlayers then
-					targetEnt.DownloadAllowedPlayers[ply] = nil
-					if table.IsEmpty(targetEnt.DownloadAllowedPlayers) then
-						targetEnt.DownloadAllowedPlayers = nil
-					end
-				end
-			end)
+			targetEnt.DownloadAllowedPlayers[ply] = CurTime() + 60
 			return
 		end
 
@@ -342,7 +317,7 @@ if SERVER then
 	net.Receive("wire_expression2_download_wantedfiles", function(len, ply)
 		local toent = net.ReadEntity()
 
-		if not toent.DownloadAllowedPlayers or not toent.DownloadAllowedPlayers[ply] then return end
+		if not toent.DownloadAllowedPlayers or not toent.DownloadAllowedPlayers[ply] or toent.DownloadAllowedPlayers[ply] < CurTime() then return end
 
 		local uploadandexit = net.ReadBit() ~= 0
 
@@ -377,7 +352,7 @@ if SERVER then
 			return
 		end
 
-		if not toent.AwaitingUpload then
+		if toent.AwaitingUpload ~= ply then
 			WireLib.AddNotify(ply, "This Expression chip is not awaiting an upload. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
@@ -391,7 +366,7 @@ if SERVER then
 
 		net.ReadStream(ply, function(data)
 			if not IsValid(toent) then return end
-			toent.Uploading = nil
+            toent.Uploading = true
 
 			local ok, ret = pcall(WireLib.von.deserialize, data)
 			if not ok then
@@ -598,17 +573,20 @@ if CLIENT then
 	-- Clientside Send
 	local uploadQueue = {}
 	local uploading = false
-	local function uploadNext()
-		if uploading then return end
-
-		local targetEntID, datastr = next(uploadQueue)
-		if not targetEntID then return end
+	local function uploadNext(targetEntID, datastr)
+        if targetEntID then
+		    if uploading then table.insert(uploadQueue, {targetEntID, datastr}) return end
+        elseif uploadQueue[1] then
+            if uploading then return end
+		    targetEntID, datastr = unpack(table.remove(uploadQueue, 1))
+		else
+            return
+        end
 
 		uploading = true
 		net.Start( "wire_expression2_upload" )
 			net.WriteUInt( targetEntID, 16 )
 			net.WriteStream( datastr, function()
-				uploadQueue[targetEntID] = nil
 				uploading = false
 				uploadNext()
 			end )
@@ -630,6 +608,14 @@ if CLIENT then
 			WireLib.AddNotify("You're already uploading that E2!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
 			return
 		end
+
+        if filepath then
+            code = file.Read(filepath)
+            if not code then
+                WireLib.AddNotify("Unable to read requested filepath! "..tostring(filepath), NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+                return
+            end
+        end
 
 		if not code and not wire_expression2_editor then return end -- If the player leftclicks without opening the editor or cpanel (first spawn)
 		code = code or wire_expression2_editor:GetCode()
@@ -661,31 +647,14 @@ if CLIENT then
 			datastr = WireLib.von.serialize({ code, {}, filepath })
 		end
 
-		uploadQueue[targetEntID] = datastr
-		uploadNext()
+		uploadNext(targetEntID, datastr)
 	end
 
 	net.Receive("wire_expression2_tool_upload", function(len, ply)
 		local entIndex = net.ReadUInt(16)
 		local filepathlen = net.ReadUInt(32)
-		local filepath = filepathlen>0 and net.ReadData(filepathlen) or ""
-		local hash = net.ReadString()
-		if filepath ~= "" then
-			if filepath and file.Exists(filepath, "DATA") then
-				local str = file.Read(filepath)
-				local strhash = util.CRC(str)
-
-				if hash ~= strhash then -- Only upload if we need to
-					WireLib.Expression2Upload(entIndex,str,filepath)
-				else
-					net.Start("wire_expression2_tool_upload")
-						net.WriteUInt(entIndex, 16)
-					net.SendToServer()
-				end
-			end
-		else
-			WireLib.Expression2Upload(entIndex)
-		end
+		local filepath = net.ReadString()
+        WireLib.Expression2Upload(entIndex, filepath ~= "" and filepath or nil)
 	end)
 
 	--------------------------------------------------------------
