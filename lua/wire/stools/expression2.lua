@@ -366,7 +366,7 @@ if SERVER then
 
 		net.ReadStream(ply, function(data)
 			if not IsValid(toent) then return end
-            toent.Uploading = true
+            toent.Uploading = nil
 
 			local ok, ret = pcall(WireLib.von.deserialize, data)
 			if not ok then
