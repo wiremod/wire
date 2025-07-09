@@ -318,6 +318,7 @@ if SERVER then
 		local toent = net.ReadEntity()
 
 		if not toent.DownloadAllowedPlayers or not toent.DownloadAllowedPlayers[ply] or toent.DownloadAllowedPlayers[ply] < CurTime() then return end
+		toent.DownloadAllowedPlayers[ply] = nil
 
 		local uploadandexit = net.ReadBit() ~= 0
 
