@@ -652,7 +652,6 @@ if CLIENT then
 
 	net.Receive("wire_expression2_tool_upload", function(len, ply)
 		local entIndex = net.ReadUInt(16)
-		local filepathlen = net.ReadUInt(32)
 		local filepath = net.ReadString()
         WireLib.Expression2Upload(entIndex, filepath ~= "" and filepath or nil)
 	end)
