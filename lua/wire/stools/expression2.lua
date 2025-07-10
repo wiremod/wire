@@ -367,7 +367,7 @@ if SERVER then
 
 		net.ReadStream(ply, function(data)
 			if not IsValid(toent) then return end
-            toent.Uploading = nil
+			toent.Uploading = nil
 
 			local ok, ret = pcall(WireLib.von.deserialize, data)
 			if not ok then
@@ -575,14 +575,14 @@ if CLIENT then
 	local uploadQueue = {}
 	local uploading = false
 	local function uploadNext(targetEntID, datastr)
-        if targetEntID then
-		    if uploading then table.insert(uploadQueue, {targetEntID, datastr}) return end
-        elseif uploadQueue[1] then
-            if uploading then return end
-		    targetEntID, datastr = unpack(table.remove(uploadQueue, 1))
+		if targetEntID then
+			if uploading then table.insert(uploadQueue, {targetEntID, datastr}) return end
+		elseif uploadQueue[1] then
+			if uploading then return end
+			targetEntID, datastr = unpack(table.remove(uploadQueue, 1))
 		else
-            return
-        end
+			return
+		end
 
 		uploading = true
 		net.Start( "wire_expression2_upload" )
@@ -610,13 +610,13 @@ if CLIENT then
 			return
 		end
 
-        if filepath then
-            code = file.Read(filepath)
-            if not code then
-                WireLib.AddNotify("Unable to read requested filepath! "..tostring(filepath), NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
-                return
-            end
-        end
+		if filepath then
+			code = file.Read(filepath)
+			if not code then
+				WireLib.AddNotify("Unable to read requested filepath! "..tostring(filepath), NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+				return
+			end
+		end
 
 		if not code and not wire_expression2_editor then return end -- If the player leftclicks without opening the editor or cpanel (first spawn)
 		code = code or wire_expression2_editor:GetCode()
@@ -654,7 +654,7 @@ if CLIENT then
 	net.Receive("wire_expression2_tool_upload", function(len, ply)
 		local entIndex = net.ReadUInt(16)
 		local filepath = net.ReadString()
-        WireLib.Expression2Upload(entIndex, nil, filepath ~= "" and filepath or nil)
+		WireLib.Expression2Upload(entIndex, nil, filepath ~= "" and filepath or nil)
 	end)
 
 	--------------------------------------------------------------
