@@ -9,33 +9,26 @@ SWEP.DrawCrosshair = true
 local color_red = Color(255, 0, 0)
 local laser = Material("cable/redlaser")
 
-function SWEP:Setup(ply)
-	if ply:IsValid() then
-		local viewmodel = ply:GetViewModel()
-		if not viewmodel:IsValid() then return end
-
-		local attachmentIndex = viewmodel:LookupAttachment("muzzle")
-		if attachmentIndex == 0 then attachmentIndex = viewmodel:LookupAttachment("1") end
-
-		if LocalPlayer():GetAttachment(attachmentIndex) then
-			self.VM = viewmodel
-			self.Attach = attachmentIndex
-		end
-	end
+-- Scale screen coords by linear proportion of viewmodel and world fov
+local function WorldToViewModel(point)
+	local view = render.GetViewSetup()
+	local factor = math.tan(math.rad(view.fovviewmodel_unscaled) * 0.5) / math.tan(math.rad(view.fov_unscaled) * 0.5)
+	point = WorldToLocal(point, angle_zero, view.origin, view.angles)
+	point:Mul(Vector(1, factor, factor))
+	point = LocalToWorld(point, angle_zero, view.origin, view.angles)
+	return point
 end
 
-function SWEP:Initialize()
-	self:Setup(self:GetOwner())
-end
+function SWEP:PostDrawViewModel(vm, wep, ply)
+	if self:GetLaserEnabled() then
+		local att = vm:GetAttachment(vm:LookupAttachment("muzzle") or 0)
+		if not att then return end
 
-function SWEP:Deploy()
-	self:Setup(self:GetOwner())
-end
+		local startpos = WorldToViewModel(att.Pos)
+		local endpos = ply:GetEyeTrace().HitPos
 
-function SWEP:ViewModelDrawn()
-	if self:GetLaserEnabled() and self.VM then
 		render.SetMaterial(laser)
-		render.DrawBeam(self.VM:GetAttachment(self.Attach).Pos, self:GetOwner():GetEyeTrace().HitPos, 2, 0, 12.5, color_red)
+		render.DrawBeam(startpos, endpos, 2, 0, 12.5, color_red)
 	end
 end
 
