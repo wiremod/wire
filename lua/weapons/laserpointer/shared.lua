@@ -62,12 +62,12 @@ function SWEP:SecondaryAttack()
 		if SERVER then
 			self.Receiver = trace.Entity
 			owner:PrintMessage(HUD_PRINTTALK, "Linked Successfully!")
-		elseif (CLIENT or singleplayer) and IsFirstTimePredicted() then
+		elseif CLIENT or singleplayer then
 			self:EmitSound("buttons/bell1.wav")
 		end
 
 		return true
-	elseif (CLIENT or singleplayer) and IsFirstTimePredicted() then
+	elseif CLIENT or singleplayer then
 		self:EmitSound("buttons/button16.wav", 100, 50, 0.5)
 	end
 end
