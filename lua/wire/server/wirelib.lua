@@ -1232,179 +1232,93 @@ function WireLib.IsValidMaterial(material)
 	return material
 end
 
-local ENTITY = FindMetaTable("Entity")
+local zero = Vector(0, 0, 0)
+local norm = Vector(1, 0, 0)
 
-if CPPI and ENTITY.CPPICanTool then
-	--- Returns if given player can tool the given entity.
-	---@param player Player
-	---@param entity Entity
-	---@param toolname string
-	function WireLib.CanTool(player, entity, toolname) ---@return boolean
-		return entity:CPPICanTool(player, toolname)
-	end
-else
-	local zero = Vector(0, 0, 0)
-	local norm = Vector(1, 0, 0)
+local tr = { ---@type TraceResult
+	Hit = true, HitNonWorld = true, HitNoDraw = false, HitSky = false, AllSolid = true,
+	HitNormal = zero, Normal = norm,
 
-	local tr = { ---@type TraceResult
-		Hit = true, HitNonWorld = true, HitNoDraw = false, HitSky = false, AllSolid = true,
-		HitNormal = zero, Normal = norm,
+	Fraction = 1, FractionLeftSolid = 0,
+	HitBox = 0, HitGroup = 0, HitTexture = "**studio**",
+	MatType = 0, PhysicsBone = 0, SurfaceProps = 0, DispFlags = 0, Contents = 0,
 
-		Fraction = 1, FractionLeftSolid = 0,
-		HitBox = 0, HitGroup = 0, HitTexture = "**studio**",
-		MatType = 0, PhysicsBone = 0, SurfaceProps = 0, DispFlags = 0, Contents = 0,
+	Entity = NULL, HitPos = zero, StartPos = zero,
+}
 
-		Entity = NULL, HitPos = zero, StartPos = zero,
-	}
+--- Returns if given player can tool the given entity.
+---@param player Player
+---@param entity Entity
+---@param toolname string
+function WireLib.CanTool(player, entity, toolname) ---@return boolean
+	local pos = entity:GetPos()
+	tr.Entity, tr.HitPos, tr.StartPos = entity, pos, pos
+	return hook.Run("CanTool", player, tr, toolname) ~= false
+end
 
-	--- Returns if given player can tool the given entity.
-	---@param player Player
-	---@param entity Entity
-	---@param toolname string
-	function WireLib.CanTool(player, entity, toolname) ---@return boolean
-		local pos = entity:GetPos()
-		tr.Entity, tr.HitPos, tr.StartPos = entity, pos, pos
-		return hook.Run("CanTool", player, tr, toolname) ~= false
+--- Returns if given player can physgun the given entity.
+---@param player Player
+---@param target Entity
+function WireLib.CanPhysgun(player, target) ---@return boolean
+	return hook.Run("PhysgunPickup", player, target) ~= false
+end
+
+--- Returns if given player can pickup the given entity.
+---@param player Player
+---@param target Entity
+function WireLib.CanPickup(player, target) ---@return boolean
+	return hook.Run("GravGunPickupAllowed", player, target) ~= false
+end
+
+--- Returns if given player can punt the given entity.
+---@param player Player
+---@param target Entity
+function WireLib.CanPunt(player, target) ---@return boolean
+	return hook.Run("GravGunPunt", player, target) ~= false
+end
+
+--- Returns if given player can use the given entity.
+---@param player Player
+---@param target Entity
+function WireLib.CanUse(player, target) ---@return boolean
+	return hook.Run("PlayerUse", player, target) ~= false
+end
+
+--- Returns if given player can damage the given entity.
+--- Uses PlayerShouldTakeDamage for players, CanTool for entities.
+---@param player Player
+---@param target Entity
+function WireLib.CanDamage(player, target) ---@return boolean
+	if target:IsPlayer() then
+		return hook.Run("PlayerShouldTakeDamage", target, player) ~= false
+	else
+		return WireLib.CanTool(player, target, "")
 	end
 end
 
-if CPPI and ENTITY.CPPICanPhysgun then
-	--- Returns if given player can physgun the given entity.
-	---@param player Player
-	---@param target Entity
-	function WireLib.CanPhysgun(player, target) ---@return boolean
-		return target:CPPICanPhysgun(player)
-	end
-else
-	--- Returns if given player can physgun the given entity.
-	---@param player Player
-	---@param target Entity
-	function WireLib.CanPhysgun(player, target) ---@return boolean
-		return hook.Run("PhysgunPickup", player, target) ~= false
-	end
+--- Returns if given player can prop drive the given entity.
+---@param player Player
+---@param target Entity
+function WireLib.CanDrive(player, target) ---@return boolean
+	return hook.Run("CanDrive", player, target) ~= false
 end
 
-if CPPI and ENTITY.CPPICanPickup then
-	--- Returns if given player can pickup the given entity.
-	---@param player Player
-	---@param target Entity
-	function WireLib.CanPickup(player, target) ---@return boolean
-		return target:CPPICanPickup(player)
-	end
-else
-	--- Returns if given player can pickup the given entity.
-	---@param player Player
-	---@param target Entity
-	function WireLib.CanPickup(player, target) ---@return boolean
-		return hook.Run("GravGunPickupAllowed", player, target) ~= false
-	end
+--- Returns if the player can apply the given property to the target.
+---@param player Player
+---@param target Entity
+---@param property string
+function WireLib.CanProperty(player, target, property) ---@return boolean
+	return hook.Run("CanProperty", player, property, target) ~= false
 end
 
-if CPPI and ENTITY.CPPICanPunt then
-	--- Returns if given player can punt the given entity.
-	---@param player Player
-	---@param target Entity
-	function WireLib.CanPunt(player, target) ---@return boolean
-		return target:CPPICanPunt(player)
-	end
-else
-	--- Returns if given player can punt the given entity.
-	---@param player Player
-	---@param target Entity
-	function WireLib.CanPunt(player, target) ---@return boolean
-		return hook.Run("GravGunPunt", player, target) ~= false
-	end
-end
-
-if CPPI and ENTITY.CPPICanUse then
-	--- Returns if given player can use the given entity.
-	---@param player Player
-	---@param target Entity
-	function WireLib.CanUse(player, target) ---@return boolean
-		return target:CPPICanUse(player)
-	end
-else
-	--- Returns if given player can use the given entity.
-	---@param player Player
-	---@param target Entity
-	function WireLib.CanUse(player, target) ---@return boolean
-		return hook.Run("PlayerUse", player, target) ~= false
-	end
-end
-
-if CPPI and ENTITY.CPPICanDamage then
-	--- Returns if given player can damage the given entity.
-	---@param player Player
-	---@param target Entity
-	function WireLib.CanDamage(player, target) ---@return boolean
-		return target:CPPICanDamage(player)
-	end
-else
-	--- Returns if given player can damage the given entity.
-	--- Uses PlayerShouldTakeDamage for players, CanTool for entities.
-	---@param player Player
-	---@param target Entity
-	function WireLib.CanDamage(player, target) ---@return boolean
-		if target:IsPlayer() then
-			return hook.Run("PlayerShouldTakeDamage", target, player) ~= false
-		else
-			return WireLib.CanTool(player, target, "")
-		end
-	end
-end
-
-if CPPI and ENTITY.CPPIDrive then -- why is this not CPPICanDrive?
-	--- Returns if given player can prop drive the given entity.
-	---@param player Player
-	---@param target Entity
-	function WireLib.CanDrive(player, target) ---@return boolean
-		return target:CPPIDrive(player)
-	end
-else
-	--- Returns if given player can prop drive the given entity.
-	---@param player Player
-	---@param target Entity
-	function WireLib.CanDrive(player, target) ---@return boolean
-		return hook.Run("CanDrive", player, target) ~= false
-	end
-end
-
-if CPPI and ENTITY.CPPICanProperty then
-	--- Returns if the player can apply the given property to the target.
-	---@param player Player
-	---@param target Entity
-	---@param property string
-	function WireLib.CanProperty(player, target, property) ---@return boolean
-		return target:CPPICanProperty(player, property)
-	end
-else
-	--- Returns if the player can apply the given property to the target.
-	---@param player Player
-	---@param target Entity
-	---@param property string
-	function WireLib.CanProperty(player, target, property) ---@return boolean
-		return hook.Run("CanProperty", player, property, target) ~= false
-	end
-end
-
-if CPPI and ENTITY.CPPICanEditVariable then
-	--- Returns if the player can modify the target's editable values.
-	---@param self Entity
-	---@param ply Player
-	---@param key string
-	---@param val string
-	---@param editor table
-	WireLib.CanEditVariable = ENTITY.CPPICanEditVariable ---@return boolean
-else
-	--- Returns if the player can modify the target's editable values.
-	---@param self Entity
-	---@param ply Player
-	---@param key string
-	---@param val string
-	---@param editor table
-	function WireLib.CanEditVariable(self, ply, key, val, editor) ---@return boolean
-		return hook.Run("CanEditVariable", self, ply, key, val, editor) ~= false
-	end
+--- Returns if the player can modify the target's editable values.
+---@param self Entity
+---@param ply Player
+---@param key string
+---@param val string
+---@param editor table
+function WireLib.CanEditVariable(self, ply, key, val, editor) ---@return boolean
+	return hook.Run("CanEditVariable", self, ply, key, val, editor) ~= false
 end
 
 function WireLib.SetColor(ent, color)
