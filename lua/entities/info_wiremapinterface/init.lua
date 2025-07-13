@@ -33,6 +33,7 @@ ENT.DoNotDuplicate = true
 ENT.IsWireMapInterface = nil
 
 if not WireAddon then
+	-- Avoids problems with early map spawned entities in case Wiremod fails to load.
 	return
 end
 

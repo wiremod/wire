@@ -1,12 +1,6 @@
 -- Clientside functionalities of Wire Map Interface
 -- This is mostly for predection and rendering
 
-local WIRE_CLIENT_INSTALLED = WIRE_CLIENT_INSTALLED
-
-if not WIRE_CLIENT_INSTALLED then
-	return
-end
-
 local g_wireTools = {
 	"wire",
 	"wire_adv",
