@@ -39,7 +39,9 @@ function SWEP:PrimaryAttack()
 		if SERVER and gamemode.Call("PlayerUse", ply, ent) then
 			self.Linked = ent
 			ply:ChatPrint("Remote Controller linked.")
-		elseif CLIENT or game.SinglePlayer() then
+		end
+
+		if CLIENT or game.SinglePlayer() then
 			self:EmitSound("buttons/bell1.wav")
 		end
 	elseif CLIENT or game.SinglePlayer() then

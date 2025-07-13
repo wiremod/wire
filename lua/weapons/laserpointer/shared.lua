@@ -42,7 +42,7 @@ function SWEP:PrimaryAttack()
 		local pitch = self.Pointing and 120 or 80
 		self:EmitSound("ambient/energy/newspark03.wav", 100, pitch, 0.5)
 
-		return
+		if CLIENT then return end
 	end
 
 	if self.Pointing and IsValid(self.Receiver) then
@@ -62,7 +62,9 @@ function SWEP:SecondaryAttack()
 		if SERVER then
 			self.Receiver = trace.Entity
 			owner:PrintMessage(HUD_PRINTTALK, "Linked Successfully!")
-		elseif CLIENT or singleplayer then
+		end
+
+		if CLIENT or singleplayer then
 			self:EmitSound("buttons/bell1.wav")
 		end
 
