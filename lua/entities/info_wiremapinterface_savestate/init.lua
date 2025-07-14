@@ -1,5 +1,5 @@
 -- This is a helper entity to store save state data wire map interface entities. (info_wiremapinterface_savestate)
--- Only one per map will be spawned during run time. This is needed because info_wiremapinterface can not and also should not be duplicated/saved.
+-- Only one per map will be spawned during run time. This is needed because info_wiremapinterface can not and also must not be duplicated/saved.
 -- When a game is saved, this entity will be save along with it.
 -- When the entity is restored, it deploys its saved data to all interface entities it knows about.
 
@@ -11,6 +11,11 @@ ENT.AdminOnly = true
 
 -- Needed for save game support
 ENT.DisableDuplicator = false
+
+-- This entity is for saves only.
+-- So block all tools, especially dublicator tools and its area copy feature.
+-- This entity not traceable nor visible, so other tools would not matter.
+ENT.m_tblToolsAllowed = {}
 
 local g_SaveStateEntity = nil
 local g_interfaceEntities = {}
@@ -181,27 +186,3 @@ function ENT:PostEntityPaste(ply, ent, createdEntities)
 	end
 end
 
-local g_wireMapInterfaceSaveStateTimer = "WireMapInterface_SaveState_CanTool_Timer"
-
-function ENT:CanTool()
-	-- This is for saves only.
-	-- Stop dublicator tools for doing weird stuff. Such as area copy.
-
-	-- Block dublicator tools.
-	self.DoNotDuplicate = true
-
-	timer.Remove(g_wireMapInterfaceSaveStateTimer)
-	timer.Create(g_wireMapInterfaceSaveStateTimer, 0.01, 1, function()
-		timer.Remove(g_wireMapInterfaceSaveStateTimer)
-
-		if not IsValid(self) then
-			return
-		end
-
-		-- Revert shortly after, so save games still work.
-		self.DoNotDuplicate = false
-	end)
-
-	-- Other Tools can not access this entity anyway as it is not a traceable entity
-	return false
-end
