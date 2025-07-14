@@ -34,15 +34,18 @@ function TOOL:RightClick( trace )
 			return false
 		end
 	else
-		if (self.Target == ent or ent:IsWorld()) then
-			self:GetOwner():ChatPrint("Holoemitter unlinked.")
-			self.Target:UnLink()
-			self:SetStage(0)
-			return true
-		end
-		self.Target:Link( ent )
 		self:SetStage(0)
-		self:GetOwner():ChatPrint( "Holoemitter linked to entity (".. tostring(ent)..")" )
+
+		if IsValid(self.Target) then
+			if self.Target == ent or ent:IsWorld() then
+				self:GetOwner():ChatPrint("Holoemitter unlinked.")
+				self.Target:UnLink()
+				return true
+			end
+
+			self.Target:Link(ent)
+			self:GetOwner():ChatPrint( "Holoemitter linked to entity (".. tostring(ent)..")" )
+		end
 	end
 
 	return true
