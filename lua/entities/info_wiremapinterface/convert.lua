@@ -8,11 +8,7 @@ local function isEqualList(_, listA, listB)
 		return true
 	end
 
-	if listA == nil then
-		return false
-	end
-
-	if listB == nil then
+	if not listA or not listB then
 		return false
 	end
 
@@ -36,11 +32,7 @@ local function isEqualGeneric(_, varA, varB)
 end
 
 local function isEqualEntity(_, entA, entB)
-	if not IsValid(entA) then
-		return false
-	end
-
-	if not IsValid(entB) then
+	if not IsValid(entA) or not IsValid(entB) then
 		return false
 	end
 
