@@ -37,14 +37,11 @@ if not WireAddon then
 	return
 end
 
-include("convert.lua")
-include("entitycontrol.lua")
-include("entityoverride.lua")
-include("gmodoutputs.lua")
-include("io.lua")
-include("networking.lua")
-include("savestate.lua")
+-- Make sure there is no way to mess around with tools, especially dublicator tools.
+-- This entity not traceable nor visible, so tools would not matter.
+ENT.m_tblToolsAllowed = {}
 
+-- Esay way to check if it is a wire map interface.
 ENT.IsWireMapInterface = true
 
 -- This entity supports more than the 8 ports you see in the editor. This value is the port limit.
@@ -52,6 +49,14 @@ ENT.MAX_PORTS = 255
 
 -- Minimum delay between think calls.
 ENT.MIN_THINK_TIME = 0.25
+
+include("convert.lua")
+include("entitycontrol.lua")
+include("entityoverride.lua")
+include("gmodoutputs.lua")
+include("io.lua")
+include("networking.lua")
+include("savestate.lua")
 
 local cvar_allow_interface = CreateConVar(
 	"sv_wire_mapinterface",
@@ -609,13 +614,6 @@ function ENT:Think()
 
 	self:NextThink(CurTime() + self.MIN_THINK_TIME)
 	return true
-end
-
-function ENT:CanTool()
-	-- Make sure there is no way to mess around with tools on this entity.
-	-- It is not a traceable entity.
-
-	return false
 end
 
 function ENT:OnRemove()
