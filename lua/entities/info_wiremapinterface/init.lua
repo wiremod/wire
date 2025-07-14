@@ -306,9 +306,7 @@ function ENT:IsLuaRunEntity(ent)
 end
 
 function ENT:ProtectAgainstDangerousIO(targetEnt, outputName, output, data)
-	local outputNameLower = string.lower(outputName)
-
-	if not string.StartsWith(outputNameLower, "onwireinput") then
+	if not string.StartsWith(string.lower(outputName), "onwireinput") then
 		-- This protection is only relevant for Hammer outputs linked to Wire inputs.
 		return true
 	end
