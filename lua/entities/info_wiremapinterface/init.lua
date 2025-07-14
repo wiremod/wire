@@ -211,39 +211,51 @@ function ENT:CheckPortIdLimit(portId, warn)
 	return true
 end
 
+-- Protect in-/output entities from non-wire tools
 function ENT:FlagGetProtectFromTools()
 	if not self:CreatedByMap() then
+		-- Prevent abuse by runtime-spawned instances.
 		return false
 	end
 
 	local flags = self:GetSpawnFlags()
-	return bit.band(flags, 1) == 1 -- Protect in-/output entities from non-wire tools
+	return bit.band(flags, 1) == 1
 end
 
+-- Protect in-/output entities from the physgun
 function ENT:FlagGetProtectFromPhysgun()
 	if not self:CreatedByMap() then
 		return false
 	end
 
 	local flags = self:GetSpawnFlags()
-	return bit.band(flags, 2) == 2 -- Protect in-/output entities from the physgun
+	return bit.band(flags, 2) == 2
 end
 
+-- Remove in-/output entities on remove
 function ENT:FlagGetRemoveEntities()
+	if not self:CreatedByMap() then
+		return false
+	end
+
 	local flags = self:GetSpawnFlags()
-	return bit.band(flags, 4) == 4 -- Remove in-/output entities on remove
+	return bit.band(flags, 4) == 4
 end
 
--- Note: bit.band(flags, 8) == 8 Was used for running lua code. It must be left unused as could cause unexpected side effects on older maps.
+-- Note:
+--   bit.band(flags, 8) == 8 Was used for running lua code.
+--   It must be left unused as it could cause unexpected side effects on older maps.
 
+-- Start Active
 function ENT:FlagGetStartActive()
 	local flags = self:GetSpawnFlags()
-	return bit.band(flags, 16) == 16 -- Start Active
+	return bit.band(flags, 16) == 16
 end
 
+-- Render wires clientside
 function ENT:FlagGetRenderWires()
 	local flags = self:GetSpawnFlags()
-	return bit.band(flags, 32) == 32 -- Start Active
+	return bit.band(flags, 32) == 32
 end
 
 function ENT:Initialize()
@@ -621,7 +633,9 @@ function ENT:OnRemove()
 
 	if self:FlagGetRemoveEntities() then
 		for _, wireEnt in ipairs(wireEnts) do
-			SafeRemoveEntity(wireEnt)
+			if wireEnt:IsValid() and not wireEnt:IsMarkedForDeletion() and wireEnt:CreatedByMap() then
+				wireEnt:Remove()
+			end
 		end
 	else
 		self:RemoveAllEntities()
