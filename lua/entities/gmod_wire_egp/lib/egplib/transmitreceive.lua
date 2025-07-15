@@ -401,14 +401,14 @@ else -- SERVER/CLIENT
 			local text = net.ReadString()
 			local bool,_,v = hasObject(Ent, index)
 			if (bool) then
-				if (EGP:EditObject( v, { text = text } )) then Ent:EGP_Update() end
+				if v:Set("text", text) then Ent:EGP_Update() end
 			end
 		elseif (Action == "AddText") then
 			local index = net.ReadInt(16)
 			local text = net.ReadString()
 			local bool,_,v = hasObject(Ent, index)
 			if (bool) then
-				if (EGP:EditObject( v, { text = v.text .. text } )) then Ent:EGP_Update() end
+				if v:Set("text", v.text .. text) then Ent:EGP_Update() end
 			end
 		elseif (Action == "SetVertex") then
 			local index = net.ReadInt(16)
@@ -448,7 +448,7 @@ else -- SERVER/CLIENT
 					end
 				end
 
-				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
+				if v:Set("vertices", vertices) then Ent:EGP_Update() end
 			end
 		elseif (Action == "EditFiltering") then
 			if Ent.GPU then -- Only Screens use GPULib
