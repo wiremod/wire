@@ -196,7 +196,7 @@ function PANEL:SetupSearchbox()
 	function searchbox:PerformLayout(w, h)
 		performLayoutOld(self, w, h)
 		clearsearch:SetSize(16, 16)
-		clearsearch:SetPos(self:GetWide() - 16 - 1, h / 2 - 8)
+		clearsearch:SetPos(self:GetWide() - 16 - 2, h / 2 - 8)
 	end
 
 	function clearsearch:DoClick()
