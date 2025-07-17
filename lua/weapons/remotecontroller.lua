@@ -2,9 +2,10 @@ AddCSLuaFile()
 
 SWEP.Author = "Divran" -- Originally by ShaRose, rewritten by Divran at 2011-04-03
 SWEP.Contact = ""
-SWEP.Purpose = "Remote control for Pod Controllers in wire."
-SWEP.Instructions = "Left Click on Pod Controller to link up, and use to start controlling."
+SWEP.Purpose = "Remote control for Pod Controllers in Wiremod."
+SWEP.Instructions = "Left click on a Pod Controller to link up, and use to start controlling."
 SWEP.Category = "Wiremod"
+SWEP.IconOverride = "entities/weapon_pistol.png"
 
 SWEP.PrintName = "Remote Control"
 SWEP.Slot = 0
@@ -24,19 +25,33 @@ SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
 SWEP.Secondary.Ammo = "none"
-SWEP.viewModel = "models/weapons/v_pistol.mdl"
-SWEP.worldModel = "models/weapons/w_pistol.mdl"
 
-if CLIENT then return end
+SWEP.UseHands = true
+SWEP.ViewModel = "models/weapons/c_pistol.mdl"
+SWEP.WorldModel = "models/weapons/w_pistol.mdl"
 
 function SWEP:PrimaryAttack()
 	local ply = self:GetOwner()
 	local trace = ply:GetEyeTrace()
-	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_pod" and gamemode.Call("PlayerUse", ply, trace.Entity) then
-		self.Linked = trace.Entity
-		ply:ChatPrint("Remote Controller linked.")
+	local ent = trace.Entity
+
+	if IsValid(ent) and ent:GetClass() == "gmod_wire_pod" then
+		if SERVER and gamemode.Call("PlayerUse", ply, ent) then
+			self.Linked = ent
+			ply:ChatPrint("Remote Controller linked.")
+		end
+
+		if CLIENT or game.SinglePlayer() then
+			self:EmitSound("buttons/bell1.wav")
+		end
+	elseif CLIENT or game.SinglePlayer() then
+		self:EmitSound("buttons/button16.wav", 100, 50)
 	end
 end
+
+function SWEP:SecondaryAttack() end
+
+if CLIENT then return end
 
 function SWEP:Holster()
 	local ply = self:GetOwner()
@@ -113,4 +128,3 @@ end
 hook.Add("PlayerNoClip", "wire_remotecontroller_antinoclip", function(ply, cmd)
 	if ply.using_wire_remote_control then return false end
 end)
-
