@@ -32,13 +32,13 @@ end
 
 -- Allow to specify the description and type, like "Name (Description) [TYPE]"
 local function ParsePortName(namedesctype, fbtype, fbdesc)
-	local namedesc, tp = namedesctype:match("^(.+) %[(.+)%]$")
+	local namedesc, tp = string.match(namedesctype, "^(.+) %[(.+)%]$")
 	if not namedesc then
 		namedesc = namedesctype
 		tp = fbtype
 	end
 
-	local name, desc = namedesc:match("^(.+) %((.*)%)$")
+	local name, desc = string.match(namedesc, "^(.+) %((.*)%)$")
 	if not name then
 		name = namedesc
 		desc = fbdesc
