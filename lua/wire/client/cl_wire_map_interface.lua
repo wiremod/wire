@@ -1,89 +1,235 @@
--- The client part of the wire map interface.
--- It's for the clientside wire ports adding and removing, also for the rendering stuff.
--- It's in in this folder, because point entities are serverside only.
+-- Clientside functionalities of Wire Map Interface
+-- This is mostly for predection and rendering
 
--- Removing wire stuff and other changes that were done.
-local OverRiddenEnts = {}
-local function RemoveWire(Entity)
-	if (not IsValid(Entity)) then return end
+local g_wireTools = {
+	"wire",
+	"wire_adv",
+	"wire_debugger",
+	"wire_wirelink",
+	"multi_wire",
+}
 
-	local ID = Entity:EntIndex()
+local g_wiredEntities = {}
+local g_wiredEntitiesRemove = {}
+local g_nextThink = 0
+local g_hooksAdded = false
 
-	Entity._NextRBUpdate = nil
-	Entity.ppp = nil
-	OverRiddenEnts[ID] = nil
-	WireLib._RemoveWire(ID) -- Remove entity, so it doesn't count as a wire able entity anymore.
+-- Remove wire stuff and other changes that were done.
+local function RemoveWire(item)
+	local wmiId = item.wmiId
+	local entId = item.entId
 
-	for key, value in pairs(Entity._Settings_WireMapInterfaceEnt or {}) do
-		if (not value or (value == 0) or (value == "")) then
-			Entity[key] = nil
+	local ent = item.ent
+
+	item.init = nil
+	item.ent = nil
+	item.renderWires = nil
+
+	if not IsValid(ent) then
+		ent = ents.GetByIndex(entId)
+	end
+
+	if IsValid(ent) then
+		local oldSettings = item.oldSettings or {}
+
+		if not oldSettings.m_tblToolsAllowed then
+			ent.m_tblToolsAllowed = false
 		else
-			Entity[key] = value
+			ent.m_tblToolsAllowed = oldSettings.m_tblToolsAllowed
+		end
+
+		if not oldSettings.PhysgunDisabled then
+			ent.PhysgunDisabled = nil
+		else
+			ent.PhysgunDisabled = oldSettings.PhysgunDisabled
 		end
 	end
-	Entity._Settings_WireMapInterfaceEnt = nil
+
+	item.oldSettings = nil
+	item.nextRenderBoundsUpdate = nil
+
+	local wmiWiredEntitiesRemove = g_wiredEntitiesRemove[wmiId]
+	if wmiWiredEntitiesRemove then
+		wmiWiredEntitiesRemove[entId] = nil
+
+		if table.IsEmpty(wmiWiredEntitiesRemove) then
+			g_wiredEntitiesRemove[wmiId] = nil
+		end
+	end
+
+	local wmiWiredEntities = g_wiredEntities[wmiId]
+	if wmiWiredEntities then
+		wmiWiredEntities[entId] = nil
+
+		if table.IsEmpty(wmiWiredEntities) then
+			g_wiredEntities[wmiId] = nil
+		end
+	end
 end
 
--- Adding wire stuff and changes.
-usermessage.Hook("WireMapInterfaceEnt", function(data)
-	local Entity = data:ReadEntity()
-	local Flags = data:ReadChar()
-	local Remove = (Flags == -1)
-	if (not WIRE_CLIENT_INSTALLED) then return end
-	if (not IsValid(Entity)) then return end
+-- Add wire stuff for rendering and prediction.
+local function AddWire(item)
+	local wmiId = item.wmiId
+	local entId = item.entId
+	local protectFromTools = item.protectFromTools
+	local protectFromPhysgun = item.protectFromPhysgun
 
-	if (Remove) then
-		RemoveWire(Entity)
+	local ent = ents.GetByIndex(entId)
+	if not IsValid(ent) then
 		return
 	end
 
-	Entity._Settings_WireMapInterfaceEnt = {}
+	item.ent = ent
+	item.init = true
 
-	if (bit.band(Flags, 1) > 0) then -- Protect in-/output entities from non-wire tools
-		Entity._Settings_WireMapInterfaceEnt.m_tblToolsAllowed = Entity.m_tblToolsAllowed or false
-		Entity.m_tblToolsAllowed = {"wire", "wire_adv", "wire_debugger", "wire_wirelink", "gui_wiring", "multi_wire"}
-	end
+	local oldSettings = item.oldSettings or {}
+	item.oldSettings = oldSettings
 
-	if (bit.band(Flags, 2) > 0) then -- Protect in-/output entities from the physgun
-		Entity._Settings_WireMapInterfaceEnt.PhysgunDisabled = Entity.PhysgunDisabled or false
-		Entity.PhysgunDisabled = true
-	end
+	local isCreatedByMap = ent:CreatedByMap()
 
-	local ID = Entity:EntIndex()
-	if (bit.band(Flags, 32) > 0) then -- Render Wires
-		OverRiddenEnts[ID] = true
+	-- Protect in-/output entities from non-wire tools
+	if not ent.m_tblToolsAllowed then
+		oldSettings.m_tblToolsAllowed = false
 	else
-		OverRiddenEnts[ID] = nil
+		oldSettings.m_tblToolsAllowed = table.Copy(ent.m_tblToolsAllowed)
 	end
-end)
 
--- Render bounds updating
-hook.Add("Think", "WireMapInterface_Think", function()
-	for ID, _ in pairs(OverRiddenEnts) do
-		local self = Entity(ID)
-		if (not IsValid(self) or not WIRE_CLIENT_INSTALLED) then
-			OverRiddenEnts[ID] = nil
+	if protectFromTools and isCreatedByMap then
+		ent.m_tblToolsAllowed = ent.m_tblToolsAllowed or {}
+		table.Add(ent.m_tblToolsAllowed, g_wireTools)
+	end
 
+	-- Protect in-/output entities from the physgun
+	oldSettings.PhysgunDisabled = ent.PhysgunDisabled or false
+
+	if protectFromPhysgun and isCreatedByMap then
+		ent.PhysgunDisabled = true
+	end
+
+	item.nextRenderBoundsUpdate = 0
+
+	local wmiWiredEntitiesRemove = g_wiredEntitiesRemove[wmiId]
+	if wmiWiredEntitiesRemove then
+		wmiWiredEntitiesRemove[entId] = nil
+
+		if table.IsEmpty(wmiWiredEntitiesRemove) then
+			g_wiredEntitiesRemove[wmiId] = nil
+		end
+	end
+end
+
+local function pollWireItems()
+	for _, wmiWiredEntitiesRemove in pairs(g_wiredEntitiesRemove) do
+		for _, item in pairs(wmiWiredEntitiesRemove) do
+			RemoveWire(item)
+		end
+	end
+
+	for wmiId, wmiWiredEntities in pairs(g_wiredEntities) do
+		for entId, item in pairs(wmiWiredEntities) do
+			if not IsValid(item.ent) then
+				if item.init then
+					-- Entity disappeared unexpectedly, so unregister it.
+					local wmiWiredEntitiesRemove = g_wiredEntitiesRemove[wmiId] or {}
+					g_wiredEntitiesRemove[wmiId] = wmiWiredEntitiesRemove
+
+					wmiWiredEntitiesRemove[entId] = item
+				else
+					AddWire(item)
+				end
+			end
+		end
+	end
+end
+
+local function AddHooks()
+	hook.Add("PostCleanupMap", "WireMapInterface_PostCleanupMap_CL", function()
+		table.Empty(g_wiredEntities)
+		table.Empty(g_wiredEntitiesRemove)
+		g_nextThink = 0
+	end)
+
+	hook.Add("Think", "WireMapInterface_Think", function()
+		local now = CurTime()
+
+		if now < g_nextThink then
 			return
 		end
 
-		if (CurTime() >= (self._NextRBUpdate or 0)) then
-			self._NextRBUpdate = CurTime() + math.random(30,100) / 10
-			Wire_UpdateRenderBounds(self)
+		g_nextThink = now + 1
+
+		pollWireItems()
+
+		-- Render bounds updating
+		for _, wmiWiredEntities in pairs(g_wiredEntities) do
+			for _, item in pairs(wmiWiredEntities) do
+				if item.init and item.renderWires and now >= item.nextRenderBoundsUpdate then
+					local ent = item.ent
+
+					if IsValid(ent) and not ent:IsDormant() then
+						Wire_UpdateRenderBounds(ent)
+						item.nextRenderBoundsUpdate = now + math.random(30, 100) / 10
+					end
+				end
+			end
 		end
+	end)
+
+	-- Rendering
+	hook.Add("PostDrawOpaqueRenderables", "WireMapInterface_Draw", function()
+		for _, wmiWiredEntities in pairs(g_wiredEntities) do
+			for _, item in pairs(wmiWiredEntities) do
+				if item.init and item.renderWires then
+					local ent = item.ent
+
+					if IsValid(ent) and not ent:IsDormant() then
+						Wire_Render(ent)
+					end
+				end
+			end
+		end
+	end)
+
+	g_hooksAdded = true
+end
+
+net.Receive("WireMapInterfaceEntities", function()
+	local wmiId = net.ReadUInt(MAX_EDICT_BITS)
+	local protectFromTools = net.ReadBool()
+	local protectFromPhysgun = net.ReadBool()
+	local renderWires = net.ReadBool()
+	local count = net.ReadUInt(6)
+
+	local wmiWiredEntities = g_wiredEntities[wmiId] or {}
+	g_wiredEntities[wmiId] = wmiWiredEntities
+
+	local wmiWiredEntitiesRemove = g_wiredEntitiesRemove[wmiId] or {}
+	g_wiredEntitiesRemove[wmiId] = wmiWiredEntitiesRemove
+
+	for entId, item in pairs(wmiWiredEntities) do
+		-- Clear all that belongs to the current WMI.
+		wmiWiredEntitiesRemove[entId] = item
+	end
+
+	for i = 1, count do
+		local entId = net.ReadUInt(MAX_EDICT_BITS)
+
+		-- Unclear listed items.
+		wmiWiredEntitiesRemove[entId] = nil
+
+		-- Add listed items.
+		local item = wmiWiredEntities[entId] or {}
+		wmiWiredEntities[entId] = item
+
+		item.entId = entId
+		item.wmiId = wmiId
+		item.protectFromTools = protectFromTools
+		item.protectFromPhysgun = protectFromPhysgun
+		item.renderWires = renderWires
+	end
+
+	if not g_hooksAdded and not table.IsEmpty(wmiWiredEntities) then
+		AddHooks()
 	end
 end)
 
--- Rendering
-hook.Add("PostDrawOpaqueRenderables", "WireMapInterface_Draw", function()
-	for ID, _ in pairs(OverRiddenEnts) do
-		local self = Entity(ID)
-		if (not IsValid(self) or not WIRE_CLIENT_INSTALLED) then
-			OverRiddenEnts[ID] = nil
-
-			return
-		end
-
-		Wire_Render(self)
-	end
-end)

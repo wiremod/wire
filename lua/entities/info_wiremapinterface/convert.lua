@@ -2,142 +2,280 @@
 
 -- Per type converting functions for
 -- converting from map inputs to wire outputs. (String to Value)
-local MapToWireTypes = {
-	[0] = {"NORMAL", function(str)	-- Number, default
-		return tonumber(str) or 0
-	end},
 
-	[1] = {"NORMAL", function(self, ent, I)	-- switches between 0 and 1 each call, useful for toggling.
-		if (!IsValid(self) or !IsValid(ent) or !I) then return 0 end
+local function isEqualList(_, listA, listB)
+	if listA == listB then
+		return true
+	end
 
-		self.WireOutputToggle = self.WireOutputToggle or {}
-		self.WireOutputToggle[ent] = self.WireOutputToggle[ent] or {}
-		self.WireOutputToggle[ent][I] = !self.WireOutputToggle[ent][I]
+	if not listA or not listB then
+		return false
+	end
 
-		return self.WireOutputToggle[ent][I] and 1 or 0
-	end, true},
+	if #listA ~= #listB then
+		return false
+	end
 
-	[2] = {"STRING", function(str)	-- String
-		return str or ""
-	end},
+	for i, va in ipairs(listA) do
+		local vb = listB[i]
 
-	[3] = {"VECTOR2", function(str)	-- 2D Vector
-		local x, y = unpack(string.Explode(" ", str or ""))
-		x = tonumber(x) or 0
-		y = tonumber(y) or 0
+		if va ~= vb then
+			return false
+		end
+	end
 
-		return {x, y}
-	end},
+	return true
+end
 
-	[4] = {"VECTOR", function(str)	-- 3D Vector
-		local x, y, z = unpack(string.Explode(" ", str or ""))
-		x = tonumber(x) or 0
-		y = tonumber(y) or 0
-		z = tonumber(z) or 0
+local function isEqualGeneric(_, varA, varB)
+	return varA == varB
+end
 
-		return Vector(x, y, z)
-	end},
+local function isEqualEntity(_, entA, entB)
+	if not IsValid(entA) or not IsValid(entB) then
+		return false
+	end
 
-	[5] = {"VECTOR4", function(str)	-- 4D Vector
-		local x, y, z, w = unpack(string.Explode(" ", str or ""))
-		x = tonumber(x) or 0
-		y = tonumber(y) or 0
-		z = tonumber(z) or 0
-		w = tonumber(w) or 0
+	return entA == entB
+end
 
-		return {x, y, z, w}
-	end},
+local g_supportedTypesById = {
+	[0] = { -- Number, default
+		wireType = "NORMAL",
 
-	[6] = {"ANGLE", function(str)	-- Angle
-		local p, y, r = unpack(string.Explode(" ", str or ""))
-		p = tonumber(p) or 0
-		y = tonumber(y) or 0
-		r = tonumber(r) or 0
+		toHammer = function(_, wireValue)
+			wireValue = tonumber(wireValue or 0) or 0
+			return string.format("%.20g", wireValue)
+		end,
 
-		return Angle(p, y, r)
-	end},
+		toWire = function(_, hammerValue)
+			return tonumber(hammerValue or 0) or 0
+		end,
 
-	[7] = {"ENTITY", function(val)	-- Entity
-		return Entity(tonumber(val) or 0) or NULL
-	end},
+		wireIsEqual = function(_, wireValueA, wireValueB)
+			wireValueA = tonumber(wireValueA)
+			wireValueB = tonumber(wireValueB)
 
-	[8] = {"ARRAY", function(str)	-- Array/Table
-		return string.Explode(" ", str or "")
-	end},
+			if not wireValueA then
+				return false
+			end
+
+			if not wireValueB then
+				return false
+			end
+
+			return wireValueA == wireValueB
+		end
+	},
+
+	[1] = { -- Number, toggle
+		wireType = "NORMAL",
+
+		-- Wire Input: Trigger Hammer output only if true. Does not pass the input value from Wire to Hammer.
+		-- Wire Output: Toggle the Wire Output when triggered by Hammer. Does not pass the input value from Hammer or Wire.
+		isToggle = true,
+
+		toHammer = function(_, wireValue) -- Return a boolean, 0 = false, 1 = true, useful for toggling. It triggers Hammer output only if true.
+			return tobool(wireValue)
+		end,
+
+		toWire = function(_, hammerValue) -- Is being switched between 0 and 1 each call from Hammer input.
+			return tobool(hammerValue) and 1 or 0
+		end,
+
+		wireIsEqual = isEqualGeneric,
+	},
+
+	[2] = { -- String
+		wireType = "STRING",
+
+		toHammer = function(_, wireValue)
+			return tostring(wireValue or "")
+		end,
+
+		toWire = function(_, hammerValue)
+			return hammerValue or ""
+		end,
+
+		wireIsEqual = isEqualGeneric,
+	},
+
+	[3] = { -- 2D Vector
+		wireType = "VECTOR2",
+
+		toHammer = function(_, wireValue)
+			wireValue = wireValue or {0, 0}
+
+			local x = tonumber(wireValue[1] or 0) or 0
+			local y = tonumber(wireValue[2] or 0) or 0
+
+			return string.format("%.20g %.20g", x, y)
+		end,
+
+		toWire = function(_, hammerValue)
+			local x, y = unpack(string.Explode(" ", hammerValue or ""))
+
+			x = tonumber(x or 0) or 0
+			y = tonumber(y or 0) or 0
+
+			return {x, y}
+		end,
+
+		wireIsEqual = isEqualList,
+	},
+
+	[4] = { -- 3D Vector
+		wireType = "VECTOR",
+
+		toHammer = function(_, wireValue)
+			wireValue = wireValue or Vector(0, 0, 0)
+
+			local x = tonumber(wireValue.x or 0) or 0
+			local y = tonumber(wireValue.y or 0) or 0
+			local z = tonumber(wireValue.z or 0) or 0
+
+			return string.format("%.20g %.20g %.20g", x, y, z)
+		end,
+
+		toWire = function(_, hammerValue)
+			local x, y, z = unpack(string.Explode(" ", hammerValue or ""))
+
+			x = tonumber(x or 0) or 0
+			y = tonumber(y or 0) or 0
+			z = tonumber(z or 0) or 0
+
+			return Vector(x, y, z)
+		end,
+
+		wireIsEqual = isEqualGeneric,
+	},
+
+	[5] = { -- 4D Vector
+		wireType = "VECTOR4",
+
+		toHammer = function(_, wireValue)
+			val = val or {0, 0, 0, 0}
+
+			local x = tonumber(val[1] or 0) or 0
+			local y = tonumber(val[2] or 0) or 0
+			local z = tonumber(val[3] or 0) or 0
+			local w = tonumber(val[4] or 0) or 0
+
+			return string.format("%.20g %.20g %.20g %.20g", x, y, z, w)
+		end,
+
+		toWire = function(_, hammerValue)
+			local x, y, z, w = unpack(string.Explode(" ", hammerValue or ""))
+
+			x = tonumber(x or 0) or 0
+			y = tonumber(y or 0) or 0
+			z = tonumber(z or 0) or 0
+			w = tonumber(w or 0) or 0
+
+			return {x, y, z, w}
+		end,
+
+		wireIsEqual = isEqualList,
+	},
+
+	[6] = { -- Angle
+		wireType = "ANGLE",
+
+		toHammer = function(_, wireValue)
+			wireValue = wireValue or Angle(0, 0, 0)
+
+			local p = tonumber(wireValue.p or 0) or 0
+			local y = tonumber(wireValue.y or 0) or 0
+			local r = tonumber(wireValue.r or 0) or 0
+
+			return string.format("%.20g %.20g %.20g", p, y, r)
+		end,
+
+		toWire = function(_, hammerValue)
+			local p, y, r = unpack(string.Explode(" ", hammerValue or ""))
+			p = tonumber(p or 0) or 0
+			y = tonumber(y or 0) or 0
+			r = tonumber(r or 0) or 0
+
+			return Angle(p, y, r)
+		end,
+
+		wireIsEqual = isEqualGeneric,
+	},
+
+	[7] = { -- Entity
+		wireType = "ENTITY",
+
+		toHammer = function(_, wireValue)
+			if not IsValid(wireValue) then return "0" end
+			return tostring(wireValue:EntIndex())
+		end,
+
+		toWire = function(self, hammerValue)
+			local id = tonumber(hammerValue or 0)
+
+			if id ~= nil then
+				if id == 0 then
+					return game.GetWorld()
+				end
+
+				return ents.GetByIndex(id)
+			end
+
+			return self:GetFirstEntityByTargetnameOrClass(hammerValue) or NULL
+		end,
+
+		wireIsEqual = isEqualEntity,
+	},
+
+	[8] = { -- Array/Table
+		wireType = "ARRAY",
+
+		toHammer = function(_, wireValue)
+			return table.concat(wireValue or {}, " ")
+		end,
+
+		toWire = function(_, hammerValue)
+			return string.Explode(" ", hammerValue or "")
+		end,
+
+		wireIsEqual = isEqualList,
+	},
 }
 
--- Per type converting functions for
--- converting from wire inputs to map outputs. (Value to String)
-local WireToMapTypes = {
-	[0] = {"NORMAL", function(val)	-- Number, default
-		return tostring(val or 0)
-	end},
+function ENT:GetMapToWireConverter(typeId)
+	local typeData = g_supportedTypesById[typeId or 0] or g_supportedTypesById[0]
+	if not typeData then
+		return
+	end
 
-	[1] = {"NORMAL", function(val)	-- Return a boolean, 0 = false, 1 = true, useful for toggling.
-		return (tonumber(val) or 0) > 0
-	end, true},
-
-	[2] = {"STRING", function(val)	-- String
-		return val or ""
-	end},
-
-	[3] = {"VECTOR2", function(val)	-- 2D Vector
-		val = val or {0, 0}
-
-		local x = math.Round(val[1] or 0)
-		local y = math.Round(val[2] or 0)
-
-		return x.." "..y
-	end},
-
-	[4] = {"VECTOR", function(val)	-- 3D Vector
-		val = val or Vector(0, 0, 0)
-
-		local x = math.Round(val.x or 0)
-		local y = math.Round(val.y or 0)
-		local z = math.Round(val.z or 0)
-
-		return x.." "..y.." "..z
-	end},
-
-	[5] = {"VECTOR4", function(val)	--4D Vector
-		val = val or {0, 0, 0, 0}
-
-		local x = math.Round(val[1] or 0)
-		local y = math.Round(val[2] or 0)
-		local z = math.Round(val[3] or 0)
-		local w = math.Round(val[4] or 0)
-
-		return x.." "..y.." "..z.." "..w
-	end},
-
-	[6] = {"ANGLE", function(val)	-- Angle
-		val = val or Angle(0, 0, 0)
-
-		local p = math.Round(val.p or 0)
-		local y = math.Round(val.y or 0)
-		local r = math.Round(val.r or 0)
-
-		return p.." "..y.." "..r
-	end},
-
-	[7] = {"ENTITY", function(val)	-- Entity
-		if (!IsValid(val)) then return "0" end
-
-		return tostring(val:EntIndex())
-	end},
-
-	[8] = {"ARRAY", function(val)	-- Array/Table
-		return table.concat(val or {}, " ")
-	end},
-}
-
--- Converting functions
-function ENT:Convert_MapToWire(n)
-	local typetab = MapToWireTypes[n or 0] or MapToWireTypes[0]
-	return typetab[1], typetab[2], typetab[3]
+	return typeData.toWire, typeData.isToggle or false
 end
-function ENT:Convert_WireToMap(n)
-	local typetab = WireToMapTypes[n or 0] or WireToMapTypes[0]
-	return typetab[1], typetab[2], typetab[3]
+
+function ENT:GetWireToMapConverter(typeId)
+	local typeData = g_supportedTypesById[typeId or 0] or g_supportedTypesById[0]
+	if not typeData then
+		return
+	end
+
+	return typeData.toHammer, typeData.isToggle or false
 end
+
+function ENT:IsEqualWireValue(typeId, wireValueA, wireValueB)
+	local typeData = g_supportedTypesById[typeId or 0] or g_supportedTypesById[0]
+	if not typeData then
+		return false
+	end
+
+	return typeData.wireIsEqual(self, wireValueA, wireValueB)
+end
+
+function ENT:GetWireTypenameByTypeId(typeId)
+	local typeData = g_supportedTypesById[typeId or 0] or g_supportedTypesById[0]
+	if not typeData then
+		return
+	end
+
+	return typeData.wireType
+end
+

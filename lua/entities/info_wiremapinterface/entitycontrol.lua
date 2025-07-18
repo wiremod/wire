@@ -1,254 +1,302 @@
 -- This part of the wire map interface entity controls
 -- the adding and removing of its in-/outputs entities.
 
-
--- The removing function
--- Its for removing all the wiremod stuff from unused entities.
-local function RemoveWire(Entity, SendToCL)
-	if (not IsValid(Entity)) then return end
-
-	Wire_Remove(Entity, not SendToCL)
-
-	local self = Entity._WireMapInterfaceEnt
-	if (IsValid(self)) then
-		self.WireEntsCount = math.max(self.WireEntsCount - 1, 0)
-		if (self.WireEnts) then
-			self.WireEnts[Entity] = nil
-		end
-		if (self.WireOutputToggle) then
-			self.WireOutputToggle[Entity] = nil
-		end
-		if (self.Wired) then
-			self.Wired[Entity] = nil
-		end
+function ENT:HandleWireEntNameUpdated()
+	if not self.WireEntNameUpdated then
+		return
 	end
 
-	if (not SendToCL) then return end
+	self:AddEntitiesByName(self.WireEntName)
+	self.WireEntNameUpdated = nil
+end
 
-	Entity:_RemoveOverrides()
-	WireLib._RemoveWire(Entity:EntIndex(), true) -- Remove entity from the list, so it doesn't count as a wire able entity anymore.
-
-	umsg.Start("WireMapInterfaceEnt")
-		umsg.Entity(Entity)
-		umsg.Char(-1)
-	umsg.End()
-
-	Entity:RemoveCallOnRemove("WireMapInterface_OnRemove")
-	if (table.IsEmpty(Entity.OnDieFunctions)) then
-		Entity.OnDieFunctions = nil
+function ENT:HandleWireEntsUpdated()
+	if not self.WireEntsUpdated then
+		return
 	end
-end
 
-function ENT:Timedpairs(name, tab, steps, cb, endcb, ...)
-	if (table.IsEmpty(tab)) then return end
+	local ready = false
 
-	local name = self:EntIndex().."_"..tostring(name)
-	self.TimedpairsTable = self.TimedpairsTable or {}
+	if self.WireEntsRemoved then
+		self:TriggerHammerOutputSafe("OnWireEntsRemoved", self)
+		self.WireEntsRemoved = nil
+		ready = true
+	end
 
-	WireLib.Timedpairs(name, tab, steps, function(...)
-
-		if (IsValid(self)) then
-			self.TimedpairsTable[name] = true
-		end
-		return cb(...)
-
-	end, function(...)
-
-		if (IsValid(self)) then
-			self.TimedpairsTable[name] = nil
-		end
-		if (endcb) then
-			return endcb(...)
+	if self.WireEntsAdded then
+		if self:GetWiredEntityCount() > 0 then
+			-- Avoid triggering "created" event if the list if entity is actually empty.
+			self:TriggerHammerOutputSafe("OnWireEntsCreated", self)
+			ready = true
 		end
 
-	end, ...)
+		self.WireEntsAdded = nil
+	end
+
+	if ready then
+		-- Only trigger "ready" if one of the other both had been triggered.
+		self:TriggerHammerOutputSafe("OnWireEntsReady", self)
+	end
+
+	self.NextNetworkTime = math.max(self.NextNetworkTime or 0, CurTime() + self.MIN_THINK_TIME * 2)
+	self.WireEntsUpdated = nil
 end
-
-local function CallOnEnd(self, AddedEnts)
-	if (not IsValid(self)) then return end
-
-	self.WirePortsChanged = true
-	self:GiveWireInterfeceClient(nil, AddedEnts)
-	self:TriggerOutput("onwireentscreated", self)
-	self:TriggerOutput("onwireentsready", self)
-end
-
-function ENT:GiveWireInterfece(EntsToAdd)
-	if (not EntsToAdd) then return end
-	if (table.IsEmpty(EntsToAdd) or not self.WirePortsChanged) then return end
-	local AddedEnts = {}
-	self:UpdateData()
-
-	self:Timedpairs("WireMapInterface_Adding", EntsToAdd, 1, function(obj1, obj2, self)
-		if (not IsValid(self)) then return false end -- Stop loop when the entity gets removed.
-		if (self.WirePortsChanged) then
-			self:TriggerOutput("onwireentsstartchanging", self)
-		end
-		self.WirePortsChanged = nil
-
-		local Entity = (IsEntity(obj1) and obj1) or (IsEntity(obj2) and obj2)
-
-		local Ent, Func = self:AddSingleEntity(Entity, CallOnEnd, AddedEnts)
-		if (Ent == "limid_exceeded") then return false end -- Stop loop when maximum got exceeded
-		if (not IsValid(Ent) or not Func) then return end
-
-		AddedEnts[Ent] = Func
-	end, function(k, v, self) CallOnEnd(self, AddedEnts) end, self)
-end
-
-function ENT:GiveWireInterfeceClient(ply, EntsToAdd)
-	if (not self.WireEnts) then return end
-
-	self:Timedpairs((IsValid(ply) and (ply:EntIndex().."") or "").."WireMapInterface_Adding_CL", EntsToAdd or self.WireEnts, 1, function(Entity, Func, self)
-		if (not IsValid(self)) then return false end -- Stop loop when the entity gets removed.
-		if (not IsValid(Entity)) then return end
-		if (not self:IsWireableEntity(Entity)) then return end
-
-		Func(self, Entity, ply, not IsValid(ply))
-	end, nil, self)
-end
-
 
 -- Entity add functions
-function ENT:AddEntitiesByName(Name)
-	Name = tostring(Name or "")
-	if (Name == "") then return end
-
-	self:AddEntitiesByTable(ents.FindByName(Name))
+function ENT:AddEntitiesByName(name)
+	local entities = self:GetEntitiesByTargetnameOrClass(name)
+	self:AddEntitiesByTable(entities)
 end
 
-function ENT:AddEntitiesByTable(Table)
-	if (not Table) then return end
+function ENT:AddEntitiesByTable(entitiesToAdd)
+	if not entitiesToAdd then return end
 
-	self:GiveWireInterfece(Table)
+	local tmp = {}
+
+	for key, value in pairs(entitiesToAdd) do
+		if isentity(key) and IsValid(key) then
+			tmp[key] = key
+		end
+
+		if isentity(value) and IsValid(value) then
+			tmp[value] = value
+		end
+	end
+
+	for _, wireEnt in pairs(tmp) do
+		self:AddSingleEntity(wireEnt)
+	end
 end
 
-local function AddSingleEntityCL(self, Entity, ply, SendToAll)
-	if (not IsValid(Entity)) then return end
-	if (not IsValid(self)) then return end
-	if (not self.WireEnts[Entity]) then return end
-	if (not SendToAll and not IsValid(ply)) then return end
-
-	if (SendToAll) then
-		umsg.Start("WireMapInterfaceEnt")
-	else
-		umsg.Start("WireMapInterfaceEnt", ply)
+function ENT:AddSingleEntity(wireEnt)
+	if not self:IsWireableEntity(wireEnt) then
+		return
 	end
-		umsg.Entity(Entity)
-		umsg.Char(self.flags % 64)
-		-- Allow valid spawnflags only.
-	umsg.End()
+
+	local hardLimit = self.WireEntsHardLimit or 0
+
+	if hardLimit >= self:GetMaxSubEntities() * 3 then
+		-- Stop adding more things until cleaned up.
+		return
+	end
+
+	local id = wireEnt:EntIndex()
+	local wireEnts = self.WireEntsRegister
+
+	local item = wireEnts[id]
+	local oldWireEnt = item and item.ent
+
+	local isInList = IsValid(oldWireEnt) and oldWireEnt == wireEnt
+
+	if isInList and wireEnt._WireMapInterfaceEnt_HasPorts then
+		return
+	end
+
+	if not isInList then
+		if not self.WireEntsUpdated then
+			self:TriggerHammerOutputSafe("OnWireEntsStartChanging", self)
+		end
+
+		self:OverrideEnt(wireEnt)
+	end
+
+	if wireEnt._WMI_AddPorts then
+		wireEnt:_WMI_AddPorts(self.WireInputRegister, self.WireOutputRegister)
+	end
+
+	wireEnts[id] = {
+		ent = wireEnt,
+		cid = wireEnt:GetCreationID(),
+	}
+
+	if not isInList then
+		self.WireEntsHardLimit = hardLimit + 1
+
+		self.WireEntsUpdated = true
+		self.WireEntsAdded = true
+
+		self:RequestNetworkEntities()
+		self.WireEntsSorted = nil
+		self.WireEntsCount = nil
+	end
+
+	self:ApplyWireOutputBufferSingle(wireEnt)
+
+	-- Sometimes CurTime() may get lag compensated and "time travels" when the entity is being added by duplicator/gun trigger.
+	-- So we delay the think call past the predicted event time to avoid any race conditions.
+	self:NextThink(CurTime() + self.MIN_THINK_TIME)
+	return wireEnt
 end
-
-function ENT:AddSingleEntity(Entity, callOnEnd, AddedEnts)
-	if (not IsValid(Entity)) then return end
-	if (not self:IsWireableEntity(Entity)) then return end
-	if (not self:CheckEntLimid(callOnEnd, AddedEnts)) then return "limid_exceeded" end
-
-	if (IsValid(Entity._WireMapInterfaceEnt)) then
-		RemoveWire(Entity, true)
-	end
-
-	self:OverrideEnt(Entity)
-	Entity:CallOnRemove("WireMapInterface_OnRemove", RemoveWire)
-
-	if (self.Inames) then
-		Entity.Inputs = WireLib.CreateSpecialInputs(Entity, self.Inames, self.Itypes, self.Idescs)
-	end
-	if (self.Onames) then
-		Entity.Outputs = WireLib.CreateSpecialOutputs(Entity, self.Onames, self.Otypes, self.Odescs)
-	end
-
-	self.WireEnts = self.WireEnts or {}
-	self.WireEnts[Entity] = AddSingleEntityCL
-
-	return Entity, AddSingleEntityCL
-end
-
 
 -- Entity remove functions
-function ENT:RemoveAllEntities(callback)
-	for name, _ in pairs(self.TimedpairsTable or {}) do
-		WireLib.TimedpairsStop(name)
+function ENT:RemoveAllEntities()
+	local wireEnts = self.WireEntsRegister
+
+	for id, item in pairs(wireEnts) do
+		self:RemoveSingleEntity(item.ent)
+		wireEnts[id] = nil
 	end
 
-	self.WirePortsChanged = true
-
-	self:RemoveEntitiesByTable(self.WireEnts, callback)
-	self.WireEntsCount = 0
+	self.WireEntsSorted = nil
+	self.WireEntsCount = nil
+	self.WireEntsHardLimit = nil
 end
 
-
-function ENT:RemoveEntitiesByName(Name, callback)
-	Name = tostring(Name or "")
-	if (Name == "") then return end
-
-	self:RemoveEntitiesByTable(ents.FindByName(Name), callback)
+function ENT:RemoveEntitiesByName(name)
+	local entities = self:GetEntitiesByTargetnameOrClass(name)
+	self:RemoveEntitiesByTable(entities)
 end
 
-function ENT:RemoveEntitiesByTable(Table, callback)
-	if (not Table) then return end
-	if (table.IsEmpty(Table) or not self.WirePortsChanged) then return end
+function ENT:RemoveEntitiesByTable(entitiesToRemove)
+	if not entitiesToRemove then return end
 
-	local Removed = nil
-	self:Timedpairs("WireMapInterface_Removing", Table, 1, function(obj1, obj2, self)
-		local Entity = (IsEntity(obj1) and obj1) or (IsEntity(obj2) and obj2)
+	local tmp = {}
 
-		if (not IsValid(Entity)) then return end
-		if (not IsValid(Entity._WireMapInterfaceEnt)) then return end
-		if (Entity._WireMapInterfaceEnt ~= self) then return end
-		if (self and self.WirePortsChanged) then
-			self:TriggerOutput("onwireentsstartchanging", self)
-			self.WirePortsChanged = nil
+	for key, value in pairs(entitiesToRemove) do
+		if isentity(key) and IsValid(key) then
+			tmp[key] = key
 		end
 
-		RemoveWire(Entity, true)
-		Removed = true
-	end,
-	function(k, v, self, callback)
-		if (not IsValid(self)) then return end
-		self.WirePortsChanged = true
-
-		if (callback) then
-			callback(self, Removed)
+		if isentity(value) and IsValid(value) then
+			tmp[value] = value
 		end
+	end
 
-		if (not Removed) then return end
-		self:TriggerOutput("onwireentsremoved", self)
-		self:TriggerOutput("onwireentsready", self)
-	end, self, callback)
-
+	for _, wireEnt in pairs(tmp) do
+		self:RemoveSingleEntity(wireEnt)
+	end
 end
 
-function ENT:RemoveSingleEntity(Entity)
-	if (not IsValid(Entity)) then return end
-	if (not IsValid(Entity._WireMapInterfaceEnt)) then return end
-	if (Entity._WireMapInterfaceEnt ~= self) then return end
+function ENT:RemoveSingleEntity(wireEnt)
+	if not IsValid(wireEnt) then return end
+	if not IsValid(wireEnt._WireMapInterfaceEnt) then return end
+	if wireEnt._WireMapInterfaceEnt ~= self then return end
 
-	RemoveWire(Entity, true)
-	self:TriggerOutput("onwireentsremoved", self)
-	self:TriggerOutput("onwireentsready", self)
+	local id = wireEnt:EntIndex()
+	local wireEnts = self.WireEntsRegister
+
+	if not wireEnts[id] then
+		return
+	end
+
+	if wireEnt._WMI_RemoveOverrides then
+		wireEnt:_WMI_RemoveOverrides(self)
+	end
+
+	wireEnts[id] = nil
+	self.WireEntsSorted = nil
+	self.WireEntsCount = nil
 end
 
+function ENT:UnregisterWireEntityInternal(wireEnt)
+	if not IsValid(wireEnt) then
+		return
+	end
 
+	local wireEnts = self.WireEntsRegister
+	local id = wireEnt:EntIndex()
+
+	if not wireEnts[id] then
+		return
+	end
+
+	if not self.WireEntsUpdated then
+		self:TriggerHammerOutputSafe("OnWireEntsStartChanging", self)
+	end
+
+	wireEnts[id] = nil
+	wireEnt._WireMapInterfaceEnt = nil
+
+	local hardLimit = self.WireEntsHardLimit or 0
+	self.WireEntsHardLimit = math.max(hardLimit - 1, 0)
+
+	self.WireEntsUpdated = true
+	self.WireEntsRemoved = true
+
+	self:RequestNetworkEntities()
+	self.WireEntsSorted = nil
+	self.WireEntsCount = nil
+
+	-- Sometimes CurTime() may get lag compensated and "time travels" when the entity is being destoryed by gun fire.
+	-- So we delay the think past the predicted event time to avoid any race conditions.
+	self:NextThink(CurTime() + self.MIN_THINK_TIME)
+end
+
+function ENT:SanitizeAndSortWiredEntities()
+	local wireEnts = self.WireEntsRegister
+
+	if not wireEnts or table.IsEmpty(wireEnts) then
+		self.WireEntsSorted = {}
+		self.WireEntsCount = 0
+		self.WireEntsHardLimit = nil
+
+		return
+	end
+
+	for id, item in pairs(wireEnts) do
+		local wireEnt = item.ent
+
+		if not self:IsWireableEntity(wireEnt) or
+			not wireEnt._IsWireMapInterfaceSubEntity or
+			not wireEnt._WireMapInterfaceEnt_Data or
+			not wireEnt._WMI_GetSpawnId
+		then
+			-- Remove invalid/broken wire entities.
+
+			if IsValid(wireEnt) then
+				if wireEnt._WMI_RemoveOverrides then
+					wireEnt:_WMI_RemoveOverrides(self)
+				end
+			end
+
+			wireEnts[id] = nil
+		end
+	end
+
+	local count = 0
+	local wireEntsSorted = {}
+
+	for id, item in SortedPairsByMemberValue(wireEnts, "cid", false) do
+		local wireEnt = item.ent
+
+		if self:CheckEntLimit(count, wireEnt) then
+			count = count + 1
+			wireEntsSorted[count] = wireEnt
+		else
+			-- Remove newest wire entities first if limit is exhausted.
+			if wireEnt._WMI_RemoveOverrides then
+				wireEnt:_WMI_RemoveOverrides(self)
+			end
+
+			wireEnts[id] = nil
+		end
+	end
+
+	self.WireEntsSorted = wireEntsSorted
+	self.WireEntsCount = count
+	self.WireEntsHardLimit = nil
+end
 
 function ENT:GetWiredEntities()
-	return table.Copy(self.WireEnts or {})
-end
-
-function ENT:SetWiredEntities(Table)
-	if (not Table) then return end
-
-	local Ents = {}
-	local Count = 0
-	for obj1, obj2 in pairs(Table) do -- Filter invalid stuff out!
-		local Entity = (IsEntity(obj1) and obj1) or (IsEntity(obj2) and obj2)
-		if (IsValid(Entity)) then
-			Count = Count + 1
-			Ents[Count] = Entity
-		end
+	if not self.WireEntsSorted then
+		self:SanitizeAndSortWiredEntities()
 	end
-	self:RemoveAllEntities(function(self)
-		self:AddEntitiesByTable(Ents)
-	end)
+
+	return self.WireEntsSorted
 end
+
+function ENT:GetWiredEntityCount()
+	if not self.WireEntsCount then
+		self:SanitizeAndSortWiredEntities()
+	end
+
+	return self.WireEntsCount
+end
+
+function ENT:SetWiredEntities(entities)
+	if not entities then return end
+
+	self:RemoveAllEntities()
+	self:AddEntitiesByTable(entities)
+end
+
