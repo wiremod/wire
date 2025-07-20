@@ -360,11 +360,6 @@ if SERVER then
 		toent.AwaitingUpload = nil
 		toent.Uploading = true
 
-		if not WireLib.CanTool(ply, toent, "wire_expression2") then
-			WireLib.AddNotify(ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
-			return
-		end
-
 		net.ReadStream(ply, function(data)
 			if not IsValid(toent) then return end
 			toent.Uploading = nil
