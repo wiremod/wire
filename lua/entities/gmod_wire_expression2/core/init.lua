@@ -414,8 +414,7 @@ elseif CLIENT then
 		net.ReadStream( nil, function( data )
 			local deserialized = WireLib.von.deserialize(data)
 			if not deserialized then
-				ErrorNoHalt("Failed to deserialize E2 function data from server!\n")
-				return
+				error("Failed to deserialize E2 function data from server!\n")
 			end
 
 			wire_expression2_reset_extensions()
