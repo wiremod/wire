@@ -219,8 +219,7 @@ if SERVER then
 			error( "Invalid entity specified" )
 		end
 
-		if target.AwaitingUpload or target.Uploading then return end
-		target.AwaitingUpload = ply
+		if target.Uploading then return end
 
 		net.Start("wire_expression2_tool_upload")
 			net.WriteUInt(target:EntIndex(), 16)
@@ -353,11 +352,15 @@ if SERVER then
 			return
 		end
 
-		if toent.AwaitingUpload ~= ply then
-			WireLib.AddNotify(ply, "This Expression chip is not awaiting an upload. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+		if not WireLib.CanTool(ply, toent, "wire_expression2") then
+			WireLib.AddNotify(ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
-		toent.AwaitingUpload = nil
+
+		if toent.Uploading then
+			WireLib.AddNotify(ply, "This Expression chip is already uploading. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+			return
+		end
 		toent.Uploading = true
 
 		net.ReadStream(ply, function(data)
@@ -590,6 +593,10 @@ if CLIENT then
 	end
 
 	function WireLib.Expression2Upload(targetEntID, code, filepath)
+		if isentity( targetEntID ) then
+			targetEntID = targetEntID:EntIndex()
+		end
+
 		if not targetEntID then
 			local aimEnt = LocalPlayer():GetEyeTrace().Entity
 			if IsValid( aimEnt ) then
