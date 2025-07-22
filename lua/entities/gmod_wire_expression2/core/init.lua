@@ -294,9 +294,8 @@ do
 	loadFiles("",file.Find("entities/gmod_wire_expression2/core/cl_*.lua", "LUA"))
 end
 
-local E2FunctionQueue = WireLib.NetQueue("e2_functiondata")
-local E2FUNC_SENDMISC, E2FUNC_SENDFUNC, E2FUNC_DONE = 0, 1, 2
 if SERVER then
+	util.AddNetworkString("e2_functiondata")
 	-- Serverside files are loaded in extloader
 	include("extloader.lua")
 
@@ -335,28 +334,14 @@ if SERVER then
 	local function sendData(ply)
 		if not (IsValid(ply) and ply:IsPlayer()) then return end
 
-		local queue = E2FunctionQueue.plyqueues[ply]
-		queue:add(function()
-			net.WriteUInt(E2FUNC_SENDMISC, 8)
-			net.WriteTable(miscdata[1])
-			net.WriteTable(miscdata[2])
-			net.WriteTable(miscdata[3])
-		end)
-		for signature, tab in pairs(functiondata) do
-			queue:add(function()
-				net.WriteUInt(E2FUNC_SENDFUNC, 8)
-				net.WriteString(signature) -- The function signature ["holoAlpha(nn)"]
-				net.WriteString(tab[1]) -- The function's return type ["s"]
-				net.WriteUInt(tab[2] or 0, 16) -- The function's cost [5]
-				net.WriteTable(tab[3] or {}) -- The function's argnames table (if a table isn't set, it'll just send a 1 byte blank table)
-				net.WriteString(tab[4] or "unknown")
-				net.WriteTable(tab[5] or {}) -- Attributes
-			end)
-		end
-		queue:add(function()
-			net.WriteUInt(E2FUNC_DONE, 8)
-		end)
-		E2FunctionQueue:flushQueue(ply, queue)
+		local data = WireLib.von.serialize( {
+			miscdata = miscdata,
+			functiondata = functiondata
+		} )
+
+		net.Start("e2_functiondata")
+		net.WriteStream(data)
+		net.Send(ply)
 	end
 
 	local antispam = WireLib.RegisterPlayerTable()
@@ -425,16 +410,24 @@ elseif CLIENT then
 		E2Lib.Env.Events = events
 	end
 
-	function E2FunctionQueue.receivecb()
-		local state = net.ReadUInt(8)
-		if state == E2FUNC_SENDFUNC then
-			insertData(net.ReadString(), net.ReadString(), net.ReadUInt(16), net.ReadTable(), net.ReadString(), net.ReadTable())
-		elseif state == E2FUNC_SENDMISC then
-			insertMiscData(net.ReadTable(), net.ReadTable(), net.ReadTable())
-		elseif state == E2FUNC_DONE then
+	net.Receive("e2_functiondata", function()
+		net.ReadStream( nil, function( data )
+			local deserialized = WireLib.von.deserialize(data)
+			if not deserialized then
+				error("Failed to deserialize E2 function data from server!\n")
+			end
+
+			wire_expression2_reset_extensions()
+
+			insertMiscData(deserialized.miscdata[1], deserialized.miscdata[2], deserialized.miscdata[3])
+
+			for signature, tab in pairs(deserialized.functiondata) do
+				insertData(signature, tab[1], tab[2] or 0, tab[3] or {}, tab[4] or "unknown", tab[5] or {})
+			end
+
 			doneInsertingData()
-		end
-	end
+		end )
+	end)
 end
 
 -- this file just generates the docs so it doesn't need to run every time.
