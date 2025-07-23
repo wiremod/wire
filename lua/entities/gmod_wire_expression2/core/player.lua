@@ -739,7 +739,7 @@ end
 e2function array playersAdmins()
 	local admins = {}
 
-	for _, ply in ipairs(player.GetAll()) do
+	for _, ply in player.Iterator() do
 		if ply:IsAdmin() then
 			table.insert(admins, ply)
 		end
@@ -751,7 +751,7 @@ end
 e2function array playersSuperAdmins()
 	local superadmins = {}
 
-	for _, ply in ipairs(player.GetAll()) do
+	for _, ply in player.Iterator() do
 		if ply:IsSuperAdmin() then
 			table.insert(superadmins, ply)
 		end
