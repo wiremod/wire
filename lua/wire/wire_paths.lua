@@ -101,7 +101,7 @@ function WireLib.Paths.Add(input, ply)
 	if ply then
 		table.insert(transmit_queues[ply], input)
 	else
-		for _, player in pairs(player.GetAll()) do
+		for _, player in player.Iterator() do
 			table.insert(transmit_queues[player], input)
 		end
 	end

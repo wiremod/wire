@@ -378,7 +378,7 @@ if CLIENT then
 		end,
 		function(cmd)
 			local help = {}
-			for _, ply in ipairs(player.GetAll()) do
+			for _, ply in player.Iterator() do
 				table.insert(help, cmd.." \""..ply:SteamID().."\" // "..ply:Name())
 			end
 			return help

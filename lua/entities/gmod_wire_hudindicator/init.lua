@@ -288,7 +288,7 @@ function ENT:LinkEnt(pod)
 
 	local ply = nil
 	-- Check if a player is in pod first
-	for _, v in pairs(player.GetAll()) do
+	for _, v in player.Iterator() do
 		if (v:GetVehicle() == pod) then
 			ply = v
 			break
@@ -331,7 +331,7 @@ function ENT:Think()
 		local ply = nil
 
 		if not IsValid(self.PodPly) or self.PodPly:GetVehicle() ~= self.Pod then
-			for _, v in pairs(player.GetAll()) do
+			for _, v in player.Iterator() do
 				if (v:GetVehicle() == self.Pod) then
 					ply = v
 					break

@@ -1571,7 +1571,7 @@ concommand.Add( "wire_holograms_block", function( ply, com, args )
 				clearholos_all(uid)
 			end
 			BlockList[v:SteamID()] = true
-			for _,p in ipairs( player.GetAll() ) do
+			for _,p in player.Iterator() do
 				p:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. v:GetName() .. " added to holograms blocklist" )
 			end
 		end
@@ -1598,7 +1598,7 @@ concommand.Add( "wire_holograms_unblock", function( ply, com, args )
 		local v = players[1]
 		if BlockList[v:SteamID()] == true then
 			BlockList[v:SteamID()] = nil
-			for _,player in ipairs( player.GetAll() ) do
+			for _,player in player.Iterator() do
 				player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. v:GetName() .. " removed from holograms blocklist" )
 			end
 		else
@@ -1626,11 +1626,11 @@ concommand.Add( "wire_holograms_block_id", function( ply, com, args )
 		ConsoleMessage( ply, steamID .. " is already in the holograms blocklist!" )
 	else
 		BlockList[steamID] = true
-		for _,player in ipairs( player.GetAll() ) do
+		for _,player in player.Iterator() do
 			player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. steamID .. " added to holograms blocklist" )
 		end
 		local uid
-		for _,v in ipairs( player.GetAll() ) do
+		for _,v in player.Iterator() do
 			if v:SteamID() == steamID then
 				uid = v:UniqueID()
 				if (E2HoloRepo[uid]) then
@@ -1655,7 +1655,7 @@ concommand.Add( "wire_holograms_unblock_id", function( ply, com, args )
 
 	if BlockList[steamID] == true then
 		BlockList[steamID] = nil
-		for _,player in ipairs( player.GetAll() ) do
+		for _,player in player.Iterator() do
 			player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. steamID .. " removed from holograms blocklist" )
 		end
 	else

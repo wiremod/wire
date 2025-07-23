@@ -114,7 +114,7 @@ function ENT:Think()
 	local x = -w/2
 	local y = -h/2
 
-	for _,ply in pairs(player.GetAll()) do
+	for _,ply in player.Iterator() do
 		local trace = ply:GetEyeTraceNoCursor()
 		local ent = trace.Entity
 		if ent:IsValid() then

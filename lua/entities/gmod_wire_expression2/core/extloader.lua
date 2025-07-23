@@ -52,7 +52,7 @@ if ENT then
 		_Msg( "Calling constructors for all Expression 2 chips." )
 		wire_expression2_prepare_functiondata()
 		if not args or args[1] ~= "nosend" then
-			for _, p in ipairs( player.GetAll() ) do
+			for _, p in player.Iterator() do
 				if IsValid( p ) then wire_expression2_sendfunctions( p ) end
 			end
 		end
