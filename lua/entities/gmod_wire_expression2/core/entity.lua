@@ -900,7 +900,14 @@ end
 
 --- Returns <ent> formatted as a string. Returns "<code>(null)</code>" for invalid entities.
 e2function string toString(entity ent)
-	if not IsValid(ent) then return "(null)" end
+	if not IsValid(ent) then
+		if ent:IsWorld() then
+			return "(world)"
+		end
+
+		return "(null)"
+	end
+
 	return tostring(ent)
 end
 
