@@ -1,4 +1,4 @@
--- This file is designed to migrate default data files from data_static to data. It is mainly used for E2 tests, but can be used for everything
+-- This file is designed to generate default data files from data_static in data. It is mainly used for E2 tests, but can be used for everything
 local function RecursivelyGenerateFolder(path)
 	local subpath = string.gsub(path, "data_static/", "")
 	local files, dirs = file.Find(path .. "*", "GAME")
@@ -15,7 +15,7 @@ local function RecursivelyGenerateFolder(path)
 end
 
 local function GenerateDataFolders()
-	-- When adding new folders that need to be migrated, add them to this list.
+	-- When adding new folders that need to be generated, add them to this list.
 	RecursivelyGenerateFolder("data_static/expression2/")
 	RecursivelyGenerateFolder("data_static/soundlists/")
 end
@@ -23,7 +23,7 @@ end
 -- Generate this only once
 if not cookie.GetString("wire_data_generated") then
 	cookie.Set("wire_data_generated", "true")
-	GenerateDataFiles()
+	GenerateDataFolders()
 end
 
 concommand.Add("wire_generate_data_files", GenerateDataFolders)
