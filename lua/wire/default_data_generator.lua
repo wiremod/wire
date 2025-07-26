@@ -1,7 +1,8 @@
 -- This file is designed to generate default data files from data_static in data. It is mainly used for E2 tests, but can be used for everything
 local function RecursivelyGenerateFolder(path)
-	local subpath = string.gsub(path, "data_static/", "")
 	local files, dirs = file.Find(path .. "*", "GAME")
+	local subpath = string.gsub(path, "data_static/", "")
+	file.CreateDir(subpath)
 
 	for _, filename in ipairs(files) do
 		local filepath = path .. filename
@@ -9,7 +10,6 @@ local function RecursivelyGenerateFolder(path)
 	end
 
 	for _, dir in ipairs(dirs) do
-		file.CreateDir(subpath .. dir)
 		RecursivelyGenerateFolder(path .. dir .. "/", "GAME")
 	end
 end
