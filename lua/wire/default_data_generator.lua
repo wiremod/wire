@@ -14,7 +14,7 @@ local function RecursivelyGenerateFolder(path)
 	end
 end
 
-local function GenerateDataFolders()
+function WireLib.GenerateDefaultData()
 	-- When adding new folders that need to be generated, add them to this list.
 	RecursivelyGenerateFolder("data_static/expression2/")
 	RecursivelyGenerateFolder("data_static/soundlists/")
@@ -23,7 +23,7 @@ end
 -- Generate this only once
 if not cookie.GetString("wire_data_generated") then
 	cookie.Set("wire_data_generated", "true")
-	GenerateDataFolders()
+	WireLib.GenerateDefaultData()
 end
 
-concommand.Add("wire_generate_data_files", GenerateDataFolders)
+concommand.Add("wire_generate_data_files", WireLib.GenerateDefaultData)

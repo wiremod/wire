@@ -93,7 +93,8 @@ concommand.Add("e2test", function(ply)
 	end
 
 	-- Let's make sure we have the latest versions of tests.
-	RunConsoleCommand("wire_generate_data_files")
+	WireLib.GenerateDefaultData()
+
 	local failed, passed = runE2Tests("expression2/tests")
 	local msg = #passed .. "/" .. (#passed + #failed) .. " tests passed"
 
