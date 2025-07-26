@@ -1,4 +1,4 @@
--- This file is designed to generate default data files from data_static in data. It is mainly used for E2 tests, but can be used for everything
+-- This script is created to generate default data files from data_static in data. It is mainly used for E2 tests, but can be used for everything
 local function RecursivelyGenerateFolder(path)
 	local files, dirs = file.Find(path .. "*", "GAME")
 	local subpath = string.gsub(path, "data_static/", "")
