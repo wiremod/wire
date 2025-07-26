@@ -79,7 +79,8 @@ local function runE2Tests(path, failures, passes)
 			else
 				failures[#failures + 1] = name
 			end
-		elseif ext == "lua" then
+		elseif ext == "json" then
+			-- It's lua, but in .json file for whitelist pass
 			local fn = CompileString(file.Read(full_path, "GAME"))
 
 			local ok, msg = pcall(fn)
