@@ -24,22 +24,15 @@ local castE2ValueToLuaValue = E2Lib.castE2ValueToLuaValue
 local E2totalspawnedprops = 0
 local playerMeta = FindMetaTable("Player")
 
-hook.Add("PlayerInitialSpawn", "E2tempSpawnedProps", function(ply)
-	ply.E2tempSpawnedProps = 0
-	ply.E2tempSpawnedPropsTime = 0
-end)
-
-local function TempReset(ply)
-	if (CurTime() >= ply.E2tempSpawnedPropsTime) then
+function PropCore.WithinPropcoreLimits(ply)
+	if CurTime() >= (ply.E2tempSpawnedPropsTime or 0) then
 		ply.E2tempSpawnedProps = 0
 		ply.E2tempSpawnedPropsTime = CurTime() + 1
 	end
+
+	return (sbox_E2_maxProps:GetInt() <= 0 or E2totalspawnedprops < sbox_E2_maxProps:GetInt()) and ply.E2tempSpawnedProps < sbox_E2_maxPropsPerSecond:GetInt()
 end
 
-function PropCore.WithinPropcoreLimits(ply)
-	TempReset(ply)
-	return (sbox_E2_maxProps:GetInt() <= 0 or E2totalspawnedprops<sbox_E2_maxProps:GetInt()) and ply.E2tempSpawnedProps < sbox_E2_maxPropsPerSecond:GetInt()
-end
 local WithinPropcoreLimits = PropCore.WithinPropcoreLimits
 
 function PropCore.ValidSpawn(ply, model, vehicleType)
