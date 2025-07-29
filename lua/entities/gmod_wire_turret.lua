@@ -176,9 +176,9 @@ function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, trac
 	self:SetDelay(delay)
 	self:SetSound(sound)
 	self:SetDamage(damage)
-	self:SetSpread(spread)
+	self:SetSpread(spread or 0.1)
 	self:SetTracer(tracer)
-	self:SetTraceNum(tracernum)
+	self:SetTraceNum(tracernum or 0)
 	self:SetNumBullets(numbullets)
 end
 
