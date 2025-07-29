@@ -1581,13 +1581,13 @@ function WireLib.NotifyGroup(group, msg, severity, chatprint, color)
 	local plys = {}
 
 	if isstring(group) then
-		for _, p in ipairs(player.GetAll()) do
+		for _, p in player.Iterator() do
 			if p:GetUserGroup() == group then
 				plys[#plys + 1] = p
 			end
 		end
 	else
-		for _, p in ipairs(player.GetAll()) do
+		for _, p in player.Iterator() do
 			if table.HasValue(group, p:GetUserGroup()) then
 				plys[#plys + 1] = p
 			end
