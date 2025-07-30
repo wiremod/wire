@@ -54,7 +54,7 @@ local function runE2Tests(path, failures, passes)
 	failures, passes = failures or {}, passes or {}
 
 	for _, name in ipairs(files) do
-		local ext = string.match(name, "%.([^.]+)$")
+		local ext = string.match(name, "%.(.+)$")
 		local filepath = path .. '/' .. name
 
 		if ext == "txt" then
@@ -64,8 +64,7 @@ local function runE2Tests(path, failures, passes)
 			else
 				failures[#failures + 1] = name
 			end
-		elseif ext == "json" then
-			-- It's lua, but in .json file for whitelist pass
+		elseif ext == "lua.txt" then
 			local fn = CompileString(file.Read(filepath, "DATA"))
 
 			local ok, msg = pcall(fn)
