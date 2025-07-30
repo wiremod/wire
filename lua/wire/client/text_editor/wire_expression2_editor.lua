@@ -980,6 +980,8 @@ function Editor:AutoSave()
 	local buffer = self:GetCode()
 	if self.savebuffer == buffer or buffer == defaultcode or buffer == "" then return end
 	self.savebuffer = buffer
+
+	file.CreateDir(self.Location)
 	file.Write(self.Location .. "/_autosave_.txt", buffer)
 end
 
@@ -1612,6 +1614,8 @@ function Editor:InitShutdownHook()
 	-- if wire_expression2_editor == nil then return end
 		local buffer = self:GetCode()
 		if buffer == defaultcode then return end
+
+		file.CreateDir(self.Location)
 		file.Write(self.Location .. "/_shutdown_.txt", buffer)
 
 		if wire_expression2_editor_savetabs:GetBool() then
@@ -1632,7 +1636,8 @@ function Editor:SaveTabs()
 	end
 
 	strtabs = strtabs:sub(1, -2)
-
+	
+	file.CreateDir(self.Location)
 	file.Write(self.Location .. "/_tabs_.txt", strtabs)
 end
 
@@ -1936,11 +1941,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 		return
 	end
 
-	local path = string.GetPathFromFilename(Line)
-	if not file.IsDir(path, "DATA") then
-		file.CreateDir(path)
-	end
-
+	file.CreateDir(string.GetPathFromFilename(Line))
 	file.Write(Line, self:GetCode())
 
 	local f = file.Open(Line, "r", "DATA")
