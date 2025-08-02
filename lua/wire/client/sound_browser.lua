@@ -27,67 +27,104 @@ local TranslateCHAN = {
 	[CHAN_STATIC] = "CHAN_STATIC",
 	[CHAN_VOICE2] = "CHAN_VOICE2",
 	[CHAN_VOICE_BASE] = "CHAN_VOICE_BASE",
-	[CHAN_USER_BASE] = "CHAN_USER_BASE"
+	[CHAN_USER_BASE] = "CHAN_USER_BASE",
 }
 
--- Output the infos about the given sound.
-local function GetFileInfos(strfile)
-	if not isstring(strfile) or strfile == "" then return end
+local function normalizeSoundFilePath(path)
+	-- check if the file is a soundscript
+	if not string.match(path, "[%\\%/]") then
+		return path
+	end
 
-	local nsize = tonumber(file.Size("sound/" .. strfile, "GAME") or "-1")
-	local strformat = string.lower(string.GetExtensionFromFilename(strfile) or "n/a")
+	-- normalize slashes
+	path = string.gsub(path, "[%\\%/]+", "/")
+
+	-- remove "special" characters from sound files, used in soundscripts.
+	if string.sub(path, 1, 6) == "sound/" then
+		path = string.gsub(path, "^sound/%W*", "sound/")
+	end
+
+	return path
+end
+
+-- Output the infos about the given sound.
+local function GetFileInfos(relativePath)
+	if not relativePath or relativePath == "" then return end
+
+	relativePath = normalizeSoundFilePath("sound/" .. relativePath)
+
+	local nsize = tonumber(file.Size(relativePath, "GAME") or "-1")
+	local strformat = string.lower(string.GetExtensionFromFilename(relativePath) or "n/a")
 
 	return nsize, strformat
 end
 
-local function GetFileSource(strFile) -- we have to do this because util.RelativePathToFull_Menu is restricted to menu state :( --strFile is sound/filepath.wav, not filepath.wav
-	if not isstring(strFile) or strFile == "" then return end
+local function GetFileSource(absolutePath)
+	if not absolutePath or absolutePath == "" then return end
 
 	-- check if the file is a soundscript
-	if not string.match(strFile,"/") then return end --GetSoundScriptSource(strFile) --alright this literally has no use whatsoever
-	-- remove "special" characters from sound files, used in soundscripts.
-	if strFile:sub(1,5) == "sound" then strFile = string.gsub(strFile,"^sound/%W*","sound/") end
+	if not string.match(absolutePath, "/") then return end
 
-	if file.Exists(strFile, "MOD") then
+	absolutePath = normalizeSoundFilePath(absolutePath)
+
+	-- if file.Exists(absolutePath, "MOD") then
+	-- 	return "garrysmod", "game", "Garry's Mod"
+	-- end
+
+	do
+		-- steam mounted games (or mount.cfg)
+		local games = engine.GetGames()
+		for _, v in ipairs(games) do
+			if v.mounted then
+				local gameFolder, title = v.folder, v.title
+				if file.Exists(absolutePath, gameFolder) then
+					return gameFolder, "game", title
+				end
+			end
+		end
+	end
+
+	do
+		local _, legacyAddons = file.Find("garrysmod/addons/*", "BASE_PATH")
+		for _, folder in ipairs(legacyAddons) do
+			if file.Exists("garrysmod/addons/" .. folder .. "/" .. absolutePath, "BASE_PATH") then
+				return folder, "legacy", folder
+			end
+		end
+	end
+
+	do
+		local addons = engine.GetAddons()
+		for _, v in ipairs(addons) do
+			if v.mounted then
+				local addon = v.title
+				if file.Exists(absolutePath, addon) then
+					return addon, "workshop", addon
+				end
+			end
+		end
+	end
+
+	if file.Exists(absolutePath, "DOWNLOAD") then
+		return "Server Download", "download", "Server Download"
+	end
+
+	if file.Exists(absolutePath, "BSP") then
+		return game.GetMap(), "bspfile", "Current Map (" .. game.GetMap() .. ")"
+	end
+
+	if file.Exists(absolutePath, "MOD") then
 		return "garrysmod", "game", "Garry's Mod"
 	end
 
-	for _, v in ipairs(engine.GetGames()) do --steam mounted games (or mount.cfg)
-		if v.mounted then
-			local game, title = v.folder, v.title
-			if file.Exists(strFile, game) then
-				return game, "game", title
-			end
-		end
-	end
-
-	local _, legacyAddons = file.Find("garrysmod/addons/*", "BASE_PATH")
-	for _,folder in ipairs(legacyAddons) do
-		if file.Exists("garrysmod/addons/"..folder.."/"..strFile, "BASE_PATH") then
-			return folder, "legacy"
-		end
-	end
-
-	for _,v in ipairs(engine.GetAddons()) do
-		if v.mounted then
-			local addon = v.title
-			if file.Exists(strFile, addon) then
-				return addon, "workshop"
-			end
-		end
-	end
-
-	if file.Exists(strFile,"DOWNLOAD") then return "Server Download", "download" end
-
-	if file.Exists(strFile,"BSP") then return "Current Map ("..game.GetMap()..")", "bspfile" end
-
-	--Couldn't find the file source, just leave with no return.
+	-- Couldn't find a file source.
+	return nil
 end
 
 local function FormatSize(nsize)
 	if not nsize then return end
 
-	--Negative filessizes aren't Valid.
+	-- Negative files sizes aren't valid.
 	if nsize < 0 then return end
 
 	return nsize, string.NiceSize(nsize)
@@ -96,143 +133,192 @@ end
 local function FormatLength(nduration)
 	if not nduration then return end
 
-	--Negative durations aren't Valid.
+	-- Negative durations aren't valid.
 	if nduration < 0 then return end
 
 	local nm = math.floor(nduration / 60)
 	local ns = math.floor(nduration % 60)
 	local nms = (nduration % 1) * 1000
-	return nduration, (string.format("%01d", nm)..":"..string.format("%02d", ns).."."..string.format("%03d", nms))
+	return nduration, string.format("%01d:%02d.%03d", nm, ns, nms)
 end
 
-local function GetInfoTable(strfile)
-	local nsize, strformat, nduration = GetFileInfos(strfile)
-	local strSource, strSourceType, strSourceName = GetFileSource("sound/"..strfile)
+local iconByTypeMap = {
+	legacy = "icon16/folder_brick.png",
+	workshop = "games/16/all.png",
+	download = "icon16/transmit.png",
+	bspfile = "icon16/world.png",
+}
+
+local function GetInfoTable(relativePath)
+	local nsize, strformat = GetFileInfos(relativePath)
 	if not nsize then return end
 
-	nduration = SoundDuration(strfile) --Get the duration for the info text only.
+	local propertyTable = sound.GetProperties(relativePath)
+	if propertyTable then
+		propertyTable.IsFile = false
+		return propertyTable
+	end
+
+	local absolutePath = normalizeSoundFilePath("sound/" .. relativePath)
+	relativePath = normalizeSoundFilePath(relativePath)
+
+	local strSource, strSourceType, strSourceName = GetFileSource(absolutePath)
+
+	local nduration = SoundDuration(relativePath)
 	if nduration then
 		nduration = math.Round(nduration * 1000) / 1000
 	end
+
+	local strSourceIcon = nil
+
+	if strSourceType == "game" then
+		if strSource then
+			strSourceIcon = "games/16/" .. strSource .. ".png"
+		end
+	else
+		strSourceIcon = iconByTypeMap[strSourceType]
+	end
+
+	strSourceIcon = strSourceIcon or "icon16/folder_link.png"
+	strSourceName = strSourceName or strSource
+
 	local nduration, strduration = FormatLength(nduration, nsize)
 	local nsizeB, strsize = FormatSize(nsize)
 
-	local T = {}
-	local tabproperty = sound.GetProperties(strfile)
+	local infoTable = {}
 
-	if tabproperty then
-		T = tabproperty
-	else
-		T.Path = {strfile, strSource or "n/a", strSourceType, strSourceName}
-		T.Duration = {strduration or "n/a", nduration and nduration.." sec"}
-		T.Size = {strsize or "n/a", nsizeB and nsizeB.." Bytes"}
-		T.Format = strformat
-	end
+	local valid = file.Exists(absolutePath, "GAME")
 
-	return T, not tabproperty
+	infoTable.Path = {
+		relativePath = relativePath,
+		strSource = strSource,
+		strSourceType = strSourceType,
+		strSourceName = strSourceName,
+		strSourceIcon = strSourceIcon,
+		valid = valid,
+	}
+
+	infoTable.Duration = {strduration or "n/a", nduration and nduration .. " sec"}
+	infoTable.Size = {strsize or "n/a", nsizeB and nsizeB .. " Bytes"}
+	infoTable.Format = strformat
+	infoTable.IsFile = true
+
+	return infoTable
 end
 
 
 -- Output the infos about the given sound.
-local oldstrfile
-local function GenerateInfoTree(strfile, backnode, count)
-	if oldstrfile == strfile and strfile then return end
-	oldstrfile = strfile
+local function GenerateInfoTree(relativePath, parentnode, count)
+	local SoundData = GetInfoTable(relativePath)
+	local IsFile = SoundData.IsFile
 
-	local SoundData, IsFile = GetInfoTable(strfile)
-
-	if not IsValid(backnode) then
+	if not IsValid(parentnode) then
 		if IsValid(SoundInfoTreeRoot) then
 			SoundInfoTreeRoot:Remove()
 		end
 	end
-	if not SoundData then return end
+
+	if not SoundData then
+		return
+	end
 
 	local strcount = ""
 	if count then
-		strcount = " ("..count..")"
+		strcount = " (" .. count .. ")"
 	end
 
 	if IsFile then
-		local index = ""
-		local node = nil
 		local mainnode = nil
-		local subnode = nil
 
-		if IsValid(backnode) then
-			mainnode = backnode:AddNode("Sound File"..strcount, "icon16/sound.png")
+		if IsValid(parentnode) then
+			mainnode = parentnode:AddNode("Sound File" .. strcount, "icon16/sound.png")
 		else
 			mainnode = SoundInfoTree:AddNode("Sound File", "icon16/sound.png")
 			SoundInfoTreeRoot = mainnode
 		end
 
-
 		do
-			index = "Path"
-			node = mainnode:AddNode(index, "icon16/link.png")
-			subnode = node:AddNode(SoundData[index][1], "icon16/page.png")
+			local index = "Path"
+			local item = SoundData[index]
+			local node = mainnode:AddNode(index, "icon16/link.png")
+			node:SetExpanded(true)
+
+			local valid = item.valid
+
+			local subnode = node:AddNode(
+				item.relativePath,
+				valid and "icon16/page.png" or "icon16/page_error.png"
+			)
+
 			subnode.IsDataNode = true
 			subnode.IsSoundNode = true
-			subnode = node:AddNode(SoundData[index][3]=="game" and SoundData[index][4] or SoundData[index][2],
-				SoundData[index][3]=="game" and "games/16/"..SoundData[index][2]..".png" or
-				SoundData[index][3]=="legacy" and "icon16/folder_brick.png" or
-				SoundData[index][3]=="workshop" and "games/16/all.png" or
-				SoundData[index][3]=="download" and "icon16/transmit.png" or
-				SoundData[index][3]=="bspfile" and "icon16/world.png" or
-				"icon16/folder_link.png")
+
+			if valid and item.strSourceType then
+				node:AddNode(item.strSourceName, item.strSourceIcon)
+			end
+
+			if not valid then
+				subnode:SetTooltip("File was not found.")
+			end
 		end
 		do
-			index = "Duration"
-			node = mainnode:AddNode(index, "icon16/time.png")
-			for k, v in pairs(SoundData[index]) do
-				subnode = node:AddNode(v, "icon16/page.png")
+			local index = "Duration"
+			local item = SoundData[index]
+			local node = mainnode:AddNode(index, "icon16/time.png")
+			for k, v in pairs(item) do
+				local subnode = node:AddNode(v, "icon16/page.png")
 				subnode.IsDataNode = true
 			end
 		end
 		do
-			index = "Size"
-			node = mainnode:AddNode(index, "icon16/disk.png")
-			for k, v in pairs(SoundData[index]) do
-				subnode = node:AddNode(v, "icon16/page.png")
+			local index = "Size"
+			local item = SoundData[index]
+			local node = mainnode:AddNode(index, "icon16/disk.png")
+			for k, v in pairs(item) do
+				local subnode = node:AddNode(v, "icon16/page.png")
 				subnode.IsDataNode = true
 			end
 		end
 		do
-			index = "Format"
-			node = mainnode:AddNode(index, "icon16/page_white_key.png")
-			subnode = node:AddNode(SoundData[index], "icon16/page.png")
+			local index = "Format"
+			local item = SoundData[index]
+			local node = mainnode:AddNode(index, "icon16/page_white_key.png")
+			local subnode = node:AddNode(item, "icon16/page.png")
 			subnode.IsDataNode = true
 		end
+
+		if not count then
+			mainnode:SetExpanded(true)
+		end
 	else
-		local node = nil
 		local mainnode = nil
 
-		if IsValid(backnode) then
-			mainnode = backnode:AddNode("Sound Property"..strcount, "icon16/table_gear.png")
+		if IsValid(parentnode) then
+			mainnode = parentnode:AddNode("Sound Property" .. strcount, "icon16/table_gear.png")
 		else
 			mainnode = SoundInfoTree:AddNode("Sound Property", "icon16/table_gear.png")
 			SoundInfoTreeRoot = mainnode
 		end
 
 		do
-			node = mainnode:AddNode("Name", "icon16/sound.png")
-			subnode = node:AddNode(SoundData["name"], "icon16/page.png")
+			local node = mainnode:AddNode("Name", "icon16/sound.png")
+			local subnode = node:AddNode(SoundData["name"], "icon16/page.png")
 			subnode.IsSoundNode = true
 			subnode.IsDataNode = true
 		end
 		do
 			local tabchannel = SoundData["channel"] or 0
 			if istable(tabchannel) then
-				node = mainnode:AddNode("Channel", "icon16/page_white_gear.png")
+				local node = mainnode:AddNode("Channel", "icon16/page_white_gear.png")
 				for k, v in pairs(tabchannel) do
-					subnode = node:AddNode(v, "icon16/page.png")
+					local subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 					subnode = node:AddNode(TranslateCHAN[v] or TranslateCHAN[CHAN_USER_BASE], "icon16/page.png")
 					subnode.IsDataNode = true
 				end
 			else
-				node = mainnode:AddNode("Channel", "icon16/page_white_gear.png")
-				subnode = node:AddNode(tabchannel, "icon16/page.png")
+				local node = mainnode:AddNode("Channel", "icon16/page_white_gear.png")
+				local subnode = node:AddNode(tabchannel, "icon16/page.png")
 				subnode.IsDataNode = true
 				subnode = node:AddNode(TranslateCHAN[tabchannel] or TranslateCHAN[CHAN_USER_BASE], "icon16/page.png")
 				subnode.IsDataNode = true
@@ -241,48 +327,49 @@ local function GenerateInfoTree(strfile, backnode, count)
 		do
 			local tablevel = SoundData["level"] or 0
 			if istable(tablevel) then
-				node = mainnode:AddNode("Level", "icon16/page_white_gear.png")
+				local node = mainnode:AddNode("Level", "icon16/page_white_gear.png")
 				for k, v in pairs(tablevel) do
-					subnode = node:AddNode(v, "icon16/page.png")
+					local subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 					subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 				end
 			else
-				node = mainnode:AddNode("Level", "icon16/page_white_gear.png")
-				subnode = node:AddNode(tablevel, "icon16/page.png")
+				local node = mainnode:AddNode("Level", "icon16/page_white_gear.png")
+				local subnode = node:AddNode(tablevel, "icon16/page.png")
 				subnode.IsDataNode = true
 			end
 		end
 		do
 			local tabpitch = SoundData["volume"] or 0
 			if istable(tabpitch) then
-				node = mainnode:AddNode("Volume", "icon16/page_white_gear.png")
+				local node = mainnode:AddNode("Volume", "icon16/page_white_gear.png")
 				for k, v in pairs(tabpitch) do
-					subnode = node:AddNode(v, "icon16/page.png")
+					local subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 				end
 			else
-				node = mainnode:AddNode("Volume", "icon16/page_white_gear.png")
-				subnode = node:AddNode(tabpitch, "icon16/page.png")
+				local node = mainnode:AddNode("Volume", "icon16/page_white_gear.png")
+				local subnode = node:AddNode(tabpitch, "icon16/page.png")
 				subnode.IsDataNode = true
 			end
 		end
 		do
 			local tabpitch = SoundData["pitch"] or 0
 			if istable(tabpitch) then
-				node = mainnode:AddNode("Pitch", "icon16/page_white_gear.png")
+				local node = mainnode:AddNode("Pitch", "icon16/page_white_gear.png")
 				for k, v in pairs(tabpitch) do
-					subnode = node:AddNode(v, "icon16/page.png")
+					local subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 				end
 			else
-				node = mainnode:AddNode("Pitch", "icon16/page_white_gear.png")
-				subnode = node:AddNode(tabpitch, "icon16/page.png")
+				local node = mainnode:AddNode("Pitch", "icon16/page_white_gear.png")
+				local subnode = node:AddNode(tabpitch, "icon16/page.png")
 				subnode.IsDataNode = true
 			end
 		end
 		do
+			local node = nil
 			local tabsound = SoundData["sound"] or ""
 			if istable(tabsound) then
 				node = mainnode:AddNode("Sounds", "icon16/table_multiple.png")
@@ -291,19 +378,21 @@ local function GenerateInfoTree(strfile, backnode, count)
 			end
 
 			node.SubData = tabsound
-			node.BackNode = mainnode
-			node.Expander.DoClick = function(self)
-				if not IsValid(SoundInfoTree) then return end
-				if not IsValid(node) then return end
+			node.ParentNode = mainnode
 
-				node:SetExpanded(false)
-				SoundInfoTree:SetSelectedItem(node)
+			if istable(tabsound) then
+				for k, v in pairs(tabsound) do
+					GenerateInfoTree(v, node, k)
+				end
+			else
+				GenerateInfoTree(tabsound, node)
 			end
-			node:AddNode("Dummy")
+
+			node:SetExpanded(true)
 		end
 	end
 
-	if IsValid(backnode) then
+	if IsValid(parentnode) then
 		return
 	end
 
@@ -465,7 +554,7 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) -- Op
 					MenuItem:SetTextColor(Disabled_Gray) -- custom disabling
 					MenuItem.DoClick = function() end
 
-					MenuItem:SetToolTip("The favourites list is Full! It can't hold more than "..max_item_count.." items!")
+					MenuItem:SetTooltip("The favourites list is Full! It can't hold more than "..max_item_count.." items!")
 				end
 
 		end
@@ -495,7 +584,7 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) -- Op
 			MenuItem:SetTextColor(Disabled_Gray) -- custom disabling
 			MenuItem.DoClick = function() end
 
-			MenuItem:SetToolTip("The filepath ("..len.." chars) is too long to print in chat. It should be shorter than "..max_char_chat_count.." chars!")
+			MenuItem:SetTooltip("The filepath ("..len.." chars) is too long to print in chat. It should be shorter than "..max_char_chat_count.." chars!")
 		end
 
 	Menu:AddSpacer()
@@ -559,7 +648,7 @@ local function Infomenu(parent, node, SoundEmitter, nSoundVolume, nSoundPitch)
 			MenuItem:SetTextColor(Disabled_Gray) -- custom disabling
 			MenuItem.DoClick = function() end
 
-			MenuItem:SetToolTip("The filepath ("..len.." chars) is too long to print in chat. It should be shorter than "..max_char_chat_count.." chars!")
+			MenuItem:SetTooltip("The filepath ("..len.." chars) is too long to print in chat. It should be shorter than "..max_char_chat_count.." chars!")
 		end
 
 	Menu:Open()
@@ -576,19 +665,6 @@ end
 
 -- Open the Sound Browser.
 local function CreateSoundBrowser(path, se)
-	local soundemitter = false
-	if isstring(path) and path ~= "" then
-		soundemitter = true
-
-		if tonumber(se) ~= 1 then
-			soundemitter = false
-		end
-	end
-
-	if tonumber(se) == 1 then
-		soundemitter = true
-	end
-
 	local strSound = ""
 	local nSoundVolume = 1
 	local nSoundPitch = 100
@@ -602,7 +678,7 @@ local function CreateSoundBrowser(path, se)
 
 	SoundBrowserPanel = vgui.Create("DFrame") -- The main frame.
 	SoundBrowserPanel:SetPos(50,25)
-	SoundBrowserPanel:SetSize(750, 500)
+	SoundBrowserPanel:SetSize(1000, 700)
 
 	SoundBrowserPanel:SetMinWidth(700)
 	SoundBrowserPanel:SetMinHeight(400)
@@ -662,8 +738,8 @@ local function CreateSoundBrowser(path, se)
 		if not IsValid(parent) then return end
 		if not IsValid(node) then return end
 
-		local backnode = node.BackNode
-		if not IsValid(node.BackNode) then
+		local parentnode = node.ParentNode
+		if not IsValid(parentnode) then
 			node:SetExpanded(not node.m_bExpanded)
 			return
 		end
@@ -674,20 +750,6 @@ local function CreateSoundBrowser(path, se)
 			return
 		end
 
-		node:SetExpanded(false)
-		node:Remove()
-
-		if istable(tabsound) then
-			node = backnode:AddNode("Sounds", "icon16/table_multiple.png")
-			for k, v in pairs(tabsound) do
-				GenerateInfoTree(v, node, k)
-			end
-		else
-			node = backnode:AddNode("Sound", "icon16/table.png")
-			GenerateInfoTree(tabsound, node)
-		end
-
-		node:SetExpanded(false)
 		parent:SetSelectedItem(node)
 		node:SetExpanded(not node.m_bExpanded)
 	end
@@ -696,7 +758,7 @@ local function CreateSoundBrowser(path, se)
 	SplitPanel:Dock(FILL)
 	SplitPanel:SetLeft(BrowserTabs)
 	SplitPanel:SetRight(SoundInfoTree)
-	SplitPanel:SetLeftWidth(570)
+	SplitPanel:SetLeftWidth(770)
 	SplitPanel:SetLeftMin(500)
 	SplitPanel:SetRightMin(150)
 	SplitPanel:SetDividerWidth(3)
@@ -713,20 +775,18 @@ local function CreateSoundBrowser(path, se)
 	Columns[2]:SetFixedWidth(70)
 	Columns[2]:SetWide(70)
 
-	TabFileBrowser.LineData = function(self, id, strfile, ...)
-		if #strfile > max_char_count then return nil, true end -- skip and hide to long filenames.
+	TabFileBrowser.LineData = function(self, id, relativePath, ...)
+		if #relativePath > max_char_count then return nil, true end -- skip and hide to long filenames.
 
-		local nsize, strformat, nduration = GetFileInfos(strfile)
+		local nsize, strformat = GetFileInfos(relativePath)
 		if not nsize then return end
 
-		local nsizeB, strsize = FormatSize(nsize, nduration)
-		local nduration, strduration = FormatLength(nduration, nsize)
+		local _, strsize = FormatSize(nsize, nduration)
 
-		--return {strformat, strsize or "n/a", strduration or "n/a"} --getting the duration is very slow.
 		return {strformat, strsize or "n/a"}
 	end
 
-	TabFileBrowser.OnLineAdded = function(self, id, line, strfile, ...)
+	TabFileBrowser.OnLineAdded = function(self, id, line, relativePath, ...)
 
 	end
 
@@ -813,19 +873,19 @@ local function CreateSoundBrowser(path, se)
 	ControlPanel:DockMargin(0, 5, 0, 0)
 	ControlPanel:Dock(BOTTOM)
 	ControlPanel:SetTall(60)
-	ControlPanel:SetDrawBackground(false)
+	ControlPanel:SetPaintBackground(false)
 
 	local ButtonsPanel = ControlPanel:Add("DPanel") -- The buttons.
 	ButtonsPanel:DockMargin(4, 0, 0, 0)
 	ButtonsPanel:Dock(RIGHT)
 	ButtonsPanel:SetWide(250)
-	ButtonsPanel:SetDrawBackground(false)
+	ButtonsPanel:SetPaintBackground(false)
 
 	local TunePanel = ControlPanel:Add("DPanel") -- The effect Sliders.
 	TunePanel:DockMargin(0, 4, 0, 0)
 	TunePanel:Dock(LEFT)
 	TunePanel:SetWide(350)
-	TunePanel:SetDrawBackground(false)
+	TunePanel:SetPaintBackground(false)
 
 	local TuneVolumeSlider = TunePanel:Add("DNumSlider") -- The volume slider.
 	TuneVolumeSlider:DockMargin(2, 0, 0, 0)
@@ -856,7 +916,7 @@ local function CreateSoundBrowser(path, se)
 	local PlayStopPanel = ButtonsPanel:Add("DPanel") -- Play and stop.
 	PlayStopPanel:DockMargin(0, 0, 0, 2)
 	PlayStopPanel:Dock(TOP)
-	PlayStopPanel:SetDrawBackground(false)
+	PlayStopPanel:SetPaintBackground(false)
 
 	local PlayButton = PlayStopPanel:Add("DButton") -- The play button.
 	PlayButton:SetText("Play")
@@ -894,7 +954,7 @@ local function CreateSoundBrowser(path, se)
 		SetupClipboard(strSound)
 	end
 
-	local oldw, oldh = SoundBrowserPanel:GetSize()
+	local oldw = SoundBrowserPanel:GetSize()
 	SoundBrowserPanel.PerformLayout = function(self, ...)
 		SoundemitterButton:SetVisible(self.Soundemitter)
 		ClipboardButton:SetVisible(not self.Soundemitter)
@@ -922,7 +982,7 @@ local function CreateSoundBrowser(path, se)
 			ClipboardButton:SetTall(PlayStopPanel:GetTall() - 2)
 		end
 
-		oldw, oldh = self:GetSize()
+		oldw = self:GetSize()
 
 		DFrame.PerformLayout(self, ...)
 	end
