@@ -28,4 +28,7 @@ if cookie.GetNumber("wire_data_version", 0) < DataVersion then
 	WireLib.GenerateDefaultData()
 end
 
-concommand.Add("wire_generate_data_files", WireLib.GenerateDefaultData)
+concommand.Add("wire_generate_data_files", function(ply)
+	if SERVER and IsValid(ply) and not ply:IsSuperAdmin() then return end
+	WireLib.GenerateDefaultData()
+end)
