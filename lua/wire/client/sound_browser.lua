@@ -679,6 +679,7 @@ local function CreateSoundBrowser(path, se)
 	SoundBrowserPanel = vgui.Create("DFrame") -- The main frame.
 	SoundBrowserPanel:SetPos(50,25)
 	SoundBrowserPanel:SetSize(1000, 700)
+	SoundBrowserPanel:Center()
 
 	SoundBrowserPanel:SetMinWidth(700)
 	SoundBrowserPanel:SetMinHeight(400)
