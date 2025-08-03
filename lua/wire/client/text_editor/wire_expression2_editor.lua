@@ -848,18 +848,18 @@ function Editor:InitComponents()
 
 	self.C.Sav:SetImage("icon16/disk.png")
 	self.C.Sav.DoClick = function(button) self:SaveFile(self:GetChosenFile()) end
-	self.C.Sav:SetToolTip( "Save" )
+	self.C.Sav:SetTooltip( "Save" )
 
 	self.C.NewTab:SetImage("icon16/page_white_add.png")
 	self.C.NewTab.DoClick = function(button) self:NewTab() end
-	self.C.NewTab:SetToolTip( "New tab" )
+	self.C.NewTab:SetTooltip( "New tab" )
 
 	self.C.CloseTab:SetImage("icon16/page_white_delete.png")
 	self.C.CloseTab.DoClick = function(button) self:CloseTab() end
-	self.C.CloseTab:SetToolTip( "Close tab" )
+	self.C.CloseTab:SetTooltip( "Close tab" )
 
 	self.C.Reload:SetImage("icon16/page_refresh.png")
-	self.C.Reload:SetToolTip( "Refresh file" )
+	self.C.Reload:SetTooltip( "Refresh file" )
 	self.C.Reload.DoClick = function(button)
 		self:LoadFile(self:GetChosenFile(), false)
 	end
@@ -980,6 +980,8 @@ function Editor:AutoSave()
 	local buffer = self:GetCode()
 	if self.savebuffer == buffer or buffer == defaultcode or buffer == "" then return end
 	self.savebuffer = buffer
+
+	file.CreateDir(self.Location)
 	file.Write(self.Location .. "/_autosave_.txt", buffer)
 end
 
@@ -1225,11 +1227,11 @@ function Editor:InitControlPanel(frame)
 	modes[3] = modes["Scroller w/ Enter"][2]
 	modes[4] = modes["Eclipse Style"][2]
 	modes[5] = modes["Atom/IntelliJ style"][2]
-	AutoCompleteControlOptions:SetToolTip(modes[GetConVar("wire_expression2_autocomplete_controlstyle"):GetInt()])
+	AutoCompleteControlOptions:SetTooltip(modes[GetConVar("wire_expression2_autocomplete_controlstyle"):GetInt()])
 
 
 	AutoCompleteControlOptions.OnSelect = function(panel, index, value)
-		panel:SetToolTip(modes[value][2])
+		panel:SetTooltip(modes[value][2])
 		RunConsoleCommand("wire_expression2_autocomplete_controlstyle", modes[value][1])
 	end
 
@@ -1385,10 +1387,10 @@ Text here]# ]]
 	blockCommentModes[0] = blockCommentModes["New (alt 1)"][2]
 	blockCommentModes[1] = blockCommentModes["New (alt 2)"][2]
 	blockCommentModes[2] = blockCommentModes["Old"][2]
-	BlockCommentStyle:SetToolTip(blockCommentModes[self.BlockCommentStyleConVar:GetInt()])
+	BlockCommentStyle:SetTooltip(blockCommentModes[self.BlockCommentStyleConVar:GetInt()])
 
 	BlockCommentStyle.OnSelect = function(panel, index, value)
-		panel:SetToolTip(blockCommentModes[value][2])
+		panel:SetTooltip(blockCommentModes[value][2])
 		RunConsoleCommand("wire_expression2_editor_block_comment_style", blockCommentModes[value][1])
 	end
 
@@ -1449,7 +1451,7 @@ Text here]# ]]
 				if #name > max then name = string.sub(name,1,max) .. "..." end
 
 				local panel = vgui.Create("DPanel")
-				panel:SetTall((LocalPlayer():IsAdmin() and 74 or 47))
+				panel:SetTall(LocalPlayer():IsAdmin() and 74 or 47)
 				panel.Paint = function(panel)
 					local w, h = panel:GetSize()
 					draw.RoundedBox(1, 0, 0, w, h, Color(65, 105, 255, 100))
@@ -1612,6 +1614,8 @@ function Editor:InitShutdownHook()
 	-- if wire_expression2_editor == nil then return end
 		local buffer = self:GetCode()
 		if buffer == defaultcode then return end
+
+		file.CreateDir(self.Location)
 		file.Write(self.Location .. "/_shutdown_.txt", buffer)
 
 		if wire_expression2_editor_savetabs:GetBool() then
@@ -1633,6 +1637,7 @@ function Editor:SaveTabs()
 
 	strtabs = strtabs:sub(1, -2)
 
+	file.CreateDir(self.Location)
 	file.Write(self.Location .. "/_tabs_.txt", strtabs)
 end
 
@@ -1773,7 +1778,7 @@ function Editor:SetV(bool)
 		if self.E2 then self:Validate() end
 	end
 	self:SetVisible(bool)
-	self:SetKeyBoardInputEnabled(bool)
+	self:SetKeyboardInputEnabled(bool)
 	self:GetParent():SetWorldClicker(wire_expression2_editor_worldclicker:GetBool() and bool) -- Enable this on the background so we can update E2's without closing the editor
 	if CanRunConsoleCommand() then
 		RunConsoleCommand("wire_expression2_event", bool and "editor_open" or "editor_close")
@@ -1936,11 +1941,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 		return
 	end
 
-	local path = string.GetPathFromFilename(Line)
-	if not file.IsDir(path, "DATA") then
-		file.CreateDir(path)
-	end
-
+	file.CreateDir(string.GetPathFromFilename(Line))
 	file.Write(Line, self:GetCode())
 
 	local f = file.Open(Line, "r", "DATA")

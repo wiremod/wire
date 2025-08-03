@@ -1,25 +1,10 @@
 if CLIENT then return end -- Somehow ran on client
 
--- First find where wiremod is stored.
-local AddonRoot = ""
-local _, addons = file.Find("addons/*", "GAME")
-
-for _, addon in pairs(addons) do
-	local head = "addons/" .. addon
-
-	if file.Exists(head .. "/lua/autorun/wire_load.lua", "GAME") then
-		AddonRoot = head
-		break
-	end
-end
-
-
 ---@param path string
 ---@param name string
 ---@return boolean ok
 local function runE2Test(path, name)
-	local source = file.Read(path, "GAME")
-
+	local source = file.Read(path, "DATA")
 	local ok, err_or_func = E2Lib.compileScript(source)
 	local should, step = source:match("^## SHOULD_(%w+):(%w+)")
 
@@ -65,22 +50,22 @@ end
 ---@return string[] failures
 ---@return string[] passes
 local function runE2Tests(path, failures, passes)
-	local files, folders = file.Find(AddonRoot .. '/' .. path .. "/*", "GAME")
+	local files, folders = file.Find(path .. "/*", "DATA")
 	failures, passes = failures or {}, passes or {}
 
 	for _, name in ipairs(files) do
-		local ext = string.match(name, "%.([^.]+)$")
-		local full_path = AddonRoot .. '/' .. path .. '/' .. name
+		local ext = string.match(name, "%.(.+)$")
+		local filepath = path .. '/' .. name
 
 		if ext == "txt" then
-			local ok = runE2Test(full_path, name)
+			local ok = runE2Test(filepath, name)
 			if ok then
 				passes[#passes + 1] = name
 			else
 				failures[#failures + 1] = name
 			end
-		elseif ext == "lua" then
-			local fn = CompileString(file.Read(full_path, "GAME"))
+		elseif ext == "lua.txt" then
+			local fn = CompileString(file.Read(filepath, "DATA"))
 
 			local ok, msg = pcall(fn)
 			if ok then
@@ -106,9 +91,12 @@ concommand.Add("e2test", function(ply)
 		return
 	end
 
-	local failed, passed = runE2Tests("data/expression2/tests")
+	-- Let's make sure we have the latest versions of tests.
+	WireLib.GenerateDefaultData()
 
+	local failed, passed = runE2Tests("expression2/tests")
 	local msg = #passed .. "/" .. (#passed + #failed) .. " tests passed"
+
 	if IsValid(ply) then
 		ply:PrintMessage(2, msg)
 	else

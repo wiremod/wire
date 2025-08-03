@@ -208,7 +208,11 @@ function PANEL:Init()
 		Derma_StringRequestNoBlur("Copy File \"" .. fname .. "\"", "Copy File to...", fname,
 			function(strTextOut)
 				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-				file.Write(string.GetPathFromFilename(self.File:GetFileName()) .. "/" .. strTextOut .. ".txt", file.Read(self.File:GetFileName()))
+
+				local path = string.GetPathFromFilename(self.File:GetFileName())
+				file.CreateDir(path)
+				file.Write(path .. "/" .. strTextOut .. ".txt", file.Read(self.File:GetFileName()))
+
 				self:UpdateFolders()
 			end)
 	end)
@@ -217,7 +221,11 @@ function PANEL:Init()
 		Derma_StringRequestNoBlur("New File in \"" .. string.GetPathFromFilename(self.File:GetFileName()) .. "\"", "Create new file", "",
 			function(strTextOut)
 				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-				file.Write(string.GetPathFromFilename(self.File:GetFileName()) .. "/" .. strTextOut .. ".txt", "")
+
+				local path = string.GetPathFromFilename(self.File:GetFileName())
+				file.CreateDir(path)
+				file.Write(path .. "/" .. strTextOut .. ".txt", "")
+
 				self:UpdateFolders()
 			end)
 	end)
@@ -238,7 +246,11 @@ function PANEL:Init()
 		Derma_StringRequestNoBlur("New File in \"" .. self.File:GetFolder() .. "\"", "Create new file", "",
 			function(strTextOut)
 				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+
+				local path = self.File:GetFolder()
+				file.CreateDir(path)
 				file.Write(self.File:GetFolder() .. "/" .. strTextOut .. ".txt", "")
+
 				self:UpdateFolders()
 			end)
 	end)
@@ -279,7 +291,11 @@ function PANEL:Init()
 		Derma_StringRequestNoBlur("New File in \"" .. self.File:GetFolder() .. "\"", "Create new file", "",
 			function(strTextOut)
 				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-				file.Write(self.File:GetFolder() .. "/" .. strTextOut .. ".txt", "")
+
+				local path = self.File:GetFolder()
+				file.CreateDir(path)
+				file.Write(path .. "/" .. strTextOut .. ".txt", "")
+
 				self:UpdateFolders()
 			end)
 	end)
