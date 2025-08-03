@@ -7,7 +7,6 @@
 	[
 		"*.psd",
 		"*.vcproj",
-		"*.txt",
 		"*.xcf",
 		".git*",
 		"*.md",
