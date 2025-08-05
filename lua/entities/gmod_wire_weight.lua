@@ -22,6 +22,8 @@ function ENT:TriggerInput(iname, value)
 		if phys:IsValid() then
 			value = math.Clamp(value, 0.001, 50000)
 			phys:SetMass(value)
+			phys:Wake()
+
 			self:ShowOutput(value)
 			WireLib.TriggerOutput(self, "Weight", value)
 		end
