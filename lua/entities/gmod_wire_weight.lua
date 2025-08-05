@@ -26,8 +26,6 @@ function ENT:TriggerInput(iname, value)
 			WireLib.TriggerOutput(self, "Weight", value)
 		end
 	end
-
-	return true
 end
 
 function ENT:ShowOutput(value)
