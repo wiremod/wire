@@ -26,7 +26,7 @@ TOOL.ClientConVar = {
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_painter")
-	WireDermaExts.ModelSelect(panel, "wire_painter_Model", list.Get("Wire_Laser_Tools_Models"), 1, true)
+	WireDermaExts.ModelSelect(panel, "wire_painter_model", list.Get("Wire_Laser_Tools_Models"), 1, true)
 
 	local options = {}
 
