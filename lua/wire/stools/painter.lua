@@ -67,7 +67,7 @@ function TOOL.BuildCPanel(panel)
 				line:SetSelected(false)
 			end
 		end
-	end)
+	end, "wire_painter_settings")
 
 	panel:AddItem(listbox)
 	panel:NumSlider("#tool.wire_painter.maxrange", "wire_painter_range", 1, 10000, 0)
