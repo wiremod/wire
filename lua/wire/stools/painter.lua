@@ -6,6 +6,8 @@ if CLIENT then
 	language.Add("tool.wire_painter.desc", "Spawns a painter for use with the wire system.")
 	language.Add("tool.wire_painter.maxrange", "Range:")
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/paintcan.png")
 end
 
 WireToolSetup.BaseLang()
