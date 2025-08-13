@@ -46,30 +46,32 @@ function TOOL.BuildCPanel(panel)
 	listbox:SetTall(17 + #options * 17)
 	listbox:SortByColumn(1, false)
 
+	for _, decal in ipairs(options) do
+		local line = listbox:AddLine(decal)
+		line.decal = decal
+	end
+
 	function listbox:OnRowSelected(index, row)
 		RunConsoleCommand("wire_painter_decal", row.decal)
 	end
 
 	local wire_painter_decal = GetConVar("wire_painter_decal")
 
-	for _, decal in ipairs(options) do
-		local line = listbox:AddLine(decal)
-		line.decal = decal
+	function listbox:Think()
+		local value = wire_painter_decal:GetString()
 
-		if wire_painter_decal:GetString() == tostring(decal) then
-			line:SetSelected(true)
+		if listbox.m_strConVarValue ~= value then
+			for _, line in ipairs(listbox:GetLines()) do
+				if value == line.decal then
+					line:SetSelected(true)
+				else
+					line:SetSelected(false)
+				end
+			end
+
+			listbox.m_strConVarValue = value
 		end
 	end
-
-	cvars.AddChangeCallback("wire_painter_decal", function(convar, old, new)
-		for _, line in ipairs(listbox:GetLines()) do
-			if new == line.decal then
-				line:SetSelected(true)
-			else
-				line:SetSelected(false)
-			end
-		end
-	end, "wire_painter_settings")
 
 	panel:AddItem(listbox)
 	panel:NumSlider("#tool.wire_painter.maxrange", "wire_painter_range", 1, 10000, 0)
