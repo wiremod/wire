@@ -12,6 +12,8 @@ if ( CLIENT ) then
 		{ name = "reload_0", stage = 0, text = "Remove link to next waypoint" },
 		{ name = "left_1", stage = 1, text = "Select waypoint to go to after this one" },
 	}
+
+	WireToolSetup.setToolMenuIcon("icon16/flag_blue.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 30 )

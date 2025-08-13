@@ -5,6 +5,8 @@ if CLIENT then
 	language.Add( "tool.wire_digitalscreen.name", "Digital Screen Tool (Wire)" )
 	language.Add( "tool.wire_digitalscreen.desc", "Spawns a digital screen, which can be used to draw pixel by pixel." )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/application_xp_terminal.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

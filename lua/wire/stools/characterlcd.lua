@@ -7,6 +7,8 @@ if CLIENT then
   language.Add( "tool.wire_characterlcd.bgcolor", "Background color:" )
   language.Add( "tool.wire_characterlcd.fgcolor", "Text color:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/application_xp_terminal.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

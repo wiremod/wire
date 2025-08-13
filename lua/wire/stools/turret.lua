@@ -16,6 +16,8 @@ if CLIENT then
 	language.Add( "Tool_wire_turret_sound", "Shoot Sound" )
 	language.Add( "Tool_wire_turret_tracernum", "Tracer Every x Bullets:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/gun.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

@@ -12,6 +12,8 @@ if ( CLIENT ) then
 	language.Add( "WireSensorTool_direction_normalized", "Normalize direction Vector" )
 	language.Add( "WireSensorTool_target_velocity", "Output target's velocity" )
 	language.Add( "WireSensorTool_velocity_normalized", "Normalize velocity" )
+
+	WireToolSetup.setToolMenuIcon("icon16/cog.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

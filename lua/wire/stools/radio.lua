@@ -8,6 +8,8 @@ if ( CLIENT ) then
 	language.Add( "WireRadioTool_values", "Values:" )
 	language.Add( "WireRadioTool_secure", "Secure" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/transmit.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

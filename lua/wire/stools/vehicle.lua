@@ -4,6 +4,8 @@ WireToolSetup.open( "vehicle", "Vehicle Controller", "gmod_wire_vehicle", nil, "
 if CLIENT then
 	language.Add("Tool.wire_vehicle.name", "Vehicle Controller Tool (Wire)")
 	language.Add("Tool.wire_vehicle.desc", "Spawn/link a Wire Vehicle controller.")
+
+	WireToolSetup.setToolMenuIcon("icon16/car.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

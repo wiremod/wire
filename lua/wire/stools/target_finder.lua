@@ -37,6 +37,8 @@ if CLIENT then
 	language.Add( "WireTargetFinderTool_checkbuddylist", "Check Propprotection Buddy List (EXPERIMENTAL!)" )
 	language.Add( "WireTargetFinderTool_onbuddylist", "Target Only Buddys (EXPERIMENTAL!)" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/magnifier.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

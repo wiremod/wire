@@ -5,6 +5,8 @@ if CLIENT then
 	language.Add( "tool.wire_oscilloscope.name", "Oscilloscope Tool (Wire)" )
 	language.Add( "tool.wire_oscilloscope.desc", "Spawns an oscilloscope that displays line graphs." )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/chart_line.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

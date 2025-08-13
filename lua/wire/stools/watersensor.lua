@@ -6,6 +6,8 @@ if CLIENT then
 	language.Add( "Tool.wire_watersensor.desc", "Spawns a constant Water Sensor prop for use with the wire system." )
 	language.Add( "WireWatersensorTool_watersensor", "Water Sensor:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/water.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

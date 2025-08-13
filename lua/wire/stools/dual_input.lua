@@ -11,6 +11,8 @@ if CLIENT then
 	language.Add( "WireDualInputTool_value_on", "Value 1 On:" )
 	language.Add( "WireDualInputTool_value_on2", "Value 2 On:" )
 	language.Add( "WireDualInputTool_value_off", "Value Off:" )
+
+	WireToolSetup.setToolMenuIcon("icon16/calculator.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

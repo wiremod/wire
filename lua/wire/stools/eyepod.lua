@@ -9,6 +9,8 @@ if ( CLIENT ) then
 	--panel control lang
 	language.Add( "WireEyePod_DefaultToZero", "Default Outputs To Zero When Inactive" )
 	language.Add( "WireEyePod_CumulativeOutput", "Output Cumulative Mouse Position" )
+
+	WireToolSetup.setToolMenuIcon("icon16/eye.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 15 )

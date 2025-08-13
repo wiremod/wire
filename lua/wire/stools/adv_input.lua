@@ -12,6 +12,8 @@ if CLIENT then
 	language.Add( "WireAdvInputTool_value_start", "Start at:" )
 	language.Add( "WireAdvInputTool_speed", "Change per second:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/calculator.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

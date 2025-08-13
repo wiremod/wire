@@ -27,6 +27,8 @@ else
 		{ name = "right", text = "Create/Update " .. TOOL.Name },
 		{ name = "reload", text = "Increase angle offset by 45 degrees" },
 	}
+
+	WireToolSetup.setToolMenuIcon("icon16/server_connect.png")
 end
 
 WireToolSetup.BaseLang()
