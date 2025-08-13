@@ -17,7 +17,7 @@ function ENT:Initialize()
 end
 
 function ENT:Setup(decal, range)
-	self.Decal = list.Contains("PaintMaterials", decal) and decal or "Blood"
+	self.Decal = decal
 	if range then self:SetBeamLength(range) end
 	self:ShowOutput(self.Decal)
 end
@@ -31,10 +31,8 @@ function ENT:TriggerInput(iname, value)
 	elseif iname == "Length" then
 		self:SetBeamLength(value)
 	elseif iname == "Decal" then
-		if list.Contains("PaintMaterials", value) then
-			self.Decal = value
-			self:ShowOutput(value)
-		end
+		self.Decal = value
+		self:ShowOutput(value)
 	end
 end
 
