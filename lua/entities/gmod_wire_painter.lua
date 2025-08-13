@@ -18,7 +18,7 @@ end
 
 function ENT:Setup(decal, range)
 	self.Decal = list.Contains("PaintMaterials", decal) and decal or "Blood"
-	if range then self:SetBeamLength(range)
+	if range then self:SetBeamLength(range) end
 	self:ShowOutput(self.Decal)
 end
 
