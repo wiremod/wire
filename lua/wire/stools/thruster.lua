@@ -156,5 +156,9 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#WireThrusterTool_owater", "wire_thruster_owater")
 	panel:CheckBox("#WireThrusterTool_uwater", "wire_thruster_uwater")
 end
---from model pack 1
+
+-- Allow some custom models for thrusters
+list.Set( "ThrusterModels", "models/props_junk/garbage_metalcan001a.mdl", {} )
 list.Set( "ThrusterModels", "models/jaanus/thruster_flat.mdl", {} )
+list.Set( "ThrusterModels", "models/fasteroid/computerfan.mdl", {} )
+list.Set( "ThrusterModels", "models/jaanus/wiretool/wiretool_speed.mdl", {} )
