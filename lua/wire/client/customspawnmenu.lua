@@ -585,15 +585,23 @@ function PANEL:AddCategory( Name, Label, tItems, CategoryID )
 		end
 
 		local parent = self
+
 		function item:DoRightClick()
 			local menu = DermaMenu()
 
 			local b = cookie.GetNumber( self.WireFavouritesCookieText )
+
+			local copy = menu:AddOption("Copy to clipboard", function() SetClipboardText(self.Name) end)
+			copy:SetIcon("icon16/page_copy.png")
+
 			if b and b == 1 then
-				menu:AddOption( "Remove from favourites", function() cookie.Set( self.WireFavouritesCookieText, 0 ) parent:ReloadEverything() end )
+				local option = menu:AddOption( "Remove from favourites", function() cookie.Set( self.WireFavouritesCookieText, 0 ) parent:ReloadEverything() end )
+				option:SetIcon("icon16/star.png")
 			else
-				menu:AddOption( "Add to favourites", function() cookie.Set( self.WireFavouritesCookieText, 1 ) parent:ReloadEverything() end )
+				local option = menu:AddOption( "Add to favourites", function() cookie.Set( self.WireFavouritesCookieText, 1 ) parent:ReloadEverything() end )
+				option:SetIcon("icon16/star.png")
 			end
+
 			menu:Open()
 
 			return true
