@@ -19,6 +19,7 @@ if CLIENT then
 		{ name = "right", text = "Copy settings" },
 	}
 
+	WireToolSetup.setToolMenuIcon("icon16/text_smallcaps.png")
 end
 WireToolSetup.BaseLang()
 

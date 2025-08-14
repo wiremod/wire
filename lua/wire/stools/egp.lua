@@ -164,6 +164,8 @@ if CLIENT then
 	language.Add( "Tool_wire_egp_emitter_drawdist", "Additional emitter draw distance (Clientside)" )
 	language.Add( "Tool_wire_egp_emitter_usert", "Use an RT for emitters (improves performance)" )
 	language.Add( "Tool_wire_egp_translucent", "Transparent background" )
+
+	WireToolSetup.setToolMenuIcon("icon16/application_xp_terminal.png")
 end
 
 WireToolSetup.SetupLinking(false, "vehicle") -- Generates RightClick, Reload, and DrawHUD functions

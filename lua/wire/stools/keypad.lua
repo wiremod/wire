@@ -7,6 +7,8 @@ if CLIENT then
 	language.Add( "tool."..TOOL.Mode..".password", "Password: " )
 	language.Add( "tool."..TOOL.Mode..".secure", "Display Asterisks: " )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/key.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(10)

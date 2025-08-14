@@ -16,6 +16,8 @@ if ( CLIENT ) then
 		{ name = "left", text = "Create/Update " .. TOOL.Name },
 		{ name = "right", text = "Copy settings" },
 	}
+
+	WireToolSetup.setToolMenuIcon("icon16/textfield_rename.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

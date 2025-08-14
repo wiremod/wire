@@ -4,6 +4,8 @@ WireToolSetup.open( "pod", "Pod Controller", "gmod_wire_pod", nil, "Pod Controll
 if CLIENT then
 	language.Add("tool.wire_pod.name", "Pod Controller Tool (Wire)")
 	language.Add("tool.wire_pod.desc", "Spawn/link a Wire Pod controller.")
+
+	WireToolSetup.setToolMenuIcon("icon16/car.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

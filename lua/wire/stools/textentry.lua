@@ -7,6 +7,8 @@ if CLIENT then
 	language.Add( "Tool.wire_textentry.desc", "Input strings into a prompt to be used with the wire system." )
 	language.Add( "Tool.wire_textentry.disableuse", "Disable use" )
 	language.Add( "Tool.wire_textentry.hold", "Hold length" )
+
+	WireToolSetup.setToolMenuIcon("icon16/textfield.png")
 end
 
 TOOL.ClientConVar = {

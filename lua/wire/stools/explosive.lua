@@ -46,6 +46,8 @@ if ( CLIENT ) then
 		{ name = "left", text = "Create " .. TOOL.Name },
 		{ name = "right", text = "Update " .. TOOL.Name },
 	}
+
+	WireToolSetup.setToolMenuIcon("icon16/bomb.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
