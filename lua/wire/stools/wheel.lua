@@ -112,3 +112,9 @@ function TOOL.BuildCPanel( panel )
 	frictionPanel:SetTooltip("How quickly the wheel comes to a stop. Note: An existing wheel's friction cannot be updated")
 	panel:CheckBox("#tool.wheel.nocollide", "wire_wheel_nocollide")
 end
+
+-- Allow some custom models for wheels
+list.Set("WheelModels", "models/props_wasteland/wheel01a.mdl", { wheel_rx = 90, wheel_ry = 0, wheel_rz = 90 })
+list.Set("WheelModels", "models/props_wasteland/wheel02a.mdl", { wheel_rx = 90, wheel_ry = 0, wheel_rz = 90 })
+list.Set("WheelModels", "models/props_wasteland/wheel03a.mdl", { wheel_rx = 90, wheel_ry = 0, wheel_rz = 90 })
+list.Set("WheelModels", "models/props_wasteland/wheel03b.mdl", { wheel_rx = 90, wheel_ry = 0, wheel_rz = 90 })

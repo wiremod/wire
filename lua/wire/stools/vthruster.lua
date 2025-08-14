@@ -244,5 +244,3 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#WireVThrusterTool_Angle", "wire_vthruster_angleinputs")
 	panel:CheckBox("#WireVThrusterTool_LengthIsMul", "wire_vthruster_lengthismul")
 end
-
-list.Set( "ThrusterModels", "models/jaanus/wiretool/wiretool_speed.mdl", {} )
