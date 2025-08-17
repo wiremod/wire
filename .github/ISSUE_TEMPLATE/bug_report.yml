@@ -10,7 +10,7 @@ body:
     id: describe-bug
     attributes:
       label: Describe the bug
-      description: Describe the error clearly and briefly.
+      description: Describe the error clearly and briefly
   - type: textarea
     id: reproduce-bug
     attributes:
