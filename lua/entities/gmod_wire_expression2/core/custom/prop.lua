@@ -316,24 +316,27 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 	elseif sent then -- Spawning an entity from entity tab.
 		if sent.AdminOnly and not self.player:IsAdmin() then return self:throw("You do not have permission to spawn '" .. class .. "' (admin-only)!", NULL) end
 
-		local mockTrace = {
-			FractionLeftSolid = 0,
-			HitNonWorld       = true,
-			Fraction          = 0,
-			Entity            = NULL,
-			HitPos            = Vector(pos),
-			HitNormal         = Vector(0, 0, 0),
-			HitBox            = 0,
-			Normal            = Vector(1, 0, 0),
-			Hit               = true,
-			HitGroup          = 0,
-			MatType           = 0,
-			StartPos          = Vector(0, 0, 0),
-			PhysicsBone       = 0,
-			WorldToLocal      = Vector(0, 0, 0),
-		}
-		if sent.t and sent.t.SpawnFunction then
-			entity = sent.t.SpawnFunction( sent.t, ply, mockTrace, class )
+		local stored_sent = scripted_ents.GetStored(class)
+
+		if stored_sent and stored_sent.t.SpawnFunction then
+			local mockTrace = {
+				FractionLeftSolid = 0,
+				HitNonWorld       = true,
+				Fraction          = 0,
+				Entity            = NULL,
+				HitPos            = Vector(pos),
+				HitNormal         = Vector(0, 0, 0),
+				HitBox            = 0,
+				Normal            = Vector(1, 0, 0),
+				Hit               = true,
+				HitGroup          = 0,
+				MatType           = 0,
+				StartPos          = Vector(0, 0, 0),
+				PhysicsBone       = 0,
+				WorldToLocal      = Vector(0, 0, 0),
+			}
+
+			entity = stored_sent.t.SpawnFunction(stored_sent.t, self.player, mockTrace, class)
 		else
 			entity = ents.Create( class )
 			if IsValid(entity) then
@@ -344,7 +347,9 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 			end
 		end
 
-		gamemode.Call("PlayerSpawnedSENT", self.player, entity)
+		if IsValid(entity) then
+			gamemode.Call("PlayerSpawnedSENT", self.player, entity)
+		end
 	end
 
 	if not IsValid( entity ) then return NULL end
