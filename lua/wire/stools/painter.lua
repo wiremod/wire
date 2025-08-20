@@ -22,8 +22,7 @@ end
 TOOL.ClientConVar = {
 	decal	= "Blood",
 	model	= "models/jaanus/wiretool/wiretool_siren.mdl",
-	range	= 2048,
-	playsound = 0,
+	range	= 2048
 }
 
 function TOOL.BuildCPanel(panel)
