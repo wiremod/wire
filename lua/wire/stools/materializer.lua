@@ -36,9 +36,9 @@ function TOOL.BuildCPanel(panel)
 
 	local materials = {}
 
-	for id, str in ipairs(list.Get("OverrideMaterials")) do
-		if not table.HasValue(materials, str) then
-			table.insert(materials, str)
+	for _, material in ipairs(list.Get("OverrideMaterials")) do
+		if not materials[material] then
+			materials[material] = material
 		end
 	end
 
@@ -46,7 +46,7 @@ function TOOL.BuildCPanel(panel)
 
 	function filter:OnValueChange(value)
 		for _, pnl in ipairs(matlist.Controls) do
-			if pnl.Value:lower():find(value:lower(), nil, true) then
+			if string.find(string.lower(pnl.Value), string.lower(value:lower()), nil, true) then
 				pnl:SetVisible(true)
 			else
 				pnl:SetVisible(false)
