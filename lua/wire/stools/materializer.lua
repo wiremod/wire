@@ -46,7 +46,7 @@ function TOOL.BuildCPanel(panel)
 
 	function filter:OnValueChange(value)
 		for _, pnl in ipairs(matlist.Controls) do
-			if string.find(string.lower(pnl.Value), string.lower(value:lower()), nil, true) then
+			if string.find(string.lower(pnl.Value), string.lower(value), nil, true) then
 				pnl:SetVisible(true)
 			else
 				pnl:SetVisible(false)
