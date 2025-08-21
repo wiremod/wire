@@ -35,7 +35,7 @@ function ENT:TriggerInput(iname, value)
 			}).Entity
 
 			if ent:IsValid() and WireLib.CanTool(self:GetPlayer(), ent, "material") then
-				ent:SetMaterial(self.Material)
+				E2Lib.setMaterial(ent, self.Material)
 			end
 		end
 	elseif iname == "Length" then
