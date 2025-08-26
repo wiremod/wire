@@ -12,10 +12,6 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
-if SERVER then
-	ModelPlug_Register("WaterSensor")
-end
-
 TOOL.ClientConVar = {
 	model = "models/beer/wiremod/watersensor.mdl",
 	modelsize = "",

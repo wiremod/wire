@@ -12,8 +12,6 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if (SERVER) then
-	ModelPlug_Register("Keyboard")
-
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "autobuffer" ) ~= 0, self:GetClientNumber( "sync" ) ~= 0, self:GetClientNumber( "enterkeyascii" ) ~= 0
 	end

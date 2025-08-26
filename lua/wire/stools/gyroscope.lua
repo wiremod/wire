@@ -11,8 +11,6 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
 
 if SERVER then
-	ModelPlug_Register("GPS")
-
 	function TOOL:GetConVars()
 		return self:GetClientNumber("out180")~=0
 	end
