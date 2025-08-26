@@ -200,7 +200,7 @@ function ENT:DrawWorldTipBody( pos )
 	-- fancy percent bar
 
 	local softquota_width = w * 0.7
-	local quota_width = softquota_width * math.min(prfbench/e2_softquota,1) + (w - softquota_width + 1) * (prfcount/e2_hardquota)
+	local quota_width = math.min(softquota_width * math.min(prfbench/e2_softquota,1) + (w - softquota_width + 1) * (prfcount/e2_hardquota), w)
 
 	local y = yoffset
 	surface.SetDrawColor(0, 170, 0, 255)
@@ -213,10 +213,7 @@ function ENT:DrawWorldTipBody( pos )
 	surface.DrawRect( pos.min.x + pos.edgesize, y, quota_width, 20 )
 
 	surface.SetDrawColor(0, 0, 0)
-	surface.DrawLine( pos.min.x + pos.edgesize, y, pos.min.x + pos.edgesize + w, y )
-	surface.DrawLine( pos.min.x + pos.edgesize + w, y, pos.min.x + pos.edgesize + w, y + 20 )
-	surface.DrawLine( pos.min.x + pos.edgesize + w, y + 20, pos.min.x + pos.edgesize, y + 20 )
-	surface.DrawLine( pos.min.x + pos.edgesize, y + 20, pos.min.x + pos.edgesize, y )
+	surface.DrawOutlinedRect(pos.min.x + pos.edgesize, y, w, 20)
 
 	yoffset = yoffset + 20
 
