@@ -21,8 +21,6 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	ModelPlug_Register("pixel")
-
 	function TOOL:GetDataTables()
 		return {
 			SingleValue = self:GetClientNumber("singlevalue") == 1,

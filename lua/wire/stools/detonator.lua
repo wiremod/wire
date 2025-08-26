@@ -12,7 +12,6 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	ModelPlug_Register("detonator")
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "damage" )
 	end

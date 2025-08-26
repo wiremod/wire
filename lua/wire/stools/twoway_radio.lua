@@ -10,10 +10,6 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
-if (SERVER) then
-	ModelPlug_Register("radio")
-end
-
 TOOL.ClientConVar[ "model" ] = "models/props_lab/binderblue.mdl"
 
 WireToolSetup.SetupLinking(true, "two-way radio")

@@ -11,10 +11,6 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
-if SERVER then
-	ModelPlug_Register("pixel")
-end
-
 TOOL.NoLeftOnClass = true -- no update ent function needed
 TOOL.ClientConVar = {
 	model  = "models/jaanus/wiretool/wiretool_siren.mdl",

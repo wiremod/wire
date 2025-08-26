@@ -84,7 +84,6 @@ include("wire/von.lua")
 -- server includes
 if SERVER then
 	include("wire/server/wirelib.lua")
-	include("wire/server/modelplug.lua")
 	include("wire/server/debuggerlib.lua")
 	include("wire/server/sents_registry.lua")
 	include("wire/server/wire_map_interface.lua")
