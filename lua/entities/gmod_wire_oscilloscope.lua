@@ -4,12 +4,10 @@ ENT.PrintName       = "Wire Oscilloscope"
 ENT.WireDebugName	= "Oscilloscope"
 
 if CLIENT then
-		
-	local panel
 
 	function ENT:SendData()
 		net.Start("wire_interactiveprop_action")
-		
+
 		local data	= WireLib.GetInteractiveModel(self:GetModel()).widgets
 		net.WriteEntity(self)
 		for i=1, #data do
@@ -32,8 +30,8 @@ if CLIENT then
 
 	function ENT:Initialize()
 		self.GPU = WireGPU(self)
-		
-			
+
+
 		self.InteractiveData = {}
 		self.LastButtons = {}
 		self.Buttons = {}
@@ -152,7 +150,7 @@ end
 function ENT:InitInteractive()
 	local model = self:GetModel()
 	local outputs = {}
-	local interactivemodel = WireLib.GetInteractiveModel(self:GetModel())
+	local interactivemodel = WireLib.GetInteractiveModel(model)
 	for i=1, #interactivemodel.widgets do
 		outputs[i+1] = interactivemodel.widgets[i].name
 	end
@@ -214,7 +212,7 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 
 	self.Inputs = WireLib.CreateInputs(self, { "X", "Y", "R", "G", "B", "Pause", "Length", "Update Frequency" })
-	
+
 	if WireLib.IsValidInteractiveModel(self:GetModel()) then
 		self:InitInteractive()
 	end

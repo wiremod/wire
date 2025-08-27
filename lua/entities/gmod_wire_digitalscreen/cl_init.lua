@@ -4,7 +4,7 @@ local panel
 
 function ENT:SendData()
 	net.Start("wire_interactiveprop_action")
-	
+
 	local data	= WireLib.GetInteractiveModel(self:GetModel()).widgets
 	net.WriteEntity(self)
 	for i=1, #data do

@@ -19,7 +19,7 @@ function ENT:Initialize()
 			self.InteractiveData[i] = 0
 		end
 	end
-	
+
 	-- Screen control:
 	-- [1003] - Background red
 	-- [1004] - Background green
@@ -87,17 +87,16 @@ function ENT:Initialize()
 	GPULib.ClientCacheCallback(self,function(Address,Value)
 		self:WriteCell(Address,Value)
 	end)
-	
-	
+
+
 
 	WireLib.netRegister(self)
 end
 
-local panel
 
 function ENT:SendData()
 	net.Start("wire_interactiveprop_action")
-	
+
 	local data	= WireLib.GetInteractiveModel(self:GetModel()).widgets
 	net.WriteEntity(self)
 	for i=1, #data do

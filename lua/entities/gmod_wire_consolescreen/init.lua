@@ -7,7 +7,7 @@ ENT.WireDebugName = "ConsoleScreen"
 function ENT:InitInteractive()
 	local model = self:GetModel()
 	local outputs = {"Memory"}
-	local interactivemodel = WireLib.GetInteractiveModel(self:GetModel())
+	local interactivemodel = WireLib.GetInteractiveModel(model)
 	for i=1, #interactivemodel.widgets do
 		outputs[i+1] = interactivemodel.widgets[i].name
 	end

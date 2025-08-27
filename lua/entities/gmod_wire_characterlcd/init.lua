@@ -1,4 +1,4 @@
-AddCSLuaFile("cl_init.lua")	
+AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
@@ -7,7 +7,7 @@ ENT.WireDebugName = "CharacterLcdScreen"
 function ENT:InitInteractive()
 	local model = self:GetModel()
 	local outputs = {"Memory"}
-	local interactivemodel = WireLib.GetInteractiveModel(self:GetModel())
+	local interactivemodel = WireLib.GetInteractiveModel(model)
 	for i=1, #interactivemodel.widgets do
 		outputs[i+1] = interactivemodel.widgets[i].name
 	end
@@ -23,7 +23,7 @@ function ENT:Initialize()
 	self:SetSolid(SOLID_VPHYSICS)
 
 	self.Inputs = WireLib.CreateInputs(self, { "CharAddress", "Char (ASCII/Unicode)", "Contrast", "Clk", "Reset" })
-	
+
 	self.InteractiveData = {}
 	self.IsInteractive = false
 	if WireLib.IsValidInteractiveModel(self:GetModel()) then

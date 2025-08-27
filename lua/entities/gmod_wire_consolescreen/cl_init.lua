@@ -1,10 +1,8 @@
 include("shared.lua")
 
-local panel
-
 function ENT:SendData()
 	net.Start("wire_interactiveprop_action")
-	
+
 	local data	= WireLib.GetInteractiveModel(self:GetModel()).widgets
 	net.WriteEntity(self)
 	for i=1, #data do
@@ -31,7 +29,7 @@ function ENT:Initialize()
 	for i = 0, 2047 do
 		self.Memory1[i] = 0
 	end
-	
+
 	self.InteractiveData = {}
 	self.LastButtons = {}
 	self.Buttons = {}
