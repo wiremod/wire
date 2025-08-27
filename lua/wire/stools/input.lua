@@ -16,8 +16,6 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	ModelPlug_Register("Numpad")
-
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "keygroup" ), self:GetClientNumber( "toggle" ), self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" )
 	end

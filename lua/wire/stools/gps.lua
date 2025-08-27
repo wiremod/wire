@@ -11,10 +11,6 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
 
-if SERVER then
-	ModelPlug_Register("GPS")
-end
-
 TOOL.ClientConVar = {
 	model = "models/beer/wiremod/gps.mdl",
 	modelsize = "",

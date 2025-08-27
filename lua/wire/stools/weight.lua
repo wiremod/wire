@@ -13,7 +13,6 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	ModelPlug_Register("weight")
 	function TOOL:GetConVars() end
 
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function

@@ -15,7 +15,6 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if (SERVER) then
-	ModelPlug_Register("radio")
 	function TOOL:GetConVars()
 		return self:GetClientInfo("channel"), self:GetClientNumber("values"), self:GetClientNumber("secure") ~= 0
 	end
