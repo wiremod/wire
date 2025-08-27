@@ -1,5 +1,6 @@
 include("shared.lua")
 
+
 function ENT:Initialize()
 	local mem = {}
 	self.Memory = mem
@@ -7,6 +8,18 @@ function ENT:Initialize()
 		mem[i] = 0
 	end
 
+	self.InteractiveData = {}
+	self.LastButtons = {}
+	self.Buttons = {}
+	local interactive_model = WireLib.GetInteractiveModel(self:GetModel())
+	self.IsInteractive = false
+	if interactive_model then
+		self.IsInteractive = true
+		for i=1, #WireLib.GetInteractiveModel(self:GetModel()).widgets do
+			self.InteractiveData[i] = 0
+		end
+	end
+	
 	-- Screen control:
 	-- [1003] - Background red
 	-- [1004] - Background green
@@ -74,8 +87,35 @@ function ENT:Initialize()
 	GPULib.ClientCacheCallback(self,function(Address,Value)
 		self:WriteCell(Address,Value)
 	end)
+	
+	
 
 	WireLib.netRegister(self)
+end
+
+local panel
+
+function ENT:SendData()
+	net.Start("wire_interactiveprop_action")
+	
+	local data	= WireLib.GetInteractiveModel(self:GetModel()).widgets
+	net.WriteEntity(self)
+	for i=1, #data do
+		net.WriteFloat(self.InteractiveData[i])
+	end
+	net.SendToServer()
+end
+
+function ENT:GetPanel()
+	if not self.IsInteractive then return end
+	local data	= WireLib.GetInteractiveModel(self:GetModel())
+	return WireLib.GetInteractiveWidgetBody(self, data)
+end
+
+
+function ENT:AddButton(id,button)
+	if not self.IsInteractive then return end
+	self.Buttons[id] = button
 end
 
 function ENT:OnRemove()
