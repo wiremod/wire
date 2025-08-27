@@ -1164,7 +1164,8 @@ local file_extensions = {
 	["jpg"] = true,
 	["jpeg"] = true,
 	["mp3"] = true,
-	["wav"] = true
+	["wav"] = true,
+	["ogg"] = true
 }
 
 -- Returns whether the file has an extension garrysmod can write to, to avoid useless net messages, etc
