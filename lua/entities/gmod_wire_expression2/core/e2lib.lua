@@ -1150,14 +1150,21 @@ local file_extensions = {
 	["json"] = true,
 	["xml"] = true,
 	["csv"] = true,
-	["jpg"] = true,
-	["jpeg"] = true,
-	["png"] = true,
+	["dem"] = true,
+	["vcd"] = true,
+	["gma"] = true,
+	["mdl"] = true,
+	["phy"] = true,
+	["vvd"] = true,
+	["vtx"] = true,
+	["ani"] = true,
 	["vtf"] = true,
 	["vmt"] = true,
+	["png"] = true,
+	["jpg"] = true,
+	["jpeg"] = true,
 	["mp3"] = true,
-	["wav"] = true,
-	["ogg"] = true
+	["wav"] = true
 }
 
 -- Returns whether the file has an extension garrysmod can write to, to avoid useless net messages, etc
