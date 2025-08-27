@@ -5,6 +5,65 @@ DEFINE_BASECLASS( "base_wire_entity" )
 
 ENT.WireDebugName = "DigitalScreen"
 
+
+function ENT:InitInteractive()
+	local model = self:GetModel()
+	local outputs = {"Memory"}
+	local interactivemodel = WireLib.GetInteractiveModel(self:GetModel())
+	for i=1, #interactivemodel.widgets do
+		outputs[i+1] = interactivemodel.widgets[i].name
+	end
+	self.BlockInput = false
+	self.NextPrompt = 0
+	self.Outputs=WireLib.CreateOutputs(self,outputs)
+	self.IsInteractive = true
+end
+
+
+function ENT:ReceiveData()
+	if not self.IsInteractive then return end
+	local data = WireLib.GetInteractiveModel(self:GetModel()).widgets
+	for i = 1, #data do
+		WireLib.TriggerOutput(self, data[i].name, net.ReadFloat())
+	end
+end
+
+function ENT:UpdateOverlay() -- required by interactiveprop functions
+
+end
+
+
+function ENT:Prompt( ply )
+	if not self.IsInteractive then return end
+	if ply then
+		if CurTime() < self.NextPrompt then return end -- anti spam
+		self.NextPrompt = CurTime() + 0.1
+
+		if IsValid( self.User ) then
+			WireLib.AddNotify(ply,"That interactive prop is in use by another player!",NOTIFY_ERROR,5,6)
+			return
+		end
+
+		self.User = ply
+
+		net.Start( "wire_interactiveprop_show" )
+			net.WriteEntity( self )
+		net.Send( ply )
+	else
+		self:Prompt( self:GetPlayer() ) -- prompt for owner
+	end
+end
+
+function ENT:Use(ply)
+	if not IsValid( ply ) then return end
+	self:Prompt( ply )
+end
+
+function ENT:Unprompt()
+	if not self.IsInteractive then return end
+	self.User = nil
+end
+
 function ENT:Initialize()
 
 	self:PhysicsInit(SOLID_VPHYSICS)
@@ -12,7 +71,11 @@ function ENT:Initialize()
 	self:SetSolid(SOLID_VPHYSICS)
 
 	self.Inputs = Wire_CreateInputs(self, { "PixelX", "PixelY", "PixelG", "Clk", "FillColor", "ClearRow", "ClearCol" })
-	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
+	if WireLib.IsValidInteractiveModel(self:GetModel()) then
+		self:InitInteractive()
+	else
+		self.Outputs = WireLib.CreateOutputs(self, { "Memory" })
+	end
 
 	self.Memory = {}
 

@@ -1,6 +1,29 @@
 include("shared.lua")
 
+local panel
 
+function ENT:SendData()
+	net.Start("wire_interactiveprop_action")
+	
+	local data	= WireLib.GetInteractiveModel(self:GetModel()).widgets
+	net.WriteEntity(self)
+	for i=1, #data do
+		net.WriteFloat(self.InteractiveData[i])
+	end
+	net.SendToServer()
+end
+
+function ENT:GetPanel()
+	if not self.IsInteractive then return end
+	local data	= WireLib.GetInteractiveModel(self:GetModel())
+	return WireLib.GetInteractiveWidgetBody(self, data)
+end
+
+
+function ENT:AddButton(id,button)
+	if not self.IsInteractive then return end
+	self.Buttons[id] = button
+end
 
 function ENT:Initialize()
 	self.Memory1 = {}
@@ -711,27 +734,3 @@ end
 
 
 
-local panel
-
-function ENT:SendData()
-	net.Start("wire_interactiveprop_action")
-	
-	local data	= WireLib.GetInteractiveModel(self:GetModel()).widgets
-	net.WriteEntity(self)
-	for i=1, #data do
-		net.WriteFloat(self.InteractiveData[i])
-	end
-	net.SendToServer()
-end
-
-function ENT:GetPanel()
-	if not self.IsInteractive then return end
-	local data	= WireLib.GetInteractiveModel(self:GetModel())
-	return WireLib.GetInteractiveWidgetBody(self, data)
-end
-
-
-function ENT:AddButton(id,button)
-	if not self.IsInteractive then return end
-	self.Buttons[id] = button
-end
