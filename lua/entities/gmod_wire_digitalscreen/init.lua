@@ -9,7 +9,7 @@ ENT.WireDebugName = "DigitalScreen"
 function ENT:InitInteractive()
 	local model = self:GetModel()
 	local outputs = {"Memory"}
-	local interactivemodel = WireLib.GetInteractiveModel(self:GetModel())
+	local interactivemodel = WireLib.GetInteractiveModel(model)
 	for i=1, #interactivemodel.widgets do
 		outputs[i+1] = interactivemodel.widgets[i].name
 	end
@@ -378,7 +378,7 @@ function ENT:WriteCell(Address, value)
 
 			-- reset memory
 			self.Memory = mem
-		elseif Address == 1048575 then -- CLK
+		-- elseif Address == 1048575 then -- CLK
 			-- not needed atm
 		end
 	end
