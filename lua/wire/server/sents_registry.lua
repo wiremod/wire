@@ -821,7 +821,41 @@ register("gmod_wire_gpulib_controller", {
 })
 
 register("gmod_wire_clutch", {
+	_preFactory = function(ply, self)
+        -- Check if Pairs is a table of {Ent1, Ent2} pairs
+        if not istable(self.Pairs) then return "'Pairs' must be a table!" end
+        for k, v in ipairs(self.Pairs) do
+			if #v ~= 2 then
+				return ("'Pairs' entry #%d must be an array of 2 entries!"):format(k)
+			end
+            if not istable(v) or not IsValid(v[1]) or not IsValid(v[2]) then
+                return ("'Pairs' entry #%d must be an array of valid entities!"):format(k)
+            end
+            if v[1] == v[2] then
+                return ("'Pairs' entry #%d: Ent1 and Ent2 must be different entities!"):format(k)
+            end
+            if v[1]:IsPlayer() or v[2]:IsPlayer() then
+                return ("'Pairs' entry #%d: Entities cannot be players!"):format(k)
+            end
+            if v[1]:IsNPC() or v[2]:IsNPC() then
+                return ("'Pairs' entry #%d: Entities cannot be NPCs!"):format(k)
+            end
+            if GetOwner(v[1]) ~= ply or GetOwner(v[2]) ~= ply then
+                return ("'Pairs' entry #%d: You do not own entities!"):format(k)
+            end
+        end
+    end,
+	_postFactory = function(ply, self, enttbl)
+		PrintMessage(HUD_PRINTCONSOLE, type(self) .. ", " .. type(enttbl))
+		PrintMessage(HUD_PRINTCONSOLE, tostring(self))
+		PrintMessage(HUD_PRINTCONSOLE, tostring(enttbl))
+        for _, v in ipairs(enttbl.Pairs) do
+            self:AddClutch(v[1], v[2])
+        end
+    end,
+
 	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
+	["Pairs"] = {TYPE_TABLE, {}, "A table of arrays/tables, where each holds exactly 2 valid, non-player, non-NPC entities."},
 })
 
 register("gmod_wire_input", {
