@@ -219,24 +219,23 @@ end
 
 function WireLib.GetInteractiveWidgetBody( ent, data )
 	local body = vgui.Create("DFrame")
-		body:SetTitle(data.title)
-		body:SetSize(data.width, data.height)
-		body:SetVisible(true)
-		body.Paint = function( self, w, h ) -- 'function Frame:Paint( w, h )' works too
-			-- surface.SetDrawColor(255,255,255)
-			-- surface.DrawOutlinedRect(0, 0, w, h)
-			-- surface.SetDrawColor(0,0,0)
-			-- surface.DrawOutlinedRect(1, 1, w-2, h-2)
-			draw.RoundedBox( 4, 0, 0, w, h, Color( 255, 255, 255 ) )
-			draw.RoundedBox( 4, 1, 1, w-2, h-2, Color( 64, 64, 64 ) )
-		end
-		body:SetDraggable(false)
-		body:Center()
-		body:ShowCloseButton(true)
-		body:MakePopup()
-		for id, widget in ipairs( data.widgets ) do
-			WidgetBuilders[widget.type](ent, widget, body, id)
-		end
+	
+	body:SetTitle(data.title)
+	body:SetSize(data.width, data.height)
+	body:SetVisible(true)
+	body:SetDraggable(false)
+	body:ShowCloseButton(true)
+	body:MakePopup()
+	body:Center()
+	
+	function body:Paint(w, h)
+		draw.RoundedBox(4, 0, 0, w, h, color_white)
+		draw.RoundedBox(4, 1, 1, w - 2, h - 2, Color(64, 64, 64))
+	end
+
+	for id, widget in ipairs( data.widgets ) do
+		WidgetBuilders[widget.type](ent, widget, body, id)
+	end
 	return body
 end
 
@@ -250,7 +249,7 @@ WidgetBuilders = {
 		local checkbox = vgui.Create("DCheckBox", body)
 			checkbox:SetPos(data.x, data.y)
 			checkbox:SetValue(self.InteractiveData[index])
-			checkbox.OnChange =	function(box,value)
+			function checkbox.OnChange(box, value)
 				surface.PlaySound("buttons/lightswitch2.wav")
 				self.InteractiveData[index] = value and 1 or 0
 				self:SendData()
@@ -265,13 +264,13 @@ WidgetBuilders = {
 			numberscratch:SetDecimals(4)
 			numberscratch:SetPos(data.x, data.y)
 			numberscratch:SetValue(self.InteractiveData[index])
-			numberscratch.OnValueChanged =	function(scratch,value)
+			function numberscratch.OnValueChanged(scratch, value)
 				self.InteractiveData[index] = value
 				self:SendData()
 			end
 			numberscratch:SetImageVisible( false )
 			numberscratch:SetSize( 17, 17 )
-			numberscratch.Paint = function( self, w, h )
+			function numberscratch:Paint( w, h )
 				draw.RoundedBox( 8.5, 0, 0, w, h, numberscratch.color )
 				local value = self:GetFloatValue()
 				surface.SetDrawColor(255, 255, 255)
@@ -289,11 +288,11 @@ WidgetBuilders = {
 			button:SetPos(data.x, data.y)
 			button:SetText(data.text or "")
 			button:SetSize(data.width or 20, data.height or 20)
-			button.OnDepressed = function(scratch)
+			function button.OnDepressed(btn)
 				self.InteractiveData[index] = 1
 				self:SendData()
 			end
-			button.OnReleased = function(scratch)
+			function button.OnReleased(btn)
 				self.InteractiveData[index] = 0
 				self:SendData()
 			end
@@ -342,7 +341,7 @@ if CLIENT then
 		local self = net.ReadEntity()
 		if not IsValid(self) then return end
 		panel = self:GetPanel()
-		panel.OnClose = function(panel)
+		function panel.OnClose(panel)
 			net.Start("wire_interactiveprop_close")
 			self.Buttons = {}
 			self.LastButtons = {}
