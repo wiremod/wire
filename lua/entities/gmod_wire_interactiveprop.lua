@@ -219,7 +219,7 @@ end
 
 function WireLib.GetInteractiveWidgetBody( ent, data )
 	local body = vgui.Create("DFrame")
-	
+
 	body:SetTitle(data.title)
 	body:SetSize(data.width, data.height)
 	body:SetVisible(true)
@@ -227,7 +227,7 @@ function WireLib.GetInteractiveWidgetBody( ent, data )
 	body:ShowCloseButton(true)
 	body:MakePopup()
 	body:Center()
-	
+
 	function body:Paint(w, h)
 		draw.RoundedBox(4, 0, 0, w, h, color_white)
 		draw.RoundedBox(4, 1, 1, w - 2, h - 2, Color(64, 64, 64))
