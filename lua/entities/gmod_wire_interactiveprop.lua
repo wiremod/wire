@@ -222,9 +222,7 @@ function WireLib.GetInteractiveWidgetBody( ent, data )
 
 	body:SetTitle(data.title)
 	body:SetSize(data.width, data.height)
-	body:SetVisible(true)
 	body:SetDraggable(false)
-	body:ShowCloseButton(true)
 	body:MakePopup()
 	body:Center()
 
