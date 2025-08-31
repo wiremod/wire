@@ -17,6 +17,7 @@ function ENT:InitInteractive()
 	self.NextPrompt = 0
 	self.Outputs=WireLib.CreateOutputs(self,outputs)
 	self.IsInteractive = true
+	self:UpdateOverlay()
 end
 
 
@@ -28,8 +29,17 @@ function ENT:ReceiveData()
 	end
 end
 
-function ENT:UpdateOverlay() -- required by interactiveprop functions
+function ENT:UpdateOverlay()
+	if not self.IsInteractive then
+		return
+	end
+	
+	txt = ""
+	if IsValid(self.User) then
+		txt = "In use by: " .. self.User:Nick()
+	end
 
+	self:SetOverlayText(txt)
 end
 
 
@@ -97,9 +107,10 @@ function ENT:Initialize()
 	self.ChangedStep = 1
 end
 
-function ENT:Setup(ScreenWidth, ScreenHeight)
+function ENT:Setup(ScreenWidth, ScreenHeight, IsInteractive)
 	self:WriteCell(1048572, ScreenHeight or 32)
 	self:WriteCell(1048573, ScreenWidth or 32)
+	self.IsInteractive = WireLib.IsValidInteractiveModel(self:GetModel()) and (IsInteractive == 1)
 end
 
 function ENT:SendPixel()
@@ -418,4 +429,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_digitalscreen", WireLib.MakeWireEnt, "Data", "ScreenWidth", "ScreenHeight")
+duplicator.RegisterEntityClass("gmod_wire_digitalscreen", WireLib.MakeWireEnt, "Data", "ScreenWidth", "ScreenHeight", "IsInteractive")

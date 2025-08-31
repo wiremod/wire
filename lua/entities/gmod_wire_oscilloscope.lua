@@ -146,6 +146,9 @@ function ENT:SetNextNode(x, y)
 	net.SendPVS( self:GetPos() )
 end
 
+function ENT:Setup(IsInteractive)
+	self.IsInteractive = WireLib.IsValidInteractiveModel(self:GetModel()) and (IsInteractive == 1)
+end
 
 function ENT:InitInteractive()
 	local model = self:GetModel()
@@ -158,6 +161,7 @@ function ENT:InitInteractive()
 	self.NextPrompt = 0
 	self.Outputs=WireLib.CreateOutputs(self,outputs)
 	self.IsInteractive = true
+	self:UpdateOverlay()
 end
 
 
@@ -169,9 +173,20 @@ function ENT:ReceiveData()
 	end
 end
 
-function ENT:UpdateOverlay() -- required by interactiveprop functions
 
+function ENT:UpdateOverlay()
+	if not self.IsInteractive then
+		return
+	end
+	
+	txt = ""
+	if IsValid(self.User) then
+		txt = "In use by: " .. self.User:Nick()
+	end
+
+	self:SetOverlayText(txt)
 end
+
 
 
 function ENT:Prompt( ply )
@@ -197,6 +212,7 @@ end
 
 function ENT:Use(ply)
 	if not IsValid( ply ) then return end
+	if not self.IsInteractive then return end
 	self:Prompt( ply )
 end
 

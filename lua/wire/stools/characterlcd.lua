@@ -6,6 +6,7 @@ if CLIENT then
 	language.Add( "tool.wire_characterlcd.desc", "Spawns a Character LCD, which can be used to display text" )
 	language.Add( "tool.wire_characterlcd.bgcolor", "Background color:" )
 	language.Add( "tool.wire_characterlcd.fgcolor", "Text color:" )
+	language.Add( "tool.wire_characterlcd.interactive", "Interactive (if available):" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 
 	WireToolSetup.setToolMenuIcon("icon16/application_xp_terminal.png")
@@ -21,7 +22,8 @@ if SERVER then
 				math.Clamp(self:GetClientNumber("bgblue"), 0, 255),
 				math.Clamp(self:GetClientNumber("fgred"), 0, 255),
 				math.Clamp(self:GetClientNumber("fggreen"), 0, 255),
-				math.Clamp(self:GetClientNumber("fgblue"), 0, 255)
+				math.Clamp(self:GetClientNumber("fgblue"), 0, 255),
+				self:GetClientNumber("interactive")
 	end
 end
 
@@ -36,6 +38,7 @@ TOOL.ClientConVar = {
 	fgred		= 45,
 	fggreen		= 91,
 	fgblue		= 45,
+	interactive = 1,
 
 }
 
@@ -64,6 +67,7 @@ function TOOL.BuildCPanel(panel)
 	})
 	panel:NumSlider("Width", "wire_characterlcd_width", 1, 56, 0)
 	panel:NumSlider("Height", "wire_characterlcd_height", 1, 16, 0)
+	panel:CheckBox("#tool.wire_characterlcd.interactive", "wire_characterlcd_interactive")
 	panel:CheckBox("#Create Flat to Surface", "wire_characterlcd_createflat")
 
 end

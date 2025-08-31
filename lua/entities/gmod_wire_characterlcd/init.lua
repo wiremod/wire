@@ -15,7 +15,10 @@ function ENT:InitInteractive()
 	self.NextPrompt = 0
 	self.Outputs=WireLib.CreateOutputs(self,outputs)
 	self.IsInteractive = true
+	self:UpdateOverlay()
 end
+
+
 
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
@@ -61,7 +64,7 @@ function ENT:Initialize()
 
 	self.Cache = GPUCacheManager(self,true)
 end
-function ENT:Setup(ScreenWidth, ScreenHeight, bgred,bggreen,bgblue,fgred,fggreen,fgblue)
+function ENT:Setup(ScreenWidth, ScreenHeight, bgred,bggreen,bgblue,fgred,fggreen,fgblue,IsInteractive)
 	self:WriteCell(1010, tonumber(ScreenHeight) or 2)
 	self:WriteCell(1009, tonumber(ScreenWidth) or 16)
 	self:WriteCell(1008, tonumber(fgblue) or 45)
@@ -71,6 +74,7 @@ function ENT:Setup(ScreenWidth, ScreenHeight, bgred,bggreen,bgblue,fgred,fggreen
 	self:WriteCell(1004, tonumber(bggreen) or 178)
 	self:WriteCell(1003, tonumber(bgred) or 148)
 	self:WriteCell(1023,1)
+	self.IsInteractive = WireLib.IsValidInteractiveModel(self:GetModel()) and (IsInteractive == 1)
 end
 function ENT:SendPixel()
 	if (self.Memory[1023] ~= 0) and (self.CharAddress >= 0) and (self.CharAddress < self.ScreenWidth*self.ScreenHeight) then
@@ -209,9 +213,20 @@ function ENT:ReceiveData()
 	end
 end
 
-function ENT:UpdateOverlay() -- required by interactiveprop functions
 
+function ENT:UpdateOverlay()
+	if not self.IsInteractive then
+		return
+	end
+	
+	txt = ""
+	if IsValid(self.User) then
+		txt = "In use by: " .. self.User:Nick()
+	end
+
+	self:SetOverlayText(txt)
 end
+
 
 
 function ENT:Prompt( ply )
@@ -245,4 +260,4 @@ function ENT:Unprompt()
 	self.User = nil
 end
 
-duplicator.RegisterEntityClass("gmod_wire_characterlcd", WireLib.MakeWireEnt, "Data", "ScreenWidth", "ScreenHeight")
+duplicator.RegisterEntityClass("gmod_wire_characterlcd", WireLib.MakeWireEnt, "Data", "ScreenWidth", "ScreenHeight", "IsInteractive")
