@@ -302,7 +302,6 @@ end
 --- When called as a function, will create a new `E2Table` instance. If `data` is specified, then automatically initializes the E2Table with that data.<br>
 --- Otherwise, returns an empty E2Table.<br>
 --- The `typeids` argument is optional. It will be used for typeids instead of type inferral. Useful for table-based types.<br>
----@return E2Table
 ---@class E2Table
 ---@field n table A table containing only numeric keys
 ---@field ntypes table A table with typeids corresponding to numeric keys
