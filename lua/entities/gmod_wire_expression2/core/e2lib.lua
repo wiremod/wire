@@ -314,12 +314,12 @@ local E2Table = {}
 E2Table.__index = E2Table
 
 local _e2table_infer_type_lut = {
-	TYPE_NUMBER = "n",
-	TYPE_STRING = "s",
-	TYPE_ENTITY = "e",
-	TYPE_VECTOR = "v",
-	TYPE_ANGLE = "a",
-	TYPE_PHYSOBJ = "b"
+	[TYPE_NUMBER] = "n",
+	[TYPE_STRING] = "s",
+	[TYPE_ENTITY] = "e",
+	[TYPE_VECTOR] = "v",
+	[TYPE_ANGLE] = "a",
+	[TYPE_PHYSOBJ] = "b"
 }
 ---Does a simple attempt at inferring the type of an object.
 local function _e2table_infer_type(v)
