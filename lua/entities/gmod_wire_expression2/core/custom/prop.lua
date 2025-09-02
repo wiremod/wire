@@ -21,7 +21,7 @@ local setAng = WireLib.setAng
 local typeIDToString = WireLib.typeIDToString
 local castE2ValueToLuaValue = E2Lib.castE2ValueToLuaValue
 
-local newE2Table = E2Lib.E2Table.New
+local newE2Table = WireLib.E2Table.New
 
 local E2totalspawnedprops = 0
 local playerMeta = FindMetaTable("Player")

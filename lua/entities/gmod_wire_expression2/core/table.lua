@@ -8,7 +8,7 @@ local tostring = tostring
 local table = table
 local type = type
 
-local newE2Table = E2Lib.E2Table.New
+local newE2Table = WireLib.E2Table.New
 
 local opcost = 1/3 -- cost of looping through table multiplier
 
