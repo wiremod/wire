@@ -24,7 +24,10 @@ _G.wire_expression_types = {
 	COMPLEX = {"c"}, GTABLE = {"xgt"},
 	MATRIX = {"m"}, MATRIX2 = {"xm2"},
 	MATRIX4 = {"xm4"}, RANGER = {"xrd"},
-	EFFECT = {"xef"}
+	EFFECT = {"xef"}, FUNCTION = {"f"},
+	DAMAGE = {"xdm"}, EGPOBJECT = {"xeo"},
+	USERCMD = {"xuc"}, MOVEDATA = {"xmv"},
+	COLLISION = {"xcd"}
 }
 
 if not unpack then unpack = table.unpack end
