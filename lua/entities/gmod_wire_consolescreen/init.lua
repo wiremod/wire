@@ -31,7 +31,7 @@ function ENT:UpdateOverlay()
 	if not self.IsInteractive then
 		return
 	end
-	
+
 	txt = ""
 	if IsValid(self.User) then
 		txt = "In use by: " .. self.User:Nick()
