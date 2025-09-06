@@ -22,8 +22,10 @@ if CLIENT then
 	language.Add( "tool.wire_multisegmentlcd.name", "Multi-segment LCD Tool (Wire)" )
 	language.Add( "tool.wire_multisegmentlcd.desc", "Spawns a Multi-segment LCD, which can be used to display numbers and miscellaneous graphics" )
 	language.Add( "tool.wire_multisegmentlcd.interactive", "Interactive (if available):" )
-	language.Add( "tool.wire_multisegmentlcd.resw", "Canvas Width:" )
-	language.Add( "tool.wire_multisegmentlcd.resh", "Canvas Height:" )
+	language.Add( "tool.wire_multisegmentlcd.resw", "Canvas width:" )
+	language.Add( "tool.wire_multisegmentlcd.resh", "Canvas height:" )
+	language.Add( "tool.wire_multisegmentlcd.fgcolor", "Segment color:" )
+	language.Add( "tool.wire_multisegmentlcd.bgcolor", "Background color:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 
 	WireToolSetup.setToolMenuIcon("icon16/application_xp_terminal.png")
@@ -571,4 +573,25 @@ function TOOL.BuildCPanel(panel)
 			end
 		end)
 	end
+	
+	panel:AddControl("Color", {
+		Label = "#tool.wire_multisegmentlcd.bgcolor",
+		Red = "wire_multisegmentlcd_bgred",
+		Green = "wire_multisegmentlcd_bggreen",
+		Blue = "wire_multisegmentlcd_bgblue",
+		ShowAlpha = "0",
+		ShowHSV = "1",
+		ShowRGB = "1",
+		Multiplier = "255"
+	})
+	panel:AddControl("Color", {
+		Label = "#tool.wire_multisegmentlcd.fgcolor",
+		Red = "wire_multisegmentlcd_fgred",
+		Green = "wire_multisegmentlcd_fggreen",
+		Blue = "wire_multisegmentlcd_fgblue",
+		ShowAlpha = "0",
+		ShowHSV = "1",
+		ShowRGB = "1",
+		Multiplier = "255"
+	})
 end
