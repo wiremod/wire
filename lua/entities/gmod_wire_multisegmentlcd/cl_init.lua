@@ -88,8 +88,8 @@ function ENT:DrawText(text)
 end
 
 function ENT:DrawMatrix(matrix)
-	for y = 0,matrix.H do
-		for x = 0,matrix.W do
+	for y = 0,matrix.H-1 do
+		for x = 0,matrix.W-1 do
 			if bit.band(self.Memory[bit.rshift(self.BitIndex,3)] or 0,bit.lshift(1,bit.band(self.BitIndex,7))) ~= 0 then
 				surface.DrawRect(matrix.X+self.LocalX+x*matrix.OffsetX,matrix.Y+self.LocalY+y*matrix.OffsetY,matrix.ScaleW,matrix.ScaleH)
 			end
