@@ -70,6 +70,16 @@ function ENT:DrawSegment(segment)
 	self.BitIndex = self.BitIndex+1
 end
 
+function ENT:DrawText(text)
+	if bit.band(self.Memory[bit.rshift(self.BitIndex,3)] or 0,bit.lshift(1,bit.band(self.BitIndex,7))) ~= 0 then
+		surface.SetTextPos(text.X+self.LocalX,text.Y+self.LocalY)
+		surface.SetFont("Default")
+		surface.SetTextColor(255,255,255,255)
+		surface.DrawText(text.Text)
+	end
+	self.BitIndex = self.BitIndex+1
+end
+
 function ENT:DrawUnion(group)
 	self.LocalX = self.LocalX + (group.X or 0)
 	self.LocalY = self.LocalY + (group.Y or 0)
@@ -82,6 +92,8 @@ function ENT:DrawUnion(group)
 			self:DrawUnion(v)
 		elseif v.Type == SEGMENT then 
 			self:DrawSegment(v)
+		elseif v.Type == TEXT then 
+			self:DrawText(v)
 		end
 		biggestindex = math.max(biggestindex,self.BitIndex)
 		self.BitIndex = savedindex
@@ -101,6 +113,8 @@ function ENT:DrawGroup(group)
 			self:DrawUnion(v)
 		elseif v.Type == SEGMENT then 
 			self:DrawSegment(v)
+		elseif v.Type == TEXT then 
+			self:DrawText(v)
 		end
 	end
 	self.LocalX = self.LocalX - (group.X or 0)
@@ -130,7 +144,8 @@ end
 
 function ENT:Receive()
 	local ent = net.ReadEntity()
-	self.Tree = net.ReadTable()
+	local sz = net.ReadUInt(16)
+	self.Tree = WireLib.von.deserialize(net.ReadData(sz))
 	self.ResolutionW = net.ReadUInt(16)
 	self.ResolutionH = net.ReadUInt(16)
 end

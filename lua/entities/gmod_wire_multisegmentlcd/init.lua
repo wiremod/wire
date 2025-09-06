@@ -44,9 +44,14 @@ end
 
 function ENT:SendSerializedTree(ply)
 	if self.Tree == nil then return end
+	local serialized = WireLib.von.serialize(self.Tree)
+	if #serialized > 65535 then
+		return
+	end
 	WireLib.netStart(self)
 		net.WriteEntity(self)
-		net.WriteTable(self.Tree)
+		net.WriteUInt(#serialized,16)
+		net.WriteData(serialized)
 		net.WriteUInt(self.ResolutionW,16)
 		net.WriteUInt(self.ResolutionH,16)
 	WireLib.netEnd(ply)

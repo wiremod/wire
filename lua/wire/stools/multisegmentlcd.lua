@@ -4,6 +4,8 @@ WireToolSetup.open( "multisegmentlcd", "Multi-segment LCD", "gmod_wire_multisegm
 GROUP = -1
 UNION = 0
 SEGMENT = 1
+TEXT = 2
+MATRIX = 3
 
 WireLib.SegmentLCD_Tree = {
 		Type=GROUP,
@@ -30,9 +32,14 @@ if CLIENT then
 	
 	net.Receive("wire_multisegmentlcd_tool_upload_request", function(len, ply)
 		local ent = net.ReadUInt(16)
+		local serialized = WireLib.von.serialize(WireLib.SegmentLCD_Tree)
+		if #serialized > 65535 then
+			return
+		end
 		net.Start("wire_multisegmentlcd_tool_upload")
 			net.WriteUInt(ent,16)
-			net.WriteTable(WireLib.SegmentLCD_Tree)
+			net.WriteUInt(#serialized,16)
+			net.WriteData(serialized)
 		net.SendToServer()
 		--ent.Tree = table.Copy(WireLib.SegmentLCD_Tree)
 	end)
@@ -43,7 +50,7 @@ WireToolSetup.SetupMax( 20 )
 if SERVER then
 	
 	function TOOL:GetConVars()
-		return self:GetClientNumber("interactive"), math.max(0,math.min(1024,self:GetClientNumber("resw"))), math.max(0,math.min(1024,self:GetClientNumber("resh")))
+		return self:GetClientNumber("interactive"), math.Clamp(self:GetClientNumber("resw"),0,1024), math.Clamp(self:GetClientNumber("resh"),0,1024)
 	end
 	
 	util.AddNetworkString("wire_multisegmentlcd_tool_upload_request")
@@ -59,7 +66,8 @@ if SERVER then
 	
 	net.Receive("wire_multisegmentlcd_tool_upload", function(len, ply)
 		local ent = ents.GetByIndex(net.ReadUInt(16))
-		ent.Tree = net.ReadTable()
+		local sz = net.ReadUInt(16)
+		ent.Tree = WireLib.von.deserialize(net.ReadData(sz))
 		ent:Retransmit()
 	end)
 	
@@ -90,6 +98,10 @@ function BuildNode(v,node,group)
 	elseif v.Type == UNION then
 		new = node:AddNode( "Union", "icon16/text_list_bullets.png" )
 		BuildNodes(new,v)
+	elseif v.Type == TEXT then
+		new = node:AddNode( "Text", "icon16/bullet_yellow.png" )
+	elseif v.Type == MATRIX then
+		new = node:AddNode( "Matrix", "icon16/bullet_red.png" )
 	else
 		new = node:AddNode( "Segment", "icon16/bullet_green.png" )
 	end
@@ -163,9 +175,35 @@ function TOOL.BuildCPanel(panel)
 		new.parentgroup = group
 	end
 	
+	AddText =  ButtonsHolder:Add( "DButton" )
+	AddText:SetText( "Add Text" )
+	ButtonsHolder.buttons[2] = AddText
+	function AddText:DoClick()
+		local node = DisplayData:GetSelectedItem()
+		if node == nil then
+			node = DisplayData.RootNode
+		end
+		local group = node.group
+		local children = nil
+		if group ~= nil then
+			children = group.Children
+		end
+		
+		if children == nil then
+			node = DisplayData.RootNode
+			children = WireLib.SegmentLCD_Tree.Children
+			group = WireLib.SegmentLCD_Tree
+		end
+		local newgroup = {Type=TEXT, X=30, Y=0, Text="Hello"}
+		children[#children+1] = newgroup
+		local new = node:AddNode( "Text", "icon16/bullet_yellow.png" )
+		new.group = newgroup
+		new.parentgroup = group
+	end
+	
 	AddGroup =  ButtonsHolder:Add( "DButton" )
 	AddGroup:SetText( "Add Group" )
-	ButtonsHolder.buttons[2] = AddGroup
+	ButtonsHolder.buttons[3] = AddGroup
 	function AddGroup:DoClick()
 		local node = DisplayData:GetSelectedItem()
 		if node == nil then
@@ -190,7 +228,7 @@ function TOOL.BuildCPanel(panel)
 	
 	AddUnion =  ButtonsHolder:Add( "DButton" )
 	AddUnion:SetText( "Add Union" )
-	ButtonsHolder.buttons[3] = AddUnion
+	ButtonsHolder.buttons[4] = AddUnion
 	function AddUnion:DoClick()
 		local node = DisplayData:GetSelectedItem()
 		if node == nil then
@@ -215,7 +253,7 @@ function TOOL.BuildCPanel(panel)
 	
 	Remove =  ButtonsHolder:Add( "DButton" )
 	Remove:SetText( "Remove" )
-	ButtonsHolder.buttons[4] = Remove
+	ButtonsHolder.buttons[5] = Remove
 	function Remove:DoClick()
 		local node = DisplayData:GetSelectedItem()
 		if node == nil then
@@ -270,6 +308,17 @@ function TOOL.BuildCPanel(panel)
 		node.group.H = value
 	end
 	ButtonsHolder.textboxes[4] = WangH
+	
+	TextSetter = ButtonsHolder:Add( "DTextEntry" )
+	function TextSetter:OnValueChange(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group.Type ~= TEXT then
+			return
+		end
+		node.group.Text = value
+	end
+	ButtonsHolder.textboxes[5] = TextSetter
+	
 	function ButtonsHolder:PerformLayout(w, h)
 		for i,v in ipairs(self.buttons) do
 			v:SetPos((i-1)*w/#self.buttons,0)
@@ -290,11 +339,19 @@ function TOOL.BuildCPanel(panel)
 			WangY:SetValue(group.Y)
 			WangW:SetValue(group.W)
 			WangH:SetValue(group.H)
+			TextSetter:SetValue("")
+		elseif group.Type == TEXT then
+			WangX:SetValue(group.X)
+			WangY:SetValue(group.Y)
+			WangW:SetValue(0)
+			WangH:SetValue(0)
+			TextSetter:SetValue(group.Text)
 		else
 			WangX:SetValue(group.X)
 			WangY:SetValue(group.Y)
 			WangW:SetValue(0)
 			WangH:SetValue(0)
+			TextSetter:SetValue("")
 		end
 		return true
 	end
