@@ -20,6 +20,8 @@ if CLIENT then
 	language.Add( "tool.wire_multisegmentlcd.name", "Multi-segment LCD Tool (Wire)" )
 	language.Add( "tool.wire_multisegmentlcd.desc", "Spawns a Multi-segment LCD, which can be used to display numbers and miscellaneous graphics" )
 	language.Add( "tool.wire_multisegmentlcd.interactive", "Interactive (if available):" )
+	language.Add( "tool.wire_multisegmentlcd.resw", "Canvas Width:" )
+	language.Add( "tool.wire_multisegmentlcd.resh", "Canvas Height:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 
 	WireToolSetup.setToolMenuIcon("icon16/application_xp_terminal.png")
@@ -41,7 +43,7 @@ WireToolSetup.SetupMax( 20 )
 if SERVER then
 	
 	function TOOL:GetConVars()
-		return self:GetClientNumber("interactive")
+		return self:GetClientNumber("interactive"), math.max(0,math.min(1024,self:GetClientNumber("resw"))), math.max(0,math.min(1024,self:GetClientNumber("resh")))
 	end
 	
 	util.AddNetworkString("wire_multisegmentlcd_tool_upload_request")
@@ -52,6 +54,7 @@ if SERVER then
 		net.Start("wire_multisegmentlcd_tool_upload_request")
 			net.WriteUInt(trace.Entity:EntIndex(),16)
 		net.Send(self:GetOwner())
+		trace.Entity:Setup(self:GetConVars())
 	end
 	
 	net.Receive("wire_multisegmentlcd_tool_upload", function(len, ply)
@@ -74,7 +77,8 @@ TOOL.ClientConVar = {
 	model		= "models/props_lab/monitor01b.mdl",
 	createflat	= 0,
 	interactive = 1,
-
+	resw = 1024,
+	resh = 1024,
 }
 
 
@@ -114,6 +118,8 @@ function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_multisegmentlcd_model", list.Get( "WireScreenModels" ), 5)
 	panel:CheckBox("#tool.wire_multisegmentlcd.interactive", "wire_multisegmentlcd_interactive")
 	panel:CheckBox("#Create Flat to Surface", "wire_multisegmentlcd_createflat")
+	panel:TextEntry("#tool.wire_multisegmentlcd.resw", "wire_multisegmentlcd_resw")
+	panel:TextEntry("#tool.wire_multisegmentlcd.resh", "wire_multisegmentlcd_resh")
 	TreeDataHolder = vgui.Create("DPanel", panel)
 	panel:AddPanel(TreeDataHolder)
 	TreeDataHolder:DockMargin(0, 0, 0, 0)

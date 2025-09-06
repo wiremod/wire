@@ -16,7 +16,9 @@ function ENT:Initialize()
 		end
 	end
 
-	self.GPU = WireGPU(self, true)
+	self.GPU = WireGPU(self)
+	self.ResolutionW = 1024
+	self.ResolutionH = 1024
 
 	GPULib.ClientCacheCallback(self,function(Address,Value)
 		self:WriteCell(Address,Value)
@@ -107,17 +109,18 @@ end
 
 function ENT:Draw()
 	self:DrawModel()
-	self.GPU:RenderToWorld(nil, 188, function(x, y, w, h)
+	self.GPU:RenderToGPU(function()
 		surface.SetDrawColor(0,0,0,255)
-		surface.DrawRect(x,y,w,h)
+		surface.DrawRect(0,0,1024,1024)
 		if self.Tree then
 			surface.SetDrawColor(255,255,255,255)
 			self.BitIndex = 0
-			self.LocalX = x
-			self.LocalY = y
+			self.LocalX = 0
+			self.LocalY = 0
 			self:DrawGroup(self.Tree)
 		end
 	end)
+	self.GPU:Render(0,0,1024,1024,nil,-(1024-self.ResolutionW)/1024,-(1024-self.ResolutionH)/1024)
 	Wire_Render(self)
 end
 
@@ -128,4 +131,6 @@ end
 function ENT:Receive()
 	local ent = net.ReadEntity()
 	self.Tree = net.ReadTable()
+	self.ResolutionW = net.ReadUInt(16)
+	self.ResolutionH = net.ReadUInt(16)
 end

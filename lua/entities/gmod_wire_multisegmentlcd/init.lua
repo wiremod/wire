@@ -35,6 +35,9 @@ function ENT:Initialize()
 		self.Outputs = WireLib.CreateOutputs(self, { "Memory" })
 	end
 
+	self.ResolutionW = 1024
+	self.ResolutionH = 1024
+	
 	self.Memory = {}
 	self.Cache = GPUCacheManager(self,true)
 end
@@ -44,6 +47,8 @@ function ENT:SendSerializedTree(ply)
 	WireLib.netStart(self)
 		net.WriteEntity(self)
 		net.WriteTable(self.Tree)
+		net.WriteUInt(self.ResolutionW,16)
+		net.WriteUInt(self.ResolutionH,16)
 	WireLib.netEnd(ply)
 end
 
@@ -57,8 +62,11 @@ function ENT:Retransmit(ply)
 	self.Cache:Flush(ply)
 end
 
-function ENT:Setup(IsInteractive)
+function ENT:Setup(IsInteractive, ResolutionW, ResolutionH)
 	self.IsInteractive = WireLib.IsValidInteractiveModel(self:GetModel()) and (IsInteractive == 1)
+	self.ResolutionW = ResolutionW
+	self.ResolutionH = ResolutionH
+	self:Retransmit()
 end
 
 function ENT:ReadCell(Address)
