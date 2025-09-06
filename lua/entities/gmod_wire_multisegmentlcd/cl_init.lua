@@ -16,6 +16,13 @@ function ENT:Initialize()
 		end
 	end
 
+	self.Fgblue = 45
+	self.Fggreen = 91
+	self.Fgred = 45
+	self.Bgblue = 15
+	self.Bggreen = 178
+	self.Bgred = 148
+
 	self.GPU = WireGPU(self)
 	self.ResolutionW = 1024
 	self.ResolutionH = 1024
@@ -74,7 +81,7 @@ function ENT:DrawText(text)
 	if bit.band(self.Memory[bit.rshift(self.BitIndex,3)] or 0,bit.lshift(1,bit.band(self.BitIndex,7))) ~= 0 then
 		surface.SetTextPos(text.X+self.LocalX,text.Y+self.LocalY)
 		surface.SetFont("Default")
-		surface.SetTextColor(255,255,255,255)
+		surface.SetTextColor(self.Fgred,self.Fggreen,self.Fgblue,255)
 		surface.DrawText(text.Text)
 	end
 	self.BitIndex = self.BitIndex+1
@@ -142,10 +149,10 @@ end
 function ENT:Draw()
 	self:DrawModel()
 	self.GPU:RenderToGPU(function()
-		surface.SetDrawColor(0,0,0,255)
+		surface.SetDrawColor(self.Bgred,self.Bggreen,self.Bgblue,255)
 		surface.DrawRect(0,0,1024,1024)
 		if self.Tree then
-			surface.SetDrawColor(255,255,255,255)
+			surface.SetDrawColor(self.Fgred,self.Fggreen,self.Fgblue,255)
 			self.BitIndex = 0
 			self.LocalX = 0
 			self.LocalY = 0
@@ -166,4 +173,10 @@ function ENT:Receive()
 	self.Tree = WireLib.von.deserialize(net.ReadData(sz))
 	self.ResolutionW = net.ReadUInt(16)
 	self.ResolutionH = net.ReadUInt(16)
+	self.Fgblue = net.ReadUInt(8)
+	self.Fggreen = net.ReadUInt(8)
+	self.Fgred = net.ReadUInt(8)
+	self.Bgblue = net.ReadUInt(8)
+	self.Bggreen = net.ReadUInt(8)
+	self.Bgred = net.ReadUInt(8)
 end

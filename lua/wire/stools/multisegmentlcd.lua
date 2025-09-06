@@ -50,7 +50,13 @@ WireToolSetup.SetupMax( 20 )
 if SERVER then
 	
 	function TOOL:GetConVars()
-		return self:GetClientNumber("interactive"), math.Clamp(self:GetClientNumber("resw"),0,1024), math.Clamp(self:GetClientNumber("resh"),0,1024)
+		return self:GetClientNumber("interactive"), math.Clamp(self:GetClientNumber("resw"),0,1024), math.Clamp(self:GetClientNumber("resh"),0,1024),
+			math.Clamp(self:GetClientNumber("bgred"), 0, 255),
+			math.Clamp(self:GetClientNumber("bggreen"), 0, 255),
+			math.Clamp(self:GetClientNumber("bgblue"), 0, 255),
+			math.Clamp(self:GetClientNumber("fgred"), 0, 255),
+			math.Clamp(self:GetClientNumber("fggreen"), 0, 255),
+			math.Clamp(self:GetClientNumber("fgblue"), 0, 255)
 	end
 	
 	util.AddNetworkString("wire_multisegmentlcd_tool_upload_request")
@@ -85,8 +91,14 @@ TOOL.ClientConVar = {
 	model		= "models/props_lab/monitor01b.mdl",
 	createflat	= 0,
 	interactive = 1,
-	resw = 1024,
-	resh = 1024,
+	resw		= 1024,
+	resh		= 1024,
+	bgred		= 148,
+	bggreen		= 178,
+	bgblue		= 15,
+	fgred		= 45,
+	fggreen		= 91,
+	fgblue		= 45
 }
 
 

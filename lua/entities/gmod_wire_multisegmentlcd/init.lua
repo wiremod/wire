@@ -54,6 +54,12 @@ function ENT:SendSerializedTree(ply)
 		net.WriteData(serialized)
 		net.WriteUInt(self.ResolutionW,16)
 		net.WriteUInt(self.ResolutionH,16)
+		net.WriteUInt(self.Fgblue,8)
+		net.WriteUInt(self.Fggreen,8)
+		net.WriteUInt(self.Fgred,8)
+		net.WriteUInt(self.Bgblue,8)
+		net.WriteUInt(self.Bggreen,8)
+		net.WriteUInt(self.Bgred,8)
 	WireLib.netEnd(ply)
 end
 
@@ -67,10 +73,16 @@ function ENT:Retransmit(ply)
 	self.Cache:Flush(ply)
 end
 
-function ENT:Setup(IsInteractive, ResolutionW, ResolutionH)
+function ENT:Setup(IsInteractive, ResolutionW, ResolutionH, Bgred,Bggreen,Bgblue,Fgred,Fggreen,Fgblue)
 	self.IsInteractive = WireLib.IsValidInteractiveModel(self:GetModel()) and (IsInteractive == 1)
 	self.ResolutionW = ResolutionW
 	self.ResolutionH = ResolutionH
+	self.Fgblue = Fgblue or 45
+	self.Fggreen = Fggreen or 91
+	self.Fgred = Fgred or 45
+	self.Bgblue = Bgblue or 15
+	self.Bggreen = Bggreen or 178
+	self.Bgred = Bgred or 148
 	self:Retransmit()
 end
 
