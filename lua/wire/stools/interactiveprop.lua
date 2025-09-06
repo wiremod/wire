@@ -16,8 +16,8 @@ TOOL.ClientConVar = {
 
 if SERVER then
 	function TOOL:GetDataTables()
-    return {}
-  end
+		return {}
+	end
 end
 
 WireToolSetup.BaseLang()
