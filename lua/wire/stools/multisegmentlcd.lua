@@ -1,0 +1,381 @@
+WireToolSetup.setCategory( "Visuals/Screens" )
+WireToolSetup.open( "multisegmentlcd", "Multi-segment LCD", "gmod_wire_multisegmentlcd", nil, "Multi-segment LCDs" )
+
+GROUP = -1
+UNION = 0
+SEGMENT = 1
+
+WireLib.SegmentLCD_Tree = {
+		Type=GROUP,
+		X=0,
+		Y=0,
+		Children=
+		{
+		
+		}
+	}
+
+
+if CLIENT then
+	language.Add( "tool.wire_multisegmentlcd.name", "Multi-segment LCD Tool (Wire)" )
+	language.Add( "tool.wire_multisegmentlcd.desc", "Spawns a Multi-segment LCD, which can be used to display numbers and miscellaneous graphics" )
+	language.Add( "tool.wire_multisegmentlcd.interactive", "Interactive (if available):" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/application_xp_terminal.png")
+	
+	
+	
+	net.Receive("wire_multisegmentlcd_tool_upload_request", function(len, ply)
+		local ent = net.ReadUInt(16)
+		net.Start("wire_multisegmentlcd_tool_upload")
+			net.WriteUInt(ent,16)
+			net.WriteTable(WireLib.SegmentLCD_Tree)
+		net.SendToServer()
+		--ent.Tree = table.Copy(WireLib.SegmentLCD_Tree)
+	end)
+end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 20 )
+
+if SERVER then
+	
+	function TOOL:GetConVars()
+		return self:GetClientNumber("interactive")
+	end
+	
+	util.AddNetworkString("wire_multisegmentlcd_tool_upload_request")
+	util.AddNetworkString("wire_multisegmentlcd_tool_upload")
+	
+	
+	function TOOL:LeftClick_Update( trace )
+		net.Start("wire_multisegmentlcd_tool_upload_request")
+			net.WriteUInt(trace.Entity:EntIndex(),16)
+		net.Send(self:GetOwner())
+	end
+	
+	net.Receive("wire_multisegmentlcd_tool_upload", function(len, ply)
+		local ent = ents.GetByIndex(net.ReadUInt(16))
+		ent.Tree = net.ReadTable()
+		ent:Retransmit()
+	end)
+	
+	function TOOL:MakeEnt( ply, model, Ang, trace )
+		local ent = WireLib.MakeWireEnt( ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars() )
+		if ent and ent.RestoreNetworkVars then ent:RestoreNetworkVars(self:GetDataTables()) end
+		net.Start("wire_multisegmentlcd_tool_upload_request")
+			net.WriteUInt(ent:EntIndex(),16)
+		net.Send(ply)
+		return ent
+	end
+end
+
+TOOL.ClientConVar = {
+	model		= "models/props_lab/monitor01b.mdl",
+	createflat	= 0,
+	interactive = 1,
+
+}
+
+
+function BuildNode(v,node,group)
+	local new = nil
+	if v.Type == GROUP then
+		new = node:AddNode( "Group", "icon16/text_list_numbers.png" )
+		BuildNodes(new,v)
+	elseif v.Type == UNION then
+		new = node:AddNode( "Union", "icon16/text_list_bullets.png" )
+		BuildNodes(new,v)
+	else
+		new = node:AddNode( "Segment", "icon16/bullet_green.png" )
+	end
+	new.group = v
+	new.parentgroup = group
+end
+
+function BuildNodes(node,group)
+	for i,v in ipairs(group.Children) do
+		BuildNode(v,node,group)
+	end
+end
+
+local invalid_filename_chars = {
+	["*"] = "",
+	["?"] = "",
+	[">"] = "",
+	["<"] = "",
+	["|"] = "",
+	["\\"] = "",
+	['"'] = "",
+	[" "] = "_",
+}
+
+function TOOL.BuildCPanel(panel)
+	WireDermaExts.ModelSelect(panel, "wire_multisegmentlcd_model", list.Get( "WireScreenModels" ), 5)
+	panel:CheckBox("#tool.wire_multisegmentlcd.interactive", "wire_multisegmentlcd_interactive")
+	panel:CheckBox("#Create Flat to Surface", "wire_multisegmentlcd_createflat")
+	TreeDataHolder = vgui.Create("DPanel", panel)
+	panel:AddPanel(TreeDataHolder)
+	TreeDataHolder:DockMargin(0, 0, 0, 0)
+	TreeDataHolder:Dock(TOP)
+	TreeDataHolder:SetHeight(480)
+	DisplayData = vgui.Create("DTree", TreeDataHolder)
+	DisplayData:Dock(FILL)
+	DisplayData:DockMargin(0, 0, 0, 0)
+	--DisplayData.RootNode:AddNode( "Root", "icon16/monitor.png" )
+	DisplayData.RootNode.group = WireLib.SegmentLCD_Tree
+	BuildNodes(DisplayData.RootNode,WireLib.SegmentLCD_Tree)
+	ButtonsHolder = TreeDataHolder:Add( "DPanel" )
+	ButtonsHolder:Dock(TOP)
+	ButtonsHolder:DockMargin(0, 0, 0, 0)
+	ButtonsHolder.buttons = {}
+	ButtonsHolder:SetHeight(48)
+	
+	AddSegment =  ButtonsHolder:Add( "DButton" )
+	AddSegment:SetText( "Add Segment" )
+	ButtonsHolder.buttons[1] = AddSegment
+	function AddSegment:DoClick()
+		local node = DisplayData:GetSelectedItem()
+		if node == nil then
+			node = DisplayData.RootNode
+		end
+		local group = node.group
+		local children = nil
+		if group ~= nil then
+			children = group.Children
+		end
+		
+		if children == nil then
+			node = DisplayData.RootNode
+			children = WireLib.SegmentLCD_Tree.Children
+			group = WireLib.SegmentLCD_Tree
+		end
+		local newgroup = {Type=SEGMENT, X=30,Y=0,W=10,H=20}
+		children[#children+1] = newgroup
+		local new = node:AddNode( "Segment", "icon16/bullet_green.png" )
+		new.group = newgroup
+		new.parentgroup = group
+	end
+	
+	AddGroup =  ButtonsHolder:Add( "DButton" )
+	AddGroup:SetText( "Add Group" )
+	ButtonsHolder.buttons[2] = AddGroup
+	function AddGroup:DoClick()
+		local node = DisplayData:GetSelectedItem()
+		if node == nil then
+			node = DisplayData.RootNode
+		end
+		local group = node.group
+		local children = nil
+		if group ~= nil then
+			children = group.Children
+		end
+		if children == nil then
+			node = DisplayData.RootNode
+			children = WireLib.SegmentLCD_Tree.Children
+			group = WireLib.SegmentLCD_Tree
+		end
+		local newgroup = {Type=GROUP,Children={},X=0,Y=0}
+		children[#children+1] = newgroup
+		local new = node:AddNode( "Group", "icon16/text_list_numbers.png" )
+		new.group = newgroup
+		new.parentgroup = group
+	end
+	
+	AddUnion =  ButtonsHolder:Add( "DButton" )
+	AddUnion:SetText( "Add Union" )
+	ButtonsHolder.buttons[3] = AddUnion
+	function AddUnion:DoClick()
+		local node = DisplayData:GetSelectedItem()
+		if node == nil then
+			node = DisplayData.RootNode
+		end
+		local group = node.group
+		local children = nil
+		if group ~= nil then
+			children = group.Children
+		end
+		if children == nil then
+			node = DisplayData.RootNode
+			children = WireLib.SegmentLCD_Tree.Children
+			group = WireLib.SegmentLCD_Tree
+		end
+		local newgroup = {Type=UNION,Children={},X=0,Y=0}
+		children[#children+1] = newgroup
+		local new = node:AddNode( "Union", "icon16/text_list_bullets.png" )
+		new.group = newgroup
+		new.parentgroup = group
+	end
+	
+	Remove =  ButtonsHolder:Add( "DButton" )
+	Remove:SetText( "Remove" )
+	ButtonsHolder.buttons[4] = Remove
+	function Remove:DoClick()
+		local node = DisplayData:GetSelectedItem()
+		if node == nil then
+			return
+		end
+		local parentgroup = node.parentgroup
+		if parentgroup == nil then
+			return
+		end
+		for i,v in pairs(parentgroup.Children) do
+			if v == node.group then
+				table.remove(parentgroup.Children,i)
+				node:Remove()
+				return
+			end
+		end
+	end
+	ButtonsHolder.textboxes = {}
+	WangX = ButtonsHolder:Add( "DNumberWang" )
+	function WangX:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil then
+			return
+		end
+		node.group.X = value
+	end
+	ButtonsHolder.textboxes[1] = WangX
+	WangY = ButtonsHolder:Add( "DNumberWang" )
+	function WangY:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil then
+			return
+		end
+		node.group.Y = value
+	end
+	ButtonsHolder.textboxes[2] = WangY
+	WangW = ButtonsHolder:Add( "DNumberWang" )
+	function WangW:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group.Type ~= SEGMENT then
+			return
+		end
+		node.group.W = value
+	end
+	ButtonsHolder.textboxes[3] = WangW
+	WangH = ButtonsHolder:Add( "DNumberWang" )
+	function WangH:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group.Type ~= SEGMENT then
+			return
+		end
+		node.group.H = value
+	end
+	ButtonsHolder.textboxes[4] = WangH
+	function ButtonsHolder:PerformLayout(w, h)
+		for i,v in ipairs(self.buttons) do
+			v:SetPos((i-1)*w/#self.buttons,0)
+			v:SetSize(w/#self.buttons,h/2)
+		end
+		for i,v in ipairs(self.textboxes) do
+			v:SetPos((i-1)*w/#self.textboxes,h/2)
+			v:SetSize(w/#self.textboxes,h/2)
+		end
+	end
+	
+	
+	
+	function DisplayData:DoClick(node)
+		group = node.group
+		if group.Type == SEGMENT then
+			WangX:SetValue(group.X)
+			WangY:SetValue(group.Y)
+			WangW:SetValue(group.W)
+			WangH:SetValue(group.H)
+		else
+			WangX:SetValue(group.X)
+			WangY:SetValue(group.Y)
+			WangW:SetValue(0)
+			WangH:SetValue(0)
+		end
+		return true
+	end
+	
+	function DisplayData:DoRightClick(node)
+		local Menu = DermaMenu()
+		Menu:AddOption( "Copy" )
+		Menu:AddOption( "Paste" )
+		Menu:Open()
+		function Menu:OptionSelected(option, optionText)
+			if optionText == "Copy" then
+				SegmentLCD_Clipboard = table.Copy(node.group)
+			elseif optionText == "Paste" then
+				if node.group.Children then
+					local newgroup = table.Copy(SegmentLCD_Clipboard)
+					node.group.Children[#node.group.Children+1] = newgroup
+					BuildNode(newgroup,node,node.group)
+				else
+					local newgroup = table.Copy(SegmentLCD_Clipboard)
+					WireLib.SegmentLCD_Tree.Children[#WireLib.SegmentLCD_Tree.Children+1] = newgroup
+					BuildNode(newgroup,DisplayData.RootNode,WireLib.SegmentLCD_Tree)
+				end
+			end
+		end
+		return true
+	end
+	
+	local FileBrowser = vgui.Create("wire_expression2_browser", panel)
+	panel:AddPanel(FileBrowser)
+	FileBrowser:Setup("multisegmentlcd")
+	FileBrowser:SetSize(w, 320)
+	FileBrowser:DockMargin(0, 0, 0, 0)
+	FileBrowser:DockPadding(0, 0, 0, 0)
+	FileBrowser:Dock(TOP)
+	FileBrowser:RemoveRightClick("New File")
+	
+	for k, v in pairs(FileBrowser.foldermenu) do
+		if (v[1] == "New File..") then
+			FileBrowser.foldermenu[k] = nil
+			break
+		end
+	end
+	
+	function SaveFile(curloc,path)
+		file.CreateDir(curloc)
+		file.Write(path, util.TableToJSON(WireLib.SegmentLCD_Tree))
+		FileBrowser:UpdateFolders()
+	end
+	
+	function FileBrowser:OnFileOpen(filepath, newtab)
+		local newgroup = util.JSONToTable(file.Read(filepath))
+		local node = DisplayData:GetSelectedItem()
+		if node == nil then
+			node = DisplayData.RootNode
+		end
+		local group = node.group
+		local children = nil
+		if group ~= nil then
+			children = group.Children
+		end
+		if children == nil then
+			node = DisplayData.RootNode
+			children = WireLib.SegmentLCD_Tree.Children
+			group = WireLib.SegmentLCD_Tree
+		end
+		node.group.Children[#node.group.Children+1] = newgroup
+		BuildNode(newgroup,node,node.group)
+	end
+	
+	local Save = panel:Button("Save")
+	function Save:DoClick()
+		Derma_StringRequestNoBlur("Save to file", "", "",
+		function(strTextOut)
+			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+			local curlocation = "multisegmentlcd"
+			if FileBrowser.File then
+				local newcurloc = FileBrowser.File:GetFolder()
+				curlocation = newcurloc or curlocation
+			end
+			local save_location = curlocation .. "/" .. strTextOut .. ".txt"
+			if file.Exists(save_location, "DATA") then
+				Derma_QueryNoBlur("The file '" .. strTextOut .. "' already exists. Do you want to overwrite it?", "File already exists",
+				"Yes", function() SaveFile(curlocation,save_location) end,
+				"No", function() end)
+			else
+				SaveFile(curlocation,save_location)
+			end
+		end)
+	end
+end
