@@ -311,6 +311,8 @@ function TOOL.BuildCPanel(panel)
 	end
 	ButtonsHolder.textboxes = {}
 	WangX = ButtonsHolder:Add( "DNumberWang" )
+	WangX:SetMin(-1024)
+	WangX:SetMax(1024)
 	function WangX:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
 		if node == nil or node.group == nil then
@@ -320,6 +322,8 @@ function TOOL.BuildCPanel(panel)
 	end
 	ButtonsHolder.textboxes[1] = WangX
 	WangY = ButtonsHolder:Add( "DNumberWang" )
+	WangY:SetMin(-1024)
+	WangY:SetMax(1024)
 	function WangY:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
 		if node == nil or node.group == nil then
@@ -329,6 +333,7 @@ function TOOL.BuildCPanel(panel)
 	end
 	ButtonsHolder.textboxes[2] = WangY
 	WangW = ButtonsHolder:Add( "DNumberWang" )
+	WangW:SetMax(1024)
 	function WangW:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
 		if node == nil or node.group == nil then
@@ -338,6 +343,7 @@ function TOOL.BuildCPanel(panel)
 	end
 	ButtonsHolder.textboxes[3] = WangW
 	WangH = ButtonsHolder:Add( "DNumberWang" )
+	WangH:SetMax(1024)
 	function WangH:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
 		if node == nil or node.group == nil then
@@ -357,6 +363,7 @@ function TOOL.BuildCPanel(panel)
 	end
 	
 	WangScaleW = ButtonsHolder:Add( "DNumberWang" )
+	WangScaleW:SetMax(1024)
 	function WangScaleW:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
 		if node == nil or node.group == nil or node.group.Type ~= MATRIX then
@@ -366,6 +373,7 @@ function TOOL.BuildCPanel(panel)
 	end
 	
 	WangScaleH = ButtonsHolder:Add( "DNumberWang" )
+	WangScaleH:SetMax(1024)
 	function WangScaleH:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
 		if node == nil or node.group == nil or node.group.Type ~= MATRIX then
@@ -375,6 +383,7 @@ function TOOL.BuildCPanel(panel)
 	end
 	
 	WangOffsetX = ButtonsHolder:Add( "DNumberWang" )
+	WangOffsetX:SetMax(1024)
 	function WangOffsetX:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
 		if node == nil or node.group == nil or node.group.Type ~= MATRIX then
@@ -384,6 +393,7 @@ function TOOL.BuildCPanel(panel)
 	end
 	
 	WangOffsetY = ButtonsHolder:Add( "DNumberWang" )
+	WangOffsetY:SetMax(1024)
 	function WangOffsetY:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
 		if node == nil or node.group == nil or node.group.Type ~= MATRIX then
