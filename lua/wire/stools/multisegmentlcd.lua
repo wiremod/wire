@@ -147,7 +147,7 @@ function TOOL.BuildCPanel(panel)
 	ButtonsHolder:Dock(TOP)
 	ButtonsHolder:DockMargin(0, 0, 0, 0)
 	ButtonsHolder.buttons = {}
-	ButtonsHolder:SetHeight(48)
+	ButtonsHolder:SetHeight(60)
 	
 	AddSegment =  ButtonsHolder:Add( "DButton" )
 	AddSegment:SetText( "Add Segment" )
@@ -201,9 +201,35 @@ function TOOL.BuildCPanel(panel)
 		new.parentgroup = group
 	end
 	
+	AddMatrix =  ButtonsHolder:Add( "DButton" )
+	AddMatrix:SetText( "Add Matrix" )
+	ButtonsHolder.buttons[3] = AddMatrix
+	function AddMatrix:DoClick()
+		local node = DisplayData:GetSelectedItem()
+		if node == nil then
+			node = DisplayData.RootNode
+		end
+		local group = node.group
+		local children = nil
+		if group ~= nil then
+			children = group.Children
+		end
+		
+		if children == nil then
+			node = DisplayData.RootNode
+			children = WireLib.SegmentLCD_Tree.Children
+			group = WireLib.SegmentLCD_Tree
+		end
+		local newgroup = {Type=MATRIX, X=0, Y=0, W=6, H=8, ScaleW=5, ScaleH=5, OffsetX=6, OffsetY=6}
+		children[#children+1] = newgroup
+		local new = node:AddNode( "Matrix", "icon16/bullet_red.png" )
+		new.group = newgroup
+		new.parentgroup = group
+	end
+	
 	AddGroup =  ButtonsHolder:Add( "DButton" )
 	AddGroup:SetText( "Add Group" )
-	ButtonsHolder.buttons[3] = AddGroup
+	ButtonsHolder.buttons[4] = AddGroup
 	function AddGroup:DoClick()
 		local node = DisplayData:GetSelectedItem()
 		if node == nil then
@@ -228,7 +254,7 @@ function TOOL.BuildCPanel(panel)
 	
 	AddUnion =  ButtonsHolder:Add( "DButton" )
 	AddUnion:SetText( "Add Union" )
-	ButtonsHolder.buttons[4] = AddUnion
+	ButtonsHolder.buttons[5] = AddUnion
 	function AddUnion:DoClick()
 		local node = DisplayData:GetSelectedItem()
 		if node == nil then
@@ -253,7 +279,7 @@ function TOOL.BuildCPanel(panel)
 	
 	Remove =  ButtonsHolder:Add( "DButton" )
 	Remove:SetText( "Remove" )
-	ButtonsHolder.buttons[5] = Remove
+	ButtonsHolder.buttons[6] = Remove
 	function Remove:DoClick()
 		local node = DisplayData:GetSelectedItem()
 		if node == nil then
@@ -275,7 +301,7 @@ function TOOL.BuildCPanel(panel)
 	WangX = ButtonsHolder:Add( "DNumberWang" )
 	function WangX:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
-		if node == nil then
+		if node == nil or node.group == nil then
 			return
 		end
 		node.group.X = value
@@ -284,7 +310,7 @@ function TOOL.BuildCPanel(panel)
 	WangY = ButtonsHolder:Add( "DNumberWang" )
 	function WangY:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
-		if node == nil then
+		if node == nil or node.group == nil then
 			return
 		end
 		node.group.Y = value
@@ -293,7 +319,7 @@ function TOOL.BuildCPanel(panel)
 	WangW = ButtonsHolder:Add( "DNumberWang" )
 	function WangW:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
-		if node == nil or node.group.Type ~= SEGMENT then
+		if node == nil or node.group == nil or node.group.Type ~= SEGMENT then
 			return
 		end
 		node.group.W = value
@@ -302,7 +328,7 @@ function TOOL.BuildCPanel(panel)
 	WangH = ButtonsHolder:Add( "DNumberWang" )
 	function WangH:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
-		if node == nil or node.group.Type ~= SEGMENT then
+		if node == nil or node.group == nil or node.group.Type ~= SEGMENT then
 			return
 		end
 		node.group.H = value
@@ -312,24 +338,75 @@ function TOOL.BuildCPanel(panel)
 	TextSetter = ButtonsHolder:Add( "DTextEntry" )
 	function TextSetter:OnValueChange(value)
 		local node = DisplayData:GetSelectedItem()
-		if node == nil or node.group.Type ~= TEXT then
+		if node == nil or node.group == nil or node.group.Type ~= TEXT then
 			return
 		end
 		node.group.Text = value
 	end
-	ButtonsHolder.textboxes[5] = TextSetter
+	
+	WangScaleW = ButtonsHolder:Add( "DNumberWang" )
+	function WangScaleW:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil or node.group.Type ~= MATRIX then
+			return
+		end
+		node.group.ScaleW = value
+	end
+	
+	WangScaleH = ButtonsHolder:Add( "DNumberWang" )
+	function WangScaleH:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil or node.group.Type ~= MATRIX then
+			return
+		end
+		node.group.ScaleH = value
+	end
+	
+	WangOffsetX = ButtonsHolder:Add( "DNumberWang" )
+	function WangOffsetX:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil or node.group.Type ~= MATRIX then
+			return
+		end
+		node.group.OffsetX = value
+	end
+	
+	WangOffsetY = ButtonsHolder:Add( "DNumberWang" )
+	function WangOffsetY:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil or node.group.Type ~= MATRIX then
+			return
+		end
+		node.group.OffsetY = value
+	end
 	
 	function ButtonsHolder:PerformLayout(w, h)
 		for i,v in ipairs(self.buttons) do
 			v:SetPos((i-1)*w/#self.buttons,0)
-			v:SetSize(w/#self.buttons,h/2)
+			v:SetSize(w/#self.buttons,h/3)
 		end
 		for i,v in ipairs(self.textboxes) do
-			v:SetPos((i-1)*w/#self.textboxes,h/2)
-			v:SetSize(w/#self.textboxes,h/2)
+			v:SetPos((i-1)*w/#self.textboxes,h/3)
+			v:SetSize(w/#self.textboxes,h/3)
 		end
+		TextSetter:SetPos(0,h/3*2)
+		TextSetter:SetSize(w,h/3)
+		WangScaleW:SetPos(0,h/3*2)
+		WangScaleW:SetSize(w/4,h/3)
+		WangScaleH:SetPos(w/4,h/3*2)
+		WangScaleH:SetSize(w/4,h/3)
+		WangOffsetX:SetPos(w/4*2,h/3*2)
+		WangOffsetX:SetSize(w/4,h/3)
+		WangOffsetY:SetPos(w/4*3,h/3*2)
+		WangOffsetY:SetSize(w/4,h/3)
 	end
-	
+	WangW:SetVisible(false)
+	WangH:SetVisible(false)
+	TextSetter:SetVisible(false)
+	WangScaleW:SetVisible(false)
+	WangScaleH:SetVisible(false)
+	WangOffsetX:SetVisible(false)
+	WangOffsetY:SetVisible(false)
 	
 	
 	function DisplayData:DoClick(node)
@@ -339,19 +416,50 @@ function TOOL.BuildCPanel(panel)
 			WangY:SetValue(group.Y)
 			WangW:SetValue(group.W)
 			WangH:SetValue(group.H)
-			TextSetter:SetValue("")
+			WangW:SetVisible(true)
+			WangH:SetVisible(true)
+			TextSetter:SetVisible(false)
+			WangScaleW:SetVisible(false)
+			WangScaleH:SetVisible(false)
+			WangOffsetX:SetVisible(false)
+			WangOffsetY:SetVisible(false)
+		elseif group.Type == MATRIX then
+			WangX:SetValue(group.X)
+			WangY:SetValue(group.Y)
+			WangW:SetValue(group.W)
+			WangH:SetValue(group.H)
+			TextSetter:SetVisible(false)
+			WangScaleW:SetVisible(true)
+			WangScaleH:SetVisible(true)
+			WangOffsetX:SetVisible(true)
+			WangOffsetY:SetVisible(true)
+			WangW:SetVisible(true)
+			WangH:SetVisible(true)
+			WangScaleW:SetValue(group.ScaleW)
+			WangScaleH:SetValue(group.ScaleH)
+			WangOffsetX:SetValue(group.OffsetX)
+			WangOffsetY:SetValue(group.OffsetY)
 		elseif group.Type == TEXT then
 			WangX:SetValue(group.X)
 			WangY:SetValue(group.Y)
-			WangW:SetValue(0)
-			WangH:SetValue(0)
+			WangW:SetVisible(false)
+			WangH:SetVisible(false)
+			TextSetter:SetVisible(true)
 			TextSetter:SetValue(group.Text)
+			WangScaleW:SetVisible(false)
+			WangScaleH:SetVisible(false)
+			WangOffsetX:SetVisible(false)
+			WangOffsetY:SetVisible(false)
 		else
 			WangX:SetValue(group.X)
 			WangY:SetValue(group.Y)
-			WangW:SetValue(0)
-			WangH:SetValue(0)
-			TextSetter:SetValue("")
+			WangW:SetVisible(false)
+			WangH:SetVisible(false)
+			WangScaleW:SetVisible(false)
+			WangScaleH:SetVisible(false)
+			WangOffsetX:SetVisible(false)
+			WangOffsetY:SetVisible(false)
+			TextSetter:SetVisible(false)
 		end
 		return true
 	end

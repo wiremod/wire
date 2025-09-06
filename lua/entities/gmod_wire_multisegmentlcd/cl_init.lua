@@ -80,6 +80,20 @@ function ENT:DrawText(text)
 	self.BitIndex = self.BitIndex+1
 end
 
+function ENT:DrawMatrix(matrix)
+	for y = 0,matrix.H do
+		for x = 0,matrix.W do
+			if bit.band(self.Memory[bit.rshift(self.BitIndex,3)] or 0,bit.lshift(1,bit.band(self.BitIndex,7))) ~= 0 then
+				surface.DrawRect(matrix.X+self.LocalX+x*matrix.OffsetX,matrix.Y+self.LocalY+y*matrix.OffsetY,matrix.ScaleW,matrix.ScaleH)
+			end
+			self.BitIndex = self.BitIndex+1
+		end
+	end
+	
+	
+end
+
+
 function ENT:DrawUnion(group)
 	self.LocalX = self.LocalX + (group.X or 0)
 	self.LocalY = self.LocalY + (group.Y or 0)
@@ -94,6 +108,8 @@ function ENT:DrawUnion(group)
 			self:DrawSegment(v)
 		elseif v.Type == TEXT then 
 			self:DrawText(v)
+		elseif v.Type == MATRIX then 
+			self:DrawMatrix(v)
 		end
 		biggestindex = math.max(biggestindex,self.BitIndex)
 		self.BitIndex = savedindex
@@ -115,6 +131,8 @@ function ENT:DrawGroup(group)
 			self:DrawSegment(v)
 		elseif v.Type == TEXT then 
 			self:DrawText(v)
+		elseif v.Type == MATRIX then 
+			self:DrawMatrix(v)
 		end
 	end
 	self.LocalX = self.LocalX - (group.X or 0)
