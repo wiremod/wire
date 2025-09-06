@@ -16,7 +16,7 @@ function ENT:Initialize()
 		end
 	end
 
-	self.GPU = WireGPU(self)
+	self.GPU = WireGPU(self, true)
 
 	GPULib.ClientCacheCallback(self,function(Address,Value)
 		self:WriteCell(Address,Value)
@@ -107,19 +107,17 @@ end
 
 function ENT:Draw()
 	self:DrawModel()
-	self.GPU:RenderToGPU(function()
+	self.GPU:RenderToWorld(nil, 188, function(x, y, w, h)
 		surface.SetDrawColor(0,0,0,255)
-		surface.DrawRect(0,0,1024,1024)
-		
+		surface.DrawRect(x,y,w,h)
 		if self.Tree then
 			surface.SetDrawColor(255,255,255,255)
 			self.BitIndex = 0
-			self.LocalX = 0
-			self.LocalY = 0
+			self.LocalX = x
+			self.LocalY = y
 			self:DrawGroup(self.Tree)
 		end
 	end)
-	self.GPU:Render(0,0,1024,1024,nil,0,0)
 	Wire_Render(self)
 end
 
