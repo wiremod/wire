@@ -319,7 +319,7 @@ function TOOL.BuildCPanel(panel)
 	WangW = ButtonsHolder:Add( "DNumberWang" )
 	function WangW:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
-		if node == nil or node.group == nil or node.group.Type ~= SEGMENT then
+		if node == nil or node.group == nil then
 			return
 		end
 		node.group.W = value
@@ -328,7 +328,7 @@ function TOOL.BuildCPanel(panel)
 	WangH = ButtonsHolder:Add( "DNumberWang" )
 	function WangH:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
-		if node == nil or node.group == nil or node.group.Type ~= SEGMENT then
+		if node == nil or node.group == nil then
 			return
 		end
 		node.group.H = value
