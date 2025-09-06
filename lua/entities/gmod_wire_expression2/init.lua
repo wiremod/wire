@@ -811,7 +811,7 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 
 		self.filepath = filepath
 	else
-		self.buffer = "#error You tried to dupe an E2 with compile errors!\n#Unfortunately, no code can be saved when duping an E2 with compile errors.\n#Fix your errors and try again."
+		self.buffer = "#error You tried to dupe an E2 with compile errors!\n#Unfortunately, old chips with compilation errors cannot be read."
 
 		self.inc_files = {}
 		self.dupevars = {}

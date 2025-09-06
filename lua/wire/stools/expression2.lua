@@ -627,10 +627,6 @@ if CLIENT then
 
 		if e2_function_data_received then
 			err, includes, _warnings = E2Lib.Validate(code)
-			if err and err[1] then
-				WireLib.AddNotify(err[1].message, NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
-				return
-			end
 		else
 			WireLib.AddNotify("The Expression 2 function data has not been transferred to the client yet;\n uploading the E2 to the server for validation.\nNote that any includes will not be sent. You must wait for the function data to finish\n transmitting before you are able to use includes.", NOTIFY_ERROR, 14, NOTIFYSOUND_DRIP3)
 
