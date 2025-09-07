@@ -2,6 +2,7 @@ AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
+DEFINE_BASECLASS( "base_wire_entity" )
 ENT.WireDebugName = "MultiSegmentLcdScreen"
 
 
@@ -74,7 +75,7 @@ function ENT:Retransmit(ply)
 end
 
 function ENT:Setup(IsInteractive, ResolutionW, ResolutionH, Bgred,Bggreen,Bgblue,Fgred,Fggreen,Fgblue)
-	self.IsInteractive = WireLib.IsValidInteractiveModel(self:GetModel()) and (IsInteractive == 1)
+	self.IsInteractive = WireLib.IsValidInteractiveModel(self:GetModel()) and (IsInteractive)
 	self.ResolutionW = ResolutionW
 	self.ResolutionH = ResolutionH
 	self.Fgblue = Fgblue or 45
@@ -168,4 +169,17 @@ function ENT:Unprompt()
 	self.User = nil
 end
 
-duplicator.RegisterEntityClass("gmod_wire_multisegmentlcd", WireLib.MakeWireEnt, "Data", "IsInteractive")
+function ENT:BuildDupeInfo()
+	local info = BaseClass.BuildDupeInfo( self ) or {}
+	info.Tree = self.Tree
+	return info
+end
+
+function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
+	self.Tree = info.Tree
+	ent.Tree = info.Tree
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	ent:Retransmit()
+end
+
+duplicator.RegisterEntityClass("gmod_wire_multisegmentlcd", WireLib.MakeWireEnt, "Data", "IsInteractive", "ResolutionW", "ResolutionH", "Bgred", "Bggreen", "Bgblue", "Fgred", "Fggreen", "Fgblue")

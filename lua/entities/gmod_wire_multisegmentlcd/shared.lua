@@ -1,6 +1,7 @@
 ENT.Type            = "anim"
 ENT.Base            = "base_wire_entity"
 
+
 ENT.PrintName       = "Wire Multi-segment LCD"
 ENT.Author          = ""
 ENT.Contact         = ""

@@ -52,7 +52,7 @@ WireToolSetup.SetupMax( 20 )
 if SERVER then
 	
 	function TOOL:GetConVars()
-		return self:GetClientNumber("interactive"), math.Clamp(self:GetClientNumber("resw"),0,1024), math.Clamp(self:GetClientNumber("resh"),0,1024),
+		return self:GetClientNumber("interactive") == 1, math.Clamp(self:GetClientNumber("resw"),0,1024), math.Clamp(self:GetClientNumber("resh"),0,1024),
 			math.Clamp(self:GetClientNumber("bgred"), 0, 255),
 			math.Clamp(self:GetClientNumber("bggreen"), 0, 255),
 			math.Clamp(self:GetClientNumber("bgblue"), 0, 255),
