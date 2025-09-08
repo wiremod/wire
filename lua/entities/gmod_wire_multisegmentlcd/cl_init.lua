@@ -78,25 +78,61 @@ function ENT:Transform(x,y)
 	}
 end
 
+function ENT:TransformOffset(x,y)
+	return {
+		x=x*self.LocalXX+y*self.LocalXY,
+		y=x*self.LocalYX+y*self.LocalYY
+	}
+end
+
+function ENT:PushTransform(XX,XY,YX,YY)
+	self.TransformStack[#self.TransformStack + 1] = {self.LocalXX,self.LocalXY,self.LocalYX,self.LocalYY}
+	local oXX = self.LocalXX
+	local oXY = self.LocalXY
+	local oYX = self.LocalYX
+	local oYY = self.LocalYY
+	
+	local nXX = oXX*XX + oXY*YX
+	local nXY = oXY*YY + oXX*XY
+	local nYX = oYX*XX + oYY*YX
+	local nYY = oYY*YY + oYX*XY
+	
+	self.LocalXX = nXX
+	self.LocalXY = nXY
+	self.LocalYX = nYX
+	self.LocalYY = nYY
+end
+
+function ENT:PopTransform()
+	self.LocalXX,self.LocalXY,self.LocalYX,self.LocalYY = unpack(self.TransformStack[#self.TransformStack])
+	self.TransformStack[#self.TransformStack] = nil
+end
+
 function ENT:DrawSegment(segment)
 	self.Fade[self.BitIndex] = (self.Fade[self.BitIndex] or 0)*0.92
 	if bit.band(self.Memory[bit.rshift(self.BitIndex,3)] or 0,bit.lshift(1,bit.band(self.BitIndex,7))) ~= 0 then
 		self.Fade[self.BitIndex] = self.Fade[self.BitIndex] + 0.8
 	end
 	surface.SetDrawColor(self.Cr,self.Cg,self.Cb,self.Fade[self.BitIndex]*255)
-	self.LocalX = self.LocalX + segment.X
-	self.LocalY = self.LocalY + segment.Y
-	--[[local Rect = {
+	local transformedLocal = self:TransformOffset(segment.X or 0,segment.Y or 0)
+	self.LocalX = self.LocalX + transformedLocal.x
+	self.LocalY = self.LocalY + transformedLocal.y
+	local angle = math.rad(segment.Rotation or 0)
+	self:PushTransform(math.cos(angle),
+	math.sin(angle)-(segment.SkewX or 0),
+	-math.sin(angle)+(segment.SkewY or 0),
+	math.cos(angle))
+	local Rect = {
 		self:Transform(0,segment.H),
 		self:Transform(0,0),
 		self:Transform(segment.W,0),
 		self:Transform(segment.W,segment.H)
 	}
 	surface.DrawPoly(Rect)
-	]]
-	surface.DrawRect(self.LocalX,self.LocalY,segment.W,segment.H)
-	self.LocalX = self.LocalX - segment.X
-	self.LocalY = self.LocalY - segment.Y
+	self:PopTransform()
+	--surface.DrawRect(self.LocalX,self.LocalY,segment.W,segment.H)
+	self.LocalX = self.LocalX - transformedLocal.x
+	self.LocalY = self.LocalY - transformedLocal.y
 	self.BitIndex = self.BitIndex+1
 end
 
@@ -105,10 +141,15 @@ function ENT:DrawText(text)
 	if bit.band(self.Memory[bit.rshift(self.BitIndex,3)] or 0,bit.lshift(1,bit.band(self.BitIndex,7))) ~= 0 then
 		self.Fade[self.BitIndex] = self.Fade[self.BitIndex] + 0.08
 	end
-	surface.SetTextPos(text.X+self.LocalX,text.Y+self.LocalY)
+	local transformedLocal = self:TransformOffset(text.X or 0,text.Y or 0)
+	self.LocalX = self.LocalX + transformedLocal.x
+	self.LocalY = self.LocalY + transformedLocal.y
+	surface.SetTextPos(self.LocalX,self.LocalY)
 	surface.SetFont("Default")
 	surface.SetTextColor(self.Cr,self.Cg,self.Cb,self.Fade[self.BitIndex]*255)
 	surface.DrawText(text.Text)
+	self.LocalX = self.LocalX - transformedLocal.x
+	self.LocalY = self.LocalY - transformedLocal.y
 	self.BitIndex = self.BitIndex+1
 end
 
@@ -119,8 +160,23 @@ function ENT:DrawMatrix(matrix)
 			if bit.band(self.Memory[bit.rshift(self.BitIndex,3)] or 0,bit.lshift(1,bit.band(self.BitIndex,7))) ~= 0 then
 				self.Fade[self.BitIndex] = self.Fade[self.BitIndex] + 0.08
 			end
+			
+			local transformedLocal = self:TransformOffset(matrix.X+x*matrix.OffsetX,matrix.Y+y*matrix.OffsetY)
+			self.LocalX = self.LocalX + transformedLocal.x
+			self.LocalY = self.LocalY + transformedLocal.y
 			surface.SetDrawColor(self.Cr,self.Cg,self.Cb,self.Fade[self.BitIndex]*255)
-			surface.DrawRect(matrix.X+self.LocalX+x*matrix.OffsetX,matrix.Y+self.LocalY+y*matrix.OffsetY,matrix.ScaleW,matrix.ScaleH)
+			local Rect = {
+				self:Transform(0,matrix.ScaleH),
+				self:Transform(0,0),
+				self:Transform(matrix.ScaleW,0),
+				self:Transform(matrix.ScaleW,matrix.ScaleH)
+			}
+			surface.DrawPoly(Rect)
+			
+			
+			--surface.DrawRect(self.LocalX,self.LocalY,matrix.ScaleW,matrix.ScaleH)
+			self.LocalX = self.LocalX - transformedLocal.x
+			self.LocalY = self.LocalY - transformedLocal.y
 			self.BitIndex = self.BitIndex+1
 		end
 	end
@@ -139,8 +195,9 @@ function ENT:DrawUnion(group)
 		self.Cb = group.B
 		--surface.SetDrawColor(self.Cr,self.Cg,self.Cb,255)
 	end
-	self.LocalX = self.LocalX + (group.X or 0)
-	self.LocalY = self.LocalY + (group.Y or 0)
+	local transformedLocal = self:TransformOffset(group.X or 0,group.Y or 0)
+	self.LocalX = self.LocalX + transformedLocal.x
+	self.LocalY = self.LocalY + transformedLocal.y
 	local savedindex = self.BitIndex
 	local biggestindex = savedindex
 	for k,v in ipairs(group.Children) do
@@ -159,8 +216,8 @@ function ENT:DrawUnion(group)
 		self.BitIndex = savedindex
 	end
 	self.BitIndex = biggestindex
-	self.LocalX = self.LocalX - (group.X or 0)
-	self.LocalY = self.LocalY - (group.Y or 0)
+	self.LocalX = self.LocalX - transformedLocal.x
+	self.LocalY = self.LocalY - transformedLocal.y
 	self.Cr = oCr
 	self.Cg = oCg
 	self.Cb = oCb
@@ -177,8 +234,14 @@ function ENT:DrawGroup(group)
 		self.Cb = group.B
 		--surface.SetDrawColor(self.Cr,self.Cg,self.Cb,255)
 	end
-	self.LocalX = self.LocalX + (group.X or 0)
-	self.LocalY = self.LocalY + (group.Y or 0)
+	local transformedLocal = self:TransformOffset(group.X or 0,group.Y or 0)
+	self.LocalX = self.LocalX + transformedLocal.x
+	self.LocalY = self.LocalY + transformedLocal.y
+	local angle = math.rad(group.Rotation or 0)
+	self:PushTransform(math.cos(angle),
+	math.sin(angle)-(group.SkewX or 0),
+	-math.sin(angle)+(group.SkewY or 0),
+	math.cos(angle))
 	for k,v in ipairs(group.Children) do
 		if v.Type == GROUP then
 			self:DrawGroup(v)
@@ -192,8 +255,9 @@ function ENT:DrawGroup(group)
 			self:DrawMatrix(v)
 		end
 	end
-	self.LocalX = self.LocalX - (group.X or 0)
-	self.LocalY = self.LocalY - (group.Y or 0)
+	self:PopTransform()
+	self.LocalX = self.LocalX - transformedLocal.x
+	self.LocalY = self.LocalY - transformedLocal.y
 	self.Cr = oCr
 	self.Cg = oCg
 	self.Cb = oCb
@@ -217,6 +281,8 @@ function ENT:Draw()
 			self.LocalX = 0
 			self.LocalY = 0
 			self.BitIndex = 0
+			draw.NoTexture()
+			self.TransformStack = {}
 			self:DrawGroup(self.Tree)
 		end
 	end)
