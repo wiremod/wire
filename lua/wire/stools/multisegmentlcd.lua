@@ -496,6 +496,37 @@ function TOOL.BuildCPanel(panel)
 		node.group.B = value
 	end
 	
+	WangRotation = ButtonsHolder:Add( "DNumberWang" )
+	WangRotation:SetMax(360)
+	WangRotation:SetMin(-360)
+	function WangRotation:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil then
+			return
+		end
+		node.group.Rotation = value
+	end
+	
+	WangSkewX = ButtonsHolder:Add( "DNumberWang" )
+	WangSkewX:SetMax(4096)
+	function WangSkewX:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil then
+			return
+		end
+		node.group.SkewX = value
+	end
+	
+	WangSkewY = ButtonsHolder:Add( "DNumberWang" )
+	WangSkewY:SetMax(4096)
+	function WangSkewY:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil then
+			return
+		end
+		node.group.SkewY = value
+	end
+	
 	function ButtonsHolder:PerformLayout(w, h)
 		local rowh = h/4
 		for i,v in ipairs(self.buttons) do
@@ -527,6 +558,13 @@ function TOOL.BuildCPanel(panel)
 		WangColorG:SetSize(w/4,rowh)
 		WangColorB:SetPos(w/4*3,rowh*2)
 		WangColorB:SetSize(w/4,rowh)
+		
+		WangRotation:SetPos(0,rowh*2)
+		WangRotation:SetSize(w/4,rowh)
+		WangSkewX:SetPos(w/4,rowh*2)
+		WangSkewX:SetSize(w/4,rowh)
+		WangSkewY:SetPos(w/4*2,rowh*2)
+		WangSkewY:SetSize(w/4,rowh)
 	end
 	WangW:SetVisible(false)
 	WangH:SetVisible(false)
@@ -539,6 +577,10 @@ function TOOL.BuildCPanel(panel)
 	WangColorB:SetVisible(false)
 	CheckHasColor:SetVisible(false)
 	CheckLabel:SetVisible(false)
+	WangRotation:SetVisible(false)
+	WangSkewX:SetVisible(false)
+	WangSkewY:SetVisible(false)
+	
 	
 	function DisplayData:DoClick(node)
 		group = node.group
@@ -553,11 +595,17 @@ function TOOL.BuildCPanel(panel)
 		WangColorB:SetVisible(false)
 		CheckHasColor:SetVisible(false)
 		CheckLabel:SetVisible(false)
+		WangRotation:SetVisible(false)
+		WangSkewX:SetVisible(false)
+		WangSkewY:SetVisible(false)
 		if group.Type == SEGMENT then
 			WangW:SetValue(group.W)
 			WangH:SetValue(group.H)
 			WangW:SetVisible(true)
 			WangH:SetVisible(true)
+			WangRotation:SetVisible(true)
+			WangSkewX:SetVisible(true)
+			WangSkewY:SetVisible(true)
 		elseif group.Type == MATRIX then
 			WangW:SetValue(group.W)
 			WangH:SetValue(group.H)
