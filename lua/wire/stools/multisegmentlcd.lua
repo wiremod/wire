@@ -6,6 +6,13 @@ UNION = 0
 SEGMENT = 1
 TEXT = 2
 MATRIX = 3
+SegmentTypeNames = {
+[GROUP] = "Group",
+[UNION] = "Union",
+[SEGMENT] = "Segment",
+[TEXT] = "Text",
+[MATRIX] = "Matrix",
+}
 
 WireLib.SegmentLCD_Tree = {
 		Type=GROUP,
@@ -107,17 +114,17 @@ TOOL.ClientConVar = {
 function BuildNode(v,node,group)
 	local new = nil
 	if v.Type == GROUP then
-		new = node:AddNode( "Group", "icon16/text_list_numbers.png" )
+		new = node:AddNode( v.Text or "Group", "icon16/text_list_numbers.png" )
 		BuildNodes(new,v)
 	elseif v.Type == UNION then
-		new = node:AddNode( "Union", "icon16/text_list_bullets.png" )
+		new = node:AddNode( v.Text or "Union", "icon16/text_list_bullets.png" )
 		BuildNodes(new,v)
 	elseif v.Type == TEXT then
-		new = node:AddNode( "Text", "icon16/bullet_yellow.png" )
+		new = node:AddNode( v.Text or "Text", "icon16/bullet_yellow.png" )
 	elseif v.Type == MATRIX then
-		new = node:AddNode( "Matrix", "icon16/bullet_red.png" )
+		new = node:AddNode( v.Text or "Matrix", "icon16/bullet_red.png" )
 	else
-		new = node:AddNode( "Segment", "icon16/bullet_green.png" )
+		new = node:AddNode( v.Text or "Segment", "icon16/bullet_green.png" )
 	end
 	new.group = v
 	new.parentgroup = group
@@ -162,13 +169,12 @@ function TOOL.BuildCPanel(panel)
 	ButtonsHolder:Dock(TOP)
 	ButtonsHolder:DockMargin(0, 0, 0, 0)
 	ButtonsHolder.buttons = {}
-	ButtonsHolder:SetHeight(60)
+	ButtonsHolder:SetHeight(72)
 	
 	AddSegment =  ButtonsHolder:Add( "DButton" )
 	AddSegment:SetText( "Add Segment" )
 	ButtonsHolder.buttons[1] = AddSegment
-	function AddSegment:DoClick()
-		local node = DisplayData:GetSelectedItem()
+	function AddSegmentI(node)
 		if node == nil then
 			node = DisplayData.RootNode
 		end
@@ -189,12 +195,15 @@ function TOOL.BuildCPanel(panel)
 		new.group = newgroup
 		new.parentgroup = group
 	end
+	function AddSegment:DoClick()
+		local node = DisplayData:GetSelectedItem()
+		AddSegmentI(node)
+	end
 	
 	AddText =  ButtonsHolder:Add( "DButton" )
 	AddText:SetText( "Add Text" )
 	ButtonsHolder.buttons[2] = AddText
-	function AddText:DoClick()
-		local node = DisplayData:GetSelectedItem()
+	function AddTextI(node)
 		if node == nil then
 			node = DisplayData.RootNode
 		end
@@ -209,18 +218,21 @@ function TOOL.BuildCPanel(panel)
 			children = WireLib.SegmentLCD_Tree.Children
 			group = WireLib.SegmentLCD_Tree
 		end
-		local newgroup = {Type=TEXT, X=30, Y=0, Text="Hello"}
+		local newgroup = {Type=TEXT, X=30, Y=0, Text="Text"}
 		children[#children+1] = newgroup
 		local new = node:AddNode( "Text", "icon16/bullet_yellow.png" )
 		new.group = newgroup
 		new.parentgroup = group
 	end
+	function AddText:DoClick()
+		local node = DisplayData:GetSelectedItem()
+		AddTextI(node)
+	end
 	
 	AddMatrix =  ButtonsHolder:Add( "DButton" )
 	AddMatrix:SetText( "Add Matrix" )
 	ButtonsHolder.buttons[3] = AddMatrix
-	function AddMatrix:DoClick()
-		local node = DisplayData:GetSelectedItem()
+	function AddMatrixI(node)
 		if node == nil then
 			node = DisplayData.RootNode
 		end
@@ -241,12 +253,16 @@ function TOOL.BuildCPanel(panel)
 		new.group = newgroup
 		new.parentgroup = group
 	end
+	function AddMatrix:DoClick()
+		local node = DisplayData:GetSelectedItem()
+		AddMatrixI(node)
+	end
 	
 	AddGroup =  ButtonsHolder:Add( "DButton" )
 	AddGroup:SetText( "Add Group" )
 	ButtonsHolder.buttons[4] = AddGroup
-	function AddGroup:DoClick()
-		local node = DisplayData:GetSelectedItem()
+	function AddGroupI(node)
+		
 		if node == nil then
 			node = DisplayData.RootNode
 		end
@@ -263,15 +279,19 @@ function TOOL.BuildCPanel(panel)
 		local newgroup = {Type=GROUP,Children={},X=0,Y=0,HasColor=false,R=255,G=255,B=255}
 		children[#children+1] = newgroup
 		local new = node:AddNode( "Group", "icon16/text_list_numbers.png" )
+		new:SetExpanded(true);
 		new.group = newgroup
 		new.parentgroup = group
+	end
+	function AddGroup:DoClick()
+		local node = DisplayData:GetSelectedItem()
+		AddGroupI(node)
 	end
 	
 	AddUnion =  ButtonsHolder:Add( "DButton" )
 	AddUnion:SetText( "Add Union" )
 	ButtonsHolder.buttons[5] = AddUnion
-	function AddUnion:DoClick()
-		local node = DisplayData:GetSelectedItem()
+	function AddUnionI(node)
 		if node == nil then
 			node = DisplayData.RootNode
 		end
@@ -288,13 +308,34 @@ function TOOL.BuildCPanel(panel)
 		local newgroup = {Type=UNION,Children={},X=0,Y=0,HasColor=false,R=255,G=255,B=255}
 		children[#children+1] = newgroup
 		local new = node:AddNode( "Union", "icon16/text_list_bullets.png" )
+		new:SetExpanded(true);
 		new.group = newgroup
 		new.parentgroup = group
+	end
+	function AddUnion:DoClick()
+		local node = DisplayData:GetSelectedItem()
+		AddUnionI(node)
 	end
 	
 	Remove =  ButtonsHolder:Add( "DButton" )
 	Remove:SetText( "Remove" )
 	ButtonsHolder.buttons[6] = Remove
+	function RemoveI(node)
+		if node == nil then
+			return
+		end
+		local parentgroup = node.parentgroup
+		if parentgroup == nil then
+			return
+		end
+		for i,v in pairs(parentgroup.Children) do
+			if v == node.group then
+				table.remove(parentgroup.Children,i)
+				node:Remove()
+				return
+			end
+		end
+	end
 	function Remove:DoClick()
 		local node = DisplayData:GetSelectedItem()
 		if node == nil then
@@ -359,10 +400,17 @@ function TOOL.BuildCPanel(panel)
 	TextSetter = ButtonsHolder:Add( "DTextEntry" )
 	function TextSetter:OnValueChange(value)
 		local node = DisplayData:GetSelectedItem()
-		if node == nil or node.group == nil or node.group.Type ~= TEXT then
+		if node == nil or node.group == nil then
 			return
 		end
-		node.group.Text = value
+		if  value == "" then
+			node:SetText(SegmentTypeNames[node.group.Type])
+			node.group.Text = nil
+		else
+			node:SetText(value)
+			node.group.Text = value
+		end
+		
 	end
 	
 	WangScaleW = ButtonsHolder:Add( "DNumberWang" )
@@ -448,38 +496,39 @@ function TOOL.BuildCPanel(panel)
 	end
 	
 	function ButtonsHolder:PerformLayout(w, h)
+		local rowh = h/4
 		for i,v in ipairs(self.buttons) do
 			v:SetPos((i-1)*w/#self.buttons,0)
-			v:SetSize(w/#self.buttons,h/3)
+			v:SetSize(w/#self.buttons,rowh)
 		end
 		for i,v in ipairs(self.textboxes) do
-			v:SetPos((i-1)*w/#self.textboxes,h/3)
-			v:SetSize(w/#self.textboxes,h/3)
+			v:SetPos((i-1)*w/#self.textboxes,rowh)
+			v:SetSize(w/#self.textboxes,rowh)
 		end
-		TextSetter:SetPos(0,h/3*2)
-		TextSetter:SetSize(w,h/3)
-		WangScaleW:SetPos(0,h/3*2)
-		WangScaleW:SetSize(w/4,h/3)
-		WangScaleH:SetPos(w/4,h/3*2)
-		WangScaleH:SetSize(w/4,h/3)
-		WangOffsetX:SetPos(w/4*2,h/3*2)
-		WangOffsetX:SetSize(w/4,h/3)
-		WangOffsetY:SetPos(w/4*3,h/3*2)
-		WangOffsetY:SetSize(w/4,h/3)
 		
-		CheckHasColor:SetPos(1,h/3*2+3)
-		CheckLabel:SetPos(18,h/3*2)
-		CheckLabel:SetSize(w/4-18,h/3)
-		WangColorR:SetPos(w/4,h/3*2)
-		WangColorR:SetSize(w/4,h/3)
-		WangColorG:SetPos(w/4*2,h/3*2)
-		WangColorG:SetSize(w/4,h/3)
-		WangColorB:SetPos(w/4*3,h/3*2)
-		WangColorB:SetSize(w/4,h/3)
+		TextSetter:SetPos(0,rowh*3)
+		TextSetter:SetSize(w,rowh)
+		WangScaleW:SetPos(0,rowh*2)
+		WangScaleW:SetSize(w/4,rowh)
+		WangScaleH:SetPos(w/4,rowh*2)
+		WangScaleH:SetSize(w/4,rowh)
+		WangOffsetX:SetPos(w/4*2,rowh*2)
+		WangOffsetX:SetSize(w/4,rowh)
+		WangOffsetY:SetPos(w/4*3,rowh*2)
+		WangOffsetY:SetSize(w/4,rowh)
+		
+		CheckHasColor:SetPos(1,rowh*2+3)
+		CheckLabel:SetPos(18,rowh*2)
+		CheckLabel:SetSize(w/4-18,rowh)
+		WangColorR:SetPos(w/4,rowh*2)
+		WangColorR:SetSize(w/4,rowh)
+		WangColorG:SetPos(w/4*2,rowh*2)
+		WangColorG:SetSize(w/4,rowh)
+		WangColorB:SetPos(w/4*3,rowh*2)
+		WangColorB:SetSize(w/4,rowh)
 	end
 	WangW:SetVisible(false)
 	WangH:SetVisible(false)
-	TextSetter:SetVisible(false)
 	WangScaleW:SetVisible(false)
 	WangScaleH:SetVisible(false)
 	WangOffsetX:SetVisible(false)
@@ -492,7 +541,6 @@ function TOOL.BuildCPanel(panel)
 	
 	function DisplayData:DoClick(node)
 		group = node.group
-		TextSetter:SetVisible(false)
 		WangScaleW:SetVisible(false)
 		WangScaleH:SetVisible(false)
 		WangOffsetX:SetVisible(false)
@@ -522,9 +570,6 @@ function TOOL.BuildCPanel(panel)
 			WangScaleH:SetValue(group.ScaleH)
 			WangOffsetX:SetValue(group.OffsetX)
 			WangOffsetY:SetValue(group.OffsetY)
-		elseif group.Type == TEXT then
-			TextSetter:SetVisible(true)
-			TextSetter:SetValue(group.Text)
 		elseif group.Type == GROUP or group.Type == UNION then
 			WangColorR:SetVisible(true)
 			WangColorG:SetVisible(true)
@@ -538,16 +583,29 @@ function TOOL.BuildCPanel(panel)
 		end
 		WangX:SetValue(group.X)
 		WangY:SetValue(group.Y)
+		TextSetter:SetValue(group.Text or "")
 		return true
 	end
 	
 	function DisplayData:DoRightClick(node)
 		local Menu = DermaMenu()
+		Menu:AddOption( "Rename" )
 		Menu:AddOption( "Copy" )
 		Menu:AddOption( "Paste" )
+		local InsertM, MMOption = Menu:AddSubMenu( "Insert" )
+		InsertM:AddOption( "Union", function() AddUnionI(node) end )
+		InsertM:AddOption( "Group", function() AddGroupI(node) end )
+		InsertM:AddOption( "Segment", function() AddSegmentI(node) end )
+		InsertM:AddOption( "Matrix", function() AddMatrixI(node) end )
+		InsertM:AddOption( "Text", function() AddTextI(node) end )
+		Menu:AddSpacer()
+		Menu:AddOption( "Remove" )
 		Menu:Open()
+		print("AAA")
 		function Menu:OptionSelected(option, optionText)
-			if optionText == "Copy" then
+			if optionText == "Rename" then
+				
+			elseif optionText == "Copy" then
 				SegmentLCD_Clipboard = table.Copy(node.group)
 			elseif optionText == "Paste" then
 				if node.group.Children then
@@ -559,6 +617,8 @@ function TOOL.BuildCPanel(panel)
 					WireLib.SegmentLCD_Tree.Children[#WireLib.SegmentLCD_Tree.Children+1] = newgroup
 					BuildNode(newgroup,DisplayData.RootNode,WireLib.SegmentLCD_Tree)
 				end
+			elseif optionText == "Remove" then
+				RemoveI(node)
 			end
 		end
 		return true
