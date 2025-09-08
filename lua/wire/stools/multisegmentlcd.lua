@@ -517,6 +517,27 @@ function TOOL.BuildCPanel(panel)
 		node.group.SkewX = value
 	end
 	
+	WangBevel = ButtonsHolder:Add( "DNumberWang" )
+	WangBevel:SetMax(1024)
+	function WangBevel:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil then
+			return
+		end
+		node.group.Bevel = value
+	end
+	
+	WangBevelSkew = ButtonsHolder:Add( "DNumberWang" )
+	WangBevelSkew:SetMax(1024)
+	WangBevelSkew:SetMin(-1024)
+	function WangBevelSkew:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil then
+			return
+		end
+		node.group.BevelSkew = value
+	end
+	
 	WangSkewY = ButtonsHolder:Add( "DNumberWang" )
 	WangSkewY:SetMax(4096)
 	function WangSkewY:OnValueChanged(value)
@@ -565,6 +586,11 @@ function TOOL.BuildCPanel(panel)
 		WangSkewX:SetSize(roww,rowh)
 		WangSkewY:SetPos(roww*6,rowh*2)
 		WangSkewY:SetSize(roww,rowh)
+		
+		WangBevel:SetPos(0,rowh*2)
+		WangBevel:SetSize(roww,rowh)
+		WangBevelSkew:SetPos(roww,rowh*2)
+		WangBevelSkew:SetSize(roww,rowh)
 	end
 	WangW:SetVisible(false)
 	WangH:SetVisible(false)
@@ -580,7 +606,8 @@ function TOOL.BuildCPanel(panel)
 	WangRotation:SetVisible(false)
 	WangSkewX:SetVisible(false)
 	WangSkewY:SetVisible(false)
-	
+	WangBevel:SetVisible(false)
+	WangBevelSkew:SetVisible(false)
 	
 	function DisplayData:DoClick(node)
 		group = node.group
@@ -598,6 +625,8 @@ function TOOL.BuildCPanel(panel)
 		WangRotation:SetVisible(false)
 		WangSkewX:SetVisible(false)
 		WangSkewY:SetVisible(false)
+		WangBevel:SetVisible(false)
+		WangBevelSkew:SetVisible(false)
 		if group.Type == SEGMENT then
 			WangW:SetValue(group.W)
 			WangH:SetValue(group.H)
@@ -606,6 +635,14 @@ function TOOL.BuildCPanel(panel)
 			WangRotation:SetVisible(true)
 			WangSkewX:SetVisible(true)
 			WangSkewY:SetVisible(true)
+			WangBevel:SetVisible(true)
+			WangBevelSkew:SetVisible(true)
+			
+			WangRotation:SetValue(group.Rotation or 0)
+			WangSkewX:SetValue(group.SkewX or 0)
+			WangSkewY:SetValue(group.SkewY or 0)
+			WangBevel:SetValue(group.Bevel or 0)
+			WangBevelSkew:SetValue(group.BevelSkew or 0)
 		elseif group.Type == MATRIX then
 			WangW:SetValue(group.W)
 			WangH:SetValue(group.H)

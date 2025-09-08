@@ -122,11 +122,17 @@ function ENT:DrawSegment(segment)
 	math.sin(angle)-(segment.SkewX or 0),
 	-math.sin(angle)+(segment.SkewY or 0),
 	math.cos(angle))
+	--self:Transform(,segment.H/2+(segment.H*(segment.BevelSkew or 0))),
+	local bevel = math.min(segment.H,segment.W)/2*(segment.Bevel or 0)
 	local Rect = {
-		self:Transform(0,segment.H),
-		self:Transform(0,0),
-		self:Transform(segment.W,0),
-		self:Transform(segment.W,segment.H)
+		self:Transform(bevel,segment.H),
+		self:Transform(0,segment.H-bevel),
+		self:Transform(0,bevel),
+		self:Transform(bevel,0),
+		self:Transform(segment.W-bevel,0),
+		self:Transform(segment.W,bevel),
+		self:Transform(segment.W,segment.H-bevel),
+		self:Transform(segment.W-bevel,segment.H)
 	}
 	surface.DrawPoly(Rect)
 	self:PopTransform()
@@ -266,10 +272,12 @@ end
 
 function ENT:Draw()
 	self:DrawModel()
-	self.GPU:RenderToGPU(function()
+	self.GPU:RenderToWorld(nil, self.ResolutionH, function(x, y, w, h)
+		draw.NoTexture()
 		surface.SetDrawColor(self.Bgred,self.Bggreen,self.Bgblue,255)
-		surface.DrawRect(0,0,1024,1024)
+		surface.DrawRect(x,y,w,h)
 		if self.Tree then
+			--render.SetScissorRect(x,y,w,h, true)
 			surface.SetDrawColor(self.Fgred,self.Fggreen,self.Fgblue,255)
 			self.Cr = self.Fgred
 			self.Cg = self.Fggreen
@@ -278,15 +286,16 @@ function ENT:Draw()
 			self.LocalXY = 0
 			self.LocalYX = 0
 			self.LocalYY = 1
-			self.LocalX = 0
-			self.LocalY = 0
+			self.LocalX = x
+			self.LocalY = y
 			self.BitIndex = 0
-			draw.NoTexture()
+			
 			self.TransformStack = {}
 			self:DrawGroup(self.Tree)
+			--render.SetScissorRect( 0, 0, 0, 0, false )
 		end
 	end)
-	self.GPU:Render(0,0,1024,1024,nil,-(1024-self.ResolutionW)/1024,-(1024-self.ResolutionH)/1024)
+	--self.GPU:Render(0,0,1024,1024,nil,-(1024-self.ResolutionW)/1024,-(1024-self.ResolutionH)/1024)
 	Wire_Render(self)
 end
 
