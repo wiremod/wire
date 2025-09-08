@@ -398,7 +398,8 @@ function TOOL.BuildCPanel(panel)
 	ButtonsHolder.textboxes[4] = WangH
 	
 	TextSetter = ButtonsHolder:Add( "DTextEntry" )
-	function TextSetter:OnValueChange(value)
+	function TextSetter:OnChange()
+		local value = TextSetter:GetText()
 		local node = DisplayData:GetSelectedItem()
 		if node == nil or node.group == nil then
 			return
