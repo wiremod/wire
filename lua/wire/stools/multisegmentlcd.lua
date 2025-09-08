@@ -153,6 +153,7 @@ function TOOL.BuildCPanel(panel)
 	TreeDataHolder:SetHeight(480)
 	DisplayData = vgui.Create("DTree", TreeDataHolder)
 	DisplayData:Dock(FILL)
+	DisplayData:SetClickOnDragHover( true )
 	DisplayData:DockMargin(0, 0, 0, 0)
 	--DisplayData.RootNode:AddNode( "Root", "icon16/monitor.png" )
 	DisplayData.RootNode.group = WireLib.SegmentLCD_Tree
@@ -259,7 +260,7 @@ function TOOL.BuildCPanel(panel)
 			children = WireLib.SegmentLCD_Tree.Children
 			group = WireLib.SegmentLCD_Tree
 		end
-		local newgroup = {Type=GROUP,Children={},X=0,Y=0}
+		local newgroup = {Type=GROUP,Children={},X=0,Y=0,HasColor=false,R=255,G=255,B=255}
 		children[#children+1] = newgroup
 		local new = node:AddNode( "Group", "icon16/text_list_numbers.png" )
 		new.group = newgroup
@@ -284,7 +285,7 @@ function TOOL.BuildCPanel(panel)
 			children = WireLib.SegmentLCD_Tree.Children
 			group = WireLib.SegmentLCD_Tree
 		end
-		local newgroup = {Type=UNION,Children={},X=0,Y=0}
+		local newgroup = {Type=UNION,Children={},X=0,Y=0,HasColor=false,R=255,G=255,B=255}
 		children[#children+1] = newgroup
 		local new = node:AddNode( "Union", "icon16/text_list_bullets.png" )
 		new.group = newgroup
@@ -404,6 +405,48 @@ function TOOL.BuildCPanel(panel)
 		node.group.OffsetY = value
 	end
 	
+	CheckHasColor = ButtonsHolder:Add( "DCheckBox" )
+	function CheckHasColor:OnChange(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil then
+			return
+		end
+		node.group.HasColor = value
+	end
+	CheckLabel = ButtonsHolder:Add( "DLabel" )
+	CheckLabel:SetText("Has color")
+	CheckLabel:SetTextColor(Color(0,0,0,255))
+	
+	WangColorR = ButtonsHolder:Add( "DNumberWang" )
+	WangColorR:SetMax(255)
+	function WangColorR:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil then
+			return
+		end
+		node.group.R = value
+	end
+	
+	WangColorG = ButtonsHolder:Add( "DNumberWang" )
+	WangColorG:SetMax(255)
+	function WangColorG:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil then
+			return
+		end
+		node.group.G = value
+	end
+	
+	WangColorB = ButtonsHolder:Add( "DNumberWang" )
+	WangColorB:SetMax(255)
+	function WangColorB:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil then
+			return
+		end
+		node.group.B = value
+	end
+	
 	function ButtonsHolder:PerformLayout(w, h)
 		for i,v in ipairs(self.buttons) do
 			v:SetPos((i-1)*w/#self.buttons,0)
@@ -423,6 +466,16 @@ function TOOL.BuildCPanel(panel)
 		WangOffsetX:SetSize(w/4,h/3)
 		WangOffsetY:SetPos(w/4*3,h/3*2)
 		WangOffsetY:SetSize(w/4,h/3)
+		
+		CheckHasColor:SetPos(1,h/3*2+3)
+		CheckLabel:SetPos(18,h/3*2)
+		CheckLabel:SetSize(w/4-18,h/3)
+		WangColorR:SetPos(w/4,h/3*2)
+		WangColorR:SetSize(w/4,h/3)
+		WangColorG:SetPos(w/4*2,h/3*2)
+		WangColorG:SetSize(w/4,h/3)
+		WangColorB:SetPos(w/4*3,h/3*2)
+		WangColorB:SetSize(w/4,h/3)
 	end
 	WangW:SetVisible(false)
 	WangH:SetVisible(false)
@@ -431,28 +484,34 @@ function TOOL.BuildCPanel(panel)
 	WangScaleH:SetVisible(false)
 	WangOffsetX:SetVisible(false)
 	WangOffsetY:SetVisible(false)
-	
+	WangColorR:SetVisible(false)
+	WangColorG:SetVisible(false)
+	WangColorB:SetVisible(false)
+	CheckHasColor:SetVisible(false)
+	CheckLabel:SetVisible(false)
 	
 	function DisplayData:DoClick(node)
 		group = node.group
+		TextSetter:SetVisible(false)
+		WangScaleW:SetVisible(false)
+		WangScaleH:SetVisible(false)
+		WangOffsetX:SetVisible(false)
+		WangOffsetY:SetVisible(false)
+		WangW:SetVisible(false)
+		WangH:SetVisible(false)
+		WangColorR:SetVisible(false)
+		WangColorG:SetVisible(false)
+		WangColorB:SetVisible(false)
+		CheckHasColor:SetVisible(false)
+		CheckLabel:SetVisible(false)
 		if group.Type == SEGMENT then
-			WangX:SetValue(group.X)
-			WangY:SetValue(group.Y)
 			WangW:SetValue(group.W)
 			WangH:SetValue(group.H)
 			WangW:SetVisible(true)
 			WangH:SetVisible(true)
-			TextSetter:SetVisible(false)
-			WangScaleW:SetVisible(false)
-			WangScaleH:SetVisible(false)
-			WangOffsetX:SetVisible(false)
-			WangOffsetY:SetVisible(false)
 		elseif group.Type == MATRIX then
-			WangX:SetValue(group.X)
-			WangY:SetValue(group.Y)
 			WangW:SetValue(group.W)
 			WangH:SetValue(group.H)
-			TextSetter:SetVisible(false)
 			WangScaleW:SetVisible(true)
 			WangScaleH:SetVisible(true)
 			WangOffsetX:SetVisible(true)
@@ -464,27 +523,21 @@ function TOOL.BuildCPanel(panel)
 			WangOffsetX:SetValue(group.OffsetX)
 			WangOffsetY:SetValue(group.OffsetY)
 		elseif group.Type == TEXT then
-			WangX:SetValue(group.X)
-			WangY:SetValue(group.Y)
-			WangW:SetVisible(false)
-			WangH:SetVisible(false)
 			TextSetter:SetVisible(true)
 			TextSetter:SetValue(group.Text)
-			WangScaleW:SetVisible(false)
-			WangScaleH:SetVisible(false)
-			WangOffsetX:SetVisible(false)
-			WangOffsetY:SetVisible(false)
-		else
-			WangX:SetValue(group.X)
-			WangY:SetValue(group.Y)
-			WangW:SetVisible(false)
-			WangH:SetVisible(false)
-			WangScaleW:SetVisible(false)
-			WangScaleH:SetVisible(false)
-			WangOffsetX:SetVisible(false)
-			WangOffsetY:SetVisible(false)
-			TextSetter:SetVisible(false)
+		elseif group.Type == GROUP or group.Type == UNION then
+			WangColorR:SetVisible(true)
+			WangColorG:SetVisible(true)
+			WangColorB:SetVisible(true)
+			CheckHasColor:SetVisible(true)
+			CheckLabel:SetVisible(true)
+			WangColorR:SetValue(group.R)
+			WangColorG:SetValue(group.G)
+			WangColorB:SetValue(group.B)
+			CheckHasColor:SetValue(group.HasColor)
 		end
+		WangX:SetValue(group.X)
+		WangY:SetValue(group.Y)
 		return true
 	end
 	

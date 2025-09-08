@@ -81,7 +81,7 @@ function ENT:DrawText(text)
 	if bit.band(self.Memory[bit.rshift(self.BitIndex,3)] or 0,bit.lshift(1,bit.band(self.BitIndex,7))) ~= 0 then
 		surface.SetTextPos(text.X+self.LocalX,text.Y+self.LocalY)
 		surface.SetFont("Default")
-		surface.SetTextColor(self.Fgred,self.Fggreen,self.Fgblue,255)
+		surface.SetTextColor(self.Cr,self.Cg,self.Cb,255)
 		surface.DrawText(text.Text)
 	end
 	self.BitIndex = self.BitIndex+1
@@ -102,6 +102,15 @@ end
 
 
 function ENT:DrawUnion(group)
+	local oCr = self.Cr
+	local oCg = self.Cg
+	local oCb = self.Cb
+	if group.HasColor then
+		self.Cr = group.R
+		self.Cg = group.G
+		self.Cb = group.B
+		surface.SetDrawColor(self.Cr,self.Cg,self.Cb)
+	end
 	self.LocalX = self.LocalX + (group.X or 0)
 	self.LocalY = self.LocalY + (group.Y or 0)
 	local savedindex = self.BitIndex
@@ -124,9 +133,22 @@ function ENT:DrawUnion(group)
 	self.BitIndex = biggestindex
 	self.LocalX = self.LocalX - (group.X or 0)
 	self.LocalY = self.LocalY - (group.Y or 0)
+	self.Cr = oCr
+	self.Cg = oCg
+	self.Cb = oCb
+	surface.SetDrawColor(self.Cr,self.Cg,self.Cb)
 end
 
 function ENT:DrawGroup(group)
+	local oCr = self.Cr
+	local oCg = self.Cg
+	local oCb = self.Cb
+	if group.HasColor then
+		self.Cr = group.R
+		self.Cg = group.G
+		self.Cb = group.B
+		surface.SetDrawColor(self.Cr,self.Cg,self.Cb)
+	end
 	self.LocalX = self.LocalX + (group.X or 0)
 	self.LocalY = self.LocalY + (group.Y or 0)
 	for k,v in ipairs(group.Children) do
@@ -144,6 +166,10 @@ function ENT:DrawGroup(group)
 	end
 	self.LocalX = self.LocalX - (group.X or 0)
 	self.LocalY = self.LocalY - (group.Y or 0)
+	self.Cr = oCr
+	self.Cg = oCg
+	self.Cb = oCb
+	surface.SetDrawColor(self.Cr,self.Cg,self.Cb)
 end
 
 function ENT:Draw()
@@ -153,6 +179,9 @@ function ENT:Draw()
 		surface.DrawRect(0,0,1024,1024)
 		if self.Tree then
 			surface.SetDrawColor(self.Fgred,self.Fggreen,self.Fgblue,255)
+			self.Cr = self.Fgred
+			self.Cg = self.Fggreen
+			self.Cb = self.Fgblue
 			self.BitIndex = 0
 			self.LocalX = 0
 			self.LocalY = 0
