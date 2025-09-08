@@ -993,7 +993,7 @@ e2function array wirelink:egpObjectTypes()
 	if not this.RenderTable or #this.RenderTable == 0 then return {} end
 	local objs = {}
 	for _, v in pairs(this.RenderTable) do
-		objs[v.index] = EGP.Objects.Names_Inverted[v.ID] or ""
+		objs[v.index] = EGP.Objects[v.ID] or "unknown"
 	end
 	self.prf = self.prf + #this.RenderTable/3
 	return objs
