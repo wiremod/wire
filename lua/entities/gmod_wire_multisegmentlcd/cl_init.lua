@@ -112,21 +112,23 @@ function ENT:PopTransform()
 end
 
 function ENT:AddPoly(poly)
-	local u = ((self.BitIndex%1024)+0.5)/1024
-	local v = (math.floor(self.BitIndex/1024)+0.5)/1024
+	local u = (((self.BitIndex+1)%1024)+0.5)/1024
+	local v = (math.floor((self.BitIndex+1)/1024)+0.5)/1024
+	for i = 1,#poly do
+		mesh.Position(Vector(poly[i][1],poly[i][2],0.1))
+		mesh.TexCoord(0, u, v, u ,v)
+		mesh.Color(255,255,255,255)
+		mesh.AdvanceVertex()
+	end
 	for i = 1,#poly do
 		mesh.Position(Vector(poly[i][1],poly[i][2],0))
 		mesh.TexCoord(0, u, v, u ,v)
-		mesh.Color(255,255,255,255)
+		mesh.Color(127,127,127,127)
 		mesh.AdvanceVertex()
 	end
 end
 
 function ENT:DrawSegment(segment)
-	self.Fade[self.BitIndex] = (self.Fade[self.BitIndex] or 0)*0.92
-	if bit.band(self.Memory[bit.rshift(self.BitIndex,3)] or 0,bit.lshift(1,bit.band(self.BitIndex,7))) ~= 0 then
-		self.Fade[self.BitIndex] = self.Fade[self.BitIndex] + 0.8
-	end
 	--surface.SetDrawColor(self.Cr,self.Cg,self.Cb,self.Fade[self.BitIndex]*255)
 	local transformedLocal = self:TransformOffset(segment.X or 0,segment.Y or 0)
 	self.LocalX = self.LocalX + transformedLocal[1]
@@ -162,14 +164,11 @@ function ENT:DrawSegment(segment)
 	--surface.DrawRect(self.LocalX,self.LocalY,segment.W,segment.H)
 	self.LocalX = self.LocalX - transformedLocal[1]
 	self.LocalY = self.LocalY - transformedLocal[2]
+	self.Colors[self.BitIndex] = {self.Cr,self.Cg,self.Cb}
 	self.BitIndex = self.BitIndex+1
 end
 
 function ENT:DrawText(text)
-	self.Fade[self.BitIndex] = (self.Fade[self.BitIndex] or 0)*0.92
-	if bit.band(self.Memory[bit.rshift(self.BitIndex,3)] or 0,bit.lshift(1,bit.band(self.BitIndex,7))) ~= 0 then
-		self.Fade[self.BitIndex] = self.Fade[self.BitIndex] + 0.08
-	end
 	local transformedLocal = self:TransformOffset(text.X or 0,text.Y or 0)
 	self.LocalX = self.LocalX + transformedLocal[1]
 	self.LocalY = self.LocalY + transformedLocal[2]
@@ -179,16 +178,13 @@ function ENT:DrawText(text)
 	--surface.DrawText(text.Text)
 	self.LocalX = self.LocalX - transformedLocal[1]
 	self.LocalY = self.LocalY - transformedLocal[2]
+	self.Colors[self.BitIndex] = {self.Cr,self.Cg,self.Cb}
 	self.BitIndex = self.BitIndex+1
 end
 
 function ENT:DrawMatrix(matrix)
 	for y = 0,matrix.H-1 do
 		for x = 0,matrix.W-1 do
-			self.Fade[self.BitIndex] = (self.Fade[self.BitIndex] or 0)*0.92
-			if bit.band(self.Memory[bit.rshift(self.BitIndex,3)] or 0,bit.lshift(1,bit.band(self.BitIndex,7))) ~= 0 then
-				self.Fade[self.BitIndex] = self.Fade[self.BitIndex] + 0.08
-			end
 			
 			local transformedLocal = self:TransformOffset(matrix.X+x*matrix.OffsetX,matrix.Y+y*matrix.OffsetY)
 			self.LocalX = self.LocalX + transformedLocal[1]
@@ -210,6 +206,7 @@ function ENT:DrawMatrix(matrix)
 			--surface.DrawRect(self.LocalX,self.LocalY,matrix.ScaleW,matrix.ScaleH)
 			self.LocalX = self.LocalX - transformedLocal[1]
 			self.LocalY = self.LocalY - transformedLocal[2]
+			self.Colors[self.BitIndex] = {self.Cr,self.Cg,self.Cb}
 			self.BitIndex = self.BitIndex+1
 		end
 	end
@@ -226,7 +223,6 @@ function ENT:DrawUnion(group)
 		self.Cr = group.R
 		self.Cg = group.G
 		self.Cb = group.B
-		--surface.SetDrawColor(self.Cr,self.Cg,self.Cb,255)
 	end
 	local transformedLocal = self:TransformOffset(group.X or 0,group.Y or 0)
 	self.LocalX = self.LocalX + transformedLocal[1]
@@ -254,7 +250,6 @@ function ENT:DrawUnion(group)
 	self.Cr = oCr
 	self.Cg = oCg
 	self.Cb = oCb
-	--surface.SetDrawColor(self.Cr,self.Cg,self.Cb,255)
 end
 
 function ENT:DrawGroup(group)
@@ -294,7 +289,6 @@ function ENT:DrawGroup(group)
 	self.Cr = oCr
 	self.Cg = oCg
 	self.Cb = oCb
-	--surface.SetDrawColor(self.Cr,self.Cg,self.Cb,255)
 end
 
 function ENT:CountTris(node)
@@ -305,9 +299,9 @@ function ENT:CountTris(node)
 		end
 		return sum
 	elseif node.Type == MATRIX then
-		return node.W*node.H*2
+		return node.W*node.H*4
 	end
-	return 6
+	return 12
 end
 
 function ENT:Draw()
@@ -351,14 +345,17 @@ function ENT:Draw()
 		render.SetRenderTarget(NewRT)
 		render.SetViewPort(0, 0, 1024, 1024)
 		cam.Start2D()
-			for i=0,self.BitIndex do
-				local x = ((i%1024)+0.5)
-				local y = (math.floor(i/1024)+0.5)
+			surface.SetDrawColor(self.Bgred,self.Bggreen,self.Bgblue,255)
+			surface.DrawRect( 0, 0, 1, 1 )
+			for i=0,self.BitIndex-1 do
+				local x = (((i+1)%1024)+0.5)
+				local y = (math.floor((i+1)/1024)+0.5)
 				self.Fade[i] = (self.Fade[i] or 0)*0.92
 				if bit.band(self.Memory[bit.rshift(i,3)] or 0,bit.lshift(1,bit.band(i,7))) ~= 0 then
 					self.Fade[i] = self.Fade[i] + 0.08
 				end
-				surface.SetDrawColor(self.Cr,self.Cg,self.Cb,self.Fade[i]*255)
+				local color = self.Colors[i]
+				surface.SetDrawColor(color[1],color[2],color[3],self.Fade[i]*255)
 				surface.DrawRect( x, y, 1, 1 )
 			end
 		cam.End2D()
@@ -422,12 +419,21 @@ function ENT:Receive()
 	self.LocalYY = 1
 	self.BitIndex = 0
 	self.TransformStack = {}
+	self.Colors = {}
 	local monitor, pos, ang = self.GPU:GetInfo()
 	local h = self.ResolutionH
 	local w = h/monitor.RatioX
 	self.LocalX = -w/2
 	self.LocalY = -h/2
 	mesh.Begin(self.TreeMesh,MATERIAL_TRIANGLES,self:CountTris(self.Tree))
+
+	mesh.Position(self.LocalX,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 0, 0, 0, 0) mesh.AdvanceVertex()
+	mesh.Position(self.LocalX+w,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 0, 0, 0, 0)mesh.AdvanceVertex()
+	mesh.Position(self.LocalX+w,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 0, 0, 0, 0) mesh.AdvanceVertex()
+	
+	mesh.Position(self.LocalX,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 0, 0, 0, 0) mesh.AdvanceVertex()
+	mesh.Position(self.LocalX+w,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 0, 0, 0, 0) mesh.AdvanceVertex()
+	mesh.Position(self.LocalX,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 0, 0, 0, 0) mesh.AdvanceVertex()
 	
 	self:DrawGroup(self.Tree)
 	mesh.End()
