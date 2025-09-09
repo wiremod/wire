@@ -63,6 +63,7 @@ end
 
 function ENT:OnRemove()
 	self.GPU:Finalize()
+	self.TreeMesh:Destroy()
 end
 
 function ENT:ReadCell(Address)
@@ -113,13 +114,12 @@ end
 function ENT:AddPoly(poly)
 	local u = ((self.BitIndex%1024)+0.5)/1024
 	local v = (math.floor(self.BitIndex/1024)+0.5)/1024
-	mesh.Begin(MATERIAL_POLYGON,#poly)
 	for i = 1,#poly do
 		mesh.Position(Vector(poly[i][1],poly[i][2],0))
-		mesh.TexCoord(0, u, v)
+		mesh.TexCoord(0, u, v, u ,v)
+		mesh.Color(255,255,255,255)
 		mesh.AdvanceVertex()
 	end
-	mesh.End()
 end
 
 function ENT:DrawSegment(segment)
@@ -138,7 +138,7 @@ function ENT:DrawSegment(segment)
 	math.cos(angle))
 	--self:Transform(,segment.H/2+(segment.H*(segment.BevelSkew or 0))),
 	local bevel = math.min(segment.H,segment.W)/2*(segment.Bevel or 0)
-	local Rect = {
+	local rect = {
 		self:Transform(bevel,segment.H),
 		self:Transform(0,segment.H-bevel),
 		self:Transform(0,bevel),
@@ -148,7 +148,15 @@ function ENT:DrawSegment(segment)
 		self:Transform(segment.W,segment.H-bevel),
 		self:Transform(segment.W-bevel,segment.H)
 	}
-	self:AddPoly(Rect)
+	local poly = {
+		rect[1],rect[2],rect[3],
+		rect[1],rect[3],rect[4],
+		rect[1],rect[4],rect[5],
+		rect[1],rect[5],rect[6],
+		rect[1],rect[6],rect[7],
+		rect[1],rect[7],rect[8]
+	}
+	self:AddPoly(poly)
 	--surface.DrawPoly(Rect)
 	self:PopTransform()
 	--surface.DrawRect(self.LocalX,self.LocalY,segment.W,segment.H)
@@ -186,13 +194,17 @@ function ENT:DrawMatrix(matrix)
 			self.LocalX = self.LocalX + transformedLocal[1]
 			self.LocalY = self.LocalY + transformedLocal[2]
 			--surface.SetDrawColor(self.Cr,self.Cg,self.Cb,self.Fade[self.BitIndex]*255)
-			local Rect = {
+			local rect = {
 				self:Transform(0,matrix.ScaleH),
 				self:Transform(0,0),
 				self:Transform(matrix.ScaleW,0),
 				self:Transform(matrix.ScaleW,matrix.ScaleH)
 			}
-			self:AddPoly(Rect)
+			local poly = {
+				rect[1],rect[2],rect[3],
+				rect[1],rect[3],rect[4],
+			}
+			self:AddPoly(poly)
 			
 			
 			--surface.DrawRect(self.LocalX,self.LocalY,matrix.ScaleW,matrix.ScaleH)
@@ -285,6 +297,19 @@ function ENT:DrawGroup(group)
 	--surface.SetDrawColor(self.Cr,self.Cg,self.Cb,255)
 end
 
+function ENT:CountTris(node)
+	if node.Type == GROUP or node.Type == UNION then
+		local sum = 0
+		for i=1,#node.Children do
+			sum = sum + self:CountTris(node.Children[i])
+		end
+		return sum
+	elseif node.Type == MATRIX then
+		return node.W*node.H*2
+	end
+	return 6
+end
+
 function ENT:Draw()
 	self:DrawModel()
 	--[[
@@ -311,28 +336,62 @@ function ENT:Draw()
 			--render.SetScissorRect( 0, 0, 0, 0, false )
 		end
 	end)]]
-	local mat = Material( "models/debug/debugwhite" )
-	render.SetMaterial( mat )
-	cam.PushModelMatrix( self:GetWorldTransformMatrix() )
+	
+	
+	
+	
 	if self.Tree then
-		--surface.SetDrawColor(self.Fgred,self.Fggreen,self.Fgblue,255)
-		self.Cr = self.Fgred
-		self.Cg = self.Fggreen
-		self.Cb = self.Fgblue
-		self.LocalXX = 1
-		self.LocalXY = 0
-		self.LocalYX = 0
-		self.LocalYY = 1
-		self.LocalX = 0
-		self.LocalY = 0
-		self.BitIndex = 0
 		
-		self.TransformStack = {}
-		self:DrawGroup(self.Tree)
+		local oldw = ScrW()
+		local oldh = ScrH()
+
+		local NewRT = self.GPU.RT
+		local OldRT = render.GetRenderTarget()
+
+		render.SetRenderTarget(NewRT)
+		render.SetViewPort(0, 0, 1024, 1024)
+		cam.Start2D()
+			for i=0,self.BitIndex do
+				local x = ((i%1024)+0.5)
+				local y = (math.floor(i/1024)+0.5)
+				self.Fade[i] = (self.Fade[i] or 0)*0.92
+				if bit.band(self.Memory[bit.rshift(i,3)] or 0,bit.lshift(1,bit.band(i,7))) ~= 0 then
+					self.Fade[i] = self.Fade[i] + 0.08
+				end
+				surface.SetDrawColor(self.Cr,self.Cg,self.Cb,self.Fade[i]*255)
+				surface.DrawRect( x, y, 1, 1 )
+			end
+		cam.End2D()
+		render.SetViewPort(0, 0, oldw, oldh)
+		render.SetRenderTarget(OldRT)
+		
+		
+	    local OldTex = WireGPU_matScreen:GetTexture("$basetexture")
+	    WireGPU_matScreen:SetTexture("$basetexture", self.GPU.RT)
+		render.SetMaterial( WireGPU_matScreen )
+		
+		local monitor, pos, ang = self.GPU:GetInfo()
+		local h = self.ResolutionH
+		local scale = monitor.RS*1024/h
+		local m = Matrix()
+		m:SetAngles( ang )
+		m:SetTranslation( pos )
+		m:SetScale( Vector( scale, -scale, 1 ) )
+		cam.PushModelMatrix( self:GetWorldTransformMatrix() )
+		cam.PushModelMatrix( m )
+	
+		--surface.SetDrawColor(self.Fgred,self.Fggreen,self.Fgblue,255)
+		
+		
+		self.TreeMesh:Draw()
+		cam.PopModelMatrix()
+		cam.PopModelMatrix()
+		
+		WireGPU_matScreen:SetTexture("$basetexture", OldTex)
 		--render.SetScissorRect( 0, 0, 0, 0, false )
 	end
-	--self.TreeMesh:Draw()
-	cam.PopModelMatrix()
+	--
+	
 	--self.GPU:Render(0,0,1024,1024,nil,-(1024-self.ResolutionW)/1024,-(1024-self.ResolutionH)/1024)
 	Wire_Render(self)
 end
@@ -354,5 +413,22 @@ function ENT:Receive()
 	self.Bggreen = net.ReadUInt(8)
 	self.Bgred = net.ReadUInt(8)
 	
+	self.Cr = self.Fgred
+	self.Cg = self.Fggreen
+	self.Cb = self.Fgblue
+	self.LocalXX = 1
+	self.LocalXY = 0
+	self.LocalYX = 0
+	self.LocalYY = 1
+	self.BitIndex = 0
+	self.TransformStack = {}
+	local monitor, pos, ang = self.GPU:GetInfo()
+	local h = self.ResolutionH
+	local w = h/monitor.RatioX
+	self.LocalX = -w/2
+	self.LocalY = -h/2
+	mesh.Begin(self.TreeMesh,MATERIAL_TRIANGLES,self:CountTris(self.Tree))
 	
+	self:DrawGroup(self.Tree)
+	mesh.End()
 end
