@@ -32,7 +32,7 @@ function ENT:Initialize()
 		self:WriteCell(Address,Value)
 	end)
 	
-	self.TreeMesh = Mesh()
+	self.TreeMesh = {}
 
 	WireLib.netRegister(self)
 end
@@ -63,7 +63,9 @@ end
 
 function ENT:OnRemove()
 	self.GPU:Finalize()
-	self.TreeMesh:Destroy()
+	for i=1,#self.TreeMesh do
+		self.TreeMesh[i]:Destroy()
+	end
 end
 
 function ENT:ReadCell(Address)
@@ -112,19 +114,35 @@ function ENT:PopTransform()
 end
 
 function ENT:AddPoly(poly)
-	local u = (((self.BitIndex+1)%1024)+0.5)/1024
+	local u = (((bit.bxor(self.BitIndex,self.XorMask)+1)%1024)+0.5)/1024
 	local v = (math.floor((self.BitIndex+1)/1024)+0.5)/1024
 	for i = 1,#poly do
+		if self.CurTris > 10922 then
+			mesh.End()
+			self.TreeMesh[#self.TreeMesh + 1] = Mesh()
+			mesh.Begin(self.TreeMesh[#self.TreeMesh],MATERIAL_TRIANGLES,math.min(10922,self.Tris))
+			self.Tris = self.Tris - 10922
+			self.CurTris = 0
+		end
 		mesh.Position(Vector(poly[i][1],poly[i][2],0.1))
 		mesh.TexCoord(0, u, v, u ,v)
 		mesh.Color(255,255,255,255)
 		mesh.AdvanceVertex()
+		self.CurTris = self.CurTris + 1
 	end
 	for i = 1,#poly do
+		if self.CurTris > 10922 then
+			mesh.End()
+			self.TreeMesh[#self.TreeMesh + 1] = Mesh()
+			mesh.Begin(self.TreeMesh[#self.TreeMesh],MATERIAL_TRIANGLES,math.min(10922,self.Tris))
+			self.Tris = self.Tris - 10922
+			self.CurTris = 0
+		end
 		mesh.Position(Vector(poly[i][1],poly[i][2],0))
 		mesh.TexCoord(0, u, v, u ,v)
 		mesh.Color(127,127,127,127)
 		mesh.AdvanceVertex()
+		self.CurTris = self.CurTris + 1
 	end
 end
 
@@ -164,7 +182,7 @@ function ENT:DrawSegment(segment)
 	--surface.DrawRect(self.LocalX,self.LocalY,segment.W,segment.H)
 	self.LocalX = self.LocalX - transformedLocal[1]
 	self.LocalY = self.LocalY - transformedLocal[2]
-	self.Colors[self.BitIndex] = {self.Cr,self.Cg,self.Cb}
+	self.Colors[self.BitIndex] = {self.Cr,self.Cg,self.Cb,self.Ca}
 	self.BitIndex = self.BitIndex+1
 end
 
@@ -178,7 +196,7 @@ function ENT:DrawText(text)
 	--surface.DrawText(text.Text)
 	self.LocalX = self.LocalX - transformedLocal[1]
 	self.LocalY = self.LocalY - transformedLocal[2]
-	self.Colors[self.BitIndex] = {self.Cr,self.Cg,self.Cb}
+	self.Colors[self.BitIndex] = {self.Cr,self.Cg,self.Cb,self.Ca}
 	self.BitIndex = self.BitIndex+1
 end
 
@@ -206,7 +224,7 @@ function ENT:DrawMatrix(matrix)
 			--surface.DrawRect(self.LocalX,self.LocalY,matrix.ScaleW,matrix.ScaleH)
 			self.LocalX = self.LocalX - transformedLocal[1]
 			self.LocalY = self.LocalY - transformedLocal[2]
-			self.Colors[self.BitIndex] = {self.Cr,self.Cg,self.Cb}
+			self.Colors[self.BitIndex] = {self.Cr,self.Cg,self.Cb,self.Ca}
 			self.BitIndex = self.BitIndex+1
 		end
 	end
@@ -219,10 +237,12 @@ function ENT:DrawUnion(group)
 	local oCr = self.Cr
 	local oCg = self.Cg
 	local oCb = self.Cb
+	local oCa = self.Ca
 	if group.HasColor then
 		self.Cr = group.R
 		self.Cg = group.G
 		self.Cb = group.B
+		self.Ca = group.A or 255
 	end
 	local transformedLocal = self:TransformOffset(group.X or 0,group.Y or 0)
 	self.LocalX = self.LocalX + transformedLocal[1]
@@ -247,29 +267,37 @@ function ENT:DrawUnion(group)
 	self.BitIndex = biggestindex
 	self.LocalX = self.LocalX - transformedLocal[1]
 	self.LocalY = self.LocalY - transformedLocal[2]
-	self.Cr = oCr
+	self.Cr = oCrq
 	self.Cg = oCg
 	self.Cb = oCb
+	self.Ca = oCa
 end
 
 function ENT:DrawGroup(group)
 	local oCr = self.Cr
 	local oCg = self.Cg
 	local oCb = self.Cb
+	local oCa = self.Ca
 	if group.HasColor then
 		self.Cr = group.R
 		self.Cg = group.G
 		self.Cb = group.B
+		self.Ca = group.A or 255
 		--surface.SetDrawColor(self.Cr,self.Cg,self.Cb,255)
 	end
+	
+	local angle = math.rad(group.Rotation or 0)
 	local transformedLocal = self:TransformOffset(group.X or 0,group.Y or 0)
 	self.LocalX = self.LocalX + transformedLocal[1]
 	self.LocalY = self.LocalY + transformedLocal[2]
-	local angle = math.rad(group.Rotation or 0)
 	self:PushTransform(math.cos(angle),
-	math.sin(angle)-(group.SkewX or 0),
-	-math.sin(angle)+(group.SkewY or 0),
+	math.sin(angle),
+	-math.sin(angle),
 	math.cos(angle))
+	self:PushTransform(1,
+	-(group.SkewX or 0),
+	(group.SkewY or 0),
+	1)
 	for k,v in ipairs(group.Children) do
 		if v.Type == GROUP then
 			self:DrawGroup(v)
@@ -289,6 +317,7 @@ function ENT:DrawGroup(group)
 	self.Cr = oCr
 	self.Cg = oCg
 	self.Cb = oCb
+	self.Ca = oCa
 end
 
 function ENT:CountTris(node)
@@ -299,7 +328,7 @@ function ENT:CountTris(node)
 		end
 		return sum
 	elseif node.Type == MATRIX then
-		return node.W*node.H*4
+		return node.W*node.H*16
 	end
 	return 12
 end
@@ -345,17 +374,21 @@ function ENT:Draw()
 		render.SetRenderTarget(NewRT)
 		render.SetViewPort(0, 0, 1024, 1024)
 		cam.Start2D()
+			render.ClearRenderTarget(self.GPU.RT, Color(0, 0, 0, 0))
 			surface.SetDrawColor(self.Bgred,self.Bggreen,self.Bgblue,255)
 			surface.DrawRect( 0, 0, 1, 1 )
 			for i=0,self.BitIndex-1 do
-				local x = (((i+1)%1024)+0.5)
-				local y = (math.floor((i+1)/1024)+0.5)
-				self.Fade[i] = (self.Fade[i] or 0)*0.92
+				local x = (i+1)%1024
+				local y = math.floor((i+1)/1024)
+				self.Fade[i] = (self.Fade[i] or 0)*0.92 + 0.01
 				if bit.band(self.Memory[bit.rshift(i,3)] or 0,bit.lshift(1,bit.band(i,7))) ~= 0 then
-					self.Fade[i] = self.Fade[i] + 0.08
+					self.Fade[i] = self.Fade[i] + 0.07
 				end
 				local color = self.Colors[i]
-				surface.SetDrawColor(color[1],color[2],color[3],self.Fade[i]*255)
+				surface.SetDrawColor(color[1]*self.Fade[i]+self.Bgred*(1-self.Fade[i]),color[2]*self.Fade[i]+self.Bggreen*(1-self.Fade[i]),color[3]*self.Fade[i]+self.Bgblue*(1-self.Fade[i]),self.Fade[i]*color[4])
+				if x == 0 and y == 0 then
+					break
+				end
 				surface.DrawRect( x, y, 1, 1 )
 			end
 		cam.End2D()
@@ -379,8 +412,9 @@ function ENT:Draw()
 	
 		--surface.SetDrawColor(self.Fgred,self.Fggreen,self.Fgblue,255)
 		
-		
-		self.TreeMesh:Draw()
+		for i=1,#self.TreeMesh do
+			self.TreeMesh[i]:Draw()
+		end
 		cam.PopModelMatrix()
 		cam.PopModelMatrix()
 		
@@ -409,10 +443,12 @@ function ENT:Receive()
 	self.Bgblue = net.ReadUInt(8)
 	self.Bggreen = net.ReadUInt(8)
 	self.Bgred = net.ReadUInt(8)
+	self.XorMask = net.ReadUInt(8)
 	
 	self.Cr = self.Fgred
 	self.Cg = self.Fggreen
 	self.Cb = self.Fgblue
+	self.Ca = 255
 	self.LocalXX = 1
 	self.LocalXY = 0
 	self.LocalYX = 0
@@ -425,15 +461,24 @@ function ENT:Receive()
 	local w = h/monitor.RatioX
 	self.LocalX = -w/2
 	self.LocalY = -h/2
-	mesh.Begin(self.TreeMesh,MATERIAL_TRIANGLES,self:CountTris(self.Tree))
-
-	mesh.Position(self.LocalX,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 0, 0, 0, 0) mesh.AdvanceVertex()
-	mesh.Position(self.LocalX+w,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 0, 0, 0, 0)mesh.AdvanceVertex()
-	mesh.Position(self.LocalX+w,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 0, 0, 0, 0) mesh.AdvanceVertex()
+	self.TreeMesh = self.TreeMesh or {}
+	for i=#self.TreeMesh,1,-1 do
+		self.TreeMesh[i]:Destroy()
+		self.TreeMesh[i] = nil
+	end
+	self.TreeMesh[#self.TreeMesh + 1] = Mesh()
+	self.Tris = self:CountTris(self.Tree)
+	mesh.Begin(self.TreeMesh[#self.TreeMesh],MATERIAL_TRIANGLES,math.min(10922,self.Tris))
+	self.Tris = self.Tris - 10922
 	
-	mesh.Position(self.LocalX,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 0, 0, 0, 0) mesh.AdvanceVertex()
-	mesh.Position(self.LocalX+w,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 0, 0, 0, 0) mesh.AdvanceVertex()
-	mesh.Position(self.LocalX,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 0, 0, 0, 0) mesh.AdvanceVertex()
+	mesh.Position(self.LocalX,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
+	mesh.Position(self.LocalX+w,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
+	mesh.Position(self.LocalX+w,self.LocalY+h,0) mesh.Color(255,255,255,255)mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
+	
+	mesh.Position(self.LocalX,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
+	mesh.Position(self.LocalX+w,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
+	mesh.Position(self.LocalX,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
+	self.CurTris = 6
 	
 	self:DrawGroup(self.Tree)
 	mesh.End()

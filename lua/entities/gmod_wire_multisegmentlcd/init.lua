@@ -61,6 +61,7 @@ function ENT:SendSerializedTree(ply)
 		net.WriteUInt(self.Bgblue,8)
 		net.WriteUInt(self.Bggreen,8)
 		net.WriteUInt(self.Bgred,8)
+		net.WriteUInt(self.XorMask,8)
 	WireLib.netEnd(ply)
 end
 
@@ -74,7 +75,7 @@ function ENT:Retransmit(ply)
 	self.Cache:Flush(ply)
 end
 
-function ENT:Setup(IsInteractive, ResolutionW, ResolutionH, Bgred,Bggreen,Bgblue,Fgred,Fggreen,Fgblue)
+function ENT:Setup(IsInteractive, ResolutionW, ResolutionH, Bgred,Bggreen,Bgblue,Fgred,Fggreen,Fgblue,XorMask)
 	self.IsInteractive = WireLib.IsValidInteractiveModel(self:GetModel()) and (IsInteractive)
 	self.ResolutionW = ResolutionW
 	self.ResolutionH = ResolutionH
@@ -84,6 +85,7 @@ function ENT:Setup(IsInteractive, ResolutionW, ResolutionH, Bgred,Bggreen,Bgblue
 	self.Bgblue = Bgblue or 15
 	self.Bggreen = Bggreen or 178
 	self.Bgred = Bgred or 148
+	self.XorMask = XorMask or 0
 	self:Retransmit()
 end
 

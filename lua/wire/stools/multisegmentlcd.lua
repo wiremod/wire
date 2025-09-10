@@ -31,6 +31,7 @@ if CLIENT then
 	language.Add( "tool.wire_multisegmentlcd.interactive", "Interactive (if available):" )
 	language.Add( "tool.wire_multisegmentlcd.resw", "Canvas width:" )
 	language.Add( "tool.wire_multisegmentlcd.resh", "Canvas height:" )
+	language.Add( "tool.wire_multisegmentlcd.xormask", "Xor segment order mask:" )
 	language.Add( "tool.wire_multisegmentlcd.fgcolor", "Segment color:" )
 	language.Add( "tool.wire_multisegmentlcd.bgcolor", "Background color:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
@@ -65,7 +66,8 @@ if SERVER then
 			math.Clamp(self:GetClientNumber("bgblue"), 0, 255),
 			math.Clamp(self:GetClientNumber("fgred"), 0, 255),
 			math.Clamp(self:GetClientNumber("fggreen"), 0, 255),
-			math.Clamp(self:GetClientNumber("fgblue"), 0, 255)
+			math.Clamp(self:GetClientNumber("fgblue"), 0, 255),
+			math.Clamp(self:GetClientNumber("xormask"), 0, 255)
 	end
 	
 	util.AddNetworkString("wire_multisegmentlcd_tool_upload_request")
@@ -107,7 +109,8 @@ TOOL.ClientConVar = {
 	bgblue		= 15,
 	fgred		= 45,
 	fggreen		= 91,
-	fgblue		= 45
+	fgblue		= 45,
+	xormask		= 0
 }
 
 
@@ -153,6 +156,7 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#Create Flat to Surface", "wire_multisegmentlcd_createflat")
 	panel:TextEntry("#tool.wire_multisegmentlcd.resw", "wire_multisegmentlcd_resw")
 	panel:TextEntry("#tool.wire_multisegmentlcd.resh", "wire_multisegmentlcd_resh")
+	panel:TextEntry("#tool.wire_multisegmentlcd.xormask", "wire_multisegmentlcd_xormask")
 	TreeDataHolder = vgui.Create("DPanel", panel)
 	panel:AddPanel(TreeDataHolder)
 	TreeDataHolder:DockMargin(0, 0, 0, 0)
@@ -496,6 +500,16 @@ function TOOL.BuildCPanel(panel)
 		node.group.B = value
 	end
 	
+	WangColorA = ButtonsHolder:Add( "DNumberWang" )
+	WangColorA:SetMax(255)
+	function WangColorA:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil then
+			return
+		end
+		node.group.A = value
+	end
+	
 	WangRotation = ButtonsHolder:Add( "DNumberWang" )
 	WangRotation:SetMax(360)
 	WangRotation:SetMin(-360)
@@ -508,6 +522,7 @@ function TOOL.BuildCPanel(panel)
 	end
 	
 	WangSkewX = ButtonsHolder:Add( "DNumberWang" )
+	WangSkewX:SetMin(-4096)
 	WangSkewX:SetMax(4096)
 	function WangSkewX:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
@@ -517,7 +532,19 @@ function TOOL.BuildCPanel(panel)
 		node.group.SkewX = value
 	end
 	
+	WangSkewY = ButtonsHolder:Add( "DNumberWang" )
+	WangSkewY:SetMin(-4096)
+	WangSkewY:SetMax(4096)
+	function WangSkewY:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil then
+			return
+		end
+		node.group.SkewY = value
+	end
+	
 	WangBevel = ButtonsHolder:Add( "DNumberWang" )
+	WangBevel:SetMin(-1024)
 	WangBevel:SetMax(1024)
 	function WangBevel:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
@@ -538,18 +565,8 @@ function TOOL.BuildCPanel(panel)
 		node.group.BevelSkew = value
 	end
 	
-	WangSkewY = ButtonsHolder:Add( "DNumberWang" )
-	WangSkewY:SetMax(4096)
-	function WangSkewY:OnValueChanged(value)
-		local node = DisplayData:GetSelectedItem()
-		if node == nil or node.group == nil then
-			return
-		end
-		node.group.SkewY = value
-	end
-	
 	function ButtonsHolder:PerformLayout(w, h)
-		local roww = w/7
+		local roww = w/8
 		local rowh = h/4
 		for i,v in ipairs(self.buttons) do
 			v:SetPos((i-1)*w/#self.buttons,0)
@@ -579,6 +596,8 @@ function TOOL.BuildCPanel(panel)
 		WangColorG:SetSize(roww,rowh)
 		WangColorB:SetPos(roww*3,rowh*2)
 		WangColorB:SetSize(roww,rowh)
+		WangColorA:SetPos(roww*4,rowh*2)
+		WangColorA:SetSize(roww,rowh)
 		
 		WangRotation:SetPos(roww*4,rowh*2)
 		WangRotation:SetSize(roww,rowh)
@@ -601,6 +620,7 @@ function TOOL.BuildCPanel(panel)
 	WangColorR:SetVisible(false)
 	WangColorG:SetVisible(false)
 	WangColorB:SetVisible(false)
+	WangColorA:SetVisible(false)
 	CheckHasColor:SetVisible(false)
 	CheckLabel:SetVisible(false)
 	WangRotation:SetVisible(false)
@@ -620,6 +640,7 @@ function TOOL.BuildCPanel(panel)
 		WangColorR:SetVisible(false)
 		WangColorG:SetVisible(false)
 		WangColorB:SetVisible(false)
+		WangColorA:SetVisible(false)
 		CheckHasColor:SetVisible(false)
 		CheckLabel:SetVisible(false)
 		WangRotation:SetVisible(false)
@@ -660,15 +681,22 @@ function TOOL.BuildCPanel(panel)
 			WangColorR:SetVisible(true)
 			WangColorG:SetVisible(true)
 			WangColorB:SetVisible(true)
+			WangColorA:SetVisible(true)
 			CheckHasColor:SetVisible(true)
 			CheckLabel:SetVisible(true)
 			WangColorR:SetValue(group.R)
 			WangColorG:SetValue(group.G)
 			WangColorB:SetValue(group.B)
+			WangColorA:SetValue(group.A)
 			CheckHasColor:SetValue(group.HasColor)
 			WangRotation:SetVisible(true)
 			WangSkewX:SetVisible(true)
 			WangSkewY:SetVisible(true)
+			WangRotation:SetValue(group.Rotation or 0)
+			WangSkewX:SetValue(group.SkewX or 0)
+			WangSkewY:SetValue(group.SkewY or 0)
+			WangBevel:SetValue(group.Bevel or 0)
+			WangBevelSkew:SetValue(group.BevelSkew or 0)
 		end
 		WangX:SetValue(group.X)
 		WangY:SetValue(group.Y)
