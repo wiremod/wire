@@ -64,9 +64,11 @@ if SERVER then
 			math.Clamp(self:GetClientNumber("bgred"), 0, 255),
 			math.Clamp(self:GetClientNumber("bggreen"), 0, 255),
 			math.Clamp(self:GetClientNumber("bgblue"), 0, 255),
+			math.Clamp(self:GetClientNumber("bgalpha"), 0, 255),
 			math.Clamp(self:GetClientNumber("fgred"), 0, 255),
 			math.Clamp(self:GetClientNumber("fggreen"), 0, 255),
 			math.Clamp(self:GetClientNumber("fgblue"), 0, 255),
+			math.Clamp(self:GetClientNumber("fgalpha"), 0, 255),
 			math.Clamp(self:GetClientNumber("xormask"), 0, 255)
 	end
 	
@@ -107,9 +109,11 @@ TOOL.ClientConVar = {
 	bgred		= 148,
 	bggreen		= 178,
 	bgblue		= 15,
+	bgalpha		= 255,
 	fgred		= 45,
 	fggreen		= 91,
 	fgblue		= 45,
+	fgalpha		= 255,
 	xormask		= 0
 }
 
@@ -809,7 +813,8 @@ function TOOL.BuildCPanel(panel)
 		Red = "wire_multisegmentlcd_bgred",
 		Green = "wire_multisegmentlcd_bggreen",
 		Blue = "wire_multisegmentlcd_bgblue",
-		ShowAlpha = "0",
+		Alpha = "wire_multisegmentlcd_bgalpha",
+		ShowAlpha = "1",
 		ShowHSV = "1",
 		ShowRGB = "1",
 		Multiplier = "255"
@@ -819,7 +824,8 @@ function TOOL.BuildCPanel(panel)
 		Red = "wire_multisegmentlcd_fgred",
 		Green = "wire_multisegmentlcd_fggreen",
 		Blue = "wire_multisegmentlcd_fgblue",
-		ShowAlpha = "0",
+		Alpha = "wire_multisegmentlcd_fgalpha",
+		ShowAlpha = "1",
 		ShowHSV = "1",
 		ShowRGB = "1",
 		Multiplier = "255"

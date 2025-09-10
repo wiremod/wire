@@ -375,7 +375,7 @@ function ENT:Draw()
 		render.SetViewPort(0, 0, 1024, 1024)
 		cam.Start2D()
 			render.ClearRenderTarget(self.GPU.RT, Color(0, 0, 0, 0))
-			surface.SetDrawColor(self.Bgred,self.Bggreen,self.Bgblue,255)
+			surface.SetDrawColor(self.Bgred,self.Bggreen,self.Bgblue,self.Bgalpha)
 			surface.DrawRect( 0, 0, 1, 1 )
 			for i=0,self.BitIndex-1 do
 				local x = (i+1)%1024
@@ -385,7 +385,7 @@ function ENT:Draw()
 					self.Fade[i] = self.Fade[i] + 0.07
 				end
 				local color = self.Colors[i]
-				surface.SetDrawColor(color[1]*self.Fade[i]+self.Bgred*(1-self.Fade[i]),color[2]*self.Fade[i]+self.Bggreen*(1-self.Fade[i]),color[3]*self.Fade[i]+self.Bgblue*(1-self.Fade[i]),self.Fade[i]*color[4])
+				surface.SetDrawColor(color[1]*self.Fade[i]+self.Bgred*(1-self.Fade[i]),color[2]*self.Fade[i]+self.Bggreen*(1-self.Fade[i]),color[3]*self.Fade[i]+self.Bgblue*(1-self.Fade[i]),self.Fade[i]*color[4]+self.Bgalpha*(1-self.Fade[i]))
 				if x == 0 and y == 0 then
 					break
 				end
@@ -440,15 +440,17 @@ function ENT:Receive()
 	self.Fgblue = net.ReadUInt(8)
 	self.Fggreen = net.ReadUInt(8)
 	self.Fgred = net.ReadUInt(8)
+	self.Fgalpha = net.ReadUInt(8)
 	self.Bgblue = net.ReadUInt(8)
 	self.Bggreen = net.ReadUInt(8)
 	self.Bgred = net.ReadUInt(8)
+	self.Bgalpha = net.ReadUInt(8)
 	self.XorMask = net.ReadUInt(8)
 	
 	self.Cr = self.Fgred
 	self.Cg = self.Fggreen
 	self.Cb = self.Fgblue
-	self.Ca = 255
+	self.Ca = self.Fgalpha
 	self.LocalXX = 1
 	self.LocalXY = 0
 	self.LocalYX = 0
