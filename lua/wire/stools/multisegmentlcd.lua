@@ -161,6 +161,12 @@ function TOOL.BuildCPanel(panel)
 	panel:TextEntry("#tool.wire_multisegmentlcd.resw", "wire_multisegmentlcd_resw")
 	panel:TextEntry("#tool.wire_multisegmentlcd.resh", "wire_multisegmentlcd_resh")
 	panel:TextEntry("#tool.wire_multisegmentlcd.xormask", "wire_multisegmentlcd_xormask")
+	PreviewPanel = vgui.Create("DPanel", panel)
+	panel:AddPanel(PreviewPanel)
+	PreviewPanel:SetHeight(256)
+	PreviewPanel:Dock(TOP)
+	PreviewPanel.Paint = DrawSegmentLCDPreview
+	
 	TreeDataHolder = vgui.Create("DPanel", panel)
 	panel:AddPanel(TreeDataHolder)
 	TreeDataHolder:DockMargin(0, 0, 0, 0)
@@ -334,7 +340,7 @@ function TOOL.BuildCPanel(panel)
 		end
 		local parentgroup = node.parentgroup
 		if parentgroup == nil then
-			return
+			parentgroup = WireLib.SegmentLCD_Tree
 		end
 		for i,v in pairs(parentgroup.Children) do
 			if v == node.group then
@@ -346,20 +352,7 @@ function TOOL.BuildCPanel(panel)
 	end
 	function Remove:DoClick()
 		local node = DisplayData:GetSelectedItem()
-		if node == nil then
-			return
-		end
-		local parentgroup = node.parentgroup
-		if parentgroup == nil then
-			return
-		end
-		for i,v in pairs(parentgroup.Children) do
-			if v == node.group then
-				table.remove(parentgroup.Children,i)
-				node:Remove()
-				return
-			end
-		end
+		RemoveI(node)
 	end
 	ButtonsHolder.textboxes = {}
 	WangX = ButtonsHolder:Add( "DNumberWang" )
@@ -426,7 +419,7 @@ function TOOL.BuildCPanel(panel)
 	WangScaleW:SetMax(1024)
 	function WangScaleW:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
-		if node == nil or node.group == nil or node.group.Type ~= MATRIX then
+		if node == nil or node.group == nil then
 			return
 		end
 		node.group.ScaleW = value
@@ -436,7 +429,7 @@ function TOOL.BuildCPanel(panel)
 	WangScaleH:SetMax(1024)
 	function WangScaleH:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
-		if node == nil or node.group == nil or node.group.Type ~= MATRIX then
+		if node == nil or node.group == nil then
 			return
 		end
 		node.group.ScaleH = value
@@ -446,7 +439,7 @@ function TOOL.BuildCPanel(panel)
 	WangOffsetX:SetMax(1024)
 	function WangOffsetX:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
-		if node == nil or node.group == nil or node.group.Type ~= MATRIX then
+		if node == nil or node.group == nil then
 			return
 		end
 		node.group.OffsetX = value
@@ -456,7 +449,7 @@ function TOOL.BuildCPanel(panel)
 	WangOffsetY:SetMax(1024)
 	function WangOffsetY:OnValueChanged(value)
 		local node = DisplayData:GetSelectedItem()
-		if node == nil or node.group == nil or node.group.Type ~= MATRIX then
+		if node == nil or node.group == nil then
 			return
 		end
 		node.group.OffsetY = value
@@ -710,7 +703,7 @@ function TOOL.BuildCPanel(panel)
 	
 	function DisplayData:DoRightClick(node)
 		local Menu = DermaMenu()
-		Menu:AddOption( "Rename" )
+		Menu:AddOption( "Ungroup" )
 		Menu:AddOption( "Copy" )
 		Menu:AddOption( "Paste" )
 		local InsertM, MMOption = Menu:AddSubMenu( "Insert" )
@@ -722,10 +715,52 @@ function TOOL.BuildCPanel(panel)
 		Menu:AddSpacer()
 		Menu:AddOption( "Remove" )
 		Menu:Open()
-		print("AAA")
 		function Menu:OptionSelected(option, optionText)
-			if optionText == "Rename" then
-				
+			if optionText == "Ungroup" then
+				if node.group.Children then
+					local parentgroup = node.parentgroup
+					if parentgroup == nil then
+						parentgroup = WireLib.SegmentLCD_Tree
+					end
+					local indexofnode = 0
+					for i,v in pairs(parentgroup.Children) do
+						if v == node.group then
+							table.remove(parentgroup.Children,i)
+							indexofnode = i
+							break
+						end
+					end
+					
+					
+					local children = node:GetChildNodes()
+					local parent = node:GetParent()
+					local parentnode = node:GetParentNode()
+					
+					local root = node:GetRoot()
+					for i=1,#children do
+						children[i]:SetParent(parent)
+						children[i]:SetParentNode(parentnode)
+						children[i]:SetRoot(root)
+						--parentnode:Insert(children[i],insertbefore,true)
+						table.insert(parentgroup.Children,indexofnode+i-1,node.group.Children[i])
+					end
+					
+					local parentchildren = parentnode:GetChildNodes()
+					for j=1,#parentgroup.Children do
+						for i=1,#parentchildren do
+							if parentgroup.Children[j] == parentchildren[i].group then
+								parentchildren[i]:SetParent(node) -- required for it to reparent
+								parentchildren[i]:SetParentNode(parentnode)
+								parentchildren[i]:SetParent(parent)
+								parentchildren[i]:SetRoot(root)
+								break
+							end
+						end
+					end
+					
+					
+					node:Remove()
+				end
 			elseif optionText == "Copy" then
 				SegmentLCD_Clipboard = table.Copy(node.group)
 			elseif optionText == "Paste" then
@@ -830,4 +865,173 @@ function TOOL.BuildCPanel(panel)
 		ShowRGB = "1",
 		Multiplier = "255"
 	})
+end
+
+function Transform(self,x,y)
+	return {
+		x=x*self.LocalXX+y*self.LocalXY+self.LocalX,
+		y=x*self.LocalYX+y*self.LocalYY+self.LocalY
+	}
+end
+
+function TransformOffset(self,x,y)
+	return {
+		x*self.LocalXX+y*self.LocalXY,
+		x*self.LocalYX+y*self.LocalYY
+	}
+end
+
+
+function PushTransform(self,XX,XY,YX,YY)
+	self.TransformStack[#self.TransformStack + 1] = {self.LocalXX,self.LocalXY,self.LocalYX,self.LocalYY}
+	local oXX = self.LocalXX
+	local oXY = self.LocalXY
+	local oYX = self.LocalYX
+	local oYY = self.LocalYY
+	
+	local nXX = oXX*XX + oXY*YX
+	local nXY = oXY*YY + oXX*XY
+	local nYX = oYX*XX + oYY*YX
+	local nYY = oYY*YY + oYX*XY
+	
+	self.LocalXX = nXX
+	self.LocalXY = nXY
+	self.LocalYX = nYX
+	self.LocalYY = nYY
+end
+
+function PopTransform(self)
+	self.LocalXX,self.LocalXY,self.LocalYX,self.LocalYY = unpack(self.TransformStack[#self.TransformStack])
+	self.TransformStack[#self.TransformStack] = nil
+end
+
+function DrawSegment(self,segment)
+	local transformedLocal = TransformOffset(self,segment.X or 0,segment.Y or 0)
+	self.LocalX = self.LocalX + transformedLocal[1]
+	self.LocalY = self.LocalY + transformedLocal[2]
+	local angle = math.rad(segment.Rotation or 0)
+	PushTransform(self,math.cos(angle),
+	math.sin(angle)-(segment.SkewX or 0),
+	-math.sin(angle)+(segment.SkewY or 0),
+	math.cos(angle))
+	--self:Transform(,segment.H/2+(segment.H*(segment.BevelSkew or 0))),
+	local bevel = math.min(segment.H,segment.W)/2*(segment.Bevel or 0)
+	local rect = {
+		Transform(self,bevel,segment.H),
+		Transform(self,0,segment.H-bevel),
+		Transform(self,0,bevel),
+		Transform(self,bevel,0),
+		Transform(self,segment.W-bevel,0),
+		Transform(self,segment.W,bevel),
+		Transform(self,segment.W,segment.H-bevel),
+		Transform(self,segment.W-bevel,segment.H)
+	}
+	surface.DrawPoly(rect)
+	PopTransform(self)
+	--surface.DrawRect(self.LocalX,self.LocalY,segment.W,segment.H)
+	self.LocalX = self.LocalX - transformedLocal[1]
+	self.LocalY = self.LocalY - transformedLocal[2]
+end
+
+function DrawText(self,text)
+	
+end
+
+function DrawMatrix(self,matrix)
+	
+end
+
+function DrawUnion(self,union)
+	for k,v in ipairs(union.Children) do
+		if v.Type == GROUP then
+			DrawGroup(self,v)
+		elseif v.Type == UNION then
+			DrawUnion(self,v)
+		elseif v.Type == SEGMENT then 
+			DrawSegment(self,v)
+		elseif v.Type == TEXT then 
+			DrawText(self,v)
+		elseif v.Type == MATRIX then 
+			DrawMatrix(self,v)
+		end
+	end
+end
+
+function DrawGroup(self,group)
+	local oCr = self.Cr
+	local oCg = self.Cg
+	local oCb = self.Cb
+	local oCa = self.Ca
+	if group.HasColor then
+		self.Cr = group.R or 255
+		self.Cg = group.G or 255
+		self.Cb = group.B or 255
+		self.Ca = group.A or 255
+		surface.SetDrawColor(self.Cr,self.Cg,self.Cb,self.Ca)
+	end
+	
+	local angle = math.rad(group.Rotation or 0)
+	local transformedLocal = TransformOffset(self,group.X or 0,group.Y or 0)
+	self.LocalX = self.LocalX + transformedLocal[1]
+	self.LocalY = self.LocalY + transformedLocal[2]
+	PushTransform(self,math.cos(angle),
+	math.sin(angle),
+	-math.sin(angle),
+	math.cos(angle))
+	PushTransform(self,1,
+	-(group.SkewX or 0),
+	(group.SkewY or 0),
+	1)
+	for k,v in ipairs(group.Children) do
+		if v.Type == GROUP then
+			DrawGroup(self,v)
+		elseif v.Type == UNION then
+			DrawUnion(self,v)
+		elseif v.Type == SEGMENT then 
+			DrawSegment(self,v)
+		elseif v.Type == TEXT then 
+			DrawText(self,v)
+		elseif v.Type == MATRIX then 
+			DrawMatrix(self,v)
+		end
+	end
+	PopTransform(self)
+	self.LocalX = self.LocalX - transformedLocal[1]
+	self.LocalY = self.LocalY - transformedLocal[2]
+	self.Cr = oCr
+	self.Cg = oCg
+	self.Cb = oCb
+	self.Ca = oCa
+end
+
+function DrawSegmentLCDPreview(self,width, height)
+	surface.SetDrawColor(0, 0, 0, 255)
+	draw.NoTexture()
+	surface.DrawRect(0, 0, width, height)
+	
+	resw = GetConVar( "wire_multisegmentlcd_resw" ):GetInt()
+	resh = GetConVar( "wire_multisegmentlcd_resh" ):GetInt()
+	
+	
+	local maxres = math.min(width/resw,height/resh)
+	
+	self.Cr = 255
+	self.Cg = 255
+	self.Cb = 255
+	self.LocalXX = maxres
+	self.LocalXY = 0
+	self.LocalYX = 0
+	self.LocalYY = maxres
+	self.LocalX = 0
+	self.LocalY = 0
+	self.BitIndex = 0
+	
+	surface.SetDrawColor(255, 255, 255, 255)
+	self.TransformStack = {}
+	
+	DrawGroup(self,WireLib.SegmentLCD_Tree)
+end
+
+function TOOL:DrawToolScreen(width, height)
+	DrawSegmentLCDPreview(self,width,height)
 end
