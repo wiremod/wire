@@ -188,4 +188,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	ent:Retransmit()
 end
 
-duplicator.RegisterEntityClass("gmod_wire_multisegmentlcd", WireLib.MakeWireEnt, "Data", "IsInteractive", "ResolutionW", "ResolutionH", "Bgred", "Bggreen", "Bgblue", "Fgred", "Fggreen", "Fgblue")
+duplicator.RegisterEntityClass("gmod_wire_multisegmentlcd", WireLib.MakeWireEnt, "Data", "IsInteractive", "ResolutionW", "ResolutionH", "Bgred", "Bggreen", "Bgblue", "Bgalpha", "Fgred", "Fggreen", "Fgblue", "Fgalpha", "XorMask")

@@ -124,9 +124,9 @@ function ENT:AddPoly(poly)
 			self.Tris = self.Tris - 10922
 			self.CurTris = 0
 		end
-		mesh.Position(Vector(poly[i][1],poly[i][2],0.1))
+		mesh.Position(Vector(poly[i][1],poly[i][2],0))
 		mesh.TexCoord(0, u, v, u ,v)
-		mesh.Color(255,255,255,255)
+		mesh.Color(255,255,255,127)
 		mesh.AdvanceVertex()
 		self.CurTris = self.CurTris + 1
 	end
@@ -138,9 +138,9 @@ function ENT:AddPoly(poly)
 			self.Tris = self.Tris - 10922
 			self.CurTris = 0
 		end
-		mesh.Position(Vector(poly[i][1],poly[i][2],0))
+		mesh.Position(Vector(poly[i][1],poly[i][2],self.ZOffset))
 		mesh.TexCoord(0, u, v, u ,v)
-		mesh.Color(127,127,127,127)
+		mesh.Color(255,255,255,255)
 		mesh.AdvanceVertex()
 		self.CurTris = self.CurTris + 1
 	end
@@ -461,6 +461,8 @@ function ENT:Receive()
 	local monitor, pos, ang = self.GPU:GetInfo()
 	local h = self.ResolutionH
 	local w = h/monitor.RatioX
+	
+	self.ZOffset = monitor.RS*1024/h
 	self.LocalX = -w/2
 	self.LocalY = -h/2
 	self.TreeMesh = self.TreeMesh or {}
