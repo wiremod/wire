@@ -25,6 +25,9 @@ function ENT:Initialize()
 end
 
 function ENT:Setup( key, damage, removeafter, radius )
+	if not isnumber(damage) then damage = 1 end
+	if not isnumber(radius) then radius = 32 end
+
 	self.key			= key
 	self.damage			= math.Min(damage, 1500)
 	self.removeafter	= removeafter
