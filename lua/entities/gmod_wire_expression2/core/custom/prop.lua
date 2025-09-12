@@ -513,7 +513,6 @@ e2function table sentGetData(string class)
 	local sent = list.Get("wire_spawnable_ents_registry")[class]
 	if not sent then self:throw("No class '"..class.."' found in sent registry", res) end
 
-	local size = 0
 	for key, tbl in pairs( sent ) do
 		if key=="_preFactory" or key=="_postFactory" then continue end
 
