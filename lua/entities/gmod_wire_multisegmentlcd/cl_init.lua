@@ -33,6 +33,7 @@ function ENT:Initialize()
 	end)
 	
 	self.TreeMesh = {}
+	self.Texts = {}
 
 	WireLib.netRegister(self)
 end
@@ -88,6 +89,15 @@ function ENT:TransformOffset(x,y)
 		x*self.LocalXX+y*self.LocalXY,
 		x*self.LocalYX+y*self.LocalYY
 	}
+end
+
+function ENT:GetTransformMatrix(x,y)
+	return Matrix({
+		{x*self.LocalXX,y*self.LocalXY,0,self.LocalX},
+		{x*self.LocalYX,y*self.LocalYY,0,self.LocalY},
+		{0,0,1,0},
+		{0,0,0,1}
+	})
 end
 
 function ENT:PushTransform(XX,XY,YX,YY)
@@ -186,14 +196,19 @@ function ENT:DrawSegment(segment)
 	self.BitIndex = self.BitIndex+1
 end
 
+_TEXT_MATRIX = 0
+_TEXT_TEXT = 1
+_TEXT_BITINDEX = 2
+
 function ENT:DrawText(text)
 	local transformedLocal = self:TransformOffset(text.X or 0,text.Y or 0)
 	self.LocalX = self.LocalX + transformedLocal[1]
 	self.LocalY = self.LocalY + transformedLocal[2]
-	--surface.SetTextPos(self.LocalX,self.LocalY)
-	--surface.SetFont("Default")
-	--surface.SetTextColor(self.Cr,self.Cg,self.Cb,self.Fade[self.BitIndex]*255)
-	--surface.DrawText(text.Text)
+	self.Texts[#self.Texts+1] = {
+		[_TEXT_MATRIX] = self:GetTransformMatrix(text.W or 1,text.H or 1),
+		[_TEXT_TEXT] = text.Text,
+		[_TEXT_BITINDEX] = self.BitIndex
+	}
 	self.LocalX = self.LocalX - transformedLocal[1]
 	self.LocalY = self.LocalY - transformedLocal[2]
 	self.Colors[self.BitIndex] = {self.Cr,self.Cg,self.Cb,self.Ca}
@@ -365,7 +380,7 @@ function ENT:Draw()
 						fade[i] = fade[i] + 0.07
 					end
 
-					if fade[i] > 0.14 and fade[i] < 0.95 then
+					if fade[i] < 0.1 or fade[i] > 0.14 and fade[i] < 0.95 then
 						local color = self2.Colors[i]
 						surface.SetDrawColor(color[1]*fade[i]+self2.Bgred*(1-fade[i]),color[2]*fade[i]+self2.Bggreen*(1-fade[i]),color[3]*fade[i]+self2.Bgblue*(1-fade[i]),fade[i]*color[4]+self2.Bgalpha*(1-fade[i])*0.15)
 						if x == 0 and y == 0 then
@@ -392,16 +407,29 @@ function ENT:Draw()
 		m:SetAngles( ang )
 		m:SetTranslation( pos )
 		m:SetScale( Vector( scale, -scale, 1 ) )
-		cam.PushModelMatrix( self:GetWorldTransformMatrix() )
+		--cam.PushModelMatrix( self:GetWorldTransformMatrix() )
 		cam.PushModelMatrix( m )
-	
-		--surface.SetDrawColor(self.Fgred,self.Fggreen,self.Fgblue,255)
+
 		
-		for i=1,#self.TreeMesh do
+		for i=1,#self2.TreeMesh do
 			self2.TreeMesh[i]:Draw()
 		end
 		cam.PopModelMatrix()
-		cam.PopModelMatrix()
+		
+		for i=1,#self2.Texts do
+			local text = self2.Texts[i]
+			local newm = text[_TEXT_MATRIX]
+			
+			surface.SetFont( "Default" )
+			cam.Start3D2D(pos, ang, scale)
+				cam.PushModelMatrix( newm, true )
+				draw.DrawText( text[_TEXT_TEXT], "Default" )
+				cam.PopModelMatrix()	
+			cam.End3D2D()
+		end
+		
+		
+		--cam.PopModelMatrix()
 		
 		WireGPU_matSegment:SetTexture("$basetexture", OldTex)
 	end
@@ -448,6 +476,7 @@ function ENT:Receive()
 	self.LocalX = -w/2
 	self.LocalY = -h/2
 	self.TreeMesh = self.TreeMesh or {}
+	self.Texts = {}
 	for i=#self.TreeMesh,1,-1 do
 		self.TreeMesh[i]:Destroy()
 		self.TreeMesh[i] = nil
