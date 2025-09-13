@@ -335,6 +335,7 @@ end
 
 function ENT:Draw()
 	self:DrawModel()
+	
 	local self2 = self:GetTable()
 	
 	
@@ -350,28 +351,32 @@ function ENT:Draw()
 
 		render.SetRenderTarget(NewRT)
 		render.SetViewPort(0, 0, 1024, 1024)
-		cam.Start2D()
-			render.OverrideBlend( true, BLEND_ONE, BLEND_ZERO, BLENDFUNC_ADD )
-			surface.SetDrawColor(self2.Bgred,self2.Bggreen,self2.Bgblue,self2.Bgalpha)
-			surface.DrawRect( 0, 0, 1, 1 )
-			for i=0,self2.BitIndex-1 do
-				local x = (i+1)%1024
-				local y = math.floor((i+1)/1024)
-				self2.Fade[i] = (self2.Fade[i] or 0)*0.92 + 0.01
-				if bit.band(self2.Memory[bit.rshift(i,3)] or 0,bit.lshift(1,bit.band(i,7))) ~= 0 then
-					self2.Fade[i] = self2.Fade[i] + 0.07
-				end
-				if self2.Fade[i] > 0.15 and self2.Fade[i] < 0.9 then
-					local color = self2.Colors[i]
-					surface.SetDrawColor(color[1]*self2.Fade[i]+self2.Bgred*(1-self2.Fade[i]),color[2]*self2.Fade[i]+self2.Bggreen*(1-self2.Fade[i]),color[3]*self2.Fade[i]+self2.Bgblue*(1-self2.Fade[i]),self2.Fade[i]*color[4]+self2.Bgalpha*(1-self2.Fade[i])*0.15)
-					if x == 0 and y == 0 then
-						break
+		if self:GetPos():DistToSqr(EyePos()) < 262144 then
+			local fade = self2.Fade
+			cam.Start2D()
+				render.OverrideBlend( true, BLEND_ONE, BLEND_ZERO, BLENDFUNC_ADD )
+				surface.SetDrawColor(self2.Bgred,self2.Bggreen,self2.Bgblue,self2.Bgalpha)
+				surface.DrawRect( 0, 0, 1, 1 )
+				for i=0,self2.BitIndex-1 do
+					local x = (i+1)%1024
+					local y = math.floor((i+1)/1024)
+					fade[i] = (fade[i] or 0)*0.92 + 0.01
+					if bit.band(self2.Memory[bit.rshift(i,3)] or 0,bit.lshift(1,bit.band(i,7))) ~= 0 then
+						fade[i] = fade[i] + 0.07
 					end
-					surface.DrawRect( x, y, 1, 1 )
+
+					if fade[i] > 0.14 and fade[i] < 0.95 then
+						local color = self2.Colors[i]
+						surface.SetDrawColor(color[1]*fade[i]+self2.Bgred*(1-fade[i]),color[2]*fade[i]+self2.Bggreen*(1-fade[i]),color[3]*fade[i]+self2.Bgblue*(1-fade[i]),fade[i]*color[4]+self2.Bgalpha*(1-fade[i])*0.15)
+						if x == 0 and y == 0 then
+							break
+						end
+						surface.DrawRect( x, y, 1, 1 )
+					end
 				end
-			end
-			render.OverrideBlend( false )
-		cam.End2D()
+				render.OverrideBlend( false )
+			cam.End2D()
+		end
 		render.SetViewPort(0, 0, oldw, oldh)
 		render.SetRenderTarget(OldRT)
 		
