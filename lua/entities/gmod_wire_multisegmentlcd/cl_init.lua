@@ -335,73 +335,53 @@ end
 
 function ENT:Draw()
 	self:DrawModel()
-	--[[
-	self.GPU:RenderToWorld(nil, self.ResolutionH, function(x, y, w, h)
-		draw.NoTexture()
-		surface.SetDrawColor(self.Bgred,self.Bggreen,self.Bgblue,255)
-		surface.DrawRect(x,y,w,h)
-		if self.Tree then
-			--render.SetScissorRect(x,y,w,h, true)
-			surface.SetDrawColor(self.Fgred,self.Fggreen,self.Fgblue,255)
-			self.Cr = self.Fgred
-			self.Cg = self.Fggreen
-			self.Cb = self.Fgblue
-			self.LocalXX = 1
-			self.LocalXY = 0
-			self.LocalYX = 0
-			self.LocalYY = 1
-			self.LocalX = x
-			self.LocalY = y
-			self.BitIndex = 0
-			
-			self.TransformStack = {}
-			self:DrawGroup(self.Tree)
-			--render.SetScissorRect( 0, 0, 0, 0, false )
-		end
-	end)]]
+	local self2 = self:GetTable()
 	
 	
 	
 	
-	if self.Tree then
+	if self2.Tree then
 		
 		local oldw = ScrW()
 		local oldh = ScrH()
 
-		local NewRT = self.GPU.RT
+		local NewRT = self2.GPU.RT
 		local OldRT = render.GetRenderTarget()
 
 		render.SetRenderTarget(NewRT)
 		render.SetViewPort(0, 0, 1024, 1024)
 		cam.Start2D()
-			render.ClearRenderTarget(self.GPU.RT, Color(0, 0, 0, 0))
-			surface.SetDrawColor(self.Bgred,self.Bggreen,self.Bgblue,self.Bgalpha)
+			render.OverrideBlend( true, BLEND_ONE, BLEND_ZERO, BLENDFUNC_ADD )
+			surface.SetDrawColor(self2.Bgred,self2.Bggreen,self2.Bgblue,self2.Bgalpha)
 			surface.DrawRect( 0, 0, 1, 1 )
-			for i=0,self.BitIndex-1 do
+			for i=0,self2.BitIndex-1 do
 				local x = (i+1)%1024
 				local y = math.floor((i+1)/1024)
-				self.Fade[i] = (self.Fade[i] or 0)*0.92 + 0.01
-				if bit.band(self.Memory[bit.rshift(i,3)] or 0,bit.lshift(1,bit.band(i,7))) ~= 0 then
-					self.Fade[i] = self.Fade[i] + 0.07
+				self2.Fade[i] = (self2.Fade[i] or 0)*0.92 + 0.01
+				if bit.band(self2.Memory[bit.rshift(i,3)] or 0,bit.lshift(1,bit.band(i,7))) ~= 0 then
+					self2.Fade[i] = self2.Fade[i] + 0.07
 				end
-				local color = self.Colors[i]
-				surface.SetDrawColor(color[1]*self.Fade[i]+self.Bgred*(1-self.Fade[i]),color[2]*self.Fade[i]+self.Bggreen*(1-self.Fade[i]),color[3]*self.Fade[i]+self.Bgblue*(1-self.Fade[i]),self.Fade[i]*color[4]+self.Bgalpha*(1-self.Fade[i]))
-				if x == 0 and y == 0 then
-					break
+				if self2.Fade[i] > 0.05 and self2.Fade[i] < 0.98 then
+					local color = self2.Colors[i]
+					surface.SetDrawColor(color[1]*self2.Fade[i]+self2.Bgred*(1-self2.Fade[i]),color[2]*self2.Fade[i]+self2.Bggreen*(1-self2.Fade[i]),color[3]*self2.Fade[i]+self2.Bgblue*(1-self2.Fade[i]),self2.Fade[i]*color[4]+self2.Bgalpha*(1-self2.Fade[i])*0.15)
+					if x == 0 and y == 0 then
+						break
+					end
+					surface.DrawRect( x, y, 1, 1 )
 				end
-				surface.DrawRect( x, y, 1, 1 )
 			end
+			render.OverrideBlend( false )
 		cam.End2D()
 		render.SetViewPort(0, 0, oldw, oldh)
 		render.SetRenderTarget(OldRT)
 		
 		
-	    local OldTex = WireGPU_matScreen:GetTexture("$basetexture")
-	    WireGPU_matScreen:SetTexture("$basetexture", self.GPU.RT)
-		render.SetMaterial( WireGPU_matScreen )
+	    local OldTex = WireGPU_matSegment:GetTexture("$basetexture")
+	    WireGPU_matSegment:SetTexture("$basetexture", self2.GPU.RT)
+		render.SetMaterial( WireGPU_matSegment )
 		
-		local monitor, pos, ang = self.GPU:GetInfo()
-		local h = self.ResolutionH
+		local monitor, pos, ang = self2.GPU:GetInfo()
+		local h = self2.ResolutionH
 		local scale = monitor.RS*1024/h
 		local m = Matrix()
 		m:SetAngles( ang )
@@ -413,17 +393,14 @@ function ENT:Draw()
 		--surface.SetDrawColor(self.Fgred,self.Fggreen,self.Fgblue,255)
 		
 		for i=1,#self.TreeMesh do
-			self.TreeMesh[i]:Draw()
+			self2.TreeMesh[i]:Draw()
 		end
 		cam.PopModelMatrix()
 		cam.PopModelMatrix()
 		
-		WireGPU_matScreen:SetTexture("$basetexture", OldTex)
-		--render.SetScissorRect( 0, 0, 0, 0, false )
+		WireGPU_matSegment:SetTexture("$basetexture", OldTex)
 	end
-	--
 	
-	--self.GPU:Render(0,0,1024,1024,nil,-(1024-self.ResolutionW)/1024,-(1024-self.ResolutionH)/1024)
 	Wire_Render(self)
 end
 
