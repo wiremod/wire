@@ -361,7 +361,7 @@ function ENT:Draw()
 				if bit.band(self2.Memory[bit.rshift(i,3)] or 0,bit.lshift(1,bit.band(i,7))) ~= 0 then
 					self2.Fade[i] = self2.Fade[i] + 0.07
 				end
-				if self2.Fade[i] > 0.05 and self2.Fade[i] < 0.98 then
+				if self2.Fade[i] > 0.15 and self2.Fade[i] < 0.9 then
 					local color = self2.Colors[i]
 					surface.SetDrawColor(color[1]*self2.Fade[i]+self2.Bgred*(1-self2.Fade[i]),color[2]*self2.Fade[i]+self2.Bggreen*(1-self2.Fade[i]),color[3]*self2.Fade[i]+self2.Bgblue*(1-self2.Fade[i]),self2.Fade[i]*color[4]+self2.Bgalpha*(1-self2.Fade[i])*0.15)
 					if x == 0 and y == 0 then
