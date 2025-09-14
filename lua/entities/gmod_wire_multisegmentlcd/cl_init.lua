@@ -483,7 +483,6 @@ function ENT:Receive()
 	end
 	self.TreeMesh[#self.TreeMesh + 1] = Mesh()
 	self.Tris = self:CountTris(self.Tree)
-	print(self.Tris)
 	mesh.Begin(self.TreeMesh[#self.TreeMesh],MATERIAL_TRIANGLES,math.min(10922,self.Tris))
 	self.Tris = self.Tris - 10922
 	
