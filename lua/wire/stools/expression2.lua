@@ -694,7 +694,7 @@ if CLIENT then
 				end
 			end
 
-			wire_expression2_editor:Open(name, main or "")
+			wire_expression2_editor:Open(name, main or "#You tried to read an E2 with compile errors!\n#Unfortunately, no code can be read from E2 with compile errors.\n#Fix your errors and try again.")
 			timer.Create("wire_expression2_reset_progress", 0.75, 1, Expression2SetProgress)
 		end)
 	end)
