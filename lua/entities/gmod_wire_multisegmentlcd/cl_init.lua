@@ -127,7 +127,7 @@ function ENT:AddPoly(poly)
 	local u = (((bit.bxor(self.BitIndex,self.XorMask)+1)%1024)+0.5)/1024
 	local v = (math.floor((self.BitIndex+1)/1024)+0.5)/1024
 	for i = 1,#poly do
-		if self.CurTris > 10922 then
+		if self.CurTris > 10922*3 then
 			mesh.End()
 			self.TreeMesh[#self.TreeMesh + 1] = Mesh()
 			mesh.Begin(self.TreeMesh[#self.TreeMesh],MATERIAL_TRIANGLES,math.min(10922,self.Tris))
@@ -141,7 +141,7 @@ function ENT:AddPoly(poly)
 		self.CurTris = self.CurTris + 1
 	end
 	for i = 1,#poly do
-		if self.CurTris > 10922 then
+		if self.CurTris > 10922*3 then
 			mesh.End()
 			self.TreeMesh[#self.TreeMesh + 1] = Mesh()
 			mesh.Begin(self.TreeMesh[#self.TreeMesh],MATERIAL_TRIANGLES,math.min(10922,self.Tris))
@@ -483,6 +483,7 @@ function ENT:Receive()
 	end
 	self.TreeMesh[#self.TreeMesh + 1] = Mesh()
 	self.Tris = self:CountTris(self.Tree)
+	print(self.Tris)
 	mesh.Begin(self.TreeMesh[#self.TreeMesh],MATERIAL_TRIANGLES,math.min(10922,self.Tris))
 	self.Tris = self.Tris - 10922
 	
@@ -493,7 +494,7 @@ function ENT:Receive()
 	mesh.Position(self.LocalX,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
 	mesh.Position(self.LocalX+w,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
 	mesh.Position(self.LocalX,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
-	self.CurTris = 6
+	self.CurTris = 2
 	
 	self:DrawGroup(self.Tree)
 	mesh.End()
