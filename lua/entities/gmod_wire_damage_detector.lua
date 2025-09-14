@@ -6,7 +6,7 @@ ENT.WireDebugName = "Damage Detector"
 
 if CLIENT then return end -- No more client
 
-local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
+local newE2Table = WireLib.E2Table.New
 
 -- Global table to keep track of all detectors
 local Wire_Damage_Detectors = {}
@@ -67,7 +67,7 @@ function ENT:Initialize()
 	self.key_ents = {}
 
 	-- Store output damage info
-	self.victims = table.Copy(DEFAULT)
+	self.victims = newE2Table()
 	WireLib.TriggerOutput( self, "Victims", self.victims )
 	self.damage = 0
 
@@ -178,7 +178,7 @@ function ENT:TriggerInput( iname, value )
 		if value then
 			self.count = 0
 			self.firsthit_dmginfo = {}
-			self.victims = table.Copy(DEFAULT)
+			self.victims = newE2Table()
 			self.damage = 0
 			self:TriggerOutput()
 		end
@@ -193,7 +193,7 @@ function ENT:TriggerOutput() -- Entity outputs won't trigger again until they ch
 	WireLib.TriggerOutput( self, "Victim", IsValid(victim) and victim or NULL)
 
 	self.victims.size = table.Count(self.victims.s)
-	WireLib.TriggerOutput( self, "Victims", self.victims or table.Copy(DEFAULT) )
+	WireLib.TriggerOutput( self, "Victims", self.victims or newE2Table() )
 	WireLib.TriggerOutput( self, "Position", self.firsthit_dmginfo[3] or Vector(0,0,0) )
 	WireLib.TriggerOutput( self, "Force", self.firsthit_dmginfo[4] or Vector(0,0,0) )
 	WireLib.TriggerOutput( self, "Type", self.firsthit_dmginfo[5] or "" )
@@ -256,6 +256,8 @@ local damageTypes = {
 function ENT:UpdateDamage( dmginfo, ent ) -- Update damage table
 	local damage = dmginfo:GetDamage()
 
+	local victims = self.victims
+
 	if not self.hit then -- Only register the first target's damage info
 		self.firsthit_dmginfo = {
 			dmginfo:GetAttacker(),
@@ -268,8 +270,8 @@ function ENT:UpdateDamage( dmginfo, ent ) -- Update damage table
 		self.dmgtype = damageTypes[dmginfo:GetDamageType()] or "Other"
 
 
-
-		self.victims = table.Copy(DEFAULT)
+		victims = newE2Table()
+		self.victims = victims
 		self.firsthit_dmginfo[5] = self.dmgtype
 
 		self.hit = true
@@ -286,8 +288,8 @@ function ENT:UpdateDamage( dmginfo, ent ) -- Update damage table
 
 	-- Update victims table (ent, damage)
 	local entID = tostring(ent:EntIndex())
-	self.victims.s[entID] = ( self.victims[entID] or 0 ) + damage
-	self.victims.stypes[entID] = "n"
+	local old_dmg = select(2, victims:Get(entID)) or 0
+	victims:Set(entID, old_dmg + damage)
 
 	self.count = self.count + 1
 	if self.count == math.huge then self.count = 0 end -- This shouldn't ever happen... unless you're really REALLY bored

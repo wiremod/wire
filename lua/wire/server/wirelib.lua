@@ -95,6 +95,8 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	end
 end
 
+local newE2Table = WireLib.E2Table.New
+
 --- Array of data types for Wiremod.
 ---@type table<string, { Zero: (fun(): any), Validator: (fun(val: any): boolean) }>
 WireLib.DT = {
@@ -154,7 +156,7 @@ WireLib.DT = {
 	},
 	TABLE = {
 		Zero = function()
-			return { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 }
+			return newE2Table()
 		end,
 		Validator = function(t)
 			return istable(t)
