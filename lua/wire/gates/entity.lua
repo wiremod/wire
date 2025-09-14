@@ -404,6 +404,19 @@ GateActions["entity_health"] = {
 	end
 }
 
+GateActions["entity_isalive"] = {
+	name = "Is Alive",
+	inputs = { "Ent" },
+	inputtypes = { "ENTITY" },
+	timed = true,
+	output = function(gate, Ent)
+		if not Ent:IsValid() then return 0 else return Ent:Alive() and 1 or 0 end
+	end,
+	label = function(Out)
+		return string.format("Alive = %d", Out)
+	end
+}
+
 GateActions["entity_radius"] = {
 	name = "Radius",
 	description = "Gets the widest radius of the entity's bounding box.",
@@ -581,6 +594,19 @@ GateActions["entity_material"] = {
 	end
 }
 
+GateActions["entity_skin"] = {
+	name = "Skin",
+	inputs = { "Ent" },
+	inputtypes = { "ENTITY" },
+	timed = true,
+	output = function(gate, Ent)
+		if not Ent:IsValid() then return 0 else return Ent:GetSkin() end
+	end,
+	label = function(Out)
+		return string.format("Skin = %d", Out)
+	end
+}
+
 GateActions["entity_owner"] = {
 	name = "Owner",
 	inputs = { "Ent" },
@@ -639,6 +665,70 @@ GateActions["entity_isweapon"] = {
 	end,
 	label = function(Out)
 		return string.format ("Is Weapon = %d", Out)
+	end
+}
+
+-- TODO: Adapt for NPC after next GMOD update
+GateActions["entity_iscrouching"] = {
+	name = "Is Crouching",
+	inputs = { "Ent" },
+	inputtypes = { "ENTITY" },
+	timed = true,
+	output = function(gate, Ent)
+		if not Ent:IsValid() or not Ent:IsPlayer() then return 0 else return Ent:Crouching() and 1 or 0 end
+	end,
+	label = function(Out)
+		return string.format("Crouching = %d", Out)
+	end
+}
+
+GateActions["player_armor"] = {
+	name = "Armor",
+	inputs = { "Ent" },
+	inputtypes = { "ENTITY" },
+	timed = true,
+	output = function(gate, Ent)
+		if not Ent:IsValid() or not Ent:IsPlayer() then return 0 else return Ent:Armor() end
+	end,
+	label = function(Out)
+		return string.format("Armor = %d", Out)
+	end
+}
+
+GateActions["player_kd"] = {
+	name = "Kills/Deaths",
+	inputs = { "Ent" },
+	inputtypes = { "ENTITY" },
+	outputs = { "Kills", "Deaths" },
+	timed = true,
+	output = function(gate, Ent)
+		if not Ent:IsValid() or not Ent:IsPlayer() then
+			return 0, 0
+		end
+
+		return Ent:Frags(), Ent:Deaths()
+	end,
+	label = function(Out)
+		return string.format("Kills: %d  Deaths: %d", Out.Kills, Out.Deaths)
+	end
+}
+
+GateActions["player_team"] = {
+	name = "Team",
+	inputs = { "Ent" },
+	inputtypes = { "ENTITY" },
+	outputs = { "Team", "TeamName" },
+	outputtypes = { "NORMAL", "STRING" },
+	timed = true,
+	output = function(gate, Ent)
+		if not Ent:IsValid() or not Ent:IsPlayer() then
+			return -1, "(none)"
+		end
+
+		return Ent:Team(), team.GetName(Ent:Team())
+	end,
+	label = function(Out)
+		return string.format("Team: %s (%d)", Out.TeamName, Out.Team)
 	end
 }
 
@@ -813,7 +903,6 @@ GateActions["entity_driver"] = {
 	end
 }
 
-
 GateActions["entity_clr"] = {
 	name = "Color",
 	inputs = { "Ent" },
@@ -829,8 +918,6 @@ GateActions["entity_clr"] = {
 		return string.format ("color(%s) = (%d,%d,%d)", Ent , Out.x, Out.y, Out.z)
 	end
 }
-
-
 
 GateActions["entity_name"] = {
 	name = "Name",
