@@ -1,10 +1,45 @@
 include("shared.lua")
 
+function ENT:SendData()
+	net.Start("wire_interactiveprop_action")
+
+	local data	= WireLib.GetInteractiveModel(self:GetModel()).widgets
+	net.WriteEntity(self)
+	for i=1, #data do
+		net.WriteFloat(self.InteractiveData[i])
+	end
+	net.SendToServer()
+end
+
+function ENT:GetPanel()
+	if not self.IsInteractive then return end
+	local data	= WireLib.GetInteractiveModel(self:GetModel())
+	return WireLib.GetInteractiveWidgetBody(self, data)
+end
+
+
+function ENT:AddButton(id,button)
+	if not self.IsInteractive then return end
+	self.Buttons[id] = button
+end
+
 function ENT:Initialize()
 	self.Memory1 = {}
 	self.Memory2 = {}
 	for i = 0, 2047 do
 		self.Memory1[i] = 0
+	end
+
+	self.InteractiveData = {}
+	self.LastButtons = {}
+	self.Buttons = {}
+	local interactive_model = WireLib.GetInteractiveModel(self:GetModel())
+	self.IsInteractive = false
+	if interactive_model then
+		self.IsInteractive = true
+		for i=1, #WireLib.GetInteractiveModel(self:GetModel()).widgets do
+			self.InteractiveData[i] = 0
+		end
 	end
 
 	-- Caching control:
@@ -694,3 +729,6 @@ end
 function ENT:IsTranslucent()
 	return true
 end
+
+
+

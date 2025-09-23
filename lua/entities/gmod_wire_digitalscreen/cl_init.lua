@@ -1,8 +1,45 @@
-include('shared.lua')
+include("shared.lua")
+
+
+
+function ENT:SendData()
+	net.Start("wire_interactiveprop_action")
+
+	local data	= WireLib.GetInteractiveModel(self:GetModel()).widgets
+	net.WriteEntity(self)
+	for i=1, #data do
+		net.WriteFloat(self.InteractiveData[i])
+	end
+	net.SendToServer()
+end
+
+function ENT:GetPanel()
+	if not self.IsInteractive then return end
+	local data	= WireLib.GetInteractiveModel(self:GetModel())
+	return WireLib.GetInteractiveWidgetBody(self, data)
+end
+
+
+function ENT:AddButton(id,button)
+	if not self.IsInteractive then return end
+	self.Buttons[id] = button
+end
 
 function ENT:Initialize()
 	self.Memory1 = {}
 	self.Memory2 = {}
+
+	self.InteractiveData = {}
+	self.LastButtons = {}
+	self.Buttons = {}
+	local interactive_model = WireLib.GetInteractiveModel(self:GetModel())
+	self.IsInteractive = false
+	if interactive_model then
+		self.IsInteractive = true
+		for i=1, #WireLib.GetInteractiveModel(self:GetModel()).widgets do
+			self.InteractiveData[i] = 0
+		end
+	end
 
 	self.LastClk = true
 	self.NewClk = true
@@ -21,15 +58,15 @@ function ENT:Initialize()
 		self.RefreshRows[i] = i-1
 	end
 
-	//0..786431 - RGB data
+	--0..786431 - RGB data
 
-	//1048569 - Color mode (0: RGBXXX; 1: R G B)
-	//1048570 - Clear row
-	//1048571 - Clear column
-	//1048572 - Screen Height
-	//1048573 - Screen Width
-	//1048574 - Hardware Clear Screen
-	//1048575 - CLK
+	--1048569 - Color mode (0: RGBXXX; 1: R G B)
+	--1048570 - Clear row
+	--1048571 - Clear column
+	--1048572 - Screen Height
+	--1048573 - Screen Width
+	--1048574 - Hardware Clear Screen
+	--1048575 - CLK
 
 	self.GPU = WireGPU(self)
 
@@ -226,8 +263,6 @@ end
 transformcolor[4] = function(c) -- XXX
 	return c, c, c
 end
-
-local floor = math.floor
 
 function ENT:RedrawPixel(a)
 	if a >= self.ScreenWidth*self.ScreenHeight then return end

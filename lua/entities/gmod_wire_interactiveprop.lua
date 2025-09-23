@@ -194,6 +194,16 @@ InteractiveModels = {
 			{type="DButton", x=135, y=60, name="Button11"},
 			{type="DButton", x=160, y=60, name="Button12"},
 		}
+	},
+	["models/props_lab/monitor01b.mdl"] = {
+		width = 40,
+		height = 128,
+		title = "plotter",
+		widgets={
+			{type="DNumberScratch", x = 10, y = 32, name="Knob1"},
+			{type="DNumberScratch", x = 10, y = 64, name="Knob2"},
+			{type="DNumberScratch", x = 10, y = 96, name="Knob3"},
+		}
 	}
 
 }
@@ -203,17 +213,41 @@ function WireLib.IsValidInteractiveModel( model )
 	return InteractiveModels[model] ~= nil
 end
 
+function WireLib.GetInteractiveModel( model )
+	return InteractiveModels[model]
+end
+
+function WireLib.GetInteractiveWidgetBody( ent, data )
+	local body = vgui.Create("DFrame")
+
+	body:SetTitle(data.title)
+	body:SetSize(data.width, data.height)
+	body:SetDraggable(false)
+	body:MakePopup()
+	body:Center()
+
+	function body:Paint(w, h)
+		draw.RoundedBox(4, 0, 0, w, h, color_white)
+		draw.RoundedBox(4, 1, 1, w - 2, h - 2, Color(64, 64, 64))
+	end
+
+	for id, widget in ipairs( data.widgets ) do
+		WidgetBuilders[widget.type](ent, widget, body, id)
+	end
+	return body
+end
+
 InteractiveModels["models/props_c17/furnituresink001a.mdl"]		 = copyPropUI( "models/props_interiors/bathtub01a.mdl", "Furniture Sink" )
 InteractiveModels["models/props_interiors/sinkkitchen01a.mdl"]	= copyPropUI( "models/props_interiors/bathtub01a.mdl", "Kitchen Sink" )
 InteractiveModels["models/props_wasteland/prison_sink001a.mdl"] = copyPropUI( "models/props_interiors/bathtub01a.mdl", "Prison Sink" )
 
-local WidgetBuilders = {
+WidgetBuilders = {
 
 	DCheckBox = function(self, data, body, index)
 		local checkbox = vgui.Create("DCheckBox", body)
 			checkbox:SetPos(data.x, data.y)
 			checkbox:SetValue(self.InteractiveData[index])
-			checkbox.OnChange =	function(box,value)
+			function checkbox.OnChange(box, value)
 				surface.PlaySound("buttons/lightswitch2.wav")
 				self.InteractiveData[index] = value and 1 or 0
 				self:SendData()
@@ -228,13 +262,13 @@ local WidgetBuilders = {
 			numberscratch:SetDecimals(4)
 			numberscratch:SetPos(data.x, data.y)
 			numberscratch:SetValue(self.InteractiveData[index])
-			numberscratch.OnValueChanged =	function(scratch,value)
+			function numberscratch.OnValueChanged(scratch, value)
 				self.InteractiveData[index] = value
 				self:SendData()
 			end
 			numberscratch:SetImageVisible( false )
 			numberscratch:SetSize( 17, 17 )
-			numberscratch.Paint = function( self, w, h )
+			function numberscratch:Paint( w, h )
 				draw.RoundedBox( 8.5, 0, 0, w, h, numberscratch.color )
 				local value = self:GetFloatValue()
 				surface.SetDrawColor(255, 255, 255)
@@ -252,6 +286,14 @@ local WidgetBuilders = {
 			button:SetPos(data.x, data.y)
 			button:SetText(data.text or "")
 			button:SetSize(data.width or 20, data.height or 20)
+			function button.OnDepressed(btn)
+				self.InteractiveData[index] = 1
+				self:SendData()
+			end
+			function button.OnReleased(btn)
+				self.InteractiveData[index] = 0
+				self:SendData()
+			end
 			self:AddButton(index,button)
 	end
 
@@ -259,26 +301,7 @@ local WidgetBuilders = {
 
 function ENT:GetPanel()
 	local data	= InteractiveModels[ self:GetModel() ]
-	local body = vgui.Create("DFrame")
-		body:SetTitle(data.title)
-		body:SetSize(data.width, data.height)
-		body:SetVisible(true)
-		body.Paint = function( self, w, h ) -- 'function Frame:Paint( w, h )' works too
-			-- surface.SetDrawColor(255,255,255)
-			-- surface.DrawOutlinedRect(0, 0, w, h)
-			-- surface.SetDrawColor(0,0,0)
-			-- surface.DrawOutlinedRect(1, 1, w-2, h-2)
-			draw.RoundedBox( 4, 0, 0, w, h, Color( 255, 255, 255 ) )
-			draw.RoundedBox( 4, 1, 1, w-2, h-2, Color( 64, 64, 64 ) )
-		end
-		body:SetDraggable(false)
-		body:Center()
-		body:ShowCloseButton(true)
-		body:MakePopup()
-		for id, widget in ipairs( data.widgets ) do
-			WidgetBuilders[widget.type](self, widget, body, id)
-		end
-	return body
+	return WireLib.GetInteractiveWidgetBody(self, data)
 end
 
 
@@ -312,27 +335,11 @@ if CLIENT then
 		end
 	end
 
-	function ENT:Think()
-		if IsValid( panel ) and #self.Buttons ~= 0 then
-			local needToUpdate = false
-			for k,v in pairs(self.Buttons) do
-				self.LastButtons[k] = self.InteractiveData[k]
-				self.InteractiveData[k] = v:IsDown() and 1 or 0
-				if self.InteractiveData[k] ~= self.LastButtons[k] then
-					needToUpdate = true
-				end
-			end
-			if needToUpdate then
-				self:SendData()
-			end
-		end
-	end
-
 	net.Receive("wire_interactiveprop_show",function()
 		local self = net.ReadEntity()
 		if not IsValid(self) then return end
 		panel = self:GetPanel()
-		panel.OnClose = function(panel)
+		function panel.OnClose(panel)
 			net.Start("wire_interactiveprop_close")
 			self.Buttons = {}
 			self.LastButtons = {}
@@ -419,7 +426,7 @@ end
 util.AddNetworkString("wire_interactiveprop_action")
 net.Receive("wire_interactiveprop_action",function(len,ply)
 	local ent = net.ReadEntity()
-	if not ent:IsValid() or ent:GetClass() ~= "gmod_wire_interactiveprop" or ply ~= ent.User then return end
+	if not ent:IsValid() or ply ~= ent.User then return end
 
 	ent:ReceiveData()
 	ent:UpdateOverlay()
@@ -455,7 +462,7 @@ end
 util.AddNetworkString("wire_interactiveprop_close")
 net.Receive("wire_interactiveprop_close",function(len,ply)
     local ent = net.ReadEntity()
-    if not ent:IsValid() or ent:GetClass() ~= "gmod_wire_interactiveprop" or ply ~= ent.User then return end
+    if not ent:IsValid() or ply ~= ent.User then return end
     ent:Unprompt()
 end)
 

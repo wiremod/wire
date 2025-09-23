@@ -4,13 +4,36 @@ include("shared.lua")
 
 ENT.WireDebugName = "CharacterLcdScreen"
 
+function ENT:InitInteractive()
+	local model = self:GetModel()
+	local outputs = {"Memory"}
+	local interactivemodel = WireLib.GetInteractiveModel(model)
+	for i=1, #interactivemodel.widgets do
+		outputs[i+1] = interactivemodel.widgets[i].name
+	end
+	self.BlockInput = false
+	self.NextPrompt = 0
+	self.Outputs=WireLib.CreateOutputs(self,outputs)
+	self.IsInteractive = true
+	self:UpdateOverlay()
+end
+
+
+
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 
 	self.Inputs = WireLib.CreateInputs(self, { "CharAddress", "Char (ASCII/Unicode)", "Contrast", "Clk", "Reset" })
-	self.Outputs = WireLib.CreateOutputs(self, { "Memory" })
+
+	self.InteractiveData = {}
+	self.IsInteractive = false
+	if WireLib.IsValidInteractiveModel(self:GetModel()) then
+		self:InitInteractive()
+	else
+		self.Outputs = WireLib.CreateOutputs(self, { "Memory" })
+	end
 
 	self.Memory = {}
 
@@ -41,7 +64,7 @@ function ENT:Initialize()
 
 	self.Cache = GPUCacheManager(self,true)
 end
-function ENT:Setup(ScreenWidth, ScreenHeight, bgred,bggreen,bgblue,fgred,fggreen,fgblue)
+function ENT:Setup(ScreenWidth, ScreenHeight, bgred,bggreen,bgblue,fgred,fggreen,fgblue,IsInteractive)
 	self:WriteCell(1010, tonumber(ScreenHeight) or 2)
 	self:WriteCell(1009, tonumber(ScreenWidth) or 16)
 	self:WriteCell(1008, tonumber(fgblue) or 45)
@@ -51,6 +74,7 @@ function ENT:Setup(ScreenWidth, ScreenHeight, bgred,bggreen,bgblue,fgred,fggreen
 	self:WriteCell(1004, tonumber(bggreen) or 178)
 	self:WriteCell(1003, tonumber(bgred) or 148)
 	self:WriteCell(1023,1)
+	self.IsInteractive = WireLib.IsValidInteractiveModel(self:GetModel()) and (IsInteractive == 1)
 end
 function ENT:SendPixel()
 	if (self.Memory[1023] ~= 0) and (self.CharAddress >= 0) and (self.CharAddress < self.ScreenWidth*self.ScreenHeight) then
@@ -179,4 +203,61 @@ function ENT:ClientWriteCell(Address, value)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_characterlcd", WireLib.MakeWireEnt, "Data", "ScreenWidth", "ScreenHeight")
+
+
+function ENT:ReceiveData()
+	if not self.IsInteractive then return end
+	local data = WireLib.GetInteractiveModel(self:GetModel()).widgets
+	for i = 1, #data do
+		WireLib.TriggerOutput(self, data[i].name, net.ReadFloat())
+	end
+end
+
+
+function ENT:UpdateOverlay()
+	if not self.IsInteractive then
+		return
+	end
+
+	txt = ""
+	if IsValid(self.User) then
+		txt = "In use by: " .. self.User:Nick()
+	end
+
+	self:SetOverlayText(txt)
+end
+
+
+
+function ENT:Prompt( ply )
+	if not self.IsInteractive then return end
+	if ply then
+		if CurTime() < self.NextPrompt then return end -- anti spam
+		self.NextPrompt = CurTime() + 0.1
+
+		if IsValid( self.User ) then
+			WireLib.AddNotify(ply,"That interactive prop is in use by another player!",NOTIFY_ERROR,5,6)
+			return
+		end
+
+		self.User = ply
+
+		net.Start( "wire_interactiveprop_show" )
+			net.WriteEntity( self )
+		net.Send( ply )
+	else
+		self:Prompt( self:GetPlayer() ) -- prompt for owner
+	end
+end
+
+function ENT:Use(ply)
+	if not IsValid( ply ) then return end
+	self:Prompt( ply )
+end
+
+function ENT:Unprompt()
+	if not self.IsInteractive then return end
+	self.User = nil
+end
+
+duplicator.RegisterEntityClass("gmod_wire_characterlcd", WireLib.MakeWireEnt, "Data", "ScreenWidth", "ScreenHeight", "IsInteractive")
