@@ -21,6 +21,8 @@ local setAng = WireLib.setAng
 local typeIDToString = WireLib.typeIDToString
 local castE2ValueToLuaValue = E2Lib.castE2ValueToLuaValue
 
+local newE2Table = WireLib.E2Table.New
+
 local E2totalspawnedprops = 0
 local playerMeta = FindMetaTable("Player")
 
@@ -506,25 +508,21 @@ end
 __e2setcost(30)
 [nodiscard]
 e2function table sentGetData(string class)
-	local res = E2Lib.newE2Table()
+	local res = newE2Table()
 
 	local sent = list.Get("wire_spawnable_ents_registry")[class]
 	if not sent then self:throw("No class '"..class.."' found in sent registry", res) end
 
-	local size = 0
 	for key, tbl in pairs( sent ) do
 		if key=="_preFactory" or key=="_postFactory" then continue end
 
-		res.s[key] = E2Lib.newE2Table()
-		res.s[key].size = 2
-		res.s[key].s["type"] = typeIDToString(tbl[1])
-		res.s[key].s["default_value"] = sentDataFormatDefaultVal(tbl[2])
-		res.s[key].s["description"] = tbl[3] or "<no description>"
-		res.stypes[key] = "t"
-
-		size = size + 1
+		local subt = newE2Table({
+			type = typeIDToString(tbl[1]),
+			default_value = sentDataFormatDefaultVal(tbl[2]),
+			description = tbl[3] or "<no description>"
+		})
+		res:Set(key, subt)
 	end
-	res.size = size
 
 	return res
 end
@@ -537,11 +535,11 @@ e2function table sentGetData(string class, string key)
 	if not sent[key] then self:throw("Class '"..class.."' does not have any value at key '"..key.."'", "") end
 	if key=="_preFactory" or key=="_postFactory" then self:throw("Prohibited key '"..key.."'", "") end
 
-	local res = E2Lib.newE2Table()
-	res.s["type"] = typeIDToString(sent[key][1])
-	res.s["default_value"] = sentDataFormatDefaultVal(sent[key][2])
-	res.s["description"] = sent[key][3] or "<no description>"
-	res.size = 3
+	local res = newE2Table({
+		type = typeIDToString(tbl[1]),
+		default_value = sentDataFormatDefaultVal(tbl[2]),
+		description = tbl[3] or "<no description>"
+	})
 
 	return res
 end
@@ -551,19 +549,16 @@ end
 __e2setcost(25)
 [nodiscard]
 e2function table sentGetDataTypes(string class)
-	local res = E2Lib.newE2Table()
+	local res = newE2Table()
 
 	local sent = list.Get("wire_spawnable_ents_registry")[class]
 	if not sent then self:throw("No class '"..class.."' found in sent registry", res) end
 
-	local size = 0
 	for key, tbl in pairs( sent ) do
 		if key=="_preFactory" or key=="_postFactory" then continue end
 
-		res.s[key] = typeIDToString(tbl[1])
-		size = size + 1
+		res:Set(key, typeIDToString(tbl[1]))
 	end
-	res.size = size
 
 	return res
 end
@@ -584,19 +579,16 @@ end
 __e2setcost(25)
 [nodiscard]
 e2function table sentGetDataDefaultValues(string class)
-	local res = E2Lib.newE2Table()
+	local res = newE2Table()
 
 	local sent = list.Get("wire_spawnable_ents_registry")[class]
 	if not sent then self:throw("No class '"..class.."' found in sent registry", res) end
 
-	local size = 0
 	for key, tbl in pairs( sent ) do
 		if key=="_preFactory" or key=="_postFactory" then continue end
 
-		res.s[key] = sentDataFormatDefaultVal(tbl[2])
-		size = size + 1
+		res:Set(key, sentDataFormatDefaultVal(tbl[2]))
 	end
-	res.size = size
 
 	return res
 end
@@ -617,19 +609,16 @@ end
 __e2setcost(25)
 [nodiscard]
 e2function table sentGetDataDescriptions(string class)
-	local res = E2Lib.newE2Table()
+	local res = newE2Table()
 
 	local sent = list.Get("wire_spawnable_ents_registry")[class]
 	if not sent then self:throw("No class '"..class.."' found in sent registry", res) end
 
-	local size = 0
 	for key, tbl in pairs( sent ) do
 		if key=="_preFactory" or key=="_postFactory" then continue end
 
-		res.s[key] = tbl[3] or "<no description>"
-		size = size + 1
+		res:Set(key, tbl[3] or "<no description>")
 	end
-	res.size = size
 
 	return res
 end
@@ -1255,13 +1244,13 @@ end
 
 e2function table entity:ragdollGetPose()
 	if not ValidAction(self, this) then return end
-	local pose = E2Lib.newE2Table()
+	local pose = newE2Table()
 	local bones = GetBones(this)
 	local originPos, originAng = bones[0]:GetPos(), bones[0]:GetAngles()
 	local size = 0
 
 	for k, bone in pairs(bones) do
-		local value = E2Lib.newE2Table()
+		local value = newE2Table()
 		local pos, ang = WorldToLocal(bone:GetPos(), bone:GetAngles(), originPos, originAng)
 
 		value.n[1] = pos
@@ -1494,8 +1483,6 @@ local typefilter = {
 	vector = "v",
 	number = "n",
 }
-
-local newE2Table = E2Lib.newE2Table
 
 __e2setcost(20)
 

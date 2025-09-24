@@ -8,6 +8,8 @@ local tostring = tostring
 local table = table
 local type = type
 
+local newE2Table = WireLib.E2Table.New
+
 local opcost = 1/3 -- cost of looping through table multiplier
 
 -- All different table types in E2
@@ -32,8 +34,6 @@ end
 --------------------------------------------------------------------------------
 -- Type defining
 --------------------------------------------------------------------------------
-
-local newE2Table = E2Lib.newE2Table
 
 registerType("table", "t", newE2Table(),
 	function(self, input)
@@ -524,28 +524,20 @@ end
 -- Removes the specified entry from the array-part and returns 1 if removed
 e2function number table:remove( number index )
 	if (#this.n == 0) then return 0 end
-	if (not this.n[index]) then return 0 end
-	if index < 1 then -- table.remove doesn't work if the index is below 1
-		this.n[index] = nil
-		this.ntypes[index] = nil
-	else
-		table.remove( this.n, index )
-		table.remove( this.ntypes, index )
+	if this:Remove(index) then
+		self.GlobalScope.vclk[this] = true
+		return 1
 	end
-	this.size = this.size - 1
-	self.GlobalScope.vclk[this] = true
-	return 1
+	return 0
 end
 
--- Force removes the specified entry from the table-part, without moving subsequent entries down and returns 1 if removed
 e2function number table:remove( string index )
 	if (IsEmpty(this.s)) then return 0 end
-	if (not this.s[index]) then return 0 end
-	this.s[index] = nil
-	this.stypes[index] = nil
-	this.size = this.size - 1
-	self.GlobalScope.vclk[this] = true
-	return 1
+	if this:Unset(index) then
+		self.GlobalScope.vclk[this] = true
+		return 1
+	end
+	return 0
 end
 
 --------------------------------------------------------------------------------
@@ -554,12 +546,11 @@ end
 -- Does not shift larger indexes down to fill the hole
 --------------------------------------------------------------------------------
 e2function number table:unset( index )
-	if this.n[index] == nil then return 0 end
-	this.n[index] = nil
-	this.ntypes[index] = nil
-	this.size = this.size - 1
-	self.GlobalScope.vclk[this] = true
-	return 1
+	if this:Unset(index) then
+		self.GlobalScope.vclk[this] = exists
+		return 1
+	end
+	return 0
 end
 
 -- Force remove for strings is an alias to table:remove(string)

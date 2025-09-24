@@ -221,11 +221,6 @@ function E2Lib.setSubMaterial(ent, index, material)
 	duplicator.StoreEntityModifier(ent, "submaterial", { ["SubMaterialOverride_"..index] = material })
 end
 
--- Returns a default e2 table instance.
-function E2Lib.newE2Table()
-	return { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 }
-end
-
 ---@class E2Lambda
 ---@field fn fun(args: any[]): any
 ---@field arg_sig string
@@ -302,6 +297,17 @@ function Function:Unwrap(arg_sig, ctx)
 		ctx:forceThrow("Incorrect function signature passed, expected (" .. arg_sig .. ") got (" .. self.arg_sig .. ")")
 	end
 end
+
+local newE2Table = WireLib.E2Table.New
+
+--- Deprecated. Creates an empty `E2Table`. Use `WireLib.E2Table` or `WireLib.E2Table.New` instead.
+---@see E2Table
+---@deprecated
+local function newE2Table_compat()
+	return newE2Table()
+end
+
+E2Lib.newE2Table = newE2Table_compat -- Deprecated, backwards compat
 
 -- Returns a cloned table of the variable given if it is a table.
 -- TODO: Ditch this system for instead having users provide a function that returns the default value.
