@@ -1,6 +1,8 @@
 WireToolSetup.setCategory( "Visuals/Screens" )
 WireToolSetup.open( "multisegmentlcd", "Multi-segment LCD", "gmod_wire_multisegmentlcd", nil, "Multi-segment LCDs" )
 
+OFFSET = -3
+ALIGN = -2
 GROUP = -1
 UNION = 0
 SEGMENT = 1
@@ -12,6 +14,8 @@ SegmentTypeNames = {
 [SEGMENT] = "Segment",
 [TEXT] = "Text",
 [MATRIX] = "Matrix",
+[ALIGN] = "Align",
+[OFFSET] = "Offset",
 }
 
 WireLib.SegmentLCD_Tree = {
@@ -130,6 +134,10 @@ function BuildNode(v,node,group)
 		new = node:AddNode( v.Text or "Text", "icon16/bullet_yellow.png" )
 	elseif v.Type == MATRIX then
 		new = node:AddNode( v.Text or "Matrix", "icon16/bullet_red.png" )
+	elseif v.Type == ALIGN then
+		new = node:AddNode( v.Text or "Text", "icon16/bullet_pink.png" )
+	elseif v.Type == OFFSET then
+		new = node:AddNode( v.Text or "Text", "icon16/bullet_white.png" )
 	else
 		new = node:AddNode( v.Text or "Segment", "icon16/bullet_green.png" )
 	end
@@ -562,6 +570,61 @@ function TOOL.BuildCPanel(panel)
 		node.group.BevelSkew = value
 	end
 	
+	WangSize = ButtonsHolder:Add( "DNumberWang" )
+	WangSize:SetMax(1024)
+	WangSize:SetMin(1)
+	function WangSize:OnValueChanged(value)
+		local node = DisplayData:GetSelectedItem()
+		if node == nil or node.group == nil then
+			return
+		end
+		node.group.Size = value
+	end
+	
+	function AddOffsetI(node)
+		if node == nil then
+			node = DisplayData.RootNode
+		end
+		local group = node.group
+		local children = nil
+		if group ~= nil then
+			children = group.Children
+		end
+		
+		if children == nil then
+			node = DisplayData.RootNode
+			children = WireLib.SegmentLCD_Tree.Children
+			group = WireLib.SegmentLCD_Tree
+		end
+		local newgroup = {Type=OFFSET, Size=1}
+		children[#children+1] = newgroup
+		local new = node:AddNode( "Offset", "icon16/bullet_white.png" )
+		new.group = newgroup
+		new.parentgroup = group
+	end
+	
+	function AddAlignI(node)
+		if node == nil then
+			node = DisplayData.RootNode
+		end
+		local group = node.group
+		local children = nil
+		if group ~= nil then
+			children = group.Children
+		end
+		
+		if children == nil then
+			node = DisplayData.RootNode
+			children = WireLib.SegmentLCD_Tree.Children
+			group = WireLib.SegmentLCD_Tree
+		end
+		local newgroup = {Type=ALIGN, Size=8}
+		children[#children+1] = newgroup
+		local new = node:AddNode( "Align", "icon16/bullet_pink.png" )
+		new.group = newgroup
+		new.parentgroup = group
+	end
+	
 	function ButtonsHolder:PerformLayout(w, h)
 		local roww = w/8
 		local rowh = h/4
@@ -583,6 +646,9 @@ function TOOL.BuildCPanel(panel)
 		WangOffsetX:SetSize(roww,rowh)
 		WangOffsetY:SetPos(roww*3,rowh*2)
 		WangOffsetY:SetSize(roww,rowh)
+		
+		WangSize:SetPos(0,rowh)
+		WangSize:SetSize(w,rowh)
 		
 		CheckHasColor:SetPos(1,rowh*2+3)
 		CheckLabel:SetPos(18,rowh*2)
@@ -625,6 +691,9 @@ function TOOL.BuildCPanel(panel)
 	WangSkewY:SetVisible(false)
 	WangBevel:SetVisible(false)
 	WangBevelSkew:SetVisible(false)
+	WangSize:SetVisible(false)
+	WangX:SetVisible(false)
+	WangY:SetVisible(false)
 	
 	function DisplayData:DoClick(node)
 		group = node.group
@@ -645,6 +714,9 @@ function TOOL.BuildCPanel(panel)
 		WangSkewY:SetVisible(false)
 		WangBevel:SetVisible(false)
 		WangBevelSkew:SetVisible(false)
+		WangSize:SetVisible(false)
+		WangX:SetVisible(false)
+		WangY:SetVisible(false)
 		if group.Type == SEGMENT then
 			WangW:SetValue(group.W)
 			WangH:SetValue(group.H)
@@ -655,12 +727,16 @@ function TOOL.BuildCPanel(panel)
 			WangSkewY:SetVisible(true)
 			WangBevel:SetVisible(true)
 			WangBevelSkew:SetVisible(true)
-			
+			WangX:SetVisible(true)
+			WangY:SetVisible(true)
+		
 			WangRotation:SetValue(group.Rotation or 0)
 			WangSkewX:SetValue(group.SkewX or 0)
 			WangSkewY:SetValue(group.SkewY or 0)
 			WangBevel:SetValue(group.Bevel or 0)
 			WangBevelSkew:SetValue(group.BevelSkew or 0)
+			WangX:SetValue(group.X)
+			WangY:SetValue(group.Y)
 		elseif group.Type == MATRIX then
 			WangW:SetValue(group.W)
 			WangH:SetValue(group.H)
@@ -670,10 +746,15 @@ function TOOL.BuildCPanel(panel)
 			WangOffsetY:SetVisible(true)
 			WangW:SetVisible(true)
 			WangH:SetVisible(true)
+			WangX:SetVisible(true)
+			WangY:SetVisible(true)
+			
 			WangScaleW:SetValue(group.ScaleW)
 			WangScaleH:SetValue(group.ScaleH)
 			WangOffsetX:SetValue(group.OffsetX)
 			WangOffsetY:SetValue(group.OffsetY)
+			WangX:SetValue(group.X)
+			WangY:SetValue(group.Y)
 		elseif group.Type == GROUP or group.Type == UNION then
 			WangColorR:SetVisible(true)
 			WangColorG:SetVisible(true)
@@ -681,6 +762,9 @@ function TOOL.BuildCPanel(panel)
 			WangColorA:SetVisible(true)
 			CheckHasColor:SetVisible(true)
 			CheckLabel:SetVisible(true)
+			WangX:SetVisible(true)
+			WangY:SetVisible(true)
+			
 			WangColorR:SetValue(group.R)
 			WangColorG:SetValue(group.G)
 			WangColorB:SetValue(group.B)
@@ -694,9 +778,13 @@ function TOOL.BuildCPanel(panel)
 			WangSkewY:SetValue(group.SkewY or 0)
 			WangBevel:SetValue(group.Bevel or 0)
 			WangBevelSkew:SetValue(group.BevelSkew or 0)
+			WangX:SetValue(group.X)
+			WangY:SetValue(group.Y)
+		elseif group.Type == ALIGN or group.Type == OFFSET then
+			WangSize:SetVisible(true)
+			WangSize:SetValue(group.Size)
 		end
-		WangX:SetValue(group.X)
-		WangY:SetValue(group.Y)
+		
 		TextSetter:SetValue(group.Text or "")
 		return true
 	end
@@ -712,6 +800,8 @@ function TOOL.BuildCPanel(panel)
 		InsertM:AddOption( "Segment", function() AddSegmentI(node) end )
 		InsertM:AddOption( "Matrix", function() AddMatrixI(node) end )
 		InsertM:AddOption( "Text", function() AddTextI(node) end )
+		InsertM:AddOption( "Align", function() AddAlignI(node) end )
+		InsertM:AddOption( "Offset", function() AddOffsetI(node) end )
 		Menu:AddSpacer()
 		Menu:AddOption( "Remove" )
 		Menu:Open()

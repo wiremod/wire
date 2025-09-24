@@ -275,6 +275,10 @@ function ENT:DrawUnion(group)
 			self:DrawText(v)
 		elseif v.Type == MATRIX then 
 			self:DrawMatrix(v)
+		elseif v.Type == ALIGN then 
+			self.BitIndex = math.ceil(self.BitIndex/v.Size)*v.Size
+		elseif v.Type == OFFSET then 
+			self.BitIndex = self.BitIndex + v.Size
 		end
 		biggestindex = math.max(biggestindex,self.BitIndex)
 		self.BitIndex = savedindex
@@ -324,6 +328,10 @@ function ENT:DrawGroup(group)
 			self:DrawText(v)
 		elseif v.Type == MATRIX then 
 			self:DrawMatrix(v)
+		elseif v.Type == ALIGN then 
+			self.BitIndex = math.ceil(self.BitIndex/v.Size)*v.Size
+		elseif v.Type == OFFSET then 
+			self.BitIndex = self.BitIndex + v.Size
 		end
 	end
 	self:PopTransform()
@@ -412,7 +420,9 @@ function ENT:Draw()
 
 		
 		for i=1,#self2.TreeMesh do
-			self2.TreeMesh[i]:Draw()
+			if self2.TreeMesh[i] then
+				self2.TreeMesh[i]:Draw()
+			end
 		end
 		cam.PopModelMatrix()
 		

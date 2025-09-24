@@ -12,6 +12,8 @@ ENT.Spawnable       = false
 
 ENT.RenderGroup     = RENDERGROUP_BOTH
 
+OFFSET = -3
+ALIGN = -2
 GROUP = -1
 UNION = 0
 SEGMENT = 1
