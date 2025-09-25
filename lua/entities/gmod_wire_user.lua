@@ -1,51 +1,44 @@
 AddCSLuaFile()
-DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire User"
-ENT.RenderGroup		= RENDERGROUP_BOTH
-ENT.WireDebugName	= "User"
+ENT.Base = "base_wire_entity"
+ENT.PrintName = "Wire User"
+ENT.RenderGroup = RENDERGROUP_BOTH
+ENT.WireDebugName = "User"
 
 function ENT:SetupDataTables()
-	self:NetworkVar( "Float", 0, "BeamLength" )
+	self:NetworkVar("Float", 0, "BeamLength")
 end
 
-if CLIENT then return end -- No more client
+if CLIENT then return end
 
 function ENT:Initialize()
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = WireLib.CreateInputs(self, {"Fire"})
-	self:Setup(2048)
+	self:PhysicsInit(SOLID_VPHYSICS)
+	WireLib.CreateInputs(self, { "Fire" })
 end
 
-function ENT:Setup(Range)
-	if Range then self:SetBeamLength(Range) end
+function ENT:Setup(range)
+	if range then self:SetBeamLength(range) end
 end
-function ENT:TriggerInput(iname, value)
-	if iname == "Fire" and value ~= 0 then
-		local vStart = self:GetPos()
 
-		local trace = util.TraceLine( {
-			start = vStart,
-			endpos = vStart + (self:GetUp() * self:GetBeamLength()),
-			filter = { self },
-		})
+function ENT:TriggerInput(name, value)
+	if name == "Fire" and value ~= 0 then
+		local start = self:GetPos()
 
-		if not IsValid(trace.Entity) then return false end
+		local ent = util.TraceLine({
+			start = start,
+			endpos = start + self:GetUp() * self:GetBeamLength(),
+			filter = self
+		}).Entity
+
+		if not ent:IsValid() then return end
+
 		local ply = self:GetPlayer()
-		if not IsValid(ply) then ply = self end
+		if not ply:IsValid() then return end
 
-		if ply:IsPlayer() and ply:InVehicle() and trace.Entity:IsVehicle() then return end -- don't use a vehicle if you're in one
+		if hook.Run("PlayerUse", ply, ent) == false then return end
+		if hook.Run("WireUse", ply, ent, self) == false then return end
 
-		if hook.Run( "PlayerUse", ply, trace.Entity ) == false then return false end
-		if hook.Run( "WireUse", ply, trace.Entity, self ) == false then return false end
-
-		if trace.Entity.Use then
-			trace.Entity:Use(ply,self,USE_ON,0)
-		else
-			trace.Entity:Fire("use","1",0)
-		end
+		ent:Use(ply, self)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_user", WireLib.MakeWireEnt, "Data", "Range")
+duplicator.RegisterEntityClass("gmod_wire_user", WireLib.MakeWireEnt, "Data")
