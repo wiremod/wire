@@ -199,7 +199,8 @@ end
 ---@param args { [1]: string, [2]: string }[]?
 ---@param constructor fun(self: table)? # Constructor to run when E2 initially starts listening to this event. Passes E2 context
 ---@param destructor fun(self: table)? # Destructor to run when E2 stops listening to this event. Passes E2 context
-function E2Lib.registerEvent(name, args, constructor, destructor)
+---@param description string
+function E2Lib.registerEvent(name, args, constructor, destructor, description)
 	-- Ensure event starts with lowercase letter
 	-- assert(not E2Lib.Env.Events[name], "Possible addon conflict: Trying to override existing E2 event '" .. name .. "'")
 
@@ -232,6 +233,7 @@ function E2Lib.registerEvent(name, args, constructor, destructor)
 		name = name,
 		args = args or {},
 		extension = E2Lib.currentextension,
+		description = description,
 
 		constructor = constructor,
 		destructor = destructor,
@@ -313,7 +315,8 @@ if SERVER then
 			events_sanitized[evt] = {
 				name = data.name,
 				args = data.args,
-				extension = data.extension
+				extension = data.extension,
+				description = data.description
 			}
 		end
 
