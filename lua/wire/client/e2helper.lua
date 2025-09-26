@@ -243,8 +243,8 @@ function E2Helper.Create(reset)
 
 		local description = getdesc(line:GetValue(1), line:GetValue(3))
 
-		if desc then
-			E2Helper.DescriptionEntry:SetText(desc)
+		if description then
+			E2Helper.DescriptionEntry:SetText(description)
 			E2Helper.DescriptionEntry:SetTextColor(color_black)
 		else
 			E2Helper.DescriptionEntry:SetText("No description found :(")
