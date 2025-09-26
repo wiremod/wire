@@ -332,7 +332,10 @@ function E2Helper.GetFunctionSyntax(func, args, rets)
 			local argnames = {}
 
 			for _, arg in ipairs(E2Lib.Env.Events[func].args) do
-				table.insert(argnames, wire_expression_types2[arg.type][1]:lower() .. " " .. string.lower(arg.placeholder))
+				local typename = wire_expression_types2[arg.type][1]:lower()
+				if typename == "normal" then typename = "number" end
+
+				table.insert(argnames, typename .. " " .. string.lower(arg.placeholder))
 			end
 
 			return string.format("event %s(%s)", func, table.concat(argnames, ","))
