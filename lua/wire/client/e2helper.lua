@@ -160,8 +160,9 @@ function E2Helper.Create(reset)
 		E2Helper.Resize()
 	end
 
-	-- holds all the lines describing a constant
+	-- holds all the lines describing a constant and events
 	E2Helper.constants = {}
+	E2Helper.events = {}
 
 	E2Helper.DescriptionEntry = vgui.Create("DTextEntry", E2Helper.Frame)
 	E2Helper.DescriptionEntry:SetPos(5, 330)
@@ -198,6 +199,7 @@ function E2Helper.Create(reset)
 		self:SelectItem(line)
 
 		local const = E2Helper.constants[line]
+
 		if const then
 			E2Helper.FuncEntry:SetText(line:GetValue(1) .. " (" .. const.type .. ")")
 
@@ -208,16 +210,45 @@ function E2Helper.Create(reset)
 				E2Helper.DescriptionEntry:SetText("No description found :(")
 				E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))
 			end
-		else
-			E2Helper.FuncEntry:SetText(E2Helper.GetFunctionSyntax(line:GetValue(1), line:GetValue(3), line:GetValue(4)))
-			local desc = getdesc(line:GetValue(1), line:GetValue(3))
-			if desc then
-				E2Helper.DescriptionEntry:SetText(desc)
-				E2Helper.DescriptionEntry:SetTextColor(Color(0, 0, 0))
+
+			return
+		end
+
+		local event = E2Helper.events[line]
+
+		if event then
+			local argnames = {}
+
+			for _, arg in ipairs(event.args) do
+				local typename = wire_expression_types2[arg.type][1]:lower()
+				if typename == "normal" then typename = "number" end
+
+				table.insert(argnames, typename .. " " .. string.lower(arg.placeholder))
+			end
+
+			E2Helper.FuncEntry:SetText(string.format("event %s(%s)", event.name, table.concat(argnames, ",")))
+
+			if event.description then
+				E2Helper.DescriptionEntry:SetText(event.description)
+				E2Helper.DescriptionEntry:SetTextColor(color_black)
 			else
 				E2Helper.DescriptionEntry:SetText("No description found :(")
 				E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))
 			end
+
+			return
+		end
+
+		E2Helper.FuncEntry:SetText(E2Helper.GetFunctionSyntax(line:GetValue(1), line:GetValue(3), line:GetValue(4)))
+
+		local description = getdesc(line:GetValue(1), line:GetValue(3))
+
+		if desc then
+			E2Helper.DescriptionEntry:SetText(desc)
+			E2Helper.DescriptionEntry:SetTextColor(color_black)
+		else
+			E2Helper.DescriptionEntry:SetText("No description found :(")
+			E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))
 		end
 	end
 
@@ -328,24 +359,11 @@ end
 
 function E2Helper.GetFunctionSyntax(func, args, rets)
 	if E2Helper.CurrentMode == "E2" then
-		if E2Lib.Env.Events[func] then
-			local argnames = {}
+		local signature = func .. "(" .. args .. ")"
 
-			for _, arg in ipairs(E2Lib.Env.Events[func].args) do
-				local typename = wire_expression_types2[arg.type][1]:lower()
-				if typename == "normal" then typename = "number" end
-
-				table.insert(argnames, typename .. " " .. string.lower(arg.placeholder))
-			end
-
-			return string.format("event %s(%s)", func, table.concat(argnames, ","))
-		else
-			local signature = func .. "(" .. args .. ")"
-
-			local ret = E2Lib.generate_signature(signature, rets, wire_expression2_funcs[signature].argnames)
-			if rets ~= "" then ret = ret:sub(1, 1):upper() .. ret:sub(2) end
-			return ret
-		end
+		local ret = E2Lib.generate_signature(signature, rets, wire_expression2_funcs[signature].argnames)
+		if rets ~= "" then ret = ret:sub(1, 1):upper() .. ret:sub(2) end
+		return ret
 	else
 		--local args = string.gsub(args, "(%a)", "%1,", string.len( args ) - 1) -- this gsub puts a comma in between each letter
 		return func .. " " .. args
@@ -364,8 +382,10 @@ function E2Helper.Update()
 	local maxcount = E2Helper.MaxEntry:GetValue()
 	local tooltip = E2Helper.Tooltip:GetChecked(true)
 
-	-- add E2 constants
+	-- add E2 constants and events
 	E2Helper.constants = {}
+	E2Helper.events = {}
+
 	if E2Helper.CurrentMode == "E2" then
 		for k, v in pairs(wire_expression2_constants) do
 			-- constants have no arguments and no cost
@@ -387,6 +407,7 @@ function E2Helper.Update()
 
 			if event.name:lower():find(search_name, 1, true) and search_args == "" and rets:find(search_rets, 1, true) and string.find("events", search_from, 1, true) then
 				local line = E2Helper.ResultFrame:AddLine(event.name, event.extension, nil, rets, 0)
+				E2Helper.events[line] = event
 				count = count + 1
 				if count >= maxcount then break end
 			end
