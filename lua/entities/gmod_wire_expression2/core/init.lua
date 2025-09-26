@@ -231,6 +231,7 @@ function E2Lib.registerEvent(name, args, constructor, destructor)
 	E2Lib.Env.Events[name] = {
 		name = name,
 		args = args or {},
+		extension = E2Lib.currentextension,
 
 		constructor = constructor,
 		destructor = destructor,
@@ -311,7 +312,8 @@ if SERVER then
 		for evt, data in pairs(E2Lib.Env.Events) do
 			events_sanitized[evt] = {
 				name = data.name,
-				args = data.args
+				args = data.args,
+				extension = data.extension
 			}
 		end
 
