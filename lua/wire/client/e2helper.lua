@@ -328,10 +328,21 @@ end
 
 function E2Helper.GetFunctionSyntax(func, args, rets)
 	if E2Helper.CurrentMode == "E2" then
-		local signature = func .. "(" .. args .. ")"
-		local ret = E2Lib.generate_signature(signature, rets, wire_expression2_funcs[signature].argnames)
-		if rets ~= "" then ret = ret:sub(1, 1):upper() .. ret:sub(2) end
-		return ret
+		if E2Lib.Env.Events[func] then
+			local argnames = {}
+
+			for _, arg in ipairs(E2Lib.Env.Events[func].args) do
+				table.insert(argnames, wire_expression_types2[arg.type][1]:lower() .. " " .. string.lower(arg.placeholder))
+			end
+
+			return string.format("event %s(%s)", func, table.concat(argnames, ","))
+		else
+			local signature = func .. "(" .. args .. ")"
+
+			local ret = E2Lib.generate_signature(signature, rets, wire_expression2_funcs[signature].argnames)
+			if rets ~= "" then ret = ret:sub(1, 1):upper() .. ret:sub(2) end
+			return ret
+		end
 	else
 		--local args = string.gsub(args, "(%a)", "%1,", string.len( args ) - 1) -- this gsub puts a comma in between each letter
 		return func .. " " .. args
@@ -359,6 +370,21 @@ function E2Helper.Update()
 			if name:lower():find(search_name, 1, true) and search_args == "" and rets:lower():find(search_rets, 1, true) and string.find("constants",search_from, 1, true) then
 				local line = E2Helper.ResultFrame:AddLine(name, v.extension, args, rets, cost)
 				E2Helper.constants[line] = v
+				count = count + 1
+				if count >= maxcount then break end
+			end
+		end
+
+		for k, event in pairs(E2Lib.Env.Events) do
+			--E2Lib.currentextension
+			local rets = ""
+
+			for _, arg in ipairs(event.args) do
+				rets = rets .. arg.type
+			end
+
+			if event.name:lower():find(search_name, 1, true) and search_args == "" and rets:find(search_rets, 1, true) then
+				local line = E2Helper.ResultFrame:AddLine(event.name, "events", nil, rets, 0)
 				count = count + 1
 				if count >= maxcount then break end
 			end
