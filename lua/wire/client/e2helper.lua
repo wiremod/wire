@@ -376,14 +376,13 @@ function E2Helper.Update()
 		end
 
 		for k, event in pairs(E2Lib.Env.Events) do
-			--E2Lib.currentextension
 			local rets = ""
 
 			for _, arg in ipairs(event.args) do
 				rets = rets .. arg.type
 			end
 
-			if event.name:lower():find(search_name, 1, true) and search_args == "" and rets:find(search_rets, 1, true) and string.find("events",search_from, 1, true) then
+			if event.name:lower():find(search_name, 1, true) and search_args == "" and rets:find(search_rets, 1, true) and string.find("events", search_from, 1, true) then
 				local line = E2Helper.ResultFrame:AddLine(event.name, event.extension, nil, rets, 0)
 				count = count + 1
 				if count >= maxcount then break end
