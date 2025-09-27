@@ -360,7 +360,6 @@ end
 function E2Helper.GetFunctionSyntax(func, args, rets)
 	if E2Helper.CurrentMode == "E2" then
 		local signature = func .. "(" .. args .. ")"
-
 		local ret = E2Lib.generate_signature(signature, rets, wire_expression2_funcs[signature].argnames)
 		if rets ~= "" then ret = ret:sub(1, 1):upper() .. ret:sub(2) end
 		return ret
