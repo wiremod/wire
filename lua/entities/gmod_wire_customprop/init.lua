@@ -8,9 +8,9 @@ local ENT_META = FindMetaTable("Entity")
 local Ent_GetTable = ENT_META.GetTable
 
 local wire_customprops_hullsize_max = CreateConVar("wire_customprops_hullsize_max", 2048, FCVAR_ARCHIVE, "The max hull size of a custom prop")
-local wire_customprops_minvertexdistance = CreateConVar("wire_customprops_minvertexdistance", 0.2, FCVAR_ARCHIVE, "The min distance between two vertices in a custom prop")
-local wire_customprops_vertices_max = CreateConVar("wire_customprops_vertices_max", 512, FCVAR_ARCHIVE, "How many vertices custom props can have.", 4, 1024)
-local wire_customprops_convexes_max = CreateConVar("wire_customprops_convexes_max", 16, FCVAR_ARCHIVE, "How many convexes custom props can have.", 1, 64)
+local wire_customprops_minvertexdistance = CreateConVar("wire_customprops_minvertexdistance", 0.2, FCVAR_ARCHIVE, "The min distance between two vertices in a custom prop.")
+local wire_customprops_vertices_max = CreateConVar("wire_customprops_vertices_max", 512, FCVAR_ARCHIVE, "How many vertices custom props can have.", 4)
+local wire_customprops_convexes_max = CreateConVar("wire_customprops_convexes_max", 8, FCVAR_ARCHIVE, "How many convexes custom props can have.", 1)
 
 function ENT:Initialize()
 	self.BaseClass.Initialize(self)
@@ -179,18 +179,15 @@ function WireLib.createCustomProp(ply, pos, ang, wiremeshdata)
 		assert(false, "Custom prop has invalid physics!")
 	end
 
-	propent:SetOwner(ply)
 	propent:SetPos(pos)
 	propent:SetAngles(ang)
-	-- Transmit after a short delay so the client has a chance to create the entity
-	-- and register its net receivers (prevents first-send race).
-	timer.Simple(0, function()
-		if IsValid(propent) then propent:TransmitData() end
-	end)
+	propent:TransmitData()
 
 	physobj:EnableCollisions(true)
 	physobj:EnableDrag(true)
 	physobj:Wake()
+
+	gamemode.Call("PlayerSpawnedSENT", ply, propent)
 
 	local totalVertices = 0
 	for k, v in ipairs(meshConvexes) do
