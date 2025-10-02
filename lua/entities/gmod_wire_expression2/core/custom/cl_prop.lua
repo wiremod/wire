@@ -36,6 +36,7 @@ E2Helper.Descriptions["sentIsEnabled()"] = "Returns 1 if server allows spawning 
 E2Helper.Descriptions["seatSpawn(sn)"] = "Model path, Frozen Spawns a prop with the model denoted by the string filepath. If frozen is 0, then it will spawn unfrozen."
 E2Helper.Descriptions["seatSpawn(svan)"] = E2Helper.Descriptions["seatSpawn(sn)"]
 E2Helper.Descriptions["seatSpawn(svans)"] = E2Helper.Descriptions["seatSpawn(sn)"] .. " String seatType, determines what animations the seat will have. For example phx_seat2 and phx_seat3 will have Jeep and Airboat animations."
+E2Helper.Descriptions["customPropSpawn(t)"] = "Spawns a custom prop with the given table of format {1 = {}}"
 E2Helper.Descriptions["propSpawnEffect(n)"] = "Set to 1 to enable prop spawn effect, 0 to disable."
 E2Helper.Descriptions["propDelete(e:)"] = "Deletes the specified prop."
 E2Helper.Descriptions["propDelete(t:)"] = "Deletes all the props in the given table, returns the amount of props deleted."

@@ -12,6 +12,9 @@ local sbox_E2_canMakeStatue = CreateConVar("sbox_E2_canMakeStatue", "1", FCVAR_A
 local wire_expression2_propcore_sents_whitelist = CreateConVar("wire_expression2_propcore_sents_whitelist", 1, FCVAR_ARCHIVE, "If 1 - players can spawn sents only from the default sent list. If 0 - players can spawn sents from both the registered list and the entity tab.", 0, 1)
 local wire_expression2_propcore_sents_enabled = CreateConVar("wire_expression2_propcore_sents_enabled", 1, FCVAR_ARCHIVE, "If 1 - this allows sents to be spawned. (Doesn't affect the sentSpawn whitelist). If 0 - prevents sentSpawn from being used at all.", 0, 1)
 local wire_expression2_propcore_canMakeUnbreakable = CreateConVar("wire_expression2_propcore_canMakeUnbreakable", 1, FCVAR_ARCHIVE, "If 1 - this allows props to be made unbreakable. If 0 - prevents propMakeBreakable from being used at all.", 0, 1)
+local wire_expression2_propcore_customprops_enabled = CreateConVar("wire_expression2_propcore_customprops_enabled", 1, FCVAR_ARCHIVE, "If 1 - this allows custom props to be spawned. If 0 - prevents customPropSpawn from being used at all.", 0, 1)
+local wire_expression2_propcore_customprops_delay = CreateConVar("wire_expression2_propcore_customprops_delay", 2, FCVAR_ARCHIVE, "How many seconds to wait after spawning a custom prop before allowing to spawn another one. (Too low may allow lag abuse)", 0)
+local wire_expression2_propcore_customprops_max = CreateConVar("wire_expression2_propcore_customprops_max", 10, FCVAR_ARCHIVE, "The maximum number of custom props a player can spawn.")
 
 local isOwner = E2Lib.isOwner
 local GetBones = E2Lib.GetBones
@@ -340,7 +343,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 
 			entity = stored_sent.t.SpawnFunction(stored_sent.t, self.player, mockTrace, class)
 		else
-			entity = ents.Create( class )
+			entity = ents.Create(class)
 			if IsValid(entity) then
 				entity:SetPos(pos)
 				entity:SetAngles(angles)
@@ -397,6 +400,62 @@ local function sentDataFormatDefaultVal( val )
 end
 
 local CreateSent = PropCore.CreateSent
+
+local function spawnCustomProp(self, convexes, pos, ang, freeze)
+	if self.player.customPropsSpawned and self.player.customPropsSpawned >= wire_expression2_propcore_customprops_max:GetInt() then
+		return self:throw("You have reached the maximum number of custom props you can spawn! (" .. wire_expression2_propcore_customprops_max:GetInt() .. ")", nil)
+	end
+
+	if CurTime() < (self.player.customPropLastSpawn or 0) + wire_expression2_propcore_customprops_delay:GetFloat() then
+		self:throw("You can't spawn a custom prop just yet! (Use customPropCanSpawn or customPropCanSpawnIn to check)", nil)
+	end
+
+	if wire_expression2_propcore_customprops_enabled:GetBool() == false then
+		self:throw("Custom prop spawning is disabled by server! (wire_expression2_propcore_customprops_enabled 0)", nil)
+	end
+	if not ValidAction(self, nil, "spawn") then return NULL end
+
+	convexes = castE2ValueToLuaValue(TYPE_TABLE, convexes)
+	PrintTable(convexes)
+	local success, entity = pcall(WireLib.createCustomProp, self.player, pos, ang, convexes)
+
+	if not success then
+		-- Remove file/line info from error string
+    	local msg = tostring(entity)--:gsub("^[^:]+:%d+:%s*", "")
+		self:throw("Failed to spawn custom prop! " .. msg, nil)
+	end
+
+	local phys = entity:GetPhysicsObject()
+	-- if IsValid( phys ) then
+	-- 	phys:EnableMotion( freeze == 0 )
+	-- 	phys:Wake()
+	-- end
+
+	self.player:AddCleanup("gmod_wire_customprop", entity)
+
+	if self.data.propSpawnUndo then
+		undo.Create("gmod_wire_customprop")
+			undo.AddEntity(entity)
+			undo.SetPlayer(self.player)
+		undo.Finish("E2 Custom Prop")
+	end
+
+	entity:CallOnRemove("wire_expression2_propcore_remove",
+		function(entity)
+			self.data.spawnedProps[entity] = nil
+
+			if IsValid(self.player) then
+				self.player.customPropsSpawned = (self.player.customPropsSpawned or 1) - 1
+			end
+		end
+	)
+
+	self.player.customPropLastSpawn = CurTime()
+	self.data.spawnedProps[entity] = self.data.propSpawnUndo
+	self.player.customPropsSpawned = (self.player.customPropsSpawned or 0) + 1
+
+	return entity
+end
 
 --------------------------------------------------------------------------------
 __e2setcost(40)
@@ -691,6 +750,51 @@ e2function entity seatSpawn(string model, vector pos, angle rot, number frozen, 
 	if model == "" then model = "models/nova/airboat_seat.mdl" end
 	if vehicleType == "" then vehicleType = "Seat_Airboat" end
 	return CreateProp(self, model, pos, rot, frozen, vehicleType)
+end
+
+--------------------------------------------------------------------------------
+
+__e2setcost(150)
+e2function entity customPropSpawn(table convexes)
+	return spawnCustomProp(self, convexes, self.entity:GetPos() + self.entity:GetUp() * 25, self.entity:GetAngles(), 1)
+end
+
+e2function entity customPropSpawn(table convexes, vector pos, angle ang, number frozen)
+	return spawnCustomProp(self, convexes, Vector(pos[1], pos[2], pos[3]), Angle(ang[1], ang[2], ang[3]), frozen)
+end
+
+--------------------------------------------------------------------------------
+
+__e2setcost(5)
+[nodiscard]
+e2function number customPropCanSpawn()
+	return CurTime() >= (self.player.customPropLastSpawn or 0) + wire_expression2_propcore_customprops_delay:GetFloat() and 1 or 0
+end
+
+[nodiscard]
+e2function number customPropCanSpawnIn()
+	local timeleft = (self.player.customPropLastSpawn or 0) + wire_expression2_propcore_customprops_delay:GetFloat() - CurTime()
+	return timeleft > 0 and math.ceil(timeleft) or 0
+end
+
+[nodiscard]
+e2function number customPropIsEnabled()
+	return wire_expression2_propcore_customprops_enabled:GetBool() and 1 or 0
+end
+
+[nodiscard]
+e2function number customPropGetDelay()
+	return wire_expression2_propcore_customprops_delay:GetFloat()
+end
+
+[nodiscard]
+e2function number customPropsLeft()
+	return math.max(0, math.floor(wire_expression2_propcore_customprops_max:GetInt() - (self.player.customPropsSpawned or 0)))
+end
+
+[nodiscard]
+e2function number customPropsMax()
+	return wire_expression2_propcore_customprops_max:GetInt()
 end
 
 --------------------------------------------------------------------------------
