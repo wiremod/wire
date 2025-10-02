@@ -401,7 +401,11 @@ end
 
 local CreateSent = PropCore.CreateSent
 
-local function spawnCustomProp(self, convexes, pos, ang, freeze)
+local wire_customprops_hullsize_max = GetConVar("wire_customprops_hullsize_max")
+local wire_customprops_minvertexdistance = GetConVar("wire_customprops_minvertexdistance")
+local wire_customprops_vertices_max = GetConVar("wire_customprops_vertices_max")
+local wire_customprops_convexes_max = GetConVar("wire_customprops_convexes_max")
+local function createCustomProp(self, convexes, pos, ang, freeze)
 	if self.player.customPropsSpawned and self.player.customPropsSpawned >= wire_expression2_propcore_customprops_max:GetInt() then
 		return self:throw("You have reached the maximum number of custom props you can spawn! (" .. wire_expression2_propcore_customprops_max:GetInt() .. ")", nil)
 	end
@@ -416,7 +420,6 @@ local function spawnCustomProp(self, convexes, pos, ang, freeze)
 	if not ValidAction(self, nil, "spawn") then return NULL end
 
 	convexes = castE2ValueToLuaValue(TYPE_TABLE, convexes)
-	PrintTable(convexes)
 	local success, entity = pcall(WireLib.createCustomProp, self.player, pos, ang, convexes)
 
 	if not success then
@@ -756,11 +759,11 @@ end
 
 __e2setcost(150)
 e2function entity customPropSpawn(table convexes)
-	return spawnCustomProp(self, convexes, self.entity:GetPos() + self.entity:GetUp() * 25, self.entity:GetAngles(), 1)
+	return createCustomProp(self, convexes, self.entity:GetPos() + self.entity:GetUp() * 25, self.entity:GetAngles(), 1)
 end
 
 e2function entity customPropSpawn(table convexes, vector pos, angle ang, number frozen)
-	return spawnCustomProp(self, convexes, Vector(pos[1], pos[2], pos[3]), Angle(ang[1], ang[2], ang[3]), frozen)
+	return createCustomProp(self, convexes, Vector(pos[1], pos[2], pos[3]), Angle(ang[1], ang[2], ang[3]), frozen)
 end
 
 --------------------------------------------------------------------------------
@@ -768,7 +771,7 @@ end
 __e2setcost(5)
 [nodiscard]
 e2function number customPropCanSpawn()
-	return CurTime() >= (self.player.customPropLastSpawn or 0) + wire_expression2_propcore_customprops_delay:GetFloat() and 1 or 0
+	return self.player.customPropsSpawned < wire_expression2_propcore_customprops_max:GetInt() and (CurTime() >= (self.player.customPropLastSpawn or 0) + wire_expression2_propcore_customprops_delay:GetFloat() and 1 or 0) or 0
 end
 
 [nodiscard]
@@ -795,6 +798,32 @@ end
 [nodiscard]
 e2function number customPropsMax()
 	return wire_expression2_propcore_customprops_max:GetInt()
+end
+
+[nodiscard]
+e2function number customPropConvexesMax()
+	return wire_customprops_convexes_max:GetInt()
+end
+
+[nodiscard]
+e2function number customPropVerticesMax()
+	return wire_customprops_vertices_max:GetInt()
+end
+
+[nodiscard]
+e2function number customPropMinVertexDistance()
+	return wire_customprops_minvertexdistance:GetFloat()
+end
+
+[nodiscard]
+e2function number customPropHullSizeMax()
+	return wire_customprops_hullsize_max:GetFloat()
+end
+
+__e2setcost(1)
+[nodiscard]
+e2function number customPropsSpawned()
+	return self.player.customPropsSpawned or 0
 end
 
 --------------------------------------------------------------------------------
