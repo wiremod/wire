@@ -720,34 +720,6 @@ elseif CLIENT then
 		ents_with_inputs[eid] = nil
 		ents_with_outputs[eid] = nil
 	end
-
-	local flag = false
-	function WireLib.TestPorts()
-		flag = not flag
-		if flag then
-			local lasteid = 0
-			hook.Add("HUDPaint", "wire_ports_test", function()
-				local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
-				--if not ent:IsValid() then return end
-				local eid = IsValid(ent) and ent:EntIndex() or lasteid
-				lasteid = eid
-
-				local text = "ID "..eid.."\nInputs:\n"
-				for _,name,tp,desc,connected in ipairs_map(ents_with_inputs[eid] or {}, unpack) do
-
-					text = text..(connected and "-" or " ")
-					text = text..string.format("%s (%s) [%s]\n", name, tp, desc)
-				end
-				text = text.."\nOutputs:\n"
-				for _,name,tp,desc in ipairs_map(ents_with_outputs[eid] or {}, unpack) do
-					text = text..string.format("%s (%s) [%s]\n", name, tp, desc)
-				end
-				draw.DrawText(text,"Trebuchet24",10,300,Color(255,255,255,255),0)
-			end)
-		else
-			hook.Remove("HUDPaint", "wire_ports_test")
-		end
-	end
 end
 
 --[[
