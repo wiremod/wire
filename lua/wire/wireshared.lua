@@ -151,7 +151,6 @@ end
 
 local table = table
 local pairs_sortvalues = pairs_sortvalues
-local ipairs_map = ipairs_map
 
 --------------------------------------------------------------------------------
 
