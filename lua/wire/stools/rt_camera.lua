@@ -36,8 +36,7 @@ TOOL.ClientConVar = {
 
 local MODELS = {
     ["models/maxofs2d/camera.mdl"] = true,
-    ["models/dav0r/camera.mdl"] = true,
-    ["models/props_wasteland/camera_lens001a.mdl"] = true
+    ["models/dav0r/camera.mdl"] = true
 }
 
 if SERVER then
