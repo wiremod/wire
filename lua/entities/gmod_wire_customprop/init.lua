@@ -7,10 +7,13 @@ util.AddNetworkString(shared.classname)
 local ENT_META = FindMetaTable("Entity")
 local Ent_GetTable = ENT_META.GetTable
 
+// Reason why there are more max convexes but less max vertices by default is that client's ENT:BuildPhysics is the main bottleneck.
+// It seems to require more time exponentially to the vertices amount.
+// The same amount of vertices in total, but broken into different convexes greatly reduces the performance hit.
 local wire_customprops_hullsize_max = CreateConVar("wire_customprops_hullsize_max", 2048, FCVAR_ARCHIVE, "The max hull size of a custom prop")
 local wire_customprops_minvertexdistance = CreateConVar("wire_customprops_minvertexdistance", 0.2, FCVAR_ARCHIVE, "The min distance between two vertices in a custom prop.")
-local wire_customprops_vertices_max = CreateConVar("wire_customprops_vertices_max", 512, FCVAR_ARCHIVE, "How many vertices custom props can have.", 4)
-local wire_customprops_convexes_max = CreateConVar("wire_customprops_convexes_max", 8, FCVAR_ARCHIVE, "How many convexes custom props can have.", 1)
+local wire_customprops_vertices_max = CreateConVar("wire_customprops_vertices_max", 64, FCVAR_ARCHIVE, "How many vertices custom props can have.", 4)
+local wire_customprops_convexes_max = CreateConVar("wire_customprops_convexes_max", 16, FCVAR_ARCHIVE, "How many convexes custom props can have.", 1)
 
 function ENT:Initialize()
 	self.BaseClass.Initialize(self)
@@ -78,6 +81,7 @@ function ENT:TransmitData(recip)
 	net.Start(shared.classname)
 	shared.writeReliableEntity(self)
 	local stream = net.WriteStream(self.wiremeshdata, nil, true)
+
 	if recip then net.Send(recip) else net.Broadcast() end
 	return stream
 end
@@ -89,23 +93,30 @@ hook.Add("PlayerInitialSpawn","CustomProp_SpawnFunc",function(ply)
 end)
 
 local function streamToMesh(meshdata)
-	local maxConvexesPerProp = maxConvexesPerProp:GetInt()
-    local maxVerticesPerConvex = maxVerticesPerConvex:GetInt()
+	local maxHullsize = wire_customprops_hullsize_max:GetFloat()
+	local quantMinX, quantMinY, quantMinZ = -maxHullsize, -maxHullsize, -maxHullsize
+	local quantMaxX, quantMaxY, quantMaxZ = maxHullsize, maxHullsize, maxHullsize
+	local maxConvexesPerProp = wire_customprops_convexes_max:GetInt()
+    local maxVerticesPerConvex = wire_customprops_vertices_max:GetInt()
 
     local meshConvexes = {}
     local data = util.Decompress(meshdata, 65536)
+    if not data or type(data) ~= "string" then return meshConvexes end
+
     local pos = 1
     local nConvexes
-    nConvexes, pos = string.unpack("I4", data, pos)
+    nConvexes, pos = shared.readInt16(data, pos)
     assert(nConvexes <= maxConvexesPerProp, "Exceeded the max convexes per prop (max: " .. maxConvexesPerProp .. ", got: " .. nConvexes .. ")")
     for iConvex = 1, nConvexes do
         local nVertices
-        nVertices, pos = string.unpack("I4", data, pos)
+        nVertices, pos = shared.readInt16(data, pos)
         assert(nVertices <= maxVerticesPerConvex, "Exceeded the max vertices per convex (max: " .. maxVerticesPerConvex .. ", got: " .. nVertices .. ")")
         local convex = {}
         for iVertex = 1, nVertices do
             local x, y, z
-            x, y, z, pos = string.unpack("fff", data, pos)
+            x, pos = shared.readQuantizedFloat16(data, pos, quantMinX, quantMaxX)
+            y, pos = shared.readQuantizedFloat16(data, pos, quantMinY, quantMaxY)
+            z, pos = shared.readQuantizedFloat16(data, pos, quantMinZ, quantMaxZ)
             convex[iVertex] = Vector(x, y, z)
         end
         meshConvexes[iConvex] = convex
@@ -114,15 +125,19 @@ local function streamToMesh(meshdata)
 end
 
 local function meshToStream(meshConvexes)
+	local maxHullsize = wire_customprops_hullsize_max:GetFloat()
+	local quantMinX, quantMinY, quantMinZ = -maxHullsize, -maxHullsize, -maxHullsize
+	local quantMaxX, quantMaxY, quantMaxZ = maxHullsize, maxHullsize, maxHullsize
+
 	local buffer = {}
 
-    buffer[#buffer+1] = shared.writeInt32(#meshConvexes)
+    buffer[#buffer+1] = shared.writeInt16(#meshConvexes)
     for _, convex in ipairs(meshConvexes) do
-        buffer[#buffer+1] = shared.writeInt32(#convex)
+        buffer[#buffer+1] = shared.writeInt16(#convex)
         for _, vertex in ipairs(convex) do
-            buffer[#buffer+1] = shared.writeFloat(vertex[1])
-            buffer[#buffer+1] = shared.writeFloat(vertex[2])
-            buffer[#buffer+1] = shared.writeFloat(vertex[3])
+            buffer[#buffer+1] = shared.writeQuantizedFloat16(vertex.x, quantMinX, quantMaxX)
+			buffer[#buffer+1] = shared.writeQuantizedFloat16(vertex.y, quantMinY, quantMaxY)
+			buffer[#buffer+1] = shared.writeQuantizedFloat16(vertex.z, quantMinZ, quantMaxZ)
         end
     end
 
@@ -131,6 +146,7 @@ end
 
 local function checkMesh(ply, meshConvexes)
 	local maxHullSize = wire_customprops_hullsize_max:GetFloat()
+
     local mindist = wire_customprops_minvertexdistance:GetFloat()
     local maxConvexesPerProp = wire_customprops_convexes_max:GetInt()
     local maxVerticesPerConvex = wire_customprops_vertices_max:GetInt()
@@ -197,4 +213,4 @@ function WireLib.createCustomProp(ply, pos, ang, wiremeshdata)
 	return propent
 end
 
-duplicator.RegisterEntityClass(shared.classname, createCustomProp, "Pos", "Ang", "wiremeshdata")
+duplicator.RegisterEntityClass(shared.classname, WireLib.createCustomProp, "Pos", "Ang", "wiremeshdata")

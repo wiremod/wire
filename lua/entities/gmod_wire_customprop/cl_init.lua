@@ -85,23 +85,26 @@ function ENT:GetRenderMesh()
 	end
 end
 
+local wire_customprops_hullsize_max = GetConVar("wire_customprops_hullsize_max")
+local quantMinX, quantMinY, quantMinZ = -wire_customprops_hullsize_max:GetFloat(), -wire_customprops_hullsize_max:GetFloat(), -wire_customprops_hullsize_max:GetFloat()
+local quantMaxX, quantMaxY, quantMaxZ = wire_customprops_hullsize_max:GetFloat(), wire_customprops_hullsize_max:GetFloat(), wire_customprops_hullsize_max:GetFloat()
 local function streamToMesh(meshdata)
 	local meshConvexes, posMins, posMaxs = {}, Vector(math.huge, math.huge, math.huge), Vector(-math.huge, -math.huge, -math.huge)
 
-    local meshdata = util.Decompress(meshdata, 65536)
+    meshdata = util.Decompress(meshdata, 65536)
 
     local pos = 1
     local nConvexes
-    nConvexes, pos = shared.readInt32(meshdata, pos)
+    nConvexes, pos = shared.readInt16(meshdata, pos)
     for iConvex = 1, nConvexes do
         local nVertices
-        nVertices, pos = shared.readInt32(meshdata, pos)
+        nVertices, pos = shared.readInt16(meshdata, pos)
         local convex = {}
         for iVertex = 1, nVertices do
             local x, y, z
-            x, pos = shared.readFloat(meshdata, pos)
-            y, pos = shared.readFloat(meshdata, pos)
-            z, pos = shared.readFloat(meshdata, pos)
+            x, pos = shared.readQuantizedFloat16(meshdata, pos, quantMinX, quantMaxX)
+			y, pos = shared.readQuantizedFloat16(meshdata, pos, quantMinY, quantMaxY)
+			z, pos = shared.readQuantizedFloat16(meshdata, pos, quantMinZ, quantMaxZ)
             if x > posMaxs.x then posMaxs.x = x end
             if y > posMaxs.y then posMaxs.y = y end
             if z > posMaxs.z then posMaxs.z = z end
