@@ -97,31 +97,31 @@ local function streamToMesh(meshdata)
 	local quantMinX, quantMinY, quantMinZ = -maxHullsize, -maxHullsize, -maxHullsize
 	local quantMaxX, quantMaxY, quantMaxZ = maxHullsize, maxHullsize, maxHullsize
 	local maxConvexesPerProp = wire_customprops_convexes_max:GetInt()
-    local maxVerticesPerConvex = wire_customprops_vertices_max:GetInt()
+	local maxVerticesPerConvex = wire_customprops_vertices_max:GetInt()
 
-    local meshConvexes = {}
-    local data = util.Decompress(meshdata, 65536)
-    if not data or type(data) ~= "string" then return meshConvexes end
+	local meshConvexes = {}
+	local data = util.Decompress(meshdata, 65536)
+	if not data or type(data) ~= "string" then return meshConvexes end
 
-    local pos = 1
-    local nConvexes
-    nConvexes, pos = shared.readInt16(data, pos)
-    assert(nConvexes <= maxConvexesPerProp, "Exceeded the max convexes per prop (max: " .. maxConvexesPerProp .. ", got: " .. nConvexes .. ")")
-    for iConvex = 1, nConvexes do
-        local nVertices
-        nVertices, pos = shared.readInt16(data, pos)
-        assert(nVertices <= maxVerticesPerConvex, "Exceeded the max vertices per convex (max: " .. maxVerticesPerConvex .. ", got: " .. nVertices .. ")")
-        local convex = {}
-        for iVertex = 1, nVertices do
-            local x, y, z
-            x, pos = shared.readQuantizedFloat16(data, pos, quantMinX, quantMaxX)
-            y, pos = shared.readQuantizedFloat16(data, pos, quantMinY, quantMaxY)
-            z, pos = shared.readQuantizedFloat16(data, pos, quantMinZ, quantMaxZ)
-            convex[iVertex] = Vector(x, y, z)
-        end
-        meshConvexes[iConvex] = convex
-    end
-    return meshConvexes
+	local pos = 1
+	local nConvexes
+	nConvexes, pos = shared.readInt16(data, pos)
+	assert(nConvexes <= maxConvexesPerProp, "Exceeded the max convexes per prop (max: " .. maxConvexesPerProp .. ", got: " .. nConvexes .. ")")
+	for iConvex = 1, nConvexes do
+		local nVertices
+		nVertices, pos = shared.readInt16(data, pos)
+		assert(nVertices <= maxVerticesPerConvex, "Exceeded the max vertices per convex (max: " .. maxVerticesPerConvex .. ", got: " .. nVertices .. ")")
+		local convex = {}
+		for iVertex = 1, nVertices do
+			local x, y, z
+			x, pos = shared.readQuantizedFloat16(data, pos, quantMinX, quantMaxX)
+			y, pos = shared.readQuantizedFloat16(data, pos, quantMinY, quantMaxY)
+			z, pos = shared.readQuantizedFloat16(data, pos, quantMinZ, quantMaxZ)
+			convex[iVertex] = Vector(x, y, z)
+		end
+		meshConvexes[iConvex] = convex
+	end
+	return meshConvexes
 end
 
 local function meshToStream(meshConvexes)
@@ -131,41 +131,41 @@ local function meshToStream(meshConvexes)
 
 	local buffer = {}
 
-    buffer[#buffer+1] = shared.writeInt16(#meshConvexes)
-    for _, convex in ipairs(meshConvexes) do
-        buffer[#buffer+1] = shared.writeInt16(#convex)
-        for _, vertex in ipairs(convex) do
-            buffer[#buffer+1] = shared.writeQuantizedFloat16(vertex.x, quantMinX, quantMaxX)
+	buffer[#buffer+1] = shared.writeInt16(#meshConvexes)
+	for _, convex in ipairs(meshConvexes) do
+		buffer[#buffer+1] = shared.writeInt16(#convex)
+		for _, vertex in ipairs(convex) do
+			buffer[#buffer+1] = shared.writeQuantizedFloat16(vertex.x, quantMinX, quantMaxX)
 			buffer[#buffer+1] = shared.writeQuantizedFloat16(vertex.y, quantMinY, quantMaxY)
 			buffer[#buffer+1] = shared.writeQuantizedFloat16(vertex.z, quantMinZ, quantMaxZ)
-        end
-    end
+		end
+	end
 
-    return util.Compress(table.concat(buffer))
+	return util.Compress(table.concat(buffer))
 end
 
 local function checkMesh(ply, meshConvexes)
 	local maxHullSize = wire_customprops_hullsize_max:GetFloat()
 
-    local mindist = wire_customprops_minvertexdistance:GetFloat()
-    local maxConvexesPerProp = wire_customprops_convexes_max:GetInt()
-    local maxVerticesPerConvex = wire_customprops_vertices_max:GetInt()
+	local mindist = wire_customprops_minvertexdistance:GetFloat()
+	local maxConvexesPerProp = wire_customprops_convexes_max:GetInt()
+	local maxVerticesPerConvex = wire_customprops_vertices_max:GetInt()
 
-    assert(#meshConvexes > 0, "Invalid number of convexes (" .. #meshConvexes .. ")")
-    assert(#meshConvexes <= maxConvexesPerProp, "Exceeded the max convexes per prop (max: " .. maxConvexesPerProp .. ", got: ".. #meshConvexes .. ")")
+	assert(#meshConvexes > 0, "Invalid number of convexes (" .. #meshConvexes .. ")")
+	assert(#meshConvexes <= maxConvexesPerProp, "Exceeded the max convexes per prop (max: " .. maxConvexesPerProp .. ", got: ".. #meshConvexes .. ")")
 
-    for _, convex in ipairs(meshConvexes) do
-        assert(#convex <= maxVerticesPerConvex, "Exceeded the max vertices per convex (max: " .. maxVerticesPerConvex .. ", got: " .. #convex .. ")")
-        assert(#convex > 4, "Invalid number of vertices (" .. #convex .. ")")
+	for _, convex in ipairs(meshConvexes) do
+		assert(#convex <= maxVerticesPerConvex, "Exceeded the max vertices per convex (max: " .. maxVerticesPerConvex .. ", got: " .. #convex .. ")")
+		assert(#convex > 4, "Invalid number of vertices (" .. #convex .. ")")
 
-        for k, vertex in ipairs(convex) do
-            assert(math.abs(vertex[1]) < maxHullSize and math.abs(vertex[2]) < maxHullSize and math.abs(vertex[3]) < maxHullSize, "The custom prop cannot exceed a hull size of " .. maxHullSize)
-            assert(vertex[1] == vertex[1] and vertex[2] == vertex[2] and vertex[3] == vertex[3], "Your mesh contains nan values!")
-            for i = 1, k - 1 do
-                assert(convex[i]:DistToSqr(vertex) >= mindist, "No two vertices can have a distance less than " .. math.sqrt(mindist))
-            end
-        end
-    end
+		for k, vertex in ipairs(convex) do
+			assert(math.abs(vertex[1]) < maxHullSize and math.abs(vertex[2]) < maxHullSize and math.abs(vertex[3]) < maxHullSize, "The custom prop cannot exceed a hull size of " .. maxHullSize)
+			assert(vertex[1] == vertex[1] and vertex[2] == vertex[2] and vertex[3] == vertex[3], "Your mesh contains nan values!")
+			for i = 1, k - 1 do
+				assert(convex[i]:DistToSqr(vertex) >= mindist, "No two vertices can have a distance less than " .. math.sqrt(mindist))
+			end
+		end
+	end
 end
 
 function WireLib.createCustomProp(ply, pos, ang, wiremeshdata)

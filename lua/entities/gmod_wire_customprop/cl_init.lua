@@ -21,10 +21,10 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-    if self.rendermesh then
-        self.rendermesh:Destroy()
-        self.rendermesh = nil
-    end
+	if self.rendermesh then
+		self.rendermesh:Destroy()
+		self.rendermesh = nil
+	end
 end
 
 function ENT:BuildPhysics(ent_tbl, physmesh)
@@ -91,62 +91,62 @@ local quantMaxX, quantMaxY, quantMaxZ = wire_customprops_hullsize_max:GetFloat()
 local function streamToMesh(meshdata)
 	local meshConvexes, posMins, posMaxs = {}, Vector(math.huge, math.huge, math.huge), Vector(-math.huge, -math.huge, -math.huge)
 
-    meshdata = util.Decompress(meshdata, 65536)
+	meshdata = util.Decompress(meshdata, 65536)
 
-    local pos = 1
-    local nConvexes
-    nConvexes, pos = shared.readInt16(meshdata, pos)
-    for iConvex = 1, nConvexes do
-        local nVertices
-        nVertices, pos = shared.readInt16(meshdata, pos)
-        local convex = {}
-        for iVertex = 1, nVertices do
-            local x, y, z
-            x, pos = shared.readQuantizedFloat16(meshdata, pos, quantMinX, quantMaxX)
+	local pos = 1
+	local nConvexes
+	nConvexes, pos = shared.readInt16(meshdata, pos)
+	for iConvex = 1, nConvexes do
+		local nVertices
+		nVertices, pos = shared.readInt16(meshdata, pos)
+		local convex = {}
+		for iVertex = 1, nVertices do
+			local x, y, z
+			x, pos = shared.readQuantizedFloat16(meshdata, pos, quantMinX, quantMaxX)
 			y, pos = shared.readQuantizedFloat16(meshdata, pos, quantMinY, quantMaxY)
 			z, pos = shared.readQuantizedFloat16(meshdata, pos, quantMinZ, quantMaxZ)
-            if x > posMaxs.x then posMaxs.x = x end
-            if y > posMaxs.y then posMaxs.y = y end
-            if z > posMaxs.z then posMaxs.z = z end
-            if x < posMins.x then posMins.x = x end
-            if y < posMins.y then posMins.y = y end
-            if z < posMins.z then posMins.z = z end
-            convex[iVertex] = Vector(x, y, z)
-        end
-        meshConvexes[iConvex] = convex
-    end
+			if x > posMaxs.x then posMaxs.x = x end
+			if y > posMaxs.y then posMaxs.y = y end
+			if z > posMaxs.z then posMaxs.z = z end
+			if x < posMins.x then posMins.x = x end
+			if y < posMins.y then posMins.y = y end
+			if z < posMins.z then posMins.z = z end
+			convex[iVertex] = Vector(x, y, z)
+		end
+		meshConvexes[iConvex] = convex
+	end
 
-    return meshConvexes, posMins, posMaxs
+	return meshConvexes, posMins, posMaxs
 end
 
 net.Receive(shared.classname, function()
 	local receivedEntity, receivedData
 
-    local function tryApplyData()
-        if not receivedEntity or not receivedData then return end
+	local function tryApplyData()
+		if not receivedEntity or not receivedData then return end
 
-        if Ent_IsValid(receivedEntity) and receivedEntity:GetClass()~=shared.classname then return end
-        local ent_tbl = Ent_GetTable(receivedEntity)
-        if not (ent_tbl and ent_tbl.rendermesh:IsValid() and receivedData and not ent_tbl.meshapplied) then return end
+		if Ent_IsValid(receivedEntity) and receivedEntity:GetClass()~=shared.classname then return end
+		local ent_tbl = Ent_GetTable(receivedEntity)
+		if not (ent_tbl and ent_tbl.rendermesh:IsValid() and receivedData and not ent_tbl.meshapplied) then return end
 
-        ent_tbl.meshapplied = true
+		ent_tbl.meshapplied = true
 
-        local physmesh, mins, maxs = streamToMesh(receivedData)
-        ent_tbl.BuildPhysics(receivedEntity, ent_tbl, physmesh)
-        ent_tbl.BuildRenderMesh(receivedEntity, ent_tbl)
-        receivedEntity:SetRenderBounds(mins, maxs)
-        receivedEntity:SetCollisionBounds(mins, maxs)
-    end
+		local physmesh, mins, maxs = streamToMesh(receivedData)
+		ent_tbl.BuildPhysics(receivedEntity, ent_tbl, physmesh)
+		ent_tbl.BuildRenderMesh(receivedEntity, ent_tbl)
+		receivedEntity:SetRenderBounds(mins, maxs)
+		receivedEntity:SetCollisionBounds(mins, maxs)
+	end
 
-    shared.readReliableEntity(function(self)
-        receivedEntity = self
-        tryApplyData()
-    end)
+	shared.readReliableEntity(function(self)
+		receivedEntity = self
+		tryApplyData()
+	end)
 
-    net.ReadStream(nil, function(data)
-        receivedData = data
-        tryApplyData()
-    end)
+	net.ReadStream(nil, function(data)
+		receivedData = data
+		tryApplyData()
+	end)
 end)
 
 hook.Add("NetworkEntityCreated", shared.classname.."physics", function(ent)

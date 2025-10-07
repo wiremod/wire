@@ -1,11 +1,11 @@
-ENT.Type            = "anim"
-ENT.Base            = "base_anim"
+ENT.Type			= "anim"
+ENT.Base			= "base_anim"
 
-ENT.PrintName       = "Wiremod Custom Prop"
-ENT.Author          = "Sparky & DeltaMolfar"
+ENT.PrintName		= "Wiremod Custom Prop"
+ENT.Author			= "Sparky & DeltaMolfar"
 
-ENT.Spawnable       = false
-ENT.AdminSpawnable  = false
+ENT.Spawnable		= false
+ENT.AdminSpawnable	= false
 
 function ENT:SetupDataTables()
 	self:NetworkVar("String", 0, "PhysMaterial")
@@ -19,10 +19,10 @@ local Ent_IsValid = FindMetaTable("Entity").IsValid
 local Ent_GetTable = FindMetaTable("Entity").GetTable
 
 local writeInt16 = function(n)
-    return string.char(
-        bit.band(n, 0xFF),
-        bit.band(bit.rshift(n, 8), 0xFF)
-    )
+	return string.char(
+		bit.band(n, 0xFF),
+		bit.band(bit.rshift(n, 8), 0xFF)
+	)
 end
 
 local readInt16 = function(data, pos)
