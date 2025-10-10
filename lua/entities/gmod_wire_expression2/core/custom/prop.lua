@@ -405,19 +405,19 @@ local wire_customprops_convexes_max = GetConVar("wire_customprops_convexes_max")
 local wire_customprops_max = GetConVar("wire_customprops_max")
 
 local function isSequentialArray(t)
-    if TypeID(t) ~= TYPE_TABLE then return false end
+	if TypeID(t) ~= TYPE_TABLE then return false end
 
-    -- Check all keys are integers 1..n and contiguous
-    local count = 0
-    for k in pairs(t) do
-        if type(k) ~= "number" or k < 1 or k % 1 ~= 0 then
-            return false
-        end
-        count = count + 1
-    end
+	-- Check all keys are integers 1..n and contiguous
+	local count = 0
+	for k in pairs(t) do
+		if type(k) ~= "number" or k < 1 or k % 1 ~= 0 then
+			return false
+		end
+		count = count + 1
+	end
 
-    -- Verify there are no gaps: #t must equal number of keys
-    return count == #t
+	-- Verify there are no gaps: #t must equal number of keys
+	return count == #t
 end
 
 local function createCustomProp(self, convexes, pos, ang, freeze)
@@ -444,7 +444,7 @@ local function createCustomProp(self, convexes, pos, ang, freeze)
 
 	if not success then
 		-- Remove file/line info from error string
-    	local msg = tostring(entity):gsub("^[^:]+:%d+:%s*", "")
+		local msg = tostring(entity):gsub("^[^:]+:%d+:%s*", "")
 		self:throw("Failed to spawn custom prop! " .. msg, nil)
 	end
 
@@ -846,7 +846,7 @@ e2function void entity:propBreak()
 end
 
 hook.Add("EntityTakeDamage", "WireUnbreakable", function(ent, dmginfo)
-    if ent.wire_unbreakable then return true end
+	if ent.wire_unbreakable then return true end
 end)
 
 [nodiscard]
