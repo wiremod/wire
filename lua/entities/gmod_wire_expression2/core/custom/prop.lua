@@ -12,9 +12,6 @@ local sbox_E2_canMakeStatue = CreateConVar("sbox_E2_canMakeStatue", "1", FCVAR_A
 local wire_expression2_propcore_sents_whitelist = CreateConVar("wire_expression2_propcore_sents_whitelist", 1, FCVAR_ARCHIVE, "If 1 - players can spawn sents only from the default sent list. If 0 - players can spawn sents from both the registered list and the entity tab.", 0, 1)
 local wire_expression2_propcore_sents_enabled = CreateConVar("wire_expression2_propcore_sents_enabled", 1, FCVAR_ARCHIVE, "If 1 - this allows sents to be spawned. (Doesn't affect the sentSpawn whitelist). If 0 - prevents sentSpawn from being used at all.", 0, 1)
 local wire_expression2_propcore_canMakeUnbreakable = CreateConVar("wire_expression2_propcore_canMakeUnbreakable", 1, FCVAR_ARCHIVE, "If 1 - this allows props to be made unbreakable. If 0 - prevents propMakeBreakable from being used at all.", 0, 1)
-local wire_expression2_propcore_customprops_enabled = CreateConVar("wire_expression2_propcore_customprops_enabled", 1, FCVAR_ARCHIVE, "If 1 - this allows custom props to be spawned. If 0 - prevents customPropSpawn from being used at all.", 0, 1)
-local wire_expression2_propcore_customprops_delay = CreateConVar("wire_expression2_propcore_customprops_delay", 2, FCVAR_ARCHIVE, "How many seconds to wait after spawning a custom prop before allowing to spawn another one. (Too low may allow lag abuse)", 0)
-local wire_expression2_propcore_customprops_max = CreateConVar("wire_expression2_propcore_customprops_max", 10, FCVAR_ARCHIVE, "The maximum number of custom props a player can spawn.")
 
 local isOwner = E2Lib.isOwner
 local GetBones = E2Lib.GetBones
@@ -405,22 +402,17 @@ local wire_customprops_hullsize_max = GetConVar("wire_customprops_hullsize_max")
 local wire_customprops_minvertexdistance = GetConVar("wire_customprops_minvertexdistance")
 local wire_customprops_vertices_max = GetConVar("wire_customprops_vertices_max")
 local wire_customprops_convexes_max = GetConVar("wire_customprops_convexes_max")
+local wire_customprops_max = GetConVar("wire_customprops_max")
+
 local function createCustomProp(self, convexes, pos, ang, freeze)
-	if self.player.customPropsSpawned and self.player.customPropsSpawned >= wire_expression2_propcore_customprops_max:GetInt() then
-		return self:throw("You have reached the maximum number of custom props you can spawn! (" .. wire_expression2_propcore_customprops_max:GetInt() .. ")", nil)
+	if not WireLib.CustomProp.CanSpawn(self.player) then
+		return self:throw("You have reached the maximum number of custom props you can spawn! (" .. wire_customprops_max:GetInt() .. ")", nil)
 	end
 
-	if CurTime() < (self.player.customPropLastSpawn or 0) + wire_expression2_propcore_customprops_delay:GetFloat() then
-		self:throw("You can't spawn a custom prop just yet! (Use customPropCanSpawn or customPropCanSpawnIn to check)", nil)
-	end
-
-	if wire_expression2_propcore_customprops_enabled:GetBool() == false then
-		self:throw("Custom prop spawning is disabled by server! (wire_expression2_propcore_customprops_enabled 0)", nil)
-	end
 	if not ValidAction(self, nil, "spawn") then return NULL end
 
 	convexes = castE2ValueToLuaValue(TYPE_TABLE, convexes)
-	local success, entity = pcall(WireLib.createCustomProp, self.player, pos, ang, convexes)
+	local success, entity = pcall(WireLib.CustomProp.Create, self.player, pos, ang, convexes)
 
 	if not success then
 		-- Remove file/line info from error string
@@ -429,10 +421,6 @@ local function createCustomProp(self, convexes, pos, ang, freeze)
 	end
 
 	local phys = entity:GetPhysicsObject()
-	-- if IsValid( phys ) then
-	-- 	phys:EnableMotion( freeze == 0 )
-	-- 	phys:Wake()
-	-- end
 
 	self.player:AddCleanup("gmod_wire_customprop", entity)
 
@@ -443,19 +431,8 @@ local function createCustomProp(self, convexes, pos, ang, freeze)
 		undo.Finish("E2 Custom Prop")
 	end
 
-	entity:CallOnRemove("wire_expression2_propcore_remove",
-		function(entity)
-			self.data.spawnedProps[entity] = nil
-
-			if IsValid(self.player) then
-				self.player.customPropsSpawned = (self.player.customPropsSpawned or 1) - 1
-			end
-		end
-	)
-
 	self.player.customPropLastSpawn = CurTime()
 	self.data.spawnedProps[entity] = self.data.propSpawnUndo
-	self.player.customPropsSpawned = (self.player.customPropsSpawned or 0) + 1
 
 	return entity
 end
@@ -757,9 +734,21 @@ end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(150)
+__e2setcost(900)
 e2function entity customPropSpawn(table convexes)
-	return createCustomProp(self, convexes, self.entity:GetPos() + self.entity:GetUp() * 25, self.entity:GetAngles(), 1)
+	return createCustomProp(self, convexes, self.entity:GetPos() + self.entity:GetUp() * 25, self.entity:GetAngles(), 0)
+end
+
+e2function entity customPropSpawn(table convexes, vector pos)
+	return createCustomProp(self, convexes, Vector(pos[1], pos[2], pos[3]), self.entity:GetAngles(), 0)
+end
+
+e2function entity customPropSpawn(table convexes, angle ang)
+	return createCustomProp(self, convexes, self.entity:GetPos() + self.entity:GetUp() * 25, Angle(ang[1], ang[2], ang[3]), 0)
+end
+
+e2function entity customPropSpawn(table convexes, vector pos, angle ang)
+	return createCustomProp(self, convexes, Vector(pos[1], pos[2], pos[3]), Angle(ang[1], ang[2], ang[3]), 0)
 end
 
 e2function entity customPropSpawn(table convexes, vector pos, angle ang, number frozen)
@@ -768,16 +757,10 @@ end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(5)
+__e2setcost(1)
 [nodiscard]
-e2function number customPropCanSpawn()
-	return self.player.customPropsSpawned < wire_expression2_propcore_customprops_max:GetInt() and (CurTime() >= (self.player.customPropLastSpawn or 0) + wire_expression2_propcore_customprops_delay:GetFloat() and 1 or 0) or 0
-end
-
-[nodiscard]
-e2function number customPropCanSpawnIn()
-	local timeleft = (self.player.customPropLastSpawn or 0) + wire_expression2_propcore_customprops_delay:GetFloat() - CurTime()
-	return timeleft > 0 and math.ceil(timeleft) or 0
+e2function number customPropCanCreate()
+	return self.player.customPropsSpawned < wire_customprops_max:GetInt() and 1 or 0
 end
 
 [nodiscard]
@@ -786,18 +769,13 @@ e2function number customPropIsEnabled()
 end
 
 [nodiscard]
-e2function number customPropGetDelay()
-	return wire_expression2_propcore_customprops_delay:GetFloat()
-end
-
-[nodiscard]
 e2function number customPropsLeft()
-	return math.max(0, math.floor(wire_expression2_propcore_customprops_max:GetInt() - (self.player.customPropsSpawned or 0)))
+	return math.max(0, math.floor(wire_customprops_max:GetInt() - (self.player.customPropsSpawned or 0)))
 end
 
 [nodiscard]
 e2function number customPropsMax()
-	return wire_expression2_propcore_customprops_max:GetInt()
+	return wire_customprops_max:GetInt()
 end
 
 [nodiscard]

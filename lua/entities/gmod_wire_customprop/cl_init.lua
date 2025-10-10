@@ -11,13 +11,7 @@ function ENT:Initialize()
 	self.rendermesh = Mesh(self.Material)
 	self.meshapplied = false
 	self:DrawShadow(false)
-	self:EnableCustomCollisions( true )
-
-	-- local mesh
-	-- SF.CallOnRemove(self, "sf_prop",
-	-- 	function() mesh = self.rendermesh end,
-	-- 	function() if mesh then mesh:Destroy() end
-	-- end)
+	self:EnableCustomCollisions(true)
 end
 
 function ENT:OnRemove()
@@ -40,7 +34,7 @@ function ENT:BuildPhysics(ent_tbl, physmesh)
 	end
 end
 
-function ENT:BuildRenderMesh(ent_tbl, rendermesh)
+function ENT:BuildRenderMesh(ent_tbl)
 	local phys = self:GetPhysicsObject()
 	if not Phys_IsValid(phys) then return end
 
@@ -61,8 +55,8 @@ end
 function ENT:Think()
 	local physobj = self:GetPhysicsObject()
 	if Phys_IsValid(physobj) then
-		physobj:SetPos( self:GetPos() )
-		physobj:SetAngles( self:GetAngles() )
+		physobj:SetPos(self:GetPos())
+		physobj:SetAngles(self:GetAngles())
 		physobj:EnableMotion(false)
 		physobj:Sleep()
 	end
@@ -76,12 +70,12 @@ function ENT:GetRenderMesh()
 	local ent_tbl = Ent_GetTable(self)
 	if ent_tbl.custom_mesh then
 		if ent_tbl.custom_mesh_data[ent_tbl.custom_mesh] then
-			return { Mesh = ent_tbl.custom_mesh, Material = ent_tbl.Material--[[, Matrix = ent_tbl.render_matrix]] }
+			return { Mesh = ent_tbl.custom_mesh, Material = ent_tbl.Material }
 		else
 			ent_tbl.custom_mesh = nil
 		end
 	else
-		return { Mesh = ent_tbl.rendermesh, Material = ent_tbl.Material--[[, Matrix = ent_tbl.render_matrix]] }
+		return { Mesh = ent_tbl.rendermesh, Material = ent_tbl.Material }
 	end
 end
 

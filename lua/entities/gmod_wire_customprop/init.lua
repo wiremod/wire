@@ -14,6 +14,10 @@ local wire_customprops_hullsize_max = CreateConVar("wire_customprops_hullsize_ma
 local wire_customprops_minvertexdistance = CreateConVar("wire_customprops_minvertexdistance", 0.2, FCVAR_ARCHIVE, "The min distance between two vertices in a custom prop.")
 local wire_customprops_vertices_max = CreateConVar("wire_customprops_vertices_max", 64, FCVAR_ARCHIVE, "How many vertices custom props can have.", 4)
 local wire_customprops_convexes_max = CreateConVar("wire_customprops_convexes_max", 16, FCVAR_ARCHIVE, "How many convexes custom props can have.", 1)
+local wire_customprops_max = CreateConVar("wire_customprops_max", 10, FCVAR_ARCHIVE, "The maximum number of custom props a player can spawn. (0 to disable)", 0)
+
+WireLib = WireLib or {}
+WireLib.CustomProp = WireLib.CustomProp or {}
 
 function ENT:Initialize()
 	self.BaseClass.Initialize(self)
@@ -168,7 +172,14 @@ local function checkMesh(ply, meshConvexes)
 	end
 end
 
-function WireLib.createCustomProp(ply, pos, ang, wiremeshdata)
+function WireLib.CustomProp.CanSpawn(ply)
+	ply.WireCustomPropsSpawned = ply.WireCustomPropsSpawned or 0
+	return ply.WireCustomPropsSpawned < wire_customprops_max:GetInt()
+end
+
+function WireLib.CustomProp.Create(ply, pos, ang, wiremeshdata)
+	if not WireLib.CustomProp.CanSpawn(ply) then return nil, "Max amount of custom props spawned for this player reached!" end
+
 	local meshConvexes, meshStream
 
 	if isstring(wiremeshdata) then
@@ -210,7 +221,17 @@ function WireLib.createCustomProp(ply, pos, ang, wiremeshdata)
 		totalVertices = totalVertices + #v
 	end
 
+	propent:CallOnRemove("wire_customprop_remove",
+		function(propent)
+			if IsValid(ply) then
+				ply.WireCustomPropsSpawned = (ply.WireCustomPropsSpawned or 1) - 1
+			end
+		end
+	)
+
+	ply.WireCustomPropsSpawned = (ply.WireCustomPropsSpawned or 0) + 1
+
 	return propent
 end
 
-duplicator.RegisterEntityClass(shared.classname, WireLib.createCustomProp, "Pos", "Ang", "wiremeshdata")
+duplicator.RegisterEntityClass(shared.classname, WireLib.CustomProp.Create, "Pos", "Ang", "wiremeshdata")
