@@ -448,8 +448,6 @@ local function createCustomProp(self, convexes, pos, ang, freeze)
 		self:throw("Failed to spawn custom prop! " .. msg, nil)
 	end
 
-	local phys = entity:GetPhysicsObject()
-
 	self.player:AddCleanup("gmod_wire_customprop", entity)
 
 	if self.data.propSpawnUndo then
