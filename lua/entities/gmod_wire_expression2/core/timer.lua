@@ -104,11 +104,11 @@ local function luaTimerCreate(self, name, delay, repetitions, callback)
 	}
 
 	timer.Create(internalName, delay, repetitions, function()
-		ent:Execute(callback)
-
 		if timer.RepsLeft(internalName) == 0 then
 			luaTimers[entIndex][name] = nil
 		end
+
+		ent:Execute(callback)
 	end)
 end
 
@@ -238,6 +238,16 @@ e2function void timer(string name, number delay, function callback)
 end
 
 __e2setcost(5)
+e2function void timerStop(string name)
+	RemoveTimer(self, name)
+	pcall(luaTimerRemove, self, name)
+end
+
+e2function void timerRemove(string name)
+	RemoveTimer(self, name)
+	pcall(luaTimerRemove, self, name)
+end
+
 e2function void timerSetDelay(string name, number delay)
 	if not luaTimerExists(self, name) then
 		return self:throw("Timer with name " .. name .. " does not exist", nil)
