@@ -404,6 +404,22 @@ local wire_customprops_vertices_max = GetConVar("wire_customprops_vertices_max")
 local wire_customprops_convexes_max = GetConVar("wire_customprops_convexes_max")
 local wire_customprops_max = GetConVar("wire_customprops_max")
 
+local function isSequentialArray(t)
+    if TypeID(t) ~= TYPE_TABLE then return false end
+
+    -- Check all keys are integers 1..n and contiguous
+    local count = 0
+    for k in pairs(t) do
+        if type(k) ~= "number" or k < 1 or k % 1 ~= 0 then
+            return false
+        end
+        count = count + 1
+    end
+
+    -- Verify there are no gaps: #t must equal number of keys
+    return count == #t
+end
+
 local function createCustomProp(self, convexes, pos, ang, freeze)
 	if not WireLib.CustomProp.CanSpawn(self.player) then
 		return self:throw("You have reached the maximum number of custom props you can spawn! (" .. wire_customprops_max:GetInt() .. ")", nil)
@@ -412,11 +428,23 @@ local function createCustomProp(self, convexes, pos, ang, freeze)
 	if not ValidAction(self, nil, "spawn") then return NULL end
 
 	convexes = castE2ValueToLuaValue(TYPE_TABLE, convexes)
+
+	if not isSequentialArray(convexes) then return self:throw("Expected array of convexes (array of arrays of vectors)", nil) end
+
+	-- Add dynamic ops cost, and validate the mesh data structure
+	for k, v in ipairs(convexes) do
+		if TypeID(v) ~= TYPE_TABLE then return self:throw("Expected array of convexes (array of arrays of vectors)", nil) end
+		for k2, v2 in ipairs(v) do
+			if TypeID(v2) ~= TYPE_VECTOR then return self:throw("Expected array of vertices (array of vectors)", nil) end
+			self.prf = self.prf + 10 -- Subject to change
+		end
+	end
+
 	local success, entity = pcall(WireLib.CustomProp.Create, self.player, pos, ang, convexes)
 
 	if not success then
 		-- Remove file/line info from error string
-    	local msg = tostring(entity)--:gsub("^[^:]+:%d+:%s*", "")
+    	local msg = tostring(entity):gsub("^[^:]+:%d+:%s*", "")
 		self:throw("Failed to spawn custom prop! " .. msg, nil)
 	end
 
@@ -485,7 +513,7 @@ end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(150)
+__e2setcost(50)
 e2function entity sentSpawn(string class)
 	if not ValidAction(self, nil, "spawn") then return NULL end
 	return CreateSent(self, class, self.entity:GetPos()+self.entity:GetUp()*25, self.entity:GetAngles(), 1, {})
