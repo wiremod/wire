@@ -1309,11 +1309,11 @@ register("gmod_wire_freezer", {
 register("gmod_wire_painter", {
 	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["Decal"] = {TYPE_STRING, "Blood", "Decal name to use for painting"},
-	["range"] = {TYPE_NUMBER, 2048, "Length of the paint beam"},
+	["Range"] = {TYPE_NUMBER, 2048, "Length of the paint beam"},
 })
 
 register("gmod_wire_materializer", {
 	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["Material"] = {TYPE_STRING, "debug/env_cubemap_model", "Default material"},
-	["range"] = {TYPE_NUMBER, 2048, "Length of the materializer beam"},
+	["Range"] = {TYPE_NUMBER, 2048, "Length of the materializer beam"},
 })
