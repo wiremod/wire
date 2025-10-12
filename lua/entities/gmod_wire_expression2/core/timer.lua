@@ -238,15 +238,8 @@ e2function void timer(string name, number delay, function callback)
 end
 
 __e2setcost(5)
-e2function void timerStop(string name)
-	RemoveTimer(self, name)
-	pcall(luaTimerRemove, self, name)
-end
-
-e2function void timerRemove(string name)
-	RemoveTimer(self, name)
-	pcall(luaTimerRemove, self, name)
-end
+e2function void timerStop(string rv1) = e2function void stoptimer(string rv1)
+e2function void timerRemove(string rv1) = e2function void stoptimer(string rv1)
 
 e2function void timerSetDelay(string name, number delay)
 	if not luaTimerExists(self, name) then
