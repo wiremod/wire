@@ -959,7 +959,7 @@ function Editor:InitComponents()
 end
 
 -- code1 contains the code that is not to be marked
-local code1 = "@name \n@inputs \n@outputs \n@persist \n@strict\n\n"
+local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger none \n@strict\n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[#[
     Documentation, instructions and examples are available at:
