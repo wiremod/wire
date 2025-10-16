@@ -340,7 +340,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 
 			entity = stored_sent.t.SpawnFunction(stored_sent.t, self.player, mockTrace, class)
 		else
-			entity = ents.Create(class)
+			entity = ents.Create( class )
 			if IsValid(entity) then
 				entity:SetPos(pos)
 				entity:SetAngles(angles)
@@ -511,7 +511,7 @@ end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(50)
+__e2setcost(150)
 e2function entity sentSpawn(string class)
 	if not ValidAction(self, nil, "spawn") then return NULL end
 	return CreateSent(self, class, self.entity:GetPos()+self.entity:GetUp()*25, self.entity:GetAngles(), 1, {})
