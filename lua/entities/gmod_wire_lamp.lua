@@ -100,7 +100,7 @@ if CLIENT then
 		end
 
 		local tab = self:GetTable()
-		local lightpos = self:GetPos()
+		local lightpos, lightang = self:GetPos(), self:GetAngles()
 		local flashlight = tab.flashlight
 
 		if not flashlight then
@@ -122,15 +122,16 @@ if CLIENT then
 			flashlight:SetTexture(self:GetTexture())
 			flashlight:SetNearZ(light_info.NearZ)
 			flashlight:SetPos(lightpos + tab.LightOffset)
-			flashlight:SetAngles(self:GetAngles() + tab.LightAngle)
+			flashlight:SetAngles(lightang + tab.LightAngle)
 			flashlight:SetColor(self:GetColor())
 			flashlight:Update()
 		end
 
-		if lightpos ~= tab.LastUpdatePos then
+		if lightpos ~= tab.LastUpdatePos or lightang ~= tab.LastUpdateAng then
 			tab.LastUpdatePos = lightpos
+			tab.LastUpdateAng = lightang
 			flashlight:SetPos(lightpos + tab.LightOffset)
-			flashlight:SetAngles(self:GetAngles() + tab.LightAngle)
+			flashlight:SetAngles(lightang + tab.LightAngle)
 			flashlight:SetColor(self:GetColor())
 			flashlight:Update()
 		end
