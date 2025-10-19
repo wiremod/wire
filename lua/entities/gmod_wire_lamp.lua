@@ -1,179 +1,178 @@
 AddCSLuaFile()
-DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Lamp"
-ENT.RenderGroup		= RENDERGROUP_BOTH
-ENT.WireDebugName	= "Lamp"
+
+DEFINE_BASECLASS("base_wire_entity")
+ENT.PrintName = "Wire Lamp"
+ENT.RenderGroup = RENDERGROUP_BOTH
+ENT.WireDebugName = "Lamp"
 
 function ENT:SetupDataTables()
-	self:NetworkVar( "Bool", 0, "On" )
+	self:NetworkVar("Bool", 0, "On")
+end
+
+function ENT:GetEntityDriveMode()
+	return "drive_noclip"
+end
+
+function ENT:Initialize()
+	if SERVER then
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetSkin(self:GetLightInfo().Skin)
+		self:DrawShadow(false)
+		self:PhysWake()
+
+		WireLib.CreateInputs(self, { "Red", "Green", "Blue", "RGB [VECTOR]", "FOV", "Distance", "Brightness", "On", "Texture [STRING]" })
+	else
+		self.PixVis = util.GetPixelVisibleHandle()
+	end
+end
+
+local vector_offset = Vector(5, 0, 0)
+local angle_default = Angle(0, 0, 0)
+
+function ENT:GetLightInfo()
+	local light_info = list.GetForEdit("LampModels")[self:GetModel()] or {}
+	light_info.Offset = light_info.Offset or vector_offset
+	light_info.Angle = light_info.Angle or angle_default
+	light_info.NearZ = light_info.NearZ or 12
+	light_info.Scale = light_info.Scale or 2
+	light_info.Skin = light_info.Skin or 1
+
+	return light_info
 end
 
 if CLIENT then
-	local matLight 		= Material( "sprites/light_ignorez" )
-	local matBeam		= Material( "effects/lamp_beam" )
+	local light = Material("sprites/light_ignorez")
 
-	function ENT:Initialize()
-		self.PixVis = util.GetPixelVisibleHandle()
-	end
-
-	function ENT:DrawTranslucent()
-
-		BaseClass.DrawTranslucent( self )
-
-		-- No glow if we're not switched on!
+	function ENT:DrawEffects()
 		if not self:GetOn() then return end
 
-		local LightNrm = self:GetAngles():Forward()
-		local ViewNormal = self:GetPos() - EyePos()
-		local Distance = ViewNormal:Length()
-		ViewNormal:Normalize()
-		local ViewDot = ViewNormal:Dot( LightNrm * -1 )
-		local LightPos = self:GetPos() + LightNrm * 5
+		local light_info = self:GetLightInfo()
+		local lightpos = self:LocalToWorld(light_info.Offset)
 
-		-- glow sprite
-		--[[
-		render.SetMaterial( matBeam )
+		local viewnormal = EyePos()
+		viewnormal:Negate()
+		viewnormal:Add(lightpos)
 
-		local BeamDot = BeamDot = 0.25
+		local distance = viewnormal:Length()
+		local viewdot = -viewnormal:Dot(self:LocalToWorldAngles(light_info.Angle):Forward()) / distance
+		if viewdot < 0 then return end
 
-		render.StartBeam( 3 )
-			render.AddBeam( LightPos + LightNrm * 1, 128, 0.0, Color( r, g, b, 255 * BeamDot) )
-			render.AddBeam( LightPos - LightNrm * 100, 128, 0.5, Color( r, g, b, 64 * BeamDot) )
-			render.AddBeam( LightPos - LightNrm * 200, 128, 1, Color( r, g, b, 0) )
-		render.EndBeam()
-		--]]
+		local visibile = util.PixelVisible(lightpos, 16, self.PixVis)
+		local visdot = visibile * viewdot
 
-		if ViewDot >= 0 then
+		local size = math.Clamp(distance * visdot * light_info.Scale, 64, 512)
+		distance = math.Clamp(distance, 32, 800)
 
-			render.SetMaterial( matLight )
-			local Visibile	= util.PixelVisible( LightPos, 16, self.PixVis )
+		local alpha = math.Clamp((1000 - distance) * visdot, 0, 100)
 
-			if (not Visibile) then return end
+		render.SetMaterial(light)
 
-			local Size = math.Clamp( Distance * Visibile * ViewDot * 2, 64, 512 )
+		local color = self:GetColor()
+		color.a = alpha
 
-			Distance = math.Clamp( Distance, 32, 800 )
-			local Alpha = math.Clamp( (1000 - Distance) * Visibile * ViewDot, 0, 100 )
-			local Col = self:GetColor()
-			Col.a = Alpha
+		render.DrawSprite(lightpos, size, size, color)
 
-			render.DrawSprite( LightPos, Size, Size, Col, Visibile * ViewDot )
-			render.DrawSprite( LightPos, Size*0.4, Size*0.4, Color(255, 255, 255, Alpha), Visibile * ViewDot )
-
-		end
+		color.r, color.g, color.b = 255, 255, 255
+		render.DrawSprite(lightpos, size * 0.4, size * 0.4, color)
 	end
 
-	return  -- No more client
-end
-
--- Server
-
-function ENT:Initialize()
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
-
-	local phys = self:GetPhysicsObject()
-
-	if (phys:IsValid()) then
-		phys:Wake()
+	function ENT:DrawTranslucent(flags)
+		BaseClass.DrawTranslucent(self, flags)
+		self:DrawEffects()
 	end
-
-	self.Inputs = WireLib.CreateSpecialInputs(self, {"Red", "Green", "Blue", "RGB", "FOV", "Distance", "Brightness", "On", "Texture"}, {"NORMAL", "NORMAL", "NORMAL", "VECTOR", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "STRING"})
 end
 
-function ENT:OnTakeDamage( dmginfo )
-	self:TakePhysicsDamage( dmginfo )
-end
+function ENT:Switch(on)
+	if on and IsValid(self.flashlight) then return end
 
-function ENT:TriggerInput(iname, value)
-	if (iname == "Red") then
-		self.r = math.Clamp(value,0,255)
-	elseif (iname == "Green") then
-		self.g = math.Clamp(value,0,255)
-	elseif (iname == "Blue") then
-		self.b = math.Clamp(value,0,255)
-	elseif (iname == "RGB") then
-		self.r, self.g, self.b = math.Clamp(value[1],0,255), math.Clamp(value[2],0,255), math.Clamp(value[3],0,255)
-	elseif (iname == "FOV") then
-		self.FOV = value
-	elseif (iname == "Distance") then
-		self.Dist = value
-	elseif (iname == "Brightness") then
-		self.Brightness = math.Clamp(value,0,10)
-	elseif (iname == "On") then
-		self:Switch( value ~= 0 )
-	elseif (iname == "Texture") then
-		if value ~= "" then self.Texture = value else self.Texture = "effects/flashlight001" end
-	end
-	self:UpdateLight()
-end
-
-function ENT:Switch( on )
-	if on ~= not self.flashlight then return end
 	self.on = on
+	self:SetOn(on)
 
 	if not on then
-		SafeRemoveEntity( self.flashlight )
+		SafeRemoveEntity(self.flashlight)
 		self.flashlight = nil
-		self:SetOn( false )
+
 		return
 	end
 
-	self:SetOn( true )
+	local flashlight = ents.Create("env_projectedtexture")
+	self.flashlight = flashlight
+	flashlight:SetParent(self)
 
-	local angForward = self:GetAngles()
+	local light_info = self:GetLightInfo()
+	local offset = light_info.Offset * -1
+	offset.x = offset.x + 5
 
-	self.flashlight = ents.Create( "env_projectedtexture" )
+	flashlight:SetLocalPos(-offset)
+	flashlight:SetLocalAngles(light_info.Angle)
+	flashlight:SetKeyValue("enableshadows", 1)
+	flashlight:SetKeyValue("nearz", light_info.NearZ)
+	flashlight:SetKeyValue("farz", self.Dist)
+	flashlight:SetKeyValue("lightfov", self.FOV)
 
-		self.flashlight:SetParent( self )
+	local color, brightness = self:GetColor(), self.Brightness
+	flashlight:SetKeyValue("lightcolor", Format("%i %i %i 255", color.r * brightness, color.g * brightness, color.b * brightness))
+	flashlight:Spawn()
 
-		-- The local positions are the offsets from parent..
-		self.flashlight:SetLocalPos( Vector( 0, 0, 0 ) )
-		self.flashlight:SetLocalAngles( Angle(0,0,0) )
-
-		-- Looks like only one flashlight can have shadows enabled!
-		self.flashlight:SetKeyValue( "enableshadows", 1 )
-
-		self.flashlight:SetKeyValue( "farz", self.Dist )
-		self.flashlight:SetKeyValue( "nearz", 12 )
-		self.flashlight:SetKeyValue( "lightfov", self.FOV )
-
-		local c = self:GetColor()
-		local b = self.Brightness
-		self.flashlight:SetKeyValue( "lightcolor", Format( "%i %i %i 255", c.r * b, c.g * b, c.b * b ) )
-
-	self.flashlight:Spawn()
-
-	self.flashlight:Input( "SpotlightTexture", NULL, NULL, self.Texture )
+	flashlight:Input("SpotlightTexture", NULL, NULL, self.Texture)
 end
 
 function ENT:UpdateLight()
-	self:SetColor( Color( self.r, self.g, self.b, self:GetColor().a ) )
-	if ( not IsValid( self.flashlight ) ) then return end
+	local color = Color(self.r, self.g, self.b, self:GetColor().a)
+	self:SetColor(color)
 
-	self.flashlight:Input( "SpotlightTexture", NULL, NULL, self.Texture )
-	self.flashlight:Input( "FOV", NULL, NULL, tostring( self.FOV ) )
-	self.flashlight:SetKeyValue( "farz", self.Dist )
+	local flashlight = self.flashlight
+	if not IsValid(flashlight) then return end
 
-	local c = self:GetColor()
-	local b = self.Brightness
-	self.flashlight:SetKeyValue( "lightcolor", Format( "%i %i %i 255", c.r*b, c.g*b, c.b*b ) )
+	flashlight:Input("SpotlightTexture", NULL, NULL, self.Texture)
+	flashlight:Input("FOV", NULL, NULL, tostring(self.FOV))
+	flashlight:SetKeyValue("farz", self.Dist)
 
-	self:SetOverlayText( "Red: " .. c.r .. " Green: " .. c.g .. " Blue: " .. c.b .. "\n" ..
-						 "FoV: " .. self.FOV .. " Distance: " .. self.Dist .. " Brightness: " .. self.Brightness )
+	local brightness = self.Brightness
+	flashlight:SetKeyValue("lightcolor", Format("%i %i %i 255", color.r * brightness, color.g * brightness, color.b * brightness))
+
+	self:SetOverlayText(string.format("Red: %i Green: %i Blue: %i\nFOV: %i Distance: %i Brightness: %i", color.r, color.g, color.b, self.FOV, self.Dist, self.Brightness))
 end
 
-function ENT:Setup( r, g, b, Texture, fov, dist, brightness, on )
-	self.r, self.g, self.b = math.Clamp(r or 255,0,255), math.Clamp(g or 255,0,255), math.Clamp(b or 255,0,255)
+function ENT:TriggerInput(name, value)
+	if name == "Red" then
+		self.r = math.Clamp(value, 0, 255)
+	elseif name == "Green" then
+		self.g = math.Clamp(value, 0, 255)
+	elseif name == "Blue" then
+		self.b = math.Clamp(value, 0, 255)
+	elseif name == "RGB" then
+		self.r, self.g, self.b = math.Clamp(value.r, 0, 255), math.Clamp(value.g, 0, 255), math.Clamp(value.b, 0, 255)
+	elseif name == "FOV" then
+		self.FOV = game.SinglePlayer() and value or math.Clamp(fov, 10, 170)
+	elseif name == "Distance" then
+		self.Dist = game.SinglePlayer() and value or math.Clamp(value, 64, 2048)
+	elseif name == "Brightness" then
+		self.Brightness = game.SinglePlayer() and value or math.Clamp(value, 0, 8)
+	elseif name == "On" then
+		self:Switch(value ~= 0)
+	elseif name == "Texture" then
+		if value ~= "" then
+			self.Texture = value
+		else
+			self.Texture = "effects/flashlight001"
+		end
+	end
 
-	self.Texture = Texture or "effects/flashlight001"
-	self.FOV = fov or 90
-	self.Dist = dist or 1024
-	self.Brightness = math.Clamp(brightness or 8,0,10)
-	self.on = on or false
-	self:Switch( self.on )
 	self:UpdateLight()
 end
 
-duplicator.RegisterEntityClass( "gmod_wire_lamp", WireLib.MakeWireEnt, "Data", "r", "g", "b", "Texture", "FOV", "Dist", "Brightness", "on" )
+function ENT:Setup(r, g, b, texture, fov, distance, brightness, on)
+	local singleplayer = game.SinglePlayer()
+	self.Texture = texture or "effects/flashlight001"
+	self.FOV = singleplayer and fov or math.Clamp(fov, 10, 170)
+	self.Dist = singleplayer and distance or math.Clamp(distance, 64, 2048)
+	self.Brightness = singleplayer and brightness or math.Clamp(brightness, 0, 8)
+	self.r, self.g, self.b = math.Clamp(r, 0, 255), math.Clamp(g, 0, 255), math.Clamp(b, 0, 255)
+
+	self.on = on and true or false
+	self:Switch(self.on)
+	self:UpdateLight()
+end
+
+duplicator.RegisterEntityClass("gmod_wire_lamp", WireLib.MakeWireEnt, "Data", "r", "g", "b", "Texture", "FOV", "Dist", "Brightness", "on")
