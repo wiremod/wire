@@ -141,7 +141,7 @@ function TOOL.BuildCPanel(panel)
 	combobox:AddChoice("Rope", "rope")
 	combobox:AddChoice("Weld", "weld")
 	combobox:AddChoice("None", "none")
-	panel:ColorPicker("Color", "wire_lamp_r", "wire_lamp_g", "wire_lamp_b", "wire_lamp_a")
+	panel:ColorPicker("Color", "wire_lamp_r", "wire_lamp_g", "wire_lamp_b")
 
 	local matselect = panel:MatSelect("wire_lamp_texture", nil, true, 0.33, 0.33)
 
