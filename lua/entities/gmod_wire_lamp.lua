@@ -160,18 +160,20 @@ if CLIENT then
 end
 
 function ENT:TriggerInput(name, value)
-	local color = self:GetColor()
-
 	if name == "Red" then
+		local color = self:GetColor()
 		color.r = math.Clamp(value, 0, 255)
 		self:SetColor(color)
 	elseif name == "Green" then
+		local color = self:GetColor()
 		color.g = math.Clamp(value, 0, 255)
 		self:SetColor(color)
 	elseif name == "Blue" then
+		local color = self:GetColor()
 		color.b = math.Clamp(value, 0, 255)
 		self:SetColor(color)
 	elseif name == "RGB" then
+		local color = self:GetColor()
 		color.r, color.g, color.b = math.Clamp(value.r, 0, 255), math.Clamp(value.g, 0, 255), math.Clamp(value.b, 0, 255)
 		self:SetColor(color)
 	elseif name == "FOV" then
