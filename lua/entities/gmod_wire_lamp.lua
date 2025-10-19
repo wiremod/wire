@@ -116,10 +116,10 @@ if CLIENT then
 
 			flashlight:SetEnableShadows(true)
 			flashlight:SetTexture(self:GetTexture())
-			flashlight:SetFOV(self:GetLightFOV())
+			flashlight:SetFOV(math.Clamp(self:GetLightFOV(), 10, 170))
 			flashlight:SetNearZ(light_info.NearZ)
-			flashlight:SetFarZ(self:GetDistance())
-			flashlight:SetBrightness(self:GetBrightness())
+			flashlight:SetFarZ(math.Clamp(self:GetDistance(), 64, 2048))
+			flashlight:SetBrightness(math.Clamp(self:GetBrightness(), 0, 8))
 			flashlight:SetPos(lightpos + tab.LightOffset)
 			flashlight:SetAngles(self:GetAngles() + tab.LightAngle)
 			flashlight:SetColor(self:GetColor())
@@ -142,11 +142,11 @@ if CLIENT then
 		if name == "Texture" then
 			flashlight:SetTexture(new)
 		elseif name == "LightFOV" then
-			flashlight:SetFOV(new)
+			flashlight:SetFOV(math.Clamp(new, 10, 170))
 		elseif name == "Distance" then
-			flashlight:SetFarZ(new)
+			flashlight:SetFarZ(math.Clamp(new, 64, 2048))
 		elseif name == "Brightness" then
-			flashlight:SetBrightness(new)
+			flashlight:SetBrightness(math.Clamp(new, 0, 8))
 		end
 	end
 
@@ -174,11 +174,11 @@ function ENT:TriggerInput(name, value)
 		color.r, color.g, color.b = math.Clamp(value.r, 0, 255), math.Clamp(value.g, 0, 255), math.Clamp(value.b, 0, 255)
 		self:SetColor(color)
 	elseif name == "FOV" then
-		self:SetLightFOV(game.SinglePlayer() and value or math.Clamp(fov, 10, 170))
+		self:SetLightFOV(value)
 	elseif name == "Distance" then
-		self:SetDistance(game.SinglePlayer() and value or math.Clamp(value, 64, 2048))
+		self:SetDistance(value)
 	elseif name == "Brightness" then
-		self:SetBrightness(game.SinglePlayer() and value or math.Clamp(value, 0, 8))
+		self:SetBrightness(value)
 	elseif name == "On" then
 		self:SetOn(value ~= 0)
 	elseif name == "Texture" then
@@ -193,13 +193,22 @@ function ENT:TriggerInput(name, value)
 end
 
 function ENT:Setup(r, g, b, texture, fov, distance, brightness, on)
-	local singleplayer = game.SinglePlayer()
-	self:SetTexture(texture or "effects/flashlight001")
-	self:SetLightFOV(singleplayer and fov or math.Clamp(fov, 10, 170))
-	self:SetDistance(singleplayer and distance or math.Clamp(distance, 64, 2048))
-	self:SetBrightness(singleplayer and brightness or math.Clamp(brightness, 0, 8))
-	self:SetColor(Color(math.Clamp(r, 0, 255), math.Clamp(g, 0, 255), math.Clamp(b, 0, 255), self:GetColor().a))
-	self:SetOn(on and true or false)
+	-- Old dupes support
+	if r and g and b then
+		timer.Simple(0, function()
+			if self:IsValid() then
+				self:SetTexture(texture or "effects/flashlight001")
+				self:SetLightFOV(fov or 90)
+				self:SetDistance(distance or 1024)
+				self:SetBrightness(brightness or 8)
+				self:SetColor(Color(math.Clamp(r or 255, 0, 255), math.Clamp(g or 255, 0, 255), math.Clamp(b or 255, 0, 255), self:GetColor().a))
+				self:SetOn(on and true or false)
+
+				local color = self:GetColor()
+				self:SetOverlayText(string.format("Red: %i Green: %i Blue: %i\nFOV: %i Distance: %i Brightness: %i", color.r, color.g, color.b, self:GetLightFOV(), self:GetDistance(), self:GetBrightness()))
+			end
+		end)
+	end
 end
 
 duplicator.RegisterEntityClass("gmod_wire_lamp", WireLib.MakeWireEnt, "Data", "r", "g", "b", "Texture", "FOV", "Dist", "Brightness", "on")
