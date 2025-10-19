@@ -114,12 +114,13 @@ if CLIENT then
 			tab.LightOffset = -offset
 			tab.LightAngle = light_info.Angle
 
+			local singleplayer = game.SinglePlayer()
+			flashlight:SetFOV(singleplayer and self:GetLightFOV() or math.Clamp(self:GetLightFOV(), 10, 170))
+			flashlight:SetFarZ(singleplayer and self:GetDistance() or math.Clamp(self:GetDistance(), 64, 2048))
+			flashlight:SetBrightness(singleplayer and self:GetBrightness() or math.Clamp(self:GetBrightness(), 0, 8))
 			flashlight:SetEnableShadows(true)
 			flashlight:SetTexture(self:GetTexture())
-			flashlight:SetFOV(math.Clamp(self:GetLightFOV(), 10, 170))
 			flashlight:SetNearZ(light_info.NearZ)
-			flashlight:SetFarZ(math.Clamp(self:GetDistance(), 64, 2048))
-			flashlight:SetBrightness(math.Clamp(self:GetBrightness(), 0, 8))
 			flashlight:SetPos(lightpos + tab.LightOffset)
 			flashlight:SetAngles(self:GetAngles() + tab.LightAngle)
 			flashlight:SetColor(self:GetColor())
@@ -142,11 +143,11 @@ if CLIENT then
 		if name == "Texture" then
 			flashlight:SetTexture(new)
 		elseif name == "LightFOV" then
-			flashlight:SetFOV(math.Clamp(new, 10, 170))
+			flashlight:SetFOV(game.SinglePlayer() and new or math.Clamp(new, 10, 170))
 		elseif name == "Distance" then
-			flashlight:SetFarZ(math.Clamp(new, 64, 2048))
+			flashlight:SetFarZ(game.SinglePlayer() and new or math.Clamp(new, 64, 2048))
 		elseif name == "Brightness" then
-			flashlight:SetBrightness(math.Clamp(new, 0, 8))
+			flashlight:SetBrightness(game.SinglePlayer() and new or math.Clamp(new, 0, 8))
 		end
 	end
 
@@ -188,26 +189,35 @@ function ENT:TriggerInput(name, value)
 			self:SetTexture("effects/flashlight001")
 		end
 	end
+end
 
+function ENT:PrepareOverlayData()
+	local color = self:GetColor()
 	self:SetOverlayText(string.format("Red: %i Green: %i Blue: %i\nFOV: %i Distance: %i Brightness: %i", color.r, color.g, color.b, self:GetLightFOV(), self:GetDistance(), self:GetBrightness()))
 end
 
 function ENT:Setup(r, g, b, texture, fov, distance, brightness, on)
-	-- Old dupes support
-	if r and g and b then
-		timer.Simple(0, function()
-			if self:IsValid() then
-				self:SetTexture(texture or "effects/flashlight001")
-				self:SetLightFOV(fov or 90)
-				self:SetDistance(distance or 1024)
-				self:SetBrightness(brightness or 8)
-				self:SetColor(Color(math.Clamp(r or 255, 0, 255), math.Clamp(g or 255, 0, 255), math.Clamp(b or 255, 0, 255), self:GetColor().a))
-				self:SetOn(on and true or false)
+	local color = self:GetColor()
+	self:SetColor(Color(r and math.Clamp(r, 0, 255) or color.r, g and math.Clamp(g, 0, 255) or color.g, b and math.Clamp(b, 0, 255) or color.b))
 
-				local color = self:GetColor()
-				self:SetOverlayText(string.format("Red: %i Green: %i Blue: %i\nFOV: %i Distance: %i Brightness: %i", color.r, color.g, color.b, self:GetLightFOV(), self:GetDistance(), self:GetBrightness()))
-			end
-		end)
+	if texture then
+		self:SetTexture(texture)
+	end
+
+	if fov then
+		self:SetLightFOV(fov)
+	end
+
+	if distance then
+		self:SetDistance(distance)
+	end
+
+	if brightness then
+		self:SetBrightness(brightness)
+	end
+
+	if on then
+		self:SetOn(on)
 	end
 end
 
