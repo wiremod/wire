@@ -112,6 +112,7 @@ end
 
 function ENT:UpdateLight()
 	local color = Color(self.r, self.g, self.b, self:GetColor().a)
+	self:SetOverlayText(string.format("Red: %i Green: %i Blue: %i\nFOV: %i Distance: %i Brightness: %i", color.r, color.g, color.b, self.FOV, self.Dist, self.Brightness))
 	self:SetColor(color)
 
 	local flashlight = self.flashlight
@@ -123,8 +124,6 @@ function ENT:UpdateLight()
 
 	local brightness = self.Brightness
 	flashlight:SetKeyValue("lightcolor", Format("%i %i %i 255", color.r * brightness, color.g * brightness, color.b * brightness))
-
-	self:SetOverlayText(string.format("Red: %i Green: %i Blue: %i\nFOV: %i Distance: %i Brightness: %i", color.r, color.g, color.b, self.FOV, self.Dist, self.Brightness))
 end
 
 function ENT:TriggerInput(name, value)
