@@ -92,18 +92,20 @@ function ENT:Switch(on)
 	self.flashlight = flashlight
 	flashlight:SetParent(self)
 
+	local singleplayer = game.SinglePlayer()
 	local light_info = self:GetLightInfo()
-	local offset = light_info.Offset * -1
+	local offset = (light_info.Offset or vector_offset) * -1
 	offset.x = offset.x + 5
 
 	flashlight:SetLocalPos(-offset)
-	flashlight:SetLocalAngles(light_info.Angle)
+	flashlight:SetLocalAngles(light_info.Angle or angle_zero)
 	flashlight:SetKeyValue("enableshadows", 1)
 	flashlight:SetKeyValue("nearz", light_info.NearZ or 12)
-	flashlight:SetKeyValue("farz", self.Dist)
-	flashlight:SetKeyValue("lightfov", self.FOV)
+	flashlight:SetKeyValue("farz", singleplayer and self.Dist or math.Clamp(self.Dist, 64, 2048))
+	flashlight:SetKeyValue("lightfov", singleplayer and self.FOV or math.Clamp(self.FOV, 10, 170))
 
-	local color, brightness = self:GetColor(), self.Brightness
+	local color = self:GetColor()
+	local brightness = singleplayer and self.Brightness or math.Clamp(self.Brightness, 0, 8)
 	flashlight:SetKeyValue("lightcolor", Format("%i %i %i 255", color.r * brightness, color.g * brightness, color.b * brightness))
 	flashlight:Spawn()
 
@@ -118,11 +120,12 @@ function ENT:UpdateLight()
 	local flashlight = self.flashlight
 	if not IsValid(flashlight) then return end
 
+	local singleplayer = game.SinglePlayer()
 	flashlight:Input("SpotlightTexture", NULL, NULL, self.Texture)
-	flashlight:Input("FOV", NULL, NULL, tostring(self.FOV))
-	flashlight:SetKeyValue("farz", self.Dist)
+	flashlight:Input("FOV", NULL, NULL, tostring(singleplayer and self.FOV or math.Clamp(self.FOV, 10, 170)))
+	flashlight:SetKeyValue("farz", singleplayer and self.Dist or math.Clamp(self.Dist, 64, 2048))
 
-	local brightness = self.Brightness
+	local brightness = singleplayer and self.Brightness or math.Clamp(self.Brightness, 0, 8)
 	flashlight:SetKeyValue("lightcolor", Format("%i %i %i 255", color.r * brightness, color.g * brightness, color.b * brightness))
 end
 
@@ -136,11 +139,11 @@ function ENT:TriggerInput(name, value)
 	elseif name == "RGB" then
 		self.r, self.g, self.b = math.Clamp(value.r, 0, 255), math.Clamp(value.g, 0, 255), math.Clamp(value.b, 0, 255)
 	elseif name == "FOV" then
-		self.FOV = game.SinglePlayer() and value or math.Clamp(value, 10, 170)
+		self.FOV = value
 	elseif name == "Distance" then
-		self.Dist = game.SinglePlayer() and value or math.Clamp(value, 64, 2048)
+		self.Dist = value
 	elseif name == "Brightness" then
-		self.Brightness = game.SinglePlayer() and value or math.Clamp(value, 0, 8)
+		self.Brightness = value
 	elseif name == "On" then
 		self:Switch(value ~= 0)
 	elseif name == "Texture" then
@@ -157,9 +160,9 @@ end
 function ENT:Setup(r, g, b, texture, fov, distance, brightness, on)
 	local singleplayer = game.SinglePlayer()
 	self.Texture = texture or "effects/flashlight001"
-	self.FOV = singleplayer and (fov or 90) or math.Clamp(fov or 90, 10, 170)
-	self.Dist = singleplayer and (distance or 1024) or math.Clamp(distance or 1024, 64, 2048)
-	self.Brightness = singleplayer and (brightness or 8) or math.Clamp(brightness or 8, 0, 8)
+	self.FOV = fov or 90
+	self.Dist = distance or 1024
+	self.Brightness = brightness or 8
 	self.r, self.g, self.b = math.Clamp(r or 255, 0, 255), math.Clamp(g or 255, 0, 255), math.Clamp(b or 255, 0, 255)
 
 	self.on = on and true or false
