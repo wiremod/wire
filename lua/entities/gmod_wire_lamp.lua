@@ -158,7 +158,6 @@ function ENT:TriggerInput(name, value)
 end
 
 function ENT:Setup(r, g, b, texture, fov, distance, brightness, on)
-	local singleplayer = game.SinglePlayer()
 	self.Texture = texture or "effects/flashlight001"
 	self.FOV = fov or 90
 	self.Dist = distance or 1024
