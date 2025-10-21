@@ -1073,7 +1073,7 @@ end
 --- @return Whether the given player can spawn an object with the given model and skin
 function WireLib.CanModel(ply, model, skin)
 	if not util.IsValidModel(model) then return false end
-	if IsValid(ply) and ply:IsPlayer() and not hook.Run("PlayerSpawnObject", ply, model, skin) then return false end
+	if IsValid(ply) and ply:IsPlayer() and not hook.Run("PlayerSpawnObject", ply, model, skin or 0) then return false end
 
 	return true
 end
