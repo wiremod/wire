@@ -500,15 +500,10 @@ end, function(self)
 	self.entity.Use = nil
 end)
 
-
--- isTyping
-local plys = {}
-concommand.Add("E2_StartChat",function(ply,cmd,args) plys[ply] = true end)
-concommand.Add("E2_FinishChat",function(ply,cmd,args) plys[ply] = nil end)
-hook.Add("PlayerDisconnected","E2_istyping",function(ply) plys[ply] = nil end)
-
 e2function number entity:isTyping()
-	return plys[this] and 1 or 0
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:IsTyping() and 1 or 0
 end
 
 --------------------------------------------------------------------------------
