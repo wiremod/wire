@@ -47,22 +47,20 @@ if CLIENT then
 		viewnormal:Add(lightpos)
 
 		local distance = viewnormal:Length()
-		local viewdot = -viewnormal:Dot(self:LocalToWorldAngles(light_info.Angle or angle_zero):Forward()) / distance
+		viewnormal:Negate()
+
+		local viewdot = viewnormal:Dot(self:LocalToWorldAngles(light_info.Angle or angle_zero):Forward()) / distance
 		if viewdot < 0 then return end
 
 		local visibile = util.PixelVisible(lightpos, 16, self.PixVis)
 		local visdot = visibile * viewdot
 
-		local size = math.Clamp(distance * visdot * (light_info.Scale or 2), 64, 512)
-		distance = math.Clamp(distance, 32, 800)
-
-		local alpha = math.Clamp((1000 - distance) * visdot, 0, 100)
-
 		render.SetMaterial(light)
 
 		local color = self:GetColor()
-		color.a = alpha
+		color.a = math.Clamp((1000 - math.Clamp(distance, 32, 800)) * visdot, 0, 100)
 
+		local size = math.Clamp(distance * visdot * (light_info.Scale or 2), 64, 512)
 		render.DrawSprite(lightpos, size, size, color)
 
 		color.r, color.g, color.b = 255, 255, 255
