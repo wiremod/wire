@@ -1070,14 +1070,11 @@ function WireLib.NumModelSkins(model)
 	return info and info.SkinCount
 end
 
---- @return whether the given player can spawn an object with the given model and skin
-function WireLib.CanModel(player, model, skin)
+--- @return Whether the given player can spawn an object with the given model and skin
+function WireLib.CanModel(ply, model, skin)
 	if not util.IsValidModel(model) then return false end
-	if skin ~= nil then
-		local count = WireLib.NumModelSkins(model)
-		if skin < 0 or (count and skin >= count) then return false end
-	end
-	if IsValid(player) and player:IsPlayer() and not hook.Run("PlayerSpawnObject", player, model, skin) then return false end
+	if IsValid(ply) and ply:IsPlayer() and not hook.Run("PlayerSpawnObject", ply, model, skin or 0) then return false end
+
 	return true
 end
 
