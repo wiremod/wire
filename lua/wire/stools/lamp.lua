@@ -106,7 +106,7 @@ TOOL.ClientConVar["const"] = "none"
 TOOL.ClientConVar["texture"] = "effects/flashlight001"
 TOOL.ClientConVar["fov"] = 90
 TOOL.ClientConVar["distance"] = 1024
-TOOL.ClientConVar["brightness"] = 8
+TOOL.ClientConVar["brightness"] = 4
 TOOL.ClientConVar["model"] = "models/lamps/torch.mdl"
 
 function TOOL:RightClick(trace)
