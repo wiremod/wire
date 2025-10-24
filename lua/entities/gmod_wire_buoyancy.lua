@@ -45,7 +45,7 @@ end
 function ENT:TriggerInput(name, value)
 	if name == "Percent" then
 		self.Percent = math.Clamp(value, -10, 10)
-		UpdateBuoyancy(controller)
+		UpdateBuoyancy(self)
 
 		self:UpdateOutputs()
 	end
@@ -159,4 +159,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_adv_emarker", WireLib.MakeWireEnt, "Data", "Percent")
+duplicator.RegisterEntityClass("gmod_wire_buoyancy", WireLib.MakeWireEnt, "Data", "Percent")
