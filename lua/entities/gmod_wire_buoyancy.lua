@@ -38,8 +38,9 @@ end
 
 function ENT:Setup(percent)
 	self.Percent = math.Clamp(percent, -10, 10)
-	self:UpdateOutputs()
 	UpdateBuoyancy(self)
+
+	self:UpdateOutputs()
 end
 
 function ENT:TriggerInput(name, value)
@@ -154,8 +155,6 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 				self:LinkEnt(ent)
 			end
 		end
-
-		self:UpdateOutputs()
 	end
 end
 
