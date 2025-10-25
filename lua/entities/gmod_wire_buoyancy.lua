@@ -13,9 +13,13 @@ function ENT:Initialize()
 	WireLib.CreateInputs(self, { "Percent" })
 end
 
+function ENT:ShowOutput()
+	self:SetOverlayText(string.format("Buoyancy ratio: %.2f\nNumber of entities linked: %i", self.Percent, #self.Marks))
+	WireLib.SendMarks(self)
+end
+
 local function SetBuoyancy(ent, controller)
 	local phys = ent:GetPhysicsObject()
-	ent.WireBuoyancyController = controller
 
 	if phys:IsValid() then
 		phys:SetBuoyancyRatio(controller.Percent)
@@ -23,32 +27,25 @@ local function SetBuoyancy(ent, controller)
 	end
 end
 
-local function UpdateBuoyancy(controller)
-	for _, ent in ipairs(controller.Marks) do
-		if ent:IsValid() then
-			SetBuoyancy(ent, controller)
-		end
-	end
-end
-
-function ENT:UpdateOutputs()
-	self:SetOverlayText(string.format("Buoyancy ratio: %.2f\nNumber of entities linked: %i", self.Percent, #self.Marks))
-	WireLib.SendMarks(self)
-end
-
 function ENT:Setup(percent)
 	self.Percent = math.Clamp(percent, -10, 10)
-	UpdateBuoyancy(self)
 
-	self:UpdateOutputs()
+	for _, ent in ipairs(self.Marks) do
+		SetBuoyancy(ent, self)
+	end
+
+	self:ShowOutput()
 end
 
 function ENT:TriggerInput(name, value)
 	if name == "Percent" then
 		self.Percent = math.Clamp(value, -10, 10)
-		UpdateBuoyancy(self)
 
-		self:UpdateOutputs()
+		for _, ent in ipairs(self.Marks) do
+			SetBuoyancy(ent, self)
+		end
+
+		self:ShowOutput()
 	end
 end
 
@@ -56,7 +53,7 @@ end
 hook.Add("PhysgunDrop", "WireBuoyancy", function(ply, ent)
 	if IsValid(ent.WireBuoyancyController) then
 		timer.Simple(0 , function()
-			if not IsValid(ent.WireBuoyancyController) then return end
+			if not IsValid(ent) or not IsValid(ent.WireBuoyancyController) then return end
 			SetBuoyancy(ent, ent.WireBuoyancyController)
 		end)
 	end
@@ -65,7 +62,7 @@ end)
 hook.Add("GravGunOnDropped", "WireBuoyancy", function(ply, ent)
 	if IsValid(ent.WireBuoyancyController) then
 		timer.Simple(0 , function()
-			if not IsValid(ent.WireBuoyancyController) then return end
+			if not IsValid(ent) or not IsValid(ent.WireBuoyancyController) then return end
 			SetBuoyancy(ent, ent.WireBuoyancyController)
 		end)
 	end
@@ -87,13 +84,14 @@ function ENT:LinkEnt(ent)
 	table.insert(self.Marks, ent)
 	SetBuoyancy(ent, self)
 
-	ent:CallOnRemove("WireBuoyancy.Unlink", function(ent)
+	ent:CallOnRemove("WireBuoyancy_Unlink_" .. self:EntIndex(), function(ent)
 		if self:IsValid() then
 			self:UnlinkEnt(ent)
 		end
 	end)
 
-	self:UpdateOutputs()
+	ent.WireBuoyancyController = self
+	self:ShowOutput()
 
 	return true
 end
@@ -103,8 +101,9 @@ function ENT:UnlinkEnt(ent)
 
 	if bool then
 		table.remove(self.Marks, index)
+		ent:RemoveCallOnRemove("WireBuoyancy_Unlink_" .. self:EntIndex())
 		ent.WireBuoyancyController = nil
-		self:UpdateOutputs()
+		self:ShowOutput()
 	end
 
 	return bool
@@ -112,14 +111,12 @@ end
 
 function ENT:ClearEntities()
 	for index, ent in ipairs(self.Marks) do
-		if ent:IsValid() then
-			ent:RemoveCallOnRemove("WireBuoyancy.Unlink")
-			ent.WireBuoyancyController = nil
-		end
+		ent:RemoveCallOnRemove("WireBuoyancy_Unlink_" .. self:EntIndex())
+		ent.WireBuoyancyController = nil
 	end
 
 	self.Marks = {}
-	self:UpdateOutputs()
+	self:ShowOutput()
 end
 
 function ENT:OnRemove()
