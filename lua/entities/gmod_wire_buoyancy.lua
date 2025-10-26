@@ -60,7 +60,7 @@ local function RestoreBuoyancy(ply, ent)
 end
 
 hook.Add("PhysgunDrop", "WireBuoyancy", RestoreBuoyancy)
-hook.Add("GravGunOnDropped", "WireBuoyancy", fRestoreBuoyancy)
+hook.Add("GravGunOnDropped", "WireBuoyancy", RestoreBuoyancy)
 
 function ENT:CheckEnt(checkent)
 	for index, ent in ipairs(self.Marks) do
