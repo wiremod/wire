@@ -51,9 +51,9 @@ end
 
 -- For some reason, buoyancy is reset by the physgun and gravgun
 local function RestoreBuoyancy(ply, ent)
-	if IsValid(ent.WireBuoyancyController) then
+	if ent.WireBuoyancyController then
 		timer.Simple(0 , function()
-			if not IsValid(ent) or not IsValid(ent.WireBuoyancyController) then return end
+			if not ent:IsValid() or not ent.WireBuoyancyController then return end
 			SetBuoyancy(ent, ent.WireBuoyancyController)
 		end)
 	end
@@ -79,9 +79,7 @@ function ENT:LinkEnt(ent)
 	SetBuoyancy(ent, self)
 
 	ent:CallOnRemove("WireBuoyancy_Unlink_" .. self:EntIndex(), function(ent)
-		if self:IsValid() then
-			self:UnlinkEnt(ent)
-		end
+		self:UnlinkEnt(ent)
 	end)
 
 	ent.WireBuoyancyController = self
@@ -118,7 +116,7 @@ function ENT:OnRemove()
 end
 
 function ENT:BuildDupeInfo()
-	local info = BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self)
 
 	if #self.Marks > 0 then
 		local tab = {}
@@ -137,8 +135,6 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if info.marks then
-		self.Marks = self.Marks or {}
-
 		for index, entid in ipairs(info.marks) do
 			local ent = GetEntByID(entid)
 
