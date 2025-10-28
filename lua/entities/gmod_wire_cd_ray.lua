@@ -177,8 +177,8 @@ function ENT:Think()
 		local h = lpos.z-disk.StackStartHeight //stack
 
 		local track = math.floor(r / disk.Precision)
-		local sector = math.floor(a*track)//*disk.Precision)
-		local stack = math.floor(h/disk.Precision)
+		local sector = math.floor(a*track) / disk.Precision)
+		local stack = math.floor(h / disk.Precision)
 		if (disk.DiskStacks == 1) then stack = 0 end
 
 		if (self.PrevDiskEnt ~= disk) then
