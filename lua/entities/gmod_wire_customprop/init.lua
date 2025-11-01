@@ -135,13 +135,13 @@ local function meshToStream(meshConvexes)
 
 	local buffer = {}
 
-	buffer[#buffer+1] = shared.writeInt16(#meshConvexes)
+	table.insert(buffer, shared.writeInt16(#meshConvexes))
 	for _, convex in ipairs(meshConvexes) do
-		buffer[#buffer+1] = shared.writeInt16(#convex)
+		table.insert(buffer, shared.writeInt16(#convex))
 		for _, vertex in ipairs(convex) do
-			buffer[#buffer+1] = shared.writeQuantizedFloat16(vertex.x, quantMinX, quantMaxX)
-			buffer[#buffer+1] = shared.writeQuantizedFloat16(vertex.y, quantMinY, quantMaxY)
-			buffer[#buffer+1] = shared.writeQuantizedFloat16(vertex.z, quantMinZ, quantMaxZ)
+			table.insert(buffer, shared.writeQuantizedFloat16(vertex.x, quantMinX, quantMaxX))
+			table.insert(buffer, shared.writeQuantizedFloat16(vertex.y, quantMinY, quantMaxY))
+			table.insert(buffer, shared.writeQuantizedFloat16(vertex.z, quantMinZ, quantMaxZ))
 		end
 	end
 
