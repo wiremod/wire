@@ -1,47 +1,87 @@
 AddCSLuaFile()
-DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Entity Marker"
+
+DEFINE_BASECLASS("base_wire_entity")
+ENT.PrintName = "Wire Entity Marker"
 ENT.WireDebugName = "EMarker"
 
-if CLIENT then return end -- No more client
+if CLIENT then return end
 
 function ENT:Initialize()
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
-
-	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Entity" }, { "ENTITY" })
-	self:SetOverlayText( "No Mark selected" )
+	self:PhysicsInit(SOLID_VPHYSICS)
+	WireLib.CreateOutputs(self, { "Entity [ENTITY]" })
 end
 
-function ENT:LinkEMarker(mark)
-	if mark then self.mark = mark end
-	if not IsValid(self.mark) then self:SetOverlayText( "No Mark selected" ) return end
-	self.mark:CallOnRemove("EMarker.UnLink", function(ent)
-		if IsValid(self) and self.mark == ent then self:UnLinkEMarker() end
-	end)
-	Wire_TriggerOutput(self, "Entity", self.mark)
-	self:SetOverlayText( "Linked - " .. self.mark:GetModel() )
+function ENT:LinkEnt(ent)
+	if ent ~= self.Mark then
+		if self.Mark then
+			self.Mark:RemoveCallOnRemove("EMarker.UnLink" .. self:EntIndex())
+			self.Mark = nil
+		end
+
+		ent:CallOnRemove("EMarker.UnLink" .. self:EntIndex(), function(ent)
+			if self:IsValid() then
+				self:UnlinkEnt()
+			end
+		end)
+
+		WireLib.SendMarks(self, { ent })
+		WireLib.TriggerOutput(self, "Entity", ent)
+		self.Mark = ent
+
+		return true
+	end
+
+	return false
 end
 
-function ENT:UnLinkEMarker()
-	self.mark = NULL
-	Wire_TriggerOutput(self, "Entity", NULL)
-	self:SetOverlayText( "No Mark selected" )
+function ENT:UnlinkEnt()
+	if self.Mark then
+		WireLib.SendMarks(self, {})
+		WireLib.TriggerOutput(self, "Entity", NULL)
+		self.Mark:RemoveCallOnRemove("EMarker.UnLink" .. self:EntIndex())
+		self.Mark = nil
+
+		return true
+	end
+
+	return false
 end
 
-duplicator.RegisterEntityClass( "gmod_wire_emarker", WireLib.MakeWireEnt, "Data" )
+function ENT:OnRemove()
+	if self.Mark then
+		self.Mark:RemoveCallOnRemove("EMarker.UnLink" .. self:EntIndex())
+		self.Mark = nil
+	end
+end
+
+function ENT:PrepareOverlayData()
+	if self.Mark then
+		self:SetOverlayText("Linked to: " .. self.Mark:GetClass())
+	else
+		self:SetOverlayText("No linked mark")
+	end
+end
 
 function ENT:BuildDupeInfo()
-	local info = BaseClass.BuildDupeInfo(self) or {}
-	if ( self.mark ) and ( self.mark:IsValid() ) then
-	    info.mark = self.mark:EntIndex()
+	local info = BaseClass.BuildDupeInfo(self)
+
+	if self.Mark then
+		info.mark = self.Mark:EntIndex()
 	end
+
 	return info
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	self:LinkEMarker(GetEntByID(info.mark))
+	if info.mark then
+		local ent = GetEntByID(info.mark)
+
+		if ent:IsValid() then
+			self:LinkEnt(ent)
+		end
+	end
 end
+
+duplicator.RegisterEntityClass("gmod_wire_emarker", WireLib.MakeWireEnt, "Data")
