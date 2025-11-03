@@ -7,9 +7,9 @@ util.AddNetworkString(shared.classname)
 local ENT_META = FindMetaTable("Entity")
 local Ent_GetTable = ENT_META.GetTable
 
-// Reason why there are more max convexes but less max vertices by default is that client's ENT:BuildPhysics is the main bottleneck.
-// It seems to require more time exponentially to the vertices amount.
-// The same amount of vertices in total, but broken into different convexes greatly reduces the performance hit.
+-- Reason why there are more max convexes but less max vertices by default is that client's ENT:BuildPhysics is the main bottleneck.
+-- It seems to require more time exponentially to the vertices amount.
+-- The same amount of vertices in total, but broken into different convexes greatly reduces the performance hit.
 local wire_customprops_hullsize_max = CreateConVar("wire_customprops_hullsize_max", 2048, FCVAR_ARCHIVE, "The max hull size of a custom prop")
 local wire_customprops_minvertexdistance = CreateConVar("wire_customprops_minvertexdistance", 0.2, FCVAR_ARCHIVE, "The min distance between two vertices in a custom prop.")
 local wire_customprops_vertices_max = CreateConVar("wire_customprops_vertices_max", 64, FCVAR_ARCHIVE, "How many vertices custom props can have.", 4)
