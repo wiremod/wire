@@ -91,9 +91,7 @@ function ENT:LinkEnt(ent)
 	table.insert(self.Marks, ent)
 
 	ent:CallOnRemove("AdvEMarker.Unlink" .. self:EntIndex(), function(ent)
-		if self:IsValid() then
-			self:UnlinkEnt(ent)
-		end
+		self:UnlinkEnt(ent)
 	end)
 
 	self:UpdateOutputs()

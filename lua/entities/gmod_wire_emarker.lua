@@ -19,9 +19,7 @@ function ENT:LinkEnt(ent)
 		end
 
 		ent:CallOnRemove("EMarker.UnLink" .. self:EntIndex(), function(ent)
-			if self:IsValid() then
-				self:UnlinkEnt()
-			end
+			self:UnlinkEnt()
 		end)
 
 		WireLib.SendMarks(self, { ent })
