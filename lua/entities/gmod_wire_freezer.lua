@@ -80,7 +80,7 @@ function ENT:UpdateOverlay()
 		description = "Disabled prop/world/player collisions"
 	end
 
-	self:SetOverlayText(string.format("%s\n%s\n%i", self.State and "Frozen" or "Unfrozen", description, #self.Marks))
+	self:SetOverlayText(string.format("%s\n%s\nLinked Entities:%i", self.State and "Frozen" or "Unfrozen", description, #self.Marks))
 end
 
 function ENT:UpdateOutputs()
