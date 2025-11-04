@@ -57,11 +57,16 @@ function ENT:UpdateOutputs()
 	local marks = self.Marks
 	WireLib.TriggerOutput(self, "Entities", marks)
 	WireLib.TriggerOutput(self, "Nr", #marks)
-
-	for i = 3, 12 do
-		local index = i - 2
-		WireLib.TriggerOutput(self, "Entity" .. index, marks[index])
-	end
+	WireLib.TriggerOutput(self, "Entity1", marks[1])
+	WireLib.TriggerOutput(self, "Entity2", marks[2])
+	WireLib.TriggerOutput(self, "Entity3", marks[3])
+	WireLib.TriggerOutput(self, "Entity4", marks[4])
+	WireLib.TriggerOutput(self, "Entity5", marks[5])
+	WireLib.TriggerOutput(self, "Entity6", marks[6])
+	WireLib.TriggerOutput(self, "Entity7", marks[7])
+	WireLib.TriggerOutput(self, "Entity8", marks[8])
+	WireLib.TriggerOutput(self, "Entity9", marks[9])
+	WireLib.TriggerOutput(self, "Entity10", marks[10])
 
 	self:SetOverlayText("Number of entities linked: " .. #marks)
 	WireLib.SendMarks(self)
