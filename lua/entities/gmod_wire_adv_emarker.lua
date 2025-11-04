@@ -41,20 +41,12 @@ function ENT:TriggerInput(name, value)
 			self.Target = value
 		end
 	elseif name == "Add Entity" then
-		if IsValid(self.Target) and value ~= 0 then
-			local bool, index = self:CheckEnt(self.Target)
-
-			if not bool then
-				self:LinkEnt(self.Target)
-			end
+		if value ~= 0 and IsValid(self.Target) and not self:CheckEnt(self.Target)  then
+			self:LinkEnt(self.Target)
 		end
 	elseif name == "Remove Entity" then
-		if IsValid(self.Target) and value ~= 0 then
-			local bool, index = self:CheckEnt(self.Target)
-
-			if bool then
-				self:UnlinkEnt(self.Target)
-			end
+		if value ~= 0 and IsValid(self.Target) and self:CheckEnt(self.Target) then
+			self:UnlinkEnt(self.Target)
 		end
 	elseif name == "Clear Entities" then
 		self:ClearEntities()
@@ -155,6 +147,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 				end)
 			end
 		end
+
+		self:UpdateOutputs()
 	end
 end
 
