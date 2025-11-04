@@ -8,7 +8,9 @@ if CLIENT then return end
 
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
+
 	WireLib.CreateOutputs(self, { "Entity [ENTITY]" })
+	self:SetOverlayText("No linked mark")
 end
 
 function ENT:LinkEnt(ent)
@@ -24,6 +26,7 @@ function ENT:LinkEnt(ent)
 
 		WireLib.SendMarks(self, { ent })
 		WireLib.TriggerOutput(self, "Entity", ent)
+		self:SetOverlayText("Linked to: " .. ent:GetClass())
 		self.Mark = ent
 
 		return true
@@ -36,6 +39,7 @@ function ENT:UnlinkEnt()
 	if self.Mark then
 		WireLib.SendMarks(self, {})
 		WireLib.TriggerOutput(self, "Entity", NULL)
+		self:SetOverlayText("No linked mark")
 		self.Mark:RemoveCallOnRemove("EMarker.UnLink" .. self:EntIndex())
 		self.Mark = nil
 
@@ -49,14 +53,6 @@ function ENT:OnRemove()
 	if self.Mark then
 		self.Mark:RemoveCallOnRemove("EMarker.UnLink" .. self:EntIndex())
 		self.Mark = nil
-	end
-end
-
-function ENT:PrepareOverlayData()
-	if self.Mark then
-		self:SetOverlayText("Linked to: " .. self.Mark:GetClass())
-	else
-		self:SetOverlayText("No linked mark")
 	end
 end
 
