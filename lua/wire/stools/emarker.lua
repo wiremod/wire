@@ -13,7 +13,7 @@ TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_siren.mdl",
 }
 
-WireToolSetup.SetupLinking()
+WireToolSetup.SetupLinking(true)
 
 function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_emaker_model", list.Get("Wire_Misc_Tools_Models"), nil, true)
