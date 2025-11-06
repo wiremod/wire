@@ -37,7 +37,7 @@ function ENT:TriggerInput(name, value)
 		local state = math.Clamp(math.floor(value), 0, 4)
 		self.CollisionState = state
 
-		for _, ent in pairs(self.Marks) do
+		for _, ent in ipairs(self.Marks) do
 			local phys = ent:GetPhysicsObject()
 
 			if phys:IsValid() and WireLib.CanTool(ply, ent, "nocollide") then
