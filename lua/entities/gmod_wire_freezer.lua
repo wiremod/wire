@@ -158,7 +158,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 	if info.marks or info.Ent1 then
 		if info.Ent1 then
-			-- Backwards compcatability
+			-- Backward compatibility
 			local ent = GetEntByID(info.Ent1)
 
 			if ent:IsValid() then
