@@ -41,7 +41,7 @@ function ENT:TriggerInput(name, value)
 			self.Target = value
 		end
 	elseif name == "Add Entity" then
-		if value ~= 0 and IsValid(self.Target) and not self:CheckEnt(self.Target)  then
+		if value ~= 0 and IsValid(self.Target) and not self:CheckEnt(self.Target) then
 			self:LinkEnt(self.Target)
 		end
 	elseif name == "Remove Entity" then
