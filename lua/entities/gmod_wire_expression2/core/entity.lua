@@ -69,8 +69,7 @@ end
 --[[******************************************************************************]]
 
 e2function entity entity(id)
-	local ent = ents.GetByIndex(id)
-	return IsValid(ent) and ent or nil
+	return ents.GetByIndex(id)
 end
 
 e2function number entity:id()
@@ -889,12 +888,12 @@ end)
 __e2setcost(5)
 
 e2function entity entity:driver()
-	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
+	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", NULL) end
 	return this:GetDriver()
 end
 
 e2function entity entity:passenger()
-	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
+	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", NULL) end
 	return this:GetPassenger(0)
 end
 

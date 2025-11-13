@@ -148,7 +148,7 @@ e2function number wirelink:isHiSpeed()
 end
 
 e2function entity wirelink:entity()
-	return this
+	return this or NULL
 end
 
 /******************************************************************************/

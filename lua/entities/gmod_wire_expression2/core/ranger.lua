@@ -389,7 +389,7 @@ end
 
 --- Returns the entity of the input ranger data trace IF it hit an entity, else returns nil
 e2function entity ranger:entity()
-	if not this then return self:throw("Invalid ranger!", nil) end
+	if not this then return self:throw("Invalid ranger!", NULL) end
 	return this.Entity
 end
 
