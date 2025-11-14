@@ -1,6 +1,6 @@
 local wire_expression2_entity_trails_max = CreateConVar("wire_expression2_entity_trails_max", 30, FCVAR_ARCHIVE, "Max amount of trails a player can make. 0 - to disable trails. (Limit is shared between E2s of a player)", 0)
 
-registerType("entity", "e", nil,
+registerType("entity", "e", NULL,
 	nil,
 	function(self,output) return output or NULL end,
 	nil,
