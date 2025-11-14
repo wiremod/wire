@@ -10,17 +10,6 @@ local function caps(text)
 	return capstext
 end
 
--- Returns con.Ent1 or con.Ent2, whichever is not equivalent to ent. Optionally subscripts con with num beforehand.
-local function ent1or2(ent,con,num)
-	if not con then return nil end
-	if num then
-		con = con[num]
-		if not con then return nil end
-	end
-	if con.Ent1==ent then return con.Ent2 end
-	return con.Ent1
-end
-
 --[[
 	-- buildFilters
 
@@ -235,54 +224,65 @@ e2function number entity:isConstrained()
 	return 1
 end
 
+-- Returns con.Ent1 or con.Ent2, whichever is not equivalent to ent. Optionally subscripts con with num beforehand.
+local function ent1or2(ent, con, num)
+	if not con then return NULL end
+
+	if num then
+		con = con[num]
+		if not con then return NULL end
+	end
+
+	if con.Ent1 == ent then return con.Ent2 end
+	return con.Ent1
+end
+
 --- Returns the first entity <this> was welded to.
 e2function entity entity:isWeldedTo()
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not constraint.HasConstraints(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not constraint.HasConstraints(this) then return NULL end
 
-	local filter = {Weld=true} -- create filter directly, no need to call buildFilter here, since it's static
-	return ent1or2(this,constraint_FindConstraint(this, filter))
+	return ent1or2(this, constraint_FindConstraint(this, {Weld = true}))
 end
 
 --- Returns the <index>th entity <this> was welded to.
 e2function entity entity:isWeldedTo(index)
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not constraint.HasConstraints(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not constraint.HasConstraints(this) then return NULL end
 
-	local filter = {Weld=true} -- create filter directly, no need to call buildFilter here, since it's static
-	return ent1or2(this,constraint_FindConstraints(this, filter), math.floor(index))
+	return ent1or2(this, constraint_FindConstraints(this, {Weld = true}), math.floor(index))
 end
 
 --- Returns the first entity <this> was constrained to.
 e2function entity entity:isConstrainedTo()
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not constraint.HasConstraints(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not constraint.HasConstraints(this) then return NULL end
 
-	return ent1or2(this,constraint_GetTable(this),1)
+	return ent1or2(this, constraint_GetTable(this), 1)
 end
 
 --- Returns the <index>th entity <this> was constrained to.
 e2function entity entity:isConstrainedTo(index)
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not constraint.HasConstraints(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not constraint.HasConstraints(this) then return NULL end
 
-	return ent1or2(this,constraint_GetTable(this), math.floor(index))
+	return ent1or2(this, constraint_GetTable(this), math.floor(index))
 end
 
 --- Returns the first entity <this> was constrained to with the given constraint type <constraintType>.
 e2function entity entity:isConstrainedTo(string constraintType)
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not constraint.HasConstraints(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not constraint.HasConstraints(this) then return NULL end
 
-	return ent1or2(this,constraint_FindConstraint(this, buildFilter({constraintType})))
+	return ent1or2(this, constraint_FindConstraint(this, buildFilter({constraintType})))
 end
 
 --- Returns the <index>th entity <this> was constrained to with the given constraint type <constraintType>.
 e2function entity entity:isConstrainedTo(string constraintType, index)
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not constraint.HasConstraints(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not constraint.HasConstraints(this) then return NULL end
 
-	return ent1or2(this,constraint_FindConstraints(this, buildFilter({constraintType})), math.floor(index))
+	return ent1or2(this, constraint_FindConstraints(this, buildFilter({constraintType})), math.floor(index))
 end
 
 --- Returns the '''entity''' <this> is parented to.
