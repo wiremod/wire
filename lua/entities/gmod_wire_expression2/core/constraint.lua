@@ -289,7 +289,7 @@ end
 
 --- Returns the '''entity''' <this> is parented to.
 e2function entity entity:parent()
-	if not IsValid(this) then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
 	return this:GetParent()
 end
 

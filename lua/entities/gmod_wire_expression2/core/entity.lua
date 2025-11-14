@@ -121,8 +121,8 @@ e2function string entity:model()
 end
 
 e2function entity entity:owner()
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	return getOwner(self, this)
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	return getOwner(self, this) or NULL
 end
 
 __e2setcost(100)
