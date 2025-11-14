@@ -233,8 +233,10 @@ local function ent1or2(ent, con, num)
 		if not con then return NULL end
 	end
 
-	if con.Ent1 == ent then return con.Ent2 end
-	return con.Ent1
+	local ent1 = con.Ent1
+	if ent1 == ent then return con.Ent2 or NULL end
+
+	return ent1 or NULL
 end
 
 --- Returns the first entity <this> was welded to.
