@@ -57,8 +57,14 @@ end
 
 -- Returns the entity the input is wired to
 [nodiscard]
-e2function entity ioInputEntity( string input )
-	if (self.entity.Inputs[input] and self.entity.Inputs[input].Src and IsValid(self.entity.Inputs[input].Src)) then return self.entity.Inputs[input].Src end
+e2function entity ioInputEntity(string input)
+	local ioinput = self.entity.Inputs[input]
+
+	if ioinput and ioinput.Src and IsValid(ioinput.Src) then
+		return ioinput.Src
+	else
+		return NULL
+	end
 end
 
 local fixDefault = E2Lib.fixDefault
