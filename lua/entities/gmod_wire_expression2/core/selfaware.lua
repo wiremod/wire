@@ -83,7 +83,7 @@ registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
 		local short = v[1]
 		if not excluded_types[short] then
-			registerFunction("ioSetOutput","s"..short,""..short,function(self, args)
+			registerFunction("ioSetOutput","s"..short,"",function(self, args)
 				local rv1, rv2 = args[1], args[2]
 				if self.entity.Outputs[rv1] and self.entity.Outputs[rv1].Type == k then
 					self.GlobalScope[rv1] = rv2
