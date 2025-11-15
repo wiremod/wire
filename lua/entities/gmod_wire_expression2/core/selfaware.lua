@@ -59,12 +59,7 @@ end
 [nodiscard]
 e2function entity ioInputEntity(string input)
 	local ioinput = self.entity.Inputs[input]
-
-	if ioinput and ioinput.Src and IsValid(ioinput.Src) then
-		return ioinput.Src
-	else
-		return NULL
-	end
+	return ioinput and IsValid(ioinput.Src) and ioinput.Src or NULL
 end
 
 local fixDefault = E2Lib.fixDefault
