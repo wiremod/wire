@@ -1325,11 +1325,7 @@ __e2setcost(2)
 e2function entity holoEntity(index)
 	local Holo = CheckIndex(self, index)
 
-	if Holo and Holo.ent then
-		return Holo.ent
-	else
-		return NULL
-	end
+	return Holo and Holo.ent or NULL
 end
 
 __e2setcost(30)
