@@ -183,7 +183,7 @@ end
 
 --- Returns the entity of the chip that sent the signal.
 e2function entity signalSender()
-	if not self.data.currentSignal then return nil end
+	if not self.data.currentSignal then return NULL end
 	return self.data.currentSignal[4]
 end
 

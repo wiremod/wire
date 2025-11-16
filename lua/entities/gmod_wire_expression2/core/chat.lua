@@ -4,7 +4,7 @@
 local IsValid = IsValid
 
 local TextList = {
-	last = { "", 0, nil }
+	last = { "", 0, NULL }
 }
 local ChatAlert = {}
 
@@ -20,7 +20,7 @@ end)
 
 hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, teamchat)
 	chipHideChat, chipChatReplacement = nil, nil
-	
+
 	local entry = { text, CurTime(), ply, teamchat }
 	TextList[ply:EntIndex()] = entry
 	TextList.last = entry
@@ -95,14 +95,7 @@ end
 --- Returns the last player to speak.
 [nodiscard, deprecated = "Use the chat event instead"]
 e2function entity lastSpoke()
-	local entry = TextList.last
-	if not entry then return nil end
-
-	local ply = entry[3]
-	if not IsValid(ply) then return nil end
-	if not ply:IsPlayer() then return nil end
-
-	return ply
+	return TextList.last[3]
 end
 
 --- Returns the last message in the chat log.

@@ -57,8 +57,9 @@ end
 
 -- Returns the entity the input is wired to
 [nodiscard]
-e2function entity ioInputEntity( string input )
-	if (self.entity.Inputs[input] and self.entity.Inputs[input].Src and IsValid(self.entity.Inputs[input].Src)) then return self.entity.Inputs[input].Src end
+e2function entity ioInputEntity(string input)
+	local ioinput = self.entity.Inputs[input]
+	return ioinput and IsValid(ioinput.Src) and ioinput.Src or NULL
 end
 
 local fixDefault = E2Lib.fixDefault
@@ -77,7 +78,7 @@ registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
 		local short = v[1]
 		if not excluded_types[short] then
-			registerFunction("ioSetOutput","s"..short,""..short,function(self, args)
+			registerFunction("ioSetOutput","s"..short,"",function(self, args)
 				local rv1, rv2 = args[1], args[2]
 				if self.entity.Outputs[rv1] and self.entity.Outputs[rv1].Type == k then
 					self.GlobalScope[rv1] = rv2
