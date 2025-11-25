@@ -8,13 +8,18 @@ ENT.WireDebugName = "Buoyancy"
 if CLIENT then return end
 
 function ENT:Initialize()
-	self.Marks = {}
 	self:PhysicsInit(SOLID_VPHYSICS)
+	self.Marks = {}
+
 	WireLib.CreateInputs(self, { "Percent" })
 end
 
-function ENT:ShowOutput()
+function ENT:UpdateOverlay()
 	self:SetOverlayText(string.format("Buoyancy ratio: %.2f\nNumber of entities linked: %i", self.Percent, #self.Marks))
+end
+
+function ENT:UpdateOutputs()
+	self:UpdateOverlay()
 	WireLib.SendMarks(self)
 end
 
@@ -34,7 +39,7 @@ function ENT:Setup(percent)
 		SetBuoyancy(ent, self)
 	end
 
-	self:ShowOutput()
+	self:UpdateOverlay()
 end
 
 function ENT:TriggerInput(name, value)
@@ -45,11 +50,11 @@ function ENT:TriggerInput(name, value)
 			SetBuoyancy(ent, self)
 		end
 
-		self:ShowOutput()
+		self:UpdateOverlay()
 	end
 end
 
--- For some reason, buoyancy is reset by the physgun and gravgun
+-- Buoyancy is reset by the physgun and gravgun
 local function RestoreBuoyancy(ply, ent)
 	if ent.WireBuoyancyController then
 		timer.Simple(0 , function()
@@ -78,12 +83,12 @@ function ENT:LinkEnt(ent)
 	table.insert(self.Marks, ent)
 	SetBuoyancy(ent, self)
 
-	ent:CallOnRemove("WireBuoyancy_Unlink_" .. self:EntIndex(), function(ent)
+	ent:CallOnRemove("Buoyancy.Unlink" .. self:EntIndex(), function(ent)
 		self:UnlinkEnt(ent)
 	end)
 
 	ent.WireBuoyancyController = self
-	self:ShowOutput()
+	self:UpdateOutputs()
 
 	return true
 end
@@ -93,9 +98,9 @@ function ENT:UnlinkEnt(ent)
 
 	if bool then
 		table.remove(self.Marks, index)
-		ent:RemoveCallOnRemove("WireBuoyancy_Unlink_" .. self:EntIndex())
+		ent:RemoveCallOnRemove("Buoyancy.Unlink" .. self:EntIndex())
 		ent.WireBuoyancyController = nil
-		self:ShowOutput()
+		self:UpdateOutputs()
 	end
 
 	return bool
@@ -103,12 +108,12 @@ end
 
 function ENT:ClearEntities()
 	for index, ent in ipairs(self.Marks) do
-		ent:RemoveCallOnRemove("WireBuoyancy_Unlink_" .. self:EntIndex())
+		ent:RemoveCallOnRemove("Buoyancy.Unlink" .. self:EntIndex())
 		ent.WireBuoyancyController = nil
 	end
 
 	self.Marks = {}
-	self:ShowOutput()
+	self:UpdateOutputs()
 end
 
 function ENT:OnRemove()
