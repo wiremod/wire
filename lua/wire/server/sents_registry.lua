@@ -44,7 +44,7 @@
 -- TIP: To return a strict-only error in _preFactory, or _postFactory, just return a string, which contains the error message.
 -- 		(If you return a string to non-strict E2, obv it will also stop spawning the entity)
 
--- Supported types (to which can WireLib.castE2ValueToLuaValue cast E2 values): 
+-- Supported types (to which can WireLib.castE2ValueToLuaValue cast E2 values):
 -- TYPE_STRING, TYPE_NUMBER, TYPE_BOOL, TYPE_ENTITY, TYPE_VECTOR,
 -- TYPE_COLOR, TYPE_TABLE, TYPE_USERDATA, TYPE_ANGLE, TYPE_DAMAGEINFO,
 -- TYPE_MATERIAL, TYPE_EFFECTDATA, TYPE_MATRIX
@@ -1316,4 +1316,9 @@ register("gmod_wire_materializer", {
 	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
 	["Material"] = {TYPE_STRING, "debug/env_cubemap_model", "Default material"},
 	["Range"] = {TYPE_NUMBER, 2048, "Length of the materializer beam"},
+})
+
+register("gmod_wire_buoyancy", {
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
+	["Percent"] = {TYPE_NUMBER, 1, "Buoyancy coefficient"},
 })
