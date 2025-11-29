@@ -282,11 +282,6 @@ if CLIENT then
 		surface.CreateFont("GmodToolScreen"..size, fonttab)
 	end
 
-	local iconparams = {
-		["$vertexcolor"] = 1,
-		["$vertexalpha"] = 1,
-		["$ignorez"] = 1 -- This is essential, since the base Gmod screen_bg has ignorez, otherwise it'll draw overtop of us
-	}
 	local txBackground = surface.GetTextureID("models/weapons/v_toolgun/wirescreen_bg")
 	function WireToolObj:DrawToolScreen(width, height)
 		surface.SetTexture(txBackground)
@@ -318,10 +313,28 @@ if CLIENT then
 		surface.SetTextPos(x, y)
 		surface.DrawText(text)
 
-		iconparams[ "$basetexture" ] = "spawnicons/"..self:GetModel():sub(1,-5)
-		local mat = CreateMaterial(self:GetModel() .. "_DImage", "UnlitGeneric", iconparams )
-		surface.SetMaterial(mat)
-		surface.DrawTexturedRect( 128 - 32, 150, 64, 64)
+		local model = ClientsideModel(self:GetModel())
+		model:SetNoDraw(true)
+		model:SetIK(false)
+
+		local params = PositionSpawnIcon(model, vector_origin, true)
+
+		cam.Start3D(params.origin, params.angles, params.fov, 128 - 32, 150, 64, 64, params.znear, params.zfar)
+			render.SuppressEngineLighting(true)
+			render.SetLightingOrigin(vector_origin)
+			render.SetColorModulation(1, 1, 1)
+
+			render.ResetModelLighting(0.2, 0.2, 0.2)
+			render.SetModelLighting(BOX_TOP, 1, 1, 1)
+			render.SetModelLighting(BOX_FRONT, 1, 1, 1)
+
+			render.ClearDepth(true)
+			model:DrawModel()
+
+			render.SuppressEngineLighting(false)
+		cam.End3D()
+
+		model:Remove()
 
 		local on = self:GetOwner():GetInfo( "wire_tool_weldworld" )~="0" and not self:GetOwner():KeyDown(IN_WALK)
 		draw.DrawText("World Weld:  "..(on and "On" or "Off"),
