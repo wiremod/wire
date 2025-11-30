@@ -314,27 +314,30 @@ if CLIENT then
 		surface.DrawText(text)
 
 		local model = ClientsideModel(self:GetModel())
-		model:SetNoDraw(true)
-		model:SetIK(false)
 
-		local params = PositionSpawnIcon(model, vector_origin, true)
+		if IsValid(model) then
+			model:SetNoDraw(true)
+			model:SetIK(false)
 
-		cam.Start3D(params.origin, params.angles, params.fov, 128 - 32, 150, 64, 64, params.znear, params.zfar)
-			render.SuppressEngineLighting(true)
-			render.SetLightingOrigin(vector_origin)
-			render.SetColorModulation(1, 1, 1)
+			local params = PositionSpawnIcon(model, vector_origin, true)
 
-			render.ResetModelLighting(0.2, 0.2, 0.2)
-			render.SetModelLighting(BOX_TOP, 1, 1, 1)
-			render.SetModelLighting(BOX_FRONT, 1, 1, 1)
+			cam.Start3D(params.origin, params.angles, params.fov, 128 - 32, 150, 64, 64, params.znear, params.zfar)
+				render.SuppressEngineLighting(true)
+				render.SetLightingOrigin(vector_origin)
+				render.SetColorModulation(1, 1, 1)
 
-			render.ClearDepth(true)
-			model:DrawModel()
+				render.ResetModelLighting(0.2, 0.2, 0.2)
+				render.SetModelLighting(BOX_TOP, 1, 1, 1)
+				render.SetModelLighting(BOX_FRONT, 1, 1, 1)
 
-			render.SuppressEngineLighting(false)
-		cam.End3D()
+				render.ClearDepth(true)
+				model:DrawModel()
 
-		model:Remove()
+				render.SuppressEngineLighting(false)
+			cam.End3D()
+
+			model:Remove()
+		end
 
 		local on = self:GetOwner():GetInfo( "wire_tool_weldworld" )~="0" and not self:GetOwner():KeyDown(IN_WALK)
 		draw.DrawText("World Weld:  "..(on and "On" or "Off"),
