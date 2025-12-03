@@ -41,4 +41,4 @@ function ENT:TriggerInput(name, value)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_user", WireLib.MakeWireEnt, "Data")
+duplicator.RegisterEntityClass("gmod_wire_user", WireLib.MakeWireEnt, "Data", "Range")
