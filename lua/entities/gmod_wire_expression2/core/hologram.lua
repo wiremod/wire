@@ -594,7 +594,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 		end, self, index )
 	end
 
-	if not IsValid(prop) then return nil end
+	if not IsValid(prop) then return NULL end
 
 	if color then WireLib.SetColor(Holo.ent, Color(color[1],color[2],color[3],color[4] or 255)) end
 
@@ -664,7 +664,7 @@ end
 
 local function checkHoloCount(self)
 	if PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then
-		return self:throw("You've hit the maximum amount of holograms!", true)
+		return self:throw("You've hit the maximum amount of holograms!", NULL)
 	end
 end
 
@@ -718,8 +718,8 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
-	local ret = CreateHolo(self, index, position, scale, ang, color)
-	if IsValid(ret) then return ret end
+
+	return CreateHolo(self, index, position, scale, ang, color)
 end
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang)
@@ -728,10 +728,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang)
 	local Holo = CheckIndex(self, index, true)
 	if not Holo and checkHoloCount(self) then return end
 
-	position = Vector(position[1], position[2], position[3])
-	ang = Angle(ang[1], ang[2], ang[3])
-	local ret = CreateHolo(self, index, position, scale, ang)
-	if IsValid(ret) then return ret end
+	return CreateHolo(self, index, position, scale, ang)
 end
 
 e2function entity holoCreate(index, vector position, vector scale)
@@ -741,8 +738,8 @@ e2function entity holoCreate(index, vector position, vector scale)
 	if not Holo and checkHoloCount(self) then return end
 
 	position = Vector(position[1],position[2],position[3])
-	local ret = CreateHolo(self, index, position, scale)
-	if IsValid(ret) then return ret end
+
+	return CreateHolo(self, index, position, scale)
 end
 
 e2function entity holoCreate(index, vector position)
@@ -752,8 +749,8 @@ e2function entity holoCreate(index, vector position)
 	if not Holo and checkHoloCount(self) then return end
 
 	position = Vector(position[1],position[2],position[3])
-	local ret = CreateHolo(self, index, position)
-	if IsValid(ret) then return ret end
+
+	return CreateHolo(self, index, position)
 end
 
 e2function entity holoCreate(index)
@@ -762,8 +759,7 @@ e2function entity holoCreate(index)
 	local Holo = CheckIndex(self, index, true)
 	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
 
-	local ret = CreateHolo(self, index)
-	if IsValid(ret) then return ret end
+	return CreateHolo(self, index)
 end
 
 __e2setcost(20)
@@ -1328,7 +1324,8 @@ end
 __e2setcost(2)
 e2function entity holoEntity(index)
 	local Holo = CheckIndex(self, index)
-	if Holo and IsValid(Holo.ent) then return Holo.ent end
+
+	return Holo and Holo.ent or NULL
 end
 
 __e2setcost(30)

@@ -40,4 +40,4 @@ function ENT:ShowOutput(value)
 	self:SetOverlayText("Decal: " .. value)
 end
 
-duplicator.RegisterEntityClass("gmod_wire_painter", WireLib.MakeWireEnt, "Data", "Decal")
+duplicator.RegisterEntityClass("gmod_wire_painter", WireLib.MakeWireEnt, "Data", "Decal", "Range")

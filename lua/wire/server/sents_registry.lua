@@ -18,7 +18,7 @@
 --  register("gmod_foo_sent", {
 --  	["Model"] = {TYPE_STRING, "models/maxofs2d/button_05.mdl"},
 --  	["FooTable"] = {
---      	["FooBool"] = {TYPE_BOOL, true}, ["FooNumber"] = {TYPE_NUMBER, 1}
+--	  		["FooBool"] = {TYPE_BOOL, true}, ["FooNumber"] = {TYPE_NUMBER, 1}
 --  	}
 --  })
 --
@@ -44,7 +44,7 @@
 -- TIP: To return a strict-only error in _preFactory, or _postFactory, just return a string, which contains the error message.
 -- 		(If you return a string to non-strict E2, obv it will also stop spawning the entity)
 
--- Supported types (to which can WireLib.castE2ValueToLuaValue cast E2 values): 
+-- Supported types (to which can WireLib.castE2ValueToLuaValue cast E2 values):
 -- TYPE_STRING, TYPE_NUMBER, TYPE_BOOL, TYPE_ENTITY, TYPE_VECTOR,
 -- TYPE_COLOR, TYPE_TABLE, TYPE_USERDATA, TYPE_ANGLE, TYPE_DAMAGEINFO,
 -- TYPE_MATERIAL, TYPE_EFFECTDATA, TYPE_MATRIX
@@ -821,7 +821,41 @@ register("gmod_wire_gpulib_controller", {
 })
 
 register("gmod_wire_clutch", {
+	_preFactory = function(ply, self)
+		-- Check if Pairs is a table of {Ent1, Ent2} pairs
+		if not istable(self.Pairs) then return "'Pairs' must be a table!" end
+		for k, v in ipairs(self.Pairs) do
+			if #v ~= 2 then
+				return ("'Pairs' entry #%d must be an array of 2 entries!"):format(k)
+			end
+			if not istable(v) or not IsValid(v[1]) or not IsValid(v[2]) then
+				return ("'Pairs' entry #%d must be an array of valid entities!"):format(k)
+			end
+			if v[1] == v[2] then
+				return ("'Pairs' entry #%d: Ent1 and Ent2 must be different entities!"):format(k)
+			end
+			if v[1]:IsPlayer() or v[2]:IsPlayer() then
+				return ("'Pairs' entry #%d: Entities cannot be players!"):format(k)
+			end
+			if v[1]:IsNPC() or v[2]:IsNPC() then
+				return ("'Pairs' entry #%d: Entities cannot be NPCs!"):format(k)
+			end
+			if GetOwner(v[1]) ~= ply or GetOwner(v[2]) ~= ply then
+				return ("'Pairs' entry #%d: You do not own entities!"):format(k)
+			end
+		end
+	end,
+	_postFactory = function(ply, self, enttbl)
+		PrintMessage(HUD_PRINTCONSOLE, type(self) .. ", " .. type(enttbl))
+		PrintMessage(HUD_PRINTCONSOLE, tostring(self))
+		PrintMessage(HUD_PRINTCONSOLE, tostring(enttbl))
+		for _, v in ipairs(enttbl.Pairs) do
+			self:AddClutch(v[1], v[2])
+		end
+	end,
+
 	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
+	["Pairs"] = {TYPE_TABLE, {}, "A table of arrays/tables, where each holds exactly 2 valid, non-player, non-NPC entities."},
 })
 
 register("gmod_wire_input", {
@@ -1202,7 +1236,7 @@ register("gmod_wire_value", {
 	end,
 
 	["Model"] = {TYPE_STRING, "models/kobilica/value.mdl", "Path to model"},
-	["value"] = {TYPE_TABLE, {}, "Values to be stored. Can either be direct value (type will be auto found), array of direct values (types will be auto found), or sequential table of arrays with arr[1]==type, arr[2]==value. (Ex. - \"value\" = table(\n    array(\"VECTOR\", vec(25)), array(\"string\", \"foo\")))"},
+	["value"] = {TYPE_TABLE, {}, "Values to be stored. Can either be direct value (type will be auto found), array of direct values (types will be auto found), or sequential table of arrays with arr[1]==type, arr[2]==value. (Ex. - \"value\" = table(\n	array(\"VECTOR\", vec(25)), array(\"string\", \"foo\")))"},
 })
 
 register("gmod_wire_adv_emarker", {
@@ -1270,4 +1304,21 @@ register("gmod_wire_gate", {
 
 register("gmod_wire_freezer", {
 	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
+})
+
+register("gmod_wire_painter", {
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
+	["Decal"] = {TYPE_STRING, "Blood", "Decal name to use for painting"},
+	["Range"] = {TYPE_NUMBER, 2048, "Length of the paint beam"},
+})
+
+register("gmod_wire_materializer", {
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
+	["Material"] = {TYPE_STRING, "debug/env_cubemap_model", "Default material"},
+	["Range"] = {TYPE_NUMBER, 2048, "Length of the materializer beam"},
+})
+
+register("gmod_wire_buoyancy", {
+	["Model"] = {TYPE_STRING, "models/jaanus/wiretool/wiretool_siren.mdl", "Path to model"},
+	["Percent"] = {TYPE_NUMBER, 1, "Buoyancy coefficient"},
 })

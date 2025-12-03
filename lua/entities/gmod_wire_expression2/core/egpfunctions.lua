@@ -128,7 +128,7 @@ e2function egpobject wirelink:egpBox( number index, vector2 pos, vector2 size )
 	if (!EGP:IsAllowed( self, this )) then return NULL_EGPOBJECT end
 	local bool, obj = egp_create("Box", { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, this)
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
-	return obj 
+	return obj
 end
 
 --------------------------------------------------------
@@ -258,7 +258,7 @@ local function canCreateFont( ply, font, size )
 	size = size or 18
 
 	EGP.PlayerFontCount[ply:SteamID64()] = EGP.PlayerFontCount[ply:SteamID64()] or { fonts = {}, count = 0 }
-	local fontTable = EGP.PlayerFontCount[ply:SteamID64()] 
+	local fontTable = EGP.PlayerFontCount[ply:SteamID64()]
 
 	if fontTable.count >= 50 then return false end
 
@@ -779,10 +779,14 @@ e2function void wirelink:egpParent( number index, entity parent )
 end
 
 -- Returns the entity a tracker is parented to
-e2function entity wirelink:egpTrackerParent( number index )
+e2function entity wirelink:egpTrackerParent(number index)
 	local bool, k, v = hasObject(this, index)
+
 	if bool and v.NeedsConstantUpdate then
-		return (v.parententity and v.parententity:IsValid()) and v.parententity or nil
+		local parent = v.parententity
+		return IsValid(parent) and parent or NULL
+	else
+		return NULL
 	end
 end
 
@@ -1309,9 +1313,7 @@ end
 
 -- Returns the screen which the queue finished sending items for
 e2function entity egpQueueScreen()
-	if (EGP.RunByEGPQueue) then
-		return EGP.RunByEGPQueue_Ent
-	end
+	return EGP.RunByEGPQueue and EGP.RunByEGPQueue_Ent or NULL
 end
 
 -- Same as above, except returns wirelink
@@ -1323,9 +1325,7 @@ end
 
 -- Returns the player which ordered the current items to be sent (This is usually yourself, but if you're sharing pp with someone it might be them. Good way to check if someone is fucking with your screens)
 e2function entity egpQueuePlayer()
-	if (EGP.RunByEGPQueue) then
-		return EGP.RunByEGPQueue_ply
-	end
+	return EGP.RunByEGPQueue and EGP.RunByEGPQueue_ply or NULL
 end
 
 -- Returns 1 if the current execution was caused by the EGP queue system and the player <ply> was the player whom ordered the item to be sent (This is usually yourself, but if you're sharing pp with someone it might be them.)

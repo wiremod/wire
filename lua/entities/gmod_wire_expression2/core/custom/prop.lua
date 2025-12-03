@@ -767,17 +767,12 @@ e2function void entity:use()
 	if not ValidAction(self, this, "use") then return end
 
 	local ply = self.player
-	if not IsValid(ply) then return end -- if the owner isn't connected to the server, do nothing
-	if ply:InVehicle() and this:IsVehicle() then return end -- don't use a vehicle if you're in one
+	if not IsValid(ply) then return end
 
-	if hook.Run( "PlayerUse", ply, this ) == false then return end
-	if hook.Run( "WireUse", ply, this, self.entity ) == false then return end
+	if hook.Run("PlayerUse", ply, this) == false then return end
+	if hook.Run("WireUse", ply, this, self.entity) == false then return end
 
-	if this.Use then
-		this:Use(ply,self.entity,USE_ON,0)
-	else
-		this:Fire("use","1",0)
-	end
+	this:Use(ply, self.entity)
 end
 
 __e2setcost(30)
