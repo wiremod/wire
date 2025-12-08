@@ -108,6 +108,7 @@ if CLIENT then
 			projtex:SetColor( Color( self:GetRed(), self:GetGreen(), self:GetBlue() ) )
 			projtex:SetPos( lightpos )
 			projtex:SetAngles( self:LocalToWorldAngles( light_info.Angle or angle_zero ) )
+			projtex:SetEnableShadows( false )
 			projtex:Update()
 		end
 		self.LastLampMatrix = lampMatrix
