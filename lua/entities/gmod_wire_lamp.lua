@@ -84,7 +84,7 @@ if CLIENT then
 			if IsValid( self.ProjTex ) then
 				self.ProjTex:Remove()
 				self.ProjTex = nil
-				self.LastLampHash = nil
+				self.LastLampMatrix = nil
 			end
 			return
 		end
@@ -107,14 +107,12 @@ if CLIENT then
 		projtex:SetPos( lightpos )
 		projtex:SetAngles( self:LocalToWorldAngles( light_info.Angle or angle_zero ) )
 
-		local currentPos = self:GetPos()
-		local currentAng = self:GetAngles()
-		local lampHash = currentPos.x + currentPos.y * 17 + currentPos.z * 23 + currentAng.p * 29 + currentAng.y * 31 + currentAng.r * 37
-		local lastLampHash = self.LastLampHash or 0
-		if lastLampHash ~= lampHash then
+		local lampMatrix = self:GetWorldTransformMatrix()
+		local lastLampMatrix = self.LastLampMatrix or 0
+		if lastLampMatrix ~= lampMatrix then
 			projtex:Update()
 		end
-		self.LastLampHash = lampHash
+		self.LastLampMatrix = lampMatrix
 	end
 
 	function ENT:OnRemove()

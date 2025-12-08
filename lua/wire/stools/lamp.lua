@@ -18,7 +18,7 @@ WireToolSetup.SetupMax(10)
 
 if SERVER then
 	function TOOL:GetConVars()
-		return self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"), self:GetClientInfo("texture"), self:GetClientNumber("fov"), self:GetClientNumber("distance"), self:GetClientNumber("brightness")
+		return self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"), self:GetClientInfo("texture"), self:GetClientNumber("fov"), self:GetClientNumber("distance"), self:GetClientNumber("brightness"), self:GetClientNumber("on") ~= 0
 	end
 
 	function TOOL:LeftClick_PostMake(ent, ply, trace)
@@ -108,6 +108,7 @@ TOOL.ClientConVar["fov"] = 90
 TOOL.ClientConVar["distance"] = 1024
 TOOL.ClientConVar["brightness"] = 4
 TOOL.ClientConVar["model"] = "models/lamps/torch.mdl"
+TOOL.ClientConVar["on"] = 1
 
 function TOOL:RightClick(trace)
 	if CLIENT then return true end
@@ -141,6 +142,10 @@ function TOOL.BuildCPanel(panel)
 	combobox:AddChoice("Rope", "rope")
 	combobox:AddChoice("Weld", "weld")
 	combobox:AddChoice("None", "none")
+
+	local startOn = panel:CheckBox("Start On", "wire_lamp_on")
+	startOn:SetTooltip("If checked, the lamp will be on when spawned.")
+
 	panel:ColorPicker("Color", "wire_lamp_r", "wire_lamp_g", "wire_lamp_b")
 
 	local matselect = panel:MatSelect("wire_lamp_texture", nil, true, 0.33, 0.33)
