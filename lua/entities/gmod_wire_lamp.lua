@@ -179,14 +179,18 @@ function ENT:TriggerInput(name, value)
 end
 
 function ENT:Setup(r, g, b, texture, fov, distance, brightness, on)
+	r = math.Clamp(r or 255, 0, 255)
+	g = math.Clamp(g or 255, 0, 255)
+	b = math.Clamp(b or 255, 0, 255)
+
 	self:SetRed(r)
 	self:SetGreen(g)
 	self:SetBlue(b)
-	self:SetTexture(texture)
-	self:SetFOV(fov)
-	self:SetDistance(distance)
-	self:SetBrightness(brightness)
-	self:SetOn(on)
+	self:SetTexture(texture or "effects/flashlight001")
+	self:SetFOV(fov or 90)
+	self:SetDistance(distance or 1024)
+	self:SetBrightness(brightness or 8)
+	self:SetOn(on and true or false)
 end
 
 duplicator.RegisterEntityClass("gmod_wire_lamp", WireLib.MakeWireEnt, "Data", "r", "g", "b", "Texture", "FOV", "Dist", "Brightness", "on")
