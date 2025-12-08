@@ -18,7 +18,7 @@ WireToolSetup.SetupMax(10)
 
 if SERVER then
 	function TOOL:GetConVars()
-		return self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"), self:GetClientInfo("texture"), self:GetClientNumber("fov"), self:GetClientNumber("distance"), self:GetClientNumber("brightness"), self:GetClientNumber("on") ~= 0
+		return self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"), self:GetClientInfo("texture"), self:GetClientNumber("fov"), self:GetClientNumber("distance"), self:GetClientNumber("brightness"), self:GetClientBool("on")
 	end
 
 	function TOOL:LeftClick_PostMake(ent, ply, trace)
