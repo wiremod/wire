@@ -8,6 +8,9 @@ ENT.WireDebugName = "Lamp"
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool", "On")
 	self:NetworkVar("Int", "FOV")
+	self:NetworkVar("Int", "Red")
+	self:NetworkVar("Int", "Green")
+	self:NetworkVar("Int", "Blue")
 	self:NetworkVar("Int", "Distance")
 	self:NetworkVar("Int", "Brightness")
 	self:NetworkVar("String", "Texture")
@@ -17,6 +20,9 @@ function ENT:SetupDataTables()
 			self:OnVarChanged( ... )
 		end
 		self:NetworkVarNotify( "FOV", callOnVarChanged )
+		self:NetworkVarNotify( "Red", callOnVarChanged )
+		self:NetworkVarNotify( "Green", callOnVarChanged )
+		self:NetworkVarNotify( "Blue", callOnVarChanged )
 		self:NetworkVarNotify( "Distance", callOnVarChanged )
 		self:NetworkVarNotify( "Brightness", callOnVarChanged )
 		self:NetworkVarNotify( "Texture", callOnVarChanged )
@@ -71,7 +77,7 @@ if CLIENT then
 
 		render.SetMaterial(light)
 
-		local color = self:GetColor()
+		local color = Color(self:GetRed(), self:GetGreen(), self:GetBlue())
 		color.a = math.Clamp((1000 - math.Clamp(distance, 32, 800)) * visdot, 0, 100)
 
 		local size = math.Clamp(distance * visdot * (light_info.Scale or 2), 64, 512)
@@ -95,7 +101,7 @@ if CLIENT then
 		projtex:SetFOV( self:GetFOV() )
 		projtex:SetFarZ( self:GetDistance() )
 		projtex:SetBrightness( self:GetBrightness() / 255 )
-		projtex:SetColor( self:GetColor() )
+		projtex:SetColor( Color( self:GetRed(), self:GetGreen(), self:GetBlue() ) )
 		projtex:Update()
 	end
 
@@ -119,22 +125,14 @@ if CLIENT then
 		local lightpos = self:LocalToWorld(light_info.Offset or vector_offset)
 
 		local lampMatrix = self:GetWorldTransformMatrix()
-		local lastLampMatrix = self.LastLampMatrix
+		local lastLampMatrix = self.LastLampMatrix or 0
 		if lastLampMatrix ~= lampMatrix then
 			local projtex = self.ProjTex
 			projtex:SetPos( lightpos )
 			projtex:SetAngles( self:LocalToWorldAngles( light_info.Angle or angle_zero ) )
 			projtex:Update()
-
-			self.LastLampMatrix = lampMatrix
 		end
-
-		local lastColor = self.LastColor
-		local currentColor = self:GetColor()
-		if lastColor ~= currentColor then
-			self:UpdateProjTex()
-			self.LastColor = currentColor
-		end
+		self.LastLampMatrix = lampMatrix
 	end
 
 	function ENT:OnRemove()
@@ -154,22 +152,15 @@ end
 
 function ENT:TriggerInput(name, value)
 	if name == "Red" then
-		local currentColor = self:GetColor()
-		currentColor.r = math.Clamp(value, 0, 255)
-		self:SetColor(currentColor)
+		self:SetRed(math.Clamp(value, 0, 255))
 	elseif name == "Green" then
-		local currentColor = self:GetColor()
-		currentColor.g = math.Clamp(value, 0, 255)
-		self:SetColor(currentColor)
+		self:SetGreen(math.Clamp(value, 0, 255))
 	elseif name == "Blue" then
-		local currentColor = self:GetColor()
-		currentColor.b = math.Clamp(value, 0, 255)
-		self:SetColor(currentColor)
+		self:SetBlue(math.Clamp(value, 0, 255))
 	elseif name == "RGB" then
-		local r = math.Clamp(value[1], 0, 255)
-		local g = math.Clamp(value[2], 0, 255)
-		local b = math.Clamp(value[3], 0, 255)
-		self:SetColor(Color(r, g, b))
+		self:SetRed(math.Clamp(value.r, 0, 255))
+		self:SetGreen(math.Clamp(value.g, 0, 255))
+		self:SetBlue(math.Clamp(value.b, 0, 255))
 	elseif name == "FOV" then
 		self:SetFOV(value)
 	elseif name == "Distance" then
@@ -192,7 +183,9 @@ function ENT:Setup(r, g, b, texture, fov, distance, brightness, on)
 	g = math.Clamp(g or 255, 0, 255)
 	b = math.Clamp(b or 255, 0, 255)
 
-	self:SetColor(Color(r, g, b))
+	self:SetRed(r)
+	self:SetGreen(g)
+	self:SetBlue(b)
 	self:SetTexture(texture or "effects/flashlight001")
 	self:SetFOV(fov or 90)
 	self:SetDistance(distance or 1024)
