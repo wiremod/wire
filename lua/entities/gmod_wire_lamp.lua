@@ -7,7 +7,6 @@ ENT.WireDebugName = "Lamp"
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool", "On")
-	self:NetworkVar("Bool", "Updated")
 	self:NetworkVar("Int", "FOV")
 	self:NetworkVar("Int", "Red")
 	self:NetworkVar("Int", "Green")
@@ -15,6 +14,14 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Int", "Distance")
 	self:NetworkVar("Int", "Brightness")
 	self:NetworkVar("String", "Texture")
+
+	self:NetworkVarNotify( "FOV", self.OnVarChanged )
+	self:NetworkVarNotify( "Red", self.OnVarChanged )
+	self:NetworkVarNotify( "Green", self.OnVarChanged )
+	self:NetworkVarNotify( "Blue", self.OnVarChanged )
+	self:NetworkVarNotify( "Distance", self.OnVarChanged )
+	self:NetworkVarNotify( "Brightness", self.OnVarChanged )
+	self:NetworkVarNotify( "Texture", self.OnVarChanged )
 end
 
 function ENT:GetEntityDriveMode()
@@ -100,7 +107,7 @@ if CLIENT then
 
 		local lampMatrix = self:GetWorldTransformMatrix()
 		local lastLampMatrix = self.LastLampMatrix or 0
-		if lastLampMatrix ~= lampMatrix or self:GetUpdated() then
+		if lastLampMatrix ~= lampMatrix then
 			local projtex = self.ProjTex
 			projtex:SetTexture( self:GetTexture() )
 			projtex:SetFOV( self:GetFOV() )
@@ -111,10 +118,6 @@ if CLIENT then
 			projtex:SetAngles( self:LocalToWorldAngles( light_info.Angle or angle_zero ) )
 			projtex:SetEnableShadows( false )
 			projtex:Update()
-
-			if self:GetUpdated() then
-				self:SetUpdated(false)
-			end
 		end
 		self.LastLampMatrix = lampMatrix
 	end
@@ -123,6 +126,10 @@ if CLIENT then
 		if IsValid( self.ProjTex ) then
 			self.ProjTex:Remove()
 		end
+	end
+
+	function ENT:OnVarChanged( varname, oldvalue, newvalue )
+		self.LastLampMatrix = nil
 	end
 end
 
@@ -152,13 +159,6 @@ function ENT:TriggerInput(name, value)
 			self:SetTexture("effects/flashlight001")
 		end
 	end
-
-	self:SetUpdated(true)
-	timer.Simple(0, function()
-		if IsValid(self) then
-			self:SetUpdated(false)
-		end
-	end)
 end
 
 function ENT:Setup(r, g, b, texture, fov, distance, brightness, on)
