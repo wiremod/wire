@@ -15,13 +15,18 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Int", "Brightness")
 	self:NetworkVar("String", "Texture")
 
-	self:NetworkVarNotify( "FOV", self.OnVarChanged )
-	self:NetworkVarNotify( "Red", self.OnVarChanged )
-	self:NetworkVarNotify( "Green", self.OnVarChanged )
-	self:NetworkVarNotify( "Blue", self.OnVarChanged )
-	self:NetworkVarNotify( "Distance", self.OnVarChanged )
-	self:NetworkVarNotify( "Brightness", self.OnVarChanged )
-	self:NetworkVarNotify( "Texture", self.OnVarChanged )
+	if CLIENT then
+		local function callOnVarChanged( _, ... ) -- Fixes autorefresh
+			self:OnVarChanged( ... )
+		end
+		self:NetworkVarNotify( "FOV", callOnVarChanged )
+		self:NetworkVarNotify( "Red", callOnVarChanged )
+		self:NetworkVarNotify( "Green", callOnVarChanged )
+		self:NetworkVarNotify( "Blue", callOnVarChanged )
+		self:NetworkVarNotify( "Distance", callOnVarChanged )
+		self:NetworkVarNotify( "Brightness", callOnVarChanged )
+		self:NetworkVarNotify( "Texture", callOnVarChanged )
+	end
 end
 
 function ENT:GetEntityDriveMode()
@@ -87,6 +92,19 @@ if CLIENT then
 		self:DrawEffects()
 	end
 
+	function ENT:UpdateProjTex()
+		local projtex = self.ProjTex
+		if not IsValid(projtex) then return end
+
+		projtex:SetEnableShadows( false )
+		projtex:SetTexture( self:GetTexture() )
+		projtex:SetFOV( self:GetFOV() )
+		projtex:SetFarZ( self:GetDistance() )
+		projtex:SetBrightness( self:GetBrightness() / 255 )
+		projtex:SetColor( Color( self:GetRed(), self:GetGreen(), self:GetBlue() ) )
+		projtex:Update()
+	end
+
 	function ENT:Think()
 		if not self:GetOn() then
 			if IsValid( self.ProjTex ) then
@@ -100,6 +118,7 @@ if CLIENT then
 		-- Projected texture
 		if not IsValid( self.ProjTex ) then
 			self.ProjTex = ProjectedTexture()
+			self:UpdateProjTex()
 		end
 
 		local light_info = self:GetLightInfo()
@@ -109,14 +128,8 @@ if CLIENT then
 		local lastLampMatrix = self.LastLampMatrix or 0
 		if lastLampMatrix ~= lampMatrix then
 			local projtex = self.ProjTex
-			projtex:SetTexture( self:GetTexture() )
-			projtex:SetFOV( self:GetFOV() )
-			projtex:SetFarZ( self:GetDistance() )
-			projtex:SetBrightness( self:GetBrightness() / 255 )
-			projtex:SetColor( Color( self:GetRed(), self:GetGreen(), self:GetBlue() ) )
 			projtex:SetPos( lightpos )
 			projtex:SetAngles( self:LocalToWorldAngles( light_info.Angle or angle_zero ) )
-			projtex:SetEnableShadows( false )
 			projtex:Update()
 		end
 		self.LastLampMatrix = lampMatrix
@@ -129,7 +142,11 @@ if CLIENT then
 	end
 
 	function ENT:OnVarChanged( varname, oldvalue, newvalue )
-		self.LastLampMatrix = nil
+		timer.Simple( 0, function()
+			if not IsValid( self ) then return end
+			if not IsValid( self.ProjTex ) then return end
+			self:UpdateProjTex()
+		end )
 	end
 end
 
