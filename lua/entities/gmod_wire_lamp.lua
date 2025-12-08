@@ -7,6 +7,7 @@ ENT.WireDebugName = "Lamp"
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool", "On")
+	self:NetworkVar("Bool", "Updated")
 	self:NetworkVar("Int", "FOV")
 	self:NetworkVar("Int", "Red")
 	self:NetworkVar("Int", "Green")
@@ -99,7 +100,7 @@ if CLIENT then
 
 		local lampMatrix = self:GetWorldTransformMatrix()
 		local lastLampMatrix = self.LastLampMatrix or 0
-		if lastLampMatrix ~= lampMatrix then
+		if lastLampMatrix ~= lampMatrix or self:GetUpdated() then
 			local projtex = self.ProjTex
 			projtex:SetTexture( self:GetTexture() )
 			projtex:SetFOV( self:GetFOV() )
@@ -110,6 +111,10 @@ if CLIENT then
 			projtex:SetAngles( self:LocalToWorldAngles( light_info.Angle or angle_zero ) )
 			projtex:SetEnableShadows( false )
 			projtex:Update()
+
+			if self:GetUpdated() then
+				self:SetUpdated(false)
+			end
 		end
 		self.LastLampMatrix = lampMatrix
 	end
@@ -147,6 +152,13 @@ function ENT:TriggerInput(name, value)
 			self:SetTexture("effects/flashlight001")
 		end
 	end
+
+	self:SetUpdated(true)
+	timer.Simple(0, function()
+		if IsValid(self) then
+			self:SetUpdated(false)
+		end
+	end)
 end
 
 function ENT:Setup(r, g, b, texture, fov, distance, brightness, on)
