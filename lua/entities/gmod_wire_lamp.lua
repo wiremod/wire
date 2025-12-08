@@ -97,19 +97,17 @@ if CLIENT then
 		local light_info = self:GetLightInfo()
 		local lightpos = self:LocalToWorld(light_info.Offset or vector_offset)
 
-		-- Projected texture update
-		local projtex = self.ProjTex
-		projtex:SetTexture( self:GetTexture() )
-		projtex:SetFOV( self:GetFOV() )
-		projtex:SetFarZ( self:GetDistance() )
-		projtex:SetBrightness( self:GetBrightness() / 255 )
-		projtex:SetColor( Color( self:GetRed(), self:GetGreen(), self:GetBlue() ) )
-		projtex:SetPos( lightpos )
-		projtex:SetAngles( self:LocalToWorldAngles( light_info.Angle or angle_zero ) )
-
 		local lampMatrix = self:GetWorldTransformMatrix()
 		local lastLampMatrix = self.LastLampMatrix or 0
 		if lastLampMatrix ~= lampMatrix then
+			local projtex = self.ProjTex
+			projtex:SetTexture( self:GetTexture() )
+			projtex:SetFOV( self:GetFOV() )
+			projtex:SetFarZ( self:GetDistance() )
+			projtex:SetBrightness( self:GetBrightness() / 255 )
+			projtex:SetColor( Color( self:GetRed(), self:GetGreen(), self:GetBlue() ) )
+			projtex:SetPos( lightpos )
+			projtex:SetAngles( self:LocalToWorldAngles( light_info.Angle or angle_zero ) )
 			projtex:Update()
 		end
 		self.LastLampMatrix = lampMatrix
