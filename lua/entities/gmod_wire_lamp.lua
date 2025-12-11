@@ -95,6 +95,7 @@ if CLIENT then
 		end
 
 		self.LastLampMatrix = nil
+		self.LastLampColor = nil
 	end
 
 	function ENT:Think()
