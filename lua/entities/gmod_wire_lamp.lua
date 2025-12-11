@@ -154,7 +154,11 @@ if CLIENT then
 end
 
 function ENT:TriggerInput(name, value)
-	if name == "Red" then
+	if name == "On" then
+		self:SetOn(value ~= 0)
+	elseif name == "FOV" then
+		self:SetFOV(value)
+	elseif name == "Red" then
 		self:SetRed(math.Clamp(value, 0, 255))
 	elseif name == "Green" then
 		self:SetGreen(math.Clamp(value, 0, 255))
@@ -164,14 +168,10 @@ function ENT:TriggerInput(name, value)
 		self:SetRed(math.Clamp(value.r, 0, 255))
 		self:SetGreen(math.Clamp(value.g, 0, 255))
 		self:SetBlue(math.Clamp(value.b, 0, 255))
-	elseif name == "FOV" then
-		self:SetFOV(value)
 	elseif name == "Distance" then
 		self:SetDistance(value)
 	elseif name == "Brightness" then
 		self:SetBrightness(value)
-	elseif name == "On" then
-		self:SetOn(value ~= 0)
 	elseif name == "Texture" then
 		if value ~= "" then
 			self:SetTexture(value)
@@ -182,14 +182,14 @@ function ENT:TriggerInput(name, value)
 end
 
 function ENT:Setup(r, g, b, texture, fov, distance, brightness, on)
+	self:SetOn(on and true or false)
+	self:SetFOV(fov or 90)
 	self:SetRed(math.Clamp(r or 255, 0, 255))
 	self:SetGreen(math.Clamp(g or 255, 0, 255))
 	self:SetBlue(math.Clamp(b or 255, 0, 255))
-	self:SetTexture(texture or "effects/flashlight001")
-	self:SetFOV(fov or 90)
 	self:SetDistance(distance or 1024)
 	self:SetBrightness(brightness or 8)
-	self:SetOn(on and true or false)
+	self:SetTexture(texture or "effects/flashlight001")
 end
 
 duplicator.RegisterEntityClass("gmod_wire_lamp", WireLib.MakeWireEnt, "Data", "r", "g", "b", "Texture", "FOV", "Dist", "Brightness", "on")
