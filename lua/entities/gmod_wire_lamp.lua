@@ -106,11 +106,13 @@ if CLIENT then
 		end
 
 		if not self.Flashlight then
+			local light_info = self:GetLightInfo()
 			local flashlight = ProjectedTexture()
 			local singleplayer = game.SinglePlayer()
 
-			flashlight:SetFOV(singleplayer and self:GetFOV() or math.Clamp(self:GetFOV(), 0, 170))
+			flashlight:SetNearZ(light_info.NearZ or 12)
 			flashlight:SetFarZ(singleplayer and self:GetDistance() or math.Clamp(self:GetDistance(), 64, 2048))
+			flashlight:SetFOV(singleplayer and self:GetFOV() or math.Clamp(self:GetFOV(), 0, 170))
 			flashlight:SetBrightness(singleplayer and self:GetBrightness() or math.Clamp(self:GetBrightness(), 0, 8))
 			flashlight:SetTexture(self:GetTexture())
 
