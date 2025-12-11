@@ -140,7 +140,7 @@ if CLIENT then
 			flashlight:SetAngles(self:LocalToWorldAngles(light_info.Angle or angle_zero))
 			flashlight:Update()
 
-			self.LastLampMatrix = lampMatrix
+			self.LastLampMatrix = matrix
 		end
 	end
 
