@@ -96,7 +96,6 @@ if CLIENT then
 		local projtex = self.ProjTex
 		if not IsValid(projtex) then return end
 
-		projtex:SetEnableShadows( false )
 		projtex:SetTexture( self:GetTexture() )
 		projtex:SetFOV( self:GetFOV() )
 		projtex:SetFarZ( self:GetDistance() )
