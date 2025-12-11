@@ -133,6 +133,7 @@ function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_lamp")
 
 	WireDermaExts.ModelSelect(panel, "wire_lamp_model", list.Get("LampModels"), 1, true)
+	panel:CheckBox("Start On", "wire_lamp_on")
 	panel:NumSlider("Rope Length:", "wire_lamp_ropelength", 4, 400, 0)
 	panel:NumSlider("FOV:", "wire_lamp_fov", 10, 170, 2)
 	panel:NumSlider("Distance:", "wire_lamp_distance", 64, 2048, 0)
@@ -142,10 +143,6 @@ function TOOL.BuildCPanel(panel)
 	combobox:AddChoice("Rope", "rope")
 	combobox:AddChoice("Weld", "weld")
 	combobox:AddChoice("None", "none")
-
-	local startOn = panel:CheckBox("Start On", "wire_lamp_on")
-	startOn:SetTooltip("If checked, the lamp will be on when spawned.")
-
 	panel:ColorPicker("Color", "wire_lamp_r", "wire_lamp_g", "wire_lamp_b")
 
 	local matselect = panel:MatSelect("wire_lamp_texture", nil, true, 0.33, 0.33)

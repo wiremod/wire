@@ -16,16 +16,13 @@ function ENT:SetupDataTables()
 	self:NetworkVar("String", "Texture")
 
 	if CLIENT then
-		local function callOnVarChanged( _, ... ) -- Fixes autorefresh
-			self:OnVarChanged( ... )
-		end
-		self:NetworkVarNotify( "FOV", callOnVarChanged )
-		self:NetworkVarNotify( "Red", callOnVarChanged )
-		self:NetworkVarNotify( "Green", callOnVarChanged )
-		self:NetworkVarNotify( "Blue", callOnVarChanged )
-		self:NetworkVarNotify( "Distance", callOnVarChanged )
-		self:NetworkVarNotify( "Brightness", callOnVarChanged )
-		self:NetworkVarNotify( "Texture", callOnVarChanged )
+		self:NetworkVarNotify("FOV", self.OnVarChanged)
+		self:NetworkVarNotify("Red", self.OnVarChanged)
+		self:NetworkVarNotify("Green", self.OnVarChanged)
+		self:NetworkVarNotify("Blue", self.OnVarChanged)
+		self:NetworkVarNotify("Distance", self.OnVarChanged)
+		self:NetworkVarNotify("Brightness", self.OnVarChanged)
+		self:NetworkVarNotify("Texture", self.OnVarChanged)
 	end
 end
 
@@ -56,96 +53,103 @@ local vector_offset = Vector(5, 0, 0)
 if CLIENT then
 	local light = Material("sprites/light_ignorez")
 
-	function ENT:DrawEffects()
-		if not self:GetOn() then return end
-
-		local light_info = self:GetLightInfo()
-		local lightpos = self:LocalToWorld(light_info.Offset or vector_offset)
-
-		local viewnormal = EyePos()
-		viewnormal:Negate()
-		viewnormal:Add(lightpos)
-
-		local distance = viewnormal:Length()
-		viewnormal:Negate()
-
-		local viewdot = viewnormal:Dot(self:LocalToWorldAngles(light_info.Angle or angle_zero):Forward()) / distance
-		if viewdot < 0 then return end
-
-		local visibile = util.PixelVisible(lightpos, 16, self.PixVis)
-		local visdot = visibile * viewdot
-
-		render.SetMaterial(light)
-
-		local color = Color(self:GetRed(), self:GetGreen(), self:GetBlue())
-		color.a = math.Clamp((1000 - math.Clamp(distance, 32, 800)) * visdot, 0, 100)
-
-		local size = math.Clamp(distance * visdot * (light_info.Scale or 2), 64, 512)
-		render.DrawSprite(lightpos, size, size, color)
-
-		color.r, color.g, color.b = 255, 255, 255
-		render.DrawSprite(lightpos, size * 0.4, size * 0.4, color)
-	end
-
 	function ENT:DrawTranslucent(flags)
 		BaseClass.DrawTranslucent(self, flags)
-		self:DrawEffects()
+
+		if self:GetOn() then
+			local light_info = self:GetLightInfo()
+			local lightpos = self:LocalToWorld(light_info.Offset or vector_offset)
+
+			local viewnormal = EyePos()
+			viewnormal:Negate()
+			viewnormal:Add(lightpos)
+
+			local distance = viewnormal:Length()
+			viewnormal:Negate()
+
+			local viewdot = viewnormal:Dot(self:LocalToWorldAngles(light_info.Angle or angle_zero):Forward()) / distance
+			if viewdot < 0 then return end
+
+			local visibile = util.PixelVisible(lightpos, 16, self.PixVis)
+			local visdot = visibile * viewdot
+
+			render.SetMaterial(light)
+
+			local color = Color(self:GetRed(), self:GetGreen(), self:GetBlue())
+			color.a = math.Clamp((1000 - math.Clamp(distance, 32, 800)) * visdot, 0, 100)
+
+			local size = math.Clamp(distance * visdot * (light_info.Scale or 2), 64, 512)
+			render.DrawSprite(lightpos, size, size, color)
+
+			color.r, color.g, color.b = 255, 255, 255
+			render.DrawSprite(lightpos, size * 0.4, size * 0.4, color)
+		end
 	end
 
-	function ENT:UpdateProjTex()
-		local projtex = self.ProjTex
-		if not IsValid(projtex) then return end
+	function ENT:OnVarChanged(name, old, new)
+		local flashlight = self.Flashlight
+		if not flashlight then return end
 
-		projtex:SetTexture( self:GetTexture() )
-		projtex:SetFOV( self:GetFOV() )
-		projtex:SetFarZ( self:GetDistance() )
-		projtex:SetBrightness( self:GetBrightness() / 255 )
-		projtex:SetColor( Color( self:GetRed(), self:GetGreen(), self:GetBlue() ) )
-		projtex:Update()
+		if name == "FOV" then
+			flashlight:SetFOV(game.SinglePlayer() and new or math.Clamp(new, 0, 170))
+		elseif name == "Red" then
+			flashlight:SetColor(Color(new, self:GetGreen(), self:GetBlue()))
+		elseif name == "Green" then
+			flashlight:SetColor(Color(self:GetRed(), new, self:GetBlue()))
+		elseif name == "Blue" then
+			flashlight:SetColor(Color(self:GetRed(), self:GetGreen(), new))
+		elseif name == "Distance" then
+			flashlight:SetFarZ(game.SinglePlayer() and new or math.Clamp(new, 64, 2048))
+		elseif name == "Brightness" then
+			flashlight:SetBrightness(game.SinglePlayer() and new or math.Clamp(new, 0, 8))
+		elseif name == "Texture" then
+			flashlight:SetTexture(new)
+		end
+
+		self.LastLampMatrix = nil
 	end
 
 	function ENT:Think()
 		if not self:GetOn() then
-			if IsValid( self.ProjTex ) then
-				self.ProjTex:Remove()
-				self.ProjTex = nil
-				self.LastLampMatrix = nil
-			end
+			self:OnRemove()
+
 			return
 		end
 
-		-- Projected texture
-		if not IsValid( self.ProjTex ) then
-			self.ProjTex = ProjectedTexture()
-			self:UpdateProjTex()
+		if not self.Flashlight then
+			local flashlight = ProjectedTexture()
+			local singleplayer = game.SinglePlayer()
+
+			flashlight:SetFOV(singleplayer and self:GetFOV() or math.Clamp(self:GetFOV(), 0, 170))
+			flashlight:SetColor(Color(self:GetRed(), self:GetGreen(), self:GetBlue()))
+			flashlight:SetFarZ(singleplayer and self:GetDistance() or math.Clamp(self:GetDistance(), 64, 2048))
+			flashlight:SetBrightness(singleplayer and self:GetBrightness() or math.Clamp(self:GetBrightness(), 0, 8))
+			flashlight:SetTexture(self:GetTexture())
+
+			self.Flashlight = flashlight
 		end
 
-		local light_info = self:GetLightInfo()
-		local lightpos = self:LocalToWorld(light_info.Offset or vector_offset)
+		local matrix = self:GetWorldTransformMatrix()
 
-		local lampMatrix = self:GetWorldTransformMatrix()
-		local lastLampMatrix = self.LastLampMatrix or 0
-		if lastLampMatrix ~= lampMatrix then
-			local projtex = self.ProjTex
-			projtex:SetPos( lightpos )
-			projtex:SetAngles( self:LocalToWorldAngles( light_info.Angle or angle_zero ) )
-			projtex:Update()
+		if self.LastLampMatrix ~= matrix then
+			local flashlight = self.Flashlight
+			local light_info = self:GetLightInfo()
+			local lightpos = self:LocalToWorld(light_info.Offset or vector_offset)
+
+			flashlight:SetPos(lightpos)
+			flashlight:SetAngles(self:LocalToWorldAngles(light_info.Angle or angle_zero))
+			flashlight:Update()
+
+			self.LastLampMatrix = lampMatrix
 		end
-		self.LastLampMatrix = lampMatrix
 	end
 
 	function ENT:OnRemove()
-		if IsValid( self.ProjTex ) then
-			self.ProjTex:Remove()
+		if self.Flashlight then
+			self.Flashlight:Remove()
+			self.Flashlight = nil
+			self.LastLampMatrix = nil
 		end
-	end
-
-	function ENT:OnVarChanged( varname, oldvalue, newvalue )
-		timer.Simple( 0, function()
-			if not IsValid( self ) then return end
-			if not IsValid( self.ProjTex ) then return end
-			self:UpdateProjTex()
-		end )
 	end
 end
 
@@ -178,13 +182,9 @@ function ENT:TriggerInput(name, value)
 end
 
 function ENT:Setup(r, g, b, texture, fov, distance, brightness, on)
-	r = math.Clamp(r or 255, 0, 255)
-	g = math.Clamp(g or 255, 0, 255)
-	b = math.Clamp(b or 255, 0, 255)
-
-	self:SetRed(r)
-	self:SetGreen(g)
-	self:SetBlue(b)
+	self:SetRed(math.Clamp(r or 255, 0, 255))
+	self:SetGreen(math.Clamp(g or 255, 0, 255))
+	self:SetBlue(math.Clamp(b or 255, 0, 255))
 	self:SetTexture(texture or "effects/flashlight001")
 	self:SetFOV(fov or 90)
 	self:SetDistance(distance or 1024)
