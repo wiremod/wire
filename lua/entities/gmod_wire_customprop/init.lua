@@ -13,7 +13,7 @@ local Ent_GetTable = ENT_META.GetTable
 local wire_customprops_hullsize_max = CreateConVar("wire_customprops_hullsize_max", 2048, FCVAR_ARCHIVE, "The max hull size of a custom prop")
 local wire_customprops_minvertexdistance = CreateConVar("wire_customprops_minvertexdistance", 0.2, FCVAR_ARCHIVE, "The min distance between two vertices in a custom prop.")
 local wire_customprops_vertices_max = CreateConVar("wire_customprops_vertices_max", 64, FCVAR_ARCHIVE, "How many vertices custom props can have.", 4)
-local wire_customprops_convexes_max = CreateConVar("wire_customprops_convexes_max", 16, FCVAR_ARCHIVE, "How many convexes custom props can have.", 1)
+local wire_customprops_convexes_max = CreateConVar("wire_customprops_convexes_max", 12, FCVAR_ARCHIVE, "How many convexes custom props can have.", 1)
 local wire_customprops_max = CreateConVar("wire_customprops_max", 16, FCVAR_ARCHIVE, "The maximum number of custom props a player can spawn. (0 to disable)", 0)
 
 WireLib = WireLib or {}
