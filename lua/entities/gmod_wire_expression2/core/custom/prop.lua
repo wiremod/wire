@@ -422,20 +422,20 @@ end
 
 local function createCustomProp(self, convexes, pos, ang, freeze)
 	if not WireLib.CustomProp.CanSpawn(self.player) then
-		return self:throw("You have reached the maximum number of custom props you can spawn! (" .. wire_customprops_max:GetInt() .. ")", nil)
+		return self:throw("You have reached the maximum number of custom props you can spawn! (" .. wire_customprops_max:GetInt() .. ")", NULL)
 	end
 
 	if not ValidAction(self, nil, "spawn") then return NULL end
 
 	convexes = castE2ValueToLuaValue(TYPE_TABLE, convexes)
 
-	if not isSequentialArray(convexes) then return self:throw("Expected array of convexes (array of arrays of vectors)", nil) end
+	if not isSequentialArray(convexes) then return self:throw("Expected array of convexes (array of arrays of vectors)", NULL) end
 
 	-- Add dynamic ops cost, and validate the mesh data structure
 	for k, v in ipairs(convexes) do
-		if TypeID(v) ~= TYPE_TABLE then return self:throw("Expected array of convexes (array of arrays of vectors)", nil) end
+		if TypeID(v) ~= TYPE_TABLE then return self:throw("Expected array of convexes (array of arrays of vectors)", NULL) end
 		for k2, v2 in ipairs(v) do
-			if TypeID(v2) ~= TYPE_VECTOR then return self:throw("Expected array of vertices (array of vectors)", nil) end
+			if TypeID(v2) ~= TYPE_VECTOR then return self:throw("Expected array of vertices (array of vectors)", NULL) end
 			self.prf = self.prf + 10 -- Subject to change
 		end
 	end
@@ -445,7 +445,7 @@ local function createCustomProp(self, convexes, pos, ang, freeze)
 	if not success then
 		-- Remove file/line info from error string
 		local msg = tostring(entity):gsub("^[^:]+:%d+:%s*", "")
-		self:throw("Failed to spawn custom prop! " .. msg, nil)
+		self:throw("Failed to spawn custom prop! " .. msg, NULL)
 	end
 
 	self.player:AddCleanup("gmod_wire_customprop", entity)
