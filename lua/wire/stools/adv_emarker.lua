@@ -4,6 +4,8 @@ WireToolSetup.open("adv_emarker", "Adv Entity Marker", "gmod_wire_adv_emarker", 
 if CLIENT then
 	language.Add("tool.wire_adv_emarker.name", "Adv Entity Marker Tool (Wire)")
 	language.Add("tool.wire_adv_emarker.desc", "Spawns an Adv Entity Marker for use with the wire system.")
+
+	WireToolSetup.setToolMenuIcon("icon16/world_add.png")
 end
 
 WireToolSetup.BaseLang()
