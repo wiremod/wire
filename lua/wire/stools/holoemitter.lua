@@ -13,6 +13,8 @@ if CLIENT then
 		{ name = "right_1", stage = 1, text = "Link to entity (click the same holoemitter again to unlink it)" },
 		{ name = "reload", stage = 1, text = "Cancel linking" },
 	}
+
+	WireToolSetup.setToolMenuIcon("icon16/wand.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

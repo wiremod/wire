@@ -49,6 +49,7 @@ if CLIENT then
 
 	end )
 
+	WireToolSetup.setToolMenuIcon("icon16/webcam.png")
 end
 
 WireToolSetup.BaseLang()

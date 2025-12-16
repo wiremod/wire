@@ -4,6 +4,8 @@ WireToolSetup.open("emarker", "Entity Marker", "gmod_wire_emarker", nil, "Entity
 if CLIENT then
 	language.Add("tool.wire_emarker.name", "Entity Marker Tool (Wire)")
 	language.Add("tool.wire_emarker.desc", "Spawns an Entity Marker for use with the wire system.")
+
+	WireToolSetup.setToolMenuIcon("icon16/world_add.png")
 end
 
 WireToolSetup.BaseLang()

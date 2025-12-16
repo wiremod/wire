@@ -38,6 +38,8 @@ if ( CLIENT ) then
 		{ name = "reload_0", stage = 0, text = "Link Hud Indicator to vehicle" },
 		{ name = "reload_1", stage = 1, text = "Now use Reload on a vehicle to link this Hud Indicator to it, or on the same Hud Indicator to unlink it" },
 	}
+
+	WireToolSetup.setToolMenuIcon("icon16/lightbulb_add.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

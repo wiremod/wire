@@ -11,6 +11,8 @@ if (CLIENT) then
 		panel:AddControl("Header", { Text = "#Tool.wire_gpulib_switcher.name", Description = "#Tool.wire_gpulib_switcher.desc" })
 		WireDermaExts.ModelSelect(panel, "wire_gpulib_switcher_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 	end
+
+	WireToolSetup.setToolMenuIcon("icon16/wand.png")
 end
 
 WireToolSetup.SetupLinking(true, "screen")
