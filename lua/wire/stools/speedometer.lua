@@ -7,6 +7,8 @@ if CLIENT then
 	language.Add( "Tool_wire_speedometer_xyz_mode", "Split Outputs to X,Y,Z" )
 	language.Add( "Tool_wire_speedometer_angvel", "Add Angular Velocity Outputs" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/webcam.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

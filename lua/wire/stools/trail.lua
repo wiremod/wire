@@ -7,6 +7,8 @@ if CLIENT then
 	language.Add( "WireTrailTool_trail", "Trail:" )
 	language.Add( "WireTrailTool_mat", "Material:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/rainbow.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
