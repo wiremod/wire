@@ -959,7 +959,7 @@ e2function void entity:propPhysicalMaterial(string physprop)
 end
 
 e2function string entity:propPhysicalMaterial()
-	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	local phys = this:GetPhysicsObject()
 	return phys:IsValid() and phys:GetMaterial() or ""
 end
