@@ -303,12 +303,8 @@ if SERVER then
 	include("extloader.lua")
 
 	-- -- Transfer E2 function info to the client for validation and syntax highlighting purposes -- --
-
-	local miscdata = {} -- Will contain {E2 types info, constants}, this whole table is under 1kb
-	local functiondata = {} -- Will contain {functionname = {returntype, cost, argnames, extension}, this will be between 50-100kb
-
 	-- Fills out the above two tables
-	function wire_expression2_prepare_functiondata()
+	local function getE2FunctionData()
 		-- Sanitize events so 'listening' e2's aren't networked
 		local events_sanitized = {}
 		for evt, data in pairs(E2Lib.Env.Events) do
@@ -325,19 +321,21 @@ if SERVER then
 			types[typename] = v[1] -- typeid (s)
 		end
 
-		miscdata = { types, wire_expression2_constants, events_sanitized }
-		functiondata = {}
+		local miscdata = { types, wire_expression2_constants, events_sanitized }
+		local functiondata = {}
 
 		for signature, v in pairs(wire_expression2_funcs) do
 			functiondata[signature] = { v[2], v[4], v.argnames, v.extension, v.attributes } -- ret (s), cost (n), argnames (t), extension (s), attributes (t)
 		end
-	end
 
-	wire_expression2_prepare_functiondata()
+		return miscdata, functiondata
+	end
 
 	-- Send everything
 	local function sendData(ply)
 		if not (IsValid(ply) and ply:IsPlayer()) then return end
+
+		local miscdata, functiondata = getE2FunctionData()
 
 		local data = WireLib.von.serialize( {
 			miscdata = miscdata,

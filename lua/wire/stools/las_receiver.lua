@@ -5,6 +5,8 @@ if CLIENT then
 	language.Add( "Tool.wire_las_receiver.name", "Laser Receiver Tool (Wire)" )
 	language.Add( "Tool.wire_las_receiver.desc", "Spawns a constant laser receiver prop for use with the wire system." )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/webcam.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

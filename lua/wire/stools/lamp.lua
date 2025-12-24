@@ -18,7 +18,7 @@ WireToolSetup.SetupMax(10)
 
 if SERVER then
 	function TOOL:GetConVars()
-		return self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"), self:GetClientInfo("texture"), self:GetClientNumber("fov"), self:GetClientNumber("distance"), self:GetClientNumber("brightness")
+		return self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"), self:GetClientInfo("texture"), self:GetClientNumber("fov"), self:GetClientNumber("distance"), self:GetClientNumber("brightness"), self:GetClientBool("on")
 	end
 
 	function TOOL:LeftClick_PostMake(ent, ply, trace)
@@ -108,6 +108,7 @@ TOOL.ClientConVar["fov"] = 90
 TOOL.ClientConVar["distance"] = 1024
 TOOL.ClientConVar["brightness"] = 4
 TOOL.ClientConVar["model"] = "models/lamps/torch.mdl"
+TOOL.ClientConVar["on"] = 1
 
 function TOOL:RightClick(trace)
 	if CLIENT then return true end
@@ -132,6 +133,7 @@ function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_lamp")
 
 	WireDermaExts.ModelSelect(panel, "wire_lamp_model", list.Get("LampModels"), 1, true)
+	panel:CheckBox("Start On", "wire_lamp_on")
 	panel:NumSlider("Rope Length:", "wire_lamp_ropelength", 4, 400, 0)
 	panel:NumSlider("FOV:", "wire_lamp_fov", 10, 170, 2)
 	panel:NumSlider("Distance:", "wire_lamp_distance", 64, 2048, 0)
