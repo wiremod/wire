@@ -7,14 +7,11 @@ util.AddNetworkString(shared.classname)
 local ENT_META = FindMetaTable("Entity")
 local Ent_GetTable = ENT_META.GetTable
 
--- Reason why there are more max convexes but less max vertices by default is that client's ENT:BuildPhysics is the main bottleneck.
--- It seems to require more time exponentially to the vertices amount.
--- The same amount of vertices in total, but broken into different convexes greatly reduces the performance hit.
-local wire_customprops_hullsize_max = CreateConVar("wire_customprops_hullsize_max", 2048, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "The max hull size of a custom prop")
-local wire_customprops_minvertexdistance = CreateConVar("wire_customprops_minvertexdistance", 0.2, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "The min distance between two vertices in a custom prop.")
-local wire_customprops_vertices_max = CreateConVar("wire_customprops_vertices_max", 64, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "How many vertices custom props can have.", 4)
-local wire_customprops_convexes_max = CreateConVar("wire_customprops_convexes_max", 12, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "How many convexes custom props can have.", 1)
-local wire_customprops_max = CreateConVar("wire_customprops_max", 16, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "The maximum number of custom props a player can spawn. (0 to disable)", 0)
+local wire_customprops_hullsize_max = GetConVar("wire_customprops_hullsize_max")
+local wire_customprops_minvertexdistance = GetConVar("wire_customprops_minvertexdistance")
+local wire_customprops_vertices_max = GetConVar("wire_customprops_vertices_max")
+local wire_customprops_convexes_max = GetConVar("wire_customprops_convexes_max")
+local wire_customprops_max = GetConVar("wire_customprops_max")
 
 WireLib = WireLib or {}
 WireLib.CustomProp = WireLib.CustomProp or {}
