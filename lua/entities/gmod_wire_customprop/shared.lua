@@ -7,6 +7,15 @@ ENT.Author			= "Sparky & DeltaMolfar"
 ENT.Spawnable		= false
 ENT.AdminSpawnable	= false
 
+-- Reason why there are more max convexes but less max vertices by default is that client's ENT:BuildPhysics is the main bottleneck.
+-- It seems to require more time exponentially to the vertices amount.
+-- The same amount of vertices in total, but broken into different convexes greatly reduces the performance hit.
+CreateConVar("wire_customprops_hullsize_max", 2048, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "The max hull size of a custom prop")
+CreateConVar("wire_customprops_minvertexdistance", 0.2, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "The min distance between two vertices in a custom prop.")
+CreateConVar("wire_customprops_vertices_max", 64, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "How many vertices custom props can have.", 4)
+CreateConVar("wire_customprops_convexes_max", 12, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "How many convexes custom props can have.", 1)
+CreateConVar("wire_customprops_max", 16, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "The maximum number of custom props a player can spawn. (0 to disable)", 0)
+
 function ENT:SetupDataTables()
 	self:NetworkVar("String", 0, "PhysMaterial")
 
