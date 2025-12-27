@@ -104,9 +104,7 @@ local function luaTimerCreate(self, name, delay, repetitions, callback)
 	}
 
 	timer.Create(internalName, delay, repetitions, function()
-		if ent:IsValid() then
-			ent:Execute(callback)
-		end
+		ent:Execute(callback)
 
 		if timer.RepsLeft(internalName) == 0 and luaTimers[entIndex] then
 			luaTimers[entIndex][name] = nil
