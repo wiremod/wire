@@ -14,7 +14,7 @@ local function Execute(self, name)
 		self.entity:Execute()
 	end
 
-	if !self.data["timer"].timers[name] then
+	if not self.data["timer"].timers[name] then
 		timer.Remove("e2_" .. self.data["timer"].timerid .. "_" .. name)
 	end
 
@@ -31,7 +31,7 @@ local function AddTimer(self, name, delay)
 			Execute(self, name)
 		end)
 		timer.Start(timerName)
-	elseif !self.data["timer"].timers[name] then
+	elseif not self.data["timer"].timers[name] then
 		timer.Create(timerName, delay / 1000, 2, function()
 			Execute(self, name)
 		end)
@@ -71,7 +71,7 @@ local function luaTimerGetNextIncrementalKey(self)
 end
 
 local function luaTimerGetInternalName(entIndex, name)
-	return entIndex .. '_gmod_wire_expression2_luatimer_' .. name
+	return entIndex .. "_gmod_wire_expression2_luatimer_" .. name
 end
 
 local function luaTimerExists(self, name)
