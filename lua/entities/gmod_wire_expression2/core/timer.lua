@@ -8,14 +8,14 @@ local timerid = 0
 local function Execute(self, name)
 	self.data.timer.runner = name
 
-	self.data['timer'].timers[name] = nil
+	self.data["timer"].timers[name] = nil
 
 	if(self.entity and self.entity.Execute) then
 		self.entity:Execute()
 	end
 
-	if !self.data['timer'].timers[name] then
-		timer.Remove("e2_" .. self.data['timer'].timerid .. "_" .. name)
+	if not self.data["timer"].timers[name] then
+		timer.Remove("e2_" .. self.data["timer"].timerid .. "_" .. name)
 	end
 
 	self.data.timer.runner = nil
@@ -31,19 +31,19 @@ local function AddTimer(self, name, delay)
 			Execute(self, name)
 		end)
 		timer.Start(timerName)
-	elseif !self.data['timer'].timers[name] then
+	elseif not self.data["timer"].timers[name] then
 		timer.Create(timerName, delay / 1000, 2, function()
 			Execute(self, name)
 		end)
 	end
 
-	self.data['timer'].timers[name] = true
+	self.data["timer"].timers[name] = true
 end
 
 local function RemoveTimer(self, name)
-	if self.data['timer'].timers[name] then
-		timer.Remove("e2_" .. self.data['timer'].timerid .. "_" .. name)
-		self.data['timer'].timers[name] = nil
+	if self.data["timer"].timers[name] then
+		timer.Remove("e2_" .. self.data["timer"].timerid .. "_" .. name)
+		self.data["timer"].timers[name] = nil
 	end
 end
 
@@ -71,7 +71,7 @@ local function luaTimerGetNextIncrementalKey(self)
 end
 
 local function luaTimerGetInternalName(entIndex, name)
-	return entIndex .. '_gmod_wire_expression2_luatimer_' .. name
+	return entIndex .. "_gmod_wire_expression2_luatimer_" .. name
 end
 
 local function luaTimerExists(self, name)
@@ -104,11 +104,11 @@ local function luaTimerCreate(self, name, delay, repetitions, callback)
 	}
 
 	timer.Create(internalName, delay, repetitions, function()
-		if timer.RepsLeft(internalName) == 0 then
+		ent:Execute(callback)
+
+		if timer.RepsLeft(internalName) == 0 and luaTimers[entIndex] then
 			luaTimers[entIndex][name] = nil
 		end
-
-		ent:Execute(callback)
 	end)
 end
 
@@ -128,15 +128,15 @@ end
 /******************************************************************************/
 
 registerCallback("construct", function(self)
-	self.data['timer'] = {}
-	self.data['timer'].timerid = timerid
-	self.data['timer'].timers = {}
+	self.data["timer"] = {}
+	self.data["timer"].timerid = timerid
+	self.data["timer"].timers = {}
 
 	timerid = timerid + 1
 end)
 
 registerCallback("destruct", function(self)
-	for name,_ in pairs(self.data['timer'].timers) do
+	for name,_ in pairs(self.data["timer"].timers) do
 		RemoveTimer(self, name)
 	end
 
