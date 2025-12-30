@@ -122,7 +122,7 @@ function ENT:SetForce( force, mul )
 	end
 
 	if self.neteffect then
-		self.effectforce = self.ThrustOffset:Length() * self.force * self.mul * 50
+		self.effectforce = self.ThrustOffset:Length() * self.force * self.mul
 		self.updateeffect = true
 	end
 
@@ -134,13 +134,13 @@ function ENT:SetForce( force, mul )
 end
 
 function ENT:CalcForce(phys)
-	local ThrusterWorldForce = phys:LocalToWorldVector( self.ThrustOffset ) * (self.force * self.mul * -50)
+	local ThrusterWorldForce = phys:LocalToWorldVector( self.ThrustOffset ) * (self.force * -self.mul)
 
 	-- Calculate the velocity
 	local ForceLinear, ForceAngular = phys:CalculateVelocityOffset(ThrusterWorldForce, phys:LocalToWorld( self.ThrustOffset ))
 
-	self.ForceLinear = phys:WorldToLocalVector(WireLib.clampForce(ForceLinear))
-	self.ForceAngular = phys:WorldToLocalVector(WireLib.clampForce(ForceAngular))
+	self.ForceLinear = WireLib.clampForce(ForceLinear)
+	self.ForceAngular = WireLib.clampForce(ForceAngular)
 end
 
 function ENT:SetDatEffect(uwater, owater, uweffect, oweffect)
@@ -241,7 +241,7 @@ function ENT:PhysicsSimulate( phys, deltatime )
 
 	self:CalcForce(phys)
 
-	return self.ForceAngular, self.ForceLinear, SIM_LOCAL_ACCELERATION
+	return self.ForceAngular, self.ForceLinear, SIM_GLOBAL_ACCELERATION
 end
 
 function ENT:Switch( on, mul )
