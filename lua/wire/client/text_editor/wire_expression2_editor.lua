@@ -1464,10 +1464,10 @@ Text here]# ]]
 				local ownerStr
 
 				if CPPI then
-					local owner = self:CPPIGetOwner()
+					local owner = v:CPPIGetOwner()
 
 					if IsValid(owner) and owner:Nick() ~= nick then
-						ownerStr = string.format("Owner: %s | Code Author: %s", owner:GetName(), nick)
+						ownerStr = string.format("Owner: %s | Code Author: %s", owner:Nick(), nick)
 					else
 						ownerStr = "Owner: " .. nick
 					end
