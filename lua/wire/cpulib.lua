@@ -565,52 +565,129 @@ if SERVER then
   -- Players and corresponding entities (for the debugger)
   CPULib.DebuggerData = {}
 
-  ------------------------------------------------------------------------------
+
+  ----------------------------------------------------------------------
+  -- Detach debugger
+  function CPULib.DetachDebugger(player)
+    if not IsValid(player) then return end
+
+    local data = CPULib.DebuggerData[player:UserID()]
+    if not data then return end
+
+    local ent = data.Entity
+    if IsValid(ent) and ent.VM then
+      ent.BreakpointInstructions = nil
+      ent.OnBreakpointInstruction = nil
+      ent.OnVMStep = nil
+
+
+      if ent.VM.BaseJump then
+        ent.VM.Jump = ent.VM.BaseJump
+        ent.VM.BaseJump = nil
+      end
+
+      if ent.VM.BaseInterrupt then
+        ent.VM.Interrupt = ent.VM.BaseInterrupt
+        ent.VM.BaseInterrupt = nil
+      end
+      
+      if ent._CPULibDebuggerHooked then
+        ent._CPULibDebuggerHooked = nil
+        
+        if ent._CPULibOriginalOnRemove then
+          ent.OnRemove = ent._CPULibOriginalOnRemove
+          ent._CPULibOriginalOnRemove = nil
+        else
+          ent.OnRemove = nil
+        end
+      end
+    end
+
+    CPULib.DebuggerData[player:UserID()] = nil
+  end
+
+
+  ----------------------------------------------------------------------
   -- Attach a debugger
-  function CPULib.AttachDebugger(entity,player)
-    if entity then
-      entity.BreakpointInstructions = {}
-      entity.OnBreakpointInstruction = function(IP)
-        CPULib.SendDebugData(entity.VM,CPULib.DebuggerData[player:UserID()].MemPointers,player)
-      end
-      entity.OnVMStep = function()
-        if CurTime() - CPULib.DebuggerData[player:UserID()].PreviousUpdateTime > 0.2 then
-          CPULib.DebuggerData[player:UserID()].PreviousUpdateTime = CurTime()
+  function CPULib.AttachDebugger(entity, player)
+    if not IsValid(player) then return end
 
-          -- Send a fake update that messes up line pointer, updates registers
-          local tempIP = entity.VM.IP
-          entity.VM.IP = INVALID_BREAKPOINT_IP
-          CPULib.SendDebugData(entity.VM,nil,player)
-          entity.VM.IP = tempIP
-        end
-      end
-      if not entity.VM.BaseJump then
-        entity.VM.BaseJump = entity.VM.Jump
-        entity.VM.Jump = function(VM,IP,CS)
-          VM:BaseJump(IP,CS)
-          entity.ForceLastInstruction = true
-        end
-        entity.VM.BaseInterrupt = entity.VM.Interrupt
-        entity.VM.Interrupt = function(VM,interruptNo,interruptParameter,isExternal,cascadeInterrupt)
-          VM:BaseInterrupt(interruptNo,interruptParameter,isExternal,cascadeInterrupt)
-          if interruptNo < 27 then
-            CPULib.DebugLogInterrupt(player,interruptNo,interruptParameter,isExternal,cascadeInterrupt)
-            CPULib.SendDebugData(entity.VM,CPULib.DebuggerData[player:UserID()].MemPointers,player)
-          end
-        end
-      end
-    else
-      if CPULib.DebuggerData[player:UserID()] then
-        if CPULib.DebuggerData[player:UserID()].Entity and
-           CPULib.DebuggerData[player:UserID()].Entity.VM and
-           CPULib.DebuggerData[player:UserID()].Entity.VM.BaseInterrupt then
+    -- DETACH PATH
+    if not entity then
+      CPULib.DetachDebugger(player)
+      return
+    end
 
-          CPULib.DebuggerData[player:UserID()].Entity.BreakpointInstructions = nil
-          if CPULib.DebuggerData[player:UserID()].Entity.VM.BaseJump then
-            CPULib.DebuggerData[player:UserID()].Entity.VM.Jump = CPULib.DebuggerData[player:UserID()].Entity.VM.BaseJump
-            CPULib.DebuggerData[player:UserID()].Entity.VM.Interrupt = CPULib.DebuggerData[player:UserID()].Entity.VM.BaseInterrupt
-            CPULib.DebuggerData[player:UserID()].Entity.VM.BaseJump = nil
-            CPULib.DebuggerData[player:UserID()].Entity.VM.BaseInterrupt = nil
+    if not IsValid(entity) or not entity.VM then return end
+
+    
+    --// detach any existing debugger first
+    CPULib.DetachDebugger(player)
+
+  
+    if not entity._CPULibDebuggerHooked then
+      entity._CPULibDebuggerHooked = true
+
+      entity._CPULibOriginalOnRemove = entity.OnRemove
+      
+      entity.OnRemove = function(ent)
+        if entity._CPULibOriginalOnRemove then
+          entity._CPULibOriginalOnRemove(ent)
+        end
+
+        if IsValid(player) then
+          if not CPULib.DebuggerData[player:UserID()] then return end 
+          
+          CPULib.DetachDebugger(player)
+
+          net.Start("CPULib.InvalidateDebugger")
+            net.WriteUInt(1, 2) --// 1 = detach
+          net.Send(player)
+        end
+      end
+    end
+
+    entity.BreakpointInstructions = {}
+
+    entity.OnBreakpointInstruction = function(IP)
+      local data = CPULib.DebuggerData[player:UserID()]
+      if not data then return end
+
+      CPULib.SendDebugData(entity.VM, data.MemPointers, player)
+    end
+
+    entity.OnVMStep = function()
+      local data = CPULib.DebuggerData[player:UserID()]
+      if not data then return end
+
+      if CurTime() - data.PreviousUpdateTime > 0.2 then
+        data.PreviousUpdateTime = CurTime()
+
+        -- Send a fake update that messes up line pointer, updates registers
+        local tempIP = entity.VM.IP
+        entity.VM.IP = INVALID_BREAKPOINT_IP
+        CPULib.SendDebugData(entity.VM, nil, player)
+        entity.VM.IP = tempIP
+      end
+    end
+
+    if not entity.VM.BaseJump then
+      entity.VM.BaseJump = entity.VM.Jump
+      entity.VM.Jump = function(VM, IP, CS)
+        VM:BaseJump(IP, CS)
+        entity.ForceLastInstruction = true
+      end
+
+      entity.VM.BaseInterrupt = entity.VM.Interrupt
+      entity.VM.Interrupt = function(VM, interruptNo, interruptParameter, isExternal, cascadeInterrupt)
+        VM:BaseInterrupt(interruptNo, interruptParameter, isExternal, cascadeInterrupt)
+
+        if interruptNo < 27 then
+          CPULib.DebugLogInterrupt(player, interruptNo, interruptParameter, isExternal, cascadeInterrupt)
+
+          local data = CPULib.DebuggerData[player:UserID()]
+          if data then
+            CPULib.SendDebugData(entity.VM, data.MemPointers, player)
           end
         end
       end
@@ -623,6 +700,7 @@ if SERVER then
       PreviousUpdateTime = CurTime(),
     }
   end
+
 
   -- Log debug interrupt
   function CPULib.DebugLogInterrupt(player,interruptNo,interruptParameter,isExternal,cascadeInterrupt)
