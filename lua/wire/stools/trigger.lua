@@ -60,7 +60,7 @@ function TOOL:GetConVars()
 end
 
 local function DrawTriggerOutlines( list )
-	cam.Start3D( LocalPlayer():EyePos(), LocalPlayer():EyeAngles() )
+	cam.Start3D( EyePos(), EyeAngles() )
 		for k,ent in pairs( list ) do
 			local trig = ent:GetTriggerEntity()
 
