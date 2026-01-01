@@ -583,7 +583,7 @@ local function Wire_Link(dst, dstid, src, srcid, path)
 	WireLib.TriggerInput(dst, dstid, output.Value)
 end
 
-function WireLib.TriggerOutput(ent, oname, value, iter)
+function WireLib.TriggerOutput(ent, oname, value, iter, force)
 	if not entIsValid(ent) then return end
 	if not HasPorts(ent) then return end
 
@@ -599,7 +599,7 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 		value = ty.Zero()
 	end
 
-	if value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]]) then
+	if value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE" or (output.Type == "ENTITY" and not rawequal(value, output.Value) --[[Covers the NULL==NULL case]]) or force then
 		local timeOfFrame = CurTime()
 		if timeOfFrame ~= output.TriggerTime then
 			-- Reset the TriggerLimit every frame
