@@ -317,4 +317,29 @@ GateActions["monostable"] = {
 	end
 }
 
+
+GateActions["curtime"] = {
+    name = "CurTime",
+    description = "Outputs CurTime() when Clk is non-zero, otherwise holds last value.",
+    inputs = { "Clk" },
+    timed = true,
+
+    output = function(gate, Clk)
+        if Clk ~= 0 then
+            gate.Last = CurTime()
+        end
+
+        return gate.Last or 0
+    end,
+
+    reset = function(gate)
+        gate.Last = 0
+    end,
+
+    label = function(Out, Clk)
+        return "Clk:" .. Clk .. " = " .. Out
+    end
+}
+
+
 GateActions()
