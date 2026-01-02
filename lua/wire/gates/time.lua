@@ -318,9 +318,9 @@ GateActions["monostable"] = {
 }
 
 
-GateActions["curtime"] = {
-    name = "CurTime",
-    description = "Outputs CurTime() when Clk is non-zero, otherwise holds last value.",
+GateActions["servertime"] = {
+    name = "Server time",
+    description = "Returns the uptime of the server in seconds when CLK is non-zero, otherwise it outputs the last saved value",
     inputs = { "Clk" },
     timed = true,
 
