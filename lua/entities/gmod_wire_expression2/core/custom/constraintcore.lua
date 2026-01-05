@@ -6,7 +6,7 @@ local getBone = E2Lib.getBone
 local math_min = math.min
 local table_insert = table.insert
 
-local shouldCleanup = CreateConVar( "wire_expression2_constraints_cleanup", "0", FCVAR_ARCHIVE, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted")
+local shouldCleanup = CreateConVar("wire_expression2_constraints_cleanup", "0", FCVAR_ARCHIVE, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted")
 local playerCounts = WireLib.RegisterPlayerTable()
 
 -- Returns the table being used to keep track of counts
