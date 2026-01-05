@@ -113,14 +113,15 @@ local function addUndo(self, const_type, const, rope)
 	local const_class = const:GetClass()
 
 	if const_class == "logic_collision_pair" then
-		ply:AddCleanup("nocollide", const)
 		ply:AddCount("constraints", const)
+		ply:AddCleanup("nocollide", const)
 	else
 		if const_class == "keyframe_rope" or rope then
 			ply:AddCount("ropeconstraints", const)
 			ply:AddCleanup("ropeconstraints", const)
 			if rope then ply:AddCleanup("ropeconstraints", rope) end
 		else
+			ply:AddCount("constraints", const)
 			ply:AddCleanup("constraints", const)
 		end
 	end
@@ -128,20 +129,21 @@ local function addUndo(self, const_type, const, rope)
 	if self.data.constraintUndos then
 		undo.Create("E2 " .. const_type)
 			undo.SetPlayer(ply)
-			undo.AddEntity(cons)
+			undo.AddEntity(const)
+			print(const)
 			if rope then undo.AddEntity(rope) end
 		undo.Finish()
 	end
 end
 
-local function postCreate(self, cons_type, cons, rope)
-	addUndo(self, cons_type, cons, rope)
+local function postCreate(self, const_type, const, rope)
+	addUndo(self, const_type, const, rope)
 
 	-- Don't bother tracking the constraints if we won't clean them up
 	if not shouldCleanup:GetBool() then return end
 
 	local data = getCountHolder( self )
-	table_insert( data.allConstraints, cons )
+	table_insert( data.allConstraints, const )
 	if rope then table_insert( data.allConstraints, rope ) end
 end
 
@@ -163,7 +165,7 @@ e2function void axis(entity ent1, vector v1, entity ent2, vector v2)
 	if not checkCount(self, false) then return end
 
 	local cons = constraint.Axis(ent1, ent2, 0, 0, v1, v2, 0, 0, 0, 0)
-	postCreate(self, "Axis", ent1, ent2, cons)
+	postCreate(self, "Axis", cons)
 end
 
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent, with <friction> friction.
@@ -172,7 +174,7 @@ e2function void axis(entity ent1, vector v1, entity ent2, vector v2, friction)
 	if not checkCount(self, false) then return end
 
 	local cons = constraint.Axis(ent1, ent2, 0, 0, v1, v2, 0, 0, friction, 0)
-	postCreate(self, "Axis", ent1, ent2, cons)
+	postCreate(self, "Axis", cons)
 end
 
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent, with <friction> friction and <localaxis> rotation axis.
@@ -183,7 +185,7 @@ e2function void axis(entity ent1, vector v1, entity ent2, vector v2, friction, v
 	local cons = constraint.Axis(ent1, ent2, 0, 0, v1, v2, 0, 0, friction, 0, localaxis)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "Axis", ent1, ent2, cons)
+	postCreate(self, "Axis", cons)
 end
 
 
@@ -197,7 +199,7 @@ e2function void ballsocket(entity ent1, vector v, entity ent2)
 	local cons = constraint.Ballsocket(ent1, ent2, 0, 0, v, 0, 0, 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "Ballsocket", ent1, ent2, cons)
+	postCreate(self, "Ballsocket", cons)
 end
 
 --- Creates a ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with friction <friction>
@@ -208,7 +210,7 @@ e2function void ballsocket(entity ent1, vector v, entity ent2, friction)
 	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, vector_origin, 0, 0, -180, -180, -180, 180, 180, 180, friction, friction, friction, 0, 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
+	postCreate(self, "AdvBallsocket", cons)
 end
 
 --- Creates an adv ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with many settings
@@ -219,7 +221,7 @@ e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vect
 	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, vector_origin, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], 0, 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
+	postCreate(self, "AdvBallsocket", cons)
 end
 
 --- Creates an adv ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with many settings
@@ -230,7 +232,7 @@ e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vect
 	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, vector_origin, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], rotateonly, 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
+	postCreate(self, "AdvBallsocket", cons)
 end
 
 --- Creates an angular weld (angles are fixed, position isn't) between <ent1> and <ent2> at <v>, which is local to <ent1>
@@ -241,7 +243,7 @@ e2function void weldAng(entity ent1, vector v, entity ent2)
 	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, vector_origin, 0, 0, 0, -0, 0, 0, 0, 0, 0, 0, 0, 1, 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
+	postCreate(self, "AdvBallsocket", cons)
 end
 
 
@@ -284,7 +286,7 @@ local function createHydraulic(self, index, ent1, ent2, v1, v2, width, bone1, bo
 	if not verifyConstraint( self, cons ) then return end
 
 	constraints[index] = cons
-	postCreate( self, "Hydraulic", ent1, ent2, cons, rope )
+	postCreate( self, "Hydraulic", cons, rope )
 end
 
 e2function void hydraulic(index, entity ent, vector v1, bone bone, vector v2, width)
@@ -365,7 +367,7 @@ local function createRope(self, index, ent1, ent2, v1, v2, bone1, bone2, addleng
 	if not verifyConstraint( self, cons ) then return end
 
 	constraints[index] = cons
-	postCreate( self, "Rope", ent1, ent2, cons, rope )
+	postCreate( self, "Rope", cons, rope )
 end
 
 e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, string mat, rigid, vector color )
@@ -491,7 +493,7 @@ local function createSlider(self, ent1, ent2, v1, v2, width, bone1, bone2, mat, 
 	local cons, rope = constraint.Slider( ent1, ent2, bone1 or 0, bone2 or 0, v1, v2, width or 1, mat ~= "" and mat or "cable/cable2", color )
 	if not verifyConstraint( self, cons ) then return end
 
-	postCreate(self, "Slider", ent1, ent2, cons, rope)
+	postCreate(self, "Slider", cons, rope)
 end
 
 e2function void slider(entity ent, vector v1, bone bone, vector v2)
@@ -539,7 +541,7 @@ local function noCollideCreate(self, ent1, ent2, bone1, bone2)
 	local cons = constraint.NoCollide(ent1, ent2, bone1 or 0, bone2 or 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "NoCollide", ent1, ent2, cons)
+	postCreate(self, "NoCollide", cons)
 end
 
 e2function void entity:noCollide(entity target)
@@ -586,7 +588,7 @@ local function weldCreate(self, ent1, ent2, bone1, bone2, forcelimit, nocollide)
 	local cons = constraint.Weld(ent1, ent2, bone1 or 0, bone2 or 0, forcelimit or 0, nocollide ~= 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "Weld", ent1, ent2, cons)
+	postCreate(self, "Weld", cons)
 end
 
 e2function void entity:weld(entity target)
