@@ -7,19 +7,9 @@ local math_min = math.min
 local math_max = math.max
 local table_insert = table.insert
 
-local cvFlags = {FCVAR_ARCHIVE}
-local maxWeld = CreateConVar( "wire_expression2_max_constraints_weld", "0", cvFlags, nil, 0)
-local maxRope = CreateConVar( "wire_expression2_max_constraints_rope", "0", cvFlags, nil, 0)
-local maxAxis = CreateConVar( "wire_expression2_max_constraints_axis", "0", cvFlags, nil, 0)
-local maxTotal = CreateConVar( "wire_expression2_max_constraints_total", "0", cvFlags, nil, 0)
-local maxSlider = CreateConVar( "wire_expression2_max_constraints_slider", "0", cvFlags, nil, 0)
-local maxElastic = CreateConVar( "wire_expression2_max_constraints_elastic", "0", cvFlags, nil, 0)
-local maxNocollide = CreateConVar( "wire_expression2_max_constraints_nocollide", "0", cvFlags, nil, 0)
-local maxHydraulic = CreateConVar( "wire_expression2_max_constraints_hydraulic", "0", cvFlags, nil, 0)
-local maxPerEntity = CreateConVar( "wire_expression2_max_consttraints_per_entity", "0", cvFlags, nil, 0)
-local maxBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsocket", "0", cvFlags, nil, 0)
-local maxAdvBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsocket_adv", "0", cvFlags, nil, 0)
-local shouldCleanup = CreateConVar( "wire_expression2_constraints_cleanup", "0", cvFlags, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted", 0, 1 )
+local maxTotal = CreateConVar( "wire_expression2_max_constraints_total", "0", FCVAR_ARCHIVE, nil, 0)
+local maxPerEntity = CreateConVar( "wire_expression2_max_consttraints_per_entity", "0", FCVAR_ARCHIVE, nil, 0)
+local shouldCleanup = CreateConVar( "wire_expression2_constraints_cleanup", "0", FCVAR_ARCHIVE, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted", 0, 1 )
 
 local playerCounts = WireLib.RegisterPlayerTable()
 
@@ -44,7 +34,6 @@ end
 
 local function setupCounts(holder)
 	holder.allConstraints = holder.allConstraints or {}
-	holder.constraintCounts = holder.constraintCounts or {}
 	holder.entityConstraints = holder.entityConstraints or {}
 	holder.totalConstraints = holder.totalConstraints or 0
 end
@@ -71,19 +60,6 @@ __e2setcost(1)
 e2function void enableConstraintUndo(state)
 	self.data.constraintUndos = state ~= 0
 end
-
-local countLookup = {
-	Weld = maxWeld,
-	Rope = maxRope,
-	Axis = maxAxis,
-	Slider = maxSlider,
-	Elastic = maxElastic,
-	NoCollide = maxNocollide,
-	Hydraulic = maxHydraulic,
-	Ballsocket = maxBallsocket,
-	AdvBallsocket = maxAdvBallsocket,
-}
-
 
 local function checkEnts(self, ent1, ent2)
 	if not ent1 or not ent2 then return self:throw("Invalid entity!", false) end
@@ -128,7 +104,6 @@ end
 
 local function checkCount(self, consType, ent1, ent2)
 	local data = getCountHolder( self )
-	local typeCounts = data.constraintCounts
 
 	-- Total
 	local totalLimit = maxTotal:GetInt()
@@ -136,15 +111,6 @@ local function checkCount(self, consType, ent1, ent2)
 		local totalCount = data.totalConstraints
 		if totalCount >= totalLimit then
 			return self:throw( "Total constraint limit reached!", false )
-		end
-	end
-
-	-- Type
-	local typeLimit = countLookup[consType]:GetInt()
-	if typeLimit > 0 then
-		local typeCount = typeCounts[consType] or 0
-		if typeCount >= typeLimit then
-			return self:throw( consType .. " limit reached!", false )
 		end
 	end
 
@@ -183,14 +149,10 @@ end
 local function increment(self, consType, ent1, ent2, cons)
 	local data = getCountHolder( self )
 	local entCounts = data.entityConstraints
-	local typeCounts = data.constraintCounts
 	local totalCount = data.totalConstraints
 
 	-- Total
 	data.totalConstraints = totalCount + 1
-
-	-- Type
-	typeCounts[consType] = ( typeCounts[consType] or 0 ) + 1
 
 	-- Ents
 	entCounts[ent1] = ( entCounts[ent1] or 0 ) + 1
@@ -202,9 +164,6 @@ local function increment(self, consType, ent1, ent2, cons)
 
 		-- Total
 		data.totalConstraints = math_max( 0, data.totalConstraints - 1 )
-
-		-- Type
-		typeCounts[consType] = math_max( 0, typeCounts[consType] - 1 )
 
 		-- Ents
 		entCounts[cons.Ent1] = math_max( 0, entCounts[cons.Ent1] - 1 )
