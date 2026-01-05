@@ -538,7 +538,7 @@ local function noCollideCreate(self, ent1, ent2, bone1, bone2)
 	if not checkEnts(self, ent1, ent2) then return end
 	if not checkCount(self, false) then return end
 
-	local cons = constraint.NoCollide(ent1, ent2, bone1 or 0, bone2 or 0)
+	local cons = constraint.NoCollide(ent1, ent2, bone1 or 0, bone2 or 0, true)
 	if not verifyConstraint(self, cons) then return end
 
 	postCreate(self, "NoCollide", cons)
