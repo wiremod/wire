@@ -19,9 +19,7 @@ local maxHydraulic = CreateConVar( "wire_expression2_max_constraints_hydraulic",
 local maxPerEntity = CreateConVar( "wire_expression2_max_consttraints_per_entity", "0", cvFlags, nil, 0)
 local maxBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsocket", "0", cvFlags, nil, 0)
 local maxAdvBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsocket_adv", "0", cvFlags, nil, 0)
-
-local edictCutOff = CreateConVar( "wire_expression2_constraints_edict_cutoff", "0", cvFlags, "At what edict count will E2s be prevented from creating new rope-like constraints (0 turns the check off)", 0, 8192 )
-local shouldCleanup = CreateConVar( "Wire_expression2_constraints_cleanup", "0", cvFlags, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted", 0, 1 )
+local shouldCleanup = CreateConVar( "wire_expression2_constraints_cleanup", "0", cvFlags, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted", 0, 1 )
 
 local playerCounts = WireLib.RegisterPlayerTable()
 
@@ -160,17 +158,6 @@ local function checkCount(self, consType, ent1, ent2)
 		if math_max( ent1Count, ent2Count ) >= entityLimit then
 			return self:throw( "Entity limit reached!", false )
 		end
-	end
-
-	return true
-end
-
-local function checkEdicts(self)
-	local maxEdicts = edictCutOff:GetInt()
-	if maxEdicts == 0 then return true end
-
-	if ents.GetEdictCount() >= maxEdicts then
-		return self:throw( "Global edict limit reached!", false )
 	end
 
 	return true
@@ -357,7 +344,6 @@ end
 local function createHydraulic(self, index, ent1, ent2, v1, v2, width, bone1, bone2, constant, damping, rdamping, mat, stretch, color)
 	if not checkEnts( self, ent1, ent2 ) then return end
 	if not checkCount( self, "Hydraulic", ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
 	local constraints = setupEntConstraints( ent1 )
 
 	width = math.Clamp(width, 0, 50)
@@ -442,7 +428,6 @@ end
 local function createRope(self, index, ent1, ent2, v1, v2, bone1, bone2, addlength, width, mat, rigid, color)
 	if not checkEnts( self, ent1, ent2 ) then return end
 	if not checkCount( self, "Rope", ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
 	local constraints = setupEntConstraints( ent1 )
 
 	local length = ( ent1:LocalToWorld( v1 ) - ent2:LocalToWorld( v2 ) ):Length()
@@ -576,7 +561,6 @@ __e2setcost(30)
 local function createSlider(self, ent1, ent2, v1, v2, width, bone1, bone2, mat, color)
 	if not checkEnts( self, ent1, ent2 ) then return end
 	if not checkCount( self, "Slider", ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
 
 	if color then
 		color = Color(color[1],color[2],color[3],255)
