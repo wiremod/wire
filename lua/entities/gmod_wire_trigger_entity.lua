@@ -25,6 +25,8 @@ function ENT:Reset()
 	if not IsValid( owner ) then return end
 	WireLib.TriggerOutput( owner, "EntCount", 0 )
 	WireLib.TriggerOutput( owner, "Entities", self.EntsInside )
+	WireLib.TriggerOutput( owner, "Entered", NULL )
+	WireLib.TriggerOutput( owner, "Exited", NULL )
 end
 
 function ENT:StartTouch( ent )
@@ -40,6 +42,7 @@ function ENT:StartTouch( ent )
 
 	WireLib.TriggerOutput( owner, "EntCount", #self.EntsInside )
 	WireLib.TriggerOutput( owner, "Entities", self.EntsInside )
+	WireLib.TriggerOutput( owner, "Entered", ent, nil, true )
 
 end
 function ENT:EndTouch( ent )
@@ -55,5 +58,6 @@ function ENT:EndTouch( ent )
 
 	WireLib.TriggerOutput( owner, "EntCount", #self.EntsInside )
 	WireLib.TriggerOutput( owner, "Entities", self.EntsInside )
+	WireLib.TriggerOutput( owner, "Exited", ent, nil, true )
 
 end
