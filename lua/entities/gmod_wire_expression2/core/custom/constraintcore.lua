@@ -129,7 +129,6 @@ local function addUndo(self, const_type, const, rope)
 		undo.Create("E2 " .. const_type)
 			undo.SetPlayer(ply)
 			undo.AddEntity(const)
-			print(const)
 			if rope then undo.AddEntity(rope) end
 		undo.Finish()
 	end
