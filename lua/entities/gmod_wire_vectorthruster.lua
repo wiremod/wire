@@ -165,7 +165,7 @@ function ENT:CalcForce(phys)
 	if ThrustLen>0 then
 		local ThrustNormal = ThrusterWorldForce/ThrustLen
 		self:SetNormal( -ThrustNormal )
-		self.ForceLinear, self.ForceAngular = phys:CalculateVelocityOffset( ThrustNormal * ( math.min( self.force * self.mul, self.force_max ) * 50 ), phys:LocalToWorld( self.ThrustOffset ) )
+		self.ForceLinear, self.ForceAngular = phys:CalculateVelocityOffset( ThrustNormal * ( math.min( self.force * self.mul, self.force_max ) ), phys:LocalToWorld( self.ThrustOffset ) )
 
 		self.ForceLinear = WireLib.clampForce(self.ForceLinear)
 		self.ForceAngular = WireLib.clampForce(self.ForceAngular)
