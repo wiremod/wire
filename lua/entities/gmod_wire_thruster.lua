@@ -134,7 +134,7 @@ function ENT:SetForce( force, mul )
 end
 
 function ENT:CalcForce(phys)
-	local ThrusterWorldForce = phys:LocalToWorldVector( self.ThrustOffset ) * (self.force * -self.mul)
+	local ThrusterWorldForce = phys:LocalToWorldVector( self.ThrustOffset ) * (self.force * self.mul * -50)
 
 	-- Calculate the velocity
 	local ForceLinear, ForceAngular = phys:CalculateVelocityOffset(ThrusterWorldForce, phys:LocalToWorld( self.ThrustOffset ))
