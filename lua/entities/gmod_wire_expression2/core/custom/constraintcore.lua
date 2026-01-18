@@ -4,25 +4,9 @@ local IsValid = IsValid
 local isValidBone = E2Lib.isValidBone
 local getBone = E2Lib.getBone
 local math_min = math.min
-local math_max = math.max
 local table_insert = table.insert
 
-local cvFlags = {FCVAR_ARCHIVE}
-local maxWeld = CreateConVar( "wire_expression2_max_constraints_weld", "0", cvFlags, nil, 0)
-local maxRope = CreateConVar( "wire_expression2_max_constraints_rope", "0", cvFlags, nil, 0)
-local maxAxis = CreateConVar( "wire_expression2_max_constraints_axis", "0", cvFlags, nil, 0)
-local maxTotal = CreateConVar( "wire_expression2_max_constraints_total", "0", cvFlags, nil, 0)
-local maxSlider = CreateConVar( "wire_expression2_max_constraints_slider", "0", cvFlags, nil, 0)
-local maxElastic = CreateConVar( "wire_expression2_max_constraints_elastic", "0", cvFlags, nil, 0)
-local maxNocollide = CreateConVar( "wire_expression2_max_constraints_nocollide", "0", cvFlags, nil, 0)
-local maxHydraulic = CreateConVar( "wire_expression2_max_constraints_hydraulic", "0", cvFlags, nil, 0)
-local maxPerEntity = CreateConVar( "wire_expression2_max_consttraints_per_entity", "0", cvFlags, nil, 0)
-local maxBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsocket", "0", cvFlags, nil, 0)
-local maxAdvBallsocket = CreateConVar( "wire_expression2_max_constraints_ballsocket_adv", "0", cvFlags, nil, 0)
-
-local edictCutOff = CreateConVar( "wire_expression2_constraints_edict_cutoff", "0", cvFlags, "At what edict count will E2s be prevented from creating new rope-like constraints (0 turns the check off)", 0, 8192 )
-local shouldCleanup = CreateConVar( "Wire_expression2_constraints_cleanup", "0", cvFlags, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted", 0, 1 )
-
+local shouldCleanup = CreateConVar("wire_expression2_constraints_cleanup", "0", FCVAR_ARCHIVE, "Whether or not Constraint Core should remove all constraints made by an E2 when it's deleted")
 local playerCounts = WireLib.RegisterPlayerTable()
 
 -- Returns the table being used to keep track of counts
@@ -46,9 +30,6 @@ end
 
 local function setupCounts(holder)
 	holder.allConstraints = holder.allConstraints or {}
-	holder.constraintCounts = holder.constraintCounts or {}
-	holder.entityConstraints = holder.entityConstraints or {}
-	holder.totalConstraints = holder.totalConstraints or 0
 end
 
 registerCallback("construct", function(self)
@@ -74,33 +55,21 @@ e2function void enableConstraintUndo(state)
 	self.data.constraintUndos = state ~= 0
 end
 
-local countLookup = {
-	Weld = maxWeld,
-	Rope = maxRope,
-	Axis = maxAxis,
-	Slider = maxSlider,
-	Elastic = maxElastic,
-	NoCollide = maxNocollide,
-	Hydraulic = maxHydraulic,
-	Ballsocket = maxBallsocket,
-	AdvBallsocket = maxAdvBallsocket,
-}
-
-
 local function checkEnts(self, ent1, ent2)
 	if not ent1 or not ent2 then return self:throw("Invalid entity!", false) end
 
 	if not ent1:IsWorld() then
 		if not ent1:IsValid() then return self:throw("Invalid entity!", false) end
+		if ent1:IsPlayer() then return self:throw("Cannot constrain players!", false) end
 		if not isOwner(self, ent1) then return self:throw("You are not the owner of the entity!", false) end
 	end
 
 	if not ent2:IsWorld() then
 		if not ent2:IsValid() then return self:throw("Invalid target entity!", false) end
+		if ent2:IsPlayer() then return self:throw("Cannot constrain players!", false) end
 		if not isOwner(self, ent2) then return self:throw("You are not the owner of the target entity!", false) end
 	end
 
-	if ent1:IsPlayer() or ent2:IsPlayer() then return self:throw("Cannot constrain players!", false) end
 	return true
 end
 
@@ -128,112 +97,52 @@ local function setupEntConstraints(ent)
 	return Ropes
 end
 
-local function checkCount(self, consType, ent1, ent2)
-	local data = getCountHolder( self )
-	local typeCounts = data.constraintCounts
-
-	-- Total
-	local totalLimit = maxTotal:GetInt()
-	if totalLimit > 0 then
-		local totalCount = data.totalConstraints
-		if totalCount >= totalLimit then
-			return self:throw( "Total constraint limit reached!", false )
-		end
-	end
-
-	-- Type
-	local typeLimit = countLookup[consType]:GetInt()
-	if typeLimit > 0 then
-		local typeCount = typeCounts[consType] or 0
-		if typeCount >= typeLimit then
-			return self:throw( consType .. " limit reached!", false )
-		end
-	end
-
-	-- Ents
-	local entityLimit = maxPerEntity:GetInt()
-	if entityLimit > 0 then
-		local entCounts = data.entityConstraints
-
-		local ent1Count = entCounts[ent1] or 0
-		local ent2Count = entCounts[ent2] or 0
-		if math_max( ent1Count, ent2Count ) >= entityLimit then
-			return self:throw( "Entity limit reached!", false )
-		end
-	end
-
-	return true
-end
-
-local function checkEdicts(self)
-	local maxEdicts = edictCutOff:GetInt()
-	if maxEdicts == 0 then return true end
-
-	if ents.GetEdictCount() >= maxEdicts then
-		return self:throw( "Global edict limit reached!", false )
-	end
-
-	return true
-end
-
-local function addUndo(self, consType, cons, rope)
-	local data = self.data
+local function checkCount(self, rope)
 	local ply = self.player
-	local cleanupType = rope and "ropeconstraints" or "constraints"
 
-	ply:AddCleanup( cleanupType, cons )
-	if rope then ply:AddCleanup( cleanupType, rope ) end
+	if not ply:CheckLimit(rope and "ropeconstraints" or "constraints") then
+		return false
+	end
 
-	if not data.constraintUndos then return end
-
-	undo.Create( "e2_" .. consType )
-		undo.SetPlayer( ply )
-		undo.AddEntity( cons )
-		if rope then undo.AddEntity( rope ) end
-	undo.Finish()
+	return true
 end
 
-local function increment(self, consType, ent1, ent2, cons)
-	local data = getCountHolder( self )
-	local entCounts = data.entityConstraints
-	local typeCounts = data.constraintCounts
-	local totalCount = data.totalConstraints
+local function addUndo(self, const_type, const, rope)
+	local ply = self.player
+	local const_class = const:GetClass()
 
-	-- Total
-	data.totalConstraints = totalCount + 1
+	if const_class == "logic_collision_pair" then
+		ply:AddCount("constraints", const)
+		ply:AddCleanup("nocollide", const)
+	else
+		if const_class == "keyframe_rope" or rope then
+			ply:AddCount("ropeconstraints", const)
+			ply:AddCleanup("ropeconstraints", const)
+			if rope then ply:AddCleanup("ropeconstraints", rope) end
+		else
+			ply:AddCount("constraints", const)
+			ply:AddCleanup("constraints", const)
+		end
+	end
 
-	-- Type
-	typeCounts[consType] = ( typeCounts[consType] or 0 ) + 1
-
-	-- Ents
-	entCounts[ent1] = ( entCounts[ent1] or 0 ) + 1
-	entCounts[ent2] = ( entCounts[ent2] or 0 ) + 1
-
-	-- Decrement relevant counts
-	cons:CallOnRemove( "wire_expression2_constraints_" .. self.uid, function()
-		if not IsValid( self.entity ) then return end
-
-		-- Total
-		data.totalConstraints = math_max( 0, data.totalConstraints - 1 )
-
-		-- Type
-		typeCounts[consType] = math_max( 0, typeCounts[consType] - 1 )
-
-		-- Ents
-		entCounts[cons.Ent1] = math_max( 0, entCounts[cons.Ent1] - 1 )
-		entCounts[cons.Ent2] = math_max( 0, entCounts[cons.Ent2] - 1 )
-	end )
+	if self.data.constraintUndos then
+		undo.Create("E2 " .. const_type)
+			undo.SetPlayer(ply)
+			undo.AddEntity(const)
+			if rope then undo.AddEntity(rope) end
+		undo.Finish()
+	end
 end
 
-local function postCreate(self, consType, ent1, ent2, cons, rope)
-	addUndo( self, consType, cons, rope )
-	increment( self, consType, ent1, ent2, cons )
+local function postCreate(self, const_type, const, rope)
+	addUndo(self, const_type, const, rope)
 
 	-- Don't bother tracking the constraints if we won't clean them up
 	if not shouldCleanup:GetBool() then return end
 
 	local data = getCountHolder( self )
-	table_insert( data.allConstraints, cons )
+	table_insert( data.allConstraints, const )
+	if rope then table_insert( data.allConstraints, rope ) end
 end
 
 local function caps(text)
@@ -251,30 +160,30 @@ __e2setcost(30)
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent.
 e2function void axis(entity ent1, vector v1, entity ent2, vector v2)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Axis", ent1, ent2) then return end
+	if not checkCount(self, false) then return end
 
 	local cons = constraint.Axis(ent1, ent2, 0, 0, v1, v2, 0, 0, 0, 0)
-	postCreate(self, "Axis", ent1, ent2, cons)
+	postCreate(self, "Axis", cons)
 end
 
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent, with <friction> friction.
 e2function void axis(entity ent1, vector v1, entity ent2, vector v2, friction)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Axis", ent1, ent2) then return end
+	if not checkCount(self, false) then return end
 
 	local cons = constraint.Axis(ent1, ent2, 0, 0, v1, v2, 0, 0, friction, 0)
-	postCreate(self, "Axis", ent1, ent2, cons)
+	postCreate(self, "Axis", cons)
 end
 
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent, with <friction> friction and <localaxis> rotation axis.
 e2function void axis(entity ent1, vector v1, entity ent2, vector v2, friction, vector localaxis)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Axis", ent1, ent2) then return end
+	if not checkCount(self, false) then return end
 
 	local cons = constraint.Axis(ent1, ent2, 0, 0, v1, v2, 0, 0, friction, 0, localaxis)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "Axis", ent1, ent2, cons)
+	postCreate(self, "Axis", cons)
 end
 
 
@@ -283,56 +192,56 @@ end
 --- Creates a ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>
 e2function void ballsocket(entity ent1, vector v, entity ent2)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Ballsocket", ent1, ent2) then return end
+	if not checkCount(self, false) then return end
 
 	local cons = constraint.Ballsocket(ent1, ent2, 0, 0, v, 0, 0, 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "Ballsocket", ent1, ent2, cons)
+	postCreate(self, "Ballsocket", cons)
 end
 
 --- Creates a ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with friction <friction>
 e2function void ballsocket(entity ent1, vector v, entity ent2, friction)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
+	if not checkCount(self, false) then return end
 
 	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, vector_origin, 0, 0, -180, -180, -180, 180, 180, 180, friction, friction, friction, 0, 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
+	postCreate(self, "AdvBallsocket", cons)
 end
 
 --- Creates an adv ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with many settings
 e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vector maxs, vector frictions)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
+	if not checkCount(self, false) then return end
 
 	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, vector_origin, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], 0, 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
+	postCreate(self, "AdvBallsocket", cons)
 end
 
 --- Creates an adv ballsocket between <ent1> and <ent2> at <v>, which is local to <ent1>, with many settings
 e2function void ballsocket(entity ent1, vector v, entity ent2, vector mins, vector maxs, vector frictions, rotateonly)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
+	if not checkCount(self, false) then return end
 
 	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, vector_origin, 0, 0, mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], frictions[1], frictions[2], frictions[3], rotateonly, 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
+	postCreate(self, "AdvBallsocket", cons)
 end
 
 --- Creates an angular weld (angles are fixed, position isn't) between <ent1> and <ent2> at <v>, which is local to <ent1>
 e2function void weldAng(entity ent1, vector v, entity ent2)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "AdvBallsocket", ent1, ent2) then return end
+	if not checkCount(self, false) then return end
 
 	local cons = constraint.AdvBallsocket(ent1, ent2, 0, 0, v, vector_origin, 0, 0, 0, -0, 0, 0, 0, 0, 0, 0, 0, 1, 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "AdvBallsocket", ent1, ent2, cons)
+	postCreate(self, "AdvBallsocket", cons)
 end
 
 
@@ -356,8 +265,7 @@ end
 --  == Hydraulic ==
 local function createHydraulic(self, index, ent1, ent2, v1, v2, width, bone1, bone2, constant, damping, rdamping, mat, stretch, color)
 	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Hydraulic", ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
+	if not checkCount( self, true ) then return end
 	local constraints = setupEntConstraints( ent1 )
 
 	width = math.Clamp(width, 0, 50)
@@ -376,7 +284,7 @@ local function createHydraulic(self, index, ent1, ent2, v1, v2, width, bone1, bo
 	if not verifyConstraint( self, cons ) then return end
 
 	constraints[index] = cons
-	postCreate( self, "Hydraulic", ent1, ent2, cons, rope )
+	postCreate( self, "Hydraulic", cons, rope )
 end
 
 e2function void hydraulic(index, entity ent, vector v1, bone bone, vector v2, width)
@@ -441,8 +349,7 @@ end
 -- == Rope ==
 local function createRope(self, index, ent1, ent2, v1, v2, bone1, bone2, addlength, width, mat, rigid, color)
 	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Rope", ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
+	if not checkCount( self, true ) then return end
 	local constraints = setupEntConstraints( ent1 )
 
 	local length = ( ent1:LocalToWorld( v1 ) - ent2:LocalToWorld( v2 ) ):Length()
@@ -458,7 +365,7 @@ local function createRope(self, index, ent1, ent2, v1, v2, bone1, bone2, addleng
 	if not verifyConstraint( self, cons ) then return end
 
 	constraints[index] = cons
-	postCreate( self, "Rope", ent1, ent2, cons, rope )
+	postCreate( self, "Rope", cons, rope )
 end
 
 e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, string mat, rigid, vector color )
@@ -575,8 +482,7 @@ __e2setcost(30)
 -- == Sliders ==
 local function createSlider(self, ent1, ent2, v1, v2, width, bone1, bone2, mat, color)
 	if not checkEnts( self, ent1, ent2 ) then return end
-	if not checkCount( self, "Slider", ent1, ent2 ) then return end
-	if not checkEdicts( self ) then return end
+	if not checkCount( self, true ) then return end
 
 	if color then
 		color = Color(color[1],color[2],color[3],255)
@@ -585,7 +491,7 @@ local function createSlider(self, ent1, ent2, v1, v2, width, bone1, bone2, mat, 
 	local cons, rope = constraint.Slider( ent1, ent2, bone1 or 0, bone2 or 0, v1, v2, width or 1, mat ~= "" and mat or "cable/cable2", color )
 	if not verifyConstraint( self, cons ) then return end
 
-	postCreate(self, "Slider", ent1, ent2, cons, rope)
+	postCreate(self, "Slider", cons, rope)
 end
 
 e2function void slider(entity ent, vector v1, bone bone, vector v2)
@@ -628,12 +534,12 @@ end
 -- == NoCollide ==
 local function noCollideCreate(self, ent1, ent2, bone1, bone2)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "NoCollide", ent1, ent2) then return end
+	if not checkCount(self, false) then return end
 
-	local cons = constraint.NoCollide(ent1, ent2, bone1 or 0, bone2 or 0)
+	local cons = constraint.NoCollide(ent1, ent2, bone1 or 0, bone2 or 0, true)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "NoCollide", ent1, ent2, cons)
+	postCreate(self, "NoCollide", cons)
 end
 
 e2function void entity:noCollide(entity target)
@@ -675,12 +581,12 @@ end
 -- == Welds ==
 local function weldCreate(self, ent1, ent2, bone1, bone2, forcelimit, nocollide)
 	if not checkEnts(self, ent1, ent2) then return end
-	if not checkCount(self, "Weld", ent1, ent2) then return end
+	if not checkCount(self, false) then return end
 
 	local cons = constraint.Weld(ent1, ent2, bone1 or 0, bone2 or 0, forcelimit or 0, nocollide ~= 0)
 	if not verifyConstraint(self, cons) then return end
 
-	postCreate(self, "Weld", ent1, ent2, cons)
+	postCreate(self, "Weld", cons)
 end
 
 e2function void entity:weld(entity target)

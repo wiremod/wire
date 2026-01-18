@@ -1461,10 +1461,16 @@ Text here]# ]]
 
 				local label = vgui.Create("DLabel", panel)
 				local idx = v:EntIndex()
-
 				local ownerStr
-				if CPPI and v:CPPIGetOwner():GetName() ~= nick then
-					ownerStr = string.format("Owner: %s | Code Author: %s", v:CPPIGetOwner():GetName(), nick)
+
+				if CPPI then
+					local owner = v:CPPIGetOwner()
+
+					if IsValid(owner) and owner:Nick() ~= nick then
+						ownerStr = string.format("Owner: %s | Code Author: %s", owner:Nick(), nick)
+					else
+						ownerStr = "Owner: " .. nick
+					end
 				else
 					ownerStr = "Owner: " .. nick
 				end
