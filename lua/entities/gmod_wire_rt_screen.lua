@@ -255,12 +255,14 @@ if CLIENT then
         local y1 = -yraw
         local y2 = yraw
 
-        local u1, v1 = 0, 0
-        local u2, v2 = self:GetScaleX(), monitor.RatioX * self:GetScaleY()
+        local y_center_offset = self:GetScaleY() * (1 - monitor.RatioX) / 2 
+        local u1, v1 = 0, y_center_offset
+        local u2, v2 = self:GetScaleX(), v1 + monitor.RatioX * self:GetScaleY()
         local scrU = self:GetScrollX()
         local scrV = self:GetScrollY()
         u1 = u1 + scrU u2 = u2 + scrU
         v1 = v1 + scrV v2 = v2 + scrV
+
 
         cam.Start3D2D(
             self:LocalToWorld(monitor.offset),
