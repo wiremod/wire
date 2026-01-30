@@ -3,7 +3,7 @@ E2Lib.RegisterExtension("effects", false, "Allows E2s to play arbitrary effects.
 local wire_expression2_effect_burst_max = CreateConVar("wire_expression2_effect_burst_max", 4, FCVAR_ARCHIVE)
 local wire_expression2_effect_burst_rate = CreateConVar("wire_expression2_effect_burst_rate", 0.1, FCVAR_ARCHIVE)
 
--- Use hook Expression2_CanEffect to blacklist/whitelist effects
+-- Use hook Expression2_CanEffect(name, e2, isPlay) to blacklist/whitelist effects
 local effect_blacklist = {
 	dof_node = true
 }
@@ -169,7 +169,7 @@ e2function void effect:play(string name)
 
 	name = name:lower()
 	if effect_blacklist[name] then return self:throw("This effect is blacklisted!", nil) end
-	if hook.Run("Expression2_CanEffect", name, self) == false then return self:throw("A hook prevented this function from running", nil) end
+	if hook.Run("Expression2_CanEffect", name, self, true) == false then return self:throw("A hook prevented this function from running", nil) end
 
 	fire(self, this, name)
 end
@@ -181,7 +181,7 @@ end
 e2function number effectCanPlay(string name)
 	if not isAllowed(self) then return 0 end
 	if effect_blacklist[name] then return 0 end
-	if hook.Run("Expression2_CanEffect", name:lower(), self) == false then return 0 end
+	if hook.Run("Expression2_CanEffect", name:lower(), self, false) == false then return 0 end
 
 	return 1
 end
