@@ -47,15 +47,19 @@ local function GetBones(entity)
 end
 E2Lib.GetBones = GetBones
 
--- checks whether the bone is valid. if yes, returns the bone's entity; otherwise, returns nil.
-local function isValidBone(b)
-	if type(b) ~= "PhysObj" or not IsValid(b) then return nil, 0 end
-	local ent = b:GetEntity()
+-- checks whether the bone is valid. if yes, returns the bone's entity and bone's index; otherwise, returns nil and 0.
+local function isValidBone(bone)
+	if type(bone) ~= "PhysObj" or not bone:IsValid() then return nil, 0 end
+
+	local ent = bone:GetEntity()
+
 	if not ent:IsValid() then
-		return nil
+		return nil, 0
 	end
-	return ent
+
+	return ent, bone:GetIndex()
 end
+
 E2Lib.isValidBone = isValidBone
 
 --[[************************************************************************]]--
