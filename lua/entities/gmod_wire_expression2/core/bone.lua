@@ -19,7 +19,6 @@ end)
 -- faster access to some math library functions
 local abs = math.abs
 local atan2 = math.atan2
-local sqrt = math.sqrt
 local asin = math.asin
 local Clamp = math.Clamp
 
