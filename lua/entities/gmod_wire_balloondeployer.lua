@@ -27,8 +27,9 @@ WireLib.AddInputAlias("Lenght", "Length")
 function ENT:TriggerInput(iname, value)
 	if iname == "Deploy" then
 		if value ~= 0 then
-			if not self.Deployed then
+			if not self.Deployed and (self.NextDeploy or 0) <= CurTime() then
 				self:DeployBalloon()
+				self.NextDeploy = CurTime() + 0.5
 				self.Deployed = true
 			end
 
