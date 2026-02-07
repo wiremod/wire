@@ -145,5 +145,5 @@ function ENT:PrepareOverlayData()
 	self:SetOverlayText("Deployed = " .. (self.Deployed and "yes" or "no"))
 end
 
-duplicator.RegisterEntityClass("gmod_wire_balloondeployer", WireLib.MakeWireEnt, "Data")
+duplicator.RegisterEntityClass("gmod_wire_balloondeployer", WireLib.MakeWireEnt, "Data", "Force", "Length", "Weld", "Popable", "BallonType")
 scripted_ents.Alias("sent_deployableballoons", "gmod_wire_balloondeployer")
