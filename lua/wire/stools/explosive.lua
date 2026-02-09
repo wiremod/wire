@@ -42,10 +42,7 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_explosive.fireeffect", "Enable fire effect on triggered" )
 	language.Add( "Tool.wire_explosive.coloreffect", "Enable color change effect on damage" )
 	language.Add( "Tool.wire_explosive.invisibleatzero", "Become invisible when health reaches 0" )
-	TOOL.Information = {
-		{ name = "left", text = "Create " .. TOOL.Name },
-		{ name = "right", text = "Update " .. TOOL.Name },
-	}
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 
 	WireToolSetup.setToolMenuIcon("icon16/bomb.png")
 end
