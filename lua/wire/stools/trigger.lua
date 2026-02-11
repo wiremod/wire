@@ -62,11 +62,11 @@ end
 local function DrawTriggerOutlines( list )
 	cam.Start3D(EyePos(), EyeAngles())
 		for k, ent in ipairs(list) do
-			local trig = ent:GetTriggerEntity()
+			local trigger = ent:GetTriggerEntity()
 
-			if trig:IsValid() then
-				render.DrawWireframeBox(trig:GetPos(), angle_zero, trig:OBBMins(), trig:OBBMaxs(), Color( 255, 255, 0 ), true)
-				render.DrawLine(trig:GetPos(), ent:GetPos(), Color( 255, 255, 0 ))
+			if trigger:IsValid() then
+				render.DrawWireframeBox(trigger:GetPos(), angle_zero, trig:OBBMins(), trig:OBBMaxs(), Color(255, 255, 0), true)
+				render.DrawLine(trigger:GetPos(), ent:GetPos(), Color(255, 255, 0))
 			end
 		end
 	cam.End3D()
