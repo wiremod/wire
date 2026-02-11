@@ -65,7 +65,7 @@ local function DrawTriggerOutlines( list )
 			local trigger = ent:GetTriggerEntity()
 
 			if trigger:IsValid() then
-				render.DrawWireframeBox(trigger:GetPos(), angle_zero, trig:OBBMins(), trig:OBBMaxs(), Color(255, 255, 0), true)
+				render.DrawWireframeBox(trigger:GetPos(), angle_zero, trigger:OBBMins(), trigger:OBBMaxs(), Color(255, 255, 0), true)
 				render.DrawLine(trigger:GetPos(), ent:GetPos(), Color(255, 255, 0))
 			end
 		end
