@@ -662,18 +662,18 @@ function Editor:InitComponents()
 
 	self.C.Sav:SetImage("icon16/disk.png")
 	self.C.Sav.DoClick = function(button) self:SaveFile(self:GetChosenFile()) end
-	self.C.Sav:SetToolTip( "Save" )
+	self.C.Sav:SetTooltip( "Save" )
 
 	self.C.NewTab:SetImage("icon16/page_white_add.png")
 	self.C.NewTab.DoClick = function(button) self:NewTab() end
-	self.C.NewTab:SetToolTip( "New tab" )
+	self.C.NewTab:SetTooltip( "New tab" )
 
 	self.C.CloseTab:SetImage("icon16/page_white_delete.png")
 	self.C.CloseTab.DoClick = function(button) self:CloseTab() end
-	self.C.CloseTab:SetToolTip( "Close tab" )
+	self.C.CloseTab:SetTooltip( "Close tab" )
 
 	self.C.Reload:SetImage("icon16/page_refresh.png")
-	self.C.Reload:SetToolTip( "Refresh file" )
+	self.C.Reload:SetTooltip( "Refresh file" )
 	self.C.Reload.DoClick = function(button)
     self:LoadFile(self:GetChosenFile(), false)
     self:UpdateActiveTabTitle()
@@ -1002,7 +1002,7 @@ function Editor:SetV(bool)
 		self:InvalidateLayout(true)
 	end
 	self:SetVisible(bool)
-	self:SetKeyBoardInputEnabled(bool)
+	self:SetKeyboardInputEnabled(bool)
 	self:GetParent():SetWorldClicker(wire_fpga_editor_worldclicker:GetBool() and bool) -- Enable this on the background so we can update E2's without closing the editor
 	-- if CanRunConsoleCommand() then
 	-- 	RunConsoleCommand("wire_fpga_event", bool and "editor_open" or "editor_close")
