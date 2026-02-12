@@ -17,6 +17,7 @@ end
 function WireLib.GenerateDefaultData()
 	-- When adding new folders that need to be generated, add them to this list
 	RecursivelyGenerateFolder("data_static/expression2/")
+	RecursivelyGenerateFolder("data_static/fpgachip/")
 	RecursivelyGenerateFolder("data_static/soundlists/")
 end
 

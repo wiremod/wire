@@ -69,7 +69,6 @@ if SERVER then
 	AddCSLuaFile("wire/client/node_editor/nodeeditor.lua")
 	AddCSLuaFile("wire/client/node_editor/wire_fpga_editor.lua")
 	AddCSLuaFile("data/help.lua")
-	AddCSLuaFile("data/_helloworld_.lua")
 
 	for _, filename in ipairs(file.Find("wire/client/text_editor/modes/*.lua","LUA")) do
 		AddCSLuaFile("wire/client/text_editor/modes/" .. filename)
@@ -139,17 +138,6 @@ if CLIENT then
 
 	include("wire/client/node_editor/nodeeditor.lua")
 	include("wire/client/node_editor/wire_fpga_editor.lua")
-
-	-- Add fpga dir
-	file.CreateDir("fpgachip")
-	-- Add fpga default files
-	if not file.Exists("fpgachip/_helloworld_.txt", "DATA") then
-		local data = file.Read("data/_helloworld_.lua", "LUA")
-		print(data)
-		if data != nil then
-			file.Write("fpgachip/_helloworld_.txt", string.sub(data, 3))
-		end
-	end
 end
 
 if SERVER then print("Wiremod " .. select(2, WireLib.GetVersion()) .. " loaded") end
