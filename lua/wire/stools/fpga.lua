@@ -38,8 +38,6 @@ if SERVER then
     if trace.Entity:IsPlayer() then return false end
 		if CLIENT then return true end
 
-    local player = self:GetOwner()
-
     if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_fpga" then
       trace.Entity:Reset()
 			return true
@@ -226,7 +224,6 @@ if CLIENT then
   -- Build tool control panel
   ------------------------------------------------------------------------------
   function TOOL.BuildCPanel(panel)
-    local currentDirectory
     local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
     panel:AddPanel(FileBrowser)
     FileBrowser:Setup("fpgachip")
@@ -264,7 +261,7 @@ if CLIENT then
 
 
     ----------------------------------------------------------------------------
-    local modelPanel = WireDermaExts.ModelSelect(panel, "wire_fpga_model", list.Get("Wire_gate_Models"), 5)
+    WireDermaExts.ModelSelect(panel, "wire_fpga_model", list.Get("Wire_gate_Models"), 5)
     panel:AddControl("Label", {Text = ""})
   end
 

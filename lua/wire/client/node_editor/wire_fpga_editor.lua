@@ -298,21 +298,6 @@ function Editor:SetActiveTab(val)
 	self:UpdateActiveTabTitle()
 end
 
-local function extractNameFromFilePath(str)
-	local found = str:reverse():find("/", 1, true)
-	if found then
-		return str:Right(found - 1)
-	else
-		return str
-	end
-end
-
-local function extractNameFromFile(file)
-  local data = util.JSONToTable(file)
-
-  return data.Name
-end
-
 function Editor:ExtractNameFromEditor()
   return self:GetCurrentEditor():GetName()
 end
@@ -606,7 +591,6 @@ function Editor:InitComponents()
   do
     local pnl = self.C.Browser.SearchBox
     local old = pnl.OnLoseFocus
-    local this = self
 
     function pnl.OnLoseFocus()
       old(pnl)

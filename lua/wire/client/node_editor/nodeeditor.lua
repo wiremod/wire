@@ -884,7 +884,6 @@ end
 
 function Editor:PaintEditorNode(nodeId, node, visual)
   local x, y = self:PosToScr(node.x, node.y)
-  local size = self.Zoom
 
   if visual.method == "text" then
     if visual.font == "auto" then
