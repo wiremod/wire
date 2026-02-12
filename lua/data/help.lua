@@ -12,10 +12,6 @@ FPGAHelperHTML = [[
   </head>
   <body>
     <h1>FPGA Help</h1>
-    <p>
-      This addon is actively under development, if you have some great ideas of how some stuff should work,
-      or just think something could be very cool if addded, feel free to add 'lysdal1234' on Steam and suggest them to me :)
-    </p>
 
     <h2>Types</h2>
     <div class="col" style="margin-left: 20px;">
