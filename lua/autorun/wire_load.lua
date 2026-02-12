@@ -30,6 +30,8 @@ if SERVER then
 	AddCSLuaFile("wire/wireshared.lua")
 	AddCSLuaFile("wire/wirenet.lua")
 	AddCSLuaFile("wire/wiregates.lua")
+	AddCSLuaFile("wire/fpgagates.lua")
+	AddCSLuaFile("wire/cpugates.lua")
 	AddCSLuaFile("wire/wiremonitors.lua")
 	AddCSLuaFile("wire/gpulib.lua")
 	AddCSLuaFile("wire/timedpairs.lua")
@@ -62,6 +64,12 @@ if SERVER then
 	AddCSLuaFile("wire/client/text_editor/issue_viewer.lua")
 	AddCSLuaFile("wire/client/text_editor/texteditor.lua")
 	AddCSLuaFile("wire/client/text_editor/wire_expression2_editor.lua")
+	
+	-- node editor
+	AddCSLuaFile("wire/client/node_editor/nodeeditor.lua")
+	AddCSLuaFile("wire/client/node_editor/wire_fpga_editor.lua")
+	AddCSLuaFile("data/help.lua")
+	AddCSLuaFile("data/_helloworld_.lua")
 
 	for _, filename in ipairs(file.Find("wire/client/text_editor/modes/*.lua","LUA")) do
 		AddCSLuaFile("wire/client/text_editor/modes/" .. filename)
@@ -74,6 +82,8 @@ include("wire/wireshared.lua")
 include("wire/wirenet.lua")
 include("wire/wire_paths.lua")
 include("wire/wiregates.lua")
+include("wire/fpgagates.lua")
+include("wire/cpugates.lua")
 include("wire/wiremonitors.lua")
 include("wire/gpulib.lua")
 include("wire/timedpairs.lua")
@@ -120,6 +130,26 @@ if CLIENT then
 	include("wire/client/thrusterlib.lua")
 	include("wire/client/rendertarget_fix.lua")
 	include("wire/client/customspawnmenu.lua")
+
+	-- node editor
+	AddCSLuaFile("wire/client/node_editor/nodeeditor.lua")
+	AddCSLuaFile("wire/client/node_editor/wire_fpga_editor.lua")
+
+	include("data/help.lua")
+
+	include("wire/client/node_editor/nodeeditor.lua")
+	include("wire/client/node_editor/wire_fpga_editor.lua")
+
+	-- Add fpga dir
+	file.CreateDir("fpgachip")
+	-- Add fpga default files
+	if not file.Exists("fpgachip/_helloworld_.txt", "DATA") then
+		local data = file.Read("data/_helloworld_.lua", "LUA")
+		print(data)
+		if data != nil then
+			file.Write("fpgachip/_helloworld_.txt", string.sub(data, 3))
+		end
+	end
 end
 
 if SERVER then print("Wiremod " .. select(2, WireLib.GetVersion()) .. " loaded") end
