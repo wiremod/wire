@@ -54,7 +54,7 @@ function ENT:DrawWorldTipBody(pos)
 	-------------------
 	local w,h = surface.GetTextSize(name)
 	h = h + pos.edgesize
-	h = math.min(h, pos.size.h - (pos.footersize.h))
+	h = math.min(h, pos.size.h - pos.footersize.h)
 
 	render.SetScissorRect(pos.min.x + 16, pos.min.y, pos.max.x - 16, pos.min.y + h, true)
 	draw.DrawText(name, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 10, white, TEXT_ALIGN_CENTER)
