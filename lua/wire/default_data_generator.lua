@@ -22,7 +22,7 @@ function WireLib.GenerateDefaultData()
 end
 
 -- Regenerate data files on every structure update
-local DataVersion = 1
+local DataVersion = 2
 
 if cookie.GetNumber("wire_data_version", 0) < DataVersion then
 	cookie.Set("wire_data_version", tostring(DataVersion))
