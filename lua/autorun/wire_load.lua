@@ -68,7 +68,6 @@ if SERVER then
 	-- node editor
 	AddCSLuaFile("wire/client/node_editor/nodeeditor.lua")
 	AddCSLuaFile("wire/client/node_editor/wire_fpga_editor.lua")
-	AddCSLuaFile("data/help.lua")
 
 	for _, filename in ipairs(file.Find("wire/client/text_editor/modes/*.lua","LUA")) do
 		AddCSLuaFile("wire/client/text_editor/modes/" .. filename)
@@ -133,8 +132,6 @@ if CLIENT then
 	-- node editor
 	AddCSLuaFile("wire/client/node_editor/nodeeditor.lua")
 	AddCSLuaFile("wire/client/node_editor/wire_fpga_editor.lua")
-
-	include("data/help.lua")
 
 	include("wire/client/node_editor/nodeeditor.lua")
 	include("wire/client/node_editor/wire_fpga_editor.lua")
