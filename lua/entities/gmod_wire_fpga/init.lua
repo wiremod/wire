@@ -741,7 +741,7 @@ function ENT:Run(changedNodes)
 			nodesInQueue[nodeId] = true
 		end
 	end
-	--activeNodes = {0,0,0,1,1,1,1,1,1}
+
 	if self.Debug then print(table.ToString(activeNodes, "activeNodes", false)) end
 
 	--Initialize nodesInQueue set
@@ -757,10 +757,6 @@ function ENT:Run(changedNodes)
 
 	--Initialize nodesVisited set
 	local nodesVisited = {}
-
-	--nodeQueue = {changedNodes[1], ... changedNodes[n]}
-	--nodesInQueue = {0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0}
-	--nodesVisited = {}
 
 	if self.Debug then
 		for nodeId, node in pairs(self.Nodes) do
@@ -792,8 +788,6 @@ function ENT:Run(changedNodes)
 		local nodeId = table.remove(nodeQueue, 1)
 		local node = self.Nodes[nodeId]
 		FPGANodeCurrentlyInQueue = node
-
-		--print(table.ToString(node.connections, "node.connections", false))
 
 		--get gate
 		local gate = getGate(node)
