@@ -43,13 +43,3 @@ CPUGateActions["bit-xor"] = {
 		return bit.bor(A, B)
 	end
 }
-
--- i = i + 1
--- CPUGateActions["bit-reduce-4"] = {
---   order = i,
---   name = "A",
---   inputs = {"A", "B"},
--- 	output = function(gate, A, B)
---     return bit.bor(A, B)
--- 	end
--- }

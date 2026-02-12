@@ -441,9 +441,6 @@ end
 --UPLOAD
 --------------------------------------------------------
 function ENT:Upload(data)
-	--MsgC(Color(0, 255, 100), "Uploading to FPGA\n")
-	--print(table.ToString(data, "data", true))
-
 	self.Uploaded = false
 	self.CompileError = false
 	self.ExecutionError = false
@@ -561,7 +558,6 @@ function ENT:ResetGates()
 end
 
 function ENT:Reset()
-	--MsgC(Color(0, 100, 255), "Resetting FPGA\n")
 	if self.CompilationError or not self.Uploaded then return end
 	self:SetColor(Color(255, 255, 255, self:GetColor().a))
 	self.ExecutionError = false

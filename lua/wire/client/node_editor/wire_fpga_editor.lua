@@ -108,13 +108,6 @@ function Editor:PaintOver()
 	surface.SetTextColor(255, 255, 255, 255)
 	surface.SetTextPos(10, 6)
 	surface.DrawText(self.Title .. self.subTitle)
-	--[[
-	if(self.E2) then
-	surface.SetTexture(self.logo)
-	surface.SetDrawColor( 255, 255, 255, 128 )
-	surface.DrawTexturedRect( w-148, h-158, 128, 128)
-	end
-	]] --
 	surface.SetDrawColor(255, 255, 255, 255)
 	surface.SetTextPos(0, 0)
 	surface.SetFont("Default")
@@ -352,13 +345,11 @@ function Editor:CreateTab(chosenfile)
 	sheet.Tab.OnMousePressed = function(pnl, keycode, ...)
 
 		if keycode == MOUSE_MIDDLE then
-			--self:FixTabFadeTime()
 			self:CloseTab(pnl)
 			return
 		elseif keycode == MOUSE_RIGHT then
 			local menu = DermaMenu()
 			menu:AddOption("Close", function()
-			--self:FixTabFadeTime()
 				self:CloseTab(pnl)
 			end)
 			menu:AddOption("Close all others", function()
@@ -422,7 +413,6 @@ function Editor:CreateTab(chosenfile)
 		timer.Create("fpgaautosave", 5, 1, function()
 			self:AutoSave()
 		end)
-		--hook.Run("WireEditorText", self, editor)
 	end
 	editor.OnShortcut = function(_, code)
 		if code == KEY_S then
@@ -626,7 +616,6 @@ function Editor:InitComponents()
 
 	local DoNothing = function() end
 	self.C.MainPane.Paint = DoNothing
-	--self.C.Menu.Paint = DoNothing
 
 	self.C.Menu:Dock(TOP)
 	self.C.TabHolder:Dock(FILL)
@@ -927,7 +916,6 @@ function Editor:InitShutdownHook()
 
 	-- save code when shutting down
 	hook.Add("ShutDown", "wire_fpga_ShutDown" .. id, function()
-	-- if wire_fpga_editor == nil then return end
 		local buffer = self:GetData()
 		if not self:GetCurrentEditor():HasNodes() then return end
 		file.Write(self.Location .. "/_shutdown_.txt", buffer)
@@ -1003,10 +991,7 @@ function Editor:SetV(bool)
 	end
 	self:SetVisible(bool)
 	self:SetKeyboardInputEnabled(bool)
-	self:GetParent():SetWorldClicker(wire_fpga_editor_worldclicker:GetBool() and bool) -- Enable this on the background so we can update E2's without closing the editor
-	-- if CanRunConsoleCommand() then
-	-- 	RunConsoleCommand("wire_fpga_event", bool and "editor_open" or "editor_close")
-	-- end
+	self:GetParent():SetWorldClicker(wire_fpga_editor_worldclicker:GetBool() and bool) -- Enable this on the background so we can update FPGA's without closing the editor
 end
 
 function Editor:GetChosenFile()
@@ -1141,7 +1126,6 @@ function Editor:SaveFile(Line, close, SaveAs)
 	self:ExtractName()
 
 	if close and self.chip then
-		--WireLib.Expression2Upload(self.chip, self:GetCode())
 		self:Close()
 		return
 	end

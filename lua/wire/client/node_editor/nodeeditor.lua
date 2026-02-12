@@ -83,8 +83,6 @@ function Editor:Init()
 
 	self.C = {}
 	self:InitComponents()
-
-	--MsgC(Color(0, 150, 255), table.ToString(GateActions, "Gate Actions", true))
 end
 
 function Editor:GetParent()
@@ -293,7 +291,6 @@ function Editor:InitComponents()
 		this:RequestFocus()
 	end
 
-	--local tree = vgui.Create("DTree", self.C.Holder)
 	self.C.SearchList = vgui.Create("DListView", self.C.Holder)
 	self.C.SearchList:AddColumn("Gate Name")
 	self.C.SearchList:AddColumn("Type"):SetWidth(10)
@@ -969,8 +966,6 @@ function Editor:Paint()
 		self:PaintHelp()
 	end
 
-	--self:PaintDebug()
-
 	-- detects if mouse is let go outside of the window
 	if not input.IsMouseDown(MOUSE_RIGHT) then
 		self.DraggingWorld = nil
@@ -1160,14 +1155,10 @@ function Editor:CreateNode(selectedInMenu, x, y)
 		node.value = self:GetVisual(node).default
 	end
 
-	--print("Created " .. table.ToString(node, "node", false))
-
 	table.insert(self.Nodes, node)
 end
 
 function Editor:DeleteNode(nodeId)
-	--print("Deleted " .. nodeId)
-
 	--remove all connections to this node
 	for k1, node in pairs(self.Nodes) do
 		for inputNum, connection in pairs(node.connections) do
@@ -1560,7 +1551,6 @@ function Editor:CreateNamingWindow()
 	pnl:ShowCloseButton(true)
 	pnl:SetDeleteOnClose(false)
 	pnl:MakePopup()
-	--pnl:SetBackgroundBlur(true)
 	pnl:SetVisible(false)
 	pnl:SetTitle("Edit")
 	pnl:SetScreenLock(true)
@@ -1629,7 +1619,6 @@ function Editor:CreateConstantSetWindow()
 	pnl:ShowCloseButton(true)
 	pnl:SetDeleteOnClose(false)
 	pnl:MakePopup()
-	--pnl:SetBackgroundBlur(true)
 	pnl:SetVisible(false)
 	pnl:SetTitle("Set constant value")
 	pnl:SetScreenLock(true)
