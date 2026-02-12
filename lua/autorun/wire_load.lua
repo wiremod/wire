@@ -64,7 +64,7 @@ if SERVER then
 	AddCSLuaFile("wire/client/text_editor/issue_viewer.lua")
 	AddCSLuaFile("wire/client/text_editor/texteditor.lua")
 	AddCSLuaFile("wire/client/text_editor/wire_expression2_editor.lua")
-	
+
 	-- node editor
 	AddCSLuaFile("wire/client/node_editor/nodeeditor.lua")
 	AddCSLuaFile("wire/client/node_editor/wire_fpga_editor.lua")
