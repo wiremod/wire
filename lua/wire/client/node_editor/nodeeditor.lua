@@ -335,7 +335,7 @@ function Editor:InitComponents()
   local searching
   function self.C.Search:OnTextChanged()
     local text = self:GetValue()
-    if text ~= "" then
+    if text != "" then
       if not searching then
         searching = true
         local x, y = this.C.Tree:GetPos()
