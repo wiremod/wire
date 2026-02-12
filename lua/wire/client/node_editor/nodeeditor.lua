@@ -546,9 +546,11 @@ function Editor:SetData(data)
   self.OutputNameCounter = 0
   for nodeId, node in pairs(self.Nodes) do
     local gate = getGate(node)
-    if not gate then self:DeleteNode(nodeId)
-    elseif gate.isInput then self.InputNameCounter = self.InputNameCounter + 1
-    elseif gate.isOutput then self.OutputNameCounter = self.OutputNameCounter + 1 end
+    if not node.visual then
+      if not gate then self:DeleteNode(nodeId)
+      elseif gate.isInput then self.InputNameCounter = self.InputNameCounter + 1
+      elseif gate.isOutput then self.OutputNameCounter = self.OutputNameCounter + 1 end
+    end
   end
 end
 
