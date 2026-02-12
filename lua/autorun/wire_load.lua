@@ -128,11 +128,6 @@ if CLIENT then
 	include("wire/client/thrusterlib.lua")
 	include("wire/client/rendertarget_fix.lua")
 	include("wire/client/customspawnmenu.lua")
-
-	-- node editor
-	AddCSLuaFile("wire/client/node_editor/nodeeditor.lua")
-	AddCSLuaFile("wire/client/node_editor/wire_fpga_editor.lua")
-
 	include("wire/client/node_editor/nodeeditor.lua")
 	include("wire/client/node_editor/wire_fpga_editor.lua")
 end
