@@ -685,9 +685,8 @@ function Editor:InitComponents()
 	self.C.Helper:SetScreenLock(true)
 	local html = vgui.Create("DHTML" , self.C.Helper)
 	html:Dock(FILL)
-	html:SetHTML(file.Read("data_static/fpgahelp.txt", "GAME"))
+	html:SetHTML(file.Read("data_static/fpgahelp.txt", "GAME") or "")
 	html:SetAllowLua(false)
-
 
 	self.C.Help = vgui.Create("Button", self.C.Menu)
 	self.C.Help:SetSize(80, 20)
