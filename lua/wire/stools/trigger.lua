@@ -60,12 +60,14 @@ function TOOL:GetConVars()
 end
 
 local function DrawTriggerOutlines( list )
-	cam.Start3D( EyePos(), EyeAngles() )
-		for k,ent in pairs( list ) do
-			local trig = ent:GetTriggerEntity()
+	cam.Start3D(EyePos(), EyeAngles())
+		for k, ent in ipairs(list) do
+			local trigger = ent:GetTriggerEntity()
 
-			render.DrawWireframeBox( trig:GetPos(), Angle(0,0,0), trig:OBBMins(), trig:OBBMaxs(), Color( 255, 255, 0 ), true )
-			render.DrawLine( trig:GetPos(), ent:GetPos(), Color( 255, 255, 0 ) )
+			if trigger:IsValid() then
+				render.DrawWireframeBox(trigger:GetPos(), angle_zero, trigger:OBBMins(), trigger:OBBMaxs(), Color(255, 255, 0), true)
+				render.DrawLine(trigger:GetPos(), ent:GetPos(), Color(255, 255, 0))
+			end
 		end
 	cam.End3D()
 end
