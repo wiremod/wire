@@ -1,0 +1,134 @@
+//Aircraft hud
+//port0 - ROLL
+//port1 - PITCH
+//port2 - YAW (heading)
+//port3 - speed (units/sec)
+//port4 - altitude (units)
+//port5 - radar altitude (put ranger under your plane, and attach to this)
+//port6 - flaps active, 1 or 0
+//port7 - go to "Gates - Time", and find "Derivative". Attach this to derivative, and derivative to altitude (vertical speed)
+
+//Artiftical horizon
+in eax,0; //Roll
+in ebx,1; //Pitch
+
+//mul ebx,0.017453292;
+mul eax,0.017453292;
+add eax,1.57;
+
+div ebx,90;
+mul ebx,512;
+add ebx,256;
+
+mov #horizon_moveoffset.y,ebx;
+
+drotatescale eax,1;
+dmove horizon_moveoffset;
+
+dcolor art_sky;
+drectwh horizon_sky_offset,horizon_size;
+dcolor art_grnd;
+drectwh horizon_grnd_offset,horizon_size;
+
+dcolor hud_text;
+dsetsize 20;
+mov eax,-45;
+_horizon_text:
+  mov ebx,eax;
+  mul ebx,5.68;
+  sub ebx,10;
+  mov #horizon_textpos1.y,ebx;
+  mov #horizon_textpos2.y,ebx; add ebx,9;
+  mov #horizon_rectpos1.y,ebx; add ebx,2;
+  mov #horizon_rectpos2.y,ebx;
+
+  drect horizon_rectpos1,horizon_rectpos2;
+  dwritei horizon_textpos1,eax;
+  dwritei horizon_textpos2,eax;
+
+  add eax,15;
+  cmp eax,45;
+  jle _horizon_text;
+
+//Reset
+dmove 0;
+drotatescale 0,1;
+
+//Border around art horizon
+dcolor border_color;
+drect border_p1,border_p2;
+drect border_p3,border_p4;
+drect border_p5,border_p6;
+drect border_p7,border_p8;
+dcolor border_color2;
+drect border_p9,border_p10;
+
+//Draw hud stuff
+mov #roll,port0;
+mov #pitch,port1;
+mov #hdg,port2; add #hdg,180;
+mov #spd,port3; div #spd,17.6;
+mov #alt,port4;
+add #alt,12000;
+div #alt,12;
+mov #ralt,port5; div #ralt,12;
+mov #vspd,port7; div #vspd,17.6;
+dcolor hud_text;
+dwritefmt hud_pos1,hud_text1;
+dsetsize 16;
+dwritefmt hud_pos2,hud_text2;
+
+dcolor hud_text;
+mov eax,port6; mul eax,0.75; add eax,0.25;
+dshade eax;
+dwritefmt hud_pos3,hud_text3;
+
+
+dexit;
+
+vec2f hud_pos1,50,20;
+string hud_text1,'ROLL %i %tPITCH %i%tHDG %i';
+alloc roll;
+alloc pitch;
+alloc hdg;
+
+vec2f hud_pos2,45,120;
+string hud_text2,'SPD',10,'%ikt',10,10,'ALT',10,'%ift',10,10,'RALT',10,'%ift',10,10,'VSPD',10,'%ift/s';
+alloc spd;
+alloc alt;
+alloc ralt;
+alloc vspd;
+
+vec2f hud_pos3,45,400;
+string hud_text3,'FLAPS';
+
+
+vec2f horizon_textpos1,96,0;
+vec2f horizon_textpos2,-64,0;
+vec2f horizon_rectpos1,-50,0;
+vec2f horizon_rectpos2,50,0;
+color hud_text,64,255,64;
+
+color border_color2,255,255,255;
+color border_color,30,30,30;
+vec2f border_p1,0,0;
+vec2f border_p2,128,512;
+vec2f border_p3,384,0;
+vec2f border_p4,512,512;
+
+vec2f border_p5,128,0;
+vec2f border_p6,384,64;
+vec2f border_p7,128,448;
+vec2f border_p8,384,512;
+
+vec2f border_p9,128,254;
+vec2f border_p10,384,258;
+
+vec2f horizon_sky_offset,-256,-512;
+vec2f horizon_grnd_offset,-256,0;
+vec2f horizon_size,512,512;
+
+vec2f horizon_moveoffset,256,256;
+
+color art_sky,24,144,255;
+color art_grnd,192,72,0;

@@ -1,0 +1,30 @@
+// Author: Drunkie
+// Description: A very simple sprite example
+
+Main();
+
+#include <drivers\drv_gl.txt>
+
+void Main()
+{
+    // Enable vertex mode
+    glVertexMode( 1 );
+
+    // Draw to sprite buffer
+    glSetRenderTarget( GL_BUFFER_BACK );
+    glClear( 0, 255, 0 );
+
+    // Draw to vertex buffer (world)
+    glSetRenderTarget( GL_BUFFER_VERTEX );
+    glEnable( GL_VERTEX_TEXTURING );
+
+    // Sample from sprite 0
+    glTextureSize( 256 );
+    glTexture( 0 );
+    glClear( 0, 255, 0 );
+    glRectWH( 128, 128, 256, 256 );
+
+    glSetRenderTarget( GL_BUFFER_FRONT );
+
+    glExit();
+}
