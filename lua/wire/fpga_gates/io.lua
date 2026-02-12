@@ -2,22 +2,22 @@ FPGAGateActions("Input & Output")
 local i = 1
 
 FPGAGateActions["normal-input"] = {
-  order = i,
+	order = i,
 	name = "Normal Input",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"NORMAL"},
-  isInput = true
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"NORMAL"},
+	isInput = true
 }
 
 i = i + 1
 FPGAGateActions["normal-output"] = {
-  order = i,
+	order = i,
 	name = "Normal Output",
-  inputs = {"A"},
-  inputtypes = {"NORMAL"},
-  outputs = {},
-  isOutput = true
+	inputs = {"A"},
+	inputtypes = {"NORMAL"},
+	outputs = {},
+	isOutput = true
 }
 
 -- FPGAGateActions["vector2-input"] = {
@@ -38,22 +38,22 @@ FPGAGateActions["normal-output"] = {
 
 i = i + 1
 FPGAGateActions["vector-input"] = {
-  order = i,
+	order = i,
 	name = "Vector Input",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"VECTOR"},
-  isInput = true
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"VECTOR"},
+	isInput = true
 }
 
 i = i + 1
 FPGAGateActions["vector-output"] = {
-  order = i,
+	order = i,
 	name = "Vector Output",
-  inputs = {"A"},
-  inputtypes = {"VECTOR"},
-  outputs = {},
-  isOutput = true
+	inputs = {"A"},
+	inputtypes = {"VECTOR"},
+	outputs = {},
+	isOutput = true
 }
 
 -- FPGAGateActions["vector4-input"] = {
@@ -74,110 +74,110 @@ FPGAGateActions["vector-output"] = {
 
 i = i + 1
 FPGAGateActions["angle-input"] = {
-  order = i,
+	order = i,
 	name = "Angle Input",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"ANGLE"},
-  isInput = true
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"ANGLE"},
+	isInput = true
 }
 
 i = i + 1
 FPGAGateActions["angle-output"] = {
-  order = i,
+	order = i,
 	name = "Angle Output",
-  inputs = {"A"},
-  inputtypes = {"ANGLE"},
-  outputs = {},
-  isOutput = true
+	inputs = {"A"},
+	inputtypes = {"ANGLE"},
+	outputs = {},
+	isOutput = true
 }
 
 i = i + 1
 FPGAGateActions["string-input"] = {
-  order = i,
+	order = i,
 	name = "String Input",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"STRING"},
-  isInput = true
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"STRING"},
+	isInput = true
 }
 
 i = i + 1
 FPGAGateActions["string-output"] = {
-  order = i,
+	order = i,
 	name = "String Output",
-  inputs = {"A"},
-  inputtypes = {"STRING"},
-  outputs = {},
-  isOutput = true
+	inputs = {"A"},
+	inputtypes = {"STRING"},
+	outputs = {},
+	isOutput = true
 }
 
 i = i + 1
 FPGAGateActions["entity-input"] = {
-  order = i,
+	order = i,
 	name = "Entity Input",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"ENTITY"},
-  isInput = true
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"ENTITY"},
+	isInput = true
 }
 
 i = i + 1
 FPGAGateActions["entity-output"] = {
-  order = i,
+	order = i,
 	name = "Entity Output",
-  inputs = {"A"},
-  inputtypes = {"ENTITY"},
-  outputs = {},
-  isOutput = true
+	inputs = {"A"},
+	inputtypes = {"ENTITY"},
+	outputs = {},
+	isOutput = true
 }
 
 i = i + 1
 FPGAGateActions["array-input"] = {
-  order = i,
+	order = i,
 	name = "Array Input",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"ARRAY"},
-  isInput = true
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"ARRAY"},
+	isInput = true
 }
 
 i = i + 1
 FPGAGateActions["array-output"] = {
-  order = i,
+	order = i,
 	name = "Array Output",
-  inputs = {"A"},
-  inputtypes = {"ARRAY"},
-  outputs = {},
-  isOutput = true
+	inputs = {"A"},
+	inputtypes = {"ARRAY"},
+	outputs = {},
+	isOutput = true
 }
 
 i = i + 1
 FPGAGateActions["ranger-input"] = {
-  order = i,
+	order = i,
 	name = "Ranger Input",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"RANGER"},
-  isInput = true
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"RANGER"},
+	isInput = true
 }
 
 i = i + 1
 FPGAGateActions["ranger-output"] = {
-  order = i,
+	order = i,
 	name = "Ranger Output",
-  inputs = {"A"},
-  inputtypes = {"RANGER"},
-  outputs = {},
-  isOutput = true
+	inputs = {"A"},
+	inputtypes = {"RANGER"},
+	outputs = {},
+	isOutput = true
 }
 
 i = i + 1
 FPGAGateActions["wirelink-input"] = {
-  order = i,
+	order = i,
 	name = "Wirelink Input",
-  inputs = {},
-  outputs = {"Wirelink"},
-  outputtypes = {"WIRELINK"},
-  isInput = true
+	inputs = {},
+	outputs = {"Wirelink"},
+	outputtypes = {"WIRELINK"},
+	isInput = true
 }

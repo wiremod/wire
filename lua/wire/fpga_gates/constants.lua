@@ -2,77 +2,77 @@ FPGAGateActions("Constant Values")
 local i = 1
 
 FPGAGateActions["normal-constant"] = {
-  order = i,
+	order = i,
 	name = "Constant Normal",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"NORMAL"},
-  isConstant = true
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"NORMAL"},
+	isConstant = true
 }
 
 i = i + 1
 FPGAGateActions["vector-constant"] = {
-  order = i,
+	order = i,
 	name = "Constant Vector",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"VECTOR"},
-  isConstant = true
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"VECTOR"},
+	isConstant = true
 }
 
 i = i + 1
 FPGAGateActions["angle-constant"] = {
-  order = i,
+	order = i,
 	name = "Constant Angle",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"ANGLE"},
-  isConstant = true
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"ANGLE"},
+	isConstant = true
 }
 
 i = i + 1
 FPGAGateActions["string-constant"] = {
-  order = i,
+	order = i,
 	name = "Constant String",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"STRING"},
-  isConstant = true
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"STRING"},
+	isConstant = true
 }
 
 i = i + 1
 FPGAGateActions["entity-self"] = {
-  order = i,
+	order = i,
 	name = "Self",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"ENTITY"},
-  specialFunctions = true,
-  output = function(gate)
-    return gate:GetSelf()
-  end
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"ENTITY"},
+	specialFunctions = true,
+	output = function(gate)
+		return gate:GetSelf()
+	end
 }
 
 i = i + 1
 FPGAGateActions["entity-owner"] = {
-  order = i,
+	order = i,
 	name = "Owner",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"ENTITY"},
-  output = function(gate)
-    return gate:GetPlayer()
-  end
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"ENTITY"},
+	output = function(gate)
+		return gate:GetPlayer()
+	end
 }
 
 i = i + 1
 FPGAGateActions["server-tickrate"] = {
-  order = i,
+	order = i,
 	name = "Tickrate",
-  inputs = {},
-  outputs = {"Out"},
-  outputtypes = {"NORMAL"},
-  output = function(gate)
-    return 1 / FrameTime()
-  end
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"NORMAL"},
+	output = function(gate)
+		return 1 / FrameTime()
+	end
 }

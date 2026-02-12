@@ -299,12 +299,12 @@ function Editor:SetActiveTab(val)
 end
 
 function Editor:ExtractNameFromEditor()
-  return self:GetCurrentEditor():GetName()
+	return self:GetCurrentEditor():GetName()
 end
 
 function Editor:UpdateActiveTabTitle()
-  local title = self:GetChosenFile()
-  local tabtext = self:ExtractNameFromEditor()
+	local title = self:GetChosenFile()
+	local tabtext = self:ExtractNameFromEditor()
 
 	if title then self:SubTitle("Editing: " .. title) else self:SubTitle() end
 	if tabtext then
@@ -385,14 +385,14 @@ function Editor:CreateTab(chosenfile)
 				self:SetActiveTab(pnl)
 				self:SaveFile(self:GetChosenFile(), false, true)
 			end)
-      menu:AddOption("Reload", function()
+			menu:AddOption("Reload", function()
 				self:FixTabFadeTime()
 				local old = self:GetLastTab()
 				self:SetActiveTab(pnl)
 				self:LoadFile(editor.chosenfile, false)
 				self:SetActiveTab(self:GetLastTab())
-        self:SetLastTab(old)
-        self:UpdateActiveTabTitle()
+				self:SetLastTab(old)
+				self:UpdateActiveTabTitle()
 			end)
 			menu:AddSpacer()
 			menu:AddOption("Copy file path to clipboard", function()
@@ -451,9 +451,9 @@ end
 
 function Editor:NewTab()
 	local sheet = self:CreateTab("gate")
-  self:SetActiveTab(sheet.Tab)
+	self:SetActiveTab(sheet.Tab)
 
-  self:NewChip(true)
+	self:NewChip(true)
 end
 
 function Editor:CloseTab(_tab)
@@ -587,16 +587,16 @@ function Editor:InitComponents()
 
 	self.C.Divider = vgui.Create("DHorizontalDivider", self)
 
-  self.C.Browser = vgui.Create("wire_expression2_browser", self.C.Divider) -- Expression 2 file browser
-  do
-    local pnl = self.C.Browser.SearchBox
-    local old = pnl.OnLoseFocus
+	self.C.Browser = vgui.Create("wire_expression2_browser", self.C.Divider) -- Expression 2 file browser
+	do
+		local pnl = self.C.Browser.SearchBox
+		local old = pnl.OnLoseFocus
 
-    function pnl.OnLoseFocus()
-      old(pnl)
-      self:GetCurrentEditor():RequestFocus()
-    end
-  end
+		function pnl.OnLoseFocus()
+			old(pnl)
+			self:GetCurrentEditor():RequestFocus()
+		end
+	end
 
 
 	self.C.MainPane = vgui.Create("DPanel", self.C.Divider)
@@ -675,40 +675,40 @@ function Editor:InitComponents()
 	self.C.Reload:SetImage("icon16/page_refresh.png")
 	self.C.Reload:SetTooltip( "Refresh file" )
 	self.C.Reload.DoClick = function(button)
-    self:LoadFile(self:GetChosenFile(), false)
-    self:UpdateActiveTabTitle()
+		self:LoadFile(self:GetChosenFile(), false)
+		self:UpdateActiveTabTitle()
 	end
 
 	self.C.SaE:SetText("Save and Exit")
 	self.C.SaE.DoClick = function(button) self:SaveFile(self:GetChosenFile(), true) end
 
 	self.C.SavAs:SetText("Save As")
-  self.C.SavAs.DoClick = function(button) self:SaveFile(self:GetChosenFile(), false, true) end
+	self.C.SavAs.DoClick = function(button) self:SaveFile(self:GetChosenFile(), false, true) end
 
-  --Helper
-  self.C.Helper = vgui.Create("DFrame", self)
-  self.C.Helper:SetSize(1200, 700)
-  self.C.Helper:Center()
+	--Helper
+	self.C.Helper = vgui.Create("DFrame", self)
+	self.C.Helper:SetSize(1200, 700)
+	self.C.Helper:Center()
 	self.C.Helper:ShowCloseButton(true)
 	self.C.Helper:SetDeleteOnClose(false)
 	self.C.Helper:SetVisible(false)
 	self.C.Helper:SetTitle("FPGA Help")
-  self.C.Helper:SetScreenLock(true)
-  local html = vgui.Create("DHTML" , self.C.Helper)
-  html:Dock(FILL)
-  html:SetHTML(FPGAHelperHTML)
-  html:SetAllowLua(false)
+	self.C.Helper:SetScreenLock(true)
+	local html = vgui.Create("DHTML" , self.C.Helper)
+	html:Dock(FILL)
+	html:SetHTML(FPGAHelperHTML)
+	html:SetAllowLua(false)
 
 
-  self.C.Help = vgui.Create("Button", self.C.Menu)
+	self.C.Help = vgui.Create("Button", self.C.Menu)
 	self.C.Help:SetSize(80, 20)
-  self.C.Help:Dock(RIGHT)
-  self.C.Help:DockMargin(0,0,20,0)
+	self.C.Help:Dock(RIGHT)
+	self.C.Help:DockMargin(0,0,20,0)
 	self.C.Help:SetText("Help")
 	self.C.Help.DoClick = function()
-    self.C.Helper:SetVisible(true)
-    self.C.Helper:MakePopup()
-  end
+		self.C.Helper:SetVisible(true)
+		self.C.Helper:MakePopup()
+	end
 
 	self.C.Browser:AddRightClick(self.C.Browser.filemenu, 4, "Save to", function()
 		Derma_Query("Overwrite this file?", "Save To",
@@ -750,9 +750,9 @@ function Editor:InitComponents()
 	self.C.Credit:SetVisible(false)
 
 	self:InitControlPanel(self.C.Control) -- making it seperate for better overview
-  self.C.Control:SetVisible(false)
+	self.C.Control:SetVisible(false)
 
-  self:CreateTab("gate")
+	self:CreateTab("gate")
 end
 
 function Editor:AutoSave()
@@ -874,9 +874,9 @@ function Editor:InitControlPanel(frame)
 	dlist = vgui.Create("DPanelList", sheet.Panel)
 	dlist.Paint = function() end
 	frame:AddResizeObject(dlist, 4, 4)
-  dlist:EnableVerticalScrollbar(true)
+	dlist:EnableVerticalScrollbar(true)
 
-  local AllowInsideView = vgui.Create("DCheckBoxLabel")
+	local AllowInsideView = vgui.Create("DCheckBoxLabel")
 	dlist:AddItem(AllowInsideView)
 	AllowInsideView:SetConVar("wire_fpga_allow_inside_view")
 	AllowInsideView:SetText("Allow inside view")
@@ -884,20 +884,20 @@ function Editor:InitControlPanel(frame)
 	AllowInsideView:SetTooltip("Other people will be able to hover over your FPGAs and see the internal gates. They won't be able to download your chip, but just see a simplified visual representation.")
 
 
-  dlist:InvalidateLayout()
+	dlist:InvalidateLayout()
 end
 
 ----- FPGA Options ------------------
 local wire_fpga_allow_inside_view = CreateClientConVar("wire_fpga_allow_inside_view", "0", true, false)
 
 function FPGAGetOptions()
-  return WireLib.von.serialize({
-    allow_inside_view = wire_fpga_allow_inside_view:GetBool() or false
-  }, false)
+	return WireLib.von.serialize({
+		allow_inside_view = wire_fpga_allow_inside_view:GetBool() or false
+	}, false)
 end
 
 function FPGASendOptions()
-  FPGASendOptionsToServer(FPGAGetOptions())
+	FPGASendOptionsToServer(FPGAGetOptions())
 end
 
 cvars.AddChangeCallback("wire_fpga_allow_inside_view", FPGASendOptions)
@@ -914,8 +914,8 @@ function Editor:NewChip(incurrent)
 		-- Set title
 		self:GetActiveTab():SetText("gate")
 
-    self.C.TabHolder:InvalidateLayout()
-    self:ClearData()
+		self.C.TabHolder:InvalidateLayout()
+		self:ClearData()
 	end
 end
 
@@ -1032,46 +1032,46 @@ function Editor:FindOpenFile(FilePath)
 end
 
 function Editor:ExtractName()
-  self.savefilefn = self:ExtractNameFromEditor()
-  return
+	self.savefilefn = self:ExtractNameFromEditor()
+	return
 end
 
 function Editor:ClearCopyData()
-  self.copyBuffer = nil
-  self.copyBufferSize = 0
-  self.copyOffset = nil
+	self.copyBuffer = nil
+	self.copyBufferSize = 0
+	self.copyOffset = nil
 end
 
 function Editor:SetCopyData(buffer, offset)
-  self.copyBuffer = buffer
-  self.copyBufferSize = table.Count(buffer)
-  self.copyOffset = offset
+	self.copyBuffer = buffer
+	self.copyBufferSize = table.Count(buffer)
+	self.copyOffset = offset
 end
 
 function Editor:GetCopyData()
-  if self.copyBuffer then
-    return {self.copyBuffer, self.copyOffset}
-  else
-    return {nil, nil}
-  end
+	if self.copyBuffer then
+		return {self.copyBuffer, self.copyOffset}
+	else
+		return {nil, nil}
+	end
 end
 
 function Editor:GetCopyDataSize()
-  if self.copyBufferSize then
-    return self.copyBufferSize
-  end
-  return 0
+	if self.copyBufferSize then
+		return self.copyBufferSize
+	end
+	return 0
 end
 
 
 function Editor:SetData(data)
-  self:GetCurrentEditor():SetData(data)
-  self.savebuffer = self:GetData()
-  self:ExtractName()
+	self:GetCurrentEditor():SetData(data)
+	self.savebuffer = self:GetData()
+	self:ExtractName()
 end
 
 function Editor:ClearData()
-  self:GetCurrentEditor():ClearData()
+	self:GetCurrentEditor():ClearData()
 	self.savebuffer = self:GetData()
 end
 
@@ -1082,21 +1082,21 @@ function Editor:GetEditor(n)
 end
 
 function Editor:GetData()
-  local data = self:GetCurrentEditor():GetData()
+	local data = self:GetCurrentEditor():GetData()
 
-  local last_data = ""
-  if #data < 64 then
-    last_data = data
-  else
-    last_data = data:sub(-64 + #data % 8)
-  end
+	local last_data = ""
+	if #data < 64 then
+		last_data = data
+	else
+		last_data = data:sub(-64 + #data % 8)
+	end
 
-  FPGASetToolInfo(self:ExtractNameFromEditor(), #data, last_data)
-  return data
+	FPGASetToolInfo(self:ExtractNameFromEditor(), #data, last_data)
+	return data
 end
 
 function Editor:GetCurrentEditor()
-  return self:GetActiveTab():GetPanel()
+	return self:GetActiveTab():GetPanel()
 end
 
 function Editor:Open(Line, data, forcenewtab)
@@ -1116,20 +1116,20 @@ function Editor:Open(Line, data, forcenewtab)
 					return
 				end
 			end
-    end
+		end
 
-    local tab
+		local tab
 		if self.NewTabOnOpen:GetBool() or forcenewtab then
 			tab = self:CreateTab("Download").Tab
 		else
 			tab = self:GetActiveTab()
 		end
-    self:SetActiveTab(tab)
+		self:SetActiveTab(tab)
 
-    self:ChosenFile()
-    self:SetData(data)
+		self:ChosenFile()
+		self:SetData(data)
 
-    self:UpdateActiveTabTitle()
+		self:UpdateActiveTabTitle()
 
 		if Line then self:SubTitle("Editing: " .. Line) end
 		return
@@ -1138,7 +1138,7 @@ function Editor:Open(Line, data, forcenewtab)
 end
 
 function Editor:SaveFile(Line, close, SaveAs)
-  self:ExtractName()
+	self:ExtractName()
 
 	if close and self.chip then
 		--WireLib.Expression2Upload(self.chip, self:GetCode())
@@ -1179,16 +1179,16 @@ function Editor:SaveFile(Line, close, SaveAs)
 
 	file.Write(Line, self:GetData())
 
-  surface.PlaySound("ambient/water/drip3.wav")
+	surface.PlaySound("ambient/water/drip3.wav")
 
-  if not self.chip then self:ChosenFile(Line) end
+	if not self.chip then self:ChosenFile(Line) end
 
-  self:UpdateActiveTabTitle()
+	self:UpdateActiveTabTitle()
 
 	if close then
 		GAMEMODE:AddNotify("FPGA saved as " .. Line .. ".", NOTIFY_GENERIC, 7)
 		self:Close()
-  end
+	end
 end
 
 function Editor:LoadFile(Line, forcenewtab)
@@ -1214,16 +1214,16 @@ function Editor:LoadFile(Line, forcenewtab)
 			end
 		end
 
-    local tab
+		local tab
 		if self.NewTabOnOpen:GetBool() or forcenewtab then
-      tab = self:CreateTab("").Tab
+			tab = self:CreateTab("").Tab
 		else
-      tab = self:GetActiveTab()
-    end
-    self:SetActiveTab(tab)
+			tab = self:GetActiveTab()
+		end
+		self:SetActiveTab(tab)
 		self:ChosenFile(Line)
-    self:SetData(str)
-    self:UpdateActiveTabTitle()
+		self:SetData(str)
+		self:UpdateActiveTabTitle()
 	end
 end
 
@@ -1231,7 +1231,7 @@ function Editor:Close()
 	timer.Stop("fpgaautosave")
 	self:AutoSave()
 
-  self:ExtractName()
+	self:ExtractName()
 	self:SetV(false)
 	self.chip = false
 
