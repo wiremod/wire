@@ -748,6 +748,7 @@ function Editor:AutoSave()
 	local buffer = self:GetData()
 	if self.savebuffer == buffer or buffer == "" then return end
 	self.savebuffer = buffer
+	file.CreateDir(self.Location)
 	file.Write(self.Location .. "/_autosave_.txt", buffer)
 end
 
@@ -918,6 +919,8 @@ function Editor:InitShutdownHook()
 	hook.Add("ShutDown", "wire_fpga_ShutDown" .. id, function()
 		local buffer = self:GetData()
 		if not self:GetCurrentEditor():HasNodes() then return end
+
+		file.CreateDir(self.Location)
 		file.Write(self.Location .. "/_shutdown_.txt", buffer)
 
 		if wire_fpga_editor_savetabs:GetBool() then
@@ -939,6 +942,7 @@ function Editor:SaveTabs()
 
 	strtabs = strtabs:sub(1, -2)
 
+	file.CreateDir(self.Location)
 	file.Write(self.Location .. "/_tabs_.txt", strtabs)
 end
 
@@ -1161,6 +1165,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 		return
 	end
 
+	file.CreateDir(string.GetPathFromFilename(Line))
 	file.Write(Line, self:GetData())
 
 	surface.PlaySound("ambient/water/drip3.wav")
