@@ -781,7 +781,7 @@ function Editor:PaintOutput(x, y, type, name, ioSize)
   surface.DrawRect(x, y, ioSize * 2, ioSize)
 
   if (self.Zoom > self.ZoomHideThreshold) then
-    local tx, ty = surface.GetTextSize(name)
+    local _, ty = surface.GetTextSize(name)
     surface.SetTextPos(x + ioSize * 2.3, y + ioSize / 2 - ty / 2)
     surface.DrawText(name)
   end
@@ -1079,7 +1079,7 @@ function Editor:PaintOverlay()
 
   if self.AlignToGrid then
 	  surface.SetTextColor(100, 180, 255)
-    local tx, ty = surface.GetTextSize("Align to grid")
+    local tx, _ = surface.GetTextSize("Align to grid")
 	  surface.SetTextPos(xOffset - tx, y)
     surface.DrawText("Align to grid")
     y = y + 20
@@ -1093,7 +1093,7 @@ function Editor:PaintOverlay()
     else
       text = text .. " nodes selected"
     end
-    local tx, ty = surface.GetTextSize(text)
+    local tx, _ = surface.GetTextSize(text)
 	  surface.SetTextPos(xOffset - tx, y)
     surface.DrawText(text)
     y = y + 20
@@ -1108,7 +1108,7 @@ function Editor:PaintOverlay()
     else
       text = text .. " nodes in paste buffer"
     end
-    local tx, ty = surface.GetTextSize(text)
+    local tx, _ = surface.GetTextSize(text)
 	  surface.SetTextPos(xOffset - tx, y)
     surface.DrawText(text)
     y = y + 20
