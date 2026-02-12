@@ -1654,7 +1654,7 @@ end
 
 local function validateVector(string)
   local x,y,z = string.match(string, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$")
-  return tonumber(x) ~= nil and tonumber(y) ~= nil and tonumber(z) ~= nil, x, y, z
+  return tonumber(x) != nil and tonumber(y) != nil and tonumber(z) != nil, x, y, z
 end
 
 function Editor:OpenConstantSetWindow(node, x, y, type)
