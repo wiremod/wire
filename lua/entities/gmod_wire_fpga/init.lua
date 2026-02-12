@@ -118,6 +118,7 @@ function ENT:Initialize()
 	self.timepeak = 0
 
 	self.LastTimedUpdate = 0
+	self.ExecutionCount = 0
 
 	self.Uploaded = false
 	self.ExecutionError = false
@@ -685,7 +686,9 @@ function ENT:Run(changedNodes)
 	if self.Debug then print("\n================================================================================") end
 
 	--Extra
-	self.ExecutionCount =  self.ExecutionCount + 1
+	if self.ExecutionCount != nil then
+		self.ExecutionCount =  self.ExecutionCount + 1
+	end
 	local bench = SysTime()
 	self.CurrentExecution = bench
 
