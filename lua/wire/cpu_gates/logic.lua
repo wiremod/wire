@@ -7,8 +7,8 @@ CPUGateActions["logic-buffer"] = {
   inputs = {"A"},
   outputs = {"A"},
 	output = function(gate, A)
-    if A == 0 then 
-      return 0 
+    if A == 0 then
+      return 0
     else
       return 1
     end
@@ -22,8 +22,8 @@ CPUGateActions["logic-not"] = {
   inputs = {"A"},
   outputs = {"~A"},
 	output = function(gate, A)
-    if A == 0 then 
-      return 1 
+    if A == 0 then
+      return 1
     else
       return 0
     end
@@ -37,7 +37,7 @@ CPUGateActions["logic-and"] = {
   inputs = {"A", "B"},
   outputs = {"A&B"},
   output = function(gate, A, B)
-    if A ~= 0 and B ~= 0 then 
+    if A ~= 0 and B ~= 0 then
       return 1
     else
       return 0
@@ -52,7 +52,7 @@ CPUGateActions["logic-or"] = {
   inputs = {"A", "B"},
   outputs = {"A|B"},
 	output = function(gate, A, B)
-		if A ~= 0 or B ~= 0 then 
+		if A ~= 0 or B ~= 0 then
       return 1
     else
       return 0
@@ -67,7 +67,7 @@ CPUGateActions["logic-nand"] = {
   inputs = {"A", "B"},
   outputs = {"~(A|B)"},
 	output = function(gate, A, B)
-		if A ~= 0 and B ~= 0 then 
+		if A ~= 0 and B ~= 0 then
       return 0
     else
       return 1
@@ -82,7 +82,7 @@ CPUGateActions["logic-nor"] = {
   inputs = {"A", "B"},
   outputs = {"~(A|B)"},
 	output = function(gate, A, B)
-		if A ~= 0 or B ~= 0 then 
+		if A ~= 0 or B ~= 0 then
       return 0
     else
       return 1
@@ -97,7 +97,7 @@ CPUGateActions["logic-xor"] = {
   inputs = {"A", "B"},
   outputs = {"A^B"},
 	output = function(gate, A, B)
-		if (A ~= 0 and B == 0) or (A == 0 and B ~= 0) then 
+		if (A ~= 0 and B == 0) or (A == 0 and B ~= 0) then
       return 1
     else
       return 0
@@ -112,7 +112,7 @@ CPUGateActions["logic-xnor"] = {
   inputs = {"A", "B"},
   outputs = {"~(A^B)"},
 	output = function(gate, A, B)
-		if (A ~= 0 and B == 0) or (A == 0 and B ~= 0) then 
+		if (A ~= 0 and B == 0) or (A == 0 and B ~= 0) then
       return 0
     else
       return 1
@@ -160,7 +160,7 @@ CPUGateActions["logic-and-3"] = {
   inputs = {"A", "B", "C"},
   outputs = {"A&B&C"},
   output = function(gate, A, B, C)
-    if A ~= 0 and B ~= 0 and C ~= 0 then 
+    if A ~= 0 and B ~= 0 and C ~= 0 then
       return 1
     else
       return 0
@@ -175,7 +175,7 @@ CPUGateActions["logic-and-4"] = {
   inputs = {"A", "B", "C", "D"},
   outputs = {"A&B&C&D"},
   output = function(gate, A, B, C, D)
-    if A ~= 0 and B ~= 0 and C ~= 0 and D ~= 0 then 
+    if A ~= 0 and B ~= 0 and C ~= 0 and D ~= 0 then
       return 1
     else
       return 0
@@ -190,7 +190,7 @@ CPUGateActions["logic-and-8"] = {
   inputs = {"A", "B", "C", "D", "E", "F", "G", "H"},
   outputs = {"A&B&C&D&E&F&G&H"},
   output = function(gate, A, B, C, D, E, F, G, H)
-    if A ~= 0 and B ~= 0 and C ~= 0 and D ~= 0 and E ~= 0 and F ~= 0 and G ~= 0 and H ~= 0 then 
+    if A ~= 0 and B ~= 0 and C ~= 0 and D ~= 0 and E ~= 0 and F ~= 0 and G ~= 0 and H ~= 0 then
       return 1
     else
       return 0
@@ -205,7 +205,7 @@ CPUGateActions["logic-or-3"] = {
   inputs = {"A", "B", "C"},
   outputs = {"A|B|C"},
   output = function(gate, A, B, C)
-    if A ~= 0 or B ~= 0 or C ~= 0 then 
+    if A ~= 0 or B ~= 0 or C ~= 0 then
       return 1
     else
       return 0
@@ -220,7 +220,7 @@ CPUGateActions["logic-or-4"] = {
   inputs = {"A", "B", "C", "D"},
   outputs = {"A|B|C|D"},
   output = function(gate, A, B, C, D)
-    if A ~= 0 or B ~= 0 or C ~= 0 or D ~= 0 then 
+    if A ~= 0 or B ~= 0 or C ~= 0 or D ~= 0 then
       return 1
     else
       return 0
@@ -235,7 +235,7 @@ CPUGateActions["logic-or-8"] = {
   inputs = {"A", "B", "C", "D", "E", "F", "G", "H"},
   outputs = {"A|B|C|D|E|F|G|H"},
   output = function(gate, A, B, C, D, E, F, G, H)
-    if A ~= 0 or B ~= 0 or C ~= 0 or D ~= 0 or E ~= 0 or F ~= 0 or G ~= 0 or H ~= 0 then 
+    if A ~= 0 or B ~= 0 or C ~= 0 or D ~= 0 or E ~= 0 or F ~= 0 or G ~= 0 or H ~= 0 then
       return 1
     else
       return 0

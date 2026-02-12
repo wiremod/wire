@@ -6,7 +6,7 @@ DEFINE_BASECLASS("base_wire_entity")
 
 --HELPERS
 local function getGate(node)
-  if node.type == "wire" then 
+  if node.type == "wire" then
     return GateActions[node.gate]
   elseif node.type == "fpga" then
     return FPGAGateActions[node.gate]
@@ -110,7 +110,7 @@ function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
   self:SetSolid(SOLID_VPHYSICS)
-  
+
   self.Debug = false
 
   self.time = 0
@@ -135,7 +135,7 @@ function ENT:Initialize()
 
 	self.Inputs = WireLib.CreateInputs(self, {})
   self.Outputs = WireLib.CreateOutputs(self, {})
-  
+
   self.Gates = {}
   self.LastGateValues = {}
 
@@ -165,7 +165,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:Setup(data)
-  if data then 
+  if data then
     -- entity was duplicated
     self:Upload(data)
   end
@@ -225,14 +225,14 @@ function ENT:SynthesizeViewData(data)
   if not data.Nodes then return end
 
   local viewData = {}
-  
+
   viewData.Nodes = {}
   viewData.Labels = {}
   viewData.Edges = {}
   for nodeId, node in pairs(data.Nodes) do
     local gate = getGate(node)
 
-    if not gate then 
+    if not gate then
       --special case, label
       if node.type == "editor" and node.visual == "label" then
         table.insert(viewData.Labels, {
@@ -331,7 +331,7 @@ function ENT:ValidateData(data)
       end
 
       --type check
-      if getInputType(inGate, inputNum) != getOutputType(outGate, outputNum) then 
+      if getInputType(inGate, inputNum) != getOutputType(outGate, outputNum) then
         return "type mismatch between input and output " .. inGate.name .. " ["..getInputType(inGate, inputNum).."]" .. " and " .. outGate.name .. " ["..getOutputType(outGate, outputNum).."]"
       end
     end
@@ -518,7 +518,7 @@ function ENT:Upload(data)
 
   self.Uploaded = true
 
-  self:Reset()  
+  self:Reset()
 end
 
 
@@ -609,9 +609,9 @@ function ENT:Think()
   BaseClass.Think(self)
 
   if not self.Uploaded then return end
-  if self.CompilationError or self.ExecutionError then 
+  if self.CompilationError or self.ExecutionError then
     self:UpdateOverlay(false)
-    return 
+    return
   end
   self:NextThink(CurTime())
 
@@ -621,7 +621,7 @@ function ENT:Think()
   --Time benchmarking
   self.timebench = self.timebench * 0.98 + (self.time) * 0.02
   self.time = 0
-  
+
   --Limiting
   if self.timebench > fpga_quota_avg then
     self:ThrowExecutionError("exceeded cpu time limit", "cpu time limit exceeded")
@@ -661,7 +661,7 @@ function ENT:Think()
     table.insert(nodesToRun, nodeId)
   end
   self.QueuedNodes = {}
-  
+
   if #nodesToRun > 0 then self:RunProtected(nodesToRun) end
 
   self:UpdateOverlay(false)
@@ -733,7 +733,7 @@ function ENT:Run(changedNodes)
   end
   for nodeId, active in pairs(activeNodes) do
     local gate = getGate(self.Nodes[nodeId])
-    if active and gate.neverActive then 
+    if active and gate.neverActive then
       activeNodes[nodeId] = false
     end
     if gate.alwaysActive then
@@ -763,7 +763,7 @@ function ENT:Run(changedNodes)
   --nodesInQueue = {0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0}
   --nodesVisited = {}
 
-  if self.Debug then 
+  if self.Debug then
     for nodeId, node in pairs(self.Nodes) do
       print(nodeId .. table.ToString(node, "", false))
     end
@@ -783,7 +783,7 @@ function ENT:Run(changedNodes)
       self:ThrowExecutionError("stuck in loop for too long", "stuck in loop")
       return
     end
-    if self.Debug then 
+    if self.Debug then
       print()
       print(table.ToString(nodeQueue, "nodeQueue", false))
       print(table.ToString(nodesInQueue, "nodesInQueue", false))
@@ -882,7 +882,7 @@ function ENT:Run(changedNodes)
     gate.postCycle(self.Gates[nodeId])
     local value = self:CalculateNode(node, nodeId, gate)
     self:Propagate(node, value)
-  end  
+  end
 
   --keep track of time spent this tick
   self.LastExecution = bench

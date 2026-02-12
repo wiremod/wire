@@ -62,7 +62,7 @@ CPUGateActions["arithmetic-full-subtractor"] = {
       return 1, 1
     elseif not a and b and not c then
       return 1, 1
-    elseif not a and b and c then 
+    elseif not a and b and c then
       return 0, 1
     elseif a and not b and not c then
       return 1, 0

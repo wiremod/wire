@@ -467,7 +467,7 @@ end
 function Editor:NewTab()
 	local sheet = self:CreateTab("gate")
   self:SetActiveTab(sheet.Tab)
-  
+
   self:NewChip(true)
 end
 
@@ -613,7 +613,7 @@ function Editor:InitComponents()
       self:GetCurrentEditor():RequestFocus()
     end
   end
-  
+
 
 	self.C.MainPane = vgui.Create("DPanel", self.C.Divider)
 	self.C.Menu = vgui.Create("DPanel", self.C.MainPane)
@@ -700,7 +700,7 @@ function Editor:InitComponents()
 
 	self.C.SavAs:SetText("Save As")
   self.C.SavAs.DoClick = function(button) self:SaveFile(self:GetChosenFile(), false, true) end
-  
+
   --Helper
   self.C.Helper = vgui.Create("DFrame", self)
   self.C.Helper:SetSize(1200, 700)
@@ -767,7 +767,7 @@ function Editor:InitComponents()
 
 	self:InitControlPanel(self.C.Control) -- making it seperate for better overview
   self.C.Control:SetVisible(false)
-  
+
   self:CreateTab("gate")
 end
 
@@ -898,7 +898,7 @@ function Editor:InitControlPanel(frame)
 	AllowInsideView:SetText("Allow inside view")
 	AllowInsideView:SizeToContents()
 	AllowInsideView:SetTooltip("Other people will be able to hover over your FPGAs and see the internal gates. They won't be able to download your chip, but just see a simplified visual representation.")
-  
+
 
   dlist:InvalidateLayout()
 end
@@ -906,7 +906,7 @@ end
 ----- FPGA Options ------------------
 local wire_fpga_allow_inside_view = CreateClientConVar("wire_fpga_allow_inside_view", "0", true, false)
 
-function FPGAGetOptions() 
+function FPGAGetOptions()
   return WireLib.von.serialize({
     allow_inside_view = wire_fpga_allow_inside_view:GetBool() or false
   }, false)
@@ -929,7 +929,7 @@ function Editor:NewChip(incurrent)
 
 		-- Set title
 		self:GetActiveTab():SetText("gate")
-    
+
     self.C.TabHolder:InvalidateLayout()
     self:ClearData()
 	end
@@ -1099,14 +1099,14 @@ end
 
 function Editor:GetData()
   local data = self:GetCurrentEditor():GetData()
-  
+
   local last_data = ""
   if #data < 64 then
     last_data = data
   else
     last_data = data:sub(-64 + #data % 8)
   end
-  
+
   FPGASetToolInfo(self:ExtractNameFromEditor(), #data, last_data)
   return data
 end
@@ -1133,7 +1133,7 @@ function Editor:Open(Line, data, forcenewtab)
 				end
 			end
     end
-    
+
     local tab
 		if self.NewTabOnOpen:GetBool() or forcenewtab then
 			tab = self:CreateTab("Download").Tab

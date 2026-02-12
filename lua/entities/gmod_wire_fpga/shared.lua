@@ -119,9 +119,9 @@ if SERVER then
       if not IsValid(ply) then continue end --don't know why this happens, but it does
 
       if not ply:KeyDown(IN_USE) then continue end
-      
+
       local ent = ply:GetEyeTrace().Entity
-      
+
       if IsValid(ent) and ent:GetClass() == "gmod_wire_fpga" and ent:AllowsInsideView() and ent:GetViewData() then
         if not FPGAPlayerHasHash[ply] then FPGAPlayerHasHash[ply] = {} end
 

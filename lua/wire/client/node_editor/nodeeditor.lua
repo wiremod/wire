@@ -15,7 +15,7 @@ FPGATypeColor = {
 
 --GATE HELPERS
 local function getGate(node)
-  if node.type == "wire" then 
+  if node.type == "wire" then
     return GateActions[node.gate]
   elseif node.type == "fpga" then
     return FPGAGateActions[node.gate]
@@ -68,7 +68,7 @@ function Editor:Init()
 
   self.BackgroundColor = Color(26, 26, 26, 255)
   self.SelectionColor = Color(220, 220, 100, 255)
-  
+
   self.NodeColor = Color(100, 100, 100, 255)
   self.InputNodeColor = Color(80, 90, 80, 255)
   self.OutputNodeColor = Color(80, 80, 90, 255)
@@ -201,7 +201,7 @@ function Editor:InitComponents()
   self.C.Name:SetEditable(true)
   self.C.Name:SetSize(140, 15)
   self.C.Name:SetPos(x - 2, 18)
-  
+
   self.C.Name.OnLoseFocus = function (pnl)
     if string.len(pnl:GetValue()) == 0 then
     	pnl:SetText("gate")
@@ -362,7 +362,7 @@ function Editor:InitComponents()
             line:SetSelected(true)
           end
         end
-        
+
         line.action = result.action
         line.type = result.type
       end
@@ -496,7 +496,7 @@ end
 --------------------------------------------------------
 --INTERACTION
 --------------------------------------------------------
-function Editor:GetData() 
+function Editor:GetData()
   return WireLib.von.serialize({
       Name = self.C.Name:GetValue(),
       Nodes = self.Nodes,
@@ -511,7 +511,7 @@ function Editor:GetData()
     }, false)
 end
 
-function Editor:SetData(data) 
+function Editor:SetData(data)
   local ok, data = pcall(WireLib.von.deserialize, data)
   if not ok then
     self:ClearData()
@@ -523,7 +523,7 @@ function Editor:SetData(data)
 
   if data.Name then self.C.Name:SetValue(data.Name) else self.C.Name:SetValue("gate") end
 
-  if data.ExecutionInterval then 
+  if data.ExecutionInterval then
     self.C.ExecutionInterval:SetValue(data.ExecutionInterval)
   else
     self.C.ExecutionInterval:SetValue(0.01)
@@ -641,7 +641,7 @@ function Editor:GetNodeAt(x, y)
     local visual = self:GetVisual(node)
     if visual then
       --editor nodes
-      
+
       if visual.method == "text" then
         if visual.font == "auto" then
           if (self.Zoom > self.ZoomThreshold) then
@@ -719,12 +719,12 @@ function Editor:GetNodeOutputAt(x, y)
     if gate.outputs then
       for outputNum, _ in pairs(gate.outputs) do
         local ix, iy = self:NodeOutputPos(node, outputNum)
-  
+
         if gx < ix - self.IOSize / 2 then continue end
         if gx > ix + self.IOSize / 2 then continue end
         if gy < iy - self.IOSize / 2 then continue end
         if gy > iy + self.IOSize / 2 then continue end
-  
+
         return k, outputNum
       end
     else
@@ -772,7 +772,7 @@ function Editor:PaintInput(x, y, type, name, ioSize)
 
   if (self.Zoom > self.ZoomHideThreshold) then
     local tx, ty = surface.GetTextSize(name)
-    surface.SetTextPos(x - tx - ioSize * 0.3, y + ioSize / 2 - ty / 2) 
+    surface.SetTextPos(x - tx - ioSize * 0.3, y + ioSize / 2 - ty / 2)
     surface.DrawText(name)
   end
 end
@@ -783,7 +783,7 @@ function Editor:PaintOutput(x, y, type, name, ioSize)
 
   if (self.Zoom > self.ZoomHideThreshold) then
     local tx, ty = surface.GetTextSize(name)
-    surface.SetTextPos(x + ioSize * 2.3, y + ioSize / 2 - ty / 2) 
+    surface.SetTextPos(x + ioSize * 2.3, y + ioSize / 2 - ty / 2)
     surface.DrawText(name)
   end
 end
@@ -802,7 +802,7 @@ function Editor:PaintGate(nodeId, node, gate)
 
   local size = self.Zoom * self.GateSize
   local ioSize = self.Zoom * self.IOSize
-  
+
   -- Inputs
   if (self.Zoom > self.ZoomThreshold) then
     surface.SetFont("FPGAIOBig")
@@ -811,12 +811,12 @@ function Editor:PaintGate(nodeId, node, gate)
   end
   surface.SetTextColor(255, 255, 255)
 
-  
+
   if gate.inputs then
     for inputNum, inputName in pairs(gate.inputs) do
       local nx = x - size / 2 - ioSize
       local ny = y - ioSize / 2 + (inputNum-1) * size
-      
+
       self:PaintInput(nx, ny, getInputType(gate, inputNum), inputName, ioSize)
     end
   end
@@ -826,13 +826,13 @@ function Editor:PaintGate(nodeId, node, gate)
     for outputNum, outputName in pairs(gate.outputs) do
       local nx = x + size / 2 - ioSize
       local ny = y - ioSize / 2 + (outputNum - 1) * size
-    
+
       self:PaintOutput(nx, ny, getOutputType(gate, outputNum), outputName, ioSize)
     end
-  else 
+  else
     local nx = x + size / 2 - ioSize
     local ny = y - ioSize / 2
-  
+
     self:PaintOutput(nx, ny, getOutputType(gate, 1), "Out", ioSize)
   end
 
@@ -863,20 +863,20 @@ function Editor:PaintGate(nodeId, node, gate)
   surface.SetTextColor(255, 255, 255)
   if (self.Zoom > self.ZoomHideThreshold) then
     local tx, ty = surface.GetTextSize(gate.name)
-    surface.SetTextPos(x - tx / 2, y - ty / 2 - size / 1.2) 
+    surface.SetTextPos(x - tx / 2, y - ty / 2 - size / 1.2)
     surface.DrawText(gate.name)
-  
+
     surface.SetTextColor(200, 200, 200)
     -- Input
     if node.ioName then
       local tx, ty = surface.GetTextSize(node.ioName)
-      surface.SetTextPos(x - tx / 2, y - ty / 2 + size / 1.2) 
+      surface.SetTextPos(x - tx / 2, y - ty / 2 + size / 1.2)
       surface.DrawText(node.ioName)
     -- Constant
     elseif node.value then
       local s = tostring(node.value)
       local tx, ty = surface.GetTextSize(s)
-      surface.SetTextPos(x - tx / 2, y - ty / 2 + size / 1.2) 
+      surface.SetTextPos(x - tx / 2, y - ty / 2 + size / 1.2)
       surface.DrawText(s)
     end
   end
@@ -898,7 +898,7 @@ function Editor:PaintEditorNode(nodeId, node, visual)
     else
       surface.SetFont(visual.font)
     end
-    
+
     if self.SelectedNodes[nodeId] then
       surface.SetTextColor(self.SelectedVisualTextColor)
     else
@@ -952,7 +952,7 @@ function Editor:PaintHelp()
 
   for line in helpText:gmatch("([^\n]*)\n?") do
     local tx, ty = surface.GetTextSize(line)
-    surface.SetTextPos(x - tx / 2, y - ty / 2) 
+    surface.SetTextPos(x - tx / 2, y - ty / 2)
     surface.DrawText(line)
     y = y + ty
   end
@@ -997,7 +997,7 @@ function Editor:Paint()
     if self.AlignToGrid then
       gx, gy = self:AlignPosToGrid(gx, gy)
     end
-      
+
 
     local cx, cy = self.Nodes[self.DraggingNode].x, self.Nodes[self.DraggingNode].y
 
@@ -1051,7 +1051,7 @@ function Editor:Paint()
   if self.DrawingSelection then
     local sx, sy = self:PosToScr(self.DrawingSelection[1], self.DrawingSelection[2])
     local mx, my = self:CursorPos()
-    
+
     local x, y = math.min(sx, mx), math.min(sy, my)
     local w, h = math.abs(sx - mx), math.abs(sy - my)
 
@@ -1068,9 +1068,9 @@ end
 function Editor:PaintDebug()
   surface.SetFont("Default")
 	surface.SetTextColor(255, 255, 255)
-	surface.SetTextPos(10, 50) 
+	surface.SetTextPos(10, 50)
   surface.DrawText(self.Position[1] .. ", " .. self.Position[2])
-  surface.SetTextPos(10, 70) 
+  surface.SetTextPos(10, 70)
 	surface.DrawText(self.Zoom)
 end
 
@@ -1082,7 +1082,7 @@ function Editor:PaintOverlay()
   if self.AlignToGrid then
 	  surface.SetTextColor(100, 180, 255)
     local tx, ty = surface.GetTextSize("Align to grid")
-	  surface.SetTextPos(xOffset - tx, y) 
+	  surface.SetTextPos(xOffset - tx, y)
     surface.DrawText("Align to grid")
     y = y + 20
   end
@@ -1090,13 +1090,13 @@ function Editor:PaintOverlay()
   if self.SelectedNodeCount > 0 then
     surface.SetTextColor(255, 255, 120)
     local text = self.SelectedNodeCount
-    if self.SelectedNodeCount == 1 then 
+    if self.SelectedNodeCount == 1 then
       text = text .. " node selected"
-    else 
-      text = text .. " nodes selected" 
+    else
+      text = text .. " nodes selected"
     end
     local tx, ty = surface.GetTextSize(text)
-	  surface.SetTextPos(xOffset - tx, y) 
+	  surface.SetTextPos(xOffset - tx, y)
     surface.DrawText(text)
     y = y + 20
   end
@@ -1105,13 +1105,13 @@ function Editor:PaintOverlay()
   if copyDataSize > 0 then
     surface.SetTextColor(120, 255, 120)
     local text = copyDataSize
-    if copyDataSize == 1 then 
+    if copyDataSize == 1 then
       text = text .. " node in paste buffer"
-    else 
+    else
       text = text .. " nodes in paste buffer"
     end
     local tx, ty = surface.GetTextSize(text)
-	  surface.SetTextPos(xOffset - tx, y) 
+	  surface.SetTextPos(xOffset - tx, y)
     surface.DrawText(text)
     y = y + 20
   end
@@ -1167,7 +1167,7 @@ end
 
 function Editor:DeleteNode(nodeId)
   --print("Deleted " .. nodeId)
-  
+
   --remove all connections to this node
   for k1, node in pairs(self.Nodes) do
     for inputNum, connection in pairs(node.connections) do
@@ -1194,7 +1194,7 @@ function Editor:CopyNodes(nodeIds)
   local copyOffset = { 0, 0 }
   for nodeId, _ in pairs(nodeIds) do
     local node = self.Nodes[nodeId]
-    local gate = getGate(node) 
+    local gate = getGate(node)
 
     local nodeCopy = {
       type = node.type,
@@ -1409,7 +1409,7 @@ function Editor:OnMousePressed(code)
           self.DrawingSelection = { gx, gy }
         end
       end
-      
+
     end
   elseif code == MOUSE_RIGHT then
     -- PLANE DRAGGING
@@ -1432,7 +1432,7 @@ function Editor:OnMouseReleased(code)
   elseif code == MOUSE_RIGHT then
     self.DraggingWorld = false
   end
-  
+
 end
 
 --EDITOR EVENTS
@@ -1451,12 +1451,12 @@ function Editor:BeginDrawingConnection(nodeId, inputNum, outputNum, doubleClick)
       self.DrawingConnectionFrom = { connectedNode, connectedOutput }
       self.DrawingFromOutput = true
       self.DrawingConnectionAll = false
-    else 
+    else
       --input not connected
       self.DrawingConnectionFrom = { nodeId, inputNum }
       self.DrawingFromInput = true
     end
-    
+
     self.DrawingConnection = true
   end
 
@@ -1572,7 +1572,7 @@ function Editor:CreateNamingWindow()
 			old(pnl)
 		end
   end
-  
+
   self.NamingNameEntry = vgui.Create("DTextEntry", pnl)
   self.NamingNameEntry:Dock(BOTTOM)
   self.NamingNameEntry:SetSize(175, 20)
@@ -1581,7 +1581,7 @@ end
 
 function Editor:OpenNamingWindow(node, x, y)
   if not self.NamingWindow then self:CreateNamingWindow() end
-  
+
   if node.gate then
     self.NamingNameEntry:SetText(node.ioName)
     self.NamingNameEntry.OnEnter = function(pnl)
@@ -1603,13 +1603,13 @@ function Editor:OpenNamingWindow(node, x, y)
   self.NamingWindow:SetVisible(true)
 	self.NamingWindow:MakePopup() -- This will move it above the E2 editor frame if it is behind it.
   self.ForceDrawCursor = true
-  
+
   local px, py = self:GetParent():GetPos()
   self.NamingWindow:SetPos(px + x + 80, py + y + 30)
 
   local inputField = self.NamingNameEntry
   local this = self
-  inputField.OnLoseFocus = function (pnl) 
+  inputField.OnLoseFocus = function (pnl)
     timer.Simple(0, function () if not pnl:GetParent():HasFocus() and this.EditingNode then pnl:OnEnter() end end)
     pnl:GetParent():MoveToFront()
   end
@@ -1633,7 +1633,7 @@ function Editor:CreateConstantSetWindow()
 	pnl:SetVisible(false)
 	pnl:SetTitle("Set constant value")
   pnl:SetScreenLock(true)
-  
+
   self.ConstantSetNormal = vgui.Create("DNumberWang", pnl)
   self.ConstantSetNormal:Dock(BOTTOM)
   self.ConstantSetNormal:SetSize(175, 20)
@@ -1656,7 +1656,7 @@ end
 
 local function validateVector(string)
   local x,y,z = string.match(string, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$")
-  return tonumber(x) ~= nil and tonumber(y) ~= nil and tonumber(z) ~= nil, x, y, z 
+  return tonumber(x) ~= nil and tonumber(y) ~= nil and tonumber(z) ~= nil, x, y, z
 end
 
 function Editor:OpenConstantSetWindow(node, x, y, type)
@@ -1669,7 +1669,7 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
   self.ConstantSetWindow:SetVisible(true)
   self.ConstantSetWindow:MakePopup() -- This will move it above the FPGA editor if it is behind it.
   self.ForceDrawCursor = true
-  
+
   local px, py = self:GetParent():GetPos()
   self.ConstantSetWindow:SetPos(px + x + 80, py + y + 30)
 
@@ -1727,7 +1727,7 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
   end
 
   local this = self
-  inputField.OnLoseFocus = function (pnl) 
+  inputField.OnLoseFocus = function (pnl)
     timer.Simple(0, function () if not pnl:GetParent():HasFocus() and this.EditingNode then pnl:OnEnter() end end)
     pnl:GetParent():MoveToFront()
   end

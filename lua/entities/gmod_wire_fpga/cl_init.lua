@@ -25,12 +25,12 @@ function ENT:GetWorldTipBodySize()
   local w,h = surface.GetTextSize(str)
 	w_total = math.max(w_total, w)
   h_total = h_total + h + 10
-  
+
   local str = string.format("peak cpu time: %ius", timebenchPeak * 1000000)
 	local w,h = surface.GetTextSize(str)
 	w_total = math.max(w_total, w)
   h_total = h_total + h + 10
-  
+
 	return w_total, h_total
 end
 
@@ -149,13 +149,13 @@ function ENT:DrawInsideView()
   local scale = math.min(scaleX, scaleY)
 
   local nodeSize = FPGANodeSize/self.ViewData.Scale * scale
-  
+
   --to make sure we don't draw outside the edges
   render.SetScissorRect(
-    FPGAInsideViewPosition[1] + ScrW()/2 + 1, 
-    FPGAInsideViewPosition[3] + ScrH()/2 + 1, 
-    FPGAInsideViewPosition[2] + ScrW()/2 - 1, 
-    FPGAInsideViewPosition[4] + ScrH()/2 - 1, 
+    FPGAInsideViewPosition[1] + ScrW()/2 + 1,
+    FPGAInsideViewPosition[3] + ScrH()/2 + 1,
+    FPGAInsideViewPosition[2] + ScrW()/2 - 1,
+    FPGAInsideViewPosition[4] + ScrH()/2 - 1,
     true
   )
 
@@ -163,7 +163,7 @@ function ENT:DrawInsideView()
   for _, edge in pairs(self.ViewData.Edges) do
     surface.SetDrawColor(FPGATypeColor[edge.type])
     surface.DrawLine(
-      centerX + edge.from.x * scale, centerY + edge.from.y * scale, 
+      centerX + edge.from.x * scale, centerY + edge.from.y * scale,
       centerX + edge.to.x * scale, centerY + edge.to.y * scale
     )
   end
@@ -230,7 +230,7 @@ function ENT:ConstructInsideView(viewData)
       size = node.s
     })
   end
-  
+
   self.ViewData.Labels = {}
   if viewData.Labels then
     for _, label in pairs(viewData.Labels) do
@@ -268,7 +268,7 @@ net.Receive("wire_fpga_view_data", function (len)
 
     local ok, data = pcall(util.Decompress, data)
     if not ok then return end
-    
+
     ok, data = pcall(WireLib.von.deserialize, data)
     if ok then
       ent:ConstructInsideView(data)
