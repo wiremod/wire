@@ -682,9 +682,7 @@ function ENT:Run(changedNodes)
 	if self.Debug then print("\n================================================================================") end
 
 	--Extra
-	if self.ExecutionCount != nil then
-		self.ExecutionCount =  self.ExecutionCount + 1
-	end
+	self.ExecutionCount =  self.ExecutionCount + 1
 	local bench = SysTime()
 	self.CurrentExecution = bench
 
@@ -797,12 +795,14 @@ function ENT:Run(changedNodes)
 
 		if gate.isInput then
 			value = {self.InputValues[nodeId]}
+			loopDetectionNodeId = nil
 		elseif gate.isConstant then
 			if gate.outputtypes[1] == "STRING" then
 				value = { WireLib.ParseEscapes(node.value) }
 			else
 				value = {node.value}
 			end
+			loopDetectionNodeId = nil
 		else
 			if nodeId == loopDetectionNodeId and #nodeQueue == loopDetectionSize then
 				--infinite loop...
