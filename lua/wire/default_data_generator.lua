@@ -17,11 +17,12 @@ end
 function WireLib.GenerateDefaultData()
 	-- When adding new folders that need to be generated, add them to this list
 	RecursivelyGenerateFolder("data_static/expression2/")
+	RecursivelyGenerateFolder("data_static/fpgachip/")
 	RecursivelyGenerateFolder("data_static/soundlists/")
 end
 
 -- Regenerate data files on every structure update
-local DataVersion = 1
+local DataVersion = 2
 
 if cookie.GetNumber("wire_data_version", 0) < DataVersion then
 	cookie.Set("wire_data_version", tostring(DataVersion))
