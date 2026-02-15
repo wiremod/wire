@@ -10,6 +10,8 @@ if CLIENT then
     { name = "right", text = "open editor and/or attach debugger to the ZGPU" },
     { name = "reload", text = "Wipe ROM/RAM and reset memory model" },
   }
+
+  WireToolSetup.setToolMenuIcon("icon16/monitor.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 7 )

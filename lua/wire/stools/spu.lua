@@ -9,6 +9,8 @@ if CLIENT then
     { name = "left", text = "Create/reflash " .. TOOL.Name },
     { name = "right", text = "Open editor" },
   }
+
+  WireToolSetup.setToolMenuIcon("icon16/ipod_sound.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 7 )
