@@ -685,7 +685,7 @@ function Editor:InitComponents()
 	self.C.Helper:SetScreenLock(true)
 	local html = vgui.Create("DHTML" , self.C.Helper)
 	html:Dock(FILL)
-	html:SetHTML(file.Read("data_static/fpgahelp.txt", "GAME") or "")
+	html:OpenURL("https://wiremod.github.io/Miscellaneous/fpgahelp.html")
 	html:SetAllowLua(false)
 
 	self.C.Help = vgui.Create("Button", self.C.Menu)
