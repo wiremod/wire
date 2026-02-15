@@ -10,6 +10,8 @@ if CLIENT then
 		{ name = "right", text = "Open editor" },
 		{ name = "reload", text = "Reset" }
 	}
+
+	WireToolSetup.setToolMenuIcon("icon16/application_view_icons.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(40)

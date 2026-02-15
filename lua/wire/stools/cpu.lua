@@ -11,6 +11,8 @@ if CLIENT then
     { name = "reload", text = "Attach debugger" },
     { name = "reload_shift", text = "Shift+Reload: Clear" },
   }
+
+  WireToolSetup.setToolMenuIcon("icon16/server.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 7 )
