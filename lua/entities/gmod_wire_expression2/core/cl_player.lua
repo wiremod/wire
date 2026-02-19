@@ -10,13 +10,8 @@ local function SendFriendStatus()
 	RunConsoleCommand("wire_expression2_friend_status", table.concat(friends, ","))
 end
 
-if CanRunConsoleCommand() then
-	SendFriendStatus()
-end
-
 hook.Add("OnEntityCreated", "wire_expression2_extension_player", function(ent)
-	if not IsValid(ent) then return end
-	if not ent:IsPlayer() then return end
-
-	SendFriendStatus()
+	if ent:IsPlayer() then
+		SendFriendStatus()
+	end
 end)
