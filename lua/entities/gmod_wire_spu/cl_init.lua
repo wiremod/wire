@@ -55,9 +55,13 @@ local function SPU_SoundSources(um)
   if not SPU:IsValid() then return end
 
   for i=0,WireSPU_MaxChannels-1 do
-    SPU.SoundSources[i] = ents.GetByIndex(um:ReadLong())
-    SPU.SoundSources[i]:SetNoDraw(true)
-    SPU.SoundSources[i]:SetModelScale(0,0)
+    local soundsource = ents.GetByIndex(um:ReadLong())
+
+    if soundsource:IsValid() then
+      SPU.SoundSources[i] = soundsource
+      SPU.SoundSources[i]:SetNoDraw(true)
+      SPU.SoundSources[i]:SetModelScale(0,0)
+    end
   end
 
   -- Reset VM
