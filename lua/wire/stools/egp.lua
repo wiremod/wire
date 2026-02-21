@@ -11,11 +11,10 @@ TOOL.ClientConVar["freeze"] = 1
 TOOL.ClientConVar["emitter_usert"] = 1
 TOOL.ClientConVar["translucent"] = 0
 
-cleanup.Register( "wire_egps" )
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax(5)
 
 if (SERVER) then
-	CreateConVar('sbox_maxwire_egps', 5)
-
 	local function SpawnEnt( ply, Pos, Ang, model, class)
 		if IsValid(ply) and (not ply:CheckLimit("wire_egps")) then return false end
 		if not ply then ply = game.GetWorld() end -- For Garry's Map Saver

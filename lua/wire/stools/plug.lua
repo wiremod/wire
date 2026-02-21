@@ -46,8 +46,6 @@ hook.Add("ModelPlugLuaRefresh","wire_plug_updatemodels",function()
 	SocketData = list.Get("Wire_Socket_Models")
 end)
 
-cleanup.Register( "wire_plugs" )
-
 function TOOL:GetModel()
 	local model = self:GetClientInfo( "model" )
 	if (not util.IsValidModel( model ) or not util.IsValidProp( model ) or not SocketData[ model ]) then return "models/props_lab/tpplugholder_single.mdl" end

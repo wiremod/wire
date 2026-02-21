@@ -34,8 +34,6 @@ end
 
 local SocketData = list.Get("Wire_Socket_Models")
 
-cleanup.Register( "wire_dataplugs" )
-
 function TOOL:GetModel()
 	local model = self:GetClientInfo( "model" )
 	if (not util.IsValidModel( model ) or not util.IsValidProp( model ) or not SocketData[ model ]) then return "models/props_lab/tpplugholder_single.mdl", "models/props_lab/tpplug.mdl" end
