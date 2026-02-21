@@ -2,7 +2,6 @@ AddCSLuaFile()
 
 ENT.Base = "base_wire_entity"
 ENT.PrintName = "Wire Painter"
-ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.WireDebugName = "Painter"
 
 function ENT:SetupDataTables()

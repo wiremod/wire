@@ -2,7 +2,6 @@ AddCSLuaFile()
 
 ENT.Base = "base_wire_entity"
 ENT.PrintName = "Wire Materializer"
-ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.WireDebugName = "Materializer"
 
 function ENT:SetupDataTables()

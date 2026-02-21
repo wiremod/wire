@@ -2,7 +2,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Trigger"
-ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Trigger"
 
 function ENT:SetupDataTables()

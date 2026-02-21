@@ -1,7 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Holographic Emitter"
-ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Holographic Emitter"
 
 if CLIENT then

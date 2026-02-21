@@ -3,7 +3,6 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Screen"
 ENT.WireDebugName	= "Screen"
 ENT.Editable = true
-ENT.RenderGroup = RENDERGROUP_BOTH
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool", 0, "SingleValue", { KeyName = "SingleValue",

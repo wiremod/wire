@@ -2,7 +2,6 @@ AddCSLuaFile()
 
 ENT.Base = "base_wire_entity"
 ENT.PrintName = "Wire Balloon Deployer"
-ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.WireDebugName = "Balloon Deployer"
 
 if CLIENT then return end

@@ -1,7 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS("base_anim") -- NOTE: Not base_wire_entity! Simpler than that
 ENT.PrintName = "Wire Hologram"
-ENT.RenderGroup = RENDERGROUP_OPAQUE
 ENT.DisableDuplicator = true
 
 function ENT:SetupDataTables()

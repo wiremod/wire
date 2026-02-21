@@ -3,7 +3,6 @@ DEFINE_BASECLASS( "base_gmodentity" )
 ENT.Type = "anim"
 ENT.PrintName       = "Wire Unnamed Ent"
 ENT.Purpose = "Base for all wired SEnts"
-ENT.RenderGroup = RENDERGROUP_TRANSLUCENT
 ENT.Spawnable = false
 ENT.AdminOnly = false
 

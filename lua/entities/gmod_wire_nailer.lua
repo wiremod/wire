@@ -1,7 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Nailer"
-ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Nailer"
 
 function ENT:SetupDataTables()

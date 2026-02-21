@@ -2,7 +2,7 @@ AddCSLuaFile()
 
 DEFINE_BASECLASS("base_wire_entity")
 ENT.PrintName = "Wire Lamp"
-ENT.RenderGroup = RENDERGROUP_BOTH
+ENT.WantsTranslucency = true
 ENT.WireDebugName = "Lamp"
 
 function ENT:SetupDataTables()
