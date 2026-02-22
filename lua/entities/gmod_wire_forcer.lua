@@ -1,6 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Forcer"
+ENT.WantsTranslucency = true
 ENT.WireDebugName	= "Forcer"
 
 function ENT:SetupDataTables()

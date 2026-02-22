@@ -1,6 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Grabber"
+ENT.WantsTranslucency = true
 ENT.WireDebugName	= "Grabber"
 
 function ENT:SetupDataTables()

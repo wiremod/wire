@@ -1,6 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Igniter"
+ENT.WantsTranslucency = true
 ENT.WireDebugName	= "Igniter"
 
 function ENT:SetupDataTables()

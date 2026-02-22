@@ -2,6 +2,7 @@ AddCSLuaFile()
 
 ENT.Base = "base_wire_entity"
 ENT.PrintName = "Wire Painter"
+ENT.WantsTranslucency = true
 ENT.WireDebugName = "Painter"
 
 function ENT:SetupDataTables()
