@@ -1,7 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS("base_anim") -- NOTE: Not base_wire_entity! Simpler than that
 ENT.PrintName = "Wire Hologram"
-ENT.RenderGroup = RENDERGROUP_OPAQUE
 ENT.DisableDuplicator = true
 
 function ENT:SetupDataTables()
@@ -116,13 +115,6 @@ if CLIENT then
 	function ENT:Draw()
 		local selfTbl = EntityMeta.GetTable(self)
 		if selfTbl.blocked or selfTbl.notvisible then return end
-
-		local _, _, _, alpha = EntityMeta.GetColor4Part(self)
-		if alpha ~= 255 then
-			selfTbl.RenderGroup = RENDERGROUP_BOTH
-		else
-			selfTbl.RenderGroup = RENDERGROUP_OPAQUE
-		end
 
 		local hasclips = next(selfTbl.clips)
 
