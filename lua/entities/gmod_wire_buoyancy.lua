@@ -2,7 +2,6 @@ AddCSLuaFile()
 
 DEFINE_BASECLASS("base_wire_entity")
 ENT.PrintName = "Wire Buoyancy"
-ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.WireDebugName = "Buoyancy"
 
 if CLIENT then return end

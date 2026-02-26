@@ -1,7 +1,7 @@
 AddCSLuaFile()
 ENT.Base = "base_wire_entity"
 ENT.PrintName = "Wire User"
-ENT.RenderGroup = RENDERGROUP_BOTH
+ENT.WantsTranslucency = true
 ENT.WireDebugName = "User"
 
 function ENT:SetupDataTables()

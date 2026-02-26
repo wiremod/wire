@@ -317,4 +317,29 @@ GateActions["monostable"] = {
 	end
 }
 
+
+GateActions["servertime"] = {
+    name = "Server time",
+    description = "Returns the uptime of the server in seconds when CLK is non-zero, otherwise it outputs the last saved value",
+    inputs = { "Clk" },
+    timed = true,
+
+    output = function(gate, Clk)
+        if Clk ~= 0 then
+            gate.Last = CurTime()
+        end
+
+        return gate.Last or 0
+    end,
+
+    reset = function(gate)
+        gate.Last = 0
+    end,
+
+    label = function(Out, Clk)
+        return "Clk:" .. Clk .. " = " .. Out
+    end
+}
+
+
 GateActions()

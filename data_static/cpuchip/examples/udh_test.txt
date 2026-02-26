@@ -1,0 +1,38 @@
+//------------------------------------------------------------------------------
+// Universal Device Host driver test application
+//------------------------------------------------------------------------------
+#pragma CRT ZCRT
+
+//Include drivers for console screen and device host
+#include <drivers\drv_udh.txt>
+#include <drivers\drv_cscr.txt>
+
+void main() {
+  float i;
+  udhSetBusAddress(65536);
+
+  cscrInitialize(0);
+
+  udhQueryDevices();
+
+  for (i = 0; i < MAX_CONSOLE_SCREENS; i++) {
+    cscrSelect(i);
+    cscrSetActive(1);
+    cscrClear();
+
+    cscrSetCursor(0,0);
+    cscrPrintLine("Screen ",930);
+    cscrPrintNumber(i,930);
+  }
+
+  cscrSelect(0);
+  cscrSetCursor(0,2);
+  cscrPrintLine("UDH driver test\n",039);
+  for (i = 0; i < 8; i++) {
+    cscrPrintLine("DEVICE ",999);
+    cscrPrintNumber(i,999);
+    cscrPrintLine(": ",999);
+    cscrPrintLine(udhGetDeviceName(i),666);
+    cscrPrintLine("\n",999);
+  }
+}

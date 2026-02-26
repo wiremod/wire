@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Colorer"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WantsTranslucency = true
 ENT.WireDebugName	= "Colorer"
 
 function ENT:SetupDataTables()

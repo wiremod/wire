@@ -2,7 +2,6 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "gmod_wire_egp" )
 ENT.PrintName       = "Wire E2 Graphics Processor Emitter"
 ENT.WireDebugName	= "E2 Graphics Processor Emitter"
-ENT.RenderGroup    = RENDERGROUP_BOTH
 
 ENT.IsEGP = true
 ENT.gmod_wire_egp_emitter = true

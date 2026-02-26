@@ -224,13 +224,6 @@ hook.Add("InitPostEntity", "language_strings", function()
 	end
 end)
 
-if not CanRunConsoleCommand then
-	function CanRunConsoleCommand() return false end
-	hook.Add("Initialize", "CanRunConsoleCommand", function()
-		function CanRunConsoleCommand() return true end
-	end)
-end
-
 function Derma_StringRequestNoBlur(...)
 	local panel = Derma_StringRequest(...)
 	panel:SetBackgroundBlur(false)

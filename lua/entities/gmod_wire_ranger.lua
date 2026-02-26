@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Ranger"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WantsTranslucency = true
 ENT.WireDebugName	= "Ranger"
 
 function ENT:SetupDataTables()

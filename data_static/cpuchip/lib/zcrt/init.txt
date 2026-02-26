@@ -1,0 +1,49 @@
+//------------------------------------------------------------------------------
+// ZCPU CRT sourcecode (for HL-ZASM compiler)         (C) 2011 by Black Phoenix
+//
+// C runtime library initialization
+//------------------------------------------------------------------------------
+
+#ifdef ZCRT_EXTENDED_MODE
+  // Initialize extended mode
+  mov edi,&zcrtInterruptTable; //Need "&" because array is defined below
+  mov esi,&zcrtInterruptTable; add esi,1024;
+  @InitTable:
+    mov #edi,zcrtErrorHandler; inc edi;
+    mov #edi,0;                inc edi;
+    mov #edi,0;                inc edi;
+    mov #edi,32;               inc edi;
+    cmp edi,esi;
+    jl @InitTable;
+
+  lidtr zcrtInterruptTable;
+  stef;
+#endif
+
+// Call main function
+main();
+
+// Stop the processor execution
+#ifdef ZCRT_EXTENDED_MODE
+  clef;
+#endif
+int 1;
+
+//------------------------------------------------------------------------------
+// Allocate the interrupt table
+#ifdef ZCRT_EXTENDED_MODE
+  float zcrtInterruptTable[1024];
+  char* zcrtInterruptEntrypoint;
+
+  // Default interrupt handlers
+  zcrtErrorHandler:
+    //Execute handler if required
+    if (zcrtInterruptEntrypoint) {
+      float errorNo,errorCode;
+      cpuget errorNo,28;
+      cpuget errorCode,27;
+
+      zcrtInterruptEntrypoint(errorNo,errorCode);
+    }
+  iret
+#endif

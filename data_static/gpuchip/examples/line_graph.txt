@@ -1,0 +1,62 @@
+// Author: Drunkie
+// Description: A fake lag-o-meter that plots points on a grid
+
+Main();
+
+#include <drivers\drv_gl.txt>
+
+float i;
+float x, y;
+float ox = 0, oy = 256;
+float lines = 10;
+float lineWidth = 1
+float frameWidth = 510;
+float frameHeight = 300;
+
+void Main()
+{
+    glVertexMode( 1 ); // Enable vertex mode
+    glColor( 255, 255, 255 ); // Set draw color
+
+    // Set texture as background
+    glBindTexture( "phoenix_storms/lag_sign" );
+    glClearTexture();
+    glBindTexture( 0 ); // Discard texture
+
+    glFont( GL_FONT_AKBAR ); // Set font type
+    glFontSize( 36 ); // Set font size
+    glWriteString( 2, 2, "LAG-O-METER" ); // Write string to screen
+
+    glOffset( lineWidth, 90 ); // Offset the screen coordinates
+
+    glColor4( 0, 0, 0, 160 ); // Set draw color with alpha
+    glRectWH( 0, 0, frameWidth, frameHeight ); // Draw rectangle
+
+    glColor( 255, 255, 255 );
+    glLineWidth( lineWidth ); // Set line width
+    glORectWH( 0, 0, frameWidth, frameHeight ); // Draw outlined rectangle
+
+    glLineWidth( 1 ); // Set line width to 1
+
+    // Loop and make a bunch of connected lines
+    for (i = 0; i < lines; i++)
+    {
+        if (i == 0) {
+            ox = 0;
+            rand oy;
+            oy *= frameHeight;
+        }
+        else {
+            ox = x; oy = y;
+        }
+        x = ((i+1) / lines) * frameWidth;
+        rand y;
+        y *= frameHeight;
+        glLine( ox, oy, x, y ); // Draw line on graph
+    }
+
+    glOffset( 0, 0 ); // Set screen offset back to 0,0
+    glWriteString( 2, 400, "INTENSE LAG DETECTED" );
+
+    glExit(); // Exit
+}

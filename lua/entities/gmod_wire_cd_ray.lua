@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire CD Ray"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WantsTranslucency = true
 ENT.WireDebugName	= "CD Ray"
 
 function ENT:SetupDataTables()

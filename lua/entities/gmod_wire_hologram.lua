@@ -1,7 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS("base_anim") -- NOTE: Not base_wire_entity! Simpler than that
 ENT.PrintName = "Wire Hologram"
-ENT.RenderGroup = RENDERGROUP_OPAQUE
 ENT.DisableDuplicator = true
 
 function ENT:SetupDataTables()
@@ -116,13 +115,6 @@ if CLIENT then
 	function ENT:Draw()
 		local selfTbl = EntityMeta.GetTable(self)
 		if selfTbl.blocked or selfTbl.notvisible then return end
-
-		local _, _, _, alpha = EntityMeta.GetColor4Part(self)
-		if alpha ~= 255 then
-			selfTbl.RenderGroup = RENDERGROUP_BOTH
-		else
-			selfTbl.RenderGroup = RENDERGROUP_OPAQUE
-		end
 
 		local hasclips = next(selfTbl.clips)
 
@@ -386,6 +378,8 @@ if CLIENT then
 
 	concommand.Add("wire_holograms_unblock_client",
 		function(ply, command, args)
+			if not args[1] then print("Invalid steamid") return end
+
 			local toblock = checkSteamid(args[1])
 			if not toblock then print("Invalid SteamId") return end
 			if not blocked[toblock] then print("This steamid isn't blocked") return end

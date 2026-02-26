@@ -554,8 +554,12 @@ register("gmod_wire_egp", {
 	_preFactory = function(ply, self)
 		self.model = self.Model
 	end,
+	_postFactory = function(ply, self, enttbl)
+		self:SetTranslucent( enttbl.Translucent )
+	end,
 
 	["Model"] = {TYPE_STRING, "models/kobilica/wiremonitorbig.mdl", "Path to model"},
+	["Translucent"] = {TYPE_BOOL, false, "Transparent background"},
 })
 
 register("gmod_wire_egp_hud", {

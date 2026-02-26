@@ -2,7 +2,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Trigger"
-ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Trigger"
 
 function ENT:SetupDataTables()
@@ -38,7 +37,12 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	local phys = self:GetPhysicsObject() if (phys:IsValid()) then phys:Wake() end
 
-	self.Outputs = WireLib.CreateOutputs(self, { "EntCount", "Entities [ARRAY]" })
+	self.Outputs = WireLib.CreateOutputs(self, {
+		"EntCount",
+		"Entities [ARRAY]",
+		"Entered (Entity that entered the trigger entity bounds last) [ENTITY]",
+		"Exited (Entity that left the trigger entity bounds last) [ENTITY]"
+	})
 end
 
 function ENT:Setup( model, filter, owneronly, sizex, sizey, sizez, offsetx, offsety, offsetz )

@@ -2,7 +2,6 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Indicator"
 ENT.WireDebugName	= "Indicator"
-ENT.RenderGroup = RENDERGROUP_BOTH
 
 -- Helper functions
 function ENT:GetFactorFromValue( value )

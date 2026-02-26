@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Thruster"
-ENT.RenderGroup 		= RENDERGROUP_BOTH -- TODO: this is only needed when they're active.
+ENT.WantsTranslucency = true
 ENT.WireDebugName	= "Thruster"
 
 WireLib.ThrusterNetEffects = {
