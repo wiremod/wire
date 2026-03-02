@@ -393,45 +393,36 @@ if CLIENT then
 
 	end
 
-	local busy_players = WireLib.RegisterPlayerTable()
-	net.Receive("wire_fpga_editor_status", function(len)
-		local ply = net.ReadEntity()
-		local status = net.ReadBit() ~= 0
-		if not IsValid(ply) or ply == LocalPlayer() then return end
-
-		busy_players[ply] = status or nil
-	end)
-
 	local min = math.min
 	local surface_DrawPoly = surface.DrawPoly
 	local surface_SetDrawColor = surface.SetDrawColor
 
-	local nodeColor = Color(100,100,100,255)
-	local lineColor = Color(70, 160, 255, 255)
+	local function tableValue(t, v)
+		local keys = {}
+		for k in pairs(t) do
+			keys[#keys+1] = k
+		end
+		return t[keys[(v - 1) % #keys + 1]]
+	end
+
+	local nodeColor = Color(100, 100, 100, 255)
 
 	local size = 100
 	local padding = 100
 
 	local node1x, node1y = -padding * 1.5, padding
-	local node2x, node2y = padding * 1.5, -padding
+	local node2x, node2y =  padding * 1.5, -padding
 
-	local anim = {
-		tStart = 0,
-		tEnd = 0,
-		dir = 1,
-		phase = 1,
-		speed = 1,
-		holdTime = 2.5,
-		holdTimer = 0
-	}
-	local reversed = false
+	local springStrength = 40
+	local damping = 3
+	local impulsePower = 200
 
-	local node1 = { offset = 0, vel = 0 }
-	local node2 = { offset = 0, vel = 0 }
+	local radialSpringStrength = 16
+	local radialDamping = 6
 
-	local springStrength = 35
-	local damping = 4
-	local impulsePower = 100
+	local curveSegments = 30
+	local thickness = 10
+	local half = thickness * 0.5
 
 	local function UpdateSpring(node, ft)
 		local force = -(springStrength * node.offset + damping * node.vel)
@@ -439,14 +430,8 @@ if CLIENT then
 		node.offset = node.offset + node.vel * ft
 	end
 
-	local curveSegments = 20
-	local baseCurve = {}
-	local thickness = 10
-	local half = thickness * 0.5
-
-	local function BuildBaseCurve(dir)
-
-		baseCurve = {}
+	local function BuildBaseCurve(state, dir)
+		state.baseCurve = {}
 
 		local startX, startY, endX, endY
 		local cx1, cy1, cx2, cy2
@@ -460,7 +445,7 @@ if CLIENT then
 			cx1, cy1 = 0, startY
 			cx2, cy2 = 0, endY
 
-			reversed = false
+			state.reversed = false
 		else
 			startX = node2x + size * 0.5
 			startY = node2y
@@ -470,7 +455,7 @@ if CLIENT then
 			cx1, cy1 = startX + size * 2, startY + size * 2
 			cx2, cy2 = endX - size * 2, endY - size * 2
 
-			reversed = true
+			state.reversed = true
 		end
 
 		local prevX, prevY
@@ -497,13 +482,13 @@ if CLIENT then
 				t3 * endY
 
 			if prevX then
-				baseCurve[#baseCurve + 1] = {
+				state.baseCurve[#state.baseCurve + 1] = {
 					x1 = prevX,
 					y1 = prevY,
 					x2 = x,
 					y2 = y,
-					t1 = (i-1)/curveSegments,
-					t2 = i/curveSegments
+					t1 = (i - 1) / curveSegments,
+					t2 = i / curveSegments
 				}
 			end
 
@@ -511,23 +496,56 @@ if CLIENT then
 		end
 	end
 
-	BuildBaseCurve(anim.dir)
+	local function NewAnimState()
+		local state = {
+			tStart = 0,
+			tEnd = 0,
+			dir = 1,
+			phase = 1,
+			speed = 2.5,
+			holdTime = 1,
+			holdTimer = 0,
+			reversed = false,
+			baseCurve = {},
+			node1 = { offset = 0, vel = 0 },
+			node2 = { offset = 0, vel = 0 },
+			lastFrame = 0,
+			color = 1,
+			swapSpringPos = 0,
+			swapSpringVel = 0,
+			lastUpdateTime = 0
+		}
+		BuildBaseCurve(state, 1)
+		return state
+	end
 
-	local function DrawCachedCurve(tStart, tEnd)
+	local busy_players = WireLib.RegisterPlayerTable()
+	net.Receive("wire_fpga_editor_status", function(len)
+		local ply = net.ReadEntity()
+		local status = net.ReadBit() ~= 0
+		if not IsValid(ply) then return end
 
-		surface_SetDrawColor(lineColor)
+		busy_players[ply] = status and NewAnimState() or nil
+	end)
+
+	local function DrawCachedCurve(state)
+		surface_SetDrawColor(tableValue(FPGATypeColor, state.color))
+
+		local tStart = state.tStart
+		local tEnd   = state.tEnd
+		local node1  = state.node1
+		local node2  = state.node2
 
 		local startIndex = math.floor(tStart * curveSegments)
 		local endIndex   = math.floor(tEnd   * curveSegments)
 
 		for i = startIndex + 1, endIndex do
-			local seg = baseCurve[i]
+			local seg = state.baseCurve[i]
 			if seg then
-
 				local t1 = seg.t1
 				local t2 = seg.t2
 
-				if reversed then
+				if state.reversed then
 					t1 = 1 - t1
 					t2 = 1 - t2
 				end
@@ -560,21 +578,17 @@ if CLIENT then
 		end
 	end
 
-	hook.Add("PostPlayerDraw","wire_fpga_editor_status",function(ply)
+	local pi = math.pi
+	local function ArcPos(t, cx, cy, r, a0, a1)
+		local a = a0 + (a1 - pi - a0) * t
+		return cx + math.cos(a) * r, cy + math.sin(a) * r
+	end
 
-		if not busy_players[ply] then return end
+	local function UpdateAnim(state, ft)
+		local anim = state
 
-		local pos = ply:GetPos() + ply:GetUp() * (ply:OBBMaxs().z + 10)
-
-		local angle = (pos - EyePos()):GetNormalized():Angle()
-		angle = Angle(0, angle.y, 0)
-		angle:RotateAroundAxis(angle:Up(), -90)
-		angle:RotateAroundAxis(angle:Forward(), 90)
-
-		local ft = FrameTime()
-
-		UpdateSpring(node1, ft)
-		UpdateSpring(node2, ft)
+		UpdateSpring(anim.node1, ft)
+		UpdateSpring(anim.node2, ft)
 
 		if anim.phase == 1 then
 			anim.tEnd = min(1, anim.tEnd + anim.speed * ft)
@@ -583,9 +597,9 @@ if CLIENT then
 				anim.holdTimer = 0
 
 				if anim.dir == 1 then
-					node2.vel = node2.vel - impulsePower
+					anim.node2.vel = anim.node2.vel - impulsePower
 				else
-					node1.vel = node1.vel - impulsePower
+					anim.node1.vel = anim.node1.vel - impulsePower
 				end
 			end
 
@@ -600,33 +614,99 @@ if CLIENT then
 			if anim.tStart >= 1 then
 				anim.tStart = 0
 				anim.tEnd = 0
-				anim.phase = 1
+				anim.phase = anim.dir == -1 and 4 or 1
+				anim.swapTimer = 0
 				anim.dir = -anim.dir
+				anim.color = anim.color + 1
+				BuildBaseCurve(anim, anim.dir)
 
-				BuildBaseCurve(anim.dir)
+			end
+
+		elseif anim.phase == 4 then
+
+			local force = -(radialSpringStrength * (anim.swapSpringPos - 1) + radialDamping * anim.swapSpringVel)
+			anim.swapSpringVel = anim.swapSpringVel + force * ft
+			anim.swapSpringPos = anim.swapSpringPos + anim.swapSpringVel * ft
+
+			if math.abs(anim.swapSpringPos - 1) < 0.01 and math.abs(anim.swapSpringVel) < 0.02 then
+				anim.phase = 1
+				anim.swapSpringPos = 0
 			end
 		end
+	end
+
+	local cx = (node1x + node2x) * 0.5
+	local cy = (node1y + node2y) * 0.5
+
+	local dx = node1x - cx
+	local dy = node1y - cy
+	local r = math.sqrt(dx * dx + dy * dy)
+
+	local a1 = math.atan2(node1y - cy, node1x - cx)
+	local a2 = math.atan2(node2y - cy, node2x - cx)
+
+	local FPS_LIMIT = 1 / 60
+
+	hook.Add("PostPlayerDraw", "wire_fpga_editor_status", function(ply)
+		local state = busy_players[ply]
+		if not state then return end
+
+		local lastUpdate = state.lastUpdateTime
+		local now = RealTime()
+		if now - lastUpdate >= FPS_LIMIT then
+			UpdateAnim(state, now - lastUpdate)
+			state.lastUpdateTime = now
+		end
+
+		local BoneIndx = ply:LookupBone("ValveBiped.Bip01_Head1") or ply:LookupBone("ValveBiped.HC_Head_Bone") or 0
+		local BonePos, _BoneAng = ply:GetBonePosition(BoneIndx)
+
+		local pos = BonePos + ply:GetUp() * (16 + state.swapSpringVel * 4)
+
+		local angle = (pos - EyePos()):GetNormalized():Angle()
+		angle = Angle(0, angle.y, 0)
+		angle:RotateAroundAxis(angle:Up(), -90)
+		angle:RotateAroundAxis(angle:Forward(), 90)
 
 		cam.Start3D2D(pos, angle, 0.05)
 
+			local n1x = node1x
+			local n1y = node1y - size * 0.5 + state.node1.offset
+			local n2x = node2x
+			local n2y = node2y - size * 0.5 + state.node2.offset
+
+			if state.phase == 4 then
+
+				local t = state.swapSpringPos
+
+				local an1x, an1y = ArcPos(t, cx, cy, r, a1, a1)
+				local an2x, an2y = ArcPos(t, cx, cy, r, a2, a2)
+
+				n1x = an1x
+				n1y = an1y - size * 0.5
+				n2x = an2x
+				n2y = an2y - size * 0.5
+			end
+
+			if state.phase ~= 4 then
+				DrawCachedCurve(state)
+			end
+
 			draw.RoundedBox(12,
-				node1x - size*0.5,
-				node1y - size*0.5 + node1.offset,
+				n1x - size * 0.5,
+				n1y,
 				size, size,
 				nodeColor
 			)
 
 			draw.RoundedBox(12,
-				node2x - size*0.5,
-				node2y - size*0.5 + node2.offset,
+				n2x - size * 0.5,
+				n2y,
 				size, size,
 				nodeColor
 			)
-
-			DrawCachedCurve(anim.tStart, anim.tEnd)
 
 		cam.End3D2D()
-
 	end)
 
 end
