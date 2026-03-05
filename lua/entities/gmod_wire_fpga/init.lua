@@ -225,6 +225,21 @@ end
 function ENT:SynthesizeViewData(data)
 	if not data.Nodes then return end
 
+	function getInputAmountForNode(node)
+		local gate = getGate(node)
+		local amountOfInputs = 0
+		if gate.compact_inputs then
+			inputLimit = gate.compact_inputs
+			for inputIdx, _ in pairs(node.connections) do
+				inputLimit = math.max(inputLimit, inputIdx + 1)
+			end
+			amountOfInputs = math.min(#gate.inputs, inputLimit)
+		else
+			amountOfInputs = #gate.inputs
+		end
+		return amountOfInputs
+	end
+
 	local viewData = {}
 
 	viewData.Nodes = {}
@@ -247,9 +262,9 @@ function ENT:SynthesizeViewData(data)
 
 		local ports
 		if gate.outputs then
-			ports = math.max(#gate.inputs, #gate.outputs)
+			ports = math.max(getInputAmountForNode(node), #gate.outputs)
 		else
-			ports = #gate.inputs
+			ports = getInputAmountForNode(node)
 		end
 
 		table.insert(viewData.Nodes, {
