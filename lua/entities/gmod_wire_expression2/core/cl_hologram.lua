@@ -50,14 +50,14 @@ local function WireHologramsShowOwners()
 			local text = names[ent:GetPlayer()]
 			local w, h = surface.GetTextSize(text)
 			--Draw nick
-			surface.SetTextColor(255, 255, 255)
+			surface.SetTextColor(255, 0, 0)
 			surface.SetTextPos(vec.x - w / 2, vec.y - h / 2)
 			surface.DrawText(text)
 
 			local text2 = ent.steamid
 			local w2, h2 = surface.GetTextSize(text2)
 			--Draw steamid
-			surface.SetTextColor(255, 255, 255)
+			surface.SetTextColor(255, 0, 0)
 			surface.SetTextPos(vec.x - w2 / 2, vec.y + h / 2)
 			surface.DrawText(text2)
 		end
