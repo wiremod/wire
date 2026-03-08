@@ -1168,6 +1168,7 @@ e2function void holoRenderFX(index, effect)
 	if not Holo then return end
 
 	effect = effect - effect % 1
+	if effect == 23 then self:throw("Cannot use kRenderFxRagdoll renderfx!", nil) end
 	Holo.ent:SetKeyValue("renderfx",effect)
 end
 
