@@ -306,7 +306,7 @@ elseif SERVER then
 	util.AddNetworkString("wire_clienterror")
 	function WireLib.ClientError(message, ply)
 		net.Start("wire_clienterror")
-			net.WriteString(message)
+			net.WriteString(string.sub(message, 1, 65532))
 		net.Send(ply)
 	end
 end
