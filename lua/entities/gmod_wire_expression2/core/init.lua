@@ -66,7 +66,7 @@ function registerType(name, id, def, input_serialize, output_serialize, type_che
 end
 
 function wire_expression2_CallHook(hookname, ...)
-	if not wire_expression_callbacks[hookname] then return end
+	if not wire_expression_callbacks or not wire_expression_callbacks[hookname] then return end
 	local ret_array = {}
 	local errors = {}
 	local ok, ret
