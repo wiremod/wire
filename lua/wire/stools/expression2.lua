@@ -343,22 +343,28 @@ if SERVER then
 	-- ------------------------------------------------------------
 	-- Serverside Receive
 	-- ------------------------------------------------------------
+	local function SendFailedUpload(ply, reason)
+		net.Start("wire_expression2_upload")
+		net.WriteString(reason)
+		net.Send(ply)
+	end
+
 	net.Receive("wire_expression2_upload", function(len, ply)
 		local toentID = net.ReadUInt(16)
 		local toent = Entity(toentID)
 
 		if (not IsValid(toent) or toent:GetClass() ~= "gmod_wire_expression2") then
-			WireLib.AddNotify(ply, "Invalid Expression chip specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+			SendFailedUpload(ply, "Invalid Expression chip specified. Upload aborted.")
 			return
 		end
 
 		if not WireLib.CanTool(ply, toent, "wire_expression2") then
-			WireLib.AddNotify(ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+			SendFailedUpload(ply, "You are not allowed to upload to the target Expression chip. Upload aborted.")
 			return
 		end
 
 		if toent.Uploading then
-			WireLib.AddNotify(ply, "This Expression chip is already uploading. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+			SendFailedUpload(ply, "This Expression chip is already uploading. Upload aborted.")
 			return
 		end
 		toent.Uploading = true
@@ -582,7 +588,6 @@ if CLIENT then
 			return
 		end
 
-		uploading = true
 		net.Start( "wire_expression2_upload" )
 			net.WriteUInt( targetEntID, 16 )
 			net.WriteStream( datastr, function()
@@ -591,6 +596,12 @@ if CLIENT then
 			end )
 		net.SendToServer()
 	end
+
+	-- Upload fail
+	net.Receive("wire_expression2_upload", function()
+		WireLib.AddNotify(LocalPlayer(), net.ReadString(), NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+		uploading = false
+	end)
 
 	function WireLib.Expression2Upload(targetEntID, code, filepath)
 		if isentity( targetEntID ) then
