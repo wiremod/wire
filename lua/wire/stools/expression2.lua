@@ -590,7 +590,7 @@ if CLIENT then
 
 		net.Start( "wire_expression2_upload" )
 			net.WriteUInt( targetEntID, 16 )
-			net.WriteStream( datastr, function()
+			uploading = net.WriteStream( datastr, function()
 				uploading = false
 				uploadNext()
 			end )
@@ -600,6 +600,7 @@ if CLIENT then
 	-- Upload fail
 	net.Receive("wire_expression2_upload", function()
 		WireLib.AddNotify(LocalPlayer(), net.ReadString(), NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+		uploading:Remove()
 		uploading = false
 	end)
 
