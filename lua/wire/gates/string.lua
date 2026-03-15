@@ -421,4 +421,36 @@ GateActions["string_from_memory"] = {
   end
 }
 
+GateActions["string_replace_index"] = {
+	name = "Replace Index",
+	description = "Replaces the character at a specific index with a new character or string.",
+	inputs = { "String", "Character", "Index" },
+	inputtypes = { "STRING", "STRING", "NORMAL" },
+	outputtypes = { "STRING" },
+	output = function(gate, str, char, index)
+		str = str or ""
+		char = char or ""
+		index = index or 1
+
+		-- Boundary check: if index is out of range, return original string
+		if index < 1 or index > #str then return str end
+
+		if (#str - 1 + #char) > MAX_LEN then return false end
+
+		-- Split string at index and insert the new character
+		local left = string.sub(str, 1, index - 1)
+		local right = string.sub(str, index + 1)
+		
+		return left .. char .. right
+	end,
+	label = function(Out, str, char, index)
+		return string.format("replace(%s[%s] = %q) = %q", 
+			tostring(str), 
+			tostring(index), 
+			tostring(char), 
+			tostring(Out)
+		)
+	end
+}
+
 GateActions()
