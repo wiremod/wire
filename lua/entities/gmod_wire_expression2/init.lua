@@ -24,7 +24,7 @@ do
 			e2_hardquota = 1000000
 			e2_tickquota = 100000
 			e2_timequota = -1
-			e2_playquota = -1
+			e2_totalquota = -1
 		else
 			e2_softquota = wire_expression2_quotasoft:GetInt()
 			e2_hardquota = wire_expression2_quotahard:GetInt()
