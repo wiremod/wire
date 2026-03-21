@@ -274,11 +274,12 @@ function ENT:ExecuteEvent(evt, args)
 	end
 end
 
+-- Execution delay of E2 in ticks (for total quota counting)
+local execution_delay = math.floor(1 / engine.TickInterval() * 0.030303)
+
 function ENT:Think()
 	BaseClass.Think(self)
-
-	local current_time = CurTime()
-	self:NextThink(current_time + 0.030303)
+	self:NextThink(CurTime() + 0.030303)
 
 	local selfTbl = self:GetTable()
 	local context = selfTbl.context
@@ -301,14 +302,15 @@ function ENT:Think()
 
 	if e2_totalquota > 0 then
 		local quota_total = self.player.E2TotalQuota
+		local tick_count = engine.TickCount()
 
 		if not quota_total then
 			quota_total = {-1, 0}
 			self.player.E2TotalQuota = quota_total
 		end
 
-		if current_time >= quota_total[1] then
-			quota_total[1] = current_time + 0.030303
+		if tick_count >= quota_total[1] then
+			quota_total[1] = tick_count + execution_delay
 			quota_total[2] = 0
 		end
 
