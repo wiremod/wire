@@ -8,6 +8,7 @@ e2_softquota = nil
 e2_hardquota = nil
 e2_tickquota = nil
 e2_timequota = nil
+e2_totalquota = nil
 
 do
 	local wire_expression2_unlimited = GetConVar("wire_expression2_unlimited")
@@ -15,6 +16,7 @@ do
 	local wire_expression2_quotahard = GetConVar("wire_expression2_quotahard")
 	local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
 	local wire_expression2_quotatime = GetConVar("wire_expression2_quotatime")
+	local wire_expression2_quotatime_total = GetConVar("wire_expression2_quotatime_total")
 
 	local function updateQuotas()
 		if wire_expression2_unlimited:GetBool() then
@@ -22,11 +24,13 @@ do
 			e2_hardquota = 1000000
 			e2_tickquota = 100000
 			e2_timequota = -1
+			e2_playquota = -1
 		else
 			e2_softquota = wire_expression2_quotasoft:GetInt()
 			e2_hardquota = wire_expression2_quotahard:GetInt()
 			e2_tickquota = wire_expression2_quotatick:GetInt()
 			e2_timequota = wire_expression2_quotatime:GetInt() * 0.001
+			e2_totalquota = wire_expression2_quotatime_total:GetInt() * 0.001
 		end
 	end
 	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
@@ -34,6 +38,7 @@ do
 	cvars.AddChangeCallback("wire_expression2_quotahard", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotatick", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotatime", updateQuotas)
+	cvars.AddChangeCallback("wire_expression2_quotatime_total", updateQuotas)
 	updateQuotas()
 end
 
@@ -290,6 +295,30 @@ function ENT:Think()
 	if e2_timequota > 0 and context.timebench > e2_timequota then
 		self:Error("Expression 2 (" .. selfTbl.name .. "): time quota exceeded", "time quota exceeded")
 		self:PCallHook("destruct")
+	end
+
+	if e2_totalquota > 0 then
+		local quota_total = self.player.E2TotalQuota
+
+		if not quota_total then
+			quota_total = {-1, 0}
+			self.player.E2TotalQuota = quota_total
+		end
+
+		local current_tick = engine.TickCount()
+
+		if current_tick > quota_total[1] then
+			quota_total[1] = current_tick
+			quota_total[2] = 0
+		end
+
+		local total_quota = quota_total[2] + context.timebench
+		quota_total[2] = total_quota
+
+		if total_quota > e2_totalquota then
+			self:Error("Expression 2 (" .. selfTbl.name .. "): total quota exceeded", "total quota exceeded")
+			self:PCallHook("destruct")
+		end
 	end
 
 	return true
