@@ -301,12 +301,12 @@ function ENT:Think()
 	end
 
 	if e2_totalquota > 0 then
-		local quota_total = self.player.E2TotalQuota
+		local quota_total = selfTbl.player.E2TotalQuota
 		local tick_count = engine.TickCount()
 
 		if not quota_total then
 			quota_total = {-1, 0}
-			self.player.E2TotalQuota = quota_total
+			selfTbl.player.E2TotalQuota = quota_total
 		end
 
 		if tick_count >= quota_total[1] then
