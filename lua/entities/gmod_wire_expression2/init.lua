@@ -276,7 +276,9 @@ end
 
 function ENT:Think()
 	BaseClass.Think(self)
-	self:NextThink(CurTime() + 0.030303)
+
+	local current_time = CurTime()
+	self:NextThink(current_time + 0.030303)
 
 	local selfTbl = self:GetTable()
 	local context = selfTbl.context
@@ -305,10 +307,8 @@ function ENT:Think()
 			self.player.E2TotalQuota = quota_total
 		end
 
-		local current_tick = engine.TickCount()
-
-		if current_tick > quota_total[1] then
-			quota_total[1] = current_tick
+		if current_time >= quota_total[1] then
+			quota_total[1] = current_time + 0.030303
 			quota_total[2] = 0
 		end
 
