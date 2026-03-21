@@ -75,6 +75,24 @@ function ENT:Initialize()
 	self.error = true
 	self:UpdateOverlay(true)
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
+
+	timer.Simple(0,function()
+		local owner = self:CPPIGetOwner()
+		local block = owner:GetPData("blockchip")
+		if block == "true" then
+			self:Remove()
+			owner:PrintMessage(3,"Вам запрещено использовать Expression2 чипы!")
+			return
+		end
+
+		local str = owner:GetName().." поставил Expression2 чип"
+		for _, ply in pairs(player.GetAll()) do
+			if ply:IsAdmin() then
+
+				ply:PrintMessage(3,str)
+			end
+		end
+	end)
 end
 
 function ENT:OnRestore()
