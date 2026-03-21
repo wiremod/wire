@@ -275,7 +275,7 @@ function ENT:ExecuteEvent(evt, args)
 end
 
 -- Execution delay of E2 in ticks (for total quota counting)
-local execution_delay = math.floor(1 / engine.TickInterval() * 0.030303)
+local execution_delay = 1 / engine.TickInterval() * 0.030303
 
 function ENT:Think()
 	BaseClass.Think(self)
