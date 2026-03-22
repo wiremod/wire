@@ -1,1 +1,2 @@
 E2Helper.Descriptions["isBuild(e:)"] = "Returns 1 if the player entity is in build mode, 0 otherwise"
+E2Helper.Descriptions["isInSafeZone(e:)"] = "Returns 1 if the player entity is in safe zone, 0 otherwise"
