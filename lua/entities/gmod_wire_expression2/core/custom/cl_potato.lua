@@ -1,0 +1,1 @@
+E2Helper.Descriptions["isBuild(e:)"] = "Returns 1 if the player entity is in build mode, 0 otherwise"
