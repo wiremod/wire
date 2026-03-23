@@ -299,30 +299,6 @@ end
 
 E2Lib.PlayerChips = E2Lib.PlayerChips or {}
 
-local function get_median(values)
-	local length = #values
-	if length == 0 or length ~= 11 then return 0 end
-	if length == 1 then return values[1] end
-
-	local sorted = {}
-
-	for i = 1, length do
-		sorted[i] = values[i]
-	end
-
-	table.sort(sorted)
-
-	return sorted[math.ceil(length / 2)]
-end
-
-local function insert_rolling_average(tab, value)
-	local length = table.insert(tab, value)
-
-	if length > 11 then
-		table.remove(tab, 1)
-	end
-end
-
 hook.Add("Think", "E2_Think", function()
 	if e2_timequota < 0 then return end
 
