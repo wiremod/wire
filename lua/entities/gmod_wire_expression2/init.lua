@@ -304,21 +304,21 @@ E2Lib.PlayerTickUsage = E2Lib.PlayerTickUsage or {}
 
 local function get_median(values)
 	local length = #values
-    if length == 0 or length ~= 11 then return 0 end
-    if length == 1 then return values[1] end
+	if length == 0 or length ~= 11 then return 0 end
+	if length == 1 then return values[1] end
 
-    local sorted = table.Copy(values)
-    table.sort(sorted)
+	local sorted = table.Copy(values)
+	table.sort(sorted)
 
-    return sorted[math.ceil(#sorted / 2)]
+	return sorted[math.ceil(#sorted / 2)]
 end
 
 local function inser_rolling_average(tab, value)
-    table.insert(tab, value)
+	table.insert(tab, value)
 
-    if #tbl > 11 then
-        table.remove(tab, 1)
-    end
+	if #tab > 11 then
+		table.remove(tab, 1)
+	end
 end
 
 E2Lib.registerCallback("postexecute", function(context)
