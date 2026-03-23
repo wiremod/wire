@@ -319,9 +319,9 @@ local function get_median(values)
 end
 
 local function insert_rolling_average(tab, value)
-	table.insert(tab, value)
+	local length = table.insert(tab, value)
 
-	if #tab > 11 then
+	if length > 11 then
 		table.remove(tab, 1)
 	end
 end
