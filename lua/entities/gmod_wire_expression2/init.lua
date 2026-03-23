@@ -80,7 +80,6 @@ function ENT:Initialize()
 
 	if IsValid(owner) then
 		E2Lib.PlayerChips[owner] = E2Lib.PlayerChips[owner] or {}
-		E2Lib.PlayerUsage[owner] = E2Lib.PlayerUsage[owner] or {}
 		table.insert(E2Lib.PlayerChips[owner], self)
 	end
 end
@@ -299,8 +298,6 @@ function ENT:Think()
 end
 
 E2Lib.PlayerChips = E2Lib.PlayerChips or {}
-E2Lib.PlayerUsage = E2Lib.PlayerUsage or {}
-E2Lib.PlayerTickUsage = E2Lib.PlayerTickUsage or {}
 
 local function get_median(values)
 	local length = #values
@@ -326,51 +323,42 @@ local function insert_rolling_average(tab, value)
 	end
 end
 
-E2Lib.registerCallback("postexecute", function(context)
-	local owner = context.player
-	if not owner then return end
-
-	E2Lib.PlayerTickUsage[owner] = (E2Lib.PlayerTickUsage[owner] or 0) + context.time
-	E2Lib.PlayerUsage[owner] = E2Lib.PlayerUsage[owner] or {}
-end)
-
 hook.Add("Think", "E2_Think", function()
 	if e2_timequota < 0 then return end
 
-	for ply, chips in pairs(E2Lib.PlayerUsage) do
-		if E2Lib.PlayerTickUsage[ply] then
-			insert_rolling_average(chips, E2Lib.PlayerTickUsage[ply])
-			E2Lib.PlayerTickUsage[ply] = nil
-		else
-			insert_rolling_average(chips, 0)
+	for ply, chips in pairs(E2Lib.PlayerChips) do
+		local total_time = 0
+
+		for _, chip in ipairs(chips) do
+			local tab = chip:GetTable()
+			if tab.error then continue end
+
+			local context = tab.context
+			if not context then continue end
+
+			total_time = total_time + context.timebench
 		end
 
-		local median = get_median(chips)
+		if total_time > e2_timequota then
+			local max_time = 0
+			local max_chip
 
-		if median > e2_timequota then
-			local chips = E2Lib.PlayerChips[ply]
+			for _, chip in ipairs(chips) do
+				local tab = chip:GetTable()
+				if tab.error then continue end
 
-			if chips then
-				local max_time = 0
-				local max_chip
+				local context = tab.context
+				if not context then continue end
 
-				for _, chip in pairs(chips) do
-					if chip.error then continue end
-
-					local context = chip.context
-					if not context then continue end
-
-					if context.timebench > max_time then
-						max_time = context.timebench
-						max_chip = chip
-					end
+				if context.timebench > max_time then
+					max_time = context.timebench
+					max_chip = chip
 				end
+			end
 
-				if max_chip then
-					max_chip:Error("Expression 2 (" .. max_chip.name .. "): Per-player time quota exceeded", "per-player time quota exceeded")
-					max_chip:Destruct()
-					E2Lib.PlayerUsage[ply] = {}
-				end
+			if max_chip then
+				max_chip:Error("Expression 2 (" .. max_chip.name .. "): Per-player time quota exceeded", "per-player time quota exceeded")
+				max_chip:Destruct()
 			end
 		end
 	end
@@ -403,7 +391,6 @@ function ENT:OnRemove()
 
 	if #chips == 0 then
 		E2Lib.PlayerChips[owner] = nil
-		E2Lib.PlayerUsage[owner] = nil
 	end
 
 	BaseClass.OnRemove(self)
@@ -818,7 +805,6 @@ end
 --]]
 hook.Add("PlayerDisconnected", "Wire_Expression2_Player_Disconnected", function(ply)
 	E2Lib.PlayerChips[ply] = nil
-	E2Lib.PlayerUsage[ply] = nil
 
 	for _, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
 		if v.player == ent and not v.error then
@@ -832,7 +818,6 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
 		if ent.uid == uid then
 			E2Lib.PlayerChips[ply] = E2Lib.PlayerChips[ply] or {}
-			E2Lib.PlayerUsage[ply] = E2Lib.PlayerUsage[ply] or {}
 			table.insert(E2Lib.PlayerChips[ply], ent)
 			ent:SetNWEntity("player", ply)
 			ent.player = ply
