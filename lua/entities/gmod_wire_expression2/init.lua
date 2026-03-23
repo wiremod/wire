@@ -392,11 +392,18 @@ function ENT:OnRemove()
 	local owner = self.player
 	if not IsValid(owner) then return end
 
-	for index, chip in ipairs(E2Lib.PlayerChips[owner]) do
+	local chips = E2Lib.PlayerChips[owner]
+
+	for index, chip in ipairs(chips) do
 		if chip == self then
-			table.remove(E2Lib.PlayerChips[owner], index)
+			table.remove(chips, index)
 			break
 		end
+	end
+
+	if #chips == 0 then
+		E2Lib.PlayerChips[owner] = nil
+		E2Lib.PlayerUsage[owner] = nil
 	end
 
 	BaseClass.OnRemove(self)
@@ -824,6 +831,9 @@ end)
 hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
 		if ent.uid == uid then
+			E2Lib.PlayerChips[ply] = E2Lib.PlayerChips[ply] or {}
+			E2Lib.PlayerUsage[ply] = E2Lib.PlayerUsage[ply] or {}
+			table.insert(E2Lib.PlayerChips[ply], ent)
 			ent:SetNWEntity("player", ply)
 			ent.player = ply
 		end
