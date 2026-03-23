@@ -313,7 +313,7 @@ local function get_median(values)
 	return sorted[math.ceil(#sorted / 2)]
 end
 
-local function inser_rolling_average(tab, value)
+local function insert_rolling_average(tab, value)
 	table.insert(tab, value)
 
 	if #tab > 11 then
@@ -334,10 +334,10 @@ hook.Add("Think", "E2_Think", function()
 
 	for ply, chips in pairs(E2Lib.PlayerUsage) do
 		if E2Lib.PlayerTickUsage[ply] then
-			inser_rolling_average(chips, E2Lib.PlayerTickUsage[ply])
+			insert_rolling_average(chips, E2Lib.PlayerTickUsage[ply])
 			E2Lib.PlayerTickUsage[ply] = nil
 		else
-			inser_rolling_average(chips, 0)
+			insert_rolling_average(chips, 0)
 		end
 
 		local median = get_median(chips)
