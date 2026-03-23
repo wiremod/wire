@@ -303,9 +303,9 @@ E2Lib.PlayerUsage = E2Lib.PlayerUsage or {}
 E2Lib.PlayerTickUsage = E2Lib.PlayerTickUsage or {}
 
 local function get_median(values)
-    if #values == 0 then return 0 end
-    if #values == 1 then return values[1] end
-    if #values ~= 11 then return 0 end
+	local length = #values
+    if length == 0 or length ~= 11 then return 0 end
+    if length == 1 then return values[1] end
 
     local sorted = table.Copy(values)
     table.sort(sorted)
@@ -313,11 +313,11 @@ local function get_median(values)
     return sorted[math.ceil(#sorted / 2)]
 end
 
-local function inser_rolling_average( tbl, value )
-    table.insert( tbl, value )
+local function inser_rolling_average(tab, value)
+    table.insert(tab, value)
 
     if #tbl > 11 then
-        table.remove( tbl, 1 )
+        table.remove(tab, 1)
     end
 end
 
@@ -332,7 +332,7 @@ end)
 hook.Add("Think", "E2_Think", function()
 	if e2_timequota < 0 then return end
 
-	for ply, chips in pairs( E2Lib.PlayerUsage ) do
+	for ply, chips in pairs(E2Lib.PlayerUsage) do
 		if E2Lib.PlayerTickUsage[ply] then
 			inser_rolling_average(chips, E2Lib.PlayerTickUsage[ply])
 			E2Lib.PlayerTickUsage[ply] = nil
