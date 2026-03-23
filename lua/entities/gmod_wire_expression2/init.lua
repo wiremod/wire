@@ -8,7 +8,6 @@ e2_softquota = nil
 e2_hardquota = nil
 e2_tickquota = nil
 e2_timequota = nil
-e2_totalquota = nil
 
 do
 	local wire_expression2_unlimited = GetConVar("wire_expression2_unlimited")
@@ -16,7 +15,6 @@ do
 	local wire_expression2_quotahard = GetConVar("wire_expression2_quotahard")
 	local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
 	local wire_expression2_quotatime = GetConVar("wire_expression2_quotatime")
-	local wire_expression2_quotatime_total = GetConVar("wire_expression2_quotatime_total")
 
 	local function updateQuotas()
 		if wire_expression2_unlimited:GetBool() then
@@ -24,13 +22,11 @@ do
 			e2_hardquota = 1000000
 			e2_tickquota = 100000
 			e2_timequota = -1
-			e2_totalquota = -1
 		else
 			e2_softquota = wire_expression2_quotasoft:GetInt()
 			e2_hardquota = wire_expression2_quotahard:GetInt()
 			e2_tickquota = wire_expression2_quotatick:GetInt()
 			e2_timequota = wire_expression2_quotatime:GetInt() * 0.001
-			e2_totalquota = wire_expression2_quotatime_total:GetInt() * 0.001
 		end
 	end
 	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
@@ -38,7 +34,6 @@ do
 	cvars.AddChangeCallback("wire_expression2_quotahard", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotatick", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotatime", updateQuotas)
-	cvars.AddChangeCallback("wire_expression2_quotatime_total", updateQuotas)
 	updateQuotas()
 end
 
@@ -80,6 +75,14 @@ function ENT:Initialize()
 	self.error = true
 	self:UpdateOverlay(true)
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
+
+	local owner = self.player
+
+	if IsValid(owner) then
+		E2Lib.PlayerChips[owner] = E2Lib.PlayerChips[owner] or {}
+		E2Lib.PlayerUsage[owner] = E2Lib.PlayerUsage[owner] or {}
+		table.insert(E2Lib.PlayerChips[owner], self)
+	end
 end
 
 function ENT:OnRestore()
@@ -274,9 +277,6 @@ function ENT:ExecuteEvent(evt, args)
 	end
 end
 
--- Execution delay of E2 in ticks (for total quota counting)
-local execution_delay = 1 / engine.TickInterval() * 0.030303
-
 function ENT:Think()
 	BaseClass.Think(self)
 	self:NextThink(CurTime() + 0.030303)
@@ -295,36 +295,81 @@ function ENT:Think()
 	context.prf = 0
 	context.time = 0
 
-	if e2_timequota > 0 and context.timebench > e2_timequota then
-		self:Error("Expression 2 (" .. selfTbl.name .. "): time quota exceeded", "time quota exceeded")
-		self:PCallHook("destruct")
-	end
-
-	if e2_totalquota > 0 then
-		local quota_total = selfTbl.player.E2TotalQuota
-		local tick_count = engine.TickCount()
-
-		if not quota_total then
-			quota_total = {-1, 0}
-			selfTbl.player.E2TotalQuota = quota_total
-		end
-
-		if tick_count >= quota_total[1] then
-			quota_total[1] = tick_count + execution_delay
-			quota_total[2] = 0
-		end
-
-		local total_quota = quota_total[2] + context.timebench
-		quota_total[2] = total_quota
-
-		if total_quota > e2_totalquota then
-			self:Error("Expression 2 (" .. selfTbl.name .. "): total quota exceeded", "total quota exceeded")
-			self:PCallHook("destruct")
-		end
-	end
-
 	return true
 end
+
+E2Lib.PlayerChips = E2Lib.PlayerChips or {}
+E2Lib.PlayerUsage = E2Lib.PlayerUsage or {}
+E2Lib.PlayerTickUsage = E2Lib.PlayerTickUsage or {}
+
+local function get_median(values)
+    if #values == 0 then return 0 end
+    if #values == 1 then return values[1] end
+    if #values ~= 11 then return 0 end
+
+    local sorted = table.Copy(values)
+    table.sort(sorted)
+
+    return sorted[math.ceil(#sorted / 2)]
+end
+
+local function inser_rolling_average( tbl, value )
+    table.insert( tbl, value )
+
+    if #tbl > 11 then
+        table.remove( tbl, 1 )
+    end
+end
+
+E2Lib.registerCallback("postexecute", function(context)
+	local owner = context.player
+	if not owner then return end
+
+	E2Lib.PlayerTickUsage[owner] = (E2Lib.PlayerTickUsage[owner] or 0) + context.time
+	E2Lib.PlayerUsage[owner] = E2Lib.PlayerUsage[owner] or {}
+end)
+
+hook.Add("Think", "E2_Think", function()
+	if e2_timequota < 0 then return end
+
+	for ply, chips in pairs( E2Lib.PlayerUsage ) do
+		if E2Lib.PlayerTickUsage[ply] then
+			inser_rolling_average(chips, E2Lib.PlayerTickUsage[ply])
+			E2Lib.PlayerTickUsage[ply] = nil
+		else
+			inser_rolling_average(chips, 0)
+		end
+
+		local median = get_median(chips)
+
+		if median > e2_timequota then
+			local chips = E2Lib.PlayerChips[ply]
+
+			if chips then
+				local max_time = 0
+				local max_chip
+
+				for _, chip in pairs(chips) do
+					if chip.error then continue end
+
+					local context = chip.context
+					if not context then continue end
+
+					if context.timebench > max_time then
+						max_time = context.timebench
+						max_chip = chip
+					end
+				end
+
+				if max_chip then
+					max_chip:Error("Expression 2 (" .. max_chip.name .. "): Per-player time quota exceeded", "per-player time quota exceeded")
+					max_chip:Destruct()
+					E2Lib.PlayerUsage[ply] = {}
+				end
+			end
+		end
+	end
+end)
 
 local CallHook = wire_expression2_CallHook
 function ENT:CallHook(hookname, ...)
@@ -337,6 +382,16 @@ function ENT:OnRemove()
 	if not self.error and not self.removing then -- make sure destruct hooks aren't called twice (once on error, once on remove)
 		self.removing = true
 		self:Destruct()
+	end
+
+	local owner = self.player
+	if not IsValid(owner) then return end
+
+	for index, chip in ipairs(E2Lib.PlayerChips[owner]) do
+		if chip == self then
+			table.remove(E2Lib.PlayerChips[owner], index)
+			break
+		end
 	end
 
 	BaseClass.OnRemove(self)
@@ -749,52 +804,23 @@ end
 --[[
 	Player Disconnection Magic
 --]]
-local cvar = CreateConVar("wire_expression2_pause_on_disconnect", 0, 0, "Decides if chips should pause execution on their owner's disconnect.\n0 = no, 1 = yes, 2 = non-admins only.")
--- This is a global function so it can be overwritten for greater control over whose chips are frozenated
-function wire_expression2_ShouldFreezeChip(ply)
-	return not ply:IsAdmin()
-end
+hook.Add("PlayerDisconnected", "Wire_Expression2_Player_Disconnected", function(ply)
+	E2Lib.PlayerChips[ply] = nil
+	E2Lib.PlayerUsage[ply] = nil
 
--- It uses EntityRemoved because PlayerDisconnected doesn't catch all disconnects.
-hook.Add("EntityRemoved", "Wire_Expression2_Player_Disconnected", function(ent)
-	if (not (ent and ent:IsPlayer())) then
-		return
-	end
-	local ret = cvar:GetInt()
-	if (ret == 0 or (ret == 2 and not wire_expression2_ShouldFreezeChip(ent))) then
-		return
-	end
 	for _, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
-		if (v.player == ent) then
-			v:SetOverlayText(v.name .. "\n(Owner disconnected.)")
-			local oldColor = v:GetColor()
-			v:SetColor(Color(255, 0, 0, v:GetColor().a))
-			v.disconnectPaused = oldColor
-			v.error = true
+		if v.player == ent and not v.error then
+			v:Error("Owner disconnected")
+			v:Destruct()
 		end
 	end
 end)
 
 hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
-		if ent.uid == uid and ent.context then
-			ent.context.player = ply
-			ent.player = ply
+		if ent.uid == uid then
 			ent:SetNWEntity("player", ply)
-			ent:SetPlayer(ply)
-
-			if ent.disconnectPaused then
-				ent:SetColor(ent.disconnectPaused)
-				ent:SetRenderMode(ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
-				ent.error = false
-				ent.disconnectPaused = nil
-				ent:SetOverlayText(ent.name)
-			end
-		end
-	end
-	for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-		if ent.steamid == sid then
-			ent:SetPlayer(ply)
+			ent.player = ply
 		end
 	end
 end)
@@ -812,10 +838,10 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 	self:SetModel(model)
 	self:SetAngles(Ang)
 	self:SetPos(Pos)
-	self:Spawn()
 	self:SetPlayer(player)
-	self.player = player
 	self:SetNWEntity("player", player)
+	self.player = player
+	self:Spawn()
 
 	if isstring( buffer ) then -- if someone dupes an E2 with compile errors, then all these values will be invalid
 		buffer = string.Replace(string.Replace(buffer, string.char(163), "\""), string.char(128), "\n")
