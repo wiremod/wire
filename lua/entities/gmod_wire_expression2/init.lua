@@ -307,10 +307,15 @@ local function get_median(values)
 	if length == 0 or length ~= 11 then return 0 end
 	if length == 1 then return values[1] end
 
-	local sorted = table.Copy(values)
+	local sorted = {}
+
+	for i = 1, length do
+		sorted[i] = values[i]
+	end
+
 	table.sort(sorted)
 
-	return sorted[math.ceil(#sorted / 2)]
+	return sorted[math.ceil(length / 2)]
 end
 
 local function insert_rolling_average(tab, value)
