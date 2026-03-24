@@ -315,7 +315,7 @@ hook.Add("Think", "E2_Think", function()
 			total_time = total_time + context.timebench
 		end
 
-		if total_time > e2_timequota then
+		while total_time > e2_timequota do
 			local max_time = 0
 			local max_chip
 
@@ -333,8 +333,12 @@ hook.Add("Think", "E2_Think", function()
 			end
 
 			if max_chip then
+				total_time = total_time - max_time
 				max_chip:Error("Expression 2 (" .. max_chip.name .. "): Per-player time quota exceeded", "per-player time quota exceeded")
 				max_chip:Destruct()
+			else
+				-- It shouldn't happen, but if something breaks, it will prevent an infinity loop
+				break
 			end
 		end
 	end
