@@ -787,7 +787,7 @@ hook.Add("PlayerDisconnected", "Wire_Expression2_Player_Disconnected", function(
 	E2Lib.PlayerChips[ply] = nil
 
 	for _, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
-		if v.player == ent and not v.error then
+		if v.player == ply and not v.error then
 			v:Error("Owner disconnected")
 			v:Destruct()
 		end
