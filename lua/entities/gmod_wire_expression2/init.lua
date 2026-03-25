@@ -75,6 +75,12 @@ function ENT:Initialize()
 	self.error = true
 	self:UpdateOverlay(true)
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
+
+	local owner = self.player
+
+	if IsValid(owner) then
+		E2Lib.PlayerChips[owner]:add(self)
+	end
 end
 
 function ENT:OnRestore()
@@ -287,13 +293,89 @@ function ENT:Think()
 	context.prf = 0
 	context.time = 0
 
-	if e2_timequota > 0 and context.timebench > e2_timequota then
-		self:Error("Expression 2 (" .. selfTbl.name .. "): time quota exceeded", "time quota exceeded")
-		self:PCallHook("destruct")
-	end
-
 	return true
 end
+
+local PlayerChips = {}
+PlayerChips.__index = PlayerChips
+
+function PlayerChips:new()
+	return setmetatable({}, self)
+end
+
+function PlayerChips:getTotalTime()
+	local total_time = 0
+
+	for _, chip in ipairs(self) do
+		local tab = chip:GetTable()
+		if tab.error then continue end
+
+		local context = tab.context
+		if not context then continue end
+
+		total_time = total_time + context.timebench
+	end
+
+	return total_time
+end
+
+function PlayerChips:findMaxTimeChip()
+	local max_chip, max_time = nil, 0
+
+	for _, chip in ipairs(self) do
+		local tab = chip:GetTable()
+		if tab.error then continue end
+
+		local context = tab.context
+		if not context then continue end
+
+		if context.timebench > max_time then
+			max_time = context.timebench
+			max_chip = chip
+		end
+	end
+
+	return max_chip, max_time
+end
+
+function PlayerChips:checkCpuTime()
+	local total_time = self:getTotalTime()
+
+	while total_time > e2_timequota do
+		local max_chip, max_time = self:findMaxTimeChip()
+		if max_chip then
+			total_time = total_time - max_time
+			max_chip:Error("Expression 2 (" .. max_chip.name .. "): Per-player time quota exceeded", "per-player time quota exceeded")
+			max_chip:Destruct()
+		else
+			-- It shouldn't happen, but if something breaks, it will prevent an infinity loop
+			break
+		end
+	end
+end
+
+function PlayerChips:add(chip)
+	table.insert(self, chip)
+end
+
+function PlayerChips:remove(remove_chip)
+	for index, chip in ipairs(self) do
+		if remove_chip == chip then
+			table.remove(self, index)
+			break
+		end
+	end
+end
+
+E2Lib.PlayerChips = setmetatable({}, {__index = function(self, ply) local chips = PlayerChips:new() self[ply] = chips return chips end})
+
+hook.Add("Think", "E2_Think", function()
+	if e2_timequota > 0 then
+		for ply, chips in pairs(E2Lib.PlayerChips) do
+			chips:checkCpuTime()
+		end
+	end
+end)
 
 local CallHook = wire_expression2_CallHook
 function ENT:CallHook(hookname, ...)
@@ -306,6 +388,16 @@ function ENT:OnRemove()
 	if not self.error and not self.removing then -- make sure destruct hooks aren't called twice (once on error, once on remove)
 		self.removing = true
 		self:Destruct()
+	end
+
+	local owner = self.player
+	if not IsValid(owner) then return end
+
+	local chips = E2Lib.PlayerChips[owner]
+	chips:remove(self)
+
+	if #chips == 0 then
+		E2Lib.PlayerChips[owner] = nil
 	end
 
 	BaseClass.OnRemove(self)
@@ -718,52 +810,23 @@ end
 --[[
 	Player Disconnection Magic
 --]]
-local cvar = CreateConVar("wire_expression2_pause_on_disconnect", 0, 0, "Decides if chips should pause execution on their owner's disconnect.\n0 = no, 1 = yes, 2 = non-admins only.")
--- This is a global function so it can be overwritten for greater control over whose chips are frozenated
-function wire_expression2_ShouldFreezeChip(ply)
-	return not ply:IsAdmin()
-end
+hook.Add("PlayerDisconnected", "Wire_Expression2_Player_Disconnected", function(ply)
+	E2Lib.PlayerChips[ply] = nil
 
--- It uses EntityRemoved because PlayerDisconnected doesn't catch all disconnects.
-hook.Add("EntityRemoved", "Wire_Expression2_Player_Disconnected", function(ent)
-	if (not (ent and ent:IsPlayer())) then
-		return
-	end
-	local ret = cvar:GetInt()
-	if (ret == 0 or (ret == 2 and not wire_expression2_ShouldFreezeChip(ent))) then
-		return
-	end
 	for _, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
-		if (v.player == ent) then
-			v:SetOverlayText(v.name .. "\n(Owner disconnected.)")
-			local oldColor = v:GetColor()
-			v:SetColor(Color(255, 0, 0, v:GetColor().a))
-			v.disconnectPaused = oldColor
-			v.error = true
+		if v.player == ply and not v.error then
+			v:Error("Owner disconnected")
+			v:Destruct()
 		end
 	end
 end)
 
 hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
-		if ent.uid == uid and ent.context then
-			ent.context.player = ply
-			ent.player = ply
+		if ent.uid == uid then
+			E2Lib.PlayerChips[ply]:add(ent)
 			ent:SetNWEntity("player", ply)
-			ent:SetPlayer(ply)
-
-			if ent.disconnectPaused then
-				ent:SetColor(ent.disconnectPaused)
-				ent:SetRenderMode(ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
-				ent.error = false
-				ent.disconnectPaused = nil
-				ent:SetOverlayText(ent.name)
-			end
-		end
-	end
-	for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-		if ent.steamid == sid then
-			ent:SetPlayer(ply)
+			ent.player = ply
 		end
 	end
 end)
@@ -781,10 +844,10 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 	self:SetModel(model)
 	self:SetAngles(Ang)
 	self:SetPos(Pos)
-	self:Spawn()
 	self:SetPlayer(player)
-	self.player = player
 	self:SetNWEntity("player", player)
+	self.player = player
+	self:Spawn()
 
 	if isstring( buffer ) then -- if someone dupes an E2 with compile errors, then all these values will be invalid
 		buffer = string.Replace(string.Replace(buffer, string.char(163), "\""), string.char(128), "\n")
