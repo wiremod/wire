@@ -79,8 +79,7 @@ function ENT:Initialize()
 	local owner = self.player
 
 	if IsValid(owner) then
-		E2Lib.PlayerChips[owner] = E2Lib.PlayerChips[owner] or {}
-		table.insert(E2Lib.PlayerChips[owner], self)
+		E2Lib.PlayerChips[owner]:add(self)
 	end
 end
 
@@ -297,49 +296,83 @@ function ENT:Think()
 	return true
 end
 
-E2Lib.PlayerChips = E2Lib.PlayerChips or {}
+local PlayerChips = {}
+PlayerChips.__index = PlayerChips
+
+function PlayerChips:new()
+	return setmetatable({chips = {}}, self)
+end
+
+function PlayerChips:getTotalTime()
+	local total_time = 0
+
+	for _, chip in ipairs(self.chips) do
+		local tab = chip:GetTable()
+		if tab.error then continue end
+
+		local context = tab.context
+		if not context then continue end
+
+		total_time = total_time + context.timebench
+	end
+
+	return total_time
+end
+
+function PlayerChips:findMaxTimeChip()
+	local max_chip, max_time = nil, 0
+
+	for _, chip in ipairs(self.chips) do
+		local tab = chip:GetTable()
+		if tab.error then continue end
+
+		local context = tab.context
+		if not context then continue end
+
+		if context.timebench > max_time then
+			max_time = context.timebench
+			max_chip = chip
+		end
+	end
+
+	return max_chip, max_time
+end
+
+function PlayerChips:checkCpuTime()
+	local total_time = self:getTotalTime()
+
+	while total_time > e2_timequota do
+		local max_chip, max_time = self:findMaxTimeChip()
+		if max_chip then
+			total_time = total_time - max_time
+			max_chip:Error("Expression 2 (" .. max_chip.name .. "): Per-player time quota exceeded", "per-player time quota exceeded")
+			max_chip:Destruct()
+		else
+			-- It shouldn't happen, but if something breaks, it will prevent an infinity loop
+			break
+		end
+	end
+end
+
+function PlayerChips:add(chip)
+	table.insert(self.chips, chip)
+end
+
+function PlayerChips:remove(rmchip)
+	for index, chip in ipairs(self.chips) do
+		if rmchip == chip then
+			table.remove(self.chips, index)
+			break
+		end
+	end
+end
+
+E2Lib.PlayerChips = setmetatable({}, {__index = function(self, ply) local chips = PlayerChips:new() self[ply] = chips return chips end})
 
 hook.Add("Think", "E2_Think", function()
-	if e2_timequota < 0 then return end
-
-	for ply, chips in pairs(E2Lib.PlayerChips) do
-		local total_time = 0
-
-		for _, chip in ipairs(chips) do
-			local tab = chip:GetTable()
-			if tab.error then continue end
-
-			local context = tab.context
-			if not context then continue end
-
-			total_time = total_time + context.timebench
-		end
-
-		while total_time > e2_timequota do
-			local max_time = 0
-			local max_chip
-
-			for _, chip in ipairs(chips) do
-				local tab = chip:GetTable()
-				if tab.error then continue end
-
-				local context = tab.context
-				if not context then continue end
-
-				if context.timebench > max_time then
-					max_time = context.timebench
-					max_chip = chip
-				end
-			end
-
-			if max_chip then
-				total_time = total_time - max_time
-				max_chip:Error("Expression 2 (" .. max_chip.name .. "): Per-player time quota exceeded", "per-player time quota exceeded")
-				max_chip:Destruct()
-			else
-				-- It shouldn't happen, but if something breaks, it will prevent an infinity loop
-				break
-			end
+	if e2_timequota > 0 then
+		for ply, chips in pairs(E2Lib.PlayerChips) do
+			chips:checkCpuTime()
 		end
 	end
 end)
@@ -361,13 +394,7 @@ function ENT:OnRemove()
 	if not IsValid(owner) then return end
 
 	local chips = E2Lib.PlayerChips[owner]
-
-	for index, chip in ipairs(chips) do
-		if chip == self then
-			table.remove(chips, index)
-			break
-		end
-	end
+	chips:remove(self)
 
 	if #chips == 0 then
 		E2Lib.PlayerChips[owner] = nil
@@ -797,8 +824,7 @@ end)
 hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
 		if ent.uid == uid then
-			E2Lib.PlayerChips[ply] = E2Lib.PlayerChips[ply] or {}
-			table.insert(E2Lib.PlayerChips[ply], ent)
+			E2Lib.PlayerChips[ply]:add(ent)
 			ent:SetNWEntity("player", ply)
 			ent.player = ply
 		end
