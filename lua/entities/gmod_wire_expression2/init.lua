@@ -300,13 +300,13 @@ local PlayerChips = {}
 PlayerChips.__index = PlayerChips
 
 function PlayerChips:new()
-	return setmetatable({chips = {}}, self)
+	return setmetatable({}, self)
 end
 
 function PlayerChips:getTotalTime()
 	local total_time = 0
 
-	for _, chip in ipairs(self.chips) do
+	for _, chip in ipairs(self) do
 		local tab = chip:GetTable()
 		if tab.error then continue end
 
@@ -322,7 +322,7 @@ end
 function PlayerChips:findMaxTimeChip()
 	local max_chip, max_time = nil, 0
 
-	for _, chip in ipairs(self.chips) do
+	for _, chip in ipairs(self) do
 		local tab = chip:GetTable()
 		if tab.error then continue end
 
@@ -355,13 +355,13 @@ function PlayerChips:checkCpuTime()
 end
 
 function PlayerChips:add(chip)
-	table.insert(self.chips, chip)
+	table.insert(self, chip)
 end
 
-function PlayerChips:remove(rmchip)
-	for index, chip in ipairs(self.chips) do
-		if rmchip == chip then
-			table.remove(self.chips, index)
+function PlayerChips:remove(remove_chip)
+	for index, chip in ipairs(self) do
+		if remove_chip == chip then
+			table.remove(self, index)
 			break
 		end
 	end
