@@ -343,6 +343,7 @@ function PlayerChips:checkCpuTime()
 
 	while total_time > e2_timequota do
 		local max_chip, max_time = self:findMaxTimeChip()
+
 		if max_chip then
 			total_time = total_time - max_time
 			max_chip:Error("Expression 2 (" .. max_chip.name .. "): Per-player time quota exceeded", "per-player time quota exceeded")
@@ -367,7 +368,7 @@ function PlayerChips:remove(remove_chip)
 	end
 end
 
-E2Lib.PlayerChips = setmetatable({}, {__index = function(self, ply) local chips = PlayerChips:new() self[ply] = chips return chips end})
+E2Lib.PlayerChips = E2Lib.PlayerChips or setmetatable({}, {__index = function(self, ply) local chips = PlayerChips:new() self[ply] = chips return chips end})
 
 hook.Add("Think", "E2_Think", function()
 	if e2_timequota > 0 then
@@ -391,13 +392,14 @@ function ENT:OnRemove()
 	end
 
 	local owner = self.player
-	if not IsValid(owner) then return end
 
-	local chips = E2Lib.PlayerChips[owner]
-	chips:remove(self)
+	if IsValid(owner) then
+		local chips = E2Lib.PlayerChips[owner]
+		chips:remove(self)
 
-	if #chips == 0 then
-		E2Lib.PlayerChips[owner] = nil
+		if #chips == 0 then
+			E2Lib.PlayerChips[owner] = nil
+		end
 	end
 
 	BaseClass.OnRemove(self)
