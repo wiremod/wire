@@ -737,10 +737,8 @@ e2function void entity:applyTorque(vector torque)
 
 	local phys = this:GetPhysicsObject()
 
-	-- Convert torque from local to world axis
-	torque = phys:LocalToWorldVector( clamp(torque) )
-	-- Convert rad*in^2 to deg*m^2
-	phys:ApplyTorqueCenter( torque * (180 / math.pi / 39.3701^2) )
+	-- Convert rad*in^2 to deg*m^2 and torque to velocity
+	phys:AddAngleVelocity( torque * (180 / math.pi / 39.3701^2) * phys:GetInvInertia() )
 end
 
 e2function vector entity:inertia()
