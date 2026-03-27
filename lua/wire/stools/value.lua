@@ -20,8 +20,6 @@ local function netWriteValues( selectedValues )
 	local amount = math.Clamp(#selectedValues,0,20)
 	net.WriteUInt(amount,5)
 	for i=1,amount do
-		local DataType, Value = selectedValues[i].DataType, selectedValues[i].Value
-
 		net.WriteString( selectedValues[i].DataType )
 		net.WriteString( string.sub(selectedValues[i].Value,1,3000) )
 	end
@@ -90,7 +88,6 @@ if CLIENT then
 
 	local types_ordered = {	"Number", "String", "Angle", "Vector", "2D Vector", "4D Vector", "Quaternion" }
 
-	local ValuePanels = {}
 	local selectedValues = {}
 	local panels = {}
 	local slider
@@ -242,7 +239,7 @@ if CLIENT then
 		rem:SetImage( "icon16/delete.png" )
 		rem:SizeToContents()
 		rem:SetPos( 0, 4 )
-		rem:SetToolTip( "Remove this value" )
+		rem:SetTooltip( "Remove this value" )
 
 		rem.DoClick = function()
 			if #selectedValues == 1 then -- can't remove the last value
@@ -274,10 +271,10 @@ if CLIENT then
 			tp = types_lookup2[tp] or "Number"
 
 			if validateValue( val, tp ) then
-				pnl.valueEntry:SetToolTip()
+				pnl.valueEntry:SetTooltip()
 				pnl.parseIcon:SetImage( "icon16/accept.png" )
 			else
-				pnl.valueEntry:SetToolTip( "This is not a valid " .. string.lower( tp ) .. ".\nExample: '" .. (examples[tp] or "No example available for this type") .. "'." )
+				pnl.valueEntry:SetTooltip( "This is not a valid " .. string.lower( tp ) .. ".\nExample: '" .. (examples[tp] or "No example available for this type") .. "'." )
 				pnl.parseIcon:SetImage( "icon16/cancel.png" )
 			end
 		end
@@ -301,10 +298,10 @@ if CLIENT then
 				guessType( val, typeSelection )
 			else
 				if validateValue( val, tp ) then
-					pnl.valueEntry:SetToolTip()
+					pnl.valueEntry:SetTooltip()
 					pnl.parseIcon:SetImage( "icon16/accept.png" )
 				else
-					pnl.valueEntry:SetToolTip( "This is not a valid " .. string.lower( tp ) .. ".\nExample: '" .. (examples[tp] or "No example available for this type") .. "'." )
+					pnl.valueEntry:SetTooltip( "This is not a valid " .. string.lower( tp ) .. ".\nExample: '" .. (examples[tp] or "No example available for this type") .. "'." )
 					pnl.parseIcon:SetImage( "icon16/cancel.png" )
 				end
 			end
@@ -383,7 +380,7 @@ if CLIENT then
 		resetButton = reset
 
 		typeGuessCheckbox = panel:CheckBox( "Automatically guess types", "wire_value_guesstype" )
-		typeGuessCheckbox:SetToolTip(
+		typeGuessCheckbox:SetTooltip(
 [[When enabled, the type dropdown will automatically be updated as you type with
 guessed types. It's unable to guess angles because they look the same as vectors.
 
@@ -396,7 +393,6 @@ There will never be an error if auto type guessing is enabled (unless you manual
 set the type), because it will automatically set the type to a string when all other
 types fail.]] )
 
-		local w,_ = panel:GetSize()
 		local valueSlider = vgui.Create( "DNumSlider" )
 		slider = valueSlider
 		panel:AddItem( valueSlider )
@@ -462,7 +458,7 @@ types fail.]] )
 		local add = vgui.Create( "DImageButton", pnl )
 		add:SetImage( "icon16/add.png" )
 		add:SizeToContents()
-		add:SetToolTip( "Add a new value" )
+		add:SetTooltip( "Add a new value" )
 
 		function pnl.PerformLayout()
 			add:Center()

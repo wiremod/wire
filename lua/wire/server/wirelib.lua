@@ -570,7 +570,7 @@ do
 
 	function Q.Forward(q)
 		local q1, q2, q3, q4 = q[1], q[2], q[3], q[4]
-		local t2, t3, t4 = q2 * 2, q3 * 2, q4 * 2
+		local t3, t4 = q3 * 2, q4 * 2
 		return Vector(
 			q1 * q1 + q2 * q2 - q3 * q3 - q4 * q4,
 			t3 * q2 + t4 * q1,
@@ -590,7 +590,7 @@ do
 
 	function Q.Up(q)
 		local q1, q2, q3, q4 = q[1], q[2], q[3], q[4]
-		local t2, t3, t4 = q2 * 2, q3 * 2, q4 * 2
+		local t2, t3 = q2 * 2, q3 * 2
 		return Vector(
 			t3 * q1 + t2 * q4,
 			t3 * q4 - t2 * q1,
