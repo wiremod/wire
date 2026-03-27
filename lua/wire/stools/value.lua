@@ -76,6 +76,7 @@ if CLIENT then
 		Vector = "VECTOR",
 		["2D Vector"] = "VECTOR2",
 		["4D Vector"] = "VECTOR4",
+		Quaternion = "QUATERNION",
 	}
 	local types_lookup2 = {
 		NORMAL = "Number",
@@ -84,9 +85,10 @@ if CLIENT then
 		VECTOR = "Vector",
 		VECTOR2 = "2D Vector",
 		VECTOR4 = "4D Vector",
+		QUATERNION = "Quaternion",
 	}
 
-	local types_ordered = {	"Number", "String", "Angle", "Vector", "2D Vector", "4D Vector" }
+	local types_ordered = {	"Number", "String", "Angle", "Vector", "2D Vector", "4D Vector", "Quaternion" }
 
 	local ValuePanels = {}
 	local selectedValues = {}
@@ -156,11 +158,17 @@ if CLIENT then
 		saveValues()
 	end
 
+	local function validateVec4( val )
+		local x,y,z,w = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" )
+		return tonumber(x) ~= nil and tonumber(y) ~= nil and tonumber(z) ~= nil and tonumber(w) ~= nil
+	end
+
 	local validityChecks = {
 		Number = 		function( val ) return tonumber(val) ~= nil end,
 		["2D Vector"] = function( val ) local x,y = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *$" ) return tonumber(x) ~= nil and tonumber(y) ~= nil end,
 		Vector = 		function( val ) local x,y,z = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" ) return tonumber(x) ~= nil and tonumber(y) ~= nil and tonumber(z) ~= nil end,
-		["4D Vector"] = function( val ) local x,y,z,w = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *, *([%d.]+) *$" ) return tonumber(x) ~= nil and tonumber(y) ~= nil and tonumber(z) ~= nil and tonumber(w) ~= nil end,
+		["4D Vector"] = validateVec4,
+		Quaternion = validateVec4,
 		String = 		function( val ) return true end,
 	}
 	validityChecks.Angle = validityChecks.Vector -- it's the same as vectors
@@ -170,6 +178,7 @@ if CLIENT then
 		["2D Vector"] = "12.34, 12.34",
 		Vector = "12.34, 12.34, 12.34",
 		["4D Vector"] = "12.34, 12.34, 12.34, 12.34",
+		Quaternion = "1, 0, 0, 0",
 		String = "Hello World",
 		Angle = "90, 180, 360",
 	}
@@ -189,6 +198,7 @@ if CLIENT then
 		{5,	validityChecks["2D Vector"]},
 		{4,	validityChecks.Vector},
 		{6,	validityChecks["4D Vector"]},
+		{7,	validityChecks.Quaternion},
 		{2,	validityChecks.String},
 	}
 

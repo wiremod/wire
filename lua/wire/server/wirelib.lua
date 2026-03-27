@@ -202,7 +202,495 @@ WireLib.DT = {
 		Validator = istable,
 		BiDir = true
 	},
+	QUATERNION = {
+	Zero = function()
+		return {0, 0, 0, 0} -- identity quaternion
+	end,
+	Validator = function(q)
+		return istable(q)
+			and isnumber(q[1])
+			and isnumber(q[2])
+			and isnumber(q[3])
+			and isnumber(q[4])
+	end
+	},
 }
+
+WireLib.Quaternion = {}
+
+do
+	local Q = WireLib.Quaternion
+
+	local abs = math.abs
+	local Round = math.Round
+	local sqrt = math.sqrt
+	local exp = math.exp
+	local log = math.log
+	local sin = math.sin
+	local cos = math.cos
+	local acos = math.acos
+
+	local deg2rad = math.pi / 180
+	local rad2deg = 180 / math.pi
+
+	local function qnew(r, i, j, k)
+		return { r or 0, i or 0, j or 0, k or 0 }
+	end
+
+	local function format(value)
+		local r = ""
+		local i = ""
+		local j = ""
+		local k = ""
+		local dbginfo
+
+		if abs(value[1]) > 0.0005 then
+			r = Round(value[1] * 1000) / 1000
+		end
+		dbginfo = r
+
+		if abs(value[2]) > 0.0005 then
+			i = tostring(Round(value[2] * 1000) / 1000)
+			if string.sub(i, 1, 1) ~= "-" and dbginfo ~= "" then i = "+" .. i end
+			i = i .. "i"
+		end
+		dbginfo = dbginfo .. i
+
+		if abs(value[3]) > 0.0005 then
+			j = tostring(Round(value[3] * 1000) / 1000)
+			if string.sub(j, 1, 1) ~= "-" and dbginfo ~= "" then j = "+" .. j end
+			j = j .. "j"
+		end
+		dbginfo = dbginfo .. j
+
+		if abs(value[4]) > 0.0005 then
+			k = tostring(Round(value[4] * 1000) / 1000)
+			if string.sub(k, 1, 1) ~= "-" and dbginfo ~= "" then k = "+" .. k end
+			k = k .. "k"
+		end
+		dbginfo = dbginfo .. k
+
+		if dbginfo == "" then dbginfo = "0" end
+		return dbginfo
+	end
+
+	local function qmul(lhs, rhs)
+		local lhs1, lhs2, lhs3, lhs4 = lhs[1], lhs[2], lhs[3], lhs[4]
+		local rhs1, rhs2, rhs3, rhs4 = rhs[1], rhs[2], rhs[3], rhs[4]
+		return {
+			lhs1 * rhs1 - lhs2 * rhs2 - lhs3 * rhs3 - lhs4 * rhs4,
+			lhs1 * rhs2 + lhs2 * rhs1 + lhs3 * rhs4 - lhs4 * rhs3,
+			lhs1 * rhs3 + lhs3 * rhs1 + lhs4 * rhs2 - lhs2 * rhs4,
+			lhs1 * rhs4 + lhs4 * rhs1 + lhs2 * rhs3 - lhs3 * rhs2
+		}
+	end
+
+	local function qexp(q)
+		local m = sqrt(q[2] * q[2] + q[3] * q[3] + q[4] * q[4])
+		local u
+		if m ~= 0 then
+			u = { q[2] * sin(m) / m, q[3] * sin(m) / m, q[4] * sin(m) / m }
+		else
+			u = { 0, 0, 0 }
+		end
+		local r = exp(q[1])
+		return { r * cos(m), r * u[1], r * u[2], r * u[3] }
+	end
+
+	local function qlog(q)
+		local l = sqrt(q[1] * q[1] + q[2] * q[2] + q[3] * q[3] + q[4] * q[4])
+		if l == 0 then return { -1e+100, 0, 0, 0 } end
+		local u = { q[1] / l, q[2] / l, q[3] / l, q[4] / l }
+		local a = acos(u[1])
+		local m = sqrt(u[2] * u[2] + u[3] * u[3] + u[4] * u[4])
+		if abs(m) > 0 then
+			return { log(l), a * u[2] / m, a * u[3] / m, a * u[4] / m }
+		else
+			return { log(l), 0, 0, 0 }
+		end
+	end
+
+	local function qdot(q1, q2)
+		return q1[1] * q2[1] + q1[2] * q2[2] + q1[3] * q2[3] + q1[4] * q2[4]
+	end
+
+	local function qgetnormalized(q)
+		local len = sqrt(q[1] ^ 2 + q[2] ^ 2 + q[3] ^ 2 + q[4] ^ 2)
+		if len == 0 then return qnew(0, 0, 0, 0) end
+		return { q[1] / len, q[2] / len, q[3] / len, q[4] / len }
+	end
+
+	local function qnormalize(q)
+		local len = sqrt(q[1] ^ 2 + q[2] ^ 2 + q[3] ^ 2 + q[4] ^ 2)
+		if len == 0 then
+			q[1], q[2], q[3], q[4] = 0, 0, 0, 0
+			return q
+		end
+		q[1] = q[1] / len
+		q[2] = q[2] / len
+		q[3] = q[3] / len
+		q[4] = q[4] / len
+		return q
+	end
+
+	function Q.New(r, i, j, k)
+		return qnew(r, i, j, k)
+	end
+
+	function Q.Zero()
+		return qnew(0, 0, 0, 0)
+	end
+
+	function Q.Identity()
+		return qnew(1, 0, 0, 0)
+	end
+
+	function Q.FromComplex(c)
+		return { c[1], c[2], 0, 0 }
+	end
+
+	function Q.FromVector(v)
+		return { 0, v[1], v[2], v[3] }
+	end
+
+	function Q.ToVector(q)
+		return Vector(q[2], q[3], q[4])
+	end
+
+	function Q.Add(a, b)
+		return { a[1] + b[1], a[2] + b[2], a[3] + b[3], a[4] + b[4] }
+	end
+
+	function Q.Sub(a, b)
+		return { a[1] - b[1], a[2] - b[2], a[3] - b[3], a[4] - b[4] }
+	end
+
+	function Q.Neg(q)
+		return { -q[1], -q[2], -q[3], -q[4] }
+	end
+
+	function Q.Scale(q, n)
+		return { q[1] * n, q[2] * n, q[3] * n, q[4] * n }
+	end
+
+	function Q.Mul(a, b)
+		return qmul(a, b)
+	end
+
+	function Q.DivideByNumber(q, n)
+		return { q[1] / n, q[2] / n, q[3] / n, q[4] / n }
+	end
+
+	function Q.NumberDivide(n, q)
+		local q1, q2, q3, q4 = q[1], q[2], q[3], q[4]
+		local l = q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4
+		return {
+			(n * q1) / l,
+			(-n * q2) / l,
+			(-n * q3) / l,
+			(-n * q4) / l
+		}
+	end
+
+	function Q.Divide(a, b)
+		local a1, a2, a3, a4 = a[1], a[2], a[3], a[4]
+		local b1, b2, b3, b4 = b[1], b[2], b[3], b[4]
+		local l = b1 * b1 + b2 * b2 + b3 * b3 + b4 * b4
+		return {
+			(a1 * b1 + a2 * b2 + a3 * b3 + a4 * b4) / l,
+			(-a1 * b2 + a2 * b1 - a3 * b4 + a4 * b3) / l,
+			(-a1 * b3 + a3 * b1 - a4 * b2 + a2 * b4) / l,
+			(-a1 * b4 + a4 * b1 - a2 * b3 + a3 * b2) / l
+		}
+	end
+
+	function Q.NumberPower(base, exponent)
+		if base == 0 then return qnew(0, 0, 0, 0) end
+		local l = log(base)
+		return qexp({ l * exponent[1], l * exponent[2], l * exponent[3], l * exponent[4] })
+	end
+
+	function Q.Power(base, exponent)
+		local l = qlog(base)
+		return qexp({ l[1] * exponent, l[2] * exponent, l[3] * exponent, l[4] * exponent })
+	end
+
+	function Q.Dot(q1, q2)
+		return qdot(q1, q2)
+	end
+
+	function Q.GetNormalized(q)
+		return qgetnormalized(q)
+	end
+
+	function Q.Normalize(q)
+		return qnormalize(q)
+	end
+
+	--- Converts angle table {p, y, r} to a quaternion
+	function Q.Quat(ang)
+		local p, y, r = ang[1], ang[2], ang[3]
+		p = p * deg2rad * 0.5
+		y = y * deg2rad * 0.5
+		r = r * deg2rad * 0.5
+		local qr = { cos(r), sin(r), 0, 0 }
+		local qp = { cos(p), 0, sin(p), 0 }
+		local qy = { cos(y), 0, 0, sin(y) }
+		return qmul(qy, qmul(qp, qr))
+	end
+
+	function Q.QuatFromVectors(forward, up)
+		local x = Vector(forward[1], forward[2], forward[3])
+		local z = Vector(up[1], up[2], up[3])
+		local y = z:Cross(x):GetNormalized()
+
+		local ang = x:Angle()
+		if ang.p > 180 then ang.p = ang.p - 360 end
+		if ang.y > 180 then ang.y = ang.y - 360 end
+
+		local yyaw = Vector(0, 1, 0)
+		yyaw:Rotate(Angle(0, ang.y, 0))
+
+		local roll = acos(math_clamp(y:Dot(yyaw), -1, 1)) * rad2deg
+
+		local dot = y.z
+		if dot < 0 then roll = -roll end
+
+		local p, yy, r = ang.p, ang.y, roll
+		p = p * deg2rad * 0.5
+		yy = yy * deg2rad * 0.5
+		r = r * deg2rad * 0.5
+		local qr = { cos(r), sin(r), 0, 0 }
+		local qp = { cos(p), 0, sin(p), 0 }
+		local qy = { cos(yy), 0, 0, sin(yy) }
+		return qmul(qy, qmul(qp, qr))
+	end
+
+	--- Converts angle of an entity to a quaternion
+	function Q.QuatFromEntity(ent)
+		if not IsValid(ent) then
+			return qnew(0, 0, 0, 0)
+		end
+		local ang = ent:GetAngles()
+		local p, y, r = ang.p, ang.y, ang.r
+		p = p * deg2rad * 0.5
+		y = y * deg2rad * 0.5
+		r = r * deg2rad * 0.5
+		local qr = { cos(r), sin(r), 0, 0 }
+		local qp = { cos(p), 0, sin(p), 0 }
+		local qy = { cos(y), 0, 0, sin(y) }
+		return qmul(qy, qmul(qp, qr))
+	end
+
+	--- Returns absolute value (magnitude) of quaternion
+	function Q.Abs(q)
+		return sqrt(q[1] * q[1] + q[2] * q[2] + q[3] * q[3] + q[4] * q[4])
+	end
+
+	--- Returns the conjugate of a quaternion
+	function Q.Conj(q)
+		return { q[1], -q[2], -q[3], -q[4] }
+	end
+
+	--- Returns the inverse of a quaternion
+	function Q.Inv(q)
+		local l = q[1] * q[1] + q[2] * q[2] + q[3] * q[3] + q[4] * q[4]
+		if l == 0 then return qnew(0, 0, 0, 0) end
+		return { q[1] / l, -q[2] / l, -q[3] / l, -q[4] / l }
+	end
+
+	--- Raises Euler's constant e to the power of quaternion q
+	function Q.Exp(q)
+		return qexp(q)
+	end
+
+	--- Calculates natural logarithm of quaternion q
+	function Q.Log(q)
+		return qlog(q)
+	end
+
+	--- Changes quaternion so that the represented rotation is by an angle between 0 and 180 degrees
+	function Q.Mod(q)
+		if q[1] < 0 then
+			return { -q[1], -q[2], -q[3], -q[4] }
+		end
+		return { q[1], q[2], q[3], q[4] }
+	end
+
+	--- Performs spherical linear interpolation between q0 and q1
+	function Q.Slerp(q0, q1, t)
+		local dot = qdot(q0, q1)
+
+		if dot < 0 then
+			q1 = { -q1[1], -q1[2], -q1[3], -q1[4] }
+			dot = -dot
+		end
+
+		if dot > 0.9995 then
+			local lerped = {
+				q0[1] + t * (q1[1] - q0[1]),
+				q0[2] + t * (q1[2] - q0[2]),
+				q0[3] + t * (q1[3] - q0[3]),
+				q0[4] + t * (q1[4] - q0[4]),
+			}
+			qnormalize(lerped)
+			return lerped
+		end
+
+		local theta_0 = acos(dot)
+		local theta = theta_0 * t
+		local sin_theta = sin(theta)
+		local sin_theta_0 = sin(theta_0)
+
+		local s0 = cos(theta) - dot * sin_theta / sin_theta_0
+		local s1 = sin_theta / sin_theta_0
+
+		local slerped = {
+			q0[1] * s0 + q1[1] * s1,
+			q0[2] * s0 + q1[2] * s1,
+			q0[3] * s0 + q1[3] * s1,
+			q0[4] * s0 + q1[4] * s1,
+		}
+		qnormalize(slerped)
+		return slerped
+	end
+
+	--- Performs normalized linear interpolation between q0 and q1
+	function Q.Nlerp(q0, q1, t)
+		local t1 = 1 - t
+		local q2
+		if qdot(q0, q1) < 0 then
+			q2 = { q0[1] * t1 - q1[1] * t, q0[2] * t1 - q1[2] * t, q0[3] * t1 - q1[3] * t, q0[4] * t1 - q1[4] * t }
+		else
+			q2 = { q0[1] * t1 + q1[1] * t, q0[2] * t1 + q1[2] * t, q0[3] * t1 + q1[3] * t, q0[4] * t1 + q1[4] * t }
+		end
+		qnormalize(q2)
+		return q2
+	end
+
+	function Q.Forward(q)
+		local q1, q2, q3, q4 = q[1], q[2], q[3], q[4]
+		local t2, t3, t4 = q2 * 2, q3 * 2, q4 * 2
+		return Vector(
+			q1 * q1 + q2 * q2 - q3 * q3 - q4 * q4,
+			t3 * q2 + t4 * q1,
+			t4 * q2 - t3 * q1
+		)
+	end
+
+	function Q.Right(q)
+		local q1, q2, q3, q4 = q[1], q[2], q[3], q[4]
+		local t2, t3, t4 = q2 * 2, q3 * 2, q4 * 2
+		return Vector(
+			t4 * q1 - t2 * q3,
+			q2 * q2 - q1 * q1 + q4 * q4 - q3 * q3,
+			- t2 * q1 - t3 * q4
+		)
+	end
+
+	function Q.Up(q)
+		local q1, q2, q3, q4 = q[1], q[2], q[3], q[4]
+		local t2, t3, t4 = q2 * 2, q3 * 2, q4 * 2
+		return Vector(
+			t3 * q1 + t2 * q4,
+			t3 * q4 - t2 * q1,
+			q1 * q1 - q2 * q2 - q3 * q3 + q4 * q4
+		)
+	end
+
+	--- Returns quaternion for rotation about axis by angle (in degrees)
+	function Q.Rotation(axis, ang)
+		local ax = Vector(axis[1], axis[2], axis[3])
+		ax:Normalize()
+		local ang2 = ang * deg2rad * 0.5
+		return { cos(ang2), ax.x * sin(ang2), ax.y * sin(ang2), ax.z * sin(ang2) }
+	end
+
+	function Q.RotationFromVector(rv1)
+		local angSquared = rv1[1] * rv1[1] + rv1[2] * rv1[2] + rv1[3] * rv1[3]
+		if angSquared == 0 then return qnew(1, 0, 0, 0) end
+		local len = sqrt(angSquared)
+		local ang = (len + 180) % 360 - 180
+		local ang2 = ang * deg2rad * 0.5
+		local sang2len = sin(ang2) / len
+		return { cos(ang2), rv1[1] * sang2len, rv1[2] * sang2len, rv1[3] * sang2len }
+	end
+
+	function Q.RotationAngle(q)
+		local l2 = q[1] * q[1] + q[2] * q[2] + q[3] * q[3] + q[4] * q[4]
+		if l2 == 0 then return 0 end
+		local l = sqrt(l2)
+		local ang = 2 * acos(math_clamp(q[1] / l, -1, 1)) * rad2deg
+		if ang > 180 then ang = ang - 360 end
+		return ang
+	end
+
+	function Q.RotationAxis(q)
+		local m2 = q[2] * q[2] + q[3] * q[3] + q[4] * q[4]
+		if m2 == 0 then return Vector(0, 0, 1) end
+		local m = sqrt(m2)
+		return Vector(q[2] / m, q[3] / m, q[4] / m)
+	end
+
+	function Q.RotationVector(q)
+		local l2 = q[1] * q[1] + q[2] * q[2] + q[3] * q[3] + q[4] * q[4]
+		local m2 = math.max(q[2] * q[2] + q[3] * q[3] + q[4] * q[4], 0)
+		if l2 == 0 or m2 == 0 then return Vector(0, 0, 0) end
+		local s = 2 * acos(math_clamp(q[1] / sqrt(l2), -1, 1)) * rad2deg
+		if s > 180 then s = s - 360 end
+		s = s / sqrt(m2)
+		return Vector(q[2] * s, q[3] * s, q[4] * s)
+	end
+
+	function Q.ToMatrix(q)
+		local w, x, y, z = q[1], q[2], q[3], q[4]
+		return {
+			1 - 2 * y * y - 2 * z * z, 2 * x * y - 2 * z * w, 2 * x * z + 2 * y * w,
+			2 * x * y + 2 * z * w, 1 - 2 * x * x - 2 * z * z, 2 * y * z - 2 * x * w,
+			2 * x * z - 2 * y * w, 2 * y * z + 2 * x * w, 1 - 2 * x * x - 2 * y * y
+		}
+	end
+
+	function Q.ToAngle(q)
+		local l = sqrt(q[1] * q[1] + q[2] * q[2] + q[3] * q[3] + q[4] * q[4])
+		if l == 0 then return Angle(0, 0, 0) end
+		local q1, q2, q3, q4 = q[1] / l, q[2] / l, q[3] / l, q[4] / l
+
+		local x = Vector(
+			q1 * q1 + q2 * q2 - q3 * q3 - q4 * q4,
+			2 * q3 * q2 + 2 * q4 * q1,
+			2 * q4 * q2 - 2 * q3 * q1
+		)
+
+		local y = Vector(
+			2 * q2 * q3 - 2 * q4 * q1,
+			q1 * q1 - q2 * q2 + q3 * q3 - q4 * q4,
+			2 * q2 * q1 + 2 * q3 * q4
+		)
+
+		local ang = x:Angle()
+		if ang.p > 180 then ang.p = ang.p - 360 end
+		if ang.y > 180 then ang.y = ang.y - 360 end
+
+		local yyaw = Vector(0, 1, 0)
+		yyaw:Rotate(Angle(0, ang.y, 0))
+
+		local roll = acos(math_clamp(y:Dot(yyaw), -1, 1)) * rad2deg
+
+		local dot = q2 * q1 + q3 * q4
+		if dot < 0 then roll = -roll end
+
+		return Angle(ang.p, ang.y, roll)
+	end
+
+	function Q.Normalized(q)
+		return qgetnormalized(q)
+	end
+
+	function Q.ToString(q)
+		return format(q)
+	end
+end
 
 --- Conversion factors for unit conversion gates and E2 functions.
 --- Each value represents the factor to convert from natural units to this unit.
