@@ -1238,18 +1238,18 @@ GateActions["entity_eyepos"] = {
 
 GateActions["entity_setanglevelocity"] = {
     name = "Set Angle Velocity",
-    inputs = { "Ent", "Ang" },
-    inputtypes = { "ENTITY", "ANGLE" },
+    inputs = { "Ent", "Vec" },
+    inputtypes = { "ENTITY", "VECTOR" },
     timed = true,
-    output = function(gate, ent, ang)
+    output = function(gate, ent, vec)
         if not isAllowed(gate, ent) then return end
         local phys = ent:GetPhysicsObject()
         if not IsValid(phys) then return end
-		ang = clamp(Vector(ang.p, ang.y, ang.r))
-        phys:SetAngleVelocity(ang)
+		vec = clamp(Vector(vec.x, vec.y, vec.z))
+        phys:SetAngleVelocity(vec)
     end,
-    label = function(_, ent, ang)
-        return string.format("(%s):setAngleVelocity(%s)", ent, ang)
+    label = function(_, ent, vec)
+        return string.format("(%s):setAngleVelocity(%s)", ent, vec)
     end
 }
 
