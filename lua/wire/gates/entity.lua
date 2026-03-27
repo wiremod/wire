@@ -1245,7 +1245,7 @@ GateActions["entity_setanglevelocity"] = {
         if not isAllowed(gate, ent) then return end
         local phys = ent:GetPhysicsObject()
         if not IsValid(phys) then return end
-		ang = clamp(Angle(ang.p, ang.y, ang.r))
+		ang = clamp(Vector(ang.p, ang.y, ang.r))
         phys:SetAngleVelocity(ang)
     end,
     label = function(_, ent, ang)
