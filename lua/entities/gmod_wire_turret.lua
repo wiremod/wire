@@ -30,7 +30,7 @@ function ENT:Initialize()
 
 	-- Not all entities have an 1 attachment
 	local attachment = self:GetAttachment(1)
-	self.attachmentPos = attachment and phys:WorldToLocal(attachment.Pos) or vector_origin
+	self.attachmentPos = attachment and self:WorldToLocal(attachment.Pos) or vector_origin
 
 	self.Inputs = WireLib.CreateSpecialInputs(self,
 		{ "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound", "Tracer" },
