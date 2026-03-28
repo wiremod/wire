@@ -27,7 +27,10 @@ function ENT:Initialize()
 	self.Firing       = false
 	self.spreadvector = Vector()
 	self.effectdata   = EffectData()
-	self.attachmentPos = phys:WorldToLocal(self:GetAttachment(1).Pos)
+
+	-- Not all entities have an 1 attachment
+	local attachment = self:GetAttachment(1)
+	self.attachmentPos = attachment and phys:WorldToLocal(attachment.Pos) or vector_origin
 
 	self.Inputs = WireLib.CreateSpecialInputs(self,
 		{ "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound", "Tracer" },
