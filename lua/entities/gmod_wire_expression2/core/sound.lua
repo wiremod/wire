@@ -292,19 +292,21 @@ e2function number soundPlaying( string index ) = e2function number soundPlaying(
 
 -- EmitSound
 
-local function EmitSound(e2, ent, snd, level, pitch, volume)
+local function EmitSound(e2, ent, path, level, pitch, volume)
 	if not isAllowed(e2) then return end
-
 	if not IsValid(ent) then return e2:throw("Invalid entity!", nil) end
 	if not isOwner(e2, ent) then return e2:throw("You do not own this entity!", nil) end
 
-	local maxlevel = wire_expression2_sound_level_max:GetInt()
-	if level ~= nil and level > maxlevel then
-		level = maxlevel
+	local max_level = wire_expression2_sound_level_max:GetInt()
+
+	-- Level 0 = play sound throughout the map
+	if max_level ~= -1 and (level == 0 or level > max_level) then
+		level = max_level
 	end
 
-	snd = string.sub(snd, 1, 260)
-	if snd:match('["?]') then return end
+	path = WireLib.SoundExists(path)
+	if not path then return end
+
 	ent:EmitSound(snd, level, pitch, volume)
 end
 

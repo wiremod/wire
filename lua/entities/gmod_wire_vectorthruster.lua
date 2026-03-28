@@ -15,12 +15,12 @@ end
 function ENT:SetOn( boolon )
 	if (self:IsOn() ~= boolon) then
 		if (boolon) then
-			if (self.soundname and self.soundname ~= "") then
+			if self.soundname then
 				self:StopSound( self.soundname )
 				self:EmitSound( self.soundname )
 			end
 		else
-			if (self.soundname and self.soundname ~= "") then
+			if self.soundname then
 				self:StopSound( self.soundname )
 			end
 		end
@@ -128,13 +128,13 @@ function ENT:Initialize()
 
 	self.Inputs = Wire_CreateInputs(self, { "Mul" })
 
-	self.soundname = Sound( "PhysicsCannister.ThrusterLoop" )
+	self.soundname = "PhysicsCannister.ThrusterLoop"
 end
 
 function ENT:OnRemove()
 	BaseClass.OnRemove(self)
 
-	if (self.soundname) then
+	if self.soundname then
 		self:StopSound(self.soundname)
 	end
 end
@@ -195,18 +195,15 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.angleinputs = angleinputs
 	self.lengthismul = lengthismul
 
-	-- Preventing client crashes
-	local BlockedChars = "[\"?]"
-	if ( string.find(soundname, BlockedChars) ) then
-		soundname = ""
-	end
+	if soundname then
+		self.soundname = WireLib.SoundExists(soundname)
 
-	if (soundname and soundname == "" and self.soundname and self.soundname ~= "") then
-		self:StopSound(self.soundname)
-	end
-
-	if (soundname) then
-		self.soundname = Sound(soundname)
+		if self.soundname then
+			self:StopSound(self.soundname)
+		end
+	else
+		self:StopSound( self.soundname or "" )
+		self.soundname = nil
 	end
 
 	self.mode = mode or 0
