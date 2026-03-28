@@ -329,11 +329,19 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if info.linked_entities then
-		if type( info.linked_entities ) == "number" then -- old dupe compatibility
-			self:LinkEnt( GetEntByID( info.linked_entities ) )
+		self:ClearEntities()
+
+		if type(info.linked_entities) == "number" then -- old dupe compatibility
+			local linked = GetEntByID(info.linked_entities)
+			if IsValid(linked) then
+				self:LinkEnt(linked, true)
+			end
 		else
-			for i=1,#info.linked_entities do
-				self:LinkEnt( GetEntByID( info.linked_entities[i] ) )
+			for i = 1, #info.linked_entities do
+				local linked = GetEntByID(info.linked_entities[i])
+				if IsValid(linked) then
+					self:LinkEnt(linked, true)
+				end
 			end
 		end
 	end
