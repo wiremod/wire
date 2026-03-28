@@ -210,6 +210,29 @@ e2function number entity:cpuUsage()
 	return this.context.timebench
 end
 
+__e2setcost(100) -- approximation
+
+[nodiscard]
+e2function number totalCpuUsage()
+	local owner = self.player
+	if not IsValid(owner) then return self.timebench end
+
+	return E2Lib.PlayerChips[owner]:getTotalTime()
+end
+
+[nodiscard]
+e2function number entity:totalCpuUsage()
+	if not IsValid(this) or not this:IsPlayer() then return 0 end
+
+	-- To avoid creating new table
+	local chips = rawget(E2Lib.PlayerChips, this)
+	if not chips then return 0 end
+
+	return chips:getTotalTime()
+end
+
+__e2setcost(1)
+
 --- If used as a while loop condition, stabilizes the expression around <maxexceed> hardquota used.
 [nodiscard]
 e2function number perf()
