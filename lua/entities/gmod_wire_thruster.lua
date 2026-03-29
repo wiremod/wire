@@ -180,7 +180,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.owater = owater
 	self.uwater = uwater
 
-	if soundname then
+	if soundname and soundname ~= "" then
 		self.soundname = WireLib.SoundExists(soundname)
 	else
 		self:StopSound( self.soundname or "" )

@@ -195,7 +195,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.angleinputs = angleinputs
 	self.lengthismul = lengthismul
 
-	if soundname then
+	if soundname and soundname ~= "" then
 		self.soundname = WireLib.SoundExists(soundname)
 
 		if self.soundname then
