@@ -117,10 +117,10 @@ local ValidTracers = {
 	[""]                      = true
 }
 
-function ENT:SetSound( sound )
-	sound = string.Trim( tostring( sound or "" ) ) -- Remove whitespace ( manual )
-	local check = string.find( sound, "[\"?]" ) -- Preventing client crashes
-	self.sound = check == nil and sound ~= "" and sound or nil -- Apply the pattern check
+function ENT:SetSound( path )
+	if path then
+		self.sound = WireLib.SoundExists(path)
+	end
 end
 
 function ENT:SetDelay( delay )
