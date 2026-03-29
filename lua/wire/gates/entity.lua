@@ -1244,9 +1244,8 @@ GateActions["entity_setanglevelocity"] = {
     output = function(gate, ent, vec)
         if not isAllowed(gate, ent) then return end
         local phys = ent:GetPhysicsObject()
-        if not IsValid(phys) then return end
-		vec = clamp(Vector(vec.x, vec.y, vec.z))
-        phys:SetAngleVelocity(vec)
+        if not phys:IsValid() then return end
+        phys:SetAngleVelocity(clamp(Vector(vec)))
     end,
     label = function(_, ent, vec)
         return string.format("(%s):setAngleVelocity(%s)", ent, vec)
@@ -1261,9 +1260,8 @@ GateActions["entity_setvelocity"] = {
     output = function(gate, ent, vec)
         if not isAllowed(gate, ent) then return end
         local phys = ent:GetPhysicsObject()
-        if not IsValid(phys) then return end
-		vec = clamp(vec)
-        phys:SetVelocity(vec)
+        if not phys:IsValid() then return end
+        phys:SetVelocity(clamp(Vector(vec)))
     end,
     label = function(_, ent, vec)
         return string.format("(%s):setVelocity(%s)", ent, vec)
