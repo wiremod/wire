@@ -734,6 +734,7 @@ e2function void entity:applyTorque(vector torque)
 	if not validPhysics(this) then return self:throw("Invalid physics object!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 	if torque:IsZero() then return end
+	torque = clamp(torque)
 
 	local phys = this:GetPhysicsObject()
 
