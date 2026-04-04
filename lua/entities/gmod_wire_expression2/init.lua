@@ -392,9 +392,9 @@ function ENT:OnRemove()
 	end
 
 	local owner = self.player
+	local chips = rawget(E2Lib.PlayerChips, owner)
 
-	if IsValid(owner) then
-		local chips = E2Lib.PlayerChips[owner]
+	if chips then
 		chips:remove(self)
 
 		if #chips == 0 then
