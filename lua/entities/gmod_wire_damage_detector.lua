@@ -61,6 +61,8 @@ function ENT:Initialize()
 	self.linked_entities = {} -- numerical array
 	self.linked_entities_lookup = {} -- lookup table indexed by entities
 
+	self:LinkEnt( self )
+
 	self.count = 0
 	self.key_ents = {}
 
