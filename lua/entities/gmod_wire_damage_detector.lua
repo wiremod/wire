@@ -61,8 +61,6 @@ function ENT:Initialize()
 	self.linked_entities = {} -- numerical array
 	self.linked_entities_lookup = {} -- lookup table indexed by entities
 
-	self:LinkEnt( self )
-
 	self.count = 0
 	self.key_ents = {}
 
@@ -331,17 +329,11 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if info.linked_entities then
 		self:ClearEntities()
 
-		if type(info.linked_entities) == "number" then -- old dupe compatibility
-			local linked = GetEntByID(info.linked_entities)
-			if IsValid(linked) then
-				self:LinkEnt(linked, true)
-			end
+		if type( info.linked_entities ) == "number" then -- old dupe compatibility
+			self:LinkEnt( GetEntByID( info.linked_entities ) )
 		else
-			for i = 1, #info.linked_entities do
-				local linked = GetEntByID(info.linked_entities[i])
-				if IsValid(linked) then
-					self:LinkEnt(linked, true)
-				end
+			for i=1,#info.linked_entities do
+				self:LinkEnt( GetEntByID( info.linked_entities[i] ) )
 			end
 		end
 	end
