@@ -288,7 +288,7 @@ function ENT:TriggerInput(iname, value)
 		self.freezePitch = value == 0
 	elseif iname == "UnfreezeYaw" then
 		self.freezeYaw = value == 0
-	elseif iname == "Vehicle"
+	elseif iname == "Vehicle" then
 		if( TypeID(value) ~= TYPE_ENTITY ) then return end
 		if( not IsValid(value) ) then return end
 
