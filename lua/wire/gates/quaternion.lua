@@ -64,6 +64,7 @@ end
 
 GateActions["quaternion_ident"] = {
 	name = "Identity",
+	description = "Passes the input quaternion through unchanged. Falls back to identity if the input is invalid.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "QUATERNION" },
@@ -77,6 +78,7 @@ GateActions["quaternion_ident"] = {
 
 GateActions["quaternion_add"] = {
 	name = "Addition",
+	description = "Adds multiple quaternions component-wise, ignoring invalid inputs.",
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	inputtypes = { "QUATERNION", "QUATERNION", "QUATERNION", "QUATERNION", "QUATERNION", "QUATERNION", "QUATERNION", "QUATERNION" },
 	compact_inputs = 2,
@@ -107,6 +109,7 @@ GateActions["quaternion_add"] = {
 
 GateActions["quaternion_sub"] = {
 	name = "Subtraction",
+	description = "Subtracts quaternion B from quaternion A.",
 	inputs = { "A", "B" },
 	inputtypes = { "QUATERNION", "QUATERNION" },
 	outputtypes = { "QUATERNION" },
@@ -122,6 +125,7 @@ GateActions["quaternion_sub"] = {
 
 GateActions["quaternion_neg"] = {
 	name = "Negate",
+	description = "Negates all four components of a quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "QUATERNION" },
@@ -140,6 +144,7 @@ GateActions["quaternion_neg"] = {
 
 GateActions["quaternion_mul"] = {
 	name = "Multiplication",
+	description = "Multiplies two quaternions using quaternion multiplication.",
 	inputs = { "A", "B" },
 	inputtypes = { "QUATERNION", "QUATERNION" },
 	outputtypes = { "QUATERNION" },
@@ -154,7 +159,8 @@ GateActions["quaternion_mul"] = {
 }
 
 GateActions["quaternion_scale"] = {
-	name = "Scalar Multiplication",
+	name = "Multiplication Scalar",
+	description = "Multiplies a quaternion by a scalar.",
 	inputs = { "A", "B" },
 	inputtypes = { "QUATERNION", "NORMAL" },
 	outputtypes = { "QUATERNION" },
@@ -170,6 +176,7 @@ GateActions["quaternion_scale"] = {
 
 GateActions["quaternion_divide"] = {
 	name = "Division",
+	description = "Divides quaternion A by quaternion B.",
 	inputs = { "A", "B" },
 	inputtypes = { "QUATERNION", "QUATERNION" },
 	outputtypes = { "QUATERNION" },
@@ -184,7 +191,8 @@ GateActions["quaternion_divide"] = {
 }
 
 GateActions["quaternion_dividenum"] = {
-	name = "Scalar Division",
+	name = "Division Scalar",
+	description = "Divides a quaternion by a scalar.",
 	inputs = { "A", "B" },
 	inputtypes = { "QUATERNION", "NORMAL" },
 	outputtypes = { "QUATERNION" },
@@ -200,6 +208,7 @@ GateActions["quaternion_dividenum"] = {
 
 GateActions["quaternion_power"] = {
 	name = "Power",
+	description = "Raises quaternion A to the scalar power B.",
 	inputs = { "A", "B" },
 	inputtypes = { "QUATERNION", "NORMAL" },
 	outputtypes = { "QUATERNION" },
@@ -219,7 +228,8 @@ GateActions["quaternion_power"] = {
 }
 
 GateActions["quaternion_scalarpower"] = {
-	name = "Scalar Power",
+	name = "Power Scalar",
+	description = "Raises scalar A to the quaternion power B.",
 	inputs = { "A", "B" },
 	inputtypes = { "NORMAL", "QUATERNION" },
 	outputtypes = { "QUATERNION" },
@@ -238,6 +248,7 @@ GateActions["quaternion_scalarpower"] = {
 
 GateActions["quaternion_abs"] = {
 	name = "Magnitude",
+	description = "Returns the magnitude of a quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "NORMAL" },
@@ -253,6 +264,7 @@ GateActions["quaternion_abs"] = {
 
 GateActions["quaternion_conj"] = {
 	name = "Conjugate",
+	description = "Returns the conjugate of a quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "QUATERNION" },
@@ -271,6 +283,7 @@ GateActions["quaternion_conj"] = {
 
 GateActions["quaternion_inv"] = {
 	name = "Inverse",
+	description = "Returns the inverse of a quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "QUATERNION" },
@@ -286,6 +299,7 @@ GateActions["quaternion_inv"] = {
 
 GateActions["quaternion_dot"] = {
 	name = "Dot Product",
+	description = "Returns the dot product of two quaternions.",
 	inputs = { "A", "B" },
 	inputtypes = { "QUATERNION", "QUATERNION" },
 	outputtypes = { "NORMAL" },
@@ -301,6 +315,7 @@ GateActions["quaternion_dot"] = {
 
 GateActions["quaternion_exp"] = {
 	name = "Exp",
+	description = "Raises Euler's constant e to the quaternion power.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "QUATERNION" },
@@ -316,6 +331,7 @@ GateActions["quaternion_exp"] = {
 
 GateActions["quaternion_log"] = {
 	name = "Log",
+	description = "Returns the natural logarithm of a quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "QUATERNION" },
@@ -330,7 +346,8 @@ GateActions["quaternion_log"] = {
 }
 
 GateActions["quaternion_qmod"] = {
-	name = "qMod",
+	name = "Mod",
+	description = "Adjusts the quaternion so the represented rotation stays within the 0 to 180 degree range.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "QUATERNION" },
@@ -346,6 +363,7 @@ GateActions["quaternion_qmod"] = {
 
 GateActions["quaternion_normalized"] = {
 	name = "Normalized",
+	description = "Returns a normalized quaternion. Falls back to identity for invalid or zero-length input.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "QUATERNION" },
@@ -359,6 +377,7 @@ GateActions["quaternion_normalized"] = {
 
 GateActions["quaternion_slerp"] = {
 	name = "Slerp",
+	description = "Performs spherical linear interpolation between two quaternions.",
 	inputs = { "A", "B", "T" },
 	inputtypes = { "QUATERNION", "QUATERNION", "NORMAL" },
 	outputtypes = { "QUATERNION" },
@@ -376,6 +395,7 @@ GateActions["quaternion_slerp"] = {
 
 GateActions["quaternion_nlerp"] = {
 	name = "Nlerp",
+	description = "Performs normalized linear interpolation between two quaternions.",
 	inputs = { "A", "B", "T" },
 	inputtypes = { "QUATERNION", "QUATERNION", "NORMAL" },
 	outputtypes = { "QUATERNION" },
@@ -393,6 +413,7 @@ GateActions["quaternion_nlerp"] = {
 
 GateActions["quaternion_forward"] = {
 	name = "Forward",
+	description = "Returns the forward direction vector represented by the quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "VECTOR" },
@@ -408,6 +429,7 @@ GateActions["quaternion_forward"] = {
 
 GateActions["quaternion_right"] = {
 	name = "Right",
+	description = "Returns the right direction vector represented by the quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "VECTOR" },
@@ -423,6 +445,7 @@ GateActions["quaternion_right"] = {
 
 GateActions["quaternion_up"] = {
 	name = "Up",
+	description = "Returns the up direction vector represented by the quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "VECTOR" },
@@ -437,7 +460,8 @@ GateActions["quaternion_up"] = {
 }
 
 GateActions["quaternion_qrotation"] = {
-	name = "qRotation (Axis + Angle)",
+	name = "Rotation (Axis + Angle)",
+	description = "Creates a rotation quaternion from an axis vector and an angle in degrees.",
 	inputs = { "Axis", "Angle" },
 	inputtypes = { "VECTOR", "NORMAL" },
 	outputtypes = { "QUATERNION" },
@@ -448,12 +472,13 @@ GateActions["quaternion_qrotation"] = {
 		return Q.Rotation(Axis, Angle or 0)
 	end,
 	label = function(Out, Axis, Angle)
-		return "qRotation(" .. tostring(Axis) .. ", " .. nfmt(Angle or 0) .. ") = " .. qfmt(Out)
+		return "Rotation(" .. tostring(Axis) .. ", " .. nfmt(Angle or 0) .. ") = " .. qfmt(Out)
 	end
 }
 
 GateActions["quaternion_qrotationvec"] = {
-	name = "qRotation (Rotation Vector)",
+	name = "Rotation (Rotation Vector)",
+	description = "Creates a rotation quaternion from a rotation vector.",
 	inputs = { "RV" },
 	inputtypes = { "VECTOR" },
 	outputtypes = { "QUATERNION" },
@@ -464,12 +489,13 @@ GateActions["quaternion_qrotationvec"] = {
 		return Q.RotationFromVector(RV)
 	end,
 	label = function(Out, RV)
-		return "qRotation(" .. tostring(RV) .. ") = " .. qfmt(Out)
+		return "Rotation(" .. tostring(RV) .. ") = " .. qfmt(Out)
 	end
 }
 
 GateActions["quaternion_rotationangle"] = {
 	name = "Rotation Angle",
+	description = "Returns the rotation angle in degrees represented by the quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "NORMAL" },
@@ -485,6 +511,7 @@ GateActions["quaternion_rotationangle"] = {
 
 GateActions["quaternion_rotationaxis"] = {
 	name = "Rotation Axis",
+	description = "Returns the rotation axis represented by the quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "VECTOR" },
@@ -500,6 +527,7 @@ GateActions["quaternion_rotationaxis"] = {
 
 GateActions["quaternion_rotationvector"] = {
 	name = "Rotation Vector",
+	description = "Returns the rotation vector represented by the quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "VECTOR" },
@@ -515,6 +543,7 @@ GateActions["quaternion_rotationvector"] = {
 
 GateActions["quaternion_vec"] = {
 	name = "Vec",
+	description = "Extracts the imaginary vector part of a quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "VECTOR" },
@@ -531,6 +560,7 @@ GateActions["quaternion_vec"] = {
 
 GateActions["quaternion_toangle"] = {
 	name = "To Angle",
+	description = "Converts a quaternion to an angle.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "ANGLE" },
@@ -546,6 +576,7 @@ GateActions["quaternion_toangle"] = {
 
 GateActions["quaternion_tostring"] = {
 	name = "To String",
+	description = "Converts a quaternion to a formatted string.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "STRING" },
@@ -574,36 +605,9 @@ GateActions["quaternion_matrix"] = {
 	end
 }
 
-GateActions["quaternion_quat0"] = {
-	name = "quat()",
-	inputs = {},
-	inputtypes = {},
-	outputtypes = { "QUATERNION" },
-	output = function(gate)
-		local Q = getQ()
-		return Q and Q.Zero() or QZERO
-	end,
-	label = function(Out)
-		return "quat() = " .. qfmt(Out)
-	end
-}
-
-GateActions["quaternion_quat_real"] = {
-	name = "quat(real)",
-	inputs = { "Real" },
-	inputtypes = { "NORMAL" },
-	outputtypes = { "QUATERNION" },
-	output = function(gate, Real)
-		local Q = getQ()
-		return Q and Q.New(Real or 0, 0, 0, 0) or { Real or 0, 0, 0, 0 }
-	end,
-	label = function(Out, Real)
-		return "quat(" .. nfmt(Real or 0) .. ") = " .. qfmt(Out)
-	end
-}
-
 GateActions["quaternion_quat_vec"] = {
 	name = "quat(vector)",
+	description = "Creates a pure quaternion from a vector, using the vector as the imaginary part.",
 	inputs = { "Imag" },
 	inputtypes = { "VECTOR" },
 	outputtypes = { "QUATERNION" },
@@ -620,6 +624,7 @@ GateActions["quaternion_quat_vec"] = {
 
 GateActions["quaternion_quat_compose"] = {
 	name = "quat(real, i, j, k)",
+	description = "Creates a quaternion from four scalar components: real, i, j, and k.",
 	inputs = { "Real", "I", "J", "K" },
 	inputtypes = { "NORMAL", "NORMAL", "NORMAL", "NORMAL" },
 	outputtypes = { "QUATERNION" },
@@ -635,6 +640,7 @@ GateActions["quaternion_quat_compose"] = {
 
 GateActions["quaternion_quat_angle"] = {
 	name = "quat(angle)",
+	description = "Converts an angle to a quaternion.",
 	inputs = { "Angle" },
 	inputtypes = { "ANGLE" },
 	outputtypes = { "QUATERNION" },
@@ -651,6 +657,7 @@ GateActions["quaternion_quat_angle"] = {
 
 GateActions["quaternion_quat_vectors"] = {
 	name = "quat(forward, up)",
+	description = "Builds a quaternion from forward and up vectors.",
 	inputs = { "Forward", "Up" },
 	inputtypes = { "VECTOR", "VECTOR" },
 	outputtypes = { "QUATERNION" },
@@ -668,6 +675,7 @@ GateActions["quaternion_quat_vectors"] = {
 
 GateActions["quaternion_quat_entity"] = {
 	name = "quat(entity)",
+	description = "Builds a quaternion from an entity's current angles.",
 	inputs = { "Entity" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "QUATERNION" },
@@ -681,92 +689,9 @@ GateActions["quaternion_quat_entity"] = {
 	end
 }
 
-GateActions["quaternion_qi"] = {
-	name = "qi()",
-	inputs = {},
-	inputtypes = {},
-	outputtypes = { "QUATERNION" },
-	output = function(gate)
-		local Q = getQ()
-		return Q and Q.New(0, 1, 0, 0) or { 0, 1, 0, 0 }
-	end,
-	label = function(Out)
-		return "qi() = " .. qfmt(Out)
-	end
-}
-
-GateActions["quaternion_qi_num"] = {
-	name = "qi(n)",
-	inputs = { "N" },
-	inputtypes = { "NORMAL" },
-	outputtypes = { "QUATERNION" },
-	output = function(gate, N)
-		local Q = getQ()
-		return Q and Q.New(0, N or 0, 0, 0) or { 0, N or 0, 0, 0 }
-	end,
-	label = function(Out, N)
-		return "qi(" .. nfmt(N or 0) .. ") = " .. qfmt(Out)
-	end
-}
-
-GateActions["quaternion_qj"] = {
-	name = "qj()",
-	inputs = {},
-	inputtypes = {},
-	outputtypes = { "QUATERNION" },
-	output = function(gate)
-		local Q = getQ()
-		return Q and Q.New(0, 0, 1, 0) or { 0, 0, 1, 0 }
-	end,
-	label = function(Out)
-		return "qj() = " .. qfmt(Out)
-	end
-}
-
-GateActions["quaternion_qj_num"] = {
-	name = "qj(n)",
-	inputs = { "N" },
-	inputtypes = { "NORMAL" },
-	outputtypes = { "QUATERNION" },
-	output = function(gate, N)
-		local Q = getQ()
-		return Q and Q.New(0, 0, N or 0, 0) or { 0, 0, N or 0, 0 }
-	end,
-	label = function(Out, N)
-		return "qj(" .. nfmt(N or 0) .. ") = " .. qfmt(Out)
-	end
-}
-
-GateActions["quaternion_qk"] = {
-	name = "qk()",
-	inputs = {},
-	inputtypes = {},
-	outputtypes = { "QUATERNION" },
-	output = function(gate)
-		local Q = getQ()
-		return Q and Q.New(0, 0, 0, 1) or { 0, 0, 0, 1 }
-	end,
-	label = function(Out)
-		return "qk() = " .. qfmt(Out)
-	end
-}
-
-GateActions["quaternion_qk_num"] = {
-	name = "qk(n)",
-	inputs = { "N" },
-	inputtypes = { "NORMAL" },
-	outputtypes = { "QUATERNION" },
-	output = function(gate, N)
-		local Q = getQ()
-		return Q and Q.New(0, 0, 0, N or 0) or { 0, 0, 0, N or 0 }
-	end,
-	label = function(Out, N)
-		return "qk(" .. nfmt(N or 0) .. ") = " .. qfmt(Out)
-	end
-}
-
 GateActions["quaternion_real"] = {
 	name = "Real",
+	description = "Returns the real component of a quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "NORMAL" },
@@ -780,6 +705,7 @@ GateActions["quaternion_real"] = {
 
 GateActions["quaternion_i"] = {
 	name = "I",
+	description = "Returns the i component of a quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "NORMAL" },
@@ -793,6 +719,7 @@ GateActions["quaternion_i"] = {
 
 GateActions["quaternion_j"] = {
 	name = "J",
+	description = "Returns the j component of a quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "NORMAL" },
@@ -806,6 +733,7 @@ GateActions["quaternion_j"] = {
 
 GateActions["quaternion_k"] = {
 	name = "K",
+	description = "Returns the k component of a quaternion.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputtypes = { "NORMAL" },
@@ -819,7 +747,7 @@ GateActions["quaternion_k"] = {
 
 GateActions["quaternion_convfrom"] = {
 	name = "Decompose",
-	description = "Splits a quaternion into four numbers.",
+	description = "Splits a quaternion into four scalar components: real, i, j, and k.",
 	inputs = { "A" },
 	inputtypes = { "QUATERNION" },
 	outputs = { "Real", "I", "J", "K" },
