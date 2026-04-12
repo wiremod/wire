@@ -62,7 +62,7 @@ function ENT:Initialize()
 	self:DrawShadow(false)
 
 	-- Set wire I/O
-	self.Inputs = WireLib.CreateSpecialInputs(self, { "Enable", "SetPitch", "SetYaw", "SetViewAngle", "UnfreezePitch", "UnfreezeYaw", "Vehicle [ENTITY]", "Vehicles (Links all vehicles of passed array to this pod controller) [ARRAY]" }, { "NORMAL", "NORMAL", "NORMAL", "ANGLE", "NORMAL", "NORMAL", "ENTITY", "TABLE" })
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "Enable", "SetPitch", "SetYaw", "SetViewAngle", "UnfreezePitch", "UnfreezeYaw", "Vehicle [ENTITY]", "Vehicles (Links all vehicles of passed array to this pod controller) [ARRAY]" }, { "NORMAL", "NORMAL", "NORMAL", "ANGLE", "NORMAL", "NORMAL", "ENTITY", "ARRAY" })
 	self.Outputs = WireLib.CreateSpecialOutputs(self, { "X", "Y", "XY" }, { "NORMAL", "NORMAL", "VECTOR2" })
 
 	-- Initialize values
