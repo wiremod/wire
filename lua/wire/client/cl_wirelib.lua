@@ -5,7 +5,7 @@
 --]]----------------------------------------------------------
 local WIRE_SCROLL_SPEED = 	0.5
 local WIRE_BLINKS_PER_SECOND = 	2
-local Wire_DisableWireRender = 	0
+local Wire_DisableWireRender = CreateClientConVar("cl_wire_disablewirerender", 0, true, false)
 
 WIRE_CLIENT_INSTALLED = 1
 
@@ -56,7 +56,7 @@ local function getmat( mat )
 end
 
 function Wire_Render(ent)
-	if Wire_DisableWireRender ~= 0 then return end	--We shouldn't render anything
+	if Wire_DisableWireRender:GetBool() then return end	--We shouldn't render anything
 	if not IsValid(ent) then return end
 
 	local wires = ent.WirePaths
@@ -161,16 +161,6 @@ end
 function Wire_UpdateRenderBounds(ent)
 	ent:SetRenderBounds(Wire_GetWireRenderBounds(ent))
 end
-
-local function WireDisableRender(pl, cmd, args)
-	if args[1] then
-		Wire_DisableWireRender = tonumber(args[1])
-	end
-	Msg("\nWire DisableWireRender/WireRenderMode = "..tostring(Wire_DisableWireRender).."\n")
-end
-
-concommand.Add( "cl_Wire_DisableWireRender", WireDisableRender )
-concommand.Add( "cl_Wire_SetWireRenderMode", WireDisableRender )
 
 
 function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
