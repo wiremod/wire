@@ -74,14 +74,12 @@ local function Wire_Render_Enabled(ent)
 
 	-- CREATING (Not assigning a value) local variables OUTSIDE of cycle a bit faster
 	local blink = ent_tbl.WireBlinkWire
-	if blink then blink = (CurTime() % WIRE_SECONDS_PER_BLINK) / WIRE_SECONDS_PER_BLINK < 0.5 and blink end
-
 	local start, color, nodes, len, endpos, node, node_ent, last_node_ent, vector_cache
 
 	for net_name, wiretbl in pairs(wires) do
 		width = wiretbl.Width
 
-		if width > 0 and blink ~= net_name then
+		if width > 0 and not (blink == net_name and (CurTime() % WIRE_SECONDS_PER_BLINK) / WIRE_SECONDS_PER_BLINK < 0.5) then
 			nodes = wiretbl.Path
 			len = #nodes
 
