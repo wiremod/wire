@@ -57,7 +57,7 @@ local function getmat( mat )
 end
 
 local function Wire_Render_Enabled(ent)
-	local ent_tbl = Ent_GetTable(ent)
+	local ent_tbl = ent_GetTable(ent)
 
 	local wires = ent_tbl.WirePaths
 	if not wires then
