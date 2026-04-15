@@ -293,7 +293,7 @@ function ENT:TriggerInput(iname, value)
 		if( not IsValid(value) ) then return end
 
 		self:LinkEnt(value)
-	elseif name == "Vehicles" then
+	elseif iname == "Vehicles" then
 		for k, v in ipairs( value ) do
 			if( TypeID(v) ~= TYPE_ENTITY ) then continue end
 			if( not IsValid(v) ) then continue end
