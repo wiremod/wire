@@ -51,53 +51,64 @@ hook.Add("EntityRemoved", "WireLib_Node_Cache_Cleanup", function(ent)
 end)
 
 local mats_cache = {} -- nothing else uses this, it doesn't need to be global
-local function getmat( mat )
-	if not mats_cache[ mat ] then mats_cache[ mat ] = Material(mat) end --Just not to create a material every frame
-	return mats_cache[ mat ]
+
+local function getmat(mat)
+	local cached_mat = mats_cache[mat]
+
+	if not cached_mat then
+		cached_mat = Material(mat) -- Just not to create a material every frame
+		mats_cache[mat] = cached_mat
+	end
+
+	return cached_mat
 end
 
 local function Wire_Render_Enabled(ent)
 	local ent_tbl = ent_GetTable(ent)
-
 	local wires = ent_tbl.WirePaths
+
 	if not wires then
 		ent_tbl.WirePaths = {}
+
 		net.Start("WireLib.Paths.RequestPaths")
-			net.WriteEntity(ent)
+		net.WriteEntity(ent)
 		net.SendToServer()
+
 		return
 	end
 
-	if not next(wires) then return end
-
+	-- CREATING (Not assigning a value) local variables OUTSIDE of cycle a bit faster
 	local blink = shouldblink and ent_GetNWString(ent, "BlinkWire")
-	--CREATING (Not assigning a value) local variables OUTSIDE of cycle a bit faster
 	local start, color, nodes, len, endpos, node, node_ent, last_node_ent, vector_cache
-	for net_name, wiretbl in pairs(wires) do
 
+	for net_name, wiretbl in pairs(wires) do
 		width = wiretbl.Width
 
 		if width > 0 and blink ~= net_name then
-			last_node_ent = ent
-			vector_cache = nodeTransformer(ent)
-			start = vector_cache[wiretbl.StartPos]
-			color = wiretbl.Color
 			nodes = wiretbl.Path
-			scroll = scroll_offset
 			len = #nodes
+
 			if len > 0 then
-				render_SetMaterial( getmat(wiretbl.Material) )	--Maybe every wire addon should precache it's materials on setup?
+				last_node_ent = ent
+				vector_cache = nodeTransformer(ent)
+				start = vector_cache[wiretbl.StartPos]
+				color = wiretbl.Color
+				scroll = scroll_offset
+
+				render_SetMaterial(getmat(wiretbl.Material)) -- Maybe every wire addon should precache it's materials on setup?
 				render_StartBeam(len * 2 + 1)
 				render_AddBeam(start, width, scroll, color)
 
-				for j=1, len do
+				for j = 1, len do
 					node = nodes[j]
 					node_ent = node.Entity
-					if IsValid( node_ent ) then
+
+					if IsValid(node_ent) then
 						if node_ent ~= last_node_ent then
 							last_node_ent = node_ent
 							vector_cache = nodeTransformer(node_ent)
 						end
+
 						endpos = vector_cache[node.Pos]
 						scroll = scroll + endpos:Distance(start) / 10
 						render_AddBeam(endpos, width, scroll, color)
@@ -111,14 +122,16 @@ local function Wire_Render_Enabled(ent)
 		end
 	end
 end
+
 local function Set_Disable_Wire_Render(_, _, val)
 	Wire_Render = tobool(val) and (function() end) or Wire_Render_Enabled
 end
+
 Set_Disable_Wire_Render(nil, nil, Wire_DisableWireRender:GetBool())
 cvars.AddChangeCallback("cl_wire_disablewirerender", Set_Disable_Wire_Render)
 
 local function Wire_GetWireRenderBounds(ent)
-	local tab = ent:GetTable()
+	local tab = ent_GetTable(ent)
 	local bbmin, bbmax = ent:OBBMins(), ent:OBBMaxs()
 	local minx, miny, minz = bbmin:Unpack()
 	local maxx, maxy, maxz = bbmax:Unpack()
@@ -166,7 +179,6 @@ end
 function Wire_UpdateRenderBounds(ent)
 	ent:SetRenderBounds(Wire_GetWireRenderBounds(ent))
 end
-
 
 function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 	local entsTbl = EntityMeta.GetTable( ent )
