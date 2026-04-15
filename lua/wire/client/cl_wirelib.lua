@@ -25,7 +25,6 @@ local render_DrawBeam      = render.DrawBeam
 local EntityMeta           = FindMetaTable("Entity")
 local IsValid              = EntityMeta.IsValid
 local ent_GetTable         = EntityMeta.GetTable
-local ent_GetNWString      = EntityMeta.GetNWString
 local ent_WorldToLocal     = EntityMeta.WorldToLocal
 local ent_LocalToWorld     = EntityMeta.LocalToWorld
 local Vector               = Vector
@@ -74,7 +73,9 @@ local function Wire_Render_Enabled(ent)
 	end
 
 	-- CREATING (Not assigning a value) local variables OUTSIDE of cycle a bit faster
-	local blink = ent_GetNWString(ent, "BlinkWire") and (CurTime()%WIRE_SECONDS_PER_BLINK)/WIRE_SECONDS_PER_BLINK < 0.5
+	local blink = ent_tbl.WireBlinkWire
+	if blink then blink = (CurTime() % WIRE_SECONDS_PER_BLINK) / WIRE_SECONDS_PER_BLINK < 0.5 and blink end
+
 	local start, color, nodes, len, endpos, node, node_ent, last_node_ent, vector_cache
 
 	for net_name, wiretbl in pairs(wires) do
