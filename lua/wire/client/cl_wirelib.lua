@@ -112,10 +112,11 @@ local function Wire_Render_Enabled(ent)
 		end
 	end
 end
-Wire_Render = Wire_Render_Enabled
-cvars.AddChangeCallback("cl_wire_disablewirerender", function(_, _, new)
-	Wire_Render = tobool(new) and Wire_Render_Enabled or function() end
-end)
+local function Set_Disable_Wire_Render(_, _, val)
+	Wire_Render = tobool(val) and (function() end) or Wire_Render_Enabled
+end
+Set_Disable_Wire_Render(nil,nil,GetConvarNumber("cl_wire_disablewirerender"))
+cvars.AddChangeCallback("cl_wire_disablewirerender", Set_Disable_Wire_Render)
 
 local function Wire_GetWireRenderBounds(ent)
 	local tab = ent:GetTable()
