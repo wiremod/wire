@@ -124,7 +124,7 @@ local function Wire_Render_Enabled(ent)
 end
 
 local function Set_Disable_Wire_Render(_, _, val)
-	Wire_Render = tobool(val) and (function() end) or Wire_Render_Enabled
+	Wire_Render = tobool(val) and function() end or Wire_Render_Enabled
 end
 
 Set_Disable_Wire_Render(nil, nil, Wire_DisableWireRender:GetBool())
