@@ -62,7 +62,7 @@ function ENT:Initialize()
 	self:DrawShadow(false)
 
 	-- Set wire I/O
-	self.Inputs = WireLib.CreateSpecialInputs(self, { "Enable", "SetPitch", "SetYaw", "SetViewAngle", "UnfreezePitch", "UnfreezeYaw" }, { "NORMAL", "NORMAL", "NORMAL", "ANGLE", "NORMAL", "NORMAL" })
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "Enable", "SetPitch", "SetYaw", "SetViewAngle", "UnfreezePitch", "UnfreezeYaw", "Vehicle [ENTITY]", "Vehicles (Links all vehicles of passed array to this pod controller) [ARRAY]" }, { "NORMAL", "NORMAL", "NORMAL", "ANGLE", "NORMAL", "NORMAL", "ENTITY", "ARRAY" })
 	self.Outputs = WireLib.CreateSpecialOutputs(self, { "X", "Y", "XY" }, { "NORMAL", "NORMAL", "VECTOR2" })
 
 	-- Initialize values
@@ -288,6 +288,17 @@ function ENT:TriggerInput(iname, value)
 		self.freezePitch = value == 0
 	elseif iname == "UnfreezeYaw" then
 		self.freezeYaw = value == 0
+	elseif iname == "Vehicle" then
+		if( TypeID(value) ~= TYPE_ENTITY ) then return end
+		if( not IsValid(value) ) then return end
+
+		self:LinkEnt(value)
+	elseif iname == "Vehicles" then
+		for k, v in ipairs( value ) do
+			if( TypeID(v) ~= TYPE_ENTITY ) then continue end
+			if( not IsValid(v) ) then continue end
+			self:LinkEnt( v )
+		end
 	end
 
 	if IsValid(self.pod) and IsValid(self.driver) then
