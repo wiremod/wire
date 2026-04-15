@@ -58,7 +58,6 @@ end
 
 local function Wire_Render_Enabled(ent)
 	local ent_tbl = Ent_GetTable(ent)
-	if ent_tbl == nil then return end
 
 	local wires = ent_tbl.WirePaths
 	if not wires then
@@ -115,7 +114,7 @@ end
 local function Set_Disable_Wire_Render(_, _, val)
 	Wire_Render = tobool(val) and (function() end) or Wire_Render_Enabled
 end
-Set_Disable_Wire_Render(nil,nil,GetConvarNumber("cl_wire_disablewirerender"))
+Set_Disable_Wire_Render(nil, nil, Wire_DisableWireRender:GetBool())
 cvars.AddChangeCallback("cl_wire_disablewirerender", Set_Disable_Wire_Render)
 
 local function Wire_GetWireRenderBounds(ent)
