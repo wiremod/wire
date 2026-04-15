@@ -10,7 +10,6 @@ local Wire_DisableWireRender = CreateClientConVar("cl_wire_disablewirerender", 0
 WIRE_CLIENT_INSTALLED = 1
 
 
-
 BeamMat = Material("tripmine_laser")
 BeamMatHR = Material("Models/effects/comball_tape")
 
@@ -25,6 +24,8 @@ local render_EndBeam       = render.EndBeam
 local render_DrawBeam      = render.DrawBeam
 local EntityMeta           = FindMetaTable("Entity")
 local IsValid              = EntityMeta.IsValid
+local ent_GetTable         = EntityMeta.GetTable
+local ent_GetNWString      = EntityMeta.GetNWString
 local ent_WorldToLocal     = EntityMeta.WorldToLocal
 local ent_LocalToWorld     = EntityMeta.LocalToWorld
 local Vector               = Vector
@@ -55,13 +56,13 @@ local function getmat( mat )
 	return mats_cache[ mat ]
 end
 
-function Wire_Render(ent)
-	if Wire_DisableWireRender:GetBool() then return end	--We shouldn't render anything
-	if not IsValid(ent) then return end
+local function Wire_Render_Enabled(ent)
+	local ent_tbl = Ent_GetTable(ent)
+	if ent_tbl == nil then return end
 
-	local wires = ent.WirePaths
+	local wires = ent_tbl.WirePaths
 	if not wires then
-		ent.WirePaths = {}
+		ent_tbl.WirePaths = {}
 		net.Start("WireLib.Paths.RequestPaths")
 			net.WriteEntity(ent)
 		net.SendToServer()
@@ -70,7 +71,7 @@ function Wire_Render(ent)
 
 	if not next(wires) then return end
 
-	local blink = shouldblink and ent:GetNWString("BlinkWire")
+	local blink = shouldblink and ent_GetNWString(ent, "BlinkWire")
 	--CREATING (Not assigning a value) local variables OUTSIDE of cycle a bit faster
 	local start, color, nodes, len, endpos, node, node_ent, last_node_ent, vector_cache
 	for net_name, wiretbl in pairs(wires) do
@@ -111,6 +112,10 @@ function Wire_Render(ent)
 		end
 	end
 end
+Wire_Render = Wire_Render_Enabled
+cvars.AddChangeCallback("cl_wire_disablewirerender", function(_, _, new)
+	Wire_Render = tobool(new) and Wire_Render_Enabled or function() end
+end)
 
 local function Wire_GetWireRenderBounds(ent)
 	local tab = ent:GetTable()
