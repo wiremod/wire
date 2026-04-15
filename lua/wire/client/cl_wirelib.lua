@@ -79,7 +79,7 @@ local function Wire_Render_Enabled(ent)
 	for net_name, wiretbl in pairs(wires) do
 		width = wiretbl.Width
 
-		if width > 0 and not (blink == net_name and (CurTime() % WIRE_SECONDS_PER_BLINK) / WIRE_SECONDS_PER_BLINK < 0.5) then
+		if width > 0 and (blink ~= net_name or (CurTime() % WIRE_SECONDS_PER_BLINK) / WIRE_SECONDS_PER_BLINK < 0.5) then
 			nodes = wiretbl.Path
 			len = #nodes
 
