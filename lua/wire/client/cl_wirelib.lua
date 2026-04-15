@@ -4,7 +4,7 @@
 	Renders beams
 --]]----------------------------------------------------------
 local WIRE_SCROLL_SPEED = 	0.5
-local WIRE_BLINKS_PER_SECOND = 	2
+local WIRE_SECONDS_PER_BLINK = 0.5
 local Wire_DisableWireRender = CreateClientConVar("cl_wire_disablewirerender", 0, true, false)
 
 WIRE_CLIENT_INSTALLED = 1
@@ -13,7 +13,7 @@ WIRE_CLIENT_INSTALLED = 1
 BeamMat = Material("tripmine_laser")
 BeamMatHR = Material("Models/effects/comball_tape")
 
-local scroll, scroll_offset, shouldblink = 0, 0, false
+local scroll, scroll_offset = 0, 0
 
 --Precache everything we're going to use
 local CurTime              = CurTime
@@ -33,10 +33,6 @@ local Vector               = Vector
 hook.Add("Think", "Wire.WireScroll", function()
 	scroll_offset = CurTime() * WIRE_SCROLL_SPEED
 end )
-
-timer.Create("Wire.WireBlink", 1 / WIRE_BLINKS_PER_SECOND, 0, function() -- there's no reason this needs to be in the render hook, no?
-	shouldblink = not shouldblink
-end)
 
 local nodeTransformer = WireLib.GetComputeIfEntityTransformDirty(function(ent)
 	return setmetatable({}, {__index = function(t, k)
@@ -78,7 +74,7 @@ local function Wire_Render_Enabled(ent)
 	end
 
 	-- CREATING (Not assigning a value) local variables OUTSIDE of cycle a bit faster
-	local blink = shouldblink and ent_GetNWString(ent, "BlinkWire")
+	local blink = ent_GetNWString(ent, "BlinkWire") and (CurTime()%WIRE_SECONDS_PER_BLINK)/WIRE_SECONDS_PER_BLINK < 0.5
 	local start, color, nodes, len, endpos, node, node_ent, last_node_ent, vector_cache
 
 	for net_name, wiretbl in pairs(wires) do
