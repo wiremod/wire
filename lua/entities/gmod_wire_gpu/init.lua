@@ -4,6 +4,7 @@ AddCSLuaFile("cl_gpuvm.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
+util.AddNetworkString("wire_gpu_action")
 DEFINE_BASECLASS("base_wire_entity")
 
 ENT.WireDebugName = "ZGPU"
@@ -36,13 +37,16 @@ function ENT:Initialize()
 end
 
 function ENT:UpdateClientMonitorState()
-  umsg.Start("wire_gpu_monitorstate")
-    umsg.Long(self:EntIndex())
-    umsg.Short(#self.Monitors)
-    for idx=1,#self.Monitors do
-      umsg.Long(self.Monitors[idx])
-    end
-  umsg.End()
+  net.Start("wire_gpu_action")
+  net.WriteUInt(1, 2)
+  net.WriteUInt(self:EntIndex(), MAX_EDICT_BITS)
+  net.WriteUInt(#self.Monitors, 16)
+
+  for idx=1,#self.Monitors do
+    net.WriteInt(self.Monitors[idx], 32)
+  end
+
+  net.Broadcast()
 end
 --------------------------------------------------------------------------------
 -- Set processor
@@ -65,12 +69,13 @@ function ENT:SetMemoryModel(model,initial)
       function()
         if not self:IsValid() then return end
 
-        umsg.Start("wire_gpu_memorymodel")
-          umsg.Long(self:EntIndex())
-          umsg.Long (self.RAMSize)
-          umsg.Float(self.SerialNo)
-          umsg.Short(self.ChipType)
-        umsg.End()
+        net.Start("wire_gpu_action")
+        net.WriteUInt(2, 2)
+        net.WriteUInt(self:EntIndex(), MAX_EDICT_BITS)
+        net.WriteInt(self.RAMSize, 32)
+        net.WriteFloat(self.SerialNo)
+        net.WriteInt(self.ChipType, 16)
+        net.Broadcast()
       end)
   end
 end
@@ -81,10 +86,11 @@ function ENT:SetExtensionLoadOrder(extstr)
   function()
     if not self:IsValid() then return end
 
-    umsg.Start("wire_gpu_extensions")
-      umsg.Long(self:EntIndex())
-      umsg.String(self.ZVMExtensions)
-    umsg.End()
+    net.Start("wire_gpu_action")
+    net.WriteUInt(3, 2)
+    net.WriteUInt(self:EntIndex(), MAX_EDICT_BITS)
+    net.WriteString(self.ZVMExtensions)
+    net.Broadcast()
   end)
 end
 

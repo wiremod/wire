@@ -25,56 +25,53 @@ local function recalculateMonitorLookup()
   end
 end
 
-local function GPU_MonitorState(um)
-  -- Read monitors for this GPU
-  local gpuIdx = um:ReadLong()
-  Monitors[gpuIdx] = {}
+local actions = {
+  function() -- 1, wire_gpu_monitorstate
+    -- Read monitors for this GPU
+    local gpuIdx = net.ReadUInt(MAX_EDICT_BITS)
+    Monitors[gpuIdx] = {}
 
-  -- Fetch all monitors
-  local count = um:ReadShort()
-  for i=1,count do
-    Monitors[gpuIdx][i] = um:ReadLong()
+    -- Fetch all monitors
+    local count = net.ReadUInt(16)
+    for i=1,count do
+      Monitors[gpuIdx][i] = net.ReadInt(32)
+    end
+
+    -- Recalculate small lookup table for monitor system
+    recalculateMonitorLookup()
+  end,
+  function() -- 2, wire_gpu_memorymodel
+    local GPU = ents.GetByIndex(net.ReadUInt(MAX_EDICT_BITS))
+    if not GPU then return end
+    if not GPU:IsValid() then return end
+
+    if GPU.VM then
+      GPU.VM.ROMSize = net.ReadInt(32)
+      GPU.VM.SerialNo = net.ReadFloat()
+      GPU.VM.RAMSize = GPU.VM.ROMSize
+    else
+      GPU.ROMSize = net.ReadInt(32)
+      GPU.SerialNo = net.ReadFloat()
+    end
+    GPU.ChipType = net.ReadInt(16)
+  end,
+  function() -- 3, wire_gpu_extensions
+    local GPU = ents.GetByIndex(net.ReadUInt(MAX_EDICT_BITS))
+    if not GPU then return end
+    if not GPU:IsValid() then return end
+    local extstr = net.ReadString()
+    local extensions = CPULib:FromExtensionString(extstr,"GPU")
+    if GPU.VM then
+      GPU.VM.Extensions = extensions
+      CPULib:LoadExtensions(GPU.VM,"GPU")
+    end
+    GPU.ZVMExtensions = extstr
   end
+}
 
-  -- Recalculate small lookup table for monitor system
-  recalculateMonitorLookup()
-end
-usermessage.Hook("wire_gpu_monitorstate", GPU_MonitorState)
-
-
---------------------------------------------------------------------------------
--- Update GPU features/memory model
---------------------------------------------------------------------------------
-local function GPU_MemoryModel(um)
-  local GPU = ents.GetByIndex(um:ReadLong())
-  if not GPU then return end
-  if not GPU:IsValid() then return end
-
-  if GPU.VM then
-    GPU.VM.ROMSize = um:ReadLong()
-    GPU.VM.SerialNo = um:ReadFloat()
-    GPU.VM.RAMSize = GPU.VM.ROMSize
-  else
-    GPU.ROMSize = um:ReadLong()
-    GPU.SerialNo = um:ReadFloat()
-  end
-  GPU.ChipType = um:ReadShort()
-end
-usermessage.Hook("wire_gpu_memorymodel", GPU_MemoryModel)
-
-local function GPU_SetExtensions(um)
-  local GPU = ents.GetByIndex(um:ReadLong())
-  if not GPU then return end
-  if not GPU:IsValid() then return end
-  local extstr = um:ReadString()
-  local extensions = CPULib:FromExtensionString(extstr,"GPU")
-  if GPU.VM then
-    GPU.VM.Extensions = extensions
-    CPULib:LoadExtensions(GPU.VM,"GPU")
-  end
-  GPU.ZVMExtensions = extstr
-end
-usermessage.Hook("wire_gpu_extensions", GPU_SetExtensions)
+net.Receive("wire_gpu_action", function()
+	actions[net.ReadUInt(2)]()
+end)
 
 local wire_gpu_frameratio = CreateClientConVar("wire_gpu_frameratio",4)
 
@@ -374,7 +371,7 @@ function ENT:Draw()
 
 	-- Draw GPU itself
 	self:DrawModel()
-  
+
 	local tone = render.GetToneMappingScaleLinear()
 	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
 
@@ -458,7 +455,7 @@ function ENT:Draw()
 			end
 		end
 	end
-  
+
 	render.SetToneMappingScaleLinear(tone)
 	Wire_Render(self)
 end
