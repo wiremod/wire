@@ -855,22 +855,7 @@ elseif SERVER then
         if (v.Size == 4) and (    v.IsFloat) then net.WriteFloat(value) messageSize = messageSize + 4 end
       end
 
-
-      --======================================================================--
-      -- Check size of next data block. If it fits into usermessage, continue.
-      -- Otherwise just create new message
-      --======================================================================--
-      if compressInfo[k+1] then
-        local nextSize = #compressInfo[k+1].Data*compressInfo[k+1].Repeat*compressInfo[k+1].Size
-        if nextSize + messageSize > 248 then
-		  net.WriteInt(240-128, 8)
-          SendNetMessage(forcePlayer)
-          messageSize = 4
-          net.Start("wire_memsync")
-          net.WriteUInt(self.EntIndex, MAX_EDICT_BITS)
-          compressInfo[k+1].SetOffset = compressInfo[k+1].Offset -- Force set offset
-        end
-      else
+      if not compressInfo[k+1] else
         net.WriteInt(240-128, 8)
         SendNetMessage(forcePlayer)
       end
