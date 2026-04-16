@@ -4,6 +4,7 @@ AddCSLuaFile( "shared.lua" )
 
 include('shared.lua')
 
+util.AddNetworkString("HUDIndicatorAction")
 DEFINE_BASECLASS("base_wire_entity")
 
 ENT.WireDebugName = "HUD Indicator"
@@ -149,16 +150,19 @@ function ENT:SetupHUDStyle(hudstyle, rplayer)
 		-- Send as string (there should be a way to send colors)
 		local ainfo = self.AR.."|"..self.AG.."|"..self.AB
 		local binfo = self.BR.."|"..self.BG.."|"..self.BB
-		umsg.Start("HUDIndicatorStylePercent", pl)
-			umsg.Short(self:EntIndex())
-			umsg.String(ainfo)
-			umsg.String(binfo)
-		umsg.End()
+
+		net.Start("HUDIndicatorAction")
+		net.WriteUInt(5, 3)
+		net.WriteUInt(self:EntIndex(), MAX_EDICT_BITS)
+		net.WriteString(ainfo)
+		net.WriteString(binfo)
+		net.Send(pl)
 	elseif (hudstyle == 3) then -- Full Circle Gauge
-		umsg.Start("HUDIndicatorStyleFullCircle", pl)
-			umsg.Short(self:EntIndex())
-			umsg.Float(self.FullCircleAngle)
-		umsg.End()
+		net.Start("HUDIndicatorAction")
+		net.WriteUInt(6, 3)
+		net.WriteUInt(self:EntIndex(), MAX_EDICT_BITS)
+		net.WriteFloat(self.FullCircleAngle)
+		net.Send(pl)
 	end
 end
 
@@ -175,12 +179,14 @@ function ENT:RegisterPlayer(ply, hookhidehud, podonly)
 		self:SetNWBool( plyuid, util.tobool(podonly) )
 	end
 
-	umsg.Start("HUDIndicatorRegister", ply)
-		umsg.Short(eindex)
-		umsg.String(self.HUDDesc or "")
-		umsg.Short(self.HUDShowValue)
-		umsg.Short(self.HUDStyle)
-	umsg.End()
+	net.Start("HUDIndicatorAction", ply)
+	net.WriteUInt(1, 3)
+	net.WriteUInt(eindex, MAX_EDICT_BITS)
+	net.WriteString(self.HUDDesc or "")
+	net.WriteInt(self.HUDShowValue)
+	net.WriteInt(self.HUDStyle)
+	net.Send(ply)
+
 	self:SetupHUDStyle(self.HUDStyle, ply)
 
 	-- Trigger inputs to fully add this player to the list
@@ -193,9 +199,11 @@ function ENT:RegisterPlayer(ply, hookhidehud, podonly)
 end
 
 function ENT:UnRegisterPlayer(ply)
-	umsg.Start("HUDIndicatorUnRegister", ply)
-		umsg.Short(self:EntIndex())
-	umsg.End()
+	net.Start("HUDIndicatorAction")
+	net.WriteUInt(2, 3)
+	net.WriteUInt(self:EntIndex(), MAX_EDICT_BITS)
+	net.Send(ply)
+
 	self.RegisteredPlayers[ply:UniqueID()] = nil
 end
 
@@ -249,12 +257,14 @@ function ENT:ShowOutput(factor, value)
 			end
 		end
 
-		umsg.Start("HUDIndicatorFactor", rf)
-			umsg.Short(self:EntIndex())
-			-- Send both to ensure that all styles work properly
-			umsg.Float(factor)
-			umsg.Float(value)
-		umsg.End()
+		net.Start("HUDIndicatorAction")
+		net.WriteUInt(3, 3)
+		net.WriteUInt(self:EntIndex(), MAX_EDICT_BITS)
+
+		-- Send both to ensure that all styles work properly
+		net.WriteFloat(factor)
+		net.WriteFloat(value)
+		net.Send(rf)
 	end
 end
 
@@ -265,15 +275,17 @@ function ENT:SendHUDInfo(hidehud)
 	for index,rplayer in pairs(self.RegisteredPlayers) do
 		if (rplayer.ply) then
 			if rplayer.ply ~= pl or (self.ShowInHUD or self.PodPly == pl) then
-				umsg.Start("HUDIndicatorHideHUD", rplayer.ply)
-					umsg.Short(self:EntIndex())
-					-- Check player's preference
-					if (rplayer.hookhidehud) then
-						umsg.Bool(hidehud)
-					else
-						umsg.Bool(false)
-					end
-				umsg.End()
+				net.Start("HUDIndicatorAction")
+				net.WriteUInt(4, 3)
+				net.WriteUInt(self:EntIndex(), MAX_EDICT_BITS)
+
+				if (rplayer.hookhidehud) then
+					net.WriteBool(hidehud)
+				else
+					net.WriteBooll(false)
+				end
+
+				net.Send(rplayer.ply)
 			end
 		else
 			self.RegisteredPlayers[index] = nil

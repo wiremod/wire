@@ -185,72 +185,67 @@ local function CheckHITableElement(eindex)
 	end
 end
 
--- UserMessage stuff
-local function HUDIndicatorRegister( um )
-	local eindex = um:ReadShort()
-	CheckHITableElement(eindex)
+-- Net stuff
+local actions = {
+	function() -- 1, HUDIndicatorRegister
+		local eindex = net.ReadUInt(MAX_EDICT_BITS)
+		CheckHITableElement(eindex)
 
-	hudindicators[eindex].Description = um:ReadString()
-	hudindicators[eindex].ShowValue = um:ReadShort()
-	local tempstyle = um:ReadShort()
-	if hudindicators[eindex].Style ~= tempstyle then
-		hudindicators[eindex].Ready = false -- Make sure that everything's ready first before drawing
+		hudindicators[eindex].Description = net.ReadString()
+		hudindicators[eindex].ShowValue = net.ReadInt(16)
+		local tempstyle = net.ReadInt(16)
+		if hudindicators[eindex].Style ~= tempstyle then
+			hudindicators[eindex].Ready = false -- Make sure that everything's ready first before drawing
+		end
+		hudindicators[eindex].Style = tempstyle
+
+		if not hudindicators[eindex].Factor then -- First-time register
+			hudindicators[eindex].Factor = 0
+			hudindicators[eindex].Value = 0
+			hudindicators[eindex].HideHUD = false
+			hudindicators[eindex].BoxWidth = 100
+		end
+		HUDFormatDescription( eindex )
+	end,
+	function() -- 2, HUDIndicatorUnRegister
+		local eindex = net.ReadUInt(MAX_EDICT_BITS)
+		hudindicators[eindex] = nil
+	end,
+	function() -- 3, HUDIndicatorFactor
+		local eindex = net.ReadUInt(MAX_EDICT_BITS)
+		CheckHITableElement(eindex)
+
+		hudindicators[eindex].Factor = net.ReadFloat()
+		hudindicators[eindex].Value = net.ReadFloat()
+		HUDFormatDescription( eindex )
+	end,
+	function() -- 4, HUDIndicatorHideHUD
+		local eindex = net.ReadUInt(MAX_EDICT_BITS)
+		CheckHITableElement(eindex)
+
+		hudindicators[eindex].HideHUD = net.ReadBool()
+	end,
+	function() -- 5, HUDIndicatorStylePercent
+		local eindex = net.ReadUInt(MAX_EDICT_BITS)
+		local ainfo = string.Explode("|", net.ReadString())
+		local binfo = string.Explode("|", net.ReadString())
+		CheckHITableElement(eindex)
+
+		hudindicators[eindex].AColor = { r = ainfo[1], g = ainfo[2], b = ainfo[3]}
+		hudindicators[eindex].BColor = { r = binfo[1], g = binfo[2], b = binfo[3]}
+	end,
+	function() -- 6, HUDIndicatorStyleFullCircle
+		local eindex = net.ReadUInt(MAX_EDICT_BITS)
+		CheckHITableElement(eindex)
+
+		hudindicators[eindex].FullCircleAngle = net.ReadFloat()
+		HUDFormatDescription( eindex ) -- So the gauge updates with FullCircleAngle factored in
 	end
-	hudindicators[eindex].Style = tempstyle
+}
 
-	if not hudindicators[eindex].Factor then -- First-time register
-		hudindicators[eindex].Factor = 0
-		hudindicators[eindex].Value = 0
-		hudindicators[eindex].HideHUD = false
-		hudindicators[eindex].BoxWidth = 100
-	end
-	HUDFormatDescription( eindex )
-end
-usermessage.Hook("HUDIndicatorRegister", HUDIndicatorRegister)
-
-local function HUDIndicatorUnRegister( um )
-	local eindex = um:ReadShort()
-	hudindicators[eindex] = nil
-end
-usermessage.Hook("HUDIndicatorUnRegister", HUDIndicatorUnRegister)
-
-local function HUDIndicatorFactor( um )
-	local eindex = um:ReadShort()
-	CheckHITableElement(eindex)
-
-	hudindicators[eindex].Factor = um:ReadFloat()
-	hudindicators[eindex].Value = um:ReadFloat()
-	HUDFormatDescription( eindex )
-end
-usermessage.Hook("HUDIndicatorFactor", HUDIndicatorFactor)
-
-local function HUDIndicatorHideHUD( um )
-	local eindex = um:ReadShort()
-	CheckHITableElement(eindex)
-
-	hudindicators[eindex].HideHUD = um:ReadBool()
-end
-usermessage.Hook("HUDIndicatorHideHUD", HUDIndicatorHideHUD)
-
-local function HUDIndicatorStylePercent( um )
-	local eindex = um:ReadShort()
-	local ainfo = string.Explode("|", um:ReadString())
-	local binfo = string.Explode("|", um:ReadString())
-	CheckHITableElement(eindex)
-
-	hudindicators[eindex].AColor = { r = ainfo[1], g = ainfo[2], b = ainfo[3]}
-	hudindicators[eindex].BColor = { r = binfo[1], g = binfo[2], b = binfo[3]}
-end
-usermessage.Hook("HUDIndicatorStylePercent", HUDIndicatorStylePercent)
-
-local function HUDIndicatorStyleFullCircle( um )
-	local eindex = um:ReadShort()
-	CheckHITableElement(eindex)
-
-	hudindicators[eindex].FullCircleAngle = um:ReadFloat()
-	HUDFormatDescription( eindex ) -- So the gauge updates with FullCircleAngle factored in
-end
-usermessage.Hook("HUDIndicatorStyleFullCircle", HUDIndicatorStyleFullCircle)
+net.Receive("HUDIndicatorAction", function()
+	actions[net.ReadUInt(3)]()
+end)
 
 -- Check for updates every 1/5 seconds
 local function HUDIndicatorCheck()
