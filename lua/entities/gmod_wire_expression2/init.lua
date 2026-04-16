@@ -23,10 +23,10 @@ do
 			e2_tickquota = 100000
 			e2_timequota = -1
 		else
-			e2_softquota = wire_expression2_quotasoft:GetInt()
-			e2_hardquota = wire_expression2_quotahard:GetInt()
-			e2_tickquota = wire_expression2_quotatick:GetInt()
-			e2_timequota = wire_expression2_quotatime:GetInt() * 0.001
+			e2_softquota = wire_expression2_quotasoft:GetFloat()
+			e2_hardquota = wire_expression2_quotahard:GetFloat()
+			e2_tickquota = wire_expression2_quotatick:GetFloat()
+			e2_timequota = wire_expression2_quotatime:GetFloat() * 0.001
 		end
 	end
 	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
