@@ -11,7 +11,7 @@ local function check(ply)
 	end
 end
 
-umsg.PoolString("e2_remoteupload_request")
+util.AddNetworkString("e2_remoteupload_request")
 
 local function checkE2Chip(self, this)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
@@ -25,10 +25,10 @@ e2function void entity:remoteUpload( string filepath )
 	if not checkE2Chip(self, this) then return end
 	if not check(self.player) then return end
 
-	umsg.Start( "e2_remoteupload_request", self.player )
-		umsg.Entity( this )
-		umsg.String( filepath )
-	umsg.End()
+	net.Start( "e2_remoteupload_request" )
+	net.WriteEntity( this )
+	net.WriteString( filepath )
+	net.Send( self.player )
 end
 
 __e2setcost(250)
