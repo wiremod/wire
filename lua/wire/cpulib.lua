@@ -422,43 +422,50 @@ if CLIENT or TESTING then
 
   ------------------------------------------------------------------------------
   -- Debug data arrived from server
-  function CPULib.OnDebugData_Registers(um)
-    CPULib.Debugger.Variables.CS       = um:ReadFloat()
-    CPULib.Debugger.Variables.IP       = um:ReadFloat()
-    CPULib.Debugger.Variables.PHYSPAGE = um:ReadFloat()
-    CPULib.Debugger.Variables.EAX      = um:ReadFloat()
-    CPULib.Debugger.Variables.EBX      = um:ReadFloat()
-    CPULib.Debugger.Variables.ECX      = um:ReadFloat()
-    CPULib.Debugger.Variables.EDX      = um:ReadFloat()
-    CPULib.Debugger.Variables.ESI      = um:ReadFloat()
-    CPULib.Debugger.Variables.EDI      = um:ReadFloat()
-    CPULib.Debugger.Variables.EBP      = um:ReadFloat()
-    CPULib.Debugger.Variables.ESP      = um:ReadFloat()
+  function CPULib.OnDebugData_Registers()
+    CPULib.Debugger.Variables.CS       = net.ReadFloat()
+    CPULib.Debugger.Variables.IP       = net.ReadFloat()
+    CPULib.Debugger.Variables.PHYSPAGE = net.ReadFloat()
+    CPULib.Debugger.Variables.EAX      = net.ReadFloat()
+    CPULib.Debugger.Variables.EBX      = net.ReadFloat()
+    CPULib.Debugger.Variables.ECX      = net.ReadFloat()
+    CPULib.Debugger.Variables.EDX      = net.ReadFloat()
+    CPULib.Debugger.Variables.ESI      = net.ReadFloat()
+    CPULib.Debugger.Variables.EDI      = net.ReadFloat()
+    CPULib.Debugger.Variables.EBP      = net.ReadFloat()
+    CPULib.Debugger.Variables.ESP      = net.ReadFloat()
     CPULib.Debugger.Variables.CSIP     = CPULib.Debugger.Variables.CS + CPULib.Debugger.Variables.IP
     CPULib.Debugger.Variables.PHYSIP   = CPULib.Debugger.Variables.PHYSPAGE*128 + CPULib.Debugger.Variables.CSIP%128
     for reg=0,31 do
-      CPULib.Debugger.Variables["R"..reg]  = um:ReadFloat()
+      CPULib.Debugger.Variables["R"..reg]  = net.ReadFloat()
     end
 
     CPULib.DebugUpdateHighlights(not CPULib.Debugger.FollowTracker)
   end
-  usermessage.Hook("cpulib_debugdata_registers", CPULib.OnDebugData_Registers)
 
-  function CPULib.OnDebugData_Variables(um)
-    local startIndex = um:ReadShort()
+  function CPULib.OnDebugData_Variables()
+    local startIndex = net.ReadInt(16)
     for varIdx = startIndex,startIndex+59 do
       if CPULib.Debugger.MemoryVariableByIndex[varIdx] then
-        CPULib.Debugger.Variables[CPULib.Debugger.MemoryVariableByIndex[varIdx]] = um:ReadFloat()
+        CPULib.Debugger.Variables[CPULib.Debugger.MemoryVariableByIndex[varIdx]] = net.ReadFloat()
       end
     end
   end
-  usermessage.Hook("cpulib_debugdata_variables", CPULib.OnDebugData_Variables)
 
-  function CPULib.OnDebugData_Interrupt(um)
-    local interruptNo,interruptParameter = um:ReadFloat(),um:ReadFloat()
+  function CPULib.OnDebugData_Interrupt()
+    local interruptNo,interruptParameter = net.ReadFloat(), net.ReadFloat()
     CPULib.InterruptText = "Error #"..interruptNo.. " ["..interruptParameter.."]"
   end
-  usermessage.Hook("cpulib_debugdata_interrupt", CPULib.OnDebugData_Interrupt)
+
+  local actions = {
+    CPULib.OnDebugData_Registers, -- 1, cpulib_debugdata_registers
+    CPULib.OnDebugData_Variables, -- 2, cpulib_debugdata_variables
+    CPULib.OnDebugData_Interrupt -- 3, cpulib_debugdata_interrupt
+  }
+
+  net.Receive("cpulib_debugdata_action", function()
+    actions[net.ReadUInt(2)]()
+  end)
 
   ------------------------------------------------------------------------------
   -- Show ZCPU/ZGPU documentation
@@ -701,16 +708,15 @@ if SERVER then
     }
   end
 
+  util.AddNetworkString("cpulib_debugdata_action")
 
   -- Log debug interrupt
   function CPULib.DebugLogInterrupt(player,interruptNo,interruptParameter,isExternal,cascadeInterrupt)
-    local umsgrp = RecipientFilter()
-    umsgrp:AddPlayer(player)
-
-    umsg.Start("cpulib_debugdata_interrupt", umsgrp)
-      umsg.Float(interruptNo)
-      umsg.Float(interruptParameter)
-    umsg.End()
+    net.Start("cpulib_debugdata_action")
+    net.WriteUInt(3, 2)
+    net.WriteFloat(interruptNo)
+    net.WriteFloat(interruptParameter)
+    net.Send(player)
   end
 
   -- Send debug log entry to client
@@ -720,43 +726,47 @@ if SERVER then
 
   -- Send debugging data to client
   function CPULib.SendDebugData(VM,MemPointers,Player,onlyMemPointers)
-    local umsgrp = RecipientFilter()
-    umsgrp:AddPlayer(Player)
-
     if not onlyMemPointers then
-      umsg.Start("cpulib_debugdata_registers", umsgrp)
-        umsg.Float(VM.CS)
-        umsg.Float(VM.IP)
-        if(VM.CurrentPage.Remapped == 1) then
-          umsg.Float(VM.CurrentPage.MappedIndex)
-        else
-          umsg.Float(math.floor((VM.CS+VM.IP)/128))
-        end
-        umsg.Float(VM.EAX)
-        umsg.Float(VM.EBX)
-        umsg.Float(VM.ECX)
-        umsg.Float(VM.EDX)
-        umsg.Float(VM.ESI)
-        umsg.Float(VM.EDI)
-        umsg.Float(VM.EBP)
-        umsg.Float(VM.ESP)
+      net.Start("cpulib_debugdata_action")
+      net.WriteUInt(1, 2)
+      net.WriteFloat(VM.CS)
+      net.WriteFloat(VM.IP)
 
-        for reg = 0,31 do
-          umsg.Float(VM["R"..reg])
-        end
-      umsg.End()
+      if(VM.CurrentPage.Remapped == 1) then
+        net.WriteFloat(VM.CurrentPage.MappedIndex)
+      else
+        net.WriteFloat(math.floor((VM.CS+VM.IP)/128))
+      end
+
+      net.WriteFloat(VM.EAX)
+      net.WriteFloat(VM.EBX)
+      net.WriteFloat(VM.ECX)
+      net.WriteFloat(VM.EDX)
+      net.WriteFloat(VM.ESI)
+      net.WriteFloat(VM.EDI)
+      net.WriteFloat(VM.EBP)
+      net.WriteFloat(VM.ESP)
+
+      for reg = 0,31 do
+        net.WriteFloat(VM["R"..reg])
+      end
+
+      net.Send(Player)
     end
 
     if MemPointers then
       for msgIdx=0,math.floor(#MemPointers/60) do
-        umsg.Start("cpulib_debugdata_variables", umsgrp)
-          umsg.Short(msgIdx*60)
-          for varIdx=msgIdx*60,msgIdx*60+59 do
-            if MemPointers[varIdx] then
-              umsg.Float(VM:ReadCell(MemPointers[varIdx]))
-            end
+        net.Start("cpulib_debugdata_action", Player)
+        net.WriteUInt(2, 2)
+        net.WriteInt(msgIdx*60, 16)
+
+        for varIdx=msgIdx*60,msgIdx*60+59 do
+          if MemPointers[varIdx] then
+            net.WriteFloat(VM:ReadCell(MemPointers[varIdx]))
           end
-        umsg.End()
+        end
+
+        net.Send(Player)
       end
     end
   end
