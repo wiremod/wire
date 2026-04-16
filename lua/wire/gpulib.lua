@@ -406,12 +406,12 @@ end
 -- GPULib switcher functionality
 if CLIENT then
 
-	usermessage.Hook("wire_gpulib_setent", function(um)
-		local screen = Entity(um:ReadShort())
+	net.Receive("wire_gpulib_setent", function()
+		local screen = Entity(net.ReadUInt(MAX_EDICT_BITS))
 		if not screen:IsValid() then return end
 		if not screen.GPU then return end
 
-		local ent = Entity(um:ReadShort())
+		local ent = Entity(net.ReadUInt(MAX_EDICT_BITS))
 		if not ent:IsValid() then return end
 
 		screen.GPU.Entity = ent
@@ -481,13 +481,15 @@ if CLIENT then
 	end) -- usermessage.Hook
 
 elseif SERVER then
+	util.AddNetworkString("wire_gpulib_setent")
 
 	function GPULib.switchscreen(screen, ent)
 		screen.GPUEntity = ent
-		umsg.Start("wire_gpulib_setent")
-			umsg.Short(screen:EntIndex())
-			umsg.Short(ent:EntIndex())
-		umsg.End()
+
+		net.Start("wire_gpulib_setent")
+		net.WriteUInt(screen:EntIndex(), MAX_EDICT_BITS)
+		net.WriteUInt(ent:EntIndex(), MAX_EDICT_BITS)
+		net.Broadcast()
 	end
 
 end
