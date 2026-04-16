@@ -9,17 +9,14 @@ if CLIENT then
 	local rotate90 = false
 	local freezePitch = true
 	local freezeYaw = true
-
 	local previousEnabled = false
 
-	usermessage.Hook("UpdateEyePodState", function(um)
-		if not um then return end
-
-		local eyeAng = um:ReadAngle()
-		enabled = um:ReadBool()
-		rotate90 = um:ReadBool()
-		freezePitch = um:ReadBool() and eyeAng.p
-		freezeYaw = um:ReadBool() and eyeAng.y
+	net.Receive("UpdateEyePodState", function()
+		local eyeAng = net.ReadAngle()
+		enabled = net.ReadBool()
+		rotate90 = net.ReadBool()
+		freezePitch = net.ReadBool() and eyeAng.p
+		freezeYaw = net.ReadBool() and eyeAng.y
 	end)
 
 	hook.Add("CreateMove", "WireEyePodEyeControl", function(ucmd)
@@ -52,6 +49,7 @@ if CLIENT then
 end
 
 -- Server
+util.AddNetworkString("UpdateEyePodState")
 
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
@@ -203,13 +201,14 @@ end
 
 function ENT:updateEyePodState(enabled)
 	self:ColorByLinkStatus(enabled and self.LINK_STATUS_ACTIVE or self.LINK_STATUS_LINKED)
-	umsg.Start("UpdateEyePodState", self.driver)
-		umsg.Angle(self.eyeAng)
-		umsg.Bool(enabled)
-		umsg.Bool(self.rotate90)
-		umsg.Bool(self.freezePitch)
-		umsg.Bool(self.freezeYaw)
-	umsg.End()
+
+	net.Start("UpdateEyePodState")
+	net.WriteAngle(self.eyeAng)
+	net.WriteBool(enabled)
+	net.WriteBool(self.rotate90)
+	net.WriteBool(self.freezePitch)
+	net.WriteBool(self.freezeYaw)
+	net.Send(self.driver)
 end
 
 hook.Add("PlayerEnteredVehicle","gmod_wire_eyepod_entervehicle",function(ply,vehicle)
