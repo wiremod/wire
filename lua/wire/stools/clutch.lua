@@ -30,15 +30,17 @@ local Send_Links
 if SERVER then
 	// Send info: constraints associated with the selected clutch controller
 	Send_Links = function( ply, constrained_pairs )
-		umsg.Start( "wire_clutch_links", ply )
-			local num_constraints = #constrained_pairs
-			umsg.Short( num_constraints )
+		net.Start( "wire_clutch_links" )
 
-			for k, v in pairs( constrained_pairs ) do
-				umsg.Entity( v.Ent1 )
-				umsg.Entity( v.Ent2 )
-			end
-		umsg.End()
+		local num_constraints = #constrained_pairs
+		net.WriteUInt( num_constraints, 16 )
+
+		for k, v in pairs( constrained_pairs ) do
+			net.WriteEntity( v.Ent1 )
+			net.WriteEntity( v.Ent2 )
+		end
+
+		net.Send( ply )
 	end
 end
 
@@ -52,14 +54,14 @@ if CLIENT then
 	local Unique_Ents = {}		-- Table of entities as keys
 
 	// Receive stage 0 info
-	local function Receive_links( um )
+	local function Receive_links()
 		table.Empty( Linked_Ents )
-		local num_constraints = um:ReadShort() or 0
+		local num_constraints = net.ReadUInt(16)
 
 		if num_constraints ~= 0 then
 			for i = 1, num_constraints do
-				local Ent1 = um:ReadEntity()
-				local Ent2 = um:ReadEntity()
+				local Ent1 = net.ReadEntity()
+				local Ent2 = net.ReadEntity()
 				table.insert( Linked_Ents, {Ent1 = Ent1, Ent2 = Ent2} )
 
 				Unique_Ents[Ent1] = true
@@ -68,7 +70,7 @@ if CLIENT then
 		end
 	end
 
-	usermessage.Hook( "wire_clutch_links", Receive_links )
+	net.Receive( "wire_clutch_links", Receive_links )
 
 	/*---------------------------------------------------------
 	   -- DrawHUD --
