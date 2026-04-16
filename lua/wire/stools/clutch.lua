@@ -29,6 +29,8 @@ local Send_Links
 
 if SERVER then
 	// Send info: constraints associated with the selected clutch controller
+	util.AddNetworkString( "wire_clutch_links" )
+
 	Send_Links = function( ply, constrained_pairs )
 		net.Start( "wire_clutch_links" )
 
