@@ -4,6 +4,7 @@ AddCSLuaFile("cl_spuvm.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
+util.AddNetworkString("wire_spu_action")
 DEFINE_BASECLASS("base_wire_entity")
 
 ENT.WireDebugName = "ZSPU"
@@ -51,12 +52,15 @@ function ENT:Initialize()
     function()
       if not self:IsValid() then return end
 
-      umsg.Start("wire_spu_soundsources")
-        umsg.Long(self:EntIndex())
-         for i=0,WireSPU_MaxChannels-1 do
-           umsg.Long(self.SoundSources[i]:EntIndex())
-         end
-      umsg.End()
+      net.Start("wire_spu_action")
+      net.WriteUInt(2, 3)
+      net.WriteUInt(self:EntIndex(), MAX_PLAYER_BITS)
+
+      for i=0,WireSPU_MaxChannels-1 do
+        net.WriteUInt(self.SoundSources[i]:EntIndex(), MAX_EDICT_BITS)
+      end
+
+      net.Broadcast()
 
 --      for i=0,WireSPU_MaxChannels-1 do
 --        self.SoundSources[i]:SetModelScale(Vector(0))
@@ -93,12 +97,13 @@ function ENT:SetMemoryModel(model,initial)
       function()
         if not self:IsValid() then return end
 
-        umsg.Start("wire_spu_memorymodel")
-          umsg.Long(self:EntIndex())
-          umsg.Long (self.RAMSize)
-          umsg.Float(self.SerialNo)
-          umsg.Short(self.ChipType)
-        umsg.End()
+        net.Start("wire_spu_action")
+        net.WriteUInt(3, 3)
+        net.WriteUInt(self:EntIndex(), MAX_EDICT_BITS)
+        net.WriteInt(self.RAMSize, 32)
+        net.WriteFloat(self.SerialNo)
+        net.WriteInt(self.ChipType, 16)
+        net.Broadcast()
       end)
   end
 end
@@ -109,10 +114,11 @@ function ENT:SetExtensionLoadOrder(extstr)
   function()
     if not self:IsValid() then return end
 
-    umsg.Start("wire_spu_extensions")
-      umsg.Long(self:EntIndex())
-      umsg.String(self.ZVMExtensions)
-    umsg.End()
+    net.Start("wire_spu_action")
+    net.WriteUInt(4, 3)
+    net.WriteUInt(self:EntIndex(), MAX_EDICT_BITS)
+    net.WriteString(self.ZVMExtensions)
+    net.Broadcast()
   end)
 end
 
@@ -336,13 +342,16 @@ function ENT:Think()
 
     -- Send update to all clients
     if soundEmittersChanged then
-      umsg.Start("wire_spu_soundstate")
-        umsg.Long(self:EntIndex())
-        umsg.Short(#self.SoundEmitters)
-        for idx=1,#self.SoundEmitters do
-          umsg.Long(self.SoundEmitters[idx])
-        end
-      umsg.End()
+      net.Start("wire_spu_action")
+      net.WriteUInt(1, 3)
+      net.WriteUInt(self:EntIndex(), MAX_EDICT_BITS)
+      net.WriteUInt(#self.SoundEmitters, 16)
+
+      for idx=1,#self.SoundEmitters do
+        net.WriteInt(self.SoundEmitters[idx], 32)
+      end
+
+      net.Broadcast()
     end
   end
 

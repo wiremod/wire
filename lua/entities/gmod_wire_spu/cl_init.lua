@@ -33,82 +33,73 @@ local function recalculateSoundEmitterLookup()
   end
 end
 
-local function SPU_SoundEmitterState(um)
-  -- Read sound emitters for this SPU
-  local gpuIdx = um:ReadLong()
-  SoundEmitters[gpuIdx] = {}
+local actions = {
+  function() -- 1, wire_spu_soundstate
+    -- Read sound emitters for this SPU
+    local gpuIdx = net.ReadUInt(MAX_EDICT_BITS)
+    SoundEmitters[gpuIdx] = {}
 
-  -- Fetch all sound emitters
-  local count = um:ReadShort()
-  for i=1,count do
-    SoundEmitters[gpuIdx][i] = um:ReadLong()
-  end
-
-  -- Recalculate small lookup table for sound emitter system
-  recalculateSoundEmitterLookup()
-end
-usermessage.Hook("wire_spu_soundstate", SPU_SoundEmitterState)
-
-local function SPU_SoundSources(um)
-  local SPU = ents.GetByIndex(um:ReadLong())
-  if not SPU then return end
-  if not SPU:IsValid() then return end
-
-  for i=0,WireSPU_MaxChannels-1 do
-    local soundsource = ents.GetByIndex(um:ReadLong())
-
-    if soundsource:IsValid() then
-      SPU.SoundSources[i] = soundsource
-      SPU.SoundSources[i]:SetNoDraw(true)
-      SPU.SoundSources[i]:SetModelScale(0,0)
+    -- Fetch all sound emitters
+    local count = net.ReadUInt(16)
+    for i=1,count do
+      SoundEmitters[gpuIdx][i] = net.ReadInt(32)
     end
+
+    -- Recalculate small lookup table for sound emitter system
+    recalculateSoundEmitterLookup()
+  end,
+  function() -- 2, wire_spu_soundsources
+    local SPU = ents.GetByIndex(net.ReadUInt(MAX_EDICT_BITS))
+    if not SPU then return end
+    if not SPU:IsValid() then return end
+
+    for i=0,WireSPU_MaxChannels-1 do
+      local soundsource = ents.GetByIndex(net.ReadUInt(MAX_EDICT_BITS))
+
+      if soundsource:IsValid() then
+        SPU.SoundSources[i] = soundsource
+        SPU.SoundSources[i]:SetNoDraw(true)
+        SPU.SoundSources[i]:SetModelScale(0,0)
+      end
+    end
+
+    -- Reset VM
+    SPU.VM:Reset()
+    SPU.VM.Memory[65535] = 1
+    SPU.VM.Memory[65527] = 300000
+  end,
+  function() -- 3, wire_spu_memorymodel
+    local SPU = ents.GetByIndex(net.ReadUInt(MAX_EDICT_BITS))
+    if not SPU then return end
+    if not SPU:IsValid() then return end
+
+    if SPU.VM then
+      SPU.VM.ROMSize = net.ReadInt(32)
+      SPU.VM.SerialNo = net.ReadFloat()
+      SPU.VM.RAMSize = SPU.VM.ROMSize
+    else
+      SPU.ROMSize = net.ReadInt(32)
+      SPU.SerialNo = net.ReadFloat()
+    end
+    SPU.ChipType = net.ReadInt(16)
+  end,
+  function() -- 4, wire_spu_extensions
+    local SPU = ents.GetByIndex(net.ReadUInt(MAX_EDICT_BITS))
+    if not SPU then return end
+    if not SPU:IsValid() then return end
+    local extstr = net.ReadString()
+    local extensions = CPULib:FromExtensionString(extstr,"SPU")
+    if SPU.VM then
+      SPU.VM.Extensions = extensions
+      CPULib:LoadExtensions(SPU.VM,"SPU")
+    end
+    SPU.ZVMExtensions = extstr
   end
+}
 
-  -- Reset VM
-  SPU.VM:Reset()
-  SPU.VM.Memory[65535] = 1
-  SPU.VM.Memory[65527] = 300000
-end
-usermessage.Hook("wire_spu_soundsources", SPU_SoundSources)
-
-
-
-
---------------------------------------------------------------------------------
--- Update SPU features/memory model
---------------------------------------------------------------------------------
-local function SPU_MemoryModel(um)
-  local SPU = ents.GetByIndex(um:ReadLong())
-  if not SPU then return end
-  if not SPU:IsValid() then return end
-
-  if SPU.VM then
-    SPU.VM.ROMSize = um:ReadLong()
-    SPU.VM.SerialNo = um:ReadFloat()
-    SPU.VM.RAMSize = SPU.VM.ROMSize
-  else
-    SPU.ROMSize = um:ReadLong()
-    SPU.SerialNo = um:ReadFloat()
-  end
-  SPU.ChipType = um:ReadShort()
-end
-usermessage.Hook("wire_spu_memorymodel", SPU_MemoryModel)
-
-local function SPU_SetExtensions(um)
-  local SPU = ents.GetByIndex(um:ReadLong())
-  if not SPU then return end
-  if not SPU:IsValid() then return end
-  local extstr = um:ReadString()
-  local extensions = CPULib:FromExtensionString(extstr,"SPU")
-  if SPU.VM then
-    SPU.VM.Extensions = extensions
-    CPULib:LoadExtensions(SPU.VM,"SPU")
-  end
-  SPU.ZVMExtensions = extstr
-end
-usermessage.Hook("wire_spu_extensions", SPU_SetExtensions)
-
-
+net.Receive("wire_spu_action", function()
+	actions[net.ReadUInt(3)]()
+end)
 
 --------------------------------------------------------------------------------
 function ENT:Initialize()
