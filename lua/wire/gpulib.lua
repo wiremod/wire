@@ -855,7 +855,7 @@ elseif SERVER then
         if (v.Size == 4) and (    v.IsFloat) then net.WriteFloat(value) messageSize = messageSize + 4 end
       end
 
-      if not compressInfo[k+1] else
+      if not compressInfo[k+1] then
         net.WriteInt(240-128, 8)
         SendNetMessage(forcePlayer)
       end
