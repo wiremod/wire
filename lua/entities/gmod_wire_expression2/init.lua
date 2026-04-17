@@ -461,6 +461,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	if not status then self:Error(tree.message) return end
 
 	if not self:PrepareIncludes(files) then return end
+	hook.Run("Expression2_PostCompile", self.player, self, buffer, directives)
 
 	local status, script, inst = E2Lib.Compiler.Execute(tree, directives, dvars, self.includes)
 	if not status then self:Error(script.message) return end
