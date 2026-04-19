@@ -61,6 +61,10 @@ local function checkConCmd(self, cmd)
 	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return self:throw("Concmd is disabled through wire_expression2_concmd", false) end
 	if IsConCommandBlocked(cmd) then return self:throw("This concmd is blacklisted by gmod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
 
+	if hook.Run( "Expression2_CanConCmd", ply, cmd ) == false then
+        return self:throw("Command '" .. cmd .. "' was blocked by the server. ", false)
+    end
+
 	local whitelist = getWhitelist(ply, "wire_expression2_concmd_whitelist")
 	if table.IsEmpty(whitelist) then return true end
 
@@ -70,10 +74,6 @@ local function checkConCmd(self, cmd)
 			return self:throw("Command '" .. command .. "' is not whitelisted w/ wire_expression2_concmd_whitelist", false)
 		end
 	end
-
-    if hook.Run( "Expression2_CanConCmd", ply, cmd ) == false then
-        return self:throw("Command '" .. cmd .. "' was blocked by the server. ", false)
-    end
 
 	return true
 end
