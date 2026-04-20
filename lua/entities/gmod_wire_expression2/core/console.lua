@@ -80,7 +80,7 @@ local function checkConCmd(self, cmd)
 
 	for _, command in ipairs(commands) do
 		if not whitelist[command] then
-			return self:throw("Command '" .. command .. "' is not whitelisted wire_expression2_concmd_whitelist", false)
+			return self:throw("Command '" .. command .. "' is not whitelisted in wire_expression2_concmd_whitelist", false)
 		end
 	end
 
@@ -103,7 +103,7 @@ local function checkConVar(self, var)
 	if table.IsEmpty(whitelist) then return true end
 
 	if whitelist[var] == nil then
-		return self:throw("Convar '" .. var .. "' is not whitelisted wire_expression2_convar_whitelist ", false)
+		return self:throw("Convar '" .. var .. "' is not whitelisted in wire_expression2_convar_whitelist ", false)
 	end
 
 	return true
