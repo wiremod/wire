@@ -4,31 +4,41 @@
 
 E2Lib.RegisterExtension("console", true, "Lets E2 chips run concommands and retrieve convars")
 
-local function tokenizeAndGetCommands(str)
+local function tokenizeAndGetCommands(concmd)
 	-- Tokenize!
 	local tokens = {}
 	local curtoken = {}
 	local escaped = false
-	for i=1, #str do
-		local char = string.sub(str, i, i)
+
+	for i = 1, #concmd do
+		local char = string.sub(concmd, i, i)
+
 		if (escaped and char ~= "\"") or string.match(char, "[%w+-]") then
-			curtoken[#curtoken + 1] = char
+			table.insert(curtoken, char)
 		else
-			if #curtoken>0 then tokens[#tokens + 1] = table.concat(curtoken) curtoken = {} end
+			if #curtoken > 0 then
+				table.insert(tokens, table.concat(curtoken))
+				curtoken = {}
+			end
+
 			if char == "\"" then
 				escaped = not escaped
 			elseif char ~= " " then
-				tokens[#tokens + 1] = char
+				table.insert(tokens, char)
 			end
 		end
 	end
-	if #curtoken>0 then tokens[#tokens+1] = table.concat(curtoken) end
+
+	if #curtoken > 0 then
+		table.insert(tokens, table.concat(curtoken))
+	end
 
 	-- Get table of commands used
-	local commands = {tokens[1] or ""}
-	for i=1, #tokens do
+	local commands = {[tokens[1] or ""] = true}
+
+	for i = 1, #tokens do
 		if tokens[i]==";" then
-			commands[#commands + 1] = tokens[i+1] or ""
+			commands[tokens[i +1 ] or ""] = true
 		end
 	end
 
@@ -59,6 +69,7 @@ local function checkConCmd(self, cmd)
 	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return self:throw("Concmd is disabled through wire_expression2_concmd", false) end
 	if IsConCommandBlocked(cmd) then return self:throw("This concmd is blacklisted by gmod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
 
+	-- Hash table (command = true)
 	local commands = tokenizeAndGetCommands(cmd)
 
 	if hook.Run("Expression2_CanConCmd", ply, cmd, commands) == false then
@@ -68,7 +79,7 @@ local function checkConCmd(self, cmd)
 	local whitelist = getWhitelist(ply, "wire_expression2_concmd_whitelist")
 	if table.IsEmpty(whitelist) then return true end
 
-	for _, command in pairs(commands) do
+	for command in pairs(commands) do
 		if not whitelist[command] then
 			return self:throw("Command '" .. command .. "' is not whitelisted w/ wire_expression2_concmd_whitelist", false)
 		end
@@ -90,6 +101,7 @@ local function checkConVar(self, var)
     end
 
 	local whitelist = getWhitelist(ply, "wire_expression2_convar_whitelist")
+	if table.IsEmpty(whitelist) then return true end
 
 	if whitelist[var] == nil then
 		return self:throw("Convar '" .. var .. "' is not whitelisted w/ wire_expression2_convar_whitelist ", false)
