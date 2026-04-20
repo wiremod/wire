@@ -34,11 +34,11 @@ local function tokenizeAndGetCommands(concmd)
 	end
 
 	-- Get table of commands used
-	local commands = {[tokens[1] or ""] = true}
+	local commands = {tokens[1] or ""}
 
 	for i = 1, #tokens do
 		if tokens[i]==";" then
-			commands[tokens[i +1 ] or ""] = true
+			table.insert(commands, tokens[i + 1])
 		end
 	end
 
@@ -69,17 +69,16 @@ local function checkConCmd(self, cmd)
 	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return self:throw("Concmd is disabled through wire_expression2_concmd", false) end
 	if IsConCommandBlocked(cmd) then return self:throw("This concmd is blacklisted by gmod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
 
-	-- Hash table (command = true)
-	local commands = tokenizeAndGetCommands(cmd)
-
-	if hook.Run("Expression2_CanConCmd", ply, cmd, commands) == false then
+	if hook.Run("Expression2_CanConCmd", ply, cmd) == false then
         return self:throw("Command '" .. cmd .. "' was blocked by the server. ", false)
     end
 
 	local whitelist = getWhitelist(ply, "wire_expression2_concmd_whitelist")
 	if table.IsEmpty(whitelist) then return true end
 
-	for command in pairs(commands) do
+	local commands = tokenizeAndGetCommands(cmd)
+
+	for _, command in ipairs(commands) do
 		if not whitelist[command] then
 			return self:throw("Command '" .. command .. "' is not whitelisted w/ wire_expression2_concmd_whitelist", false)
 		end
