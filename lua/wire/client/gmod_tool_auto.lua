@@ -75,7 +75,10 @@ hook.Add("PostReloadToolsMenu", "toolcpanel_ListTools",function()
 	end
 end)
 concommand.Add("toolcpanel", function(ply,cmd,args)
-	local panel = toolbuttons["gmod_tool "..args[1]]
+	local toolname = args[1]
+	if not toolname then return end
+
+	local panel = toolbuttons["gmod_tool " .. toolname]
 	if panel then panel:DoClick() end
 end)
 
