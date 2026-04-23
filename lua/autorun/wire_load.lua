@@ -97,7 +97,6 @@ include("wire/sh_modelplug.lua")
 include("wire/wireshared.lua")
 include("wire/wirenet.lua")
 include("wire/wire_paths.lua")
-include("wire/wiregates.lua")
 include("wire/fpgagates.lua")
 include("wire/cpugates.lua")
 include("wire/wiremonitors.lua")
@@ -124,6 +123,9 @@ if SERVER then
 		end
 	end
 end
+
+-- shared include wiregates (moved it so gates will be able to use WireLib)
+include("wire/wiregates.lua")
 
 -- client includes
 if CLIENT then
