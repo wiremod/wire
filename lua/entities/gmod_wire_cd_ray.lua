@@ -174,7 +174,10 @@ function ENT:Think()
 
 		local r = (lpos.x^2+lpos.y^2)^0.5 //radius
 		local a = math.fmod(3.1415926+math.atan2(lpos.x,lpos.y),2*3.1415926) //angle
-		local h = lpos.z-disk.StackStartHeight //stack
+		
+		local mins, maxs = disk:GetPhysicsObject():GetAABB() --axis aligned bounding box
+		local n = (lpos.z - mins.z) / (maxs.z - mins.z) --normalize the hit position to the bounding box's thickness: bottom of disk = 0, top of disk = 1
+		local h = math.Clamp(n * disk.DiskStacks, 0, disk.DiskStacks - 1) --stack = normalized hit position * stack amount
 
 		local track = math.floor(r / disk.Precision)
 		local sector = math.floor(a*track)//*disk.Precision)
