@@ -1001,6 +1001,7 @@ function Editor:SetV(bool)
 	self:SetVisible(bool)
 	self:SetKeyboardInputEnabled(bool)
 	self:GetParent():SetWorldClicker(wire_fpga_editor_worldclicker:GetBool() and bool) -- Enable this on the background so we can update FPGA's without closing the editor
+	RunConsoleCommand("wire_fpga_event", bool and "editor_open" or "editor_close")
 end
 
 function Editor:GetChosenFile()
