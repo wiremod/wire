@@ -329,6 +329,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if info.linked_entities then
+		self:ClearEntities()
+
 		if type( info.linked_entities ) == "number" then -- old dupe compatibility
 			self:LinkEnt( GetEntByID( info.linked_entities ) )
 		else

@@ -23,10 +23,10 @@ do
 			e2_tickquota = 100000
 			e2_timequota = -1
 		else
-			e2_softquota = wire_expression2_quotasoft:GetInt()
-			e2_hardquota = wire_expression2_quotahard:GetInt()
-			e2_tickquota = wire_expression2_quotatick:GetInt()
-			e2_timequota = wire_expression2_quotatime:GetInt() * 0.001
+			e2_softquota = wire_expression2_quotasoft:GetFloat()
+			e2_hardquota = wire_expression2_quotahard:GetFloat()
+			e2_tickquota = wire_expression2_quotatick:GetFloat()
+			e2_timequota = wire_expression2_quotatime:GetFloat() * 0.001
 		end
 	end
 	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
@@ -409,9 +409,9 @@ function ENT:OnRemove()
 	end
 
 	local owner = self.player
+	local chips = rawget(E2Lib.PlayerChips, owner)
 
-	if IsValid(owner) then
-		local chips = E2Lib.PlayerChips[owner]
+	if chips then
 		chips:remove(self)
 
 		if #chips == 0 then
@@ -478,6 +478,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	if not status then self:Error(tree.message) return end
 
 	if not self:PrepareIncludes(files) then return end
+	hook.Run("Expression2_PostCompile", self.player, self, buffer, directives)
 
 	local status, script, inst = E2Lib.Compiler.Execute(tree, directives, dvars, self.includes)
 	if not status then self:Error(script.message) return end

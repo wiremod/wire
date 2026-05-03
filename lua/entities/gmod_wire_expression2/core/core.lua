@@ -217,7 +217,11 @@ e2function number totalCpuUsage()
 	local owner = self.player
 	if not IsValid(owner) then return self.timebench end
 
-	return E2Lib.PlayerChips[owner]:getTotalTime()
+	-- To avoid creating new table
+	local chips = rawget(E2Lib.PlayerChips, owner)
+	if not chips then return self.timebench end
+
+	return chips:getTotalTime()
 end
 
 [nodiscard]
