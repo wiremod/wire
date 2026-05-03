@@ -166,7 +166,9 @@ function ENT:LinkEnt(vehicle)
 	end
 	self.pod = vehicle
 	vehicle:CallOnRemove("wire_eyepod_remove",function()
-		self:UnlinkEnt(vehicle)
+		if self:IsValid() then
+			self:UnlinkEnt(vehicle)
+		end
 	end)
 
 	self.rotate90 = false
