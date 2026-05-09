@@ -53,19 +53,6 @@ function ENT:TriggerInput(name, value)
 	end
 end
 
--- Buoyancy is reset by the physgun and gravgun
-local function RestoreBuoyancy(ply, ent)
-	if ent.WireBuoyancyController then
-		timer.Simple(0 , function()
-			if not ent:IsValid() or not ent.WireBuoyancyController then return end
-			SetBuoyancy(ent, ent.WireBuoyancyController)
-		end)
-	end
-end
-
-hook.Add("PhysgunDrop", "WireBuoyancy", RestoreBuoyancy)
-hook.Add("GravGunOnDropped", "WireBuoyancy", RestoreBuoyancy)
-
 function ENT:CheckEnt(checkent)
 	for index, ent in ipairs(self.Marks) do
 		if checkent == ent then
