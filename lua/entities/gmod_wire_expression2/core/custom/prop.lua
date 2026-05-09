@@ -316,11 +316,11 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 			return self:throw("Failed to spawn '" .. class .. "'. (Internal error). Traceback: " .. tostring(errMessage), NULL) -- Not sure, if we should provide tracebacks to scare people.
 		end
 	elseif sent then -- Spawning an entity from entity tab.
-		if sent.AdminOnly and not self.player:IsAdmin() then return self:throw("You do not have permission to spawn '" .. class .. "' (admin-only)!", NULL) end
+		if scripted_ents.GetMember(class, "AdminOnly") and not self.player:IsAdmin() then return self:throw("You do not have permission to spawn '" .. class .. "' (admin-only)!", NULL) end
 
-		local stored_sent = scripted_ents.GetStored(class)
+		local spawn_function = scripted_ents.GetMember(class, "SpawnFunction")
 
-		if stored_sent and stored_sent.t.SpawnFunction then
+		if spawn_function then
 			local mockTrace = {
 				FractionLeftSolid = 0,
 				HitNonWorld       = true,
@@ -338,7 +338,7 @@ function PropCore.CreateSent(self, class, pos, angles, freeze, data)
 				WorldToLocal      = Vector(0, 0, 0),
 			}
 
-			entity = stored_sent.t.SpawnFunction(stored_sent.t, self.player, mockTrace, class)
+			entity = spawn_function(scripted_ents.GetStored(class).t, self.player, mockTrace, class)
 		else
 			entity = ents.Create( class )
 			if IsValid(entity) then

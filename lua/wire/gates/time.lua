@@ -341,5 +341,4 @@ GateActions["servertime"] = {
     end
 }
 
-
 GateActions()

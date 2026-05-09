@@ -47,12 +47,12 @@ FLIR.mat = Material("phoenix_storms/concrete0")
 FLIR.transmat = Material("phoenix_storms/iron_rails")
 FLIR.hide = false
 
-function FLIR.Render(self)
+function FLIR.Render(self, flags)
 	if not FLIR.hide then
 		if self.BackupRenderOverride then
-			self:BackupRenderOverride()
+			self:BackupRenderOverride(flags)
 		end
-		self:DrawModel()
+		self:DrawModel(flags)
 
 		return
 	end

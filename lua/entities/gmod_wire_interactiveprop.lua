@@ -134,6 +134,19 @@ InteractiveModels = {
 			{type="DNumberScratch", x = 85, y = 55, name="Knob6"},
 		}
 	},
+	["models/props_lab/reciever01d.mdl"] = {
+		width = 112,
+		height = 80,
+		title="reciever01d",
+		widgets={
+			{type="DNumberScratch", x = 10, y = 30, name="Knob1", color=Color(128,64,64)},
+			{type="DNumberScratch", x = 35, y = 30, name="Knob2", color=Color(128,64,64)},
+			{type="DNumberScratch", x = 10, y = 55, name="Knob3"},
+			{type="DNumberScratch", x = 35, y = 55, name="Knob4"},
+			{type="DNumberScratch", x = 60, y = 55, name="Knob5"},
+			{type="DNumberScratch", x = 85, y = 55, name="Knob6"},
+		}
+	},
 	["models/props_interiors/vendingmachinesoda01a.mdl"] = {
 		width = 60,
 		height = 200,

@@ -453,6 +453,9 @@ function Editor:InitComponents()
 			local node2 = node:AddNode(gate.name or "No name found :(")
 			node2.name = gate.name
 			node2.action = action
+			if gate.description then
+				node2:SetTooltip(gate.description)
+			end
 			function node2:DoClick()
 				editor.SelectedInMenu = { type = type, gate = self.action }
 			end
@@ -689,6 +692,21 @@ function Editor:DrawCircle(x, y, radius, segments)
 	surface.DrawPoly(circle)
 end
 
+function getInputAmountForNode(node)
+	local gate = getGate(node)
+	local amountOfInputs = 0
+	if gate.compact_inputs then
+		inputLimit = gate.compact_inputs
+		for inputIdx, _ in pairs(node.connections) do
+			inputLimit = math.max(inputLimit, inputIdx + 1)
+		end
+		amountOfInputs = math.min(#gate.inputs, inputLimit)
+	else
+		amountOfInputs = #gate.inputs
+	end
+	return amountOfInputs
+end
+
 --------------------------------------------------------
 --UNDO/REDO SYSTEM
 --------------------------------------------------------
@@ -839,7 +857,7 @@ function Editor:GetNodeAt(x, y)
 			--gates
 			local amountOfInputs = 0
 			if gate.inputs then
-				amountOfInputs = #gate.inputs
+				amountOfInputs = getInputAmountForNode(node)
 			end
 			local amountOfOutputs = 1
 			if gate.outputs then
@@ -895,12 +913,14 @@ function Editor:GetNodeInputAt(x, y)
 
 		if not gate then continue end
 
+		local amountOfInputs = getInputAmountForNode(node)
+
 		if gx < node.x - self.GateSize / 2 - self.IOSize then continue end
 		if gx > node.x + self.GateSize / 2 + self.IOSize then continue end
 		if gy < node.y - self.GateSize / 2 then continue end
-		if gy > node.y - self.GateSize / 2 + self.GateSize * #gate.inputs then continue end
+		if gy > node.y - self.GateSize / 2 + self.GateSize * amountOfInputs then continue end
 
-		for inputNum, _ in pairs(gate.inputs) do
+		for inputNum = 1, amountOfInputs do
 			local ix, iy = self:NodeInputPos(node, inputNum)
 
 			if gx < ix - self.IOSize / 2 then continue end
@@ -1184,7 +1204,7 @@ end
 function Editor:PaintGate(nodeId, node, gate)
 	local amountOfInputs = 0
 	if gate.inputs then
-		amountOfInputs = #gate.inputs
+		amountOfInputs = getInputAmountForNode(node)
 	end
 	local amountOfOutputs = 1
 	if gate.outputs then
@@ -1207,6 +1227,7 @@ function Editor:PaintGate(nodeId, node, gate)
 
 	if gate.inputs then
 		for inputNum, inputName in pairs(gate.inputs) do
+			if inputNum > amountOfInputs then break end
 			local nx = x - size / 2 - ioSize
 			local ny = y - ioSize / 2 + (inputNum-1) * size
 
@@ -1298,7 +1319,7 @@ function Editor:PaintGate(nodeId, node, gate)
 			surface.DrawText(node.ioName)
 		-- Constant
 		elseif node.value then
-			local s = tostring(node.value)
+			local s = util.TypeToString(node.value)
 			local tx, ty = surface.GetTextSize(s)
 			surface.SetTextPos(x - tx / 2, y - ty / 2 + size / 1.2)
 			surface.DrawText(s)
@@ -1755,9 +1776,11 @@ function Editor:Paint()
 		if self.DrawingConnectionAll then
 			drawingConnectionFrom = {}
 			local ports
+			local amountOfInputs = getInputAmountForNode(node)
 			if self.DrawingFromInput then ports = gate.inputs
 			elseif self.DrawingFromOutput then ports = gate.outputs or { "Out" } end
 			for portNum, portName in pairs(ports) do
+				if self.DrawingFromInput and portNum > amountOfInputs then break end
 				drawingConnectionFrom[portNum] = portNum
 			end
 		end
@@ -1970,6 +1993,7 @@ function Editor:CopyNodes(nodeIds)
 				nodeCopy.ioName = node.ioName
 			elseif gate.isConstant then
 				nodeCopy.value = node.value
+				nodeCopy.valueAsString = node.valueAsString
 			end
 		elseif node.visual then
 			nodeCopy.visual = node.visual
@@ -2033,6 +2057,7 @@ function Editor:PasteNodes(x, y)
 				nodeCopy.ioName = copyNode.ioName
 			elseif gate.isConstant then
 				nodeCopy.value = copyNode.value
+				nodeCopy.valueAsString = copyNode.valueAsString
 			end
 		elseif copyNode.visual then
 			nodeCopy.visual = copyNode.visual
@@ -2470,9 +2495,11 @@ function Editor:OnDrawConnectionFinished(x, y)
 	if self.DrawingConnectionAll then
 		drawingConnectionFrom = {}
 		local ports
+		local amountOfInputs = getInputAmountForNode(fromNode)
 		if self.DrawingFromInput then ports = fromGate.inputs
 		elseif self.DrawingFromOutput then ports = fromGate.outputs or { "Out" } end
 		for portNum, _ in pairs(ports) do
+			if self.DrawingFromInput and portNum > amountOfInputs then break end
 			drawingConnectionFrom[portNum] = portNum
 		end
 	end
@@ -2612,6 +2639,7 @@ function Editor:CreateConstantSetWindow()
 	self.ConstantSetNormal:Dock(BOTTOM)
 	self.ConstantSetNormal:SetSize(175, 20)
 	self.ConstantSetNormal:SetMinMax(-10 ^ 100, 10 ^ 100)
+	self.ConstantSetNormal:SetDecimals(6)
 	self.ConstantSetNormal:SetVisible(false)
 	self.ConstantSetString = vgui.Create("DTextEntry", pnl)
 	self.ConstantSetString:Dock(BOTTOM)
@@ -2639,10 +2667,14 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
 	self.ConstantSetNormal.OnEnter = function () end
 	self.ConstantSetString:SetVisible(false)
 	self.ConstantSetString.OnEnter = function () end
+	self.ConstantSetString.OnChange = function () end
 	self.ConstantSetString:SetValue("")
 	self.ConstantSetWindow:SetVisible(true)
 	self.ConstantSetWindow:MakePopup() -- This will move it above the FPGA editor if it is behind it.
 	self.ForceDrawCursor = true
+
+	local invalidColor = Color(255, 0, 50, 255)
+	self.ConstantSetString:SetTextColor(color_black)
 
 	local px, py = self:GetParent():GetPos()
 	self.ConstantSetWindow:SetPos(px + x + 80, py + y + 30)
@@ -2651,48 +2683,56 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
 		self.ConstantSetNormal:SetVisible(true)
 		self.ConstantSetNormal:SetValue(node.value)
 		self.ConstantSetNormal:RequestFocus()
-		local func = function(pnl)
+		self.ConstantSetNormal.OnEnter = function(pnl)
 			node.value = pnl:GetValue()
 			pnl:SetVisible(false)
 			pnl:GetParent():Close()
 		end
-		self.ConstantSetNormal.OnEnter = func
 	elseif type == "STRING" then
 		self.ConstantSetString:SetVisible(true)
 		self.ConstantSetString:SetText(node.value)
 		self.ConstantSetString:RequestFocus()
-		local func = function(pnl)
+		self.ConstantSetString.OnEnter = function(pnl)
 			node.value = pnl:GetValue()
 			pnl:SetVisible(false)
 			pnl:GetParent():Close()
 		end
-		self.ConstantSetString.OnEnter = func
 	elseif type == "VECTOR" then
 		self.ConstantSetString:SetVisible(true)
-		self.ConstantSetString:SetText(node.value.x .. ", " .. node.value.y .. ", " .. node.value.z)
+		self.ConstantSetString:SetText(node.valueAsString or (node.value.x .. ", " .. node.value.y .. ", " .. node.value.z))
 		self.ConstantSetString:RequestFocus()
-		local func = function(pnl)
+		self.ConstantSetString.OnEnter = function(pnl)
 			valid, x, y, z = validateVector(pnl:GetValue())
 			if valid then
 				node.value = Vector(x, y, z)
+				node.valueAsString = pnl:GetValue()
 				pnl:SetVisible(false)
 				pnl:GetParent():Close()
 			end
 		end
-		self.ConstantSetString.OnEnter = func
+		self.ConstantSetString.OnChange = function(pnl)
+			valid, _, _, _ = validateVector(pnl:GetValue())
+			if valid then pnl:SetTextColor(color_black)
+			else pnl:SetTextColor(invalidColor) end
+		end
 	elseif type == "ANGLE" then
 		self.ConstantSetString:SetVisible(true)
-		self.ConstantSetString:SetText(node.value.p .. ", " .. node.value.y .. ", " .. node.value.r)
+		self.ConstantSetString:SetText(node.valueAsString or (node.value.x .. ", " .. node.value.y .. ", " .. node.value.z))
 		self.ConstantSetString:RequestFocus()
-		local func = function(pnl)
+		self.ConstantSetString.OnEnter = function(pnl)
 			valid, p, y, r = validateVector(pnl:GetValue())
 			if valid then
 				node.value = Angle(p, y, r)
+				node.valueAsString = pnl:GetValue()
 				pnl:SetVisible(false)
 				pnl:GetParent():Close()
 			end
 		end
-		self.ConstantSetString.OnEnter = func
+		self.ConstantSetString.OnChange = function(pnl)
+			valid, _, _, _ = validateVector(pnl:GetValue())
+			if valid then pnl:SetTextColor(color_black)
+			else pnl:SetTextColor(invalidColor) end
+		end
 	end
 
 	local inputField = self.ConstantSetString

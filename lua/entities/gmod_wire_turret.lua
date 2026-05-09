@@ -27,7 +27,10 @@ function ENT:Initialize()
 	self.Firing       = false
 	self.spreadvector = Vector()
 	self.effectdata   = EffectData()
-	self.attachmentPos = phys:WorldToLocal(self:GetAttachment(1).Pos)
+
+	-- Not all entities have an 1 attachment
+	local attachment = self:GetAttachment(1)
+	self.attachmentPos = attachment and self:WorldToLocal(attachment.Pos) or vector_origin
 
 	self.Inputs = WireLib.CreateSpecialInputs(self,
 		{ "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound", "Tracer" },
@@ -114,10 +117,10 @@ local ValidTracers = {
 	[""]                      = true
 }
 
-function ENT:SetSound( sound )
-	sound = string.Trim( tostring( sound or "" ) ) -- Remove whitespace ( manual )
-	local check = string.find( sound, "[\"?]" ) -- Preventing client crashes
-	self.sound = check == nil and sound ~= "" and sound or nil -- Apply the pattern check
+function ENT:SetSound( path )
+	if path then
+		self.sound = WireLib.SoundExists(path)
+	end
 end
 
 function ENT:SetDelay( delay )

@@ -45,20 +45,6 @@ if SERVER then
 	end
 end
 
-local ValidTurretModels = {
-	["models/weapons/w_smg1.mdl"] = true,
-	["models/weapons/w_smg_mp5.mdl"] = true,
-	["models/weapons/w_smg_mac10.mdl"] = true,
-	["models/weapons/w_rif_m4a1.mdl"] = true,
-	["models/weapons/w_357.mdl"] = true,
-	["models/weapons/w_shot_m3super90.mdl"] = true
-}
-
-function TOOL:GetModel()
-	local model = WireToolObj.GetModel(self)
-	return ValidTurretModels[model] and model or "models/weapons/w_smg1.mdl"
-end
-
 function TOOL.BuildCPanel( CPanel )
 	WireToolHelpers.MakePresetControl(CPanel, "wire_turret")
 

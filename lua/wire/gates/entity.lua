@@ -1027,4 +1027,245 @@ GateActions["entity_heading"] = {
 	end
 }
 
+GateActions["entity_getattachments"] = {
+	name = "Attachments",
+	description = "Returns an array of all attachment IDs for the entity's model.",
+	inputs = { "Ent" },
+	inputtypes = { "ENTITY" },
+	outputs = { "IDs", "Names" },
+	outputtypes = { "ARRAY", "ARRAY" },
+	output = function(gate, Ent)
+		if not Ent:IsValid() then return {}, {} end
+		local attachments = Ent:GetAttachments()
+		if not attachments or #attachments == 0 then return {}, {} end
+		local ids = {}
+		local names = {}
+		for _, att in ipairs(attachments) do
+			ids[#ids + 1] = att.id
+			names[#names + 1] = att.name
+		end
+		return ids, names
+	end,
+	label = function(Out)
+		return string.format("Attachments: %d found", #Out.IDs)
+	end
+}
+
+GateActions["entity_getattachment"] = {
+	name = "Attachment",
+	description = "Gets the position and angle of a specific attachment by ID or Name. Return Position/Angles must be > 0 to output their respective values.",
+	inputs = { "Ent", "ID", "Name", "Return Position", "Return Angles" },
+	inputtypes = { "ENTITY", "NORMAL", "STRING", "NORMAL", "NORMAL" },
+	outputs = { "Position", "Angles" },
+	outputtypes = { "VECTOR", "ANGLE" },
+	timed = true,
+	output = function(gate, Ent, ID, Name, ReturnPos, ReturnAng)
+		if not Ent:IsValid() then return vec0, ang0 end
+
+		local attachID = ID
+		if Name and Name ~= "" then
+			local found = Ent:LookupAttachment(Name)
+			if found and found > 0 then
+				attachID = found
+			end
+		end
+
+		if not attachID or attachID <= 0 then return vec0, ang0 end
+
+		local attData = Ent:GetAttachment(attachID)
+		if not attData then return vec0, ang0 end
+
+		local pos = vec0
+		local ang = ang0
+
+		if ReturnPos and ReturnPos > 0 then
+			pos = attData.Pos
+		end
+		if ReturnAng and ReturnAng > 0 then
+			ang = attData.Ang
+		end
+
+		return pos, ang
+	end,
+	label = function(Out, Ent, ID, Name)
+		return string.format("attachment(%s, id=%s, name=%q) Pos=(%d,%d,%d) Ang=(%d,%d,%d)",
+			tostring(Ent), tostring(ID), tostring(Name or ""),
+			Out.Position.x, Out.Position.y, Out.Position.z,
+			Out.Angles.p, Out.Angles.y, Out.Angles.r)
+	end
+}
+
+GateActions["entity_isfrozen"] = {
+	name = "Is Frozen",
+	inputs = { "Ent" },
+	inputtypes = { "ENTITY" },
+	outputtypes = { "NORMAL" },
+	timed = true,
+	output = function(gate, Ent)
+		if not Ent:IsValid() then return 0 end
+		local phys = Ent:GetPhysicsObject()
+		if not IsValid(phys) then return 0 end
+		return phys:IsMoveable() and 0 or 1
+	end,
+	label = function(Out)
+		return string.format("Is Frozen = %d", Out)
+	end
+}
+
+GateActions["entity_getchildren"] = {
+	name = "Children",
+	description = "Returns an array of all children entities parented to the given entity.",
+	inputs = { "Ent" },
+	inputtypes = { "ENTITY" },
+	outputs = { "Children", "Count" },
+	outputtypes = { "ARRAY", "NORMAL" },
+	output = function(gate, Ent)
+		if not Ent:IsValid() then return {}, 0 end
+		local keytable = Ent:GetChildren()
+		local result = {}
+		local i = 1
+		for _, child in pairs(keytable) do
+			if IsValid(child) then
+				result[i] = child
+				i = i + 1
+			end
+		end
+		return result, #result
+	end,
+	label = function(Out)
+		return string.format("Children: %d found", Out.Count)
+	end
+}
+
+GateActions["entity_vehicle"] = {
+    name = "Vehicle",
+    description = "Returns the vehicle that the player is currently sitting in. Returns NULL if the player is not in a vehicle.",
+    inputs = { "Ent" },
+    inputtypes = { "ENTITY" },
+    outputtypes = { "ENTITY" },
+    timed = true,
+    output = function(gate, Ent)
+        if not IsValid(Ent) then return NULL end
+        if not Ent:IsPlayer() then return NULL end
+        return Ent:GetVehicle()
+    end,
+    label = function(Out, Ent)
+        return string.format("vehicle(%s) = %s", tostring(Ent), tostring(Out))
+    end
+}
+
+local moveTypes = {
+	[0] = "NONE",
+	[1] = "ISOMETRIC",
+	[2] = "WALK",
+	[3] = "STEP",
+	[4] = "FLY",
+	[5] = "FLYGRAVITY",
+	[6] = "VPHYSICS",
+	[7] = "PUSH",
+	[8] = "NOCLIP",
+	[9] = "LADDER",
+	[10] = "OBSERVER",
+	[11] = "CUSTOM",
+}
+
+GateActions["entity_getmovetype"] = {
+    name = "Move Type",
+    description = "Returns the move type of an entity.",
+    inputs = { "Ent" },
+    inputtypes = { "ENTITY" },
+    outputtypes = { "STRING" },
+    timed = true,
+    output = function(gate, Ent)
+        if not IsValid(Ent) then return moveTypes[0] end
+        return moveTypes[Ent:GetMoveType()]
+    end,
+    label = function(Out, Ent)
+        return string.format("getMoveType(%s) = %s", tostring(Ent), Out or "")
+    end
+}
+
+GateActions["entity_activeweapon"] = {
+    name = "Weapon",
+    description = "Returns the weapon the player is currently holding.",
+    inputs = { "Ent" },
+    inputtypes = { "ENTITY" },
+    outputtypes = { "ENTITY" },
+    timed = true,
+    output = function(gate, Ent)
+        if not IsValid(Ent) then return NULL end
+        if not Ent:IsPlayer() then return NULL end
+        return Ent:GetActiveWeapon()
+    end,
+    label = function(Out, Ent)
+        local name = IsValid(Out) and Out:GetClass() or "none"
+        return string.format("activeWeapon(%s) = %s", tostring(Ent), name)
+    end
+}
+
+GateActions["entity_weapons"] = {
+    name = "Weapons",
+    description = "Returns an array of all weapons in the player's inventory.",
+    inputs = { "Ent" },
+    inputtypes = { "ENTITY" },
+    outputtypes = { "ARRAY" },
+    timed = true,
+    output = function(gate, Ent)
+        if not IsValid(Ent) then return {} end
+        if not Ent:IsPlayer() then return {} end
+        return Ent:GetWeapons()
+    end,
+    label = function(Out, Ent)
+        return string.format("Weapons(%s) = %d items", tostring(Ent), #Out)
+    end
+}
+
+GateActions["entity_eyepos"] = {
+    name = "Eye Position",
+    description = "Returns the position of the player's eyes.",
+    inputs = { "Ent" },
+    inputtypes = { "ENTITY" },
+    outputtypes = { "VECTOR" },
+    timed = true,
+    output = function(gate, Ent)
+        if not IsValid(Ent) or not Ent:IsPlayer() then return vec0 end
+        return Ent:EyePos()
+    end,
+    label = function(Out, Ent)
+        return string.format("eyePos(%s) = (%d,%d,%d)", tostring(Ent), Out.x, Out.y, Out.z)
+    end
+}
+
+GateActions["entity_setanglevelocity"] = {
+    name = "Set Angle Velocity",
+    inputs = { "Ent", "Vec" },
+    inputtypes = { "ENTITY", "VECTOR" },
+    timed = true,
+    output = function(gate, ent, vec)
+        if not isAllowed(gate, ent) then return end
+        local phys = ent:GetPhysicsObject()
+        if not phys:IsValid() then return end
+        phys:SetAngleVelocity(clamp(Vector(vec)))
+    end,
+    label = function(_, ent, vec)
+        return string.format("(%s):setAngleVelocity(%s)", ent, vec)
+    end
+}
+
+GateActions["entity_setvelocity"] = {
+    name = "Set Velocity",
+    inputs = { "Ent", "Vec" },
+    inputtypes = { "ENTITY", "VECTOR" },
+    timed = true,
+    output = function(gate, ent, vec)
+        if not isAllowed(gate, ent) then return end
+        local phys = ent:GetPhysicsObject()
+        if not phys:IsValid() then return end
+        phys:SetVelocity(clamp(Vector(vec)))
+    end,
+    label = function(_, ent, vec)
+        return string.format("(%s):setVelocity(%s)", ent, vec)
+    end
+}
+
 GateActions()

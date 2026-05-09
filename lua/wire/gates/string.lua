@@ -146,22 +146,16 @@ GateActions["string_concat"] = {
 	name = "Concatenate",
 	description = "Combines multiple strings together into one string.",
 	inputs = { "A" , "B" , "C" , "D" , "E" , "F" , "G" , "H" },
+	compact_inputs = 2,
 	inputtypes = { "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" },
 	outputtypes = { "STRING" },
-	output = function(gate, A, B, C, D, E, F, G, H)
-		if  (A and #A or 0)
-		  + (B and #B or 0)
-		  + (C and #C or 0)
-		  + (D and #D or 0)
-		  + (E and #E or 0)
-		  + (F and #F or 0)
-		  + (G and #G or 0)
-		  + (H and #H or 0)  > MAX_LEN
-		then
-			return false
+	output = function(gate, ...)
+		local len = 0
+		for _, v in ipairs({...}) do
+			if (v) then len = len + #v end
 		end
-		local T = {A,B,C,D,E,F,G,H}
-		return table.concat(T)
+		if len > MAX_LEN then return false end
+		return table.concat({...})
 	end,
 	label = function(Out)
 		return string.format ("concat = %q", Out)
@@ -349,10 +343,10 @@ GateActions["string_to_memory"] = {
     if (Address == 0) then 	   --Clk
       if (gate.stringChanged) then return 1 else return 0 end
     elseif (Address == 1) then --String length
-      return #(gate.currentString)
+      return #gate.currentString
     else --Return string bytes
       local index = Address - 1
-      if (index > #(gate.currentString)) then -- Check whether requested address is outside the string
+      if (index > #gate.currentString) then -- Check whether requested address is outside the string
         return 0
       else
         return string.byte(gate.currentString, index)
