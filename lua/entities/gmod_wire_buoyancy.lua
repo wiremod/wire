@@ -73,7 +73,6 @@ function ENT:LinkEnt(ent)
 		self:UnlinkEnt(ent)
 	end)
 
-	ent.WireBuoyancyController = self
 	self:UpdateOutputs()
 
 	return true
@@ -85,7 +84,6 @@ function ENT:UnlinkEnt(ent)
 	if bool then
 		table.remove(self.Marks, index)
 		ent:RemoveCallOnRemove("Buoyancy.Unlink" .. self:EntIndex())
-		ent.WireBuoyancyController = nil
 		self:UpdateOutputs()
 	end
 
@@ -95,7 +93,6 @@ end
 function ENT:ClearEntities()
 	for index, ent in ipairs(self.Marks) do
 		ent:RemoveCallOnRemove("Buoyancy.Unlink" .. self:EntIndex())
-		ent.WireBuoyancyController = nil
 	end
 
 	self.Marks = {}
