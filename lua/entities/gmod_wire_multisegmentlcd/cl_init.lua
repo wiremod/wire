@@ -20,10 +20,13 @@ function ENT:Initialize()
 	self.Fgblue = 45
 	self.Fggreen = 91
 	self.Fgred = 45
+	self.Fgalpha = 255
 	self.Bgblue = 15
 	self.Bggreen = 178
 	self.Bgred = 148
-
+	self.Bgalpha = 255
+	self.Colors = {}
+	
 	self.GPU = WireGPU(self)
 	self.ResolutionW = 1024
 	self.ResolutionH = 1024
@@ -65,7 +68,9 @@ end
 function ENT:OnRemove()
 	self.GPU:Finalize()
 	for i=1,#self.TreeMesh do
-		self.TreeMesh[i]:Destroy()
+		if self.TreeMesh[i] and self.TreeMesh[i]:IsValid() then
+			self.TreeMesh[i]:Destroy()
+		end
 	end
 end
 
@@ -125,7 +130,7 @@ end
 
 function ENT:AddPoly(poly)
 	local u = (((bit.bxor(self.BitIndex,self.XorMask)+1)%1024)+0.5)/1024
-	local v = (math.floor((self.BitIndex+1)/1024)+0.5)/1024
+	local v = (math.floor((bit.bxor(self.BitIndex,self.XorMask)+1)/1024)+0.5)/1024
 	for i = 1,#poly do
 		if self.CurTris >= 10922*3 then
 			mesh.End()
@@ -388,10 +393,11 @@ function ENT:Draw()
 						fade[i] = fade[i] + 0.07
 					end
 
-					if fade[i] < 0.1 or fade[i] > 0.14 and fade[i] < 0.95 then
-						local color = self2.Colors[i]
+					if fade[i] < 0.1 or (fade[i] > 0.14 and fade[i] < 0.95) then
+						local color = self2.Colors[i] or {self2.Fgred,self2.Fggreen,self2.Fgblue,self2.Fgalpha}
 						surface.SetDrawColor(color[1]*fade[i]+self2.Bgred*(1-fade[i]),color[2]*fade[i]+self2.Bggreen*(1-fade[i]),color[3]*fade[i]+self2.Bgblue*(1-fade[i]),fade[i]*color[4]+self2.Bgalpha*(1-fade[i])*0.15)
 						if x == 0 and y == 0 then
+							print("x,y = 0,0")
 							break
 						end
 						surface.DrawRect( x, y, 1, 1 )
@@ -420,7 +426,7 @@ function ENT:Draw()
 
 		
 		for i=1,#self2.TreeMesh do
-			if self2.TreeMesh[i] then
+			if self2.TreeMesh[i] and self2.TreeMesh[i]:IsValid() then
 				self2.TreeMesh[i]:Draw()
 			end
 		end
@@ -488,23 +494,23 @@ function ENT:Receive()
 	self.TreeMesh = self.TreeMesh or {}
 	self.Texts = {}
 	for i=#self.TreeMesh,1,-1 do
-		self.TreeMesh[i]:Destroy()
+		if self.TreeMesh[i] and self.TreeMesh[i]:IsValid() then
+			self.TreeMesh[i]:Destroy()
+		end
 		self.TreeMesh[i] = nil
 	end
 	self.TreeMesh[#self.TreeMesh + 1] = Mesh()
-	self.Tris = self:CountTris(self.Tree)
+	self.Tris = self:CountTris(self.Tree) + 2
 	mesh.Begin(self.TreeMesh[#self.TreeMesh],MATERIAL_TRIANGLES,math.min(10922,self.Tris))
 	self.Tris = self.Tris - 10922
-	
 	mesh.Position(self.LocalX,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
 	mesh.Position(self.LocalX+w,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
-	mesh.Position(self.LocalX+w,self.LocalY+h,0) mesh.Color(255,255,255,255)mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
+	mesh.Position(self.LocalX+w,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
 	
 	mesh.Position(self.LocalX,self.LocalY,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
 	mesh.Position(self.LocalX+w,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
 	mesh.Position(self.LocalX,self.LocalY+h,0) mesh.Color(255,255,255,255) mesh.TexCoord(0, 1/2048, 1/2048, 1/2048, 1/2048) mesh.AdvanceVertex()
-	self.CurTris = 0
-	
+	self.CurTris = 6
 	self:DrawGroup(self.Tree)
 	mesh.End()
 end
