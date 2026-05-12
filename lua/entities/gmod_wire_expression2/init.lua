@@ -8,6 +8,7 @@ e2_softquota = nil
 e2_hardquota = nil
 e2_tickquota = nil
 e2_timequota = nil
+e2_timeaverage = nil
 
 do
 	local wire_expression2_unlimited = GetConVar("wire_expression2_unlimited")
@@ -15,6 +16,7 @@ do
 	local wire_expression2_quotahard = GetConVar("wire_expression2_quotahard")
 	local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
 	local wire_expression2_quotatime = GetConVar("wire_expression2_quotatime")
+	local wire_expression2_quota_average = GetConVar("wire_expression2_quota_average")
 
 	local function updateQuotas()
 		if wire_expression2_unlimited:GetBool() then
@@ -28,12 +30,15 @@ do
 			e2_tickquota = wire_expression2_quotatick:GetFloat()
 			e2_timequota = wire_expression2_quotatime:GetFloat() * 0.001
 		end
+
+		e2_timeaverage = 1 / wire_expression2_quota_average:GetFloat()
 	end
 	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotasoft", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotahard", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotatick", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotatime", updateQuotas)
+	cvars.AddChangeCallback("wire_expression2_quota_average", updateQuotas)
 	updateQuotas()
 end
 
@@ -115,9 +120,10 @@ function ENT:UpdatePerf(selfTbl)
 	if not context then return end
 	if selfTbl.error then return end
 
-	context.prfbench = context.prfbench * 0.95 + context.prf * 0.05
+	local average_weight = 1 - e2_timeaverage
+	context.prfbench = context.prfbench * average_weight + context.prf * e2_timeaverage
 	context.prfcount = context.prfcount + context.prf - e2_softquota
-	context.timebench = context.timebench * 0.95 + context.time * 0.05 -- Average it over the last 20 ticks
+	context.timebench = context.timebench * average_weight + context.time * e2_timeaverage -- Average it over the last X ticks
 
 	if context.prfcount < 0 then context.prfcount = 0 end
 
