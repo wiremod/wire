@@ -24,14 +24,14 @@ do
 			e2_hardquota = 1000000
 			e2_tickquota = 100000
 			e2_timequota = -1
-			e2_timeaverage = -1
 		else
 			e2_softquota = wire_expression2_quotasoft:GetFloat()
 			e2_hardquota = wire_expression2_quotahard:GetFloat()
 			e2_tickquota = wire_expression2_quotatick:GetFloat()
 			e2_timequota = wire_expression2_quotatime:GetFloat() * 0.001
-			e2_timeaverage = 1 / wire_expression2_quota_average:GetFloat()
 		end
+
+		e2_timeaverage = 1 / wire_expression2_quota_average:GetFloat()
 	end
 	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotasoft", updateQuotas)
