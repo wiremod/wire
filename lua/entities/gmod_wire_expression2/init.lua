@@ -314,6 +314,9 @@ function PlayerChips:getTotalTime()
 
 	for _, chip in ipairs(self) do
 		local tab = chip:GetTable()
+
+		-- For some reason entity can be NULL? (See #3602)
+		if not tab then continue end
 		if tab.error then continue end
 
 		local context = tab.context
@@ -330,6 +333,9 @@ function PlayerChips:findMaxTimeChip()
 
 	for _, chip in ipairs(self) do
 		local tab = chip:GetTable()
+
+		-- For some reason entity can be NULL? (See #3602)
+		if not tab then continue end
 		if tab.error then continue end
 
 		local context = tab.context
