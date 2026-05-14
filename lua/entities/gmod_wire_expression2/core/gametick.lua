@@ -33,7 +33,7 @@ hook.Add("Think", "Expression2TickClock", function()
 		local tab = entity:GetTable()
 
 		-- For some reason entity can be NULL? (See #3353)
-		if not tab then continue end
+		if not tab then registered_chips[entity] = nil continue end
 		local data = tab.context.data
 
 		data.tickrun = true
