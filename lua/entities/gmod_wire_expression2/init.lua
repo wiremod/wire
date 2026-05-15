@@ -418,6 +418,7 @@ function ENT:OnRemove()
 		self:Destruct()
 	end
 
+	E2Lib.PlayerChips:remove(self)
 	BaseClass.OnRemove(self)
 end
 
