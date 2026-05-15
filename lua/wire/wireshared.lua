@@ -1198,16 +1198,22 @@ do
 		end)
 
 		hook.Add("PlayerButtonDown", MESSAGE_NAME, function(player, button)
-			if not player.SyncedBindings then return end
-			local binding = player.SyncedBindings[button]
+			local syncedBinds = player.SyncedBindings
+			if not syncedBinds then return end
+
+			local binding = syncedBinds[button]
 			if binding == nil then return end
+
 			hook.Run("PlayerBindDown", player, binding, button)
 		end)
 
 		hook.Add("PlayerButtonUp", MESSAGE_NAME, function(player, button)
-			if not player.SyncedBindings then return end
-			local binding = player.SyncedBindings[button]
+			local syncedBinds = player.SyncedBindings
+			if not syncedBinds then return end
+
+			local binding = syncedBinds[button]
 			if binding == nil then return end
+
 			hook.Run("PlayerBindUp", player, binding, button)
 		end)
 	end
