@@ -421,13 +421,6 @@ function ENT:OnRemove()
 	BaseClass.OnRemove(self)
 end
 
--- EntityRemoved instead PlayerDisconnected because is not called for the listen-host (for example during retry)
-hook.Add("EntityRemoved", "E2_ClearPlayerChips", function(ent)
-	if ent:IsPlayer() then
-		E2Lib.PlayerChips:remove(ent)
-	end
-end)
-
 function ENT:PCallHook(...)
 	local ok, ret = pcall(self.CallHook, self, ...)
 	if ok then
@@ -833,16 +826,16 @@ end
 
 -- -------------------------------- Transfer ----------------------------------
 
---[[
-	Player Disconnection Magic
---]]
-hook.Add("PlayerDisconnected", "Wire_Expression2_Player_Disconnected", function(ply)
-	E2Lib.PlayerChips[ply] = nil
+-- EntityRemoved instead PlayerDisconnected because is not called for the listen-host (for example during retry)
+hook.Add("EntityRemoved", "Wire_Expression2_Player_Disconnected", function(ply)
+	if ply:IsPlayer() then
+		E2Lib.PlayerChips[ply] = nil
 
-	for _, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
-		if v.player == ply and not v.error then
-			v:Error("Owner disconnected")
-			v:Destruct()
+		for _, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
+			if v.player == ply and not v.error then
+				v:Error("Owner disconnected")
+				v:Destruct()
+			end
 		end
 	end
 end)
