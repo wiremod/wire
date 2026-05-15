@@ -372,7 +372,7 @@ function GlobalChips:add(ply, add_chip)
 		self[ply] = chips
 	end
 
-	table.insert(self[ply], add_chip)
+	table.insert(chips, add_chip)
 end
 
 function GlobalChips:remove(remove_chip)
