@@ -380,7 +380,7 @@ function PlayerChips:add(add_chip)
 		end
 	end
 
-	table.insert(self, chip)
+	table.insert(self, add_chip)
 end
 
 function PlayerChips:remove(remove_chip)
