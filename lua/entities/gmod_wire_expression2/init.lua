@@ -312,11 +312,13 @@ end
 function PlayerChips:getTotalTime()
 	local total_time = 0
 
-	for _, chip in ipairs(self) do
+	-- Bakcwards iteration to safely remove NULLs during iteration
+	for i = #self, 1, -1 do
+		local chip = self[i]
 		local tab = chip:GetTable()
 
 		-- For some reason entity can be NULL? (See #3602)
-		if not tab then continue end
+		if not tab then self:remove(chip) continue end
 		if tab.error then continue end
 
 		local context = tab.context
@@ -331,11 +333,13 @@ end
 function PlayerChips:findMaxTimeChip()
 	local max_chip, max_time = nil, 0
 
-	for _, chip in ipairs(self) do
+	-- Bakcwards iteration to safely remove NULLs during iteration
+	for i = #self, 1, -1 do
+		local chip = self[i]
 		local tab = chip:GetTable()
 
 		-- For some reason entity can be NULL? (See #3602)
-		if not tab then continue end
+		if not tab then self:remove(chip) continue end
 		if tab.error then continue end
 
 		local context = tab.context
@@ -367,7 +371,15 @@ function PlayerChips:checkCpuTime()
 	end
 end
 
-function PlayerChips:add(chip)
+function PlayerChips:add(add_chip)
+	-- Safety check
+	for index, chip in ipairs(self) do
+		if add_chip == chip then
+			ErrorNoHaltWithStack("Attempt to add the same chip to E2Lib.PlayerChips twice!")
+			return
+		end
+	end
+
 	table.insert(self, chip)
 end
 
@@ -376,6 +388,15 @@ function PlayerChips:remove(remove_chip)
 		if remove_chip == chip then
 			table.remove(self, index)
 			break
+		end
+	end
+
+	if #self == 0 then
+		for ply, chips in pairs(E2Lib.PlayerChips) do
+			if self == chips then
+				E2Lib.PlayerChips[ply] = nil
+				break
+			end
 		end
 	end
 end
@@ -408,10 +429,6 @@ function ENT:OnRemove()
 
 	if chips then
 		chips:remove(self)
-
-		if #chips == 0 then
-			E2Lib.PlayerChips[owner] = nil
-		end
 	end
 
 	BaseClass.OnRemove(self)
