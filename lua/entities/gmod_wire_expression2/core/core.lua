@@ -217,8 +217,7 @@ e2function number totalCpuUsage()
 	local owner = self.player
 	if not IsValid(owner) then return self.timebench end
 
-	-- To avoid creating new table
-	local chips = rawget(E2Lib.PlayerChips, owner)
+	local chips = E2Lib.PlayerChips[owner]
 	if not chips then return self.timebench end
 
 	return chips:getTotalTime()
@@ -228,8 +227,7 @@ end
 e2function number entity:totalCpuUsage()
 	if not IsValid(this) or not this:IsPlayer() then return 0 end
 
-	-- To avoid creating new table
-	local chips = rawget(E2Lib.PlayerChips, this)
+	local chips = E2Lib.PlayerChips[owner]
 	if not chips then return 0 end
 
 	return chips:getTotalTime()

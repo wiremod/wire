@@ -84,7 +84,8 @@ function ENT:Initialize()
 	local owner = self.player
 
 	if IsValid(owner) then
-		E2Lib.PlayerChips[owner]:add(self)
+		E2Lib.PlayerChips:get_or_create(owner)
+		E2Lib.PlayerChips:add(owner, self)
 	end
 end
 
@@ -312,13 +313,8 @@ end
 function PlayerChips:getTotalTime()
 	local total_time = 0
 
-	-- Bakcwards iteration to safely remove NULLs during iteration
-	for i = #self, 1, -1 do
-		local chip = self[i]
+	for _, chip in ipairs(self) do
 		local tab = chip:GetTable()
-
-		-- For some reason entity can be NULL? (See #3602)
-		if not tab then self:remove(chip) continue end
 		if tab.error then continue end
 
 		local context = tab.context
@@ -333,13 +329,8 @@ end
 function PlayerChips:findMaxTimeChip()
 	local max_chip, max_time = nil, 0
 
-	-- Bakcwards iteration to safely remove NULLs during iteration
-	for i = #self, 1, -1 do
-		local chip = self[i]
+	for _, chip in ipairs(self) do
 		local tab = chip:GetTable()
-
-		-- For some reason entity can be NULL? (See #3602)
-		if not tab then self:remove(chip) continue end
 		if tab.error then continue end
 
 		local context = tab.context
@@ -371,37 +362,40 @@ function PlayerChips:checkCpuTime()
 	end
 end
 
-function PlayerChips:add(add_chip)
-	-- Safety check
-	for index, chip in ipairs(self) do
-		if add_chip == chip then
-			ErrorNoHaltWithStack("Attempt to add the same chip to E2Lib.PlayerChips twice!")
-			return
-		end
+local GlobalChips = {}
+GlobalChips.__index = GlobalChips
+
+function GlobalChips:get_or_create(ply)
+	local chips = self[ply]
+
+	if not chips then
+		chips = PlayerChips:new()
+		self[ply] = chips
 	end
 
-	table.insert(self, add_chip)
+	return chips
 end
 
-function PlayerChips:remove(remove_chip)
-	for index, chip in ipairs(self) do
-		if remove_chip == chip then
-			table.remove(self, index)
-			break
-		end
-	end
+function GlobalChips:add(ply, add_chip)
+	table.insert(self[ply], add_chip)
+end
 
-	if #self == 0 then
-		for ply, chips in pairs(E2Lib.PlayerChips) do
-			if self == chips then
-				E2Lib.PlayerChips[ply] = nil
-				break
+function GlobalChips:remove(remove_chip)
+	-- Expensive iteration because chips may sometimes not be removed? (See #3602)
+	for ply, chips in pairs(self) do
+		for index, chip in ipairs(chips) do
+			if remove_chip == chip then
+				table.remove(chips, index)
+
+				if #chips == 0 then
+					self[ply] = nil
+				end
 			end
 		end
 	end
 end
 
-E2Lib.PlayerChips = E2Lib.PlayerChips or setmetatable({}, {__index = function(self, ply) local chips = PlayerChips:new() self[ply] = chips return chips end})
+E2Lib.PlayerChips = E2Lib.PlayerChips or setmetatable({}, GlobalChips)
 
 hook.Add("Think", "E2_Think", function()
 	if e2_timequota > 0 then
@@ -424,12 +418,7 @@ function ENT:OnRemove()
 		self:Destruct()
 	end
 
-	local owner = self.player
-	local chips = rawget(E2Lib.PlayerChips, owner)
-
-	if chips then
-		chips:remove(self)
-	end
+	E2Lib.PlayerChips:remove(self)
 
 	BaseClass.OnRemove(self)
 end
@@ -854,9 +843,11 @@ hook.Add("PlayerDisconnected", "Wire_Expression2_Player_Disconnected", function(
 end)
 
 hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
+	E2Lib.PlayerChips:get_or_create(ply)
+
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
 		if ent.uid == uid then
-			E2Lib.PlayerChips[ply]:add(ent)
+			E2Lib.PlayerChips:add(ply, ent)
 			ent:SetNWEntity("player", ply)
 			ent.player = ply
 		end
