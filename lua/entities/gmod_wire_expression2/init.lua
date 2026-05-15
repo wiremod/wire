@@ -841,10 +841,9 @@ hook.Add("EntityRemoved", "Wire_Expression2_Player_Disconnected", function(ply)
 end)
 
 hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
-	E2Lib.PlayerChips:get_or_create(ply)
-
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
 		if ent.uid == uid then
+			E2Lib.PlayerChips:get_or_create(ply)
 			E2Lib.PlayerChips:add(ply, ent)
 			ent:SetNWEntity("player", ply)
 			ent.player = ply
