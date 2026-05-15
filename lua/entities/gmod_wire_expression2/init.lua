@@ -385,6 +385,8 @@ function GlobalChips:remove(remove_chip)
 				if #chips == 0 then
 					self[ply] = nil
 				end
+
+				return
 			end
 		end
 	end
