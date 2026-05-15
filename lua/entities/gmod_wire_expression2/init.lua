@@ -84,7 +84,6 @@ function ENT:Initialize()
 	local owner = self.player
 
 	if IsValid(owner) then
-		E2Lib.PlayerChips:get_or_create(owner)
 		E2Lib.PlayerChips:add(owner, self)
 	end
 end
@@ -365,7 +364,7 @@ end
 local GlobalChips = {}
 GlobalChips.__index = GlobalChips
 
-function GlobalChips:get_or_create(ply)
+function GlobalChips:add(ply, add_chip)
 	local chips = self[ply]
 
 	if not chips then
@@ -373,10 +372,6 @@ function GlobalChips:get_or_create(ply)
 		self[ply] = chips
 	end
 
-	return chips
-end
-
-function GlobalChips:add(ply, add_chip)
 	table.insert(self[ply], add_chip)
 end
 
@@ -844,7 +839,6 @@ end)
 hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
 		if ent.uid == uid then
-			E2Lib.PlayerChips:get_or_create(ply)
 			E2Lib.PlayerChips:add(ply, ent)
 			ent:SetNWEntity("player", ply)
 			ent.player = ply
