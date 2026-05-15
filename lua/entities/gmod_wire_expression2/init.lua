@@ -418,10 +418,15 @@ function ENT:OnRemove()
 		self:Destruct()
 	end
 
-	E2Lib.PlayerChips:remove(self)
-
 	BaseClass.OnRemove(self)
 end
+
+-- EntityRemoved instead PlayerDisconnected because is not called for the listen-host (for example during retry)
+hook.Add("EntityRemoved", "E2_ClearPlayerChips", function(ent)
+	if ent:IsPlayer() then
+		E2Lib.PlayerChips:remove(ent)
+	end
+end)
 
 function ENT:PCallHook(...)
 	local ok, ret = pcall(self.CallHook, self, ...)
