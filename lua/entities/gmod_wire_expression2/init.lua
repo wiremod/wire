@@ -840,7 +840,7 @@ end)
 
 hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
-		if ent.uid == uid then
+		if ent.uid == uid or ent.FounderIndex == uid then
 			E2Lib.PlayerChips:add(ply, ent)
 			ent:SetNWEntity("player", ply)
 			ent.player = ply
