@@ -84,7 +84,7 @@ function ENT:Initialize()
 	local owner = self.player
 
 	if IsValid(owner) then
-		E2Lib.PlayerChips[owner]:add(self)
+		E2Lib.PlayerChips:add(owner, self)
 	end
 end
 
@@ -361,20 +361,38 @@ function PlayerChips:checkCpuTime()
 	end
 end
 
-function PlayerChips:add(chip)
-	table.insert(self, chip)
+local GlobalChips = {}
+GlobalChips.__index = GlobalChips
+
+function GlobalChips:add(ply, add_chip)
+	local chips = self[ply]
+
+	if not chips then
+		chips = PlayerChips:new()
+		self[ply] = chips
+	end
+
+	table.insert(chips, add_chip)
 end
 
-function PlayerChips:remove(remove_chip)
-	for index, chip in ipairs(self) do
-		if remove_chip == chip then
-			table.remove(self, index)
-			break
+function GlobalChips:remove(remove_chip)
+	-- Expensive iteration because chips may sometimes not be removed? (See #3602)
+	for ply, chips in pairs(self) do
+		for index, chip in ipairs(chips) do
+			if remove_chip == chip then
+				table.remove(chips, index)
+
+				if #chips == 0 then
+					self[ply] = nil
+				end
+
+				return
+			end
 		end
 	end
 end
 
-E2Lib.PlayerChips = E2Lib.PlayerChips or setmetatable({}, {__index = function(self, ply) local chips = PlayerChips:new() self[ply] = chips return chips end})
+E2Lib.PlayerChips = E2Lib.PlayerChips or setmetatable({}, GlobalChips)
 
 hook.Add("Think", "E2_Think", function()
 	if e2_timequota > 0 then
@@ -397,17 +415,7 @@ function ENT:OnRemove()
 		self:Destruct()
 	end
 
-	local owner = self.player
-	local chips = rawget(E2Lib.PlayerChips, owner)
-
-	if chips then
-		chips:remove(self)
-
-		if #chips == 0 then
-			E2Lib.PlayerChips[owner] = nil
-		end
-	end
-
+	E2Lib.PlayerChips:remove(self)
 	BaseClass.OnRemove(self)
 end
 
@@ -816,24 +824,28 @@ end
 
 -- -------------------------------- Transfer ----------------------------------
 
---[[
-	Player Disconnection Magic
---]]
-hook.Add("PlayerDisconnected", "Wire_Expression2_Player_Disconnected", function(ply)
-	E2Lib.PlayerChips[ply] = nil
+-- EntityRemoved instead PlayerDisconnected because is not called for the listen-host (for example during retry)
+hook.Add("EntityRemoved", "Wire_Expression2_Player_Disconnected", function(ply)
+	if ply:IsPlayer() then
+		E2Lib.PlayerChips[ply] = nil
 
-	for _, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
-		if v.player == ply and not v.error then
-			v:Error("Owner disconnected")
-			v:Destruct()
+		for _, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
+			if v.player == ply and not v.error then
+				v:Error("Owner disconnected")
+				v:Destruct()
+			end
 		end
 	end
 end)
 
 hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
+		-- Add to the account only for the real owner
+		if ent:GetPlayer() == ply then
+			E2Lib.PlayerChips:add(ply, ent)
+		end
+
 		if ent.uid == uid then
-			E2Lib.PlayerChips[ply]:add(ent)
 			ent:SetNWEntity("player", ply)
 			ent.player = ply
 		end
