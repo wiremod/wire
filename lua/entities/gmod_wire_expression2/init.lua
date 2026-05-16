@@ -838,10 +838,14 @@ hook.Add("EntityRemoved", "Wire_Expression2_Player_Disconnected", function(ply)
 	end
 end)
 
-hook.Add("PlayerInitialSpawn", "Wire_Expression2_Player_Spawned", function(ply)
+hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
 	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
+		-- Add to the account only for the real owner
 		if ent:GetPlayer() == ply then
 			E2Lib.PlayerChips:add(ply, ent)
+		end
+
+		if ent.uid == uid then
 			ent:SetNWEntity("player", ply)
 			ent.player = ply
 		end
