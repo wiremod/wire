@@ -871,9 +871,11 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 	self:SetAngles(Ang)
 	self:SetPos(Pos)
 	self:SetPlayer(player)
-	self:SetInstancePlayer("player", player)
 	self.player = player
 	self:Spawn()
+
+	-- Wait for ENT:SetupDataTables
+	self:SetInstancePlayer(self.player)
 
 	if isstring( buffer ) then -- if someone dupes an E2 with compile errors, then all these values will be invalid
 		buffer = string.Replace(string.Replace(buffer, string.char(163), "\""), string.char(128), "\n")
