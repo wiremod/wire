@@ -88,11 +88,6 @@ function ENT:Initialize()
 	end
 end
 
-function ENT:SetupDataTables()
-	self:NetworkVar("Entity", 0, "InstancePlayer")
-	self:NetworkVar("String", 0, "InstanceName")
-end
-
 function ENT:OnRestore()
 	self:Setup(self.original, self.inc_files, nil, true)
 end
