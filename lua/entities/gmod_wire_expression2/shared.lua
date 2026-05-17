@@ -5,8 +5,12 @@ ENT.Author = ""
 ENT.Contact = ""
 ENT.Purpose = ""
 ENT.Instructions = ""
-
 ENT.WireDebugName = "Expression 2"
+
+function ENT:SetupDataTables()
+	self:NetworkVar("Entity", 0, "InstancePlayer")
+	self:NetworkVar("String", 0, "InstanceName")
+end
 
 CreateConVar("wire_expression2_unlimited", "0", {FCVAR_REPLICATED})
 CreateConVar("wire_expression2_quotasoft", "10000", {FCVAR_REPLICATED})
