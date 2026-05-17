@@ -129,7 +129,7 @@ local function doSetName(self, this, name)
 		end
 		this.name = name
 
-		this:SetNWString("name", name)
+		this:SetInstanceName(name)
 		this:SetOverlayText(name)
 	else
 		if #name > 200 then name = string.sub(name, 1, 200) end
