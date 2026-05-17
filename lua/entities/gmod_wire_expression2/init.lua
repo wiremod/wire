@@ -88,6 +88,11 @@ function ENT:Initialize()
 	end
 end
 
+function ENT:SetupDataTables()
+	self:NetworkVar("Entity", 0, "InstancePlayer")
+	self:NetworkVar("String", 0, "InstanceName")
+end
+
 function ENT:OnRestore()
 	self:Setup(self.original, self.inc_files, nil, true)
 end
@@ -460,7 +465,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	else
 		self.WireDebugName = "E2 - " .. self.name
 	end
-	self:SetNWString("name", self.name)
+	self:SetInstanceName(self.name)
 
 	self.directives = directives
 	self.inports = directives.inputs
@@ -846,7 +851,7 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 		end
 
 		if ent.uid == uid then
-			ent:SetNWEntity("player", ply)
+			ent:SetInstancePlayer(ply)
 			ent.player = ply
 		end
 	end
@@ -866,9 +871,11 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 	self:SetAngles(Ang)
 	self:SetPos(Pos)
 	self:SetPlayer(player)
-	self:SetNWEntity("player", player)
 	self.player = player
 	self:Spawn()
+
+	-- Wait for ENT:SetupDataTables
+	self:SetInstancePlayer(self.player)
 
 	if isstring( buffer ) then -- if someone dupes an E2 with compile errors, then all these values will be invalid
 		buffer = string.Replace(string.Replace(buffer, string.char(163), "\""), string.char(128), "\n")
