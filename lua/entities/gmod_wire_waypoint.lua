@@ -9,8 +9,11 @@ end
 
 if CLIENT then
 	local physBeamMat = Material("cable/physbeam")
-	function ENT:Draw()
-		BaseClass.Draw(self)
+	function ENT:Draw(flags)
+		BaseClass.Draw(self, flags)
+
+		local is_depth_pass = (bit.band(flags, STUDIO_SSAODEPTHTEXTURE) ~= 0 or bit.band(flags, STUDIO_SHADOWDEPTHTEXTURE) ~= 0)
+		if is_depth_pass then return end
 
 		local nextWP = self:GetNextWaypoint()
 		if IsValid(nextWP) and (LocalPlayer():GetEyeTrace().Entity == self) and (EyePos():Distance(self:GetPos()) < 4096) then
