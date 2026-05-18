@@ -304,9 +304,13 @@ if CLIENT then
         cam.End3D2D()
     end
 
-    function ENT:Draw()
-        self:DrawModel()
+    function ENT:Draw(flags)
+        self:DrawModel(flags)
 
+		local is_depth_pass = (bit.band(flags, STUDIO_SSAODEPTHTEXTURE) ~= 0 or bit.band(flags, STUDIO_SHADOWDEPTHTEXTURE) ~= 0)
+
+		if is_depth_pass then return end
+		
         if self.MonitorDesc == nil then
             return
         end
