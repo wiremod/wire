@@ -46,9 +46,13 @@ if CLIENT then
 	local color_red = Color(255, 0, 0)
 	local color_green = Color(0, 255, 0)
 
-	function ENT:Draw()
-		self:DrawModel()
+	function ENT:Draw(flags)
+		self:DrawModel(flags)
 
+		local is_depth_pass = (bit.band(flags, STUDIO_SSAODEPTHTEXTURE) ~= 0 or bit.band(flags, STUDIO_SHADOWDEPTHTEXTURE) ~= 0)
+
+		if is_depth_pass then return end
+	
 		local entpos = self:GetPos()
 		if entpos:Distance(EyePos()) > 512 then return end
 
