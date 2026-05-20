@@ -567,8 +567,12 @@ function ENT:DrawSpecialCharacter(c,x,y,w,h,r,g,b)
 end
 
 local VECTOR_1_1_1 = Vector(1, 1, 1)
-function ENT:Draw()
-	self:DrawModel()
+function ENT:Draw(flags)
+	self:DrawModel(flags)
+
+	local is_depth_pass = (bit.band(flags, STUDIO_SSAODEPTHTEXTURE) ~= 0 or bit.band(flags, STUDIO_SHADOWDEPTHTEXTURE) ~= 0)
+
+	if is_depth_pass then return end
 
 	local tone = render.GetToneMappingScaleLinear()
 	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
