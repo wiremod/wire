@@ -370,15 +370,13 @@ function ENT:Draw(flags)
 	-- Draw GPU itself
 	self:DrawModel(flags)
 
-  local is_depth_pass = (bit.band(flags, STUDIO_SSAODEPTHTEXTURE) ~= 0 or bit.band(flags, STUDIO_SHADOWDEPTHTEXTURE) ~= 0)
-
-  if is_depth_pass then return end
+  if WireLib.IsDepthPass(flags) then return end
 
     -- Calculate time-related variables
   self.CurrentTime = CurTime()
   self.DeltaTime = math.min(1/30,self.CurrentTime - (self.PreviousTime or 0))
   self.PreviousTime = self.CurrentTime
-  
+
 	local tone = render.GetToneMappingScaleLinear()
 	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
 
@@ -462,7 +460,7 @@ function ENT:Draw(flags)
 			end
 		end
 	end
-  
+
 	render.SetToneMappingScaleLinear(tone)
 	Wire_Render(self)
 end

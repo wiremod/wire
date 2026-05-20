@@ -20,9 +20,8 @@ local function WorldToViewModel(point)
 end
 
 function SWEP:PostDrawViewModel(vm, wep, ply, flags)
-	local is_depth_pass = (bit.band(flags, STUDIO_SSAODEPTHTEXTURE) ~= 0 or bit.band(flags, STUDIO_SHADOWDEPTHTEXTURE) ~= 0)
-	if is_depth_pass then return end
-	
+	if WireLib.IsDepthPass(flags) then return end
+
 	if self:GetLaserEnabled() then
 		local att = vm:GetAttachment(vm:LookupAttachment("muzzle") or 0)
 		if not att then return end

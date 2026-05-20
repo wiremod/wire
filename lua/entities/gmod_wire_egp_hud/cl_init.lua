@@ -23,9 +23,7 @@ function ENT:DrawEntityOutline() end
 function ENT:Draw(flags)
 	self:DrawModel(flags)
 
-	local is_depth_pass = (bit.band(flags, STUDIO_SSAODEPTHTEXTURE) ~= 0 or bit.band(flags, STUDIO_SHADOWDEPTHTEXTURE) ~= 0)
+	if WireLib.IsDepthPass(flags) then return end
 
-	if is_depth_pass then return end
-	
 	Wire_Render(self)
 end

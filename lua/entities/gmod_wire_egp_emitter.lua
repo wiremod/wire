@@ -157,9 +157,7 @@ if CLIENT then
 		else
 			self:DrawModel(flags)
 
-			local is_depth_pass = (bit.band(flags, STUDIO_SSAODEPTHTEXTURE) ~= 0 or bit.band(flags, STUDIO_SHADOWDEPTHTEXTURE) ~= 0)
-
-			if is_depth_pass then return end
+			if WireLib.IsDepthPass(flags) then return end
 
 			self:DrawNoRT()
 			Wire_Render(self)

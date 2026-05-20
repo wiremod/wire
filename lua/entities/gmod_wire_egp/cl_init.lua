@@ -36,9 +36,7 @@ local VECTOR_1_1_1 = Vector(1, 1, 1)
 function ENT:Draw(flags)
 	self:DrawModel(flags)
 
-	local is_depth_pass = (bit.band(flags, STUDIO_SSAODEPTHTEXTURE) ~= 0 or bit.band(flags, STUDIO_SHADOWDEPTHTEXTURE) ~= 0)
-
-	if is_depth_pass then return end
+	if WireLib.IsDepthPass(flags) then return end
 
 	Wire_Render(self)
 
