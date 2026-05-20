@@ -151,11 +151,16 @@ if CLIENT then
 	 	end
 	end
 
-	function ENT:Draw()
+	function ENT:Draw(flags)
 		if self.GPU then -- if we're rendering on RT, use base EGP's draw function instead
-			BaseClass.Draw(self)
+			BaseClass.Draw(self, flags)
 		else
-			self:DrawModel()
+			self:DrawModel(flags)
+
+			local is_depth_pass = (bit.band(flags, STUDIO_SSAODEPTHTEXTURE) ~= 0 or bit.band(flags, STUDIO_SHADOWDEPTHTEXTURE) ~= 0)
+
+			if is_depth_pass then return end
+
 			self:DrawNoRT()
 			Wire_Render(self)
 		end
