@@ -130,7 +130,7 @@ if CLIENT then
 			render.CullMode(1)
 		end
 
-		if selfTbl.GetDisableShading(self) or and not WireLib.IsDepthPass(flags) then
+		if selfTbl.GetDisableShading(self) and not WireLib.IsDepthPass(flags) then
 			render.SuppressEngineLighting(true)
 			EntityMeta.DrawModel(self, flags)
 			render.SuppressEngineLighting(false)
