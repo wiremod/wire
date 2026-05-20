@@ -130,12 +130,15 @@ if CLIENT then
 			render.CullMode(1)
 		end
 
-		if selfTbl.GetDisableShading(self) then
+
+		local is_depth_pass = (bit.band(flags, STUDIO_SSAODEPTHTEXTURE) ~= 0 or bit.band(flags, STUDIO_SHADOWDEPTHTEXTURE) ~= 0)
+
+		if selfTbl.GetDisableShading(self) or is_depth_pass then
 			render.SuppressEngineLighting(true)
-			EntityMeta.DrawModel(self)
+			EntityMeta.DrawModel(self, flags)
 			render.SuppressEngineLighting(false)
 		else
-			EntityMeta.DrawModel(self)
+			EntityMeta.DrawModel(self, flags)
 		end
 
 		if invert_model then
