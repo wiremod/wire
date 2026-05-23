@@ -367,15 +367,15 @@ local VECTOR_1_1_1 = Vector(1, 1, 1)
 --------------------------------------------------------------------------------
 -- Entity drawing function
 function ENT:Draw(flags)
-	-- Draw GPU itself
+  -- Draw GPU itself
 	self:DrawModel(flags)
 
-  if WireLib.IsDepthPass(flags) then return end
+	if WireLib.IsDepthPass(flags) then return end
 
-    -- Calculate time-related variables
-  self.CurrentTime = CurTime()
-  self.DeltaTime = math.min(1/30,self.CurrentTime - (self.PreviousTime or 0))
-  self.PreviousTime = self.CurrentTime
+	-- Calculate time-related variables
+	self.CurrentTime = CurTime()
+	self.DeltaTime = math.min(1/30,self.CurrentTime - (self.PreviousTime or 0))
+	self.PreviousTime = self.CurrentTime
 
 	local tone = render.GetToneMappingScaleLinear()
 	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
