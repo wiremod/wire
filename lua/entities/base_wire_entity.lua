@@ -18,9 +18,11 @@ if CLIENT then
 		self.PlayerWasLookingAtMe = false
 	end
 
-	function ENT:Draw()
+	function ENT:Draw( flags )
 		local entsTbl = EntityMeta.GetTable( self )
-		entsTbl.DoNormalDraw( self )
+		entsTbl.DoNormalDraw( self, nil, nil, flags )
+		if WireLib.IsDepthPass(flags) then return end
+
 		Wire_Render(self)
 		if entsTbl.GetBeamLength and (not entsTbl.GetShowBeam or entsTbl.GetShowBeam( self )) then
 			-- Every SENT that has GetBeamLength should draw a tracer. Some of them have the GetShowBeam boolean
@@ -270,14 +272,16 @@ if CLIENT then
 		end
 	end)
 
-	function ENT:DoNormalDraw(nohalo, notip)
-		if not nohalo and wire_drawoutline:GetBool() and looked_at == self then
+	function ENT:DoNormalDraw(nohalo, notip, flags)
+		local is_depth_pass = WireLib.IsDepthPass(flags)
+
+		if not nohalo and wire_drawoutline:GetBool() and looked_at == self and not is_depth_pass then
 			self:DrawEntityOutline()
-			self:DrawModel()
-		else
-			self:DrawModel()
 		end
-		if not notip and looked_at == self then
+
+		self:DrawModel(flags)
+
+		if not notip and looked_at == self and not is_depth_pass then
 			self:AddWorldTip()
 		end
 	end

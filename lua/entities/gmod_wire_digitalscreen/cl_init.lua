@@ -312,8 +312,10 @@ function ENT:RedrawRow(y)
 end
 
 local VECTOR_1_1_1 = Vector(1, 1, 1)
-function ENT:Draw()
-	self:DrawModel()
+function ENT:Draw(flags)
+	self:DrawModel(flags)
+
+	if WireLib.IsDepthPass(flags) then return end
 
 	local tone = render.GetToneMappingScaleLinear()
 	render.SetToneMappingScaleLinear(VECTOR_1_1_1)
