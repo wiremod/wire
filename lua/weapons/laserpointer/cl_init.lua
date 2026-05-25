@@ -19,9 +19,7 @@ local function WorldToViewModel(point)
 	return point
 end
 
-function SWEP:PostDrawViewModel(vm, wep, ply, flags)
-	if WireLib.IsDepthPass(flags) then return end
-
+function SWEP:PostDrawViewModel(vm, wep, ply)
 	if self:GetLaserEnabled() then
 		local att = vm:GetAttachment(vm:LookupAttachment("muzzle") or 0)
 		if not att then return end

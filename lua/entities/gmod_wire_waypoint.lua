@@ -9,10 +9,8 @@ end
 
 if CLIENT then
 	local physBeamMat = Material("cable/physbeam")
-	function ENT:Draw(flags)
-		BaseClass.Draw(self, flags)
-
-		if WireLib.IsDepthPass(flags) then return end
+	function ENT:Draw()
+		BaseClass.Draw(self)
 
 		local nextWP = self:GetNextWaypoint()
 		if IsValid(nextWP) and (LocalPlayer():GetEyeTrace().Entity == self) and (EyePos():Distance(self:GetPos()) < 4096) then

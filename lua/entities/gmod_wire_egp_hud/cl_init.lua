@@ -20,10 +20,7 @@ function ENT:EGP_Update() end
 
 function ENT:DrawEntityOutline() end
 
-function ENT:Draw(flags)
-	self:DrawModel(flags)
-
-	if WireLib.IsDepthPass(flags) then return end
-
+function ENT:Draw()
+	self:DrawModel()
 	Wire_Render(self)
 end

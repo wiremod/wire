@@ -151,14 +151,11 @@ if CLIENT then
 	 	end
 	end
 
-	function ENT:Draw(flags)
+	function ENT:Draw()
 		if self.GPU then -- if we're rendering on RT, use base EGP's draw function instead
-			BaseClass.Draw(self, flags)
+			BaseClass.Draw(self)
 		else
-			self:DrawModel(flags)
-
-			if WireLib.IsDepthPass(flags) then return end
-
+			self:DrawModel()
 			self:DrawNoRT()
 			Wire_Render(self)
 		end
