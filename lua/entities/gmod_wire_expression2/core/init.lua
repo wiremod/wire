@@ -245,7 +245,9 @@ end
 ---@param name string
 ---@param args table?
 function E2Lib.triggerEvent(name, args)
-	assert(E2Lib.Env.Events[name], "E2Lib.triggerEvent on nonexisting event: '" .. name .. "'")
+	if not E2Lib.Env.Events[name] then
+		error("E2Lib.triggerEvent on nonexisting event: '" .. name .. "'", 2)
+	end
 
 	local event_listeners = E2Lib.Env.Events[name].listening
 
@@ -264,7 +266,9 @@ end
 ---@param args table
 ---@param ignore table<Entity, true>
 function E2Lib.triggerEventOmit(name, args, ignore)
-	assert(E2Lib.Env.Events[name], "E2Lib.triggerEventOmit on nonexisting event: '" .. name .. "'")
+	if not E2Lib.Env.Events[name] then
+		error("E2Lib.triggerEventOmit on nonexisting event: '" .. name .. "'", 2)
+	end
 
 	local event_listeners = E2Lib.Env.Events[name].listening
 

@@ -330,6 +330,7 @@ number_of_keys = number_of_keys + 3
 
 local function UpdateKeys(ply, bind, key, state)
 	local uid = ply:SteamID()
+	if table.IsEmpty(KeyAlert) then return end
 
 	local keystate = {
 		runByKey = ply,
@@ -363,14 +364,14 @@ local function triggerKey(ply,bind,key,state)
 	end)
 end
 
-hook.Add("PlayerBindDown", "Exp2KeyReceivingDown", function(player, binding, button)
-	triggerKey(player,binding,button,true)
-	E2Lib.triggerEvent("keyPressed", {player, keys_lookup[button], 1, binding or ""})
+hook.Add("PlayerBindDown", "Exp2KeyReceivingDown", function(ply, binding, button)
+	triggerKey(ply,binding,button,true)
+	E2Lib.triggerEvent("keyPressed", {ply, keys_lookup[button], 1, binding or ""})
 end)
 
-hook.Add("PlayerBindUp", "Exp2KeyReceivingUp", function(player, binding, button)
-	triggerKey(player,binding,button,false)
-	E2Lib.triggerEvent("keyPressed", {player, keys_lookup[button], 0, binding or ""})
+hook.Add("PlayerBindUp", "Exp2KeyReceivingUp", function(ply, binding, button)
+	triggerKey(ply,binding,button,false)
+	E2Lib.triggerEvent("keyPressed", {ply, keys_lookup[button], 0, binding or ""})
 end)
 
 local function toggleRunOnKeys(self,ply,on,filter)

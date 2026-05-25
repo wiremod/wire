@@ -111,7 +111,7 @@ local function wtfgarry( str )
 end
 
 function ENT:GetGateName()
-    return self:GetNWString("name", self.name)
+    return self:GetInstanceName()
 end
 
 local h_of_lower = 100 -- height of the lower section (the prfbench/percent bar section)

@@ -392,7 +392,7 @@ if SERVER then
 			if ply ~= toent.player then
 				toent.player = ply
 				toent:SetPlayer(ply)
-				toent:SetNWEntity("player", ply)
+				toent:SetInstancePlayer(ply)
 
 				-- Note that the SENT and CPPI owners aren't set here to allow the original owner to still access their chip
 			end

@@ -5,14 +5,19 @@ ENT.Author = ""
 ENT.Contact = ""
 ENT.Purpose = ""
 ENT.Instructions = ""
-
 ENT.WireDebugName = "Expression 2"
+
+function ENT:SetupDataTables()
+	self:NetworkVar("Entity", 0, "InstancePlayer")
+	self:NetworkVar("String", 0, "InstanceName")
+end
 
 CreateConVar("wire_expression2_unlimited", "0", {FCVAR_REPLICATED})
 CreateConVar("wire_expression2_quotasoft", "10000", {FCVAR_REPLICATED})
 CreateConVar("wire_expression2_quotahard", "100000", {FCVAR_REPLICATED})
 CreateConVar("wire_expression2_quotatick", "25000", {FCVAR_REPLICATED})
 CreateConVar("wire_expression2_quotatime", "-1", {FCVAR_REPLICATED}, "Time in (ms) that all E2s of one player can consume before killing (-1 is infinite)")
+CreateConVar("wire_expression2_quota_average", "100", {FCVAR_REPLICATED}, "The chip load window width in ticks (smaller is roughly, larger is smooth)")
 
 include("core/e2lib.lua")
 include("base/debug.lua")
