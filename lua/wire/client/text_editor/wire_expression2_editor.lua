@@ -1438,11 +1438,11 @@ Text here]# ]]
 		dlist2:Clear()
 		local size = 0
 		for _, v in ipairs(E2s) do
-			local ply = v:GetNWEntity("player", NULL)
+			local ply = v:GetInstancePlayer()
 			if IsValid(ply) and ply == LocalPlayer() or showall then
 				local nick
 				if not ply or not ply:IsValid() then nick = "Unknown" else nick = ply:Nick() end
-				local name = v:GetNWString("name", "generic")
+				local name = v:GetGateName()
 
 				local singleline = string.match( name, "(.-)\n" )
 				if singleline then name = singleline .. "..." end

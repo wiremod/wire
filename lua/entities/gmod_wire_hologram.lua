@@ -5,6 +5,8 @@ ENT.DisableDuplicator = true
 
 function ENT:SetupDataTables()
 	self:NetworkVar( "Entity", 0, "PlayerEnt" )
+	self:NetworkVar( "Bool", 0, "InvertModel" )
+	self:NetworkVar( "Bool", 1, "DisableShading" )
 end
 
 function ENT:GetPlayer()
@@ -112,7 +114,7 @@ if CLIENT then
 		render.EnableClipping(selfTbl.oldClipState)
 	end
 
-	function ENT:Draw()
+	function ENT:Draw(flags)
 		local selfTbl = EntityMeta.GetTable(self)
 		if selfTbl.blocked or selfTbl.notvisible then return end
 
@@ -122,18 +124,21 @@ if CLIENT then
 			SetupClipping(selfTbl)
 		end
 
-		local invert_model = EntityMeta.GetNWInt(self, "invert_model")
-		render.CullMode(invert_model)
+		local invert_model = selfTbl.GetInvertModel(self)
 
-		if EntityMeta.GetNWBool(self, "disable_shading") then
-			render.SuppressEngineLighting(true)
-			EntityMeta.DrawModel(self)
-			render.SuppressEngineLighting(false)
-		else
-			EntityMeta.DrawModel(self)
+		if invert_model then
+			render.CullMode(1)
 		end
 
-		if invert_model ~= 0 then
+		if selfTbl.GetDisableShading(self) and not WireLib.IsDepthPass(flags) then
+			render.SuppressEngineLighting(true)
+			EntityMeta.DrawModel(self, flags)
+			render.SuppressEngineLighting(false)
+		else
+			EntityMeta.DrawModel(self, flags)
+		end
+
+		if invert_model then
 			render.CullMode(0)
 		end
 

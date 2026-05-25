@@ -33,8 +33,10 @@ if CLIENT then
 		return x,y,w,h
 	end
 
-	function ENT:Draw()
-		self:DrawModel()
+	function ENT:Draw(flags)
+		self:DrawModel(flags)
+
+		if WireLib.IsDepthPass(flags) then return end
 
 		local draw_background = self:GetDrawBackground()
 		self.GPU:RenderToWorld(nil, 512, function(x, y, w, h, monitor, pos, ang, res)

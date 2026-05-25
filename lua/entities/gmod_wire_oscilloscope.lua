@@ -78,8 +78,10 @@ if CLIENT then
 		end
 	end)
 
-	function ENT:Draw()
-		self:DrawModel()
+	function ENT:Draw(flags)
+		self:DrawModel(flags)
+
+		if WireLib.IsDepthPass(flags) then return end
 
 		local length = self:GetNWFloat("Length", 50)
 		local r,g,b = self:GetNWFloat("R"), self:GetNWFloat("G"), self:GetNWFloat("B")
