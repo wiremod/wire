@@ -33,11 +33,8 @@ end
 function ENT:DrawEntityOutline() end
 
 local VECTOR_1_1_1 = Vector(1, 1, 1)
-function ENT:Draw(flags)
-	self:DrawModel(flags)
-
-	if WireLib.IsDepthPass(flags) then return end
-
+function ENT:Draw()
+	self:DrawModel()
 	Wire_Render(self)
 
 	local tone = render.GetToneMappingScaleLinear()
