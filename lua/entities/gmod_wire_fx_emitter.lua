@@ -39,7 +39,7 @@ include( "wire/fx_emitter_default.lua" )
 if CLIENT then
 	ENT.Delay = 0.05
 
-	function ENT:Draw()
+	function ENT:Draw( ... )
 		// Don't draw if we are in camera mode
 		local ply = LocalPlayer()
 		local wep = ply:GetActiveWeapon()
@@ -48,7 +48,7 @@ if CLIENT then
 			if ( weapon_name == "gmod_camera" ) then return end
 		end
 
-		BaseClass.Draw( self )
+		BaseClass.Draw( self, ... )
 	end
 
 	function ENT:Think()
