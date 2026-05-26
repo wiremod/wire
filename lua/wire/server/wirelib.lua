@@ -1685,6 +1685,3 @@ end
 function WireLib.NotifyAll(msg, severity, chatprint, color)
 	notify(player.GetAll(), msg, severity, chatprint, color)
 end
-
-version = 260525
-version_string = "Canary 2026.05.25 (3072970)"
