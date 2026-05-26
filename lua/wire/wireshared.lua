@@ -1287,8 +1287,11 @@ function WireLib.NotifyBuilder(msg, severity, color)
 	return ret
 end
 
-function WireLib.CheckRegex(data, pattern)
-	local limits = {[0] = 50000000, 15000, 500, 150, 70, 40} -- Worst case is about 200ms
+-- Worst case is about 200ms
+local regex_limits = {[0] = 50000000, 15000, 500, 150, 70, 40}
+
+function WireLib.CheckRegex(data, pattern, custom_limits)
+	local limits = custom_limits or regex_limits
 	local stripped, nrepl, nrepl2
 	-- strip escaped things
 	stripped, nrepl = string.gsub(pattern, "%%.", "")
