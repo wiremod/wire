@@ -405,12 +405,17 @@ function PreProcessor:Process(buffer, directives, ent)
 
 	for i, line in ipairs(lines) do
 		self.readline = i
-		line = string.TrimRight(line)
 
+		-- 2 regex changed from 500 to 15000
+		local ok = pcall(function() WireLib.CheckRegex(line, "^(.-)%s*$", {[0] = 50000000, 15000, 15000, 150, 70, 40}) end)
+		if not ok then self:Error("Line strip regex is too complex!") goto cont end
+
+		line = string.TrimRight(line)
 		line = self:RemoveComments(line)
 		line = self:ParseDirectives(line)
 
 		lines[i] = line
+		::cont::
 	end
 
 	-- convert description lookup table into an array that WireLib understands
