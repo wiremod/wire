@@ -405,12 +405,16 @@ function PreProcessor:Process(buffer, directives, ent)
 
 	for i, line in ipairs(lines) do
 		self.readline = i
-		line = string.TrimRight(line)
 
+		local ok, err = pcall(function() WireLib.CheckRegex(line, "^(.-)%s*$") end)
+		if not ok then self:Error(err) goto cont end
+
+		line = string.TrimRight(line)
 		line = self:RemoveComments(line)
 		line = self:ParseDirectives(line)
 
 		lines[i] = line
+		::cont::
 	end
 
 	-- convert description lookup table into an array that WireLib understands
