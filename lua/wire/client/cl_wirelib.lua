@@ -245,10 +245,6 @@ function WireLib.hud_debug(text, oneframe)
 	end)
 end
 
-function WireLib.IsDepthPass(flags)
-	return bit.band(flags, STUDIO_SSAODEPTHTEXTURE) ~= 0 or bit.band(flags, STUDIO_SHADOWDEPTHTEXTURE) ~= 0
-end
-
 local old_renderhalos = WireLib.__old_renderhalos or hook.GetTable().PostDrawEffects.RenderHalos
 WireLib.__old_renderhalos = old_renderhalos
 if old_renderhalos ~= nil then

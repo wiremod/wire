@@ -304,10 +304,8 @@ if CLIENT then
         cam.End3D2D()
     end
 
-    function ENT:Draw(flags)
-        self:DrawModel(flags)
-
-        if WireLib.IsDepthPass(flags) then return end
+    function ENT:Draw()
+        self:DrawModel()
 
         if self.MonitorDesc == nil then
             return

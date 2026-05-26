@@ -11,8 +11,8 @@ end
 if CLIENT then
 	local halo_ent, halo_blur
 
-	function ENT:Draw( flags )
-		self:DoNormalDraw(true,false, flags)
+	function ENT:Draw()
+		self:DoNormalDraw(true,false)
 		if LocalPlayer():GetEyeTrace().Entity == self and EyePos():Distance( self:GetPos() ) < 512 then
 			if self:GetOn() then
 				halo_ent = self

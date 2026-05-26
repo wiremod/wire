@@ -114,7 +114,7 @@ if CLIENT then
 		render.EnableClipping(selfTbl.oldClipState)
 	end
 
-	function ENT:Draw(flags)
+	function ENT:Draw()
 		local selfTbl = EntityMeta.GetTable(self)
 		if selfTbl.blocked or selfTbl.notvisible then return end
 
@@ -130,12 +130,12 @@ if CLIENT then
 			render.CullMode(1)
 		end
 
-		if selfTbl.GetDisableShading(self) and not WireLib.IsDepthPass(flags) then
+		if selfTbl.GetDisableShading(self) then
 			render.SuppressEngineLighting(true)
-			EntityMeta.DrawModel(self, flags)
+			EntityMeta.DrawModel(self)
 			render.SuppressEngineLighting(false)
 		else
-			EntityMeta.DrawModel(self, flags)
+			EntityMeta.DrawModel(self)
 		end
 
 		if invert_model then
