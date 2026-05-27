@@ -403,18 +403,18 @@ function PreProcessor:Process(buffer, directives, ent)
 		self.ignorestuff = true
 	end
 
-	-- to avoid hangs
+	-- to avoid big hangs, 2 regex changed from 500 to 10000, to avoid false positives
+	local regex_limits = {[0] = 50000000, 15000, 10000, 150, 70, 40}
 	local start_time = SysTime()
 
 	for i, line in ipairs(lines) do
 		self.readline = i
 
-		-- 2 regex changed from 500 to 10000, to avoid hangs
-		local ok = pcall(function() WireLib.CheckRegex(line, "^(.-)%s*$", {[0] = 50000000, 15000, 10000, 150, 70, 40}) end)
+		local ok = pcall(function() WireLib.CheckRegex(line, "^(.-)%s*$", regex_limits) end)
 		if not ok then self:Error("Line strip regex is too complex!") goto cont end
 
 		if SysTime() > start_time + 0.1 then
-			self:Error("Preprocessing take too long!")
+			self:Error("Preprocessing took too long!")
 			break
 		end
 
