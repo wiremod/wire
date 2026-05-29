@@ -107,10 +107,6 @@ function PreProcessor:Trim(line)
 		end
 	end
 
-	if not last then
-		return ""
-	end
-
 	return string.sub(line, first, last)
 end
 
