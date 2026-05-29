@@ -470,7 +470,7 @@ function PreProcessor:Process(buffer, directives, ent)
 	local lines
 
 	if #buffer > 5000000 then -- 5mb
-		self:Error("Buffer is too big")
+		self:Error("Code is too big (5mb max)")
 		lines = {}
 	else
 		-- to avoid big hangs
