@@ -83,6 +83,17 @@ function PreProcessor:HandlePPCommand(comment, col)
 	end
 end
 
+function PreProcessor:TrimWhitespace(line)
+	for i = #line, 1, -1 do
+		if string.byte(line, i) ~= 32 then
+			return string.sub(line, 1, i)
+		end
+	end
+
+	-- The line consists only of spaces
+	return ""
+end
+
 function PreProcessor:FindComments(line)
 	local isinput = not self.blockcomment and not self.multilinestring and line:match("^@inputs") ~= nil
 	local isoutput = not self.blockcomment and not self.multilinestring and line:match("^@outputs") ~= nil
@@ -403,17 +414,13 @@ function PreProcessor:Process(buffer, directives, ent)
 		self.ignorestuff = true
 	end
 
-	-- to avoid big hangs, 2 regex changed from 500 to 10000 to avoid false positives
-	local regex_limits = {[0] = 50000000, 15000, 10000, 150, 70, 40}
+	-- to avoid big hangs
 	local timeout = SysTime() + 0.5
 
 	for i, line in ipairs(lines) do
 		self.readline = i
 
-		local ok = pcall(function() WireLib.CheckRegex(line, "^(.-)%s*$", regex_limits) end)
-		if not ok then self:Error("Line strip regex is too complex!") goto cont end
-
-		line = string.TrimRight(line)
+		line = self:TrimWhitespace(line)
 		line = self:RemoveComments(line)
 		line = self:ParseDirectives(line)
 		lines[i] = line
