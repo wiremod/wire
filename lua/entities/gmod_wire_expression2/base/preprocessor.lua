@@ -420,6 +420,11 @@ function PreProcessor:Process(buffer, directives, ent)
 	for i, line in ipairs(lines) do
 		self.readline = i
 
+		if #line > 1000000 then
+			self:Error("Line is too long")
+			break
+		end
+
 		line = self:TrimWhitespace(line)
 		line = self:RemoveComments(line)
 		line = self:ParseDirectives(line)
@@ -427,7 +432,7 @@ function PreProcessor:Process(buffer, directives, ent)
 		::cont::
 
 		if SysTime() > timeout then
-			self:Error("Preprocessing took too long!")
+			self:Error("Preprocessing took too long")
 			break
 		end
 	end
