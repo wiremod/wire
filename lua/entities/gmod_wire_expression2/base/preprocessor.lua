@@ -453,8 +453,6 @@ function PreProcessor:Process(buffer, directives, ent)
 	self.ifdefStack = {}
 	self.warnings, self.errors = {}, {}
 
-	local lines = string.Explode("\n", buffer)
-
 	if not directives then
 		self.directives = {
 			name = nil,
@@ -469,21 +467,28 @@ function PreProcessor:Process(buffer, directives, ent)
 		self.ignorestuff = true
 	end
 
-	-- to avoid big hangs
-	local timeout = SysTime() + 0.5
+	local lines = {}
 
-	for i, line in ipairs(lines) do
-		self.readline = i
+	if #buffer > 5000000 then -- 5mb
+		self:Error("Buffer is too big")
+		lines = {}
+	else
+		-- to avoid big hangs
+		local timeout = SysTime() + 0.5
+		lines = string.Explode("\n", buffer)
 
-		line = self:TrimRight(line)
-		line = self:RemoveComments(line)
-		line = self:ParseDirectives(line)
-		lines[i] = line
-		::cont::
+		for i, line in ipairs(lines) do
+			self.readline = i
 
-		if SysTime() > timeout then
-			self:Error("Preprocessing took too long")
-			break
+			line = self:TrimRight(line)
+			line = self:RemoveComments(line)
+			line = self:ParseDirectives(line)
+			lines[i] = line
+
+			if SysTime() > timeout then
+				self:Error("Preprocessing took too long")
+				break
+			end
 		end
 	end
 
