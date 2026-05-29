@@ -283,7 +283,7 @@ e2function number string:findRE(string pattern, start)
 	if not ok then
 		return self:throw(ret)
 	else
-		return ret
+		return ret or 0
 	end
 end
 
