@@ -134,43 +134,62 @@ function PreProcessor:FindComments(line)
 	local isinput = not self.blockcomment and not self.multilinestring and line:match("^@inputs") ~= nil
 	local isoutput = not self.blockcomment and not self.multilinestring and line:match("^@outputs") ~= nil
 
-	local ret, count, pos, found = {}, 0, 1
-	repeat
-		found = line:find((isinput or isoutput) and '[#"\\A-Z]' or '[#"\\]', pos)
-		if found then -- We found something
-			local char = line:sub(found, found)
-			if (isinput or isoutput) and char:match("[A-Z]") ~= nil then -- we found the start of an input/output variable definition
-				local varname, endpos = line:match("^([A-Z][A-Za-z0-9_]*)()",found)
-				count = count + 1
-				ret[count] = {type = isinput and "inputs" or "outputs", name=varname, pos=found, blockcomment = {}}
-				pos = endpos
-			elseif char == "#" then -- We found a comment
-				local before = line:sub(found - 1, found - 1)
-				if before == "]" then -- We found an ending
-					count = count + 1
-					ret[count] = { type = "end", pos = found - 1 }
-					pos = found + 1
+	local ret, count = {}, 0
+	local len = #line
+	local i = 1
+
+	while i <= len do
+		local byte = string.byte(line, i)
+
+		-- We found the start of an input/output variable definition
+		if (isinput or isoutput) and byte >= 65 and byte <= 90 then
+			local start = i
+			i = i + 1
+
+			while i <= len do
+				local b = string.byte(line, i)
+
+				if (b >= 65 and b <= 90) or (b >= 97 and b <= 122) or (b >= 48 and b <= 57) or b == 95 then
+					i = i + 1
 				else
-					local after = line:sub(found + 1, found + 1)
-					if after == "[" then -- We found a start
-						count = count + 1
-						ret[count] = { type = "start", pos = found }
-						pos = found + 2
-					else -- We found a normal comment
-						count = count + 1
-						ret[count] = { type = "normal", pos = found }
-						pos = found + 1
-					end
+					break
 				end
-			elseif char == '"' then -- We found a string
-				count = count + 1
-				ret[count] = { type = "string", pos = found }
-				pos = found + 1
-			elseif char == '\\' then -- We found an escape character
-				pos = found + 2 -- Skip the escape character and the character following it
 			end
+
+			local varname = string.sub(line, start, i - 1)
+			count = count + 1
+			ret[count] = { type = isinput and "inputs" or "outputs", name = varname, pos = start, blockcomment = {} }
+		elseif byte == 92 then -- We found an escape character
+			i = i + 2 -- Skip the escape character and the character following it
+		elseif byte == 34 then -- We found a string
+			count = count + 1
+			ret[count] = { type = "string", pos = i }
+			i = i + 1
+		elseif byte == 35 then -- We found a comment
+			local before = i > 1 and string.byte(line, i - 1)
+
+			if before == 93 then -- We found an ending
+				count = count + 1
+				ret[count] = { type = "end", pos = i - 1 }
+				i = i + 1
+			else
+				local after = i < len and string.byte(line, i + 1)
+
+				if after == 91 then -- We found a start
+					count = count + 1
+					ret[count] = { type = "start", pos = i }
+					i = i + 2
+				else -- We found a normal comment
+					count = count + 1
+					ret[count] = { type = "normal", pos = i }
+					i = i + 1
+				end
+			end
+		else
+			i = i + 1
 		end
-		until (not found)
+	end
+
 	return ret, count
 end
 
