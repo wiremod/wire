@@ -303,7 +303,7 @@ local directive_handlers = {
 	["persist"] = handleIO("persist"),
 
 	["trigger"] = function(self, value, trace)
-		local trimmed = PreProcessor.Trim(value)
+		local trimmed = PreProcessor.Trim(nil, value)
 		if trimmed == "all" then
 			if self.directives.trigger[1] ~= nil then
 				self:Error("Directive (@trigger) conflicts with previous directives", trace)
@@ -349,7 +349,7 @@ local directive_handlers = {
 		end
 
 		if CLIENT then
-			if #PreProcessor.Trim(arg) > 0 then
+			if #PreProcessor.Trim(nil, arg) > 0 then
 				trace.start_col = trace.end_col + 1
 				trace.end_line = trace.start_line + 1
 				trace.end_col = 1
