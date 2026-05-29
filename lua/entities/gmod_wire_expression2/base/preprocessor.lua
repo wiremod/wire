@@ -467,7 +467,7 @@ function PreProcessor:Process(buffer, directives, ent)
 		self.ignorestuff = true
 	end
 
-	local lines = {}
+	local lines
 
 	if #buffer > 5000000 then -- 5mb
 		self:Error("Buffer is too big")
