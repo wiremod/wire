@@ -83,21 +83,14 @@ function PreProcessor:HandlePPCommand(comment, col)
 	end
 end
 
-local space_chars = {
-	[9] = true,
-	[10] = true,
-	[11] = true,
-	[12] = true,
-	[13] = true,
-	[32] = true
-}
-
 function PreProcessor:Trim(line)
 	local length = #line
 	local first
 
 	for i = 1, length do
-		if not space_chars[string.byte(line, i)] then
+		local b = string.byte(line, i)
+
+		if b ~= 32 and (b < 9 or b > 13) then
 			first = i
 			break
 		end
@@ -110,7 +103,9 @@ function PreProcessor:Trim(line)
 	local last
 
 	for i = length, 1, -1 do
-		if not space_chars[string.byte(line, i)] then
+		local b = string.byte(line, i)
+
+		if b ~= 32 and (b < 9 or b > 13) then
 			last = i
 			break
 		end
@@ -121,7 +116,9 @@ end
 
 function PreProcessor:TrimRight(line)
 	for i = #line, 1, -1 do
-		if not space_chars[string.byte(line, i)] then
+		local b = string.byte(line, i)
+
+		if b ~= 32 and (b < 9 or b > 13) then
 			return string.sub(line, 1, i)
 		end
 	end
