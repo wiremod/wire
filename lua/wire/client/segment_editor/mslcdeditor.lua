@@ -607,7 +607,7 @@ function Editor:GetPolyEdgeAtPoly(x, y, poly)
 		local lf = (v.x*lx + v.y*ly)/d
 		local f = (x*lx + y*ly)/d - lf
 		local s = (x*ly - y*lx)/d - ls
-		if f > 0 and f < d and s >= -25/self.Zoom and s <= 25/self.Zoom then
+		if f > 0 and f < d and s >= -10/self.Zoom and s <= 10/self.Zoom then
 			return poly, i
 		end
 	end
