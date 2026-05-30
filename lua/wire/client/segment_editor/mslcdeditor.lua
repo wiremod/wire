@@ -37,6 +37,7 @@ function Editor:Init()
 	self.SelectedSegments = nil
 	self.SelectedSegment = nil
 	self.SelectedVert = nil
+	self.Selecting = nil
 
 	self.LastMousePos = { 0, 0 }
 	self.MouseDown = false
@@ -305,22 +306,12 @@ function DrawGroup(self,group)
 	if #group.Children == 0 then
 		return
 	end
-	local oCr = self.Cr
-	local oCg = self.Cg
-	local oCb = self.Cb
-	local oCa = self.Ca
-	if group.HasColor then
-		self.Cr = group.R or 255
-		self.Cg = group.G or 255
-		self.Cb = group.B or 255
-		self.Ca = group.A or 255
-		surface.SetDrawColor(self.Cr,self.Cg,self.Cb,self.Ca)
-	end
+	
 	
 	local angle = math.rad(group.Rotation or 0)
 	local transformedLocal = TransformOffset(self,group.X or 0,group.Y or 0)
-	self.LocalX = self.LocalX + transformedLocal[1]
-	self.LocalY = self.LocalY + transformedLocal[2]
+	self.LocalX = self.LocalX + transformedLocal[1] + self.LocalXX/2
+	self.LocalY = self.LocalY + transformedLocal[2] + self.LocalYY/2
 	PushTransform(self,math.cos(angle),
 	math.sin(angle),
 	-math.sin(angle),
@@ -362,15 +353,15 @@ function DrawGroup(self,group)
 	}))
 	m:Translate(Vector(-x,-y,0))
 	--cam.PushModelMatrix(m,true)
+	if group.HasColor then
+		surface.SetDrawColor(group.R or 255,group.G or 255,group.B or 255,group.A or 255)
+	end
 	surface.DrawOutlinedRect(minx,miny,(maxx-minx),(maxy-miny))
 	--cam.PopModelMatrix()
 	PopTransform(self)
 	self.LocalX = self.LocalX - transformedLocal[1]
 	self.LocalY = self.LocalY - transformedLocal[2]
-	self.Cr = oCr
-	self.Cg = oCg
-	self.Cb = oCb
-	self.Ca = oCa
+
 
 	return minx,miny,maxx,maxy
 end
@@ -428,17 +419,12 @@ function Editor:Paint()
 	self:PaintGrid()
 
 	
-	self.Cr = 255
-	self.Cg = 255
-	self.Cb = 255
-	self.Ca = 255
 	self.LocalXX = self.Zoom
 	self.LocalXY = 0
 	self.LocalYX = 0
 	self.LocalYY = self.Zoom
 	self.LocalX = self:GetWide() / 2 - self.Position[1]*self.Zoom
 	self.LocalY = self:GetTall() / 2 - self.Position[2]*self.Zoom
-	self.BitIndex = 0
 	
 	surface.SetDrawColor(255, 255, 255, 255)
 	self.TransformStack = {}
@@ -446,9 +432,18 @@ function Editor:Paint()
 	self.SegmentTree.X = 0
 	self.SegmentTree.Y = 0
 	self.minx,self.miny,self.maxx,self.maxy = DrawGroup(self,self.SegmentTree)
+	--[[
+	if self.SelectedSegments then
+		self.SelectedSegments.HasColor = true
+		self.SelectedSegments.G = 0
+		self.SelectedSegments.X = -0.5
+		self.SelectedSegments.Y = -0.5
+		DrawGroup(self,self.SelectedSegments)
+	end
+	]]--
+	DisableClipping(false)
 	self.SegmentTree.X = -((self.minx or 0)-self.LocalX)/self.Zoom
 	self.SegmentTree.Y = -((self.miny or 0)-self.LocalY)/self.Zoom
-	DisableClipping(false)
 	local x, y = self:CursorPos()
 	self.LastMousePos = { x, y }
 	
@@ -652,6 +647,7 @@ function Editor:GetPolyVertAtPoly(x, y, poly)
 		end
 		
 	end
+	print(x,y)
 	if math.abs(x) < 4 and math.abs(y) < 4 then
 		return poly, 0
 	end
@@ -681,7 +677,31 @@ function Editor:GetPolyVertAt(x, y)
 end
 
 
+function Editor:SelectSegmentsAtGroup(x1, y1, x2, y2, group)
+	local sel = {
+		X = group.X,
+		Y = group.Y,
+		Type = GROUP,
+		Children = {}
+	}
+	for i,v in ipairs(group.Children) do
+		if v.Type == GROUP then
+			sel.Children[#sel.Children+1] = self:SelectSegmentsAtGroup(x1-v.X, y1-v.Y, x2-v.X, y2-v.Y, v)
+		elseif v.Type == POLY then
+			if v.X >= x1 and v.Y >= y1 and v.X <= x2 and v.Y <= y2 then
+				sel.Children[#sel.Children+1] = v
+			end
+		end
+	end
+	if #sel.Children > 0 then
+		return sel
+	end
+	return nil
+end
 
+function Editor:SelectSegments(x1, y1, x2, y2)
+	self.SelectedSegments = self:SelectSegmentsAtGroup(x1, y1, x2, y2, self.SegmentTree)
+end
 
 
 -- MOUSE
@@ -728,6 +748,8 @@ function Editor:OnMousePressed(code)
 		if self.DraggingPolyVert then
 			self.SelectedSegment = self.DraggingPolyVert[1]
 			self.SelectedVert = self.DraggingPolyVert[2]
+		else
+			self.Selecting = {x=x,y=y}
 		end
 	elseif code == MOUSE_RIGHT then
 		-- PLANE DRAGGING
@@ -742,6 +764,10 @@ function Editor:OnMouseReleased(code)
 		self.MouseDown = false
 		self.DraggingNode = nil
 		self.DraggingPolyVert = nil
+		if self.Selecting ~= nil then
+			self:SelectSegments(self.Selecting.x,self.Selecting.y,x,y)
+		end
+		self.Selecting = nil
 	elseif code == MOUSE_RIGHT then
 		self.DraggingWorld = false
 	end
