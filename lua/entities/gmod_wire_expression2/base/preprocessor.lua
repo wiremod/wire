@@ -403,14 +403,26 @@ function PreProcessor:Process(buffer, directives, ent)
 		self.ignorestuff = true
 	end
 
+	-- to avoid big hangs, 2 regex changed from 500 to 10000 to avoid false positives
+	local regex_limits = {[0] = 50000000, 15000, 10000, 150, 70, 40}
+	local timeout = SysTime() + 0.5
+
 	for i, line in ipairs(lines) do
 		self.readline = i
-		line = string.TrimRight(line)
 
+		local ok = pcall(function() WireLib.CheckRegex(line, "^(.-)%s*$", regex_limits) end)
+		if not ok then self:Error("Line strip regex is too complex!") goto cont end
+
+		line = string.TrimRight(line)
 		line = self:RemoveComments(line)
 		line = self:ParseDirectives(line)
-
 		lines[i] = line
+		::cont::
+
+		if SysTime() > timeout then
+			self:Error("Preprocessing took too long!")
+			break
+		end
 	end
 
 	-- convert description lookup table into an array that WireLib understands

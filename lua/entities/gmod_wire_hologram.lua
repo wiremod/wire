@@ -5,6 +5,8 @@ ENT.DisableDuplicator = true
 
 function ENT:SetupDataTables()
 	self:NetworkVar( "Entity", 0, "PlayerEnt" )
+	self:NetworkVar( "Bool", 0, "InvertModel" )
+	self:NetworkVar( "Bool", 1, "DisableShading" )
 end
 
 function ENT:GetPlayer()
@@ -122,10 +124,13 @@ if CLIENT then
 			SetupClipping(selfTbl)
 		end
 
-		local invert_model = EntityMeta.GetNWInt(self, "invert_model")
-		render.CullMode(invert_model)
+		local invert_model = selfTbl.GetInvertModel(self)
 
-		if EntityMeta.GetNWBool(self, "disable_shading") then
+		if invert_model then
+			render.CullMode(1)
+		end
+
+		if selfTbl.GetDisableShading(self) then
 			render.SuppressEngineLighting(true)
 			EntityMeta.DrawModel(self)
 			render.SuppressEngineLighting(false)
@@ -133,7 +138,7 @@ if CLIENT then
 			EntityMeta.DrawModel(self)
 		end
 
-		if invert_model ~= 0 then
+		if invert_model then
 			render.CullMode(0)
 		end
 
