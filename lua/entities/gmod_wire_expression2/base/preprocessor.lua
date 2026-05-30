@@ -64,7 +64,7 @@ local type_map = {
 }
 
 function PreProcessor:GetType(tp, trace)
-	tp = tp:Trim():lower()
+	tp = self:Trim(tp):lower()
 	local up = tp:upper()
 
 	if tp == "normal" then
@@ -83,47 +83,110 @@ function PreProcessor:HandlePPCommand(comment, col)
 	end
 end
 
+function PreProcessor:Trim(line)
+	local length = #line
+	local first
+
+	for i = 1, length do
+		local b = string.byte(line, i)
+
+		if b ~= 32 and (b < 9 or b > 13) then
+			first = i
+			break
+		end
+	end
+
+	if not first then
+		return ""
+	end
+
+	local last
+
+	for i = length, 1, -1 do
+		local b = string.byte(line, i)
+
+		if b ~= 32 and (b < 9 or b > 13) then
+			last = i
+			break
+		end
+	end
+
+	return string.sub(line, first, last)
+end
+
+function PreProcessor:TrimRight(line)
+	for i = #line, 1, -1 do
+		local b = string.byte(line, i)
+
+		if b ~= 32 and (b < 9 or b > 13) then
+			return string.sub(line, 1, i)
+		end
+	end
+
+	-- The line consists only of spaces
+	return ""
+end
+
 function PreProcessor:FindComments(line)
 	local isinput = not self.blockcomment and not self.multilinestring and line:match("^@inputs") ~= nil
 	local isoutput = not self.blockcomment and not self.multilinestring and line:match("^@outputs") ~= nil
 
-	local ret, count, pos, found = {}, 0, 1
-	repeat
-		found = line:find((isinput or isoutput) and '[#"\\A-Z]' or '[#"\\]', pos)
-		if found then -- We found something
-			local char = line:sub(found, found)
-			if (isinput or isoutput) and char:match("[A-Z]") ~= nil then -- we found the start of an input/output variable definition
-				local varname, endpos = line:match("^([A-Z][A-Za-z0-9_]*)()",found)
-				count = count + 1
-				ret[count] = {type = isinput and "inputs" or "outputs", name=varname, pos=found, blockcomment = {}}
-				pos = endpos
-			elseif char == "#" then -- We found a comment
-				local before = line:sub(found - 1, found - 1)
-				if before == "]" then -- We found an ending
-					count = count + 1
-					ret[count] = { type = "end", pos = found - 1 }
-					pos = found + 1
+	local ret, count = {}, 0
+	local len = #line
+	local i = 1
+
+	while i <= len do
+		local byte = string.byte(line, i)
+
+		-- We found the start of an input/output variable definition
+		if (isinput or isoutput) and byte >= 65 and byte <= 90 then
+			local start = i
+			i = i + 1
+
+			while i <= len do
+				local b = string.byte(line, i)
+
+				if (b >= 65 and b <= 90) or (b >= 97 and b <= 122) or (b >= 48 and b <= 57) or b == 95 then
+					i = i + 1
 				else
-					local after = line:sub(found + 1, found + 1)
-					if after == "[" then -- We found a start
-						count = count + 1
-						ret[count] = { type = "start", pos = found }
-						pos = found + 2
-					else -- We found a normal comment
-						count = count + 1
-						ret[count] = { type = "normal", pos = found }
-						pos = found + 1
-					end
+					break
 				end
-			elseif char == '"' then -- We found a string
-				count = count + 1
-				ret[count] = { type = "string", pos = found }
-				pos = found + 1
-			elseif char == '\\' then -- We found an escape character
-				pos = found + 2 -- Skip the escape character and the character following it
 			end
+
+			local varname = string.sub(line, start, i - 1)
+			count = count + 1
+			ret[count] = { type = isinput and "inputs" or "outputs", name = varname, pos = start, blockcomment = {} }
+		elseif byte == 92 then -- We found an escape character
+			i = i + 2 -- Skip the escape character and the character following it
+		elseif byte == 34 then -- We found a string
+			count = count + 1
+			ret[count] = { type = "string", pos = i }
+			i = i + 1
+		elseif byte == 35 then -- We found a comment
+			local before = i > 1 and string.byte(line, i - 1)
+
+			if before == 93 then -- We found an ending
+				count = count + 1
+				ret[count] = { type = "end", pos = i - 1 }
+				i = i + 1
+			else
+				local after = i < len and string.byte(line, i + 1)
+
+				if after == 91 then -- We found a start
+					count = count + 1
+					ret[count] = { type = "start", pos = i }
+					i = i + 2
+				else -- We found a normal comment
+					count = count + 1
+					ret[count] = { type = "normal", pos = i }
+					i = i + 1
+				end
+			end
+		else
+			i = i + 1
 		end
-		until (not found)
+	end
+
 	return ret, count
 end
 
@@ -265,7 +328,7 @@ local directive_handlers = {
 	["persist"] = handleIO("persist"),
 
 	["trigger"] = function(self, value, trace)
-		local trimmed = string.Trim(value)
+		local trimmed = PreProcessor.Trim(nil, value)
 		if trimmed == "all" then
 			if self.directives.trigger[1] ~= nil then
 				self:Error("Directive (@trigger) conflicts with previous directives", trace)
@@ -311,7 +374,7 @@ local directive_handlers = {
 		end
 
 		if CLIENT then
-			if #string.Trim(arg) > 0 then
+			if #PreProcessor.Trim(nil, arg) > 0 then
 				trace.start_col = trace.end_col + 1
 				trace.end_line = trace.start_line + 1
 				trace.end_col = 1
@@ -348,7 +411,7 @@ function PreProcessor:ParseDirectives(line)
 	-- not a directive?
 	if not directive then
 		-- flag as "in code", if that is the case
-		if string.Trim(line) ~= "" then
+		if self:Trim(line) ~= "" then
 			self.incode = true
 		end
 		-- don't handle as a directive.
@@ -387,8 +450,6 @@ function PreProcessor:Process(buffer, directives, ent)
 	self.ifdefStack = {}
 	self.warnings, self.errors = {}, {}
 
-	local lines = string.Explode("\n", buffer)
-
 	if not directives then
 		self.directives = {
 			name = nil,
@@ -403,25 +464,28 @@ function PreProcessor:Process(buffer, directives, ent)
 		self.ignorestuff = true
 	end
 
-	-- to avoid big hangs, 2 regex changed from 500 to 10000 to avoid false positives
-	local regex_limits = {[0] = 50000000, 15000, 10000, 150, 70, 40}
-	local timeout = SysTime() + 0.5
+	local lines
 
-	for i, line in ipairs(lines) do
-		self.readline = i
+	if #buffer > 5000000 then -- 5mb
+		self:Error("Code is too big (5mb max)")
+		lines = {}
+	else
+		-- to avoid big hangs
+		local timeout = SysTime() + 0.5
+		lines = string.Explode("\n", buffer)
 
-		local ok = pcall(function() WireLib.CheckRegex(line, "^(.-)%s*$", regex_limits) end)
-		if not ok then self:Error("Line strip regex is too complex!") goto cont end
+		for i, line in ipairs(lines) do
+			self.readline = i
 
-		line = string.TrimRight(line)
-		line = self:RemoveComments(line)
-		line = self:ParseDirectives(line)
-		lines[i] = line
-		::cont::
+			line = self:TrimRight(line)
+			line = self:RemoveComments(line)
+			line = self:ParseDirectives(line)
+			lines[i] = line
 
-		if SysTime() > timeout then
-			self:Error("Preprocessing took too long!")
-			break
+			if SysTime() > timeout then
+				self:Error("Preprocessing took too long")
+				break
+			end
 		end
 	end
 
@@ -470,7 +534,7 @@ function PreProcessor:ParsePorts(ports, startoffset)
 					column2 = column + column2
 					local tr = Trace.new(self.readline, column2, self.readline, column2 + #var)
 
-					var = string.Trim(var)
+					var = self:Trim(var)
 					-- skip empty entries
 					if var ~= "" then
 						-- error on malformed variable names
@@ -615,7 +679,7 @@ function PreProcessor:PP_else(args, trace)
 	local state = table.remove(self.ifdefStack)
 	if state == nil then self:Error("Found #else outside #ifdef/#ifndef block", trace) end
 
-	if args:Trim() ~= "" then self:Error("Must not pass an argument to #else", trace) end
+	if self:Trim(args) ~= "" then self:Error("Must not pass an argument to #else", trace) end
 
 	if self:Disabled() then
 		table.insert(self.ifdefStack, false)
@@ -628,7 +692,7 @@ function PreProcessor:PP_endif(args, trace)
 	local state = table.remove(self.ifdefStack)
 	if state == nil then self:Error("Found #endif outside #ifdef/#ifndef block", trace) end
 
-	if args:Trim() ~= "" then self:Error("Must not pass an argument to #endif", trace) end
+	if self:Trim(args) ~= "" then self:Error("Must not pass an argument to #endif", trace) end
 end
 
 function PreProcessor:PP_error(args, trace)
