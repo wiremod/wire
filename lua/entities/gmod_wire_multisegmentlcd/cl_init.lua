@@ -36,7 +36,6 @@ function ENT:Initialize()
 	end)
 	
 	self.TreeMesh = {}
-	self.Texts = {}
 
 	WireLib.netRegister(self)
 end
@@ -139,9 +138,9 @@ function ENT:AddPoly(poly)
 			self.Tris = self.Tris - 10922
 			self.CurTris = 0
 		end
-		mesh.Position(Vector(poly[i][1],poly[i][2],0))
+		mesh.Position(Vector(poly[i][1],poly[i][2],self.ZOffset))
 		mesh.TexCoord(0, u, v, u ,v)
-		mesh.Color(255,255,255,127)
+		mesh.Color(255,255,255,255)
 		mesh.AdvanceVertex()
 		self.CurTris = self.CurTris + 1
 	end
@@ -153,12 +152,13 @@ function ENT:AddPoly(poly)
 			self.Tris = self.Tris - 10922
 			self.CurTris = 0
 		end
-		mesh.Position(Vector(poly[i][1],poly[i][2],self.ZOffset))
+		mesh.Position(Vector(poly[i][1],poly[i][2],0))
 		mesh.TexCoord(0, u, v, u ,v)
-		mesh.Color(255,255,255,255)
+		mesh.Color(255,255,255,127)
 		mesh.AdvanceVertex()
 		self.CurTris = self.CurTris + 1
 	end
+	
 end
 
 function ENT:DrawSegment(segment)
@@ -201,19 +201,18 @@ function ENT:DrawSegment(segment)
 	self.BitIndex = self.BitIndex+1
 end
 
-_TEXT_MATRIX = 0
-_TEXT_TEXT = 1
-_TEXT_BITINDEX = 2
-
-function ENT:DrawText(text)
-	local transformedLocal = self:TransformOffset(text.X or 0,text.Y or 0)
+function ENT:DrawPoly(poly)
+	--surface.SetDrawColor(self.Cr,self.Cg,self.Cb,self.Fade[self.BitIndex]*255)
+	local transformedLocal = self:TransformOffset(poly.X or 0,poly.Y or 0)
 	self.LocalX = self.LocalX + transformedLocal[1]
 	self.LocalY = self.LocalY + transformedLocal[2]
-	self.Texts[#self.Texts+1] = {
-		[_TEXT_MATRIX] = self:GetTransformMatrix(text.W or 1,text.H or 1),
-		[_TEXT_TEXT] = text.Text,
-		[_TEXT_BITINDEX] = self.BitIndex
-	}
+	local angle = math.rad(poly.Rotation or 0)
+	local tp = {}
+	tp = LoopToTris(poly.Poly)
+	for i=1,#tp do
+		tp[i] = self:Transform(tp[i].x,tp[i].y)
+	end
+	self:AddPoly(tp)
 	self.LocalX = self.LocalX - transformedLocal[1]
 	self.LocalY = self.LocalY - transformedLocal[2]
 	self.Colors[self.BitIndex] = {self.Cr,self.Cg,self.Cb,self.Ca}
@@ -276,8 +275,8 @@ function ENT:DrawUnion(group)
 			self:DrawUnion(v)
 		elseif v.Type == SEGMENT then 
 			self:DrawSegment(v)
-		elseif v.Type == TEXT then 
-			self:DrawText(v)
+		elseif v.Type == POLY then 
+			self:DrawPoly(v)
 		elseif v.Type == MATRIX then 
 			self:DrawMatrix(v)
 		elseif v.Type == ALIGN then 
@@ -329,8 +328,8 @@ function ENT:DrawGroup(group)
 			self:DrawUnion(v)
 		elseif v.Type == SEGMENT then 
 			self:DrawSegment(v)
-		elseif v.Type == TEXT then 
-			self:DrawText(v)
+		elseif v.Type == POLY then 
+			self:DrawPoly(v)
 		elseif v.Type == MATRIX then 
 			self:DrawMatrix(v)
 		elseif v.Type == ALIGN then 
@@ -357,6 +356,9 @@ function ENT:CountTris(node)
 		return sum
 	elseif node.Type == MATRIX then
 		return node.W*node.H*4
+	elseif node.Type == POLY then
+		print(#node.Poly)
+		return (#node.Poly-2)*3
 	end
 	return 12
 end
@@ -386,14 +388,14 @@ function ENT:Draw()
 				surface.SetDrawColor(self2.Bgred,self2.Bggreen,self2.Bgblue,self2.Bgalpha)
 				surface.DrawRect( 0, 0, 1, 1 )
 				for i=0,self2.BitIndex-1 do
-					local x = (i+1)%1024
-					local y = math.floor((i+1)/1024)
+					local x = (bit.bxor(i,self.XorMask)+1)%1024
+					local y = math.floor((bit.bxor(i,self.XorMask)+1)/1024)
 					fade[i] = (fade[i] or 0)*0.92 + 0.01
 					if bit.band(self2.Memory[bit.rshift(i,3)] or 0,bit.lshift(1,bit.band(i,7))) ~= 0 then
 						fade[i] = fade[i] + 0.07
 					end
 
-					if fade[i] < 0.1 or (fade[i] > 0.14 and fade[i] < 0.95) then
+					--if fade[i] < 0.1 or (fade[i] > 0.14 and fade[i] < 0.95) then
 						local color = self2.Colors[i] or {self2.Fgred,self2.Fggreen,self2.Fgblue,self2.Fgalpha}
 						surface.SetDrawColor(color[1]*fade[i]+self2.Bgred*(1-fade[i]),color[2]*fade[i]+self2.Bggreen*(1-fade[i]),color[3]*fade[i]+self2.Bgblue*(1-fade[i]),fade[i]*color[4]+self2.Bgalpha*(1-fade[i])*0.15)
 						if x == 0 and y == 0 then
@@ -401,7 +403,7 @@ function ENT:Draw()
 							break
 						end
 						surface.DrawRect( x, y, 1, 1 )
-					end
+					--end
 				end
 				render.OverrideBlend( false )
 			cam.End2D()
@@ -431,18 +433,6 @@ function ENT:Draw()
 			end
 		end
 		cam.PopModelMatrix()
-		
-		for i=1,#self2.Texts do
-			local text = self2.Texts[i]
-			local newm = text[_TEXT_MATRIX]
-			
-			surface.SetFont( "Default" )
-			cam.Start3D2D(pos, ang, scale)
-				cam.PushModelMatrix( newm, true )
-				draw.DrawText( text[_TEXT_TEXT], "Default" )
-				cam.PopModelMatrix()	
-			cam.End3D2D()
-		end
 		
 		
 		--cam.PopModelMatrix()
@@ -492,7 +482,6 @@ function ENT:Receive()
 	self.LocalX = -w/2
 	self.LocalY = -h/2
 	self.TreeMesh = self.TreeMesh or {}
-	self.Texts = {}
 	for i=#self.TreeMesh,1,-1 do
 		if self.TreeMesh[i] and self.TreeMesh[i]:IsValid() then
 			self.TreeMesh[i]:Destroy()

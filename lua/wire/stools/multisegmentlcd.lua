@@ -46,7 +46,7 @@ if CLIENT then
 	
 	net.Receive("wire_multisegmentlcd_tool_upload_request", function(len, ply)
 		local ent = net.ReadUInt(16)
-		local serialized = WireLib.von.serialize(WireLib.SegmentLCD_Tree)
+		local serialized = util.Compress(MSLCD_Editor:GetData())
 		if #serialized > 65535 then
 			return
 		end
@@ -90,7 +90,12 @@ if SERVER then
 	net.Receive("wire_multisegmentlcd_tool_upload", function(len, ply)
 		local ent = ents.GetByIndex(net.ReadUInt(16))
 		local sz = net.ReadUInt(16)
-		ent.Tree = WireLib.von.deserialize(net.ReadData(sz))
+		local data = net.ReadData(sz)
+		local ok, data = pcall(util.Decompress, data)
+		if not ok then return end
+
+		ok, data = pcall(WireLib.von.deserialize, data)
+		ent.Tree = data.SegmentTree
 		ent:Retransmit()
 	end)
 	
@@ -118,7 +123,8 @@ TOOL.ClientConVar = {
 	fggreen		= 91,
 	fgblue		= 45,
 	fgalpha		= 255,
-	xormask		= 0
+	xormask		= 0,
+	snapinc		= 0
 }
 
 
@@ -162,6 +168,81 @@ local invalid_filename_chars = {
 	[" "] = "_",
 }
 
+if CLIENT then
+	function TOOL:RightClick( trace )
+		if not IsValid( trace.Entity ) then return end
+		local ent = trace.Entity
+		if ent:GetClass() ~= "gmod_wire_multisegmentlcd" then return end
+		MSLCD_Editor:SetDataFromEnt(ent.Tree)
+	end
+	------------------------------------------------------------------------------
+	-- Open Multi-segment editor
+	------------------------------------------------------------------------------
+	function MSLCD_OpenEditor()
+		if MSLCD_Editor == nil then
+			MSLCD_Editor = vgui.Create("MSLCDEditorFrame")
+			MSLCD_Editor:Setup("MSLCD Editor", "multisegmentlcd")
+		end
+		MSLCD_Editor:Open()
+	end
+	
+	function MSLCD_NewEditor()
+		MSLCD_Editor = vgui.Create("MSLCDEditorFrame")
+		MSLCD_Editor:Setup("MSLCD Editor", "multisegmentlcd")
+		MSLCD_Editor:Open()
+	end
+	
+	------------------------------------------------------------------------------
+	-- Build tool control panel
+	------------------------------------------------------------------------------
+	function TOOL.BuildCPanel(panel)
+		local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
+		panel:AddPanel(FileBrowser)
+		FileBrowser:Setup("multisegmentlcd")
+		FileBrowser:SetSize(235,400)
+		function FileBrowser:OnFileOpen(filepath, newtab)
+			if MSLCD_Editor == nil then
+				MSLCD_Editor = vgui.Create("MSLCDEditorFrame")
+				MSLCD_Editor:Setup("MSLCD Editor", "multisegmentlcd")
+			end
+			MSLCD_Editor:Open(filepath, nil, newtab)
+		end
+
+
+		----------------------------------------------------------------------------
+		local New = vgui.Create("DButton" , panel)
+		panel:AddPanel(New)
+		New:SetText("New file")
+		New.DoClick = function(button)
+			MSLCD_OpenEditor()
+			MSLCD_Editor:AutoSave()
+			MSLCD_Editor:NewChip(false)
+		end
+		panel:AddControl("Label", {Text = ""})
+
+		----------------------------------------------------------------------------
+		local OpenEditor = vgui.Create("DButton", panel)
+		panel:AddPanel(OpenEditor)
+		OpenEditor:SetText("Open Editor")
+		OpenEditor.DoClick = MSLCD_OpenEditor
+		
+		
+		local NewEditor = vgui.Create("DButton", panel)
+		panel:AddPanel(NewEditor)
+		NewEditor:SetText("New Editor")
+		NewEditor.DoClick = MSLCD_NewEditor
+
+		----------------------------------------------------------------------------
+		panel:AddControl("Label", {Text = ""})
+		panel:AddControl("Label", {Text = "MS-LCD settings:"})
+
+
+		----------------------------------------------------------------------------
+		WireDermaExts.ModelSelect(panel, "wire_multisegmentlcd_model", list.Get("WireScreenModels"), 5)
+		panel:AddControl("Label", {Text = ""})
+	end
+end
+--[[
 function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_multisegmentlcd_model", list.Get( "WireScreenModels" ), 5)
 	panel:CheckBox("#tool.wire_multisegmentlcd.interactive", "wire_multisegmentlcd_interactive")
@@ -169,6 +250,10 @@ function TOOL.BuildCPanel(panel)
 	panel:TextEntry("#tool.wire_multisegmentlcd.resw", "wire_multisegmentlcd_resw")
 	panel:TextEntry("#tool.wire_multisegmentlcd.resh", "wire_multisegmentlcd_resh")
 	panel:TextEntry("#tool.wire_multisegmentlcd.xormask", "wire_multisegmentlcd_xormask")
+	
+	
+	net.Receive("MSLCD_OpenEditor", MSLCD_OpenEditor)
+	
 	PreviewPanel = vgui.Create("DPanel", panel)
 	panel:AddPanel(PreviewPanel)
 	PreviewPanel:SetHeight(256)
@@ -1125,3 +1210,4 @@ end
 function TOOL:DrawToolScreen(width, height)
 	DrawSegmentLCDPreview(self,width,height)
 end
+]]
