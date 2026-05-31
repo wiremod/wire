@@ -236,7 +236,7 @@ e2function vector entity:velL()
 	return this:WorldToLocal(this:GetVelocity() + this:GetPos())
 end
 
-e2function vector entity:getGroundSpeedVelocity()
+e2function vector entity:velGroundSpeed()
 	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:GetGroundSpeedVelocity()
 end
