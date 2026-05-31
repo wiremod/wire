@@ -711,7 +711,7 @@ end
 
 e2function number entity:isEffectActive(effect)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	return this:IsEffectActive(effect)
+	return this:IsEffectActive(effect) and 1 or 0
 end
 
 --[[******************************************************************************]]
