@@ -347,9 +347,9 @@ function DrawGroup(self,group)
 		elseif v.Type == MATRIX then 
 			DrawMatrix(self,v)
 		end
-		if nminx == nil then
-			PrintTable(group)
-		end
+		--if nminx == nil then
+			--PrintTable(group)
+		--end
 		minx, miny = math.min(nminx, minx), math.min(nminy, miny)
 		maxx, maxy = math.max(nmaxx, maxx), math.max(nmaxy, maxy)
 	end
@@ -863,7 +863,7 @@ function Editor:AlignPosToGrid(x, y)
 end
 
 function Editor:DragHoverClick(hoverTime)
-	print(hoverTime)
+	--print(hoverTime)
 end
 
 vgui.Register("MSLCDEditor", Editor, "Panel");

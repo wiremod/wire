@@ -357,7 +357,7 @@ function ENT:CountTris(node)
 	elseif node.Type == MATRIX then
 		return node.W*node.H*4
 	elseif node.Type == POLY then
-		print(#node.Poly)
+		--print(#node.Poly)
 		return (#node.Poly-2)*3
 	end
 	return 12
@@ -399,7 +399,7 @@ function ENT:Draw()
 						local color = self2.Colors[i] or {self2.Fgred,self2.Fggreen,self2.Fgblue,self2.Fgalpha}
 						surface.SetDrawColor(color[1]*fade[i]+self2.Bgred*(1-fade[i]),color[2]*fade[i]+self2.Bggreen*(1-fade[i]),color[3]*fade[i]+self2.Bgblue*(1-fade[i]),fade[i]*color[4]+self2.Bgalpha*(1-fade[i])*0.15)
 						if x == 0 and y == 0 then
-							print("x,y = 0,0")
+							--print("x,y = 0,0")
 							break
 						end
 						surface.DrawRect( x, y, 1, 1 )
