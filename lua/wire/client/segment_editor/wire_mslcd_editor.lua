@@ -342,10 +342,10 @@ function Editor:CreateTab(chosenfile)
 	local editor = vgui.Create("MSLCDEditor")
 	--editor:SetDropTarget(0,0,200,200)
 	editor.ParentPanel = self
-
 	local sheet = self.C.TabHolder:AddSheet(chosenfile, editor)
 	editor.chosenfile = chosenfile
-
+	sheet.Tab:SetText(chosenfile)
+	editor:SetName(chosenfile)
 	sheet.Tab.OnMousePressed = function(pnl, keycode, ...)
 
 		if keycode == MOUSE_MIDDLE then
@@ -444,7 +444,7 @@ function Editor:GetNextAvailableTab()
 end
 
 function Editor:NewTab()
-	local sheet = self:CreateTab("gate")
+	local sheet = self:CreateTab("screen")
 	self:SetActiveTab(sheet.Tab)
 
 	self:NewChip(true)
@@ -486,7 +486,7 @@ function Editor:CloseTab(_tab)
 
 	-- There's only one tab open, no need to actually close any tabs
 	if self:GetNumTabs() == 1 then
-		activetab:SetText("gate")
+		activetab:SetText("screen")
 		self.C.TabHolder:InvalidateLayout()
 		self:NewChip(true)
 		return
@@ -511,7 +511,7 @@ function Editor:CloseTab(_tab)
 					self:SetActiveTab(othertab)
 					self:SetLastTab()
 				else -- Reset the current tab (backup)
-					self:GetActiveTab():SetText("gate")
+					self:GetActiveTab():SetText("screen")
 					self.C.TabHolder:InvalidateLayout()
 					self:NewChip(true)
 					return
@@ -525,7 +525,7 @@ function Editor:CloseTab(_tab)
 			if othertab and othertab:IsValid() then -- If that other tab is valid, use it
 				self:SetActiveTab(othertab)
 			else -- Reset the current tab (backup)
-				self:GetActiveTab():SetText("gate")
+				self:GetActiveTab():SetText("screen")
 				self.C.TabHolder:InvalidateLayout()
 				self:NewChip(true)
 				return
@@ -553,8 +553,8 @@ function Editor:BuildNode(v,node,group)
 	elseif v.Type == UNION then
 		new = node:AddNode( v.Text or "Union", "icon16/text_list_bullets.png" )
 		self:BuildNodes(new,v)
-	elseif v.Type == TEXT then
-		new = node:AddNode( v.Text or "Text", "icon16/bullet_yellow.png" )
+	elseif v.Type == POLY then
+		new = node:AddNode( v.Text or "Poly", "icon16/bullet_green.png" )
 	elseif v.Type == MATRIX then
 		new = node:AddNode( v.Text or "Matrix", "icon16/bullet_red.png" )
 	elseif v.Type == ALIGN then
@@ -632,7 +632,7 @@ function Editor:InitComponents()
 	self.C.NewTab = vgui.CreateFromTable(DMenuButton, self.C.Menu, "NewTab") -- New tab button
 	self.C.CloseTab = vgui.CreateFromTable(DMenuButton, self.C.Menu, "CloseTab") -- Close tab button
 	self.C.Reload = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Reload tab button
-	self.C.Segment = vgui.Create("DButton", self.C.Menu)
+	--self.C.Segment = vgui.Create("DButton", self.C.Menu)
 	self.C.Poly = vgui.Create("DButton", self.C.Menu)
 	--self.C.Matrix = vgui.Create("DButton", self.C.Menu)
 	--self.C.Group = vgui.Create("DButton", self.C.Menu)
@@ -767,13 +767,6 @@ function Editor:InitComponents()
 		self:UpdateActiveTabTitle()
 	end
 	
-	self.C.Segment:SetText("Segment")
-	self.C.Segment:SetTooltip( "Segment Tool" )
-	self.C.Segment:Dock(LEFT)
-	self.C.Segment.DoClick = function(button)
-		self:GetCurrentEditor():SetMode(SEGMENT)
-	end
-	
 	self.C.Poly:SetText("Poly")
 	self.C.Poly:SetTooltip( "Poly Tool" )
 	self.C.Poly:Dock(LEFT)
@@ -831,7 +824,7 @@ function Editor:InitComponents()
 	self:InitControlPanel(self.C.Control) -- making it seperate for better overview
 	self.C.Control:SetVisible(false)
 
-	self:CreateTab("gate")
+	self:CreateTab("screen")
 end
 
 function Editor:AutoSave()
@@ -976,7 +969,7 @@ function Editor:NewChip(incurrent)
 		self:ChosenFile()
 
 		-- Set title
-		self:GetActiveTab():SetText("gate")
+		self:GetActiveTab():SetText("screen")
 
 		self.C.TabHolder:InvalidateLayout()
 		self:ClearData()
@@ -1295,7 +1288,7 @@ function Editor:LoadFile(Line, forcenewtab)
 
 		local tab
 		if self.NewTabOnOpen:GetBool() or forcenewtab then
-			tab = self:CreateTab("").Tab
+			tab = self:CreateTab(Line).Tab
 		else
 			tab = self:GetActiveTab()
 		end

@@ -34,6 +34,8 @@ function Editor:Init()
 	self.DraggingOffset = { 0, 0 }
 	self.DraggingPolyVert = nil
 	
+	
+	
 	self.SelectedSegments = nil
 	self.SelectedSegment = nil
 	self.SelectedVert = nil
@@ -57,7 +59,16 @@ function Editor:Init()
 	
 	self.LastFrameTime = SysTime()
 	
-	self.Mode = SEGMENT
+	self.Mode = POLY
+	self.Zoom = 5
+	self.Position = {0,0}
+	
+	self.LocalXX = self.Zoom
+	self.LocalXY = 0
+	self.LocalYX = 0
+	self.LocalYY = self.Zoom
+	self.LocalX = self:GetWide() / 2 - self.Position[1]*self.Zoom
+	self.LocalY = self:GetTall() / 2 - self.Position[2]*self.Zoom
 end
 
 function Editor:SetMode(mode)
@@ -228,8 +239,8 @@ function DrawPoly(self,poly)
 	local m = Matrix()
 	m:Translate(Vector(x,y,0))
 	m:Mul(Matrix({
-		{self.LocalXX,self.LocalXY,0,self.LocalX + transformedLocal[1] - self.LocalXX/2},
-		{self.LocalYX,self.LocalYY,0,self.LocalY + transformedLocal[2] - self.LocalYY/2},
+		{self.LocalXX,self.LocalXY,0,self.LocalX + transformedLocal[1]},
+		{self.LocalYX,self.LocalYY,0,self.LocalY + transformedLocal[2]},
 		{0,0,1,0},
 		{0,0,0,1}
 	}))
@@ -244,14 +255,14 @@ function DrawPoly(self,poly)
 	
 	for i,p in ipairs(poly.Poly) do
 		local op = poly.Poly[i%#poly.Poly+1]
-		surface.DrawLine(p.x,p.y,op.x,op.y)
+		surface.DrawLine(p.x-0.5,p.y-0.5,op.x-0.5,op.y-0.5)
 	end
 	
 	surface.SetDrawColor(255,255,0,255)
 	for i,p in ipairs(poly.Poly) do
 		local selectedvert = i == self.SelectedVert and selected
 		local m = Matrix()
-		m:Translate(Vector(x+p.x+0.5,y+p.y+0.5,0))
+		m:Translate(Vector(x+p.x,y+p.y,0))
 		m:Scale(Vector(1/self.Zoom,1/self.Zoom,0))
 		m:Translate(Vector(-x,-y,0))
 		cam.PushModelMatrix(m, true)
@@ -310,8 +321,8 @@ function DrawGroup(self,group)
 	
 	local angle = math.rad(group.Rotation or 0)
 	local transformedLocal = TransformOffset(self,group.X or 0,group.Y or 0)
-	self.LocalX = self.LocalX + transformedLocal[1] + self.LocalXX/2
-	self.LocalY = self.LocalY + transformedLocal[2] + self.LocalYY/2
+	self.LocalX = self.LocalX + transformedLocal[1]
+	self.LocalY = self.LocalY + transformedLocal[2]
 	PushTransform(self,math.cos(angle),
 	math.sin(angle),
 	-math.sin(angle),
@@ -335,6 +346,9 @@ function DrawGroup(self,group)
 			nminx, nminy, nmaxx, nmaxy = DrawPoly(self,v)
 		elseif v.Type == MATRIX then 
 			DrawMatrix(self,v)
+		end
+		if nminx == nil then
+			PrintTable(group)
 		end
 		minx, miny = math.min(nminx, minx), math.min(nminy, miny)
 		maxx, maxy = math.max(nmaxx, maxx), math.max(nmaxy, maxy)
@@ -388,27 +402,28 @@ function Editor:Paint()
 	end
 
 	local x, y = self:CursorPos()
+	
 	local dx, dy = self.LastMousePos[1] - x, self.LastMousePos[2] - y
 	-- moving the plane
 	if self.DraggingWorld then
 		self.Position = { self.Position[1] + dx * (1 / self.Zoom), self.Position[2] + dy * (1 / self.Zoom) }
 	end
-	
+	local wx, wy = self:ScrToPos(x, y)
 	
 	if self.DraggingPolyVert then
-		local wx, wy = self:ScrToPos(x, y)
+		
 		if self.DraggingPolyVert[2] == 0 then
 			local poly = self.DraggingPolyVert[1]
-			poly.X = wx
-			poly.Y = wy
+			poly.X = wx-self.DraggingPolyVert[3]
+			poly.Y = wy-self.DraggingPolyVert[4]
 			if snapincrement > 0.001 then
 				poly.X = math.floor(poly.X/snapincrement + 0.5)*snapincrement
 				poly.Y = math.floor(poly.Y/snapincrement + 0.5)*snapincrement
 			end
 		else
 			local vert = self.DraggingPolyVert[1].Poly[self.DraggingPolyVert[2]]
-			vert.x = wx-self.DraggingPolyVert[1].X
-			vert.y = wy-self.DraggingPolyVert[1].Y
+			vert.x = wx-self.DraggingPolyVert[3]
+			vert.y = wy-self.DraggingPolyVert[4]
 			if snapincrement > 0.001 then
 				vert.x = math.floor(vert.x/snapincrement + 0.5)*snapincrement
 				vert.y = math.floor(vert.y/snapincrement + 0.5)*snapincrement
@@ -417,7 +432,7 @@ function Editor:Paint()
 	end
 	
 	self:PaintGrid()
-
+	
 	
 	self.LocalXX = self.Zoom
 	self.LocalXY = 0
@@ -432,18 +447,26 @@ function Editor:Paint()
 	self.SegmentTree.X = 0
 	self.SegmentTree.Y = 0
 	self.minx,self.miny,self.maxx,self.maxy = DrawGroup(self,self.SegmentTree)
-	--[[
+	
 	if self.SelectedSegments then
 		self.SelectedSegments.HasColor = true
 		self.SelectedSegments.G = 0
-		self.SelectedSegments.X = -0.5
-		self.SelectedSegments.Y = -0.5
 		DrawGroup(self,self.SelectedSegments)
+		self.SelectedSegments.HasColor = nil
+		self.SelectedSegments.G = nil
 	end
-	]]--
+	if self.Selecting ~= nil then
+		local sminx = math.min(self.Selecting.x,wx)
+		local sminy = math.min(self.Selecting.y,wy)
+		local smaxx = math.max(self.Selecting.x,wx)
+		local smaxy = math.max(self.Selecting.y,wy)
+		sminx,sminy = self:PosToScr(sminx,sminy)
+		smaxx,smaxy = self:PosToScr(smaxx,smaxy)
+		surface.DrawOutlinedRect(sminx,sminy,smaxx-sminx,smaxy-sminy)
+	end
+	
 	DisableClipping(false)
-	self.SegmentTree.X = -((self.minx or 0)-self.LocalX)/self.Zoom
-	self.SegmentTree.Y = -((self.miny or 0)-self.LocalY)/self.Zoom
+	--self:GetPolyVertAt(wx,wy)
 	local x, y = self:CursorPos()
 	self.LastMousePos = { x, y }
 	
@@ -455,6 +478,7 @@ function Editor:Paint()
 			self.ParentPanel.C.Vert_Y:SetValue(self.SelectedSegment.Poly[self.SelectedVert].y)
 		end
 	end
+	
 end
 
 function Editor:SetData(data)
@@ -471,6 +495,8 @@ function Editor:SetData(data)
 end
 
 function Editor:GetData()
+	self.SegmentTree.X = -((self.minx or 0)-self.LocalX)/self.Zoom
+	self.SegmentTree.Y = -((self.miny or 0)-self.LocalY)/self.Zoom
 	return WireLib.von.serialize({
 			SegmentTree = self.SegmentTree,
 			Position = self.Position,
@@ -567,12 +593,16 @@ function Editor:OnKeyCodePressed(code)
 	local shift = input.IsKeyDown(KEY_LSHIFT) or input.IsKeyDown(KEY_RSHIFT)
 	if control then
 		if code == KEY_C then
-			self.Clipboard = table.Copy(self.SelectedSegment)
+			if self.SelectedSegments then
+				self.ParentPanel.Clipboard = table.Copy(self.SelectedSegments)
+			else
+				self.ParentPanel.Clipboard = table.Copy(self.SelectedSegment)
+			end
 		elseif code == KEY_V then
-			if self.Clipboard ~= nil then
-				self.Clipboard.X = gx
-				self.Clipboard.Y = gy
-				self.SegmentTree.Children[#self.SegmentTree.Children+1] = table.Copy(self.Clipboard)
+			if self.ParentPanel.Clipboard ~= nil then
+				self.ParentPanel.Clipboard.X = gx
+				self.ParentPanel.Clipboard.Y = gy
+				self.SegmentTree.Children[#self.SegmentTree.Children+1] = table.Copy(self.ParentPanel.Clipboard)
 			end
 		end
 	elseif code == KEY_C then
@@ -615,9 +645,11 @@ function Editor:GetPolyEdgeAtPoly(x, y, poly)
 end
 
 function Editor:GetPolyEdgeAtGroup(x, y, group)
+	local x = x-group.X
+	local y = y-group.Y
 	for i,v in ipairs(group.Children) do
 		if v.Type == GROUP then
-			ri, rv, ex, ey = self:GetPolyEdgeAtGroup(x-v.X, y-v.Y, v)
+			ri, rv, ex, ey = self:GetPolyEdgeAtGroup(x, y, v)
 			if ri then
 				return ri, rv, ex, ey
 			end
@@ -638,16 +670,16 @@ end
 
 
 function Editor:GetPolyVertAtPoly(x, y, poly)
-	local x,y = x*self.Zoom, y*self.Zoom 
+	local x,y = (x)*self.Zoom, (y)*self.Zoom 
 	for i,v in ipairs(poly.Poly) do
 		local vx = v.x*self.Zoom
 		local vy = v.y*self.Zoom
+		surface.DrawRect(vx-x-4,vy-y-4,8,8)
 		if math.abs(vx-x) < 4 and math.abs(vy-y) < 4 then
 			return poly, i
 		end
 		
 	end
-	print(x,y)
 	if math.abs(x) < 4 and math.abs(y) < 4 then
 		return poly, 0
 	end
@@ -684,9 +716,13 @@ function Editor:SelectSegmentsAtGroup(x1, y1, x2, y2, group)
 		Type = GROUP,
 		Children = {}
 	}
+	local x1 = x1-group.X
+	local y1 = y1-group.Y
+	local x2 = x2-group.X
+	local y2 = y2-group.Y
 	for i,v in ipairs(group.Children) do
 		if v.Type == GROUP then
-			sel.Children[#sel.Children+1] = self:SelectSegmentsAtGroup(x1-v.X, y1-v.Y, x2-v.X, y2-v.Y, v)
+			sel.Children[#sel.Children+1] = self:SelectSegmentsAtGroup(x1, y1, x2, y2, v)
 		elseif v.Type == POLY then
 			if v.X >= x1 and v.Y >= y1 and v.X <= x2 and v.Y <= y2 then
 				sel.Children[#sel.Children+1] = v
@@ -696,13 +732,44 @@ function Editor:SelectSegmentsAtGroup(x1, y1, x2, y2, group)
 	if #sel.Children > 0 then
 		return sel
 	end
+	--if #sel.Children == 1 then
+	--	return sel.Children[1]
+	--end
 	return nil
 end
 
 function Editor:SelectSegments(x1, y1, x2, y2)
-	self.SelectedSegments = self:SelectSegmentsAtGroup(x1, y1, x2, y2, self.SegmentTree)
+	local minx = math.min(x1,x2)
+	local miny = math.min(y1,y2)
+	local maxx = math.max(x1,x2)
+	local maxy = math.max(y1,y2)
+	local grp = self:SelectSegmentsAtGroup(minx, miny, maxx, maxy, self.SegmentTree)
+	if grp == nil then
+		self.SelectedSegments = nil
+	elseif grp.Type ~= GROUP then
+		self.SelectedSegments = {
+			X = 0,
+			Y = 0,
+			Type = GROUP,
+			Children = {grp}
+		}
+	else
+		self.SelectedSegments = grp
+	end
 end
 
+function Editor:PruneGroups(children)
+	for i=#children,1,-1 do
+		local v = children[i]
+		if v.Type == GROUP then
+			if #v.Children == 0 then
+				table.remove(children,i)
+			else
+				self:PruneGroups(v.Children)
+			end
+		end
+	end
+end
 
 -- MOUSE
 
@@ -730,17 +797,24 @@ function Editor:OnMousePressed(code)
 					table.remove(pvKey.Poly,pvIndex)
 					if #pvKey.Poly < 3 then
 						table.remove(pvGroup.Children,pvGroupIndex)
+						self:PruneGroups(self.SegmentTree.Children)
 					end
 				end
 			else
-				self.DraggingPolyVert = {pvKey,pvIndex}
+				if pvIndex == 0 then
+					self.DraggingPolyVert = {pvKey,pvIndex,x-pvKey.X,y-pvKey.Y}
+				else
+					local point = pvKey.Poly[pvIndex]
+					self.DraggingPolyVert = {pvKey,pvIndex,x - point.x, y - point.y}
+				end
+				
 			end
 		elseif not control then
 			local peKey, peIndex, ex, ey = self:GetPolyEdgeAt(x, y)
 			
 			if peKey then
 				table.insert(peKey.Poly,peIndex+1,{x=ex,y=ey})
-				self.DraggingPolyVert = {peKey,peIndex+1}
+				self.DraggingPolyVert = {peKey,peIndex+1,x-ex,y-ey}
 			end
 		end
 		self.SelectedSegment = nil
@@ -758,7 +832,7 @@ function Editor:OnMousePressed(code)
 end
 
 function Editor:OnMouseReleased(code)
-	local x, y = self:CursorPos()
+	local x, y = self:ScrToPos(self:CursorPos())
 
 	if code == MOUSE_LEFT then
 		self.MouseDown = false
