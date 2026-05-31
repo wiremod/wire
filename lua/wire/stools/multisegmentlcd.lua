@@ -46,6 +46,10 @@ if CLIENT then
 	
 	net.Receive("wire_multisegmentlcd_tool_upload_request", function(len, ply)
 		local ent = net.ReadUInt(16)
+		if MSLCD_Editor == nil then
+			MSLCD_Editor = vgui.Create("MSLCDEditorFrame")
+			MSLCD_Editor:Setup("MSLCD Editor", "multisegmentlcd")
+		end
 		local serialized = util.Compress(MSLCD_Editor:GetData())
 		if #serialized > 65535 then
 			return
