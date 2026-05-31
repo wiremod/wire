@@ -84,6 +84,18 @@ e2function void entity:setAlpha(a)
 	WireLib.SetColor(this, color)
 end
 
+E2Lib.registerConstant("RENDERMODE_NORMAL", RENDERMODE_NORMAL)
+E2Lib.registerConstant("RENDERMODE_TRANSCOLOR", RENDERMODE_TRANSCOLOR)
+E2Lib.registerConstant("RENDERMODE_TRANSTEXTURE", RENDERMODE_TRANSTEXTURE)
+E2Lib.registerConstant("RENDERMODE_GLOW", RENDERMODE_GLOW)
+E2Lib.registerConstant("RENDERMODE_TRANSALPHA", RENDERMODE_TRANSALPHA)
+E2Lib.registerConstant("RENDERMODE_TRANSADD", RENDERMODE_TRANSADD)
+E2Lib.registerConstant("RENDERMODE_ENVIROMENTAL", RENDERMODE_ENVIROMENTAL)
+E2Lib.registerConstant("RENDERMODE_TRANSADDFRAMEBLEND", RENDERMODE_TRANSADDFRAMEBLEND)
+E2Lib.registerConstant("RENDERMODE_TRANSALPHADD", RENDERMODE_TRANSALPHADD)
+E2Lib.registerConstant("RENDERMODE_WORLDGLOW", RENDERMODE_WORLDGLOW)
+E2Lib.registerConstant("RENDERMODE_NONE", RENDERMODE_NONE)
+
 e2function void entity:setRenderMode(mode)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
@@ -91,6 +103,53 @@ e2function void entity:setRenderMode(mode)
 
 	this:SetRenderMode(mode)
 	duplicator.StoreEntityModifier(this, "colour", { RenderMode = mode })
+end
+
+e2function number entity:getRenderMode()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetRenderMode()
+end
+
+E2Lib.registerConstant("RENDERFX_NONE", kRenderFxNone)
+E2Lib.registerConstant("RENDERFX_PULSE_SLOW", kRenderFxPulseSlow)
+E2Lib.registerConstant("RENDERFX_PULSE_FAST", kRenderFxPulseFast)
+E2Lib.registerConstant("RENDERFX_PULSE_SLOW_WIDE", kRenderFxPulseSlowWide)
+E2Lib.registerConstant("RENDERFX_PULSE_FAST_WIDE", kRenderFxPulseFastWide)
+E2Lib.registerConstant("RENDERFX_FADE_SLOW", kRenderFxFadeSlow)
+E2Lib.registerConstant("RENDERFX_FADE_FAST", kRenderFxFadeFast)
+E2Lib.registerConstant("RENDERFX_SOLID_SLOW", kRenderFxSolidSlow)
+E2Lib.registerConstant("RENDERFX_SOLID_FAST", kRenderFxSolidFast)
+E2Lib.registerConstant("RENDERFX_STROBE_SLOW", kRenderFxStrobeSlow)
+E2Lib.registerConstant("RENDERFX_STROBE_FAST", kRenderFxStrobeFast)
+E2Lib.registerConstant("RENDERFX_STROBE_FASTER", kRenderFxStrobeFaster)
+E2Lib.registerConstant("RENDERFX_FLICKER_SLOW", kRenderFxFlickerSlow)
+E2Lib.registerConstant("RENDERFX_FLICKER_FAST", kRenderFxFlickerFast)
+E2Lib.registerConstant("RENDERFX_NO_DISSIPATION", kRenderFxNoDissipation)
+E2Lib.registerConstant("RENDERFX_DISTORT", kRenderFxDistort)
+E2Lib.registerConstant("RENDERFX_HOLOGRAM", kRenderFxHologram)
+E2Lib.registerConstant("RENDERFX_EXPLODE", kRenderFxExplode)
+E2Lib.registerConstant("RENDERFX_GLOW_SHELL", kRenderFxGlowShell)
+E2Lib.registerConstant("RENDERFX_CLAMP_MIN_SCALE", kRenderFxClampMinScale)
+E2Lib.registerConstant("RENDERFX_ENV_RAIN", kRenderFxEnvRain)
+E2Lib.registerConstant("RENDERFX_ENV_SNOW", kRenderFxEnvSnow)
+E2Lib.registerConstant("RENDERFX_SPOTLIGHT", kRenderFxSpotlight)
+E2Lib.registerConstant("RENDERFX_RAGDOLL", kRenderFxRagdoll)
+E2Lib.registerConstant("RENDERFX_PULSE_FAST_WIDER", kRenderFxPulseFastWider)
+
+e2function void entity:setRenderFX(number fx)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	if this:IsPlayer() then return self:throw("You cannot set the RenderFX of a player!", nil) end
+
+	fx = math.floor(fx)
+	if (fx < 0 or fx > 16) and fx ~= 24 then self:throw("Cannot use that RenderFX!", nil) end
+
+	this:SetRenderFX(fx)
+end
+
+e2function number entity:getRenderFX()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetRenderFX()
 end
 
 e2function vector entity:getPlayerColor()
@@ -124,7 +183,7 @@ e2function void entity:setPlayerColor(vector c)
 	if not isOwner(self, this) then return self:throw("You cannot set other player's colors!", nil) end
  	if not this:IsPlayer() then return self:throw("You cannot set the player color of non-players!", nil) end
 
-	 local r, g, b = RGBClamp(c[1], c[2], c[3])
+	local r, g, b = RGBClamp(c[1], c[2], c[3])
 	this:SetPlayerColor( Vector(r / 255, g / 255, b / 255) )
 end
 
