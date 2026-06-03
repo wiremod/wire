@@ -77,6 +77,11 @@ e2function number entity:id()
 	return this:EntIndex()
 end
 
+e2function number entity:mapCreationID()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:MapCreationID()
+end
+
 e2function number entity:creationID()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	return this:GetCreationID()
@@ -229,6 +234,11 @@ end
 e2function vector entity:velL()
 	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:WorldToLocal(this:GetVelocity() + this:GetPos())
+end
+
+e2function vector entity:velGroundSpeed()
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
+	return this:GetGroundSpeedVelocity()
 end
 
 [nodiscard]
@@ -525,6 +535,11 @@ e2function string entity:getMaterial()
 	return this:GetMaterial() or ""
 end
 
+e2function number entity:getMaterialType()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetMaterialType()
+end
+
 e2function string entity:getSubMaterial(index)
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	return this:GetSubMaterial(index-1) or ""
@@ -538,6 +553,11 @@ end
 e2function number entity:getModelScale()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	return this:GetModelScale()
+end
+
+e2function number entity:getMoveType()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetMoveType()
 end
 
 __e2setcost(20)
@@ -664,6 +684,34 @@ e2function number entity:isPenetrating()
 	if not validPhysics(this) then return self:throw("Invalid entity!", 0) end
 	local phys = this:GetPhysicsObject()
 	if phys:IsPenetrating() then return 1 else return 0 end
+end
+
+E2Lib.registerConstant("EF_BONEMERGE", EF_BONEMERGE)
+E2Lib.registerConstant("EF_BONEMERGE_FASTCULL", EF_BONEMERGE_FASTCULL)
+E2Lib.registerConstant("EF_BRIGHTLIGHT", EF_BRIGHTLIGHT)
+E2Lib.registerConstant("EF_DIMLIGHT", EF_DIMLIGHT)
+E2Lib.registerConstant("EF_NOINTERP", EF_NOINTERP)
+E2Lib.registerConstant("EF_NOSHADOW", EF_NOSHADOW)
+E2Lib.registerConstant("EF_NODRAW", EF_NODRAW)
+E2Lib.registerConstant("EF_NORECEIVESHADOW", EF_NORECEIVESHADOW)
+E2Lib.registerConstant("EF_ITEM_BLINK", EF_ITEM_BLINK)
+E2Lib.registerConstant("EF_PARENT_ANIMATES", EF_PARENT_ANIMATES)
+E2Lib.registerConstant("EF_FOLLOWBONE", EF_FOLLOWBONE)
+E2Lib.registerConstant("EF_NOFLASHLIGHT", EF_NOFLASHLIGHT)
+
+e2function number entity:getEffects()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetEffects()
+end
+
+e2function number entity:getNoDraw()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetNoDraw() and 1 or 0
+end
+
+e2function number entity:isEffectActive(effect)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:IsEffectActive(effect) and 1 or 0
 end
 
 --[[******************************************************************************]]
@@ -1247,10 +1295,38 @@ e2function void entity:noCollideAll(number state)
 	this:SetCollisionGroup(state == 0 and COLLISION_GROUP_NONE or COLLISION_GROUP_WORLD)
 end
 
+__e2setcost(5)
+
+E2Lib.registerConstant("SOLID_NONE", SOLID_NONE)
+E2Lib.registerConstant("SOLID_BSP", SOLID_BSP)
+E2Lib.registerConstant("SOLID_BBOX", SOLID_BBOX)
+E2Lib.registerConstant("SOLID_OBB", SOLID_OBB)
+E2Lib.registerConstant("SOLID_OBB_YAW", SOLID_OBB_YAW)
+E2Lib.registerConstant("SOLID_CUSTOM", SOLID_CUSTOM)
+E2Lib.registerConstant("SOLID_VPHYSICS", SOLID_VPHYSICS)
+
+e2function number entity:getSolid()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetSolid()
+end
+
+e2function number entity:isSolid()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:IsSolid() and 1 or 0
+end
+
+e2function number entity:getGravity()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetGravity()
+end
+
+e2function entity entity:getGroundEntity()
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	return this:GetGroundEntity()
+end
+
 --[[******************************************************************************]]
 -- Flexes
-
-__e2setcost(5)
 
 e2function array entity:getFlexBounds(number flex)
 	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
