@@ -138,6 +138,7 @@ e2function void entity:setRenderFX(number fx)
 	if (fx < 0 or fx > 16) and fx ~= 24 then self:throw("Cannot use that RenderFX!", nil) end
 
 	this:SetRenderFX(fx)
+	duplicator.StoreEntityModifier(this, "colour", { RenderFX = fx })
 end
 
 e2function number entity:getRenderFX()
