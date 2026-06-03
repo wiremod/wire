@@ -106,7 +106,7 @@ e2function void entity:setRenderMode(mode)
 end
 
 e2function number entity:getRenderMode()
-	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
 	return this:GetRenderMode()
 end
 
@@ -142,7 +142,7 @@ e2function void entity:setRenderFX(number fx)
 end
 
 e2function number entity:getRenderFX()
-	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
 	return this:GetRenderFX()
 end
 

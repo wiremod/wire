@@ -536,7 +536,7 @@ e2function string entity:getMaterial()
 end
 
 e2function number entity:getMaterialType()
-	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
 	return this:GetMaterialType()
 end
 
