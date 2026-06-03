@@ -75,11 +75,11 @@ function Editor:SetMode(mode)
 	self.Mode = mode
 end
 
-function Transform(self,x,y)
+local function Transform(self,x,y)
 	return x*self.LocalXX+y*self.LocalXY+self.LocalX, x*self.LocalYX+y*self.LocalYY+self.LocalY
 end
 
-function TransformOffset(self,x,y)
+local function TransformOffset(self,x,y)
 	return {
 		x*self.LocalXX+y*self.LocalXY,
 		x*self.LocalYX+y*self.LocalYY
@@ -87,7 +87,7 @@ function TransformOffset(self,x,y)
 end
 
 
-function PushTransform(self,XX,XY,YX,YY)
+local function PushTransform(self,XX,XY,YX,YY)
 	self.TransformStack[#self.TransformStack + 1] = {self.LocalXX,self.LocalXY,self.LocalYX,self.LocalYY}
 	local oXX = self.LocalXX
 	local oXY = self.LocalXY
@@ -105,12 +105,12 @@ function PushTransform(self,XX,XY,YX,YY)
 	self.LocalYY = nYY
 end
 
-function PopTransform(self)
+local function PopTransform(self)
 	self.LocalXX,self.LocalXY,self.LocalYX,self.LocalYY = unpack(self.TransformStack[#self.TransformStack])
 	self.TransformStack[#self.TransformStack] = nil
 end
 
-function PolyDimensions(self,poly,tlocal)
+local function PolyDimensions(self,poly,tlocal)
 	self.LocalX = self.LocalX + tlocal[1]
 	self.LocalY = self.LocalY + tlocal[2]
 	local minx, miny = Transform(self, poly[1].x, poly[1].y)
@@ -126,7 +126,7 @@ function PolyDimensions(self,poly,tlocal)
 end
 
 
-function DrawSegment(self,segment)
+local function DrawSegment(self,segment)
 	local transformedLocal = TransformOffset(self,segment.X or 0,segment.Y or 0)
 	local angle = math.rad(segment.Rotation or 0)
 	PushTransform(self,math.cos(angle),
@@ -204,7 +204,7 @@ function LoopToTris(poly)
 			local lpa = p.y*lax - p.x*lay
 			local lpb = p.y*lbx - p.x*lby
 			local lpc = p.y*lcx - p.x*lcy
-			if lpa < la and lpb < lb and lpc < lc then
+			if lpa <= la and lpb <= lb and lpc <= lc then
 				goto fail
 			end
 			::skip::
@@ -231,7 +231,7 @@ function LoopToTris(poly)
 end
 
 
-function DrawPoly(self,poly)
+local function DrawPoly(self,poly)
 	local selected = poly == self.SelectedSegment
 	local transformedLocal = TransformOffset(self,poly.X or 0,poly.Y or 0)
 	
@@ -293,11 +293,11 @@ function DrawPoly(self,poly)
 	return PolyDimensions(self,poly.Poly,transformedLocal)
 end
 
-function DrawMatrix(self,matrix)
+local function DrawMatrix(self,matrix)
 	
 end
 
-function DrawUnion(self,union)
+local function DrawUnion(self,union)
 	for k,v in ipairs(union.Children) do
 		if v.Type == GROUP then
 			DrawGroup(self,v)
@@ -313,7 +313,7 @@ function DrawUnion(self,union)
 	end
 end
 
-function DrawGroup(self,group)
+local function DrawGroup(self,group)
 	if #group.Children == 0 then
 		return
 	end
@@ -380,6 +380,21 @@ function DrawGroup(self,group)
 	return minx,miny,maxx,maxy
 end
 
+local function MoveSelectGroup(group, deltaX, deltaY, exclude)
+	for i,v in ipairs(group.Children) do
+		if v == exclude then
+			goto skip
+		end
+		if v.Type == GROUP then
+			MoveSelectGroup(v, deltaX, deltaY, exclude)
+		else
+			v.X = v.X + deltaX
+			v.Y = v.Y + deltaY
+		end
+		::skip::
+	end
+end
+
 function Editor:Paint()
 	local width = self:GetWide()
 	local height = self:GetTall()
@@ -414,11 +429,18 @@ function Editor:Paint()
 		
 		if self.DraggingPolyVert[2] == 0 then
 			local poly = self.DraggingPolyVert[1]
+			local origX = poly.X
+			local origY = poly.Y
 			poly.X = wx-self.DraggingPolyVert[3]
 			poly.Y = wy-self.DraggingPolyVert[4]
 			if snapincrement > 0.001 then
 				poly.X = math.floor(poly.X/snapincrement + 0.5)*snapincrement
 				poly.Y = math.floor(poly.Y/snapincrement + 0.5)*snapincrement
+			end
+			local deltaX = poly.X-origX
+			local deltaY = poly.Y-origY
+			if self.SelectedSegments ~= nil then
+				MoveSelectGroup(self.SelectedSegments, deltaX, deltaY, poly)
 			end
 		else
 			local vert = self.DraggingPolyVert[1].Poly[self.DraggingPolyVert[2]]
