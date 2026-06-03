@@ -135,7 +135,7 @@ e2function void entity:setRenderFX(number fx)
 	if this:IsPlayer() then return self:throw("You cannot set the RenderFX of a player!", nil) end
 
 	fx = math.floor(fx)
-	if (fx < 0 or fx > 16) and fx ~= 24 then self:throw("Cannot use that RenderFX!", nil) end
+	if (fx < 0 or fx > 16) and fx ~= 24 then return self:throw("Cannot use that RenderFX!", nil) end
 
 	this:SetRenderFX(fx)
 	duplicator.StoreEntityModifier(this, "colour", { RenderFX = fx })

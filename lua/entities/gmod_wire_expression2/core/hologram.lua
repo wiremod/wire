@@ -1168,7 +1168,7 @@ e2function void holoRenderFX(index, fx)
 	if not Holo then return end
 
 	fx = math.floor(fx)
-	if (fx < 0 or fx > 16) and fx ~= 24 then self:throw("Cannot use that RenderFX!", nil) end
+	if (fx < 0 or fx > 16) and fx ~= 24 then return self:throw("Cannot use that RenderFX!", nil) end
 
 	Holo.ent:SetRenderFX(fx)
 end
