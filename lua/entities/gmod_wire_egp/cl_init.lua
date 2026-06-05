@@ -33,8 +33,8 @@ end
 function ENT:DrawEntityOutline() end
 
 local VECTOR_1_1_1 = Vector(1, 1, 1)
-function ENT:Draw()
-	self:DrawModel()
+function ENT:Draw(flags)
+	self:DrawModel(flags)
 	Wire_Render(self)
 
 	local tone = render.GetToneMappingScaleLinear()
