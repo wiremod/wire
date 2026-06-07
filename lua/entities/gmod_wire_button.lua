@@ -18,8 +18,8 @@ if CLIENT then
 		baseclass.Get("gmod_button").UpdateLever(self)
 	end
 
-	function ENT:Draw()
-		self:DoNormalDraw(true,false)
+	function ENT:Draw(flags)
+		self:DoNormalDraw(true,false,flags)
 		if LocalPlayer():GetEyeTrace().Entity == self and EyePos():DistToSqr( self:GetPos() ) < 512^2 and GetConVarNumber("wire_drawoutline")~=0 then
 			if self:GetOn() then
 				halo_ent = self

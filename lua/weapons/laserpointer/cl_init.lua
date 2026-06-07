@@ -32,8 +32,8 @@ function SWEP:PostDrawViewModel(vm, wep, ply)
 	end
 end
 
-function SWEP:DrawWorldModel()
-	self:DrawModel()
+function SWEP:DrawWorldModel(flags)
+	self:DrawModel(flags)
 
 	if self:GetLaserEnabled() then
 		local att = self:GetAttachment(self:LookupAttachment("muzzle") or 0)

@@ -46,8 +46,8 @@ if CLIENT then
 	local color_red = Color(255, 0, 0)
 	local color_green = Color(0, 255, 0)
 
-	function ENT:Draw()
-		self:DrawModel()
+	function ENT:Draw(flags)
+		self:DrawModel(flags)
 
 		local entpos = self:GetPos()
 		if entpos:Distance(EyePos()) > 512 then return end
