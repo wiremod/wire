@@ -6,6 +6,8 @@ if CLIENT then
 	language.Add("tool.wire_user.desc", "Spawns a constant user prop for use with the wire system.")
 	language.Add("tool.wire_user.range", "Max Range:")
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon( "icon16/user_add.png" )
 end
 
 WireToolSetup.BaseLang()

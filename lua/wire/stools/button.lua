@@ -9,6 +9,8 @@ if CLIENT then
 	language.Add( "WireButtonTool_value_on", "Value On:" )
 	language.Add( "WireButtonTool_value_off", "Value Off:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon( "icon16/add.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
