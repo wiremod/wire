@@ -232,7 +232,12 @@ end
 __e2setcost(2)
 
 e2function string string:trim()
-	local ok, ret = pcall(function() WireLib.CheckRegex(this, "^%s*(.-)%s*$") return string.Trim(this) end)
+	local ok, ret = pcall(function() 
+		WireLib.CheckRegex(this, "%s*")
+		local _, start = string.find(this, "^%s*")
+		local stop = string.find(this, "%s*$")
+		return string.sub(this, start + 1, stop - 1)
+	end)
 
 	if not ok then
 		return self:throw(ret)
@@ -242,7 +247,11 @@ e2function string string:trim()
 end
 
 e2function string string:trimLeft()
-	local ok, ret = pcall(function() WireLib.CheckRegex(this, "^%s*(.+)$") return string.TrimLeft(this) end)
+	local ok, ret = pcall(function() 
+		WireLib.CheckRegex(this, "%s*")
+		local _, start = string.find(this, "^%s*")
+		return string.sub(this, start + 1)
+	end)
 
 	if not ok then
 		return self:throw(ret)
@@ -252,7 +261,11 @@ e2function string string:trimLeft()
 end
 
 e2function string string:trimRight()
-	local ok, ret = pcall(function() WireLib.CheckRegex(this, "^(.-)%s*$") return string.TrimRight(this) end)
+	local ok, ret = pcall(function() 
+		WireLib.CheckRegex(this, "%s*")
+		local stop = string.find(this, "%s*$")
+		return string.sub(this, 1, stop - 1)
+	end)
 
 	if not ok then
 		return self:throw(ret)
