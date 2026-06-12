@@ -13,6 +13,8 @@ if CLIENT then
 	language.Add( "WireDynamicButtonTool_materials_off", "Material Off:" )
 	language.Add( "WireDynamicButtonTool_colour_on", "Color On:" )
 	language.Add( "WireDynamicButtonTool_colour_off", "Color Off:" )
+
+	WireToolSetup.setToolMenuIcon( "icon16/add.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

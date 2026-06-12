@@ -20,7 +20,7 @@ function ENT:EGP_Update() end
 
 function ENT:DrawEntityOutline() end
 
-function ENT:Draw()
-	self:DrawModel()
+function ENT:Draw(flags)
+	self:DrawModel(flags)
 	Wire_Render(self)
 end

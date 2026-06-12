@@ -6,6 +6,8 @@ if CLIENT then
 	language.Add("tool.wire_interactiveprop.name", "Wire Interactive Prop")
 	language.Add("tool.wire_interactiveprop.desc", "Opens a UI panel which controls outputs for use with wire system.")
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/plugin.png")
 end
 
 

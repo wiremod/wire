@@ -232,15 +232,33 @@ end
 __e2setcost(2)
 
 e2function string string:trim()
-	return this:Trim()
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, "^%s*(.-)%s*$") return string.Trim(this) end)
+
+	if not ok then
+		return self:throw(ret)
+	else
+		return ret
+	end
 end
 
 e2function string string:trimLeft()
-	return this:TrimLeft()
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, "^%s*(.+)$") return string.TrimLeft(this) end)
+
+	if not ok then
+		return self:throw(ret)
+	else
+		return ret
+	end
 end
 
 e2function string string:trimRight()
-	return this:TrimRight()
+	local ok, ret = pcall(function() WireLib.CheckRegex(this, "^(.-)%s*$") return string.TrimRight(this) end)
+
+	if not ok then
+		return self:throw(ret)
+	else
+		return ret
+	end
 end
 
 --[[******************************************************************************]]--
@@ -250,8 +268,9 @@ __e2setcost(10)
 --- Returns the 1st occurrence of the string <pattern>, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern)
 	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern) end)
+
 	if not ok then
-		return self:throw(ret, 0)
+		return self:throw(ret)
 	else
 		return ret or 0
 	end
@@ -260,8 +279,9 @@ end
 ---  Returns the 1st occurrence of the string <pattern> starting at <start> and going to the end of the string, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern, start)
 	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern, start) end)
+
 	if not ok then
-		return self:throw(ret, 0)
+		return self:throw(ret)
 	else
 		return ret or 0
 	end

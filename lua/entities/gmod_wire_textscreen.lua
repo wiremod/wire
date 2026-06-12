@@ -137,8 +137,8 @@ if CLIENT then
 		if fullUpdate then return end
 		self.GPU:Finalize()
 	end
-	function ENT:Draw()
-		self:DrawModel()
+	function ENT:Draw(flags)
+		self:DrawModel(flags)
 
 		if self.NeedRefresh then
 			self.NeedRefresh = nil

@@ -14,6 +14,8 @@ if ( CLIENT ) then
 	language.Add( "Tool_wire_graphics_tablet_draw_background", "Draw background" )
 	language.Add( "Tool_wire_graphics_tablet_createflat", "Create flat to surface" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon( "icon16/television.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

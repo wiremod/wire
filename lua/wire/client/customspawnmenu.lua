@@ -565,13 +565,14 @@ function PANEL:AddCategory( Name, Label, tItems, CategoryID )
 		v.Category = Label
 		v.CategoryID = CategoryID
 
-		local icon = "icon16/wrench.png"
+		local icon = Label == "Options" and "icon16/cog.png" or "icon16/wrench.png"
 
 		if custom_icons:GetBool() then
-			local tooltbl = weapons.Get("gmod_tool").Tool[v.ItemName]
-			if tooltbl then
-				if tooltbl.Wire_ToolMenuIcon then
-					icon = tooltbl.Wire_ToolMenuIcon
+			local tool = weapons.GetStored("gmod_tool").Tool[v.ItemName]
+
+			if tool then
+				if tool.Wire_ToolMenuIcon then
+					icon = tool.Wire_ToolMenuIcon
 				end
 			end
 		end
