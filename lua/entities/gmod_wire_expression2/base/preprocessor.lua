@@ -114,6 +114,18 @@ function PreProcessor:Trim(line)
 	return string.sub(line, first, last)
 end
 
+function PreProcessor:TrimLeft(line)
+	for i = 1, #line do
+		local b = string.byte(line, i)
+
+		if b ~= 32 and (b < 9 or b > 13) then
+			return string.sub(line, i)
+		end
+	end
+
+	return ""
+end
+
 function PreProcessor:TrimRight(line)
 	for i = #line, 1, -1 do
 		local b = string.byte(line, i)
@@ -123,7 +135,6 @@ function PreProcessor:TrimRight(line)
 		end
 	end
 
-	-- The line consists only of spaces
 	return ""
 end
 

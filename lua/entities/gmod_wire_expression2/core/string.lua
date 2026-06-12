@@ -231,47 +231,18 @@ end
 
 __e2setcost(2)
 
-e2function string string:trim()
-	local ok, ret = pcall(function() 
-		WireLib.CheckRegex(this, "%s*")
-		local _, start = string.find(this, "^%s*")
-		local stop = string.find(this, "%s*$")
-		return string.sub(this, start + 1, stop - 1)
-	end)
+-- E2Lib.PreProcessor trimming functions are much more efficient than regular ones, so it's better to use them
 
-	if not ok then
-		return self:throw(ret)
-	else
-		return ret
-	end
+e2function string string:trim()
+	return E2Lib.PreProcessor.Trim(this)
 end
 
 e2function string string:trimLeft()
-	local ok, ret = pcall(function() 
-		WireLib.CheckRegex(this, "%s*")
-		local _, start = string.find(this, "^%s*")
-		return string.sub(this, start + 1)
-	end)
-
-	if not ok then
-		return self:throw(ret)
-	else
-		return ret
-	end
+	return E2Lib.PreProcessor.TrimLeft(this)
 end
 
 e2function string string:trimRight()
-	local ok, ret = pcall(function() 
-		WireLib.CheckRegex(this, "%s*")
-		local stop = string.find(this, "%s*$")
-		return string.sub(this, 1, stop - 1)
-	end)
-
-	if not ok then
-		return self:throw(ret)
-	else
-		return ret
-	end
+	return E2Lib.PreProcessor.TrimRight(this)
 end
 
 --[[******************************************************************************]]--
@@ -283,7 +254,7 @@ e2function number string:findRE(string pattern)
 	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern) end)
 
 	if not ok then
-		return self:throw(ret)
+		return self:throw(ret, 0)
 	else
 		return ret or 0
 	end
@@ -294,7 +265,7 @@ e2function number string:findRE(string pattern, start)
 	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern, start) end)
 
 	if not ok then
-		return self:throw(ret)
+		return self:throw(ret, 0)
 	else
 		return ret or 0
 	end
