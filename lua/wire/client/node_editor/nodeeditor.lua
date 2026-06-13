@@ -2,14 +2,14 @@ local Editor = {}
 
 FPGATypeColor = {
 	NORMAL = Color(190, 190, 255, 255), --Very light blue nearing white
-	VECTOR2 = Color(150, 255, 255, 255), --Light blue
+	VECTOR2 = Color(255, 150, 255), --Pink
 	VECTOR = Color(70, 160, 255, 255), --Blue
-	VECTOR4 = Color(0, 50, 255, 255), --Dark blue
+	VECTOR4 = Color(0, 212, 177), --Cyan
 	ANGLE = Color(100, 200, 100, 255), --Light green
 	STRING = Color(250, 160, 90, 255), --Orange
-	ARRAY = Color(20, 110, 20, 255), --Dark green
+	ARRAY = Color(255, 255, 0), --Yellow
 	ENTITY = Color(255, 100, 100, 255), --Dark red
-	RANGER = Color(130, 100, 60, 255), --Brown
+	RANGER = Color(255, 255, 255), --White
 	WIRELINK = Color(200, 80, 200, 255), --Deep purple
 }
 
