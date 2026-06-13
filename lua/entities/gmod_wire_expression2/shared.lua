@@ -13,6 +13,7 @@ function ENT:SetupDataTables()
 end
 
 CreateConVar("wire_expression2_unlimited", "0", {FCVAR_REPLICATED})
+CreateConVar("wire_expression2_quota_globalmax", "-1", {FCVAR_REPLICATED}, "The maximum amount of time all E2s can consume before killing the highest one (-1 is infinite)")
 CreateConVar("wire_expression2_quotasoft", "10000", {FCVAR_REPLICATED})
 CreateConVar("wire_expression2_quotahard", "100000", {FCVAR_REPLICATED})
 CreateConVar("wire_expression2_quotatick", "25000", {FCVAR_REPLICATED})
