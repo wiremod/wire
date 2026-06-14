@@ -231,34 +231,17 @@ end
 
 __e2setcost(2)
 
+-- E2Lib.PreProcessor trimming functions are much more efficient than regular ones, so it's better to use them
 e2function string string:trim()
-	local ok, ret = pcall(function() WireLib.CheckRegex(this, "^%s*(.-)%s*$") return string.Trim(this) end)
-
-	if not ok then
-		return self:throw(ret)
-	else
-		return ret
-	end
+	return E2Lib.PreProcessor.Trim(nil, this)
 end
 
 e2function string string:trimLeft()
-	local ok, ret = pcall(function() WireLib.CheckRegex(this, "^%s*(.+)$") return string.TrimLeft(this) end)
-
-	if not ok then
-		return self:throw(ret)
-	else
-		return ret
-	end
+	return E2Lib.PreProcessor.TrimLeft(nil, this)
 end
 
 e2function string string:trimRight()
-	local ok, ret = pcall(function() WireLib.CheckRegex(this, "^(.-)%s*$") return string.TrimRight(this) end)
-
-	if not ok then
-		return self:throw(ret)
-	else
-		return ret
-	end
+	return E2Lib.PreProcessor.TrimRight(nil, this)
 end
 
 --[[******************************************************************************]]--
@@ -270,7 +253,7 @@ e2function number string:findRE(string pattern)
 	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern) end)
 
 	if not ok then
-		return self:throw(ret)
+		return self:throw(ret, 0)
 	else
 		return ret or 0
 	end
@@ -281,7 +264,7 @@ e2function number string:findRE(string pattern, start)
 	local ok, ret = pcall(function() WireLib.CheckRegex(this, pattern) return string_find(this, pattern, start) end)
 
 	if not ok then
-		return self:throw(ret)
+		return self:throw(ret, 0)
 	else
 		return ret or 0
 	end
