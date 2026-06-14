@@ -883,32 +883,6 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 	end
 end)
 
--- Terminates the highest usage e2 if the global limit is hit defined by the cvar wire_expression2_quota_globalmax
-hook.Add( "Tick", "Wire_Expression2_Global_Limit", function()
-	local totalChipTime = 0
-	local highestChipTime = 0
-	local highestChip = nil
-	for _, ply in player.Iterator() do
-		local chips = E2Lib.PlayerChips[ply]
-		if not chips then continue end
-		local playerChipTime = chips:getTotalTime()
-		local playerHighChip, playerHighChipTime = chips:findMaxTimeChip()
-
-		if playerHighChipTime > highestChipTime then
-			highestChipTime = playerHighChipTime
-			highestChip = playerHighChip
-		end
-
-		totalChipTime = totalChipTime + playerChipTime * 1000
-	end
-
-	-- Terminate highest usage e2
-	if highestChip and e2_globalmax > -1 and totalChipTime > e2_globalmax * 0.001 then
-		highestChip:Error("Expression 2 (" .. highestChip.name .. "): global time quota exceeded", "global time quota exceeded")
-		highestChip:Destruct()
-	end
-end )
-
 function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files, filepath, codeAuthor)
 	if not player then player = game.GetWorld() end -- For Garry's Map Saver
 	if IsValid(player) and not player:CheckLimit("wire_expressions") then return false end
