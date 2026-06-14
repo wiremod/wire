@@ -9,6 +9,7 @@ e2_hardquota = nil
 e2_tickquota = nil
 e2_timequota = nil
 e2_timeaverage = nil
+e2_globalmax = nil
 
 do
 	local wire_expression2_unlimited = GetConVar("wire_expression2_unlimited")
@@ -17,6 +18,7 @@ do
 	local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
 	local wire_expression2_quotatime = GetConVar("wire_expression2_quotatime")
 	local wire_expression2_quota_average = GetConVar("wire_expression2_quota_average")
+	local wire_expression2_quota_globalmax = GetConVar("wire_expression2_quota_globalmax")
 
 	local function updateQuotas()
 		if wire_expression2_unlimited:GetBool() then
@@ -32,6 +34,7 @@ do
 		end
 
 		e2_timeaverage = 1 / wire_expression2_quota_average:GetFloat()
+		e2_globalmax = wire_expression2_quota_globalmax:GetFloat()
 	end
 	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotasoft", updateQuotas)
@@ -39,6 +42,7 @@ do
 	cvars.AddChangeCallback("wire_expression2_quotatick", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotatime", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quota_average", updateQuotas)
+	cvars.AddChangeCallback("wire_expression2_quota_globalmax", updateQuotas)
 	updateQuotas()
 end
 
@@ -392,6 +396,32 @@ function GlobalChips:remove(remove_chip)
 	end
 end
 
+--- Checks if total cpu usage is hitting the global limit and then terminates the highest usage e2
+function GlobalChips:checkGlobalTime()
+	local totalChipTime = 0
+	local highestChipTime = 0
+	local highestChip = nil
+	for _, ply in player.Iterator() do
+		local chips = self[ply]
+		if not chips then continue end
+		local playerChipTime = chips:getTotalTime()
+		local playerHighChip, playerHighChipTime = chips:findMaxTimeChip()
+
+		if playerHighChipTime > highestChipTime then
+			highestChipTime = playerHighChipTime
+			highestChip = playerHighChip
+		end
+
+		totalChipTime = totalChipTime + playerChipTime * 1000
+	end
+
+	-- Terminate highest usage e2
+	if highestChip and e2_globalmax > -1 and totalChipTime > e2_globalmax * 0.001 then
+		highestChip:Error("Expression 2 (" .. highestChip.name .. "): global time quota exceeded", "global time quota exceeded")
+		highestChip:Destruct()
+	end
+end
+
 E2Lib.PlayerChips = E2Lib.PlayerChips or setmetatable({}, GlobalChips)
 
 hook.Add("Think", "E2_Think", function()
@@ -399,6 +429,7 @@ hook.Add("Think", "E2_Think", function()
 		for ply, chips in pairs(E2Lib.PlayerChips) do
 			chips:checkCpuTime()
 		end
+		E2Lib.PlayerChips:checkGlobalTime()
 	end
 end)
 
