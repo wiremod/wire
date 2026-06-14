@@ -232,17 +232,16 @@ end
 __e2setcost(2)
 
 -- E2Lib.PreProcessor trimming functions are much more efficient than regular ones, so it's better to use them
-
 e2function string string:trim()
-	return E2Lib.PreProcessor.Trim(this)
+	return E2Lib.PreProcessor.Trim(nil, this)
 end
 
 e2function string string:trimLeft()
-	return E2Lib.PreProcessor.TrimLeft(this)
+	return E2Lib.PreProcessor.TrimLeft(nil, this)
 end
 
 e2function string string:trimRight()
-	return E2Lib.PreProcessor.TrimRight(this)
+	return E2Lib.PreProcessor.TrimRight(nil, this)
 end
 
 --[[******************************************************************************]]--
