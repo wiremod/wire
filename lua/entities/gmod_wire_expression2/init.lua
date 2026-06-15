@@ -17,8 +17,8 @@ do
 	local wire_expression2_quotahard = GetConVar("wire_expression2_quotahard")
 	local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
 	local wire_expression2_quotatime = GetConVar("wire_expression2_quotatime")
-	local wire_expression2_quota_average = GetConVar("wire_expression2_quota_average")
 	local wire_expression2_quota_global = GetConVar("wire_expression2_quota_global")
+	local wire_expression2_quota_average = GetConVar("wire_expression2_quota_average")
 
 	local function updateQuotas()
 		if wire_expression2_unlimited:GetBool() then
