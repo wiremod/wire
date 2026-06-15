@@ -18,7 +18,7 @@ do
 	local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
 	local wire_expression2_quotatime = GetConVar("wire_expression2_quotatime")
 	local wire_expression2_quota_average = GetConVar("wire_expression2_quota_average")
-	local wire_expression2_quota_globalmax = GetConVar("wire_expression2_quota_globalmax")
+	local wire_expression2_quota_global = GetConVar("wire_expression2_quota_global")
 
 	local function updateQuotas()
 		if wire_expression2_unlimited:GetBool() then
@@ -26,15 +26,16 @@ do
 			e2_hardquota = 1000000
 			e2_tickquota = 100000
 			e2_timequota = -1
+			e2_globalmax = -1
 		else
 			e2_softquota = wire_expression2_quotasoft:GetFloat()
 			e2_hardquota = wire_expression2_quotahard:GetFloat()
 			e2_tickquota = wire_expression2_quotatick:GetFloat()
 			e2_timequota = wire_expression2_quotatime:GetFloat() * 0.001
+			e2_globalmax = wire_expression2_quota_global:GetFloat() * 0.001
 		end
 
 		e2_timeaverage = 1 / wire_expression2_quota_average:GetFloat()
-		e2_globalmax = wire_expression2_quota_globalmax:GetFloat()
 	end
 	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotasoft", updateQuotas)
@@ -42,7 +43,7 @@ do
 	cvars.AddChangeCallback("wire_expression2_quotatick", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quotatime", updateQuotas)
 	cvars.AddChangeCallback("wire_expression2_quota_average", updateQuotas)
-	cvars.AddChangeCallback("wire_expression2_quota_globalmax", updateQuotas)
+	cvars.AddChangeCallback("wire_expression2_quota_global", updateQuotas)
 	updateQuotas()
 end
 
@@ -363,6 +364,8 @@ function PlayerChips:checkCpuTime()
 			break
 		end
 	end
+
+	return total_time
 end
 
 local GlobalChips = {}
@@ -396,40 +399,56 @@ function GlobalChips:remove(remove_chip)
 	end
 end
 
---- Checks if total cpu usage is hitting the global limit and then terminates the highest usage e2
-function GlobalChips:checkGlobalTime()
-	local totalChipTime = 0
-	local highestChipTime = 0
-	local highestChip = nil
-	for _, ply in player.Iterator() do
-		local chips = self[ply]
-		if not chips then continue end
-		local playerChipTime = chips:getTotalTime()
-		local playerHighChip, playerHighChipTime = chips:findMaxTimeChip()
+function GlobalChips:findMaxTimeChip(chips)
+	local max_chip, max_time = nil, 0
 
-		if playerHighChipTime > highestChipTime then
-			highestChipTime = playerHighChipTime
-			highestChip = playerHighChip
+	for _, chip in ipairs(chips) do
+		local tab = chip:GetTable()
+		if tab.error then continue end
+
+		local context = tab.context
+		if not context then continue end
+
+		if context.timebench > max_time then
+			max_time = context.timebench
+			max_chip = chip
 		end
-
-		totalChipTime = totalChipTime + playerChipTime * 1000
 	end
 
-	-- Terminate highest usage e2
-	if highestChip and e2_globalmax > -1 and totalChipTime > e2_globalmax * 0.001 then
-		highestChip:Error("Expression 2 (" .. highestChip.name .. "): global time quota exceeded", "global time quota exceeded")
-		highestChip:Destruct()
-	end
+	return max_chip, max_time
 end
 
 E2Lib.PlayerChips = E2Lib.PlayerChips or setmetatable({}, GlobalChips)
 
 hook.Add("Think", "E2_Think", function()
+	local global_time = 0
+
 	if e2_timequota > 0 then
 		for ply, chips in pairs(E2Lib.PlayerChips) do
-			chips:checkCpuTime()
+			global_time = global_time + chips:checkCpuTime()
 		end
-		E2Lib.PlayerChips:checkGlobalTime()
+	else
+		for ply, chips in pairs(E2Lib.PlayerChips) do
+			global_time = global_time + chips:getTotalTime()
+		end
+	end
+
+	if e2_globalmax > 0 and global_time > e2_globalmax then
+		-- It will be faster to just iterate over all chips from now on
+		local chips = ents.FindByClass("gmod_wire_expression2")
+
+		while global_time > e2_globalmax do
+			local max_chip, max_time = E2Lib.PlayerChips:findMaxTimeChip(chips)
+
+			if max_chip then
+				global_time = global_time - max_time
+				max_chip:Error("Expression 2 (" .. max_chip.name .. "): Global time quota exceeded", "global time quota exceeded")
+				max_chip:Destruct()
+			else
+				-- It shouldn't happen, but if something breaks, it will prevent an infinity loop
+				break
+			end
+		end
 	end
 end)
 
