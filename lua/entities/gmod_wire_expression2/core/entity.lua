@@ -1,4 +1,6 @@
-registerType("entity", "e", nil,
+local wire_expression2_entity_trails_max = CreateConVar("wire_expression2_entity_trails_max", 30, FCVAR_ARCHIVE, "Max amount of trails a player can make. 0 - to disable trails. (Limit is shared between E2s of a player)", 0)
+
+registerType("entity", "e", NULL,
 	nil,
 	function(self,output) return output or NULL end,
 	nil,
@@ -19,13 +21,14 @@ local canProperty = WireLib.CanProperty
 local canEditVariable = WireLib.CanEditVariable
 
 local sun = ents.FindByClass("env_sun")[1] -- used for sunDirection()
+local trailedEntsAmount = {};
 
 hook.Add("InitPostEntity","sunent",function()
 	sun = ents.FindByClass("env_sun")[1]
 	timer.Simple(0,function() -- make sure we have a sun first
 		hook.Remove("InitPostEntity","sunent")
 	end ) -- then remove this. we don't need it anymore.
-end )
+end)
 
 registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	if funcname == "isOwner" then
@@ -66,13 +69,17 @@ end
 --[[******************************************************************************]]
 
 e2function entity entity(id)
-	local ent = ents.GetByIndex(id)
-	return IsValid(ent) and ent or nil
+	return ents.GetByIndex(id)
 end
 
 e2function number entity:id()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	return this:EntIndex()
+end
+
+e2function number entity:mapCreationID()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:MapCreationID()
 end
 
 e2function number entity:creationID()
@@ -88,6 +95,9 @@ end
 --[[******************************************************************************]]
 -- Functions getting string
 
+E2Lib.registerConstant("NO_ENTITY", NULL, "An invalid entity")
+
+[deprecated = "Use the constant NO_ENTITY instead"]
 e2function entity noentity()
 	return NULL
 end
@@ -101,10 +111,14 @@ e2function string entity:name()
 	return this:GetName() or ""
 end
 
-e2function string entity:type()
+[nodiscard]
+e2function string entity:getClass()
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	return this:GetClass()
 end
+
+[deprecated = "Use getClass"]
+e2function string entity:type() = e2function string entity:getClass()
 
 e2function string entity:model()
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
@@ -112,8 +126,17 @@ e2function string entity:model()
 end
 
 e2function entity entity:owner()
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	return getOwner(self, this)
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	return getOwner(self, this) or NULL
+end
+
+__e2setcost(100)
+
+e2function array entities()
+	local entities = ents.GetAll()
+	self.prf = self.prf + #entities / 2
+
+	return entities
 end
 
 __e2setcost(20)
@@ -211,6 +234,11 @@ end
 e2function vector entity:velL()
 	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
 	return this:WorldToLocal(this:GetVelocity() + this:GetPos())
+end
+
+e2function vector entity:velGroundSpeed()
+	if not IsValid(this) then return self:throw("Invalid entity!", Vector(0, 0, 0)) end
+	return this:GetGroundSpeedVelocity()
 end
 
 [nodiscard]
@@ -447,6 +475,16 @@ e2function number entity:isNPC()
 	if this:IsNPC() then return 1 else return 0 end
 end
 
+e2function number entity:isNextBot()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if this:IsNextBot() then return 1 else return 0 end
+end
+
+e2function number entity:isRagdoll()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if this:IsRagdoll() then return 1 else return 0 end
+end
+
 e2function number entity:isVehicle()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if this:IsVehicle() then return 1 else return 0 end
@@ -465,6 +503,11 @@ end
 e2function number entity:isUnderWater()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if this:WaterLevel() > 0 then return 1 else return 0 end
+end
+
+e2function number entity:isAlive()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:Alive() and 1 or 0
 end
 
 e2function number entity:isValid()
@@ -492,9 +535,29 @@ e2function string entity:getMaterial()
 	return this:GetMaterial() or ""
 end
 
+e2function number entity:getMaterialType()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetMaterialType()
+end
+
 e2function string entity:getSubMaterial(index)
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 	return this:GetSubMaterial(index-1) or ""
+end
+
+e2function number entity:getModelRadius()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetModelRadius() or 0
+end
+
+e2function number entity:getModelScale()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetModelScale()
+end
+
+e2function number entity:getMoveType()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetMoveType()
 end
 
 __e2setcost(20)
@@ -527,16 +590,8 @@ end
 --- Sets <this>'s skin number.
 e2function void entity:setSkin(skinIndex)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if this:IsPlayer() then return self:throw("You cannot set the skin of a player!", nil) end
-
-	-- This should probably return a number for if it successfully set the skin.
-	if
-		this:SkinCount() > 0
-		and skinIndex < this:SkinCount()
-		and canProperty(self.player, this, "skin")
-	then
-		this:SetSkin(skinIndex)
-	end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	this:SetSkin(skinIndex)
 end
 
 --- Gets <this>'s number of skins.
@@ -557,10 +612,37 @@ e2function number entity:getBodygroup(bgrp_id)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	return this:GetBodygroup(bgrp_id)
 end
+
+--- Gets <this>'s bodygroup name.
+e2function string entity:getBodygroupName(bgrp_id)
+    if not IsValid(this) then return self:throw("Invalid entity!", "") end
+    return this:GetBodygroupName(bgrp_id)
+end
+
 --- Gets <this>'s bodygroup count.
 e2function number entity:getBodygroups(bgrp_id)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	return this:GetBodygroupCount(bgrp_id)
+end
+
+E2Lib.registerConstant("BLOOD_DONT_BLEED", DONT_BLEED)
+E2Lib.registerConstant("BLOOD_COLOR_RED", BLOOD_COLOR_RED)
+E2Lib.registerConstant("BLOOD_COLOR_YELLOW", BLOOD_COLOR_YELLOW)
+E2Lib.registerConstant("BLOOD_COLOR_GREEN", BLOOD_COLOR_GREEN)
+E2Lib.registerConstant("BLOOD_COLOR_MECH", BLOOD_COLOR_MECH)
+E2Lib.registerConstant("BLOOD_COLOR_ANTLION", BLOOD_COLOR_ANTLION)
+E2Lib.registerConstant("BLOOD_COLOR_ZOMBIE", BLOOD_COLOR_ZOMBIE)
+E2Lib.registerConstant("BLOOD_COLOR_ANTLION_WORKER", BLOOD_COLOR_ANTLION_WORKER)
+
+e2function void entity:setBloodColor(number bloodcolor)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	this:SetBloodColor(math.Clamp(bloodcolor, -1, 6))
+end
+
+e2function number entity:getBloodColor()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetBloodColor() or -1
 end
 
 --[[******************************************************************************]]
@@ -584,6 +666,52 @@ e2function number entity:isFrozen()
 	if not validPhysics(this) then return self:throw("Invalid entity!", 0) end
 	local phys = this:GetPhysicsObject()
 	if phys:IsMoveable() then return 0 else return 1 end
+end
+
+e2function number entity:isAsleep()
+	if not validPhysics(this) then return self:throw("Invalid entity!", 0) end
+	local phys = this:GetPhysicsObject()
+	if phys:IsAsleep() then return 1 else return 0 end
+end
+
+e2function number entity:isGravityEnabled()
+	if not validPhysics(this) then return self:throw("Invalid entity!", 0) end
+	local phys = this:GetPhysicsObject()
+	if phys:IsGravityEnabled() then return 1 else return 0 end
+end
+
+e2function number entity:isPenetrating()
+	if not validPhysics(this) then return self:throw("Invalid entity!", 0) end
+	local phys = this:GetPhysicsObject()
+	if phys:IsPenetrating() then return 1 else return 0 end
+end
+
+E2Lib.registerConstant("EF_BONEMERGE", EF_BONEMERGE)
+E2Lib.registerConstant("EF_BONEMERGE_FASTCULL", EF_BONEMERGE_FASTCULL)
+E2Lib.registerConstant("EF_BRIGHTLIGHT", EF_BRIGHTLIGHT)
+E2Lib.registerConstant("EF_DIMLIGHT", EF_DIMLIGHT)
+E2Lib.registerConstant("EF_NOINTERP", EF_NOINTERP)
+E2Lib.registerConstant("EF_NOSHADOW", EF_NOSHADOW)
+E2Lib.registerConstant("EF_NODRAW", EF_NODRAW)
+E2Lib.registerConstant("EF_NORECEIVESHADOW", EF_NORECEIVESHADOW)
+E2Lib.registerConstant("EF_ITEM_BLINK", EF_ITEM_BLINK)
+E2Lib.registerConstant("EF_PARENT_ANIMATES", EF_PARENT_ANIMATES)
+E2Lib.registerConstant("EF_FOLLOWBONE", EF_FOLLOWBONE)
+E2Lib.registerConstant("EF_NOFLASHLIGHT", EF_NOFLASHLIGHT)
+
+e2function number entity:getEffects()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetEffects()
+end
+
+e2function number entity:getNoDraw()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetNoDraw() and 1 or 0
+end
+
+e2function number entity:isEffectActive(effect)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:IsEffectActive(effect) and 1 or 0
 end
 
 --[[******************************************************************************]]
@@ -654,13 +782,12 @@ e2function void entity:applyTorque(vector torque)
 	if not validPhysics(this) then return self:throw("Invalid physics object!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
 	if torque:IsZero() then return end
+	torque = clamp(torque)
 
 	local phys = this:GetPhysicsObject()
 
-	-- Convert torque from local to world axis
-	torque = phys:LocalToWorldVector( clamp(torque) )
-	-- Convert rad*in^2 to deg*m^2
-	phys:ApplyTorqueCenter( torque * (180 / math.pi / 39.3701^2) )
+	-- Convert rad*in^2 to deg*m^2 and torque to velocity
+	phys:AddAngleVelocity( torque * (180 / math.pi / 39.3701^2) * phys:GetInvInertia() )
 end
 
 e2function vector entity:inertia()
@@ -705,6 +832,13 @@ e2function void entity:podStripWeapons()
 		ply:StripWeapons()
 		ply:ChatPrint("Your weapons have been stripped!")
 	end
+end
+
+e2function void entity:podSetName(string name)
+	if not IsValid(this) or not this:IsVehicle() or not this.VehicleTable or not this.VehicleTable.Name then return self:throw("Invalid vehicle!", nil) end
+	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	if hook.Run("Wire_CanName", name, this, self.player) == false then return self:throw("A hook prevented this function from running") end
+	this.VehicleTable.Name = name:sub(1, 200)
 end
 
 --[[******************************************************************************]]
@@ -801,19 +935,26 @@ end)
 __e2setcost(5)
 
 e2function entity entity:driver()
-	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
+	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", NULL) end
 	return this:GetDriver()
 end
 
 e2function entity entity:passenger()
-	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
+	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", NULL) end
 	return this:GetPassenger(0)
 end
 
 --- Returns <ent> formatted as a string. Returns "<code>(null)</code>" for invalid entities.
 e2function string toString(entity ent)
-	if not IsValid(ent) then return "(null)" end
-	return tostring(ent)
+	if ent then
+		if ent:IsValid() then
+			return tostring(ent)
+		elseif ent:IsWorld() then
+			return "(world)"
+		end
+	end
+
+	return "(null)"
 end
 
 e2function string entity:toString() = e2function string toString(entity ent)
@@ -829,16 +970,62 @@ E2Lib.registerEvent("playerEnteredVehicle", {
 
 --[[******************************************************************************]]
 
-local SetTrails = duplicator.EntityModifiers.trail
+hook.Add("PhysgunPickup", "Exp2RunOnPhysgunPickup", function(ply, entity)
+	E2Lib.triggerEvent("playerPhysgunPickup", { ply, entity })
+end)
 
---- Removes the trail from <this>.
-e2function void entity:removeTrails()
-	if not checkOwner(self) then return end
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+hook.Add("PhysgunDrop", "Exp2RunOnPhysgunDrop", function(ply, entity)
+	E2Lib.triggerEvent("playerPhysgunDrop", { ply, entity })
+end)
 
-	SetTrails(self.player, this, nil)
-end
+E2Lib.registerEvent("playerPhysgunPickup", {
+	{ "Player", "e" },
+	{ "Entity", "e" },
+})
+
+E2Lib.registerEvent("playerPhysgunDrop", {
+	{ "Player", "e" },
+	{ "Entity", "e" },
+})
+
+hook.Add("GravGunOnPickedUp", "Exp2RunOnGravGunPickup", function(ply, entity)
+	E2Lib.triggerEvent("playerGravGunPickup", { ply, entity })
+end)
+
+hook.Add("GravGunOnDropped", "Exp2RunOnGravGunDrop", function(ply, entity)
+	E2Lib.triggerEvent("playerGravGunDrop", { ply, entity })
+end)
+
+E2Lib.registerEvent("playerGravGunPickup", {
+	{ "Player", "e" },
+	{ "Entity", "e" },
+})
+
+E2Lib.registerEvent("playerGravGunDrop", {
+	{ "Player", "e" },
+	{ "Entity", "e" },
+})
+
+hook.Add("OnPlayerPhysicsPickup", "Exp2RunOnPhysicsPickup", function(ply, entity)
+	E2Lib.triggerEvent("playerPhysicsPickup", { ply, entity })
+end)
+
+hook.Add("OnPlayerPhysicsDrop", "Exp2RunPhysicsDrop", function(ply, entity, thrown)
+	E2Lib.triggerEvent("playerPhysicsDrop", { ply, entity, thrown == true and 1 or 0 })
+end)
+
+E2Lib.registerEvent("playerPhysicsPickup", {
+	{ "Player", "e" },
+	{ "Entity", "e" },
+})
+
+E2Lib.registerEvent("playerPhysicsDrop", {
+	{ "Player", "e" },
+	{ "Entity", "e" },
+	{ "Thrown", "n" }
+})
+
+--[[******************************************************************************]]
 
 local function composedata(startSize, endSize, length, material, color, alpha)
 	if string.find(material, '"', 1, true) then return nil end
@@ -855,28 +1042,83 @@ local function composedata(startSize, endSize, length, material, color, alpha)
 	}
 end
 
-__e2setcost(500)
+local function validateCanTrail(self, ent)
+	if not checkOwner(self) then return end
+	if not IsValid(ent) then return self:throw("Invalid entity!", nil) end
+	if not isOwner(self, ent) then return self:throw("You do not own this entity!", nil) end
+end
+
+local function removeTrail(self, ent)
+	local PlayerSteamID = self.player:SteamID()
+	if not trailedEntsAmount[PlayerSteamID] then return end
+	if not trailedEntsAmount[PlayerSteamID][ent] then return end
+
+	trailedEntsAmount[PlayerSteamID][ent] = nil
+	duplicator.EntityModifiers.trail(self.player, ent, nil)
+end
+
+local function setTrail(self, ent, Data)
+	local PlayerSteamID = self.player:SteamID()
+	if not trailedEntsAmount[PlayerSteamID] then trailedEntsAmount[PlayerSteamID] = {} end
+
+	-- Removing a trail (just in case)
+	if Data == nil then
+		removeTrail(self, ent)
+		return
+	end
+
+	-- Setting a trail
+	if wire_expression2_entity_trails_max:GetInt() < table.Count(trailedEntsAmount[PlayerSteamID])+1 then return self:throw("Trails limit reached!", nil) end
+	trailedEntsAmount[PlayerSteamID][ent] = true
+	ent:CallOnRemove("wire_expression2_trail_remove", function(ent)
+		trailedEntsAmount[PlayerSteamID][ent] = nil
+	end)
+
+	duplicator.EntityModifiers.trail(self.player, ent, Data)
+end
+
+__e2setcost(50)
+
+--- Removes the trail from <this>.
+e2function void entity:removeTrails()
+	validateCanTrail(self, this)
+	removeTrail(self, this)
+end
+
+__e2setcost(75)
 
 --- StartSize, EndSize, Length, Material, Color (RGB), Alpha
 --- Adds a trail to <this> with the specified attributes.
 e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha)
-	if not checkOwner(self) then return end
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	validateCanTrail(self, this)
 
 	local Data = composedata(startSize, endSize, length, material, color, alpha)
 	if not Data then return end
 
-	SetTrails(self.player, this, Data)
+	setTrail(self, this, Data)
 end
 
+e2function void entity:setTrails(startSize, endSize, length, string material, vector4 color)
+	validateCanTrail(self, this)
 
---- StartSize, EndSize, Length, Material, Color (RGB), Alpha, AttachmentID, Additive
---- Adds a trail to <this> with the specified attributes.
+	local Data = composedata(startSize, endSize, length, material, { color[1], color[2], color[3] }, color[4])
+	if not Data then return end
+
+	setTrail(self, this, Data)
+end
+
+e2function void entity:setTrails(startSize, endSize, length, string material)
+	validateCanTrail(self, this)
+
+	local Data = composedata(startSize, endSize, length, material, { 255, 255, 255 }, 255)
+	if not Data then return end
+
+	setTrail(self, this, Data)
+end
+
+-- + Attachments
 e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha, attachmentID, additive)
-	if not checkOwner(self) then return end
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	validateCanTrail(self, this)
 
 	local Data = composedata(startSize, endSize, length, material, color, alpha)
 	if not Data then return end
@@ -884,7 +1126,26 @@ e2function void entity:setTrails(startSize, endSize, length, string material, ve
 	Data.AttachmentID = attachmentID
 	Data.Additive = additive ~= 0
 
-	SetTrails(self.player, this, Data)
+	setTrail(self, this, Data)
+end
+
+__e2setcost(2)
+
+[nodiscard]
+e2function number trailsLeft()
+	return wire_expression2_entity_trails_max:GetInt() - table.Count(trailedEntsAmount[self.player:SteamID()] or {})
+end
+
+[nodiscard]
+e2function number trailsCount()
+	return table.Count(trailedEntsAmount[self.player:SteamID()] or {})
+end
+
+__e2setcost(1)
+
+[nodiscard]
+e2function number trailsMax()
+	return wire_expression2_entity_trails_max:GetInt()
 end
 
 --[[******************************************************************************]]
@@ -1034,10 +1295,38 @@ e2function void entity:noCollideAll(number state)
 	this:SetCollisionGroup(state == 0 and COLLISION_GROUP_NONE or COLLISION_GROUP_WORLD)
 end
 
+__e2setcost(5)
+
+E2Lib.registerConstant("SOLID_NONE", SOLID_NONE)
+E2Lib.registerConstant("SOLID_BSP", SOLID_BSP)
+E2Lib.registerConstant("SOLID_BBOX", SOLID_BBOX)
+E2Lib.registerConstant("SOLID_OBB", SOLID_OBB)
+E2Lib.registerConstant("SOLID_OBB_YAW", SOLID_OBB_YAW)
+E2Lib.registerConstant("SOLID_CUSTOM", SOLID_CUSTOM)
+E2Lib.registerConstant("SOLID_VPHYSICS", SOLID_VPHYSICS)
+
+e2function number entity:getSolid()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetSolid()
+end
+
+e2function number entity:isSolid()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:IsSolid() and 1 or 0
+end
+
+e2function number entity:getGravity()
+	if not IsValid(this) then return self:throw("Invalid entity!", -1) end
+	return this:GetGravity()
+end
+
+e2function entity entity:getGroundEntity()
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	return this:GetGroundEntity()
+end
+
 --[[******************************************************************************]]
 -- Flexes
-
-__e2setcost(5)
 
 e2function array entity:getFlexBounds(number flex)
 	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
@@ -1091,10 +1380,45 @@ end
 __e2setcost(50)
 
 e2function array entity:getFlexes()
-	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
 	local ret = {}
 	for i = 0, this:GetFlexNum() - 1 do
 		ret[i] = this:GetFlexName(i)
+	end
+	self.prf = self.prf + (#ret + 1) * 5
+	return ret
+end
+
+--[[******************************************************************************]]
+-- Model bones
+
+__e2setcost(5)
+
+e2function number entity:getModelBoneCount()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+
+	return this:GetBoneCount()
+end
+
+e2function number entity:getModelBoneIndex(string bone_name)
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+
+	return this:LookupBone(bone_name) or -1
+end
+
+e2function string entity:getModelBoneName(bone_index)
+	if not IsValid(this) then return self:throw("Invalid entity!", "") end
+
+	return this:GetBoneName(bone_index) or ""
+end
+
+__e2setcost(50)
+
+e2function array entity:getModelBones()
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+	local ret = {}
+	for i = 0, this:GetBoneCount() - 1 do
+		ret[i] = this:GetBoneName(i)
 	end
 	self.prf = self.prf + (#ret + 1) * 5
 	return ret
@@ -1112,6 +1436,14 @@ hook.Add("OnEntityCreated", "E2_entityCreated", function(ent)
 end)
 
 E2Lib.registerEvent("entityCreated", {
+	{ "Entity", "e" }
+})
+
+hook.Add("EntityRemoved", "E2_entityRemoved", function(ent)
+	E2Lib.triggerEvent("entityRemoved", { ent })
+end)
+
+E2Lib.registerEvent("entityRemoved", {
 	{ "Entity", "e" }
 })
 

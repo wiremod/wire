@@ -4,6 +4,7 @@ local abs    = math.abs
 local random = math.random
 local pi     = math.pi
 local inf    = math.huge
+local nan    = 0 / 0
 
 local exp    = math.exp
 local frexp  = math.frexp
@@ -44,6 +45,7 @@ E2Lib.registerConstant("PI", pi)
 E2Lib.registerConstant("INF", inf)
 E2Lib.registerConstant("E", exp(1))
 E2Lib.registerConstant("PHI", (1+sqrt(5))/2)
+E2Lib.registerConstant("TAU", math.pi * 2)
 
 --[[************************************************************************]]--
 
@@ -301,6 +303,18 @@ e2function number randint(number a, number b)
 end
 
 --[[************************************************************************]]--
+
+__e2setcost(10)
+
+[nodiscard]
+e2function number factorial(number n)
+	if n < 0 then return nan end
+	if n > 170 then return inf end
+
+	local res = 1
+	for i = 2, n do res = res * i end
+	return res
+end
 
 __e2setcost(2) -- approximation
 
@@ -567,10 +581,11 @@ __e2setcost(10)
 local CHARS = string.Split("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", "")
 
 local function tobase(number, base, self)
-	if base < 2 or base > 36 or number == 0 then return "0" end
+	if base < 2 or base > 36 or base ~= base or number == 0 or number ~= number then return "0" end
 	if base == 10 then return tostring(number) end
+	if number < 0 then return "-" .. tobase(-number, base, self) end
 
-	local out, loops, d = {}, ceil(log(number) / log(base)), 0
+	local out, loops, d = {}, floor(log(number) / log(base)) + 1, 0
 	if loops == inf then return "inf" end
 
 	for i = loops, 1, -1 do

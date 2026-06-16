@@ -52,6 +52,8 @@ function TOOL.BuildCPanel(panel)
 		["#Smoke"] = "smoke",
 		["#Smoke Random"] = "smoke_random",
 		["#Smoke Do it Youself"] = "smoke_diy",
+		["#Exhaust"] = "exhaust",
+		["#Exhaust Do it Yourself"] = "exhaust_diy",
 		["#Rings"] = "rings",
 		["#Rings Growing"] = "rings_grow",
 		["#Rings Shrinking"] = "rings_shrink",
@@ -92,6 +94,7 @@ function TOOL.BuildCPanel(panel)
 		--["#Debugger 60 Seconds"] = "debug_60",
 		["#Fire and Smoke"] = "fire_smoke",
 		["#Fire and Smoke Huge"] = "fire_smoke_big",
+		["#Flamethrower"] = "flamethrower",
 		["#5 Growing Rings"] = "rings_grow_rings",
 		["#Color and Magic"] = "color_magic",
 	}
@@ -153,5 +156,9 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#WireThrusterTool_owater", "wire_thruster_owater")
 	panel:CheckBox("#WireThrusterTool_uwater", "wire_thruster_uwater")
 end
---from model pack 1
+
+-- Allow some custom models for thrusters
+list.Set( "ThrusterModels", "models/props_junk/garbage_metalcan001a.mdl", {} )
 list.Set( "ThrusterModels", "models/jaanus/thruster_flat.mdl", {} )
+list.Set( "ThrusterModels", "models/fasteroid/computerfan.mdl", {} )
+list.Set( "ThrusterModels", "models/jaanus/wiretool/wiretool_speed.mdl", {} )

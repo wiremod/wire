@@ -7,6 +7,8 @@ if CLIENT then
 	language.Add( "WireIgniterTool_trgply", "Allow Player Igniting" )
 	language.Add( "WireIgniterTool_Range", "Max Range:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/fire.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

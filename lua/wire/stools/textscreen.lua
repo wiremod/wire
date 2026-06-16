@@ -19,14 +19,13 @@ if CLIENT then
 		{ name = "right", text = "Copy settings" },
 	}
 
+	WireToolSetup.setToolMenuIcon("icon16/text_smallcaps.png")
 end
 WireToolSetup.BaseLang()
 
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	ModelPlug_Register("speaker")
-
 	function TOOL:GetConVars()
 		return
 			self:GetClientInfo("text"),

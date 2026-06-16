@@ -20,8 +20,6 @@ if SERVER then
 end
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
-cleanup.Register( "wire_clutch" )
-
 
 /*---------------------------------------------------------
    -- Server Usermessages --

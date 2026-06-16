@@ -2,7 +2,6 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "gmod_wire_egp" )
 ENT.PrintName       = "Wire E2 Graphics Processor Emitter"
 ENT.WireDebugName	= "E2 Graphics Processor Emitter"
-ENT.RenderGroup    = RENDERGROUP_BOTH
 
 ENT.IsEGP = true
 ENT.gmod_wire_egp_emitter = true
@@ -121,11 +120,11 @@ if CLIENT then
 					if filter then
 						render.PushFilterMag(filter)
 						render.PushFilterMin(filter)
-						obj:Draw(ent, mat)
+						obj:Draw(self, mat)
 						render.PopFilterMag()
 						render.PopFilterMin()
 					else
-						obj:Draw(ent, mat)
+						obj:Draw(self, mat)
 					end
 					EGP:FixMaterial(oldtex)
 				end
@@ -152,11 +151,11 @@ if CLIENT then
 	 	end
 	end
 
-	function ENT:Draw()
+	function ENT:Draw(flags)
 		if self.GPU then -- if we're rendering on RT, use base EGP's draw function instead
-			BaseClass.Draw(self)
+			BaseClass.Draw(self, flags)
 		else
-			self:DrawModel()
+			self:DrawModel(flags)
 			self:DrawNoRT()
 			Wire_Render(self)
 		end

@@ -1,5 +1,6 @@
 -- Author: sk8 (& Divran)
-local Obj = EGP.ObjectInherit("LineStrip", "PolyOutline")
+
+local Obj = E2Lib.EGP.ObjectInherit("LineStrip", "PolyOutline")
 
 Obj.Draw = function( self )
 	local n = #self.vertices

@@ -11,7 +11,6 @@ registerType("angle", "a", Angle(0, 0, 0),
 	end
 )
 
-local pi = math.pi
 local floor, ceil = math.floor, math.ceil
 
 /******************************************************************************/
@@ -32,7 +31,7 @@ e2function angle ang(rv1, rv2, rv3)
 	return Angle(rv1, rv2, rv3)
 end
 
-// Convert Vector -> Angle
+-- Convert Vector -> Angle
 e2function angle ang(vector rv1)
 	return Angle(rv1[1], rv1[2], rv1[3])
 end
@@ -150,7 +149,10 @@ end
 __e2setcost(5)
 
 e2function angle angnorm(angle rv1)
-	return Angle((rv1[1] + 180) % 360 - 180, (rv1[2] + 180) % 360 - 180, (rv1[3] + 180) % 360 - 180)
+	local ang = Angle(rv1)
+	ang:Normalize()
+
+	return ang
 end
 
 e2function number angnorm(rv1)
@@ -173,17 +175,26 @@ end
 
 __e2setcost(2)
 
-// SET methods that returns angles
+-- SET methods that returns angles
 e2function angle angle:setPitch(rv2)
-	return Angle(rv2, this[2], this[3])
+	local ang = Angle(this)
+	ang.pitch = rv2
+
+	return ang
 end
 
 e2function angle angle:setYaw(rv2)
-	return Angle(this[1], rv2, this[3])
+	local ang = Angle(this)
+	ang.yaw = rv2
+
+	return ang
 end
 
 e2function angle angle:setRoll(rv2)
-	return Angle(this[1], this[2], rv2)
+	local ang = Angle(this)
+	ang.roll = rv2
+
+	return ang
 end
 
 /******************************************************************************/
@@ -241,7 +252,7 @@ e2function angle floor(angle rv1, decimals)
 	)
 end
 
-// Performs modulo on p,y,r separately
+-- Performs modulo on p,y,r separately
 e2function angle mod(angle rv1, rv2)
 	local p,y,r
 	if rv1[1] >= 0 then
@@ -256,7 +267,7 @@ e2function angle mod(angle rv1, rv2)
 	return Angle(p, y, r)
 end
 
-// Modulo where divisors are defined as an angle
+-- Modulo where divisors are defined as an angle
 e2function angle mod(angle rv1, angle rv2)
 	local p,y,r
 	if rv1[1] >= 0 then
@@ -271,7 +282,7 @@ e2function angle mod(angle rv1, angle rv2)
 	return Angle(p, y, r)
 end
 
-// Clamp each p,y,r separately
+-- Clamp each p,y,r separately
 e2function angle clamp(angle rv1, rv2, rv3)
 	local p,y,r
 
@@ -290,7 +301,7 @@ e2function angle clamp(angle rv1, rv2, rv3)
 	return Angle(p, y, r)
 end
 
-// Clamp according to limits defined by two min/max angles
+-- Clamp according to limits defined by two min/max angles
 e2function angle clamp(angle rv1, angle rv2, angle rv3)
 	local p,y,r
 
@@ -309,7 +320,7 @@ e2function angle clamp(angle rv1, angle rv2, angle rv3)
 	return Angle(p, y, r)
 end
 
-// Mix two angles by a given proportion (between 0 and 1)
+-- Mix two angles by a given proportion (between 0 and 1)
 e2function angle mix(angle rv1, angle rv2, rv3)
 	local p = rv1[1] * rv3 + rv2[1] * (1-rv3)
 	local y = rv1[2] * rv3 + rv2[2] * (1-rv3)
@@ -319,7 +330,7 @@ end
 
 __e2setcost(2)
 
-// Circular shift function: shiftr(  p,y,r ) = ( r,p,y )
+-- Circular shift function: shiftr(  p,y,r ) = ( r,p,y )
 e2function angle shiftR(angle rv1)
 	return Angle(rv1[3], rv1[1], rv1[2])
 end
@@ -330,7 +341,7 @@ end
 
 __e2setcost(5)
 
-// Returns 1 if the angle lies between (or is equal to) the min/max angles
+-- Returns 1 if the angle lies between (or is equal to) the min/max angles
 e2function normal inrange(angle rv1, angle rv2, angle rv3)
 	if rv1[1] < rv2[1] then return 0 end
 	if rv1[2] < rv2[2] then return 0 end
@@ -343,35 +354,38 @@ e2function normal inrange(angle rv1, angle rv2, angle rv3)
 	return 1
 end
 
-// Rotate an angle around a vector by the given number of degrees
+-- Rotate an angle around a vector by the given number of degrees
 e2function angle angle:rotateAroundAxis(vector axis, degrees)
 	local ang = Angle(this)
 	ang:RotateAroundAxis( axis:GetNormalized(), degrees )
 	return ang
 end
 
-// Convert the magnitude of the angle to radians
+-- Convert the magnitude of the angle to radians
+local deg2rad = math.pi / 180
+local rad2deg = 180 / math.pi
+
 e2function angle toRad(angle rv1)
-	return Angle(rv1[1] * pi / 180, rv1[2] * pi / 180, rv1[3] * pi / 180)
+	return rv1 * deg2rad
 end
 
-// Convert the magnitude of the angle to degrees
+-- Convert the magnitude of the angle to degrees
 e2function angle toDeg(angle rv1)
-	return Angle(rv1[1] * 180 / pi, rv1[2] * 180 / pi, rv1[3] * 180 / pi)
+	return rv1 * rad2deg
 end
 
 /******************************************************************************/
 
 e2function vector angle:forward()
-	return Angle(this[1], this[2], this[3]):Forward()
+	return this:Forward()
 end
 
 e2function vector angle:right()
-	return Angle(this[1], this[2], this[3]):Right()
+	return this:Right()
 end
 
 e2function vector angle:up()
-	return Angle(this[1], this[2], this[3]):Up()
+	return this:Up()
 end
 
 e2function string toString(angle a)

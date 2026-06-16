@@ -50,9 +50,8 @@ if ENT then
 		ENT = nil
 
 		_Msg( "Calling constructors for all Expression 2 chips." )
-		wire_expression2_prepare_functiondata()
 		if not args or args[1] ~= "nosend" then
-			for _, p in ipairs( player.GetAll() ) do
+			for _, p in player.Iterator() do
 				if IsValid( p ) then wire_expression2_sendfunctions( p ) end
 			end
 		end
@@ -61,6 +60,8 @@ if ENT then
 		end
 
 		_Msg( "Done reloading Expression 2 extensions." )
+
+		hook.Run("Expression2Reloaded")
 	end
 
 	concommand.Add( "wire_expression2_reload", wire_expression2_reload )
@@ -93,6 +94,10 @@ local function e2_include_pass2(name, luaname, contents)
 	if not preprocessedSource then return include(name) end
 
 	local func = CompileString(preprocessedSource, luaname)
+	if func == nil then
+		error("File not compiled, see previous error", 0)
+	end
+
 
 	local ok, err = pcall(func)
 	if not ok then -- an error occured while executing

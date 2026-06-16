@@ -101,7 +101,7 @@ GateActions["rd_hit"] = {
 		return A.Hit and 1 or 0
 	end,
 	label = function(Out, A)
-		return string.format ("hit(%s) = %d", A, Out and 1 or 0)
+		return string.format ("hit(%s) = %d", A, Out)
 	end
 }
 
@@ -120,6 +120,96 @@ GateActions["rd_distance"] = {
 	label = function(Out, A)
 		return string.format ("distance(%s) = %d", A, Out)
 	end
+}
+
+GateActions["rd_hull_pos"] = {
+    name = "Hull Trace (By Position)",
+    description = "Performs a box-shaped (hull) trace between two positions and outputs ranger data. If Parent is provided, StartPos and EndPos are treated as local offsets relative to that entity.",
+    inputs = { "StartPos", "EndPos", "Size", "Filter", "Parent" },
+    inputtypes = { "VECTOR", "VECTOR", "VECTOR", "ARRAY", "ENTITY" },
+    outputtypes = { "RANGER" },
+    timed = true,
+    output = function(gate, StartPos, EndPos, Size, Filter, Entity)
+        if not isvector(StartPos) then StartPos = vec0 end
+        if not isvector(EndPos)   then EndPos   = vec0 end
+        if not isvector(Size)     then Size     = vec1 end
+
+        if IsValid(Entity) then
+            StartPos = Entity:LocalToWorld(StartPos)
+            EndPos   = Entity:LocalToWorld(EndPos)
+        end
+
+        local half   = Size * 0.5
+        local filter = {}
+        if istable(Filter) then
+            for _, v in ipairs(Filter) do
+                if IsValid(v) then filter[#filter + 1] = v end
+            end
+        end
+
+        if IsValid(Entity) then
+            filter[#filter + 1] = Entity
+        end
+
+        local tracedata = {
+            start  = StartPos,
+            endpos = EndPos,
+            mins   = -half,
+            maxs   = half,
+            filter = (#filter > 0) and filter or nil,
+        }
+        return util.TraceHull(tracedata)
+    end,
+    label = function(Out, StartPos, EndPos, Size, Filter, Entity)
+        return string.format("hullTrace(%s → %s)", tostring(StartPos), tostring(EndPos))
+    end
+}
+
+GateActions["rd_hull_ang"] = {
+    name = "Hull Trace (By Angle)",
+    description = "Performs a box-shaped (hull) trace from a start position along an angle for a set distance, and outputs ranger data. If Parent is provided, StartPos and Angle are treated as local offset and local angle relative to that entity.",
+    inputs = { "StartPos", "Angle", "Distance", "Size", "Filter", "Parent" },
+    inputtypes = { "VECTOR", "ANGLE", "NORMAL", "VECTOR", "ARRAY", "ENTITY" },
+    outputtypes = { "RANGER" },
+    timed = true,
+    output = function(gate, StartPos, Angle, Distance, Size, Filter, Entity)
+        if not isvector(StartPos) then StartPos = vec0 end
+        if not isangle(Angle)     then Angle    = ang0 end
+        if not isvector(Size)     then Size     = vec1 end
+        if not Distance or Distance == 0 then Distance = 4096 end
+
+        if IsValid(Entity) then
+            StartPos = Entity:LocalToWorld(StartPos)
+            Angle    = Entity:LocalToWorldAngles(Angle)
+        end
+
+        local dir    = Angle:Forward()
+        local endpos = StartPos + dir * Distance
+        local half   = Size * 0.5
+
+        local filter = {}
+        if istable(Filter) then
+            for _, v in ipairs(Filter) do
+                if IsValid(v) then filter[#filter + 1] = v end
+            end
+        end
+
+        if IsValid(Entity) then
+            filter[#filter + 1] = Entity
+        end
+
+        local tracedata = {
+            start  = StartPos,
+            endpos = endpos,
+            mins   = -half,
+            maxs   = half,
+            filter = (#filter > 0) and filter or nil,
+        }
+        return util.TraceHull(tracedata)
+    end,
+    label = function(Out, StartPos, Angle, Distance, Size, Filter, Entity)
+        return string.format("hullTrace(%s, %s, dist=%s)", tostring(StartPos), tostring(Angle), tostring(Distance))
+    end
 }
 
 GateActions()

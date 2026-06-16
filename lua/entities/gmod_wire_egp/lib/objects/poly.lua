@@ -1,5 +1,5 @@
 -- Author: Divran
-local Obj = EGP:NewObject("Poly")
+local Obj = E2Lib.EGP.NewObject("Poly")
 Obj.vertices = {}
 Obj.verticesindex = "vertices"
 Obj.HasUV = true
@@ -10,8 +10,7 @@ local clamp = math.Clamp
 
 -- Returns whether c is to the left of the line from a to b.
 local function counterclockwise( a, b, c )
-	local area = (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y)
-	return area > 0
+	return (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y) > 0
 end
 
 Obj.Draw = function( self )
@@ -22,7 +21,7 @@ Obj.Draw = function( self )
 		render.CullMode(MATERIAL_CULLMODE_CCW)
 	end
 end
-Obj.Transmit = function( self, Ent, ply )
+Obj.Transmit = function(self, ent, ply)
 	net.WriteBool(self.VerticesUpdate)
 	if self.VerticesUpdate then
 		if (#self.vertices <= 255) then
@@ -39,7 +38,7 @@ Obj.Transmit = function( self, Ent, ply )
 			EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", self.index, self.vertices )
 		end
 	end
-	base.Transmit(self)
+	base.Transmit(self, ent, ply)
 end
 
 Obj.Receive = function( self )
@@ -54,14 +53,14 @@ Obj.Receive = function( self )
 	return tbl
 end
 Obj.DataStreamInfo = function( self )
-	return { material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent, x = self.x, y = self.y, angle = self.angle }
+	return { material = self.material, r = self.r, g = self.g, b = self.b, a = self.a, filtering = self.filtering, parent = self.parent, x = self.x, y = self.y, angle = self.angle, vertices = self.vertices }
 end
 
 function Obj:Contains(x, y)
 	if #self.vertices < 3 then return false end
 	-- Convert into {x,y} format that poly uses.
 	local point = { x = x, y = y }
-	local _, realpos = EGP:GetGlobalPos(self.EGP, self)
+	local realpos = EGP.GetGlobalVertices(self.EGP, self)
 	local vertices = realpos.vertices
 
 	-- To check whether a point is in the polygon, we check whether it's to the
@@ -95,7 +94,7 @@ function Obj:EditObject(args)
 		ret = true
 	end
 	if args.x or args.y or args.angle then
-		ret = self:SetPos(args.x or self.x, args.y or self.y, args.angle or self.angle)
+		ret = ret or self:SetPos(args.x or self.x, args.y or self.y, args.angle or self.angle)
 		args.x = nil
 		args.y = nil
 		args.angle = nil
@@ -122,8 +121,11 @@ function Obj:SetPos(x, y, angle)
 	x = clamp(x, -32768, 32767) -- Simple clamp to avoid moving to huge numbers and invoking NaN. Transmit size is u16
 	y = clamp(y, -32768, 32767)
 
+	local delta_ang = Angle(0, sa - angle, 0)
+	local pos = Vector(x, y, 0)
+
 	for _, v in ipairs(self.vertices) do
-		local vec = LocalToWorld(Vector(v.x - sx, v.y - sy, 0), angle_zero, Vector(x, y, 0), Angle(0, sa - angle, 0))
+		local vec = LocalToWorld(Vector(v.x - sx, v.y - sy, 0), angle_zero, pos, delta_ang)
 		v.x, v.y = vec[1], vec[2]
 	end
 	self.x, self.y, self.angle = x, y, angle

@@ -1,5 +1,6 @@
 -- Author: Divran
-local Obj = EGP:NewObject( "Box" )
+
+local Obj = E2Lib.EGP.NewObject("Box")
 Obj.CanTopLeft = true
 Obj.w = 0
 Obj.h = 0
@@ -19,7 +20,7 @@ Obj.Transmit = function( self )
 end
 
 Obj.Receive = function( self )
-	tbl = {}
+	local tbl = {}
 	EGP.ReceiveSize(tbl)
 	table.Merge(tbl, base.Receive(self))
 	return tbl
@@ -38,7 +39,7 @@ function Obj:Contains(x, y)
 	if self.EGP.TopLeft then x, y = x - w, y - h end
 
 	return -w <= x and x <= w and
-	       -h <= y and y <= h
+		-h <= y and y <= h
 end
 
 return Obj

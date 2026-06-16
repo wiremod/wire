@@ -20,11 +20,9 @@ if CLIENT then
 		self.RBMax:Add(Vector(30,0,60))
 	end
 
-	local RenderGroup = ENT.RenderGroup
-
 	function ENT:Draw()
 		if not IsValid(self.csmodel) then
-			self.csmodel = ClientsideModel("models/props_wasteland/tram_lever01.mdl",RenderGroup)
+			self.csmodel = ClientsideModel("models/props_wasteland/tram_lever01.mdl",RENDERGROUP_BOTH)
 			self.csmodel:SetParent(self)
 			self.NextRBUpdate = 0
 		end

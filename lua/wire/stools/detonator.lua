@@ -5,12 +5,13 @@ if CLIENT then
 	language.Add( "tool.wire_detonator.name", "Detonator Tool (Wire)" )
 	language.Add( "tool.wire_detonator.desc", "Spawns a Detonator for use with the wire system." )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/bomb.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	ModelPlug_Register("detonator")
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "damage" )
 	end

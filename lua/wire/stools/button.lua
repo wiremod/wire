@@ -9,13 +9,13 @@ if CLIENT then
 	language.Add( "WireButtonTool_value_on", "Value On:" )
 	language.Add( "WireButtonTool_value_off", "Value Off:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon( "icon16/add.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	ModelPlug_Register("button")
-
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "toggle" ) ~= 0, self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" ),
 			self:GetClientInfo( "description" ), self:GetClientNumber( "entityout" ) ~= 0

@@ -33,8 +33,8 @@ if CLIENT then
 		return x,y,w,h
 	end
 
-	function ENT:Draw()
-		self:DrawModel()
+	function ENT:Draw(flags)
+		self:DrawModel(flags)
 
 		local draw_background = self:GetDrawBackground()
 		self.GPU:RenderToWorld(nil, 512, function(x, y, w, h, monitor, pos, ang, res)
@@ -114,7 +114,7 @@ function ENT:Think()
 	local x = -w/2
 	local y = -h/2
 
-	for _,ply in pairs(player.GetAll()) do
+	for _,ply in player.Iterator() do
 		local trace = ply:GetEyeTraceNoCursor()
 		local ent = trace.Entity
 		if ent:IsValid() then

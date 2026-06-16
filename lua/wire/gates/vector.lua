@@ -269,7 +269,7 @@ GateActions["vector_derive"] = {
 		if not isvector (A) then A = Vector (0, 0, 0) end
 		local dT, dA = t - gate.LastT, A - gate.LastA
 		gate.LastT, gate.LastA = t, A
-		if (dT) then
+		if dT ~= 0 then
 			return Vector (dA.x/dT, dA.y/dT, dA.z/dT)
 		else
 			return Vector (0, 0, 0)

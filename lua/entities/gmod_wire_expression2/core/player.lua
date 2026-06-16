@@ -4,7 +4,6 @@
 
 local IsValid = IsValid
 
-
 local spawnAlert = {}
 local lastJoined = NULL
 
@@ -124,7 +123,7 @@ end
 
 e2function number entity:armor()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if not this:IsPlayer() and not this:IsNPC() then return self:throw("Expected a Player or NPC but got an entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got an entity!", 0) end
 	return this:Armor()
 end
 
@@ -137,18 +136,23 @@ e2function number entity:isCrouch()
 	return this:IsPlayer() and this:Crouching() and 1 or 0
 end
 
-e2function number entity:isAlive()
-	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if this:IsPlayer() and this:Alive() then return 1 end
-	if this:IsNPC() and this:Health() > 0 then return 1 end
-	return 0
-end
-
 -- returns 1 if players has flashlight on or 0 if not
 e2function number entity:isFlashlightOn()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
 	return this:FlashlightIsOn() and 1 or 0
+end
+
+e2function number entity:isSpeaking()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:IsSpeaking() and 1 or 0
+end
+
+e2function number entity:isBot()
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:IsBot() and 1 or 0
 end
 
 --------------------------------------------------------------------------------
@@ -189,7 +193,7 @@ e2function number teamMemberCount(teamNum)
 	return team.NumPlayers(teamNum)
 end
 
-[deprecated]
+[deprecated = "Use function teamMemberCount instead"]
 e2function number teamPlayers(teamNum) = e2function number teamMemberCount(teamNum)
 
 e2function number teamDeaths(teamNum)
@@ -326,6 +330,7 @@ number_of_keys = number_of_keys + 3
 
 local function UpdateKeys(ply, bind, key, state)
 	local uid = ply:SteamID()
+	if table.IsEmpty(KeyAlert) then return end
 
 	local keystate = {
 		runByKey = ply,
@@ -359,14 +364,14 @@ local function triggerKey(ply,bind,key,state)
 	end)
 end
 
-hook.Add("PlayerBindDown", "Exp2KeyReceivingDown", function(player, binding, button)
-	triggerKey(player,binding,button,true)
-	E2Lib.triggerEvent("keyPressed", {player, keys_lookup[button], 1, binding or ""})
+hook.Add("PlayerBindDown", "Exp2KeyReceivingDown", function(ply, binding, button)
+	triggerKey(ply,binding,button,true)
+	E2Lib.triggerEvent("keyPressed", {ply, keys_lookup[button], 1, binding or ""})
 end)
 
-hook.Add("PlayerBindUp", "Exp2KeyReceivingUp", function(player, binding, button)
-	triggerKey(player,binding,button,false)
-	E2Lib.triggerEvent("keyPressed", {player, keys_lookup[button], 0, binding or ""})
+hook.Add("PlayerBindUp", "Exp2KeyReceivingUp", function(ply, binding, button)
+	triggerKey(ply,binding,button,false)
+	E2Lib.triggerEvent("keyPressed", {ply, keys_lookup[button], 0, binding or ""})
 end)
 
 local function toggleRunOnKeys(self,ply,on,filter)
@@ -427,7 +432,7 @@ __e2setcost(1)
 --- Returns user if the chip is being executed because of a key event.
 [nodiscard, deprecated = "Use the keyPressed event instead"]
 e2function entity keyClk()
-	if not self.data.runOnKeys then return nil end
+	if not self.data.runOnKeys then return NULL end
 	return self.data.runOnKeys.runByKey
 end
 
@@ -496,15 +501,10 @@ end, function(self)
 	self.entity.Use = nil
 end)
 
-
--- isTyping
-local plys = {}
-concommand.Add("E2_StartChat",function(ply,cmd,args) plys[ply] = true end)
-concommand.Add("E2_FinishChat",function(ply,cmd,args) plys[ply] = nil end)
-hook.Add("PlayerDisconnected","E2_istyping",function(ply) plys[ply] = nil end)
-
 e2function number entity:isTyping()
-	return plys[this] and 1 or 0
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player but got Entity", 0) end
+	return this:IsTyping() and 1 or 0
 end
 
 --------------------------------------------------------------------------------
@@ -689,39 +689,42 @@ end
 __e2setcost(5)
 
 e2function number entity:ping()
-	if not IsValid(this) then return 0 end
-	if(this:IsPlayer()) then return this:Ping() else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", 0) end
+	return this:Ping()
 end
 
 e2function number entity:timeConnected()
-	if not IsValid(this) then return 0 end
-	if(this:IsPlayer()) then return this:TimeConnected() else return 0 end
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", 0) end
+	return this:TimeConnected()
 end
 
 e2function entity entity:vehicle()
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", NULL) end
 	return this:GetVehicle()
 end
 
 e2function number entity:inVehicle()
-	if not IsValid(this) then return 0 end
-	return this:IsPlayer() and this:InVehicle() and 1 or 0
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", 0) end
+	return this:InVehicle() and 1 or 0
 end
 
 --- Returns 1 if the player <this> is in noclip mode, 0 if not.
 e2function number entity:inNoclip()
-	if not IsValid(this) or this:GetMoveType() ~= MOVETYPE_NOCLIP then return 0 end
-	return 1
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	return this:GetMoveType() == MOVETYPE_NOCLIP and 1 or 0
 end
 
 e2function number entity:inGodMode()
-	return IsValid(this) and this:IsPlayer() and this:HasGodMode() and 1 or 0
+	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity!", 0) end
+	return this:HasGodMode() and 1 or 0
 end
 
 --------------------------------------------------------------------------------
-
-local player = player
 
 __e2setcost(10)
 
@@ -730,34 +733,36 @@ e2function array players()
 end
 
 e2function array playersAdmins()
-	local Admins = {}
-	for _,ply in ipairs(player.GetAll()) do
-		if (ply:IsAdmin()) then
-			table.insert(Admins,ply)
+	local admins = {}
+
+	for _, ply in player.Iterator() do
+		if ply:IsAdmin() then
+			table.insert(admins, ply)
 		end
 	end
-	return Admins
+
+	return admins
 end
 
 e2function array playersSuperAdmins()
-	local Admins = {}
-	for _,ply in ipairs(player.GetAll()) do
-		if (ply:IsSuperAdmin()) then
-			table.insert(Admins,ply)
+	local superadmins = {}
+
+	for _, ply in player.Iterator() do
+		if ply:IsSuperAdmin() then
+			table.insert(superadmins, ply)
 		end
 	end
-	return Admins
+
+	return superadmins
 end
 
 --------------------------------------------------------------------------------
 
 e2function entity entity:aimEntity()
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", nil) end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not this:IsPlayer() then return self:throw("Expected a Player, got Entity", NULL) end
 
-	local ent = this:GetEyeTraceNoCursor().Entity
-	if not ent:IsValid() then return nil end
-	return ent
+	return this:GetEyeTraceNoCursor().Entity
 end
 
 e2function vector entity:aimPos()
@@ -775,6 +780,9 @@ e2function vector entity:aimNormal()
 end
 
 local getBone = E2Lib.getBone
+hook.Add("Expression2_PostLoadExtensions", "e2_player_extension_getbone", function()
+	getBone = E2Lib.getBone
+end)
 
 --- Returns the bone the player is currently aiming at.
 e2function bone entity:aimBone()
@@ -1025,17 +1033,8 @@ E2Lib.registerEvent("playerDeath", {
 	{ "Attacker", "e" }
 })
 
-local Using = WireLib.RegisterPlayerTable()
-
-hook.Add("PlayerBindDown", "Exp2PlayerButtonDownUse", function(ply, binding, button)
-	if binding == "use" then
-		Using[ply] = nil
-	end
-end)
-
 hook.Add("PlayerUse", "Exp2PlayerUse", function(ply, ent)
-	if not Using[ply] then
-		Using[ply] = true
+	if not ply:KeyDownLast(IN_USE) then
 		E2Lib.triggerEvent("playerUse", { ply, ent })
 	end
 end)

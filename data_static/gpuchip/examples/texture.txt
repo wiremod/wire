@@ -1,0 +1,30 @@
+// Author: Drunkie
+// Description: A very simple texture example
+
+Main();
+
+#include <drivers\drv_gl.txt>
+
+void Main()
+{
+    glVertexMode( 1 );
+    glColor( 255, 255, 255, 255 );
+
+    glBindTexture( 'brick/brick_model' );
+    glColor( 255, 255, 255, 255 );
+    glRectWH( 128, 128, 256, 256 );
+
+    glExit();
+}
+
+// ZASM version
+
+//mov #regVertexMode,1;
+//dcolor white;
+//dxtexture tex;
+//drectwh pos,size;
+//dexit;
+//color white,255,255,255;
+//string tex,'brick/brick_model';
+//vec2f pos,128,128;
+//vec2f size,256,256;

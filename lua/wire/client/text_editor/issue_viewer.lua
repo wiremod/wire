@@ -33,7 +33,8 @@ function PANEL:Init()
 
     function self.Dragger:Paint(w, h)
         if self.Hovered or self.Held then
-            surface_SetDrawColor(base.ValidationColorDragger)
+			local color = base.ValidationColorDragger
+            surface_SetDrawColor(color.r, color.g, color.b, color.a)
         else
             surface_SetDrawColor(48, 48, 48, 255)
         end
@@ -111,10 +112,9 @@ function PANEL:Init()
         n.Label.Paint = function(_, _, _) end
         return n
     end
-
-    local IssuesView_BackgroundColor = Color(32, 32, 32)
+	
     function self.IssuesView:Paint(w, h)
-        surface_SetDrawColor(IssuesView_BackgroundColor)
+        surface_SetDrawColor(32, 32, 32)
         surface_DrawRect(0, 0, w, h)
     end
 
@@ -133,11 +133,12 @@ function PANEL:Init()
         else
             validation_color = base.ValidationColorBackground
         end
-
-        surface_SetDrawColor(validation_color)
+		
+        surface_SetDrawColor(validation_color.r, validation_color.g, validation_color.b, validation_color.a)
         surface_DrawRect(0, 0, w, h)
-
-        surface_SetDrawColor(base.ValidationColorOutline)
+	
+		local color = base.ValidationColorOutline
+        surface_SetDrawColor(color.r, color.g, color.b, color.a)
         surface_DrawOutlinedRect(0, 0, w, h, 2)
 
         draw_SimpleText(base.ValidationText, "DermaDefault", w / 2, h / 2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
@@ -188,7 +189,7 @@ function PANEL:Init()
 
     function self.TogglePopupButton:Paint(w, h)
 
-        surface_SetDrawColor(color_white)
+        surface_SetDrawColor(255, 255, 255)
         local centerX, centerY = w / 2, h / 2
         local arrowWidth, arrowHeight = 6, 3 * (base.IsCollapsed and -1 or 1)
 

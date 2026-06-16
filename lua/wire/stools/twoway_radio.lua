@@ -4,13 +4,11 @@ WireToolSetup.open( "twoway_radio", "Two-way Radio", "gmod_wire_twoway_radio", n
 if ( CLIENT ) then
 	language.Add( "Tool.wire_twoway_radio.name", "Two-Way Radio Tool (Wire)" )
 	language.Add( "Tool.wire_twoway_radio.desc", "Spawns a two-way radio for use with the wire system." )
+
+	WireToolSetup.setToolMenuIcon("icon16/transmit.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
-
-if (SERVER) then
-	ModelPlug_Register("radio")
-end
 
 TOOL.ClientConVar[ "model" ] = "models/props_lab/binderblue.mdl"
 

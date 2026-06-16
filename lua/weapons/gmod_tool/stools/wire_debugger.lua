@@ -184,9 +184,9 @@ if CLIENT then
 			for _, port in ipairs(inputs) do
 				surface.SetTextPos(boxx,boxy+port.y)
 				if port[4] then
-					surface.SetTextColor(Color(255,0,0,255))
+					surface.SetTextColor(255, 0, 0)
 				else
-					surface.SetTextColor(Color(255,255,255,255))
+					surface.SetTextColor(255, 255, 255)
 				end
 				surface.DrawText(port.text)
 				port.text = nil
@@ -216,7 +216,7 @@ if CLIENT then
 
 			for _, port in ipairs(outputs) do
 				surface.SetTextPos(boxx,boxy+port.y)
-				surface.SetTextColor(Color(255,255,255,255))
+				surface.SetTextColor(255, 255, 255)
 				surface.DrawText(port.text)
 				port.text = nil
 				port.y = nil

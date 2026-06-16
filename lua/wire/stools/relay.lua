@@ -16,6 +16,8 @@ if ( CLIENT ) then
 	language.Add( "WireRelayTool_poles",       "Number of poles:" )
 	language.Add( "WireRelayTool_throws",      "Number of throws:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/transmit.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

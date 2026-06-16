@@ -5,6 +5,8 @@ if CLIENT then
 	language.Add( "Tool.wire_damage_detector.name", "Damage Detector Tool (Wire)" )
 	language.Add( "Tool.wire_damage_detector.desc", "Spawns a damage detector for use with the wire system" )
 	language.Add( "Tool.wire_damage_detector.includeconstrained", "Include Constrained Props" )
+
+	WireToolSetup.setToolMenuIcon("icon16/heart_delete.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

@@ -14,7 +14,7 @@ jobs:
 
       - name: Embed version
         run: |
-          echo -e "\ncachedversion = \"Canary ${GITHUB_SHA:0:7}\"" >> lua/wire/server/wirelib.lua
+          echo -e "\nversion = $(date +%y%m%d)\nversion_string = \"Canary $(date +%Y.%m.%d) (${GITHUB_SHA:0:7})\"" >> lua/wire/server/wirelib.lua
 
       - uses: wiremod/gmod-upload@master
         with:

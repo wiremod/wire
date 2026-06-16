@@ -83,9 +83,9 @@ e2function void entity:npcStop()
 end
 
 e2function entity entity:npcGetTarget()
-	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", nil) end
-	if not isOwner(self, this) then return self:throw("You do not own this NPC!", nil) end
-	return this:GetEnemy()
+	if not validNPC(this) then return self:throw("Entity e: is not a valid NPC!", NULL) end
+	if not isOwner(self, this) then return self:throw("You do not own this NPC!", NULL) end
+	return this:GetEnemy() or NULL
 end
 
 e2function void entity:npcSetTarget(entity ent)

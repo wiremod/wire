@@ -1,5 +1,6 @@
 -- Author: Divran
-local Obj = EGP:NewObject( "3DTracker" )
+
+local Obj = E2Lib.EGP.NewObject("3DTracker")
 Obj.material = nil
 Obj.filtering = nil
 Obj.target_x = 0

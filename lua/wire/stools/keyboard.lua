@@ -5,13 +5,13 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_keyboard.name", "Wired Keyboard Tool (Wire)" )
 	language.Add( "Tool.wire_keyboard.desc", "Spawns a keyboard input for use with the hi-speed wire system." )
 	language.Add( "Tool.wire_keyboard.leavekey", "Leave Key" )
+
+	WireToolSetup.setToolMenuIcon("icon16/keyboard.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if (SERVER) then
-	ModelPlug_Register("Keyboard")
-
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "autobuffer" ) ~= 0, self:GetClientNumber( "sync" ) ~= 0, self:GetClientNumber( "enterkeyascii" ) ~= 0
 	end

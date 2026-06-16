@@ -1,0 +1,37 @@
+/*
+This example assumes you are already familiar with ZASM
+as this will be going over semi-advanced features.
+
+Contains example code for how to change your CPU's stack
+segment and size, and print a string to a console screen
+using only stack instructions
+
+By default, on a CPU the stack segment starts at 0, and
+the stack size is set to the RAM size, so if you push to
+it too many times, you might start overwriting your own
+code on the CPU, setting up a dedicated stack segment and
+stack area is a good idea if you don't know how much stack
+your program could possibly consume.
+*/
+
+CPUGET SS,43 // Set stack segment register to the CPU's internal ram size
+             // This will make stack operations access external memory
+SUB SS,4     // Move SS back by 2 console screen characters(2 bytes each)
+CPUSET 9,32  // Set internal register 9(ESZ, aka stack size) + 2 console chars
+MOV ESP,32   // Set stack pointer to stack size
+             // You can also use CPUGET ESP,9 to set ESP to current stack size
+
+MOV ESI,str-1 // Loops end at 0, so we need to start at -1 if we want
+              // to read from something with 0 indexing
+
+MOV ECX,15 // String length + 1
+// Remember that stack access is done top(SS+ESP) to bottom
+// This reads the string in reverse to push it to stack
+print_loop:
+PUSH [ESI:ECX] // Using ESI(containing ptr to str) as a segment to access ECX
+PUSH 999       // See helloworld.txt for more information about console colors
+LOOP print_loop
+
+str:
+DB "Hi from Stack!" // 14 characters
+

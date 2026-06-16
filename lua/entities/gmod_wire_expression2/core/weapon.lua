@@ -14,16 +14,16 @@ __e2setcost(2) -- temporary
 
 [nodiscard]
 e2function entity entity:weapon()
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() and not this:IsNPC() then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not this:IsPlayer() and not this:IsNPC() then return self:throw("Expected a Player or NPC but got Entity", NULL) end
 
 	return this:GetActiveWeapon()
 end
 
 [nodiscard]
 e2function entity entity:weapon(string weaponclassname)
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() and not this:IsNPC() then return nil end
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	if not this:IsPlayer() and not this:IsNPC() then return self:throw("Expected a Player or NPC but got Entity", NULL) end
 
 	return this:GetWeapon(weaponclassname)
 end
@@ -40,11 +40,7 @@ end
 e2function array entity:weapons()
 	if not IsValid(this) then return {} end
 	if not this:IsPlayer() then return {} end
-	local ret = {}
-	for k,v in pairs(this:GetWeapons()) do
-		ret[#ret + 1] = v
-	end
-	return ret
+	return this:GetWeapons()
 end
 
 [nodiscard]
@@ -134,7 +130,7 @@ e2function string entity:tool()
 	if not IsValid(weapon) then return "" end
 	if weapon:GetClass() ~= "gmod_tool" then return "" end
 
-	return weapon.Mode
+	return weapon.Mode or ""
 end
 
 local function checkGive(self, target, classname)

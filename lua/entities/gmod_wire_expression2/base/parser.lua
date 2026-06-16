@@ -30,7 +30,7 @@ Parser.__index = Parser
 
 ---@param tokens table?
 function Parser.new(tokens)
-	return setmetatable({ tokens = tokens or {}, ntokens = tokens and #tokens or 0, index = 1, warnings = {}, traces = {} }, Parser)
+	return setmetatable({ tokens = tokens or {}, ntokens = tokens and #tokens or 0, index = 1, warnings = {}, traces = {}, cache = {} }, Parser)
 end
 
 E2Lib.Parser = Parser
@@ -202,7 +202,7 @@ end
 
 ---@return Node ast, table<string, boolean> dvars, string[] include_files
 function Parser:Process(tokens)
-	self.index, self.tokens, self.ntokens, self.warnings, self.delta_vars, self.include_files = 1, tokens, #tokens, {}, {}, {}
+	self.index, self.tokens, self.ntokens, self.warnings, self.delta_vars, self.include_files, self.cache = 1, tokens, #tokens, {}, {}, {}, {}
 
 	local stmts = {}
 	if self:Eof() then return Node.new(NodeVariant.Block, stmts, Trace.new(0, 0, 0, 0)), self.delta_vars, self.include_files end
@@ -224,6 +224,15 @@ function Parser:Process(tokens)
 
 	local trace = (#stmts ~= 0) and stmts[1].trace:stitch(stmts[#stmts].trace) or Trace.new(1, 1, 1, 1)
 	return Node.new(NodeVariant.Block, stmts, trace), self.delta_vars, self.include_files
+end
+
+--- Caches previously processed expressions to avoid insane recursion.
+---@param i integer # The token index the node should be attached to
+---@param n Node # The node tree to attach the token to
+---@return Node # The same node that was passed to this function
+function Parser:Cache(i, n)
+	self.cache[i] = { self.index, n }
+	return n
 end
 
 ---@return Node
@@ -668,6 +677,9 @@ function Parser:Parameters()
 end
 
 function Parser:Expr(ignore_assign)
+	local starting_index = self.index
+	local cached = self.cache[starting_index]
+	if cached then self.index = cached[1] return cached[2] end
 	-- Error for compound operators in expression
 	if self:Consume(TokenVariant.Ident) then
 		if not ignore_assign and self:ConsumeValue(TokenVariant.Operator, Operator.Ass) then
@@ -698,15 +710,15 @@ function Parser:Expr(ignore_assign)
 
 		local if_false = self:Expr()
 
-		return Node.new(NodeVariant.ExprTernary, { cond, if_true, if_false }, cond.trace:stitch(if_true.trace):stitch(if_false.trace))
+		return self:Cache(starting_index, Node.new(NodeVariant.ExprTernary, { cond, if_true, if_false }, cond.trace:stitch(if_true.trace):stitch(if_false.trace)))
 	end
 
 	if self:ConsumeValue(TokenVariant.Operator, Operator.Def) then
 		local rhs = self:Expr()
-		return Node.new(NodeVariant.ExprDefault, { cond, rhs }, cond.trace:stitch(rhs.trace))
+		return self:Cache(starting_index, Node.new(NodeVariant.ExprDefault, { cond, rhs }, cond.trace:stitch(rhs.trace)))
 	end
 
-	return cond
+	return self:Cache(starting_index, cond)
 end
 
 ---@param func fun(self: Parser): Node

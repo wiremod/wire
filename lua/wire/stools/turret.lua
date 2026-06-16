@@ -16,6 +16,8 @@ if CLIENT then
 	language.Add( "Tool_wire_turret_sound", "Shoot Sound" )
 	language.Add( "Tool_wire_turret_tracernum", "Tracer Every x Bullets:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/gun.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
@@ -41,20 +43,6 @@ if SERVER then
 		return self:GetClientNumber("delay"), self:GetClientNumber("damage"), self:GetClientNumber("force"), self:GetClientInfo("sound"),
 			self:GetClientNumber("numbullets"), self:GetClientNumber("spread"), self:GetClientInfo("tracer"), self:GetClientNumber("tracernum")
 	end
-end
-
-local ValidTurretModels = {
-	["models/weapons/w_smg1.mdl"] = true,
-	["models/weapons/w_smg_mp5.mdl"] = true,
-	["models/weapons/w_smg_mac10.mdl"] = true,
-	["models/weapons/w_rif_m4a1.mdl"] = true,
-	["models/weapons/w_357.mdl"] = true,
-	["models/weapons/w_shot_m3super90.mdl"] = true
-}
-
-function TOOL:GetModel()
-	local model = WireToolObj.GetModel(self)
-	return ValidTurretModels[model] and model or "models/weapons/w_smg1.mdl"
 end
 
 function TOOL.BuildCPanel( CPanel )

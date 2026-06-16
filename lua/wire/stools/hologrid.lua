@@ -4,13 +4,16 @@ WireToolSetup.open( "hologrid", "HoloGrid", "gmod_wire_hologrid", nil, "HoloGrid
 if CLIENT then
 	language.Add( "tool.wire_hologrid.name", "Holographic Grid Tool (Wire)" )
 	language.Add( "tool.wire_hologrid.desc", "The grid to aid in holographic projections" )
+	language.Add( "Tool_wire_hologrid_usegps", "Use GPS coordinates" )
+
 	TOOL.Information = {
 		{ name = "left_0", stage = 0, text = "Create grid" },
 		{ name = "right_0", stage = 0, text = "Link HoloGrid with HoloEmitter or reference entity" },
 		{ name = "reload_0", stage = 0, text = "Unlink HoloEmitter or HoloGrid" },
 		{ name = "right_1", stage = 1, text = "Select the HoloGrid to link to" },
 	}
-	language.Add( "Tool_wire_hologrid_usegps", "Use GPS coordinates" )
+
+	WireToolSetup.setToolMenuIcon("icon16/wand.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

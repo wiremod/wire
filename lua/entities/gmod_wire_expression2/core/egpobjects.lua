@@ -2,10 +2,15 @@
 --	File for EGP Object handling in E2.
 --
 
--- Dumb but simple
-local NULL_EGPOBJECT = EGP.NULL_EGPOBJECT
-local M_NULL_EGPOBJECT = getmetatable(NULL_EGPOBJECT)
-local M_EGPObject = getmetatable(EGP.Objects.Base)
+local EGP = E2Lib.EGP
+
+local NULL_EGPOBJECT = EGP.Objects.NULL_EGPOBJECT
+local isValid = EGP.EGPObject.IsValid
+local hasObject = EGP.HasObject
+local egp_create = EGP.Create
+local isAllowed = EGP.IsAllowed
+local isEGPObject = EGP.IsEGPObject
+local angle_origin = Angle()
 
 -- Table of allowed arguments and their types
 local EGP_ALLOWED_ARGS =
@@ -36,10 +41,6 @@ local function Update(self, this)
 	self.data.EGP.UpdatesNeeded[this] = true
 end
 
-local function isValid(this)
-	if this and getmetatable(this) ~= M_NULL_EGPOBJECT then return true else return false end
-end
-
 ---- Type defintion
 
 registerType("egpobject", "xeo", NULL_EGPOBJECT,
@@ -47,7 +48,7 @@ registerType("egpobject", "xeo", NULL_EGPOBJECT,
 	nil,
 	nil,
 	function(v)
-		return not istable(v) or getmetatable(v) ~= M_EGPObject
+		return not isEGPObject(v)
 	end
 )
 
@@ -64,7 +65,7 @@ registerOperator("ass", "xeo", "xeo", function(self, args)
 end)
 
 e2function number operator_is(egpobject egpo)
-	return (getmetatable(egpo) == M_EGPObject) and 1 or 0
+	return isValid(egpo) and 1 or 0
 end
 
 e2function number operator==(egpobject lhs, egpobject rhs)
@@ -100,7 +101,7 @@ __e2setcost(15)
 e2function void egpobject:setOrder(order)
 	local egp = this.EGP
 	if not EGP:IsAllowed(self, egp) then return end
-	local bool, k = EGP:HasObject(egp, this.index)
+	local bool, k = hasObject(egp, this.index)
 	if (bool) then
 		if EGP:SetOrder(egp, k, order) then
 			EGP:DoAction(egp, self, "SendObject", this)
@@ -112,18 +113,18 @@ end
 e2function number egpobject:getOrder()
 	local egp = this.EGP
 	if not EGP:IsAllowed(self, egp) then return -1 end
-	local bool, k = EGP:HasObject(egp, this.index)
+	local bool, k = hasObject(egp, this.index)
 	return bool and k or -1
 end
 
 e2function void egpobject:setOrderAbove(egpobject abovethis)
 	local egp = this.EGP
-	if not EGP:IsAllowed(self, egp) then return end
+	if not isAllowed(nil, self, egp) then return end
 	if not (isValid(this) or isValid(abovethis)) then self:throw("Invalid EGP Object") end
-	local bool, k = EGP:HasObject(egp, this.index)
+	local bool, k = hasObject(egp, this.index)
 	if bool then
-		if EGP:HasObject(egp, abovethis.index) then
-			if EGP:SetOrder(egp, k, abovethis.index, 1) then
+		if hasObject(egp, abovethis.index) then
+			if EGP.SetOrder(egp, k, abovethis.index, 1) then
 				EGP:DoAction(egp, self, "SendObject", this)
 				Update(self, egp)
 			end
@@ -133,12 +134,12 @@ end
 
 e2function void egpobject:setOrderBelow(egpobject belowthis)
 	local egp = this.EGP
-	if not EGP:IsAllowed(self, egp) then return end
+	if not isAllowed(self, egp) then return end
 	if not (isValid(this) or isValid(belowthis)) then self:throw("Invalid EGP Object") end
-	local bool, k = EGP:HasObject(egp, this.index)
+	local bool, k = hasObject(egp, this.index)
 	if bool then
-		if EGP:HasObject(egp, belowthis.index) then
-			if EGP:SetOrder(egp, k, belowthis.index, -1) then
+		if hasObject(egp, belowthis.index) then
+			if EGP.SetOrder(egp, k, belowthis.index, -1) then
 				EGP:DoAction(egp, self, "SendObject", this)
 				Update(self, egp)
 			end
@@ -512,7 +513,7 @@ end
 [nodiscard]
 e2function egpobject egpobject:parent()
 	if not isValid(this) then return self:throw("Invalid EGP Object", NULL_EGPOBJECT) end
-	local _, _, v = EGP:HasObject(this.EGP, this.parent)
+	local _, _, v = hasObject(this.EGP, this.parent)
 	return v or NULL_EGPOBJECT
 end
 
@@ -525,7 +526,6 @@ e2function void wirelink:egpRemove(egpobject obj)
 	if isValid(obj) then
 		EGP:DoAction(this, self, "RemoveObject", obj.index)
 		table.Empty(obj)
-		setmetatable(obj, M_NULL_EGPOBJECT)
 		Update(self, this)
 	end
 end
@@ -534,10 +534,9 @@ e2function void egpobject:remove()
 	if not isValid(this) then return end
 	local egp = this.EGP
 	if not EGP:IsAllowed(self, egp) then return end
-	
+
 	EGP:DoAction(egp, self, "RemoveObject", this.index)
-	table.Empty(this)
-	setmetatable(this, M_NULL_EGPOBJECT) -- In an ideal scenario we would probably want this = NULL_EGPOBJECT instead
+	table.Empty(this) -- In an ideal scenario we would probably want this = NULL_EGPOBJECT instead
 	Update(self, egp)
 end
 
@@ -547,7 +546,12 @@ e2function void egpobject:draw()
 	this._nodraw = nil
 	if not EGP:IsAllowed(self, egp) then return end
 
-	if EGP:CreateObject(egp, this.ID, this) then
+	local args = {}
+	for k, v in pairs(this) do
+		args[k] = v
+	end
+
+	if egp_create(this.ID, args, egp) then
 		EGP:DoAction(egp, self, "SendObject", this)
 		Update(self, egp)
 	end
@@ -584,7 +588,7 @@ end
 e2function array egpobject:globalVertices()
 	if not isValid(this) then return self:throw("Invalid EGP Object", {}) end
 	if this.verticesindex then
-		local data = EGP:GetGlobalVertices(this.EGP, this)
+		local data = EGP.GetGlobalVertices(this.EGP, this)
 		if data.vertices then
 			local ret = {}
 			for i = 1, #data.vertices do
@@ -714,7 +718,7 @@ e2function egpobject wirelink:egpCopy(number index, egpobject from)
 	if from then
 		local copy = table.Copy(from)
 		copy.index = index
-		local bool, obj = EGP:CreateObject(this, from.ID, copy, self.player)
+		local bool, obj = egp_create(from.ID, copy, this)
 		if bool then EGP:DoAction(this, self, "SendObject", obj) Update(self, this) return obj end
 	end
 end
@@ -726,7 +730,7 @@ e2function void egpobject:copyFrom(egpobject from)
 		local copy = table.Copy(from)
 		copy.index = this.index
 		copy.EGP = this.EGP
-		local bool, obj = EGP:CreateObject(copy.EGP, from.ID, copy, self.player)
+		local bool, obj = egp_create(from.ID, copy, copy.EGP)
 		if bool then EGP:DoAction(this, self, "SendObject", obj) Update(self, this) return end
 	end
 end
@@ -742,9 +746,9 @@ __e2setcost(5)
 
 [nodiscard]
 e2function egpobject wirelink:egpobject(number index)
-	if not EGP:IsAllowed(self, this) then return NULL_EGPOBJECT end
+	if not isAllowed(nil, self, this) then return NULL_EGPOBJECT end
 	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", NULL_EGPOBJECT) end
-	local _, _, obj = EGP:HasObject(this, index)
+	local _, _, obj = hasObject(this, index)
 	return obj or NULL_EGPOBJECT
 end
 
@@ -817,9 +821,8 @@ registerCallback("postinit", function()
 		end)
 	end
 
-	local egpCreate = EGP.CreateObject
-	local workingSet = table.Copy(EGP.Objects.Names)
-	for name, id in pairs(workingSet) do
+	for _, v in ipairs(EGP.Objects) do
+		local name = v.Name
 		-- Indexed table "constructor"
 		registerFunction("egp" .. name, "xwl:nt", "xeo", function(self, args)
 			local this, index, args = args[1], args[2], args[3]
@@ -833,7 +836,7 @@ registerCallback("postinit", function()
 
 			converted.index = index
 
-			local bool, obj = egpCreate(EGP, this, id, converted)
+			local bool, obj = egp_create(name, converted, this)
 			if bool then
 				EGP:DoAction(this, self, "SendObject", obj)
 				Update(self, this)
@@ -854,7 +857,7 @@ registerCallback("postinit", function()
 
 			converted.index = EGP.GetNextIndex(this)
 
-			local bool, obj = egpCreate(this, id, converted)
+			local bool, obj = egp_create(name, converted, this)
 			if bool then
 				EGP:DoAction(this, self, "SendObject", obj)
 				Update(self, this)

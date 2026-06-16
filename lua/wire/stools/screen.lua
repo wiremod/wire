@@ -14,13 +14,13 @@ if CLIENT then
 	language.Add("Tool_wire_screen_formattime", "Format the number as a duration, in seconds")
 	language.Add("Tool_wire_screen_createflat", "Create flat to surface")
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/text_list_numbers.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	ModelPlug_Register("pixel")
-
 	function TOOL:GetDataTables()
 		return {
 			SingleValue = self:GetClientNumber("singlevalue") == 1,

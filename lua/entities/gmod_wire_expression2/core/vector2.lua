@@ -380,8 +380,8 @@ end
 
 /******************************************************************************/
 
-e2function number toAngle(vector2 rv1)
-	return atan2(rv1[2], rv1[1]) * 180 / pi
+e2function number vector2:toAngle()
+	return atan2(this[2], this[1]) * 180 / pi
 end
 
 __e2setcost(5)

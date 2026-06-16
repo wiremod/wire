@@ -1,7 +1,7 @@
 --[[
   Expression 2 Helper for Expression 2
   -HP- (and tomylobo, though he breaks a lot ^^)
-  Divran made CPU support
+  Divran made the original CPU support
   Fasteroid made the "from" column
 ]] --
 
@@ -12,50 +12,53 @@ E2Helper.Descriptions = {}
 include("e2descriptions.lua")
 
 -------------------------------
----- CPU support
-E2Helper.CPUDescriptions = {}
-E2Helper.CPUTable = {}
-E2Helper.CurrentMode = true -- E2/CPU. True = E2, false = CPU
+---- Extension / Mode Switching Support
+E2Helper.Modes = {}
+E2Helper.CurrentMode = "E2" -- Key for accessing mode.
 
-local function AddCPUDesc(FuncName, Args, Desc, Platform, Type)
-	table.insert(E2Helper.CPUTable, { [1] = FuncName, [2] = Args, [3] = Platform, [4] = Type })
-	E2Helper.CPUDescriptions[FuncName] = Desc
-end
-
-if CPULib then
-	-- Add help on all opcodes
-	for _, instruction in ipairs(CPULib.InstructionTable) do
-		if (instruction.Mnemonic ~= "RESERVED") and
-			(not instruction.Obsolete) then
-			local instructionArgs = instruction.Operand1
-			if instruction.Operand2 ~= "" then
-				instructionArgs = instructionArgs .. ", " .. instruction.Operand2
-			end
-
-			AddCPUDesc(instruction.Mnemonic,
-				instructionArgs,
-				instruction.Reference,
-				instruction.Set,
-				instruction.Opcode)
-		end
+function E2Helper:RegisterMode(name)
+	if self.Modes[name] then
+		-- Don't overwrite a previously existing mode if possible
+		-- If an addon really wants to do so, they have access to the E2Helper mode table.
+		return false
+	else
+		-- Name is available, return a table to be set up by caller.
+		local ModeTable = {
+			Descriptions = {}, -- Item descriptions
+			Items = {}, -- Items
+			-- There should be a ModeSetup function here taking the E2Helper table as an argument.
+			-- Optionally, as well, a ModeSwitch function, taking the E2Helper as an argument.
+			-- Will be called on switch, before the new mode's ModeSetup, used for teardown if necessary.
+		}
+		self.Modes[name] = ModeTable
+		return ModeTable
 	end
 end
 
 -- Which tables are we going to use?
 local function CurrentDescs()
-	if E2Helper.CurrentMode == true then
-		return E2Helper.Descriptions
-	else
-		return E2Helper.CPUDescriptions
-	end
+	return E2Helper.Modes[E2Helper.CurrentMode].Descriptions
 end
 
 local function CurrentTable()
-	if E2Helper.CurrentMode == true then
-		return wire_expression2_funcs
-	else
-		return E2Helper.CPUTable
+	return E2Helper.Modes[E2Helper.CurrentMode].Items
+end
+
+function E2Helper:SetMode(key)
+	local mode = self.Modes[key or false]
+	local curMode = self.Modes[self.CurrentMode]
+	if mode then
+		if curMode.ModeSwitch then
+			curMode.ModeSwitch(self) -- For teardown of previous setup if needed.
+		end
+		self.CurrentMode = key
+		if mode.ModeSetup then
+			mode.ModeSetup(self)
+		end
+		self.Update()
+		return true
 	end
+	return false -- No mode.
 end
 
 -------------------------------
@@ -105,6 +108,37 @@ local function getdesc(name, args)
 	return CurrentDescs()[string.format("%s(%s)", name, args)] or CurrentDescs()[name]
 end
 
+-- Register the E2 mode, this shouldn't need be done twice because it indexes global for its info
+local E2Mode = E2Helper:RegisterMode("E2")
+if E2Mode then
+	local E2ModeMetatable = {
+		__index = function(self,key)
+			if key == "Items" then return wire_expression2_funcs end
+			if key == "Descriptions" then return E2Helper.Descriptions end
+			return nil
+		end
+	}
+	E2Mode.Items = nil
+	E2Mode.Descriptions = nil
+	-- The metatable is needed because storing a ref to wire_expression2_funcs
+	-- and then causing e2 to reload (like changing extensions) doesn't update the ref
+	-- or something like that, it causes e2helper to access nil values.
+	setmetatable(E2Mode,E2ModeMetatable)
+	E2Mode.ModeSetup = function(E2HelperPanel)
+		E2HelperPanel.FunctionColumn:SetName("Function")
+		E2HelperPanel.FunctionColumn:SetWidth(126)
+		E2HelperPanel.FromColumn:SetName("From")
+		E2HelperPanel.FromColumn:SetWidth(80)
+		E2HelperPanel.TakesColumn:SetName("Takes")
+		E2HelperPanel.TakesColumn:SetWidth(60)
+		E2HelperPanel.ReturnsColumn:SetName("Returns")
+		E2HelperPanel.ReturnsColumn:SetWidth(60)
+		E2HelperPanel.CostColumn:SetName("Cost")
+		E2HelperPanel.CostColumn:SetWidth(40)
+	end
+
+end
+
 function E2Helper.Create(reset)
 
 	E2Helper.Frame = vgui.Create("DFrame")
@@ -126,8 +160,9 @@ function E2Helper.Create(reset)
 		E2Helper.Resize()
 	end
 
-	-- holds all the lines describing a constant
+	-- holds all the lines describing a constant and events
 	E2Helper.constants = {}
+	E2Helper.events = {}
 
 	E2Helper.DescriptionEntry = vgui.Create("DTextEntry", E2Helper.Frame)
 	E2Helper.DescriptionEntry:SetPos(5, 330)
@@ -139,40 +174,81 @@ function E2Helper.Create(reset)
 	E2Helper.ResultFrame:SetPos(5, 60)
 	E2Helper.ResultFrame:SetSize(330, 240)
 	E2Helper.ResultFrame:SetMultiSelect(false)
-	E2Helper.ResultFrame:AddColumn("Function"):SetWidth(126)
-	E2Helper.FromColumn = E2Helper.ResultFrame:AddColumn("From")
-	E2Helper.FromColumn:SetWidth(80)
-	E2Helper.ResultFrame:AddColumn("Takes"):SetWidth(60)
-	E2Helper.ReturnsColumn = E2Helper.ResultFrame:AddColumn("Returns")
-	E2Helper.ReturnsColumn:SetWidth(60)
-	E2Helper.CostColumn = E2Helper.ResultFrame:AddColumn("Cost")
-	E2Helper.CostColumn:SetWidth(40)
+	-- Default 5 columns, accessable by index here for more modularity.
+	E2Helper.Columns = {
+		E2Helper.ResultFrame:AddColumn("Function"),
+		E2Helper.ResultFrame:AddColumn("From"),
+		E2Helper.ResultFrame:AddColumn("Takes"),
+		E2Helper.ResultFrame:AddColumn("Returns"),
+		E2Helper.ResultFrame:AddColumn("Cost"),
+	}
+	E2Helper.Columns[1]:SetWidth(126)
+	E2Helper.Columns[2]:SetWidth(80)
+	E2Helper.Columns[3]:SetWidth(60)
+	E2Helper.Columns[4]:SetWidth(60)
+	E2Helper.Columns[5]:SetWidth(40)
+	-- Name keys for backwards compatibility
+	E2Helper.FunctionColumn = E2Helper.Columns[1]
+	E2Helper.FromColumn = E2Helper.Columns[2]
+	E2Helper.TakesColumn = E2Helper.Columns[3]
+	E2Helper.ReturnsColumn = E2Helper.Columns[4]
+	E2Helper.CostColumn = E2Helper.Columns[5]
 
 	function E2Helper.ResultFrame:OnClickLine(line)
 		self:ClearSelection()
 		self:SelectItem(line)
 
 		local const = E2Helper.constants[line]
+
 		if const then
 			E2Helper.FuncEntry:SetText(line:GetValue(1) .. " (" .. const.type .. ")")
 
 			if const.description then
 				E2Helper.DescriptionEntry:SetText(const.description)
-				E2Helper.DescriptionEntry:SetTextColor(Color(0, 0, 0))
+				E2Helper.DescriptionEntry:SetTextColor(color_black)
 			else
 				E2Helper.DescriptionEntry:SetText("No description found :(")
 				E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))
 			end
+
+			return
+		end
+
+		local event = E2Helper.events[line]
+
+		if event then
+			local argnames = {}
+
+			for _, arg in ipairs(event.args) do
+				local typename = wire_expression_types2[arg.type][1]:lower()
+				if typename == "normal" then typename = "number" end
+
+				table.insert(argnames, typename .. " " .. string.lower(arg.placeholder))
+			end
+
+			E2Helper.FuncEntry:SetText(string.format("event %s(%s)", event.name, table.concat(argnames, ",")))
+
+			if event.description then
+				E2Helper.DescriptionEntry:SetText(event.description)
+				E2Helper.DescriptionEntry:SetTextColor(color_black)
+			else
+				E2Helper.DescriptionEntry:SetText("No description found :(")
+				E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))
+			end
+
+			return
+		end
+
+		E2Helper.FuncEntry:SetText(E2Helper.GetFunctionSyntax(line:GetValue(1), line:GetValue(3), line:GetValue(4)))
+
+		local description = getdesc(line:GetValue(1), line:GetValue(3))
+
+		if description then
+			E2Helper.DescriptionEntry:SetText(description)
+			E2Helper.DescriptionEntry:SetTextColor(color_black)
 		else
-			E2Helper.FuncEntry:SetText(E2Helper.GetFunctionSyntax(line:GetValue(1), line:GetValue(3), line:GetValue(4)))
-			local desc = getdesc(line:GetValue(1), line:GetValue(3))
-			if desc then
-				E2Helper.DescriptionEntry:SetText(desc)
-				E2Helper.DescriptionEntry:SetTextColor(Color(0, 0, 0))
-			else
-				E2Helper.DescriptionEntry:SetText("No description found :(")
-				E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))
-			end
+			E2Helper.DescriptionEntry:SetText("No description found :(")
+			E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))
 		end
 	end
 
@@ -239,32 +315,21 @@ function E2Helper.Create(reset)
 	E2Helper.MaxLabel:SetText("Max results:")
 	E2Helper.MaxLabel:SizeToContents()
 
-	E2Helper.E2Mode = vgui.Create("DCheckBoxLabel", E2Helper.Frame)
-	E2Helper.E2Mode:SetPos(90, 384)
-	E2Helper.E2Mode:SetText("E2")
-	E2Helper.E2Mode:SetValue(true)
-	E2Helper.E2Mode:SizeToContents()
-	function E2Helper.E2Mode.Button:Toggle()
-		self:SetValue(true)
-		E2Helper.CurrentMode = true
-		E2Helper.CPUMode:SetValue(false)
-		E2Helper.CostColumn:SetName("Cost")
-		E2Helper.ReturnsColumn:SetName("Returns")
-		E2Helper.Update()
+	E2Helper.ModeSelect = vgui.Create("DComboBox", E2Helper.Frame)
+	E2Helper.ModeSelect:SetPos(90, 384)
+	local modecount = 0
+	for k,_ in pairs(E2Helper.Modes) do
+		modecount = modecount + 1
+		E2Helper.ModeSelect:AddChoice(k)
 	end
-
-	E2Helper.CPUMode = vgui.Create("DCheckBoxLabel", E2Helper.Frame)
-	E2Helper.CPUMode:SetPos(90, 404)
-	E2Helper.CPUMode:SetText("CPU/GPU")
-	E2Helper.CPUMode:SetValue(false)
-	E2Helper.CPUMode:SizeToContents()
-	function E2Helper.CPUMode.Button:Toggle()
-		self:SetValue(true)
-		E2Helper.CurrentMode = false
-		E2Helper.E2Mode:SetValue(false)
-		E2Helper.CostColumn:SetName("Opcode")
-		E2Helper.ReturnsColumn:SetName("Platform")
-		E2Helper.Update()
+	if modecount < 2 then
+		-- If we don't have enough modes it's pointless to display this I think.
+		E2Helper.ModeSelect:Hide()
+	else
+		E2Helper.ModeSelect:Show()
+	end
+	function E2Helper.ModeSelect:OnSelect(ind,value,data)
+		E2Helper:SetMode(value)
 	end
 
 	E2Helper.NameEntry.OnTextChanged = delayed(0.1, E2Helper.Update)
@@ -293,7 +358,7 @@ function E2Helper.Create(reset)
 end
 
 function E2Helper.GetFunctionSyntax(func, args, rets)
-	if E2Helper.CurrentMode == true then
+	if E2Helper.CurrentMode == "E2" then
 		local signature = func .. "(" .. args .. ")"
 		local ret = E2Lib.generate_signature(signature, rets, wire_expression2_funcs[signature].argnames)
 		if rets ~= "" then ret = ret:sub(1, 1):upper() .. ret:sub(2) end
@@ -309,15 +374,18 @@ function E2Helper.Update()
 	cookie_update()
 
 	E2Helper.ResultFrame:Clear()
+	E2Helper.ModeSelect:SetValue(E2Helper.CurrentMode)
 
 	local search_name, search_from, search_args, search_rets = E2Helper.NameEntry:GetValue():lower(), E2Helper.FromEntry:GetValue():lower(), E2Helper.ParamEntry:GetValue():lower(), E2Helper.ReturnEntry:GetValue():lower()
 	local count = 0
 	local maxcount = E2Helper.MaxEntry:GetValue()
 	local tooltip = E2Helper.Tooltip:GetChecked(true)
 
-	-- add E2 constants
+	-- add E2 constants and events
 	E2Helper.constants = {}
-	if E2Helper.CurrentMode == true then
+	E2Helper.events = {}
+
+	if E2Helper.CurrentMode == "E2" then
 		for k, v in pairs(wire_expression2_constants) do
 			-- constants have no arguments and no cost
 			local name, args, rets, cost = k, nil, v.type, 0
@@ -328,11 +396,26 @@ function E2Helper.Update()
 				if count >= maxcount then break end
 			end
 		end
+
+		for k, event in pairs(E2Lib.Env.Events) do
+			local rets = ""
+
+			for _, arg in ipairs(event.args) do
+				rets = rets .. arg.type
+			end
+
+			if event.name:lower():find(search_name, 1, true) and search_args == "" and rets:find(search_rets, 1, true) and string.find("events", search_from, 1, true) then
+				local line = E2Helper.ResultFrame:AddLine(event.name, event.extension, nil, rets, 0)
+				E2Helper.events[line] = event
+				count = count + 1
+				if count >= maxcount then break end
+			end
+		end
 	end
 
 	if count < maxcount then
 		for _, v in pairs(CurrentTable()) do
-			if E2Helper.CurrentMode == true then
+			if E2Helper.CurrentMode == "E2" then
 				local from, signature, rets, cost = v.extension, v[1], v[2], v[4]
 				local name, args = string.match(signature, "^([^(]+)%(([^)]*)%)$")
 
@@ -347,11 +430,12 @@ function E2Helper.Update()
 					if count >= maxcount then break end
 				end
 			else
-				local funcname, args, forwhat, functype = unpack(v)
-				if (funcname:lower():find(search_name, 1, true) and
+				local funcname, extension, args, forwhat, functype = unpack(v)
+				if funcname:lower():find(search_name, 1, true) and
+						extension:lower():find(search_from, 1, true) and
 						args:lower():find(search_args, 1, true) and
-						forwhat:lower():find(search_rets, 1, true)) then
-					local line = E2Helper.ResultFrame:AddLine(funcname, "", args, forwhat, functype) -- TODO: make this column useful for CPU/GPU
+						forwhat:lower():find(search_rets, 1, true) then
+					local line = E2Helper.ResultFrame:AddLine(funcname, extension, args, forwhat, functype)
 					if tooltip then line:SetTooltip(funcname .. " " .. args) end
 					count = count + 1
 					if count >= maxcount then break end
@@ -379,23 +463,6 @@ function E2Helper.Show(searchtext)
 	end
 end
 
-function E2Helper.UseE2(nEditorType)
-	E2Helper.CurrentMode = false
-	E2Helper.E2Mode:Toggle()
-	local val = E2Helper.ReturnEntry:GetValue()
-	if val and (val == "CPU" or val == "GPU") then E2Helper.ReturnEntry:SetText("") end
-	E2Helper.CostColumn:SetName("Cost")
-	E2Helper.ReturnsColumn:SetName("Returns")
-end
-
-function E2Helper.UseCPU(nEditorType)
-	E2Helper.CurrentMode = true
-	E2Helper.CPUMode:Toggle()
-	E2Helper.CostColumn:SetName("Type")
-	E2Helper.ReturnsColumn:SetName("For What")
-	E2Helper.ReturnEntry:SetText(nEditorType)
-end
-
 local delayed_cookie_update = delayed(1, cookie_update)
 
 local lastw, lasth
@@ -417,8 +484,7 @@ function E2Helper.Resize()
 	E2Helper.DescriptionEntry:SetPos(orig.DescriptionEntry[1], orig.DescriptionEntry[2] + changeh)
 	E2Helper.DescriptionEntry:SetSize(orig.DescriptionEntry[3] + changew, orig.DescriptionEntry[4])
 	E2Helper.ResultFrame:SetSize(orig.ResultFrame[3] + changew, orig.ResultFrame[4] + changeh)
-	E2Helper.E2Mode:SetPos(orig.E2Mode[1], orig.E2Mode[2] + changeh)
-	E2Helper.CPUMode:SetPos(orig.CPUMode[1], orig.CPUMode[2] + changeh)
+	E2Helper.ModeSelect:SetPos(orig.ModeSelect[1] + changew, orig.ModeSelect[2] + changeh)
 
 	E2Helper.NameEntry:SetSize(orig.NameEntry[3] + changew * 0.25, orig.NameEntry[4])
 	E2Helper.FromEntry:SetPos(orig.FromEntry[1] + changew * 0.25, orig.FromEntry[2])

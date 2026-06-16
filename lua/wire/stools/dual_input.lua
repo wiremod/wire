@@ -11,13 +11,13 @@ if CLIENT then
 	language.Add( "WireDualInputTool_value_on", "Value 1 On:" )
 	language.Add( "WireDualInputTool_value_on2", "Value 2 On:" )
 	language.Add( "WireDualInputTool_value_off", "Value Off:" )
+
+	WireToolSetup.setToolMenuIcon("icon16/calculator.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	ModelPlug_Register("Numpad")
-
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "keygroup" ), self:GetClientNumber( "keygroup2" ), self:GetClientNumber( "toggle" ),
 			self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" ), self:GetClientNumber( "value_on2" )

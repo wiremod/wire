@@ -10,9 +10,12 @@ if CLIENT then
 	language.Add( "WireMotorTool_forcelimit", "Force Limit:" )
 	language.Add( "WireMotorTool_offset", "Position Offset:" )
 	TOOL.Information = {
-		{ name = "left_0", stage = 0, text = "Choose the wheel's axis" },
-		{ name = "left_1", stage = 1, text = "Choose the base's axis" },
-		{ name = "left_2", stage = 2, text = "Place the controller" },
+		{ name = "left_0",   stage = 0, text = "Choose the wheel's axis" },
+		{ name = "reload_0", stage = 0, text = "Remove wire motor constraint" },
+		{ name = "left_1",   stage = 1, text = "Choose the base's axis" },
+		{ name = "reload_1", stage = 1, text = "Cancel wire motor" },
+		{ name = "left_2",   stage = 2, text = "Place the controller" },
+		{ name = "reload_2", stage = 2, text = "Cancel wire motor" },
 	}
 end
 WireToolSetup.BaseLang()
@@ -182,10 +185,16 @@ function TOOL:RightClick( trace )
 end
 
 function TOOL:Reload( trace )
-	if not IsValid( trace.Entity ) or trace.Entity:IsPlayer() then return false end
-	if CLIENT then return true end
-
-	return constraint.RemoveConstraints( trace.Entity, "WireMotor" )
+	if self:GetStage() > 0 then
+		self:ClearObjects()
+		self:SetStage(0)
+		self:ReleaseGhostEntity()
+	else
+		if not IsValid( trace.Entity ) or trace.Entity:IsPlayer() then return false end
+		if CLIENT then return true end
+	
+		return constraint.RemoveConstraints( trace.Entity, "WireMotor" )
+	end
 end
 
 function TOOL:Think()

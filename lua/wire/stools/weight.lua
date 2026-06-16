@@ -8,12 +8,13 @@ if CLIENT then
 		{ name = "left", text = "Create/Update " .. TOOL.Name },
 		{ name = "reload", text = "Copy model" },
 	}
+
+	WireToolSetup.setToolMenuIcon("icon16/anchor.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	ModelPlug_Register("weight")
 	function TOOL:GetConVars() end
 
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function

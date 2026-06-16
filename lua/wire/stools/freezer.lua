@@ -1,21 +1,20 @@
-WireToolSetup.setCategory( "Physics/Constraints" )
-WireToolSetup.open( "freezer", "Freezer", "gmod_wire_freezer", nil, "Freezers" )
+WireToolSetup.setCategory("Physics/Constraints")
+WireToolSetup.open("freezer", "Freezer", "gmod_wire_freezer", nil, "Freezers")
 
 if CLIENT then
-	language.Add( "Tool.wire_freezer.name", "Freezer Tool (Wire)" )
-	language.Add( "Tool.wire_freezer.desc", "Spawns a Freezer Controller for use with the wire system." )
+	language.Add("tool.wire_freezer.name", "Freezer Tool (Wire)")
+	language.Add("tool.wire_freezer.desc", "Spawns a Freezer Controller for use with the wire system.")
 end
+
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 10 )
+WireToolSetup.SetupMax(10)
 
 TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_siren.mdl",
 }
 
--- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
-
-WireToolSetup.SetupLinking() -- Generates RightClick, Reload, and DrawHUD functions
+WireToolSetup.SetupLinking()
 
 function TOOL.BuildCPanel(panel)
-	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_freezer")
+	WireDermaExts.ModelSelect(panel, "wire_freezer_model", list.Get("Wire_Misc_Tools_Models"), nil, true)
 end

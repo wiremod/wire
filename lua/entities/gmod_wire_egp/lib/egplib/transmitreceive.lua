@@ -1,7 +1,12 @@
 --------------------------------------------------------
 -- Queue Functions
 --------------------------------------------------------
-local EGP = EGP
+local EGP = E2Lib.EGP
+
+local hasObject
+EGP.HookPostInit(function()
+	hasObject = EGP.HasObject
+end)
 
 if (SERVER) then
 	util.AddNetworkString( "EGP_Transmit_Data" )
@@ -37,7 +42,7 @@ if (SERVER) then
 		if not EGP.umsg.Start( "EGP_Transmit_Data", ply ) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "ClearScreen" )
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		EGP:SendQueueItem( ply )
 	end
@@ -56,7 +61,7 @@ if (SERVER) then
 			net.WriteString( "SaveFrame" )
 			net.WriteEntity( ply )
 			net.WriteString( FrameName )
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		EGP:SendQueueItem( ply )
 	end
@@ -77,7 +82,7 @@ if (SERVER) then
 			net.WriteString( "LoadFrame" )
 			net.WriteEntity( ply )
 			net.WriteString( FrameName )
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		EGP:SendQueueItem( ply )
 	end
@@ -91,7 +96,7 @@ if (SERVER) then
 			return
 		end
 
-		local bool, _, v = EGP:HasObject( Ent, index )
+		local bool, _, v = hasObject(Ent, index)
 		if (bool) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
@@ -107,7 +112,7 @@ if (SERVER) then
 						net.WriteFloat( vert.v or 0 )
 					end
 				end
-			EGP.umsg.End()
+			EGP.umsg.End( Ent )
 		end
 
 		EGP:SendQueueItem( ply )
@@ -123,7 +128,7 @@ if (SERVER) then
 			return
 		end
 
-		local bool, _, v = EGP:HasObject( Ent, index )
+		local bool, _, v = hasObject(Ent, index)
 		if (bool) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
@@ -139,7 +144,7 @@ if (SERVER) then
 						net.WriteFloat( vert.v or 0 )
 					end
 				end
-			EGP.umsg.End()
+			EGP.umsg.End( Ent )
 		end
 
 		EGP:SendQueueItem( ply )
@@ -154,13 +159,13 @@ if (SERVER) then
 			return
 		end
 
-		if EGP:HasObject(Ent, index) then
+		if hasObject(Ent, index) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "AddText" )
 				net.WriteInt( index, 16 )
 				net.WriteString( text )
-			EGP.umsg.End()
+			EGP.umsg.End( Ent )
 		end
 
 		EGP:SendQueueItem( ply )
@@ -175,13 +180,13 @@ if (SERVER) then
 			return
 		end
 
-		if EGP:HasObject(Ent, index) then
+		if hasObject(Ent, index) then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "SetText" )
 				net.WriteInt( index, 16 )
 				net.WriteString( text )
-			EGP.umsg.End()
+			EGP.umsg.End( Ent )
 		end
 
 		EGP:SendQueueItem( ply )
@@ -208,7 +213,7 @@ if (SERVER) then
 			net.WriteEntity( Ent )
 			net.WriteString( "EditFiltering" )
 			net.WriteUInt( filtering, 2 )
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		EGP:SendQueueItem( ply )
 	end
@@ -239,29 +244,12 @@ if (SERVER) then
 			net.WriteUInt( #DataToSend, 16 ) -- Send estimated number of objects to be sent
 			for k,v in ipairs( DataToSend ) do
 
-				-- Check if the object doesn't exist serverside anymore (It may have been removed by a command in the queue before this, like egpClear or egpRemove)
-				--if not EGP:HasObject( Ent, v.index ) then
-				--	EGP:CreateObject( Ent, v.ID, v )
-				--end
-
 				net.WriteInt( v.index, 16 ) -- Send index of object
 
 				if (v.remove == true) then
 					net.WriteUInt(0, 8) -- Object is to be removed, send a 0
-					local bool, k, v = EGP:HasObject( Ent, v.index )
-					if (bool) then
-						-- Unparent all objects parented to this object
-						for k2,v2 in pairs( Ent.RenderTable ) do
-							if (v2.parent and v.index and v2.parent == v.index) then
-								EGP:UnParent( Ent, v2 )
-							end
-						end
-
-						table.remove( Ent.RenderTable, k )
-					end
 				else
 					net.WriteUInt(v.ID, 8) -- Else send the ID of the object
-
 					if (Ent.Scaling or Ent.TopLeft) then
 						local original = v
 						v = table.Copy(v) -- Make a copy of the table so it doesn't overwrite the serverside object
@@ -290,11 +278,11 @@ if (SERVER) then
 					v:Transmit( Ent, ply )
 				end
 			end
-		EGP.umsg.End()
+		EGP.umsg.End( Ent )
 
 		-- Change order now
 		if order_was_changed then
-			EGP:PerformReorder( Ent )
+			EGP.PerformReorder(Ent)
 		end
 
 		EGP:SendQueueItem( ply )
@@ -319,16 +307,18 @@ if (SERVER) then
 			local Data = {...}
 			local obj = Data[1]
 
-			if (E2 and E2.entity and E2.entity:IsValid()) then
-				E2.prf = E2.prf + 20
+			local remove_index
+			for i, v in ipairs(Ent.RenderTable) do
+				E2.prf = E2.prf + 0.3
+				if v.index == obj then
+					remove_index = i
+				elseif v.parent and v.parent == obj then
+					EGP:UnParent(Ent, v)
+				end
 			end
 
-			for i=1,#Ent.RenderTable do
-				E2.prf = E2.prf + 0.3
-				if Ent.RenderTable[i].index == obj then
-					table.remove( Ent.RenderTable, i )
-					break
-				end
+			if remove_index then
+				table.remove(Ent.RenderTable, remove_index)
 			end
 
 			self:AddQueueObject( Ent, E2.player, SendObjects, { index = Data[1], remove = true } )
@@ -409,20 +399,20 @@ else -- SERVER/CLIENT
 		elseif (Action == "SetText") then
 			local index = net.ReadInt(16)
 			local text = net.ReadString()
-			local bool,_,v = EGP:HasObject( Ent, index )
+			local bool,_,v = hasObject(Ent, index)
 			if (bool) then
-				if (EGP:EditObject( v, { text = text } )) then Ent:EGP_Update() end
+				if v:Set("text", text) then Ent:EGP_Update() end
 			end
 		elseif (Action == "AddText") then
 			local index = net.ReadInt(16)
 			local text = net.ReadString()
-			local bool,_,v = EGP:HasObject( Ent, index )
+			local bool,_,v = hasObject(Ent, index)
 			if (bool) then
-				if (EGP:EditObject( v, { text = v.text .. text } )) then Ent:EGP_Update() end
+				if v:Set("text", v.text .. text) then Ent:EGP_Update() end
 			end
 		elseif (Action == "SetVertex") then
 			local index = net.ReadInt(16)
-			local bool, _, v = EGP:HasObject( Ent, index )
+			local bool, _, v = hasObject(Ent, index)
 			if (bool) then
 				local vertices = {}
 
@@ -442,7 +432,7 @@ else -- SERVER/CLIENT
 			end
 		elseif (Action == "AddVertex") then
 			local index = net.ReadInt(16)
-			local bool, _, v = EGP:HasObject( Ent, index )
+			local bool, _, v = hasObject(Ent, index)
 			if (bool) then
 				local vertices = table.Copy(v.vertices)
 
@@ -458,7 +448,7 @@ else -- SERVER/CLIENT
 					end
 				end
 
-				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
+				if v:Set("vertices", vertices) then Ent:EGP_Update() end
 			end
 		elseif (Action == "EditFiltering") then
 			if Ent.GPU then -- Only Screens use GPULib
@@ -474,7 +464,7 @@ else -- SERVER/CLIENT
 				local ID = net.ReadUInt(8)
 
 				if (ID == 0) then -- Remove object
-					local bool, k, v = EGP:HasObject( Ent, index )
+					local bool, k, v = hasObject(Ent, index)
 					if (bool) then
 						if (v.OnRemove) then v:OnRemove() end
 
@@ -497,11 +487,11 @@ else -- SERVER/CLIENT
 					end
 
 					local current_obj
-					local bool, k, v = self:HasObject( Ent, index )
+					local bool, k, v = hasObject(Ent, index)
 					if (bool) then -- Object already exists
 						if (v.ID ~= ID) then -- Not the same kind of object, create new
 							if (v.OnRemove) then v:OnRemove() end
-							local Obj = self:GetObjectByID( ID )
+							local Obj = table.Copy(EGP.Objects[ID])
 							local data = Obj:Receive()
 							Obj:Initialize(data)
 							Obj.index = index
@@ -522,7 +512,7 @@ else -- SERVER/CLIENT
 						-- For EGP HUD
 						v.res = nil
 					else -- Object does not exist. Create new
-						local Obj = self:GetObjectByID( ID )
+						local Obj = table.Copy(EGP.Objects[ID])
 						Obj:Initialize(Obj:Receive())
 						Obj.index = index
 						if (Obj.OnCreate) then Obj:OnCreate() end
@@ -542,7 +532,7 @@ else -- SERVER/CLIENT
 
 			-- Change order now
 			if order_was_changed then
-				self:PerformReorder( Ent )
+				EGP.PerformReorder(Ent)
 			end
 
 			Ent:EGP_Update()
@@ -584,7 +574,7 @@ if (SERVER) then
 		end
 	end)
 
-	function EGP:SendDataStream( ply, entid )
+	function EGP:SendDataStream( ply, entid, silent )
 		if not ply or not ply:IsValid() then return false, "ERROR: Invalid ply." end
 		local targets
 		if (entid) then
@@ -597,7 +587,6 @@ if (SERVER) then
 		end
 		if not targets then
 			targets = ents.FindByClass("gmod_wire_egp")
-			table.Add( targets, ents.FindByClass("gmod_wire_egp_hud") )
 			table.Add( targets, ents.FindByClass("gmod_wire_egp_emitter") )
 
 			if (#targets == 0) then return false, "There are no EGP screens on the map." end
@@ -629,14 +618,36 @@ if (SERVER) then
 					DataToSend[#DataToSend+1] = { ID = obj.ID, index = obj.index, Settings = obj:DataStreamInfo() }
 				end
 
-				timer.Simple( k, function() -- send 1 second apart
+				timer.Simple( k - 1, function() -- send 1 second apart, send the first one instantly
+					local isLastScreen = ((k == #targets) and #targets or nil)
+					if silent then
+						isLastScreen = nil
+					end
+
+					local data = {
+						Ent = v,
+						Objects = DataToSend,
+						Filtering = v.GPU_texture_filtering,
+						IsLastScreen = isLastScreen -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
+					}
+
+					local von = WireLib.von.serialize(data)
+					if #von > 60000 then
+						ply:ChatPrint("[EGP] Error: Data too large to send to client. (" .. math.Round( #von / 1024, 2 ) .. " kb)")
+						return
+					end
+
+					local compressed = util.Compress(von)
+					local compressedLength = #compressed
+
+					if compressedLength > 60000 then
+						ply:ChatPrint("[EGP] Error: Compressed data too large to send to client. (" .. math.Round( compressedLength / 1024, 2 ) .. " kb)")
+						return
+					end
+
 					net.Start("EGP_Request_Transmit")
-						net.WriteTable({
-							Ent = v,
-							Objects = DataToSend,
-							Filtering = v.GPU_texture_filtering,
-							IsLastScreen = (k == #targets) and #targets or nil -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
-						})
+					net.WriteUInt( compressedLength, 16 )
+					net.WriteData( compressed, compressedLength )
 					net.Send(ply)
 				end)
 				sent = true
@@ -662,7 +673,6 @@ if (SERVER) then
 
 	hook.Add("PlayerInitialSpawn","EGP_SpawnFunc",initspawn)
 else
-
 	function EGP:ReceiveDataStream( decoded )
 		local Ent = decoded.Ent
 		local Objects = decoded.Objects
@@ -673,7 +683,7 @@ else
 				Ent.GPU.texture_filtering = decoded.Filtering or TEXFILTER.ANISOTROPIC
 			end
 			for _,v in pairs( Objects ) do
-				local Obj = self:GetObjectByID(v.ID)
+				local Obj = table.Copy(EGP.Objects[v.ID])
 				Obj:Initialize(v.Settings)
 				-- If parented, reset the parent indexes
 				if (Obj.parent and Obj.parent ~= 0) then
@@ -689,7 +699,11 @@ else
 			LocalPlayer():ChatPrint("[EGP] Received EGP object reload. " .. decoded.IsLastScreen .. " screens' objects were reloaded.")
 		end
 	end
+
 	net.Receive("EGP_Request_Transmit", function(len,ply)
-		EGP:ReceiveDataStream(net.ReadTable())
+		local amount = net.ReadUInt(16)
+		local data = net.ReadData(amount)
+		local tbl = WireLib.von.deserialize(util.Decompress(data, 60000))
+		EGP:ReceiveDataStream(tbl)
 	end)
 end

@@ -47,12 +47,12 @@ FLIR.mat = Material("phoenix_storms/concrete0")
 FLIR.transmat = Material("phoenix_storms/iron_rails")
 FLIR.hide = false
 
-function FLIR.Render(self)
+function FLIR.Render(self, flags)
 	if not FLIR.hide then
 		if self.BackupRenderOverride then
-			self:BackupRenderOverride()
+			self:BackupRenderOverride(flags)
 		end
-		self:DrawModel()
+		self:DrawModel(flags)
 
 		return
 	end
@@ -111,7 +111,7 @@ end
 function FLIR.start()
 	if FLIR.enabled then return else FLIR.enabled = true end
 
-	for _, v in ipairs(ents.GetAll()) do
+	for _, v in ents.Iterator() do
 		SetFLIR(v)
 	end
 
@@ -190,7 +190,7 @@ function FLIR.stop()
 	hook.Remove("OnEntityCreated", "wire_flir")
 	hook.Remove("CreateClientsideRagdoll", "wire_flir")
 
-	for _, v in ipairs(ents.GetAll()) do
+	for _, v in ents.Iterator() do
 		RemoveFLIR(v)
 	end
 end

@@ -51,6 +51,11 @@ e2function number operator_is(damage dmg)
 end
 
 [nodiscard]
+e2function number damage:getDamageType()
+	return this:GetDamageType()
+end
+
+[nodiscard]
 e2function number damage:isType(number type)
 	return this:IsDamageType(type) and 1 or 0
 end
@@ -58,6 +63,11 @@ end
 [nodiscard]
 e2function number damage:getAmount()
 	return this:GetDamage()
+end
+
+[nodiscard]
+e2function number damage:getMaxAmount()
+	return this:GetMaxDamage()
 end
 
 [nodiscard]
@@ -78,6 +88,11 @@ end
 [nodiscard]
 e2function entity damage:getAttacker()
 	return this:GetAttacker()
+end
+
+[nodiscard]
+e2function entity damage:getWeapon()
+	return this:GetWeapon()
 end
 
 [nodiscard]
@@ -102,7 +117,7 @@ e2function void entity:takeDamage(number amount, entity attacker)
 	if not Enabled:GetBool() then return self:throw("Dealing damage is disabled via wire_expression2_damage_enabled") end
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not IsValid(attacker) then return self:throw("Invalid attacker entity!", nil) end
-	if not E2Lib.isOwner(attacker) then return self:throw("You do not own the attacker entity!", nil) end
+	if not E2Lib.isOwner(self, attacker) then return self:throw("You do not own the attacker entity!", nil) end
 	if not WireLib.CanDamage(self.player, this) then return self:throw("You cannot damage this entity!", nil) end
 
 	this:TakeDamage(amount, attacker, self.entity)
@@ -112,9 +127,9 @@ e2function void entity:takeDamage(number amount, entity attacker, entity inflict
 	if not Enabled:GetBool() then return self:throw("Dealing damage is disabled via wire_expression2_damage_enabled") end
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not IsValid(attacker) then return self:throw("Invalid attacker entity!", nil) end
-	if not E2Lib.isOwner(attacker) then return self:throw("You do not own the attacker entity!", nil) end
+	if not E2Lib.isOwner(self, attacker) then return self:throw("You do not own the attacker entity!", nil) end
 	if not IsValid(inflictor) then return self:throw("Invalid inflictor entity!", nil) end
-	if not E2Lib.isOwner(inflictor) then return self:throw("You do not own the inflictor entity!", nil) end
+	if not E2Lib.isOwner(self, inflictor) then return self:throw("You do not own the inflictor entity!", nil) end
 	if not WireLib.CanDamage(self.player, this) then self:throw("You cannot damage this entity!", nil) end
 
 	this:TakeDamage(amount, attacker, inflictor)
@@ -132,6 +147,6 @@ E2Lib.registerEvent("entityDamage", {
 	{ "Damage", "xdm" }
 })
 
-hook.Add("EntityTakeDamage", "E2_entityDamage", function(victim, dmg)
+hook.Add("PostEntityTakeDamage", "E2_entityDamage", function(victim, dmg)
 	E2Lib.triggerEvent("entityDamage", { victim, dmg })
 end)

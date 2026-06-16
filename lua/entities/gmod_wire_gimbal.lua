@@ -3,6 +3,41 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Gimbal"
 ENT.WireDebugName 	= "Gimbal"
 
+local ORIGIN_COLOR  = Color(255, 150, 50)
+local FORWARD_COLOR = Color(255, 100, 100)
+local RIGHT_COLOR   = Color(100, 255, 100)
+local UP_COLOR      = Color(100, 100, 255)
+
+local function DrawOutlinedBeam(startPos, endPos, size, color)
+	render.DrawBeam(startPos, endPos, size + 0.2, 0, 1, color_black)
+	render.DrawBeam(startPos, endPos, size, 0, 1, color)
+end
+
+function ENT:DrawWorldTip()
+	BaseClass.DrawWorldTip(self)
+
+	cam.Start3D()
+	local origin      = self:GetPos()
+	local mi, ma      = self:GetModelRenderBounds()
+	local forwardSize = math.max(math.abs(mi[1]), ma[1])
+	local rightSize   = math.max(math.abs(mi[2]), ma[2])
+	local upSize      = math.max(math.abs(mi[3]), ma[3])
+	
+	local forward = self:GetForward() * forwardSize
+	local right   = self:GetRight() * rightSize
+	local up      = self:GetUp() * upSize
+	
+	render.SetColorMaterialIgnoreZ()
+	
+	DrawOutlinedBeam(origin, origin + forward, 0.2, FORWARD_COLOR)
+	DrawOutlinedBeam(origin, origin + right, 0.2, RIGHT_COLOR)
+	DrawOutlinedBeam(origin, origin + up, 0.2, UP_COLOR)
+	
+	render.DrawSphere(origin, 0.35, 8, 8, color_black)
+	render.DrawSphere(origin, 0.2, 8, 8, ORIGIN_COLOR)
+	cam.End3D()
+end
+
 if CLIENT then return end -- No more client
 
 function ENT:Initialize()

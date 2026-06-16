@@ -1,5 +1,5 @@
 -- Author: Divran
-local Obj = EGP.ObjectInherit("Wedge", "Circle")
+local Obj = E2Lib.EGP.ObjectInherit("Wedge", "Circle")
 Obj.size = 45
 local rad, cos, sin = math.rad, math.cos, math.sin
 

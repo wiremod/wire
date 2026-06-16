@@ -12,13 +12,13 @@ if CLIENT then
 	language.Add( "WireAdvInputTool_value_start", "Start at:" )
 	language.Add( "WireAdvInputTool_speed", "Change per second:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/calculator.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	ModelPlug_Register("Numpad")
-
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "keymore" ), self:GetClientNumber( "keyless" ), self:GetClientNumber( "toggle" ),
 			self:GetClientNumber( "value_min" ), self:GetClientNumber( "value_max" ), self:GetClientNumber( "value_start" ),

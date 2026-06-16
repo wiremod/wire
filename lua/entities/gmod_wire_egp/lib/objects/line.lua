@@ -1,5 +1,5 @@
 -- Author: Divran
-local Obj = EGP:NewObject( "Line" )
+local Obj = E2Lib.EGP.NewObject("Line")
 Obj.material = nil
 Obj.filtering = nil
 Obj.x2 = 0

@@ -66,7 +66,7 @@ function registerType(name, id, def, input_serialize, output_serialize, type_che
 end
 
 function wire_expression2_CallHook(hookname, ...)
-	if not wire_expression_callbacks[hookname] then return end
+	if not wire_expression_callbacks or not wire_expression_callbacks[hookname] then return end
 	local ret_array = {}
 	local errors = {}
 	local ok, ret
@@ -102,32 +102,6 @@ end
 
 function __e2getcost()
 	return tempcost
-end
-
----@param args string
----@return string?, table
-local function getArgumentTypeIds(args)
-	local thistype, nargs = args:match("^([^:]+):(.*)$")
-	if nargs then args = nargs end
-
-	local out, ptr = {}, 1
-	while ptr <= #args do
-		local c = args:sub(ptr, ptr)
-		if c == "x" then
-			out[#out + 1] = args:sub(ptr, ptr + 2)
-			ptr = ptr + 3
-		elseif args:sub(ptr) == "..." then
-			out[#out + 1] = "..."
-			ptr = ptr + 3
-		elseif c:match("^%w") then
-			out[#out + 1] = c
-			ptr = ptr + 1
-		else
-			error("Invalid signature: " .. args)
-		end
-	end
-
-	return thistype, out
 end
 
 local EnforcedTypings = {
@@ -179,7 +153,7 @@ end
 local TypeMap = {
 	["number"] = "n", ["string"] = "s",
 	["Vector"] = "v", ["Angle"] = "a",
-	["table"] = "r"
+	["table"] = "r", ["Entity"] = "e"
 }
 
 local ValidArrayTypes = {
@@ -200,7 +174,7 @@ function E2Lib.registerConstant(name, value, description)
 			local i = 1
 			for _, val in pairs(value) do
 				assert(value[i] ~= nil, "Invalid array passed to registerConstant (must be sequential)")
-				assert(ValidArrayTypes[type(val)], "Invalid array passed to registerConstant (must only contain numbers, strings, vector or angles)")
+				assert(ValidArrayTypes[type(val)], "Invalid array passed to registerConstant (must only contain numbers, strings, vector, entities or angles)")
 				i = i + 1
 			end
 		end
@@ -212,7 +186,10 @@ function E2Lib.registerConstant(name, value, description)
 			extension = E2Lib.currentextension
 		}
 	else
-		error("Invalid value passed to registerConstant. Only numbers, strings, vectors, angles and arrays can be constant values.")
+		local db = debug.getinfo(2, "l")
+		WireLib.Notify(nil,
+			string.format("[%s]:%d: Invalid value passed to registerConstant for \"%s\". Only numbers, strings, vectors, angles, entities and arrays can be constant values.\n", E2Lib.currentextension, db.currentline, name),
+		3)
 	end
 end
 
@@ -222,7 +199,8 @@ end
 ---@param args { [1]: string, [2]: string }[]?
 ---@param constructor fun(self: table)? # Constructor to run when E2 initially starts listening to this event. Passes E2 context
 ---@param destructor fun(self: table)? # Destructor to run when E2 stops listening to this event. Passes E2 context
-function E2Lib.registerEvent(name, args, constructor, destructor)
+---@param description string
+function E2Lib.registerEvent(name, args, constructor, destructor, description)
 	-- Ensure event starts with lowercase letter
 	-- assert(not E2Lib.Env.Events[name], "Possible addon conflict: Trying to override existing E2 event '" .. name .. "'")
 
@@ -254,6 +232,8 @@ function E2Lib.registerEvent(name, args, constructor, destructor)
 	E2Lib.Env.Events[name] = {
 		name = name,
 		args = args or {},
+		extension = E2Lib.currentextension,
+		description = description,
 
 		constructor = constructor,
 		destructor = destructor,
@@ -265,13 +245,19 @@ end
 ---@param name string
 ---@param args table?
 function E2Lib.triggerEvent(name, args)
-	assert(E2Lib.Env.Events[name], "E2Lib.triggerEvent on nonexisting event: '" .. name .. "'")
+	if not E2Lib.Env.Events[name] then
+		error("E2Lib.triggerEvent on nonexisting event: '" .. name .. "'", 2)
+	end
 
-	for ent in pairs(E2Lib.Env.Events[name].listening) do
+	local event_listeners = E2Lib.Env.Events[name].listening
+
+	for i = #event_listeners, 1, -1 do
+		local ent = event_listeners[i]
+
 		if ent.ExecuteEvent then
 			ent:ExecuteEvent(name, args)
-		else -- Destructor somehow wasn't run?
-			E2Lib.Env.Events[name].listening[ent] = nil
+		else
+			table.remove(event_listeners, i)
 		end
 	end
 end
@@ -280,14 +266,20 @@ end
 ---@param args table
 ---@param ignore table<Entity, true>
 function E2Lib.triggerEventOmit(name, args, ignore)
-	assert(E2Lib.Env.Events[name], "E2Lib.triggerEventOmit on nonexisting event: '" .. name .. "'")
+	if not E2Lib.Env.Events[name] then
+		error("E2Lib.triggerEventOmit on nonexisting event: '" .. name .. "'", 2)
+	end
 
-	for ent in pairs(E2Lib.Env.Events[name].listening) do
+	local event_listeners = E2Lib.Env.Events[name].listening
+
+	for i = #event_listeners, 1, -1 do
+		local ent = event_listeners[i]
+
 		if not ignore[ent] then -- Don't trigger ignored chips
 			if ent.ExecuteEvent then
 				ent:ExecuteEvent(name, args)
 			else -- Destructor somehow wasn't run?
-				E2Lib.Env.Events[name].listening[ent] = nil
+				table.remove(event_listeners, i)
 			end
 		end
 	end
@@ -310,103 +302,74 @@ do
 end
 
 if SERVER then
-	util.AddNetworkString("e2_functiondata_start")
-	util.AddNetworkString("e2_functiondata_chunk")
-
+	util.AddNetworkString("e2_functiondata")
 	-- Serverside files are loaded in extloader
 	include("extloader.lua")
 
 	-- -- Transfer E2 function info to the client for validation and syntax highlighting purposes -- --
-
-	do
-		local miscdata = {} -- Will contain {E2 types info, constants}, this whole table is under 1kb
-		local functiondata = {} -- Will contain {functionname = {returntype, cost, argnames, extension}, this will be between 50-100kb
-
-		-- Fills out the above two tables
-		function wire_expression2_prepare_functiondata()
-			-- Sanitize events so 'listening' e2's aren't networked
-			local events_sanitized = {}
-			for evt, data in pairs(E2Lib.Env.Events) do
-				events_sanitized[evt] = {
-					name = data.name,
-					args = data.args
-				}
-			end
-
-			local types = {}
-			for typename, v in pairs(wire_expression_types) do
-				types[typename] = v[1] -- typeid (s)
-			end
-
-			miscdata = { types, wire_expression2_constants, events_sanitized }
-			functiondata = {}
-
-			for signature, v in pairs(wire_expression2_funcs) do
-				functiondata[signature] = { v[2], v[4], v.argnames, v.extension, v.attributes } -- ret (s), cost (n), argnames (t), extension (s), attributes (t)
-			end
+	-- Fills out the above two tables
+	local function getE2FunctionData()
+		-- Sanitize events so 'listening' e2's aren't networked
+		local events_sanitized = {}
+		for evt, data in pairs(E2Lib.Env.Events) do
+			events_sanitized[evt] = {
+				name = data.name,
+				args = data.args,
+				extension = data.extension,
+				description = data.description
+			}
 		end
 
-		wire_expression2_prepare_functiondata()
-
-		-- Send everything
-		local targets = WireLib.RegisterPlayerTable()
-		local function sendData(target)
-			if IsValid(target) and target:IsPlayer() and targets[target] == nil then
-				targets[target] = "start"
-				net.Start("e2_functiondata_start")
-				net.WriteTable(miscdata[1])
-				net.WriteTable(miscdata[2])
-				net.WriteTable(miscdata[3])
-				net.Send(target)
-			end
+		local types = {}
+		for typename, v in pairs(wire_expression_types) do
+			types[typename] = v[1] -- typeid (s)
 		end
 
-		hook.Add("Think", "wire_expression2_sendfunctions_think", function()
-			for k, signature in pairs(targets) do
-				if not k:IsValid() or not k:IsPlayer() then
-					targets[k] = nil
-				else
-					net.Start("e2_functiondata_chunk")
-					if signature == "start" then signature = nil end -- We want to start with next(functiondata, nil) but can't store nil in a table
-					local tab
-					while net.BytesWritten() < 64000 do
-						signature, tab = next(functiondata, signature)
-						if not signature then break end
-						net.WriteString(signature) -- The function signature ["holoAlpha(nn)"]
-						net.WriteString(tab[1]) -- The function's return type ["s"]
-						net.WriteUInt(tab[2] or 0, 16) -- The function's cost [5]
-						net.WriteTable(tab[3] or {}) -- The function's argnames table (if a table isn't set, it'll just send a 1 byte blank table)
-						net.WriteString(tab[4] or "unknown")
-						net.WriteTable(tab[5] or {}) -- Attributes
-					end
-					net.WriteString("") -- Needed to break out of the receiving for loop without affecting the final completion bit boolean
-					net.WriteBit(signature == nil) -- If we're at the end of the table, next will return nil, thus sending a true here
-					targets[k] = signature -- If nil, this'll remove the entry. Otherwise, this'll set a new next(t,k) starting point
-					net.Send(k)
-				end
-			end
-		end)
+		local miscdata = { types, wire_expression2_constants, events_sanitized }
+		local functiondata = {}
 
-		local antispam = WireLib.RegisterPlayerTable()
-		function wire_expression2_sendfunctions(ply, isconcmd)
-			if isconcmd and not game.SinglePlayer() then
-				if not antispam[ply] then antispam[ply] = 0 end
-				if antispam[ply] > CurTime() then
-					ply:PrintMessage(HUD_PRINTCONSOLE, "This command has a 60 second anti spam protection. Try again in " .. math.Round(antispam[ply] - CurTime()) .. " seconds.")
-					return
-				end
-				antispam[ply] = CurTime() + 60
-			end
-			sendData(ply)
+		for signature, v in pairs(wire_expression2_funcs) do
+			functiondata[signature] = { v[2], v[4], v.argnames, v.extension, v.attributes } -- ret (s), cost (n), argnames (t), extension (s), attributes (t)
 		end
 
-		-- add a console command the user can use to re-request the function info, in case of errors or updates
-		concommand.Add("wire_expression2_sendfunctions", wire_expression2_sendfunctions)
+		return miscdata, functiondata
+	end
 
-		if game.SinglePlayer() then
-			-- If single player, send everything immediately
-			hook.Add("PlayerInitialSpawn", "wire_expression2_sendfunctions", sendData)
+	-- Send everything
+	local function sendData(ply)
+		if not (IsValid(ply) and ply:IsPlayer()) then return end
+
+		local miscdata, functiondata = getE2FunctionData()
+
+		local data = WireLib.von.serialize( {
+			miscdata = miscdata,
+			functiondata = functiondata
+		} )
+
+		net.Start("e2_functiondata")
+		net.WriteStream(data)
+		net.Send(ply)
+	end
+
+	local antispam = WireLib.RegisterPlayerTable()
+	function wire_expression2_sendfunctions(ply, isconcmd)
+		if isconcmd and not game.SinglePlayer() then
+			if not antispam[ply] then antispam[ply] = 0 end
+			if antispam[ply] > CurTime() then
+				ply:PrintMessage(HUD_PRINTCONSOLE, "This command has a 60 second anti spam protection. Try again in " .. math.Round(antispam[ply] - CurTime()) .. " seconds.")
+				return
+			end
+			antispam[ply] = CurTime() + 60
 		end
+		sendData(ply)
+	end
+
+	-- add a console command the user can use to re-request the function info, in case of errors or updates
+	concommand.Add("wire_expression2_sendfunctions", wire_expression2_sendfunctions)
+
+	if game.SinglePlayer() then
+		-- If single player, send everything immediately
+		hook.Add("PlayerInitialSpawn", "wire_expression2_sendfunctions", sendData)
 	end
 
 elseif CLIENT then
@@ -416,18 +379,17 @@ elseif CLIENT then
 
 	wire_expression2_reset_extensions()
 
-	local function insertData(functiondata)
-		-- functions
-		for signature, tab in pairs(functiondata) do
-			local fname = signature:match("^([^(:]+)%(")
-			if fname then
-				wire_expression2_funclist[fname] = true
-				wire_expression2_funclist_lowercase[fname:lower()] = fname
-			end
-			if not next(tab[3]) then tab[3] = nil end -- If the function has no argnames table, the server will just send a blank table
-			wire_expression2_funcs[signature] = { signature, tab[1], false, tab[2], argnames = tab[3], extension = tab[4], attributes = tab[5] }
+	local function insertData(signature, ret, cost, argnames, extension, attributes)
+		local fname = signature:match("^([^(:]+)%(")
+		if fname then
+			wire_expression2_funclist[fname] = true
+			wire_expression2_funclist_lowercase[fname:lower()] = fname
 		end
+		if table.IsEmpty(argnames) then argnames = nil end -- If the function has no argnames table, the server will just send a blank table
+		wire_expression2_funcs[signature] = { signature, ret, false, cost, argnames = argnames, extension = extension, attributes = attributes }
+	end
 
+	local function doneInsertingData()
 		e2_function_data_received = true
 
 		if wire_expression2_editor then
@@ -455,22 +417,23 @@ elseif CLIENT then
 		E2Lib.Env.Events = events
 	end
 
-	local buffer = {}
-	net.Receive("e2_functiondata_start", function(len)
-		buffer = {}
-		insertMiscData(net.ReadTable(), net.ReadTable(), net.ReadTable())
-	end)
+	net.Receive("e2_functiondata", function()
+		net.ReadStream( nil, function( data )
+			local deserialized = WireLib.von.deserialize(data)
+			if not deserialized then
+				error("Failed to deserialize E2 function data from server!\n")
+			end
 
-	net.Receive("e2_functiondata_chunk", function(len)
-		while true do
-			local signature = net.ReadString()
-			if signature == "" then break end -- We've reached the end of the packet
-			buffer[signature] = { net.ReadString(), net.ReadUInt(16), net.ReadTable(), net.ReadString(), net.ReadTable() } -- ret, cost, argnames, extension, attributes
-		end
+			wire_expression2_reset_extensions()
 
-		if net.ReadBit() == 1 then
-			insertData(buffer) -- We've received the last packet!
-		end
+			insertMiscData(deserialized.miscdata[1], deserialized.miscdata[2], deserialized.miscdata[3])
+
+			for signature, tab in pairs(deserialized.functiondata) do
+				insertData(signature, tab[1], tab[2] or 0, tab[3] or {}, tab[4] or "unknown", tab[5] or {})
+			end
+
+			doneInsertingData()
+		end )
 	end)
 end
 

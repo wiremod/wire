@@ -27,13 +27,18 @@ function ENT:Initialize()
 	self.Firing       = false
 	self.spreadvector = Vector()
 	self.effectdata   = EffectData()
-	self.attachmentPos = phys:WorldToLocal(self:GetAttachment(1).Pos)
+
+	-- Not all entities have an 1 attachment
+	local attachment = self:GetAttachment(1)
+	self.attachmentPos = attachment and self:WorldToLocal(attachment.Pos) or vector_origin
 
 	self.Inputs = WireLib.CreateSpecialInputs(self,
 		{ "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound", "Tracer" },
 		{ "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "STRING", "STRING" })
 
-	self.Outputs = WireLib.CreateSpecialOutputs(self, { "HitEntity" }, { "ENTITY" })
+	self.Outputs = WireLib.CreateSpecialOutputs(self,
+		{ "HitEntity", "Bullet" },
+		{ "ENTITY", "RANGER" })
 end
 
 function ENT:FireShot()
@@ -70,6 +75,7 @@ function ENT:FireShot()
 	bullet.Damage     = self.damage
 	bullet.Attacker   = self:GetPlayer()
 	bullet.Callback   = function(attacker, traceres, cdamageinfo)
+		WireLib.TriggerOutput(self, "Bullet", traceres)
 		WireLib.TriggerOutput(self, "HitEntity", traceres.Entity)
 	end
 
@@ -111,10 +117,10 @@ local ValidTracers = {
 	[""]                      = true
 }
 
-function ENT:SetSound( sound )
-	sound = string.Trim( tostring( sound or "" ) ) -- Remove whitespace ( manual )
-	local check = string.find( sound, "[\"?]" ) -- Preventing client crashes
-	self.sound = check == nil and sound ~= "" and sound or nil -- Apply the pattern check
+function ENT:SetSound( path )
+	if path then
+		self.sound = WireLib.SoundExists(path)
+	end
 end
 
 function ENT:SetDelay( delay )
@@ -173,9 +179,9 @@ function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, trac
 	self:SetDelay(delay)
 	self:SetSound(sound)
 	self:SetDamage(damage)
-	self:SetSpread(spread)
+	self:SetSpread(spread or 0.1)
 	self:SetTracer(tracer)
-	self:SetTraceNum(tracernum)
+	self:SetTraceNum(tracernum or 0)
 	self:SetNumBullets(numbullets)
 end
 

@@ -6,6 +6,8 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_fx_emitter.desc", "Wire FX Emitter Emits effects eh?" )
 	language.Add( "Tool.wire_fx_emitter.delay", "Delay between effect pulses" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/wand.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

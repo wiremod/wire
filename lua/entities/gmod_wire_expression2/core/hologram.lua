@@ -239,13 +239,13 @@ local function flush_scale_queue(queue, recipient)
 	net.Start("wire_holograms_set_scale")
 		for _, plyqueue in pairs(queue) do
 			for Holo, scale in pairs(plyqueue) do
-				net.WriteUInt(Holo.ent:EntIndex(), 16)
+				net.WriteUInt(Holo.ent:EntIndex(), MAX_EDICT_BITS)
 				net.WriteFloat(scale.x)
 				net.WriteFloat(scale.y)
 				net.WriteFloat(scale.z)
 			end
 		end
-		net.WriteUInt(0, 16)
+		net.WriteUInt(0, MAX_EDICT_BITS)
 	if recipient then net.Send(recipient) else net.Broadcast() end
 end
 
@@ -257,15 +257,15 @@ local function flush_bone_scale_queue(queue, recipient)
 	for _, plyqueue in pairs(queue) do
 		for Holo, holoqueue in pairs(plyqueue) do
 			for bone, scale in pairs(holoqueue) do
-				net.WriteUInt(Holo.ent:EntIndex(), 16)
-				net.WriteUInt(bone + 1, 16) -- using +1 to be able reset holo bones scale with -1 and not use signed int
+				net.WriteUInt(Holo.ent:EntIndex(), MAX_EDICT_BITS)
+				net.WriteUInt(bone + 1, 9) -- using +1 to be able reset holo bones scale with -1 and not use signed int
 				net.WriteFloat(scale.x)
 				net.WriteFloat(scale.y)
 				net.WriteFloat(scale.z)
 			end
 		end
 	end
-	net.WriteUInt(0, 16)
+	net.WriteUInt(0, MAX_EDICT_BITS)
 	net.WriteUInt(0, 16)
 	if recipient then net.Send(recipient) else net.Broadcast() end
 end
@@ -279,7 +279,7 @@ local function flush_clip_queue(queue, recipient)
 			for Holo,holoqueue in pairs(plyqueue) do
 				for _, clip in pairs(holoqueue) do
 					if clip and clip.index then
-						net.WriteUInt(Holo.ent:EntIndex(), 16)
+						net.WriteUInt(Holo.ent:EntIndex(), MAX_EDICT_BITS)
 						net.WriteUInt(clip.index, 4) -- 4: absolute highest wire_holograms_max_clips is thus 16
 						if clip.enabled ~= nil then
 							net.WriteBool(true)
@@ -288,13 +288,13 @@ local function flush_clip_queue(queue, recipient)
 							net.WriteBool(false)
 							net.WriteVector(clip.origin)
 							net.WriteVector(clip.normal)
-							net.WriteUInt(clip.localentid, 16)
+							net.WriteUInt(clip.localentid, MAX_EDICT_BITS)
 						end
 					end
 				end
 			end
 		end
-		net.WriteUInt(0, 16)
+		net.WriteUInt(0, MAX_EDICT_BITS)
 	if recipient then net.Send(recipient) else net.Broadcast() end
 end
 
@@ -305,10 +305,10 @@ local function flush_vis_queue()
 		if IsValid( ply ) and next(plyqueue) ~= nil then
 			net.Start("wire_holograms_set_visible")
 				for Holo,visible in pairs(plyqueue) do
-					net.WriteUInt(Holo.ent:EntIndex(), 16)
+					net.WriteUInt(Holo.ent:EntIndex(), MAX_EDICT_BITS)
 					net.WriteBit(visible)
 				end
-				net.WriteUInt(0, 16)
+				net.WriteUInt(0, MAX_EDICT_BITS)
 			net.Send(ply)
 		end
 	end
@@ -320,18 +320,20 @@ local function flush_player_color_queue()
 	net.Start("wire_holograms_set_player_color")
 		for _, plyqueue in pairs(player_color_queue) do
 			for Holo,color in pairs(plyqueue) do
-				net.WriteUInt(Holo.ent:EntIndex(), 16)
+				net.WriteUInt(Holo.ent:EntIndex(), MAX_EDICT_BITS)
 				net.WriteVector(color)
 			end
 		end
-		net.WriteUInt(0, 16)
+		net.WriteUInt(0, MAX_EDICT_BITS)
 	net.Broadcast()
 end
+
 
 registerCallback("postexecute", function(self)
 	if timer.Exists("wire_hologram_postexecute_"..self.uid) then return end
 	timer.Create("wire_hologram_postexecute_"..self.uid,0.1,1,function()
 		if not IsValid(self.entity) then return end
+
 		flush_scale_queue()
 		flush_bone_scale_queue()
 		flush_clip_queue()
@@ -520,6 +522,7 @@ end
 -- Returns the hologram with the given index or nil if it doesn't exist.
 -- if shouldbenil is nil or false, assert that the hologram exists on @strict with an error. Otherwise, don't check (for holo creation, etc)
 local function CheckIndex(self, index, shouldbenil)
+	if index ~= index then return self:throw("holo index is NaN!", nil) end
 	index = math.Clamp(math.floor(index), -2^31, 2^31)
 	local Holo
 	if index<0 then
@@ -591,7 +594,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 		end, self, index )
 	end
 
-	if not IsValid(prop) then return nil end
+	if not IsValid(prop) then return NULL end
 
 	if color then WireLib.SetColor(Holo.ent, Color(color[1],color[2],color[3],color[4] or 255)) end
 
@@ -661,7 +664,7 @@ end
 
 local function checkHoloCount(self)
 	if PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then
-		return self:throw("You've hit the maximum amount of holograms!", true)
+		return self:throw("You've hit the maximum amount of holograms!", NULL)
 	end
 end
 
@@ -715,8 +718,8 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
-	local ret = CreateHolo(self, index, position, scale, ang, color)
-	if IsValid(ret) then return ret end
+
+	return CreateHolo(self, index, position, scale, ang, color)
 end
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang)
@@ -725,10 +728,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang)
 	local Holo = CheckIndex(self, index, true)
 	if not Holo and checkHoloCount(self) then return end
 
-	position = Vector(position[1], position[2], position[3])
-	ang = Angle(ang[1], ang[2], ang[3])
-	local ret = CreateHolo(self, index, position, scale, ang)
-	if IsValid(ret) then return ret end
+	return CreateHolo(self, index, position, scale, ang)
 end
 
 e2function entity holoCreate(index, vector position, vector scale)
@@ -738,8 +738,8 @@ e2function entity holoCreate(index, vector position, vector scale)
 	if not Holo and checkHoloCount(self) then return end
 
 	position = Vector(position[1],position[2],position[3])
-	local ret = CreateHolo(self, index, position, scale)
-	if IsValid(ret) then return ret end
+
+	return CreateHolo(self, index, position, scale)
 end
 
 e2function entity holoCreate(index, vector position)
@@ -749,8 +749,8 @@ e2function entity holoCreate(index, vector position)
 	if not Holo and checkHoloCount(self) then return end
 
 	position = Vector(position[1],position[2],position[3])
-	local ret = CreateHolo(self, index, position)
-	if IsValid(ret) then return ret end
+
+	return CreateHolo(self, index, position)
 end
 
 e2function entity holoCreate(index)
@@ -759,8 +759,7 @@ e2function entity holoCreate(index)
 	local Holo = CheckIndex(self, index, true)
 	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
 
-	local ret = CreateHolo(self, index)
-	if IsValid(ret) then return ret end
+	return CreateHolo(self, index)
 end
 
 __e2setcost(20)
@@ -981,6 +980,7 @@ e2function void holoClip(index, clipidx, vector origin, vector normal, isglobal)
 end
 
 e2function void holoClip(index, vector origin, vector normal, entity localent) -- Clip at first index
+	if not IsValid(localent) then return self:throw("Invalid entity!", nil) end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
@@ -988,6 +988,7 @@ e2function void holoClip(index, vector origin, vector normal, entity localent) -
 end
 
 e2function void holoClip(index, clipidx, vector origin, vector normal, entity localent)
+	if not IsValid(localent) then return self:throw("Invalid entity!", nil) end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
@@ -1003,6 +1004,13 @@ e2function void holoPos(index, vector position)
 	WireLib.setPos(Holo.ent, position)
 end
 
+e2function void holoLocalPos(index, vector position)
+	local holo = CheckIndex(self, index)
+	if not holo then return end
+
+	WireLib.setLocalPos(holo.ent, position)
+end
+
 [nodiscard]
 e2function vector holoPos(index)
 	local Holo = CheckIndex(self, index)
@@ -1016,6 +1024,13 @@ e2function void holoAng(index, angle ang)
 	if not Holo then return end
 
 	WireLib.setAng(Holo.ent, ang)
+end
+
+e2function void holoLocalAng(index, angle ang)
+	local holo = CheckIndex(self, index)
+	if not holo then return end
+
+	WireLib.setLocalAng(holo.ent, ang)
 end
 
 [nodiscard]
@@ -1070,14 +1085,14 @@ e2function void holoDisableShading( index, disable )
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetNWBool( "disable_shading", disable == 1 )
+	Holo.ent:SetDisableShading( disable == 1 )
 end
 
 e2function void holoInvertModel( index, enable )
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetNWInt("invert_model", enable ~= 0 and 1 or 0)
+	Holo.ent:SetInvertModel( enable ~= 0 and true or false )
 end
 
 -- -----------------------------------------------------------------------------
@@ -1148,12 +1163,14 @@ e2function void holoPlayerColor(index, vector color)
 	set_player_color(Holo, Vector(r, g, b))
 end
 
-e2function void holoRenderFX(index, effect)
+e2function void holoRenderFX(index, fx)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	effect = effect - effect % 1
-	Holo.ent:SetKeyValue("renderfx",effect)
+	fx = math.floor(fx)
+	if (fx < 0 or fx > 16) and fx ~= 24 then return self:throw("Cannot use that RenderFX!", nil) end
+
+	Holo.ent:SetRenderFX(fx)
 end
 
 e2function void holoBodygroup(index, bgrp_id, bgrp_subid)
@@ -1187,8 +1204,16 @@ e2function void holoVisible(index, array players, visible)
 end
 
 -- -----------------------------------------------------------------------------
-local function Parent_Hologram(holo, ent, attachment)
+---@param bone integer?
+local function Parent_Hologram(holo, ent, attachment, bone)
 	if ent:GetParent() and ent:GetParent():IsValid() and ent:GetParent() == holo.ent then return end
+
+	if bone then
+		if bone >= 0 and bone < ent:GetBoneCount() then
+			holo.ent:FollowBone(ent, bone)
+			return
+		end
+	end
 
 	holo.ent:SetParent(ent)
 
@@ -1240,12 +1265,60 @@ e2function void holoParentAttachment(index, entity ent, string attachmentName)
 	Parent_Hologram(Holo, ent, attachmentName)
 end
 
+e2function void holoParentAttachment(index, otherindex, string attachmentName)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local Holo2 = CheckIndex(self, otherindex)
+	if not Holo2 then return end
+
+	if not Check_Parents(Holo.ent, Holo2.ent) then return end
+
+	Parent_Hologram(Holo, Holo2.ent, attachmentName)
+end
+
+e2function void holoParentBone(index, entity ent, bone)
+	if not IsValid(ent) then return end
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Parent_Hologram(Holo, ent, nil, bone)
+end
+
+e2function void holoParentBone(index, otherindex, bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local Holo2 = CheckIndex(self, otherindex)
+	if not Holo2 then return end
+
+	if not Check_Parents(Holo.ent, Holo2.ent) then return end
+
+	Parent_Hologram(Holo, Holo2.ent, nil, bone)
+end
+
+-- Combination of EF_BONEMERGE and EF_BONEMERGE_FASTCULL, to avoid performance complaints.
+local BONEMERGE_FLAGS = bit.bor(EF_BONEMERGE, EF_BONEMERGE_FASTCULL)
+
 e2function void holoUnparent(index)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetParent(nil)
-	Holo.ent:SetParentPhysNum(0)
+	Holo.ent:RemoveEffects(BONEMERGE_FLAGS)
+	Holo.ent:FollowBone(nil, 0)
+end
+
+__e2setcost(10)
+
+e2function void holoBonemerge(index, state)
+	local Holo = CheckIndex(self, index)
+	if not Holo or not Holo.ent:GetParent():IsValid() then return end
+
+	if state ~= 0 then
+		Holo.ent:AddEffects(BONEMERGE_FLAGS)
+	else
+		Holo.ent:RemoveEffects(BONEMERGE_FLAGS)
+	end
 end
 
 -- -----------------------------------------------------------------------------
@@ -1253,7 +1326,8 @@ end
 __e2setcost(2)
 e2function entity holoEntity(index)
 	local Holo = CheckIndex(self, index)
-	if Holo and IsValid(Holo.ent) then return Holo.ent end
+
+	return Holo and Holo.ent or NULL
 end
 
 __e2setcost(30)
@@ -1272,6 +1346,170 @@ e2function number holoIndex(entity ent)
 		if isnumber(k) and ent == Holo.ent then return -k end
 	end
 	return 0
+end
+
+-- -----------------------------------------------------------------------------
+
+local function SetHoloAnim(Holo, Animation, Frame, Rate)
+	if (Holo and Animation and Frame and Rate) then
+		if not Holo.ent.Animated then
+			-- This must be run once on entities that will be animated
+			Holo.ent.Animated = true
+			Holo.ent.AutomaticFrameAdvance = true
+		end
+		Holo.ent:ResetSequence(Animation)
+		Holo.ent:SetCycle(math.Clamp(Frame, 0, 1))
+		--Something mustve changed between the time holoAnim core was made and now, negative values no longer affect the "Frame" value
+		Holo.ent:SetPlaybackRate(math.Clamp(Rate, -12, 12))
+	end
+end
+
+__e2setcost(15)
+e2function void holoAnim(index, string animation)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	local anim = Holo.ent:LookupSequence(animation)
+	if anim == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+
+	SetHoloAnim(Holo, anim, 0, 1)
+end
+
+e2function void holoAnim(index, string animation, frame)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if Holo.ent:LookupSequence(animation) == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+
+	SetHoloAnim(Holo, animation, frame, 1)
+end
+
+e2function void holoAnim(index, string animation, frame, rate)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if Holo.ent:LookupSequence(animation) == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+
+	SetHoloAnim(Holo, animation, frame, rate)
+end
+
+e2function void holoAnim(index, animation)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	SetHoloAnim(Holo, animation, 0, 1)
+end
+
+e2function void holoAnim(index, animation, frame)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	SetHoloAnim(Holo, animation, frame, 1)
+end
+
+e2function number holoGetAnimFrame(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	return Holo.ent:GetCycle()
+end
+
+e2function void holoAnim(index, animation, frame, rate)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	SetHoloAnim(Holo, animation, frame, rate)
+end
+
+e2function array holoGetAnims(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	return Holo.ent:GetSequenceList()
+end
+
+e2function number holoAnimLength(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	return Holo.ent:SequenceDuration()
+end
+
+e2function number holoAnimNum(index, string animation)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	return Holo.ent:LookupSequence(animation) or 0
+end
+
+e2function number holoGetAnimGroundSpeed(index, string animation)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	local anim = Holo.ent:LookupSequence(animation)
+	if anim == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+
+	return Holo.ent:GetSequenceGroundSpeed(anim)
+end
+
+e2function void holoSetAnimFrame(index, frame)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Holo.ent:SetCycle(math.Clamp(frame, 0, 1))
+end
+
+e2function void holoSetAnimSpeed(index, rate)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Holo.ent:SetPlaybackRate(math.Clamp(rate, -12, 12))
+end
+
+e2function number holoGetAnimGroundSpeed(index, animation)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	return Holo.ent:GetSequenceGroundSpeed(animation)
+end
+
+e2function void holoSetPose(index, string pose, value)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Holo.ent:SetPoseParameter(pose, value)
+end
+
+e2function number holoGetPose(index, string pose)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local pose_param = Holo.ent:LookupPoseParameter(pose)
+	if pose_param == -1 then self:throw("'" .. pose .. "' pose parameter does not exist on this model!", 0) end
+	return Holo.ent:GetPoseParameter(pose_param)
+end
+
+e2function array holoGetPoses(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local tbl = {}
+	for i = 0, Holo.ent:GetNumPoseParameters() - 1 do
+		table.insert(tbl, Holo.ent:GetPoseParameterName(i))
+	end
+	return tbl
+end
+
+e2function vector2 holoGetPoseRange(index, string pose)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local pose_param = Holo.ent:LookupPoseParameter(pose)
+	if pose_param == -1 then self:throw("'" .. pose .. "' pose parameter doesn't exist on this model!", 0) end
+	return { Holo.ent:GetPoseParameterRange(pose_param) }
+end
+
+e2function void holoClearPoses(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Holo.ent:ClearPoseParameters()
 end
 
 -- -----------------------------------------------------------------------------
@@ -1332,7 +1570,7 @@ concommand.Add( "wire_holograms_block", function( ply, com, args )
 				clearholos_all(uid)
 			end
 			BlockList[v:SteamID()] = true
-			for _,p in ipairs( player.GetAll() ) do
+			for _,p in player.Iterator() do
 				p:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. v:GetName() .. " added to holograms blocklist" )
 			end
 		end
@@ -1359,7 +1597,7 @@ concommand.Add( "wire_holograms_unblock", function( ply, com, args )
 		local v = players[1]
 		if BlockList[v:SteamID()] == true then
 			BlockList[v:SteamID()] = nil
-			for _,player in ipairs( player.GetAll() ) do
+			for _,player in player.Iterator() do
 				player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. v:GetName() .. " removed from holograms blocklist" )
 			end
 		else
@@ -1387,11 +1625,11 @@ concommand.Add( "wire_holograms_block_id", function( ply, com, args )
 		ConsoleMessage( ply, steamID .. " is already in the holograms blocklist!" )
 	else
 		BlockList[steamID] = true
-		for _,player in ipairs( player.GetAll() ) do
+		for _,player in player.Iterator() do
 			player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. steamID .. " added to holograms blocklist" )
 		end
 		local uid
-		for _,v in ipairs( player.GetAll() ) do
+		for _,v in player.Iterator() do
 			if v:SteamID() == steamID then
 				uid = v:UniqueID()
 				if (E2HoloRepo[uid]) then
@@ -1416,7 +1654,7 @@ concommand.Add( "wire_holograms_unblock_id", function( ply, com, args )
 
 	if BlockList[steamID] == true then
 		BlockList[steamID] = nil
-		for _,player in ipairs( player.GetAll() ) do
+		for _,player in player.Iterator() do
 			player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. steamID .. " removed from holograms blocklist" )
 		end
 	else

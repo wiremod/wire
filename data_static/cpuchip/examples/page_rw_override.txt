@@ -1,0 +1,135 @@
+/*
+This example assumes you are already familiar with ZASM
+as this will be going over advanced features.
+
+This will not go too indepth into how the paging
+system works, but instead focus primarily on the feature
+to call an interrupt on read or write of a specific page,
+to intercept memory requests and handle them internally.
+
+Requires CPU memory model to be 8kb ram/rom or above.
+
+For setup of this example:
+
+1. Connect CPU membus input to a console screen
+*/
+
+DATA
+interrupt_table:
+ALLOC 28*4 // fill interrupt space for 0-27
+DB read_mem,0,0,32 // Interrupt 28, called on a delayed memory read
+DB write_mem,0,0,32 // Interrupt 29, called on a delayed memory write
+ALLOC 1*4
+
+page_table:
+ALLOC 16*2 // Entries for the paging table are 2 bytes each.
+
+
+// For more information on interrupts, read the interrupts example
+read_mem:
+CLI
+CLM // Disable paging features temporarily
+    CPUGET ESI,63   // The requested address for the request
+    CPUSET 27,[ESI] // Return the value in LADD
+    CPUSET 42,4     // Set MEMRQ to 4 to signify read was handled
+STM // Reenable paging features after read is performed
+CLERR
+STI
+IRET
+
+write_mem:
+CLI
+    CPUGET EAX,27 // Get value requested for write
+    CPUGET EDI,63 // Requested address for write
+    CPUGET EDX,43 // Internal memory size
+    SUB EDI,128*8 // Subtract page address from it
+    MUL EDI,2 // Force position to be even(char pos)
+    MOV ECX,EDI // Diagonal position
+    MOV EBX,EDI // Horizontal Position
+    MUL EDI,30 // Convert char pos to be line pos instead
+    ADD ECX,EDI // Get diagonal position by adding line to char pos
+
+    // Print vertical character
+    MOV [EDX:EDI],EAX 
+    INC EDI // On odd offsets we need to write color
+    MOV [EDX:EDI],999 // write color to screen
+    // Print horizontal character
+    MOV [EDX:EBX],EAX
+    INC EBX
+    MOV [EDX:EBX],999
+    // Print diagonal character
+    MOV [EDX:ECX],EAX
+    INC ECX
+    MOV [EDX:ECX],999
+
+    CPUGET EAX,28 // Get LINT to check if we failed any memory I/O
+    CMP EAX,29 // Check if we're in our own interrupt
+    JNE shutdown
+    CPUSET 42,5   // Set MEMRQ to 5 to signify write was handled
+CLERR
+STI
+IRET
+
+shutdown:
+STI
+CLM
+CLEF
+INT EAX // repeat error now that we're not in extended mode
+
+CODE
+STEF // Set extended flag for interrupt handling
+CPUSET 37,page_table // Load page table ptr into PTBL register
+CPUSET 38,16 // Set page table entries in PTBE register
+LIDTR interrupt_table
+
+MOV EAX,0
+// Since only Readable/Writable/Executable are accessible via
+// the SPP Instruction, we have to manually create a permissions
+// mask for our new pages.
+
+// Using SBIT isn't entirely necessary, to get the number below you can also
+// use the constant 232(calculated from 8+32+64+128)
+SBIT EAX,3 // (8)   Read & Write calls int 28(read) and int 29(write)
+SBIT EAX,5 // (32)  Readable
+SBIT EAX,6 // (64)  Writable
+SBIT EAX,7 // (128) Executable
+ADD EAX,(256*2)
+// Runlevel can be obtained from the permission mask with floor(pmask/256)%256
+// To set the runlevel, add 256*runlevel to the permission mask
+MOV ECX,3 // Set 2 pages
+MOV EBX,7*2 // Starting from page 8
+ADD EBX,page_table
+
+page_set_loop:
+    MOV EDI,ECX
+    MUL EDI,2
+    MOV [EBX:EDI],EAX // Page byte 0 is the permission mask of the page
+    INC EDI // Access page byte 1
+    MOV [EBX:EDI],0 // Page byte 1 is the page this redirects to if the mapped flag is set
+LOOP page_set_loop
+
+STM // Set Memory flag to enable memory paging features
+
+/*
+Note that, unlike regular console screen prints
+this doesn't need to write character to even indexes
+and color to odd indexes, since those are both handled
+by interrupt 29(write_mem), so we can treat this like
+a regular section of memory.
+*/
+
+MOV R0,128*8 // Get first index of page 8
+MOV ESI,str
+
+print_loop:
+MOV [R0],[ESI]
+INC R0
+INC ESI
+CMP [ESI],0
+JNE print_loop
+
+CLEF // Disable interrupt handling
+INT 2 // End execution.
+
+str:
+DB "Hello Wiremod!",0

@@ -354,7 +354,15 @@ _deserialize = {
 		a = find(s, "[;:}~]", i)
 
 		if a then
-			return tonumber(sub(s, i, a - 1)) or error("vON: Number definition does not contain a valid number!"), a - 1
+			a = a - 1
+			local c = sub(s, i, a)
+
+			return tonumber(c) or
+				(c == "inf" and  math.huge) or
+				(c == "-inf" and -math.huge) or
+				((c == "nan" or c == "an") and 0/0) or
+				error("vON: Number definition does not contain a valid number!"),
+				a
 		end
 
 		--	Using %D breaks identification of negative numbers. :(

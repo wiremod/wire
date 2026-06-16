@@ -4,10 +4,6 @@ WireToolSetup.open( "gates", "Gates", "gmod_wire_gate", nil, "Gates" )
 
 WireToolSetup.SetupMax(100)
 
-if SERVER then
-	ModelPlug_Register("gate")
-end
-
 if CLIENT then
 	----------------------------------------------------------------------------------------------------
 	-- Tool Info

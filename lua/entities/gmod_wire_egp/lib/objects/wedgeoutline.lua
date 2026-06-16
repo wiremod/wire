@@ -1,5 +1,5 @@
 -- Author: Divran
-local Obj = EGP.ObjectInherit("WedgeOutline", "Wedge")
+local Obj = E2Lib.EGP.ObjectInherit("WedgeOutline", "Wedge")
 local rad, cos, sin = math.rad, math.cos, math.sin
 
 Obj.Draw = function( self )

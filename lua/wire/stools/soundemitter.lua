@@ -17,8 +17,6 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
 
 if SERVER then
-	ModelPlug_Register("speaker")
-
 	function TOOL:GetConVars()
 		return self:GetClientInfo( "sound" )
 	end

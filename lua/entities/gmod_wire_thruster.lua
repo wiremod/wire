@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Thruster"
-ENT.RenderGroup 		= RENDERGROUP_BOTH -- TODO: this is only needed when they're active.
+ENT.WantsTranslucency = true
 ENT.WireDebugName	= "Thruster"
 
 WireLib.ThrusterNetEffects = {
@@ -97,13 +97,13 @@ function ENT:Initialize()
 
 	self.Inputs = Wire_CreateInputs(self, { "A" })
 
-	self.soundname = Sound( "PhysicsCannister.ThrusterLoop" )
+	self.soundname = "PhysicsCannister.ThrusterLoop"
 end
 
 function ENT:OnRemove()
 	BaseClass.OnRemove(self)
 
-	if (self.soundname and self.soundname ~= "") then
+	if self.soundname then
 		self:StopSound(self.soundname)
 	end
 end
@@ -139,8 +139,8 @@ function ENT:CalcForce(phys)
 	-- Calculate the velocity
 	local ForceLinear, ForceAngular = phys:CalculateVelocityOffset(ThrusterWorldForce, phys:LocalToWorld( self.ThrustOffset ))
 
-	self.ForceLinear = phys:WorldToLocalVector(WireLib.clampForce(ForceLinear))
-	self.ForceAngular = phys:WorldToLocalVector(WireLib.clampForce(ForceAngular))
+	self.ForceLinear = WireLib.clampForce(ForceLinear)
+	self.ForceAngular = WireLib.clampForce(ForceAngular)
 end
 
 function ENT:SetDatEffect(uwater, owater, uweffect, oweffect)
@@ -180,22 +180,12 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.owater = owater
 	self.uwater = uwater
 
-	if (not soundname) then soundname = "" end
-
-	-- Preventing client crashes
-	local BlockedChars = '["?]'
-	if ( string.find(soundname, BlockedChars) ) then
-		self:StopSound( self.SoundName )
-		soundname = ""
+	if soundname and soundname ~= "" then
+		self.soundname = WireLib.SoundExists(soundname)
+	else
+		self:StopSound( self.soundname or "" )
+		self.soundname = nil
 	end
-
-	if (soundname == "") then
-		self:StopSound( self.soundname )
-	end
-
-	self.soundname = Sound( soundname )
-
-	--self:SetOverlayText( "Thrust = " .. 0 .. "\nMul: " .. math.Round(force*1000)/1000 )
 end
 
 function ENT:TriggerInput(iname, value)
@@ -241,7 +231,7 @@ function ENT:PhysicsSimulate( phys, deltatime )
 
 	self:CalcForce(phys)
 
-	return self.ForceAngular, self.ForceLinear, SIM_LOCAL_ACCELERATION
+	return self.ForceAngular, self.ForceLinear, SIM_GLOBAL_ACCELERATION
 end
 
 function ENT:Switch( on, mul )
@@ -252,7 +242,7 @@ function ENT:Switch( on, mul )
 
 
 	if (on) then
-		if (changed) and (self.soundname and self.soundname ~= "") then
+		if (changed) and self.soundname then
 			self:StopSound( self.soundname )
 			self:EmitSound( self.soundname )
 		end
@@ -261,7 +251,7 @@ function ENT:Switch( on, mul )
 
 		self:SetForce( nil, mul )
 	else
-		if (self.soundname and self.soundname ~= "") then
+		if self.soundname then
 			self:StopSound( self.soundname )
 		end
 

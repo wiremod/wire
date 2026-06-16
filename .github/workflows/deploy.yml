@@ -12,7 +12,7 @@ jobs:
 
       - name: Embed version
         run: |
-          echo -e "\ncachedversion = \"Workshop ${GITHUB_SHA:0:7}\"" >> lua/wire/server/wirelib.lua
+          echo -e "\nversion = $(date +%y%m%d)\nversion_string = \"Workshop $(date +%Y.%m.%d) (${GITHUB_SHA:0:7})\"" >> lua/wire/server/wirelib.lua
 
       - uses: wiremod/gmod-upload@master
         with:

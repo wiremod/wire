@@ -4,7 +4,6 @@ ENT.PrintName = "Motor"
 ENT.WireDebugName = "Motor"
 
 if CLIENT then
-	ENT.RenderGroup = RENDERGROUP_BOTH
 	return
 end
 

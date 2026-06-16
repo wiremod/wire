@@ -13,10 +13,6 @@ local allowed_directories = { --prefix with >(allowed directory)/file.txt for fi
 	["spushared"] = "spuchip/e2shared",
 }
 
-for _,dir in pairs( allowed_directories ) do
-	if not file.IsDir( dir, "DATA" ) then file.CreateDir( dir ) end
-end
-
 local function process_filepath( filepath )
 	if string.find( filepath, "..", 1, true ) then
 		return "e2files/", "noname.txt"
@@ -67,7 +63,16 @@ end)
 net.Receive("wire_expression2_file_download", function()
 	local path, name = process_filepath(net.ReadString())
 	local append = net.ReadBool()
-	if not E2Lib.isValidFileWritePath(name) then net.ReadStream(nil, function() end):Remove() return end
+	if not E2Lib.isValidFileWritePath(name) then
+		local stream = net.ReadStream(nil, function() end)
+		if stream then
+			stream:Remove()
+		else
+			ErrorNoHaltWithStack("Warning! Looks like the server uses an outdated version of Expression2's file module! Please update to the latest Wiremod version.")
+		end
+
+		return
+	end
 	if not file.Exists(path, "DATA") then file.CreateDir(path) end
 	net.ReadStream(nil, function(data)
 		if append then

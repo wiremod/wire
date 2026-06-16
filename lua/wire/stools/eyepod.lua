@@ -9,6 +9,8 @@ if ( CLIENT ) then
 	--panel control lang
 	language.Add( "WireEyePod_DefaultToZero", "Default Outputs To Zero When Inactive" )
 	language.Add( "WireEyePod_CumulativeOutput", "Output Cumulative Mouse Position" )
+
+	WireToolSetup.setToolMenuIcon("icon16/eye.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 15 )
@@ -53,7 +55,7 @@ if SERVER then
 				ClampY = 0
 			end
 		else
-			WireLib.AddNotify(ply, "Invalid Clamping of Wire EyePod Values!", NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP1)
+			WireLib.AddNotify(self:GetOwner(), "Invalid Clamping of Wire EyePod Values!", NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP1)
 			return 1, 0, 0, 0, 0, 0, 0, 0
 		end
 		return DefaultToZero, ShowRateOfChange, ClampXMin, ClampXMax, ClampYMin, ClampYMax, ClampX, ClampY

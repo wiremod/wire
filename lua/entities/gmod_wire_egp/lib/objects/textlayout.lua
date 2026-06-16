@@ -1,5 +1,5 @@
 -- Author: Divran
-local Obj = EGP.ObjectInherit("TextLayout", "Text")
+local Obj = E2Lib.EGP.ObjectInherit("TextLayout", "Text")
 Obj.h = 512
 Obj.w = 512
 Obj.CanTopLeft = true
@@ -23,19 +23,7 @@ function Obj:Draw(ent, drawMat)
 	if (self.text and #self.text>0) then
 		surface.SetTextColor( self.r, self.g, self.b, self.a )
 
-		local font = "WireEGP_" .. self.size .. "_" .. self.font
-		if (not EGP.ValidFonts_Lookup[font]) then
-			local fontTable =
-			{
-				font=self.font,
-				size = self.size,
-				weight = 800,
-				antialias = true,
-				additive = false
-			}
-			surface.CreateFont( font, fontTable )
-			EGP.ValidFonts_Lookup[font] = true
-		end
+		local font = EGP.CreateFont( self.font, self.size )
 		surface.SetFont( font )
 
 		--if (not self.layouter) then self.layouter = EGP:MakeTextLayouter() end -- Trying to make my own layouter...
@@ -92,9 +80,9 @@ function Obj:Draw(ent, drawMat)
 		]]
 	end
 end
-Obj.Transmit = function( self, Ent, ply )
+Obj.Transmit = function(self, ent, ply)
 	EGP.SendSize(self)
-	base.Transmit(self)
+	base.Transmit(self, ent, ply)
 end
 Obj.Receive = function( self )
 	local tbl = {}

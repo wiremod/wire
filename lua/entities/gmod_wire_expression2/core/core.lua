@@ -122,6 +122,23 @@ do
 			self:forceThrow(reason)
 		end
 	end
+
+	e2function void assertSoft(condition)
+		if condition == 0 then
+			self:throw("assert failed")
+		end
+	end
+
+	e2function void assertSoft(condition, string reason)
+		if condition == 0 then
+			self:throw(reason)
+		end
+	end
+
+	[nodiscard]
+	e2function number isStrict()
+		return self.strict and 1 or 0
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -192,6 +209,31 @@ e2function number entity:cpuUsage()
 	if not IsValid(this) or this:GetClass() ~= "gmod_wire_expression2" or not this.context then return 0 end
 	return this.context.timebench
 end
+
+__e2setcost(100) -- approximation
+
+[nodiscard]
+e2function number totalCpuUsage()
+	local owner = self.player
+	if not IsValid(owner) then return self.timebench end
+
+	local chips = E2Lib.PlayerChips[owner]
+	if not chips then return self.timebench end
+
+	return chips:getTotalTime()
+end
+
+[nodiscard]
+e2function number entity:totalCpuUsage()
+	if not IsValid(this) or not this:IsPlayer() then return 0 end
+
+	local chips = E2Lib.PlayerChips[owner]
+	if not chips then return 0 end
+
+	return chips:getTotalTime()
+end
+
+__e2setcost(1)
 
 --- If used as a while loop condition, stabilizes the expression around <maxexceed> hardquota used.
 [nodiscard]

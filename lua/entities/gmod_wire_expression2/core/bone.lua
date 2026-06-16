@@ -8,23 +8,17 @@ registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	end
 end)
 
-local bone2entity = {}
-local bone2index = {}
 local entity2bone = {}
 
 hook.Add("EntityRemoved", "wire_expression2_bone", function(ent)
-	if not entity2bone[ent] then return end
-	for index,bone in pairs(entity2bone[ent]) do
-		bone2entity[bone] = nil
-		bone2index[bone] = nil
+	if entity2bone[ent] then
+		entity2bone[ent] = nil
 	end
-	entity2bone[ent] = nil
 end)
 
 -- faster access to some math library functions
 local abs = math.abs
 local atan2 = math.atan2
-local sqrt = math.sqrt
 local asin = math.asin
 local Clamp = math.Clamp
 
@@ -37,9 +31,6 @@ local function getBone(entity, index)
 		bone = entity:GetPhysicsObjectNum(index)
 		if not bone then return nil end
 		entity2bone[entity][index] = bone
-
-		bone2entity[bone] = entity
-		bone2index[bone] = index
 	end
 
 	return IsValid(bone) and bone or nil
@@ -55,21 +46,19 @@ local function GetBones(entity)
 end
 E2Lib.GetBones = GetBones
 
-local function removeBone(bone)
-	bone2entity[bone] = nil
-	bone2index[bone] = nil
-end
+-- checks whether the bone is valid. if yes, returns the bone's entity and bone's index; otherwise, returns nil and 0.
+local function isValidBone(bone)
+	if type(bone) ~= "PhysObj" or not bone:IsValid() then return nil, 0 end
 
--- checks whether the bone is valid. if yes, returns the bone's entity and bone index; otherwise, returns nil.
-local function isValidBone(b)
-	if type(b) ~= "PhysObj" or not IsValid(b) then return nil, 0 end
-	local ent = bone2entity[b]
-	if not IsValid(ent) then
-		removeBone(b)
+	local ent = bone:GetEntity()
+
+	if not ent:IsValid() then
 		return nil, 0
 	end
-	return ent, bone2index[b]
+
+	return ent, bone:GetIndex()
 end
+
 E2Lib.isValidBone = isValidBone
 
 --[[************************************************************************]]--
@@ -105,8 +94,9 @@ end
 
 --- Returns an array containing all of <this>'s bones. This array's first element has the index 0!
 e2function array entity:bones()
-	if not IsValid(this) then return { } end
-	return table.Copy(GetBones(this))
+	if not IsValid(this) then return self:throw("Invalid entity!", {}) end
+	local bones = GetBones(this)
+	return table.move(bones, 0, #bones, 0, {})
 end
 
 --- Returns <this>'s number of bones.
@@ -124,20 +114,13 @@ end
 
 --- Returns the entity <this> belongs to
 e2function entity bone:entity()
-	return isValidBone(this)
+	return isValidBone(this) or NULL
 end
 
 --- Returns <this>'s index in the entity it belongs to. Returns -1 if the bone is invalid or an error occured.
 e2function number bone:index()
-	if not isValidBone(this) then return -1 end
-	--[[local ent = this:GetEntity()
-	if not IsValid(ent) then return -1 end
-	local maxn = ent:GetPhysicsObjectCount()-1
-	for i = 0,maxn do
-		if this == ent:GetPhysicsObjectNum(i) then return i end
-	end
-	return -1]]
-	return bone2index[this] or -1
+	local ent = isValidBone(this)
+	return ent and this:GetIndex() or -1
 end
 
 --[[************************************************************************]]--
@@ -401,18 +384,34 @@ e2function void bone:boneGravity(gravity)
 	this:EnableGravity( gravity ~= 0 )
 end
 
+e2function string bone:getBoneName()
+	local ent = isValidBone(this)
+	if not ent then return self:throw("Invalid bone!", "") end
+	return ent:GetBoneName(ent:TranslatePhysBoneToBone(this:GetIndex()))
+end
+
+e2function number bone:toModelBone()
+	local ent = isValidBone(this)
+	if not ent then return self:throw("Invalid bone!", -1) end
+	return ent:TranslatePhysBoneToBone(this:GetIndex())
+end
+
+e2function bone entity:fromModelBone(index)
+	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
+	return getBone(this, this:TranslateBoneToPhysBone(index))
+end
+
 -- helper function for invert(T) in table.lua
 function e2_tostring_bone(b)
 	local ent = isValidBone(b)
-	if not ent then return "(null)" end
-	return string.format("%s:bone(%d)", tostring(ent), bone2index[b])
+	if not ent then return "(null bone)" end
+	local idx = b:GetIndex()
+	return string.format("bone %d [%s][Entity %d]", idx, ent:GetBoneName(ent:TranslatePhysBoneToBone(idx)), ent:EntIndex())
 end
+local e2_tostring_bone = e2_tostring_bone
 
---- Returns <b> formatted as a string. Returns "<code>(null)</code>" for invalid bones.
 e2function string toString(bone b)
-	local ent = isValidBone(b)
-	if not ent then return "(null)" end
-	return string.format("%s:bone(%d)", tostring(ent), bone2index[b])
+	return e2_tostring_bone(b)
 end
 
 WireLib.registerDebuggerFormat("BONE", e2_tostring_bone)

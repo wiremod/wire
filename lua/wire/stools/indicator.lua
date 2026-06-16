@@ -19,8 +19,6 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 21 )
 
 if SERVER then
-	ModelPlug_Register("indicator")
-
 	function TOOL:GetConVars()
 		return self:GetClientNumber("a"),
 		math.Clamp(self:GetClientNumber("ar"),0,255),

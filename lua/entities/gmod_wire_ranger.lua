@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Ranger"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WantsTranslucency = true
 ENT.WireDebugName	= "Ranger"
 
 function ENT:SetupDataTables()
@@ -204,12 +204,6 @@ function ENT:Think()
 		if (not self.default_zero) then
 			dist = self:GetBeamLength()
 		end
-	end
-
-	if (COLOSSAL_SANDBOX) then
-		vel = vel * 6.25
-		pos = pos * 6.25
-		dist = dist * 6.25
 	end
 
 	self:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace)

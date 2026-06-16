@@ -42,7 +42,6 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	ModelPlug_Register("Numpad")
 	CreateConVar("wire_target_finders_maxtargets",10)
 	CreateConVar("wire_target_finders_maxbogeys",30)
 	function TOOL:GetConVars()

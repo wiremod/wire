@@ -1,0 +1,18 @@
+name: Bug report
+description: Create a report to help us improve
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Please note: This issue tracker is for bug reports**
+        If your issue isn't a bug report, or if you are unsure whether it's a bug, please go to our [discord](https://discord.gg/H8UKY3Y) channel instead
+  - type: textarea
+    id: describe-bug
+    attributes:
+      label: Describe the bug
+      description: Describe the error clearly and briefly
+  - type: textarea
+    id: reproduce-bug
+    attributes:
+      label: How to reproduce the bug
+      description: Describe step by step how to reproduce the bug

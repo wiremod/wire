@@ -21,6 +21,8 @@ if CLIENT then
 	language.Add( "Tool.wire_ranger.out_hnrm", "Output HitNormal" )
 	language.Add( "Tool.wire_ranger.hires", "High Resolution")
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon("icon16/webcam.png")
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
