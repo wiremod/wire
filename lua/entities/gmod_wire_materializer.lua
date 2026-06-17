@@ -47,7 +47,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:ShowOutput(value)
-	self:SetOverlayText("Material: " .. value)
+	self:SetOverlayText("Material: " .. tostring( value ) )
 end
 
 duplicator.RegisterEntityClass("gmod_wire_materializer", WireLib.MakeWireEnt, "Data", "Material", "Range")
