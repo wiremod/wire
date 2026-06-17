@@ -1,0 +1,7 @@
+## SHOULD_PASS:EXECUTE
+
+function number test() {
+    return 1    
+}
+
+"test"()

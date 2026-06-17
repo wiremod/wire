@@ -1832,7 +1832,7 @@ local CompileVisitors = {
 				local fn = state.funcs[sig] or state.funcs[meta_sig]
 				if fn then -- first check if user defined any functions that match signature
 					local r = state.funcs_ret[sig] or state.funcs_ret[meta_sig]
-					if r ~= ret_type then
+					if r ~= ret_type and not (ret_type == nil or r == "") then
 						state:forceThrow( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
 					end
 
@@ -1841,7 +1841,7 @@ local CompileVisitors = {
 					fn = wire_expression2_funcs[sig] or wire_expression2_funcs[meta_sig]
 					if fn then
 						local r = fn[2]
-						if r ~= ret_type and not (ret_type == nil and r == "") then
+						if r ~= ret_type and not (ret_type == nil or r == "") then
 							state:forceThrow( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
 						end
 
