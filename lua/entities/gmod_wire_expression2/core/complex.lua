@@ -18,8 +18,8 @@ local atan2 = math.atan2
 local function format(value)
 	local dbginfo
 
-	if abs(value[1]) < 0 then
-		if abs(value[2]) < 0 then
+	if abs(value[1]) <= 0 then
+		if abs(value[2]) <= 0 then
 			dbginfo = "0"
 		else
 			dbginfo = Round(value[2]*1000)/1000 .. "i"
@@ -28,7 +28,7 @@ local function format(value)
 		if value[2] > 0 then
 			dbginfo = Round(value[1]*1000)/1000 .. "+" .. Round(value[2]*1000)/1000 .. "i"
 		elseif abs(value[2]) <= 0 then
-			dbginfo = Round(value[1]*1000)/1000
+			dbginfo = tostring(Round(value[1]*1000)/1000)
 		elseif value[2] < 0 then
 			dbginfo = Round(value[1]*1000)/1000 .. Round(value[2]*1000)/1000 .. "i"
 		end
