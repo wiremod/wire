@@ -84,14 +84,14 @@ function WireLib.TriggerInput(ent, name, value, ...)
 		input.TriggerLimit = input.TriggerLimit - 1
 	end
 
-	local ok, ret = xpcall(triggerInput, debug.traceback, ent, name, value, ...)
+	local ok = ProtectedCall(triggerInput, ent, name, value, ...)
+
 	if not ok then
 		local ply = WireLib.GetOwner(ent)
-		local validPly = IsValid(ply)
-		local owner_msg = validPly and (" by %s"):format(tostring(ply)) or ""
-		local message = ("Wire error (%s%s):\n%s\n"):format(tostring(ent), owner_msg, ret)
-		WireLib.ErrorNoHalt(message)
-		if validPly then WireLib.ClientError(message, ply) end
+
+		if IsValid(ply) then
+			WireLib.ClientError("Wire error (" .. tostring(ent) .. ")", ply)
+		end
 	end
 end
 
