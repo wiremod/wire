@@ -10,15 +10,7 @@ local Token, TokenVariant = E2Lib.Tokenizer.Token, E2Lib.Tokenizer.Variant
 local Node, NodeVariant = E2Lib.Parser.Node, E2Lib.Parser.Variant
 local Operator = E2Lib.Operator
 local newE2Table = E2Lib.newE2Table
-
 local pairs, ipairs = pairs, ipairs
-
-local TickQuota = GetConVar("wire_expression2_quotatick"):GetInt()
-
-cvars.RemoveChangeCallback("wire_expression2_quotatick", "compiler_quota_check")
-cvars.AddChangeCallback("wire_expression2_quotatick", function(_, old, new)
-	TickQuota = tonumber(new)
-end, "compiler_quota_check")
 
 ---@class ScopeData
 ---@field dead "ret"|true?
@@ -265,7 +257,7 @@ local CompileVisitors = {
 		if self.scope:ResolveData("loop") or self.scope:ResolveData("switch_case") then -- Inside loop or switch case, check if continued or broken
 			return function(state) ---@param state RuntimeContext
 				state.prf = state.prf + cost
-				if state.prf > TickQuota then error("perf", 0) end
+				if state.prf > e2_tickquota then error("perf", 0) end
 
 				for i = 1, nstmts do
 					state.trace = traces[i]
@@ -276,7 +268,7 @@ local CompileVisitors = {
 		elseif self.scope:ResolveData("function") then -- If inside a function, check if returned.
 			return function(state) ---@param state RuntimeContext
 				state.prf = state.prf + cost
-				if state.prf > TickQuota then error("perf", 0) end
+				if state.prf > e2_tickquota then error("perf", 0) end
 
 				for i = 1, nstmts do
 					state.trace = traces[i]
@@ -287,7 +279,7 @@ local CompileVisitors = {
 		else -- Most optimized case, not inside a function or loop.
 			return function(state) ---@param state RuntimeContext
 				state.prf = state.prf + cost
-				if state.prf > TickQuota then error("perf", 0) end
+				if state.prf > e2_tickquota then error("perf", 0) end
 
 				for i = 1, nstmts do
 					state.trace = traces[i]
