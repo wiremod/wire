@@ -10,15 +10,7 @@ local Token, TokenVariant = E2Lib.Tokenizer.Token, E2Lib.Tokenizer.Variant
 local Node, NodeVariant = E2Lib.Parser.Node, E2Lib.Parser.Variant
 local Operator = E2Lib.Operator
 local newE2Table = E2Lib.newE2Table
-
 local pairs, ipairs = pairs, ipairs
-
-local TickQuota = GetConVar("wire_expression2_quotatick"):GetInt()
-
-cvars.RemoveChangeCallback("wire_expression2_quotatick", "compiler_quota_check")
-cvars.AddChangeCallback("wire_expression2_quotatick", function(_, old, new)
-	TickQuota = tonumber(new)
-end, "compiler_quota_check")
 
 ---@class ScopeData
 ---@field dead "ret"|true?
@@ -265,7 +257,7 @@ local CompileVisitors = {
 		if self.scope:ResolveData("loop") or self.scope:ResolveData("switch_case") then -- Inside loop or switch case, check if continued or broken
 			return function(state) ---@param state RuntimeContext
 				state.prf = state.prf + cost
-				if state.prf > TickQuota then error("perf", 0) end
+				if state.prf > e2_tickquota then error("perf", 0) end
 
 				for i = 1, nstmts do
 					state.trace = traces[i]
@@ -276,7 +268,7 @@ local CompileVisitors = {
 		elseif self.scope:ResolveData("function") then -- If inside a function, check if returned.
 			return function(state) ---@param state RuntimeContext
 				state.prf = state.prf + cost
-				if state.prf > TickQuota then error("perf", 0) end
+				if state.prf > e2_tickquota then error("perf", 0) end
 
 				for i = 1, nstmts do
 					state.trace = traces[i]
@@ -287,7 +279,7 @@ local CompileVisitors = {
 		else -- Most optimized case, not inside a function or loop.
 			return function(state) ---@param state RuntimeContext
 				state.prf = state.prf + cost
-				if state.prf > TickQuota then error("perf", 0) end
+				if state.prf > e2_tickquota then error("perf", 0) end
 
 				for i = 1, nstmts do
 					state.trace = traces[i]
@@ -1832,7 +1824,7 @@ local CompileVisitors = {
 				local fn = state.funcs[sig] or state.funcs[meta_sig]
 				if fn then -- first check if user defined any functions that match signature
 					local r = state.funcs_ret[sig] or state.funcs_ret[meta_sig]
-					if r ~= ret_type then
+					if r ~= ret_type and not (ret_type == nil or r == "") then
 						state:forceThrow( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
 					end
 
@@ -1841,7 +1833,7 @@ local CompileVisitors = {
 					fn = wire_expression2_funcs[sig] or wire_expression2_funcs[meta_sig]
 					if fn then
 						local r = fn[2]
-						if r ~= ret_type and not (ret_type == nil and r == "") then
+						if r ~= ret_type and not (ret_type == nil or r == "") then
 							state:forceThrow( "Mismatching return types. Got " .. (r or "void") .. ", expected " .. (ret_type or "void"))
 						end
 

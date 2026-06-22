@@ -263,7 +263,7 @@ function ENT:SendHUDInfo(hidehud)
 	local pl = self:GetPlayer()
 
 	for index,rplayer in pairs(self.RegisteredPlayers) do
-		if (rplayer.ply) then
+		if (IsValid(rplayer.ply)) then
 			if rplayer.ply ~= pl or (self.ShowInHUD or self.PodPly == pl) then
 				umsg.Start("HUDIndicatorHideHUD", rplayer.ply)
 					umsg.Short(self:EntIndex())
