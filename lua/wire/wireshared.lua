@@ -407,13 +407,6 @@ WireLib.NetQueue = {
 setmetatable(WireLib.NetQueue, WireLib.NetQueue)
 end
 
-function WireLib.ErrorNoHalt(message)
-	-- ErrorNoHalt clips messages to 512 characters, so chain calls if necessary
-	for i=1,#message, 511 do
-		ErrorNoHalt(message:sub(i,i+510))
-	end
-end
-
 --- Generate a random version 4 UUID and return it as a string.
 function WireLib.GenerateUUID()
 	-- It would be easier to generate this by word rather than by byte, but
