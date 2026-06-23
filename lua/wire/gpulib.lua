@@ -299,7 +299,7 @@ if CLIENT then
 		render.SetViewPort(0, 0, 1024, 1024)
 		cam.Start2D()
 			local ok, err = xpcall(renderfunction, debug.traceback)
-			if not ok then WireLib.ErrorNoHalt(err) end
+			if not ok then ErrorNoHalt(err) end
 		cam.End2D()
 		render.SetViewPort(0, 0, oldw, oldh)
 		render.SetRenderTarget(OldRT)
@@ -326,7 +326,7 @@ if CLIENT then
 		local res = monitor.RS*1024/h
 		cam.Start3D2D(pos, ang, res)
 			local ok, err = xpcall(renderfunction, debug.traceback, x, y, w, h, monitor, pos, ang, res)
-			if not ok then WireLib.ErrorNoHalt(err) end
+			if not ok then ErrorNoHalt(err) end
 		cam.End3D2D()
 	end
 
@@ -371,7 +371,7 @@ if CLIENT then
 
 				if postrenderfunction then postrenderfunction(pos, ang, res, aspect, monitor) end
 			end, debug.traceback)
-			if not ok then WireLib.ErrorNoHalt(err) end
+			if not ok then ErrorNoHalt(err) end
 		cam.End3D2D()
 
 		WireGPU_matScreen:SetTexture("$basetexture", OldTex)

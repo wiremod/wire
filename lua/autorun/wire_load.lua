@@ -15,12 +15,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ]]--
 
-if VERSION < 140403 and VERSION > 5 then
-	-- VERSION > 5 check added June 2013, to address issues regarding the Steampipe update sometimes setting VERSION to 1.
-	ErrorNoHalt("WireMod: This branch of wiremod only supports Gmod13+.\n")
-	return
-end
-
 if SERVER then
 	-- this file
 	AddCSLuaFile("autorun/wire_load.lua")
