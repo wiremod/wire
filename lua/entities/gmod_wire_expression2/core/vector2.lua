@@ -99,6 +99,18 @@ e2function vector2 operator/(vector2 lhs, vector2 rhs)
 	return { lhs[1] / rhs[1], lhs[2] / rhs[2] }
 end
 
+e2function vector2 operator%(lhs, vector2 rhs)
+	return { lhs % rhs[1], lhs % rhs[2] }
+end
+
+e2function vector2 operator%(vector2 lhs, rhs)
+	return { lhs[1] % rhs, lhs[2] % rhs }
+end
+
+e2function vector2 operator%(vector2 lhs, vector2 rhs)
+	return { lhs[1] % rhs[1], lhs[2] % rhs[2] }
+end
+
 registerOperator("indexget", "xv2n", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 2) + 0.5)]
 end)
@@ -421,7 +433,7 @@ end
   4D Vector support
 \******************************************************************************/
 
--- NOTE: These are purely cartesian 4D vectors, so "w" denotes the 4th coordinate rather than a scaling factor as with an homogeneous coordinate system
+-- NOTE: These are purely cartesian 4D vectors, so "w" denotes the 4th coordinate rather than a scaling factor as with a homogeneous coordinate system
 
 /******************************************************************************/
 
@@ -566,6 +578,24 @@ registerOperator("div", "xv4xv4", "xv4", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 	return { rv1[1] / rv2[1], rv1[2] / rv2[2], rv1[3] / rv2[3], rv1[4] / rv2[4] }
+end)
+
+registerOperator("mod", "nxv4", "xv4", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	return { rv1 % rv2[1], rv1 % rv2[2], rv1 % rv2[3], rv1 % rv2[4] }
+end)
+
+registerOperator("mod", "xv4n", "xv4", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	return { rv1[1] % rv2, rv1[2] % rv2, rv1[3] % rv2, rv1[4] % rv2 }
+end)
+
+registerOperator("mod", "xv4xv4", "xv4", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	return { rv1[1] % rv2[1], rv1[2] % rv2[2], rv1[3] % rv2[3], rv1[4] % rv2[4] }
 end)
 
 registerOperator("indexget", "xv4n", "n", function(state, this, index)

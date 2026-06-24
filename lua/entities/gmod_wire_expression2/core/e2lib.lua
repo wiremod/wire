@@ -550,6 +550,12 @@ E2Lib.optable_inv = {
 	asub = "-=",
 	amul = "*=",
 	adiv = "/=",
+	amod = "%=",
+	aband = "&&=",
+	abor = "||=",
+	abxor = "^^=",
+	abshr = ">>=",
+	abshl = "<<=",
 	inc = "++",
 	dec = "--",
 	eq = "==",
@@ -723,60 +729,72 @@ local Operator = {
 	Exp = 6,
 	-- `=`
 	Ass = 7,
-	-- +=
+	-- `+=`
 	Aadd = 8,
-	-- -=
+	-- `-=`
 	Asub = 9,
 	-- `*=`
 	Amul = 10,
 	-- `/=`
 	Adiv = 11,
+	-- `%=`
+	Amod = 12,
+	-- ``&&=`
+	Aband = 13,
+	-- `||=`
+	Abor = 14,
+	-- `^^=`
+	Abxor = 15,
+	-- `>>=`
+	Abshr = 16,
+	-- `<<=`
+	Abshl = 17,
 	-- `++`
-	Inc = 12,
+	Inc = 18,
 	-- `--`
-	Dec = 13,
+	Dec = 19,
 	-- `==`
-	Eq = 14,
+	Eq = 20,
 	-- `!=`
-	Neq = 15,
+	Neq = 21,
 	-- `<`
-	Lth = 16,
+	Lth = 22,
 	-- `>=`
-	Geq = 17,
+	Geq = 23,
 	-- `<=`
-	Leq = 18,
+	Leq = 24,
 	-- `>`
-	Gth = 19,
+	Gth = 25,
 	-- `&&`
-	Band = 20,
+	Band = 26,
 	-- `||`
-	Bor = 21,
+	Bor = 27,
 	-- `^^`
-	Bxor = 22,
+	Bxor = 28,
 	-- `>>`
-	Bshr = 23,
+	Bshr = 29,
 	-- `<<`
-	Bshl = 24,
+	Bshl = 30,
 	-- `!`
-	Not = 25,
+	Not = 31,
 	-- `&`
-	And = 26,
+	And = 32,
 	-- `|`
-	Or = 27,
+	Or = 33,
 	-- `?`
-	Qsm = 28,
+	Qsm = 34,
 	-- `:`
-	Col = 29,
+	Col = 35,
 	-- `?:`
-	Def = 30,
+	Def = 36,
 	-- `$`
-	Dlt = 31,
+	Dlt = 37,
 	-- `~`
-	Trg = 32,
+	Trg = 38,
 	-- `->`
-	Imp = 33,
+	Imp = 39,
 	-- `...`
-	Spread = 34
+	Spread = 40
 }
 
 E2Lib.Operator = Operator
@@ -791,13 +809,14 @@ E2Lib.OperatorNames = OperatorNames
 local OperatorLookup = {
 	["+"] = Operator.Add, ["-"] = Operator.Sub, ["*"] = Operator.Mul, ["/"] = Operator.Div,
 	["%"] = Operator.Mod, ["^"] = Operator.Exp, ["="] = Operator.Ass, ["+="] = Operator.Aadd,
-	["-="] = Operator.Asub, ["*="] = Operator.Amul, ["/="] = Operator.Adiv, ["++"] = Operator.Inc,
-	["--"] = Operator.Dec, ["=="] = Operator.Eq, ["!="] = Operator.Neq, ["<"] = Operator.Lth,
-	[">="] = Operator.Geq, ["<="] = Operator.Leq, [">"] = Operator.Gth, ["&&"] = Operator.Band,
-	["||"] = Operator.Bor, ["^^"] = Operator.Bxor, [">>"] = Operator.Bshr, ["<<"] = Operator.Bshl,
-	["!"] = Operator.Not, ["&"] = Operator.And, ["|"] = Operator.Or, ["?"] = Operator.Qsm,
-	[":"] = Operator.Col, ["?:"] = Operator.Def, ["$"] = Operator.Dlt, ["~"] = Operator.Trg,
-	["->"] = Operator.Imp, ["..."] = Operator.Spread
+	["-="] = Operator.Asub, ["*="] = Operator.Amul, ["/="] = Operator.Adiv, ["%="] = Operator.Amod,
+	["&&="] = Operator.Aband, ["||="] = Operator.Abor, ["^^="] = Operator.Abxor, [">>="] = Operator.Abshr,
+	["<<="] = Operator.Abshl, ["++"] = Operator.Inc, ["--"] = Operator.Dec, ["=="] = Operator.Eq,
+	["!="] = Operator.Neq, ["<"] = Operator.Lth, [">="] = Operator.Geq, ["<="] = Operator.Leq,
+	[">"] = Operator.Gth, ["&&"] = Operator.Band, ["||"] = Operator.Bor, ["^^"] = Operator.Bxor,
+	[">>"] = Operator.Bshr, ["<<"] = Operator.Bshl, ["!"] = Operator.Not, ["&"] = Operator.And,
+	["|"] = Operator.Or, ["?"] = Operator.Qsm, [":"] = Operator.Col, ["?:"] = Operator.Def,
+	["$"] = Operator.Dlt, ["~"] = Operator.Trg, ["->"] = Operator.Imp, ["..."] = Operator.Spread
 }
 
 E2Lib.OperatorLookup = OperatorLookup

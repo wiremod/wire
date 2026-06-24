@@ -133,6 +133,18 @@ e2function vector operator/(vector lhs, vector rhs)
 	return Vector( lhs[1] / rhs[1], lhs[2] / rhs[2], lhs[3] / rhs[3] )
 end
 
+e2function vector operator%(lhs, vector rhs)
+	return Vector( lhs % rhs[1], lhs % rhs[2], lhs % rhs[3] )
+end
+
+e2function vector operator%(vector lhs, rhs)
+	return Vector( lhs[1] % rhs, lhs[2] % rhs, lhs[3] % rhs )
+end
+
+e2function vector operator%(vector lhs, vector rhs)
+	return Vector( lhs[1] % rhs[1], lhs[2] % rhs[2], lhs[3] % rhs[3] )
+end
+
 registerOperator("indexget", "vn", "n", function(state, this, index)
 	return this[floor(math.Clamp(index, 1, 3) + 0.5)]
 end)
