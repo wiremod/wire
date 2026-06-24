@@ -40,7 +40,8 @@ if CLIENT then
 		self:SetRenderBounds(mn + Vector(0,0,128), mx, 0)
 	end
 
-	function ENT:DrawTranslucent()
+	function ENT:DrawTranslucent(flags)
+		BaseClass.DrawTranslucent(self, flags)
 		if self.ShouldDraw == 0 or not self:IsOn() then return end
 
 		local EffectDraw = WireLib.ThrusterEffectDraw[self:GetEffect()]
