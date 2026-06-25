@@ -34,7 +34,8 @@ if CLIENT then
 		return Color( self:GetR(), self:GetG(), self:GetB(), 255 )
 	end
 
-	function ENT:DrawTranslucent()
+	function ENT:DrawTranslucent(flags)
+		BaseClass.DrawTranslucent(self, flags)
 		if not self:GetOn() then return end
 
 		local LightPos = self:GetPos()
