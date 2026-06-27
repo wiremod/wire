@@ -19,6 +19,7 @@ local types_lookup = {
 	VECTOR = Vector(0,0,0),
 	VECTOR2 = {0,0},
 	VECTOR4 = {0,0,0,0},
+	QUATERNION = {1,0,0,0},
 	STRING = "",
 }
 
@@ -45,7 +46,7 @@ function parsers.NORMAL( val )
 end
 function parsers.VECTOR ( val )
 	local x,y,z = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" )
-	if tonumber(x) and tonumber(y) and tonumber(y) then
+	if tonumber(x) and tonumber(y) and tonumber(z) then
 		return Vector(tonumber(x),tonumber(y),tonumber(z))
 	end
 end
@@ -55,7 +56,7 @@ function parsers.VECTOR2( val )
 end
 function parsers.VECTOR4( val )
 	local x, y, z, w = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" )
-	if tonumber(x) and tonumber(y) and tonumber(y) and tonumber(w) then
+	if tonumber(x) and tonumber(y) and tonumber(z) and tonumber(w) then
 		return {tonumber(x),tonumber(y),tonumber(z),tonumber(w)}
 	end
 end
@@ -63,6 +64,12 @@ function parsers.ANGLE( val )
 	local p,y,r = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" )
 	if tonumber(p) and tonumber(y) and tonumber(r) then
 		return Angle(tonumber(p),tonumber(y),tonumber(r))
+	end
+end
+function parsers.QUATERNION( val )
+	local w, x, y, z = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" )
+	if tonumber(w) and tonumber(x) and tonumber(y) and tonumber(z) then
+		return { tonumber(w), tonumber(x), tonumber(y), tonumber(z) }
 	end
 end
 parsers.STRING = WireLib.ParseEscapes

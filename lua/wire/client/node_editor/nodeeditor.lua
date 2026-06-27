@@ -8,9 +8,10 @@ FPGATypeColor = {
 	ANGLE = Color(100, 200, 100, 255), --Light green
 	STRING = Color(250, 160, 90, 255), --Orange
 	ARRAY = Color(20, 110, 20, 255), --Dark green
-	ENTITY = Color(255, 100, 100, 255), --Dark red
+	ENTITY = Color(255, 100, 100, 255), --Red
 	RANGER = Color(130, 100, 60, 255), --Brown
 	WIRELINK = Color(200, 80, 200, 255), --Deep purple
+	QUATERNION = Color(161, 35, 18), --Tomato red
 }
 
 --GATE HELPERS
@@ -1319,7 +1320,25 @@ function Editor:PaintGate(nodeId, node, gate)
 			surface.DrawText(node.ioName)
 		-- Constant
 		elseif node.value then
-			local s = util.TypeToString(node.value)
+			local s
+
+			if getOutputType(gate, 1) == "QUATERNION" then
+				if node.valueAsString and node.valueAsString ~= "" then
+					s = node.valueAsString
+				elseif istable(node.value) then
+					s = string.format("%g, %g, %g, %g",
+						tonumber(node.value[1]) or 1,
+						tonumber(node.value[2]) or 0,
+						tonumber(node.value[3]) or 0,
+						tonumber(node.value[4]) or 0
+					)
+				else
+					s = "1, 0, 0, 0"
+				end
+			else
+				s = util.TypeToString(node.value)
+			end
+
 			local tx, ty = surface.GetTextSize(s)
 			surface.SetTextPos(x - tx / 2, y - ty / 2 + size / 1.2)
 			surface.DrawText(s)
@@ -2661,6 +2680,11 @@ local function validateVector(string)
 	return tonumber(x) ~= nil and tonumber(y) ~= nil and tonumber(z) ~= nil, x, y, z
 end
 
+local function validateQuaternion(string)
+	local w, x, y, z = string.match(string, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$")
+	return tonumber(w) ~= nil and tonumber(x) ~= nil and tonumber(y) ~= nil and tonumber(z) ~= nil, w, x, y, z
+end
+
 function Editor:OpenConstantSetWindow(node, x, y, type)
 	if not self.ConstantSetWindow then self:CreateConstantSetWindow() end
 	self.ConstantSetNormal:SetVisible(false)
@@ -2730,6 +2754,24 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
 		end
 		self.ConstantSetString.OnChange = function(pnl)
 			valid, _, _, _ = validateVector(pnl:GetValue())
+			if valid then pnl:SetTextColor(color_black)
+			else pnl:SetTextColor(invalidColor) end
+		end
+	elseif type == "QUATERNION" then
+		self.ConstantSetString:SetVisible(true)
+		self.ConstantSetString:SetText(node.valueAsString or (node.value[1] .. ", " .. node.value[2] .. ", " .. node.value[3] .. ", " .. node.value[4]))
+		self.ConstantSetString:RequestFocus()
+		self.ConstantSetString.OnEnter = function(pnl)
+			local valid, w, x, y, z = validateQuaternion(pnl:GetValue())
+			if valid then
+				node.value = { tonumber(w), tonumber(x), tonumber(y), tonumber(z) }
+				node.valueAsString = pnl:GetValue()
+				pnl:SetVisible(false)
+				pnl:GetParent():Close()
+			end
+		end
+		self.ConstantSetString.OnChange = function(pnl)
+			local valid = validateQuaternion(pnl:GetValue())
 			if valid then pnl:SetTextColor(color_black)
 			else pnl:SetTextColor(invalidColor) end
 		end
