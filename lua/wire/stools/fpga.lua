@@ -34,6 +34,7 @@ if SERVER then
 	util.AddNetworkString("FPGA_Upload")
 	util.AddNetworkString("FPGA_Download")
 	util.AddNetworkString("FPGA_OpenEditor")
+	util.AddNetworkString("wire_fpga_editor_status")
 
 	-- Reset
 	function TOOL:Reload(trace)
@@ -204,6 +205,30 @@ if SERVER then
 		end
 	end)
 
+	local wire_fpga_event = {}
+
+	concommand.Add("wire_fpga_event", function(ply, command, args)
+		local handler = wire_fpga_event[args[1]]
+		if not handler then return end
+		return handler(ply, args)
+	end)
+
+	-- actual editor open/close handlers
+
+	function wire_fpga_event.editor_open(ply, args)
+		net.Start("wire_fpga_editor_status")
+		net.WriteEntity(ply)
+		net.WriteBit(true)
+		net.Broadcast()
+	end
+
+	function wire_fpga_event.editor_close(ply, args)
+		net.Start("wire_fpga_editor_status")
+		net.WriteEntity(ply)
+		net.WriteBit(false)
+		net.Broadcast()
+	end
+
 end
 
 
@@ -367,4 +392,321 @@ if CLIENT then
 		end
 
 	end
+
+	local min = math.min
+	local surface_DrawPoly = surface.DrawPoly
+	local surface_SetDrawColor = surface.SetDrawColor
+
+	local function tableValue(t, v)
+		local keys = {}
+		for k in pairs(t) do
+			keys[#keys+1] = k
+		end
+		return t[keys[(v - 1) % #keys + 1]]
+	end
+
+	local nodeColor = Color(100, 100, 100, 255)
+
+	local size = 100
+	local padding = 100
+
+	local node1x, node1y = -padding * 1.5, padding
+	local node2x, node2y =  padding * 1.5, -padding
+
+	local springStrength = 40
+	local damping = 3
+	local impulsePower = 200
+
+	local radialSpringStrength = 16
+	local radialDamping = 6
+
+	local curveSegments = 30
+	local thickness = 10
+	local half = thickness * 0.5
+
+	local function UpdateSpring(node, ft)
+		local force = -(springStrength * node.offset + damping * node.vel)
+		node.vel = node.vel + force * ft
+		node.offset = node.offset + node.vel * ft
+	end
+
+	local function BuildBaseCurve(state, dir)
+		state.baseCurve = {}
+
+		local startX, startY, endX, endY
+		local cx1, cy1, cx2, cy2
+
+		if dir == 1 then
+			startX = node1x + size * 0.5
+			startY = node1y
+			endX   = node2x - size * 0.5
+			endY   = node2y
+
+			cx1, cy1 = 0, startY
+			cx2, cy2 = 0, endY
+
+			state.reversed = false
+		else
+			startX = node2x + size * 0.5
+			startY = node2y
+			endX   = node1x - size * 0.5
+			endY   = node1y
+
+			cx1, cy1 = startX + size * 2, startY + size * 2
+			cx2, cy2 = endX - size * 2, endY - size * 2
+
+			state.reversed = true
+		end
+
+		local prevX, prevY
+
+		for i = 0, curveSegments do
+			local t = i / curveSegments
+
+			local it = 1 - t
+			local it2 = it * it
+			local it3 = it2 * it
+			local t2 = t * t
+			local t3 = t2 * t
+
+			local x =
+				it3 * startX +
+				3 * it2 * t * cx1 +
+				3 * it * t2 * cx2 +
+				t3 * endX
+
+			local y =
+				it3 * startY +
+				3 * it2 * t * cy1 +
+				3 * it * t2 * cy2 +
+				t3 * endY
+
+			if prevX then
+				state.baseCurve[#state.baseCurve + 1] = {
+					x1 = prevX,
+					y1 = prevY,
+					x2 = x,
+					y2 = y,
+					t1 = (i - 1) / curveSegments,
+					t2 = i / curveSegments
+				}
+			end
+
+			prevX, prevY = x, y
+		end
+	end
+
+	local function NewAnimState()
+		local state = {
+			tStart = 0,
+			tEnd = 0,
+			dir = 1,
+			phase = 1,
+			speed = 2.5,
+			holdTime = 1,
+			holdTimer = 0,
+			reversed = false,
+			baseCurve = {},
+			node1 = { offset = 0, vel = 0 },
+			node2 = { offset = 0, vel = 0 },
+			lastFrame = 0,
+			color = 1,
+			swapSpringPos = 0,
+			swapSpringVel = 0,
+			lastUpdateTime = 0
+		}
+		BuildBaseCurve(state, 1)
+		return state
+	end
+
+	local busy_players = WireLib.RegisterPlayerTable()
+	net.Receive("wire_fpga_editor_status", function(len)
+		local ply = net.ReadEntity()
+		local status = net.ReadBit() ~= 0
+		if not IsValid(ply) then return end
+
+		busy_players[ply] = status and NewAnimState() or nil
+	end)
+
+	local function DrawCachedCurve(state)
+		surface_SetDrawColor(tableValue(FPGATypeColor, state.color))
+
+		local tStart = state.tStart
+		local tEnd   = state.tEnd
+		local node1  = state.node1
+		local node2  = state.node2
+
+		local startIndex = math.floor(tStart * curveSegments)
+		local endIndex   = math.floor(tEnd   * curveSegments)
+
+		for i = startIndex + 1, endIndex do
+			local seg = state.baseCurve[i]
+			if seg then
+				local t1 = seg.t1
+				local t2 = seg.t2
+
+				if state.reversed then
+					t1 = 1 - t1
+					t2 = 1 - t2
+				end
+
+				local offset1 = node1.offset * (1 - t1) + node2.offset * t1
+				local offset2 = node1.offset * (1 - t2) + node2.offset * t2
+
+				local y1 = seg.y1 + offset1
+				local y2 = seg.y2 + offset2
+
+				local dx = seg.x2 - seg.x1
+				local dy = y2 - y1
+
+				local nx = dy
+				local ny = -dx
+
+				local len = (nx * nx + ny * ny) ^ 0.5
+				if len > 0 then
+					nx = nx / len * half
+					ny = ny / len * half
+				end
+
+				surface_DrawPoly({
+					{ x = seg.x1 - nx, y = y1 - ny },
+					{ x = seg.x1 + nx, y = y1 + ny },
+					{ x = seg.x2 + nx, y = y2 + ny },
+					{ x = seg.x2 - nx, y = y2 - ny }
+				})
+			end
+		end
+	end
+
+	local pi = math.pi
+	local function ArcPos(t, cx, cy, r, a0, a1)
+		local a = a0 + (a1 - pi - a0) * t
+		return cx + math.cos(a) * r, cy + math.sin(a) * r
+	end
+
+	local function UpdateAnim(state, ft)
+		local anim = state
+
+		UpdateSpring(anim.node1, ft)
+		UpdateSpring(anim.node2, ft)
+
+		if anim.phase == 1 then
+			anim.tEnd = min(1, anim.tEnd + anim.speed * ft)
+			if anim.tEnd >= 1 then
+				anim.phase = 2
+				anim.holdTimer = 0
+
+				if anim.dir == 1 then
+					anim.node2.vel = anim.node2.vel - impulsePower
+				else
+					anim.node1.vel = anim.node1.vel - impulsePower
+				end
+			end
+
+		elseif anim.phase == 2 then
+			anim.holdTimer = anim.holdTimer + ft
+			if anim.holdTimer >= anim.holdTime then
+				anim.phase = 3
+			end
+
+		elseif anim.phase == 3 then
+			anim.tStart = min(1, anim.tStart + anim.speed * ft)
+			if anim.tStart >= 1 then
+				anim.tStart = 0
+				anim.tEnd = 0
+				anim.phase = anim.dir == -1 and 4 or 1
+				anim.swapTimer = 0
+				anim.dir = -anim.dir
+				anim.color = anim.color + 1
+				BuildBaseCurve(anim, anim.dir)
+
+			end
+
+		elseif anim.phase == 4 then
+
+			local force = -(radialSpringStrength * (anim.swapSpringPos - 1) + radialDamping * anim.swapSpringVel)
+			anim.swapSpringVel = anim.swapSpringVel + force * ft
+			anim.swapSpringPos = anim.swapSpringPos + anim.swapSpringVel * ft
+
+			if math.abs(anim.swapSpringPos - 1) < 0.01 and math.abs(anim.swapSpringVel) < 0.02 then
+				anim.phase = 1
+				anim.swapSpringPos = 0
+			end
+		end
+	end
+
+	local cx = (node1x + node2x) * 0.5
+	local cy = (node1y + node2y) * 0.5
+
+	local dx = node1x - cx
+	local dy = node1y - cy
+	local r = math.sqrt(dx * dx + dy * dy)
+
+	local a1 = math.atan2(node1y - cy, node1x - cx)
+	local a2 = math.atan2(node2y - cy, node2x - cx)
+
+	local FPS_LIMIT = 1 / 60
+
+	hook.Add("PostPlayerDraw", "wire_fpga_editor_status", function(ply)
+		local state = busy_players[ply]
+		if not state then return end
+
+		local lastUpdate = state.lastUpdateTime
+		local now = RealTime()
+		if now - lastUpdate >= FPS_LIMIT then
+			UpdateAnim(state, now - lastUpdate)
+			state.lastUpdateTime = now
+		end
+
+		local BoneIndx = ply:LookupBone("ValveBiped.Bip01_Head1") or ply:LookupBone("ValveBiped.HC_Head_Bone") or 0
+		local BonePos, _BoneAng = ply:GetBonePosition(BoneIndx)
+
+		local pos = BonePos + ply:GetUp() * (16 + state.swapSpringVel * 4)
+
+		local angle = (pos - EyePos()):GetNormalized():Angle()
+		angle = Angle(0, angle.y, 0)
+		angle:RotateAroundAxis(angle:Up(), -90)
+		angle:RotateAroundAxis(angle:Forward(), 90)
+
+		cam.Start3D2D(pos, angle, 0.05)
+
+			local n1x = node1x
+			local n1y = node1y - size * 0.5 + state.node1.offset
+			local n2x = node2x
+			local n2y = node2y - size * 0.5 + state.node2.offset
+
+			if state.phase == 4 then
+
+				local t = state.swapSpringPos
+
+				local an1x, an1y = ArcPos(t, cx, cy, r, a1, a1)
+				local an2x, an2y = ArcPos(t, cx, cy, r, a2, a2)
+
+				n1x = an1x
+				n1y = an1y - size * 0.5
+				n2x = an2x
+				n2y = an2y - size * 0.5
+			end
+
+			if state.phase ~= 4 then
+				DrawCachedCurve(state)
+			end
+
+			draw.RoundedBox(12,
+				n1x - size * 0.5,
+				n1y,
+				size, size,
+				nodeColor
+			)
+
+			draw.RoundedBox(12,
+				n2x - size * 0.5,
+				n2y,
+				size, size,
+				nodeColor
+			)
+
+		cam.End3D2D()
+	end)
+
 end
