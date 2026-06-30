@@ -418,15 +418,48 @@ local function ReturnFailure( this )
 	return {-1,-1}
 end
 
+local EmitterCursorOffset = Vector( -64, 0, 64 )
+local DefaultEmitterOffset = Vector( 0, 0, 71 )
+local DefaultEmitterAngle = Angle( 0, 0, 90 )
+local DefaultEmitterScale = 0.25
+local function GetEmitterCursorTransform( this )
+	local useRT = this.GetUseRT and this:GetUseRT()
+
+	local scale = this:GetDrawScale()
+	if not scale or scale == 0 then
+		scale = DefaultEmitterScale
+	end
+
+	local offset = this:GetDrawOffsetPos()
+	if not offset then
+		offset = DefaultEmitterOffset
+	end
+
+	local drawAngle = this:GetDrawOffsetAng()
+	if not drawAngle then
+		drawAngle = DefaultEmitterAngle
+	end
+
+	local pos
+	if useRT then
+		pos = this:LocalToWorld( offset )
+	else
+		pos = this:LocalToWorld( offset + EmitterCursorOffset )
+	end
+	local ang = this:LocalToWorldAngles( drawAngle )
+
+	return pos, ang, scale, useRT
+end
+
 function EGP:EGPCursor( this, ply )
 	if not EGP:ValidEGP(this) then return {-1,-1} end
 	if not IsValid(ply) or not ply:IsPlayer() then return ReturnFailure( this ) end
 
-	local Normal, Pos, monitor, Ang
+	local Normal, Pos, monitor, Ang, scale, emitterUseRT
 	-- If it's an emitter, set custom normal and pos
 	if (this:GetClass() == "gmod_wire_egp_emitter") then
-		Normal = this:GetRight()
-		Pos = this:LocalToWorld( Vector( -64, 0, 135 ) )
+		Pos, Ang, scale, emitterUseRT = GetEmitterCursorTransform( this )
+		Normal = Ang:Up()
 
 		monitor = { Emitter = true }
 	else
@@ -454,10 +487,16 @@ function EGP:EGPCursor( this, ply )
 
 	if (B >= 0) then
 		if (monitor.Emitter) then
-			local HitPos = Start + Dir * B
-			HitPos = this:WorldToLocal( HitPos ) - Vector( -64, 0, 135 )
-			local x = HitPos.x*(512/128)
-			local y = HitPos.z*-(512/128)
+			local HitPos = WorldToLocal( Start + Dir * B, Angle(), Pos, Ang )
+			local x, y
+
+			if emitterUseRT then
+				x = 256 + (HitPos.x / scale)
+				y = 256 - (HitPos.y / scale)
+			else
+				x = HitPos.x / scale
+				y = -HitPos.y / scale
+			end
 			x, y = ScaleCursor( this, x, y )
 			return {x,y}
 		else
