@@ -285,15 +285,14 @@ if CLIENT then
 	end
 
 	function ENT:Think()
-		local tab = self:GetTable()
+		if not EntityMeta.IsDormant(self) then
+			local tab = EntityMeta.GetTable(self)
 
-		if (CurTime() >= (tab.NextRBUpdate or 0)) then
-			-- We periodically update the render bounds every 10 seconds - the
-			-- reasons why are mostly anecdotal, but in some circumstances
-			-- entities might 'forget' their renderbounds. Nobody really knows
-			-- if this is still needed or not.
-			tab.NextRBUpdate = CurTime() + 10
-			Wire_UpdateRenderBounds(self)
+			if (CurTime() >= (tab.NextRBUpdate or 0)) then
+				-- Periodically update renderbounds to make connected wires visible when we're not looking at the entity
+				tab.NextRBUpdate = CurTime() + 10
+				Wire_UpdateRenderBounds(self)
+			end
 		end
 	end
 
