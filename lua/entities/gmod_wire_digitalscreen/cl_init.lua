@@ -291,8 +291,8 @@ function ENT:RedrawPixel(a)
 		local c = self.Memory1[a] or 0
 		cr, cg, cb, alpha = (transformcolor[colormode] or transformcolor[0])(c)
 	end
-	
-	if alpha != 255 then --save a step if transparency wouldnt matter
+
+	if alpha ~= 255 then --save a step if transparency wouldnt matter
 		render.OverrideBlend(true, BLEND_ZERO, BLEND_ZERO, BLENDFUNC_ADD, BLEND_ZERO, BLEND_ZERO, BLENDFUNC_ADD)
 		surface.SetDrawColor(0, 0, 0, 255)
 		surface.DrawRect(x, y, 1, 1)
@@ -307,7 +307,7 @@ function ENT:RedrawRow(y)
 	local a = y*self.ScreenWidth
 
 	local colormode = self.Memory1[1048569] or 0
-	
+
 	if colormode == 5 then
 		render.OverrideBlend(true, BLEND_ZERO, BLEND_ZERO, BLENDFUNC_ADD, BLEND_ZERO, BLEND_ZERO, BLENDFUNC_ADD)
 		surface.SetDrawColor(0, 0, 0, 255)
@@ -316,7 +316,7 @@ function ENT:RedrawRow(y)
 		end
 		render.OverrideBlend(false)
 	end
-	
+
 	for x = 0,self.ScreenWidth-1 do
 		local cr,cg,cb
 		local alpha = 255
@@ -329,7 +329,7 @@ function ENT:RedrawRow(y)
 			local c = self.Memory1[a+x] or 0
 			cr, cg, cb, alpha = (transformcolor[colormode] or transformcolor[0])(c)
 		end
-		
+
 		surface.SetDrawColor(cr, cg, cb, alpha)
 		surface.DrawRect(x, y, 1, 1)
 	end
