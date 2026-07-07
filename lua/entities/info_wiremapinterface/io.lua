@@ -100,7 +100,10 @@ end
 
 -- To cleanup and get the in-/outputs information.
 local function copyAndSanitizeToPortRegister(register, registerTmp)
-	register = register or newPortRegister()
+	if not register or not register.empty then
+	 	register = newPortRegister()
+	end
+
 	register:empty()
 
 	if not registerTmp then
@@ -130,7 +133,9 @@ function ENT:UpdatePorts()
 	local wireEnts = self:GetWiredEntities()
 
 	for key, wireEnt in ipairs(wireEnts) do
-		wireEnt:_WMI_AddPorts(self.WireInputRegister, self.WireOutputRegister)
+		if wireEnt._WMI_AddPorts then
+			wireEnt:_WMI_AddPorts(self.WireInputRegister, self.WireOutputRegister)
+		end
 	end
 end
 

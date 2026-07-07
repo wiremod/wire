@@ -55,23 +55,24 @@ function ENT:RequestNetworkEntities(ply, networkAtTime)
 		self.NextNetworkTime = networkAtTime
 	end
 
-	local recipientFilter = self.NetworkRecipientFilter
-
 	if not IsValid(ply) then
-		recipientFilter:AddAllPlayers()
+		self.NetworkRecipients = player.GetHumans()
 		return
 	end
 
-	recipientFilter:AddPlayer(ply)
+	local networkRecipients = self.NetworkRecipients or {}
+	self.NetworkRecipients = networkRecipients
+
+	networkRecipients[#networkRecipients + 1] = ply
 end
 
 function ENT:NetworkWireEntities()
 	-- Network the list and properties of the wire entities.
 	-- We need we know about them on the client. For cable rendering, tools etc.
 
-	local recipientFilter = self.NetworkRecipientFilter
+	local networkRecipients = self.NetworkRecipients
 
- 	if recipientFilter:GetCount() <= 0 then
+	if not networkRecipients or #networkRecipients <= 0 then
 		return
 	end
 
@@ -89,8 +90,11 @@ function ENT:NetworkWireEntities()
 		net.WriteUInt(wireEnt:EntIndex(), MAX_EDICT_BITS)
 	end
 
+	local recipientFilter = RecipientFilter()
+	recipientFilter:AddPlayers(networkRecipients)
+
 	net.Send(recipientFilter)
 
-	recipientFilter:RemoveAllPlayers()
+	self.NetworkRecipients = nil
 end
 
