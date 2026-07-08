@@ -47,12 +47,12 @@ if SERVER then
 				end
 
 				local data = table.concat(tbl)
+				local compressed = util.Compress(data)
 
-				if #data < 4096 then
-					data = util.Compress(data)
+				if compressed and #compressed < 4096 then
 					net.WriteBool(false)
-					net.WriteUInt(#data, 12)
-					net.WriteData(data)
+					net.WriteUInt(#compressed, 12)
+					net.WriteData(compressed, #compressed)
 				else
 					net.WriteBool(true)
 					net.WriteStream(data, nil, false)

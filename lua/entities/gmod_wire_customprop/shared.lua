@@ -58,8 +58,8 @@ return {
 	classname = "gmod_wire_customprop",
 
 	readReliableEntity = function(callback)
-		index = net.ReadUInt(16)
-		creationIndex = net.ReadUInt(32)
+		local index = net.ReadUInt(16)
+		local creationIndex = net.ReadUInt(32)
 		local startTime = CurTime()
 
 		local function check()

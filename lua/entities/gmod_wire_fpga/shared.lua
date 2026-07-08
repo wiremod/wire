@@ -100,8 +100,10 @@ if SERVER then
 	net.Receive("wire_fpga_options", function(len, ply)
 		local ok, options = pcall(WireLib.von.deserialize, net.ReadString())
 
-		if ok then
-			FPGAPlayerOptions[ply] = options
+		if ok and istable(options) then
+			FPGAPlayerOptions[ply] = {
+				allow_inside_view = options.allow_inside_view == true
+			}
 		end
 	end)
 end

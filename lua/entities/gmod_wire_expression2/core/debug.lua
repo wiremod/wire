@@ -543,7 +543,7 @@ local function send_caption(self, text, duration, fromPlayer)
 
 	net.Start("wire_expression2_caption")
 		net.WriteUInt(len, 16)
-		net.WriteData(text)
+		net.WriteData(text, len)
 		net.WriteDouble(duration)
 		net.WriteBool(fromPlayer)
 	net.Send(ply)

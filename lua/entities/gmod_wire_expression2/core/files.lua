@@ -241,7 +241,7 @@ end
 
 [deprecated = "Use the file events instead", nodiscard]
 e2function array fileReadList()
-	local plist = lists[self.player]
+	local plist = lists[self.player].last
 
 	return (plist.uploaded and not plist.uploading and plist.data) and plist.data or {}
 end
@@ -410,7 +410,10 @@ end
 
 util.AddNetworkString("wire_expression2_file_upload")
 net.Receive("wire_expression2_file_upload", function(_, ply)
-	local pfile = uploads[ply][1]
+	local queue = uploads[ply]
+	if not queue then return end
+
+	local pfile = queue[1]
 	if pfile then
 		if net.ReadBool() and not pfile.uploading and not pfile.uploaded then
 			local len = net.ReadUInt(32)
@@ -438,6 +441,8 @@ end)
 util.AddNetworkString("wire_expression2_file_list")
 net.Receive("wire_expression2_file_list", function(_, ply)
 	local queue = lists[ply]
+	if not queue then return end
+
 	local plist = queue[1]
 	if not plist then return end
 

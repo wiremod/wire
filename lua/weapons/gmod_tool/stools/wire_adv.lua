@@ -187,6 +187,8 @@ if SERVER then
 	end
 
 	local function wireAdvUnwire(ply, ent, tbl)
+		if not IsValid(ent) then return end
+
 		if WireLib.CanTool(ply, ent, "wire_adv") then
 			for i=1,#tbl do
 				WireLib.Link_Clear( ent, tbl[i] )
@@ -195,6 +197,8 @@ if SERVER then
 	end
 
 	local function wireAdvRemoveUGLinks(ply, ent)
+		if not IsValid(ent) then return end
+
 		if WireLib.CanTool(ply, ent, "wire_adv") then
 			if ent:IsValid() then
 				removeEntityOutput(ent)
