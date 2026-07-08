@@ -293,7 +293,7 @@ if CLIENT then
 		else
 			for size=60,20,-2 do
 				surface.SetFont("GmodToolScreen"..size)
-				local x,y = surface.GetTextSize(text)
+				local x = surface.GetTextSize(text)
 				if x <= (width - 16) then
 					self.ScreenFont = "GmodToolScreen"..size
 					break
@@ -681,6 +681,7 @@ function WireToolSetup.SetupLinking(SingleLink, linkedname)
 			end
 			return true
 		elseif self:GetStage() == 1 then -- stage 1: reloading on something else unlinks it
+			if not IsValid(self.Controller) then self:SetStage(0) return false end
 			local ply = self:GetOwner()
 			local success, message = self.Controller:UnlinkEnt(ent)
 			if success then

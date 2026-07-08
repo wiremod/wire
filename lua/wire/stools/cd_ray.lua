@@ -15,8 +15,8 @@ end
 WireToolSetup.BaseLang()
 
 if (SERVER) then
-	CreateConVar('sbox_maxwire_cd_rays', 20)
-	CreateConVar('sbox_maxwire_cd_locks', 20)
+	CreateConVar("sbox_maxwire_cd_rays", 20)
+	CreateConVar("sbox_maxwire_cd_locks", 20)
 end
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_beamcaster.mdl"
@@ -49,13 +49,12 @@ function TOOL:RightClick(trace)
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local range = self:GetClientNumber("Range")
-	local defZero = (self:GetClientNumber("DefaultZero") ~= 0)
 	local model = self:GetClientInfo("lockmodel")
 
 	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
 
 	local wire_cd_lock = WireLib.MakeWireEnt(ply, {Class = "gmod_wire_cd_lock", Pos=trace.HitPos, Angle=Ang, Model=model})
+	if not IsValid(wire_cd_lock) then return false end
 
 	local min = wire_cd_lock:OBBMins()
 	wire_cd_lock:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -75,6 +74,6 @@ function TOOL:RightClick(trace)
 end
 
 function TOOL.BuildCPanel(panel)
-	WireDermaExts.ModelSelect(panel, "wire_cd_ray_Model", list.Get( "Wire_Laser_Tools_Models" ), 1)
+	WireDermaExts.ModelSelect(panel, "wire_cd_ray_model", list.Get( "Wire_Laser_Tools_Models" ), 1)
 	panel:NumSlider("Range","wire_cd_ray_Range",1,512,2)
 end

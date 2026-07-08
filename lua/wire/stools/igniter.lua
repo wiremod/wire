@@ -14,11 +14,11 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	CreateConVar('sbox_wire_igniters_maxlen', 30)
-	CreateConVar('sbox_wire_igniters_allowtrgply',1)
+	CreateConVar("sbox_wire_igniters_maxlen", 30)
+	CreateConVar("sbox_wire_igniters_allowtrgply",1)
 
 	function TOOL:GetConVars()
-		return self:GetClientNumber( "trgply" )~=0, self:GetClientNumber("range")
+		return self:GetClientNumber("trgply") ~= 0, self:GetClientNumber("range")
 	end
 end
 
@@ -30,7 +30,7 @@ TOOL.ClientConVar = {
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_igniter")
-	WireDermaExts.ModelSelect(panel, "wire_igniter_Model", list.Get( "Wire_Laser_Tools_Models" ), 1, true)
+	WireDermaExts.ModelSelect(panel, "wire_igniter_model", list.Get( "Wire_Laser_Tools_Models" ), 1, true)
 	panel:CheckBox("#WireIgniterTool_trgply", "wire_igniter_trgply")
 	panel:NumSlider("#WireIgniterTool_Range", "wire_igniter_range", 1, 10000, 0)
 end

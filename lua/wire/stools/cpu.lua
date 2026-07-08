@@ -73,16 +73,17 @@ if SERVER then
   function TOOL:CheckHitOwnClass(trace)
     return trace.Entity:IsValid() and (trace.Entity:GetClass() == self.WireClass or trace.Entity.WriteCell)
   end
-  function TOOL:LeftClick_Update(trace)
-    CPULib.SetUploadTarget(trace.Entity, self:GetOwner())
-    net.Start("ZCPU_RequestCode") net.Send(self:GetOwner())
+  function TOOL:LeftClick_Update(trace, ent)
+    local player = self:GetOwner()
+    CPULib.SetUploadTarget(ent or trace.Entity, player)
+    net.Start("ZCPU_RequestCode") net.Send(player)
     net.Start("CPULib.InvalidateDebugger") net.WriteUInt(0,2) net.Send(player)
   end
   function TOOL:MakeEnt(ply, model, Ang, trace)
     local ent = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model})
     ent:SetMemoryModel(self:GetClientInfo("memorymodel"),self:GetClientInfo("customram"),self:GetClientInfo("customrom"))
     ent:SetExtensionLoadOrder(self:GetClientInfo("extensions"))
-    self:LeftClick_Update(trace)
+    self:LeftClick_Update(trace, ent)
     return ent
   end
 
@@ -142,7 +143,6 @@ if CLIENT then
 
 
     ----------------------------------------------------------------------------
-    local currentDirectory
     local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
     panel:AddPanel(FileBrowser)
     FileBrowser:Setup("cpuchip")
@@ -180,7 +180,7 @@ if CLIENT then
 
 
     ----------------------------------------------------------------------------
-    local modelPanel = WireDermaExts.ModelSelect(panel, "wire_cpu_model", list.Get("Wire_gate_Models"), 2)
+    WireDermaExts.ModelSelect(panel, "wire_cpu_model", list.Get("Wire_gate_Models"), 2)
     panel:AddControl("Label", {Text = ""})
 
 
@@ -389,12 +389,12 @@ if CLIENT then
       outc(string.format(" RAM %5d KB",collectgarbage("count") or 0),1,Color(255,255,255,255))
 
       surface.SetDrawColor(240, 120, 0, 255)
-      surface.DrawRect(16*(5),32*2+14,256,4)
+      surface.DrawRect(16*5,32*2+14,256,4)
       outc("TASK",2,Color(240, 120,0,255))
       outc("       STATUS",3,Color(255,255,255,255))
 
       surface.SetDrawColor(240, 120, 0, 255)
-      surface.DrawRect(16*(4),32*6+14,256,4)
+      surface.DrawRect(16*4,32*6+14,256,4)
       outc("NET",6,Color(240, 120,0,255))
       if CPULib.Uploading then
         outc(string.format("UP %.3f KB",CPULib.RemainingUploadData/1024),7,Color(255,255,255,255))
@@ -485,8 +485,6 @@ if CLIENT then
         outform(1,1,7,5,"HL-ZASM")
         outc(string.format("  Stage %d/7",HCOMP.Stage+1),3,Color(0,0,0,255))
         outc("  "..stageNameShort[HCOMP.Stage+1],4,Color(0,0,0,255))
-      else
-        --
       end
     end
   end

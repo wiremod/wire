@@ -41,7 +41,6 @@ if SERVER then
   function TOOL:Reload(trace)
     if trace.Entity:IsPlayer() then return false end
 
-    local player = self:GetOwner()
     if (trace.Entity:IsValid()) and
        (trace.Entity:GetClass() == "gmod_wire_gpu") then
       trace.Entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
@@ -53,15 +52,16 @@ if SERVER then
   function TOOL:CheckHitOwnClass(trace)
     return trace.Entity:IsValid() and (trace.Entity:GetClass() == self.WireClass or trace.Entity.WriteCell)
   end
-  function TOOL:LeftClick_Update(trace)
-    CPULib.SetUploadTarget(trace.Entity, self:GetOwner())
-    net.Start("ZGPU_RequestCode") net.Send(self:GetOwner())
+  function TOOL:LeftClick_Update(trace, ent)
+    local player = self:GetOwner()
+    CPULib.SetUploadTarget(ent or trace.Entity, player)
+    net.Start("ZGPU_RequestCode") net.Send(player)
   end
   function TOOL:MakeEnt(ply, model, Ang, trace)
     local ent = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model})
     ent:SetMemoryModel(self:GetClientInfo("memorymodel"))
     ent:SetExtensionLoadOrder(self:GetClientInfo("extensions"))
-    self:LeftClick_Update(trace)
+    self:LeftClick_Update(trace, ent)
     return ent
   end
 
@@ -121,7 +121,6 @@ if CLIENT then
 
 
     ----------------------------------------------------------------------------
-    local currentDirectory
     local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
     panel:AddPanel(FileBrowser)
     FileBrowser:Setup("GPUChip")

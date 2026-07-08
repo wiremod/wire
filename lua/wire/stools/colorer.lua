@@ -21,7 +21,7 @@ if SERVER then
 	end
 end
 
-TOOL.ClientConVar[ "Model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
+TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 TOOL.ClientConVar[ "outColor" ] = "0"
 TOOL.ClientConVar[ "range" ] = "2000"
 
@@ -29,5 +29,5 @@ function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_colorer")
 	WireDermaExts.ModelSelect(panel, "wire_colorer_model", list.Get( "Wire_Laser_Tools_Models" ), 1, true)
 	panel:CheckBox("#WireColorerTool_outColor", "wire_colorer_outColor")
-	panel:NumSlider("#WireColorerTool_Range", "wire_colorer_Range", 1, 10000, 2)
+	panel:NumSlider("#WireColorerTool_Range", "wire_colorer_range", 1, 10000, 2)
 end

@@ -27,5 +27,5 @@ TOOL.ClientConVar = {
 
 function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#Tool_wire_speedometer_xyz_mode", "wire_speedometer_xyz_mode")
-	panel:CheckBox("#Tool_wire_speedometer_angvel", "wire_speedometer_AngVel")
+	panel:CheckBox("#Tool_wire_speedometer_angvel", "wire_speedometer_angvel")
 end
