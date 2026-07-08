@@ -91,9 +91,6 @@ local function broadcastSignal(group, name, scope, sender, filter_player)
 	end
 end
 
---local function table_IsEmpty(t) return not pairs(t)(t) end
-local function table_IsEmpty(t) return not next(t) end
-
 local function setGroup(self, group)
 	-- set the current group to the new group
 	self.data.signalgroup = group

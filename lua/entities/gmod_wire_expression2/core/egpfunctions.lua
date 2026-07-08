@@ -1223,10 +1223,10 @@ e2function number egpMaxUmsgPerSecond()
 end
 
 e2function number egpBytesLeft()
-	EGP:CheckInterval(self.player)
-
-	local tbl = EGP.IntervalCheck[self.player]
 	local maxcount = EGP.ConVars.MaxPerSec:GetInt()
+	local tbl = EGP.IntervalCheck[self.player]
+	tbl.bytes = math.max(0, tbl.bytes - (CurTime() - tbl.time) * maxcount)
+	tbl.time = CurTime()
 	return maxcount - tbl.bytes
 end
 
