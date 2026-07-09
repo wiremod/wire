@@ -51,7 +51,7 @@ if SERVER then
 				if #data < 4096 then
 					local compressed = util.Compress(data)
 					net.WriteBool(false)
-					if compressed and #compressed < 4096 then
+					if compressed then
 						net.WriteUInt(#compressed, 12)
 						net.WriteData(compressed)
 					else
