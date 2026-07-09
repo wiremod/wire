@@ -90,12 +90,16 @@ net.Receive( "wire_expression2_request_list", function()
 
 	net.Start("wire_expression2_file_list")
 		local files, folders = file.Find( dir .. "*","DATA" )
-		net.WriteUInt(#files + #folders, 16)
+		local txtfiles = {}
 		for _,fop in pairs(files) do
 			if string.GetExtensionFromFilename( fop ) == "txt" then
-				net.WriteUInt(#fop, 16)
-				net.WriteData(fop)
+				txtfiles[#txtfiles + 1] = fop
 			end
+		end
+		net.WriteUInt(#txtfiles + #folders, 16)
+		for _,fop in pairs(txtfiles) do
+			net.WriteUInt(#fop, 16)
+			net.WriteData(fop)
 		end
 		for _,fop in pairs(folders) do
 			local folder = fop .. "/"
