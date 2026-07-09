@@ -98,8 +98,9 @@ net.Receive( "wire_expression2_request_list", function()
 			end
 		end
 		for _,fop in pairs(folders) do
-			net.WriteUInt(#fop, 16)
-			net.WriteData(fop .. "/")
+			local folder = fop .. "/"
+			net.WriteUInt(#folder, 16)
+			net.WriteData(folder)
 		end
 	net.SendToServer()
 end)

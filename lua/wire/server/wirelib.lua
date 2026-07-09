@@ -1180,7 +1180,10 @@ function WireLib.CanModel(ply, model, skin)
 end
 
 function WireLib.MakeWireEnt( pl, Data, ... )
-	Data.Class = scripted_ents.Get(Data.Class).ClassName
+	local sent = scripted_ents.Get(Data.Class)
+	if not sent or not sent.ClassName then return false end
+
+	Data.Class = sent.ClassName
 	if IsValid(pl) and not pl:CheckLimit(Data.Class:sub(6).."s") then return false end
 	if Data.Model and not WireLib.CanModel(pl, Data.Model, Data.Skin) then return false end
 

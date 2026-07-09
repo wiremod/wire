@@ -229,7 +229,7 @@ FPGAGateActions["execution-previous-normal"] = {
 		gate.memory = 0
 	end,
 	postExecution = function(gate)
-		local changed = gate.value != gate.memory
+		local changed = gate.value ~= gate.memory
 		gate.value = gate.memory
 		return changed
 	end,
@@ -254,7 +254,7 @@ FPGAGateActions["execution-previous-vector"] = {
 		gate.memory = Vector(0, 0, 0)
 	end,
 	postExecution = function(gate)
-		local changed = gate.value != gate.memory
+		local changed = gate.value ~= gate.memory
 		gate.value = gate.memory
 		return changed
 	end,
@@ -279,7 +279,7 @@ FPGAGateActions["execution-previous-angle"] = {
 		gate.memory = Angle(0, 0, 0)
 	end,
 	postExecution = function(gate)
-		local changed = gate.value != gate.memory
+		local changed = gate.value ~= gate.memory
 		gate.value = gate.memory
 		return changed
 	end,
@@ -304,7 +304,7 @@ FPGAGateActions["execution-previous-string"] = {
 		gate.memory = ""
 	end,
 	postExecution = function(gate)
-		local changed = gate.value != gate.memory
+		local changed = gate.value ~= gate.memory
 		gate.value = gate.memory
 		return changed
 	end,
