@@ -88,7 +88,7 @@ function ENT:AddSingleEntity(wireEnt)
 
 	local isInList = IsValid(oldWireEnt) and oldWireEnt == wireEnt
 
-	if isInList and wireEnt._WireMapInterfaceEnt_HasPorts then
+	if isInList and wireEnt._WireMapInterfaceEnt_HasPorts and wireEnt._WMI_AddPorts then
 		return
 	end
 
@@ -96,7 +96,9 @@ function ENT:AddSingleEntity(wireEnt)
 		if not self.WireEntsUpdated then
 			self:TriggerHammerOutputSafe("OnWireEntsStartChanging", self)
 		end
+	end
 
+	if not isInList or not wireEnt._WMI_AddPorts then
 		self:OverrideEnt(wireEnt)
 	end
 

@@ -2,7 +2,7 @@
 	: "Creates an interface between the map and Wiremod."
 [
 	wire_entity_name(target_destination) : "Wire Entity" : "" : "The name of an entity or of the entities that will get wire ports."
-	min_trigger_time(float) : "Minimum Trigger Time" : "0.01" : "Set the minimum time in seconds between two Wiremod input triggers. It's usefull to prevent lags."
+	min_trigger_time(float) : "Minimum Trigger Time" : "0.01" : "Set the minimum time in seconds between two Wiremod input triggers. It's useful to prevent lags."
 
 	// Wire Inputs
 	input1_name(string) : "Wire Input 1 Name" : "" : "Sets the name of Wire Input 1."
