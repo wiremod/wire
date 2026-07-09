@@ -352,7 +352,7 @@ function ENT:WriteCell(Address, value)
 		end
 	else
 		if Address == 1048569 then
-			-- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB; 4: XXX; 5: 32 bit RGBA)
+			-- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB; 4: XXX; 5: 32 bit ARGB)
 			value = math.Clamp(value, 0, 9)
 		elseif Address == 1048570 then -- Clear row
 			local row = math.Clamp(value, 0, self.ScreenHeight-1)
