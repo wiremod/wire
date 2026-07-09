@@ -362,7 +362,7 @@ if CLIENT then
 	
 	local blockfile = "wire_hologram_block.txt"
 	
-	local blocked = file.Exists(blockfile, "DATA")
+	blocked = file.Exists(blockfile, "DATA")
 		and util.JSONToTable(file.Read(blockfile, "DATA")) or {}
 
 	local function saveBlocked()
