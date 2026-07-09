@@ -402,6 +402,7 @@ if CLIENT then
 			if not blocked[toblock] then print("This steamid isn't blocked") return end
 
 			blocked[toblock] = nil
+			saveBlocked()
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
 				if ent.steamid == toblock then
 					ent.blocked = false
