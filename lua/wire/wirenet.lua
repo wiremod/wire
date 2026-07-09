@@ -51,11 +51,14 @@ if SERVER then
 				if #data < 4096 then
 					local compressed = util.Compress(data)
 					net.WriteBool(false)
-					if compressed then
+					if compressed and #compressed < 4096 then
+						net.WriteBool(true)
 						net.WriteUInt(#compressed, 12)
 						net.WriteData(compressed)
 					else
-						net.WriteUInt(0, 12)
+						net.WriteBool(false)
+						net.WriteUInt(#data, 12)
+						net.WriteData(data)
 					end
 				else
 					net.WriteBool(true)
@@ -182,7 +185,10 @@ else -- CLIENT
 				stripstrings(begin, last, lens, data)
 			end)
 		else
-			stripstrings(begin, last, lens, util.Decompress(net.ReadData(net.ReadUInt(12))))
+			local compressed = net.ReadBool()
+			local data = net.ReadData(net.ReadUInt(12))
+			if compressed then data = util.Decompress(data) end
+			stripstrings(begin, last, lens, data)
 		end
 	end
 
