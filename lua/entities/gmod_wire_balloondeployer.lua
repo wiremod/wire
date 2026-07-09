@@ -21,8 +21,6 @@ function ENT:Setup(force, length, weld, popable, balloontype)
 	WireLib.TriggerOutput(self, "Deployed", 0)
 end
 
-WireLib.AddInputAlias("Lenght", "Length")
-
 function ENT:TriggerInput(iname, value)
 	if iname == "Deploy" then
 		if value ~= 0 then
@@ -82,6 +80,8 @@ function ENT:DeployBalloon()
 	balloon:SetPos(pos)
 
 	balloon:SetPlayer(self:GetPlayer())
+	balloon:SetOwner(self:GetPlayer())
+
 	balloon:SetColor(ColorRand())
 	balloon:SetForce(self.Force)
 	balloon.Indestructible = not self.Popable
