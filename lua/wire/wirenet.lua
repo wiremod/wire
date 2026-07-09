@@ -53,7 +53,7 @@ if SERVER then
 					net.WriteBool(false)
 					if compressed then
 						net.WriteUInt(#compressed, 12)
-						net.WriteData(compressed, #compressed)
+						net.WriteData(compressed)
 					else
 						net.WriteUInt(0, 12)
 					end
