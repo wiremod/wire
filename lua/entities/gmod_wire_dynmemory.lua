@@ -190,8 +190,8 @@ function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 
 	info.MemSize = self.Size
-	info.WOM = self.WOM
-	info.Bifurcate = self.Bifurcate
+	info.WOM = (self.WOM and 1 or 0)
+	info.Bifurcate = (self.Bifurcate and 1 or 0)
 	--[[info.Persistent = self.Persistent
 	if (self.Persistent) then
 		info.Memory = {}
