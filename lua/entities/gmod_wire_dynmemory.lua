@@ -183,7 +183,9 @@ gateconv["wom4"] = {4, 1, 0}
 function ENT:FromGate(action)
 	if gateconv[action] then
 		self:Setup(gateconv[action][1], gateconv[action][2], gateconv[action][3], true)
+		return
 	end
+	self:Setup(1, 0, 0, true) --this shouldnt be able to happen
 end
 
 function ENT:BuildDupeInfo()
