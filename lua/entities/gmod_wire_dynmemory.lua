@@ -97,7 +97,7 @@ function ENT:Setup(size, wom, bifurcate, legacy)
 			sstr = math.floor(sstr / 10485.76) / 100 --shows up to 2 decimals
 		elseif (sstr >= 1024) then
 			sunit = "KB"
-			sstr = math.floor(sstr / 1024)
+			sstr = math.floor(sstr / 102.4) / 10 --shows up to 1 decimal
 		end
 		sstr = tostring(sstr) .. sunit
 	end
@@ -110,7 +110,7 @@ end
 function ENT:Think()
 	if self.Bifurcate then
 		if self.Clk and self.AddrWrite >= 0 and self.AddrWrite < self.BifurcateMagic and self.AddrWriteY >= 0 and self.AddrWriteY < self.BifurcateMagic then
-			self:WriteCell(self.AddrWrite + self.AddrWriteY*64, self.Data)
+			self:WriteCell(self.AddrWrite + self.AddrWriteY * self.BifurcateMagic, self.Data)
 		end
 		if not self.WOM and self.AddrRead >= 0 and self.AddrRead < self.BifurcateMagic and self.AddrReadY >= 0 and self.AddrReadY < self.BifurcateMagic then
 			WireLib.TriggerOutput(self, "Out", self.Memory[self.AddrRead + self.AddrReadY * self.BifurcateMagic])
