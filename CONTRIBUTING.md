@@ -6,13 +6,19 @@ Please see https://github.com/wiremod/wire/wiki/Developer-Style-Guide for inform
 
 # AI-assisted Contributions
 
-AI tools may be used, but the author is still responsible for the contribution.
+AI tools may be used as coding tools, but they must not replace the author's own understanding or judgment.
 
-If AI tools were used to write, edit, review, or explain code, disclose that in the pull request or issue. The author must understand the submitted code well enough to explain it, justify it, and make requested changes without blindly resubmitting tool output.
+Authors must:
 
-AI use does not relax Wiremod's style, cleanliness, or review requirements. Low-quality submissions are low-quality submissions regardless of how they were made.
+- Be honest and disclose when AI tools were used.
+- Use AI only to help with coding. PR text and replies must be written by the author; maintainers need to be talking to the contributor, not an AI toolchain.
+- Understand the submitted code well enough to explain it, justify it, audit it for side effects, and make requested changes themselves.
+- Make requested changes that actually fix the problem, rather than blindly resubmitting tool output.
+- Keep each contribution focused on one issue or a closely related set of issues per PR. Large all-in-one PRs are not accepted when AI is doing the coding.
 
-Maintainers are not LLM output auditors. Breaking these rules, or giving maintainers reason to believe they are being broken, may result in a repository ban.
+AI use does not relax Wiremod's style, cleanliness, or review requirements. Slop is slop regardless of how it was made.
+
+Maintainers are not LLM code auditors. Breaking these rules, or giving maintainers reason to believe they are being broken, may result in a repository ban.
 
 ---
 
