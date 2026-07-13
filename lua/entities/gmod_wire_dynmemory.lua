@@ -13,7 +13,7 @@ function ENT:Initialize()
 
 	self.Inputs = Wire_CreateInputs(self, {"Clk"})
 
-	self.Outputs = Wire_CreateOutputs(self, {"Out"})
+	self.Outputs = Wire_CreateOutputs(self, {"Out", "Size"})
 
 	self.Size = 1
 	self.Memory = {}
@@ -103,6 +103,8 @@ function ENT:Setup(size, wom, bifurcate, legacy)
 	end
 
 	self:SetOverlayText(sstr .. (self.WOM == true and " Write-Only" or "") .. " RAM" .. (self.Size >= 1024 and " (" .. self.Size .. " bytes)" or "") .. (legacy and " (Legacy)" or "") )
+
+	WireLib.TriggerOutput(self, "Size", self.Size)
 
 	self.Legacy = legacy
 end
