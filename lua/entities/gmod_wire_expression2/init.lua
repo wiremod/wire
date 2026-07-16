@@ -829,7 +829,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 			elseif vartype == "v" then
 				self.GlobalScope[k] = istable(v) and Vector(v[1], v[2], v[3]) or v
 			elseif vartype == "t" then
-				if getmetatable(v) == nil then
+				if istable(v) and getmetatable(v) == nil then
 					setmetatable(v, WireLib.E2Table)
 				end
 				self.GlobalScope[k] = v
