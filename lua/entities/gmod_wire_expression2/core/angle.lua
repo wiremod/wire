@@ -150,7 +150,7 @@ end
 
 e2function string operator+(angle lhs, string rhs)
 	self.prf = self.prf + #rhs * 0.01
-	return string.format("ang(%g,%g,%g)", rhs:Unpack()) .. rhs
+	return string.format("ang(%g,%g,%g)", lhs:Unpack()) .. rhs
 end
 
 --------------------------------------------------------------------------------
