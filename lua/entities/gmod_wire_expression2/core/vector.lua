@@ -628,7 +628,7 @@ end
 __e2setcost(20)
 
 e2function number pointHasContent(vector point, string has)
-	local contents = cache_lookup_table[util.PointContents(Vector(point[1], point[2], point[3]))]
+	local contents = cache_lookup_table[util.PointContents(point)]
 	has = string.lower(string.gsub(has, " ", "_"))
 
 	for m in string.gmatch(has, "([^,]+),?") do
@@ -667,7 +667,7 @@ end
 
 --- Converts a local position/angle to a world position/angle and returns both in an array
 e2function array toWorldPosAng(vector localpos, angle localang, vector worldpos, angle worldang)
-	return { LocalToWorld(localpos,localang,worldpos,worldang) }
+	return { LocalToWorld(localpos, localang, worldpos, worldang) }
 end
 
 --- Converts a world position/angle to a local position/angle and returns the position
