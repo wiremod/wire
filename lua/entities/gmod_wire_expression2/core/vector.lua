@@ -9,6 +9,8 @@ local floor = math.floor
 local ceil = math.ceil
 local clamp = math.Clamp
 local pi = math.pi
+local cos = math.cos
+local sin = math.sin
 local atan2 = math.atan2
 local asin = math.asin
 local rad2deg = 180 / pi
@@ -266,14 +268,18 @@ end
 __e2setcost(15)
 
 e2function vector vector:rotateAroundAxis(vector axis, degrees)
-	local ca, sa = math.cos(degrees*deg2rad), math.sin(degrees*deg2rad)
-	local x,y,z = axis[1], axis[2], axis[3]
-	local length = (x*x+y*y+z*z)^0.5
-	x,y,z = x/length, y/length, z/length
+	local x, y, z = axis:Unpack()
+	local tx, ty, tz = this:Unpack()
+	local ca, sa = cos(degrees * deg2rad), sin(degrees * deg2rad)
 
-	return Vector((ca + (x^2)*(1-ca)) * this[1] + (x*y*(1-ca) - z*sa) * this[2] + (x*z*(1-ca) + y*sa) * this[3],
-			(y*x*(1-ca) + z*sa) * this[1] + (ca + (y^2)*(1-ca)) * this[2] + (y*z*(1-ca) - x*sa) * this[3],
-			(z*x*(1-ca) - y*sa) * this[1] + (z*y*(1-ca) + x*sa) * this[2] + (ca + (z^2)*(1-ca)) * this[3])
+	local length = (x * x + y * y + z * z) ^ 0.5
+	x, y, z = x / length, y / length, z / length
+
+	return Vector(
+		(ca + (x ^ 2) * (1 - ca)) * tx + (x * y * (1 - ca) - z * sa) * ty + (x * z * (1 - ca) + y * sa) * tz,
+		(y * x * (1 - ca) + z * sa) * tx + (ca + (y ^ 2) * (1 - ca)) * ty + (y * z * (1 - ca) - x * sa) * tz,
+		(z * x * (1 - ca) - y * sa) * tx + (z * y * (1 - ca) + x * sa) * ty + (ca + (z ^ 2) * (1 - ca)) * tz
+	)
 end
 
 __e2setcost(5)
