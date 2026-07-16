@@ -254,7 +254,7 @@ __e2setcost(10)
 --- returns the outer product (tensor product) of two vectors
 e2function matrix vector:outerProduct(vector other)
 	local tx, ty, tz = this:Unpack()
-	local ox, oy, oz = other:Unpack()
+	local _, oy, oz = other:Unpack()
 
 	return {
 		tx * tx, tx * oy, tx * oz,
