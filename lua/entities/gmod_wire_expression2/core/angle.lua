@@ -83,7 +83,7 @@ e2function angle operator+(rv1, angle rv2)
 end
 
 e2function angle operator+(angle rv1, rv2)
-	local rp1, ry1, rr1 = rv2:Unpack()
+	local rp1, ry1, rr1 = rv1:Unpack()
 	return Angle(rp1 + rv2, ry1 + rv2, rr1 + rv2)
 end
 
@@ -97,7 +97,7 @@ e2function angle operator-(rv1, angle rv2)
 end
 
 e2function angle operator-(angle rv1, rv2)
-	local rp1, ry1, rr1 = rv2:Unpack()
+	local rp1, ry1, rr1 = rv1:Unpack()
 	return Angle(rp1 - rv2, ry1 - rv2, rr1 - rv2)
 end
 
