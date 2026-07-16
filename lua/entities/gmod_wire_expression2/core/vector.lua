@@ -738,4 +738,4 @@ e2function string toString(vector vec)
 end
 
 --- Gets the vector nicely formatted as a string "[X,Y,Z]"
-e2function string vector:toString() = e2function string toString(vector v)
+e2function string vector:toString() = e2function string toString(vector vec)
