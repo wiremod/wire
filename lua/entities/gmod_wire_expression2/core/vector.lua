@@ -256,12 +256,12 @@ __e2setcost(10)
 --- returns the outer product (tensor product) of two vectors
 e2function matrix vector:outerProduct(vector other)
 	local tx, ty, tz = this:Unpack()
-	local _, oy, oz = other:Unpack()
+	local ox, oy, oz = other:Unpack()
 
 	return {
-		tx * tx, tx * oy, tx * oz,
-		ty * tx, ty * oy, ty * oz,
-		tz * tx, tz * oy, tz * oz,
+		tx * ox, tx * oy, tx * oz,
+		ty * ox, ty * oy, ty * oz,
+		tz * ox, tz * oy, tz * oz,
 	}
 end
 
@@ -566,38 +566,38 @@ end
 --------------------------------------------------------------------------------
 
 local contents = {
-    [0] = "empty",
-    [1] = "solid",
-    [2] = "window",
-    [4] = "aux",
-    [8] = "grate",
-    [16] = "slime",
-    [32] = "water",
-    [64] = "blocklos",
-    [128] = "opaque",
-    [256] = "testfogvolume",
-    [512] = "team4",
-    [1024] = "team3",
-    [2048] = "team1",
-    [4096] = "team2",
-    [8192] = "ignore_nodraw_opaque",
-    [16384] = "moveable",
-    [32768] = "areaportal",
-    [65536] = "playerclip",
-    [131072] = "monsterclip",
-    [262144] = "current_0",
-    [524288] = "current_90",
-    [1048576] = "current_180",
-    [2097152] = "current_270",
-    [4194304] = "current_up",
-    [8388608] = "current_down",
-    [16777216] = "origin",
-    [33554432] = "monster",
-    [67108864] = "debris",
-    [134217728] = "detail",
-    [268435456] = "translucent",
-    [536870912] = "ladder",
-    [1073741824] = "hitbox"
+	[0] = "empty",
+	[1] = "solid",
+	[2] = "window",
+	[4] = "aux",
+	[8] = "grate",
+	[16] = "slime",
+	[32] = "water",
+	[64] = "blocklos",
+	[128] = "opaque",
+	[256] = "testfogvolume",
+	[512] = "team4",
+	[1024] = "team3",
+	[2048] = "team1",
+	[4096] = "team2",
+	[8192] = "ignore_nodraw_opaque",
+	[16384] = "moveable",
+	[32768] = "areaportal",
+	[65536] = "playerclip",
+	[131072] = "monsterclip",
+	[262144] = "current_0",
+	[524288] = "current_90",
+	[1048576] = "current_180",
+	[2097152] = "current_270",
+	[4194304] = "current_up",
+	[8388608] = "current_down",
+	[16777216] = "origin",
+	[33554432] = "monster",
+	[67108864] = "debris",
+	[134217728] = "detail",
+	[268435456] = "translucent",
+	[536870912] = "ladder",
+	[1073741824] = "hitbox"
 }
 
 local cachemeta = {}
