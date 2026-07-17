@@ -654,7 +654,7 @@ function WIREENT:_WMI_AddPorts(wireInputRegister, wireOutputRegister)
 		return
 	end
 
-	if wireInputRegister and wireInputRegister:hasPorts() then
+	if wireInputRegister and wireInputRegister.hasPorts and wireInputRegister:hasPorts() then
 		local split = wireInputRegister.wire
 
 		wmidata.inputs = table.Copy(split)
@@ -670,7 +670,7 @@ function WIREENT:_WMI_AddPorts(wireInputRegister, wireOutputRegister)
 		self._WireMapInterfaceEnt_HasPorts = true
 	end
 
-	if wireOutputRegister and wireOutputRegister:hasPorts() then
+	if wireOutputRegister and wireOutputRegister.hasPorts and wireOutputRegister:hasPorts() then
 		local split = wireOutputRegister.wire
 
 		wmidata.outputs = table.Copy(split)
@@ -763,7 +763,7 @@ function ENT:OverrideEnt(wireEnt)
 		return
 	end
 
-	if not wireEnt._IsWireMapInterfaceSubEntity then
+	if not wireEnt._IsWireMapInterfaceSubEntity or not wireEnt._WMI_AddPorts then
 		WIREENT._WMI_OverrideEnt(wireEnt, self)
 	end
 
@@ -777,7 +777,7 @@ local function OverrideEntFromDupe(wireEnt, wireMapInterfaceEntDupeInfo, interfa
 		return
 	end
 
-	if wireEnt._IsWireMapInterfaceSubEntity then
+	if wireEnt._IsWireMapInterfaceSubEntity and wireEnt._WMI_AddPorts then
 		-- Already initialized
 		return
 	end

@@ -938,10 +938,10 @@ function ENT:CalculateNode(node, nodeId, gate)
 			table.insert(activeValues, self.Values[nodeId][inputNum])
 		end
 
-		value = {gate.output(self.Gates[nodeId], unpack(activeValues))}
+		value = {gate.output(self, unpack(activeValues))}
 	else
 		--normal gates
-		value = {gate.output(self.Gates[nodeId], unpack(self.Values[nodeId]))}
+		value = {gate.output(self, unpack(self.Values[nodeId]))}
 	end
 
 	--Error correction - for dumb designed gates... (entity owner gate)

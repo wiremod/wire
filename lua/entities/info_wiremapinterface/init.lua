@@ -272,11 +272,6 @@ function ENT:Initialize()
 
 	self.PortsUpdated = true
 
-	local recipientFilter = RecipientFilter()
-	recipientFilter:RemoveAllPlayers()
-
-	self.NetworkRecipientFilter = recipientFilter
-
 	self.NextNetworkTime = CurTime() + (1 + math.random() * 2) * (self.MIN_THINK_TIME * 4)
 
 	self:AddDupeHooks()
@@ -285,6 +280,19 @@ end
 
 function ENT:OnReloaded()
 	-- Easier for debugging.
+	self:RequestNetworkEntities()
+	self:AttachToSaveStateEntity()
+end
+
+function ENT:OnRestore()
+	-- Auto repair on engine savegame restore.
+
+	-- Repair wired entities by re-adding them.
+	self:AddEntitiesByTable(self:GetWiredEntities())
+	self.PortsUpdated = true
+
+	-- Make sure networking and hooks are triggered
+	self:AddDupeHooks()
 	self:RequestNetworkEntities()
 	self:AttachToSaveStateEntity()
 end

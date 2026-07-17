@@ -1412,17 +1412,17 @@ local CompileVisitors = {
 			end
 
 			return function(state) ---@param state RuntimeContext
-				local array = {}
+				local array, arraytypes = {}, {}
 
 				for i = 1, len do
 					table_perf_inc(state)
-
 					array[i] = args[i](state)
+					arraytypes[i] = argtypes[i]
 				end
 
 				local ret = newE2Table()
 				ret.n = array
-				ret.ntypes = argtypes
+				ret.ntypes = arraytypes
 				ret.size = len
 				return ret
 			end, "t"
