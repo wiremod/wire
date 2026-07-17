@@ -359,9 +359,9 @@ if CLIENT then
 	local function checkSteamid(steamid)
 		return string.match(steamid, "STEAM_%d+:%d+:%d+")
 	end
-	
+
 	local blockfile = "wire_hologram_block.txt"
-	
+
 	blocked = file.Exists(blockfile, "DATA")
 		and util.JSONToTable(file.Read(blockfile, "DATA")) or {}
 
@@ -378,7 +378,7 @@ if CLIENT then
 
 			blocked[toblock] = true
 			saveBlocked()
-			
+
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
 				if ent.steamid == toblock then
 					ent.blocked = true
