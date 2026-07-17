@@ -157,7 +157,7 @@ end
 
 function ENT:ReadCell(Address)
 	Address = math.floor(tonumber(Address))
-	if self.WOM or (Address < 0 || Address >= self.Size) then
+	if self.WOM or Address < 0 or Address >= self.Size then
 		return 0
 	end
 	return self.Memory[Address]
@@ -165,7 +165,7 @@ end
 
 function ENT:WriteCell(Address, Value)
 	Address = math.floor(tonumber(Address))
-	if (Address < 0 || Address >= self.Size) then
+	if Address < 0 or Address >= self.Size then
 		return false
 	end
 	self.Memory[Address] = Value or 0

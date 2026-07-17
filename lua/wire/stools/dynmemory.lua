@@ -63,9 +63,9 @@ function TOOL:RightClick(trace)
 
 	if (trace.Entity and trace.Entity:IsValid()) then
 		if (trace.Entity:GetClass() == "gmod_wire_dynmemory") then
-			self:GetOwner():ConCommand('wire_dynmemory_size "'..trace.Entity.Size..'"\n')
-			self:GetOwner():ConCommand('wire_dynmemory_wom "'..(trace.Entity.WOM and "1" or "0")..'"\n')
-			self:GetOwner():ConCommand('wire_dynmemory_bifurcate "'..(trace.Entity.Bifurcate and "1" or "0")..'"\n')
+			self:GetOwner():ConCommand("wire_dynmemory_size "..trace.Entity.Size.."\n")
+			self:GetOwner():ConCommand("wire_dynmemory_wom "..(trace.Entity.WOM and "1" or "0").."\n")
+			self:GetOwner():ConCommand("wire_dynmemory_bifurcate "..(trace.Entity.Bifurcate and "1" or "0").."\n")
 			return true
 		end
 	end
