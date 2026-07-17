@@ -584,6 +584,7 @@ function ENT:ResetGates()
 			tempGate.GetExecutionCount = getExecutionCount
 		end
 		if gate.reset then
+			
 			gate.reset(tempGate)
 		end
 		self.Gates[nodeId] = tempGate
@@ -713,14 +714,18 @@ end
 --RUNNING
 --------------------------------------------------------
 function ENT:RunProtected(changedNodes)
-	local ok, err = pcall(self.Run, self, changedNodes)
+    local lastNode = FPGANodeCurrentlyInQueue
+	local function catchFPGAError(err)
+        MsgN("FPGA Error")
+        MsgN(err)
+		MsgN(debug.traceback())
 
-	if not ok then
-		local gate = getGate(FPGANodeCurrentlyInQueue)
+		local gate = getGate(lastNode)
 		self:ThrowExecutionError("runtime error at gate " .. gate.name, "runtime error")
-		ErrorNoHalt("FPGA Gate Error\n " .. err)
 	end
+	xpcall(self.Run, catchFPGAError, self, changedNodes)
 end
+
 
 FPGANodeCurrentlyInQueue = nil
 function ENT:Run(changedNodes)
@@ -939,10 +944,10 @@ function ENT:CalculateNode(node, nodeId, gate)
 			table.insert(activeValues, self.Values[nodeId][inputNum])
 		end
 
-		value = {gate.output(self, unpack(activeValues))}
+		value = {gate.output(self.Gates[nodeId], unpack(activeValues))}
 	else
 		--normal gates
-		value = {gate.output(self, unpack(self.Values[nodeId]))}
+		value = {gate.output(self.Gates[nodeId], unpack(self.Values[nodeId]))}
 	end
 
 	--Error correction - for dumb designed gates... (entity owner gate)
