@@ -713,11 +713,12 @@ end
 --RUNNING
 --------------------------------------------------------
 function ENT:RunProtected(changedNodes)
-	local ok = pcall(self.Run, self, changedNodes)
+	local ok, err = pcall(self.Run, self, changedNodes)
 
 	if not ok then
 		local gate = getGate(FPGANodeCurrentlyInQueue)
 		self:ThrowExecutionError("runtime error at gate " .. gate.name, "runtime error")
+		ErrorNoHalt("FPGA Gate Error\n " .. err)
 	end
 end
 

@@ -119,26 +119,8 @@ GateActions["entity_applytorq"] = {
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
 		local tq = vec
-		local torqueamount = tq:Length()
 
-		-- Convert torque from local to world axis
-		tq = phys:LocalToWorld( tq ) - phys:GetPos()
-
-		-- Find two vectors perpendicular to the torque axis
-		local off
-		if abs(tq.x) > torqueamount * 0.1 or abs(tq.z) > torqueamount * 0.1 then
-			off = Vector(-tq.z, 0, tq.x)
-		else
-			off = Vector(-tq.y, tq.x, 0)
-		end
-		off = off:GetNormal() * torqueamount * 0.5
-
-		local dir = ( tq:Cross(off) ):GetNormal()
-
-		dir = clamp(dir)
-		off = clamp(off)
-		phys:ApplyForceOffset( dir, off )
-		phys:ApplyForceOffset( dir * -1, off * -1 )
+		phys:AddAngleVelocity( tq * (180 / math.pi) * phys:GetInvInertia() )
 	end,
 	label = function(_,ent,vec)
 		return string.format( "(%s):applyTorque(%s)", ent, vec )

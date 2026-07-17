@@ -36,6 +36,9 @@ GateActions["smoother"] = {
 	output = function(gate, A, Rate)
 		local DeltaTime = CurTime()-(gate.PrevTime or CurTime())
 		gate.PrevTime = (gate.PrevTime or CurTime())+DeltaTime
+		if (not gate.Accum) then
+			gate.Accum = 0
+		end
 		local Delta = A-gate.Accum
 		if (Delta > 0) then
 			gate.Accum = gate.Accum+math.min(Delta, Rate*DeltaTime)
