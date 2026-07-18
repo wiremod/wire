@@ -7,7 +7,10 @@ local Vector = Vector
 local sqrt = math.sqrt
 local floor = math.floor
 local ceil = math.ceil
+local clamp = math.Clamp
 local pi = math.pi
+local cos = math.cos
+local sin = math.sin
 local atan2 = math.atan2
 local asin = math.asin
 local rad2deg = 180 / pi
@@ -67,7 +70,7 @@ end
 
 --- Convert Angle -> Vector
 e2function vector vec(angle ang)
-	return Vector(ang[1], ang[2], ang[3])
+	return Vector(ang:Unpack())
 end
 
 --------------------------------------------------------------------------------
@@ -85,11 +88,13 @@ e2function vector operator_neg(vector v)
 end
 
 e2function vector operator+(lhs, vector rhs)
-	return Vector(lhs + rhs[1], lhs + rhs[2], lhs + rhs[3])
+	local rx, ry, rz = rhs:Unpack()
+	return Vector(lhs + rx, lhs + ry, lhs + rz)
 end
 
 e2function vector operator+(vector lhs, rhs)
-	return Vector(lhs[1] + rhs, lhs[2] + rhs, lhs[3] + rhs)
+	local lx, ly, lz = lhs:Unpack()
+	return Vector(lx + rhs, ly + rhs, lz + rhs)
 end
 
 e2function vector operator+(vector lhs, vector rhs)
@@ -97,11 +102,13 @@ e2function vector operator+(vector lhs, vector rhs)
 end
 
 e2function vector operator-(lhs, vector rhs)
-	return Vector(lhs - rhs[1], lhs - rhs[2], lhs - rhs[3])
+	local rx, ry, rz = rhs:Unpack()
+	return Vector(lhs - rx, lhs - ry, lhs - rz)
 end
 
 e2function vector operator-(vector lhs, rhs)
-	return Vector(lhs[1] - rhs, lhs[2] - rhs, lhs[3] - rhs)
+	local lx, ly, lz = lhs:Unpack()
+	return Vector(lx - rhs, ly - rhs, lz - rhs)
 end
 
 e2function vector operator-(vector lhs, vector rhs)
@@ -117,12 +124,13 @@ e2function vector operator*(vector lhs, rhs)
 end
 
 e2function vector operator*(vector lhs, vector rhs)
-	return Vector( lhs[1] * rhs[1], lhs[2] * rhs[2], lhs[3] * rhs[3] )
+	return lhs * rhs
 end
 
 -- Yes this needs to be in pure lua. Angle/Vector operations in reverse order act as Angle / Number rather than Number / Angle properly. Amazing.
 e2function vector operator/(lhs, vector rhs)
-	return Vector( lhs / rhs[1], lhs / rhs[2], lhs / rhs[3] )
+	local rx, ry, rz = rhs:Unpack()
+	return Vector(lhs / rx, lhs / ry, lhs / rz)
 end
 
 e2function vector operator/(vector lhs, rhs)
@@ -130,26 +138,29 @@ e2function vector operator/(vector lhs, rhs)
 end
 
 e2function vector operator/(vector lhs, vector rhs)
-	return Vector( lhs[1] / rhs[1], lhs[2] / rhs[2], lhs[3] / rhs[3] )
+	local lx, ly, lz = lhs:Unpack()
+	local rx, ry, rz = rhs:Unpack()
+
+	return Vector(lx / rx, ly / ry, lz / rz)
 end
 
 registerOperator("indexget", "vn", "n", function(state, this, index)
-	return this[floor(math.Clamp(index, 1, 3) + 0.5)]
+	return this[floor(clamp(index, 1, 3) + 0.5)]
 end)
 
 registerOperator("indexset", "vnn", "", function(state, this, index, value)
-	this[floor(math.Clamp(index, 1, 3) + 0.5)] = value
+	this[floor(clamp(index, 1, 3) + 0.5)] = value
 	state.GlobalScope.vclk[this] = true
 end)
 
 e2function string operator+(string lhs, vector rhs)
 	self.prf = self.prf + #lhs * 0.01
-	return lhs .. ("vec(%g,%g,%g)"):format(rhs[1], rhs[2], rhs[3])
+	return lhs .. string.format("vec(%g,%g,%g)", rhs:Unpack())
 end
 
 e2function string operator+(vector lhs, string rhs)
 	self.prf = self.prf + #rhs * 0.01
-	return ("vec(%g,%g,%g)"):format(lhs[1], lhs[2], lhs[3]) .. rhs
+	return string.format("vec(%g,%g,%g)", lhs:Unpack()) .. rhs
 end
 
 --------------------------------------------------------------------------------
@@ -197,15 +208,15 @@ __e2setcost(5)
 
 --- Returns a random vector with its components between <min> and <max>
 e2function vector randvec(number min, number max)
-	local v = Vector()
-	v:Random(min, max)
-	return v
+	return VectorRand(min, max)
 end
 
 --- Returns a random vector between <min> and <max>
 e2function vector randvec(vector min, vector max)
-	local minx, miny, minz = min[1], min[2], min[3]
-	return Vector(minx+random()*(max[1]-minx), miny+random()*(max[2]-miny), minz+random()*(max[3]-minz))
+	local minx, miny, minz = min:Unpack()
+	local maxx, maxy, maxz = max:Unpack()
+
+	return Vector(minx + random() * (maxx - minx), miny + random() * (maxy - miny), minz + random() * (maxz - minz))
 end
 
 --------------------------------------------------------------------------------
@@ -224,7 +235,7 @@ e2function number vector:distance(vector other)
 	return this:Distance(other)
 end
 
-e2function number vector:distance2( vector other )
+e2function number vector:distance2(vector other)
 	return this:DistToSqr(other)
 end
 
@@ -232,95 +243,105 @@ e2function vector vector:normalized()
 	return this:GetNormalized()
 end
 
-e2function number vector:dot( vector other )
+e2function number vector:dot(vector other)
 	return this:Dot(other)
 end
 
-e2function vector vector:cross( vector other )
+e2function vector vector:cross(vector other)
 	return this:Cross(other)
 end
 
 __e2setcost(10)
 
 --- returns the outer product (tensor product) of two vectors
-e2function matrix vector:outerProduct( vector other )
+e2function matrix vector:outerProduct(vector other)
+	local tx, ty, tz = this:Unpack()
+	local ox, oy, oz = other:Unpack()
+
 	return {
-		this[1] * this[1], this[1] * other[2], this[1] * other[3],
-		this[2] * this[1], this[2] * other[2], this[2] * other[3],
-		this[3] * this[1], this[3] * other[2], this[3] * other[3],
+		tx * ox, tx * oy, tx * oz,
+		ty * ox, ty * oy, ty * oz,
+		tz * ox, tz * oy, tz * oz,
 	}
 end
 
 __e2setcost(15)
-e2function vector vector:rotateAroundAxis(vector axis, degrees)
-	local ca, sa = math.cos(degrees*deg2rad), math.sin(degrees*deg2rad)
-	local x,y,z = axis[1], axis[2], axis[3]
-	local length = (x*x+y*y+z*z)^0.5
-	x,y,z = x/length, y/length, z/length
 
-	return Vector((ca + (x^2)*(1-ca)) * this[1] + (x*y*(1-ca) - z*sa) * this[2] + (x*z*(1-ca) + y*sa) * this[3],
-			(y*x*(1-ca) + z*sa) * this[1] + (ca + (y^2)*(1-ca)) * this[2] + (y*z*(1-ca) - x*sa) * this[3],
-			(z*x*(1-ca) - y*sa) * this[1] + (z*y*(1-ca) + x*sa) * this[2] + (ca + (z^2)*(1-ca)) * this[3])
+e2function vector vector:rotateAroundAxis(vector axis, degrees)
+	local x, y, z = axis:Unpack()
+	local tx, ty, tz = this:Unpack()
+	local ca, sa = cos(degrees * deg2rad), sin(degrees * deg2rad)
+
+	local length = (x * x + y * y + z * z) ^ 0.5
+	x, y, z = x / length, y / length, z / length
+
+	return Vector(
+		(ca + (x ^ 2) * (1 - ca)) * tx + (x * y * (1 - ca) - z * sa) * ty + (x * z * (1 - ca) + y * sa) * tz,
+		(y * x * (1 - ca) + z * sa) * tx + (ca + (y ^ 2) * (1 - ca)) * ty + (y * z * (1 - ca) - x * sa) * tz,
+		(z * x * (1 - ca) - y * sa) * tx + (z * y * (1 - ca) + x * sa) * ty + (ca + (z ^ 2) * (1 - ca)) * tz
+	)
 end
 
 __e2setcost(5)
 
-e2function vector vector:rotate( angle ang )
-	local v = Vector(this[1], this[2], this[3])
-	v:Rotate(ang)
-	return v
+e2function vector vector:rotate(angle ang)
+	local vec = Vector(this:Unpack())
+	vec:Rotate(ang)
+
+	return vec
 end
 
-e2function vector vector:rotate( normal pitch, normal yaw, normal roll )
-	local v = Vector(this[1], this[2], this[3])
-	v:Rotate(Angle(pitch, yaw, roll))
-	return v
+e2function vector vector:rotate(normal pitch, normal yaw, normal roll)
+	local vec = Vector(this:Unpack())
+	vec:Rotate(Angle(pitch, yaw, roll))
+
+	return vec
 end
 
 e2function vector2 vector:dehomogenized()
-	local w = this[3]
-	if w == 0 then return { this[1], this[2] } end
-	return { this[1]/w, this[2]/w }
+	local tx, ty, tz = this:Unpack()
+	if tz == 0 then return { tx, ty } end
+
+	return { tx / tz, ty / tz }
 end
 
 e2function vector positive(vector rv1)
-	return Vector(
-		rv1[1] >= 0 and rv1[1] or -rv1[1],
-		rv1[2] >= 0 and rv1[2] or -rv1[2],
-		rv1[3] >= 0 and rv1[3] or -rv1[3]
-	)
+	local rx1, ry1, rz1 = rv1:Unpack()
+	return Vector(rx1 >= 0 and rx1 or -rx1, ry1 >= 0 and ry1 or -ry1, rz1 >= 0 and rz1 or -rz1)
 end
 
 __e2setcost(3)
 
 --- Convert the magnitude of the vector to radians
 e2function vector toRad(vector rv1)
-	return Vector(rv1[1] * deg2rad, rv1[2] * deg2rad, rv1[3] * deg2rad)
+	return rv1 * deg2rad
 end
 
 --- Convert the magnitude of the vector to degrees
 e2function vector toDeg(vector rv1)
-	return Vector(rv1[1] * rad2deg, rv1[2] * rad2deg, rv1[3] * rad2deg)
+	return rv1 * rad2deg
 end
 
 --------------------------------------------------------------------------------
 
 __e2setcost(5)
 
---- Returns a vector in the same direction as <Input>, with a length clamped between <Min> (min) and <Max> (max)
-e2function vector clamp(vector Input, Min, Max)
-	if Min < 0 then Min = 0 end
-	local x,y,z = Input[1], Input[2], Input[3]
-	local length = x*x+y*y+z*z
-	if length < Min*Min then
-		length = Min*(length ^ -0.5) -- Min*(length ^ -0.5) <=> Min/sqrt(length)
-	elseif length > Max*Max then
-		length = Max*(length ^ -0.5) -- Max*(length ^ -0.5) <=> Max/sqrt(length)
+--- Returns a vector in the same direction as <vec>, with a length clamped between <min> and <max>
+e2function vector clamp(vector vec, min, max)
+	if min < 0 then min = 0 end
+
+	local x, y, z = vec:Unpack()
+	local length = x * x + y * y + z * z
+
+	if length < min * min then
+		length = min * (length ^ -0.5)
+	elseif length > max * max then
+		length = max * (length ^ -0.5)
 	else
-		return Input
+		return Vector(vec)
 	end
 
-	return Vector(x*length, y*length, z*length)
+	return vec * length
 end
 
 --------------------------------------------------------------------------------
@@ -343,17 +364,26 @@ __e2setcost(2)
 
 --- SET method that returns a new vector with x replaced
 e2function vector vector:setX(x)
-	return Vector(x, this[2], this[3])
+	local vec = Vector(this)
+	vec.x = x
+
+	return vec
 end
 
 --- SET method that returns a new vector with y replaced
 e2function vector vector:setY(y)
-	return Vector(this[1], y, this[3])
+	local vec = Vector(this)
+	vec.y = y
+
+	return vec
 end
 
 --- SET method that returns a new vector with z replaced
 e2function vector vector:setZ(z)
-	return Vector(this[1], this[2], z)
+	local vec = Vector(this)
+	vec.z = z
+
+	return vec
 end
 
 --------------------------------------------------------------------------------
@@ -361,54 +391,39 @@ end
 __e2setcost(6)
 
 e2function vector round(vector rv1)
-	return Vector(
-		floor(rv1[1] + 0.5),
-		floor(rv1[2] + 0.5),
-		floor(rv1[3] + 0.5)
-	)
+	local rx1, ry1, rz1 = rv1:Unpack()
+	return Vector(floor(rx1 + 0.5), floor(ry1 + 0.5), floor(rz1 + 0.5))
 end
 
 e2function vector round(vector rv1, decimals)
 	local shf = 10 ^ decimals
-	return Vector(
-		floor(rv1[1] * shf + 0.5) / shf,
-		floor(rv1[2] * shf + 0.5) / shf,
-		floor(rv1[3] * shf + 0.5) / shf
-	)
+	local rx1, ry1, rz1 = rv1:Unpack()
+
+	return Vector(floor(rx1 * shf + 0.5) / shf, floor(ry1 * shf + 0.5) / shf, floor(rz1 * shf + 0.5) / shf)
 end
 
-e2function vector ceil( vector rv1 )
-	return Vector(
-		ceil(rv1[1]),
-		ceil(rv1[2]),
-		ceil(rv1[3])
-	)
+e2function vector ceil(vector rv1)
+	local rx1, ry1, rz1 = rv1:Unpack()
+	return Vector(ceil(rx1), ceil(ry1), ceil(rz1))
 end
 
 e2function vector ceil(vector rv1, decimals)
 	local shf = 10 ^ decimals
-	return Vector (
-		ceil(rv1[1] * shf) / shf,
-		ceil(rv1[2] * shf) / shf,
-		ceil(rv1[3] * shf) / shf
-	)
+	local rx1, ry1, rz1 = rv1:Unpack()
+
+	return Vector(ceil(rx1 * shf) / shf, ceil(ry1 * shf) / shf, ceil(rz1 * shf) / shf)
 end
 
 e2function vector floor(vector rv1)
-	return Vector(
-		floor(rv1[1]),
-		floor(rv1[2]),
-		floor(rv1[3])
-	)
+	local rx1, ry1, rz1 = rv1:Unpack()
+	return Vector(floor(rx1), floor(ry1), floor(rz1))
 end
 
 e2function vector floor(vector rv1, decimals)
 	local shf = 10 ^ decimals
-	return Vector(
-		floor(rv1[1] * shf) / shf,
-		floor(rv1[2] * shf) / shf,
-		floor(rv1[3] * shf) / shf
-	)
+	local rx1, ry1, rz1 = rv1:Unpack()
+
+	return Vector(floor(rx1 * shf) / shf, floor(ry1 * shf) / shf, floor(rz1 * shf) / shf)
 end
 
 __e2setcost(10)
@@ -424,54 +439,63 @@ end
 
 --- component-wise min/max
 e2function vector maxVec(vector rv1, vector rv2)
-	return Vector(
-		rv1[1] > rv2[1] and rv1[1] or rv2[1],
-		rv1[2] > rv2[2] and rv1[2] or rv2[2],
-		rv1[3] > rv2[3] and rv1[3] or rv2[3]
-	)
+	local rx1, ry1, rz1 = rv1:Unpack()
+	local rx2, ry2, rz2 = rv2:Unpack()
+
+	return Vector(rx1 > rx2 and rx1 or rx2, ry1 > ry2 and ry1 or ry2, rz1 > rz2 and rz1 or rz2)
 end
 
 e2function vector minVec(vector rv1, vector rv2)
-	return Vector(
-		rv1[1] < rv2[1] and rv1[1] or rv2[1],
-		rv1[2] < rv2[2] and rv1[2] or rv2[2],
-		rv1[3] < rv2[3] and rv1[3] or rv2[3]
-	)
+	local rx1, ry1, rz1 = rv1:Unpack()
+	local rx2, ry2, rz2 = rv2:Unpack()
+
+	return Vector(rx1 < rx2 and rx1 or rx2, ry1 < ry2 and ry1 or ry2, rz1 < rz2 and rz1 or rz2)
 end
 
 --- Performs modulo on x,y,z separately
 e2function vector mod(vector rv1, rv2)
-	return Vector(
-		rv1[1] >= 0 and rv1[1] % rv2 or rv1[1] % -rv2,
-		rv1[2] >= 0 and rv1[2] % rv2 or rv1[2] % -rv2,
-		rv1[3] >= 0 and rv1[3] % rv2 or rv1[3] % -rv2
-	)
+	local rx1, ry1, rz1 = rv1:Unpack()
+	return Vector(rx1 % (rx1 >= 0 and rv2 or -rv2), ry1 % (ry1 >= 0 and rv2 or -rv2), rz1 % (rz1 >= 0 and rv2 or -rv2))
 end
 
 --- Modulo where divisors are defined as a vector
 e2function vector mod(vector rv1, vector rv2)
-	return Vector(
-		rv1[1] >= 0 and rv1[1] % rv2[1] or rv1[1] % -rv2[1],
-		rv1[2] >= 0 and rv1[2] % rv2[2] or rv1[2] % -rv2[2],
-		rv1[3] >= 0 and rv1[3] % rv2[3] or rv1[3] % -rv2[3]
-	)
+	local rx1, ry1, rz1 = rv1:Unpack()
+	local rx2, ry2, rz2 = rv2:Unpack()
+
+	return Vector(rx1 % (rx1 >= 0 and rx2 or -rx2), ry1 % (ry1 >= 0 and ry2 or -ry2), rz1 % (rz1 >= 0 and rz2 or -rz2))
 end
 
 --- Clamp according to limits defined by two min/max vectors
 e2function vector clamp(vector value, vector min, vector max)
-	local x,y,z
+	local x, y, z
+	local rx1, ry1, rz1 = value:Unpack()
+	local rx2, ry2, rz2 = min:Unpack()
+	local rx3, ry3, rz3 = max:Unpack()
 
-	if value[1] < min[1] then x = min[1]
-	elseif value[1] > max[1] then x = max[1]
-	else x = value[1] end
+	if rx1 < rx2 then
+		p = rx2
+	elseif rx1 > rx3 then
+		p = rx3
+	else
+		p = rx1
+	end
 
-	if value[2] < min[2] then y = min[2]
-	elseif value[2] > max[2] then y = max[2]
-	else y = value[2] end
+	if ry1 < ry2 then
+		y = ry2
+	elseif ry1 > ry3 then
+		y = ry3
+	else
+		y = ry1
+	end
 
-	if value[3] < min[3] then z = min[3]
-	elseif value[3] > max[3] then z = max[3]
-	else z = value[3] end
+	if rz1 < rz2 then
+		r = rz2
+	elseif rz1 > rz3 then
+		r = rz3
+	else
+		r = rz1
+	end
 
 	return Vector(x, y, z)
 end
@@ -497,25 +521,32 @@ __e2setcost(2)
 
 --- Circular shift function: shiftR(vec(x,y,z)) = vec(z,x,y)
 e2function vector shiftR(vector vec)
-	return Vector(vec[3], vec[1], vec[2])
+	local x, y, z = vec:Unpack()
+	return Vector(z, x, y)
 end
 
 --- Circular shift function: shiftL(vec(x,y,z)) = vec(y,z,x)
 e2function vector shiftL(vector vec)
-	return Vector(vec[2], vec[3], vec[1])
+	local x, y, z = vec:Unpack()
+	return Vector(y, z, x)
 end
 
 __e2setcost(5)
 
 --- Returns 1 if the vector lies between (or is equal to) the min/max vectors
 e2function number inrange(vector vec, vector min, vector max)
-	if vec[1] < min[1] then return 0 end
-	if vec[2] < min[2] then return 0 end
-	if vec[3] < min[3] then return 0 end
+	local rx1, ry1, rz1 = vec:Unpack()
+	local rx2, ry2, rz2 = min:Unpack()
 
-	if vec[1] > max[1] then return 0 end
-	if vec[2] > max[2] then return 0 end
-	if vec[3] > max[3] then return 0 end
+	if rx1 < rx2 then return 0 end
+	if ry1 < ry2 then return 0 end
+	if rz1 < rz2 then return 0 end
+
+	local rx3, ry3, rz3 = max:Unpack()
+
+	if rx1 > rx3 then return 0 end
+	if ry1 > ry3 then return 0 end
+	if rz1 > rz3 then return 0 end
 
 	return 1
 end
@@ -534,24 +565,52 @@ end
 
 --------------------------------------------------------------------------------
 
-local contents = {}
-for k,v in pairs(_G) do
-	if (k:sub(1,9) == "CONTENTS_") then
-		contents[v] = k:sub(10):lower()
-	end
-end
+local contents = {
+	[CONTENTS_EMPTY] = "empty",
+	[CONTENTS_SOLID] = "solid",
+	[CONTENTS_WINDOW] = "window",
+	[CONTENTS_AUX] = "aux",
+	[CONTENTS_GRATE] = "grate",
+	[CONTENTS_SLIME] = "slime",
+	[CONTENTS_WATER] = "water",
+	[CONTENTS_BLOCKLOS] = "blocklos",
+	[CONTENTS_OPAQUE] = "opaque",
+	[CONTENTS_TESTFOGVOLUME] = "testfogvolume",
+	[CONTENTS_TEAM4] = "team4",
+	[CONTENTS_TEAM3] = "team3",
+	[CONTENTS_TEAM1] = "team1",
+	[CONTENTS_TEAM2] = "team2",
+	[CONTENTS_IGNORE_NODRAW_OPAQUE] = "ignore_nodraw_opaque",
+	[CONTENTS_MOVEABLE] = "moveable",
+	[CONTENTS_AREAPORTAL] = "areaportal",
+	[CONTENTS_PLAYERCLIP] = "playerclip",
+	[CONTENTS_MONSTERCLIP] = "monsterclip",
+	[CONTENTS_CURRENT_0] = "current_0",
+	[CONTENTS_CURRENT_90] = "current_90",
+	[CONTENTS_CURRENT_180] = "current_180",
+	[CONTENTS_CURRENT_270] = "current_270",
+	[CONTENTS_CURRENT_UP] = "current_up",
+	[CONTENTS_CURRENT_DOWN] = "current_down",
+	[CONTENTS_ORIGIN] = "origin",
+	[CONTENTS_MONSTER] = "monster",
+	[CONTENTS_DEBRIS] = "debris",
+	[CONTENTS_DETAIL] = "detail",
+	[CONTENTS_TRANSLUCENT] = "translucent",
+	[CONTENTS_LADDER] = "ladder",
+	[CONTENTS_HITBOX] = "hitbox"
+}
 
 local cachemeta = {}
-
 local cache_parts_array = setmetatable({ [0] = {} }, cachemeta)
 local cache_lookup_table = setmetatable({ [0] = { empty = true } }, cachemeta)
 local cache_concatenated_parts = setmetatable({ [0] = "empty" }, cachemeta)
 
-local function generateContents( n )
+local function generateContents(n)
 	local parts_array, lookup_table = {}, {}
 
 	for i = 0, 30 do
 		local v = bit.lshift(1, i)
+
 		if bit.band(n, v) ~= 0 then
 			local name = contents[v]
 			lookup_table[name] = true
@@ -560,10 +619,10 @@ local function generateContents( n )
 	end
 
 	concatenated_parts = table.concat(parts_array, ",")
-
 	cache_parts_array[n] = parts_array
 	cache_lookup_table[n] = lookup_table
 	cache_concatenated_parts[n] = concatenated_parts
+
 	return concatenated_parts
 end
 
@@ -572,27 +631,28 @@ function cachemeta:__index(n)
 	return rawget(self, n)
 end
 
-__e2setcost( 20 )
+__e2setcost(20)
 
-e2function number pointHasContent( vector point, string has )
-	local cont = cache_lookup_table[util.PointContents(Vector(point[1], point[2], point[3]))]
+e2function number pointHasContent(vector point, string has)
+	local contents = cache_lookup_table[util.PointContents(point)]
+	has = string.lower(string.gsub(has, " ", "_"))
 
-	has = has:gsub(" ", "_"):lower()
-
-	for m in has:gmatch("([^,]+),?") do
-		if cont[m] then return 1 end
+	for m in string.gmatch(has, "([^,]+),?") do
+		if contents[m] then
+			return 1
+		end
 	end
 
 	return 0
 end
 
-__e2setcost( 15 )
+__e2setcost(15)
 
-e2function string pointContents( vector point )
+e2function string pointContents(vector point)
 	return cache_concatenated_parts[util.PointContents(point)]
 end
 
-e2function array pointContentsArray( vector point )
+e2function array pointContentsArray(vector point)
 	return cache_parts_array[util.PointContents(point)]
 end
 
@@ -601,78 +661,81 @@ end
 __e2setcost(15)
 
 --- Converts a local position/angle to a world position/angle and returns the position
-e2function vector toWorld( vector localpos, angle localang, vector worldpos, angle worldang )
+e2function vector toWorld(vector localpos, angle localang, vector worldpos, angle worldang)
 	return LocalToWorld(localpos, localang, worldpos, worldang)
 end
 
 --- Converts a local position/angle to a world position/angle and returns the angle
-e2function angle toWorldAng( vector localpos, angle localang, vector worldpos, angle worldang )
+e2function angle toWorldAng(vector localpos, angle localang, vector worldpos, angle worldang)
 	local _, ang = LocalToWorld(localpos, localang, worldpos, worldang)
 	return ang
 end
 
 --- Converts a local position/angle to a world position/angle and returns both in an array
-e2function array toWorldPosAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	return { LocalToWorld(localpos,localang,worldpos,worldang) }
+e2function array toWorldPosAng(vector localpos, angle localang, vector worldpos, angle worldang)
+	return { LocalToWorld(localpos, localang, worldpos, worldang) }
 end
 
 --- Converts a world position/angle to a local position/angle and returns the position
-e2function vector toLocal( vector localpos, angle localang, vector worldpos, angle worldang )
-	return WorldToLocal(localpos,localang,worldpos,worldang)
+e2function vector toLocal(vector localpos, angle localang, vector worldpos, angle worldang)
+	return WorldToLocal(localpos, localang, worldpos, worldang)
 end
 
 --- Converts a world position/angle to a local position/angle and returns the angle
-e2function angle toLocalAng( vector localpos, angle localang, vector worldpos, angle worldang )
+e2function angle toLocalAng(vector localpos, angle localang, vector worldpos, angle worldang)
 	local _, ang = WorldToLocal(localpos, localang, worldpos, worldang)
 	return ang
 end
 
 --- Converts a world position/angle to a local position/angle and returns both in an array
-e2function array toLocalPosAng( vector localpos, angle localang, vector worldpos, angle worldang )
-	local pos, ang = WorldToLocal(localpos,localang,worldpos,worldang)
-	return {pos, ang}
+e2function array toLocalPosAng(vector localpos, angle localang, vector worldpos, angle worldang)
+	local pos, ang = WorldToLocal(localpos, localang, worldpos, worldang)
+	return { pos, ang }
 end
 
 --------------------------------------------------------------------------------
 -- Credits to Wizard of Ass for bearing(v,a,v) and elevation(v,a,v)
 
-local ANG_ZERO = angle_zero
+local angle_zero = angle_zero
+
 e2function number bearing(vector originpos, angle originangle, vector pos)
-	pos = WorldToLocal(pos, ANG_ZERO, originpos, originangle)
+	pos = WorldToLocal(pos, angle_zero, originpos, originangle)
 	return rad2deg * -atan2(pos.y, pos.x)
 end
 
 e2function number elevation(vector originpos, angle originangle, vector pos)
-	pos = WorldToLocal(pos, ANG_ZERO, originpos, originangle)
+	pos = WorldToLocal(pos, angle_zero, originpos, originangle)
+
 	local len = pos:Length()
 	if len < 0 then return 0 end
+
 	return rad2deg * asin(pos.z / len)
 end
 
 e2function angle heading(vector originpos,angle originangle, vector pos)
-	pos = WorldToLocal(pos, ANG_ZERO, originpos, originangle)
-
-	local bearing = rad2deg*-atan2(pos.y, pos.x)
+	pos = WorldToLocal(pos, angle_zero, originpos, originangle)
 
 	local len = pos:Length()
+	local posx, posy, posz = pos:Unpack()
+	local bearing = rad2deg * -atan2(posy, posx)
 	if len < 0 then return Angle(0, bearing, 0) end
-	return Angle(rad2deg*asin(pos.z / len), bearing, 0)
+
+	return Angle(rad2deg * asin(posz / len), bearing, 0)
 end
 
 --------------------------------------------------------------------------------
 
-__e2setcost( 10 )
-
+__e2setcost(10)
 
 e2function number vector:isInWorld()
-	if util.IsInWorld(this) then return 1 else return 0 end
+	return util.IsInWorld(this) and 1 or 0
 end
 
-__e2setcost( 5 )
+__e2setcost(5)
 
-e2function string toString(vector v)
-	return ("vec(%g,%g,%g)"):format(v[1], v[2], v[3])
+e2function string toString(vector vec)
+	return string.format("vec(%g,%g,%g)", vec:Unpack())
 end
 
 --- Gets the vector nicely formatted as a string "[X,Y,Z]"
-e2function string vector:toString() = e2function string toString(vector v)
+e2function string vector:toString() = e2function string toString(vector vec)
