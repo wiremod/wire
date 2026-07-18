@@ -6,11 +6,22 @@ GateActions("Entity")
 
 local clamp = WireLib.clampForce
 
-local function isAllowed( gate, ent )
+local function CanPhysgun( gate, ent )
 	if not IsValid( ent ) then return false end
-	if ent:IsPlayer() then return false end
-	if not IsValid(gate:GetPlayer()) then return false end
-	return hook.Run( "PhysgunPickup", gate:GetPlayer(), ent ) ~= false
+
+	local owner = gate:GetPlayer()
+	if not IsValid( owner ) then return false end
+
+	return WireLib.CanPhysgun( owner, ent )
+end
+
+local function CanTool( gate, ent, toolname )
+	if not IsValid( ent ) then return false end
+
+	local owner = gate:GetPlayer()
+	if not IsValid( owner ) then return false end
+
+	return WireLib.CanTool( owner, ent, toolname )
 end
 
 GateActions["entity_applyf"] = {
@@ -19,7 +30,7 @@ GateActions["entity_applyf"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
 	output = function(gate, ent, vec )
-		if not isAllowed( gate, ent ) then return end
+		if not CanPhysgun( gate, ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isvector(vec) then vec = Vector (0, 0, 0) end
@@ -39,7 +50,7 @@ GateActions["entity_applyof"] = {
 	inputtypes = { "ENTITY" , "VECTOR" , "VECTOR" },
 	timed = true,
 	output = function(gate, ent, vec, offset )
-		if not isAllowed( gate, ent ) then return end
+		if not CanPhysgun( gate, ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isvector(vec) then vec = Vector (0, 0, 0) end
@@ -63,7 +74,7 @@ GateActions["entity_applyaf"] = {
 	inputtypes = { "ENTITY" , "ANGLE" },
 	timed = true,
 	output = function(gate, ent, angForce )
-		if not isAllowed( gate, ent ) then return end
+		if not CanPhysgun( gate, ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		local clampedForce = clamp(angForce)
@@ -109,7 +120,7 @@ GateActions["entity_applytorq"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
 	output = function(gate, ent, vec )
-		if not isAllowed( gate, ent ) then return end
+		if not CanPhysgun( gate, ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isvector(vec) then vec = Vector (0, 0, 0) end
@@ -614,8 +625,7 @@ GateActions["entity_owner"] = {
 	outputtypes = { "ENTITY" },
 	timed = true,
 	output = function(gate, Ent)
-		if not Ent:IsValid() then return WireLib.GetOwner(gate) end
-		return WireLib.GetOwner(Ent)
+		return Ent:IsValid() and WireLib.GetOwner(Ent) or gate:GetPlayer()
 	end,
 	label = function(Out,Ent)
 		return string.format ("owner(%s) = %s", Ent, tostring(Out))
@@ -834,9 +844,8 @@ GateActions["entity_setmass"] = {
 	inputs = { "Ent" , "Val" },
 	inputtypes = { "ENTITY" , "NORMAL" },
 	output = function(gate, Ent, Val )
-		if not Ent:IsValid() then return end
+		if not CanTool(gate, Ent, "weight") then return end
 		if not Ent:GetPhysicsObject():IsValid() then return end
-		if not WireLib.CanTool(WireLib.GetOwner(gate), Ent, "weight") then return end
 		if not Val then Val = Ent:GetPhysicsObject():GetMass() end
 		Val = math.Clamp(Val, 0.001, 50000)
 		Ent:GetPhysicsObject():SetMass(Val)
@@ -875,8 +884,7 @@ GateActions["entity_setcol"] = {
 	inputs = { "Ent" , "Col" },
 	inputtypes = { "ENTITY" , "VECTOR" },
 	output = function(gate, Ent, Col )
-		if not Ent:IsValid() then return end
-		if not WireLib.CanTool(WireLib.GetOwner(gate), Ent, "color") then return end
+		if not CanTool(gate, Ent, "color") then return end
 		if not isvector(Col) then Col = Vector(255,255,255) end
 		Ent:SetColor(Color(Col.x,Col.y,Col.z,255))
 	end,
@@ -1242,7 +1250,7 @@ GateActions["entity_setanglevelocity"] = {
     inputtypes = { "ENTITY", "VECTOR" },
     timed = true,
     output = function(gate, ent, vec)
-        if not isAllowed(gate, ent) then return end
+        if not CanPhysgun(gate, ent) then return end
         local phys = ent:GetPhysicsObject()
         if not phys:IsValid() then return end
         phys:SetAngleVelocity(clamp(Vector(vec)))
@@ -1258,7 +1266,7 @@ GateActions["entity_setvelocity"] = {
     inputtypes = { "ENTITY", "VECTOR" },
     timed = true,
     output = function(gate, ent, vec)
-        if not isAllowed(gate, ent) then return end
+        if not CanPhysgun(gate, ent) then return end
         local phys = ent:GetPhysicsObject()
         if not phys:IsValid() then return end
         phys:SetVelocity(clamp(Vector(vec)))
