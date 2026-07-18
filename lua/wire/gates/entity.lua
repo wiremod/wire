@@ -120,7 +120,7 @@ GateActions["entity_applytorq"] = {
 
 		local tq = vec
 
-		phys:AddAngleVelocity( tq * (180 / math.pi) * phys:GetInvInertia() )
+		phys:AddAngleVelocity( tq * (180 / math.pi / 39.3701^2) * phys:GetInvInertia() )
 	end,
 	label = function(_,ent,vec)
 		return string.format( "(%s):applyTorque(%s)", ent, vec )
