@@ -844,9 +844,8 @@ GateActions["entity_setmass"] = {
 	inputs = { "Ent" , "Val" },
 	inputtypes = { "ENTITY" , "NORMAL" },
 	output = function(gate, Ent, Val )
-		if not Ent:IsValid() then return end
-		if not Ent:GetPhysicsObject():IsValid() then return end
 		if not CanTool(gate, Ent, "weight") then return end
+		if not Ent:GetPhysicsObject():IsValid() then return end
 		if not Val then Val = Ent:GetPhysicsObject():GetMass() end
 		Val = math.Clamp(Val, 0.001, 50000)
 		Ent:GetPhysicsObject():SetMass(Val)
@@ -885,7 +884,6 @@ GateActions["entity_setcol"] = {
 	inputs = { "Ent" , "Col" },
 	inputtypes = { "ENTITY" , "VECTOR" },
 	output = function(gate, Ent, Col )
-		if not Ent:IsValid() then return end
 		if not CanTool(gate, Ent, "color") then return end
 		if not isvector(Col) then Col = Vector(255,255,255) end
 		Ent:SetColor(Color(Col.x,Col.y,Col.z,255))
