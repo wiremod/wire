@@ -105,7 +105,10 @@ e2function angle operator-(angle rv1, angle rv2)
 end
 
 e2function angle operator*(angle rv1, angle rv2)
-	return rv1 * rv2
+	local rp1, ry1, rr1 = rv1:Unpack()
+	local rp2, ry2, rr2 = rv2:Unpack()
+
+	return Angle(rp1 * rp2, ry1 * ry2, rr1 * rr2)
 end
 
 e2function angle operator*(rv1, angle rv2)
