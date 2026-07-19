@@ -124,7 +124,10 @@ e2function vector operator*(vector lhs, rhs)
 end
 
 e2function vector operator*(vector lhs, vector rhs)
-	return lhs * rhs
+	local lx, ly, lz = lhs:Unpack()
+	local rx, ry, rz = rhs:Unpack()
+
+	return Vector(lx * rx, ly * ry, lz * rz)
 end
 
 -- Yes this needs to be in pure lua. Angle/Vector operations in reverse order act as Angle / Number rather than Number / Angle properly. Amazing.
