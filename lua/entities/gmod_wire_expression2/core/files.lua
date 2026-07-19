@@ -443,8 +443,8 @@ net.Receive("wire_expression2_file_list", function(_, ply)
 
 	timer.Remove("wire_expression2_filelist_check_timeout_" .. ply:EntIndex())
 
-	for i=1, net.ReadUInt(16) do
-		table.insert(plist.data, net.ReadData(net.ReadUInt(16)))
+	while net.BytesLeft() > 0 do
+		table.insert(plist.data, net.ReadString())
 	end
 
 	plist.uploaded = true

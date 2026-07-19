@@ -91,9 +91,6 @@ local function broadcastSignal(group, name, scope, sender, filter_player)
 	end
 end
 
---local function table_IsEmpty(t) return not pairs(t)(t) end
-local function table_IsEmpty(t) return not next(t) end
-
 local function setGroup(self, group)
 	-- set the current group to the new group
 	self.data.signalgroup = group
@@ -241,8 +238,8 @@ __e2setcost(20)
 
 --- sends signal S to chips owned by the given player, multiple calls for different players do not overwrite each other
 e2function void signalSendToPlayer(string name, entity player)
-	if not IsValid(player) then return end
-	broadcastSignal(self.data.signalgroup, name, 1, self.entity, player)
+	if not IsValid(player) or not player:IsPlayer() then return end
+	broadcastSignal(self.data.signalgroup, name, 1, self.entity, player:UniqueID())
 end
 
 --[[************************************************************************]]--
@@ -253,6 +250,8 @@ registerCallback("construct",function(self)
 end)
 
 registerCallback("destruct",function(self)
+	local receiverid = self.entity:EntIndex()
+
 	-- loop through all scopes, ...
 	for scope,groups in pairs_ac(scopes) do
 		-- ... all groups ...
@@ -260,7 +259,7 @@ registerCallback("destruct",function(self)
 			-- ... and all signals ...
 			for name, contexts in pairs_ac(signals) do
 				-- to remove all signals the chip registered for.
-				contexts[self] = nil
+				contexts[receiverid] = nil
 			end
 		end
 	end
