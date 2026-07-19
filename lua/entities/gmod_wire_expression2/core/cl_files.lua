@@ -98,8 +98,7 @@ net.Receive( "wire_expression2_request_list", function()
 	end
 
 	for _, folder in ipairs(folders) do
-		local formatted_folder = folder .. "/"
-		net.WriteString(formatted_folder)
+		net.WriteString(folder .. "/")
 	end
 
 	net.SendToServer()
