@@ -105,28 +105,9 @@ function ENT:Setup(size, wom, bifurcate, legacy)
 	self:SetOverlayText(sstr .. (self.WOM == true and " Write-Only" or "") .. " RAM" .. (self.Size >= 1024 and " (" .. self.Size .. " bytes)" or "") .. (legacy and " (Legacy)" or "") )
 
 	WireLib.TriggerOutput(self, "Size", self.Size)
+	self:CalcOutput()
 
 	self.Legacy = legacy
-end
-
-function ENT:Think()
-	if self.Bifurcate then
-		if self.Clk and self.AddrWrite >= 0 and self.AddrWrite < self.BifurcateMagic and self.AddrWriteY >= 0 and self.AddrWriteY < self.BifurcateMagic then
-			self:WriteCell(self.AddrWrite + self.AddrWriteY * self.BifurcateMagic, self.Data)
-		end
-		if not self.WOM and self.AddrRead >= 0 and self.AddrRead < self.BifurcateMagic and self.AddrReadY >= 0 and self.AddrReadY < self.BifurcateMagic then
-			WireLib.TriggerOutput(self, "Out", self.Memory[self.AddrRead + self.AddrReadY * self.BifurcateMagic])
-		end
-	else
-		if self.Clk and self.AddrWrite < self.Size and self.AddrWrite >= 0 then
-			self:WriteCell(self.AddrWrite, self.Data)
-		end
-		if not self.WOM and self.AddrRead < self.Size and self.AddrRead >= 0 then
-			WireLib.TriggerOutput(self, "Out", self.Memory[self.AddrRead])
-		end
-	end
-	self:NextThink(CurTime() + 0.02) --same as gate ent
-	return true
 end
 
 --[[function ENT:SetPersistent(val)
@@ -135,7 +116,7 @@ end]]
 
 function ENT:TriggerInput(iname, Value)
 	if (iname == "Reset") then
-		if (Value == 1) then
+		if (Value > 0) then
 			for i=0, self.Size - 1 do
 				self.Memory[i] = 0
 			end
@@ -152,6 +133,25 @@ function ENT:TriggerInput(iname, Value)
 		self.Data = Value
 	elseif (iname == "Clk") then
 		self.Clk = Value > 0
+	end
+	self:CalcOutput()
+end
+
+function ENT:CalcOutput()
+	if self.Bifurcate then
+		if self.Clk and self.AddrWrite >= 0 and self.AddrWrite < self.BifurcateMagic and self.AddrWriteY >= 0 and self.AddrWriteY < self.BifurcateMagic then
+			self:WriteCell(self.AddrWrite + self.AddrWriteY * self.BifurcateMagic, self.Data)
+		end
+		if not self.WOM and self.AddrRead >= 0 and self.AddrRead < self.BifurcateMagic and self.AddrReadY >= 0 and self.AddrReadY < self.BifurcateMagic then
+			WireLib.TriggerOutput(self, "Out", self.Memory[self.AddrRead + self.AddrReadY * self.BifurcateMagic])
+		end
+	else
+		if self.Clk and self.AddrWrite < self.Size and self.AddrWrite >= 0 then
+			self:WriteCell(self.AddrWrite, self.Data)
+		end
+		if not self.WOM and self.AddrRead < self.Size and self.AddrRead >= 0 then
+			WireLib.TriggerOutput(self, "Out", self.Memory[self.AddrRead])
+		end
 	end
 end
 
