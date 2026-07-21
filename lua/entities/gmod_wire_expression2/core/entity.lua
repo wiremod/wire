@@ -159,7 +159,6 @@ e2function number entity:setEditProperty(string key, string value)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", 0) end
 	if not this.Editable then return self:throw("Tried to edit non-editable entity!", 0) end
-	if not canProperty(self.player, this, "editentity") then return self:throw("Gamemode disallowed editing this entity!", 0) end
 
 	local edit = this:GetEditingData()[key]
 	if not edit then return self:throw("Property '" .. key .. "' does not exist on entity!", 0) end
