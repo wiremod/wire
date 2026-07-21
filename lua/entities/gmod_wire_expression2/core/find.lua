@@ -322,7 +322,7 @@ end)
 
 --[[************************************************************************]]--
 
-function query_blocked(self, update)
+local function query_blocked(self, update)
 	if (update) then
 		if (self.data.findcount > 0) then
 			self.data.findcount = self.data.findcount - 1
