@@ -90,7 +90,7 @@ local function stringToNumber(index, str, bytes)
 	return n, newpos
 end
 
-local pixelbits = {3, 1, 3, 4, 1}
+local pixelbits = {3, 1, 3, 4, 1, 4}
 net.Receive("wire_digitalscreen", function()
 	local ent = Entity(net.ReadUInt(16))
 
@@ -244,30 +244,39 @@ transformcolor[0] = function(c) -- RGBXXX
 	cg = cgray+28*math.fmod(math.floor(crgb / 10), 10)
 	cr = cgray+28*math.fmod(math.floor(crgb / 100), 10)
 
-	return cr, cg, cb
+	return cr, cg, cb, 255
 end
 transformcolor[2] = function(c) -- 24 bit mode
 	cb = math.fmod(c, 256)
 	cg = math.fmod(math.floor(c / 256), 256)
 	cr = math.fmod(math.floor(c / 65536), 256)
 
-	return cr, cg, cb
+	return cr, cg, cb, 255
 end
 transformcolor[3] = function(c) -- RRRGGGBBB
 	cb = math.fmod(c, 1000)
 	cg = math.fmod(math.floor(c / 1e3), 1000)
 	cr = math.fmod(math.floor(c / 1e6), 1000)
 
-	return cr, cg, cb
+	return cr, cg, cb, 255
 end
 transformcolor[4] = function(c) -- XXX
-	return c, c, c
+	return c, c, c, 255
+end
+transformcolor[5] = function(c) -- 32 bit mode
+	cb = math.fmod(c, 256)
+	cg = math.fmod(math.floor(c / 256), 256)
+	cr = math.fmod(math.floor(c / 65536), 256)
+	ca = math.fmod(math.floor(c / 16777216), 256)
+
+	return cr, cg, cb, ca
 end
 
 function ENT:RedrawPixel(a)
 	if a >= self.ScreenWidth*self.ScreenHeight then return end
 
 	local cr,cg,cb
+	local alpha = 255
 
 	local x = a % self.ScreenWidth
 	local y = math.floor(a / self.ScreenWidth)
@@ -280,12 +289,17 @@ function ENT:RedrawPixel(a)
 		cb = self.Memory1[a*3+2] or 0
 	else
 		local c = self.Memory1[a] or 0
-		cr, cg, cb = (transformcolor[colormode] or transformcolor[0])(c)
+		cr, cg, cb, alpha = (transformcolor[colormode] or transformcolor[0])(c)
 	end
 
-
-	surface.SetDrawColor(cr,cg,cb,255)
-	surface.DrawRect( x, y, 1, 1 )
+	if alpha ~= 255 then --save a step if transparency wouldnt matter
+		render.OverrideBlend(true, BLEND_ZERO, BLEND_ZERO, BLENDFUNC_ADD, BLEND_ZERO, BLEND_ZERO, BLENDFUNC_ADD)
+		surface.SetDrawColor(0, 0, 0, 255)
+		surface.DrawRect(x, y, 1, 1)
+		render.OverrideBlend(false)
+	end
+	surface.SetDrawColor(cr, cg, cb, alpha)
+	surface.DrawRect(x, y, 1, 1)
 end
 
 function ENT:RedrawRow(y)
@@ -294,8 +308,18 @@ function ENT:RedrawRow(y)
 
 	local colormode = self.Memory1[1048569] or 0
 
+	if colormode == 5 then
+		render.OverrideBlend(true, BLEND_ZERO, BLEND_ZERO, BLENDFUNC_ADD, BLEND_ZERO, BLEND_ZERO, BLENDFUNC_ADD)
+		surface.SetDrawColor(0, 0, 0, 255)
+		for x = 0,self.ScreenWidth-1 do
+			surface.DrawRect(x, y, 1, 1)
+		end
+		render.OverrideBlend(false)
+	end
+
 	for x = 0,self.ScreenWidth-1 do
 		local cr,cg,cb
+		local alpha = 255
 
 		if (colormode == 1) then
 			cr = self.Memory1[(a+x)*3  ] or 0
@@ -303,11 +327,11 @@ function ENT:RedrawRow(y)
 			cb = self.Memory1[(a+x)*3+2] or 0
 		else
 			local c = self.Memory1[a+x] or 0
-			cr, cg, cb = (transformcolor[colormode] or transformcolor[0])(c)
+			cr, cg, cb, alpha = (transformcolor[colormode] or transformcolor[0])(c)
 		end
 
-		surface.SetDrawColor(cr,cg,cb,255)
-		surface.DrawRect( x, y, 1, 1 )
+		surface.SetDrawColor(cr, cg, cb, alpha)
+		surface.DrawRect(x, y, 1, 1)
 	end
 end
 
@@ -326,8 +350,13 @@ function ENT:Draw(flags)
 			local idx = 0
 
 			if self.ClearQueued then
-				surface.SetDrawColor(0,0,0,255)
-				surface.DrawRect(0,0, 1024,1024)
+				local colormode = self.Memory1[1048569] or 0
+				if colormode == 5 then
+					render.ClearRenderTarget(self.GPU.RT, Color(0, 0, 0, 0)) --clear with alpha
+				else
+					surface.SetDrawColor(0, 0, 0, 255) --compatibility opaque clear
+					surface.DrawRect(0, 0, 1024, 1024)
+				end
 				self.ClearQueued = false
 				return
 			end
