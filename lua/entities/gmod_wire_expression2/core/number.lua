@@ -581,9 +581,14 @@ __e2setcost(10)
 local CHARS = string.Split("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", "")
 
 local function tobase(number, base, self)
-	if base < 2 or base > 36 or base ~= base or number == 0 or number ~= number then return "0" end
-	if base == 10 then return tostring(number) end
 	if number < 0 then return "-" .. tobase(-number, base, self) end
+
+	base = floor(base)
+	if base == 10 then return tostring(number) end
+	if base ~= base or base < 2 or base > 36 then return "0" end
+
+	number = floor(number)
+	if number ~= number or number == 0 then return "0" end
 
 	local out, loops, d = {}, floor(log(number) / log(base)) + 1, 0
 	if loops == inf then return "inf" end
