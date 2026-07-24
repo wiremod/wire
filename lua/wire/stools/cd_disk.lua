@@ -8,6 +8,7 @@ if (CLIENT) then
 
 	list.Set( "Wire_Laser_Disk_Models", "models/venompapa/wirecd_small.mdl", true )
 	list.Set( "Wire_Laser_Disk_Models", "models/venompapa/wirecd_medium.mdl", true )
+	list.Set( "Wire_Laser_Disk_Models", "models/venompapa/wirecd_large.mdl", true )
 	list.Set( "Wire_Laser_Disk_Models", "models/venompapa/wirecd_huge.mdl", true )
 
 	TOOL.Information = {
