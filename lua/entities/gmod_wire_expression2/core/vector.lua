@@ -477,11 +477,11 @@ e2function vector clamp(vector value, vector min, vector max)
 	local rx3, ry3, rz3 = max:Unpack()
 
 	if rx1 < rx2 then
-		p = rx2
+		x = rx2
 	elseif rx1 > rx3 then
-		p = rx3
+		x = rx3
 	else
-		p = rx1
+		x = rx1
 	end
 
 	if ry1 < ry2 then
@@ -493,11 +493,11 @@ e2function vector clamp(vector value, vector min, vector max)
 	end
 
 	if rz1 < rz2 then
-		r = rz2
+		z = rz2
 	elseif rz1 > rz3 then
-		r = rz3
+		z = rz3
 	else
-		r = rz1
+		z = rz1
 	end
 
 	return Vector(x, y, z)
