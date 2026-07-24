@@ -66,6 +66,16 @@ ModelPlug.ListAddGenerics("Wire_Socket_Models", {
 		plug = "models/fasteroid/plugs/microusb_plug.mdl",
 		pos = Vector(0, 0, 0)
 	},
+	["models/dabagey/wiremod/cpusocket.mdl"] = {
+		ang = Angle(90, 0, 0),
+		plug = "models/dabagey/wiremod/cpu.mdl",
+		pos = Vector(0, 0, 0)
+	},
+	["models/dabagey/wiremod/ramslot.mdl"] = {
+		ang = Angle(90, 0, 0),
+		plug = "models/cheeze/wires/ram.mdl",
+		pos = Vector(0, 0, 0)
+	},
 })
 
 hook.Run("ModelPlugLuaRefresh")
