@@ -31,7 +31,7 @@ e2function number bRol(a, b)
 end
 
 e2function number bRor(a, b)
-	return bit.rol(a, b)
+	return bit.ror(a, b)
 end
 
 e2function number bSwap(n)
