@@ -290,8 +290,8 @@ function Editor:SetActiveTab(val)
 		self.C.TabHolder:SetActiveTab(val)
 		val:GetPanel():RequestFocus()
 	end
-
 	self:UpdateActiveTabTitle()
+	self.C.Tree.Root.group = self:GetCurrentEditor().SegmentTree
 end
 
 function Editor:ExtractNameFromEditor()
@@ -652,6 +652,156 @@ function Editor:InitComponents()
 	self.C.Tree = vgui.Create("DTree", self.C.Holder)
 	self.C.Tree:Dock(TOP)
 	self.C.Tree:DockMargin(2, 0, 2, 2)
+	self.C.Tree.Root = self.C.Tree:AddNode("Display", "icon16/computer.png")
+	function self.C.Tree.DoClick(_,node)
+		self:GetCurrentEditor().SelectedSegment = node.group
+		self:GetCurrentEditor().SelectedVert = 0
+		
+		return true
+	end
+	
+	function self.C.Tree.DoRightClick(_,node)
+		local Menu = DermaMenu()
+		
+		Menu:AddOption( "Copy" )
+		Menu:AddOption( "Paste" )
+		local InsertM, MMOption = Menu:AddSubMenu( "Insert" )
+		--InsertM:AddOption( "Union", function() AddUnionI(node) end )
+		InsertM:AddOption( "Group", function() 
+			local tree = self:GetCurrentEditor().SegmentTree
+			if node == nil then
+				node = self.C.Tree.Root
+			end
+			local group = node.group
+			local children = nil
+			if group ~= nil then
+				children = group.Children
+			end
+			
+			if children == nil then
+				node = self.C.Tree.Root
+				children = tree.Children
+				group = tree
+			end
+			local newgroup = {Type=GROUP,Children={},X=0,Y=0,HasColor=false,R=255,G=255,B=255}
+			children[#children+1] = newgroup
+			local new = node:AddNode( "Group", "icon16/text_list_numbers.png" )
+			new:SetExpanded(true);
+			new.group = newgroup
+			new.parentgroup = group
+			
+		end )
+		--InsertM:AddOption( "Segment", function() AddSegmentI(node) end )
+		--InsertM:AddOption( "Matrix", function() AddMatrixI(node) end )
+		InsertM:AddOption( "Poly", function() 
+			local tree = self:GetCurrentEditor().SegmentTree
+			print(node)
+			if node == nil then
+				node = self.C.Tree.Root
+			end
+			local group = node.group
+			local children = nil
+			if group ~= nil then
+				children = group.Children
+			end
+			if children == nil then
+				node = self.C.Tree.Root
+				children = tree.Children
+				group = tree
+			end
+			local newgroup = {Type=POLY, X=0,Y=0, Poly={{x=0,y=0},{x=10,y=0},{x=0,y=10}}}
+			children[#children+1] = newgroup
+			local new = node:AddNode( "Poly", "icon16/bullet_green.png" )
+			new:SetExpanded(true);
+			new.group = newgroup
+			new.parentgroup = group
+		end )
+		--InsertM:AddOption( "Align", function() AddAlignI(node) end )
+		--InsertM:AddOption( "Offset", function() AddOffsetI(node) end )
+		Menu:AddSpacer()
+		if node ~= self.C.Tree.Root then
+			Menu:AddOption( "Ungroup" )
+			Menu:AddOption( "Remove" )
+		end
+		Menu:Open()
+		function Menu.OptionSelected(menu, option, optionText)
+			local tree = self:GetCurrentEditor().SegmentTree
+			if optionText == "Ungroup" then
+				if node.group.Children then
+					local parentgroup = node.parentgroup
+					if parentgroup == nil then
+						parentgroup = tree
+					end
+					local indexofnode = 0
+					for i,v in pairs(parentgroup.Children) do
+						if v == node.group then
+							table.remove(parentgroup.Children,i)
+							indexofnode = i
+							break
+						end
+					end
+					
+					
+					local children = node:GetChildNodes()
+					local parent = node:GetParent()
+					local parentnode = node:GetParentNode()
+					
+					local root = node:GetRoot()
+					for i=1,#children do
+						children[i]:SetParent(parent)
+						children[i]:SetParentNode(parentnode)
+						children[i]:SetRoot(root)
+						--parentnode:Insert(children[i],insertbefore,true)
+						table.insert(parentgroup.Children,indexofnode+i-1,node.group.Children[i])
+					end
+					
+					local parentchildren = parentnode:GetChildNodes()
+					for j=1,#parentgroup.Children do
+						for i=1,#parentchildren do
+							if parentgroup.Children[j] == parentchildren[i].group then
+								parentchildren[i]:SetParent(node) -- required for it to reparent
+								parentchildren[i]:SetParentNode(parentnode)
+								parentchildren[i]:SetParent(parent)
+								parentchildren[i]:SetRoot(root)
+								break
+							end
+						end
+					end
+					
+					
+					node:Remove()
+				end
+			elseif optionText == "Copy" then
+				self.Clipboard = table.Copy(node.group or self:GetCurrentEditor().SegmentTree)
+			elseif optionText == "Paste" then
+				if node.group.Children then
+					local newgroup = table.Copy(self.Clipboard)
+					node.group.Children[#node.group.Children+1] = newgroup
+					self:BuildNode(newgroup,node,node.group)
+				else
+					local newgroup = table.Copy(self.Clipboard)
+					tree.Children[#tree.Children+1] = newgroup
+					self:BuildNode(newgroup,DisplayData.Root,tree)
+				end
+			elseif optionText == "Remove" then
+				if node == nil then
+					return
+				end
+				local parentgroup = node.parentgroup
+				if parentgroup == nil then
+					parentgroup = WireLib.SegmentLCD_Tree
+				end
+				for i,v in pairs(parentgroup.Children) do
+					if v == node.group then
+						table.remove(parentgroup.Children,i)
+						node:Remove()
+						return
+					end
+				end
+			end
+		end
+		return true
+	end
 	
 	self.C.PropList = vgui.Create("DCategoryList", self.C.Holder)
 	self.C.PropList:Dock(FILL)
@@ -825,6 +975,7 @@ function Editor:InitComponents()
 	self.C.Control:SetVisible(false)
 
 	self:CreateTab("screen")
+	--self.C.Tree.Root.group = self:GetCurrentEditor().SegmentTree
 end
 
 function Editor:AutoSave()
@@ -1122,7 +1273,7 @@ end
 
 function Editor:SetData(data)
 	self:GetCurrentEditor():SetData(data)
-	local childs = self.C.Tree.RootNode:GetChildren()
+	local childs = self.C.Tree.Root:GetChildren()
 	if childs[4] ~= nil then
 		childs[4]:Remove()
 	end
@@ -1133,7 +1284,7 @@ end
 
 function Editor:SetDataFromEnt(data)
 	self:GetCurrentEditor().SegmentTree = table.Copy(data)
-	local childs = self.C.Tree.RootNode:GetChildren()
+	local childs = self.C.Tree.Root:GetChildren()
 	if childs[4] ~= nil then
 		childs[4]:Remove()
 	end

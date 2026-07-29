@@ -126,46 +126,6 @@ local function PolyDimensions(self,poly,tlocal)
 end
 
 
-local function DrawSegment(self,segment)
-	local transformedLocal = TransformOffset(self,segment.X or 0,segment.Y or 0)
-	local angle = math.rad(segment.Rotation or 0)
-	PushTransform(self,math.cos(angle),
-	math.sin(angle)-(segment.SkewX or 0),
-	-math.sin(angle)+(segment.SkewY or 0),
-	math.cos(angle))
-	--self:Transform(,segment.H/2+(segment.H*(segment.BevelSkew or 0))),
-	local bevel = math.min(segment.H,segment.W)/2*(segment.Bevel or 0)
-	
-	local rect = {
-		{x=bevel,y=segment.H},
-		{x=0,y=segment.H-bevel},
-		{x=0,y=bevel},
-		{x=bevel,y=0},
-		{x=segment.W-bevel,y=0},
-		{x=segment.W,y=bevel},
-		{x=segment.W,y=segment.H-bevel},
-		{x=segment.W-bevel,y=segment.H}
-	}
-	local x, y = self:LocalToScreen(0,0)
-	local m = Matrix()
-	m:Translate(Vector(x,y,0))
-	m:Mul(Matrix({
-		{self.LocalXX,self.LocalXY,0,self.LocalX + transformedLocal[1]},
-		{self.LocalYX,self.LocalYY,0,self.LocalY + transformedLocal[2]},
-		{0,0,1,0},
-		{0,0,0,1}
-	}))
-	m:Translate(Vector(-x,-y,0))
-	cam.PushModelMatrix(m)
-	surface.DrawPoly(rect)
-	cam.PopModelMatrix()
-	PopTransform(self)
-	--surface.DrawRect(self.LocalX,self.LocalY,segment.W,segment.H)
-	
-	return PolyDimensions(self,rect,transformedLocal)
-end
-
-
 function LoopToTris(poly)
 	poly = table.Copy(poly)
 	if #poly == 3 then
@@ -303,8 +263,6 @@ local function DrawUnion(self,union)
 			DrawGroup(self,v)
 		elseif v.Type == UNION then
 			DrawUnion(self,v)
-		elseif v.Type == SEGMENT then 
-			DrawSegment(self,v)
 		elseif v.Type == POLY then 
 			DrawPoly(self,v)
 		elseif v.Type == MATRIX then 
@@ -331,8 +289,12 @@ local function DrawGroup(self,group)
 	-(group.SkewX or 0),
 	(group.SkewY or 0),
 	1)
-	local minx, miny = Transform(self, group.Children[1].X, group.Children[1].Y)
+	local minx, miny = nil, nil
 	local maxx, maxy = minx, miny
+	
+	if group.HasColor then
+		surface.SetDrawColor(group.R or 255,group.G or 255,group.B or 255,group.A or 255)
+	end
 	
 	for k,v in ipairs(group.Children) do
 		local nminx, nminy, nmaxx, nmaxy
@@ -340,18 +302,15 @@ local function DrawGroup(self,group)
 			nminx, nminy, nmaxx, nmaxy = DrawGroup(self,v)
 		elseif v.Type == UNION then
 			nminx, nminy, nmaxx, nmaxy = DrawGroup(self,v)
-		elseif v.Type == SEGMENT then 
-			nminx, nminy, nmaxx, nmaxy = DrawSegment(self,v)
 		elseif v.Type == POLY then 
 			nminx, nminy, nmaxx, nmaxy = DrawPoly(self,v)
 		elseif v.Type == MATRIX then 
 			DrawMatrix(self,v)
 		end
-		--if nminx == nil then
-			--PrintTable(group)
-		--end
-		minx, miny = math.min(nminx, minx), math.min(nminy, miny)
-		maxx, maxy = math.max(nmaxx, maxx), math.max(nmaxy, maxy)
+		if nminx ~= nil then
+			minx, miny = math.min(nminx, minx or nminx), math.min(nminy, miny or nminy)
+			maxx, maxy = math.max(nmaxx, maxx or nmaxx), math.max(nmaxy, maxy or nmaxy)
+		end
 	end
 	--m:Translate(Vector(x+p.x-4.0/self.Zoom,y+p.y-4.0/self.Zoom,0))
 	--m:Scale(Vector(1/self.Zoom,1/self.Zoom,0))
@@ -370,7 +329,9 @@ local function DrawGroup(self,group)
 	if group.HasColor then
 		surface.SetDrawColor(group.R or 255,group.G or 255,group.B or 255,group.A or 255)
 	end
-	surface.DrawOutlinedRect(minx,miny,(maxx-minx),(maxy-miny))
+	if minx ~= nil then
+		surface.DrawOutlinedRect(minx,miny,(maxx-minx),(maxy-miny))
+	end
 	--cam.PopModelMatrix()
 	PopTransform(self)
 	self.LocalX = self.LocalX - transformedLocal[1]
@@ -821,6 +782,9 @@ function Editor:OnMousePressed(code)
 						table.remove(pvGroup.Children,pvGroupIndex)
 						self:PruneGroups(self.SegmentTree.Children)
 					end
+				else
+					table.remove(pvGroup.Children,pvGroupIndex)
+					self:PruneGroups(self.SegmentTree.Children)
 				end
 			else
 				if pvIndex == 0 then

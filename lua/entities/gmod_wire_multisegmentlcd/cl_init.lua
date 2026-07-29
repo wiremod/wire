@@ -388,8 +388,8 @@ function ENT:Draw()
 				surface.SetDrawColor(self2.Bgred,self2.Bggreen,self2.Bgblue,self2.Bgalpha)
 				surface.DrawRect( 0, 0, 1, 1 )
 				for i=0,self2.BitIndex-1 do
-					local x = (bit.bxor(i,self.XorMask)+1)%1024
-					local y = math.floor((bit.bxor(i,self.XorMask)+1)/1024)
+					local x = (bit.bxor(i,0)+1)%1024
+					local y = math.floor((bit.bxor(i,0)+1)/1024)
 					fade[i] = (fade[i] or 0)*0.92 + 0.01
 					if bit.band(self2.Memory[bit.rshift(i,3)] or 0,bit.lshift(1,bit.band(i,7))) ~= 0 then
 						fade[i] = fade[i] + 0.07
