@@ -1548,6 +1548,13 @@ E2Helper.Descriptions["bShl(nn)"] = "Performs bitwise shift left on the first nu
 E2Helper.Descriptions["bShr(nn)"] = "Performs bitwise shift right on the first number by the amount of the second"
 E2Helper.Descriptions["bNot(n)"] = "Performs a binary Not"
 E2Helper.Descriptions["bNot(nn)"] = "Performs a binary Not. The second argument is the length of the number you wish to perform Not on in bits"
+E2Helper.Descriptions["bShar(nn)"] = "Performs arithmetic shift right on the first number by the amount of the second (preserves sign)"
+E2Helper.Descriptions["bRol(nn)"] = "Performs a bitwise rotate left on the first number by the amount of the second"
+E2Helper.Descriptions["bRor(nn)"] = "Performs a bitwise rotate right on the first number by the amount of the second"
+E2Helper.Descriptions["bSwap(n)"] = "Swaps the byte order of the number (endian swap)"
+E2Helper.Descriptions["bToBit(n)"] = "Normalizes and converts the number to a 32-bit signed integer"
+E2Helper.Descriptions["bToHex(n)"] = "Converts the number to a hexadecimal string (8 digits)"
+E2Helper.Descriptions["bToHex(nn)"] = "Converts the number to a hexadecimal string with the specified number of digits"
 
 -- EGP
 E2Helper.Descriptions["egpAlign(xwl:nn)"] = "Changes the horizontal alignment. Works on: text and text layout. Number can be 0, 1 or 2"
