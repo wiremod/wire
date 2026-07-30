@@ -9,7 +9,7 @@ local sbox_E2_maxProps = CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
 local sbox_E2_maxPropsPerSecond = CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
 local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) -- 2: Players can affect their own props, 1: Only admins, 0: Disabled
 local sbox_E2_canMakeStatue = CreateConVar("sbox_E2_canMakeStatue", "1", FCVAR_ARCHIVE)
-local wire_expression2_propcore_sents_whitelist = CreateConVar("wire_expression2_propcore_sents_whitelist", 1, FCVAR_ARCHIVE, "If 1 - players can spawn sents only from the default sent list. If 0 - players can spawn sents from both the registered list and the entity tab.", 0, 1)
+local wire_expression2_propcore_sents_whitelist = CreateConVar("wire_expression2_propcore_sents_whitelist", 0, FCVAR_ARCHIVE, "If 1 - players can spawn sents only from the default sent list. If 0 - players can spawn sents from both the registered list and the entity tab.", 0, 1)
 local wire_expression2_propcore_sents_enabled = CreateConVar("wire_expression2_propcore_sents_enabled", 1, FCVAR_ARCHIVE, "If 1 - this allows sents to be spawned. (Doesn't affect the sentSpawn whitelist). If 0 - prevents sentSpawn from being used at all.", 0, 1)
 local wire_expression2_propcore_canMakeUnbreakable = CreateConVar("wire_expression2_propcore_canMakeUnbreakable", 1, FCVAR_ARCHIVE, "If 1 - this allows props to be made unbreakable. If 0 - prevents propMakeBreakable from being used at all.", 0, 1)
 
