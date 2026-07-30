@@ -5,6 +5,7 @@ DEFINE_BASECLASS( "base_wire_entity" )
 
 ENT.WireDebugName = "DigitalScreen"
 
+local dsRate = CreateConVar("wire_digitalscreen_rate", 1, { FCVAR_REPLICATED, FCVAR_ARCHIVE })
 
 function ENT:InitInteractive()
 	local model = self:GetModel()
@@ -170,9 +171,20 @@ end
 ----------------------------------------------------
 -- Processing limiters and global bandwidth limiters
 local maxProcessingTime = engine.TickInterval() * 0.9
-local defaultMaxBandwidth = 10000 -- 10k per screen max limit - is arbitrary. needs to be smaller than the global limit.
-local defaultMaxGlobalBandwidth = 20000 -- 20k is a good global limit in my testing. higher than that seems to cause issues
+
+local dsRateValue = dsRate:GetFloat()
+local defaultMaxBandwidth = 100000 * dsRateValue -- 10k per screen max limit - is arbitrary. needs to be smaller than the global limit.
+local defaultMaxGlobalBandwidth = 200000 * dsRateValue -- 20k is a good global limit in my testing. higher than that seems to cause issues
 local maxBandwidth = defaultMaxBandwidth
+
+local function updateBW()
+    local dsRateValue = dsRate:GetFloat()
+
+    defaultMaxBandwidth = 100000 * dsRateValue
+    defaultMaxGlobalBandwidth = 200000 * dsRateValue
+end
+cvars.AddChangeCallback("wire_digitalscreen_rate", updateBW)
+
 local globalBandwidthLookup = {}
 local function calcGlobalBW()
 	maxBandwidth = defaultMaxGlobalBandwidth
