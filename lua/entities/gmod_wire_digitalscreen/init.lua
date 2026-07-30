@@ -6,6 +6,7 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.WireDebugName = "DigitalScreen"
 
 local dsRate = CreateConVar("wire_digitalscreen_rate", 1, { FCVAR_REPLICATED, FCVAR_ARCHIVE })
+local dsRateValue = dsRate:GetFloat()
 
 function ENT:InitInteractive()
 	local model = self:GetModel()
@@ -129,6 +130,7 @@ function ENT:ReadCell(Address)
 	Address = math.floor(Address)
 	if Address < 0 then return nil end
 	if Address >= 1048577 then return nil end
+    if (Address==1048576) then return dsRateValue end -- report its rate
 
 	return self.Memory[Address] or 0
 end
@@ -172,13 +174,12 @@ end
 -- Processing limiters and global bandwidth limiters
 local maxProcessingTime = engine.TickInterval() * 0.9
 
-local dsRateValue = dsRate:GetFloat()
 local defaultMaxBandwidth = 100000 * dsRateValue -- 10k per screen max limit - is arbitrary. needs to be smaller than the global limit.
 local defaultMaxGlobalBandwidth = 200000 * dsRateValue -- 20k is a good global limit in my testing. higher than that seems to cause issues
 local maxBandwidth = defaultMaxBandwidth
 
 local function updateBW()
-    local dsRateValue = dsRate:GetFloat()
+    dsRateValue = dsRate:GetFloat()
 
     defaultMaxBandwidth = 100000 * dsRateValue
     defaultMaxGlobalBandwidth = 200000 * dsRateValue
