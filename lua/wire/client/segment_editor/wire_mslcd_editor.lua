@@ -634,7 +634,7 @@ function Editor:InitComponents()
 	self.C.Reload = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Reload tab button
 	--self.C.Segment = vgui.Create("DButton", self.C.Menu)
 	self.C.Poly = vgui.Create("DButton", self.C.Menu)
-	--self.C.Matrix = vgui.Create("DButton", self.C.Menu)
+	self.C.Matrix = vgui.Create("DButton", self.C.Menu)
 	--self.C.Group = vgui.Create("DButton", self.C.Menu)
 	--self.C.Align = vgui.Create("DButton", self.C.Menu)
 	self.C.SaE = vgui.Create("DButton", self.C.Menu) -- Save & Exit button
@@ -643,6 +643,9 @@ function Editor:InitComponents()
 	self.C.Control = self:addComponent(vgui.Create("Panel", self), -350, 52, 342, -32) -- Control Panel
 	self.C.Credit = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 190) -- Credit box
 	self.C.Credit:SetEditable(false)
+	
+	self.C.Invisible = vgui.Create("DPanel", self)
+	self.C.Invisible:Hide()
 	
 	self.C.Holder = vgui.Create("DPanel", self)
 	self.C.Holder:SetWidth(300)
@@ -695,7 +698,6 @@ function Editor:InitComponents()
 		--InsertM:AddOption( "Matrix", function() AddMatrixI(node) end )
 		InsertM:AddOption( "Poly", function() 
 			local tree = self:GetCurrentEditor().SegmentTree
-			print(node)
 			if node == nil then
 				node = self.C.Tree.Root
 			end
@@ -712,6 +714,29 @@ function Editor:InitComponents()
 			local newgroup = {Type=POLY, X=0,Y=0, Poly={{x=0,y=0},{x=10,y=0},{x=0,y=10}}}
 			children[#children+1] = newgroup
 			local new = node:AddNode( "Poly", "icon16/bullet_green.png" )
+			new:SetExpanded(true);
+			new.group = newgroup
+			new.parentgroup = group
+		end )
+		
+		InsertM:AddOption( "Matrix", function() 
+			local tree = self:GetCurrentEditor().SegmentTree
+			if node == nil then
+				node = self.C.Tree.Root
+			end
+			local group = node.group
+			local children = nil
+			if group ~= nil then
+				children = group.Children
+			end
+			if children == nil then
+				node = self.C.Tree.Root
+				children = tree.Children
+				group = tree
+			end
+			local newgroup = {Type=MATRIX, X=0,Y=0,OffsetX=8,OffsetY=8,W=4,H=4,ScaleW=7,ScaleH=7}
+			children[#children+1] = newgroup
+			local new = node:AddNode( "Matrix", "icon16/bullet_red.png" )
 			new:SetExpanded(true);
 			new.group = newgroup
 			new.parentgroup = group
@@ -851,9 +876,29 @@ function Editor:InitComponents()
 		editor.SelectedSegment.Poly[editor.SelectedVert].y = val
 	end
 	
+	self.C.MatrixProps = vgui.Create("DForm", self.C.PropList)
+	self.C.MatrixProps:Dock(FILL)
+	self.C.MatrixProps:DockMargin(2, 0, 2, 2)
+	self.C.MatrixProps:SetLabel("Matrix Properties")
+	
+	self.C.Matrix_W = self.C.MatrixProps:NumberWang("Horizontal Resolution",nil,1,1024)
+	function self.C.Matrix_W.OnValueChanged(wang, val)
+		local editor = self:GetCurrentEditor()
+		if editor.SelectedSegment == nil then return end
+		editor.SelectedSegment.W = val
+	end
+	
+	self.C.Matrix_H = self.C.MatrixProps:NumberWang("Vertical Resolution",nil,1,1024)
+	function self.C.Matrix_H.OnValueChanged(wang, val)
+		local editor = self:GetCurrentEditor()
+		if editor.SelectedSegment == nil then return end
+		editor.SelectedSegment.H = val
+	end
+	
 	self.C.PropList:AddItem(self.C.EditorProps)
 	self.C.PropList:AddItem(self.C.Properties)
 	self.C.PropList:AddItem(self.C.VertProps)
+	self.C.PropList:AddItem(self.C.MatrixProps)
 	-- extra component options
 
 	self.C.Divider:SetLeft(self.C.Browser)
@@ -924,7 +969,12 @@ function Editor:InitComponents()
 		self:GetCurrentEditor():SetMode(POLY)
 	end
 	
-	
+	self.C.Matrix:SetText("Matrix")
+	self.C.Matrix:SetTooltip( "Matrix Tool" )
+	self.C.Matrix:Dock(LEFT)
+	self.C.Matrix.DoClick = function(button)
+		self:GetCurrentEditor():SetMode(MATRIX)
+	end
 
 	self.C.SaE:SetText("Save and Exit")
 	self.C.SaE.DoClick = function(button) self:SaveFile(self:GetChosenFile(), true) end

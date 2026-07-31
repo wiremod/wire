@@ -125,6 +125,15 @@ local function PolyDimensions(self,poly,tlocal)
 	return minx, miny, maxx, maxy
 end
 
+local function MatrixDimensions(self,matrix,tlocal)
+	self.LocalX = self.LocalX + tlocal[1]
+	self.LocalY = self.LocalY + tlocal[2]
+	local minx, miny = Transform(self, 0, 0)
+	local maxx, maxy = Transform(self, matrix.W*matrix.OffsetX,matrix.H*matrix.OffsetY)
+	self.LocalX = self.LocalX - tlocal[1]
+	self.LocalY = self.LocalY - tlocal[2]
+	return minx, miny, maxx, maxy
+end
 
 function LoopToTris(poly)
 	poly = table.Copy(poly)
@@ -254,7 +263,47 @@ local function DrawPoly(self,poly)
 end
 
 local function DrawMatrix(self,matrix)
+	local selected = matrix == self.SelectedSegment
+	local transformedLocal = TransformOffset(self,matrix.X or 0,matrix.Y or 0)
 	
+	local x, y = self:LocalToScreen(0,0)
+	local m = Matrix()
+	m:Translate(Vector(x,y,0))
+	m:Mul(Matrix({
+		{self.LocalXX,self.LocalXY,0,self.LocalX + transformedLocal[1]},
+		{self.LocalYX,self.LocalYY,0,self.LocalY + transformedLocal[2]},
+		{0,0,1,0},
+		{0,0,0,1}
+	}))
+	m:Translate(Vector(-x,-y,0))
+	cam.PushModelMatrix(m)
+	
+	if selected then
+		surface.SetDrawColor(255,192,192,255)
+	else
+		surface.SetDrawColor(255,255,255,255)
+	end
+	for y = 0,matrix.H-1 do
+		for x = 0,matrix.W-1 do
+			surface.DrawRect(x*matrix.OffsetX,y*matrix.OffsetY,matrix.ScaleW,matrix.ScaleH)
+		end
+	end
+	if selected then
+		surface.SetDrawColor(0,255,255,255)
+	else
+		surface.SetDrawColor(0,255,0,255)
+	end
+	m = Matrix()
+	m:Translate(Vector(x-4.0/self.Zoom,y-4.0/self.Zoom,0))
+	m:Scale(Vector(1/self.Zoom,1/self.Zoom,0))
+	m:Translate(Vector(-x,-y,0))
+	cam.PushModelMatrix(m, true)
+	surface.DrawRect(0,0,8,8)
+	cam.PopModelMatrix()
+	surface.SetDrawColor(255,255,255,255)
+	cam.PopModelMatrix()
+	
+	return MatrixDimensions(self,matrix,transformedLocal)
 end
 
 local function DrawUnion(self,union)
@@ -305,7 +354,7 @@ local function DrawGroup(self,group)
 		elseif v.Type == POLY then 
 			nminx, nminy, nmaxx, nmaxy = DrawPoly(self,v)
 		elseif v.Type == MATRIX then 
-			DrawMatrix(self,v)
+			nminx, nminy, nmaxx, nmaxy = DrawMatrix(self,v)
 		end
 		if nminx ~= nil then
 			minx, miny = math.min(nminx, minx or nminx), math.min(nminy, miny or nminy)
@@ -456,10 +505,24 @@ function Editor:Paint()
 	if self.SelectedSegment then
 		self.ParentPanel.C.Prop_X:SetValue(self.SelectedSegment.X)
 		self.ParentPanel.C.Prop_Y:SetValue(self.SelectedSegment.Y)
-		if self.SelectedVert ~= 0 then
+		if self.SelectedSegment.Type == POLY and self.SelectedVert ~= 0 then
+			self.ParentPanel.C.VertProps:SetParent(self.ParentPanel.C.PropList)
 			self.ParentPanel.C.Vert_X:SetValue(self.SelectedSegment.Poly[self.SelectedVert].x)
 			self.ParentPanel.C.Vert_Y:SetValue(self.SelectedSegment.Poly[self.SelectedVert].y)
+		else
+			self.ParentPanel.C.VertProps:SetParent(self.ParentPanel.C.Invisible)
 		end
+		
+		if self.SelectedSegment.Type == MATRIX then
+			self.ParentPanel.C.MatrixProps:SetParent(self.ParentPanel.C.PropList)
+			self.ParentPanel.C.Matrix_W:SetValue(self.SelectedSegment.W)
+			self.ParentPanel.C.Matrix_H:SetValue(self.SelectedSegment.H)
+		else
+			self.ParentPanel.C.MatrixProps:SetParent(self.ParentPanel.C.Invisible)
+		end
+	else
+		self.ParentPanel.C.VertProps:SetParent(self.ParentPanel.C.Invisible)
+		self.ParentPanel.C.MatrixProps:SetParent(self.ParentPanel.C.Invisible)
 	end
 	
 end
@@ -532,7 +595,7 @@ end
 
 -- EDITING
 
-function Editor:CreateSegment(x, y)
+function Editor:CreateMatrix(x, y)
 	local group = nil
 	local children = nil
 	if group ~= nil then
@@ -543,7 +606,7 @@ function Editor:CreateSegment(x, y)
 		children = self.SegmentTree.Children
 		group = self.SegmentTree
 	end
-	local n = {Type=SEGMENT, X=x,Y=y,W=70,H=70,Bevel = 0.1}
+	local n = {Type=MATRIX, X=x,Y=y,OffsetX=8,OffsetY=8,W=4,H=4,ScaleW=7,ScaleH=7}
 	children[#children+1] = n
 end
 
@@ -590,8 +653,8 @@ function Editor:OnKeyCodePressed(code)
 		end
 	elseif code == KEY_C then
 		--Create
-		if self.Mode == SEGMENT then
-			self:CreateSegment(gx, gy)
+		if self.Mode == MATRIX then
+			self:CreateMatrix(gx, gy)
 		elseif self.Mode == POLY then
 			self:CreatePoly(gx, gy)
 		end
@@ -680,6 +743,10 @@ function Editor:GetPolyVertAtGroup(x, y, group)
 			ri, rv = self:GetPolyVertAtPoly(x-v.X, y-v.Y, v)
 			if ri then
 				return ri, rv, group, i
+			end
+		elseif v.Type == MATRIX then
+			if math.abs(x-v.X)*self.Zoom < 4 and math.abs(y-v.Y)*self.Zoom < 4 then
+				return v, 0, group, i
 			end
 		end
 		
@@ -811,6 +878,8 @@ function Editor:OnMousePressed(code)
 		else
 			self.Selecting = {x=x,y=y}
 		end
+		
+	
 	elseif code == MOUSE_RIGHT then
 		-- PLANE DRAGGING
 		self.DraggingWorld = true
