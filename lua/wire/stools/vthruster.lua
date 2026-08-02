@@ -53,6 +53,15 @@ function TOOL:LeftClick( trace )
 		local ent = WireToolObj.LeftClick_Make(self, trace, ply )
 		if isbool(ent) then return ent end
 		if IsValid(ent) then
+			undo.Create("WireVThruster")
+				undo.AddEntity( wire_thruster )
+				undo.AddEntity( const )
+				undo.SetPlayer( ply )
+			undo.Finish()
+
+			ply:AddCleanup( "wire_vthrusters", wire_thruster )
+			ply:AddCleanup( "wire_vthrusters", const )
+
 			ent:GetPhysicsObject():EnableMotion( false )
 			self:ReleaseGhostEntity()
 
@@ -70,15 +79,6 @@ function TOOL:LeftClick( trace )
 
 		local Phys = wire_thruster:GetPhysicsObject()
 		Phys:EnableMotion( true )
-
-		undo.Create("WireVThruster")
-			undo.AddEntity( wire_thruster )
-			undo.AddEntity( const )
-			undo.SetPlayer( ply )
-		undo.Finish()
-
-		ply:AddCleanup( "wire_vthrusters", wire_thruster )
-		ply:AddCleanup( "wire_vthrusters", const )
 
 		self:ClearObjects()
 	end
