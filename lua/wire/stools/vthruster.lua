@@ -58,7 +58,7 @@ function TOOL:LeftClick( trace )
 				undo.SetPlayer( ply )
 			undo.Finish()
 
-			ply:AddCleanup( "wire_vthrusters", wire_thruster )
+			ply:AddCleanup( "wire_vthrusters", ent )
 
 			ent:GetPhysicsObject():EnableMotion( false )
 			self:ReleaseGhostEntity()
