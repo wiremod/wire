@@ -54,13 +54,11 @@ function TOOL:LeftClick( trace )
 		if isbool(ent) then return ent end
 		if IsValid(ent) then
 			undo.Create("WireVThruster")
-				undo.AddEntity( wire_thruster )
-				undo.AddEntity( const )
+				undo.AddEntity( ent )
 				undo.SetPlayer( ply )
 			undo.Finish()
 
 			ply:AddCleanup( "wire_vthrusters", wire_thruster )
-			ply:AddCleanup( "wire_vthrusters", const )
 
 			ent:GetPhysicsObject():EnableMotion( false )
 			self:ReleaseGhostEntity()
@@ -76,6 +74,7 @@ function TOOL:LeftClick( trace )
 		local anchorbone = self:GetBone(1)
 
 		local const = WireLib.Weld(wire_thruster, anchor, anchorbone, true, false)
+		if const then ply:AddCleanup( "wire_vthrusters", const ) end
 
 		local Phys = wire_thruster:GetPhysicsObject()
 		Phys:EnableMotion( true )
