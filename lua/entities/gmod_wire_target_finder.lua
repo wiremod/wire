@@ -204,7 +204,7 @@ function ENT:SelectorNext(ch)
 		if not selected_targets_sel[ch] then selected_targets_sel[ch] = 1 end
 
 		local sel = selected_targets_sel[ch]
-		if (sel > bogeys) then sel = 1 end
+		if sel > bogeys then sel = 1 end
 
 		local paint_target = tab.PaintTarget
 		local selected_targets = tab.SelectedTargets
@@ -397,7 +397,7 @@ function ENT:Think()
 					tab.TargetPainter(self, selected_targets[i], false, tab)
 				end
 
-				if (#bogeys > 0) then
+				if #bogeys > 0 then
 					selected_targets[i] = table.remove(bogeys, 1)
 
 					if paint_target then
@@ -430,7 +430,7 @@ function ENT:IsTargeted(bogey, bogeynum, tab)
 	for i = 1, max_range do
 		local target = selected_targets[i]
 
-		if target and (target == bogey) then
+		if target and target == bogey then
 			-- hold this target
 			local i_string = i .. "-HoldTarget"
 
@@ -512,7 +512,7 @@ end
 
 function ENT:PrepareOverlayData()
 	local txt = self.SelectedTargets[1] and "Target Acquired" or "No Target"
-	if self.Inputs.Hold and (self.Inputs.Hold.Value > 0) then txt = txt .. " - Locked" end
+	if self.Inputs.Hold and self.Inputs.Hold.Value > 0 then txt = txt .. " - Locked" end
 
 	self:SetOverlayText(txt)
 end
