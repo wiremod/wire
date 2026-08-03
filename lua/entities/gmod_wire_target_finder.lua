@@ -1,6 +1,6 @@
 AddCSLuaFile()
-DEFINE_BASECLASS("base_wire_entity")
 
+DEFINE_BASECLASS("base_wire_entity")
 ENT.PrintName = "Wire Target Finder"
 ENT.WireDebugName = "Target Finder"
 
