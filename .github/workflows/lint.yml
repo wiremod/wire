@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
-      - uses: wiremod/gh-actions-lua@master
+      - uses: leafo/gh-actions-lua@v13
         with:
           luaVersion: "luajit-openresty"
 
