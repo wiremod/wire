@@ -364,12 +364,12 @@ function ENT:Think()
 		table.sort(dists)
 
 		local k = 1
-		local bogeys = tab.Bogeys
+		local ent_bogeys = tab.Bogeys
 		local max_bogeys = tab.MaxBogeys
 
 		for i, d in ipairs(dists) do
 			if not tab.IsTargeted(self, bogeys[d], i, tab) then
-				bogeys[k] = bogeys[d]
+				ent_bogeys[k] = bogeys[d]
 				k = k + 1
 
 				if k > max_bogeys then
@@ -396,8 +396,8 @@ function ENT:Think()
 					tab.TargetPainter(self, selected_targets[i], false, tab)
 				end
 
-				if #bogeys > 0 then
-					selected_targets[i] = table.remove(bogeys, 1)
+				if #ent_bogeys > 0 then
+					selected_targets[i] = table.remove(ent_bogeys, 1)
 
 					if paint_target then
 						tab.TargetPainter(self, selected_targets[i], true, tab)
