@@ -287,7 +287,7 @@ local function CheckPlayers(self, contact, tab)
 	if tab.SteamName:Trim() ~= "" then
 		local contact_steamid, contact_steamid64 = contact:SteamID(), contact:SteamID64()
 
-		if not isOneOf(contact_steamid, tab.SteamName, tab.CaseSen) or isOneOf(contact_steamid64, tab.SteamName, tab.CaseSen) then
+		if not isOneOf(contact_steamid, tab.SteamName, tab.CaseSen) or not isOneOf(contact_steamid64, tab.SteamName, tab.CaseSen) then
 			return false
 		end
 	end
