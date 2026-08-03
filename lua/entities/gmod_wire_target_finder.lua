@@ -347,7 +347,9 @@ function ENT:Think()
 				-- Entity classnames
 				(ent_filter ~= "" and isOneOf(class, ent_filter)))))
 			then
-				if (contact:GetPos():Distance(pos) >= min_range) then
+				local dist = contact:GetPos():Distance(pos)
+
+				if dist >= min_range then
 					-- Put targets in a table index by the distance from the finder
 					ndists = ndists + 1
 					bogeys[dist] = contact
