@@ -248,7 +248,7 @@ function ENT:FindColor(contact, tab)
 end
 
 function ENT:CheckTheBuddyList(ply, tab)
-	if not CPPI or not tab.CheckBuddyList return true end
+	if not CPPI or not tab.CheckBuddyList then return true end
 
 	local ply = tab.GetPlayer(self)
 	if not ply:IsValid() then return false end
