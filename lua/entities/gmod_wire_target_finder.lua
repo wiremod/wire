@@ -134,7 +134,6 @@ function ENT:TriggerInput(name, value)
 		for _, ent in ipairs(value) do
 			ignored_hash[ent] = true
 		end
-
 	else
 		local select_next = self.Selector.Next
 
