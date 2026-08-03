@@ -110,7 +110,7 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 
 	local AdjInputs = {}
 
-	for i = 1, self.MaxTargets do
+	for i = 1, tab.MaxTargets do
 		local i_string = tostring(i)
 		local inputnext = i_string .. "-NextTarget"
 		local inputhold = i_string .. "-HoldTarget"
@@ -135,9 +135,9 @@ function ENT:TriggerInput(name, value)
 			ignored_hash[ent] = true
 		end
 	else
-		local select_next = self.Selector.Next
+		local select_next = self.Selector.Next[name]
 
-		if value > 0 and select_next[name] then
+		if value > 0 and select_next then
 			self:SelectorNext(select_next)
 		end
 	end
@@ -201,7 +201,7 @@ function ENT:SelectorNext(ch)
 		if not selected_targets_sel[ch] then selected_targets_sel[ch] = 1 end
 
 		local sel = selected_targets_sel[ch]
-		if sel > bogeys then sel = 1 end
+		if sel > #bogeys then sel = 1 end
 
 		local paint_target = tab.PaintTarget
 		local selected_targets = tab.SelectedTargets
@@ -247,10 +247,10 @@ end
 function ENT:CheckTheBuddyList(ply, tab)
 	if not CPPI or not tab.CheckBuddyList then return true end
 
-	local ply = tab.GetPlayer(self)
-	if not ply:IsValid() then return false end
+	local owner = tab.GetPlayer(self)
+	if not owner:IsValid() then return false end
 
-	local friends = ply:CPPIGetFriends()
+	local friends = owner:CPPIGetFriends()
 
 	if istable(friends) then
 		for _, friend in pairs(friends) do
@@ -418,13 +418,13 @@ function ENT:Think()
 end
 
 function ENT:IsTargeted(bogey, bogeynum, tab)
-	local max_range = tab.MaxTargets
+	local max_targets = tab.MaxTargets
 	local paint_target = tab.PaintTarget
 	local selected_targets = tab.SelectedTargets
 	local in_range = tab.InRange
 	local inputs = tab.Inputs
 
-	for i = 1, max_range do
+	for i = 1, max_targets do
 		local target = selected_targets[i]
 
 		if target and target == bogey then
@@ -437,7 +437,7 @@ function ENT:IsTargeted(bogey, bogeynum, tab)
 			end
 
 			-- This bogey is not as close as others, untarget it and let it be add back to the list
-			if bogeynum > max_range then
+			if bogeynum > max_targets then
 				selected_targets[i] = nil
 
 				if paint_target then
