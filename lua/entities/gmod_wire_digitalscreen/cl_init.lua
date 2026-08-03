@@ -1,6 +1,6 @@
 include("shared.lua")
 
-local dsRate = GetConVar("wire_digitalscreen_rate")   
+local dsDrawRate = GetConVar("wire_digitalscreen_draw_rate")   
 
 function ENT:SendData()
 	net.Start("wire_interactiveprop_action")
@@ -143,7 +143,7 @@ end
 
 function ENT:Think()
 	if self.buffer[1] ~= nil then
-		local maxtime = SysTime() + RealFrameTime() * (0.05*dsRate:GetFloat()) -- do more depending on client FPS. Higher fps = more work
+		local maxtime = SysTime() + RealFrameTime() * (0.05*dsDrawRate:GetFloat()) -- do more depending on client FPS. Higher fps = more work
 
 		while SysTime() < maxtime and self.buffer[1] do
 			if not self.co or coroutine.status(self.co) == "dead" then
@@ -320,7 +320,7 @@ function ENT:Draw(flags)
 
 	if self.NeedRefresh then
 		self.NeedRefresh = false
-		local maxtime = SysTime() + RealFrameTime() * (0.01*dsRate:GetFloat())
+		local maxtime = SysTime() + RealFrameTime() * (0.01*dsDrawRate:GetFloat())
 
 		self.GPU:RenderToGPU(function()
 			local idx = 0
