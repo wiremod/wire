@@ -12,9 +12,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
-      - uses: wiremod/gh-actions-lua@master
+      - uses: leafo/gh-actions-lua@v13
         with:
-          luaVersion: "luajit-2.1.0-beta3"
+          luaVersion: "luajit-2.1"
 
       - name: Get any changed files
         id: changed-files
