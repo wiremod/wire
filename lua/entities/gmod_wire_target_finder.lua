@@ -81,7 +81,7 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 	tab.MaxTargets = math.floor(math.Clamp(maxtargets or 1, 1, MaxTargets:GetInt()))
 	tab.MaxBogeys = math.floor(math.Clamp(maxbogeys or 1, tab.MaxTargets, MaxBogeys:GetInt()))
 
-	if (tab.SelectedTargets) then -- Unpaint before clearing
+	if tab.SelectedTargets then -- Unpaint before clearing
 		for _, ent in pairs(tab.SelectedTargets) do
 			tab.TargetPainter(self, ent, false, tab)
 		end
@@ -266,7 +266,7 @@ end
 -- Like the old FindInValue but without string.find() and for multiple values split by either a space or a comma.
 local function isOneOf(value, values_str, case_sensitive)
 	if not isstring(value) or not isstring(values_str) then return false end
-	if values_str == "" then return true end -- why :/
+	if values_str == "" then return true end -- Why :/
 
 	if not case_sensitive then
 		value = value:lower()
@@ -489,25 +489,24 @@ function ENT:TargetPainter(tt, targeted, tab)
 
 	if IsValid(tt) and not tt:IsEFlagSet(EFL_SERVER_ONLY) and ply:IsValid() and WireLib.CanTool(ply, tt, "colour") then
 		if targeted then
-			tab.OldColor = tt:GetColor()
-			tt:SetColor(Color(255, 0, 0, 255))
+			tab.WireTargetOldColor = tt:GetColor()
+			tt:SetColor(Color(255, 0, 0))
 		else
 			local color = tt:GetColor()
 
 			-- Do not change color back if the target color changed in the meantime
 			if color.r ~= 255 or color.g ~= 0 or color.b ~= 0 or color.a ~= 255 then
-				tab.OldColor = color
+				tab.WireTargetOldColor = color
 			end
 
-			if not tab.OldColor then
-				tab.OldColor = Color(255, 255, 255)
+			if not tab.WireTargetOldColor then
+				tab.WireTargetOldColor = Color(255, 255, 255)
 			end
 
-			tt:SetColor(tab.OldColor)
+			tt:SetColor(tab.WireTargetOldColor)
 		end
 	end
 end
-
 
 function ENT:PrepareOverlayData()
 	local txt = self.SelectedTargets[1] and "Target Acquired" or "No Target"
