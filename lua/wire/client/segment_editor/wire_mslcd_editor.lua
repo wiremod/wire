@@ -291,7 +291,7 @@ function Editor:SetActiveTab(val)
 		val:GetPanel():RequestFocus()
 	end
 	self:UpdateActiveTabTitle()
-	self.C.Tree.Root.group = self:GetCurrentEditor().SegmentTree
+	self.C.Root.group = self:GetCurrentEditor().SegmentTree
 end
 
 function Editor:ExtractNameFromEditor()
@@ -545,6 +545,48 @@ function Editor:CloseTab(_tab)
 	self.C.TabHolder:SetSize(w + 1, h) -- +1 so it updates
 end
 
+local function Tree_OnNodeAdded(pnl, otherNode)
+	otherNode:Droppable("segments")
+end
+
+local function Tree_DroppedOn(pnl, otherNode)
+	if pnl.group.Type == GROUP or pnl.group.Type == UNION then
+		for i,v in pairs(otherNode.parentgroup.Children) do
+			if v == otherNode.group then
+				table.remove(otherNode.parentgroup.Children,i)
+				break
+			end
+		end
+		otherNode.parentgroup = pnl.group
+		pnl.group.Children[#pnl.group.Children+1] = otherNode.group
+		pnl:InsertNode( otherNode )
+		pnl:SetExpanded( true )
+	end
+end
+
+local function Tree_OnModified(pnl)
+	if pnl.group == nil then
+		pnl.group = pnl:GetCurrentEditor().SegmentTree
+	end
+	if pnl.group.Type ~= GROUP and pnl.group.Type ~= UNION then
+		return
+	end
+	local modified = {}
+	for i,v in ipairs(pnl:GetChildNodes()) do
+		modified[i] = v.group
+		if v.parentgroup ~= pnl.group then
+			for j,c in pairs(v.parentgroup.Children) do
+				if c == v.group then
+					table.remove(v.parentgroup.Children,j)
+					break
+				end
+			end
+			v.parentgroup = pnl.group
+		end
+	end
+	pnl.group.Children = modified
+end
+
 function Editor:BuildNode(v,node,group)
 	local new = nil
 	if v.Type == GROUP then
@@ -558,14 +600,17 @@ function Editor:BuildNode(v,node,group)
 	elseif v.Type == MATRIX then
 		new = node:AddNode( v.Text or "Matrix", "icon16/bullet_red.png" )
 	elseif v.Type == ALIGN then
-		new = node:AddNode( v.Text or "Text", "icon16/bullet_pink.png" )
+		new = node:AddNode( v.Text or "Align", "icon16/bullet_pink.png" )
 	elseif v.Type == OFFSET then
-		new = node:AddNode( v.Text or "Text", "icon16/bullet_white.png" )
+		new = node:AddNode( v.Text or "Offset", "icon16/bullet_white.png" )
 	else
 		new = node:AddNode( v.Text or "Segment", "icon16/bullet_green.png" )
 	end
 	new.group = v
 	new.parentgroup = group
+	new.OnNodeAdded = Tree_OnNodeAdded
+	new.DroppedOn = Tree_DroppedOn
+	new.OnModified = Tree_OnModified
 end
 
 function Editor:BuildNodes(node,group)
@@ -655,7 +700,15 @@ function Editor:InitComponents()
 	self.C.Tree = vgui.Create("DTree", self.C.Holder)
 	self.C.Tree:Dock(TOP)
 	self.C.Tree:DockMargin(2, 0, 2, 2)
-	self.C.Tree.Root = self.C.Tree:AddNode("Display", "icon16/computer.png")
+	self.C.Tree:Receiver("segments", function(pnl, drops, dropped, menuIndex, x, y) end)
+	self.C.Root = self.C.Tree:AddNode("Display", "icon16/computer.png")
+	self.C.Root:SetDraggableName("segments")
+	
+	self.C.Root.GetCurrentEditor = function(pnl)
+		return self:GetCurrentEditor()
+	end
+	self.C.Root.OnModified = Tree_OnModified
+	
 	function self.C.Tree.DoClick(_,node)
 		self:GetCurrentEditor().SelectedSegment = node.group
 		self:GetCurrentEditor().SelectedVert = 0
@@ -673,7 +726,7 @@ function Editor:InitComponents()
 		InsertM:AddOption( "Group", function() 
 			local tree = self:GetCurrentEditor().SegmentTree
 			if node == nil then
-				node = self.C.Tree.Root
+				node = self.C.Root
 			end
 			local group = node.group
 			local children = nil
@@ -682,7 +735,7 @@ function Editor:InitComponents()
 			end
 			
 			if children == nil then
-				node = self.C.Tree.Root
+				node = self.C.Root
 				children = tree.Children
 				group = tree
 			end
@@ -692,6 +745,36 @@ function Editor:InitComponents()
 			new:SetExpanded(true);
 			new.group = newgroup
 			new.parentgroup = group
+			new.OnNodeAdded = Tree_OnNodeAdded
+			new.DroppedOn = Tree_DroppedOn
+			new.OnModified = Tree_OnModified
+			
+		end)
+		InsertM:AddOption( "Union", function() 
+			local tree = self:GetCurrentEditor().SegmentTree
+			if node == nil then
+				node = self.C.Root
+			end
+			local group = node.group
+			local children = nil
+			if group ~= nil then
+				children = group.Children
+			end
+			
+			if children == nil then
+				node = self.C.Root
+				children = tree.Children
+				group = tree
+			end
+			local newgroup = {Type=UNION,Children={},X=0,Y=0,HasColor=false,R=255,G=255,B=255}
+			children[#children+1] = newgroup
+			local new = node:AddNode( "Union", "icon16/text_list_bullets.png" )
+			new:SetExpanded(true);
+			new.group = newgroup
+			new.parentgroup = group
+			new.OnNodeAdded = Tree_OnNodeAdded
+			new.DroppedOn = Tree_DroppedOn
+			new.OnModified = Tree_OnModified
 			
 		end )
 		--InsertM:AddOption( "Segment", function() AddSegmentI(node) end )
@@ -699,7 +782,7 @@ function Editor:InitComponents()
 		InsertM:AddOption( "Poly", function() 
 			local tree = self:GetCurrentEditor().SegmentTree
 			if node == nil then
-				node = self.C.Tree.Root
+				node = self.C.Root
 			end
 			local group = node.group
 			local children = nil
@@ -707,7 +790,7 @@ function Editor:InitComponents()
 				children = group.Children
 			end
 			if children == nil then
-				node = self.C.Tree.Root
+				node = self.C.Root
 				children = tree.Children
 				group = tree
 			end
@@ -717,12 +800,15 @@ function Editor:InitComponents()
 			new:SetExpanded(true);
 			new.group = newgroup
 			new.parentgroup = group
+			new.OnNodeAdded = Tree_OnNodeAdded
+			new.DroppedOn = Tree_DroppedOn
+			new.OnModified = Tree_OnModified
 		end )
 		
 		InsertM:AddOption( "Matrix", function() 
 			local tree = self:GetCurrentEditor().SegmentTree
 			if node == nil then
-				node = self.C.Tree.Root
+				node = self.C.Root
 			end
 			local group = node.group
 			local children = nil
@@ -730,7 +816,7 @@ function Editor:InitComponents()
 				children = group.Children
 			end
 			if children == nil then
-				node = self.C.Tree.Root
+				node = self.C.Root
 				children = tree.Children
 				group = tree
 			end
@@ -740,11 +826,62 @@ function Editor:InitComponents()
 			new:SetExpanded(true);
 			new.group = newgroup
 			new.parentgroup = group
+			new.OnNodeAdded = Tree_OnNodeAdded
+			new.DroppedOn = Tree_DroppedOn
+			new.OnModified = Tree_OnModified
 		end )
-		--InsertM:AddOption( "Align", function() AddAlignI(node) end )
-		--InsertM:AddOption( "Offset", function() AddOffsetI(node) end )
+		InsertM:AddOption( "Align", function() 
+			local tree = self:GetCurrentEditor().SegmentTree
+			if node == nil then
+				node = self.C.Root
+			end
+			local group = node.group
+			local children = nil
+			if group ~= nil then
+				children = group.Children
+			end
+			if children == nil then
+				node = self.C.Root
+				children = tree.Children
+				group = tree
+			end
+			local newgroup = {Type=ALIGN, Size=8}
+			children[#children+1] = newgroup
+			local new = node:AddNode( "Align", "icon16/bullet_pink.png" )
+			new:SetExpanded(true);
+			new.group = newgroup
+			new.parentgroup = group
+			new.OnNodeAdded = Tree_OnNodeAdded
+			new.DroppedOn = Tree_DroppedOn
+			new.OnModified = Tree_OnModified
+		end )
+		InsertM:AddOption( "Offset", function() 
+			local tree = self:GetCurrentEditor().SegmentTree
+			if node == nil then
+				node = self.C.Root
+			end
+			local group = node.group
+			local children = nil
+			if group ~= nil then
+				children = group.Children
+			end
+			if children == nil then
+				node = self.C.Root
+				children = tree.Children
+				group = tree
+			end
+			local newgroup = {Type=OFFSET, Size=8}
+			children[#children+1] = newgroup
+			local new = node:AddNode( "Offset", "icon16/bullet_white.png" )
+			new:SetExpanded(true);
+			new.group = newgroup
+			new.parentgroup = group
+			new.OnNodeAdded = Tree_OnNodeAdded
+			new.DroppedOn = Tree_DroppedOn
+			new.OnModified = Tree_OnModified
+		end )
 		Menu:AddSpacer()
-		if node ~= self.C.Tree.Root then
+		if node ~= self.C.Root then
 			Menu:AddOption( "Ungroup" )
 			Menu:AddOption( "Remove" )
 		end
@@ -799,14 +936,18 @@ function Editor:InitComponents()
 			elseif optionText == "Copy" then
 				self.Clipboard = table.Copy(node.group or self:GetCurrentEditor().SegmentTree)
 			elseif optionText == "Paste" then
-				if node.group.Children then
+				if node.group == nil then
+					local newgroup = table.Copy(self.Clipboard)
+					tree.Children[#tree.Children+1] = newgroup
+					self:BuildNode(newgroup,self.C.Root,tree)
+				elseif node.group.Children then
 					local newgroup = table.Copy(self.Clipboard)
 					node.group.Children[#node.group.Children+1] = newgroup
 					self:BuildNode(newgroup,node,node.group)
 				else
 					local newgroup = table.Copy(self.Clipboard)
 					tree.Children[#tree.Children+1] = newgroup
-					self:BuildNode(newgroup,DisplayData.Root,tree)
+					self:BuildNode(newgroup,self.C.Root,tree)
 				end
 			elseif optionText == "Remove" then
 				if node == nil then
@@ -853,6 +994,13 @@ function Editor:InitComponents()
 		if editor.SelectedSegment == nil then return end
 		editor.SelectedSegment.Y = val
 	end
+	self.C.Prop_Name = self.C.Properties:TextEntry("Name",nil)
+	function self.C.Prop_Name.OnEnter(wang, val)
+		local editor = self:GetCurrentEditor()
+		if editor.SelectedSegment == nil then return end
+		editor.SelectedSegment.Text = val
+		self:GetNodeOfSegment(editor.SelectedSegment):SetText(val or SegmentTypeNames[editor.SelectedSegment.Type])
+	end
 	self.C.Properties:SetLabel("Properties")
 	
 	
@@ -895,10 +1043,76 @@ function Editor:InitComponents()
 		editor.SelectedSegment.H = val
 	end
 	
+	self.C.Matrix_ScaleW = self.C.MatrixProps:NumberWang("Pixel width",nil,1,1024)
+	function self.C.Matrix_ScaleW.OnValueChanged(wang, val)
+		local editor = self:GetCurrentEditor()
+		if editor.SelectedSegment == nil then return end
+		editor.SelectedSegment.ScaleW = val
+	end
+	
+	self.C.Matrix_ScaleH = self.C.MatrixProps:NumberWang("Pixel height",nil,1,1024)
+	function self.C.Matrix_ScaleH.OnValueChanged(wang, val)
+		local editor = self:GetCurrentEditor()
+		if editor.SelectedSegment == nil then return end
+		editor.SelectedSegment.ScaleH = val
+	end
+	
+	self.C.Matrix_OffsetX = self.C.MatrixProps:NumberWang("Pixel X distance",nil,1,1024)
+	function self.C.Matrix_OffsetX.OnValueChanged(wang, val)
+		local editor = self:GetCurrentEditor()
+		if editor.SelectedSegment == nil then return end
+		editor.SelectedSegment.OffsetX = val
+	end
+	
+	self.C.Matrix_OffsetY = self.C.MatrixProps:NumberWang("Pixel Y distance",nil,1,1024)
+	function self.C.Matrix_OffsetY.OnValueChanged(wang, val)
+		local editor = self:GetCurrentEditor()
+		if editor.SelectedSegment == nil then return end
+		editor.SelectedSegment.OffsetY = val
+	end
+	
+	self.C.BlankProps = vgui.Create("DForm", self.C.PropList)
+	self.C.BlankProps:Dock(FILL)
+	self.C.BlankProps:DockMargin(2, 0, 2, 2)
+	self.C.BlankProps:SetLabel("Size Properties")
+	
+	self.C.Blank_Size = self.C.BlankProps:NumberWang("Size in bits",nil,0,1024)
+	function self.C.Blank_Size.OnValueChanged(wang, val)
+		local editor = self:GetCurrentEditor()
+		if editor.SelectedSegment == nil then return end
+		editor.SelectedSegment.Size = val
+	end
+	
+	self.C.GroupProps = vgui.Create("DForm", self.C.PropList)
+	self.C.GroupProps:Dock(FILL)
+	self.C.GroupProps:DockMargin(2, 0, 2, 2)
+	self.C.GroupProps:SetLabel("Collection Properties")
+	
+	self.C.Group_HasColor = self.C.GroupProps:CheckBox("Has color?",nil)
+	function self.C.Group_HasColor.OnChange(wang, val)
+		local editor = self:GetCurrentEditor()
+		if editor.SelectedSegment == nil then return end
+		editor.SelectedSegment.HasColor = val
+	end
+	
+	self.C.Group_Color = vgui.Create("DColorMixer",self.C.GroupProps)
+	self.C.GroupProps:AddItem(self.C.Group_Color)
+	function self.C.Group_Color.ValueChanged(wang, col)
+		local editor = self:GetCurrentEditor()
+		if editor.SelectedSegment == nil then return end
+		editor.SelectedSegment.R = col.r
+		editor.SelectedSegment.G = col.g
+		editor.SelectedSegment.B = col.b
+		editor.SelectedSegment.A = col.a
+	end
+	
+	
 	self.C.PropList:AddItem(self.C.EditorProps)
 	self.C.PropList:AddItem(self.C.Properties)
 	self.C.PropList:AddItem(self.C.VertProps)
 	self.C.PropList:AddItem(self.C.MatrixProps)
+	self.C.PropList:AddItem(self.C.BlankProps)
+	self.C.PropList:AddItem(self.C.GroupProps)
 	-- extra component options
 
 	self.C.Divider:SetLeft(self.C.Browser)
@@ -1025,7 +1239,7 @@ function Editor:InitComponents()
 	self.C.Control:SetVisible(false)
 
 	self:CreateTab("screen")
-	--self.C.Tree.Root.group = self:GetCurrentEditor().SegmentTree
+	
 end
 
 function Editor:AutoSave()
@@ -1320,25 +1534,40 @@ function Editor:GetCopyDataSize()
 	return 0
 end
 
+function Editor:RebuildNodes()
+	local childs = self.C.Root:GetChildNodes()
+	for i, v in ipairs(childs) do
+		v:Remove()
+	end
+	self:BuildNodes(self.C.Root,self:GetCurrentEditor().SegmentTree)
+end
 
 function Editor:SetData(data)
 	self:GetCurrentEditor():SetData(data)
-	local childs = self.C.Tree.Root:GetChildren()
-	if childs[4] ~= nil then
-		childs[4]:Remove()
-	end
-	self:BuildNodes(self.C.Tree,self:GetCurrentEditor().SegmentTree)
+	self:RebuildNodes()
 	self.savebuffer = self:GetData()
 	self:ExtractName()
 end
 
+function Editor:GetNodeOfSegment(segment, tree)
+	if tree == nil then
+		tree = self.C.Root
+	end
+	for i,v in ipairs(tree:GetChildNodes()) do
+		if v.group == segment then
+			return v
+		end
+		if v.group.Type == GROUP or v.Type == UNION then
+			local try = self:GetNodeOfSegment(segment, v)
+			if try ~= nil then return try end
+		end
+	end
+	return nil
+end
+
 function Editor:SetDataFromEnt(data)
 	self:GetCurrentEditor().SegmentTree = table.Copy(data)
-	local childs = self.C.Tree.Root:GetChildren()
-	if childs[4] ~= nil then
-		childs[4]:Remove()
-	end
-	self:BuildNodes(self.C.Tree,self:GetCurrentEditor().SegmentTree)
+	self:RebuildNodes()
 	self.savebuffer = self:GetData()
 	self:ExtractName()
 end

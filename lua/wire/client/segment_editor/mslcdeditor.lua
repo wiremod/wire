@@ -216,10 +216,11 @@ local function DrawPoly(self,poly)
 	m:Translate(Vector(-x,-y,0))
 	cam.PushModelMatrix(m)
 	--surface.DrawPoly(poly.Poly)
+	local origdraw = surface.GetDrawColor()
 	if selected then
 		surface.SetDrawColor(255,192,192,255)
 	else
-		surface.SetDrawColor(255,255,255,255)
+		--surface.SetDrawColor(255,255,255,255)
 	end
 	
 	for i,p in ipairs(poly.Poly) do
@@ -256,7 +257,7 @@ local function DrawPoly(self,poly)
 	cam.PushModelMatrix(m, true)
 	surface.DrawRect(0,0,8,8)
 	cam.PopModelMatrix()
-	surface.SetDrawColor(255,255,255,255)
+	surface.SetDrawColor(origdraw)
 	cam.PopModelMatrix()
 	
 	return PolyDimensions(self,poly.Poly,transformedLocal)
@@ -278,10 +279,12 @@ local function DrawMatrix(self,matrix)
 	m:Translate(Vector(-x,-y,0))
 	cam.PushModelMatrix(m)
 	
+	local origdraw = surface.GetDrawColor()
+	
 	if selected then
 		surface.SetDrawColor(255,192,192,255)
 	else
-		surface.SetDrawColor(255,255,255,255)
+		--surface.SetDrawColor(255,255,255,255)
 	end
 	for y = 0,matrix.H-1 do
 		for x = 0,matrix.W-1 do
@@ -300,7 +303,7 @@ local function DrawMatrix(self,matrix)
 	cam.PushModelMatrix(m, true)
 	surface.DrawRect(0,0,8,8)
 	cam.PopModelMatrix()
-	surface.SetDrawColor(255,255,255,255)
+	surface.SetDrawColor(origdraw)
 	cam.PopModelMatrix()
 	
 	return MatrixDimensions(self,matrix,transformedLocal)
@@ -377,6 +380,8 @@ local function DrawGroup(self,group)
 	--cam.PushModelMatrix(m,true)
 	if group.HasColor then
 		surface.SetDrawColor(group.R or 255,group.G or 255,group.B or 255,group.A or 255)
+	else
+		surface.SetDrawColor(255,255,255,255)
 	end
 	if minx ~= nil then
 		surface.DrawOutlinedRect(minx,miny,(maxx-minx),(maxy-miny))
@@ -494,7 +499,8 @@ function Editor:Paint()
 		local smaxy = math.max(self.Selecting.y,wy)
 		sminx,sminy = self:PosToScr(sminx,sminy)
 		smaxx,smaxy = self:PosToScr(smaxx,smaxy)
-		surface.DrawOutlinedRect(sminx,sminy,smaxx-sminx,smaxy-sminy)
+		surface.SetDrawColor(255, 255, 255, 255)
+		surface.DrawOutlinedRect(sminx-1,sminy-1,smaxx-sminx+2,smaxy-sminy+2)
 	end
 	
 	DisableClipping(false)
@@ -502,27 +508,49 @@ function Editor:Paint()
 	local x, y = self:CursorPos()
 	self.LastMousePos = { x, y }
 	
+	self.ParentPanel.C.MatrixProps:SetParent(self.ParentPanel.C.Invisible)
+	self.ParentPanel.C.VertProps:SetParent(self.ParentPanel.C.Invisible)
+	self.ParentPanel.C.BlankProps:SetParent(self.ParentPanel.C.Invisible)
+	self.ParentPanel.C.GroupProps:SetParent(self.ParentPanel.C.Invisible)
+	self.ParentPanel.C.Properties:SetParent(self.ParentPanel.C.Invisible)
+	
 	if self.SelectedSegment then
+		self.ParentPanel.C.Properties:SetParent(self.ParentPanel.C.PropList)
 		self.ParentPanel.C.Prop_X:SetValue(self.SelectedSegment.X)
 		self.ParentPanel.C.Prop_Y:SetValue(self.SelectedSegment.Y)
+		self.ParentPanel.C.Prop_Name:SetValue(self.SelectedSegment.Text or "")
+		
+		
 		if self.SelectedSegment.Type == POLY and self.SelectedVert ~= 0 then
 			self.ParentPanel.C.VertProps:SetParent(self.ParentPanel.C.PropList)
 			self.ParentPanel.C.Vert_X:SetValue(self.SelectedSegment.Poly[self.SelectedVert].x)
 			self.ParentPanel.C.Vert_Y:SetValue(self.SelectedSegment.Poly[self.SelectedVert].y)
-		else
-			self.ParentPanel.C.VertProps:SetParent(self.ParentPanel.C.Invisible)
 		end
 		
 		if self.SelectedSegment.Type == MATRIX then
 			self.ParentPanel.C.MatrixProps:SetParent(self.ParentPanel.C.PropList)
 			self.ParentPanel.C.Matrix_W:SetValue(self.SelectedSegment.W)
 			self.ParentPanel.C.Matrix_H:SetValue(self.SelectedSegment.H)
-		else
-			self.ParentPanel.C.MatrixProps:SetParent(self.ParentPanel.C.Invisible)
+			self.ParentPanel.C.Matrix_ScaleW:SetValue(self.SelectedSegment.ScaleW)
+			self.ParentPanel.C.Matrix_ScaleH:SetValue(self.SelectedSegment.ScaleH)
+			self.ParentPanel.C.Matrix_OffsetX:SetValue(self.SelectedSegment.OffsetX)
+			self.ParentPanel.C.Matrix_OffsetY:SetValue(self.SelectedSegment.OffsetY)
 		end
-	else
-		self.ParentPanel.C.VertProps:SetParent(self.ParentPanel.C.Invisible)
-		self.ParentPanel.C.MatrixProps:SetParent(self.ParentPanel.C.Invisible)
+		
+		if self.SelectedSegment.Type == ALIGN or self.SelectedSegment.Type == OFFSET then
+			self.ParentPanel.C.BlankProps:SetParent(self.ParentPanel.C.PropList)
+			self.ParentPanel.C.Blank_Size:SetValue(self.SelectedSegment.Size)
+		end
+		
+		if self.SelectedSegment.Type == GROUP or self.SelectedSegment.Type == UNION then
+			self.ParentPanel.C.GroupProps:SetParent(self.ParentPanel.C.PropList)
+			self.ParentPanel.C.Group_HasColor:SetValue(self.SelectedSegment.HasColor)
+			self.ParentPanel.C.Group_Color:SetColor(Color(
+				self.SelectedSegment.R or 255, 
+				self.SelectedSegment.G or 255,
+				self.SelectedSegment.B or 255,
+				self.SelectedSegment.A or 255))
+		end
 	end
 	
 end
@@ -621,7 +649,12 @@ function Editor:CreatePoly(x, y)
 		children = self.SegmentTree.Children
 		group = self.SegmentTree
 	end
-	local n = {Type=POLY, X=x,Y=y, Poly={{x=0,y=0},{x=10,y=0},{x=0,y=10}}}
+	local snapincrement = GetConVar("wire_multisegmentlcd_snapinc"):GetFloat()
+	if snapincrement > 0.001 then
+		x = math.floor(x/snapincrement + 0.5)*snapincrement
+		y = math.floor(y/snapincrement + 0.5)*snapincrement
+	end
+	local n = {Type=POLY, X=x,Y=y, Poly={{x=-math.max(1,snapincrement)*2,y=-math.max(1,snapincrement)*2},{x=math.max(1,snapincrement)*2,y=0},{x=0,y=math.max(1,snapincrement)*2}}}
 	children[#children+1] = n
 end
 
@@ -649,6 +682,7 @@ function Editor:OnKeyCodePressed(code)
 				self.ParentPanel.Clipboard.X = gx
 				self.ParentPanel.Clipboard.Y = gy
 				self.SegmentTree.Children[#self.SegmentTree.Children+1] = table.Copy(self.ParentPanel.Clipboard)
+				self.ParentPanel:RebuildNodes()
 			end
 		end
 	elseif code == KEY_C then
@@ -658,6 +692,7 @@ function Editor:OnKeyCodePressed(code)
 		elseif self.Mode == POLY then
 			self:CreatePoly(gx, gy)
 		end
+		self.ParentPanel:RebuildNodes()
 	end
 end
 
@@ -848,10 +883,12 @@ function Editor:OnMousePressed(code)
 					if #pvKey.Poly < 3 then
 						table.remove(pvGroup.Children,pvGroupIndex)
 						self:PruneGroups(self.SegmentTree.Children)
+						self.ParentPanel:RebuildNodes()
 					end
 				else
 					table.remove(pvGroup.Children,pvGroupIndex)
 					self:PruneGroups(self.SegmentTree.Children)
+					self.ParentPanel:RebuildNodes()
 				end
 			else
 				if pvIndex == 0 then

@@ -243,6 +243,11 @@ if CLIENT then
 
 		----------------------------------------------------------------------------
 		WireDermaExts.ModelSelect(panel, "wire_multisegmentlcd_model", list.Get("WireScreenModels"), 5)
+		panel:CheckBox("#tool.wire_multisegmentlcd.interactive", "wire_multisegmentlcd_interactive")
+		panel:CheckBox("#Create Flat to Surface", "wire_multisegmentlcd_createflat")
+		panel:TextEntry("#tool.wire_multisegmentlcd.resw", "wire_multisegmentlcd_resw")
+		panel:TextEntry("#tool.wire_multisegmentlcd.resh", "wire_multisegmentlcd_resh")
+		panel:TextEntry("#tool.wire_multisegmentlcd.xormask", "wire_multisegmentlcd_xormask")
 		panel:AddControl("Label", {Text = ""})
 	end
 end

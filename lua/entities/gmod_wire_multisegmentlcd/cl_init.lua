@@ -258,9 +258,9 @@ function ENT:DrawUnion(group)
 	local oCb = self.Cb
 	local oCa = self.Ca
 	if group.HasColor then
-		self.Cr = group.R
-		self.Cg = group.G
-		self.Cb = group.B
+		self.Cr = group.R or 255
+		self.Cg = group.G or 255
+		self.Cb = group.B or 255
 		self.Ca = group.A or 255
 	end
 	local transformedLocal = self:TransformOffset(group.X or 0,group.Y or 0)
@@ -279,7 +279,7 @@ function ENT:DrawUnion(group)
 			self:DrawPoly(v)
 		elseif v.Type == MATRIX then 
 			self:DrawMatrix(v)
-		elseif v.Type == ALIGN then 
+		elseif v.Type == ALIGN and v.Size ~= 0 then 
 			self.BitIndex = math.ceil(self.BitIndex/v.Size)*v.Size
 		elseif v.Type == OFFSET then 
 			self.BitIndex = self.BitIndex + v.Size
@@ -302,9 +302,9 @@ function ENT:DrawGroup(group)
 	local oCb = self.Cb
 	local oCa = self.Ca
 	if group.HasColor then
-		self.Cr = group.R
-		self.Cg = group.G
-		self.Cb = group.B
+		self.Cr = group.R or 255
+		self.Cg = group.G or 255
+		self.Cb = group.B or 255
 		self.Ca = group.A or 255
 		--surface.SetDrawColor(self.Cr,self.Cg,self.Cb,255)
 	end
