@@ -6,7 +6,7 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.WireDebugName = "DigitalScreen"
 
 local dsDrawRate = CreateConVar("wire_digitalscreen_draw_rate", 1, { FCVAR_REPLICATED, FCVAR_ARCHIVE })
-local dsNetBandwidth = CreateConVar("wire_digitalscreen_net_bandwidth", 200000, { FCVAR_REPLICATED, FCVAR_ARCHIVE })
+local dsNetBandwidth = CreateConVar("wire_digitalscreen_net_bandwidth", 200000, { FCVAR_ARCHIVE })
 local dsNetBandwidthValue = dsNetBandwidth:GetInt()
 
 function ENT:InitInteractive()
