@@ -999,7 +999,7 @@ function Editor:InitComponents()
 		local editor = self:GetCurrentEditor()
 		if editor.SelectedSegment == nil then return end
 		editor.SelectedSegment.Text = val
-		self:GetNodeOfSegment(editor.SelectedSegment):SetText(val or SegmentTypeNames[editor.SelectedSegment.Type])
+		self:GetNodeOfSegment(editor.SelectedSegment):SetText(#val ~= 0 and val or SegmentTypeNames[editor.SelectedSegment.Type])
 	end
 	self.C.Properties:SetLabel("Properties")
 	
