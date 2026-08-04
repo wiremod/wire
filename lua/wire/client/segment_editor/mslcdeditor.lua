@@ -400,7 +400,7 @@ local function MoveSelectGroup(group, deltaX, deltaY, exclude)
 		if v == exclude then
 			goto skip
 		end
-		if v.Type == GROUP then
+		if v.Type == GROUP or v.Type == UNION  then
 			MoveSelectGroup(v, deltaX, deltaY, exclude)
 		else
 			v.X = v.X + deltaX
@@ -729,7 +729,7 @@ function Editor:GetPolyEdgeAtGroup(x, y, group)
 	local x = x-group.X
 	local y = y-group.Y
 	for i,v in ipairs(group.Children) do
-		if v.Type == GROUP then
+		if v.Type == GROUP or v.Type == UNION  then
 			ri, rv, ex, ey = self:GetPolyEdgeAtGroup(x, y, v)
 			if ri then
 				return ri, rv, ex, ey
@@ -769,7 +769,7 @@ end
 
 function Editor:GetPolyVertAtGroup(x, y, group)
 	for i,v in ipairs(group.Children) do
-		if v.Type == GROUP then
+		if v.Type == GROUP or v.Type == UNION then
 			ri, rv, g, gi = self:GetPolyVertAtGroup(x-v.X, y-v.Y, v)
 			if ri then
 				return ri, rv, g, gi
@@ -806,7 +806,7 @@ function Editor:SelectSegmentsAtGroup(x1, y1, x2, y2, group)
 	local x2 = x2-group.X
 	local y2 = y2-group.Y
 	for i,v in ipairs(group.Children) do
-		if v.Type == GROUP then
+		if v.Type == GROUP or v.Type == UNION then
 			sel.Children[#sel.Children+1] = self:SelectSegmentsAtGroup(x1, y1, x2, y2, v)
 		elseif v.Type == POLY then
 			if v.X >= x1 and v.Y >= y1 and v.X <= x2 and v.Y <= y2 then
@@ -831,7 +831,7 @@ function Editor:SelectSegments(x1, y1, x2, y2)
 	local grp = self:SelectSegmentsAtGroup(minx, miny, maxx, maxy, self.SegmentTree)
 	if grp == nil then
 		self.SelectedSegments = nil
-	elseif grp.Type ~= GROUP then
+	elseif grp.Type ~= GROUP and grp.Type ~= GROUP then
 		self.SelectedSegments = {
 			X = 0,
 			Y = 0,
@@ -846,7 +846,7 @@ end
 function Editor:PruneGroups(children)
 	for i=#children,1,-1 do
 		local v = children[i]
-		if v.Type == GROUP then
+		if v.Type == GROUP or v.Type == UNION then
 			if #v.Children == 0 then
 				table.remove(children,i)
 			else

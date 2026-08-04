@@ -976,19 +976,19 @@ function Editor:InitComponents()
 	self.C.EditorProps = vgui.Create("DForm", self.C.PropList)
 	self.C.EditorProps:Dock(FILL)
 	self.C.EditorProps:DockMargin(2, 0, 2, 2)
-	self.C.EditorProps:NumSlider("Snap increment", "wire_multisegmentlcd_snapinc", 0, 128)
+	self.C.EditorProps:NumSlider("Snap increment", "wire_multisegmentlcd_snapinc", 0, 128, 6)
 	self.C.EditorProps:SetLabel("Editor")
 	
 	self.C.Properties = vgui.Create("DForm", self.C.PropList)
 	self.C.Properties:Dock(FILL)
 	self.C.Properties:DockMargin(2, 0, 2, 2)
-	self.C.Prop_X = self.C.Properties:NumberWang("X",nil,-65536,65536)
+	self.C.Prop_X = self.C.Properties:NumberWang("X",nil,-65536,65536,6)
 	function self.C.Prop_X.OnValueChanged(wang, val)
 		local editor = self:GetCurrentEditor()
 		if editor.SelectedSegment == nil then return end
 		editor.SelectedSegment.X = val
 	end
-	self.C.Prop_Y = self.C.Properties:NumberWang("Y",nil,-65536,65536)
+	self.C.Prop_Y = self.C.Properties:NumberWang("Y",nil,-65536,65536,6)
 	function self.C.Prop_Y.OnValueChanged(wang, val)
 		local editor = self:GetCurrentEditor()
 		if editor.SelectedSegment == nil then return end
@@ -1009,14 +1009,14 @@ function Editor:InitComponents()
 	self.C.VertProps:DockMargin(2, 0, 2, 2)
 	self.C.VertProps:SetLabel("Vertex Properties")
 	
-	self.C.Vert_X = self.C.VertProps:NumberWang("X",nil,-65536,65536)
+	self.C.Vert_X = self.C.VertProps:NumberWang("X",nil,-65536,65536,6)
 	function self.C.Vert_X.OnValueChanged(wang, val)
 		local editor = self:GetCurrentEditor()
 		if editor.SelectedSegment == nil then return end
 		if editor.SelectedVert == 0 then return end
 		editor.SelectedSegment.Poly[editor.SelectedVert].x = val
 	end
-	self.C.Vert_Y = self.C.VertProps:NumberWang("Y",nil,-65536,65536)
+	self.C.Vert_Y = self.C.VertProps:NumberWang("Y",nil,-65536,65536,6)
 	function self.C.Vert_Y.OnValueChanged(wang, val)
 		local editor = self:GetCurrentEditor()
 		if editor.SelectedSegment == nil then return end
