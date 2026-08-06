@@ -111,7 +111,7 @@ else
 
 		local ret = {}
 		for i=1,#t do
-			local str = string.Trim(t[i])
+			local str = WireLib.Trim(t[i])
 			if string.match( str, "^STEAM_%d:%d:%d+$") ~= nil then
 				ret[#ret+1] = str
 			end
@@ -220,7 +220,7 @@ else
 		btn_add:SetText( "Add" )
 
 		function btn_add:DoClick()
-			local steamid = string.upper(string.Trim(txt:GetValue()))
+			local steamid = string.upper(WireLib.Trim(txt:GetValue()))
 
 			if addSteamID( steamid ) then
 				local ply = player.GetBySteamID( steamid )

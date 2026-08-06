@@ -79,7 +79,7 @@ local function ReadLine(filedata)
 			if (char == "\n") then break end // line end
 			line = line .. char
 		end
-		line = string.Trim(line)
+		line = WireLib.Trim(line)
 
 		if (not fileend and line == "") then continue end
 		fileline = line
@@ -95,9 +95,9 @@ local function ReadLine(filedata)
 		local line = linetable[k]
 
 		if (k == 1) then
-			line = string.Trim(line, "/")
+			line = WireLib.Trim(line, "/")
 		end
-		line = string.Trim(line)
+		line = WireLib.Trim(line)
 
 		linetable[k] = line
 	end
