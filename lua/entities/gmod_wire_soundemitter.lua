@@ -119,7 +119,7 @@ function ENT:TriggerInput(iname, value)
 	elseif iname == "Volume" then
 		self.Volume = math.Clamp(math.floor(value*100), 0.0, 100.0)
 	elseif iname == "Level" then
-		self.Level = math.Clamp(value, 55.0, 165.0)
+		self.Level = value
 	elseif iname == "PitchRelative" then
 		self.Pitch = math.Clamp(math.floor(value*100), 0, 255)
 	elseif iname == "Sample" then
@@ -159,7 +159,7 @@ function ENT:UpdateSound()
 	end
 	self.SoundObj:ChangePitch(self.Pitch, 0)
 	self.SoundObj:ChangeVolume(self.Volume / 100.0, 0)
-	self.SoundObj:SetSoundLevel(self.Level)
+	self.SoundObj:SetSoundLevel(math.Clamp(self.Level, 55, 165))
 end
 
 function ENT:SetSound(soundName)
