@@ -1,0 +1,23 @@
+name: Feature request
+description: Suggest an idea to help us improve
+labels: ["Feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Please note: This issue tracker is for feature requests**
+        If you are unsure whether your idea is a feature, or you have a question, please visit our [discord](https://discord.gg/H8UKY3Y) channel instead
+  - type: textarea
+    id: describe-feature
+    attributes:
+      label: Describe the feature
+      description: Clearly describe what you would like to see added or improved
+    validations:
+      required: true
+  - type: textarea
+    id: use-case
+    attributes:
+      label: What problem does this solve?
+      description: Explain the use case or pain point that this feature addresses
+    validations:
+      required: true
