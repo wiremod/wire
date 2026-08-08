@@ -50,7 +50,7 @@ end
 local function getWhitelist(ply, cvar)
 	local whitelist = {}
 
-	for _, v in ipairs(string.Split(string.Trim(ply:GetInfo(cvar)), ",")) do
+	for _, v in ipairs(string.Split(WireLib.Trim(ply:GetInfo(cvar)), ",")) do
 		if v ~= "" then
 			whitelist[v] = true
 		end

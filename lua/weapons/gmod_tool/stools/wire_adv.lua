@@ -1109,7 +1109,7 @@ elseif CLIENT then
 						local w = 0
 						local h = 0
 						for i=1,#lines do
-							lines[i] = string.Trim(lines[i])
+							lines[i] = WireLib.Trim(lines[i])
 							local ww, hh = surface.GetTextSize( lines[i] )
 							w = math.max(w,ww)
 							h = h + hh + 2

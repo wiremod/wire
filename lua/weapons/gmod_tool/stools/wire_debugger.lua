@@ -359,12 +359,12 @@ if (CLIENT) then
 			local ExplodeLines = string.Explode("\n", Line)
 
 			for Index, ExplodeLine in ipairs(ExplodeLines) do --break it into multible lines for 1 entry
-				if string.Trim(ExplodeLine) ~= "" then
+				if WireLib.Trim(ExplodeLine) ~= "" then
 
 					local XPos = 0
 					if(Index > 1) then
 						if dgb_orient_vert then --if the string is not the first and it is vertical, line it up acordingly
-							if(string.Trim(ExplodeLine) == "OUT:" or string.Trim(ExplodeLine) == "IN:") then
+							if(WireLib.Trim(ExplodeLine) == "OUT:" or WireLib.Trim(ExplodeLine) == "IN:") then
 								XPos = 17
 							else
 								XPos = 42
@@ -379,7 +379,7 @@ if (CLIENT) then
 					end
 
 					local TrimLine = {
-						LineText = string.Trim(ExplodeLine),
+						LineText = WireLib.Trim(ExplodeLine),
 						OffsetPos = { XPos, Line_Count*14 } --move the next text down some for each line
 					}
 					table.insert(CurEntry.Lines, TrimLine )
@@ -410,7 +410,7 @@ if (CLIENT) then
 			local TextWidth
 			for _, Entry in ipairs(Entries) do
 				for _, Line in ipairs(Entry.Lines) do
-					TextWidth = surface.GetTextSize(string.Trim(Line.LineText))
+					TextWidth = surface.GetTextSize(WireLib.Trim(Line.LineText))
 					TextWidth = TextWidth+Line.OffsetPos[1] --offset it with the text's offset
 
 					if(TextWidth > LongestWidth) then
@@ -442,7 +442,7 @@ if (CLIENT) then
 		for _, Entry in ipairs(Entries) do
 			for _, Line in ipairs(Entry.Lines) do
 				draw.Text({
-					text = string.Trim(Line.LineText) or "",
+					text = WireLib.Trim(Line.LineText) or "",
 					font = "Default",
 					pos = { Line.OffsetPos[1]+10, 250*MoveBox+10+Line.OffsetPos[2] },
 					color = Entry.TextColor

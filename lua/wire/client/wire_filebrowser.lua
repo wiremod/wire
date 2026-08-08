@@ -57,7 +57,7 @@ local function PathFilter(Folder, TxtPanel, Root)
 		end
 	end
 
-	ValidFolder = string.Trim(ValidFolder)
+	ValidFolder = WireLib.Trim(ValidFolder)
 	--[[
 	if string.sub(ValidFolder, 0, 4) == ".svn" then -- Disallow access to .svn folders. (Not needed.)
 		ValidFolder = string.sub(ValidFolder, -4)
@@ -74,7 +74,7 @@ local function PathFilter(Folder, TxtPanel, Root)
 	end
 	--]]
 
-	ValidFolder = string.Trim(ValidFolder, "/")
+	ValidFolder = WireLib.Trim(ValidFolder, "/")
 
 	if IsValid(TxtPanel) then
 		TxtPanel:SetText(ValidFolder)
@@ -84,11 +84,11 @@ local function PathFilter(Folder, TxtPanel, Root)
 	for i = 1, Dirs do
 		if not file.IsDir(ConnectPathes(Root, ValidFolder), "GAME") then
 			ValidFolder = string.GetPathFromFilename(ValidFolder)
-			ValidFolder = string.Trim(ValidFolder, "/")
+			ValidFolder = WireLib.Trim(ValidFolder, "/")
 		end
 	end
 
-	ValidFolder = string.Trim(ValidFolder, "/")
+	ValidFolder = WireLib.Trim(ValidFolder, "/")
 
 	if ValidFolder == "" then return end
 	return ValidFolder
@@ -271,7 +271,7 @@ function PANEL:Init()
 
 		if not path then return end
 		path = string.sub(path, #self.m_strRootPath+1)
-		path = string.Trim(path, "/")
+		path = WireLib.Trim(path, "/")
 
 		if not self.NotUserPressed then
 			self.FolderPathText:SetText(path)

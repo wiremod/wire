@@ -169,8 +169,7 @@ GateActions["string_trim"] = {
 	inputtypes = { "STRING" },
 	outputtypes = { "STRING" },
 	output = function(gate, A)
-		if not A then A = "" end
-		return string.Trim(A)
+		return WireLib.Trim(A or "")
 	end,
 	label = function(Out, A)
 		return string.format ("trim(%s) = %q", A, Out)

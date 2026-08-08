@@ -64,7 +64,7 @@ local type_map = {
 }
 
 function PreProcessor:GetType(tp, trace)
-	tp = self:Trim(tp):lower()
+	tp = WireLib.Trim(tp):lower()
 	local up = tp:upper()
 
 	if tp == "normal" then
@@ -81,61 +81,6 @@ function PreProcessor:HandlePPCommand(comment, col)
 	if handler then
 		return handler(self, args, Trace.new(self.readline, col, self.readline, col + 1 + #command))
 	end
-end
-
-function PreProcessor:Trim(line)
-	local length = #line
-	local first
-
-	for i = 1, length do
-		local b = string.byte(line, i)
-
-		if b ~= 32 and (b < 9 or b > 13) then
-			first = i
-			break
-		end
-	end
-
-	if not first then
-		return ""
-	end
-
-	local last
-
-	for i = length, 1, -1 do
-		local b = string.byte(line, i)
-
-		if b ~= 32 and (b < 9 or b > 13) then
-			last = i
-			break
-		end
-	end
-
-	return string.sub(line, first, last)
-end
-
-function PreProcessor:TrimLeft(line)
-	for i = 1, #line do
-		local b = string.byte(line, i)
-
-		if b ~= 32 and (b < 9 or b > 13) then
-			return string.sub(line, i)
-		end
-	end
-
-	return ""
-end
-
-function PreProcessor:TrimRight(line)
-	for i = #line, 1, -1 do
-		local b = string.byte(line, i)
-
-		if b ~= 32 and (b < 9 or b > 13) then
-			return string.sub(line, 1, i)
-		end
-	end
-
-	return ""
 end
 
 function PreProcessor:FindComments(line)
@@ -339,7 +284,7 @@ local directive_handlers = {
 	["persist"] = handleIO("persist"),
 
 	["trigger"] = function(self, value, trace)
-		local trimmed = PreProcessor.Trim(nil, value)
+		local trimmed = WireLib.Trim(value)
 		if trimmed == "all" then
 			if self.directives.trigger[1] ~= nil then
 				self:Error("Directive (@trigger) conflicts with previous directives", trace)
@@ -385,7 +330,7 @@ local directive_handlers = {
 		end
 
 		if CLIENT then
-			if #PreProcessor.Trim(nil, arg) > 0 then
+			if #WireLib.Trim(arg) > 0 then
 				trace.start_col = trace.end_col + 1
 				trace.end_line = trace.start_line + 1
 				trace.end_col = 1
@@ -422,7 +367,7 @@ function PreProcessor:ParseDirectives(line)
 	-- not a directive?
 	if not directive then
 		-- flag as "in code", if that is the case
-		if self:Trim(line) ~= "" then
+		if WireLib.Trim(line) ~= "" then
 			self.incode = true
 		end
 		-- don't handle as a directive.
@@ -488,7 +433,7 @@ function PreProcessor:Process(buffer, directives, ent)
 		for i, line in ipairs(lines) do
 			self.readline = i
 
-			line = self:TrimRight(line)
+			line = WireLib.TrimRight(line)
 			line = self:RemoveComments(line)
 			line = self:ParseDirectives(line)
 			lines[i] = line
@@ -545,7 +490,7 @@ function PreProcessor:ParsePorts(ports, startoffset)
 					column2 = column + column2
 					local tr = Trace.new(self.readline, column2, self.readline, column2 + #var)
 
-					var = self:Trim(var)
+					var = WireLib.Trim(var)
 					-- skip empty entries
 					if var ~= "" then
 						-- error on malformed variable names
@@ -690,7 +635,7 @@ function PreProcessor:PP_else(args, trace)
 	local state = table.remove(self.ifdefStack)
 	if state == nil then self:Error("Found #else outside #ifdef/#ifndef block", trace) end
 
-	if self:Trim(args) ~= "" then self:Error("Must not pass an argument to #else", trace) end
+	if WireLib.Trim(args) ~= "" then self:Error("Must not pass an argument to #else", trace) end
 
 	if self:Disabled() then
 		table.insert(self.ifdefStack, false)
@@ -703,7 +648,7 @@ function PreProcessor:PP_endif(args, trace)
 	local state = table.remove(self.ifdefStack)
 	if state == nil then self:Error("Found #endif outside #ifdef/#ifndef block", trace) end
 
-	if self:Trim(args) ~= "" then self:Error("Must not pass an argument to #endif", trace) end
+	if WireLib.Trim(args) ~= "" then self:Error("Must not pass an argument to #endif", trace) end
 end
 
 function PreProcessor:PP_error(args, trace)

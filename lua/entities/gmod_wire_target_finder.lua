@@ -284,7 +284,7 @@ local function CheckPlayers(self, contact, tab)
 	if not isOneOf(contact:GetName(), tab.PlayerName, tab.CaseSen) then return false end
 
 	-- Check if the player's steamid/steamid64 matches the SteamIDs
-	if tab.SteamName:Trim() ~= "" then
+	if WireLib.Trim(tab.SteamName) ~= "" then
 		local contact_steamid, contact_steamid64 = contact:SteamID(), contact:SteamID64()
 
 		if not (isOneOf(contact_steamid, tab.SteamName, tab.CaseSen) or isOneOf(contact_steamid64, tab.SteamName, tab.CaseSen)) then

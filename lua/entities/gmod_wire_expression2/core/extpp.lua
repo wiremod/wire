@@ -106,17 +106,17 @@ local function parseAttributes(attributes, trace)
 	if attributes ~= "" and attributes:sub(1, 1) == "[" and attributes:sub(-1, -1) == "]" then
 		local attrs = { legacy = "false" } -- extpp can generate functions abiding by the new compiler.
 		for _, tag in ipairs(attributes:sub(2, -2):Split(",")) do
-			local k = tag:lower():Trim()
+			local k = WireLib.Trim(tag:lower())
 
 			if k:find("=", 1, true) then
 				-- [xyz = 567, event = "Tick"]
 				-- e2function number foo()
 				local key, value = unpack(k:Split("="), 1, 2)
-				attrs[key:lower():Trim()] = value:Trim()
+				attrs[WireLib.Trim(key:lower())] = WireLib.Trim(value)
 			elseif not ValidAttributes[k] then
 				ErrorNoHalt("Invalid attribute fed to ExtPP: " .. k .. " " .. trace .. "\n")
 			else
-				attrs[tag:lower():Trim()] = "true"
+				attrs[WireLib.Trim(tag:lower())] = "true"
 			end
 		end
 
@@ -126,7 +126,7 @@ end
 
 --- Compact lua code to a single line to avoid changing lua's tracebacks.
 local function compact(lua)
-	return (lua:Trim():gsub("\n\t*", " "))
+	return (WireLib.Trim(lua):gsub("\n\t*", " "))
 end
 
 ---@param contents string

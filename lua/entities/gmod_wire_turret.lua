@@ -132,7 +132,7 @@ function ENT:SetNumBullets( numbullets )
 end
 
 function ENT:SetTracer( tracer )
-	tracer = string.Trim(tracer)
+	tracer = WireLib.Trim(tracer)
 	self.tracer = TracerEnabled:GetBool() and ValidTracers[tracer] and tracer or ""
 end
 

@@ -11,6 +11,7 @@ local Entity = Entity
 local string = string
 local string_gsub = string.gsub
 local string_char = string.char
+local string_byte = string.byte
 local string_match = string.match
 local string_sub = string.sub
 local utf8_char = utf8.char
@@ -74,6 +75,62 @@ function string.GetNormalizedFilepath( path ) -- luacheck: ignore
 		end
 	end
 	return table.concat(tbl, "/")
+end
+
+-- Cheaper string.Trim* functions
+function WireLib.Trim(line)
+	local length = #line
+	local first
+
+	for i = 1, length do
+		local b = string_byte(line, i)
+
+		if b ~= 32 and (b < 9 or b > 13) then
+			first = i
+			break
+		end
+	end
+
+	if not first then
+		return ""
+	end
+
+	local last
+
+	for i = length, 1, -1 do
+		local b = string_byte(line, i)
+
+		if b ~= 32 and (b < 9 or b > 13) then
+			last = i
+			break
+		end
+	end
+
+	return string_sub(line, first, last)
+end
+
+function WireLib.TrimLeft(line)
+	for i = 1, #line do
+		local b = string_byte(line, i)
+
+		if b ~= 32 and (b < 9 or b > 13) then
+			return string_sub(line, i)
+		end
+	end
+
+	return ""
+end
+
+function WireLib.TrimRight(line)
+	for i = #line, 1, -1 do
+		local b = string_byte(line, i)
+
+		if b ~= 32 and (b < 9 or b > 13) then
+			return string_sub(line, 1, i)
+		end
+	end
+
+	return ""
 end
 
 -- works like pairs() except that it iterates sorted by keys.

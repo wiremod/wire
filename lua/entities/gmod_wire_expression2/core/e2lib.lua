@@ -855,7 +855,7 @@ do
 	end
 
 	function E2Lib.GetExtensionStatus(name)
-		name = name:Trim():lower()
+		name = WireLib.Trim(name):lower()
 		return extensions.status[name]
 	end
 
@@ -885,7 +885,7 @@ do
 		end
 
 		function E2Lib.RegisterExtension(name, default, description, warning)
-			name = name:Trim():lower()
+			name = WireLib.Trim(name):lower()
 			E2Lib.currentextension = name
 
 			if extensions.status[ name ] == nil then
@@ -903,7 +903,7 @@ do
 		end
 
 		function E2Lib.SetExtensionStatus( name, status )
-			name = name:Trim():lower()
+			name = WireLib.Trim(name):lower()
 			status = tobool( status )
 			extensions.status[ name ] = status
 			if extensions.save then
@@ -972,7 +972,7 @@ do
 			end
 			local name = args[ 1 ]
 			if name then
-				name = name:Trim():lower()
+				name = WireLib.Trim(name):lower()
 				if extensions.status[ name ] ~= nil then
 					local status = tobool( cmd:find( "enable" ) )
 					if extensions.status[ name ] == status then
@@ -1041,7 +1041,7 @@ do
 	-- shared stuff
 
 	local function makeAutoCompleteList( cmd, args )
-		args = args:Trim():lower()
+		args = WireLib.Trim(args):lower()
 		local status, list, tbl, j = tobool( cmd:find( "enable" ) ), extensions.list, {}, 1
 		for i = 1, #list do
 			local name = list[ i ]

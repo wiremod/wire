@@ -220,7 +220,7 @@ function EDITOR:SyntaxColorLine(row)
     if self:NextPattern("^[a-zA-Z0-9_@.]+:") then
       tokenname = "label"
     elseif self:NextPattern("^[a-zA-Z0-9_@.]+") then
-      local sstr = string.upper(self.tokendata:Trim())
+      local sstr = string.upper(WireLib.Trim(self.tokendata))
       if opcodeTable[sstr] then
         tokenname = "opcode"
       elseif registersTable[sstr] then
@@ -282,7 +282,7 @@ function EDITOR:SyntaxColorLine(row)
           tokenname = "normal"
         end
       elseif self:NextPattern("^[a-zA-Z0-9_@.#]+") then
-        local sstr = string.sub(string.upper(self.tokendata:Trim()),2)
+        local sstr = string.sub(string.upper(WireLib.Trim(self.tokendata)),2)
         if macroTable[sstr] then
           self:NextPattern(".*$")
           tokenname = "pmacro"
