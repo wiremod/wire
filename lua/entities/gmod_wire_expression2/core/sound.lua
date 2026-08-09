@@ -7,9 +7,7 @@ E2Lib.RegisterExtension("sound", true, "Allows E2s to play sounds.", "Sounds can
 local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 16, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_burst_max", 8, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1, {FCVAR_ARCHIVE} )
-
--- _level_max: Sets the maximum soundLevel we can set on a sound. 140 is maximum to begin with, a more non-obnoxious level is maybe around 110.
-local wire_expression2_sound_level_max = CreateConVar( "wire_expression2_sound_level_max", 110, {FCVAR_ARCHIVE} )
+local wire_sound_max_level = GetConVar( "wire_sound_max_level" )
 
 ---------------------------------------------------------------
 -- Helper functions
@@ -238,9 +236,18 @@ e2function void soundDSP( string index, dsp ) = e2function void soundDSP( index,
 e2function void soundLevel( index, level )
 	local sound = getSound( self, index )
 	if not sound then return end
+
 	-- We need to set the level while the sound is stopped
 	sound:Stop()
-	sound:SetSoundLevel( math.Clamp( level, 0, wire_expression2_sound_level_max:GetInt() ) )
+
+	local max_level = wire_sound_max_level:GetInt()
+
+	-- 0 = play sound throughout the map
+	if max_level ~= -1 and (level == 0 or level > max_level) then
+		level = max_level
+	end
+
+	sound:SetSoundLevel(level)
 	sound:Play()
 end
 e2function void soundLevel( string index, level ) = e2function void soundLevel( index, level )
@@ -298,7 +305,7 @@ local function EmitSound(e2, ent, path, level, pitch, volume)
 	if not isOwner(e2, ent) then return e2:throw("You do not own this entity!", nil) end
 
 	if level then
-		local max_level = wire_expression2_sound_level_max:GetInt()
+		local max_level = wire_sound_max_level:GetInt()
 
 		-- 0 = play sound throughout the map
 		if max_level ~= -1 and (level == 0 or level > max_level) then
