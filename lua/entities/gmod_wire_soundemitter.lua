@@ -32,7 +32,7 @@ function ENT:Initialize()
 	self.Volume = 100
 	self.Level = 80
 	self.Pitch = 100
-	self.sound = self.Samples[1]
+	self.sound = "synth/brown_noise.wav"
 	-- self.sound is a string, self.SoundObj is a CSoundPatch
 
 	self.NeedsRefresh = true
