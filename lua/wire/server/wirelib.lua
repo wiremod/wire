@@ -1604,8 +1604,9 @@ function WireLib.SoundExists(path, ply)
 		if sound_data then
 			local sound_level = sound_data.level
 
-			if sound_level > max_level or sound_level <= 0 then
-				return
+			if sound_level <= 0 then
+				local sounds = sound_data.sound
+				path = istable(sounds) and sounds[math.random(#sounds)] or sounds
 			end
 		end
 	end
