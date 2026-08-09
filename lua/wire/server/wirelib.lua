@@ -1604,6 +1604,7 @@ function WireLib.SoundExists(path, ply)
 		if sound_data then
 			local sound_level = sound_data.level
 
+			-- 0 = play sound throughout the map
 			if sound_level <= 0 then
 				local sounds = sound_data.sound
 				path = istable(sounds) and sounds[math.random(#sounds)] or sounds
