@@ -183,7 +183,7 @@ local maxBandwidth = defaultMaxBandwidth
 local function updateBW()
     dsNetBandwidthValue = math.Clamp(dsNetBandwidth:GetInt(),100,2000000)
 
-    defaultMaxBandwidth = math.Round(dsNetBandwidthValue/2) 
+    defaultMaxBandwidth = math.Round(dsNetBandwidthValue/2)
     defaultMaxGlobalBandwidth = dsNetBandwidthValue
 end
 cvars.AddChangeCallback("wire_digitalscreen_net_bandwidth", updateBW)
