@@ -1582,7 +1582,7 @@ end
 
 local uniqueSoundsTbl = setmetatable({}, {__index=function(t,k) local r={[1]=0} t[k]=r return r end})
 local maxUniqueSounds = CreateConVar("wire_sounds_unique_max", "200", FCVAR_ARCHIVE, "The maximum number of sound paths a player is allowed to cache")
-local maxSoundLevel = CreateConVar("wire_max_sound_level", "180", FCVAR_ARCHIVE, "The maximum sounds volume (-1 disable)")
+local maxSoundLevel = CreateConVar("wire_sound_max_level", "180", FCVAR_ARCHIVE, "The maximum sounds volume (-1 disable)")
 
 function WireLib.SoundExists(path, ply)
 	-- Limit length and remove invalid chars
@@ -1604,9 +1604,7 @@ function WireLib.SoundExists(path, ply)
 		if sound_data then
 			local sound_level = sound_data.level
 
-			if sound_level > max_level then
-				return
-			elseif sound_level <= 0 then
+			if sound_level > max_level or sound_level <= 0 then
 				return
 			end
 		end
@@ -1624,7 +1622,7 @@ function WireLib.SoundExists(path, ply)
 			playerSounds[checkpath] = true
 			playerSounds[1] = playerSounds[1] + 1
 		end
-	elseif not sound.GetProperties(checkpath) or not file.Exists("sound/" .. checkpath, "GAME") then
+	elseif not sound.GetProperties(checkpath) and not file.Exists("sound/" .. checkpath, "GAME") then
 		return
 	end
 
