@@ -157,9 +157,10 @@ function ENT:UpdateSound()
 
 		if self.Active then self:StartSounds() end
 	end
+
 	self.SoundObj:ChangePitch(math.Clamp(self.Pitch, 0, 255), 0)
 	self.SoundObj:ChangeVolume(math.Clamp(self.Volume / 100, 0, 1), 0)
-	self.SoundObj:SetSoundLevel(math.Clamp(self.Level, 55, 165))
+	self.SoundObj:SetSoundLevel(WireLib.ClampSoundLevel(self.Level))
 end
 
 function ENT:SetSound(soundName)
