@@ -1582,7 +1582,17 @@ end
 
 local uniqueSoundsTbl = setmetatable({}, {__index=function(t,k) local r={[1]=0} t[k]=r return r end})
 local maxUniqueSounds = CreateConVar("wire_sounds_unique_max", "200", FCVAR_ARCHIVE, "The maximum number of sound paths a player is allowed to cache")
-local maxSoundLevel = CreateConVar("wire_sound_max_level", "180", FCVAR_ARCHIVE, "The maximum sounds volume (-1 disable)")
+local maxSoundLevel = CreateConVar("wire_sound_max_level", "255", FCVAR_ARCHIVE, "The maximum sounds volume (0 to disable)")
+
+function WireLib.ClampSoundLevel(level)
+	local max_level = maxSoundLevel:GetInt()
+
+	if max_level > 0 then
+		return level <= 0 and max_level or math.min(level, max_level)
+	else
+		return level
+	end
+end
 
 function WireLib.SoundExists(path, ply)
 	-- Limit length and remove invalid chars
@@ -1598,14 +1608,14 @@ function WireLib.SoundExists(path, ply)
 	-- Disallow too loud sounds
 	local max_level = maxSoundLevel:GetInt()
 
-	if max_level ~= -1 then
+	if max_level > 0 then
 		local sound_data = sound.GetProperties(checkpath)
 
 		if sound_data then
 			local sound_level = sound_data.level
 
 			-- 0 = play sound throughout the map
-			if sound_level <= 0 then
+			if sound_level <= 0 or sound_level > max_level then
 				local sounds = sound_data.sound
 				path = istable(sounds) and sounds[math.random(#sounds)] or sounds
 			end
