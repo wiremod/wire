@@ -5,9 +5,9 @@ DEFINE_BASECLASS( "base_wire_entity" )
 
 ENT.WireDebugName = "DigitalScreen"
 
-local dsDrawRate = CreateConVar("wire_digitalscreen_draw_rate", 1, { FCVAR_REPLICATED, FCVAR_ARCHIVE })
-local dsNetBandwidth = CreateConVar("wire_digitalscreen_net_bandwidth", 200000, { FCVAR_ARCHIVE })
-local dsNetBandwidthValue = math.Clamp(dsNetBandwidth:GetInt(),100,2000000)
+local dsDrawRate = CreateConVar("wire_digitalscreen_draw_rate", 1, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Draw rate for digital screen", 0.1, 1000)
+local dsNetBandwidth = CreateConVar("wire_digitalscreen_net_bandwidth", 200000, { FCVAR_ARCHIVE }, "Net bandwidth limit for digital screen (20k default)", 1000, 2000000)
+local dsNetBandwidthValue = dsNetBandwidth:GetInt()
 
 function ENT:InitInteractive()
 	local model = self:GetModel()
@@ -181,7 +181,7 @@ local defaultMaxGlobalBandwidth = dsNetBandwidthValue -- 20k is a good global li
 local maxBandwidth = defaultMaxBandwidth
 
 local function updateBW()
-    dsNetBandwidthValue = math.Clamp(dsNetBandwidth:GetInt(),100,2000000)
+    dsNetBandwidthValue = dsNetBandwidth:GetInt()
 
     defaultMaxBandwidth = math.Round(dsNetBandwidthValue/2)
     defaultMaxGlobalBandwidth = dsNetBandwidthValue
