@@ -1581,8 +1581,8 @@ if not WireLib.PatchedDuplicator then
 end
 
 local uniqueSoundsTbl = setmetatable({}, {__index=function(t,k) local r={[1]=0} t[k]=r return r end})
-local maxUniqueSounds = CreateConVar("wire_sounds_unique_max", "200", FCVAR_ARCHIVE, "The maximum number of sound paths a player is allowed to cache")
-local maxSoundLevel = CreateConVar("wire_sound_max_level", "255", FCVAR_ARCHIVE, "The maximum sounds volume (0 to disable)")
+local maxUniqueSounds = CreateConVar("wire_sounds_unique_max", "200", FCVAR_ARCHIVE, "The maximum number of sound paths a player is allowed to cache", 0)
+local maxSoundLevel = CreateConVar("wire_sound_max_level", "255", FCVAR_ARCHIVE, "The maximum sounds volume (0 to disable)", 0, 255)
 
 function WireLib.ClampSoundLevel(level)
 	local max_level = maxSoundLevel:GetInt()
