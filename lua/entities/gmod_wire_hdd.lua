@@ -127,7 +127,7 @@ end
 
 function ENT:MakeFloatTable(Table)
 	local text = ""
-	for i=0,#Table-1 do
+	for i=0,#Table do
 		--Clamp size to 24 chars
 		local floatstr = string.sub(tostring(Table[i]),1,24)
 		--Make a string, and append missing spaces
