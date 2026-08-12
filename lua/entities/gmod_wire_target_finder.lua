@@ -51,7 +51,7 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 		entity = entity,
 	})
 
-	tab.MaxRange = maxrange
+	tab.MaxRange = maxrange or 10
 	tab.MinRange = minrange or 1
 	tab.TargetPlayer = players
 	tab.NoTargetOwner = notargetowner
