@@ -298,7 +298,7 @@ local function EmitSound(e2, ent, path, level, pitch, volume)
 	path = WireLib.SoundExists(path)
 	if not path then return end
 
-	ent:EmitSound(path, WireLib.ClampSoundLevel(level or SNDLVL_75dB), pitch, volume)
+	ent:EmitSound(path, WireLib.ClampSoundLevel(level or 75), pitch, volume)
 end
 
 __e2setcost(20)
