@@ -49,7 +49,6 @@ if CLIENT then
 			if ent:IsValid() then
 				local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*-16384
 				dist = math.max(dist, trace.Fraction*16384-ent:BoundingRadius())
-				--WireLib.hud_debug(""..dist, true)
 
 				if dist < self.workingDistance and ent == self.GPU.Entity then
 					local cpos = WorldToLocal(trace.HitPos, Angle(), pos, ang)
