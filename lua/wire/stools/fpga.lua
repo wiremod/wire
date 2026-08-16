@@ -269,10 +269,10 @@ if CLIENT then
 	------------------------------------------------------------------------------
 	-- Tool screen
 	------------------------------------------------------------------------------
-	tool_program_name = ""
-	tool_program_start = 0
-	tool_program_size = 0
-	tool_program_bytes = ""
+	local tool_program_name = ""
+	local tool_program_start = 0
+	local tool_program_size = 0
+	local tool_program_bytes = ""
 	function FPGASetToolInfo(name, size, last_bytes)
 		if #name > 18 then
 			tool_program_name = name:sub(1,15) .. "..."

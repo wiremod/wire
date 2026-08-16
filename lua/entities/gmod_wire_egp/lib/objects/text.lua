@@ -21,7 +21,6 @@ if CLIENT then
 	surface_SetTextPos = surface.SetTextPos
 	surface_DrawText = surface.DrawText
 	surface_SetTextColor = surface.SetTextColor
-	surface_CreateFont = surface.CreateFont
 	surface_SetFont = surface.SetFont
 	surface_GetTextSize = surface.GetTextSize
 
@@ -48,7 +47,7 @@ function Obj:Draw(ent, drawMat)
 				x = x - (w * ((self.halign%10)/2))
 			end
 			if (self.valign) then
-				if (not h) then _,h = surface_GetTextSize( self.text ) end
+				if (not h) then local _,new_h = surface_GetTextSize( self.text ) h = new_h end
 				y = y - (h * ((self.valign%10)/2))
 			end
 
@@ -62,7 +61,7 @@ function Obj:Draw(ent, drawMat)
 				x = (w * ((self.halign%10)/2))
 			end
 			if (self.valign) then
-				if (not h) then _,h = surface_GetTextSize( self.text ) end
+				if (not h) then local _,new_h = surface_GetTextSize( self.text ) h = new_h end
 				y = (h * ((self.valign%10)/2))
 			end
 

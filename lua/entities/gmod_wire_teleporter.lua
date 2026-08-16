@@ -225,7 +225,7 @@ function ENT:Jump_Part2( withangles )
 	local Dir = (OldPos - self:GetPos()):GetNormalized()
 	if self.UseEffects then
 		-- Effect
-		effectdata = EffectData()
+		local effectdata = EffectData()
 		effectdata:SetEntity( self )
 		effectdata:SetOrigin( self:GetPos() + Dir * math.Clamp( self:BoundingRadius() * 5, 180, 4092 ) )
 		util.Effect( "jump_in", effectdata, true, true )
@@ -275,7 +275,7 @@ function ENT:Jump_Part2( withangles )
 
 			if self.UseEffects then
 				-- Effect in
-				effectdata = EffectData()
+				local effectdata = EffectData()
 				effectdata:SetEntity( ent )
 				effectdata:SetOrigin( self:GetPos() + Dir * math.Clamp( ent:BoundingRadius() * 5, 180, 4092 ) )
 				util.Effect( "jump_in", effectdata, true, true )
@@ -294,7 +294,7 @@ function ENT:Jump_Part2( withangles )
 	if self.UseEffects then
 		for _, ent in pairs( self.OtherEntities ) do -- Render the effect on all other entities in the contraption
 			-- Effect in
-			effectdata = EffectData()
+			local effectdata = EffectData()
 			effectdata:SetEntity( ent )
 			effectdata:SetOrigin( self:GetPos() + Dir * math.Clamp( ent:BoundingRadius() * 5, 180, 4092 ) )
 			util.Effect( "jump_in", effectdata, true, true )

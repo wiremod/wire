@@ -517,7 +517,7 @@ elseif CLIENT then
 			local traceData = util.GetPlayerTrace(LocalPlayer())
 			traceData.filter = { LocalPlayer(), trace.Entity }
 			traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
-			newTrace = util.TraceLine(traceData)
+			local newTrace = util.TraceLine(traceData)
 			parent = newTrace.Entity
 			if not IsValid(parent) or parent == game.GetWorld() then
 				-- Hit the world, don't update the trace.

@@ -309,7 +309,6 @@ function ENT:ConstructInsideView(viewData)
 		b[3] = math.min(b[3], node.y)
 		b[4] = math.max(b[4], node.y + node.s * FPGANodeSize)
 	end
-	borderIsLabel = {false,false,false,false}
 	if viewData.Labels then
 		for _, label in pairs(viewData.Labels) do
 			b[1] = math.min(b[1], label.x)

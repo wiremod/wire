@@ -24,7 +24,7 @@ if CLIENT then
 
 	hook.Add("CreateMove", "WireEyePodEyeControl", function(ucmd)
 		if enabled then
-			currentAng = ucmd:GetViewAngles()
+			local currentAng = ucmd:GetViewAngles()
 
 			if freezePitch then
 				currentAng.p = freezePitch

@@ -294,7 +294,7 @@ local function deturedAcceptInput(this, name, activator, caller, data, ...)
 		errOrResult = tostring(errOrResult or "")
 
 		if errOrResult ~= "" then
-			message = caller:FormatString(": Lua error in target AcceptInput:\n  Wire input '%s [%s]' -> Hammer output '%s@%s'\n  %s", globals.WIRE_NAME, globals.WIRE_TYPE, caller:FormatEntityString(this), name, errOrResult)
+			local message = caller:FormatString(": Lua error in target AcceptInput:\n  Wire input '%s [%s]' -> Hammer output '%s@%s'\n  %s", globals.WIRE_NAME, globals.WIRE_TYPE, caller:FormatEntityString(this), name, errOrResult)
 			ErrorNoHaltWithStack(message)
 		end
 
@@ -343,7 +343,7 @@ function ENT:TriggerWireOutputSafe(wireEnt, wireOutputName, wireValue, ...)
 	err = tostring(err or "")
 
 	if err ~= "" then
-		message = self:FormatString(": Lua error at Wire output '%s':\n%s", wireOutputName, err)
+		local message = self:FormatString(": Lua error at Wire output '%s':\n%s", wireOutputName, err)
 		ErrorNoHaltWithStack(message)
 	end
 
@@ -363,7 +363,7 @@ function ENT:TriggerHammerOutputSafe(hammerOutputName, activator, hammerValue, .
 	err = tostring(err or "")
 
 	if err ~= "" then
-		message = self:FormatString(": Lua error at Hammer output '%s':\n%s", hammerOutputName, err)
+		local message = self:FormatString(": Lua error at Hammer output '%s':\n%s", hammerOutputName, err)
 		ErrorNoHaltWithStack(message)
 	end
 

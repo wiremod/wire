@@ -124,9 +124,7 @@ GateActions["entity_applytorq"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isvector(vec) then vec = Vector (0, 0, 0) end
-		if not isvector(offset) then offset = Vector (0, 0, 0) end
 		vec 	= clamp(vec)
-		offset 	= clamp(offset)
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
 		local tq = vec
@@ -1026,7 +1024,7 @@ GateActions["entity_heading"] = {
 
 		-- Elevation
 		local len = Position:Length()
-		elevation = 180 / math.pi * math.asin( Position.z / len )
+		local elevation = 180 / math.pi * math.asin( Position.z / len )
 
 		return bearing, elevation, Angle(bearing,elevation,0)
 	end,
