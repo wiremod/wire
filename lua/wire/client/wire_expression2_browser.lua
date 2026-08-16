@@ -36,6 +36,7 @@ function PANEL:Search( str, foldername, fullpath, parentfullpath, first_recursio
 			if string_find( string_lower( files[i] ), str, 1, true ) ~= nil then
 				local filenode = node:AddNode( files[i], "icon16/page_white.png" )
 				filenode:SetFileName( fullpath .. "/" .. files[i] )
+				filenode:SetDraggableName( fullpath .. "/" .. files[i] )
 				myresults = myresults + 1
 			end
 
