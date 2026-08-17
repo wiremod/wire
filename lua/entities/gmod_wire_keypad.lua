@@ -45,6 +45,7 @@ if CLIENT then
 
 	local color_red = Color(255, 0, 0)
 	local color_green = Color(0, 255, 0)
+	local highlight_key, highlight_until
 
 	function ENT:Draw(flags)
 		self:DrawModel(flags)

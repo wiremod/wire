@@ -10,8 +10,8 @@ local Wire_DisableWireRender = CreateClientConVar("cl_wire_disablewirerender", 0
 WIRE_CLIENT_INSTALLED = 1
 
 
-BeamMat = Material("tripmine_laser")
-BeamMatHR = Material("Models/effects/comball_tape")
+local BeamMat = Material("tripmine_laser")
+local BeamMatHR = Material("Models/effects/comball_tape")
 
 local scroll, scroll_offset = 0, 0
 
@@ -74,7 +74,7 @@ local function Wire_Render_Enabled(ent)
 
 	-- CREATING (Not assigning a value) local variables OUTSIDE of cycle a bit faster
 	local blink = ent_tbl.WireBlinkWire
-	local start, color, nodes, len, endpos, node, node_ent, last_node_ent, vector_cache
+	local start, color, nodes, len, endpos, node, node_ent, last_node_ent, vector_cache, width
 
 	for net_name, wiretbl in pairs(wires) do
 		width = wiretbl.Width
@@ -236,13 +236,6 @@ function Derma_QueryNoBlur(...)
 	local panel = Derma_Query(...)
 	panel:SetBackgroundBlur(false)
 	return panel
-end
-
-function WireLib.hud_debug(text, oneframe)
-	hook.Add("HUDPaint","wire_hud_debug",function()
-		if oneframe then hook.Remove("HUDPaint", "wire_hud_debug") end
-		draw.DrawText(text, "Trebuchet24", 10, ScrH() / 5, color_white, 0)
-	end)
 end
 
 local old_renderhalos = WireLib.__old_renderhalos or hook.GetTable().PostDrawEffects.RenderHalos

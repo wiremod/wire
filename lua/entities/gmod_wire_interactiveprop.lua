@@ -230,31 +230,11 @@ function WireLib.GetInteractiveModel( model )
 	return InteractiveModels[model]
 end
 
-function WireLib.GetInteractiveWidgetBody( ent, data )
-	local body = vgui.Create("DFrame")
-
-	body:SetTitle(data.title)
-	body:SetSize(data.width, data.height)
-	body:SetDraggable(false)
-	body:MakePopup()
-	body:Center()
-
-	function body:Paint(w, h)
-		draw.RoundedBox(4, 0, 0, w, h, color_white)
-		draw.RoundedBox(4, 1, 1, w - 2, h - 2, Color(64, 64, 64))
-	end
-
-	for id, widget in ipairs( data.widgets ) do
-		WidgetBuilders[widget.type](ent, widget, body, id)
-	end
-	return body
-end
-
 InteractiveModels["models/props_c17/furnituresink001a.mdl"]		 = copyPropUI( "models/props_interiors/bathtub01a.mdl", "Furniture Sink" )
 InteractiveModels["models/props_interiors/sinkkitchen01a.mdl"]	= copyPropUI( "models/props_interiors/bathtub01a.mdl", "Kitchen Sink" )
 InteractiveModels["models/props_wasteland/prison_sink001a.mdl"] = copyPropUI( "models/props_interiors/bathtub01a.mdl", "Prison Sink" )
 
-WidgetBuilders = {
+local WidgetBuilders = {
 
 	DCheckBox = function(self, data, body, index)
 		local checkbox = vgui.Create("DCheckBox", body)
@@ -311,6 +291,26 @@ WidgetBuilders = {
 	end
 
 }
+
+function WireLib.GetInteractiveWidgetBody( ent, data )
+	local body = vgui.Create("DFrame")
+
+	body:SetTitle(data.title)
+	body:SetSize(data.width, data.height)
+	body:SetDraggable(false)
+	body:MakePopup()
+	body:Center()
+
+	function body:Paint(w, h)
+		draw.RoundedBox(4, 0, 0, w, h, color_white)
+		draw.RoundedBox(4, 1, 1, w - 2, h - 2, Color(64, 64, 64))
+	end
+
+	for id, widget in ipairs( data.widgets ) do
+		WidgetBuilders[widget.type](ent, widget, body, id)
+	end
+	return body
+end
 
 function ENT:GetPanel()
 	local data	= InteractiveModels[ self:GetModel() ]
@@ -386,7 +386,7 @@ end
 -- UpdateOverlay
 ----------------------------------------------------
 function ENT:UpdateOverlay()
-	txt = ""
+	local txt = ""
 	if IsValid(self.User) then
 		txt = "In use by: " .. self.User:Nick()
 	end

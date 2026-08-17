@@ -381,7 +381,7 @@ function ENT:Draw(flags)
 	-- Draw image from another GPU
 	local videoSource = MonitorLookup[self:EntIndex()]
 	if videoSource then
-		videoGPU = ents.GetByIndex(videoSource)
+		local videoGPU = ents.GetByIndex(videoSource)
 		if videoGPU and videoGPU:IsValid() and videoGPU.GPU then
 			videoGPU.GPU.Entity = self
 			videoGPU.GPU:Render(

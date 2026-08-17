@@ -108,7 +108,7 @@ local function GetGlobalPos(self, Ent, index)
 			if obj.parent == -1 then -- Object is parented to the cursor
 				local x, y = 0, 0
 				if CLIENT then
-					xy = EGP:EGPCursor( Ent, LocalPlayer() )
+					local xy = EGP:EGPCursor( Ent, LocalPlayer() )
 					x, y = xy[1], xy[2]
 				end
 

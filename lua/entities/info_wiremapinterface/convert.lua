@@ -154,7 +154,7 @@ local g_supportedTypesById = {
 		wireType = "VECTOR4",
 
 		toHammer = function(_, wireValue)
-			val = val or {0, 0, 0, 0}
+			local val = wireValue or {0, 0, 0, 0}
 
 			local x = tonumber(val[1] or 0) or 0
 			local y = tonumber(val[2] or 0) or 0

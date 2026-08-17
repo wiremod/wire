@@ -227,7 +227,7 @@ function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba
 		if not IsValid( wire_indicators[i] ) then break end
 
 		for y = 1, i-1 do
-			const = constraint.Weld( wire_indicators[i], wire_indicators[y], 0, 0, 0, true, true )
+			constraint.Weld( wire_indicators[i], wire_indicators[y], 0, 0, 0, true, true )
 		end
 		wire_indicators[i - 1]:DeleteOnRemove( wire_indicators[i] ) --when one is removed, all are. a linked chain
 	end

@@ -547,7 +547,7 @@ GateActions["vector_max"] = {
 	inputs = { "A" , "B" },
 	inputtypes = { "VECTOR" , "VECTOR" },
 	outputtypes = { "VECTOR" },
-	output = function(gate, A)
+	output = function(gate, A , B)
 		if not isvector (A) then A = Vector (0, 0, 0) end
 		if not isvector (B) then B = Vector (0, 0, 0) end
 		if A:Length() > B:Length() then return A else return B end
@@ -563,7 +563,7 @@ GateActions["vector_min"] = {
 	inputs = { "A" , "B" },
 	inputtypes = { "VECTOR" , "VECTOR" },
 	outputtypes = { "VECTOR" },
-	output = function(gate, A)
+	output = function(gate, A , B)
 		if not isvector (A) then A = Vector (0, 0, 0) end
 		if not isvector (B) then B = Vector (0, 0, 0) end
 		if A:Length() < B:Length() then return A else return B end

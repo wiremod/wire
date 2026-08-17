@@ -619,6 +619,7 @@ local function Infomenu(parent, node, SoundEmitter, nSoundVolume, nSoundPitch)
 	end
 
 	local Menu = DermaMenu()
+	local MenuItem
 
 	--Copy to clipboard
 		MenuItem = Menu:AddOption("Copy to clipboard", function()

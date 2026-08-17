@@ -696,7 +696,7 @@ function getInputAmountForNode(node)
 	local gate = getGate(node)
 	local amountOfInputs = 0
 	if gate.compact_inputs then
-		inputLimit = gate.compact_inputs
+		local inputLimit = gate.compact_inputs
 		for inputIdx, _ in pairs(node.connections) do
 			inputLimit = math.max(inputLimit, inputIdx + 1)
 		end
@@ -1914,7 +1914,7 @@ function Editor:CreateNode(selectedInMenu, x, y)
 	-- Save state before creating node
 	self:SaveState("Create Node")
 
-	node = {
+	local node = {
 		type = selectedInMenu.type,
 		gate = selectedInMenu.gate,
 		visual = selectedInMenu.visual,
@@ -2408,8 +2408,8 @@ function Editor:BeginDrawingConnection(nodeId, inputNum, outputNum, doubleClick)
 
 	if inputNum then
 		--check if something is connected to this input
-		node = self.Nodes[nodeId]
-		Input = node.connections[inputNum]
+		local node = self.Nodes[nodeId]
+		local Input = node.connections[inputNum]
 
 		--Input already connected
 		if Input then
@@ -2702,7 +2702,7 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
 		self.ConstantSetString:SetText(node.valueAsString or (node.value.x .. ", " .. node.value.y .. ", " .. node.value.z))
 		self.ConstantSetString:RequestFocus()
 		self.ConstantSetString.OnEnter = function(pnl)
-			valid, x, y, z = validateVector(pnl:GetValue())
+			local valid, x, y, z = validateVector(pnl:GetValue())
 			if valid then
 				node.value = Vector(x, y, z)
 				node.valueAsString = pnl:GetValue()
@@ -2711,7 +2711,7 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
 			end
 		end
 		self.ConstantSetString.OnChange = function(pnl)
-			valid, _, _, _ = validateVector(pnl:GetValue())
+			local valid, _, _, _ = validateVector(pnl:GetValue())
 			if valid then pnl:SetTextColor(color_black)
 			else pnl:SetTextColor(invalidColor) end
 		end
@@ -2720,7 +2720,7 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
 		self.ConstantSetString:SetText(node.valueAsString or (node.value.x .. ", " .. node.value.y .. ", " .. node.value.z))
 		self.ConstantSetString:RequestFocus()
 		self.ConstantSetString.OnEnter = function(pnl)
-			valid, p, y, r = validateVector(pnl:GetValue())
+			local valid, p, y, r = validateVector(pnl:GetValue())
 			if valid then
 				node.value = Angle(p, y, r)
 				node.valueAsString = pnl:GetValue()
@@ -2729,7 +2729,7 @@ function Editor:OpenConstantSetWindow(node, x, y, type)
 			end
 		end
 		self.ConstantSetString.OnChange = function(pnl)
-			valid, _, _, _ = validateVector(pnl:GetValue())
+			local valid, _, _, _ = validateVector(pnl:GetValue())
 			if valid then pnl:SetTextColor(color_black)
 			else pnl:SetTextColor(invalidColor) end
 		end

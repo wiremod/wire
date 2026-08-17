@@ -51,7 +51,7 @@ function ENT:Think()
 		self.PairID = nil
 	end
 end
-function IsRadio(entity)
+local function IsRadio(entity)
 	if IsValid(entity) and entity:GetClass() == "gmod_wire_twoway_radio" then return true end
 	return false
 end

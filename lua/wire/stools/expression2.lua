@@ -948,7 +948,7 @@ if CLIENT then
 		percent2 = p2 and math.Clamp(p2,0,100) or nil
 	end
 
-	function DrawTextOutline(text, font, x, y, color, xalign, yalign, bordercolor, border)
+	local function DrawTextOutline(text, font, x, y, color, xalign, yalign, bordercolor, border)
 		for i = 0, 8 do
 			draw.SimpleText(text, font, x + border * math.sin(i * math.pi / 4), y + border * math.cos(i * math.pi / 4), bordercolor, xalign, yalign)
 		end
@@ -1083,7 +1083,7 @@ elseif CLIENT then
 end
 
 local prevmodel, prevvalid
-function validModelCached(model)
+local function validModelCached(model)
 	if model ~= prevmodel then
 		prevmodel = model
 		prevvalid = util.IsValidModel(model)

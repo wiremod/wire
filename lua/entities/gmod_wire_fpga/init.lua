@@ -34,7 +34,7 @@ end
 local function getDefaultValues(node)
 	local gate = getGate(node)
 
-	values = {}
+	local values = {}
 	for inputNum, name in pairs(gate.inputs) do
 		local type = getInputType(gate, inputNum)
 
@@ -229,7 +229,7 @@ function ENT:SynthesizeViewData(data)
 		local gate = getGate(node)
 		local amountOfInputs = 0
 		if gate.compact_inputs then
-			inputLimit = gate.compact_inputs
+			local inputLimit = gate.compact_inputs
 			for inputIdx, _ in pairs(node.connections) do
 				inputLimit = math.max(inputLimit, inputIdx + 1)
 			end
@@ -402,8 +402,8 @@ function ENT:CompileData(data)
 			value = node.value,
 		}
 		for input, connection in pairs(node.connections) do
-			fromNode = connection[1]
-			fromOutput = connection[2]
+			local fromNode = connection[1]
+			local fromOutput = connection[2]
 			if not edges[fromNode] then edges[fromNode] = {} end
 			if not edges[fromNode][fromOutput] then edges[fromNode][fromOutput] = {} end
 
@@ -859,8 +859,8 @@ function ENT:Run(changedNodes)
 				local executeLater = false
 				--if input hasnt arrived, send this node to the back of the queue
 				for inputId, connection in pairs(self.NodeGetsInputFrom[nodeId]) do
-					nodeId2 = connection[1]
-					outputNum = connection[2]
+					local nodeId2 = connection[1]
+					local outputNum = connection[2]
 
 					--if node hasnt been visited yet and its going to be visited
 					if not nodesVisited[nodeId2] and activeNodes[nodeId2] then
@@ -933,7 +933,7 @@ function ENT:CalculateNode(node, nodeId, gate)
 	--compact gates only calculate with connected inputs
 	if gate.compact_inputs then
 		--find connected inputs, and assign current values
-		activeValues = {}
+		local activeValues = {}
 		for inputNum, _ in pairs(self.Data.Nodes[nodeId].connections) do
 			table.insert(activeValues, self.Values[nodeId][inputNum])
 		end
@@ -954,8 +954,8 @@ function ENT:Propagate(node, value)
 	if node.connections then
 		for outputNum, connections in pairs(node.connections) do
 			for k, connection in pairs(connections) do
-				toNode = connection[1]
-				toInput = connection[2]
+				local toNode = connection[1]
+				local toInput = connection[2]
 
 				--send values to nodes
 				self.Values[toNode][toInput] = value[outputNum]
@@ -968,8 +968,8 @@ function ENT:PropagateAndAddToQueue(node, value, nodeQueue, nodesInQueue)
 	if node.connections then
 		for outputNum, connections in pairs(node.connections) do
 			for k, connection in pairs(connections) do
-				toNode = connection[1]
-				toInput = connection[2]
+				local toNode = connection[1]
+				local toInput = connection[2]
 
 				--send values to nodes
 				self.Values[toNode][toInput] = value[outputNum]
