@@ -245,7 +245,6 @@ transformcolor[0] = function(c) -- RGBXXX
 	cr = cgray+28*math.fmod(math.floor(crgb / 100), 10)
 
 	return cr, cg, cb
-
 end
 transformcolor[2] = function(c) -- 24 bit mode
 	cb = math.fmod(c, 256)
@@ -253,7 +252,6 @@ transformcolor[2] = function(c) -- 24 bit mode
 	cr = math.fmod(math.floor(c / 65536), 256)
 
 	return cr, cg, cb
-
 end
 transformcolor[3] = function(c) -- RRRGGGBBB
 	cb = math.fmod(c, 1000)
