@@ -222,8 +222,8 @@ WireGPU_FromBox_Helper("16x4 LCD",         "models/fasteroid/bull/lcd3.mdl",    
 WireGPU_FromBox_Helper("40x4 LCD",         "models/fasteroid/bull/lcd4.mdl",         Vector(-4.91,-3.11,-3), Vector(26.22,1.02,0.8), Angle(0, 90, 0))
 WireGPU_FromBox_Helper("20x4 LCD",         "models/fasteroid/bull/lcd5.mdl",         Vector(-4.91,-3.11,-3), Vector(10.65,1.02,0.8), Angle(0, 90, 0))
 
-WireGPU_FromBox_Helper("TV Console",    "models/props/cs_militia/television_console01.mdl",   Vector(-55,-20,13.5), Vector(-23,20,13.5), Angle(90, 0, 0))
-WireGPU_FromBox_Helper("TV Console 2",    "models/props/cs_militia/tv_console.mdl",   Vector(-9.2,-9.2,-3), Vector(9.2,9.2,-0.3), Angle(0, -90, 0))
+WireGPU_FromBox_Helper("TV Console",    "models/props/cs_militia/television_console01.mdl",   Vector(-22,23,13.5), Vector(22,55,13.5), Angle(0,90,90))
+WireGPU_FromBox_Helper("TV Console 2",    "models/props/cs_militia/tv_console.mdl",           Vector(-22,11,21.5), Vector(22,42,21.5), Angle(0,90,90))
 
 -- Offset front, offset up, offset right, resolution/scale                                OF    OU     OR   SCALE   LOWX      HIGHX    LOWY     HIGHY   ROTATE90
 --WireGPU_AddMonitor("LED Board (1:1)",   "models/blacknecro/ledboard60.mdl",               6.1, 18.5 , 11 , 0.065 , -60     , 60     , -60    , 60    ) -- broken
