@@ -240,13 +240,13 @@ transformcolor[0] = function(c) -- RGBXXX
 	local crgb = math.floor(c / 1000)
 	local cgray = c - math.floor(c / 1000)*1000
 
-	return cgray+28*math.fmod(crgb, 10), cgray+28*math.fmod(math.floor(crgb / 10), 10), cgray+28*math.fmod(math.floor(crgb / 100), 10)
+	return cgray+28*math.fmod(math.floor(crgb / 100), 10), cgray+28*math.fmod(math.floor(crgb / 10), 10), cgray+28*math.fmod(crgb, 10)
 end
 transformcolor[2] = function(c) -- 24 bit mode
-	return math.fmod(c, 256), math.fmod(math.floor(c / 256), 256), math.fmod(math.floor(c / 65536), 256)
+	return math.fmod(math.floor(c / 65536), 256), math.fmod(math.floor(c / 256), 256), math.fmod(c, 256)
 end
 transformcolor[3] = function(c) -- RRRGGGBBB
-	return math.fmod(c, 1000), math.fmod(math.floor(c / 1e3), 1000), math.fmod(math.floor(c / 1e6), 1000)
+	return math.fmod(math.floor(c / 1e6), 1000), math.fmod(math.floor(c / 1e3), 1000), math.fmod(c, 1000)
 end
 transformcolor[4] = function(c) -- XXX
 	return c, c, c
