@@ -248,6 +248,9 @@ end
 transformcolor[3] = function(c) -- RRRGGGBBB
 	return math.fmod(math.floor(c / 1e6), 1000), math.fmod(math.floor(c / 1e3), 1000), math.fmod(c, 1000)
 end
+transformcolor[4] = function(c) -- XXX
+	return c, c, c
+end
 
 function ENT:RedrawPixel(a)
 	if a >= self.ScreenWidth*self.ScreenHeight then return end
