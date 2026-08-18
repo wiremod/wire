@@ -249,7 +249,7 @@ transformcolor[3] = function(c) -- RRRGGGBBB
 	return math.fmod(math.floor(c / 1e6), 1000), math.fmod(math.floor(c / 1e3), 1000), math.fmod(c, 1000)
 end
 transformcolor[4] = function(c) -- XXX
-	return c, c, c
+	return c, c, c, 255
 end
 transformcolor[5] = function(c) -- 32 bit mode
 	return math.fmod(math.floor(c / 65536), 256), math.fmod(math.floor(c / 256), 256), math.fmod(c, 256), math.fmod(math.floor(c / 16777216), 256)
