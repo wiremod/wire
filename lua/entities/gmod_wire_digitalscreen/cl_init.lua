@@ -252,12 +252,7 @@ transformcolor[4] = function(c) -- XXX
 	return c, c, c
 end
 transformcolor[5] = function(c) -- 32 bit mode
-	cb = math.fmod(c, 256)
-	cg = math.fmod(math.floor(c / 256), 256)
-	cr = math.fmod(math.floor(c / 65536), 256)
-	ca = math.fmod(math.floor(c / 16777216), 256)
-
-	return cr, cg, cb, ca
+	return math.fmod(math.floor(c / 65536), 256), math.fmod(math.floor(c / 256), 256), math.fmod(c, 256), math.fmod(math.floor(c / 16777216), 256)
 end
 
 function ENT:RedrawPixel(a)
