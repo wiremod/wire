@@ -145,7 +145,9 @@ ModelPlug.ListAddModels("WireScreenModels", {
 	"models/fasteroid/bull/lcd3.mdl",
 	"models/fasteroid/bull/lcd4.mdl",
 	"models/fasteroid/bull/lcd5.mdl",
-	"models/props_phx/construct/windows/window1x1.mdl"
+	"models/props_phx/construct/windows/window1x1.mdl",
+	"models/props/cs_militia/tv_console.mdl",
+	"models/props/cs_militia/television_console01.mdl"
 })
 
 --screens without a GPULib setup (for the tools wire_panel and wire_screen)
@@ -349,7 +351,8 @@ ModelPlug.ListAddModels("Wire_Light_Models", {
 ModelPlug.ListAddModels("Wire_Keyboard_Models",{
 	"models/beer/wiremod/keyboard.mdl",
 	"models/jaanus/wiretool/wiretool_input.mdl",
-	"models/props_c17/computer01_keyboard.mdl"
+	"models/props_c17/computer01_keyboard.mdl",
+	"models/props/cs_office/computer_keyboard.mdl"
 })
 
 ModelPlug.ListAddModels("Wire_Hydraulic_Models",{
