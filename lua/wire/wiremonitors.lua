@@ -222,6 +222,9 @@ WireGPU_FromBox_Helper("16x4 LCD",         "models/fasteroid/bull/lcd3.mdl",    
 WireGPU_FromBox_Helper("40x4 LCD",         "models/fasteroid/bull/lcd4.mdl",         Vector(-4.91,-3.11,-3), Vector(26.22,1.02,0.8), Angle(0, 90, 0))
 WireGPU_FromBox_Helper("20x4 LCD",         "models/fasteroid/bull/lcd5.mdl",         Vector(-4.91,-3.11,-3), Vector(10.65,1.02,0.8), Angle(0, 90, 0))
 
+WireGPU_FromBox_Helper("TV Console",    "models/props/cs_militia/television_console01.mdl",   Vector(-22,23,13.5), Vector(22,55,13.5), Angle(0,90,90))
+WireGPU_FromBox_Helper("TV Console 2",    "models/props/cs_militia/tv_console.mdl",           Vector(-22,11,21.5), Vector(22,42,21.5), Angle(0,90,90))
+
 -- Offset front, offset up, offset right, resolution/scale                                OF    OU     OR   SCALE   LOWX      HIGHX    LOWY     HIGHY   ROTATE90
 --WireGPU_AddMonitor("LED Board (1:1)",   "models/blacknecro/ledboard60.mdl",               6.1, 18.5 , 11 , 0.065 , -60     , 60     , -60    , 60    ) -- broken
 
@@ -233,8 +236,6 @@ WireGPU_FromBox("TF2 Red vs Blue billboard", "models/props_mining/billboard002.m
 WireGPU_AddMonitor("Window", "models/props_phx/construct/windows/window1x1.mdl", 0, 1.7, 0, nil, -17.3, 17.3, -17.3, 17.3, true, true)
 
 --[[
-models/props/cs_militia/television_console01.mdl
-models/props/cs_militia/tv_console.mdl
 models/props_silo/silo_launchroom_monitor.mdl
 models/props_bts/glados_screenborder_curve.mdl
 models/props_spytech/tv001.mdl
