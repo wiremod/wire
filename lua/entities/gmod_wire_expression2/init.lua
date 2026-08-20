@@ -175,7 +175,6 @@ function ENT:Execute(script, context)
 		end
 	end
 
-	context.time = context.time + (SysTime() - bench)
 	context.stackdepth = context.stackdepth - 1
 
 	local forceTriggerOutputs = selfTbl.first or selfTbl.duped
@@ -206,6 +205,8 @@ function ENT:Execute(script, context)
 			globalScope[k] = fixDefault(wire_expression_types2[var.type][2])
 		end
 	end
+
+	context.time = context.time + (SysTime() - bench)
 
 	if context.prfcount + context.prf - e2_softquota > e2_hardquota then
 		local trace = context.trace
