@@ -5,6 +5,9 @@ DEFINE_BASECLASS( "base_wire_entity" )
 
 ENT.WireDebugName = "DigitalScreen"
 
+local dsDrawRate = CreateConVar("wire_digitalscreen_draw_rate", 1, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Draw rate for digital screen", 0.1, 1000)
+local dsNetBandwidth = CreateConVar("wire_digitalscreen_net_bandwidth", 200000, { FCVAR_ARCHIVE }, "Net bandwidth limit for digital screen (20k default)", 1000, 2000000)
+local dsNetBandwidthValue = dsNetBandwidth:GetInt()
 
 function ENT:InitInteractive()
 	local model = self:GetModel()
@@ -127,7 +130,9 @@ end
 function ENT:ReadCell(Address)
 	Address = math.floor(Address)
 	if Address < 0 then return nil end
-	if Address >= 1048577 then return nil end
+	if Address >= 1048578 then return nil end
+    if (Address==1048577) then return math.Round(dsNetBandwidthValue/2) end -- report its netbandwidth
+    if (Address==1048576) then return dsDrawRate:GetFloat() end -- report its draw rate
 
 	return self.Memory[Address] or 0
 end
@@ -170,9 +175,19 @@ end
 ----------------------------------------------------
 -- Processing limiters and global bandwidth limiters
 local maxProcessingTime = engine.TickInterval() * 0.9
-local defaultMaxBandwidth = 10000 -- 10k per screen max limit - is arbitrary. needs to be smaller than the global limit.
-local defaultMaxGlobalBandwidth = 20000 -- 20k is a good global limit in my testing. higher than that seems to cause issues
+
+local defaultMaxBandwidth = math.Round(dsNetBandwidthValue/2) -- 10k per screen max limit - is arbitrary. needs to be smaller than the global limit.
+local defaultMaxGlobalBandwidth = dsNetBandwidthValue -- 20k is a good global limit in my testing. higher than that seems to cause issues
 local maxBandwidth = defaultMaxBandwidth
+
+local function updateBW()
+    dsNetBandwidthValue = dsNetBandwidth:GetInt()
+
+    defaultMaxBandwidth = math.Round(dsNetBandwidthValue/2)
+    defaultMaxGlobalBandwidth = dsNetBandwidthValue
+end
+cvars.AddChangeCallback("wire_digitalscreen_net_bandwidth", updateBW)
+
 local globalBandwidthLookup = {}
 local function calcGlobalBW()
 	maxBandwidth = defaultMaxGlobalBandwidth
