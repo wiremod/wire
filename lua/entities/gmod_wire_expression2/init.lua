@@ -175,7 +175,6 @@ function ENT:Execute(script, context)
 		end
 	end
 
-	context.time = context.time + (SysTime() - bench)
 	context.stackdepth = context.stackdepth - 1
 
 	local forceTriggerOutputs = selfTbl.first or selfTbl.duped
@@ -207,6 +206,8 @@ function ENT:Execute(script, context)
 		end
 	end
 
+	context.time = context.time + (SysTime() - bench)
+
 	if context.prfcount + context.prf - e2_softquota > e2_hardquota then
 		local trace = context.trace
 		self:Error("Expression 2 (" .. selfTbl.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "hard quota exceeded")
@@ -229,6 +230,7 @@ function ENT:ExecuteEvent(evt, args)
 	local handlers = selfTbl.registered_events[evt]
 	if not handlers then return end
 
+	local bench = SysTime()
 	self:PCallHook("preexecute")
 
 	for name, handler in pairs(handlers) do
@@ -238,7 +240,6 @@ function ENT:ExecuteEvent(evt, args)
 			self:Error("Expression 2 (" .. selfTbl.name .. "): stack quota exceeded", "stack quota exceeded")
 		end
 
-		local bench = SysTime()
 		local ok, msg = pcall(handler, context, args)
 
 		if not ok then
@@ -258,7 +259,6 @@ function ENT:ExecuteEvent(evt, args)
 			end
 		end
 
-		context.time = context.time + (SysTime() - bench)
 		context.stackdepth = context.stackdepth - 1
 	end
 
@@ -275,6 +275,8 @@ function ENT:ExecuteEvent(evt, args)
 			globalScope[k] = fixDefault(wire_expression_types2[var.type][2])
 		end
 	end
+
+	context.time = context.time + (SysTime() - bench)
 
 	if context.prfcount + context.prf - e2_softquota > e2_hardquota then
 		local trace = context.trace
