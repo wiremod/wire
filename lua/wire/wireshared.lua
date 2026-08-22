@@ -570,22 +570,42 @@ end
 -- Checks if the entity has wire ports.
 -- Works for every entity that has wire in-/output.
 -- Very important and useful for checks!
-function WireLib.HasPorts(ent)
-	local entTbl = ent:GetTable()
-	if entTbl.IsWire then return true end
-	if entTbl.Base == "base_wire_entity" then return true end
+local EntityMeta = FindMetaTable("Entity")
+local entGetTable = EntityMeta.GetTable
 
-	-- Checks if the entity is in the list, it checks if the entity has self.in-/outputs too.
-	local In, Out = WireLib.GetPorts(ent)
-	if In and (entTbl.Inputs or CLIENT) then return true end
-	if Out and (entTbl.Outputs or CLIENT) then return true end
+if SERVER then
+	function WireLib.HasPorts(ent)
+		local entTbl = entGetTable(ent)
+		if entTbl.IsWire then return true end
+		if entTbl.Base == "base_wire_entity" then return true end
 
-	return false
+		-- Checks if the entity is in the list, it checks if the entity has self.in-/outputs too.
+		local In, Out = WireLib.GetPorts(ent)
+		if In and entTbl.Inputs then return true end
+		if Out and entTbl.Outputs then return true end
+
+		return false
+	end
+else
+	function WireLib.HasPorts(ent)
+		local entTbl = entGetTable(ent)
+		if entTbl.IsWire then return true end
+		if entTbl.Base == "base_wire_entity" then return true end
+
+		-- Checks if the entity is in the list, it checks if the entity has self.in-/outputs too.
+		local In, Out = WireLib.GetPorts(ent)
+		if In then return true end
+		if Out then return true end
+
+		return false
+	end
 end
 
 local WirePortQueue = WireLib.NetQueue("wire_ports")
 local CMD_DELETE,CMD_PORT,CMD_LINK = 0,1,2
 local PORT_TYPE_INPUT,PORT_TYPE_OUTPUT = 0,1
+local entEntIndex = EntityMeta.EntIndex
+
 if SERVER then
 
 	local ents_with_inputs = {}
@@ -599,12 +619,12 @@ if SERVER then
 	end)
 
 	function WireLib.GetPorts(ent)
-		local eid = ent:EntIndex()
+		local eid = entEntIndex(ent)
 		return ents_with_inputs[eid], ents_with_outputs[eid]
 	end
 
 	function WireLib.RemoveOutPort(ent, name)
-		local outputs = ents_with_outputs[ent:EntIndex()]
+		local outputs = ents_with_outputs[entEntIndex(ent)]
 		if outputs then
 			for k, v in ipairs(outputs) do
 				if v[1] == name then
@@ -662,7 +682,7 @@ if SERVER then
 	end
 
 	function WireLib._SetInputs(ent)
-		local eid = ent:EntIndex()
+		local eid = entEntIndex(ent)
 		local inputs = ent.Inputs
 
 		local ent_input_array = {}
@@ -677,7 +697,7 @@ if SERVER then
 	end
 
 	function WireLib._SetOutputs(ent)
-		local eid = ent:EntIndex()
+		local eid = entEntIndex(ent)
 		local outputs = ent.Outputs
 
 		local ent_output_array = {}
@@ -692,7 +712,7 @@ if SERVER then
 	end
 
 	function WireLib._SetLink(input)
-		SendLinkInfo(WirePortQueue, input.Entity:EntIndex(), input.Num, input.SrcId and true or false)
+		SendLinkInfo(WirePortQueue, entEntIndex(input.Entity), input.Num, input.SrcId and true or false)
 	end
 
 	hook.Add("PlayerInitialSpawn", "wire_ports", function(ply)
@@ -714,7 +734,7 @@ if SERVER then
 		if ent:IsPlayer() then
 			WirePortQueue:cleanup(ent)
 		else
-			WireLib._RemoveWire(ent:EntIndex())
+			WireLib._RemoveWire(entEntIndex(ent))
 		end
 	end)
 
@@ -761,7 +781,7 @@ elseif CLIENT then
 	end
 
 	function WireLib.GetPorts(ent)
-		local eid = ent:EntIndex()
+		local eid = entEntIndex(ent)
 		return ents_with_inputs[eid], ents_with_outputs[eid]
 	end
 
@@ -1280,8 +1300,6 @@ hook.Add("PlayerDisconnected", "WireLib_PlayerDisconnect", function(ply)
   end
 end)
 
-
-local EntityMeta   = FindMetaTable("Entity") -- direct references are faster
 local GetPos       = EntityMeta.GetPos
 local GetAngles    = EntityMeta.GetAngles
 

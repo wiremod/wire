@@ -146,7 +146,7 @@ WireLib.DT = {
 		Zero = function()
 			return NULL
 		end,
-		Validator = IsEntity
+		Validator = isentity
 	},
 	STRING = {
 		Zero = function()
