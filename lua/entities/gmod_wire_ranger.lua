@@ -26,21 +26,21 @@ end
 function ENT:Setup(range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hires)
 	-- For dupe support
 	local tab = self:GetTable()
-	self.default_zero = default_zero
-	self.show_beam = show_beam
-	self.ignore_world = ignore_world
-	self.trace_water = trace_water
-	self.out_dist = out_dist
-	self.out_pos = out_pos
-	self.out_vel = out_vel
-	self.out_ang = out_ang
-	self.out_col = out_col
-	self.out_val = out_val
-	self.out_sid = out_sid
-	self.out_uid = out_uid
-	self.out_eid = out_eid
-	self.out_hnrm = out_hnrm
-	self.hires = hires
+	tab.default_zero = default_zero
+	tab.show_beam = show_beam
+	tab.ignore_world = ignore_world
+	tab.trace_water = trace_water
+	tab.out_dist = out_dist
+	tab.out_pos = out_pos
+	tab.out_vel = out_vel
+	tab.out_ang = out_ang
+	tab.out_col = out_col
+	tab.out_val = out_val
+	tab.out_sid = out_sid
+	tab.out_uid = out_uid
+	tab.out_eid = out_eid
+	tab.out_hnrm = out_hnrm
+	tab.hires = hires
 
 	if range then tab.SetBeamLength(self, math.min(range, 65536)) end
 	if show_beam ~= nil then tab.SetShowBeam(self, show_beam) end
