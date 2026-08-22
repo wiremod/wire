@@ -8,10 +8,10 @@ ENT.WantsTranslucency = true
 function ENT:SetupDataTables()
 	self:NetworkVar("Float", 0, "BeamLength")
 	self:NetworkVar("Bool", 0, "ShowBeam")
+	self:NetworkVar("Vector", 0, "Target")
 	self:NetworkVar("Bool", 1, "TraceWater")
 	self:NetworkVar("Float", 1, "SkewX")
 	self:NetworkVar("Float", 2, "SkewY")
-	self:NetworkVar("Vector", 0, "Target")
 end
 
 if CLIENT then return end
@@ -78,7 +78,7 @@ function ENT:Setup(range, default_zero, show_beam, ignore_world, trace_water, ou
 	end
 
 	if out_val then
-		add("Val","NORMAL","ValSize","NORMAL")
+		add("Val", "NORMAL", "ValSize", "NORMAL")
 	end
 
 	if out_sid then
@@ -100,7 +100,7 @@ function ENT:Setup(range, default_zero, show_beam, ignore_world, trace_water, ou
 	add("RangerData", "RANGER")
 	WireLib.AdjustSpecialOutputs(self, onames, otypes)
 
-	self:TriggerOutput(0, Vector(0, 0, 0), Vector(0, 0, 0), Angle(0, 0, 0), Color(255, 255, 255), nil, "", 0, NULL, Vector(0, 0, 0), nil, tab)
+	tab.TriggerOutput(self, 0, Vector(0, 0, 0), Vector(0, 0, 0), Angle(0, 0, 0), Color(255, 255, 255), nil, "", 0, NULL, Vector(0, 0, 0), nil, tab)
 end
 
 function ENT:TriggerInput(name, value)
@@ -213,35 +213,14 @@ function ENT:Think()
 					end
 				end
 			end
-		else
-			vel = Vector(0, 0, 0)
-			ang = Angle(0, 0, 0)
-			col = Color(255, 255, 255)
-			sid = ""
-			uid = 0
-
-			if tab.ignore_world then
-				if trace.HitWorld then
-					if tab.default_zero then
-						dist = 0
-					else
-						dist = beamlength
-					end
-
-					pos = Vector(0, 0, 0)
-				end
+		elseif tab.ignore_world and trace.HitWorld then
+			if tab.default_zero then
+				dist = 0
+			else
+				dist = beamlength
 			end
 		end
 	else
-		pos = Vector(0, 0, 0)
-		vel = Vector(0, 0, 0)
-		ang = Angle(0, 0, 0)
-		col = Color(255, 255, 255)
-		ent = NULL
-		sid = ""
-		uid = 0
-		hnrm = Vector(0, 0, 0)
-
 		if tab.default_zero then
 			dist = 0
 		else
@@ -252,6 +231,12 @@ function ENT:Think()
 	tab.TriggerOutput(self, dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace, tab)
 
 	if tab.OverlayDataRequired then
+		if not pos then pos = Vector(0, 0, 0) end
+		if not vel then vel = Vector(0, 0, 0) end
+		if not ang then ang = Angle(0, 0, 0) end
+		if not col then col = Color(255, 255, 255) end
+		if not hnrm then hnrm = Vector(0, 0, 0) end
+
 		local txt = "Max Range: " .. beamlength
 		if tab.out_dist then txt = txt .. "\nRange = " .. math.Round(dist, 3) end
 		if tab.out_pos then txt = txt .. string.format("\nPosition = %s, %s, %s", math.Round(pos.x, 3), math.Round(pos.y, 3), math.Round(pos.z, 3)) end
@@ -261,7 +246,7 @@ function ENT:Think()
 		if tab.out_val then txt = txt .. string.format("\nValue = %s ValSize = %s", math.Round(tab.Outputs["Val"].Value or 0, 3), val and #val or 0) end
 		if tab.out_sid then txt = txt .. "\nSteamID = " .. (sid or "") end
 		if tab.out_uid then txt = txt .. "\nUniqueID = " .. (uid or 0) end
-		if tab.out_eid then txt = txt .. "\nEntID = " .. ent:EntIndex() end
+		if tab.out_eid then txt = txt .. "\nEntID = " .. (ent and ent:EntIndex() or 0) end
 		if tab.out_hnrm then txt = txt .. string.format("\nHitNormal = %s, %s, %s", math.Round(hnrm.x, 3), math.Round(hnrm.y, 3), math.Round(hnrm.z, 3)) end
 		tab.OverlayDataRequired = nil
 		tab.SetOverlayText(self, txt)
@@ -286,6 +271,10 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 	end
 
 	if tab.out_pos then
+		if not pos then
+			pos = Vector(0, 0, 0)
+		end
+
 		local x, y, z = pos:Unpack()
 		WireLib.TriggerOutput(self, "Pos", pos)
 		WireLib.TriggerOutput(self, "Pos X", x)
@@ -294,6 +283,10 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 	end
 
 	if tab.out_vel then
+		if not vel then
+			vel = Vector(0, 0, 0)
+		end
+
 		local x, y, z = vel:Unpack()
 		WireLib.TriggerOutput(self, "Vel", vel)
 		WireLib.TriggerOutput(self, "Vel X", x)
@@ -302,6 +295,10 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 	end
 
 	if tab.out_ang then
+		if not ang then
+			ang = Angle(0, 0, 0)
+		end
+
 		local p, y, r = ang:Unpack()
 		WireLib.TriggerOutput(self, "Ang", ang)
 		WireLib.TriggerOutput(self, "Ang Pitch", p)
@@ -310,6 +307,10 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 	end
 
 	if tab.out_col then
+		if not col then
+			col = Color(255, 255, 255)
+		end
+
 		WireLib.TriggerOutput(self, "Col RGB", Vector(col.r, col.g, col.b))
 		WireLib.TriggerOutput(self, "Col R", col.r)
 		WireLib.TriggerOutput(self, "Col G", col.g)
@@ -318,19 +319,35 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 	end
 
 	if tab.out_sid then
+		if not sid then
+			sid = ""
+		end
+
 		WireLib.TriggerOutput(self, "SteamID", sid)
 	end
 
 	if tab.out_uid then
+		if not uid then
+			uid = 0
+		end
+
 		WireLib.TriggerOutput(self, "UniqueID", uid)
 	end
 
 	if tab.out_eid then
+		if not ent then
+			ent = NULL
+		end
+
 		WireLib.TriggerOutput(self, "EntID", ent:EntIndex())
 		WireLib.TriggerOutput(self, "Entity", ent)
 	end
 
 	if tab.out_hnrm then
+		if not hnrm then
+			hnrm = Vector(0, 0, 0)
+		end
+
 		local x, y, z = hnrm:Unpack()
 		WireLib.TriggerOutput(self, "HitNormal", hnrm)
 		WireLib.TriggerOutput(self, "HitNormal X", x)
