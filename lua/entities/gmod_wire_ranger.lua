@@ -197,7 +197,7 @@ function ENT:Think()
 			ang = ent:GetAngles()
 			col = ent:GetColor()
 
-			if tab.out_sid or tab.out_uid and ent:IsPlayer() then
+			if (tab.out_sid or tab.out_uid) and ent:IsPlayer() then
 				sid = ent:SteamID()
 				uid = ent:UniqueID()
 			end
