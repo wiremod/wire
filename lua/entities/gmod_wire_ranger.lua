@@ -255,6 +255,7 @@ function ENT:Think()
 		if tab.out_uid then txt = txt .. "\nUniqueID = " .. (uid or 0) end
 		if tab.out_eid then txt = txt .. "\nEntID = " .. ent:EntIndex() end
 		if tab.out_hnrm then txt = txt .. string.format("\nHitNormal = %s, %s, %s", math.Round(hnrm.x, 3), math.Round(hnrm.y, 3), math.Round(hnrm.z, 3)) end
+		tab.OverlayDataRequired = nil
 		tab.SetOverlayText(self, txt)
 	end
 
