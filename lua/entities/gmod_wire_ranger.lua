@@ -127,12 +127,20 @@ end
 function ENT:Think()
 	BaseClass.Think(self)
 
+	local tab = self:GetTable()
+	local trace_output = tab.TraceOutput
+
+	if not trace_output then
+		trace_output = {}
+		tab.TraceOutput = trace_output
+	end
+
 	local tracedata = {}
+	tracedata.output = tab.TraceOutput
 
 	local selfpos = self:GetPos()
 	tracedata.start = selfpos
 
-	local tab = self:GetTable()
 	local inputs = tab.Inputs
 	local beamlength = tab.GetBeamLength(self)
 
@@ -198,9 +206,9 @@ function ENT:Think()
 				local i = 1
 				val = {}
 
-				for _, v in pairs(tab.Outputs) do
-					if v.Value ~= nil and isnumber(v.Value) then
-						val[i] = v.Value
+				for _, output in pairs(tab.Outputs) do
+					if output.Value ~= nil and isnumber(output.Value) then
+						val[i] = output.Value
 						i = i + 1
 					end
 				end
