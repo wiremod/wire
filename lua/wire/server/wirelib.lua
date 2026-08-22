@@ -20,7 +20,7 @@ local tostring = tostring
 local Vector = Vector
 local Color = Color
 
-local isvector, isnumber, istable, isstring, isangle, IsEntity, IsColor = isvector, isnumber, istable, isstring, isangle, IsEntity, IsColor
+local isvector, isnumber, istable, isstring, isangle, isentity, IsColor = isvector, isnumber, istable, isstring, isangle, isentity, IsColor
 
 local HasPorts = WireLib.HasPorts -- Very important for checks!
 local entIsValid = FindMetaTable("Entity").IsValid
