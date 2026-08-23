@@ -213,18 +213,9 @@ if SERVER then
 			wireAdvUnwire(ply, net.ReadEntity(), net.ReadTable())
 		elseif flag == 3 then
 			wireAdvRemoveUGLinks(ply, net.ReadEntity())
-		else
-			ErrorNoHalt("Tried to call wire_adv_upload without a proper message flag")
 		end
 	end
 	net.Receive("wire_adv_upload", wireAdvReceiver)
-
-	util.AddNetworkString("wire_adv_unwire")
-	net.Receive( "wire_adv_unwire", function(len, ply)
-		ErrorNoHalt("wire_adv_unwire is deprecated, use wire_adv_upload with an unsigned byte 2 at the start")
-
-		wireAdvUnwire(ply, net.ReadEntity(), net.ReadTable())
-	end)
 
 	WireToolHelpers.SetupSingleplayerClickHacks(TOOL)
 elseif CLIENT then
