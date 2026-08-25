@@ -109,7 +109,7 @@ function ENT:TriggerInput(name, value)
 	elseif name == "Y" then
 		self:SetSkewY(value)
 	elseif name == "Length" then
-		self:SetBeamLength(math.min(value, 64000))
+		self:SetBeamLength(math.min(value, 65536))
 	elseif name == "Target" then
 		self:SetTarget(value)
 	elseif name == "Ignore" then
@@ -178,94 +178,30 @@ function ENT:Think()
 		tracedata.endpos = beam_x
 	end
 
-	tracedata.filter = tab.ignore or { self }
+	tracedata.filter = tab.ignore or self
 	if tab.trace_water then tracedata.mask = -1 end
 
 	local trace = util.TraceLine(tracedata)
-	trace.RealStartPos = tracedata.start
 
-	local dist, pos, vel, ang, col, ent, sid, uid, val, hnrm
+	local dist = 0
+	local pos, ent, hnrm
 
 	if trace.Hit then
-		dist = trace.Fraction * beamlength
 		pos = trace.HitPos
 		hnrm = trace.HitNormal
-		ent = trace.Entity
+		dist = trace.Fraction * beamlength
 
-		if ent:IsValid() then
-			vel = ent:GetVelocity()
-			ang = ent:GetAngles()
-			col = ent:GetColor()
-
-			if (tab.out_sid or tab.out_uid) and ent:IsPlayer() then
-				sid = ent:SteamID()
-				uid = ent:UniqueID()
-			end
-
-			if tab.out_val and tab.Outputs then
-				local i = 1
-				val = {}
-
-				for _, output in pairs(tab.Outputs) do
-					if output.Value ~= nil and isnumber(output.Value) then
-						val[i] = output.Value
-						i = i + 1
-					end
-				end
-			end
+		if trace.Entity:IsValid() then
+			ent = trace.Entity
 		elseif tab.ignore_world and trace.HitWorld then
-			if tab.default_zero then
-				dist = 0
-			else
+			if not tab.default_zero then
 				dist = beamlength
 			end
 		end
-	else
-		if tab.default_zero then
-			dist = 0
-		else
-			dist = beamlength
-		end
+	elseif not tab.default_zero then
+		dist = beamlength
 	end
 
-	tab.TriggerOutput(self, dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace, tab)
-
-	if tab.OverlayDataRequired then
-		if not pos then pos = Vector(0, 0, 0) end
-		if not vel then vel = Vector(0, 0, 0) end
-		if not ang then ang = Angle(0, 0, 0) end
-		if not col then col = Color(255, 255, 255) end
-		if not hnrm then hnrm = Vector(0, 0, 0) end
-
-		local txt = "Max Range: " .. beamlength
-		if tab.out_dist then txt = txt .. "\nRange = " .. math.Round(dist, 3) end
-		if tab.out_pos then txt = txt .. string.format("\nPosition = %s, %s, %s", math.Round(pos.x, 3), math.Round(pos.y, 3), math.Round(pos.z, 3)) end
-		if tab.out_vel then txt = txt .. string.format("\nVelocity = %s, %s, %s", math.Round(vel.x, 3), math.Round(vel.y, 3), math.Round(vel.z, 3)) end
-		if tab.out_ang then txt = txt .. string.format("\nAngles = %s, %s, %s", math.Round(ang.pitch, 3), math.Round(ang.yaw, 3), math.Round(ang.roll, 3)) end
-		if tab.out_col then txt = txt .. string.format("\nColor = %s, %s, %s, %s", math.Round(col.r), math.Round(col.g), math.Round(col.b), math.Round(col.a)) end
-		if tab.out_val then txt = txt .. string.format("\nValue = %s ValSize = %s", math.Round(tab.Outputs["Val"].Value or 0, 3), val and #val or 0) end
-		if tab.out_sid then txt = txt .. "\nSteamID = " .. (sid or "") end
-		if tab.out_uid then txt = txt .. "\nUniqueID = " .. (uid or 0) end
-		if tab.out_eid then txt = txt .. "\nEntID = " .. (ent and ent:EntIndex() or 0) end
-		if tab.out_hnrm then txt = txt .. string.format("\nHitNormal = %s, %s, %s", math.Round(hnrm.x, 3), math.Round(hnrm.y, 3), math.Round(hnrm.z, 3)) end
-		tab.OverlayDataRequired = nil
-		tab.SetOverlayText(self, txt)
-	end
-
-	if tab.hires then
-		self:NextThink(CurTime())
-	else
-		self:NextThink(CurTime() + 0.04)
-	end
-
-	return true
-end
-
-function ENT:PrepareOverlayData()
-	self.OverlayDataRequired = true
-end
-
-function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace, tab)
 	if tab.out_dist then
 		WireLib.TriggerOutput(self, "Dist", dist)
 	end
@@ -283,11 +219,9 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 	end
 
 	if tab.out_vel then
-		if not vel then
-			vel = Vector(0, 0, 0)
-		end
-
+		local vel = ent and ent:GetVelocity() or Vector(0, 0, 0)
 		local x, y, z = vel:Unpack()
+
 		WireLib.TriggerOutput(self, "Vel", vel)
 		WireLib.TriggerOutput(self, "Vel X", x)
 		WireLib.TriggerOutput(self, "Vel Y", y)
@@ -295,11 +229,9 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 	end
 
 	if tab.out_ang then
-		if not ang then
-			ang = Angle(0, 0, 0)
-		end
-
+		local ang = ent and ent:GetAngles() or Angle(0, 0, 0)
 		local p, y, r = ang:Unpack()
+
 		WireLib.TriggerOutput(self, "Ang", ang)
 		WireLib.TriggerOutput(self, "Ang Pitch", p)
 		WireLib.TriggerOutput(self, "Ang Yaw", y)
@@ -307,10 +239,7 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 	end
 
 	if tab.out_col then
-		if not col then
-			col = Color(255, 255, 255)
-		end
-
+		local col = ent and ent:GetColor() or Color(255, 255, 255)
 		WireLib.TriggerOutput(self, "Col RGB", Vector(col.r, col.g, col.b))
 		WireLib.TriggerOutput(self, "Col R", col.r)
 		WireLib.TriggerOutput(self, "Col G", col.g)
@@ -319,28 +248,19 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 	end
 
 	if tab.out_sid then
-		if not sid then
-			sid = ""
-		end
-
+		local sid = ent and ent:IsPlayer() and ent:SteamID() or ""
 		WireLib.TriggerOutput(self, "SteamID", sid)
 	end
 
 	if tab.out_uid then
-		if not uid then
-			uid = 0
-		end
-
+		local uid = ent and ent:IsPlayer() and ent:UniqueID() or 0
 		WireLib.TriggerOutput(self, "UniqueID", uid)
 	end
 
 	if tab.out_eid then
-		if not ent then
-			ent = NULL
-		end
-
-		WireLib.TriggerOutput(self, "EntID", ent:EntIndex())
-		WireLib.TriggerOutput(self, "Entity", ent)
+		local output_ent = ent or NULL
+		WireLib.TriggerOutput(self, "EntID", output_ent:EntIndex())
+		WireLib.TriggerOutput(self, "Entity", output_ent)
 	end
 
 	if tab.out_hnrm then
@@ -355,15 +275,61 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 		WireLib.TriggerOutput(self, "HitNormal Z", z)
 	end
 
-	if val and #val > 0 and tab.Inputs.SelectValue.Value <= #val then
-		WireLib.TriggerOutput(self, "Val", val[tab.Inputs.SelectValue.Value])
-		WireLib.TriggerOutput(self, "ValSize", #val)
-	else
-		WireLib.TriggerOutput(self, "Val", 0)
-		WireLib.TriggerOutput(self, "ValSize", 0)
+	if tab.out_val and tab.Outputs then
+		local i = 0
+		local val = {}
+
+		for _, output in pairs(tab.Outputs) do
+			if output.Value ~= nil and isnumber(output.Value) then
+				i = i + 1
+				val[i] = output.Value
+			end
+		end
+
+		if i > 0 and tab.Inputs.SelectValue.Value <= i then
+			WireLib.TriggerOutput(self, "Val", val[tab.Inputs.SelectValue.Value])
+			WireLib.TriggerOutput(self, "ValSize", i)
+		else
+			WireLib.TriggerOutput(self, "Val", 0)
+			WireLib.TriggerOutput(self, "ValSize", 0)
+		end
 	end
 
 	WireLib.TriggerOutput(self, "RangerData", trace)
+
+	if tab.OverlayDataRequired then
+		if not pos then pos = Vector(0, 0, 0) end
+		if not hnrm then hnrm = Vector(0, 0, 0) end
+		local vel = ent and ent:GetVelocity() or Vector(0, 0, 0)
+		local ang = ent and ent:GetAngles() or Angle(0, 0, 0)
+		local col = ent and ent:GetColor() or Color(255, 255, 255)
+
+		local txt = "Max Range: " .. beamlength
+		if tab.out_dist then txt = txt .. "\nRange = " .. math.Round(dist, 3) end
+		if tab.out_pos then txt = txt .. string.format("\nPosition = %s, %s, %s", math.Round(pos.x, 3), math.Round(pos.y, 3), math.Round(pos.z, 3)) end
+		if tab.out_vel then txt = txt .. string.format("\nVelocity = %s, %s, %s", math.Round(vel.x, 3), math.Round(vel.y, 3), math.Round(vel.z, 3)) end
+		if tab.out_ang then txt = txt .. string.format("\nAngles = %s, %s, %s", math.Round(ang.pitch, 3), math.Round(ang.yaw, 3), math.Round(ang.roll, 3)) end
+		if tab.out_col then txt = txt .. string.format("\nColor = %s, %s, %s, %s", math.Round(col.r), math.Round(col.g), math.Round(col.b), math.Round(col.a)) end
+		if tab.out_val then txt = txt .. string.format("\nValue = %s ValSize = %s", math.Round(tab.Outputs["Val"].Value or 0, 3), val and #val or 0) end
+		if tab.out_sid then txt = txt .. "\nSteamID = " .. (ent and ent:IsPlayer() and ent:SteamID() or "") end
+		if tab.out_uid then txt = txt .. "\nUniqueID = " .. (ent and ent:IsPlayer() and ent:UniqueID() or 0) end
+		if tab.out_eid then txt = txt .. "\nEntID = " .. (ent and ent:EntIndex() or 0) end
+		if tab.out_hnrm then txt = txt .. string.format("\nHitNormal = %s, %s, %s", math.Round(hnrm.x, 3), math.Round(hnrm.y, 3), math.Round(hnrm.z, 3)) end
+		tab.OverlayDataRequired = nil
+		tab.SetOverlayText(self, txt)
+	end
+
+	if tab.hires then
+		self:NextThink(CurTime())
+	else
+		self:NextThink(CurTime() + 0.04)
+	end
+
+	return true
+end
+
+function ENT:PrepareOverlayData()
+	self.OverlayDataRequired = true
 end
 
 duplicator.RegisterEntityClass("gmod_wire_ranger", WireLib.MakeWireEnt, "Data", "range", "default_zero", "show_beam", "ignore_world", "trace_water", "out_dist", "out_pos", "out_vel", "out_ang", "out_col", "out_val", "out_sid", "out_uid", "out_eid", "out_hnrm", "hires")
