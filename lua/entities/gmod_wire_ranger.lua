@@ -100,7 +100,60 @@ function ENT:Setup(range, default_zero, show_beam, ignore_world, trace_water, ou
 	add("RangerData", "RANGER")
 	WireLib.AdjustSpecialOutputs(self, onames, otypes)
 
-	tab.TriggerOutput(self, 0, Vector(0, 0, 0), Vector(0, 0, 0), Angle(0, 0, 0), Color(255, 255, 255), nil, "", 0, NULL, Vector(0, 0, 0), nil, tab)
+	if tab.out_dist then
+		WireLib.TriggerOutput(self, "Dist", 0)
+	end
+
+	if tab.out_pos then
+		WireLib.TriggerOutput(self, "Pos", Vector(0, 0, 0))
+		WireLib.TriggerOutput(self, "Pos X", 0)
+		WireLib.TriggerOutput(self, "Pos Y", 0)
+		WireLib.TriggerOutput(self, "Pos Z", 0)
+	end
+
+	if tab.out_vel then
+		WireLib.TriggerOutput(self, "Vel", Vector(0, 0, 0))
+		WireLib.TriggerOutput(self, "Vel X", 0)
+		WireLib.TriggerOutput(self, "Vel Y", 0)
+		WireLib.TriggerOutput(self, "Vel Z", 0)
+	end
+
+	if tab.out_ang then
+		WireLib.TriggerOutput(self, "Ang", Angle(0, 0, 0))
+		WireLib.TriggerOutput(self, "Ang Pitch", 0)
+		WireLib.TriggerOutput(self, "Ang Yaw", 0)
+		WireLib.TriggerOutput(self, "Ang Roll", 0)
+	end
+
+	if tab.out_col then
+		WireLib.TriggerOutput(self, "Col RGB", Vector(255, 255, 255))
+		WireLib.TriggerOutput(self, "Col R", 255)
+		WireLib.TriggerOutput(self, "Col G", 255)
+		WireLib.TriggerOutput(self, "Col B", 255)
+		WireLib.TriggerOutput(self, "Col A", 255)
+	end
+
+	if tab.out_sid then
+		WireLib.TriggerOutput(self, "SteamID", "")
+	end
+
+	if tab.out_uid then
+		WireLib.TriggerOutput(self, "UniqueID", "")
+	end
+
+	if tab.out_eid then
+		WireLib.TriggerOutput(self, "EntID", 0)
+		WireLib.TriggerOutput(self, "Entity", NULL)
+	end
+
+	if tab.out_hnrm then
+		WireLib.TriggerOutput(self, "HitNormal", Vector(0, 0, 0))
+		WireLib.TriggerOutput(self, "HitNormal X", 0)
+		WireLib.TriggerOutput(self, "HitNormal Y", 0)
+		WireLib.TriggerOutput(self, "HitNormal Z", 0)
+	end
+
+	WireLib.TriggerOutput(self, "RangerData", nil)
 end
 
 function ENT:TriggerInput(name, value)
