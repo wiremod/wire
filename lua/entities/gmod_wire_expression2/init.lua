@@ -244,7 +244,7 @@ function ENT:ExecuteEvent(evt, args)
 			local _catchable, msg, trace = E2Lib.unpackException(msg)
 
 			if msg == "perf" then
-				local trace = context.trace
+				trace = context.trace
 				self:UpdatePerf(selfTbl)
 				self:Error("Expression 2 (" .. selfTbl.name .. "): tick quota exceeded (at line " .. trace.start_line .. ", char " .. trace.start_col .. ")", "tick quota exceeded")
 			elseif msg ~= "exit" then
