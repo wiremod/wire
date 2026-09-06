@@ -98,7 +98,7 @@ local function RemoveFLIR(ent)
 end
 
 local function SetFLIR(ent)
-	if not ent:IsValid() then return end
+	if not ent:IsValid() or ent.RenderOverride == FLIR.Render then return end
 	local classname = ent:GetClass()
 
 	if ent:GetColor().a > 0 and (FLIR.classWhitelist[classname] or ent:GetMoveType() == MOVETYPE_VPHYSICS or ent:IsPlayer() or ent:IsNPC() or ent:IsRagdoll()) then
