@@ -134,10 +134,12 @@ function FLIR.start()
 		render.SetColorModulation(FLIR.gain, FLIR.gain, FLIR.gain)  			--this works?? I could not for the life of me make it work in renderoverride. Well.
 																				--It's a much better solution than the stencil I spent hours on...
 		for ent in pairs(FLIR.RenderStack) do
-			if ent:IsValid() and not ent:GetNoDraw() and not ent:IsDormant() then
-				FLIR.hide = false
-				ent:DrawModel()
-				FLIR.hide = true
+			if ent:IsValid() and not ent:GetNoDraw() then
+				if not ent:IsDormant() then
+					FLIR.hide = false
+					ent:DrawModel()
+					FLIR.hide = true
+				end
 			else
 				RemoveFLIR(ent)
 			end
@@ -145,7 +147,6 @@ function FLIR.start()
 
 		render.SuppressEngineLighting(false)
 		render.MaterialOverride(FLIR.transmat)
-
 	end)
 
 	hook.Add("PostDrawTranslucentRenderables", "wire_flir", function()
