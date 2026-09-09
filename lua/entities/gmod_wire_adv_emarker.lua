@@ -144,7 +144,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		for index, entid in ipairs(info.marks) do
 			local ent = GetEntByID(entid)
 
-			if ent:IsValid() then
+			if IsValid(ent) then
 				table.insert(self.Marks, ent)
 
 				ent:CallOnRemove("AdvEMarker.Unlink" .. self:EntIndex(), function(ent)
