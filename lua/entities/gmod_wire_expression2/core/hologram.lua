@@ -1497,7 +1497,7 @@ end
 
 e2function vector2 holoGetPoseRange(index, string pose)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return {0, 0} end
+	if not Holo then return { 0, 0 } end
 
 	local pose_param = Holo.ent:LookupPoseParameter(pose)
 	if pose_param == -1 then return self:throw("'" .. pose .. "' pose parameter doesn't exist on this model!", { 0, 0 }) end
