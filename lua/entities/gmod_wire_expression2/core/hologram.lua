@@ -675,46 +675,46 @@ __e2setcost(30) -- temporary
 
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector color, string model)
-	if not checkOwner(self) then return end
-	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	if not checkOwner(self) then return NULL end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return NULL end
 	local Holo = CheckIndex(self, index, true)
-	if not Holo and checkHoloCount(self) then return end
+	if not Holo and checkHoloCount(self) then return NULL end
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
-	local ret = CreateHolo(self, index, position, scale, ang, color, model)
-	if IsValid(ret) then return ret end
+
+	return CreateHolo(self, index, position, scale, ang, color, model)
 end
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector4 color, string model)
-	if not checkOwner(self) then return end
-	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	if not checkOwner(self) then return NULL end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return NULL end
 	local Holo = CheckIndex(self, index, true)
-	if not Holo and checkHoloCount(self) then return end
+	if not Holo and checkHoloCount(self) then return NULL end
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
-	local ret = CreateHolo(self, index, position, scale, ang, color, model)
-	if IsValid(ret) then return ret end
+
+	return CreateHolo(self, index, position, scale, ang, color, model)
 end
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector color)
-	if not checkOwner(self) then return end
-	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	if not checkOwner(self) then return NULL end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return NULL end
 	local Holo = CheckIndex(self, index, true)
-	if not Holo and checkHoloCount(self) then return end
+	if not Holo and checkHoloCount(self) then return NULL end
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
-	local ret = CreateHolo(self, index, position, scale, ang, color)
-	if IsValid(ret) then return ret end
+
+	return CreateHolo(self, index, position, scale, ang, color)
 end
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector4 color)
-	if not checkOwner(self) then return end
-	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	if not checkOwner(self) then return NULL end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return NULL end
 	local Holo = CheckIndex(self, index, true)
-	if not Holo and checkHoloCount(self) then return end
+	if not Holo and checkHoloCount(self) then return NULL end
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
@@ -723,19 +723,19 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 end
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang)
-	if not checkOwner(self) then return end
-	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	if not checkOwner(self) then return NULL end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return NULL end
 	local Holo = CheckIndex(self, index, true)
-	if not Holo and checkHoloCount(self) then return end
+	if not Holo and checkHoloCount(self) then return NULL end
 
 	return CreateHolo(self, index, position, scale, ang)
 end
 
 e2function entity holoCreate(index, vector position, vector scale)
-	if not checkOwner(self) then return end
-	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	if not checkOwner(self) then return NULL end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return NULL end
 	local Holo = CheckIndex(self, index, true)
-	if not Holo and checkHoloCount(self) then return end
+	if not Holo and checkHoloCount(self) then return NULL end
 
 	position = Vector(position[1],position[2],position[3])
 
@@ -743,10 +743,10 @@ e2function entity holoCreate(index, vector position, vector scale)
 end
 
 e2function entity holoCreate(index, vector position)
-	if not checkOwner(self) then return end
-	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	if not checkOwner(self) then return NULL end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return NULL end
 	local Holo = CheckIndex(self, index, true)
-	if not Holo and checkHoloCount(self) then return end
+	if not Holo and checkHoloCount(self) then return NULL end
 
 	position = Vector(position[1],position[2],position[3])
 
@@ -754,10 +754,10 @@ e2function entity holoCreate(index, vector position)
 end
 
 e2function entity holoCreate(index)
-	if not checkOwner(self) then return end
-	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	if not checkOwner(self) then return NULL end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return NULL end
 	local Holo = CheckIndex(self, index, true)
-	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return NULL end
 
 	return CreateHolo(self, index)
 end
@@ -834,7 +834,7 @@ end
 
 e2function vector holoScale(index)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return Vector(0, 0, 0) end
 
 	return Holo.scale or Vector(0, 0, 0) -- TODO: maybe 1,1,1?
 end
@@ -1182,7 +1182,7 @@ end
 
 e2function number holoBodygroups(index, bgrp_id)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return 0 end
 
 	return Holo.ent:GetBodygroupCount(bgrp_id)
 end
@@ -1406,7 +1406,7 @@ end
 
 e2function number holoGetAnimFrame(index)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return 0 end
 
 	return Holo.ent:GetCycle()
 end
@@ -1420,28 +1420,28 @@ end
 
 e2function array holoGetAnims(index)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return {} end
 
 	return Holo.ent:GetSequenceList()
 end
 
 e2function number holoAnimLength(index)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return 0 end
 
 	return Holo.ent:SequenceDuration()
 end
 
 e2function number holoAnimNum(index, string animation)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return 0 end
 
 	return Holo.ent:LookupSequence(animation) or 0
 end
 
 e2function number holoGetAnimGroundSpeed(index, string animation)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return 0 end
 	local anim = Holo.ent:LookupSequence(animation)
 	if anim == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
 
@@ -1464,7 +1464,7 @@ end
 
 e2function number holoGetAnimGroundSpeed(index, animation)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return 0 end
 
 	return Holo.ent:GetSequenceGroundSpeed(animation)
 end
@@ -1478,7 +1478,7 @@ end
 
 e2function number holoGetPose(index, string pose)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return 0 end
 
 	local pose_param = Holo.ent:LookupPoseParameter(pose)
 	if pose_param == -1 then self:throw("'" .. pose .. "' pose parameter does not exist on this model!", 0) end
@@ -1487,7 +1487,7 @@ end
 
 e2function array holoGetPoses(index)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return {} end
 
 	local tbl = {}
 	for i = 0, Holo.ent:GetNumPoseParameters() - 1 do
@@ -1498,10 +1498,10 @@ end
 
 e2function vector2 holoGetPoseRange(index, string pose)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return {0, 0} end
 
 	local pose_param = Holo.ent:LookupPoseParameter(pose)
-	if pose_param == -1 then self:throw("'" .. pose .. "' pose parameter doesn't exist on this model!", 0) end
+	if pose_param == -1 then self:throw("'" .. pose .. "' pose parameter doesn't exist on this model!", {0, 0}) end
 	return { Holo.ent:GetPoseParameterRange(pose_param) }
 end
 
