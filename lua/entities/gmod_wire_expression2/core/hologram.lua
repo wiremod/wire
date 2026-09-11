@@ -854,7 +854,7 @@ end
 
 e2function vector holoScaleUnits(index)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return self:throw("Holo at index " .. index .. " does not exist!", Vector(0, 0, 0)) end
+	if not Holo then return Vector(0, 0, 0) end
 
 	local scale = Holo.scale or Vector(0, 0, 0) -- TODO: maybe 1,1,1?
 
@@ -887,7 +887,7 @@ e2function vector holoBoneScale(index, boneindex)
 	if not Holo then return Vector(0, 0, 0) end
 	if not CheckBone(self, index, boneindex, Holo) then return Vector(0, 0, 0) end
 
-	return Holo.bone_scale[boneindex] or Vector(1, 1, 1)
+	return (Holo.bone_scale or {})[boneindex] or Vector(1, 1, 1)
 end
 
 e2function vector holoBoneScale(index, string bone)
@@ -896,7 +896,7 @@ e2function vector holoBoneScale(index, string bone)
 	local boneindex = Holo.ent:LookupBone(bone)
 
 	if boneindex == nil then return self:throw("Holo at index " .. index .. " does not have a bone ['" .. bone .. "']!", Vector(0, 0, 0)) end
-	return Holo.bone_scale[boneindex] or Vector(1, 1, 1)
+	return (Holo.bone_scale or {})[boneindex] or Vector(1, 1, 1)
 end
 
 e2function vector holoBonePos(index, boneindex)
@@ -1368,16 +1368,15 @@ __e2setcost(15)
 e2function void holoAnim(index, string animation)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	local anim = Holo.ent:LookupSequence(animation)
-	if anim == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+	if Holo.ent:LookupSequence(animation) == -1 then return self:throw("'" .. animation .. "' does not exist on this model!", 0) end
 
-	SetHoloAnim(Holo, anim, 0, 1)
+	SetHoloAnim(Holo, animation, 0, 1)
 end
 
 e2function void holoAnim(index, string animation, frame)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	if Holo.ent:LookupSequence(animation) == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+	if Holo.ent:LookupSequence(animation) == -1 then return self:throw("'" .. animation .. "' does not exist on this model!", 0) end
 
 	SetHoloAnim(Holo, animation, frame, 1)
 end
@@ -1385,7 +1384,7 @@ end
 e2function void holoAnim(index, string animation, frame, rate)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	if Holo.ent:LookupSequence(animation) == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+	if Holo.ent:LookupSequence(animation) == -1 then return self:throw("'" .. animation .. "' does not exist on this model!", 0) end
 
 	SetHoloAnim(Holo, animation, frame, rate)
 end
@@ -1436,14 +1435,14 @@ e2function number holoAnimNum(index, string animation)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return 0 end
 
-	return Holo.ent:LookupSequence(animation) or 0
+	return Holo.ent:LookupSequence(animation)
 end
 
 e2function number holoGetAnimGroundSpeed(index, string animation)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return 0 end
 	local anim = Holo.ent:LookupSequence(animation)
-	if anim == -1 then self:throw("'" .. animation .. "' does not exist on this model!", 0) end
+	if anim == -1 then return self:throw("'" .. animation .. "' does not exist on this model!", 0) end
 
 	return Holo.ent:GetSequenceGroundSpeed(anim)
 end
@@ -1481,7 +1480,7 @@ e2function number holoGetPose(index, string pose)
 	if not Holo then return 0 end
 
 	local pose_param = Holo.ent:LookupPoseParameter(pose)
-	if pose_param == -1 then self:throw("'" .. pose .. "' pose parameter does not exist on this model!", 0) end
+	if pose_param == -1 then return self:throw("'" .. pose .. "' pose parameter does not exist on this model!", 0) end
 	return Holo.ent:GetPoseParameter(pose_param)
 end
 
@@ -1501,7 +1500,7 @@ e2function vector2 holoGetPoseRange(index, string pose)
 	if not Holo then return {0, 0} end
 
 	local pose_param = Holo.ent:LookupPoseParameter(pose)
-	if pose_param == -1 then self:throw("'" .. pose .. "' pose parameter doesn't exist on this model!", {0, 0}) end
+	if pose_param == -1 then return self:throw("'" .. pose .. "' pose parameter doesn't exist on this model!", { 0, 0 }) end
 	return { Holo.ent:GetPoseParameterRange(pose_param) }
 end
 
