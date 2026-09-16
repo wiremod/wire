@@ -528,7 +528,11 @@ end
 -- closes and saves the open TOOL obj
 function WireToolSetup.close()
 	TOOL:CreateConVars()
-	SWEP.Tool[TOOL.Mode] = TOOL
+	
+	if hook.Run("PreRegisterTOOL", TOOL, TOOL.Mode) ~= false then
+		SWEP.Tool[TOOL.Mode] = TOOL
+	end
+
 	TOOL = nil
 end
 
