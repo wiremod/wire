@@ -55,7 +55,9 @@ function MakeWireMotorController( pl, Pos, Ang, MyEntId, model, const, axis )
 	if not IsValid(controller) then return end
 
 	if not const then
-		WireMotorTracking[ MyEntId ] = controller
+		if MyEntId then
+			WireMotorTracking[ MyEntId ] = controller
+		end
 	else
 		controller.MyId = controller:EntIndex()
 		const.MyCrtl = controller:EntIndex()
