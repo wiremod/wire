@@ -141,7 +141,9 @@ function MakeWireHydraulicController( pl, Pos, Ang, model, MyEntId, const, rope 
 	if not IsValid(controller) then return end
 
 	if not const then
-		WireHydraulicTracking[ MyEntId ] = controller
+		if MyEntId then
+			WireHydraulicTracking[ MyEntId ] = controller
+		end
 	else
 		controller.MyId = controller:EntIndex()
 		const.MyCrtl = controller:EntIndex()
