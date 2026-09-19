@@ -275,9 +275,18 @@ end
 
 function ENT:SendConfig(ply)
 	self.doSendConfig = false
+
+	local font = string.sub(self.tfont, 0, 31)
+	local size = self.chrPerLine
+
+	if not WireLib.CheckFont(font .. size, self:GetPlayer()) then
+		font = "Arial"
+		size = 10
+	end
+
 	WireLib.netStart(self)
 		net.WriteBit(true) -- Sending Config
-		net.WriteUInt(self.chrPerLine, 4)
+		net.WriteUInt(size, 4)
 		net.WriteUInt(self.textJust, 2)
 		net.WriteUInt(self.valign, 2)
 
@@ -288,7 +297,7 @@ function ENT:SendConfig(ply)
 		net.WriteUInt(self.bgcolor.r, 8)
 		net.WriteUInt(self.bgcolor.g, 8)
 		net.WriteUInt(self.bgcolor.b, 8)
-		net.WriteString(string.sub(self.tfont,0,31))
+		net.WriteString(font)
 	WireLib.netEnd(ply)
 end
 
