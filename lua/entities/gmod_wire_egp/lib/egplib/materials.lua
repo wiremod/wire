@@ -3,10 +3,6 @@
 --------------------------------------------------------
 local EGP = EGP
 
-if SERVER then
-	EGP.PlayerFontCount = EGP.PlayerFontCount or {}
-end
-
 if CLIENT then
 	-- Valid fonts table
 	EGP.ValidFonts_Lookup = EGP.ValidFonts_Lookup or {}
