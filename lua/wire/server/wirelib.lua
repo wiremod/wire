@@ -1641,6 +1641,27 @@ function WireLib.SoundExists(path, ply)
 	return path
 end
 
+local uniqueFontsTbl = setmetatable({}, {__index=function(t,k) local r={[1]=0} t[k]=r return r end})
+local maxUniqueFonts = CreateConVar("wire_fonts_unique_max", "50", FCVAR_ARCHIVE, "The maximum number of fonts a player is allowed to create", 0)
+
+function WireLib.CheckFont(font, ply)
+	if ply then
+		-- A player can only create a certain number of fonts
+		local playerFonts = uniqueFontsTbl[ply:SteamID()]
+
+		if not playerFonts[font] then
+			if playerFonts[1] >= maxUniqueFonts:GetInt() then
+				return
+			end
+
+			playerFonts[font] = true
+			playerFonts[1] = playerFonts[1] + 1
+		end
+	end
+
+	return font
+end
+
 -- Notify --
 
 local triv_start = WireLib.Net.Trivial.Start

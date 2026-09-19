@@ -255,20 +255,7 @@ end
 -- Font
 ----------------------------
 local function canCreateFont( ply, font, size )
-	size = size or 18
-
-	EGP.PlayerFontCount[ply:SteamID64()] = EGP.PlayerFontCount[ply:SteamID64()] or { fonts = {}, count = 0 }
-	local fontTable = EGP.PlayerFontCount[ply:SteamID64()]
-
-	if fontTable.count >= 50 then return false end
-
-	local fontName = font .. size
-	if fontTable.fonts[fontName] then return true end
-
-	fontTable.count = fontTable.count + 1
-	fontTable.fonts[fontName] = true
-
-	return true
+	return WireLib.CanFont(font .. (size or 18), ply)
 end
 
 e2function void wirelink:egpFont( number index, string font )
