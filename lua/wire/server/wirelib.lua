@@ -1642,7 +1642,7 @@ function WireLib.SoundExists(path, ply)
 end
 
 local uniqueFontsTbl = setmetatable({}, {__index=function(t,k) local r={[1]=0} t[k]=r return r end})
-local maxUniqueFonts = CreateConVar("wire_fonts_unique_max", "200", FCVAR_ARCHIVE, "The maximum number of fonds a player is allowed to create", 0)
+local maxUniqueFonts = CreateConVar("wire_fonts_unique_max", "50", FCVAR_ARCHIVE, "The maximum number of fonds a player is allowed to create", 0)
 
 function WireLib.CheckFont(font, ply)
 	if ply then
