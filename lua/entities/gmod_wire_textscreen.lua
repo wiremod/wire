@@ -277,7 +277,7 @@ function ENT:SendConfig(ply)
 	self.doSendConfig = false
 
 	local font = string.sub(self.tfont, 0, 31)
-	local size = 760 / self.chrPerLine
+	local size = self.chrPerLine
 
 	if not WireLib.CheckFont(font .. math.floor(760 / size), self:GetPlayer()) then
 		font = "Arial"
