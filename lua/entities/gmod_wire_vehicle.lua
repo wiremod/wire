@@ -20,7 +20,7 @@ function ENT:LinkEnt( pod )
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
 
 	local ply = self:GetPlayer()
-	if not ply:IsValid() then return false, "Owner is invalid"
+	if not ply:IsValid() then return false, "Owner is invalid" end
 	if not WireLib.CanTool(ply, pod, "wire_vehicle") then return false, "You do not have permission to access this vehicle" end
 
 	self.Vehicle = pod
