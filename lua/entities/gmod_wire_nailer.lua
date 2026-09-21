@@ -32,7 +32,9 @@ function ENT:CanNail(trace)
 	-- If there's no physics object then we can't constraint it!
 	if not util.IsValidPhysicsObject(trace.Entity, trace.PhysicsBone) then return false end
 	-- The nailer tool no longer exists, but we ask for permission under its name anyway
-	if not WireLib.CanTool(self:GetPlayer(), trace.Entity, "nailer" ) then return false end
+	local ply = self:GetPlayer()
+	if not ply:IsValid() then return false end
+	if not WireLib.CanTool(ply, trace.Entity, "nailer" ) then return false end
 	return true
 end
 

@@ -274,12 +274,15 @@ function ENT:Think()
 end
 
 function ENT:SendConfig(ply)
+	local ply = self:GetPlayer()
+	if not ply:IsValid() then return end
+
 	self.doSendConfig = false
 
 	local font = string.sub(self.tfont, 0, 31)
 	local size = self.chrPerLine
 
-	if not WireLib.CheckFont(font .. math.floor(760 / size), self:GetPlayer()) then
+	if not WireLib.CheckFont(font .. math.floor(760 / size), ply) then
 		font = "Arial"
 		size = 10
 	end

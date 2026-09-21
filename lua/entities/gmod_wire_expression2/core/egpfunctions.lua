@@ -255,7 +255,7 @@ end
 -- Font
 ----------------------------
 local function canCreateFont( ply, font, size )
-	return WireLib.CanFont(font .. (size or 18), ply)
+	return WireLib.CheckFont(font .. (size or 18), ply)
 end
 
 e2function void wirelink:egpFont( number index, string font )

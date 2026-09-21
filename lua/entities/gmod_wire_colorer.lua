@@ -121,7 +121,10 @@ function ENT:TriggerInput(iname, value)
 			filter = { self }
 		}
 		if not IsValid(trace.Entity) then return end
-		if not WireLib.CanTool(self:GetPlayer(), trace.Entity, "colour") then return end
+
+		local ply = self:GetPlayer()
+		if not ply:IsValid() then return end
+		if not WireLib.CanTool(ply, trace.Entity, "colour") then return end
 
 		if trace.Entity:IsPlayer() then
 			trace.Entity:SetColor(Color(self.InColor.r, self.InColor.g, self.InColor.b, 255))

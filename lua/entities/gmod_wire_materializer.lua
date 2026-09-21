@@ -34,8 +34,12 @@ function ENT:TriggerInput(iname, value)
 				filter = self
 			}).Entity
 
-			if ent:IsValid() and WireLib.CanTool(self:GetPlayer(), ent, "material") then
-				E2Lib.setMaterial(ent, self.Material)
+			if ent:IsValid() then
+				local ply = self:GetPlayer()
+
+				if ply:IsValid() and WireLib.CanTool(ply, ent, "material") then
+					E2Lib.setMaterial(ent, self.Material)
+				end
 			end
 		end
 	elseif iname == "Length" then
