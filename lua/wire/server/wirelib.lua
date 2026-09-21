@@ -918,7 +918,7 @@ do -- class OutputIterator
 			WireLib.TriggerInput(nextelement.Entity, nextelement.IName, nextelement.Value, self)
 		end
 
-		self.first = 0
+		self.first = 1
 		self.last = 0
 
 		self.Processing = nil
