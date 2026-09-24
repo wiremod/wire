@@ -62,7 +62,7 @@ local function entitiesAndWaterTrace( tracedata, tracefunc )
 	local trace2 = tracefunc()
 	if not trace1.Hit then return trace2 end
 	if not trace2.Hit then return trace1 end
-	return trace1.fraction < trace2.fraction and trace1 or trace2
+	return trace1.Fraction < trace2.Fraction and trace1 or trace2
 end
 
 local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, traceEntity)
