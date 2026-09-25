@@ -26,7 +26,8 @@ FPGADefaultValueForType = {
 	ARRAY = {},
 	ENTITY = NULL,
 	RANGER = nil,
-	WIRELINK = nil
+	WIRELINK = nil,
+	QUATERNION = {1, 0, 0, 0},
 }
 
 FPGATypeEnum = {
@@ -40,6 +41,7 @@ FPGATypeEnum = {
 	ENTITY = 8,
 	RANGER = 9,
 	WIRELINK = 10,
+	QUATERNION = 11,
 }
 
 FPGATypeEnumLookup = {
@@ -53,6 +55,7 @@ FPGATypeEnumLookup = {
 	"ENTITY",
 	"RANGER",
 	"WIRELINK",
+	"QUATERNION",
 }
 
 FPGANodeSize = 5
