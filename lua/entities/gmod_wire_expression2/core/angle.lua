@@ -136,6 +136,18 @@ e2function angle operator/(angle rv1, angle rv2)
 	return Angle(rp1 / rp2, ry1 / ry2, rr1 / rr2)
 end
 
+e2function angle operator%(rv1, angle rv2)
+    return Angle( rv1 % rv2[1], rv1 % rv2[2], rv1 % rv2[3] )
+end
+
+e2function angle operator%(angle rv1, rv2)
+	return Angle( rv1[1] % rv2, rv1[2] % rv2, rv1[3] % rv2 )
+end
+
+e2function angle operator%(angle rv1, angle rv2)
+	return Angle( rv1[1] % rv2[1], rv1[2] % rv2[2], rv1[3] % rv2[3] )
+end
+
 registerOperator("indexget", "an", "n", function(state, this, index)
 	return this[floor(clamp(index, 1, 3) + 0.5)]
 end)

@@ -223,6 +223,20 @@ local function empty_array()
 	return {}
 end
 
+---@type table<Operator, NodeVariant>
+local CompoundAssignmentVariants = {
+	[Operator.Add] = NodeVariant.ExprArithmetic,
+	[Operator.Sub] = NodeVariant.ExprArithmetic,
+	[Operator.Mul] = NodeVariant.ExprArithmetic,
+	[Operator.Div] = NodeVariant.ExprArithmetic,
+	[Operator.Mod] = NodeVariant.ExprArithmetic,
+	[Operator.Band] = NodeVariant.ExprBinaryOp,
+	[Operator.Bor] = NodeVariant.ExprBinaryOp,
+	[Operator.Bxor] = NodeVariant.ExprBinaryOp,
+	[Operator.Bshr] = NodeVariant.ExprBitShift,
+	[Operator.Bshl] = NodeVariant.ExprBitShift
+}
+
 ---@type table<NodeVariant, fun(self: Compiler, trace: Trace, data: table, used_as_stmt: boolean): RuntimeOperator|nil, string?>
 local CompileVisitors = {
 	---@param data Node[]
@@ -1170,10 +1184,10 @@ local CompileVisitors = {
 	end,
 
 	---@param data { [1]: Token<string>, [2]: Operator, [3]: Node }
-	[NodeVariant.CompoundArithmetic] = function(self, trace, data)
+	[NodeVariant.CompoundAssignment] = function(self, trace, data)
 		-- Transform V <op>= E -> V = V <op> E
 		local result = Node.new(
-			NodeVariant.ExprArithmetic,
+			self:Assert(CompoundAssignmentVariants[data[2]], "Unrecognized compound assignment", trace),
 			{ Node.new(NodeVariant.ExprIdent, data[1], data[1].trace), data[2], data[3] },
 			trace
 		)
