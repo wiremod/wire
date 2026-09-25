@@ -63,6 +63,10 @@ if SERVER then
 	-- node editor
 	AddCSLuaFile("wire/client/node_editor/nodeeditor.lua")
 	AddCSLuaFile("wire/client/node_editor/wire_fpga_editor.lua")
+	
+	-- node editor
+	AddCSLuaFile("wire/client/segment_editor/mslcdeditor.lua")
+	AddCSLuaFile("wire/client/segment_editor/wire_mslcd_editor.lua")
 
 	-- hl-zasm
 	AddCSLuaFile("wire/client/hlzasm/hc_compiler.lua")
@@ -144,6 +148,8 @@ if CLIENT then
 	include("wire/client/customspawnmenu.lua")
 	include("wire/client/node_editor/nodeeditor.lua")
 	include("wire/client/node_editor/wire_fpga_editor.lua")
+	include("wire/client/segment_editor/mslcdeditor.lua")
+	include("wire/client/segment_editor/wire_mslcd_editor.lua")
 	include("wire/client/hlzasm/hc_compiler.lua")
 end
 
