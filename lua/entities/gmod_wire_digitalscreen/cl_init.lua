@@ -1,6 +1,6 @@
 include("shared.lua")
 
-
+local dsDrawRate = CreateConVar("wire_digitalscreen_draw_rate", 1, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Draw rate for digital screen", 0.1, 1000)
 
 function ENT:SendData()
 	net.Start("wire_interactiveprop_action")
@@ -81,13 +81,17 @@ function ENT:OnRemove()
 end
 
 local function stringToNumber(index, str, bytes)
-	local newpos = index+bytes
-	str = str:sub(index,newpos-1)
 	local n = 0
-	for j=1,bytes do
-		n = n + str:byte(j)*(256^(j-1))
-    end
-	return n, newpos
+	local mult = 1
+
+	-- Read bytes directly from the original string using absolute offset (index + j).
+	-- This eliminates string allocations from str:sub() and prevents Garbage Collector spikes.
+	for j = 0, bytes - 1 do
+		n = n + str:byte(index + j) * mult
+		mult = mult * 256 -- Multiplication is faster than math.pow / exponentiation (256^j)
+	end
+
+	return n, index + bytes
 end
 
 local pixelbits = {3, 1, 3, 4, 1}
@@ -143,7 +147,7 @@ end
 
 function ENT:Think()
 	if self.buffer[1] ~= nil then
-		local maxtime = SysTime() + RealFrameTime() * 0.05 -- do more depending on client FPS. Higher fps = more work
+		local maxtime = SysTime() + RealFrameTime() * (0.05*dsDrawRate:GetFloat()) -- do more depending on client FPS. Higher fps = more work
 
 		while SysTime() < maxtime and self.buffer[1] do
 			if not self.co or coroutine.status(self.co) == "dead" then
@@ -308,7 +312,7 @@ function ENT:Draw(flags)
 
 	if self.NeedRefresh then
 		self.NeedRefresh = false
-		local maxtime = SysTime() + RealFrameTime() * 0.01
+		local maxtime = SysTime() + RealFrameTime() * (0.01*dsDrawRate:GetFloat())
 
 		self.GPU:RenderToGPU(function()
 			local idx = 0
