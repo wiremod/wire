@@ -292,7 +292,7 @@ end
 --- DIGI
 
 local converters = {}
-converters[0] = function(r, g, b)
+converters[0] = function(r, g, b, a)
 	local r = Clamp(floor(r/28),0,9)
 	local g = Clamp(floor(g/28),0,9)
 	local b = Clamp(floor(b/28),0,9)
@@ -300,25 +300,45 @@ converters[0] = function(r, g, b)
 	return r*100000+g*10000+b*1000
 end
 converters[1] = false
-converters[2] = function(r, g, b)
+converters[2] = function(r, g, b, a)
 	return floor(r)*65536+floor(g)*256+floor(b)
 end
-converters[3] = function(r, g, b)
+converters[3] = function(r, g, b, a)
 	return floor(r)*1000000+floor(g)*1000+floor(b)
 end
+converters[4] = false
+converters[5] = function(r, g, b, a)
+	return floor(a)*16777216+floor(r)*65536+floor(g)*256+floor(b)
+end
 
---- Converts an RGB vector <rgb> to a number in digital screen format. <mode> Specifies a mode, either 0, 2 or 3, corresponding to Digital Screen color modes.
+--- Converts an RGB vector <rgb> to a number in digital screen format. <mode> Specifies a mode, either 0, 2, 3 or 5 corresponding to Digital Screen color modes.
 [nodiscard]
 e2function number rgb2digi(vector rgb, mode)
 	local conv = converters[mode]
 	if not conv then return self:throw("Mode " .. mode .. " does not exist!", 0) end
-	return conv(rgb[1], rgb[2], rgb[3])
+	return conv(rgb[1], rgb[2], rgb[3], 255)
 end
 
---- Converts the RGB color (<r>,<g>,<b>) to a number in digital screen format. <mode> Specifies a mode, either 0, 2 or 3, corresponding to Digital Screen color modes.
+--- Converts the RGB color (<r>,<g>,<b>) to a number in digital screen format. <mode> Specifies a mode, either 0, 2, 3 or 5 corresponding to Digital Screen color modes.
 [nodiscard]
 e2function number rgb2digi(r, g, b, mode)
 	local conv = converters[mode]
 	if not conv then return self:throw("Mode " .. mode .. " does not exist!", 0) end
-	return conv(r, g, b)
+	return conv(r, g, b, 255)
+end
+
+--- Converts an RGBA vector4 <rgba> to a number in digital screen format. <mode> Specifies a mode, either 0, 2, 3 or 5 corresponding to Digital Screen color modes.
+[nodiscard]
+e2function number rgba2digi(vector4 rgb, mode)
+	local conv = converters[mode]
+	if not conv then return self:throw("Mode " .. mode .. " does not exist!", 0) end
+	return conv(rgb[1], rgb[2], rgb[3], rgb[4])
+end
+
+--- Converts the RGBA color (<r>,<g>,<b>,<a>) to a number in digital screen format. <mode> Specifies a mode, either 0, 2, 3 or 5 corresponding to Digital Screen color modes.
+[nodiscard]
+e2function number rgba2digi(r, g, b, a, mode)
+	local conv = converters[mode]
+	if not conv then return self:throw("Mode " .. mode .. " does not exist!", 0) end
+	return conv(r, g, b, a)
 end
