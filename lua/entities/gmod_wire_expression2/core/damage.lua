@@ -109,6 +109,7 @@ e2function void entity:takeDamage(number amount)
 	if not Enabled:GetBool() then return self:throw("Dealing damage is disabled via wire_expression2_damage_enabled") end
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not WireLib.CanDamage(self.player, this) then return self:throw("You cannot damage this entity!", nil) end
+	if this:IsPlayer() and not E2Lib.isFriend(self.player, this) and not WireLib.CanTool(self.player, this, "wire_expression2") then return self:throw("You cannot damage this player!", nil) end
 
 	this:TakeDamage(amount, self.player, self.entity)
 end
@@ -119,6 +120,7 @@ e2function void entity:takeDamage(number amount, entity attacker)
 	if not IsValid(attacker) then return self:throw("Invalid attacker entity!", nil) end
 	if not E2Lib.isOwner(self, attacker) then return self:throw("You do not own the attacker entity!", nil) end
 	if not WireLib.CanDamage(self.player, this) then return self:throw("You cannot damage this entity!", nil) end
+	if this:IsPlayer() and not E2Lib.isFriend(self.player, this) and not WireLib.CanTool(self.player, this, "wire_expression2") then return self:throw("You cannot damage this player!", nil) end
 
 	this:TakeDamage(amount, attacker, self.entity)
 end
@@ -131,6 +133,7 @@ e2function void entity:takeDamage(number amount, entity attacker, entity inflict
 	if not IsValid(inflictor) then return self:throw("Invalid inflictor entity!", nil) end
 	if not E2Lib.isOwner(self, inflictor) then return self:throw("You do not own the inflictor entity!", nil) end
 	if not WireLib.CanDamage(self.player, this) then self:throw("You cannot damage this entity!", nil) end
+	if this:IsPlayer() and not E2Lib.isFriend(self.player, this) and not WireLib.CanTool(self.player, this, "wire_expression2") then return self:throw("You cannot damage this player!", nil) end
 
 	this:TakeDamage(amount, attacker, inflictor)
 end
