@@ -164,6 +164,10 @@ e2function complex operator/(complex lhs, number rhs)
 	return {lhs[1]/rhs, lhs[2]/rhs}
 end
 
+e2function complex operator%(complex lhs, number rhs)
+	return {lhs[1]%rhs, lhs[2]%rhs}
+end
+
 e2function complex operator^(complex lhs, complex rhs)
 	local l = clog(lhs[1], lhs[2])
 	local e = {rhs[1]*l[1] - rhs[2]*l[2], rhs[1]*l[2] + rhs[2]*l[1]}
