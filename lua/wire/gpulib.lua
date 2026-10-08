@@ -154,17 +154,23 @@ if CLIENT then
 	WireGPU_matScreen = CreateMaterial("sprites/GPURT","UnlitGeneric",{
 		["$vertexcolor"] = 1,
 		["$vertexalpha"] = 1,
-    ["$translucent"] = 1,
+		["$translucent"] = 1,
 		["$ignorez"] = 1,
 		["$nolod"] = 1,
 		})
 	WireGPU_matBuffer = CreateMaterial("sprites/GPUBUF","UnlitGeneric",{
 		["$vertexcolor"] = 1,
 		["$vertexalpha"] = 1,
-    ["$translucent"] = 1,
+		["$translucent"] = 1,
 		["$ignorez"] = 1,
 		["$nolod"] = 1,
 	})
+	WireGPU_matSegment = CreateMaterial("sprites/SEGRT","UnlitGeneric",{
+		["$vertexcolor"] = 1,
+		["$vertexalpha"] = 1,
+		["$translucent"] = 1,
+		["$nolod"] = 1,
+		})
 
 
 	function GPU:Initialize(no_rendertarget)
