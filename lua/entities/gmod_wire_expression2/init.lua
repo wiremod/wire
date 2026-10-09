@@ -434,16 +434,11 @@ hook.Add("Think", "E2_Think", function()
 	end
 
 	if e2_globalmax > 0 and global_time > e2_globalmax and worst_ply then
-		local chips = E2Lib.PlayerChips[worst_ply]
+		local max_chip, max_time = E2Lib.PlayerChips[worst_ply]:findMaxTimeChip()
 
-		while global_time > e2_globalmax do
-			local chip, chip_time = chips:findMaxTimeChip()
-			if not chip then break end
-
-			chip:Error("Expression 2 (" .. chip.name .. "): Global time quota exceeded", "global time quota exceeded")
-			chip:Destruct()
-
-			global_time = global_time - chip_time
+		if max_chip then
+			max_chip:Error("Expression 2 (" .. max_chip.name .. "): Global time quota exceeded", "global time quota exceeded")
+			max_chip:Destruct()
 		end
 	end
 end)
