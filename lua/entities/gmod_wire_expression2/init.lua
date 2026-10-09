@@ -399,25 +399,6 @@ function GlobalChips:remove(remove_chip)
 	end
 end
 
-function GlobalChips:findMaxTimeChip(chips)
-	local max_chip, max_time = nil, 0
-
-	for _, chip in ipairs(chips) do
-		local tab = chip:GetTable()
-		if tab.error then continue end
-
-		local context = tab.context
-		if not context then continue end
-
-		if context.timebench > max_time then
-			max_time = context.timebench
-			max_chip = chip
-		end
-	end
-
-	return max_chip, max_time
-end
-
 E2Lib.PlayerChips = E2Lib.PlayerChips or setmetatable({}, GlobalChips)
 
 hook.Add("Think", "E2_Think", function()
@@ -434,7 +415,7 @@ hook.Add("Think", "E2_Think", function()
 	end
 
 	if e2_globalmax > 0 and global_time > e2_globalmax and worst_ply then
-		local max_chip, max_time = E2Lib.PlayerChips[worst_ply]:findMaxTimeChip()
+		local max_chip = E2Lib.PlayerChips[worst_ply]:findMaxTimeChip()
 
 		if max_chip then
 			max_chip:Error("Expression 2 (" .. max_chip.name .. "): Global time quota exceeded", "global time quota exceeded")
