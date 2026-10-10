@@ -399,55 +399,27 @@ function GlobalChips:remove(remove_chip)
 	end
 end
 
-function GlobalChips:findMaxTimeChip(chips)
-	local max_chip, max_time = nil, 0
-
-	for _, chip in ipairs(chips) do
-		local tab = chip:GetTable()
-		if tab.error then continue end
-
-		local context = tab.context
-		if not context then continue end
-
-		if context.timebench > max_time then
-			max_time = context.timebench
-			max_chip = chip
-		end
-	end
-
-	return max_chip, max_time
-end
-
 E2Lib.PlayerChips = E2Lib.PlayerChips or setmetatable({}, GlobalChips)
 
 hook.Add("Think", "E2_Think", function()
 	local global_time = 0
+	local worst_ply, worst_time = nil, 0
 
-	if e2_timequota > 0 then
-		for ply, chips in pairs(E2Lib.PlayerChips) do
-			global_time = global_time + chips:checkCpuTime()
-		end
-	else
-		for ply, chips in pairs(E2Lib.PlayerChips) do
-			global_time = global_time + chips:getTotalTime()
+	for ply, chips in pairs(E2Lib.PlayerChips) do
+		local time = e2_timequota > 0 and chips:checkCpuTime() or chips:getTotalTime()
+		global_time = global_time + time
+
+		if time > worst_time then
+			worst_ply, worst_time = ply, time
 		end
 	end
 
-	if e2_globalmax > 0 and global_time > e2_globalmax then
-		-- It will be faster to just iterate over all chips from now on
-		local chips = ents.FindByClass("gmod_wire_expression2")
+	if e2_globalmax > 0 and global_time > e2_globalmax and worst_ply then
+		local max_chip = E2Lib.PlayerChips[worst_ply]:findMaxTimeChip()
 
-		while global_time > e2_globalmax do
-			local max_chip, max_time = E2Lib.PlayerChips:findMaxTimeChip(chips)
-
-			if max_chip then
-				global_time = global_time - max_time
-				max_chip:Error("Expression 2 (" .. max_chip.name .. "): Global time quota exceeded", "global time quota exceeded")
-				max_chip:Destruct()
-			else
-				-- It shouldn't happen, but if something breaks, it will prevent an infinity loop
-				break
-			end
+		if max_chip then
+			max_chip:Error("Expression 2 (" .. max_chip.name .. "): Global time quota exceeded", "global time quota exceeded")
+			max_chip:Destruct()
 		end
 	end
 end)
