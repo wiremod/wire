@@ -56,6 +56,26 @@ FPGAGateActions["vector-output"] = {
 	isOutput = true
 }
 
+i = i + 1
+FPGAGateActions["quaternion-input"] = {
+	order = i,
+	name = "Quaternion Input",
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"QUATERNION"},
+	isInput = true
+}
+
+i = i + 1
+FPGAGateActions["quaternion-output"] = {
+	order = i,
+	name = "Quaternion Output",
+	inputs = {"A"},
+	inputtypes = {"QUATERNION"},
+	outputs = {},
+	isOutput = true
+}
+
 -- FPGAGateActions["vector4-input"] = {
 -- 	name = "4D Vector Input",
 --   inputs = {},
