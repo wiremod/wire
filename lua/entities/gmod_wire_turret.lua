@@ -89,7 +89,7 @@ function ENT:SetSound(path)
 end
 
 function ENT:SetDelay(delay)
-	self.delay = math.Clamp(delay, min_delay:GetFloat(), 10)
+	self.delay = math.max(delay, min_delay:GetFloat())
 end
 
 function ENT:SetNumBullets(num_bullets)
@@ -104,7 +104,7 @@ function ENT:SetTracer(tracer)
 end
 
 function ENT:SetSpread(spread)
-	self.spread = math.Clamp(spread, 0, 1)
+	self.spread = math.Clamp(spread, 0, 5)
 	self.BulletTable.Spread:SetUnpacked(self.spread, self.spread, 0)
 end
 
@@ -114,7 +114,7 @@ function ENT:SetDamage(damage)
 end
 
 function ENT:SetForce(force)
-	self.force = math.Clamp(force, 0, 500)
+	self.force = math.Clamp(force, 0, 5000)
 	self.BulletTable.Force = self.force
 end
 
