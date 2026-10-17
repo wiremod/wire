@@ -16,7 +16,7 @@ function ENT:Initialize()
 	self:DrawShadow(false)
 	self:PhysWake()
 
-	self.NextShot = 0
+	self.NextShoot = 0
 	self.Firing = false
 	self.BulletTable = {Num = 1, Spread = Vector(0, 0, 0), Tracer = 1, TracerName = "Tracer", Force = 0, Damage = 0, Inflictor = self, Callback = function(attacker, trace, dmg) WireLib.TriggerOutput(self, "Bullet", trace) WireLib.TriggerOutput(self, "HitEntity", trace.Entity) end }
 
@@ -24,16 +24,12 @@ function ENT:Initialize()
 	local attachment = self:GetAttachment(1)
 	self.attachment = attachment and self:WorldToLocal(attachment.Pos) or Vector(0, 0, 0)
 
-	WireLib.CreateInputs(self, { "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound [STRING]", "Tracer [STRING]" })
+	WireLib.CreateInputs(self, { "Fire (Automatic fire)", "Shoot (Single shoot)", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound [STRING]", "Tracer [STRING]" })
 	WireLib.CreateOutputs(self, { "HitEntity [ENTITY]", "Bullet [RANGER]" })
 end
 
-function ENT:FireShot()
+function ENT:FireShoot()
 	local tab = self:GetTable()
-	local curtime = CurTime()
-
-	if tab.NextShot > curtime then return end
-	tab.NextShot = curtime + tab.delay
 
 	if tab.sound then
 		self:EmitSound(tab.sound)
@@ -46,7 +42,7 @@ function ENT:FireShot()
 	bullet.Src = origin
 	bullet.Dir = angles:Forward()
 	bullet.Attacker = tab.GetPlayer(self)
-	self:FireBullets(bullet)
+	self:FireBullets(bullet, true)
 
 	local effect = EffectData()
 	effect:SetOrigin(origin)
@@ -62,11 +58,17 @@ end
 function ENT:Think()
 	BaseClass.Think(self)
 
-	if self.Firing then
-		self:FireShot()
+	local curtime = CurTime()
+	local tab = self:GetTable()
+
+	if tab.Firing then
+		if tab.NextShoot <= curtime then
+			tab.FireShoot(self)
+			tab.NextShoot = curtime + tab.delay
+		end
 	end
 
-	self:NextThink(CurTime())
+	self:NextThink(curtime)
 	return true
 end
 
@@ -126,6 +128,8 @@ end
 function ENT:TriggerInput(name, value)
 	if name == "Fire" then
 		self.Firing = value > 0
+	elseif name == "Shoot" and value > 0 then
+		self:FireShoot()
 	elseif name == "Force" then
 		self:SetForce(value)
 	elseif name == "Damage" then
@@ -152,7 +156,7 @@ function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, trac
 	self:SetTracer(tracer)
 	self:SetTraceNum(tracernum or 0)
 	self:SetNumBullets(numbullets)
-	self.NextShot = 0
+	self.NextShoot = 0
 end
 
 duplicator.RegisterEntityClass("gmod_wire_turret", WireLib.MakeWireEnt, "Data", "delay", "damage", "force", "sound", "numbullets", "spread", "tracer", "tracernum")
