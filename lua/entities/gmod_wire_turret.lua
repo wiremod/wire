@@ -18,7 +18,8 @@ function ENT:Initialize()
 
 	self.NextShoot = 0
 	self.Firing = false
-	self.BulletTable = {Num = 1, Spread = Vector(0, 0, 0), Tracer = 1, TracerName = "Tracer", Force = 0, Damage = 0, Inflictor = self, Callback = function(attacker, trace, dmg) WireLib.TriggerOutput(self, "Bullet", trace) WireLib.TriggerOutput(self, "HitEntity", trace.Entity) end }
+	self.BulletTable = {Num = 1, Spread = Vector(0, 0, 0), Tracer = 1, TracerName = "Tracer", Force = 0, Damage = 0, Inflictor = self }
+	self.BulletCallback = function(attacker, trace, dmg) WireLib.TriggerOutput(self, "Bullet", trace) WireLib.TriggerOutput(self, "HitEntity", trace.Entity) end
 
 	-- Not all entities have an 1 attachment
 	local attachment = self:GetAttachment(1)
@@ -42,11 +43,13 @@ function ENT:FireShoot()
 
 	local origin = self:LocalToWorld(tab.attachment)
 	local angles = self:GetAngles()
+	local outputs = tab.Outputs
 
 	local bullet = tab.BulletTable
 	bullet.Src = origin
 	bullet.Dir = angles:Forward()
 	bullet.Attacker = tab.GetPlayer(self)
+	bullet.Callback = (#outputs["HitEntity"].Connected > 0 or #outputs["Bullet"].Connected > 0) and tab.BulletCallback or nil
 	tab.NextShoot = curtime + tab.delay
 	self:FireBullets(bullet, true)
 
