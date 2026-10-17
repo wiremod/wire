@@ -71,19 +71,17 @@ function ENT:Think()
 end
 
 local valid_tracers = {
-    [""] = true,
-    ["AirboatGunHeavyTracer"] = true,
-    ["AirboatGunTracer"] = true,
-    ["AR2Tracer"] = true,
-    ["GaussTracer"] = true,
-    ["GunshipTracer"] = true,
-    ["HelicopterTracer"] = true,
-    ["HunterTracer"] = true,
-    ["LaserTracer"] = true,
-    ["ParticleTracer"] = true,
-    ["StriderTracer"] = true,
-    ["ToolTracer"] = true,
-    ["Tracer"]= true
+	[""] = true,
+	["AR2Tracer"] = true,
+	["AirboatGunHeavyTracer"] = true,
+	["AirboatGunTracer"] = true,
+	["GaussTracer"] = true,
+	["GunshipTracer"] = true,
+	["HelicopterTracer"] = true,
+	["LaserTracer"] = true,
+	["StriderTracer"] = true,
+	["ToolTracer"] = true,
+	["Tracer"] = true
 }
 
 function ENT:SetSound(path)

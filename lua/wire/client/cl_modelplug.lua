@@ -327,12 +327,35 @@ ModelPlug.ListAddModels("WireTeleporterModels", {
 })
 
 ModelPlug.ListAddModels("WireTurretModels", {
-	"models/weapons/w_smg1.mdl",
-	"models/weapons/w_smg_mp5.mdl",
-	"models/weapons/w_smg_mac10.mdl",
-	"models/weapons/w_rif_m4a1.mdl",
 	"models/weapons/w_357.mdl",
-	"models/weapons/w_shot_m3super90.mdl"
+	"models/weapons/w_crossbow.mdl",
+	"models/weapons/w_mach_m249para.mdl",
+	"models/weapons/w_pist_deagle.mdl",
+	"models/weapons/w_pist_elite_single.mdl",
+	"models/weapons/w_pist_fiveseven.mdl",
+	"models/weapons/w_pist_glock18.mdl",
+	"models/weapons/w_pist_p228.mdl",
+	"models/weapons/w_pist_usp.mdl",
+	"models/weapons/w_pist_usp_silencer.mdl",
+	"models/weapons/w_rif_ak47.mdl",
+	"models/weapons/w_rif_aug.mdl",
+	"models/weapons/w_rif_famas.mdl",
+	"models/weapons/w_rif_galil.mdl",
+	"models/weapons/w_rif_m4a1.mdl",
+	"models/weapons/w_rif_m4a1_silencer.mdl",
+	"models/weapons/w_rif_sg552.mdl",
+	"models/weapons/w_shot_m3super90.mdl",
+	"models/weapons/w_shot_xm1014.mdl",
+	"models/weapons/w_smg1.mdl",
+	"models/weapons/w_smg_mac10.mdl",
+	"models/weapons/w_smg_mp5.mdl",
+	"models/weapons/w_smg_p90.mdl",
+	"models/weapons/w_smg_tmp.mdl",
+	"models/weapons/w_smg_ump45.mdl",
+	"models/weapons/w_snip_awp.mdl",
+	"models/weapons/w_snip_g3sg1.mdl",
+	"models/weapons/w_snip_scout.mdl",
+	"models/weapons/w_snip_sg550.mdl"
 })
 
 ModelPlug.ListAddModels("Wire_satellitedish_Models", {
