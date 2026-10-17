@@ -29,6 +29,7 @@ function ENT:Initialize()
 end
 
 function ENT:FireShoot()
+	local curtime = CurTime()
 	local tab = self:GetTable()
 
 	if tab.NextShoot > curtime then
