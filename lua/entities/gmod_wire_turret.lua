@@ -120,7 +120,7 @@ end
 
 function ENT:SetTraceNum(tracer_num)
 	self.tracernum = tracer_enabled:GetBool() and math.Clamp(math.floor(tracer_num), 0, 15) or 0
-	self.BulletTable.Trace = self.tracernum
+	self.BulletTable.Tracer = self.tracernum
 end
 
 function ENT:TriggerInput(name, value)
