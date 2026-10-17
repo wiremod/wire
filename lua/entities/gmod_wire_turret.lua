@@ -79,11 +79,8 @@ local valid_tracers = {
 	["AR2Tracer"] = true,
 	["AirboatGunHeavyTracer"] = true,
 	["AirboatGunTracer"] = true,
-	["GaussTracer"] = true,
-	["GunshipTracer"] = true,
 	["HelicopterTracer"] = true,
 	["LaserTracer"] = true,
-	["StriderTracer"] = true,
 	["ToolTracer"] = true,
 	["Tracer"] = true
 }
