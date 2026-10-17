@@ -31,6 +31,10 @@ end
 function ENT:FireShoot()
 	local tab = self:GetTable()
 
+	if tab.NextShoot > curtime then
+		return
+	end
+
 	if tab.sound then
 		self:EmitSound(tab.sound)
 	end
@@ -42,6 +46,7 @@ function ENT:FireShoot()
 	bullet.Src = origin
 	bullet.Dir = angles:Forward()
 	bullet.Attacker = tab.GetPlayer(self)
+	tab.NextShoot = curtime + tab.delay
 	self:FireBullets(bullet, true)
 
 	local effect = EffectData()
@@ -58,17 +63,13 @@ end
 function ENT:Think()
 	BaseClass.Think(self)
 
-	local curtime = CurTime()
 	local tab = self:GetTable()
 
 	if tab.Firing then
-		if tab.NextShoot <= curtime then
-			tab.FireShoot(self)
-			tab.NextShoot = curtime + tab.delay
-		end
+		tab.FireShoot(self)
 	end
 
-	self:NextThink(curtime)
+	self:NextThink(CurTime())
 	return true
 end
 
