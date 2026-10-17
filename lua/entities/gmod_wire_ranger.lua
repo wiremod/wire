@@ -304,7 +304,7 @@ function ENT:Think()
 		end
 	end
 
-	WireLib.TriggerOutput(self, "RangerData", trace, nil, true)
+	WireLib.TriggerOutput(self, "RangerData", trace)
 
 	if tab.OverlayDataRequired then
 		if not pos then pos = Vector(0, 0, 0) end
