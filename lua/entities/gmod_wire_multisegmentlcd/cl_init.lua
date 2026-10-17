@@ -36,6 +36,7 @@ function ENT:Initialize()
 	end)
 	
 	self.TreeMesh = {}
+	self.RTMesh = Mesh()
 
 	WireLib.netRegister(self)
 end
@@ -378,7 +379,6 @@ function ENT:Draw()
 
 		local NewRT = self2.GPU.RT
 		local OldRT = render.GetRenderTarget()
-
 		render.SetRenderTarget(NewRT)
 		render.SetViewPort(0, 0, 1024, 1024)
 		if self:GetPos():DistToSqr(EyePos()) < 262144 then
@@ -387,6 +387,7 @@ function ENT:Draw()
 				render.OverrideBlend( true, BLEND_ONE, BLEND_ZERO, BLENDFUNC_ADD )
 				surface.SetDrawColor(self2.Bgred,self2.Bggreen,self2.Bgblue,self2.Bgalpha)
 				surface.DrawRect( 0, 0, 1, 1 )
+				mesh.Begin(MATERIAL_LINES,self2.BitIndex*2)
 				for i=0,self2.BitIndex-1 do
 					local x = (bit.bxor(i,0)+1)%1024
 					local y = math.floor((bit.bxor(i,0)+1)/1024)
@@ -397,14 +398,18 @@ function ENT:Draw()
 
 					--if fade[i] < 0.1 or (fade[i] > 0.14 and fade[i] < 0.95) then
 						local color = self2.Colors[i] or {self2.Fgred,self2.Fggreen,self2.Fgblue,self2.Fgalpha}
-						surface.SetDrawColor(color[1]*fade[i]+self2.Bgred*(1-fade[i]),color[2]*fade[i]+self2.Bggreen*(1-fade[i]),color[3]*fade[i]+self2.Bgblue*(1-fade[i]),fade[i]*color[4]+self2.Bgalpha*(1-fade[i])*0.15)
-						if x == 0 and y == 0 then
-							--print("x,y = 0,0")
-							break
-						end
-						surface.DrawRect( x, y, 1, 1 )
+						mesh.Position(x,y,0)
+						local r,g,b,a = color[1]*fade[i]+self2.Bgred*(1-fade[i]),color[2]*fade[i]+self2.Bggreen*(1-fade[i]),color[3]*fade[i]+self2.Bgblue*(1-fade[i]),fade[i]*color[4]+self2.Bgalpha*(1-fade[i])*0.15
+						mesh.Color(r,g,b,a)
+						mesh.AdvanceVertex()
+						mesh.Position(x+1,y,0)
+						mesh.Color(r,g,b,a)
+						mesh.AdvanceVertex()
+						--surface.DrawRect( x, y, 1, 1 )
 					--end
 				end
+				mesh.End()
+				--self2.RTMesh:Draw()
 				render.OverrideBlend( false )
 			cam.End2D()
 		end
@@ -489,6 +494,7 @@ function ENT:Receive()
 		self.TreeMesh[i] = nil
 	end
 	self.TreeMesh[#self.TreeMesh + 1] = Mesh()
+	self.RTMesh = self.RTMesh or Mesh()
 	self.Tris = self:CountTris(self.Tree) + 2
 	mesh.Begin(self.TreeMesh[#self.TreeMesh],MATERIAL_TRIANGLES,math.min(10922,self.Tris))
 	self.Tris = self.Tris - 10922
