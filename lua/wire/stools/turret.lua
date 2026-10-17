@@ -3,7 +3,7 @@ WireToolSetup.open("turret", "Turret", "gmod_wire_turret", nil, "Turrets")
 
 if CLIENT then
 	language.Add("tool.wire_turret.name", "Turret")
-	language.Add("tool.wire_turret.desc", "Throws bullets at things")
+	language.Add("tool.wire_turret.desc", "Spawns a turret for use with the wire system.")
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 
 	WireToolSetup.setToolMenuIcon("icon16/gun.png")
