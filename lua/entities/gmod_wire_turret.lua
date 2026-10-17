@@ -152,6 +152,7 @@ function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, trac
 	self:SetTracer(tracer)
 	self:SetTraceNum(tracernum or 0)
 	self:SetNumBullets(numbullets)
+	self.NextShot = 0
 end
 
 duplicator.RegisterEntityClass("gmod_wire_turret", WireLib.MakeWireEnt, "Data", "delay", "damage", "force", "sound", "numbullets", "spread", "tracer", "tracernum")
