@@ -51,7 +51,6 @@ function TOOL.BuildCPanel(panel)
 	sounds:AddChoice("Crossbow", "Weapon_Crossbow.Single")
 	sounds:AddChoice("Flare Gun", "Weapon_FlareGun.Single")
 	sounds:AddChoice("Stationary Turret", "Weapon_functank.Single")
-	sounds:AddChoice("AR2 Ball", "Weapon_IRifle.Single")
 	sounds:AddChoice("Mortar", "Weapon_Mortar.Single")
 	sounds:AddChoice("RPG", "Weapon_RPG.Single")
 
