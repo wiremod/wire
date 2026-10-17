@@ -139,7 +139,7 @@ function ENT:AddPoly(poly)
 			self.Tris = self.Tris - 10922
 			self.CurTris = 0
 		end
-		mesh.Position(Vector(poly[i][1],poly[i][2],self.ZOffset))
+		mesh.Position(poly[i][1],poly[i][2],self.ZOffset)
 		mesh.TexCoord(0, u, v, u ,v)
 		mesh.Color(255,255,255,255)
 		mesh.AdvanceVertex()
@@ -153,7 +153,7 @@ function ENT:AddPoly(poly)
 			self.Tris = self.Tris - 10922
 			self.CurTris = 0
 		end
-		mesh.Position(Vector(poly[i][1],poly[i][2],0))
+		mesh.Position(poly[i][1],poly[i][2],0)
 		mesh.TexCoord(0, u, v, u ,v)
 		mesh.Color(255,255,255,127)
 		mesh.AdvanceVertex()
@@ -387,28 +387,30 @@ function ENT:Draw()
 				render.OverrideBlend( true, BLEND_ONE, BLEND_ZERO, BLENDFUNC_ADD )
 				surface.SetDrawColor(self2.Bgred,self2.Bggreen,self2.Bgblue,self2.Bgalpha)
 				surface.DrawRect( 0, 0, 1, 1 )
-				mesh.Begin(MATERIAL_LINES,self2.BitIndex*2)
-				for i=0,self2.BitIndex-1 do
-					local x = (bit.bxor(i,0)+1)%1024
-					local y = math.floor((bit.bxor(i,0)+1)/1024)
-					fade[i] = (fade[i] or 0)*0.92 + 0.01
-					if bit.band(self2.Memory[bit.rshift(i,3)] or 0,bit.lshift(1,bit.band(i,7))) ~= 0 then
-						fade[i] = fade[i] + 0.07
-					end
+				if self2.BitIndex ~= 0 then
+					mesh.Begin(MATERIAL_LINES,self2.BitIndex*2)
+					for i=0,self2.BitIndex-1 do
+						local x = (bit.bxor(i,0)+1)%1024
+						local y = math.floor((bit.bxor(i,0)+1)/1024)
+						fade[i] = (fade[i] or 0)*0.92 + 0.01
+						if bit.band(self2.Memory[bit.rshift(i,3)] or 0,bit.lshift(1,bit.band(i,7))) ~= 0 then
+							fade[i] = fade[i] + 0.07
+						end
 
-					--if fade[i] < 0.1 or (fade[i] > 0.14 and fade[i] < 0.95) then
-						local color = self2.Colors[i] or {self2.Fgred,self2.Fggreen,self2.Fgblue,self2.Fgalpha}
-						mesh.Position(x,y,0)
-						local r,g,b,a = color[1]*fade[i]+self2.Bgred*(1-fade[i]),color[2]*fade[i]+self2.Bggreen*(1-fade[i]),color[3]*fade[i]+self2.Bgblue*(1-fade[i]),fade[i]*color[4]+self2.Bgalpha*(1-fade[i])*0.15
-						mesh.Color(r,g,b,a)
-						mesh.AdvanceVertex()
-						mesh.Position(x+1,y,0)
-						mesh.Color(r,g,b,a)
-						mesh.AdvanceVertex()
-						--surface.DrawRect( x, y, 1, 1 )
-					--end
+						--if fade[i] < 0.1 or (fade[i] > 0.14 and fade[i] < 0.95) then
+							local color = self2.Colors[i] or {self2.Fgred,self2.Fggreen,self2.Fgblue,self2.Fgalpha}
+							mesh.Position(x,y,0)
+							local r,g,b,a = color[1]*fade[i]+self2.Bgred*(1-fade[i]),color[2]*fade[i]+self2.Bggreen*(1-fade[i]),color[3]*fade[i]+self2.Bgblue*(1-fade[i]),fade[i]*color[4]+self2.Bgalpha*(1-fade[i])*0.15
+							mesh.Color(r,g,b,a)
+							mesh.AdvanceVertex()
+							mesh.Position(x+1,y,0)
+							mesh.Color(r,g,b,a)
+							mesh.AdvanceVertex()
+							--surface.DrawRect( x, y, 1, 1 )
+						--end
+					end
+					mesh.End()
 				end
-				mesh.End()
 				--self2.RTMesh:Draw()
 				render.OverrideBlend( false )
 			cam.End2D()
