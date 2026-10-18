@@ -192,9 +192,8 @@ function ENT:Think()
 		if trace.Entity:IsValid() then
 			ent = trace.Entity
 		elseif tab.ignore_world and trace.HitWorld then
-			if not tab.default_zero then
-				dist = beamlength
-			end
+			dist = tab.default_zero and 0 or beamlength
+			pos = nil
 		end
 	elseif not tab.default_zero then
 		dist = beamlength
@@ -273,20 +272,32 @@ function ENT:Think()
 		WireLib.TriggerOutput(self, "HitNormal Z", z)
 	end
 
-	if tab.out_val and tab.Outputs then
-		local i = 0
-		local val = {}
+	local val_count
 
-		for _, output in pairs(tab.Outputs) do
-			if output.Value ~= nil and isnumber(output.Value) then
-				i = i + 1
-				val[i] = output.Value
+	if tab.out_val then
+		local val
+		val_count = 0
+
+		if ent then
+			local ent_outputs = ent.Outputs
+
+			if ent_outputs then
+				val = {}
+
+				for _, output in pairs(ent_outputs) do
+					local output_val = output.Value
+
+					if isnumber(output_val) then
+						val_count = val_count + 1
+						val[val_count] = output_val
+					end
+				end
 			end
 		end
 
-		if i > 0 and tab.Inputs.SelectValue.Value <= i then
+		if val_count > 0 and tab.Inputs.SelectValue.Value <= val_count then
 			WireLib.TriggerOutput(self, "Val", val[tab.Inputs.SelectValue.Value])
-			WireLib.TriggerOutput(self, "ValSize", i)
+			WireLib.TriggerOutput(self, "ValSize", val_count)
 		else
 			WireLib.TriggerOutput(self, "Val", 0)
 			WireLib.TriggerOutput(self, "ValSize", 0)
@@ -308,7 +319,7 @@ function ENT:Think()
 		if tab.out_vel then txt = txt .. string.format("\nVelocity = %s, %s, %s", math.Round(vel.x, 3), math.Round(vel.y, 3), math.Round(vel.z, 3)) end
 		if tab.out_ang then txt = txt .. string.format("\nAngles = %s, %s, %s", math.Round(ang.pitch, 3), math.Round(ang.yaw, 3), math.Round(ang.roll, 3)) end
 		if tab.out_col then txt = txt .. string.format("\nColor = %s, %s, %s, %s", math.Round(col.r), math.Round(col.g), math.Round(col.b), math.Round(col.a)) end
-		if tab.out_val then txt = txt .. string.format("\nValue = %s ValSize = %s", math.Round(tab.Outputs["Val"].Value or 0, 3), val and #val or 0) end
+		if tab.out_val then txt = txt .. string.format("\nValue = %s ValSize = %s", math.Round(tab.Outputs["Val"].Value or 0, 3), val_count or 0) end
 		if tab.out_sid then txt = txt .. "\nSteamID = " .. (ent and ent:IsPlayer() and ent:SteamID() or "") end
 		if tab.out_uid then txt = txt .. "\nUniqueID = " .. (ent and ent:IsPlayer() and ent:UniqueID() or 0) end
 		if tab.out_eid then txt = txt .. "\nEntID = " .. (ent and ent:EntIndex() or 0) end
