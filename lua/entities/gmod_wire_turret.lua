@@ -1,176 +1,151 @@
 AddCSLuaFile()
-DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName     = "Wire Turret"
+
+DEFINE_BASECLASS("base_wire_entity")
+ENT.PrintName = "Wire Turret"
 ENT.WireDebugName = "Turret"
 
-if ( CLIENT ) then return end -- No more client
+if CLIENT then return end
 
-local NumEnabled = CreateConVar("wire_turret_numbullets_enabled", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Enable or Disable the numbullets function of wire turrets")
-local TracerEnabled = CreateConVar("wire_turret_tracer_enabled", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Enable or disable the tracer per x bullet function of wire turrets")
-local MinTurretDelay = CreateConVar("wire_turret_delay_minimum", 0.01, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Set the minimum allowed value for wire turrets")
+local num_enabled = CreateConVar("wire_turret_numbullets_enabled", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Enable or Disable the numbullets function of wire turrets")
+local tracer_enabled = CreateConVar("wire_turret_tracer_enabled", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Enable or disable the tracer per x bullet function of wire turrets")
+local min_delay = CreateConVar("wire_turret_delay_minimum", 0.01, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Set the minimum allowed value for wire turrets")
 
 function ENT:Initialize()
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
+	self:DrawShadow(false)
+	self:PhysWake()
 
-	self:DrawShadow( false )
-	self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
-
-	local phys = self:GetPhysicsObject()
-	if ( phys:IsValid() ) then
-		phys:Wake()
-	end
-
-	-- Allocating internal values on initialize
-	self.NextShot     = 0
-	self.Firing       = false
-	self.spreadvector = Vector()
-	self.effectdata   = EffectData()
+	self.NextShoot = 0
+	self.Firing = false
+	self.BulletTable = {Num = 1, Spread = Vector(0, 0, 0), Tracer = 1, TracerName = "Tracer", Force = 0, Damage = 0, Inflictor = self }
+	self.BulletCallback = function(attacker, trace, dmg) WireLib.TriggerOutput(self, "Bullet", trace) WireLib.TriggerOutput(self, "HitEntity", trace.Entity) end
 
 	-- Not all entities have an 1 attachment
 	local attachment = self:GetAttachment(1)
-	self.attachmentPos = attachment and self:WorldToLocal(attachment.Pos) or vector_origin
+	self.attachment = attachment and self:WorldToLocal(attachment.Pos) or Vector(0, 0, 0)
 
-	self.Inputs = WireLib.CreateSpecialInputs(self,
-		{ "Fire", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound", "Tracer" },
-		{ "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "STRING", "STRING" })
-
-	self.Outputs = WireLib.CreateSpecialOutputs(self,
-		{ "HitEntity", "Bullet" },
-		{ "ENTITY", "RANGER" })
+	WireLib.CreateInputs(self, { "Fire (Automatic fire)", "Shoot (Single shoot)", "Force", "Damage", "NumBullets", "Spread", "Delay", "Sound [STRING]", "Tracer [STRING]" })
+	WireLib.CreateOutputs(self, { "HitEntity [ENTITY]", "Bullet [RANGER]" })
 end
 
-function ENT:FireShot()
+function ENT:FireShoot()
+	local curtime = CurTime()
+	local tab = self:GetTable()
 
-	if ( self.NextShot > CurTime() ) then return end
-
-	self.NextShot = CurTime() + self.delay
-
-	-- Make a sound if you want to.
-	if ( self.sound ) then
-		self:EmitSound( self.sound )
+	if tab.NextShoot > curtime then
+		return
 	end
 
-	local shootOrigin, shootAngles
-	local parent = self:GetParent()
-	if parent:IsValid() then
-		shootOrigin = self:LocalToWorld(self.attachmentPos)
-		shootAngles = self:GetAngles()
-	else
-		local phys = self:GetPhysicsObject()
-		shootOrigin = phys:LocalToWorld(self.attachmentPos)
-		shootAngles = phys:GetAngles()
+	if tab.sound then
+		self:EmitSound(tab.sound)
 	end
 
-	-- Shoot a bullet
-	local bullet      = {}
-	bullet.Num        = self.numbullets
-	bullet.Src        = shootOrigin
-	bullet.Dir        = shootAngles:Forward()
-	bullet.Spread     = self.spreadvector
-	bullet.Tracer     = self.tracernum
-	bullet.TracerName = self.tracer
-	bullet.Force      = self.force
-	bullet.Damage     = self.damage
-	bullet.Attacker   = self:GetPlayer()
-	bullet.Callback   = function(attacker, traceres, cdamageinfo)
-		WireLib.TriggerOutput(self, "Bullet", traceres)
-		WireLib.TriggerOutput(self, "HitEntity", traceres.Entity)
-	end
+	local origin = self:LocalToWorld(tab.attachment)
+	local angles = self:GetAngles()
+	local outputs = tab.Outputs
 
-	self:FireBullets( bullet )
+	local bullet = tab.BulletTable
+	bullet.Src = origin
+	bullet.Dir = angles:Forward()
+	bullet.Attacker = tab.GetPlayer(self)
+	bullet.Callback = (#outputs["HitEntity"].Connected > 0 or #outputs["Bullet"].Connected > 0) and tab.BulletCallback or nil
+	tab.NextShoot = curtime + tab.delay
+	self:FireBullets(bullet, true)
 
-	-- Make a muzzle flash
-	self.effectdata:SetOrigin( shootOrigin )
-	self.effectdata:SetAngles( shootAngles )
-	self.effectdata:SetScale( 1 )
-	util.Effect( "MuzzleEffect", self.effectdata )
+	local effect = EffectData()
+	effect:SetOrigin(origin)
+	effect:SetAngles(angles)
+	effect:SetScale(1)
+	util.Effect("MuzzleEffect", effect)
 end
 
-function ENT:OnTakeDamage( dmginfo )
-	self:TakePhysicsDamage( dmginfo )
+function ENT:OnTakeDamage(dmg)
+	self:TakePhysicsDamage(dmg)
 end
 
 function ENT:Think()
-	BaseClass.Think( self )
+	BaseClass.Think(self)
 
-	if ( self.Firing ) then
-		self:FireShot()
+	local tab = self:GetTable()
+
+	if tab.Firing then
+		tab.FireShoot(self)
 	end
 
-	self:NextThink( CurTime() )
+	self:NextThink(CurTime())
 	return true
 end
 
-local ValidTracers = {
-	["Tracer"]                = true,
-	["AR2Tracer"]             = true,
-	["ToolTracer"]            = true,
-	["GaussTracer"]           = true,
-	["LaserTracer"]           = true,
-	["StriderTracer"]         = true,
-	["GunshipTracer"]         = true,
-	["HelicopterTracer"]      = true,
-	["AirboatGunTracer"]      = true,
+local valid_tracers = {
+	[""] = true,
+	["AR2Tracer"] = true,
 	["AirboatGunHeavyTracer"] = true,
-	[""]                      = true
+	["AirboatGunTracer"] = true,
+	["HelicopterTracer"] = true,
+	["LaserTracer"] = true,
+	["ToolTracer"] = true,
+	["Tracer"] = true
 }
 
-function ENT:SetSound( path )
-	if path then
-		self.sound = WireLib.SoundExists(path)
-	end
+function ENT:SetSound(path)
+	self.sound = path and WireLib.SoundExists(path)
 end
 
-function ENT:SetDelay( delay )
-	self.delay = math.Clamp( delay, MinTurretDelay:GetFloat(), 2 )
+function ENT:SetDelay(delay)
+	self.delay = math.max(delay, min_delay:GetFloat())
 end
 
-function ENT:SetNumBullets( numbullets )
-	self.numbullets = NumEnabled:GetBool() and math.Clamp( math.floor( numbullets ), 1, 10 ) or 1
+function ENT:SetNumBullets(num_bullets)
+	self.numbullets = num_enabled:GetBool() and math.Clamp(math.floor(num_bullets), 1, 10) or 1
+	self.BulletTable.Num = self.numbullets
 end
 
-function ENT:SetTracer( tracer )
+function ENT:SetTracer(tracer)
 	tracer = WireLib.Trim(tracer)
-	self.tracer = TracerEnabled:GetBool() and ValidTracers[tracer] and tracer or ""
+	self.tracer = tracer_enabled:GetBool() and valid_tracers[tracer] and tracer or ""
+	self.BulletTable.TracerName = self.tracer
 end
 
-function ENT:SetSpread( spread )
-	self.spread = math.Clamp( spread, 0, 1 )
-	self.spreadvector.x = self.spread
-	self.spreadvector.y = self.spread
+function ENT:SetSpread(spread)
+	self.spread = math.Clamp(spread, 0, 5)
+	self.BulletTable.Spread:SetUnpacked(self.spread, self.spread, 0)
 end
 
-function ENT:SetDamage( damage )
-	self.damage = math.Clamp( damage, 0, 100 )
+function ENT:SetDamage(damage)
+	self.damage = math.Clamp(damage, 0, 100)
+	self.BulletTable.Damage = self.damage
 end
 
-function ENT:SetForce( force )
-	self.force = math.Clamp( force, 0, 500 )
+function ENT:SetForce(force)
+	self.force = math.Clamp(force, 0, 5000)
+	self.BulletTable.Force = self.force
 end
 
-function ENT:SetTraceNum( tracernum )
-	self.tracernum = TracerEnabled:GetBool() and math.Clamp( math.floor( tracernum ), 0, 15 ) or 0
+function ENT:SetTraceNum(tracer_num)
+	self.tracernum = tracer_enabled:GetBool() and math.Clamp(math.floor(tracer_num), 0, 15) or 0
+	self.BulletTable.Tracer = self.tracernum
 end
 
-function ENT:TriggerInput( iname, value )
-	if (iname == "Fire") then
+function ENT:TriggerInput(name, value)
+	if name == "Fire" then
 		self.Firing = value > 0
-	elseif (iname == "Force") then
-		self:SetForce( value )
-	elseif (iname == "Damage") then
-		self:SetDamage( value )
-	elseif (iname == "NumBullets") then
-		self:SetNumBullets( value )
-	elseif (iname == "Spread") then
-		self:SetSpread( value )
-	elseif (iname == "Delay") then
-		self:SetDelay( value )
-	elseif (iname == "Sound") then
-		self:SetSound( value )
-	elseif (iname == "Tracer") then
-		self:SetTracer( value )
+	elseif name == "Shoot" and value > 0 then
+		self:FireShoot()
+	elseif name == "Force" then
+		self:SetForce(value)
+	elseif name == "Damage" then
+		self:SetDamage(value)
+	elseif name == "NumBullets" then
+		self:SetNumBullets(value)
+	elseif name == "Spread" then
+		self:SetSpread(value)
+	elseif name == "Delay" then
+		self:SetDelay(value)
+	elseif name == "Sound" then
+		self:SetSound(value)
+	elseif name == "Tracer" then
+		self:SetTracer(value)
 	end
 end
 
@@ -183,6 +158,7 @@ function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, trac
 	self:SetTracer(tracer)
 	self:SetTraceNum(tracernum or 0)
 	self:SetNumBullets(numbullets)
+	self.NextShoot = 0
 end
 
-duplicator.RegisterEntityClass( "gmod_wire_turret", WireLib.MakeWireEnt, "Data", "delay", "damage", "force", "sound", "numbullets", "spread", "tracer", "tracernum" )
+duplicator.RegisterEntityClass("gmod_wire_turret", WireLib.MakeWireEnt, "Data", "delay", "damage", "force", "sound", "numbullets", "spread", "tracer", "tracernum")
