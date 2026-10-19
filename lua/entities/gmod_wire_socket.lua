@@ -110,7 +110,7 @@ function ENT:Initialize()
 
 	self:SetLinked( false )
 
-	self.Memory = {}
+	self.Memory = nil
 
 	self.DoNextThink = CurTime() + 5 -- wait 5 seconds
 end
@@ -139,6 +139,13 @@ end
 function ENT:TriggerInput( name, value )
 	if (self.Plug and self.Plug:IsValid()) then
 		self.Plug:SetValue( name, value )
+	end
+	if not self.ArrayInput then
+		if (self.Inputs['A'].Src and self.Inputs['A'].Src:IsValid()) then
+			self.Memory = self.Inputs['A'].Src
+		else
+			self.Memory = nil
+		end
 	end
 	self:ShowOutput()
 end
@@ -177,10 +184,20 @@ end
 -- Hi-speed support
 ------------------------------------------------------------
 function ENT:WriteCell( Address, Value, WriteToMe )
-	Address = math.floor(Address)
+	Address = math.floor(Address or 0)
 	if (WriteToMe) then
-		self.Memory[Address or 1] = Value or 0
-		return true
+		--this would allow the plug to work almost like a dhdd, which seems silly.
+		--[[if self.ArrayInput then
+			-- 256 KiB limit
+			if Address < 0 or Address >= 262144 then return false end
+			self.Inputs.In.Value[Address] = Value or 0
+			return true
+		end]]--
+		if (self.Memory and self.Memory.WriteCell) then
+			self.Memory:WriteCell(Address, Value)
+			return true
+		end
+		return false
 	else
 		if (self.Plug and self.Plug:IsValid()) then
 			self.Plug:WriteCell( Address, Value, true )
@@ -195,9 +212,23 @@ end
 -- ReadCell
 -- Hi-speed support
 ------------------------------------------------------------
-function ENT:ReadCell( Address )
-	Address = math.floor(Address)
-	return self.Memory[Address or 1] or 0
+function ENT:ReadCell( Address, ReadFromMe )
+	Address = math.floor(Address or 0)
+	if (ReadFromMe) then
+		if self.ArrayInput then
+			return self.Inputs.In.Value[Address] or 0
+		end
+		if (self.Memory and self.Memory.ReadCell) then
+			return self.Memory:ReadCell(Address)
+		end
+		return 0
+	else
+		if (self.Plug and self.Plug:IsValid()) then
+			return self.Plug:ReadCell( Address, true )
+		else
+			return 0
+		end
+	end
 end
 
 function ENT:ResetValues()
@@ -208,7 +239,7 @@ function ENT:ResetValues()
 			WireLib.TriggerOutput( self, LETTERS[i], 0 )
 		end
 	end
-	self.Memory = {}
+	self.Memory = nil
 	self:ShowOutput()
 end
 
