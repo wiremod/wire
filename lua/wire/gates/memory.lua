@@ -130,7 +130,8 @@ GateActions["wom4"] = {
 	end,
 	label = function()
 		return "Write Only Memory - 4 store"
-	end
+	end,
+	Upgrade = "gmod_wire_dynmemory",
 }
 
 GateActions["ram8"] = {
@@ -175,7 +176,8 @@ GateActions["ram8"] = {
 			gate.LatchStore[Address] = value
 			return true
 		end
-	end
+	end,
+	Upgrade = "gmod_wire_dynmemory"
 }
 
 GateActions["ram64"] = {
@@ -216,7 +218,8 @@ GateActions["ram64"] = {
 			gate.LatchStore[Address] = value
 			return true
 		end
-	end
+	end,
+	Upgrade = "gmod_wire_dynmemory"
 }
 
 GateActions["ram1k"] = {
@@ -257,7 +260,8 @@ GateActions["ram1k"] = {
 			gate.LatchStore[Address] = value
 			return true
 		end
-	end
+	end,
+	Upgrade = "gmod_wire_dynmemory"
 }
 
 GateActions["ram32k"] = {
@@ -298,7 +302,8 @@ GateActions["ram32k"] = {
 			gate.LatchStore[Address] = value
 			return true
 		end
-	end
+	end,
+	Upgrade = "gmod_wire_dynmemory"
 }
 
 GateActions["ram128k"] = {
@@ -339,7 +344,8 @@ GateActions["ram128k"] = {
 			gate.LatchStore[Address] = value
 			return true
 		end
-	end
+	end,
+	Upgrade = "gmod_wire_dynmemory"
 }
 
 GateActions["ram64x64"] = {
@@ -387,7 +393,8 @@ GateActions["ram64x64"] = {
 			gate.LatchStore[Address] = value
 			return true
 		end
-	end
+	end,
+	Upgrade = "gmod_wire_dynmemory"
 }
 
 GateActions["udcounter"] = {
@@ -400,7 +407,7 @@ GateActions["udcounter"] = {
 		local lClk = (Clk > 0)
 		local lReset = (Reset > 0)
 		if ((gate.PrevInc ~= lInc or gate.PrevDec ~= lDec or gate.PrevClk ~= lClk) and lClk) then
-			if (lInc) and (not lDec) and (not lReset) then
+			if lInc and not lDec and not lReset then
 				gate.countStore = (gate.countStore or 0) + 1
 			elseif (not lInc) and (lDec) and (not lReset) then
 				gate.countStore = (gate.countStore or 0) - 1
