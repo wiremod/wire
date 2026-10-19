@@ -21,6 +21,16 @@ FPGAGateActions["vector-constant"] = {
 }
 
 i = i + 1
+FPGAGateActions["quaternion-constant"] = {
+	order = i,
+	name = "Constant Quaternion",
+	inputs = {},
+	outputs = {"Out"},
+	outputtypes = {"QUATERNION"},
+	isConstant = true
+}
+
+i = i + 1
 FPGAGateActions["angle-constant"] = {
 	order = i,
 	name = "Constant Angle",
