@@ -11,6 +11,54 @@ net.Stream.MaxChunks = 3200 --Maximum number of pieces the stream can send to th
 net.Stream.MaxSize = net.Stream.SendSize*net.Stream.MaxChunks
 net.Stream.MaxTries = 3 --Maximum times the client may retry downloading the whole data
 
+local pendingStreams = {}
+if SERVER then
+	-- Bind streams to the recipients of the message containing their headers.
+	for _, name in ipairs({"Start", "Abort"}) do
+		local original = net[name]
+		net[name] = function(...)
+			pendingStreams = {}
+			return original(...)
+		end
+	end
+
+	for _, name in ipairs({"Send", "Broadcast", "SendOmit", "SendPVS", "SendPAS"}) do
+		local original = net[name]
+		net[name] = function(...)
+			if #pendingStreams > 0 then
+				local target = ...
+				local recipients
+				if name == "Send" then
+					if type(target) == "CRecipientFilter" then
+						recipients = target:GetPlayers()
+					else
+						recipients = istable(target) and target or {target}
+					end
+				elseif name == "Broadcast" then
+					recipients = player.GetAll()
+				else
+					local filter = RecipientFilter()
+					if name == "SendOmit" then
+						filter:AddAllPlayers()
+						filter:RemovePlayers(istable(target) and target or {target})
+					elseif name == "SendPVS" then
+						filter:AddPVS(target)
+					else
+						filter:AddPAS(target)
+					end
+					recipients = filter:GetPlayers()
+				end
+
+				local allowed = {}
+				for _, ply in ipairs(recipients) do allowed[ply] = true end
+				for _, stream in ipairs(pendingStreams) do stream.recipients = allowed end
+				pendingStreams = {}
+			end
+			return original(...)
+		end
+	end
+end
+
 local WriteStreamQueue = {
 	__index = {
 		Add = function(self, stream)
@@ -145,6 +193,7 @@ net.Stream.ReadStreams = ReadStreamQueue()
 local WritingDataItem = {
 	__index = {
 		Write = function(self, ply, chunkidx)
+			if SERVER and (not self.recipients or not self.recipients[ply]) then return false end
 			local client = self.clients[ply]
 			if client.finished then return false end
 			if chunkidx == #self.chunks+1 then self:Finished(ply) return true end
@@ -323,6 +372,7 @@ function net.WriteStream(data, callback, dontcompress)
 
 	local stream = net.Stream.WriteStreams:Add(WritingDataItem(data, callback, compressed))
 	if not stream then return end
+	if SERVER then pendingStreams[#pendingStreams+1] = stream end
 	
 	--print("WriteStream", #stream.chunks, stream.identifier, compressed)
 	net.WriteUInt(#stream.chunks, 32)
