@@ -65,6 +65,21 @@ TOOL.ClientConVar = {
 	text        = "",
 }
 
+local copyConVars = {
+	"text", "model", "tsize", "tjust", "valign", "tfont",
+	"tred", "tgreen", "tblue", "tbgred", "tbggreen", "tbgblue"
+}
+
+if SERVER then
+	util.AddNetworkString("wire_textscreen_copysettings")
+else
+	net.Receive("wire_textscreen_copysettings", function()
+		for _, name in ipairs(copyConVars) do
+			GetConVar("wire_textscreen_" .. name):SetString(net.ReadString())
+		end
+	end)
+end
+
 function TOOL:RightClick( trace )
 	if not trace.HitPos then return false end
 	local ent = trace.Entity
@@ -74,18 +89,15 @@ function TOOL:RightClick( trace )
 	local ply = self:GetOwner()
 
 	if ent:IsValid() and ent:GetClass() == "gmod_wire_textscreen" then
-		ply:ConCommand('wire_textscreen_text "'..ent.text..'"')
-		ply:ConCommand('wire_textscreen_model "'..ent:GetModel()..'"')
-		ply:ConCommand('wire_textscreen_tsize "'..(16 -ent.chrPerLine)..'"')
-		ply:ConCommand('wire_textscreen_tjust "'..ent.textJust..'"')
-		ply:ConCommand('wire_textscreen_valign "'..ent.valign..'"')
-		ply:ConCommand('wire_textscreen_tfont "'..ent.tfont..'"')
-		ply:ConCommand('wire_textscreen_tred "'..ent.fgcolor.r..'"')
-		ply:ConCommand('wire_textscreen_tgreen "'..ent.fgcolor.g..'"')
-		ply:ConCommand('wire_textscreen_tblue "'..ent.fgcolor.b..'"')
-		ply:ConCommand('wire_textscreen_tbgred "'..ent.bgcolor.r..'"')
-		ply:ConCommand('wire_textscreen_tbggreen "'..ent.bgcolor.g..'"')
-		ply:ConCommand('wire_textscreen_tbgblue "'..ent.bgcolor.b..'"')
+		local values = {
+			ent.text, ent:GetModel(), 16 - ent.chrPerLine, ent.textJust, ent.valign, ent.tfont,
+			ent.fgcolor.r, ent.fgcolor.g, ent.fgcolor.b, ent.bgcolor.r, ent.bgcolor.g, ent.bgcolor.b
+		}
+		net.Start("wire_textscreen_copysettings")
+		for _, value in ipairs(values) do
+			net.WriteString(tostring(value))
+		end
+		net.Send(ply)
 		return true
 	end
 
