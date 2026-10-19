@@ -131,7 +131,7 @@ if CLIENT then
 	end
 
 	local function getWireName( ent )
-		local name = ent:GetNWString("WireName")
+		local name = ent:GetNW2String("WireName")
 		if not name or name == "" then return ent.PrintName else return name end
 	end
 
@@ -320,7 +320,7 @@ if CLIENT then
 
 	-- Basic legacy GetOverlayText, is no longer used here but we leave it here in case other addons rely on it.
 	function ENT:GetOverlayText()
-		local name = self:GetNWString("WireName")
+		local name = self:GetNW2String("WireName")
 		if name == "" then name = self.PrintName end
 		local header = "- " .. name .. " -"
 

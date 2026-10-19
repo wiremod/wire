@@ -134,8 +134,8 @@ local function doSetName(self, this, name)
 	else
 		if #name > 200 then name = string.sub(name, 1, 200) end
 		if string.find(name, "[\n\r\"]") then return self:throw("setName name contains illegal characters!") end
-		if this:GetNWString("WireName") == name then return end
-		this:SetNWString("WireName", name)
+		if this:GetNW2String("WireName") == name then return end
+		this:SetNW2String("WireName", name)
 		duplicator.StoreEntityModifier(this, "WireName", { name = name })
 
 	end
@@ -181,7 +181,7 @@ e2function string entity:getName()
 	if this.GetGateName then
 		return this:GetGateName() or ""
 	end
-	return this:GetNWString("WireName", this.PrintName) or ""
+	return this:GetNW2String("WireName", this.PrintName) or ""
 end
 
 local function canSetName(self, this, str)
