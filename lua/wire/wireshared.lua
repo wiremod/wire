@@ -565,6 +565,21 @@ elseif CLIENT then
 	end)
 end
 
+if SERVER then
+	util.AddNetworkString("wire_set_convar")
+
+	function WireLib.SetConvar(ply, convar, name)
+		net.Start("wire_set_convar")
+		net.WriteString(convar)
+		net.WriteString(tostring(name))
+		net.Send(ply)
+	end
+else
+	net.Receive("wire_set_convar", function()
+		RunConsoleCommand(net.ReadString(), net.ReadString())
+	end)
+end
+
 --[[ wire_ports: client-side input/output names/types/descs
 	umsg format:
 	any number of the following:

@@ -41,14 +41,14 @@ function TOOL:RightClick( trace )
 	local ply = self:GetOwner()
 
 	if ( trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_addressbus" ) then
-		ply:ConCommand("wire_addressbus_addrspace1sz "..(trace.Entity.MemEnd[1]-trace.Entity.MemStart[1]+1))
-		ply:ConCommand("wire_addressbus_addrspace1st "..(trace.Entity.MemStart[1]))
-		ply:ConCommand("wire_addressbus_addrspace2sz "..(trace.Entity.MemEnd[2]-trace.Entity.MemStart[2]+1))
-		ply:ConCommand("wire_addressbus_addrspace2st "..(trace.Entity.MemStart[2]))
-		ply:ConCommand("wire_addressbus_addrspace3sz "..(trace.Entity.MemEnd[3]-trace.Entity.MemStart[3]+1))
-		ply:ConCommand("wire_addressbus_addrspace3st "..(trace.Entity.MemStart[3]))
-		ply:ConCommand("wire_addressbus_addrspace4sz "..(trace.Entity.MemEnd[4]-trace.Entity.MemStart[4]+1))
-		ply:ConCommand("wire_addressbus_addrspace4st "..(trace.Entity.MemStart[4]))
+		WireLib.SetConvar(ply, "wire_addressbus_addrspace1sz", trace.Entity.MemEnd[1] - trace.Entity.MemStart[1] + 1)
+		WireLib.SetConvar(ply, "wire_addressbus_addrspace1st", trace.Entity.MemStart[1])
+		WireLib.SetConvar(ply, "wire_addressbus_addrspace2sz", trace.Entity.MemEnd[2] - trace.Entity.MemStart[2] + 1)
+		WireLib.SetConvar(ply, "wire_addressbus_addrspace2st", trace.Entity.MemStart[2])
+		WireLib.SetConvar(ply, "wire_addressbus_addrspace3sz", trace.Entity.MemEnd[3] - trace.Entity.MemStart[3] + 1)
+		WireLib.SetConvar(ply, "wire_addressbus_addrspace3st", trace.Entity.MemStart[3])
+		WireLib.SetConvar(ply, "wire_addressbus_addrspace4sz", trace.Entity.MemEnd[4] - trace.Entity.MemStart[4] + 1)
+		WireLib.SetConvar(ply, "wire_addressbus_addrspace4st", trace.Entity.MemStart[4])
 	end
 	return true
 end

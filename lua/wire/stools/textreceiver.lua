@@ -52,12 +52,12 @@ function TOOL:RightClick( trace )
 		local CaseInsensitive = trace.Entity.CaseInsensitive
 
 		local ply = self:GetOwner()
-		ply:ConCommand( "wire_textreceiver_use_lua_patterns " .. (UseLuaPatterns and 1 or 0))
-		ply:ConCommand( "wire_textreceiver_case_insensitive " .. (CaseInsensitive and 1 or 0))
+		WireLib.SetConvar(ply, "wire_textreceiver_use_lua_patterns", UseLuaPatterns and 1 or 0)
+		WireLib.SetConvar(ply, "wire_textreceiver_case_insensitive", CaseInsensitive and 1 or 0)
 		for i=1,24 do
 			local match = Matches[i]
 			if match ~= nil then
-				ply:ConCommand( "wire_textreceiver_match" .. i .. " " .. match )
+				WireLib.SetConvar(ply, "wire_textreceiver_match" .. i, match)
 			end
 		end
 

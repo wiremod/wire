@@ -37,8 +37,8 @@ function TOOL:RightClick(trace)
 
 	if (trace.Entity and trace.Entity:IsValid()) then
 		if (trace.Entity:GetClass() == "prop_physics") then
-			self:GetOwner():ConCommand('wire_cd_disk_model "'..trace.Entity:GetModel()..'"\n')
-			self:GetOwner():ConCommand('wire_cd_disk_skin "'..trace.Entity:GetSkin()..'"\n')
+			WireLib.SetConvar(self:GetOwner(), "wire_cd_disk_model", trace.Entity:GetModel())
+			WireLib.SetConvar(self:GetOwner(), "wire_cd_disk_skin", trace.Entity:GetSkin())
 		end
 	end
 

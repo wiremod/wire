@@ -275,7 +275,7 @@ function TOOL:RightClick( trace )
 		local action = GateActions[trace.Entity.action]
 		assert(action, "Attempted to copy gate " .. tostring(trace.Entity) .. " with no action!")
 
-		self:GetOwner():ConCommand( "wire_gates_action " .. trace.Entity.action )
+		WireLib.SetConvar(self:GetOwner(), "wire_gates_action", trace.Entity.action)
 		self:GetOwner():ChatPrint( "Gate copied ('" .. action.name .. "')." )
 		return true
 	else
@@ -315,7 +315,7 @@ function TOOL:Reload( trace )
 		return false
 	else
 		if game.SinglePlayer() and SERVER then
-			self:GetOwner():ConCommand( "wire_gates_angleoffset " .. (self:GetClientNumber( "angleoffset" ) + 45) % 360 )
+			WireLib.SetConvar(self:GetOwner(), "wire_gates_angleoffset", (self:GetClientNumber( "angleoffset" ) + 45) % 360)
 		elseif CLIENT then
 			RunConsoleCommand( "wire_gates_angleoffset", (self:GetClientNumber( "angleoffset" ) + 45) % 360 )
 		end
