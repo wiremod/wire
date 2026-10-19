@@ -127,7 +127,7 @@ function WireToolObj:Reload( trace )
 	if not IsValid(trace.Entity) then return false end
 	if CLIENT then return true end
 	if self.ReloadSetsModel then
-		self:GetOwner():ConCommand(self.Mode.."_model " .. trace.Entity:GetModel())
+		WireLib.SetConvar(self:GetOwner(), self.Mode .. "_model", trace.Entity:GetModel())
 		self:GetOwner():PrintMessage( HUD_PRINTTALK, self.Name.." model set to " .. trace.Entity:GetModel() )
 		return true
 	end
@@ -528,7 +528,7 @@ end
 -- closes and saves the open TOOL obj
 function WireToolSetup.close()
 	TOOL:CreateConVars()
-	
+
 	if hook.Run("PreRegisterTOOL", TOOL, TOOL.Mode) ~= false then
 		SWEP.Tool[TOOL.Mode] = TOOL
 	end

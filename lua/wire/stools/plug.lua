@@ -109,7 +109,7 @@ end
 --------------------
 function TOOL:Reload( trace )
 	if game.SinglePlayer() and SERVER then
-		self:GetOwner():ConCommand( "wire_plug_angleoffset " .. (self:GetClientNumber( "angleoffset" ) + 45) % 360 )
+		WireLib.SetConvar(self:GetOwner(), "wire_plug_angleoffset", (self:GetClientNumber( "angleoffset" ) + 45) % 360)
 	elseif CLIENT then
 		RunConsoleCommand( "wire_plug_angleoffset", (self:GetClientNumber( "angleoffset" ) + 45) % 360 )
 	end

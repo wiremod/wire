@@ -92,9 +92,9 @@ TOOL.ClientConVar = {
 
 function TOOL:Reload(trace)
 	if trace.Entity:IsValid() then
-		self:GetOwner():ConCommand("wire_target_finder_entityfil " .. trace.Entity:GetClass() .. "\n")
+		WireLib.SetConvar(self:GetOwner(), "wire_target_finder_entityfil", trace.Entity:GetClass())
 	else
-		self:GetOwner():ConCommand("wire_target_finder_entityfil \n")
+		WireLib.SetConvar(self:GetOwner(), "wire_target_finder_entityfil", "")
 	end
 	return true
 end
