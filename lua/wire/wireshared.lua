@@ -568,10 +568,10 @@ end
 if SERVER then
 	util.AddNetworkString("wire_set_convar")
 
-	function WireLib.SetConvar(ply, convar, name)
+	function WireLib.SetConvar(ply, convar, value)
 		net.Start("wire_set_convar")
 		net.WriteString(convar)
-		net.WriteString(tostring(name))
+		net.WriteString(tostring(value))
 		net.Send(ply)
 	end
 else
