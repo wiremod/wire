@@ -357,10 +357,11 @@ e2function number wirelink:readCell(address)
 end
 
 e2function array wirelink:readArray(start, size)
-	if size < 0 then return {} end
+	if size < 0 or size ~= size then return {} end
 	if !validWirelink(self, this) or !this.ReadCell then return {} end
 
 	self.prf = self.prf + size
+	if self.prf > e2_tickquota then error("perf", 0) return end
 
 	local ret = {}
 
