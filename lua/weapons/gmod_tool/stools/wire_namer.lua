@@ -1,61 +1,68 @@
-TOOL.Category		= "Tools"
-TOOL.Name			= "Namer"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+TOOL.Name = "Namer"
+TOOL.Category = "Tools"
+TOOL.Tab = "Wire"
 
-if ( CLIENT ) then
-	language.Add( "Tool.wire_namer.name", "Naming Tool" )
-	language.Add( "Tool.wire_namer.desc", "Names components." )
-	language.Add( "Tool.wire_namer.left", "Set name" )
-	language.Add( "Tool.wire_namer.right", "Copy name" )
-	language.Add( "WireNamerTool_name", "Name:" )
-	TOOL.Information = { "left", "right" }
+if CLIENT then
+	language.Add("tool.wire_namer.name", "Namer")
+	language.Add("tool.wire_namer.desc", "Names wire components.")
+	language.Add("tool.wire_namer.left", "Set name")
+	language.Add("tool.wire_namer.right", "Copy name")
+	language.Add("tool.wire_namer.reload", "Reset name")
+	TOOL.Information = { { name = "left" }, { name = "right" }, { name = "reload" } }
+
+	WireToolSetup.setToolMenuIcon("icon16/tag_blue.png")
 end
 
-TOOL.ClientConVar[ "name" ] = ""
+TOOL.ClientConVar["name"] = ""
 
-local function SetName( Player, Entity, Data )
-	if ( Data and Data.name ) then
-		Entity:SetNWString("WireName", Data.name)
-		duplicator.StoreEntityModifier( Entity, "WireName", Data )
+local function SetName(ply, ent, data)
+	if data and data.name then
+		ent:SetNW2String("WireName", data.name)
+		duplicator.StoreEntityModifier(ent, "WireName", data)
+	else
+		local name = ent:GetNW2String("WireName", false)
+
+		if name then
+			ent:SetNW2String("WireName", nil)
+		end
+
+		duplicator.ClearEntityModifier(ent, "WireName")
 	end
 end
-duplicator.RegisterEntityModifier( "WireName", SetName )
+
+duplicator.RegisterEntityModifier("WireName", SetName)
 
 function TOOL:LeftClick(trace)
-	if (not trace.Entity:IsValid()) then return end
-	if (CLIENT) then return end
-	if (not trace.Entity.IsWire) then return end
+	local ent = trace.Entity
+	if not ent:IsValid() or not ent.IsWire then return end
+	if CLIENT then return true end
 
 	local name = self:GetClientInfo("name")
-
-	//trace.Entity:SetNWString("WireName", name)
-
-	//made the WireName duplicatable entmod (TAD2020)
-	SetName( Player, trace.Entity, {name = name} )
+	SetName(nil, ent, { name = name })
 
 	return true
 end
 
-
 function TOOL:RightClick(trace)
-	if (not trace.Entity:IsValid()) then return end
-	if (CLIENT) then return end
+	local ent = trace.Entity
+	if not ent:IsValid() or not ent.IsWire then return end
+	if CLIENT then return true end
 
-	local name = trace.Entity:GetNWString("WireName")
-	if (not name) then return end
+	WireLib.SetConvar(self:GetOwner(), "wire_namer_name", ent:GetNW2String("WireName"))
 
-	WireLib.SetConvar(self:GetOwner(), "wire_namer_name", name)
+	return true
 end
 
+function TOOL:Reload(trace)
+	local ent = trace.Entity
+	if not ent:IsValid() or not ent.IsWire then return end
+	if CLIENT then return true end
+
+	SetName(nil, ent, {})
+
+	return true
+end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_namer.name", Description = "#Tool.wire_namer.desc" })
-
-	panel:AddControl("TextBox", {
-		Label = "#WireNamerTool_name",
-		Command = "wire_namer_name",
-		MaxLength = "20"
-	})
+	panel:TextEntry("Name", "wire_namer_name")
 end
