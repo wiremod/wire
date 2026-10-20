@@ -41,6 +41,7 @@ end
 
 function TOOL:RightClick(trace)
 	if (not trace.Entity:IsValid()) then return end
+	if (not trace.Entity.IsWire) then return end
 	local name = trace.Entity:GetNW2String("WireName")
 	if (not name) then return end
 	if (CLIENT) then return true end
