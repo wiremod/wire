@@ -241,7 +241,7 @@ local WritingDataItem = {
 			end
 			protected = true
 		else
-			clients = setmetatable({protected = false},{__index = function(t,k)
+			clients = setmetatable({},{__index = function(t,k)
 				local r = {
 					finished = false,
 					downloads = 0,
