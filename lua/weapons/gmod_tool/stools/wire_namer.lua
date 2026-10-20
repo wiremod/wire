@@ -38,7 +38,7 @@ function TOOL:LeftClick(trace)
 	if CLIENT then return true end
 
 	local name = self:GetClientInfo("name")
-	SetName(nil, ent, { name = name } )
+	SetName(nil, ent, { name = name })
 
 	return true
 end
@@ -58,7 +58,7 @@ function TOOL:Reload(trace)
 	if not ent:IsValid() or not ent.IsWire then return end
 	if CLIENT then return true end
 
-	SetName(nil, ent, {} )
+	SetName(nil, ent, {})
 
 	return true
 end
