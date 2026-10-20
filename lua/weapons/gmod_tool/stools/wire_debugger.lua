@@ -13,6 +13,8 @@ if ( CLIENT ) then
 	language.Add( "Tool_wire_debugger_showports", "Show overlay of ports in HUD" )
 	language.Add( "Tool_wire_debugger_orientvertical", "Orient the Inputs/Outputs Vertically" )
 	TOOL.Information = { "left", "right", "reload" }
+
+	WireToolSetup.setToolMenuIcon("icon16/script_code.png")
 end
 if SERVER then
 	util.AddNetworkString("WireDbgCount")
