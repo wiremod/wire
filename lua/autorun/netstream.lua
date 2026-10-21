@@ -185,8 +185,8 @@ local WritingDataItem = {
 			self.clients[ply].finished = true
 			if self.protected then
 				local readyToClean = true
-				for ply, client in pairs(self.clients) do
-					if not self.finished then readyToClean = false break end
+				for _, client in pairs(self.clients) do
+					if not client.finished then readyToClean = false break end
 				end
 				if readyToClean then
 					net.Stream.WriteStreams:CleanStream(self)
