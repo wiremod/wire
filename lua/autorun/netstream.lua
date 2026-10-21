@@ -351,6 +351,7 @@ function net.WriteStream(data, callback, dontcompress, recipients)
 	end
 	if recipients ~= nil then
 		if not istable(recipients) then error("bad argument #4 to 'WriteStream' (table expected, got " .. type(recipients) .. ")", 2) end
+		if CLIENT then error("recipients argument can't be used in clientside!", 2) end
 		if #recipients==0 then error("recipients argument is empty!", 2) end
 		for k, v in ipairs(recipients) do
 			if not v:IsPlayer() then error("recipients contains non-player entry in key ("..k..")!", 2) end

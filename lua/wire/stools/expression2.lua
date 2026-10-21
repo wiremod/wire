@@ -267,7 +267,7 @@ if SERVER then
 			net.Start("wire_expression2_download")
 				net.WriteEntity(targetEnt)
 				net.WriteBit(uploadandexit or false)
-				net.WriteStream(datastr)
+				net.WriteStream(datastr, nil, nil, {ply})
 			net.Send(ply)
 			return
 		end
@@ -282,7 +282,7 @@ if SERVER then
 			net.Start("wire_expression2_download_wantedfiles_list")
 				net.WriteEntity(targetEnt)
 				net.WriteBit(uploadandexit or false)
-				net.WriteStream(datastr)
+				net.WriteStream(datastr, nil, nil, {ply})
 			net.Send(ply)
 
 			targetEnt.DownloadAllowedPlayers = targetEnt.DownloadAllowedPlayers or {}
@@ -309,7 +309,7 @@ if SERVER then
 		net.Start("wire_expression2_download")
 			net.WriteEntity(targetEnt)
 			net.WriteBit(uploadandexit or false)
-			net.WriteStream(datastr)
+			net.WriteStream(datastr, nil, nil, {ply})
 		net.Send(ply)
 	end
 
