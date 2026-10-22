@@ -420,6 +420,16 @@ end
 
 __e2setcost(4)
 
+e2function quaternion operator%(quaternion lhs, number rhs)
+	local lhs1, lhs2, lhs3, lhs4 = lhs[1], lhs[2], lhs[3], lhs[4]
+	return {
+		lhs1%rhs,
+		lhs2%rhs,
+		lhs3%rhs,
+		lhs4%rhs
+	}
+end
+
 e2function quaternion operator^(number lhs, quaternion rhs)
 	if lhs == 0 then return { 0, 0, 0, 0 } end
 	local l = log(lhs)
