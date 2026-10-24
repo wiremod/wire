@@ -27,6 +27,7 @@ function ENT:Use(user)
 		if not IsValid(user) or not IsValid(self) or not user:KeyDown(IN_USE) or user:GetEyeTrace().Entity ~= self then return end
 
 		if not IsValid(user:GetWeapon("laserpointer")) and hook.Run("PlayerGiveSWEP", user, "laserpointer", list.GetEntry("Weapon", "laserpointer")) then
+			user.LasReceiver = nil
 			user:Give("laserpointer")
 		end
 
