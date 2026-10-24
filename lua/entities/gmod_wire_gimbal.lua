@@ -103,7 +103,9 @@ function ENT:Think()
 		end
 
 		if ang then
-			ang:Mul(tab.TargetAngOffset)
+			local p, y, r = ang:Unpack()
+			local offset_p, offset_y, offset_r = tab.TargetAngOffset:Unpack()
+			ang:SetUnpacked(p + offset_p, y + offset_y, r + offset_r)
 			self:SetAngles(ang)
 		end
 
