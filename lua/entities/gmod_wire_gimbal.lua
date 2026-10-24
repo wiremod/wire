@@ -1,124 +1,135 @@
 AddCSLuaFile()
-DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName		= "Wire Gimbal"
-ENT.WireDebugName 	= "Gimbal"
+DEFINE_BASECLASS("base_wire_entity")
+ENT.PrintName = "Wire Gimbal"
+ENT.WireDebugName = "Gimbal"
 
-local ORIGIN_COLOR  = Color(255, 150, 50)
-local FORWARD_COLOR = Color(255, 100, 100)
-local RIGHT_COLOR   = Color(100, 255, 100)
-local UP_COLOR      = Color(100, 100, 255)
+if CLIENT then
+	local function DrawOutlinedBeam(start_pos, end_pos, size, color)
+		render.DrawBeam(start_pos, end_pos, size + 0.2, 0, 1, color_black)
+		render.DrawBeam(start_pos, end_pos, size, 0, 1, color)
+	end
 
-local function DrawOutlinedBeam(startPos, endPos, size, color)
-	render.DrawBeam(startPos, endPos, size + 0.2, 0, 1, color_black)
-	render.DrawBeam(startPos, endPos, size, 0, 1, color)
+	function ENT:DrawWorldTip()
+		BaseClass.DrawWorldTip(self)
+
+		cam.Start3D()
+			local origin = self:GetPos()
+			local mins, maxs = self:GetModelRenderBounds()
+
+			local forward = self:GetForward()
+			forward:Mul(math.max(math.abs(mins[1]), maxs[1]))
+
+			local right = self:GetRight()
+			right:Mul(math.max(math.abs(mins[2]), maxs[2]))
+
+			local up = self:GetUp()
+			up:Mul(math.max(math.abs(mins[3]), maxs[3]))
+
+			render.SetColorMaterialIgnoreZ()
+			DrawOutlinedBeam(origin, origin + forward, 0.2, Color(255, 100, 100))
+			DrawOutlinedBeam(origin, origin + right, 0.2, Color(100, 255, 100))
+			DrawOutlinedBeam(origin, origin + up, 0.2, Color(100, 100, 255))
+
+			render.DrawSphere(origin, 0.35, 8, 8, color_black)
+			render.DrawSphere(origin, 0.2, 8, 8, Color(255, 150, 50))
+		cam.End3D()
+	end
+
+	return
 end
-
-function ENT:DrawWorldTip()
-	BaseClass.DrawWorldTip(self)
-
-	cam.Start3D()
-	local origin      = self:GetPos()
-	local mi, ma      = self:GetModelRenderBounds()
-	local forwardSize = math.max(math.abs(mi[1]), ma[1])
-	local rightSize   = math.max(math.abs(mi[2]), ma[2])
-	local upSize      = math.max(math.abs(mi[3]), ma[3])
-	
-	local forward = self:GetForward() * forwardSize
-	local right   = self:GetRight() * rightSize
-	local up      = self:GetUp() * upSize
-	
-	render.SetColorMaterialIgnoreZ()
-	
-	DrawOutlinedBeam(origin, origin + forward, 0.2, FORWARD_COLOR)
-	DrawOutlinedBeam(origin, origin + right, 0.2, RIGHT_COLOR)
-	DrawOutlinedBeam(origin, origin + up, 0.2, UP_COLOR)
-	
-	render.DrawSphere(origin, 0.35, 8, 8, color_black)
-	render.DrawSphere(origin, 0.2, 8, 8, ORIGIN_COLOR)
-	cam.End3D()
-end
-
-if CLIENT then return end -- No more client
 
 function ENT:Initialize()
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
-	self:GetPhysicsObject():EnableGravity(false)
+	self:PhysicsInit(SOLID_VPHYSICS)
 
-	self.Inputs = WireLib.CreateInputs(self,{"On", "X", "Y", "Z", "Target [VECTOR]", "Direction [VECTOR]", "Angle [ANGLE]", "AngleOffset [ANGLE]"})
+	local phys = self:GetPhysicsObject()
 
-	self.XYZ = Vector()
-	self.TargetAngOffset = Matrix()
-	self.TargetAngOffset:SetAngles(Angle(90,0,0))
+	if phys:IsValid() then
+		phys:EnableGravity(false)
+	end
+
+	self.XYZ = Vector(0, 0, 0)
+	self.TargetAngOffset = Angle(90, 0, 0)
+
+	WireLib.CreateInputs(self, { "On", "X", "Y", "Z", "Target [VECTOR]", "Direction [VECTOR]", "Angle [ANGLE]", "AngleOffset [ANGLE]" })
 end
 
-function ENT:TriggerInput(name,value)
+function ENT:TriggerInput(name, value)
+	local tab = self:GetTable()
+
 	if name == "On" then
-		self.On = value ~= 0
+		tab.On = value ~= 0
 	else
-		self.TargetPos = nil
-		self.TargetDir = nil
-		self.TargetAng = nil
+		tab.TargetPos = nil
+		tab.TargetDir = nil
+		tab.TargetAng = nil
 
 		if name == "X" then
-			self.XYZ.x = value
-			self.TargetPos = self.XYZ
+			tab.XYZ.x = value
+			tab.TargetPos = tab.XYZ
 		elseif name == "Y" then
-			self.XYZ.y = value
-			self.TargetPos = self.XYZ
+			tab.XYZ.y = value
+			tab.TargetPos = tab.XYZ
 		elseif name == "Z" then
-			self.XYZ.z = value
-			self.TargetPos = self.XYZ
+			tab.XYZ.z = value
+			tab.TargetPos = tab.XYZ
 		elseif name == "Target" then
-			self.XYZ = Vector(value.x, value.y, value.z)
-			self.TargetPos = self.XYZ
+			tab.XYZ = Vector(value)
+			tab.TargetPos = tab.XYZ
 		elseif name == "Direction" then
-			self.TargetDir = value
+			tab.TargetDir = value
 		elseif name == "Angle" then
-			self.TargetAng = value
+			tab.TargetAng = value
 		elseif name == "AngleOffset" then
-			self.TargetAngOffset = Matrix()
-			self.TargetAngOffset:SetAngles(value)
+			tab.TargetAngOffset = value
 		end
 	end
-	self:ShowOutput()
-	return true
 end
-
 
 function ENT:Think()
-	if self.On then
+	local tab = self:GetTable()
+
+	if tab.On then
 		local ang
-		if self.TargetPos then
-			ang = (self.TargetPos - self:GetPos()):Angle()
-		elseif self.TargetDir then
-			ang = self.TargetDir:Angle()
-		elseif self.TargetAng then
-			ang = self.TargetAng
+
+		if tab.TargetPos then
+			local pos = self:GetPos()
+			pos:Negate()
+			pos:Add(tab.TargetPos)
+			ang = pos:Angle()
+		elseif tab.TargetDir then
+			ang = tab.TargetDir:Angle()
+		elseif tab.TargetAng then
+			ang = tab.TargetAng
 		end
+
 		if ang then
-			local m = Matrix()
-			m:SetAngles(ang)
-			m = m * self.TargetAngOffset
-			self:SetAngles(m:GetAngles())
+			ang:Mul(tab.TargetAngOffset)
+			self:SetAngles(ang)
 		end
-		-- TODO: Put an option in the CPanel for Angle(90,0,0), and other useful directions
-		self:GetPhysicsObject():Wake()
+
+		local phys = self:GetPhysicsObject()
+
+		if phys:IsValid() then
+			phys:Wake()
+		end
 	end
+
 	self:NextThink(CurTime())
+
 	return true
 end
 
-function ENT:ShowOutput()
-	if not self.On then
-		self:SetOverlayText("Off")
-	elseif self.TargetPos then
-		self:SetOverlayText(string.format("Aiming towards (%.2f, %.2f, %.2f)", self.XYZ.x, self.XYZ.y, self.XYZ.z))
-	elseif self.TargetDir then
-		self:SetOverlayText(string.format("Aiming (%.4f, %.4f, %.4f)", self.TargetDir.x, self.TargetDir.y, self.TargetDir.z))
-	elseif self.TargetAng then
-		self:SetOverlayText(string.format("Aiming (%.1f, %.1f, %.1f)", self.TargetAng.pitch, self.TargetAng.yaw, self.TargetAng.roll))
+function ENT:PrepareOverlayData()
+	local tab = self:GetTable()
+
+	if not tab.On then
+		tab.SetOverlayText(self, "Off")
+	elseif tab.TargetPos then
+		tab.SetOverlayText(self, string.format("Aiming position (%.2f, %.2f, %.2f)", tab.XYZ:Unpack()))
+	elseif tab.TargetDir then
+		tab.SetOverlayText(self, string.format("Aiming direction (%.4f, %.4f, %.4f)", tab.TargetDir:Unpack()))
+	elseif tab.TargetAng then
+		tab.SetOverlayText(self, string.format("Aiming angle (%.1f, %.1f, %.1f)", tab.TargetAng:Unpack()))
 	end
 end
 
