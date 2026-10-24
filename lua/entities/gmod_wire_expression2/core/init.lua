@@ -347,7 +347,7 @@ if SERVER then
 		} )
 
 		net.Start("e2_functiondata")
-		net.WriteStream(data)
+		net.WriteStream(data, nil, nil, {ply})
 		net.Send(ply)
 	end
 

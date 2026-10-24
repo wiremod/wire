@@ -361,7 +361,7 @@ flushFileBuffer = function()
 						net.WriteUInt(0, 32)
 						finished_cb()
 					else
-						net.WriteStream(data, finished_cb)
+						net.WriteStream(data, finished_cb, nil, {ply})
 					end
 				net.Send(ply)
 			end

@@ -60,7 +60,7 @@ if SERVER then
 					end
 				else
 					net.WriteBool(true)
-					net.WriteStream(data, nil, false)
+					net.WriteStream(data, nil, false, ply and {ply} or nil)
 				end
 			if ply then net.Send(ply) else net.Broadcast() end
 

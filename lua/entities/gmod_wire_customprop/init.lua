@@ -81,7 +81,7 @@ end
 function ENT:TransmitData(recip)
 	net.Start(shared.classname)
 	shared.writeReliableEntity(self)
-	local stream = net.WriteStream(self.wiremeshdata, nil, true)
+	local stream = net.WriteStream(self.wiremeshdata, nil, true, recip and {recip} or nil)
 
 	if recip then net.Send(recip) else net.Broadcast() end
 	return stream
