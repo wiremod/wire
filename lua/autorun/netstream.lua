@@ -369,7 +369,7 @@ function net.WriteStream(data, callback, dontcompress, recipients)
 		return
 	end
 
-	local stream = net.Stream.WriteStreams:Add(WritingDataItem(data, callback, compressed, recipients))
+	local stream = net.Stream.WriteStreams:Add(WritingDataItem(data, callback, recipients))
 	if not stream then return end
 	
 	--print("WriteStream", #stream.chunks, stream.identifier, compressed)
