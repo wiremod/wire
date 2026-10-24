@@ -24,7 +24,7 @@ function ENT:Use(user)
 	user:PrintMessage(HUD_PRINTTALK, "Hold down your use key for 2 seconds to get and link a Laser Pointer.")
 
 	timer.Create("las_receiver_use_" .. user:EntIndex(), 2, 1, function()
-		if not IsValid(user) or not user:KeyDown(IN_USE) or user:GetEyeTrace().Entity ~= self then return end
+		if not IsValid(user) or not IsValid(self) or not user:KeyDown(IN_USE) or user:GetEyeTrace().Entity ~= self then return end
 
 		if not IsValid(user:GetWeapon("laserpointer")) and hook.Run("PlayerGiveSWEP", user, "laserpointer", list.GetEntry("Weapon", "laserpointer")) then
 			user:Give("laserpointer")
@@ -34,10 +34,12 @@ function ENT:Use(user)
 
 		if pointer:IsValid() then
 			pointer.Receiver = self
-			user:PrintMessage(HUD_PRINTTALK, "You are now linked!")
+			pointer:EmitSound("buttons/bell1.wav")
+			user:PrintMessage(HUD_PRINTTALK, "Linked Successfully!")
 			user:SelectWeapon("laserpointer")
 		else
 			user:PrintMessage(HUD_PRINTTALK, "Failed to link!")
+			user:EmitSound("buttons/button16.wav", 100, 50, 0.5)
 		end
 	end)
 end
