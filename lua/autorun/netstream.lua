@@ -78,7 +78,7 @@ local WriteStreamQueue = {
 			if next(self.queue)==nil then
 				timer.Remove("netstream_queueclean")
 			end
-		end
+		end,
 	},
 	__call = function(t)
 		return setmetatable({
@@ -219,7 +219,7 @@ local WritingDataItem = {
 				net.WriteUInt(0, 32)
 				if SERVER then net.Send(sendTo) else net.SendToServer() end
 			end
-		end
+		end,
 
 	},
 	__call = function(t, data, callback, recipients)
