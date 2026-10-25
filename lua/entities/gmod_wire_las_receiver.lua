@@ -24,9 +24,11 @@ function ENT:Use(user)
 	user:PrintMessage(HUD_PRINTTALK, "Hold down your use key for 2 seconds to get and link a Laser Pointer.")
 
 	timer.Create("las_receiver_use_" .. user:EntIndex(), 2, 1, function()
-		if not IsValid(user) or not IsValid(self) or not user:KeyDown(IN_USE) or user:GetEyeTrace().Entity ~= self then return end
+		if not self:IsValid() or not user:IsValid() or not user:KeyDown(IN_USE) or user:GetEyeTrace().Entity ~= self then 
+			return
+		end
 
-		if not IsValid(user:GetWeapon("laserpointer")) and hook.Run("PlayerGiveSWEP", user, "laserpointer", list.GetEntry("Weapon", "laserpointer")) then
+		if not user:GetWeapon("laserpointer"):IsValid() and hook.Run("PlayerGiveSWEP", user, "laserpointer", list.GetEntry("Weapon", "laserpointer")) then
 			user.LasReceiver = nil
 			user:Give("laserpointer")
 		end
