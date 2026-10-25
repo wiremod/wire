@@ -99,7 +99,7 @@ function ENT:Think()
 		elseif tab.TargetDir then
 			ang = tab.TargetDir:Angle()
 		elseif tab.TargetAng then
-			ang = tab.TargetAng
+			ang = Angle(tab.TargetAng)
 		end
 
 		if ang then
@@ -130,6 +130,8 @@ function ENT:PrepareOverlayData()
 		tab.SetOverlayText(self, string.format("Aiming direction (%.4f, %.4f, %.4f)", tab.TargetDir:Unpack()))
 	elseif tab.TargetAng then
 		tab.SetOverlayText(self, string.format("Aiming angle (%.1f, %.1f, %.1f)", tab.TargetAng:Unpack()))
+	else
+		tab.SetOverlayText(self, "Aiming nothing")
 	end
 end
 
