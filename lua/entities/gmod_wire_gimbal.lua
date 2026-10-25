@@ -48,7 +48,8 @@ function ENT:Initialize()
 	end
 
 	self.XYZ = Vector(0, 0, 0)
-	self.TargetAngOffset = Angle(90, 0, 0)
+	self.TargetAngOffset = Matrix()
+	self.TargetAngOffset:SetAngles(Angle(90, 0, 0))
 
 	WireLib.CreateInputs(self, { "On", "X", "Y", "Z", "Target [VECTOR]", "Direction [VECTOR]", "Angle [ANGLE]", "AngleOffset [ANGLE]" })
 end
@@ -80,7 +81,7 @@ function ENT:TriggerInput(name, value)
 		elseif name == "Angle" then
 			tab.TargetAng = value
 		elseif name == "AngleOffset" then
-			tab.TargetAngOffset = value
+			tab.TargetAngOffset:SetAngles(value)
 		end
 	end
 end
@@ -103,8 +104,10 @@ function ENT:Think()
 		end
 
 		if ang then
-			ang:Add(tab.TargetAngOffset)
-			self:SetAngles(ang)
+			local matrix = Matrix()
+			matrix:SetAngles(ang)
+			matrix:Mul(tab.TargetAngOffset)
+			self:SetAngles(matrix:GetAngles())
 		end
 
 		local phys = self:GetPhysicsObject()
