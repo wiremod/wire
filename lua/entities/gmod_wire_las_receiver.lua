@@ -1,54 +1,62 @@
 AddCSLuaFile()
-DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Laser Pointer Receiver"
-ENT.WireDebugName 	= "Laser Receiver"
+DEFINE_BASECLASS("base_wire_entity")
+ENT.PrintName = "Wire Laser Pointer Receiver"
+ENT.WireDebugName = "Laser Receiver"
 
 if CLIENT then return end
 
 function ENT:Initialize()
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
-	self:SetUseType( SIMPLE_USE )
-	self.Outputs = WireLib.CreateSpecialOutputs(self, {"X", "Y", "Z", "Active", "Pos", "RangerData"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR", "RANGER"})
-	self.VPos = Vector(0,0,0)
-
-	self:SetOverlayText( "Laser Pointer Receiver" )
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetUseType(SIMPLE_USE)
+	WireLib.CreateOutputs(self, { "X", "Y", "Z", "Active", "Pos [VECTOR]", "RangerData [RANGER]" })
 end
 
-function ENT:GetBeaconPos(sensor)
-	return self.VPos
+function ENT:GetBeaconPos()
+	return Vector(0, 0, 0)
 end
-function ENT:GetBeaconVelocity(sensor) return Vector() end
 
-function ENT:Use( User, caller )
-	if not hook.Run("PlayerGiveSWEP", User, "laserpointer", weapons.Get( "laserpointer" )) then return end
-	User:PrintMessage(HUD_PRINTTALK, "Hold down your use key for 2 seconds to get and link a Laser Pointer.")
-	timer.Create("las_receiver_use_"..User:EntIndex(), 2, 1, function()
-		if not IsValid(User) or not User:IsPlayer() then return end
-		if not User:KeyDown(IN_USE) then return end
-		if not User:GetEyeTrace().Entity then return end
+function ENT:GetBeaconVelocity()
+	return Vector(0, 0, 0)
+end
 
-		if not IsValid(User:GetWeapon("laserpointer")) then
-			if not hook.Run("PlayerGiveSWEP", User, "laserpointer", weapons.Get( "laserpointer" )) then return end
-			User:Give("laserpointer")
+function ENT:Use(user)
+	if not user:IsPlayer() then return end
+	user:PrintMessage(HUD_PRINTTALK, "Hold down your use key for 2 seconds to get and link a Laser Pointer.")
+
+	timer.Create("las_receiver_use_" .. user:EntIndex(), 2, 1, function()
+		if not self:IsValid() or not user:IsValid() or not user:KeyDown(IN_USE) or user:GetEyeTrace().Entity ~= self then 
+			return
 		end
 
-		User:GetWeapon("laserpointer").Receiver = self
-		User:PrintMessage(HUD_PRINTTALK, "You are now linked!")
-		User:SelectWeapon("laserpointer")
+		if not user:GetWeapon("laserpointer"):IsValid() and hook.Run("PlayerGiveSWEP", user, "laserpointer", list.GetEntry("Weapon", "laserpointer")) then
+			user.LasReceiver = nil
+			user:Give("laserpointer")
+		end
+
+		local pointer = user:GetWeapon("laserpointer")
+
+		if pointer:IsValid() then
+			pointer.Receiver = self
+			pointer:EmitSound("buttons/bell1.wav")
+			user:PrintMessage(HUD_PRINTTALK, "Linked Successfully!")
+			user:SelectWeapon("laserpointer")
+		else
+			user:PrintMessage(HUD_PRINTTALK, "Failed to link!")
+			user:EmitSound("buttons/button16.wav", 100, 50, 0.5)
+		end
 	end)
 end
 
-local function playerDeath( victim, weapon, killer)
-	if(victim:HasWeapon("laserPointer"))then
-		local pointer = victim:GetWeapon("laserPointer")
-		if(pointer and pointer:IsValid())then
-			victim.LasReceiver = pointer.Receiver
+hook.Add("PostPlayerDeath", "Wire_LaserMemory", function(ply)
+	if ply:HasWeapon("laserpointer") then
+		local pointer = ply:GetWeapon("laserpointer")
+
+		if pointer:IsValid() then
+			ply.LasReceiver = pointer.Receiver
 		end
 	end
-end
-hook.Add( "PlayerDeath", "laserMemory", playerDeath)
+end)
 
 duplicator.RegisterEntityClass("gmod_wire_las_receiver", WireLib.MakeWireEnt, "Data")
-duplicator.RegisterEntityClass("gmod_wire_las_reciever", WireLib.MakeWireEnt, "Data") -- For old dupe support
+duplicator.RegisterEntityClass("gmod_wire_las_reciever", WireLib.MakeWireEnt, "Data")
+scripted_ents.Alias("gmod_wire_las_reciever", "gmod_wire_las_receiver")
