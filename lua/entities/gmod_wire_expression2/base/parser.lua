@@ -68,7 +68,7 @@ local NodeVariant = {
 
 	Increment = 9, -- `++`
 	Decrement = 10, -- `--`
-	CompoundArithmetic = 11, -- `+=`, `-=`, `*=`, `/=`
+	CompoundAssignment = 11, -- `+=`, `-=`, `*=`, `/=`
 	Assignment = 12, -- `X = Y[2, number] = Z[2] = 5` or `local X = 5`
 	Const = 13, -- const X = 5
 
@@ -354,13 +354,25 @@ function Parser:Stmt()
 
 		--- Compound Assignment
 		if self:ConsumeValue(TokenVariant.Operator, Operator.Aadd) then
-			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Add, self:Expr() }, var.trace:stitch(self:Prev().trace))
+			return Node.new(NodeVariant.CompoundAssignment, { var, Operator.Add, self:Expr() }, var.trace:stitch(self:Prev().trace))
 		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Asub) then
-			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Sub, self:Expr() }, var.trace:stitch(self:Prev().trace))
+			return Node.new(NodeVariant.CompoundAssignment, { var, Operator.Sub, self:Expr() }, var.trace:stitch(self:Prev().trace))
 		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Amul) then
-			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Mul, self:Expr() }, var.trace:stitch(self:Prev().trace))
+			return Node.new(NodeVariant.CompoundAssignment, { var, Operator.Mul, self:Expr() }, var.trace:stitch(self:Prev().trace))
 		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Adiv) then
-			return Node.new(NodeVariant.CompoundArithmetic, { var, Operator.Div, self:Expr() }, var.trace:stitch(self:Prev().trace))
+			return Node.new(NodeVariant.CompoundAssignment, { var, Operator.Div, self:Expr() }, var.trace:stitch(self:Prev().trace))
+		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Amod) then
+			return Node.new(NodeVariant.CompoundAssignment, { var, Operator.Mod, self:Expr() }, var.trace:stitch(self:Prev().trace))
+		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Aband) then
+			return Node.new(NodeVariant.CompoundAssignment, { var, Operator.Band, self:Expr() }, var.trace:stitch(self:Prev().trace))
+		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Abor) then
+			return Node.new(NodeVariant.CompoundAssignment, { var, Operator.Bor, self:Expr() }, var.trace:stitch(self:Prev().trace))
+		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Abxor) then
+			return Node.new(NodeVariant.CompoundAssignment, { var, Operator.Bxor, self:Expr() }, var.trace:stitch(self:Prev().trace))
+		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Abshr) then
+			return Node.new(NodeVariant.CompoundAssignment, { var, Operator.Bshr, self:Expr() }, var.trace:stitch(self:Prev().trace))
+		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Abshl) then
+			return Node.new(NodeVariant.CompoundAssignment, { var, Operator.Bshl, self:Expr() }, var.trace:stitch(self:Prev().trace))
 		end
 
 		-- Didn't match anything. Might be something else.
@@ -694,6 +706,18 @@ function Parser:Expr(ignore_assign)
 			self:Error("Multiplicative assignment operator (*=) must not be part of equation")
 		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Adiv) then
 			self:Error("Divisive assignment operator (/=) must not be part of equation")
+		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Amod) then
+			self:Error("Modular assignment operator (%=) must not be part of equation")
+		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Aband) then
+			self:Error("Bitwise AND assignment operator (&&=) must not be part of equation")
+		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Abor) then
+			self:Error("Bitwise OR assignment operator (||=) must not be part of equation")
+		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Abxor) then
+			self:Error("Bitwise XOR assignment operator (^^=) must not be part of equation")
+		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Abshr) then
+			self:Error("Right bitwise shift assignment operator (>>=) must not be part of equation")
+		elseif self:ConsumeValue(TokenVariant.Operator, Operator.Abshl) then
+			self:Error("Left bitwise shift assignment operator (<<=) must not be part of equation")
 		end
 
 		self.index = self.index - 1
@@ -1060,6 +1084,18 @@ function Parser:Expr15()
 		self:Error("Multiplicative assignment operator (*=) must be preceded by variable")
 	elseif self:ConsumeValue(TokenVariant.Operator, Operator.Adiv) then
 		self:Error("Divisive assignment operator (/=) must be preceded by variable")
+	elseif self:ConsumeValue(TokenVariant.Operator, Operator.Amod) then
+		self:Error("Modular assignment operator (%=) must be preceded by variable")
+	elseif self:ConsumeValue(TokenVariant.Operator, Operator.Aband) then
+		self:Error("Bitwise AND assignment operator (&&=) must be preceded by variable")
+	elseif self:ConsumeValue(TokenVariant.Operator, Operator.Abor) then
+		self:Error("Bitwise OR assignment operator (||=) must be preceded by variable")
+	elseif self:ConsumeValue(TokenVariant.Operator, Operator.Abxor) then
+		self:Error("Bitwise XOR assignment operator (^^=) must be preceded by variable")
+	elseif self:ConsumeValue(TokenVariant.Operator, Operator.Abshr) then
+		self:Error("Right bitwise shift assignment operator (>>=) must be preceded by variable")
+	elseif self:ConsumeValue(TokenVariant.Operator, Operator.Abshl) then
+		self:Error("Left bitwise shift assignment operator (<<=) must be preceded by variable")
 
 	elseif self:ConsumeValue(TokenVariant.Operator, Operator.And) then
 		self:Error("Logical and operator (&) must be preceded by equation or value")
