@@ -243,6 +243,11 @@ function ENT:TriggerInput( iname, value )
 	end
 end
 
+function ENT:OnRemove()
+	timer.Remove("wire_clutch_delay_" .. tostring(self:EntIndex()))
+	BaseClass.OnRemove(self)
+end
+
 
 
 --[[-------------------------------------------------------
