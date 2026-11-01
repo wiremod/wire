@@ -80,7 +80,9 @@ function TOOL:Reload(trace)
 	if self:GetStage() ~= 0 then return false end
 
 	if (trace.Entity:IsValid()) and (trace.Entity:GetClass() == "gmod_wire_waypoint") then
-		trace.Entity:SetNextWaypoint(NULL)
+		if SERVER then
+			trace.Entity:SetNextWaypoint(NULL)
+		end
 
 		return true
 	end
