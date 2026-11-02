@@ -617,6 +617,9 @@ elseif CLIENT then
 			end
 
 			local _, outputs = self:GetPorts( self.CurrentEntity )
+			if isTableEmpty(outputs) then
+				self.CurrentWireIndex = math.Clamp( self.CurrentWireIndex, 1, #outputs )
+			end
 
 			if alt then -- Auto wiring
 				local notwired = 0
@@ -859,7 +862,7 @@ elseif CLIENT then
 				-- Clamp index
 				local inputs, outputs = self:GetPorts( ent )
 				local check = self:GetStage() == 0 and inputs or outputs
-				if check then
+				if check and #check > 0 then
 					self.CurrentWireIndex = math.Clamp(	self.CurrentWireIndex, 1, #check )
 
 					-- Set blinking wire
