@@ -9,6 +9,8 @@ function ENT:OnRemove()
 	for k,v in pairs(self.CacheUpdated) do
 		file.Write(self:GetStructName(k),self:MakeFloatTable(self.Cache[k]))
 	end
+
+	BaseClass.OnRemove(self)
 end
 
 function ENT:Initialize()

@@ -91,6 +91,7 @@ end
 
 function ENT:OnRemove()
 	EGP:UnlinkHUDFromVehicle( self )
+	BaseClass.OnRemove(self)
 end
 
 function ENT:BuildDupeInfo()

@@ -78,6 +78,7 @@ end
 function ENT:OnRemove()
 	self.GPU:Finalize()
 	self.NeedRefresh = true
+	self.BaseClass.OnRemove(self)
 end
 
 local function stringToNumber(index, str, bytes)

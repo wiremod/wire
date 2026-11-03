@@ -31,7 +31,7 @@ function ENT:OnRemove()
 	if self.Weld then
 		self:ResetGrab()
 	end
-	Wire_Remove(self)
+	BaseClass.OnRemove(self)
 end
 
 function ENT:Setup(Range, Gravity)

@@ -108,6 +108,8 @@ function ENT:OnRemove()
 	for _,impulse in ipairs(self.impulses) do
 		numpad.Remove(impulse)
 	end
+
+	BaseClass.OnRemove(self)
 end
 
 local function On( pl, ent, key )

@@ -268,6 +268,7 @@ function ENT:OnRemove()
 		hook.Remove("PlayerLeaveVehicle", "Wire_Pod_ExitVehicle")
 		hook.Remove("CanExitVehicle","Wire_Pod_CanExitVehicle")
 	end
+	BaseClass.OnRemove(self)
 end
 
 function ENT:GetPod()

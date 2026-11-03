@@ -171,6 +171,7 @@ if CLIENT then
 
 	function ENT:OnRemove()
 		if self.GPU then self.GPU:Finalize() end
+		BaseClass.OnRemove(self)
 	end
 end
 

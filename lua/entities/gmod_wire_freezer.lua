@@ -135,6 +135,7 @@ end
 
 function ENT:OnRemove()
 	self:ClearEntities()
+	BaseClass.OnRemove(self)
 end
 
 function ENT:BuildDupeInfo()

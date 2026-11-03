@@ -131,6 +131,7 @@ if SERVER then
 		if #screens == 0 then
 			hook.Remove("SetupPlayerVisibility", "ImprovedRTCamera")
 		end
+        BaseClass.OnRemove(self)
 	end
 
 end

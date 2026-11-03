@@ -134,6 +134,7 @@ function ENT:OnRemove()
   GPULib.ClientCacheCallback(self,nil)
   self.GPU:Finalize()
   if self.SpriteGPU then self.SpriteGPU:Finalize() end
+  self.BaseClass.OnRemove(self)
 end
 
 

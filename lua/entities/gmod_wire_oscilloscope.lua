@@ -49,6 +49,7 @@ if CLIENT then
 
 	function ENT:OnRemove()
 		self.GPU:Finalize()
+		BaseClass.OnRemove(self)
 	end
 
 	function ENT:GetNodeList()

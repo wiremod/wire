@@ -150,6 +150,7 @@ function ENT:OnRemove()
       v.Sound:Stop()
     end
   end
+  self.BaseClass.OnRemove(self)
 end
 
 

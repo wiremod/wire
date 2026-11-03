@@ -89,6 +89,8 @@ if CLIENT then
         if not fullUpdate then
             SetCameraActive(self, false)
         end
+
+        BaseClass.OnRemove(self)
     end
 
     function ENT:SetIsObserved(isObserved)

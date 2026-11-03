@@ -134,6 +134,7 @@ end
 function ENT:OnRemove()
 	self.GPU:Finalize()
 	self.NeedRefresh = true
+	self.BaseClass.OnRemove(self)
 end
 
 function ENT:ReadCell(Address,value)
@@ -729,6 +730,3 @@ end
 function ENT:IsTranslucent()
 	return true
 end
-
-
-

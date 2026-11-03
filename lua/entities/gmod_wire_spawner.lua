@@ -249,6 +249,7 @@ function ENT:OnRemove()
 	for _,ent in ipairs(self.UndoList) do
 		GlobalUndoList[ent] = nil
 	end
+	BaseClass.OnRemove(self)
 end
 
 duplicator.RegisterEntityClass("gmod_wire_spawner", WireLib.MakeWireEnt, "Data", "delay", "undo_delay", "spawn_effect", "mat", "r", "g", "b", "a", "skin")

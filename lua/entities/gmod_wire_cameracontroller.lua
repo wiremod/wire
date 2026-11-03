@@ -675,6 +675,7 @@ function ENT:OnRemove()
 	end
 
 	self:ClearEntities()
+	BaseClass.OnRemove(self)
 end
 
 --------------------------------------------------

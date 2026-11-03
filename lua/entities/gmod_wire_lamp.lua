@@ -144,6 +144,8 @@ if CLIENT then
 			self.LastLampMatrix = nil
 			self.LastLampColor = nil
 		end
+
+		BaseClass.OnRemove(self)
 	end
 
 	return

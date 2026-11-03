@@ -72,6 +72,7 @@ end
 
 function ENT:OnRemove()
 	RemoveReceiver( self )
+	BaseClass.OnRemove(self)
 end
 
 local string_find = string.find

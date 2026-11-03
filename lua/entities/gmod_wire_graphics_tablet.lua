@@ -24,6 +24,7 @@ if CLIENT then
 
 	function ENT:OnRemove()
 		self.GPU:Finalize()
+		BaseClass.OnRemove(self)
 	end
 
 	local function cut_rect(x1,y1,w1,h1,x2,y2,w2,h2)

@@ -54,6 +54,8 @@ function ENT:OnRemove()
 		self.Mark:RemoveCallOnRemove("EMarker.UnLink" .. self:EntIndex())
 		self.Mark = nil
 	end
+
+	BaseClass.OnRemove(self)
 end
 
 function ENT:BuildDupeInfo()

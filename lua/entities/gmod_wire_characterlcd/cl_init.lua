@@ -119,6 +119,7 @@ end
 
 function ENT:OnRemove()
 	self.GPU:Finalize()
+	BaseClass.OnRemove(self)
 end
 
 function ENT:ReadCell(Address,value)

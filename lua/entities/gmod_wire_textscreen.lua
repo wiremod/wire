@@ -136,6 +136,7 @@ if CLIENT then
 		self.NeedRefresh = true
 		if fullUpdate then return end
 		self.GPU:Finalize()
+		BaseClass.OnRemove(self)
 	end
 	function ENT:Draw(flags)
 		self:DrawModel(flags)

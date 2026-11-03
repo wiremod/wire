@@ -49,4 +49,5 @@ end
 
 function ENT:OnRemove()
 	self.GPU:Finalize()
+	self.BaseClass.OnRemove(self)
 end
