@@ -14,6 +14,24 @@ assert(X == 8)
 X /= 2
 assert(X == 4)
 
+X %= 3
+assert(X == 1)
+
+X ||= 10
+assert(X == 11)
+
+X &&= 8
+assert(X == 8)
+
+X ^^= 12
+assert(X == 4)
+
+X >>= 2
+assert(X == 1)
+
+X <<= 2
+assert(X == 4)
+
 X++
 assert(X == 5)
 
