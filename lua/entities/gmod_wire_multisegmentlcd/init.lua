@@ -45,7 +45,8 @@ end
 
 function ENT:SendSerializedTree(ply)
 	if self.Tree == nil then return end
-	local serialized = WireLib.von.serialize(self.Tree)
+	local serialized = util.Compress(WireLib.von.serialize(self.Tree))
+	print(#serialized)
 	if #serialized > 65535 then
 		return
 	end

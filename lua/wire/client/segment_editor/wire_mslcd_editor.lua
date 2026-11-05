@@ -292,6 +292,7 @@ function Editor:SetActiveTab(val)
 	end
 	self:UpdateActiveTabTitle()
 	self.C.Root.group = self:GetCurrentEditor().SegmentTree
+	self:RebuildNodes()
 end
 
 function Editor:ExtractNameFromEditor()
@@ -949,6 +950,7 @@ function Editor:InitComponents()
 					tree.Children[#tree.Children+1] = newgroup
 					self:BuildNode(newgroup,self.C.Root,tree)
 				end
+				
 			elseif optionText == "Remove" then
 				if node == nil then
 					return

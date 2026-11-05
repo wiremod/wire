@@ -371,7 +371,6 @@ function ENT:Draw()
 	
 	
 	
-	
 	if self2.Tree then
 		
 		local oldw = ScrW()
@@ -457,7 +456,8 @@ end
 function ENT:Receive()
 	local ent = net.ReadEntity()
 	local sz = net.ReadUInt(16)
-	self.Tree = WireLib.von.deserialize(net.ReadData(sz))
+	
+	self.Tree = util.Decompress(WireLib.von.deserialize(net.ReadData(sz)))
 	self.ResolutionW = net.ReadUInt(16)
 	self.ResolutionH = net.ReadUInt(16)
 	self.Fgblue = net.ReadUInt(8)

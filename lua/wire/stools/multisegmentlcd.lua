@@ -178,6 +178,7 @@ if CLIENT then
 		local ent = trace.Entity
 		if ent:GetClass() ~= "gmod_wire_multisegmentlcd" then return end
 		MSLCD_Editor:SetDataFromEnt(ent.Tree)
+		MSLCD_OpenEditor()
 	end
 	------------------------------------------------------------------------------
 	-- Open Multi-segment editor
