@@ -615,7 +615,7 @@ function WireLib.Remove(ent, DontUnList)
 				local outputs = source.Outputs
 
 				if outputs then
-					local outport = Outports[inport.SrcId]
+					local outport = outputs[inport.SrcId]
 
 					if outport then
 						ClearPorts(outport.Connected, ent, true, true)
