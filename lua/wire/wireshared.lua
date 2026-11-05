@@ -761,7 +761,7 @@ if SERVER then
 		if ent:IsPlayer() then
 			WirePortQueue:cleanup(ent)
 		else
-			WireLib._RemoveWire(entEntIndex(ent))
+			WireLib.Remove(ent)
 		end
 	end)
 

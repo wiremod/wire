@@ -601,40 +601,47 @@ local function ClearPorts(ports, ConnectEnt, DontSendToCL, Removing)
 end
 
 -- Set DontUnList to true, if you want to call WireLib._RemoveWire(eid) manually.
+-- Usually, you don't need to call this manually
+
 function WireLib.Remove(ent, DontUnList)
-	--Clear the inputs
-	local ent_ports = ent.Inputs
-	if (ent_ports) then
-		for _,inport in pairs(ent_ports) do
-			local Source = inport.Src
-			if (IsValid(Source)) then
-				local Outports = Source.Outputs
-				if (Outports) then
+	-- Clear the inputs
+	local inputs = ent.Inputs
+
+	if inputs then
+		for _, inport in pairs(inputs) do
+			local source = inport.Src
+
+			if IsValid(source) then
+				local outputs = source.Outputs
+
+				if outputs then
 					local outport = Outports[inport.SrcId]
-					if (outport) then
+
+					if outport then
 						ClearPorts(outport.Connected, ent, true, true)
 					end
 				end
 			end
 		end
+
+		ent.Inputs = nil
 	end
 
-	--Clear the outputs
-	local ent_ports = ent.Outputs
-	if (ent_ports) then
-		for _,outport in pairs(ent_ports) do
+	-- Clear the outputs
+	local outputs = ent.Outputs
+
+	if outputs then
+		for _, outport in pairs(outputs) do
 			ClearPorts(outport.Connected)
 		end
+
+		ent.Outputs = nil
 	end
 
-	ent.Inputs = nil -- Remove the inputs
-	ent.Outputs = nil -- Remove the outputs
-	ent.IsWire = nil -- Remove the wire mark
-
-	if (DontUnList) then return end -- Set DontUnList to true if you want to remove ent from the list manually.
-	WireLib._RemoveWire(ent:EntIndex()) -- Remove entity from the list, so it doesn't count as a wire able entity anymore. Very important for IsWire checks!
+	if not DontUnList then
+		WireLib._RemoveWire(ent:EntIndex()) -- Remove entity from the list, so it doesn't count as a wire able entity anymore. Very important for IsWire checks!
+	end
 end
-
 
 local function Wire_Link(dst, dstid, src, srcid, path)
 	if (not IsValid(dst) or not HasPorts(dst) or not dst.Inputs or not dst.Inputs[dstid]) then
