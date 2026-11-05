@@ -1,5 +1,6 @@
 include('shared.lua')
 
+DEFINE_BASECLASS("base_wire_entity")
 ENT.gmod_wire_egp = true
 
 function ENT:Initialize()
@@ -49,5 +50,5 @@ end
 
 function ENT:OnRemove()
 	self.GPU:Finalize()
-	self.BaseClass.OnRemove(self)
+	BaseClass.OnRemove(self)
 end

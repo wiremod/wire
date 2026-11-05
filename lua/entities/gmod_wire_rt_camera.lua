@@ -1,6 +1,6 @@
 AddCSLuaFile()
-ENT.Base = "base_wire_entity"
-ENT.Type = "anim"
+
+DEFINE_BASECLASS("base_wire_entity")
 ENT.PrintName = "Improved RT Camera"
 ENT.WireDebugName = "Improved RT Camera"
 

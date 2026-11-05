@@ -1,5 +1,6 @@
 include("shared.lua")
 
+DEFINE_BASECLASS("base_wire_entity")
 
 function ENT:Initialize()
 	local mem = {}

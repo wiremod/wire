@@ -1,7 +1,6 @@
 AddCSLuaFile()
 
-ENT.Type = "anim"
-ENT.Base = "base_wire_entity"
+DEFINE_BASECLASS("base_wire_entity")
 ENT.PrintName = "Improved RT Screen"
 ENT.WireDebugName = "Improved RT Screen"
 

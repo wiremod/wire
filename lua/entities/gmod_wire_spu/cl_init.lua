@@ -1,7 +1,7 @@
 include("cl_spuvm.lua")
 include("shared.lua")
 
-
+DEFINE_BASECLASS("base_wire_entity")
 
 --------------------------------------------------------------------------------
 WireSPU_MaxChannels = 32
@@ -150,7 +150,7 @@ function ENT:OnRemove()
       v.Sound:Stop()
     end
   end
-  self.BaseClass.OnRemove(self)
+  BaseClass.OnRemove(self)
 end
 
 
