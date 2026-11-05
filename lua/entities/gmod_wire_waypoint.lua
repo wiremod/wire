@@ -96,6 +96,8 @@ function ENT:OnRemove()
 			ent:SetNextWaypoint(ent:GetNextWaypoint())
 		end
 	end
+
+	BaseClass.OnRemove(self)
 end
 
 duplicator.RegisterEntityClass("gmod_wire_waypoint", WireLib.MakeWireEnt, "Data", "range")

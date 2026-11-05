@@ -39,6 +39,8 @@ if CLIENT then
 		if #sockets == 0 then
 			hook.Remove("HUDPaint", "Wire_DataSocket_DrawLinkHelperLine")
 		end
+
+		BaseClass.OnRemove(self)
 	end
 
 	return

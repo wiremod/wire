@@ -133,6 +133,7 @@ end
 function ENT:OnRemove()
 	self:TriggerInput("Activate", 0)
 	self:TriggerInput("NoCollide", 0)
+	BaseClass.OnRemove(self)
 end
 
 function ENT:UpdateOverlay()

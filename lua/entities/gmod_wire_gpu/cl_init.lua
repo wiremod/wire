@@ -1,6 +1,7 @@
 include("cl_gpuvm.lua")
 include("shared.lua")
 
+DEFINE_BASECLASS("base_wire_entity")
 local Monitors = {}
 local MonitorLookup = {}
 local HUDLookup = {}
@@ -134,6 +135,7 @@ function ENT:OnRemove()
   GPULib.ClientCacheCallback(self,nil)
   self.GPU:Finalize()
   if self.SpriteGPU then self.SpriteGPU:Finalize() end
+  BaseClass.OnRemove(self)
 end
 
 

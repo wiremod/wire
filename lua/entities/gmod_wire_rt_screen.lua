@@ -1,7 +1,6 @@
 AddCSLuaFile()
 
-ENT.Type = "anim"
-ENT.Base = "base_wire_entity"
+DEFINE_BASECLASS("base_wire_entity")
 ENT.PrintName = "Improved RT Screen"
 ENT.WireDebugName = "Improved RT Screen"
 
@@ -131,6 +130,7 @@ if SERVER then
 		if #screens == 0 then
 			hook.Remove("SetupPlayerVisibility", "ImprovedRTCamera")
 		end
+        BaseClass.OnRemove(self)
 	end
 
 end

@@ -167,6 +167,7 @@ function ENT:OnRemove()
 	self:RemoveHoldTimer()
 
 	self:Unprompt( true )
+	BaseClass.OnRemove(self)
 end
 
 ----------------------------------------------------
@@ -186,7 +187,7 @@ net.Receive("wire_textentry_action",function(len,ply)
 	if ok and not self.BlockInput then
 		self:OnTextEntered(text)
 
-		
+
 	end
 
 	self:UpdateOverlay()

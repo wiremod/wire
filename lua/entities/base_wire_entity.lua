@@ -456,10 +456,6 @@ if SERVER then
 	end
 end
 
-function ENT:OnRemove()
-	WireLib.Remove(self)
-end
-
 function ENT:OnRestore()
 	WireLib.Restored(self)
 end

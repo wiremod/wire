@@ -69,6 +69,7 @@ function ENT:OnRemove()
   for i=0,WireSPU_MaxChannels-1 do
     self.SoundSources[i]:Remove()
   end
+  BaseClass.OnRemove(self)
 end
 
 

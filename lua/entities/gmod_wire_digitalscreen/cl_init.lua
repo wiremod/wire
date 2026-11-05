@@ -1,6 +1,6 @@
 include("shared.lua")
 
-
+DEFINE_BASECLASS("base_wire_entity")
 
 function ENT:SendData()
 	net.Start("wire_interactiveprop_action")
@@ -78,6 +78,7 @@ end
 function ENT:OnRemove()
 	self.GPU:Finalize()
 	self.NeedRefresh = true
+	BaseClass.OnRemove(self)
 end
 
 local function stringToNumber(index, str, bytes)

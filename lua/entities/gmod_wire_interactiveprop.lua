@@ -424,6 +424,7 @@ end
 
 function ENT:OnRemove()
 	self:Unprompt( true )
+	BaseClass.OnRemove(self)
 end
 
 

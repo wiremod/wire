@@ -249,6 +249,7 @@ end)
 
 function ENT:OnRemove()
 	self:UnlinkEnt()
+	BaseClass.OnRemove(self)
 end
 
 local function AngNorm(Ang)

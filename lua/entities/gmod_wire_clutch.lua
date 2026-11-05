@@ -148,6 +148,8 @@ function ENT:OnRemove()
 	for k in pairs( self.clutch_ballsockets ) do
 		self:RemoveClutch( k )
 	end
+
+	BaseClass.OnRemove(self)
 end
 
 
