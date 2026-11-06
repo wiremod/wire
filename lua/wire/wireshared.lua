@@ -756,7 +756,16 @@ if SERVER then
 		end
 		WirePortQueue:flushQueue(ply, queue)
 	end)
-else
+
+	hook.Add("EntityRemoved", "wire_ports", function(ent)
+		if ent:IsPlayer() then
+			WirePortQueue:cleanup(ent)
+		else
+			WireLib.Remove(ent)
+		end
+	end)
+
+elseif CLIENT then
 	local ents_with_inputs = {}
 	local ents_with_outputs = {}
 
@@ -808,14 +817,6 @@ else
 		ents_with_outputs[eid] = nil
 	end
 end
-
-hook.Add("EntityRemoved", "wire_ports", function(ent)
-	if SERVER and ent:IsPlayer() then
-		WirePortQueue:cleanup(ent)
-	else
-		WireLib.Remove(ent)
-	end
-end)
 
 --[[
 	Returns the "distance" between two strings
