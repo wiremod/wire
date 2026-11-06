@@ -457,7 +457,7 @@ function ENT:Receive()
 	local ent = net.ReadEntity()
 	local sz = net.ReadUInt(16)
 	
-	self.Tree = util.Decompress(WireLib.von.deserialize(net.ReadData(sz)))
+	self.Tree = WireLib.von.deserialize(util.Decompress(net.ReadData(sz)))
 	self.ResolutionW = net.ReadUInt(16)
 	self.ResolutionH = net.ReadUInt(16)
 	self.Fgblue = net.ReadUInt(8)
