@@ -600,38 +600,36 @@ function WireToolSetup.SetupLinking(SingleLink, linkedname)
 			language.Add( "Tool."..TOOL.Mode..".reload_2", "Reload on the same controller again to clear all linked entities.")
 		end
 
-		local lastRequested = 0
+		local last_requested = 0
+
 		function TOOL:DrawHUD()
 			local trace = self:GetOwner():GetEyeTrace()
 
-			if not trace.Entity then lastRequested = 0 end
+			if not IsValid(trace.Entity) then
+				last_requested = 0
+			end
 
 			if self:CheckHitOwnClass(trace) then
 				local controller = trace.Entity
-				if controller.WireLinkedEnts and controller.WireLinkedEnts.Marks then
-					local markerpos = controller:GetPos():ToScreen()
-					for _, ent in pairs(controller.WireLinkedEnts.Marks) do
+
+				if controller.WireLinkedEnts then
+					local controller_pos = controller:GetPos():ToScreen()
+
+					for _, ent in pairs(controller.WireLinkedEnts) do
 						if IsValid(ent) then
-							local markpos = ent:GetPos():ToScreen()
-							surface.SetDrawColor( 255,255,100,255 )
-							surface.DrawLine( markerpos.x, markerpos.y, markpos.x, markpos.y )
+							local linked_pos = ent:GetPos():ToScreen()
+							surface.SetDrawColor(255, 255, 100)
+							surface.DrawLine(controller_pos.x, controller_pos.y, linked_pos.x, linked_pos.y)
 						end
 					end
 				end
 
-				-- request updated marks when the player looks at the entity
-				if CurTime() - lastRequested > 1 then -- at most once per second
-					if not controller.WireLinkedEnts or CurTime() > controller.WireLinkedEnts.LastUpdated then
-						net.Start("WireLinkedEntsRequest")
-							net.WriteEntity(controller)
-							if controller.WireLinkedEnts then
-								net.WriteFloat(controller.WireLinkedEnts.LastUpdated)
-							else
-								net.WriteFloat(0)
-							end
-						net.SendToServer()
-					end
-					lastRequested = CurTime()
+				if CurTime() - last_requested > 1 then
+					net.Start("WireLinkedEntsRequest")
+					net.WriteEntity(controller)
+					net.SendToServer()
+
+					last_requested = CurTime()
 				end
 			end
 		end
@@ -711,46 +709,41 @@ end
 
 -- For transmitting the yellow lines showing links between controllers and ents, as used by the Adv Entity Marker
 if SERVER then
-	util.AddNetworkString("WireLinkedEnts")
 	util.AddNetworkString("WireLinkedEntsRequest")
+
 	function WireLib.SendMarks(controller, marks)
 		if not IsValid(controller) then return end
-		controller.WireLinkedEnts = {
-			Marks = marks or controller.Marks,
-			LastUpdated = CurTime()
-		}
+		controller.WireLinkedEnts = marks or controller.Marks
 	end
+
 	net.Receive("WireLinkedEntsRequest", function(netlen, ply)
 		local controller = net.ReadEntity()
-		local lastUpdated = net.ReadFloat()
-
 		if not IsValid(controller) then return end
-		if not controller.WireLinkedEnts then return end
-		if not controller.WireLinkedEnts.Marks then return end
-		if controller.WireLinkedEnts.LastUpdated < lastUpdated then return end
 
-		net.Start("WireLinkedEnts")
+		if controller.PrepareMarksData then controller:PrepareMarksData() end
+		if not controller.WireLinkedEnts then return end
+
+		net.Start("WireLinkedEntsRequest")
 			net.WriteEntity(controller)
-			net.WriteFloat(controller.WireLinkedEnts.LastUpdated)
-			net.WriteUInt(#controller.WireLinkedEnts.Marks, 16)
-			for _,v in pairs(controller.WireLinkedEnts.Marks) do
-				net.WriteEntity(v)
+			net.WriteUInt(#controller.WireLinkedEnts, MAX_EDICT_BITS)
+
+			for _, linked in ipairs(controller.WireLinkedEnts) do
+				net.WriteEntity(linked)
 			end
-		net.Send( ply )
+		net.Send(ply)
 	end)
 else
-	net.Receive("WireLinkedEnts", function(netlen)
+	net.Receive("WireLinkedEntsRequest", function(netlen)
 		local controller = net.ReadEntity()
-		local lastUpdated = net.ReadFloat()
+
 		if IsValid(controller) then
-			controller.WireLinkedEnts = {
-				Marks = {},
-				LastUpdated = lastUpdated
-			}
-			for _=1, net.ReadUInt(16) do
-				local link = net.ReadEntity()
-				if IsValid(link) then
-					table.insert(controller.WireLinkedEnts.Marks, link)
+			controller.WireLinkedEnts = {}
+
+			for i = 1, net.ReadUInt(MAX_EDICT_BITS) do
+				local linked = net.ReadEntity()
+
+				if IsValid(linked) then
+					table.insert(controller.WireLinkedEnts, linked)
 				end
 			end
 		end
