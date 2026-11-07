@@ -48,6 +48,7 @@ function ENT:Initialize()
 	end
 
 	self.XYZ = Vector(0, 0, 0)
+	self.AngleMatrix = Matrix()
 	self.TargetAngOffset = Matrix()
 	self.TargetAngOffset:SetAngles(Angle(90, 0, 0))
 
@@ -77,7 +78,7 @@ function ENT:TriggerInput(name, value)
 			tab.XYZ = Vector(value)
 			tab.TargetPos = tab.XYZ
 		elseif name == "Direction" then
-			tab.TargetDir = value
+			tab.TargetDir = value:Angle()
 		elseif name == "Angle" then
 			tab.TargetAng = value
 		elseif name == "AngleOffset" then
@@ -88,27 +89,24 @@ end
 
 function ENT:Think()
 	local tab = self:GetTable()
+	if not tab.On then return end
 
-	if tab.On then
-		local ang
+	local ang
 
-		if tab.TargetPos then
-			local pos = self:GetPos()
-			pos:Negate()
-			pos:Add(tab.TargetPos)
-			ang = pos:Angle()
-		elseif tab.TargetDir then
-			ang = tab.TargetDir:Angle()
-		elseif tab.TargetAng then
-			ang = Angle(tab.TargetAng)
-		end
+	if tab.TargetPos then
+		local pos = self:GetPos()
+		pos:Negate()
+		pos:Add(tab.TargetPos)
+		ang = pos:Angle()
+	else
+		ang = tab.TargetDir or tab.TargetAng
+	end
 
-		if ang then
-			local matrix = Matrix()
-			matrix:SetAngles(ang)
-			matrix:Mul(tab.TargetAngOffset)
-			self:SetAngles(matrix:GetAngles())
-		end
+	if ang then
+		local matrix = tab.AngleMatrix
+		matrix:SetAngles(ang)
+		matrix:Mul(tab.TargetAngOffset)
+		self:SetAngles(matrix:GetAngles())
 
 		local phys = self:GetPhysicsObject()
 
@@ -128,7 +126,7 @@ function ENT:PrepareOverlayData()
 	if not tab.On then
 		tab.SetOverlayText(self, "Off")
 	elseif tab.TargetPos then
-		tab.SetOverlayText(self, string.format("Aiming position (%.2f, %.2f, %.2f)", tab.XYZ:Unpack()))
+		tab.SetOverlayText(self, string.format("Aiming position (%.2f, %.2f, %.2f)", tab.TargetPos:Unpack()))
 	elseif tab.TargetDir then
 		tab.SetOverlayText(self, string.format("Aiming direction (%.4f, %.4f, %.4f)", tab.TargetDir:Unpack()))
 	elseif tab.TargetAng then
