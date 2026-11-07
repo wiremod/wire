@@ -40,7 +40,6 @@ function ENT:Initialize()
 	self.hit = false
 	self.firsthit_dmginfo = {}
 	self.linked_entities = {}
-	self.linked_entities_lookup = {}
 	self:LinkEnt(self)
 
 	self.damage = 0
@@ -102,7 +101,11 @@ end
 
 function ENT:UpdateLinkedEnts(tab)
 	local linked = tab.linked_entities
-	if #linked == 0 then return end
+
+	if #linked == 0 then
+		tab.key_ents = {}
+		return
+	end
 
 	local key_ents = {}
 	local include_constrained = tab.includeconstrained == 1
@@ -268,7 +271,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if info.linked_entities then
-		-- Prevent doulbe linking to self
+		-- Prevent double linking to self
 		self:ClearEntities()
 
 		-- Backwards compat
