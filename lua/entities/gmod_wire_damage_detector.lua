@@ -192,10 +192,6 @@ function ENT:Think()
 	return true
 end
 
-function ENT:UpdateOutputs()
-	WireLib.SendMarks(self, self.linked_entities)
-end
-
 function ENT:CheckEnt(checkent)
 	for index, ent in ipairs(self.linked_entities) do
 		if checkent == ent then
@@ -215,8 +211,6 @@ function ENT:LinkEnt(ent)
 		self:UnlinkEnt(ent)
 	end)
 
-	self:UpdateOutputs()
-
 	return true
 end
 
@@ -226,7 +220,6 @@ function ENT:UnlinkEnt(ent)
 	if bool then
 		table.remove(self.linked_entities, index)
 		ent:RemoveCallOnRemove("DamageDetector.Unlink" .. self:EntIndex())
-		self:UpdateOutputs()
 	end
 
 	return bool
@@ -238,13 +231,16 @@ function ENT:ClearEntities()
 	end
 
 	self.linked_entities = {}
-	self:UpdateOutputs()
 end
 
 function ENT:OnRemove()
 	table.RemoveByValue(Wire_Damage_Detectors, self)
 	self:ClearEntities()
 	BaseClass.OnRemove(self)
+end
+
+function ENT:PrepareMarksData()
+	WireLib.SendMarks(self, self.linked_entities)
 end
 
 function ENT:PrepareOverlayData()
@@ -291,8 +287,6 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 				end)
 			end
 		end
-
-		self:UpdateOutputs()
 	end
 end
 
