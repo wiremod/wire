@@ -65,7 +65,7 @@ function ENT:TriggerInput(name, value)
 
 			for _, ent in pairs(value) do
 				if IsValid(ent) then
-					self:LinkEnt(ent, true)
+					self:LinkEnt(ent)
 				end
 			end
 		end
@@ -87,10 +87,10 @@ end
 
 function ENT:TriggerOutput(tab)
 	local attacker = tab.firsthit_dmginfo[1]
-	WireLib.TriggerOutput(self, "Attacker", IsValid(attacker) or NULL)
+	WireLib.TriggerOutput(self, "Attacker", IsValid(attacker) and attacker or NULL)
 
 	local victim = tab.firsthit_dmginfo[2]
-	WireLib.TriggerOutput(self, "Victim", IsValid(victim) or NULL)
+	WireLib.TriggerOutput(self, "Victim", IsValid(victim) and victim or NULL)
 
 	WireLib.TriggerOutput(self, "Victims", tab.victims)
 	WireLib.TriggerOutput(self, "Position", tab.firsthit_dmginfo[3] or Vector(0, 0, 0))
@@ -272,6 +272,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if info.linked_entities then
+		-- Prevent doulbe linking to self
+		self:ClearEntities()
+
 		-- Backwards compat
 		if isnumber(info.linked_entities) then
 			info.linked_entities = { info.linked_entities }
