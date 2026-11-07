@@ -113,11 +113,11 @@ function ENT:Think()
 		if phys:IsValid() then
 			phys:Wake()
 		end
-
-		self:NextThink(CurTime())
-
-		return true
 	end
+
+	self:NextThink(CurTime())
+
+	return true
 end
 
 function ENT:PrepareOverlayData()
