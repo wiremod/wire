@@ -3,91 +3,69 @@ DEFINE_BASECLASS("base_wire_entity")
 ENT.PrintName = "Wire Speedometer"
 ENT.WireDebugName = "Speedo"
 
-function ENT:SetupDataTables()
-	self:NetworkVar("Bool", 0, "XYZMode")
-end
-
-function ENT:SetModes(XYZMode)
-	self:SetXYZMode(XYZMode)
-end
-
-if CLIENT then
-	function ENT:Think()
-		BaseClass.Think(self)
-
-		local txt
-
-		if self:GetXYZMode() then
-			local vel = self:WorldToLocal(self:GetVelocity() + self:GetPos())
-			txt = string.format("Velocity = %.3f,%.3f,%.3f", -vel.y, vel.x, vel.z)
-		else
-			txt = "Speed = " .. math.Round(self:GetVelocity():Length(), 3)
-		end
-
-		self:SetOverlayText(txt)
-		self:NextThink(CurTime() + 0.04)
-
-		return true
-	end
-
-	return  -- No more client
-end
+if CLIENT then return end
 
 function ENT:Initialize()
 	self:SetModel("models/jaanus/wiretool/wiretool_speed.mdl")
 	self:PhysicsInit(SOLID_VPHYSICS)
-	self:SetMoveType(MOVETYPE_VPHYSICS)
-	self:SetSolid(SOLID_VPHYSICS)
-
-	self.Outputs = Wire_CreateOutputs(self, { "Out", "MPH", "KPH" })
+	WireLib.CreateOutputs(self, { "Out", "MPH", "KPH" })
 end
 
-function ENT:Setup(xyz_mode, AngVel)
-	self.z_only = xyz_mode --was renamed but kept for dupesaves
+function ENT:Setup(xyz_mode, ang_vel)
+	self.z_only = xyz_mode -- Was renamed but kept for backwards compat
 	self.XYZMode = xyz_mode
-	self.AngVel = AngVel
-	self:SetModes(xyz_mode)
+	self.AngVel = ang_vel
+	self:SetXYZMode(xyz_mode)
 
-	local outs = {}
+	local outputs = xyz_mode and { "X", "Y", "Z" } or { "Out", "MPH", "KPH" }
+	if ang_vel then table.Add(outputs, { "AngVel_P", "AngVel_Y", "AngVel_R" } ) end
 
-	if (xyz_mode) then
-		outs = { "X", "Y", "Z" }
-	else
-		outs = { "Out", "MPH", "KPH" }
-	end
-
-	if AngVel then
-		table.Add(outs, {"AngVel_P", "AngVel_Y", "AngVel_R" } )
-	end
-
-	Wire_AdjustOutputs(self, outs)
+	WireLib.AdjustOutputs(self, outputs)
 end
 
 function ENT:Think()
 	BaseClass.Think(self)
 
-	if self.XYZMode then
-		local vel = self:WorldToLocal(self:GetVelocity() + self:GetPos())
-		Wire_TriggerOutput(self, "X", -vel.y)
-		Wire_TriggerOutput(self, "Y", vel.x)
-		Wire_TriggerOutput(self, "Z", vel.z)
+	local tab = self:GetTable()
+
+	if tab.XYZMode then
+		local velocity = self:GetVelocity()
+		velocity:Add(self:GetPos())
+
+		local x, y, z = self:WorldToLocal(velocity):Unpack()
+		WireLib.TriggerOutput(self, "X", -y)
+		WireLib.TriggerOutput(self, "Y", x)
+		WireLib.TriggerOutput(self, "Z", z)
 	else
-		local vel = self:GetVelocity():Length()
-		Wire_TriggerOutput(self, "Out", vel) -- vel = Source Units / sec, Source Units = Inch * 0.75 , more info here: https://developer.valvesoftware.com/wiki/Dimensions#Map_Grid_Units:_quick_reference
-		Wire_TriggerOutput(self, "MPH", vel * 3600 / 63360 * 0.75)
-		Wire_TriggerOutput(self, "KPH", vel * 3600 * 0.0000254 * 0.75)
+		local velocity = self:GetVelocity():Length()
+		WireLib.TriggerOutput(self, "Out", velocity) -- vel = Source Units / sec, Source Units = Inch * 0.75 , more info here: https://developer.valvesoftware.com/wiki/Dimensions#Map_Grid_Units:_quick_reference
+		WireLib.TriggerOutput(self, "MPH", velocity * 3600 / 63360 * 0.75)
+		WireLib.TriggerOutput(self, "KPH", velocity * 3600 * 0.0000254 * 0.75)
 	end
 
-	if self.AngVel then
-		local ang = self:GetPhysicsObject():GetAngleVelocity()
-		Wire_TriggerOutput(self, "AngVel_P", ang.y)
-		Wire_TriggerOutput(self, "AngVel_Y", ang.z)
-		Wire_TriggerOutput(self, "AngVel_R", ang.x)
+	if tab.AngVel then
+		-- These are incorrect values ​​for the outputs, but has it always been this way? Does this even work?
+		local p, y, r = self:GetPhysicsObject():GetAngleVelocity():Unpack()
+		WireLib.TriggerOutput(self, "AngVel_P", y)
+		WireLib.TriggerOutput(self, "AngVel_Y", r)
+		WireLib.TriggerOutput(self, "AngVel_R", p)
 	end
 
 	self:NextThink(CurTime() + 0.04)
 
 	return true
+end
+
+function ENT:PrepareOverlayData()
+	if self:GetXYZMode() then
+		local velocity = self:GetVelocity()
+		velocity:Add(self:GetPos())
+
+		local x, y, z = self:WorldToLocal(velocity):Unpack()
+		self:SetOverlayText(string.format("Velocity = %.3f,%.3f,%.3f", -y, x, z))
+	else
+		self:SetOverlayText("Speed = " .. math.Round(self:GetVelocity():Length(), 3))
+	end
 end
 
 duplicator.RegisterEntityClass("gmod_wire_speedometer", WireLib.MakeWireEnt, "Data", "z_only", "AngVel")
