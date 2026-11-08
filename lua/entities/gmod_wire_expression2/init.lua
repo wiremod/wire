@@ -49,26 +49,25 @@ end
 
 local fixDefault = E2Lib.fixDefault
 
-function ENT:UpdateOverlay(clear)
+function ENT:PrepareOverlayData()
 	local selfTbl = self:GetTable()
+	local context = selfTbl.context
 
-	if clear then
-		self:SetOverlayData({
-			txt = "(none)",
-			error = selfTbl.error,
-			prfbench = 0,
-			prfcount = 0,
-			timebench = 0
-		})
-	else
-		local context = selfTbl.context
-
+	if context then
 		self:SetOverlayData({
 			txt = selfTbl.name, -- name/error
 			error = selfTbl.error, -- error bool
 			prfbench = context.prfbench,
 			prfcount = context.prfcount,
 			timebench = context.timebench
+		})
+	else
+		self:SetOverlayData({
+			txt = "(none)",
+			error = selfTbl.error,
+			prfbench = 0,
+			prfcount = 0,
+			timebench = 0
 		})
 	end
 end
@@ -83,7 +82,6 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateOutputs(self, {})
 
 	self.error = true
-	self:UpdateOverlay(true)
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
 
 	local owner = self.player
@@ -132,8 +130,6 @@ function ENT:UpdatePerf(selfTbl)
 
 	if context.prfcount < 0 then context.prfcount = 0 end
 
-	self:UpdateOverlay()
-
 	context.prf = 0
 	context.time = 0
 end
@@ -144,6 +140,7 @@ function ENT:Execute(script, context)
 	script = script or selfTbl.script
 	if not context or selfTbl.error or context.resetting then return end
 
+	local bench = SysTime()
 	self:PCallHook("preexecute")
 
 	context.stackdepth = context.stackdepth + 1
@@ -151,8 +148,6 @@ function ENT:Execute(script, context)
 	if context.stackdepth >= 150 then
 		self:Error("Expression 2 (" .. selfTbl.name .. "): stack quota exceeded", "stack quota exceeded")
 	end
-
-	local bench = SysTime()
 
 	local ok, msg = pcall(script, context)
 
@@ -204,7 +199,8 @@ function ENT:Execute(script, context)
 		end
 	end
 
-	context.time = context.time + (SysTime() - bench)
+	local bench_end = SysTime()
+	context.time = context.time + (bench_end - bench)
 
 	if context.prfcount + context.prf - e2_softquota > e2_hardquota then
 		local trace = context.trace
@@ -274,7 +270,8 @@ function ENT:ExecuteEvent(evt, args)
 		end
 	end
 
-	context.time = context.time + (SysTime() - bench)
+	local bench_end = SysTime()
+	context.time = context.time + (bench_end - bench)
 
 	if context.prfcount + context.prf - e2_softquota > e2_hardquota then
 		local trace = context.trace
@@ -298,8 +295,6 @@ function ENT:Think()
 	self:UpdatePerf(selfTbl)
 
 	if context.prfcount < 0 then context.prfcount = 0 end
-
-	self:UpdateOverlay()
 
 	context.prf = 0
 	context.time = 0
