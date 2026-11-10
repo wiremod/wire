@@ -15,7 +15,6 @@ function ENT:Setup(xyz_mode, ang_vel)
 	self.z_only = xyz_mode -- Was renamed but kept for backwards compat
 	self.XYZMode = xyz_mode
 	self.AngVel = ang_vel
-	self:SetXYZMode(xyz_mode)
 
 	local outputs = xyz_mode and { "X", "Y", "Z" } or { "Out", "MPH", "KPH" }
 	if ang_vel then table.Add(outputs, { "AngVel_P", "AngVel_Y", "AngVel_R" } ) end
