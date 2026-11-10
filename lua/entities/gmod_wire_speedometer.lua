@@ -56,7 +56,7 @@ function ENT:Think()
 end
 
 function ENT:PrepareOverlayData()
-	if self:GetXYZMode() then
+	if self.XYZMode then
 		local velocity = self:GetVelocity()
 		velocity:Add(self:GetPos())
 
