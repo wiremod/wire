@@ -18,11 +18,10 @@ end
 function ENT:CanLink( Target )
 	if (Target.Socket and Target.Socket:IsValid()) then return false end
 	if (self.SockData.plug ~= Target:GetModel()) then return false end
-	if SERVER then
-		local owner, targetOwner = self:GetPlayer(), Target:GetPlayer()
-		if IsValid(owner) and not WireLib.CanTool(owner, Target, "weld") then return false end
-		if IsValid(targetOwner) and not WireLib.CanTool(targetOwner, self, "weld") then return false end
-	end
+
+	local ply = WireLib.GetOwner(self)
+	if not IsValid(ply) or not WireLib.CanTool(ply, Target, "wire_plug") then return false end
+
 	return true
 end
 
