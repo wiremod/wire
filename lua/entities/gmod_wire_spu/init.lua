@@ -101,7 +101,7 @@ function ENT:SetMemoryModel(model,initial)
 
         net.Start("wire_spu_memorymodel")
           net.WriteUInt(self:EntIndex(), 32)
-          net.WriteUInt(self.RAMSize)
+          net.WriteUInt(self.RAMSize, 32)
           net.WriteFloat(self.SerialNo)
           net.WriteInt(self.ChipType, 16)
         net.Broadcast()
