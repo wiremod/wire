@@ -8,6 +8,11 @@ DEFINE_BASECLASS("base_wire_entity")
 
 ENT.WireDebugName = "ZSPU"
 
+util.AddNetworkString("wire_spu_soundstate")
+util.AddNetworkString("wire_spu_soundsources")
+util.AddNetworkString("wire_spu_memorymodel")
+util.AddNetworkString("wire_spu_extensions")
+
 --------------------------------------------------------------------------------
 WireSPU_MaxChannels = 32
 
@@ -51,12 +56,12 @@ function ENT:Initialize()
     function()
       if not self:IsValid() then return end
 
-      umsg.Start("wire_spu_soundsources")
-        umsg.Long(self:EntIndex())
+      net.Start("wire_spu_soundsources")
+        net.WriteUInt(self:EntIndex(), 32)
          for i=0,WireSPU_MaxChannels-1 do
-           umsg.Long(self.SoundSources[i]:EntIndex())
+          net.WriteUInt(self.SoundSources[i]:EntIndex(), 32)
          end
-      umsg.End()
+      net.Broadcast()
 
 --      for i=0,WireSPU_MaxChannels-1 do
 --        self.SoundSources[i]:SetModelScale(Vector(0))
@@ -94,12 +99,12 @@ function ENT:SetMemoryModel(model,initial)
       function()
         if not self:IsValid() then return end
 
-        umsg.Start("wire_spu_memorymodel")
-          umsg.Long(self:EntIndex())
-          umsg.Long (self.RAMSize)
-          umsg.Float(self.SerialNo)
-          umsg.Short(self.ChipType)
-        umsg.End()
+        net.Start("wire_spu_memorymodel")
+          net.WriteUInt(self:EntIndex(), 32)
+          net.WriteUInt(self.RAMSize)
+          net.WriteFloat(self.SerialNo)
+          net.WriteInt(self.ChipType, 16)
+        net.Broadcast()
       end)
   end
 end
@@ -110,10 +115,10 @@ function ENT:SetExtensionLoadOrder(extstr)
   function()
     if not self:IsValid() then return end
 
-    umsg.Start("wire_spu_extensions")
-      umsg.Long(self:EntIndex())
-      umsg.String(self.ZVMExtensions)
-    umsg.End()
+    net.Start("wire_spu_extensions")
+      net.WriteUInt(self:EntIndex(), 32)
+      net.WriteString(self.ZVMExtensions)
+    net.Broadcast()
   end)
 end
 
@@ -337,13 +342,13 @@ function ENT:Think()
 
     -- Send update to all clients
     if soundEmittersChanged then
-      umsg.Start("wire_spu_soundstate")
-        umsg.Long(self:EntIndex())
-        umsg.Short(#self.SoundEmitters)
+      net.Start("wire_spu_soundstate")
+        net.WriteUInt(self:EntIndex(), 32)
+        net.WriteUInt(#self.SoundEmitters, 16)
         for idx=1,#self.SoundEmitters do
-          umsg.Long(self.SoundEmitters[idx])
+          net.WriteUInt(self.SoundEmitters[idx], 32)
         end
-      umsg.End()
+      net.Broadcast()
     end
   end
 

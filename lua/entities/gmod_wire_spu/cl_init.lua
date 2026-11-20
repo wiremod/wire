@@ -33,29 +33,29 @@ local function recalculateSoundEmitterLookup()
   end
 end
 
-local function SPU_SoundEmitterState(um)
+local function SPU_SoundEmitterState(len)
   -- Read sound emitters for this SPU
-  local gpuIdx = um:ReadLong()
+  local gpuIdx = net.ReadUInt(32)
   SoundEmitters[gpuIdx] = {}
 
   -- Fetch all sound emitters
-  local count = um:ReadShort()
+  local count = net.ReadUInt(16)
   for i=1,count do
-    SoundEmitters[gpuIdx][i] = um:ReadLong()
+    SoundEmitters[gpuIdx][i] = net.ReadUInt(32)
   end
 
   -- Recalculate small lookup table for sound emitter system
   recalculateSoundEmitterLookup()
 end
-usermessage.Hook("wire_spu_soundstate", SPU_SoundEmitterState)
+net.Receive("wire_spu_soundstate", SPU_SoundEmitterState)
 
-local function SPU_SoundSources(um)
-  local SPU = ents.GetByIndex(um:ReadLong())
+local function SPU_SoundSources(len)
+  local SPU = ents.GetByIndex(net.ReadUInt(32))
   if not SPU then return end
   if not SPU:IsValid() then return end
 
   for i=0,WireSPU_MaxChannels-1 do
-    local soundsource = ents.GetByIndex(um:ReadLong())
+    local soundsource = ents.GetByIndex(net.ReadUInt(32))
 
     if soundsource:IsValid() then
       SPU.SoundSources[i] = soundsource
@@ -69,7 +69,7 @@ local function SPU_SoundSources(um)
   SPU.VM.Memory[65535] = 1
   SPU.VM.Memory[65527] = 300000
 end
-usermessage.Hook("wire_spu_soundsources", SPU_SoundSources)
+net.Receive("wire_spu_soundsources", SPU_SoundSources)
 
 
 
@@ -78,27 +78,27 @@ usermessage.Hook("wire_spu_soundsources", SPU_SoundSources)
 -- Update SPU features/memory model
 --------------------------------------------------------------------------------
 local function SPU_MemoryModel(um)
-  local SPU = ents.GetByIndex(um:ReadLong())
+  local SPU = ents.GetByIndex(net.ReadUInt(32))
   if not SPU then return end
   if not SPU:IsValid() then return end
 
   if SPU.VM then
-    SPU.VM.ROMSize = um:ReadLong()
-    SPU.VM.SerialNo = um:ReadFloat()
+    SPU.VM.ROMSize = net.ReadUInt(32)
+    SPU.VM.SerialNo = net.ReadFloat()
     SPU.VM.RAMSize = SPU.VM.ROMSize
   else
-    SPU.ROMSize = um:ReadLong()
-    SPU.SerialNo = um:ReadFloat()
+    SPU.ROMSize = net.ReadUInt(32)
+    SPU.SerialNo = net.ReadFloat()
   end
-  SPU.ChipType = um:ReadShort()
+  SPU.ChipType = net.ReadInt(16)
 end
-usermessage.Hook("wire_spu_memorymodel", SPU_MemoryModel)
+net.Receive("wire_spu_memorymodel", SPU_MemoryModel)
 
 local function SPU_SetExtensions(um)
-  local SPU = ents.GetByIndex(um:ReadLong())
+  local SPU = ents.GetByIndex(net.ReadUInt(32))
   if not SPU then return end
   if not SPU:IsValid() then return end
-  local extstr = um:ReadString()
+  local extstr = net.ReadString()
   local extensions = CPULib:FromExtensionString(extstr,"SPU")
   if SPU.VM then
     SPU.VM.Extensions = extensions
@@ -106,7 +106,7 @@ local function SPU_SetExtensions(um)
   end
   SPU.ZVMExtensions = extstr
 end
-usermessage.Hook("wire_spu_extensions", SPU_SetExtensions)
+net.Receive("wire_spu_extensions", SPU_SetExtensions)
 
 
 

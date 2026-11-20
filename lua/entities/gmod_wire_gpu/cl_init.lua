@@ -26,48 +26,47 @@ local function recalculateMonitorLookup()
   end
 end
 
-local function GPU_MonitorState(um)
+local function GPU_MonitorState(len)
   -- Read monitors for this GPU
-  local gpuIdx = um:ReadLong()
+  local gpuIdx = net.ReadUInt(32)
   Monitors[gpuIdx] = {}
 
   -- Fetch all monitors
-  local count = um:ReadShort()
+  local count = net.ReadUInt(16)
   for i=1,count do
-    Monitors[gpuIdx][i] = um:ReadLong()
+    Monitors[gpuIdx][i] = net.ReadUInt(32)
   end
 
   -- Recalculate small lookup table for monitor system
   recalculateMonitorLookup()
 end
-usermessage.Hook("wire_gpu_monitorstate", GPU_MonitorState)
-
+net.Receive("wire_gpu_monitorstate", GPU_MonitorState)
 
 --------------------------------------------------------------------------------
 -- Update GPU features/memory model
 --------------------------------------------------------------------------------
-local function GPU_MemoryModel(um)
-  local GPU = ents.GetByIndex(um:ReadLong())
+local function GPU_MemoryModel(len)
+  local GPU = ents.GetByIndex(net.ReadUInt(32))
   if not GPU then return end
   if not GPU:IsValid() then return end
 
   if GPU.VM then
-    GPU.VM.ROMSize = um:ReadLong()
-    GPU.VM.SerialNo = um:ReadFloat()
+    GPU.VM.ROMSize = net.ReadUInt(32)
+    GPU.VM.SerialNo = net.ReadFloat()
     GPU.VM.RAMSize = GPU.VM.ROMSize
   else
-    GPU.ROMSize = um:ReadLong()
-    GPU.SerialNo = um:ReadFloat()
+    GPU.ROMSize = net.ReadUInt(32)
+    GPU.SerialNo = net.ReadFloat()
   end
-  GPU.ChipType = um:ReadShort()
+  GPU.ChipType = net.ReadInt(16)
 end
-usermessage.Hook("wire_gpu_memorymodel", GPU_MemoryModel)
+net.Receive("wire_gpu_memorymodel", GPU_MemoryModel)
 
-local function GPU_SetExtensions(um)
-  local GPU = ents.GetByIndex(um:ReadLong())
+local function GPU_SetExtensions(len)
+  local GPU = ents.GetByIndex(net.ReadUInt(32))
   if not GPU then return end
   if not GPU:IsValid() then return end
-  local extstr = um:ReadString()
+  local extstr = net.ReadString()
   local extensions = CPULib:FromExtensionString(extstr,"GPU")
   if GPU.VM then
     GPU.VM.Extensions = extensions
@@ -75,7 +74,7 @@ local function GPU_SetExtensions(um)
   end
   GPU.ZVMExtensions = extstr
 end
-usermessage.Hook("wire_gpu_extensions", GPU_SetExtensions)
+net.Receive("wire_gpu_extensions", GPU_SetExtensions)
 
 local wire_gpu_frameratio = CreateClientConVar("wire_gpu_frameratio",4)
 
