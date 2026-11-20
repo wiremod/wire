@@ -8,6 +8,9 @@ DEFINE_BASECLASS("base_wire_entity")
 
 ENT.WireDebugName = "ZGPU"
 
+util.AddNetworkString("wire_gpu_monitorstate")
+util.AddNetworkString("wire_gpu_memorymodel")
+util.AddNetworkString("wire_gpu_extensions")
 
 --------------------------------------------------------------------------------
 function ENT:Initialize()
@@ -36,13 +39,13 @@ function ENT:Initialize()
 end
 
 function ENT:UpdateClientMonitorState()
-  umsg.Start("wire_gpu_monitorstate")
-    umsg.Long(self:EntIndex())
-    umsg.Short(#self.Monitors)
+  net.Start("wire_gpu_monitorstate")
+    net.WriteUInt(self:EntIndex(), 32)
+    net.WriteUInt(#self.Monitors, 16)
     for idx=1,#self.Monitors do
-      umsg.Long(self.Monitors[idx])
+      net.WriteUInt(self.Monitors[idx], 32)
     end
-  umsg.End()
+  net.Broadcast()
 end
 --------------------------------------------------------------------------------
 -- Set processor
@@ -65,12 +68,12 @@ function ENT:SetMemoryModel(model,initial)
       function()
         if not self:IsValid() then return end
 
-        umsg.Start("wire_gpu_memorymodel")
-          umsg.Long(self:EntIndex())
-          umsg.Long (self.RAMSize)
-          umsg.Float(self.SerialNo)
-          umsg.Short(self.ChipType)
-        umsg.End()
+        net.Start("wire_gpu_memorymodel")
+          net.WriteUInt(self:EntIndex(), 32)
+          net.WriteUInt(self.RAMSize, 32)
+          net.WriteFloat(self.SerialNo)
+          net.WriteInt(self.ChipType, 16)
+        net.Broadcast()
       end)
   end
 end
@@ -81,10 +84,10 @@ function ENT:SetExtensionLoadOrder(extstr)
   function()
     if not self:IsValid() then return end
 
-    umsg.Start("wire_gpu_extensions")
-      umsg.Long(self:EntIndex())
-      umsg.String(self.ZVMExtensions)
-    umsg.End()
+    net.Start("wire_gpu_extensions")
+      net.WriteUInt(self:EntIndex(), 32)
+      net.WriteString(self.ZVMExtensions)
+    net.Broadcast()
   end)
 end
 
