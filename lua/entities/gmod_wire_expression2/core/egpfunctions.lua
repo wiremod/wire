@@ -1158,6 +1158,7 @@ e2function void wirelink:egpHudToggle()
 	antispam[self.player] = CurTime() + 0.1
 
 	timer.Simple(0, function()
+		if not EGP:ValidEGP(this) then return end
 		EGP.EGPHudConnect(this, not (this.Users ~= nil and this.Users[self.player] ~= nil), self.player)
 	end)
 end
@@ -1168,6 +1169,7 @@ e2function void wirelink:egpHudEnable(enable)
 	antispam[self.player] = CurTime() + 0.1
 
 	timer.Simple(0, function()
+		if not EGP:ValidEGP(this) then return end
 		EGP.EGPHudConnect(this, enable ~= 0, self.player)
 	end)
 end
