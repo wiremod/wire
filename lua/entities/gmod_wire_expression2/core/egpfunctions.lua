@@ -1174,6 +1174,10 @@ e2function void wirelink:egpHudEnable(enable)
 	end)
 end
 
+registerCallback("destruct", function(self)
+	antispam[self.player] = nil
+end)
+
 e2function array wirelink:egpConnectedUsers()
 	if not EGP:ValidEGP(this) then return self:throw("Invalid wirelink!", {}) end
 	if not this.Users then return {} end
