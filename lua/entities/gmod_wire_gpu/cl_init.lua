@@ -337,8 +337,8 @@ function ENT:RenderMisc(pos, ang, resolution, aspect, monitor)
   local ply = LocalPlayer()
   local trace = ply:GetEyeTraceNoCursor()
   if (trace.Entity and trace.Entity:IsValid() and trace.Entity == self) then
-    local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*(-16384)
-    dist = math.max(dist, trace.Fraction*16384-self:BoundingRadius())
+    local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*(-32768)
+    dist = math.max(dist, trace.Fraction*32768-self:BoundingRadius())
 
     if (dist < 256) then
       local pos = WorldToLocal( trace.HitPos, Angle(), pos, ang )

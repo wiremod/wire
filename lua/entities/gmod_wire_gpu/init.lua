@@ -361,8 +361,8 @@ function ENT:Think()
     local trace = player:GetEyeTraceNoCursor()
     local ent = trace.Entity
     if ent:IsValid() then
-      local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*(-16384)
-      dist = math.max(dist, trace.Fraction*16384-ent:BoundingRadius())
+      local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*(-32768)
+      dist = math.max(dist, trace.Fraction*32768-ent:BoundingRadius())
 
       if dist < 64 and ent == self then
         if player:KeyDown(IN_ATTACK) or player:KeyDown(IN_USE) then

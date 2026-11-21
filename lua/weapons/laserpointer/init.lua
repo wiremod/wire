@@ -21,7 +21,7 @@ function SWEP:Think()
 			trace = owner:GetEyeTrace()
 		else
 			local att = self:GetAttachment(self:LookupAttachment("muzzle"))
-			trace = util.TraceLine({ start = att.Pos, endpos = att.Pos + att.Ang:Forward() * 16384, filter = self })
+			trace = util.TraceLine({ start = att.Pos, endpos = att.Pos + att.Ang:Forward() * 32768, filter = self })
 		end
 
 		local point = trace.HitPos
