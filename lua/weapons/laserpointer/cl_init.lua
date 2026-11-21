@@ -46,7 +46,7 @@ function SWEP:DrawWorldModel(flags)
 		if IsValid(owner) then
 			endpos = owner:GetEyeTrace().HitPos
 		else
-			local tr = util.TraceLine({ start = startpos, endpos = startpos + att.Ang:Forward() * 16384, filter = self })
+			local tr = util.TraceLine({ start = startpos, endpos = startpos + att.Ang:Forward() * 32768, filter = self })
 			endpos = tr.HitPos
 		end
 

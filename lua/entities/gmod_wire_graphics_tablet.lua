@@ -48,8 +48,8 @@ if CLIENT then
 			local trace = ply:GetEyeTraceNoCursor()
 			local ent = trace.Entity
 			if ent:IsValid() then
-				local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*-16384
-				dist = math.max(dist, trace.Fraction*16384-ent:BoundingRadius())
+				local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*-32768
+				dist = math.max(dist, trace.Fraction*32768-ent:BoundingRadius())
 
 				if dist < self.workingDistance and ent == self.GPU.Entity then
 					local cpos = WorldToLocal(trace.HitPos, Angle(), pos, ang)
@@ -118,8 +118,8 @@ function ENT:Think()
 		local trace = ply:GetEyeTraceNoCursor()
 		local ent = trace.Entity
 		if ent:IsValid() then
-			local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*-16384
-			dist = math.max(dist, trace.Fraction*16384-ent:BoundingRadius())
+			local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*-32768
+			dist = math.max(dist, trace.Fraction*32768-ent:BoundingRadius())
 
 			if dist < 64 and ent == GPUEntity then
 				if ply:KeyDown(IN_ATTACK) or ply:KeyDown(IN_USE) then

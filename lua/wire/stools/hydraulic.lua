@@ -171,7 +171,7 @@ function TOOL:RightClick( trace )
 
 	local tr = {}
 	tr.start = trace.HitPos
-	tr.endpos = tr.start + (trace.HitNormal * 16384)
+	tr.endpos = tr.start + (trace.HitNormal * 32768)
 	tr.filter = {self:GetOwner()}
 	if IsValid(trace.Entity) then
 		tr.filter[2] = trace.Entity

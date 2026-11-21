@@ -306,7 +306,7 @@ end
 
 __e2setcost(20) -- temporary
 
---- Equivalent to rangerOffset(16384, <this>:shootPos(), <this>:eye()), but faster (causing less lag)
+--- Equivalent to rangerOffset(32768, <this>:shootPos(), <this>:eye()), but faster (causing less lag)
 e2function ranger entity:eyeTrace()
 	if not IsValid(this) then return nil end
 	if not this:IsPlayer() then return nil end
