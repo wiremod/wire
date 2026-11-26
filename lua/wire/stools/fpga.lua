@@ -190,13 +190,17 @@ if SERVER then
 			return
 		end
 
-		local dataLength = net.ReadUInt(16)
-		local data = net.ReadData(dataLength)
+		local ok
+		local data = net.ReadData(net.ReadUInt(16))
+		data = util.Decompress(data, 1048576)
 
-		local ok, data = pcall(util.Decompress, data)
-		if not ok then return end
+		if data then
+			ok, data = pcall(WireLib.von.deserialize, data)
+		else
+			-- To have propper fail reason
+			ok, data = false, "Failed to decompress data"
+		end
 
-		ok, data = pcall(WireLib.von.deserialize, data)
 		if ok then
 			chip:Upload(data)
 		else
