@@ -388,12 +388,11 @@ end
 --------------------------------------------------------------------------------
 concommand.Add("wgm", function(player, command, args)
   -- Find the referenced GPU
-  local GPU = ents.GetByIndex(args[1])
-  if not GPU then return end
-  if not GPU:IsValid() then return end
+  local GPU = Entity(args[1])
+  if not GPU:IsValid() or GPU:GetClass() ~= "gmod_wire_gpu" then return end
 
   -- Must be a valid GPU, and belong to the caller
---  if GPU.player ~= player then return end
+  if GPU:GetPlayer() ~= player then return end
 
   -- Write on membus
   local Address = tonumber(args[2]) or 0
