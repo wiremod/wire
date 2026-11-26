@@ -42,7 +42,6 @@ if CLIENT then
 end
 
 WireLib.Paths = {}
-local transmit_queues = WireLib.RegisterPlayerTable(setmetatable({}, { __index = function(t,p) t[p] = {} return t[p] end }))
 util.AddNetworkString("WireLib.Paths.RequestPaths")
 util.AddNetworkString("WireLib.Paths.TransmitPath")
 
@@ -78,17 +77,31 @@ local function TransmitPath(input, ply)
 	net.Send(ply)
 end
 
+local transmit_queues = WireLib.RegisterPlayerTable(setmetatable({}, { __index = function(t, p) t[p] = {} return t[p] end }))
+local queued = WireLib.RegisterPlayerTable(setmetatable({}, { __index = function(t, p) t[p] = {} return t[p] end }))
+
+local function Enqueue(ply, input)
+	local set = queued[ply]
+	if set[input] then return end
+
+	set[input] = true
+	table.insert(transmit_queues[ply], input)
+end
+
 local function ProcessQueue()
 	for ply, queue in pairs(transmit_queues) do
 		if ply:IsValid() then
 			local nextinqueue = table.remove(queue, 1)
 			if nextinqueue then
+				queued[ply][nextinqueue] = nil
 				TransmitPath(nextinqueue, ply)
 			else
 				transmit_queues[ply] = nil
+				queued[ply] = nil
 			end
 		else
 			transmit_queues[ply] = nil
+			queued[ply] = nil
 		end
 	end
 	if not next(transmit_queues) then
@@ -97,14 +110,15 @@ local function ProcessQueue()
 end
 
 -- Add a path to every player's transmit queue
-function WireLib.Paths.Add(input, ply)
-	if ply then
-		table.insert(transmit_queues[ply], input)
+function WireLib.Paths.Add(input, add_ply)
+	if add_ply then
+		Enqueue(add_ply, input)
 	else
-		for _, player in player.Iterator() do
-			table.insert(transmit_queues[player], input)
+		for _, ply in player.Iterator() do
+			Enqueue(ply, input)
 		end
 	end
+
 	if not timer.Exists("WireLib.Paths.ProcessQueue") then
 		timer.Create("WireLib.Paths.ProcessQueue", 0, 0, ProcessQueue)
 	end
