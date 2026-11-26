@@ -83,14 +83,13 @@ end
 local function checkConCmd(self, cmd)
 	local ply = self.player
 	if not ply:IsValid() then return self:throw("Invalid chip owner to run console command", false) end
-	if #cmd >= 512 then return self:throw("Concmd is too long!", false) end
-
 	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return self:throw("Concmd is disabled through wire_expression2_concmd", false) end
+
+	if #cmd >= 512 then return self:throw("Concmd is too long!", false) end
+	if IsConCommandBlocked(cmd) then return self:throw("This concmd is blacklisted by gmod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
 
 	local commands, err = tokenizeAndGetCommands(cmd)
 	if commands and #commands == 0 then return self:throw("Concmd is empty", false) end
-
-	if IsConCommandBlocked(cmd) then return self:throw("This concmd is blacklisted by gmod, see https://wiki.facepunch.com/gmod/Blocked_ConCommands", false) end
 
 	if hook.Run("Expression2_CanConCmd", ply, cmd) == false then
         return self:throw("Command '" .. cmd .. "' was blocked by the server. ", false)
@@ -118,7 +117,7 @@ local function checkConVar(self, var)
 
 	if #var >= 512 then return self:throw("Convar is too long!", false) end
 	if ply:GetInfoNum("wire_expression2_convar", 0) == 0 then return self:throw("Convar is disabled through wire_expression2_convar", false) end
-	if not string.find(var, "^[%w_]+$") then return self:throw("Invalid convar name", false) end
+	if not string.find(var, "^[%w_%-%.]+$") then return self:throw("Invalid convar name", false) end
 
 	if hook.Run("Expression2_CanConVar", ply, var) == false then
         return self:throw("Convar '" .. var .. "' was blocked by the server. ", false)
@@ -138,7 +137,7 @@ __e2setcost(5)
 
 e2function number concmd(string command)
 	if not checkConCmd(self, command) then return 0 end
-	self.player:ConCommand(string.gsub(command, "%%", "%%%%"))
+	self.player:ConCommand((string.gsub(command, "%%", "%%%%")))
 	return 1
 end
 
