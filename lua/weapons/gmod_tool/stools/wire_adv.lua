@@ -150,6 +150,10 @@ if SERVER then
 
 		for i=1,#wirings do
 			local wiring = wirings[i]
+			if not istable(wiring) then continue end
+
+			local nodes = wiring[4]
+			if not istable(nodes) or #nodes > 128 then continue end
 
 			local inputentity = wiring[3]
 			local outputentity = wiring[5]
@@ -161,9 +165,11 @@ if SERVER then
 				local inputname = wiring[1]
 				local inputpos = wiring[2]
 				if WireLib.Link_Start( uid, inputentity, inputpos, inputname, material, color, width ) then
-					for i=1,#wiring[4] do
-						local node = wiring[4][i]
-						WireLib.Link_Node( uid, node[1], node[2] )
+					for j=1,#nodes do
+						local node = nodes[j]
+						if istable(node) and isvector(node[2]) then
+							WireLib.Link_Node( uid, node[1], node[2] )
+						end
 					end
 					local outputpos = wiring[6]
 					local outputname = wiring[7]
