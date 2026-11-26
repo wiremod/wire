@@ -399,7 +399,7 @@ concommand.Add("wgm", function(player, command, args)
   local Value = tonumber(args[3]) or 0
 
   -- Perform external write
-  if GPU.Inputs.MemBus.Src then
+  if GPU.Inputs and GPU.Inputs.MemBus.Src then
     GPU.Inputs.MemBus.Src:WriteCell(Address-65536,Value)
   end
 end)
