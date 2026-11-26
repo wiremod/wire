@@ -414,13 +414,17 @@ net.Receive("wire_expression2_file_upload", function(_, ply)
 	if pfile then
 		if net.ReadBool() and not pfile.uploading and not pfile.uploaded then
 			local len = net.ReadUInt(32)
-			if len / 1024 > cv_max_transfer_size:GetInt() then
+			if len > cv_max_transfer_size:GetInt() * 1024 then
 				pfile.uploading = false
 				pfile.uploaded = false
 				file_execute(ply, pfile, FILE_TRANSFER_ERROR)
 			else
 				pfile.uploading = true
 				pfile.Stream = net.ReadStream(ply, function(data)
+					if not data or #data > cv_max_transfer_size:GetInt() * 1024 then
+        				return file_execute(ply, pfile, FILE_TRANSFER_ERROR)
+    				end
+
 					pfile.data = data
 					pfile.uploading = false
 					pfile.uploaded = true
