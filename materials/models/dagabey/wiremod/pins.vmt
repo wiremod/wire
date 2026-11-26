@@ -1,0 +1,7 @@
+"VertexLitGeneric"
+{
+	"$translucent" "1"
+	"$basetexture" "models/dagabey/wiremod/pins"
+	"$model" "1"
+	"$nocull" "1"
+}
