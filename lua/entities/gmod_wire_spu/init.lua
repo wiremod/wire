@@ -143,8 +143,6 @@ local function SPU_PlayerRespawn(player)
   end
 end
 hook.Add("PlayerInitialSpawn", "SPUPlayerRespawn", SPU_PlayerRespawn)
-concommand.Add("wire_spu_resendcache", SPU_PlayerRespawn)
-
 
 --------------------------------------------------------------------------------
 -- Read cell from SPU memory

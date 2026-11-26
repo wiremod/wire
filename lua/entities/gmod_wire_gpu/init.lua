@@ -113,7 +113,6 @@ local function GPU_PlayerRespawn(player)
   end
 end
 hook.Add("PlayerInitialSpawn", "GPUPlayerRespawn", GPU_PlayerRespawn)
-concommand.Add("wire_gpu_resendcache", GPU_PlayerRespawn)
 
 
 
