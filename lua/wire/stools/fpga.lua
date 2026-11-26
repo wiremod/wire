@@ -190,14 +190,15 @@ if SERVER then
 			return
 		end
 
+		local ok
 		local data = net.ReadData(net.ReadUInt(16))
-		local ok, data = pcall(util.Decompress, data, 1048576)
+		data = util.Decompress(data, 1048576)
 
-		if ok then
+		if data then
 			ok, data = pcall(WireLib.von.deserialize, data)
 		else
 			-- To have propper fail reason
-			data = "Failed to decompress data"
+			ok, data = false "Failed to decompress data"
 		end
 
 		if ok then
