@@ -52,6 +52,14 @@ function ENT:Initialize()
 end
 
 function ENT:Setup(DriveID, DriveCap)
+	DriveID = math.floor(DriveID)
+
+	if game.SinglePlayer() then
+		DriveID = math.max(DriveID, 0)
+	else
+		DriveID = math.Clamp(DriveID, 0, 4)
+	end
+
 	self.DriveID = DriveID
 	self.DriveCap = DriveCap
 	self:UpdateCap()
@@ -102,8 +110,8 @@ end
 
 function ENT:UpdateCap()
 	--Can't have cap bigger than 256 in MP
-	if (not game.SinglePlayer()) and (self.DriveCap > 256) then
-		self.DriveCap = 256
+	if not game.SinglePlayer() then
+		self.DriveCap = math.Clamp(math.floor(self.DriveCap), 0, 256)
 	end
 	if self.FlashType == 0 then
 		file.Write(self:GetStructName("drive"),self.DriveCap)
