@@ -153,7 +153,7 @@ if SERVER then
 			if not istable(wiring) then continue end
 
 			local nodes = wiring[4]
-			if not istable(nodes) or #nodes > 128 then continue end
+			if not istable(nodes) or #nodes > 64 then continue end
 
 			local inputentity = wiring[3]
 			local outputentity = wiring[5]
