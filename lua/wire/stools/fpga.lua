@@ -198,7 +198,7 @@ if SERVER then
 			ok, data = pcall(WireLib.von.deserialize, data)
 		else
 			-- To have propper fail reason
-			ok, data = false "Failed to decompress data"
+			ok, data = false, "Failed to decompress data"
 		end
 
 		if ok then
