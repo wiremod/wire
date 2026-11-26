@@ -137,7 +137,8 @@ __e2setcost(5)
 
 e2function number concmd(string command)
 	if not checkConCmd(self, command) then return 0 end
-	self.player:ConCommand((string.gsub(command, "%%", "%%%%")))
+	command = string.gsub(command, "%%", "%%%%")
+	self.player:ConCommand(command)
 	return 1
 end
 
