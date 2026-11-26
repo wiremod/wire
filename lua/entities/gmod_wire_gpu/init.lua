@@ -389,7 +389,7 @@ end
 concommand.Add("wgm", function(player, command, args)
   -- Find the referenced GPU
   local GPU = Entity(args[1])
-  if not GPU:IsValid() then return end
+  if not GPU:IsValid() or GPU:GetClass() ~= "gmod_wire_gpu" then return end
 
   -- Must be a valid GPU, and belong to the caller
   if GPU:GetPlayer() ~= player then return end
@@ -399,7 +399,7 @@ concommand.Add("wgm", function(player, command, args)
   local Value = tonumber(args[3]) or 0
 
   -- Perform external write
-  if GPU.Inputs and GPU.Inputs.MemBus.Src then
+  if GPU.Inputs.MemBus.Src then
     GPU.Inputs.MemBus.Src:WriteCell(Address-65536,Value)
   end
 end)
