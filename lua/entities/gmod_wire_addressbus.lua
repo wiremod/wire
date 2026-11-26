@@ -95,7 +95,7 @@ end
 function ENT:TriggerInput(iname, value)
 	for i = 1,4 do
 		if iname == "Memory"..i then
-			self.Memory[i] = self.Inputs["Memory"..i].Src
+			self.Memory[i] = self.Inputs["Memory"..i].Src and self.Inputs["Memory"..i].Src:GetTable() or nil
 		end
 	end
 end
