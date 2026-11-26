@@ -227,6 +227,19 @@ function WireLib.MakeWireGate(ply, pos, ang, model, action, noclip)
 	local gate = GateActions[action]
 	if not gate or gate.is_banned then return end
 
+	if gate.Upgrade then
+		local limitstr = gate.Upgrade:sub(6).."s"
+		if IsValid(ply) and (not ply:CheckLimit(limitstr)) then return false end
+		local upgrade = ents.Create(gate.Upgrade)
+		upgrade:SetModel(model)
+		upgrade:SetAngles(ang)
+		upgrade:SetPos(pos)
+		upgrade:Spawn()
+		upgrade:FromGate(action)
+		upgrade:SetPlayer(ply)
+		if IsValid(ply) then ply:AddCount(limitstr, upgrade) end
+		return upgrade
+	end
 	return WireLib.MakeWireEnt(ply, { Class = "gmod_wire_gate", Pos = pos, Angle = ang, Model = model }, action, noclip)
 end
 
